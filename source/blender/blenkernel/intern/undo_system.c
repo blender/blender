@@ -476,9 +476,8 @@ UndoStep *BKE_undosys_step_push_init_with_type(UndoStack *ustack,
     undosys_stack_validate(ustack, false);
     return us;
   }
-  else {
-    return NULL;
-  }
+
+  return NULL;
 }
 
 UndoStep *BKE_undosys_step_push_init(UndoStack *ustack, bContext *C, const char *name)

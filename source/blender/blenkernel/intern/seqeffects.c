@@ -3269,9 +3269,8 @@ float BKE_sequencer_speed_effect_target_frame_get(const SeqRenderData *context,
   if (input == 0) { /* Current frame. */
     return floor(seq->start + s->frameMap[nr]);
   }
-  else { /* Next frame. */
-    return ceil(seq->start + s->frameMap[nr]);
-  }
+  /* Next frame. */
+  return ceil(seq->start + s->frameMap[nr]);
 }
 
 static float speed_effect_interpolation_ratio_get(SpeedControlVars *s, Sequence *seq, float cfra)
@@ -4024,7 +4023,7 @@ static int early_out_fade(Sequence *UNUSED(seq), float facf0, float facf1)
   if (facf0 == 0.0f && facf1 == 0.0f) {
     return EARLY_USE_INPUT_1;
   }
-  else if (facf0 == 1.0f && facf1 == 1.0f) {
+  if (facf0 == 1.0f && facf1 == 1.0f) {
     return EARLY_USE_INPUT_2;
   }
   return EARLY_DO_EFFECT;

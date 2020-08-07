@@ -354,43 +354,38 @@ static bool layer_bucket_isect_test(const MaskRasterLayer *layer,
     if (isect_point_tri_v2(cent, v1, v2, v3)) {
       return true;
     }
-    else {
-      if ((dist_squared_to_line_segment_v2(cent, v1, v2) < bucket_max_rad_squared) ||
-          (dist_squared_to_line_segment_v2(cent, v2, v3) < bucket_max_rad_squared) ||
-          (dist_squared_to_line_segment_v2(cent, v3, v1) < bucket_max_rad_squared)) {
-        return true;
-      }
-      else {
-        // printf("skip tri\n");
-        return false;
-      }
-    }
-  }
-  else {
-    const float *v1 = cos[face[0]];
-    const float *v2 = cos[face[1]];
-    const float *v3 = cos[face[2]];
-    const float *v4 = cos[face[3]];
 
-    if (isect_point_tri_v2(cent, v1, v2, v3)) {
+    if ((dist_squared_to_line_segment_v2(cent, v1, v2) < bucket_max_rad_squared) ||
+        (dist_squared_to_line_segment_v2(cent, v2, v3) < bucket_max_rad_squared) ||
+        (dist_squared_to_line_segment_v2(cent, v3, v1) < bucket_max_rad_squared)) {
       return true;
     }
-    else if (isect_point_tri_v2(cent, v1, v3, v4)) {
-      return true;
-    }
-    else {
-      if ((dist_squared_to_line_segment_v2(cent, v1, v2) < bucket_max_rad_squared) ||
-          (dist_squared_to_line_segment_v2(cent, v2, v3) < bucket_max_rad_squared) ||
-          (dist_squared_to_line_segment_v2(cent, v3, v4) < bucket_max_rad_squared) ||
-          (dist_squared_to_line_segment_v2(cent, v4, v1) < bucket_max_rad_squared)) {
-        return true;
-      }
-      else {
-        // printf("skip quad\n");
-        return false;
-      }
-    }
+
+    // printf("skip tri\n");
+    return false;
   }
+
+  const float *v1 = cos[face[0]];
+  const float *v2 = cos[face[1]];
+  const float *v3 = cos[face[2]];
+  const float *v4 = cos[face[3]];
+
+  if (isect_point_tri_v2(cent, v1, v2, v3)) {
+    return true;
+  }
+  if (isect_point_tri_v2(cent, v1, v3, v4)) {
+    return true;
+  }
+
+  if ((dist_squared_to_line_segment_v2(cent, v1, v2) < bucket_max_rad_squared) ||
+      (dist_squared_to_line_segment_v2(cent, v2, v3) < bucket_max_rad_squared) ||
+      (dist_squared_to_line_segment_v2(cent, v3, v4) < bucket_max_rad_squared) ||
+      (dist_squared_to_line_segment_v2(cent, v4, v1) < bucket_max_rad_squared)) {
+    return true;
+  }
+
+  // printf("skip quad\n");
+  return false;
 }
 
 static void layer_bucket_init_dummy(MaskRasterLayer *layer)
@@ -1348,9 +1343,8 @@ static float layer_bucket_depth_from_xy(MaskRasterLayer *layer, const float xy[2
     }
     return best_dist;
   }
-  else {
-    return 1.0f;
-  }
+
+  return 1.0f;
 }
 
 float BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float xy[2])

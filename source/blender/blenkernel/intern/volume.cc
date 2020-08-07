@@ -367,9 +367,8 @@ struct VolumeGrid {
     if (is_loaded && entry && !entry->error_msg.empty()) {
       return entry->error_msg.c_str();
     }
-    else {
-      return NULL;
-    }
+
+    return NULL;
   }
 
   const bool grid_is_loaded() const
@@ -1087,34 +1086,34 @@ VolumeGridType BKE_volume_grid_type(const VolumeGrid *volume_grid)
   if (grid->isType<openvdb::FloatGrid>()) {
     return VOLUME_GRID_FLOAT;
   }
-  else if (grid->isType<openvdb::Vec3fGrid>()) {
+  if (grid->isType<openvdb::Vec3fGrid>()) {
     return VOLUME_GRID_VECTOR_FLOAT;
   }
-  else if (grid->isType<openvdb::BoolGrid>()) {
+  if (grid->isType<openvdb::BoolGrid>()) {
     return VOLUME_GRID_BOOLEAN;
   }
-  else if (grid->isType<openvdb::DoubleGrid>()) {
+  if (grid->isType<openvdb::DoubleGrid>()) {
     return VOLUME_GRID_DOUBLE;
   }
-  else if (grid->isType<openvdb::Int32Grid>()) {
+  if (grid->isType<openvdb::Int32Grid>()) {
     return VOLUME_GRID_INT;
   }
-  else if (grid->isType<openvdb::Int64Grid>()) {
+  if (grid->isType<openvdb::Int64Grid>()) {
     return VOLUME_GRID_INT64;
   }
-  else if (grid->isType<openvdb::Vec3IGrid>()) {
+  if (grid->isType<openvdb::Vec3IGrid>()) {
     return VOLUME_GRID_VECTOR_INT;
   }
-  else if (grid->isType<openvdb::Vec3dGrid>()) {
+  if (grid->isType<openvdb::Vec3dGrid>()) {
     return VOLUME_GRID_VECTOR_DOUBLE;
   }
-  else if (grid->isType<openvdb::StringGrid>()) {
+  if (grid->isType<openvdb::StringGrid>()) {
     return VOLUME_GRID_STRING;
   }
-  else if (grid->isType<openvdb::MaskGrid>()) {
+  if (grid->isType<openvdb::MaskGrid>()) {
     return VOLUME_GRID_MASK;
   }
-  else if (grid->isType<openvdb::points::PointDataGrid>()) {
+  if (grid->isType<openvdb::points::PointDataGrid>()) {
     return VOLUME_GRID_POINTS;
   }
 #else

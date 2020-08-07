@@ -348,9 +348,8 @@ const GpencilModifierTypeInfo *BKE_gpencil_modifier_get_info(GpencilModifierType
       modifier_gpencil_types[type]->name[0] != '\0') {
     return modifier_gpencil_types[type];
   }
-  else {
-    return NULL;
-  }
+
+  return NULL;
 }
 
 /**

@@ -591,9 +591,8 @@ bool BKE_mesh_has_custom_loop_normals(Mesh *me)
   if (me->edit_mesh) {
     return CustomData_has_layer(&me->edit_mesh->bm->ldata, CD_CUSTOMLOOPNORMAL);
   }
-  else {
-    return CustomData_has_layer(&me->ldata, CD_CUSTOMLOOPNORMAL);
-  }
+
+  return CustomData_has_layer(&me->ldata, CD_CUSTOMLOOPNORMAL);
 }
 
 /** Free (or release) any data used by this mesh (does not free the mesh itself). */
@@ -1096,9 +1095,8 @@ Mesh *BKE_mesh_from_object(Object *ob)
   if (ob->type == OB_MESH) {
     return ob->data;
   }
-  else {
-    return NULL;
-  }
+
+  return NULL;
 }
 
 void BKE_mesh_assign_object(Main *bmain, Object *ob, Mesh *me)
@@ -1270,12 +1268,11 @@ int BKE_mesh_edge_other_vert(const MEdge *e, int v)
   if (e->v1 == v) {
     return e->v2;
   }
-  else if (e->v2 == v) {
+  if (e->v2 == v) {
     return e->v1;
   }
-  else {
-    return -1;
-  }
+
+  return -1;
 }
 
 /**
@@ -1406,30 +1403,29 @@ void BKE_mesh_do_versions_cd_flag_init(Mesh *mesh)
   if (UNLIKELY(mesh->cd_flag)) {
     return;
   }
-  else {
-    MVert *mv;
-    MEdge *med;
-    int i;
 
-    for (mv = mesh->mvert, i = 0; i < mesh->totvert; mv++, i++) {
-      if (mv->bweight != 0) {
-        mesh->cd_flag |= ME_CDFLAG_VERT_BWEIGHT;
+  MVert *mv;
+  MEdge *med;
+  int i;
+
+  for (mv = mesh->mvert, i = 0; i < mesh->totvert; mv++, i++) {
+    if (mv->bweight != 0) {
+      mesh->cd_flag |= ME_CDFLAG_VERT_BWEIGHT;
+      break;
+    }
+  }
+
+  for (med = mesh->medge, i = 0; i < mesh->totedge; med++, i++) {
+    if (med->bweight != 0) {
+      mesh->cd_flag |= ME_CDFLAG_EDGE_BWEIGHT;
+      if (mesh->cd_flag & ME_CDFLAG_EDGE_CREASE) {
         break;
       }
     }
-
-    for (med = mesh->medge, i = 0; i < mesh->totedge; med++, i++) {
-      if (med->bweight != 0) {
-        mesh->cd_flag |= ME_CDFLAG_EDGE_BWEIGHT;
-        if (mesh->cd_flag & ME_CDFLAG_EDGE_CREASE) {
-          break;
-        }
-      }
-      if (med->crease != 0) {
-        mesh->cd_flag |= ME_CDFLAG_EDGE_CREASE;
-        if (mesh->cd_flag & ME_CDFLAG_EDGE_BWEIGHT) {
-          break;
-        }
+    if (med->crease != 0) {
+      mesh->cd_flag |= ME_CDFLAG_EDGE_CREASE;
+      if (mesh->cd_flag & ME_CDFLAG_EDGE_BWEIGHT) {
+        break;
       }
     }
   }

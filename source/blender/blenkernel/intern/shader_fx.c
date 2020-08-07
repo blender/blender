@@ -160,9 +160,8 @@ const ShaderFxTypeInfo *BKE_shaderfx_get_info(ShaderFxType type)
   if (type < NUM_SHADER_FX_TYPES && type > 0 && shader_fx_types[type]->name[0] != '\0') {
     return shader_fx_types[type];
   }
-  else {
-    return NULL;
-  }
+
+  return NULL;
 }
 
 /**

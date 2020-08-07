@@ -666,14 +666,14 @@ bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
   if (ob->type == OB_HAIR) {
     return (mti->modifyHair != NULL) || (mti->flags & eModifierTypeFlag_AcceptsVertexCosOnly);
   }
-  else if (ob->type == OB_POINTCLOUD) {
+  if (ob->type == OB_POINTCLOUD) {
     return (mti->modifyPointCloud != NULL) ||
            (mti->flags & eModifierTypeFlag_AcceptsVertexCosOnly);
   }
-  else if (ob->type == OB_VOLUME) {
+  if (ob->type == OB_VOLUME) {
     return (mti->modifyVolume != NULL);
   }
-  else if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
+  if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
     if (ob->type == OB_LATTICE && (mti->flags & eModifierTypeFlag_AcceptsVertexCosOnly) == 0) {
       return false;
     }
@@ -1597,9 +1597,8 @@ bool BKE_object_pose_context_check(const Object *ob)
   if ((ob) && (ob->type == OB_ARMATURE) && (ob->pose) && (ob->mode & OB_MODE_POSE)) {
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 Object *BKE_object_pose_armature_get(Object *ob)
@@ -3207,9 +3206,8 @@ bool BKE_object_empty_image_frame_is_visible_in_view3d(const Object *ob, const R
   if (rv3d->is_persp) {
     return (visibility_flag & OB_EMPTY_IMAGE_HIDE_PERSPECTIVE) == 0;
   }
-  else {
-    return (visibility_flag & OB_EMPTY_IMAGE_HIDE_ORTHOGRAPHIC) == 0;
-  }
+
+  return (visibility_flag & OB_EMPTY_IMAGE_HIDE_ORTHOGRAPHIC) == 0;
 }
 
 bool BKE_object_empty_image_data_is_visible_in_view3d(const Object *ob, const RegionView3D *rv3d)
@@ -3269,31 +3267,30 @@ bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
   if ((ob->transflag & OB_DUPLI) == 0) {
     return ok;
   }
-  else {
-    ListBase *lb;
-    DupliObject *dob;
-    lb = object_duplilist(depsgraph, scene, ob);
-    for (dob = lb->first; dob; dob = dob->next) {
-      if ((use_hidden == false) && (dob->no_draw != 0)) {
-        /* pass */
-      }
-      else {
-        BoundBox *bb = BKE_object_boundbox_get(dob->ob);
 
-        if (bb) {
-          int i;
-          for (i = 0; i < 8; i++) {
-            float vec[3];
-            mul_v3_m4v3(vec, dob->mat, bb->vec[i]);
-            minmax_v3v3_v3(r_min, r_max, vec);
-          }
+  ListBase *lb;
+  DupliObject *dob;
+  lb = object_duplilist(depsgraph, scene, ob);
+  for (dob = lb->first; dob; dob = dob->next) {
+    if ((use_hidden == false) && (dob->no_draw != 0)) {
+      /* pass */
+    }
+    else {
+      BoundBox *bb = BKE_object_boundbox_get(dob->ob);
 
-          ok = true;
+      if (bb) {
+        int i;
+        for (i = 0; i < 8; i++) {
+          float vec[3];
+          mul_v3_m4v3(vec, dob->mat, bb->vec[i]);
+          minmax_v3v3_v3(r_min, r_max, vec);
         }
+
+        ok = true;
       }
     }
-    free_object_duplilist(lb); /* does restore */
   }
+  free_object_duplilist(lb); /* does restore */
 
   return ok;
 }
@@ -3636,9 +3633,8 @@ static int pc_cmp(const void *a, const void *b)
   if (POINTER_AS_INT(ad->data) > POINTER_AS_INT(bd->data)) {
     return 1;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 int BKE_object_insert_ptcache(Object *ob)
@@ -3917,12 +3913,11 @@ bool BKE_object_flag_test_recursive(const Object *ob, short flag)
   if (ob->flag & flag) {
     return true;
   }
-  else if (ob->parent) {
+  if (ob->parent) {
     return BKE_object_flag_test_recursive(ob->parent, flag);
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 bool BKE_object_is_child_recursive(const Object *ob_parent, const Object *ob_child)
@@ -4029,15 +4024,15 @@ static bool constructive_modifier_is_deform_modified(ModifierData *md)
            (amd->curve_ob != NULL && object_moves_in_time(amd->curve_ob)) ||
            (amd->offset_ob != NULL && object_moves_in_time(amd->offset_ob));
   }
-  else if (md->type == eModifierType_Mirror) {
+  if (md->type == eModifierType_Mirror) {
     MirrorModifierData *mmd = (MirrorModifierData *)md;
     return mmd->mirror_ob != NULL && object_moves_in_time(mmd->mirror_ob);
   }
-  else if (md->type == eModifierType_Screw) {
+  if (md->type == eModifierType_Screw) {
     ScrewModifierData *smd = (ScrewModifierData *)md;
     return smd->ob_axis != NULL && object_moves_in_time(smd->ob_axis);
   }
-  else if (md->type == eModifierType_MeshSequenceCache) {
+  if (md->type == eModifierType_MeshSequenceCache) {
     /* NOTE: Not ideal because it's unknown whether topology changes or not.
      * This will be detected later, so by assuming it's only deformation
      * going on here we allow to bake deform-only mesh to Alembic and have

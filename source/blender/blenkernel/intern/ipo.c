@@ -517,9 +517,8 @@ static const char *mtex_adrcodes_to_paths(int adrcode, int *UNUSED(array_index))
     BLI_snprintf(buf, 128, "%s.%s", base, prop);
     return buf;
   }
-  else {
-    return NULL;
-  }
+
+  return NULL;
 }
 
 /* Texture types */
@@ -1074,10 +1073,9 @@ static char *get_rna_access(ID *id,
 
     return NULL;
   }
-  else {
-    if (array_index) {
-      *array_index = dummy_index;
-    }
+
+  if (array_index) {
+    *array_index = dummy_index;
   }
 
   /* 'buf' _must_ be initialized in this block */
@@ -1976,7 +1974,7 @@ void do_versions_ipos_to_animato(Main *bmain)
     CLOG_WARN(&LOG, "Animation data too new to convert (Version %d)", bmain->versionfile);
     return;
   }
-  else if (G.debug & G_DEBUG) {
+  if (G.debug & G_DEBUG) {
     printf("INFO: Converting to Animato...\n");
   }
 

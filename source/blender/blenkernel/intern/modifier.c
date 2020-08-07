@@ -112,9 +112,8 @@ const ModifierTypeInfo *BKE_modifier_get_info(ModifierType type)
   if (type < NUM_MODIFIER_TYPES && modifier_types[type] && modifier_types[type]->name[0] != '\0') {
     return modifier_types[type];
   }
-  else {
-    return NULL;
-  }
+
+  return NULL;
 }
 
 /**
@@ -919,11 +918,10 @@ const char *BKE_modifier_path_relbase(Main *bmain, Object *ob)
   if (G.relbase_valid || ID_IS_LINKED(ob)) {
     return ID_BLEND_PATH(bmain, &ob->id);
   }
-  else {
-    /* last resort, better then using "" which resolves to the current
-     * working directory */
-    return BKE_tempdir_session();
-  }
+
+  /* last resort, better then using "" which resolves to the current
+   * working directory */
+  return BKE_tempdir_session();
 }
 
 const char *BKE_modifier_path_relbase_from_global(Object *ob)
@@ -931,11 +929,10 @@ const char *BKE_modifier_path_relbase_from_global(Object *ob)
   if (G.relbase_valid || ID_IS_LINKED(ob)) {
     return ID_BLEND_PATH_FROM_GLOBAL(&ob->id);
   }
-  else {
-    /* last resort, better then using "" which resolves to the current
-     * working directory */
-    return BKE_tempdir_session();
-  }
+
+  /* last resort, better then using "" which resolves to the current
+   * working directory */
+  return BKE_tempdir_session();
 }
 
 /* initializes the path with either */

@@ -128,10 +128,10 @@ BLI_INLINE eAverageWith read_displacement_grid(const MDisps *displacement_grid,
   if (x == 0 && y == 0) {
     return AVERAGE_WITH_ALL;
   }
-  else if (x == 0) {
+  if (x == 0) {
     return AVERAGE_WITH_PREV;
   }
-  else if (y == 0) {
+  if (y == 0) {
     return AVERAGE_WITH_NEXT;
   }
   return AVERAGE_WITH_NONE;
@@ -321,9 +321,8 @@ static int displacement_get_face_corner(MultiresDisplacementData *data,
     float dummy_corner_u, dummy_corner_v;
     return BKE_subdiv_rotate_quad_to_corner(u, v, &dummy_corner_u, &dummy_corner_v);
   }
-  else {
-    return poly_corner->corner;
-  }
+
+  return poly_corner->corner;
 }
 
 static void initialize(SubdivDisplacement *displacement)

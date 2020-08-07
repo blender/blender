@@ -73,9 +73,8 @@ static bool mesh_remap_bvhtree_query_nearest(BVHTreeFromMesh *treedata,
     *r_hit_dist = sqrtf(nearest->dist_sq);
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 static bool mesh_remap_bvhtree_query_raycast(BVHTreeFromMesh *treedata,
@@ -107,9 +106,8 @@ static bool mesh_remap_bvhtree_query_raycast(BVHTreeFromMesh *treedata,
     *r_hit_dist = rayhit->dist;
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 /** \} */

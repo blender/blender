@@ -664,11 +664,11 @@ bool BKE_texture_dependsOnTime(const struct Tex *texture)
   if (texture->ima && BKE_image_is_animated(texture->ima)) {
     return true;
   }
-  else if (texture->adt) {
+  if (texture->adt) {
     /* assume anything in adt means the texture is animated */
     return true;
   }
-  else if (texture->type == TEX_NOISE) {
+  if (texture->type == TEX_NOISE) {
     /* noise always varies with time */
     return true;
   }

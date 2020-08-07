@@ -203,12 +203,11 @@ static int getEdgeIndex(CCGSubSurf *ss, CCGEdge *e, int x, int edgeSize)
   if (x == 0) {
     return v0idx;
   }
-  else if (x == edgeSize - 1) {
+  if (x == edgeSize - 1) {
     return v1idx;
   }
-  else {
-    return edgeBase + x - 1;
-  }
+
+  return edgeBase + x - 1;
 }
 
 static int getFaceIndex(
@@ -221,42 +220,39 @@ static int getFaceIndex(
     CCGVert *v = ccgSubSurf_getFaceVert(f, S);
     return *((int *)ccgSubSurf_getVertUserData(ss, v));
   }
-  else if (x == gridSize - 1) {
+  if (x == gridSize - 1) {
     CCGVert *v = ccgSubSurf_getFaceVert(f, S);
     CCGEdge *e = ccgSubSurf_getFaceEdge(f, S);
     int edgeBase = *((int *)ccgSubSurf_getEdgeUserData(ss, e));
     if (v == ccgSubSurf_getEdgeVert0(e)) {
       return edgeBase + (gridSize - 1 - y) - 1;
     }
-    else {
-      return edgeBase + (edgeSize - 2 - 1) - ((gridSize - 1 - y) - 1);
-    }
+
+    return edgeBase + (edgeSize - 2 - 1) - ((gridSize - 1 - y) - 1);
   }
-  else if (y == gridSize - 1) {
+  if (y == gridSize - 1) {
     CCGVert *v = ccgSubSurf_getFaceVert(f, S);
     CCGEdge *e = ccgSubSurf_getFaceEdge(f, (S + numVerts - 1) % numVerts);
     int edgeBase = *((int *)ccgSubSurf_getEdgeUserData(ss, e));
     if (v == ccgSubSurf_getEdgeVert0(e)) {
       return edgeBase + (gridSize - 1 - x) - 1;
     }
-    else {
-      return edgeBase + (edgeSize - 2 - 1) - ((gridSize - 1 - x) - 1);
-    }
+
+    return edgeBase + (edgeSize - 2 - 1) - ((gridSize - 1 - x) - 1);
   }
-  else if (x == 0 && y == 0) {
+  if (x == 0 && y == 0) {
     return faceBase;
   }
-  else if (x == 0) {
+  if (x == 0) {
     S = (S + numVerts - 1) % numVerts;
     return faceBase + 1 + (gridSize - 2) * S + (y - 1);
   }
-  else if (y == 0) {
+  if (y == 0) {
     return faceBase + 1 + (gridSize - 2) * S + (x - 1);
   }
-  else {
-    return faceBase + 1 + (gridSize - 2) * numVerts + S * (gridSize - 2) * (gridSize - 2) +
-           (y - 1) * (gridSize - 2) + (x - 1);
-  }
+
+  return faceBase + 1 + (gridSize - 2) * numVerts + S * (gridSize - 2) * (gridSize - 2) +
+         (y - 1) * (gridSize - 2) + (x - 1);
 }
 
 static void get_face_uv_map_vert(

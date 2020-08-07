@@ -533,14 +533,14 @@ static bool BKE_fluid_modifier_init(
     /* Allocate fluid. */
     return BKE_fluid_reallocate_fluid(fds, fds->res, 0);
   }
-  else if (fmd->type & MOD_FLUID_TYPE_FLOW) {
+  if (fmd->type & MOD_FLUID_TYPE_FLOW) {
     if (!fmd->flow) {
       BKE_fluid_modifier_create_type_data(fmd);
     }
     fmd->time = scene_framenr;
     return true;
   }
-  else if (fmd->type & MOD_FLUID_TYPE_EFFEC) {
+  if (fmd->type & MOD_FLUID_TYPE_EFFEC) {
     if (!fmd->effector) {
       BKE_fluid_modifier_create_type_data(fmd);
     }
@@ -575,7 +575,7 @@ static int get_light(ViewLayer *view_layer, float *light)
         copy_v3_v3(light, base_tmp->object->obmat[3]);
         return 1;
       }
-      else if (!found_light) {
+      if (!found_light) {
         copy_v3_v3(light, base_tmp->object->obmat[3]);
         found_light = 1;
       }

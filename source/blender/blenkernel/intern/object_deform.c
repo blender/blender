@@ -145,7 +145,7 @@ MDeformVert *BKE_object_defgroup_data_create(ID *id)
     me->dvert = CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, me->totvert);
     return me->dvert;
   }
-  else if (GS(id->name) == ID_LT) {
+  if (GS(id->name) == ID_LT) {
     Lattice *lt = (Lattice *)id;
     lt->dvert = MEM_callocN(sizeof(MDeformVert) * lt->pntsu * lt->pntsv * lt->pntsw,
                             "lattice deformVert");

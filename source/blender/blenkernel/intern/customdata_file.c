@@ -101,9 +101,8 @@ static int cdf_endian(void)
   if (ENDIAN_ORDER == L_ENDIAN) {
     return CDF_ENDIAN_LITTLE;
   }
-  else {
-    return CDF_ENDIAN_BIG;
-  }
+
+  return CDF_ENDIAN_BIG;
 }
 
 CDataFile *cdf_create(int type)
@@ -318,9 +317,8 @@ bool cdf_read_layer(CDataFile *cdf, CDataFileLayer *blay)
     if (&cdf->layer[a] == blay) {
       break;
     }
-    else {
-      offset += cdf->layer[a].datasize;
-    }
+
+    offset += cdf->layer[a].datasize;
   }
 
   return (fseek(cdf->readf, offset, SEEK_SET) == 0);

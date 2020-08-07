@@ -124,13 +124,11 @@ static MaskSplinePoint *mask_spline_point_next(MaskSpline *spline,
     if (spline->flag & MASK_SPLINE_CYCLIC) {
       return &points_array[0];
     }
-    else {
-      return NULL;
-    }
+
+    return NULL;
   }
-  else {
-    return point + 1;
-  }
+
+  return point + 1;
 }
 
 static MaskSplinePoint *mask_spline_point_prev(MaskSpline *spline,
@@ -141,13 +139,11 @@ static MaskSplinePoint *mask_spline_point_prev(MaskSpline *spline,
     if (spline->flag & MASK_SPLINE_CYCLIC) {
       return &points_array[spline->tot_point - 1];
     }
-    else {
-      return NULL;
-    }
+
+    return NULL;
   }
-  else {
-    return point - 1;
-  }
+
+  return point - 1;
 }
 
 BezTriple *BKE_mask_spline_point_next_bezt(MaskSpline *spline,
@@ -158,13 +154,11 @@ BezTriple *BKE_mask_spline_point_next_bezt(MaskSpline *spline,
     if (spline->flag & MASK_SPLINE_CYCLIC) {
       return &(points_array[0].bezt);
     }
-    else {
-      return NULL;
-    }
+
+    return NULL;
   }
-  else {
-    return &((point + 1))->bezt;
-  }
+
+  return &((point + 1))->bezt;
 }
 
 MaskSplinePoint *BKE_mask_spline_point_array(MaskSpline *spline)
@@ -703,15 +697,14 @@ float BKE_mask_point_weight_scalar(MaskSpline *spline, MaskSplinePoint *point, c
   if (!bezt_next) {
     return bezt->weight;
   }
-  else if (u <= 0.0f) {
+  if (u <= 0.0f) {
     return bezt->weight;
   }
-  else if (u >= 1.0f) {
+  if (u >= 1.0f) {
     return bezt_next->weight;
   }
-  else {
-    return mask_point_interp_weight(bezt, bezt_next, u);
-  }
+
+  return mask_point_interp_weight(bezt, bezt_next, u);
 }
 
 float BKE_mask_point_weight(MaskSpline *spline, MaskSplinePoint *point, const float u)
@@ -724,53 +717,51 @@ float BKE_mask_point_weight(MaskSpline *spline, MaskSplinePoint *point, const fl
   if (!bezt_next) {
     return bezt->weight;
   }
-  else if (u <= 0.0f) {
+  if (u <= 0.0f) {
     return bezt->weight;
   }
-  else if (u >= 1.0f) {
+  if (u >= 1.0f) {
     return bezt_next->weight;
   }
-  else {
-    float cur_u = 0.0f, cur_w = 0.0f, next_u = 0.0f, next_w = 0.0f, fac; /* Quite warnings */
-    int i;
 
-    for (i = 0; i <= point->tot_uw; i++) {
+  float cur_u = 0.0f, cur_w = 0.0f, next_u = 0.0f, next_w = 0.0f, fac; /* Quite warnings */
+  int i;
 
-      if (i == 0) {
-        cur_u = 0.0f;
-        cur_w = 1.0f; /* mask_point_interp_weight will scale it */
-      }
-      else {
-        cur_u = point->uw[i - 1].u;
-        cur_w = point->uw[i - 1].w;
-      }
+  for (i = 0; i <= point->tot_uw; i++) {
 
-      if (i == point->tot_uw) {
-        next_u = 1.0f;
-        next_w = 1.0f; /* mask_point_interp_weight will scale it */
-      }
-      else {
-        next_u = point->uw[i].u;
-        next_w = point->uw[i].w;
-      }
-
-      if (u >= cur_u && u <= next_u) {
-        break;
-      }
-    }
-
-    fac = (u - cur_u) / (next_u - cur_u);
-
-    cur_w *= mask_point_interp_weight(bezt, bezt_next, cur_u);
-    next_w *= mask_point_interp_weight(bezt, bezt_next, next_u);
-
-    if (spline->weight_interp == MASK_SPLINE_INTERP_EASE) {
-      return cur_w + (next_w - cur_w) * (3.0f * fac * fac - 2.0f * fac * fac * fac);
+    if (i == 0) {
+      cur_u = 0.0f;
+      cur_w = 1.0f; /* mask_point_interp_weight will scale it */
     }
     else {
-      return (1.0f - fac) * cur_w + fac * next_w;
+      cur_u = point->uw[i - 1].u;
+      cur_w = point->uw[i - 1].w;
+    }
+
+    if (i == point->tot_uw) {
+      next_u = 1.0f;
+      next_w = 1.0f; /* mask_point_interp_weight will scale it */
+    }
+    else {
+      next_u = point->uw[i].u;
+      next_w = point->uw[i].w;
+    }
+
+    if (u >= cur_u && u <= next_u) {
+      break;
     }
   }
+
+  fac = (u - cur_u) / (next_u - cur_u);
+
+  cur_w *= mask_point_interp_weight(bezt, bezt_next, cur_u);
+  next_w *= mask_point_interp_weight(bezt, bezt_next, next_u);
+
+  if (spline->weight_interp == MASK_SPLINE_INTERP_EASE) {
+    return cur_w + (next_w - cur_w) * (3.0f * fac * fac - 2.0f * fac * fac * fac);
+  }
+
+  return (1.0f - fac) * cur_w + fac * next_w;
 }
 
 MaskSplinePointUW *BKE_mask_point_sort_uw(MaskSplinePoint *point, MaskSplinePointUW *uw)
@@ -1642,7 +1633,7 @@ MaskLayerShape *BKE_mask_layer_shape_find_frame(MaskLayer *masklay, const int fr
     if (frame == masklay_shape->frame) {
       return masklay_shape;
     }
-    else if (frame < masklay_shape->frame) {
+    if (frame < masklay_shape->frame) {
       break;
     }
   }
@@ -1667,17 +1658,16 @@ int BKE_mask_layer_shape_find_frame_range(MaskLayer *masklay,
       *r_masklay_shape_b = NULL;
       return 1;
     }
-    else if (frame < masklay_shape->frame) {
+    if (frame < masklay_shape->frame) {
       if (masklay_shape->prev) {
         *r_masklay_shape_a = masklay_shape->prev;
         *r_masklay_shape_b = masklay_shape;
         return 2;
       }
-      else {
-        *r_masklay_shape_a = masklay_shape;
-        *r_masklay_shape_b = NULL;
-        return 1;
-      }
+
+      *r_masklay_shape_a = masklay_shape;
+      *r_masklay_shape_b = NULL;
+      return 1;
     }
   }
 
@@ -1686,12 +1676,11 @@ int BKE_mask_layer_shape_find_frame_range(MaskLayer *masklay,
     *r_masklay_shape_b = NULL;
     return 1;
   }
-  else {
-    *r_masklay_shape_a = NULL;
-    *r_masklay_shape_b = NULL;
 
-    return 0;
-  }
+  *r_masklay_shape_a = NULL;
+  *r_masklay_shape_b = NULL;
+
+  return 0;
 }
 
 MaskLayerShape *BKE_mask_layer_shape_verify_frame(MaskLayer *masklay, const int frame)
@@ -1738,12 +1727,11 @@ static int mask_layer_shape_sort_cb(const void *masklay_shape_a_ptr,
   if (masklay_shape_a->frame < masklay_shape_b->frame) {
     return -1;
   }
-  else if (masklay_shape_a->frame > masklay_shape_b->frame) {
+  if (masklay_shape_a->frame > masklay_shape_b->frame) {
     return 1;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 void BKE_mask_layer_shape_sort(MaskLayer *masklay)

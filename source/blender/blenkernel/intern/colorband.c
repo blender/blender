@@ -587,7 +587,7 @@ static int vergcband(const void *a1, const void *a2)
   if (x1->pos > x2->pos) {
     return 1;
   }
-  else if (x1->pos < x2->pos) {
+  if (x1->pos < x2->pos) {
     return -1;
   }
   return 0;
@@ -620,18 +620,17 @@ CBData *BKE_colorband_element_add(struct ColorBand *coba, float position)
   if (coba->tot == MAXCOLORBAND) {
     return NULL;
   }
+
+  CBData *xnew;
+
+  xnew = &coba->data[coba->tot];
+  xnew->pos = position;
+
+  if (coba->tot != 0) {
+    BKE_colorband_evaluate(coba, position, &xnew->r);
+  }
   else {
-    CBData *xnew;
-
-    xnew = &coba->data[coba->tot];
-    xnew->pos = position;
-
-    if (coba->tot != 0) {
-      BKE_colorband_evaluate(coba, position, &xnew->r);
-    }
-    else {
-      zero_v4(&xnew->r);
-    }
+    zero_v4(&xnew->r);
   }
 
   coba->tot++;

@@ -812,9 +812,8 @@ int txt_calc_tab_right(TextLine *tl, int ch)
 
     return i - ch;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 void txt_move_left(Text *text, const bool sel)
@@ -1664,9 +1663,8 @@ int txt_find_string(Text *text, const char *findstr, int wrap, int match_case)
     txt_move_to(text, newl, newc + strlen(findstr), 1);
     return 1;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 /** \} */
@@ -1797,7 +1795,7 @@ void txt_delete_char(Text *text)
     txt_make_dirty(text);
     return;
   }
-  else if (text->curc == text->curl->len) { /* Appending two lines */
+  if (text->curc == text->curl->len) { /* Appending two lines */
     if (text->curl->next) {
       txt_combine_lines(text, text->curl, text->curl->next);
       txt_pop_sel(text);
@@ -1844,7 +1842,7 @@ void txt_backspace_char(Text *text)
     txt_make_dirty(text);
     return;
   }
-  else if (text->curc == 0) { /* Appending two lines */
+  if (text->curc == 0) { /* Appending two lines */
     if (!text->curl->prev) {
       return;
     }
@@ -2052,10 +2050,9 @@ static void txt_select_prefix(Text *text, const char *add, bool skip_blank_lines
       }
       break;
     }
-    else {
-      text->curl = text->curl->next;
-      num++;
-    }
+
+    text->curl = text->curl->next;
+    num++;
   }
 
   while (num > 0) {
@@ -2140,10 +2137,9 @@ static bool txt_select_unprefix(Text *text, const char *remove, const bool requi
       }
       break;
     }
-    else {
-      text->curl = text->curl->next;
-      num++;
-    }
+
+    text->curl = text->curl->next;
+    num++;
   }
 
   if (unindented_first) {
@@ -2253,9 +2249,8 @@ int txt_setcurr_tab_spaces(Text *text, int space)
     if (i == text->curc) {
       return i;
     }
-    else {
-      i++;
-    }
+
+    i++;
   }
   if (strstr(text->curl->line, word)) {
     /* if we find a ':' on this line, then add a tab but not if it is:
@@ -2270,7 +2265,7 @@ int txt_setcurr_tab_spaces(Text *text, int space)
       if (ch == '#') {
         break;
       }
-      else if (ch == ':') {
+      if (ch == ':') {
         is_indent = 1;
       }
       else if (ch != ' ' && ch != '\t') {
@@ -2309,7 +2304,7 @@ int text_check_bracket(const char ch)
     if (ch == opens[a]) {
       return a + 1;
     }
-    else if (ch == close[a]) {
+    if (ch == close[a]) {
       return -(a + 1);
     }
   }

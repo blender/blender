@@ -717,9 +717,8 @@ static bool put_imbuf_cache(
     IMB_moviecache_put(clip->cache->moviecache, &key, ibuf);
     return true;
   }
-  else {
-    return IMB_moviecache_put_if_possible(clip->cache->moviecache, &key, ibuf);
-  }
+
+  return IMB_moviecache_put_if_possible(clip->cache->moviecache, &key, ibuf);
 }
 
 static bool moviecache_check_free_proxy(ImBuf *UNUSED(ibuf), void *userkey, void *UNUSED(userdata))

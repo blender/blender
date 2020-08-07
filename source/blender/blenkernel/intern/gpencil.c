@@ -381,7 +381,7 @@ bGPDframe *BKE_gpencil_frame_addcopy(bGPDlayer *gpl, int cframe)
     /* no layer */
     return NULL;
   }
-  else if (gpl->actframe == NULL) {
+  if (gpl->actframe == NULL) {
     /* no active frame, so just create a new one from scratch */
     return BKE_gpencil_frame_addnew(gpl, cframe);
   }
@@ -398,7 +398,7 @@ bGPDframe *BKE_gpencil_frame_addcopy(bGPDlayer *gpl, int cframe)
       found = true;
       break;
     }
-    else if (gpf->framenum == cframe) {
+    if (gpf->framenum == cframe) {
       /* This only happens when we're editing with framelock on...
        * - Delete the new frame and don't do anything else here...
        */
@@ -1009,7 +1009,7 @@ bGPDframe *BKE_gpencil_layer_frame_get(bGPDlayer *gpl, int cframe, eGP_GetFrame_
           found = true;
           break;
         }
-        else if ((gpf->next) && (gpf->next->framenum > cframe)) {
+        if ((gpf->next) && (gpf->next->framenum > cframe)) {
           found = true;
           break;
         }
@@ -1484,10 +1484,9 @@ Material *BKE_gpencil_object_material_ensure_from_brush(Main *bmain, Object *ob,
 
     return ma;
   }
-  else {
-    /* using active material instead */
-    return BKE_object_material_get(ob, ob->actcol);
-  }
+
+  /* using active material instead */
+  return BKE_object_material_get(ob, ob->actcol);
 }
 
 /**
@@ -1546,9 +1545,8 @@ Material *BKE_gpencil_object_material_from_brush_get(Object *ob, Brush *brush)
     Material *ma = BKE_gpencil_brush_material_get(brush);
     return ma;
   }
-  else {
-    return BKE_object_material_get(ob, ob->actcol);
-  }
+
+  return BKE_object_material_get(ob, ob->actcol);
 }
 
 /**
@@ -1562,9 +1560,8 @@ int BKE_gpencil_object_material_get_index_from_brush(Object *ob, Brush *brush)
   if ((brush) && (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED)) {
     return BKE_gpencil_object_material_index_get(ob, brush->gpencil_settings->material);
   }
-  else {
-    return ob->actcol - 1;
-  }
+
+  return ob->actcol - 1;
 }
 
 /**
@@ -1581,9 +1578,8 @@ Material *BKE_gpencil_object_material_ensure_from_active_input_toolsettings(Main
     return BKE_gpencil_object_material_ensure_from_active_input_brush(
         bmain, ob, ts->gp_paint->paint.brush);
   }
-  else {
-    return BKE_gpencil_object_material_ensure_from_active_input_brush(bmain, ob, NULL);
-  }
+
+  return BKE_gpencil_object_material_ensure_from_active_input_brush(bmain, ob, NULL);
 }
 
 /**
@@ -1602,7 +1598,7 @@ Material *BKE_gpencil_object_material_ensure_from_active_input_brush(Main *bmain
     if (ma) {
       return ma;
     }
-    else if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
+    if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
       /* it is easier to just unpin a NULL material, instead of setting a new one */
       brush->gpencil_settings->flag &= ~GP_BRUSH_MATERIAL_PINNED;
     }
@@ -2425,31 +2421,29 @@ void BKE_gpencil_parent_matrix_get(const Depsgraph *depsgraph,
     unit_m4(diff_mat);
     return;
   }
-  else {
-    if ((gpl->partype == PAROBJECT) || (gpl->partype == PARSKEL)) {
-      mul_m4_m4m4(diff_mat, obparent_eval->obmat, gpl->inverse);
+
+  if ((gpl->partype == PAROBJECT) || (gpl->partype == PARSKEL)) {
+    mul_m4_m4m4(diff_mat, obparent_eval->obmat, gpl->inverse);
+    add_v3_v3(diff_mat[3], ob_eval->obmat[3]);
+    return;
+  }
+  if (gpl->partype == PARBONE) {
+    bPoseChannel *pchan = BKE_pose_channel_find_name(obparent_eval->pose, gpl->parsubstr);
+    if (pchan) {
+      float tmp_mat[4][4];
+      mul_m4_m4m4(tmp_mat, obparent_eval->obmat, pchan->pose_mat);
+      mul_m4_m4m4(diff_mat, tmp_mat, gpl->inverse);
       add_v3_v3(diff_mat[3], ob_eval->obmat[3]);
-      return;
-    }
-    else if (gpl->partype == PARBONE) {
-      bPoseChannel *pchan = BKE_pose_channel_find_name(obparent_eval->pose, gpl->parsubstr);
-      if (pchan) {
-        float tmp_mat[4][4];
-        mul_m4_m4m4(tmp_mat, obparent_eval->obmat, pchan->pose_mat);
-        mul_m4_m4m4(diff_mat, tmp_mat, gpl->inverse);
-        add_v3_v3(diff_mat[3], ob_eval->obmat[3]);
-      }
-      else {
-        /* if bone not found use object (armature) */
-        mul_m4_m4m4(diff_mat, obparent_eval->obmat, gpl->inverse);
-        add_v3_v3(diff_mat[3], ob_eval->obmat[3]);
-      }
-      return;
     }
     else {
-      unit_m4(diff_mat); /* not defined type */
+      /* if bone not found use object (armature) */
+      mul_m4_m4m4(diff_mat, obparent_eval->obmat, gpl->inverse);
+      add_v3_v3(diff_mat[3], ob_eval->obmat[3]);
     }
+    return;
   }
+
+  unit_m4(diff_mat); /* not defined type */
 }
 
 /**

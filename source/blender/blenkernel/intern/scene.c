@@ -839,83 +839,78 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
 
     return sce_copy;
   }
-  else {
-    eDupli_ID_Flags duplicate_flags = U.dupflag | USER_DUP_OBJECT;
 
-    BKE_id_copy(bmain, (ID *)sce, (ID **)&sce_copy);
-    id_us_min(&sce_copy->id);
-    id_us_ensure_real(&sce_copy->id);
+  eDupli_ID_Flags duplicate_flags = U.dupflag | USER_DUP_OBJECT;
 
-    BKE_animdata_duplicate_id_action(bmain, &sce_copy->id, duplicate_flags);
+  BKE_id_copy(bmain, (ID *)sce, (ID **)&sce_copy);
+  id_us_min(&sce_copy->id);
+  id_us_ensure_real(&sce_copy->id);
 
-    /* Extra actions, most notably SCE_FULL_COPY also duplicates several 'children' datablocks. */
+  BKE_animdata_duplicate_id_action(bmain, &sce_copy->id, duplicate_flags);
 
-    if (type == SCE_COPY_FULL) {
-      /* Scene duplication is always root of duplication currently. */
-      const bool is_subprocess = false;
+  /* Extra actions, most notably SCE_FULL_COPY also duplicates several 'children' datablocks. */
 
-      if (!is_subprocess) {
-        BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
-        BKE_main_id_clear_newpoins(bmain);
-        /* In case root duplicated ID is linked, assume we want to get a local copy of it and
-         * duplicate all expected linked data. */
-        if (ID_IS_LINKED(sce)) {
-          duplicate_flags |= USER_DUP_LINKED_ID;
-        }
+  if (type == SCE_COPY_FULL) {
+    /* Scene duplication is always root of duplication currently. */
+    const bool is_subprocess = false;
+
+    if (!is_subprocess) {
+      BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
+      BKE_main_id_clear_newpoins(bmain);
+      /* In case root duplicated ID is linked, assume we want to get a local copy of it and
+       * duplicate all expected linked data. */
+      if (ID_IS_LINKED(sce)) {
+        duplicate_flags |= USER_DUP_LINKED_ID;
       }
+    }
 
-      /* Copy Freestyle LineStyle datablocks. */
-      LISTBASE_FOREACH (ViewLayer *, view_layer_dst, &sce_copy->view_layers) {
-        LISTBASE_FOREACH (
-            FreestyleLineSet *, lineset, &view_layer_dst->freestyle_config.linesets) {
-          BKE_id_copy_for_duplicate(bmain, (ID *)lineset->linestyle, duplicate_flags);
-        }
+    /* Copy Freestyle LineStyle datablocks. */
+    LISTBASE_FOREACH (ViewLayer *, view_layer_dst, &sce_copy->view_layers) {
+      LISTBASE_FOREACH (FreestyleLineSet *, lineset, &view_layer_dst->freestyle_config.linesets) {
+        BKE_id_copy_for_duplicate(bmain, (ID *)lineset->linestyle, duplicate_flags);
       }
+    }
 
-      /* Full copy of world (included animations) */
-      BKE_id_copy_for_duplicate(bmain, (ID *)sce->world, duplicate_flags);
+    /* Full copy of world (included animations) */
+    BKE_id_copy_for_duplicate(bmain, (ID *)sce->world, duplicate_flags);
 
-      /* Full copy of GreasePencil. */
-      BKE_id_copy_for_duplicate(bmain, (ID *)sce->gpd, duplicate_flags);
+    /* Full copy of GreasePencil. */
+    BKE_id_copy_for_duplicate(bmain, (ID *)sce->gpd, duplicate_flags);
 
-      /* Deep-duplicate collections and objects (using preferences' settings for which sub-data to
-       * duplicate along the object itself). */
-      BKE_collection_duplicate(bmain,
-                               NULL,
-                               sce_copy->master_collection,
-                               duplicate_flags,
-                               LIB_ID_DUPLICATE_IS_SUBPROCESS);
+    /* Deep-duplicate collections and objects (using preferences' settings for which sub-data to
+     * duplicate along the object itself). */
+    BKE_collection_duplicate(
+        bmain, NULL, sce_copy->master_collection, duplicate_flags, LIB_ID_DUPLICATE_IS_SUBPROCESS);
 
-      if (!is_subprocess) {
-        /* This code will follow into all ID links using an ID tagged with LIB_TAG_NEW.*/
-        BKE_libblock_relink_to_newid(&sce_copy->id);
+    if (!is_subprocess) {
+      /* This code will follow into all ID links using an ID tagged with LIB_TAG_NEW.*/
+      BKE_libblock_relink_to_newid(&sce_copy->id);
 
 #ifndef NDEBUG
-        /* Call to `BKE_libblock_relink_to_newid` above is supposed to have cleared all those
-         * flags. */
-        ID *id_iter;
-        FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
-          BLI_assert((id_iter->tag & LIB_TAG_NEW) == 0);
-        }
-        FOREACH_MAIN_ID_END;
+      /* Call to `BKE_libblock_relink_to_newid` above is supposed to have cleared all those
+       * flags. */
+      ID *id_iter;
+      FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+        BLI_assert((id_iter->tag & LIB_TAG_NEW) == 0);
+      }
+      FOREACH_MAIN_ID_END;
 #endif
 
-        /* Cleanup. */
-        BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
-        BKE_main_id_clear_newpoins(bmain);
+      /* Cleanup. */
+      BKE_main_id_tag_all(bmain, LIB_TAG_NEW, false);
+      BKE_main_id_clear_newpoins(bmain);
 
-        BKE_main_collection_sync(bmain);
-      }
+      BKE_main_collection_sync(bmain);
     }
-    else {
-      /* Remove sequencer if not full copy */
-      /* XXX Why in Hell? :/ */
-      remove_sequencer_fcurves(sce_copy);
-      BKE_sequencer_editing_free(sce_copy, true);
-    }
-
-    return sce_copy;
   }
+  else {
+    /* Remove sequencer if not full copy */
+    /* XXX Why in Hell? :/ */
+    remove_sequencer_fcurves(sce_copy);
+    BKE_sequencer_editing_free(sce_copy, true);
+  }
+
+  return sce_copy;
 }
 
 void BKE_scene_groups_relink(Scene *sce)
@@ -1642,7 +1637,7 @@ bool BKE_scene_remove_render_view(Scene *scene, SceneRenderView *srv)
   if (act == -1) {
     return false;
   }
-  else if (scene->r.views.first == scene->r.views.last) {
+  if (scene->r.views.first == scene->r.views.last) {
     /* ensure 1 view is kept */
     return false;
   }
@@ -1663,13 +1658,11 @@ int get_render_subsurf_level(const RenderData *r, int lvl, bool for_render)
     if (for_render) {
       return min_ii(r->simplify_subsurf_render, lvl);
     }
-    else {
-      return min_ii(r->simplify_subsurf, lvl);
-    }
+
+    return min_ii(r->simplify_subsurf, lvl);
   }
-  else {
-    return lvl;
-  }
+
+  return lvl;
 }
 
 int get_render_child_particle_number(const RenderData *r, int num, bool for_render)
@@ -1678,13 +1671,11 @@ int get_render_child_particle_number(const RenderData *r, int num, bool for_rend
     if (for_render) {
       return (int)(r->simplify_particles_render * num);
     }
-    else {
-      return (int)(r->simplify_particles * num);
-    }
+
+    return (int)(r->simplify_particles * num);
   }
-  else {
-    return num;
-  }
+
+  return num;
 }
 
 /**
@@ -1699,7 +1690,7 @@ Base *_setlooper_base_step(Scene **sce_iter, ViewLayer *view_layer, Base *base)
     /* Common case, step to the next. */
     return base->next;
   }
-  else if ((base == NULL) && (view_layer != NULL)) {
+  if ((base == NULL) && (view_layer != NULL)) {
     /* First time looping, return the scenes first base. */
     /* For the first loop we should get the layer from workspace when available. */
     if (view_layer->object_bases.first) {
@@ -2018,9 +2009,8 @@ const char *BKE_scene_multiview_render_view_name_get(const RenderData *rd, const
   if (srv) {
     return srv->name;
   }
-  else {
-    return "";
-  }
+
+  return "";
 }
 
 int BKE_scene_multiview_view_id_get(const RenderData *rd, const char *viewname)
@@ -2041,9 +2031,8 @@ int BKE_scene_multiview_view_id_get(const RenderData *rd, const char *viewname)
       if (STREQ(viewname, srv->name)) {
         return nr;
       }
-      else {
-        nr += 1;
-      }
+
+      nr += 1;
     }
   }
 
@@ -2094,9 +2083,8 @@ const char *BKE_scene_multiview_view_suffix_get(const RenderData *rd, const char
   if (srv) {
     return srv->suffix;
   }
-  else {
-    return viewname;
-  }
+
+  return viewname;
 }
 
 const char *BKE_scene_multiview_view_id_suffix_get(const RenderData *rd, const int view_id)
@@ -2104,10 +2092,9 @@ const char *BKE_scene_multiview_view_id_suffix_get(const RenderData *rd, const i
   if ((rd->scemode & R_MULTIVIEW) == 0) {
     return "";
   }
-  else {
-    const char *viewname = BKE_scene_multiview_render_view_name_get(rd, view_id);
-    return BKE_scene_multiview_view_suffix_get(rd, viewname);
-  }
+
+  const char *viewname = BKE_scene_multiview_render_view_name_get(rd, view_id);
+  return BKE_scene_multiview_view_suffix_get(rd, viewname);
 }
 
 void BKE_scene_multiview_view_prefix_get(Scene *scene,
@@ -2175,10 +2162,9 @@ int BKE_scene_multiview_num_videos_get(const RenderData *rd)
   if (rd->im_format.views_format == R_IMF_VIEWS_STEREO_3D) {
     return 1;
   }
-  else {
-    /* R_IMF_VIEWS_INDIVIDUAL */
-    return BKE_scene_multiview_num_views_get(rd);
-  }
+
+  /* R_IMF_VIEWS_INDIVIDUAL */
+  return BKE_scene_multiview_num_views_get(rd);
 }
 
 /* Manipulation of depsgraph storage. */

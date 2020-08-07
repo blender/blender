@@ -115,11 +115,10 @@ static int cddm_poly_compare(MLoop *mloop_array,
           same_loops = true;
           break; /* Polys are identical */
         }
-        else {
-          compare_completed = true;
-          same_loops = false;
-          break; /* Polys are different */
-        }
+
+        compare_completed = true;
+        same_loops = false;
+        break; /* Polys are different */
       }
 
       mloop_source++;
@@ -201,9 +200,8 @@ static bool poly_gset_compare_fn(const void *k1, const void *k2)
     /* Equality - note that this does not mean equality of polys */
     return false;
   }
-  else {
-    return true;
-  }
+
+  return true;
 }
 
 /**
@@ -412,7 +410,7 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
         /* In this mode, all vertices merged is enough to dump face */
         continue;
       }
-      else if (merge_mode == MESH_MERGE_VERTS_DUMP_IF_EQUAL) {
+      if (merge_mode == MESH_MERGE_VERTS_DUMP_IF_EQUAL) {
         /* Additional condition for face dump:  target vertices must make up an identical face */
         /* The test has 2 steps:  (1) first step is fast ghash lookup, but not failproof       */
         /*                        (2) second step is thorough but more costly poly compare     */
@@ -578,7 +576,7 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh,
       BLI_assert(created_edges == 0);
       continue;
     }
-    else if (UNLIKELY(c < 3)) {
+    if (UNLIKELY(c < 3)) {
       STACK_DISCARD(oldl, c);
       STACK_DISCARD(mloop, c);
       if (created_edges > 0) {

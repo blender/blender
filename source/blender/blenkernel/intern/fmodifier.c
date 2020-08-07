@@ -285,9 +285,8 @@ static double sinc(double x)
   if (fabs(x) < 0.0001) {
     return 1.0;
   }
-  else {
-    return sin(M_PI * x) / (M_PI * x);
-  }
+
+  return sin(M_PI * x) / (M_PI * x);
 }
 
 static void fcm_fn_generator_evaluate(
@@ -525,29 +524,28 @@ int BKE_fcm_envelope_find_index(FCM_EnvelopeData array[],
     CLOG_WARN(&LOG, "encountered invalid array");
     return 0;
   }
-  else {
-    /* check whether to add before/after/on */
-    float framenum;
 
-    /* 'First' Point (when only one point, this case is used) */
-    framenum = array[0].time;
-    if (IS_EQT(frame, framenum, BINARYSEARCH_FRAMEEQ_THRESH)) {
-      *r_exists = true;
-      return 0;
-    }
-    else if (frame < framenum) {
-      return 0;
-    }
+  /* check whether to add before/after/on */
+  float framenum;
 
-    /* 'Last' Point */
-    framenum = array[(arraylen - 1)].time;
-    if (IS_EQT(frame, framenum, BINARYSEARCH_FRAMEEQ_THRESH)) {
-      *r_exists = true;
-      return (arraylen - 1);
-    }
-    else if (frame > framenum) {
-      return arraylen;
-    }
+  /* 'First' Point (when only one point, this case is used) */
+  framenum = array[0].time;
+  if (IS_EQT(frame, framenum, BINARYSEARCH_FRAMEEQ_THRESH)) {
+    *r_exists = true;
+    return 0;
+  }
+  if (frame < framenum) {
+    return 0;
+  }
+
+  /* 'Last' Point */
+  framenum = array[(arraylen - 1)].time;
+  if (IS_EQT(frame, framenum, BINARYSEARCH_FRAMEEQ_THRESH)) {
+    *r_exists = true;
+    return (arraylen - 1);
+  }
+  if (frame > framenum) {
+    return arraylen;
   }
 
   /* most of the time, this loop is just to find where to put it
@@ -1076,9 +1074,8 @@ const FModifierTypeInfo *get_fmodifier_typeinfo(const int type)
     /* there shouldn't be any segfaults here... */
     return fmodifiersTypeInfo[type];
   }
-  else {
-    CLOG_ERROR(&LOG, "No valid F-Curve Modifier type-info data available. Type = %i", type);
-  }
+
+  CLOG_ERROR(&LOG, "No valid F-Curve Modifier type-info data available. Type = %i", type);
 
   return NULL;
 }
@@ -1092,9 +1089,8 @@ const FModifierTypeInfo *fmodifier_get_typeinfo(const FModifier *fcm)
   if (fcm) {
     return get_fmodifier_typeinfo(fcm->type);
   }
-  else {
-    return NULL;
-  }
+
+  return NULL;
 }
 
 /* API --------------------------- */
@@ -1239,12 +1235,11 @@ bool remove_fmodifier(ListBase *modifiers, FModifier *fcm)
 
     return true;
   }
-  else {
-    /* XXX this case can probably be removed some day, as it shouldn't happen... */
-    CLOG_STR_ERROR(&LOG, "no modifier stack given");
-    MEM_freeN(fcm);
-    return false;
-  }
+
+  /* XXX this case can probably be removed some day, as it shouldn't happen... */
+  CLOG_STR_ERROR(&LOG, "no modifier stack given");
+  MEM_freeN(fcm);
+  return false;
 }
 
 /* Remove all of a given F-Curve's modifiers */
@@ -1397,13 +1392,13 @@ static float eval_fmodifier_influence(FModifier *fcm, float evaltime)
       /* out of range */
       return 0.0f;
     }
-    else if ((evaltime > fcm->sfra) && (evaltime < fcm->sfra + fcm->blendin)) {
+    if ((evaltime > fcm->sfra) && (evaltime < fcm->sfra + fcm->blendin)) {
       /* blend in range */
       float a = fcm->sfra;
       float b = fcm->sfra + fcm->blendin;
       return influence * (evaltime - a) / (b - a);
     }
-    else if ((evaltime < fcm->efra) && (evaltime > fcm->efra - fcm->blendout)) {
+    if ((evaltime < fcm->efra) && (evaltime > fcm->efra - fcm->blendout)) {
       /* blend out range */
       float a = fcm->efra;
       float b = fcm->efra - fcm->blendout;

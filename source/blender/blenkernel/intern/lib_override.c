@@ -117,9 +117,8 @@ void BKE_lib_override_library_copy(ID *dst_id, const ID *src_id, const bool do_f
       BKE_lib_override_library_free(&dst_id->override_library, true);
       return;
     }
-    else {
-      BKE_lib_override_library_clear(dst_id->override_library, true);
-    }
+
+    BKE_lib_override_library_clear(dst_id->override_library, true);
   }
   else if (src_id->override_library == NULL) {
     /* Virtual overrides of embedded data does not require any extra work. */

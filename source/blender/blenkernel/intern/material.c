@@ -268,27 +268,27 @@ Material ***BKE_object_material_array_p(Object *ob)
     Mesh *me = ob->data;
     return &(me->mat);
   }
-  else if (ELEM(ob->type, OB_CURVE, OB_FONT, OB_SURF)) {
+  if (ELEM(ob->type, OB_CURVE, OB_FONT, OB_SURF)) {
     Curve *cu = ob->data;
     return &(cu->mat);
   }
-  else if (ob->type == OB_MBALL) {
+  if (ob->type == OB_MBALL) {
     MetaBall *mb = ob->data;
     return &(mb->mat);
   }
-  else if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL) {
     bGPdata *gpd = ob->data;
     return &(gpd->mat);
   }
-  else if (ob->type == OB_HAIR) {
+  if (ob->type == OB_HAIR) {
     Hair *hair = ob->data;
     return &(hair->mat);
   }
-  else if (ob->type == OB_POINTCLOUD) {
+  if (ob->type == OB_POINTCLOUD) {
     PointCloud *pointcloud = ob->data;
     return &(pointcloud->mat);
   }
-  else if (ob->type == OB_VOLUME) {
+  if (ob->type == OB_VOLUME) {
     Volume *volume = ob->data;
     return &(volume->mat);
   }
@@ -301,27 +301,27 @@ short *BKE_object_material_len_p(Object *ob)
     Mesh *me = ob->data;
     return &(me->totcol);
   }
-  else if (ELEM(ob->type, OB_CURVE, OB_FONT, OB_SURF)) {
+  if (ELEM(ob->type, OB_CURVE, OB_FONT, OB_SURF)) {
     Curve *cu = ob->data;
     return &(cu->totcol);
   }
-  else if (ob->type == OB_MBALL) {
+  if (ob->type == OB_MBALL) {
     MetaBall *mb = ob->data;
     return &(mb->totcol);
   }
-  else if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL) {
     bGPdata *gpd = ob->data;
     return &(gpd->totcol);
   }
-  else if (ob->type == OB_HAIR) {
+  if (ob->type == OB_HAIR) {
     Hair *hair = ob->data;
     return &(hair->totcol);
   }
-  else if (ob->type == OB_POINTCLOUD) {
+  if (ob->type == OB_POINTCLOUD) {
     PointCloud *pointcloud = ob->data;
     return &(pointcloud->totcol);
   }
-  else if (ob->type == OB_VOLUME) {
+  if (ob->type == OB_VOLUME) {
     Volume *volume = ob->data;
     return &(volume->totcol);
   }
@@ -582,7 +582,7 @@ Material **BKE_object_material_get_p(Object *ob, short act)
   if (act > ob->totcol) {
     return NULL;
   }
-  else if (act <= 0) {
+  if (act <= 0) {
     if (act < 0) {
       CLOG_ERROR(&LOG, "Negative material index!");
     }
@@ -627,9 +627,8 @@ Material *BKE_gpencil_material(Object *ob, short act)
   if (ma != NULL) {
     return ma;
   }
-  else {
-    return BKE_material_default_gpencil();
-  }
+
+  return BKE_material_default_gpencil();
 }
 
 MaterialGPencilStyle *BKE_gpencil_material_settings(Object *ob, short act)
@@ -642,9 +641,8 @@ MaterialGPencilStyle *BKE_gpencil_material_settings(Object *ob, short act)
 
     return ma->gp_style;
   }
-  else {
-    return BKE_material_default_gpencil()->gp_style;
-  }
+
+  return BKE_material_default_gpencil()->gp_style;
 }
 
 void BKE_object_material_resize(Main *bmain, Object *ob, const short totcol, bool do_id_user)
@@ -1135,9 +1133,8 @@ static bNode *nodetree_uv_node_recursive(bNode *node)
       if (inode->typeinfo->nclass == NODE_CLASS_INPUT && inode->typeinfo->type == SH_NODE_UVMAP) {
         return inode;
       }
-      else {
-        return nodetree_uv_node_recursive(inode);
-      }
+
+      return nodetree_uv_node_recursive(inode);
     }
   }
 

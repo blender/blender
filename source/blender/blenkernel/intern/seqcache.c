@@ -483,10 +483,9 @@ static size_t deflate_imbuf_to_file(ImBuf *ibuf,
     return BLI_gzip_mem_to_file_at_pos(
         ibuf->rect, header_entry->size_raw, file, header_entry->offset, level);
   }
-  else {
-    return BLI_gzip_mem_to_file_at_pos(
-        ibuf->rect_float, header_entry->size_raw, file, header_entry->offset, level);
-  }
+
+  return BLI_gzip_mem_to_file_at_pos(
+      ibuf->rect_float, header_entry->size_raw, file, header_entry->offset, level);
 }
 
 static size_t inflate_file_to_imbuf(ImBuf *ibuf, FILE *file, DiskCacheHeaderEntry *header_entry)
@@ -495,10 +494,9 @@ static size_t inflate_file_to_imbuf(ImBuf *ibuf, FILE *file, DiskCacheHeaderEntr
     return BLI_ungzip_file_to_mem_at_pos(
         ibuf->rect, header_entry->size_raw, file, header_entry->offset);
   }
-  else {
-    return BLI_ungzip_file_to_mem_at_pos(
-        ibuf->rect_float, header_entry->size_raw, file, header_entry->offset);
-  }
+
+  return BLI_ungzip_file_to_mem_at_pos(
+      ibuf->rect_float, header_entry->size_raw, file, header_entry->offset);
 }
 
 static void seq_disk_cache_read_header(FILE *file, DiskCacheHeader *header)
@@ -1304,11 +1302,10 @@ bool BKE_sequencer_cache_put_if_possible(const SeqRenderData *context,
     BKE_sequencer_cache_put(context, seq, cfra, type, ibuf, cost, skip_disk_cache);
     return true;
   }
-  else {
-    seq_cache_set_temp_cache_linked(scene, scene->ed->cache->last_key);
-    scene->ed->cache->last_key = NULL;
-    return false;
-  }
+
+  seq_cache_set_temp_cache_linked(scene, scene->ed->cache->last_key);
+  scene->ed->cache->last_key = NULL;
+  return false;
 }
 
 void BKE_sequencer_cache_put(const SeqRenderData *context,

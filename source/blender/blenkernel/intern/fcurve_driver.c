@@ -488,10 +488,9 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
     dtar->flag |= DTAR_FLAG_INVALID;
     return 0.0f;
   }
-  else {
-    /* Target should be valid now. */
-    dtar->flag &= ~DTAR_FLAG_INVALID;
-  }
+
+  /* Target should be valid now. */
+  dtar->flag &= ~DTAR_FLAG_INVALID;
 
   /* Try to get pose-channel. */
   pchan = BKE_pose_channel_find_name(ob->pose, dtar->pchan_name);
@@ -560,20 +559,17 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
     /* Not valid channel. */
     return 0.0f;
   }
-  else if (dtar->transChan == DTAR_TRANSCHAN_SCALE_AVG) {
+  if (dtar->transChan == DTAR_TRANSCHAN_SCALE_AVG) {
     /* Cubic root of the change in volume, equal to the geometric mean
      * of scale over all three axes unless the matrix includes shear. */
     return cbrtf(mat4_to_volume_scale(mat));
   }
-  else if (ELEM(dtar->transChan,
-                DTAR_TRANSCHAN_SCALEX,
-                DTAR_TRANSCHAN_SCALEY,
-                DTAR_TRANSCHAN_SCALEZ)) {
+  if (ELEM(dtar->transChan, DTAR_TRANSCHAN_SCALEX, DTAR_TRANSCHAN_SCALEY, DTAR_TRANSCHAN_SCALEZ)) {
     /* Extract scale, and choose the right axis,
      * inline 'mat4_to_size'. */
     return len_v3(mat[dtar->transChan - DTAR_TRANSCHAN_SCALEX]);
   }
-  else if (dtar->transChan >= DTAR_TRANSCHAN_ROTX) {
+  if (dtar->transChan >= DTAR_TRANSCHAN_ROTX) {
     /* Extract rotation as eulers (if needed)
      * - definitely if rotation order isn't eulers already
      * - if eulers, then we have 2 options:
@@ -602,10 +598,9 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
 
     return quat[channel];
   }
-  else {
-    /* Extract location and choose right axis. */
-    return mat[3][dtar->transChan];
-  }
+
+  /* Extract location and choose right axis. */
+  return mat[3][dtar->transChan];
 }
 
 /* Convert a quaternion to pseudo-angles representing the weighted amount of rotation. */
@@ -715,9 +710,8 @@ static const DriverVarTypeInfo *get_dvar_typeinfo(int type)
   if ((type >= 0) && (type < MAX_DVAR_TYPES)) {
     return &dvar_types[type];
   }
-  else {
-    return NULL;
-  }
+
+  return NULL;
 }
 
 /** \} */
@@ -1126,10 +1120,9 @@ bool BKE_driver_expression_depends_on_time(ChannelDriver *driver)
     /* Simple expressions can be checked exactly. */
     return driver_check_simple_expr_depends_on_time(driver->expr_simple);
   }
-  else {
-    /* Otherwise, heuristically scan the expression string for certain patterns. */
-    return python_driver_exression_depends_on_time(driver->expression);
-  }
+
+  /* Otherwise, heuristically scan the expression string for certain patterns. */
+  return python_driver_exression_depends_on_time(driver->expression);
 }
 
 /* Reset cached compiled expression data */

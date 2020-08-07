@@ -760,9 +760,8 @@ bool BKE_ocean_ensure(struct OceanModifierData *omd, const int resolution)
     if (omd->ocean->_M == resolution * resolution) {
       return false;
     }
-    else {
-      BKE_ocean_free(omd->ocean);
-    }
+
+    BKE_ocean_free(omd->ocean);
   }
 
   omd->ocean = BKE_ocean_add();

@@ -46,7 +46,7 @@ bool BKE_subdiv_eval_begin(Subdiv *subdiv)
      * or when OpenSubdiv is disabled */
     return false;
   }
-  else if (subdiv->evaluator == NULL) {
+  if (subdiv->evaluator == NULL) {
     BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_EVALUATOR_CREATE);
     subdiv->evaluator = openSubdiv_createEvaluatorFromTopologyRefiner(subdiv->topology_refiner);
     BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_EVALUATOR_CREATE);

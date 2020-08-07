@@ -305,10 +305,9 @@ static bool check_path_length(int k,
     /* something over the maximum step value */
     return false;
   }
-  else {
-    *cur_length += step_length;
-    return true;
-  }
+
+  *cur_length += step_length;
+  return true;
 }
 
 void psys_apply_child_modifiers(ParticleThreadContext *ctx,

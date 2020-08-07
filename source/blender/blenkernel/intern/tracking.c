@@ -1188,38 +1188,36 @@ MovieTrackingMarker *BKE_tracking_marker_insert(MovieTrackingTrack *track,
 
     return old_marker;
   }
-  else {
-    int a = track->markersnr;
 
-    /* find position in array where to add new marker */
-    while (a--) {
-      if (track->markers[a].framenr < marker->framenr) {
-        break;
-      }
+  int a = track->markersnr;
+
+  /* find position in array where to add new marker */
+  while (a--) {
+    if (track->markers[a].framenr < marker->framenr) {
+      break;
     }
-
-    track->markersnr++;
-
-    if (track->markers) {
-      track->markers = MEM_reallocN(track->markers,
-                                    sizeof(MovieTrackingMarker) * track->markersnr);
-    }
-    else {
-      track->markers = MEM_callocN(sizeof(MovieTrackingMarker), "MovieTracking markers");
-    }
-
-    /* shift array to "free" space for new marker */
-    memmove(track->markers + a + 2,
-            track->markers + a + 1,
-            (track->markersnr - a - 2) * sizeof(MovieTrackingMarker));
-
-    /* put new marker */
-    track->markers[a + 1] = *marker;
-
-    track->last_marker = a + 1;
-
-    return &track->markers[a + 1];
   }
+
+  track->markersnr++;
+
+  if (track->markers) {
+    track->markers = MEM_reallocN(track->markers, sizeof(MovieTrackingMarker) * track->markersnr);
+  }
+  else {
+    track->markers = MEM_callocN(sizeof(MovieTrackingMarker), "MovieTracking markers");
+  }
+
+  /* shift array to "free" space for new marker */
+  memmove(track->markers + a + 2,
+          track->markers + a + 1,
+          (track->markersnr - a - 2) * sizeof(MovieTrackingMarker));
+
+  /* put new marker */
+  track->markers[a + 1] = *marker;
+
+  track->last_marker = a + 1;
+
+  return &track->markers[a + 1];
 }
 
 void BKE_tracking_marker_delete(MovieTrackingTrack *track, int framenr)
@@ -1337,20 +1335,19 @@ MovieTrackingMarker *BKE_tracking_marker_get(MovieTrackingTrack *track, int fram
     /* if there's no marker for exact position, use nearest marker from left side */
     return &track->markers[a - 1];
   }
-  else {
-    while (a >= 0 && track->markers[a].framenr >= framenr) {
-      if (track->markers[a].framenr == framenr) {
-        track->last_marker = a;
 
-        return &track->markers[a];
-      }
+  while (a >= 0 && track->markers[a].framenr >= framenr) {
+    if (track->markers[a].framenr == framenr) {
+      track->last_marker = a;
 
-      a--;
+      return &track->markers[a];
     }
 
-    /* if there's no marker for exact position, use nearest marker from left side */
-    return &track->markers[a];
+    a--;
   }
+
+  /* if there's no marker for exact position, use nearest marker from left side */
+  return &track->markers[a];
 
   return NULL;
 }
@@ -1655,32 +1652,31 @@ MovieTrackingPlaneMarker *BKE_tracking_plane_marker_insert(MovieTrackingPlaneTra
 
     return old_plane_marker;
   }
-  else {
-    int a = plane_track->markersnr;
 
-    /* Find position in array where to add new marker. */
-    /* TODO(sergey): we could use bisect to speed things up. */
-    while (a--) {
-      if (plane_track->markers[a].framenr < plane_marker->framenr) {
-        break;
-      }
+  int a = plane_track->markersnr;
+
+  /* Find position in array where to add new marker. */
+  /* TODO(sergey): we could use bisect to speed things up. */
+  while (a--) {
+    if (plane_track->markers[a].framenr < plane_marker->framenr) {
+      break;
     }
-
-    plane_track->markersnr++;
-    plane_track->markers = MEM_reallocN(plane_track->markers,
-                                        sizeof(MovieTrackingPlaneMarker) * plane_track->markersnr);
-
-    /* Shift array to "free" space for new marker. */
-    memmove(plane_track->markers + a + 2,
-            plane_track->markers + a + 1,
-            (plane_track->markersnr - a - 2) * sizeof(MovieTrackingPlaneMarker));
-
-    /* Put new marker to an array. */
-    plane_track->markers[a + 1] = *plane_marker;
-    plane_track->last_marker = a + 1;
-
-    return &plane_track->markers[a + 1];
   }
+
+  plane_track->markersnr++;
+  plane_track->markers = MEM_reallocN(plane_track->markers,
+                                      sizeof(MovieTrackingPlaneMarker) * plane_track->markersnr);
+
+  /* Shift array to "free" space for new marker. */
+  memmove(plane_track->markers + a + 2,
+          plane_track->markers + a + 1,
+          (plane_track->markersnr - a - 2) * sizeof(MovieTrackingPlaneMarker));
+
+  /* Put new marker to an array. */
+  plane_track->markers[a + 1] = *plane_marker;
+  plane_track->last_marker = a + 1;
+
+  return &plane_track->markers[a + 1];
 }
 
 void BKE_tracking_plane_marker_delete(MovieTrackingPlaneTrack *plane_track, int framenr)
@@ -1748,20 +1744,19 @@ MovieTrackingPlaneMarker *BKE_tracking_plane_marker_get(MovieTrackingPlaneTrack 
     /* If there's no marker for exact position, use nearest marker from left side. */
     return &plane_track->markers[a - 1];
   }
-  else {
-    while (a >= 0 && plane_track->markers[a].framenr >= framenr) {
-      if (plane_track->markers[a].framenr == framenr) {
-        plane_track->last_marker = a;
 
-        return &plane_track->markers[a];
-      }
+  while (a >= 0 && plane_track->markers[a].framenr >= framenr) {
+    if (plane_track->markers[a].framenr == framenr) {
+      plane_track->last_marker = a;
 
-      a--;
+      return &plane_track->markers[a];
     }
 
-    /* If there's no marker for exact position, use nearest marker from left side. */
-    return &plane_track->markers[a];
+    a--;
   }
+
+  /* If there's no marker for exact position, use nearest marker from left side. */
+  return &plane_track->markers[a];
 
   return NULL;
 }
@@ -1988,18 +1983,16 @@ static int reconstructed_camera_index_get(MovieTrackingReconstruction *reconstru
     if (nearest) {
       return 0;
     }
-    else {
-      return -1;
-    }
+
+    return -1;
   }
 
   if (framenr > cameras[reconstruction->camnr - 1].framenr) {
     if (nearest) {
       return reconstruction->camnr - 1;
     }
-    else {
-      return -1;
-    }
+
+    return -1;
   }
 
   if (reconstruction->last_camera < reconstruction->camnr) {
@@ -2020,9 +2013,8 @@ static int reconstructed_camera_index_get(MovieTrackingReconstruction *reconstru
       if (nearest) {
         return a - 1;
       }
-      else {
-        break;
-      }
+
+      break;
     }
 
     if (d < 0 && cfra < framenr) {
@@ -2030,9 +2022,8 @@ static int reconstructed_camera_index_get(MovieTrackingReconstruction *reconstru
       if (nearest) {
         return a;
       }
-      else {
-        break;
-      }
+
+      break;
     }
 
     if (cfra == framenr) {
@@ -2705,9 +2696,8 @@ static int channels_alpha_sort(const void *a, const void *b)
   if (BLI_strcasecmp(channel_a->track->name, channel_b->track->name) > 0) {
     return 1;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 static int channels_total_track_sort(const void *a, const void *b)
@@ -2718,9 +2708,8 @@ static int channels_total_track_sort(const void *a, const void *b)
   if (channel_a->total_frames > channel_b->total_frames) {
     return 1;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 static int channels_longest_segment_sort(const void *a, const void *b)
@@ -2731,9 +2720,8 @@ static int channels_longest_segment_sort(const void *a, const void *b)
   if (channel_a->max_segment > channel_b->max_segment) {
     return 1;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 static int channels_average_error_sort(const void *a, const void *b)
@@ -2744,9 +2732,8 @@ static int channels_average_error_sort(const void *a, const void *b)
   if (channel_a->track->error > channel_b->track->error) {
     return 1;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 static int channels_alpha_inverse_sort(const void *a, const void *b)
@@ -2754,9 +2741,8 @@ static int channels_alpha_inverse_sort(const void *a, const void *b)
   if (channels_alpha_sort(a, b)) {
     return 0;
   }
-  else {
-    return 1;
-  }
+
+  return 1;
 }
 
 static int channels_total_track_inverse_sort(const void *a, const void *b)
@@ -2764,9 +2750,8 @@ static int channels_total_track_inverse_sort(const void *a, const void *b)
   if (channels_total_track_sort(a, b)) {
     return 0;
   }
-  else {
-    return 1;
-  }
+
+  return 1;
 }
 
 static int channels_longest_segment_inverse_sort(const void *a, const void *b)
@@ -2774,9 +2759,8 @@ static int channels_longest_segment_inverse_sort(const void *a, const void *b)
   if (channels_longest_segment_sort(a, b)) {
     return 0;
   }
-  else {
-    return 1;
-  }
+
+  return 1;
 }
 
 static int channels_average_error_inverse_sort(const void *a, const void *b)
@@ -2787,9 +2771,8 @@ static int channels_average_error_inverse_sort(const void *a, const void *b)
   if (channel_a->track->error < channel_b->track->error) {
     return 1;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 /* Calculate frames segments at which track is tracked continuously. */
@@ -2965,7 +2948,7 @@ static int coverage_from_count(int count)
   if (count < 8) {
     return TRACKING_COVERAGE_BAD;
   }
-  else if (count < 16) {
+  if (count < 16) {
     return TRACKING_COVERAGE_ACCEPTABLE;
   }
   return TRACKING_COVERAGE_OK;

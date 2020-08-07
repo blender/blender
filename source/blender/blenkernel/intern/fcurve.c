@@ -320,7 +320,7 @@ int BKE_fcurves_filter(ListBase *dst, ListBase *src, const char *dataPrefix, con
   if (ELEM(NULL, dst, src, dataPrefix, dataName)) {
     return 0;
   }
-  else if ((dataPrefix[0] == 0) || (dataName[0] == 0)) {
+  if ((dataPrefix[0] == 0) || (dataName[0] == 0)) {
     return 0;
   }
 
@@ -915,7 +915,7 @@ void bezt_add_to_cfra_elem(ListBase *lb, BezTriple *bezt)
       return;
     }
     /* should key be inserted before this column? */
-    else if (ce->cfra > bezt->vec[1][0]) {
+    if (ce->cfra > bezt->vec[1][0]) {
       break;
     }
   }

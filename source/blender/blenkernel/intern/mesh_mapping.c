@@ -1047,10 +1047,9 @@ static bool mesh_check_island_boundary_uv(const MPoly *UNUSED(mp),
     }
     return false;
   }
-  else {
-    /* Edge is UV boundary if tagged as seam. */
-    return (me->flag & ME_SEAM) != 0;
-  }
+
+  /* Edge is UV boundary if tagged as seam. */
+  return (me->flag & ME_SEAM) != 0;
 }
 
 static bool mesh_calc_islands_loop_poly_uv(MVert *UNUSED(verts),

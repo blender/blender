@@ -181,7 +181,7 @@ void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
       prop->len = newlen;
       return;
     }
-    else if (newlen >= prop->len) {
+    if (newlen >= prop->len) {
       prop->len = newlen;
       return;
     }
@@ -836,17 +836,16 @@ IDProperty *IDP_GetProperties(ID *id, const bool create_if_needed)
   if (id->properties) {
     return id->properties;
   }
-  else {
-    if (create_if_needed) {
-      id->properties = MEM_callocN(sizeof(IDProperty), "IDProperty");
-      id->properties->type = IDP_GROUP;
-      /* don't overwrite the data's name and type
-       * some functions might need this if they
-       * don't have a real ID, should be named elsewhere - Campbell */
-      /* strcpy(id->name, "top_level_group");*/
-    }
-    return id->properties;
+
+  if (create_if_needed) {
+    id->properties = MEM_callocN(sizeof(IDProperty), "IDProperty");
+    id->properties->type = IDP_GROUP;
+    /* don't overwrite the data's name and type
+     * some functions might need this if they
+     * don't have a real ID, should be named elsewhere - Campbell */
+    /* strcpy(id->name, "top_level_group");*/
   }
+  return id->properties;
 }
 
 /**
@@ -856,10 +855,10 @@ bool IDP_EqualsProperties_ex(IDProperty *prop1, IDProperty *prop2, const bool is
   if (prop1 == NULL && prop2 == NULL) {
     return true;
   }
-  else if (prop1 == NULL || prop2 == NULL) {
+  if (prop1 == NULL || prop2 == NULL) {
     return is_strict ? false : true;
   }
-  else if (prop1->type != prop2->type) {
+  if (prop1->type != prop2->type) {
     return false;
   }
 

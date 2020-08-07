@@ -363,7 +363,6 @@ float BKE_volume_density_scale(const Volume *volume, const float matrix[4][4])
     mul_mat3_m4_v3(matrix, unit);
     return 1.0f / len_v3(unit);
   }
-  else {
-    return 1.0f;
-  }
+
+  return 1.0f;
 }

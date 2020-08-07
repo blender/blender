@@ -109,18 +109,15 @@ int BB_widest_axis(const BB *bb)
     if (dim[0] > dim[2]) {
       return 0;
     }
-    else {
-      return 2;
-    }
+
+    return 2;
   }
-  else {
-    if (dim[1] > dim[2]) {
-      return 1;
-    }
-    else {
-      return 2;
-    }
+
+  if (dim[1] > dim[2]) {
+    return 1;
   }
+
+  return 2;
 }
 
 void BBC_update_centroid(BBC *bbc)
@@ -275,9 +272,8 @@ static int map_insert_vert(
     *value_p = POINTER_FROM_INT(value_i);
     return value_i;
   }
-  else {
-    return POINTER_AS_INT(*value_p);
-  }
+
+  return POINTER_AS_INT(*value_p);
 }
 
 /* Find vertices used by the faces in this node and update the draw buffers */
@@ -804,14 +800,13 @@ static PBVHNode *pbvh_iter_next(PBVHIter *iter)
       /* immediately hit leaf node */
       return node;
     }
-    else {
-      /* come back later when children are done */
-      pbvh_stack_push(iter, node, true);
 
-      /* push two child nodes on the stack */
-      pbvh_stack_push(iter, iter->pbvh->nodes + node->children_offset + 1, false);
-      pbvh_stack_push(iter, iter->pbvh->nodes + node->children_offset, false);
-    }
+    /* come back later when children are done */
+    pbvh_stack_push(iter, node, true);
+
+    /* push two child nodes on the stack */
+    pbvh_stack_push(iter, iter->pbvh->nodes + node->children_offset + 1, false);
+    pbvh_stack_push(iter, iter->pbvh->nodes + node->children_offset, false);
   }
 
   return NULL;
@@ -838,10 +833,9 @@ static PBVHNode *pbvh_iter_next_occluded(PBVHIter *iter)
       /* immediately hit leaf node */
       return node;
     }
-    else {
-      pbvh_stack_push(iter, iter->pbvh->nodes + node->children_offset + 1, false);
-      pbvh_stack_push(iter, iter->pbvh->nodes + node->children_offset, false);
-    }
+
+    pbvh_stack_push(iter, iter->pbvh->nodes + node->children_offset + 1, false);
+    pbvh_stack_push(iter, iter->pbvh->nodes + node->children_offset, false);
   }
 
   return NULL;
@@ -1391,16 +1385,15 @@ static int pbvh_flush_bb(PBVH *pbvh, PBVHNode *node, int flag)
 
     return update;
   }
-  else {
-    update |= pbvh_flush_bb(pbvh, pbvh->nodes + node->children_offset, flag);
-    update |= pbvh_flush_bb(pbvh, pbvh->nodes + node->children_offset + 1, flag);
 
-    if (update & PBVH_UpdateBB) {
-      update_node_vb(pbvh, node);
-    }
-    if (update & PBVH_UpdateOriginalBB) {
-      node->orig_vb = node->vb;
-    }
+  update |= pbvh_flush_bb(pbvh, pbvh->nodes + node->children_offset, flag);
+  update |= pbvh_flush_bb(pbvh, pbvh->nodes + node->children_offset + 1, flag);
+
+  if (update & PBVH_UpdateBB) {
+    update_node_vb(pbvh, node);
+  }
+  if (update & PBVH_UpdateOriginalBB) {
+    node->orig_vb = node->vb;
   }
 
   return update;
@@ -1667,9 +1660,8 @@ bool BKE_pbvh_has_faces(const PBVH *pbvh)
   if (pbvh->type == PBVH_BMESH) {
     return (pbvh->bm->totface != 0);
   }
-  else {
-    return (pbvh->totprim != 0);
-  }
+
+  return (pbvh->totprim != 0);
 }
 
 void BKE_pbvh_bounding_box(const PBVH *pbvh, float min[3], float max[3])
@@ -2029,9 +2021,8 @@ bool ray_face_intersection_quad(const float ray_start[3],
     *depth = depth_test;
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 bool ray_face_intersection_tri(const float ray_start[3],
@@ -2047,9 +2038,8 @@ bool ray_face_intersection_tri(const float ray_start[3],
     *depth = depth_test;
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 /* Take advantage of the fact we know this wont be an intersection.
@@ -2100,9 +2090,8 @@ bool ray_face_nearest_quad(const float ray_start[3],
     }
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 bool ray_face_nearest_tri(const float ray_start[3],
@@ -2122,9 +2111,8 @@ bool ray_face_nearest_tri(const float ray_start[3],
     *depth = depth_test;
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 static bool pbvh_faces_node_raycast(PBVH *pbvh,
@@ -2617,7 +2605,7 @@ static PlaneAABBIsect test_frustum_aabb(const float bb_min[3],
     if (dot_v3v3(planes[i], vmin) + planes[i][3] < 0) {
       return ISECT_OUTSIDE;
     }
-    else if (dot_v3v3(planes[i], vmax) + planes[i][3] <= 0) {
+    if (dot_v3v3(planes[i], vmax) + planes[i][3] <= 0) {
       ret = ISECT_INTERSECT;
     }
   }

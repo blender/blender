@@ -480,46 +480,41 @@ static float nlastrip_get_frame_actionclip(NlaStrip *strip, float cframe, short 
     if (mode == NLATIME_CONVERT_MAP) {
       return strip->end - scale * (cframe - strip->actstart);
     }
-    else if (mode == NLATIME_CONVERT_UNMAP) {
+    if (mode == NLATIME_CONVERT_UNMAP) {
       return (strip->end + (strip->actstart * scale - cframe)) / scale;
     }
-    else { /* if (mode == NLATIME_CONVERT_EVAL) */
-      if (IS_EQF((float)cframe, strip->end) && IS_EQF(strip->repeat, floorf(strip->repeat))) {
-        /* This case prevents the motion snapping back to the first frame at the end of the strip
-         * by catching the case where repeats is a whole number, which means that the end of the
-         * strip could also be interpreted as the end of the start of a repeat. */
-        return strip->actstart;
-      }
-      else {
-        /* - the 'fmod(..., actlength * scale)' is needed to get the repeats working
-         * - the '/ scale' is needed to ensure that scaling influences the timing within the repeat
-         */
-        return strip->actend - fmodf(cframe - strip->start, actlength * scale) / scale;
-      }
+    /* if (mode == NLATIME_CONVERT_EVAL) */
+    if (IS_EQF((float)cframe, strip->end) && IS_EQF(strip->repeat, floorf(strip->repeat))) {
+      /* This case prevents the motion snapping back to the first frame at the end of the strip
+       * by catching the case where repeats is a whole number, which means that the end of the
+       * strip could also be interpreted as the end of the start of a repeat. */
+      return strip->actstart;
     }
+
+    /* - the 'fmod(..., actlength * scale)' is needed to get the repeats working
+     * - the '/ scale' is needed to ensure that scaling influences the timing within the repeat
+     */
+    return strip->actend - fmodf(cframe - strip->start, actlength * scale) / scale;
   }
-  else {
-    if (mode == NLATIME_CONVERT_MAP) {
-      return strip->start + scale * (cframe - strip->actstart);
-    }
-    else if (mode == NLATIME_CONVERT_UNMAP) {
-      return strip->actstart + (cframe - strip->start) / scale;
-    }
-    else { /* if (mode == NLATIME_CONVERT_EVAL) */
-      if (IS_EQF(cframe, strip->end) && IS_EQF(strip->repeat, floorf(strip->repeat))) {
-        /* This case prevents the motion snapping back to the first frame at the end of the strip
-         * by catching the case where repeats is a whole number, which means that the end of the
-         * strip could also be interpreted as the end of the start of a repeat. */
-        return strip->actend;
-      }
-      else {
-        /* - the 'fmod(..., actlength * scale)' is needed to get the repeats working
-         * - the '/ scale' is needed to ensure that scaling influences the timing within the repeat
-         */
-        return strip->actstart + fmodf(cframe - strip->start, actlength * scale) / scale;
-      }
-    }
+
+  if (mode == NLATIME_CONVERT_MAP) {
+    return strip->start + scale * (cframe - strip->actstart);
   }
+  if (mode == NLATIME_CONVERT_UNMAP) {
+    return strip->actstart + (cframe - strip->start) / scale;
+  }
+  /* if (mode == NLATIME_CONVERT_EVAL) */
+  if (IS_EQF(cframe, strip->end) && IS_EQF(strip->repeat, floorf(strip->repeat))) {
+    /* This case prevents the motion snapping back to the first frame at the end of the strip
+     * by catching the case where repeats is a whole number, which means that the end of the
+     * strip could also be interpreted as the end of the start of a repeat. */
+    return strip->actend;
+  }
+
+  /* - the 'fmod(..., actlength * scale)' is needed to get the repeats working
+   * - the '/ scale' is needed to ensure that scaling influences the timing within the repeat
+   */
+  return strip->actstart + fmodf(cframe - strip->start, actlength * scale) / scale;
 }
 
 /* non clipped mapping for strip-time <-> global time (for Transitions)
@@ -537,18 +532,15 @@ static float nlastrip_get_frame_transition(NlaStrip *strip, float cframe, short 
     if (mode == NLATIME_CONVERT_MAP) {
       return strip->end - (length * cframe);
     }
-    else {
-      return (strip->end - cframe) / length;
-    }
+
+    return (strip->end - cframe) / length;
   }
-  else {
-    if (mode == NLATIME_CONVERT_MAP) {
-      return (length * cframe) + strip->start;
-    }
-    else {
-      return (cframe - strip->start) / length;
-    }
+
+  if (mode == NLATIME_CONVERT_MAP) {
+    return (length * cframe) + strip->start;
   }
+
+  return (cframe - strip->start) / length;
 }
 
 /* non clipped mapping for strip-time <-> global time
@@ -882,11 +874,10 @@ bool BKE_nlameta_add_strip(NlaStrip *mstrip, NlaStrip *strip)
 
       return true;
     }
-    else { /* failed... no room before */
-      return false;
-    }
+    /* failed... no room before */
+    return false;
   }
-  else if (strip->end > mstrip->end) {
+  if (strip->end > mstrip->end) {
     /* check if strip to the right (if it exists) starts before the
      * end of the strip we're trying to add
      */
@@ -897,14 +888,12 @@ bool BKE_nlameta_add_strip(NlaStrip *mstrip, NlaStrip *strip)
 
       return true;
     }
-    else { /* failed... no room after */
-      return false;
-    }
+    /* failed... no room after */
+    return false;
   }
-  else {
-    /* just try to add to the meta-strip (no dimension changes needed) */
-    return BKE_nlastrips_add_strip(&mstrip->strips, strip);
-  }
+
+  /* just try to add to the meta-strip (no dimension changes needed) */
+  return BKE_nlastrips_add_strip(&mstrip->strips, strip);
 }
 
 /* Adjust the settings of NLA-Strips contained within a Meta-Strip (recursively),
@@ -1034,7 +1023,7 @@ NlaTrack *BKE_nlatrack_find_tweaked(AnimData *adt)
       if (BLI_findindex(&nlt->strips, adt->actstrip) != -1) {
         return nlt;
       }
-      else if (G.debug & G_DEBUG) {
+      if (G.debug & G_DEBUG) {
         printf("%s: Active strip (%p, %s) not in NLA track found (%p, %s)\n",
                __func__,
                adt->actstrip,

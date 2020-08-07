@@ -426,7 +426,7 @@ Paint *BKE_paint_get_active_from_context(const bContext *C)
         if (sima->mode == SI_MODE_PAINT) {
           return &ts->imapaint.paint;
         }
-        else if (sima->mode == SI_MODE_UV) {
+        if (sima->mode == SI_MODE_UV) {
           return &ts->uvsculpt->paint;
         }
       }
@@ -460,7 +460,7 @@ ePaintMode BKE_paintmode_get_active_from_context(const bContext *C)
         if (sima->mode == SI_MODE_PAINT) {
           return PAINT_MODE_TEXTURE_2D;
         }
-        else if (sima->mode == SI_MODE_UV) {
+        if (sima->mode == SI_MODE_UV) {
           return PAINT_MODE_SCULPT_UV;
         }
       }
@@ -715,7 +715,7 @@ static int palettecolor_compare_hsv(const void *a1, const void *a2)
   if (ps1->h > ps2->h) {
     return 1;
   }
-  else if (ps1->h < ps2->h) {
+  if (ps1->h < ps2->h) {
     return -1;
   }
 
@@ -723,7 +723,7 @@ static int palettecolor_compare_hsv(const void *a1, const void *a2)
   if (ps1->s > ps2->s) {
     return 1;
   }
-  else if (ps1->s < ps2->s) {
+  if (ps1->s < ps2->s) {
     return -1;
   }
 
@@ -731,7 +731,7 @@ static int palettecolor_compare_hsv(const void *a1, const void *a2)
   if (1.0f - ps1->v > 1.0f - ps2->v) {
     return 1;
   }
-  else if (1.0f - ps1->v < 1.0f - ps2->v) {
+  if (1.0f - ps1->v < 1.0f - ps2->v) {
     return -1;
   }
 
@@ -747,7 +747,7 @@ static int palettecolor_compare_svh(const void *a1, const void *a2)
   if (ps1->s > ps2->s) {
     return 1;
   }
-  else if (ps1->s < ps2->s) {
+  if (ps1->s < ps2->s) {
     return -1;
   }
 
@@ -755,7 +755,7 @@ static int palettecolor_compare_svh(const void *a1, const void *a2)
   if (1.0f - ps1->v > 1.0f - ps2->v) {
     return 1;
   }
-  else if (1.0f - ps1->v < 1.0f - ps2->v) {
+  if (1.0f - ps1->v < 1.0f - ps2->v) {
     return -1;
   }
 
@@ -763,7 +763,7 @@ static int palettecolor_compare_svh(const void *a1, const void *a2)
   if (ps1->h > ps2->h) {
     return 1;
   }
-  else if (ps1->h < ps2->h) {
+  if (ps1->h < ps2->h) {
     return -1;
   }
 
@@ -778,7 +778,7 @@ static int palettecolor_compare_vhs(const void *a1, const void *a2)
   if (1.0f - ps1->v > 1.0f - ps2->v) {
     return 1;
   }
-  else if (1.0f - ps1->v < 1.0f - ps2->v) {
+  if (1.0f - ps1->v < 1.0f - ps2->v) {
     return -1;
   }
 
@@ -786,7 +786,7 @@ static int palettecolor_compare_vhs(const void *a1, const void *a2)
   if (ps1->h > ps2->h) {
     return 1;
   }
-  else if (ps1->h < ps2->h) {
+  if (ps1->h < ps2->h) {
     return -1;
   }
 
@@ -794,7 +794,7 @@ static int palettecolor_compare_vhs(const void *a1, const void *a2)
   if (ps1->s > ps2->s) {
     return 1;
   }
-  else if (ps1->s < ps2->s) {
+  if (ps1->s < ps2->s) {
     return -1;
   }
 
@@ -811,7 +811,7 @@ static int palettecolor_compare_luminance(const void *a1, const void *a2)
   if (lumi1 > lumi2) {
     return -1;
   }
-  else if (lumi1 < lumi2) {
+  if (lumi1 < lumi2) {
     return 1;
   }
 
@@ -1424,9 +1424,8 @@ MultiresModifierData *BKE_sculpt_multires_active(Scene *scene, Object *ob)
       if (mmd->sculptlvl > 0) {
         return mmd;
       }
-      else {
-        return NULL;
-      }
+
+      return NULL;
     }
   }
 
@@ -1468,7 +1467,7 @@ static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
     if (mti->type == eModifierTypeType_OnlyDeform) {
       return true;
     }
-    else if ((sd->flags & SCULPT_ONLY_DEFORM) == 0) {
+    if ((sd->flags & SCULPT_ONLY_DEFORM) == 0) {
       return true;
     }
   }
@@ -2030,8 +2029,7 @@ bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const View3D *v3d)
     const bool full_shading = (v3d && (v3d->shading.type > OB_SOLID));
     return !(ss->shapekey_active || ss->deform_modifiers_active || full_shading);
   }
-  else {
-    /* Multires and dyntopo always draw directly from the PBVH. */
-    return true;
-  }
+
+  /* Multires and dyntopo always draw directly from the PBVH. */
+  return true;
 }

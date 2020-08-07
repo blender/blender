@@ -135,9 +135,8 @@ const IDTypeInfo *BKE_idtype_get_info_from_idcode(const short id_code)
       id_types[id_index]->name[0] != '\0') {
     return id_types[id_index];
   }
-  else {
-    return NULL;
-  }
+
+  return NULL;
 }
 
 const IDTypeInfo *BKE_idtype_get_info_from_id(const ID *id)

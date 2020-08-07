@@ -689,9 +689,8 @@ static int sort_points_curvature(const void *in_a, const void *in_b)
   if (a->bezt_curvature > b->bezt_curvature) {
     return 0;
   }
-  else {
-    return 1;
-  }
+
+  return 1;
 }
 
 /**

@@ -111,7 +111,7 @@ static BMVert *unsubdivide_find_any_pole(BMesh *bm, int *elem_id, int elem)
     if (is_vertex_in_id(v, elem_id, elem) && is_vertex_pole_three(v)) {
       return v;
     }
-    else if (is_vertex_in_id(v, elem_id, elem) && is_vertex_pole(v)) {
+    if (is_vertex_in_id(v, elem_id, elem) && is_vertex_pole(v)) {
       pole = v;
     }
   }

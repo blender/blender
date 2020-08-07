@@ -341,9 +341,8 @@ bool BKE_mball_is_basis_for(Object *ob1, Object *ob2)
   if (STREQ(basis1name, basis2name)) {
     return BKE_mball_is_basis(ob1);
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 bool BKE_mball_is_any_selected(const MetaBall *mb)

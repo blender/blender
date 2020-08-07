@@ -603,28 +603,24 @@ static float curvemap_calc_extend(const CurveMapping *cumap,
       /* extrapolate horizontally */
       return first[1];
     }
-    else {
-      if (cuma->ext_in[0] == 0.0f) {
-        return first[1] + cuma->ext_in[1] * 10000.0f;
-      }
-      else {
-        return first[1] + cuma->ext_in[1] * (x - first[0]) / cuma->ext_in[0];
-      }
+
+    if (cuma->ext_in[0] == 0.0f) {
+      return first[1] + cuma->ext_in[1] * 10000.0f;
     }
+
+    return first[1] + cuma->ext_in[1] * (x - first[0]) / cuma->ext_in[0];
   }
-  else if (x >= last[0]) {
+  if (x >= last[0]) {
     if ((cumap->flag & CUMA_EXTEND_EXTRAPOLATE) == 0) {
       /* extrapolate horizontally */
       return last[1];
     }
-    else {
-      if (cuma->ext_out[0] == 0.0f) {
-        return last[1] - cuma->ext_out[1] * 10000.0f;
-      }
-      else {
-        return last[1] + cuma->ext_out[1] * (x - last[0]) / cuma->ext_out[0];
-      }
+
+    if (cuma->ext_out[0] == 0.0f) {
+      return last[1] - cuma->ext_out[1] * 10000.0f;
     }
+
+    return last[1] + cuma->ext_out[1] * (x - last[0]) / cuma->ext_out[0];
   }
   return 0.0f;
 }
@@ -870,7 +866,7 @@ static int sort_curvepoints(const void *a1, const void *a2)
   if (x1->x > x2->x) {
     return 1;
   }
-  else if (x1->x < x2->x) {
+  if (x1->x < x2->x) {
     return -1;
   }
   return 0;
@@ -984,17 +980,16 @@ float BKE_curvemap_evaluateF(const CurveMapping *cumap, const CurveMap *cuma, fl
   if (fi < 0.0f || fi > CM_TABLE) {
     return curvemap_calc_extend(cumap, cuma, value, &cuma->table[0].x, &cuma->table[CM_TABLE].x);
   }
-  else {
-    if (i < 0) {
-      return cuma->table[0].y;
-    }
-    if (i >= CM_TABLE) {
-      return cuma->table[CM_TABLE].y;
-    }
 
-    fi = fi - (float)i;
-    return (1.0f - fi) * cuma->table[i].y + (fi)*cuma->table[i + 1].y;
+  if (i < 0) {
+    return cuma->table[0].y;
   }
+  if (i >= CM_TABLE) {
+    return cuma->table[CM_TABLE].y;
+  }
+
+  fi = fi - (float)i;
+  return (1.0f - fi) * cuma->table[i].y + (fi)*cuma->table[i + 1].y;
 }
 
 /* works with curve 'cur' */

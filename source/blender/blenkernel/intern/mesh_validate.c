@@ -111,7 +111,7 @@ static int int64_cmp(const void *v1, const void *v2)
   if (x1 > x2) {
     return 1;
   }
-  else if (x1 < x2) {
+  if (x1 < x2) {
     return -1;
   }
 
@@ -125,28 +125,28 @@ static int search_face_cmp(const void *v1, const void *v2)
   if (sfa->es[0].edval > sfb->es[0].edval) {
     return 1;
   }
-  else if (sfa->es[0].edval < sfb->es[0].edval) {
+  if (sfa->es[0].edval < sfb->es[0].edval) {
     return -1;
   }
 
-  else if (sfa->es[1].edval > sfb->es[1].edval) {
+  if (sfa->es[1].edval > sfb->es[1].edval) {
     return 1;
   }
-  else if (sfa->es[1].edval < sfb->es[1].edval) {
+  if (sfa->es[1].edval < sfb->es[1].edval) {
     return -1;
   }
 
-  else if (sfa->es[2].edval > sfb->es[2].edval) {
+  if (sfa->es[2].edval > sfb->es[2].edval) {
     return 1;
   }
-  else if (sfa->es[2].edval < sfb->es[2].edval) {
+  if (sfa->es[2].edval < sfb->es[2].edval) {
     return -1;
   }
 
-  else if (sfa->es[3].edval > sfb->es[3].edval) {
+  if (sfa->es[3].edval > sfb->es[3].edval) {
     return 1;
   }
-  else if (sfa->es[3].edval < sfb->es[3].edval) {
+  if (sfa->es[3].edval < sfb->es[3].edval) {
     return -1;
   }
 
@@ -1082,9 +1082,8 @@ bool BKE_mesh_validate(Mesh *me, const bool do_verbose, const bool cddata_check_
     DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY);
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 /**
@@ -1161,9 +1160,8 @@ bool BKE_mesh_validate_material_indices(Mesh *me)
     DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY);
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 /** \} */
@@ -1341,13 +1339,13 @@ static int vergedgesort(const void *v1, const void *v2)
   if (x1->v1 > x2->v1) {
     return 1;
   }
-  else if (x1->v1 < x2->v1) {
+  if (x1->v1 < x2->v1) {
     return -1;
   }
-  else if (x1->v2 > x2->v2) {
+  if (x1->v2 > x2->v2) {
     return 1;
   }
-  else if (x1->v2 < x2->v2) {
+  if (x1->v2 < x2->v2) {
     return -1;
   }
 

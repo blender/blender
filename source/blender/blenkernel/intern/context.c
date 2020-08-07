@@ -255,13 +255,12 @@ static void *ctx_wm_python_context_get(const bContext *C,
       if (RNA_struct_is_a(result.ptr.type, member_type)) {
         return result.ptr.data;
       }
-      else {
-        CLOG_WARN(&LOG,
-                  "PyContext '%s' is a '%s', expected a '%s'",
-                  member,
-                  RNA_struct_identifier(result.ptr.type),
-                  RNA_struct_identifier(member_type));
-      }
+
+      CLOG_WARN(&LOG,
+                "PyContext '%s' is a '%s', expected a '%s'",
+                member,
+                RNA_struct_identifier(result.ptr.type),
+                RNA_struct_identifier(member_type));
     }
   }
 #else
@@ -360,9 +359,8 @@ static void *ctx_data_pointer_get(const bContext *C, const char *member)
     BLI_assert(result.type == CTX_DATA_TYPE_POINTER);
     return result.ptr.data;
   }
-  else {
-    return NULL;
-  }
+
+  return NULL;
 }
 
 static int ctx_data_pointer_verify(const bContext *C, const char *member, void **pointer)
@@ -374,15 +372,14 @@ static int ctx_data_pointer_verify(const bContext *C, const char *member, void *
     *pointer = NULL;
     return 1;
   }
-  else if (ctx_data_get((bContext *)C, member, &result) == 1) {
+  if (ctx_data_get((bContext *)C, member, &result) == 1) {
     BLI_assert(result.type == CTX_DATA_TYPE_POINTER);
     *pointer = result.ptr.data;
     return 1;
   }
-  else {
-    *pointer = NULL;
-    return 0;
-  }
+
+  *pointer = NULL;
+  return 0;
 }
 
 static int ctx_data_collection_get(const bContext *C, const char *member, ListBase *list)
@@ -441,9 +438,8 @@ PointerRNA CTX_data_pointer_get(const bContext *C, const char *member)
     BLI_assert(result.type == CTX_DATA_TYPE_POINTER);
     return result.ptr;
   }
-  else {
-    return PointerRNA_NULL;
-  }
+
+  return PointerRNA_NULL;
 }
 
 PointerRNA CTX_data_pointer_get_type(const bContext *C, const char *member, StructRNA *type)
@@ -454,13 +450,12 @@ PointerRNA CTX_data_pointer_get_type(const bContext *C, const char *member, Stru
     if (RNA_struct_is_a(ptr.type, type)) {
       return ptr;
     }
-    else {
-      CLOG_WARN(&LOG,
-                "member '%s' is '%s', not '%s'",
-                member,
-                RNA_struct_identifier(ptr.type),
-                RNA_struct_identifier(type));
-    }
+
+    CLOG_WARN(&LOG,
+              "member '%s' is '%s', not '%s'",
+              member,
+              RNA_struct_identifier(ptr.type),
+              RNA_struct_identifier(type));
   }
 
   return PointerRNA_NULL;
@@ -473,9 +468,8 @@ PointerRNA CTX_data_pointer_get_type_silent(const bContext *C, const char *membe
   if (ptr.data && RNA_struct_is_a(ptr.type, type)) {
     return ptr;
   }
-  else {
-    return PointerRNA_NULL;
-  }
+
+  return PointerRNA_NULL;
 }
 
 ListBase CTX_data_collection_get(const bContext *C, const char *member)
@@ -486,10 +480,9 @@ ListBase CTX_data_collection_get(const bContext *C, const char *member)
     BLI_assert(result.type == CTX_DATA_TYPE_COLLECTION);
     return result.list;
   }
-  else {
-    ListBase list = {NULL, NULL};
-    return list;
-  }
+
+  ListBase list = {NULL, NULL};
+  return list;
 }
 
 /* 1:found,  -1:found but not set,  0:not found */
@@ -667,9 +660,8 @@ int ctx_data_list_count(const bContext *C, int (*func)(const bContext *, ListBas
     BLI_freelistN(&list);
     return tot;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 void CTX_data_dir_set(bContextDataResult *result, const char **dir)
@@ -985,9 +977,8 @@ Main *CTX_data_main(const bContext *C)
   if (ctx_data_pointer_verify(C, "blend_data", (void *)&bmain)) {
     return bmain;
   }
-  else {
-    return C->data.main;
-  }
+
+  return C->data.main;
 }
 
 void CTX_data_main_set(bContext *C, Main *bmain)
@@ -1003,9 +994,8 @@ Scene *CTX_data_scene(const bContext *C)
   if (ctx_data_pointer_verify(C, "scene", (void *)&scene)) {
     return scene;
   }
-  else {
-    return C->data.scene;
-  }
+
+  return C->data.scene;
 }
 
 ViewLayer *CTX_data_view_layer(const bContext *C)
@@ -1102,34 +1092,34 @@ enum eContextObjectMode CTX_data_mode_enum_ex(const Object *obedit,
       if (object_mode & OB_MODE_POSE) {
         return CTX_MODE_POSE;
       }
-      else if (object_mode & OB_MODE_SCULPT) {
+      if (object_mode & OB_MODE_SCULPT) {
         return CTX_MODE_SCULPT;
       }
-      else if (object_mode & OB_MODE_WEIGHT_PAINT) {
+      if (object_mode & OB_MODE_WEIGHT_PAINT) {
         return CTX_MODE_PAINT_WEIGHT;
       }
-      else if (object_mode & OB_MODE_VERTEX_PAINT) {
+      if (object_mode & OB_MODE_VERTEX_PAINT) {
         return CTX_MODE_PAINT_VERTEX;
       }
-      else if (object_mode & OB_MODE_TEXTURE_PAINT) {
+      if (object_mode & OB_MODE_TEXTURE_PAINT) {
         return CTX_MODE_PAINT_TEXTURE;
       }
-      else if (object_mode & OB_MODE_PARTICLE_EDIT) {
+      if (object_mode & OB_MODE_PARTICLE_EDIT) {
         return CTX_MODE_PARTICLE;
       }
-      else if (object_mode & OB_MODE_PAINT_GPENCIL) {
+      if (object_mode & OB_MODE_PAINT_GPENCIL) {
         return CTX_MODE_PAINT_GPENCIL;
       }
-      else if (object_mode & OB_MODE_EDIT_GPENCIL) {
+      if (object_mode & OB_MODE_EDIT_GPENCIL) {
         return CTX_MODE_EDIT_GPENCIL;
       }
-      else if (object_mode & OB_MODE_SCULPT_GPENCIL) {
+      if (object_mode & OB_MODE_SCULPT_GPENCIL) {
         return CTX_MODE_SCULPT_GPENCIL;
       }
-      else if (object_mode & OB_MODE_WEIGHT_GPENCIL) {
+      if (object_mode & OB_MODE_WEIGHT_GPENCIL) {
         return CTX_MODE_WEIGHT_GPENCIL;
       }
-      else if (object_mode & OB_MODE_VERTEX_GPENCIL) {
+      if (object_mode & OB_MODE_VERTEX_GPENCIL) {
         return CTX_MODE_VERTEX_GPENCIL;
       }
     }
@@ -1173,9 +1163,8 @@ ToolSettings *CTX_data_tool_settings(const bContext *C)
   if (scene) {
     return scene->toolsettings;
   }
-  else {
-    return NULL;
-  }
+
+  return NULL;
 }
 
 int CTX_data_selected_nodes(const bContext *C, ListBase *list)

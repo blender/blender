@@ -1009,13 +1009,12 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
         if (psys_get_particle_state(&sim, a, &state, 0) == 0) {
           continue;
         }
-        else {
-          float tquat[4];
-          normalize_qt_qt(tquat, state.rot);
-          quat_to_mat4(pamat, tquat);
-          copy_v3_v3(pamat[3], state.co);
-          pamat[3][3] = 1.0f;
-        }
+
+        float tquat[4];
+        normalize_qt_qt(tquat, state.rot);
+        quat_to_mat4(pamat, tquat);
+        copy_v3_v3(pamat[3], state.co);
+        pamat[3][3] = 1.0f;
       }
 
       if (part->ren_as == PART_DRAW_GR && psys->part->draw & PART_DRAW_WHOLE_GR) {
@@ -1152,14 +1151,14 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
   if (transflag & OB_DUPLIPARTS) {
     return &gen_dupli_particles;
   }
-  else if (transflag & OB_DUPLIVERTS) {
+  if (transflag & OB_DUPLIVERTS) {
     if (ctx->object->type == OB_MESH) {
       return &gen_dupli_verts;
     }
-    else if (ctx->object->type == OB_FONT) {
+    if (ctx->object->type == OB_FONT) {
       return &gen_dupli_verts_font;
     }
-    else if (ctx->object->type == OB_POINTCLOUD) {
+    if (ctx->object->type == OB_POINTCLOUD) {
       return &gen_dupli_verts_pointcloud;
     }
   }

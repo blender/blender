@@ -136,30 +136,29 @@ bool BKE_shrinkwrap_init_tree(
 
     return data->bvh != NULL;
   }
-  else {
-    if (mesh->totpoly <= 0) {
-      return false;
-    }
 
-    data->bvh = BKE_bvhtree_from_mesh_get(&data->treeData, mesh, BVHTREE_FROM_LOOPTRI, 4);
-
-    if (data->bvh == NULL) {
-      return false;
-    }
-
-    if (force_normals || BKE_shrinkwrap_needs_normals(shrinkType, shrinkMode)) {
-      data->pnors = CustomData_get_layer(&mesh->pdata, CD_NORMAL);
-      if ((mesh->flag & ME_AUTOSMOOTH) != 0) {
-        data->clnors = CustomData_get_layer(&mesh->ldata, CD_NORMAL);
-      }
-    }
-
-    if (shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
-      data->boundary = mesh->runtime.shrinkwrap_data;
-    }
-
-    return true;
+  if (mesh->totpoly <= 0) {
+    return false;
   }
+
+  data->bvh = BKE_bvhtree_from_mesh_get(&data->treeData, mesh, BVHTREE_FROM_LOOPTRI, 4);
+
+  if (data->bvh == NULL) {
+    return false;
+  }
+
+  if (force_normals || BKE_shrinkwrap_needs_normals(shrinkType, shrinkMode)) {
+    data->pnors = CustomData_get_layer(&mesh->pdata, CD_NORMAL);
+    if ((mesh->flag & ME_AUTOSMOOTH) != 0) {
+      data->clnors = CustomData_get_layer(&mesh->ldata, CD_NORMAL);
+    }
+  }
+
+  if (shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
+    data->boundary = mesh->runtime.shrinkwrap_data;
+  }
+
+  return true;
 }
 
 /* Frees the tree data if necessary. */

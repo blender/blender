@@ -1123,10 +1123,10 @@ static int subdiv_foreach_loops_corner_index(const float u,
   if (u + du <= 0.5f && v + dv <= 0.5f) {
     return 0;
   }
-  else if (u >= 0.5f && v + dv <= 0.5f) {
+  if (u >= 0.5f && v + dv <= 0.5f) {
     return 1;
   }
-  else if (u >= 0.5f && v >= 0.5f) {
+  if (u >= 0.5f && v >= 0.5f) {
     return 2;
   }
   return 3;

@@ -961,7 +961,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       }
       return true;
     }
-    else if (cddata_type == CD_FAKE_BWEIGHT) {
+    if (cddata_type == CD_FAKE_BWEIGHT) {
       const size_t elem_size = sizeof(*((MVert *)NULL));
       const size_t data_size = sizeof(((MVert *)NULL)->bweight);
       const size_t data_offset = offsetof(MVert, bweight);
@@ -993,7 +993,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       }
       return true;
     }
-    else if (cddata_type == CD_FAKE_MDEFORMVERT) {
+    if (cddata_type == CD_FAKE_MDEFORMVERT) {
       bool ret;
 
       cd_src = &me_src->vdata;
@@ -1018,7 +1018,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       me_dst->dvert = CustomData_get_layer(&me_dst->vdata, CD_MDEFORMVERT);
       return ret;
     }
-    else if (cddata_type == CD_FAKE_SHAPEKEY) {
+    if (cddata_type == CD_FAKE_SHAPEKEY) {
       /* TODO: leaving shapekeys aside for now, quite specific case,
        * since we can't access them from MVert :/ */
       return false;
@@ -1049,7 +1049,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       }
       return true;
     }
-    else if (cddata_type == CD_FAKE_CREASE) {
+    if (cddata_type == CD_FAKE_CREASE) {
       const size_t elem_size = sizeof(*((MEdge *)NULL));
       const size_t data_size = sizeof(((MEdge *)NULL)->crease);
       const size_t data_offset = offsetof(MEdge, crease);
@@ -1081,7 +1081,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       }
       return true;
     }
-    else if (cddata_type == CD_FAKE_BWEIGHT) {
+    if (cddata_type == CD_FAKE_BWEIGHT) {
       const size_t elem_size = sizeof(*((MEdge *)NULL));
       const size_t data_size = sizeof(((MEdge *)NULL)->bweight);
       const size_t data_offset = offsetof(MEdge, bweight);
@@ -1113,7 +1113,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       }
       return true;
     }
-    else if (r_map && ELEM(cddata_type, CD_FAKE_SHARP, CD_FAKE_SEAM)) {
+    if (r_map && ELEM(cddata_type, CD_FAKE_SHARP, CD_FAKE_SEAM)) {
       const size_t elem_size = sizeof(*((MEdge *)NULL));
       const size_t data_size = sizeof(((MEdge *)NULL)->flag);
       const size_t data_offset = offsetof(MEdge, flag);
@@ -1136,9 +1136,8 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                            interp_data);
       return true;
     }
-    else {
-      return false;
-    }
+
+    return false;
   }
   else if (elem_type == ME_LOOP) {
     if (cddata_type == CD_FAKE_UV) {
@@ -1176,9 +1175,8 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       }
       return true;
     }
-    else {
-      return false;
-    }
+
+    return false;
   }
   else if (elem_type == ME_POLY) {
     if (cddata_type == CD_FAKE_UV) {
@@ -1209,7 +1207,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       }
       return true;
     }
-    else if (r_map && cddata_type == CD_FAKE_SHARP) {
+    if (r_map && cddata_type == CD_FAKE_SHARP) {
       const size_t elem_size = sizeof(*((MPoly *)NULL));
       const size_t data_size = sizeof(((MPoly *)NULL)->flag);
       const size_t data_offset = offsetof(MPoly, flag);
@@ -1232,9 +1230,8 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
                                            interp_data);
       return true;
     }
-    else {
-      return false;
-    }
+
+    return false;
   }
 
   return false;

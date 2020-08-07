@@ -126,9 +126,8 @@ int BKE_mask_spline_differentiate_calc_total(const MaskSpline *spline, const uns
   if (spline->flag & MASK_SPLINE_CYCLIC) {
     return spline->tot_point * resol;
   }
-  else {
-    return ((spline->tot_point - 1) * resol) + 1;
-  }
+
+  return ((spline->tot_point - 1) * resol) + 1;
 }
 
 float (*BKE_mask_spline_differentiate_with_resolution(MaskSpline *spline,

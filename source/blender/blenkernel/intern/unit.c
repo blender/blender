@@ -970,9 +970,8 @@ double bUnit_PreferredInputUnitScalar(const struct UnitSettings *settings, int t
   if (unit) {
     return unit->scalar;
   }
-  else {
-    return bUnit_BaseScalar(units.system, type);
-  }
+
+  return bUnit_BaseScalar(units.system, type);
 }
 
 /* make a copy of the string that replaces the units with numbers
@@ -1155,9 +1154,8 @@ double bUnit_BaseScalar(int system, int type)
   if (usys) {
     return unit_default(usys)->scalar;
   }
-  else {
-    return 1.0;
-  }
+
+  return 1.0;
 }
 
 /* external access */

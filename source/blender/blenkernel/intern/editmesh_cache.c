@@ -148,11 +148,10 @@ bool BKE_editmesh_cache_calc_minmax(struct BMEditMesh *em,
     }
     return true;
   }
-  else {
-    zero_v3(min);
-    zero_v3(max);
-    return false;
-  }
+
+  zero_v3(min);
+  zero_v3(max);
+  return false;
 }
 
 /** \} */

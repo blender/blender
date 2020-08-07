@@ -407,15 +407,14 @@ int multires_get_level(const Scene *scene,
     return (scene != NULL) ? get_render_subsurf_level(&scene->r, mmd->renderlvl, true) :
                              mmd->renderlvl;
   }
-  else if (ob->mode == OB_MODE_SCULPT) {
+  if (ob->mode == OB_MODE_SCULPT) {
     return mmd->sculptlvl;
   }
-  else if (ignore_simplify) {
+  if (ignore_simplify) {
     return mmd->lvl;
   }
-  else {
-    return (scene != NULL) ? get_render_subsurf_level(&scene->r, mmd->lvl, false) : mmd->lvl;
-  }
+
+  return (scene != NULL) ? get_render_subsurf_level(&scene->r, mmd->lvl, false) : mmd->lvl;
 }
 
 void multires_set_tot_level(Object *ob, MultiresModifierData *mmd, int lvl)
@@ -553,7 +552,7 @@ static int get_levels_from_disps(Object *ob)
         if (md->totdisp == lvl_totdisp) {
           break;
         }
-        else if (md->totdisp < lvl_totdisp) {
+        if (md->totdisp < lvl_totdisp) {
           totlvl--;
         }
         else {

@@ -540,9 +540,8 @@ const char *BKE_collection_ui_name_get(struct Collection *collection)
   if (collection->flag & COLLECTION_IS_MASTER) {
     return IFACE_("Scene Collection");
   }
-  else {
-    return collection->id.name + 2;
-  }
+
+  return collection->id.name + 2;
 }
 
 /** \} */
@@ -617,9 +616,8 @@ Base *BKE_collection_or_layer_objects(const ViewLayer *view_layer, Collection *c
   if (collection) {
     return BKE_collection_object_cache_get(collection).first;
   }
-  else {
-    return FIRSTBASE(view_layer);
-  }
+
+  return FIRSTBASE(view_layer);
 }
 
 /** \} */
@@ -671,14 +669,13 @@ static bool collection_object_cyclic_check_internal(Object *object, Collection *
     if (dup_collection == collection) {
       return true;
     }
-    else {
-      FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (dup_collection, collection_object) {
-        if (collection_object_cyclic_check_internal(collection_object, dup_collection)) {
-          return true;
-        }
+
+    FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (dup_collection, collection_object) {
+      if (collection_object_cyclic_check_internal(collection_object, dup_collection)) {
+        return true;
       }
-      FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
     }
+    FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 
     /* un-flag the object, it's allowed to have the same collection multiple times in parallel */
     dup_collection->id.tag |= LIB_TAG_DOIT;
@@ -725,9 +722,8 @@ static Collection *collection_next_find(Main *bmain, Scene *scene, Collection *c
   if (scene && collection == scene->master_collection) {
     return bmain->collections.first;
   }
-  else {
-    return collection->id.next;
-  }
+
+  return collection->id.next;
 }
 
 Collection *BKE_collection_object_find(Main *bmain,
@@ -1510,9 +1506,8 @@ bool BKE_collection_objects_select(ViewLayer *view_layer, Collection *collection
   if (layer_collection != NULL) {
     return BKE_layer_collection_objects_select(view_layer, layer_collection, deselect);
   }
-  else {
-    return collection_objects_select(view_layer, collection, deselect);
-  }
+
+  return collection_objects_select(view_layer, collection, deselect);
 }
 
 /** \} */

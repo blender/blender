@@ -765,9 +765,8 @@ bool BKE_icon_delete(const int icon_id)
     icon_free(icon);
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 bool BKE_icon_delete_unmanaged(const int icon_id)
@@ -783,15 +782,13 @@ bool BKE_icon_delete_unmanaged(const int icon_id)
       BLI_ghash_insert(gIcons, POINTER_FROM_INT(icon_id), icon);
       return false;
     }
-    else {
-      icon_free_data(icon_id, icon);
-      icon_free(icon);
-      return true;
-    }
+
+    icon_free_data(icon_id, icon);
+    icon_free(icon);
+    return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 /* -------------------------------------------------------------------- */

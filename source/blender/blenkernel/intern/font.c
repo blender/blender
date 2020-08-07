@@ -193,13 +193,12 @@ static PackedFile *get_builtin_packedfile(void)
 
     return NULL;
   }
-  else {
-    void *mem = MEM_mallocN(builtin_font_size, "vfd_builtin");
 
-    memcpy(mem, builtin_font_data, builtin_font_size);
+  void *mem = MEM_mallocN(builtin_font_size, "vfd_builtin");
 
-    return BKE_packedfile_new_from_memory(mem, builtin_font_size);
-  }
+  memcpy(mem, builtin_font_data, builtin_font_size);
+
+  return BKE_packedfile_new_from_memory(mem, builtin_font_size);
 }
 
 static VFontData *vfont_get_data(VFont *vfont)
@@ -621,12 +620,11 @@ int BKE_vfont_select_get(Object *ob, int *r_start, int *r_end)
   if (start == end + 1) {
     return 0;
   }
-  else {
-    BLI_assert(start < end + 1);
-    *r_start = start;
-    *r_end = end;
-    return direction;
-  }
+
+  BLI_assert(start < end + 1);
+  *r_start = start;
+  *r_end = end;
+  return direction;
 }
 
 void BKE_vfont_select_clamp(Object *ob)
@@ -647,12 +645,11 @@ static float char_width(Curve *cu, VChar *che, CharInfo *info)
   if (che == NULL) {
     return 0.0f;
   }
-  else if (info->flag & CU_CHINFO_SMALLCAPS_CHECK) {
+  if (info->flag & CU_CHINFO_SMALLCAPS_CHECK) {
     return che->width * cu->smallcaps_scale;
   }
-  else {
-    return che->width;
-  }
+
+  return che->width;
 }
 
 static void textbox_scale(TextBox *tb_dst, const TextBox *tb_src, float scale)
@@ -1603,32 +1600,32 @@ static bool vfont_to_curve(Object *ob,
     }
     return true;
   }
+
+  ok = true;
+finally:
+  if (r_text) {
+    *r_text = mem;
+    *r_text_len = slen;
+    *r_text_free = (ef == NULL);
+  }
   else {
-    ok = true;
-  finally:
-    if (r_text) {
-      *r_text = mem;
-      *r_text_len = slen;
-      *r_text_free = (ef == NULL);
+    if (ef == NULL) {
+      MEM_freeN((void *)mem);
+    }
+  }
+
+  if (chartransdata) {
+    if (ok && r_chartransdata) {
+      *r_chartransdata = chartransdata;
     }
     else {
-      if (ef == NULL) {
-        MEM_freeN((void *)mem);
-      }
+      MEM_freeN(chartransdata);
     }
-
-    if (chartransdata) {
-      if (ok && r_chartransdata) {
-        *r_chartransdata = chartransdata;
-      }
-      else {
-        MEM_freeN(chartransdata);
-      }
-    }
-
-    /* Store the effective scale, to use for the textbox lines. */
-    cu->fsize_realtime = font_size;
   }
+
+  /* Store the effective scale, to use for the textbox lines. */
+  cu->fsize_realtime = font_size;
+
   return ok;
 
 #undef MARGIN_X_MIN

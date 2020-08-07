@@ -366,23 +366,22 @@ static float *studiolight_multilayer_convert_pass(ImBuf *ibuf,
   if (channels == 4) {
     return rect;
   }
-  else {
-    float *new_rect = MEM_callocN(sizeof(float[4]) * ibuf->x * ibuf->y, __func__);
 
-    IMB_buffer_float_from_float(new_rect,
-                                rect,
-                                channels,
-                                IB_PROFILE_LINEAR_RGB,
-                                IB_PROFILE_LINEAR_RGB,
-                                false,
-                                ibuf->x,
-                                ibuf->y,
-                                ibuf->x,
-                                ibuf->x);
+  float *new_rect = MEM_callocN(sizeof(float[4]) * ibuf->x * ibuf->y, __func__);
 
-    MEM_freeN(rect);
-    return new_rect;
-  }
+  IMB_buffer_float_from_float(new_rect,
+                              rect,
+                              channels,
+                              IB_PROFILE_LINEAR_RGB,
+                              IB_PROFILE_LINEAR_RGB,
+                              false,
+                              ibuf->x,
+                              ibuf->y,
+                              ibuf->x,
+                              ibuf->x);
+
+  MEM_freeN(rect);
+  return new_rect;
 }
 
 static void studiolight_multilayer_addpass(void *base,
@@ -1229,12 +1228,11 @@ static int studiolight_cmp(const void *a, const void *b)
   if (flagorder1 < flagorder2) {
     return -1;
   }
-  else if (flagorder1 > flagorder2) {
+  if (flagorder1 > flagorder2) {
     return 1;
   }
-  else {
-    return BLI_strcasecmp(sl1->name, sl2->name);
-  }
+
+  return BLI_strcasecmp(sl1->name, sl2->name);
 }
 
 /* icons */
@@ -1496,10 +1494,9 @@ struct StudioLight *BKE_studiolight_find(const char *name, int flag)
       if ((sl->flag & flag)) {
         return sl;
       }
-      else {
-        /* flags do not match, so use default */
-        return BKE_studiolight_find_default(flag);
-      }
+
+      /* flags do not match, so use default */
+      return BKE_studiolight_find_default(flag);
     }
   }
   /* When not found, use the default studio light */

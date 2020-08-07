@@ -96,9 +96,8 @@ bool BKE_lib_query_foreachid_process(LibraryForeachIDData *data, ID **id_pp, int
     }
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 int BKE_lib_query_foreachid_process_flags_get(LibraryForeachIDData *data)

@@ -106,9 +106,8 @@ static int particles_are_dynamic(ParticleSystem *psys)
   if (psys->part->type == PART_HAIR) {
     return psys->flag & PSYS_HAIR_DYNAMICS;
   }
-  else {
-    return ELEM(psys->part->phystype, PART_PHYS_NEWTON, PART_PHYS_BOIDS, PART_PHYS_FLUID);
-  }
+
+  return ELEM(psys->part->phystype, PART_PHYS_NEWTON, PART_PHYS_BOIDS, PART_PHYS_FLUID);
 }
 
 float psys_get_current_display_percentage(ParticleSystem *psys, const bool use_render_params)
@@ -131,12 +130,11 @@ static int tot_particles(ParticleSystem *psys, PTCacheID *pid)
   if (pid && psys->pointcache->flag & PTCACHE_EXTERNAL) {
     return pid->cache->totpoint;
   }
-  else if (psys->part->distr == PART_DISTR_GRID && psys->part->from != PART_FROM_VERT) {
+  if (psys->part->distr == PART_DISTR_GRID && psys->part->from != PART_FROM_VERT) {
     return psys->part->grid_res * psys->part->grid_res * psys->part->grid_res - psys->totunexist;
   }
-  else {
-    return psys->part->totpart - psys->totunexist;
-  }
+
+  return psys->part->totpart - psys->totunexist;
 }
 
 void psys_reset(ParticleSystem *psys, int mode)
@@ -1709,13 +1707,12 @@ static void sph_evaluate_func(BVHTree *tree,
       BLI_bvhtree_range_query(tree, co, interaction_radius, callback, pfr);
       break;
     }
-    else {
-      BLI_rw_mutex_lock(&psys_bvhtree_rwlock, THREAD_LOCK_READ);
 
-      BLI_bvhtree_range_query(psys[i]->bvhtree, co, interaction_radius, callback, pfr);
+    BLI_rw_mutex_lock(&psys_bvhtree_rwlock, THREAD_LOCK_READ);
 
-      BLI_rw_mutex_unlock(&psys_bvhtree_rwlock);
-    }
+    BLI_bvhtree_range_query(psys[i]->bvhtree, co, interaction_radius, callback, pfr);
+
+    BLI_rw_mutex_unlock(&psys_bvhtree_rwlock);
   }
 }
 static void sph_density_accum_cb(void *userdata, int index, const float co[3], float squared_dist)
@@ -2612,9 +2609,8 @@ static float collision_newton_rhapson(ParticleCollision *col,
         d1 = 0.f;
         continue;
       }
-      else {
-        return -1.f;
-      }
+
+      return -1.f;
     }
 
     dd = (t1 - t0) / (d1 - d0);
@@ -2634,7 +2630,7 @@ static float collision_newton_rhapson(ParticleCollision *col,
       d1 = 0.f;
       continue;
     }
-    else if (iter == 1 && (t1 < -COLLISION_ZERO || t1 > 1.f)) {
+    if (iter == 1 && (t1 < -COLLISION_ZERO || t1 > 1.f)) {
       return -1.f;
     }
 
@@ -2648,9 +2644,8 @@ static float collision_newton_rhapson(ParticleCollision *col,
 
         return t1;
       }
-      else {
-        return -1.f;
-      }
+
+      return -1.f;
     }
   }
   return -1.0;
@@ -2927,164 +2922,163 @@ static int collision_response(ParticleSimulationData *sim,
     return 0;
   }
   /* figure out velocity and other data after collision */
-  else {
-    /* velocity directly before collision to be modified into velocity directly after collision */
-    float v0[3];
-    /* normal component of v0 */
-    float v0_nor[3];
-    /* tangential component of v0 */
-    float v0_tan[3];
-    /* tangential component of collision surface velocity */
-    float vc_tan[3];
-    float v0_dot, vc_dot;
-    float damp = pd->pdef_damp + pd->pdef_rdamp * 2 * (BLI_rng_get_float(rng) - 0.5f);
-    float frict = pd->pdef_frict + pd->pdef_rfrict * 2 * (BLI_rng_get_float(rng) - 0.5f);
-    float distance, nor[3], dot;
 
-    CLAMP(damp, 0.0f, 1.0f);
-    CLAMP(frict, 0.0f, 1.0f);
+  /* velocity directly before collision to be modified into velocity directly after collision */
+  float v0[3];
+  /* normal component of v0 */
+  float v0_nor[3];
+  /* tangential component of v0 */
+  float v0_tan[3];
+  /* tangential component of collision surface velocity */
+  float vc_tan[3];
+  float v0_dot, vc_dot;
+  float damp = pd->pdef_damp + pd->pdef_rdamp * 2 * (BLI_rng_get_float(rng) - 0.5f);
+  float frict = pd->pdef_frict + pd->pdef_rfrict * 2 * (BLI_rng_get_float(rng) - 0.5f);
+  float distance, nor[3], dot;
 
-    /* get exact velocity right before collision */
-    madd_v3_v3v3fl(v0, col->ve1, col->acc, dt1);
+  CLAMP(damp, 0.0f, 1.0f);
+  CLAMP(frict, 0.0f, 1.0f);
 
-    /* Convert collider velocity from `1/frame_step` to `1/s` TODO:
-     * here we assume 1 frame step for collision modifier. */
-    mul_v3_fl(pce->vel, col->inv_timestep);
+  /* get exact velocity right before collision */
+  madd_v3_v3v3fl(v0, col->ve1, col->acc, dt1);
 
-    /* calculate tangential particle velocity */
-    v0_dot = dot_v3v3(pce->nor, v0);
-    madd_v3_v3v3fl(v0_tan, v0, pce->nor, -v0_dot);
+  /* Convert collider velocity from `1/frame_step` to `1/s` TODO:
+   * here we assume 1 frame step for collision modifier. */
+  mul_v3_fl(pce->vel, col->inv_timestep);
 
-    /* calculate tangential collider velocity */
-    vc_dot = dot_v3v3(pce->nor, pce->vel);
-    madd_v3_v3v3fl(vc_tan, pce->vel, pce->nor, -vc_dot);
+  /* calculate tangential particle velocity */
+  v0_dot = dot_v3v3(pce->nor, v0);
+  madd_v3_v3v3fl(v0_tan, v0, pce->nor, -v0_dot);
 
-    /* handle friction effects (tangential and angular velocity) */
-    if (frict > 0.0f) {
-      /* angular <-> linear velocity */
-      if (dynamic_rotation) {
-        float vr_tan[3], v1_tan[3], ave[3];
+  /* calculate tangential collider velocity */
+  vc_dot = dot_v3v3(pce->nor, pce->vel);
+  madd_v3_v3v3fl(vc_tan, pce->vel, pce->nor, -vc_dot);
 
-        /* linear velocity of particle surface */
-        cross_v3_v3v3(vr_tan, pce->nor, pa->state.ave);
-        mul_v3_fl(vr_tan, pa->size);
+  /* handle friction effects (tangential and angular velocity) */
+  if (frict > 0.0f) {
+    /* angular <-> linear velocity */
+    if (dynamic_rotation) {
+      float vr_tan[3], v1_tan[3], ave[3];
 
-        /* change to coordinates that move with the collision plane */
-        sub_v3_v3v3(v1_tan, v0_tan, vc_tan);
+      /* linear velocity of particle surface */
+      cross_v3_v3v3(vr_tan, pce->nor, pa->state.ave);
+      mul_v3_fl(vr_tan, pa->size);
 
-        /* The resulting velocity is a weighted average of particle cm & surface
-         * velocity. This weight (related to particle's moment of inertia) could
-         * be made a parameter for angular <-> linear conversion.
-         */
-        madd_v3_v3fl(v1_tan, vr_tan, -0.4);
-        mul_v3_fl(v1_tan, 1.0f / 1.4f); /* 1/(1+0.4) */
+      /* change to coordinates that move with the collision plane */
+      sub_v3_v3v3(v1_tan, v0_tan, vc_tan);
 
-        /* rolling friction is around 0.01 of sliding friction
-         * (could be made a parameter) */
-        mul_v3_fl(v1_tan, 1.0f - 0.01f * frict);
+      /* The resulting velocity is a weighted average of particle cm & surface
+       * velocity. This weight (related to particle's moment of inertia) could
+       * be made a parameter for angular <-> linear conversion.
+       */
+      madd_v3_v3fl(v1_tan, vr_tan, -0.4);
+      mul_v3_fl(v1_tan, 1.0f / 1.4f); /* 1/(1+0.4) */
 
-        /* surface_velocity is opposite to cm velocity */
-        negate_v3_v3(vr_tan, v1_tan);
+      /* rolling friction is around 0.01 of sliding friction
+       * (could be made a parameter) */
+      mul_v3_fl(v1_tan, 1.0f - 0.01f * frict);
 
-        /* get back to global coordinates */
-        add_v3_v3(v1_tan, vc_tan);
+      /* surface_velocity is opposite to cm velocity */
+      negate_v3_v3(vr_tan, v1_tan);
 
-        /* convert to angular velocity*/
-        cross_v3_v3v3(ave, vr_tan, pce->nor);
-        mul_v3_fl(ave, 1.0f / MAX2(pa->size, 0.001f));
+      /* get back to global coordinates */
+      add_v3_v3(v1_tan, vc_tan);
 
-        /* only friction will cause change in linear & angular velocity */
-        interp_v3_v3v3(pa->state.ave, pa->state.ave, ave, frict);
-        interp_v3_v3v3(v0_tan, v0_tan, v1_tan, frict);
-      }
-      else {
-        /* just basic friction (unphysical due to the friction model used in Blender) */
-        interp_v3_v3v3(v0_tan, v0_tan, vc_tan, frict);
-      }
-    }
+      /* convert to angular velocity*/
+      cross_v3_v3v3(ave, vr_tan, pce->nor);
+      mul_v3_fl(ave, 1.0f / MAX2(pa->size, 0.001f));
 
-    /* Stickiness was possibly added before,
-     * so cancel that before calculating new normal velocity.
-     * Otherwise particles go flying out of the surface
-     * because of high reversed sticky velocity. */
-    if (v0_dot < 0.0f) {
-      v0_dot += pd->pdef_stickness;
-      if (v0_dot > 0.0f) {
-        v0_dot = 0.0f;
-      }
-    }
-
-    /* damping and flipping of velocity around normal */
-    v0_dot *= 1.0f - damp;
-    vc_dot *= through ? damp : 1.0f;
-
-    /* calculate normal particle velocity */
-    /* special case for object hitting the particle from behind */
-    if (through == 0 && ((vc_dot > 0.0f && v0_dot > 0.0f && vc_dot > v0_dot) ||
-                         (vc_dot < 0.0f && v0_dot < 0.0f && vc_dot < v0_dot))) {
-      mul_v3_v3fl(v0_nor, pce->nor, vc_dot);
-    }
-    else if (v0_dot > 0.f) {
-      mul_v3_v3fl(v0_nor, pce->nor, vc_dot + v0_dot);
+      /* only friction will cause change in linear & angular velocity */
+      interp_v3_v3v3(pa->state.ave, pa->state.ave, ave, frict);
+      interp_v3_v3v3(v0_tan, v0_tan, v1_tan, frict);
     }
     else {
-      mul_v3_v3fl(v0_nor, pce->nor, vc_dot + (through ? 1.0f : -1.0f) * v0_dot);
+      /* just basic friction (unphysical due to the friction model used in Blender) */
+      interp_v3_v3v3(v0_tan, v0_tan, vc_tan, frict);
     }
-
-    /* combine components together again */
-    add_v3_v3v3(v0, v0_nor, v0_tan);
-
-    if (col->boid) {
-      /* keep boids above ground */
-      BoidParticle *bpa = pa->boid;
-      if (bpa->data.mode == eBoidMode_OnLand || co[2] <= col->boid_z) {
-        co[2] = col->boid_z;
-        v0[2] = 0.0f;
-      }
-    }
-
-    /* re-apply acceleration to final location and velocity */
-    madd_v3_v3v3fl(pa->state.co, co, v0, dt2);
-    madd_v3_v3fl(pa->state.co, col->acc, 0.5f * dt2 * dt2);
-    madd_v3_v3v3fl(pa->state.vel, v0, col->acc, dt2);
-
-    /* make sure particle stays on the right side of the surface */
-    if (!through) {
-      distance = collision_point_distance_with_normal(co, pce, -1.f, col, nor);
-
-      if (distance < col->radius + COLLISION_MIN_DISTANCE) {
-        madd_v3_v3fl(co, nor, col->radius + COLLISION_MIN_DISTANCE - distance);
-      }
-
-      dot = dot_v3v3(nor, v0);
-      if (dot < 0.f) {
-        madd_v3_v3fl(v0, nor, -dot);
-      }
-
-      distance = collision_point_distance_with_normal(pa->state.co, pce, 1.f, col, nor);
-
-      if (distance < col->radius + COLLISION_MIN_DISTANCE) {
-        madd_v3_v3fl(pa->state.co, nor, col->radius + COLLISION_MIN_DISTANCE - distance);
-      }
-
-      dot = dot_v3v3(nor, pa->state.vel);
-      if (dot < 0.f) {
-        madd_v3_v3fl(pa->state.vel, nor, -dot);
-      }
-    }
-
-    /* add stickiness to surface */
-    madd_v3_v3fl(pa->state.vel, pce->nor, -pd->pdef_stickness);
-
-    /* set coordinates for next iteration */
-    copy_v3_v3(col->co1, co);
-    copy_v3_v3(col->co2, pa->state.co);
-
-    copy_v3_v3(col->ve1, v0);
-    copy_v3_v3(col->ve2, pa->state.vel);
-
-    col->f = f;
   }
+
+  /* Stickiness was possibly added before,
+   * so cancel that before calculating new normal velocity.
+   * Otherwise particles go flying out of the surface
+   * because of high reversed sticky velocity. */
+  if (v0_dot < 0.0f) {
+    v0_dot += pd->pdef_stickness;
+    if (v0_dot > 0.0f) {
+      v0_dot = 0.0f;
+    }
+  }
+
+  /* damping and flipping of velocity around normal */
+  v0_dot *= 1.0f - damp;
+  vc_dot *= through ? damp : 1.0f;
+
+  /* calculate normal particle velocity */
+  /* special case for object hitting the particle from behind */
+  if (through == 0 && ((vc_dot > 0.0f && v0_dot > 0.0f && vc_dot > v0_dot) ||
+                       (vc_dot < 0.0f && v0_dot < 0.0f && vc_dot < v0_dot))) {
+    mul_v3_v3fl(v0_nor, pce->nor, vc_dot);
+  }
+  else if (v0_dot > 0.f) {
+    mul_v3_v3fl(v0_nor, pce->nor, vc_dot + v0_dot);
+  }
+  else {
+    mul_v3_v3fl(v0_nor, pce->nor, vc_dot + (through ? 1.0f : -1.0f) * v0_dot);
+  }
+
+  /* combine components together again */
+  add_v3_v3v3(v0, v0_nor, v0_tan);
+
+  if (col->boid) {
+    /* keep boids above ground */
+    BoidParticle *bpa = pa->boid;
+    if (bpa->data.mode == eBoidMode_OnLand || co[2] <= col->boid_z) {
+      co[2] = col->boid_z;
+      v0[2] = 0.0f;
+    }
+  }
+
+  /* re-apply acceleration to final location and velocity */
+  madd_v3_v3v3fl(pa->state.co, co, v0, dt2);
+  madd_v3_v3fl(pa->state.co, col->acc, 0.5f * dt2 * dt2);
+  madd_v3_v3v3fl(pa->state.vel, v0, col->acc, dt2);
+
+  /* make sure particle stays on the right side of the surface */
+  if (!through) {
+    distance = collision_point_distance_with_normal(co, pce, -1.f, col, nor);
+
+    if (distance < col->radius + COLLISION_MIN_DISTANCE) {
+      madd_v3_v3fl(co, nor, col->radius + COLLISION_MIN_DISTANCE - distance);
+    }
+
+    dot = dot_v3v3(nor, v0);
+    if (dot < 0.f) {
+      madd_v3_v3fl(v0, nor, -dot);
+    }
+
+    distance = collision_point_distance_with_normal(pa->state.co, pce, 1.f, col, nor);
+
+    if (distance < col->radius + COLLISION_MIN_DISTANCE) {
+      madd_v3_v3fl(pa->state.co, nor, col->radius + COLLISION_MIN_DISTANCE - distance);
+    }
+
+    dot = dot_v3v3(nor, pa->state.vel);
+    if (dot < 0.f) {
+      madd_v3_v3fl(pa->state.vel, nor, -dot);
+    }
+  }
+
+  /* add stickiness to surface */
+  madd_v3_v3fl(pa->state.vel, pce->nor, -pd->pdef_stickness);
+
+  /* set coordinates for next iteration */
+  copy_v3_v3(col->co1, co);
+  copy_v3_v3(col->co2, pa->state.co);
+
+  copy_v3_v3(col->ve1, v0);
+  copy_v3_v3(col->ve2, pa->state.vel);
+
+  col->f = f;
 
   /* if permeability random roll succeeded, disable collider for this sim step */
   if (through) {
@@ -3676,12 +3670,11 @@ static float sync_timestep(ParticleSystem *psys, float t_frac)
   if (t_frac == 1.0f) {
     return psys->dt_frac;
   }
-  else if (t_frac + (psys->dt_frac * TIMESTEP_EXPANSION_TOLERANCE) >= 1.0f) {
+  if (t_frac + (psys->dt_frac * TIMESTEP_EXPANSION_TOLERANCE) >= 1.0f) {
     return 1.0f - t_frac;
   }
-  else {
-    return psys->dt_frac;
-  }
+
+  return psys->dt_frac;
 }
 
 /************************************************/
@@ -4537,11 +4530,11 @@ static void system_step(ParticleSimulationData *sim, float cfra, const bool use_
       return;
     }
     /* Cache is supposed to be baked, but no data was found so bail out */
-    else if (cache->flag & PTCACHE_BAKED) {
+    if (cache->flag & PTCACHE_BAKED) {
       psys_reset(psys, PSYS_RESET_CACHE_MISS);
       return;
     }
-    else if (cache_result == PTCACHE_READ_OLD) {
+    if (cache_result == PTCACHE_READ_OLD) {
       psys->cfra = (float)cache->simframe;
       cached_step(sim, psys->cfra, use_render_params);
     }

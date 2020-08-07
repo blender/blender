@@ -356,9 +356,8 @@ bool object_deform_mball(Object *ob, ListBase *dispbase)
 
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 static BPoint *latt_bp(Lattice *lt, int u, int v, int w)
@@ -575,9 +574,8 @@ struct BPoint *BKE_lattice_active_point_get(Lattice *lt)
   if ((lt->actbp != LT_ACTBP_NONE) && (lt->actbp < lt->pntsu * lt->pntsv * lt->pntsw)) {
     return &lt->def[lt->actbp];
   }
-  else {
-    return NULL;
-  }
+
+  return NULL;
 }
 
 void BKE_lattice_center_median(Lattice *lt, float cent[3])

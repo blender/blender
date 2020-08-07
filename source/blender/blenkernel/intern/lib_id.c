@@ -2203,13 +2203,12 @@ char *BKE_id_to_unique_string_key(const struct ID *id)
   if (id->lib == NULL) {
     return BLI_strdup(id->name);
   }
-  else {
-    /* Prefix with an ascii character in the range of 32..96 (visible)
-     * this ensures we can't have a library ID pair that collide.
-     * Where 'LIfooOBbarOBbaz' could be ('LIfoo, OBbarOBbaz') or ('LIfooOBbar', 'OBbaz'). */
-    const char ascii_len = strlen(id->lib->id.name + 2) + 32;
-    return BLI_sprintfN("%c%s%s", ascii_len, id->lib->id.name, id->name);
-  }
+
+  /* Prefix with an ascii character in the range of 32..96 (visible)
+   * this ensures we can't have a library ID pair that collide.
+   * Where 'LIfooOBbarOBbaz' could be ('LIfoo, OBbarOBbaz') or ('LIfooOBbar', 'OBbaz'). */
+  const char ascii_len = strlen(id->lib->id.name + 2) + 32;
+  return BLI_sprintfN("%c%s%s", ascii_len, id->lib->id.name, id->name);
 }
 
 void BKE_id_tag_set_atomic(ID *id, int tag)
@@ -2258,7 +2257,7 @@ static int id_order_compare(const void *a, const void *b)
     if (*order_a < *order_b) {
       return -1;
     }
-    else if (*order_a > *order_b) {
+    if (*order_a > *order_b) {
       return 1;
     }
   }

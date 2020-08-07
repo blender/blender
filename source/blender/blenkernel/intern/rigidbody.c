@@ -2075,7 +2075,7 @@ void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime
     return;
   }
   /* make sure we don't go out of cache frame range */
-  else if (ctime > endframe) {
+  if (ctime > endframe) {
     ctime = endframe;
   }
 
@@ -2083,7 +2083,7 @@ void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime
   if (rbw->shared->physics_world == NULL && !(cache->flag & PTCACHE_BAKED)) {
     return;
   }
-  else if (rbw->objects == NULL) {
+  if (rbw->objects == NULL) {
     rigidbody_update_ob_array(rbw);
   }
 
