@@ -4601,8 +4601,13 @@ static double orient2d(const double *pa, const double *pb, const double *pc)
  *  returned value has the correct sign.  Hence, incircle() is usually quite
  *  fast, but will run more slowly when the input points are cocircular or
  *  nearly so.
- */
-/* NOLINTNEXTLINE: readability-function-size */
+ *
+ * This function is allowed to be long for two reasons. Firstly, it was taken
+ * from an external source and only slightly adapted, and keeping its original
+ * form will make integration of upstream changes easier. Secondly, it is very
+ * sensitive to floating point errors, and refactoring may break it in subtle
+ * and hard to detect ways.
+ * NOLINTNEXTLINE: readability-function-size */
 static double incircleadapt(
     const double *pa, const double *pb, const double *pc, const double *pd, double permanent)
 {
