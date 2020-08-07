@@ -21,7 +21,7 @@
 #include "BLI_math.h"
 #include "DNA_camera_types.h"
 
-ConvertDepthToRadiusOperation::ConvertDepthToRadiusOperation() : NodeOperation()
+ConvertDepthToRadiusOperation::ConvertDepthToRadiusOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_VALUE);

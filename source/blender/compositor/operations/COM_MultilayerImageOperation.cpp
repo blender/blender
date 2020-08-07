@@ -21,7 +21,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-MultilayerBaseOperation::MultilayerBaseOperation(int passindex, int view) : BaseImageOperation()
+MultilayerBaseOperation::MultilayerBaseOperation(int passindex, int view)
 {
   this->m_passId = passindex;
   this->m_view = view;

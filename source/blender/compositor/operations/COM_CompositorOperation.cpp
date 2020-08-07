@@ -32,7 +32,7 @@
 
 #include "PIL_time.h"
 
-CompositorOperation::CompositorOperation() : NodeOperation()
+CompositorOperation::CompositorOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_VALUE);

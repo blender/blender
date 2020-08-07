@@ -21,7 +21,7 @@
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
-MovieClipAttributeOperation::MovieClipAttributeOperation() : NodeOperation()
+MovieClipAttributeOperation::MovieClipAttributeOperation()
 {
   this->addOutputSocket(COM_DT_VALUE);
   this->m_framenumber = 0;

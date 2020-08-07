@@ -32,7 +32,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-ViewerOperation::ViewerOperation() : NodeOperation()
+ViewerOperation::ViewerOperation()
 {
   this->setImage(NULL);
   this->setImageUser(NULL);

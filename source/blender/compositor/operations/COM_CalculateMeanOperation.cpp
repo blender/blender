@@ -22,7 +22,7 @@
 
 #include "IMB_colormanagement.h"
 
-CalculateMeanOperation::CalculateMeanOperation() : NodeOperation()
+CalculateMeanOperation::CalculateMeanOperation()
 {
   this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
   this->addOutputSocket(COM_DT_VALUE);

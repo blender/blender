@@ -19,7 +19,7 @@
 #include "COM_ZCombineOperation.h"
 #include "BLI_utildefines.h"
 
-ZCombineOperation::ZCombineOperation() : NodeOperation()
+ZCombineOperation::ZCombineOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_VALUE);
@@ -95,7 +95,7 @@ void ZCombineOperation::deinitExecution()
 }
 
 // MASK combine
-ZCombineMaskOperation::ZCombineMaskOperation() : NodeOperation()
+ZCombineMaskOperation::ZCombineMaskOperation()
 {
   this->addInputSocket(COM_DT_VALUE);  // mask
   this->addInputSocket(COM_DT_COLOR);

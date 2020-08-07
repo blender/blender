@@ -18,7 +18,7 @@
 
 #include "COM_AlphaOverPremultiplyOperation.h"
 
-AlphaOverPremultiplyOperation::AlphaOverPremultiplyOperation() : MixBaseOperation()
+AlphaOverPremultiplyOperation::AlphaOverPremultiplyOperation()
 {
   /* pass */
 }

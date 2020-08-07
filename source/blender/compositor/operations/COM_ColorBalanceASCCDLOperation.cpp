@@ -31,7 +31,7 @@ inline float colorbalance_cdl(float in, float offset, float power, float slope)
   return powf(x, power);
 }
 
-ColorBalanceASCCDLOperation::ColorBalanceASCCDLOperation() : NodeOperation()
+ColorBalanceASCCDLOperation::ColorBalanceASCCDLOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addInputSocket(COM_DT_COLOR);

@@ -21,7 +21,7 @@
 
 #include "RE_pipeline.h"
 
-BilateralBlurOperation::BilateralBlurOperation() : NodeOperation()
+BilateralBlurOperation::BilateralBlurOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_COLOR);

@@ -20,7 +20,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-ProjectorLensDistortionOperation::ProjectorLensDistortionOperation() : NodeOperation()
+ProjectorLensDistortionOperation::ProjectorLensDistortionOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_VALUE);

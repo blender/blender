@@ -20,7 +20,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-DisplaceSimpleOperation::DisplaceSimpleOperation() : NodeOperation()
+DisplaceSimpleOperation::DisplaceSimpleOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_VECTOR);

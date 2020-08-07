@@ -39,9 +39,7 @@ namespace blender {
 namespace deg {
 
 DriverDescriptor::DriverDescriptor(PointerRNA *id_ptr, FCurve *fcu)
-    : rna_prefix(),
-      rna_suffix(),
-      id_ptr_(id_ptr),
+    : id_ptr_(id_ptr),
       fcu_(fcu),
       driver_relations_needed_(false),
       pointer_rna_(),

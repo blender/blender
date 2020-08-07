@@ -70,7 +70,7 @@ namespace Freestyle {
 
 const char *BlenderStrokeRenderer::uvNames[] = {"along_stroke", "along_stroke_tips"};
 
-BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : StrokeRenderer()
+BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count)
 {
   freestyle_bmain = BKE_main_new();
 

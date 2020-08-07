@@ -18,7 +18,7 @@
 
 #include "COM_SetValueOperation.h"
 
-SetValueOperation::SetValueOperation() : NodeOperation()
+SetValueOperation::SetValueOperation()
 {
   this->addOutputSocket(COM_DT_VALUE);
 }

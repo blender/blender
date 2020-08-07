@@ -43,7 +43,7 @@ void zbuf_free_span(ZSpan *zspan);
 void antialias_tagbuf(int xsize, int ysize, char *rectmove);
 
 /* VectorBlurOperation */
-VectorBlurOperation::VectorBlurOperation() : NodeOperation()
+VectorBlurOperation::VectorBlurOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_VALUE);  // ZBUF

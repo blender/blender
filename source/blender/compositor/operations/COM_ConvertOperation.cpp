@@ -397,7 +397,7 @@ void ConvertStraightToPremulOperation::executePixelSampled(float output[4],
 
 /* ******** Separate Channels ******** */
 
-SeparateChannelOperation::SeparateChannelOperation() : NodeOperation()
+SeparateChannelOperation::SeparateChannelOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addOutputSocket(COM_DT_VALUE);
@@ -425,7 +425,7 @@ void SeparateChannelOperation::executePixelSampled(float output[4],
 
 /* ******** Combine Channels ******** */
 
-CombineChannelsOperation::CombineChannelsOperation() : NodeOperation()
+CombineChannelsOperation::CombineChannelsOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addInputSocket(COM_DT_VALUE);

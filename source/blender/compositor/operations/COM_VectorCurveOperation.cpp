@@ -20,7 +20,7 @@
 
 #include "BKE_colortools.h"
 
-VectorCurveOperation::VectorCurveOperation() : CurveBaseOperation()
+VectorCurveOperation::VectorCurveOperation()
 {
   this->addInputSocket(COM_DT_VECTOR);
   this->addOutputSocket(COM_DT_VECTOR);

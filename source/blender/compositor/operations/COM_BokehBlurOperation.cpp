@@ -22,7 +22,7 @@
 
 #include "RE_pipeline.h"
 
-BokehBlurOperation::BokehBlurOperation() : NodeOperation()
+BokehBlurOperation::BokehBlurOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);

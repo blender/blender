@@ -22,7 +22,7 @@
 
 #include "RE_pipeline.h"
 
-BlurBaseOperation::BlurBaseOperation(DataType data_type) : NodeOperation()
+BlurBaseOperation::BlurBaseOperation(DataType data_type)
 {
   /* data_type is almost always COM_DT_COLOR except for alpha-blur */
   this->addInputSocket(data_type);

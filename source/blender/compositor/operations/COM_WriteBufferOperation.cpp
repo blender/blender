@@ -21,7 +21,7 @@
 #include "COM_defines.h"
 #include <stdio.h>
 
-WriteBufferOperation::WriteBufferOperation(DataType datatype) : NodeOperation()
+WriteBufferOperation::WriteBufferOperation(DataType datatype)
 {
   this->addInputSocket(datatype);
   this->m_memoryProxy = new MemoryProxy(datatype);

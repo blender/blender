@@ -21,7 +21,7 @@
 
 #include "IMB_colormanagement.h"
 
-ColorCorrectionOperation::ColorCorrectionOperation() : NodeOperation()
+ColorCorrectionOperation::ColorCorrectionOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_VALUE);

@@ -22,7 +22,7 @@
 
 #include "RE_pipeline.h"
 
-VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation() : NodeOperation()
+VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);  // do not resize the bokeh image.
@@ -276,7 +276,7 @@ bool VariableSizeBokehBlurOperation::determineDependingAreaOfInterest(
 
 #ifdef COM_DEFOCUS_SEARCH
 // InverseSearchRadiusOperation
-InverseSearchRadiusOperation::InverseSearchRadiusOperation() : NodeOperation()
+InverseSearchRadiusOperation::InverseSearchRadiusOperation()
 {
   this->addInputSocket(COM_DT_VALUE, COM_SC_NO_RESIZE);  // radius
   this->addOutputSocket(COM_DT_COLOR);

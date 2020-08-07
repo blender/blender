@@ -18,7 +18,7 @@
 
 #include "COM_PixelateOperation.h"
 
-PixelateOperation::PixelateOperation(DataType datatype) : NodeOperation()
+PixelateOperation::PixelateOperation(DataType datatype)
 {
   this->addInputSocket(datatype);
   this->addOutputSocket(datatype);

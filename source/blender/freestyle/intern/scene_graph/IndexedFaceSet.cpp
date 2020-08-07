@@ -23,7 +23,7 @@
 
 namespace Freestyle {
 
-IndexedFaceSet::IndexedFaceSet() : Rep()
+IndexedFaceSet::IndexedFaceSet()
 {
   _Vertices = NULL;
   _Normals = NULL;
@@ -68,7 +68,6 @@ IndexedFaceSet::IndexedFaceSet(float *iVertices,
                                unsigned *iTIndices,
                                unsigned iTISize,
                                unsigned iCopy)
-    : Rep()
 {
   if (1 == iCopy) {
     _VSize = iVSize;

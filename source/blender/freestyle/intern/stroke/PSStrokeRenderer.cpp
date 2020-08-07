@@ -24,7 +24,7 @@
 
 namespace Freestyle {
 
-PSStrokeRenderer::PSStrokeRenderer(const char *iFileName) : StrokeRenderer()
+PSStrokeRenderer::PSStrokeRenderer(const char *iFileName)
 {
   if (!iFileName) {
     iFileName = "freestyle.ps";

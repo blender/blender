@@ -20,7 +20,7 @@
 #include "COM_WriteBufferOperation.h"
 #include "COM_defines.h"
 
-ReadBufferOperation::ReadBufferOperation(DataType datatype) : NodeOperation()
+ReadBufferOperation::ReadBufferOperation(DataType datatype)
 {
   this->addOutputSocket(datatype);
   this->m_single_value = false;

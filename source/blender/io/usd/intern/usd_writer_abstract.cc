@@ -37,10 +37,7 @@ static const pxr::TfToken surface("surface", pxr::TfToken::Immortal);
 namespace blender::io::usd {
 
 USDAbstractWriter::USDAbstractWriter(const USDExporterContext &usd_export_context)
-    : usd_export_context_(usd_export_context),
-      usd_value_writer_(),
-      frame_has_been_written_(false),
-      is_animated_(false)
+    : usd_export_context_(usd_export_context), frame_has_been_written_(false), is_animated_(false)
 {
 }
 

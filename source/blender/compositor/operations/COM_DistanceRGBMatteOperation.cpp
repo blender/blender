@@ -19,7 +19,7 @@
 #include "COM_DistanceRGBMatteOperation.h"
 #include "BLI_math.h"
 
-DistanceRGBMatteOperation::DistanceRGBMatteOperation() : NodeOperation()
+DistanceRGBMatteOperation::DistanceRGBMatteOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_COLOR);

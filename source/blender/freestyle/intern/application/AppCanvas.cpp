@@ -31,13 +31,13 @@
 #include "../system/StringUtils.h"
 namespace Freestyle {
 
-AppCanvas::AppCanvas() : Canvas()
+AppCanvas::AppCanvas()
 {
   _pViewer = 0;
   _MapsPath = Config::Path::getInstance()->getMapsDir().c_str();
 }
 
-AppCanvas::AppCanvas(AppView *iViewer) : Canvas()
+AppCanvas::AppCanvas(AppView *iViewer)
 {
   _pViewer = iViewer;
 }

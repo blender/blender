@@ -26,7 +26,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_mask.h"
 
-MaskOperation::MaskOperation() : NodeOperation()
+MaskOperation::MaskOperation()
 {
   this->addOutputSocket(COM_DT_VALUE);
   this->m_mask = NULL;

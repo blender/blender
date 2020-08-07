@@ -21,7 +21,7 @@
 
 #include "IMB_colormanagement.h"
 
-LuminanceMatteOperation::LuminanceMatteOperation() : NodeOperation()
+LuminanceMatteOperation::LuminanceMatteOperation()
 {
   addInputSocket(COM_DT_COLOR);
   addOutputSocket(COM_DT_VALUE);

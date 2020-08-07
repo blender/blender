@@ -25,7 +25,7 @@ namespace Freestyle {
 
 int NodeLight::numberOfLights = 0;
 
-NodeLight::NodeLight() : Node()
+NodeLight::NodeLight()
 {
   if (numberOfLights > 7) {
     _number = 7;

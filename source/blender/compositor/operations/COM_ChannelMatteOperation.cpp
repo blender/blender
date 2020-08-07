@@ -19,7 +19,7 @@
 #include "COM_ChannelMatteOperation.h"
 #include "BLI_math.h"
 
-ChannelMatteOperation::ChannelMatteOperation() : NodeOperation()
+ChannelMatteOperation::ChannelMatteOperation()
 {
   addInputSocket(COM_DT_COLOR);
   addOutputSocket(COM_DT_VALUE);

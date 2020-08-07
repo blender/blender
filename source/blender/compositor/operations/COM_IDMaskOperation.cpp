@@ -18,7 +18,7 @@
 
 #include "COM_IDMaskOperation.h"
 
-IDMaskOperation::IDMaskOperation() : NodeOperation()
+IDMaskOperation::IDMaskOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_VALUE);

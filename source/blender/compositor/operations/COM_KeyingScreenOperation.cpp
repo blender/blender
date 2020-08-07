@@ -30,7 +30,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-KeyingScreenOperation::KeyingScreenOperation() : NodeOperation()
+KeyingScreenOperation::KeyingScreenOperation()
 {
   this->addOutputSocket(COM_DT_COLOR);
   this->m_movieClip = NULL;

@@ -18,7 +18,7 @@
 
 #include "COM_DotproductOperation.h"
 
-DotproductOperation::DotproductOperation() : NodeOperation()
+DotproductOperation::DotproductOperation()
 {
   this->addInputSocket(COM_DT_VECTOR);
   this->addInputSocket(COM_DT_VECTOR);

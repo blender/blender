@@ -342,7 +342,7 @@ void StrokeAttribute::setAttributeVec3f(const char *iName, const Vec3f &att)
 /*                                */
 /**********************************/
 
-StrokeVertex::StrokeVertex() : CurvePoint()
+StrokeVertex::StrokeVertex()
 {
   _CurvilignAbscissa = 0.0f;
   _StrokeLength = 0.0f;

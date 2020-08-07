@@ -19,7 +19,7 @@
 #include "COM_DifferenceMatteOperation.h"
 #include "BLI_math.h"
 
-DifferenceMatteOperation::DifferenceMatteOperation() : NodeOperation()
+DifferenceMatteOperation::DifferenceMatteOperation()
 {
   addInputSocket(COM_DT_COLOR);
   addInputSocket(COM_DT_COLOR);

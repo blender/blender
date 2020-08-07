@@ -22,7 +22,7 @@
 
 #include "BLI_utildefines.h"
 
-DespeckleOperation::DespeckleOperation() : NodeOperation()
+DespeckleOperation::DespeckleOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_VALUE);

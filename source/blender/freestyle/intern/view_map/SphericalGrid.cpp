@@ -238,7 +238,7 @@ bool SphericalGrid::enableQI() const
   return _enableQI;
 }
 
-SphericalGrid::Transform::Transform() : GridHelpers::Transform()
+SphericalGrid::Transform::Transform()
 {
 }
 

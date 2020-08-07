@@ -26,7 +26,7 @@ static pthread_mutex_t oidn_lock = BLI_MUTEX_INITIALIZER;
 #endif
 #include <iostream>
 
-DenoiseOperation::DenoiseOperation() : SingleThreadedOperation()
+DenoiseOperation::DenoiseOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_VECTOR);

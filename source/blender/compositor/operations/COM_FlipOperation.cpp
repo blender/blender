@@ -18,7 +18,7 @@
 
 #include "COM_FlipOperation.h"
 
-FlipOperation::FlipOperation() : NodeOperation()
+FlipOperation::FlipOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addOutputSocket(COM_DT_COLOR);

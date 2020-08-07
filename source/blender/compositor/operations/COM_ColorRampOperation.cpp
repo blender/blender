@@ -20,7 +20,7 @@
 
 #include "BKE_colorband.h"
 
-ColorRampOperation::ColorRampOperation() : NodeOperation()
+ColorRampOperation::ColorRampOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_COLOR);

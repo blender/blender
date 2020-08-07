@@ -22,7 +22,7 @@
 
 #include "MEM_guardedalloc.h"
 
-ColorCurveOperation::ColorCurveOperation() : CurveBaseOperation()
+ColorCurveOperation::ColorCurveOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addInputSocket(COM_DT_COLOR);
@@ -98,7 +98,7 @@ void ColorCurveOperation::deinitExecution()
 
 // Constant level curve mapping
 
-ConstantLevelColorCurveOperation::ConstantLevelColorCurveOperation() : CurveBaseOperation()
+ConstantLevelColorCurveOperation::ConstantLevelColorCurveOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addInputSocket(COM_DT_COLOR);

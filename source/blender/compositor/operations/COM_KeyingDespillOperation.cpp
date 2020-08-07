@@ -23,7 +23,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
-KeyingDespillOperation::KeyingDespillOperation() : NodeOperation()
+KeyingDespillOperation::KeyingDespillOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_COLOR);

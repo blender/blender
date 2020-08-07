@@ -29,7 +29,7 @@
 /* ******** Render Layers Base Prog ******** */
 
 RenderLayersProg::RenderLayersProg(const char *passName, DataType type, int elementsize)
-    : NodeOperation(), m_passName(passName)
+    : m_passName(passName)
 {
   this->setScene(NULL);
   this->m_inputBuffer = NULL;

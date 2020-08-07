@@ -37,7 +37,6 @@ CalligraphicShader::CalligraphicShader(real iMinThickness,
                                        real iMaxThickness,
                                        const Vec2f &iOrientation,
                                        bool clamp)
-    : StrokeShader()
 {
   _minThickness = iMinThickness;
   _maxThickness = iMaxThickness;
@@ -90,7 +89,6 @@ static const unsigned NB_VALUE_NOISE = 512;
 
 SpatialNoiseShader::SpatialNoiseShader(
     float iAmount, float ixScale, int nbOctave, bool smooth, bool pureRandom)
-    : StrokeShader()
 {
   _amount = iAmount;
   if (ixScale == 0) {
@@ -169,7 +167,6 @@ SmoothingShader::SmoothingShader(int iNbIteration,
                                  real iAnisoNormal,
                                  real iAnisoCurvature,
                                  real iCarricatureFactor)
-    : StrokeShader()
 {
   _nbIterations = iNbIteration;
   _factorCurvature = ifactorCurvature;

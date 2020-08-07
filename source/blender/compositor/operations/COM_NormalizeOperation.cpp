@@ -18,7 +18,7 @@
 
 #include "COM_NormalizeOperation.h"
 
-NormalizeOperation::NormalizeOperation() : NodeOperation()
+NormalizeOperation::NormalizeOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_VALUE);

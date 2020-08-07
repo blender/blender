@@ -20,7 +20,7 @@
 #include "BLI_math.h"
 #include "DNA_node_types.h"
 
-EllipseMaskOperation::EllipseMaskOperation() : NodeOperation()
+EllipseMaskOperation::EllipseMaskOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addInputSocket(COM_DT_VALUE);

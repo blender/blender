@@ -23,7 +23,7 @@
 
 #include "BLI_linklist.h"
 
-MovieDistortionOperation::MovieDistortionOperation(bool distortion) : NodeOperation()
+MovieDistortionOperation::MovieDistortionOperation(bool distortion)
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addOutputSocket(COM_DT_COLOR);

@@ -87,8 +87,7 @@ static void readCornersFromSockets(rcti *rect, SocketReader *readers[4], float c
 
 /* ******** PlaneCornerPinMaskOperation ******** */
 
-PlaneCornerPinMaskOperation::PlaneCornerPinMaskOperation()
-    : PlaneDistortMaskOperation(), m_corners_ready(false)
+PlaneCornerPinMaskOperation::PlaneCornerPinMaskOperation() : m_corners_ready(false)
 {
   addInputSocket(COM_DT_VECTOR);
   addInputSocket(COM_DT_VECTOR);
@@ -152,8 +151,7 @@ void PlaneCornerPinMaskOperation::determineResolution(unsigned int resolution[2]
 
 /* ******** PlaneCornerPinWarpImageOperation ******** */
 
-PlaneCornerPinWarpImageOperation::PlaneCornerPinWarpImageOperation()
-    : PlaneDistortWarpImageOperation(), m_corners_ready(false)
+PlaneCornerPinWarpImageOperation::PlaneCornerPinWarpImageOperation() : m_corners_ready(false)
 {
   addInputSocket(COM_DT_VECTOR);
   addInputSocket(COM_DT_VECTOR);

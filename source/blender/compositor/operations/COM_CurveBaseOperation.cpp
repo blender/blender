@@ -20,7 +20,7 @@
 
 #include "BKE_colortools.h"
 
-CurveBaseOperation::CurveBaseOperation() : NodeOperation()
+CurveBaseOperation::CurveBaseOperation()
 {
   this->m_curveMapping = NULL;
 }

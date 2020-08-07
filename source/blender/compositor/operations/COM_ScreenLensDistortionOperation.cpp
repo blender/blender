@@ -24,7 +24,7 @@
 
 #include "PIL_time.h"
 
-ScreenLensDistortionOperation::ScreenLensDistortionOperation() : NodeOperation()
+ScreenLensDistortionOperation::ScreenLensDistortionOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_VALUE);

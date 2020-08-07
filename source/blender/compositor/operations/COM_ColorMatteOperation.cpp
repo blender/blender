@@ -19,7 +19,7 @@
 #include "COM_ColorMatteOperation.h"
 #include "BLI_math.h"
 
-ColorMatteOperation::ColorMatteOperation() : NodeOperation()
+ColorMatteOperation::ColorMatteOperation()
 {
   addInputSocket(COM_DT_COLOR);
   addInputSocket(COM_DT_COLOR);
