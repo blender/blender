@@ -429,7 +429,7 @@ string stringify_update_bitfield(int flag)
   if (flag == 0) {
     return "LEGACY_0";
   }
-  string result = "";
+  string result;
   int current_flag = flag;
   /* Special cases to avoid ALL flags form being split into
    * individual bits. */

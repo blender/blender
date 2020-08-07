@@ -672,8 +672,7 @@ void BoneExtended::set_bone_layers(std::string layerString, std::vector<std::str
 
 std::string BoneExtended::get_bone_layers(int bitfield)
 {
-  std::string result = "";
-  std::string sep = "";
+  std::string sep;
   int bit = 1u;
 
   std::ostringstream ss;

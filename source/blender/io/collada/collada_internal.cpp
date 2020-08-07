@@ -277,7 +277,7 @@ std::string encode_xml(std::string xml)
       {'<', "&lt;"}, {'>', "&gt;"}, {'"', "&quot;"}, {'\'', "&apos;"}, {'&', "&amp;"}};
 
   std::map<char, std::string>::const_iterator it;
-  std::string encoded_xml = "";
+  std::string encoded_xml;
 
   for (unsigned int i = 0; i < xml.size(); i++) {
     char c = xml.at(i);

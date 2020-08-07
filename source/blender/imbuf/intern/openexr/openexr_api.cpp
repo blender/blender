@@ -741,7 +741,7 @@ static void imb_exr_get_views(MultiPartInputFile &file, StringVector &views)
 
   else {
     for (int p = 0; p < file.parts(); p++) {
-      std::string view = "";
+      std::string view;
       if (file.header(p).hasView()) {
         view = file.header(p).view();
       }

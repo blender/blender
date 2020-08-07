@@ -17,7 +17,6 @@ Checks:  >
   -readability-redundant-preprocessor,
   -readability-function-size,
   -readability-function-size,
-  -readability-redundant-string-init,
   -readability-redundant-member-init,
   -readability-const-return-type,
   -readability-static-accessed-through-instance,

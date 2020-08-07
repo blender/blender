@@ -83,7 +83,7 @@ string gnuplotify_id_code(const string &name)
 
 string gnuplotify_name(const string &name)
 {
-  string result = "";
+  string result;
   const int length = name.length();
   for (int i = 0; i < length; i++) {
     const char ch = name[i];

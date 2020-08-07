@@ -230,7 +230,7 @@ void AnimationExporter::export_matrix_animation(Object *ob, BCAnimationSampler &
       std::string name = encode_xml(id_name(ob));
       std::string action_name = (action == NULL) ? name + "-action" : id_name(action);
       std::string channel_type = "transform";
-      std::string axis = "";
+      std::string axis;
       std::string id = bc_get_action_id(action_name, name, channel_type, axis);
 
       std::string target = translate_id(name) + '/' + channel_type;
