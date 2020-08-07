@@ -416,7 +416,7 @@ enum ePF_FileCompare BKE_packedfile_compare_to_file(const char *ref_file_name,
           break;
         }
 
-        if (memcmp(buf, ((char *)pf->data) + i, len)) {
+        if (memcmp(buf, ((char *)pf->data) + i, len) != 0) {
           ret_val = PF_CMP_DIFFERS;
           break;
         }

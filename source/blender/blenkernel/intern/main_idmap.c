@@ -166,7 +166,7 @@ static bool idkey_cmp(const void *a, const void *b)
 {
   const struct IDNameLib_Key *idkey_a = a;
   const struct IDNameLib_Key *idkey_b = b;
-  return strcmp(idkey_a->name, idkey_b->name) || (idkey_a->lib != idkey_b->lib);
+  return strcmp(idkey_a->name, idkey_b->name) != 0 || (idkey_a->lib != idkey_b->lib);
 }
 
 ID *BKE_main_idmap_lookup_name(struct IDNameLib_Map *id_map,

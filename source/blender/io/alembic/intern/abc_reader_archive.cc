@@ -63,7 +63,7 @@ static IArchive open_archive(const std::string &filename,
     else if (!the_file.read(header, sizeof(header))) {
       std::cerr << "Unable to read from " << filename << std::endl;
     }
-    else if (strncmp(header + 1, "HDF", 3)) {
+    else if (strncmp(header + 1, "HDF", 3) != 0) {
       std::cerr << filename << " has an unknown file format, unable to read." << std::endl;
     }
     else {

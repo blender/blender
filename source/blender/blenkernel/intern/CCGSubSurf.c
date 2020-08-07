@@ -713,8 +713,8 @@ CCGError ccgSubSurf_syncFace(
 
     if (f) {
       if (f->numVerts != numVerts ||
-          memcmp(FACE_getVerts(f), ss->tempVerts, sizeof(*ss->tempVerts) * numVerts) ||
-          memcmp(FACE_getEdges(f), ss->tempEdges, sizeof(*ss->tempEdges) * numVerts)) {
+          memcmp(FACE_getVerts(f), ss->tempVerts, sizeof(*ss->tempVerts) * numVerts) != 0 ||
+          memcmp(FACE_getEdges(f), ss->tempEdges, sizeof(*ss->tempEdges) * numVerts) != 0) {
         topologyChanged = 1;
       }
     }
@@ -784,8 +784,8 @@ CCGError ccgSubSurf_syncFace(
 
     if (f) {
       if (f->numVerts != numVerts ||
-          memcmp(FACE_getVerts(f), ss->tempVerts, sizeof(*ss->tempVerts) * numVerts) ||
-          memcmp(FACE_getEdges(f), ss->tempEdges, sizeof(*ss->tempEdges) * numVerts)) {
+          memcmp(FACE_getVerts(f), ss->tempVerts, sizeof(*ss->tempVerts) * numVerts) != 0 ||
+          memcmp(FACE_getEdges(f), ss->tempEdges, sizeof(*ss->tempEdges) * numVerts) != 0) {
         topologyChanged = 1;
       }
     }

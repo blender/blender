@@ -1201,7 +1201,7 @@ static void do_version_fcurve_hide_viewport_fix(struct ID *UNUSED(id),
                                                 struct FCurve *fcu,
                                                 void *UNUSED(user_data))
 {
-  if (strcmp(fcu->rna_path, "hide")) {
+  if (strcmp(fcu->rna_path, "hide") != 0) {
     return;
   }
 
