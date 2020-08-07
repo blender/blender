@@ -4602,7 +4602,7 @@ static double orient2d(const double *pa, const double *pb, const double *pc)
  *  fast, but will run more slowly when the input points are cocircular or
  *  nearly so.
  */
-
+/* NOLINTNEXTLINE: readability-function-size */
 static double incircleadapt(
     const double *pa, const double *pb, const double *pc, const double *pd, double permanent)
 {
