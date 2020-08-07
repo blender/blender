@@ -864,9 +864,8 @@ uint DDSHeader::d3d9Format() const
   if (pf.flags & DDPF_FOURCC) {
     return pf.fourcc;
   }
-  else {
-    return findD3D9Format(pf.bitcount, pf.rmask, pf.gmask, pf.bmask, pf.amask);
-  }
+
+  return findD3D9Format(pf.bitcount, pf.rmask, pf.gmask, pf.bmask, pf.amask);
 }
 
 DirectDrawSurface::DirectDrawSurface(unsigned char *mem, uint size) : stream(mem, size), header()
@@ -923,33 +922,32 @@ bool DirectDrawSurface::isSupported() const
 
     return false;
   }
+
+  if (header.pf.flags & DDPF_FOURCC) {
+    if (header.pf.fourcc != FOURCC_DXT1 && header.pf.fourcc != FOURCC_DXT2 &&
+        header.pf.fourcc != FOURCC_DXT3 && header.pf.fourcc != FOURCC_DXT4 &&
+        header.pf.fourcc != FOURCC_DXT5 && header.pf.fourcc != FOURCC_RXGB &&
+        header.pf.fourcc != FOURCC_ATI1 && header.pf.fourcc != FOURCC_ATI2) {
+      // Unknown fourcc code.
+      return false;
+    }
+  }
+  else if ((header.pf.flags & DDPF_RGB) || (header.pf.flags & DDPF_LUMINANCE)) {
+    // All RGB and luminance formats are supported now.
+  }
   else {
-    if (header.pf.flags & DDPF_FOURCC) {
-      if (header.pf.fourcc != FOURCC_DXT1 && header.pf.fourcc != FOURCC_DXT2 &&
-          header.pf.fourcc != FOURCC_DXT3 && header.pf.fourcc != FOURCC_DXT4 &&
-          header.pf.fourcc != FOURCC_DXT5 && header.pf.fourcc != FOURCC_RXGB &&
-          header.pf.fourcc != FOURCC_ATI1 && header.pf.fourcc != FOURCC_ATI2) {
-        // Unknown fourcc code.
-        return false;
-      }
-    }
-    else if ((header.pf.flags & DDPF_RGB) || (header.pf.flags & DDPF_LUMINANCE)) {
-      // All RGB and luminance formats are supported now.
-    }
-    else {
-      return false;
-    }
+    return false;
+  }
 
-    if (isTextureCube() &&
-        (header.caps.caps2 & DDSCAPS2_CUBEMAP_ALL_FACES) != DDSCAPS2_CUBEMAP_ALL_FACES) {
-      // Cubemaps must contain all faces.
-      return false;
-    }
+  if (isTextureCube() &&
+      (header.caps.caps2 & DDSCAPS2_CUBEMAP_ALL_FACES) != DDSCAPS2_CUBEMAP_ALL_FACES) {
+    // Cubemaps must contain all faces.
+    return false;
+  }
 
-    if (isTexture3D()) {
-      // @@ 3D textures not supported yet.
-      return false;
-    }
+  if (isTexture3D()) {
+    // @@ 3D textures not supported yet.
+    return false;
   }
 
   return true;
@@ -963,23 +961,21 @@ bool DirectDrawSurface::hasAlpha() const
            header.header10.dxgiFormat == DXGI_FORMAT_BC2_UNORM ||
            header.header10.dxgiFormat == DXGI_FORMAT_BC3_UNORM;
   }
-  else {
-    if (header.pf.flags & DDPF_RGB) {
-      return header.pf.amask != 0;
-    }
-    else if (header.pf.flags & DDPF_FOURCC) {
-      if (header.pf.fourcc == FOURCC_RXGB || header.pf.fourcc == FOURCC_ATI1 ||
-          header.pf.fourcc == FOURCC_ATI2 || header.pf.flags & DDPF_NORMAL) {
-        return false;
-      }
-      else {
-        // @@ Here we could check the ALPHA_PIXELS flag, but nobody sets it. (except us?)
-        return true;
-      }
+
+  if (header.pf.flags & DDPF_RGB) {
+    return header.pf.amask != 0;
+  }
+  if (header.pf.flags & DDPF_FOURCC) {
+    if (header.pf.fourcc == FOURCC_RXGB || header.pf.fourcc == FOURCC_ATI1 ||
+        header.pf.fourcc == FOURCC_ATI2 || header.pf.flags & DDPF_NORMAL) {
+      return false;
     }
 
-    return false;
+    // @@ Here we could check the ALPHA_PIXELS flag, but nobody sets it. (except us?)
+    return true;
   }
+
+  return false;
 }
 
 uint DirectDrawSurface::mipmapCount() const
@@ -987,9 +983,8 @@ uint DirectDrawSurface::mipmapCount() const
   if (header.flags & DDSD_MIPMAPCOUNT) {
     return header.mipmapcount;
   }
-  else {
-    return 1;
-  }
+
+  return 1;
 }
 
 uint DirectDrawSurface::fourCC() const
@@ -1002,9 +997,8 @@ uint DirectDrawSurface::width() const
   if (header.flags & DDSD_WIDTH) {
     return header.width;
   }
-  else {
-    return 1;
-  }
+
+  return 1;
 }
 
 uint DirectDrawSurface::height() const
@@ -1012,9 +1006,8 @@ uint DirectDrawSurface::height() const
   if (header.flags & DDSD_HEIGHT) {
     return header.height;
   }
-  else {
-    return 1;
-  }
+
+  return 1;
 }
 
 uint DirectDrawSurface::depth() const
@@ -1022,9 +1015,8 @@ uint DirectDrawSurface::depth() const
   if (header.flags & DDSD_DEPTH) {
     return header.depth;
   }
-  else {
-    return 1;
-  }
+
+  return 1;
 }
 
 bool DirectDrawSurface::isTexture1D() const
@@ -1040,9 +1032,8 @@ bool DirectDrawSurface::isTexture2D() const
   if (header.hasDX10Header()) {
     return header.header10.resourceDimension == D3D10_RESOURCE_DIMENSION_TEXTURE2D;
   }
-  else {
-    return !isTexture3D() && !isTextureCube();
-  }
+
+  return !isTexture3D() && !isTextureCube();
 }
 
 bool DirectDrawSurface::isTexture3D() const
@@ -1050,9 +1041,8 @@ bool DirectDrawSurface::isTexture3D() const
   if (header.hasDX10Header()) {
     return header.header10.resourceDimension == D3D10_RESOURCE_DIMENSION_TEXTURE3D;
   }
-  else {
-    return (header.caps.caps2 & DDSCAPS2_VOLUME) != 0;
-  }
+
+  return (header.caps.caps2 & DDSCAPS2_VOLUME) != 0;
 }
 
 bool DirectDrawSurface::isTextureCube() const
@@ -1355,16 +1345,15 @@ uint DirectDrawSurface::mipmapSize(uint mipmap) const
     h = (h + 3) / 4;
     return blockSize() * w * h;
   }
-  else if (header.pf.flags & DDPF_RGB || (header.pf.flags & DDPF_LUMINANCE)) {
+  if (header.pf.flags & DDPF_RGB || (header.pf.flags & DDPF_LUMINANCE)) {
     uint pitch = computePitch(
         w, header.pf.bitcount, 8);  // Assuming 8 bit alignment, which is the same D3DX expects.
 
     return pitch * h * d;
   }
-  else {
-    printf("DDS: mipmap format not supported\n");
-    return (0);
-  }
+
+  printf("DDS: mipmap format not supported\n");
+  return (0);
 }
 
 uint DirectDrawSurface::faceSize() const

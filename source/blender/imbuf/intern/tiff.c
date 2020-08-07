@@ -792,16 +792,16 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
             "not yet supported.\n");
     return (0);
   }
-  else {
-    /* create image as a file */
+
+  /* create image as a file */
 #ifdef WIN32
-    wchar_t *wname = alloc_utf16_from_8(name, 0);
-    image = TIFFOpenW(wname, "w");
-    free(wname);
+  wchar_t *wname = alloc_utf16_from_8(name, 0);
+  image = TIFFOpenW(wname, "w");
+  free(wname);
 #else
-    image = TIFFOpen(name, "w");
+  image = TIFFOpen(name, "w");
 #endif
-  }
+
   if (image == NULL) {
     fprintf(stderr, "imb_savetiff: could not open TIFF for writing.\n");
     return (0);

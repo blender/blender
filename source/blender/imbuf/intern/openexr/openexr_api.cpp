@@ -131,9 +131,8 @@ class IMemStream : public Imf::IStream {
       _exrpos += n;
       return true;
     }
-    else {
-      return false;
-    }
+
+    return false;
   }
 
   virtual Int64 tellg()
@@ -597,15 +596,13 @@ int imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags)
   if (ibuf->foptions.flag & OPENEXR_HALF) {
     return (int)imb_save_openexr_half(ibuf, name, flags);
   }
-  else {
-    /* when no float rect, we save as half (16 bits is sufficient) */
-    if (ibuf->rect_float == NULL) {
-      return (int)imb_save_openexr_half(ibuf, name, flags);
-    }
-    else {
-      return (int)imb_save_openexr_float(ibuf, name, flags);
-    }
+
+  /* when no float rect, we save as half (16 bits is sufficient) */
+  if (ibuf->rect_float == NULL) {
+    return (int)imb_save_openexr_half(ibuf, name, flags);
   }
+
+  return (int)imb_save_openexr_float(ibuf, name, flags);
 }
 
 /* ******* Nicer API, MultiLayer and with Tile file support ************************************ */
@@ -719,9 +716,8 @@ static int imb_exr_get_multiView_id(StringVector &views, const std::string &name
     if (name == *i) {
       return count;
     }
-    else {
-      count++;
-    }
+
+    count++;
   }
 
   /* no views or wrong name */
@@ -1421,7 +1417,7 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
     printf("multilayer read: bad channel name: %s\n", name);
     return 0;
   }
-  else if (len == 1) {
+  if (len == 1) {
     echan->chan_id = token[0];
   }
   else if (len > 1) {

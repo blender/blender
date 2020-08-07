@@ -892,10 +892,9 @@ static int output_iris(uint *lptr, int xsize, int ysize, int zsize, const char *
   if (goodwrite) {
     return 1;
   }
-  else {
-    fprintf(stderr, "output_iris: not enough space for image!!\n");
-    return 0;
-  }
+
+  fprintf(stderr, "output_iris: not enough space for image!!\n");
+  return 0;
 }
 
 /* static utility functions for output_iris */

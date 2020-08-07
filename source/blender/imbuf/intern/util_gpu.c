@@ -230,9 +230,8 @@ GPUTexture *IMB_create_gpu_texture(ImBuf *ibuf, bool use_high_bitdepth, bool use
       if (tex != NULL) {
         return tex;
       }
-      else {
-        fprintf(stderr, "ST3C support not found,");
-      }
+
+      fprintf(stderr, "ST3C support not found,");
     }
     /* Fallback to uncompressed texture. */
     fprintf(stderr, " falling back to uncompressed.\n");

@@ -97,21 +97,20 @@ uint BlockDXT1::evaluatePalette(Color32 color_array[4]) const
 
     return 4;
   }
-  else {
-    // Three-color block: derive the other color.
-    color_array[2].r = (color_array[0].r + color_array[1].r) / 2;
-    color_array[2].g = (color_array[0].g + color_array[1].g) / 2;
-    color_array[2].b = (color_array[0].b + color_array[1].b) / 2;
-    color_array[2].a = 0xFF;
 
-    // Set all components to 0 to match DXT specs.
-    color_array[3].r = 0x00;  // color_array[2].r;
-    color_array[3].g = 0x00;  // color_array[2].g;
-    color_array[3].b = 0x00;  // color_array[2].b;
-    color_array[3].a = 0x00;
+  // Three-color block: derive the other color.
+  color_array[2].r = (color_array[0].r + color_array[1].r) / 2;
+  color_array[2].g = (color_array[0].g + color_array[1].g) / 2;
+  color_array[2].b = (color_array[0].b + color_array[1].b) / 2;
+  color_array[2].a = 0xFF;
 
-    return 3;
-  }
+  // Set all components to 0 to match DXT specs.
+  color_array[3].r = 0x00;  // color_array[2].r;
+  color_array[3].g = 0x00;  // color_array[2].g;
+  color_array[3].b = 0x00;  // color_array[2].b;
+  color_array[3].a = 0x00;
+
+  return 3;
 }
 
 uint BlockDXT1::evaluatePaletteNV5x(Color32 color_array[4]) const
@@ -143,21 +142,20 @@ uint BlockDXT1::evaluatePaletteNV5x(Color32 color_array[4]) const
 
     return 4;
   }
-  else {
-    // Three-color block: derive the other color.
-    color_array[2].r = ((col0.r + col1.r) * 33) / 8;
-    color_array[2].g = (256 * color_array[0].g + gdiff / 4 + 128 + gdiff * 128) / 256;
-    color_array[2].b = ((col0.b + col1.b) * 33) / 8;
-    color_array[2].a = 0xFF;
 
-    // Set all components to 0 to match DXT specs.
-    color_array[3].r = 0x00;  // color_array[2].r;
-    color_array[3].g = 0x00;  // color_array[2].g;
-    color_array[3].b = 0x00;  // color_array[2].b;
-    color_array[3].a = 0x00;
+  // Three-color block: derive the other color.
+  color_array[2].r = ((col0.r + col1.r) * 33) / 8;
+  color_array[2].g = (256 * color_array[0].g + gdiff / 4 + 128 + gdiff * 128) / 256;
+  color_array[2].b = ((col0.b + col1.b) * 33) / 8;
+  color_array[2].a = 0xFF;
 
-    return 3;
-  }
+  // Set all components to 0 to match DXT specs.
+  color_array[3].r = 0x00;  // color_array[2].r;
+  color_array[3].g = 0x00;  // color_array[2].g;
+  color_array[3].b = 0x00;  // color_array[2].b;
+  color_array[3].a = 0x00;
+
+  return 3;
 }
 
 // Evaluate palette assuming 3 color block.

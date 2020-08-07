@@ -268,9 +268,8 @@ int IMB_indexer_get_frame_index(struct anim_index *idx, int frameno)
   if (first == idx->num_entries) {
     return idx->num_entries - 1;
   }
-  else {
-    return first;
-  }
+
+  return first;
 }
 
 unsigned long long IMB_indexer_get_pts(struct anim_index *idx, int frame_index)
@@ -633,9 +632,8 @@ static int add_to_proxy_output_ffmpeg(struct proxy_output_ctx *ctx, AVFrame *fra
 
     return 1;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 static void free_proxy_output_ffmpeg(struct proxy_output_ctx *ctx, int rollback)

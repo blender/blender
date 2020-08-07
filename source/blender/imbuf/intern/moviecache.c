@@ -192,9 +192,8 @@ static size_t get_size_in_memory(ImBuf *ibuf)
   if (ibuf->userflags & IB_PERSISTENT) {
     return 0;
   }
-  else {
-    return IMB_get_size_in_memory(ibuf);
-  }
+
+  return IMB_get_size_in_memory(ibuf);
 }
 static size_t get_item_size(void *p)
 {

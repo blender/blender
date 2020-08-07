@@ -64,10 +64,9 @@ int logimage_fwrite(void *buffer, size_t size, unsigned int count, LogImageFile 
   if (logFile->file) {
     return fwrite(buffer, size, count, logFile->file);
   }
-  else { /* we're writing to memory */
-    /* do nothing as this isn't supported yet */
-    return count;
-  }
+  /* we're writing to memory */
+  /* do nothing as this isn't supported yet */
+  return count;
 }
 
 int logimage_fread(void *buffer, size_t size, unsigned int count, LogImageFile *logFile)
@@ -75,23 +74,22 @@ int logimage_fread(void *buffer, size_t size, unsigned int count, LogImageFile *
   if (logFile->file) {
     return fread(buffer, size, count, logFile->file);
   }
-  else { /* we're reading from memory */
-    unsigned char *buf = (unsigned char *)buffer;
-    uintptr_t pos = (uintptr_t)logFile->memCursor - (uintptr_t)logFile->memBuffer;
-    size_t total_size = size * count;
-    if (pos + total_size > logFile->memBufferSize) {
-      /* how many elements can we read without overflow ? */
-      count = (logFile->memBufferSize - pos) / size;
-      /* recompute the size */
-      total_size = size * count;
-    }
-
-    if (total_size != 0) {
-      memcpy(buf, logFile->memCursor, total_size);
-    }
-
-    return count;
+  /* we're reading from memory */
+  unsigned char *buf = (unsigned char *)buffer;
+  uintptr_t pos = (uintptr_t)logFile->memCursor - (uintptr_t)logFile->memBuffer;
+  size_t total_size = size * count;
+  if (pos + total_size > logFile->memBufferSize) {
+    /* how many elements can we read without overflow ? */
+    count = (logFile->memBufferSize - pos) / size;
+    /* recompute the size */
+    total_size = size * count;
   }
+
+  if (total_size != 0) {
+    memcpy(buf, logFile->memCursor, total_size);
+  }
+
+  return count;
 }
 
 int logimage_read_uchar(unsigned char *x, LogImageFile *logFile)

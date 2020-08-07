@@ -394,9 +394,8 @@ static int filter_make_index(const int x, const int y, const int w, const int h)
   if (x < 0 || x >= w || y < 0 || y >= h) {
     return -1; /* return bad index */
   }
-  else {
-    return y * w + x;
-  }
+
+  return y * w + x;
 }
 
 static int check_pixel_assigned(

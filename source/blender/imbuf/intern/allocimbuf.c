@@ -423,9 +423,8 @@ bool imb_addrectImBuf(ImBuf *ibuf)
     if (ibuf->planes > 32) {
       return (addzbufImBuf(ibuf));
     }
-    else {
-      return true;
-    }
+
+    return true;
   }
 
   return false;

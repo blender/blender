@@ -217,7 +217,7 @@ int FlipDXTCImage(
       // no flip to do, and we're done.
       break;
     }
-    else if (mip_height == 2) {
+    if (mip_height == 2) {
       // flip the first 2 lines in each block.
       for (unsigned int i = 0; i < blocks_per_row; i++) {
         half_block_function(data + i * block_bytes);

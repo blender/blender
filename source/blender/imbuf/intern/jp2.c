@@ -73,12 +73,11 @@ static OPJ_CODEC_FORMAT format_from_header(const unsigned char mem[JP2_FILEHEADE
   if (check_jp2(mem)) {
     return OPJ_CODEC_JP2;
   }
-  else if (check_j2k(mem)) {
+  if (check_j2k(mem)) {
     return OPJ_CODEC_J2K;
   }
-  else {
-    return OPJ_CODEC_UNKNOWN;
-  }
+
+  return OPJ_CODEC_UNKNOWN;
 }
 
 int imb_is_a_jp2(const unsigned char *buf)
@@ -339,15 +338,13 @@ ImBuf *imb_load_jp2_filepath(const char *filepath, int flags, char colorspace[IM
   if (stream) {
     return NULL;
   }
-  else {
-    if (fread(mem, sizeof(mem), 1, p_file) != sizeof(mem)) {
-      opj_stream_destroy(stream);
-      return NULL;
-    }
-    else {
-      fseek(p_file, 0, SEEK_SET);
-    }
+
+  if (fread(mem, sizeof(mem), 1, p_file) != sizeof(mem)) {
+    opj_stream_destroy(stream);
+    return NULL;
   }
+
+  fseek(p_file, 0, SEEK_SET);
 
   const OPJ_CODEC_FORMAT format = format_from_header(mem);
   ImBuf *ibuf = imb_load_jp2_stream(stream, format, flags, colorspace);
