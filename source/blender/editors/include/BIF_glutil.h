@@ -72,7 +72,7 @@ void immDrawPixelsTex(IMMDrawPixelsTexState *state,
                       void *rect,
                       float xzoom,
                       float yzoom,
-                      float color[4]);
+                      const float color[4]);
 void immDrawPixelsTex_clipping(IMMDrawPixelsTexState *state,
                                float x,
                                float y,
@@ -87,7 +87,7 @@ void immDrawPixelsTex_clipping(IMMDrawPixelsTexState *state,
                                float clip_max_y,
                                float xzoom,
                                float yzoom,
-                               float color[4]);
+                               const float color[4]);
 void immDrawPixelsTexScaled(IMMDrawPixelsTexState *state,
                             float x,
                             float y,
@@ -100,7 +100,7 @@ void immDrawPixelsTexScaled(IMMDrawPixelsTexState *state,
                             float scaleY,
                             float xzoom,
                             float yzoom,
-                            float color[4]);
+                            const float color[4]);
 void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
                                      float x,
                                      float y,
@@ -117,7 +117,7 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
                                      float clip_max_y,
                                      float xzoom,
                                      float yzoom,
-                                     float color[4]);
+                                     const float color[4]);
 
 /* Image buffer drawing functions, with display transform
  *

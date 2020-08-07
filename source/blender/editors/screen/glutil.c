@@ -106,7 +106,7 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
                                      float clip_max_y,
                                      float xzoom,
                                      float yzoom,
-                                     float color[4])
+                                     const float color[4])
 {
   int subpart_x, subpart_y, tex_w = 256, tex_h = 256;
   int seamless, offset_x, offset_y, nsubparts_x, nsubparts_y;
@@ -272,7 +272,7 @@ void immDrawPixelsTexScaled(IMMDrawPixelsTexState *state,
                             float scaleY,
                             float xzoom,
                             float yzoom,
-                            float color[4])
+                            const float color[4])
 {
   immDrawPixelsTexScaled_clipping(state,
                                   x,
@@ -303,7 +303,7 @@ void immDrawPixelsTex(IMMDrawPixelsTexState *state,
                       void *rect,
                       float xzoom,
                       float yzoom,
-                      float color[4])
+                      const float color[4])
 {
   immDrawPixelsTexScaled_clipping(state,
                                   x,
@@ -338,7 +338,7 @@ void immDrawPixelsTex_clipping(IMMDrawPixelsTexState *state,
                                float clip_max_y,
                                float xzoom,
                                float yzoom,
-                               float color[4])
+                               const float color[4])
 {
   immDrawPixelsTexScaled_clipping(state,
                                   x,
