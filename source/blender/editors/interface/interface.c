@@ -820,10 +820,10 @@ static bool ui_but_update_from_old_block(const bContext *C,
       oldbut->hardmax = but->hardmax;
     }
 
-    /* Selectively copy a1, a2 since their use differs across all button types
-     * (and we'll probably split these out later) */
-    if (ELEM(oldbut->type, UI_BTYPE_PROGRESS_BAR)) {
-      oldbut->a1 = but->a1;
+    if (oldbut->type == UI_BTYPE_PROGRESS_BAR) {
+      uiButProgressbar *progress_oldbut = (uiButProgressbar *)oldbut;
+      uiButProgressbar *progress_but = (uiButProgressbar *)but;
+      progress_oldbut->progress = progress_but->progress;
     }
 
     if (!BLI_listbase_is_empty(&block->butstore)) {
@@ -3788,6 +3788,10 @@ static void ui_but_alloc_info(const eButType type,
     case UI_BTYPE_SEARCH_MENU:
       alloc_size = sizeof(uiButSearch);
       alloc_str = "uiButSearch";
+      break;
+    case UI_BTYPE_PROGRESS_BAR:
+      alloc_size = sizeof(uiButProgressbar);
+      alloc_str = "uiButProgressbar";
       break;
     default:
       alloc_size = sizeof(uiBut);

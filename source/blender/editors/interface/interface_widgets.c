@@ -3609,6 +3609,7 @@ static void widget_scroll(
 static void widget_progressbar(
     uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)
 {
+  uiButProgressbar *but_progressbar = (uiButProgressbar *)but;
   uiWidgetBase wtb, wtb_bar;
   rcti rect_prog = *rect, rect_bar = *rect;
 
@@ -3616,7 +3617,7 @@ static void widget_progressbar(
   widget_init(&wtb_bar);
 
   /* round corners */
-  float value = but->a1;
+  float value = but_progressbar->progress;
   float offs = wcol->roundness * BLI_rcti_size_y(&rect_prog);
   float w = value * BLI_rcti_size_x(&rect_prog);
 
