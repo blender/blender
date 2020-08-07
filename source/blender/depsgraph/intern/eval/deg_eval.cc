@@ -353,9 +353,8 @@ static TaskPool *deg_evaluate_task_pool_create(DepsgraphEvalState *state)
   if (G.debug & G_DEBUG_DEPSGRAPH_NO_THREADS) {
     return BLI_task_pool_create_no_threads(state);
   }
-  else {
-    return BLI_task_pool_create_suspended(state, TASK_PRIORITY_HIGH);
-  }
+
+  return BLI_task_pool_create_suspended(state, TASK_PRIORITY_HIGH);
 }
 
 /**

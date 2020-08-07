@@ -282,15 +282,14 @@ void DEG_iterator_objects_next(BLI_Iterator *iter)
       if (deg_objects_dupli_iterator_next(iter)) {
         return;
       }
-      else {
-        verify_id_properties_freed(data);
-        free_object_duplilist(data->dupli_list);
-        data->dupli_parent = nullptr;
-        data->dupli_list = nullptr;
-        data->dupli_object_next = nullptr;
-        data->dupli_object_current = nullptr;
-        deg_invalidate_iterator_work_data(data);
-      }
+
+      verify_id_properties_freed(data);
+      free_object_duplilist(data->dupli_list);
+      data->dupli_parent = nullptr;
+      data->dupli_list = nullptr;
+      data->dupli_object_next = nullptr;
+      data->dupli_object_current = nullptr;
+      deg_invalidate_iterator_work_data(data);
     }
 
     ++data->id_node_index;
@@ -324,7 +323,7 @@ static void DEG_iterator_ids_step(BLI_Iterator *iter, deg::IDNode *id_node, bool
     iter->skip = true;
     return;
   }
-  else if (only_updated && !(id_cow->recalc & ID_RECALC_ALL)) {
+  if (only_updated && !(id_cow->recalc & ID_RECALC_ALL)) {
     bNodeTree *ntree = ntreeFromID(id_cow);
 
     /* Nodetree is considered part of the datablock. */

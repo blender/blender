@@ -190,7 +190,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
         reinterpret_cast<const PropertyRNA *>(prop));
     return node_identifier;
   }
-  else if (ptr->type == &RNA_PoseBone) {
+  if (ptr->type == &RNA_PoseBone) {
     const bPoseChannel *pchan = static_cast<const bPoseChannel *>(ptr->data);
     /* Bone - generally, we just want the bone component. */
     node_identifier.type = NodeType::BONE;
@@ -222,7 +222,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
     }
     return node_identifier;
   }
-  else if (ptr->type == &RNA_Bone) {
+  if (ptr->type == &RNA_Bone) {
     /* Armature-level bone mapped to Armature Eval, and thus Pose Init.
      * Drivers have special code elsewhere that links them to the pose
      * bone components, instead of using this generic code. */
@@ -236,7 +236,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
     }
     return node_identifier;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_Constraint)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_Constraint)) {
     const Object *object = reinterpret_cast<const Object *>(ptr->owner_id);
     const bConstraint *constraint = static_cast<const bConstraint *>(ptr->data);
     RNANodeQueryIDData *id_data = ensure_id_data(&object->id);
@@ -256,7 +256,7 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
     }
     return node_identifier;
   }
-  else if (ELEM(ptr->type, &RNA_ConstraintTarget, &RNA_ConstraintTargetBone)) {
+  if (ELEM(ptr->type, &RNA_ConstraintTarget, &RNA_ConstraintTargetBone)) {
     Object *object = reinterpret_cast<Object *>(ptr->owner_id);
     bConstraintTarget *tgt = (bConstraintTarget *)ptr->data;
     /* Check whether is object or bone constraint. */
@@ -315,17 +315,17 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
         node_identifier.type = NodeType::TRANSFORM;
         return node_identifier;
       }
-      else if (contains(prop_identifier, "data")) {
+      if (contains(prop_identifier, "data")) {
         /* We access object.data, most likely a geometry.
          * Might be a bone tho. */
         node_identifier.type = NodeType::GEOMETRY;
         return node_identifier;
       }
-      else if (STREQ(prop_identifier, "hide_viewport") || STREQ(prop_identifier, "hide_render")) {
+      if (STREQ(prop_identifier, "hide_viewport") || STREQ(prop_identifier, "hide_render")) {
         node_identifier.type = NodeType::OBJECT_FROM_LAYER;
         return node_identifier;
       }
-      else if (STREQ(prop_identifier, "dimensions")) {
+      if (STREQ(prop_identifier, "dimensions")) {
         node_identifier.type = NodeType::PARAMETERS;
         node_identifier.operation_code = OperationCode::DIMENSIONS;
         return node_identifier;

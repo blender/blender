@@ -96,7 +96,7 @@ void deg_graph_transitive_reduction(Depsgraph *graph)
          * need modifying. */
         continue;
       }
-      else if (rel->from->custom_flags & OP_REACHABLE) {
+      if (rel->from->custom_flags & OP_REACHABLE) {
         relations_to_remove.append(rel);
       }
     }

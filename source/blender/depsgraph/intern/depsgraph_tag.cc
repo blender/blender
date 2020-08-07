@@ -372,7 +372,7 @@ void graph_id_tag_update_single_flag(Main *bmain,
     }
     return;
   }
-  else if (tag == ID_RECALC_TIME) {
+  if (tag == ID_RECALC_TIME) {
     if (graph != nullptr) {
       graph->need_update_time = true;
     }

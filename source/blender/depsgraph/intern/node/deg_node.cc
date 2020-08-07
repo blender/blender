@@ -317,12 +317,11 @@ NodeClass Node::get_class() const
   if (type == NodeType::OPERATION) {
     return NodeClass::OPERATION;
   }
-  else if (type < NodeType::PARAMETERS) {
+  if (type < NodeType::PARAMETERS) {
     return NodeClass::GENERIC;
   }
-  else {
-    return NodeClass::COMPONENT;
-  }
+
+  return NodeClass::COMPONENT;
 }
 
 /*******************************************************************************

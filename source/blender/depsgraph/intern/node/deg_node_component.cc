@@ -251,7 +251,7 @@ OperationNode *ComponentNode::get_entry_operation()
   if (entry_operation) {
     return entry_operation;
   }
-  else if (operations_map != nullptr && operations_map->size() == 1) {
+  if (operations_map != nullptr && operations_map->size() == 1) {
     OperationNode *op_node = nullptr;
     /* TODO(sergey): This is somewhat slow. */
     for (OperationNode *tmp : operations_map->values()) {
@@ -261,7 +261,7 @@ OperationNode *ComponentNode::get_entry_operation()
     entry_operation = op_node;
     return op_node;
   }
-  else if (operations.size() == 1) {
+  if (operations.size() == 1) {
     return operations[0];
   }
   return nullptr;
@@ -272,7 +272,7 @@ OperationNode *ComponentNode::get_exit_operation()
   if (exit_operation) {
     return exit_operation;
   }
-  else if (operations_map != nullptr && operations_map->size() == 1) {
+  if (operations_map != nullptr && operations_map->size() == 1) {
     OperationNode *op_node = nullptr;
     /* TODO(sergey): This is somewhat slow. */
     for (OperationNode *tmp : operations_map->values()) {
@@ -282,7 +282,7 @@ OperationNode *ComponentNode::get_exit_operation()
     exit_operation = op_node;
     return op_node;
   }
-  else if (operations.size() == 1) {
+  if (operations.size() == 1) {
     return operations[0];
   }
   return nullptr;

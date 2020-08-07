@@ -254,9 +254,8 @@ TimeSourceNode *DepsgraphRelationBuilder::get_node(const TimeSourceKey &key) con
     /* XXX TODO */
     return nullptr;
   }
-  else {
-    return graph_->time_source;
-  }
+
+  return graph_->time_source;
 }
 
 ComponentNode *DepsgraphRelationBuilder::get_node(const ComponentKey &key) const
@@ -353,16 +352,16 @@ Relation *DepsgraphRelationBuilder::add_time_relation(TimeSourceNode *timesrc,
   if (timesrc && node_to) {
     return graph_->add_new_relation(timesrc, node_to, description, flags);
   }
-  else {
-    DEG_DEBUG_PRINTF((::Depsgraph *)graph_,
-                     BUILD,
-                     "add_time_relation(%p = %s, %p = %s, %s) Failed\n",
-                     timesrc,
-                     (timesrc) ? timesrc->identifier().c_str() : "<None>",
-                     node_to,
-                     (node_to) ? node_to->identifier().c_str() : "<None>",
-                     description);
-  }
+
+  DEG_DEBUG_PRINTF((::Depsgraph *)graph_,
+                   BUILD,
+                   "add_time_relation(%p = %s, %p = %s, %s) Failed\n",
+                   timesrc,
+                   (timesrc) ? timesrc->identifier().c_str() : "<None>",
+                   node_to,
+                   (node_to) ? node_to->identifier().c_str() : "<None>",
+                   description);
+
   return nullptr;
 }
 
@@ -374,16 +373,16 @@ Relation *DepsgraphRelationBuilder::add_operation_relation(OperationNode *node_f
   if (node_from && node_to) {
     return graph_->add_new_relation(node_from, node_to, description, flags);
   }
-  else {
-    DEG_DEBUG_PRINTF((::Depsgraph *)graph_,
-                     BUILD,
-                     "add_operation_relation(%p = %s, %p = %s, %s) Failed\n",
-                     node_from,
-                     (node_from) ? node_from->identifier().c_str() : "<None>",
-                     node_to,
-                     (node_to) ? node_to->identifier().c_str() : "<None>",
-                     description);
-  }
+
+  DEG_DEBUG_PRINTF((::Depsgraph *)graph_,
+                   BUILD,
+                   "add_operation_relation(%p = %s, %p = %s, %s) Failed\n",
+                   node_from,
+                   (node_from) ? node_from->identifier().c_str() : "<None>",
+                   node_to,
+                   (node_to) ? node_to->identifier().c_str() : "<None>",
+                   description);
+
   return nullptr;
 }
 
