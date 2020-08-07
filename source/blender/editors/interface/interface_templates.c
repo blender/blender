@@ -5512,22 +5512,24 @@ void uiTemplatePalette(uiLayout *layout,
     }
 
     RNA_pointer_create(&palette->id, &RNA_PaletteColor, color, &color_ptr);
-    uiDefButR(block,
-              UI_BTYPE_COLOR,
-              0,
-              "",
-              0,
-              0,
-              UI_UNIT_X,
-              UI_UNIT_Y,
-              &color_ptr,
-              "color",
-              -1,
-              0.0,
-              1.0,
-              UI_PALETTE_COLOR,
-              col_id,
-              "");
+    uiButColor *color_but = (uiButColor *)uiDefButR(block,
+                                                    UI_BTYPE_COLOR,
+                                                    0,
+                                                    "",
+                                                    0,
+                                                    0,
+                                                    UI_UNIT_X,
+                                                    UI_UNIT_Y,
+                                                    &color_ptr,
+                                                    "color",
+                                                    -1,
+                                                    0.0,
+                                                    1.0,
+                                                    0.0,
+                                                    0.0,
+                                                    "");
+    color_but->is_pallete_color = true;
+    color_but->palette_color_index = col_id;
     row_cols++;
     col_id++;
   }

@@ -5713,21 +5713,24 @@ static bool ui_numedit_but_UNITVEC(
   return changed;
 }
 
-static void ui_palette_set_active(uiBut *but)
+static void ui_palette_set_active(uiButColor *color_but)
 {
-  if ((int)(but->a1) == UI_PALETTE_COLOR) {
-    Palette *palette = (Palette *)but->rnapoin.owner_id;
-    PaletteColor *color = but->rnapoin.data;
+  if (color_but->is_pallete_color) {
+    Palette *palette = (Palette *)color_but->but.rnapoin.owner_id;
+    PaletteColor *color = color_but->but.rnapoin.data;
     palette->active_color = BLI_findindex(&palette->colors, color);
   }
 }
 
 static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
+  BLI_assert(but->type == UI_BTYPE_COLOR);
+  uiButColor *color_but = (uiButColor *)but;
+
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
     /* first handle click on icondrag type button */
     if (event->type == LEFTMOUSE && but->dragpoin && event->val == KM_PRESS) {
-      ui_palette_set_active(but);
+      ui_palette_set_active(color_but);
       if (ui_but_contains_point_px_icon(but, data->region, event)) {
         button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
         data->dragstartx = event->x;
@@ -5737,7 +5740,7 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
     }
 #ifdef USE_DRAG_TOGGLE
     if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
-      ui_palette_set_active(but);
+      ui_palette_set_active(color_but);
       button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
       data->dragstartx = event->x;
       data->dragstarty = event->y;
@@ -5746,7 +5749,7 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
 #endif
     /* regular open menu */
     if (ELEM(event->type, LEFTMOUSE, EVT_PADENTER, EVT_RETKEY) && event->val == KM_PRESS) {
-      ui_palette_set_active(but);
+      ui_palette_set_active(color_but);
       button_activate_state(C, but, BUTTON_STATE_MENU_OPEN);
       return WM_UI_HANDLER_BREAK;
     }
@@ -5777,8 +5780,7 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
       ui_apply_but(C, but->block, but, data, true);
       return WM_UI_HANDLER_BREAK;
     }
-    if ((int)(but->a1) == UI_PALETTE_COLOR && event->type == EVT_DELKEY &&
-        event->val == KM_PRESS) {
+    if (color_but->is_pallete_color && (event->type == EVT_DELKEY) && (event->val == KM_PRESS)) {
       Palette *palette = (Palette *)but->rnapoin.owner_id;
       PaletteColor *color = but->rnapoin.data;
 
@@ -5809,7 +5811,7 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
     }
 
     if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
-      if ((int)(but->a1) == UI_PALETTE_COLOR) {
+      if (color_but->is_pallete_color) {
         if (!event->ctrl) {
           float color[3];
           Paint *paint = BKE_paint_get_active_from_context(C);
@@ -7613,13 +7615,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
       retval = ui_do_but_BUT(C, but, data, event);
       break;
     case UI_BTYPE_COLOR:
-      if (but->a1 == -1) {
-        /* signal to prevent calling up color picker */
-        retval = ui_do_but_EXIT(C, but, data, event);
-      }
-      else {
-        retval = ui_do_but_COLOR(C, but, data, event);
-      }
+      retval = ui_do_but_COLOR(C, but, data, event);
       break;
     case UI_BTYPE_UNITVEC:
       retval = ui_do_but_UNITVEC(C, block, but, data, event);

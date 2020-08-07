@@ -148,7 +148,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
       if (RNA_property_array_check(prop) && index == -1) {
         if (ELEM(RNA_property_subtype(prop), PROP_COLOR, PROP_COLOR_GAMMA)) {
           but = uiDefButR_prop(
-              block, UI_BTYPE_COLOR, 0, name, x1, y1, x2, y2, ptr, prop, -1, 0, 0, -1, -1, NULL);
+              block, UI_BTYPE_COLOR, 0, name, x1, y1, x2, y2, ptr, prop, -1, 0, 0, 0, 0, NULL);
         }
         else {
           return NULL;

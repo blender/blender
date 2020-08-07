@@ -3768,6 +3768,8 @@ static void widget_numslider(
 static void widget_swatch(
     uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
+  BLI_assert(but->type == UI_BTYPE_COLOR);
+  uiButColor *color_but = (uiButColor *)but;
   uiWidgetBase wtb;
   float rad, col[4];
 
@@ -3822,8 +3824,8 @@ static void widget_swatch(
   }
 
   widgetbase_draw_ex(&wtb, wcol, show_alpha_checkers);
-  if (but->a1 == UI_PALETTE_COLOR &&
-      ((Palette *)but->rnapoin.owner_id)->active_color == (int)but->a2) {
+  if (color_but->is_pallete_color &&
+      ((Palette *)but->rnapoin.owner_id)->active_color == color_but->palette_color_index) {
     float width = rect->xmax - rect->xmin;
     float height = rect->ymax - rect->ymin;
     /* find color luminance and change it slightly */

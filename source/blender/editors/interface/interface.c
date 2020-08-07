@@ -2329,7 +2329,8 @@ bool ui_but_supports_cycling(const uiBut *but)
 {
   return ((ELEM(but->type, UI_BTYPE_ROW, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER, UI_BTYPE_LISTBOX)) ||
           (but->type == UI_BTYPE_MENU && ui_but_menu_step_poll(but)) ||
-          (but->type == UI_BTYPE_COLOR && but->a1 != -1) || (but->menu_step_func != NULL));
+          (but->type == UI_BTYPE_COLOR && ((uiButColor *)but)->is_pallete_color) ||
+          (but->menu_step_func != NULL));
 }
 
 double ui_but_value_get(uiBut *but)
@@ -3772,6 +3773,10 @@ static void ui_but_alloc_info(const eButType type,
   bool has_custom_type = true;
 
   switch (type) {
+    case UI_BTYPE_COLOR:
+      alloc_size = sizeof(uiButColor);
+      alloc_str = "uiButColor";
+      break;
     case UI_BTYPE_DECORATOR:
       alloc_size = sizeof(uiButDecorator);
       alloc_str = "uiButDecorator";
