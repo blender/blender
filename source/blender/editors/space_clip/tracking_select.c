@@ -744,7 +744,9 @@ static int point_inside_ellipse(const float point[2],
   return x * x + y * y < 1.0f;
 }
 
-static int marker_inside_ellipse(MovieTrackingMarker *marker, float offset[2], float ellipse[2])
+static int marker_inside_ellipse(MovieTrackingMarker *marker,
+                                 const float offset[2],
+                                 const float ellipse[2])
 {
   return point_inside_ellipse(marker->pos, offset, ellipse);
 }

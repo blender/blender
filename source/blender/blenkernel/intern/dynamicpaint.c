@@ -602,7 +602,7 @@ static bool boundIntersectPoint(Bounds3D *b, const float point[3], const float r
 }
 
 /* expand bounds by a new point */
-static void boundInsert(Bounds3D *b, float point[3])
+static void boundInsert(Bounds3D *b, const float point[3])
 {
   if (!b->valid) {
     copy_v3_v3(b->min, point);

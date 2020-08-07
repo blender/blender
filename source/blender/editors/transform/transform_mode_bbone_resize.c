@@ -87,7 +87,10 @@ static void headerBoneSize(TransInfo *t, const float vec[3], char str[UI_MAX_DRA
   }
 }
 
-static void ElementBoneSize(TransInfo *t, TransDataContainer *tc, TransData *td, float mat[3][3])
+static void ElementBoneSize(TransInfo *t,
+                            TransDataContainer *tc,
+                            TransData *td,
+                            const float mat[3][3])
 {
   float tmat[3][3], smat[3][3], oldy;
   float sizemat[3][3];

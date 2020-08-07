@@ -273,7 +273,7 @@ typedef struct {
   int marker_flag;
 } MarkerUpdateCb;
 
-static void to_pixel_space(float r[2], float a[2], int width, int height)
+static void to_pixel_space(float r[2], const float a[2], int width, int height)
 {
   copy_v2_v2(r, a);
   r[0] *= width;

@@ -38,7 +38,7 @@ static bNodeSocketTemplate outputs[] = {
     {-1, ""},
 };
 
-static void rotate(float new_co[3], float a, float ax[3], const float co[3])
+static void rotate(float new_co[3], float a, const float ax[3], const float co[3])
 {
   float para[3];
   float perp[3];

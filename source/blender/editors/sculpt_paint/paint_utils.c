@@ -238,7 +238,7 @@ void paint_stroke_operator_properties(wmOperatorType *ot)
 
 /* 3D Paint */
 
-static void imapaint_project(float matrix[4][4], const float co[3], float pco[4])
+static void imapaint_project(const float matrix[4][4], const float co[3], float pco[4])
 {
   copy_v3_v3(pco, co);
   pco[3] = 1.0f;

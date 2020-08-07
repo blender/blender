@@ -1512,7 +1512,8 @@ static void mask_layer_shape_from_mask_point(BezTriple *bezt,
   fp[7] = bezt->radius;
 }
 
-static void mask_layer_shape_to_mask_point(BezTriple *bezt, float fp[MASK_OBJECT_SHAPE_ELEM_SIZE])
+static void mask_layer_shape_to_mask_point(BezTriple *bezt,
+                                           const float fp[MASK_OBJECT_SHAPE_ELEM_SIZE])
 {
   copy_v2_v2(bezt->vec[0], &fp[0]);
   copy_v2_v2(bezt->vec[1], &fp[2]);

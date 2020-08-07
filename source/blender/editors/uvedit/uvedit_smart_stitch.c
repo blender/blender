@@ -323,7 +323,10 @@ static int getNumOfIslandUvs(UvElementMap *elementMap, int island)
   return elementMap->islandIndices[island + 1] - elementMap->islandIndices[island];
 }
 
-static void stitch_uv_rotate(float mat[2][2], float medianPoint[2], float uv[2], float aspect)
+static void stitch_uv_rotate(const float mat[2][2],
+                             const float medianPoint[2],
+                             float uv[2],
+                             float aspect)
 {
   float uv_rotation_result[2];
 

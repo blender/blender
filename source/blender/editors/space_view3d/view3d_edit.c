@@ -2500,7 +2500,10 @@ static bool viewdolly_offset_lock_check(bContext *C, wmOperator *op)
   return false;
 }
 
-static void view_dolly_to_vector_3d(ARegion *region, float orig_ofs[3], float dvec[3], float dfac)
+static void view_dolly_to_vector_3d(ARegion *region,
+                                    const float orig_ofs[3],
+                                    const float dvec[3],
+                                    float dfac)
 {
   RegionView3D *rv3d = region->regiondata;
   madd_v3_v3v3fl(rv3d->ofs, orig_ofs, dvec, -(1.0f - dfac));

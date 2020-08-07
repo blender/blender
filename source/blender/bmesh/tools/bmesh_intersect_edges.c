@@ -455,7 +455,7 @@ static void bm_elemxelem_bvhtree_overlap(const BVHTree *tree1,
   int parallel_tasks_num = BLI_bvhtree_overlap_thread_num(tree1);
   for (int i = 0; i < parallel_tasks_num; i++) {
     if (pair_stack[i] == NULL) {
-      pair_stack[i] = BLI_stack_new(sizeof(struct EDBMSplitElem[2]), __func__);
+      pair_stack[i] = BLI_stack_new(sizeof(const struct EDBMSplitElem[2]), __func__);
     }
   }
   data->pair_stack = pair_stack;

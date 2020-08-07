@@ -1051,7 +1051,7 @@ static int sb_detect_aabb_collisionCached(float UNUSED(force[3]),
 /* --- the aabb section*/
 
 /* +++ the face external section*/
-static int sb_detect_face_pointCached(float face_v1[3],
+static int sb_detect_face_pointCached(const float face_v1[3],
                                       const float face_v2[3],
                                       const float face_v3[3],
                                       float *damp,
@@ -1149,7 +1149,7 @@ static int sb_detect_face_pointCached(float face_v1[3],
   return deflected;
 }
 
-static int sb_detect_face_collisionCached(float face_v1[3],
+static int sb_detect_face_collisionCached(const float face_v1[3],
                                           const float face_v2[3],
                                           const float face_v3[3],
                                           float *damp,
@@ -1328,7 +1328,7 @@ static void scan_for_ext_face_forces(Object *ob, float timenow)
 
 /* +++ the spring external section*/
 
-static int sb_detect_edge_collisionCached(float edge_v1[3],
+static int sb_detect_edge_collisionCached(const float edge_v1[3],
                                           const float edge_v2[3],
                                           float *damp,
                                           float force[3],

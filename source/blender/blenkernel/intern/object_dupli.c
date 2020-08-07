@@ -144,7 +144,10 @@ static void copy_dupli_context(
 /* generate a dupli instance
  * mat is transform of the object relative to current context (including object obmat)
  */
-static DupliObject *make_dupli(const DupliContext *ctx, Object *ob, float mat[4][4], int index)
+static DupliObject *make_dupli(const DupliContext *ctx,
+                               Object *ob,
+                               const float mat[4][4],
+                               int index)
 {
   DupliObject *dob;
   int i;

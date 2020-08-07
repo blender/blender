@@ -83,7 +83,9 @@ static void voronoi_insertEvent(VoronoiProcess *process, VoronoiEvent *event)
 }
 
 /* edge */
-static VoronoiEdge *voronoiEdge_new(float start[2], float left[2], float right[2])
+static VoronoiEdge *voronoiEdge_new(const float start[2],
+                                    const float left[2],
+                                    const float right[2])
 {
   VoronoiEdge *edge = MEM_callocN(sizeof(VoronoiEdge), "voronoi edge");
 
@@ -118,7 +120,7 @@ static VoronoiParabola *voronoiParabola_new(void)
   return parabola;
 }
 
-static VoronoiParabola *voronoiParabola_newSite(float site[2])
+static VoronoiParabola *voronoiParabola_newSite(const float site[2])
 {
   VoronoiParabola *parabola = MEM_callocN(sizeof(VoronoiParabola), "voronoi parabola site");
 

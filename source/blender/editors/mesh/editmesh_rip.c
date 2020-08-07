@@ -343,8 +343,11 @@ static BMVert *edbm_ripsel_edloop_pair_start_vert(BMEdge *e)
   return (edbm_ripsel_edge_uid_step(e, &v_test)) ? e->v1 : e->v2;
 }
 
-static void edbm_ripsel_deselect_helper(
-    BMesh *bm, EdgeLoopPair *eloop_pairs, ARegion *region, float projectMat[4][4], float fmval[2])
+static void edbm_ripsel_deselect_helper(BMesh *bm,
+                                        EdgeLoopPair *eloop_pairs,
+                                        ARegion *region,
+                                        float projectMat[4][4],
+                                        const float fmval[2])
 {
   EdgeLoopPair *lp;
 

@@ -271,7 +271,7 @@ static void annotation_get_3d_reference(tGPsdata *p, float vec[3])
 /* Stroke Editing ---------------------------- */
 
 /* check if the current mouse position is suitable for adding a new point */
-static bool annotation_stroke_filtermval(tGPsdata *p, const float mval[2], float pmval[2])
+static bool annotation_stroke_filtermval(tGPsdata *p, const float mval[2], const float pmval[2])
 {
   int dx = (int)fabsf(mval[0] - pmval[0]);
   int dy = (int)fabsf(mval[1] - pmval[1]);

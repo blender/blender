@@ -497,7 +497,7 @@ static void p_chart_uv_translate(PChart *chart, const float trans[2])
   }
 }
 
-static void p_chart_uv_transform(PChart *chart, float mat[2][2])
+static void p_chart_uv_transform(PChart *chart, const float mat[2][2])
 {
   PVert *v;
 

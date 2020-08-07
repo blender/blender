@@ -2928,7 +2928,7 @@ static void project_bucket_clip_face(const bool is_ortho,
 
 /* checks if pt is inside a convex 2D polyline, the polyline must be ordered rotating clockwise
  * otherwise it would have to test for mixed (line_point_side_v2 > 0.0f) cases */
-static bool IsectPoly2Df(const float pt[2], float uv[][2], const int tot)
+static bool IsectPoly2Df(const float pt[2], const float uv[][2], const int tot)
 {
   int i;
   if (line_point_side_v2(uv[tot - 1], uv[0], pt) < 0.0f) {
@@ -2943,7 +2943,7 @@ static bool IsectPoly2Df(const float pt[2], float uv[][2], const int tot)
 
   return true;
 }
-static bool IsectPoly2Df_twoside(const float pt[2], float uv[][2], const int tot)
+static bool IsectPoly2Df_twoside(const float pt[2], const float uv[][2], const int tot)
 {
   const bool side = (line_point_side_v2(uv[tot - 1], uv[0], pt) > 0.0f);
 

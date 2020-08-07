@@ -875,7 +875,7 @@ BLI_INLINE void draw_rect_point(uint pos,
   imm_draw_box_wire_2d(pos, minx, miny, maxx, maxy);
 }
 
-BLI_INLINE void draw_bezier_handle_lines(uint pos, float sel_col[4], BezTriple *bez)
+BLI_INLINE void draw_bezier_handle_lines(uint pos, const float sel_col[4], BezTriple *bez)
 {
   immUniformColor4f(0.0f, 0.0f, 0.0f, 0.5f);
   GPU_line_width(3.0f);

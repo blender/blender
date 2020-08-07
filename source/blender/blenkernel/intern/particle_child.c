@@ -684,7 +684,7 @@ static void do_rough(const float loc[3],
 }
 
 static void do_rough_end(
-    const float loc[3], float mat[4][4], float t, float fac, float shape, ParticleKey *state)
+    const float loc[3], const float mat[4][4], float t, float fac, float shape, ParticleKey *state)
 {
   float rough[2];
   float roughfac;

@@ -98,7 +98,7 @@ DO_INLINE void mul_fvector_S(float to[3], const float from[3], float scalar)
 }
 /* simple v^T * v product ("outer product") */
 /* STATUS: HAS TO BE verified (*should* work) */
-DO_INLINE void mul_fvectorT_fvector(float to[3][3], float vectorA[3], float vectorB[3])
+DO_INLINE void mul_fvectorT_fvector(float to[3][3], const float vectorA[3], const float vectorB[3])
 {
   mul_fvector_S(to[0], vectorB, vectorA[0]);
   mul_fvector_S(to[1], vectorB, vectorA[1]);
@@ -156,7 +156,7 @@ DO_INLINE void cp_lfvector(float (*to)[3], float (*from)[3], unsigned int verts)
   memcpy(to, from, verts * sizeof(lfVector));
 }
 /* init long vector with float[3] */
-DO_INLINE void init_lfvector(float (*fLongVector)[3], float vector[3], unsigned int verts)
+DO_INLINE void init_lfvector(float (*fLongVector)[3], const float vector[3], unsigned int verts)
 {
   unsigned int i = 0;
   for (i = 0; i < verts; i++) {
@@ -360,7 +360,7 @@ static void print_bfmatrix(fmatrix3x3 *m)
 #  endif
 
 /* copy 3x3 matrix */
-DO_INLINE void cp_fmatrix(float to[3][3], float from[3][3])
+DO_INLINE void cp_fmatrix(float to[3][3], const float from[3][3])
 {
   // memcpy(to, from, sizeof (float) * 9);
   copy_v3_v3(to[0], from[0]);
@@ -429,7 +429,7 @@ DO_INLINE void mul_fmatrix_S(float matrix[3][3], float scalar)
 
 /* a vector multiplied by a 3x3 matrix */
 /* STATUS: verified */
-DO_INLINE void mul_fvector_fmatrix(float *to, const float *from, float matrix[3][3])
+DO_INLINE void mul_fvector_fmatrix(float *to, const float *from, const float matrix[3][3])
 {
   to[0] = matrix[0][0] * from[0] + matrix[1][0] * from[1] + matrix[2][0] * from[2];
   to[1] = matrix[0][1] * from[0] + matrix[1][1] * from[1] + matrix[2][1] * from[2];
@@ -438,14 +438,16 @@ DO_INLINE void mul_fvector_fmatrix(float *to, const float *from, float matrix[3]
 
 /* 3x3 matrix multiplied by a vector */
 /* STATUS: verified */
-DO_INLINE void mul_fmatrix_fvector(float *to, float matrix[3][3], float from[3])
+DO_INLINE void mul_fmatrix_fvector(float *to, const float matrix[3][3], const float from[3])
 {
   to[0] = dot_v3v3(matrix[0], from);
   to[1] = dot_v3v3(matrix[1], from);
   to[2] = dot_v3v3(matrix[2], from);
 }
 /* 3x3 matrix addition with 3x3 matrix */
-DO_INLINE void add_fmatrix_fmatrix(float to[3][3], float matrixA[3][3], float matrixB[3][3])
+DO_INLINE void add_fmatrix_fmatrix(float to[3][3],
+                                   const float matrixA[3][3],
+                                   const float matrixB[3][3])
 {
   add_v3_v3v3(to[0], matrixA[0], matrixB[0]);
   add_v3_v3v3(to[1], matrixA[1], matrixB[1]);
@@ -453,14 +455,16 @@ DO_INLINE void add_fmatrix_fmatrix(float to[3][3], float matrixA[3][3], float ma
 }
 /* A -= B*x + C*y (3x3 matrix sub-addition with 3x3 matrix) */
 DO_INLINE void subadd_fmatrixS_fmatrixS(
-    float to[3][3], float matrixA[3][3], float aS, float matrixB[3][3], float bS)
+    float to[3][3], const float matrixA[3][3], float aS, const float matrixB[3][3], float bS)
 {
   VECSUBADDSS(to[0], matrixA[0], aS, matrixB[0], bS);
   VECSUBADDSS(to[1], matrixA[1], aS, matrixB[1], bS);
   VECSUBADDSS(to[2], matrixA[2], aS, matrixB[2], bS);
 }
 /* A = B - C (3x3 matrix subtraction with 3x3 matrix) */
-DO_INLINE void sub_fmatrix_fmatrix(float to[3][3], float matrixA[3][3], float matrixB[3][3])
+DO_INLINE void sub_fmatrix_fmatrix(float to[3][3],
+                                   const float matrixA[3][3],
+                                   const float matrixB[3][3])
 {
   sub_v3_v3v3(to[0], matrixA[0], matrixB[0]);
   sub_v3_v3v3(to[1], matrixA[1], matrixB[1]);
@@ -471,14 +475,14 @@ DO_INLINE void sub_fmatrix_fmatrix(float to[3][3], float matrixA[3][3], float ma
 /////////////////////////////////////////////////////////////////
 /* 3x3 matrix multiplied+added by a vector */
 /* STATUS: verified */
-DO_INLINE void muladd_fmatrix_fvector(float to[3], float matrix[3][3], float from[3])
+DO_INLINE void muladd_fmatrix_fvector(float to[3], const float matrix[3][3], const float from[3])
 {
   to[0] += dot_v3v3(matrix[0], from);
   to[1] += dot_v3v3(matrix[1], from);
   to[2] += dot_v3v3(matrix[2], from);
 }
 
-DO_INLINE void muladd_fmatrixT_fvector(float to[3], float matrix[3][3], const float from[3])
+DO_INLINE void muladd_fmatrixT_fvector(float to[3], const float matrix[3][3], const float from[3])
 {
   to[0] += matrix[0][0] * from[0] + matrix[1][0] * from[1] + matrix[2][0] * from[2];
   to[1] += matrix[0][1] * from[0] + matrix[1][1] * from[1] + matrix[2][1] * from[2];
@@ -492,7 +496,7 @@ BLI_INLINE void outerproduct(float r[3][3], const float a[3], const float b[3])
   mul_v3_v3fl(r[2], a, b[2]);
 }
 
-BLI_INLINE void cross_m3_v3m3(float r[3][3], const float v[3], float m[3][3])
+BLI_INLINE void cross_m3_v3m3(float r[3][3], const float v[3], const float m[3][3])
 {
   cross_v3_v3v3(r[0], v, m[0]);
   cross_v3_v3v3(r[1], v, m[1]);
@@ -512,7 +516,7 @@ BLI_INLINE void cross_v3_identity(float r[3][3], const float v[3])
   r[2][2] = 0.0f;
 }
 
-BLI_INLINE void madd_m3_m3fl(float r[3][3], float m[3][3], float f)
+BLI_INLINE void madd_m3_m3fl(float r[3][3], const float m[3][3], float f)
 {
   r[0][0] += m[0][0] * f;
   r[0][1] += m[0][1] * f;
@@ -744,7 +748,10 @@ BLI_INLINE void root_to_world_v3(Implicit_Data *data, int index, float r[3], con
   mul_v3_m3v3(r, data->tfm[index].m, v);
 }
 
-BLI_INLINE void world_to_root_m3(Implicit_Data *data, int index, float r[3][3], float m[3][3])
+BLI_INLINE void world_to_root_m3(Implicit_Data *data,
+                                 int index,
+                                 float r[3][3],
+                                 const float m[3][3])
 {
   float trot[3][3];
   copy_m3_m3(trot, data->tfm[index].m);
@@ -752,7 +759,10 @@ BLI_INLINE void world_to_root_m3(Implicit_Data *data, int index, float r[3][3], 
   mul_m3_m3m3(r, trot, m);
 }
 
-BLI_INLINE void root_to_world_m3(Implicit_Data *data, int index, float r[3][3], float m[3][3])
+BLI_INLINE void root_to_world_m3(Implicit_Data *data,
+                                 int index,
+                                 float r[3][3],
+                                 const float m[3][3])
 {
   mul_m3_m3m3(r, data->tfm[index].m, m);
 }
@@ -1761,8 +1771,12 @@ BLI_INLINE bool spring_length(Implicit_Data *data,
   return true;
 }
 
-BLI_INLINE void apply_spring(
-    Implicit_Data *data, int i, int j, const float f[3], float dfdx[3][3], float dfdv[3][3])
+BLI_INLINE void apply_spring(Implicit_Data *data,
+                             int i,
+                             int j,
+                             const float f[3],
+                             const float dfdx[3][3],
+                             const float dfdv[3][3])
 {
   int block_ij = SIM_mass_spring_add_block(data, i, j);
 
@@ -1899,7 +1913,7 @@ BLI_INLINE void edge_norm(lfVector *data, int i, int j, float r_dir[3])
   normalize_v3(r_dir);
 }
 
-BLI_INLINE float bend_angle(float dir_a[3], float dir_b[3], float dir_e[3])
+BLI_INLINE float bend_angle(const float dir_a[3], const float dir_b[3], const float dir_e[3])
 {
   float cos, sin;
   float tmp[3];

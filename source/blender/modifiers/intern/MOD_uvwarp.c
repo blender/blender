@@ -49,7 +49,9 @@
 #include "MOD_ui_common.h"
 #include "MOD_util.h"
 
-static void uv_warp_from_mat4_pair(float uv_dst[2], const float uv_src[2], float warp_mat[4][4])
+static void uv_warp_from_mat4_pair(float uv_dst[2],
+                                   const float uv_src[2],
+                                   const float warp_mat[4][4])
 {
   float tuv[3] = {0.0f};
 

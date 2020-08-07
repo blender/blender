@@ -178,7 +178,7 @@ static void mouse_select_init_data(bContext *C, MouseSelectUserData *userdata, c
   copy_v2_v2(userdata->mouse_co, co);
 }
 
-static bool mouse_select_knot(bContext *C, float co[2], bool extend)
+static bool mouse_select_knot(bContext *C, const float co[2], bool extend)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -236,7 +236,7 @@ static bool mouse_select_knot(bContext *C, float co[2], bool extend)
   return false;
 }
 
-static bool mouse_select_curve(bContext *C, float co[2], bool extend)
+static bool mouse_select_curve(bContext *C, const float co[2], bool extend)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);

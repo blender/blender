@@ -3418,7 +3418,7 @@ static bool point_in_slice(const float p[3],
 
 /* adult sister defining the slice planes by the origin and the normal
  * NOTE |normal| may not be 1 but defining the thickness of the slice */
-static bool point_in_slice_as(float p[3], float origin[3], float normal[3])
+static bool point_in_slice_as(const float p[3], const float origin[3], const float normal[3])
 {
   float h, rp[3];
   sub_v3_v3v3(rp, p, origin);
@@ -4910,7 +4910,7 @@ void projmat_from_subregion(const float projmat[4][4],
   }
 }
 
-static void i_multmatrix(float icand[4][4], float Vm[4][4])
+static void i_multmatrix(const float icand[4][4], float Vm[4][4])
 {
   int row, col;
   float temp[4][4];

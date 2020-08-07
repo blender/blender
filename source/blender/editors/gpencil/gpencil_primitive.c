@@ -378,7 +378,10 @@ static void gpencil_primitive_add_segment(tGPDprimitive *tgpi)
 }
 
 /* Helper: set control point */
-static void gpencil_primitive_set_cp(tGPDprimitive *tgpi, float p[2], float color[4], int size)
+static void gpencil_primitive_set_cp(tGPDprimitive *tgpi,
+                                     const float p[2],
+                                     float color[4],
+                                     int size)
 {
   if (tgpi->flag == IN_PROGRESS) {
     return;

@@ -106,8 +106,11 @@ static void eyedropper_gpencil_exit(bContext *C, wmOperator *op)
   MEM_SAFE_FREE(op->customdata);
 }
 
-static void eyedropper_add_material(
-    bContext *C, float col_conv[4], const bool only_stroke, const bool only_fill, const bool both)
+static void eyedropper_add_material(bContext *C,
+                                    const float col_conv[4],
+                                    const bool only_stroke,
+                                    const bool only_fill,
+                                    const bool both)
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = CTX_data_active_object(C);
@@ -193,7 +196,7 @@ static void eyedropper_add_material(
 }
 
 /* Create a new palette color and palette if needed. */
-static void eyedropper_add_palette_color(bContext *C, float col_conv[4])
+static void eyedropper_add_palette_color(bContext *C, const float col_conv[4])
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);

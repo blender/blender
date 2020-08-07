@@ -378,7 +378,7 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc, uin
 }
 
 /* helper call to setup dashed-lines for strip outlines */
-static uint nla_draw_use_dashed_outlines(float color[4], bool muted)
+static uint nla_draw_use_dashed_outlines(const float color[4], bool muted)
 {
   /* Note that we use dashed shader here, and make it draw solid lines if not muted... */
   uint shdr_pos = GPU_vertformat_attr_add(

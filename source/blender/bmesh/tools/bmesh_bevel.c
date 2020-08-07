@@ -1152,7 +1152,8 @@ static int edges_angle_kind(EdgeHalf *e1, EdgeHalf *e2, BMVert *v)
 
 /* co should be approximately on the plane between e1 and e2, which share common vert v and common
  * face f (which cannot be NULL). Is it between those edges, sweeping CCW? */
-static bool point_between_edges(float co[3], BMVert *v, BMFace *f, EdgeHalf *e1, EdgeHalf *e2)
+static bool point_between_edges(
+    const float co[3], BMVert *v, BMFace *f, EdgeHalf *e1, EdgeHalf *e2)
 {
   BMVert *v1, *v2;
   float dir1[3], dir2[3], dirco[3], no[3];
@@ -4857,7 +4858,7 @@ static void build_square_in_vmesh(BevelParams *bp, BMesh *bm, BevVert *bv, VMesh
 /**
  * Copy whichever of \a a and \a b is closer to v into \a r.
  */
-static void closer_v3_v3v3v3(float r[3], float a[3], float b[3], float v[3])
+static void closer_v3_v3v3v3(float r[3], const float a[3], const float b[3], const float v[3])
 {
   if (len_squared_v3v3(a, v) <= len_squared_v3v3(b, v)) {
     copy_v3_v3(r, a);

@@ -171,7 +171,10 @@ static float bm_edge_calc_dissolve_error(const BMEdge *e,
 
 #ifdef USE_DEGENERATE_CHECK
 
-static void mul_v2_m3v3_center(float r[2], float m[3][3], const float a[3], const float center[3])
+static void mul_v2_m3v3_center(float r[2],
+                               const float m[3][3],
+                               const float a[3],
+                               const float center[3])
 {
   BLI_assert(r != a);
   BLI_assert(r != center);

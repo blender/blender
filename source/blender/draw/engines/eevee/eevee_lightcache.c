@@ -1031,7 +1031,7 @@ static void compute_cell_id(EEVEE_LightGrid *egrid,
   BLI_assert(0);
 }
 
-static void grid_loc_to_world_loc(EEVEE_LightGrid *egrid, int local_cell[3], float r_pos[3])
+static void grid_loc_to_world_loc(EEVEE_LightGrid *egrid, const int local_cell[3], float r_pos[3])
 {
   copy_v3_v3(r_pos, egrid->corner);
   madd_v3_v3fl(r_pos, egrid->increment_x, local_cell[0]);

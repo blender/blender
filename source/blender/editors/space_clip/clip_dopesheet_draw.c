@@ -49,7 +49,9 @@
 
 #include "clip_intern.h" /* own include */
 
-static void track_channel_color(MovieTrackingTrack *track, float default_color[3], float color[3])
+static void track_channel_color(MovieTrackingTrack *track,
+                                const float default_color[3],
+                                float color[3])
 {
   if (track->flag & TRACK_CUSTOMCOLOR) {
     float bg[3];

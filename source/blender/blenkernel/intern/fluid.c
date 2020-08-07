@@ -655,7 +655,7 @@ typedef struct FluidObjectBB {
   int total_cells, valid;
 } FluidObjectBB;
 
-static void bb_boundInsert(FluidObjectBB *bb, float point[3])
+static void bb_boundInsert(FluidObjectBB *bb, const float point[3])
 {
   int i = 0;
   if (!bb->valid) {

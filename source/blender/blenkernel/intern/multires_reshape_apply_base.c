@@ -72,7 +72,7 @@ void multires_reshape_apply_base_update_mesh_coords(MultiresReshapeContext *resh
 
 /* Assumes no is normalized; return value's sign is negative if v is on the other side of the
  * plane. */
-static float v3_dist_from_plane(float v[3], float center[3], float no[3])
+static float v3_dist_from_plane(const float v[3], const float center[3], const float no[3])
 {
   float s[3];
   sub_v3_v3v3(s, v, center);

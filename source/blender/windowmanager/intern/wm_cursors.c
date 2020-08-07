@@ -121,7 +121,7 @@ static GHOST_TStandardCursor convert_to_ghost_standard_cursor(WMCursorType curs)
 }
 
 static void window_set_custom_cursor(
-    wmWindow *win, const uchar mask[16][2], uchar bitmap[16][2], int hotx, int hoty)
+    wmWindow *win, const uchar mask[16][2], const uchar bitmap[16][2], int hotx, int hoty)
 {
   GHOST_SetCustomCursorShape(
       win->ghostwin, (GHOST_TUns8 *)bitmap, (GHOST_TUns8 *)mask, 16, 16, hotx, hoty, true);

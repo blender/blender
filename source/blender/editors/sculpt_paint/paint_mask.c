@@ -389,7 +389,7 @@ typedef struct LassoMaskData {
  * Lasso select. This could be defined as part of #VIEW3D_OT_select_lasso,
  * still the shortcuts conflict, so we will use a separate operator.
  */
-static bool is_effected_lasso(LassoMaskData *data, float co[3])
+static bool is_effected_lasso(LassoMaskData *data, const float co[3])
 {
   float scr_co_f[2];
   int scr_co_s[2];

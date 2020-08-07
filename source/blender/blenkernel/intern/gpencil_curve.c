@@ -50,7 +50,7 @@
 #include "DEG_depsgraph_query.h"
 
 /* Helper: Check materials with same color. */
-static int gpencil_check_same_material_color(Object *ob_gp, float color[4], Material **r_mat)
+static int gpencil_check_same_material_color(Object *ob_gp, const float color[4], Material **r_mat)
 {
   Material *ma = NULL;
   float color_cu[4];

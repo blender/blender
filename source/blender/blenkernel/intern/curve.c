@@ -3598,7 +3598,10 @@ static void bezier_clamp(
 }
 
 /* write changes to a bezier handle */
-static void bezier_output_handle_inner(BezTriple *bezt, bool right, float newval[3], bool endpoint)
+static void bezier_output_handle_inner(BezTriple *bezt,
+                                       bool right,
+                                       const float newval[3],
+                                       bool endpoint)
 {
   float tmp[3];
 

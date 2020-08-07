@@ -246,7 +246,7 @@ static bool idp_poject_surface_normal(SnapObjectContext *snap_context,
 /** \name Primitive Drawing (Cube, Cone, Cylinder...)
  * \{ */
 
-static void draw_line_loop(float coords[][3], int coords_len, const float color[4])
+static void draw_line_loop(const float coords[][3], int coords_len, const float color[4])
 {
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
@@ -279,7 +279,7 @@ static void draw_line_loop(float coords[][3], int coords_len, const float color[
   GPU_blend(false);
 }
 
-static void draw_line_pairs(float coords_a[][3],
+static void draw_line_pairs(const float coords_a[][3],
                             float coords_b[][3],
                             int coords_len,
                             const float color[4])

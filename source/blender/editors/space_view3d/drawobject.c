@@ -69,7 +69,7 @@ static const float cosval[CIRCLE_RESOL] = {
     0.82076344,  0.91895781,  0.97952994,  1.00000000,
 };
 
-static void circball_array_fill(float verts[CIRCLE_RESOL][3],
+static void circball_array_fill(const float verts[CIRCLE_RESOL][3],
                                 const float cent[3],
                                 float rad,
                                 const float tmat[4][4])
