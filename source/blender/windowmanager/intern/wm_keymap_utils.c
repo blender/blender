@@ -379,7 +379,25 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
   }
   /* Animation Generic - after channels */
   else if (STRPREFIX(opname, "ANIM_OT")) {
-    km = WM_keymap_find_all(wm, "Animation", 0, 0);
+    if (sl->spacetype == SPACE_VIEW3D) {
+      switch (CTX_data_mode_enum(C)) {
+        case CTX_MODE_OBJECT:
+          km = WM_keymap_find_all(wm, "Object Mode", 0, 0);
+          break;
+        case CTX_MODE_POSE:
+          km = WM_keymap_find_all(wm, "Pose", 0, 0);
+          break;
+        default:
+          break;
+      }
+      if (km && !WM_keymap_poll((bContext *)C, km)) {
+        km = NULL;
+      }
+    }
+
+    if (!km) {
+      km = WM_keymap_find_all(wm, "Animation", 0, 0);
+    }
   }
   /* Graph Editor */
   else if (STRPREFIX(opname, "GRAPH_OT")) {
