@@ -25,6 +25,9 @@
 
 #include "gpu_context_private.h"
 
+#include "BLI_vector.hh"
+#include "BLI_set.hh"
+
 #include "glew-mx.h"
 
 #include <iostream>
@@ -32,19 +35,63 @@
 #include <unordered_set>
 #include <vector>
 
-// TODO(fclem) this requires too much refactor for now.
-// namespace blender {
-// namespace gpu {
+namespace blender {
+namespace gpu {
 
-class GLContext : public GPUContext {
+class GLSharedOrphanLists {
  public:
-  GLContext(void *ghost_window);
-  ~GLContext();
+  /** Mutex for the bellow structures. */
+  std::mutex lists_mutex;
+  /** Buffers and textures are shared across context. Any context can free them. */
+  Vector<GLuint> textures;
+  Vector<GLuint> buffers;
 
- private:
-  /** Default framebuffer object for some GL implementation. */
-  GLuint default_framebuffer_;
+ public:
+  void orphans_clear(void);
 };
 
-// }  // namespace gpu
-// }  // namespace blender
+class GLContext : public GPUContext {
+  /* TODO(fclem) these needs to become private. */
+ public:
+  /** Default VAO for procedural draw calls. */
+  GLuint default_vao_;
+  /** Default framebuffer object for some GL implementation. */
+  GLuint default_framebuffer_;
+  /** VBO for missing vertex attrib binding. Avoid undefined behavior on some implementation. */
+  GLuint default_attr_vbo_;
+  /**
+   * GPUBatch & GPUFramebuffer have references to the context they are from, in the case the
+   * context is destroyed, we need to remove any reference to it.
+   */
+  Set<GPUBatch *> batches_;
+  Set<GPUFrameBuffer *> framebuffers_;
+  /** Mutex for the bellow structures. */
+  std::mutex lists_mutex_;
+  /** VertexArrays and framebuffers are not shared across context. */
+  Vector<GLuint> orphaned_vertarrays_;
+  Vector<GLuint> orphaned_framebuffers_;
+  /** GLBackend onws this data. */
+  GLSharedOrphanLists &shared_orphan_list_;
+
+ public:
+  GLContext(void *ghost_window, GLSharedOrphanLists &shared_orphan_list);
+  ~GLContext();
+
+  void activate(void) override;
+  void deactivate(void) override;
+
+  /* TODO(fclem) these needs to become private. */
+ public:
+  void orphans_add(Vector<GLuint> &orphan_list, std::mutex &list_mutex, GLuint id);
+  void orphans_clear(void);
+
+  void vao_free(GLuint vao_id);
+  void fbo_free(GLuint fbo_id);
+  void batch_register(struct GPUBatch *batch);
+  void batch_unregister(struct GPUBatch *batch);
+  void framebuffer_register(struct GPUFrameBuffer *fb);
+  void framebuffer_unregister(struct GPUFrameBuffer *fb);
+};
+
+}  // namespace gpu
+}  // namespace blender

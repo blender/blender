@@ -121,6 +121,7 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "GPU_context.h"
 #include "GPU_init_exit.h"
 #include "GPU_material.h"
 
@@ -633,6 +634,8 @@ void WM_exit_ex(bContext *C, const bool do_python)
   BKE_blender_userdef_data_free(&U, false);
 
   RNA_exit(); /* should be after BPY_python_end so struct python slots are cleared */
+
+  GPU_backend_exit();
 
   wm_ghost_exit();
 

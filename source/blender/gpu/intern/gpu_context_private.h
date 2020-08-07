@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include "MEM_guardedalloc.h"
+
 #include "GPU_context.h"
 
 /* TODO cleanup this ifdef */
@@ -37,34 +39,29 @@
 #  include <vector>
 
 struct GPUFrameBuffer;
+struct GPUMatrixState;
 
 struct GPUContext {
-  GLuint default_vao;
-  GLuint default_framebuffer;
-  GPUFrameBuffer *current_fbo;
-  std::unordered_set<GPUBatch *> batches; /* Batches that have VAOs from this context */
-#  ifdef DEBUG
-  std::unordered_set<GPUFrameBuffer *>
-      framebuffers; /* Framebuffers that have FBO from this context */
-#  endif
-  struct GPUMatrixState *matrix_state;
-  std::vector<GLuint> orphaned_vertarray_ids;
-  std::vector<GLuint> orphaned_framebuffer_ids;
-  std::mutex orphans_mutex; /* todo: try spinlock instead */
-#  if TRUST_NO_ONE
-  pthread_t thread; /* Thread on which this context is active. */
-  bool thread_is_used;
-#  endif
+ public:
+  /** State managment */
+  GPUFrameBuffer *current_fbo = NULL;
+  GPUMatrixState *matrix_state = NULL;
 
-  GPUContext()
-  {
-#  if TRUST_NO_ONE
-    thread_is_used = false;
-#  endif
-    current_fbo = 0;
-  };
+ protected:
+  /** Thread on which this context is active. */
+  pthread_t thread_;
+  bool is_active_;
 
-  virtual ~GPUContext(){};
+ public:
+  GPUContext();
+  virtual ~GPUContext();
+
+  virtual void activate(void) = 0;
+  virtual void deactivate(void) = 0;
+
+  bool is_active_on_thread(void);
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("GPUContext")
 };
 
 #endif

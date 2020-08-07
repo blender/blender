@@ -93,8 +93,6 @@ void GPU_exit(void)
   gpu_extensions_exit();
   gpu_platform_exit(); /* must come last */
 
-  GPU_backend_exit();
-
   initialized = false;
 }
 

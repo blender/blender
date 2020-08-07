@@ -25,12 +25,33 @@
 
 #include "gpu_backend.hh"
 
+#include "BLI_vector.hh"
+
 #include "gl_context.hh"
 
+namespace blender {
+namespace gpu {
+
 class GLBackend : public GPUBackend {
+ private:
+  GLSharedOrphanLists shared_orphan_list_;
+
  public:
   GPUContext *context_alloc(void *ghost_window)
   {
-    return new GLContext(ghost_window);
+    return new GLContext(ghost_window, shared_orphan_list_);
   };
+
+  /* TODO remove */
+  void buf_free(GLuint buf_id);
+  void tex_free(GLuint tex_id);
+  void orphans_add(Vector<GLuint> &orphan_list, std::mutex &list_mutex, unsigned int id)
+  {
+    list_mutex.lock();
+    orphan_list.append(id);
+    list_mutex.unlock();
+  }
 };
+
+}  // namespace gpu
+}  // namespace blender
