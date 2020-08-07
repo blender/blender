@@ -1016,7 +1016,7 @@ void MANTA::initializeRNAMap(FluidModifierData *fmd)
   mRNAMap["NAME_GUIDEVEL_X"] = FLUID_NAME_GUIDEVEL_X;
   mRNAMap["NAME_GUIDEVEL_Y"] = FLUID_NAME_GUIDEVEL_Y;
   mRNAMap["NAME_GUIDEVEL_Z"] = FLUID_NAME_GUIDEVEL_Z;
-  mRNAMap["NAME_GUIDEVEL"] = FLUID_NAME_GUIDEVEL;
+  mRNAMap["NAME_VELOCITY_GUIDE"] = FLUID_NAME_VELOCITY_GUIDE;
 
   /* Cache file names. */
   mRNAMap["NAME_CONFIG"] = FLUID_NAME_CONFIG;
@@ -1542,6 +1542,7 @@ bool MANTA::bakeGuiding(FluidModifierData *fmd, int framenr)
   cacheDirGuiding[0] = '\0';
 
   string volume_format = getCacheFileEnding(fds->cache_data_format);
+  string resumable_cache = !(fds->flags & FLUID_DOMAIN_USE_RESUMABLE_CACHE) ? "False" : "True";
 
   BLI_path_join(cacheDirGuiding,
                 sizeof(cacheDirGuiding),
@@ -1552,7 +1553,7 @@ bool MANTA::bakeGuiding(FluidModifierData *fmd, int framenr)
 
   ss.str("");
   ss << "bake_guiding_" << mCurrentID << "('" << escapeSlashes(cacheDirGuiding) << "', " << framenr
-     << ", '" << volume_format << "')";
+     << ", '" << volume_format << "', " << resumable_cache << ")";
   pythonCommands.push_back(ss.str());
 
   return runPythonString(pythonCommands);
@@ -2204,9 +2205,16 @@ bool MANTA::hasParticles(FluidModifierData *fmd, int framenr)
 bool MANTA::hasGuiding(FluidModifierData *fmd, int framenr, bool sourceDomain)
 {
   string subdirectory = (sourceDomain) ? FLUID_DOMAIN_DIR_DATA : FLUID_DOMAIN_DIR_GUIDE;
-  string filename = (sourceDomain) ? FLUID_NAME_VELOCITY : FLUID_NAME_GUIDEVEL;
+  string filename = (sourceDomain) ? FLUID_NAME_DATA : FLUID_NAME_GUIDING;
   string extension = getCacheFileEnding(fmd->domain->cache_data_format);
   bool exists = BLI_exists(getFile(fmd, subdirectory, filename, extension, framenr).c_str());
+
+  /* Check old file naming. */
+  if (!exists) {
+    filename = (sourceDomain) ? FLUID_NAME_VEL : FLUID_NAME_GUIDEVEL;
+    exists = BLI_exists(getFile(fmd, subdirectory, filename, extension, framenr).c_str());
+  }
+
   if (with_debug)
     cout << "Fluid: Has Guiding: " << exists << endl;
 

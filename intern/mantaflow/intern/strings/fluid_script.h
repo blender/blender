@@ -329,7 +329,7 @@ y_guidevel_s$ID$  = s$ID$.create(RealGrid, name='$NAME_GUIDEVEL_Y$')\n\
 z_guidevel_s$ID$  = s$ID$.create(RealGrid, name='$NAME_GUIDEVEL_Z$')\n\
 \n\
 # Final guide vel grid needs to have independent size\n\
-guidevel_sg$ID$   = sg$ID$.create(MACGrid, name='$NAME_GUIDEVEL$')\n\
+guidevel_sg$ID$   = sg$ID$.create(MACGrid, name='$NAME_VELOCITY_GUIDE$')\n\
 \n\
 # Keep track of important objects in dict to load them later on\n\
 fluid_guiding_dict_s$ID$ = { 'guidevel' : guidevel_sg$ID$ }\n";
@@ -687,14 +687,16 @@ const std::string fluid_load_guiding =
     "\n\
 def fluid_load_guiding_$ID$(path, framenr, file_format):\n\
     mantaMsg('Fluid load guiding, frame ' + str(framenr))\n\
+    guidevel_sg$ID$.setName('$NAME_VELOCITY_GUIDE$')\n\
     fluid_file_import_s$ID$(dict=fluid_guiding_dict_s$ID$, path=path, framenr=framenr, file_format=file_format, file_name=file_guiding_s$ID$)\n";
 
 const std::string fluid_load_vel =
     "\n\
 def fluid_load_vel_$ID$(path, framenr, file_format):\n\
     mantaMsg('Fluid load vel, frame ' + str(framenr))\n\
+    guidevel_sg$ID$.setName('$NAME_VELOCITY$') # for loading data the guidevel grid will pretend to be the vel grid\n\
     fluid_vel_dict_s$ID$ = { 'vel' : guidevel_sg$ID$ }\n\
-    fluid_file_import_s$ID$(dict=fluid_vel_dict_s$ID$, path=path, framenr=framenr, file_format=file_format)\n";
+    fluid_file_import_s$ID$(dict=fluid_vel_dict_s$ID$, path=path, framenr=framenr, file_format=file_format, file_name=file_data_s$ID$)\n";
 
 //////////////////////////////////////////////////////////////////////
 // EXPORT
@@ -735,12 +737,13 @@ def fluid_file_export_s$ID$(framenr, file_format, path, dict, file_name=None, mo
 
 const std::string fluid_save_guiding =
     "\n\
-def fluid_save_guiding_$ID$(path, framenr, file_format):\n\
+def fluid_save_guiding_$ID$(path, framenr, file_format, resumable):\n\
     mantaMsg('Fluid save guiding, frame ' + str(framenr))\n\
+    dict = fluid_guiding_dict_s$ID$\n\
     if not withMPSave or isWindows:\n\
-        fluid_file_export_s$ID$(dict=fluid_guiding_dict_s$ID$, framenr=framenr, file_format=file_format, path=path, file_name=file_guiding_s$ID$)\n\
+        fluid_file_export_s$ID$(dict=dict, framenr=framenr, file_format=file_format, path=path, file_name=file_guiding_s$ID$)\n\
     else:\n\
-        fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, file_name=file_guiding_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=fluid_guiding_dict_s$ID$, do_join=False)\n";
+        fluid_cache_multiprocessing_start_$ID$(function=fluid_file_export_s$ID$, file_name=file_guiding_s$ID$, framenr=framenr, format_data=file_format, path_data=path, dict=dict, do_join=False)\n";
 
 //////////////////////////////////////////////////////////////////////
 // STANDALONE MODE

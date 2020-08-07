@@ -225,8 +225,9 @@ enum {
 #define FLUID_NAME_GUIDING "fluid_guiding"
 
 /* Fluid object names.*/
-#define FLUID_NAME_FLAGS "flags"                   /* == OpenVDB grid attribute name. */
-#define FLUID_NAME_VELOCITY "velocity"             /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_FLAGS "flags"       /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_VELOCITY "velocity" /* == OpenVDB grid attribute name. */
+#define FLUID_NAME_VEL "vel"
 #define FLUID_NAME_VELOCITYTMP "velocity_previous" /* == OpenVDB grid attribute name. */
 #define FLUID_NAME_VELOCITYX "x_vel"
 #define FLUID_NAME_VELOCITYY "y_vel"
@@ -367,7 +368,8 @@ enum {
 #define FLUID_NAME_GUIDEVEL_X "x_guidevel"
 #define FLUID_NAME_GUIDEVEL_Y "y_guidevel"
 #define FLUID_NAME_GUIDEVEL_Z "z_guidevel"
-#define FLUID_NAME_GUIDEVEL "velocity_guide"
+#define FLUID_NAME_GUIDEVEL "guidevel"
+#define FLUID_NAME_VELOCITY_GUIDE "velocity_guide"
 
 /* Cache file extensions. */
 #define FLUID_DOMAIN_EXTENSION_UNI ".uni"
