@@ -7,9 +7,6 @@
 #  EMBREE_ROOT_DIR, The base directory to search for Embree.
 #                        This can also be an environment variable.
 #  EMBREEFOUND, If false, do not try to use Embree.
-#
-# also defined, but not for general use are
-#  EMBREE_LIBRARY, where to find the Embree library.
 
 #=============================================================================
 # Copyright 2018 Blender Foundation.
@@ -69,15 +66,6 @@ FOREACH(COMPONENT ${_embree_FIND_COMPONENTS})
   LIST(APPEND _embree_LIBRARIES "${EMBREE_${UPPERCOMPONENT}_LIBRARY}")
 ENDFOREACH()
 
-
-FIND_LIBRARY(EMBREE_LIBRARY
-  NAMES
-    libembree3
-  HINTS
-    ${_embree_SEARCH_DIRS}
-  PATH_SUFFIXES
-    lib64 lib
-)
 
 # handle the QUIETLY and REQUIRED arguments and set EMBREE_FOUND to TRUE if
 # all listed variables are TRUE

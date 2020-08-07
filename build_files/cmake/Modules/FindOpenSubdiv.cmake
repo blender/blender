@@ -7,9 +7,6 @@
 #  OPENSUBDIV_ROOT_DIR, the base directory to search for OpenSubdiv.
 #                        This can also be an environment variable.
 #  OPENSUBDIV_FOUND, if false, do not try to use OpenSubdiv.
-#
-# also defined, but not for general use are
-#  OPENSUBDIV_LIBRARY, where to find the OpenSubdiv library.
 
 #=============================================================================
 # Copyright 2013 Blender Foundation.
