@@ -312,7 +312,7 @@ static void item_object_mode_enter_exit(bContext *C, ReportList *reports, Object
   outliner_object_mode_toggle(C, scene, view_layer, base);
 }
 
-void item_object_mode_enter_cb(bContext *C,
+void item_object_mode_enter_fn(bContext *C,
                                ReportList *reports,
                                Scene *UNUSED(scene),
                                TreeElement *UNUSED(te),
@@ -324,7 +324,7 @@ void item_object_mode_enter_cb(bContext *C,
   item_object_mode_enter_exit(C, reports, ob, true);
 }
 
-void item_object_mode_exit_cb(bContext *C,
+void item_object_mode_exit_fn(bContext *C,
                               ReportList *reports,
                               Scene *UNUSED(scene),
                               TreeElement *UNUSED(te),
@@ -404,7 +404,7 @@ static void do_item_rename(ARegion *region,
   }
 }
 
-void item_rename_cb(bContext *C,
+void item_rename_fn(bContext *C,
                     ReportList *reports,
                     Scene *UNUSED(scene),
                     TreeElement *te,
@@ -521,7 +521,7 @@ static void id_delete(bContext *C, ReportList *reports, TreeElement *te, TreeSto
   WM_event_add_notifier(C, NC_WINDOW, NULL);
 }
 
-void id_delete_cb(bContext *C,
+void id_delete_fn(bContext *C,
                   ReportList *reports,
                   Scene *UNUSED(scene),
                   TreeElement *te,
@@ -754,7 +754,7 @@ void OUTLINER_OT_id_remap(wmOperatorType *ot)
   RNA_def_property_flag(ot->prop, PROP_ENUM_NO_TRANSLATE);
 }
 
-void id_remap_cb(bContext *C,
+void id_remap_fn(bContext *C,
                  ReportList *UNUSED(reports),
                  Scene *UNUSED(scene),
                  TreeElement *UNUSED(te),
@@ -1003,7 +1003,7 @@ void OUTLINER_OT_lib_relocate(wmOperatorType *ot)
 /* XXX This does not work with several items
  * (it is only called once in the end, due to the 'deferred'
  * filebrowser invocation through event system...). */
-void lib_relocate_cb(bContext *C,
+void lib_relocate_fn(bContext *C,
                      ReportList *UNUSED(reports),
                      Scene *UNUSED(scene),
                      TreeElement *te,
@@ -1057,7 +1057,7 @@ void OUTLINER_OT_lib_reload(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-void lib_reload_cb(bContext *C,
+void lib_reload_fn(bContext *C,
                    ReportList *UNUSED(reports),
                    Scene *UNUSED(scene),
                    TreeElement *te,

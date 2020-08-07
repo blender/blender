@@ -290,7 +290,7 @@ bool outliner_item_is_co_over_name_icons(const TreeElement *te, float view_co_x)
 bool outliner_item_is_co_within_close_toggle(const TreeElement *te, float view_co_x);
 
 /* outliner_edit.c ---------------------------------------------- */
-typedef void (*outliner_operation_cb)(struct bContext *C,
+typedef void (*outliner_operation_fn)(struct bContext *C,
                                       struct ReportList *,
                                       struct Scene *scene,
                                       struct TreeElement *,
@@ -303,7 +303,7 @@ void outliner_do_object_operation_ex(struct bContext *C,
                                      struct Scene *scene,
                                      struct SpaceOutliner *soops,
                                      struct ListBase *lb,
-                                     outliner_operation_cb operation_cb,
+                                     outliner_operation_fn operation_fn,
                                      void *user_data,
                                      bool recurse_selected);
 void outliner_do_object_operation(struct bContext *C,
@@ -311,7 +311,7 @@ void outliner_do_object_operation(struct bContext *C,
                                   struct Scene *scene,
                                   struct SpaceOutliner *soops,
                                   struct ListBase *lb,
-                                  outliner_operation_cb operation_cb);
+                                  outliner_operation_fn operation_fn);
 
 int common_restrict_check(struct bContext *C, struct Object *ob);
 
@@ -319,21 +319,21 @@ int outliner_flag_is_any_test(ListBase *lb, short flag, const int curlevel);
 bool outliner_flag_set(ListBase *lb, short flag, short set);
 bool outliner_flag_flip(ListBase *lb, short flag);
 
-void item_rename_cb(struct bContext *C,
+void item_rename_fn(struct bContext *C,
                     struct ReportList *reports,
                     struct Scene *scene,
                     TreeElement *te,
                     struct TreeStoreElem *tsep,
                     struct TreeStoreElem *tselem,
                     void *user_data);
-void lib_relocate_cb(struct bContext *C,
+void lib_relocate_fn(struct bContext *C,
                      struct ReportList *reports,
                      struct Scene *scene,
                      struct TreeElement *te,
                      struct TreeStoreElem *tsep,
                      struct TreeStoreElem *tselem,
                      void *user_data);
-void lib_reload_cb(struct bContext *C,
+void lib_reload_fn(struct bContext *C,
                    struct ReportList *reports,
                    struct Scene *scene,
                    struct TreeElement *te,
@@ -341,14 +341,14 @@ void lib_reload_cb(struct bContext *C,
                    struct TreeStoreElem *tselem,
                    void *user_data);
 
-void id_delete_cb(struct bContext *C,
+void id_delete_fn(struct bContext *C,
                   struct ReportList *reports,
                   struct Scene *scene,
                   struct TreeElement *te,
                   struct TreeStoreElem *tsep,
                   struct TreeStoreElem *tselem,
                   void *user_data);
-void id_remap_cb(struct bContext *C,
+void id_remap_fn(struct bContext *C,
                  struct ReportList *reports,
                  struct Scene *scene,
                  struct TreeElement *te,
@@ -356,14 +356,14 @@ void id_remap_cb(struct bContext *C,
                  struct TreeStoreElem *tselem,
                  void *user_data);
 
-void item_object_mode_enter_cb(struct bContext *C,
+void item_object_mode_enter_fn(struct bContext *C,
                                struct ReportList *reports,
                                struct Scene *scene,
                                TreeElement *te,
                                struct TreeStoreElem *tsep,
                                struct TreeStoreElem *tselem,
                                void *user_data);
-void item_object_mode_exit_cb(struct bContext *C,
+void item_object_mode_exit_fn(struct bContext *C,
                               struct ReportList *reports,
                               struct Scene *scene,
                               TreeElement *te,
