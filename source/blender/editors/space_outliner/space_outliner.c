@@ -351,7 +351,6 @@ static SpaceLink *outliner_duplicate(SpaceLink *sl)
   soutlinern->treestore = NULL;
   soutlinern->treehash = NULL;
 
-  soutlinern->flag |= (soutliner->flag & SO_SYNC_SELECT);
   soutlinern->sync_select_dirty = WM_OUTLINER_SYNC_SELECT_FROM_ALL;
 
   return (SpaceLink *)soutlinern;
