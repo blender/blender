@@ -1413,7 +1413,6 @@ static void paint_draw_2D_view_brush_cursor(PaintCursorContext *pcontext)
                           pcontext->final_radius,
                           40);
 
-  immUnbindProgram();
 }
 
 static void paint_draw_legacy_3D_view_brush_cursor(PaintCursorContext *pcontext)
