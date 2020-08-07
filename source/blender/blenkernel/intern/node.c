@@ -3829,6 +3829,7 @@ static bool node_poll_instance_default(bNode *node, bNodeTree *ntree)
   return node->typeinfo->poll(node->typeinfo, ntree);
 }
 
+/* NOLINTNEXTLINE: readability-function-size */
 void node_type_base(bNodeType *ntype, int type, const char *name, short nclass, short flag)
 {
   /* Use static type info header to map static int type to identifier string and RNA struct type.
