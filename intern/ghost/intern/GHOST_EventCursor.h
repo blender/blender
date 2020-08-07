@@ -22,8 +22,7 @@
  * Declaration of GHOST_EventCursor class.
  */
 
-#ifndef __GHOST_EVENTCURSOR_H__
-#define __GHOST_EVENTCURSOR_H__
+#pragma once
 
 #include "GHOST_Event.h"
 
@@ -58,5 +57,3 @@ class GHOST_EventCursor : public GHOST_Event {
   /** The x,y-coordinates of the cursor position. */
   GHOST_TEventCursorData m_cursorEventData;
 };
-
-#endif  // __GHOST_EVENTCURSOR_H__

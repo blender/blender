@@ -22,8 +22,7 @@
  * Declaration of GHOST_EventTrackpad class.
  */
 
-#ifndef __GHOST_EVENTTRACKPAD_H__
-#define __GHOST_EVENTTRACKPAD_H__
+#pragma once
 
 #include "GHOST_Event.h"
 
@@ -61,5 +60,3 @@ class GHOST_EventTrackpad : public GHOST_Event {
   /** The mouse pan data */
   GHOST_TEventTrackpadData m_trackpadEventData;
 };
-
-#endif  // _GHOST_EVENT_PAN_H_

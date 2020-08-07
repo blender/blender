@@ -18,8 +18,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_XREXCEPTION_H__
-#define __GHOST_XREXCEPTION_H__
+#pragma once
 
 #include <exception>
 
@@ -41,5 +40,3 @@ class GHOST_XrException : public std::exception {
   const char *m_msg;
   int m_result;
 };
-
-#endif  // __GHOST_XREXCEPTION_H__

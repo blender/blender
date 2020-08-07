@@ -22,8 +22,7 @@
  * Icon image data for X11.
  */
 
-#ifndef __GHOST_ICONX11_H__
-#define __GHOST_ICONX11_H__
+#pragma once
 
 /*
  * import bpy
@@ -1013,5 +1012,3 @@ static const unsigned long BLENDER_ICONS_WM_X11[] = {
     0x0,        0x0,        0x0,        0x0,        0x0,        0x0,        0x0,        0x0,
     0x0,        0x0,        0x0,        0x0,        0x0,        0x0,        0x0,        0x0,
 };
-
-#endif  // __GHOST_ICONX11_H__

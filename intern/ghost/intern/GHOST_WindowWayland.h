@@ -20,8 +20,7 @@
  * Declaration of GHOST_WindowWayland class.
  */
 
-#ifndef __GHOST_WINDOWWAYLAND_H__
-#define __GHOST_WINDOWWAYLAND_H__
+#pragma once
 
 #include "GHOST_Window.h"
 
@@ -124,5 +123,3 @@ class GHOST_WindowWayland : public GHOST_Window {
    */
   GHOST_Context *newDrawingContext(GHOST_TDrawingContextType type) override;
 };
-
-#endif  // __GHOST_WINDOWWAYLAND_H__

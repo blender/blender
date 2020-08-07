@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __GHOST_NDOFMANAGERCOCOA_H__
-#define __GHOST_NDOFMANAGERCOCOA_H__
+#pragma once
 
 #include "GHOST_NDOFManager.h"
 
@@ -29,5 +28,3 @@ class GHOST_NDOFManagerCocoa : public GHOST_NDOFManager {
 
   bool available();
 };
-
-#endif  // #include guard

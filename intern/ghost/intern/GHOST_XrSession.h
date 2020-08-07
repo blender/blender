@@ -18,8 +18,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_XRSESSION_H__
-#define __GHOST_XRSESSION_H__
+#pragma once
 
 #include <map>
 #include <memory>
@@ -84,5 +83,3 @@ class GHOST_XrSession {
   void beginFrameDrawing();
   void endFrameDrawing(std::vector<XrCompositionLayerBaseHeader *> *layers);
 };
-
-#endif /* GHOST_XRSESSION_H__ */

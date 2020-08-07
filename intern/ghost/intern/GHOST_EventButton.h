@@ -22,8 +22,7 @@
  * Declaration of GHOST_EventButton class.
  */
 
-#ifndef __GHOST_EVENTBUTTON_H__
-#define __GHOST_EVENTBUTTON_H__
+#pragma once
 
 #include "GHOST_Event.h"
 #include "GHOST_Window.h"
@@ -57,5 +56,3 @@ class GHOST_EventButton : public GHOST_Event {
   /** The button event data. */
   GHOST_TEventButtonData m_buttonEventData;
 };
-
-#endif  // __GHOST_EVENTBUTTON_H__

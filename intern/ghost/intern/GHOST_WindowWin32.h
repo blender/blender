@@ -22,8 +22,7 @@
  * Declaration of GHOST_WindowWin32 class.
  */
 
-#ifndef __GHOST_WINDOWWIN32_H__
-#define __GHOST_WINDOWWIN32_H__
+#pragma once
 
 #ifndef WIN32
 #  error WIN32 only!
@@ -586,5 +585,3 @@ class GHOST_WindowWin32 : public GHOST_Window {
 #endif
   bool m_debug_context;
 };
-
-#endif  // __GHOST_WINDOWWIN32_H__

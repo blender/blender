@@ -18,8 +18,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_CONTEXTD3D_H__
-#define __GHOST_CONTEXTD3D_H__
+#pragma once
 
 #ifndef WIN32
 #  error WIN32 only!
@@ -132,5 +131,3 @@ class GHOST_ContextD3D : public GHOST_Context {
   ID3D11Device *m_device;
   ID3D11DeviceContext *m_device_ctx;
 };
-
-#endif /* __GHOST_CONTEXTD3D_H__ */

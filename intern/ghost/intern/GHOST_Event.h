@@ -22,8 +22,7 @@
  * Declaration of GHOST_Event class.
  */
 
-#ifndef __GHOST_EVENT_H__
-#define __GHOST_EVENT_H__
+#pragma once
 
 #include "GHOST_IEvent.h"
 
@@ -90,5 +89,3 @@ class GHOST_Event : public GHOST_IEvent {
   /** Pointer to the event data. */
   GHOST_TEventDataPtr m_data;
 };
-
-#endif  // __GHOST_EVENT_H__

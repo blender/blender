@@ -22,8 +22,7 @@
  * Declaration of GHOST_TimerTask class.
  */
 
-#ifndef __GHOST_TIMERTASK_H__
-#define __GHOST_TIMERTASK_H__
+#pragma once
 
 #include "GHOST_ITimerTask.h"
 
@@ -179,5 +178,3 @@ class GHOST_TimerTask : public GHOST_ITimerTask {
   /** Auxiliary storage room. */
   GHOST_TUns32 m_auxData;
 };
-
-#endif  // __GHOST_TIMERTASK_H__

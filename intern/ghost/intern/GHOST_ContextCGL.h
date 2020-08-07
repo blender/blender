@@ -21,8 +21,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_CONTEXTCGL_H__
-#define __GHOST_CONTEXTCGL_H__
+#pragma once
 
 #include "GHOST_Context.h"
 
@@ -137,5 +136,3 @@ class GHOST_ContextCGL : public GHOST_Context {
   void metalUpdateFramebuffer();
   void metalSwapBuffers();
 };
-
-#endif  // __GHOST_CONTEXTCGL_H__

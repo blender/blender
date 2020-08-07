@@ -19,8 +19,7 @@
  * Declaration of GHOST_WindowNULL class.
  */
 
-#ifndef __GHOST_WINDOWNULL_H__
-#define __GHOST_WINDOWNULL_H__
+#pragma once
 
 #include "GHOST_Window.h"
 
@@ -177,5 +176,3 @@ class GHOST_WindowNULL : public GHOST_Window {
     return NULL;
   }
 };
-
-#endif  // __GHOST_WINDOWNULL_H__

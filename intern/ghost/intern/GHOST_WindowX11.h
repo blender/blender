@@ -22,8 +22,7 @@
  * Declaration of GHOST_WindowX11 class.
  */
 
-#ifndef __GHOST_WINDOWX11_H__
-#define __GHOST_WINDOWX11_H__
+#pragma once
 
 #include "GHOST_Window.h"
 #include <X11/Xlib.h>
@@ -288,5 +287,3 @@ class GHOST_WindowX11 : public GHOST_Window {
   void motifFullScreen(bool set);
   bool motifIsFullScreen() const;
 };
-
-#endif  // __GHOST_WINDOWX11_H__

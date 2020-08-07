@@ -22,8 +22,7 @@
  * Declaration of GHOST_WindowCocoa class.
  */
 
-#ifndef __GHOST_WINDOWCOCOA_H__
-#define __GHOST_WINDOWCOCOA_H__
+#pragma once
 
 #ifndef __APPLE__
 #  error Apple OSX only!
@@ -327,5 +326,3 @@ class GHOST_WindowCocoa : public GHOST_Window {
   bool m_debug_context;  // for debug messages during context setup
   bool m_is_dialog;
 };
-
-#endif  // __GHOST_WINDOWCOCOA_H__

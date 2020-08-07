@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __GHOST_NDOFMANAGER_H__
-#define __GHOST_NDOFMANAGER_H__
+#pragma once
 
 #ifndef WITH_INPUT_NDOF
 #  error NDOF code included in non-NDOF-enabled build
@@ -167,5 +166,3 @@ class GHOST_NDOFManager {
   bool m_motionEventPending;
   float m_deadZone;  // discard motion with each component < this
 };
-
-#endif

@@ -18,8 +18,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_XRSWAPCHAIN_H__
-#define __GHOST_XRSWAPCHAIN_H__
+#pragma once
 
 #include <memory>
 
@@ -45,5 +44,3 @@ class GHOST_XrSwapchain {
   int32_t m_image_width, m_image_height;
   bool m_is_srgb_buffer = false;
 };
-
-#endif  // GHOST_XRSWAPCHAIN_H

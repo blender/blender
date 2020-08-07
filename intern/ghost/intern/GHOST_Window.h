@@ -22,8 +22,7 @@
  * Declaration of GHOST_Window class.
  */
 
-#ifndef __GHOST_WINDOW_H__
-#define __GHOST_WINDOW_H__
+#pragma once
 
 #include "GHOST_IWindow.h"
 
@@ -456,5 +455,3 @@ inline GHOST_TStandardCursor GHOST_Window::getCursorShape() const
 {
   return m_cursorShape;
 }
-
-#endif  // _GHOST_WINDOW_H

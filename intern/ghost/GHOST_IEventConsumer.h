@@ -22,8 +22,7 @@
  * Declaration of GHOST_IEventConsumer interface class.
  */
 
-#ifndef __GHOST_IEVENTCONSUMER_H__
-#define __GHOST_IEVENTCONSUMER_H__
+#pragma once
 
 #include "GHOST_IEvent.h"
 
@@ -56,5 +55,3 @@ class GHOST_IEventConsumer {
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_IEventConsumer")
 #endif
 };
-
-#endif /* __GHOST_IEVENTCONSUMER_H__ */

@@ -18,8 +18,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_XR_INTERN_H__
-#define __GHOST_XR_INTERN_H__
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -46,5 +45,3 @@
     (void)_res; \
   } \
   (void)0
-
-#endif /* __GHOST_XR_INTERN_H__ */

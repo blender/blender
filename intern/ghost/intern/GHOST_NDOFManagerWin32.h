@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __GHOST_NDOFMANAGERWIN32_H__
-#define __GHOST_NDOFMANAGERWIN32_H__
+#pragma once
 
 #include "GHOST_NDOFManager.h"
 
@@ -24,5 +23,3 @@ class GHOST_NDOFManagerWin32 : public GHOST_NDOFManager {
   GHOST_NDOFManagerWin32(GHOST_System &);
   bool available();
 };
-
-#endif  // #include guard

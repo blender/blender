@@ -21,8 +21,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_ISYSTEMPATHS_H__
-#define __GHOST_ISYSTEMPATHS_H__
+#pragma once
 
 #include "GHOST_Types.h"
 
@@ -97,5 +96,3 @@ class GHOST_ISystemPaths {
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_ISystemPaths")
 #endif
 };
-
-#endif

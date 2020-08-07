@@ -22,8 +22,7 @@
  * Declaration of GHOST_EventWheel class.
  */
 
-#ifndef __GHOST_EVENTWHEEL_H__
-#define __GHOST_EVENTWHEEL_H__
+#pragma once
 
 #include "GHOST_Event.h"
 
@@ -51,5 +50,3 @@ class GHOST_EventWheel : public GHOST_Event {
   /** The z-displacement of the mouse wheel. */
   GHOST_TEventWheelData m_wheelEventData;
 };
-
-#endif  // __GHOST_EVENTWHEEL_H__

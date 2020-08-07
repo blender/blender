@@ -22,8 +22,7 @@
  * Declaration of GHOST_TimerManager class.
  */
 
-#ifndef __GHOST_TIMERMANAGER_H__
-#define __GHOST_TIMERMANAGER_H__
+#pragma once
 
 #include <vector>
 
@@ -112,5 +111,3 @@ class GHOST_TimerManager {
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_TimerManager")
 #endif
 };
-
-#endif  // __GHOST_TIMERMANAGER_H__

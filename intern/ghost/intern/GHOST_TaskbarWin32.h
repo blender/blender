@@ -17,8 +17,7 @@
 /** \file
  * \ingroup GHOST
  */
-#ifndef __GHOST_TASKBARWIN32_H__
-#define __GHOST_TASKBARWIN32_H__
+#pragma once
 
 #ifndef WIN32
 #  error WIN32 only!
@@ -128,5 +127,3 @@ class ITaskbarList3 : public ITaskbarList2 {
   virtual HRESULT STDMETHODCALLTYPE SetThumbnailClip(HWND hwnd, RECT *prcClip) = 0;
 };
 #endif /* ITaskbarList3 */
-
-#endif /*__GHOST_TASKBARWIN32_H__*/

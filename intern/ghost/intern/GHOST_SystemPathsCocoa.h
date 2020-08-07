@@ -21,8 +21,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_SYSTEMPATHSCOCOA_H__
-#define __GHOST_SYSTEMPATHSCOCOA_H__
+#pragma once
 
 #ifndef __APPLE__
 #  error Apple OSX only!
@@ -67,5 +66,3 @@ class GHOST_SystemPathsCocoa : public GHOST_SystemPaths {
    */
   void addToSystemRecentFiles(const char *filename) const;
 };
-
-#endif  // __GHOST_SYSTEMPATHSCOCOA_H__

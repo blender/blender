@@ -18,8 +18,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_EVENTNDOF_H__
-#define __GHOST_EVENTNDOF_H__
+#pragma once
 
 #ifndef WITH_INPUT_NDOF
 #  error NDOF code included in non-NDOF-enabled build
@@ -50,5 +49,3 @@ class GHOST_EventNDOFButton : public GHOST_Event {
     m_data = &m_buttonData;
   }
 };
-
-#endif  // __GHOST_EVENTNDOF_H__

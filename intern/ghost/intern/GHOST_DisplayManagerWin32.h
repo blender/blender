@@ -22,8 +22,7 @@
  * Declaration of GHOST_DisplayManagerWin32 class.
  */
 
-#ifndef __GHOST_DISPLAYMANAGERWIN32_H__
-#define __GHOST_DISPLAYMANAGERWIN32_H__
+#pragma once
 
 #ifndef WIN32
 #  error WIN32 only!
@@ -87,5 +86,3 @@ class GHOST_DisplayManagerWin32 : public GHOST_DisplayManager {
 
  protected:
 };
-
-#endif  // __GHOST_DISPLAYMANAGERWIN32_H__

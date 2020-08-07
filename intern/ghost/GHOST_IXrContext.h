@@ -18,8 +18,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_IXRCONTEXT_H__
-#define __GHOST_IXRCONTEXT_H__
+#pragma once
 
 #include "GHOST_Types.h"
 
@@ -40,5 +39,3 @@ class GHOST_IXrContext {
 
   virtual bool needsUpsideDownDrawing() const = 0;
 };
-
-#endif  // __GHOST_IXRCONTEXT_H__

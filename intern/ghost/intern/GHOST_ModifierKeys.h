@@ -22,8 +22,7 @@
  * Declaration of GHOST_ModifierKeys struct.
  */
 
-#ifndef __GHOST_MODIFIERKEYS_H__
-#define __GHOST_MODIFIERKEYS_H__
+#pragma once
 
 #include "GHOST_Types.h"
 
@@ -87,5 +86,3 @@ struct GHOST_ModifierKeys {
   /** Bitfield that stores the appropriate key state. */
   GHOST_TUns8 m_OS : 1;
 };
-
-#endif  // __GHOST_MODIFIERKEYS_H__

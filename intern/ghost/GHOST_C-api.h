@@ -21,8 +21,7 @@
  * \brief GHOST C-API function and type declarations.
  */
 
-#ifndef __GHOST_C_API_H__
-#define __GHOST_C_API_H__
+#pragma once
 
 #include "GHOST_Types.h"
 
@@ -1071,6 +1070,4 @@ GHOST_TSuccess GHOST_XrEventsHandle(GHOST_XrContextHandle xr_context);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

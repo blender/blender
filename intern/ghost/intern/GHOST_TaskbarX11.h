@@ -17,8 +17,7 @@
 /** \file
  * \ingroup GHOST
  */
-#ifndef __GHOST_TASKBARX11_H__
-#define __GHOST_TASKBARX11_H__
+#pragma once
 
 class GHOST_TaskBarX11 {
  public:
@@ -34,5 +33,3 @@ class GHOST_TaskBarX11 {
  private:
   void *handle;
 };
-
-#endif /*__GHOST_TASKBARX11_H__*/
