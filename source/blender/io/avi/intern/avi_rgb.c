@@ -96,35 +96,34 @@ void *avi_converter_from_avi_rgb(AviMovie *movie,
 
     return buf;
   }
-  else {
-    buf = imb_alloc_pixels(
-        movie->header->Height, movie->header->Width, 3, sizeof(unsigned char), "fromavirgbbuf");
 
-    if (buf) {
-      size_t rowstride = movie->header->Width * 3;
-      BLI_assert(bits != 16);
-      if (movie->header->Width % 2) {
-        rowstride++;
-      }
+  buf = imb_alloc_pixels(
+      movie->header->Height, movie->header->Width, 3, sizeof(unsigned char), "fromavirgbbuf");
 
-      for (size_t y = 0; y < movie->header->Height; y++) {
-        memcpy(&buf[y * movie->header->Width * 3],
-               &buffer[((movie->header->Height - 1) - y) * rowstride],
-               movie->header->Width * 3);
-      }
-
-      for (size_t y = 0; y < (size_t)movie->header->Height * (size_t)movie->header->Width * 3;
-           y += 3) {
-        int i = buf[y];
-        buf[y] = buf[y + 2];
-        buf[y + 2] = i;
-      }
+  if (buf) {
+    size_t rowstride = movie->header->Width * 3;
+    BLI_assert(bits != 16);
+    if (movie->header->Width % 2) {
+      rowstride++;
     }
 
-    MEM_freeN(buffer);
+    for (size_t y = 0; y < movie->header->Height; y++) {
+      memcpy(&buf[y * movie->header->Width * 3],
+             &buffer[((movie->header->Height - 1) - y) * rowstride],
+             movie->header->Width * 3);
+    }
 
-    return buf;
+    for (size_t y = 0; y < (size_t)movie->header->Height * (size_t)movie->header->Width * 3;
+         y += 3) {
+      int i = buf[y];
+      buf[y] = buf[y + 2];
+      buf[y + 2] = i;
+    }
   }
+
+  MEM_freeN(buffer);
+
+  return buf;
 }
 
 void *avi_converter_to_avi_rgb(AviMovie *movie, int stream, unsigned char *buffer, size_t *size)

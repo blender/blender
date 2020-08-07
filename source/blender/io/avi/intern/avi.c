@@ -116,9 +116,8 @@ int AVI_get_stream(AviMovie *movie, int avist_type, int stream_num)
       if (stream_num == 0) {
         return cur_stream;
       }
-      else {
-        stream_num--;
-      }
+
+      stream_num--;
     }
   }
 
@@ -572,9 +571,8 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
       if (GET_FCC(movie->fp) == FCC("movi")) {
         break;
       }
-      else {
-        BLI_fseek(movie->fp, size - 4, SEEK_CUR);
-      }
+
+      BLI_fseek(movie->fp, size - 4, SEEK_CUR);
     }
     else {
       BLI_fseek(movie->fp, size, SEEK_CUR);

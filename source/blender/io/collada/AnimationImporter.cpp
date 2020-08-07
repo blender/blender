@@ -717,37 +717,36 @@ void AnimationImporter::Assign_float_animations(const COLLADAFW::UniqueId &listi
   if (animlist_map.find(listid) == animlist_map.end()) {
     return;
   }
-  else {
-    /* anim_type has animations */
-    const COLLADAFW::AnimationList *animlist = animlist_map[listid];
-    const COLLADAFW::AnimationList::AnimationBindings &bindings = animlist->getAnimationBindings();
-    /* all the curves belonging to the current binding */
-    std::vector<FCurve *> animcurves;
-    for (unsigned int j = 0; j < bindings.getCount(); j++) {
-      animcurves = curve_map[bindings[j].animation];
 
-      BLI_strncpy(rna_path, anim_type, sizeof(rna_path));
-      modify_fcurve(&animcurves, rna_path, 0);
-      std::vector<FCurve *>::iterator iter;
-      /* Add the curves of the current animation to the object */
-      for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
-        FCurve *fcu = *iter;
-        /* All anim_types whose values are to be converted from Degree to Radians can be ORed here
+  /* anim_type has animations */
+  const COLLADAFW::AnimationList *animlist = animlist_map[listid];
+  const COLLADAFW::AnimationList::AnimationBindings &bindings = animlist->getAnimationBindings();
+  /* all the curves belonging to the current binding */
+  std::vector<FCurve *> animcurves;
+  for (unsigned int j = 0; j < bindings.getCount(); j++) {
+    animcurves = curve_map[bindings[j].animation];
+
+    BLI_strncpy(rna_path, anim_type, sizeof(rna_path));
+    modify_fcurve(&animcurves, rna_path, 0);
+    std::vector<FCurve *>::iterator iter;
+    /* Add the curves of the current animation to the object */
+    for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
+      FCurve *fcu = *iter;
+      /* All anim_types whose values are to be converted from Degree to Radians can be ORed here
+       */
+      if (STREQ("spot_size", anim_type)) {
+        /* NOTE: Do NOT convert if imported file was made by blender <= 2.69.10
+         * Reason: old blender versions stored spot_size in radians (was a bug)
          */
-        if (STREQ("spot_size", anim_type)) {
-          /* NOTE: Do NOT convert if imported file was made by blender <= 2.69.10
-           * Reason: old blender versions stored spot_size in radians (was a bug)
-           */
-          if (this->import_from_version.empty() ||
-              BLI_strcasecmp_natural(this->import_from_version.c_str(), "2.69.10") != -1) {
-            fcurve_deg_to_rad(fcu);
-          }
+        if (this->import_from_version.empty() ||
+            BLI_strcasecmp_natural(this->import_from_version.c_str(), "2.69.10") != -1) {
+          fcurve_deg_to_rad(fcu);
         }
-        /** XXX What About animtype "rotation" ? */
-
-        BLI_addtail(AnimCurves, fcu);
-        fcurve_is_used(fcu);
       }
+      /** XXX What About animtype "rotation" ? */
+
+      BLI_addtail(AnimCurves, fcu);
+      fcurve_is_used(fcu);
     }
   }
 }
@@ -780,35 +779,34 @@ void AnimationImporter::Assign_lens_animations(const COLLADAFW::UniqueId &listid
   if (animlist_map.find(listid) == animlist_map.end()) {
     return;
   }
-  else {
-    /* anim_type has animations */
-    const COLLADAFW::AnimationList *animlist = animlist_map[listid];
-    const COLLADAFW::AnimationList::AnimationBindings &bindings = animlist->getAnimationBindings();
-    /* all the curves belonging to the current binding */
-    std::vector<FCurve *> animcurves;
-    for (unsigned int j = 0; j < bindings.getCount(); j++) {
-      animcurves = curve_map[bindings[j].animation];
 
-      BLI_strncpy(rna_path, anim_type, sizeof(rna_path));
+  /* anim_type has animations */
+  const COLLADAFW::AnimationList *animlist = animlist_map[listid];
+  const COLLADAFW::AnimationList::AnimationBindings &bindings = animlist->getAnimationBindings();
+  /* all the curves belonging to the current binding */
+  std::vector<FCurve *> animcurves;
+  for (unsigned int j = 0; j < bindings.getCount(); j++) {
+    animcurves = curve_map[bindings[j].animation];
 
-      modify_fcurve(&animcurves, rna_path, 0);
-      std::vector<FCurve *>::iterator iter;
-      /* Add the curves of the current animation to the object */
-      for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
-        FCurve *fcu = *iter;
+    BLI_strncpy(rna_path, anim_type, sizeof(rna_path));
 
-        for (unsigned int i = 0; i < fcu->totvert; i++) {
-          fcu->bezt[i].vec[0][1] = convert_to_focal_length(
-              fcu->bezt[i].vec[0][1], fov_type, aspect, cam->sensor_x);
-          fcu->bezt[i].vec[1][1] = convert_to_focal_length(
-              fcu->bezt[i].vec[1][1], fov_type, aspect, cam->sensor_x);
-          fcu->bezt[i].vec[2][1] = convert_to_focal_length(
-              fcu->bezt[i].vec[2][1], fov_type, aspect, cam->sensor_x);
-        }
+    modify_fcurve(&animcurves, rna_path, 0);
+    std::vector<FCurve *>::iterator iter;
+    /* Add the curves of the current animation to the object */
+    for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
+      FCurve *fcu = *iter;
 
-        BLI_addtail(AnimCurves, fcu);
-        fcurve_is_used(fcu);
+      for (unsigned int i = 0; i < fcu->totvert; i++) {
+        fcu->bezt[i].vec[0][1] = convert_to_focal_length(
+            fcu->bezt[i].vec[0][1], fov_type, aspect, cam->sensor_x);
+        fcu->bezt[i].vec[1][1] = convert_to_focal_length(
+            fcu->bezt[i].vec[1][1], fov_type, aspect, cam->sensor_x);
+        fcu->bezt[i].vec[2][1] = convert_to_focal_length(
+            fcu->bezt[i].vec[2][1], fov_type, aspect, cam->sensor_x);
       }
+
+      BLI_addtail(AnimCurves, fcu);
+      fcurve_is_used(fcu);
     }
   }
 }
@@ -1077,35 +1075,34 @@ void AnimationImporter::translate_Animations(
       if (animlist_map.find(listid) == animlist_map.end()) {
         continue;
       }
-      else {
-        /* transformation has animations */
-        const COLLADAFW::AnimationList *animlist = animlist_map[listid];
-        const COLLADAFW::AnimationList::AnimationBindings &bindings =
-            animlist->getAnimationBindings();
-        /* all the curves belonging to the current binding */
-        std::vector<FCurve *> animcurves;
-        for (unsigned int j = 0; j < bindings.getCount(); j++) {
-          animcurves = curve_map[bindings[j].animation];
-          if (is_matrix) {
-            apply_matrix_curves(ob, animcurves, root, node, transform);
-          }
-          else {
-            /* calculate rnapaths and array index of fcurves according to transformation and
-             * animation class */
-            Assign_transform_animations(
-                transform, &bindings[j], &animcurves, is_joint, joint_path);
 
-            std::vector<FCurve *>::iterator iter;
-            /* Add the curves of the current animation to the object */
-            for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
-              FCurve *fcu = *iter;
+      /* transformation has animations */
+      const COLLADAFW::AnimationList *animlist = animlist_map[listid];
+      const COLLADAFW::AnimationList::AnimationBindings &bindings =
+          animlist->getAnimationBindings();
+      /* all the curves belonging to the current binding */
+      std::vector<FCurve *> animcurves;
+      for (unsigned int j = 0; j < bindings.getCount(); j++) {
+        animcurves = curve_map[bindings[j].animation];
+        if (is_matrix) {
+          apply_matrix_curves(ob, animcurves, root, node, transform);
+        }
+        else {
+          /* calculate rnapaths and array index of fcurves according to transformation and
+           * animation class */
+          Assign_transform_animations(transform, &bindings[j], &animcurves, is_joint, joint_path);
 
-              BLI_addtail(AnimCurves, fcu);
-              fcurve_is_used(fcu);
-            }
+          std::vector<FCurve *>::iterator iter;
+          /* Add the curves of the current animation to the object */
+          for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
+            FCurve *fcu = *iter;
+
+            BLI_addtail(AnimCurves, fcu);
+            fcurve_is_used(fcu);
           }
         }
       }
+
       if (is_rotation && !(is_joint || is_matrix)) {
         ob->rotmode = ROT_MODE_EUL;
       }
@@ -1423,10 +1420,9 @@ AnimationImporter::AnimMix *AnimationImporter::get_animation_type(
     if (animlist_map.find(listid) == animlist_map.end()) {
       continue;
     }
-    else {
-      types->transform = types->transform | BC_NODE_TRANSFORM;
-      break;
-    }
+
+    types->transform = types->transform | BC_NODE_TRANSFORM;
+    break;
   }
   const COLLADAFW::InstanceLightPointerArray &nodeLights = node->getInstanceLights();
 
@@ -1995,7 +1991,7 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm,
 
         return true;
       }
-      else if (is_scale || is_translate) {
+      if (is_scale || is_translate) {
         bool is_xyz = animclass == COLLADAFW::AnimationList::POSITION_XYZ;
 
         if ((!is_xyz && curves.size() != 1) || (is_xyz && curves.size() != 3)) {

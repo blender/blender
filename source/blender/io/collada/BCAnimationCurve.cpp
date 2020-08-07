@@ -559,9 +559,8 @@ inline bool operator<(const BCAnimationCurve &lhs, const BCAnimationCurve &rhs)
     const int rha = rhs.get_channel_index();
     return lha < rha;
   }
-  else {
-    return lhtgt < rhtgt;
-  }
+
+  return lhtgt < rhtgt;
 }
 
 BCCurveKey::BCCurveKey()

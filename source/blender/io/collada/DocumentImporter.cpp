@@ -1254,9 +1254,6 @@ bool DocumentImporter::is_armature(COLLADAFW::Node *node)
     if (child_nodes[i]->getType() == COLLADAFW::Node::JOINT) {
       return true;
     }
-    else {
-      continue;
-    }
   }
 
   /* no child is JOINT */
