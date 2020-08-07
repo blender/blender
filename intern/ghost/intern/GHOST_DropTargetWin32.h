@@ -21,8 +21,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_DROPTARGETWIN32_H__
-#define __GHOST_DROPTARGETWIN32_H__
+#pragma once
 
 #include "GHOST_SystemWin32.h"
 #include "GHOST_WindowWin32.h"
@@ -150,5 +149,3 @@ class GHOST_DropTargetWin32 : public IDropTarget {
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_DropTargetWin32")
 #endif
 };
-
-#endif  // __GHOST_DROPTARGETWIN32_H__

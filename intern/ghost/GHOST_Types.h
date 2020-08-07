@@ -21,8 +21,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_TYPES_H__
-#define __GHOST_TYPES_H__
+#pragma once
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
@@ -677,5 +676,3 @@ typedef struct GHOST_XrError {
 } GHOST_XrError;
 
 #endif
-
-#endif  // __GHOST_TYPES_H__

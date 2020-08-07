@@ -22,8 +22,7 @@
  * Declaration of GHOST_DisplayManagerCocoa class.
  */
 
-#ifndef __GHOST_DISPLAYMANAGERCOCOA_H__
-#define __GHOST_DISPLAYMANAGERCOCOA_H__
+#pragma once
 
 #ifndef __APPLE__
 #  error Apple only!
@@ -93,5 +92,3 @@ class GHOST_DisplayManagerCocoa : public GHOST_DisplayManager {
   /** Cached display id's for each display. */
   // CGDirectDisplayID* m_displayIDs;
 };
-
-#endif  // __GHOST_DISPLAYMANAGERCOCOA_H__

@@ -22,8 +22,7 @@
  * Declaration of GHOST_EventPrinter class.
  */
 
-#ifndef __GHOST_EVENTPRINTER_H__
-#define __GHOST_EVENTPRINTER_H__
+#pragma once
 
 #include "GHOST_IEventConsumer.h"
 
@@ -48,5 +47,3 @@ class GHOST_EventPrinter : public GHOST_IEventConsumer {
    */
   void getKeyString(GHOST_TKey key, char str[32]) const;
 };
-
-#endif  // __GHOST_EVENTPRINTER_H__

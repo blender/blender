@@ -22,8 +22,7 @@
  * Declaration of GHOST_Context class.
  */
 
-#ifndef __GHOST_CONTEXT_H__
-#define __GHOST_CONTEXT_H__
+#pragma once
 
 #include "GHOST_IContext.h"
 #include "GHOST_Types.h"
@@ -160,5 +159,3 @@ bool win32_silent_chk(bool result);
 
 #  define WIN32_CHK_SILENT(x, silent) ((silent) ? win32_silent_chk(x) : WIN32_CHK(x))
 #endif /* _WIN32 */
-
-#endif  // __GHOST_CONTEXT_H__

@@ -22,8 +22,7 @@
  * Declaration of GHOST_System class.
  */
 
-#ifndef __GHOST_SYSTEM_H__
-#define __GHOST_SYSTEM_H__
+#pragma once
 
 #include "GHOST_ISystem.h"
 
@@ -424,5 +423,3 @@ inline GHOST_NDOFManager *GHOST_System::getNDOFManager() const
   return m_ndofManager;
 }
 #endif
-
-#endif  // __GHOST_SYSTEM_H__

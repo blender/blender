@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __GHOST_NDOFMANAGERUNIX_H__
-#define __GHOST_NDOFMANAGERUNIX_H__
+#pragma once
 
 #include "GHOST_NDOFManager.h"
 
@@ -32,5 +31,3 @@ class GHOST_NDOFManagerUnix : public GHOST_NDOFManager {
  private:
   bool m_available;
 };
-
-#endif /* __GHOST_NDOFMANAGERUNIX_H__ */

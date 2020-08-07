@@ -19,8 +19,7 @@
  * Declaration of GHOST_SystemWayland class.
  */
 
-#ifndef __GHOST_SYSTEMWAYLAND_H__
-#define __GHOST_SYSTEMWAYLAND_H__
+#pragma once
 
 #include "../GHOST_Types.h"
 #include "GHOST_System.h"
@@ -107,5 +106,3 @@ class GHOST_SystemWayland : public GHOST_System {
   struct display_t *d;
   std::string selection;
 };
-
-#endif /* __GHOST_SYSTEMWAYLAND_H__ */

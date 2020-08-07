@@ -21,8 +21,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_SYSTEMPATHSUNIX_H__
-#define __GHOST_SYSTEMPATHSUNIX_H__
+#pragma once
 
 #include "../GHOST_Types.h"
 #include "GHOST_SystemPaths.h"
@@ -65,5 +64,3 @@ class GHOST_SystemPathsUnix : public GHOST_SystemPaths {
    */
   void addToSystemRecentFiles(const char *filename) const;
 };
-
-#endif /* __GHOST_SYSTEMPATHSUNIX_H__ */

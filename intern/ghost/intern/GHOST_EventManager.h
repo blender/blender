@@ -22,8 +22,7 @@
  * Declaration of GHOST_EventManager class.
  */
 
-#ifndef __GHOST_EVENTMANAGER_H__
-#define __GHOST_EVENTMANAGER_H__
+#pragma once
 
 #include <deque>
 #include <vector>
@@ -140,5 +139,3 @@ class GHOST_EventManager {
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_EventManager")
 #endif
 };
-
-#endif  // __GHOST_EVENTMANAGER_H__

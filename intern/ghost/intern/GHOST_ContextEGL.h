@@ -21,8 +21,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_CONTEXTEGL_H__
-#define __GHOST_CONTEXTEGL_H__
+#pragma once
 
 #include "GHOST_Context.h"
 
@@ -137,5 +136,3 @@ class GHOST_ContextEGL : public GHOST_Context {
   static HMODULE s_d3dcompiler;
 #endif
 };
-
-#endif  // __GHOST_CONTEXTEGL_H__

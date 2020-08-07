@@ -22,8 +22,7 @@
  * Declaration of GHOST_EventString class.
  */
 
-#ifndef __GHOST_EVENTSTRING_H__
-#define __GHOST_EVENTSTRING_H__
+#pragma once
 
 #include "GHOST_Event.h"
 
@@ -54,5 +53,3 @@ class GHOST_EventString : public GHOST_Event {
       free(m_data);
   }
 };
-
-#endif  // __GHOST_EVENTSTRING_H__

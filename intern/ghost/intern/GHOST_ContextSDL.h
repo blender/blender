@@ -21,8 +21,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_CONTEXTSDL_H__
-#define __GHOST_CONTEXTSDL_H__
+#pragma once
 
 #include "GHOST_Context.h"
 
@@ -121,5 +120,3 @@ class GHOST_ContextSDL : public GHOST_Context {
   static SDL_GLContext s_sharedContext;
   static int s_sharedCount;
 };
-
-#endif  // __GHOST_CONTEXTSDL_H__

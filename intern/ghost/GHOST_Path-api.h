@@ -21,8 +21,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_PATH_API_H__
-#define __GHOST_PATH_API_H__
+#pragma once
 
 #include "GHOST_Types.h"
 
@@ -70,6 +69,4 @@ extern void GHOST_addToSystemRecentFiles(const char *filename);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

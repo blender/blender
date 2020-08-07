@@ -22,8 +22,7 @@
  * Declaration of GHOST_DisplayManager class.
  */
 
-#ifndef __GHOST_DISPLAYMANAGER_H__
-#define __GHOST_DISPLAYMANAGER_H__
+#pragma once
 
 #include "GHOST_Types.h"
 
@@ -127,5 +126,3 @@ class GHOST_DisplayManager {
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_DisplayManager")
 #endif
 };
-
-#endif  // __GHOST_DISPLAYMANAGER_H__

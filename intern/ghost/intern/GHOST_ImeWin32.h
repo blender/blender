@@ -23,8 +23,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_IME_H__
-#define __GHOST_IME_H__
+#pragma once
 
 #ifdef WITH_INPUT_IME
 
@@ -388,4 +387,3 @@ class GHOST_ImeWin32 {
 };
 
 #endif  // WITH_INPUT_IME
-#endif  // __GHOST_IME_H__

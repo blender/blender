@@ -22,8 +22,7 @@
  * Declaration of GHOST_IWindow interface class.
  */
 
-#ifndef __GHOST_IWINDOW_H__
-#define __GHOST_IWINDOW_H__
+#pragma once
 
 #include "GHOST_Rect.h"
 #include "GHOST_Types.h"
@@ -363,5 +362,3 @@ class GHOST_IWindow {
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_IWindow")
 #endif
 };
-
-#endif  // __GHOST_IWINDOW_H__

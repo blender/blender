@@ -19,8 +19,7 @@
  * Declaration of GHOST_SystemNULL class.
  */
 
-#ifndef __GHOST_SYSTEMNULL_H__
-#define __GHOST_SYSTEMNULL_H__
+#pragma once
 
 #include "../GHOST_Types.h"
 #include "GHOST_DisplayManagerNULL.h"
@@ -130,5 +129,3 @@ class GHOST_SystemNULL : public GHOST_System {
                                 ((glSettings.flags & GHOST_glStereoVisual) != 0));
   }
 };
-
-#endif /* __GHOST_SYSTEMNULL_H__ */

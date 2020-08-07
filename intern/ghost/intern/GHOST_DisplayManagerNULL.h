@@ -19,8 +19,7 @@
  * Declaration of GHOST_DisplayManagerNULL class.
  */
 
-#ifndef __GHOST_DISPLAYMANAGERNULL_H__
-#define __GHOST_DISPLAYMANAGERNULL_H__
+#pragma once
 
 #include "GHOST_DisplayManager.h"
 #include "GHOST_SystemNULL.h"
@@ -58,5 +57,3 @@ class GHOST_DisplayManagerNULL : public GHOST_DisplayManager {
  private:
   GHOST_SystemNULL *m_system;
 };
-
-#endif /* __GHOST_DISPLAYMANAGERNULL_H__ */

@@ -21,8 +21,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_DROPTARGETX11_H__
-#define __GHOST_DROPTARGETX11_H__
+#pragma once
 
 #include "GHOST_SystemX11.h"
 #include "GHOST_WindowX11.h"
@@ -126,5 +125,3 @@ class GHOST_DropTargetX11 {
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_DropTargetX11")
 #endif
 };
-
-#endif  // __GHOST_DROPTARGETX11_H__

@@ -21,8 +21,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_SYSTEMPATHSWIN32_H__
-#define __GHOST_SYSTEMPATHSWIN32_H__
+#pragma once
 
 #ifndef WIN32
 #  error WIN32 only!
@@ -74,5 +73,3 @@ class GHOST_SystemPathsWin32 : public GHOST_SystemPaths {
    */
   void addToSystemRecentFiles(const char *filename) const;
 };
-
-#endif  // __GHOST_SYSTEMPATHSWIN32_H__

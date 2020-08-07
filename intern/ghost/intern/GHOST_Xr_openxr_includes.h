@@ -22,8 +22,7 @@
  * installed.
  */
 
-#ifndef __GHOST_XR_SYSTEM_INCLUDES_H__
-#define __GHOST_XR_SYSTEM_INCLUDES_H__
+#pragma once
 
 /* Platform headers */
 #ifdef XR_USE_PLATFORM_WIN32
@@ -48,5 +47,3 @@
 
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
-
-#endif /* __GHOST_XR_SYSTEM_INCLUDES_H__ */

@@ -21,8 +21,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_EVENTDRAGNDROP_H__
-#define __GHOST_EVENTDRAGNDROP_H__
+#pragma once
 
 #include "GHOST_Event.h"
 extern "C" {
@@ -122,5 +121,3 @@ class GHOST_EventDragnDrop : public GHOST_Event {
   /** The x,y-coordinates of the cursor position. */
   GHOST_TEventDragnDropData m_dragnDropEventData;
 };
-
-#endif  // __GHOST_EVENTDRAGNDROP_H__

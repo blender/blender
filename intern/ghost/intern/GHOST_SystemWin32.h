@@ -22,8 +22,7 @@
  * Declaration of GHOST_SystemWin32 class.
  */
 
-#ifndef __GHOST_SYSTEMWIN32_H__
-#define __GHOST_SYSTEMWIN32_H__
+#pragma once
 
 #ifndef WIN32
 #  error WIN32 only!
@@ -488,4 +487,3 @@ inline void GHOST_SystemWin32::handleKeyboardChange(void)
     }
   }
 }
-#endif  // __GHOST_SYSTEMWIN32_H__

@@ -21,8 +21,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_CONTEXTWGL_H__
-#define __GHOST_CONTEXTWGL_H__
+#pragma once
 
 //#define WIN32_COMPOSITING
 
@@ -130,5 +129,3 @@ class GHOST_ContextWGL : public GHOST_Context {
   static HGLRC s_sharedHGLRC;
   static int s_sharedCount;
 };
-
-#endif  // __GHOST_CONTEXTWGL_H__

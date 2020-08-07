@@ -22,8 +22,7 @@
  * Macro's used in GHOST debug target.
  */
 
-#ifndef __GHOST_DEBUG_H__
-#define __GHOST_DEBUG_H__
+#pragma once
 
 #ifdef _MSC_VER
 #  ifdef DEBUG
@@ -79,5 +78,3 @@
 #else  // WITH_GHOST_DEBUG
 #  define GHOST_ASSERT(x, info) ((void)0)
 #endif  // WITH_GHOST_DEBUG
-
-#endif  // __GHOST_DEBUG_H__

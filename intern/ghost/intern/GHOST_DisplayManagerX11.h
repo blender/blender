@@ -22,8 +22,7 @@
  * Declaration of GHOST_DisplayManagerX11 class.
  */
 
-#ifndef __GHOST_DISPLAYMANAGERX11_H__
-#define __GHOST_DISPLAYMANAGERX11_H__
+#pragma once
 
 #include "GHOST_DisplayManager.h"
 
@@ -86,5 +85,3 @@ class GHOST_DisplayManagerX11 : public GHOST_DisplayManager {
  private:
   GHOST_SystemX11 *m_system;
 };
-
-#endif  //

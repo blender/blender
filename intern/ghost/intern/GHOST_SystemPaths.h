@@ -21,8 +21,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_SYSTEMPATHS_H__
-#define __GHOST_SYSTEMPATHS_H__
+#pragma once
 
 #include "GHOST_ISystemPaths.h"
 
@@ -70,5 +69,3 @@ class GHOST_SystemPaths : public GHOST_ISystemPaths {
    */
   virtual void addToSystemRecentFiles(const char *filename) const = 0;
 };
-
-#endif

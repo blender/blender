@@ -23,8 +23,7 @@
  * Declaration of GHOST_Context class.
  */
 
-#ifndef __GHOST_CONTEXTNONE_H__
-#define __GHOST_CONTEXTNONE_H__
+#pragma once
 
 #include "GHOST_Context.h"
 
@@ -86,5 +85,3 @@ class GHOST_ContextNone : public GHOST_Context {
  private:
   int m_swapInterval;
 };
-
-#endif  // __GHOST_CONTEXTNONE_H__
