@@ -309,7 +309,7 @@ int BLI_system_thread_count(void)
   if (num_threads_override != 0) {
     return num_threads_override;
   }
-  else if (LIKELY(t != -1)) {
+  if (LIKELY(t != -1)) {
     return t;
   }
 
@@ -751,7 +751,7 @@ void *BLI_thread_queue_pop_timeout(ThreadQueue *queue, int ms)
     if (pthread_cond_timedwait(&queue->push_cond, &queue->mutex, &timeout) == ETIMEDOUT) {
       break;
     }
-    else if (PIL_check_seconds_timer() - t >= ms * 0.001) {
+    if (PIL_check_seconds_timer() - t >= ms * 0.001) {
       break;
     }
   }

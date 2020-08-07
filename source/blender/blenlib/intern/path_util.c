@@ -427,9 +427,8 @@ static int BLI_path_unc_prefix_len(const char *path)
       /* we assume long UNC path like \\?\server\share\folder etc... */
       return 4;
     }
-    else {
-      return 2;
-    }
+
+    return 2;
   }
 
   return 0;
@@ -683,7 +682,7 @@ bool BLI_path_suffix(char *string, size_t maxlen, const char *suffix, const char
       has_extension = true;
       break;
     }
-    else if (ELEM(string[a], '/', '\\')) {
+    if (ELEM(string[a], '/', '\\')) {
       break;
     }
   }
@@ -713,9 +712,8 @@ bool BLI_path_parent_dir(char *path)
     strcpy(path, tmp); /* We assume pardir is always shorter... */
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 /**
@@ -764,11 +762,10 @@ static bool stringframe_chars(const char *path, int *char_start, int *char_end)
     *char_end = ch_end;
     return true;
   }
-  else {
-    *char_start = -1;
-    *char_end = -1;
-    return false;
-  }
+
+  *char_start = -1;
+  *char_end = -1;
+  return false;
 }
 
 /**
@@ -1731,9 +1728,8 @@ void BLI_join_dirfile(char *__restrict dst,
     dst[dirlen - 1] = '\0';
     return; /* dir fills the path */
   }
-  else {
-    memcpy(dst, dir, dirlen + 1);
-  }
+
+  memcpy(dst, dir, dirlen + 1);
 
   if (dirlen + 1 >= maxlen) {
     return; /* fills the path */
@@ -1891,32 +1887,31 @@ bool BLI_path_name_at_index(const char *__restrict path,
     }
     return false;
   }
-  else {
-    /* negative number, reverse where -1 is the last element */
-    int index_step = -1;
-    int prev = strlen(path);
-    int i = prev - 1;
-    while (true) {
-      const char c = i >= 0 ? path[i] : '\0';
-      if (ELEM(c, SEP, ALTSEP, '\0')) {
-        if (prev - 1 != i) {
-          i += 1;
-          if (index_step == index) {
-            *r_offset = i;
-            *r_len = prev - i;
-            return true;
-          }
-          index_step -= 1;
+
+  /* negative number, reverse where -1 is the last element */
+  int index_step = -1;
+  int prev = strlen(path);
+  int i = prev - 1;
+  while (true) {
+    const char c = i >= 0 ? path[i] : '\0';
+    if (ELEM(c, SEP, ALTSEP, '\0')) {
+      if (prev - 1 != i) {
+        i += 1;
+        if (index_step == index) {
+          *r_offset = i;
+          *r_len = prev - i;
+          return true;
         }
-        if (c == '\0') {
-          break;
-        }
-        prev = i;
+        index_step -= 1;
       }
-      i -= 1;
+      if (c == '\0') {
+        break;
+      }
+      prev = i;
     }
-    return false;
+    i -= 1;
   }
+  return false;
 }
 
 /**
@@ -1930,7 +1925,7 @@ const char *BLI_path_slash_find(const char *string)
   if (!ffslash) {
     return fbslash;
   }
-  else if (!fbslash) {
+  if (!fbslash) {
     return ffslash;
   }
 
@@ -1948,7 +1943,7 @@ const char *BLI_path_slash_rfind(const char *string)
   if (!lfslash) {
     return lbslash;
   }
-  else if (!lbslash) {
+  if (!lbslash) {
     return lfslash;
   }
 

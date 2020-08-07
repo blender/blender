@@ -319,15 +319,15 @@ bool wm_cursor_arrow_move(wmWindow *win, const wmEvent *event)
       wm_cursor_warp_relative(win, 0, fac);
       return 1;
     }
-    else if (event->type == EVT_DOWNARROWKEY) {
+    if (event->type == EVT_DOWNARROWKEY) {
       wm_cursor_warp_relative(win, 0, -fac);
       return 1;
     }
-    else if (event->type == EVT_LEFTARROWKEY) {
+    if (event->type == EVT_LEFTARROWKEY) {
       wm_cursor_warp_relative(win, -fac, 0);
       return 1;
     }
-    else if (event->type == EVT_RIGHTARROWKEY) {
+    if (event->type == EVT_RIGHTARROWKEY) {
       wm_cursor_warp_relative(win, fac, 0);
       return 1;
     }

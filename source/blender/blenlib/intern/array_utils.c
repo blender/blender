@@ -208,7 +208,7 @@ bool _bli_array_iter_span(const void *arr,
   if (arr_len == 0) {
     return false;
   }
-  else if (use_wrap && (span_step[0] != arr_len) && (span_step[0] > span_step[1])) {
+  if (use_wrap && (span_step[0] != arr_len) && (span_step[0] > span_step[1])) {
     return false;
   }
 

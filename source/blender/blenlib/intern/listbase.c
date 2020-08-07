@@ -162,9 +162,8 @@ bool BLI_remlink_safe(ListBase *listbase, void *vlink)
     BLI_remlink(listbase, vlink);
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 /**

@@ -70,9 +70,7 @@ wmGizmoProperty *WM_gizmo_target_property_find(wmGizmo *gz, const char *idname)
   if (index != -1) {
     return WM_gizmo_target_property_at_index(gz, index);
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 void WM_gizmo_target_property_def_rna_ptr(wmGizmo *gz,
@@ -195,9 +193,7 @@ float WM_gizmo_target_property_float_get(const wmGizmo *gz, wmGizmoProperty *gz_
   if (gz_prop->index == -1) {
     return RNA_property_float_get(&gz_prop->ptr, gz_prop->prop);
   }
-  else {
-    return RNA_property_float_get_index(&gz_prop->ptr, gz_prop->prop, gz_prop->index);
-  }
+  return RNA_property_float_get_index(&gz_prop->ptr, gz_prop->prop, gz_prop->index);
 }
 
 void WM_gizmo_target_property_float_set(bContext *C,
@@ -255,9 +251,7 @@ bool WM_gizmo_target_property_float_range_get(const wmGizmo *gz,
       gz_prop->custom_func.range_get_fn(gz, gz_prop, range);
       return true;
     }
-    else {
-      return false;
-    }
+    return false;
   }
 
   float step, precision;

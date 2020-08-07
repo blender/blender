@@ -357,11 +357,11 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
     BKE_reportf(op->reports, RPT_ERROR, "'%s': not a library", path);
     return OPERATOR_CANCELLED;
   }
-  else if (!group) {
+  if (!group) {
     BKE_reportf(op->reports, RPT_ERROR, "'%s': nothing indicated", path);
     return OPERATOR_CANCELLED;
   }
-  else if (BLI_path_cmp(BKE_main_blendfile_path(bmain), libname) == 0) {
+  if (BLI_path_cmp(BKE_main_blendfile_path(bmain), libname) == 0) {
     BKE_reportf(op->reports, RPT_ERROR, "'%s': cannot use current file as library", path);
     return OPERATOR_CANCELLED;
   }
@@ -755,7 +755,7 @@ static void lib_relocate_do_remap(Main *bmain,
       if (c == '.') {
         break;
       }
-      else if (c < '0' || c > '9') {
+      if (c < '0' || c > '9') {
         has_num = false;
         break;
       }

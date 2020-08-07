@@ -231,9 +231,8 @@ float cotangent_tri_weight_v3(const float v1[3], const float v2[3], const float 
   if (c_len > FLT_EPSILON) {
     return dot_v3v3(a, b) / c_len;
   }
-  else {
-    return 0.0f;
-  }
+
+  return 0.0f;
 }
 
 /********************************* Planes **********************************/
@@ -589,9 +588,8 @@ float dist_signed_squared_to_corner_v3v3v3(const float p[3],
   if (flip) {
     return min_ff(dist_a, dist_b);
   }
-  else {
-    return max_ff(dist_a, dist_b);
-  }
+
+  return max_ff(dist_a, dist_b);
 }
 
 /**
@@ -1146,9 +1144,8 @@ int isect_line_line_v2_point(
 
     return ISECT_LINE_LINE_CROSS;
   }
-  else {
-    return ISECT_LINE_LINE_COLINEAR;
-  }
+
+  return ISECT_LINE_LINE_COLINEAR;
 }
 
 /* intersect Line-Line, floats */
@@ -1304,55 +1301,54 @@ int isect_seg_seg_v2_point_ex(const float v0[2],
     /* out of segment intersection */
     return -1;
   }
-  else {
-    if ((cross_v2v2(s10, s30) == 0.0f) && (cross_v2v2(s32, s30) == 0.0f)) {
-      /* equal lines */
-      float s20[2];
-      float u_a, u_b;
 
-      if (equals_v2v2(v0, v1)) {
-        if (len_squared_v2v2(v2, v3) > square_f(eps)) {
-          /* use non-point segment as basis */
-          SWAP(const float *, v0, v2);
-          SWAP(const float *, v1, v3);
+  if ((cross_v2v2(s10, s30) == 0.0f) && (cross_v2v2(s32, s30) == 0.0f)) {
+    /* equal lines */
+    float s20[2];
+    float u_a, u_b;
 
-          sub_v2_v2v2(s10, v1, v0);
-          sub_v2_v2v2(s30, v3, v0);
-        }
-        else {                       /* both of segments are points */
-          if (equals_v2v2(v0, v2)) { /* points are equal */
-            copy_v2_v2(r_vi, v0);
-            return 1;
-          }
+    if (equals_v2v2(v0, v1)) {
+      if (len_squared_v2v2(v2, v3) > square_f(eps)) {
+        /* use non-point segment as basis */
+        SWAP(const float *, v0, v2);
+        SWAP(const float *, v1, v3);
 
-          /* two different points */
-          return -1;
-        }
+        sub_v2_v2v2(s10, v1, v0);
+        sub_v2_v2v2(s30, v3, v0);
       }
+      else {                       /* both of segments are points */
+        if (equals_v2v2(v0, v2)) { /* points are equal */
+          copy_v2_v2(r_vi, v0);
+          return 1;
+        }
 
-      sub_v2_v2v2(s20, v2, v0);
-
-      u_a = dot_v2v2(s20, s10) / dot_v2v2(s10, s10);
-      u_b = dot_v2v2(s30, s10) / dot_v2v2(s10, s10);
-
-      if (u_a > u_b) {
-        SWAP(float, u_a, u_b);
-      }
-
-      if (u_a > endpoint_max || u_b < endpoint_min) {
-        /* non-overlapping segments */
+        /* two different points */
         return -1;
-      }
-      else if (max_ff(0.0f, u_a) == min_ff(1.0f, u_b)) {
-        /* one common point: can return result */
-        madd_v2_v2v2fl(r_vi, v0, s10, max_ff(0, u_a));
-        return 1;
       }
     }
 
-    /* lines are collinear */
-    return -1;
+    sub_v2_v2v2(s20, v2, v0);
+
+    u_a = dot_v2v2(s20, s10) / dot_v2v2(s10, s10);
+    u_b = dot_v2v2(s30, s10) / dot_v2v2(s10, s10);
+
+    if (u_a > u_b) {
+      SWAP(float, u_a, u_b);
+    }
+
+    if (u_a > endpoint_max || u_b < endpoint_min) {
+      /* non-overlapping segments */
+      return -1;
+    }
+    if (max_ff(0.0f, u_a) == min_ff(1.0f, u_b)) {
+      /* one common point: can return result */
+      madd_v2_v2v2fl(r_vi, v0, s10, max_ff(0, u_a));
+      return 1;
+    }
   }
+
+  /* lines are collinear */
+  return -1;
 }
 
 int isect_seg_seg_v2_point(
@@ -1472,13 +1468,13 @@ int isect_line_sphere_v3(const float l1[3],
     /* no intersections */
     return 0;
   }
-  else if (i == 0.0f) {
+  if (i == 0.0f) {
     /* one intersection */
     mu = -b / (2.0f * a);
     madd_v3_v3v3fl(r_p1, l1, ldir, mu);
     return 1;
   }
-  else if (i > 0.0f) {
+  if (i > 0.0f) {
     const float i_sqrt = sqrtf(i); /* avoid calc twice */
 
     /* first intersection */
@@ -1490,10 +1486,9 @@ int isect_line_sphere_v3(const float l1[3],
     madd_v3_v3v3fl(r_p2, l1, ldir, mu);
     return 2;
   }
-  else {
-    /* math domain error - nan */
-    return -1;
-  }
+
+  /* math domain error - nan */
+  return -1;
 }
 
 /* keep in sync with isect_line_sphere_v3 */
@@ -1520,13 +1515,13 @@ int isect_line_sphere_v2(const float l1[2],
     /* no intersections */
     return 0;
   }
-  else if (i == 0.0f) {
+  if (i == 0.0f) {
     /* one intersection */
     mu = -b / (2.0f * a);
     madd_v2_v2v2fl(r_p1, l1, ldir, mu);
     return 1;
   }
-  else if (i > 0.0f) {
+  if (i > 0.0f) {
     const float i_sqrt = sqrtf(i); /* avoid calc twice */
 
     /* first intersection */
@@ -1538,10 +1533,9 @@ int isect_line_sphere_v2(const float l1[2],
     madd_v2_v2v2fl(r_p2, l1, ldir, mu);
     return 2;
   }
-  else {
-    /* math domain error - nan */
-    return -1;
-  }
+
+  /* math domain error - nan */
+  return -1;
 }
 
 /* point in polygon (keep float and int versions in sync) */
@@ -1957,34 +1951,32 @@ bool isect_ray_tri_watertight_v3(const float ray_origin[3],
   if (UNLIKELY(det == 0.0f || !isfinite(det))) {
     return false;
   }
-  else {
-    /* Calculate scaled z-coordinates of vertices and use them to calculate
-     * the hit distance.
-     */
-    const int sign_det = (float_as_int(det) & (int)0x80000000);
-    const float t = (u * a_kz + v * b_kz + w * c_kz) * sz;
-    const float sign_t = xor_fl(t, sign_det);
-    if ((sign_t < 0.0f)
-    /* Differ from Cycles, don't read r_lambda's original value
-     * otherwise we won't match any of the other intersect functions here...
-     * which would be confusing. */
+
+  /* Calculate scaled z-coordinates of vertices and use them to calculate
+   * the hit distance.
+   */
+  const int sign_det = (float_as_int(det) & (int)0x80000000);
+  const float t = (u * a_kz + v * b_kz + w * c_kz) * sz;
+  const float sign_t = xor_fl(t, sign_det);
+  if ((sign_t < 0.0f)
+  /* Differ from Cycles, don't read r_lambda's original value
+   * otherwise we won't match any of the other intersect functions here...
+   * which would be confusing. */
 #if 0
         || (sign_T > *r_lambda * xor_signmask(det, sign_mask))
 #endif
-    ) {
-      return false;
-    }
-    else {
-      /* Normalize u, v and t. */
-      const float inv_det = 1.0f / det;
-      if (r_uv) {
-        r_uv[0] = u * inv_det;
-        r_uv[1] = v * inv_det;
-      }
-      *r_lambda = t * inv_det;
-      return true;
-    }
+  ) {
+    return false;
   }
+
+  /* Normalize u, v and t. */
+  const float inv_det = 1.0f / det;
+  if (r_uv) {
+    r_uv[0] = u * inv_det;
+    r_uv[1] = v * inv_det;
+  }
+  *r_lambda = t * inv_det;
+  return true;
 }
 
 bool isect_ray_tri_watertight_v3_simple(const float ray_origin[3],
@@ -2215,10 +2207,9 @@ bool isect_line_plane_v3(float r_isect_co[3],
     madd_v3_v3v3fl(r_isect_co, l1, u, lambda);
     return true;
   }
-  else {
-    /* The segment is parallel to plane */
-    return false;
-  }
+
+  /* The segment is parallel to plane */
+  return false;
 }
 
 /**
@@ -2257,9 +2248,8 @@ bool isect_plane_plane_plane_v3(const float plane_a[4],
 
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 /**
@@ -2303,9 +2293,8 @@ bool isect_plane_plane_v3(const float plane_a[4],
 
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 /**
@@ -2436,65 +2425,54 @@ static bool isect_tri_tri_v2_impl_vert(const float t_a0[2],
         if (line_point_side_v2(t_a0, t_b1, t_a1) <= 0.0f) {
           return 1;
         }
-        else {
-          return 0;
-        }
+
+        return 0;
       }
-      else {
-        if (line_point_side_v2(t_a0, t_b0, t_a2) >= 0.0f) {
-          if (line_point_side_v2(t_a1, t_a2, t_b0) >= 0.0f) {
-            return 1;
-          }
-          else {
-            return 0;
-          }
+
+      if (line_point_side_v2(t_a0, t_b0, t_a2) >= 0.0f) {
+        if (line_point_side_v2(t_a1, t_a2, t_b0) >= 0.0f) {
+          return 1;
         }
-        else {
-          return 0;
-        }
+
+        return 0;
       }
+
+      return 0;
     }
-    else if (line_point_side_v2(t_a0, t_b1, t_a1) <= 0.0f) {
+    if (line_point_side_v2(t_a0, t_b1, t_a1) <= 0.0f) {
       if (line_point_side_v2(t_b2, t_b1, t_a2) <= 0.0f) {
         if (line_point_side_v2(t_a1, t_a2, t_b1) >= 0.0f) {
           return 1;
         }
-        else {
-          return 0;
-        }
-      }
-      else {
+
         return 0;
       }
-    }
-    else {
+
       return 0;
     }
+
+    return 0;
   }
-  else if (line_point_side_v2(t_b2, t_b0, t_a2) >= 0.0f) {
+  if (line_point_side_v2(t_b2, t_b0, t_a2) >= 0.0f) {
     if (line_point_side_v2(t_a1, t_a2, t_b2) >= 0.0f) {
       if (line_point_side_v2(t_a0, t_b0, t_a2) >= 0.0f) {
         return 1;
       }
-      else {
-        return 0;
-      }
+
+      return 0;
     }
-    else if (line_point_side_v2(t_a1, t_a2, t_b1) >= 0.0f) {
+    if (line_point_side_v2(t_a1, t_a2, t_b1) >= 0.0f) {
       if (line_point_side_v2(t_b2, t_a2, t_b1) >= 0.0f) {
         return 1;
       }
-      else {
-        return 0;
-      }
-    }
-    else {
+
       return 0;
     }
-  }
-  else {
+
     return 0;
   }
+
+  return 0;
 }
 
 static bool isect_tri_tri_v2_impl_edge(const float t_a0[2],
@@ -2511,47 +2489,38 @@ static bool isect_tri_tri_v2_impl_edge(const float t_a0[2],
       if (line_point_side_v2(t_a0, t_a1, t_b2) >= 0.0f) {
         return 1;
       }
-      else {
-        return 0;
-      }
-    }
-    else {
-      if (line_point_side_v2(t_a1, t_a2, t_b0) >= 0.0f) {
-        if (line_point_side_v2(t_a2, t_a0, t_b0) >= 0.0f) {
-          return 1;
-        }
-        else {
-          return 0;
-        }
-      }
-      else {
-        return 0;
-      }
-    }
-  }
-  else {
-    if (line_point_side_v2(t_b2, t_b0, t_a2) >= 0.0f) {
-      if (line_point_side_v2(t_a0, t_b0, t_a2) >= 0.0f) {
-        if (line_point_side_v2(t_a0, t_a2, t_b2) >= 0.0f) {
-          return 1;
-        }
-        else {
-          if (line_point_side_v2(t_a1, t_a2, t_b2) >= 0.0f) {
-            return 1;
-          }
-          else {
-            return 0;
-          }
-        }
-      }
-      else {
-        return 0;
-      }
-    }
-    else {
+
       return 0;
     }
+
+    if (line_point_side_v2(t_a1, t_a2, t_b0) >= 0.0f) {
+      if (line_point_side_v2(t_a2, t_a0, t_b0) >= 0.0f) {
+        return 1;
+      }
+
+      return 0;
+    }
+
+    return 0;
   }
+
+  if (line_point_side_v2(t_b2, t_b0, t_a2) >= 0.0f) {
+    if (line_point_side_v2(t_a0, t_b0, t_a2) >= 0.0f) {
+      if (line_point_side_v2(t_a0, t_a2, t_b2) >= 0.0f) {
+        return 1;
+      }
+
+      if (line_point_side_v2(t_a1, t_a2, t_b2) >= 0.0f) {
+        return 1;
+      }
+
+      return 0;
+    }
+
+    return 0;
+  }
+
+  return 0;
 }
 
 static int isect_tri_tri_impl_ccw_v2(const float t_a0[2],
@@ -2566,32 +2535,26 @@ static int isect_tri_tri_impl_ccw_v2(const float t_a0[2],
       if (line_point_side_v2(t_b2, t_b0, t_a0) >= 0.0f) {
         return 1;
       }
-      else {
-        return isect_tri_tri_v2_impl_edge(t_a0, t_a1, t_a2, t_b0, t_b1, t_b2);
-      }
+
+      return isect_tri_tri_v2_impl_edge(t_a0, t_a1, t_a2, t_b0, t_b1, t_b2);
     }
-    else {
-      if (line_point_side_v2(t_b2, t_b0, t_a0) >= 0.0f) {
-        return isect_tri_tri_v2_impl_edge(t_a0, t_a1, t_a2, t_b2, t_b0, t_b1);
-      }
-      else {
-        return isect_tri_tri_v2_impl_vert(t_a0, t_a1, t_a2, t_b0, t_b1, t_b2);
-      }
+
+    if (line_point_side_v2(t_b2, t_b0, t_a0) >= 0.0f) {
+      return isect_tri_tri_v2_impl_edge(t_a0, t_a1, t_a2, t_b2, t_b0, t_b1);
     }
+
+    return isect_tri_tri_v2_impl_vert(t_a0, t_a1, t_a2, t_b0, t_b1, t_b2);
   }
-  else {
-    if (line_point_side_v2(t_b1, t_b2, t_a0) >= 0.0f) {
-      if (line_point_side_v2(t_b2, t_b0, t_a0) >= 0.0f) {
-        return isect_tri_tri_v2_impl_edge(t_a0, t_a1, t_a2, t_b1, t_b2, t_b0);
-      }
-      else {
-        return isect_tri_tri_v2_impl_vert(t_a0, t_a1, t_a2, t_b1, t_b2, t_b0);
-      }
+
+  if (line_point_side_v2(t_b1, t_b2, t_a0) >= 0.0f) {
+    if (line_point_side_v2(t_b2, t_b0, t_a0) >= 0.0f) {
+      return isect_tri_tri_v2_impl_edge(t_a0, t_a1, t_a2, t_b1, t_b2, t_b0);
     }
-    else {
-      return isect_tri_tri_v2_impl_vert(t_a0, t_a1, t_a2, t_b2, t_b0, t_b1);
-    }
+
+    return isect_tri_tri_v2_impl_vert(t_a0, t_a1, t_a2, t_b1, t_b2, t_b0);
   }
+
+  return isect_tri_tri_v2_impl_vert(t_a0, t_a1, t_a2, t_b2, t_b0, t_b1);
 }
 
 bool isect_tri_tri_v2(const float t_a0[2],
@@ -2605,18 +2568,15 @@ bool isect_tri_tri_v2(const float t_a0[2],
     if (line_point_side_v2(t_b0, t_b1, t_b2) < 0.0f) {
       return isect_tri_tri_impl_ccw_v2(t_a0, t_a2, t_a1, t_b0, t_b2, t_b1);
     }
-    else {
-      return isect_tri_tri_impl_ccw_v2(t_a0, t_a2, t_a1, t_b0, t_b1, t_b2);
-    }
+
+    return isect_tri_tri_impl_ccw_v2(t_a0, t_a2, t_a1, t_b0, t_b1, t_b2);
   }
-  else {
-    if (line_point_side_v2(t_b0, t_b1, t_b2) < 0.0f) {
-      return isect_tri_tri_impl_ccw_v2(t_a0, t_a1, t_a2, t_b0, t_b2, t_b1);
-    }
-    else {
-      return isect_tri_tri_impl_ccw_v2(t_a0, t_a1, t_a2, t_b0, t_b1, t_b2);
-    }
+
+  if (line_point_side_v2(t_b0, t_b1, t_b2) < 0.0f) {
+    return isect_tri_tri_impl_ccw_v2(t_a0, t_a1, t_a2, t_b0, t_b2, t_b1);
   }
+
+  return isect_tri_tri_impl_ccw_v2(t_a0, t_a1, t_a2, t_b0, t_b1, t_b2);
 }
 
 /** \} */
@@ -2682,8 +2642,7 @@ int isect_aabb_planes_v3(const float (*planes)[4],
     if (plane_point_side_v3(planes[i], bb_far) < 0.0f) {
       return ISECT_AABB_PLANE_BEHIND_ANY;
     }
-    else if ((ret != ISECT_AABB_PLANE_CROSS_ANY) &&
-             (plane_point_side_v3(planes[i], bb_near) < 0.0f)) {
+    if ((ret != ISECT_AABB_PLANE_CROSS_ANY) && (plane_point_side_v3(planes[i], bb_near) < 0.0f)) {
       ret = ISECT_AABB_PLANE_CROSS_ANY;
     }
   }
@@ -2967,7 +2926,7 @@ int isect_line_line_epsilon_v3(const float v1[3],
     return 0;
   }
   /* test if the two lines are coplanar */
-  else if (UNLIKELY(fabsf(d) <= epsilon)) {
+  if (UNLIKELY(fabsf(d) <= epsilon)) {
     cross_v3_v3v3(cb, c, b);
 
     mul_v3_fl(a, dot_v3v3(cb, ab) / div);
@@ -2977,34 +2936,33 @@ int isect_line_line_epsilon_v3(const float v1[3],
     return 1; /* one intersection only */
   }
   /* if not */
-  else {
-    float n[3], t[3];
-    float v3t[3], v4t[3];
-    sub_v3_v3v3(t, v1, v3);
 
-    /* offset between both plane where the lines lies */
-    cross_v3_v3v3(n, a, b);
-    project_v3_v3v3(t, t, n);
+  float n[3], t[3];
+  float v3t[3], v4t[3];
+  sub_v3_v3v3(t, v1, v3);
 
-    /* for the first line, offset the second line until it is coplanar */
-    add_v3_v3v3(v3t, v3, t);
-    add_v3_v3v3(v4t, v4, t);
+  /* offset between both plane where the lines lies */
+  cross_v3_v3v3(n, a, b);
+  project_v3_v3v3(t, t, n);
 
-    sub_v3_v3v3(c, v3t, v1);
-    sub_v3_v3v3(a, v2, v1);
-    sub_v3_v3v3(b, v4t, v3t);
+  /* for the first line, offset the second line until it is coplanar */
+  add_v3_v3v3(v3t, v3, t);
+  add_v3_v3v3(v4t, v4, t);
 
-    cross_v3_v3v3(ab, a, b);
-    cross_v3_v3v3(cb, c, b);
+  sub_v3_v3v3(c, v3t, v1);
+  sub_v3_v3v3(a, v2, v1);
+  sub_v3_v3v3(b, v4t, v3t);
 
-    mul_v3_fl(a, dot_v3v3(cb, ab) / dot_v3v3(ab, ab));
-    add_v3_v3v3(r_i1, v1, a);
+  cross_v3_v3v3(ab, a, b);
+  cross_v3_v3v3(cb, c, b);
 
-    /* for the second line, just subtract the offset from the first intersection point */
-    sub_v3_v3v3(r_i2, r_i1, t);
+  mul_v3_fl(a, dot_v3v3(cb, ab) / dot_v3v3(ab, ab));
+  add_v3_v3v3(r_i1, v1, a);
 
-    return 2; /* two nearest points */
-  }
+  /* for the second line, just subtract the offset from the first intersection point */
+  sub_v3_v3v3(r_i2, r_i1, t);
+
+  return 2; /* two nearest points */
 }
 
 int isect_line_line_v3(const float v1[3],
@@ -3047,31 +3005,29 @@ bool isect_line_line_strict_v3(const float v1[3],
     return false;
   }
   /* test if the two lines are coplanar */
-  else if (UNLIKELY(fabsf(d) < epsilon)) {
+  if (UNLIKELY(fabsf(d) < epsilon)) {
     return false;
   }
-  else {
-    float f1, f2;
-    cross_v3_v3v3(cb, c, b);
-    cross_v3_v3v3(ca, c, a);
 
-    f1 = dot_v3v3(cb, ab) / div;
-    f2 = dot_v3v3(ca, ab) / div;
+  float f1, f2;
+  cross_v3_v3v3(cb, c, b);
+  cross_v3_v3v3(ca, c, a);
 
-    if (f1 >= 0 && f1 <= 1 && f2 >= 0 && f2 <= 1) {
-      mul_v3_fl(a, f1);
-      add_v3_v3v3(vi, v1, a);
+  f1 = dot_v3v3(cb, ab) / div;
+  f2 = dot_v3v3(ca, ab) / div;
 
-      if (r_lambda) {
-        *r_lambda = f1;
-      }
+  if (f1 >= 0 && f1 <= 1 && f2 >= 0 && f2 <= 1) {
+    mul_v3_fl(a, f1);
+    add_v3_v3v3(vi, v1, a);
 
-      return true; /* intersection found */
+    if (r_lambda) {
+      *r_lambda = f1;
     }
-    else {
-      return false;
-    }
+
+    return true; /* intersection found */
   }
+
+  return false;
 }
 
 /**
@@ -3237,15 +3193,14 @@ bool isect_ray_aabb_v3_simple(const float orig[3],
   if ((hit_dist[1] < 0.0f || hit_dist[0] > hit_dist[1])) {
     return false;
   }
-  else {
-    if (tmin) {
-      *tmin = hit_dist[0];
-    }
-    if (tmax) {
-      *tmax = hit_dist[1];
-    }
-    return true;
+
+  if (tmin) {
+    *tmin = hit_dist[0];
   }
+  if (tmax) {
+    *tmax = hit_dist[1];
+  }
+  return true;
 }
 
 float closest_to_ray_v3(float r_close[3],
@@ -3522,9 +3477,8 @@ bool isect_point_tri_v3(
 
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 bool clip_segment_v3_plane(
@@ -3547,7 +3501,7 @@ bool clip_segment_v3_plane(
     if (t >= div) {
       return false;
     }
-    else if (t > 0.0f) {
+    if (t > 0.0f) {
       const float p1_copy[3] = {UNPACK3(p1)};
       copy_v3_v3(r_p2, p2);
       madd_v3_v3v3fl(r_p1, p1_copy, dp, t / div);
@@ -3559,7 +3513,7 @@ bool clip_segment_v3_plane(
     if (t >= 0.0f) {
       return false;
     }
-    else if (t > div) {
+    if (t > div) {
       const float p1_copy[3] = {UNPACK3(p1)};
       copy_v3_v3(r_p1, p1);
       madd_v3_v3v3fl(r_p2, p1_copy, dp, t / div);
@@ -3598,7 +3552,7 @@ bool clip_segment_v3_plane_n(const float p1[3],
         if (t >= div) {
           return false;
         }
-        else if (t > 0.0f) {
+        if (t > 0.0f) {
           t /= div;
           if (t > p1_fac) {
             p1_fac = t;
@@ -3613,7 +3567,7 @@ bool clip_segment_v3_plane_n(const float p1[3],
         if (t >= 0.0f) {
           return false;
         }
-        else if (t > div) {
+        if (t > div) {
           t /= div;
           if (t < p2_fac) {
             p2_fac = t;
@@ -3797,8 +3751,8 @@ int barycentric_inside_triangle_v2(const float w[3])
   if (IN_RANGE(w[0], 0.0f, 1.0f) && IN_RANGE(w[1], 0.0f, 1.0f) && IN_RANGE(w[2], 0.0f, 1.0f)) {
     return 1;
   }
-  else if (IN_RANGE_INCL(w[0], 0.0f, 1.0f) && IN_RANGE_INCL(w[1], 0.0f, 1.0f) &&
-           IN_RANGE_INCL(w[2], 0.0f, 1.0f)) {
+  if (IN_RANGE_INCL(w[0], 0.0f, 1.0f) && IN_RANGE_INCL(w[1], 0.0f, 1.0f) &&
+      IN_RANGE_INCL(w[2], 0.0f, 1.0f)) {
     return 2;
   }
 
@@ -4095,68 +4049,67 @@ int interp_sparse_array(float *array, const int list_size, const float skipval)
   if (found_valid == 0) {
     return -1;
   }
-  else if (found_invalid == 0) {
+  if (found_invalid == 0) {
     return 0;
   }
-  else {
-    /* found invalid depths, interpolate */
-    float valid_last = skipval;
-    int valid_ofs = 0;
 
-    float *array_up = MEM_callocN(sizeof(float) * (size_t)list_size, "interp_sparse_array up");
-    float *array_down = MEM_callocN(sizeof(float) * (size_t)list_size, "interp_sparse_array up");
+  /* found invalid depths, interpolate */
+  float valid_last = skipval;
+  int valid_ofs = 0;
 
-    int *ofs_tot_up = MEM_callocN(sizeof(int) * (size_t)list_size, "interp_sparse_array tup");
-    int *ofs_tot_down = MEM_callocN(sizeof(int) * (size_t)list_size, "interp_sparse_array tdown");
+  float *array_up = MEM_callocN(sizeof(float) * (size_t)list_size, "interp_sparse_array up");
+  float *array_down = MEM_callocN(sizeof(float) * (size_t)list_size, "interp_sparse_array up");
 
-    for (i = 0; i < list_size; i++) {
-      if (array[i] == skipval) {
-        array_up[i] = valid_last;
-        ofs_tot_up[i] = ++valid_ofs;
-      }
-      else {
-        valid_last = array[i];
-        valid_ofs = 0;
-      }
+  int *ofs_tot_up = MEM_callocN(sizeof(int) * (size_t)list_size, "interp_sparse_array tup");
+  int *ofs_tot_down = MEM_callocN(sizeof(int) * (size_t)list_size, "interp_sparse_array tdown");
+
+  for (i = 0; i < list_size; i++) {
+    if (array[i] == skipval) {
+      array_up[i] = valid_last;
+      ofs_tot_up[i] = ++valid_ofs;
     }
-
-    valid_last = skipval;
-    valid_ofs = 0;
-
-    for (i = list_size - 1; i >= 0; i--) {
-      if (array[i] == skipval) {
-        array_down[i] = valid_last;
-        ofs_tot_down[i] = ++valid_ofs;
-      }
-      else {
-        valid_last = array[i];
-        valid_ofs = 0;
-      }
+    else {
+      valid_last = array[i];
+      valid_ofs = 0;
     }
-
-    /* now blend */
-    for (i = 0; i < list_size; i++) {
-      if (array[i] == skipval) {
-        if (array_up[i] != skipval && array_down[i] != skipval) {
-          array[i] = ((array_up[i] * (float)ofs_tot_down[i]) +
-                      (array_down[i] * (float)ofs_tot_up[i])) /
-                     (float)(ofs_tot_down[i] + ofs_tot_up[i]);
-        }
-        else if (array_up[i] != skipval) {
-          array[i] = array_up[i];
-        }
-        else if (array_down[i] != skipval) {
-          array[i] = array_down[i];
-        }
-      }
-    }
-
-    MEM_freeN(array_up);
-    MEM_freeN(array_down);
-
-    MEM_freeN(ofs_tot_up);
-    MEM_freeN(ofs_tot_down);
   }
+
+  valid_last = skipval;
+  valid_ofs = 0;
+
+  for (i = list_size - 1; i >= 0; i--) {
+    if (array[i] == skipval) {
+      array_down[i] = valid_last;
+      ofs_tot_down[i] = ++valid_ofs;
+    }
+    else {
+      valid_last = array[i];
+      valid_ofs = 0;
+    }
+  }
+
+  /* now blend */
+  for (i = 0; i < list_size; i++) {
+    if (array[i] == skipval) {
+      if (array_up[i] != skipval && array_down[i] != skipval) {
+        array[i] = ((array_up[i] * (float)ofs_tot_down[i]) +
+                    (array_down[i] * (float)ofs_tot_up[i])) /
+                   (float)(ofs_tot_down[i] + ofs_tot_up[i]);
+      }
+      else if (array_up[i] != skipval) {
+        array[i] = array_up[i];
+      }
+      else if (array_down[i] != skipval) {
+        array[i] = array_down[i];
+      }
+    }
+  }
+
+  MEM_freeN(array_up);
+  MEM_freeN(array_down);
+
+  MEM_freeN(ofs_tot_up);
+  MEM_freeN(ofs_tot_down);
 
   return 1;
 }
@@ -4279,7 +4232,7 @@ void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[
       ix_flag = IS_POINT_IX;
       break;
     }
-    else if (UNLIKELY(dist_squared_to_line_segment_v3(co, v_curr, v_next) < eps_sq)) {
+    if (UNLIKELY(dist_squared_to_line_segment_v3(co, v_curr, v_next) < eps_sq)) {
       ix_flag = IS_SEGMENT_IX;
       break;
     }
@@ -4364,7 +4317,7 @@ void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[
       ix_flag = IS_POINT_IX;
       break;
     }
-    else if (UNLIKELY(dist_squared_to_line_segment_v2(co, v_curr, v_next) < eps_sq)) {
+    if (UNLIKELY(dist_squared_to_line_segment_v2(co, v_curr, v_next) < eps_sq)) {
       ix_flag = IS_SEGMENT_IX;
       break;
     }
@@ -4647,17 +4600,15 @@ float resolve_quad_u_v2(const float st[2],
     if (IS_ZERO(fDen) == 0) {
       return (float)(a / fDen);
     }
-    else {
-      return 0.0f;
-    }
-  }
-  else {
-    const double desc_sq = b * b - a * fC;
-    const double desc = sqrt(desc_sq < 0.0 ? 0.0 : desc_sq);
-    const double s = signed_area > 0 ? (-1.0) : 1.0;
 
-    return (float)(((a - b) + s * desc) / denom);
+    return 0.0f;
   }
+
+  const double desc_sq = b * b - a * fC;
+  const double desc = sqrt(desc_sq < 0.0 ? 0.0 : desc_sq);
+  const double s = signed_area > 0 ? (-1.0) : 1.0;
+
+  return (float)(((a - b) + s * desc) / denom);
 }
 
 #undef IS_ZERO
@@ -6139,17 +6090,16 @@ float cubic_tangent_factor_circle_v3(const float tan_l[3], const float tan_r[3])
     /* no angle difference (use fallback, length wont make any difference) */
     return (1.0f / 3.0f) * 0.75f;
   }
-  else if (tan_dot < -1.0f + eps) {
+  if (tan_dot < -1.0f + eps) {
     /* parallele tangents (half-circle) */
     return (1.0f / 2.0f);
   }
-  else {
-    /* non-aligned tangents, calculate handle length */
-    const float angle = acosf(tan_dot) / 2.0f;
 
-    /* could also use 'angle_sin = len_vnvn(tan_l, tan_r, dims) / 2.0' */
-    const float angle_sin = sinf(angle);
-    const float angle_cos = cosf(angle);
-    return ((1.0f - angle_cos) / (angle_sin * 2.0f)) / angle_sin;
-  }
+  /* non-aligned tangents, calculate handle length */
+  const float angle = acosf(tan_dot) / 2.0f;
+
+  /* could also use 'angle_sin = len_vnvn(tan_l, tan_r, dims) / 2.0' */
+  const float angle_sin = sinf(angle);
+  const float angle_cos = cosf(angle);
+  return ((1.0f - angle_cos) / (angle_sin * 2.0f)) / angle_sin;
 }

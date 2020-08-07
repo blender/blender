@@ -344,9 +344,7 @@ void *WM_jobs_customdata_get(wmJob *wm_job)
   if (!wm_job->customdata) {
     return wm_job->run_customdata;
   }
-  else {
-    return wm_job->customdata;
-  }
+  return wm_job->customdata;
 }
 
 void WM_jobs_customdata_set(wmJob *wm_job, void *customdata, void (*free)(void *))

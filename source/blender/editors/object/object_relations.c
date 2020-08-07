@@ -2283,7 +2283,8 @@ static int make_override_library_invoke(bContext *C, wmOperator *op, const wmEve
     /* This invoke just calls another instance of this operator... */
     return OPERATOR_INTERFACE;
   }
-  else if (ID_IS_LINKED(obact)) {
+
+  if (ID_IS_LINKED(obact)) {
     /* Show menu with list of directly linked collections containing the active object. */
     WM_enum_search_invoke(C, op, event);
     return OPERATOR_CANCELLED;

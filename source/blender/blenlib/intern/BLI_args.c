@@ -92,13 +92,9 @@ static bool keycmp(const void *a, const void *b)
     if (ka->case_str == 1 || kb->case_str == 1) {
       return (BLI_strcasecmp(ka->arg, kb->arg) != 0);
     }
-    else {
-      return (!STREQ(ka->arg, kb->arg));
-    }
+    return (!STREQ(ka->arg, kb->arg));
   }
-  else {
-    return BLI_ghashutil_intcmp((const void *)ka->pass, (const void *)kb->pass);
-  }
+  return BLI_ghashutil_intcmp((const void *)ka->pass, (const void *)kb->pass);
 }
 
 static bArgument *lookUp(struct bArgs *ba, const char *arg, int pass, int case_str)

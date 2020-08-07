@@ -345,7 +345,8 @@ static bool object_modifier_remove(
     object_remove_particle_system(bmain, scene, ob);
     return true;
   }
-  else if (md->type == eModifierType_Softbody) {
+
+  if (md->type == eModifierType_Softbody) {
     if (ob->soft) {
       sbFree(ob);
       ob->softflag = 0; /* TODO(Sybren): this should probably be moved into sbFree() */
@@ -888,12 +889,11 @@ int ED_object_modifier_copy(
     BLI_insertlinkafter(&ob->modifiers, md, nmd);
     return true;
   }
-  else {
-    nmd = BKE_modifier_new(md->type);
-    BKE_modifier_copydata(md, nmd);
-    BLI_insertlinkafter(&ob->modifiers, md, nmd);
-    BKE_modifier_unique_name(&ob->modifiers, nmd);
-  }
+
+  nmd = BKE_modifier_new(md->type);
+  BKE_modifier_copydata(md, nmd);
+  BLI_insertlinkafter(&ob->modifiers, md, nmd);
+  BKE_modifier_unique_name(&ob->modifiers, nmd);
 
   return 1;
 }
@@ -1458,9 +1458,7 @@ static int modifier_apply_as_shapekey_invoke(bContext *C, wmOperator *op, const 
   if (edit_modifier_invoke_properties(C, op, event, &retval)) {
     return modifier_apply_as_shapekey_exec(C, op);
   }
-  else {
-    return retval;
-  }
+  return retval;
 }
 
 static char *modifier_apply_as_shapekey_get_description(struct bContext *UNUSED(C),

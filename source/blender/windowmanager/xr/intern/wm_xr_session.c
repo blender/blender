@@ -183,16 +183,15 @@ static wmXrSessionStateEvent wm_xr_session_state_to_event(const wmXrSessionState
   if (!state->is_view_data_set) {
     return SESSION_STATE_EVENT_START;
   }
-  else if (wm_xr_session_draw_data_needs_reset_to_base_pose(state, settings)) {
+  if (wm_xr_session_draw_data_needs_reset_to_base_pose(state, settings)) {
     return SESSION_STATE_EVENT_RESET_TO_BASE_POSE;
   }
-  else {
-    const bool position_tracking_toggled = ((state->prev_settings_flag &
-                                             XR_SESSION_USE_POSITION_TRACKING) !=
-                                            (settings->flag & XR_SESSION_USE_POSITION_TRACKING));
-    if (position_tracking_toggled) {
-      return SESSION_STATE_EVENT_POSITON_TRACKING_TOGGLE;
-    }
+
+  const bool position_tracking_toggled = ((state->prev_settings_flag &
+                                           XR_SESSION_USE_POSITION_TRACKING) !=
+                                          (settings->flag & XR_SESSION_USE_POSITION_TRACKING));
+  if (position_tracking_toggled) {
+    return SESSION_STATE_EVENT_POSITON_TRACKING_TOGGLE;
   }
 
   return SESSION_STATE_EVENT_NONE;

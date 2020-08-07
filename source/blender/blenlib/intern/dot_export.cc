@@ -60,7 +60,7 @@ void Cluster::set_parent_cluster(Cluster *new_parent)
   if (parent_ == new_parent) {
     return;
   }
-  else if (parent_ == nullptr) {
+  if (parent_ == nullptr) {
     graph_.top_level_clusters_.remove(this);
     new_parent->children_.add_new(this);
   }
@@ -80,7 +80,7 @@ void Node::set_parent_cluster(Cluster *cluster)
   if (cluster_ == cluster) {
     return;
   }
-  else if (cluster_ == nullptr) {
+  if (cluster_ == nullptr) {
     graph_.top_level_nodes_.remove(this);
     cluster->nodes_.add_new(this);
   }

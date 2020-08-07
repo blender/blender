@@ -64,14 +64,14 @@ static int oedge_cmp(const void *a1, const void *a2)
   if (x1->verts[0] > x2->verts[0]) {
     return 1;
   }
-  else if (x1->verts[0] < x2->verts[0]) {
+  if (x1->verts[0] < x2->verts[0]) {
     return -1;
   }
 
   if (x1->verts[1] > x2->verts[1]) {
     return 1;
   }
-  else if (x1->verts[1] < x2->verts[1]) {
+  if (x1->verts[1] < x2->verts[1]) {
     return -1;
   }
 
@@ -79,7 +79,7 @@ static int oedge_cmp(const void *a1, const void *a2)
   if (x1->e_half > x2->e_half) {
     return 1;
   }
-  else if (x1->e_half < x2->e_half) {
+  if (x1->e_half < x2->e_half) {
     return -1;
   }
   /* Should never get here, no two edges should be the same. */
@@ -141,7 +141,7 @@ float BLI_polyfill_beautify_quad_rotate_calc_ex(const float v1[2],
     if ((area_2x_123 >= 0.0f) != (area_2x_134 >= 0.0f)) {
       break;
     }
-    else if ((fabsf(area_2x_123) <= eps_zero_area) || (fabsf(area_2x_134) <= eps_zero_area)) {
+    if ((fabsf(area_2x_123) <= eps_zero_area) || (fabsf(area_2x_134) <= eps_zero_area)) {
       break;
     }
 
@@ -150,11 +150,10 @@ float BLI_polyfill_beautify_quad_rotate_calc_ex(const float v1[2],
       if (lock_degenerate) {
         break;
       }
-      else {
-        return -FLT_MAX; /* always rotate */
-      }
+
+      return -FLT_MAX; /* always rotate */
     }
-    else if ((fabsf(area_2x_234) <= eps_zero_area) || (fabsf(area_2x_241) <= eps_zero_area)) {
+    if ((fabsf(area_2x_234) <= eps_zero_area) || (fabsf(area_2x_241) <= eps_zero_area)) {
       return -FLT_MAX; /* always rotate */
     }
 

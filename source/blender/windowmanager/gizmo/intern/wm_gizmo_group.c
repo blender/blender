@@ -166,12 +166,10 @@ int WM_gizmo_cmp_temp_fl(const void *gz_a_ptr, const void *gz_b_ptr)
   if (gz_a->temp.f < gz_b->temp.f) {
     return -1;
   }
-  else if (gz_a->temp.f > gz_b->temp.f) {
+  if (gz_a->temp.f > gz_b->temp.f) {
     return 1;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 int WM_gizmo_cmp_temp_fl_reverse(const void *gz_a_ptr, const void *gz_b_ptr)
@@ -181,12 +179,10 @@ int WM_gizmo_cmp_temp_fl_reverse(const void *gz_a_ptr, const void *gz_b_ptr)
   if (gz_a->temp.f < gz_b->temp.f) {
     return 1;
   }
-  else if (gz_a->temp.f > gz_b->temp.f) {
+  if (gz_a->temp.f > gz_b->temp.f) {
     return -1;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 static bool wm_gizmo_keymap_uses_event_modifier(wmWindowManager *wm,
@@ -396,10 +392,9 @@ static int gizmo_select_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 
     return OPERATOR_FINISHED;
   }
-  else {
-    BLI_assert(0);
-    return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
-  }
+
+  BLI_assert(0);
+  return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
 }
 
 void GIZMOGROUP_OT_gizmo_select(wmOperatorType *ot)
@@ -476,9 +471,7 @@ static bool gizmo_tweak_start_and_finish(
     }
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 static void gizmo_tweak_finish(bContext *C, wmOperator *op, const bool cancel, bool clear_modal)

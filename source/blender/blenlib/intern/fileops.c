@@ -980,7 +980,7 @@ static int delete_soft(const char *file, const char **error_message)
           "Blender may not support moving files or directories to trash on your system.";
       return -1;
     }
-    else if (WIFEXITED(wstatus) && WEXITSTATUS(wstatus)) {
+    if (WIFEXITED(wstatus) && WEXITSTATUS(wstatus)) {
       *error_message = process_failed;
       return -1;
     }
@@ -1036,12 +1036,10 @@ int BLI_delete(const char *file, bool dir, bool recursive)
   if (recursive) {
     return recursive_operation(file, NULL, NULL, delete_single_file, delete_callback_post);
   }
-  else if (dir) {
+  if (dir) {
     return rmdir(file);
   }
-  else {
-    return remove(file);
-  }
+  return remove(file);
 }
 
 /**
@@ -1184,8 +1182,7 @@ static int copy_single_file(const char *from, const char *to)
 
     return RecursiveOp_Callback_OK;
   }
-  else if (S_ISCHR(st.st_mode) || S_ISBLK(st.st_mode) || S_ISFIFO(st.st_mode) ||
-           S_ISSOCK(st.st_mode)) {
+  if (S_ISCHR(st.st_mode) || S_ISBLK(st.st_mode) || S_ISFIFO(st.st_mode) || S_ISSOCK(st.st_mode)) {
     /* copy special type of file */
     if (mknod(to, st.st_mode, st.st_rdev)) {
       perror("mknod");
@@ -1198,7 +1195,7 @@ static int copy_single_file(const char *from, const char *to)
 
     return RecursiveOp_Callback_OK;
   }
-  else if (!S_ISREG(st.st_mode)) {
+  if (!S_ISREG(st.st_mode)) {
     fprintf(stderr, "Copying of this kind of files isn't supported yet\n");
     return RecursiveOp_Callback_Error;
   }
@@ -1337,7 +1334,7 @@ bool BLI_dir_create_recursive(const char *dirname)
   if (BLI_is_dir(dirname)) {
     return true;
   }
-  else if (BLI_exists(dirname)) {
+  if (BLI_exists(dirname)) {
     return false;
   }
 

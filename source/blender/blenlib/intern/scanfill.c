@@ -91,13 +91,13 @@ static int vergscdata(const void *a1, const void *a2)
   if (x1->vert->xy[1] < x2->vert->xy[1]) {
     return 1;
   }
-  else if (x1->vert->xy[1] > x2->vert->xy[1]) {
+  if (x1->vert->xy[1] > x2->vert->xy[1]) {
     return -1;
   }
-  else if (x1->vert->xy[0] > x2->vert->xy[0]) {
+  if (x1->vert->xy[0] > x2->vert->xy[0]) {
     return 1;
   }
-  else if (x1->vert->xy[0] < x2->vert->xy[0]) {
+  if (x1->vert->xy[0] < x2->vert->xy[0]) {
     return -1;
   }
 
@@ -111,13 +111,13 @@ static int vergpoly(const void *a1, const void *a2)
   if (x1->min_xy[0] > x2->min_xy[0]) {
     return 1;
   }
-  else if (x1->min_xy[0] < x2->min_xy[0]) {
+  if (x1->min_xy[0] < x2->min_xy[0]) {
     return -1;
   }
-  else if (x1->min_xy[1] > x2->min_xy[1]) {
+  if (x1->min_xy[1] > x2->min_xy[1]) {
     return 1;
   }
-  else if (x1->min_xy[1] < x2->min_xy[1]) {
+  if (x1->min_xy[1] < x2->min_xy[1]) {
     return -1;
   }
 
@@ -259,7 +259,7 @@ static bool testedgeside(const float v1[2], const float v2[2], const float v3[2]
   if (inp < 0.0f) {
     return false;
   }
-  else if (inp == 0.0f) {
+  if (inp == 0.0f) {
     if (v1[0] == v3[0] && v1[1] == v3[1]) {
       return false;
     }
@@ -417,25 +417,24 @@ static void testvertexnearedge(ScanFillContext *sf_ctx)
             eve->edge_tot = 0;
             break;
           }
-          else if (compare_v2v2(eve->xy, eed->v2->xy, SF_EPSILON)) {
+          if (compare_v2v2(eve->xy, eed->v2->xy, SF_EPSILON)) {
             ed1->v2 = eed->v2;
             eed->v2->edge_tot++;
             eve->edge_tot = 0;
             break;
           }
-          else {
-            if (boundinsideEV(eed, eve)) {
-              const float dist = dist_squared_to_line_v2(eed->v1->xy, eed->v2->xy, eve->xy);
-              if (dist < SF_EPSILON_SQ) {
-                /* new edge */
-                ed1 = BLI_scanfill_edge_add(sf_ctx, eed->v1, eve);
 
-                /* printf("fill: vertex near edge %x\n", eve); */
-                ed1->poly_nr = eed->poly_nr;
-                eed->v1 = eve;
-                eve->edge_tot = 3;
-                break;
-              }
+          if (boundinsideEV(eed, eve)) {
+            const float dist = dist_squared_to_line_v2(eed->v1->xy, eed->v2->xy, eve->xy);
+            if (dist < SF_EPSILON_SQ) {
+              /* new edge */
+              ed1 = BLI_scanfill_edge_add(sf_ctx, eed->v1, eve);
+
+              /* printf("fill: vertex near edge %x\n", eve); */
+              ed1->poly_nr = eed->poly_nr;
+              eed->v1 = eve;
+              eve->edge_tot = 3;
+              break;
             }
           }
         }
@@ -875,40 +874,39 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
   if (UNLIKELY(eve == NULL)) {
     return 0;
   }
+
+  float n[3];
+
+  if (nor_proj) {
+    copy_v3_v3(n, nor_proj);
+  }
   else {
-    float n[3];
+    /* define projection: with 'best' normal */
+    /* Newell's Method */
+    /* Similar code used elsewhere, but this checks for double ups
+     * which historically this function supports so better not change */
 
-    if (nor_proj) {
-      copy_v3_v3(n, nor_proj);
-    }
-    else {
-      /* define projection: with 'best' normal */
-      /* Newell's Method */
-      /* Similar code used elsewhere, but this checks for double ups
-       * which historically this function supports so better not change */
+    /* warning: this only gives stable direction with single polygons,
+     * ideally we'd calculate connectivity and each polys normal, see T41047 */
+    const float *v_prev;
 
-      /* warning: this only gives stable direction with single polygons,
-       * ideally we'd calculate connectivity and each polys normal, see T41047 */
-      const float *v_prev;
+    zero_v3(n);
+    eve = sf_ctx->fillvertbase.last;
+    v_prev = eve->co;
 
-      zero_v3(n);
-      eve = sf_ctx->fillvertbase.last;
-      v_prev = eve->co;
-
-      for (eve = sf_ctx->fillvertbase.first; eve; eve = eve->next) {
-        if (LIKELY(!compare_v3v3(v_prev, eve->co, SF_EPSILON))) {
-          add_newell_cross_v3_v3v3(n, v_prev, eve->co);
-          v_prev = eve->co;
-        }
+    for (eve = sf_ctx->fillvertbase.first; eve; eve = eve->next) {
+      if (LIKELY(!compare_v3v3(v_prev, eve->co, SF_EPSILON))) {
+        add_newell_cross_v3_v3v3(n, v_prev, eve->co);
+        v_prev = eve->co;
       }
     }
-
-    if (UNLIKELY(normalize_v3(n) == 0.0f)) {
-      return 0;
-    }
-
-    axis_dominant_v3_to_m3_negate(mat_2d, n);
   }
+
+  if (UNLIKELY(normalize_v3(n) == 0.0f)) {
+    return 0;
+  }
+
+  axis_dominant_v3_to_m3_negate(mat_2d, n);
 
   /* STEP 1: COUNT POLYS */
   if (sf_ctx->poly_nr != SF_POLY_UNSET) {

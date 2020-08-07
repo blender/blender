@@ -269,9 +269,7 @@ void *BLI_memiter_elem_first(BLI_memiter *mi)
     BLI_memiter_elem *elem = (BLI_memiter_elem *)chunk->data;
     return elem->data;
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 void *BLI_memiter_elem_first_size(BLI_memiter *mi, uint *r_size)
@@ -282,9 +280,7 @@ void *BLI_memiter_elem_first_size(BLI_memiter *mi, uint *r_size)
     *r_size = (uint)elem->size;
     return elem->data;
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 /** \} */
@@ -334,9 +330,7 @@ void *BLI_memiter_iter_step_size(BLI_memiter_handle *iter, uint *r_size)
     iter->elem = (BLI_memiter_elem *)&data[data_offset_from_size(size)];
     return (void *)data;
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 void *BLI_memiter_iter_step(BLI_memiter_handle *iter)
@@ -352,9 +346,7 @@ void *BLI_memiter_iter_step(BLI_memiter_handle *iter)
     iter->elem = (BLI_memiter_elem *)&data[data_offset_from_size(size)];
     return (void *)data;
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 /** \} */

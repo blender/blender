@@ -107,9 +107,8 @@ static bool quadric_to_tensor_m3_inverse(const Quadric *q, double m[3][3], doubl
 
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 void BLI_quadric_to_vector_v3(const Quadric *q, double v[3])
@@ -161,7 +160,6 @@ bool BLI_quadric_optimize(const Quadric *q, double v[3], const double epsilon)
     negate_v3_db(v);
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }

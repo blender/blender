@@ -253,10 +253,9 @@ bool BLI_smallhash_reinsert(SmallHash *sh, uintptr_t key, void *item)
     e->val = item;
     return false;
   }
-  else {
-    BLI_smallhash_insert(sh, key, item);
-    return true;
-  }
+
+  BLI_smallhash_insert(sh, key, item);
+  return true;
 }
 
 #ifdef USE_REMOVE

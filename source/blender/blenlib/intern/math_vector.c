@@ -506,11 +506,10 @@ float angle_normalized_v3v3(const float v1[3], const float v2[3])
   if (dot_v3v3(v1, v2) >= 0.0f) {
     return 2.0f * saasin(len_v3v3(v1, v2) / 2.0f);
   }
-  else {
-    float v2_n[3];
-    negate_v3_v3(v2_n, v2);
-    return (float)M_PI - 2.0f * saasin(len_v3v3(v1, v2_n) / 2.0f);
-  }
+
+  float v2_n[3];
+  negate_v3_v3(v2_n, v2);
+  return (float)M_PI - 2.0f * saasin(len_v3v3(v1, v2_n) / 2.0f);
 }
 
 float angle_normalized_v2v2(const float v1[2], const float v2[2])
@@ -523,11 +522,10 @@ float angle_normalized_v2v2(const float v1[2], const float v2[2])
   if (dot_v2v2(v1, v2) >= 0.0f) {
     return 2.0f * saasin(len_v2v2(v1, v2) / 2.0f);
   }
-  else {
-    float v2_n[2];
-    negate_v2_v2(v2_n, v2);
-    return (float)M_PI - 2.0f * saasin(len_v2v2(v1, v2_n) / 2.0f);
-  }
+
+  float v2_n[2];
+  negate_v2_v2(v2_n, v2);
+  return (float)M_PI - 2.0f * saasin(len_v2v2(v1, v2_n) / 2.0f);
 }
 
 /**

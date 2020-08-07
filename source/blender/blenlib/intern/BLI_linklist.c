@@ -147,7 +147,7 @@ void BLI_linklist_move_item(LinkNode **listp, int curr_index, int new_index)
         lnk_pdst = lnk;
         break;
       }
-      else if (i == curr_index - 1) {
+      if (i == curr_index - 1) {
         lnk_psrc = lnk;
       }
     }

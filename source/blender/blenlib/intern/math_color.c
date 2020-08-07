@@ -439,9 +439,8 @@ float srgb_to_linearrgb(float c)
   if (c < 0.04045f) {
     return (c < 0.0f) ? 0.0f : c * (1.0f / 12.92f);
   }
-  else {
-    return powf((c + 0.055f) * (1.0f / 1.055f), 2.4f);
-  }
+
+  return powf((c + 0.055f) * (1.0f / 1.055f), 2.4f);
 }
 
 float linearrgb_to_srgb(float c)
@@ -449,9 +448,8 @@ float linearrgb_to_srgb(float c)
   if (c < 0.0031308f) {
     return (c < 0.0f) ? 0.0f : c * 12.92f;
   }
-  else {
-    return 1.055f * powf(c, 1.0f / 2.4f) - 0.055f;
-  }
+
+  return 1.055f * powf(c, 1.0f / 2.4f) - 0.055f;
 }
 
 void minmax_rgb(short c[3])

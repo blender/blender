@@ -185,7 +185,7 @@ BLI_INLINE EdgeHashEntry *edgehash_insert(EdgeHash *eh, Edge edge, void *value)
     if (index == SLOT_EMPTY) {
       return edgehash_insert_at_slot(eh, slot, edge, value);
     }
-    else if (index == SLOT_DUMMY) {
+    if (index == SLOT_DUMMY) {
       eh->dummy_count--;
       return edgehash_insert_at_slot(eh, slot, edge, value);
     }
@@ -200,7 +200,7 @@ BLI_INLINE EdgeHashEntry *edgehash_lookup_entry(EdgeHash *eh, uint v0, uint v1)
     if (EH_INDEX_HAS_EDGE(eh, index, edge)) {
       return &eh->entries[index];
     }
-    else if (index == SLOT_EMPTY) {
+    if (index == SLOT_EMPTY) {
       return NULL;
     }
   }
@@ -294,7 +294,7 @@ bool BLI_edgehash_reinsert(EdgeHash *eh, uint v0, uint v1, void *value)
       eh->entries[index].value = value;
       return false;
     }
-    else if (index == SLOT_EMPTY) {
+    if (index == SLOT_EMPTY) {
       if (edgehash_ensure_can_insert(eh)) {
         edgehash_insert(eh, edge, value);
       }
@@ -360,7 +360,7 @@ bool BLI_edgehash_ensure_p(EdgeHash *eh, uint v0, uint v1, void ***r_value)
       *r_value = &eh->entries[index].value;
       return true;
     }
-    else if (index == SLOT_EMPTY) {
+    if (index == SLOT_EMPTY) {
       if (edgehash_ensure_can_insert(eh)) {
         *r_value = &edgehash_insert(eh, edge, NULL)->value;
       }
@@ -413,7 +413,7 @@ void *BLI_edgehash_popkey(EdgeHash *eh, uint v0, uint v1)
       }
       return value;
     }
-    else if (index == SLOT_EMPTY) {
+    if (index == SLOT_EMPTY) {
       return NULL;
     }
   }
@@ -583,7 +583,7 @@ bool BLI_edgeset_add(EdgeSet *es, uint v0, uint v1)
     if (ES_INDEX_HAS_EDGE(es, index, edge)) {
       return false;
     }
-    else if (index == SLOT_EMPTY) {
+    if (index == SLOT_EMPTY) {
       edgeset_insert_at_slot(es, slot, edge);
       return true;
     }
@@ -615,7 +615,7 @@ bool BLI_edgeset_haskey(EdgeSet *es, uint v0, uint v1)
     if (ES_INDEX_HAS_EDGE(es, index, edge)) {
       return true;
     }
-    else if (index == SLOT_EMPTY) {
+    if (index == SLOT_EMPTY) {
       return false;
     }
   }

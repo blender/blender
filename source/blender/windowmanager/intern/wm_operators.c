@@ -864,19 +864,9 @@ int WM_generic_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
       }
       return ret_value | OPERATOR_PASS_THROUGH;
     }
-    else {
-      /* If we are in init phase, and cannot validate init of modal operations,
-       * just fall back to basic exec.
-       */
-      RNA_property_boolean_set(op->ptr, wait_to_deselect_prop, false);
-
-      ret_value = op->type->exec(C, op);
-      OPERATOR_RETVAL_CHECK(ret_value);
-
-      return ret_value | OPERATOR_PASS_THROUGH;
-    }
-  }
-  else if (event->type == init_event_type && event->val == KM_RELEASE) {
+    /* If we are in init phase, and cannot validate init of modal operations,
+     * just fall back to basic exec.
+     */
     RNA_property_boolean_set(op->ptr, wait_to_deselect_prop, false);
 
     ret_value = op->type->exec(C, op);
@@ -884,7 +874,15 @@ int WM_generic_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
     return ret_value | OPERATOR_PASS_THROUGH;
   }
-  else if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+  if (event->type == init_event_type && event->val == KM_RELEASE) {
+    RNA_property_boolean_set(op->ptr, wait_to_deselect_prop, false);
+
+    ret_value = op->type->exec(C, op);
+    OPERATOR_RETVAL_CHECK(ret_value);
+
+    return ret_value | OPERATOR_PASS_THROUGH;
+  }
+  if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
     const int drag_delta[2] = {
         mval[0] - event->mval[0],
         mval[1] - event->mval[1],
@@ -895,11 +893,9 @@ int WM_generic_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
     if (WM_event_drag_test_with_delta(event, drag_delta)) {
       return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
     }
-    else {
-      /* Important not to return anything other than PASS_THROUGH here,
-       * otherwise it prevents underlying tweak detection code to work properly. */
-      return OPERATOR_PASS_THROUGH;
-    }
+    /* Important not to return anything other than PASS_THROUGH here,
+     * otherwise it prevents underlying tweak detection code to work properly. */
+    return OPERATOR_PASS_THROUGH;
   }
 
   return OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH;
@@ -1151,9 +1147,7 @@ int WM_operator_confirm_or_exec(bContext *C, wmOperator *op, const wmEvent *UNUS
   if (confirm) {
     return WM_operator_confirm_message(C, op, NULL);
   }
-  else {
-    return op->type->exec(C, op);
-  }
+  return op->type->exec(C, op);
 }
 
 /* op->invoke, opens fileselect if path property not set, otherwise executes */
@@ -1162,10 +1156,8 @@ int WM_operator_filesel(bContext *C, wmOperator *op, const wmEvent *UNUSED(event
   if (RNA_struct_property_is_set(op->ptr, "filepath")) {
     return WM_operator_call_notest(C, op); /* call exec direct */
   }
-  else {
-    WM_event_add_fileselect(C, op);
-    return OPERATOR_RUNNING_MODAL;
-  }
+  WM_event_add_fileselect(C, op);
+  return OPERATOR_RUNNING_MODAL;
 }
 
 bool WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const struct ImageFormatData *im_format)
@@ -2536,10 +2528,8 @@ static int radial_control_get_path(PointerRNA *ctx_ptr,
     if (flags & RC_PROP_ALLOW_MISSING) {
       return 1;
     }
-    else {
-      BKE_reportf(op->reports, RPT_ERROR, "Could not resolve path '%s'", name);
-      return 0;
-    }
+    BKE_reportf(op->reports, RPT_ERROR, "Could not resolve path '%s'", name);
+    return 0;
   }
 
   /* check property type */
@@ -2591,13 +2581,12 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
                                (RC_PROP_ALLOW_MISSING | RC_PROP_REQUIRE_BOOL))) {
     return 0;
   }
+
+  if (use_secondary_prop && RNA_property_boolean_get(&use_secondary_ptr, use_secondary_prop)) {
+    data_path = "data_path_secondary";
+  }
   else {
-    if (use_secondary_prop && RNA_property_boolean_get(&use_secondary_ptr, use_secondary_prop)) {
-      data_path = "data_path_secondary";
-    }
-    else {
-      data_path = "data_path_primary";
-    }
+    data_path = "data_path_primary";
   }
 
   if (!radial_control_get_path(&ctx_ptr, op, data_path, &rc->ptr, &rc->prop, 0, 0)) {
@@ -2664,7 +2653,7 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
   if (!radial_control_get_path(&ctx_ptr, op, "image_id", &rc->image_id_ptr, NULL, 0, 0)) {
     return 0;
   }
-  else if (rc->image_id_ptr.data) {
+  if (rc->image_id_ptr.data) {
     /* extra check, pointer must be to an ID */
     if (!RNA_struct_is_ID(rc->image_id_ptr.type)) {
       BKE_report(op->reports, RPT_ERROR, "Pointer from path image_id is not an ID");
@@ -2841,171 +2830,169 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
     radial_control_update_header(op, C);
     return OPERATOR_RUNNING_MODAL;
   }
-  else {
-    handled = false;
-    switch (event->type) {
-      case EVT_ESCKEY:
-      case RIGHTMOUSE:
-        /* canceled; restore original value */
-        radial_control_set_value(rc, rc->initial_value);
-        ret = OPERATOR_CANCELLED;
-        break;
 
-      case LEFTMOUSE:
-      case EVT_PADENTER:
-      case EVT_RETKEY:
-        /* done; value already set */
-        RNA_property_update(C, &rc->ptr, rc->prop);
-        ret = OPERATOR_FINISHED;
-        break;
+  handled = false;
+  switch (event->type) {
+    case EVT_ESCKEY:
+    case RIGHTMOUSE:
+      /* canceled; restore original value */
+      radial_control_set_value(rc, rc->initial_value);
+      ret = OPERATOR_CANCELLED;
+      break;
 
-      case MOUSEMOVE:
-        if (!has_numInput) {
-          if (rc->slow_mode) {
-            if (rc->subtype == PROP_ANGLE) {
-              float position[2] = {event->x, event->y};
+    case LEFTMOUSE:
+    case EVT_PADENTER:
+    case EVT_RETKEY:
+      /* done; value already set */
+      RNA_property_update(C, &rc->ptr, rc->prop);
+      ret = OPERATOR_FINISHED;
+      break;
 
-              /* calculate the initial angle here first */
-              delta[0] = rc->initial_mouse[0] - rc->slow_mouse[0];
-              delta[1] = rc->initial_mouse[1] - rc->slow_mouse[1];
+    case MOUSEMOVE:
+      if (!has_numInput) {
+        if (rc->slow_mode) {
+          if (rc->subtype == PROP_ANGLE) {
+            float position[2] = {event->x, event->y};
 
-              /* precision angle gets calculated from dial and gets added later */
-              angle_precision = -0.1f * BLI_dial_angle(rc->dial, position);
-            }
-            else {
-              delta[0] = rc->initial_mouse[0] - rc->slow_mouse[0];
-              delta[1] = 0.0f;
+            /* calculate the initial angle here first */
+            delta[0] = rc->initial_mouse[0] - rc->slow_mouse[0];
+            delta[1] = rc->initial_mouse[1] - rc->slow_mouse[1];
 
-              if (rc->zoom_prop) {
-                RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
-                delta[0] /= zoom[0];
-              }
-
-              dist = len_v2(delta);
-
-              delta[0] = event->x - rc->slow_mouse[0];
-
-              if (rc->zoom_prop) {
-                delta[0] /= zoom[0];
-              }
-
-              dist = dist + 0.1f * (delta[0]);
-            }
+            /* precision angle gets calculated from dial and gets added later */
+            angle_precision = -0.1f * BLI_dial_angle(rc->dial, position);
           }
           else {
-            delta[0] = rc->initial_mouse[0] - event->x;
-            delta[1] = rc->initial_mouse[1] - event->y;
+            delta[0] = rc->initial_mouse[0] - rc->slow_mouse[0];
+            delta[1] = 0.0f;
+
             if (rc->zoom_prop) {
               RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
               delta[0] /= zoom[0];
-              delta[1] /= zoom[1];
             }
-            if (rc->subtype == PROP_ANGLE) {
-              dist = len_v2(delta);
-            }
-            else {
-              dist = clamp_f(-delta[0], 0.0f, FLT_MAX);
-            }
-          }
 
-          /* calculate new value and apply snapping  */
-          switch (rc->subtype) {
-            case PROP_NONE:
-            case PROP_DISTANCE:
-            case PROP_PIXEL:
-              new_value = dist;
-              if (snap) {
-                new_value = ((int)new_value + 5) / 10 * 10;
-              }
-              break;
-            case PROP_PERCENTAGE:
-              new_value = ((dist - WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE) /
-                           WM_RADIAL_CONTROL_DISPLAY_WIDTH) *
-                          100.0f;
-              if (snap) {
-                new_value = ((int)(new_value + 2.5f)) / 5 * 5;
-              }
-              break;
-            case PROP_FACTOR:
-              new_value = (WM_RADIAL_CONTROL_DISPLAY_SIZE - dist) /
-                          WM_RADIAL_CONTROL_DISPLAY_WIDTH;
-              if (snap) {
-                new_value = ((int)ceil(new_value * 10.f) * 10.0f) / 100.f;
-              }
-              /* Invert new value to increase the factor moving the mouse to the right */
-              new_value = 1 - new_value;
-              break;
-            case PROP_ANGLE:
-              new_value = atan2f(delta[1], delta[0]) + (float)M_PI + angle_precision;
-              new_value = fmod(new_value, 2.0f * (float)M_PI);
-              if (new_value < 0.0f) {
-                new_value += 2.0f * (float)M_PI;
-              }
-              if (snap) {
-                new_value = DEG2RADF(((int)RAD2DEGF(new_value) + 5) / 10 * 10);
-              }
-              break;
-            default:
-              new_value = dist; /* dummy value, should this ever happen? - campbell */
-              break;
-          }
+            dist = len_v2(delta);
 
-          /* clamp and update */
-          CLAMP(new_value, rc->min_value, rc->max_value);
-          radial_control_set_value(rc, new_value);
-          rc->current_value = new_value;
-          handled = true;
-          break;
+            delta[0] = event->x - rc->slow_mouse[0];
+
+            if (rc->zoom_prop) {
+              delta[0] /= zoom[0];
+            }
+
+            dist = dist + 0.1f * (delta[0]);
+          }
         }
-        break;
-
-      case EVT_LEFTSHIFTKEY:
-      case EVT_RIGHTSHIFTKEY: {
-        if (event->val == KM_PRESS) {
-          rc->slow_mouse[0] = event->x;
-          rc->slow_mouse[1] = event->y;
-          rc->slow_mode = true;
+        else {
+          delta[0] = rc->initial_mouse[0] - event->x;
+          delta[1] = rc->initial_mouse[1] - event->y;
+          if (rc->zoom_prop) {
+            RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
+            delta[0] /= zoom[0];
+            delta[1] /= zoom[1];
+          }
           if (rc->subtype == PROP_ANGLE) {
-            float initial_position[2] = {UNPACK2(rc->initial_mouse)};
-            float current_position[2] = {UNPACK2(rc->slow_mouse)};
-            rc->dial = BLI_dial_init(initial_position, 0.0f);
-            /* immediately set the position to get a an initial direction */
-            BLI_dial_angle(rc->dial, current_position);
+            dist = len_v2(delta);
           }
-          handled = true;
-        }
-        if (event->val == KM_RELEASE) {
-          rc->slow_mode = false;
-          handled = true;
-          if (rc->dial) {
-            MEM_freeN(rc->dial);
-            rc->dial = NULL;
+          else {
+            dist = clamp_f(-delta[0], 0.0f, FLT_MAX);
           }
         }
+
+        /* calculate new value and apply snapping  */
+        switch (rc->subtype) {
+          case PROP_NONE:
+          case PROP_DISTANCE:
+          case PROP_PIXEL:
+            new_value = dist;
+            if (snap) {
+              new_value = ((int)new_value + 5) / 10 * 10;
+            }
+            break;
+          case PROP_PERCENTAGE:
+            new_value = ((dist - WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE) /
+                         WM_RADIAL_CONTROL_DISPLAY_WIDTH) *
+                        100.0f;
+            if (snap) {
+              new_value = ((int)(new_value + 2.5f)) / 5 * 5;
+            }
+            break;
+          case PROP_FACTOR:
+            new_value = (WM_RADIAL_CONTROL_DISPLAY_SIZE - dist) / WM_RADIAL_CONTROL_DISPLAY_WIDTH;
+            if (snap) {
+              new_value = ((int)ceil(new_value * 10.f) * 10.0f) / 100.f;
+            }
+            /* Invert new value to increase the factor moving the mouse to the right */
+            new_value = 1 - new_value;
+            break;
+          case PROP_ANGLE:
+            new_value = atan2f(delta[1], delta[0]) + (float)M_PI + angle_precision;
+            new_value = fmod(new_value, 2.0f * (float)M_PI);
+            if (new_value < 0.0f) {
+              new_value += 2.0f * (float)M_PI;
+            }
+            if (snap) {
+              new_value = DEG2RADF(((int)RAD2DEGF(new_value) + 5) / 10 * 10);
+            }
+            break;
+          default:
+            new_value = dist; /* dummy value, should this ever happen? - campbell */
+            break;
+        }
+
+        /* clamp and update */
+        CLAMP(new_value, rc->min_value, rc->max_value);
+        radial_control_set_value(rc, new_value);
+        rc->current_value = new_value;
+        handled = true;
         break;
       }
-    }
+      break;
 
-    /* Modal numinput inactive, try to handle numeric inputs last... */
-    if (!handled && event->val == KM_PRESS && handleNumInput(C, &rc->num_input, event)) {
-      applyNumInput(&rc->num_input, &numValue);
-
-      if (rc->subtype == PROP_ANGLE) {
-        numValue = fmod(numValue, 2.0f * (float)M_PI);
-        if (numValue < 0.0f) {
-          numValue += 2.0f * (float)M_PI;
+    case EVT_LEFTSHIFTKEY:
+    case EVT_RIGHTSHIFTKEY: {
+      if (event->val == KM_PRESS) {
+        rc->slow_mouse[0] = event->x;
+        rc->slow_mouse[1] = event->y;
+        rc->slow_mode = true;
+        if (rc->subtype == PROP_ANGLE) {
+          float initial_position[2] = {UNPACK2(rc->initial_mouse)};
+          float current_position[2] = {UNPACK2(rc->slow_mouse)};
+          rc->dial = BLI_dial_init(initial_position, 0.0f);
+          /* immediately set the position to get a an initial direction */
+          BLI_dial_angle(rc->dial, current_position);
+        }
+        handled = true;
+      }
+      if (event->val == KM_RELEASE) {
+        rc->slow_mode = false;
+        handled = true;
+        if (rc->dial) {
+          MEM_freeN(rc->dial);
+          rc->dial = NULL;
         }
       }
-
-      CLAMP(numValue, rc->min_value, rc->max_value);
-      new_value = numValue;
-
-      radial_control_set_value(rc, new_value);
-
-      rc->current_value = new_value;
-      radial_control_update_header(op, C);
-      return OPERATOR_RUNNING_MODAL;
+      break;
     }
+  }
+
+  /* Modal numinput inactive, try to handle numeric inputs last... */
+  if (!handled && event->val == KM_PRESS && handleNumInput(C, &rc->num_input, event)) {
+    applyNumInput(&rc->num_input, &numValue);
+
+    if (rc->subtype == PROP_ANGLE) {
+      numValue = fmod(numValue, 2.0f * (float)M_PI);
+      if (numValue < 0.0f) {
+        numValue += 2.0f * (float)M_PI;
+      }
+    }
+
+    CLAMP(numValue, rc->min_value, rc->max_value);
+    new_value = numValue;
+
+    radial_control_set_value(rc, new_value);
+
+    rc->current_value = new_value;
+    radial_control_update_header(op, C);
+    return OPERATOR_RUNNING_MODAL;
   }
 
   ED_region_tag_redraw(CTX_wm_region(C));

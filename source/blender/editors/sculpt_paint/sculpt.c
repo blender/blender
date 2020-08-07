@@ -581,7 +581,8 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(SculptSession *ss
           p1 = vert_map->indices[i];
           break;
         }
-        else if (p2 == -1) {
+
+        if (p2 == -1) {
           p2 = vert_map->indices[i];
           break;
         }

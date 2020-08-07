@@ -72,7 +72,7 @@ size_t BLI_split_name_num(char *left, int *nr, const char *name, const char deli
         }
         return a;
       }
-      else if (isdigit(name[a]) == 0) {
+      if (isdigit(name[a]) == 0) {
         /* non-numeric suffix - give up */
         break;
       }

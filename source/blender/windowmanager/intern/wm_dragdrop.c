@@ -296,7 +296,7 @@ void WM_drag_add_ID(wmDrag *drag, ID *id, ID *from_parent)
       }
       return;
     }
-    else if (GS(drag_id->id->name) != GS(id->name)) {
+    if (GS(drag_id->id->name) != GS(id->name)) {
       BLI_assert(!"All dragged IDs must have the same type");
       return;
     }
@@ -355,7 +355,7 @@ static const char *wm_drag_name(wmDrag *drag)
       if (single) {
         return id->name + 2;
       }
-      else if (id) {
+      if (id) {
         return BKE_idtype_idcode_to_name_plural(GS(id->name));
       }
       break;

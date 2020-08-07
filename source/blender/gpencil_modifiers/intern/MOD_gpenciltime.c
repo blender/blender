@@ -169,7 +169,7 @@ static int remapTime(struct GpencilModifierData *md,
       const int delta = abs(sfra - nfra);
       return efra - delta + 1;
     }
-    else if (cfra + offset > efra) {
+    if (cfra + offset > efra) {
       return nfra - efra + sfra - 1;
     }
   }

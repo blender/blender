@@ -60,10 +60,9 @@ bool BLI_lasso_is_point_inside(const int mcoords[][2],
   if (sx == error_value || mcoords_len == 0) {
     return false;
   }
-  else {
-    int pt[2] = {sx, sy};
-    return isect_point_poly_v2_int(pt, mcoords, mcoords_len, true);
-  }
+
+  int pt[2] = {sx, sy};
+  return isect_point_poly_v2_int(pt, mcoords, mcoords_len, true);
 }
 
 /* edge version for lasso select. we assume boundbox check was done */

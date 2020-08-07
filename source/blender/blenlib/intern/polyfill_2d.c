@@ -177,12 +177,11 @@ BLI_INLINE eSign signum_enum(float a)
   if (UNLIKELY(a == 0.0f)) {
     return 0;
   }
-  else if (a > 0.0f) {
+  if (a > 0.0f) {
     return 1;
   }
-  else {
-    return -1;
-  }
+
+  return -1;
 }
 
 /**
@@ -250,7 +249,7 @@ static uint kdtree2d_balance_recursive(
   if (totnode <= 0) {
     return KDNODE_UNSET;
   }
-  else if (totnode == 1) {
+  if (totnode == 1) {
     return 0 + ofs;
   }
 
@@ -330,9 +329,8 @@ static void kdtree2d_node_remove(struct KDTree2D *tree, uint index)
   if (node_index == KDNODE_UNSET) {
     return;
   }
-  else {
-    tree->nodes_map[index] = KDNODE_UNSET;
-  }
+
+  tree->nodes_map[index] = KDNODE_UNSET;
 
   node = &tree->nodes[node_index];
   tree->totnode -= 1;

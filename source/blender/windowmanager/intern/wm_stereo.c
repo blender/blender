@@ -353,12 +353,11 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_WINDOW, NULL);
     return OPERATOR_FINISHED;
   }
-  else {
-    /* without this, the popup won't be freed freed properly T44688 */
-    CTX_wm_window_set(C, win_src);
-    win_src->stereo3d_format->display_mode = prev_display_mode;
-    return OPERATOR_CANCELLED;
-  }
+
+  /* without this, the popup won't be freed freed properly T44688 */
+  CTX_wm_window_set(C, win_src);
+  win_src->stereo3d_format->display_mode = prev_display_mode;
+  return OPERATOR_CANCELLED;
 }
 
 int wm_stereo3d_set_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
@@ -368,9 +367,7 @@ int wm_stereo3d_set_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(ev
   if (wm_stereo3d_set_properties(C, op)) {
     return wm_stereo3d_set_exec(C, op);
   }
-  else {
-    return WM_operator_props_dialog_popup(C, op, 250);
-  }
+  return WM_operator_props_dialog_popup(C, op, 250);
 }
 
 void wm_stereo3d_set_draw(bContext *UNUSED(C), wmOperator *op)

@@ -72,18 +72,16 @@ float BLI_easing_bounce_ease_out(float time, float begin, float change, float du
   if (time < (1 / 2.75f)) {
     return change * (7.5625f * time * time) + begin;
   }
-  else if (time < (2 / 2.75f)) {
+  if (time < (2 / 2.75f)) {
     time -= (1.5f / 2.75f);
     return change * ((7.5625f * time) * time + 0.75f) + begin;
   }
-  else if (time < (2.5f / 2.75f)) {
+  if (time < (2.5f / 2.75f)) {
     time -= (2.25f / 2.75f);
     return change * ((7.5625f * time) * time + 0.9375f) + begin;
   }
-  else {
-    time -= (2.625f / 2.75f);
-    return change * ((7.5625f * time) * time + 0.984375f) + begin;
-  }
+  time -= (2.625f / 2.75f);
+  return change * ((7.5625f * time) * time + 0.984375f) + begin;
 }
 
 float BLI_easing_bounce_ease_in(float time, float begin, float change, float duration)
@@ -96,10 +94,8 @@ float BLI_easing_bounce_ease_in_out(float time, float begin, float change, float
   if (time < duration / 2) {
     return BLI_easing_bounce_ease_in(time * 2, 0, change, duration) * 0.5f + begin;
   }
-  else {
-    return BLI_easing_bounce_ease_out(time * 2 - duration, 0, change, duration) * 0.5f +
-           change * 0.5f + begin;
-  }
+  return BLI_easing_bounce_ease_out(time * 2 - duration, 0, change, duration) * 0.5f +
+         change * 0.5f + begin;
 }
 
 float BLI_easing_circ_ease_in(float time, float begin, float change, float duration)
@@ -271,13 +267,12 @@ float BLI_easing_elastic_ease_in_out(
                  sinf((time * duration - s) * (2 * (float)M_PI) / period))) +
            begin;
   }
-  else {
-    time = -time;
-    f *= 0.5f;
-    return (f * (amplitude * powf(2, 10 * time) *
-                 sinf((time * duration - s) * (2 * (float)M_PI) / period))) +
-           change + begin;
-  }
+
+  time = -time;
+  f *= 0.5f;
+  return (f * (amplitude * powf(2, 10 * time) *
+               sinf((time * duration - s) * (2 * (float)M_PI) / period))) +
+         change + begin;
 }
 
 static const float pow_min = 0.0009765625f; /* = 2^(-10) */
@@ -306,10 +301,8 @@ float BLI_easing_expo_ease_in_out(float time, float begin, float change, float d
   if (time <= duration_half) {
     return BLI_easing_expo_ease_in(time, begin, change_half, duration_half);
   }
-  else {
-    return BLI_easing_expo_ease_out(
-        time - duration_half, begin + change_half, change_half, duration_half);
-  }
+  return BLI_easing_expo_ease_out(
+      time - duration_half, begin + change_half, change_half, duration_half);
 }
 
 float BLI_easing_linear_ease(float time, float begin, float change, float duration)

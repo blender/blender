@@ -452,9 +452,7 @@ bool wm_gizmo_select_and_highlight(bContext *C, wmGizmoMap *gzmap, wmGizmo *gz)
     wm_gizmomap_highlight_set(gzmap, C, gz, gz->highlight_part);
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /**

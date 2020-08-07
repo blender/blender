@@ -316,27 +316,25 @@ static int draw_poly_v2i_n__span_y_sort(const void *a_p, const void *b_p, void *
   if (co_a[1] < co_b[1]) {
     return -1;
   }
-  else if (co_a[1] > co_b[1]) {
+  if (co_a[1] > co_b[1]) {
     return 1;
   }
-  else if (co_a[0] < co_b[0]) {
+  if (co_a[0] < co_b[0]) {
     return -1;
   }
-  else if (co_a[0] > co_b[0]) {
+  if (co_a[0] > co_b[0]) {
     return 1;
   }
-  else {
-    /* co_a & co_b are identical, use the line closest to the x-min */
-    const int *co = co_a;
-    co_a = verts[a[1]];
-    co_b = verts[b[1]];
-    int ord = (((co_b[0] - co[0]) * (co_a[1] - co[1])) - ((co_a[0] - co[0]) * (co_b[1] - co[1])));
-    if (ord > 0) {
-      return -1;
-    }
-    if (ord < 0) {
-      return 1;
-    }
+  /* co_a & co_b are identical, use the line closest to the x-min */
+  const int *co = co_a;
+  co_a = verts[a[1]];
+  co_b = verts[b[1]];
+  int ord = (((co_b[0] - co[0]) * (co_a[1] - co[1])) - ((co_a[0] - co[0]) * (co_b[1] - co[1])));
+  if (ord > 0) {
+    return -1;
+  }
+  if (ord < 0) {
+    return 1;
   }
   return 0;
 }

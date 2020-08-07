@@ -215,11 +215,9 @@ int BLI_utf8_invalid_strip(char *str, size_t length)
       tot++;
       break;
     }
-    else {
-      /* strip, keep looking */
-      memmove(str, str + 1, length + 1); /* +1 for NULL char! */
-      tot++;
-    }
+    /* strip, keep looking */
+    memmove(str, str + 1, length + 1); /* +1 for NULL char! */
+    tot++;
   }
 
   return tot;

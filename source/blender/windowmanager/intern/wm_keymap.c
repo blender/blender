@@ -321,9 +321,7 @@ bool WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf)
 
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 void WM_keyconfig_clear(wmKeyConfig *keyconf)
@@ -448,9 +446,7 @@ bool WM_keymap_remove(wmKeyConfig *keyconf, wmKeyMap *keymap)
 
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 bool WM_keymap_poll(bContext *C, wmKeyMap *keymap)
@@ -551,9 +547,7 @@ bool WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi)
     WM_keyconfig_update_tag(keymap, NULL);
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /** \} */
@@ -1122,7 +1116,7 @@ const char *WM_key_event_string(const short type, const bool compact)
         if (platform == MACOS) {
           return key_event_glyph_or_text(font_id, IFACE_("Cmd"), "\xe2\x8c\x98");
         }
-        else if (platform == MSWIN) {
+        if (platform == MSWIN) {
           return key_event_glyph_or_text(font_id, IFACE_("Win"), "\xe2\x9d\x96");
         }
         return IFACE_("OS");

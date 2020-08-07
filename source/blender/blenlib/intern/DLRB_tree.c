@@ -299,9 +299,7 @@ static DLRBT_Node *get_grandparent(DLRBT_Node *node)
   if (node && node->parent) {
     return node->parent->parent;
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 /* get the sibling node (e.g. if node is left child of parent, return right child of parent) */
@@ -311,9 +309,7 @@ static DLRBT_Node *get_sibling(DLRBT_Node *node)
     if (node == node->parent->left) {
       return node->parent->right;
     }
-    else {
-      return node->parent->left;
-    }
+    return node->parent->left;
   }
 
   /* sibling not found */

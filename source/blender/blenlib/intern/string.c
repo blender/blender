@@ -394,9 +394,7 @@ char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict 
       if (LIKELY(*(endMatch - 1) != '\\')) {
         break;
       }
-      else {
-        endMatch++;
-      }
+      endMatch++;
     }
 
     if (endMatch) {
@@ -470,11 +468,9 @@ char *BLI_str_replaceN(const char *__restrict str,
 
     return str_new;
   }
-  else {
-    /* Just create a new copy of the entire string - we avoid going through the assembly buffer
-     * for what should be a bit more efficiency. */
-    return BLI_strdup(str);
-  }
+  /* Just create a new copy of the entire string - we avoid going through the assembly buffer
+   * for what should be a bit more efficiency. */
+  return BLI_strdup(str);
 }
 
 /**
@@ -574,10 +570,10 @@ int BLI_strcasecmp(const char *s1, const char *s2)
     if (c1 < c2) {
       return -1;
     }
-    else if (c1 > c2) {
+    if (c1 > c2) {
       return 1;
     }
-    else if (c1 == 0) {
+    if (c1 == 0) {
       break;
     }
   }
@@ -597,10 +593,10 @@ int BLI_strncasecmp(const char *s1, const char *s2, size_t len)
     if (c1 < c2) {
       return -1;
     }
-    else if (c1 > c2) {
+    if (c1 > c2) {
       return 1;
     }
-    else if (c1 == 0) {
+    if (c1 == 0) {
       break;
     }
   }
@@ -627,15 +623,13 @@ static int left_number_strcmp(const char *s1, const char *s2, int *tiebreaker)
     if (isdigit(*(p1 + numdigit)) && isdigit(*(p2 + numdigit))) {
       continue;
     }
-    else if (isdigit(*(p1 + numdigit))) {
+    if (isdigit(*(p1 + numdigit))) {
       return 1; /* s2 is bigger */
     }
-    else if (isdigit(*(p2 + numdigit))) {
+    if (isdigit(*(p2 + numdigit))) {
       return -1; /* s1 is bigger */
     }
-    else {
-      break;
-    }
+    break;
   }
 
   /* same number of digits, compare size of number */
@@ -759,14 +753,14 @@ int BLI_strcmp_ignore_pad(const char *str1, const char *str2, const char pad)
   if (str1_len == str2_len) {
     return strncmp(str1, str2, str2_len);
   }
-  else if (str1_len > str2_len) {
+  if (str1_len > str2_len) {
     int ret = strncmp(str1, str2, str2_len);
     if (ret == 0) {
       ret = 1;
     }
     return ret;
   }
-  else {
+  {
     int ret = strncmp(str1, str2, str1_len);
     if (ret == 0) {
       ret = -1;

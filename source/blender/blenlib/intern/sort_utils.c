@@ -44,12 +44,11 @@ int BLI_sortutil_cmp_float(const void *a_, const void *b_)
   if (a->sort_value > b->sort_value) {
     return 1;
   }
-  else if (a->sort_value < b->sort_value) {
+  if (a->sort_value < b->sort_value) {
     return -1;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 int BLI_sortutil_cmp_float_reverse(const void *a_, const void *b_)
@@ -59,12 +58,11 @@ int BLI_sortutil_cmp_float_reverse(const void *a_, const void *b_)
   if (a->sort_value < b->sort_value) {
     return 1;
   }
-  else if (a->sort_value > b->sort_value) {
+  if (a->sort_value > b->sort_value) {
     return -1;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 int BLI_sortutil_cmp_int(const void *a_, const void *b_)
@@ -74,12 +72,11 @@ int BLI_sortutil_cmp_int(const void *a_, const void *b_)
   if (a->sort_value > b->sort_value) {
     return 1;
   }
-  else if (a->sort_value < b->sort_value) {
+  if (a->sort_value < b->sort_value) {
     return -1;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 int BLI_sortutil_cmp_int_reverse(const void *a_, const void *b_)
@@ -89,12 +86,11 @@ int BLI_sortutil_cmp_int_reverse(const void *a_, const void *b_)
   if (a->sort_value < b->sort_value) {
     return 1;
   }
-  else if (a->sort_value > b->sort_value) {
+  if (a->sort_value > b->sort_value) {
     return -1;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 int BLI_sortutil_cmp_ptr(const void *a_, const void *b_)
@@ -104,12 +100,11 @@ int BLI_sortutil_cmp_ptr(const void *a_, const void *b_)
   if (a->sort_value > b->sort_value) {
     return 1;
   }
-  else if (a->sort_value < b->sort_value) {
+  if (a->sort_value < b->sort_value) {
     return -1;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 int BLI_sortutil_cmp_ptr_reverse(const void *a_, const void *b_)
@@ -119,10 +114,9 @@ int BLI_sortutil_cmp_ptr_reverse(const void *a_, const void *b_)
   if (a->sort_value < b->sort_value) {
     return 1;
   }
-  else if (a->sort_value > b->sort_value) {
+  if (a->sort_value > b->sort_value) {
     return -1;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }

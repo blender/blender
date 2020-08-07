@@ -216,7 +216,7 @@ static int box_areasort(const void *p1, const void *p2)
   if (a1 < a2) {
     return 1;
   }
-  else if (a1 > a2) {
+  if (a1 > a2) {
     return -1;
   }
   return 0;
@@ -246,10 +246,10 @@ static int vertex_sort(const void *p1, const void *p2, void *vs_ctx_p)
   if (UNLIKELY(v1->free == 0 && v2->free == 0)) {
     return 0;
   }
-  else if (UNLIKELY(v1->free == 0)) {
+  if (UNLIKELY(v1->free == 0)) {
     return 1;
   }
-  else if (UNLIKELY(v2->free == 0)) {
+  if (UNLIKELY(v2->free == 0)) {
     return -1;
   }
 #endif
@@ -266,7 +266,7 @@ static int vertex_sort(const void *p1, const void *p2, void *vs_ctx_p)
   if (a1 > a2) {
     return 1;
   }
-  else if (a1 < a2) {
+  if (a1 < a2) {
     return -1;
   }
   return 0;

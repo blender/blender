@@ -600,19 +600,19 @@ static int site_lexicographic_cmp(const void *a, const void *b)
   if (co1[0] < co2[0]) {
     return -1;
   }
-  else if (co1[0] > co2[0]) {
+  if (co1[0] > co2[0]) {
     return 1;
   }
-  else if (co1[1] < co2[1]) {
+  if (co1[1] < co2[1]) {
     return -1;
   }
-  else if (co1[1] > co2[1]) {
+  if (co1[1] > co2[1]) {
     return 1;
   }
-  else if (s1->orig_index < s2->orig_index) {
+  if (s1->orig_index < s2->orig_index) {
     return -1;
   }
-  else if (s1->orig_index > s2->orig_index) {
+  if (s1->orig_index > s2->orig_index) {
     return 1;
   }
   return 0;
@@ -974,7 +974,7 @@ static void initial_triangulation(CDT_state *cdt)
       if (jco[0] > xend) {
         break; /* No more j's to process. */
       }
-      else if (jco[1] > yend) {
+      if (jco[1] > yend) {
         /* Get past any string of v's with the same x and too-big y. */
         xcur = jco[0];
         while (++j < n) {
@@ -1414,7 +1414,7 @@ static bool get_next_crossing_from_vert(CDT_state *cdt,
       ok = true;
       break;
     }
-    else if (t->face != cdt->outer_face) {
+    if (t->face != cdt->outer_face) {
       orient2 = orient2d(vcur->co, vb->co, v2->co);
 #ifdef DEBUG_CDT
       if (dbg_level > 1) {
@@ -1683,14 +1683,12 @@ static void add_edge_constraint(
             (cd_prev->lambda != 0.0 && cd_prev->in->vert != v && cd_prev->in->next->vert != v)) {
           break;
         }
-        else {
-          cd_prev->lambda = -1.0; /* Mark cd_prev as 'deleted'. */
+        cd_prev->lambda = -1.0; /* Mark cd_prev as 'deleted'. */
 #ifdef DEBUG_CDT
-          if (dbg_level > 0) {
-            fprintf(stderr, "deleted crossing %d\n", j);
-          }
-#endif
+        if (dbg_level > 0) {
+          fprintf(stderr, "deleted crossing %d\n", j);
         }
+#endif
       }
       if (j < i - 1) {
         /* Some crossings were deleted. Fix the in and out edges across gap. */
@@ -2002,19 +2000,19 @@ static int evl_cmp(const void *a, const void *b)
   if (area->e_id < sb->e_id) {
     return -1;
   }
-  else if (area->e_id > sb->e_id) {
+  if (area->e_id > sb->e_id) {
     return 1;
   }
-  else if (area->lambda < sb->lambda) {
+  if (area->lambda < sb->lambda) {
     return -1;
   }
-  else if (area->lambda > sb->lambda) {
+  if (area->lambda > sb->lambda) {
     return 1;
   }
-  else if (area->v_id < sb->v_id) {
+  if (area->v_id < sb->v_id) {
     return -1;
   }
-  else if (area->v_id > sb->v_id) {
+  if (area->v_id > sb->v_id) {
     return 1;
   }
   return 0;
@@ -2386,9 +2384,7 @@ static const CDT_input *modify_input_for_near_edge_ends(const CDT_input *input, 
   if (new_input != NULL) {
     return (const CDT_input *)new_input;
   }
-  else {
-    return input;
-  }
+  return input;
 }
 
 static void free_modified_input(CDT_input *input)
@@ -2745,7 +2741,7 @@ static int edge_to_sort_cmp(const void *a, const void *b)
   if (e1->len_squared > e2->len_squared) {
     return -1;
   }
-  else if (e1->len_squared < e2->len_squared) {
+  if (e1->len_squared < e2->len_squared) {
     return 1;
   }
   return 0;
@@ -4570,17 +4566,13 @@ static double orient2d(const double *pa, const double *pb, const double *pc)
     if (detright <= 0.0) {
       return det;
     }
-    else {
-      detsum = detleft + detright;
-    }
+    detsum = detleft + detright;
   }
   else if (detleft < 0.0) {
     if (detright >= 0.0) {
       return det;
     }
-    else {
-      detsum = -detleft - detright;
-    }
+    detsum = -detleft - detright;
   }
   else {
     return det;

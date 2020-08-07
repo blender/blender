@@ -263,11 +263,10 @@ bool WM_gizmomap_minmax(const wmGizmoMap *gzmap,
     }
     return i != 0;
   }
-  else {
-    bool ok = false;
-    BLI_assert(!"TODO");
-    return ok;
-  }
+
+  bool ok = false;
+  BLI_assert(!"TODO");
+  return ok;
 }
 
 /**
@@ -647,10 +646,9 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
     }
     return hit_found;
   }
-  else {
-    const uint *hit_near = GPU_select_buffer_near(buffer, hits);
-    return hit_near ? hit_near[3] : -1;
-  }
+
+  const uint *hit_near = GPU_select_buffer_near(buffer, hits);
+  return hit_near ? hit_near[3] : -1;
 }
 
 /**

@@ -355,9 +355,7 @@ static bool bchunk_data_compare(const BChunk *chunk,
   if (offset + (size_t)chunk->data_len <= data_base_len) {
     return (memcmp(&data_base[offset], chunk->data, chunk->data_len) == 0);
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /** \} */
@@ -893,20 +891,18 @@ static hash_key key_from_chunk_ref(const BArrayInfo *info,
 #  endif
     return key;
   }
-  else {
-    /* corner case - we're too small, calculate the key each time. */
+  /* corner case - we're too small, calculate the key each time. */
 
-    hash_array_from_cref(info, cref, info->accum_read_ahead_bytes, hash_store);
-    hash_accum_single(hash_store, hash_store_len, info->accum_steps);
-    hash_key key = hash_store[0];
+  hash_array_from_cref(info, cref, info->accum_read_ahead_bytes, hash_store);
+  hash_accum_single(hash_store, hash_store_len, info->accum_steps);
+  hash_key key = hash_store[0];
 
 #  ifdef USE_HASH_TABLE_KEY_CACHE
-    if (UNLIKELY(key == HASH_TABLE_KEY_UNSET)) {
-      key = HASH_TABLE_KEY_FALLBACK;
-    }
-#  endif
-    return key;
+  if (UNLIKELY(key == HASH_TABLE_KEY_UNSET)) {
+    key = HASH_TABLE_KEY_FALLBACK;
   }
+#  endif
+  return key;
 }
 
 static const BChunkRef *table_lookup(const BArrayInfo *info,
@@ -1083,9 +1079,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
       if (cref == cref_match_first) {
         break;
       }
-      else {
-        cref = cref->next;
-      }
+      cref = cref->next;
     }
     /* happens when bytes are removed from the end of the array */
     if (chunk_size_step == data_len_original) {

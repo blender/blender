@@ -139,9 +139,8 @@ static int edge_isect_ls_sort_cb(void *thunk, const void *def_a_ptr, const void 
   if (a > b) {
     return -1;
   }
-  else {
-    return (a < b);
-  }
+
+  return (a < b);
 }
 
 static ScanFillEdge *edge_step(PolyInfo *poly_info,
