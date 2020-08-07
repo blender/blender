@@ -635,6 +635,7 @@ static void do_versions_socket_default_value_259(bNodeSocket *sock)
   }
 }
 
+/* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 {
   /* WATCH IT!!!: pointers from libdata have not been converted */

@@ -420,6 +420,7 @@ static void do_version_bbone_easing_fcurve_fix(ID *UNUSED(id),
   }
 }
 
+/* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
   if (!MAIN_VERSION_ATLEAST(bmain, 270, 0)) {

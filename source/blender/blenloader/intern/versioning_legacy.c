@@ -493,6 +493,7 @@ void blo_do_version_old_trackto_to_constraints(Object *ob)
   ob->track = NULL;
 }
 
+/* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 {
   /* WATCH IT!!!: pointers from libdata have not been converted */

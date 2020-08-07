@@ -658,6 +658,7 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int UNUSED(is_gro
   }
 }
 
+/* NOLINTNEXTLINE: readability-function-size */
 void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
   if (bmain->versionfile < 260) {
