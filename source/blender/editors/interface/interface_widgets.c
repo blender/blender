@@ -1400,7 +1400,7 @@ static void widget_draw_icon(
       alpha *= but->a2;
     }
   }
-  else if (ELEM(but->type, UI_BTYPE_BUT)) {
+  else if (ELEM(but->type, UI_BTYPE_BUT, UI_BTYPE_DECORATOR)) {
     if (but->flag & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
       alpha *= 0.5f;
     }
@@ -4552,6 +4552,7 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
         break;
 
       case UI_BTYPE_BUT:
+      case UI_BTYPE_DECORATOR:
 #ifdef USE_UI_TOOLBAR_HACK
         if ((but->icon != ICON_NONE) && UI_but_is_tool(but)) {
           wt = widget_type(UI_WTYPE_TOOLBAR_ITEM);

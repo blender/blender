@@ -2278,7 +2278,7 @@ void uiItemFullR(uiLayout *layout,
   /* property with separate label */
   else if (type == PROP_ENUM || type == PROP_STRING || type == PROP_POINTER) {
     but = ui_item_with_label(layout, block, name, icon, ptr, prop, index, 0, 0, w, h, flag);
-    ui_but_add_search(but, ptr, prop, NULL, NULL);
+    but = ui_but_add_search(but, ptr, prop, NULL, NULL);
 
     if (layout->redalert) {
       UI_but_flag_enable(but, UI_BUT_REDALERT);
@@ -2651,7 +2651,10 @@ static void ui_rna_collection_search_arg_free_fn(void *ptr)
   MEM_freeN(ptr);
 }
 
-void ui_but_add_search(
+/**
+ * \note May reallocate \a but, so the possibly new address is returned.
+ */
+uiBut *ui_but_add_search(
     uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *searchptr, PropertyRNA *searchprop)
 {
   StructRNA *ptype;
@@ -2669,11 +2672,13 @@ void ui_but_add_search(
   /* turn button into search button */
   if (searchprop) {
     uiRNACollectionSearch *coll_search = MEM_mallocN(sizeof(*coll_search), __func__);
+    uiButSearch *search_but;
 
-    but->type = UI_BTYPE_SEARCH_MENU;
+    but = ui_but_change_type(but, UI_BTYPE_SEARCH_MENU);
+    search_but = (uiButSearch *)but;
+    search_but->rnasearchpoin = *searchptr;
+    search_but->rnasearchprop = searchprop;
     but->hardmax = MAX2(but->hardmax, 256.0f);
-    but->rnasearchpoin = *searchptr;
-    but->rnasearchprop = searchprop;
     but->drawflag |= UI_BUT_ICON_LEFT | UI_BUT_TEXT_LEFT;
     if (RNA_property_is_unlink(prop)) {
       but->flag |= UI_BUT_VALUE_CLEAR;
@@ -2707,6 +2712,8 @@ void ui_but_add_search(
      * so other code might have already set but->type to search menu... */
     but->flag |= UI_BUT_DISABLED;
   }
+
+  return but;
 }
 
 void uiItemPointerR_prop(uiLayout *layout,
@@ -2939,29 +2946,28 @@ void uiItemMContents(uiLayout *layout, const char *menuname)
 void uiItemDecoratorR_prop(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index)
 {
   uiBlock *block = layout->root->block;
-  uiBut *but = NULL;
-
   uiLayout *col;
+
   UI_block_layout_set_current(block, layout);
   col = uiLayoutColumn(layout, false);
   col->space = 0;
   col->emboss = UI_EMBOSS_NONE;
 
   if (ELEM(NULL, ptr, prop) || !RNA_property_animateable(ptr, prop)) {
-    but = uiDefIconBut(block,
-                       UI_BTYPE_BUT,
-                       0,
-                       ICON_BLANK1,
-                       0,
-                       0,
-                       UI_UNIT_X,
-                       UI_UNIT_Y,
-                       NULL,
-                       0.0,
-                       0.0,
-                       0.0,
-                       0.0,
-                       "");
+    uiBut *but = uiDefIconBut(block,
+                              UI_BTYPE_DECORATOR,
+                              0,
+                              ICON_BLANK1,
+                              0,
+                              0,
+                              UI_UNIT_X,
+                              UI_UNIT_Y,
+                              NULL,
+                              0.0,
+                              0.0,
+                              0.0,
+                              0.0,
+                              "");
     but->flag |= UI_BUT_DISABLED;
     return;
   }
@@ -2971,27 +2977,28 @@ void uiItemDecoratorR_prop(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop,
 
   /* Loop for the array-case, but only do in case of an expanded array. */
   for (int i = 0; i < (is_expand ? RNA_property_array_length(ptr, prop) : 1); i++) {
-    but = uiDefIconBut(block,
-                       UI_BTYPE_BUT,
-                       0,
-                       ICON_DOT,
-                       0,
-                       0,
-                       UI_UNIT_X,
-                       UI_UNIT_Y,
-                       NULL,
-                       0.0,
-                       0.0,
-                       0.0,
-                       0.0,
-                       TIP_("Animate property"));
-    UI_but_func_set(but, ui_but_anim_decorate_cb, but, NULL);
-    but->flag |= UI_BUT_UNDO | UI_BUT_DRAG_LOCK;
+    uiButDecorator *decorator_but = (uiButDecorator *)uiDefIconBut(block,
+                                                                   UI_BTYPE_DECORATOR,
+                                                                   0,
+                                                                   ICON_DOT,
+                                                                   0,
+                                                                   0,
+                                                                   UI_UNIT_X,
+                                                                   UI_UNIT_Y,
+                                                                   NULL,
+                                                                   0.0,
+                                                                   0.0,
+                                                                   0.0,
+                                                                   0.0,
+                                                                   TIP_("Animate property"));
+
+    UI_but_func_set(&decorator_but->but, ui_but_anim_decorate_cb, decorator_but, NULL);
+    decorator_but->but.flag |= UI_BUT_UNDO | UI_BUT_DRAG_LOCK;
     /* Reusing RNA search members, setting actual RNA data has many side-effects. */
-    but->rnasearchpoin = *ptr;
-    but->rnasearchprop = prop;
+    decorator_but->rnapoin = *ptr;
+    decorator_but->rnaprop = prop;
     /* ui_def_but_rna() sets non-array buttons to have a RNA index of 0. */
-    but->custom_data = POINTER_FROM_INT((!is_array || is_expand) ? i : index);
+    decorator_but->rnaindex = (!is_array || is_expand) ? i : index;
   }
 }
 
@@ -4819,8 +4826,6 @@ void ui_layout_list_set_labels_active(uiLayout *layout)
 
 uiLayout *uiLayoutListBox(uiLayout *layout,
                           uiList *ui_list,
-                          PointerRNA *ptr,
-                          PropertyRNA *prop,
                           PointerRNA *actptr,
                           PropertyRNA *actprop)
 {
@@ -4829,8 +4834,6 @@ uiLayout *uiLayoutListBox(uiLayout *layout,
 
   but->custom_data = ui_list;
 
-  but->rnasearchpoin = *ptr;
-  but->rnasearchprop = prop;
   but->rnapoin = *actptr;
   but->rnaprop = actprop;
 
@@ -5407,6 +5410,7 @@ void ui_layout_add_but(uiLayout *layout, uiBut *but)
   else {
     BLI_addtail(&layout->items, bitem);
   }
+  but->layout = layout;
 
   if (layout->context) {
     but->context = layout->context;
@@ -5416,6 +5420,30 @@ void ui_layout_add_but(uiLayout *layout, uiBut *but)
   if (layout->emboss != UI_EMBOSS_UNDEFINED) {
     but->emboss = layout->emboss;
   }
+}
+
+bool ui_layout_replace_but_ptr(uiLayout *layout, const void *old_but_ptr, uiBut *new_but)
+{
+  ListBase *child_list = layout->child_items_layout ? &layout->child_items_layout->items :
+                                                      &layout->items;
+
+  LISTBASE_FOREACH (uiItem *, item, child_list) {
+    if (item->type == ITEM_BUTTON) {
+      uiButtonItem *bitem = (uiButtonItem *)item;
+
+      if (bitem->but == old_but_ptr) {
+        bitem->but = new_but;
+        return true;
+      }
+    }
+    else {
+      if (ui_layout_replace_but_ptr((uiLayout *)item, old_but_ptr, new_but)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 void uiLayoutSetFixedSize(uiLayout *layout, bool fixed_size)

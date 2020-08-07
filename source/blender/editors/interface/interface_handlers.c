@@ -767,11 +767,12 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
     after->rnapoin = but->rnapoin;
     after->rnaprop = but->rnaprop;
 
-    if (but->search != NULL) {
-      after->search_arg_free_fn = but->search->arg_free_fn;
-      after->search_arg = but->search->arg;
-      but->search->arg_free_fn = NULL;
-      but->search->arg = NULL;
+    if (but->type == UI_BTYPE_SEARCH_MENU) {
+      uiButSearch *search_but = (uiButSearch *)but;
+      after->search_arg_free_fn = search_but->arg_free_fn;
+      after->search_arg = search_but->arg;
+      search_but->arg_free_fn = NULL;
+      search_but->arg = NULL;
     }
 
     if (but->context) {
@@ -1047,7 +1048,18 @@ static void ui_apply_but_TEX(bContext *C, uiBut *but, uiHandleButtonData *data)
     but->rename_orig = data->origstr;
     data->origstr = NULL;
   }
+
+  void *orig_arg2 = but->func_arg2;
+
+  /* If arg2 isn't in use already, pass the active search item through it. */
+  if ((but->func_arg2 == NULL) && (but->type == UI_BTYPE_SEARCH_MENU)) {
+    uiButSearch *search_but = (uiButSearch *)but;
+    but->func_arg2 = search_but->item_active;
+  }
+
   ui_apply_but_func(C, but);
+
+  but->func_arg2 = orig_arg2;
 
   data->retval = but->retval;
   data->applied = true;
@@ -2087,6 +2099,7 @@ static void ui_apply_but(
   /* handle different types */
   switch (but->type) {
     case UI_BTYPE_BUT:
+    case UI_BTYPE_DECORATOR:
       ui_apply_but_BUT(C, but, data);
       break;
     case UI_BTYPE_TEXT:
@@ -3321,7 +3334,9 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 
   /* optional searchbox */
   if (but->type == UI_BTYPE_SEARCH_MENU) {
-    data->searchbox = but->search->create_fn(C, data->region, but);
+    uiButSearch *search_but = (uiButSearch *)but;
+
+    data->searchbox = search_but->popup_create_fn(C, data->region, search_but);
     ui_searchbox_update(C, data->searchbox, but, true); /* true = reset */
   }
 
@@ -7522,6 +7537,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 
   switch (but->type) {
     case UI_BTYPE_BUT:
+    case UI_BTYPE_DECORATOR:
       retval = ui_do_but_BUT(C, but, data, event);
       break;
     case UI_BTYPE_KEY_EVENT:
@@ -8430,7 +8446,7 @@ void UI_context_update_anim_flag(const bContext *C)
         ui_but_anim_flag(but, &anim_eval_context);
         ui_but_override_flag(CTX_data_main(C), but);
         if (UI_but_is_decorator(but)) {
-          ui_but_anim_decorate_update_from_flag(but);
+          ui_but_anim_decorate_update_from_flag((uiButDecorator *)but);
         }
 
         ED_region_tag_redraw(region);

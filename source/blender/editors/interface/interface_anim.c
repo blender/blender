@@ -120,35 +120,41 @@ void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context)
   }
 }
 
-static uiBut *ui_but_anim_decorate_find_attached_button(uiBut *but_decorate)
+static uiBut *ui_but_anim_decorate_find_attached_button(uiButDecorator *but_decorate)
 {
   uiBut *but_iter = NULL;
 
-  BLI_assert(UI_but_is_decorator(but_decorate));
-  BLI_assert(but_decorate->rnasearchpoin.data && but_decorate->rnasearchprop);
+  BLI_assert(UI_but_is_decorator(&but_decorate->but));
+  BLI_assert(but_decorate->rnapoin.data && but_decorate->rnaprop);
 
-  LISTBASE_CIRCULAR_BACKWARD_BEGIN (&but_decorate->block->buttons, but_iter, but_decorate->prev) {
-    if (but_iter != but_decorate &&
-        ui_but_rna_equals_ex(but_iter,
-                             &but_decorate->rnasearchpoin,
-                             but_decorate->rnasearchprop,
-                             POINTER_AS_INT(but_decorate->custom_data))) {
+  LISTBASE_CIRCULAR_BACKWARD_BEGIN (
+      &but_decorate->but.block->buttons, but_iter, but_decorate->but.prev) {
+    if (but_iter != (uiBut *)but_decorate &&
+        ui_but_rna_equals_ex(
+            but_iter, &but_decorate->rnapoin, but_decorate->rnaprop, but_decorate->rnaindex)) {
       return but_iter;
     }
   }
-  LISTBASE_CIRCULAR_BACKWARD_END(&but_decorate->block->buttons, but_iter, but_decorate->prev);
+  LISTBASE_CIRCULAR_BACKWARD_END(
+      &but_decorate->but.block->buttons, but_iter, but_decorate->but.prev);
 
   return NULL;
 }
 
-void ui_but_anim_decorate_update_from_flag(uiBut *but)
+void ui_but_anim_decorate_update_from_flag(uiButDecorator *decorator_but)
 {
-  const uiBut *but_anim = ui_but_anim_decorate_find_attached_button(but);
+  if (!decorator_but->rnapoin.data || !decorator_but->rnaprop) {
+    /* Nothing to do. */
+    return;
+  }
+
+  const uiBut *but_anim = ui_but_anim_decorate_find_attached_button(decorator_but);
+  uiBut *but = &decorator_but->but;
 
   if (!but_anim) {
     printf("Could not find button with matching property to decorate (%s.%s)\n",
-           RNA_struct_identifier(but->rnasearchpoin.type),
-           RNA_property_identifier(but->rnasearchprop));
+           RNA_struct_identifier(decorator_but->rnapoin.type),
+           RNA_property_identifier(decorator_but->rnaprop));
     return;
   }
 
@@ -325,7 +331,7 @@ void ui_but_anim_paste_driver(bContext *C)
 void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *UNUSED(arg_dummy))
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  uiBut *but_decorate = arg_but;
+  uiButDecorator *but_decorate = arg_but;
   uiBut *but_anim = ui_but_anim_decorate_find_attached_button(but_decorate);
 
   if (!but_anim) {
@@ -333,7 +339,7 @@ void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *UNUSED(arg_dummy)
   }
 
   /* FIXME(campbell), swapping active pointer is weak. */
-  SWAP(struct uiHandleButtonData *, but_anim->active, but_decorate->active);
+  SWAP(struct uiHandleButtonData *, but_anim->active, but_decorate->but.active);
   wm->op_undo_depth++;
 
   if (but_anim->flag & UI_BUT_DRIVEN) {
@@ -357,6 +363,6 @@ void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *UNUSED(arg_dummy)
     WM_operator_properties_free(&props_ptr);
   }
 
-  SWAP(struct uiHandleButtonData *, but_anim->active, but_decorate->active);
+  SWAP(struct uiHandleButtonData *, but_anim->active, but_decorate->but.active);
   wm->op_undo_depth--;
 }

@@ -113,7 +113,7 @@ bool UI_but_is_utf8(const uiBut *but)
 #ifdef USE_UI_POPOVER_ONCE
 bool ui_but_is_popover_once_compat(const uiBut *but)
 {
-  return ((but->type == UI_BTYPE_BUT) || ui_but_is_toggle(but));
+  return (ELEM(but->type, UI_BTYPE_BUT, UI_BTYPE_DECORATOR) || ui_but_is_toggle(but));
 }
 #endif
 
