@@ -78,3 +78,19 @@ if(WITH_CXX_GUARDEDALLOC)
   )
   blender_add_lib(bf_intern_guardedalloc_cpp "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 endif()
+
+if(WITH_GTESTS)
+  set(TEST_SRC
+    tests/guardedalloc_alignment_test.cc
+    tests/guardedalloc_overflow_test.cc
+  )
+  set(TEST_INC
+    ../../source/blender/blenlib
+  )
+  set(TEST_LIB
+    bf_intern_guardedalloc
+    bf_blenlib
+  )
+  include(GTestTesting)
+  blender_add_test_lib(bf_intern_guardedalloc_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
+endif()

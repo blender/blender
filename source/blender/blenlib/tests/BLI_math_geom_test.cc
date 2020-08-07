@@ -4,8 +4,6 @@
 
 #include "BLI_math.h"
 
-#include "stubs/bf_intern_eigen_stubs.h"
-
 TEST(math_geom, DistToLine2DSimple)
 {
   float p[2] = {5.0f, 1.0f}, a[2] = {0.0f, 0.0f}, b[2] = {2.0f, 0.0f};

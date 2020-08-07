@@ -55,8 +55,11 @@ if(WITH_GTESTS)
     intern/hierarchy_context_order_test.cc
     intern/object_identifier_test.cc
   )
+  set(TEST_INC
+    ../../blenloader
+  )
   set(TEST_LIB
-    bf_blenloader_test
+    bf_blenloader_tests
     bf_io_common
   )
   include(GTestTesting)

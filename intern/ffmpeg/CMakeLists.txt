@@ -14,31 +14,29 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2014, Blender Foundation
+# The Original Code is Copyright (C) 2020, Blender Foundation
 # All rights reserved.
 # ***** END GPL LICENSE BLOCK *****
 
-set(INC
-  .
-  ..
-
-  ${FFMPEG_INCLUDE_DIRS}
-  ${PNG_INCLUDE_DIRS}
-  ${ZLIB_INCLUDE_DIRS}
-)
-
-set(LIB
-  ${PNG_LIBRARIES}
-  ${FFMPEG_LIBRARIES}
-  ${ZLIB_LIBRARIES}
-)
-
-if(WITH_IMAGE_OPENJPEG)
-  set(LIB ${LIB} ${OPENJPEG_LIBRARIES})
+if(WITH_GTESTS)
+  set(TEST_SRC
+    tests/ffmpeg_codecs.cc
+  )
+  set(TEST_INC
+  )
+  set(TEST_INC_SYS
+    ${FFMPEG_INCLUDE_DIRS}
+    ${PNG_INCLUDE_DIRS}
+    ${ZLIB_INCLUDE_DIRS}
+  )
+  set(TEST_LIB
+    ${PNG_LIBRARIES}
+    ${FFMPEG_LIBRARIES}
+    ${ZLIB_LIBRARIES}
+  )
+  if(WITH_IMAGE_OPENJPEG)
+    set(TEST_LIB ${TEST_LIB} ${OPENJPEG_LIBRARIES})
+  endif()
+  include(GTestTesting)
+  blender_add_test_lib(bf_intern_ffmpeg_tests "${TEST_SRC}" "${TEST_INC}" "${TEST_INC_SYS}" "${TEST_LIB}")
 endif()
-
-setup_platform_linker_flags()
-link_directories(${FFMPEG_LIBPATH} ${PNG_LIBPATH} ${ZLIB_LIBPATH})
-include_directories(${INC})
-
-BLENDER_SRC_GTEST(ffmpeg "ffmpeg_codecs.cc" "${LIB}")

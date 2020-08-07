@@ -17,7 +17,8 @@
  * All rights reserved.
  */
 #include "IO_abstract_hierarchy_iterator.h"
-#include "blenloader/blendfile_loading_base_test.h"
+
+#include "tests/blendfile_loading_base_test.h"
 
 #include "BLI_math.h"
 #include "DEG_depsgraph.h"

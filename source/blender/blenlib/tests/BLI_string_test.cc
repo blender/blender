@@ -20,25 +20,6 @@ using std::string;
 using std::vector;
 
 /* -------------------------------------------------------------------- */
-/* stubs */
-
-extern "C" {
-
-int mk_wcwidth(wchar_t ucs);
-int mk_wcswidth(const wchar_t *pwcs, size_t n);
-
-int mk_wcwidth(wchar_t ucs)
-{
-  return 0;
-}
-
-int mk_wcswidth(const wchar_t *pwcs, size_t n)
-{
-  return 0;
-}
-}
-
-/* -------------------------------------------------------------------- */
 /* tests */
 
 /* BLI_str_partition */

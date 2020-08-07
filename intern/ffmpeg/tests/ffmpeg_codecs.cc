@@ -85,25 +85,25 @@ bool test_codec_audio_by_name(const char *codecname, AVSampleFormat fmt)
 
 #define str(s) #s
 #define FFMPEG_TEST_VCODEC_ID(codec, fmt) \
-  TEST(CheckCodec, codec##_##fmt) \
+  TEST(ffmpeg, codec##_##fmt) \
   { \
     EXPECT_TRUE(test_codec_video_by_codecid(codec, fmt)); \
   }
 
 #define FFMPEG_TEST_VCODEC_NAME(codec, fmt) \
-  TEST(CheckCodec, codec##_##fmt) \
+  TEST(ffmpeg, codec##_##fmt) \
   { \
     EXPECT_TRUE(test_codec_video_by_name(str(codec), fmt)); \
   }
 
 #define FFMPEG_TEST_ACODEC_ID(codec, fmt) \
-  TEST(CheckCodec, codec##_##fmt) \
+  TEST(ffmpeg, codec##_##fmt) \
   { \
     EXPECT_TRUE(test_codec_audio_by_codecid(codec, fmt)); \
   }
 
 #define FFMPEG_TEST_ACODEC_NAME(codec, fmt) \
-  TEST(CheckCodec, codec) \
+  TEST(ffmpeg, codec) \
   { \
     EXPECT_TRUE(test_codec_audio_by_name(str(codec), fmt)); \
   }

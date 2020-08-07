@@ -77,6 +77,10 @@ if(WITH_QUADRIFLOW)
   add_subdirectory(quadriflow)
 endif()
 
+if(WITH_CODEC_FFMPEG)
+  add_subdirectory(ffmpeg)
+endif()
+
 if(UNIX AND NOT APPLE)
   add_subdirectory(libc_compat)
 endif()

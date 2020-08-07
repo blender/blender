@@ -2,56 +2,15 @@
 
 #include "testing/testing.h"
 
-#include "../../../source/blender/imbuf/IMB_imbuf.h"
+#include "IMB_imbuf.h"
+
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
 #ifdef _WIN32
-#  include "../../../source/blender/blenkernel/BKE_global.h"
+#  include "BKE_global.h"
 #endif
-
-/* -------------------------------------------------------------------- */
-/* stubs */
-
-extern "C" {
-
-#if _WIN32
-Global G = {0};
-#endif
-
-const char *GHOST_getUserDir(int version, const char *versionstr);
-const char *GHOST_getSystemDir(int version, const char *versionstr);
-#ifdef __linux__
-char *zLhm65070058860608_br_find_exe(const char *default_exe);
-#endif
-
-const char *GHOST_getUserDir(int version, const char *versionstr)
-{
-  return "/home/user";
-}
-
-const char *GHOST_getSystemDir(int version, const char *versionstr)
-{
-  return "/system/path";
-}
-
-struct ImBuf;
-void IMB_freeImBuf(struct ImBuf *ibuf)
-{
-}
-struct ImBuf *IMB_dupImBuf(const ImBuf *ibuf)
-{
-  return NULL;
-}
-
-#ifdef __linux__
-char *zLhm65070058860608_br_find_exe(const char *default_exe)
-{
-  return NULL;
-}
-#endif
-}
 
 /* -------------------------------------------------------------------- */
 /* tests */

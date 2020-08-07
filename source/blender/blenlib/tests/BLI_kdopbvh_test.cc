@@ -11,8 +11,6 @@
 #include "BLI_math_vector.h"
 #include "BLI_rand.h"
 
-#include "stubs/bf_intern_eigen_stubs.h"
-
 /* -------------------------------------------------------------------- */
 /* Helper Functions */
 

@@ -126,6 +126,7 @@ static void fill_input_from_string(CDT_input *r_input, const char *spec)
   }
 }
 
+#if DO_FILE_TESTS
 static void fill_input_from_file(CDT_input *in, const char *filename)
 {
   std::FILE *fp = std::fopen(filename, "rb");
@@ -142,6 +143,7 @@ static void fill_input_from_file(CDT_input *in, const char *filename)
     printf("couldn't open file %s\n", filename);
   }
 }
+#endif
 
 static void free_spec_arrays(CDT_input *in)
 {
@@ -251,6 +253,7 @@ static bool out_face_has_input_id(const CDT_result *r, int out_face_index, int i
   return false;
 }
 
+#if DO_FILE_TESTS
 /* for debugging */
 static void dump_result(CDT_result *r)
 {
@@ -301,6 +304,7 @@ static void dump_result(CDT_result *r)
     }
   }
 }
+#endif
 
 #if DO_REGULAR_TESTS
 TEST(delaunay, Empty)
@@ -1708,8 +1712,8 @@ TEST(delaunay, random_tris_circle_b)
 #endif
 
 #if DO_FILE_TESTS
-/* For timing large examples of points only.
- * See fill_input_from_file for file format.
+/* For manually testing performance by timing a large number of points from a
+ * file. See fill_input_from_file for file format.
  */
 static void points_from_file_test(const char *filename)
 {
