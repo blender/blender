@@ -35,7 +35,6 @@ Checks:  >
   -bugprone-not-null-terminated-result,
   -bugprone-suspicious-missing-comma,
   -bugprone-parent-virtual-call,
-  -bugprone-infinite-loop,
   -bugprone-copy-constructor-init,
 
 WarningsAsErrors: '*'
