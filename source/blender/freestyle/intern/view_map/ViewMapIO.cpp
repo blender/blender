@@ -998,6 +998,7 @@ int load(istream &in, ViewMap *vm, ProgressBar *pb)
   if (fe_s) {
     bool b;
     READ(b);
+    /* NOLINTNEXTLINE: bugprone-infinite-loop */
     for (READ(fe_rle1), fe_rle2 = 0; fe_rle1 <= fe_s; fe_rle2 = fe_rle1, READ(fe_rle1)) {
       if (b) {
         for (unsigned int i = fe_rle2; i < fe_rle1; i++) {
@@ -1023,6 +1024,7 @@ int load(istream &in, ViewMap *vm, ProgressBar *pb)
   if (vv_s) {
     Nature::VertexNature nature;
     READ(nature);
+    /* NOLINTNEXTLINE: bugprone-infinite-loop */
     for (READ(vv_rle1), vv_rle2 = 0; vv_rle1 <= vv_s; vv_rle2 = vv_rle1, READ(vv_rle1)) {
       if (nature & Nature::T_VERTEX) {
         for (unsigned int i = vv_rle2; i < vv_rle1; i++) {

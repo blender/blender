@@ -87,7 +87,7 @@ char *BLI_strdupcat(const char *__restrict str1, const char *__restrict str2)
   str = MEM_mallocN(str1_len + str2_len, "strdupcat");
   s = str;
 
-  memcpy(s, str1, str1_len);
+  memcpy(s, str1, str1_len); /* NOLINT: bugprone-not-null-terminated-result */
   s += str1_len;
   memcpy(s, str2, str2_len);
 
