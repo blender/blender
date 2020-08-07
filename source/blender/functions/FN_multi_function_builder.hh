@@ -58,7 +58,8 @@ template<typename In1, typename Out1> class CustomMF_SI_SO : public MultiFunctio
   template<typename ElementFuncT> static FunctionT create_function(ElementFuncT element_fn)
   {
     return [=](IndexMask mask, VSpan<In1> in1, MutableSpan<Out1> out1) {
-      mask.foreach_index([&](int i) { new ((void *)&out1[i]) Out1(element_fn(in1[i])); });
+      mask.foreach_index(
+          [&](int i) { new (static_cast<void *>(&out1[i])) Out1(element_fn(in1[i])); });
     };
   }
 
@@ -100,7 +101,8 @@ class CustomMF_SI_SI_SO : public MultiFunction {
   template<typename ElementFuncT> static FunctionT create_function(ElementFuncT element_fn)
   {
     return [=](IndexMask mask, VSpan<In1> in1, VSpan<In2> in2, MutableSpan<Out1> out1) {
-      mask.foreach_index([&](int i) { new ((void *)&out1[i]) Out1(element_fn(in1[i], in2[i])); });
+      mask.foreach_index(
+          [&](int i) { new (static_cast<void *>(&out1[i])) Out1(element_fn(in1[i], in2[i])); });
     };
   }
 
@@ -150,8 +152,9 @@ class CustomMF_SI_SI_SI_SO : public MultiFunction {
                VSpan<In2> in2,
                VSpan<In3> in3,
                MutableSpan<Out1> out1) {
-      mask.foreach_index(
-          [&](int i) { new ((void *)&out1[i]) Out1(element_fn(in1[i], in2[i], in3[i])); });
+      mask.foreach_index([&](int i) {
+        new (static_cast<void *>(&out1[i])) Out1(element_fn(in1[i], in2[i], in3[i]));
+      });
     };
   }
 
@@ -220,7 +223,7 @@ template<typename From, typename To> class CustomMF_Convert : public MultiFuncti
     MutableSpan<To> outputs = params.uninitialized_single_output<To>(1);
 
     for (int64_t i : mask) {
-      new ((void *)&outputs[i]) To(inputs[i]);
+      new (static_cast<void *>(&outputs[i])) To(inputs[i]);
     }
   }
 };
@@ -294,7 +297,7 @@ template<typename T> class CustomMF_Constant : public MultiFunction {
     if (other2 != nullptr) {
       const CPPType &type = CPPType::get<T>();
       if (type == other2->type_) {
-        return type.is_equal((const void *)&value_, other2->value_);
+        return type.is_equal(static_cast<const void *>(&value_), other2->value_);
       }
     }
     return false;

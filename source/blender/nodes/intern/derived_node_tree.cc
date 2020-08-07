@@ -59,9 +59,10 @@ BLI_NOINLINE void DerivedNodeTree::insert_nodes_and_links_in_id_order(const Node
   /* Insert links. */
   for (const NodeRef *node_ref : tree_ref.nodes()) {
     for (const InputSocketRef *to_socket_ref : node_ref->inputs()) {
-      DInputSocket *to_socket = (DInputSocket *)sockets_map[to_socket_ref->id()];
+      DInputSocket *to_socket = static_cast<DInputSocket *>(sockets_map[to_socket_ref->id()]);
       for (const OutputSocketRef *from_socket_ref : to_socket_ref->linked_sockets()) {
-        DOutputSocket *from_socket = (DOutputSocket *)sockets_map[from_socket_ref->id()];
+        DOutputSocket *from_socket = static_cast<DOutputSocket *>(
+            sockets_map[from_socket_ref->id()]);
         to_socket->linked_sockets_.append(from_socket);
         from_socket->linked_sockets_.append(to_socket);
       }
@@ -130,7 +131,7 @@ BLI_NOINLINE void DerivedNodeTree::expand_group_node(DNode &group_node,
   const NodeRef &group_node_ref = *group_node.node_ref_;
   BLI_assert(group_node_ref.is_group_node());
 
-  bNodeTree *btree = (bNodeTree *)group_node_ref.bnode()->id;
+  bNodeTree *btree = reinterpret_cast<bNodeTree *>(group_node_ref.bnode()->id);
   if (btree == nullptr) {
     return;
   }
@@ -366,7 +367,7 @@ static dot::Cluster *get_cluster_for_parent(dot::DirectedGraph &graph,
   }
   return clusters.lookup_or_add_cb(parent, [&]() {
     dot::Cluster *parent_cluster = get_cluster_for_parent(graph, clusters, parent->parent());
-    bNodeTree *btree = (bNodeTree *)parent->node_ref().bnode()->id;
+    bNodeTree *btree = reinterpret_cast<bNodeTree *>(parent->node_ref().bnode()->id);
     dot::Cluster *new_cluster = &graph.new_cluster(parent->node_ref().name() + " / " +
                                                    StringRef(btree->id.name + 2));
     new_cluster->set_parent_cluster(parent_cluster);

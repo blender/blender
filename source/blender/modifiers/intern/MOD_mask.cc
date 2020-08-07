@@ -77,13 +77,13 @@ static void requiredDataMask(Object *UNUSED(ob),
 
 static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
 {
-  MaskModifierData *mmd = (MaskModifierData *)md;
+  MaskModifierData *mmd = reinterpret_cast<MaskModifierData *>(md);
   walk(userData, ob, &mmd->ob_arm, IDWALK_CB_NOP);
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
-  MaskModifierData *mmd = (MaskModifierData *)md;
+  MaskModifierData *mmd = reinterpret_cast<MaskModifierData *>(md);
   if (mmd->ob_arm) {
     bArmature *arm = (bArmature *)mmd->ob_arm->data;
     /* Tag relationship in depsgraph, but also on the armature. */
@@ -306,7 +306,7 @@ static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
  */
 static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  MaskModifierData *mmd = (MaskModifierData *)md;
+  MaskModifierData *mmd = reinterpret_cast<MaskModifierData *>(md);
   Object *ob = ctx->object;
   const bool invert_mask = mmd->flag & MOD_MASK_INV;
 
@@ -388,7 +388,7 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
                        ModifierData *md,
                        bool UNUSED(useRenderParams))
 {
-  MaskModifierData *mmd = (MaskModifierData *)md;
+  MaskModifierData *mmd = reinterpret_cast<MaskModifierData *>(md);
 
   /* The object type check is only needed here in case we have a placeholder
    * object assigned (because the library containing the armature is missing).

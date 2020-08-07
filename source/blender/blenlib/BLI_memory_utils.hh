@@ -84,7 +84,7 @@ template<typename T> void default_construct_n(T *ptr, int64_t n)
   int64_t current = 0;
   try {
     for (; current < n; current++) {
-      new ((void *)(ptr + current)) T;
+      new (static_cast<void *>(ptr + current)) T;
     }
   }
   catch (...) {
@@ -133,7 +133,7 @@ template<typename T> void uninitialized_copy_n(const T *src, int64_t n, T *dst)
   int64_t current = 0;
   try {
     for (; current < n; current++) {
-      new ((void *)(dst + current)) T(src[current]);
+      new (static_cast<void *>(dst + current)) T(src[current]);
     }
   }
   catch (...) {
@@ -162,7 +162,7 @@ void uninitialized_convert_n(const From *src, int64_t n, To *dst)
   int64_t current = 0;
   try {
     for (; current < n; current++) {
-      new ((void *)(dst + current)) To((To)src[current]);
+      new (static_cast<void *>(dst + current)) To((To)src[current]);
     }
   }
   catch (...) {
@@ -211,7 +211,7 @@ template<typename T> void uninitialized_move_n(T *src, int64_t n, T *dst)
   int64_t current = 0;
   try {
     for (; current < n; current++) {
-      new ((void *)(dst + current)) T(std::move(src[current]));
+      new (static_cast<void *>(dst + current)) T(std::move(src[current]));
     }
   }
   catch (...) {
@@ -298,7 +298,7 @@ template<typename T> void uninitialized_fill_n(T *dst, int64_t n, const T &value
   int64_t current = 0;
   try {
     for (; current < n; current++) {
-      new ((void *)(dst + current)) T(value);
+      new (static_cast<void *>(dst + current)) T(value);
     }
   }
   catch (...) {
@@ -332,22 +332,22 @@ template<size_t Size, size_t Alignment> class alignas(Alignment) AlignedBuffer {
  public:
   operator void *()
   {
-    return (void *)buffer_;
+    return buffer_;
   }
 
   operator const void *() const
   {
-    return (void *)buffer_;
+    return buffer_;
   }
 
   void *ptr()
   {
-    return (void *)buffer_;
+    return buffer_;
   }
 
   const void *ptr() const
   {
-    return (const void *)buffer_;
+    return buffer_;
   }
 };
 
@@ -363,42 +363,42 @@ template<typename T, int64_t Size = 1> class TypedBuffer {
  public:
   operator T *()
   {
-    return (T *)&buffer_;
+    return static_cast<T *>(buffer_.ptr());
   }
 
   operator const T *() const
   {
-    return (const T *)&buffer_;
+    return static_cast<const T *>(buffer_.ptr());
   }
 
   T &operator*()
   {
-    return *(T *)&buffer_;
+    return *static_cast<T *>(buffer_.ptr());
   }
 
   const T &operator*() const
   {
-    return *(const T *)&buffer_;
+    return *static_cast<const T *>(buffer_.ptr());
   }
 
   T *ptr()
   {
-    return (T *)&buffer_;
+    return static_cast<T *>(buffer_.ptr());
   }
 
   const T *ptr() const
   {
-    return (const T *)&buffer_;
+    return static_cast<const T *>(buffer_.ptr());
   }
 
   T &ref()
   {
-    return *(T *)&buffer_;
+    return *static_cast<T *>(buffer_.ptr());
   }
 
   const T &ref() const
   {
-    return *(const T *)&buffer_;
+    return *static_cast<const T *>(buffer_.ptr());
   }
 };
 
@@ -424,7 +424,7 @@ inline constexpr bool is_convertible_pointer_v =
  */
 inline constexpr int64_t default_inline_buffer_capacity(size_t element_size)
 {
-  return ((int64_t)element_size < 100) ? 4 : 0;
+  return (static_cast<int64_t>(element_size) < 100) ? 4 : 0;
 }
 
 }  // namespace blender

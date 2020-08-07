@@ -56,7 +56,8 @@ inline constexpr int64_t log2_floor_constexpr(const int64_t x)
 inline constexpr int64_t log2_ceil_constexpr(const int64_t x)
 {
   BLI_assert(x >= 0);
-  return (is_power_of_2_constexpr((int)x)) ? log2_floor_constexpr(x) : log2_floor_constexpr(x) + 1;
+  return (is_power_of_2_constexpr(static_cast<int>(x))) ? log2_floor_constexpr(x) :
+                                                          log2_floor_constexpr(x) + 1;
 }
 
 inline constexpr int64_t power_of_2_max_constexpr(const int64_t x)
@@ -83,14 +84,17 @@ inline constexpr int64_t ceil_division_by_fraction(const int64_t x,
                                                    const int64_t numerator,
                                                    const int64_t denominator)
 {
-  return (int64_t)ceil_division((uint64_t)x * (uint64_t)denominator, (uint64_t)numerator);
+  return static_cast<int64_t>(
+      ceil_division(static_cast<uint64_t>(x) * static_cast<uint64_t>(denominator),
+                    static_cast<uint64_t>(numerator)));
 }
 
 inline constexpr int64_t floor_multiplication_with_fraction(const int64_t x,
                                                             const int64_t numerator,
                                                             const int64_t denominator)
 {
-  return (int64_t)((uint64_t)x * (uint64_t)numerator / (uint64_t)denominator);
+  return static_cast<int64_t>((static_cast<uint64_t>(x) * static_cast<uint64_t>(numerator) /
+                               static_cast<uint64_t>(denominator)));
 }
 
 inline constexpr int64_t total_slot_amount_for_usable_slots(
@@ -130,7 +134,7 @@ class LoadFactor {
                                       int64_t *r_total_slots,
                                       int64_t *r_usable_slots) const
   {
-    BLI_assert(is_power_of_2_i((int)min_total_slots));
+    BLI_assert(is_power_of_2_i(static_cast<int>(min_total_slots)));
 
     int64_t total_slots = this->compute_total_slots(min_usable_slots, numerator_, denominator_);
     total_slots = std::max(total_slots, min_total_slots);
@@ -297,7 +301,7 @@ class HashTableStats {
     removed_amount_ = hash_table.removed_amount();
     size_per_element_ = hash_table.size_per_element();
     size_in_bytes_ = hash_table.size_in_bytes();
-    address_ = (const void *)&hash_table;
+    address_ = static_cast<const void *>(&hash_table);
 
     for (const auto &key : keys) {
       int64_t collisions = hash_table.count_collisions(key);

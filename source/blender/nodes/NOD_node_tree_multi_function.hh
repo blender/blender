@@ -126,8 +126,20 @@ class MFNetworkTreeMap {
 
   void add_try_match(const DNode &dnode, fn::MFNode &node)
   {
-    this->add_try_match(dnode.inputs(), node.inputs());
-    this->add_try_match(dnode.outputs(), node.outputs());
+    this->add_try_match(dnode.inputs().cast<const DSocket *>(),
+                        node.inputs().cast<fn::MFSocket *>());
+    this->add_try_match(dnode.outputs().cast<const DSocket *>(),
+                        node.outputs().cast<fn::MFSocket *>());
+  }
+
+  void add_try_match(Span<const DInputSocket *> dsockets, Span<fn::MFInputSocket *> sockets)
+  {
+    this->add_try_match(dsockets.cast<const DSocket *>(), sockets.cast<fn::MFSocket *>());
+  }
+
+  void add_try_match(Span<const DOutputSocket *> dsockets, Span<fn::MFOutputSocket *> sockets)
+  {
+    this->add_try_match(dsockets.cast<const DSocket *>(), sockets.cast<fn::MFSocket *>());
   }
 
   void add_try_match(Span<const DSocket *> dsockets, Span<fn::MFSocket *> sockets)
@@ -277,7 +289,7 @@ class SocketMFNetworkBuilder : public MFNetworkBuilderBase {
    */
   template<typename T> T *socket_default_value()
   {
-    return (T *)bsocket_->default_value;
+    return static_cast<T *>(bsocket_->default_value);
   }
 
   /**

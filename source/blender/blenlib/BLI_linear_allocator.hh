@@ -82,7 +82,7 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
 
     if (potential_allocation_end <= current_end_) {
       current_begin_ = potential_allocation_end;
-      return (void *)potential_allocation_begin;
+      return reinterpret_cast<void *>(potential_allocation_begin);
     }
     else {
       this->allocate_new_buffer(size + alignment);
@@ -97,7 +97,7 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
    */
   template<typename T> T *allocate()
   {
-    return (T *)this->allocate(sizeof(T), alignof(T));
+    return static_cast<T *>(this->allocate(sizeof(T), alignof(T)));
   }
 
   /**
@@ -107,7 +107,8 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
    */
   template<typename T> MutableSpan<T> allocate_array(int64_t size)
   {
-    return MutableSpan<T>((T *)this->allocate(sizeof(T) * size, alignof(T)), size);
+    T *array = static_cast<T *>(this->allocate(sizeof(T) * size, alignof(T)));
+    return MutableSpan<T>(array, size);
   }
 
   /**
@@ -142,9 +143,9 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
   StringRefNull copy_string(StringRef str)
   {
     const int64_t alloc_size = str.size() + 1;
-    char *buffer = (char *)this->allocate(alloc_size, 1);
+    char *buffer = static_cast<char *>(this->allocate(alloc_size, 1));
     str.copy(buffer, alloc_size);
-    return StringRefNull((const char *)buffer);
+    return StringRefNull(static_cast<const char *>(buffer));
   }
 
   MutableSpan<void *> allocate_elements_and_pointer_array(int64_t element_amount,
@@ -172,7 +173,7 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
     MutableSpan<T *> pointers = void_pointers.cast<T *>();
 
     for (int64_t i : IndexRange(n)) {
-      new ((void *)pointers[i]) T(std::forward<Args>(args)...);
+      new (static_cast<void *>(pointers[i])) T(std::forward<Args>(args)...);
     }
 
     return pointers;
@@ -184,7 +185,7 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
    */
   void provide_buffer(void *buffer, uint size)
   {
-    unused_borrowed_buffers_.append(Span<char>((char *)buffer, size));
+    unused_borrowed_buffers_.append(Span<char>(static_cast<char *>(buffer), size));
   }
 
   template<size_t Size, size_t Alignment>

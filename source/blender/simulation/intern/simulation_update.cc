@@ -143,7 +143,7 @@ class SampledDependencyAnimations : public DependencyAnimations {
       const float factor = simulation_time_interval_.factor_at_time(simulation_time);
       BLI_assert(factor > 0.0f && factor < 1.0f);
       const float scaled_factor = factor * (cached_transforms.size() - 1);
-      const int lower_sample = (int)scaled_factor;
+      const int lower_sample = static_cast<int>(scaled_factor);
       const int upper_sample = lower_sample + 1;
       const float mix_factor = scaled_factor - lower_sample;
       r_transforms[i] = float4x4::interpolate(
@@ -205,7 +205,7 @@ static void prepare_dependency_animations(Depsgraph &depsgraph,
     if (GS(id_cow->name) != ID_OB) {
       continue;
     }
-    Object &object_cow = *(Object *)id_cow;
+    Object &object_cow = *reinterpret_cast<Object *>(id_cow);
     constexpr int sample_count = 10;
     Array<float4x4, sample_count> transforms(sample_count);
     sample_object_transforms(object_cow, depsgraph, scene, scene_frame_interval, transforms);
@@ -233,7 +233,8 @@ void update_simulation_in_depsgraph(Depsgraph *depsgraph,
     return;
   }
 
-  Simulation *simulation_orig = (Simulation *)DEG_get_original_id(&simulation_cow->id);
+  Simulation *simulation_orig = reinterpret_cast<Simulation *>(
+      DEG_get_original_id(&simulation_cow->id));
 
   ResourceCollector resources;
   SimulationInfluences influences;
@@ -317,8 +318,8 @@ bool update_simulation_dependencies(Simulation *simulation)
       }
       used_handles.add_new(next_handle);
 
-      SimulationDependency *dependency = (SimulationDependency *)MEM_callocN(sizeof(*dependency),
-                                                                             AT);
+      SimulationDependency *dependency = static_cast<SimulationDependency *>(
+          MEM_callocN(sizeof(*dependency), AT));
       id_us_plus(id);
       dependency->id = id;
       dependency->handle = next_handle;

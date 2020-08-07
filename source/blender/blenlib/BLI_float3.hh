@@ -31,7 +31,7 @@ struct float3 {
   {
   }
 
-  float3(const float (*ptr)[3]) : float3((const float *)ptr)
+  float3(const float (*ptr)[3]) : float3(static_cast<const float *>(ptr[0]))
   {
   }
 
@@ -204,9 +204,9 @@ struct float3 {
 
   uint64_t hash() const
   {
-    uint64_t x1 = *(uint32_t *)&x;
-    uint64_t x2 = *(uint32_t *)&y;
-    uint64_t x3 = *(uint32_t *)&z;
+    uint64_t x1 = *reinterpret_cast<const uint32_t *>(&x);
+    uint64_t x2 = *reinterpret_cast<const uint32_t *>(&y);
+    uint64_t x3 = *reinterpret_cast<const uint32_t *>(&z);
     return (x1 * 435109) ^ (x2 * 380867) ^ (x3 * 1059217);
   }
 

@@ -96,7 +96,7 @@ class SimulationStateMap {
   template<typename StateType> StateType *lookup(StringRef name) const
   {
     const char *type = BKE_simulation_get_state_type_name<StateType>();
-    return (StateType *)this->lookup_name_type(name, type);
+    return reinterpret_cast<StateType *>(this->lookup_name_type(name, type));
   }
 
   template<typename StateType> Span<StateType *> lookup() const

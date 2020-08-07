@@ -584,35 +584,35 @@ template<typename T> void construct_default_cb(void *ptr)
 }
 template<typename T> void construct_default_n_cb(void *ptr, int64_t n)
 {
-  blender::default_construct_n((T *)ptr, n);
+  blender::default_construct_n(static_cast<T *>(ptr), n);
 }
 template<typename T> void construct_default_indices_cb(void *ptr, IndexMask mask)
 {
-  mask.foreach_index([&](int64_t i) { new ((T *)ptr + i) T; });
+  mask.foreach_index([&](int64_t i) { new (static_cast<T *>(ptr) + i) T; });
 }
 
 template<typename T> void destruct_cb(void *ptr)
 {
-  ((T *)ptr)->~T();
+  (static_cast<T *>(ptr))->~T();
 }
 template<typename T> void destruct_n_cb(void *ptr, int64_t n)
 {
-  blender::destruct_n((T *)ptr, n);
+  blender::destruct_n(static_cast<T *>(ptr), n);
 }
 template<typename T> void destruct_indices_cb(void *ptr, IndexMask mask)
 {
-  T *ptr_ = (T *)ptr;
+  T *ptr_ = static_cast<T *>(ptr);
   mask.foreach_index([&](int64_t i) { ptr_[i].~T(); });
 }
 
 template<typename T> void copy_to_initialized_cb(const void *src, void *dst)
 {
-  *(T *)dst = *(T *)src;
+  *static_cast<T *>(dst) = *static_cast<const T *>(src);
 }
 template<typename T> void copy_to_initialized_n_cb(const void *src, void *dst, int64_t n)
 {
-  const T *src_ = (const T *)src;
-  T *dst_ = (T *)dst;
+  const T *src_ = static_cast<const T *>(src);
+  T *dst_ = static_cast<T *>(dst);
 
   for (int64_t i = 0; i < n; i++) {
     dst_[i] = src_[i];
@@ -621,45 +621,45 @@ template<typename T> void copy_to_initialized_n_cb(const void *src, void *dst, i
 template<typename T>
 void copy_to_initialized_indices_cb(const void *src, void *dst, IndexMask mask)
 {
-  const T *src_ = (const T *)src;
-  T *dst_ = (T *)dst;
+  const T *src_ = static_cast<const T *>(src);
+  T *dst_ = static_cast<T *>(dst);
 
   mask.foreach_index([&](int64_t i) { dst_[i] = src_[i]; });
 }
 
 template<typename T> void copy_to_uninitialized_cb(const void *src, void *dst)
 {
-  blender::uninitialized_copy_n((T *)src, 1, (T *)dst);
+  blender::uninitialized_copy_n(static_cast<const T *>(src), 1, static_cast<T *>(dst));
 }
 template<typename T> void copy_to_uninitialized_n_cb(const void *src, void *dst, int64_t n)
 {
-  blender::uninitialized_copy_n((T *)src, n, (T *)dst);
+  blender::uninitialized_copy_n(static_cast<const T *>(src), n, static_cast<T *>(dst));
 }
 template<typename T>
 void copy_to_uninitialized_indices_cb(const void *src, void *dst, IndexMask mask)
 {
-  const T *src_ = (const T *)src;
-  T *dst_ = (T *)dst;
+  const T *src_ = static_cast<const T *>(src);
+  T *dst_ = static_cast<T *>(dst);
 
   mask.foreach_index([&](int64_t i) { new (dst_ + i) T(src_[i]); });
 }
 
 template<typename T> void relocate_to_initialized_cb(void *src, void *dst)
 {
-  T *src_ = (T *)src;
-  T *dst_ = (T *)dst;
+  T *src_ = static_cast<T *>(src);
+  T *dst_ = static_cast<T *>(dst);
 
   *dst_ = std::move(*src_);
   src_->~T();
 }
 template<typename T> void relocate_to_initialized_n_cb(void *src, void *dst, int64_t n)
 {
-  blender::initialized_relocate_n((T *)src, n, (T *)dst);
+  blender::initialized_relocate_n(static_cast<T *>(src), n, static_cast<T *>(dst));
 }
 template<typename T> void relocate_to_initialized_indices_cb(void *src, void *dst, IndexMask mask)
 {
-  T *src_ = (T *)src;
-  T *dst_ = (T *)dst;
+  T *src_ = static_cast<T *>(src);
+  T *dst_ = static_cast<T *>(dst);
 
   mask.foreach_index([&](int64_t i) {
     dst_[i] = std::move(src_[i]);
@@ -669,21 +669,21 @@ template<typename T> void relocate_to_initialized_indices_cb(void *src, void *ds
 
 template<typename T> void relocate_to_uninitialized_cb(void *src, void *dst)
 {
-  T *src_ = (T *)src;
-  T *dst_ = (T *)dst;
+  T *src_ = static_cast<T *>(src);
+  T *dst_ = static_cast<T *>(dst);
 
   new (dst_) T(std::move(*src_));
   src_->~T();
 }
 template<typename T> void relocate_to_uninitialized_n_cb(void *src, void *dst, int64_t n)
 {
-  blender::uninitialized_relocate_n((T *)src, n, (T *)dst);
+  blender::uninitialized_relocate_n(static_cast<T *>(src), n, static_cast<T *>(dst));
 }
 template<typename T>
 void relocate_to_uninitialized_indices_cb(void *src, void *dst, IndexMask mask)
 {
-  T *src_ = (T *)src;
-  T *dst_ = (T *)dst;
+  T *src_ = static_cast<T *>(src);
+  T *dst_ = static_cast<T *>(dst);
 
   mask.foreach_index([&](int64_t i) {
     new (dst_ + i) T(std::move(src_[i]));
@@ -693,8 +693,8 @@ void relocate_to_uninitialized_indices_cb(void *src, void *dst, IndexMask mask)
 
 template<typename T> void fill_initialized_cb(const void *value, void *dst, int64_t n)
 {
-  const T &value_ = *(const T *)value;
-  T *dst_ = (T *)dst;
+  const T &value_ = *static_cast<const T *>(value);
+  T *dst_ = static_cast<T *>(dst);
 
   for (int64_t i = 0; i < n; i++) {
     dst_[i] = value_;
@@ -702,16 +702,16 @@ template<typename T> void fill_initialized_cb(const void *value, void *dst, int6
 }
 template<typename T> void fill_initialized_indices_cb(const void *value, void *dst, IndexMask mask)
 {
-  const T &value_ = *(const T *)value;
-  T *dst_ = (T *)dst;
+  const T &value_ = *static_cast<const T *>(value);
+  T *dst_ = static_cast<T *>(dst);
 
   mask.foreach_index([&](int64_t i) { dst_[i] = value_; });
 }
 
 template<typename T> void fill_uninitialized_cb(const void *value, void *dst, int64_t n)
 {
-  const T &value_ = *(const T *)value;
-  T *dst_ = (T *)dst;
+  const T &value_ = *static_cast<const T *>(value);
+  T *dst_ = static_cast<T *>(dst);
 
   for (int64_t i = 0; i < n; i++) {
     new (dst_ + i) T(value_);
@@ -720,28 +720,28 @@ template<typename T> void fill_uninitialized_cb(const void *value, void *dst, in
 template<typename T>
 void fill_uninitialized_indices_cb(const void *value, void *dst, IndexMask mask)
 {
-  const T &value_ = *(const T *)value;
-  T *dst_ = (T *)dst;
+  const T &value_ = *static_cast<const T *>(value);
+  T *dst_ = static_cast<T *>(dst);
 
   mask.foreach_index([&](int64_t i) { new (dst_ + i) T(value_); });
 }
 
 template<typename T> void debug_print_cb(const void *value, std::stringstream &ss)
 {
-  const T &value_ = *(const T *)value;
+  const T &value_ = *static_cast<const T *>(value);
   ss << value_;
 }
 
 template<typename T> bool is_equal_cb(const void *a, const void *b)
 {
-  const T &a_ = *(T *)a;
-  const T &b_ = *(T *)b;
+  const T &a_ = *static_cast<const T *>(a);
+  const T &b_ = *static_cast<const T *>(b);
   return a_ == b_;
 }
 
 template<typename T> uint64_t hash_cb(const void *value)
 {
-  const T &value_ = *(const T *)value;
+  const T &value_ = *static_cast<const T *>(value);
   return DefaultHash<T>{}(value_);
 }
 
@@ -780,7 +780,7 @@ inline std::unique_ptr<const CPPType> create_cpp_type(StringRef name, const T &d
                                     debug_print_cb<T>,
                                     is_equal_cb<T>,
                                     hash_cb<T>,
-                                    (const void *)&default_value);
+                                    static_cast<const void *>(&default_value));
   return std::unique_ptr<const CPPType>(type);
 }
 

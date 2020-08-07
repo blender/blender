@@ -130,7 +130,8 @@ static Vector<MFNode *> find_nodes_based_on_mask(MFNetwork &network,
  */
 void dead_node_removal(MFNetwork &network)
 {
-  Array<bool> node_is_used_mask = mask_nodes_to_the_left(network, network.dummy_nodes());
+  Array<bool> node_is_used_mask = mask_nodes_to_the_left(network,
+                                                         network.dummy_nodes().cast<MFNode *>());
   Vector<MFNode *> nodes_to_remove = find_nodes_based_on_mask(network, node_is_used_mask, false);
   network.remove(nodes_to_remove);
 }
@@ -156,7 +157,7 @@ static bool function_node_can_be_constant(MFFunctionNode *node)
 static Vector<MFNode *> find_non_constant_nodes(MFNetwork &network)
 {
   Vector<MFNode *> non_constant_nodes;
-  non_constant_nodes.extend(network.dummy_nodes());
+  non_constant_nodes.extend(network.dummy_nodes().cast<MFNode *>());
 
   for (MFFunctionNode *node : network.function_nodes()) {
     if (!function_node_can_be_constant(node)) {
@@ -299,6 +300,10 @@ static Array<MFOutputSocket *> compute_constant_sockets_and_add_folded_nodes(
   return add_constant_folded_sockets(network_fn, params, resources, network);
 }
 
+class MyClass {
+  MFDummyNode node;
+};
+
 /**
  * Find function nodes that always output the same value and replace those with constant nodes.
  */
@@ -318,7 +323,7 @@ void constant_folding(MFNetwork &network, ResourceCollector &resources)
     network.relink(original_socket, *folded_sockets[i]);
   }
 
-  network.remove(temporary_nodes);
+  network.remove(temporary_nodes.as_span().cast<MFNode *>());
 }
 
 /** \} */

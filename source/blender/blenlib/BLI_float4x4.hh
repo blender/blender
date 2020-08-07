@@ -31,18 +31,18 @@ struct float4x4 {
     memcpy(values, matrix, sizeof(float) * 16);
   }
 
-  float4x4(const float matrix[4][4]) : float4x4((float *)matrix)
+  float4x4(const float matrix[4][4]) : float4x4(static_cast<const float *>(matrix[0]))
   {
   }
 
   operator float *()
   {
-    return (float *)this;
+    return &values[0][0];
   }
 
   operator const float *() const
   {
-    return (const float *)this;
+    return &values[0][0];
   }
 
   friend float4x4 operator*(const float4x4 &a, const float4x4 &b)
@@ -124,8 +124,8 @@ struct float4x4 {
   {
     uint64_t h = 435109;
     for (int i = 0; i < 16; i++) {
-      float value = ((const float *)this)[i];
-      h = h * 33 + (*(uint32_t *)&value);
+      float value = (static_cast<const float *>(values[0]))[i];
+      h = h * 33 + *reinterpret_cast<const uint32_t *>(&value);
     }
     return h;
   }

@@ -176,7 +176,7 @@ class Array {
   {
     destruct_n(data_, size_);
     if (!this->uses_inline_buffer()) {
-      allocator_.deallocate((void *)data_);
+      allocator_.deallocate(static_cast<void *>(data_));
     }
   }
 
@@ -351,7 +351,8 @@ class Array {
 
   T *allocate(int64_t size)
   {
-    return (T *)allocator_.allocate((size_t)size * sizeof(T), alignof(T), AT);
+    return static_cast<T *>(
+        allocator_.allocate(static_cast<size_t>(size) * sizeof(T), alignof(T), AT));
   }
 
   bool uses_inline_buffer() const

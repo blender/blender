@@ -57,7 +57,7 @@ class RandomFloatFunction : public blender::fn::MultiFunction {
       const float min_value = min_values[i];
       const float max_value = max_values[i];
       const int seed = seeds[i];
-      const float value = BLI_hash_int_01((uint32_t)seed ^ function_seed_);
+      const float value = BLI_hash_int_01(static_cast<uint32_t>(seed) ^ function_seed_);
       values[i] = value * (max_value - min_value) + min_value;
     }
   }

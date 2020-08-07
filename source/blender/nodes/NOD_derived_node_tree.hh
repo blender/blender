@@ -265,12 +265,12 @@ inline const DSocket &DSocket::as_base() const
 
 inline const DInputSocket &DSocket::as_input() const
 {
-  return *(DInputSocket *)this;
+  return static_cast<const DInputSocket &>(*this);
 }
 
 inline const DOutputSocket &DSocket::as_output() const
 {
-  return *(DOutputSocket *)this;
+  return static_cast<const DOutputSocket &>(*this);
 }
 
 inline PointerRNA *DSocket::rna() const

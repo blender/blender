@@ -43,7 +43,7 @@ class MFContextBuilder {
  public:
   template<typename T> void add_global_context(std::string name, const T *context)
   {
-    global_contexts_.add_new(std::move(name), (const void *)context);
+    global_contexts_.add_new(std::move(name), static_cast<const void *>(context));
   }
 };
 
@@ -60,7 +60,7 @@ class MFContext {
   {
     const void *context = builder_.global_contexts_.lookup_default_as(name, nullptr);
     /* TODO: Implement type checking. */
-    return (const T *)context;
+    return static_cast<const T *>(context);
   }
 };
 

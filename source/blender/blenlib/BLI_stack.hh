@@ -350,11 +350,12 @@ class Stack {
       void *buffer = allocator_.allocate(
           sizeof(Chunk) + sizeof(T) * new_capacity + alignof(T), alignof(Chunk), AT);
       void *chunk_buffer = buffer;
-      void *data_buffer = (void *)(((uintptr_t)buffer + sizeof(Chunk) + alignof(T) - 1) &
-                                   ~(alignof(T) - 1));
+      void *data_buffer = reinterpret_cast<void *>(
+          (reinterpret_cast<uintptr_t>(buffer) + sizeof(Chunk) + alignof(T) - 1) &
+          ~(alignof(T) - 1));
 
       Chunk *new_chunk = new (chunk_buffer) Chunk();
-      new_chunk->begin = (T *)data_buffer;
+      new_chunk->begin = static_cast<T *>(data_buffer);
       new_chunk->capacity_end = new_chunk->begin + new_capacity;
       new_chunk->above = nullptr;
       new_chunk->below = top_chunk_;

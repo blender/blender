@@ -824,7 +824,7 @@ class Map {
    */
   int64_t size_in_bytes() const
   {
-    return (int64_t)(sizeof(Slot) * slots_.size());
+    return static_cast<int64_t>(sizeof(Slot) * slots_.size());
   }
 
   /**
@@ -863,7 +863,7 @@ class Map {
     max_load_factor_.compute_total_and_usable_slots(
         SlotArray::inline_buffer_capacity(), min_usable_slots, &total_slots, &usable_slots);
     BLI_assert(total_slots >= 1);
-    const uint64_t new_slot_mask = (uint64_t)total_slots - 1;
+    const uint64_t new_slot_mask = static_cast<uint64_t>(total_slots) - 1;
 
     /**
      * Optimize the case when the map was empty beforehand. We can avoid some copies here.
@@ -1107,7 +1107,7 @@ class Map {
   bool add_overwrite__impl(ForwardKey &&key, ForwardValue &&value, uint64_t hash)
   {
     auto create_func = [&](Value *ptr) {
-      new ((void *)ptr) Value(std::forward<ForwardValue>(value));
+      new (static_cast<void *>(ptr)) Value(std::forward<ForwardValue>(value));
       return true;
     };
     auto modify_func = [&](Value *ptr) {
@@ -1185,7 +1185,7 @@ template<typename Key, typename Value> class StdUnorderedMapWrapper {
  public:
   int64_t size() const
   {
-    return (int64_t)map_.size();
+    return static_cast<int64_t>(map_.size());
   }
 
   bool is_empty() const

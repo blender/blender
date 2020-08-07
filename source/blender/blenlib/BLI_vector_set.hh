@@ -457,7 +457,7 @@ class VectorSet {
    */
   int64_t size_in_bytes() const
   {
-    return (int64_t)(sizeof(Slot) * slots_.size() + sizeof(Key) * usable_slots_);
+    return static_cast<int64_t>(sizeof(Slot) * slots_.size() + sizeof(Key) * usable_slots_);
   }
 
   /**
@@ -486,7 +486,7 @@ class VectorSet {
     max_load_factor_.compute_total_and_usable_slots(
         SlotArray::inline_buffer_capacity(), min_usable_slots, &total_slots, &usable_slots);
     BLI_assert(total_slots >= 1);
-    const uint64_t new_slot_mask = (uint64_t)total_slots - 1;
+    const uint64_t new_slot_mask = static_cast<uint64_t>(total_slots) - 1;
 
     /* Optimize the case when the set was empty beforehand. We can avoid some copies here. */
     if (this->size() == 0) {
@@ -722,7 +722,8 @@ class VectorSet {
 
   Key *allocate_keys_array(const int64_t size)
   {
-    return (Key *)slots_.allocator().allocate(sizeof(Key) * (size_t)size, alignof(Key), AT);
+    return static_cast<Key *>(
+        slots_.allocator().allocate(sizeof(Key) * static_cast<size_t>(size), alignof(Key), AT));
   }
 
   void deallocate_keys_array(Key *keys)

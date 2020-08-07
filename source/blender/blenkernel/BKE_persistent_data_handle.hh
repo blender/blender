@@ -68,7 +68,7 @@ class PersistentDataHandle {
 
   uint64_t hash() const
   {
-    return (uint64_t)handle_;
+    return static_cast<uint64_t>(handle_);
   }
 };
 

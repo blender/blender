@@ -186,7 +186,8 @@ template<typename T> class GVectorArrayRef {
   MutableSpan<T> operator[](int64_t index)
   {
     BLI_assert(index < vector_array_->starts_.size());
-    return MutableSpan<T>((T *)vector_array_->starts_[index], vector_array_->lengths_[index]);
+    return MutableSpan<T>(static_cast<T *>(vector_array_->starts_[index]),
+                          vector_array_->lengths_[index]);
   }
 
   int64_t size() const

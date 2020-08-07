@@ -285,8 +285,8 @@ std::string MFNetwork::to_dot(Span<const MFNode *> marked_nodes) const
   Map<const MFNode *, dot::NodeWithSocketsRef> dot_nodes;
 
   Vector<const MFNode *> all_nodes;
-  all_nodes.extend(function_nodes_.as_span());
-  all_nodes.extend(dummy_nodes_.as_span());
+  all_nodes.extend(function_nodes_.as_span().cast<const MFNode *>());
+  all_nodes.extend(dummy_nodes_.as_span().cast<const MFNode *>());
 
   for (const MFNode *node : all_nodes) {
     dot::Node &dot_node = digraph.new_node("");

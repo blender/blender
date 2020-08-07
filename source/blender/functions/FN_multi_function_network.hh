@@ -118,7 +118,7 @@ class MFFunctionNode : public MFNode {
 };
 
 class MFDummyNode : public MFNode {
- private:
+ protected:
   StringRefNull name_;
   MutableSpan<StringRefNull> input_names_;
   MutableSpan<StringRefNull> output_names_;
@@ -279,25 +279,25 @@ inline bool MFNode::is_function() const
 inline MFDummyNode &MFNode::as_dummy()
 {
   BLI_assert(is_dummy_);
-  return *(MFDummyNode *)this;
+  return static_cast<MFDummyNode &>(*this);
 }
 
 inline const MFDummyNode &MFNode::as_dummy() const
 {
   BLI_assert(is_dummy_);
-  return *(const MFDummyNode *)this;
+  return static_cast<const MFDummyNode &>(*this);
 }
 
 inline MFFunctionNode &MFNode::as_function()
 {
   BLI_assert(!is_dummy_);
-  return *(MFFunctionNode *)this;
+  return static_cast<MFFunctionNode &>(*this);
 }
 
 inline const MFFunctionNode &MFNode::as_function() const
 {
   BLI_assert(!is_dummy_);
-  return *(const MFFunctionNode *)this;
+  return static_cast<const MFFunctionNode &>(*this);
 }
 
 inline MFInputSocket &MFNode::input(int index)
@@ -440,25 +440,25 @@ inline bool MFSocket::is_output() const
 inline MFInputSocket &MFSocket::as_input()
 {
   BLI_assert(this->is_input());
-  return *(MFInputSocket *)this;
+  return static_cast<MFInputSocket &>(*this);
 }
 
 inline const MFInputSocket &MFSocket::as_input() const
 {
   BLI_assert(this->is_input());
-  return *(const MFInputSocket *)this;
+  return static_cast<const MFInputSocket &>(*this);
 }
 
 inline MFOutputSocket &MFSocket::as_output()
 {
   BLI_assert(this->is_output());
-  return *(MFOutputSocket *)this;
+  return static_cast<MFOutputSocket &>(*this);
 }
 
 inline const MFOutputSocket &MFSocket::as_output() const
 {
   BLI_assert(this->is_output());
-  return *(const MFOutputSocket *)this;
+  return static_cast<const MFOutputSocket &>(*this);
 }
 
 /* --------------------------------------------------------------------

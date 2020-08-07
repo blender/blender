@@ -100,7 +100,8 @@ class Vector {
    */
 #ifndef NDEBUG
   int64_t debug_size_;
-#  define UPDATE_VECTOR_SIZE(ptr) (ptr)->debug_size_ = (int64_t)((ptr)->end_ - (ptr)->begin_)
+#  define UPDATE_VECTOR_SIZE(ptr) \
+    (ptr)->debug_size_ = static_cast<int64_t>((ptr)->end_ - (ptr)->begin_)
 #else
 #  define UPDATE_VECTOR_SIZE(ptr) ((void)0)
 #endif
@@ -243,7 +244,8 @@ class Vector {
       else {
         /* Copy from inline buffer to newly allocated buffer. */
         const int64_t capacity = size;
-        begin_ = (T *)allocator_.allocate(sizeof(T) * (size_t)capacity, alignof(T), AT);
+        begin_ = static_cast<T *>(
+            allocator_.allocate(sizeof(T) * static_cast<size_t>(capacity), alignof(T), AT));
         end_ = begin_ + size;
         capacity_end_ = begin_ + capacity;
         uninitialized_relocate_n(other.begin_, size, begin_);
@@ -578,8 +580,9 @@ class Vector {
    */
   int64_t size() const
   {
-    BLI_assert(debug_size_ == (int64_t)(end_ - begin_));
-    return (int64_t)(end_ - begin_);
+    const int64_t current_size = static_cast<int64_t>(end_ - begin_);
+    BLI_assert(debug_size_ == current_size);
+    return current_size;
   }
 
   /**
@@ -675,7 +678,7 @@ class Vector {
   {
     for (const T *current = begin_; current != end_; current++) {
       if (*current == value) {
-        return (int64_t)(current - begin_);
+        return static_cast<int64_t>(current - begin_);
       }
     }
     return -1;
@@ -749,7 +752,7 @@ class Vector {
    */
   int64_t capacity() const
   {
-    return (int64_t)(capacity_end_ - begin_);
+    return static_cast<int64_t>(capacity_end_ - begin_);
   }
 
   /**
@@ -808,7 +811,8 @@ class Vector {
     const int64_t new_capacity = std::max(min_capacity, min_new_capacity);
     const int64_t size = this->size();
 
-    T *new_array = (T *)allocator_.allocate((size_t)new_capacity * sizeof(T), alignof(T), AT);
+    T *new_array = static_cast<T *>(
+        allocator_.allocate(static_cast<size_t>(new_capacity) * sizeof(T), alignof(T), AT));
     uninitialized_relocate_n(begin_, size, new_array);
 
     if (!this->is_inline()) {

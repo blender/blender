@@ -233,14 +233,14 @@ static BLI_NOINLINE bool compute_new_particle_attributes(ParticleEmitterContext 
   if (settings.object->type != OB_MESH) {
     return false;
   }
-  Mesh &mesh = *(Mesh *)settings.object->data;
+  Mesh &mesh = *static_cast<Mesh *>(settings.object->data);
   if (mesh.totvert == 0) {
     return false;
   }
 
   const float start_time = context.emit_interval.start();
   const uint32_t seed = DefaultHash<StringRef>{}(state.head.name);
-  RandomNumberGenerator rng{(*(uint32_t *)&start_time) ^ seed};
+  RandomNumberGenerator rng{*reinterpret_cast<const uint32_t *>(&start_time) ^ seed};
 
   compute_birth_times(settings.rate, context.emit_interval, state, r_birth_times);
   const int particle_amount = r_birth_times.size();

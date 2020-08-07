@@ -248,13 +248,13 @@ inline const SocketRef &SocketRef::as_base() const
 inline const InputSocketRef &SocketRef::as_input() const
 {
   BLI_assert(this->is_input());
-  return *(const InputSocketRef *)this;
+  return static_cast<const InputSocketRef &>(*this);
 }
 
 inline const OutputSocketRef &SocketRef::as_output() const
 {
   BLI_assert(this->is_output());
-  return *(const OutputSocketRef *)this;
+  return static_cast<const OutputSocketRef &>(*this);
 }
 
 inline PointerRNA *SocketRef::rna() const

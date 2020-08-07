@@ -71,9 +71,9 @@ fn::MutableAttributesRef ParticleAllocator::allocate(int size)
     }
     else if (name == "Hash") {
       MutableSpan<int> hashes = attributes.get<int>("Hash");
-      RandomNumberGenerator rng(hash_seed_ ^ (uint32_t)next_id_);
+      RandomNumberGenerator rng(hash_seed_ ^ static_cast<uint32_t>(next_id_));
       for (int pindex : IndexRange(size)) {
-        hashes[pindex] = (int)rng.get_uint32();
+        hashes[pindex] = static_cast<int>(rng.get_uint32());
       }
     }
     else {

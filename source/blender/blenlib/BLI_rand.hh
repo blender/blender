@@ -44,7 +44,7 @@ class RandomNumberGenerator {
   void seed(uint32_t seed)
   {
     constexpr uint64_t lowseed = 0x330E;
-    x_ = (((uint64_t)seed) << 16) | lowseed;
+    x_ = (static_cast<uint64_t>(seed) << 16) | lowseed;
   }
 
   void seed_random(uint32_t seed);
@@ -52,13 +52,13 @@ class RandomNumberGenerator {
   uint32_t get_uint32()
   {
     this->step();
-    return (uint32_t)(x_ >> 17);
+    return static_cast<uint32_t>(x_ >> 17);
   }
 
   int32_t get_int32()
   {
     this->step();
-    return (int32_t)(x_ >> 17);
+    return static_cast<int32_t>(x_ >> 17);
   }
 
   /**

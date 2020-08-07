@@ -32,8 +32,8 @@ bNodeTreeType *ntreeType_Simulation;
 
 void register_node_tree_type_sim(void)
 {
-  bNodeTreeType *tt = ntreeType_Simulation = (bNodeTreeType *)MEM_callocN(
-      sizeof(bNodeTreeType), "simulation node tree type");
+  bNodeTreeType *tt = ntreeType_Simulation = static_cast<bNodeTreeType *>(
+      MEM_callocN(sizeof(bNodeTreeType), "simulation node tree type"));
   tt->type = NTREE_SIMULATION;
   strcpy(tt->idname, "SimulationNodeTree");
   strcpy(tt->ui_name, N_("Simulation Editor"));

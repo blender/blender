@@ -28,7 +28,7 @@ static void add_dependencies_of_node_tree(bNodeTree &ntree, NodeTreeDependencies
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
     LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
       if (socket->type == SOCK_OBJECT) {
-        Object *object = ((bNodeSocketValueObject *)socket->default_value)->value;
+        Object *object = reinterpret_cast<bNodeSocketValueObject *>(socket->default_value)->value;
         if (object != nullptr) {
           r_dependencies.add_transform_dependency(object);
           if (object->type == OB_MESH) {
@@ -39,7 +39,7 @@ static void add_dependencies_of_node_tree(bNodeTree &ntree, NodeTreeDependencies
     }
 
     if (node->type == NODE_GROUP) {
-      bNodeTree *group = (bNodeTree *)node->id;
+      bNodeTree *group = reinterpret_cast<bNodeTree *>(node->id);
       if (group != nullptr) {
         add_dependencies_of_node_tree(*group, r_dependencies);
       }
