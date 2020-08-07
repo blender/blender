@@ -518,7 +518,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   rect.ymin = rect.ymax = event->mval[1];
 
   if (!ED_fileselect_layout_is_inside_pt(sfile->layout, &region->v2d, rect.xmin, rect.ymin)) {
-    return OPERATOR_CANCELLED;
+    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
   if (sfile && sfile->params) {
