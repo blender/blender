@@ -446,24 +446,21 @@ static double EulerAngleFromMatrix(const KDL::Rotation &R, int axis)
     if (axis == 0) {
       return -KDL::atan2(R(1, 2), R(2, 2));
     }
-    else if (axis == 1) {
+    if (axis == 1) {
       return KDL::atan2(-R(0, 2), t);
     }
-    else {
-      return -KDL::atan2(R(0, 1), R(0, 0));
-    }
+
+    return -KDL::atan2(R(0, 1), R(0, 0));
   }
-  else {
-    if (axis == 0) {
-      return -KDL::atan2(-R(2, 1), R(1, 1));
-    }
-    else if (axis == 1) {
-      return KDL::atan2(-R(0, 2), t);
-    }
-    else {
-      return 0.0f;
-    }
+
+  if (axis == 0) {
+    return -KDL::atan2(-R(2, 1), R(1, 1));
   }
+  if (axis == 1) {
+    return KDL::atan2(-R(0, 2), t);
+  }
+
+  return 0.0f;
 }
 
 static double ComputeTwist(const KDL::Rotation &R)

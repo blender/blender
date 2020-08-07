@@ -45,9 +45,8 @@ static bool set_tag_and_check_if_modified(bool &tag, bool new_value)
     tag = new_value;
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 static Array<bool> mask_nodes_to_the_left(MFNetwork &network, Span<MFNode *> nodes)

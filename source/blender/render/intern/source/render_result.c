@@ -709,7 +709,7 @@ static int order_render_passes(const void *a, const void *b)
     if (passtype_a > passtype_b) {
       return 1;
     }
-    else if (passtype_a < passtype_b) {
+    if (passtype_a < passtype_b) {
       return 0;
     }
   }
@@ -728,7 +728,7 @@ static int order_render_passes(const void *a, const void *b)
   if (STREQ(rpa->view, STEREO_LEFT_NAME)) {
     return 0;
   }
-  else if (STREQ(rpb->view, STEREO_LEFT_NAME)) {
+  if (STREQ(rpb->view, STEREO_LEFT_NAME)) {
     return 1;
   }
 
@@ -736,7 +736,7 @@ static int order_render_passes(const void *a, const void *b)
   if (STREQ(rpa->view, STEREO_RIGHT_NAME)) {
     return 0;
   }
-  else if (STREQ(rpb->view, STEREO_RIGHT_NAME)) {
+  if (STREQ(rpb->view, STEREO_RIGHT_NAME)) {
     return 1;
   }
 
@@ -930,9 +930,8 @@ bool RE_WriteRenderResult(ReportList *reports,
         if (!STREQ(view, viewname)) {
           continue;
         }
-        else {
-          viewname = "";
-        }
+
+        viewname = "";
       }
 
       /* Skip compositing if only a single other layer is requested. */
@@ -993,9 +992,8 @@ bool RE_WriteRenderResult(ReportList *reports,
         if (!STREQ(view, viewname)) {
           continue;
         }
-        else {
-          viewname = "";
-        }
+
+        viewname = "";
       }
 
       /* We only store RGBA passes as half float, for

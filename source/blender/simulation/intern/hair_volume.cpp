@@ -710,9 +710,8 @@ BLI_INLINE float hair_volume_density_divergence(float density,
   if (density > density_threshold && density > target_density) {
     return strength * logf(target_density / density);
   }
-  else {
-    return 0.0f;
-  }
+
+  return 0.0f;
 }
 
 bool SIM_hair_volume_solve_divergence(HairGrid *grid,
@@ -1030,14 +1029,13 @@ bool SIM_hair_volume_solve_divergence(HairGrid *grid,
 
     return true;
   }
-  else {
-    /* Clear result in case of error */
-    for (i = 0, vert = grid->verts; i < num_cells; i++, vert++) {
-      zero_v3(vert->velocity_smooth);
-    }
 
-    return false;
+  /* Clear result in case of error */
+  for (i = 0, vert = grid->verts; i < num_cells; i++, vert++) {
+    zero_v3(vert->velocity_smooth);
   }
+
+  return false;
 }
 
 #if 0 /* XXX weighting is incorrect, disabled for now */

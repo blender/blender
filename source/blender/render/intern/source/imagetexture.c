@@ -491,7 +491,7 @@ static float clipx_rctf(rctf *rf, float x1, float x2)
     rf->xmin = rf->xmax;
     return 0.0;
   }
-  else if (size != 0.0f) {
+  if (size != 0.0f) {
     return BLI_rctf_size_x(rf) / size;
   }
   return 1.0;
@@ -514,7 +514,7 @@ static float clipy_rctf(rctf *rf, float y1, float y2)
     rf->ymin = rf->ymax;
     return 0.0;
   }
-  else if (size != 0.0f) {
+  if (size != 0.0f) {
     return BLI_rctf_size_y(rf) / size;
   }
   return 1.0;

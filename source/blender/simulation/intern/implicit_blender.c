@@ -1711,9 +1711,8 @@ BLI_INLINE float fbstar(float length, float L, float kb, float cb)
   if (tempfb_fl < fbstar_fl) {
     return fbstar_fl;
   }
-  else {
-    return tempfb_fl;
-  }
+
+  return tempfb_fl;
 }
 
 // function to calculae bending spring force (taken from Choi & Co)
@@ -1725,9 +1724,8 @@ BLI_INLINE float fbstar_jacobi(float length, float L, float kb, float cb)
   if (tempfb_fl < fbstar_fl) {
     return -cb;
   }
-  else {
-    return -kb * fbderiv(length, L);
-  }
+
+  return -kb * fbderiv(length, L);
 }
 
 /* calculate elonglation */
@@ -1864,9 +1862,8 @@ bool SIM_mass_spring_force_spring_bending(
 
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 BLI_INLINE void poly_avg(lfVector *data, const int *inds, int len, float r_avg[3])
@@ -2352,9 +2349,8 @@ bool SIM_mass_spring_force_spring_goal(Implicit_Data *data,
 
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 #endif /* IMPLICIT_SOLVER_BLENDER */

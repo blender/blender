@@ -120,7 +120,7 @@ static float gpencil_hook_falloff(const struct GPHookData_cb *tData, const float
   if (len_sq > tData->falloff_sq) {
     return 0.0f;
   }
-  else if (len_sq > 0.0f) {
+  if (len_sq > 0.0f) {
     float fac;
 
     if (tData->falloff_type == eGPHook_Falloff_Const) {

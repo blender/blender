@@ -42,14 +42,13 @@ bool AttributesInfoBuilder::add(StringRef name, const CPPType &type, const void 
     defaults_.append(dst);
     return true;
   }
-  else {
-    const CPPType &stored_type = *types_[names_.index_of_as(name)];
-    if (stored_type != type) {
-      std::cout << "Warning: Tried to add an attribute twice with different types (" << name
-                << ": " << stored_type.name() << ", " << type.name() << ").\n";
-    }
-    return false;
+
+  const CPPType &stored_type = *types_[names_.index_of_as(name)];
+  if (stored_type != type) {
+    std::cout << "Warning: Tried to add an attribute twice with different types (" << name << ": "
+              << stored_type.name() << ", " << type.name() << ").\n";
   }
+  return false;
 }
 
 AttributesInfo::AttributesInfo(const AttributesInfoBuilder &builder)

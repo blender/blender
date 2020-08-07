@@ -94,9 +94,8 @@ size_t MEM_lockfree_allocN_len(const void *vmemh)
   if (vmemh) {
     return MEMHEAD_FROM_PTR(vmemh)->len & ~((size_t)(MEMHEAD_ALIGN_FLAG));
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 void MEM_lockfree_freeN(void *vmemh)
@@ -436,8 +435,7 @@ const char *MEM_lockfree_name_ptr(void *vmemh)
   if (vmemh) {
     return "unknown block name ptr";
   }
-  else {
-    return "MEM_lockfree_name_ptr(NULL)";
-  }
+
+  return "MEM_lockfree_name_ptr(NULL)";
 }
 #endif /* NDEBUG */

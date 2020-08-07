@@ -356,140 +356,139 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
     *r_error_message = "SDNA error in SDNA file";
     return false;
   }
-  else {
-    const char *cp;
+
+  const char *cp;
+
+  data++;
+  /* Names array ('NAME') */
+  if (*data == MAKE_ID('N', 'A', 'M', 'E')) {
+    data++;
+
+    sdna->names_len = *data;
+    if (do_endian_swap) {
+      BLI_endian_switch_int32(&sdna->names_len);
+    }
+    sdna->names_len_alloc = sdna->names_len;
 
     data++;
-    /* Names array ('NAME') */
-    if (*data == MAKE_ID('N', 'A', 'M', 'E')) {
-      data++;
+    sdna->names = MEM_callocN(sizeof(void *) * sdna->names_len, "sdnanames");
+  }
+  else {
+    *r_error_message = "NAME error in SDNA file";
+    return false;
+  }
 
-      sdna->names_len = *data;
-      if (do_endian_swap) {
-        BLI_endian_switch_int32(&sdna->names_len);
+  cp = (char *)data;
+  for (int nr = 0; nr < sdna->names_len; nr++) {
+    sdna->names[nr] = cp;
+
+    /* "float gravity [3]" was parsed wrong giving both "gravity" and
+     * "[3]"  members. we rename "[3]", and later set the type of
+     * "gravity" to "void" so the offsets work out correct */
+    if (*cp == '[' && strcmp(cp, "[3]") == 0) {
+      if (nr && strcmp(sdna->names[nr - 1], "Cvi") == 0) {
+        sdna->names[nr] = "gravity[3]";
+        gravity_fix = nr;
       }
-      sdna->names_len_alloc = sdna->names_len;
-
-      data++;
-      sdna->names = MEM_callocN(sizeof(void *) * sdna->names_len, "sdnanames");
     }
-    else {
-      *r_error_message = "NAME error in SDNA file";
-      return false;
-    }
-
-    cp = (char *)data;
-    for (int nr = 0; nr < sdna->names_len; nr++) {
-      sdna->names[nr] = cp;
-
-      /* "float gravity [3]" was parsed wrong giving both "gravity" and
-       * "[3]"  members. we rename "[3]", and later set the type of
-       * "gravity" to "void" so the offsets work out correct */
-      if (*cp == '[' && strcmp(cp, "[3]") == 0) {
-        if (nr && strcmp(sdna->names[nr - 1], "Cvi") == 0) {
-          sdna->names[nr] = "gravity[3]";
-          gravity_fix = nr;
-        }
-      }
-      while (*cp) {
-        cp++;
-      }
+    while (*cp) {
       cp++;
     }
+    cp++;
+  }
 
-    cp = pad_up_4(cp);
+  cp = pad_up_4(cp);
 
-    /* Type names array ('TYPE') */
-    data = (int *)cp;
-    if (*data == MAKE_ID('T', 'Y', 'P', 'E')) {
-      data++;
+  /* Type names array ('TYPE') */
+  data = (int *)cp;
+  if (*data == MAKE_ID('T', 'Y', 'P', 'E')) {
+    data++;
 
-      sdna->types_len = *data;
-      if (do_endian_swap) {
-        BLI_endian_switch_int32(&sdna->types_len);
-      }
-
-      data++;
-      sdna->types = MEM_callocN(sizeof(void *) * sdna->types_len, "sdnatypes");
-    }
-    else {
-      *r_error_message = "TYPE error in SDNA file";
-      return false;
+    sdna->types_len = *data;
+    if (do_endian_swap) {
+      BLI_endian_switch_int32(&sdna->types_len);
     }
 
-    cp = (char *)data;
-    for (int nr = 0; nr < sdna->types_len; nr++) {
-      /* WARNING! See: DNA_struct_rename_legacy_hack_static_from_alias docs. */
-      sdna->types[nr] = DNA_struct_rename_legacy_hack_static_from_alias(cp);
-      while (*cp) {
-        cp++;
-      }
+    data++;
+    sdna->types = MEM_callocN(sizeof(void *) * sdna->types_len, "sdnatypes");
+  }
+  else {
+    *r_error_message = "TYPE error in SDNA file";
+    return false;
+  }
+
+  cp = (char *)data;
+  for (int nr = 0; nr < sdna->types_len; nr++) {
+    /* WARNING! See: DNA_struct_rename_legacy_hack_static_from_alias docs. */
+    sdna->types[nr] = DNA_struct_rename_legacy_hack_static_from_alias(cp);
+    while (*cp) {
       cp++;
     }
+    cp++;
+  }
 
-    cp = pad_up_4(cp);
+  cp = pad_up_4(cp);
 
-    /* Type lengths array ('TLEN') */
-    data = (int *)cp;
-    if (*data == MAKE_ID('T', 'L', 'E', 'N')) {
-      data++;
-      sp = (short *)data;
-      sdna->types_size = sp;
-
-      if (do_endian_swap) {
-        BLI_endian_switch_int16_array(sp, sdna->types_len);
-      }
-
-      sp += sdna->types_len;
-    }
-    else {
-      *r_error_message = "TLEN error in SDNA file";
-      return false;
-    }
-    /* prevent BUS error */
-    if (sdna->types_len & 1) {
-      sp++;
-    }
-
-    /* Struct array ('STRC') */
-    data = (int *)sp;
-    if (*data == MAKE_ID('S', 'T', 'R', 'C')) {
-      data++;
-
-      sdna->structs_len = *data;
-      if (do_endian_swap) {
-        BLI_endian_switch_int32(&sdna->structs_len);
-      }
-
-      data++;
-      sdna->structs = MEM_callocN(sizeof(void *) * sdna->structs_len, "sdnastrcs");
-    }
-    else {
-      *r_error_message = "STRC error in SDNA file";
-      return false;
-    }
-
+  /* Type lengths array ('TLEN') */
+  data = (int *)cp;
+  if (*data == MAKE_ID('T', 'L', 'E', 'N')) {
+    data++;
     sp = (short *)data;
-    for (int nr = 0; nr < sdna->structs_len; nr++) {
-      sdna->structs[nr] = sp;
+    sdna->types_size = sp;
 
-      if (do_endian_swap) {
-        short a;
+    if (do_endian_swap) {
+      BLI_endian_switch_int16_array(sp, sdna->types_len);
+    }
 
+    sp += sdna->types_len;
+  }
+  else {
+    *r_error_message = "TLEN error in SDNA file";
+    return false;
+  }
+  /* prevent BUS error */
+  if (sdna->types_len & 1) {
+    sp++;
+  }
+
+  /* Struct array ('STRC') */
+  data = (int *)sp;
+  if (*data == MAKE_ID('S', 'T', 'R', 'C')) {
+    data++;
+
+    sdna->structs_len = *data;
+    if (do_endian_swap) {
+      BLI_endian_switch_int32(&sdna->structs_len);
+    }
+
+    data++;
+    sdna->structs = MEM_callocN(sizeof(void *) * sdna->structs_len, "sdnastrcs");
+  }
+  else {
+    *r_error_message = "STRC error in SDNA file";
+    return false;
+  }
+
+  sp = (short *)data;
+  for (int nr = 0; nr < sdna->structs_len; nr++) {
+    sdna->structs[nr] = sp;
+
+    if (do_endian_swap) {
+      short a;
+
+      BLI_endian_switch_int16(&sp[0]);
+      BLI_endian_switch_int16(&sp[1]);
+
+      a = sp[1];
+      sp += 2;
+      while (a--) {
         BLI_endian_switch_int16(&sp[0]);
         BLI_endian_switch_int16(&sp[1]);
-
-        a = sp[1];
         sp += 2;
-        while (a--) {
-          BLI_endian_switch_int16(&sp[0]);
-          BLI_endian_switch_int16(&sp[1]);
-          sp += 2;
-        }
       }
-      else {
-        sp += 2 * sp[1] + 2;
-      }
+    }
+    else {
+      sp += 2 * sp[1] + 2;
     }
   }
 
@@ -578,16 +577,15 @@ SDNA *DNA_sdna_from_data(const void *data,
   if (init_structDNA(sdna, do_endian_swap, &error_message)) {
     return sdna;
   }
-  else {
-    if (r_error_message == NULL) {
-      fprintf(stderr, "Error decoding blend file SDNA: %s\n", error_message);
-    }
-    else {
-      *r_error_message = error_message;
-    }
-    DNA_sdna_free(sdna);
-    return NULL;
+
+  if (r_error_message == NULL) {
+    fprintf(stderr, "Error decoding blend file SDNA: %s\n", error_message);
   }
+  else {
+    *r_error_message = error_message;
+  }
+  DNA_sdna_free(sdna);
+  return NULL;
 }
 
 /**
@@ -764,34 +762,33 @@ static eSDNA_Type sdna_type_nr(const char *dna_type)
   if (STR_ELEM(dna_type, "char", "const char")) {
     return SDNA_TYPE_CHAR;
   }
-  else if (STR_ELEM(dna_type, "uchar", "unsigned char")) {
+  if (STR_ELEM(dna_type, "uchar", "unsigned char")) {
     return SDNA_TYPE_UCHAR;
   }
-  else if (STR_ELEM(dna_type, "short")) {
+  if (STR_ELEM(dna_type, "short")) {
     return SDNA_TYPE_SHORT;
   }
-  else if (STR_ELEM(dna_type, "ushort", "unsigned short")) {
+  if (STR_ELEM(dna_type, "ushort", "unsigned short")) {
     return SDNA_TYPE_USHORT;
   }
-  else if (STR_ELEM(dna_type, "int")) {
+  if (STR_ELEM(dna_type, "int")) {
     return SDNA_TYPE_INT;
   }
-  else if (STR_ELEM(dna_type, "float")) {
+  if (STR_ELEM(dna_type, "float")) {
     return SDNA_TYPE_FLOAT;
   }
-  else if (STR_ELEM(dna_type, "double")) {
+  if (STR_ELEM(dna_type, "double")) {
     return SDNA_TYPE_DOUBLE;
   }
-  else if (STR_ELEM(dna_type, "int64_t")) {
+  if (STR_ELEM(dna_type, "int64_t")) {
     return SDNA_TYPE_INT64;
   }
-  else if (STR_ELEM(dna_type, "uint64_t")) {
+  if (STR_ELEM(dna_type, "uint64_t")) {
     return SDNA_TYPE_UINT64;
   }
   /* invalid! */
-  else {
-    return -1;
-  }
+
+  return -1;
 }
 
 /**
@@ -1150,7 +1147,7 @@ static void reconstruct_elem(const SDNA *newsdna,
 
       return;
     }
-    else if (countpos != 0) { /* name is an array */
+    if (countpos != 0) { /* name is an array */
 
       if (oname[countpos] == '[' && strncmp(name, oname, countpos) == 0) { /* basis equal */
         const int new_name_array_len = newsdna->names_array_len[new_name_nr];

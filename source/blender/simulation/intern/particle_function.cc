@@ -102,9 +102,8 @@ fn::GVSpan ParticleFunctionEvaluator::get(int output_index, StringRef expected_n
   if (particle_fn_.output_is_global_[output_index]) {
     return fn::GVSpan::FromSingleWithMaxSize(type, buffer);
   }
-  else {
-    return fn::GVSpan(fn::GSpan(type, buffer, mask_.min_array_size()));
-  }
+
+  return fn::GVSpan(fn::GSpan(type, buffer, mask_.min_array_size()));
 }
 
 void ParticleFunctionEvaluator::compute_globals()

@@ -452,21 +452,20 @@ static void execute_posetree(struct Depsgraph *depsgraph,
         /* don't solve IK when we are setting the pole angle */
         break;
       }
-      else {
-        mul_m4_m4m4(goal, goalinv, rootmat);
-        copy_v3_v3(polepos, goal[3]);
-        poleconstrain = 1;
 
-        /* for pole targets, we blend the result of the ik solver
-         * instead of the target position, otherwise we can't get
-         * a smooth transition */
-        resultblend = 1;
-        resultinf = target->con->enforce;
+      mul_m4_m4m4(goal, goalinv, rootmat);
+      copy_v3_v3(polepos, goal[3]);
+      poleconstrain = 1;
 
-        if (data->flag & CONSTRAINT_IK_GETANGLE) {
-          poleangledata = data;
-          data->flag &= ~CONSTRAINT_IK_GETANGLE;
-        }
+      /* for pole targets, we blend the result of the ik solver
+       * instead of the target position, otherwise we can't get
+       * a smooth transition */
+      resultblend = 1;
+      resultinf = target->con->enforce;
+
+      if (data->flag & CONSTRAINT_IK_GETANGLE) {
+        poleangledata = data;
+        data->flag &= ~CONSTRAINT_IK_GETANGLE;
       }
     }
 

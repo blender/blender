@@ -179,13 +179,12 @@ BMLoop *BM_loop_other_vert_loop_by_edge(BMLoop *l, BMEdge *e)
   if (l->e == e) {
     return l->next;
   }
-  else if (l->prev->e == e) {
+  if (l->prev->e == e) {
     return l->prev;
   }
-  else {
-    BLI_assert(0);
-    return NULL;
-  }
+
+  BLI_assert(0);
+  return NULL;
 }
 
 /**

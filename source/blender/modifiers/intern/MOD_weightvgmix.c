@@ -117,12 +117,11 @@ static float mix_weight(float weight, float weight2, char mix_mode)
   if (mix_mode == MOD_WVG_MIX_DIF) {
     return (weight < weight2 ? weight2 - weight : weight - weight2);
   }
-  else if (mix_mode == MOD_WVG_MIX_AVG) {
+  if (mix_mode == MOD_WVG_MIX_AVG) {
     return (weight + weight2) * 0.5f;
   }
-  else {
-    return weight2;
-  }
+
+  return weight2;
 }
 
 /**************************************

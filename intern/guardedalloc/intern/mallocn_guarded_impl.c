@@ -249,9 +249,8 @@ size_t MEM_guarded_allocN_len(const void *vmemh)
     memh--;
     return memh->len;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 void *MEM_guarded_dupallocN(const void *vmemh)
@@ -611,12 +610,11 @@ static int compare_len(const void *p1, const void *p2)
   if (pb1->len < pb2->len) {
     return 1;
   }
-  else if (pb1->len == pb2->len) {
+  if (pb1->len == pb2->len) {
     return 0;
   }
-  else {
-    return -1;
-  }
+
+  return -1;
 }
 
 void MEM_guarded_printmemlist_stats(void)
@@ -682,7 +680,7 @@ void MEM_guarded_printmemlist_stats(void)
     if (a == b) {
       continue;
     }
-    else if (strcmp(printblock[a].name, printblock[b].name) == 0) {
+    if (strcmp(printblock[a].name, printblock[b].name) == 0) {
       printblock[b].len += printblock[a].len;
       printblock[b].items++;
     }
@@ -1213,8 +1211,7 @@ const char *MEM_guarded_name_ptr(void *vmemh)
     memh--;
     return memh->name;
   }
-  else {
-    return "MEM_guarded_name_ptr(NULL)";
-  }
+
+  return "MEM_guarded_name_ptr(NULL)";
 }
 #endif /* NDEBUG */

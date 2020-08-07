@@ -180,9 +180,8 @@ float get_modifier_point_weight(MDeformVert *dvert, bool inverse, int def_nr)
     if (inverse == 1) {
       return 1.0f;
     }
-    else {
-      return -1.0f;
-    }
+
+    return -1.0f;
   }
 
   return weight;

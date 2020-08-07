@@ -1381,20 +1381,19 @@ static int multitex_nodes_intern(Tex *tex,
 
     return rgbnor;
   }
-  else {
-    return multitex(tex,
-                    texvec,
-                    dxt,
-                    dyt,
-                    osatex,
-                    texres,
-                    thread,
-                    which_output,
-                    pool,
-                    skip_load_image,
-                    texnode_preview,
-                    use_nodes);
-  }
+
+  return multitex(tex,
+                  texvec,
+                  dxt,
+                  dyt,
+                  osatex,
+                  texres,
+                  thread,
+                  which_output,
+                  pool,
+                  skip_load_image,
+                  texnode_preview,
+                  use_nodes);
 }
 
 /* this is called from the shader and texture nodes
