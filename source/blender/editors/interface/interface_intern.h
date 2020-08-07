@@ -172,7 +172,6 @@ struct uiBut {
 
   /**
    * For #uiBut.type:
-   * - UI_BTYPE_HSVCUBE:      Use UI_GRAD_* values.
    * - UI_BTYPE_NUM:          Use to store RNA 'step' value, for dragging and click-step.
    * - UI_BTYPE_LABEL:        Use `(a1 == 1.0f)` to use a2 as a blending factor (imaginative!).
    * - UI_BTYPE_SCROLL:       Use as scroll size.
@@ -327,6 +326,12 @@ typedef struct uiButProgressbar {
   /* 0..1 range */
   float progress;
 } uiButProgressbar;
+
+typedef struct uiButHSVCube {
+  uiBut but;
+
+  eButGradientType gradient_type;
+} uiButHSVCube;
 
 /**
  * Additional, superimposed icon for a button, invoking an operator.
@@ -535,7 +540,7 @@ extern void ui_hsvcircle_vals_from_pos(
 extern void ui_hsvcircle_pos_from_vals(
     const ColorPicker *cpicker, const rcti *rect, const float *hsv, float *xpos, float *ypos);
 extern void ui_hsvcube_pos_from_vals(
-    const struct uiBut *but, const rcti *rect, const float *hsv, float *xp, float *yp);
+    const struct uiButHSVCube *hsv_but, const rcti *rect, const float *hsv, float *xp, float *yp);
 
 extern void ui_but_string_get_ex(uiBut *but,
                                  char *str,
@@ -777,7 +782,10 @@ extern void ui_draw_aligned_panel(struct uiStyle *style,
 extern void ui_draw_dropshadow(
     const rctf *rct, float radius, float aspect, float alpha, int select);
 
-void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, const float alpha);
+void ui_draw_gradient(const rcti *rect,
+                      const float hsv[3],
+                      const eButGradientType type,
+                      const float alpha);
 
 void ui_draw_but_TAB_outline(const rcti *rect,
                              float rad,

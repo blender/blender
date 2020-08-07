@@ -5941,9 +5941,11 @@ static void clamp_axis_max_v3(float v[3], const float max)
   }
 }
 
-static void ui_rgb_to_color_picker_HSVCUBE_compat_v(uiBut *but, const float rgb[3], float hsv[3])
+static void ui_rgb_to_color_picker_HSVCUBE_compat_v(const uiButHSVCube *hsv_but,
+                                                    const float rgb[3],
+                                                    float hsv[3])
 {
-  if (but->a1 == UI_GRAD_L_ALT) {
+  if (hsv_but->gradient_type == UI_GRAD_L_ALT) {
     rgb_to_hsl_compat_v(rgb, hsv);
   }
   else {
@@ -5951,9 +5953,11 @@ static void ui_rgb_to_color_picker_HSVCUBE_compat_v(uiBut *but, const float rgb[
   }
 }
 
-static void ui_rgb_to_color_picker_HSVCUBE_v(uiBut *but, const float rgb[3], float hsv[3])
+static void ui_rgb_to_color_picker_HSVCUBE_v(const uiButHSVCube *hsv_but,
+                                             const float rgb[3],
+                                             float hsv[3])
 {
-  if (but->a1 == UI_GRAD_L_ALT) {
+  if (hsv_but->gradient_type == UI_GRAD_L_ALT) {
     rgb_to_hsl_v(rgb, hsv);
   }
   else {
@@ -5961,9 +5965,11 @@ static void ui_rgb_to_color_picker_HSVCUBE_v(uiBut *but, const float rgb[3], flo
   }
 }
 
-static void ui_color_picker_to_rgb_HSVCUBE_v(uiBut *but, const float hsv[3], float rgb[3])
+static void ui_color_picker_to_rgb_HSVCUBE_v(const uiButHSVCube *hsv_but,
+                                             const float hsv[3],
+                                             float rgb[3])
 {
-  if (but->a1 == UI_GRAD_L_ALT) {
+  if (hsv_but->gradient_type == UI_GRAD_L_ALT) {
     hsl_to_rgb_v(hsv, rgb);
   }
   else {
@@ -5978,6 +5984,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but,
                                    const enum eSnapType snap,
                                    const bool shift)
 {
+  const uiButHSVCube *hsv_but = (uiButHSVCube *)but;
   ColorPicker *cpicker = but->custom_data;
   float *hsv = cpicker->color_data;
   float rgb[3];
@@ -5999,7 +6006,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but,
   ui_but_v3_get(but, rgb);
   ui_scene_linear_to_color_picker_space(but, rgb);
 
-  ui_rgb_to_color_picker_HSVCUBE_compat_v(but, rgb, hsv);
+  ui_rgb_to_color_picker_HSVCUBE_compat_v(hsv_but, rgb, hsv);
 
   /* only apply the delta motion, not absolute */
   if (shift) {
@@ -6014,10 +6021,10 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but,
 
     copy_v3_v3(hsvo, hsv);
 
-    ui_rgb_to_color_picker_HSVCUBE_compat_v(but, rgb, hsvo);
+    ui_rgb_to_color_picker_HSVCUBE_compat_v(hsv_but, rgb, hsvo);
 
     /* and original position */
-    ui_hsvcube_pos_from_vals(but, &rect_i, hsvo, &xpos, &ypos);
+    ui_hsvcube_pos_from_vals(hsv_but, &rect_i, hsvo, &xpos, &ypos);
 
     mx_fl = xpos - (data->dragstartx - mx_fl);
     my_fl = ypos - (data->dragstarty - my_fl);
@@ -6029,7 +6036,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but,
   CLAMP(x, 0.0f, 1.0f);
   CLAMP(y, 0.0f, 1.0f);
 
-  switch ((int)but->a1) {
+  switch (hsv_but->gradient_type) {
     case UI_GRAD_SV:
       hsv[1] = x;
       hsv[2] = y;
@@ -6067,16 +6074,16 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but,
   }
 
   if (snap != SNAP_OFF) {
-    if (ELEM((int)but->a1, UI_GRAD_HV, UI_GRAD_HS, UI_GRAD_H)) {
+    if (ELEM(hsv_but->gradient_type, UI_GRAD_HV, UI_GRAD_HS, UI_GRAD_H)) {
       ui_color_snap_hue(snap, &hsv[0]);
     }
   }
 
-  ui_color_picker_to_rgb_HSVCUBE_v(but, hsv, rgb);
+  ui_color_picker_to_rgb_HSVCUBE_v(hsv_but, hsv, rgb);
   ui_color_picker_to_scene_linear_space(but, rgb);
 
   /* clamp because with color conversion we can exceed range [#34295] */
-  if (but->a1 == UI_GRAD_V_ALT) {
+  if (hsv_but->gradient_type == UI_GRAD_V_ALT) {
     clamp_axis_max_v3(rgb, but->softmax);
   }
 
@@ -6161,6 +6168,7 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but,
 static int ui_do_but_HSVCUBE(
     bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
+  const uiButHSVCube *hsv_but = (uiButHSVCube *)but;
   int mx, my;
 
   mx = event->x;
@@ -6199,7 +6207,7 @@ static int ui_do_but_HSVCUBE(
 #endif /* WITH_INPUT_NDOF */
     /* XXX hardcoded keymap check.... */
     if (event->type == EVT_BACKSPACEKEY && event->val == KM_PRESS) {
-      if (ELEM(but->a1, UI_GRAD_V_ALT, UI_GRAD_L_ALT)) {
+      if (ELEM(hsv_but->gradient_type, UI_GRAD_V_ALT, UI_GRAD_L_ALT)) {
         int len;
 
         /* reset only value */
@@ -6212,15 +6220,15 @@ static int ui_do_but_HSVCUBE(
           float *hsv = cpicker->color_data;
 
           RNA_property_float_get_default_array(&but->rnapoin, but->rnaprop, def);
-          ui_rgb_to_color_picker_HSVCUBE_v(but, def, def_hsv);
+          ui_rgb_to_color_picker_HSVCUBE_v(hsv_but, def, def_hsv);
 
           ui_but_v3_get(but, rgb);
-          ui_rgb_to_color_picker_HSVCUBE_compat_v(but, rgb, hsv);
+          ui_rgb_to_color_picker_HSVCUBE_compat_v(hsv_but, rgb, hsv);
 
           def_hsv[0] = hsv[0];
           def_hsv[1] = hsv[1];
 
-          ui_color_picker_to_rgb_HSVCUBE_v(but, def_hsv, rgb);
+          ui_color_picker_to_rgb_HSVCUBE_v(hsv_but, def_hsv, rgb);
           ui_but_v3_set(but, rgb);
 
           RNA_property_update(C, &but->rnapoin, but->rnaprop);

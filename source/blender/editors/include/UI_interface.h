@@ -378,7 +378,7 @@ typedef enum {
 #define BUTTYPE (63 << 9)
 
 /** Gradient types, for color picker #UI_BTYPE_HSVCUBE etc. */
-enum {
+typedef enum eButGradientType {
   UI_GRAD_SV = 0,
   UI_GRAD_HV = 1,
   UI_GRAD_HS = 2,
@@ -388,7 +388,7 @@ enum {
 
   UI_GRAD_V_ALT = 9,
   UI_GRAD_L_ALT = 10,
-};
+} eButGradientType;
 
 /* Drawing
  *

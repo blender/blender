@@ -2971,7 +2971,10 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
  * \{ */
 
 /* draws in resolution of 48x4 colors */
-void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, const float alpha)
+void ui_draw_gradient(const rcti *rect,
+                      const float hsv[3],
+                      const eButGradientType type,
+                      const float alpha)
 {
   /* allows for 4 steps (red->yellow) */
   const int steps = 48;
@@ -3088,6 +3091,8 @@ void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, cons
         copy_v3_v3(col1[1], col1[2]);
         copy_v3_v3(col1[3], col1[2]);
         break;
+      default:
+        break;
     }
 
     /* rect */
@@ -3122,11 +3127,11 @@ void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, cons
 }
 
 void ui_hsvcube_pos_from_vals(
-    const uiBut *but, const rcti *rect, const float *hsv, float *r_xp, float *r_yp)
+    const uiButHSVCube *hsv_but, const rcti *rect, const float *hsv, float *r_xp, float *r_yp)
 {
   float x = 0.0f, y = 0.0f;
 
-  switch ((int)but->a1) {
+  switch (hsv_but->gradient_type) {
     case UI_GRAD_SV:
       x = hsv[1];
       y = hsv[2];
@@ -3159,7 +3164,7 @@ void ui_hsvcube_pos_from_vals(
     case UI_GRAD_V_ALT:
       x = 0.5f;
       /* exception only for value strip - use the range set in but->min/max */
-      y = (hsv[2] - but->softmin) / (but->softmax - but->softmin);
+      y = (hsv[2] - hsv_but->but.softmin) / (hsv_but->but.softmax - hsv_but->but.softmin);
       break;
   }
 
@@ -3170,6 +3175,7 @@ void ui_hsvcube_pos_from_vals(
 
 static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
 {
+  const uiButHSVCube *hsv_but = (uiButHSVCube *)but;
   float rgb[3];
   float x = 0.0f, y = 0.0f;
   ColorPicker *cpicker = but->custom_data;
@@ -3183,9 +3189,9 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
   ui_scene_linear_to_color_picker_space(but, rgb);
   rgb_to_hsv_compat_v(rgb, hsv_n);
 
-  ui_draw_gradient(rect, hsv_n, but->a1, 1.0f);
+  ui_draw_gradient(rect, hsv_n, hsv_but->gradient_type, 1.0f);
 
-  ui_hsvcube_pos_from_vals(but, rect, hsv_n, &x, &y);
+  ui_hsvcube_pos_from_vals(hsv_but, rect, hsv_n, &x, &y);
   CLAMP(x, rect->xmin + 3.0f, rect->xmax - 3.0f);
   CLAMP(y, rect->ymin + 3.0f, rect->ymax - 3.0f);
 
@@ -3202,6 +3208,7 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
 /* vertical 'value' slider, using new widget code */
 static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 {
+  const uiButHSVCube *hsv_but = (uiButHSVCube *)but;
   bTheme *btheme = UI_GetTheme();
   uiWidgetColors *wcol = &btheme->tui.wcol_numslider;
   uiWidgetBase wtb;
@@ -3212,7 +3219,7 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
   ui_but_v3_get(but, rgb);
   ui_scene_linear_to_color_picker_space(but, rgb);
 
-  if (but->a1 == UI_GRAD_L_ALT) {
+  if (hsv_but->gradient_type == UI_GRAD_L_ALT) {
     rgb_to_hsl_v(rgb, hsv);
   }
   else {
@@ -3221,7 +3228,7 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
   v = hsv[2];
 
   /* map v from property range to [0,1] */
-  if (but->a1 == UI_GRAD_V_ALT) {
+  if (hsv_but->gradient_type == UI_GRAD_V_ALT) {
     float min = but->softmin, max = but->softmax;
     v = (v - min) / (max - min);
   }
@@ -4670,8 +4677,10 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
         widget_draw_extra_mask(C, but, widget_type(UI_WTYPE_BOX), rect);
         break;
 
-      case UI_BTYPE_HSVCUBE:
-        if (ELEM(but->a1, UI_GRAD_V_ALT, UI_GRAD_L_ALT)) {
+      case UI_BTYPE_HSVCUBE: {
+        const uiButHSVCube *hsv_but = (uiButHSVCube *)but;
+
+        if (ELEM(hsv_but->gradient_type, UI_GRAD_V_ALT, UI_GRAD_L_ALT)) {
           /* vertical V slider, uses new widget draw now */
           ui_draw_but_HSV_v(but, rect);
         }
@@ -4679,6 +4688,7 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
           ui_draw_but_HSVCUBE(but, rect);
         }
         break;
+      }
 
       case UI_BTYPE_HSVCIRCLE:
         ui_draw_but_HSVCIRCLE(but, &tui->wcol_regular, rect);

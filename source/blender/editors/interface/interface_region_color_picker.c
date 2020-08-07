@@ -369,6 +369,7 @@ static void ui_colorpicker_circle(uiBlock *block,
                                   ColorPicker *cpicker)
 {
   uiBut *bt;
+  uiButHSVCube *hsv_but;
 
   /* HS circle */
   bt = uiDefButR_prop(block,
@@ -392,91 +393,99 @@ static void ui_colorpicker_circle(uiBlock *block,
 
   /* value */
   if (U.color_picker_type == USER_CP_CIRCLE_HSL) {
-    bt = uiDefButR_prop(block,
-                        UI_BTYPE_HSVCUBE,
-                        0,
-                        "",
-                        PICKER_W + PICKER_SPACE,
-                        0,
-                        PICKER_BAR,
-                        PICKER_H,
-                        ptr,
-                        prop,
-                        -1,
-                        0.0,
-                        0.0,
-                        UI_GRAD_L_ALT,
-                        0,
-                        "Lightness");
-    UI_but_func_set(bt, ui_colorpicker_rna_cb, bt, NULL);
+    hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
+                                             UI_BTYPE_HSVCUBE,
+                                             0,
+                                             "",
+                                             PICKER_W + PICKER_SPACE,
+                                             0,
+                                             PICKER_BAR,
+                                             PICKER_H,
+                                             ptr,
+                                             prop,
+                                             -1,
+                                             0.0,
+                                             0.0,
+                                             0,
+                                             0,
+                                             "Lightness");
+    hsv_but->gradient_type = UI_GRAD_L_ALT;
+    UI_but_func_set(&hsv_but->but, ui_colorpicker_rna_cb, &hsv_but->but, NULL);
   }
   else {
-    bt = uiDefButR_prop(block,
-                        UI_BTYPE_HSVCUBE,
-                        0,
-                        "",
-                        PICKER_W + PICKER_SPACE,
-                        0,
-                        PICKER_BAR,
-                        PICKER_H,
-                        ptr,
-                        prop,
-                        -1,
-                        0.0,
-                        0.0,
-                        UI_GRAD_V_ALT,
-                        0,
-                        TIP_("Value"));
-    UI_but_func_set(bt, ui_colorpicker_rna_cb, bt, NULL);
+    hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
+                                             UI_BTYPE_HSVCUBE,
+                                             0,
+                                             "",
+                                             PICKER_W + PICKER_SPACE,
+                                             0,
+                                             PICKER_BAR,
+                                             PICKER_H,
+                                             ptr,
+                                             prop,
+                                             -1,
+                                             0.0,
+                                             0.0,
+                                             0,
+                                             0,
+                                             TIP_("Value"));
+    hsv_but->gradient_type = UI_GRAD_V_ALT;
+    UI_but_func_set(&hsv_but->but, ui_colorpicker_rna_cb, &hsv_but->but, NULL);
   }
-  bt->custom_data = cpicker;
+  hsv_but->but.custom_data = cpicker;
 }
 
-static void ui_colorpicker_square(
-    uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int type, ColorPicker *cpicker)
+static void ui_colorpicker_square(uiBlock *block,
+                                  PointerRNA *ptr,
+                                  PropertyRNA *prop,
+                                  eButGradientType type,
+                                  ColorPicker *cpicker)
 {
-  uiBut *bt;
-  int bartype = type + 3;
+  uiButHSVCube *hsv_but;
+
+  BLI_assert(type <= UI_GRAD_HS);
 
   /* HS square */
-  bt = uiDefButR_prop(block,
-                      UI_BTYPE_HSVCUBE,
-                      0,
-                      "",
-                      0,
-                      PICKER_BAR + PICKER_SPACE,
-                      PICKER_TOTAL_W,
-                      PICKER_H,
-                      ptr,
-                      prop,
-                      -1,
-                      0.0,
-                      0.0,
-                      type,
-                      0,
-                      TIP_("Color"));
-  UI_but_func_set(bt, ui_colorpicker_rna_cb, bt, NULL);
-  bt->custom_data = cpicker;
+  hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
+                                           UI_BTYPE_HSVCUBE,
+                                           0,
+                                           "",
+                                           0,
+                                           PICKER_BAR + PICKER_SPACE,
+                                           PICKER_TOTAL_W,
+                                           PICKER_H,
+                                           ptr,
+                                           prop,
+                                           -1,
+                                           0.0,
+                                           0.0,
+                                           0,
+                                           0,
+                                           TIP_("Color"));
+  hsv_but->gradient_type = type;
+  UI_but_func_set(&hsv_but->but, ui_colorpicker_rna_cb, &hsv_but->but, NULL);
+  hsv_but->but.custom_data = cpicker;
 
   /* value */
-  bt = uiDefButR_prop(block,
-                      UI_BTYPE_HSVCUBE,
-                      0,
-                      "",
-                      0,
-                      0,
-                      PICKER_TOTAL_W,
-                      PICKER_BAR,
-                      ptr,
-                      prop,
-                      -1,
-                      0.0,
-                      0.0,
-                      bartype,
-                      0,
-                      TIP_("Value"));
-  UI_but_func_set(bt, ui_colorpicker_rna_cb, bt, NULL);
-  bt->custom_data = cpicker;
+  hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
+                                           UI_BTYPE_HSVCUBE,
+                                           0,
+                                           "",
+                                           0,
+                                           0,
+                                           PICKER_TOTAL_W,
+                                           PICKER_BAR,
+                                           ptr,
+                                           prop,
+                                           -1,
+                                           0.0,
+                                           0.0,
+                                           0,
+                                           0,
+                                           TIP_("Value"));
+  hsv_but->gradient_type = type + 3;
+  UI_but_func_set(&hsv_but->but, ui_colorpicker_rna_cb, &hsv_but->but, NULL);
+  hsv_but->but.custom_data = cpicker;
 }
 
 /* a HS circle, V slider, rgb/hsv/hex sliders */

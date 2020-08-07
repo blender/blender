@@ -3793,6 +3793,10 @@ static void ui_but_alloc_info(const eButType type,
       alloc_size = sizeof(uiButProgressbar);
       alloc_str = "uiButProgressbar";
       break;
+    case UI_BTYPE_HSVCUBE:
+      alloc_size = sizeof(uiButHSVCube);
+      alloc_str = "uiButHSVCube";
+      break;
     default:
       alloc_size = sizeof(uiBut);
       alloc_str = "uiBut";
