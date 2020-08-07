@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __SIM_PARTICLE_MESH_EMITTER_HH__
-#define __SIM_PARTICLE_MESH_EMITTER_HH__
+#pragma once
 
 #include "simulation_solver_influences.hh"
 
@@ -48,5 +47,3 @@ class ParticleMeshEmitter final : public ParticleEmitter {
 };
 
 }  // namespace blender::sim
-
-#endif /* __SIM_PARTICLE_MESH_EMITTER_HH__ */

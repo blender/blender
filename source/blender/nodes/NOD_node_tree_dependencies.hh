@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __NOD_NODE_TREE_DEPENDENCIES_H__
-#define __NOD_NODE_TREE_DEPENDENCIES_H__
+#pragma once
 
 #include "BLI_vector_set.hh"
 
@@ -75,5 +74,3 @@ class NodeTreeDependencies {
 NodeTreeDependencies find_node_tree_dependencies(bNodeTree &ntree);
 
 }  // namespace blender::nodes
-
-#endif /* __NOD_NODE_TREE_DEPENDENCIES_H__ */
