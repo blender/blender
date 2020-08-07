@@ -22,8 +22,7 @@
  * \brief blenloader genfile private function prototypes
  */
 
-#ifndef __DNA_GENFILE_H__
-#define __DNA_GENFILE_H__
+#pragma once
 
 #include "intern/dna_utils.h"
 
@@ -141,5 +140,3 @@ void DNA_sdna_alias_data_ensure_structs_map(struct SDNA *sdna);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __DNA_GENFILE_H__ */

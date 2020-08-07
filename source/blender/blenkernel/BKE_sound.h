@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  */
-#ifndef __BKE_SOUND_H__
-#define __BKE_SOUND_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -194,5 +193,3 @@ void BKE_sound_evaluate(struct Depsgraph *depsgraph, struct Main *bmain, struct 
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_SOUND_H__ */

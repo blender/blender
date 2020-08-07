@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_TEXTURENODE_H__
-#define __COM_TEXTURENODE_H__
+#pragma once
 
 #include "COM_Node.h"
 #include "DNA_node_types.h"
@@ -31,5 +30,3 @@ class TextureNode : public Node {
   TextureNode(bNode *editorNode);
   void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
-
-#endif /* __COM_TEXTURENODE_H__ */

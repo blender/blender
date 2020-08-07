@@ -20,8 +20,7 @@
  * Use API in BKE_workspace.h to edit these.
  */
 
-#ifndef __DNA_WORKSPACE_TYPES_H__
-#define __DNA_WORKSPACE_TYPES_H__
+#pragma once
 
 #include "DNA_scene_types.h"
 
@@ -184,5 +183,3 @@ typedef struct WorkSpaceInstanceHook {
 typedef enum eWorkSpaceFlags {
   WORKSPACE_USE_FILTER_BY_ORIGIN = (1 << 1),
 } eWorkSpaceFlags;
-
-#endif /* __DNA_WORKSPACE_TYPES_H__ */

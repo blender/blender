@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_ITERATORS_H__
-#define __BMESH_ITERATORS_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -252,5 +251,3 @@ BMITER_CB_DEF(loop_of_face);
   (BM_ITER_CHECK_TYPE_DATA(data), BM_iter_new(iter, bm, itype, data))
 #define BM_iter_init(iter, bm, itype, data) \
   (BM_ITER_CHECK_TYPE_DATA(data), BM_iter_init(iter, bm, itype, data))
-
-#endif /* __BMESH_ITERATORS_H__ */

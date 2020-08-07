@@ -21,8 +21,7 @@
  * \ingroup wm
  */
 
-#ifndef __WM_FILES_H__
-#define __WM_FILES_H__
+#pragma once
 
 struct Main;
 struct wmGenericCallback;
@@ -75,5 +74,3 @@ void WM_OT_lib_reload(struct wmOperatorType *ot);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __WM_FILES_H__ */

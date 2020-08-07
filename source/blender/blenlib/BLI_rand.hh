@@ -18,8 +18,7 @@
  * \ingroup bli
  */
 
-#ifndef __BLI_RAND_HH__
-#define __BLI_RAND_HH__
+#pragma once
 
 #include "BLI_float2.hh"
 #include "BLI_float3.hh"
@@ -143,5 +142,3 @@ class RandomNumberGenerator {
 };
 
 }  // namespace blender
-
-#endif /* __BLI_RAND_HH__ */

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_KDOPBVH_H__
-#define __BLI_KDOPBVH_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -264,5 +263,3 @@ extern const float bvhtree_kdop_axes[13][3];
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_KDOPBVH_H__ */

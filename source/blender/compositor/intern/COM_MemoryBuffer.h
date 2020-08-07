@@ -18,8 +18,7 @@
 
 class MemoryBuffer;
 
-#ifndef __COM_MEMORYBUFFER_H__
-#define __COM_MEMORYBUFFER_H__
+#pragma once
 
 #include "COM_ExecutionGroup.h"
 #include "COM_MemoryProxy.h"
@@ -357,5 +356,3 @@ class MemoryBuffer {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:MemoryBuffer")
 #endif
 };
-
-#endif

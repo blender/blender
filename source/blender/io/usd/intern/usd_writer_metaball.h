@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2020 Blender Foundation.
  * All rights reserved.
  */
-#ifndef __USD_WRITER_METABALL_H__
-#define __USD_WRITER_METABALL_H__
+#pragma once
 
 #include "usd_writer_mesh.h"
 
@@ -42,5 +41,3 @@ class USDMetaballWriter : public USDGenericMeshWriter {
 }  // namespace usd
 }  // namespace io
 }  // namespace blender
-
-#endif /* __USD_WRITER_METABALL_H__ */

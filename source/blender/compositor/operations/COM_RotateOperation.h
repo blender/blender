@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_ROTATEOPERATION_H__
-#define __COM_ROTATEOPERATION_H__
+#pragma once
 
 #include "COM_NodeOperation.h"
 
@@ -47,5 +46,3 @@ class RotateOperation : public NodeOperation {
 
   void ensureDegree();
 };
-
-#endif

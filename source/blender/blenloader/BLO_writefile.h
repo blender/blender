@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLO_WRITEFILE_H__
-#define __BLO_WRITEFILE_H__
+#pragma once
 
 /** \file
  * \ingroup blenloader
@@ -73,5 +72,3 @@ extern bool BLO_write_file_mem(struct Main *mainvar,
                                int write_flags);
 
 /** \} */
-
-#endif

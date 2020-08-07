@@ -20,8 +20,7 @@
  * \ingroup draw
  */
 
-#ifndef __DRW_ENGINE_TYPES_H__
-#define __DRW_ENGINE_TYPES_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,5 +49,3 @@ typedef struct DefaultTextureList {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __DRW_ENGINE_H__ */

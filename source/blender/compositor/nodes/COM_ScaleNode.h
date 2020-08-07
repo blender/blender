@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_SCALENODE_H__
-#define __COM_SCALENODE_H__
+#pragma once
 
 #include "COM_Node.h"
 
@@ -30,5 +29,3 @@ class ScaleNode : public Node {
   ScaleNode(bNode *editorNode);
   void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
-
-#endif

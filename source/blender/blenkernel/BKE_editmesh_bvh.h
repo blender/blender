@@ -21,8 +21,7 @@
  * \ingroup bke
  */
 
-#ifndef __BKE_EDITMESH_BVH_H__
-#define __BKE_EDITMESH_BVH_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -104,5 +103,3 @@ enum {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_EDITMESH_BVH_H__ */

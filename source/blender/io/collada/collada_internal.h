@@ -18,8 +18,7 @@
  * \ingroup collada
  */
 
-#ifndef __COLLADA_INTERNAL_H__
-#define __COLLADA_INTERNAL_H__
+#pragma once
 
 #include <map>
 #include <string>
@@ -94,5 +93,3 @@ extern std::string get_morph_id(Object *ob);
 
 extern std::string get_effect_id(Material *mat);
 extern std::string get_material_id(Material *mat);
-
-#endif /* __COLLADA_INTERNAL_H__ */

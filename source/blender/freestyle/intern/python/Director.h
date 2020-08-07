@@ -18,8 +18,7 @@
  * \ingroup freestyle
  */
 
-#ifndef __FREESTYLE_PYTHON_DIRECTOR_H__
-#define __FREESTYLE_PYTHON_DIRECTOR_H__
+#pragma once
 
 namespace Freestyle {
 class UnaryPredicate0D;
@@ -63,5 +62,3 @@ int Director_BPy_StrokeShader_shade(StrokeShader *ss, Stroke &s);
 // ChainingIterator: init, traverse
 int Director_BPy_ChainingIterator_init(ChainingIterator *c_it);
 int Director_BPy_ChainingIterator_traverse(ChainingIterator *c_it, AdjacencyIterator &a_it);
-
-#endif  // __FREESTYLE_PYTHON_DIRECTOR_H__

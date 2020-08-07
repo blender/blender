@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_INTERP_H__
-#define __BMESH_INTERP_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -82,5 +81,3 @@ void BM_vert_loop_groups_data_layer_merge_weights(BMesh *bm,
                                                   struct LinkNode *groups,
                                                   const int layer_n,
                                                   const float *loop_weights);
-
-#endif /* __BMESH_INTERP_H__ */

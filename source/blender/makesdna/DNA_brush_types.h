@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_BRUSH_TYPES_H__
-#define __DNA_BRUSH_TYPES_H__
+#pragma once
 
 #include "DNA_ID.h"
 #include "DNA_curve_types.h"
@@ -946,5 +945,3 @@ enum {
 
 #define MAX_BRUSH_PIXEL_RADIUS 500
 #define GP_MAX_BRUSH_PIXEL_RADIUS 1000
-
-#endif /* __DNA_BRUSH_TYPES_H__ */

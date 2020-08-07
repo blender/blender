@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_COLORRAMPOPERATION_H__
-#define __COM_COLORRAMPOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 #include "DNA_texture_types.h"
 
@@ -52,4 +52,3 @@ class ColorRampOperation : public NodeOperation {
     this->m_colorBand = colorBand;
   }
 };
-#endif

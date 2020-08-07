@@ -18,8 +18,7 @@
  * \ingroup collada
  */
 
-#ifndef __DOCUMENTEXPORTER_H__
-#define __DOCUMENTEXPORTER_H__
+#pragma once
 
 #include "BlenderContext.h"
 #include "collada.h"
@@ -38,5 +37,3 @@ class DocumentExporter {
   BCExportSettings export_settings;
   KeyImageMap key_image_map;
 };
-
-#endif

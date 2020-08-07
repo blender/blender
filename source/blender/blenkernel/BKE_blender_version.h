@@ -13,8 +13,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-#ifndef __BKE_BLENDER_VERSION_H__
-#define __BKE_BLENDER_VERSION_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,5 +53,3 @@ const char *BKE_blender_version_string(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_BLENDER_VERSION_H__ */

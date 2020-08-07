@@ -23,8 +23,7 @@
  * GPU immediate mode work-alike
  */
 
-#ifndef __GPU_IMMEDIATE_H__
-#define __GPU_IMMEDIATE_H__
+#pragma once
 
 #include "GPU_batch.h"
 #include "GPU_immediate_util.h"
@@ -158,5 +157,3 @@ void immDestroy(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_IMMEDIATE_H__ */

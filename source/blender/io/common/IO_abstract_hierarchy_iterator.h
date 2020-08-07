@@ -33,8 +33,7 @@
  * Selections like "selected only" or "no hair systems" are left to concrete subclasses.
  */
 
-#ifndef __ABSTRACT_HIERARCHY_ITERATOR_H__
-#define __ABSTRACT_HIERARCHY_ITERATOR_H__
+#pragma once
 
 #include "IO_dupli_persistent_id.hh"
 
@@ -355,5 +354,3 @@ class AbstractHierarchyIterator {
 
 }  // namespace io
 }  // namespace blender
-
-#endif /* __ABSTRACT_HIERARCHY_ITERATOR_H__ */

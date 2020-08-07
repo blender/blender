@@ -21,8 +21,7 @@
  * \ingroup spclip
  */
 
-#ifndef __CLIP_INTERN_H__
-#define __CLIP_INTERN_H__
+#pragma once
 
 struct ARegion;
 struct MovieClip;
@@ -245,5 +244,3 @@ void CLIP_OT_select_box(struct wmOperatorType *ot);
 void CLIP_OT_select_lasso(struct wmOperatorType *ot);
 void CLIP_OT_select_circle(struct wmOperatorType *ot);
 void CLIP_OT_select_grouped(struct wmOperatorType *ot);
-
-#endif /* __CLIP_INTERN_H__ */

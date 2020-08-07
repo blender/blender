@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_CHROMAMATTEOPERATION_H__
-#define __COM_CHROMAMATTEOPERATION_H__
+#pragma once
+
 #include "COM_MixOperation.h"
 
 /**
@@ -49,4 +49,3 @@ class ChromaMatteOperation : public NodeOperation {
     this->m_settings = nodeChroma;
   }
 };
-#endif

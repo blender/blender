@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __GEOMCLEANER_H__
-#define __GEOMCLEANER_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -257,5 +256,3 @@ bool operator<(const IndexedVertex &iv1, const IndexedVertex &iv2)
 #endif
 
 } /* namespace Freestyle */
-
-#endif  // __GEOMCLEANER_H__

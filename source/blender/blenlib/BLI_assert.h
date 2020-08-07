@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_ASSERT_H__
-#define __BLI_ASSERT_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -92,5 +91,3 @@ void _BLI_assert_abort(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_ASSERT_H__ */

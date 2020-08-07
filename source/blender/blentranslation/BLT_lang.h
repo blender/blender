@@ -21,8 +21,7 @@
  * \ingroup blt
  */
 
-#ifndef __BLT_LANG_H__
-#define __BLT_LANG_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,5 +59,3 @@ struct EnumPropertyItem *BLT_lang_RNA_enum_properties(void);
 #ifdef __cplusplus
 };
 #endif
-
-#endif /* __BLT_LANG_H__ */

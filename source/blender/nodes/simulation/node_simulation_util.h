@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __NODE_SIM_UTIL_H__
-#define __NODE_SIM_UTIL_H__
+#pragma once
 
 #include <string.h>
 
@@ -36,5 +35,3 @@
 void sim_node_type_base(
     struct bNodeType *ntype, int type, const char *name, short nclass, short flag);
 bool sim_node_poll_default(struct bNodeType *ntype, struct bNodeTree *ntree);
-
-#endif /* __NODE_SIM_UTIL_H__ */

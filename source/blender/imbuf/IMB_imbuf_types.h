@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __IMB_IMBUF_TYPES_H__
-#define __IMB_IMBUF_TYPES_H__
+#pragma once
 
 #include "DNA_vec_types.h" /* for rcti */
 
@@ -353,5 +352,3 @@ enum {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __IMB_IMBUF_TYPES_H__ */

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_POLYFILL_2D_H__
-#define __BLI_POLYFILL_2D_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -45,5 +44,3 @@ void BLI_polyfill_calc(const float (*coords)[2],
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_POLYFILL_2D_H__ */

@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_GPU_TYPES_H__
-#define __DNA_GPU_TYPES_H__
+#pragma once
 
 /* Keep for 'Camera' versioning. */
 /** Properties for dof effect. */
@@ -37,5 +36,3 @@ typedef struct GPUDOFSettings {
   int num_blades;
   int high_quality;
 } GPUDOFSettings;
-
-#endif /* __DNA_GPU_TYPES_H__ */

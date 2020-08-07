@@ -21,8 +21,7 @@
  * \ingroup spgraph
  */
 
-#ifndef __GRAPH_INTERN_H__
-#define __GRAPH_INTERN_H__
+#pragma once
 
 struct ARegion;
 struct ARegionType;
@@ -177,5 +176,3 @@ bool graphop_selected_fcurve_poll(struct bContext *C);
 /* graph_ops.c */
 void graphedit_keymap(struct wmKeyConfig *keyconf);
 void graphedit_operatortypes(void);
-
-#endif /* __GRAPH_INTERN_H__ */

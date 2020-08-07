@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_SPAN_HH__
-#define __BLI_SPAN_HH__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -656,5 +655,3 @@ void assert_same_size(const T1 &v1, const T2 &v2, const T3 &v3)
 }
 
 } /* namespace blender */
-
-#endif /* __BLI_SPAN_HH__ */

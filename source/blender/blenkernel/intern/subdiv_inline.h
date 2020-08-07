@@ -21,8 +21,7 @@
  * \ingroup bke
  */
 
-#ifndef __SUBDIV_INLINE_H__
-#define __SUBDIV_INLINE_H__
+#pragma once
 
 #include "BLI_assert.h"
 #include "BLI_compiler_compat.h"
@@ -114,5 +113,3 @@ BLI_INLINE float BKE_subdiv_edge_crease_to_sharpness_char(char edge_crease)
   const float edge_crease_f = edge_crease / 255.0f;
   return BKE_subdiv_edge_crease_to_sharpness_f(edge_crease_f);
 }
-
-#endif /* __SUBDIV_INLINE_H__ */

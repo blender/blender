@@ -18,8 +18,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_POINTCACHE_TYPES_H__
-#define __DNA_POINTCACHE_TYPES_H__
+#pragma once
 
 #include "DNA_listBase.h"
 
@@ -167,5 +166,3 @@ typedef struct PointCache {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __DNA_POINTCACHE_TYPES_H__ */

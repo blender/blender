@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_WRITEAVI_H__
-#define __BKE_WRITEAVI_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -72,6 +71,4 @@ void BKE_movie_filepath_get(char *string,
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

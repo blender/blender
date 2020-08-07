@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_SCENE_HASH_H__
-#define __FREESTYLE_SCENE_HASH_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -78,5 +77,3 @@ class SceneHash : public SceneVisitor {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_SCENE_HASH_H__

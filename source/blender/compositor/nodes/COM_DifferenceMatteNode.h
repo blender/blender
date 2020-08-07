@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_DIFFERENCEMATTENODE_H__
-#define __COM_DIFFERENCEMATTENODE_H__
+#pragma once
 
 #include "COM_Node.h"
 
@@ -30,5 +29,3 @@ class DifferenceMatteNode : public Node {
   DifferenceMatteNode(bNode *editorNode);
   void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
-
-#endif /* COM_DifferenceMatteNODE_H */

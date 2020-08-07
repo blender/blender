@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_CLASS_H__
-#define __BMESH_CLASS_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -472,5 +471,3 @@ typedef bool (*BMLoopFilterFunc)(const BMLoop *, void *user_data);
 #else
 #  define BM_OMP_LIMIT 10000
 #endif
-
-#endif /* __BMESH_CLASS_H__ */

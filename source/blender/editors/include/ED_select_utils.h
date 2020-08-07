@@ -18,8 +18,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_SELECT_UTILS_H__
-#define __ED_SELECT_UTILS_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -78,5 +77,3 @@ eSelectOp ED_select_op_modal(const eSelectOp sel_op, const bool is_first);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_SELECT_UTILS_H__ */

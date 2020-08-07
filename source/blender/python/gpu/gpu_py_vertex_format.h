@@ -18,8 +18,7 @@
  * \ingroup bpygpu
  */
 
-#ifndef __GPU_PY_VERTEX_FORMAT_H__
-#define __GPU_PY_VERTEX_FORMAT_H__
+#pragma once
 
 #include "GPU_vertex_format.h"
 
@@ -32,5 +31,3 @@ typedef struct BPyGPUVertFormat {
 } BPyGPUVertFormat;
 
 PyObject *BPyGPUVertFormat_CreatePyObject(struct GPUVertFormat *fmt);
-
-#endif /* __GPU_PY_VERTEX_FORMAT_H__ */

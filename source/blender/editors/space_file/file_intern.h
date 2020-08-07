@@ -21,8 +21,7 @@
  * \ingroup spfile
  */
 
-#ifndef __FILE_INTERN_H__
-#define __FILE_INTERN_H__
+#pragma once
 
 /* internal exports only */
 
@@ -116,5 +115,3 @@ void file_execute_region_panels_register(struct ARegionType *art);
 
 /* file_utils.c */
 void file_tile_boundbox(const ARegion *region, FileLayout *layout, const int file, rcti *r_bounds);
-
-#endif /* __FILE_INTERN_H__ */

@@ -16,8 +16,8 @@
  * Copyright 2012, Blender Foundation.
  */
 
-#ifndef __COM_MAPRANGEOPERATION_H__
-#define __COM_MAPRANGEOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 #include "DNA_texture_types.h"
 
@@ -67,4 +67,3 @@ class MapRangeOperation : public NodeOperation {
     this->m_useClamp = value;
   }
 };
-#endif

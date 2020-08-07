@@ -18,8 +18,7 @@
  * \ingroup spconsole
  */
 
-#ifndef __CONSOLE_INTERN_H__
-#define __CONSOLE_INTERN_H__
+#pragma once
 
 /* internal exports only */
 
@@ -75,5 +74,3 @@ enum {
   DEL_NEXT_SEL,
   DEL_PREV_SEL
 };
-
-#endif /* __CONSOLE_INTERN_H__ */

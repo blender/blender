@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_NOISE_H__
-#define __BLI_NOISE_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -78,6 +77,4 @@ void cellNoiseV(float x, float y, float z, float r_ca[3]);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_CACHEFILE_H__
-#define __BKE_CACHEFILE_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -66,5 +65,3 @@ void BKE_cachefile_reader_free(struct CacheFile *cache_file, struct CacheReader 
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_CACHEFILE_H__ */

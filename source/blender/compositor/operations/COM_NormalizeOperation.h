@@ -16,8 +16,8 @@
  * Copyright 2012, Blender Foundation.
  */
 
-#ifndef __COM_NORMALIZEOPERATION_H__
-#define __COM_NORMALIZEOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 
@@ -63,5 +63,3 @@ class NormalizeOperation : public NodeOperation {
                                         ReadBufferOperation *readOperation,
                                         rcti *output);
 };
-
-#endif

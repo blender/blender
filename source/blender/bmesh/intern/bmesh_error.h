@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_ERROR_H__
-#define __BMESH_ERROR_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -84,5 +83,3 @@ enum {
                     _BMESH_DUMMY_ABORT(), \
                     NULL)) : \
                   NULL)
-
-#endif /* __BMESH_ERROR_H__ */

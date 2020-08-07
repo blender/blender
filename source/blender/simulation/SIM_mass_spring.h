@@ -21,8 +21,7 @@
  * \ingroup bph
  */
 
-#ifndef __SIM_MASS_SPRING_H__
-#define __SIM_MASS_SPRING_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,6 +56,4 @@ void SIM_cloth_solver_set_volume(ClothModifierData *clmd);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

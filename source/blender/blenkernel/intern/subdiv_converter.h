@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __SUBDIV_CONVERTER_H__
-#define __SUBDIV_CONVERTER_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -51,5 +50,3 @@ int BKE_subdiv_converter_vtx_boundary_interpolation_from_settings(const SubdivSe
 /* TODO(sergey): Find a way to make it OpenSubdiv_FVarLinearInterpolation,
  * without breaking compilation without OpenSubdiv. */
 int BKE_subdiv_converter_fvar_linear_from_settings(const SubdivSettings *settings);
-
-#endif /* __SUBDIV_CONVERTER_H__ */

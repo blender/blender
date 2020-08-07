@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_MEMPOOL_H__
-#define __BLI_MEMPOOL_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -97,5 +96,3 @@ void BLI_mempool_iter_threadsafe_free(BLI_mempool_iter *iter_arr) ATTR_NONNULL()
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_MEMPOOL_H__ */

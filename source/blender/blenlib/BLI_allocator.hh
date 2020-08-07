@@ -13,8 +13,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-#ifndef __BLI_ALLOCATOR_HH__
-#define __BLI_ALLOCATOR_HH__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -100,5 +99,3 @@ class RawAllocator {
 };
 
 }  // namespace blender
-
-#endif /* __BLI_ALLOCATOR_HH__ */

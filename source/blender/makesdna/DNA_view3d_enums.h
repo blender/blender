@@ -18,8 +18,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_VIEW3D_ENUMS_H__
-#define __DNA_VIEW3D_ENUMS_H__
+#pragma once
 
 /** Settings for offscreen rendering */
 typedef enum eV3DOffscreenDrawFlag {
@@ -52,5 +51,3 @@ typedef enum eV3DShadingBackgroundType {
   V3D_SHADING_BACKGROUND_WORLD = 1,
   V3D_SHADING_BACKGROUND_VIEWPORT = 2,
 } eV3DShadingBackgroundType;
-
-#endif

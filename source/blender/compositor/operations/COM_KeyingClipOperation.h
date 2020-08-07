@@ -16,8 +16,7 @@
  * Copyright 2012, Blender Foundation.
  */
 
-#ifndef __COM_KEYINGCLIPOPERATION_H__
-#define __COM_KEYINGCLIPOPERATION_H__
+#pragma once
 
 #include "COM_NodeOperation.h"
 
@@ -68,5 +67,3 @@ class KeyingClipOperation : public NodeOperation {
                                         ReadBufferOperation *readOperation,
                                         rcti *output);
 };
-
-#endif

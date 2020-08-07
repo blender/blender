@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BPY_RNA_DRIVER_H__
-#define __BPY_RNA_DRIVER_H__
+#pragma once
 
 /** \file
  * \ingroup pythonintern
@@ -38,5 +37,3 @@ bool pyrna_driver_is_equal_anim_rna(const struct PathResolvedRNA *anim_rna,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BPY_RNA_DRIVER_H__ */

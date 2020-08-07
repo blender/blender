@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_BOX_GRID_H__
-#define __FREESTYLE_BOX_GRID_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -422,5 +421,3 @@ inline bool BoxGrid::insertOccluder(OccluderSource &source, OccluderData *&occlu
 }
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_BOX_GRID_H__

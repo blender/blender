@@ -22,8 +22,7 @@
  * \ingroup ikplugin
  */
 
-#ifndef __ITASC_PLUGIN_H__
-#define __ITASC_PLUGIN_H__
+#pragma once
 
 #include "ikplugin_api.h"
 
@@ -49,5 +48,3 @@ void itasc_test_constraint(struct Object *ob, struct bConstraint *cons);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ITASC_PLUGIN_H__ */

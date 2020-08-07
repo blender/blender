@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_ARRAY_HH__
-#define __BLI_ARRAY_HH__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -369,5 +368,3 @@ template<typename T, int64_t InlineBufferCapacity = default_inline_buffer_capaci
 using RawArray = Array<T, InlineBufferCapacity, RawAllocator>;
 
 }  // namespace blender
-
-#endif /* __BLI_ARRAY_HH__ */

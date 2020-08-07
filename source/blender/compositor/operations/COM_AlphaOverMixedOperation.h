@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_ALPHAOVERMIXEDOPERATION_H__
-#define __COM_ALPHAOVERMIXEDOPERATION_H__
+#pragma once
+
 #include "COM_MixOperation.h"
 
 /**
@@ -44,4 +44,3 @@ class AlphaOverMixedOperation : public MixBaseOperation {
     this->m_x = x;
   }
 };
-#endif

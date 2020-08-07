@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_QUERY_UV_H__
-#define __BMESH_QUERY_UV_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -54,5 +53,3 @@ bool BM_loop_uv_share_vert_check(BMLoop *l_a,
                                  BMLoop *l_b,
                                  const int cd_loop_uv_offset) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
-
-#endif /* __BMESH_QUERY_UV_H__ */

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_MESH_DUPLICATE_H__
-#define __BMESH_MESH_DUPLICATE_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -29,5 +28,3 @@ void BM_mesh_copy_arrays(BMesh *bm_src,
                          uint edges_src_len,
                          BMFace **faces_src,
                          uint faces_src_len);
-
-#endif /* __BMESH_MESH_DUPLICATE_H__ */

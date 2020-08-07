@@ -18,8 +18,7 @@
  * \ingroup pythonintern
  */
 
-#ifndef __BPY_H__
-#define __BPY_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,5 +37,3 @@ extern struct CLG_LogRef *BPY_LOG_RNA;
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BPY_H__ */

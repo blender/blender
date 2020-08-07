@@ -21,8 +21,7 @@
  * \ingroup spnla
  */
 
-#ifndef __NLA_INTERN_H__
-#define __NLA_INTERN_H__
+#pragma once
 
 /* internal exports only */
 
@@ -149,5 +148,3 @@ bool nlaedit_is_tweakmode_on(bAnimContext *ac);
 
 void nla_operatortypes(void);
 void nla_keymap(wmKeyConfig *keyconf);
-
-#endif /* __NLA_INTERN_H__ */

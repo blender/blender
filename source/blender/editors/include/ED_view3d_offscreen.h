@@ -21,8 +21,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_VIEW3D_OFFSCREEN_H__
-#define __ED_VIEW3D_OFFSCREEN_H__
+#pragma once
 
 #include "DNA_object_enums.h"
 #include "DNA_view3d_types.h"
@@ -106,5 +105,3 @@ struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(struct Depsgraph *depsgraph,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_VIEW3D_H__ */

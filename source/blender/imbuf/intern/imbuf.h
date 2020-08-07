@@ -21,8 +21,7 @@
  * \ingroup imbuf
  */
 
-#ifndef __IMBUF_H__
-#define __IMBUF_H__
+#pragma once
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -61,5 +60,3 @@
 #endif
 
 #define IMB_DPI_DEFAULT 72.0f
-
-#endif /* __IMBUF_H__ */

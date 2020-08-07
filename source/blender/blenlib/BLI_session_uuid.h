@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_SESSION_UUID_H__
-#define __BLI_SESSION_UUID_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -67,5 +66,3 @@ template<> struct DefaultHash<SessionUUID> {
 }  // namespace blender
 
 #endif
-
-#endif /* __BLI_SESSION_UUID_H__ */

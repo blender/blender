@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_VOLUME_RENDER_H__
-#define __BKE_VOLUME_RENDER_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -65,6 +64,4 @@ float BKE_volume_density_scale(const struct Volume *volume, const float matrix[4
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

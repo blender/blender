@@ -21,8 +21,7 @@
  * \ingroup nodes
  */
 
-#ifndef __NOD_COMPOSITE_H__
-#define __NOD_COMPOSITE_H__
+#pragma once
 
 #include "BKE_node.h"
 
@@ -149,6 +148,4 @@ void register_node_type_cmp_custom_group(bNodeType *ntype);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

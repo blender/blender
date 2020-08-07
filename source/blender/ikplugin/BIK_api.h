@@ -22,8 +22,7 @@
  * \ingroup ikplugin
  */
 
-#ifndef __BIK_API_H__
-#define __BIK_API_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,5 +53,3 @@ void BIK_test_constraint(struct Object *ob, struct bConstraint *cons);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BIK_API_H__ */

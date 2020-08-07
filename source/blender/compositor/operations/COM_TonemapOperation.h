@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_TONEMAPOPERATION_H__
-#define __COM_TONEMAPOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 
@@ -98,5 +98,3 @@ class PhotoreceptorTonemapOperation : public TonemapOperation {
    */
   void executePixel(float output[4], int x, int y, void *data);
 };
-
-#endif

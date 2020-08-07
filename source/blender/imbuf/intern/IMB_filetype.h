@@ -18,8 +18,7 @@
  * \ingroup imbuf
  */
 
-#ifndef __IMB_FILETYPE_H__
-#define __IMB_FILETYPE_H__
+#pragma once
 
 #include "IMB_imbuf.h"
 
@@ -151,5 +150,3 @@ struct ImBuf *imb_loadtiff(const unsigned char *mem,
 void imb_loadtiletiff(
     struct ImBuf *ibuf, const unsigned char *mem, size_t size, int tx, int ty, unsigned int *rect);
 int imb_savetiff(struct ImBuf *ibuf, const char *name, int flags);
-
-#endif /* __IMB_FILETYPE_H__ */

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_UTILDEFINES_STACK_H__
-#define __BLI_UTILDEFINES_STACK_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -99,5 +98,3 @@
     } \
     ((void)0)
 #endif
-
-#endif /* __BLI_UTILDEFINES_STACK_H__ */

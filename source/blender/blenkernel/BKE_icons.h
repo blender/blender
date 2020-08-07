@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_ICONS_H__
-#define __BKE_ICONS_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -173,5 +172,3 @@ int BKE_icon_ensure_studio_light(struct StudioLight *sl, int id_type);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /*  __BKE_ICONS_H__ */

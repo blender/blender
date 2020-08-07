@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_RENDERLAYERSPROG_H__
-#define __COM_RENDERLAYERSPROG_H__
+#pragma once
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
@@ -150,5 +149,3 @@ class RenderLayersDepthProg : public RenderLayersProg {
   }
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
-
-#endif

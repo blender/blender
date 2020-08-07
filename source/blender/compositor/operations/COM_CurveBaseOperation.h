@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_CURVEBASEOPERATION_H__
-#define __COM_CURVEBASEOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 #include "DNA_color_types.h"
 
@@ -40,4 +40,3 @@ class CurveBaseOperation : public NodeOperation {
 
   void setCurveMapping(CurveMapping *mapping);
 };
-#endif

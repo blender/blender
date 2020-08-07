@@ -18,9 +18,6 @@
  * \ingroup wm
  */
 
-#ifndef __WM_MESSAGE_H__
-#define __WM_MESSAGE_H__
+#pragma once
 
 #include "message_bus/wm_message_bus.h"
-
-#endif /* __WM_MESSAGE_H__ */

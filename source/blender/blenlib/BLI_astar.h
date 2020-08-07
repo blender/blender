@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_ASTAR_H__
-#define __BLI_ASTAR_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -121,5 +120,3 @@ bool BLI_astar_graph_solve(BLI_AStarGraph *as_graph,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_ASTAR_H__ */

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_WALKERS_PRIVATE_H__
-#define __BMESH_WALKERS_PRIVATE_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -94,5 +93,3 @@ typedef struct BMwConnectedVertexWalker {
   BMwGenericWalker header;
   BMVert *curvert;
 } BMwConnectedVertexWalker;
-
-#endif /* __BMESH_WALKERS_PRIVATE_H__ */

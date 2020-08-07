@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_OUTPUTFILENODE_H__
-#define __COM_OUTPUTFILENODE_H__
+#pragma once
 
 #include "COM_Node.h"
 #include "DNA_node_types.h"
@@ -31,5 +30,3 @@ class OutputFileNode : public Node {
   OutputFileNode(bNode *editorNode);
   void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
-
-#endif

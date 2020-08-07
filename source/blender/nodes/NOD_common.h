@@ -21,8 +21,7 @@
  * \ingroup nodes
  */
 
-#ifndef __NOD_COMMON_H__
-#define __NOD_COMMON_H__
+#pragma once
 
 #include "BKE_node.h"
 
@@ -49,5 +48,3 @@ void node_group_output_update(struct bNodeTree *ntree, struct bNode *node);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __NOD_COMMON_H__ */

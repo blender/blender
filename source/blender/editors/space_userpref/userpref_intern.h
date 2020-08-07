@@ -21,9 +21,6 @@
  * \ingroup spuserpref
  */
 
-#ifndef __USERPREF_INTERN_H__
-#define __USERPREF_INTERN_H__
+#pragma once
 
 /* internal exports only */
-
-#endif /* __USERPREF_INTERN_H__ */

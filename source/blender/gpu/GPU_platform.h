@@ -21,8 +21,7 @@
  * \ingroup gpu
  */
 
-#ifndef __GPU_PLATFORM_H__
-#define __GPU_PLATFORM_H__
+#pragma once
 
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
@@ -74,5 +73,3 @@ const char *GPU_platform_gpu_name(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_PLATFORM_H__ */

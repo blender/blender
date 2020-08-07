@@ -20,8 +20,7 @@
  * BM Inline functions.
  */
 
-#ifndef __BMESH_INLINE_H__
-#define __BMESH_INLINE_H__
+#pragma once
 
 /* stuff for dealing with header flags */
 #define BM_elem_flag_test(ele, hflag) _bm_elem_flag_test(&(ele)->head, hflag)
@@ -135,5 +134,3 @@ BLI_INLINE int _bm_elem_index_get(const BMHeader *head)
 {
   return head->index;
 }
-
-#endif /* __BMESH_INLINE_H__ */

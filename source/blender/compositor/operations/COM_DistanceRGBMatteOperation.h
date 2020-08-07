@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_DISTANCERGBMATTEOPERATION_H__
-#define __COM_DISTANCERGBMATTEOPERATION_H__
+#pragma once
+
 #include "COM_MixOperation.h"
 
 /**
@@ -51,4 +51,3 @@ class DistanceRGBMatteOperation : public NodeOperation {
     this->m_settings = nodeChroma;
   }
 };
-#endif

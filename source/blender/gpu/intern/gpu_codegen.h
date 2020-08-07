@@ -23,8 +23,7 @@
  * Generate shader code from the intermediate node graph.
  */
 
-#ifndef __GPU_CODEGEN_H__
-#define __GPU_CODEGEN_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -70,5 +69,3 @@ void gpu_codegen_exit(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_CODEGEN_H__ */

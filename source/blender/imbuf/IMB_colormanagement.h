@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __IMB_COLORMANAGEMENT_H__
-#define __IMB_COLORMANAGEMENT_H__
+#pragma once
 
 /** \file
  * \ingroup imbuf
@@ -374,5 +373,3 @@ enum {
 #endif
 
 #include "intern/colormanagement_inline.c"
-
-#endif /* __IMB_COLORMANAGEMENT_H__ */

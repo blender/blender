@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_ENDIAN_SWITCH_INLINE_H__
-#define __BLI_ENDIAN_SWITCH_INLINE_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -92,5 +91,3 @@ BLI_INLINE void BLI_endian_switch_double(double *val)
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_ENDIAN_SWITCH_INLINE_H__ */

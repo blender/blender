@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_VOXEL_H__
-#define __BLI_VOXEL_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -46,5 +45,3 @@ float BLI_voxel_sample_tricubic(const float *data,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_VOXEL_H__ */

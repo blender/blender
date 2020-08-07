@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_MASK_H__
-#define __BKE_MASK_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -331,5 +330,3 @@ void BKE_maskrasterize_buffer(MaskRasterHandle *mr_handle,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_MASK_H__ */

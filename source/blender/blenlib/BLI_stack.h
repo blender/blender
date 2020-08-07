@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_STACK_H__
-#define __BLI_STACK_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -55,5 +54,3 @@ bool BLI_stack_is_empty(const BLI_Stack *stack) ATTR_WARN_UNUSED_RESULT ATTR_NON
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_STACK_H__ */

@@ -21,8 +21,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_SCREEN_H__
-#define __ED_SCREEN_H__
+#pragma once
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -483,5 +482,3 @@ enum {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_SCREEN_H__ */

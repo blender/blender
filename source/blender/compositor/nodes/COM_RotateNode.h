@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_ROTATENODE_H__
-#define __COM_ROTATENODE_H__
+#pragma once
 
 #include "COM_Node.h"
 
@@ -30,5 +29,3 @@ class RotateNode : public Node {
   RotateNode(bNode *editorNode);
   void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
-
-#endif

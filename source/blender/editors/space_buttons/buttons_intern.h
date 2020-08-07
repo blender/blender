@@ -21,8 +21,7 @@
  * \ingroup spbuttons
  */
 
-#ifndef __BUTTONS_INTERN_H__
-#define __BUTTONS_INTERN_H__
+#pragma once
 
 #include "DNA_listBase.h"
 #include "RNA_types.h"
@@ -97,5 +96,3 @@ void buttons_texture_context_compute(const struct bContext *C, struct SpacePrope
 void BUTTONS_OT_file_browse(struct wmOperatorType *ot);
 void BUTTONS_OT_directory_browse(struct wmOperatorType *ot);
 void BUTTONS_OT_context_menu(struct wmOperatorType *ot);
-
-#endif /* __BUTTONS_INTERN_H__ */

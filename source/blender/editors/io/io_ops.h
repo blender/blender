@@ -21,9 +21,6 @@
  * \ingroup editor/io
  */
 
-#ifndef __IO_OPS_H__
-#define __IO_OPS_H__
+#pragma once
 
 void ED_operatortypes_io(void);
-
-#endif

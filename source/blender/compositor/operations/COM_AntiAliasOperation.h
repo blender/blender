@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_ANTIALIASOPERATION_H__
-#define __COM_ANTIALIASOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 
@@ -56,4 +56,3 @@ class AntiAliasOperation : public NodeOperation {
                                         ReadBufferOperation *readOperation,
                                         rcti *output);
 };
-#endif

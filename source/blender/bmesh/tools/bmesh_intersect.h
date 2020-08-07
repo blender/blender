@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_INTERSECT_H__
-#define __BMESH_INTERSECT_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -42,5 +41,3 @@ enum {
   BMESH_ISECT_BOOLEAN_UNION = 1,
   BMESH_ISECT_BOOLEAN_DIFFERENCE = 2,
 };
-
-#endif /* __BMESH_INTERSECT_H__ */

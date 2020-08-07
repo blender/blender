@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_GHASH_H__
-#define __BLI_GHASH_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -416,5 +415,3 @@ GSet *BLI_gset_int_new(const char *info) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_GHASH_H__ */

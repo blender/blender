@@ -21,8 +21,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_OBJECT_H__
-#define __ED_OBJECT_H__
+#pragma once
 
 #include "BLI_compiler_attrs.h"
 #include "DNA_object_enums.h"
@@ -502,5 +501,3 @@ void ED_object_data_xform_tag_update(struct XFormObjectData *xod);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_OBJECT_H__ */

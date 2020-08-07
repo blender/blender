@@ -18,8 +18,7 @@
  * \ingroup RNA
  */
 
-#ifndef __RNA_INTERNAL_TYPES_H__
-#define __RNA_INTERNAL_TYPES_H__
+#pragma once
 
 #include "DNA_listBase.h"
 
@@ -569,5 +568,3 @@ struct BlenderRNA {
 };
 
 #define CONTAINER_RNA_ID(cont) (*(const char **)(((ContainerRNA *)(cont)) + 1))
-
-#endif /* __RNA_INTERNAL_TYPES_H__ */

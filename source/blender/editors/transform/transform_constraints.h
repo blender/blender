@@ -21,8 +21,7 @@
  * \ingroup edtransform
  */
 
-#ifndef __TRANSFORM_CONSTRAINTS_H__
-#define __TRANSFORM_CONSTRAINTS_H__
+#pragma once
 
 struct TransInfo;
 
@@ -49,5 +48,3 @@ int constraintModeToIndex(const TransInfo *t);
 char constraintModeToChar(const TransInfo *t);
 bool isLockConstraint(TransInfo *t);
 int getConstraintSpaceDimension(TransInfo *t);
-
-#endif

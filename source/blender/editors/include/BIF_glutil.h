@@ -21,8 +21,7 @@
  * \ingroup editorui
  */
 
-#ifndef __BIF_GLUTIL_H__
-#define __BIF_GLUTIL_H__
+#pragma once
 
 #include "GPU_texture.h"
 
@@ -175,5 +174,3 @@ void immDrawBorderCorners(unsigned int pos, const struct rcti *border, float zoo
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BIF_GLUTIL_H__ */

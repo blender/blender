@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_SPLITVIEWERNODE_H__
-#define __COM_SPLITVIEWERNODE_H__
+#pragma once
 
 #include "COM_Node.h"
 #include "DNA_node_types.h"
@@ -30,4 +29,3 @@ class SplitViewerNode : public Node {
   SplitViewerNode(bNode *editorNode);
   void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
-#endif

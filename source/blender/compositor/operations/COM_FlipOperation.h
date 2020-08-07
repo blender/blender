@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_FLIPOPERATION_H__
-#define __COM_FLIPOPERATION_H__
+#pragma once
 
 #include "COM_NodeOperation.h"
 
@@ -45,5 +44,3 @@ class FlipOperation : public NodeOperation {
     this->m_flipY = flipY;
   }
 };
-
-#endif

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __EIGEN_UTILS_H__
-#define __EIGEN_UTILS_H__
+#pragma once
 
 /** \file
  * \ingroup bph
@@ -232,5 +231,3 @@ BLI_INLINE void print_lmatrix(const lMatrix &m)
     printf("\n");
   }
 }
-
-#endif

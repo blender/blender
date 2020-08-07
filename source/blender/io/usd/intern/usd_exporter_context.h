@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2019 Blender Foundation.
  * All rights reserved.
  */
-#ifndef __USD_EXPORTER_CONTEXT_H__
-#define __USD_EXPORTER_CONTEXT_H__
+#pragma once
 
 #include "usd.h"
 
@@ -44,5 +43,3 @@ struct USDExporterContext {
 }  // namespace usd
 }  // namespace io
 }  // namespace blender
-
-#endif /* __USD_EXPORTER_CONTEXT_H__ */

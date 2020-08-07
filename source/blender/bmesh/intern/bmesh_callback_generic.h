@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_CALLBACK_GENERIC_H__
-#define __BMESH_CALLBACK_GENERIC_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -35,5 +34,3 @@ bool BM_elem_cb_check_elem_not_equal(BMElem *ele, void *user_data);
 
 #define BM_elem_cb_check_hflag_disabled_simple(type, hflag_n) \
   (bool (*)(type, void *)) BM_elem_cb_check_hflag_disabled, POINTER_FROM_UINT(hflag_n)
-
-#endif /* __BMESH_CALLBACK_GENERIC_H__ */

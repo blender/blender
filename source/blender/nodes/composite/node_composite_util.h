@@ -21,8 +21,7 @@
  * \ingroup nodes
  */
 
-#ifndef __NODE_COMPOSITE_UTIL_H__
-#define __NODE_COMPOSITE_UTIL_H__
+#pragma once
 
 #include "DNA_ID.h"
 #include "DNA_movieclip_types.h"
@@ -63,5 +62,3 @@ void cmp_node_type_base(
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __NODE_COMPOSITE_UTIL_H__ */

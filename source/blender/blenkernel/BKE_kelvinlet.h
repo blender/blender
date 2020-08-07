@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) Blender Foundation.
  * All rights reserved.
  */
-#ifndef __BKE_KELVINLET_H__
-#define __BKE_KELVINLET_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -80,6 +79,4 @@ void BKE_kelvinlet_twist(float r_elem_disp[3],
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

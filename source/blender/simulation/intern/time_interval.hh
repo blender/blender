@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __SIM_TIME_INTERVAL_HH__
-#define __SIM_TIME_INTERVAL_HH__
+#pragma once
 
 #include "BLI_utildefines.h"
 
@@ -89,5 +88,3 @@ class TimeInterval {
 };
 
 }  // namespace blender::sim
-
-#endif /* __SIM_TIME_INTERVAL_HH__ */

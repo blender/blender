@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_VECTOR_SET_SLOTS_HH__
-#define __BLI_VECTOR_SET_SLOTS_HH__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -167,5 +166,3 @@ template<typename Key> struct DefaultVectorSetSlot {
 };
 
 }  // namespace blender
-
-#endif /* __BLI_VECTOR_SET_SLOTS_HH__ */

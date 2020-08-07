@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_POINTER_SEQUENCE_H__
-#define __FREESTYLE_POINTER_SEQUENCE_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -91,5 +90,3 @@ template<typename C, typename T> class PointerSequence : public C {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_POINTER_SEQUENCE_H__

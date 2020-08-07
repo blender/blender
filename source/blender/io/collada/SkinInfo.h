@@ -18,8 +18,7 @@
  * \ingroup collada
  */
 
-#ifndef __SKININFO_H__
-#define __SKININFO_H__
+#pragma once
 
 #include <map>
 #include <vector>
@@ -126,5 +125,3 @@ class SkinInfo {
 
   bool find_node_in_tree(COLLADAFW::Node *node, COLLADAFW::Node *tree_root);
 };
-
-#endif

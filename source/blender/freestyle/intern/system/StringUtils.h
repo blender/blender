@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_STRING_UTILS_H__
-#define __FREESTYLE_STRING_UTILS_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -50,5 +49,3 @@ struct ltstr {
 }  // end of namespace StringUtils
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_STRING_UTILS_H__

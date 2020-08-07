@@ -18,8 +18,7 @@
  * \ingroup RNA
  */
 
-#ifndef __RNA_INTERNAL_H__
-#define __RNA_INTERNAL_H__
+#pragma once
 
 #include "BLI_utildefines.h"
 
@@ -644,5 +643,3 @@ void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values);
              : -FLT_MAX, double \
              : -DBL_MAX)
 #endif
-
-#endif /* __RNA_INTERNAL_H__ */

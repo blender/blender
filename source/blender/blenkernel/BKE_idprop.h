@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_IDPROP_H__
-#define __BKE_IDPROP_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -200,5 +199,3 @@ void IDP_print(const struct IDProperty *prop);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_IDPROP_H__ */

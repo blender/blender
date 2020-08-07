@@ -18,8 +18,7 @@
  * \ingroup pythonintern
  */
 
-#ifndef __BPY_RNA_ID_COLLECTION_H__
-#define __BPY_RNA_ID_COLLECTION_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,5 +31,3 @@ extern PyMethodDef BPY_rna_id_collection_orphans_purge_method_def;
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BPY_RNA_ID_COLLECTION_H__ */

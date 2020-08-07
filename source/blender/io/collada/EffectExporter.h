@@ -18,8 +18,7 @@
  * \ingroup collada
  */
 
-#ifndef __EFFECTEXPORTER_H__
-#define __EFFECTEXPORTER_H__
+#pragma once
 
 #include <string>
 #include <vector>
@@ -85,5 +84,3 @@ class EffectsExporter : COLLADASW::LibraryEffects {
   Scene *scene;
   bContext *mContext;
 };
-
-#endif

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_POINTCLOUD_H__
-#define __BKE_POINTCLOUD_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -63,6 +62,4 @@ extern void (*BKE_pointcloud_batch_cache_free_cb)(struct PointCloud *pointcloud)
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

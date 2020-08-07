@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_MARKING_H__
-#define __BMESH_MARKING_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -137,5 +136,3 @@ void BM_select_history_merge_from_targetmap(
   (bm)->selected = _bm_prev_selected; \
   } \
   (void)0
-
-#endif /* __BMESH_MARKING_H__ */

@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_QUALITYSTEPHELPER_H__
-#define __COM_QUALITYSTEPHELPER_H__
+#pragma once
+
 #include "COM_defines.h"
 
 typedef enum QualityHelper {
@@ -54,4 +54,3 @@ class QualityStepHelper {
     this->m_quality = quality;
   }
 };
-#endif

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_EXPR_PYLIKE_EVAL_H__
-#define __BLI_EXPR_PYLIKE_EVAL_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -57,5 +56,3 @@ eExprPyLike_EvalStatus BLI_expr_pylike_eval(struct ExprPyLike_Parsed *expr,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_EXPR_PYLIKE_EVAL_H__ */

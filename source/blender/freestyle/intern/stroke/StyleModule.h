@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_STYLE_MODULE_H__
-#define __FREESTYLE_STYLE_MODULE_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -182,5 +181,3 @@ class StyleModule {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_STYLE_MODULE_H__

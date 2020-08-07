@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_SETCOLOROPERATION_H__
-#define __COM_SETCOLOROPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 /**
@@ -82,4 +82,3 @@ class SetColorOperation : public NodeOperation {
     return true;
   }
 };
-#endif

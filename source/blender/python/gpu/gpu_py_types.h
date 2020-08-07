@@ -18,8 +18,7 @@
  * \ingroup bpygpu
  */
 
-#ifndef __GPU_PY_TYPES_H__
-#define __GPU_PY_TYPES_H__
+#pragma once
 
 #include "gpu_py_batch.h"
 #include "gpu_py_element.h"
@@ -29,5 +28,3 @@
 #include "gpu_py_vertex_format.h"
 
 PyObject *BPyInit_gpu_types(void);
-
-#endif /* __GPU_PY_TYPES_H__ */

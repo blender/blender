@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_POLYGON_EDGENET_H__
-#define __BMESH_POLYGON_EDGENET_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -37,5 +36,3 @@ bool BM_face_split_edgenet_connect_islands(BMesh *bm,
                                            BMEdge ***r_edge_net_new,
                                            uint *r_edge_net_new_len) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2, 3, 6, 7, 8);
-
-#endif /* __BMESH_POLYGON_EDGENET_H__ */

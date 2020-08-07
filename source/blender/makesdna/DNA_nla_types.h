@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_NLA_TYPES_H__
-#define __DNA_NLA_TYPES_H__
+#pragma once
 
 #include "DNA_listBase.h"
 
@@ -106,5 +105,3 @@ typedef enum eActStrip_Flag {
   ACTSTRIP_REVERSE = (1 << 7),
   ACTSTRIP_AUTO_BLENDS = (1 << 11),
 } eActStrip_Flag;
-
-#endif

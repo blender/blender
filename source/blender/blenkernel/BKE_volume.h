@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_VOLUME_H__
-#define __BKE_VOLUME_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -158,6 +157,4 @@ openvdb::GridBase::ConstPtr BKE_volume_grid_openvdb_for_read(const struct Volume
 openvdb::GridBase::Ptr BKE_volume_grid_openvdb_for_write(const struct Volume *volume,
                                                          struct VolumeGrid *grid,
                                                          const bool clear);
-#endif
-
 #endif

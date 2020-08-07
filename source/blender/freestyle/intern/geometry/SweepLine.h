@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __SWEEPLINE_H__
-#define __SWEEPLINE_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -347,5 +346,3 @@ template<class T, class Point> class SweepLine {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __SWEEPLINE_H__

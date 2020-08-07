@@ -21,8 +21,7 @@
  * \ingroup imbuf
  */
 
-#ifndef __IMB_THUMBS_H__
-#define __IMB_THUMBS_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -98,5 +97,3 @@ void IMB_thumb_path_unlock(const char *path);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
-#endif /* __IMB_THUMBS_H__ */

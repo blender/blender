@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_UTILDEFINES_VARIADIC_H__
-#define __BLI_UTILDEFINES_VARIADIC_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -47,5 +46,3 @@
   _VA_NARGS_GLUE(_VA_NARGS_OVERLOAD_MACRO(name, VA_NARGS_COUNT(__VA_ARGS__)), (__VA_ARGS__))
 
 /* clang-format on */
-
-#endif /* __BLI_UTILDEFINES_VARIADIC_H__ */

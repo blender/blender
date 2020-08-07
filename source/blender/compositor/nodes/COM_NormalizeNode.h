@@ -16,8 +16,7 @@
  * Copyright 2012, Blender Foundation.
  */
 
-#ifndef __COM_NORMALIZENODE_H__
-#define __COM_NORMALIZENODE_H__
+#pragma once
 
 #include "COM_Node.h"
 
@@ -30,5 +29,3 @@ class NormalizeNode : public Node {
   NormalizeNode(bNode *editorNode);
   void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
-
-#endif

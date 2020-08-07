@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_POINTCACHE_H__
-#define __BKE_POINTCACHE_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -386,6 +385,4 @@ void BKE_ptcache_invalidate(struct PointCache *cache);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

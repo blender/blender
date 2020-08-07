@@ -18,8 +18,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_SIMULATION_TYPES_H__
-#define __DNA_SIMULATION_TYPES_H__
+#pragma once
 
 #include "DNA_ID.h"
 #include "DNA_customdata_types.h"
@@ -94,5 +93,3 @@ enum {
 
 #define SIM_TYPE_NAME_PARTICLE_SIMULATION "Particle Simulation"
 #define SIM_TYPE_NAME_PARTICLE_MESH_EMITTER "Particle Mesh Emitter"
-
-#endif /* __DNA_SIMULATION_TYPES_H__ */

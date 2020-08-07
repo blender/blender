@@ -18,8 +18,7 @@
  * \ingroup freestyle
  */
 
-#ifndef __FREESTYLE_PYTHON_VIEWSHAPE_H__
-#define __FREESTYLE_PYTHON_VIEWSHAPE_H__
+#pragma once
 
 extern "C" {
 #include <Python.h>
@@ -57,5 +56,3 @@ int ViewShape_Init(PyObject *module);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __FREESTYLE_PYTHON_VIEWSHAPE_H__ */

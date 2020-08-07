@@ -18,8 +18,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_SPEAKER_TYPES_H__
-#define __DNA_SPEAKER_TYPES_H__
+#pragma once
 
 #include "DNA_ID.h"
 
@@ -58,5 +57,3 @@ typedef struct Speaker {
 #define SPK_DS_EXPAND (1 << 0)
 #define SPK_MUTED (1 << 1)
 // #define SPK_RELATIVE    (1 << 2)  /* UNUSED */
-
-#endif /* __DNA_SPEAKER_TYPES_H__ */

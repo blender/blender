@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_MULTIRES_H__
-#define __BKE_MULTIRES_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -235,5 +234,3 @@ BLI_INLINE void BKE_multires_construct_tangent_matrix(float tangent_matrix[3][3]
 #endif
 
 #include "intern/multires_inline.h"
-
-#endif /* __BKE_MULTIRES_H__ */

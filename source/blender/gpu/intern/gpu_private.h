@@ -18,8 +18,7 @@
  * \ingroup gpu
  */
 
-#ifndef __GPU_PRIVATE_H__
-#define __GPU_PRIVATE_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,5 +47,3 @@ void gpu_pbvh_exit(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_PRIVATE_H__ */

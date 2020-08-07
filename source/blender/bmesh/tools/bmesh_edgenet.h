@@ -14,13 +14,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_EDGENET_H__
-#define __BMESH_EDGENET_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
  */
 
 void BM_mesh_edgenet(BMesh *bm, const bool use_edge_tag, const bool use_new_face_tag);
-
-#endif /* __BMESH_EDGENET_H__ */

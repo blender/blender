@@ -18,8 +18,7 @@
  * \ingroup pythonintern
  */
 
-#ifndef __BPY_UTILS_PREVIEWS_H__
-#define __BPY_UTILS_PREVIEWS_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,5 +29,3 @@ PyObject *BPY_utils_previews_module(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BPY_UTILS_PREVIEWS_H__ */

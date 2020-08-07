@@ -18,8 +18,7 @@
  * \ingroup shader_fx
  */
 
-#ifndef __FX_SHADER_TYPES_H__
-#define __FX_SHADER_TYPES_H__
+#pragma once
 
 #include "BKE_shader_fx.h"
 
@@ -38,5 +37,3 @@ extern ShaderFxTypeInfo shaderfx_Type_Wave;
 
 /* FX_shaderfx_util.c */
 void shaderfx_type_init(ShaderFxTypeInfo *types[]);
-
-#endif /* __FX_SHADER_TYPES_H__ */

@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_SCALEOPERATION_H__
-#define __COM_SCALEOPERATION_H__
+#pragma once
 
 #include "COM_NodeOperation.h"
 
@@ -129,5 +128,3 @@ class ScaleFixedSizeOperation : public BaseScaleOperation {
     this->m_offsetY = y;
   }
 };
-
-#endif

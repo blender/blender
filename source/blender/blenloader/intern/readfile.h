@@ -22,8 +22,7 @@
  * \ingroup blenloader
  */
 
-#ifndef __READFILE_H__
-#define __READFILE_H__
+#pragma once
 
 #include "DNA_sdna_types.h"
 #include "DNA_space_types.h"
@@ -199,5 +198,3 @@ void do_versions_after_linking_270(struct Main *bmain);
 void do_versions_after_linking_280(struct Main *bmain, struct ReportList *reports);
 void do_versions_after_linking_290(struct Main *bmain, struct ReportList *reports);
 void do_versions_after_linking_cycles(struct Main *bmain);
-
-#endif

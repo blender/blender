@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLENDER_FILE_LOADER_H__
-#define __BLENDER_FILE_LOADER_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -168,5 +167,3 @@ class BlenderFileLoader {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __BLENDER_FILE_LOADER_H__

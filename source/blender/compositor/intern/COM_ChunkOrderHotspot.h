@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_CHUNKORDERHOTSPOT_H__
-#define __COM_CHUNKORDERHOTSPOT_H__
+#pragma once
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
@@ -37,5 +36,3 @@ class ChunkOrderHotspot {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:ChunkOrderHotspot")
 #endif
 };
-
-#endif

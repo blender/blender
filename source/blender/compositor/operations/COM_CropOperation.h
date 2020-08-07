@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_CROPOPERATION_H__
-#define __COM_CROPOPERATION_H__
+#pragma once
 
 #include "COM_NodeOperation.h"
 
@@ -64,4 +63,3 @@ class CropImageOperation : public CropBaseOperation {
   void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
-#endif

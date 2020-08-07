@@ -24,8 +24,7 @@
  * Contains VAOs + VBOs + Shader representing a drawable entity.
  */
 
-#ifndef __GPU_BATCH_H__
-#define __GPU_BATCH_H__
+#pragma once
 
 #include "GPU_element.h"
 #include "GPU_shader.h"
@@ -247,5 +246,3 @@ void gpu_batch_exit(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_BATCH_H__ */

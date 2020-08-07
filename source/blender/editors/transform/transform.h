@@ -21,8 +21,7 @@
  * \ingroup edtransform
  */
 
-#ifndef __TRANSFORM_H__
-#define __TRANSFORM_H__
+#pragma once
 
 #include "ED_numinput.h"
 #include "ED_transform.h"
@@ -753,5 +752,3 @@ bool checkUseAxisMatrix(TransInfo *t);
                           *tc_end = (t)->data_container + (t)->data_container_len; \
        th != tc_end; \
        th++, i++)
-
-#endif

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_ORIENTED_LINE_REP_H__
-#define __FREESTYLE_ORIENTED_LINE_REP_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -62,5 +61,3 @@ class OrientedLineRep : public LineRep {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_ORIENTED_LINE_REP_H__

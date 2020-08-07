@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_NODE_H__
-#define __COM_NODE_H__
+#pragma once
 
 #include "DNA_node_types.h"
 #include <algorithm>
@@ -329,5 +328,3 @@ class NodeOutput {
   void getEditorValueColor(float *value);
   void getEditorValueVector(float *value);
 };
-
-#endif /* __COM_NODE_H__ */

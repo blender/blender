@@ -21,8 +21,7 @@
  * \ingroup nodes
  */
 
-#ifndef __NOD_TEXTURE_H__
-#define __NOD_TEXTURE_H__
+#pragma once
 
 #include "BKE_node.h"
 
@@ -77,6 +76,4 @@ void register_node_type_tex_proc_distnoise(void);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

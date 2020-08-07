@@ -16,8 +16,8 @@
  * Copyright 2012, Blender Foundation.
  */
 
-#ifndef __COM_CHANNELMATTEOPERATION_H__
-#define __COM_CHANNELMATTEOPERATION_H__
+#pragma once
+
 #include "COM_MixOperation.h"
 
 /**
@@ -70,4 +70,3 @@ class ChannelMatteOperation : public NodeOperation {
     this->m_matte_channel = custom2;
   }
 };
-#endif

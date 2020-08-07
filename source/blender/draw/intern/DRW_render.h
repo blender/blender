@@ -22,8 +22,7 @@
 
 /* This is the Render Functions used by Realtime engines to draw with OpenGL */
 
-#ifndef __DRW_RENDER_H__
-#define __DRW_RENDER_H__
+#pragma once
 
 #include "DRW_engine_types.h"
 
@@ -753,5 +752,3 @@ typedef struct DRWContextState {
 } DRWContextState;
 
 const DRWContextState *DRW_context_state_get(void);
-
-#endif /* __DRW_RENDER_H__ */

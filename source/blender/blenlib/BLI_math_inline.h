@@ -20,8 +20,7 @@
  *
  * */
 
-#ifndef __BLI_MATH_INLINE_H__
-#define __BLI_MATH_INLINE_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -56,5 +55,3 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_MATH_INLINE_H__ */

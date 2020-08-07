@@ -18,8 +18,7 @@
  * \ingroup collada
  */
 
-#ifndef __MATERIALEXPORTER_H__
-#define __MATERIALEXPORTER_H__
+#pragma once
 
 #include <string>
 #include <vector>
@@ -93,5 +92,3 @@ struct MaterialFunctor {
     gf.forEachMeshObjectInExportSet<ForEachMaterialFunctor<Functor>>(sce, matfunc, export_set);
   }
 };
-
-#endif

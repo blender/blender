@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_PIXELATEOPERATION_H__
-#define __COM_PIXELATEOPERATION_H__
+#pragma once
 
 #include "COM_NodeOperation.h"
 
@@ -61,5 +60,3 @@ class PixelateOperation : public NodeOperation {
    */
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
-
-#endif

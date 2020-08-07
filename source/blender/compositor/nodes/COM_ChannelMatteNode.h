@@ -16,8 +16,7 @@
  * Copyright 2012, Blender Foundation.
  */
 
-#ifndef __COM_CHANNELMATTENODE_H__
-#define __COM_CHANNELMATTENODE_H__
+#pragma once
 
 #include "COM_Node.h"
 
@@ -30,5 +29,3 @@ class ChannelMatteNode : public Node {
   ChannelMatteNode(bNode *editorNode);
   void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
-
-#endif /* COM_ChannelMatteNODE_H */

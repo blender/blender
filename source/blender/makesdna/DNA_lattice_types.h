@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_LATTICE_TYPES_H__
-#define __DNA_LATTICE_TYPES_H__
+#pragma once
 
 #include "DNA_ID.h"
 #include "DNA_defs.h"
@@ -83,5 +82,3 @@ typedef struct Lattice {
 #define LT_DS_EXPAND 4
 
 #define LT_ACTBP_NONE -1
-
-#endif

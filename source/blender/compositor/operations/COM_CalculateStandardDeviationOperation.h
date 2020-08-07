@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_CALCULATESTANDARDDEVIATIONOPERATION_H__
-#define __COM_CALCULATESTANDARDDEVIATIONOPERATION_H__
+#pragma once
+
 #include "COM_CalculateMeanOperation.h"
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
@@ -40,4 +40,3 @@ class CalculateStandardDeviationOperation : public CalculateMeanOperation {
 
   void *initializeTileData(rcti *rect);
 };
-#endif

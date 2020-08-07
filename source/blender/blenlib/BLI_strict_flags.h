@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_STRICT_FLAGS_H__
-#define __BLI_STRICT_FLAGS_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -53,5 +52,3 @@
 #  pragma warning(error : 4305) /* truncation from 'type1' to 'type2' */
 #  pragma warning(error : 4389) /* signed/unsigned mismatch */
 #endif
-
-#endif /* __BLI_STRICT_FLAGS_H__ */

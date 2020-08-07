@@ -18,8 +18,7 @@
  * \ingroup collada
  */
 
-#ifndef __IMPORTSETTINGS_H__
-#define __IMPORTSETTINGS_H__
+#pragma once
 
 typedef struct ImportSettings {
   bool import_units;
@@ -30,5 +29,3 @@ typedef struct ImportSettings {
   char *filepath;
   bool keep_bind_info;
 } ImportSettings;
-
-#endif

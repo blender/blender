@@ -16,8 +16,8 @@
  * Copyright 2018, Blender Foundation.
  */
 
-#ifndef __COM_CRYPTOMATTEOPERATION_H__
-#define __COM_CRYPTOMATTEOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 class CryptomatteOperation : public NodeOperation {
@@ -34,4 +34,3 @@ class CryptomatteOperation : public NodeOperation {
 
   void addObjectIndex(float objectIndex);
 };
-#endif

@@ -18,8 +18,7 @@
  * \ingroup freestyle
  */
 
-#ifndef __FREESTYLE_PYTHON_INTERFACE0D_H__
-#define __FREESTYLE_PYTHON_INTERFACE0D_H__
+#pragma once
 
 extern "C" {
 #include <Python.h>
@@ -55,5 +54,3 @@ int Interface0D_Init(PyObject *module);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __FREESTYLE_PYTHON_INTERFACE0D_H__ */

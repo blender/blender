@@ -22,8 +22,7 @@
  * \brief Types and defines for representing Rigid Body entities
  */
 
-#ifndef __DNA_RIGIDBODY_TYPES_H__
-#define __DNA_RIGIDBODY_TYPES_H__
+#pragma once
 
 #include "DNA_listBase.h"
 #include "DNA_object_force_types.h"
@@ -369,5 +368,3 @@ typedef enum eRigidBodyCon_Flag {
 } eRigidBodyCon_Flag;
 
 /* ******************************** */
-
-#endif /* __DNA_RIGIDBODY_TYPES_H__ */

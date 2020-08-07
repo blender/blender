@@ -18,8 +18,7 @@
  * \ingroup bke
  */
 
-#ifndef __CCGSUBSURF_INTERN_H__
-#define __CCGSUBSURF_INTERN_H__
+#pragma once
 
 /**
  * Definitions which defines internal behavior of CCGSubSurf.
@@ -286,5 +285,3 @@ void ccgSubSurf__dumpCoords(CCGSubSurf *ss);
 #endif
 
 #include "CCGSubSurf_inline.h"
-
-#endif /* __CCGSUBSURF_INTERN_H__ */

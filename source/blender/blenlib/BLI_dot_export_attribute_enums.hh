@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_DOT_EXPORT_ATTRIBUTE_ENUMS_HH__
-#define __BLI_DOT_EXPORT_ATTRIBUTE_ENUMS_HH__
+#pragma once
 
 #include "BLI_string_ref.hh"
 
@@ -119,5 +118,3 @@ inline StringRef dirType_to_string(Attr_dirType value)
 }
 
 }  // namespace blender::dot
-
-#endif /* __BLI_DOT_EXPORT_ATTRIBUTE_ENUMS_HH__ */

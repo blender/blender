@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_PBVH_H__
-#define __BKE_PBVH_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -489,5 +488,3 @@ void BKE_pbvh_node_color_buffer_free(PBVH *pbvh);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_PBVH_H__ */

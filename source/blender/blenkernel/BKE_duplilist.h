@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  */
-#ifndef __BKE_DUPLILIST_H__
-#define __BKE_DUPLILIST_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -63,6 +62,4 @@ typedef struct DupliObject {
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

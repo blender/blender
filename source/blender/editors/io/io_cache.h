@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __IO_CACHE_H__
-#define __IO_CACHE_H__
+#pragma once
 
 /** \file
  * \ingroup editor/io
@@ -28,5 +27,3 @@ struct wmOperatorType;
 
 void CACHEFILE_OT_open(struct wmOperatorType *ot);
 void CACHEFILE_OT_reload(struct wmOperatorType *ot);
-
-#endif /* __IO_CACHE_H__ */

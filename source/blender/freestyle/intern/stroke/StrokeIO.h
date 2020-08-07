@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_STROKE_IO_H__
-#define __FREESTYLE_STROKE_IO_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -37,5 +36,3 @@ ostream &operator<<(ostream &out, const StrokeVertex &iStrokeVertex);
 ostream &operator<<(ostream &out, const Stroke &iStroke);
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_STROKE_IO_H__

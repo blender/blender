@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_ARRAY_STORE_H__
-#define __BLI_ARRAY_STORE_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -53,5 +52,3 @@ bool BLI_array_store_is_valid(BArrayStore *bs);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_ARRAY_STORE_H__ */

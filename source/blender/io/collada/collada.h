@@ -18,8 +18,7 @@
  * \ingroup collada
  */
 
-#ifndef __COLLADA_H__
-#define __COLLADA_H__
+#pragma once
 
 #include <stdlib.h>
 
@@ -45,6 +44,4 @@ int collada_export(struct bContext *C, ExportSettings *export_settings);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

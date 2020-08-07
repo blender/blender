@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_GLARETHRESHOLDOPERATION_H__
-#define __COM_GLARETHRESHOLDOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 #include "DNA_light_types.h"
 
@@ -58,4 +58,3 @@ class GlareThresholdOperation : public NodeOperation {
 
   void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 };
-#endif

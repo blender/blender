@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_CLOTH_TYPES_H__
-#define __DNA_CLOTH_TYPES_H__
+#pragma once
 
 #include "DNA_defs.h"
 
@@ -210,5 +209,3 @@ typedef struct ClothCollSettings {
   /** Impulse clamp for self collisions. */
   float self_clamp;
 } ClothCollSettings;
-
-#endif

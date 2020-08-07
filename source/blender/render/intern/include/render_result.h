@@ -21,8 +21,7 @@
  * \ingroup render
  */
 
-#ifndef __RENDER_RESULT_H__
-#define __RENDER_RESULT_H__
+#pragma once
 
 #define PASS_VECTOR_MAX 10000.0f
 
@@ -155,5 +154,3 @@ bool render_result_has_views(struct RenderResult *rr);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __RENDER_RESULT_H__ */

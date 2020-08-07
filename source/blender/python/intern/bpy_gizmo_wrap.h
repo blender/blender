@@ -18,8 +18,7 @@
  * \ingroup pythonintern
  */
 
-#ifndef __BPY_GIZMO_WRAP_H__
-#define __BPY_GIZMO_WRAP_H__
+#pragma once
 
 struct wmGizmoGroupType;
 struct wmGizmoType;
@@ -35,5 +34,3 @@ void BPY_RNA_gizmogroup_wrapper(struct wmGizmoGroupType *gzgt, void *userdata);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BPY_GIZMO_WRAP_H__ */

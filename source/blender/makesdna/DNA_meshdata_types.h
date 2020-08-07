@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_MESHDATA_TYPES_H__
-#define __DNA_MESHDATA_TYPES_H__
+#pragma once
 
 #include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
@@ -570,5 +569,3 @@ typedef struct Multires {
 /* End multi-res structs. */
 
 /** \} */
-
-#endif /* __DNA_MESHDATA_TYPES_H__ */

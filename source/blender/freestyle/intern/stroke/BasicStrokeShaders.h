@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_BASIC_STROKE_SHADERS_H__
-#define __FREESTYLE_BASIC_STROKE_SHADERS_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -660,5 +659,3 @@ class StrokeTextureStepShader : public StrokeShader {
 }  // end of namespace StrokeShaders
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_BASIC_STROKE_SHADERS_H__

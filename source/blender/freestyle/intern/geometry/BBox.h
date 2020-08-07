@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BBOX_H__
-#define __BBOX_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -156,5 +155,3 @@ template<class Point> BBox<Point> &operator+(const BBox<Point> &b1, const BBox<P
 }
 
 } /* namespace Freestyle */
-
-#endif  // __BBOX_H__

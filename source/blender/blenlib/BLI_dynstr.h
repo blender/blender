@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_DYNSTR_H__
-#define __BLI_DYNSTR_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -64,5 +63,3 @@ void BLI_dynstr_free(DynStr *ds) ATTR_NONNULL();
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_DYNSTR_H__ */

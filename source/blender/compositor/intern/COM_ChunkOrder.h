@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_CHUNKORDER_H__
-#define __COM_CHUNKORDER_H__
+#pragma once
 
 #include "COM_ChunkOrderHotspot.h"
 class ChunkOrder {
@@ -53,5 +52,3 @@ class ChunkOrder {
     return this->m_distance;
   }
 };
-
-#endif

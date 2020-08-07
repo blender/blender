@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  */
-#ifndef __BKE_IMAGE_SAVE_H__
-#define __BKE_IMAGE_SAVE_H__
+#pragma once
 
 #include "DNA_scene_types.h"
 
@@ -62,5 +61,3 @@ bool BKE_image_save(struct ReportList *reports,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_IMAGE_SAVE_H__ */

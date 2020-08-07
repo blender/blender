@@ -21,8 +21,7 @@
  * \ingroup gpu
  */
 
-#ifndef __GPU_MATERIAL_H__
-#define __GPU_MATERIAL_H__
+#pragma once
 
 #include "DNA_customdata_types.h" /* for CustomDataType */
 #include "DNA_listBase.h"
@@ -264,5 +263,3 @@ ListBase GPU_material_volume_grids(GPUMaterial *material);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /*__GPU_MATERIAL_H__*/

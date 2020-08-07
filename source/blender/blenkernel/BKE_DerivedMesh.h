@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_DERIVEDMESH_H__
-#define __BKE_DERIVEDMESH_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -389,5 +388,3 @@ bool DM_is_valid(DerivedMesh *dm);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_DERIVEDMESH_H__ */

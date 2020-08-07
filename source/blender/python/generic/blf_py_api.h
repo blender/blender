@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLF_PY_API_H__
-#define __BLF_PY_API_H__
+#pragma once
 
 /** \file
  * \ingroup pygen
@@ -24,5 +23,3 @@
 #include <Python.h>
 
 PyObject *BPyInit_blf(void);
-
-#endif /* __BLF_PY_API_H__ */

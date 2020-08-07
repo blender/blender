@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_DOT_EXPORT_HH__
-#define __BLI_DOT_EXPORT_HH__
+#pragma once
 
 /**
  * Language grammar: https://www.graphviz.org/doc/info/lang.html
@@ -292,5 +291,3 @@ class NodeWithSocketsRef {
 };
 
 }  // namespace blender::dot
-
-#endif /* __BLI_DOT_EXPORT_HH__ */

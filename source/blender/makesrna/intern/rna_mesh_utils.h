@@ -18,8 +18,7 @@
  * \ingroup RNA
  */
 
-#ifndef __RNA_MESH_UTILS_H__
-#define __RNA_MESH_UTILS_H__
+#pragma once
 
 /* Macros to help reduce code clutter in rna_mesh.c */
 
@@ -123,5 +122,3 @@
       BKE_mesh_update_customdata_pointers(me, true); \
     } \
   }
-
-#endif /* __RNA_MESH_UTILS_H__ */

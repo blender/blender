@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_DELETE_H__
-#define __BMESH_DELETE_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -26,5 +25,3 @@ void BM_mesh_delete_hflag_tagged(BMesh *bm, const char hflag, const char htype);
 
 void BMO_mesh_delete_oflag_context(BMesh *bm, const short oflag, const int type);
 void BM_mesh_delete_hflag_context(BMesh *bm, const char hflag, const int type);
-
-#endif /* __BMESH_DELETE_H__ */

@@ -20,8 +20,7 @@
 /** \file
  * \ingroup wm
  */
-#ifndef __WM_WINDOW_PRIVATE_H__
-#define __WM_WINDOW_PRIVATE_H__
+#pragma once
 
 #include "BLI_sys_types.h"
 #include "GHOST_Types.h"
@@ -38,5 +37,3 @@ void WM_ghost_show_message_box(const char *title,
                                const char *continue_label,
                                const char *link,
                                GHOST_DialogOptions dialog_options);
-
-#endif

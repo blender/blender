@@ -21,8 +21,7 @@
  * \ingroup render
  */
 
-#ifndef __RE_ENGINE_H__
-#define __RE_ENGINE_H__
+#pragma once
 
 #include "DNA_listBase.h"
 #include "DNA_node_types.h"
@@ -244,5 +243,3 @@ void RE_engine_free_blender_memory(struct RenderEngine *engine);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __RE_ENGINE_H__ */

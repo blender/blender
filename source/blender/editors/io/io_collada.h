@@ -21,12 +21,9 @@
  * \ingroup editor/io
  */
 
-#ifndef __IO_COLLADA_H__
-#define __IO_COLLADA_H__
+#pragma once
 
 struct wmOperatorType;
 
 void WM_OT_collada_export(struct wmOperatorType *ot);
 void WM_OT_collada_import(struct wmOperatorType *ot);
-
-#endif

@@ -23,8 +23,7 @@
  * GPU shader interface (C --> GLSL)
  */
 
-#ifndef __GPU_SHADER_INTERFACE_H__
-#define __GPU_SHADER_INTERFACE_H__
+#pragma once
 
 #include "GPU_common.h"
 
@@ -116,5 +115,3 @@ void GPU_shaderinterface_remove_batch_ref(GPUShaderInterface *, struct GPUBatch 
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_SHADER_INTERFACE_H__ */

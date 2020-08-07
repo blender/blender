@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_MEMORY_UTILS_HH__
-#define __BLI_MEMORY_UTILS_HH__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -429,5 +428,3 @@ inline constexpr int64_t default_inline_buffer_capacity(size_t element_size)
 }
 
 }  // namespace blender
-
-#endif /* __BLI_MEMORY_UTILS_HH__ */

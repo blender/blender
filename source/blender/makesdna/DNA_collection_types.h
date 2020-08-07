@@ -23,8 +23,7 @@
  * \brief Object groups, one object can be in many groups at once.
  */
 
-#ifndef __DNA_COLLECTION_TYPES_H__
-#define __DNA_COLLECTION_TYPES_H__
+#pragma once
 
 #include "DNA_ID.h"
 #include "DNA_defs.h"
@@ -93,5 +92,3 @@ enum {
    * Using a generic tag like LIB_TAG_DOIT for this is just impossible, we need our very own. */
   COLLECTION_TAG_RELATION_REBUILD = (1 << 0),
 };
-
-#endif /* __DNA_COLLECTION_TYPES_H__ */

@@ -16,8 +16,7 @@
  * Copyright 2013, Blender Foundation.
  */
 
-#ifndef __COM_PLANEDISTORTCOMMONOPERATION_H__
-#define __COM_PLANEDISTORTCOMMONOPERATION_H__
+#pragma once
 
 #include <string.h>
 
@@ -97,5 +96,3 @@ class PlaneDistortMaskOperation : public NodeOperation {
     this->m_motion_blur_shutter = shutter;
   }
 };
-
-#endif

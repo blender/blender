@@ -20,8 +20,7 @@
  * \ingroup draw
  */
 
-#ifndef __DRAW_MANAGER_TEXT_H__
-#define __DRAW_MANAGER_TEXT_H__
+#pragma once
 
 struct ARegion;
 struct DRWTextStore;
@@ -58,5 +57,3 @@ enum {
 
 /* draw_manager.c */
 struct DRWTextStore *DRW_text_cache_ensure(void);
-
-#endif /* __DRAW_MANAGER_TEXT_H__ */

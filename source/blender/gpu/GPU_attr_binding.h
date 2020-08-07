@@ -23,8 +23,7 @@
  * GPU vertex attribute binding
  */
 
-#ifndef __GPU_ATTR_BINDING_H__
-#define __GPU_ATTR_BINDING_H__
+#pragma once
 
 #include "GPU_common.h"
 
@@ -42,5 +41,3 @@ typedef struct GPUAttrBinding {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_ATTR_BINDING_H__ */

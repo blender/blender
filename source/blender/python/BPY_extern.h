@@ -18,8 +18,7 @@
  * \ingroup python
  */
 
-#ifndef __BPY_EXTERN_H__
-#define __BPY_EXTERN_H__
+#pragma once
 
 struct AnimationEvalContext;
 struct ChannelDriver; /* DNA_anim_types.h */
@@ -141,5 +140,3 @@ const char *BPY_app_translations_py_pgettext(const char *msgctxt, const char *ms
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
-
-#endif /* __BPY_EXTERN_H__ */

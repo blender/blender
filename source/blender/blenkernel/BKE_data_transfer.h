@@ -21,8 +21,7 @@
  * \ingroup bke
  */
 
-#ifndef __BKE_DATA_TRANSFER_H__
-#define __BKE_DATA_TRANSFER_H__
+#pragma once
 
 #include "BKE_customdata.h"
 
@@ -181,5 +180,3 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_DATA_TRANSFER_H__ */

@@ -21,8 +21,7 @@
  * \ingroup spinfo
  */
 
-#ifndef __INFO_INTERN_H__
-#define __INFO_INTERN_H__
+#pragma once
 
 /* internal exports only */
 
@@ -65,5 +64,3 @@ void INFO_OT_select_box(struct wmOperatorType *ot);
 void INFO_OT_report_replay(struct wmOperatorType *ot);
 void INFO_OT_report_delete(struct wmOperatorType *ot);
 void INFO_OT_report_copy(struct wmOperatorType *ot);
-
-#endif /* __INFO_INTERN_H__ */

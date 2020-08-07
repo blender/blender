@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_SILHOUETTE_GEOM_ENGINE_H__
-#define __FREESTYLE_SILHOUETTE_GEOM_ENGINE_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -135,5 +134,3 @@ class SilhouetteGeomEngine {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_SILHOUETTE_GEOM_ENGINE_H__

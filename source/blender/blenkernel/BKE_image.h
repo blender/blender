@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  */
-#ifndef __BKE_IMAGE_H__
-#define __BKE_IMAGE_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -398,6 +397,4 @@ bool BKE_image_clear_renderslot(struct Image *ima, struct ImageUser *iuser, int 
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

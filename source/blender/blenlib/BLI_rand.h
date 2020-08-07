@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_RAND_H__
-#define __BLI_RAND_H__
+#pragma once
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
@@ -116,5 +115,3 @@ void BLI_hammersley_2d_sequence(unsigned int n, double *r);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_RAND_H__ */

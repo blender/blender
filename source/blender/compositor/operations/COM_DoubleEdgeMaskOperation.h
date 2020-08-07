@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_DOUBLEEDGEMASKOPERATION_H__
-#define __COM_DOUBLEEDGEMASKOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 class DoubleEdgeMaskOperation : public NodeOperation {
@@ -65,4 +65,3 @@ class DoubleEdgeMaskOperation : public NodeOperation {
     this->m_keepInside = keepInside;
   }
 };
-#endif

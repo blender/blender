@@ -16,8 +16,7 @@
  * Copyright 2012, Blender Foundation.
  */
 
-#ifndef __COM_KEYINGDESPILLOPERATION_H__
-#define __COM_KEYINGDESPILLOPERATION_H__
+#pragma once
 
 #include "COM_NodeOperation.h"
 
@@ -48,5 +47,3 @@ class KeyingDespillOperation : public NodeOperation {
 
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
-
-#endif

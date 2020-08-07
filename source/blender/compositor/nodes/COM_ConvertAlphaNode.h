@@ -16,8 +16,7 @@
  * Copyright 2012, Blender Foundation.
  */
 
-#ifndef __COM_CONVERTALPHANODE_H__
-#define __COM_CONVERTALPHANODE_H__
+#pragma once
 
 #include "COM_Node.h"
 
@@ -32,5 +31,3 @@ class ConvertAlphaNode : public Node {
   }
   void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
-
-#endif

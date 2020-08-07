@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_BISECT_PLANE_H__
-#define __BMESH_BISECT_PLANE_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -28,5 +27,3 @@ void BM_mesh_bisect_plane(BMesh *bm,
                           const short oflag_center,
                           const short oflag_new,
                           const float eps);
-
-#endif /* __BMESH_BISECT_PLANE_H__ */

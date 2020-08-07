@@ -18,8 +18,7 @@
  * \ingroup gpu
  */
 
-#ifndef __GPU_SHADER_PRIVATE_H__
-#define __GPU_SHADER_PRIVATE_H__
+#pragma once
 
 #include "GPU_shader_interface.h"
 
@@ -53,5 +52,3 @@ GPUShader *immGetShader(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_SHADER_PRIVATE_H__ */

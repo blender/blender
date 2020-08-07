@@ -16,8 +16,7 @@
  * Copyright 2012, Blender Foundation.
  */
 
-#ifndef __COM_MAPRANGENODE_H__
-#define __COM_MAPRANGENODE_H__
+#pragma once
 
 #include "COM_Node.h"
 #include "DNA_node_types.h"
@@ -30,5 +29,3 @@ class MapRangeNode : public Node {
   MapRangeNode(bNode *editorNode);
   void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
-
-#endif /* __COM_MAPRANGENODE_H__ */

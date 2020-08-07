@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BCANIMATIONSAMPLER_H__
-#define __BCANIMATIONSAMPLER_H__
+#pragma once
 
 #include "BCAnimationCurve.h"
 #include "BCSampleData.h"
@@ -190,5 +189,3 @@ class BCAnimationSampler {
                                         ListBase *conlist,
                                         std::set<Object *> &animated_objects);
 };
-
-#endif /* __BCANIMATIONSAMPLER_H__ */

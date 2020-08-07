@@ -17,13 +17,10 @@
  * All rights reserved.
  */
 
-#ifndef __BMESH_MESH_VALIDATE_H__
-#define __BMESH_MESH_VALIDATE_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
  */
 
 bool BM_mesh_validate(BMesh *bm);
-
-#endif /* __BMESH_MESH_VALIDATE_H__ */

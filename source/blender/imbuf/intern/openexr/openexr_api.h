@@ -21,8 +21,7 @@
  * \ingroup openexr
  */
 
-#ifndef __OPENEXR_API_H__
-#define __OPENEXR_API_H__
+#pragma once
 
 #include <stdio.h>
 
@@ -42,5 +41,3 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem, size_t size, int flags,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __OPENEXR_API_H */

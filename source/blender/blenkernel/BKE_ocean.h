@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_OCEAN_H__
-#define __BKE_OCEAN_H__
+#pragma once
 
 #include <stdbool.h>
 
@@ -136,6 +135,4 @@ float BLI_ocean_spectrum_jonswap(const struct Ocean *oc, const float kx, const f
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

@@ -21,8 +21,7 @@
  * \ingroup wm
  */
 
-#ifndef __WM_DRAW_H__
-#define __WM_DRAW_H__
+#pragma once
 
 struct GPUOffScreen;
 struct GPUTexture;
@@ -55,5 +54,3 @@ struct GPUTexture *wm_draw_region_texture(struct ARegion *region, int view);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __WM_DRAW_H__ */

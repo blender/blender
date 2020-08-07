@@ -21,8 +21,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_DATAFILES_H__
-#define __ED_DATAFILES_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -301,5 +300,3 @@ extern char datatoc_gp_brush_erase_stroke_png[];
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_DATAFILES_H__ */

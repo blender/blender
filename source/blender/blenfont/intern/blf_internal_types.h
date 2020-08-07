@@ -21,8 +21,7 @@
  * \ingroup blf
  */
 
-#ifndef __BLF_INTERNAL_TYPES_H__
-#define __BLF_INTERNAL_TYPES_H__
+#pragma once
 
 #include "GPU_texture.h"
 #include "GPU_vertex_buffer.h"
@@ -258,5 +257,3 @@ typedef struct DirBLF {
   /* full path where search fonts. */
   char *path;
 } DirBLF;
-
-#endif /* __BLF_INTERNAL_TYPES_H__ */

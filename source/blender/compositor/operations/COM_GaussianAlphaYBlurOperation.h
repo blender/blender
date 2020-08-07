@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_GAUSSIANALPHAYBLUROPERATION_H__
-#define __COM_GAUSSIANALPHAYBLUROPERATION_H__
+#pragma once
+
 #include "COM_BlurBaseOperation.h"
 #include "COM_NodeOperation.h"
 
@@ -65,4 +65,3 @@ class GaussianAlphaYBlurOperation : public BlurBaseOperation {
     this->m_falloff = falloff;
   }
 };
-#endif

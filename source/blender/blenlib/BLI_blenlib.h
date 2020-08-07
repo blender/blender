@@ -47,8 +47,7 @@
  * standard libraries.
  */
 
-#ifndef __BLI_BLENLIB_H__
-#define __BLI_BLENLIB_H__
+#pragma once
 
 #include <stdlib.h>
 
@@ -63,5 +62,3 @@
 #include "BLI_fileops.h"
 
 #include "BLI_rect.h"
-
-#endif

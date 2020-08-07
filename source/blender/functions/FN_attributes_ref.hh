@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FN_ATTRIBUTES_REF_HH__
-#define __FN_ATTRIBUTES_REF_HH__
+#pragma once
 
 /** \file
  * \ingroup fn
@@ -340,5 +339,3 @@ class AttributesRef {
 };
 
 }  // namespace blender::fn
-
-#endif /* __FN_ATTRIBUTES_REF_HH__ */

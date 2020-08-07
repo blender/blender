@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_DELAUNAY_2D_H__
-#define __BLI_DELAUNAY_2D_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -209,5 +208,3 @@ void BLI_delaunay_2d_cdt_free(CDT_result *result);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_DELAUNAY_2D_H__ */

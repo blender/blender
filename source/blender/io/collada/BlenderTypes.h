@@ -18,8 +18,7 @@
  * \ingroup collada
  */
 
-#ifndef __BLENDERTYPES_H__
-#define __BLENDERTYPES_H__
+#pragma once
 
 typedef float(Vector)[3];
 typedef float(Quat)[4];
@@ -44,5 +43,3 @@ typedef enum BC_global_up_axis {
   BC_GLOBAL_UP_MINUS_Y = 4,
   BC_GLOBAL_UP_MINUS_Z = 5
 } BC_global_up_axis;
-
-#endif

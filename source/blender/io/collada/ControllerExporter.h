@@ -18,8 +18,7 @@
  * \ingroup collada
  */
 
-#ifndef __CONTROLLEREXPORTER_H__
-#define __CONTROLLEREXPORTER_H__
+#pragma once
 
 #include <list>
 #include <string>
@@ -133,5 +132,3 @@ class ControllerExporter : public COLLADASW::LibraryControllers,
 
   void write_bone_URLs(COLLADASW::InstanceController &ins, Object *ob_arm, Bone *bone);
 };
-
-#endif

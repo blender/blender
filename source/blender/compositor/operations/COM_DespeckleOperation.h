@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_DESPECKLEOPERATION_H__
-#define __COM_DESPECKLEOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 class DespeckleOperation : public NodeOperation {
@@ -51,5 +51,3 @@ class DespeckleOperation : public NodeOperation {
   void initExecution();
   void deinitExecution();
 };
-
-#endif

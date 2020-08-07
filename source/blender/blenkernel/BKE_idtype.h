@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_IDTYPE_H__
-#define __BKE_IDTYPE_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -246,5 +245,3 @@ void BKE_idtype_id_foreach_cache(struct ID *id,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_IDTYPE_H__ */

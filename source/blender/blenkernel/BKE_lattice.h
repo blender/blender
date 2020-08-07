@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_LATTICE_H__
-#define __BKE_LATTICE_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -140,5 +139,3 @@ void BKE_lattice_deform_coords_with_editmesh(const struct Object *ob_lattice,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_LATTICE_H__ */

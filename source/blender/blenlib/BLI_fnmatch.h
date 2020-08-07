@@ -19,8 +19,7 @@
  * Bugs can be reported to bug-glibc@prep.ai.mit.edu.
  */
 
-#ifndef __BLI_FNMATCH_H__
-#define __BLI_FNMATCH_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -77,5 +76,3 @@ extern int fnmatch __P((const char *__pattern, const char *__string, int __flags
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_FNMATCH_H__ */

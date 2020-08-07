@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_OBJECT_FACEMAP_H__
-#define __BKE_OBJECT_FACEMAP_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -48,5 +47,3 @@ void BKE_object_facemap_index_map_apply(int *fmap, int fmap_len, const int *map,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_OBJECT_FACEMAP_H__ */

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_MATH_BASE_SAFE_H__
-#define __BLI_MATH_BASE_SAFE_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -46,5 +45,3 @@ MINLINE float safe_powf(float base, float exponent);
 #if BLI_MATH_DO_INLINE
 #  include "intern/math_base_safe_inline.c"
 #endif
-
-#endif /* __BLI_MATH_BASE_SAFE_H__ */

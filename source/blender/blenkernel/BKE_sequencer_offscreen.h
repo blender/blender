@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_SEQUENCER_OFFSCREEN_H__
-#define __BKE_SEQUENCER_OFFSCREEN_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -52,5 +51,3 @@ extern SequencerDrawView sequencer_view3d_fn;
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_SEQUENCER_H__ */

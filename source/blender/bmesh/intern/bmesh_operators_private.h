@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_OPERATORS_PRIVATE_H__
-#define __BMESH_OPERATORS_PRIVATE_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -103,5 +102,3 @@ void bmo_triangulate_exec(BMesh *bm, BMOperator *op);
 void bmo_unsubdivide_exec(BMesh *bm, BMOperator *op);
 void bmo_weld_verts_exec(BMesh *bm, BMOperator *op);
 void bmo_wireframe_exec(BMesh *bm, BMOperator *op);
-
-#endif /* __BMESH_OPERATORS_PRIVATE_H__ */

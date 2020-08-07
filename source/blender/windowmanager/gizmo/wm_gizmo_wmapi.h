@@ -28,8 +28,7 @@
  * Only included in wm.h and lower level files.
  */
 
-#ifndef __WM_GIZMO_WMAPI_H__
-#define __WM_GIZMO_WMAPI_H__
+#pragma once
 
 struct wmEventHandler_Gizmo;
 struct wmEventHandler_Op;
@@ -99,5 +98,3 @@ void wm_gizmomaptypes_free(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __WM_GIZMO_WMAPI_H__ */

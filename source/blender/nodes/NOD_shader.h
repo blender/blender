@@ -21,8 +21,7 @@
  * \ingroup nodes
  */
 
-#ifndef __NOD_SHADER_H__
-#define __NOD_SHADER_H__
+#pragma once
 
 #include "BKE_node.h"
 
@@ -145,6 +144,4 @@ void register_node_type_sh_custom_group(bNodeType *ntype);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

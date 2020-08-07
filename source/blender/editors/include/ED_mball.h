@@ -21,8 +21,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_MBALL_H__
-#define __ED_MBALL_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -65,5 +64,3 @@ void ED_mball_undosys_type(struct UndoType *ut);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_MBALL_H__ */

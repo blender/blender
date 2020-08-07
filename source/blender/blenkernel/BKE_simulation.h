@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_SIMULATION_H__
-#define __BKE_SIMULATION_H__
+#pragma once
 
 #include "DNA_simulation_types.h"
 
@@ -56,5 +55,3 @@ void BKE_simulation_state_copy_data(const SimulationState *src_state, Simulation
 template<typename StateType> const char *BKE_simulation_get_state_type_name();
 
 #endif
-
-#endif /* __BKE_SIMULATION_H__ */

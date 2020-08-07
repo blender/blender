@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __IMAGE_H__
-#define __IMAGE_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -430,5 +429,3 @@ class GrayImage : public FrsImage {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __IMAGE_H__

@@ -15,8 +15,7 @@
  * Copyright 2014, Blender Foundation.
  */
 
-#ifndef __COM_SUNBEAMSOPERATION_H__
-#define __COM_SUNBEAMSOPERATION_H__
+#pragma once
 
 #include "COM_NodeOperation.h"
 
@@ -45,5 +44,3 @@ class SunBeamsOperation : public NodeOperation {
   float m_source_px[2];
   float m_ray_length_px;
 };
-
-#endif

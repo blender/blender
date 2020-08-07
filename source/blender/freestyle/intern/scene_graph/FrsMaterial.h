@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_MATERIAL_H__
-#define __FREESTYLE_MATERIAL_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -479,5 +478,3 @@ bool FrsMaterial::operator==(const FrsMaterial &m) const
 }
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_MATERIAL_H__

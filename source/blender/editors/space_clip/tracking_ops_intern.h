@@ -21,8 +21,7 @@
  * \ingroup spclip
  */
 
-#ifndef __TRACKING_OPS_INTERN_H__
-#define __TRACKING_OPS_INTERN_H__
+#pragma once
 
 struct ListBase;
 struct MovieClip;
@@ -40,5 +39,3 @@ void clip_tracking_hide_cursor(struct bContext *C);
 
 void ed_tracking_deselect_all_tracks(struct ListBase *tracks_base);
 void ed_tracking_deselect_all_plane_tracks(struct ListBase *plane_tracks_base);
-
-#endif /* __TRACKING_OPS_INTERN_H__ */

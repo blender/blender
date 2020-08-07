@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_SORT_UTILS_H__
-#define __BLI_SORT_UTILS_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -64,5 +63,3 @@ int BLI_sortutil_cmp_ptr_reverse(const void *a_, const void *b_);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_SORT_UTILS_H__ */

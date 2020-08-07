@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_LINKLIST_LOCKFREE_H__
-#define __BLI_LINKLIST_LOCKFREE_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -73,5 +72,3 @@ void BLI_linklist_lockfree_insert(LockfreeLinkList *list, LockfreeLinkNode *node
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_LINKLIST_H__ */

@@ -21,8 +21,7 @@
  * \ingroup bke
  */
 
-#ifndef __BKE_SUBDIV_FOREACH_H__
-#define __BKE_SUBDIV_FOREACH_H__
+#pragma once
 
 #include "BLI_sys_types.h"
 
@@ -178,5 +177,3 @@ bool BKE_subdiv_foreach_subdiv_geometry(struct Subdiv *subdiv,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_SUBDIV_FOREACH_H__ */

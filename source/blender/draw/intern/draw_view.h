@@ -20,13 +20,10 @@
  * \ingroup draw
  */
 
-#ifndef __DRAW_VIEW_H__
-#define __DRAW_VIEW_H__
+#pragma once
 
 void DRW_draw_region_info(void);
 void DRW_clear_background(void);
 void DRW_draw_cursor(void);
 void DRW_draw_gizmo_3d(void);
 void DRW_draw_gizmo_2d(void);
-
-#endif /* __DRAW_VIEW_H__ */

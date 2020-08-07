@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_DISPLACEOPERATION_H__
-#define __COM_DISPLACEOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 class DisplaceOperation : public NodeOperation {
@@ -64,4 +64,3 @@ class DisplaceOperation : public NodeOperation {
   bool read_displacement(
       float x, float y, float xscale, float yscale, const float origin[2], float &r_u, float &r_v);
 };
-#endif

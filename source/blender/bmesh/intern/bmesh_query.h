@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_QUERY_H__
-#define __BMESH_QUERY_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -273,5 +272,3 @@ int BM_mesh_calc_edge_groups_as_arrays(BMesh *bm,
 float bmesh_subd_falloff_calc(const int falloff, float val) ATTR_WARN_UNUSED_RESULT;
 
 #include "bmesh_query_inline.h"
-
-#endif /* __BMESH_QUERY_H__ */

@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_NODE_H__
-#define __BKE_NODE_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -1368,5 +1367,3 @@ extern struct bNodeSocketType NodeSocketTypeUndefined;
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_NODE_H__ */

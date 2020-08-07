@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_THREADS_H__
-#define __BLI_THREADS_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -204,6 +203,4 @@ void BLI_thread_put_thread_on_fast_node(void);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

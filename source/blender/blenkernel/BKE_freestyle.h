@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_FREESTYLE_H__
-#define __BKE_FREESTYLE_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -65,6 +64,4 @@ void BKE_freestyle_lineset_unique_name(FreestyleConfig *config, FreestyleLineSet
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

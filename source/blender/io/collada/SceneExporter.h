@@ -18,8 +18,7 @@
  * \ingroup collada
  */
 
-#ifndef __SCENEEXPORTER_H__
-#define __SCENEEXPORTER_H__
+#pragma once
 
 #include <math.h>
 #include <stdio.h>
@@ -110,5 +109,3 @@ class SceneExporter : COLLADASW::LibraryVisualScenes,
   void writeNodeList(std::vector<Object *> &child_objects, Object *parent);
   void writeNode(Object *ob);
 };
-
-#endif

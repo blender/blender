@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __NOD_NODE_TREE_FUNCTION_HH__
-#define __NOD_NODE_TREE_FUNCTION_HH__
+#pragma once
 
 /** \file
  * \ingroup nodes
@@ -387,5 +386,3 @@ MFNetworkTreeMap insert_node_tree_into_mf_network(fn::MFNetwork &network,
                                                   ResourceCollector &resources);
 
 }  // namespace blender::nodes
-
-#endif /* __NOD_NODE_TREE_FUNCTION_HH__ */

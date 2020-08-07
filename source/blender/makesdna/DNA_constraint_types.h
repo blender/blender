@@ -22,8 +22,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_CONSTRAINT_TYPES_H__
-#define __DNA_CONSTRAINT_TYPES_H__
+#pragma once
 
 #include "DNA_ID.h"
 #include "DNA_defs.h"
@@ -1168,5 +1167,3 @@ typedef enum eStretchTo_Flags {
 #define CONSTRAINT_RB_CONETWIST 4
 #define CONSTRAINT_RB_VEHICLE 11
 #define CONSTRAINT_RB_GENERIC6DOF 12
-
-#endif

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_FEDGE_X_DETECTOR_H__
-#define __FREESTYLE_FEDGE_X_DETECTOR_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -246,5 +245,3 @@ class FEdgeXDetector {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_FEDGE_X_DETECTOR_H__

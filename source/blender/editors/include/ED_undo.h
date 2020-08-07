@@ -18,8 +18,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_UNDO_H__
-#define __ED_UNDO_H__
+#pragma once
 
 #include "BLI_compiler_attrs.h"
 
@@ -89,5 +88,3 @@ struct MemFile *ED_undosys_stack_memfile_get_active(struct UndoStack *ustack);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_UNDO_H__ */

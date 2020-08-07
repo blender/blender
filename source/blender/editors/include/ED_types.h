@@ -21,8 +21,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_TYPES_H__
-#define __ED_TYPES_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,5 +41,3 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_TYPES_H__ */

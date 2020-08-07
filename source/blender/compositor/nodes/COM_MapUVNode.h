@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_MAPUVNODE_H__
-#define __COM_MAPUVNODE_H__
+#pragma once
 
 #include "COM_Node.h"
 
@@ -30,4 +29,3 @@ class MapUVNode : public Node {
   MapUVNode(bNode *editorNode);
   void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
-#endif

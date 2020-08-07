@@ -21,8 +21,7 @@
  * \ingroup edarmature
  */
 
-#ifndef __ARMATURE_INTERN_H__
-#define __ARMATURE_INTERN_H__
+#pragma once
 
 /* internal exports only */
 struct wmOperatorType;
@@ -289,5 +288,3 @@ int bone_looper(struct Object *ob,
                 struct Bone *bone,
                 void *data,
                 int (*bone_func)(struct Object *, struct Bone *, void *));
-
-#endif /* __ARMATURE_INTERN_H__ */

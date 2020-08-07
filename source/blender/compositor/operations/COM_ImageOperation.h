@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_IMAGEOPERATION_H__
-#define __COM_IMAGEOPERATION_H__
+#pragma once
 
 #include "BKE_image.h"
 #include "BLI_listbase.h"
@@ -103,4 +102,3 @@ class ImageDepthOperation : public BaseImageOperation {
   ImageDepthOperation();
   void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
 };
-#endif

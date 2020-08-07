@@ -18,8 +18,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_LIGHTPROBE_TYPES_H__
-#define __DNA_LIGHTPROBE_TYPES_H__
+#pragma once
 
 #include "DNA_ID.h"
 #include "DNA_defs.h"
@@ -220,5 +219,3 @@ enum {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __DNA_LIGHTPROBE_TYPES_H__ */

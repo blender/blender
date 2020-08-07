@@ -20,8 +20,7 @@
  * \ingroup draw
  */
 
-#ifndef __DRAW_DEBUG_H__
-#define __DRAW_DEBUG_H__
+#pragma once
 
 struct BoundBox;
 
@@ -34,5 +33,3 @@ void DRW_debug_m4(const float m[4][4]);
 void DRW_debug_m4_as_bbox(const float m[4][4], const float color[4], const bool invert);
 void DRW_debug_bbox(const BoundBox *bbox, const float color[4]);
 void DRW_debug_sphere(const float center[3], const float radius, const float color[4]);
-
-#endif /* __DRAW_DEBUG_H__ */

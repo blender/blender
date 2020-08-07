@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_CONTEXT_H__
-#define __BKE_CONTEXT_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -345,6 +344,4 @@ struct Depsgraph *CTX_data_depsgraph_on_load(const bContext *C);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

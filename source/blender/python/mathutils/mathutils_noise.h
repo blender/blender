@@ -18,9 +18,6 @@
  * \ingroup mathutils
  */
 
-#ifndef __MATHUTILS_NOISE_H__
-#define __MATHUTILS_NOISE_H__
+#pragma once
 
 PyMODINIT_FUNC PyInit_mathutils_noise(void);
-
-#endif /* __MATHUTILS_NOISE_H__ */

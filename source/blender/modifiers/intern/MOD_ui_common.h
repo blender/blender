@@ -18,8 +18,7 @@
  * \ingroup modifiers
  */
 
-#ifndef __MOD_UI_COMMON_H__
-#define __MOD_UI_COMMON_H__
+#pragma once
 
 /* so modifier types match their defines */
 #include "MOD_modifiertypes.h"
@@ -66,5 +65,3 @@ struct PanelType *modifier_subpanel_register(struct ARegionType *region_type,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __MOD_UI_COMMON_H__ */

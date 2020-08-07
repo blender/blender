@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_REGION_MATCH_H__
-#define __BMESH_REGION_MATCH_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -25,5 +24,3 @@ int BM_mesh_region_match(BMesh *bm,
                          BMFace **faces_region,
                          uint faces_region_len,
                          ListBase *r_face_regions);
-
-#endif /* __BMESH_REGION_MATCH_H__ */

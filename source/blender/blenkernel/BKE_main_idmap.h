@@ -13,8 +13,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-#ifndef __BKE_MAIN_IDMAP_H__
-#define __BKE_MAIN_IDMAP_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -69,5 +68,3 @@ struct ID *BKE_main_idmap_lookup_uuid(struct IDNameLib_Map *id_typemap,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_MAIN_IDMAP_H__ */

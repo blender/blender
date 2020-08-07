@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_STROKE_TESSELATOR_H__
-#define __FREESTYLE_STROKE_TESSELATOR_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -73,5 +72,3 @@ class StrokeTesselator {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_STROKE_TESSELATOR_H__

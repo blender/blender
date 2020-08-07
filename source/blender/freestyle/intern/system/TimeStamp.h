@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_TIME_STAMP_H__
-#define __FREESTYLE_TIME_STAMP_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -70,5 +69,3 @@ class TimeStamp {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_TIME_STAMP_H__

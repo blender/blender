@@ -18,8 +18,7 @@
  * \ingroup gpu
  */
 
-#ifndef __GPU_STATE_H__
-#define __GPU_STATE_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -109,5 +108,3 @@ void gpuPopAttr(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_STATE_H__ */

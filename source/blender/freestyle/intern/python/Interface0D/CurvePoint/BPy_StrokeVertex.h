@@ -18,8 +18,7 @@
  * \ingroup freestyle
  */
 
-#ifndef __FREESTYLE_PYTHON_STROKEVERTEX_H__
-#define __FREESTYLE_PYTHON_STROKEVERTEX_H__
+#pragma once
 
 #include "../BPy_CurvePoint.h"
 
@@ -51,5 +50,3 @@ void StrokeVertex_mathutils_register_callback();
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __FREESTYLE_PYTHON_STROKEVERTEX_H__ */

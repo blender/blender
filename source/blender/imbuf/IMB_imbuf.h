@@ -53,8 +53,7 @@
  *     posix-compliant.
  */
 
-#ifndef __IMB_IMBUF_H__
-#define __IMB_IMBUF_H__
+#pragma once
 
 /* for bool */
 #include "../blenlib/BLI_sys_types.h"
@@ -790,6 +789,4 @@ void IMB_ImBufFromStereo3d(struct Stereo3dFormat *s3d,
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

@@ -23,8 +23,7 @@
  * GPU vertex format
  */
 
-#ifndef __GPU_VERTEX_FORMAT_PRIVATE_H__
-#define __GPU_VERTEX_FORMAT_PRIVATE_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,5 +37,3 @@ GLenum convert_comp_type_to_gl(GPUVertCompType type);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_VERTEX_FORMAT_PRIVATE_H__ */

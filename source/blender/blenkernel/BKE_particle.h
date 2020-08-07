@@ -20,8 +20,7 @@
  * Copyright 2011-2012 AutoCRC
  */
 
-#ifndef __BKE_PARTICLE_H__
-#define __BKE_PARTICLE_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -631,5 +630,3 @@ extern void (*BKE_particle_batch_cache_free_cb)(struct ParticleSystem *psys);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_PARTICLE_H__ */

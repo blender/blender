@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_WINGED_EDGE_BUILDER_H__
-#define __FREESTYLE_WINGED_EDGE_BUILDER_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -174,5 +173,3 @@ class WingedEdgeBuilder : public SceneVisitor {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_WINGED_EDGE_BUILDER_H__

@@ -18,8 +18,7 @@
  * \ingroup pythonintern
  */
 
-#ifndef __BPY_LIBRARY_H__
-#define __BPY_LIBRARY_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,5 +32,3 @@ extern PyMethodDef BPY_library_write_method_def;
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BPY_LIBRARY_H__ */

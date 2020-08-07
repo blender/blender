@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) Blender Foundation.
  * All rights reserved.
  */
-#ifndef __BKE_SOFTBODY_H__
-#define __BKE_SOFTBODY_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -75,6 +74,4 @@ extern void SB_estimate_transform(Object *ob, float lloc[3], float lrot[3][3], f
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

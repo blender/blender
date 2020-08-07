@@ -20,11 +20,8 @@
  * Logging defines.
  */
 
-#ifndef __BPY_EXTERN_CLOG_H__
-#define __BPY_EXTERN_CLOG_H__
+#pragma once
 
 /* bpy_interface.c */
 extern struct CLG_LogRef *BPY_LOG_RNA;
 extern struct CLG_LogRef *BPY_LOG_CONTEXT;
-
-#endif /* __BPY_EXTERN_CLOG_H__ */

@@ -14,13 +14,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FLIPDXT_H__
-#define __FLIPDXT_H__
+#pragma once
 
 #include "BLI_sys_types.h"
 
 /* flip compressed DXT image vertically to fit OpenGL convention */
 int FlipDXTCImage(
     unsigned int width, unsigned int height, unsigned int levels, int fourcc, uint8_t *data);
-
-#endif

@@ -23,8 +23,7 @@
  * Public API for Depsgraph
  */
 
-#ifndef __DEG_DEPSGRAPH_BUILD_H__
-#define __DEG_DEPSGRAPH_BUILD_H__
+#pragma once
 
 /* ************************************************* */
 
@@ -201,5 +200,3 @@ struct Depsgraph *DEG_get_graph_from_handle(struct DepsNodeHandle *node_handle);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
-
-#endif /* __DEG_DEPSGRAPH_BUILD_H__ */

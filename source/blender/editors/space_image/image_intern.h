@@ -21,8 +21,7 @@
  * \ingroup spimage
  */
 
-#ifndef __IMAGE_INTERN_H__
-#define __IMAGE_INTERN_H__
+#pragma once
 
 /* internal exports only */
 struct ARegion;
@@ -96,5 +95,3 @@ void IMAGE_OT_tile_fill(struct wmOperatorType *ot);
 /* image_panels.c */
 struct ImageUser *ntree_get_active_iuser(struct bNodeTree *ntree);
 void image_buttons_register(struct ARegionType *art);
-
-#endif /* __IMAGE_INTERN_H__ */

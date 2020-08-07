@@ -21,8 +21,7 @@
  * \ingroup bke
  */
 
-#ifndef __NLA_PRIVATE_H__
-#define __NLA_PRIVATE_H__
+#pragma once
 
 #include "BLI_bitmap.h"
 #include "BLI_ghash.h"
@@ -190,5 +189,3 @@ void nladata_flush_channels(PointerRNA *ptr,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __NLA_PRIVATE_H__ */

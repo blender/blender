@@ -21,8 +21,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_VIEW3D_H__
-#define __ED_VIEW3D_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -750,5 +749,3 @@ bool ED_view3d_is_region_xr_mirror_active(const struct wmWindowManager *wm,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_VIEW3D_H__ */

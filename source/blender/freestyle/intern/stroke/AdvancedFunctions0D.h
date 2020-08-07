@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_ADVANCED_FUNCTIONS_0D_H__
-#define __FREESTYLE_ADVANCED_FUNCTIONS_0D_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -209,5 +208,3 @@ class GetViewMapGradientNormF0D : public UnaryFunction0D<float> {
 }  // end of namespace Functions0D
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_ADVANCED_FUNCTIONS_0D_H__

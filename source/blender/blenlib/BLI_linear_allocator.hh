@@ -22,8 +22,7 @@
  * memory. When the current buffer is full, it reallocates a new larger buffer and continues.
  */
 
-#ifndef __BLI_LINEAR_ALLOCATOR_HH__
-#define __BLI_LINEAR_ALLOCATOR_HH__
+#pragma once
 
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"
@@ -219,5 +218,3 @@ template<typename Allocator = GuardedAllocator> class LinearAllocator : NonCopya
 };
 
 }  // namespace blender
-
-#endif /* __BLI_LINEAR_ALLOCATOR_HH__ */

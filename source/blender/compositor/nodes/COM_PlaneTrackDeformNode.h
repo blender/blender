@@ -16,8 +16,7 @@
  * Copyright 2013, Blender Foundation.
  */
 
-#ifndef __COM_PLANETRACKDEFORMNODE_H__
-#define __COM_PLANETRACKDEFORMNODE_H__
+#pragma once
 
 #include "COM_Node.h"
 
@@ -33,5 +32,3 @@ class PlaneTrackDeformNode : public Node {
   PlaneTrackDeformNode(bNode *editorNode);
   void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
-
-#endif /* __COM_PLANETRACKDEFORMNODE_H__ */

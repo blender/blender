@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_MOVIEDISTORTIONOPERATION_H__
-#define __COM_MOVIEDISTORTIONOPERATION_H__
+#pragma once
 
 #include "COM_NodeOperation.h"
 #include "DNA_movieclip_types.h"
@@ -58,5 +57,3 @@ class MovieDistortionOperation : public NodeOperation {
                                         ReadBufferOperation *readOperation,
                                         rcti *output);
 };
-
-#endif

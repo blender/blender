@@ -21,8 +21,7 @@
  * \ingroup openimageio
  */
 
-#ifndef __OPENIMAGEIO_API_H__
-#define __OPENIMAGEIO_API_H__
+#pragma once
 
 #include <stdio.h>
 
@@ -44,5 +43,3 @@ int OIIO_getVersionHex(void);
 }
 
 #endif
-
-#endif /* __OPENIMAGEIO_API_H__ */

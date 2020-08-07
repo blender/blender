@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_WRITEFFMPEG_H__
-#define __BKE_WRITEFFMPEG_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -98,7 +97,5 @@ void BKE_ffmpeg_context_free(void *context_v);
 #  ifdef __cplusplus
 }
 #  endif
-
-#endif
 
 #endif

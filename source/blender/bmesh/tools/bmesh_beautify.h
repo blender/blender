@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_BEAUTIFY_H__
-#define __BMESH_BEAUTIFY_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -42,5 +41,3 @@ float BM_verts_calc_rotate_beauty(const BMVert *v1,
                                   const BMVert *v4,
                                   const short flag,
                                   const short method);
-
-#endif /* __BMESH_BEAUTIFY_H__ */

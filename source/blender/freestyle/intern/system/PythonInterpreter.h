@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_PYTHON_INTERPRETER_H__
-#define __FREESTYLE_PYTHON_INTERPRETER_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -147,5 +146,3 @@ class PythonInterpreter : public Interpreter {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_PYTHON_INTERPRETER_H__

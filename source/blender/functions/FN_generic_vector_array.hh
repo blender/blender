@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FN_GENERIC_VECTOR_ARRAY_HH__
-#define __FN_GENERIC_VECTOR_ARRAY_HH__
+#pragma once
 
 /** \file
  * \ingroup fn
@@ -202,5 +201,3 @@ template<typename T> class GVectorArrayRef {
 };
 
 }  // namespace blender::fn
-
-#endif /* __FN_GENERIC_VECTOR_ARRAY_HH__ */

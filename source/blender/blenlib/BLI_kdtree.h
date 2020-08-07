@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_KDTREE_H__
-#define __BLI_KDTREE_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -73,5 +72,3 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_KDTREE_H__ */

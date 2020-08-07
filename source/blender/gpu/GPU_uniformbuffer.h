@@ -21,8 +21,7 @@
  * \ingroup gpu
  */
 
-#ifndef __GPU_UNIFORMBUFFER_H__
-#define __GPU_UNIFORMBUFFER_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -52,5 +51,3 @@ bool GPU_uniformbuffer_is_dirty(GPUUniformBuffer *ubo);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_UNIFORMBUFFER_H__ */

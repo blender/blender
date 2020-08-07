@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2006 by NaN Holding BV.
  * All rights reserved.
  */
-#ifndef __BKE_BVHUTILS_H__
-#define __BKE_BVHUTILS_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -262,6 +261,4 @@ void bvhcache_free(struct BVHCache *bvh_cache);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

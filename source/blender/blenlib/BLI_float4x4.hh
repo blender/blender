@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_FLOAT4X4_HH__
-#define __BLI_FLOAT4X4_HH__
+#pragma once
 
 #include "BLI_float3.hh"
 #include "BLI_math_matrix.h"
@@ -133,5 +132,3 @@ struct float4x4 {
 };
 
 }  // namespace blender
-
-#endif /* __BLI_FLOAT4X4_HH__ */

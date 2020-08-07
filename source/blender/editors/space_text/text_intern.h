@@ -21,8 +21,7 @@
  * \ingroup sptext
  */
 
-#ifndef __TEXT_INTERN_H__
-#define __TEXT_INTERN_H__
+#pragma once
 
 /* internal exports only */
 
@@ -181,5 +180,3 @@ void TEXT_OT_autocomplete(struct wmOperatorType *ot);
 
 /* space_text.c */
 extern const char *text_context_dir[]; /* doc access */
-
-#endif /* __TEXT_INTERN_H__ */

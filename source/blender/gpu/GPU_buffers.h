@@ -21,8 +21,7 @@
  * \ingroup gpu
  */
 
-#ifndef __GPU_BUFFERS_H__
-#define __GPU_BUFFERS_H__
+#pragma once
 
 #include <stddef.h>
 
@@ -120,6 +119,4 @@ bool GPU_pbvh_buffers_has_overlays(GPU_PBVH_Buffers *buffers);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

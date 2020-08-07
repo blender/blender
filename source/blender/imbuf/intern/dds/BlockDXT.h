@@ -48,8 +48,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-#ifndef __BLOCKDXT_H__
-#define __BLOCKDXT_H__
+#pragma once
 
 #include <Color.h>
 #include <ColorBlock.h>
@@ -305,5 +304,3 @@ void mem_read(Stream &mem, BlockDXT5 &block);
 void mem_read(Stream &mem, BlockATI1 &block);
 void mem_read(Stream &mem, BlockATI2 &block);
 void mem_read(Stream &mem, BlockCTX1 &block);
-
-#endif /* __BLOCKDXT_H__ */

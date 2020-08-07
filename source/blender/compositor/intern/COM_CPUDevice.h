@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_CPUDEVICE_H__
-#define __COM_CPUDEVICE_H__
+#pragma once
 
 #include "COM_Device.h"
 
@@ -44,5 +43,3 @@ class CPUDevice : public Device {
  protected:
   int m_thread_id;
 };
-
-#endif

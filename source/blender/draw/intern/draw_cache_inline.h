@@ -20,8 +20,7 @@
  * \ingroup draw
  */
 
-#ifndef __DRAW_CACHE_INLINE_H__
-#define __DRAW_CACHE_INLINE_H__
+#pragma once
 
 #include "GPU_batch.h"
 #include "MEM_guardedalloc.h"
@@ -110,5 +109,3 @@ BLI_INLINE bool DRW_vbo_requested(GPUVertBuf *vbo)
 {
   return (vbo != NULL && vbo->format.attr_len == 0);
 }
-
-#endif /* __DRAW_CACHE_INLINE_H__ */

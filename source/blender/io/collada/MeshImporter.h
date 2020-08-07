@@ -18,8 +18,7 @@
  * \ingroup collada
  */
 
-#ifndef __MESHIMPORTER_H__
-#define __MESHIMPORTER_H__
+#pragma once
 
 #include <map>
 #include <vector>
@@ -177,5 +176,3 @@ class MeshImporter : public MeshImporterBase {
   bool write_geometry(const COLLADAFW::Geometry *geom);
   std::string *get_geometry_name(const std::string &mesh_name);
 };
-
-#endif

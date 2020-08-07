@@ -21,8 +21,7 @@
  * \ingroup draw
  */
 
-#ifndef __DRAW_HAIR_PRIVATE_H__
-#define __DRAW_HAIR_PRIVATE_H__
+#pragma once
 
 #define MAX_LAYER_NAME_CT 4 /* u0123456789, u, au, a0123456789 */
 #define MAX_LAYER_NAME_LEN GPU_MAX_SAFE_ATTR_NAME + 2
@@ -92,5 +91,3 @@ bool hair_ensure_procedural_data(struct Object *object,
                                  struct ParticleHairCache **r_hair_cache,
                                  int subdiv,
                                  int thickness_res);
-
-#endif /* __DRAW_HAIR_PRIVATE_H__ */

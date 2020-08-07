@@ -18,8 +18,7 @@
  * \ingroup collada
  */
 
-#ifndef __ARMATUREIMPORTER_H__
-#define __ARMATUREIMPORTER_H__
+#pragma once
 
 #include "COLLADAFWMorphController.h"
 #include "COLLADAFWNode.h"
@@ -181,5 +180,3 @@ class ArmatureImporter : private TransformReader {
 
   void set_tags_map(TagsMap &tags_map);
 };
-
-#endif

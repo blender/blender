@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_CURVE_TYPES_H__
-#define __DNA_CURVE_TYPES_H__
+#pragma once
 
 #include "DNA_ID.h"
 #include "DNA_defs.h"
@@ -547,5 +546,3 @@ enum {
 
 /* indicates point has been seen during surface duplication */
 #define SURF_SEEN 4
-
-#endif

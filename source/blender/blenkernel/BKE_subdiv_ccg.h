@@ -21,8 +21,7 @@
  * \ingroup bke
  */
 
-#ifndef __BKE_SUBDIV_CCG_H__
-#define __BKE_SUBDIV_CCG_H__
+#pragma once
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_customdata.h"
@@ -343,5 +342,3 @@ void BKE_subdiv_ccg_grid_hidden_ensure(SubdivCCG *subdiv_ccg, int grid_index);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_SUBDIV_CCG_H__ */

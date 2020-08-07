@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_VIEW_MAP_ITERATORS_H__
-#define __FREESTYLE_VIEW_MAP_ITERATORS_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -590,5 +589,3 @@ class ViewEdgeIterator : public Iterator {
 }  // end of namespace ViewEdgeInternal
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_VIEW_MAP_ITERATORS_H__

@@ -20,8 +20,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_INFO_H__
-#define __ED_INFO_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,5 +39,3 @@ void ED_info_draw_stats(
 #ifdef __cplusplus
 }
 #endif
-
-#endif /*  __ED_INFO_H__ */

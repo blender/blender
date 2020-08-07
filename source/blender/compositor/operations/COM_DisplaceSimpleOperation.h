@@ -16,8 +16,8 @@
  * Copyright 2012, Blender Foundation.
  */
 
-#ifndef __COM_DISPLACESIMPLEOPERATION_H__
-#define __COM_DISPLACESIMPLEOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 class DisplaceSimpleOperation : public NodeOperation {
@@ -58,4 +58,3 @@ class DisplaceSimpleOperation : public NodeOperation {
    */
   void deinitExecution();
 };
-#endif

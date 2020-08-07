@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __IMAGEPYRAMID_H__
-#define __IMAGEPYRAMID_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -113,5 +112,3 @@ class GaussianPyramid : public ImagePyramid {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __IMAGEPYRAMID_H__

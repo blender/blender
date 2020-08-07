@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_OBJECT_H__
-#define __BKE_OBJECT_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -412,6 +411,4 @@ void BKE_object_to_mesh_clear(struct Object *object);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

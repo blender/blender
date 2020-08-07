@@ -21,8 +21,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_PHYSICS_H__
-#define __ED_PHYSICS_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -63,5 +62,3 @@ void ED_keymap_physics(struct wmKeyConfig *keyconf);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_PHYSICS_H__ */

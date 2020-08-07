@@ -21,8 +21,7 @@
  * \ingroup avi
  */
 
-#ifndef __AVI_INTERN_H__
-#define __AVI_INTERN_H__
+#pragma once
 
 #include <stdio.h> /* for FILE */
 
@@ -61,5 +60,3 @@ int avi_get_data_id(AviFormat format, int stream);
 int avi_get_format_type(AviFormat format);
 int avi_get_format_fcc(AviFormat format);
 int avi_get_format_compression(AviFormat format);
-
-#endif

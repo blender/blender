@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __DNA_LINESTYLE_TYPES_H__
-#define __DNA_LINESTYLE_TYPES_H__
+#pragma once
 
 /** \file
  * \ingroup DNA
@@ -576,5 +575,3 @@ typedef struct FreestyleLineStyle {
   ListBase thickness_modifiers;
   ListBase geometry_modifiers;
 } FreestyleLineStyle;
-
-#endif

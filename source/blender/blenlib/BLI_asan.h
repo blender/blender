@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_ADDRESS_SANITIZER_H__
-#define __BLI_ADDRESS_SANITIZER_H__
+#pragma once
 
 /* Clang defines this. */
 #ifndef __has_feature
@@ -41,5 +40,3 @@
  * Mark a region of memory as usable again.
  */
 #define BLI_asan_unpoison(addr, size) ASAN_UNPOISON_MEMORY_REGION(addr, size)
-
-#endif /* __BLI_ADDRESS_SANITIZER_H__ */

@@ -18,8 +18,7 @@
  * \ingroup pythonintern
  */
 
-#ifndef __BPY_MSGBUS_H__
-#define __BPY_MSGBUS_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,5 +29,3 @@ PyObject *BPY_msgbus_module(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BPY_MSGBUS_H__ */

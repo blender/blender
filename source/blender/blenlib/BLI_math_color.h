@@ -20,8 +20,7 @@
  *
  * */
 
-#ifndef __BLI_MATH_COLOR_H__
-#define __BLI_MATH_COLOR_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -162,5 +161,3 @@ void lift_gamma_gain_to_asc_cdl(const float *lift,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_MATH_COLOR_H__ */

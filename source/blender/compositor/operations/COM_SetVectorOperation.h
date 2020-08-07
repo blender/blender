@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_SETVECTOROPERATION_H__
-#define __COM_SETVECTOROPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 /**
@@ -88,4 +88,3 @@ class SetVectorOperation : public NodeOperation {
     setZ(vector[2]);
   }
 };
-#endif

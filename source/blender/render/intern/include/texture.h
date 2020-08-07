@@ -21,8 +21,7 @@
  * \ingroup render
  */
 
-#ifndef __TEXTURE_H__
-#define __TEXTURE_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -102,5 +101,3 @@ void image_sample(struct Image *ima,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __TEXTURE_H__ */

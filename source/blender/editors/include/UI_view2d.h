@@ -23,8 +23,7 @@
  * \ingroup editorui
  */
 
-#ifndef __UI_VIEW2D_H__
-#define __UI_VIEW2D_H__
+#pragma once
 
 #include "BLI_compiler_attrs.h"
 
@@ -288,5 +287,3 @@ void VIEW2D_GGT_navigate_impl(struct wmGizmoGroupType *gzgt, const char *idname)
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __UI_VIEW2D_H__ */

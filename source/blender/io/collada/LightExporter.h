@@ -18,8 +18,7 @@
  * \ingroup collada
  */
 
-#ifndef __LIGHTEXPORTER_H__
-#define __LIGHTEXPORTER_H__
+#pragma once
 
 #include "COLLADASWLibraryLights.h"
 #include "COLLADASWStreamWriter.h"
@@ -40,5 +39,3 @@ class LightsExporter : COLLADASW::LibraryLights {
   bool exportBlenderProfile(COLLADASW::Light &cla, Light *la);
   BCExportSettings &export_settings;
 };
-
-#endif

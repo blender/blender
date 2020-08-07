@@ -23,8 +23,7 @@
  * Public API for Querying and Filtering Depsgraph
  */
 
-#ifndef __DEG_DEPSGRAPH_DEBUG_H__
-#define __DEG_DEPSGRAPH_DEBUG_H__
+#pragma once
 
 #include <stdio.h>
 
@@ -80,5 +79,3 @@ bool DEG_debug_consistency_check(struct Depsgraph *graph);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
-
-#endif /* __DEG_DEPSGRAPH_DEBUG_H__ */

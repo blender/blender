@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_STEERABLE_VIEW_MAP_H__
-#define __FREESTYLE_STEERABLE_VIEW_MAP_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -156,5 +155,3 @@ class SteerableViewMap {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_STEERABLE_VIEW_MAP_H__

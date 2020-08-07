@@ -20,8 +20,7 @@
  *
  * */
 
-#ifndef __BLI_MATH_ROTATION_H__
-#define __BLI_MATH_ROTATION_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -246,5 +245,3 @@ bool mat3_from_axis_conversion_single(int src_axis, int dst_axis, float r_mat[3]
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_MATH_ROTATION_H__ */

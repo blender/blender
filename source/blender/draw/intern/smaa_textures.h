@@ -26,8 +26,7 @@
  * SOFTWARE.
  */
 
-#ifndef __SMAA_TEXTURES_H__
-#define __SMAA_TEXTURES_H__
+#pragma once
 
 #define AREATEX_WIDTH 160
 #define AREATEX_HEIGHT 560
@@ -15083,4 +15082,3 @@ static const unsigned char searchTexBytes[] = {
 
 /* clang-format off */
 
-#endif /* __SMAA_TEXTURES_H__ */

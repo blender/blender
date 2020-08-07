@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_ARGS_H__
-#define __BLI_ARGS_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -77,6 +76,4 @@ const char **BLI_argsArgv(struct bArgs *ba);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

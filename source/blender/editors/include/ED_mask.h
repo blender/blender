@@ -21,8 +21,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_MASK_H__
-#define __ED_MASK_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -125,5 +124,3 @@ void mirror_masklayer_frames(struct MaskLayer *mask_layer, short mode);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_MASK_H__ */

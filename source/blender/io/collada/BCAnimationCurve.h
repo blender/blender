@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BCANIMATIONCURVE_H__
-#define __BCANIMATIONCURVE_H__
+#pragma once
 
 #include "BCSampleData.h"
 #include "collada_utils.h"
@@ -147,5 +146,3 @@ class BCAnimationCurve {
 };
 
 typedef std::map<BCCurveKey, BCAnimationCurve *> BCAnimationCurveMap;
-
-#endif /* __BCANIMATIONCURVE_H__ */

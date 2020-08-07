@@ -21,8 +21,7 @@
  * \ingroup gpu
  */
 
-#ifndef __GPU_COMMON_H__
-#define __GPU_COMMON_H__
+#pragma once
 
 #define PROGRAM_NO_OPTI 0
 
@@ -51,5 +50,3 @@
 #else
 #  define GPU_INLINE static inline __attribute__((always_inline)) __attribute__((__unused__))
 #endif
-
-#endif /* __GPU_COMMON_H__ */

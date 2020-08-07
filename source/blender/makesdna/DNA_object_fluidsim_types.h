@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_OBJECT_FLUIDSIM_TYPES_H__
-#define __DNA_OBJECT_FLUIDSIM_TYPES_H__
+#pragma once
 
 #include "DNA_ID.h"
 #include "DNA_defs.h"
@@ -179,5 +178,3 @@ typedef struct FluidsimSettings {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __DNA_OBJECT_FLUIDSIM_TYPES_H__ */

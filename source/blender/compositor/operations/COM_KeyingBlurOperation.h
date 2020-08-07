@@ -16,8 +16,7 @@
  * Copyright 2012, Blender Foundation.
  */
 
-#ifndef __COM_KEYINGBLUROPERATION_H__
-#define __COM_KEYINGBLUROPERATION_H__
+#pragma once
 
 #include "COM_NodeOperation.h"
 
@@ -54,5 +53,3 @@ class KeyingBlurOperation : public NodeOperation {
                                         ReadBufferOperation *readOperation,
                                         rcti *output);
 };
-
-#endif

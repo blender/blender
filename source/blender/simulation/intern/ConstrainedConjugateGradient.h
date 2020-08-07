@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __CONSTRAINEDCONJUGATEGRADIENT_H__
-#define __CONSTRAINEDCONJUGATEGRADIENT_H__
+#pragma once
 
 #include <Eigen/Core>
 
@@ -331,5 +330,3 @@ struct solve_retval<ConstrainedConjugateGradient<_MatrixType, _UpLo, _Filter, _P
 }  // end namespace internal
 
 }  // end namespace Eigen
-
-#endif  // __CONSTRAINEDCONJUGATEGRADIENT_H__

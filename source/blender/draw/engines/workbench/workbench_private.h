@@ -20,8 +20,7 @@
  * \ingroup draw_engine
  */
 
-#ifndef __WORKBENCH_PRIVATE_H__
-#define __WORKBENCH_PRIVATE_H__
+#pragma once
 
 #include "BKE_studiolight.h"
 
@@ -520,5 +519,3 @@ void workbench_render(void *ved,
 void workbench_render_update_passes(struct RenderEngine *engine,
                                     struct Scene *scene,
                                     struct ViewLayer *view_layer);
-
-#endif

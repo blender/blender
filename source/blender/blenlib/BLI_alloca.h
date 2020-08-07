@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_ALLOCA_H__
-#define __BLI_ALLOCA_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -36,5 +35,3 @@
 #else
 #  define BLI_array_alloca(arr, realsize) alloca(sizeof(*arr) * (realsize))
 #endif
-
-#endif /* __BLI_ALLOCA_H__ */

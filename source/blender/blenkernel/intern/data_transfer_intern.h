@@ -21,8 +21,7 @@
  * \ingroup bke
  */
 
-#ifndef __DATA_TRANSFER_INTERN_H__
-#define __DATA_TRANSFER_INTERN_H__
+#pragma once
 
 #include "BKE_customdata.h" /* For cd_datatransfer_interp */
 
@@ -75,5 +74,3 @@ void customdata_data_transfer_interp_normal_normals(const CustomDataTransferLaye
                                                     const float *weights,
                                                     const int count,
                                                     const float mix_factor);
-
-#endif /* __DATA_TRANSFER_INTERN_H__ */

@@ -18,8 +18,7 @@
  * \ingroup modifiers
  */
 
-#ifndef __MOD_GPENCIL_MODIFIERTYPES_H__
-#define __MOD_GPENCIL_MODIFIERTYPES_H__
+#pragma once
 
 #include "BKE_gpencil_modifier.h"
 
@@ -47,5 +46,3 @@ extern GpencilModifierTypeInfo modifierType_Gpencil_Texture;
 
 /* MOD_gpencil_util.c */
 void gpencil_modifier_type_init(GpencilModifierTypeInfo *types[]);
-
-#endif /* __MOD_GPENCIL_MODIFIERTYPES_H__ */

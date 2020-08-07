@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FN_MULTI_FUNCTION_PARAM_TYPE_HH__
-#define __FN_MULTI_FUNCTION_PARAM_TYPE_HH__
+#pragma once
 
 /** \file
  * \ingroup fn
@@ -164,5 +163,3 @@ inline bool operator!=(const MFParamType &a, const MFParamType &b)
 }
 
 }  // namespace blender::fn
-
-#endif /* __FN_MULTI_FUNCTION_PARAM_TYPE_HH__ */

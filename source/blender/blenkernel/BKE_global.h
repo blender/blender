@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  */
-#ifndef __BKE_GLOBAL_H__
-#define __BKE_GLOBAL_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -223,6 +222,4 @@ extern Global G;
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

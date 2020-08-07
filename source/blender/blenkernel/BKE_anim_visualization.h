@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  */
-#ifndef __BKE_ANIM_VISUALIZATION_H__
-#define __BKE_ANIM_VISUALIZATION_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -51,6 +50,4 @@ struct bMotionPath *animviz_verify_motionpaths(struct ReportList *reports,
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

@@ -13,8 +13,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-#ifndef __WM_TOOLSYSTEM_H__
-#define __WM_TOOLSYSTEM_H__
+#pragma once
 
 /** \file
  * \ingroup wm
@@ -140,5 +139,3 @@ void WM_toolsystem_refresh_screen_all(struct Main *bmain);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __WM_TOOLSYSTEM_API_H__ */

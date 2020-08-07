@@ -18,8 +18,7 @@
  * \ingroup freestyle
  */
 
-#ifndef __FREESTYLE_PYTHON_UNARYPREDICATE1D_H__
-#define __FREESTYLE_PYTHON_UNARYPREDICATE1D_H__
+#pragma once
 
 extern "C" {
 #include <Python.h>
@@ -54,5 +53,3 @@ int UnaryPredicate1D_Init(PyObject *module);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __FREESTYLE_PYTHON_UNARYPREDICATE1D_H__ */

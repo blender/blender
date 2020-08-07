@@ -18,8 +18,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_DYNAMICPAINT_TYPES_H__
-#define __DNA_DYNAMICPAINT_TYPES_H__
+#pragma once
 
 #include "DNA_listBase.h"
 struct PaintSurfaceData;
@@ -262,5 +261,3 @@ typedef struct DynamicPaintBrushSettings {
   float wave_factor, wave_clamp;
   float max_velocity, smudge_strength;
 } DynamicPaintBrushSettings;
-
-#endif

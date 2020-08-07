@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  */
-#ifndef __BKE_MESH_RUNTIME_H__
-#define __BKE_MESH_RUNTIME_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -111,5 +110,3 @@ bool BKE_mesh_runtime_is_valid(struct Mesh *me_eval);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_MESH_RUNTIME_H__ */

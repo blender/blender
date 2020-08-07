@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_EDITMESH_H__
-#define __BKE_EDITMESH_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -107,5 +106,3 @@ struct BoundBox *BKE_editmesh_cage_boundbox_get(BMEditMesh *em);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_EDITMESH_H__ */

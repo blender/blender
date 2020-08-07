@@ -23,8 +23,7 @@
  * Public API for Querying Depsgraph.
  */
 
-#ifndef __DEG_DEPSGRAPH_QUERY_H__
-#define __DEG_DEPSGRAPH_QUERY_H__
+#pragma once
 
 #include "BLI_iterator.h"
 
@@ -261,5 +260,3 @@ void DEG_foreach_ID(const Depsgraph *depsgraph, DEGForeachIDCallback callback, v
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
-
-#endif /* __DEG_DEPSGRAPH_QUERY_H__ */

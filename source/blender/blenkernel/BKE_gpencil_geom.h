@@ -17,8 +17,7 @@
  * This is a new part of Blender
  */
 
-#ifndef __BKE_GPENCIL_GEOM_H__
-#define __BKE_GPENCIL_GEOM_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -131,5 +130,3 @@ void BKE_gpencil_convert_mesh(struct Main *bmain,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /*  __BKE_GPENCIL_GEOM_H__ */

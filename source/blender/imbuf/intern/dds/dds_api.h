@@ -18,8 +18,7 @@
  * \ingroup imbdds
  */
 
-#ifndef __DDS_API_H__
-#define __DDS_API_H__
+#pragma once
 
 #include "../../IMB_imbuf.h"
 
@@ -37,5 +36,3 @@ struct ImBuf *imb_load_dds(const unsigned char *mem,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __DDS_API_H */

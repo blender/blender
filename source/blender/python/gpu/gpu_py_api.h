@@ -18,8 +18,7 @@
  * \ingroup bpygpu
  */
 
-#ifndef __GPU_PY_API_H__
-#define __GPU_PY_API_H__
+#pragma once
 
 int bpygpu_ParsePrimType(PyObject *o, void *p);
 
@@ -36,5 +35,3 @@ bool bpygpu_is_init_or_error(void);
     return -1; \
   } \
   ((void)0)
-
-#endif /* __GPU_PY_API_H__ */

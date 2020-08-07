@@ -21,8 +21,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_UTIL_H__
-#define __ED_UTIL_H__
+#pragma once
 
 #include "BLI_compiler_attrs.h"
 
@@ -71,5 +70,3 @@ void unpack_menu(struct bContext *C,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_UTIL_H__ */

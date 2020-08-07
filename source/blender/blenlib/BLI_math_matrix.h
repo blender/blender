@@ -19,8 +19,7 @@
  * The Original Code is: some of this file.
  * */
 
-#ifndef __BLI_MATH_MATRIX_H__
-#define __BLI_MATH_MATRIX_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -399,5 +398,3 @@ void print_m4(const char *str, const float M[4][4]);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_MATH_MATRIX_H__ */

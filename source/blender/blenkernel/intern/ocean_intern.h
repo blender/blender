@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_OCEAN_INTERN_H__
-#define __BKE_OCEAN_INTERN_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -132,6 +131,4 @@ typedef struct Ocean {
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

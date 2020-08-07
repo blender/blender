@@ -21,8 +21,7 @@
  * \ingroup editorui
  */
 
-#ifndef __UI_INTERFACE_ICONS_H__
-#define __UI_INTERFACE_ICONS_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -111,5 +110,3 @@ int UI_library_icon_get(const struct ID *id);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /*  __UI_INTERFACE_ICONS_H__ */

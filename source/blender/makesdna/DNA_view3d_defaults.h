@@ -18,8 +18,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_VIEW3D_DEFAULTS_H__
-#define __DNA_VIEW3D_DEFAULTS_H__
+#pragma once
 
 /* Struct members on own line. */
 /* clang-format off */
@@ -114,5 +113,3 @@
 /** \} */
 
 /* clang-format on */
-
-#endif /* __DNA_VIEW3D_DEFAULTS_H__ */

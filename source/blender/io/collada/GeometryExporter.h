@@ -18,8 +18,7 @@
  * \ingroup collada
  */
 
-#ifndef __GEOMETRYEXPORTER_H__
-#define __GEOMETRYEXPORTER_H__
+#pragma once
 
 #include <set>
 #include <string>
@@ -136,5 +135,3 @@ struct GeometryFunctor {
     }
   }
 };
-
-#endif

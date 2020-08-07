@@ -23,8 +23,7 @@
  * Intermediate node graph for generating GLSL shaders.
  */
 
-#ifndef __GPU_NODE_GRAPH_H__
-#define __GPU_NODE_GRAPH_H__
+#pragma once
 
 #include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
@@ -164,5 +163,3 @@ struct GPUTexture **gpu_material_ramp_texture_row_set(struct GPUMaterial *mat,
                                                       float *row);
 
 struct GSet *gpu_material_used_libraries(struct GPUMaterial *material);
-
-#endif /* __GPU_NODE_GRAPH_H__ */

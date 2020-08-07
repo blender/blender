@@ -21,8 +21,7 @@
  * \ingroup wm
  */
 
-#ifndef __WM_CURSORS_H__
-#define __WM_CURSORS_H__
+#pragma once
 
 struct wmEvent;
 struct wmWindow;
@@ -84,5 +83,3 @@ bool wm_cursor_arrow_move(struct wmWindow *win, const struct wmEvent *event);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __WM_CURSORS_H__ */

@@ -18,8 +18,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_NUMINPUT_H__
-#define __ED_NUMINPUT_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -115,5 +114,3 @@ bool user_string_to_number(bContext *C,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_NUMINPUT_H__ */

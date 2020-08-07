@@ -20,8 +20,7 @@
  * Utility drawing functions (rough equivalent to OpenGL's GLU)
  */
 
-#ifndef __GPU_IMMEDIATE_UTIL_H__
-#define __GPU_IMMEDIATE_UTIL_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -92,5 +91,3 @@ void imm_draw_cylinder_fill_3d(
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_IMMEDIATE_UTIL_H__ */

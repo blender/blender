@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __APPCANVAS_H__
-#define __APPCANVAS_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -93,5 +92,3 @@ class AppCanvas : public Canvas {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __APPCANVAS_H__

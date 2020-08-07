@@ -21,8 +21,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_TRANSVERTS_H__
-#define __ED_TRANSVERTS_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -75,5 +74,3 @@ enum {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_TRANSVERTS_H__ */

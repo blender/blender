@@ -21,8 +21,7 @@
  * \ingroup editors
  */
 
-#ifndef __ED_LATTICE_H__
-#define __ED_LATTICE_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,5 +50,3 @@ void ED_lattice_undosys_type(struct UndoType *ut);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __ED_LATTICE_H__ */

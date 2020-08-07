@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_MODIFIERS_H__
-#define __FREESTYLE_MODIFIERS_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -71,5 +70,3 @@ template<class Edge> struct TimestampModifier : public EdgeModifier<Edge> {
 };
 
 } /* namespace Freestyle */
-
-#endif  // MODIFIERS_H

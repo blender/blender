@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_MESH_H__
-#define __BMESH_MESH_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -171,5 +170,3 @@ void BM_mesh_vert_coords_apply(BMesh *bm, const float (*orco)[3]);
 void BM_mesh_vert_coords_apply_with_mat4(BMesh *bm,
                                          const float (*vert_coords)[3],
                                          const float mat[4][4]);
-
-#endif /* __BMESH_MESH_H__ */

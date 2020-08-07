@@ -18,8 +18,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_SIMULATION_DEFAULTS_H__
-#define __DNA_SIMULATION_DEFAULTS_H__
+#pragma once
 
 /* Struct members on own line. */
 /* clang-format off */
@@ -36,5 +35,3 @@
 /** \} */
 
 /* clang-format on */
-
-#endif /* __DNA_SIMULATION_DEFAULTS_H__ */

@@ -21,8 +21,7 @@
  * \ingroup bli
  */
 
-#ifndef __BLI_MEMARENA_H__
-#define __BLI_MEMARENA_H__
+#pragma once
 
 #include "BLI_compiler_attrs.h"
 
@@ -55,5 +54,3 @@ void BLI_memarena_clear(MemArena *ma) ATTR_NONNULL(1);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_MEMARENA_H__ */

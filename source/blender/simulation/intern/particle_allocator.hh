@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __SIM_PARTICLE_ALLOCATOR_HH__
-#define __SIM_PARTICLE_ALLOCATOR_HH__
+#pragma once
 
 #include "BLI_array.hh"
 #include "BLI_vector.hh"
@@ -97,5 +96,3 @@ class ParticleAllocator : NonCopyable, NonMovable {
 };
 
 }  // namespace blender::sim
-
-#endif /* __SIM_PARTICLE_ALLOCATOR_HH__ */

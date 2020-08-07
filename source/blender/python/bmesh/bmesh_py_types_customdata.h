@@ -21,8 +21,7 @@
  * \ingroup pybmesh
  */
 
-#ifndef __BMESH_PY_TYPES_CUSTOMDATA_H__
-#define __BMESH_PY_TYPES_CUSTOMDATA_H__
+#pragma once
 
 /* all use BPy_BMLayerAccess struct */
 extern PyTypeObject BPy_BMLayerAccessVert_Type;
@@ -67,5 +66,3 @@ void BPy_BM_init_types_customdata(void);
 /* __getitem__ / __setitem__ */
 PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer);
 int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObject *value);
-
-#endif /* __BMESH_PY_TYPES_CUSTOMDATA_H__ */

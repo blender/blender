@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_DISPLIST_H__
-#define __BKE_DISPLIST_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -118,6 +117,4 @@ void BKE_displist_minmax(struct ListBase *dispbase, float min[3], float max[3]);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

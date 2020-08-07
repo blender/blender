@@ -21,8 +21,7 @@
  * \ingroup pybmesh
  */
 
-#ifndef __BMESH_PY_TYPES_H__
-#define __BMESH_PY_TYPES_H__
+#pragma once
 
 extern PyTypeObject BPy_BMesh_Type;
 extern PyTypeObject BPy_BMVert_Type;
@@ -228,5 +227,3 @@ extern struct PyC_FlagSet bpy_bm_htype_vert_edge_face_flags[];
 extern struct PyC_FlagSet bpy_bm_htype_all_flags[];
 extern struct PyC_FlagSet bpy_bm_hflag_all_flags[];
 #endif
-
-#endif /* __BMESH_PY_TYPES_H__ */

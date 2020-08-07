@@ -21,8 +21,7 @@
  * \ingroup edsculpt
  */
 
-#ifndef __PAINT_INTERN_H__
-#define __PAINT_INTERN_H__
+#pragma once
 
 struct ARegion;
 struct Brush;
@@ -367,5 +366,3 @@ void paint_delete_blur_kernel(BlurKernel *);
 
 /* paint curve defines */
 #define PAINT_CURVE_NUM_SEGMENTS 40
-
-#endif /* __PAINT_INTERN_H__ */

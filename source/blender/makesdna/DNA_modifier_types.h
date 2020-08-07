@@ -18,8 +18,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_MODIFIER_TYPES_H__
-#define __DNA_MODIFIER_TYPES_H__
+#pragma once
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
@@ -2190,5 +2189,3 @@ typedef struct SimulationModifierData {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __DNA_MODIFIER_TYPES_H__ */

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_LAYER_H__
-#define __BKE_LAYER_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -416,5 +415,3 @@ bool BKE_view_layer_filter_edit_mesh_has_edges(struct Object *ob, void *user_dat
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_LAYER_H__ */

@@ -20,8 +20,7 @@
  * \ingroup draw
  */
 
-#ifndef __DRAW_COMMON_H__
-#define __DRAW_COMMON_H__
+#pragma once
 
 struct DRWPass;
 struct DRWShadingGroup;
@@ -215,5 +214,3 @@ struct DRW_Global {
   struct GPUUniformBuffer *view_ubo;
 };
 extern struct DRW_Global G_draw;
-
-#endif /* __DRAW_COMMON_H__ */

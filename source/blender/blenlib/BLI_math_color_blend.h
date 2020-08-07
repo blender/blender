@@ -20,8 +20,7 @@
  *
  * */
 
-#ifndef __BLI_MATH_COLOR_BLEND_H__
-#define __BLI_MATH_COLOR_BLEND_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -151,5 +150,3 @@ MINLINE void blend_color_interpolate_float(float dst[4],
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_MATH_COLOR_BLEND_H__ */

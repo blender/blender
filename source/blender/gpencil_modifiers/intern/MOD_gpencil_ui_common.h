@@ -18,8 +18,7 @@
  * \ingroup modifiers
  */
 
-#ifndef __MOD_UI_COMMON__GPENCIL_H__
-#define __MOD_UI_COMMON__GPENCIL_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,5 +61,3 @@ struct PanelType *gpencil_modifier_subpanel_register(struct ARegionType *region_
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __MOD_UI_COMMON__GPENCIL_H__ */

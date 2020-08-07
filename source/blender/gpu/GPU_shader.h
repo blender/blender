@@ -21,8 +21,7 @@
  * \ingroup gpu
  */
 
-#ifndef __GPU_SHADER_H__
-#define __GPU_SHADER_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -370,5 +369,3 @@ void GPU_shader_free_builtin_shaders(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_SHADER_H__ */

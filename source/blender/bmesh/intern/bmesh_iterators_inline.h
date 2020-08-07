@@ -20,8 +20,7 @@
  * BMesh inline iterator functions.
  */
 
-#ifndef __BMESH_ITERATORS_INLINE_H__
-#define __BMESH_ITERATORS_INLINE_H__
+#pragma once
 
 /* inline here optimizes out the switch statement when called with
  * constant values (which is very common), nicer for loop-in-loop situations */
@@ -210,5 +209,3 @@ BLI_INLINE void BM_iter_parallel(BMesh *bm,
 }
 
 #endif /* __BLI_TASK_H__ */
-
-#endif /* __BMESH_ITERATORS_INLINE_H__ */

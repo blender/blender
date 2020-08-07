@@ -22,8 +22,7 @@
  * \brief File and directory operations.
  * */
 
-#ifndef __BLI_FILEOPS_H__
-#define __BLI_FILEOPS_H__
+#pragma once
 
 #include <stdint.h>
 #include <stdio.h>
@@ -189,5 +188,3 @@ void BLI_get_short_name(char short_name[256], const char *filename);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_FILEOPS_H__ */

@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __SIM_SIMULATION_UPDATE_HH__
-#define __SIM_SIMULATION_UPDATE_HH__
+#pragma once
 
 struct Depsgraph;
 struct Scene;
@@ -30,5 +29,3 @@ void update_simulation_in_depsgraph(Depsgraph *depsgraph,
 bool update_simulation_dependencies(Simulation *simulation);
 
 }  // namespace blender::sim
-
-#endif /* __SIM_SIMULATION_UPDATE_HH__ */

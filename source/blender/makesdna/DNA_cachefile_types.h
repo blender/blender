@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_CACHEFILE_TYPES_H__
-#define __DNA_CACHEFILE_TYPES_H__
+#pragma once
 
 #include "DNA_ID.h"
 
@@ -100,5 +99,3 @@ typedef struct CacheFile {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __DNA_CACHEFILE_TYPES_H__ */

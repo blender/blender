@@ -20,8 +20,7 @@
  * \ingroup draw_engine
  */
 
-#ifndef __SELECT_PRIVATE_H__
-#define __SELECT_PRIVATE_H__
+#pragma once
 
 #define USE_CAGE_OCCLUSION
 
@@ -78,5 +77,3 @@ void select_id_draw_object(void *vedata,
                            uint *r_vert_offset,
                            uint *r_edge_offset,
                            uint *r_face_offset);
-
-#endif /* __SELECT_PRIVATE_H__ */

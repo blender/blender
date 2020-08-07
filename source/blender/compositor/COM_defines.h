@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_DEFINES_H__
-#define __COM_DEFINES_H__
+#pragma once
 
 /**
  * \brief possible data types for sockets
@@ -108,5 +107,3 @@ typedef enum OrderOfChunks {
 #define COM_NUM_CHANNELS_COLOR 4
 
 #define COM_BLUR_BOKEH_PIXELS 512
-
-#endif /* __COM_DEFINES_H__ */

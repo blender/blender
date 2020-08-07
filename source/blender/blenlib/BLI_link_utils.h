@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_LINK_UTILS_H__
-#define __BLI_LINK_UTILS_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -67,5 +66,3 @@
     } \
   } \
   (void)0
-
-#endif /* __BLI_LINK_UTILS_H__ */

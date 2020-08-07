@@ -21,8 +21,7 @@
  * \ingroup bli
  */
 
-#ifndef __BLI_DYNLIB_H__
-#define __BLI_DYNLIB_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,5 +37,3 @@ void BLI_dynlib_close(DynamicLibrary *lib);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_DYNLIB_H__ */

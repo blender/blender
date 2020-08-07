@@ -16,8 +16,7 @@
  * Copyright 2019, Blender Foundation.
  */
 
-#ifndef __COM_DENOISENODE_H__
-#define __COM_DENOISENODE_H__
+#pragma once
 
 #include "COM_Node.h"
 
@@ -30,5 +29,3 @@ class DenoiseNode : public Node {
   DenoiseNode(bNode *editorNode);
   void convertToOperations(NodeConverter &converter, const CompositorContext &context) const;
 };
-
-#endif

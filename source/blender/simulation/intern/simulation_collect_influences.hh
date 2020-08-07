@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __SIM_SIMULATION_COLLECT_INFLUENCES_HH__
-#define __SIM_SIMULATION_COLLECT_INFLUENCES_HH__
+#pragma once
 
 #include "NOD_derived_node_tree.hh"
 
@@ -64,5 +63,3 @@ void collect_simulation_influences(Simulation &simulation,
                                    RequiredStates &r_required_states);
 
 }  // namespace blender::sim
-
-#endif /* __SIM_SIMULATION_COLLECT_INFLUENCES_HH__ */

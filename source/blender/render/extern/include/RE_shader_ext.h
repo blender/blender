@@ -20,8 +20,7 @@
  * \ingroup render
  */
 
-#ifndef __RE_SHADER_EXT_H__
-#define __RE_SHADER_EXT_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -82,5 +81,3 @@ int multitex_nodes(struct Tex *tex,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __RE_SHADER_EXT_H__ */

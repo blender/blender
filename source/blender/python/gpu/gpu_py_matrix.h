@@ -18,9 +18,6 @@
  * \ingroup bpygpu
  */
 
-#ifndef __GPU_PY_MATRIX_H__
-#define __GPU_PY_MATRIX_H__
+#pragma once
 
 PyObject *BPyInit_gpu_matrix(void);
-
-#endif /* __GPU_PY_MATRIX_H__ */

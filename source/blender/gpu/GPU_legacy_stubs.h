@@ -26,8 +26,7 @@
  * This file should be removed in the future
  */
 
-#ifndef __GPU_LEGACY_STUBS_H__
-#define __GPU_LEGACY_STUBS_H__
+#pragma once
 
 #if defined(__GNUC__)
 #  pragma GCC diagnostic push
@@ -512,5 +511,3 @@ _GL_VOID DO_NOT_USE_glClientActiveTexture(GLenum texture) _GL_VOID_RET
 #if defined(__GNUC__)
 #  pragma GCC diagnostic pop
 #endif
-
-#endif /* __GPU_LEGACY_STUBS_H__ */

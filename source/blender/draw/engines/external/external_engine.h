@@ -20,9 +20,6 @@
  * \ingroup draw_engine
  */
 
-#ifndef __EXTERNAL_ENGINE_H__
-#define __EXTERNAL_ENGINE_H__
+#pragma once
 
 extern RenderEngineType DRW_engine_viewport_external_type;
-
-#endif /* __EXTERNAL_ENGINE_H__ */

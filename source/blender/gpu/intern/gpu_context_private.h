@@ -23,8 +23,7 @@
  * This interface allow GPU to manage GL objects for multiple context and threads.
  */
 
-#ifndef __GPU_CONTEXT_PRIVATE_H__
-#define __GPU_CONTEXT_PRIVATE_H__
+#pragma once
 
 #include "GPU_context.h"
 
@@ -64,5 +63,3 @@ struct GPUMatrixState *gpu_context_active_matrix_state_get(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_CONTEXT_PRIVATE_H__ */

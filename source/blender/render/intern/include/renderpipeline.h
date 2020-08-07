@@ -21,8 +21,7 @@
  * \ingroup render
  */
 
-#ifndef __RENDERPIPELINE_H__
-#define __RENDERPIPELINE_H__
+#pragma once
 
 struct ListBase;
 struct Render;
@@ -43,5 +42,3 @@ void render_copy_renderdata(struct RenderData *to, struct RenderData *from);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __RENDERPIPELINE_H__ */

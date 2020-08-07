@@ -23,8 +23,7 @@
  * Structs used for camera tracking and the movie-clip editor.
  */
 
-#ifndef __DNA_TRACKING_TYPES_H__
-#define __DNA_TRACKING_TYPES_H__
+#pragma once
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
@@ -617,5 +616,3 @@ enum {
   PLANE_TRACK_LOCKED = (1 << 2),
   PLANE_TRACK_AUTOKEY = (1 << 3),
 };
-
-#endif /* __DNA_TRACKING_TYPES_H__ */

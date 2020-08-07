@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_MEMITER_H__
-#define __BLI_MEMITER_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -69,5 +68,3 @@ void *BLI_memiter_iter_step_size(BLI_memiter_handle *iter, uint *r_size) ATTR_WA
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_MEMITER_H__ */

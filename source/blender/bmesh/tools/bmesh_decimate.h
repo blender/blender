@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_DECIMATE_H__
-#define __BMESH_DECIMATE_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -45,5 +44,3 @@ void BM_mesh_decimate_dissolve(BMesh *bm,
                                const float angle_limit,
                                const bool do_dissolve_boundaries,
                                const BMO_Delimit delimit);
-
-#endif /* __BMESH_DECIMATE_H__ */

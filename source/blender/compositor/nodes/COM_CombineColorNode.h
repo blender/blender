@@ -16,8 +16,7 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_COMBINECOLORNODE_H__
-#define __COM_COMBINECOLORNODE_H__
+#pragma once
 
 #include "COM_Node.h"
 
@@ -65,5 +64,3 @@ class CombineYUVANode : public CombineColorNode {
 
   NodeOperation *getColorConverter(const CompositorContext &context) const;
 };
-
-#endif

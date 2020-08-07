@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  */
-#ifndef __BKE_TEXT_H__
-#define __BKE_TEXT_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -117,6 +116,4 @@ void txt_from_buf_for_undo(struct Text *text, const char *buf, int buf_len);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

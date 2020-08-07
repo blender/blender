@@ -23,8 +23,7 @@
  * Used for custom mesh data types (stored per vert/edge/loop/face)
  */
 
-#ifndef __DNA_CUSTOMDATA_TYPES_H__
-#define __DNA_CUSTOMDATA_TYPES_H__
+#pragma once
 
 #include "DNA_defs.h"
 
@@ -254,5 +253,3 @@ enum {
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __DNA_CUSTOMDATA_TYPES_H__ */

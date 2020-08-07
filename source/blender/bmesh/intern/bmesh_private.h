@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BMESH_PRIVATE_H__
-#define __BMESH_PRIVATE_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -90,5 +89,3 @@ void poly_rotate_plane(const float normal[3], float (*verts)[3], const uint nver
 
 /* include the rest of our private declarations */
 #include "bmesh_structure.h"
-
-#endif /* __BMESH_PRIVATE_H__ */

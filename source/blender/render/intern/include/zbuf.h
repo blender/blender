@@ -18,8 +18,7 @@
  * \ingroup render
  */
 
-#ifndef __ZBUF_H__
-#define __ZBUF_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,6 +45,4 @@ void zspan_scanconvert(struct ZSpan *zpan,
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

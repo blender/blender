@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_HEAP_SIMPLE_H__
-#define __BLI_HEAP_SIMPLE_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -44,5 +43,3 @@ void *BLI_heapsimple_pop_min(HeapSimple *heap) ATTR_NONNULL(1);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_HEAP_SIMPLE_H__ */

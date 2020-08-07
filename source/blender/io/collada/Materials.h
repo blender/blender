@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __MATERIALS_H__
-#define __MATERIALS_H__
+#pragma once
 
 #include <map>
 #include <string>
@@ -70,5 +69,3 @@ class MaterialNode {
                  COLLADAFW::ColorOrTexture &cot,
                  COLLADAFW::FloatOrParam &val);
 };
-
-#endif /* __MATERIALS_H__ */

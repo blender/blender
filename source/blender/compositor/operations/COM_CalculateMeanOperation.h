@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_CALCULATEMEANOPERATION_H__
-#define __COM_CALCULATEMEANOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 
@@ -67,4 +67,3 @@ class CalculateMeanOperation : public NodeOperation {
  protected:
   void calculateMean(MemoryBuffer *tile);
 };
-#endif

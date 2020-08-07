@@ -18,8 +18,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_VOLUME_TYPES_H__
-#define __DNA_VOLUME_TYPES_H__
+#pragma once
 
 #include "DNA_ID.h"
 
@@ -122,5 +121,3 @@ typedef enum VolumeRenderSpace {
 
 /* Only one material supported currently. */
 #define VOLUME_MATERIAL_NR 1
-
-#endif /* __DNA_VOLUME_TYPES_H__ */

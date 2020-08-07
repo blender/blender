@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BMESH_EDGELOOP_H__
-#define __BMESH_EDGELOOP_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -84,5 +83,3 @@ bool BM_edgeloop_overlap_check(struct BMEdgeLoopStore *el_store_a,
 #define BM_EDGELOOP_NEXT(el_store) \
   (CHECK_TYPE_INLINE(el_store, struct BMEdgeLoopStore *), \
    (struct BMEdgeLoopStore *)((LinkData *)el_store)->next)
-
-#endif /* __BMESH_EDGELOOP_H__ */

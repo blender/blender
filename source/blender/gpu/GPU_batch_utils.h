@@ -18,8 +18,7 @@
  * \ingroup gpu
  */
 
-#ifndef __GPU_BATCH_UTILS_H__
-#define __GPU_BATCH_UTILS_H__
+#pragma once
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
@@ -44,5 +43,3 @@ struct GPUBatch *gpu_batch_sphere(int lat_res, int lon_res) ATTR_WARN_UNUSED_RES
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_BATCH_UTILS_H__ */

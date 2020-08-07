@@ -16,8 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_COLORSPILLOPERATION_H__
-#define __COM_COLORSPILLOPERATION_H__
+#pragma once
+
 #include "COM_NodeOperation.h"
 
 /**
@@ -64,5 +64,3 @@ class ColorSpillOperation : public NodeOperation {
 
   float calculateMapValue(float fac, float *input);
 };
-
-#endif

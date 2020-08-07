@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) Blender Foundation.
  * All rights reserved.
  */
-#ifndef __BKE_SHRINKWRAP_H__
-#define __BKE_SHRINKWRAP_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -192,5 +191,3 @@ void BKE_shrinkwrap_snap_point_to_surface(const struct ShrinkwrapTreeData *tree,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_SHRINKWRAP_H__ */

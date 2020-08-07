@@ -23,8 +23,7 @@
  * GPU vertex format
  */
 
-#ifndef __GPU_VERTEX_FORMAT_H__
-#define __GPU_VERTEX_FORMAT_H__
+#pragma once
 
 #include "BLI_assert.h"
 #include "BLI_compiler_compat.h"
@@ -199,5 +198,3 @@ BLI_INLINE GPUPackedNormal GPU_normal_convert_i10_s3(const short data[3])
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __GPU_VERTEX_FORMAT_H__ */

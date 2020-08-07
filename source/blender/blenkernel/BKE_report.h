@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_REPORT_H__
-#define __BKE_REPORT_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -68,6 +67,4 @@ bool BKE_report_write_file(const char *filepath, ReportList *reports, const char
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

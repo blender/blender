@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_STRING_UTILS_H__
-#define __BLI_STRING_UTILS_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -97,5 +96,3 @@ bool BLI_uniquename(struct ListBase *list,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_STRING_UTILS_H__ */

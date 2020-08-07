@@ -19,8 +19,8 @@
 /* #define typeof() triggers a bug in some clang-format versions, disable format
  * for entire file to keep results consistent. */
 
-#ifndef __BLI_COMPILER_COMPAT_H__
-#define __BLI_COMPILER_COMPAT_H__
+#pragma once
+
 
 /** \file
  * \ingroup bli
@@ -56,4 +56,3 @@ template<typename T> static inline T decltype_helper(T x)
 #  define BLI_NOINLINE
 #endif
 
-#endif /* __BLI_COMPILER_COMPAT_H__ */

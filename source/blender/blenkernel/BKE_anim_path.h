@@ -16,8 +16,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  */
-#ifndef __BKE_ANIM_PATH_H__
-#define __BKE_ANIM_PATH_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -46,6 +45,4 @@ bool where_on_path(const struct Object *ob,
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

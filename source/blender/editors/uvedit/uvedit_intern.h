@@ -21,8 +21,7 @@
  * \ingroup eduv
  */
 
-#ifndef __UVEDIT_INTERN_H__
-#define __UVEDIT_INTERN_H__
+#pragma once
 
 struct BMFace;
 struct BMLoop;
@@ -147,5 +146,3 @@ void UV_OT_select_circle(struct wmOperatorType *ot);
 void UV_OT_select_more(struct wmOperatorType *ot);
 void UV_OT_select_less(struct wmOperatorType *ot);
 void UV_OT_select_overlap(struct wmOperatorType *ot);
-
-#endif /* __UVEDIT_INTERN_H__ */

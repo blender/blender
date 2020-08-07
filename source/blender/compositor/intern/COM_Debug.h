@@ -16,8 +16,7 @@
  * Copyright 2013, Blender Foundation.
  */
 
-#ifndef __COM_DEBUG_H__
-#define __COM_DEBUG_H__
+#pragma once
 
 #include <map>
 #include <string>
@@ -77,5 +76,3 @@ class DebugInfo {
   static GroupStateMap m_group_states;    /**< for visualizing group states */
 #endif
 };
-
-#endif
