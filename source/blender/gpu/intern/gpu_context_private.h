@@ -27,11 +27,51 @@
 
 #include "GPU_context.h"
 
+/* TODO cleanup this ifdef */
+#ifdef __cplusplus
+
+#  include <mutex>
+#  include <pthread.h>
+#  include <string.h>
+#  include <unordered_set>
+#  include <vector>
+
+struct GPUFrameBuffer;
+
+struct GPUContext {
+  GLuint default_vao;
+  GLuint default_framebuffer;
+  GPUFrameBuffer *current_fbo;
+  std::unordered_set<GPUBatch *> batches; /* Batches that have VAOs from this context */
+#  ifdef DEBUG
+  std::unordered_set<GPUFrameBuffer *>
+      framebuffers; /* Framebuffers that have FBO from this context */
+#  endif
+  struct GPUMatrixState *matrix_state;
+  std::vector<GLuint> orphaned_vertarray_ids;
+  std::vector<GLuint> orphaned_framebuffer_ids;
+  std::mutex orphans_mutex; /* todo: try spinlock instead */
+#  if TRUST_NO_ONE
+  pthread_t thread; /* Thread on which this context is active. */
+  bool thread_is_used;
+#  endif
+
+  GPUContext()
+  {
+#  if TRUST_NO_ONE
+    thread_is_used = false;
+#  endif
+    current_fbo = 0;
+  };
+
+  virtual ~GPUContext(){};
+};
+
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct GPUFrameBuffer;
 
 GLuint GPU_vao_default(void);
 GLuint GPU_framebuffer_default(void);

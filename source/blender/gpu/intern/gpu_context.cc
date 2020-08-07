@@ -28,6 +28,9 @@
  * - free can be called from any thread
  */
 
+/* TODO Create cmake option. */
+#define WITH_OPENGL_BACKEND 1
+
 #include "BLI_assert.h"
 #include "BLI_utildefines.h"
 
@@ -36,62 +39,24 @@
 
 #include "GHOST_C-api.h"
 
+#include "gpu_backend.hh"
 #include "gpu_batch_private.h"
 #include "gpu_context_private.h"
 #include "gpu_matrix_private.h"
 
-#include <mutex>
-#include <pthread.h>
-#include <string.h>
-#include <unordered_set>
-#include <vector>
-
-#if TRUST_NO_ONE
-#  if 0
-extern "C" {
-extern int BLI_thread_is_main(void); /* Blender-specific function */
-}
-
-static bool thread_is_main()
-{
-  /* "main" here means the GL context's thread */
-  return BLI_thread_is_main();
-}
-#  endif
+#ifdef WITH_OPENGL_BACKEND
+#  include "gl_backend.hh"
+#  include "gl_context.hh"
 #endif
+
+#include <mutex>
+#include <vector>
 
 static std::vector<GLuint> orphaned_buffer_ids;
 static std::vector<GLuint> orphaned_texture_ids;
 
 static std::mutex orphans_mutex;
 static std::mutex main_context_mutex;
-
-struct GPUContext {
-  GLuint default_vao;
-  GLuint default_framebuffer;
-  GPUFrameBuffer *current_fbo;
-  std::unordered_set<GPUBatch *> batches; /* Batches that have VAOs from this context */
-#ifdef DEBUG
-  std::unordered_set<GPUFrameBuffer *>
-      framebuffers; /* Framebuffers that have FBO from this context */
-#endif
-  struct GPUMatrixState *matrix_state;
-  std::vector<GLuint> orphaned_vertarray_ids;
-  std::vector<GLuint> orphaned_framebuffer_ids;
-  std::mutex orphans_mutex; /* todo: try spinlock instead */
-#if TRUST_NO_ONE
-  pthread_t thread; /* Thread on which this context is active. */
-  bool thread_is_used;
-#endif
-
-  GPUContext()
-  {
-#if TRUST_NO_ONE
-    thread_is_used = false;
-#endif
-    current_fbo = 0;
-  }
-};
 
 static thread_local GPUContext *active_ctx = NULL;
 
@@ -142,8 +107,12 @@ static void orphans_clear(GPUContext *ctx)
 
 GPUContext *GPU_context_create(void *ghost_window)
 {
-  /* BLI_assert(thread_is_main()); */
-  GPUContext *ctx = new GPUContext;
+  if (gpu_backend_get() == NULL) {
+    /* TODO move where it make sense. */
+    GPU_backend_init(GPU_BACKEND_OPENGL);
+  }
+
+  GPUContext *ctx = gpu_backend_get()->context_alloc(ghost_window);
   glGenVertexArrays(1, &ctx->default_vao);
   if (ghost_window != NULL) {
     ctx->default_framebuffer = GHOST_GetDefaultOpenGLFramebuffer((GHOST_WindowHandle)ghost_window);
@@ -364,3 +333,37 @@ void GPU_context_main_unlock(void)
 {
   main_context_mutex.unlock();
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Backend selection
+ * \{ */
+
+static GPUBackend *g_backend;
+
+void GPU_backend_init(eGPUBackendType backend_type)
+{
+  BLI_assert(g_backend == NULL);
+
+  switch (backend_type) {
+#if WITH_OPENGL_BACKEND
+    case GPU_BACKEND_OPENGL:
+      g_backend = new GLBackend;
+      break;
+#endif
+    default:
+      BLI_assert(0);
+      break;
+  }
+}
+
+void GPU_backend_exit(void)
+{
+  delete g_backend;
+}
+
+GPUBackend *gpu_backend_get(void)
+{
+  return g_backend;
+}
+
+/** \} */

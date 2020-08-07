@@ -26,6 +26,7 @@
 #include "BLI_sys_types.h"
 #include "GPU_batch.h"
 #include "GPU_buffers.h"
+#include "GPU_context.h"
 #include "GPU_immediate.h"
 
 #include "intern/gpu_codegen.h"
@@ -91,6 +92,8 @@ void GPU_exit(void)
 
   gpu_extensions_exit();
   gpu_platform_exit(); /* must come last */
+
+  GPU_backend_exit();
 
   initialized = false;
 }
