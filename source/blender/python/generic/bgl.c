@@ -415,10 +415,9 @@ typedef struct BufferOrOffset {
   if (ret_str) { \
     return PyUnicode_FromString((const char *)ret_str); \
   } \
-  else { \
-    PyErr_SetString(PyExc_AttributeError, "could not get opengl string"); \
-    return NULL; \
-  }
+\
+  PyErr_SetString(PyExc_AttributeError, "could not get opengl string"); \
+  return NULL;
 
 /** \} */
 
@@ -705,7 +704,7 @@ static int BGL_BufferOrOffsetConverter(PyObject *object, BufferOrOffset *buffer)
     buffer->offset = NULL;
     return 1;
   }
-  else if (PyNumber_Check(object)) {
+  if (PyNumber_Check(object)) {
     Py_ssize_t offset = PyNumber_AsSsize_t(object, PyExc_IndexError);
     if (offset == -1 && PyErr_Occurred()) {
       return 0;
@@ -715,15 +714,14 @@ static int BGL_BufferOrOffsetConverter(PyObject *object, BufferOrOffset *buffer)
     buffer->offset = (void *)offset;
     return 1;
   }
-  else if (PyObject_TypeCheck(object, &BGL_bufferType)) {
+  if (PyObject_TypeCheck(object, &BGL_bufferType)) {
     buffer->buffer = (Buffer *)object;
     buffer->offset = NULL;
     return 1;
   }
-  else {
-    PyErr_SetString(PyExc_TypeError, "expected a bgl.Buffer or None");
-    return 0;
-  }
+
+  PyErr_SetString(PyExc_TypeError, "expected a bgl.Buffer or None");
+  return 0;
 }
 
 #define MAX_DIMENSIONS 256
@@ -766,7 +764,7 @@ static PyObject *Buffer_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject
                       "too many dimensions, max is " STRINGIFY(MAX_DIMENSIONS));
       return NULL;
     }
-    else if (ndimensions < 1) {
+    if (ndimensions < 1) {
       PyErr_SetString(PyExc_AttributeError, "sequence must have at least one dimension");
       return NULL;
     }
@@ -913,9 +911,8 @@ static int Buffer_ass_item(Buffer *self, int i, PyObject *v)
       Py_DECREF(row);
       return ret;
     }
-    else {
-      return -1;
-    }
+
+    return -1;
   }
 
   switch (self->type) {
@@ -996,7 +993,7 @@ static PyObject *Buffer_subscript(Buffer *self, PyObject *item)
     }
     return Buffer_item(self, i);
   }
-  else if (PySlice_Check(item)) {
+  if (PySlice_Check(item)) {
     Py_ssize_t start, stop, step, slicelength;
 
     if (PySlice_GetIndicesEx(item, self->dimensions[0], &start, &stop, &step, &slicelength) < 0) {
@@ -1006,19 +1003,17 @@ static PyObject *Buffer_subscript(Buffer *self, PyObject *item)
     if (slicelength <= 0) {
       return PyTuple_New(0);
     }
-    else if (step == 1) {
+    if (step == 1) {
       return Buffer_slice(self, start, stop);
     }
-    else {
-      PyErr_SetString(PyExc_IndexError, "slice steps not supported with vectors");
-      return NULL;
-    }
-  }
-  else {
-    PyErr_Format(
-        PyExc_TypeError, "buffer indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+
+    PyErr_SetString(PyExc_IndexError, "slice steps not supported with vectors");
     return NULL;
   }
+
+  PyErr_Format(
+      PyExc_TypeError, "buffer indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+  return NULL;
 }
 
 static int Buffer_ass_subscript(Buffer *self, PyObject *item, PyObject *value)
@@ -1033,7 +1028,7 @@ static int Buffer_ass_subscript(Buffer *self, PyObject *item, PyObject *value)
     }
     return Buffer_ass_item(self, i, value);
   }
-  else if (PySlice_Check(item)) {
+  if (PySlice_Check(item)) {
     Py_ssize_t start, stop, step, slicelength;
 
     if (PySlice_GetIndicesEx(item, self->dimensions[0], &start, &stop, &step, &slicelength) < 0) {
@@ -1043,16 +1038,14 @@ static int Buffer_ass_subscript(Buffer *self, PyObject *item, PyObject *value)
     if (step == 1) {
       return Buffer_ass_slice(self, start, stop, value);
     }
-    else {
-      PyErr_SetString(PyExc_IndexError, "slice steps not supported with vectors");
-      return -1;
-    }
-  }
-  else {
-    PyErr_Format(
-        PyExc_TypeError, "buffer indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+
+    PyErr_SetString(PyExc_IndexError, "slice steps not supported with vectors");
     return -1;
   }
+
+  PyErr_Format(
+      PyExc_TypeError, "buffer indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+  return -1;
 }
 
 static void Buffer_dealloc(Buffer *self)

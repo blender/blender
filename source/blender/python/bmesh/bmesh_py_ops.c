@@ -250,11 +250,9 @@ static PyObject *bpy_bmesh_ops_fakemod_getattro(PyObject *UNUSED(self), PyObject
   if (BMO_opcode_from_opname(opname) != -1) {
     return bpy_bmesh_op_CreatePyObject(opname);
   }
-  else {
-    PyErr_Format(
-        PyExc_AttributeError, "BMeshOpsModule: operator \"%.200s\" doesn't exist", opname);
-    return NULL;
-  }
+
+  PyErr_Format(PyExc_AttributeError, "BMeshOpsModule: operator \"%.200s\" doesn't exist", opname);
+  return NULL;
 }
 
 static PyObject *bpy_bmesh_ops_fakemod_dir(PyObject *UNUSED(self))

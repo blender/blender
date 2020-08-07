@@ -367,10 +367,10 @@ static PyObject *bpy_gizmo_target_get_value(PyObject *UNUSED(self), PyObject *ar
         WM_gizmo_target_property_float_get_array(gz, gz_prop, value);
         return PyC_Tuple_PackArray_F32(value, array_len);
       }
-      else {
-        float value = WM_gizmo_target_property_float_get(gz, gz_prop);
-        return PyFloat_FromDouble(value);
-      }
+
+      float value = WM_gizmo_target_property_float_get(gz, gz_prop);
+      return PyFloat_FromDouble(value);
+
       break;
     }
     default: {

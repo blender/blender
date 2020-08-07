@@ -104,10 +104,9 @@ static PyObject *vec__apply_to_copy(PyObject *(*vec_func)(VectorObject *), Vecto
     Py_DECREF(ret_dummy);
     return (PyObject *)ret;
   }
-  else { /* error */
-    Py_DECREF(ret);
-    return NULL;
-  }
+  /* error */
+  Py_DECREF(ret);
+  return NULL;
 }
 
 /*-----------------------CLASS-METHODS----------------------------*/
@@ -1004,12 +1003,11 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
       Py_INCREF(fallback);
       return fallback;
     }
-    else {
-      PyErr_SetString(PyExc_ValueError,
-                      "Vector.angle(other): "
-                      "zero length vectors have no valid angle");
-      return NULL;
-    }
+
+    PyErr_SetString(PyExc_ValueError,
+                    "Vector.angle(other): "
+                    "zero length vectors have no valid angle");
+    return NULL;
   }
 
   return PyFloat_FromDouble(saacos(dot / (sqrt(dot_self) * sqrt(dot_other))));
@@ -1059,12 +1057,11 @@ static PyObject *Vector_angle_signed(VectorObject *self, PyObject *args)
       Py_INCREF(fallback);
       return fallback;
     }
-    else {
-      PyErr_SetString(PyExc_ValueError,
-                      "Vector.angle_signed(other): "
-                      "zero length vectors have no valid angle");
-      return NULL;
-    }
+
+    PyErr_SetString(PyExc_ValueError,
+                    "Vector.angle_signed(other): "
+                    "zero length vectors have no valid angle");
+    return NULL;
   }
 
   return PyFloat_FromDouble(angle_signed_v2v2(self->vec, tvec));
@@ -1238,12 +1235,11 @@ static PyObject *Vector_slerp(VectorObject *self, PyObject *args)
       Py_INCREF(fallback);
       return fallback;
     }
-    else {
-      PyErr_SetString(PyExc_ValueError,
-                      "Vector.slerp(): "
-                      "zero length vectors unsupported");
-      return NULL;
-    }
+
+    PyErr_SetString(PyExc_ValueError,
+                    "Vector.slerp(): "
+                    "zero length vectors unsupported");
+    return NULL;
   }
 
   /* We have sane state, execute slerp */
@@ -1256,12 +1252,11 @@ static PyObject *Vector_slerp(VectorObject *self, PyObject *args)
       Py_INCREF(fallback);
       return fallback;
     }
-    else {
-      PyErr_SetString(PyExc_ValueError,
-                      "Vector.slerp(): "
-                      "opposite vectors unsupported");
-      return NULL;
-    }
+
+    PyErr_SetString(PyExc_ValueError,
+                    "Vector.slerp(): "
+                    "opposite vectors unsupported");
+    return NULL;
   }
 
   interp_dot_slerp(fac, cosom, w);
@@ -1785,7 +1780,7 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
     /* element-wise product */
     return vector_mul_vec(vec1, vec2);
   }
-  else if (vec1) {
+  if (vec1) {
     if (((scalar = PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred()) == 0) { /* VEC * FLOAT */
       return vector_mul_float(vec1, scalar);
     }
@@ -1890,7 +1885,7 @@ static PyObject *Vector_matmul(PyObject *v1, PyObject *v2)
     /*dot product*/
     return PyFloat_FromDouble(dot_vn_vn(vec1->vec, vec2->vec, vec1->size));
   }
-  else if (vec1) {
+  if (vec1) {
     if (MatrixObject_Check(v2)) {
       /* VEC @ MATRIX */
       float tvec[MAX_DIMENSIONS];
@@ -2039,9 +2034,8 @@ static PyObject *Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
     if (comparison_type == Py_NE) {
       Py_RETURN_TRUE;
     }
-    else {
-      Py_RETURN_FALSE;
-    }
+
+    Py_RETURN_FALSE;
   }
   vecA = (VectorObject *)objectA;
   vecB = (VectorObject *)objectB;
@@ -2054,9 +2048,8 @@ static PyObject *Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
     if (comparison_type == Py_NE) {
       Py_RETURN_TRUE;
     }
-    else {
-      Py_RETURN_FALSE;
-    }
+
+    Py_RETURN_FALSE;
   }
 
   switch (comparison_type) {
@@ -2107,9 +2100,8 @@ static PyObject *Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
   if (result == 1) {
     Py_RETURN_TRUE;
   }
-  else {
-    Py_RETURN_FALSE;
-  }
+
+  Py_RETURN_FALSE;
 }
 
 static Py_hash_t Vector_hash(VectorObject *self)
@@ -2152,7 +2144,7 @@ static PyObject *Vector_subscript(VectorObject *self, PyObject *item)
     }
     return Vector_item(self, i);
   }
-  else if (PySlice_Check(item)) {
+  if (PySlice_Check(item)) {
     Py_ssize_t start, stop, step, slicelength;
 
     if (PySlice_GetIndicesEx(item, self->size, &start, &stop, &step, &slicelength) < 0) {
@@ -2162,19 +2154,17 @@ static PyObject *Vector_subscript(VectorObject *self, PyObject *item)
     if (slicelength <= 0) {
       return PyTuple_New(0);
     }
-    else if (step == 1) {
+    if (step == 1) {
       return Vector_slice(self, start, stop);
     }
-    else {
-      PyErr_SetString(PyExc_IndexError, "slice steps not supported with vectors");
-      return NULL;
-    }
-  }
-  else {
-    PyErr_Format(
-        PyExc_TypeError, "vector indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+
+    PyErr_SetString(PyExc_IndexError, "slice steps not supported with vectors");
     return NULL;
   }
+
+  PyErr_Format(
+      PyExc_TypeError, "vector indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+  return NULL;
 }
 
 static int Vector_ass_subscript(VectorObject *self, PyObject *item, PyObject *value)
@@ -2189,7 +2179,7 @@ static int Vector_ass_subscript(VectorObject *self, PyObject *item, PyObject *va
     }
     return Vector_ass_item(self, i, value);
   }
-  else if (PySlice_Check(item)) {
+  if (PySlice_Check(item)) {
     Py_ssize_t start, stop, step, slicelength;
 
     if (PySlice_GetIndicesEx(item, self->size, &start, &stop, &step, &slicelength) < 0) {
@@ -2199,16 +2189,14 @@ static int Vector_ass_subscript(VectorObject *self, PyObject *item, PyObject *va
     if (step == 1) {
       return Vector_ass_slice(self, start, stop, value);
     }
-    else {
-      PyErr_SetString(PyExc_IndexError, "slice steps not supported with vectors");
-      return -1;
-    }
-  }
-  else {
-    PyErr_Format(
-        PyExc_TypeError, "vector indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+
+    PyErr_SetString(PyExc_IndexError, "slice steps not supported with vectors");
     return -1;
   }
+
+  PyErr_Format(
+      PyExc_TypeError, "vector indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+  return -1;
 }
 
 static PyMappingMethods Vector_AsMapping = {
@@ -2523,9 +2511,8 @@ static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure
   if (BaseMath_WriteCallback(self) == -1) {
     return -1;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
 }
 
 #define _SWIZZLE1(a) ((a) | SWIZZLE_VALID_AXIS)

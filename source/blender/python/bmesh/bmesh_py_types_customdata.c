@@ -67,10 +67,9 @@ static CustomDataLayer *bpy_bmlayeritem_get(BPy_BMLayerItem *self)
   if (index_absolute != -1) {
     return &data->layers[index_absolute];
   }
-  else {
-    PyErr_SetString(PyExc_RuntimeError, "layer has become invalid");
-    return NULL;
-  }
+
+  PyErr_SetString(PyExc_RuntimeError, "layer has become invalid");
+  return NULL;
 }
 
 /* py-type definitions
@@ -142,9 +141,8 @@ static PyObject *bpy_bmlayercollection_active_get(BPy_BMLayerItem *self, void *U
   if (index != -1) {
     return BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index);
   }
-  else {
-    Py_RETURN_NONE;
-  }
+
+  Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(
@@ -169,9 +167,8 @@ static PyObject *bpy_bmlayeritem_name_get(BPy_BMLayerItem *self, void *UNUSED(fl
   if (layer) {
     return PyUnicode_FromString(layer->name);
   }
-  else {
-    return NULL;
-  }
+
+  return NULL;
 }
 
 static PyGetSetDef bpy_bmlayeraccess_vert_getseters[] = {
@@ -617,16 +614,15 @@ static PyObject *bpy_bmlayercollection_get(BPy_BMLayerCollection *self, PyObject
   if (!PyArg_ParseTuple(args, "s|O:get", &key, &def)) {
     return NULL;
   }
-  else {
-    CustomData *data;
-    int index;
 
-    data = bpy_bm_customdata_get(self->bm, self->htype);
-    index = CustomData_get_named_layer(data, self->type, key); /* type relative */
+  CustomData *data;
+  int index;
 
-    if (index != -1) {
-      return BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index);
-    }
+  data = bpy_bm_customdata_get(self->bm, self->htype);
+  index = CustomData_get_named_layer(data, self->type, key); /* type relative */
+
+  if (index != -1) {
+    return BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index);
   }
 
   return Py_INCREF_RET(def);
@@ -689,10 +685,9 @@ static PyObject *bpy_bmlayercollection_subscript_str(BPy_BMLayerCollection *self
   if (index != -1) {
     return BPy_BMLayerItem_CreatePyObject(self->bm, self->htype, self->type, index);
   }
-  else {
-    PyErr_Format(PyExc_KeyError, "BMLayerCollection[key]: key \"%.200s\" not found", keyname);
-    return NULL;
-  }
+
+  PyErr_Format(PyExc_KeyError, "BMLayerCollection[key]: key \"%.200s\" not found", keyname);
+  return NULL;
 }
 
 static PyObject *bpy_bmlayercollection_subscript_int(BPy_BMLayerCollection *self, int keynum)
@@ -750,62 +745,58 @@ static PyObject *bpy_bmlayercollection_subscript(BPy_BMLayerCollection *self, Py
   if (PyUnicode_Check(key)) {
     return bpy_bmlayercollection_subscript_str(self, _PyUnicode_AsString(key));
   }
-  else if (PyIndex_Check(key)) {
+  if (PyIndex_Check(key)) {
     Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
     if (i == -1 && PyErr_Occurred()) {
       return NULL;
     }
     return bpy_bmlayercollection_subscript_int(self, i);
   }
-  else if (PySlice_Check(key)) {
+  if (PySlice_Check(key)) {
     PySliceObject *key_slice = (PySliceObject *)key;
     Py_ssize_t step = 1;
 
     if (key_slice->step != Py_None && !_PyEval_SliceIndex(key, &step)) {
       return NULL;
     }
-    else if (step != 1) {
+    if (step != 1) {
       PyErr_SetString(PyExc_TypeError, "BMLayerCollection[slice]: slice steps not supported");
       return NULL;
     }
-    else if (key_slice->start == Py_None && key_slice->stop == Py_None) {
+    if (key_slice->start == Py_None && key_slice->stop == Py_None) {
       return bpy_bmlayercollection_subscript_slice(self, 0, PY_SSIZE_T_MAX);
     }
-    else {
-      Py_ssize_t start = 0, stop = PY_SSIZE_T_MAX;
 
-      /* avoid PySlice_GetIndicesEx because it needs to know the length ahead of time. */
-      if (key_slice->start != Py_None && !_PyEval_SliceIndex(key_slice->start, &start)) {
-        return NULL;
-      }
-      if (key_slice->stop != Py_None && !_PyEval_SliceIndex(key_slice->stop, &stop)) {
-        return NULL;
-      }
+    Py_ssize_t start = 0, stop = PY_SSIZE_T_MAX;
 
-      if (start < 0 || stop < 0) {
-        /* only get the length for negative values */
-        Py_ssize_t len = bpy_bmlayercollection_length(self);
-        if (start < 0) {
-          start += len;
-        }
-        if (stop < 0) {
-          stop += len;
-        }
-      }
+    /* avoid PySlice_GetIndicesEx because it needs to know the length ahead of time. */
+    if (key_slice->start != Py_None && !_PyEval_SliceIndex(key_slice->start, &start)) {
+      return NULL;
+    }
+    if (key_slice->stop != Py_None && !_PyEval_SliceIndex(key_slice->stop, &stop)) {
+      return NULL;
+    }
 
-      if (stop - start <= 0) {
-        return PyTuple_New(0);
+    if (start < 0 || stop < 0) {
+      /* only get the length for negative values */
+      Py_ssize_t len = bpy_bmlayercollection_length(self);
+      if (start < 0) {
+        start += len;
       }
-      else {
-        return bpy_bmlayercollection_subscript_slice(self, start, stop);
+      if (stop < 0) {
+        stop += len;
       }
     }
+
+    if (stop - start <= 0) {
+      return PyTuple_New(0);
+    }
+
+    return bpy_bmlayercollection_subscript_slice(self, start, stop);
   }
-  else {
-    PyErr_SetString(PyExc_AttributeError,
-                    "BMLayerCollection[key]: invalid key, key must be an int");
-    return NULL;
-  }
+
+  PyErr_SetString(PyExc_AttributeError, "BMLayerCollection[key]: invalid key, key must be an int");
+  return NULL;
 }
 
 static int bpy_bmlayercollection_contains(BPy_BMLayerCollection *self, PyObject *value)
@@ -1024,11 +1015,11 @@ static void *bpy_bmlayeritem_ptr_get(BPy_BMElem *py_ele, BPy_BMLayerItem *py_lay
     PyErr_SetString(PyExc_AttributeError, "BMElem[key]: invalid key, must be a BMLayerItem");
     return NULL;
   }
-  else if (UNLIKELY(py_ele->bm != py_layer->bm)) {
+  if (UNLIKELY(py_ele->bm != py_layer->bm)) {
     PyErr_SetString(PyExc_ValueError, "BMElem[layer]: layer is from another mesh");
     return NULL;
   }
-  else if (UNLIKELY(ele->head.htype != py_layer->htype)) {
+  if (UNLIKELY(ele->head.htype != py_layer->htype)) {
     char namestr_1[32], namestr_2[32];
     PyErr_Format(PyExc_ValueError,
                  "Layer/Element type mismatch, expected %.200s got layer type %.200s",
@@ -1046,9 +1037,8 @@ static void *bpy_bmlayeritem_ptr_get(BPy_BMElem *py_ele, BPy_BMLayerItem *py_lay
     PyErr_SetString(PyExc_KeyError, "BMElem[key]: layer not found");
     return NULL;
   }
-  else {
-    return value;
-  }
+
+  return value;
 }
 
 /**

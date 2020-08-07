@@ -180,7 +180,7 @@ static int validate_array_type(PyObject *seq,
                    Py_TYPE(seq)->tp_name);
       return -1;
     }
-    else if ((seq_size != dimsize[dim]) && (is_dynamic == false)) {
+    if ((seq_size != dimsize[dim]) && (is_dynamic == false)) {
       PyErr_Format(PyExc_ValueError,
                    "%s sequences of dimension %d should contain %d items, not %d",
                    error_prefix,
@@ -201,7 +201,7 @@ static int validate_array_type(PyObject *seq,
                      i);
         return -1;
       }
-      else if (!check_item_type(item)) {
+      if (!check_item_type(item)) {
         Py_DECREF(item);
 
 #if 0
@@ -279,7 +279,7 @@ static int validate_array_length(PyObject *rvalue,
                  RNA_property_identifier(prop));
     return -1;
   }
-  else if ((RNA_property_flag(prop) & PROP_DYNAMIC) && lvalue_dim == 0) {
+  if ((RNA_property_flag(prop) & PROP_DYNAMIC) && lvalue_dim == 0) {
     if (RNA_property_array_length(ptr, prop) != tot) {
 #if 0
       /* length is flexible */
@@ -382,7 +382,7 @@ static int validate_array(PyObject *rvalue,
                      RNA_property_identifier(prop));
         return -1;
       }
-      else if (totdim != 2) {
+      if (totdim != 2) {
         PyErr_Format(PyExc_ValueError,
                      "%s %.200s.%.200s, matrix assign array with %d dimensions",
                      error_prefix,
@@ -391,7 +391,7 @@ static int validate_array(PyObject *rvalue,
                      totdim);
         return -1;
       }
-      else if (pymat->num_col != dimsize[0] || pymat->num_row != dimsize[1]) {
+      if (pymat->num_col != dimsize[0] || pymat->num_row != dimsize[1]) {
         PyErr_Format(PyExc_ValueError,
                      "%s %.200s.%.200s, matrix assign dimension size mismatch, "
                      "is %dx%d, expected be %dx%d",
@@ -404,10 +404,9 @@ static int validate_array(PyObject *rvalue,
                      dimsize[1]);
         return -1;
       }
-      else {
-        *r_totitem = dimsize[0] * dimsize[1];
-        return 0;
-      }
+
+      *r_totitem = dimsize[0] * dimsize[1];
+      return 0;
     }
   }
 #endif /* USE_MATHUTILS */
@@ -1017,31 +1016,31 @@ int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
         PyErr_Clear();
         return 0;
       }
-      else {
-        float tmp[32];
-        float *tmp_arr;
 
-        if (len * sizeof(float) > sizeof(tmp)) {
-          tmp_arr = PyMem_MALLOC(len * sizeof(float));
-        }
-        else {
-          tmp_arr = tmp;
-        }
+      float tmp[32];
+      float *tmp_arr;
 
-        RNA_property_float_get_array(ptr, prop, tmp_arr);
-
-        for (i = 0; i < len; i++) {
-          if (tmp_arr[i] == value_f) {
-            break;
-          }
-        }
-
-        if (tmp_arr != tmp) {
-          PyMem_FREE(tmp_arr);
-        }
-
-        return i < len ? 1 : 0;
+      if (len * sizeof(float) > sizeof(tmp)) {
+        tmp_arr = PyMem_MALLOC(len * sizeof(float));
       }
+      else {
+        tmp_arr = tmp;
+      }
+
+      RNA_property_float_get_array(ptr, prop, tmp_arr);
+
+      for (i = 0; i < len; i++) {
+        if (tmp_arr[i] == value_f) {
+          break;
+        }
+      }
+
+      if (tmp_arr != tmp) {
+        PyMem_FREE(tmp_arr);
+      }
+
+      return i < len ? 1 : 0;
+
       break;
     }
     case PROP_INT: {
@@ -1050,31 +1049,31 @@ int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
         PyErr_Clear();
         return 0;
       }
-      else {
-        int tmp[32];
-        int *tmp_arr;
 
-        if (len * sizeof(int) > sizeof(tmp)) {
-          tmp_arr = PyMem_MALLOC(len * sizeof(int));
-        }
-        else {
-          tmp_arr = tmp;
-        }
+      int tmp[32];
+      int *tmp_arr;
 
-        RNA_property_int_get_array(ptr, prop, tmp_arr);
-
-        for (i = 0; i < len; i++) {
-          if (tmp_arr[i] == value_i) {
-            break;
-          }
-        }
-
-        if (tmp_arr != tmp) {
-          PyMem_FREE(tmp_arr);
-        }
-
-        return i < len ? 1 : 0;
+      if (len * sizeof(int) > sizeof(tmp)) {
+        tmp_arr = PyMem_MALLOC(len * sizeof(int));
       }
+      else {
+        tmp_arr = tmp;
+      }
+
+      RNA_property_int_get_array(ptr, prop, tmp_arr);
+
+      for (i = 0; i < len; i++) {
+        if (tmp_arr[i] == value_i) {
+          break;
+        }
+      }
+
+      if (tmp_arr != tmp) {
+        PyMem_FREE(tmp_arr);
+      }
+
+      return i < len ? 1 : 0;
+
       break;
     }
     case PROP_BOOLEAN: {
@@ -1083,31 +1082,31 @@ int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
         PyErr_Clear();
         return 0;
       }
-      else {
-        bool tmp[32];
-        bool *tmp_arr;
 
-        if (len * sizeof(bool) > sizeof(tmp)) {
-          tmp_arr = PyMem_MALLOC(len * sizeof(bool));
-        }
-        else {
-          tmp_arr = tmp;
-        }
+      bool tmp[32];
+      bool *tmp_arr;
 
-        RNA_property_boolean_get_array(ptr, prop, tmp_arr);
-
-        for (i = 0; i < len; i++) {
-          if (tmp_arr[i] == value_i) {
-            break;
-          }
-        }
-
-        if (tmp_arr != tmp) {
-          PyMem_FREE(tmp_arr);
-        }
-
-        return i < len ? 1 : 0;
+      if (len * sizeof(bool) > sizeof(tmp)) {
+        tmp_arr = PyMem_MALLOC(len * sizeof(bool));
       }
+      else {
+        tmp_arr = tmp;
+      }
+
+      RNA_property_boolean_get_array(ptr, prop, tmp_arr);
+
+      for (i = 0; i < len; i++) {
+        if (tmp_arr[i] == value_i) {
+          break;
+        }
+      }
+
+      if (tmp_arr != tmp) {
+        PyMem_FREE(tmp_arr);
+      }
+
+      return i < len ? 1 : 0;
+
       break;
     }
   }

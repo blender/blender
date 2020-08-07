@@ -54,9 +54,8 @@ static int matrix_row_vector_check(MatrixObject *mat, VectorObject *vec, int row
                     "owner matrix has been resized since this row vector was created");
     return 0;
   }
-  else {
-    return 1;
-  }
+
+  return 1;
 }
 
 static int matrix_col_vector_check(MatrixObject *mat, VectorObject *vec, int col)
@@ -67,9 +66,8 @@ static int matrix_col_vector_check(MatrixObject *mat, VectorObject *vec, int col
                     "owner matrix has been resized since this column vector was created");
     return 0;
   }
-  else {
-    return 1;
-  }
+
+  return 1;
 }
 
 /* ----------------------------------------------------------------------------
@@ -380,9 +378,8 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
           if (Matrix_ass_slice((MatrixObject *)matrix, 0, INT_MAX, arg) == 0) {
             return matrix;
           }
-          else { /* matrix ok, slice assignment not */
-            Py_DECREF(matrix);
-          }
+          /* matrix ok, slice assignment not */
+          Py_DECREF(matrix);
         }
       }
       break;
@@ -406,15 +403,13 @@ static PyObject *matrix__apply_to_copy(PyObject *(*matrix_func)(MatrixObject *),
       Py_DECREF(ret_dummy);
       return ret;
     }
-    else { /* error */
-      Py_DECREF(ret);
-      return NULL;
-    }
-  }
-  else {
-    /* copy may fail if the read callback errors out */
+    /* error */
+    Py_DECREF(ret);
     return NULL;
   }
+
+  /* copy may fail if the read callback errors out */
+  return NULL;
 }
 
 /* when a matrix is 4x4 size but initialized as a 3x3, re-assign values for 4x4 */
@@ -512,10 +507,9 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
                       "or a string in 'X', 'Y', 'Z'");
       return NULL;
     }
-    else {
-      /* use the string */
-      vec = NULL;
-    }
+
+    /* use the string */
+    vec = NULL;
   }
 
   angle = angle_wrap_rad(angle);
@@ -1023,7 +1017,7 @@ static float matrix_determinant_internal(const MatrixObject *self)
                           MATRIX_ITEM(self, 1, 0),
                           MATRIX_ITEM(self, 1, 1));
   }
-  else if (self->num_col == 3) {
+  if (self->num_col == 3) {
     return determinant_m3(MATRIX_ITEM(self, 0, 0),
                           MATRIX_ITEM(self, 0, 1),
                           MATRIX_ITEM(self, 0, 2),
@@ -1034,9 +1028,8 @@ static float matrix_determinant_internal(const MatrixObject *self)
                           MATRIX_ITEM(self, 2, 1),
                           MATRIX_ITEM(self, 2, 2));
   }
-  else {
-    return determinant_m4((float(*)[4])self->matrix);
-  }
+
+  return determinant_m4((float(*)[4])self->matrix);
 }
 
 static void adjoint_matrix_n(float *mat_dst, const float *mat_src, const ushort dim)
@@ -1094,9 +1087,8 @@ static bool matrix_invert_internal(const MatrixObject *self, float *r_mat)
     matrix_invert_with_det_n_internal(r_mat, self->matrix, det, self->num_col);
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 /**
@@ -1475,9 +1467,8 @@ static bool matrix_invert_is_compat(const MatrixObject *self)
                     "only square matrices are supported");
     return false;
   }
-  else {
-    return true;
-  }
+
+  return true;
 }
 
 static bool matrix_invert_args_check(const MatrixObject *self, PyObject *args, bool check_type)
@@ -1605,10 +1596,9 @@ static PyObject *Matrix_inverted(MatrixObject *self, PyObject *args)
       Py_INCREF(fallback);
       return fallback;
     }
-    else {
-      matrix_invert_raise_degenerate();
-      return NULL;
-    }
+
+    matrix_invert_raise_degenerate();
+    return NULL;
   }
 
   return Matrix_copy_notest(self, mat);
@@ -2386,48 +2376,47 @@ static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *va
     /* PySequence_Fast sets the error */
     return -1;
   }
-  else {
-    PyObject **value_fast_items = PySequence_Fast_ITEMS(value_fast);
-    const int size = end - begin;
-    int row, col;
-    float mat[MATRIX_MAX_DIM * MATRIX_MAX_DIM];
-    float vec[4];
 
-    if (PySequence_Fast_GET_SIZE(value_fast) != size) {
+  PyObject **value_fast_items = PySequence_Fast_ITEMS(value_fast);
+  const int size = end - begin;
+  int row, col;
+  float mat[MATRIX_MAX_DIM * MATRIX_MAX_DIM];
+  float vec[4];
+
+  if (PySequence_Fast_GET_SIZE(value_fast) != size) {
+    Py_DECREF(value_fast);
+    PyErr_SetString(PyExc_ValueError,
+                    "matrix[begin:end] = []: "
+                    "size mismatch in slice assignment");
+    return -1;
+  }
+
+  memcpy(mat, self->matrix, self->num_col * self->num_row * sizeof(float));
+
+  /* parse sub items */
+  for (row = begin; row < end; row++) {
+    /* parse each sub sequence */
+    PyObject *item = value_fast_items[row - begin];
+
+    if (mathutils_array_parse(
+            vec, self->num_col, self->num_col, item, "matrix[begin:end] = value assignment") ==
+        -1) {
       Py_DECREF(value_fast);
-      PyErr_SetString(PyExc_ValueError,
-                      "matrix[begin:end] = []: "
-                      "size mismatch in slice assignment");
       return -1;
     }
 
-    memcpy(mat, self->matrix, self->num_col * self->num_row * sizeof(float));
-
-    /* parse sub items */
-    for (row = begin; row < end; row++) {
-      /* parse each sub sequence */
-      PyObject *item = value_fast_items[row - begin];
-
-      if (mathutils_array_parse(
-              vec, self->num_col, self->num_col, item, "matrix[begin:end] = value assignment") ==
-          -1) {
-        Py_DECREF(value_fast);
-        return -1;
-      }
-
-      for (col = 0; col < self->num_col; col++) {
-        mat[col * self->num_row + row] = vec[col];
-      }
+    for (col = 0; col < self->num_col; col++) {
+      mat[col * self->num_row + row] = vec[col];
     }
-
-    Py_DECREF(value_fast);
-
-    /*parsed well - now set in matrix*/
-    memcpy(self->matrix, mat, self->num_col * self->num_row * sizeof(float));
-
-    (void)BaseMath_WriteCallback(self);
-    return 0;
   }
+
+  Py_DECREF(value_fast);
+
+  /*parsed well - now set in matrix*/
+  memcpy(self->matrix, mat, self->num_col * self->num_row * sizeof(float));
+
+  (void)BaseMath_WriteCallback(self);
+  return 0;
 }
 /*------------------------NUMERIC PROTOCOLS----------------------
  *------------------------obj + obj------------------------------*/
@@ -2540,7 +2529,7 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 
     return Matrix_CreatePyObject(mat, mat2->num_col, mat1->num_row, Py_TYPE(mat1));
   }
-  else if (mat2) {
+  if (mat2) {
     /*FLOAT/INT * MATRIX */
     if (((scalar = PyFloat_AsDouble(m1)) == -1.0f && PyErr_Occurred()) == 0) {
       return matrix_mul_float(mat2, scalar);
@@ -2655,7 +2644,7 @@ static PyObject *Matrix_matmul(PyObject *m1, PyObject *m2)
 
     return Matrix_CreatePyObject(mat, mat2->num_col, mat1->num_row, Py_TYPE(mat1));
   }
-  else if (mat1) {
+  if (mat1) {
     /* MATRIX @ VECTOR */
     if (VectorObject_Check(m2)) {
       VectorObject *vec2 = (VectorObject *)m2;
@@ -2772,7 +2761,7 @@ static PyObject *Matrix_subscript(MatrixObject *self, PyObject *item)
     }
     return Matrix_item_row(self, i);
   }
-  else if (PySlice_Check(item)) {
+  if (PySlice_Check(item)) {
     Py_ssize_t start, stop, step, slicelength;
 
     if (PySlice_GetIndicesEx(item, self->num_row, &start, &stop, &step, &slicelength) < 0) {
@@ -2782,19 +2771,17 @@ static PyObject *Matrix_subscript(MatrixObject *self, PyObject *item)
     if (slicelength <= 0) {
       return PyTuple_New(0);
     }
-    else if (step == 1) {
+    if (step == 1) {
       return Matrix_slice(self, start, stop);
     }
-    else {
-      PyErr_SetString(PyExc_IndexError, "slice steps not supported with matrices");
-      return NULL;
-    }
-  }
-  else {
-    PyErr_Format(
-        PyExc_TypeError, "matrix indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+
+    PyErr_SetString(PyExc_IndexError, "slice steps not supported with matrices");
     return NULL;
   }
+
+  PyErr_Format(
+      PyExc_TypeError, "matrix indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+  return NULL;
 }
 
 static int Matrix_ass_subscript(MatrixObject *self, PyObject *item, PyObject *value)
@@ -2809,7 +2796,7 @@ static int Matrix_ass_subscript(MatrixObject *self, PyObject *item, PyObject *va
     }
     return Matrix_ass_item_row(self, i, value);
   }
-  else if (PySlice_Check(item)) {
+  if (PySlice_Check(item)) {
     Py_ssize_t start, stop, step, slicelength;
 
     if (PySlice_GetIndicesEx(item, self->num_row, &start, &stop, &step, &slicelength) < 0) {
@@ -2819,16 +2806,14 @@ static int Matrix_ass_subscript(MatrixObject *self, PyObject *item, PyObject *va
     if (step == 1) {
       return Matrix_ass_slice(self, start, stop, value);
     }
-    else {
-      PyErr_SetString(PyExc_IndexError, "slice steps not supported with matrices");
-      return -1;
-    }
-  }
-  else {
-    PyErr_Format(
-        PyExc_TypeError, "matrix indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+
+    PyErr_SetString(PyExc_IndexError, "slice steps not supported with matrices");
     return -1;
   }
+
+  PyErr_Format(
+      PyExc_TypeError, "matrix indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+  return -1;
 }
 
 static PyMappingMethods Matrix_AsMapping = {
@@ -2977,15 +2962,14 @@ static PyObject *Matrix_is_negative_get(MatrixObject *self, void *UNUSED(closure
   if (self->num_row == 4 && self->num_col == 4) {
     return PyBool_FromLong(is_negative_m4((float(*)[4])self->matrix));
   }
-  else if (self->num_row == 3 && self->num_col == 3) {
+  if (self->num_row == 3 && self->num_col == 3) {
     return PyBool_FromLong(is_negative_m3((float(*)[3])self->matrix));
   }
-  else {
-    PyErr_SetString(PyExc_AttributeError,
-                    "Matrix.is_negative: "
-                    "inappropriate matrix size - expects 3x3 or 4x4 matrix");
-    return NULL;
-  }
+
+  PyErr_SetString(PyExc_AttributeError,
+                  "Matrix.is_negative: "
+                  "inappropriate matrix size - expects 3x3 or 4x4 matrix");
+  return NULL;
 }
 
 PyDoc_STRVAR(Matrix_is_orthogonal_doc,
@@ -3000,15 +2984,14 @@ static PyObject *Matrix_is_orthogonal_get(MatrixObject *self, void *UNUSED(closu
   if (self->num_row == 4 && self->num_col == 4) {
     return PyBool_FromLong(is_orthonormal_m4((float(*)[4])self->matrix));
   }
-  else if (self->num_row == 3 && self->num_col == 3) {
+  if (self->num_row == 3 && self->num_col == 3) {
     return PyBool_FromLong(is_orthonormal_m3((float(*)[3])self->matrix));
   }
-  else {
-    PyErr_SetString(PyExc_AttributeError,
-                    "Matrix.is_orthogonal: "
-                    "inappropriate matrix size - expects 3x3 or 4x4 matrix");
-    return NULL;
-  }
+
+  PyErr_SetString(PyExc_AttributeError,
+                  "Matrix.is_orthogonal: "
+                  "inappropriate matrix size - expects 3x3 or 4x4 matrix");
+  return NULL;
 }
 
 PyDoc_STRVAR(Matrix_is_orthogonal_axis_vectors_doc,
@@ -3024,15 +3007,14 @@ static PyObject *Matrix_is_orthogonal_axis_vectors_get(MatrixObject *self, void 
   if (self->num_row == 4 && self->num_col == 4) {
     return PyBool_FromLong(is_orthogonal_m4((float(*)[4])self->matrix));
   }
-  else if (self->num_row == 3 && self->num_col == 3) {
+  if (self->num_row == 3 && self->num_col == 3) {
     return PyBool_FromLong(is_orthogonal_m3((float(*)[3])self->matrix));
   }
-  else {
-    PyErr_SetString(PyExc_AttributeError,
-                    "Matrix.is_orthogonal_axis_vectors: "
-                    "inappropriate matrix size - expects 3x3 or 4x4 matrix");
-    return NULL;
-  }
+
+  PyErr_SetString(PyExc_AttributeError,
+                  "Matrix.is_orthogonal_axis_vectors: "
+                  "inappropriate matrix size - expects 3x3 or 4x4 matrix");
+  return NULL;
 }
 
 /*****************************************************************************/
@@ -3478,14 +3460,13 @@ static PyObject *MatrixAccess_subscript(MatrixAccessObject *self, PyObject *item
       }
       return Matrix_item_row(matrix_user, i);
     }
-    else { /* MAT_ACCESS_ROW */
-      if (i < 0) {
-        i += matrix_user->num_col;
-      }
-      return Matrix_item_col(matrix_user, i);
+    /* MAT_ACCESS_ROW */
+    if (i < 0) {
+      i += matrix_user->num_col;
     }
+    return Matrix_item_col(matrix_user, i);
   }
-  else if (PySlice_Check(item)) {
+  if (PySlice_Check(item)) {
     Py_ssize_t start, stop, step, slicelength;
 
     if (PySlice_GetIndicesEx(item, MatrixAccess_len(self), &start, &stop, &step, &slicelength) <
@@ -3496,19 +3477,17 @@ static PyObject *MatrixAccess_subscript(MatrixAccessObject *self, PyObject *item
     if (slicelength <= 0) {
       return PyTuple_New(0);
     }
-    else if (step == 1) {
+    if (step == 1) {
       return MatrixAccess_slice(self, start, stop);
     }
-    else {
-      PyErr_SetString(PyExc_IndexError, "slice steps not supported with matrix accessors");
-      return NULL;
-    }
-  }
-  else {
-    PyErr_Format(
-        PyExc_TypeError, "matrix indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+
+    PyErr_SetString(PyExc_IndexError, "slice steps not supported with matrix accessors");
     return NULL;
   }
+
+  PyErr_Format(
+      PyExc_TypeError, "matrix indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+  return NULL;
 }
 
 static int MatrixAccess_ass_subscript(MatrixAccessObject *self, PyObject *item, PyObject *value)
@@ -3527,19 +3506,17 @@ static int MatrixAccess_ass_subscript(MatrixAccessObject *self, PyObject *item, 
       }
       return Matrix_ass_item_row(matrix_user, i, value);
     }
-    else { /* MAT_ACCESS_ROW */
-      if (i < 0) {
-        i += matrix_user->num_col;
-      }
-      return Matrix_ass_item_col(matrix_user, i, value);
+    /* MAT_ACCESS_ROW */
+    if (i < 0) {
+      i += matrix_user->num_col;
     }
+    return Matrix_ass_item_col(matrix_user, i, value);
   }
   /* TODO, slice */
-  else {
-    PyErr_Format(
-        PyExc_TypeError, "matrix indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
-    return -1;
-  }
+
+  PyErr_Format(
+      PyExc_TypeError, "matrix indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+  return -1;
 }
 
 static PyObject *MatrixAccess_iter(MatrixAccessObject *self)

@@ -91,11 +91,10 @@ static PyObject *bpy_bm_utils_vert_collapse_edge(PyObject *UNUSED(self), PyObjec
   if (e_new) {
     return BPy_BMEdge_CreatePyObject(bm, e_new);
   }
-  else {
-    PyErr_SetString(PyExc_ValueError,
-                    "vert_collapse_edge(vert, edge): no new edge created, internal error");
-    return NULL;
-  }
+
+  PyErr_SetString(PyExc_ValueError,
+                  "vert_collapse_edge(vert, edge): no new edge created, internal error");
+  return NULL;
 }
 
 PyDoc_STRVAR(bpy_bm_utils_vert_collapse_faces_doc,
@@ -158,11 +157,10 @@ static PyObject *bpy_bm_utils_vert_collapse_faces(PyObject *UNUSED(self), PyObje
   if (e_new) {
     return BPy_BMEdge_CreatePyObject(bm, e_new);
   }
-  else {
-    PyErr_SetString(PyExc_ValueError,
-                    "vert_collapse_faces(vert, edge): no new edge created, internal error");
-    return NULL;
-  }
+
+  PyErr_SetString(PyExc_ValueError,
+                  "vert_collapse_faces(vert, edge): no new edge created, internal error");
+  return NULL;
 }
 
 PyDoc_STRVAR(bpy_bm_utils_vert_dissolve_doc,
@@ -360,11 +358,10 @@ static PyObject *bpy_bm_utils_edge_split(PyObject *UNUSED(self), PyObject *args)
         ret, BPy_BMEdge_CreatePyObject(bm, e_new), BPy_BMVert_CreatePyObject(bm, v_new));
     return ret;
   }
-  else {
-    PyErr_SetString(PyExc_ValueError,
-                    "edge_split(edge, vert): couldn't split the edge, internal error");
-    return NULL;
-  }
+
+  PyErr_SetString(PyExc_ValueError,
+                  "edge_split(edge, vert): couldn't split the edge, internal error");
+  return NULL;
 }
 
 PyDoc_STRVAR(bpy_bm_utils_edge_rotate_doc,
@@ -401,9 +398,8 @@ static PyObject *bpy_bm_utils_edge_rotate(PyObject *UNUSED(self), PyObject *args
   if (e_new) {
     return BPy_BMEdge_CreatePyObject(bm, e_new);
   }
-  else {
-    Py_RETURN_NONE;
-  }
+
+  Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(
@@ -534,10 +530,9 @@ static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args,
         ret, BPy_BMFace_CreatePyObject(bm, f_new), BPy_BMLoop_CreatePyObject(bm, l_new));
     return ret;
   }
-  else {
-    PyErr_SetString(PyExc_ValueError, "face_split(...): couldn't split the face, internal error");
-    return NULL;
-  }
+
+  PyErr_SetString(PyExc_ValueError, "face_split(...): couldn't split the face, internal error");
+  return NULL;
 }
 
 PyDoc_STRVAR(bpy_bm_utils_face_split_edgenet_doc,
@@ -617,11 +612,10 @@ static PyObject *bpy_bm_utils_face_split_edgenet(PyObject *UNUSED(self),
     }
     return ret;
   }
-  else {
-    PyErr_SetString(PyExc_ValueError,
-                    "face_split_edgenet(...): couldn't split the face, internal error");
-    return NULL;
-  }
+
+  PyErr_SetString(PyExc_ValueError,
+                  "face_split_edgenet(...): couldn't split the face, internal error");
+  return NULL;
 }
 
 PyDoc_STRVAR(bpy_bm_utils_face_join_doc,
@@ -664,9 +658,8 @@ static PyObject *bpy_bm_utils_face_join(PyObject *UNUSED(self), PyObject *args)
   if (f_new) {
     return BPy_BMFace_CreatePyObject(bm, f_new);
   }
-  else {
-    Py_RETURN_NONE;
-  }
+
+  Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(
@@ -721,9 +714,8 @@ static PyObject *bpy_bm_utils_face_vert_separate(PyObject *UNUSED(self), PyObjec
   if (v_new != v_old) {
     return BPy_BMVert_CreatePyObject(bm, v_new);
   }
-  else {
-    Py_RETURN_NONE;
-  }
+
+  Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(bpy_bm_utils_face_flip_doc,
@@ -782,9 +774,8 @@ static PyObject *bpy_bm_utils_loop_separate(PyObject *UNUSED(self), BPy_BMLoop *
   if (v_new != v_old) {
     return BPy_BMVert_CreatePyObject(bm, v_new);
   }
-  else {
-    Py_RETURN_NONE;
-  }
+
+  Py_RETURN_NONE;
 }
 
 static struct PyMethodDef BPy_BM_utils_methods[] = {

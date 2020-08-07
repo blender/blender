@@ -317,10 +317,10 @@ PyObject *pyrna_callback_classmethod_add(PyObject *UNUSED(self), PyObject *args)
                                                           error_prefix) == -1) {
       return NULL;
     }
-    else if (params.region_type_str && pyrna_enum_value_from_id(rna_enum_region_type_items,
-                                                                params.region_type_str,
-                                                                &params.region_type,
-                                                                error_prefix) == -1) {
+    if (params.region_type_str && pyrna_enum_value_from_id(rna_enum_region_type_items,
+                                                           params.region_type_str,
+                                                           &params.region_type,
+                                                           error_prefix) == -1) {
       return NULL;
     }
 
@@ -352,29 +352,26 @@ PyObject *pyrna_callback_classmethod_add(PyObject *UNUSED(self), PyObject *args)
             region_draw_mode_items, params.event_str, &params.event, error_prefix) == -1) {
       return NULL;
     }
-    else if (pyrna_enum_value_from_id(rna_enum_region_type_items,
-                                      params.region_type_str,
-                                      &params.region_type,
-                                      error_prefix) == -1) {
+    if (pyrna_enum_value_from_id(rna_enum_region_type_items,
+                                 params.region_type_str,
+                                 &params.region_type,
+                                 error_prefix) == -1) {
       return NULL;
     }
-    else {
-      const eSpace_Type spaceid = rna_Space_refine_reverse(srna);
-      if (spaceid == SPACE_EMPTY) {
-        PyErr_Format(PyExc_TypeError, "unknown space type '%.200s'", RNA_struct_identifier(srna));
-        return NULL;
-      }
-      else {
-        SpaceType *st = BKE_spacetype_from_id(spaceid);
-        ARegionType *art = BKE_regiontype_from_id(st, params.region_type);
-        if (art == NULL) {
-          PyErr_Format(
-              PyExc_TypeError, "region type '%.200s' not in space", params.region_type_str);
-          return NULL;
-        }
-        handle = ED_region_draw_cb_activate(art, cb_region_draw, (void *)args, params.event);
-      }
+
+    const eSpace_Type spaceid = rna_Space_refine_reverse(srna);
+    if (spaceid == SPACE_EMPTY) {
+      PyErr_Format(PyExc_TypeError, "unknown space type '%.200s'", RNA_struct_identifier(srna));
+      return NULL;
     }
+
+    SpaceType *st = BKE_spacetype_from_id(spaceid);
+    ARegionType *art = BKE_regiontype_from_id(st, params.region_type);
+    if (art == NULL) {
+      PyErr_Format(PyExc_TypeError, "region type '%.200s' not in space", params.region_type_str);
+      return NULL;
+    }
+    handle = ED_region_draw_cb_activate(art, cb_region_draw, (void *)args, params.event);
   }
   else {
     PyErr_SetString(PyExc_TypeError, "callback_add(): type does not support callbacks");
@@ -448,24 +445,21 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
                                  error_prefix) == -1) {
       return NULL;
     }
-    else {
-      const eSpace_Type spaceid = rna_Space_refine_reverse(srna);
-      if (spaceid == SPACE_EMPTY) {
-        PyErr_Format(PyExc_TypeError, "unknown space type '%.200s'", RNA_struct_identifier(srna));
-        return NULL;
-      }
-      else {
-        SpaceType *st = BKE_spacetype_from_id(spaceid);
-        ARegionType *art = BKE_regiontype_from_id(st, params.region_type);
-        if (art == NULL) {
-          PyErr_Format(
-              PyExc_TypeError, "region type '%.200s' not in space", params.region_type_str);
-          return NULL;
-        }
-        ED_region_draw_cb_exit(art, handle);
-        capsule_clear = true;
-      }
+
+    const eSpace_Type spaceid = rna_Space_refine_reverse(srna);
+    if (spaceid == SPACE_EMPTY) {
+      PyErr_Format(PyExc_TypeError, "unknown space type '%.200s'", RNA_struct_identifier(srna));
+      return NULL;
     }
+
+    SpaceType *st = BKE_spacetype_from_id(spaceid);
+    ARegionType *art = BKE_regiontype_from_id(st, params.region_type);
+    if (art == NULL) {
+      PyErr_Format(PyExc_TypeError, "region type '%.200s' not in space", params.region_type_str);
+      return NULL;
+    }
+    ED_region_draw_cb_exit(art, handle);
+    capsule_clear = true;
   }
   else {
     PyErr_SetString(PyExc_TypeError, "callback_remove(): type does not support callbacks");

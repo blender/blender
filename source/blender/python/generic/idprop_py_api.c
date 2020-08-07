@@ -51,13 +51,12 @@ static PyObject *idprop_py_from_idp_string(const IDProperty *prop)
   if (prop->subtype == IDP_STRING_SUB_BYTE) {
     return PyBytes_FromStringAndSize(IDP_String(prop), prop->len);
   }
-  else {
+
 #ifdef USE_STRING_COERCE
-    return PyC_UnicodeFromByteAndSize(IDP_Array(prop), prop->len - 1);
+  return PyC_UnicodeFromByteAndSize(IDP_Array(prop), prop->len - 1);
 #else
-    return PyUnicode_FromStringAndSize(IDP_String(prop), prop->len - 1);
+  return PyUnicode_FromStringAndSize(IDP_String(prop), prop->len - 1);
 #endif
-  }
 }
 
 static PyObject *idprop_py_from_idp_int(const IDProperty *prop)
@@ -479,10 +478,10 @@ static IDProperty *idp_from_PySequence_Buffer(const char *name, Py_buffer *buffe
     /* should never happen as the type has been checked before */
     return NULL;
   }
-  else {
-    val.array.type = id_type;
-    val.array.len = buffer->len / buffer->itemsize;
-  }
+
+  val.array.type = id_type;
+  val.array.len = buffer->len / buffer->itemsize;
+
   prop = IDP_New(IDP_ARRAY, &val, name);
   memcpy(IDP_Array(prop), buffer->buf, buffer->len);
   return prop;
@@ -576,17 +575,15 @@ static IDProperty *idp_from_PySequence(const char *name, PyObject *ob)
     PyBuffer_Release(&buffer);
     return prop;
   }
-  else {
-    PyObject *ob_seq_fast = PySequence_Fast(ob, "py -> idprop");
-    if (ob_seq_fast != NULL) {
-      IDProperty *prop = idp_from_PySequence_Fast(name, ob_seq_fast);
-      Py_DECREF(ob_seq_fast);
-      return prop;
-    }
-    else {
-      return NULL;
-    }
+
+  PyObject *ob_seq_fast = PySequence_Fast(ob, "py -> idprop");
+  if (ob_seq_fast != NULL) {
+    IDProperty *prop = idp_from_PySequence_Fast(name, ob_seq_fast);
+    Py_DECREF(ob_seq_fast);
+    return prop;
   }
+
+  return NULL;
 }
 
 static IDProperty *idp_from_PyMapping(const char *name, PyObject *ob)
@@ -641,29 +638,28 @@ static IDProperty *idp_from_PyObject(PyObject *name_obj, PyObject *ob)
   if (PyFloat_Check(ob)) {
     return idp_from_PyFloat(name, ob);
   }
-  else if (PyLong_Check(ob)) {
+  if (PyLong_Check(ob)) {
     return idp_from_PyLong(name, ob);
   }
-  else if (PyUnicode_Check(ob)) {
+  if (PyUnicode_Check(ob)) {
     return idp_from_PyUnicode(name, ob);
   }
-  else if (PyBytes_Check(ob)) {
+  if (PyBytes_Check(ob)) {
     return idp_from_PyBytes(name, ob);
   }
-  else if (PySequence_Check(ob)) {
+  if (PySequence_Check(ob)) {
     return idp_from_PySequence(name, ob);
   }
-  else if (ob == Py_None || pyrna_id_CheckPyObject(ob)) {
+  if (ob == Py_None || pyrna_id_CheckPyObject(ob)) {
     return idp_from_DatablockPointer(name, ob);
   }
-  else if (PyMapping_Check(ob)) {
+  if (PyMapping_Check(ob)) {
     return idp_from_PyMapping(name, ob);
   }
-  else {
-    PyErr_Format(
-        PyExc_TypeError, "invalid id-property type %.200s not supported", Py_TYPE(ob)->tp_name);
-    return NULL;
-  }
+
+  PyErr_Format(
+      PyExc_TypeError, "invalid id-property type %.200s not supported", Py_TYPE(ob)->tp_name);
+  return NULL;
 }
 
 /** \} */
@@ -736,21 +732,19 @@ int BPy_Wrap_SetMapItem(IDProperty *prop, PyObject *key, PyObject *val)
       IDP_FreeFromGroup(prop, pkey);
       return 0;
     }
-    else {
-      PyErr_SetString(PyExc_KeyError, "property not found in group");
-      return -1;
-    }
-  }
-  else {
-    bool ok;
 
-    ok = BPy_IDProperty_Map_ValidateAndCreate(key, prop, val);
-    if (ok == false) {
-      return -1;
-    }
-
-    return 0;
+    PyErr_SetString(PyExc_KeyError, "property not found in group");
+    return -1;
   }
+
+  bool ok;
+
+  ok = BPy_IDProperty_Map_ValidateAndCreate(key, prop, val);
+  if (ok == false) {
+    return -1;
+  }
+
+  return 0;
 }
 
 static int BPy_IDGroup_Map_SetItem(BPy_IDProperty *self, PyObject *key, PyObject *val)
@@ -1485,7 +1479,7 @@ static PyObject *BPy_IDArray_subscript(BPy_IDArray *self, PyObject *item)
     }
     return BPy_IDArray_GetItem(self, i);
   }
-  else if (PySlice_Check(item)) {
+  if (PySlice_Check(item)) {
     Py_ssize_t start, stop, step, slicelength;
 
     if (PySlice_GetIndicesEx(item, self->prop->len, &start, &stop, &step, &slicelength) < 0) {
@@ -1495,21 +1489,19 @@ static PyObject *BPy_IDArray_subscript(BPy_IDArray *self, PyObject *item)
     if (slicelength <= 0) {
       return PyTuple_New(0);
     }
-    else if (step == 1) {
+    if (step == 1) {
       return BPy_IDArray_slice(self, start, stop);
     }
-    else {
-      PyErr_SetString(PyExc_TypeError, "slice steps not supported with vectors");
-      return NULL;
-    }
-  }
-  else {
-    PyErr_Format(PyExc_TypeError,
-                 "vector indices must be integers, not %.200s",
-                 __func__,
-                 Py_TYPE(item)->tp_name);
+
+    PyErr_SetString(PyExc_TypeError, "slice steps not supported with vectors");
     return NULL;
   }
+
+  PyErr_Format(PyExc_TypeError,
+               "vector indices must be integers, not %.200s",
+               __func__,
+               Py_TYPE(item)->tp_name);
+  return NULL;
 }
 
 static int BPy_IDArray_ass_subscript(BPy_IDArray *self, PyObject *item, PyObject *value)
@@ -1524,7 +1516,7 @@ static int BPy_IDArray_ass_subscript(BPy_IDArray *self, PyObject *item, PyObject
     }
     return BPy_IDArray_SetItem(self, i, value);
   }
-  else if (PySlice_Check(item)) {
+  if (PySlice_Check(item)) {
     Py_ssize_t start, stop, step, slicelength;
 
     if (PySlice_GetIndicesEx(item, self->prop->len, &start, &stop, &step, &slicelength) < 0) {
@@ -1534,16 +1526,14 @@ static int BPy_IDArray_ass_subscript(BPy_IDArray *self, PyObject *item, PyObject
     if (step == 1) {
       return BPy_IDArray_ass_slice(self, start, stop, value);
     }
-    else {
-      PyErr_SetString(PyExc_TypeError, "slice steps not supported with vectors");
-      return -1;
-    }
-  }
-  else {
-    PyErr_Format(
-        PyExc_TypeError, "vector indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+
+    PyErr_SetString(PyExc_TypeError, "slice steps not supported with vectors");
     return -1;
   }
+
+  PyErr_Format(
+      PyExc_TypeError, "vector indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+  return -1;
 }
 
 static PyMappingMethods BPy_IDArray_AsMapping = {
@@ -1709,14 +1699,12 @@ static PyObject *BPy_Group_Iter_Next(BPy_IDGroup_Iter *self)
                         BPy_IDGroup_WrapData(self->group->id, cur, self->group->prop));
       return ret;
     }
-    else {
-      return PyUnicode_FromString(cur->name);
-    }
+
+    return PyUnicode_FromString(cur->name);
   }
-  else {
-    PyErr_SetNone(PyExc_StopIteration);
-    return NULL;
-  }
+
+  PyErr_SetNone(PyExc_StopIteration);
+  return NULL;
 }
 
 PyTypeObject BPy_IDGroup_Iter_Type = {

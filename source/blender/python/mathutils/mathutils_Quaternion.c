@@ -815,7 +815,7 @@ static PyObject *Quaternion_subscript(QuaternionObject *self, PyObject *item)
     }
     return Quaternion_item(self, i);
   }
-  else if (PySlice_Check(item)) {
+  if (PySlice_Check(item)) {
     Py_ssize_t start, stop, step, slicelength;
 
     if (PySlice_GetIndicesEx(item, QUAT_SIZE, &start, &stop, &step, &slicelength) < 0) {
@@ -825,20 +825,17 @@ static PyObject *Quaternion_subscript(QuaternionObject *self, PyObject *item)
     if (slicelength <= 0) {
       return PyTuple_New(0);
     }
-    else if (step == 1) {
+    if (step == 1) {
       return Quaternion_slice(self, start, stop);
     }
-    else {
-      PyErr_SetString(PyExc_IndexError, "slice steps not supported with quaternions");
-      return NULL;
-    }
-  }
-  else {
-    PyErr_Format(PyExc_TypeError,
-                 "quaternion indices must be integers, not %.200s",
-                 Py_TYPE(item)->tp_name);
+
+    PyErr_SetString(PyExc_IndexError, "slice steps not supported with quaternions");
     return NULL;
   }
+
+  PyErr_Format(
+      PyExc_TypeError, "quaternion indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+  return NULL;
 }
 
 static int Quaternion_ass_subscript(QuaternionObject *self, PyObject *item, PyObject *value)
@@ -853,7 +850,7 @@ static int Quaternion_ass_subscript(QuaternionObject *self, PyObject *item, PyOb
     }
     return Quaternion_ass_item(self, i, value);
   }
-  else if (PySlice_Check(item)) {
+  if (PySlice_Check(item)) {
     Py_ssize_t start, stop, step, slicelength;
 
     if (PySlice_GetIndicesEx(item, QUAT_SIZE, &start, &stop, &step, &slicelength) < 0) {
@@ -863,17 +860,14 @@ static int Quaternion_ass_subscript(QuaternionObject *self, PyObject *item, PyOb
     if (step == 1) {
       return Quaternion_ass_slice(self, start, stop, value);
     }
-    else {
-      PyErr_SetString(PyExc_IndexError, "slice steps not supported with quaternion");
-      return -1;
-    }
-  }
-  else {
-    PyErr_Format(PyExc_TypeError,
-                 "quaternion indices must be integers, not %.200s",
-                 Py_TYPE(item)->tp_name);
+
+    PyErr_SetString(PyExc_IndexError, "slice steps not supported with quaternion");
     return -1;
   }
+
+  PyErr_Format(
+      PyExc_TypeError, "quaternion indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+  return -1;
 }
 
 /* ------------------------NUMERIC PROTOCOLS---------------------- */
@@ -967,7 +961,7 @@ static PyObject *Quaternion_mul(PyObject *q1, PyObject *q2)
     return Quaternion_CreatePyObject(quat, Py_TYPE(q1));
   }
   /* the only case this can happen (for a supported type is "FLOAT * QUAT") */
-  else if (quat2) { /* FLOAT * QUAT */
+  if (quat2) { /* FLOAT * QUAT */
     if (((scalar = PyFloat_AsDouble(q1)) == -1.0f && PyErr_Occurred()) == 0) {
       return quat_mul_float(quat2, scalar);
     }
@@ -1049,7 +1043,7 @@ static PyObject *Quaternion_matmul(PyObject *q1, PyObject *q2)
     mul_qt_qtqt(quat, quat1->quat, quat2->quat);
     return Quaternion_CreatePyObject(quat, Py_TYPE(q1));
   }
-  else if (quat1) {
+  if (quat1) {
     /* QUAT @ VEC */
     if (VectorObject_Check(q2)) {
       VectorObject *vec2 = (VectorObject *)q2;
@@ -1384,10 +1378,9 @@ static PyObject *quat__apply_to_copy(PyObject *(*quat_func)(QuaternionObject *),
     Py_DECREF(ret_dummy);
     return ret;
   }
-  else { /* error */
-    Py_DECREF(ret);
-    return NULL;
-  }
+  /* error */
+  Py_DECREF(ret);
+  return NULL;
 }
 
 /* axis vector suffers from precision errors, use this function to ensure */

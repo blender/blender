@@ -222,7 +222,7 @@ static PyObject *bpygpu_Batch_draw(BPyGPUBatch *self, PyObject *args)
   if (!PyArg_ParseTuple(args, "|O!:GPUBatch.draw", &BPyGPUShader_Type, &py_program)) {
     return NULL;
   }
-  else if (py_program == NULL) {
+  if (py_program == NULL) {
     if (!bpygpu_batch_is_program_or_error(self)) {
       return NULL;
     }

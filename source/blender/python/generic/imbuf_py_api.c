@@ -57,11 +57,10 @@ static int py_imbuf_valid_check(Py_ImBuf *self)
   if (LIKELY(self->ibuf)) {
     return 0;
   }
-  else {
-    PyErr_Format(
-        PyExc_ReferenceError, "ImBuf data of type %.200s has been freed", Py_TYPE(self)->tp_name);
-    return -1;
-  }
+
+  PyErr_Format(
+      PyExc_ReferenceError, "ImBuf data of type %.200s has been freed", Py_TYPE(self)->tp_name);
+  return -1;
 }
 
 #define PY_IMBUF_CHECK_OBJ(obj) \
@@ -324,9 +323,8 @@ static PyObject *py_imbuf_repr(Py_ImBuf *self)
     return PyUnicode_FromFormat(
         "<imbuf: address=%p, filepath='%s', size=(%d, %d)>", ibuf, ibuf->name, ibuf->x, ibuf->y);
   }
-  else {
-    return PyUnicode_FromString("<imbuf: address=0x0>");
-  }
+
+  return PyUnicode_FromString("<imbuf: address=0x0>");
 }
 
 static Py_hash_t py_imbuf_hash(Py_ImBuf *self)

@@ -51,9 +51,8 @@ static PyObject *bpy_bmeditselseq_active_get(BPy_BMEditSelSeq *self, void *UNUSE
   if ((ese = self->bm->selected.last)) {
     return BPy_BMElem_CreatePyObject(self->bm, &ese->ele->head);
   }
-  else {
-    Py_RETURN_NONE;
-  }
+
+  Py_RETURN_NONE;
 }
 
 static PyGetSetDef bpy_bmeditselseq_getseters[] = {
@@ -196,10 +195,9 @@ static PyObject *bpy_bmeditselseq_subscript_int(BPy_BMEditSelSeq *self, int keyn
   if (ese) {
     return BPy_BMElem_CreatePyObject(self->bm, &ese->ele->head);
   }
-  else {
-    PyErr_Format(PyExc_IndexError, "BMElemSeq[index]: index %d out of range", keynum);
-    return NULL;
-  }
+
+  PyErr_Format(PyExc_IndexError, "BMElemSeq[index]: index %d out of range", keynum);
+  return NULL;
 }
 
 static PyObject *bpy_bmeditselseq_subscript_slice(BPy_BMEditSelSeq *self,
@@ -254,54 +252,51 @@ static PyObject *bpy_bmeditselseq_subscript(BPy_BMEditSelSeq *self, PyObject *ke
     }
     return bpy_bmeditselseq_subscript_int(self, i);
   }
-  else if (PySlice_Check(key)) {
+  if (PySlice_Check(key)) {
     PySliceObject *key_slice = (PySliceObject *)key;
     Py_ssize_t step = 1;
 
     if (key_slice->step != Py_None && !_PyEval_SliceIndex(key, &step)) {
       return NULL;
     }
-    else if (step != 1) {
+    if (step != 1) {
       PyErr_SetString(PyExc_TypeError, "BMElemSeq[slice]: slice steps not supported");
       return NULL;
     }
-    else if (key_slice->start == Py_None && key_slice->stop == Py_None) {
+    if (key_slice->start == Py_None && key_slice->stop == Py_None) {
       return bpy_bmeditselseq_subscript_slice(self, 0, PY_SSIZE_T_MAX);
     }
-    else {
-      Py_ssize_t start = 0, stop = PY_SSIZE_T_MAX;
 
-      /* avoid PySlice_GetIndicesEx because it needs to know the length ahead of time. */
-      if (key_slice->start != Py_None && !_PyEval_SliceIndex(key_slice->start, &start)) {
-        return NULL;
-      }
-      if (key_slice->stop != Py_None && !_PyEval_SliceIndex(key_slice->stop, &stop)) {
-        return NULL;
-      }
+    Py_ssize_t start = 0, stop = PY_SSIZE_T_MAX;
 
-      if (start < 0 || stop < 0) {
-        /* only get the length for negative values */
-        Py_ssize_t len = bpy_bmeditselseq_length(self);
-        if (start < 0) {
-          start += len;
-        }
-        if (stop < 0) {
-          stop += len;
-        }
-      }
+    /* avoid PySlice_GetIndicesEx because it needs to know the length ahead of time. */
+    if (key_slice->start != Py_None && !_PyEval_SliceIndex(key_slice->start, &start)) {
+      return NULL;
+    }
+    if (key_slice->stop != Py_None && !_PyEval_SliceIndex(key_slice->stop, &stop)) {
+      return NULL;
+    }
 
-      if (stop - start <= 0) {
-        return PyList_New(0);
+    if (start < 0 || stop < 0) {
+      /* only get the length for negative values */
+      Py_ssize_t len = bpy_bmeditselseq_length(self);
+      if (start < 0) {
+        start += len;
       }
-      else {
-        return bpy_bmeditselseq_subscript_slice(self, start, stop);
+      if (stop < 0) {
+        stop += len;
       }
     }
+
+    if (stop - start <= 0) {
+      return PyList_New(0);
+    }
+
+    return bpy_bmeditselseq_subscript_slice(self, start, stop);
   }
-  else {
-    PyErr_SetString(PyExc_AttributeError, "BMElemSeq[key]: invalid key, key must be an int");
-    return NULL;
-  }
+
+  PyErr_SetString(PyExc_AttributeError, "BMElemSeq[key]: invalid key, key must be an int");
+  return NULL;
 }
 
 static int bpy_bmeditselseq_contains(BPy_BMEditSelSeq *self, PyObject *value)
@@ -358,10 +353,9 @@ static PyObject *bpy_bmeditseliter_next(BPy_BMEditSelIter *self)
     PyErr_SetNone(PyExc_StopIteration);
     return NULL;
   }
-  else {
-    self->ese = ese->next;
-    return (PyObject *)BPy_BMElem_CreatePyObject(self->bm, &ese->ele->head);
-  }
+
+  self->ese = ese->next;
+  return (PyObject *)BPy_BMElem_CreatePyObject(self->bm, &ese->ele->head);
 }
 
 PyTypeObject BPy_BMEditSelSeq_Type;

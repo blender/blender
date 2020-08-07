@@ -914,16 +914,15 @@ static PyObject *C_BVHTree_FromPolygons(PyObject *UNUSED(cls), PyObject *args, P
     return bvhtree_CreatePyObject(
         tree, epsilon, coords, coords_len, tris, tris_len, orig_index, orig_normal);
   }
-  else {
-    if (coords) {
-      MEM_freeN(coords);
-    }
-    if (tris) {
-      MEM_freeN(tris);
-    }
 
-    return NULL;
+  if (coords) {
+    MEM_freeN(coords);
   }
+  if (tris) {
+    MEM_freeN(tris);
+  }
+
+  return NULL;
 }
 
 #ifndef MATH_STANDALONE
@@ -1053,55 +1052,48 @@ static Mesh *bvh_get_mesh(const char *funcname,
             funcname);
         return NULL;
       }
-      else {
-        *r_free_mesh = true;
-        return mesh_create_eval_final_render(depsgraph, scene, ob, &data_masks);
-      }
+
+      *r_free_mesh = true;
+      return mesh_create_eval_final_render(depsgraph, scene, ob, &data_masks);
     }
-    else if (ob_eval != NULL) {
+    if (ob_eval != NULL) {
       if (use_cage) {
         return mesh_get_eval_deform(depsgraph, scene, ob_eval, &data_masks);
       }
-      else {
-        return mesh_get_eval_final(depsgraph, scene, ob_eval, &data_masks);
-      }
+
+      return mesh_get_eval_final(depsgraph, scene, ob_eval, &data_masks);
     }
-    else {
-      PyErr_Format(PyExc_ValueError,
-                   "%s(...): Cannot get evaluated data from given dependency graph / object pair",
-                   funcname);
+
+    PyErr_Format(PyExc_ValueError,
+                 "%s(...): Cannot get evaluated data from given dependency graph / object pair",
+                 funcname);
+    return NULL;
+  }
+
+  /* !use_deform */
+  if (use_render) {
+    if (use_cage) {
+      PyErr_Format(
+          PyExc_ValueError,
+          "%s(...): cage arg is unsupported when dependency graph evaluation mode is RENDER",
+          funcname);
       return NULL;
     }
+
+    *r_free_mesh = true;
+    return mesh_create_eval_no_deform_render(depsgraph, scene, ob, &data_masks);
   }
-  else {
-    /* !use_deform */
-    if (use_render) {
-      if (use_cage) {
-        PyErr_Format(
-            PyExc_ValueError,
-            "%s(...): cage arg is unsupported when dependency graph evaluation mode is RENDER",
-            funcname);
-        return NULL;
-      }
-      else {
-        *r_free_mesh = true;
-        return mesh_create_eval_no_deform_render(depsgraph, scene, ob, &data_masks);
-      }
-    }
-    else {
-      if (use_cage) {
-        PyErr_Format(PyExc_ValueError,
-                     "%s(...): cage arg is unsupported when deform=False and dependency graph "
-                     "evaluation mode is not RENDER",
-                     funcname);
-        return NULL;
-      }
-      else {
-        *r_free_mesh = true;
-        return mesh_create_eval_no_deform(depsgraph, scene, ob, &data_masks);
-      }
-    }
+
+  if (use_cage) {
+    PyErr_Format(PyExc_ValueError,
+                 "%s(...): cage arg is unsupported when deform=False and dependency graph "
+                 "evaluation mode is not RENDER",
+                 funcname);
+    return NULL;
   }
+
+  *r_free_mesh = true;
+  return mesh_create_eval_no_deform(depsgraph, scene, ob, &data_masks);
 }
 
 PyDoc_STRVAR(C_BVHTree_FromObject_doc,

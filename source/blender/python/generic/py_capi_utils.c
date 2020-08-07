@@ -375,12 +375,11 @@ void PyC_StackSpit(void)
     fprintf(stderr, "python line lookup failed, interpreter inactive\n");
     return;
   }
-  else {
-    /* lame but handy */
-    PyGILState_STATE gilstate = PyGILState_Ensure();
-    PyRun_SimpleString("__import__('traceback').print_stack()");
-    PyGILState_Release(gilstate);
-  }
+
+  /* lame but handy */
+  PyGILState_STATE gilstate = PyGILState_Ensure();
+  PyRun_SimpleString("__import__('traceback').print_stack()");
+  PyGILState_Release(gilstate);
 }
 
 void PyC_StackPrint(/* FILE */ void *fp)
@@ -760,22 +759,20 @@ const char *PyC_UnicodeAsByteAndSize(PyObject *py_str, Py_ssize_t *size, PyObjec
      * chars since blender doesn't limit this */
     return result;
   }
-  else {
-    PyErr_Clear();
 
-    if (PyBytes_Check(py_str)) {
-      *size = PyBytes_GET_SIZE(py_str);
-      return PyBytes_AS_STRING(py_str);
-    }
-    else if ((*coerce = PyUnicode_EncodeFSDefault(py_str))) {
-      *size = PyBytes_GET_SIZE(*coerce);
-      return PyBytes_AS_STRING(*coerce);
-    }
-    else {
-      /* leave error raised from EncodeFS */
-      return NULL;
-    }
+  PyErr_Clear();
+
+  if (PyBytes_Check(py_str)) {
+    *size = PyBytes_GET_SIZE(py_str);
+    return PyBytes_AS_STRING(py_str);
   }
+  if ((*coerce = PyUnicode_EncodeFSDefault(py_str))) {
+    *size = PyBytes_GET_SIZE(*coerce);
+    return PyBytes_AS_STRING(*coerce);
+  }
+
+  /* leave error raised from EncodeFS */
+  return NULL;
 }
 
 const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
@@ -789,20 +786,18 @@ const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
      * chars since blender doesn't limit this. */
     return result;
   }
-  else {
-    PyErr_Clear();
 
-    if (PyBytes_Check(py_str)) {
-      return PyBytes_AS_STRING(py_str);
-    }
-    else if ((*coerce = PyUnicode_EncodeFSDefault(py_str))) {
-      return PyBytes_AS_STRING(*coerce);
-    }
-    else {
-      /* leave error raised from EncodeFS */
-      return NULL;
-    }
+  PyErr_Clear();
+
+  if (PyBytes_Check(py_str)) {
+    return PyBytes_AS_STRING(py_str);
   }
+  if ((*coerce = PyUnicode_EncodeFSDefault(py_str))) {
+    return PyBytes_AS_STRING(*coerce);
+  }
+
+  /* leave error raised from EncodeFS */
+  return NULL;
 }
 
 PyObject *PyC_UnicodeFromByteAndSize(const char *str, Py_ssize_t size)
@@ -813,12 +808,11 @@ PyObject *PyC_UnicodeFromByteAndSize(const char *str, Py_ssize_t size)
      * chars since blender doesn't limit this */
     return result;
   }
-  else {
-    PyErr_Clear();
-    /* this means paths will always be accessible once converted, on all OS's */
-    result = PyUnicode_DecodeFSDefaultAndSize(str, size);
-    return result;
-  }
+
+  PyErr_Clear();
+  /* this means paths will always be accessible once converted, on all OS's */
+  result = PyUnicode_DecodeFSDefaultAndSize(str, size);
+  return result;
 }
 
 PyObject *PyC_UnicodeFromByte(const char *str)
@@ -1136,13 +1130,12 @@ void *PyC_RNA_AsPointer(PyObject *value, const char *type_name)
 
     return result;
   }
-  else {
-    PyErr_Format(PyExc_TypeError,
-                 "expected '%.200s' type found '%.200s' instead",
-                 type_name,
-                 Py_TYPE(value)->tp_name);
-    return NULL;
-  }
+
+  PyErr_Format(PyExc_TypeError,
+               "expected '%.200s' type found '%.200s' instead",
+               type_name,
+               Py_TYPE(value)->tp_name);
+  return NULL;
 }
 
 /** \} */

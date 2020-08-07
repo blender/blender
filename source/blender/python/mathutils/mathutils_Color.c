@@ -347,7 +347,7 @@ static PyObject *Color_subscript(ColorObject *self, PyObject *item)
     }
     return Color_item(self, i);
   }
-  else if (PySlice_Check(item)) {
+  if (PySlice_Check(item)) {
     Py_ssize_t start, stop, step, slicelength;
 
     if (PySlice_GetIndicesEx(item, COLOR_SIZE, &start, &stop, &step, &slicelength) < 0) {
@@ -357,19 +357,17 @@ static PyObject *Color_subscript(ColorObject *self, PyObject *item)
     if (slicelength <= 0) {
       return PyTuple_New(0);
     }
-    else if (step == 1) {
+    if (step == 1) {
       return Color_slice(self, start, stop);
     }
-    else {
-      PyErr_SetString(PyExc_IndexError, "slice steps not supported with color");
-      return NULL;
-    }
-  }
-  else {
-    PyErr_Format(
-        PyExc_TypeError, "color indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+
+    PyErr_SetString(PyExc_IndexError, "slice steps not supported with color");
     return NULL;
   }
+
+  PyErr_Format(
+      PyExc_TypeError, "color indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+  return NULL;
 }
 
 static int Color_ass_subscript(ColorObject *self, PyObject *item, PyObject *value)
@@ -384,7 +382,7 @@ static int Color_ass_subscript(ColorObject *self, PyObject *item, PyObject *valu
     }
     return Color_ass_item(self, i, value);
   }
-  else if (PySlice_Check(item)) {
+  if (PySlice_Check(item)) {
     Py_ssize_t start, stop, step, slicelength;
 
     if (PySlice_GetIndicesEx(item, COLOR_SIZE, &start, &stop, &step, &slicelength) < 0) {
@@ -394,16 +392,14 @@ static int Color_ass_subscript(ColorObject *self, PyObject *item, PyObject *valu
     if (step == 1) {
       return Color_ass_slice(self, start, stop, value);
     }
-    else {
-      PyErr_SetString(PyExc_IndexError, "slice steps not supported with color");
-      return -1;
-    }
-  }
-  else {
-    PyErr_Format(
-        PyExc_TypeError, "color indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+
+    PyErr_SetString(PyExc_IndexError, "slice steps not supported with color");
     return -1;
   }
+
+  PyErr_Format(
+      PyExc_TypeError, "color indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+  return -1;
 }
 
 /* -----------------PROTCOL DECLARATIONS-------------------------- */

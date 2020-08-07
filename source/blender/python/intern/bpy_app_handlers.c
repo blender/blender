@@ -118,22 +118,20 @@ static PyObject *bpy_app_handlers_persistent_new(PyTypeObject *UNUSED(type),
                       "get the dictionary from the function passed");
       return NULL;
     }
-    else {
-      /* set id */
-      if (*dict_ptr == NULL) {
-        *dict_ptr = PyDict_New();
-      }
 
-      PyDict_SetItemString(*dict_ptr, PERMINENT_CB_ID, Py_None);
+    /* set id */
+    if (*dict_ptr == NULL) {
+      *dict_ptr = PyDict_New();
     }
+
+    PyDict_SetItemString(*dict_ptr, PERMINENT_CB_ID, Py_None);
 
     Py_INCREF(value);
     return value;
   }
-  else {
-    PyErr_SetString(PyExc_ValueError, "bpy.app.handlers.persistent expected a function");
-    return NULL;
-  }
+
+  PyErr_SetString(PyExc_ValueError, "bpy.app.handlers.persistent expected a function");
+  return NULL;
 }
 
 /* dummy type because decorators can't be PyCFunctions */

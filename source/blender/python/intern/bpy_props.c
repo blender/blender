@@ -1408,9 +1408,8 @@ static bool py_long_as_int(PyObject *py_long, int *r_int)
     *r_int = (int)PyLong_AS_LONG(py_long);
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 #if 0
@@ -1716,16 +1715,15 @@ static int bpy_prop_callback_check(PyObject *py_func, const char *keyword, int a
                    Py_TYPE(py_func)->tp_name);
       return -1;
     }
-    else {
-      PyCodeObject *f_code = (PyCodeObject *)PyFunction_GET_CODE(py_func);
-      if (f_code->co_argcount != argcount) {
-        PyErr_Format(PyExc_TypeError,
-                     "%s keyword: expected a function taking %d arguments, not %d",
-                     keyword,
-                     argcount,
-                     f_code->co_argcount);
-        return -1;
-      }
+
+    PyCodeObject *f_code = (PyCodeObject *)PyFunction_GET_CODE(py_func);
+    if (f_code->co_argcount != argcount) {
+      PyErr_Format(PyExc_TypeError,
+                   "%s keyword: expected a function taking %d arguments, not %d",
+                   keyword,
+                   argcount,
+                   f_code->co_argcount);
+      return -1;
     }
   }
 
@@ -1981,7 +1979,7 @@ static void bpy_prop_callback_assign_enum(struct PropertyRNA *prop,
     Py_DECREF(args); \
     return ret; \
   } \
-  else if (PyTuple_GET_SIZE(args) > 1) { \
+  if (PyTuple_GET_SIZE(args) > 1) { \
     PyErr_SetString(PyExc_ValueError, "all args must be keywords"); \
     return NULL; \
   } \
@@ -3537,7 +3535,7 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
     Py_DECREF(args);
     return ret;
   }
-  else if (PyTuple_GET_SIZE(args) > 1) {
+  if (PyTuple_GET_SIZE(args) > 1) {
     PyErr_SetString(PyExc_ValueError, "expected one positional arg, one keyword arg");
     return NULL;
   }
@@ -3546,27 +3544,27 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
   if (srna == NULL && PyErr_Occurred()) {
     return NULL; /* self's type was compatible but error getting the srna */
   }
-  else if (srna == NULL) {
+  if (srna == NULL) {
     PyErr_SetString(PyExc_TypeError, "RemoveProperty(): struct rna not available for this type");
     return NULL;
   }
-  else {
-    const char *id = NULL;
 
-    static const char *_keywords[] = {
-        "attr",
-        NULL,
-    };
-    static _PyArg_Parser _parser = {"s:RemoveProperty", _keywords, 0};
-    if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &id)) {
-      return NULL;
-    }
+  const char *id = NULL;
 
-    if (RNA_def_property_free_identifier(srna, id) != 1) {
-      PyErr_Format(PyExc_TypeError, "RemoveProperty(): '%s' not a defined dynamic property", id);
-      return NULL;
-    }
+  static const char *_keywords[] = {
+      "attr",
+      NULL,
+  };
+  static _PyArg_Parser _parser = {"s:RemoveProperty", _keywords, 0};
+  if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &id)) {
+    return NULL;
   }
+
+  if (RNA_def_property_free_identifier(srna, id) != 1) {
+    PyErr_Format(PyExc_TypeError, "RemoveProperty(): '%s' not a defined dynamic property", id);
+    return NULL;
+  }
+
   Py_RETURN_NONE;
 }
 

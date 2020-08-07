@@ -83,9 +83,8 @@ int bpy_pydriver_create_dict(void)
   if (d == NULL) {
     return -1;
   }
-  else {
-    bpy_pydriver_Dict = d;
-  }
+
+  bpy_pydriver_Dict = d;
 
   /* import some modules: builtins, bpy, math, (Blender.noise)*/
   PyDict_SetItemString(d, "__builtins__", PyEval_GetBuiltins());
@@ -680,11 +679,8 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
   if (isfinite(result)) {
     return (float)result;
   }
-  else {
-    fprintf(stderr,
-            "\tBPY_driver_eval() - driver '%s' evaluates to '%f'\n",
-            driver->expression,
-            result);
-    return 0.0f;
-  }
+
+  fprintf(
+      stderr, "\tBPY_driver_eval() - driver '%s' evaluates to '%f'\n", driver->expression, result);
+  return 0.0f;
 }

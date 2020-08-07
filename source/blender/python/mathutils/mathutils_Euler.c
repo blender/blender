@@ -558,7 +558,7 @@ static PyObject *Euler_subscript(EulerObject *self, PyObject *item)
     }
     return Euler_item(self, i);
   }
-  else if (PySlice_Check(item)) {
+  if (PySlice_Check(item)) {
     Py_ssize_t start, stop, step, slicelength;
 
     if (PySlice_GetIndicesEx(item, EULER_SIZE, &start, &stop, &step, &slicelength) < 0) {
@@ -568,19 +568,17 @@ static PyObject *Euler_subscript(EulerObject *self, PyObject *item)
     if (slicelength <= 0) {
       return PyTuple_New(0);
     }
-    else if (step == 1) {
+    if (step == 1) {
       return Euler_slice(self, start, stop);
     }
-    else {
-      PyErr_SetString(PyExc_IndexError, "slice steps not supported with eulers");
-      return NULL;
-    }
-  }
-  else {
-    PyErr_Format(
-        PyExc_TypeError, "euler indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+
+    PyErr_SetString(PyExc_IndexError, "slice steps not supported with eulers");
     return NULL;
   }
+
+  PyErr_Format(
+      PyExc_TypeError, "euler indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+  return NULL;
 }
 
 static int Euler_ass_subscript(EulerObject *self, PyObject *item, PyObject *value)
@@ -595,7 +593,7 @@ static int Euler_ass_subscript(EulerObject *self, PyObject *item, PyObject *valu
     }
     return Euler_ass_item(self, i, value);
   }
-  else if (PySlice_Check(item)) {
+  if (PySlice_Check(item)) {
     Py_ssize_t start, stop, step, slicelength;
 
     if (PySlice_GetIndicesEx(item, EULER_SIZE, &start, &stop, &step, &slicelength) < 0) {
@@ -605,16 +603,14 @@ static int Euler_ass_subscript(EulerObject *self, PyObject *item, PyObject *valu
     if (step == 1) {
       return Euler_ass_slice(self, start, stop, value);
     }
-    else {
-      PyErr_SetString(PyExc_IndexError, "slice steps not supported with euler");
-      return -1;
-    }
-  }
-  else {
-    PyErr_Format(
-        PyExc_TypeError, "euler indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+
+    PyErr_SetString(PyExc_IndexError, "slice steps not supported with euler");
     return -1;
   }
+
+  PyErr_Format(
+      PyExc_TypeError, "euler indices must be integers, not %.200s", Py_TYPE(item)->tp_name);
+  return -1;
 }
 
 /* -----------------PROTCOL DECLARATIONS-------------------------- */
