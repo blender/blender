@@ -35,7 +35,7 @@
 
 PreviewOperation::PreviewOperation(const ColorManagedViewSettings *viewSettings,
                                    const ColorManagedDisplaySettings *displaySettings)
-    : NodeOperation()
+
 {
   this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
   this->m_preview = NULL;

@@ -18,7 +18,7 @@
 
 #include "COM_SingleThreadedOperation.h"
 
-SingleThreadedOperation::SingleThreadedOperation() : NodeOperation()
+SingleThreadedOperation::SingleThreadedOperation()
 {
   this->m_cachedInstance = NULL;
   setComplex(true);

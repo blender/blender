@@ -23,7 +23,7 @@
 #include "MEM_guardedalloc.h"
 
 // DilateErode Distance Threshold
-DilateErodeThresholdOperation::DilateErodeThresholdOperation() : NodeOperation()
+DilateErodeThresholdOperation::DilateErodeThresholdOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_VALUE);
@@ -159,7 +159,7 @@ bool DilateErodeThresholdOperation::determineDependingAreaOfInterest(
 }
 
 // Dilate Distance
-DilateDistanceOperation::DilateDistanceOperation() : NodeOperation()
+DilateDistanceOperation::DilateDistanceOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_VALUE);
@@ -317,7 +317,7 @@ void ErodeDistanceOperation::executeOpenCL(OpenCLDevice *device,
 }
 
 // Dilate step
-DilateStepOperation::DilateStepOperation() : NodeOperation()
+DilateStepOperation::DilateStepOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_VALUE);

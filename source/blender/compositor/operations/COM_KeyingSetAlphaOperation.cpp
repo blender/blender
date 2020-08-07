@@ -18,7 +18,7 @@
 
 #include "COM_KeyingSetAlphaOperation.h"
 
-KeyingSetAlphaOperation::KeyingSetAlphaOperation() : NodeOperation()
+KeyingSetAlphaOperation::KeyingSetAlphaOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_VALUE);

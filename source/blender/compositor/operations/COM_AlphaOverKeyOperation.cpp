@@ -18,7 +18,7 @@
 
 #include "COM_AlphaOverKeyOperation.h"
 
-AlphaOverKeyOperation::AlphaOverKeyOperation() : MixBaseOperation()
+AlphaOverKeyOperation::AlphaOverKeyOperation()
 {
   /* pass */
 }

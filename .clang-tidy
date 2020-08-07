@@ -15,7 +15,6 @@ Checks:  >
 
   -readability-misleading-indentation,
 
-  -readability-redundant-member-init,
   -readability-use-anyofallof,
 
   -readability-function-cognitive-complexity,

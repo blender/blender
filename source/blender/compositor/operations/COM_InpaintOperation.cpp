@@ -27,7 +27,7 @@
   BLI_assert(x >= 0 && x < this->getWidth() && y >= 0 && y < this->getHeight())
 
 // Inpaint (simple convolve using average of known pixels)
-InpaintSimpleOperation::InpaintSimpleOperation() : NodeOperation()
+InpaintSimpleOperation::InpaintSimpleOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addOutputSocket(COM_DT_COLOR);

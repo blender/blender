@@ -22,7 +22,7 @@
 
 #include "MEM_guardedalloc.h"
 
-ConvolutionFilterOperation::ConvolutionFilterOperation() : NodeOperation()
+ConvolutionFilterOperation::ConvolutionFilterOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_VALUE);

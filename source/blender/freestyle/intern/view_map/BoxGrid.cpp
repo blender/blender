@@ -242,7 +242,7 @@ bool BoxGrid::enableQI() const
   return _enableQI;
 }
 
-BoxGrid::Transform::Transform() : GridHelpers::Transform()
+BoxGrid::Transform::Transform()
 {
 }
 

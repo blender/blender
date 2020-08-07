@@ -26,7 +26,7 @@
 
 #include "IMB_imbuf.h"
 
-MovieClipBaseOperation::MovieClipBaseOperation() : NodeOperation()
+MovieClipBaseOperation::MovieClipBaseOperation()
 {
   this->m_movieClip = NULL;
   this->m_movieClipBuffer = NULL;

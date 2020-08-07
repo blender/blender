@@ -1306,7 +1306,7 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float
   }
 }
 
-DoubleEdgeMaskOperation::DoubleEdgeMaskOperation() : NodeOperation()
+DoubleEdgeMaskOperation::DoubleEdgeMaskOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addInputSocket(COM_DT_VALUE);

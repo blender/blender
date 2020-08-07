@@ -27,7 +27,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-SplitOperation::SplitOperation() : NodeOperation()
+SplitOperation::SplitOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_COLOR);

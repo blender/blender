@@ -19,7 +19,7 @@
 #include "COM_SetVectorOperation.h"
 #include "COM_defines.h"
 
-SetVectorOperation::SetVectorOperation() : NodeOperation()
+SetVectorOperation::SetVectorOperation()
 {
   this->addOutputSocket(COM_DT_VECTOR);
 }

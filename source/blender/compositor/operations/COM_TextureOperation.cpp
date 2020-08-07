@@ -25,7 +25,7 @@
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
 
-TextureBaseOperation::TextureBaseOperation() : NodeOperation()
+TextureBaseOperation::TextureBaseOperation()
 {
   this->addInputSocket(COM_DT_VECTOR);  // offset
   this->addInputSocket(COM_DT_VECTOR);  // size

@@ -18,7 +18,7 @@
 
 #include "COM_AlphaOverMixedOperation.h"
 
-AlphaOverMixedOperation::AlphaOverMixedOperation() : MixBaseOperation()
+AlphaOverMixedOperation::AlphaOverMixedOperation()
 {
   this->m_x = 0.0f;
 }

@@ -20,7 +20,7 @@
 
 #include "BLI_math.h"
 
-MathBaseOperation::MathBaseOperation() : NodeOperation()
+MathBaseOperation::MathBaseOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addInputSocket(COM_DT_VALUE);

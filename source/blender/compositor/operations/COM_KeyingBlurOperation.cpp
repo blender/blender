@@ -23,7 +23,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
-KeyingBlurOperation::KeyingBlurOperation() : NodeOperation()
+KeyingBlurOperation::KeyingBlurOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_VALUE);

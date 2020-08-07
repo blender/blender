@@ -64,7 +64,7 @@ class PlaneTrackCommon {
 
 class PlaneTrackMaskOperation : public PlaneDistortMaskOperation, public PlaneTrackCommon {
  public:
-  PlaneTrackMaskOperation() : PlaneDistortMaskOperation(), PlaneTrackCommon()
+  PlaneTrackMaskOperation()
   {
   }
 
@@ -82,7 +82,7 @@ class PlaneTrackMaskOperation : public PlaneDistortMaskOperation, public PlaneTr
 class PlaneTrackWarpImageOperation : public PlaneDistortWarpImageOperation,
                                      public PlaneTrackCommon {
  public:
-  PlaneTrackWarpImageOperation() : PlaneDistortWarpImageOperation(), PlaneTrackCommon()
+  PlaneTrackWarpImageOperation() : PlaneTrackCommon()
   {
   }
 

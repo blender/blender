@@ -21,7 +21,7 @@
 
 #include "IMB_colormanagement.h"
 
-GlareThresholdOperation::GlareThresholdOperation() : NodeOperation()
+GlareThresholdOperation::GlareThresholdOperation()
 {
   this->addInputSocket(COM_DT_COLOR, COM_SC_FIT);
   this->addOutputSocket(COM_DT_COLOR);

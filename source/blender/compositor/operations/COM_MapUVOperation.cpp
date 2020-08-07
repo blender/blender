@@ -19,7 +19,7 @@
 #include "COM_MapUVOperation.h"
 #include "BLI_math.h"
 
-MapUVOperation::MapUVOperation() : NodeOperation()
+MapUVOperation::MapUVOperation()
 {
   this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
   this->addInputSocket(COM_DT_VECTOR);

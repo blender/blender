@@ -23,7 +23,7 @@
 
 #include "RE_pipeline.h"
 
-DirectionalBlurOperation::DirectionalBlurOperation() : NodeOperation()
+DirectionalBlurOperation::DirectionalBlurOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addOutputSocket(COM_DT_COLOR);

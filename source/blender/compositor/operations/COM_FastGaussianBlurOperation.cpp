@@ -256,7 +256,7 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src,
 }
 
 ///
-FastGaussianBlurValueOperation::FastGaussianBlurValueOperation() : NodeOperation()
+FastGaussianBlurValueOperation::FastGaussianBlurValueOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_VALUE);

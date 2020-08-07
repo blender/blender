@@ -124,14 +124,12 @@ int ImagePyramid::height(int level)
 }
 
 GaussianPyramid::GaussianPyramid(const GrayImage &level0, unsigned nbLevels, float iSigma)
-    : ImagePyramid()
 {
   _sigma = iSigma;
   BuildPyramid(level0, nbLevels);
 }
 
 GaussianPyramid::GaussianPyramid(GrayImage *level0, unsigned nbLevels, float iSigma)
-    : ImagePyramid()
 {
   _sigma = iSigma;
   BuildPyramid(level0, nbLevels);

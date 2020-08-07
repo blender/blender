@@ -28,7 +28,7 @@
 #include "BKE_node.h"
 #include "BKE_tracking.h"
 
-TrackPositionOperation::TrackPositionOperation() : NodeOperation()
+TrackPositionOperation::TrackPositionOperation()
 {
   this->addOutputSocket(COM_DT_VALUE);
   this->m_movieClip = NULL;

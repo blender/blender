@@ -18,7 +18,7 @@
 
 #include "COM_ChangeHSVOperation.h"
 
-ChangeHSVOperation::ChangeHSVOperation() : NodeOperation()
+ChangeHSVOperation::ChangeHSVOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_VALUE);

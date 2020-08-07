@@ -19,7 +19,7 @@
 #include "COM_RotateOperation.h"
 #include "BLI_math.h"
 
-RotateOperation::RotateOperation() : NodeOperation()
+RotateOperation::RotateOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_VALUE);

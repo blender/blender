@@ -2322,7 +2322,7 @@ struct less_Intersection {
 };
 
 struct silhouette_binary_rule : public binary_rule<segment, segment> {
-  silhouette_binary_rule() : binary_rule<segment, segment>()
+  silhouette_binary_rule()
   {
   }
 

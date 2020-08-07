@@ -19,7 +19,7 @@
 
 #include "COM_SunBeamsOperation.h"
 
-SunBeamsOperation::SunBeamsOperation() : NodeOperation()
+SunBeamsOperation::SunBeamsOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addOutputSocket(COM_DT_COLOR);

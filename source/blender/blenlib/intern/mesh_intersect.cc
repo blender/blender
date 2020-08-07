@@ -2637,8 +2637,7 @@ struct SubdivideTrisData {
         tm(tm),
         itt_map(itt_map),
         overlap(overlap),
-        arena(arena),
-        overlap_tri_range{}
+        arena(arena)
   {
   }
 };

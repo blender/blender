@@ -19,7 +19,7 @@
 #include "COM_GammaCorrectOperation.h"
 #include "BLI_math.h"
 
-GammaCorrectOperation::GammaCorrectOperation() : NodeOperation()
+GammaCorrectOperation::GammaCorrectOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addOutputSocket(COM_DT_COLOR);
@@ -61,7 +61,7 @@ void GammaCorrectOperation::deinitExecution()
   this->m_inputProgram = NULL;
 }
 
-GammaUncorrectOperation::GammaUncorrectOperation() : NodeOperation()
+GammaUncorrectOperation::GammaUncorrectOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addOutputSocket(COM_DT_COLOR);

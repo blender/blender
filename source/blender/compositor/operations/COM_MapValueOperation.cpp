@@ -18,7 +18,7 @@
 
 #include "COM_MapValueOperation.h"
 
-MapValueOperation::MapValueOperation() : NodeOperation()
+MapValueOperation::MapValueOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_VALUE);

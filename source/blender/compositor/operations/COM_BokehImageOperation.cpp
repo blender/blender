@@ -19,7 +19,7 @@
 #include "COM_BokehImageOperation.h"
 #include "BLI_math.h"
 
-BokehImageOperation::BokehImageOperation() : NodeOperation()
+BokehImageOperation::BokehImageOperation()
 {
   this->addOutputSocket(COM_DT_COLOR);
   this->m_deleteData = false;

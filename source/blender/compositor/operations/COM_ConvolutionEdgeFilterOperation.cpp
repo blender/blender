@@ -19,7 +19,7 @@
 #include "COM_ConvolutionEdgeFilterOperation.h"
 #include "BLI_math.h"
 
-ConvolutionEdgeFilterOperation::ConvolutionEdgeFilterOperation() : ConvolutionFilterOperation()
+ConvolutionEdgeFilterOperation::ConvolutionEdgeFilterOperation()
 {
   /* pass */
 }

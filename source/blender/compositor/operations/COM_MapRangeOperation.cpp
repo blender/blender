@@ -18,7 +18,7 @@
 
 #include "COM_MapRangeOperation.h"
 
-MapRangeOperation::MapRangeOperation() : NodeOperation()
+MapRangeOperation::MapRangeOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addInputSocket(COM_DT_VALUE);

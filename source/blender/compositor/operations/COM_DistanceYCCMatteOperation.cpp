@@ -19,7 +19,7 @@
 #include "COM_DistanceYCCMatteOperation.h"
 #include "BLI_math.h"
 
-DistanceYCCMatteOperation::DistanceYCCMatteOperation() : DistanceRGBMatteOperation()
+DistanceYCCMatteOperation::DistanceYCCMatteOperation()
 {
   /* pass */
 }

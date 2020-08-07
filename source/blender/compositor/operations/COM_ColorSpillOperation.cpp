@@ -20,7 +20,7 @@
 #include "BLI_math.h"
 #define AVG(a, b) ((a + b) / 2)
 
-ColorSpillOperation::ColorSpillOperation() : NodeOperation()
+ColorSpillOperation::ColorSpillOperation()
 {
   addInputSocket(COM_DT_COLOR);
   addInputSocket(COM_DT_VALUE);

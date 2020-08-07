@@ -18,7 +18,7 @@
 
 #include "COM_CryptomatteOperation.h"
 
-CryptomatteOperation::CryptomatteOperation(size_t num_inputs) : NodeOperation()
+CryptomatteOperation::CryptomatteOperation(size_t num_inputs)
 {
   for (size_t i = 0; i < num_inputs; i++) {
     this->addInputSocket(COM_DT_COLOR);

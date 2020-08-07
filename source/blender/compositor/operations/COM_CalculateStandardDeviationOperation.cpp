@@ -23,7 +23,6 @@
 #include "IMB_colormanagement.h"
 
 CalculateStandardDeviationOperation::CalculateStandardDeviationOperation()
-    : CalculateMeanOperation()
 {
   /* pass */
 }

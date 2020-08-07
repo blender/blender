@@ -18,7 +18,7 @@
 
 #include "COM_TranslateOperation.h"
 
-TranslateOperation::TranslateOperation() : NodeOperation()
+TranslateOperation::TranslateOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addInputSocket(COM_DT_VALUE);

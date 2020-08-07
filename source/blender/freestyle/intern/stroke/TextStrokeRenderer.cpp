@@ -20,7 +20,7 @@
 
 namespace Freestyle {
 
-TextStrokeRenderer::TextStrokeRenderer(const char *iFileName) : StrokeRenderer()
+TextStrokeRenderer::TextStrokeRenderer(const char *iFileName)
 {
   if (!iFileName) {
     iFileName = "freestyle.txt";

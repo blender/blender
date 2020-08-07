@@ -18,7 +18,7 @@
 
 #include "COM_InvertOperation.h"
 
-InvertOperation::InvertOperation() : NodeOperation()
+InvertOperation::InvertOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addInputSocket(COM_DT_COLOR);

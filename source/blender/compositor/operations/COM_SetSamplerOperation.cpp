@@ -18,7 +18,7 @@
 
 #include "COM_SetSamplerOperation.h"
 
-SetSamplerOperation::SetSamplerOperation() : NodeOperation()
+SetSamplerOperation::SetSamplerOperation()
 {
   this->addInputSocket(COM_DT_COLOR);
   this->addOutputSocket(COM_DT_COLOR);

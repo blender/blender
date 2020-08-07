@@ -19,7 +19,7 @@
 #include "COM_CropOperation.h"
 #include "BLI_math.h"
 
-CropBaseOperation::CropBaseOperation() : NodeOperation()
+CropBaseOperation::CropBaseOperation()
 {
   this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
   this->addOutputSocket(COM_DT_COLOR);

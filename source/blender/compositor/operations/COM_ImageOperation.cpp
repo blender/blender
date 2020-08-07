@@ -31,7 +31,7 @@
 #include "RE_render_ext.h"
 #include "RE_shader_ext.h"
 
-BaseImageOperation::BaseImageOperation() : NodeOperation()
+BaseImageOperation::BaseImageOperation()
 {
   this->m_image = NULL;
   this->m_buffer = NULL;

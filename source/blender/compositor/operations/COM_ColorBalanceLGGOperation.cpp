@@ -36,7 +36,7 @@ inline float colorbalance_lgg(float in, float lift_lgg, float gamma_inv, float g
   return powf(srgb_to_linearrgb(x), gamma_inv);
 }
 
-ColorBalanceLGGOperation::ColorBalanceLGGOperation() : NodeOperation()
+ColorBalanceLGGOperation::ColorBalanceLGGOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addInputSocket(COM_DT_COLOR);

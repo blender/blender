@@ -112,7 +112,7 @@ static int extrapolate9(float *E0,
 #undef PCPY
 }
 
-AntiAliasOperation::AntiAliasOperation() : NodeOperation()
+AntiAliasOperation::AntiAliasOperation()
 {
   this->addInputSocket(COM_DT_VALUE);
   this->addOutputSocket(COM_DT_VALUE);
