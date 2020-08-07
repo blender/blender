@@ -132,7 +132,7 @@ static void gpu_uniformbuffer_inputs_sort(ListBase *inputs)
       BLI_assert(!"mat3 not supported in UBO");
       continue;
     }
-    else if (input->type > MAX_UBO_GPU_TYPE) {
+    if (input->type > MAX_UBO_GPU_TYPE) {
       BLI_assert(!"GPU type not supported in UBO");
       continue;
     }
@@ -140,10 +140,9 @@ static void gpu_uniformbuffer_inputs_sort(ListBase *inputs)
     if (input->type == cur_type) {
       continue;
     }
-    else {
-      inputs_lookup[input->type] = link;
-      cur_type = input->type;
-    }
+
+    inputs_lookup[input->type] = link;
+    cur_type = input->type;
   }
 
   /* If there is no GPU_VEC3 there is no need for alignment. */

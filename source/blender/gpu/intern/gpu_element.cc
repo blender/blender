@@ -280,7 +280,7 @@ static uint index_range(const uint values[], uint value_len, uint *min_out, uint
     if (value == RESTART_INDEX) {
       continue;
     }
-    else if (value < min_value) {
+    if (value < min_value) {
       min_value = value;
     }
     else if (value > max_value) {
@@ -292,11 +292,10 @@ static uint index_range(const uint values[], uint value_len, uint *min_out, uint
     *max_out = 0;
     return 0;
   }
-  else {
-    *min_out = min_value;
-    *max_out = max_value;
-    return max_value - min_value;
-  }
+
+  *min_out = min_value;
+  *max_out = max_value;
+  return max_value - min_value;
 }
 
 static void squeeze_indices_short(GPUIndexBufBuilder *builder,

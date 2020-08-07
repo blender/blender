@@ -678,14 +678,13 @@ char *gpu_str_skip_token(char *str, char *token, int max)
     if (ELEM(*str, ' ', '(', ')', ',', ';', '\t', '\n', '\r')) {
       break;
     }
-    else {
-      if (token && len < max - 1) {
-        *token = *str;
-        token++;
-        len++;
-      }
-      str++;
+
+    if (token && len < max - 1) {
+      *token = *str;
+      token++;
+      len++;
     }
+    str++;
   }
 
   if (token) {

@@ -539,9 +539,8 @@ static const char *string_join_array_maybe_alloc(const char **str_arr, bool *r_i
   if (is_alloc) {
     return BLI_string_join_arrayN(str_arr, i);
   }
-  else {
-    return str_arr[0];
-  }
+
+  return str_arr[0];
 }
 
 /**

@@ -912,9 +912,8 @@ GPUTexture *GPU_viewport_color_texture(GPUViewport *viewport, int view)
     if (viewport->active_view == view) {
       return dtxl->color;
     }
-    else {
-      return dtxl->color_stereo;
-    }
+
+    return dtxl->color_stereo;
   }
 
   return NULL;

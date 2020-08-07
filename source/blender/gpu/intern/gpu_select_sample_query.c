@@ -147,9 +147,8 @@ bool gpu_select_query_load_id(uint id)
         g_query_state.index++;
         return true;
       }
-      else {
-        return false;
-      }
+
+      return false;
     }
   }
 

@@ -1083,9 +1083,8 @@ GPUBatch *GPU_pbvh_buffers_batch_get(GPU_PBVH_Buffers *buffers, bool fast, bool 
   if (wires) {
     return (fast && buffers->lines_fast) ? buffers->lines_fast : buffers->lines;
   }
-  else {
-    return (fast && buffers->triangles_fast) ? buffers->triangles_fast : buffers->triangles;
-  }
+
+  return (fast && buffers->triangles_fast) ? buffers->triangles_fast : buffers->triangles;
 }
 
 bool GPU_pbvh_buffers_has_overlays(GPU_PBVH_Buffers *buffers)

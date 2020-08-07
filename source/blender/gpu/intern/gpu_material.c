@@ -311,12 +311,11 @@ static float eval_profile(float r, short falloff_type, float sharpness, float pa
   if (falloff_type == SHD_SUBSURFACE_BURLEY || falloff_type == SHD_SUBSURFACE_RANDOM_WALK) {
     return burley_profile(r, param) / BURLEY_TRUNCATE_CDF;
   }
-  else if (falloff_type == SHD_SUBSURFACE_CUBIC) {
+  if (falloff_type == SHD_SUBSURFACE_CUBIC) {
     return cubic_profile(r, param, sharpness);
   }
-  else {
-    return gaussian_profile(r, param);
-  }
+
+  return gaussian_profile(r, param);
 }
 
 /* Resolution for each sample of the precomputed kernel profile */

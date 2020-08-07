@@ -157,13 +157,12 @@ GPU_INLINE const GPUShaderInput *input_lookup(const GPUShaderInterface *shaderfa
         }
         return NULL; /* not found */
       }
-      else {
-        /* This is a bit dangerous since we could have a hash collision.
-         * where the asked uniform that does not exist has the same hash
-         * as a real uniform. */
-        BLI_assert(match(name, shaderface->name_buffer + inputs[i].name_offset));
-        return inputs + i;
-      }
+
+      /* This is a bit dangerous since we could have a hash collision.
+       * where the asked uniform that does not exist has the same hash
+       * as a real uniform. */
+      BLI_assert(match(name, shaderface->name_buffer + inputs[i].name_offset));
+      return inputs + i;
     }
   }
   return NULL; /* not found */

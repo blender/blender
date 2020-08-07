@@ -114,9 +114,8 @@ static uint attr_align(const GPUVertAttr *a)
   if (a->comp_len == 3 && c <= 2) {
     return 4 * c; /* AMD HW can't fetch these well, so pad it out (other vendors too?) */
   }
-  else {
-    return c; /* most fetches are ok if components are naturally aligned */
-  }
+
+  return c; /* most fetches are ok if components are naturally aligned */
 }
 
 uint vertex_buffer_size(const GPUVertFormat *format, uint vertex_len)
