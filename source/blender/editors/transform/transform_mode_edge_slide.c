@@ -534,7 +534,7 @@ static EdgeSlideData *createEdgeSlideVerts_double_side(TransInfo *t, TransDataCo
   int sv_tot;
   int *sv_table; /* BMVert -> sv_array index */
   EdgeSlideData *sld = MEM_callocN(sizeof(*sld), "sld");
-  float mval[2] = {(float)t->mval[0], (float)t->mval[1]};
+  const float mval[2] = {(float)t->mval[0], (float)t->mval[1]};
   int numsel, i, loop_nr;
   bool use_occlude_geometry = false;
   View3D *v3d = NULL;
@@ -894,7 +894,7 @@ static EdgeSlideData *createEdgeSlideVerts_single_side(TransInfo *t, TransDataCo
   int sv_tot;
   int *sv_table; /* BMVert -> sv_array index */
   EdgeSlideData *sld = MEM_callocN(sizeof(*sld), "sld");
-  float mval[2] = {(float)t->mval[0], (float)t->mval[1]};
+  const float mval[2] = {(float)t->mval[0], (float)t->mval[1]};
   int loop_nr;
   bool use_occlude_geometry = false;
   View3D *v3d = NULL;

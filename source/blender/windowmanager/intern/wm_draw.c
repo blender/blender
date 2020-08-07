@@ -570,8 +570,8 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
   }
 
   /* Not the same layout as rectf/recti. */
-  float rectt[4] = {rect_tex.xmin, rect_tex.ymin, rect_tex.xmax, rect_tex.ymax};
-  float rectg[4] = {rect_geo.xmin, rect_geo.ymin, rect_geo.xmax, rect_geo.ymax};
+  const float rectt[4] = {rect_tex.xmin, rect_tex.ymin, rect_tex.xmax, rect_tex.ymax};
+  const float rectg[4] = {rect_geo.xmin, rect_geo.ymin, rect_geo.xmax, rect_geo.ymax};
 
   if (blend) {
     /* GL_ONE because regions drawn offscreen have premultiplied alpha. */

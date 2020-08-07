@@ -3023,7 +3023,7 @@ static bool ui_textedit_insert_buf(uiBut *but,
 
 static bool ui_textedit_insert_ascii(uiBut *but, uiHandleButtonData *data, char ascii)
 {
-  char buf[2] = {ascii, '\0'};
+  const char buf[2] = {ascii, '\0'};
 
   if (UI_but_is_utf8(but) && (BLI_str_utf8_size(buf) == -1)) {
     printf(
@@ -6955,7 +6955,7 @@ static bool ui_numedit_but_CURVEPROFILE(uiBlock *block,
     fy *= mval_factor;
 
     /* Move all selected points. */
-    float delta[2] = {fx, fy};
+    const float delta[2] = {fx, fy};
     for (a = 0; a < profile->path_len; a++) {
       /* Don't move the last and first control points. */
       if ((pts[a].flag & PROF_SELECT) && (a != 0) && (a != profile->path_len)) {

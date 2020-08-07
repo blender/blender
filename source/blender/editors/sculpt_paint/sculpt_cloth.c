@@ -979,7 +979,7 @@ void SCULPT_cloth_simulation_limits_draw(const uint gpuattr,
                                          const float alpha)
 {
   float cursor_trans[4][4], cursor_rot[4][4];
-  float z_axis[4] = {0.0f, 0.0f, 1.0f, 0.0f};
+  const float z_axis[4] = {0.0f, 0.0f, 1.0f, 0.0f};
   float quat[4];
   unit_m4(cursor_trans);
   translate_m4(cursor_trans, location[0], location[1], location[2]);

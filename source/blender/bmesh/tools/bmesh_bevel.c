@@ -1919,9 +1919,11 @@ static void calculate_profile_segments(const Profile *profile,
     }
     else {
       if (use_map) {
-        float p[3] = {reversed ? (float)yvals[ns - k] : (float)xvals[k],
-                      reversed ? (float)xvals[ns - k] : (float)yvals[k],
-                      0.0f};
+        const float p[3] = {
+            reversed ? (float)yvals[ns - k] : (float)xvals[k],
+            reversed ? (float)xvals[ns - k] : (float)yvals[k],
+            0.0f,
+        };
         /* Do the 2D->3D transformation of the profile coordinates. */
         mul_v3_m4v3(co, map, p);
       }

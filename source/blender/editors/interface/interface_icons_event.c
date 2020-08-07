@@ -143,7 +143,7 @@ void icon_draw_rect_input(float x,
   };
 
   if ((event_type >= EVT_AKEY) && (event_type <= EVT_ZKEY)) {
-    char str[2] = {'A' + (event_type - EVT_AKEY), '\0'};
+    const char str[2] = {'A' + (event_type - EVT_AKEY), '\0'};
     icon_draw_rect_input_text(&rect, color, str, 13);
   }
   else if ((event_type >= EVT_F1KEY) && (event_type <= EVT_F12KEY)) {

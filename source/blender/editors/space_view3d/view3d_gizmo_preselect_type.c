@@ -156,7 +156,7 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
       if (eve_test) {
         BMVert *vert = (BMVert *)eve_test;
         float vert_p_co[3], vert_co[3];
-        float mval_f[2] = {UNPACK2(vc.mval)};
+        const float mval_f[2] = {UNPACK2(vc.mval)};
         mul_v3_m4v3(vert_co, gz_ele->bases[base_index_vert]->object->obmat, vert->co);
         ED_view3d_project(vc.region, vert_co, vert_p_co);
         float len = len_v2v2(vert_p_co, mval_f);

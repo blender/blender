@@ -254,7 +254,7 @@ void BKE_curveprofile_remove_by_flag(CurveProfile *profile, const short flag)
 CurveProfilePoint *BKE_curveprofile_insert(CurveProfile *profile, float x, float y)
 {
   CurveProfilePoint *new_pt = NULL;
-  float new_loc[2] = {x, y};
+  const float new_loc[2] = {x, y};
 
   /* Don't add more control points  than the maximum size of the higher resolution table. */
   if (profile->path_len == PROF_TABLE_MAX - 1) {
@@ -266,8 +266,8 @@ CurveProfilePoint *BKE_curveprofile_insert(CurveProfile *profile, float x, float
   float min_distance = FLT_MAX;
   int i_insert = 0;
   for (int i = 0; i < profile->path_len - 1; i++) {
-    float loc1[2] = {profile->path[i].x, profile->path[i].y};
-    float loc2[2] = {profile->path[i + 1].x, profile->path[i + 1].y};
+    const float loc1[2] = {profile->path[i].x, profile->path[i].y};
+    const float loc2[2] = {profile->path[i + 1].x, profile->path[i + 1].y};
 
     distance = dist_squared_to_line_segment_v2(new_loc, loc1, loc2);
     if (distance < min_distance) {

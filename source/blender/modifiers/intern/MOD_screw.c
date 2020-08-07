@@ -301,7 +301,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       float totlen = len_v3(mtx_tx[3]);
 
       if (totlen != 0.0f) {
-        float zero[3] = {0.0f, 0.0f, 0.0f};
+        const float zero[3] = {0.0f, 0.0f, 0.0f};
         float cp[3];
         screw_ofs = closest_to_line_v3(cp, mtx_tx[3], zero, axis_vec);
       }
@@ -412,7 +412,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, (int)totvert);
 
   if (mloopuv_layers_tot) {
-    float zero_co[3] = {0};
+    const float zero_co[3] = {0};
     plane_from_point_normal_v3(uv_axis_plane, zero_co, axis_vec);
   }
 

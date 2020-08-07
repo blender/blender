@@ -205,7 +205,7 @@ void ED_object_rotation_from_quat(float rot[3], const float viewquat[4], const c
   switch (align_axis) {
     case 'X': {
       /* Same as 'rv3d->viewinv[1]' */
-      float axis_y[4] = {0.0f, 1.0f, 0.0f};
+      const float axis_y[4] = {0.0f, 1.0f, 0.0f};
       float quat_y[4], quat[4];
       axis_angle_to_quat(quat_y, axis_y, M_PI_2);
       mul_qt_qtqt(quat, viewquat, quat_y);

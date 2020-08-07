@@ -1917,7 +1917,7 @@ static void psys_particle_on_shape(int UNUSED(distr),
                                    float orco[3])
 {
   /* TODO */
-  float zerovec[3] = {0.0f, 0.0f, 0.0f};
+  const float zerovec[3] = {0.0f, 0.0f, 0.0f};
   if (vec) {
     copy_v3_v3(vec, zerovec);
   }
@@ -2168,10 +2168,10 @@ int do_guides(Depsgraph *depsgraph,
 
       {
         ParticleKey key;
-        float par_co[3] = {0.0f, 0.0f, 0.0f};
-        float par_vel[3] = {0.0f, 0.0f, 0.0f};
-        float par_rot[4] = {1.0f, 0.0f, 0.0f, 0.0f};
-        float orco_offset[3] = {0.0f, 0.0f, 0.0f};
+        const float par_co[3] = {0.0f, 0.0f, 0.0f};
+        const float par_vel[3] = {0.0f, 0.0f, 0.0f};
+        const float par_rot[4] = {1.0f, 0.0f, 0.0f, 0.0f};
+        const float orco_offset[3] = {0.0f, 0.0f, 0.0f};
 
         copy_v3_v3(key.co, vec_to_point);
         do_kink(&key,
@@ -4692,7 +4692,7 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
     float mat[4][4];
     ParticleKey *key1;
     float t = (cfra - pa->time) / pa->lifetime;
-    float par_orco[3] = {0.0f, 0.0f, 0.0f};
+    const float par_orco[3] = {0.0f, 0.0f, 0.0f};
 
     key1 = &pa->state;
     offset_child(cpa, key1, key1->rot, state, part->childflat, part->childrad);

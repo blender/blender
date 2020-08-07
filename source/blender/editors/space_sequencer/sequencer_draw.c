@@ -2169,7 +2169,7 @@ static void draw_cache_view(const bContext *C)
   if (scene->ed->cache_flag & SEQ_CACHE_VIEW_FINAL_OUT) {
     stripe_bot = UI_view2d_region_to_view_y(v2d, V2D_SCROLL_HANDLE_HEIGHT);
     stripe_top = stripe_bot + stripe_ht;
-    float bg_color[4] = {1.0f, 0.4f, 0.2f, 0.1f};
+    const float bg_color[4] = {1.0f, 0.4f, 0.2f, 0.1f};
 
     immUniformColor4f(bg_color[0], bg_color[1], bg_color[2], bg_color[3]);
     immRectf(pos, scene->r.sfra, stripe_bot, scene->r.efra, stripe_top);
@@ -2188,7 +2188,7 @@ static void draw_cache_view(const bContext *C)
     stripe_top = stripe_bot + stripe_ht;
 
     if (scene->ed->cache_flag & SEQ_CACHE_VIEW_RAW) {
-      float bg_color[4] = {1.0f, 0.1f, 0.02f, 0.1f};
+      const float bg_color[4] = {1.0f, 0.1f, 0.02f, 0.1f};
       immUniformColor4f(bg_color[0], bg_color[1], bg_color[2], bg_color[3]);
       immRectf(pos, seq->startdisp, stripe_bot, seq->enddisp, stripe_top);
     }
@@ -2197,7 +2197,7 @@ static void draw_cache_view(const bContext *C)
     stripe_top = stripe_bot + stripe_ht;
 
     if (scene->ed->cache_flag & SEQ_CACHE_VIEW_PREPROCESSED) {
-      float bg_color[4] = {0.1f, 0.1f, 0.75f, 0.1f};
+      const float bg_color[4] = {0.1f, 0.1f, 0.75f, 0.1f};
       immUniformColor4f(bg_color[0], bg_color[1], bg_color[2], bg_color[3]);
       immRectf(pos, seq->startdisp, stripe_bot, seq->enddisp, stripe_top);
     }
@@ -2206,7 +2206,7 @@ static void draw_cache_view(const bContext *C)
     stripe_bot = stripe_top - stripe_ht;
 
     if (scene->ed->cache_flag & SEQ_CACHE_VIEW_COMPOSITE) {
-      float bg_color[4] = {1.0f, 0.6f, 0.0f, 0.1f};
+      const float bg_color[4] = {1.0f, 0.6f, 0.0f, 0.1f};
       immUniformColor4f(bg_color[0], bg_color[1], bg_color[2], bg_color[3]);
       immRectf(pos, seq->startdisp, stripe_bot, seq->enddisp, stripe_top);
     }

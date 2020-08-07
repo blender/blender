@@ -1040,7 +1040,7 @@ static void subdiv_foreach_boundary_edges(SubdivForeachTaskContext *ctx,
 
 static void rotate_indices(const int rot, int *a, int *b, int *c, int *d)
 {
-  int values[4] = {*a, *b, *c, *d};
+  const int values[4] = {*a, *b, *c, *d};
   *a = values[(0 - rot + 4) % 4];
   *b = values[(1 - rot + 4) % 4];
   *c = values[(2 - rot + 4) % 4];

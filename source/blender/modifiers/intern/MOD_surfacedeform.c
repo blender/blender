@@ -449,7 +449,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
   SDefBindWeightData *bwdata;
   SDefBindPoly *bpoly;
 
-  float world[3] = {0.0f, 0.0f, 1.0f};
+  const float world[3] = {0.0f, 0.0f, 1.0f};
   float avg_point_dist = 0.0f;
   float tot_weight = 0.0f;
   int inf_weight_flags = 0;

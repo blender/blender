@@ -126,7 +126,7 @@ static void calcVertSlideMouseActiveVert(struct TransInfo *t, const int mval[2])
 {
   /* Active object may have no selected vertices. */
   VertSlideData *sld = TRANS_DATA_CONTAINER_FIRST_OK(t)->custom.mode.data;
-  float mval_fl[2] = {UNPACK2(mval)};
+  const float mval_fl[2] = {UNPACK2(mval)};
   TransDataVertSlideVert *sv;
 
   /* set the vertex to use as a reference for the mouse direction 'curr_sv_index' */
@@ -153,8 +153,8 @@ static void calcVertSlideMouseActiveVert(struct TransInfo *t, const int mval[2])
 static void calcVertSlideMouseActiveEdges(struct TransInfo *t, const int mval[2])
 {
   VertSlideData *sld = TRANS_DATA_CONTAINER_FIRST_OK(t)->custom.mode.data;
-  float imval_fl[2] = {UNPACK2(t->mouse.imval)};
-  float mval_fl[2] = {UNPACK2(mval)};
+  const float imval_fl[2] = {UNPACK2(t->mouse.imval)};
+  const float mval_fl[2] = {UNPACK2(mval)};
 
   float dir[3];
   TransDataVertSlideVert *sv;

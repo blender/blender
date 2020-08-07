@@ -264,7 +264,7 @@ static bool textview_draw_string(TextViewDrawState *tds,
 
   if (tds->sel[0] != tds->sel[1]) {
     textview_step_sel(tds, -final_offset);
-    int pos[2] = {tds->xy[0], line_bottom};
+    const int pos[2] = {tds->xy[0], line_bottom};
     textview_draw_sel(s, pos, len, tds, bg_sel);
   }
 

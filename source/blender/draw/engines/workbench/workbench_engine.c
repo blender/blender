@@ -64,7 +64,7 @@ void workbench_engine_init(void *ved)
   workbench_update_world_ubo(wpd);
 
   if (txl->dummy_image_tx == NULL) {
-    float fpixel[4] = {1.0f, 0.0f, 1.0f, 1.0f};
+    const float fpixel[4] = {1.0f, 0.0f, 1.0f, 1.0f};
     txl->dummy_image_tx = DRW_texture_create_2d(1, 1, GPU_RGBA8, 0, fpixel);
   }
   wpd->dummy_image_tx = txl->dummy_image_tx;
@@ -480,8 +480,8 @@ void workbench_draw_sample(void *ved)
   WORKBENCH_PrivateData *wpd = vedata->stl->wpd;
   WORKBENCH_PassList *psl = vedata->psl;
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-  float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-  float clear_col_with_alpha[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  const float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  const float clear_col_with_alpha[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 
   const bool do_render = workbench_antialiasing_setup(vedata);
   const bool xray_is_visible = wpd->shading.xray_alpha > 0.0f;

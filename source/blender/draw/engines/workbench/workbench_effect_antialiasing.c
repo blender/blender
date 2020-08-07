@@ -301,7 +301,7 @@ void workbench_antialiasing_cache_init(WORKBENCH_Data *vedata)
 
   const float *size = DRW_viewport_size_get();
   const float *sizeinv = DRW_viewport_invert_size_get();
-  float metrics[4] = {sizeinv[0], sizeinv[1], size[0], size[1]};
+  const float metrics[4] = {sizeinv[0], sizeinv[1], size[0], size[1]};
 
   {
     /* Stage 1: Edge detection. */

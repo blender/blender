@@ -202,8 +202,8 @@ BoundBox *BKE_hair_boundbox_get(Object *ob)
     for (int a = 0; a < hair->totpoint; a++) {
       float *co = hair_co[a];
       float radius = (hair_radius) ? hair_radius[a] : 0.0f;
-      float co_min[3] = {co[0] - radius, co[1] - radius, co[2] - radius};
-      float co_max[3] = {co[0] + radius, co[1] + radius, co[2] + radius};
+      const float co_min[3] = {co[0] - radius, co[1] - radius, co[2] - radius};
+      const float co_max[3] = {co[0] + radius, co[1] + radius, co[2] + radius};
       DO_MIN(co_min, min);
       DO_MAX(co_max, max);
     }

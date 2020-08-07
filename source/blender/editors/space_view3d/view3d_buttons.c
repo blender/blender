@@ -1071,7 +1071,7 @@ static void v3d_object_dimension_buts(bContext *C, uiLayout *layout, View3D *v3d
     const float lim = FLT_MAX;
     for (int i = 0; i < 3; i++) {
       uiBut *but;
-      char text[3] = {'X' + i, ':', '\0'};
+      const char text[3] = {'X' + i, ':', '\0'};
       but = uiDefButF(block,
                       UI_BTYPE_NUM,
                       B_TRANSFORM_PANEL_DIMS,

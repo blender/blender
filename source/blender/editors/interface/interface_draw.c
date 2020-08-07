@@ -840,7 +840,7 @@ static void draw_scope_end(const rctf *rect, GLint *scissor)
 
   /* outline */
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
-  float color[4] = {0.0f, 0.0f, 0.0f, 0.5f};
+  const float color[4] = {0.0f, 0.0f, 0.0f, 0.5f};
   UI_draw_roundbox_4fv(
       false, rect->xmin - 1, rect->ymin, rect->xmax + 1, rect->ymax + 1, 3.0f, color);
 }
@@ -858,7 +858,7 @@ static void histogram_draw_one(float r,
                                const bool is_line,
                                uint pos_attr)
 {
-  float color[4] = {r, g, b, alpha};
+  const float color[4] = {r, g, b, alpha};
 
   /* that can happen */
   if (res == 0) {
@@ -1032,7 +1032,7 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(region),
   Scopes *scopes = (Scopes *)but->poin;
   int scissor[4];
   float colors[3][3];
-  float colorsycc[3][3] = {{1, 0, 1}, {1, 1, 0}, {0, 1, 1}};
+  const float colorsycc[3][3] = {{1, 0, 1}, {1, 1, 0}, {0, 1, 1}};
   /* colors  pre multiplied by alpha for speed up */
   float colors_alpha[3][3], colorsycc_alpha[3][3];
   float min, max;
@@ -1172,7 +1172,7 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(region),
 
     /* LUMA (1 channel) */
     if (scopes->wavefrm_mode == SCOPES_WAVEFRM_LUMA) {
-      float col[3] = {alpha, alpha, alpha};
+      const float col[3] = {alpha, alpha, alpha};
 
       GPU_matrix_push();
       GPU_matrix_translate_2f(rect.xmin, yofs);
@@ -1465,7 +1465,7 @@ void ui_draw_but_VECTORSCOPE(ARegion *UNUSED(region),
 
   if (scopes->ok && scopes->vecscope != NULL) {
     /* pixel point cloud */
-    float col[3] = {alpha, alpha, alpha};
+    const float col[3] = {alpha, alpha, alpha};
 
     GPU_blend_set_func(GPU_ONE, GPU_ONE);
     GPU_point_size(1.0);
@@ -1773,7 +1773,7 @@ void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors *UNUSED(wcol), const
 void ui_draw_but_UNITVEC(uiBut *but, const uiWidgetColors *wcol, const rcti *rect)
 {
   /* sphere color */
-  float diffuse[3] = {1.0f, 1.0f, 1.0f};
+  const float diffuse[3] = {1.0f, 1.0f, 1.0f};
   float light[3];
   const float size = 0.5f * min_ff(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect));
 
@@ -1937,7 +1937,7 @@ void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, 
   /* Do this first to not mess imm context */
   if (but->a1 == UI_GRAD_H) {
     /* magic trigger for curve backgrounds */
-    float col[3] = {0.0f, 0.0f, 0.0f}; /* dummy arg */
+    const float col[3] = {0.0f, 0.0f, 0.0f}; /* dummy arg */
 
     rcti grid = {
         .xmin = rect->xmin + zoomx * (-offsx),
@@ -2483,7 +2483,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(region),
               (rect.ymax + 1) - (rect.ymin - 1));
 
   if (scopes->track_disabled) {
-    float color[4] = {0.7f, 0.3f, 0.3f, 0.3f};
+    const float color[4] = {0.7f, 0.3f, 0.3f, 0.3f};
     UI_draw_roundbox_corner_set(UI_CNR_ALL);
     UI_draw_roundbox_4fv(
         true, rect.xmin - 1, rect.ymin, rect.xmax + 1, rect.ymax + 1, 3.0f, color);
@@ -2532,7 +2532,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(region),
       float col_sel[4], col_outline[4];
 
       if (scopes->use_track_mask) {
-        float color[4] = {0.0f, 0.0f, 0.0f, 0.3f};
+        const float color[4] = {0.0f, 0.0f, 0.0f, 0.3f};
         UI_draw_roundbox_corner_set(UI_CNR_ALL);
         UI_draw_roundbox_4fv(
             true, rect.xmin - 1, rect.ymin, rect.xmax + 1, rect.ymax + 1, 3.0f, color);
@@ -2565,7 +2565,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(region),
 
       /* Do stipple cross with geometry */
       immBegin(GPU_PRIM_LINES, 7 * 2 * 2);
-      float pos_sel[8] = {-10.0f, -7.0f, -4.0f, -1.0f, 2.0f, 5.0f, 8.0f, 11.0f};
+      const float pos_sel[8] = {-10.0f, -7.0f, -4.0f, -1.0f, 2.0f, 5.0f, 8.0f, 11.0f};
       for (int axe = 0; axe < 2; axe++) {
         for (int i = 0; i < 7; i++) {
           float x1 = pos_sel[i] * (1 - axe);
@@ -2595,7 +2595,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(region),
   }
 
   if (!ok) {
-    float color[4] = {0.0f, 0.0f, 0.0f, 0.3f};
+    const float color[4] = {0.0f, 0.0f, 0.0f, 0.3f};
     UI_draw_roundbox_corner_set(UI_CNR_ALL);
     UI_draw_roundbox_4fv(
         true, rect.xmin - 1, rect.ymin, rect.xmax + 1, rect.ymax + 1, 3.0f, color);
@@ -2773,7 +2773,7 @@ void ui_draw_dropshadow(
   GPU_batch_draw(batch);
 
   /* outline emphasis */
-  float color[4] = {0.0f, 0.0f, 0.0f, 0.4f};
+  const float color[4] = {0.0f, 0.0f, 0.0f, 0.4f};
   UI_draw_roundbox_4fv(false,
                        rct->xmin - 0.5f,
                        rct->ymin - 0.5f,

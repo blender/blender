@@ -350,8 +350,8 @@ static void gizmo2d_xform_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup
     ptr = WM_gizmo_operator_set(ggd->cage, 0, ot_translate, NULL);
     RNA_boolean_set(ptr, "release_confirm", 1);
 
-    bool constraint_x[3] = {1, 0, 0};
-    bool constraint_y[3] = {0, 1, 0};
+    const bool constraint_x[3] = {1, 0, 0};
+    const bool constraint_y[3] = {0, 1, 0};
 
     ptr = WM_gizmo_operator_set(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_X, ot_resize, NULL);
     PropertyRNA *prop_release_confirm = RNA_struct_find_property(ptr, "release_confirm");
@@ -484,7 +484,7 @@ static void gizmo2d_xform_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
   ARegion *region = CTX_wm_region(C);
   GizmoGroup2D *ggd = gzgroup->customdata;
   float origin[3] = {UNPACK2(ggd->origin), 0.0f};
-  float origin_aa[3] = {UNPACK2(ggd->origin), 0.0f};
+  const float origin_aa[3] = {UNPACK2(ggd->origin), 0.0f};
 
   gizmo2d_origin_to_region(region, origin);
 

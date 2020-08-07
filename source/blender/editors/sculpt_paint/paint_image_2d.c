@@ -2163,7 +2163,7 @@ void paint_2d_gradient_fill(
     for (x_px = 0; x_px < ibuf->x; x_px++) {
       for (y_px = 0; y_px < ibuf->y; y_px++) {
         float f;
-        float p[2] = {x_px - image_init[0], y_px - image_init[1]};
+        const float p[2] = {x_px - image_init[0], y_px - image_init[1]};
 
         switch (br->gradient_fill_mode) {
           case BRUSH_GRADIENT_LINEAR: {
@@ -2191,7 +2191,7 @@ void paint_2d_gradient_fill(
     for (x_px = 0; x_px < ibuf->x; x_px++) {
       for (y_px = 0; y_px < ibuf->y; y_px++) {
         float f;
-        float p[2] = {x_px - image_init[0], y_px - image_init[1]};
+        const float p[2] = {x_px - image_init[0], y_px - image_init[1]};
 
         switch (br->gradient_fill_mode) {
           case BRUSH_GRADIENT_LINEAR: {

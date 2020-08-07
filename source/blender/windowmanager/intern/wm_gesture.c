@@ -324,7 +324,7 @@ static void draw_filled_lasso(wmGesture *gt)
   int(*mcoords)[2] = MEM_mallocN(sizeof(*mcoords) * (mcoords_len + 1), __func__);
   int i;
   rcti rect;
-  float red[4] = {1.0f, 0.0f, 0.0f, 0.0f};
+  const float red[4] = {1.0f, 0.0f, 0.0f, 0.0f};
 
   for (i = 0; i < mcoords_len; i++, lasso += 2) {
     mcoords[i][0] = lasso[0];

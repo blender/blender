@@ -1740,7 +1740,7 @@ float BKE_brush_sample_tex_3d(const Scene *scene,
   }
   else if (mtex->brush_map_mode == MTEX_MAP_MODE_STENCIL) {
     float rotation = -mtex->rot;
-    float point_2d[2] = {point[0], point[1]};
+    const float point_2d[2] = {point[0], point[1]};
     float x, y;
     float co[3];
 
@@ -1770,7 +1770,7 @@ float BKE_brush_sample_tex_3d(const Scene *scene,
   }
   else {
     float rotation = -mtex->rot;
-    float point_2d[2] = {point[0], point[1]};
+    const float point_2d[2] = {point[0], point[1]};
     float x = 0.0f, y = 0.0f; /* Quite warnings */
     float invradius = 1.0f;   /* Quite warnings */
     float co[3];
@@ -1853,7 +1853,7 @@ float BKE_brush_sample_masktex(
   }
   if (mtex->brush_map_mode == MTEX_MAP_MODE_STENCIL) {
     float rotation = -mtex->rot;
-    float point_2d[2] = {point[0], point[1]};
+    const float point_2d[2] = {point[0], point[1]};
     float x, y;
     float co[3];
 
@@ -1883,7 +1883,7 @@ float BKE_brush_sample_masktex(
   }
   else {
     float rotation = -mtex->rot;
-    float point_2d[2] = {point[0], point[1]};
+    const float point_2d[2] = {point[0], point[1]};
     float x = 0.0f, y = 0.0f; /* Quite warnings */
     float invradius = 1.0f;   /* Quite warnings */
     float co[3];

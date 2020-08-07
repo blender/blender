@@ -236,7 +236,7 @@ static void generate_geometry(GpencilModifierData *md,
 
       float rand[3][3];
       for (int j = 0; j < 3; j++) {
-        uint primes[3] = {2, 3, 7};
+        const uint primes[3] = {2, 3, 7};
         double offset[3] = {0.0, 0.0, 0.0};
         double r[3];
         /* To ensure a nice distribution, we use halton sequence and offset using the seed. */

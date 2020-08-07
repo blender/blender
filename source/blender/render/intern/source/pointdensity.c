@@ -868,7 +868,7 @@ void RE_point_density_minmax(struct Depsgraph *depsgraph,
     particle_system_minmax(depsgraph, scene, object, psys, pd->radius, r_min, r_max);
   }
   else {
-    float radius[3] = {pd->radius, pd->radius, pd->radius};
+    const float radius[3] = {pd->radius, pd->radius, pd->radius};
     BoundBox *bb = BKE_object_boundbox_get(object);
 
     if (bb != NULL) {

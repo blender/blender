@@ -3376,7 +3376,7 @@ static void gpencil_stroke_join_strokes(bGPDstroke *gps_a,
   bGPDspoint point;
   bGPDspoint *pt;
   int i;
-  float delta[3] = {1.0f, 1.0f, 1.0f};
+  const float delta[3] = {1.0f, 1.0f, 1.0f};
   float deltatime = 0.0f;
 
   /* sanity checks */

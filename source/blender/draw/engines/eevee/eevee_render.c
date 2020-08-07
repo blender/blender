@@ -93,8 +93,10 @@ bool EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
     copy_v4_fl4(camtexcofac, 1.0f, 1.0f, 0.0f, 0.0f);
   }
 
-  int final_res[2] = {size_orig[0] + g_data->overscan_pixels * 2.0f,
-                      size_orig[1] + g_data->overscan_pixels * 2.0f};
+  const int final_res[2] = {
+      size_orig[0] + g_data->overscan_pixels * 2.0f,
+      size_orig[1] + g_data->overscan_pixels * 2.0f,
+  };
 
   int max_dim = max_ii(final_res[0], final_res[1]);
   if (max_dim > GPU_max_texture_size()) {
@@ -523,10 +525,10 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
   }
 
   while (render_samples < tot_sample && !RE_engine_test_break(engine)) {
-    float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    const float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     float clear_depth = 1.0f;
     uint clear_stencil = 0x00;
-    uint primes[3] = {2, 3, 7};
+    const uint primes[3] = {2, 3, 7};
     double offset[3] = {0.0, 0.0, 0.0};
     double r[3];
 

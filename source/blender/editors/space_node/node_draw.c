@@ -986,7 +986,7 @@ void node_draw_shadow(SpaceNode *snode, bNode *node, float radius, float alpha)
   else {
     const float margin = 3.0f;
 
-    float color[4] = {0.0f, 0.0f, 0.0f, 0.33f};
+    const float color[4] = {0.0f, 0.0f, 0.0f, 0.33f};
     UI_draw_roundbox_aa(true,
                         rct->xmin - margin,
                         rct->ymin - margin,

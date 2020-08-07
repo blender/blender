@@ -342,7 +342,7 @@ void OVERLAY_outline_draw(OVERLAY_Data *vedata)
 {
   OVERLAY_FramebufferList *fbl = vedata->fbl;
   OVERLAY_PassList *psl = vedata->psl;
-  float clearcol[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  const float clearcol[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
   bool do_outlines = psl->outlines_prepass_ps != NULL &&
                      !DRW_pass_is_empty(psl->outlines_prepass_ps);

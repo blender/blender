@@ -149,7 +149,7 @@ void EEVEE_volumes_set_jitter(EEVEE_ViewLayerData *sldata, uint current_sample)
 
   double ht_point[3];
   double ht_offset[3] = {0.0, 0.0};
-  uint ht_primes[3] = {3, 7, 2};
+  const uint ht_primes[3] = {3, 7, 2};
 
   BLI_halton_3d(ht_primes, ht_offset, current_sample, ht_point);
 
@@ -279,8 +279,8 @@ void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   common_data->vol_use_lights = (scene_eval->eevee.flag & SCE_EEVEE_VOLUMETRIC_LIGHTS) != 0;
 
   if (!e_data.dummy_scatter) {
-    float scatter[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    float transmit[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+    const float scatter[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    const float transmit[4] = {1.0f, 1.0f, 1.0f, 1.0f};
     e_data.dummy_scatter = DRW_texture_create_3d(1, 1, 1, GPU_RGBA8, DRW_TEX_WRAP, scatter);
     e_data.dummy_transmit = DRW_texture_create_3d(1, 1, 1, GPU_RGBA8, DRW_TEX_WRAP, transmit);
   }
@@ -852,7 +852,7 @@ void EEVEE_volumes_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, 
   EEVEE_PassList *psl = vedata->psl;
   EEVEE_EffectsInfo *effects = stl->effects;
 
-  float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  const float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
   /* Create FrameBuffer. */
 

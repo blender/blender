@@ -157,7 +157,7 @@ static void init_bake_rast(MBakeRast *bake_rast,
 
 static void flush_pixel(const MResolvePixelData *data, const int x, const int y)
 {
-  float st[2] = {(x + 0.5f) / data->w, (y + 0.5f) / data->h};
+  const float st[2] = {(x + 0.5f) / data->w, (y + 0.5f) / data->h};
   const float *st0, *st1, *st2;
   const float *tang0, *tang1, *tang2;
   float no0[3], no1[3], no2[3];

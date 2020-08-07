@@ -1469,7 +1469,7 @@ void SIM_mass_spring_force_face_wind(
     Implicit_Data *data, int v1, int v2, int v3, const float (*winvec)[3])
 {
   const float effector_scale = 0.02f;
-  int vs[3] = {v1, v2, v3};
+  const int vs[3] = {v1, v2, v3};
   float win[3], nor[3], area;
   float factor, base_force;
   float force[3];
@@ -1509,7 +1509,7 @@ void SIM_mass_spring_force_face_extern(
     Implicit_Data *data, int v1, int v2, int v3, const float (*forcevec)[3])
 {
   const float effector_scale = 0.02f;
-  int vs[3] = {v1, v2, v3};
+  const int vs[3] = {v1, v2, v3};
   float nor[3], area;
   float factor, base_force[3];
   float force[3][3];

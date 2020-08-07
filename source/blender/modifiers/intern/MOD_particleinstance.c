@@ -442,7 +442,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
             float angle = 2.0f * M_PI *
                           (pimd->rotation +
                            pimd->random_rotation * (psys_frand(psys, 19957323 + p) - 0.5f));
-            float eul[3] = {0.0f, 0.0f, angle};
+            const float eul[3] = {0.0f, 0.0f, angle};
             float rot[4];
 
             eul_to_quat(rot, eul);

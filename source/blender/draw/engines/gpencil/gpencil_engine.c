@@ -71,7 +71,7 @@ void GPENCIL_engine_init(void *ved)
   }
 
   if (txl->dummy_texture == NULL) {
-    float pixels[1][4] = {{1.0f, 0.0f, 1.0f, 1.0f}};
+    const float pixels[1][4] = {{1.0f, 0.0f, 1.0f, 1.0f}};
     txl->dummy_texture = DRW_texture_create_2d(1, 1, GPU_RGBA8, DRW_TEX_WRAP, (float *)pixels);
   }
 
@@ -766,7 +766,7 @@ static void gpencil_draw_mask(GPENCIL_Data *vedata, GPENCIL_tObject *ob, GPENCIL
 {
   GPENCIL_PassList *psl = vedata->psl;
   GPENCIL_FramebufferList *fbl = vedata->fbl;
-  float clear_col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+  const float clear_col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   float clear_depth = ob->is_drawmode3d ? 1.0f : 0.0f;
   bool inverted = false;
   /* OPTI(fclem) we could optimize by only clearing if the new mask_bits does not contain all
@@ -813,7 +813,7 @@ static void GPENCIL_draw_object(GPENCIL_Data *vedata, GPENCIL_tObject *ob)
   GPENCIL_PassList *psl = vedata->psl;
   GPENCIL_PrivateData *pd = vedata->stl->pd;
   GPENCIL_FramebufferList *fbl = vedata->fbl;
-  float clear_cols[2][4] = {{0.0f, 0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}};
+  const float clear_cols[2][4] = {{0.0f, 0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}};
 
   DRW_stats_group_start("GPencil Object");
 

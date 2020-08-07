@@ -1092,7 +1092,7 @@ static void stabilization_data_to_mat4(float pixel_aspect,
 {
   float translation_mat[4][4], rotation_mat[4][4], scale_mat[4][4], pivot_mat[4][4],
       inv_pivot_mat[4][4], aspect_mat[4][4], inv_aspect_mat[4][4];
-  float scale_vector[3] = {scale, scale, 1.0f};
+  const float scale_vector[3] = {scale, scale, 1.0f};
 
   unit_m4(translation_mat);
   unit_m4(rotation_mat);

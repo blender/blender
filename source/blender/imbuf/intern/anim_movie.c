@@ -803,7 +803,7 @@ static void ffmpeg_postprocess(struct anim *anim)
   if (ENDIAN_ORDER == B_ENDIAN) {
     int *dstStride = anim->pFrameRGB->linesize;
     uint8_t **dst = anim->pFrameRGB->data;
-    int dstStride2[4] = {dstStride[0], 0, 0, 0};
+    const int dstStride2[4] = {dstStride[0], 0, 0, 0};
     uint8_t *dst2[4] = {dst[0], 0, 0, 0};
     int x, y, h, w;
     unsigned char *bottom;
@@ -849,7 +849,7 @@ static void ffmpeg_postprocess(struct anim *anim)
   else {
     int *dstStride = anim->pFrameRGB->linesize;
     uint8_t **dst = anim->pFrameRGB->data;
-    int dstStride2[4] = {-dstStride[0], 0, 0, 0};
+    const int dstStride2[4] = {-dstStride[0], 0, 0, 0};
     uint8_t *dst2[4] = {dst[0] + (anim->y - 1) * dstStride[0], 0, 0, 0};
 
     sws_scale(anim->img_convert_ctx,

@@ -239,7 +239,7 @@ static int gizmo_arrow_test_select(bContext *UNUSED(C), wmGizmo *gz, const int m
   WM_gizmo_calc_matrix_final(gz, matrix_final);
 
   /* Arrow in pixel space. */
-  float arrow_start[2] = {matrix_final[3][0], matrix_final[3][1]};
+  const float arrow_start[2] = {matrix_final[3][0], matrix_final[3][1]};
   float arrow_end[2];
   {
     float co[3] = {0, 0, arrow_length};

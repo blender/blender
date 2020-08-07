@@ -169,7 +169,7 @@ float paint_get_tex_pixel(const MTex *mtex, float u, float v, struct ImagePool *
 {
   float intensity;
   float rgba_dummy[4];
-  float co[3] = {u, v, 0.0f};
+  const float co[3] = {u, v, 0.0f};
 
   RE_texture_evaluate(mtex, co, thread, pool, false, false, &intensity, rgba_dummy);
 
@@ -185,7 +185,7 @@ void paint_get_tex_pixel_col(const MTex *mtex,
                              bool convert_to_linear,
                              struct ColorSpace *colorspace)
 {
-  float co[3] = {u, v, 0.0f};
+  const float co[3] = {u, v, 0.0f};
   float intensity;
 
   const bool hasrgb = RE_texture_evaluate(mtex, co, thread, pool, false, false, &intensity, rgba);

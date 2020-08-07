@@ -4365,7 +4365,7 @@ static void particles_fluid_step(ParticleSimulationData *sim,
           max_size = MAX3(size[0] / (float)upres, size[1] / (float)upres, size[2] / (float)upres);
 
           /* Set particle position. */
-          float posParticle[3] = {posX, posY, posZ};
+          const float posParticle[3] = {posX, posY, posZ};
           copy_v3_v3(pa->state.co, posParticle);
 
           /* Normalize to unit cube around 0. */
@@ -4398,7 +4398,7 @@ static void particles_fluid_step(ParticleSimulationData *sim,
           pa->state.co[0], pa->state.co[1], pa->state.co[2]);
 #  endif
           /* Set particle velocity. */
-          float velParticle[3] = {velX, velY, velZ};
+          const float velParticle[3] = {velX, velY, velZ};
           copy_v3_v3(pa->state.vel, velParticle);
           mul_v3_fl(pa->state.vel, fds->dx);
 #  if 0

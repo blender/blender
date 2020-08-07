@@ -117,8 +117,10 @@ int EEVEE_motion_blur_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *veda
     }
 
     const float *fs_size = DRW_viewport_size_get();
-    int tx_size[2] = {1 + ((int)fs_size[0] / EEVEE_VELOCITY_TILE_SIZE),
-                      1 + ((int)fs_size[1] / EEVEE_VELOCITY_TILE_SIZE)};
+    const int tx_size[2] = {
+        1 + ((int)fs_size[0] / EEVEE_VELOCITY_TILE_SIZE),
+        1 + ((int)fs_size[1] / EEVEE_VELOCITY_TILE_SIZE),
+    };
 
     effects->velocity_tiles_x_tx = DRW_texture_pool_query_2d(
         tx_size[0], fs_size[1], GPU_RGBA16, &draw_engine_eevee_type);
@@ -173,8 +175,10 @@ void EEVEE_motion_blur_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
 
   if ((effects->enabled_effects & EFFECT_MOTION_BLUR) != 0) {
     const float *fs_size = DRW_viewport_size_get();
-    int tx_size[2] = {GPU_texture_width(effects->velocity_tiles_tx),
-                      GPU_texture_height(effects->velocity_tiles_tx)};
+    const int tx_size[2] = {
+        GPU_texture_width(effects->velocity_tiles_tx),
+        GPU_texture_height(effects->velocity_tiles_tx),
+    };
 
     eevee_motion_blur_sync_camera(vedata);
 

@@ -193,7 +193,7 @@ static void paintcurve_point_add(bContext *C, wmOperator *op, const int loc[2])
   PaintCurvePoint *pcp;
   wmWindow *window = CTX_wm_window(C);
   ARegion *region = CTX_wm_region(C);
-  float vec[3] = {loc[0], loc[1], 0.0};
+  const float vec[3] = {loc[0], loc[1], 0.0};
   int add_index;
   int i;
 
@@ -251,7 +251,7 @@ static void paintcurve_point_add(bContext *C, wmOperator *op, const int loc[2])
 
 static int paintcurve_add_point_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  int loc[2] = {event->mval[0], event->mval[1]};
+  const int loc[2] = {event->mval[0], event->mval[1]};
   paintcurve_point_add(C, op, loc);
   RNA_int_set_array(op->ptr, "location", loc);
   return OPERATOR_FINISHED;
@@ -480,7 +480,7 @@ static bool paintcurve_point_select(
 
 static int paintcurve_select_point_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  int loc[2] = {UNPACK2(event->mval)};
+  const int loc[2] = {UNPACK2(event->mval)};
   bool toggle = RNA_boolean_get(op->ptr, "toggle");
   bool extend = RNA_boolean_get(op->ptr, "extend");
   if (paintcurve_point_select(C, op, loc, toggle, extend)) {

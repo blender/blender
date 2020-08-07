@@ -518,7 +518,7 @@ GPUBatch *ui_batch_roundbox_shadow_get(void)
 void UI_draw_anti_tria(
     float x1, float y1, float x2, float y2, float x3, float y3, const float color[4])
 {
-  float tri_arr[3][2] = {{x1, y1}, {x2, y2}, {x3, y3}};
+  const float tri_arr[3][2] = {{x1, y1}, {x2, y2}, {x3, y3}};
   float draw_color[4];
 
   copy_v4_v4(draw_color, color);
@@ -2568,7 +2568,7 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag)
   }
 
   if (state & UI_BUT_REDALERT) {
-    uchar red[4] = {255, 0, 0};
+    const uchar red[4] = {255, 0, 0};
     if (wt->draw) {
       color_blend_v3_v3(wt->wcol.inner, red, 0.4f);
     }
@@ -2585,7 +2585,7 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag)
   }
 
   if (state & UI_BUT_NODE_ACTIVE) {
-    uchar blue[4] = {86, 128, 194};
+    const uchar blue[4] = {86, 128, 194};
     color_blend_v3_v3(wt->wcol.inner, blue, 0.3f);
   }
 }
@@ -4071,7 +4071,7 @@ static void widget_state_label(uiWidgetType *wt, int state, int drawflag)
   }
 
   if (state & UI_BUT_REDALERT) {
-    uchar red[4] = {255, 0, 0};
+    const uchar red[4] = {255, 0, 0};
     color_blend_v3_v3(wt->wcol.text, red, 0.4f);
   }
 }

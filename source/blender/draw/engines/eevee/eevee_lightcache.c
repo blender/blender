@@ -863,7 +863,7 @@ static void eevee_lightbake_cache_create(EEVEE_Data *vedata, EEVEE_LightBake *lb
 
   /* HACK: set txl->color but unset it before Draw Manager frees it. */
   txl->color = lbake->rt_color;
-  int viewport_size[2] = {
+  const int viewport_size[2] = {
       GPU_texture_width(txl->color),
       GPU_texture_height(txl->color),
   };

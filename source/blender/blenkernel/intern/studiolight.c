@@ -1243,7 +1243,7 @@ static int studiolight_cmp(const void *a, const void *b)
 static uint alpha_circle_mask(float u, float v, float inner_edge, float outer_edge)
 {
   /* Coords from center. */
-  float co[2] = {u - 0.5f, v - 0.5f};
+  const float co[2] = {u - 0.5f, v - 0.5f};
   float dist = len_v2(co);
   float alpha = 1.0f + (inner_edge - dist) / (outer_edge - inner_edge);
   uint mask = (uint)floorf(255.0f * min_ff(max_ff(alpha, 0.0f), 1.0f));
@@ -1275,7 +1275,7 @@ static void studiolight_radiance_preview(uint *icon_buffer, StudioLight *sl)
     uint alphamask = alpha_circle_mask(dx, dy, 0.5f - texel_size[0], 0.5f);
     if (alphamask != 0) {
       float normal[3], direction[3], color[4];
-      float incoming[3] = {0.0f, 0.0f, -1.0f};
+      const float incoming[3] = {0.0f, 0.0f, -1.0f};
       sphere_normal_from_uv(normal, dx, dy);
       reflect_v3_v3v3(direction, incoming, normal);
       /* We want to see horizon not poles. */

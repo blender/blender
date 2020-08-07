@@ -306,8 +306,8 @@ static TIFF *imb_tiff_client_open(ImbTIFFMemFile *memFile, const unsigned char *
 #define IMB_TIFF_NCB 4 /* number of comparison bytes used */
 int imb_is_a_tiff(const unsigned char *mem)
 {
-  char big_endian[IMB_TIFF_NCB] = {0x4d, 0x4d, 0x00, 0x2a};
-  char lil_endian[IMB_TIFF_NCB] = {0x49, 0x49, 0x2a, 0x00};
+  const char big_endian[IMB_TIFF_NCB] = {0x4d, 0x4d, 0x00, 0x2a};
+  const char lil_endian[IMB_TIFF_NCB] = {0x49, 0x49, 0x2a, 0x00};
 
   return ((memcmp(big_endian, mem, IMB_TIFF_NCB) == 0) ||
           (memcmp(lil_endian, mem, IMB_TIFF_NCB) == 0));

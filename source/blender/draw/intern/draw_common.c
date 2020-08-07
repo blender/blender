@@ -489,7 +489,7 @@ static void DRW_evaluate_weight_to_color(const float weight, float result[4])
      * increasing widens yellow/cyan vs red/green/blue.
      * Gamma 1.0 produces the original 2.79 color ramp. */
     const float gamma = 1.5f;
-    float hsv[3] = {(2.0f / 3.0f) * (1.0f - weight), 1.0f, pow(0.5f + 0.5f * weight, gamma)};
+    const float hsv[3] = {(2.0f / 3.0f) * (1.0f - weight), 1.0f, pow(0.5f + 0.5f * weight, gamma)};
 
     hsv_to_rgb_v(hsv, result);
 

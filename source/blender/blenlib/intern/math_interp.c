@@ -286,7 +286,7 @@ BLI_INLINE void bilinear_interpolation(const unsigned char *byte_buffer,
 
   if (float_output) {
     const float *row1, *row2, *row3, *row4;
-    float empty[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    const float empty[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
     /* pixel value must be already wrapped, however values at boundaries may flip */
     if (wrap_x) {

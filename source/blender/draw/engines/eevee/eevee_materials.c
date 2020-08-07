@@ -907,7 +907,7 @@ static void material_renderpass_init(EEVEE_FramebufferList *fbl,
   DRW_texture_ensure_fullscreen_2d(output_tx, format, 0);
   /* Clear texture. */
   if (do_clear) {
-    float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    const float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     /* TODO(fclem) replace by GPU_texture_clear once it is fast. */
     GPU_framebuffer_texture_attach(fbl->material_accum_fb, *output_tx, 0, 0);
     GPU_framebuffer_bind(fbl->material_accum_fb);

@@ -112,7 +112,7 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
   int seamless, offset_x, offset_y, nsubparts_x, nsubparts_y;
   int components;
   const bool use_clipping = ((clip_min_x < clip_max_x) && (clip_min_y < clip_max_y));
-  float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+  const float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
   if (ELEM(gpu_format, GPU_RGBA8, GPU_RGBA16F)) {
     components = 4;
@@ -203,21 +203,21 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
          * at edges of full image. */
         if (subpart_w < tex_w) {
           void *data = DATA(src_y, src_x + subpart_w - 1);
-          int offset[2] = {subpart_w, 0};
-          int extent[2] = {1, subpart_h};
+          const int offset[2] = {subpart_w, 0};
+          const int extent[2] = {1, subpart_h};
           GPU_texture_update_sub(tex, gpu_data, data, UNPACK2(offset), 0, UNPACK2(extent), 0);
         }
         if (subpart_h < tex_h) {
           void *data = DATA(src_y + subpart_h - 1, src_x);
-          int offset[2] = {0, subpart_h};
-          int extent[2] = {subpart_w, 1};
+          const int offset[2] = {0, subpart_h};
+          const int extent[2] = {subpart_w, 1};
           GPU_texture_update_sub(tex, gpu_data, data, UNPACK2(offset), 0, UNPACK2(extent), 0);
         }
 
         if (subpart_w < tex_w && subpart_h < tex_h) {
           void *data = DATA(src_y + subpart_h - 1, src_x + subpart_w - 1);
-          int offset[2] = {subpart_w, subpart_h};
-          int extent[2] = {1, 1};
+          const int offset[2] = {subpart_w, subpart_h};
+          const int extent[2] = {1, 1};
           GPU_texture_update_sub(tex, gpu_data, data, UNPACK2(offset), 0, UNPACK2(extent), 0);
         }
 #undef DATA

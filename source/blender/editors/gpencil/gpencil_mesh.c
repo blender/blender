@@ -196,7 +196,7 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
   bool newob = false;
   if (STREQ(target, "*NEW")) {
     ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
-    float loc[3] = {0.0f, 0.0f, 0.0f};
+    const float loc[3] = {0.0f, 0.0f, 0.0f};
     ob_gpencil = ED_gpencil_add_object(C, loc, local_view_bits);
     newob = true;
   }

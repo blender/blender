@@ -74,7 +74,7 @@ int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
   if (!e_data.dummy_horizon_tx) {
-    float pixel[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    const float pixel[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     e_data.dummy_horizon_tx = DRW_texture_create_2d(1, 1, GPU_RGBA8, DRW_TEX_WRAP, pixel);
   }
 
@@ -143,7 +143,7 @@ void EEVEE_occlusion_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata
     const eGPUTextureFormat texture_format = (tot_samples > 128) ? GPU_R32F : GPU_R16F;
 
     DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-    float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    const float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
     /* Should be enough precision for many samples. */
     DRW_texture_ensure_fullscreen_2d(&txl->ao_accum, texture_format, 0);

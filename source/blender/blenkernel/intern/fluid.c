@@ -955,7 +955,7 @@ static void obstacles_from_mesh_task_cb(void *__restrict userdata,
     for (int y = data->min[1]; y < data->max[1]; y++) {
       const int index = manta_get_index(
           x - bb->min[0], bb->res[0], y - bb->min[1], bb->res[1], z - bb->min[2]);
-      float ray_start[3] = {(float)x + 0.5f, (float)y + 0.5f, (float)z + 0.5f};
+      const float ray_start[3] = {(float)x + 0.5f, (float)y + 0.5f, (float)z + 0.5f};
 
       /* Calculate object velocities. Result in bb->velocity. */
       sample_effector(data->fes,

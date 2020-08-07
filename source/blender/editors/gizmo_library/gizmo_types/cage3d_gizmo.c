@@ -257,7 +257,7 @@ static void cage3d_draw_circle_handles(const RegionView3D *rv3d,
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor3fv(color);
 
-  float sign[3] = {-1.0f, 0.0f, 1.0f};
+  const float sign[3] = {-1.0f, 0.0f, 1.0f};
   for (int x = 0; x < 3; x++) {
     for (int y = 0; y < 3; y++) {
       for (int z = 0; z < 3; z++) {

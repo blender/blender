@@ -268,7 +268,7 @@ static void external_draw_scene(void *vedata)
    * OpenGL render is used for quick preview (thumbnails or sequencer preview)
    * where using the rendering engine to preview doesn't make so much sense. */
   if (draw_ctx->evil_C) {
-    float clear_col[4] = {0, 0, 0, 0};
+    const float clear_col[4] = {0, 0, 0, 0};
     /* This is to keep compatibility with external engine. */
     /* TODO(fclem) remove it eventually. */
     GPU_framebuffer_bind(dfbl->default_fb);

@@ -760,7 +760,7 @@ static void target_project_tri_deviation(void *userdata, const float x[3], float
 {
   TargetProjectTriData *data = userdata;
 
-  float w[3] = {x[0], x[1], 1.0f - x[0] - x[1]};
+  const float w[3] = {x[0], x[1], 1.0f - x[0] - x[1]};
   interp_v3_v3v3v3(data->co_interp, data->vtri_co[0], data->vtri_co[1], data->vtri_co[2], w);
   interp_v3_v3v3v3(data->no_interp, data->vtri_no[0], data->vtri_no[1], data->vtri_no[2], w);
 

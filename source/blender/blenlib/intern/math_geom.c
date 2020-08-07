@@ -2094,7 +2094,7 @@ bool isect_ray_seg_v2(const float ray_origin[2],
   det = cross_v2v2(ray_direction, s10);
   if (det != 0.0f) {
     const float v = cross_v2v2(v0_local, v1_local);
-    float p[2] = {(ray_direction[0] * v) / det, (ray_direction[1] * v) / det};
+    const float p[2] = {(ray_direction[0] * v) / det, (ray_direction[1] * v) / det};
 
     const float t = (dot_v2v2(p, ray_direction) / dot_v2v2(ray_direction, ray_direction));
     if ((t >= 0.0f) == 0) {
@@ -5106,7 +5106,7 @@ void map_to_sphere(float *r_u, float *r_v, const float x, const float y, const f
 
 void map_to_plane_v2_v3v3(float r_co[2], const float co[3], const float no[3])
 {
-  float target[3] = {0.0f, 0.0f, 1.0f};
+  const float target[3] = {0.0f, 0.0f, 1.0f};
   float axis[3];
 
   cross_v3_v3v3(axis, no, target);

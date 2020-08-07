@@ -1499,7 +1499,7 @@ void ED_view3d_from_m4(const float mat[4][4], float ofs[3], float quat[4], const
  */
 void ED_view3d_to_m4(float mat[4][4], const float ofs[3], const float quat[4], const float dist)
 {
-  float iviewquat[4] = {-quat[0], quat[1], quat[2], quat[3]};
+  const float iviewquat[4] = {-quat[0], quat[1], quat[2], quat[3]};
   float dvec[3] = {0.0f, 0.0f, dist};
 
   quat_to_mat4(mat, iviewquat);

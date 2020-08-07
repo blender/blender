@@ -2422,7 +2422,7 @@ static void color_balance_byte_float(StripColorBalance *cb_,
 
   while (p < e) {
     if (m) {
-      float t[3] = {m[0] / 255.0f, m[1] / 255.0f, m[2] / 255.0f};
+      const float t[3] = {m[0] / 255.0f, m[1] / 255.0f, m[2] / 255.0f};
 
       p[0] = p[0] * (1.0f - t[0]) + t[0] * cb_tab[0][p[0]];
       p[1] = p[1] * (1.0f - t[1]) + t[1] * cb_tab[1][p[1]];

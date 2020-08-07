@@ -387,7 +387,7 @@ static bool walk_floor_distance_get(RegionView3D *rv3d,
                                     const float dvec[3],
                                     float *r_distance)
 {
-  float ray_normal[3] = {0, 0, -1}; /* down */
+  const float ray_normal[3] = {0, 0, -1}; /* down */
   float ray_start[3];
   float r_location[3];
   float r_normal_dummy[3];

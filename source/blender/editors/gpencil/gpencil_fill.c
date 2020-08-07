@@ -456,7 +456,7 @@ static bool gpencil_render_offscreen(tGPDfill *tgpf)
   GPU_matrix_set(tgpf->rv3d->viewmat);
 
   /* draw strokes */
-  float ink[4] = {1.0f, 0.0f, 0.0f, 1.0f};
+  const float ink[4] = {1.0f, 0.0f, 0.0f, 1.0f};
   gpencil_draw_datablock(tgpf, ink);
 
   GPU_matrix_pop_projection();

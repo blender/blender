@@ -179,8 +179,8 @@ static void eyedropper_colorband_sample_segment(bContext *C,
   /* Since the mouse tends to move rather rapidly we use #BLI_bitmap_draw_2d_line_v2v2i
    * to interpolate between the reported coordinates */
   struct EyedropperColorband_Context userdata = {C, eye};
-  int p1[2] = {eye->last_x, eye->last_y};
-  int p2[2] = {mx, my};
+  const int p1[2] = {eye->last_x, eye->last_y};
+  const int p2[2] = {mx, my};
   BLI_bitmap_draw_2d_line_v2v2i(p1, p2, eyedropper_colorband_sample_callback, &userdata);
 }
 

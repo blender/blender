@@ -82,7 +82,7 @@ void SCULPT_filter_cache_init(Object *ob, Sculpt *sd, const int undo_type)
 
   ss->filter_cache->random_seed = rand();
 
-  float center[3] = {0.0f};
+  const float center[3] = {0.0f};
   SculptSearchSphereData search_data = {
       .original = true,
       .center = center,

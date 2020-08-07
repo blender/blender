@@ -573,14 +573,14 @@ static short annotation_stroke_addpoint(tGPsdata *p,
         /* Arrow end corner. */
         if (gpd->runtime.sbuffer_sflag & GP_STROKE_USE_ARROW_END) {
           pt++;
-          float e_heading[2] = {start[0] - end[0], start[1] - end[1]};
+          const float e_heading[2] = {start[0] - end[0], start[1] - end[1]};
           /* Calculate points for ending arrow. */
           annotation_stroke_arrow_calc_points(
               pt, e_heading, end, gpd->runtime.arrow_end, gpd->runtime.arrow_end_style);
         }
         /* Arrow start corner. */
         if (gpd->runtime.sbuffer_sflag & GP_STROKE_USE_ARROW_START) {
-          float s_heading[2] = {end[0] - start[0], end[1] - start[1]};
+          const float s_heading[2] = {end[0] - start[0], end[1] - start[1]};
           /* Calculate points for starting arrow. */
           annotation_stroke_arrow_calc_points(
               NULL, s_heading, start, gpd->runtime.arrow_start, gpd->runtime.arrow_start_style);
@@ -704,7 +704,7 @@ static void annotation_stroke_arrow_init_point(
     tGPsdata *p, tGPspoint *ptc, bGPDspoint *pt, const float co[8], const int co_idx)
 {
   /* Note: provided co_idx should be always pair number as it's [x1, y1, x2, y2, x3, y3]. */
-  float real_co[2] = {co[co_idx], co[co_idx + 1]};
+  const float real_co[2] = {co[co_idx], co[co_idx + 1]};
   copy_v2_v2(&ptc->x, real_co);
   annotation_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
   annotation_stroke_arrow_init_point_default(pt);

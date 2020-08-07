@@ -873,7 +873,7 @@ static Object *boid_find_ground(BoidBrainData *bbd,
     return bpa->ground;
   }
 
-  float zvec[3] = {0.0f, 0.0f, 2000.0f};
+  const float zvec[3] = {0.0f, 0.0f, 2000.0f};
   ParticleCollision col;
   ColliderCache *coll;
   BVHTreeRayHit hit;

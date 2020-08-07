@@ -913,7 +913,7 @@ static int stencil_control_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *br = BKE_paint_brush(paint);
-  float mvalf[2] = {event->mval[0], event->mval[1]};
+  const float mvalf[2] = {event->mval[0], event->mval[1]};
   ARegion *region = CTX_wm_region(C);
   StencilControlData *scd;
   int mask = RNA_enum_get(op->ptr, "texmode");
@@ -968,7 +968,7 @@ static void stencil_control_calculate(StencilControlData *scd, const int mval[2]
 #define PIXEL_MARGIN 5
 
   float mdiff[2];
-  float mvalf[2] = {mval[0], mval[1]};
+  const float mvalf[2] = {mval[0], mval[1]};
   switch (scd->mode) {
     case STENCIL_TRANSLATE:
       sub_v2_v2v2(mdiff, mvalf, scd->init_mouse);

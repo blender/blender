@@ -261,7 +261,7 @@ void EEVEE_depth_of_field_draw(EEVEE_Data *vedata)
 
   /* Depth Of Field */
   if ((effects->enabled_effects & EFFECT_DOF) != 0) {
-    float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    const float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
     /* Downsample */
     GPU_framebuffer_bind(fbl->dof_down_fb);

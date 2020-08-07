@@ -2345,7 +2345,7 @@ void BKE_pbvh_raycast_project_ray_root(
     struct IsectRayAABB_Precalc ray;
     float ray_normal_inv[3];
     float offset = 1.0f + 1e-3f;
-    float offset_vec[3] = {1e-3f, 1e-3f, 1e-3f};
+    const float offset_vec[3] = {1e-3f, 1e-3f, 1e-3f};
 
     if (original) {
       BKE_pbvh_node_get_original_BB(pbvh->nodes, bb_min_root, bb_max_root);

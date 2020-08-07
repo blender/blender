@@ -2445,7 +2445,7 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
   imm_draw_circle_wire_2d(pos, 0.0f, 0.0f, r2, 80);
   if (rmin > 0.0f) {
     /* Inner fill circle to increase the contrast of the value */
-    float black[3] = {0.0f};
+    const float black[3] = {0.0f};
     immUniformColor3fvAlpha(black, 0.2f);
     imm_draw_circle_fill_2d(pos, 0.0, 0.0f, rmin, 80);
 
@@ -2852,7 +2852,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
       if (!has_numInput) {
         if (rc->slow_mode) {
           if (rc->subtype == PROP_ANGLE) {
-            float position[2] = {event->x, event->y};
+            const float position[2] = {event->x, event->y};
 
             /* calculate the initial angle here first */
             delta[0] = rc->initial_mouse[0] - rc->slow_mouse[0];
@@ -2954,8 +2954,8 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
         rc->slow_mouse[1] = event->y;
         rc->slow_mode = true;
         if (rc->subtype == PROP_ANGLE) {
-          float initial_position[2] = {UNPACK2(rc->initial_mouse)};
-          float current_position[2] = {UNPACK2(rc->slow_mouse)};
+          const float initial_position[2] = {UNPACK2(rc->initial_mouse)};
+          const float current_position[2] = {UNPACK2(rc->slow_mouse)};
           rc->dial = BLI_dial_init(initial_position, 0.0f);
           /* immediately set the position to get a an initial direction */
           BLI_dial_angle(rc->dial, current_position);

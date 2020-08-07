@@ -340,7 +340,7 @@ void OVERLAY_image_camera_cache_populate(OVERLAY_Data *vedata, Object *ob)
       mul_m4_m4m4(mat, modelmat, mat);
       const bool is_foreground = (bgpic->flag & CAM_BGIMG_FLAG_FOREGROUND) != 0;
 
-      float color_premult_alpha[4] = {1.0f, 1.0f, 1.0f, bgpic->alpha};
+      const float color_premult_alpha[4] = {1.0f, 1.0f, 1.0f, bgpic->alpha};
 
       DRWPass *pass = is_foreground ? psl->image_foreground_ps : psl->image_background_ps;
 

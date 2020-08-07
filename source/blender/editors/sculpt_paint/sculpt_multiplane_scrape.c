@@ -375,7 +375,7 @@ void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes,
   /* Calculate the final left and right scrape planes. */
   float plane_no[3];
   float plane_no_rot[3];
-  float y_axis[3] = {0.0f, 1.0f, 0.0f};
+  const float y_axis[3] = {0.0f, 1.0f, 0.0f};
   float mat_inv[4][4];
   invert_m4_m4(mat_inv, mat);
 
@@ -418,11 +418,11 @@ void SCULPT_multiplane_scrape_preview_draw(const uint gpuattr,
 
   float offset = ss->cache->radius * 0.25f;
 
-  float p[3] = {0.0f, 0.0f, ss->cache->radius};
-  float y_axis[3] = {0.0f, 1.0f, 0.0f};
+  const float p[3] = {0.0f, 0.0f, ss->cache->radius};
+  const float y_axis[3] = {0.0f, 1.0f, 0.0f};
   float p_l[3];
   float p_r[3];
-  float area_center[3] = {0.0f, 0.0f, 0.0f};
+  const float area_center[3] = {0.0f, 0.0f, 0.0f};
   rotate_v3_v3v3fl(p_r, p, y_axis, DEG2RADF((angle + 180) * 0.5f));
   rotate_v3_v3v3fl(p_l, p, y_axis, DEG2RADF(-(angle + 180) * 0.5f));
 

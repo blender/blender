@@ -99,7 +99,7 @@ static void button2d_geom_draw_backdrop(const wmGizmo *gz,
   else {
     /* Draw fill. */
     if ((fill_alpha != 0.0f) || (select == true)) {
-      float fill_color[4] = {UNPACK3(color), fill_alpha * color[3]};
+      const float fill_color[4] = {UNPACK3(color), fill_alpha * color[3]};
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       immUniformColor4fv(fill_color);
       imm_draw_circle_fill_2d(pos, 0, 0, 1.0f, CIRCLE_RESOLUTION);

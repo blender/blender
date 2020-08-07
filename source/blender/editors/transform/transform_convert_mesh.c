@@ -754,7 +754,8 @@ void createTransEditVerts(TransInfo *t)
     if (tc->use_mirror_axis_any) {
       bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
       bool use_select = (t->flag & T_PROP_EDIT) == 0;
-      bool mirror_axis[3] = {tc->use_mirror_axis_x, tc->use_mirror_axis_y, tc->use_mirror_axis_z};
+      const bool mirror_axis[3] = {
+          tc->use_mirror_axis_x, tc->use_mirror_axis_y, tc->use_mirror_axis_z};
       editmesh_mirror_data_calc(em, use_select, use_topology, mirror_axis, &mirror_data);
 
       if (mirror_data.vert_map) {

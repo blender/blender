@@ -778,7 +778,7 @@ void ED_view3d_project(const struct ARegion *region, const float world[3], float
 {
   // viewport is set up to make coordinates relative to the region, not window
   RegionView3D *rv3d = region->regiondata;
-  int viewport[4] = {0, 0, region->winx, region->winy};
+  const int viewport[4] = {0, 0, region->winx, region->winy};
 
   GPU_matrix_project(world, rv3d->viewmat, rv3d->winmat, viewport, r_region_co);
 }
@@ -787,8 +787,8 @@ bool ED_view3d_unproject(
     const struct ARegion *region, float regionx, float regiony, float regionz, float world[3])
 {
   RegionView3D *rv3d = region->regiondata;
-  int viewport[4] = {0, 0, region->winx, region->winy};
-  float region_co[3] = {regionx, regiony, regionz};
+  const int viewport[4] = {0, 0, region->winx, region->winy};
+  const float region_co[3] = {regionx, regiony, regionz};
 
   return GPU_matrix_unproject(region_co, rv3d->viewmat, rv3d->winmat, viewport, world);
 }

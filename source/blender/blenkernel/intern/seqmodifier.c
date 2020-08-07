@@ -393,8 +393,8 @@ static void curves_apply(struct SequenceModifierData *smd, ImBuf *ibuf, ImBuf *m
 {
   CurvesModifierData *cmd = (CurvesModifierData *)smd;
 
-  float black[3] = {0.0f, 0.0f, 0.0f};
-  float white[3] = {1.0f, 1.0f, 1.0f};
+  const float black[3] = {0.0f, 0.0f, 0.0f};
+  const float white[3] = {1.0f, 1.0f, 1.0f};
 
   BKE_curvemapping_init(&cmd->curve_mapping);
 

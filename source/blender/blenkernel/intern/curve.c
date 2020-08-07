@@ -2301,7 +2301,7 @@ static void make_bevel_list_3D_tangent(BevList *bl)
   while (nr--) {
     /* make perpendicular, modify tan in place, is ok */
     float cross_tmp[3];
-    float zero[3] = {0, 0, 0};
+    const float zero[3] = {0, 0, 0};
 
     cross_v3_v3v3(cross_tmp, bevp1->tan, bevp1->dir);
     normalize_v3(cross_tmp);

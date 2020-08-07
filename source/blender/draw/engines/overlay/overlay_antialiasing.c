@@ -69,7 +69,7 @@ void OVERLAY_antialiasing_init(OVERLAY_Data *vedata)
 
   /* Small texture which will have very small impact on rendertime. */
   if (txl->dummy_depth_tx == NULL) {
-    float pixel[1] = {1.0f};
+    const float pixel[1] = {1.0f};
     txl->dummy_depth_tx = DRW_texture_create_2d(1, 1, GPU_DEPTH_COMPONENT24, 0, pixel);
   }
 
@@ -202,7 +202,7 @@ void OVERLAY_antialiasing_start(OVERLAY_Data *vedata)
   OVERLAY_PrivateData *pd = vedata->stl->pd;
 
   if (pd->antialiasing.enabled) {
-    float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    const float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     GPU_framebuffer_bind(fbl->overlay_line_fb);
     GPU_framebuffer_clear_color(fbl->overlay_line_fb, clear_col);
   }

@@ -139,7 +139,7 @@ static void eevee_shadow_cascade_setup(EEVEE_LightsInfo *linfo,
   float jitter_ofs[2];
   double ht_point[2];
   double ht_offset[2] = {0.0, 0.0};
-  uint ht_primes[2] = {2, 3};
+  const uint ht_primes[2] = {2, 3};
 
   BLI_halton_2d(ht_primes, ht_offset, sample_ofs, ht_point);
 

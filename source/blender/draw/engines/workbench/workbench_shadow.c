@@ -62,7 +62,7 @@ static void workbench_shadow_update(WORKBENCH_PrivateData *wpd)
       wpd->shadow_cached_direction, wpd->shadow_direction_ws, 1e-5f);
 
   if (wpd->shadow_changed) {
-    float up[3] = {0.0f, 0.0f, 1.0f};
+    const float up[3] = {0.0f, 0.0f, 1.0f};
     unit_m4(wpd->shadow_mat);
 
     /* TODO fix singularity. */
@@ -229,7 +229,7 @@ static float workbench_shadow_object_shadow_distance(WORKBENCH_PrivateData *wpd,
 {
   BoundBox *shadow_bbox = workbench_shadow_object_shadow_bbox_get(wpd, ob, oed);
 
-  int corners[4] = {0, 3, 4, 7};
+  const int corners[4] = {0, 3, 4, 7};
   float dist = 1e4f, dist_isect;
   for (int i = 0; i < 4; i++) {
     if (isect_ray_plane_v3(shadow_bbox->vec[corners[i]],

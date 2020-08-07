@@ -2053,7 +2053,7 @@ static void WIDGETGROUP_xform_cage_setup(const bContext *UNUSED(C), wmGizmoGroup
     for (int x = 0; x < 3; x++) {
       for (int y = 0; y < 3; y++) {
         for (int z = 0; z < 3; z++) {
-          bool constraint[3] = {x != 1, y != 1, z != 1};
+          const bool constraint[3] = {x != 1, y != 1, z != 1};
           ptr = WM_gizmo_operator_set(gz, i, ot_resize, NULL);
           if (prop_release_confirm == NULL) {
             prop_release_confirm = RNA_struct_find_property(ptr, "release_confirm");

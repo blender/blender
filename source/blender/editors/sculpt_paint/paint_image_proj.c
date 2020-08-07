@@ -3309,7 +3309,7 @@ static void project_paint_face_init(const ProjPaintState *ps,
 
                 has_x_isect = 0;
                 for (x = bounds_px.xmin; x < bounds_px.xmax; x++) {
-                  float puv[2] = {(float)x, (float)y};
+                  const float puv[2] = {(float)x, (float)y};
                   bool in_bounds;
                   // uv[0] = (((float)x) + 0.5f) / (float)ibuf->x;
                   /* use offset uvs instead */
@@ -5756,7 +5756,7 @@ void paint_proj_stroke(const bContext *C,
     View3D *v3d = CTX_wm_view3d(C);
     ARegion *region = CTX_wm_region(C);
     float *cursor = scene->cursor.location;
-    int mval_i[2] = {(int)pos[0], (int)pos[1]};
+    const int mval_i[2] = {(int)pos[0], (int)pos[1]};
 
     view3d_operator_needs_opengl(C);
 
@@ -6123,8 +6123,8 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  float pos[2] = {0.0, 0.0};
-  float lastpos[2] = {0.0, 0.0};
+  const float pos[2] = {0.0, 0.0};
+  const float lastpos[2] = {0.0, 0.0};
   int a;
 
   project_paint_op(&ps, lastpos, pos);

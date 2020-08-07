@@ -57,7 +57,7 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   float cent[3], axis[3];
-  float d[3] = {0.0f, 0.0f, 0.0f};
+  const float d[3] = {0.0f, 0.0f, 0.0f};
 
   RNA_float_get_array(op->ptr, "center", cent);
   RNA_float_get_array(op->ptr, "axis", axis);

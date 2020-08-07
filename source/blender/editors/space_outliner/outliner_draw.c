@@ -2694,7 +2694,7 @@ static void outliner_draw_iconrow_number(const uiFontStyle *fstyle,
                                          int ys,
                                          const int num_elements)
 {
-  float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  const float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
   float ufac = 0.25f * UI_UNIT_X;
   float offset_x = (float)offsx + UI_UNIT_X * 0.35f;
 

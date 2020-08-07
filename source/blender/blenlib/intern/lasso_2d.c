@@ -61,7 +61,7 @@ bool BLI_lasso_is_point_inside(const int mcoords[][2],
     return false;
   }
 
-  int pt[2] = {sx, sy};
+  const int pt[2] = {sx, sy};
   return isect_point_poly_v2_int(pt, mcoords, mcoords_len, true);
 }
 

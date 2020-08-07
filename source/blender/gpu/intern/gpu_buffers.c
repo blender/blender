@@ -695,7 +695,7 @@ void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
             }
 
             if (show_vcol) {
-              ushort vcol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
+              const ushort vcol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
               GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, vbo_index, &vcol);
             }
 
@@ -749,7 +749,7 @@ void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
               empty_mask = empty_mask && (cmask == 0);
             }
 
-            ushort vcol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
+            const ushort vcol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
             GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, vbo_index + 0, &vcol);
             GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, vbo_index + 1, &vcol);
             GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, vbo_index + 2, &vcol);
@@ -832,12 +832,12 @@ static void gpu_bmesh_vert_to_buffer_copy(BMVert *v,
   }
 
   if (show_vcol) {
-    ushort vcol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
+    const ushort vcol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
     GPU_vertbuf_attr_set(vert_buf, g_vbo_id.col, v_index, &vcol);
   }
 
   /* Add default face sets color to avoid artifacts. */
-  uchar face_set[3] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
+  const uchar face_set[3] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
   GPU_vertbuf_attr_set(vert_buf, g_vbo_id.fset, v_index, &face_set);
 }
 

@@ -1907,7 +1907,7 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
               for (int x = -ofs; x <= ofs; x += ofs / 2) {
                 for (int y = -ofs; y <= ofs; y += ofs / 2) {
                   if (x != 0 && y != 0) {
-                    int mval_ofs[2] = {event->mval[0] + x, event->mval[1] + y};
+                    const int mval_ofs[2] = {event->mval[0] + x, event->mval[1] + y};
                     float n[3];
                     if (ED_view3d_depth_read_cached_normal(&xfd->vc, mval_ofs, n)) {
                       add_v3_v3(normal, n);

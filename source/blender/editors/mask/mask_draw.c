@@ -735,7 +735,7 @@ void ED_mask_draw_region(
   }
 
   if (draw_flag & MASK_DRAWFLAG_OVERLAY) {
-    float red[4] = {1.0f, 0.0f, 0.0f, 0.0f};
+    const float red[4] = {1.0f, 0.0f, 0.0f, 0.0f};
     float *buffer = mask_rasterize(mask_eval, width, height);
 
     if (overlay_mode != MASK_OVERLAY_ALPHACHANNEL) {

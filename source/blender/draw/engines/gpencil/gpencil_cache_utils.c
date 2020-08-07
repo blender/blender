@@ -245,7 +245,7 @@ static void gpencil_layer_random_color_get(const Object *ob,
   uint ob_hash = BLI_ghashutil_strhash_p_murmur(ob->id.name);
   uint gpl_hash = BLI_ghashutil_strhash_p_murmur(gpl->info);
   float hue = BLI_hash_int_01(ob_hash * gpl_hash);
-  float hsv[3] = {hue, hsv_saturation, hsv_value};
+  const float hsv[3] = {hue, hsv_saturation, hsv_value};
   hsv_to_rgb_v(hsv, r_color);
 }
 

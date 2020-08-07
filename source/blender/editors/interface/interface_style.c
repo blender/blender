@@ -334,7 +334,7 @@ void UI_fontstyle_draw_simple_backdrop(const uiFontStyle *fs,
     const float margin = height / 4.0f;
 
     /* backdrop */
-    float color[4] = {col_bg[0], col_bg[1], col_bg[2], 0.5f};
+    const float color[4] = {col_bg[0], col_bg[1], col_bg[2], 0.5f};
 
     UI_draw_roundbox_corner_set(UI_CNR_ALL);
     UI_draw_roundbox_aa(true,

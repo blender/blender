@@ -168,9 +168,9 @@ void ED_image_draw_info(Scene *scene,
   uchar green[3] = {0, 255, 0};
   uchar blue[3] = {100, 100, 255};
 #else
-  uchar red[3] = {255, 255, 255};
-  uchar green[3] = {255, 255, 255};
-  uchar blue[3] = {255, 255, 255};
+  const uchar red[3] = {255, 255, 255};
+  const uchar green[3] = {255, 255, 255};
+  const uchar blue[3] = {255, 255, 255};
 #endif
   float hue = 0, sat = 0, val = 0, lum = 0, u = 0, v = 0;
   float col[4], finalcol[4];
@@ -465,7 +465,7 @@ void ED_image_draw_info(Scene *scene,
 static void sima_draw_zbuf_pixels(
     float x1, float y1, int rectx, int recty, const int *rect, float zoomx, float zoomy)
 {
-  float red[4] = {1.0f, 0.0f, 0.0f, 0.0f};
+  const float red[4] = {1.0f, 0.0f, 0.0f, 0.0f};
 
   /* Slowwww */
   float *rectf = MEM_mallocN(rectx * recty * sizeof(float), "temp");
@@ -494,7 +494,7 @@ static void sima_draw_zbuffloat_pixels(Scene *scene,
 {
   float bias, scale, *rectf, clip_end;
   int a;
-  float red[4] = {1.0f, 0.0f, 0.0f, 0.0f};
+  const float red[4] = {1.0f, 0.0f, 0.0f, 0.0f};
 
   if (scene->camera && scene->camera->type == OB_CAMERA) {
     bias = ((Camera *)scene->camera->data)->clip_start;
@@ -798,7 +798,7 @@ static void draw_udim_tile_grid(uint pos_attr,
 {
   float x1, y1;
   UI_view2d_view_to_region_fl(&region->v2d, x, y, &x1, &y1);
-  int gridpos[5][2] = {{0, 0}, {0, 1}, {1, 1}, {1, 0}, {0, 0}};
+  const int gridpos[5][2] = {{0, 0}, {0, 1}, {1, 1}, {1, 0}, {0, 0}};
   for (int i = 0; i < 4; i++) {
     immAttr3fv(color_attr, color);
     immVertex2f(pos_attr, x1 + gridpos[i][0] * stepx, y1 + gridpos[i][1] * stepy);

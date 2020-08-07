@@ -1348,7 +1348,7 @@ static void uv_map_rotation_matrix(float result[4][4],
                                    float sideangledeg,
                                    float radius)
 {
-  float offset[4] = {0};
+  const float offset[4] = {0};
   uv_map_rotation_matrix_ex(result, rv3d, ob, upangledeg, sideangledeg, radius, offset);
 }
 

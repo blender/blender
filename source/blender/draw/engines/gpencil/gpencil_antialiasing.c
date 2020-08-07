@@ -36,7 +36,7 @@ void GPENCIL_antialiasing_init(struct GPENCIL_Data *vedata)
 
   const float *size = DRW_viewport_size_get();
   const float *sizeinv = DRW_viewport_invert_size_get();
-  float metrics[4] = {sizeinv[0], sizeinv[1], size[0], size[1]};
+  const float metrics[4] = {sizeinv[0], sizeinv[1], size[0], size[1]};
 
   if (pd->simplify_antialias) {
     /* No AA fallback. */

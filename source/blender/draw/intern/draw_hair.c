@@ -114,7 +114,7 @@ void DRW_hair_init(void)
 
     g_dummy_vbo = GPU_vertbuf_create_with_format(&format);
 
-    float vert[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    const float vert[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     GPU_vertbuf_data_alloc(g_dummy_vbo, 1);
     GPU_vertbuf_attr_fill(g_dummy_vbo, dummy_id, vert);
     /* Create vbo immediately to bind to texture buffer. */

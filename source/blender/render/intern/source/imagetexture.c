@@ -888,7 +888,7 @@ static void ewa_read_pixel_cb(void *userdata, int x, int y, float result[4])
 static void ewa_eval(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata_t *AFD)
 {
   ReadEWAData data;
-  float uv[2] = {fx, fy};
+  const float uv[2] = {fx, fy};
   data.ibuf = ibuf;
   data.AFD = AFD;
   BLI_ewa_filter(ibuf->x,

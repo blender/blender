@@ -513,7 +513,7 @@ static bool slide_check_corners(float (*corners)[2])
 {
   int i, next, prev;
   float cross = 0.0f;
-  float p[2] = {0.0f, 0.0f};
+  const float p[2] = {0.0f, 0.0f};
 
   if (!isect_point_quad_v2(p, corners[0], corners[1], corners[2], corners[3])) {
     return false;
@@ -861,7 +861,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
           BKE_tracking_marker_clamp(data->marker, CLAMP_PAT_DIM);
         }
         else if (data->action == SLIDE_ACTION_OFFSET) {
-          float d[2] = {dx, dy};
+          const float d[2] = {dx, dy};
           for (int a = 0; a < data->track->markersnr; a++) {
             add_v2_v2v2(data->track->markers[a].pos, data->old_markers[a], d);
           }
@@ -940,7 +940,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
           BKE_tracking_marker_clamp(data->marker, CLAMP_SEARCH_DIM);
         }
         else if (data->area == TRACK_AREA_SEARCH) {
-          float d[2] = {dx, dy};
+          const float d[2] = {dx, dy};
           add_v2_v2v2(data->min, data->old_search_min, d);
           add_v2_v2v2(data->max, data->old_search_max, d);
         }

@@ -55,7 +55,7 @@ int text_do_suggest_select(SpaceText *st, ARegion *region)
   TextLine *tmp;
   int l, x, y, w, h, i;
   int tgti, *top;
-  int mval[2] = {0, 0};
+  const int mval[2] = {0, 0};
 
   if (!st || !st->text) {
     return 0;

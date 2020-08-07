@@ -175,7 +175,7 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
     if (dep_files) {
       int pass;
       for (pass = 0; dep_files[pass]; pass++) {
-        char from_path[4096] = __FILE__;
+        const char from_path[4096] = __FILE__;
         char *p1, *p2;
 
         /* dir only */

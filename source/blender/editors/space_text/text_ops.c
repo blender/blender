@@ -2587,7 +2587,7 @@ static void text_scroll_apply(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceText *st = CTX_wm_space_text(C);
   TextScroll *tsc = op->customdata;
-  int mval[2] = {event->x, event->y};
+  const int mval[2] = {event->x, event->y};
 
   text_update_character_width(st);
 

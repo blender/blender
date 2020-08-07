@@ -60,7 +60,7 @@ void workbench_material_ubo_data(WORKBENCH_PrivateData *wpd,
         hash = (hash * 13) ^ BLI_ghashutil_strhash_p_murmur(ob->id.lib->filepath);
       }
       float hue = BLI_hash_int_01(hash);
-      float hsv[3] = {hue, HSV_SATURATION, HSV_VALUE};
+      const float hsv[3] = {hue, HSV_SATURATION, HSV_VALUE};
       hsv_to_rgb_v(hsv, data->base_color);
       break;
     }

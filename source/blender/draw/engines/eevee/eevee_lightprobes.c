@@ -1112,7 +1112,7 @@ void EEVEE_lightbake_filter_diffuse(EEVEE_ViewLayerData *sldata,
 #if defined(IRRADIANCE_SH_L2)
   int size[2] = {3, 3};
 #elif defined(IRRADIANCE_HL2)
-  int size[2] = {3, 2};
+  const int size[2] = {3, 2};
   pinfo->samples_len = 1024.0f;
 #endif
 
