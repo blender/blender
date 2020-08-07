@@ -138,10 +138,12 @@ void *mmap(void *UNUSED(start), size_t len, int prot, int flags, int fd, off_t o
   ptr = MapViewOfFile(maphandle, access_flags, 0, offset, 0);
   if (ptr == NULL) {
     DWORD dwLastErr = GetLastError();
-    if (dwLastErr == ERROR_MAPPED_ALIGNMENT)
+    if (dwLastErr == ERROR_MAPPED_ALIGNMENT) {
       errno = EINVAL;
-    else
+    }
+    else {
       errno = EACCES;
+    }
     CloseHandle(maphandle);
     return MAP_FAILED;
   }
@@ -182,18 +184,22 @@ static void mmap_addtail(volatile mmapListBase *listbase, void *vlink)
 {
   struct mmapLink *link = vlink;
 
-  if (link == NULL)
+  if (link == NULL) {
     return;
-  if (listbase == NULL)
+  }
+  if (listbase == NULL) {
     return;
+  }
 
   link->next = 0;
   link->prev = listbase->last;
 
-  if (listbase->last)
+  if (listbase->last) {
     ((struct mmapLink *)listbase->last)->next = link;
-  if (listbase->first == NULL)
+  }
+  if (listbase->first == NULL) {
     listbase->first = link;
+  }
   listbase->last = link;
 }
 
@@ -201,30 +207,37 @@ static void mmap_remlink(volatile mmapListBase *listbase, void *vlink)
 {
   struct mmapLink *link = vlink;
 
-  if (link == NULL)
+  if (link == NULL) {
     return;
-  if (listbase == NULL)
+  }
+  if (listbase == NULL) {
     return;
-
-  if (link->next)
+  }
+  if (link->next) {
     link->next->prev = link->prev;
-  if (link->prev)
+  }
+  if (link->prev) {
     link->prev->next = link->next;
+  }
 
-  if (listbase->last == link)
+  if (listbase->last == link) {
     listbase->last = link->prev;
-  if (listbase->first == link)
+  }
+  if (listbase->first == link) {
     listbase->first = link->next;
+  }
 }
 
 static void *mmap_findlink(volatile mmapListBase *listbase, void *ptr)
 {
   MemMap *mm;
 
-  if (ptr == NULL)
+  if (ptr == NULL) {
     return NULL;
-  if (listbase == NULL)
+  }
+  if (listbase == NULL) {
     return NULL;
+  }
 
   mm = (MemMap *)listbase->first;
   while (mm) {
