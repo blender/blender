@@ -214,6 +214,7 @@ static int search_polyloop_cmp(const void *v1, const void *v2)
  *
  * \return false if no changes needed to be made.
  */
+/* NOLINTNEXTLINE: readability-function-size */
 bool BKE_mesh_validate_arrays(Mesh *mesh,
                               MVert *mverts,
                               unsigned int totvert,
