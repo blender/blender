@@ -259,38 +259,6 @@ GPUShader *GPU_shader_create_from_python(const char *vertexcode,
   return sh;
 }
 
-GPUShader *GPU_shader_load_from_binary(const char *binary,
-                                       const int binary_format,
-                                       const int binary_len,
-                                       const char *shname)
-{
-  BLI_assert(GL_ARB_get_program_binary);
-  int success;
-  int program = glCreateProgram();
-
-  glProgramBinary(program, binary_format, binary, binary_len);
-  glGetProgramiv(program, GL_LINK_STATUS, &success);
-
-  if (success) {
-    glUseProgram(program);
-
-    GPUShader *shader = (GPUShader *)MEM_callocN(sizeof(*shader), __func__);
-    shader->interface = GPU_shaderinterface_create(program);
-    shader->program = program;
-
-#ifndef NDEBUG
-    BLI_snprintf(shader->name, sizeof(shader->name), "%s_%u", shname, g_shaderid++);
-#else
-    UNUSED_VARS(shname);
-#endif
-
-    return shader;
-  }
-
-  glDeleteProgram(program);
-  return NULL;
-}
-
 GPUShader *GPU_shader_create_ex(const char *vertexcode,
                                 const char *fragcode,
                                 const char *geocode,
@@ -717,23 +685,6 @@ int GPU_shader_get_attribute(GPUShader *shader, const char *name)
 int GPU_shader_get_program(GPUShader *shader)
 {
   return (int)shader->program;
-}
-
-char *GPU_shader_get_binary(GPUShader *shader, uint *r_binary_format, int *r_binary_len)
-{
-  BLI_assert(GLEW_ARB_get_program_binary);
-  char *r_binary;
-  int binary_len = 0;
-
-  glGetProgramiv(shader->program, GL_PROGRAM_BINARY_LENGTH, &binary_len);
-  r_binary = (char *)MEM_mallocN(binary_len, __func__);
-  glGetProgramBinary(shader->program, binary_len, NULL, r_binary_format, r_binary);
-
-  if (r_binary_len) {
-    *r_binary_len = binary_len;
-  }
-
-  return r_binary;
 }
 
 /** \} */
