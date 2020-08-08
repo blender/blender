@@ -1167,7 +1167,6 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(region), v
       GPU_batch_draw_advanced(batch, snapped_verts_count, other_verts_count, 0, 0);
     }
 
-    GPU_batch_program_use_end(batch);
     GPU_batch_discard(batch);
 
     GPU_blend(false);

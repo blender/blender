@@ -311,8 +311,6 @@ static void draw_uvs_texpaint(const Scene *scene, Object *ob, Depsgraph *depsgra
     if (prev_ma_match == true) {
       GPU_batch_draw_advanced(geom, draw_start, idx - draw_start, 0, 0);
     }
-
-    GPU_batch_program_use_end(geom);
   }
   else {
     GPU_batch_draw(geom);

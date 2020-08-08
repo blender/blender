@@ -661,18 +661,9 @@ BLI_INLINE void draw_legacy_matrix_update(DRWShadingGroup *shgroup,
 
 BLI_INLINE void draw_geometry_bind(DRWShadingGroup *shgroup, GPUBatch *geom)
 {
-  /* XXX hacking #GPUBatch. we don't want to call glUseProgram! (huge performance loss) */
-  if (DST.batch) {
-    DST.batch->program_in_use = false;
-  }
-
   DST.batch = geom;
 
-  GPU_batch_set_shader_no_bind(geom, shgroup->shader);
-
-  geom->program_in_use = true; /* XXX hacking #GPUBatch */
-
-  GPU_batch_bind(geom);
+  GPU_batch_set_shader(geom, shgroup->shader);
 }
 
 BLI_INLINE void draw_geometry_execute(DRWShadingGroup *shgroup,
@@ -1096,10 +1087,6 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
     }
     GPU_shader_bind(shgroup->shader);
     DST.shader = shgroup->shader;
-    /* XXX hacking gawain */
-    if (DST.batch) {
-      DST.batch->program_in_use = false;
-    }
     DST.batch = NULL;
   }
 
@@ -1290,7 +1277,6 @@ static void drw_draw_pass_ex(DRWPass *pass,
   }
 
   if (DST.batch) {
-    DST.batch->program_in_use = false;
     DST.batch = NULL;
   }
 

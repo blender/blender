@@ -57,11 +57,13 @@ typedef struct GPUBatch {
   GPUVertBuf *inst[GPU_BATCH_INST_VBO_MAX_LEN];
   /** NULL if element list not needed */
   GPUIndexBuf *elem;
+
+  GPUShader *shader;
+
   GPUPrimType prim_type;
 
   /* cached values (avoid dereferencing later) */
   uint32_t vao_id;
-  uint32_t program;
   const struct GPUShaderInterface *interface;
 
   /* book-keeping */
@@ -69,7 +71,6 @@ typedef struct GPUBatch {
   /** used to free all vaos. this implies all vaos were created under the same context. */
   struct GPUContext *context;
   GPUBatchPhase phase;
-  bool program_in_use;
 
   /* Vao management: remembers all geometry state (vertex attribute bindings & element buffer)
    * for each shader interface. Start with a static number of vaos and fallback to dynamic count
@@ -128,17 +129,11 @@ int GPU_batch_vertbuf_add_ex(GPUBatch *, GPUVertBuf *, bool own_vbo);
 #define GPU_batch_vertbuf_add(batch, verts) GPU_batch_vertbuf_add_ex(batch, verts, false)
 
 void GPU_batch_set_shader(GPUBatch *batch, GPUShader *shader);
-void GPU_batch_set_shader_no_bind(GPUBatch *batch, GPUShader *shader);
 void GPU_batch_program_set_imm_shader(GPUBatch *batch);
 void GPU_batch_program_set_builtin(GPUBatch *batch, eGPUBuiltinShader shader_id);
 void GPU_batch_program_set_builtin_with_config(GPUBatch *batch,
                                                eGPUBuiltinShader shader_id,
                                                eGPUShaderConfig sh_cfg);
-/* Entire batch draws with one shader program, but can be redrawn later with another program. */
-/* Vertex shader's inputs must be compatible with the batch's vertex format. */
-
-void GPU_batch_program_use_begin(GPUBatch *); /* call before Batch_Uniform (temp hack?) */
-void GPU_batch_program_use_end(GPUBatch *);
 
 void GPU_batch_uniform_1ui(GPUBatch *, const char *name, uint value);
 void GPU_batch_uniform_1i(GPUBatch *, const char *name, int value);

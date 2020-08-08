@@ -42,6 +42,7 @@
 #include "GPU_texture.h"
 #include "GPU_uniformbuffer.h"
 
+#include "gpu_context_private.hh"
 #include "gpu_shader_private.h"
 
 extern "C" char datatoc_gpu_shader_colorspace_lib_glsl[];
@@ -598,14 +599,23 @@ void GPU_shader_bind(GPUShader *shader)
 {
   BLI_assert(shader && shader->program);
 
-  glUseProgram(shader->program);
-  GPU_matrix_bind(shader->interface);
-  GPU_shader_set_srgb_uniform(shader->interface);
+  GPUContext *ctx = GPU_context_active_get();
+
+  if (ctx->shader != shader) {
+    ctx->shader = shader;
+    glUseProgram(shader->program);
+    GPU_matrix_bind(shader->interface);
+    GPU_shader_set_srgb_uniform(shader->interface);
+  }
 }
 
 void GPU_shader_unbind(void)
 {
+#ifndef NDEBUG
+  GPUContext *ctx = GPU_context_active_get();
+  ctx->shader = NULL;
   glUseProgram(0);
+#endif
 }
 
 /** \} */

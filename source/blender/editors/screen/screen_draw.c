@@ -343,6 +343,7 @@ static void drawscredge_area_draw(
   }
 
   GPUBatch *batch = batch_screen_edges_get(NULL);
+  GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_AREA_EDGES);
   GPU_batch_uniform_4fv(batch, "rect", (float *)&rect);
   GPU_batch_draw(batch);
 }

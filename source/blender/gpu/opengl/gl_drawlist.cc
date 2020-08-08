@@ -184,8 +184,7 @@ void GLDrawList::submit(void)
   /* Something's wrong if we get here without MDI support. */
   BLI_assert(MDI_ENABLED);
   BLI_assert(data_);
-  /* TODO fix this assert */
-  // BLI_assert(batch_->program_in_use);
+  BLI_assert(GPU_context_active_get()->shader != NULL);
   /* TODO could assert that VAO is bound. */
 
   /* Only do multi-draw indirect if doing more than 2 drawcall. This avoids the overhead of

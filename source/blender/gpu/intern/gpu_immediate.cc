@@ -171,12 +171,8 @@ void immBindBuiltinProgram(eGPUBuiltinShader shader_id)
 
 void immUnbindProgram(void)
 {
-#if TRUST_NO_ONE
-  assert(imm.bound_program != NULL);
-#endif
-#if PROGRAM_NO_OPTI
-  glUseProgram(0);
-#endif
+  BLI_assert(imm.bound_program != NULL);
+  GPU_shader_unbind();
   imm.bound_program = NULL;
 }
 

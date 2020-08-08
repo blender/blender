@@ -273,8 +273,6 @@ static void draw_line_loop(const float coords[][3], int coords_len, const float 
 
   GPU_batch_draw(batch);
 
-  GPU_batch_program_use_end(batch);
-
   GPU_batch_discard(batch);
   GPU_blend(false);
 }
@@ -309,8 +307,6 @@ static void draw_line_pairs(const float coords_a[][3],
   GPU_batch_uniform_1f(batch, "lineWidth", U.pixelsize);
 
   GPU_batch_draw(batch);
-
-  GPU_batch_program_use_end(batch);
 
   GPU_batch_discard(batch);
   GPU_blend(false);
@@ -361,8 +357,6 @@ static void draw_line_bounds(const BoundBox *bounds, const float color[4])
   GPU_batch_uniform_1f(batch, "lineWidth", U.pixelsize);
 
   GPU_batch_draw(batch);
-
-  GPU_batch_program_use_end(batch);
 
   GPU_batch_discard(batch);
   GPU_blend(false);

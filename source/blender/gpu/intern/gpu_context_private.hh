@@ -41,6 +41,7 @@ struct GPUMatrixState;
 struct GPUContext {
  public:
   /** State managment */
+  GPUShader *shader = NULL;
   GPUFrameBuffer *current_fbo = NULL;
   GPUMatrixState *matrix_state = NULL;
 

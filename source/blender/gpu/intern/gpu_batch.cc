@@ -376,21 +376,13 @@ static GLuint batch_vao_get(GPUBatch *batch)
   return new_vao;
 }
 
-void GPU_batch_set_shader_no_bind(GPUBatch *batch, GPUShader *shader)
-{
-#if TRUST_NO_ONE
-  assert(glIsProgram(shader->program));
-  assert(batch->program_in_use == 0);
-#endif
-  batch->interface = shader->interface;
-  batch->program = shader->program;
-  batch->vao_id = batch_vao_get(batch);
-}
-
 void GPU_batch_set_shader(GPUBatch *batch, GPUShader *shader)
 {
-  GPU_batch_set_shader_no_bind(batch, shader);
-  GPU_batch_program_use_begin(batch); /* hack! to make Batch_Uniform* simpler */
+  batch->interface = shader->interface;
+  batch->shader = shader;
+  batch->vao_id = batch_vao_get(batch);
+  GPU_shader_bind(batch->shader); /* hack! to make Batch_Uniform* simpler */
+  GPU_batch_bind(batch);
 }
 
 void gpu_batch_remove_interface_ref(GPUBatch *batch, const GPUShaderInterface *interface)
@@ -523,29 +515,6 @@ static void batch_update_program_bindings(GPUBatch *batch, uint i_first)
   }
 }
 
-void GPU_batch_program_use_begin(GPUBatch *batch)
-{
-  /* NOTE: use_program & done_using_program are fragile, depend on staying in sync with
-   *       the GL context's active program.
-   *       use_program doesn't mark other programs as "not used". */
-  /* TODO: make not fragile (somehow) */
-
-  if (!batch->program_in_use) {
-    glUseProgram(batch->program);
-    batch->program_in_use = true;
-  }
-}
-
-void GPU_batch_program_use_end(GPUBatch *batch)
-{
-  if (batch->program_in_use) {
-#if PROGRAM_NO_OPTI
-    glUseProgram(0);
-#endif
-    batch->program_in_use = false;
-  }
-}
-
 #if TRUST_NO_ONE
 #  define GET_UNIFORM \
     const GPUShaderInput *uniform = GPU_shaderinterface_uniform(batch->interface, name); \
@@ -670,14 +639,14 @@ void GPU_batch_draw(GPUBatch *batch)
   assert(batch->phase == GPU_BATCH_READY_TO_DRAW);
   assert(batch->verts[0]->vbo_id != 0);
 #endif
-  GPU_batch_program_use_begin(batch);
+  GPU_shader_bind(batch->shader);
   GPU_matrix_bind(batch->interface);  // external call.
   GPU_shader_set_srgb_uniform(batch->interface);
 
   GPU_batch_bind(batch);
   GPU_batch_draw_advanced(batch, 0, 0, 0, 0);
 
-  GPU_batch_program_use_end(batch);
+  GPU_shader_unbind();
 }
 
 #if GPU_TRACK_INDEX_RANGE
@@ -690,7 +659,7 @@ void GPU_batch_draw(GPUBatch *batch)
 
 void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_first, int i_count)
 {
-  BLI_assert(batch->program_in_use);
+  BLI_assert(GPU_context_active_get()->shader != NULL);
   /* TODO could assert that VAO is bound. */
 
   if (v_count == 0) {

@@ -1185,8 +1185,6 @@ void UI_widgetbase_draw_cache_flush(void)
     GPU_shader_set_srgb_uniform(batch->interface);
     GPU_batch_bind(batch);
     GPU_batch_draw_advanced(batch, 0, 0, 0, g_widget_base_batch.count);
-
-    GPU_batch_program_use_end(batch);
   }
   g_widget_base_batch.count = 0;
 }
