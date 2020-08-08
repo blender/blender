@@ -30,12 +30,4 @@
 #include "GPU_context.h"
 #include "GPU_shader_interface.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 void gpu_batch_remove_interface_ref(GPUBatch *batch, const GPUShaderInterface *interface);
-
-#ifdef __cplusplus
-}
-#endif

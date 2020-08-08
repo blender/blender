@@ -32,7 +32,7 @@
 
 #include "GPU_shader_interface.h"
 
-#include "gpu_batch_private.h"
+#include "gpu_batch_private.hh"
 #include "gpu_context_private.hh"
 
 #include <stddef.h>

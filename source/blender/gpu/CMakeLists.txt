@@ -125,7 +125,7 @@ set(SRC
 
   intern/gpu_attr_binding_private.h
   intern/gpu_backend.hh
-  intern/gpu_batch_private.h
+  intern/gpu_batch_private.hh
   intern/gpu_codegen.h
   intern/gpu_context_private.hh
   intern/gpu_drawlist_private.hh

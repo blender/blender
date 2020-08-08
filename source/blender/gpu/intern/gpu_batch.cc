@@ -33,7 +33,7 @@
 #include "GPU_platform.h"
 #include "GPU_shader.h"
 
-#include "gpu_batch_private.h"
+#include "gpu_batch_private.hh"
 #include "gpu_context_private.hh"
 #include "gpu_primitive_private.h"
 #include "gpu_shader_private.h"
