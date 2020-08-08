@@ -41,7 +41,7 @@
 
 #include "gpu_backend.hh"
 #include "gpu_batch_private.h"
-#include "gpu_context_private.h"
+#include "gpu_context_private.hh"
 #include "gpu_matrix_private.h"
 
 #ifdef WITH_OPENGL_BACKEND

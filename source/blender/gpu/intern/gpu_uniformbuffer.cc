@@ -27,7 +27,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_base.h"
 
-#include "gpu_context_private.h"
+#include "gpu_context_private.hh"
 #include "gpu_node_graph.h"
 
 #include "GPU_extensions.h"

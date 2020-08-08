@@ -23,10 +23,10 @@
 
 #pragma once
 
-#include "gpu_context_private.h"
+#include "gpu_context_private.hh"
 
-#include "BLI_vector.hh"
 #include "BLI_set.hh"
+#include "BLI_vector.hh"
 
 #include "glew-mx.h"
 

@@ -28,7 +28,7 @@
 
 #include "GHOST_C-api.h"
 
-#include "gpu_context_private.h"
+#include "gpu_context_private.hh"
 
 #include "gl_backend.hh" /* TODO remove */
 #include "gl_context.hh"

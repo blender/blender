@@ -27,7 +27,7 @@
 
 #include "GPU_vertex_buffer.h"
 
-#include "gpu_context_private.h"
+#include "gpu_context_private.hh"
 #include "gpu_vertex_format_private.h"
 
 #include <stdlib.h>

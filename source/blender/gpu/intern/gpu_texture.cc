@@ -43,7 +43,7 @@
 #include "GPU_platform.h"
 #include "GPU_texture.h"
 
-#include "gpu_context_private.h"
+#include "gpu_context_private.hh"
 
 #define WARN_NOT_BOUND(_tex) \
   { \

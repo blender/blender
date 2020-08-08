@@ -33,7 +33,7 @@
 #include "GPU_texture.h"
 
 #include "gpu_attr_binding_private.h"
-#include "gpu_context_private.h"
+#include "gpu_context_private.hh"
 #include "gpu_primitive_private.h"
 #include "gpu_shader_private.h"
 #include "gpu_vertex_format_private.h"

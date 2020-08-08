@@ -29,14 +29,11 @@
 
 #include "GPU_context.h"
 
-/* TODO cleanup this ifdef */
-#ifdef __cplusplus
-
-#  include <mutex>
-#  include <pthread.h>
-#  include <string.h>
-#  include <unordered_set>
-#  include <vector>
+#include <mutex>
+#include <pthread.h>
+#include <string.h>
+#include <unordered_set>
+#include <vector>
 
 struct GPUFrameBuffer;
 struct GPUMatrixState;
@@ -64,12 +61,6 @@ struct GPUContext {
   MEM_CXX_CLASS_ALLOC_FUNCS("GPUContext")
 };
 
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 GLuint GPU_vao_default(void);
 GLuint GPU_framebuffer_default(void);
 
@@ -96,7 +87,3 @@ void gpu_context_active_framebuffer_set(GPUContext *ctx, struct GPUFrameBuffer *
 struct GPUFrameBuffer *gpu_context_active_framebuffer_get(GPUContext *ctx);
 
 struct GPUMatrixState *gpu_context_active_matrix_state_get(void);
-
-#ifdef __cplusplus
-}
-#endif

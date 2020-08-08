@@ -23,7 +23,7 @@
 
 #include "GPU_shader_interface.h"
 
-#include "gpu_context_private.h"
+#include "gpu_context_private.hh"
 #include "gpu_matrix_private.h"
 
 #define SUPPRESS_GENERIC_MATRIX_API

@@ -33,7 +33,7 @@
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 
-#include "gpu_context_private.h"
+#include "gpu_context_private.hh"
 #include "gpu_private.h"
 
 typedef enum {

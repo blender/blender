@@ -28,7 +28,7 @@
 #include "GPU_element.h"
 #include "GPU_glew.h"
 
-#include "gpu_context_private.h"
+#include "gpu_context_private.hh"
 
 #include <stdlib.h>
 
