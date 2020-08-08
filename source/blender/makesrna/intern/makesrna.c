@@ -3590,7 +3590,7 @@ static void rna_generate_struct_prototypes(FILE *f)
             if (found == 0) {
               fprintf(f, "struct %s;\n", struct_name);
 
-              if (all_structures >= sizeof(structures) / sizeof(structures[0])) {
+              if (all_structures >= ARRAY_SIZE(structures)) {
                 printf("Array size to store all structures names is too small\n");
                 exit(1);
               }

@@ -158,7 +158,7 @@ static AdrBit2Path ob_layer_bits[] = {
 /* quick macro for returning the appropriate array for adrcode_bitmaps_to_paths() */
 #define RET_ABP(items) \
   { \
-    *tot = sizeof(items) / sizeof(AdrBit2Path); \
+    *tot = ARRAY_SIZE(items); \
     return items; \
   } \
   (void)0

@@ -508,11 +508,11 @@ void workbench_shader_free(void)
     struct GPUShader **sh_array = &e_data.transp_prepass_sh_cache[0][0][0][0];
     DRW_SHADER_FREE_SAFE(sh_array[j]);
   }
-  for (int j = 0; j < sizeof(e_data.opaque_composite_sh) / sizeof(void *); j++) {
+  for (int j = 0; j < ARRAY_SIZE(e_data.opaque_composite_sh); j++) {
     struct GPUShader **sh_array = &e_data.opaque_composite_sh[0];
     DRW_SHADER_FREE_SAFE(sh_array[j]);
   }
-  for (int j = 0; j < sizeof(e_data.shadow_depth_pass_sh) / sizeof(void *); j++) {
+  for (int j = 0; j < ARRAY_SIZE(e_data.shadow_depth_pass_sh); j++) {
     struct GPUShader **sh_array = &e_data.shadow_depth_pass_sh[0];
     DRW_SHADER_FREE_SAFE(sh_array[j]);
   }
@@ -524,7 +524,7 @@ void workbench_shader_free(void)
     struct GPUShader **sh_array = &e_data.cavity_sh[0][0];
     DRW_SHADER_FREE_SAFE(sh_array[j]);
   }
-  for (int j = 0; j < sizeof(e_data.smaa_sh) / sizeof(void *); j++) {
+  for (int j = 0; j < ARRAY_SIZE(e_data.smaa_sh); j++) {
     struct GPUShader **sh_array = &e_data.smaa_sh[0];
     DRW_SHADER_FREE_SAFE(sh_array[j]);
   }

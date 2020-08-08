@@ -2363,8 +2363,8 @@ bool mat3_from_axis_conversion(
   value = ((src_forward << (0 * 3)) | (src_up << (1 * 3)) | (dst_forward << (2 * 3)) |
            (dst_up << (3 * 3)));
 
-  for (uint i = 0; i < (sizeof(_axis_convert_matrix) / sizeof(*_axis_convert_matrix)); i++) {
-    for (uint j = 0; j < (sizeof(*_axis_convert_lut) / sizeof(*_axis_convert_lut[0])); j++) {
+  for (uint i = 0; i < (ARRAY_SIZE(_axis_convert_matrix)); i++) {
+    for (uint j = 0; j < (ARRAY_SIZE(*_axis_convert_lut)); j++) {
       if (_axis_convert_lut[i][j] == value) {
         copy_m3_m3(r_mat, _axis_convert_matrix[i]);
         return true;

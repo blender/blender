@@ -130,7 +130,7 @@ typedef struct bUnitCollection {
 /* Keep table lignment. */
 /* clang-format off */
 
-#define UNIT_COLLECTION_LENGTH(def) (sizeof(def) / sizeof(bUnitDef) - 1)
+#define UNIT_COLLECTION_LENGTH(def) (ARRAY_SIZE(def) - 1)
 #define NULL_UNIT {NULL, NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
 
 /* Dummy */

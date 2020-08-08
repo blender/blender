@@ -224,8 +224,7 @@ const ImFileType IMB_FILE_TYPES[] = {
     {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0},
 };
 
-const ImFileType *IMB_FILE_TYPES_LAST =
-    &IMB_FILE_TYPES[sizeof(IMB_FILE_TYPES) / sizeof(ImFileType) - 1];
+const ImFileType *IMB_FILE_TYPES_LAST = &IMB_FILE_TYPES[ARRAY_SIZE(IMB_FILE_TYPES) - 1];
 
 void imb_filetypes_init(void)
 {

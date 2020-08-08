@@ -1757,14 +1757,13 @@ static void update_distances(int index,
         {0.0f, -1.0f, 1.0f},  {0.0f, -1.0f, -1.0f}, {1.0f, 1.0f, 1.0f},  {1.0f, -1.0f, 1.0f},
         {-1.0f, 1.0f, 1.0f},  {-1.0f, -1.0f, 1.0f}, {1.0f, 1.0f, -1.0f}, {1.0f, -1.0f, -1.0f},
         {-1.0f, 1.0f, -1.0f}, {-1.0f, -1.0f, -1.0f}};
-    size_t ray_cnt = sizeof ray_dirs / sizeof ray_dirs[0];
 
     /* Count ray mesh misses (i.e. no face hit) and cases where the ray direction matches the face
      * normal direction. From this information it can be derived whether a cell is inside or
      * outside the mesh. */
     int miss_cnt = 0, dir_cnt = 0;
 
-    for (int i = 0; i < ray_cnt; i++) {
+    for (int i = 0; i < ARRAY_SIZE(ray_dirs); i++) {
       BVHTreeRayHit hit_tree = {0};
       hit_tree.index = -1;
       hit_tree.dist = PHI_MAX;
@@ -1798,7 +1797,7 @@ static void update_distances(int index,
 
     /* Point lies inside mesh. Use negative sign for distance value.
      * This "if statement" has 2 conditions that can be true for points outside mesh. */
-    if (!(miss_cnt > 0 || dir_cnt == ray_cnt)) {
+    if (!(miss_cnt > 0 || dir_cnt == ARRAY_SIZE(ray_dirs))) {
       min_dist = (-1.0f) * fabsf(min_dist);
     }
 
