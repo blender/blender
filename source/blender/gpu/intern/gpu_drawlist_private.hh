@@ -13,32 +13,27 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Copyright 2020, Blender Foundation.
+ * The Original Code is Copyright (C) 2020 Blender Foundation.
  * All rights reserved.
  */
 
 /** \file
  * \ingroup gpu
- *
- * GPUBackend derived class contain allocators that do not need a context bound.
- * The backend is init at startup and is accessible using GPU_backend_get() */
+ */
 
 #pragma once
 
-#include "gpu_context_private.hh"
-#include "gpu_drawlist_private.hh"
+#include "MEM_guardedalloc.h"
 
 namespace blender {
 namespace gpu {
 
-class GPUBackend {
+class DrawList {
  public:
-  virtual ~GPUBackend(){};
+  virtual ~DrawList(){};
 
-  static GPUBackend *get(void);
-
-  virtual GPUContext *context_alloc(void *ghost_window) = 0;
-  virtual DrawList *drawlist_alloc(int list_length) = 0;
+  virtual void append(GPUBatch *batch, int i_first, int i_count) = 0;
+  virtual void submit() = 0;
 };
 
 }  // namespace gpu

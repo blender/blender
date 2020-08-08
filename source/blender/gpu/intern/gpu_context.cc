@@ -83,12 +83,12 @@ bool GPUContext::is_active_on_thread(void)
 
 GPUContext *GPU_context_create(void *ghost_window)
 {
-  if (gpu_backend_get() == NULL) {
+  if (GPUBackend::get() == NULL) {
     /* TODO move where it make sense. */
     GPU_backend_init(GPU_BACKEND_OPENGL);
   }
 
-  GPUContext *ctx = gpu_backend_get()->context_alloc(ghost_window);
+  GPUContext *ctx = GPUBackend::get()->context_alloc(ghost_window);
 
   GPU_context_active_set(ctx);
   return ctx;
@@ -173,14 +173,14 @@ void GPU_fbo_free(GLuint fbo_id, GPUContext *ctx)
 void GPU_buf_free(GLuint buf_id)
 {
   /* TODO avoid using backend */
-  GPUBackend *backend = gpu_backend_get();
+  GPUBackend *backend = GPUBackend::get();
   static_cast<GLBackend *>(backend)->buf_free(buf_id);
 }
 
 void GPU_tex_free(GLuint tex_id)
 {
   /* TODO avoid using backend */
-  GPUBackend *backend = gpu_backend_get();
+  GPUBackend *backend = GPUBackend::get();
   static_cast<GLBackend *>(backend)->tex_free(tex_id);
 }
 
@@ -285,7 +285,7 @@ void GPU_backend_exit(void)
   delete g_backend;
 }
 
-GPUBackend *gpu_backend_get(void)
+GPUBackend *GPUBackend::get(void)
 {
   return g_backend;
 }

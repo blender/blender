@@ -63,6 +63,7 @@ set(SRC
   intern/gpu_codegen.c
   intern/gpu_context.cc
   intern/gpu_debug.cc
+  intern/gpu_drawlist.cc
   intern/gpu_element.cc
   intern/gpu_extensions.cc
   intern/gpu_framebuffer.cc
@@ -89,6 +90,7 @@ set(SRC
   intern/gpu_viewport.c
 
   opengl/gl_context.cc
+  opengl/gl_drawlist.cc
 
   GPU_attr_binding.h
   GPU_batch.h
@@ -98,6 +100,7 @@ set(SRC
   GPU_common.h
   GPU_context.h
   GPU_debug.h
+  GPU_drawlist.h
   GPU_element.h
   GPU_extensions.h
   GPU_framebuffer.h
@@ -125,6 +128,7 @@ set(SRC
   intern/gpu_batch_private.h
   intern/gpu_codegen.h
   intern/gpu_context_private.hh
+  intern/gpu_drawlist_private.hh
   intern/gpu_material_library.h
   intern/gpu_matrix_private.h
   intern/gpu_node_graph.h
@@ -136,6 +140,7 @@ set(SRC
 
   opengl/gl_backend.hh
   opengl/gl_context.hh
+  opengl/gl_drawlist.hh
 )
 
 set(LIB

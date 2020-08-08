@@ -13,33 +13,34 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Copyright 2020, Blender Foundation.
+ * The Original Code is Copyright (C) 2020 Blender Foundation.
  * All rights reserved.
  */
 
 /** \file
  * \ingroup gpu
  *
- * GPUBackend derived class contain allocators that do not need a context bound.
- * The backend is init at startup and is accessible using GPU_backend_get() */
+ * GPUDrawList is an API to do lots of similar draw-calls very fast using
+ * multi-draw-indirect. There is a fallback if the feature is not supported.
+ */
 
 #pragma once
 
-#include "gpu_context_private.hh"
-#include "gpu_drawlist_private.hh"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-namespace blender {
-namespace gpu {
+struct GPUBatch;
 
-class GPUBackend {
- public:
-  virtual ~GPUBackend(){};
+typedef void *GPUDrawList; /* Opaque pointer. */
 
-  static GPUBackend *get(void);
+/* Create a list with at least length drawcalls. Length can affect performance. */
+GPUDrawList GPU_draw_list_create(int length);
+void GPU_draw_list_discard(GPUDrawList list);
 
-  virtual GPUContext *context_alloc(void *ghost_window) = 0;
-  virtual DrawList *drawlist_alloc(int list_length) = 0;
-};
+void GPU_draw_list_append(GPUDrawList list, GPUBatch *batch, int i_first, int i_count);
+void GPU_draw_list_submit(GPUDrawList list);
 
-}  // namespace gpu
-}  // namespace blender
+#ifdef __cplusplus
+}
+#endif

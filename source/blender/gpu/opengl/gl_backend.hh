@@ -28,6 +28,7 @@
 #include "BLI_vector.hh"
 
 #include "gl_context.hh"
+#include "gl_drawlist.hh"
 
 namespace blender {
 namespace gpu {
@@ -40,6 +41,11 @@ class GLBackend : public GPUBackend {
   GPUContext *context_alloc(void *ghost_window)
   {
     return new GLContext(ghost_window, shared_orphan_list_);
+  };
+
+  DrawList *drawlist_alloc(int list_length)
+  {
+    return new GLDrawList(list_length);
   };
 
   /* TODO remove */

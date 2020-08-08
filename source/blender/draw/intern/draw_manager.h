@@ -35,6 +35,7 @@
 
 #include "GPU_batch.h"
 #include "GPU_context.h"
+#include "GPU_drawlist.h"
 #include "GPU_framebuffer.h"
 #include "GPU_shader.h"
 #include "GPU_uniformbuffer.h"

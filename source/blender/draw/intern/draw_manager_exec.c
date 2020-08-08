@@ -54,8 +54,6 @@ typedef struct DRWCommandsState {
   int resource_id;
   int base_inst;
   int inst_count;
-  int v_first;
-  int v_count;
   bool neg_scale;
   /* Resource location. */
   int obmats_loc;
@@ -714,18 +712,12 @@ BLI_INLINE void draw_indirect_call(DRWShadingGroup *shgroup, DRWCommandsState *s
       GPU_draw_list_submit(DST.draw_list);
       draw_geometry_bind(shgroup, state->batch);
     }
-    GPU_draw_list_command_add(
-        DST.draw_list, state->v_first, state->v_count, state->base_inst, state->inst_count);
+    GPU_draw_list_append(DST.draw_list, state->batch, state->base_inst, state->inst_count);
   }
   /* Fallback when unsupported */
   else {
-    draw_geometry_execute(shgroup,
-                          state->batch,
-                          state->v_first,
-                          state->v_count,
-                          state->base_inst,
-                          state->inst_count,
-                          state->baseinst_loc);
+    draw_geometry_execute(
+        shgroup, state->batch, 0, 0, state->base_inst, state->inst_count, state->baseinst_loc);
   }
 }
 
@@ -1015,8 +1007,6 @@ static void draw_call_batching_start(DRWCommandsState *state)
   state->resource_id = -1;
   state->base_inst = 0;
   state->inst_count = 0;
-  state->v_first = 0;
-  state->v_count = 0;
   state->batch = NULL;
 
   state->select_id = -1;
@@ -1039,15 +1029,10 @@ static void draw_call_batching_do(DRWShadingGroup *shgroup,
     draw_call_batching_flush(shgroup, state);
 
     state->batch = call->batch;
-    state->v_first = (call->batch->elem) ? call->batch->elem->index_start : 0;
-    state->v_count = (call->batch->elem) ? call->batch->elem->index_len :
-                                           call->batch->verts[0]->vertex_len;
     state->inst_count = 1;
     state->base_inst = id;
 
     draw_call_resource_bind(state, &call->handle);
-
-    GPU_draw_list_init(DST.draw_list, state->batch);
   }
   /* Is the id consecutive? */
   else if (id != state->base_inst + state->inst_count) {
