@@ -937,13 +937,13 @@ static void cast_pointer(
 /**
  * Equality test on name and oname excluding any array-size suffix.
  */
-static int elem_strcmp(const char *name, const char *oname)
+static bool elem_streq(const char *name, const char *oname)
 {
   int a = 0;
 
   while (1) {
     if (name[a] != oname[a]) {
-      return 1;
+      return false;
     }
     if (name[a] == '[' || oname[a] == '[') {
       break;
@@ -953,7 +953,7 @@ static int elem_strcmp(const char *name, const char *oname)
     }
     a++;
   }
-  return 0;
+  return true;
 }
 
 /**
@@ -984,8 +984,8 @@ static bool elem_exists_impl(
     otype = types[old[0]];
     oname = names[old[1]];
 
-    if (elem_strcmp(name, oname) == 0) { /* name equal */
-      return STREQ(type, otype);         /* type equal */
+    if (elem_streq(name, oname)) { /* name equal */
+      return STREQ(type, otype);   /* type equal */
     }
   }
   return false;
@@ -1060,8 +1060,8 @@ static const char *find_elem(const SDNA *sdna,
 
     len = DNA_elem_size_nr(sdna, old[0], old[1]);
 
-    if (elem_strcmp(name, oname) == 0) { /* name equal */
-      if (STREQ(type, otype)) {          /* type equal */
+    if (elem_streq(name, oname)) { /* name equal */
+      if (STREQ(type, otype)) {    /* type equal */
         if (sppo) {
           *sppo = old;
         }
