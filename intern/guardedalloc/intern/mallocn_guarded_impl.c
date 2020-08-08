@@ -1160,7 +1160,7 @@ static const char *check_memlist(MemHead *memh)
     return ("Additional error in header");
   }
 
-  return (name);
+  return name;
 }
 
 size_t MEM_guarded_get_peak_memory(void)

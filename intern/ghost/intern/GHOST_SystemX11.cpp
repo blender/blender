@@ -2169,7 +2169,7 @@ GHOST_TUns8 *GHOST_SystemX11::getClipboard(bool selection) const
     }
   }
   else if (owner == None)
-    return (NULL);
+    return NULL;
 
   /* Restore events so copy doesn't swallow other event types (keyboard/mouse). */
   vector<XEvent> restore_events;
@@ -2237,7 +2237,7 @@ GHOST_TUns8 *GHOST_SystemX11::getClipboard(bool selection) const
 
     return tmp_data;
   }
-  return (NULL);
+  return NULL;
 }
 
 void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const

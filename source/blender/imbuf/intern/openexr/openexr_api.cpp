@@ -1900,7 +1900,7 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
   MultiPartInputFile *file = NULL;
 
   if (imb_is_a_openexr(mem) == 0) {
-    return (NULL);
+    return NULL;
   }
 
   colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_FLOAT);
@@ -2073,7 +2073,7 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
         ibuf->flags |= IB_alphamode_premul;
       }
     }
-    return (ibuf);
+    return ibuf;
   }
   catch (const std::exception &exc) {
     std::cerr << exc.what() << std::endl;
@@ -2083,7 +2083,7 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
     delete file;
     delete membuf;
 
-    return (0);
+    return 0;
   }
 }
 

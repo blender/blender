@@ -80,7 +80,7 @@ int BKE_packedfile_seek(PackedFile *pf, int offset, int whence)
     pf->seek = seek;
   }
 
-  return (oldseek);
+  return oldseek;
 }
 
 void BKE_packedfile_rewind(PackedFile *pf)
@@ -108,7 +108,7 @@ int BKE_packedfile_read(PackedFile *pf, void *data, int size)
     size = -1;
   }
 
-  return (size);
+  return size;
 }
 
 int BKE_packedfile_count_all(Main *bmain)
@@ -234,7 +234,7 @@ PackedFile *BKE_packedfile_new(ReportList *reports, const char *filename, const 
 
   // XXX waitcursor(0);
 
-  return (pf);
+  return pf;
 }
 
 /* no libraries for now */
@@ -365,7 +365,7 @@ int BKE_packedfile_write_to_file(ReportList *reports,
   if (guimode) {
   }  // XXX waitcursor(0);
 
-  return (ret_value);
+  return ret_value;
 }
 
 /**
@@ -426,7 +426,7 @@ enum ePF_FileCompare BKE_packedfile_compare_to_file(const char *ref_file_name,
     }
   }
 
-  return (ret_val);
+  return ret_val;
 }
 
 /**
@@ -579,7 +579,7 @@ int BKE_packedfile_unpack_vfont(Main *bmain,
     }
   }
 
-  return (ret_value);
+  return ret_value;
 }
 
 int BKE_packedfile_unpack_sound(Main *bmain,
@@ -609,7 +609,7 @@ int BKE_packedfile_unpack_sound(Main *bmain,
     }
   }
 
-  return (ret_value);
+  return ret_value;
 }
 
 int BKE_packedfile_unpack_image(Main *bmain,
@@ -662,7 +662,7 @@ int BKE_packedfile_unpack_image(Main *bmain,
     BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_RELOAD);
   }
 
-  return (ret_value);
+  return ret_value;
 }
 
 int BKE_packedfile_unpack_volume(Main *bmain,
@@ -692,7 +692,7 @@ int BKE_packedfile_unpack_volume(Main *bmain,
     }
   }
 
-  return (ret_value);
+  return ret_value;
 }
 
 int BKE_packedfile_unpack_all_libraries(Main *bmain, ReportList *reports)
@@ -723,7 +723,7 @@ int BKE_packedfile_unpack_all_libraries(Main *bmain, ReportList *reports)
     }
   }
 
-  return (ret_value);
+  return ret_value;
 }
 
 void BKE_packedfile_pack_all_libraries(Main *bmain, ReportList *reports)

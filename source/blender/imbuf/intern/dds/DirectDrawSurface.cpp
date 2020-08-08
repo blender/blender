@@ -1353,7 +1353,7 @@ uint DirectDrawSurface::mipmapSize(uint mipmap) const
   }
 
   printf("DDS: mipmap format not supported\n");
-  return (0);
+  return 0;
 }
 
 uint DirectDrawSurface::faceSize() const

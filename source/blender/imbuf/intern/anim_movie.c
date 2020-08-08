@@ -301,7 +301,7 @@ struct anim *IMB_open_anim(const char *name,
     anim->ib_flags = ib_flags;
     anim->streamindex = streamindex;
   }
-  return (anim);
+  return anim;
 }
 
 bool IMB_anim_can_produce_frames(const struct anim *anim)
@@ -743,7 +743,7 @@ static int startffmpeg(struct anim *anim)
   }
 #  endif
 
-  return (0);
+  return 0;
 }
 
 /* postprocess the image in anim->pFrame and do color conversion
@@ -1060,7 +1060,7 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position, IMB_Timecode_Typ
   int old_frame_index = 0; /* To quiet gcc barking... */
 
   if (anim == NULL) {
-    return (0);
+    return 0;
   }
 
   av_log(anim->pFormatCtx, AV_LOG_DEBUG, "FETCH: pos=%d\n", position);
@@ -1291,7 +1291,7 @@ static ImBuf *anim_getnew(struct anim *anim)
   struct ImBuf *ibuf = NULL;
 
   if (anim == NULL) {
-    return (NULL);
+    return NULL;
   }
 
   free_anim_movie(anim);
@@ -1305,7 +1305,7 @@ static ImBuf *anim_getnew(struct anim *anim)
 #endif
 
   if (anim->curtype != 0) {
-    return (NULL);
+    return NULL;
   }
   anim->curtype = imb_get_anim_type(anim->name);
 
@@ -1319,7 +1319,7 @@ static ImBuf *anim_getnew(struct anim *anim)
       break;
     case ANIM_MOVIE:
       if (startmovie(anim)) {
-        return (NULL);
+        return NULL;
       }
       ibuf = IMB_allocImBuf(anim->x, anim->y, 24, 0); /* fake */
       break;
@@ -1327,7 +1327,7 @@ static ImBuf *anim_getnew(struct anim *anim)
     case ANIM_AVI:
       if (startavi(anim)) {
         printf("couldn't start avi\n");
-        return (NULL);
+        return NULL;
       }
       ibuf = IMB_allocImBuf(anim->x, anim->y, 24, 0);
       break;
@@ -1335,13 +1335,13 @@ static ImBuf *anim_getnew(struct anim *anim)
 #ifdef WITH_FFMPEG
     case ANIM_FFMPEG:
       if (startffmpeg(anim)) {
-        return (0);
+        return 0;
       }
       ibuf = IMB_allocImBuf(anim->x, anim->y, 24, 0);
       break;
 #endif
   }
-  return (ibuf);
+  return ibuf;
 }
 
 struct ImBuf *IMB_anim_previewframe(struct anim *anim)
@@ -1369,7 +1369,7 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim,
   int pic;
   int filter_y;
   if (anim == NULL) {
-    return (NULL);
+    return NULL;
   }
 
   filter_y = (anim->ib_flags & IB_animdeinterlace);
@@ -1378,7 +1378,7 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim,
     if (anim->curtype == 0) {
       ibuf = anim_getnew(anim);
       if (ibuf == NULL) {
-        return (NULL);
+        return NULL;
       }
 
       IMB_freeImBuf(ibuf); /* ???? */
@@ -1386,10 +1386,10 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim,
     }
 
     if (position < 0) {
-      return (NULL);
+      return NULL;
     }
     if (position >= anim->duration_in_frames) {
-      return (NULL);
+      return NULL;
     }
   }
   else {
@@ -1444,7 +1444,7 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim,
     }
     BLI_snprintf(ibuf->name, sizeof(ibuf->name), "%s.%04d", anim->name, anim->curposition + 1);
   }
-  return (ibuf);
+  return ibuf;
 }
 
 /***/

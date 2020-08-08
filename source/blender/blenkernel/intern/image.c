@@ -2877,7 +2877,7 @@ int BKE_imbuf_write(ImBuf *ibuf, const char *name, const ImageFormatData *imf)
     perror(name);
   }
 
-  return (ok);
+  return ok;
 }
 
 /* same as BKE_imbuf_write() but crappy workaround not to permanently modify
@@ -3005,7 +3005,7 @@ struct anim *openanim(const char *name, int flags, int streamindex, char colorsp
   }
   IMB_freeImBuf(ibuf);
 
-  return (anim);
+  return anim;
 }
 
 /* ************************* New Image API *************** */

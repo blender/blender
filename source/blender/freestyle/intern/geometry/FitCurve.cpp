@@ -202,7 +202,7 @@ static BezierCurve GenerateBezier(
   bezCurve[3] = d[last];
   V2Add(&bezCurve[0], V2Scale(&tHat1, alpha_l), &bezCurve[1]);
   V2Add(&bezCurve[3], V2Scale(&tHat2, alpha_r), &bezCurve[2]);
-  return (bezCurve);
+  return bezCurve;
 }
 
 /*
@@ -223,7 +223,7 @@ static double *Reparameterize(Vector2 *d, int first, int last, double *u, Bezier
   for (i = first; i <= last; i++) {
     uPrime[i - first] = NewtonRaphsonRootFind(bezCurve, d[i], u[i - first]);
   }
-  return (uPrime);
+  return uPrime;
 }
 
 /*

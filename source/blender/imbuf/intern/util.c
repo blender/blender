@@ -339,42 +339,42 @@ int imb_get_anim_type(const char *name)
 #  ifdef WITH_FFMPEG
   /* stat test below fails on large files > 4GB */
   if (isffmpeg(name)) {
-    return (ANIM_FFMPEG);
+    return ANIM_FFMPEG;
   }
 #  endif
   if (BLI_stat(name, &st) == -1) {
-    return (0);
+    return 0;
   }
   if (((st.st_mode) & S_IFMT) != S_IFREG) {
-    return (0);
+    return 0;
   }
 
   if (isavi(name)) {
-    return (ANIM_AVI);
+    return ANIM_AVI;
   }
 
   if (ismovie(name)) {
-    return (ANIM_MOVIE);
+    return ANIM_MOVIE;
   }
 #else
   if (BLI_stat(name, &st) == -1) {
-    return (0);
+    return 0;
   }
   if (((st.st_mode) & S_IFMT) != S_IFREG) {
-    return (0);
+    return 0;
   }
 
   if (ismovie(name)) {
-    return (ANIM_MOVIE);
+    return ANIM_MOVIE;
   }
 #  ifdef WITH_FFMPEG
   if (isffmpeg(name)) {
-    return (ANIM_FFMPEG);
+    return ANIM_FFMPEG;
   }
 #  endif
 
   if (isavi(name)) {
-    return (ANIM_AVI);
+    return ANIM_AVI;
   }
 #endif
   type = IMB_ispic(name);

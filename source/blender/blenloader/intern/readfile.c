@@ -1186,7 +1186,7 @@ static int fd_read_data_from_file(FileData *filedata,
     filedata->file_offset += readsize;
   }
 
-  return (readsize);
+  return readsize;
 }
 
 static off64_t fd_seek_data_from_file(FileData *filedata, off64_t offset, int whence)
@@ -1211,7 +1211,7 @@ static int fd_read_gzip_from_file(FileData *filedata,
     filedata->file_offset += readsize;
   }
 
-  return (readsize);
+  return readsize;
 }
 
 /* Memory reading. */
@@ -1227,7 +1227,7 @@ static int fd_read_from_memory(FileData *filedata,
   memcpy(buffer, filedata->buffer + filedata->file_offset, readsize);
   filedata->file_offset += readsize;
 
-  return (readsize);
+  return readsize;
 }
 
 /* MemFile reading. */
@@ -1491,7 +1491,7 @@ static int fd_read_gzip_from_memory(FileData *filedata,
 
   filedata->file_offset += size;
 
-  return (size);
+  return size;
 }
 
 static int fd_read_gzip_from_memory_init(FileData *fd)

@@ -182,10 +182,10 @@ int imb_save_photoshop(struct ImBuf *ibuf, const char * /*name*/, int flags)
               << " currently not supported" << std::endl;
     imb_addencodedbufferImBuf(ibuf);
     ibuf->encodedsize = 0;
-    return (0);
+    return 0;
   }
 
-  return (0);
+  return 0;
 }
 
 struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspace[IM_MAX_SPACE])
@@ -199,7 +199,7 @@ struct ImBuf *imb_load_photoshop(const char *filename, int flags, char colorspac
 
   /* load image from file through OIIO */
   if (imb_is_a_photoshop(filename) == 0) {
-    return (NULL);
+    return NULL;
   }
 
   colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);

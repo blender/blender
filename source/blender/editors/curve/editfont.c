@@ -474,7 +474,7 @@ static int kill_selection(Object *obedit, int ins) /* 1 == new character */
     ef->selstart = ef->selend = 0;
   }
 
-  return (direction);
+  return direction;
 }
 
 /** \} */

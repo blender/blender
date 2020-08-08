@@ -230,7 +230,7 @@ static float _final_goal(Object *ob, BodyPoint *bp) /*jow_go_for2_5 */
       }
       f = sb->mingoal + bp->goal * fabsf(sb->maxgoal - sb->mingoal);
       f = pow(f, 4.0f);
-      return (f);
+      return f;
     }
   }
   CLOG_ERROR(&LOG, "sb or bp == NULL");
@@ -1619,7 +1619,7 @@ static int choose_winner(
     case 3:
       copy_v3_v3(w, cc);
   }
-  return (winner);
+  return winner;
 }
 
 static int sb_detect_vertex_collisionCached(float opco[3],
@@ -1833,7 +1833,7 @@ static int sb_deflect_face(Object *ob,
   deflected = sb_detect_vertex_collisionCachedEx(
       s_actpos, facenormal, cf, force, ob, time, vel, intrusion);
 #endif
-  return (deflected);
+  return deflected;
 }
 
 /* hiding this for now .. but the jacobian may pop up on other tasks .. so i'd like to keep it */
@@ -1991,13 +1991,13 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene,
   }
   else {
     CLOG_ERROR(&LOG, "expected a SB here");
-    return (999);
+    return 999;
   }
 
   /* debugerin */
   if (sb->totpoint < ifirst) {
     printf("Aye 998");
-    return (998);
+    return 998;
   }
   /* debugerin */
 

@@ -558,7 +558,7 @@ const bool BCSampleFrame::has_sample_for(Object *ob) const
 const bool BCSampleFrame::has_sample_for(Object *ob, Bone *bone) const
 {
   const BCMatrix *bc_bone = get_sample_matrix(ob, bone);
-  return (bc_bone);
+  return bc_bone;
 }
 
 /* ==================================================================== */

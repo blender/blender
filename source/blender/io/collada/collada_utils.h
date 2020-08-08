@@ -154,7 +154,7 @@ inline std::string bc_string_after(const std::string &s, const std::string probe
   if (i != std::string::npos) {
     return (s.substr(i + probe.length(), s.length() - i));
   }
-  return (s);
+  return s;
 }
 
 inline std::string bc_string_before(const std::string &s, const std::string probe)
@@ -163,7 +163,7 @@ inline std::string bc_string_before(const std::string &s, const std::string prob
   if (i != std::string::npos) {
     return s.substr(0, i);
   }
-  return (s);
+  return s;
 }
 
 inline bool bc_startswith(std::string const &value, std::string const &starting)

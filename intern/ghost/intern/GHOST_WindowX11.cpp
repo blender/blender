@@ -901,7 +901,7 @@ bool GHOST_WindowX11::netwmIsMaximized(void) const
 
   if (prop_ret)
     XFree(prop_ret);
-  return (st);
+  return st;
 }
 
 void GHOST_WindowX11::netwmFullScreen(bool set)
@@ -964,7 +964,7 @@ bool GHOST_WindowX11::netwmIsFullScreen(void) const
 
   if (prop_ret)
     XFree(prop_ret);
-  return (st);
+  return st;
 }
 
 void GHOST_WindowX11::motifFullScreen(bool set)
@@ -1018,7 +1018,7 @@ bool GHOST_WindowX11::motifIsFullScreen(void) const
 
   if (prop_ret)
     XFree(prop_ret);
-  return (state);
+  return state;
 }
 
 GHOST_TWindowState GHOST_WindowX11::getState() const
@@ -1040,7 +1040,7 @@ GHOST_TWindowState GHOST_WindowX11::getState() const
     state_ret = GHOST_kWindowStateFullScreen;
   else if (netwmIsMaximized() == True)
     state_ret = GHOST_kWindowStateMaximized;
-  return (state_ret);
+  return state_ret;
 }
 
 GHOST_TSuccess GHOST_WindowX11::setState(GHOST_TWindowState state)
@@ -1078,7 +1078,7 @@ GHOST_TSuccess GHOST_WindowX11::setState(GHOST_TWindowState state)
     if (is_motif_full == True)
       motifFullScreen(False);
     icccmSetState(NormalState);
-    return (GHOST_kSuccess);
+    return GHOST_kSuccess;
   }
 
   if (state == GHOST_kWindowStateFullScreen) {
@@ -1087,7 +1087,7 @@ GHOST_TSuccess GHOST_WindowX11::setState(GHOST_TWindowState state)
      * isn't mapped.
      */
     if (cur_state == GHOST_kWindowStateMinimized)
-      return (GHOST_kFailure);
+      return GHOST_kFailure;
 
     m_normal_state = cur_state;
 
@@ -1097,7 +1097,7 @@ GHOST_TSuccess GHOST_WindowX11::setState(GHOST_TWindowState state)
       netwmFullScreen(True);
     if (is_motif_full == False)
       motifFullScreen(True);
-    return (GHOST_kSuccess);
+    return GHOST_kSuccess;
   }
 
   if (state == GHOST_kWindowStateMaximized) {
@@ -1106,7 +1106,7 @@ GHOST_TSuccess GHOST_WindowX11::setState(GHOST_TWindowState state)
      * isn't mapped.
      */
     if (cur_state == GHOST_kWindowStateMinimized)
-      return (GHOST_kFailure);
+      return GHOST_kFailure;
 
     if (is_full == True)
       netwmFullScreen(False);
@@ -1114,7 +1114,7 @@ GHOST_TSuccess GHOST_WindowX11::setState(GHOST_TWindowState state)
       motifFullScreen(False);
     if (is_max == False)
       netwmMaximized(True);
-    return (GHOST_kSuccess);
+    return GHOST_kSuccess;
   }
 
   if (state == GHOST_kWindowStateMinimized) {
@@ -1123,10 +1123,10 @@ GHOST_TSuccess GHOST_WindowX11::setState(GHOST_TWindowState state)
      * the window (maximized, full screen, etc).
      */
     icccmSetState(IconicState);
-    return (GHOST_kSuccess);
+    return GHOST_kSuccess;
   }
 
-  return (GHOST_kFailure);
+  return GHOST_kFailure;
 }
 
 GHOST_TSuccess GHOST_WindowX11::setOrder(GHOST_TWindowOrder order)

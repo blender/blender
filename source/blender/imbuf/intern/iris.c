@@ -281,18 +281,18 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
   readheader(inf, &image);
   if (image.imagic != IMAGIC) {
     fprintf(stderr, "longimagedata: bad magic number in image file\n");
-    return (NULL);
+    return NULL;
   }
 
   rle = ISRLE(image.type);
   bpp = BPP(image.type);
   if (bpp != 1 && bpp != 2) {
     fprintf(stderr, "longimagedata: image must have 1 or 2 byte per pix chan\n");
-    return (NULL);
+    return NULL;
   }
   if ((uint)image.zsize > 8) {
     fprintf(stderr, "longimagedata: channels over 8 not supported\n");
-    return (NULL);
+    return NULL;
   }
 
   const int xsize = image.xsize;
@@ -304,7 +304,7 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
     if (ibuf) {
       ibuf->ftype = IMB_FTYPE_IMAGIC;
     }
-    return (ibuf);
+    return ibuf;
   }
 
   if (rle) {
@@ -598,7 +598,7 @@ struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colors
     IMB_convert_rgba_to_abgr(ibuf);
   }
 
-  return (ibuf);
+  return ibuf;
 }
 
 /* static utility functions for longimagedata */
@@ -988,5 +988,5 @@ int imb_saveiris(struct ImBuf *ibuf, const char *name, int flags)
   IMB_convert_rgba_to_abgr(ibuf);
   test_endian_zbuf(ibuf);
 
-  return (ret);
+  return ret;
 }

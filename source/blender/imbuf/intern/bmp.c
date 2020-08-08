@@ -101,7 +101,7 @@ static int checkbmp(const uchar *mem)
     }
   }
 
-  return (ret_val);
+  return ret_val;
 }
 
 int imb_is_a_bmp(const uchar *buf)
@@ -123,7 +123,7 @@ ImBuf *imb_bmp_decode(const uchar *mem, size_t size, int flags, char colorspace[
   (void)size; /* unused */
 
   if (checkbmp(mem) == 0) {
-    return (NULL);
+    return NULL;
   }
 
   colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
@@ -272,7 +272,7 @@ ImBuf *imb_bmp_decode(const uchar *mem, size_t size, int flags, char colorspace[
     ibuf->ftype = IMB_FTYPE_BMP;
   }
 
-  return (ibuf);
+  return ibuf;
 }
 
 #undef CHECK_HEADER_FIELD_BMP

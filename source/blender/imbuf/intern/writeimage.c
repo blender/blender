@@ -50,7 +50,7 @@ short IMB_saveiff(struct ImBuf *ibuf, const char *name, int flags)
   BLI_assert(!BLI_path_is_rel(name));
 
   if (ibuf == NULL) {
-    return (false);
+    return false;
   }
   ibuf->flags = flags;
 

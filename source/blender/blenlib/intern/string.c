@@ -514,7 +514,7 @@ char *BLI_strcasestr(const char *s, const char *find)
     do {
       do {
         if ((sc = *s++) == 0) {
-          return (NULL);
+          return NULL;
         }
         sc = tolower(sc);
       } while (sc != c);

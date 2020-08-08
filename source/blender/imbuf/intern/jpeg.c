@@ -417,7 +417,7 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo, int fla
     }
   }
 
-  return (ibuf);
+  return ibuf;
 }
 
 ImBuf *imb_load_jpeg(const unsigned char *buffer,
@@ -452,7 +452,7 @@ ImBuf *imb_load_jpeg(const unsigned char *buffer,
 
   ibuf = ibJpegImageFromCinfo(cinfo, flags);
 
-  return (ibuf);
+  return ibuf;
 }
 
 static void write_jpeg(struct jpeg_compress_struct *cinfo, struct ImBuf *ibuf)
@@ -605,7 +605,7 @@ static int init_jpeg(FILE *outfile, struct jpeg_compress_struct *cinfo, struct I
   cinfo->dct_method = JDCT_FLOAT;
   jpeg_set_quality(cinfo, quality, true);
 
-  return (0);
+  return 0;
 }
 
 static int save_stdjpeg(const char *name, struct ImBuf *ibuf)

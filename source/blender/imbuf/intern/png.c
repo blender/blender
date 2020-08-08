@@ -71,7 +71,7 @@ int imb_is_a_png(const unsigned char *mem)
     ret_val = !png_sig_cmp(mem, 0, 8);
 #endif
   }
-  return (ret_val);
+  return ret_val;
 }
 
 static void Flush(png_structp png_ptr)
@@ -161,7 +161,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
   bytesperpixel = (ibuf->planes + 7) >> 3;
   if ((bytesperpixel > 4) || (bytesperpixel == 2)) {
     printf("imb_savepng: Unsupported bytes per pixel: %d for file: '%s'\n", bytesperpixel, name);
-    return (0);
+    return 0;
   }
 
   png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
@@ -511,7 +511,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
     fclose(fp);
   }
 
-  return (1);
+  return 1;
 }
 
 static void imb_png_warning(png_structp UNUSED(png_ptr), png_const_charp message)
@@ -549,7 +549,7 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
   unsigned int channels;
 
   if (imb_is_a_png(mem) == 0) {
-    return (NULL);
+    return NULL;
   }
 
   /* both 8 and 16 bit PNGs are default to standard byte colorspace */
@@ -819,5 +819,5 @@ ImBuf *imb_loadpng(const unsigned char *mem, size_t size, int flags, char colors
   }
   png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
 
-  return (ibuf);
+  return ibuf;
 }

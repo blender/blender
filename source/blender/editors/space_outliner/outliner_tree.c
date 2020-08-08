@@ -1288,7 +1288,7 @@ static int need_add_seq_dup(Sequence *seq)
     }
     p = p->next;
   }
-  return (1);
+  return 1;
 }
 
 static void outliner_add_seq_dup(SpaceOutliner *space_outliner,
