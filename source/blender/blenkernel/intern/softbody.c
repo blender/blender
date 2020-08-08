@@ -3280,8 +3280,8 @@ void SB_estimate_transform(Object *ob, float lloc[3], float lrot[3][3], float ls
   if (!sb || !sb->bpoint) {
     return;
   }
-  opos = MEM_callocN((sb->totpoint) * 3 * sizeof(float), "SB_OPOS");
-  rpos = MEM_callocN((sb->totpoint) * 3 * sizeof(float), "SB_RPOS");
+  opos = MEM_callocN(sizeof(float[3]) * sb->totpoint, "SB_OPOS");
+  rpos = MEM_callocN(sizeof(float[3]) * sb->totpoint, "SB_RPOS");
   /* might filter vertex selection with a vertex group */
   for (a = 0, bp = sb->bpoint, rp = sb->scratch->Ref.ivert; a < sb->totpoint; a++, bp++, rp++) {
     copy_v3_v3(rpos[a], rp->pos);

@@ -610,7 +610,7 @@ void IMB_rectblend(ImBuf *dbuf,
       }
 
       if (do_float) {
-        memcpy(drectf, srectf, width * sizeof(float) * 4);
+        memcpy(drectf, srectf, sizeof(float[4]) * width);
         drectf += destskip * 4;
         srectf += srcskip * 4;
       }

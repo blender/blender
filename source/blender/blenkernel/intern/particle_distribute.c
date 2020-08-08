@@ -382,7 +382,7 @@ static void init_mv_jit(float *jit, int num, int seed2, float amount)
     x -= (float)floor(x);
   }
 
-  jit2 = MEM_mallocN(12 + 2 * sizeof(float) * num, "initjit");
+  jit2 = MEM_mallocN(12 + sizeof(float[2]) * num, "initjit");
 
   for (i = 0; i < 4; i++) {
     BLI_jitterate1((float(*)[2])jit, (float(*)[2])jit2, num, rad1);
@@ -1280,7 +1280,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
       hammersley_create(jit, jitlevel + 1, psys->seed, part->jitfac);
     }
     BLI_array_randomize(
-        jit, 2 * sizeof(float), jitlevel, psys->seed); /* for custom jit or even distribution */
+        jit, sizeof(float[2]), jitlevel, psys->seed); /* for custom jit or even distribution */
   }
 
   /* Setup things for threaded distribution */

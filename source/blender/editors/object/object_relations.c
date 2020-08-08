@@ -1175,7 +1175,7 @@ static int parent_noinv_set_exec(bContext *C, wmOperator *op)
       else {
         /* clear inverse matrix and also the object location */
         unit_m4(ob->parentinv);
-        memset(ob->loc, 0, 3 * sizeof(float));
+        memset(ob->loc, 0, sizeof(float[3]));
 
         /* set recalc flags */
         DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);

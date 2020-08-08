@@ -483,7 +483,7 @@ static PyObject *Vector_resize_2d(VectorObject *self)
     return NULL;
   }
 
-  self->vec = PyMem_Realloc(self->vec, (sizeof(float) * 2));
+  self->vec = PyMem_Realloc(self->vec, sizeof(float[2]));
   if (self->vec == NULL) {
     PyErr_SetString(PyExc_MemoryError,
                     "Vector.resize_2d(): "
@@ -514,7 +514,7 @@ static PyObject *Vector_resize_3d(VectorObject *self)
     return NULL;
   }
 
-  self->vec = PyMem_Realloc(self->vec, (sizeof(float) * 3));
+  self->vec = PyMem_Realloc(self->vec, sizeof(float[3]));
   if (self->vec == NULL) {
     PyErr_SetString(PyExc_MemoryError,
                     "Vector.resize_3d(): "
@@ -549,7 +549,7 @@ static PyObject *Vector_resize_4d(VectorObject *self)
     return NULL;
   }
 
-  self->vec = PyMem_Realloc(self->vec, (sizeof(float) * 4));
+  self->vec = PyMem_Realloc(self->vec, sizeof(float[4]));
   if (self->vec == NULL) {
     PyErr_SetString(PyExc_MemoryError,
                     "Vector.resize_4d(): "

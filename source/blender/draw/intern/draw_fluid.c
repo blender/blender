@@ -106,7 +106,7 @@ static void create_color_ramp(const struct ColorBand *coba, float *data)
 
 static GPUTexture *create_transfer_function(int type, const struct ColorBand *coba)
 {
-  float *data = (float *)MEM_mallocN(sizeof(float) * 4 * TFUNC_WIDTH, __func__);
+  float *data = (float *)MEM_mallocN(sizeof(float[4]) * TFUNC_WIDTH, __func__);
 
   switch (type) {
     case TFUNC_FLAME_SPECTRUM:

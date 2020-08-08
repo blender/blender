@@ -1976,7 +1976,7 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
           const bool has_luma = exr_has_luma(*file);
           FrameBuffer frameBuffer;
           float *first;
-          int xstride = sizeof(float) * 4;
+          int xstride = sizeof(float[4]);
           int ystride = -xstride * width;
 
           imb_addrectfloatImBuf(ibuf);

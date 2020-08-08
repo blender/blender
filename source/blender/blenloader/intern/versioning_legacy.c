@@ -102,7 +102,7 @@ static void vcol_to_fcol(Mesh *me)
     return;
   }
 
-  mcoln = mcolmain = MEM_malloc_arrayN(me->totface, 4 * sizeof(int), "mcoln");
+  mcoln = mcolmain = MEM_malloc_arrayN(me->totface, sizeof(int[4]), "mcoln");
   mcol = (uint *)me->mcol;
   mface = me->mface;
   for (a = me->totface; a > 0; a--, mface++) {

@@ -1383,7 +1383,7 @@ static void insert_seam_vert_array(const ProjPaintState *ps,
   const int fidx[2] = {fidx1, ((fidx1 + 1) % 3)};
   float vec[2];
 
-  VertSeam *vseam = BLI_memarena_alloc(arena, sizeof(VertSeam) * 2);
+  VertSeam *vseam = BLI_memarena_alloc(arena, sizeof(VertSeam[2]));
 
   vseam->prev = NULL;
   vseam->next = NULL;
@@ -2785,10 +2785,10 @@ static void project_bucket_clip_face(const bool is_ortho,
     }
 
     if (flip) {
-      qsort(isectVCosSS, *tot, sizeof(float) * 3, float_z_sort_flip);
+      qsort(isectVCosSS, *tot, sizeof(float[3]), float_z_sort_flip);
     }
     else {
-      qsort(isectVCosSS, *tot, sizeof(float) * 3, float_z_sort);
+      qsort(isectVCosSS, *tot, sizeof(float[3]), float_z_sort);
     }
 
     doubles = true;
@@ -3872,7 +3872,7 @@ static void proj_paint_state_cavity_init(ProjPaintState *ps)
 
   if (ps->do_mask_cavity) {
     int *counter = MEM_callocN(sizeof(int) * ps->totvert_eval, "counter");
-    float(*edges)[3] = MEM_callocN(sizeof(float) * 3 * ps->totvert_eval, "edges");
+    float(*edges)[3] = MEM_callocN(sizeof(float[3]) * ps->totvert_eval, "edges");
     ps->cavities = MEM_mallocN(sizeof(float) * ps->totvert_eval, "ProjectPaint Cavities");
     cavities = ps->cavities;
 

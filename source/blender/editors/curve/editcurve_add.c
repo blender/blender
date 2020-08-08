@@ -153,7 +153,7 @@ Nurb *ED_curve_add_nurbs_primitive(
       nu->resolu = cu->resolu;
       if (cutype == CU_BEZIER) {
         nu->pntsu = 2;
-        nu->bezt = (BezTriple *)MEM_callocN(2 * sizeof(BezTriple), "addNurbprim1");
+        nu->bezt = (BezTriple *)MEM_callocN(sizeof(BezTriple) * nu->pntsu, "addNurbprim1");
         bezt = nu->bezt;
         bezt->h1 = bezt->h2 = HD_ALIGN;
         bezt->f1 = bezt->f2 = bezt->f3 = SELECT;
@@ -190,7 +190,7 @@ Nurb *ED_curve_add_nurbs_primitive(
         nu->pntsu = 4;
         nu->pntsv = 1;
         nu->orderu = 4;
-        nu->bp = (BPoint *)MEM_callocN(sizeof(BPoint) * 4, "addNurbprim3");
+        nu->bp = (BPoint *)MEM_callocN(sizeof(BPoint) * nu->pntsu, "addNurbprim3");
 
         bp = nu->bp;
         for (a = 0; a < 4; a++, bp++) {
@@ -227,7 +227,7 @@ Nurb *ED_curve_add_nurbs_primitive(
       nu->orderu = 5;
       nu->flagu = CU_NURB_ENDPOINT; /* endpoint */
       nu->resolu = cu->resolu;
-      nu->bp = (BPoint *)MEM_callocN(sizeof(BPoint) * 5, "addNurbprim3");
+      nu->bp = (BPoint *)MEM_callocN(sizeof(BPoint) * nu->pntsu, "addNurbprim3");
 
       bp = nu->bp;
       for (a = 0; a < 5; a++, bp++) {
@@ -262,7 +262,7 @@ Nurb *ED_curve_add_nurbs_primitive(
 
       if (cutype == CU_BEZIER) {
         nu->pntsu = 4;
-        nu->bezt = (BezTriple *)MEM_callocN(sizeof(BezTriple) * 4, "addNurbprim1");
+        nu->bezt = (BezTriple *)MEM_callocN(sizeof(BezTriple) * nu->pntsu, "addNurbprim1");
         nu->flagu = CU_NURB_CYCLIC;
         bezt = nu->bezt;
 
@@ -307,7 +307,7 @@ Nurb *ED_curve_add_nurbs_primitive(
         nu->pntsu = 8;
         nu->pntsv = 1;
         nu->orderu = 4;
-        nu->bp = (BPoint *)MEM_callocN(sizeof(BPoint) * 8, "addNurbprim6");
+        nu->bp = (BPoint *)MEM_callocN(sizeof(BPoint) * nu->pntsu, "addNurbprim6");
         nu->flagu = CU_NURB_CYCLIC;
         bp = nu->bp;
 
@@ -406,7 +406,7 @@ Nurb *ED_curve_add_nurbs_primitive(
         nu->resolu = cu->resolu;
         nu->resolv = cu->resolv;
         nu->flag = CU_SMOOTH;
-        nu->bp = (BPoint *)MEM_callocN(sizeof(BPoint) * 5, "addNurbprim6");
+        nu->bp = (BPoint *)MEM_callocN(sizeof(BPoint) * nu->pntsu, "addNurbprim6");
         nu->flagu = 0;
         bp = nu->bp;
 

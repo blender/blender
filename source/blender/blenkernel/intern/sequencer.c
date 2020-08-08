@@ -3622,7 +3622,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
         ibufs_arr[view_id] = IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rectfloat);
         memcpy(ibufs_arr[view_id]->rect_float,
                rres.rectf,
-               4 * sizeof(float) * rres.rectx * rres.recty);
+               sizeof(float[4]) * rres.rectx * rres.recty);
 
         if (rres.rectz) {
           addzbuffloatImBuf(ibufs_arr[view_id]);

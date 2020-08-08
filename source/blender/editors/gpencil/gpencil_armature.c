@@ -308,10 +308,10 @@ static void gpencil_add_verts_to_dgroups(
 
   /* create an array of root and tip positions transformed into
    * global coords */
-  root = MEM_callocN(numbones * sizeof(float) * 3, "root");
-  tip = MEM_callocN(numbones * sizeof(float) * 3, "tip");
-  selected = MEM_callocN(numbones * sizeof(int), "selected");
-  radsqr = MEM_callocN(numbones * sizeof(float), "radsqr");
+  root = MEM_callocN(sizeof(float[3]) * numbones, "root");
+  tip = MEM_callocN(sizeof(float[3]) * numbones, "tip");
+  selected = MEM_callocN(sizeof(int) * numbones, "selected");
+  radsqr = MEM_callocN(sizeof(float) * numbones, "radsqr");
 
   for (j = 0; j < numbones; j++) {
     bone = bonelist[j];

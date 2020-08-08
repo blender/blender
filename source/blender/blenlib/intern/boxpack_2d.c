@@ -309,8 +309,8 @@ void BLI_box_pack_2d(BoxPack *boxarray, const uint len, float *r_tot_x, float *r
   qsort(boxarray, (size_t)len, sizeof(BoxPack), box_areasort);
 
   /* add verts to the boxes, these are only used internally  */
-  vert = MEM_mallocN((size_t)len * 4 * sizeof(BoxVert), "BoxPack Verts");
-  vertex_pack_indices = MEM_mallocN((size_t)len * 3 * sizeof(int), "BoxPack Indices");
+  vert = MEM_mallocN(sizeof(BoxVert[4]) * (size_t)len, "BoxPack Verts");
+  vertex_pack_indices = MEM_mallocN(sizeof(int[3]) * (size_t)len, "BoxPack Indices");
 
   vs_ctx.vertarray = vert;
 

@@ -80,7 +80,7 @@ LatticeDeformData *BKE_lattice_deform_data_create(const Object *oblatt, const Ob
   }
   bp = lt->def;
 
-  fp = latticedata = MEM_mallocN(sizeof(float) * 3 * lt->pntsu * lt->pntsv * lt->pntsw,
+  fp = latticedata = MEM_mallocN(sizeof(float[3]) * lt->pntsu * lt->pntsv * lt->pntsw,
                                  "latticedata");
 
   /* for example with a particle system: (ob == NULL) */

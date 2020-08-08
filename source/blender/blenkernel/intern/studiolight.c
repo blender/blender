@@ -693,7 +693,7 @@ static void studiolight_calculate_cubemap_vector_weight(
 static void studiolight_spherical_harmonics_calculate_coefficients(StudioLight *sl, float (*sh)[3])
 {
   float weight_accum = 0.0f;
-  memset(sh, 0, sizeof(float) * 3 * STUDIOLIGHT_SH_COEFS_LEN);
+  memset(sh, 0, sizeof(float[3]) * STUDIOLIGHT_SH_COEFS_LEN);
 
   for (int face = 0; face < 6; face++) {
     ITER_PIXELS (float,

@@ -216,8 +216,8 @@ static void curve_bevel_make_from_object(Curve *cu, ListBase *disp)
       if (ELEM(dl->type, DL_POLY, DL_SEGM)) {
         DispList *dlnew = MEM_mallocN(sizeof(DispList), __func__);
         *dlnew = *dl;
-        dlnew->verts = MEM_malloc_arrayN(dl->parts * dl->nr, 3 * sizeof(float), __func__);
-        memcpy(dlnew->verts, dl->verts, 3 * sizeof(float) * dl->parts * dl->nr);
+        dlnew->verts = MEM_malloc_arrayN(dl->parts * dl->nr, sizeof(float[3]), __func__);
+        memcpy(dlnew->verts, dl->verts, sizeof(float[3]) * dl->parts * dl->nr);
 
         if (dlnew->type == DL_SEGM) {
           dlnew->flag |= (DL_FRONT_CURVE | DL_BACK_CURVE);

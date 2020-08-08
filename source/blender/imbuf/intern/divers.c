@@ -666,7 +666,7 @@ void IMB_buffer_byte_from_byte(uchar *rect_to,
 
     if (profile_to == profile_from) {
       /* same profile, copy */
-      memcpy(to, from, sizeof(uchar) * 4 * width);
+      memcpy(to, from, sizeof(uchar[4]) * width);
     }
     else if (profile_to == IB_PROFILE_LINEAR_RGB) {
       /* convert to sRGB to linear */
@@ -785,7 +785,7 @@ void IMB_float_from_rect(ImBuf *ibuf)
     size_t size;
 
     size = ((size_t)ibuf->x) * ibuf->y;
-    size = size * 4 * sizeof(float);
+    size = sizeof(float[4]) * size;
     ibuf->channels = 4;
 
     rect_float = MEM_callocN(size, "IMB_float_from_rect");

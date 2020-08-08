@@ -342,9 +342,9 @@ static void add_verts_to_dgroups(ReportList *reports,
 
   /* create an array of root and tip positions transformed into
    * global coords */
-  root = MEM_callocN(numbones * sizeof(float) * 3, "root");
-  tip = MEM_callocN(numbones * sizeof(float) * 3, "tip");
-  selected = MEM_callocN(numbones * sizeof(int), "selected");
+  root = MEM_callocN(sizeof(float[3]) * numbones, "root");
+  tip = MEM_callocN(sizeof(float[3]) * numbones, "tip");
+  selected = MEM_callocN(sizeof(int) * numbones, "selected");
 
   for (j = 0; j < numbones; j++) {
     bone = bonelist[j];

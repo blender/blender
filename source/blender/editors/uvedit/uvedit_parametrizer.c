@@ -1498,10 +1498,10 @@ static void p_polygon_kernel_center(float (*points)[2], int npoints, float *cent
   float(*oldpoints)[2], (*newpoints)[2], *p1, *p2;
 
   size = npoints * 3;
-  oldpoints = MEM_mallocN(sizeof(float) * 2 * size, "PPolygonOldPoints");
-  newpoints = MEM_mallocN(sizeof(float) * 2 * size, "PPolygonNewPoints");
+  oldpoints = MEM_mallocN(sizeof(float[2]) * size, "PPolygonOldPoints");
+  newpoints = MEM_mallocN(sizeof(float[2]) * size, "PPolygonNewPoints");
 
-  memcpy(oldpoints, points, sizeof(float) * 2 * npoints);
+  memcpy(oldpoints, points, sizeof(float[2]) * npoints);
 
   for (i = 0; i < npoints; i++) {
     p1 = points[i];
@@ -1510,7 +1510,7 @@ static void p_polygon_kernel_center(float (*points)[2], int npoints, float *cent
 
     if (nnewpoints == 0) {
       /* degenerate case, use center of original polygon */
-      memcpy(oldpoints, points, sizeof(float) * 2 * npoints);
+      memcpy(oldpoints, points, sizeof(float[2]) * npoints);
       nnewpoints = npoints;
       break;
     }
@@ -1528,10 +1528,10 @@ static void p_polygon_kernel_center(float (*points)[2], int npoints, float *cent
     if (nnewpoints * 2 > size) {
       size *= 2;
       MEM_freeN(oldpoints);
-      oldpoints = MEM_mallocN(sizeof(float) * 2 * size, "oldpoints");
-      memcpy(oldpoints, newpoints, sizeof(float) * 2 * nnewpoints);
+      oldpoints = MEM_mallocN(sizeof(float[2]) * size, "oldpoints");
+      memcpy(oldpoints, newpoints, sizeof(float[2]) * nnewpoints);
       MEM_freeN(newpoints);
-      newpoints = MEM_mallocN(sizeof(float) * 2 * size, "newpoints");
+      newpoints = MEM_mallocN(sizeof(float[2]) * size, "newpoints");
     }
     else {
       float(*sw_points)[2] = oldpoints;
@@ -1687,7 +1687,7 @@ static void p_vert_harmonic_insert(PVert *v)
       npoints++;
     }
 
-    points = MEM_mallocN(sizeof(float) * 2 * npoints, "PHarmonicPoints");
+    points = MEM_mallocN(sizeof(float[2]) * npoints, "PHarmonicPoints");
 
     e = v->edge;
     i = 0;
@@ -2427,7 +2427,7 @@ static void p_abf_setup_system(PAbfSystem *sys)
 
   sys->bAlpha = (float *)MEM_mallocN(sizeof(float) * sys->nangles, "ABFbalpha");
   sys->bTriangle = (float *)MEM_mallocN(sizeof(float) * sys->nfaces, "ABFbtriangle");
-  sys->bInterior = (float *)MEM_mallocN(sizeof(float) * 2 * sys->ninterior, "ABFbinterior");
+  sys->bInterior = (float *)MEM_mallocN(sizeof(float[2]) * sys->ninterior, "ABFbinterior");
 
   sys->lambdaTriangle = (float *)MEM_callocN(sizeof(float) * sys->nfaces, "ABFlambdatri");
   sys->lambdaPlanar = (float *)MEM_callocN(sizeof(float) * sys->ninterior, "ABFlamdaplane");

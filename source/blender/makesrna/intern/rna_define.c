@@ -4384,7 +4384,7 @@ void RNA_enum_item_add(EnumPropertyItem **items, int *totitem, const EnumPropert
   int tot = *totitem;
 
   if (tot == 0) {
-    *items = MEM_callocN(sizeof(EnumPropertyItem) * 8, __func__);
+    *items = MEM_callocN(sizeof(EnumPropertyItem[8]), __func__);
   }
   else if (tot >= 8 && (tot & (tot - 1)) == 0) {
     /* power of two > 8 */

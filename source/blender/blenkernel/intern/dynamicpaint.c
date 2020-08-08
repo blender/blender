@@ -5166,7 +5166,7 @@ static int dynamicPaint_prepareEffectStep(struct Depsgraph *depsgraph,
     ListBase *effectors = BKE_effectors_create(depsgraph, ob, NULL, surface->effector_weights);
 
     /* allocate memory for force data (dir vector + strength) */
-    *force = MEM_mallocN(sData->total_points * 4 * sizeof(float), "PaintEffectForces");
+    *force = MEM_mallocN(sizeof(float[4]) * sData->total_points, "PaintEffectForces");
 
     if (*force) {
       DynamicPaintEffectData data = {
@@ -6260,7 +6260,7 @@ static int dynamicPaint_doStep(Depsgraph *depsgraph,
 
           /* calculate brush speed vectors if required */
           if (surface->type == MOD_DPAINT_SURFACE_T_PAINT && brush->flags & MOD_DPAINT_DO_SMUDGE) {
-            bData->brush_velocity = MEM_callocN(sData->total_points * sizeof(float) * 4,
+            bData->brush_velocity = MEM_callocN(sizeof(float[4]) * sData->total_points,
                                                 "Dynamic Paint brush velocity");
             /* init adjacency data if not already */
             if (!sData->adj_data) {

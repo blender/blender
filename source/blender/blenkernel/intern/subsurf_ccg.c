@@ -150,7 +150,7 @@ static CCGSubSurf *_getSubSurf(CCGSubSurf *prevSS, int subdivLevels, int numLaye
   ifc.vertDataSize = sizeof(float) * numLayers;
   normalOffset += sizeof(float) * numLayers;
   if (flags & CCG_CALC_NORMALS) {
-    ifc.vertDataSize += sizeof(float) * 3;
+    ifc.vertDataSize += sizeof(float[3]);
   }
   if (flags & CCG_ALLOC_MASK) {
     ifc.vertDataSize += sizeof(float);

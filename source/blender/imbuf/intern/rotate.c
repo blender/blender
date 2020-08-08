@@ -108,11 +108,11 @@ void IMB_flipx(struct ImBuf *ibuf)
   if (ibuf->rect_float) {
     for (yi = y - 1; yi >= 0; yi--) {
       for (xr = x - 1, xl = 0; xr >= xl; xr--, xl++) {
-        memcpy(&px_f, &ibuf->rect_float[((x * yi) + xr) * 4], 4 * sizeof(float));
+        memcpy(&px_f, &ibuf->rect_float[((x * yi) + xr) * 4], sizeof(float[4]));
         memcpy(&ibuf->rect_float[((x * yi) + xr) * 4],
                &ibuf->rect_float[((x * yi) + xl) * 4],
-               4 * sizeof(float));
-        memcpy(&ibuf->rect_float[((x * yi) + xl) * 4], &px_f, 4 * sizeof(float));
+               sizeof(float[4]));
+        memcpy(&ibuf->rect_float[((x * yi) + xl) * 4], &px_f, sizeof(float[4]));
       }
     }
   }

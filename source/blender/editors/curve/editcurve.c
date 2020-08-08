@@ -569,14 +569,14 @@ GHash *ED_curve_keyindex_hash_duplicate(GHash *keyindex)
 static void key_to_bezt(float *key, BezTriple *basebezt, BezTriple *bezt)
 {
   memcpy(bezt, basebezt, sizeof(BezTriple));
-  memcpy(bezt->vec, key, sizeof(float) * 9);
+  memcpy(bezt->vec, key, sizeof(float[9]));
   bezt->tilt = key[9];
   bezt->radius = key[10];
 }
 
 static void bezt_to_key(BezTriple *bezt, float *key)
 {
-  memcpy(key, bezt->vec, sizeof(float) * 9);
+  memcpy(key, bezt->vec, sizeof(float[9]));
   key[9] = bezt->tilt;
   key[10] = bezt->radius;
 }
@@ -691,7 +691,7 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
           nu = nu->next;
         }
 
-        ofs = MEM_callocN(sizeof(float) * 3 * totvec, "currkey->data");
+        ofs = MEM_callocN(sizeof(float[3]) * totvec, "currkey->data");
         nu = editnurb->nurbs.first;
         i = 0;
         while (nu) {
@@ -3498,7 +3498,7 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
               BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, nextbezt)) {
             float prevvec[3][3];
 
-            memcpy(prevvec, bezt->vec, sizeof(float) * 9);
+            memcpy(prevvec, bezt->vec, sizeof(float[9]));
 
             for (i = 0; i < number_cuts; i++) {
               factor = 1.0f / (number_cuts + 1 - i);
@@ -3530,7 +3530,7 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
               beztn->radius = (bezt->radius + nextbezt->radius) / 2;
               beztn->weight = (bezt->weight + nextbezt->weight) / 2;
 
-              memcpy(prevvec, beztn->vec, sizeof(float) * 9);
+              memcpy(prevvec, beztn->vec, sizeof(float[9]));
               beztn++;
             }
           }

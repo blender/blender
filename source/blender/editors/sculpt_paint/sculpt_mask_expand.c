@@ -359,7 +359,7 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
 
   SCULPT_vertex_random_access_init(ss);
 
-  op->customdata = MEM_mallocN(2 * sizeof(float), "initial mouse position");
+  op->customdata = MEM_mallocN(sizeof(float[2]), "initial mouse position");
   copy_v2_v2(op->customdata, mouse);
 
   SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);

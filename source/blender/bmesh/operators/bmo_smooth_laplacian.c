@@ -115,7 +115,7 @@ static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numFaces, in
     return NULL;
   }
 
-  sys->fweights = MEM_callocN(sizeof(float) * 3 * sys->numFaces, "ModLaplSmoothFWeight");
+  sys->fweights = MEM_callocN(sizeof(float[3]) * sys->numFaces, "ModLaplSmoothFWeight");
   if (!sys->fweights) {
     delete_laplacian_system(sys);
     return NULL;

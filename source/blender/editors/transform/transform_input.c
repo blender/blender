@@ -267,7 +267,7 @@ void setCustomPoints(TransInfo *UNUSED(t),
 {
   int *data;
 
-  mi->data = MEM_reallocN(mi->data, sizeof(int) * 4);
+  mi->data = MEM_reallocN(mi->data, sizeof(int[4]));
 
   data = mi->data;
 

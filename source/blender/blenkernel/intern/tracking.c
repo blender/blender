@@ -2823,7 +2823,7 @@ static void tracking_dopesheet_channels_segments_calc(MovieTrackingDopesheetChan
     return;
   }
 
-  channel->segments = MEM_callocN(2 * sizeof(int) * channel->tot_segment,
+  channel->segments = MEM_callocN(sizeof(int[2]) * channel->tot_segment,
                                   "tracking channel segments");
 
   /* create segments */

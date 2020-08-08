@@ -439,7 +439,7 @@ static void compute_sss_translucence_kernel(const GPUSssKernelData *kd,
                                             float **output)
 {
   float(*texels)[4];
-  texels = MEM_callocN(sizeof(float) * 4 * resolution, "compute_sss_translucence_kernel");
+  texels = MEM_callocN(sizeof(float[4]) * resolution, "compute_sss_translucence_kernel");
   *output = (float *)texels;
 
   /* Last texel should be black, hence the - 1. */

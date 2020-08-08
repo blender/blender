@@ -1968,10 +1968,10 @@ static void calculate_profile(BevelParams *bp, BoundVert *bndv, bool reversed, b
 
   bool need_2 = bp->seg != bp->pro_spacing.seg_2;
   if (pro->prof_co == NULL) {
-    pro->prof_co = (float *)BLI_memarena_alloc(bp->mem_arena, sizeof(float) * 3 * (bp->seg + 1));
+    pro->prof_co = (float *)BLI_memarena_alloc(bp->mem_arena, sizeof(float[3]) * (bp->seg + 1));
     if (need_2) {
-      pro->prof_co_2 = (float *)BLI_memarena_alloc(
-          bp->mem_arena, sizeof(float) * 3 * (bp->pro_spacing.seg_2 + 1));
+      pro->prof_co_2 = (float *)BLI_memarena_alloc(bp->mem_arena,
+                                                   sizeof(float[3]) * (bp->pro_spacing.seg_2 + 1));
     }
     else {
       pro->prof_co_2 = pro->prof_co;

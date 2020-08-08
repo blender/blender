@@ -1276,8 +1276,8 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
             new_ml = BLI_memarena_alloc(process->pgn_elements, sizeof(MetaElem));
             *(new_ml) = *ml;
             new_ml->bb = BLI_memarena_alloc(process->pgn_elements, sizeof(BoundBox));
-            new_ml->mat = BLI_memarena_alloc(process->pgn_elements, 4 * 4 * sizeof(float));
-            new_ml->imat = BLI_memarena_alloc(process->pgn_elements, 4 * 4 * sizeof(float));
+            new_ml->mat = BLI_memarena_alloc(process->pgn_elements, sizeof(float[4][4]));
+            new_ml->imat = BLI_memarena_alloc(process->pgn_elements, sizeof(float[4][4]));
 
             /* too big stiffness seems only ugly due to linear interpolation
              * no need to have possibility for too big stiffness */

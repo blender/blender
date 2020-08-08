@@ -122,7 +122,7 @@ void AppCanvas::Erase()
 void AppCanvas::readColorPixels(int x, int y, int w, int h, RGBImage &oImage) const
 {
   float *rgb = new float[3 * w * h];
-  memset(rgb, 0, sizeof(float) * 3 * w * h);
+  memset(rgb, 0, sizeof(float[3]) * w * h);
   int xsch = width();
   int ysch = height();
   if (_pass_diffuse.buf) {
@@ -161,8 +161,7 @@ void AppCanvas::readColorPixels(int x, int y, int w, int h, RGBImage &oImage) co
         if (ii < 0 || ii >= rectx) {
           continue;
         }
-        memcpy(
-            rgb + (w * j + i) * 3, _pass_diffuse.buf + (rectx * jj + ii) * 3, sizeof(float) * 3);
+        memcpy(rgb + (w * j + i) * 3, _pass_diffuse.buf + (rectx * jj + ii) * 3, sizeof(float[3]));
       }
     }
   }

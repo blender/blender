@@ -65,11 +65,11 @@ void CompositorOperation::initExecution()
   this->m_depthInput = getInputSocketReader(2);
   if (this->getWidth() * this->getHeight() != 0) {
     this->m_outputBuffer = (float *)MEM_callocN(
-        this->getWidth() * this->getHeight() * 4 * sizeof(float), "CompositorOperation");
+        sizeof(float[4]) * this->getWidth() * this->getHeight(), "CompositorOperation");
   }
   if (this->m_depthInput != NULL) {
     this->m_depthBuffer = (float *)MEM_callocN(
-        this->getWidth() * this->getHeight() * sizeof(float), "CompositorOperation");
+        sizeof(float) * this->getWidth() * this->getHeight(), "CompositorOperation");
   }
 }
 

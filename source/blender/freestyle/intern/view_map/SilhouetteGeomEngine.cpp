@@ -124,7 +124,7 @@ void SilhouetteGeomEngine::setFrustum(real iZNear, real iZFar)
 
 void SilhouetteGeomEngine::retrieveViewport(int viewport[4])
 {
-  memcpy(viewport, _viewport, 4 * sizeof(int));
+  memcpy(viewport, _viewport, sizeof(int[4]));
 }
 
 void SilhouetteGeomEngine::ProjectSilhouette(vector<SVertex *> &ioVertices)

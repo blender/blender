@@ -595,7 +595,7 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
     float minspeed = (float)nbd->minspeed;
     float minspeedsq = minspeed * minspeed;
 
-    minvecbufrect = (float *)MEM_callocN(4 * sizeof(float) * xsize * ysize, "minspeed buf");
+    minvecbufrect = (float *)MEM_callocN(sizeof(float[4]) * xsize * ysize, "minspeed buf");
 
     dvec1 = vecbufrect;
     dvec2 = minvecbufrect;
@@ -621,7 +621,7 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
   }
 
   /* make vertex buffer with averaged speed and zvalues */
-  rectvz = (float *)MEM_callocN(4 * sizeof(float) * (xsize + 1) * (ysize + 1), "vertices");
+  rectvz = (float *)MEM_callocN(sizeof(float[4]) * (xsize + 1) * (ysize + 1), "vertices");
   dvz = rectvz;
   for (y = 0; y <= ysize; y++) {
 

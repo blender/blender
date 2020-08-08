@@ -281,7 +281,7 @@ float *BKE_mball_make_orco(Object *ob, ListBase *dispbase)
   size[2] = bb->vec[1][2] - loc[2];
 
   dl = dispbase->first;
-  orcodata = MEM_mallocN(sizeof(float) * 3 * dl->nr, "MballOrco");
+  orcodata = MEM_mallocN(sizeof(float[3]) * dl->nr, "MballOrco");
 
   data = dl->verts;
   orco = orcodata;

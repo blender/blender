@@ -85,7 +85,7 @@ static int element_size_bytes_get(const SubdivCCG *subdiv_ccg)
 static void subdiv_ccg_init_layers(SubdivCCG *subdiv_ccg, const SubdivToCCGSettings *settings)
 {
   /* CCG always contains coordinates. Rest of layers are coming after them. */
-  int layer_offset = sizeof(float) * 3;
+  int layer_offset = sizeof(float[3]);
   /* Mask. */
   if (settings->need_mask) {
     subdiv_ccg->has_mask = true;
@@ -103,7 +103,7 @@ static void subdiv_ccg_init_layers(SubdivCCG *subdiv_ccg, const SubdivToCCGSetti
   if (settings->need_normal) {
     subdiv_ccg->has_normal = true;
     subdiv_ccg->normal_offset = layer_offset;
-    layer_offset += sizeof(float) * 3;
+    layer_offset += sizeof(float[3]);
   }
   else {
     subdiv_ccg->has_normal = false;
@@ -709,7 +709,7 @@ static void subdiv_ccg_recalc_inner_face_normals(SubdivCCG *subdiv_ccg,
   CCGElem *grid = subdiv_ccg->grids[grid_index];
   if (tls->face_normals == NULL) {
     tls->face_normals = MEM_malloc_arrayN(
-        grid_size_1 * grid_size_1, 3 * sizeof(float), "CCG TLS normals");
+        grid_size_1 * grid_size_1, sizeof(float[3]), "CCG TLS normals");
   }
   for (int y = 0; y < grid_size - 1; y++) {
     for (int x = 0; x < grid_size - 1; x++) {

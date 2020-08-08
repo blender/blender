@@ -81,10 +81,10 @@ static void workbench_dof_setup_samples(struct GPUUniformBuffer **ubo,
                                         float bokeh_ratio)
 {
   if (*data == NULL) {
-    *data = MEM_callocN(sizeof(float) * 4 * SAMP_LEN, "workbench dof samples");
+    *data = MEM_callocN(sizeof(float[4]) * SAMP_LEN, "workbench dof samples");
   }
   if (*ubo == NULL) {
-    *ubo = DRW_uniformbuffer_create(sizeof(float) * 4 * SAMP_LEN, NULL);
+    *ubo = DRW_uniformbuffer_create(sizeof(float[4]) * SAMP_LEN, NULL);
   }
 
   float *samp = *data;

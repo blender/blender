@@ -62,12 +62,12 @@ MINLINE float area_squared_tri_v2(const float v1[2], const float v2[2], const fl
 
 MINLINE void zero_sh(float r[9])
 {
-  memset(r, 0, sizeof(float) * 9);
+  memset(r, 0, sizeof(float[9]));
 }
 
 MINLINE void copy_sh_sh(float r[9], const float a[9])
 {
-  memcpy(r, a, sizeof(float) * 9);
+  memcpy(r, a, sizeof(float[9]));
 }
 
 MINLINE void mul_sh_fl(float r[9], const float f)

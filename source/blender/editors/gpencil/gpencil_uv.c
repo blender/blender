@@ -182,7 +182,7 @@ static bool gpencil_uv_transform_init(bContext *C, wmOperator *op)
   if (i > 0) {
     mul_v3_fl(center, 1.0f / i);
     /* Create arrays to save all transformations. */
-    opdata->array_loc = MEM_calloc_arrayN(i, 2 * sizeof(float), __func__);
+    opdata->array_loc = MEM_calloc_arrayN(i, sizeof(float[2]), __func__);
     opdata->array_rot = MEM_calloc_arrayN(i, sizeof(float), __func__);
     opdata->array_scale = MEM_calloc_arrayN(i, sizeof(float), __func__);
     i = 0;

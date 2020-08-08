@@ -2342,7 +2342,7 @@ void IMB_colormanagement_imbuf_to_float_texture(float *out_buffer,
         }
       }
       else {
-        memcpy(out, in, sizeof(float) * 4 * width);
+        memcpy(out, in, sizeof(float[4]) * width);
       }
     }
   }
@@ -3511,7 +3511,7 @@ static void partial_buffer_update_rect(ImBuf *ibuf,
         size_t display_offset = ((size_t)display_stride * i + xmin) * 4;
 
         memcpy(
-            display_buffer + display_offset, byte_buffer + byte_offset, 4 * sizeof(char) * width);
+            display_buffer + display_offset, byte_buffer + byte_offset, sizeof(char[4]) * width);
       }
     }
   }

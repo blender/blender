@@ -860,7 +860,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
       if (act_is_basis) {
         const float(*fp)[3] = actkey->data;
 
-        ofs = MEM_callocN(sizeof(float) * 3 * bm->totvert, "currkey->data");
+        ofs = MEM_callocN(sizeof(float[3]) * bm->totvert, "currkey->data");
         mvert = me->mvert;
         BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, i) {
           const int keyi = BM_ELEM_CD_GET_INT(eve, cd_shape_keyindex_offset);

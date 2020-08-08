@@ -1515,7 +1515,7 @@ static void draw_tracking_tracks(SpaceClip *sc,
 
     /* undistort */
     if (count) {
-      marker_pos = MEM_callocN(2 * sizeof(float) * count, "draw_tracking_tracks marker_pos");
+      marker_pos = MEM_callocN(sizeof(float[2]) * count, "draw_tracking_tracks marker_pos");
 
       track = tracksbase->first;
       fp = marker_pos;

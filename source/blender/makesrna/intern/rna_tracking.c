@@ -815,7 +815,7 @@ static void rna_trackingCameras_matrix_from_frame(ID *id,
   MovieTrackingObject *object = find_object_for_reconstruction(tracking, reconstruction);
   BKE_tracking_camera_get_reconstructed_interpolate(tracking, object, framenr, mat);
 
-  memcpy(matrix, mat, sizeof(float) * 16);
+  memcpy(matrix, mat, sizeof(float[4][4]));
 }
 
 #else

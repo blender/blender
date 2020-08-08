@@ -725,7 +725,7 @@ float BKE_nurb_calc_length(const Nurb *nu, int resolution)
                                         bezt->vec[1][j],
                                         points + j,
                                         resolu,
-                                        3 * sizeof(float));
+                                        sizeof(float[3]));
         }
 
         prevpntsit = pntsit = points;

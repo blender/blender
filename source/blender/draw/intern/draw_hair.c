@@ -330,7 +330,7 @@ void DRW_hair_update(void)
                                     GPU_ATTACHMENT_TEXTURE(tex),
                                 });
 
-  float *data = MEM_mallocN(sizeof(float) * 4 * width * height, "tf fallback buffer");
+  float *data = MEM_mallocN(sizeof(float[4]) * width * height, "tf fallback buffer");
 
   GPU_framebuffer_bind(fb);
   while (g_tf_calls != NULL) {
@@ -347,8 +347,8 @@ void DRW_hair_update(void)
       /* Upload back to VBO. */
       GPU_vertbuf_use(pr_call->vbo);
       glBufferSubData(GL_ARRAY_BUFFER,
-                      sizeof(float) * 4 * g_tf_id_offset,
-                      sizeof(float) * 4 * max_read_px_len,
+                      sizeof(float[4]) * g_tf_id_offset,
+                      sizeof(float[4]) * max_read_px_len,
                       data);
 
       g_tf_id_offset += max_read_px_len;

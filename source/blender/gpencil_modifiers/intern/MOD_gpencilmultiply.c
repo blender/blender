@@ -147,9 +147,9 @@ static void duplicateStroke(Object *ob,
     normalize_v3(stroke_normal);
   }
 
-  float *t1_array = MEM_callocN(sizeof(float) * 3 * gps->totpoints,
+  float *t1_array = MEM_callocN(sizeof(float[3]) * gps->totpoints,
                                 "duplicate_temp_result_array_1");
-  float *t2_array = MEM_callocN(sizeof(float) * 3 * gps->totpoints,
+  float *t2_array = MEM_callocN(sizeof(float[3]) * gps->totpoints,
                                 "duplicate_temp_result_array_2");
 
   pt = gps->points;

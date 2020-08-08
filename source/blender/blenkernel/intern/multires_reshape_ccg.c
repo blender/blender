@@ -58,7 +58,7 @@ bool multires_reshape_assign_final_coords_from_ccg(const MultiresReshapeContext 
         BLI_assert(grid_element.displacement != NULL);
         memcpy(grid_element.displacement,
                CCG_grid_elem_co(&reshape_level_key, ccg_grid, x, y),
-               sizeof(float) * 3);
+               sizeof(float[3]));
 
         if (reshape_level_key.has_mask) {
           BLI_assert(grid_element.mask != NULL);

@@ -764,7 +764,7 @@ static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene *sce, Rend
   /* Create buffer in empty RenderView created in the init step. */
   RenderResult *rr = RE_AcquireResultWrite(re);
   RenderView *rv = (RenderView *)rr->views.first;
-  rv->rectf = MEM_callocN(sizeof(float) * 4 * width * height, "texture render result");
+  rv->rectf = MEM_callocN(sizeof(float[4]) * width * height, "texture render result");
   RE_ReleaseResult(re);
 
   /* Get texture image pool (if any) */

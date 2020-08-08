@@ -1020,7 +1020,7 @@ void gpu_batch_init(void)
 
     float default_attrib_data[4] = {0.0f, 0.0f, 0.0f, 1.0f};
     glBindBuffer(GL_ARRAY_BUFFER, g_default_attr_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4, default_attrib_data, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float[4]), default_attrib_data, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
   }
 

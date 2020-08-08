@@ -146,7 +146,7 @@ bool MOD_meshcache_read_pc2_index(FILE *fp,
     return false;
   }
 
-  if (BLI_fseek(fp, sizeof(float) * 3 * index * pc2_head.verts_tot, SEEK_CUR) != 0) {
+  if (BLI_fseek(fp, sizeof(float[3]) * index * pc2_head.verts_tot, SEEK_CUR) != 0) {
     *err_str = "Failed to seek frame";
     return false;
   }
@@ -155,7 +155,7 @@ bool MOD_meshcache_read_pc2_index(FILE *fp,
     float *vco = *vertexCos;
     uint i;
     for (i = pc2_head.verts_tot; i != 0; i--, vco += 3) {
-      fread(vco, sizeof(float) * 3, 1, fp);
+      fread(vco, sizeof(float[3]), 1, fp);
 
 #ifdef __BIG_ENDIAN__
       BLI_endian_switch_float(vco + 0);
@@ -170,7 +170,7 @@ bool MOD_meshcache_read_pc2_index(FILE *fp,
     uint i;
     for (i = pc2_head.verts_tot; i != 0; i--, vco += 3) {
       float tvec[3];
-      fread(tvec, sizeof(float) * 3, 1, fp);
+      fread(tvec, sizeof(float[3]), 1, fp);
 
 #ifdef __BIG_ENDIAN__
       BLI_endian_switch_float(tvec + 0);

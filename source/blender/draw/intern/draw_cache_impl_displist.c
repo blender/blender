@@ -444,7 +444,7 @@ static void displist_surf_fnors_ensure(const DispList *dl, float (**fnors)[3])
   int u_len = dl->nr - ((dl->flag & DL_CYCL_U) ? 0 : 1);
   int v_len = dl->parts - ((dl->flag & DL_CYCL_V) ? 0 : 1);
   const float(*verts)[3] = (float(*)[3])dl->verts;
-  float(*nor_flat)[3] = MEM_mallocN(sizeof(float) * 3 * u_len * v_len, __func__);
+  float(*nor_flat)[3] = MEM_mallocN(sizeof(float[3]) * u_len * v_len, __func__);
   *fnors = nor_flat;
 
   SURFACE_QUAD_ITER_BEGIN (dl) {

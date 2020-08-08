@@ -730,7 +730,7 @@ static ImBuf *make_vectorscope_view_from_ibuf_float(ImBuf *ibuf)
       const float *src1 = src + 4 * (ibuf->x * y + x);
       const char *p;
 
-      memcpy(rgb, src1, 3 * sizeof(float));
+      memcpy(rgb, src1, sizeof(float[3]));
 
       clamp_v3(rgb, 0.0f, 1.0f);
 

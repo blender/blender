@@ -172,7 +172,7 @@ void BKE_displist_normals_add(ListBase *lb)
   while (dl) {
     if (dl->type == DL_INDEX3) {
       if (dl->nors == NULL) {
-        dl->nors = MEM_callocN(sizeof(float) * 3, "dlnors");
+        dl->nors = MEM_callocN(sizeof(float[3]), "dlnors");
 
         if (dl->flag & DL_BACK_CURVE) {
           dl->nors[2] = -1.0f;
@@ -184,7 +184,7 @@ void BKE_displist_normals_add(ListBase *lb)
     }
     else if (dl->type == DL_SURF) {
       if (dl->nors == NULL) {
-        dl->nors = MEM_callocN(sizeof(float) * 3 * dl->nr * dl->parts, "dlnors");
+        dl->nors = MEM_callocN(sizeof(float[3]) * dl->nr * dl->parts, "dlnors");
 
         vdata = dl->verts;
         ndata = dl->nors;
@@ -411,7 +411,7 @@ static void curve_to_displist(Curve *cu,
                                             bezt->vec[1][j],
                                             data + j,
                                             resolu,
-                                            3 * sizeof(float));
+                                            sizeof(float[3]));
             }
 
             data += 3 * resolu;
@@ -444,7 +444,7 @@ static void curve_to_displist(Curve *cu,
         else {
           dl->type = DL_SEGM;
         }
-        BKE_nurb_makeCurve(nu, data, NULL, NULL, NULL, resolu, 3 * sizeof(float));
+        BKE_nurb_makeCurve(nu, data, NULL, NULL, NULL, resolu, sizeof(float[3]));
       }
       else if (nu->type == CU_POLY) {
         len = nu->pntsu;
@@ -571,8 +571,8 @@ void BKE_displist_fill(ListBase *dispbase,
         dlnew->nr = totvert;
         dlnew->parts = tot;
 
-        dlnew->index = MEM_mallocN(tot * 3 * sizeof(int), "dlindex");
-        dlnew->verts = MEM_mallocN(totvert * 3 * sizeof(float), "dlverts");
+        dlnew->index = MEM_mallocN(sizeof(int[3]) * tot, "dlindex");
+        dlnew->verts = MEM_mallocN(sizeof(float[3]) * totvert, "dlverts");
 
         /* vert data */
         f1 = dlnew->verts;
@@ -641,7 +641,7 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
         if ((cu->flag & CU_BACK) && (dl->flag & DL_BACK_CURVE)) {
           dlnew = MEM_callocN(sizeof(DispList), "filldisp");
           BLI_addtail(&front, dlnew);
-          dlnew->verts = fp1 = MEM_mallocN(sizeof(float) * 3 * dl->parts, "filldisp1");
+          dlnew->verts = fp1 = MEM_mallocN(sizeof(float[3]) * dl->parts, "filldisp1");
           dlnew->nr = dl->parts;
           dlnew->parts = 1;
           dlnew->type = DL_POLY;
@@ -662,7 +662,7 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
         if ((cu->flag & CU_FRONT) && (dl->flag & DL_FRONT_CURVE)) {
           dlnew = MEM_callocN(sizeof(DispList), "filldisp");
           BLI_addtail(&back, dlnew);
-          dlnew->verts = fp1 = MEM_mallocN(sizeof(float) * 3 * dl->parts, "filldisp1");
+          dlnew->verts = fp1 = MEM_mallocN(sizeof(float[3]) * dl->parts, "filldisp1");
           dlnew->nr = dl->parts;
           dlnew->parts = 1;
           dlnew->type = DL_POLY;
@@ -948,7 +948,7 @@ static float (*displist_vert_coords_alloc(ListBase *dispbase, int *r_vert_len))[
     *r_vert_len += (dl->type == DL_INDEX3) ? dl->nr : dl->parts * dl->nr;
   }
 
-  allverts = MEM_mallocN((*r_vert_len) * sizeof(float) * 3, "displist_vert_coords_alloc allverts");
+  allverts = MEM_mallocN(sizeof(float[3]) * (*r_vert_len), "displist_vert_coords_alloc allverts");
   fp = (float *)allverts;
   for (dl = dispbase->first; dl; dl = dl->next) {
     int offs = 3 * ((dl->type == DL_INDEX3) ? dl->nr : dl->parts * dl->nr);
@@ -1185,7 +1185,7 @@ static void displist_surf_indices(DispList *dl)
 
   dl->totindex = 0;
 
-  index = dl->index = MEM_mallocN(4 * sizeof(int) * (dl->parts + 1) * (dl->nr + 1),
+  index = dl->index = MEM_mallocN(sizeof(int[4]) * (dl->parts + 1) * (dl->nr + 1),
                                   "index array nurbs");
 
   for (a = 0; a < dl->parts; a++) {
@@ -1274,7 +1274,7 @@ void BKE_displist_make_surf(Depsgraph *depsgraph,
           dl->type = DL_SEGM;
         }
 
-        BKE_nurb_makeCurve(nu, data, NULL, NULL, NULL, resolu, 3 * sizeof(float));
+        BKE_nurb_makeCurve(nu, data, NULL, NULL, NULL, resolu, sizeof(float[3]));
       }
       else {
         len = (nu->pntsu * resolu) * (nu->pntsv * resolv);
@@ -1388,7 +1388,7 @@ static void fillBevelCap(Nurb *nu, DispList *dlb, float *prev_fp, ListBase *disp
 
   dl = MEM_callocN(sizeof(DispList), "makeDispListbev2");
   dl->verts = MEM_mallocN(sizeof(float[3]) * dlb->nr, "dlverts");
-  memcpy(dl->verts, prev_fp, 3 * sizeof(float) * dlb->nr);
+  memcpy(dl->verts, prev_fp, sizeof(float[3]) * dlb->nr);
 
   dl->type = DL_POLY;
 

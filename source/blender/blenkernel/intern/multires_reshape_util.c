@@ -522,7 +522,7 @@ static void allocate_displacement_grid(MDisps *displacement_grid, const int leve
 {
   const int grid_size = BKE_subdiv_grid_size_from_level(level);
   const int grid_area = grid_size * grid_size;
-  float(*disps)[3] = MEM_calloc_arrayN(grid_area, 3 * sizeof(float), "multires disps");
+  float(*disps)[3] = MEM_calloc_arrayN(grid_area, sizeof(float[3]), "multires disps");
   if (displacement_grid->disps != NULL) {
     MEM_freeN(displacement_grid->disps);
   }

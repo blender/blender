@@ -2779,7 +2779,7 @@ void RE_layer_load_from_file(
         IMB_float_from_rect(ibuf);
       }
 
-      memcpy(rpass->rect, ibuf->rect_float, sizeof(float) * 4 * layer->rectx * layer->recty);
+      memcpy(rpass->rect, ibuf->rect_float, sizeof(float[4]) * layer->rectx * layer->recty);
     }
     else {
       if ((ibuf->x - x >= layer->rectx) && (ibuf->y - y >= layer->recty)) {
@@ -2794,7 +2794,7 @@ void RE_layer_load_from_file(
           IMB_rectcpy(ibuf_clip, ibuf, 0, 0, x, y, layer->rectx, layer->recty);
 
           memcpy(
-              rpass->rect, ibuf_clip->rect_float, sizeof(float) * 4 * layer->rectx * layer->recty);
+              rpass->rect, ibuf_clip->rect_float, sizeof(float[4]) * layer->rectx * layer->recty);
           IMB_freeImBuf(ibuf_clip);
         }
         else {

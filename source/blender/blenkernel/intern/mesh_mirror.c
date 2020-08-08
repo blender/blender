@@ -197,7 +197,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis(MirrorModifierData *mmd,
 
   if (do_vtargetmap) {
     /* second half is filled with -1 */
-    vtargetmap = MEM_malloc_arrayN(maxVerts, 2 * sizeof(int), "MOD_mirror tarmap");
+    vtargetmap = MEM_malloc_arrayN(maxVerts, sizeof(int[2]), "MOD_mirror tarmap");
 
     vtmap_a = vtargetmap;
     vtmap_b = vtargetmap + maxVerts;

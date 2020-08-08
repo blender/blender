@@ -329,7 +329,7 @@ static void gpencil_convert_spline(Main *bmain,
                                         bezt->vec[1][j],
                                         coord_array + j,
                                         resolu - 1,
-                                        3 * sizeof(float));
+                                        sizeof(float[3]));
         }
         /* Save first point coordinates. */
         if (s == 0) {

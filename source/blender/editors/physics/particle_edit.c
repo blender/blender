@@ -1386,7 +1386,7 @@ void recalc_emitter_field(Depsgraph *UNUSED(depsgraph), Object *UNUSED(ob), Part
   totface = mesh->totface;
   /*totvert=dm->getNumVerts(dm);*/ /*UNUSED*/
 
-  edit->emitter_cosnos = MEM_callocN(totface * 6 * sizeof(float), "emitter cosnos");
+  edit->emitter_cosnos = MEM_callocN(sizeof(float[6]) * totface, "emitter cosnos");
 
   edit->emitter_field = BLI_kdtree_3d_new(totface);
 

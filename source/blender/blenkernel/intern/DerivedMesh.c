@@ -669,7 +669,7 @@ static float (*get_editbmesh_orco_verts(BMEditMesh *em))[3]
   /* these may not really be the orco's, but it's only for preview.
    * could be solver better once, but isn't simple */
 
-  orco = MEM_malloc_arrayN(em->bm->totvert, sizeof(float) * 3, "BMEditMesh Orco");
+  orco = MEM_malloc_arrayN(em->bm->totvert, sizeof(float[3]), "BMEditMesh Orco");
 
   BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
     copy_v3_v3(orco[i], eve->co);
@@ -772,7 +772,7 @@ static void add_orco_mesh(Object *ob, BMEditMesh *em, Mesh *mesh, Mesh *mesh_orc
       layerorco = CustomData_get_layer(&mesh->vdata, layer);
     }
 
-    memcpy(layerorco, orco, sizeof(float) * 3 * totvert);
+    memcpy(layerorco, orco, sizeof(float[3]) * totvert);
     if (free) {
       MEM_freeN(orco);
     }
@@ -1371,7 +1371,7 @@ float (*editbmesh_vert_coords_alloc(BMEditMesh *em, int *r_vert_len))[3]
 
   *r_vert_len = em->bm->totvert;
 
-  cos = MEM_malloc_arrayN(em->bm->totvert, 3 * sizeof(float), "vertexcos");
+  cos = MEM_malloc_arrayN(em->bm->totvert, sizeof(float[3]), "vertexcos");
 
   BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
     copy_v3_v3(cos[i], eve->co);

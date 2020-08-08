@@ -52,8 +52,8 @@ NodeCamera::NodeCamera(CameraType camera_type) : camera_type_(camera_type)
 #if 0 /* UNUSED, gives warning in gcc */
 NodeCamera::NodeCamera(const NodeCamera &iBrother) : camera_type_(iBrother.camera_type_)
 {
-  memcpy(modelview_matrix_, iBrother.modelview_matrix_, 16 * sizeof(double));
-  memcpy(projection_matrix_, iBrother.projection_matrix_, 16 * sizeof(double));
+  memcpy(modelview_matrix_, iBrother.modelview_matrix_, sizeof(double[16]));
+  memcpy(projection_matrix_, iBrother.projection_matrix_, sizeof(double[16]));
 }
 #endif
 
@@ -64,12 +64,12 @@ void NodeCamera::accept(SceneVisitor &v)
 
 void NodeCamera::setModelViewMatrix(double modelview_matrix[16])
 {
-  memcpy(modelview_matrix_, modelview_matrix, 16 * sizeof(double));
+  memcpy(modelview_matrix_, modelview_matrix, sizeof(double[16]));
 }
 
 void NodeCamera::setProjectionMatrix(double projection_matrix[16])
 {
-  memcpy(projection_matrix_, projection_matrix, 16 * sizeof(double));
+  memcpy(projection_matrix_, projection_matrix, sizeof(double[16]));
 }
 
 NodeOrthographicCamera::NodeOrthographicCamera()

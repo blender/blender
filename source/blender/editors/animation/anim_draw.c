@@ -398,9 +398,9 @@ static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag, flo
               correct_bezpart(v1, v2, v3, v4);
 
               BKE_curve_forward_diff_bezier(
-                  v1[0], v2[0], v3[0], v4[0], data, resol, sizeof(float) * 3);
+                  v1[0], v2[0], v3[0], v4[0], data, resol, sizeof(float[3]));
               BKE_curve_forward_diff_bezier(
-                  v1[1], v2[1], v3[1], v4[1], data + 1, resol, sizeof(float) * 3);
+                  v1[1], v2[1], v3[1], v4[1], data + 1, resol, sizeof(float[3]));
 
               for (int j = 0; j <= resol; ++j) {
                 const float *fp = &data[j * 3];

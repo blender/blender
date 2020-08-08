@@ -327,7 +327,7 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
 
                 if (MASKPOINT_ISSEL_ANY(point)) {
                   if (do_location) {
-                    memcpy(shape_ele_dst->value, shape_ele_src->value, sizeof(float) * 6);
+                    memcpy(shape_ele_dst->value, shape_ele_src->value, sizeof(float[6]));
                   }
                   if (do_feather) {
                     shape_ele_dst->value[6] = shape_ele_src->value[6];

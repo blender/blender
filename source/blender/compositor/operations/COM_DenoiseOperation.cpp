@@ -105,7 +105,7 @@ void DenoiseOperation::generateDenoise(float *data,
                     inputTileColor->getWidth(),
                     inputTileColor->getHeight(),
                     0,
-                    4 * sizeof(float));
+                    sizeof(float[4]));
     if (inputTileNormal && inputTileNormal->getBuffer()) {
       filter.setImage("normal",
                       inputTileNormal->getBuffer(),
@@ -113,7 +113,7 @@ void DenoiseOperation::generateDenoise(float *data,
                       inputTileNormal->getWidth(),
                       inputTileNormal->getHeight(),
                       0,
-                      3 * sizeof(float));
+                      sizeof(float[3]));
     }
     if (inputTileAlbedo && inputTileAlbedo->getBuffer()) {
       filter.setImage("albedo",
@@ -122,7 +122,7 @@ void DenoiseOperation::generateDenoise(float *data,
                       inputTileAlbedo->getWidth(),
                       inputTileAlbedo->getHeight(),
                       0,
-                      4 * sizeof(float));
+                      sizeof(float[4]));
     }
     filter.setImage("output",
                     data,
@@ -130,7 +130,7 @@ void DenoiseOperation::generateDenoise(float *data,
                     inputTileColor->getWidth(),
                     inputTileColor->getHeight(),
                     0,
-                    4 * sizeof(float));
+                    sizeof(float[4]));
 
     BLI_assert(settings);
     if (settings) {
@@ -158,5 +158,5 @@ void DenoiseOperation::generateDenoise(float *data,
   UNUSED_VARS(inputTileAlbedo, inputTileNormal, settings);
   ::memcpy(data,
            inputBufferColor,
-           inputTileColor->getWidth() * inputTileColor->getHeight() * sizeof(float) * 4);
+           sizeof(float[4]) * inputTileColor->getWidth() * inputTileColor->getHeight());
 }

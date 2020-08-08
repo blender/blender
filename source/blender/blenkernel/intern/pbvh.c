@@ -2912,7 +2912,7 @@ PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(PBVHNode *node)
 {
 
   if (!node->color_buffer.color) {
-    node->color_buffer.color = MEM_callocN(node->uniq_verts * sizeof(float) * 4, "Color buffer");
+    node->color_buffer.color = MEM_callocN(sizeof(float[4]) * node->uniq_verts, "Color buffer");
   }
   return &node->color_buffer;
 }

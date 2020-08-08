@@ -724,14 +724,14 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
                                   bezt[a + 1].vec[1][0],
                                   point,
                                   CM_RESOL - 1,
-                                  2 * sizeof(float));
+                                  sizeof(float[2]));
     BKE_curve_forward_diff_bezier(bezt[a].vec[1][1],
                                   bezt[a].vec[2][1],
                                   bezt[a + 1].vec[0][1],
                                   bezt[a + 1].vec[1][1],
                                   point + 1,
                                   CM_RESOL - 1,
-                                  2 * sizeof(float));
+                                  sizeof(float[2]));
   }
 
   /* store first and last handle for extrapolation, unit length */

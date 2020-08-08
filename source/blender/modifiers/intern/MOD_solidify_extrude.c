@@ -355,7 +355,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
   }
 
   if (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) {
-    vert_nors = MEM_calloc_arrayN(numVerts, 3 * sizeof(float), "mod_solid_vno_hq");
+    vert_nors = MEM_calloc_arrayN(numVerts, sizeof(float[3]), "mod_solid_vno_hq");
     mesh_calc_hq_normal(mesh, poly_nors, vert_nors);
   }
 
@@ -726,13 +726,13 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 #endif
     /* same as EM_solidify() in editmesh_lib.c */
     float *vert_angles = MEM_calloc_arrayN(
-        numVerts, 2 * sizeof(float), "mod_solid_pair"); /* 2 in 1 */
+        numVerts, sizeof(float[2]), "mod_solid_pair"); /* 2 in 1 */
     float *vert_accum = vert_angles + numVerts;
     uint vidx;
     uint i;
 
     if (vert_nors == NULL) {
-      vert_nors = MEM_malloc_arrayN(numVerts, 3 * sizeof(float), "mod_solid_vno");
+      vert_nors = MEM_malloc_arrayN(numVerts, sizeof(float[3]), "mod_solid_vno");
       for (i = 0, mv = mvert; i < numVerts; i++, mv++) {
         normal_short_to_float_v3(vert_nors[i], mv->no);
       }
@@ -1044,7 +1044,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
     const bool do_side_normals = !(result->runtime.cd_dirty_vert & CD_MASK_NORMAL);
     /* annoying to allocate these since we only need the edge verts, */
     float(*edge_vert_nos)[3] = do_side_normals ?
-                                   MEM_calloc_arrayN(numVerts, 3 * sizeof(float), __func__) :
+                                   MEM_calloc_arrayN(numVerts, sizeof(float[3]), __func__) :
                                    NULL;
     float nor[3];
 #endif

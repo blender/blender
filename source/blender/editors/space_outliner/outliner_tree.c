@@ -1187,7 +1187,7 @@ static TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
 
       c = RNA_property_array_item_char(prop, index);
 
-      te->name = MEM_callocN(sizeof(char) * 20, "OutlinerRNAArrayName");
+      te->name = MEM_callocN(sizeof(char[20]), "OutlinerRNAArrayName");
       if (c) {
         sprintf((char *)te->name, "  %c", c);
       }

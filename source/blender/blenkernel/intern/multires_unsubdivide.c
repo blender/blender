@@ -677,7 +677,7 @@ static void store_grid_data(MultiresUnsubdivideContext *context,
   const int grid_size = BKE_ccg_gridsize(context->num_original_levels);
   const int face_grid_size = BKE_ccg_gridsize(context->num_original_levels + 1);
   const int face_grid_area = face_grid_size * face_grid_size;
-  float(*face_grid)[3] = MEM_calloc_arrayN(face_grid_area, 3 * sizeof(float), "face_grid");
+  float(*face_grid)[3] = MEM_calloc_arrayN(face_grid_area, sizeof(float[3]), "face_grid");
 
   for (int i = 0; i < poly->totloop; i++) {
     const int loop_index = poly->loopstart + i;
@@ -731,7 +731,7 @@ static void multires_unsubdivide_extract_single_grid_from_face_edge(
   const int unsubdiv_grid_size = grid->grid_size = BKE_ccg_gridsize(context->num_total_levels);
   grid->grid_size = unsubdiv_grid_size;
   grid->grid_co = MEM_calloc_arrayN(
-      unsubdiv_grid_size * unsubdiv_grid_size, 3 * sizeof(float), "grids coordinates");
+      unsubdiv_grid_size * unsubdiv_grid_size, sizeof(float[3]), "grids coordinates");
 
   /* Get the vertex on the corner of the grid. This vertex was tagged previously as it also exist
    * on the base mesh. */
@@ -1198,7 +1198,7 @@ static void multires_create_grids_in_unsubdivided_base_mesh(MultiresUnsubdivideC
 
   /* Allocate the MDISPS grids and copy the extracted data from context. */
   for (int i = 0; i < totloop; i++) {
-    float(*disps)[3] = MEM_calloc_arrayN(totdisp, 3 * sizeof(float), "multires disps");
+    float(*disps)[3] = MEM_calloc_arrayN(totdisp, sizeof(float[3]), "multires disps");
 
     if (mdisps[i].disps) {
       MEM_freeN(mdisps[i].disps);

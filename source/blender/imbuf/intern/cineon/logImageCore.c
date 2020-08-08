@@ -483,7 +483,7 @@ int logImageGetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB
     memcpy(&mergedElement, &logImage->element[0], sizeof(LogImageElement));
     mergedElement.descriptor = -1;
     mergedElement.depth = logImage->depth;
-    memset(&sortedElementData, -1, 8 * sizeof(int));
+    memset(&sortedElementData, -1, sizeof(int[8]));
 
     /* Try to know how to assemble the elements */
     for (i = 0; i < logImage->numElements; i++) {

@@ -3480,7 +3480,7 @@ static void triatomat(float *v1, float *v2, float *v3, float (*uv)[2], float mat
 {
   float det, w1, w2, d1[2], d2[2];
 
-  memset(mat, 0, sizeof(float) * 4 * 4);
+  memset(mat, 0, sizeof(float[4][4]));
   mat[3][3] = 1.0f;
 
   /* first axis is the normal */
@@ -4385,7 +4385,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
   short cpa_from;
 
   /* initialize keys to zero */
-  memset(keys, 0, 4 * sizeof(ParticleKey));
+  memset(keys, 0, sizeof(ParticleKey[4]));
 
   t = state->time;
   CLAMP(t, 0.0f, 1.0f);

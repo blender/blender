@@ -896,7 +896,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
   h = ibuf->y;
 
   /* initialize image components */
-  memset(&cmptparm, 0, 4 * sizeof(opj_image_cmptparm_t));
+  memset(&cmptparm, 0, sizeof(opj_image_cmptparm_t[4]));
   for (i = 0; i < numcomps; i++) {
     cmptparm[i].prec = prec;
     cmptparm[i].bpp = prec;

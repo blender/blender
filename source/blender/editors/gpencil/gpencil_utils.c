@@ -2980,7 +2980,7 @@ bool ED_gpencil_stroke_point_is_inside(bGPDstroke *gps,
 
   int(*mcoords)[2] = NULL;
   int len = gps->totpoints;
-  mcoords = MEM_mallocN(sizeof(int) * 2 * len, __func__);
+  mcoords = MEM_mallocN(sizeof(int[2]) * len, __func__);
 
   /* Convert stroke to 2D array of points. */
   bGPDspoint *pt;

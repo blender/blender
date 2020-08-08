@@ -633,7 +633,7 @@ static void gpu_texture_update_from_ibuf(
       const bool compress_as_srgb = !IMB_colormanagement_space_is_scene_linear(
           ibuf->rect_colorspace);
 
-      rect = (uchar *)MEM_mallocN(sizeof(uchar) * 4 * w * h, __func__);
+      rect = (uchar *)MEM_mallocN(sizeof(uchar[4]) * w * h, __func__);
       if (rect == NULL) {
         return;
       }
@@ -653,7 +653,7 @@ static void gpu_texture_update_from_ibuf(
     const bool store_premultiplied = (ima->alpha_mode != IMA_ALPHA_STRAIGHT);
 
     if (ibuf->channels != 4 || scaled || !store_premultiplied) {
-      rect_float = (float *)MEM_mallocN(sizeof(float) * 4 * w * h, __func__);
+      rect_float = (float *)MEM_mallocN(sizeof(float[4]) * w * h, __func__);
       if (rect_float == NULL) {
         return;
       }

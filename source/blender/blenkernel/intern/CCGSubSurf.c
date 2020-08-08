@@ -1543,7 +1543,7 @@ void CCG_key(CCGKey *key, const CCGSubSurf *ss, int level)
   /* if normals are present, always the last three floats of an
    * element */
   if (key->has_normals) {
-    key->normal_offset = key->elem_size - sizeof(float) * 3;
+    key->normal_offset = key->elem_size - sizeof(float[3]);
   }
   else {
     key->normal_offset = -1;

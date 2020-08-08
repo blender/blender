@@ -1866,7 +1866,7 @@ void DRW_view_clip_planes_set(DRWView *view, float (*planes)[4], int plane_len)
   BLI_assert(plane_len <= MAX_CLIP_PLANES);
   view->clip_planes_len = plane_len;
   if (plane_len > 0) {
-    memcpy(view->storage.clipplanes, planes, sizeof(float) * 4 * plane_len);
+    memcpy(view->storage.clipplanes, planes, sizeof(float[4]) * plane_len);
   }
 }
 

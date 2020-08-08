@@ -537,7 +537,7 @@ static void contarget_get_lattice_mat(Object *ob, const char *substring, float m
       MDeformWeight *dw = BKE_defvert_find_index(dv, defgroup);
       if (dw && dw->weight > 0.0f) {
         /* copy coordinates of point to temporary vector, then add to find average */
-        memcpy(tvec, co ? co : bp->vec, 3 * sizeof(float));
+        memcpy(tvec, co ? co : bp->vec, sizeof(float[3]));
 
         add_v3_v3(vec, tvec);
         grouped++;

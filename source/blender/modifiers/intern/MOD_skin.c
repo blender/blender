@@ -1276,7 +1276,7 @@ static void skin_choose_quad_bridge_order(BMVert *a[4], BMVert *b[4], int best_o
 
     if (len < shortest_len) {
       shortest_len = len;
-      memcpy(best_order, orders[i], sizeof(int) * 4);
+      memcpy(best_order, orders[i], sizeof(int[4]));
     }
   }
 }

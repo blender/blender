@@ -592,7 +592,7 @@ void DRW_culling_frustum_corners_get(const DRWView *view, BoundBox *corners)
 void DRW_culling_frustum_planes_get(const DRWView *view, float planes[6][4])
 {
   view = view ? view : DST.view_default;
-  memcpy(planes, view->frustum_planes, sizeof(float) * 6 * 4);
+  memcpy(planes, view->frustum_planes, sizeof(float[6][4]));
 }
 
 static void draw_compute_culling(DRWView *view)

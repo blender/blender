@@ -566,7 +566,7 @@ int ED_draw_imbuf_method(ImBuf *ibuf)
   if (U.image_draw_method == IMAGE_DRAW_METHOD_AUTO) {
     /* Use faster GLSL when CPU to GPU transfer is unlikely to be a bottleneck,
      * otherwise do color management on CPU side. */
-    const size_t threshold = 2048 * 2048 * 4 * sizeof(float);
+    const size_t threshold = sizeof(float[4]) * 2048 * 2048;
     const size_t data_size = (ibuf->rect_float) ? sizeof(float) : sizeof(uchar);
     const size_t size = ibuf->x * ibuf->y * ibuf->channels * data_size;
 

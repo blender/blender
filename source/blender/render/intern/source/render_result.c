@@ -1507,10 +1507,10 @@ void RE_render_result_rect_from_ibuf(RenderResult *rr,
     rr->have_combined = true;
 
     if (!rv->rectf) {
-      rv->rectf = MEM_mallocN(4 * sizeof(float) * rr->rectx * rr->recty, "render_seq rectf");
+      rv->rectf = MEM_mallocN(sizeof(float[4]) * rr->rectx * rr->recty, "render_seq rectf");
     }
 
-    memcpy(rv->rectf, ibuf->rect_float, 4 * sizeof(float) * rr->rectx * rr->recty);
+    memcpy(rv->rectf, ibuf->rect_float, sizeof(float[4]) * rr->rectx * rr->recty);
 
     /* TSK! Since sequence render doesn't free the *rr render result, the old rect32
      * can hang around when sequence render has rendered a 32 bits one before */
@@ -1535,7 +1535,7 @@ void render_result_rect_fill_zero(RenderResult *rr, const int view_id)
   RenderView *rv = RE_RenderViewGetById(rr, view_id);
 
   if (rv->rectf) {
-    memset(rv->rectf, 0, 4 * sizeof(float) * rr->rectx * rr->recty);
+    memset(rv->rectf, 0, sizeof(float[4]) * rr->rectx * rr->recty);
   }
   else if (rv->rect32) {
     memset(rv->rect32, 0, 4 * rr->rectx * rr->recty);

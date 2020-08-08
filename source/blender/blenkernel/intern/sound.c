@@ -957,7 +957,7 @@ void BKE_sound_read_waveform(Main *bmain, bSound *sound, short *stop)
   if (info.length > 0) {
     int length = info.length * SOUND_WAVE_SAMPLES_PER_SECOND;
 
-    waveform->data = MEM_mallocN(length * sizeof(float) * 3, "SoundWaveform.samples");
+    waveform->data = MEM_mallocN(sizeof(float[3]) * length, "SoundWaveform.samples");
     waveform->length = AUD_readSound(
         sound->playback_handle, waveform->data, length, SOUND_WAVE_SAMPLES_PER_SECOND, stop);
   }

@@ -349,7 +349,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
       ED_annotation_draw_ex(scene, gpd, sizex, sizey, scene->r.cfra, SPACE_SEQ);
       G.f &= ~G_FLAG_RENDER_VIEWPORT;
 
-      gp_rect = MEM_mallocN(sizex * sizey * sizeof(uchar) * 4, "offscreen rect");
+      gp_rect = MEM_mallocN(sizeof(uchar[4]) * sizex * sizey, "offscreen rect");
       GPU_offscreen_read_pixels(oglrender->ofs, GPU_DATA_UNSIGNED_BYTE, gp_rect);
 
       for (i = 0; i < sizex * sizey * 4; i += 4) {

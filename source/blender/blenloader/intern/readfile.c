@@ -1134,7 +1134,7 @@ static int *read_file_thumbnail(FileData *fd)
       const bool do_endian_swap = (fd->flags & FD_FLAGS_SWITCH_ENDIAN) != 0;
       int *data = (int *)(bhead + 1);
 
-      if (bhead->len < (2 * sizeof(int))) {
+      if (bhead->len < (sizeof(int[2]))) {
         break;
       }
 

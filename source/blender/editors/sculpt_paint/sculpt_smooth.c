@@ -443,7 +443,7 @@ void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
   if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
     BLI_assert(ss->cache->surface_smooth_laplacian_disp == NULL);
     ss->cache->surface_smooth_laplacian_disp = MEM_callocN(
-        SCULPT_vertex_count_get(ss) * 3 * sizeof(float), "HC smooth laplacian b");
+        sizeof(float[3]) * SCULPT_vertex_count_get(ss), "HC smooth laplacian b");
   }
 
   /* Threaded loop over nodes. */

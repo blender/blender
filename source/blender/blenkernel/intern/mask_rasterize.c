@@ -786,7 +786,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
             co_feather[2] = 1.0f;
 
             if (spline->flag & MASK_SPLINE_NOINTERSECT) {
-              diff_feather_points_flip = MEM_mallocN(sizeof(float) * 2 * tot_diff_feather_points,
+              diff_feather_points_flip = MEM_mallocN(sizeof(float[2]) * tot_diff_feather_points,
                                                      "diff_feather_points_flip");
 
               for (j = 0; j < tot_diff_point; j++) {
@@ -939,7 +939,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
       ListBase isect_remedgebase = {NULL, NULL};
 
       /* now we have all the splines */
-      face_coords = MEM_mallocN((sizeof(float) * 3) * sf_vert_tot, "maskrast_face_coords");
+      face_coords = MEM_mallocN((sizeof(float[3])) * sf_vert_tot, "maskrast_face_coords");
 
       /* init bounds */
       BLI_rctf_init_minmax(&bounds);

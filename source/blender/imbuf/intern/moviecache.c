@@ -536,7 +536,7 @@ void IMB_moviecache_get_cache_segments(
     if (totseg) {
       int b, *points;
 
-      points = MEM_callocN(2 * sizeof(int) * totseg, "movieclip cache segments");
+      points = MEM_callocN(sizeof(int[2]) * totseg, "movieclip cache segments");
 
       /* fill */
       for (a = 0, b = 0; a < totframe; a++) {

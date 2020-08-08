@@ -121,7 +121,7 @@ static void deformVerts(ModifierData *md,
             &mesh_src->vdata, CD_CLOTH_ORCO, CD_CALLOC, NULL, mesh_src->totvert);
       }
 
-      memcpy(layerorco, kb->data, sizeof(float) * 3 * numVerts);
+      memcpy(layerorco, kb->data, sizeof(float[3]) * numVerts);
     }
   }
 

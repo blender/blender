@@ -4603,7 +4603,7 @@ void BLO_write_pointer_array(BlendWriter *writer, int size, const void *data_ptr
 
 void BLO_write_float3_array(BlendWriter *writer, int size, const float *data_ptr)
 {
-  BLO_write_raw(writer, sizeof(float) * 3 * size, data_ptr);
+  BLO_write_raw(writer, sizeof(float[3]) * size, data_ptr);
 }
 
 /**

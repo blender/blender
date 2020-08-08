@@ -3342,7 +3342,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
             if (sl->spacetype == SPACE_VIEW3D) {
               View3D *v3d = (View3D *)sl;
-              memcpy(v3d->shading.lookdev_light, v3d->shading.studio_light, sizeof(char) * 256);
+              memcpy(v3d->shading.lookdev_light, v3d->shading.studio_light, sizeof(char[256]));
             }
           }
         }

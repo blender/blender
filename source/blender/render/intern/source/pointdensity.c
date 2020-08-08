@@ -770,7 +770,7 @@ static void pointdensity_color(
 
 static void sample_dummy_point_density(int resolution, float *values)
 {
-  memset(values, 0, sizeof(float) * 4 * resolution * resolution * resolution);
+  memset(values, 0, sizeof(float[4]) * resolution * resolution * resolution);
 }
 
 static void particle_system_minmax(Depsgraph *depsgraph,

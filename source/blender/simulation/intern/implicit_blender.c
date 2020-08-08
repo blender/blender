@@ -362,7 +362,7 @@ static void print_bfmatrix(fmatrix3x3 *m)
 /* copy 3x3 matrix */
 DO_INLINE void cp_fmatrix(float to[3][3], const float from[3][3])
 {
-  // memcpy(to, from, sizeof (float) * 9);
+  // memcpy(to, from, sizeof(float[3][3]));
   copy_v3_v3(to[0], from[0]);
   copy_v3_v3(to[1], from[1]);
   copy_v3_v3(to[2], from[2]);
