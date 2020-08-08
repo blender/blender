@@ -515,73 +515,65 @@ static void batch_update_program_bindings(GPUBatch *batch, uint i_first)
   }
 }
 
-#if TRUST_NO_ONE
-#  define GET_UNIFORM \
-    const GPUShaderInput *uniform = GPU_shaderinterface_uniform(batch->interface, name); \
-    assert(uniform);
-#else
-#  define GET_UNIFORM \
-    const GPUShaderInput *uniform = GPU_shaderinterface_uniform(batch->interface, name);
-#endif
+/* -------------------------------------------------------------------- */
+/** \name Uniform setters
+ * \{ */
 
-void GPU_batch_uniform_1ui(GPUBatch *batch, const char *name, uint value)
-{
-  GET_UNIFORM
-  glUniform1ui(uniform->location, value);
-}
+#define GET_UNIFORM \
+  const GPUShaderInput *uniform = GPU_shaderinterface_uniform(batch->interface, name); \
+  BLI_assert(uniform);
 
 void GPU_batch_uniform_1i(GPUBatch *batch, const char *name, int value)
 {
   GET_UNIFORM
-  glUniform1i(uniform->location, value);
+  GPU_shader_uniform_int(batch->shader, uniform->location, value);
 }
 
 void GPU_batch_uniform_1b(GPUBatch *batch, const char *name, bool value)
 {
-  GET_UNIFORM
-  glUniform1i(uniform->location, value ? GL_TRUE : GL_FALSE);
+  GPU_batch_uniform_1i(batch, name, value ? GL_TRUE : GL_FALSE);
 }
 
 void GPU_batch_uniform_2f(GPUBatch *batch, const char *name, float x, float y)
 {
-  GET_UNIFORM
-  glUniform2f(uniform->location, x, y);
+  const float data[2] = {x, y};
+  GPU_batch_uniform_2fv(batch, name, data);
 }
 
 void GPU_batch_uniform_3f(GPUBatch *batch, const char *name, float x, float y, float z)
 {
-  GET_UNIFORM
-  glUniform3f(uniform->location, x, y, z);
+  const float data[3] = {x, y, z};
+  GPU_batch_uniform_3fv(batch, name, data);
 }
 
 void GPU_batch_uniform_4f(GPUBatch *batch, const char *name, float x, float y, float z, float w)
 {
-  GET_UNIFORM
-  glUniform4f(uniform->location, x, y, z, w);
+  const float data[4] = {x, y, z, w};
+  GPU_batch_uniform_4fv(batch, name, data);
 }
 
 void GPU_batch_uniform_1f(GPUBatch *batch, const char *name, float x)
 {
   GET_UNIFORM
-  glUniform1f(uniform->location, x);
+  GPU_shader_uniform_float(batch->shader, uniform->location, x);
 }
 
 void GPU_batch_uniform_2fv(GPUBatch *batch, const char *name, const float data[2])
 {
   GET_UNIFORM
-  glUniform2fv(uniform->location, 1, data);
+  GPU_shader_uniform_vector(batch->shader, uniform->location, 2, 1, data);
 }
 
 void GPU_batch_uniform_3fv(GPUBatch *batch, const char *name, const float data[3])
 {
   GET_UNIFORM
-  glUniform3fv(uniform->location, 1, data);
+  GPU_shader_uniform_vector(batch->shader, uniform->location, 3, 1, data);
 }
 
 void GPU_batch_uniform_4fv(GPUBatch *batch, const char *name, const float data[4])
 {
   GET_UNIFORM
-  glUniform4fv(uniform->location, 1, data);
+  GPU_shader_uniform_vector(batch->shader, uniform->location, 4, 1, data);
 }
 
 void GPU_batch_uniform_2fv_array(GPUBatch *batch,
@@ -590,7 +582,7 @@ void GPU_batch_uniform_2fv_array(GPUBatch *batch,
                                  const float *data)
 {
   GET_UNIFORM
-  glUniform2fv(uniform->location, len, data);
+  GPU_shader_uniform_vector(batch->shader, uniform->location, 2, len, data);
 }
 
 void GPU_batch_uniform_4fv_array(GPUBatch *batch,
@@ -599,14 +591,20 @@ void GPU_batch_uniform_4fv_array(GPUBatch *batch,
                                  const float *data)
 {
   GET_UNIFORM
-  glUniform4fv(uniform->location, len, data);
+  GPU_shader_uniform_vector(batch->shader, uniform->location, 4, len, data);
 }
 
 void GPU_batch_uniform_mat4(GPUBatch *batch, const char *name, const float data[4][4])
 {
   GET_UNIFORM
-  glUniformMatrix4fv(uniform->location, 1, GL_FALSE, (const float *)data);
+  GPU_shader_uniform_vector(batch->shader, uniform->location, 16, 1, (const float *)data);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Drawing / Drawcall functions
+ * \{ */
 
 static void *elem_offset(const GPUIndexBuf *el, int v_first)
 {
@@ -765,6 +763,8 @@ void GPU_draw_primitive(GPUPrimType prim_type, int v_count)
    * Only activate for debugging.*/
   // glBindVertexArray(0);
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Utilities

@@ -135,7 +135,6 @@ void GPU_batch_program_set_builtin_with_config(GPUBatch *batch,
                                                eGPUBuiltinShader shader_id,
                                                eGPUShaderConfig sh_cfg);
 
-void GPU_batch_uniform_1ui(GPUBatch *, const char *name, uint value);
 void GPU_batch_uniform_1i(GPUBatch *, const char *name, int value);
 void GPU_batch_uniform_1b(GPUBatch *, const char *name, bool value);
 void GPU_batch_uniform_1f(GPUBatch *, const char *name, float value);
