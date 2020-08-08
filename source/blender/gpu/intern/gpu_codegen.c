@@ -111,11 +111,11 @@ static GPUPass *gpu_pass_cache_resolve_collision(GPUPass *pass,
   BLI_spin_lock(&pass_cache_spin);
   /* Collision, need to strcmp the whole shader. */
   for (; pass && (pass->hash == hash); pass = pass->next) {
-    if ((defs != NULL) && (strcmp(pass->defines, defs) != 0)) { /* Pass */
+    if ((defs != NULL) && (!STREQ(pass->defines, defs))) { /* Pass */
     }
-    else if ((geom != NULL) && (strcmp(pass->geometrycode, geom) != 0)) { /* Pass */
+    else if ((geom != NULL) && (!STREQ(pass->geometrycode, geom))) { /* Pass */
     }
-    else if ((strcmp(pass->fragmentcode, frag) == 0) && (strcmp(pass->vertexcode, vert) == 0)) {
+    else if ((!STREQ(pass->fragmentcode, frag) == 0) && (STREQ(pass->vertexcode, vert))) {
       BLI_spin_unlock(&pass_cache_spin);
       return pass;
     }

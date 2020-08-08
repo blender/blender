@@ -950,8 +950,8 @@ static int delete_soft(const char *file, const char **error_message)
   char *xdg_current_desktop = getenv("XDG_CURRENT_DESKTOP");
   char *xdg_session_desktop = getenv("XDG_SESSION_DESKTOP");
 
-  if ((xdg_current_desktop != NULL && strcmp(xdg_current_desktop, "KDE") == 0) ||
-      (xdg_session_desktop != NULL && strcmp(xdg_session_desktop, "KDE") == 0)) {
+  if ((xdg_current_desktop != NULL && STREQ(xdg_current_desktop, "KDE")) ||
+      (xdg_session_desktop != NULL && STREQ(xdg_session_desktop, "KDE"))) {
     args[0] = "kioclient5";
     args[1] = "move";
     args[2] = file;

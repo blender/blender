@@ -444,7 +444,7 @@ static void seq_disk_cache_delete_invalid_files(SeqDiskCache *disk_cache,
   while (cache_file) {
     next_file = cache_file->next;
     if (cache_file->cache_type & invalidate_types) {
-      if (strcmp(cache_dir, cache_file->dir) == 0) {
+      if (STREQ(cache_dir, cache_file->dir)) {
         int cfra_start = seq_cache_frame_index_to_cfra(seq, cache_file->start_frame);
         if (cfra_start > range_start && cfra_start <= range_end) {
           seq_disk_cache_delete_file(disk_cache, cache_file);

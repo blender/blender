@@ -385,8 +385,8 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
     /* "float gravity [3]" was parsed wrong giving both "gravity" and
      * "[3]"  members. we rename "[3]", and later set the type of
      * "gravity" to "void" so the offsets work out correct */
-    if (*cp == '[' && strcmp(cp, "[3]") == 0) {
-      if (nr && strcmp(sdna->names[nr - 1], "Cvi") == 0) {
+    if (*cp == '[' && STREQ(cp, "[3]")) {
+      if (nr && STREQ(sdna->names[nr - 1], "Cvi")) {
         sdna->names[nr] = "gravity[3]";
         gravity_fix = nr;
       }
@@ -497,7 +497,7 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
     if (gravity_fix > -1) {
       for (int nr = 0; nr < sdna->structs_len; nr++) {
         sp = sdna->structs[nr];
-        if (strcmp(sdna->types[sp[0]], "ClothSimSettings") == 0) {
+        if (STREQ(sdna->types[sp[0]], "ClothSimSettings")) {
           sp[10] = SDNA_TYPE_VOID;
         }
       }
@@ -698,13 +698,13 @@ const char *DNA_struct_get_compareflags(const SDNA *oldsdna, const SDNA *newsdna
           while (b > 0) {
             str1 = newsdna->types[sp_new[0]];
             str2 = oldsdna->types[sp_old[0]];
-            if (strcmp(str1, str2) != 0) {
+            if (!STREQ(str1, str2)) {
               break;
             }
 
             str1 = newsdna->names[sp_new[1]];
             str2 = oldsdna->names[sp_old[1]];
-            if (strcmp(str1, str2) != 0) {
+            if (!STREQ(str1, str2)) {
               break;
             }
 
@@ -985,7 +985,7 @@ static bool elem_exists_impl(
     oname = names[old[1]];
 
     if (elem_strcmp(name, oname) == 0) { /* name equal */
-      return strcmp(type, otype) == 0;   /* type equal */
+      return STREQ(type, otype);         /* type equal */
     }
   }
   return false;
@@ -1061,7 +1061,7 @@ static const char *find_elem(const SDNA *sdna,
     len = DNA_elem_size_nr(sdna, old[0], old[1]);
 
     if (elem_strcmp(name, oname) == 0) { /* name equal */
-      if (strcmp(type, otype) == 0) {    /* type equal */
+      if (STREQ(type, otype)) {          /* type equal */
         if (sppo) {
           *sppo = old;
         }
@@ -1129,7 +1129,7 @@ static void reconstruct_elem(const SDNA *newsdna,
     oname = oldsdna->names[old[1]];
     len = DNA_elem_size_nr(oldsdna, old[0], old[1]);
 
-    if (strcmp(name, oname) == 0) { /* name equal */
+    if (STREQ(name, oname)) { /* name equal */
 
       if (ispointer(name)) { /* pointer of functionpointer afhandelen */
         cast_pointer(newsdna->pointer_size,
@@ -1138,7 +1138,7 @@ static void reconstruct_elem(const SDNA *newsdna,
                      curdata,
                      olddata);
       }
-      else if (strcmp(type, otype) == 0) { /* type equal */
+      else if (STREQ(type, otype)) { /* type equal */
         memcpy(curdata, olddata, len);
       }
       else {
@@ -1158,7 +1158,7 @@ static void reconstruct_elem(const SDNA *newsdna,
           cast_pointer(
               newsdna->pointer_size, oldsdna->pointer_size, min_name_array_len, curdata, olddata);
         }
-        else if (strcmp(type, otype) == 0) { /* type equal */
+        else if (STREQ(type, otype)) { /* type equal */
           /* size of single old array element */
           mul = len / old_name_array_len;
           /* smaller of sizes of old and new arrays */
@@ -1166,7 +1166,7 @@ static void reconstruct_elem(const SDNA *newsdna,
 
           memcpy(curdata, olddata, mul);
 
-          if (old_name_array_len > new_name_array_len && strcmp(type, "char") == 0) {
+          if (old_name_array_len > new_name_array_len && STREQ(type, "char")) {
             /* string had to be truncated, ensure it's still null-terminated */
             curdata[mul - 1] = '\0';
           }
@@ -1365,7 +1365,7 @@ void DNA_struct_switch_endian(const SDNA *oldsdna, int oldSDNAnr, char *data)
           /* exception: variable called blocktype: derived from ID_  */
           bool skip = false;
           if (name[0] == 'b' && name[1] == 'l') {
-            if (strcmp(name, "blocktype") == 0) {
+            if (STREQ(name, "blocktype")) {
               skip = true;
             }
           }

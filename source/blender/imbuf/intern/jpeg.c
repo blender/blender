@@ -479,7 +479,7 @@ static void write_jpeg(struct jpeg_compress_struct *cinfo, struct ImBuf *ibuf)
     for (prop = ibuf->metadata->data.group.first; prop; prop = prop->next) {
       if (prop->type == IDP_STRING) {
         int text_len;
-        if (!strcmp(prop->name, "None")) {
+        if (STREQ(prop->name, "None")) {
           jpeg_write_marker(cinfo, JPEG_COM, (JOCTET *)IDP_String(prop), prop->len + 1);
         }
 

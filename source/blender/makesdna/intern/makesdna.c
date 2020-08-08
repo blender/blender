@@ -370,7 +370,7 @@ static int add_type(const char *str, int size)
 
   /* search through type array */
   for (int index = 0; index < types_len; index++) {
-    if (strcmp(str, types[index]) == 0) {
+    if (STREQ(str, types[index])) {
       if (size) {
         types_size_native[index] = size;
         types_size_32[index] = size;
@@ -523,7 +523,7 @@ static int add_name(const char *str)
 
   /* search name array */
   for (nr = 0; nr < names_len; nr++) {
-    if (strcmp(name, names[nr]) == 0) {
+    if (STREQ(name, names[nr])) {
       return nr;
     }
   }

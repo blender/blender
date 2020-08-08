@@ -55,7 +55,7 @@ static bool fmap_unique_check(void *arg, const char *name)
 
   for (fmap = data->ob->fmaps.first; fmap; fmap = fmap->next) {
     if (data->fm != fmap) {
-      if (!strcmp(fmap->name, name)) {
+      if (STREQ(fmap->name, name)) {
         return true;
       }
     }

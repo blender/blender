@@ -457,10 +457,10 @@ GPUNodeLink *GPU_volume_grid(GPUMaterial *mat, const char *name)
 
   /* Two special cases, where we adjust the output values of smoke grids to
    * bring the into standard range without having to modify the grid values. */
-  if (strcmp(name, "color") == 0) {
+  if (STREQ(name, "color")) {
     GPU_link(mat, "node_attribute_volume_color", link, transform_link, &link);
   }
-  else if (strcmp(name, "temperature") == 0) {
+  else if (STREQ(name, "temperature")) {
     GPU_link(mat, "node_attribute_volume_temperature", link, transform_link, &link);
   }
   else {

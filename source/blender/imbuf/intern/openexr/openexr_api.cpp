@@ -1169,7 +1169,7 @@ void IMB_exrtile_write_channels(
 
       /* eventually we can make the parts' channels to include
        * only the current view TODO */
-      if (strcmp(viewname, echan->m->view.c_str()) != 0) {
+      if (!STREQ(viewname, echan->m->view.c_str())) {
         continue;
       }
 

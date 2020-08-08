@@ -475,7 +475,7 @@ RenderResult *render_result_new(Render *re,
       const char *view = rv->name;
 
       if (viewname && viewname[0]) {
-        if (strcmp(view, viewname) != 0) {
+        if (!STREQ(view, viewname)) {
           continue;
         }
       }
@@ -877,7 +877,7 @@ void render_result_merge(RenderResult *rr, RenderResult *rrpart)
           continue;
         }
         /* Renderresult have all passes, renderpart only the active view's passes. */
-        if (strcmp(rpassp->fullname, rpass->fullname) != 0) {
+        if (!STREQ(rpassp->fullname, rpass->fullname)) {
           continue;
         }
 
