@@ -865,10 +865,10 @@ BLI_INLINE void draw_select_buffer(DRWShadingGroup *shgroup,
   /* Batching */
   if (!is_instancing) {
     /* FIXME: Meh a bit nasty. */
-    if (batch->gl_prim_type == convert_prim_type_to_gl(GPU_PRIM_TRIS)) {
+    if (batch->prim_type == GPU_PRIM_TRIS) {
       count = 3;
     }
-    else if (batch->gl_prim_type == convert_prim_type_to_gl(GPU_PRIM_LINES)) {
+    else if (batch->prim_type == GPU_PRIM_LINES) {
       count = 2;
     }
   }

@@ -152,7 +152,7 @@ GPUBatch *DRW_temp_batch_instance_request(DRWInstanceDataList *idatalist,
   bool instancer_compat = buf ? ((batch->inst[0] == buf) && (buf->vbo_id != 0)) :
                                 ((batch->inst[0] == instancer->inst[0]) &&
                                  (batch->inst[1] == instancer->inst[1]));
-  bool is_compatible = (batch->gl_prim_type == geom->gl_prim_type) && instancer_compat &&
+  bool is_compatible = (batch->prim_type == geom->prim_type) && instancer_compat &&
                        (batch->phase == GPU_BATCH_READY_TO_DRAW) && (batch->elem == geom->elem);
   for (int i = 0; i < GPU_BATCH_VBO_MAX_LEN && is_compatible; i++) {
     if (batch->verts[i] != geom->verts[i]) {
@@ -186,7 +186,7 @@ GPUBatch *DRW_temp_batch_request(DRWInstanceDataList *idatalist,
 
   GPUBatch *batch = *batch_ptr;
   bool is_compatible = (batch->verts[0] == buf) && (buf->vbo_id != 0) &&
-                       (batch->gl_prim_type == convert_prim_type_to_gl(prim_type));
+                       (batch->prim_type == prim_type);
   if (!is_compatible) {
     GPU_batch_clear(batch);
     GPU_batch_init(batch, prim_type, buf, NULL);

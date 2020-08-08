@@ -57,7 +57,7 @@ typedef struct GPUBatch {
   GPUVertBuf *inst[GPU_BATCH_INST_VBO_MAX_LEN];
   /** NULL if element list not needed */
   GPUIndexBuf *elem;
-  uint32_t gl_prim_type;
+  GPUPrimType prim_type;
 
   /* cached values (avoid dereferencing later) */
   uint32_t vao_id;
