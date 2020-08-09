@@ -33,6 +33,7 @@
 #include "gl_backend.hh" /* TODO remove */
 #include "gl_context.hh"
 
+using namespace blender;
 using namespace blender::gpu;
 
 /* -------------------------------------------------------------------- */
