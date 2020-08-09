@@ -89,11 +89,6 @@ typedef struct GPUBatch {
       uint32_t *vao_ids;
     } dynamic_vaos;
   };
-
-  /* XXX This is the only solution if we want to have some data structure using
-   * batches as key to identify nodes. We must destroy these nodes with this callback. */
-  void (*free_callback)(struct GPUBatch *, void *);
-  void *callback_data;
 } GPUBatch;
 
 enum {
@@ -117,8 +112,6 @@ void GPU_batch_clear(GPUBatch *);
 void GPU_batch_discard(GPUBatch *); /* verts & elem are not discarded */
 
 void GPU_batch_vao_cache_clear(GPUBatch *);
-
-void GPU_batch_callback_free_set(GPUBatch *, void (*callback)(GPUBatch *, void *), void *);
 
 void GPU_batch_instbuf_set(GPUBatch *, GPUVertBuf *, bool own_vbo); /* Instancing */
 void GPU_batch_elembuf_set(GPUBatch *batch, GPUIndexBuf *elem, bool own_ibo);

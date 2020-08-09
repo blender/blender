@@ -120,7 +120,6 @@ void GPU_batch_init_ex(
   batch->phase = GPU_BATCH_READY_TO_DRAW;
   batch->is_dynamic_vao_count = false;
   batch->owns_flag = owns_flag;
-  batch->free_callback = NULL;
 }
 
 /* This will share the VBOs with the new batch. */
@@ -159,20 +158,8 @@ void GPU_batch_clear(GPUBatch *batch)
 
 void GPU_batch_discard(GPUBatch *batch)
 {
-  if (batch->free_callback) {
-    batch->free_callback(batch, batch->callback_data);
-  }
-
   GPU_batch_clear(batch);
   MEM_freeN(batch);
-}
-
-void GPU_batch_callback_free_set(GPUBatch *batch,
-                                 void (*callback)(GPUBatch *, void *),
-                                 void *user_data)
-{
-  batch->free_callback = callback;
-  batch->callback_data = user_data;
 }
 
 void GPU_batch_instbuf_set(GPUBatch *batch, GPUVertBuf *inst, bool own_vbo)
