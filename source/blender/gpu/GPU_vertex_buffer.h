@@ -59,6 +59,8 @@ typedef struct GPUVertBuf {
   uint32_t vbo_id;
   /** Usage hint for GL optimisation. */
   GPUUsageType usage;
+  /** This counter will only avoid freeing the GPUVertBuf, not the data. */
+  char handle_refcount;
   /** Data has been touched and need to be reuploaded to GPU. */
   bool dirty;
   uchar *data; /* NULL indicates data in VRAM (unmapped) */
@@ -72,6 +74,10 @@ GPUVertBuf *GPU_vertbuf_create_with_format_ex(const GPUVertFormat *, GPUUsageTyp
 
 void GPU_vertbuf_clear(GPUVertBuf *verts);
 void GPU_vertbuf_discard(GPUVertBuf *);
+
+/* Avoid GPUVertBuf datablock being free but not its data. */
+void GPU_vertbuf_handle_ref_add(GPUVertBuf *verts);
+void GPU_vertbuf_handle_ref_remove(GPUVertBuf *verts);
 
 void GPU_vertbuf_init(GPUVertBuf *, GPUUsageType);
 void GPU_vertbuf_init_with_format_ex(GPUVertBuf *, const GPUVertFormat *, GPUUsageType);

@@ -77,6 +77,7 @@ void GPU_vertbuf_init(GPUVertBuf *verts, GPUUsageType usage)
   memset(verts, 0, sizeof(GPUVertBuf));
   verts->usage = usage;
   verts->dirty = true;
+  verts->handle_refcount = 1;
 }
 
 void GPU_vertbuf_init_with_format_ex(GPUVertBuf *verts,
@@ -137,7 +138,23 @@ void GPU_vertbuf_clear(GPUVertBuf *verts)
 void GPU_vertbuf_discard(GPUVertBuf *verts)
 {
   GPU_vertbuf_clear(verts);
-  MEM_freeN(verts);
+  GPU_vertbuf_handle_ref_remove(verts);
+}
+
+void GPU_vertbuf_handle_ref_add(GPUVertBuf *verts)
+{
+  verts->handle_refcount++;
+}
+
+void GPU_vertbuf_handle_ref_remove(GPUVertBuf *verts)
+{
+  BLI_assert(verts->handle_refcount > 0);
+  verts->handle_refcount--;
+  if (verts->handle_refcount == 0) {
+    /* Should already have been cleared. */
+    BLI_assert(verts->vbo_id == 0 && verts->data == NULL);
+    MEM_freeN(verts);
+  }
 }
 
 uint GPU_vertbuf_size_get(const GPUVertBuf *verts)
