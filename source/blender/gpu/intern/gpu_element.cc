@@ -326,6 +326,11 @@ static void squeeze_indices_short(GPUIndexBufBuilder *builder,
 
 #endif /* GPU_TRACK_INDEX_RANGE */
 
+GPUIndexBuf *GPU_indexbuf_calloc(void)
+{
+  return (GPUIndexBuf *)MEM_callocN(sizeof(GPUIndexBuf), __func__);
+}
+
 GPUIndexBuf *GPU_indexbuf_build(GPUIndexBufBuilder *builder)
 {
   GPUIndexBuf *elem = (GPUIndexBuf *)MEM_callocN(sizeof(GPUIndexBuf), "GPUIndexBuf");

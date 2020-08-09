@@ -155,7 +155,7 @@ static GPUVertBuf *mball_batch_cache_get_pos_and_normals(Object *ob, MetaBallBat
 {
   if (cache->pos_nor_in_order == NULL) {
     ListBase *lb = &ob->runtime.curve_cache->disp;
-    cache->pos_nor_in_order = MEM_callocN(sizeof(GPUVertBuf), __func__);
+    cache->pos_nor_in_order = GPU_vertbuf_create(GPU_USAGE_STATIC);
     DRW_displist_vertbuf_create_pos_and_nor(lb, cache->pos_nor_in_order);
   }
   return cache->pos_nor_in_order;
@@ -165,7 +165,7 @@ static GPUIndexBuf *mball_batch_cache_get_edges_adj_lines(Object *ob, MetaBallBa
 {
   if (cache->edges_adj_lines == NULL) {
     ListBase *lb = &ob->runtime.curve_cache->disp;
-    cache->edges_adj_lines = MEM_callocN(sizeof(GPUVertBuf), __func__);
+    cache->edges_adj_lines = GPU_indexbuf_calloc();
     DRW_displist_indexbuf_create_edges_adjacency_lines(
         lb, cache->edges_adj_lines, &cache->is_manifold);
   }
@@ -187,7 +187,7 @@ GPUBatch *DRW_metaball_batch_cache_get_triangles_with_normals(Object *ob)
 
   if (cache->batch == NULL) {
     ListBase *lb = &ob->runtime.curve_cache->disp;
-    GPUIndexBuf *ibo = MEM_callocN(sizeof(GPUIndexBuf), __func__);
+    GPUIndexBuf *ibo = GPU_indexbuf_calloc();
     DRW_displist_indexbuf_create_triangles_in_order(lb, ibo);
     cache->batch = GPU_batch_create_ex(GPU_PRIM_TRIS,
                                        mball_batch_cache_get_pos_and_normals(ob, cache),
@@ -234,10 +234,10 @@ GPUBatch *DRW_metaball_batch_cache_get_wireframes_face(Object *ob)
   if (cache->face_wire.batch == NULL) {
     ListBase *lb = &ob->runtime.curve_cache->disp;
 
-    GPUVertBuf *vbo_wiredata = MEM_callocN(sizeof(GPUVertBuf), __func__);
+    GPUVertBuf *vbo_wiredata = GPU_vertbuf_create(GPU_USAGE_STATIC);
     DRW_displist_vertbuf_create_wiredata(lb, vbo_wiredata);
 
-    GPUIndexBuf *ibo = MEM_callocN(sizeof(GPUIndexBuf), __func__);
+    GPUIndexBuf *ibo = GPU_indexbuf_calloc();
     DRW_displist_indexbuf_create_lines_in_order(lb, ibo);
 
     cache->face_wire.batch = GPU_batch_create_ex(GPU_PRIM_LINES,

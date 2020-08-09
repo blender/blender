@@ -54,6 +54,8 @@ typedef struct GPUIndexBuf {
   };
 } GPUIndexBuf;
 
+GPUIndexBuf *GPU_indexbuf_calloc(void);
+
 void GPU_indexbuf_use(GPUIndexBuf *);
 uint GPU_indexbuf_size_get(const GPUIndexBuf *);
 

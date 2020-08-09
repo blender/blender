@@ -163,7 +163,7 @@ static void drw_volume_wireframe_cb(
   GPU_vertbuf_attr_fill_stride(cache->face_wire.pos_nor_in_order, nor_id, 0, &packed_normal);
 
   /* Create wiredata. */
-  GPUVertBuf *vbo_wiredata = MEM_callocN(sizeof(GPUVertBuf), __func__);
+  GPUVertBuf *vbo_wiredata = GPU_vertbuf_create(GPU_USAGE_STATIC);
   DRW_vertbuf_create_wiredata(vbo_wiredata, totvert);
 
   if (volume->display.wireframe_type == VOLUME_WIREFRAME_POINTS) {

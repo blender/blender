@@ -69,7 +69,7 @@ BLI_INLINE bool DRW_batch_requested(GPUBatch *batch, int prim_type)
 BLI_INLINE void DRW_ibo_request(GPUBatch *batch, GPUIndexBuf **ibo)
 {
   if (*ibo == NULL) {
-    *ibo = MEM_callocN(sizeof(GPUIndexBuf), "GPUIndexBuf");
+    *ibo = GPU_indexbuf_calloc();
   }
   if (batch != NULL) {
     GPU_batch_vao_cache_clear(batch);
@@ -87,7 +87,7 @@ BLI_INLINE bool DRW_ibo_requested(GPUIndexBuf *ibo)
 BLI_INLINE void DRW_vbo_request(GPUBatch *batch, GPUVertBuf **vbo)
 {
   if (*vbo == NULL) {
-    *vbo = MEM_callocN(sizeof(GPUVertBuf), "GPUVertBuf");
+    *vbo = GPU_vertbuf_create(GPU_USAGE_STATIC);
   }
   if (batch != NULL) {
     /* HACK set first vbo if not init. */
