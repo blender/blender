@@ -288,10 +288,6 @@ static void draw_uvs_texpaint(const Scene *scene, Object *ob, Depsgraph *depsgra
     uint idx = 0;
     bool prev_ma_match = (mpoly->mat_nr == (ob_eval->actcol - 1));
 
-    GPU_matrix_bind(geom->interface);
-    GPU_shader_set_srgb_uniform(geom->interface);
-    GPU_batch_bind(geom);
-
     /* TODO(fclem): If drawcall count becomes a problem in the future
      * we can use multi draw indirect drawcalls for this.
      * (not implemented in GPU module at the time of writing). */
@@ -299,7 +295,7 @@ static void draw_uvs_texpaint(const Scene *scene, Object *ob, Depsgraph *depsgra
       bool ma_match = (mpoly->mat_nr == (ob_eval->actcol - 1));
       if (ma_match != prev_ma_match) {
         if (ma_match == false) {
-          GPU_batch_draw_advanced(geom, draw_start, idx - draw_start, 0, 0);
+          GPU_batch_draw_range(geom, draw_start, idx - draw_start);
         }
         else {
           draw_start = idx;
@@ -309,7 +305,7 @@ static void draw_uvs_texpaint(const Scene *scene, Object *ob, Depsgraph *depsgra
       prev_ma_match = ma_match;
     }
     if (prev_ma_match == true) {
-      GPU_batch_draw_advanced(geom, draw_start, idx - draw_start, 0, 0);
+      GPU_batch_draw_range(geom, draw_start, idx - draw_start);
     }
   }
   else {

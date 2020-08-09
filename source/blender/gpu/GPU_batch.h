@@ -135,6 +135,7 @@ void GPU_batch_program_set_builtin_with_config(GPUBatch *batch,
                                                eGPUBuiltinShader shader_id,
                                                eGPUShaderConfig sh_cfg);
 
+/* Will only work after setting the batch program. */
 void GPU_batch_uniform_1i(GPUBatch *, const char *name, int value);
 void GPU_batch_uniform_1b(GPUBatch *, const char *name, bool value);
 void GPU_batch_uniform_1f(GPUBatch *, const char *name, float value);
@@ -148,10 +149,10 @@ void GPU_batch_uniform_2fv_array(GPUBatch *, const char *name, const int len, co
 void GPU_batch_uniform_4fv_array(GPUBatch *, const char *name, const int len, const float *data);
 void GPU_batch_uniform_mat4(GPUBatch *, const char *name, const float data[4][4]);
 
-void GPU_batch_draw(GPUBatch *);
+void GPU_batch_draw(GPUBatch *batch);
+void GPU_batch_draw_range(GPUBatch *batch, int v_first, int v_count);
+void GPU_batch_draw_instanced(GPUBatch *batch, int i_count);
 
-/* Needs to be called before GPU_batch_draw_advanced. */
-void GPU_batch_bind(GPUBatch *);
 /* This does not bind/unbind shader and does not call GPU_matrix_bind() */
 void GPU_batch_draw_advanced(GPUBatch *, int v_first, int v_count, int i_first, int i_count);
 

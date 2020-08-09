@@ -262,8 +262,6 @@ static void draw_line_loop(const float coords[][3], int coords_len, const float 
   GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_LINE_LOOP, vert, NULL, GPU_BATCH_OWNS_VBO);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
 
-  GPU_batch_bind(batch);
-
   GPU_batch_uniform_4fv(batch, "color", color);
 
   float viewport[4];
@@ -296,8 +294,6 @@ static void draw_line_pairs(const float coords_a[][3],
   GPU_blend(true);
   GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_LINES, vert, NULL, GPU_BATCH_OWNS_VBO);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
-
-  GPU_batch_bind(batch);
 
   GPU_batch_uniform_4fv(batch, "color", color);
 
@@ -346,8 +342,6 @@ static void draw_line_bounds(const BoundBox *bounds, const float color[4])
   GPU_blend(true);
   GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_LINES, vert, NULL, GPU_BATCH_OWNS_VBO);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
-
-  GPU_batch_bind(batch);
 
   GPU_batch_uniform_4fv(batch, "color", color);
 

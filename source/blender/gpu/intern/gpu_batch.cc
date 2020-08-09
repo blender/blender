@@ -45,6 +45,7 @@
 
 static GLuint g_default_attr_vbo = 0;
 
+static void gpu_batch_bind(GPUBatch *batch);
 static void batch_update_program_bindings(GPUBatch *batch, uint i_first);
 
 void GPU_batch_vao_cache_clear(GPUBatch *batch)
@@ -381,8 +382,10 @@ void GPU_batch_set_shader(GPUBatch *batch, GPUShader *shader)
   batch->interface = shader->interface;
   batch->shader = shader;
   batch->vao_id = batch_vao_get(batch);
-  GPU_shader_bind(batch->shader); /* hack! to make Batch_Uniform* simpler */
-  GPU_batch_bind(batch);
+  GPU_shader_bind(batch->shader);
+  GPU_matrix_bind(batch->shader->interface);
+  GPU_shader_set_srgb_uniform(batch->shader->interface);
+  gpu_batch_bind(batch);
 }
 
 void gpu_batch_remove_interface_ref(GPUBatch *batch, const GPUShaderInterface *interface)
@@ -617,7 +620,7 @@ static void *elem_offset(const GPUIndexBuf *el, int v_first)
 }
 
 /* Use when drawing with GPU_batch_draw_advanced */
-void GPU_batch_bind(GPUBatch *batch)
+static void gpu_batch_bind(GPUBatch *batch)
 {
   glBindVertexArray(batch->vao_id);
 
@@ -633,17 +636,25 @@ void GPU_batch_bind(GPUBatch *batch)
 
 void GPU_batch_draw(GPUBatch *batch)
 {
-#if TRUST_NO_ONE
-  assert(batch->phase == GPU_BATCH_READY_TO_DRAW);
-  assert(batch->verts[0]->vbo_id != 0);
-#endif
   GPU_shader_bind(batch->shader);
-  GPU_matrix_bind(batch->interface);  // external call.
-  GPU_shader_set_srgb_uniform(batch->interface);
-
-  GPU_batch_bind(batch);
   GPU_batch_draw_advanced(batch, 0, 0, 0, 0);
+  GPU_shader_unbind();
+}
 
+void GPU_batch_draw_range(GPUBatch *batch, int v_first, int v_count)
+{
+  GPU_shader_bind(batch->shader);
+  GPU_batch_draw_advanced(batch, v_first, v_count, 0, 0);
+  GPU_shader_unbind();
+}
+
+/* Draw multiple instance of a batch without having any instance attributes. */
+void GPU_batch_draw_instanced(GPUBatch *batch, int i_count)
+{
+  BLI_assert(batch->inst[0] == NULL);
+
+  GPU_shader_bind(batch->shader);
+  GPU_batch_draw_advanced(batch, 0, 0, 0, i_count);
   GPU_shader_unbind();
 }
 
