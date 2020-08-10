@@ -1012,6 +1012,9 @@ void DepsgraphRelationBuilder::build_object_pointcache(Object *object)
     /* Check which components needs the point cache. */
     int flag = -1;
     if (ptcache_id->type == PTCACHE_TYPE_RIGIDBODY) {
+      if (object->rigidbody_object->type == RBO_TYPE_PASSIVE) {
+        continue;
+      }
       flag = FLAG_TRANSFORM;
       OperationKey transform_key(
           &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_SIMULATION_INIT);
@@ -1728,8 +1731,7 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
       /* Geometry must be known to create the rigid body. RBO_MESH_BASE
        * uses the non-evaluated mesh, so then the evaluation is
        * unnecessary. */
-      if (object->rigidbody_object != nullptr &&
-          object->rigidbody_object->mesh_source != RBO_MESH_BASE) {
+      if (rigidbody_object_depends_on_evaluated_geometry(object->rigidbody_object)) {
         /* NOTE: We prefer this relation to be never killed, to avoid
          * access partially evaluated mesh from solver. */
         ComponentKey object_geometry_key(&object->id, NodeType::GEOMETRY);

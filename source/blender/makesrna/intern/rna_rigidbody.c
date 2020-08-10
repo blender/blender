@@ -35,6 +35,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "DEG_depsgraph_build.h"
+
 #include "WM_types.h"
 
 /* roles of objects in RigidBody Sims */
@@ -223,6 +225,7 @@ static void rna_RigidBodyOb_shape_update(Main *bmain, Scene *scene, PointerRNA *
   Object *ob = (Object *)ptr->owner_id;
 
   rna_RigidBodyOb_reset(bmain, scene, ptr);
+  DEG_relations_tag_update(bmain);
 
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
@@ -236,6 +239,16 @@ static void rna_RigidBodyOb_shape_reset(Main *UNUSED(bmain), Scene *scene, Point
   if (rbo->shared->physics_shape) {
     rbo->flag |= RBO_FLAG_NEEDS_RESHAPE;
   }
+}
+
+static void rna_RigidBodyOb_mesh_source_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  Object *ob = (Object *)ptr->owner_id;
+
+  rna_RigidBodyOb_reset(bmain, scene, ptr);
+  DEG_relations_tag_update(bmain);
+
+  WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
 
 static char *rna_RigidBodyOb_path(PointerRNA *UNUSED(ptr))
@@ -1031,7 +1044,7 @@ static void rna_def_rigidbody_object(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Mesh Source", "Source of the mesh used to create collision shape");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, NC_OBJECT | ND_POINTCACHE, "rna_RigidBodyOb_reset");
+  RNA_def_property_update(prop, NC_OBJECT | ND_POINTCACHE, "rna_RigidBodyOb_mesh_source_update");
 
   /* booleans */
   prop = RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
