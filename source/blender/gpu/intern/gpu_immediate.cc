@@ -317,7 +317,7 @@ GPUBatch *immBeginBatch(GPUPrimType prim_type, uint vertex_len)
   imm.vertex_data = verts->data;
 
   imm.batch = GPU_batch_create_ex(prim_type, verts, NULL, GPU_BATCH_OWNS_VBO);
-  imm.batch->phase = GPU_BATCH_BUILDING;
+  imm.batch->flag |= GPU_BATCH_BUILDING;
 
   return imm.batch;
 }
@@ -419,7 +419,7 @@ void immEnd(void)
       /* TODO: resize only if vertex count is much smaller */
     }
     GPU_batch_set_shader(imm.batch, imm.bound_program);
-    imm.batch->phase = GPU_BATCH_READY_TO_DRAW;
+    imm.batch->flag &= ~GPU_BATCH_BUILDING;
     imm.batch = NULL; /* don't free, batch belongs to caller */
   }
   else {

@@ -94,19 +94,22 @@ GPUBatch *GPU_batch_calloc(uint count)
 GPUBatch *GPU_batch_create_ex(GPUPrimType prim_type,
                               GPUVertBuf *verts,
                               GPUIndexBuf *elem,
-                              uint owns_flag)
+                              eGPUBatchFlag owns_flag)
 {
   GPUBatch *batch = GPU_batch_calloc(1);
   GPU_batch_init_ex(batch, prim_type, verts, elem, owns_flag);
   return batch;
 }
 
-void GPU_batch_init_ex(
-    GPUBatch *batch, GPUPrimType prim_type, GPUVertBuf *verts, GPUIndexBuf *elem, uint owns_flag)
+void GPU_batch_init_ex(GPUBatch *batch,
+                       GPUPrimType prim_type,
+                       GPUVertBuf *verts,
+                       GPUIndexBuf *elem,
+                       eGPUBatchFlag owns_flag)
 {
-#if TRUST_NO_ONE
-  assert(verts != NULL);
-#endif
+  BLI_assert(verts != NULL);
+  /* Do not pass any other flag */
+  BLI_assert((owns_flag & ~(GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX)) == 0);
 
   batch->verts[0] = verts;
   for (int v = 1; v < GPU_BATCH_VBO_MAX_LEN; v++) {
@@ -117,15 +120,16 @@ void GPU_batch_init_ex(
   }
   batch->elem = elem;
   batch->prim_type = prim_type;
-  batch->phase = GPU_BATCH_READY_TO_DRAW;
-  batch->is_dynamic_vao_count = false;
-  batch->owns_flag = owns_flag;
+  batch->flag = owns_flag | GPU_BATCH_INIT | GPU_BATCH_DIRTY;
+  batch->context = NULL;
+  batch->shader = NULL;
 }
 
 /* This will share the VBOs with the new batch. */
 void GPU_batch_copy(GPUBatch *batch_dst, GPUBatch *batch_src)
 {
-  GPU_batch_init_ex(batch_dst, GPU_PRIM_POINTS, batch_src->verts[0], batch_src->elem, 0);
+  GPU_batch_init_ex(
+      batch_dst, GPU_PRIM_POINTS, batch_src->verts[0], batch_src->elem, GPU_BATCH_INVALID);
 
   batch_dst->prim_type = batch_src->prim_type;
   for (int v = 1; v < GPU_BATCH_VBO_MAX_LEN; v++) {
@@ -135,25 +139,25 @@ void GPU_batch_copy(GPUBatch *batch_dst, GPUBatch *batch_src)
 
 void GPU_batch_clear(GPUBatch *batch)
 {
-  if (batch->owns_flag & GPU_BATCH_OWNS_INDEX) {
+  GPU_batch_vao_cache_clear(batch);
+  if (batch->flag & GPU_BATCH_OWNS_INDEX) {
     GPU_indexbuf_discard(batch->elem);
   }
-  if (batch->owns_flag & GPU_BATCH_OWNS_INSTANCES) {
-    GPU_vertbuf_discard(batch->inst[0]);
-    GPU_VERTBUF_DISCARD_SAFE(batch->inst[1]);
-  }
-  if ((batch->owns_flag & ~GPU_BATCH_OWNS_INDEX) != 0) {
-    for (int v = 0; v < GPU_BATCH_VBO_MAX_LEN; v++) {
-      if (batch->verts[v] == NULL) {
-        break;
-      }
-      if (batch->owns_flag & (1 << v)) {
-        GPU_vertbuf_discard(batch->verts[v]);
+  if (batch->flag & GPU_BATCH_OWNS_VBO_ANY) {
+    for (int v = 0; (v < GPU_BATCH_VBO_MAX_LEN) && batch->verts[v]; v++) {
+      if (batch->flag & (GPU_BATCH_OWNS_VBO << v)) {
+        GPU_VERTBUF_DISCARD_SAFE(batch->verts[v]);
       }
     }
   }
-  GPU_batch_vao_cache_clear(batch);
-  batch->phase = GPU_BATCH_UNUSED;
+  if (batch->flag & GPU_BATCH_OWNS_INST_VBO_ANY) {
+    for (int v = 0; (v < GPU_BATCH_INST_VBO_MAX_LEN) && batch->inst[v]; v++) {
+      if (batch->flag & (GPU_BATCH_OWNS_INST_VBO << v)) {
+        GPU_VERTBUF_DISCARD_SAFE(batch->inst[v]);
+      }
+    }
+  }
+  batch->flag = GPU_BATCH_INVALID;
 }
 
 void GPU_batch_discard(GPUBatch *batch)
@@ -162,105 +166,77 @@ void GPU_batch_discard(GPUBatch *batch)
   MEM_freeN(batch);
 }
 
+/* NOTE: Override ONLY the first instance vbo (and free them if owned). */
 void GPU_batch_instbuf_set(GPUBatch *batch, GPUVertBuf *inst, bool own_vbo)
 {
-#if TRUST_NO_ONE
-  assert(inst != NULL);
-#endif
-  /* redo the bindings */
-  GPU_batch_vao_cache_clear(batch);
+  BLI_assert(inst);
+  batch->flag |= GPU_BATCH_DIRTY_BINDINGS;
 
-  if (batch->inst[0] != NULL && (batch->owns_flag & GPU_BATCH_OWNS_INSTANCES)) {
+  if (batch->inst[0] && (batch->flag & GPU_BATCH_OWNS_INST_VBO)) {
     GPU_vertbuf_discard(batch->inst[0]);
-    GPU_VERTBUF_DISCARD_SAFE(batch->inst[1]);
   }
   batch->inst[0] = inst;
 
-  if (own_vbo) {
-    batch->owns_flag |= GPU_BATCH_OWNS_INSTANCES;
-  }
-  else {
-    batch->owns_flag &= ~GPU_BATCH_OWNS_INSTANCES;
-  }
+  SET_FLAG_FROM_TEST(batch->flag, own_vbo, GPU_BATCH_OWNS_INST_VBO);
 }
 
+/* NOTE: Override any previously assigned elem (and free it if owned). */
 void GPU_batch_elembuf_set(GPUBatch *batch, GPUIndexBuf *elem, bool own_ibo)
 {
-  BLI_assert(elem != NULL);
-  /* redo the bindings */
-  GPU_batch_vao_cache_clear(batch);
+  BLI_assert(elem);
+  batch->flag |= GPU_BATCH_DIRTY_BINDINGS;
 
-  if (batch->elem != NULL && (batch->owns_flag & GPU_BATCH_OWNS_INDEX)) {
+  if (batch->elem && (batch->flag & GPU_BATCH_OWNS_INDEX)) {
     GPU_indexbuf_discard(batch->elem);
   }
   batch->elem = elem;
 
-  if (own_ibo) {
-    batch->owns_flag |= GPU_BATCH_OWNS_INDEX;
-  }
-  else {
-    batch->owns_flag &= ~GPU_BATCH_OWNS_INDEX;
-  }
+  SET_FLAG_FROM_TEST(batch->flag, own_ibo, GPU_BATCH_OWNS_INDEX);
 }
 
-/* A bit of a quick hack. Should be streamlined as the vbos handling */
 int GPU_batch_instbuf_add_ex(GPUBatch *batch, GPUVertBuf *insts, bool own_vbo)
 {
-  /* redo the bindings */
-  GPU_batch_vao_cache_clear(batch);
+  BLI_assert(insts);
+  batch->flag |= GPU_BATCH_DIRTY_BINDINGS;
 
   for (uint v = 0; v < GPU_BATCH_INST_VBO_MAX_LEN; v++) {
     if (batch->inst[v] == NULL) {
-#if TRUST_NO_ONE
       /* for now all VertexBuffers must have same vertex_len */
-      if (batch->inst[0] != NULL) {
-        /* Allow for different size of vertex buf (will choose the smallest number of verts). */
-        // assert(insts->vertex_len == batch->inst[0]->vertex_len);
-        assert(own_vbo == ((batch->owns_flag & GPU_BATCH_OWNS_INSTANCES) != 0));
+      if (batch->inst[0]) {
+        /* Allow for different size of vertex buf (will choose the smallest
+         * number of verts). */
+        // BLI_assert(insts->vertex_len == batch->inst[0]->vertex_len);
       }
-#endif
+
       batch->inst[v] = insts;
-      if (own_vbo) {
-        batch->owns_flag |= GPU_BATCH_OWNS_INSTANCES;
-      }
+      SET_FLAG_FROM_TEST(batch->flag, own_vbo, (eGPUBatchFlag)(GPU_BATCH_OWNS_INST_VBO << v));
       return v;
     }
   }
-
   /* we only make it this far if there is no room for another GPUVertBuf */
-#if TRUST_NO_ONE
-  assert(false);
-#endif
+  BLI_assert(0 && "Not enough Instance VBO slot in batch");
   return -1;
 }
 
 /* Returns the index of verts in the batch. */
 int GPU_batch_vertbuf_add_ex(GPUBatch *batch, GPUVertBuf *verts, bool own_vbo)
 {
-  /* redo the bindings */
-  GPU_batch_vao_cache_clear(batch);
+  BLI_assert(verts);
+  batch->flag |= GPU_BATCH_DIRTY_BINDINGS;
 
   for (uint v = 0; v < GPU_BATCH_VBO_MAX_LEN; v++) {
     if (batch->verts[v] == NULL) {
-#if TRUST_NO_ONE
       /* for now all VertexBuffers must have same vertex_len */
       if (batch->verts[0] != NULL) {
-        assert(verts->vertex_len == batch->verts[0]->vertex_len);
+        BLI_assert(verts->vertex_len == batch->verts[0]->vertex_len);
       }
-#endif
       batch->verts[v] = verts;
-      /* TODO: mark dirty so we can keep attribute bindings up-to-date */
-      if (own_vbo) {
-        batch->owns_flag |= (1 << v);
-      }
+      SET_FLAG_FROM_TEST(batch->flag, own_vbo, (eGPUBatchFlag)(GPU_BATCH_OWNS_VBO << v));
       return v;
     }
   }
-
   /* we only make it this far if there is no room for another GPUVertBuf */
-#if TRUST_NO_ONE
-  assert(false);
-#endif
+  BLI_assert(0 && "Not enough VBO slot in batch");
   return -1;
 }
 
@@ -368,6 +344,9 @@ void GPU_batch_set_shader(GPUBatch *batch, GPUShader *shader)
 {
   batch->interface = shader->interface;
   batch->shader = shader;
+  if (batch->flag & GPU_BATCH_DIRTY_BINDINGS) {
+    GPU_batch_vao_cache_clear(batch);
+  }
   batch->vao_id = batch_vao_get(batch);
   GPU_shader_bind(batch->shader);
   GPU_matrix_bind(batch->shader->interface);
@@ -510,7 +489,7 @@ static void batch_update_program_bindings(GPUBatch *batch, uint i_first)
  * \{ */
 
 #define GET_UNIFORM \
-  const GPUShaderInput *uniform = GPU_shaderinterface_uniform(batch->interface, name); \
+  const GPUShaderInput *uniform = GPU_shaderinterface_uniform(batch->shader->interface, name); \
   BLI_assert(uniform);
 
 void GPU_batch_uniform_1i(GPUBatch *batch, const char *name, int value)

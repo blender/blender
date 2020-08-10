@@ -26,51 +26,78 @@
 
 #pragma once
 
+#include "BLI_utildefines.h"
+
 #include "GPU_element.h"
 #include "GPU_shader.h"
 #include "GPU_shader_interface.h"
 #include "GPU_vertex_buffer.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef enum {
-  GPU_BATCH_UNUSED,
-  GPU_BATCH_READY_TO_FORMAT,
-  GPU_BATCH_READY_TO_BUILD,
-  GPU_BATCH_BUILDING,
-  GPU_BATCH_READY_TO_DRAW,
-} GPUBatchPhase;
 
 #define GPU_BATCH_VBO_MAX_LEN 6
 #define GPU_BATCH_INST_VBO_MAX_LEN 2
 #define GPU_BATCH_VAO_STATIC_LEN 3
 #define GPU_BATCH_VAO_DYN_ALLOC_COUNT 16
 
-typedef struct GPUBatch {
-  /* geometry */
+typedef enum eGPUBatchFlag {
+  /** Invalid default state. */
+  GPU_BATCH_INVALID = 0,
 
+  /** GPUVertBuf ownership. (One bit per vbo) */
+  GPU_BATCH_OWNS_VBO = (1 << 0),
+  GPU_BATCH_OWNS_VBO_MAX = (GPU_BATCH_OWNS_VBO << (GPU_BATCH_VBO_MAX_LEN - 1)),
+  GPU_BATCH_OWNS_VBO_ANY = ((GPU_BATCH_OWNS_VBO << GPU_BATCH_VBO_MAX_LEN) - 1),
+  /** Instance GPUVertBuf ownership. (One bit per vbo) */
+  GPU_BATCH_OWNS_INST_VBO = (GPU_BATCH_OWNS_VBO_MAX << 1),
+  GPU_BATCH_OWNS_INST_VBO_MAX = (GPU_BATCH_OWNS_INST_VBO << (GPU_BATCH_INST_VBO_MAX_LEN - 1)),
+  GPU_BATCH_OWNS_INST_VBO_ANY = ((GPU_BATCH_OWNS_INST_VBO << GPU_BATCH_INST_VBO_MAX_LEN) - 1) &
+                                ~GPU_BATCH_OWNS_VBO_ANY,
+  /** GPUIndexBuf ownership. */
+  GPU_BATCH_OWNS_INDEX = (GPU_BATCH_OWNS_INST_VBO_MAX << 1),
+
+  /** Has been initialized. At least one VBO is set. */
+  GPU_BATCH_INIT = (1 << 16),
+  /** Batch is initialized but it's VBOs are still being populated. (optional) */
+  GPU_BATCH_BUILDING = (1 << 16),
+  /** Cached data need to be rebuild. (VAO, PSO, ...) */
+  GPU_BATCH_DIRTY_BINDINGS = (1 << 17),
+  GPU_BATCH_DIRTY_INTERFACE = (1 << 18),
+  GPU_BATCH_DIRTY = (GPU_BATCH_DIRTY_BINDINGS | GPU_BATCH_DIRTY_INTERFACE),
+} eGPUBatchFlag;
+
+#define GPU_BATCH_OWNS_NONE GPU_BATCH_INVALID
+
+BLI_STATIC_ASSERT(GPU_BATCH_OWNS_INDEX < GPU_BATCH_INIT,
+                  "eGPUBatchFlag: Error: status flags are shadowed by the ownership bits!")
+
+ENUM_OPERATORS(eGPUBatchFlag)
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * IMPORTANT: Do not allocate manually as the real struct is bigger (i.e: GLBatch). This is only
+ * the common and "public" part of the struct. Use the provided allocator.
+ **/
+typedef struct GPUBatch {
   /** verts[0] is required, others can be NULL */
   GPUVertBuf *verts[GPU_BATCH_VBO_MAX_LEN];
   /** Instance attributes. */
   GPUVertBuf *inst[GPU_BATCH_INST_VBO_MAX_LEN];
   /** NULL if element list not needed */
   GPUIndexBuf *elem;
-
-  GPUShader *shader;
-
+  /** Bookeeping. */
+  eGPUBatchFlag flag;
+  /** Type of geometry to draw. */
   GPUPrimType prim_type;
 
-  /* cached values (avoid dereferencing later) */
-  uint32_t vao_id;
-  const struct GPUShaderInterface *interface;
-
-  /* book-keeping */
-  uint owns_flag;
-  /** used to free all vaos. this implies all vaos were created under the same context. */
+  /** Current assigned shader. */
+  struct GPUShader *shader;
+  /** Last context used to draw this batch. */
   struct GPUContext *context;
-  GPUBatchPhase phase;
+
+  struct GPUShaderInterface *interface;
+  GLuint vao_id;
 
   /* Vao management: remembers all geometry state (vertex attribute bindings & element buffer)
    * for each shader interface. Start with a static number of vaos and fallback to dynamic count
@@ -91,16 +118,16 @@ typedef struct GPUBatch {
   };
 } GPUBatch;
 
-enum {
-  GPU_BATCH_OWNS_VBO = (1 << 0),
-  /* each vbo index gets bit-shifted */
-  GPU_BATCH_OWNS_INSTANCES = (1 << 30),
-  GPU_BATCH_OWNS_INDEX = (1u << 31u),
-};
-
 GPUBatch *GPU_batch_calloc(uint count);
-GPUBatch *GPU_batch_create_ex(GPUPrimType, GPUVertBuf *, GPUIndexBuf *, uint owns_flag);
-void GPU_batch_init_ex(GPUBatch *, GPUPrimType, GPUVertBuf *, GPUIndexBuf *, uint owns_flag);
+GPUBatch *GPU_batch_create_ex(GPUPrimType prim,
+                              GPUVertBuf *vert,
+                              GPUIndexBuf *elem,
+                              eGPUBatchFlag own_flag);
+void GPU_batch_init_ex(GPUBatch *batch,
+                       GPUPrimType prim,
+                       GPUVertBuf *vert,
+                       GPUIndexBuf *elem,
+                       eGPUBatchFlag own_flag);
 void GPU_batch_copy(GPUBatch *batch_dst, GPUBatch *batch_src);
 
 #define GPU_batch_create(prim, verts, elem) GPU_batch_create_ex(prim, verts, elem, 0)

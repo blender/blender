@@ -156,7 +156,7 @@ GPUBatch *DRW_temp_batch_instance_request(DRWInstanceDataList *idatalist,
                                 ((batch->inst[0] == instancer->verts[0]) &&
                                  (batch->inst[1] == instancer->verts[1]));
   bool is_compatible = (batch->prim_type == geom->prim_type) && instancer_compat &&
-                       (batch->phase == GPU_BATCH_READY_TO_DRAW) && (batch->elem == geom->elem);
+                       (batch->flag & GPU_BATCH_BUILDING) == 0 && (batch->elem == geom->elem);
   for (int i = 0; i < GPU_BATCH_VBO_MAX_LEN && is_compatible; i++) {
     if (batch->verts[i] != geom->verts[i]) {
       is_compatible = false;
@@ -167,7 +167,7 @@ GPUBatch *DRW_temp_batch_instance_request(DRWInstanceDataList *idatalist,
     instancing_batch_references_remove(batch);
     GPU_batch_clear(batch);
     /* Save args and init later. */
-    batch->phase = GPU_BATCH_READY_TO_BUILD;
+    batch->flag = GPU_BATCH_BUILDING;
     handle->buf = buf;
     handle->instancer = instancer;
     handle->geom = geom;
@@ -234,7 +234,7 @@ void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
   BLI_memblock_iternew(idatalist->pool_instancing, &iter);
   while ((handle_inst = BLI_memblock_iterstep(&iter))) {
     GPUBatch *batch = handle_inst->batch;
-    if (batch && batch->phase == GPU_BATCH_READY_TO_BUILD) {
+    if (batch && batch->flag == GPU_BATCH_BUILDING) {
       GPUVertBuf *inst_buf = handle_inst->buf;
       GPUBatch *inst_batch = handle_inst->instancer;
       GPUBatch *geom = handle_inst->geom;

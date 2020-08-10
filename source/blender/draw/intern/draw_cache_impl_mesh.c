@@ -1248,7 +1248,7 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
           saved_elem_ranges[i] = cache->surface_per_mat[i]->elem;
           /* Avoid deletion as the batch is owner. */
           cache->surface_per_mat[i]->elem = NULL;
-          cache->surface_per_mat[i]->owns_flag &= ~GPU_BATCH_OWNS_INDEX;
+          cache->surface_per_mat[i]->flag &= ~GPU_BATCH_OWNS_INDEX;
         }
       }
       /* We can't discard batches at this point as they have been
