@@ -1226,22 +1226,32 @@ class _defs_sculpt:
 
     @ToolDef.from_fn
     def mask_border():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("paint.mask_box_gesture")
+            layout.prop(props, "use_front_faces_only", expand=False)
+
         return dict(
             idname="builtin.box_mask",
             label="Box Mask",
             icon="ops.sculpt.border_mask",
             widget=None,
             keymap=(),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
     def mask_lasso():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("paint.mask_lasso_gesture")
+            layout.prop(props, "use_front_faces_only", expand=False)
+
         return dict(
             idname="builtin.lasso_mask",
             label="Lasso Mask",
             icon="ops.sculpt.lasso_mask",
             widget=None,
             keymap=(),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn

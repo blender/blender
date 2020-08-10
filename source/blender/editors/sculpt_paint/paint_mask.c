@@ -100,6 +100,9 @@ typedef struct MaskTaskData {
   PaintMaskFloodMode mode;
   float value;
   float (*clip_planes_final)[4];
+
+  bool front_faces_only;
+  float view_normal[3];
 } MaskTaskData;
 
 static void mask_flood_fill_task_cb(void *__restrict userdata,
@@ -265,9 +268,15 @@ static void mask_box_select_task_cb(void *__restrict userdata,
   bool any_masked = false;
   bool redraw = false;
 
+  float vertex_normal[3];
+
   BKE_pbvh_vertex_iter_begin(data->pbvh, node, vi, PBVH_ITER_UNIQUE)
   {
-    if (is_effected(clip_planes_final, vi.co)) {
+    SCULPT_vertex_normal_get(data->ob->sculpt, vi.index, vertex_normal);
+    float dot = dot_v3v3(data->view_normal, vertex_normal);
+    const bool is_effected_front_face = !(data->front_faces_only && dot < 0.0f);
+
+    if (is_effected_front_face && is_effected(clip_planes_final, vi.co)) {
       float prevmask = *vi.mask;
       if (!any_masked) {
         any_masked = true;
@@ -311,6 +320,7 @@ static int paint_mask_gesture_box_exec(bContext *C, wmOperator *op)
 
   const PaintMaskFloodMode mode = RNA_enum_get(op->ptr, "mode");
   const float value = RNA_float_get(op->ptr, "value");
+  const bool front_faces_only = RNA_boolean_get(op->ptr, "use_front_faces_only");
 
   rcti rect;
   WM_operator_properties_border_to_rcti(op, &rect);
@@ -323,6 +333,16 @@ static int paint_mask_gesture_box_exec(bContext *C, wmOperator *op)
   multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
 
   SCULPT_undo_push_begin("Mask box fill");
+
+  /* Calculate the view normal in object space. */
+  float mat[3][3];
+  float view_dir[3] = {0.0f, 0.0f, 1.0f};
+  float true_view_normal[3];
+  copy_m3_m4(mat, vc.rv3d->viewinv);
+  mul_m3_v3(mat, view_dir);
+  copy_m3_m4(mat, ob->imat);
+  mul_m3_v3(mat, view_dir);
+  normalize_v3_v3(true_view_normal, view_dir);
 
   for (int symmpass = 0; symmpass <= symm; symmpass++) {
     if (symmpass == 0 || (symm & symmpass && (symm != 5 || symmpass != 3) &&
@@ -346,7 +366,10 @@ static int paint_mask_gesture_box_exec(bContext *C, wmOperator *op)
           .mode = mode,
           .value = value,
           .clip_planes_final = clip_planes_final,
+          .front_faces_only = front_faces_only,
       };
+
+      flip_v3_v3(data.view_normal, true_view_normal, symmpass);
 
       TaskParallelSettings settings;
       BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -439,9 +462,15 @@ static void mask_gesture_lasso_task_cb(void *__restrict userdata,
   PBVHVertexIter vi;
   bool any_masked = false;
 
+  float vertex_normal[3];
+
   BKE_pbvh_vertex_iter_begin(data->pbvh, node, vi, PBVH_ITER_UNIQUE)
   {
-    if (is_effected_lasso(lasso_data, vi.co)) {
+    SCULPT_vertex_normal_get(data->ob->sculpt, vi.index, vertex_normal);
+    float dot = dot_v3v3(lasso_data->task_data.view_normal, vertex_normal);
+    const bool is_effected_front_face = !(data->front_faces_only && dot < 0.0f);
+
+    if (is_effected_front_face && is_effected_lasso(lasso_data, vi.co)) {
       if (!any_masked) {
         any_masked = true;
 
@@ -479,6 +508,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
     bool multires;
     PaintMaskFloodMode mode = RNA_enum_get(op->ptr, "mode");
     float value = RNA_float_get(op->ptr, "value");
+    const bool front_faces_only = RNA_boolean_get(op->ptr, "use_front_faces_only");
 
     /* Calculations of individual vertices are done in 2D screen space to diminish the amount of
      * calculations done. Bounding box PBVH collision is not computed against enclosing rectangle
@@ -511,6 +541,16 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 
     SCULPT_undo_push_begin("Mask lasso fill");
 
+    /* Calculate the view normal in object space. */
+    float mat[3][3];
+    float view_dir[3] = {0.0f, 0.0f, 1.0f};
+    float true_view_normal[3];
+    copy_m3_m4(mat, vc.rv3d->viewinv);
+    mul_m3_v3(mat, view_dir);
+    copy_m3_m4(mat, ob->imat);
+    mul_m3_v3(mat, view_dir);
+    normalize_v3_v3(true_view_normal, view_dir);
+
     for (int symmpass = 0; symmpass <= symm; symmpass++) {
       if ((symmpass == 0) || (symm & symmpass && (symm != 5 || symmpass != 3) &&
                               (symm != 6 || (symmpass != 3 && symmpass != 5)))) {
@@ -519,6 +559,8 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
         for (int j = 0; j < 4; j++) {
           flip_plane(clip_planes_final[j], clip_planes[j], symmpass);
         }
+
+        flip_v3_v3(data.task_data.view_normal, true_view_normal, symmpass);
 
         data.symmpass = symmpass;
 
@@ -536,6 +578,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
         data.task_data.multires = multires;
         data.task_data.mode = mode;
         data.task_data.value = value;
+        data.task_data.front_faces_only = front_faces_only;
 
         TaskParallelSettings settings;
         BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -594,6 +637,11 @@ void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot)
       "Mask level to use when mode is 'Value'; zero means no masking and one is fully masked",
       0.0f,
       1.0f);
+  RNA_def_boolean(ot->srna,
+                  "use_front_faces_only",
+                  false,
+                  "Front Faces Only",
+                  "Affect only faces facing towards the view");
 }
 
 void PAINT_OT_mask_box_gesture(wmOperatorType *ot)
@@ -624,4 +672,9 @@ void PAINT_OT_mask_box_gesture(wmOperatorType *ot)
       "Mask level to use when mode is 'Value'; zero means no masking and one is fully masked",
       0.0f,
       1.0f);
+  RNA_def_boolean(ot->srna,
+                  "use_front_faces_only",
+                  false,
+                  "Front Faces Only",
+                  "Affect only faces facing towards the view");
 }
