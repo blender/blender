@@ -49,7 +49,11 @@ typedef struct wmXrSessionState {
 typedef struct wmXrRuntimeData {
   GHOST_XrContextHandle context;
 
-  /* Although this struct is internal, RNA gets a handle to this for state information queries. */
+  /** The window the session was started in. Stored to be able to follow its view-layer. This may
+   * be an invalid reference, i.e. the window may have been closed. */
+  wmWindow *session_root_win;
+
+  /** Although this struct is internal, RNA gets a handle to this for state information queries. */
   wmXrSessionState session_state;
   wmXrSessionExitFn exit_fn;
 } wmXrRuntimeData;
