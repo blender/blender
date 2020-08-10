@@ -70,6 +70,8 @@ typedef struct wmXrDrawData {
    * space). With positional tracking enabled, it should be the same as the base pose, when
    * disabled it also contains a location delta from the moment the option was toggled. */
   GHOST_XrPose base_pose;
+  /** Offset to _substract_ from the OpenXR eye and viewer pose to get the wanted effective pose
+   * (e.g. a pose exactly at the landmark position). */
   float eye_position_ofs[3]; /* Local/view space. */
 } wmXrDrawData;
 
