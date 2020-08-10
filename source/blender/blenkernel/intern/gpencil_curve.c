@@ -174,7 +174,7 @@ static void gpencil_convert_spline(Main *bmain,
 
   /* Create Stroke. */
   bGPDstroke *gps = MEM_callocN(sizeof(bGPDstroke), "bGPDstroke");
-  gps->thickness = 10.0f;
+  gps->thickness = 1.0f;
   gps->fill_opacity_fac = 1.0f;
   gps->hardeness = 1.0f;
   gps->uv_scale = 1.0f;
