@@ -33,6 +33,7 @@
 #include "GPU_platform.h"
 #include "GPU_shader.h"
 
+#include "gpu_backend.hh"
 #include "gpu_batch_private.hh"
 #include "gpu_context_private.hh"
 #include "gpu_primitive_private.h"
@@ -42,6 +43,8 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
+
+using namespace blender::gpu;
 
 static GLuint g_default_attr_vbo = 0;
 
@@ -86,9 +89,11 @@ void GPU_batch_vao_cache_clear(GPUBatch *batch)
   batch->context = NULL;
 }
 
-GPUBatch *GPU_batch_calloc(uint count)
+GPUBatch *GPU_batch_calloc(void)
 {
-  return (GPUBatch *)MEM_callocN(sizeof(GPUBatch) * count, "GPUBatch");
+  GPUBatch *batch = GPUBackend::get()->batch_alloc();
+  memset(batch, 0, sizeof(*batch));
+  return batch;
 }
 
 GPUBatch *GPU_batch_create_ex(GPUPrimType prim_type,
@@ -96,7 +101,7 @@ GPUBatch *GPU_batch_create_ex(GPUPrimType prim_type,
                               GPUIndexBuf *elem,
                               eGPUBatchFlag owns_flag)
 {
-  GPUBatch *batch = GPU_batch_calloc(1);
+  GPUBatch *batch = GPU_batch_calloc();
   GPU_batch_init_ex(batch, prim_type, verts, elem, owns_flag);
   return batch;
 }
@@ -163,7 +168,8 @@ void GPU_batch_clear(GPUBatch *batch)
 void GPU_batch_discard(GPUBatch *batch)
 {
   GPU_batch_clear(batch);
-  MEM_freeN(batch);
+
+  delete static_cast<Batch *>(batch);
 }
 
 /* NOTE: Override ONLY the first instance vbo (and free them if owned). */

@@ -148,7 +148,7 @@ GPUBatch *DRW_temp_batch_instance_request(DRWInstanceDataList *idatalist,
 
   DRWTempInstancingHandle *handle = BLI_memblock_alloc(idatalist->pool_instancing);
   if (handle->batch == NULL) {
-    handle->batch = GPU_batch_calloc(1);
+    handle->batch = GPU_batch_calloc();
   }
 
   GPUBatch *batch = handle->batch;
@@ -182,7 +182,7 @@ GPUBatch *DRW_temp_batch_request(DRWInstanceDataList *idatalist,
 {
   GPUBatch **batch_ptr = BLI_memblock_alloc(idatalist->pool_batching);
   if (*batch_ptr == NULL) {
-    *batch_ptr = GPU_batch_calloc(1);
+    *batch_ptr = GPU_batch_calloc();
   }
 
   GPUBatch *batch = *batch_ptr;

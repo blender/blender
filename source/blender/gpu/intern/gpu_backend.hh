@@ -27,6 +27,7 @@
 
 #include "gpu_context_private.hh"
 #include "gpu_drawlist_private.hh"
+#include "gpu_batch_private.hh"
 
 namespace blender {
 namespace gpu {
@@ -38,7 +39,12 @@ class GPUBackend {
   static GPUBackend *get(void);
 
   virtual GPUContext *context_alloc(void *ghost_window) = 0;
+
+  virtual Batch *batch_alloc(void) = 0;
   virtual DrawList *drawlist_alloc(int list_length) = 0;
+  // virtual FrameBuffer *framebuffer_alloc(void) = 0;
+  // virtual Shader *shader_alloc(void) = 0;
+  // virtual Texture *texture_alloc(void) = 0;
 };
 
 }  // namespace gpu

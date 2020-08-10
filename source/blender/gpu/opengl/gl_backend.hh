@@ -27,6 +27,7 @@
 
 #include "BLI_vector.hh"
 
+#include "gl_batch.hh"
 #include "gl_context.hh"
 #include "gl_drawlist.hh"
 
@@ -41,6 +42,11 @@ class GLBackend : public GPUBackend {
   GPUContext *context_alloc(void *ghost_window)
   {
     return new GLContext(ghost_window, shared_orphan_list_);
+  };
+
+  Batch *batch_alloc(void)
+  {
+    return new GLBatch();
   };
 
   DrawList *drawlist_alloc(int list_length)

@@ -20,28 +20,31 @@
 /** \file
  * \ingroup gpu
  *
- * GPU geometry batch
- * Contains VAOs + VBOs + Shader representing a drawable entity.
+ * GL implementation of GPUBatch.
+ * The only specificity of GL here is that it caches a list of
+ * Vertex Array Objects based on the bound shader interface.
  */
 
-#pragma once
+#include "BLI_assert.h"
 
-#include "GPU_batch.h"
-#include "GPU_context.h"
-#include "GPU_shader_interface.h"
+#include "glew-mx.h"
 
-namespace blender {
-namespace gpu {
+#include "gpu_batch_private.hh"
+#include "gpu_primitive_private.h"
 
-class Batch : public GPUBatch {
- public:
-  Batch(){};
-  virtual ~Batch(){};
+#include "gl_batch.hh"
 
-  virtual void draw(int v_first, int v_count, int i_first, int i_count) = 0;
-};
+using namespace blender::gpu;
 
-}  // namespace gpu
-}  // namespace blender
+GLBatch::GLBatch(void)
+{
+}
 
-void gpu_batch_remove_interface_ref(GPUBatch *batch, const GPUShaderInterface *interface);
+GLBatch::~GLBatch()
+{
+}
+
+void GLBatch::draw(int v_first, int v_count, int i_first, int i_count)
+{
+  UNUSED_VARS(v_first, v_count, i_first, i_count);
+}

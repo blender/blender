@@ -118,7 +118,7 @@ typedef struct GPUBatch {
   };
 } GPUBatch;
 
-GPUBatch *GPU_batch_calloc(uint count);
+GPUBatch *GPU_batch_calloc(void);
 GPUBatch *GPU_batch_create_ex(GPUPrimType prim,
                               GPUVertBuf *vert,
                               GPUIndexBuf *elem,
