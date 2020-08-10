@@ -402,15 +402,19 @@ bool isect_ray_tri_epsilon_v3(const float ray_origin[3],
                               float *r_lambda,
                               float r_uv[2],
                               const float epsilon);
-bool isect_tri_tri_epsilon_v3(const float t_a0[3],
-                              const float t_a1[3],
-                              const float t_a2[3],
-                              const float t_b0[3],
-                              const float t_b1[3],
-                              const float t_b2[3],
-                              float r_i1[3],
-                              float r_i2[3],
-                              const float epsilon);
+bool isect_tri_tri_v3_ex(const float tri_a[3][3],
+                         const float tri_b[3][3],
+                         float r_i1[3],
+                         float r_i2[3],
+                         int *r_tri_a_edge_isect_count);
+bool isect_tri_tri_v3(const float t_a0[3],
+                      const float t_a1[3],
+                      const float t_a2[3],
+                      const float t_b0[3],
+                      const float t_b1[3],
+                      const float t_b2[3],
+                      float r_i1[3],
+                      float r_i2[3]);
 
 bool isect_tri_tri_v2(const float p1[2],
                       const float q1[2],

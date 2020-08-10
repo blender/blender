@@ -2300,107 +2300,169 @@ bool isect_plane_plane_v3(const float plane_a[4],
 /**
  * Intersect two triangles.
  *
- * \param r_i1, r_i2: Optional arguments to retrieve the overlapping edge between the 2 triangles.
+ * \param r_i1, r_i2: Retrieve the overlapping edge between the 2 triangles.
+ * \param r_tri_a_edge_isect_count: Indicates how many edges in the first triangle are intersected.
  * \return true when the triangles intersect.
  *
+ * \note If it exists, \a r_i1 will be a point on the edge of the 1st triangle.
  * \note intersections between coplanar triangles are currently undetected.
  */
-bool isect_tri_tri_epsilon_v3(const float t_a0[3],
-                              const float t_a1[3],
-                              const float t_a2[3],
-                              const float t_b0[3],
-                              const float t_b1[3],
-                              const float t_b2[3],
-                              float r_i1[3],
-                              float r_i2[3],
-                              const float epsilon)
+bool isect_tri_tri_v3_ex(const float tri_a[3][3],
+                         const float tri_b[3][3],
+                         float r_i1[3],
+                         float r_i2[3],
+                         int *r_tri_a_edge_isect_count)
 {
-  const float *tri_pair[2][3] = {{t_a0, t_a1, t_a2}, {t_b0, t_b1, t_b2}};
-  float plane_a[4], plane_b[4];
-  float plane_co[3], plane_no[3];
+  struct {
+    /* Factor that indicates the position of the intersection point on the line
+     * that intersects the planes of the triangles. */
+    float min, max;
+    /* Intersection point location. */
+    float loc[2][3];
+  } range[2];
 
-  BLI_assert((r_i1 != NULL) == (r_i2 != NULL));
+  float side[2][3];
+  float ba[3], bc[3], plane_a[4], plane_b[4];
+  *r_tri_a_edge_isect_count = 0;
 
-  /* normalizing is needed for small triangles T46007 */
-  normal_tri_v3(plane_a, UNPACK3(tri_pair[0]));
-  normal_tri_v3(plane_b, UNPACK3(tri_pair[1]));
+  sub_v3_v3v3(ba, tri_a[0], tri_a[1]);
+  sub_v3_v3v3(bc, tri_a[2], tri_a[1]);
+  cross_v3_v3v3(plane_a, ba, bc);
+  plane_a[3] = -dot_v3v3(tri_a[1], plane_a);
+  side[1][0] = plane_point_side_v3(plane_a, tri_b[0]);
+  side[1][1] = plane_point_side_v3(plane_a, tri_b[1]);
+  side[1][2] = plane_point_side_v3(plane_a, tri_b[2]);
 
-  plane_a[3] = -dot_v3v3(plane_a, t_a0);
-  plane_b[3] = -dot_v3v3(plane_b, t_b0);
+  if (!side[1][0] && !side[1][1] && !side[1][2]) {
+    /* Coplanar case is not supported. */
+    return false;
+  }
 
-  if (isect_plane_plane_v3(plane_a, plane_b, plane_co, plane_no) &&
-      (normalize_v3(plane_no) > epsilon)) {
-    /**
-     * Implementation note: its simpler to project the triangles onto the intersection plane
-     * before intersecting their edges with the ray, defined by 'isect_plane_plane_v3'.
-     * This way we can use 'line_point_factor_v3_ex' to see if an edge crosses 'co_proj',
-     * then use the factor to calculate the world-space point.
-     */
-    struct {
-      float min, max;
-    } range[2] = {{FLT_MAX, -FLT_MAX}, {FLT_MAX, -FLT_MAX}};
-    int t;
-    float co_proj[3];
+  if ((side[1][0] && side[1][1] && side[1][2]) && (side[1][0] < 0.0f) == (side[1][1] < 0.0f) &&
+      (side[1][0] < 0.0f) == (side[1][2] < 0.0f)) {
+    /* All vertices of the 2nd triangle are positioned on the same side to the
+     * plane defined by the 1st triangle. */
+    return false;
+  }
 
-    closest_to_plane3_normalized_v3(co_proj, plane_no, plane_co);
+  sub_v3_v3v3(ba, tri_b[0], tri_b[1]);
+  sub_v3_v3v3(bc, tri_b[2], tri_b[1]);
+  cross_v3_v3v3(plane_b, ba, bc);
+  plane_b[3] = -dot_v3v3(tri_b[1], plane_b);
+  side[0][0] = plane_point_side_v3(plane_b, tri_a[0]);
+  side[0][1] = plane_point_side_v3(plane_b, tri_a[1]);
+  side[0][2] = plane_point_side_v3(plane_b, tri_a[2]);
+  if ((side[0][0] && side[0][1] && side[0][2]) && (side[0][0] < 0.0f) == (side[0][1] < 0.0f) &&
+      (side[0][0] < 0.0f) == (side[0][2] < 0.0f)) {
+    /* All vertices of the 1st triangle are positioned on the same side to the
+     * plane defined by the 2nd triangle. */
+    return false;
+  }
 
-    /* For both triangles, find the overlap with the line defined by the ray [co_proj, plane_no].
-     * When the ranges overlap we know the triangles do too. */
-    for (t = 0; t < 2; t++) {
-      int j, j_prev;
-      float tri_proj[3][3];
-
-      closest_to_plane3_normalized_v3(tri_proj[0], plane_no, tri_pair[t][0]);
-      closest_to_plane3_normalized_v3(tri_proj[1], plane_no, tri_pair[t][1]);
-      closest_to_plane3_normalized_v3(tri_proj[2], plane_no, tri_pair[t][2]);
-
-      for (j = 0, j_prev = 2; j < 3; j_prev = j++) {
-        /* note that its important to have a very small nonzero epsilon here
-         * otherwise this fails for very small faces.
-         * However if its too small, large adjacent faces will count as intersecting */
-        const float edge_fac = line_point_factor_v3_ex(
-            co_proj, tri_proj[j_prev], tri_proj[j], 1e-10f, -1.0f);
-        /* ignore collinear lines, they are either an edge shared between 2 tri's
-         * (which runs along [co_proj, plane_no], but can be safely ignored).
-         *
-         * or a collinear edge placed away from the ray -
-         * which we don't intersect with & can ignore. */
-        if (UNLIKELY(edge_fac == -1.0f)) {
-          /* pass */
-        }
-        /* Important to include 0.0f and 1.0f as one of the triangles vertices may be placed
-         * exactly on the plane. In this case both it's edges will have a factor of 0 or 1,
-         * but not be going through the plane. See T73566. */
-        else if (edge_fac >= 0.0f && edge_fac <= 1.0f) {
-          float ix_tri[3];
-          float span_fac;
-
-          interp_v3_v3v3(ix_tri, tri_pair[t][j_prev], tri_pair[t][j], edge_fac);
-          /* the actual distance, since 'plane_no' is normalized */
-          span_fac = dot_v3v3(plane_no, ix_tri);
-
-          range[t].min = min_ff(range[t].min, span_fac);
-          range[t].max = max_ff(range[t].max, span_fac);
-        }
-      }
-
-      if (range[t].min == FLT_MAX) {
-        return false;
-      }
+  /* Direction of the line that intersects the planes of the triangles. */
+  float isect_dir[3];
+  cross_v3_v3v3(isect_dir, plane_a, plane_b);
+  for (int i = 0; i < 2; i++) {
+    const float(*tri)[3] = i == 0 ? tri_a : tri_b;
+    /* Rearrange the triangle so that the vertex that is alone on one side
+     * of the plane is located at index 1. */
+    int tri_i[3];
+    if ((side[i][0] && side[i][1]) && (side[i][0] < 0.0f) == (side[i][1] < 0.0f)) {
+      tri_i[0] = 1;
+      tri_i[1] = 2;
+      tri_i[2] = 0;
+    }
+    else if ((side[i][1] && side[i][2]) && (side[i][1] < 0.0f) == (side[i][2] < 0.0f)) {
+      tri_i[0] = 2;
+      tri_i[1] = 0;
+      tri_i[2] = 1;
+    }
+    else {
+      tri_i[0] = 0;
+      tri_i[1] = 1;
+      tri_i[2] = 2;
     }
 
-    if (((range[0].min > range[1].max) || (range[0].max < range[1].min)) == 0) {
-      if (r_i1 && r_i2) {
-        project_plane_normalized_v3_v3v3(plane_co, plane_co, plane_no);
-        madd_v3_v3v3fl(r_i1, plane_co, plane_no, max_ff(range[0].min, range[1].min));
-        madd_v3_v3v3fl(r_i2, plane_co, plane_no, min_ff(range[0].max, range[1].max));
+    float dot_b = dot_v3v3(isect_dir, tri[tri_i[1]]);
+    range[i].min = dot_b;
+    range[i].max = dot_b;
+
+    float sidec = side[i][tri_i[1]];
+    if (sidec) {
+      float dot_a = dot_v3v3(isect_dir, tri[tri_i[0]]);
+      float dot_c = dot_v3v3(isect_dir, tri[tri_i[2]]);
+      float fac0 = sidec / (sidec - side[i][tri_i[0]]);
+      float fac1 = sidec / (sidec - side[i][tri_i[2]]);
+      float offset0 = fac0 * (dot_a - dot_b);
+      float offset1 = fac1 * (dot_c - dot_b);
+      if (offset0 > offset1) {
+        /* Sort min max. */
+        SWAP(float, offset0, offset1);
+        SWAP(float, fac0, fac1);
+        SWAP(int, tri_i[0], tri_i[2]);
       }
 
-      return true;
+      range[i].min += offset0;
+      range[i].max += offset1;
+      interp_v3_v3v3(range[i].loc[0], tri[tri_i[1]], tri[tri_i[0]], fac0);
+      interp_v3_v3v3(range[i].loc[1], tri[tri_i[1]], tri[tri_i[2]], fac1);
+    }
+    else {
+      copy_v3_v3(range[i].loc[0], tri[tri_i[1]]);
+      copy_v3_v3(range[i].loc[1], tri[tri_i[1]]);
     }
   }
 
+  if ((range[0].max >= range[1].min) && (range[0].min <= range[1].max)) {
+    /* The triangles intersect because they overlap on the intersection line.
+     * Now identify the two points of intersection that are in the middle to get the actual
+     * intersection between the triangles. (B--C from A--B--C--D) */
+    if (range[0].min >= range[1].min) {
+      copy_v3_v3(r_i1, range[0].loc[0]);
+      if (range[0].max <= range[1].max) {
+        copy_v3_v3(r_i2, range[0].loc[1]);
+        *r_tri_a_edge_isect_count = 2;
+      }
+      else {
+        copy_v3_v3(r_i2, range[1].loc[1]);
+        *r_tri_a_edge_isect_count = 1;
+      }
+    }
+    else {
+      if (range[0].max <= range[1].max) {
+        copy_v3_v3(r_i1, range[0].loc[1]);
+        copy_v3_v3(r_i2, range[1].loc[0]);
+        *r_tri_a_edge_isect_count = 1;
+      }
+      else {
+        copy_v3_v3(r_i1, range[1].loc[0]);
+        copy_v3_v3(r_i2, range[1].loc[1]);
+      }
+    }
+    return true;
+  }
+
   return false;
+}
+
+bool isect_tri_tri_v3(const float t_a0[3],
+                      const float t_a1[3],
+                      const float t_a2[3],
+                      const float t_b0[3],
+                      const float t_b1[3],
+                      const float t_b2[3],
+                      float r_i1[3],
+                      float r_i2[3])
+{
+  float tri_a[3][3], tri_b[3][3];
+  int dummy;
+  copy_v3_v3(tri_a[0], t_a0);
+  copy_v3_v3(tri_a[1], t_a1);
+  copy_v3_v3(tri_a[2], t_a2);
+  copy_v3_v3(tri_b[0], t_b0);
+  copy_v3_v3(tri_b[1], t_b1);
+  copy_v3_v3(tri_b[2], t_b2);
+  return isect_tri_tri_v3_ex(tri_a, tri_b, r_i1, r_i2, &dummy);
 }
 
 /* -------------------------------------------------------------------- */
