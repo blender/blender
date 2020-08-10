@@ -152,6 +152,7 @@
 #include "MEM_guardedalloc.h"  // MEM_freeN
 
 #include "BKE_action.h"
+#include "BKE_armature.h"
 #include "BKE_blender_version.h"
 #include "BKE_bpath.h"
 #include "BKE_collection.h"
@@ -1582,7 +1583,7 @@ static void write_constraints(BlendWriter *writer, ListBase *conlist)
   }
 }
 
-static void write_pose(BlendWriter *writer, bPose *pose)
+static void write_pose(BlendWriter *writer, bPose *pose, bArmature *arm)
 {
   bPoseChannel *chan;
   bActionGroup *grp;
@@ -1591,6 +1592,8 @@ static void write_pose(BlendWriter *writer, bPose *pose)
   if (pose == NULL) {
     return;
   }
+
+  BLI_assert(arm != NULL);
 
   /* Write channels */
   for (chan = pose->chanbase.first; chan; chan = chan->next) {
@@ -1604,11 +1607,15 @@ static void write_pose(BlendWriter *writer, bPose *pose)
 
     write_motionpath(writer, chan->mpath);
 
-    /* prevent crashes with autosave,
-     * when a bone duplicated in editmode has not yet been assigned to its posechannel */
-    if (chan->bone) {
+    /* Prevent crashes with autosave,
+     * when a bone duplicated in editmode has not yet been assigned to its posechannel.
+     * Also needed with memundo, in some cases we can store a step before pose has been
+     * properly rebuilt from previous undo step. */
+    Bone *bone = (pose->flag & POSE_RECALC) ? BKE_armature_find_bone_name(arm, chan->name) :
+                                              chan->bone;
+    if (bone != NULL) {
       /* gets restored on read, for library armatures */
-      chan->selectflag = chan->bone->flag & BONE_SELECTED;
+      chan->selectflag = bone->flag & BONE_SELECTED;
     }
 
     BLO_write_struct(writer, bPoseChannel, chan);
@@ -1853,15 +1860,16 @@ static void write_object(BlendWriter *writer, Object *ob, const void *id_address
     BLO_write_pointer_array(writer, ob->totcol, ob->mat);
     BLO_write_raw(writer, sizeof(char) * ob->totcol, ob->matbits);
 
+    bArmature *arm = NULL;
     if (ob->type == OB_ARMATURE) {
-      bArmature *arm = ob->data;
+      arm = ob->data;
       if (arm && ob->pose && arm->act_bone) {
         BLI_strncpy(
             ob->pose->proxy_act_bone, arm->act_bone->name, sizeof(ob->pose->proxy_act_bone));
       }
     }
 
-    write_pose(writer, ob->pose);
+    write_pose(writer, ob->pose, arm);
     write_defgroups(writer, &ob->defbase);
     write_fmaps(writer, &ob->fmaps);
     write_constraints(writer, &ob->constraints);
