@@ -60,6 +60,7 @@ set(SRC
   paint_vertex_weight_utils.c
   sculpt.c
   sculpt_automasking.c
+  sculpt_boundary.c
   sculpt_cloth.c
   sculpt_detail.c
   sculpt_dyntopo.c

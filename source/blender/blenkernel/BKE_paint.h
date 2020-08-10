@@ -314,6 +314,76 @@ typedef struct SculptVertexInfo {
   BLI_bitmap *boundary;
 } SculptVertexInfo;
 
+typedef struct SculptBoundaryEditInfo {
+  /* Vertex index from where the topology propagation reached this vertex. */
+  int original_vertex;
+
+  /* How many steps were needed to reach this vertex from the boundary. */
+  int num_propagation_steps;
+
+  /* Stregth that is used to deform this vertex. */
+  float strength_factor;
+} SculptBoundaryEditInfo;
+
+/* Edge for drawing the boundary preview in the cursor. */
+typedef struct SculptBoundaryPreviewEdge {
+  int v1;
+  int v2;
+} SculptBoundaryPreviewEdge;
+
+typedef struct SculptBoundary {
+  /* Vertex indices of the active boundary. */
+  int *vertices;
+  int vertices_capacity;
+  int num_vertices;
+
+  /* Data for drawing the preview. */
+  SculptBoundaryPreviewEdge *edges;
+  int edges_capacity;
+  int num_edges;
+
+  /* True if the boundary loops into itself. */
+  bool forms_loop;
+
+  /* Initial vertex in the boundary which is closest to the current sculpt active vertex. */
+  int initial_vertex;
+
+  /* Vertex that at max_propagation_steps from the boundary and closest to the original active
+   * vertex that was used to initialize the boundary. This is used as a reference to check how much
+   * the deformation will go into the mesh and to calculate the strength of the brushes. */
+  int pivot_vertex;
+
+  /* Stores the initial positions of the pivot and boundary initial vertex as they may be deformed
+   * during the brush action. This allows to use them as a reference positions and vectors for some
+   * brush effects. */
+  float initial_vertex_position[3];
+  float initial_pivot_position[3];
+
+  /* Maximum number of topology steps that were calculated from the boundary. */
+  int max_propagation_steps;
+
+  /* Indexed by vertex index, contains the topology information needed for boundary deformations.
+   */
+  struct SculptBoundaryEditInfo *edit_info;
+
+  /* Bend Deform type. */
+  struct {
+    float (*pivot_rotation_axis)[3];
+    float (*pivot_positions)[3];
+  } bend;
+
+  /* Slide Deform type. */
+  struct {
+    float (*directions)[3];
+  } slide;
+
+  /* Twist Deform type. */
+  struct {
+    float rotation_axis[3];
+    float pivot_position[3];
+  } twist;
+} SculptBoundary;
+
 typedef struct SculptFakeNeighbors {
   bool use_fake_neighbors;
 
@@ -414,6 +484,9 @@ typedef struct SculptSession {
   /* Pose Brush Preview */
   float pose_origin[3];
   SculptPoseIKChain *pose_ik_chain_preview;
+
+  /* Boundary Brush Preview */
+  SculptBoundary *boundary_preview;
 
   /* Mesh State Persistence */
   /* This is freed with the PBVH, so it is always in sync with the mesh. */

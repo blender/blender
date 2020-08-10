@@ -719,6 +719,10 @@ def brush_settings(layout, context, brush, popover=False):
             col = layout.column()
             col.prop(brush, "smear_deform_type")
 
+        elif sculpt_tool == 'BOUNDARY':
+            col = layout.column()
+            col.prop(brush, "boundary_deform_type")
+
         elif sculpt_tool == 'TOPOLOGY':
             col = layout.column()
             col.prop(brush, "slide_deform_type")
