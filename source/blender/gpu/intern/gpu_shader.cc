@@ -120,6 +120,7 @@ static void gpu_shader_standard_extensions(char defines[MAX_EXT_DEFINE_LENGTH])
   }
   if (GLEW_ARB_shader_draw_parameters) {
     strcat(defines, "#extension GL_ARB_shader_draw_parameters : enable\n");
+    strcat(defines, "#define GPU_ARB_shader_draw_parameters\n");
   }
   if (GPU_arb_texture_cube_map_array_is_supported()) {
     strcat(defines, "#extension GL_ARB_texture_cube_map_array : enable\n");

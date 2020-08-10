@@ -85,7 +85,7 @@ vec4 pack_line_data(vec2 frag_co, vec2 edge_start, vec2 edge_pos)
 uniform int resourceChunk;
 
 #ifdef GPU_VERTEX_SHADER
-#  ifdef GL_ARB_shader_draw_parameters
+#  ifdef GPU_ARB_shader_draw_parameters
 #    define baseInstance gl_BaseInstanceARB
 #  else /* no ARB_shader_draw_parameters */
 uniform int baseInstance;

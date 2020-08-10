@@ -3151,12 +3151,33 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
   return ibuf;
 }
 
+static ImBuf *seq_render_movie_strip_custom_file_proxy(const SeqRenderData *context,
+                                                       Sequence *seq,
+                                                       int cfra)
+{
+  char name[PROXY_MAXFILE];
+  StripProxy *proxy = seq->strip->proxy;
+
+  if (proxy->anim == NULL) {
+    if (seq_proxy_get_custom_file_fname(seq, name, context->view_id)) {
+      proxy->anim = openanim(name, IB_rect, 0, seq->strip->colorspace_settings.name);
+    }
+    if (proxy->anim == NULL) {
+      return NULL;
+    }
+  }
+
+  int frameno = (int)BKE_sequencer_give_stripelem_index(seq, cfra) + seq->anim_startofs;
+  return IMB_anim_absolute(proxy->anim, frameno, IMB_TC_NONE, IMB_PROXY_NONE);
+}
+
 /**
  * Render individual view for multi-view or single (default view) for mono-view.
  */
 static ImBuf *seq_render_movie_strip_view(const SeqRenderData *context,
                                           Sequence *seq,
                                           float nr,
+                                          float cfra,
                                           StripAnim *sanim,
                                           bool *r_is_proxy_image)
 {
@@ -3166,10 +3187,19 @@ static ImBuf *seq_render_movie_strip_view(const SeqRenderData *context,
   IMB_anim_set_preseek(sanim->anim, seq->anim_preseek);
 
   if (seq_can_use_proxy(seq, psize)) {
-    ibuf = IMB_anim_absolute(sanim->anim,
-                             nr + seq->anim_startofs,
-                             seq->strip->proxy ? seq->strip->proxy->tc : IMB_TC_RECORD_RUN,
-                             psize);
+    /* Try to get a proxy image.
+     * Movie proxies are handled by ImBuf module with exception of `custom file` setting. */
+    if (context->scene->ed->proxy_storage != SEQ_EDIT_PROXY_DIR_STORAGE &&
+        seq->strip->proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE) {
+      ibuf = seq_render_movie_strip_custom_file_proxy(context, seq, cfra);
+    }
+    else {
+      ibuf = IMB_anim_absolute(sanim->anim,
+                               nr + seq->anim_startofs,
+                               seq->strip->proxy ? seq->strip->proxy->tc : IMB_TC_RECORD_RUN,
+                               psize);
+    }
+
     if (ibuf != NULL) {
       *r_is_proxy_image = true;
     }
@@ -3218,7 +3248,7 @@ static ImBuf *seq_render_movie_strip(
     for (ibuf_view_id = 0, sanim = seq->anims.first; sanim; sanim = sanim->next, ibuf_view_id++) {
       if (sanim->anim) {
         ibuf_arr[ibuf_view_id] = seq_render_movie_strip_view(
-            context, seq, nr, sanim, r_is_proxy_image);
+            context, seq, nr, cfra, sanim, r_is_proxy_image);
       }
     }
 
@@ -3255,7 +3285,7 @@ static ImBuf *seq_render_movie_strip(
     MEM_freeN(ibuf_arr);
   }
   else {
-    ibuf = seq_render_movie_strip_view(context, seq, nr, sanim, r_is_proxy_image);
+    ibuf = seq_render_movie_strip_view(context, seq, nr, cfra, sanim, r_is_proxy_image);
   }
 
   if (ibuf == NULL) {
