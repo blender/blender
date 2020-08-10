@@ -1143,9 +1143,11 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
     BYTE state[256] = {0};
     int r;
     GetKeyboardState((PBYTE)state);
+    bool ctrl_pressed = state[VK_CONTROL] & 0x80;
+    bool alt_pressed = state[VK_MENU] & 0x80;
 
-    /* No text with control key pressed. */
-    if (state[VK_CONTROL] & 0x80) {
+    /* No text with control key pressed (Alt can be used to insert special characters though!). */
+    if (ctrl_pressed && !alt_pressed) {
       utf8_char[0] = '\0';
     }
     // Don't call ToUnicodeEx on dead keys as it clears the buffer and so won't allow diacritical
