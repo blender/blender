@@ -180,6 +180,13 @@ template<> struct DefaultHash<StringRefNull> {
   }
 };
 
+template<> struct DefaultHash<std::string_view> {
+  uint64_t operator()(StringRef value) const
+  {
+    return hash_string(value);
+  }
+};
+
 /**
  * While we cannot guarantee that the lower 4 bits of a pointer are zero, it is often the case.
  */

@@ -452,6 +452,16 @@ TEST(set, LookupKeyPtr)
   EXPECT_EQ(set.lookup_key_ptr({3, 50}), nullptr);
 }
 
+TEST(set, StringViewKeys)
+{
+  Set<std::string_view> set;
+  set.add("hello");
+  set.add("world");
+  EXPECT_FALSE(set.contains("worlds"));
+  EXPECT_TRUE(set.contains("world"));
+  EXPECT_TRUE(set.contains("hello"));
+}
+
 /**
  * Set this to 1 to activate the benchmark. It is disabled by default, because it prints a lot.
  */

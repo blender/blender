@@ -254,6 +254,14 @@ TEST(string_ref, DropPrefix)
   EXPECT_EQ(ref2, "t");
 }
 
+TEST(string_ref, DropSuffix)
+{
+  StringRef ref("test");
+  StringRef ref2 = ref.drop_suffix(1);
+  EXPECT_EQ(ref2.size(), 3);
+  EXPECT_EQ(ref2, "tes");
+}
+
 TEST(string_ref, Substr)
 {
   StringRef ref("hello world");
@@ -261,6 +269,8 @@ TEST(string_ref, Substr)
   EXPECT_EQ(ref.substr(4, 0), "");
   EXPECT_EQ(ref.substr(3, 4), "lo w");
   EXPECT_EQ(ref.substr(6, 5), "world");
+  EXPECT_EQ(ref.substr(8), "rld");
+  EXPECT_EQ(ref.substr(8, 100), "rld");
 }
 
 TEST(string_ref, Copy)
@@ -272,6 +282,20 @@ TEST(string_ref, Copy)
   EXPECT_EQ(dst[5], '\0');
   EXPECT_EQ(dst[6], 0xFF);
   EXPECT_EQ(ref, dst);
+}
+
+TEST(string_ref, FromStringView)
+{
+  std::string_view view = "hello";
+  StringRef ref = view;
+  EXPECT_EQ(ref, "hello");
+}
+
+TEST(string_ref, ToStringView)
+{
+  StringRef ref = "hello";
+  std::string_view view = ref;
+  EXPECT_EQ(view, "hello");
 }
 
 }  // namespace blender::tests

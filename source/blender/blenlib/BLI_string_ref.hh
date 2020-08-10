@@ -37,13 +37,16 @@
  *   Both types are certainly very similar. The main benefit of using StringRef in Blender is that
  *   this allows us to add convenience methods at any time. Especially, when doing a lot of string
  *   manipulation, this helps to keep the code clean. Furthermore, we need StringRefNull anyway,
- *   because there is a lot of C code that expects null-terminated strings. Once we use C++17,
- *   implicit conversions to and from string_view can be added.
+ *   because there is a lot of C code that expects null-terminated strings. Conversion between
+ *   StringRef and string_view is very cheap and can be done at api boundaries at essentially no
+ *   cost. Another benefit of using StringRef is that it uses signed integers, thus developers
+ *   have to deal less with issues resulting from unsigned integers.
  */
 
 #include <cstring>
 #include <sstream>
 #include <string>
+#include <string_view>
 
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
@@ -66,12 +69,20 @@ class StringRefBase {
   }
 
  public:
+  /* Similar to string_view::npos, but signed. */
+  static constexpr int64_t not_found = -1;
+
   /**
    * Return the (byte-)length of the referenced string, without any null-terminator.
    */
   int64_t size() const
   {
     return size_;
+  }
+
+  bool is_empty() const
+  {
+    return size_ == 0;
   }
 
   /**
@@ -93,7 +104,12 @@ class StringRefBase {
    */
   operator std::string() const
   {
-    return std::string(data_, (size_t)size_);
+    return std::string(data_, static_cast<size_t>(size_));
+  }
+
+  operator std::string_view() const
+  {
+    return std::string_view(data_, static_cast<size_t>(size_));
   }
 
   const char *begin() const
@@ -113,7 +129,7 @@ class StringRefBase {
    */
   void unsafe_copy(char *dst) const
   {
-    memcpy(dst, data_, (size_t)size_);
+    memcpy(dst, data_, static_cast<size_t>(size_));
     dst[size_] = '\0';
   }
 
@@ -152,6 +168,41 @@ class StringRefBase {
   bool endswith(StringRef suffix) const;
 
   StringRef substr(int64_t start, const int64_t size) const;
+
+  /**
+   * Get the first char in the string. This invokes undefined behavior when the string is empty.
+   */
+  const char &front() const
+  {
+    BLI_assert(size_ >= 1);
+    return data_[0];
+  }
+
+  /**
+   * Get the last char in the string. This invokes undefined behavior when the string is empty.
+   */
+  const char &back() const
+  {
+    BLI_assert(size_ >= 1);
+    return data_[size_ - 1];
+  }
+
+  /**
+   * The behavior of those functions matches the standard library implementation of
+   * std::string_view.
+   */
+  int64_t find(char c, int64_t pos = 0) const;
+  int64_t find(StringRef str, int64_t pos = 0) const;
+  int64_t rfind(char c, int64_t pos = INT64_MAX) const;
+  int64_t rfind(StringRef str, int64_t pos = INT64_MAX) const;
+  int64_t find_first_of(StringRef chars, int64_t pos = 0) const;
+  int64_t find_first_of(char c, int64_t pos = 0) const;
+  int64_t find_last_of(StringRef chars, int64_t pos = INT64_MAX) const;
+  int64_t find_last_of(char c, int64_t pos = INT64_MAX) const;
+  int64_t find_first_not_of(StringRef chars, int64_t pos = 0) const;
+  int64_t find_first_not_of(char c, int64_t pos = 0) const;
+  int64_t find_last_not_of(StringRef chars, int64_t pos = INT64_MAX) const;
+  int64_t find_last_not_of(char c, int64_t pos = INT64_MAX) const;
 };
 
 /**
@@ -165,7 +216,8 @@ class StringRefNull : public StringRefBase {
   }
 
   /**
-   * Construct a StringRefNull from a null terminated c-string. The pointer must not point to NULL.
+   * Construct a StringRefNull from a null terminated c-string. The pointer must not point to
+   * NULL.
    */
   StringRefNull(const char *str) : StringRefBase(str, static_cast<int64_t>(strlen(str)))
   {
@@ -257,8 +309,14 @@ class StringRef : public StringRefBase {
   {
   }
 
+  StringRef(std::string_view view) : StringRefBase(view.data(), static_cast<int64_t>(view.size()))
+  {
+  }
+
   /**
-   * Return a new StringRef that does not contain the first n chars.
+   * Returns a new StringRef that does not contain the first n chars.
+   *
+   * This is similar to std::string_view::remove_prefix.
    */
   StringRef drop_prefix(const int64_t n) const
   {
@@ -268,13 +326,25 @@ class StringRef : public StringRefBase {
   }
 
   /**
-   * Return a new StringRef that with the given prefix being skipped.
-   * Asserts that the string begins with the given prefix.
+   * Return a new StringRef with the given prefix being skipped. This invokes undefined behavior if
+   * the string does not begin with the given prefix.
    */
   StringRef drop_prefix(StringRef prefix) const
   {
     BLI_assert(this->startswith(prefix));
     return this->drop_prefix(prefix.size());
+  }
+
+  /**
+   * Return a new StringRef that does not contain the last n chars.
+   *
+   * This is similar to std::string_view::remove_suffix.
+   */
+  StringRef drop_suffix(const int64_t n) const
+  {
+    BLI_assert(n >= 0);
+    BLI_assert(n <= size_);
+    return StringRef(data_, size_ - n);
   }
 
   /**
@@ -312,6 +382,10 @@ inline std::string operator+(StringRef a, StringRef b)
   return std::string(a) + std::string(b);
 }
 
+/* This does not compare StringRef and std::string_view, because of ambiguous overloads. This is
+ * not a problem when std::string_view is only used at api boundaries. To compare a StringRef and a
+ * std::string_view, one should convert the std::string_view to StringRef (which is very cheap).
+ * Ideally, we only use StringRef in our code to avoid this problem alltogether. */
 inline bool operator==(StringRef a, StringRef b)
 {
   if (a.size() != b.size()) {
@@ -361,12 +435,82 @@ inline bool StringRefBase::endswith(StringRef suffix) const
 /**
  * Return a new #StringRef containing only a sub-string of the original string.
  */
-inline StringRef StringRefBase::substr(const int64_t start, const int64_t size) const
+inline StringRef StringRefBase::substr(const int64_t start,
+                                       const int64_t max_size = INT64_MAX) const
 {
-  BLI_assert(size >= 0);
+  BLI_assert(max_size >= 0);
   BLI_assert(start >= 0);
-  BLI_assert(start + size <= size_);
-  return StringRef(data_ + start, size);
+  const int64_t substr_size = std::min(max_size, size_ - start);
+  return StringRef(data_ + start, substr_size);
+}
+
+inline int64_t index_or_npos_to_int64(size_t index)
+{
+  /* The compiler will probably optimize this check away. */
+  if (index == std::string_view::npos) {
+    return StringRef::not_found;
+  }
+  return static_cast<int64_t>(index);
+}
+
+inline int64_t StringRefBase::find(char c, int64_t pos) const
+{
+  BLI_assert(pos >= 0);
+  return index_or_npos_to_int64(std::string_view(*this).find(c, static_cast<size_t>(pos)));
+}
+
+inline int64_t StringRefBase::find(StringRef str, int64_t pos) const
+{
+  BLI_assert(pos >= 0);
+  return index_or_npos_to_int64(std::string_view(*this).find(str, static_cast<size_t>(pos)));
+}
+
+inline int64_t StringRefBase::find_first_of(StringRef chars, int64_t pos) const
+{
+  BLI_assert(pos >= 0);
+  return index_or_npos_to_int64(
+      std::string_view(*this).find_first_of(chars, static_cast<size_t>(pos)));
+}
+
+inline int64_t StringRefBase::find_first_of(char c, int64_t pos) const
+{
+  return this->find_first_of(StringRef(&c, 1), pos);
+}
+
+inline int64_t StringRefBase::find_last_of(StringRef chars, int64_t pos) const
+{
+  BLI_assert(pos >= 0);
+  return index_or_npos_to_int64(
+      std::string_view(*this).find_last_of(chars, static_cast<size_t>(pos)));
+}
+
+inline int64_t StringRefBase::find_last_of(char c, int64_t pos) const
+{
+  return this->find_last_of(StringRef(&c, 1), pos);
+}
+
+inline int64_t StringRefBase::find_first_not_of(StringRef chars, int64_t pos) const
+{
+  BLI_assert(pos >= 0);
+  return index_or_npos_to_int64(
+      std::string_view(*this).find_first_not_of(chars, static_cast<size_t>(pos)));
+}
+
+inline int64_t StringRefBase::find_first_not_of(char c, int64_t pos) const
+{
+  return this->find_first_not_of(StringRef(&c, 1), pos);
+}
+
+inline int64_t StringRefBase::find_last_not_of(StringRef chars, int64_t pos) const
+{
+  BLI_assert(pos >= 0);
+  return index_or_npos_to_int64(
+      std::string_view(*this).find_last_not_of(chars, static_cast<size_t>(pos)));
+}
+
+inline int64_t StringRefBase::find_last_not_of(char c, int64_t pos) const
+{
+  return this->find_last_not_of(StringRef(&c, 1), pos);
 }
 
 }  // namespace blender
