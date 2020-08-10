@@ -56,8 +56,6 @@ void wm_surface_clear_drawable(void)
     WM_opengl_context_release(g_drawable->ghost_ctx);
     GPU_context_active_set(NULL);
 
-    BLF_batch_reset();
-    gpu_batch_presets_reset();
     immDeactivate();
 
     if (g_drawable->deactivate) {

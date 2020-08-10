@@ -30,7 +30,6 @@ struct ResultBLF;
 struct rctf;
 struct rcti;
 
-void blf_batch_draw_vao_clear(void);
 void blf_batch_draw_begin(struct FontBLF *font);
 void blf_batch_draw(void);
 

@@ -1112,8 +1112,6 @@ static void wm_window_set_drawable(wmWindowManager *wm, wmWindow *win, bool acti
 void wm_window_clear_drawable(wmWindowManager *wm)
 {
   if (wm->windrawable) {
-    BLF_batch_reset();
-    gpu_batch_presets_reset();
     immDeactivate();
     wm->windrawable = NULL;
   }

@@ -125,11 +125,6 @@ void BLF_exit(void)
   blf_font_exit();
 }
 
-void BLF_batch_reset(void)
-{
-  blf_batch_draw_vao_clear();
-}
-
 void BLF_cache_clear(void)
 {
   FontBLF *font;

@@ -152,18 +152,6 @@ void DRW_shape_cache_free(void)
   }
 }
 
-void DRW_shape_cache_reset(void)
-{
-  uint i = sizeof(SHC) / sizeof(GPUBatch *);
-  GPUBatch **batch = (GPUBatch **)&SHC;
-  while (i--) {
-    if (*batch) {
-      GPU_batch_vao_cache_clear(*batch);
-    }
-    batch++;
-  }
-}
-
 /* -------------------------------------------------------------------- */
 /** \name Procedural Batches
  * \{ */

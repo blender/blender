@@ -46,10 +46,7 @@ struct GPUBatch *GPU_batch_preset_panel_drag_widget(const float pixelsize,
 void gpu_batch_presets_init(void);
 void gpu_batch_presets_register(struct GPUBatch *preset_batch);
 bool gpu_batch_presets_unregister(struct GPUBatch *preset_batch);
-void gpu_batch_presets_reset(void);
 void gpu_batch_presets_exit(void);
-
-void GPU_batch_presets_reset(void);
 
 #ifdef __cplusplus
 }

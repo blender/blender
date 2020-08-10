@@ -48,11 +48,6 @@
 
 using namespace blender::gpu;
 
-void GPU_batch_vao_cache_clear(GPUBatch *UNUSED(batch))
-{
-  /* TODO remove */
-}
-
 /* -------------------------------------------------------------------- */
 /** \name Creation & Deletion
  * \{ */

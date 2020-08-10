@@ -380,18 +380,6 @@ bool gpu_batch_presets_unregister(GPUBatch *preset_batch)
   return false;
 }
 
-void gpu_batch_presets_reset(void)
-{
-  BLI_mutex_lock(&g_presets_3d.mutex);
-  /* Reset vao caches for these every time we switch opengl context.
-   * This way they will draw correctly for each window. */
-  LISTBASE_FOREACH (LinkData *, link, &presets_list) {
-    GPUBatch *preset = link->data;
-    GPU_batch_vao_cache_clear(preset);
-  }
-  BLI_mutex_unlock(&g_presets_3d.mutex);
-}
-
 void gpu_batch_presets_exit(void)
 {
   LinkData *link;
@@ -402,19 +390,6 @@ void gpu_batch_presets_exit(void)
   }
 
   BLI_mutex_end(&g_presets_3d.mutex);
-}
-
-/**
- * This function only needs to be accessed externally because
- * we are drawing UI batches with the DRW old context.
- *
- * And now we use it for drawing the entire area.
- *
- * XXX (Clément) - to cleanup in the upcoming 2.91 refactor.
- **/
-void GPU_batch_presets_reset()
-{
-  gpu_batch_presets_reset();
 }
 
 /** \} */

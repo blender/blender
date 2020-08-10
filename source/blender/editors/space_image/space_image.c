@@ -642,7 +642,6 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
   // View2DScrollers *scrollers;
   float col[3];
 
-  GPU_batch_presets_reset();
   GPUViewport *viewport = WM_draw_region_get_viewport(region);
   GPUFrameBuffer *framebuffer_default, *framebuffer_overlay;
 

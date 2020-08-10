@@ -113,13 +113,6 @@ static void blf_batch_draw_exit(void)
   GPU_BATCH_DISCARD_SAFE(g_batch.batch);
 }
 
-void blf_batch_draw_vao_clear(void)
-{
-  if (g_batch.batch) {
-    GPU_batch_vao_cache_clear(g_batch.batch);
-  }
-}
-
 void blf_batch_draw_begin(FontBLF *font)
 {
   if (g_batch.batch == NULL) {

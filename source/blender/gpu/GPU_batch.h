@@ -112,8 +112,6 @@ void GPU_batch_clear(GPUBatch *);
 
 void GPU_batch_discard(GPUBatch *); /* verts & elem are not discarded */
 
-void GPU_batch_vao_cache_clear(GPUBatch *);
-
 void GPU_batch_instbuf_set(GPUBatch *, GPUVertBuf *, bool own_vbo); /* Instancing */
 void GPU_batch_elembuf_set(GPUBatch *batch, GPUIndexBuf *elem, bool own_ibo);
 

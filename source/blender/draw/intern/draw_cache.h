@@ -33,7 +33,6 @@ struct VolumeGrid;
 struct bGPDstroke;
 
 void DRW_shape_cache_free(void);
-void DRW_shape_cache_reset(void);
 
 /* 3D cursor */
 struct GPUBatch *DRW_cache_cursor_get(bool crosshair_lines);

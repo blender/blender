@@ -1623,10 +1623,6 @@ void view3d_main_region_draw(const bContext *C, ARegion *region)
   BKE_image_free_old_gputextures(bmain);
   GPU_pass_cache_garbage_collect();
 
-  /* XXX This is in order to draw UI batches with the DRW
-   * old context since we now use it for drawing the entire area. */
-  gpu_batch_presets_reset();
-
   /* No depth test for drawing action zones afterwards. */
   GPU_depth_test(false);
 
