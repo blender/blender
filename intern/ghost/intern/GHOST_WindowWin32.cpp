@@ -796,7 +796,6 @@ void GHOST_WindowWin32::updateWintabSysBut(GHOST_MouseCaptureEventWin32 event)
     case OperatorUngrab:
       break;
   }
-  WINTAB_PRINTF("%p %d system buttons\n", m_hWnd, m_wintab.numSysButtons);
 }
 
 HCURSOR GHOST_WindowWin32::getStandardCursor(GHOST_TStandardCursor shape) const
@@ -1014,8 +1013,6 @@ void GHOST_WindowWin32::updateWintab(bool active, bool visible)
     m_wintab.enable(m_wintab.context, enable);
     m_wintab.overlap(m_wintab.context, overlap);
 
-    WINTAB_PRINTF("%p updateWintab enable: %d, overlap: %d\n", m_hWnd, enable, overlap);
-
     if (!overlap) {
       // WT_PROXIMITY event doesn't occur unless tablet's cursor leaves the proximity while the
       // window is active.
@@ -1030,10 +1027,6 @@ void GHOST_WindowWin32::initializeWintab()
 {
   // return if wintab library handle doesn't exist or wintab is already initialized
   if (!m_wintab.handle || m_wintab.context) {
-    WINTAB_PRINTF("%p initializeWintab() handle: %p, context: %p\n",
-           m_hWnd,
-           m_wintab.handle,
-           m_wintab.context);
     return;
   }
 
@@ -1057,26 +1050,11 @@ void GHOST_WindowWin32::initializeWintab()
     // Invert to match Windows y origin mapping to the screen top
     lc.lcOutExtY = -lc.lcOutExtY;
 
-    WINTAB_PRINTF("lcOutOrgX: %d, lcOutOrgY: %d, lcOutExtX: %d, lcOutExtY: %d\n",
-           lc.lcOutOrgX,
-           lc.lcOutOrgY,
-           lc.lcOutExtX,
-           lc.lcOutExtY);
-    WINTAB_PRINTF("left: %d, top: %d, width: %d, height: %d\n",
-           ::GetSystemMetrics(SM_XVIRTUALSCREEN),
-           ::GetSystemMetrics(SM_YVIRTUALSCREEN),
-           ::GetSystemMetrics(SM_CXVIRTUALSCREEN),
-           ::GetSystemMetrics(SM_CYVIRTUALSCREEN));
-
     m_wintab.info(WTI_INTERFACE, IFC_NDEVICES, &m_wintab.numDevices);
-
-    WINTAB_PRINTF("initializeWintab numDevices: %d\n", m_wintab.numDevices);
 
     /* get the max pressure, to divide into a float */
     BOOL pressureSupport = m_wintab.info(WTI_DEVICES, DVC_NPRESSURE, &Pressure);
     m_wintab.maxPressure = pressureSupport ? Pressure.axMax : 0;
-
-    WINTAB_PRINTF("initializeWintab maxPressure: %d\n", m_wintab.maxPressure);
 
     /* get the max tilt axes, to divide into floats */
     BOOL tiltSupport = m_wintab.info(WTI_DEVICES, DVC_ORIENTATION, &Orientation);
@@ -1086,9 +1064,6 @@ void GHOST_WindowWin32::initializeWintab()
       m_wintab.maxAzimuth = Orientation[0].axMax;
       m_wintab.maxAltitude = Orientation[1].axMax;
 
-      WINTAB_PRINTF("initializeWintab maxAzimuth: %d, maxAltitude: %d\n",
-             m_wintab.maxAzimuth,
-             m_wintab.maxAltitude);
     }
     else { /* no so dont do tilt stuff */
       m_wintab.maxAzimuth = m_wintab.maxAltitude = 0;
@@ -1096,13 +1071,6 @@ void GHOST_WindowWin32::initializeWintab()
 
     // The Wintab spec says we must open the context disabled if we are using cursor masks.
     m_wintab.context = m_wintab.open(m_hWnd, &lc, FALSE);
-
-#ifdef WITH_WINTAB_DEBUG
-    UINT maxcontexts, opencontexts;
-    m_wintab.info(WTI_INTERFACE, IFC_NCONTEXTS, &maxcontexts);
-    m_wintab.info(WTI_STATUS, STA_CONTEXTS, &opencontexts);
-    WINTAB_PRINTF("%p %u max contexts, %u open contexts\n", getHWND(), maxcontexts, opencontexts);
-#endif
 
     // Wintab provides no way to determine the maximum queue size aside from checking if attempts
     // to change the queue size are successful.
@@ -1130,39 +1098,6 @@ void GHOST_WindowWin32::initializeWintab()
     }
     m_wintab.pkts.resize(queueSize);
 
-#ifdef WITH_WINTAB_DEBUG
-    int sanityQueueSize = m_wintab.queueSizeGet(m_wintab.context);
-    WINTAB_PRINTF("initializeWintab queueSize: %d, queueSizeGet: %d\n", queueSize, sanityQueueSize);
-
-    // print button maps
-    BYTE logicalButtons[32] = {0};
-    BYTE systemButtons[32] = {0};
-    for (int i = 0; i < 3; i++) {
-      WINTAB_PRINTF("initializeWintab cursor %d buttons\n", i);
-      UINT lbut = m_wintab.info(WTI_CURSORS + i, CSR_BUTTONMAP, &logicalButtons);
-      if (lbut) {
-        WINTAB_PRINTF("%d", logicalButtons[0]);
-        for (int j = 1; j < lbut; j++) {
-          WINTAB_PRINTF(", %d", logicalButtons[j]);
-        }
-        WINTAB_PRINTF("\n");
-      }
-      else {
-        WINTAB_PRINTF("logical button error\n");
-      }
-      UINT sbut = m_wintab.info(WTI_CURSORS + i, CSR_SYSBTNMAP, &systemButtons);
-      if (sbut) {
-        WINTAB_PRINTF("%d", systemButtons[0]);
-        for (int j = 1; j < sbut; j++) {
-          WINTAB_PRINTF(", %d", systemButtons[j]);
-        }
-        WINTAB_PRINTF("\n");
-      }
-      else {
-        WINTAB_PRINTF("system button error\n");
-      }
-    }
-#endif
   }
 }
 
@@ -1287,8 +1222,6 @@ void GHOST_WindowWin32::processWintabProximityEvent(bool inRange)
     return;
   }
 
-  WINTAB_PRINTF("%p processWintabProximityEvent inRange: %d\n", m_hWnd, inRange);
-
   // Let's see if we can initialize tablet here
   if (m_wintab.info && m_wintab.context) {
     AXIS Pressure, Orientation[3]; /* The maximum tablet size */
@@ -1320,7 +1253,6 @@ void GHOST_WindowWin32::processWintabInfoChangeEvent(LPARAM lParam)
     updateWintab((GHOST_WindowWin32 *)system->getWindowManager()->getActiveWindow() == this,
                  !::IsIconic(m_hWnd));
 
-    WINTAB_PRINTF("%p processWintabInfoChangeEvent numDevices: %d\n", m_hWnd, m_wintab.numDevices);
   }
 }
 
@@ -1345,19 +1277,15 @@ GHOST_TSuccess GHOST_WindowWin32::wintabMouseToGhost(UINT cursor,
   }
   switch (systemButtons[lb]) {
     case SBN_LCLICK:
-      WINTAB_PRINTF("%p wintabMouseToGhost left click\n", m_hWnd);
       ghostButton = GHOST_kButtonMaskLeft;
       return GHOST_kSuccess;
     case SBN_RCLICK:
-      WINTAB_PRINTF("%p wintabMouseToGhost right click\n", m_hWnd);
       ghostButton = GHOST_kButtonMaskRight;
       return GHOST_kSuccess;
     case SBN_MCLICK:
-      WINTAB_PRINTF("%p wintabMouseToGhost middle click\n", m_hWnd);
       ghostButton = GHOST_kButtonMaskMiddle;
       return GHOST_kSuccess;
     default:
-      WINTAB_PRINTF("%p wintabMouseToGhost non-sys button: %d\n", m_hWnd, systemButtons[lb]);
       return GHOST_kFailure;
   }
 }

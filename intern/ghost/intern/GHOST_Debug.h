@@ -34,6 +34,9 @@
 #ifdef WITH_GHOST_DEBUG
 #  include <iostream>
 #  include <stdio.h>  //for printf()
+#endif                // WITH_GHOST_DEBUG
+
+#ifdef WITH_GHOST_DEBUG
 #  define GHOST_PRINT(x) \
     { \
       std::cout << x; \
@@ -48,17 +51,6 @@
 #  define GHOST_PRINT(x)
 #  define GHOST_PRINTF(x, ...)
 #endif  // WITH_GHOST_DEBUG
-
-#ifdef WITH_WINTAB_DEBUG
-#  include <stdio.h>  //for printf()
-#  define WINTAB_PRINTF(x, ...) \
-    { \
-      printf(x, __VA_ARGS__); \
-    } \
-    (void)0
-#else   // WITH_WINTAB_DEBUG
-#  define WINTAB_PRINTF(x, ...)
-#endif  // WITH_WINTAB_DEBUG
 
 #ifdef WITH_ASSERT_ABORT
 #  include <stdio.h>   //for fprintf()

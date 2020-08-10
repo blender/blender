@@ -940,11 +940,9 @@ GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type,
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 
   if (type == GHOST_kEventButtonDown) {
-    WINTAB_PRINTF("%p OS button down\n", window->getHWND());
     window->updateMouseCapture(MousePressed);
   }
   else if (type == GHOST_kEventButtonUp) {
-    WINTAB_PRINTF("%p OS button up\n", window->getHWND());
     window->updateMouseCapture(MouseReleased);
   }
 
@@ -1017,17 +1015,12 @@ GHOST_TSuccess GHOST_SystemWin32::processWintabEvents(GHOST_TEventType type,
          * don't duplicate the prior button down as it interrupts drawing immediately after
          * changing a window.
          */
-        WINTAB_PRINTF("%p wintab button down", window->getHWND());
         system->pushEvent(new GHOST_EventCursor(
             info.time, GHOST_kEventCursorMove, window, info.x, info.y, info.tabletData));
         if (type == GHOST_kEventButtonDown && mask == info.button) {
-          WINTAB_PRINTF(" ... associated to system button\n");
           system->pushEvent(
               new GHOST_EventButton(info.time, info.type, window, info.button, info.tabletData));
           unhandledButton = false;
-        }
-        else {
-          WINTAB_PRINTF(" ... but no system button\n");
         }
         window->updateWintabSysBut(MousePressed);
         break;
@@ -1037,15 +1030,10 @@ GHOST_TSuccess GHOST_SystemWin32::processWintabEvents(GHOST_TEventType type,
             info.time, GHOST_kEventCursorMove, window, info.x, info.y, info.tabletData));
         break;
       case GHOST_kEventButtonUp:
-        WINTAB_PRINTF("%p wintab button up", window->getHWND());
         system->pushEvent(
             new GHOST_EventButton(info.time, info.type, window, info.button, info.tabletData));
         if (type == GHOST_kEventButtonUp && mask == info.button) {
-          WINTAB_PRINTF(" ... associated to system button\n");
           unhandledButton = false;
-        }
-        else {
-          WINTAB_PRINTF(" ... but no system button\n");
         }
         window->updateWintabSysBut(MouseReleased);
         break;
@@ -1068,7 +1056,6 @@ GHOST_TSuccess GHOST_SystemWin32::processWintabEvents(GHOST_TEventType type,
   // non-mouse mapping, means that we must pessimistically generate mouse up events when we are
   // unsure of an association to prevent the mouse locking into a down state.
   if (unhandledButton) {
-    WINTAB_PRINTF("%p unhandled system button\n", window->getHWND());
     if (!window->wintabSysButPressed()) {
       GHOST_TInt32 x, y;
       system->getCursorPosition(x, y);
@@ -1626,51 +1613,16 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
         // Wintab events, processed
         ////////////////////////////////////////////////////////////////////////
         case WT_INFOCHANGE: {
-          WINTAB_PRINTF("%p WT_INFOCHANGE\n", window->getHWND());
           window->processWintabInfoChangeEvent(lParam);
           break;
         }
-        case WT_CSRCHANGE:
-          WINTAB_PRINTF("%p WT_CSRCHANGE\n", window->getHWND());
-          break;
         case WT_PROXIMITY: {
           bool inRange = LOWORD(lParam);
-          WINTAB_PRINTF(
-              "%p WT_PROXIMITY loword (!0 enter 0 leave context): %d, hiword (!0 enter !0 leave "
-              "hardware): %d\n",
-              window->getHWND(),
-              LOWORD(lParam),
-              HIWORD(lParam));
           window->processWintabProximityEvent(inRange);
           break;
         }
         case WT_PACKET:
           window->updatePendingWintabEvents();
-          break;
-        ////////////////////////////////////////////////////////////////////////
-        // Wintab events, debug
-        ////////////////////////////////////////////////////////////////////////
-        case WT_CTXOPEN:
-          WINTAB_PRINTF("%p WT_CTXOPEN\n", window->getHWND());
-          break;
-        case WT_CTXCLOSE:
-          WINTAB_PRINTF("%p WT_CTXCLOSE\n", window->getHWND());
-          break;
-        case WT_CTXUPDATE:
-          WINTAB_PRINTF("%p WT_CTXUPDATE\n", window->getHWND());
-          break;
-        case WT_CTXOVERLAP:
-          switch (lParam) {
-            case CXS_DISABLED:
-              WINTAB_PRINTF("%p WT_CTXOVERLAP CXS_DISABLED\n", window->getHWND());
-              break;
-            case CXS_OBSCURED:
-              WINTAB_PRINTF("%p WT_CTXOVERLAP CXS_OBSCURED\n", window->getHWND());
-              break;
-            case CXS_ONTOP:
-              WINTAB_PRINTF("%p WT_CTXOVERLAP CXS_ONTOP\n", window->getHWND());
-              break;
-          }
           break;
         ////////////////////////////////////////////////////////////////////////
         // Pointer events, processed
