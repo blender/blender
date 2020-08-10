@@ -212,7 +212,6 @@ static float compute_collision_point_tri_tri(const float a1[3],
   float dist = FLT_MAX;
   float tmp_co1[3], tmp_co2[3];
   float isect_a[3], isect_b[3];
-  int isect_count = 0;
   float tmp, tmp_vec[3];
   float normal[3], cent[3];
   bool backside = false;
@@ -226,38 +225,16 @@ static float compute_collision_point_tri_tri(const float a1[3],
   copy_v3_v3(b[2], b3);
 
   /* Find intersections. */
-  for (int i = 0; i < 3; i++) {
-    if (isect_line_segment_tri_v3(a[i], a[next_ind(i)], b[0], b[1], b[2], &tmp, NULL)) {
-      interp_v3_v3v3(isect_a, a[i], a[next_ind(i)], tmp);
-      isect_count++;
-    }
-  }
-
-  if (isect_count == 0) {
-    for (int i = 0; i < 3; i++) {
-      if (isect_line_segment_tri_v3(b[i], b[next_ind(i)], a[0], a[1], a[2], &tmp, NULL)) {
-        isect_count++;
-      }
-    }
-  }
-  else if (isect_count == 1) {
-    for (int i = 0; i < 3; i++) {
-      if (isect_line_segment_tri_v3(b[i], b[next_ind(i)], a[0], a[1], a[2], &tmp, NULL)) {
-        interp_v3_v3v3(isect_b, b[i], b[next_ind(i)], tmp);
-        break;
-      }
-    }
-  }
+  int tri_a_edge_isect_count;
+  const bool is_intersecting = isect_tri_tri_v3_ex(
+      a, b, isect_a, isect_b, &tri_a_edge_isect_count);
 
   /* Determine collision side. */
   if (culling) {
     normal_tri_v3(normal, b[0], b[1], b[2]);
     mid_v3_v3v3v3(cent, b[0], b[1], b[2]);
 
-    if (isect_count == 2) {
-      backside = true;
-    }
-    else if (isect_count == 0) {
+    if (!is_intersecting) {
       for (int i = 0; i < 3; i++) {
         sub_v3_v3v3(tmp_vec, a[i], cent);
         if (dot_v3v3(tmp_vec, normal) < 0.0f) {
@@ -266,12 +243,16 @@ static float compute_collision_point_tri_tri(const float a1[3],
         }
       }
     }
+    else if (tri_a_edge_isect_count != 1) {
+      /* It is not Edge intersection. */
+      backside = true;
+    }
   }
   else if (use_normal) {
     normal_tri_v3(normal, b[0], b[1], b[2]);
   }
 
-  if (isect_count == 1) {
+  if (tri_a_edge_isect_count == 1) {
     /* Edge intersection. */
     copy_v3_v3(r_a, isect_a);
     copy_v3_v3(r_b, isect_b);
@@ -383,7 +364,7 @@ static float compute_collision_point_tri_tri(const float a1[3],
   }
 
   /* Closest edge. */
-  if (isect_count == 0) {
+  if (!is_intersecting) {
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) {
         isect_seg_seg_v3(a[i], a[next_ind(i)], b[j], b[next_ind(j)], tmp_co1, tmp_co2);
@@ -398,7 +379,7 @@ static float compute_collision_point_tri_tri(const float a1[3],
     }
   }
 
-  if (isect_count == 0) {
+  if (!is_intersecting) {
     sub_v3_v3v3(r_vec, r_a, r_b);
     dist = sqrtf(dist);
   }
