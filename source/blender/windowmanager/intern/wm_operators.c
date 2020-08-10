@@ -3709,6 +3709,7 @@ static int wm_xr_session_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
+  wmWindow *win = CTX_wm_window(C);
   View3D *v3d = CTX_wm_view3d(C);
 
   /* Lazy-create xr context - tries to dynlink to the runtime, reading active_runtime.json. */
@@ -3717,7 +3718,7 @@ static int wm_xr_session_toggle_exec(bContext *C, wmOperator *UNUSED(op))
   }
 
   v3d->runtime.flag |= V3D_RUNTIME_XR_SESSION_ROOT;
-  wm_xr_session_toggle(wm, wm_xr_session_update_screen_on_exit_cb);
+  wm_xr_session_toggle(wm, win, wm_xr_session_update_screen_on_exit_cb);
   wm_xr_session_update_screen(bmain, &wm->xr);
 
   WM_event_add_notifier(C, NC_WM | ND_XR_DATA_CHANGED, NULL);
