@@ -1926,7 +1926,7 @@ static int gpencil_sculpt_brush_invoke(bContext *C, wmOperator *op, const wmEven
 
   /* the operator cannot work while play animation */
   if (is_playing) {
-    BKE_report(op->reports, RPT_ERROR, "Cannot sculpt while play animation");
+    BKE_report(op->reports, RPT_ERROR, "Cannot sculpt while animation is playing");
 
     return OPERATOR_CANCELLED;
   }
