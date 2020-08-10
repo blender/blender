@@ -54,7 +54,8 @@ static int gpencil_check_same_material_color(Object *ob_gp, const float color[4]
 {
   Material *ma = NULL;
   float color_cu[4];
-  linearrgb_to_srgb_v3_v3(color_cu, color);
+  copy_v4_v4(color_cu, color);
+
   float hsv1[4];
   rgb_to_hsv_v(color_cu, hsv1);
   hsv1[3] = color[3];
@@ -95,12 +96,12 @@ static Material *gpencil_add_from_curve_material(Main *bmain,
     gp_style->flag |= GP_MATERIAL_STROKE_SHOW;
   }
   else {
-    linearrgb_to_srgb_v4(gp_style->stroke_rgba, cu_color);
+    copy_v4_v4(mat_gp->gp_style->stroke_rgba, cu_color);
     gp_style->flag &= ~GP_MATERIAL_STROKE_SHOW;
   }
 
   /* Fill color. */
-  linearrgb_to_srgb_v4(gp_style->fill_rgba, cu_color);
+  copy_v4_v4(mat_gp->gp_style->fill_rgba, cu_color);
   /* Fill is false if the original curve hasn't material assigned, so enable it. */
   if (fill) {
     gp_style->flag |= GP_MATERIAL_FILL_SHOW;
@@ -249,8 +250,7 @@ static void gpencil_convert_spline(Main *bmain,
     if ((!only_stroke) && (ob_cu->totcol > 1) && (BKE_object_material_get(ob_cu, 2))) {
       mat_curve = BKE_object_material_get(ob_cu, 2);
       if (mat_curve) {
-        linearrgb_to_srgb_v3_v3(mat_gp->gp_style->stroke_rgba, &mat_curve->r);
-        mat_gp->gp_style->stroke_rgba[3] = mat_curve->a;
+        copy_v4_v4(mat_gp->gp_style->stroke_rgba, &mat_curve->r);
       }
     }
     else if ((only_stroke) || (do_stroke)) {
