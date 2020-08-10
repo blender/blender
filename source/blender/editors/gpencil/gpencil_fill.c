@@ -750,6 +750,92 @@ static void gpencil_set_borders(tGPDfill *tgpf, const bool transparent)
   tgpf->ima->id.tag |= LIB_TAG_DOIT;
 }
 
+/* Invert image to paint invese area. */
+static void gpencil_invert_image(tGPDfill *tgpf)
+{
+  ImBuf *ibuf;
+  void *lock;
+  const float fill_col[3][4] = {
+      {1.0f, 0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 0.0f, 0.0f}};
+  ibuf = BKE_image_acquire_ibuf(tgpf->ima, NULL, &lock);
+
+  const int maxpixel = (ibuf->x * ibuf->y) - 1;
+
+  for (int v = maxpixel; v != 0; v--) {
+    float color[4];
+    get_pixel(ibuf, v, color);
+    /* Green. */
+    if (color[1] == 1.0f) {
+      set_pixel(ibuf, v, fill_col[0]);
+    }
+    else if (color[0] == 1.0f) {
+      set_pixel(ibuf, v, fill_col[1]);
+    }
+    else {
+      set_pixel(ibuf, v, fill_col[2]);
+    }
+  }
+
+  /* release ibuf */
+  if (ibuf) {
+    BKE_image_release_ibuf(tgpf->ima, ibuf, lock);
+  }
+
+  tgpf->ima->id.tag |= LIB_TAG_DOIT;
+}
+
+/* Mark and clear processed areas. */
+static void gpencil_erase_processed_area(tGPDfill *tgpf)
+{
+  ImBuf *ibuf;
+  void *lock;
+  const float blue_col[4] = {0.0f, 0.0f, 1.0f, 1.0f};
+  const float clear_col[4] = {1.0f, 0.0f, 0.0f, 1.0f};
+  tGPspoint *point2D;
+
+  if (tgpf->sbuffer_used == 0) {
+    return;
+  }
+
+  ibuf = BKE_image_acquire_ibuf(tgpf->ima, NULL, &lock);
+  point2D = (tGPspoint *)tgpf->sbuffer;
+
+  /* First set in blue the perimeter. */
+  for (int i = 0; i < tgpf->sbuffer_used && point2D; i++, point2D++) {
+    int image_idx = ibuf->x * (int)point2D->y + (int)point2D->x;
+    set_pixel(ibuf, image_idx, blue_col);
+  }
+
+  /* Second, clean by lines any pixel between blue pixels. */
+  float rgba[4];
+
+  for (int idy = 0; idy < ibuf->y; idy++) {
+    bool clear = false;
+    for (int idx = 0; idx < ibuf->x; idx++) {
+      int image_idx = ibuf->x * idy + idx;
+      get_pixel(ibuf, image_idx, rgba);
+      /* Blue. */
+      if (rgba[2] == 1.0f) {
+        clear = true;
+      }
+      /* Red. */
+      else if (rgba[0] == 1.0f) {
+        clear = false;
+      }
+      if (clear) {
+        set_pixel(ibuf, image_idx, clear_col);
+      }
+    }
+  }
+
+  /* release ibuf */
+  if (ibuf) {
+    BKE_image_release_ibuf(tgpf->ima, ibuf, lock);
+  }
+
+  tgpf->ima->id.tag |= LIB_TAG_DOIT;
+}
+
 /* Naive dilate
  *
  * Expand green areas into enclosing red areas.
@@ -761,7 +847,7 @@ static void gpencil_set_borders(tGPDfill *tgpf, const bool transparent)
  *   XXXX
  * -----------
  */
-static void dilate(ImBuf *ibuf)
+static void dilate_shape(ImBuf *ibuf)
 {
   BLI_Stack *stack = BLI_stack_new(sizeof(int), __func__);
   const float green[4] = {0.0f, 1.0f, 0.0f, 1.0f};
@@ -860,7 +946,7 @@ static void dilate(ImBuf *ibuf)
  * This is a Blender customized version of the general algorithm described
  * in https://en.wikipedia.org/wiki/Moore_neighborhood
  */
-static void gpencil_get_outline_points(tGPDfill *tgpf)
+static void gpencil_get_outline_points(tGPDfill *tgpf, const bool dilate)
 {
   ImBuf *ibuf;
   float rgba[4];
@@ -892,8 +978,10 @@ static void gpencil_get_outline_points(tGPDfill *tgpf)
   ibuf = BKE_image_acquire_ibuf(tgpf->ima, NULL, &lock);
   int imagesize = ibuf->x * ibuf->y;
 
-  /* dilate */
-  dilate(ibuf);
+  /* Dilate. */
+  if (dilate) {
+    dilate_shape(ibuf);
+  }
 
   /* find the initial point to start outline analysis */
   for (int idx = imagesize - 1; idx != 0; idx--) {
@@ -1027,12 +1115,12 @@ static void gpencil_get_depth_array(tGPDfill *tgpf)
 }
 
 /* create array of points using stack as source */
-static void gpencil_points_from_stack(tGPDfill *tgpf)
+static int gpencil_points_from_stack(tGPDfill *tgpf)
 {
   tGPspoint *point2D;
   int totpoints = BLI_stack_count(tgpf->stack);
   if (totpoints == 0) {
-    return;
+    return 0;
   }
 
   tgpf->sbuffer_used = (short)totpoints;
@@ -1050,6 +1138,8 @@ static void gpencil_points_from_stack(tGPDfill *tgpf)
     point2D->time = 0.0f;
     point2D++;
   }
+
+  return totpoints;
 }
 
 /* create a grease pencil stroke using points in buffer */
@@ -1461,6 +1551,10 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   tGPDfill *tgpf = op->customdata;
   Scene *scene = tgpf->scene;
+  Brush *brush = tgpf->brush;
+  BrushGpencilSettings *brush_settings = brush->gpencil_settings;
+  const bool is_brush_inv = brush_settings->fill_direction == BRUSH_DIR_IN;
+  const bool is_inverted = (is_brush_inv && !event->ctrl) || (!is_brush_inv && event->ctrl);
 
   int estate = OPERATOR_PASS_THROUGH; /* default exit state - pass through */
 
@@ -1489,6 +1583,7 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
             tgpf->active_cfra = CFRA;
 
             /* render screen to temp image */
+            int totpoints = 1;
             if (gpencil_render_offscreen(tgpf)) {
 
               /* Set red borders to create a external limit. */
@@ -1497,30 +1592,45 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
               /* apply boundary fill */
               gpencil_boundaryfill_area(tgpf);
 
+              /* Invert direction if press Ctrl. */
+              if (is_inverted) {
+                gpencil_invert_image(tgpf);
+              }
+
               /* Clean borders to avoid infinite loops. */
               gpencil_set_borders(tgpf, false);
 
-              /* analyze outline */
-              gpencil_get_outline_points(tgpf);
+              while (totpoints > 0) {
+                /* analyze outline */
+                gpencil_get_outline_points(tgpf, (totpoints == 1) ? true : false);
 
-              /* create array of points from stack */
-              gpencil_points_from_stack(tgpf);
+                /* create array of points from stack */
+                totpoints = gpencil_points_from_stack(tgpf);
 
-              /* create z-depth array for reproject */
-              gpencil_get_depth_array(tgpf);
+                /* create z-depth array for reproject */
+                gpencil_get_depth_array(tgpf);
 
-              /* create stroke and reproject */
-              gpencil_stroke_from_buffer(tgpf);
+                /* create stroke and reproject */
+                gpencil_stroke_from_buffer(tgpf);
+
+                if (is_inverted) {
+                  gpencil_erase_processed_area(tgpf);
+                }
+                else {
+                  /* Exit of the loop. */
+                  totpoints = 0;
+                }
+
+                /* free temp stack data */
+                if (tgpf->stack) {
+                  BLI_stack_free(tgpf->stack);
+                }
+
+                /* Free memory. */
+                MEM_SAFE_FREE(tgpf->sbuffer);
+                MEM_SAFE_FREE(tgpf->depth_arr);
+              }
             }
-
-            /* free temp stack data */
-            if (tgpf->stack) {
-              BLI_stack_free(tgpf->stack);
-            }
-
-            /* Free memory. */
-            MEM_SAFE_FREE(tgpf->sbuffer);
-            MEM_SAFE_FREE(tgpf->depth_arr);
 
             /* restore size */
             tgpf->region->winx = (short)tgpf->bwinx;

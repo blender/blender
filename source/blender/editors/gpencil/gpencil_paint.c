@@ -250,7 +250,8 @@ typedef struct tGPsdata {
   short shift;
   /** size in pixels for uv calculation */
   float totpixlen;
-
+  /** Special mode for fill brush. */
+  bool disable_stabilizer;
   /* guide */
   tGPguide guide;
 
@@ -374,7 +375,7 @@ static bool gpencil_stroke_filtermval(tGPsdata *p, const float mval[2], const fl
     return true;
   }
   /* if lazy mouse, check minimum distance */
-  if (GPENCIL_LAZY_MODE(brush, p->shift)) {
+  if (GPENCIL_LAZY_MODE(brush, p->shift) && (!p->disable_stabilizer)) {
     brush->gpencil_settings->flag |= GP_BRUSH_STABILIZE_MOUSE_TEMP;
     if ((dx * dx + dy * dy) > (brush->smooth_stroke_radius * brush->smooth_stroke_radius)) {
       return true;
@@ -1886,6 +1887,7 @@ static bool gpencil_session_initdata(bContext *C, wmOperator *op, tGPsdata *p)
   p->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   p->win = CTX_wm_window(C);
   p->disable_fill = RNA_boolean_get(op->ptr, "disable_fill");
+  p->disable_stabilizer = RNA_boolean_get(op->ptr, "disable_stabilizer");
 
   unit_m4(p->imat);
   unit_m4(p->mat);
@@ -2681,7 +2683,7 @@ static void gpencil_draw_apply(bContext *C, wmOperator *op, tGPsdata *p, Depsgra
   else if (gpencil_stroke_filtermval(p, p->mval, p->mvalo)) {
 
     /* if lazy mouse, interpolate the last and current mouse positions */
-    if (GPENCIL_LAZY_MODE(p->brush, p->shift)) {
+    if (GPENCIL_LAZY_MODE(p->brush, p->shift) && (!p->disable_stabilizer)) {
       float now_mouse[2];
       float last_mouse[2];
       copy_v2_v2(now_mouse, p->mval);
@@ -3443,7 +3445,7 @@ static void gpencil_add_fake_points(const wmEvent *event, tGPsdata *p)
 {
   Brush *brush = p->brush;
   /* Lazy mode do not use fake events. */
-  if (GPENCIL_LAZY_MODE(brush, p->shift)) {
+  if (GPENCIL_LAZY_MODE(brush, p->shift) && (!p->disable_stabilizer)) {
     return;
   }
 
@@ -3889,6 +3891,9 @@ void GPENCIL_OT_draw(wmOperatorType *ot)
                          false,
                          "No Fill Areas",
                          "Disable fill to use stroke as fill boundary");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_boolean(ot->srna, "disable_stabilizer", false, "No Stabilizer", "");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   /* guides */

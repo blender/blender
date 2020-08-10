@@ -68,7 +68,7 @@ typedef struct BrushGpencilSettings {
   short draw_subdivide;
   /** Layers used for fill. */
   short fill_layer_mode;
-  char _pad[2];
+  short fill_direction;
 
   /** Factor for transparency. */
   float fill_threshold;

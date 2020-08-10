@@ -252,6 +252,12 @@ static EnumPropertyItem rna_enum_gpencil_fill_layers_modes_items[] = {
     {GP_FILL_GPLMODE_ALL_BELOW, "ALL_BELOW", 0, "All Below", "All layers below active"},
     {0, NULL, 0, NULL, NULL}};
 
+static EnumPropertyItem rna_enum_gpencil_fill_direction_items[] = {
+    {0, "NORMAL", ICON_ADD, "Normal", "Fill internal area"},
+    {BRUSH_DIR_IN, "INVERT", ICON_REMOVE, "Inverted", "Fill inverted area"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 static EnumPropertyItem rna_enum_gpencil_brush_modes_items[] = {
     {GP_BRUSH_MODE_ACTIVE, "ACTIVE", 0, "Active", "Use current mode"},
     {GP_BRUSH_MODE_MATERIAL, "MATERIAL", 0, "Material", "Use always material mode"},
@@ -1659,6 +1665,12 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "fill_layer_mode");
   RNA_def_property_enum_items(prop, rna_enum_gpencil_fill_layers_modes_items);
   RNA_def_property_ui_text(prop, "Layer Mode", "Layers used as boundaries");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
+  prop = RNA_def_property(srna, "fill_direction", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "fill_direction");
+  RNA_def_property_enum_items(prop, rna_enum_gpencil_fill_direction_items);
+  RNA_def_property_ui_text(prop, "Direction", "Direction of the fill");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
   prop = RNA_def_property(srna, "brush_draw_mode", PROP_ENUM, PROP_NONE);

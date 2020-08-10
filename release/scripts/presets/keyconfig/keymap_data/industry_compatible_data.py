@@ -2465,16 +2465,14 @@ def km_grease_pencil_stroke_paint_fill(params):
         # Fill
         ("gpencil.fill", {"type": 'LEFTMOUSE', "value": 'PRESS'},
          {"properties": [("on_back", False)]}),
-        ("gpencil.fill", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
-         {"properties": [("on_back", True)]}),
+        ("gpencil.fill", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True},
+         {"properties": [("on_back", False)]}),
         # If press alternate key, the brush now it's for drawing areas
-        ("gpencil.draw", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True},
-         {"properties": [("mode", 'DRAW'), ("wait_for_input", False), ("disable_straight", True)]}),
+        ("gpencil.draw", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
+         {"properties": [("mode", 'DRAW'), ("wait_for_input", False), ("disable_straight", True), ("disable_stabilizer", True)]}),
         # If press alternative key, the brush now it's for drawing lines
         ("gpencil.draw", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True, "shift": True},
-         {"properties": [("mode", 'DRAW'), ("wait_for_input", False), ("disable_straight", True), ("disable_fill", True)]}),
-        # Lasso select
-        ("gpencil.select_lasso", {"type": params.action_tweak, "value": 'ANY', "ctrl": True, "alt": True}, None),
+         {"properties": [("mode", 'DRAW'), ("wait_for_input", False), ("disable_straight", True), ("disable_stabilizer", True), ("disable_fill", True)]}),
     ])
 
     return keymap
