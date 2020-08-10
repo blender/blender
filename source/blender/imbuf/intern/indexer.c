@@ -472,10 +472,6 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
   char fname[FILE_MAX];
   int ffmpeg_quality;
 
-  /* JPEG requires this */
-  width = round_up(width, 8);
-  height = round_up(height, 8);
-
   rv->proxy_size = proxy_size;
   rv->anim = anim;
 
