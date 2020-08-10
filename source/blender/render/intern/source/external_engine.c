@@ -174,7 +174,8 @@ static RenderResult *render_result_from_bake(RenderEngine *engine, int x, int y,
   BLI_addtail(&rr->layers, rl);
 
   /* Add render passes. */
-  render_layer_add_pass(rr, rl, engine->bake.depth, RE_PASSNAME_COMBINED, "", "RGBA");
+  RenderPass *result_pass = render_layer_add_pass(
+      rr, rl, engine->bake.depth, RE_PASSNAME_COMBINED, "", "RGBA");
   RenderPass *primitive_pass = render_layer_add_pass(rr, rl, 4, "BakePrimitive", "", "RGBA");
   RenderPass *differential_pass = render_layer_add_pass(rr, rl, 4, "BakeDifferential", "", "RGBA");
 
@@ -208,6 +209,15 @@ static RenderResult *render_result_from_bake(RenderEngine *engine, int x, int y,
       differential += 4;
       bake_pixel++;
     }
+  }
+
+  /* Initialize tile render result from full image bake result. */
+  for (int ty = 0; ty < h; ty++) {
+    size_t offset = ty * w * engine->bake.depth;
+    size_t bake_offset = ((y + ty) * engine->bake.width + x) * engine->bake.depth;
+    size_t size = w * engine->bake.depth * sizeof(float);
+
+    memcpy(result_pass->rect + offset, engine->bake.result + bake_offset, size);
   }
 
   return rr;
