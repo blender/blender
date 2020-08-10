@@ -150,6 +150,7 @@
 #include "MEM_guardedalloc.h"  // MEM_freeN
 
 #include "BKE_action.h"
+#include "BKE_armature.h"
 #include "BKE_blender_version.h"
 #include "BKE_bpath.h"
 #include "BKE_collection.h"
@@ -1562,7 +1563,7 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
   }
 }
 
-static void write_pose(WriteData *wd, bPose *pose)
+static void write_pose(WriteData *wd, bPose *pose, bArmature *arm)
 {
   bPoseChannel *chan;
   bActionGroup *grp;
@@ -1571,6 +1572,8 @@ static void write_pose(WriteData *wd, bPose *pose)
   if (pose == NULL) {
     return;
   }
+
+  BLI_assert(arm != NULL);
 
   /* Write channels */
   for (chan = pose->chanbase.first; chan; chan = chan->next) {
@@ -1584,11 +1587,15 @@ static void write_pose(WriteData *wd, bPose *pose)
 
     write_motionpath(wd, chan->mpath);
 
-    /* prevent crashes with autosave,
-     * when a bone duplicated in editmode has not yet been assigned to its posechannel */
-    if (chan->bone) {
+    /* Prevent crashes with autosave,
+     * when a bone duplicated in editmode has not yet been assigned to its posechannel.
+     * Also needed with memundo, in some cases we can store a step before pose has been
+     * properly rebuilt from previous undo step. */
+    Bone *bone = (pose->flag & POSE_RECALC) ? BKE_armature_find_bone_name(arm, chan->name) :
+                                              chan->bone;
+    if (bone != NULL) {
       /* gets restored on read, for library armatures */
-      chan->selectflag = chan->bone->flag & BONE_SELECTED;
+      chan->selectflag = bone->flag & BONE_SELECTED;
     }
 
     writestruct(wd, DATA, bPoseChannel, 1, chan);
@@ -1912,15 +1919,16 @@ static void write_object(WriteData *wd, Object *ob, const void *id_address)
     writedata(wd, DATA, sizeof(char) * ob->totcol, ob->matbits);
     /* write_effects(wd, &ob->effect); */ /* not used anymore */
 
+    bArmature *arm = NULL;
     if (ob->type == OB_ARMATURE) {
-      bArmature *arm = ob->data;
+      arm = ob->data;
       if (arm && ob->pose && arm->act_bone) {
         BLI_strncpy(
             ob->pose->proxy_act_bone, arm->act_bone->name, sizeof(ob->pose->proxy_act_bone));
       }
     }
 
-    write_pose(wd, ob->pose);
+    write_pose(wd, ob->pose, arm);
     write_defgroups(wd, &ob->defbase);
     write_fmaps(wd, &ob->fmaps);
     write_constraints(wd, &ob->constraints);
