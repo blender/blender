@@ -178,8 +178,9 @@ static void ArHosekSkyModel_CookConfiguration(ArHosekSkyModel_Dataset dataset,
          pow(solar_elevation, 5.0) * elev_matrix[i + 45]);
   }
 
-  if (int_turbidity == 10)
+  if (int_turbidity == 10) {
     return;
+  }
 
   // alb 0 high turb
   elev_matrix = dataset + (9 * 6 * (int_turbidity));
@@ -243,8 +244,9 @@ static double ArHosekSkyModel_CookRadianceConfiguration(ArHosekSkyModel_Radiance
           10.0 * pow(1.0 - solar_elevation, 2.0) * pow(solar_elevation, 3.0) * elev_matrix[3] +
           5.0 * (1.0 - solar_elevation) * pow(solar_elevation, 4.0) * elev_matrix[4] +
           pow(solar_elevation, 5.0) * elev_matrix[5]);
-  if (int_turbidity == 10)
+  if (int_turbidity == 10) {
     return res;
+  }
 
   // alb 0 high turb
   elev_matrix = dataset + (6 * (int_turbidity));
@@ -298,16 +300,18 @@ double SKY_arhosekskymodel_radiance(SKY_ArHosekSkyModelState *state,
 {
   int low_wl = (int)((wavelength - 320.0) / 40.0);
 
-  if (low_wl < 0 || low_wl >= 11)
+  if (low_wl < 0 || low_wl >= 11) {
     return 0.0;
+  }
 
   double interp = fmod((wavelength - 320.0) / 40.0, 1.0);
 
   double val_low = ArHosekSkyModel_GetRadianceInternal(state->configs[low_wl], theta, gamma) *
                    state->radiances[low_wl] * state->emission_correction_factor_sky[low_wl];
 
-  if (interp < 1e-6)
+  if (interp < 1e-6) {
     return val_low;
+  }
 
   double result = (1.0 - interp) * val_low;
 
