@@ -26,6 +26,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_base.h"
+
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"
 #include "GPU_extensions.h"
@@ -46,48 +48,14 @@
 
 using namespace blender::gpu;
 
-static GLuint g_default_attr_vbo = 0;
-
-static void gpu_batch_bind(GPUBatch *batch);
-static void batch_update_program_bindings(GPUBatch *batch, uint i_first);
-
-void GPU_batch_vao_cache_clear(GPUBatch *batch)
+void GPU_batch_vao_cache_clear(GPUBatch *UNUSED(batch))
 {
-  if (batch->context == NULL) {
-    return;
-  }
-  if (batch->is_dynamic_vao_count) {
-    for (int i = 0; i < batch->dynamic_vaos.count; i++) {
-      if (batch->dynamic_vaos.vao_ids[i]) {
-        GPU_vao_free(batch->dynamic_vaos.vao_ids[i], batch->context);
-      }
-      if (batch->dynamic_vaos.interfaces[i]) {
-        GPU_shaderinterface_remove_batch_ref(
-            (GPUShaderInterface *)batch->dynamic_vaos.interfaces[i], batch);
-      }
-    }
-    MEM_freeN((void *)batch->dynamic_vaos.interfaces);
-    MEM_freeN(batch->dynamic_vaos.vao_ids);
-  }
-  else {
-    for (int i = 0; i < GPU_BATCH_VAO_STATIC_LEN; i++) {
-      if (batch->static_vaos.vao_ids[i]) {
-        GPU_vao_free(batch->static_vaos.vao_ids[i], batch->context);
-      }
-      if (batch->static_vaos.interfaces[i]) {
-        GPU_shaderinterface_remove_batch_ref(
-            (GPUShaderInterface *)batch->static_vaos.interfaces[i], batch);
-      }
-    }
-  }
-  batch->is_dynamic_vao_count = false;
-  for (int i = 0; i < GPU_BATCH_VAO_STATIC_LEN; i++) {
-    batch->static_vaos.vao_ids[i] = 0;
-    batch->static_vaos.interfaces[i] = NULL;
-  }
-  gpu_context_remove_batch(batch->context, batch);
-  batch->context = NULL;
+  /* TODO remove */
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Creation & Deletion
+ * \{ */
 
 GPUBatch *GPU_batch_calloc(void)
 {
@@ -126,7 +94,6 @@ void GPU_batch_init_ex(GPUBatch *batch,
   batch->elem = elem;
   batch->prim_type = prim_type;
   batch->flag = owns_flag | GPU_BATCH_INIT | GPU_BATCH_DIRTY;
-  batch->context = NULL;
   batch->shader = NULL;
 }
 
@@ -144,7 +111,6 @@ void GPU_batch_copy(GPUBatch *batch_dst, GPUBatch *batch_src)
 
 void GPU_batch_clear(GPUBatch *batch)
 {
-  GPU_batch_vao_cache_clear(batch);
   if (batch->flag & GPU_BATCH_OWNS_INDEX) {
     GPU_indexbuf_discard(batch->elem);
   }
@@ -172,11 +138,17 @@ void GPU_batch_discard(GPUBatch *batch)
   delete static_cast<Batch *>(batch);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Buffers Management
+ * \{ */
+
 /* NOTE: Override ONLY the first instance vbo (and free them if owned). */
 void GPU_batch_instbuf_set(GPUBatch *batch, GPUVertBuf *inst, bool own_vbo)
 {
   BLI_assert(inst);
-  batch->flag |= GPU_BATCH_DIRTY_BINDINGS;
+  batch->flag |= GPU_BATCH_DIRTY;
 
   if (batch->inst[0] && (batch->flag & GPU_BATCH_OWNS_INST_VBO)) {
     GPU_vertbuf_discard(batch->inst[0]);
@@ -190,7 +162,7 @@ void GPU_batch_instbuf_set(GPUBatch *batch, GPUVertBuf *inst, bool own_vbo)
 void GPU_batch_elembuf_set(GPUBatch *batch, GPUIndexBuf *elem, bool own_ibo)
 {
   BLI_assert(elem);
-  batch->flag |= GPU_BATCH_DIRTY_BINDINGS;
+  batch->flag |= GPU_BATCH_DIRTY;
 
   if (batch->elem && (batch->flag & GPU_BATCH_OWNS_INDEX)) {
     GPU_indexbuf_discard(batch->elem);
@@ -203,7 +175,7 @@ void GPU_batch_elembuf_set(GPUBatch *batch, GPUIndexBuf *elem, bool own_ibo)
 int GPU_batch_instbuf_add_ex(GPUBatch *batch, GPUVertBuf *insts, bool own_vbo)
 {
   BLI_assert(insts);
-  batch->flag |= GPU_BATCH_DIRTY_BINDINGS;
+  batch->flag |= GPU_BATCH_DIRTY;
 
   for (uint v = 0; v < GPU_BATCH_INST_VBO_MAX_LEN; v++) {
     if (batch->inst[v] == NULL) {
@@ -228,7 +200,7 @@ int GPU_batch_instbuf_add_ex(GPUBatch *batch, GPUVertBuf *insts, bool own_vbo)
 int GPU_batch_vertbuf_add_ex(GPUBatch *batch, GPUVertBuf *verts, bool own_vbo)
 {
   BLI_assert(verts);
-  batch->flag |= GPU_BATCH_DIRTY_BINDINGS;
+  batch->flag |= GPU_BATCH_DIRTY;
 
   for (uint v = 0; v < GPU_BATCH_VBO_MAX_LEN; v++) {
     if (batch->verts[v] == NULL) {
@@ -246,253 +218,19 @@ int GPU_batch_vertbuf_add_ex(GPUBatch *batch, GPUVertBuf *verts, bool own_vbo)
   return -1;
 }
 
-static GLuint batch_vao_get(GPUBatch *batch)
-{
-  /* Search through cache */
-  if (batch->is_dynamic_vao_count) {
-    for (int i = 0; i < batch->dynamic_vaos.count; i++) {
-      if (batch->dynamic_vaos.interfaces[i] == batch->interface) {
-        return batch->dynamic_vaos.vao_ids[i];
-      }
-    }
-  }
-  else {
-    for (int i = 0; i < GPU_BATCH_VAO_STATIC_LEN; i++) {
-      if (batch->static_vaos.interfaces[i] == batch->interface) {
-        return batch->static_vaos.vao_ids[i];
-      }
-    }
-  }
-
-  /* Set context of this batch.
-   * It will be bound to it until GPU_batch_vao_cache_clear is called.
-   * Until then it can only be drawn with this context. */
-  if (batch->context == NULL) {
-    batch->context = GPU_context_active_get();
-    gpu_context_add_batch(batch->context, batch);
-  }
-#if TRUST_NO_ONE
-  else {
-    /* Make sure you are not trying to draw this batch in another context. */
-    assert(batch->context == GPU_context_active_get());
-  }
-#endif
-
-  /* Cache miss, time to add a new entry! */
-  GLuint new_vao = 0;
-  if (!batch->is_dynamic_vao_count) {
-    int i; /* find first unused slot */
-    for (i = 0; i < GPU_BATCH_VAO_STATIC_LEN; i++) {
-      if (batch->static_vaos.vao_ids[i] == 0) {
-        break;
-      }
-    }
-
-    if (i < GPU_BATCH_VAO_STATIC_LEN) {
-      batch->static_vaos.interfaces[i] = batch->interface;
-      batch->static_vaos.vao_ids[i] = new_vao = GPU_vao_alloc();
-    }
-    else {
-      /* Not enough place switch to dynamic. */
-      batch->is_dynamic_vao_count = true;
-      /* Erase previous entries, they will be added back if drawn again. */
-      for (int j = 0; j < GPU_BATCH_VAO_STATIC_LEN; j++) {
-        GPU_shaderinterface_remove_batch_ref(
-            (GPUShaderInterface *)batch->static_vaos.interfaces[j], batch);
-        GPU_vao_free(batch->static_vaos.vao_ids[j], batch->context);
-      }
-      /* Init dynamic arrays and let the branch below set the values. */
-      batch->dynamic_vaos.count = GPU_BATCH_VAO_DYN_ALLOC_COUNT;
-      batch->dynamic_vaos.interfaces = (const GPUShaderInterface **)MEM_callocN(
-          batch->dynamic_vaos.count * sizeof(GPUShaderInterface *), "dyn vaos interfaces");
-      batch->dynamic_vaos.vao_ids = (GLuint *)MEM_callocN(
-          batch->dynamic_vaos.count * sizeof(GLuint), "dyn vaos ids");
-    }
-  }
-
-  if (batch->is_dynamic_vao_count) {
-    int i; /* find first unused slot */
-    for (i = 0; i < batch->dynamic_vaos.count; i++) {
-      if (batch->dynamic_vaos.vao_ids[i] == 0) {
-        break;
-      }
-    }
-
-    if (i == batch->dynamic_vaos.count) {
-      /* Not enough place, realloc the array. */
-      i = batch->dynamic_vaos.count;
-      batch->dynamic_vaos.count += GPU_BATCH_VAO_DYN_ALLOC_COUNT;
-      batch->dynamic_vaos.interfaces = (const GPUShaderInterface **)MEM_recallocN(
-          (void *)batch->dynamic_vaos.interfaces,
-          sizeof(GPUShaderInterface *) * batch->dynamic_vaos.count);
-      batch->dynamic_vaos.vao_ids = (GLuint *)MEM_recallocN(
-          batch->dynamic_vaos.vao_ids, sizeof(GLuint) * batch->dynamic_vaos.count);
-    }
-    batch->dynamic_vaos.interfaces[i] = batch->interface;
-    batch->dynamic_vaos.vao_ids[i] = new_vao = GPU_vao_alloc();
-  }
-
-  GPU_shaderinterface_add_batch_ref((GPUShaderInterface *)batch->interface, batch);
-
-#if TRUST_NO_ONE
-  assert(new_vao != 0);
-#endif
-
-  /* We just got a fresh VAO we need to initialize it. */
-  glBindVertexArray(new_vao);
-  batch_update_program_bindings(batch, 0);
-  glBindVertexArray(0);
-
-  return new_vao;
-}
-
-void GPU_batch_set_shader(GPUBatch *batch, GPUShader *shader)
-{
-  batch->interface = shader->interface;
-  batch->shader = shader;
-  if (batch->flag & GPU_BATCH_DIRTY_BINDINGS) {
-    GPU_batch_vao_cache_clear(batch);
-  }
-  batch->vao_id = batch_vao_get(batch);
-  GPU_shader_bind(batch->shader);
-  GPU_matrix_bind(batch->shader->interface);
-  GPU_shader_set_srgb_uniform(batch->shader->interface);
-  gpu_batch_bind(batch);
-}
-
-void gpu_batch_remove_interface_ref(GPUBatch *batch, const GPUShaderInterface *interface)
-{
-  if (batch->is_dynamic_vao_count) {
-    for (int i = 0; i < batch->dynamic_vaos.count; i++) {
-      if (batch->dynamic_vaos.interfaces[i] == interface) {
-        GPU_vao_free(batch->dynamic_vaos.vao_ids[i], batch->context);
-        batch->dynamic_vaos.vao_ids[i] = 0;
-        batch->dynamic_vaos.interfaces[i] = NULL;
-        break; /* cannot have duplicates */
-      }
-    }
-  }
-  else {
-    int i;
-    for (i = 0; i < GPU_BATCH_VAO_STATIC_LEN; i++) {
-      if (batch->static_vaos.interfaces[i] == interface) {
-        GPU_vao_free(batch->static_vaos.vao_ids[i], batch->context);
-        batch->static_vaos.vao_ids[i] = 0;
-        batch->static_vaos.interfaces[i] = NULL;
-        break; /* cannot have duplicates */
-      }
-    }
-  }
-}
-
-static void create_bindings(GPUVertBuf *verts,
-                            const GPUShaderInterface *interface,
-                            uint16_t *attr_mask,
-                            uint v_first,
-                            const bool use_instancing)
-{
-  const GPUVertFormat *format = &verts->format;
-
-  const uint attr_len = format->attr_len;
-  uint stride = format->stride;
-  uint offset = 0;
-
-  GPU_vertbuf_use(verts);
-
-  for (uint a_idx = 0; a_idx < attr_len; a_idx++) {
-    const GPUVertAttr *a = &format->attrs[a_idx];
-
-    if (format->deinterleaved) {
-      offset += ((a_idx == 0) ? 0 : format->attrs[a_idx - 1].sz) * verts->vertex_len;
-      stride = a->sz;
-    }
-    else {
-      offset = a->offset;
-    }
-
-    const GLvoid *pointer = (const GLubyte *)0 + offset + v_first * stride;
-    const GLenum type = convert_comp_type_to_gl(static_cast<GPUVertCompType>(a->comp_type));
-
-    for (uint n_idx = 0; n_idx < a->name_len; n_idx++) {
-      const char *name = GPU_vertformat_attr_name_get(format, a, n_idx);
-      const GPUShaderInput *input = GPU_shaderinterface_attr(interface, name);
-
-      if (input == NULL) {
-        continue;
-      }
-
-      *attr_mask &= ~(1 << input->location);
-
-      if (a->comp_len == 16 || a->comp_len == 12 || a->comp_len == 8) {
-        BLI_assert(a->fetch_mode == GPU_FETCH_FLOAT);
-        BLI_assert(a->comp_type == GPU_COMP_F32);
-        for (int i = 0; i < a->comp_len / 4; i++) {
-          glEnableVertexAttribArray(input->location + i);
-          glVertexAttribDivisor(input->location + i, (use_instancing) ? 1 : 0);
-          glVertexAttribPointer(
-              input->location + i, 4, type, GL_FALSE, stride, (const GLubyte *)pointer + i * 16);
-        }
-      }
-      else {
-        glEnableVertexAttribArray(input->location);
-        glVertexAttribDivisor(input->location, (use_instancing) ? 1 : 0);
-
-        switch (a->fetch_mode) {
-          case GPU_FETCH_FLOAT:
-          case GPU_FETCH_INT_TO_FLOAT:
-            glVertexAttribPointer(input->location, a->comp_len, type, GL_FALSE, stride, pointer);
-            break;
-          case GPU_FETCH_INT_TO_FLOAT_UNIT:
-            glVertexAttribPointer(input->location, a->comp_len, type, GL_TRUE, stride, pointer);
-            break;
-          case GPU_FETCH_INT:
-            glVertexAttribIPointer(input->location, a->comp_len, type, stride, pointer);
-            break;
-        }
-      }
-    }
-  }
-}
-
-static void batch_update_program_bindings(GPUBatch *batch, uint i_first)
-{
-  uint16_t attr_mask = batch->interface->enabled_attr_mask;
-
-  /* Reverse order so first VBO'S have more prevalence (in term of attribute override). */
-  for (int v = GPU_BATCH_VBO_MAX_LEN - 1; v > -1; v--) {
-    if (batch->verts[v] != NULL) {
-      create_bindings(batch->verts[v], batch->interface, &attr_mask, 0, false);
-    }
-  }
-
-  for (int v = GPU_BATCH_INST_VBO_MAX_LEN - 1; v > -1; v--) {
-    if (batch->inst[v]) {
-      create_bindings(batch->inst[v], batch->interface, &attr_mask, i_first, true);
-    }
-  }
-
-  if (attr_mask != 0 && GLEW_ARB_vertex_attrib_binding) {
-    for (uint16_t mask = 1, a = 0; a < 16; a++, mask <<= 1) {
-      if (attr_mask & mask) {
-        /* This replaces glVertexAttrib4f(a, 0.0f, 0.0f, 0.0f, 1.0f); with a more modern style.
-         * Fix issues for some drivers (see T75069). */
-        glBindVertexBuffer(a, g_default_attr_vbo, (intptr_t)0, (intptr_t)0);
-
-        glEnableVertexAttribArray(a);
-        glVertexAttribFormat(a, 4, GL_FLOAT, GL_FALSE, 0);
-        glVertexAttribBinding(a, a);
-      }
-    }
-  }
-
-  if (batch->elem) {
-    GPU_indexbuf_use(batch->elem);
-  }
-}
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Uniform setters
+ *
+ * TODO(fclem) port this to GPUShader.
  * \{ */
+
+void GPU_batch_set_shader(GPUBatch *batch, GPUShader *shader)
+{
+  batch->shader = shader;
+  GPU_shader_bind(batch->shader);
+}
 
 #define GET_UNIFORM \
   const GPUShaderInput *uniform = GPU_shaderinterface_uniform(batch->shader->interface, name); \
@@ -581,31 +319,6 @@ void GPU_batch_uniform_mat4(GPUBatch *batch, const char *name, const float data[
 /** \name Drawing / Drawcall functions
  * \{ */
 
-static void *elem_offset(const GPUIndexBuf *el, int v_first)
-{
-#if GPU_TRACK_INDEX_RANGE
-  if (el->index_type == GPU_INDEX_U16) {
-    return (GLushort *)0 + v_first + el->index_start;
-  }
-#endif
-  return (GLuint *)0 + v_first + el->index_start;
-}
-
-/* Use when drawing with GPU_batch_draw_advanced */
-static void gpu_batch_bind(GPUBatch *batch)
-{
-  glBindVertexArray(batch->vao_id);
-
-#if GPU_TRACK_INDEX_RANGE
-  /* Can be removed if GL 4.3 is required. */
-  if (!GLEW_ARB_ES3_compatibility && batch->elem != NULL) {
-    GLuint restart_index = (batch->elem->index_type == GPU_INDEX_U16) ? (GLuint)0xFFFF :
-                                                                        (GLuint)0xFFFFFFFF;
-    glPrimitiveRestartIndex(restart_index);
-  }
-#endif
-}
-
 void GPU_batch_draw(GPUBatch *batch)
 {
   GPU_shader_bind(batch->shader);
@@ -630,18 +343,9 @@ void GPU_batch_draw_instanced(GPUBatch *batch, int i_count)
   GPU_shader_unbind();
 }
 
-#if GPU_TRACK_INDEX_RANGE
-#  define BASE_INDEX(el) ((el)->base_index)
-#  define INDEX_TYPE(el) ((el)->gl_index_type)
-#else
-#  define BASE_INDEX(el) 0
-#  define INDEX_TYPE(el) GL_UNSIGNED_INT
-#endif
-
 void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_first, int i_count)
 {
   BLI_assert(GPU_context_active_get()->shader != NULL);
-  /* TODO could assert that VAO is bound. */
 
   if (v_count == 0) {
     v_count = (batch->elem) ? batch->elem->index_len : batch->verts[0]->vertex_len;
@@ -649,8 +353,8 @@ void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_fi
   if (i_count == 0) {
     i_count = (batch->inst[0]) ? batch->inst[0]->vertex_len : 1;
     /* Meh. This is to be able to use different numbers of verts in instance vbos. */
-    if (batch->inst[1] && i_count > batch->inst[1]->vertex_len) {
-      i_count = batch->inst[1]->vertex_len;
+    if (batch->inst[1] != NULL) {
+      i_count = min_ii(i_count, batch->inst[1]->vertex_len);
     }
   }
 
@@ -659,78 +363,7 @@ void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_fi
     return;
   }
 
-  /* Verify there is enough data do draw. */
-  /* TODO(fclem) Nice to have but this is invalid when using procedural draw-calls.
-   * The right assert would be to check if there is an enabled attribute from each VBO
-   * and check their length. */
-  // BLI_assert(i_first + i_count <= (batch->inst ? batch->inst->vertex_len : INT_MAX));
-  // BLI_assert(v_first + v_count <=
-  //            (batch->elem ? batch->elem->index_len : batch->verts[0]->vertex_len));
-
-#ifdef __APPLE__
-  GLuint vao = 0;
-#endif
-
-  if (!GPU_arb_base_instance_is_supported()) {
-    if (i_first > 0) {
-#ifdef __APPLE__
-      /**
-       * There seems to be a nasty bug when drawing using the same VAO reconfiguring. (see T71147)
-       * We just use a throwaway VAO for that. Note that this is likely to degrade performance.
-       **/
-      glGenVertexArrays(1, &vao);
-      glBindVertexArray(vao);
-#else
-      /* If using offset drawing with instancing, we must
-       * use the default VAO and redo bindings. */
-      glBindVertexArray(GPU_vao_default());
-#endif
-      batch_update_program_bindings(batch, i_first);
-    }
-    else {
-      /* Previous call could have bind the default vao
-       * see above. */
-      glBindVertexArray(batch->vao_id);
-    }
-  }
-
-  GLenum gl_prim_type = convert_prim_type_to_gl(batch->prim_type);
-
-  if (batch->elem) {
-    const GPUIndexBuf *el = batch->elem;
-    GLenum index_type = INDEX_TYPE(el);
-    GLint base_index = BASE_INDEX(el);
-    void *v_first_ofs = elem_offset(el, v_first);
-
-    if (GPU_arb_base_instance_is_supported()) {
-      glDrawElementsInstancedBaseVertexBaseInstance(
-          gl_prim_type, v_count, index_type, v_first_ofs, i_count, base_index, i_first);
-    }
-    else {
-      glDrawElementsInstancedBaseVertex(
-          gl_prim_type, v_count, index_type, v_first_ofs, i_count, base_index);
-    }
-  }
-  else {
-#ifdef __APPLE__
-    glDisable(GL_PRIMITIVE_RESTART);
-#endif
-    if (GPU_arb_base_instance_is_supported()) {
-      glDrawArraysInstancedBaseInstance(gl_prim_type, v_first, v_count, i_count, i_first);
-    }
-    else {
-      glDrawArraysInstanced(gl_prim_type, v_first, v_count, i_count);
-    }
-#ifdef __APPLE__
-    glEnable(GL_PRIMITIVE_RESTART);
-#endif
-  }
-
-#ifdef __APPLE__
-  if (vao != 0) {
-    glDeleteVertexArrays(1, &vao);
-  }
-#endif
+  static_cast<Batch *>(batch)->draw(v_first, v_count, i_first, i_count);
 }
 
 /* just draw some vertices and let shader place them where we want. */
@@ -782,23 +415,11 @@ void GPU_batch_program_set_imm_shader(GPUBatch *batch)
 
 void gpu_batch_init(void)
 {
-  if (g_default_attr_vbo == 0) {
-    g_default_attr_vbo = GPU_buf_alloc();
-
-    float default_attrib_data[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-    glBindBuffer(GL_ARRAY_BUFFER, g_default_attr_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float[4]), default_attrib_data, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-  }
-
   gpu_batch_presets_init();
 }
 
 void gpu_batch_exit(void)
 {
-  GPU_buf_free(g_default_attr_vbo);
-  g_default_attr_vbo = 0;
-
   gpu_batch_presets_exit();
 }
 

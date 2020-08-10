@@ -92,6 +92,7 @@ set(SRC
   opengl/gl_batch.cc
   opengl/gl_context.cc
   opengl/gl_drawlist.cc
+  opengl/gl_vertex_array.cc
 
   GPU_attr_binding.h
   GPU_batch.h
@@ -143,6 +144,7 @@ set(SRC
   opengl/gl_batch.hh
   opengl/gl_context.hh
   opengl/gl_drawlist.hh
+  opengl/gl_vertex_array.hh
 )
 
 set(LIB

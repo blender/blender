@@ -63,8 +63,8 @@ GLContext::~GLContext()
   /* For now don't allow GPUFrameBuffers to be reuse in another context. */
   BLI_assert(framebuffers_.is_empty());
   /* Delete vaos so the batch can be reused in another context. */
-  for (GPUBatch *batch : batches_) {
-    GPU_batch_vao_cache_clear(batch);
+  for (GLVaoCache *cache : vao_caches_) {
+    cache->clear();
   }
   glDeleteVertexArrays(1, &default_vao_);
   glDeleteBuffers(1, &default_attr_vbo_);
@@ -197,20 +197,17 @@ void GLBackend::tex_free(GLuint tex_id)
  * is discarded.
  * \{ */
 
-void GLContext::batch_register(struct GPUBatch *batch)
+void GLContext::vao_cache_register(GLVaoCache *cache)
 {
   lists_mutex_.lock();
-  batches_.add(batch);
+  vao_caches_.add(cache);
   lists_mutex_.unlock();
 }
 
-void GLContext::batch_unregister(struct GPUBatch *batch)
+void GLContext::vao_cache_unregister(GLVaoCache *cache)
 {
-  /* vao_cache_clear() can acquire lists_mutex_ so avoid deadlock. */
-  // reinterpret_cast<GLBatch *>(batch)->vao_cache_clear();
-
   lists_mutex_.lock();
-  batches_.remove(batch);
+  vao_caches_.remove(cache);
   lists_mutex_.unlock();
 }
 

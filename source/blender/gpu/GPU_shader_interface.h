@@ -80,7 +80,7 @@ typedef struct GPUShaderInterface {
   /** Buffer containing all inputs names separated by '\0'. */
   char *name_buffer;
   /** Reference to GPUBatches using this interface */
-  struct GPUBatch **batches;
+  void **batches;
   uint batches_len;
   /** Input counts. */
   uint attribute_len;
@@ -109,8 +109,8 @@ const GPUShaderInput *GPU_shaderinterface_ubo(const GPUShaderInterface *, const 
 const GPUShaderInput *GPU_shaderinterface_attr(const GPUShaderInterface *, const char *name);
 
 /* keep track of batches using this interface */
-void GPU_shaderinterface_add_batch_ref(GPUShaderInterface *, struct GPUBatch *);
-void GPU_shaderinterface_remove_batch_ref(GPUShaderInterface *, struct GPUBatch *);
+void GPU_shaderinterface_add_batch_ref(GPUShaderInterface *interface, void *cache);
+void GPU_shaderinterface_remove_batch_ref(GPUShaderInterface *interface, void *cache);
 
 #ifdef __cplusplus
 }

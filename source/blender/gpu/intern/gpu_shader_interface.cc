@@ -35,6 +35,8 @@
 #include "gpu_batch_private.hh"
 #include "gpu_context_private.hh"
 
+#include "gl_batch.hh"
+
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,6 +46,8 @@
 #if DEBUG_SHADER_INTERFACE
 #  include <stdio.h>
 #endif
+
+using namespace blender::gpu;
 
 static const char *BuiltinUniform_name(GPUUniformBuiltin u)
 {
@@ -400,8 +404,8 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
 
   /* Batches ref buffer */
   shaderface->batches_len = GPU_SHADERINTERFACE_REF_ALLOC_COUNT;
-  shaderface->batches = (GPUBatch **)MEM_callocN(shaderface->batches_len * sizeof(GPUBatch *),
-                                                 "GPUShaderInterface batches");
+  shaderface->batches = (void **)MEM_callocN(shaderface->batches_len * sizeof(GPUBatch *),
+                                             "GPUShaderInterface batches");
 
   MEM_freeN(uniforms_from_blocks);
   MEM_freeN(inputs_tmp);
@@ -468,7 +472,8 @@ void GPU_shaderinterface_discard(GPUShaderInterface *shaderface)
   /* Remove this interface from all linked Batches vao cache. */
   for (int i = 0; i < shaderface->batches_len; i++) {
     if (shaderface->batches[i] != NULL) {
-      gpu_batch_remove_interface_ref(shaderface->batches[i], shaderface);
+      /* XXX GL specific. to be removed during refactor. */
+      reinterpret_cast<GLVaoCache *>(shaderface->batches[i])->remove(shaderface);
     }
   }
   MEM_freeN(shaderface->batches);
@@ -511,7 +516,7 @@ int32_t GPU_shaderinterface_block_builtin(const GPUShaderInterface *shaderface,
   return shaderface->builtin_blocks[builtin];
 }
 
-void GPU_shaderinterface_add_batch_ref(GPUShaderInterface *shaderface, GPUBatch *batch)
+void GPU_shaderinterface_add_batch_ref(GPUShaderInterface *shaderface, void *batch)
 {
   int i; /* find first unused slot */
   for (i = 0; i < shaderface->batches_len; i++) {
@@ -523,13 +528,14 @@ void GPU_shaderinterface_add_batch_ref(GPUShaderInterface *shaderface, GPUBatch 
     /* Not enough place, realloc the array. */
     i = shaderface->batches_len;
     shaderface->batches_len += GPU_SHADERINTERFACE_REF_ALLOC_COUNT;
-    shaderface->batches = (GPUBatch **)MEM_recallocN(shaderface->batches,
-                                                     sizeof(GPUBatch *) * shaderface->batches_len);
+    shaderface->batches = (void **)MEM_recallocN(shaderface->batches,
+                                                 sizeof(void *) * shaderface->batches_len);
   }
-  shaderface->batches[i] = batch;
+  /** XXX todo cleanup. */
+  shaderface->batches[i] = reinterpret_cast<void *>(batch);
 }
 
-void GPU_shaderinterface_remove_batch_ref(GPUShaderInterface *shaderface, GPUBatch *batch)
+void GPU_shaderinterface_remove_batch_ref(GPUShaderInterface *shaderface, void *batch)
 {
   for (int i = 0; i < shaderface->batches_len; i++) {
     if (shaderface->batches[i] == batch) {

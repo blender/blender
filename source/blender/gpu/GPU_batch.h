@@ -30,7 +30,6 @@
 
 #include "GPU_element.h"
 #include "GPU_shader.h"
-#include "GPU_shader_interface.h"
 #include "GPU_vertex_buffer.h"
 
 #define GPU_BATCH_VBO_MAX_LEN 6
@@ -59,9 +58,7 @@ typedef enum eGPUBatchFlag {
   /** Batch is initialized but it's VBOs are still being populated. (optional) */
   GPU_BATCH_BUILDING = (1 << 16),
   /** Cached data need to be rebuild. (VAO, PSO, ...) */
-  GPU_BATCH_DIRTY_BINDINGS = (1 << 17),
-  GPU_BATCH_DIRTY_INTERFACE = (1 << 18),
-  GPU_BATCH_DIRTY = (GPU_BATCH_DIRTY_BINDINGS | GPU_BATCH_DIRTY_INTERFACE),
+  GPU_BATCH_DIRTY = (1 << 17),
 } eGPUBatchFlag;
 
 #define GPU_BATCH_OWNS_NONE GPU_BATCH_INVALID
@@ -78,6 +75,7 @@ extern "C" {
 /**
  * IMPORTANT: Do not allocate manually as the real struct is bigger (i.e: GLBatch). This is only
  * the common and "public" part of the struct. Use the provided allocator.
+ * TODO(fclem) Make the content of this struct hidden and expose getters/setters.
  **/
 typedef struct GPUBatch {
   /** verts[0] is required, others can be NULL */
@@ -90,32 +88,8 @@ typedef struct GPUBatch {
   eGPUBatchFlag flag;
   /** Type of geometry to draw. */
   GPUPrimType prim_type;
-
-  /** Current assigned shader. */
+  /** Current assigned shader. DEPRECATED. Here only for uniform binding. */
   struct GPUShader *shader;
-  /** Last context used to draw this batch. */
-  struct GPUContext *context;
-
-  struct GPUShaderInterface *interface;
-  GLuint vao_id;
-
-  /* Vao management: remembers all geometry state (vertex attribute bindings & element buffer)
-   * for each shader interface. Start with a static number of vaos and fallback to dynamic count
-   * if necessary. Once a batch goes dynamic it does not go back. */
-  bool is_dynamic_vao_count;
-  union {
-    /** Static handle count */
-    struct {
-      const struct GPUShaderInterface *interfaces[GPU_BATCH_VAO_STATIC_LEN];
-      uint32_t vao_ids[GPU_BATCH_VAO_STATIC_LEN];
-    } static_vaos;
-    /** Dynamic handle count */
-    struct {
-      uint count;
-      const struct GPUShaderInterface **interfaces;
-      uint32_t *vao_ids;
-    } dynamic_vaos;
-  };
 } GPUBatch;
 
 GPUBatch *GPU_batch_calloc(void);

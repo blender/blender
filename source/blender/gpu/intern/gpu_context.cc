@@ -188,18 +188,6 @@ void GPU_tex_free(GLuint tex_id)
  * which are not shared across contexts. So we need to keep track of
  * ownership. */
 
-void gpu_context_add_batch(GPUContext *ctx, GPUBatch *batch)
-{
-  BLI_assert(ctx);
-  static_cast<GLContext *>(ctx)->batch_register(batch);
-}
-
-void gpu_context_remove_batch(GPUContext *ctx, GPUBatch *batch)
-{
-  BLI_assert(ctx);
-  static_cast<GLContext *>(ctx)->batch_unregister(batch);
-}
-
 void gpu_context_add_framebuffer(GPUContext *ctx, GPUFrameBuffer *fb)
 {
 #ifdef DEBUG

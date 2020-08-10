@@ -575,6 +575,10 @@ void GPU_shader_bind(GPUShader *shader)
     GPU_matrix_bind(shader->interface);
     GPU_shader_set_srgb_uniform(shader->interface);
   }
+
+  if (GPU_matrix_dirty_get()) {
+    GPU_matrix_bind(shader->interface);
+  }
 }
 
 void GPU_shader_unbind(void)

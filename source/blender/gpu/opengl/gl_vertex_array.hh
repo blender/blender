@@ -13,33 +13,32 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2016 by Mike Erwin.
+ * The Original Code is Copyright (C) 2020 Blender Foundation.
  * All rights reserved.
  */
 
 /** \file
  * \ingroup gpu
- *
- * GPU geometry batch
- * Contains VAOs + VBOs + Shader representing a drawable entity.
  */
 
 #pragma once
 
+#include "glew-mx.h"
+
 #include "GPU_batch.h"
-#include "GPU_context.h"
 #include "GPU_shader_interface.h"
 
 namespace blender {
 namespace gpu {
 
-class Batch : public GPUBatch {
- public:
-  Batch(){};
-  virtual ~Batch(){};
+namespace GLVertArray {
 
-  virtual void draw(int v_first, int v_count, int i_first, int i_count) = 0;
-};
+void update_bindings(const GLuint vao,
+                     const GPUBatch *batch,
+                     const GPUShaderInterface *interface,
+                     const int base_instance);
+
+}  // namespace GLVertArray
 
 }  // namespace gpu
 }  // namespace blender

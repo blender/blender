@@ -25,15 +25,16 @@
 
 #include "gpu_context_private.hh"
 
+#include "GPU_framebuffer.h"
+
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
 
 #include "glew-mx.h"
 
-#include <iostream>
+#include "gl_batch.hh"
+
 #include <mutex>
-#include <unordered_set>
-#include <vector>
 
 namespace blender {
 namespace gpu {
@@ -63,7 +64,7 @@ class GLContext : public GPUContext {
    * GPUBatch & GPUFramebuffer have references to the context they are from, in the case the
    * context is destroyed, we need to remove any reference to it.
    */
-  Set<GPUBatch *> batches_;
+  Set<GLVaoCache *> vao_caches_;
   Set<GPUFrameBuffer *> framebuffers_;
   /** Mutex for the bellow structures. */
   std::mutex lists_mutex_;
@@ -87,8 +88,8 @@ class GLContext : public GPUContext {
 
   void vao_free(GLuint vao_id);
   void fbo_free(GLuint fbo_id);
-  void batch_register(struct GPUBatch *batch);
-  void batch_unregister(struct GPUBatch *batch);
+  void vao_cache_register(GLVaoCache *cache);
+  void vao_cache_unregister(GLVaoCache *cache);
   void framebuffer_register(struct GPUFrameBuffer *fb);
   void framebuffer_unregister(struct GPUFrameBuffer *fb);
 };
