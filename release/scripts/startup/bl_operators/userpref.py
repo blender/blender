@@ -351,7 +351,7 @@ class PREFERENCES_OT_keyitem_restore(Operator):
 
     item_id: IntProperty(
         name="Item Identifier",
-        description="Identifier of the item to remove",
+        description="Identifier of the item to restore",
     )
 
     @classmethod
