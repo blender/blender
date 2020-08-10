@@ -27,6 +27,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_object_types.h"
+#include "DNA_rigidbody_types.h"
 
 namespace blender {
 namespace deg {
@@ -126,6 +127,19 @@ Relation *DepsgraphRelationBuilder::add_node_handle_relation(const KeyType &key_
   return nullptr;
 }
 
+static bool rigidbody_object_depends_on_evaluated_geometry(const RigidBodyOb *rbo)
+{
+  if (rbo == nullptr) {
+    return false;
+  }
+  if (ELEM(rbo->shape, RB_SHAPE_CONVEXH, RB_SHAPE_TRIMESH)) {
+    if (rbo->mesh_source != RBO_MESH_BASE) {
+      return true;
+    }
+  }
+  return false;
+}
+
 template<typename KeyTo>
 Relation *DepsgraphRelationBuilder::add_depends_on_transform_relation(ID *id,
                                                                       const KeyTo &key_to,
@@ -134,7 +148,7 @@ Relation *DepsgraphRelationBuilder::add_depends_on_transform_relation(ID *id,
 {
   if (GS(id->name) == ID_OB) {
     Object *object = reinterpret_cast<Object *>(id);
-    if (object->rigidbody_object != nullptr) {
+    if (rigidbody_object_depends_on_evaluated_geometry(object->rigidbody_object)) {
       OperationKey transform_key(&object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_EVAL);
       return add_relation(transform_key, key_to, description, flags);
     }
