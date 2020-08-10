@@ -628,7 +628,7 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
 void SCULPT_OT_mesh_filter(struct wmOperatorType *ot)
 {
   /* Identifiers. */
-  ot->name = "Filter mesh";
+  ot->name = "Filter Mesh";
   ot->idname = "SCULPT_OT_mesh_filter";
   ot->description = "Applies a filter to modify the current mesh";
 

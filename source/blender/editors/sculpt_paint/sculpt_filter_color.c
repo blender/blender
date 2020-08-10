@@ -305,7 +305,7 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
 void SCULPT_OT_color_filter(struct wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Filter color";
+  ot->name = "Filter Color";
   ot->idname = "SCULPT_OT_color_filter";
   ot->description = "Applies a filter to modify the current sculpt vertex colors";
 

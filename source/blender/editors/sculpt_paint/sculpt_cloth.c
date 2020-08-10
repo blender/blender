@@ -1232,7 +1232,7 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
 void SCULPT_OT_cloth_filter(struct wmOperatorType *ot)
 {
   /* Identifiers. */
-  ot->name = "Filter cloth";
+  ot->name = "Filter Cloth";
   ot->idname = "SCULPT_OT_cloth_filter";
   ot->description = "Applies a cloth simulation deformation to the entire mesh";
 
