@@ -217,7 +217,6 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
    *     FLUID_OT
    *     TEXTURE_OT
    *     UI_OT
-   *     VIEW2D_OT
    *     WORLD_OT
    */
 
@@ -343,6 +342,10 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
       default:
         break;
     }
+  }
+  /* General 2D View, not bound to a specific spacetype. */
+  else if (STRPREFIX(opname, "VIEW2D_OT")) {
+    km = WM_keymap_find_all(wm, "View2D", 0, 0);
   }
   /* Image Editor */
   else if (STRPREFIX(opname, "IMAGE_OT")) {
