@@ -479,7 +479,7 @@ TEST(ghash, Int2NoHash50000000)
 }
 #endif
 
-/* MultiSmall: create and manipulate a lot of very small ghashes
+/* MultiSmall: create and manipulate a lot of very small ghash's
  * (90% < 10 items, 9% < 100 items, 1% < 1000 items). */
 
 static void multi_small_ghash_tests_one(GHash *ghash, RNG *rng, const unsigned int nbr)

@@ -80,8 +80,8 @@ TEST(ghash, InsertLookup)
   BLI_ghash_free(ghash, NULL, NULL);
 }
 
-/* Here we simply insert and then remove all keys, ensuring we do get an empty, unshrinked ghash.
- */
+/* Here we simply insert and then remove all keys, ensuring we do get an empty,
+ * ghash that has not been shrunk. */
 TEST(ghash, InsertRemove)
 {
   GHash *ghash = BLI_ghash_new(BLI_ghashutil_inthash_p, BLI_ghashutil_intcmp, __func__);

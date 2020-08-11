@@ -161,8 +161,10 @@ static void sculpt_boundary_preview_edge_add(SculptBoundary *bdata, const int v1
   }
 };
 
-/* This funcion is used to check where the propagation should stop when calculating the boundary,
- * as well as to check if the initial vertex is valid. */
+/**
+ * This function is used to check where the propagation should stop when calculating the boundary,
+ * as well as to check if the initial vertex is valid.
+ */
 static bool sculpt_boundary_is_vertex_in_editable_boundary(SculptSession *ss,
                                                            const int initial_vertex)
 {
@@ -178,14 +180,14 @@ static bool sculpt_boundary_is_vertex_in_editable_boundary(SculptSession *ss,
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
-  /* Corners are ambiguous as it can't be decied which boundary should be active. The flood fill
+  /* Corners are ambiguous as it can't be decide which boundary should be active. The flood fill
    * should also stop at corners. */
   if (neighbor_count <= 2) {
     return false;
   }
 
-  /* Non manifold geomery in the mesh boundary. The deformation result will be unpredictable and
-   * not very useful. */
+  /* Non manifold geometry in the mesh boundary.
+   * The deformation result will be unpredictable and not very useful. */
   if (boundary_vertex_count > 2) {
     return false;
   }
@@ -266,11 +268,12 @@ static void sculpt_boundary_indices_init(SculptSession *ss,
   BLI_gset_free(included_vertices, NULL);
 }
 
-/* This functions initializes all data needed to calcualte falloffs and deformation from the
- * boundary into the mesh into a SculptBoundaryEditInfo array. This includes how many steps are
+/**
+ * This functions initializes all data needed to calculate falloffs and deformation from the
+ * boundary into the mesh into a #SculptBoundaryEditInfo array. This includes how many steps are
  * needed to go from a boundary vertex to an interior vertex and which vertex of the boundary is
- * the closest one. */
-
+ * the closest one.
+ */
 static void sculpt_boundary_edit_data_init(SculptSession *ss,
                                            SculptBoundary *bdata,
                                            const int initial_vertex,
@@ -399,7 +402,7 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
   BLI_gsqueue_free(next_iteration);
 }
 
-/* This functions assings a falloff factor to each one of the SculptBoundaryEditInfo structs based
+/* This functions assigns a falloff factor to each one of the SculptBoundaryEditInfo structs based
  * on the brush curve and its propagation steps. The falloff goes from the boundary into the mesh.
  */
 static void sculpt_boundary_falloff_factor_init(SculptSession *ss,

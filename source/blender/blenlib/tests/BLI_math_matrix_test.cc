@@ -45,8 +45,8 @@ TEST(math_matrix, interp_m4_m4m4_regular)
 
 TEST(math_matrix, interp_m3_m3m3_singularity)
 {
-  /* A singluarity means that there is an axis mirror in the rotation component of the matrix. This
-   * is reflected in its negative determinant.
+  /* A singularity means that there is an axis mirror in the rotation component of the matrix.
+   * This is reflected in its negative determinant.
    *
    * The interpolation of 4x4 matrices performs linear interpolation on the translation component,
    * and then uses the 3x3 interpolation function to handle rotation and scale. As a result, this

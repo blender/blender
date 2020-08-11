@@ -1296,8 +1296,8 @@ static bool paint_cursor_context_init(bContext *C,
   pcontext->zoomx = max_ff(zoomx, zoomy);
   pcontext->final_radius = (BKE_brush_size_get(pcontext->scene, pcontext->brush) * zoomx);
 
-  /* There is currently no way to check if the direction is invertex before starting the stroke, so
-   * this does not reflect the state of the brush in the UI. */
+  /* There is currently no way to check if the direction is inverted before starting the stroke,
+   * so this does not reflect the state of the brush in the UI. */
   if (((pcontext->ups->draw_inverted == 0) ^ ((pcontext->brush->flag & BRUSH_DIR_IN) == 0)) &&
       BKE_brush_sculpt_has_secondary_color(pcontext->brush)) {
     copy_v3_v3(pcontext->outline_col, pcontext->brush->sub_col);
@@ -1549,8 +1549,8 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
 {
   Brush *brush = pcontext->brush;
 
-  /* 2D fallof is better represented with the default 2D cursor, there is no need to draw anything
-   * else. */
+  /* 2D falloff is better represented with the default 2D cursor,
+   * there is no need to draw anything else. */
   if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
     paint_draw_legacy_3D_view_brush_cursor(pcontext);
     return;

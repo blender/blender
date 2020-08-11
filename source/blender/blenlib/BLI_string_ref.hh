@@ -385,7 +385,7 @@ inline std::string operator+(StringRef a, StringRef b)
 /* This does not compare StringRef and std::string_view, because of ambiguous overloads. This is
  * not a problem when std::string_view is only used at api boundaries. To compare a StringRef and a
  * std::string_view, one should convert the std::string_view to StringRef (which is very cheap).
- * Ideally, we only use StringRef in our code to avoid this problem alltogether. */
+ * Ideally, we only use StringRef in our code to avoid this problem altogether. */
 inline bool operator==(StringRef a, StringRef b)
 {
   if (a.size() != b.size()) {

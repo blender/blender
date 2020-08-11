@@ -2001,7 +2001,7 @@ static void calculate_profile(BevelParams *bp, BoundVert *bndv, bool reversed, b
   /* Calculate the 3D locations for the profile points */
   calculate_profile_segments(
       pro, map, use_map, reversed, bp->seg, pro_spacing->xvals, pro_spacing->yvals, pro->prof_co);
-  /* Also calcualte for the is the seg_2 case if it's needed .*/
+  /* Also calculate for the is the seg_2 case if it's needed .*/
   if (need_2) {
     calculate_profile_segments(pro,
                                map,
