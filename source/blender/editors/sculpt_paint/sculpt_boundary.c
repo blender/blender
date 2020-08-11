@@ -132,10 +132,14 @@ static int BOUNDARY_INDICES_BLOCK_SIZE = 300;
 
 static void sculpt_boundary_index_add(SculptBoundary *bdata,
                                       const int new_index,
+                                      const float distance,
                                       GSet *included_vertices)
 {
 
   bdata->vertices[bdata->num_vertices] = new_index;
+  if (bdata->distance) {
+    bdata->distance[new_index] = distance;
+  }
   if (included_vertices) {
     BLI_gset_add(included_vertices, POINTER_FROM_INT(new_index));
   }
@@ -213,7 +217,11 @@ static bool boundary_floodfill_cb(
   BoundaryFloodFillData *data = userdata;
   SculptBoundary *bdata = data->bdata;
   if (SCULPT_vertex_is_boundary(ss, to_v)) {
-    sculpt_boundary_index_add(bdata, to_v, data->included_vertices);
+    const float edge_len = len_v3v3(SCULPT_vertex_co_get(ss, from_v),
+                                    SCULPT_vertex_co_get(ss, to_v));
+    const float distance_boundary_to_dst = bdata->distance ? bdata->distance[from_v] + edge_len :
+                                                             0.0f;
+    sculpt_boundary_index_add(bdata, to_v, distance_boundary_to_dst, data->included_vertices);
     if (!is_duplicate) {
       sculpt_boundary_preview_edge_add(bdata, from_v, to_v);
     }
@@ -224,11 +232,16 @@ static bool boundary_floodfill_cb(
 
 static void sculpt_boundary_indices_init(SculptSession *ss,
                                          SculptBoundary *bdata,
+                                         const bool init_boundary_distances,
                                          const int initial_boundary_index)
 {
 
+  const int totvert = SCULPT_vertex_count_get(ss);
   bdata->vertices = MEM_malloc_arrayN(
       BOUNDARY_INDICES_BLOCK_SIZE, sizeof(int), "boundary indices");
+  if (init_boundary_distances) {
+    bdata->distance = MEM_calloc_arrayN(totvert, sizeof(float), "boundary distances");
+  }
   bdata->edges = MEM_malloc_arrayN(
       BOUNDARY_INDICES_BLOCK_SIZE, sizeof(SculptBoundaryPreviewEdge), "boundary edges");
 
@@ -238,7 +251,7 @@ static void sculpt_boundary_indices_init(SculptSession *ss,
 
   bdata->initial_vertex = initial_boundary_index;
   copy_v3_v3(bdata->initial_vertex_position, SCULPT_vertex_co_get(ss, bdata->initial_vertex));
-  sculpt_boundary_index_add(bdata, initial_boundary_index, included_vertices);
+  sculpt_boundary_index_add(bdata, initial_boundary_index, 0.0f, included_vertices);
   SCULPT_floodfill_add_initial(&flood, initial_boundary_index);
 
   BoundaryFloodFillData fdata = {
@@ -407,7 +420,8 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
  */
 static void sculpt_boundary_falloff_factor_init(SculptSession *ss,
                                                 SculptBoundary *bdata,
-                                                Brush *brush)
+                                                Brush *brush,
+                                                const float radius)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
   BKE_curvemapping_init(brush->curve);
@@ -417,12 +431,55 @@ static void sculpt_boundary_falloff_factor_init(SculptSession *ss,
       bdata->edit_info[i].strength_factor = BKE_brush_curve_strength(
           brush, bdata->edit_info[i].num_propagation_steps, bdata->max_propagation_steps);
     }
+
+    if (bdata->edit_info[i].original_vertex == bdata->initial_vertex) {
+      /* All vertices that are propagated from the original vertex won't be affected by the
+       * boundary falloff, so there is no need to calculate anything else. */
+      continue;
+    }
+
+    if (!bdata->distance) {
+      /* There are falloff modes that do not require to modify the previously calculated falloff
+       * based on boundary distances. */
+      continue;
+    }
+
+    const float boundary_distance = bdata->distance[bdata->edit_info[i].original_vertex];
+    float falloff_distance = 0.0f;
+    float direction = 1.0f;
+
+    switch (brush->boundary_falloff_type) {
+      case BRUSH_BOUNDARY_FALLOFF_RADIUS:
+        falloff_distance = boundary_distance;
+        break;
+      case BRUSH_BOUNDARY_FALLOFF_LOOP: {
+        const int div = boundary_distance / radius;
+        const float mod = fmodf(boundary_distance, radius);
+        falloff_distance = div % 2 == 0 ? mod : radius - mod;
+      } break;
+      case BRUSH_BOUNDARY_FALLOFF_LOOP_INVERT: {
+        const int div = boundary_distance / radius;
+        const float mod = fmodf(boundary_distance, radius);
+        falloff_distance = div % 2 == 0 ? mod : radius - mod;
+        /* Inverts the faloff in the intervals 1 2 5 6 9 10 ... */
+        if (((div - 1) & 2) == 0) {
+          direction = -1.0f;
+        }
+      } break;
+      case BRUSH_BOUNDARY_FALLOFF_CONSTANT:
+        /* For constant falloff distances are not allocated, so this should never happen. */
+        BLI_assert(false);
+    }
+
+    bdata->edit_info[i].strength_factor *= direction * BKE_brush_curve_strength(
+                                                           brush, falloff_distance, radius);
   }
 }
 
 /* Main function to get SculptBoundary data both for brush deformation and viewport preview. Can
  * return NULL if there is no boundary from the given vertex using the given radius. */
 SculptBoundary *SCULPT_boundary_data_init(Object *object,
+                                          Brush *brush,
                                           const int initial_vertex,
                                           const float radius)
 {
@@ -446,8 +503,12 @@ SculptBoundary *SCULPT_boundary_data_init(Object *object,
 
   SculptBoundary *bdata = MEM_callocN(sizeof(SculptBoundary), "Boundary edit data");
 
-  sculpt_boundary_indices_init(ss, bdata, boundary_initial_vertex);
-  sculpt_boundary_edit_data_init(ss, bdata, boundary_initial_vertex, radius);
+  const bool init_boundary_distances = brush->boundary_falloff_type !=
+                                       BRUSH_BOUNDARY_FALLOFF_CONSTANT;
+  sculpt_boundary_indices_init(ss, bdata, init_boundary_distances, boundary_initial_vertex);
+
+  const float boundary_radius = radius * (1.0f + brush->boundary_offset);
+  sculpt_boundary_edit_data_init(ss, bdata, boundary_initial_vertex, boundary_radius);
 
   return bdata;
 }
@@ -455,6 +516,7 @@ SculptBoundary *SCULPT_boundary_data_init(Object *object,
 void SCULPT_boundary_data_free(SculptBoundary *bdata)
 {
   MEM_SAFE_FREE(bdata->vertices);
+  MEM_SAFE_FREE(bdata->distance);
   MEM_SAFE_FREE(bdata->edit_info);
   MEM_SAFE_FREE(bdata->bend.pivot_positions);
   MEM_SAFE_FREE(bdata->bend.pivot_rotation_axis);
@@ -775,7 +837,7 @@ void SCULPT_do_boundary_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
     }
 
     ss->cache->bdata[symm_area] = SCULPT_boundary_data_init(
-        ob, initial_vertex, ss->cache->initial_radius);
+        ob, brush, initial_vertex, ss->cache->initial_radius);
 
     if (ss->cache->bdata[symm_area]) {
 
@@ -795,7 +857,8 @@ void SCULPT_do_boundary_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
           break;
       }
 
-      sculpt_boundary_falloff_factor_init(ss, ss->cache->bdata[symm_area], brush);
+      sculpt_boundary_falloff_factor_init(
+          ss, ss->cache->bdata[symm_area], brush, ss->cache->initial_radius);
     }
   }
 

@@ -387,6 +387,13 @@ typedef enum eBrushBoundaryDeformType {
   BRUSH_BOUNDARY_DEFORM_TWIST = 4,
 } eBrushBushBoundaryDeformType;
 
+typedef enum eBrushBoundaryFalloffType {
+  BRUSH_BOUNDARY_FALLOFF_CONSTANT = 0,
+  BRUSH_BOUNDARY_FALLOFF_RADIUS = 1,
+  BRUSH_BOUNDARY_FALLOFF_LOOP = 2,
+  BRUSH_BOUNDARY_FALLOFF_LOOP_INVERT = 3,
+} eBrushBoundaryFalloffType;
+
 /* Gpencilsettings.Vertex_mode */
 typedef enum eGp_Vertex_Mode {
   /* Affect to Stroke only. */
@@ -596,6 +603,8 @@ typedef struct Brush {
 
   /* boundary */
   int boundary_deform_type;
+  int boundary_falloff_type;
+  float boundary_offset;
 
   /* cloth */
   int cloth_deform_type;

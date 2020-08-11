@@ -398,6 +398,7 @@ void SCULPT_pose_ik_chain_free(struct SculptPoseIKChain *ik_chain);
 
 /* Boundary Brush. */
 struct SculptBoundary *SCULPT_boundary_data_init(Object *object,
+                                                 Brush *brush,
                                                  const int initial_vertex,
                                                  const float radius);
 void SCULPT_boundary_data_free(struct SculptBoundary *bdata);

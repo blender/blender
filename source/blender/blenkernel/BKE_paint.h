@@ -337,6 +337,11 @@ typedef struct SculptBoundary {
   int vertices_capacity;
   int num_vertices;
 
+  /* Distance from a vertex in the boundary to initial vertex indexed by vertex index, taking into
+   * account the lengh of all edges between them. Any vertex that is not in the boundary will have
+   * a distance of 0. */
+  float *distance;
+
   /* Data for drawing the preview. */
   SculptBoundaryPreviewEdge *edges;
   int edges_capacity;

@@ -1997,6 +1997,31 @@ static void rna_def_brush(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem brush_boundary_falloff_type_items[] = {
+      {BRUSH_BOUNDARY_FALLOFF_CONSTANT,
+       "CONSTANT",
+       0,
+       "Constant",
+       "Applies the same deformation in the entire boundary"},
+      {BRUSH_BOUNDARY_FALLOFF_RADIUS,
+       "RADIUS",
+       0,
+       "Brush Radius",
+       "Applies the deformation in a localiced area limited by the brush radius"},
+      {BRUSH_BOUNDARY_FALLOFF_LOOP,
+       "LOOP",
+       0,
+       "Loop",
+       "Applies the brush falloff in a loop pattern"},
+      {BRUSH_BOUNDARY_FALLOFF_LOOP_INVERT,
+       "LOOP_INVERT",
+       0,
+       "Loop and Invert",
+       "Applies the fallof radius in a loop pattern, inverting the displacement direction in each "
+       "pattern repetition"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   static const EnumPropertyItem brush_cloth_simulation_area_type_items[] = {
       {BRUSH_CLOTH_SIMULATION_AREA_LOCAL,
        "LOCAL",
@@ -2192,6 +2217,12 @@ static void rna_def_brush(BlenderRNA *brna)
       prop,
       "Simulation Area",
       "Part of the mesh that is going to be simulated when the stroke is active");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "boundary_falloff_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, brush_boundary_falloff_type_items);
+  RNA_def_property_ui_text(
+      prop, "Boundary Falloff", "How the brush falloff is applied across the boundary");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "smooth_deform_type", PROP_ENUM, PROP_NONE);
@@ -2543,6 +2574,14 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Max Element Distance",
                            "Maximum distance to search for disconnected loose parts in the mesh");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "boundary_offset", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "boundary_offset");
+  RNA_def_property_range(prop, 0.0f, 30.0f);
+  RNA_def_property_ui_text(prop,
+                           "Boundary Origin Offset",
+                           "Offset of the boundary origin in relation to the brush radius");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "surface_smooth_shape_preservation", PROP_FLOAT, PROP_FACTOR);
