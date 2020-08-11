@@ -1082,7 +1082,7 @@ static void sculpt_face_set_apply_edit(Object *ob,
   MEM_SAFE_FREE(prev_face_sets);
 }
 
-static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
@@ -1096,7 +1096,20 @@ static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEven
     return OPERATOR_CANCELLED;
   }
 
+  /* Ignore other events to avoid repeated operations. */
+  if (event->val != KM_PRESS) {
+    return OPERATOR_CANCELLED;
+  }
+
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
+
+  /* Update the current active Face Set and Vertex as the operator can be used directly from the
+   * tool without brush cursor. */
+  SculptCursorGeometryInfo sgi;
+  float mouse[2];
+  mouse[0] = event->mval[0];
+  mouse[1] = event->mval[1];
+  SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
 
   PBVH *pbvh = ob->sculpt->pbvh;
   PBVHNode **nodes;

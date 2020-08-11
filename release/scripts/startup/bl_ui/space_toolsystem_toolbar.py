@@ -1335,6 +1335,22 @@ class _defs_sculpt:
             draw_settings=draw_settings,
         )
 
+    @ToolDef.from_fn
+    def face_set_edit():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("sculpt.face_set_edit")
+            layout.prop(props, "mode", expand=False)
+            layout.prop(props, "modify_hidden")
+
+        return dict(
+            idname="builtin.face_set_edit",
+            label="Edit Face Set",
+            icon="ops.sculpt.face_set_edit",
+            widget=None,
+            keymap="3D View Tool: Sculpt, Face Set Edit",
+            draw_settings=draw_settings,
+        )
+
 
 class _defs_vertex_paint:
 
@@ -2594,6 +2610,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                         context.preferences.experimental.use_sculpt_vertex_colors)
                 else ()
             ),
+            None,
+            _defs_sculpt.face_set_edit,
             None,
             _defs_transform.translate,
             _defs_transform.rotate,
