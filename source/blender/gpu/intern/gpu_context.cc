@@ -280,11 +280,9 @@ void GPU_backend_init(eGPUBackendType backend_type)
 
 void GPU_backend_exit(void)
 {
-  if (g_backend) {
-    /* TODO assert no resource left. Currently UI textures are still not freed in their context
-     * correctly. */
-    delete g_backend;
-  }
+  /* TODO assert no resource left. Currently UI textures are still not freed in their context
+   * correctly. */
+  delete g_backend;
 }
 
 GPUBackend *gpu_backend_get(void)
