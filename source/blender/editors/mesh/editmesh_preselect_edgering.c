@@ -343,12 +343,12 @@ void EDBM_preselect_edgering_update_from_edge(struct EditMesh_PreSelEdgeRing *ps
     BM_mesh_elem_index_ensure(bm, BM_VERT);
   }
 
-  if (BM_edge_is_wire(eed_start)) {
-    view3d_preselect_mesh_edgering_update_verts_from_edge(
+  if (BM_edge_is_any_face_len_test(eed_start, 4)) {
+    view3d_preselect_mesh_edgering_update_edges_from_edge(
         psel, bm, eed_start, previewlines, coords);
   }
   else {
-    view3d_preselect_mesh_edgering_update_edges_from_edge(
+    view3d_preselect_mesh_edgering_update_verts_from_edge(
         psel, bm, eed_start, previewlines, coords);
   }
 }

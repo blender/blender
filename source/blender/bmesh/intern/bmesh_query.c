@@ -2511,6 +2511,22 @@ bool BM_face_is_any_edge_flag_test(const BMFace *f, const char hflag)
   return false;
 }
 
+bool BM_edge_is_any_face_len_test(const BMEdge *e, const int len)
+{
+  if (e->l) {
+    BMLoop *l_iter, *l_first;
+
+    l_iter = l_first = e->l;
+    do {
+      if (l_iter->f->len == len) {
+        return true;
+      }
+    } while ((l_iter = l_iter->radial_next) != l_first);
+  }
+
+  return false;
+}
+
 /**
  * Use within assert's to check normals are valid.
  */

@@ -243,6 +243,9 @@ bool BM_face_is_any_vert_flag_test(const BMFace *f, const char hflag) ATTR_WARN_
 bool BM_face_is_any_edge_flag_test(const BMFace *f, const char hflag) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
 
+bool BM_edge_is_any_face_len_test(const BMEdge *e, const int len) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL();
+
 bool BM_face_is_normal_valid(const BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 double BM_mesh_calc_volume(BMesh *bm, bool is_signed) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
