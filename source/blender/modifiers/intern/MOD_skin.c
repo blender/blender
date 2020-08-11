@@ -772,6 +772,11 @@ static EMat *build_edge_mats(const MVertSkin *vs,
 
         *has_valid_root = true;
       }
+      else if (totedge == 0) {
+        /* Vertex-only mesh is valid, mark valid root as well (will display error otherwise). */
+        *has_valid_root = true;
+        break;
+      }
     }
   }
 
