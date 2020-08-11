@@ -21,10 +21,6 @@
 set(INC
   .
   ..
-  ../../../source/blender/blenlib
-  ../../../source/blender/makesdna
-  ../../../intern/guardedalloc
-  ../../../intern/atomic
 )
 
 setup_libdirs()

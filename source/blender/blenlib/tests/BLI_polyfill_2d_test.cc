@@ -56,7 +56,7 @@ static void test_valid_polyfill_prepare(unsigned int tris[][3], unsigned int tri
  * - all tris set.
  * - all verts used at least once.
  */
-static void test_polyfill_simple(const float poly[][2],
+static void test_polyfill_simple(const float /*poly*/[][2],
                                  const unsigned int poly_tot,
                                  const unsigned int tris[][3],
                                  const unsigned int tris_tot)
@@ -79,7 +79,7 @@ static void test_polyfill_simple(const float poly[][2],
   MEM_freeN(tot_used);
 }
 
-static void test_polyfill_topology(const float poly[][2],
+static void test_polyfill_topology(const float /*poly*/[][2],
                                    const unsigned int poly_tot,
                                    const unsigned int tris[][3],
                                    const unsigned int tris_tot)
@@ -125,7 +125,7 @@ static void test_polyfill_topology(const float poly[][2],
  * Check all faces are flipped the same way
  */
 static void test_polyfill_winding(const float poly[][2],
-                                  const unsigned int poly_tot,
+                                  const unsigned int /*poly_tot*/,
                                   const unsigned int tris[][3],
                                   const unsigned int tris_tot)
 {

@@ -5,6 +5,8 @@ extern "C" {
 #include <libavutil/log.h>
 }
 
+namespace {
+
 bool test_vcodec(AVCodec *codec, AVPixelFormat pixelformat)
 {
   av_log_set_level(AV_LOG_QUIET);
@@ -107,6 +109,8 @@ bool test_codec_audio_by_name(const char *codecname, AVSampleFormat fmt)
   { \
     EXPECT_TRUE(test_codec_audio_by_name(str(codec), fmt)); \
   }
+
+}  // namespace
 
 /* generic codec ID's used in blender */
 

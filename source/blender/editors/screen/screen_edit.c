@@ -990,7 +990,7 @@ void ED_screen_global_areas_refresh(wmWindow *win)
  * \warning The returned screen may not always equal \a screen_new!
  */
 void screen_change_prepare(
-    bScreen *screen_old, bScreen *screen_new, Main *bmain, bContext *C, wmWindow *win)
+    bScreen *screen_old, bScreen *screen_new, Main *UNUSED(bmain), bContext *C, wmWindow *win)
 {
   BLI_assert(BLI_findindex(&bmain->screens, screen_new) != -1);
 
