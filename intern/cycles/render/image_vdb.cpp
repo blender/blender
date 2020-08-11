@@ -185,4 +185,16 @@ void VDBImageLoader::cleanup()
 #endif
 }
 
+bool VDBImageLoader::is_vdb_loader() const
+{
+  return true;
+}
+
+#ifdef WITH_OPENVDB
+openvdb::GridBase::ConstPtr VDBImageLoader::get_grid()
+{
+  return grid;
+}
+#endif
+
 CCL_NAMESPACE_END

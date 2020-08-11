@@ -1201,9 +1201,13 @@ void GeometryManager::device_update_volume_images(Device *device, Scene *scene, 
       }
 
       ImageHandle &handle = attr.data_voxel();
-      const int slot = handle.svm_slot();
-      if (slot != -1) {
-        volume_images.insert(slot);
+      /* We can build directly from OpenVDB data structures, no need to
+       * load such images early. */
+      if (!handle.vdb_loader()) {
+        const int slot = handle.svm_slot();
+        if (slot != -1) {
+          volume_images.insert(slot);
+        }
       }
     }
   }
