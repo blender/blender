@@ -3182,78 +3182,78 @@ static EdgeHalf *next_edgehalf_bev(BevelParams *bp,
                                    bool toward_bv,
                                    BevVert **r_bv)
 {
-  /* Case 1: The next EdgeHalf is across a BevVert from the current EdgeHalf. */
-  if (toward_bv) {
-    /* Skip all the logic if there's only one beveled edge at the vertex, we're at an end. */
-    if ((*r_bv)->selcount == 1) {
-      return NULL; /* No other edges to go to. */
-    }
-
-    /* The case with only one other edge connected to the vertex is special too. */
-    if ((*r_bv)->selcount == 2) {
-      /* Just find the next beveled edge, that's the only other option. */
-      EdgeHalf *new_edge = start_edge;
-      do {
-        new_edge = new_edge->next;
-      } while (!new_edge->is_bev);
-
-      return new_edge;
-    }
-
-    /* Find the direction vector of the current edge (pointing INTO the BevVert).
-     * v1 and v2 don't necessarily have an order, so we need to check which is closer to bv. */
-    float dir_start_edge[3];
-    if (start_edge->e->v1 == (*r_bv)->v) {
-      sub_v3_v3v3(dir_start_edge, start_edge->e->v1->co, start_edge->e->v2->co);
-    }
-    else {
-      sub_v3_v3v3(dir_start_edge, start_edge->e->v2->co, start_edge->e->v1->co);
-    }
-    normalize_v3(dir_start_edge);
-
-    /* Find the beveled edge coming out of the BevVert that's most parallel to the current edge. */
-    EdgeHalf *new_edge = start_edge->next;
-    float second_best_dot = 0.0f, best_dot = 0.0f;
-    EdgeHalf *next_edge = NULL;
-    while (new_edge != start_edge) {
-      if (!new_edge->is_bev) {
-        new_edge = new_edge->next;
-        continue;
-      }
-      /* Find direction vector of the possible next edge (pointing OUT of the BevVert). */
-      float dir_new_edge[3];
-      if (new_edge->e->v2 == (*r_bv)->v) {
-        sub_v3_v3v3(dir_new_edge, new_edge->e->v1->co, new_edge->e->v2->co);
-      }
-      else {
-        sub_v3_v3v3(dir_new_edge, new_edge->e->v2->co, new_edge->e->v1->co);
-      }
-      normalize_v3(dir_new_edge);
-
-      /* Use this edge if it is the most parallel to the orignial so far. */
-      float new_dot = dot_v3v3(dir_new_edge, dir_start_edge);
-      if (new_dot > best_dot) {
-        second_best_dot = best_dot; /* For remembering if the choice was too close. */
-        best_dot = new_dot;
-        next_edge = new_edge;
-      }
-      else if (new_dot > second_best_dot) {
-        second_best_dot = new_dot;
-      }
-
-      new_edge = new_edge->next;
-    }
-
-    /* Only return a new Edge if one was found and if the choice of next edge was not too close. */
-    if ((next_edge != NULL) && compare_ff(best_dot, second_best_dot, BEVEL_SMALL_ANG_DOT)) {
-      return NULL;
-    }
-    return next_edge;
+  /* Case 1: The next EdgeHalf is the other side of the BMEdge.
+   * It's part of the same BMEdge, so we know the other EdgeHalf is also beveled. */
+  if (!toward_bv) {
+    return find_other_end_edge_half(bp, start_edge, r_bv);
   }
 
-  /* Case 2: The next EdgeHalf is the other side of the BMEdge.
-   * It's part of the same BMEdge, so we know the other EdgeHalf is also beveled. */
-  return find_other_end_edge_half(bp, start_edge, r_bv);
+  /* Case 2: The next EdgeHalf is across a BevVert from the current EdgeHalf. */
+  /* Skip all the logic if there's only one beveled edge at the vertex, we're at an end. */
+  if ((*r_bv)->selcount == 1) {
+    return NULL; /* No other edges to go to. */
+  }
+
+  /* The case with only one other edge connected to the vertex is special too. */
+  if ((*r_bv)->selcount == 2) {
+    /* Just find the next beveled edge, that's the only other option. */
+    EdgeHalf *new_edge = start_edge;
+    do {
+      new_edge = new_edge->next;
+    } while (!new_edge->is_bev);
+
+    return new_edge;
+  }
+
+  /* Find the direction vector of the current edge (pointing INTO the BevVert).
+   * v1 and v2 don't necessarily have an order, so we need to check which is closer to bv. */
+  float dir_start_edge[3];
+  if (start_edge->e->v1 == (*r_bv)->v) {
+    sub_v3_v3v3(dir_start_edge, start_edge->e->v1->co, start_edge->e->v2->co);
+  }
+  else {
+    sub_v3_v3v3(dir_start_edge, start_edge->e->v2->co, start_edge->e->v1->co);
+  }
+  normalize_v3(dir_start_edge);
+
+  /* Find the beveled edge coming out of the BevVert that's most parallel to the current edge. */
+  EdgeHalf *new_edge = start_edge->next;
+  float second_best_dot = 0.0f, best_dot = 0.0f;
+  EdgeHalf *next_edge = NULL;
+  while (new_edge != start_edge) {
+    if (!new_edge->is_bev) {
+      new_edge = new_edge->next;
+      continue;
+    }
+    /* Find direction vector of the possible next edge (pointing OUT of the BevVert). */
+    float dir_new_edge[3];
+    if (new_edge->e->v2 == (*r_bv)->v) {
+      sub_v3_v3v3(dir_new_edge, new_edge->e->v1->co, new_edge->e->v2->co);
+    }
+    else {
+      sub_v3_v3v3(dir_new_edge, new_edge->e->v2->co, new_edge->e->v1->co);
+    }
+    normalize_v3(dir_new_edge);
+
+    /* Use this edge if it is the most parallel to the orignial so far. */
+    float new_dot = dot_v3v3(dir_new_edge, dir_start_edge);
+    if (new_dot > best_dot) {
+      second_best_dot = best_dot; /* For remembering if the choice was too close. */
+      best_dot = new_dot;
+      next_edge = new_edge;
+    }
+    else if (new_dot > second_best_dot) {
+      second_best_dot = new_dot;
+    }
+
+    new_edge = new_edge->next;
+  }
+
+  /* Only return a new Edge if one was found and if the choice of next edge was not too close. */
+  if ((next_edge != NULL) && compare_ff(best_dot, second_best_dot, BEVEL_SMALL_ANG_DOT)) {
+    return NULL;
+  }
+  return next_edge;
 }
 
 /**
