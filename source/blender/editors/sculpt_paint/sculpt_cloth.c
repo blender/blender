@@ -1137,7 +1137,7 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
   float len = event->prevclickx - event->mval[0];
   filter_strength = filter_strength * -len * 0.001f * UI_DPI_FAC;
 
-  SCULPT_vertex_random_access_init(ss);
+  SCULPT_vertex_random_access_ensure(ss);
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
@@ -1185,7 +1185,7 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   mouse[1] = event->mval[1];
   SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
 
-  SCULPT_vertex_random_access_init(ss);
+  SCULPT_vertex_random_access_ensure(ss);
 
   /* Needs mask data to be available as it is used when solving the constraints. */
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);

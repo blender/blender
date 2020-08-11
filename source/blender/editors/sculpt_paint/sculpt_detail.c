@@ -176,7 +176,7 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, int mx, int my)
 
   SculptSession *ss = ob->sculpt;
   SculptCursorGeometryInfo sgi;
-  SCULPT_vertex_random_access_init(ss);
+  SCULPT_vertex_random_access_ensure(ss);
 
   /* Update the active vertex. */
   const float mouse[2] = {mx, my};

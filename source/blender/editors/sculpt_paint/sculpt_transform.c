@@ -75,7 +75,7 @@ void ED_sculpt_init_transform(struct bContext *C)
 
   ss->pivot_rot[3] = 1.0f;
 
-  SCULPT_vertex_random_access_init(ss);
+  SCULPT_vertex_random_access_ensure(ss);
   SCULPT_filter_cache_init(ob, sd, SCULPT_UNDO_COORDS);
 }
 
@@ -126,7 +126,7 @@ void ED_sculpt_update_modal_transform(struct bContext *C)
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const char symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
 
-  SCULPT_vertex_random_access_init(ss);
+  SCULPT_vertex_random_access_ensure(ss);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
 
   SculptThreadedTaskData data = {

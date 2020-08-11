@@ -428,7 +428,7 @@ SculptBoundary *SCULPT_boundary_data_init(Object *object,
 {
   SculptSession *ss = object->sculpt;
 
-  SCULPT_vertex_random_access_init(ss);
+  SCULPT_vertex_random_access_ensure(ss);
   SCULPT_boundary_info_ensure(object);
 
   const int boundary_initial_vertex = sculpt_boundary_get_closest_boundary_vertex(

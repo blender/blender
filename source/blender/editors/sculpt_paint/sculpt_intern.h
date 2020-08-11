@@ -89,7 +89,7 @@ float SCULPT_raycast_init(struct ViewContext *vc,
                           bool original);
 
 /* Sculpt PBVH abstraction API */
-void SCULPT_vertex_random_access_init(struct SculptSession *ss);
+void SCULPT_vertex_random_access_ensure(struct SculptSession *ss);
 
 int SCULPT_vertex_count_get(struct SculptSession *ss);
 const float *SCULPT_vertex_co_get(struct SculptSession *ss, int index);

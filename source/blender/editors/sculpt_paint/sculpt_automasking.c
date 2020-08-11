@@ -338,23 +338,23 @@ void SCULPT_automasking_init(Sculpt *sd, Object *ob)
   }
 
   if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_TOPOLOGY)) {
-    SCULPT_vertex_random_access_init(ss);
+    SCULPT_vertex_random_access_ensure(ss);
     SCULPT_topology_automasking_init(sd, ob, ss->cache->automask_factor);
   }
   if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_FACE_SETS)) {
-    SCULPT_vertex_random_access_init(ss);
+    SCULPT_vertex_random_access_ensure(ss);
     sculpt_face_sets_automasking_init(sd, ob, ss->cache->automask_factor);
   }
 
   if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_BOUNDARY_EDGES)) {
-    SCULPT_vertex_random_access_init(ss);
+    SCULPT_vertex_random_access_ensure(ss);
     SCULPT_boundary_automasking_init(ob,
                                      AUTOMASK_INIT_BOUNDARY_EDGES,
                                      brush->automasking_boundary_edges_propagation_steps,
                                      ss->cache->automask_factor);
   }
   if (SCULPT_is_automasking_mode_enabled(sd, brush, BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS)) {
-    SCULPT_vertex_random_access_init(ss);
+    SCULPT_vertex_random_access_ensure(ss);
     SCULPT_boundary_automasking_init(ob,
                                      AUTOMASK_INIT_BOUNDARY_FACE_SETS,
                                      brush->automasking_boundary_edges_propagation_steps,
