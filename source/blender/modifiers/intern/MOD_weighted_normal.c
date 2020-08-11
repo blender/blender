@@ -677,6 +677,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   /* Currently Modifier stack assumes there is no poly normal data passed around... */
   CustomData_free_layers(pdata, CD_NORMAL, numPolys);
+
+  result->runtime.is_original = false;
+
   return result;
 }
 

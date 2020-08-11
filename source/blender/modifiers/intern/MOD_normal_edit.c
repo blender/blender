@@ -637,6 +637,8 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   CustomData_free_layers(pdata, CD_NORMAL, num_polys);
   MEM_SAFE_FREE(loopnors);
 
+  result->runtime.is_original = false;
+
   return result;
 }
 

@@ -204,29 +204,31 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   BKE_reports_init(&reports, RPT_STORE);
 
   /* Note: no islands precision for now here. */
-  BKE_object_data_transfer_ex(ctx->depsgraph,
-                              scene,
-                              ob_source,
-                              ctx->object,
-                              result,
-                              dtmd->data_types,
-                              false,
-                              dtmd->vmap_mode,
-                              dtmd->emap_mode,
-                              dtmd->lmap_mode,
-                              dtmd->pmap_mode,
-                              space_transform,
-                              false,
-                              max_dist,
-                              dtmd->map_ray_radius,
-                              0.0f,
-                              dtmd->layers_select_src,
-                              dtmd->layers_select_dst,
-                              dtmd->mix_mode,
-                              dtmd->mix_factor,
-                              dtmd->defgrp_name,
-                              invert_vgroup,
-                              &reports);
+  if (BKE_object_data_transfer_ex(ctx->depsgraph,
+                                  scene,
+                                  ob_source,
+                                  ctx->object,
+                                  result,
+                                  dtmd->data_types,
+                                  false,
+                                  dtmd->vmap_mode,
+                                  dtmd->emap_mode,
+                                  dtmd->lmap_mode,
+                                  dtmd->pmap_mode,
+                                  space_transform,
+                                  false,
+                                  max_dist,
+                                  dtmd->map_ray_radius,
+                                  0.0f,
+                                  dtmd->layers_select_src,
+                                  dtmd->layers_select_dst,
+                                  dtmd->mix_mode,
+                                  dtmd->mix_factor,
+                                  dtmd->defgrp_name,
+                                  invert_vgroup,
+                                  &reports)) {
+    result->runtime.is_original = false;
+  }
 
   if (BKE_reports_contain(&reports, RPT_ERROR)) {
     const char *report_str = BKE_reports_string(&reports, RPT_ERROR);

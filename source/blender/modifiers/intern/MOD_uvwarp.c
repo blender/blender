@@ -235,6 +235,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   /* XXX TODO is this still needed? */
   //  me_eval->dirty |= DM_DIRTY_TESS_CDLAYERS;
 
+  mesh->runtime.is_original = false;
+
   return mesh;
 }
 

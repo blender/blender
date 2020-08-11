@@ -109,9 +109,12 @@ typedef struct Mesh_Runtime {
   /** Set by modifier stack if only deformed from original. */
   char deformed_only;
   /**
-   * Copied from edit-mesh (hint, draw with editmesh data).
-   * In the future we may leave the mesh-data empty
-   * since its not needed if we can use edit-mesh data. */
+   * Copied from edit-mesh (hint, draw with edit-mesh data when true).
+   *
+   * Modifiers that edit the mesh data in-place must set this to false
+   * (most #eModifierTypeType_NonGeometrical modifiers). Otherwise the edit-mesh
+   * data will be used for drawing, missing changes from modifiers. See T79517.
+   */
   char is_original;
 
   /** #eMeshWrapperType and others. */
