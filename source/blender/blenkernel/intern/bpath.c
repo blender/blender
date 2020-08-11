@@ -165,7 +165,7 @@ void BKE_bpath_relative_rebase(Main *bmain,
                                ReportList *reports)
 {
   BPathRebase_Data data = {NULL};
-  const int flag = BKE_BPATH_TRAVERSE_SKIP_LIBRARY;
+  const int flag = (BKE_BPATH_TRAVERSE_SKIP_LIBRARY | BKE_BPATH_TRAVERSE_SKIP_MULTIFILE);
 
   BLI_assert(basedir_src[0] != '\0');
   BLI_assert(basedir_dst[0] != '\0');
