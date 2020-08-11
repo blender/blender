@@ -11,6 +11,11 @@
 #  define ABORT_PREDICATE ::testing::KilledBySignal(SIGABRT)
 #endif
 
+#ifdef __GNUC__
+/* Disable since it's the purpose of this test. */
+#  pragma GCC diagnostic ignored "-Walloc-size-larger-than="
+#endif
+
 namespace {
 
 void MallocArray(size_t len, size_t size)
