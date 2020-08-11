@@ -261,7 +261,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
 
     switch (filter_type) {
       case MESH_FILTER_SMOOTH:
-        CLAMP(fade, -1.0f, 1.0f);
+        fade = clamp_f(fade, -1.0f, 1.0f);
         SCULPT_neighbor_coords_average_interior(ss, avg, vd.index);
         sub_v3_v3v3(val, avg, orig_co);
         madd_v3_v3v3fl(val, orig_co, val, fade);

@@ -175,7 +175,7 @@ static void mask_filter_task_cb(void *__restrict userdata,
         *vd.mask = gain * (*vd.mask) + offset;
         break;
     }
-    CLAMP(*vd.mask, 0.0f, 1.0f);
+    *vd.mask = clamp_f(*vd.mask, 0.0f, 1.0f);
     if (*vd.mask != prev_val) {
       update = true;
     }

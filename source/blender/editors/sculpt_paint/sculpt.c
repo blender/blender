@@ -1921,8 +1921,7 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
         if (use_area_cos && area_test_r) {
           /* Weight the coordinates towards the center. */
           float p = 1.0f - (sqrtf(area_test.dist) / area_test.radius);
-          float afactor = 3.0f * p * p - 2.0f * p * p * p;
-          CLAMP(afactor, 0.0f, 1.0f);
+          const float afactor = clamp_f(3.0f * p * p - 2.0f * p * p * p, 0.0f, 1.0f);
 
           float disp[3];
           sub_v3_v3v3(disp, co, area_test.location);
@@ -1935,8 +1934,7 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
         if (use_area_nos && normal_test_r) {
           /* Weight the normals towards the center. */
           float p = 1.0f - (sqrtf(normal_test.dist) / normal_test.radius);
-          float nfactor = 3.0f * p * p - 2.0f * p * p * p;
-          CLAMP(nfactor, 0.0f, 1.0f);
+          const float nfactor = clamp_f(3.0f * p * p - 2.0f * p * p * p, 0.0f, 1.0f);
           mul_v3_fl(no, nfactor);
 
           add_v3_v3(anctd->area_nos[flip_index], no);
@@ -1997,8 +1995,7 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
         if (use_area_cos && area_test_r) {
           /* Weight the coordinates towards the center. */
           float p = 1.0f - (sqrtf(area_test.dist) / area_test.radius);
-          float afactor = 3.0f * p * p - 2.0f * p * p * p;
-          CLAMP(afactor, 0.0f, 1.0f);
+          const float afactor = clamp_f(3.0f * p * p - 2.0f * p * p * p, 0.0f, 1.0f);
 
           float disp[3];
           sub_v3_v3v3(disp, co, area_test.location);
@@ -2011,8 +2008,7 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
         if (use_area_nos && normal_test_r) {
           /* Weight the normals towards the center. */
           float p = 1.0f - (sqrtf(normal_test.dist) / normal_test.radius);
-          float nfactor = 3.0f * p * p - 2.0f * p * p * p;
-          CLAMP(nfactor, 0.0f, 1.0f);
+          const float nfactor = clamp_f(3.0f * p * p - 2.0f * p * p * p, 0.0f, 1.0f);
           mul_v3_fl(no, nfactor);
 
           add_v3_v3(anctd->area_nos[flip_index], no);
@@ -2778,8 +2774,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
     return;
   }
 
-  float bstrength = data->strength;
-  CLAMP(bstrength, 0.0f, 1.0f);
+  const float bstrength = clamp_f(data->strength, 0.0f, 1.0f);
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -2818,14 +2813,14 @@ static void bmesh_topology_rake(
     Sculpt *sd, Object *ob, PBVHNode **nodes, const int totnode, float bstrength)
 {
   Brush *brush = BKE_paint_brush(&sd->paint);
-  CLAMP(bstrength, 0.0f, 1.0f);
+  const float strength = clamp_f(bstrength, 0.0f, 1.0f);
 
   /* Interactions increase both strength and quality. */
   const int iterations = 3;
 
   int iteration;
-  const int count = iterations * bstrength + 1;
-  const float factor = iterations * bstrength / count;
+  const int count = iterations * strength + 1;
+  const float factor = iterations * strength / count;
 
   for (iteration = 0; iteration <= count; iteration++) {
 
@@ -2871,7 +2866,7 @@ static void do_mask_brush_draw_task_cb_ex(void *__restrict userdata,
       else {
         (*vd.mask) += fade * bstrength * (*vd.mask);
       }
-      CLAMP(*vd.mask, 0.0f, 1.0f);
+      *vd.mask = clamp_f(*vd.mask, 0.0f, 1.0f);
 
       if (vd.mvert) {
         vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -4335,10 +4330,10 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
       }
       if (vd.mask) {
         const float clamp_mask = 1.0f - *vd.mask;
-        CLAMP(*disp_factor, -clamp_mask, clamp_mask);
+        *disp_factor = clamp_f(*disp_factor, -clamp_mask, clamp_mask);
       }
       else {
-        CLAMP(*disp_factor, -1.0f, 1.0f);
+        *disp_factor = clamp_f(*disp_factor, -1.0f, 1.0f);
       }
 
       float final_co[3];
@@ -5229,7 +5224,7 @@ static void do_clay_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
    * stroke. */
   if (SCULPT_stroke_is_main_symmetry_pass(ss->cache)) {
     ss->cache->clay_thumb_front_angle += 0.8f;
-    CLAMP(ss->cache->clay_thumb_front_angle, 0.0f, 60.0f);
+    ss->cache->clay_thumb_front_angle = clamp_f(ss->cache->clay_thumb_front_angle, 0.0f, 60.0f);
   }
 
   if (is_zero_v3(ss->cache->grab_delta_symmetry)) {
