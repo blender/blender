@@ -182,8 +182,9 @@ static int get_edge(const CDT_result *r, int out_index_1, int out_index_2)
 
   for (i = 0; i < r->edges_len; i++) {
     if ((r->edges[i][0] == out_index_1 && r->edges[i][1] == out_index_2) ||
-        (r->edges[i][0] == out_index_2 && r->edges[i][1] == out_index_1))
+        (r->edges[i][0] == out_index_2 && r->edges[i][1] == out_index_1)) {
       return i;
+    }
   }
   return -1;
 }
@@ -191,28 +192,33 @@ static int get_edge(const CDT_result *r, int out_index_1, int out_index_2)
 /* return true if given output edge has given input edge id in its originals list */
 static bool out_edge_has_input_id(const CDT_result *r, int out_edge_index, int in_edge_index)
 {
-  if (r->edges_orig == NULL)
+  if (r->edges_orig == NULL) {
     return false;
-  if (out_edge_index < 0 || out_edge_index >= r->edges_len)
+  }
+  if (out_edge_index < 0 || out_edge_index >= r->edges_len) {
     return false;
+  }
   for (int i = 0; i < r->edges_orig_len_table[out_edge_index]; i++) {
-    if (r->edges_orig[r->edges_orig_start_table[out_edge_index] + i] == in_edge_index)
+    if (r->edges_orig[r->edges_orig_start_table[out_edge_index] + i] == in_edge_index) {
       return true;
+    }
   }
   return false;
 }
 
 /* which face is for given output vertex ngon? */
-static int get_face(const CDT_result *r, int *out_indices, int nverts)
+static int get_face(const CDT_result *r, const int *out_indices, int nverts)
 {
   int f, cycle_start, k, fstart;
   bool ok;
 
-  if (r->faces_len == 0)
+  if (r->faces_len == 0) {
     return -1;
+  }
   for (f = 0; f < r->faces_len; f++) {
-    if (r->faces_len_table[f] != nverts)
+    if (r->faces_len_table[f] != nverts) {
       continue;
+    }
     fstart = r->faces_start_table[f];
     for (cycle_start = 0; cycle_start < nverts; cycle_start++) {
       ok = true;
@@ -242,13 +248,16 @@ static int get_face_tri(const CDT_result *r, int out_index_1, int out_index_2, i
 /* return true if given otuput face has given input face id in its originals list */
 static bool out_face_has_input_id(const CDT_result *r, int out_face_index, int in_face_index)
 {
-  if (r->faces_orig == NULL)
+  if (r->faces_orig == NULL) {
     return false;
-  if (out_face_index < 0 || out_face_index >= r->faces_len)
+  }
+  if (out_face_index < 0 || out_face_index >= r->faces_len) {
     return false;
+  }
   for (int i = 0; i < r->faces_orig_len_table[out_face_index]; i++) {
-    if (r->faces_orig[r->faces_orig_start_table[out_face_index] + i] == in_face_index)
+    if (r->faces_orig[r->faces_orig_start_table[out_face_index] + i] == in_face_index) {
       return true;
+    }
   }
   return false;
 }
@@ -266,40 +275,46 @@ static void dump_result(CDT_result *r)
           r->edges_len,
           r->faces_len);
   fprintf(stderr, "\nvert coords:\n");
-  for (i = 0; i < r->verts_len; i++)
+  for (i = 0; i < r->verts_len; i++) {
     fprintf(stderr, "%d: (%f,%f)\n", i, r->vert_coords[i][0], r->vert_coords[i][1]);
+  }
   fprintf(stderr, "vert orig:\n");
   for (i = 0; i < r->verts_len; i++) {
     fprintf(stderr, "%d:", i);
-    for (j = 0; j < r->verts_orig_len_table[i]; j++)
+    for (j = 0; j < r->verts_orig_len_table[i]; j++) {
       fprintf(stderr, " %d", r->verts_orig[r->verts_orig_start_table[i] + j]);
+    }
     fprintf(stderr, "\n");
   }
   fprintf(stderr, "\nedges:\n");
-  for (i = 0; i < r->edges_len; i++)
+  for (i = 0; i < r->edges_len; i++) {
     fprintf(stderr, "%d: (%d,%d)\n", i, r->edges[i][0], r->edges[i][1]);
+  }
   if (r->edges_orig) {
     fprintf(stderr, "edge orig:\n");
     for (i = 0; i < r->edges_len; i++) {
       fprintf(stderr, "%d:", i);
-      for (j = 0; j < r->edges_orig_len_table[i]; j++)
+      for (j = 0; j < r->edges_orig_len_table[i]; j++) {
         fprintf(stderr, " %d", r->edges_orig[r->edges_orig_start_table[i] + j]);
+      }
       fprintf(stderr, "\n");
     }
   }
   fprintf(stderr, "\nfaces:\n");
   for (i = 0; i < r->faces_len; i++) {
     fprintf(stderr, "%d: ", i);
-    for (j = 0; j < r->faces_len_table[i]; j++)
+    for (j = 0; j < r->faces_len_table[i]; j++) {
       fprintf(stderr, " %d", r->faces[r->faces_start_table[i] + j]);
+    }
     fprintf(stderr, "\n");
   }
   if (r->faces_orig) {
     fprintf(stderr, "face orig:\n");
     for (i = 0; i < r->faces_len; i++) {
       fprintf(stderr, "%d:", i);
-      for (j = 0; j < r->faces_orig_len_table[i]; j++)
+      for (j = 0; j < r->faces_orig_len_table[i]; j++) {
         fprintf(stderr, " %d", r->faces_orig[r->faces_orig_start_table[i] + j]);
+      }
       fprintf(stderr, "\n");
     }
   }
@@ -908,8 +923,9 @@ TEST(delaunay, OverlapFaces)
   EXPECT_TRUE(out_face_has_input_id(out, f1_out, 0));
   EXPECT_TRUE(out_face_has_input_id(out, f1_out, 1));
   f2_out = get_face_tri(out, v_out[8], v_out[9], v_out[10]);
-  if (f2_out == -1)
+  if (f2_out == -1) {
     f2_out = get_face_tri(out, v_out[8], v_out[9], v_out[11]);
+  }
   EXPECT_NE(f2_out, -1);
   EXPECT_TRUE(out_face_has_input_id(out, f2_out, 0));
   EXPECT_TRUE(out_face_has_input_id(out, f2_out, 2));
