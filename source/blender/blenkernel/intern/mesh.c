@@ -95,7 +95,15 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
     /* This is a direct copy of a main mesh, so for now it has the same topology. */
     mesh_dst->runtime.deformed_only = true;
   }
-  /* XXX WHAT? Why? Comment, please! And pretty sure this is not valid for regular Mesh copying? */
+  /* This option is set for run-time meshes that have been copied from the current objects mode.
+   * Currently this is used for edit-mesh although it could be used for sculpt or other
+   * kinds of data specific to an objects mode.
+   *
+   * The flag signals that the mesh hasn't been modified from the data that generated it,
+   * allowing us to use the object-mode data for drawing.
+   *
+   * While this could be the callers responsibility, keep here since it's
+   * highly unlikely we want to create a duplicate and not use it for drawing. */
   mesh_dst->runtime.is_original = false;
 
   /* Only do tessface if we have no polys. */
