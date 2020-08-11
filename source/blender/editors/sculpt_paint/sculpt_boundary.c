@@ -626,6 +626,7 @@ static void do_boundary_brush_bend_task_cb_ex(void *__restrict userdata,
   SculptSession *ss = data->ob->sculpt;
   const int symm_area = ss->cache->mirror_symmetry_pass;
   SculptBoundary *bdata = ss->cache->bdata[symm_area];
+  const ePaintSymmetryFlags symm = data->sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
 
   const float strength = ss->cache->bstrength;
 
@@ -646,14 +647,16 @@ static void do_boundary_brush_bend_task_cb_ex(void *__restrict userdata,
 
     if (bdata->edit_info[vd.index].num_propagation_steps != -1) {
       SCULPT_orig_vert_data_update(&orig_data, &vd);
-      const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
-      float t_orig_co[3];
-      sub_v3_v3v3(t_orig_co, orig_data.co, bdata->bend.pivot_positions[vd.index]);
-      rotate_v3_v3v3fl(vd.co,
-                       t_orig_co,
-                       bdata->bend.pivot_rotation_axis[vd.index],
-                       angle * bdata->edit_info[vd.index].strength_factor * mask);
-      add_v3_v3(vd.co, bdata->bend.pivot_positions[vd.index]);
+      if (SCULPT_check_vertex_pivot_symmetry(orig_data.co, bdata->initial_vertex_position, symm)) {
+        const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
+        float t_orig_co[3];
+        sub_v3_v3v3(t_orig_co, orig_data.co, bdata->bend.pivot_positions[vd.index]);
+        rotate_v3_v3v3fl(vd.co,
+                         t_orig_co,
+                         bdata->bend.pivot_rotation_axis[vd.index],
+                         angle * bdata->edit_info[vd.index].strength_factor * mask);
+        add_v3_v3(vd.co, bdata->bend.pivot_positions[vd.index]);
+      }
     }
 
     if (vd.mvert) {
@@ -671,6 +674,7 @@ static void do_boundary_brush_slide_task_cb_ex(void *__restrict userdata,
   SculptSession *ss = data->ob->sculpt;
   const int symm_area = ss->cache->mirror_symmetry_pass;
   SculptBoundary *bdata = ss->cache->bdata[symm_area];
+  const ePaintSymmetryFlags symm = data->sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
 
   const float strength = ss->cache->bstrength;
 
@@ -685,11 +689,13 @@ static void do_boundary_brush_slide_task_cb_ex(void *__restrict userdata,
 
     if (bdata->edit_info[vd.index].num_propagation_steps != -1) {
       SCULPT_orig_vert_data_update(&orig_data, &vd);
-      const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
-      madd_v3_v3v3fl(vd.co,
-                     orig_data.co,
-                     bdata->slide.directions[vd.index],
-                     bdata->edit_info[vd.index].strength_factor * disp * mask * strength);
+      if (SCULPT_check_vertex_pivot_symmetry(orig_data.co, bdata->initial_vertex_position, symm)) {
+        const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
+        madd_v3_v3v3fl(vd.co,
+                       orig_data.co,
+                       bdata->slide.directions[vd.index],
+                       bdata->edit_info[vd.index].strength_factor * disp * mask * strength);
+      }
     }
 
     if (vd.mvert) {
@@ -707,6 +713,7 @@ static void do_boundary_brush_inflate_task_cb_ex(void *__restrict userdata,
   SculptSession *ss = data->ob->sculpt;
   const int symm_area = ss->cache->mirror_symmetry_pass;
   SculptBoundary *bdata = ss->cache->bdata[symm_area];
+  const ePaintSymmetryFlags symm = data->sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
 
   const float strength = ss->cache->bstrength;
 
@@ -721,13 +728,15 @@ static void do_boundary_brush_inflate_task_cb_ex(void *__restrict userdata,
 
     if (bdata->edit_info[vd.index].num_propagation_steps != -1) {
       SCULPT_orig_vert_data_update(&orig_data, &vd);
-      const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
-      float normal[3];
-      normal_short_to_float_v3(normal, orig_data.no);
-      madd_v3_v3v3fl(vd.co,
-                     orig_data.co,
-                     normal,
-                     bdata->edit_info[vd.index].strength_factor * disp * mask * strength);
+      if (SCULPT_check_vertex_pivot_symmetry(orig_data.co, bdata->initial_vertex_position, symm)) {
+        const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
+        float normal[3];
+        normal_short_to_float_v3(normal, orig_data.no);
+        madd_v3_v3v3fl(vd.co,
+                       orig_data.co,
+                       normal,
+                       bdata->edit_info[vd.index].strength_factor * disp * mask * strength);
+      }
     }
 
     if (vd.mvert) {
@@ -745,6 +754,7 @@ static void do_boundary_brush_grab_task_cb_ex(void *__restrict userdata,
   SculptSession *ss = data->ob->sculpt;
   const int symm_area = ss->cache->mirror_symmetry_pass;
   SculptBoundary *bdata = ss->cache->bdata[symm_area];
+  const ePaintSymmetryFlags symm = data->sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
 
   const float strength = ss->cache->bstrength;
 
@@ -757,11 +767,13 @@ static void do_boundary_brush_grab_task_cb_ex(void *__restrict userdata,
 
     if (bdata->edit_info[vd.index].num_propagation_steps != -1) {
       SCULPT_orig_vert_data_update(&orig_data, &vd);
-      const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
-      madd_v3_v3v3fl(vd.co,
-                     orig_data.co,
-                     ss->cache->grab_delta_symmetry,
-                     bdata->edit_info[vd.index].strength_factor * mask * strength);
+      if (SCULPT_check_vertex_pivot_symmetry(orig_data.co, bdata->initial_vertex_position, symm)) {
+        const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
+        madd_v3_v3v3fl(vd.co,
+                       orig_data.co,
+                       ss->cache->grab_delta_symmetry,
+                       bdata->edit_info[vd.index].strength_factor * mask * strength);
+      }
     }
 
     if (vd.mvert) {
@@ -779,6 +791,7 @@ static void do_boundary_brush_twist_task_cb_ex(void *__restrict userdata,
   SculptSession *ss = data->ob->sculpt;
   const int symm_area = ss->cache->mirror_symmetry_pass;
   SculptBoundary *bdata = ss->cache->bdata[symm_area];
+  const ePaintSymmetryFlags symm = data->sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
 
   const float strength = ss->cache->bstrength;
 
@@ -798,15 +811,17 @@ static void do_boundary_brush_twist_task_cb_ex(void *__restrict userdata,
   {
 
     if (bdata->edit_info[vd.index].num_propagation_steps != -1) {
-      const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
       SCULPT_orig_vert_data_update(&orig_data, &vd);
-      float t_orig_co[3];
-      sub_v3_v3v3(t_orig_co, orig_data.co, bdata->twist.pivot_position);
-      rotate_v3_v3v3fl(vd.co,
-                       t_orig_co,
-                       bdata->twist.rotation_axis,
-                       angle * mask * bdata->edit_info[vd.index].strength_factor);
-      add_v3_v3(vd.co, bdata->twist.pivot_position);
+      if (SCULPT_check_vertex_pivot_symmetry(orig_data.co, bdata->initial_vertex_position, symm)) {
+        const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
+        float t_orig_co[3];
+        sub_v3_v3v3(t_orig_co, orig_data.co, bdata->twist.pivot_position);
+        rotate_v3_v3v3fl(vd.co,
+                         t_orig_co,
+                         bdata->twist.rotation_axis,
+                         angle * mask * bdata->edit_info[vd.index].strength_factor);
+        add_v3_v3(vd.co, bdata->twist.pivot_position);
+      }
     }
 
     if (vd.mvert) {
