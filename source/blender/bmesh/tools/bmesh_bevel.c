@@ -835,7 +835,7 @@ static void math_layer_info_init(BevelParams *bp, BMesh *bm)
   BM_mesh_elem_index_ensure(bm, BM_FACE);
   BM_mesh_elem_table_ensure(bm, BM_FACE);
   int totface = bm->totface;
-  int *face_component = BLI_memarena_alloc(bp->mem_arena, totface * sizeof(int));
+  int *face_component = BLI_memarena_alloc(bp->mem_arena, sizeof(int) * totface);
   bp->math_layer_info.face_component = face_component;
 
   /* Use an array as a stack. Stack size can't exceed total faces if keep track of what is in
@@ -3631,8 +3631,8 @@ static VMesh *new_adj_vmesh(MemArena *mem_arena, int count, int seg, BoundVert *
   vm->count = count;
   vm->seg = seg;
   vm->boundstart = bounds;
-  vm->mesh = (NewVert *)BLI_memarena_alloc(
-      mem_arena, (size_t)(count * (1 + seg / 2) * (1 + seg)) * sizeof(NewVert));
+  vm->mesh = (NewVert *)BLI_memarena_alloc(mem_arena,
+                                           sizeof(NewVert) * count * (1 + seg / 2) * (1 + seg));
   vm->mesh_kind = M_ADJ;
   return vm;
 }
@@ -3885,8 +3885,8 @@ static VMesh *interp_vmesh(BevelParams *bp, VMesh *vm_in, int nseg)
       }
     }
     bndv = bndv->next;
-    memcpy(prev_frac, frac, (size_t)(ns_in + 1) * sizeof(float));
-    memcpy(prev_new_frac, new_frac, (size_t)(nseg + 1) * sizeof(float));
+    memcpy(prev_frac, frac, sizeof(float) * (ns_in + 1));
+    memcpy(prev_new_frac, new_frac, sizeof(float) * (nseg + 1));
   }
   if (!odd) {
     float center[3];
@@ -4756,8 +4756,8 @@ static VMesh *square_out_adj_vmesh(BevelParams *bp, BevVert *bv)
   float ns2inv = 1.0f / (float)ns2;
   VMesh *vm = new_adj_vmesh(bp->mem_arena, n_bndv, ns, bv->vmesh->boundstart);
   int clstride = 3 * (ns2 + 1);
-  float *centerline = MEM_mallocN((size_t)(clstride * n_bndv) * sizeof(float), "bevel");
-  bool *cset = MEM_callocN((size_t)n_bndv * sizeof(bool), "bevel");
+  float *centerline = MEM_mallocN(sizeof(float) * clstride * n_bndv, "bevel");
+  bool *cset = MEM_callocN(sizeof(bool) * n_bndv, "bevel");
 
   /* Find on_edge, place on bndv[i]'s elast where offset line would meet,
    * taking min-distance-to bv->v with position where next sector's offset line would meet. */
@@ -5240,7 +5240,7 @@ static void bevel_build_cutoff(BevelParams *bp, BMesh *bm, BevVert *bv)
   printf("Building profile cutoff faces.\n");
 #endif
   BMVert **face_bmverts = BLI_memarena_alloc(
-      bp->mem_arena, ((size_t)max_ii(bp->seg + 2 + build_center_face, n_bndv) * sizeof(BMVert *)));
+      bp->mem_arena, sizeof(BMVert *) * max_ii(bp->seg + 2 + build_center_face, n_bndv));
   bndv = bv->vmesh->boundstart;
   do {
     int i = bndv->index;
@@ -5499,7 +5499,7 @@ static void build_vmesh(BevelParams *bp, BMesh *bm, BevVert *bv)
   int ns2 = ns / 2;
 
   vm->mesh = (NewVert *)BLI_memarena_alloc(bp->mem_arena,
-                                           sizeof(NewVert) * (n * (ns2 + 1) * (ns + 1)));
+                                           sizeof(NewVert) * n * (ns2 + 1) * (ns + 1));
 
   /* Special case: just two beveled edges welded together. */
   const bool weld = (bv->selcount == 2) && (vm->count == 2);
@@ -5920,15 +5920,15 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
     return NULL;
   }
 
-  BevVert *bv = (BevVert *)BLI_memarena_alloc(bp->mem_arena, (sizeof(BevVert)));
+  BevVert *bv = (BevVert *)BLI_memarena_alloc(bp->mem_arena, sizeof(BevVert));
   bv->v = v;
   bv->edgecount = tot_edges;
   bv->selcount = nsel;
   bv->wirecount = tot_wire;
   bv->offset = bp->offset;
-  bv->edges = (EdgeHalf *)BLI_memarena_alloc(bp->mem_arena, tot_edges * sizeof(EdgeHalf));
+  bv->edges = (EdgeHalf *)BLI_memarena_alloc(bp->mem_arena, sizeof(EdgeHalf) * tot_edges);
   if (tot_wire) {
-    bv->wire_edges = (BMEdge **)BLI_memarena_alloc(bp->mem_arena, tot_wire * sizeof(BMEdge *));
+    bv->wire_edges = (BMEdge **)BLI_memarena_alloc(bp->mem_arena, sizeof(BMEdge *) * tot_wire);
   }
   else {
     bv->wire_edges = NULL;
