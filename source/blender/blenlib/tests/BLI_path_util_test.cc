@@ -8,10 +8,6 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
-#ifdef _WIN32
-#  include "BKE_global.h"
-#endif
-
 /* -------------------------------------------------------------------- */
 /* tests */
 
