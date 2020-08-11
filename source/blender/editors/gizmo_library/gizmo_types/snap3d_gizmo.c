@@ -78,12 +78,11 @@ typedef struct SnapGizmo3D {
 } SnapGizmo3D;
 
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
-static bool invert_snap(const wmGizmo *gz, const wmWindowManager *wm, const wmEvent *event)
+static bool invert_snap(SnapGizmo3D *snap_gizmo, const wmWindowManager *wm, const wmEvent *event)
 {
-  SnapGizmo3D *gizmo_snap = (SnapGizmo3D *)gz;
-  wmKeyMap *keymap = WM_keymap_active(wm, gizmo_snap->keymap);
+  wmKeyMap *keymap = WM_keymap_active(wm, snap_gizmo->keymap);
 
-  const int snap_on = gizmo_snap->snap_on;
+  const int snap_on = snap_gizmo->snap_on;
   for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
     if (kmi->flag & KMI_INACTIVE) {
       continue;
@@ -201,29 +200,34 @@ SnapObjectContext *ED_gizmotypes_snap_3d_context_ensure(Scene *scene,
                                                         const View3D *v3d,
                                                         wmGizmo *gz)
 {
-  SnapGizmo3D *gizmo_snap = (SnapGizmo3D *)gz;
-  if (gizmo_snap->snap_context_v3d == NULL) {
-    gizmo_snap->snap_context_v3d = ED_transform_snap_object_context_create_view3d(
+  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
+  if (snap_gizmo->snap_context_v3d == NULL) {
+    snap_gizmo->snap_context_v3d = ED_transform_snap_object_context_create_view3d(
         scene, 0, region, v3d);
   }
-  return gizmo_snap->snap_context_v3d;
+  return snap_gizmo->snap_context_v3d;
 }
 
 bool ED_gizmotypes_snap_3d_invert_snap_get(struct wmGizmo *gz)
 {
-  SnapGizmo3D *gizmo_snap = (SnapGizmo3D *)gz;
-  return gizmo_snap->invert_snap;
+#ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
+  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
+  return snap_gizmo->invert_snap;
+#else
+  return false;
+#endif
 }
+
 void ED_gizmotypes_snap_3d_toggle_set(wmGizmo *gz, bool enable)
 {
-  SnapGizmo3D *gizmo_snap = (SnapGizmo3D *)gz;
-  gizmo_snap->use_snap_override = (int)enable;
+  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
+  snap_gizmo->use_snap_override = (int)enable;
 }
 
 void ED_gizmotypes_snap_3d_toggle_clear(wmGizmo *gz)
 {
-  SnapGizmo3D *gizmo_snap = (SnapGizmo3D *)gz;
-  gizmo_snap->use_snap_override = -1;
+  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
+  snap_gizmo->use_snap_override = -1;
 }
 
 short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
@@ -235,29 +239,29 @@ short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
                                    float r_loc[3],
                                    float r_nor[3])
 {
-  SnapGizmo3D *gizmo_snap = (SnapGizmo3D *)gz;
+  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
   Scene *scene = DEG_get_input_scene(depsgraph);
   float co[3], no[3];
   short snap_elem = 0;
   int snap_elem_index[3] = {-1, -1, -1};
   int index = -1;
 
-  if (gizmo_snap->use_snap_override != -1) {
-    if (gizmo_snap->use_snap_override == false) {
-      gizmo_snap->snap_elem = 0;
+  if (snap_gizmo->use_snap_override != -1) {
+    if (snap_gizmo->use_snap_override == false) {
+      snap_gizmo->snap_elem = 0;
       return 0;
     }
   }
 
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
   if (wm && wm->winactive) {
-    gizmo_snap->invert_snap = invert_snap(gz, wm, wm->winactive->eventstate);
+    snap_gizmo->invert_snap = invert_snap(snap_gizmo, wm, wm->winactive->eventstate);
   }
 
-  if (gizmo_snap->use_snap_override == -1) {
+  if (snap_gizmo->use_snap_override == -1) {
     const ToolSettings *ts = scene->toolsettings;
-    if (gizmo_snap->invert_snap != !(ts->snap_flag & SCE_SNAP)) {
-      gizmo_snap->snap_elem = 0;
+    if (snap_gizmo->invert_snap != !(ts->snap_flag & SCE_SNAP)) {
+      snap_gizmo->snap_elem = 0;
       return 0;
     }
   }
@@ -267,8 +271,8 @@ short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
 
   wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "snap_elements");
   int snap_elements = RNA_property_enum_get(&gz_prop->ptr, gz_prop->prop);
-  if (gz_prop->prop != gizmo_snap->prop_snap_force) {
-    int snap_elements_force = RNA_property_enum_get(gz->ptr, gizmo_snap->prop_snap_force);
+  if (gz_prop->prop != snap_gizmo->prop_snap_force) {
+    int snap_elements_force = RNA_property_enum_get(gz->ptr, snap_gizmo->prop_snap_force);
     snap_elements |= snap_elements_force;
   }
   snap_elements &= (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE |
@@ -276,8 +280,8 @@ short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
 
   if (snap_elements) {
     float prev_co[3] = {0.0f};
-    if (RNA_property_is_set(gz->ptr, gizmo_snap->prop_prevpoint)) {
-      RNA_property_float_get_array(gz->ptr, gizmo_snap->prop_prevpoint, prev_co);
+    if (RNA_property_is_set(gz->ptr, snap_gizmo->prop_prevpoint)) {
+      RNA_property_float_get_array(gz->ptr, snap_gizmo->prop_prevpoint, prev_co);
     }
     else {
       snap_elements &= ~SCE_SNAP_MODE_EDGE_PERPENDICULAR;
@@ -286,7 +290,7 @@ short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
     float dist_px = 12.0f * U.pixelsize;
 
     ED_gizmotypes_snap_3d_context_ensure(scene, region, v3d, gz);
-    snap_elem = ED_transform_snap_object_project_view3d_ex(gizmo_snap->snap_context_v3d,
+    snap_elem = ED_transform_snap_object_project_view3d_ex(snap_gizmo->snap_context_v3d,
                                                            depsgraph,
                                                            snap_elements,
                                                            &(const struct SnapObjectParams){
@@ -320,14 +324,15 @@ short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
     snap_elem_index[2] = index;
   }
 
-  gizmo_snap->snap_elem = snap_elem;
-  RNA_property_float_set_array(gz->ptr, gizmo_snap->prop_location, co);
-  RNA_property_float_set_array(gz->ptr, gizmo_snap->prop_normal, no);
-  RNA_property_int_set_array(gz->ptr, gizmo_snap->prop_elem_index, snap_elem_index);
+  snap_gizmo->snap_elem = snap_elem;
+  RNA_property_float_set_array(gz->ptr, snap_gizmo->prop_location, co);
+  RNA_property_float_set_array(gz->ptr, snap_gizmo->prop_normal, no);
+  RNA_property_int_set_array(gz->ptr, snap_gizmo->prop_elem_index, snap_elem_index);
 
   if (r_loc) {
     copy_v3_v3(r_loc, co);
   }
+
   if (r_nor) {
     copy_v3_v3(r_nor, no);
   }
@@ -341,18 +346,18 @@ short ED_gizmotypes_snap_3d_update(wmGizmo *gz,
 /** \name GIZMO_GT_snap_3d
  * \{ */
 
-static void gizmo_snap_setup(wmGizmo *gz)
+static void snap_gizmo_setup(wmGizmo *gz)
 {
-  SnapGizmo3D *gizmo_snap = (SnapGizmo3D *)gz;
+  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
 
   /* For quick access to the props. */
-  gizmo_snap->prop_prevpoint = RNA_struct_find_property(gz->ptr, "prev_point");
-  gizmo_snap->prop_location = RNA_struct_find_property(gz->ptr, "location");
-  gizmo_snap->prop_normal = RNA_struct_find_property(gz->ptr, "normal");
-  gizmo_snap->prop_elem_index = RNA_struct_find_property(gz->ptr, "snap_elem_index");
-  gizmo_snap->prop_snap_force = RNA_struct_find_property(gz->ptr, "snap_elements_force");
+  snap_gizmo->prop_prevpoint = RNA_struct_find_property(gz->ptr, "prev_point");
+  snap_gizmo->prop_location = RNA_struct_find_property(gz->ptr, "location");
+  snap_gizmo->prop_normal = RNA_struct_find_property(gz->ptr, "normal");
+  snap_gizmo->prop_elem_index = RNA_struct_find_property(gz->ptr, "snap_elem_index");
+  snap_gizmo->prop_snap_force = RNA_struct_find_property(gz->ptr, "snap_elements_force");
 
-  gizmo_snap->use_snap_override = -1;
+  snap_gizmo->use_snap_override = -1;
 
   /* Prop fallback. */
   WM_gizmo_target_property_def_rna(gz, "snap_elements", gz->ptr, "snap_elements_force", -1);
@@ -361,10 +366,10 @@ static void gizmo_snap_setup(wmGizmo *gz)
   gz->flag |= WM_GIZMO_NO_TOOLTIP;
 }
 
-static void gizmo_snap_draw(const bContext *C, wmGizmo *gz)
+static void snap_gizmo_draw(const bContext *C, wmGizmo *gz)
 {
-  SnapGizmo3D *gizmo_snap = (SnapGizmo3D *)gz;
-  if (gizmo_snap->snap_elem == 0) {
+  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
+  if (snap_gizmo->snap_elem == 0) {
     return;
   }
 
@@ -376,22 +381,22 @@ static void gizmo_snap_draw(const bContext *C, wmGizmo *gz)
    * And `snap_elem` is not really useful in this case. */
   if ((rv3d->rflag & RV3D_NAVIGATING) ||
       (!(gz->state & WM_GIZMO_STATE_HIGHLIGHT) && !wm_gizmomap_modal_get(region->gizmo_map))) {
-    gizmo_snap->snap_elem = 0;
+    snap_gizmo->snap_elem = 0;
     return;
   }
 
   float location[3], prev_point_stack[3], *prev_point = NULL;
   uchar color_line[4], color_point[4];
 
-  RNA_property_float_get_array(gz->ptr, gizmo_snap->prop_location, location);
+  RNA_property_float_get_array(gz->ptr, snap_gizmo->prop_location, location);
 
   UI_GetThemeColor3ubv(TH_TRANSFORM, color_line);
   color_line[3] = 128;
 
   rgba_float_to_uchar(color_point, gz->color);
 
-  if (RNA_property_is_set(gz->ptr, gizmo_snap->prop_prevpoint)) {
-    RNA_property_float_get_array(gz->ptr, gizmo_snap->prop_prevpoint, prev_point_stack);
+  if (RNA_property_is_set(gz->ptr, snap_gizmo->prop_prevpoint)) {
+    RNA_property_float_get_array(gz->ptr, snap_gizmo->prop_prevpoint, prev_point_stack);
     prev_point = prev_point_stack;
   }
 
@@ -399,35 +404,36 @@ static void gizmo_snap_draw(const bContext *C, wmGizmo *gz)
 
   GPU_line_width(1.0f);
   ED_gizmotypes_snap_3d_draw_util(
-      rv3d, prev_point, location, NULL, color_line, color_point, gizmo_snap->snap_elem);
+      rv3d, prev_point, location, NULL, color_line, color_point, snap_gizmo->snap_elem);
 }
 
-static int gizmo_snap_test_select(bContext *C, wmGizmo *gz, const int mval[2])
+static int snap_gizmo_test_select(bContext *C, wmGizmo *gz, const int mval[2])
 {
-  SnapGizmo3D *gizmo_snap = (SnapGizmo3D *)gz;
+  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
 
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
   wmWindowManager *wm = CTX_wm_manager(C);
-  if (gizmo_snap->keymap == NULL) {
-    gizmo_snap->keymap = WM_modalkeymap_find(wm->defaultconf, "Generic Gizmo Tweak Modal Map");
-    RNA_enum_value_from_id(gizmo_snap->keymap->modal_items, "SNAP_ON", &gizmo_snap->snap_on);
+  if (snap_gizmo->keymap == NULL) {
+    snap_gizmo->keymap = WM_modalkeymap_find(wm->defaultconf, "Generic Gizmo Tweak Modal Map");
+    RNA_enum_value_from_id(snap_gizmo->keymap->modal_items, "SNAP_ON", &snap_gizmo->snap_on);
   }
 
-  const bool invert = wm->winactive ? invert_snap(gz, wm, wm->winactive->eventstate) : false;
-  if (gizmo_snap->invert_snap == invert && gizmo_snap->mval[0] == mval[0] &&
-      gizmo_snap->mval[1] == mval[1]) {
+  const bool invert = wm->winactive ? invert_snap(snap_gizmo, wm, wm->winactive->eventstate) :
+                                      false;
+  if (snap_gizmo->invert_snap == invert && snap_gizmo->mval[0] == mval[0] &&
+      snap_gizmo->mval[1] == mval[1]) {
     /* Performance, do not update. */
-    return gizmo_snap->snap_elem ? 0 : -1;
+    return snap_gizmo->snap_elem ? 0 : -1;
   }
 
-  gizmo_snap->invert_snap = invert;
+  snap_gizmo->invert_snap = invert;
 #else
-  if (gizmo_snap->mval[0] == mval[0] && gizmo_snap->mval[1] == mval[1]) {
+  if (snap_gizmo->mval[0] == mval[0] && snap_gizmo->mval[1] == mval[1]) {
     /* Performance, do not update. */
-    return gizmo_snap->snap_elem ? 0 : -1;
+    return snap_gizmo->snap_elem ? 0 : -1;
   }
 #endif
-  copy_v2_v2_int(gizmo_snap->mval, mval);
+  copy_v2_v2_int(snap_gizmo->mval, mval);
 
   ARegion *region = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);
@@ -443,7 +449,7 @@ static int gizmo_snap_test_select(bContext *C, wmGizmo *gz, const int mval[2])
   return -1;
 }
 
-static int gizmo_snap_modal(bContext *UNUSED(C),
+static int snap_gizmo_modal(bContext *UNUSED(C),
                             wmGizmo *UNUSED(gz),
                             const wmEvent *UNUSED(event),
                             eWM_GizmoFlagTweak UNUSED(tweak_flag))
@@ -451,19 +457,19 @@ static int gizmo_snap_modal(bContext *UNUSED(C),
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int gizmo_snap_invoke(bContext *UNUSED(C),
+static int snap_gizmo_invoke(bContext *UNUSED(C),
                              wmGizmo *UNUSED(gz),
                              const wmEvent *UNUSED(event))
 {
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void gizmo_snap_free(wmGizmo *gz)
+static void snap_gizmo_free(wmGizmo *gz)
 {
-  SnapGizmo3D *gizmo_snap = (SnapGizmo3D *)gz;
-  if (gizmo_snap->snap_context_v3d) {
-    ED_transform_snap_object_context_destroy(gizmo_snap->snap_context_v3d);
-    gizmo_snap->snap_context_v3d = NULL;
+  SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
+  if (snap_gizmo->snap_context_v3d) {
+    ED_transform_snap_object_context_destroy(snap_gizmo->snap_context_v3d);
+    snap_gizmo->snap_context_v3d = NULL;
   }
 }
 
@@ -473,12 +479,12 @@ static void GIZMO_GT_snap_3d(wmGizmoType *gzt)
   gzt->idname = "GIZMO_GT_snap_3d";
 
   /* api callbacks */
-  gzt->setup = gizmo_snap_setup;
-  gzt->draw = gizmo_snap_draw;
-  gzt->test_select = gizmo_snap_test_select;
-  gzt->modal = gizmo_snap_modal;
-  gzt->invoke = gizmo_snap_invoke;
-  gzt->free = gizmo_snap_free;
+  gzt->setup = snap_gizmo_setup;
+  gzt->draw = snap_gizmo_draw;
+  gzt->test_select = snap_gizmo_test_select;
+  gzt->modal = snap_gizmo_modal;
+  gzt->invoke = snap_gizmo_invoke;
+  gzt->free = snap_gizmo_free;
 
   gzt->struct_size = sizeof(SnapGizmo3D);
 
