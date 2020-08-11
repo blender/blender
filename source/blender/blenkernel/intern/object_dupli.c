@@ -605,6 +605,7 @@ static const DupliGenerator gen_dupli_verts_font = {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+<<<<<<< HEAD
 /** \name Dupli-Vertices Implementation (#OB_DUPLIVERTS for #PointCloud)
  * \{ */
 
@@ -667,6 +668,8 @@ static const DupliGenerator gen_dupli_verts_pointcloud = {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+=======
+>>>>>>> blender-v2.90-release~2
 /** \name Dupli-Faces Implementation (#OB_DUPLIFACES)
  * \{ */
 
