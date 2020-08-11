@@ -227,7 +227,14 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 
   context_dict_back = CTX_py_dict_get(C);
 
-  CTX_py_dict_set(C, (void *)context_dict);
+  /**
+   * It might be that there is already a Python context override. We don't want to remove that
+   * except when this operator call sets a new override explicitly. This is necessary so that
+   * called operator runs in the same context as the calling code by default.
+   */
+  if (context_dict != NULL) {
+    CTX_py_dict_set(C, (void *)context_dict);
+  }
   Py_XINCREF(context_dict); /* so we done loose it */
 
   if (WM_operator_poll_context((bContext *)C, ot, context) == false) {

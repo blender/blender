@@ -387,6 +387,18 @@ void wm_event_do_refresh_wm_and_depsgraph(bContext *C)
   CTX_wm_window_set(C, NULL);
 }
 
+static void wm_event_execute_timers(bContext *C)
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+
+  /* Set the first window as context, so that there is some minimal context. This avoids crashes
+   * when calling code that assumes that there is always a window in the context (which many
+   * operators do). */
+  CTX_wm_window_set(C, wm->windows.first);
+  BLI_timer_execute();
+  CTX_wm_window_set(C, NULL);
+}
+
 /* called in mainloop */
 void wm_event_do_notifiers(bContext *C)
 {
@@ -398,7 +410,7 @@ void wm_event_do_notifiers(bContext *C)
     return;
   }
 
-  BLI_timer_execute();
+  wm_event_execute_timers(C);
 
   /* disable? - keep for now since its used for window level notifiers. */
 #if 1
