@@ -724,7 +724,7 @@ bool uv_find_nearest_face(Scene *scene, Object *obedit, const float co[2], UvNea
       }
 
       float cent[2];
-      uv_poly_center(efa, cent, cd_loop_uv_offset);
+      BM_face_uv_calc_center_median(efa, cd_loop_uv_offset, cent);
 
       const float dist_test_sq = len_squared_v2v2(co, cent);
 
@@ -2841,7 +2841,7 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
         BM_elem_flag_disable(efa, BM_ELEM_TAG);
 
         if (uvedit_face_visible_test(scene, efa)) {
-          uv_poly_center(efa, cent, cd_loop_uv_offset);
+          BM_face_uv_calc_center_median(efa, cd_loop_uv_offset, cent);
           if (BLI_rctf_isect_pt_v(&rectf, cent)) {
             BM_elem_flag_enable(efa, BM_ELEM_TAG);
             changed = true;
@@ -3072,7 +3072,7 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
         /* assume not touched */
         if (select != uvedit_face_select_test(scene, efa, cd_loop_uv_offset)) {
           float cent[2];
-          uv_poly_center(efa, cent, cd_loop_uv_offset);
+          BM_face_uv_calc_center_median(efa, cd_loop_uv_offset, cent);
           if (uv_circle_select_is_point_inside(cent, offset, ellipse)) {
             BM_elem_flag_enable(efa, BM_ELEM_TAG);
             changed = true;
@@ -3263,7 +3263,7 @@ static bool do_lasso_select_mesh_uv(bContext *C,
         /* assume not touched */
         if (select != uvedit_face_select_test(scene, efa, cd_loop_uv_offset)) {
           float cent[2];
-          uv_poly_center(efa, cent, cd_loop_uv_offset);
+          BM_face_uv_calc_center_median(efa, cd_loop_uv_offset, cent);
           if (do_lasso_select_mesh_uv_is_point_inside(region, &rect, mcoords, mcoords_len, cent)) {
             BM_elem_flag_enable(efa, BM_ELEM_TAG);
             changed = true;

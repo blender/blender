@@ -31,6 +31,8 @@ void BM_face_uv_calc_center_median_weighted(const BMFace *f,
                                             const float aspect[2],
                                             const int cd_loop_uv_offset,
                                             float r_cent[2]) ATTR_NONNULL();
+void BM_face_uv_calc_center_median(const BMFace *f, const int cd_loop_uv_offset, float r_cent[2])
+    ATTR_NONNULL();
 
 float BM_face_uv_calc_cross(const BMFace *f, const int cd_loop_uv_offset) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();

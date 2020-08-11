@@ -1063,7 +1063,7 @@ static float *editmesh_get_mirror_uv(
     BMFace *efa;
 
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-      uv_poly_center(efa, cent, cd_loop_uv_offset);
+      BM_face_uv_calc_center_median(efa, cd_loop_uv_offset, cent);
 
       if ((fabsf(cent[0] - cent_vec[0]) < 0.001f) && (fabsf(cent[1] - cent_vec[1]) < 0.001f)) {
         BMIter liter;

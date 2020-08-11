@@ -95,6 +95,20 @@ void BM_face_uv_calc_center_median_weighted(const BMFace *f,
 
 #undef UV_ASPECT
 
+void BM_face_uv_calc_center_median(const BMFace *f, const int cd_loop_uv_offset, float r_cent[2])
+{
+  const BMLoop *l_iter;
+  const BMLoop *l_first;
+  zero_v2(r_cent);
+  l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+  do {
+    const MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_uv_offset);
+    add_v2_v2(r_cent, luv->uv);
+  } while ((l_iter = l_iter->next) != l_first);
+
+  mul_v2_fl(r_cent, 1.0f / (float)f->len);
+}
+
 /**
  * Calculate the UV cross product (use the sign to check the winding).
  */
