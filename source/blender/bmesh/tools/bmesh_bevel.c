@@ -492,10 +492,8 @@ static void create_mesh_bmvert(BMesh *bm, VMesh *vm, int i, int j, int k, BMVert
 
 static void copy_mesh_vert(VMesh *vm, int ito, int jto, int kto, int ifrom, int jfrom, int kfrom)
 {
-  NewVert *nvto, *nvfrom;
-
-  nvto = mesh_vert(vm, ito, jto, kto);
-  nvfrom = mesh_vert(vm, ifrom, jfrom, kfrom);
+  NewVert *nvto = mesh_vert(vm, ito, jto, kto);
+  NewVert *nvfrom = mesh_vert(vm, ifrom, jfrom, kfrom);
   nvto->v = nvfrom->v;
   copy_v3_v3(nvto->co, nvfrom->co);
 }
@@ -4394,11 +4392,8 @@ static void snap_to_pipe_profile(BoundVert *vpipe, bool midline, float co[3])
   Profile *pro = &vpipe->profile;
   EdgeHalf *e = vpipe->ebev;
 
-  float va[3], vb[3];
-  copy_v3_v3(va, pro->start);
-  copy_v3_v3(vb, pro->end);
-  if (compare_v3v3(va, vb, BEVEL_EPSILON_D)) {
-    copy_v3_v3(co, va);
+  if (compare_v3v3(pro->start, pro->end, BEVEL_EPSILON_D)) {
+    copy_v3_v3(co, pro->start);
     return;
   }
 
@@ -4408,8 +4403,8 @@ static void snap_to_pipe_profile(BoundVert *vpipe, bool midline, float co[3])
   plane_from_point_normal_v3(plane, co, edir);
 
   float va0[3], vb0[3], vmid0[3];
-  closest_to_plane_v3(va0, plane, va);
-  closest_to_plane_v3(vb0, plane, vb);
+  closest_to_plane_v3(va0, plane, pro->start);
+  closest_to_plane_v3(vb0, plane, pro->end);
   closest_to_plane_v3(vmid0, plane, pro->middle);
 
   float m[4][4], minv[4][4];
