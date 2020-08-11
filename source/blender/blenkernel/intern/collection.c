@@ -408,9 +408,9 @@ static Collection *collection_duplicate_recursive(Main *bmain,
   }
 
   if (do_objects) {
-    /* We can loop on collection_old's objects, that list is currently identical the collection_new
-     * objects, and won't be changed here. */
-    LISTBASE_FOREACH (CollectionObject *, cob, &collection_old->gobject) {
+    /* We can loop on collection_old's objects, but have to consider it mutable because with master
+     * collections collection_old and collection_new are the same data here. */
+    LISTBASE_FOREACH_MUTABLE (CollectionObject *, cob, &collection_old->gobject) {
       Object *ob_old = cob->ob;
       Object *ob_new = (Object *)ob_old->id.newid;
 
