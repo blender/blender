@@ -697,15 +697,6 @@ int GPU_shader_get_program(GPUShader *shader)
 /** \name Uniforms setters
  * \{ */
 
-void GPU_shader_uniform_float(GPUShader *UNUSED(shader), int location, float value)
-{
-  if (location == -1) {
-    return;
-  }
-
-  glUniform1f(location, value);
-}
-
 void GPU_shader_uniform_vector(
     GPUShader *UNUSED(shader), int location, int length, int arraysize, const float *value)
 {
@@ -738,22 +729,9 @@ void GPU_shader_uniform_vector(
   }
 }
 
-void GPU_shader_uniform_int(GPUShader *UNUSED(shader), int location, int value)
-{
-  if (location == -1) {
-    return;
-  }
-
-  glUniform1i(location, value);
-}
-
 void GPU_shader_uniform_vector_int(
     GPUShader *UNUSED(shader), int location, int length, int arraysize, const int *value)
 {
-  if (location == -1) {
-    return;
-  }
-
   switch (length) {
     case 1:
       glUniform1iv(location, arraysize, value);
@@ -771,6 +749,91 @@ void GPU_shader_uniform_vector_int(
       BLI_assert(0);
       break;
   }
+}
+
+void GPU_shader_uniform_int(GPUShader *shader, int location, int value)
+{
+  GPU_shader_uniform_vector_int(shader, location, 1, 1, &value);
+}
+
+void GPU_shader_uniform_float(GPUShader *shader, int location, float value)
+{
+  GPU_shader_uniform_vector(shader, location, 1, 1, &value);
+}
+
+#define GET_UNIFORM \
+  const GPUShaderInput *uniform = GPU_shaderinterface_uniform(sh->interface, name); \
+  BLI_assert(uniform);
+
+void GPU_shader_uniform_1i(GPUShader *sh, const char *name, int value)
+{
+  GET_UNIFORM
+  GPU_shader_uniform_int(sh, uniform->location, value);
+}
+
+void GPU_shader_uniform_1b(GPUShader *sh, const char *name, bool value)
+{
+  GPU_shader_uniform_1i(sh, name, value ? 1 : 0);
+}
+
+void GPU_shader_uniform_2f(GPUShader *sh, const char *name, float x, float y)
+{
+  const float data[2] = {x, y};
+  GPU_shader_uniform_2fv(sh, name, data);
+}
+
+void GPU_shader_uniform_3f(GPUShader *sh, const char *name, float x, float y, float z)
+{
+  const float data[3] = {x, y, z};
+  GPU_shader_uniform_3fv(sh, name, data);
+}
+
+void GPU_shader_uniform_4f(GPUShader *sh, const char *name, float x, float y, float z, float w)
+{
+  const float data[4] = {x, y, z, w};
+  GPU_shader_uniform_4fv(sh, name, data);
+}
+
+void GPU_shader_uniform_1f(GPUShader *sh, const char *name, float x)
+{
+  GET_UNIFORM
+  GPU_shader_uniform_float(sh, uniform->location, x);
+}
+
+void GPU_shader_uniform_2fv(GPUShader *sh, const char *name, const float data[2])
+{
+  GET_UNIFORM
+  GPU_shader_uniform_vector(sh, uniform->location, 2, 1, data);
+}
+
+void GPU_shader_uniform_3fv(GPUShader *sh, const char *name, const float data[3])
+{
+  GET_UNIFORM
+  GPU_shader_uniform_vector(sh, uniform->location, 3, 1, data);
+}
+
+void GPU_shader_uniform_4fv(GPUShader *sh, const char *name, const float data[4])
+{
+  GET_UNIFORM
+  GPU_shader_uniform_vector(sh, uniform->location, 4, 1, data);
+}
+
+void GPU_shader_uniform_mat4(GPUShader *sh, const char *name, const float data[4][4])
+{
+  GET_UNIFORM
+  GPU_shader_uniform_vector(sh, uniform->location, 16, 1, (const float *)data);
+}
+
+void GPU_shader_uniform_2fv_array(GPUShader *sh, const char *name, int len, const float (*val)[2])
+{
+  GET_UNIFORM
+  GPU_shader_uniform_vector(sh, uniform->location, 2, len, (const float *)val);
+}
+
+void GPU_shader_uniform_4fv_array(GPUShader *sh, const char *name, int len, const float (*val)[4])
+{
+  GET_UNIFORM
+  GPU_shader_uniform_vector(sh, uniform->location, 4, len, (const float *)val);
 }
 
 /** \} */
