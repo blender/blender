@@ -385,19 +385,7 @@ class _draw_tool_settings_context_mode:
         if tool is None:
             return False
 
-        # is_paint = True
-        # FIXME: tools must use their own UI drawing!
-        if tool.idname in {
-                "builtin.line",
-                "builtin.box",
-                "builtin.circle",
-                "builtin.arc",
-                "builtin.curve",
-                "builtin.polyline",
-        }:
-            # is_paint = False
-            pass
-        elif tool.idname == "builtin.cutter":
+        if tool.idname == "builtin.cutter":
             row = layout.row(align=True)
             row.prop(context.tool_settings.gpencil_sculpt, "intersection_threshold")
             return False
@@ -411,47 +399,16 @@ class _draw_tool_settings_context_mode:
 
         gp_settings = brush.gpencil_settings
 
-        def draw_color_selector():
-            ma = gp_settings.material
-            row = layout.row(align=True)
-            if not gp_settings.use_material_pin:
-                ma = context.object.active_material
-            icon_id = 0
-            if ma:
-                icon_id = ma.id_data.preview.icon_id
-                txt_ma = ma.name
-                maxw = 25
-                if len(txt_ma) > maxw:
-                    txt_ma = txt_ma[:maxw - 5] + '..' + txt_ma[-3:]
-            else:
-                txt_ma = ""
-
-            sub = row.row()
-            sub.ui_units_x = 8
-            sub.popover(
-                panel="TOPBAR_PT_gpencil_materials",
-                text=txt_ma,
-                icon_value=icon_id,
-            )
-
-            row.prop(gp_settings, "use_material_pin", text="")
-
-            if brush.gpencil_tool in {'DRAW', 'FILL'}:
-                row.separator(factor=1.0)
-                subrow = row.row(align=True)
-                row.prop_enum(settings, "color_mode", 'MATERIAL', text="", icon='MATERIAL')
-                row.prop_enum(settings, "color_mode", 'VERTEXCOLOR', text="", icon='VPAINT_HLT')
-                sub_row = row.row(align=True)
-                sub_row.enabled = settings.color_mode == 'VERTEXCOLOR'
-                sub_row.prop_with_popover(brush, "color", text="", panel="TOPBAR_PT_gpencil_vertexcolor")
-
         row = layout.row(align=True)
         tool_settings = context.scene.tool_settings
         settings = tool_settings.gpencil_paint
         row.template_ID_preview(settings, "brush", rows=3, cols=8, hide_buttons=True)
 
         if context.object and brush.gpencil_tool in {'FILL', 'DRAW'}:
-            draw_color_selector()
+            from bl_ui.properties_paint_common import (
+                brush_basic__draw_color_selector,
+            )
+            brush_basic__draw_color_selector(context, layout, brush, gp_settings, None)
 
         if context.object and brush.gpencil_tool == 'TINT':
             row.separator(factor=0.4)

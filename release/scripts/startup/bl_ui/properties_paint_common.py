@@ -1109,6 +1109,45 @@ def brush_basic_texpaint_settings(layout, context, brush, *, compact=False):
         header=True
     )
 
+def brush_basic__draw_color_selector(context, layout, brush, gp_settings, props):
+    tool_settings = context.scene.tool_settings
+    settings = tool_settings.gpencil_paint
+    ma = gp_settings.material
+
+    row = layout.row(align=True)
+    if not gp_settings.use_material_pin:
+        ma = context.object.active_material
+    icon_id = 0
+    if ma:
+        icon_id = ma.id_data.preview.icon_id
+        txt_ma = ma.name
+        maxw = 25
+        if len(txt_ma) > maxw:
+            txt_ma = txt_ma[:maxw - 5] + '..' + txt_ma[-3:]
+    else:
+        txt_ma = ""
+
+    sub = row.row()
+    sub.ui_units_x = 8
+    sub.popover(
+        panel="TOPBAR_PT_gpencil_materials",
+        text=txt_ma,
+        icon_value=icon_id,
+    )
+
+    row.prop(gp_settings, "use_material_pin", text="")
+
+    if brush.gpencil_tool in {'DRAW', 'FILL'}:
+        row.separator(factor=1.0)
+        row.prop_enum(settings, "color_mode", 'MATERIAL', text="", icon='MATERIAL')
+        row.prop_enum(settings, "color_mode", 'VERTEXCOLOR', text="", icon='VPAINT_HLT')
+        sub_row = row.row(align=True)
+        sub_row.enabled = settings.color_mode == 'VERTEXCOLOR'
+        sub_row.prop_with_popover(brush, "color", text="", panel="TOPBAR_PT_gpencil_vertexcolor")
+
+    if props:
+        row = layout.row(align=True)
+        row.prop(props, "subdivision")
 
 def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False):
     tool_settings = context.tool_settings

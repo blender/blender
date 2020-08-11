@@ -202,6 +202,8 @@ typedef struct tGPDprimitive {
   tGPspoint *points;
   /** number of edges allocated */
   int point_count;
+  /** number of subdivisions. */
+  int subdiv;
   /** stored number of polygon edges */
   int tot_stored_edges;
   /** number of polygon edges */
@@ -553,7 +555,11 @@ void GPENCIL_OT_interpolate_reverse(struct wmOperatorType *ot);
 
 /* primitives ---------- */
 
-void GPENCIL_OT_primitive(struct wmOperatorType *ot);
+void GPENCIL_OT_primitive_box(struct wmOperatorType *ot);
+void GPENCIL_OT_primitive_line(struct wmOperatorType *ot);
+void GPENCIL_OT_primitive_polyline(struct wmOperatorType *ot);
+void GPENCIL_OT_primitive_circle(struct wmOperatorType *ot);
+void GPENCIL_OT_primitive_curve(struct wmOperatorType *ot);
 
 /* vertex groups ------------ */
 void GPENCIL_OT_vertex_group_assign(struct wmOperatorType *ot);
