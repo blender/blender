@@ -350,7 +350,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
 
         if enable_edit or (ob.use_shape_key_edit_mode and ob.type == 'MESH'):
             enable_pin = True
-            if ob.show_only_shape_key:
+            if ob.show_only_shape_key is False:
                 enable_edit_value = True
 
         row = layout.row()
