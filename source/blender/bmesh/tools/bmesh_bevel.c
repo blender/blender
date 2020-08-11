@@ -7277,34 +7277,38 @@ void BM_mesh_bevel(BMesh *bm,
   BMFace *f;
   BMLoop *l;
   BevVert *bv;
-  BevelParams bp = {NULL};
+  BevelParams bp = {
+      .offset = offset,
+      .offset_type = offset_type,
+      .seg = max_ii(segments, 1),
+      .profile = profile,
+      .pro_super_r = -logf(2.0) / logf(sqrtf(profile)), /* Convert to superellipse exponent. */
+      .affect_type = affect_type,
+      .use_weights = use_weights,
+      .loop_slide = loop_slide,
+      .limit_offset = limit_offset,
+      .offset_adjust = (bp.affect_type != BEVEL_AFFECT_VERTICES) &&
+                       !ELEM(offset_type, BEVEL_AMT_PERCENT, BEVEL_AMT_ABSOLUTE),
+      .dvert = dvert,
+      .vertex_group = vertex_group,
+      .mat_nr = mat,
+      .mark_seam = mark_seam,
+      .mark_sharp = mark_sharp,
+      .harden_normals = harden_normals,
+      .face_strength_mode = face_strength_mode,
+      .miter_outer = miter_outer,
+      .miter_inner = miter_inner,
+      .spread = spread,
+      .smoothresh = smoothresh,
+      .face_hash = NULL,
+      .profile_type = profile_type,
+      .custom_profile = custom_profile,
+      .vmesh_method = vmesh_method,
+  };
 
-  bp.offset = offset;
-  bp.offset_type = offset_type;
-  bp.seg = segments;
-  bp.profile = profile;
-  bp.pro_super_r = -logf(2.0) / logf(sqrtf(profile)); /* Convert to superellipse exponent. */
-  bp.affect_type = affect_type;
-  bp.use_weights = use_weights;
-  bp.loop_slide = loop_slide;
-  bp.limit_offset = limit_offset;
-  bp.offset_adjust = bp.affect_type != BEVEL_AFFECT_VERTICES &&
-                     !ELEM(offset_type, BEVEL_AMT_PERCENT, BEVEL_AMT_ABSOLUTE);
-  bp.dvert = dvert;
-  bp.vertex_group = vertex_group;
-  bp.mat_nr = mat;
-  bp.mark_seam = mark_seam;
-  bp.mark_sharp = mark_sharp;
-  bp.harden_normals = harden_normals;
-  bp.face_strength_mode = face_strength_mode;
-  bp.miter_outer = miter_outer;
-  bp.miter_inner = miter_inner;
-  bp.spread = spread;
-  bp.smoothresh = smoothresh;
-  bp.face_hash = NULL;
-  bp.profile_type = profile_type;
-  bp.custom_profile = custom_profile;
-  bp.vmesh_method = vmesh_method;
+  if (bp.offset <= 0) {
+    return;
+  }
 
 #ifdef BEVEL_DEBUG_TIME
   double start_time = PIL_check_seconds_timer();
@@ -7314,10 +7318,6 @@ void BM_mesh_bevel(BMesh *bm,
   if (bp.vmesh_method == BEVEL_VMESH_CUTOFF) {
     bp.miter_outer = BEVEL_MITER_SHARP;
     bp.miter_inner = BEVEL_MITER_SHARP;
-  }
-
-  if (bp.seg <= 1) {
-    bp.seg = 1;
   }
 
   if (profile >= 0.950f) { /* r ~ 692, so PRO_SQUARE_R is 1e4 */
@@ -7333,151 +7333,150 @@ void BM_mesh_bevel(BMesh *bm,
     bp.pro_super_r = PRO_SQUARE_IN_R;
   }
 
-  if (bp.offset > 0) {
-    /* Primary alloc. */
-    bp.vert_hash = BLI_ghash_ptr_new(__func__);
-    bp.mem_arena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), __func__);
-    BLI_memarena_use_calloc(bp.mem_arena);
+  /* Primary alloc. */
+  bp.vert_hash = BLI_ghash_ptr_new(__func__);
+  bp.mem_arena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), __func__);
+  BLI_memarena_use_calloc(bp.mem_arena);
 
-    /* Get the 2D profile point locations from either the superellipse or the custom profile. */
-    set_profile_spacing(&bp, &bp.pro_spacing, bp.profile_type == BEVEL_PROFILE_CUSTOM);
+  /* Get the 2D profile point locations from either the superellipse or the custom profile. */
+  set_profile_spacing(&bp, &bp.pro_spacing, bp.profile_type == BEVEL_PROFILE_CUSTOM);
 
-    /* Get the 'fullness' of the profile for the ADJ vertex mesh method. */
-    if (bp.seg > 1) {
-      bp.pro_spacing.fullness = find_profile_fullness(&bp);
+  /* Get the 'fullness' of the profile for the ADJ vertex mesh method. */
+  if (bp.seg > 1) {
+    bp.pro_spacing.fullness = find_profile_fullness(&bp);
+  }
+
+  /* Get separate non-custom profile samples for the miter profiles if they are needed */
+  if (bp.profile_type == BEVEL_PROFILE_CUSTOM &&
+      (bp.miter_inner != BEVEL_MITER_SHARP || bp.miter_outer != BEVEL_MITER_SHARP)) {
+    set_profile_spacing(&bp, &bp.pro_spacing_miter, false);
+  }
+
+  bp.face_hash = BLI_ghash_ptr_new(__func__);
+  BLI_ghash_flag_set(bp.face_hash, GHASH_FLAG_ALLOW_DUPES);
+
+  math_layer_info_init(&bp, bm);
+
+  /* Analyze input vertices, sorting edges and assigning initial new vertex positions. */
+  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+    if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+      bv = bevel_vert_construct(bm, &bp, v);
+      if (!limit_offset && bv) {
+        build_boundary(&bp, bv, true);
+      }
     }
+  }
 
-    /* Get separate non-custom profile samples for the miter profiles if they are needed */
-    if (bp.profile_type == BEVEL_PROFILE_CUSTOM &&
-        (bp.miter_inner != BEVEL_MITER_SHARP || bp.miter_outer != BEVEL_MITER_SHARP)) {
-      set_profile_spacing(&bp, &bp.pro_spacing_miter, false);
-    }
+  /* Perhaps clamp offset to avoid geometry colliisions. */
+  if (limit_offset) {
+    bevel_limit_offset(&bp, bm);
 
-    bp.face_hash = BLI_ghash_ptr_new(__func__);
-    BLI_ghash_flag_set(bp.face_hash, GHASH_FLAG_ALLOW_DUPES);
-
-    math_layer_info_init(&bp, bm);
-
-    /* Analyze input vertices, sorting edges and assigning initial new vertex positions. */
+    /* Assign initial new vertex positions. */
     BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
       if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-        bv = bevel_vert_construct(bm, &bp, v);
-        if (!limit_offset && bv) {
+        bv = find_bevvert(&bp, v);
+        if (bv) {
           build_boundary(&bp, bv, true);
         }
       }
     }
-
-    /* Perhaps clamp offset to avoid geometry colliisions. */
-    if (limit_offset) {
-      bevel_limit_offset(&bp, bm);
-
-      /* Assign initial new vertex positions. */
-      BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-        if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-          bv = find_bevvert(&bp, v);
-          if (bv) {
-            build_boundary(&bp, bv, true);
-          }
-        }
-      }
-    }
-
-    /* Perhaps do a pass to try to even out widths. */
-    if (bp.offset_adjust) {
-      adjust_offsets(&bp, bm);
-    }
-
-    /* Maintain consistent orientations for the asymmetrical custom profiles. */
-    if (bp.profile_type == BEVEL_PROFILE_CUSTOM) {
-      BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-        if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
-          regularize_profile_orientation(&bp, e);
-        }
-      }
-    }
-
-    /* Build the meshes around vertices, now that positions are final. */
-    BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-      if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-        bv = find_bevvert(&bp, v);
-        if (bv) {
-          build_vmesh(&bp, bm, bv);
-        }
-      }
-    }
-
-    /* Build polygons for edges. */
-    if (bp.affect_type != BEVEL_AFFECT_VERTICES) {
-      BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-        if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
-          bevel_build_edge_polygons(bm, &bp, e);
-        }
-      }
-    }
-
-    /* Extend edge data like sharp edges and precompute normals for harden. */
-    BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-      if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-        bv = find_bevvert(&bp, v);
-        if (bv) {
-          bevel_extend_edge_data(bv);
-        }
-      }
-    }
-
-    /* Rebuild face polygons around affected vertices. */
-    BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-      if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-        bevel_rebuild_existing_polygons(bm, &bp, v);
-        bevel_reattach_wires(bm, &bp, v);
-      }
-    }
-
-    BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
-      if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-        BLI_assert(find_bevvert(&bp, v) != NULL);
-        BM_vert_kill(bm, v);
-      }
-    }
-
-    if (bp.harden_normals) {
-      bevel_harden_normals(&bp, bm);
-    }
-    if (bp.face_strength_mode != BEVEL_FACE_STRENGTH_NONE) {
-      bevel_set_weighted_normal_face_strength(bm, &bp);
-    }
-
-    /* When called from operator (as opposed to modifier), bm->use_toolflags
-     * will be set, and we need to transfer the oflags to BM_ELEM_TAGs. */
-    if (bm->use_toolflags) {
-      BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-        if (BMO_vert_flag_test(bm, v, VERT_OUT)) {
-          BM_elem_flag_enable(v, BM_ELEM_TAG);
-        }
-      }
-      BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-        if (BMO_edge_flag_test(bm, e, EDGE_OUT)) {
-          BM_elem_flag_enable(e, BM_ELEM_TAG);
-        }
-      }
-    }
-
-    /* Clear the BM_ELEM_LONG_TAG tags, which were only set on some edges in F_EDGE faces. */
-    BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-      if (get_face_kind(&bp, f) != F_EDGE) {
-        continue;
-      }
-      BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-        BM_elem_flag_disable(l, BM_ELEM_LONG_TAG);
-      }
-    }
-
-    /* Primary free. */
-    BLI_ghash_free(bp.vert_hash, NULL, NULL);
-    BLI_ghash_free(bp.face_hash, NULL, NULL);
-    BLI_memarena_free(bp.mem_arena);
   }
+
+  /* Perhaps do a pass to try to even out widths. */
+  if (bp.offset_adjust) {
+    adjust_offsets(&bp, bm);
+  }
+
+  /* Maintain consistent orientations for the asymmetrical custom profiles. */
+  if (bp.profile_type == BEVEL_PROFILE_CUSTOM) {
+    BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+      if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
+        regularize_profile_orientation(&bp, e);
+      }
+    }
+  }
+
+  /* Build the meshes around vertices, now that positions are final. */
+  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+    if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+      bv = find_bevvert(&bp, v);
+      if (bv) {
+        build_vmesh(&bp, bm, bv);
+      }
+    }
+  }
+
+  /* Build polygons for edges. */
+  if (bp.affect_type != BEVEL_AFFECT_VERTICES) {
+    BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+      if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
+        bevel_build_edge_polygons(bm, &bp, e);
+      }
+    }
+  }
+
+  /* Extend edge data like sharp edges and precompute normals for harden. */
+  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+    if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+      bv = find_bevvert(&bp, v);
+      if (bv) {
+        bevel_extend_edge_data(bv);
+      }
+    }
+  }
+
+  /* Rebuild face polygons around affected vertices. */
+  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+    if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+      bevel_rebuild_existing_polygons(bm, &bp, v);
+      bevel_reattach_wires(bm, &bp, v);
+    }
+  }
+
+  BM_ITER_MESH_MUTABLE (v, v_next, &iter, bm, BM_VERTS_OF_MESH) {
+    if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+      BLI_assert(find_bevvert(&bp, v) != NULL);
+      BM_vert_kill(bm, v);
+    }
+  }
+
+  if (bp.harden_normals) {
+    bevel_harden_normals(&bp, bm);
+  }
+  if (bp.face_strength_mode != BEVEL_FACE_STRENGTH_NONE) {
+    bevel_set_weighted_normal_face_strength(bm, &bp);
+  }
+
+  /* When called from operator (as opposed to modifier), bm->use_toolflags
+   * will be set, and we need to transfer the oflags to BM_ELEM_TAGs. */
+  if (bm->use_toolflags) {
+    BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+      if (BMO_vert_flag_test(bm, v, VERT_OUT)) {
+        BM_elem_flag_enable(v, BM_ELEM_TAG);
+      }
+    }
+    BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+      if (BMO_edge_flag_test(bm, e, EDGE_OUT)) {
+        BM_elem_flag_enable(e, BM_ELEM_TAG);
+      }
+    }
+  }
+
+  /* Clear the BM_ELEM_LONG_TAG tags, which were only set on some edges in F_EDGE faces. */
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    if (get_face_kind(&bp, f) != F_EDGE) {
+      continue;
+    }
+    BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+      BM_elem_flag_disable(l, BM_ELEM_LONG_TAG);
+    }
+  }
+
+  /* Primary free. */
+  BLI_ghash_free(bp.vert_hash, NULL, NULL);
+  BLI_ghash_free(bp.face_hash, NULL, NULL);
+  BLI_memarena_free(bp.mem_arena);
+
 #ifdef BEVEL_DEBUG_TIME
   double end_time = PIL_check_seconds_timer();
   printf("BMESH BEVEL TIME = %.3f\n", end_time - start_time);
