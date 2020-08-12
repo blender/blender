@@ -1926,6 +1926,12 @@ def km_file_browser_main(params):
     items.extend([
         ("file.execute", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'},
          {"properties": [("need_active", True)]}),
+        # Both .execute and .select are needed here. The former only works if
+        # there's a file operator (i.e. not in regular editor mode) but is
+        # needed to load files. The latter makes selection work if there's no
+        # operator (i.e. in regular editor mode).
+        ("file.select", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'},
+         {"properties": [("open", True), ("deselect_all", not params.legacy)]}),
         ("file.refresh", {"type": 'NUMPAD_PERIOD', "value": 'PRESS'}, None),
         ("file.select", {"type": 'LEFTMOUSE', "value": 'PRESS'},
          {"properties": [("open", False), ("deselect_all", not params.legacy)]}),
