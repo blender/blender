@@ -853,6 +853,11 @@ void UI_view2d_curRect_validate(View2D *v2d)
   ui_view2d_curRect_validate_resize(v2d, false);
 }
 
+void UI_view2d_curRect_changed(const bContext *UNUSED(C), View2D *v2d)
+{
+  UI_view2d_curRect_validate(v2d);
+}
+
 /* ------------------ */
 
 /* Called by menus to activate it, or by view2d operators

@@ -154,7 +154,7 @@ static int sequencer_view_all_preview_exec(bContext *C, wmOperator *UNUSED(op))
   View2D *v2d = UI_view2d_fromcontext(C);
 
   v2d->cur = v2d->tot;
-  UI_view2d_curRect_validate(v2d);
+  UI_view2d_curRect_changed(C, v2d);
   UI_view2d_sync(screen, area, v2d, V2D_LOCK_COPY);
 
 #if 0

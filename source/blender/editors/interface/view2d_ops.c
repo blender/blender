@@ -185,8 +185,8 @@ static void view_pan_apply_ex(bContext *C, v2dViewPanData *vpd, float dx, float 
     v2d->cur.ymax += dy;
   }
 
-  /* validate that view is in valid configuration after this operation */
-  UI_view2d_curRect_validate(v2d);
+  /* Inform v2d about changes after this operation. */
+  UI_view2d_curRect_changed(C, v2d);
 
   /* don't rebuild full tree in outliner, since we're just changing our view */
   ED_region_tag_redraw_no_rebuild(vpd->region);
@@ -957,8 +957,8 @@ static void view_zoomstep_apply_ex(
     }
   }
 
-  /* validate that view is in valid configuration after this operation */
-  UI_view2d_curRect_validate(v2d);
+  /* Inform v2d about changes after this operation. */
+  UI_view2d_curRect_changed(C, v2d);
 
   if (ED_region_snap_size_apply(region, snap_test)) {
     ScrArea *area = CTX_wm_area(C);
@@ -1216,8 +1216,8 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
     }
   }
 
-  /* validate that view is in valid configuration after this operation */
-  UI_view2d_curRect_validate(v2d);
+  /* Inform v2d about changes after this operation. */
+  UI_view2d_curRect_changed(C, v2d);
 
   if (ED_region_snap_size_apply(vzd->region, snap_test)) {
     ScrArea *area = CTX_wm_area(C);
@@ -1806,7 +1806,7 @@ void UI_view2d_smooth_view(bContext *C, ARegion *region, const rctf *cur, const 
   if (ok == false) {
     v2d->cur = sms.new_cur;
 
-    UI_view2d_curRect_validate(v2d);
+    UI_view2d_curRect_changed(C, v2d);
     ED_region_tag_redraw_no_rebuild(region);
     UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
   }
@@ -1853,7 +1853,7 @@ static int view2d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const w
     BLI_rctf_interp(&v2d->cur, &sms->orig_cur, &sms->new_cur, step);
   }
 
-  UI_view2d_curRect_validate(v2d);
+  UI_view2d_curRect_changed(C, v2d);
   UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
   ED_region_tag_redraw_no_rebuild(region);
 
@@ -2176,8 +2176,8 @@ static void scroller_activate_apply(bContext *C, wmOperator *op)
       break;
   }
 
-  /* validate that view is in valid configuration after this operation */
-  UI_view2d_curRect_validate(v2d);
+  /* Inform v2d about changes after this operation. */
+  UI_view2d_curRect_changed(C, v2d);
 
   /* request updates to be done... */
   ED_region_tag_redraw_no_rebuild(vsm->region);
@@ -2410,8 +2410,8 @@ static int reset_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
 
-  /* validate that view is in valid configuration after this operation */
-  UI_view2d_curRect_validate(v2d);
+  /* Inform v2d about changes after this operation. */
+  UI_view2d_curRect_changed(C, v2d);
 
   if (ED_region_snap_size_apply(region, snap_test)) {
     ScrArea *area = CTX_wm_area(C);
