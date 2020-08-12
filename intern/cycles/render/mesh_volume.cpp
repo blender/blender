@@ -15,33 +15,24 @@
  */
 
 #include "render/attribute.h"
+#include "render/image_vdb.h"
 #include "render/mesh.h"
 #include "render/scene.h"
+
+#ifdef WITH_OPENVDB
+#  include <openvdb/tools/Dense.h>
+#  include <openvdb/tools/GridTransformer.h>
+#  include <openvdb/tools/Morphology.h>
+#endif
 
 #include "util/util_foreach.h"
 #include "util/util_hash.h"
 #include "util/util_logging.h"
+#include "util/util_openvdb.h"
 #include "util/util_progress.h"
 #include "util/util_types.h"
 
 CCL_NAMESPACE_BEGIN
-
-const int64_t VOXEL_INDEX_NONE = -1;
-
-static int64_t compute_voxel_index(const int3 &resolution, int64_t x, int64_t y, int64_t z)
-{
-  if (x < 0 || x >= resolution.x) {
-    return VOXEL_INDEX_NONE;
-  }
-  else if (y < 0 || y >= resolution.y) {
-    return VOXEL_INDEX_NONE;
-  }
-  else if (z < 0 || z >= resolution.z) {
-    return VOXEL_INDEX_NONE;
-  }
-
-  return x + y * resolution.x + z * resolution.x * resolution.y;
-}
 
 struct QuadData {
   int v0, v1, v2, v3;
@@ -123,122 +114,146 @@ static void create_quad(int3 corners[8],
   quads.push_back(quad);
 }
 
-struct VolumeParams {
-  int3 resolution;
-  float3 cell_size;
-  float3 start_point;
-  int pad_size;
-};
-
-static const int CUBE_SIZE = 8;
-
 /* Create a mesh from a volume.
  *
  * The way the algorithm works is as follows:
  *
- * - The coordinates of active voxels from a dense volume (or 3d image) are
- *   gathered inside an auxiliary volume.
- * - Each set of coordinates of an CUBE_SIZE cube are mapped to the same
- *   coordinate of the auxiliary volume.
- * - Quads are created between active and non-active voxels in the auxiliary
- *   volume to generate a tight mesh around the volume.
+ * - The topologies of input OpenVDB grids are merged into a temporary grid.
+ * - Voxels of the temporary grid are dilated to account for the padding necessary for volume
+ * sampling.
+ * - Quads are created on the boundary between active and inactive leaf nodes of the temporary
+ * grid.
  */
 class VolumeMeshBuilder {
-  /* Auxiliary volume that is used to check if a node already added. */
-  vector<char> grid;
-
-  /* The resolution of the auxiliary volume, set to be equal to 1/CUBE_SIZE
-   * of the original volume on each axis. */
-  int3 res;
-
-  size_t number_of_nodes;
-
-  /* Offset due to padding in the original grid. Padding will transform the
-   * coordinates of the original grid from 0...res to -padding...res+padding,
-   * so some coordinates are negative, and we need to properly account for
-   * them. */
-  int3 pad_offset;
-
-  VolumeParams *params;
-
  public:
-  VolumeMeshBuilder(VolumeParams *volume_params);
+#ifdef WITH_OPENVDB
+  /* use a MaskGrid to store the topology to save memory */
+  openvdb::MaskGrid::Ptr topology_grid;
+  openvdb::CoordBBox bbox;
+#endif
+  bool first_grid;
 
-  void add_node(int x, int y, int z);
+  VolumeMeshBuilder();
 
-  void add_node_with_padding(int x, int y, int z);
+#ifdef WITH_OPENVDB
+  void add_grid(openvdb::GridBase::ConstPtr grid, bool do_clipping, float volume_clipping);
+#endif
 
-  void create_mesh(vector<float3> &vertices, vector<int> &indices, vector<float3> &face_normals);
+  void add_padding(int pad_size);
 
- private:
+  void create_mesh(vector<float3> &vertices,
+                   vector<int> &indices,
+                   vector<float3> &face_normals,
+                   const float face_overlap_avoidance);
+
   void generate_vertices_and_quads(vector<int3> &vertices_is, vector<QuadData> &quads);
 
-  void convert_object_space(const vector<int3> &vertices, vector<float3> &out_vertices);
+  void convert_object_space(const vector<int3> &vertices,
+                            vector<float3> &out_vertices,
+                            const float face_overlap_avoidance);
 
   void convert_quads_to_tris(const vector<QuadData> &quads,
                              vector<int> &tris,
                              vector<float3> &face_normals);
+
+  bool empty_grid() const;
+
+#ifdef WITH_OPENVDB
+  template <typename GridType>
+  void merge_grid(openvdb::GridBase::ConstPtr grid, bool do_clipping, float volume_clipping)
+  {
+    typename GridType::ConstPtr typed_grid = openvdb::gridConstPtrCast<GridType>(grid);
+
+    if (do_clipping) {
+      using ValueType = typename GridType::ValueType;
+      typename GridType::Ptr copy = typed_grid->deepCopy();
+      typename GridType::ValueOnIter iter = copy->beginValueOn();
+
+      for (; iter; ++iter) {
+        if (iter.getValue() < ValueType(volume_clipping)) {
+          iter.setValueOff();
+        }
+      }
+
+      typed_grid = copy;
+    }
+
+    topology_grid->topologyUnion(*typed_grid);
+  }
+#endif
 };
 
-VolumeMeshBuilder::VolumeMeshBuilder(VolumeParams *volume_params)
+VolumeMeshBuilder::VolumeMeshBuilder()
 {
-  params = volume_params;
-  number_of_nodes = 0;
-
-  const int64_t x = divide_up(params->resolution.x, CUBE_SIZE);
-  const int64_t y = divide_up(params->resolution.y, CUBE_SIZE);
-  const int64_t z = divide_up(params->resolution.z, CUBE_SIZE);
-
-  /* Adding 2*pad_size since we pad in both positive and negative directions
-   * along the axis. */
-  const int64_t px = divide_up(params->resolution.x + 2 * params->pad_size, CUBE_SIZE);
-  const int64_t py = divide_up(params->resolution.y + 2 * params->pad_size, CUBE_SIZE);
-  const int64_t pz = divide_up(params->resolution.z + 2 * params->pad_size, CUBE_SIZE);
-
-  res = make_int3(px, py, pz);
-  pad_offset = make_int3(px - x, py - y, pz - z);
-
-  grid.resize(px * py * pz, 0);
+  first_grid = true;
 }
 
-void VolumeMeshBuilder::add_node(int x, int y, int z)
+#ifdef WITH_OPENVDB
+void VolumeMeshBuilder::add_grid(openvdb::GridBase::ConstPtr grid, bool do_clipping, float volume_clipping)
 {
-  /* Map coordinates to index space. */
-  const int index_x = (x / CUBE_SIZE) + pad_offset.x;
-  const int index_y = (y / CUBE_SIZE) + pad_offset.y;
-  const int index_z = (z / CUBE_SIZE) + pad_offset.z;
-
-  assert((index_x >= 0) && (index_y >= 0) && (index_z >= 0));
-
-  const int64_t index = compute_voxel_index(res, index_x, index_y, index_z);
-  if (index == VOXEL_INDEX_NONE) {
-    return;
+  /* set the transform of our grid from the first one */
+  if (first_grid) {
+    topology_grid = openvdb::MaskGrid::create();
+    topology_grid->setTransform(grid->transform().copy());
+    first_grid = false;
+  }
+  /* if the transforms do not match, we need to resample one of the grids so that
+   * its index space registers with that of the other, here we resample our mask
+   * grid so memory usage is kept low */
+  else if (topology_grid->transform() != grid->transform()) {
+    openvdb::MaskGrid::Ptr temp_grid = topology_grid->copyWithNewTree();
+    temp_grid->setTransform(grid->transform().copy());
+    openvdb::tools::resampleToMatch<openvdb::tools::BoxSampler>(*topology_grid, *temp_grid);
+    topology_grid = temp_grid;
+    topology_grid->setTransform(grid->transform().copy());
   }
 
-  /* We already have a node here. */
-  if (grid[index] == 1) {
-    return;
+  if (grid->isType<openvdb::FloatGrid>()) {
+    merge_grid<openvdb::FloatGrid>(grid, do_clipping, volume_clipping);
   }
-
-  ++number_of_nodes;
-
-  grid[index] = 1;
+  else if (grid->isType<openvdb::Vec3fGrid>()) {
+    merge_grid<openvdb::Vec3fGrid>(grid, do_clipping, volume_clipping);
+  }
+  else if (grid->isType<openvdb::Vec4fGrid>()) {
+    merge_grid<openvdb::Vec4fGrid>(grid, do_clipping, volume_clipping);
+  }
+  else if (grid->isType<openvdb::BoolGrid>()) {
+    merge_grid<openvdb::BoolGrid>(grid, do_clipping, volume_clipping);
+  }
+  else if (grid->isType<openvdb::DoubleGrid>()) {
+    merge_grid<openvdb::DoubleGrid>(grid, do_clipping, volume_clipping);
+  }
+  else if (grid->isType<openvdb::Int32Grid>()) {
+    merge_grid<openvdb::Int32Grid>(grid, do_clipping, volume_clipping);
+  }
+  else if (grid->isType<openvdb::Int64Grid>()) {
+    merge_grid<openvdb::Int64Grid>(grid, do_clipping, volume_clipping);
+  }
+  else if (grid->isType<openvdb::Vec3IGrid>()) {
+    merge_grid<openvdb::Vec3IGrid>(grid, do_clipping, volume_clipping);
+  }
+  else if (grid->isType<openvdb::Vec3dGrid>()) {
+    merge_grid<openvdb::Vec3dGrid>(grid, do_clipping, volume_clipping);
+  }
+  else if (grid->isType<openvdb::MaskGrid>()) {
+    topology_grid->topologyUnion(*openvdb::gridConstPtrCast<openvdb::MaskGrid>(grid));
+  }
 }
+#endif
 
-void VolumeMeshBuilder::add_node_with_padding(int x, int y, int z)
+void VolumeMeshBuilder::add_padding(int pad_size)
 {
-  for (int px = x - params->pad_size; px < x + params->pad_size; ++px) {
-    for (int py = y - params->pad_size; py < y + params->pad_size; ++py) {
-      for (int pz = z - params->pad_size; pz < z + params->pad_size; ++pz) {
-        add_node(px, py, pz);
-      }
-    }
-  }
+#ifdef WITH_OPENVDB
+  openvdb::tools::dilateVoxels(topology_grid->tree(), pad_size);
+#else
+  (void)pad_size;
+#endif
 }
 
 void VolumeMeshBuilder::create_mesh(vector<float3> &vertices,
                                     vector<int> &indices,
-                                    vector<float3> &face_normals)
+                                    vector<float3> &face_normals,
+                                    const float face_overlap_avoidance)
 {
   /* We create vertices in index space (is), and only convert them to object
    * space when done. */
@@ -247,7 +262,7 @@ void VolumeMeshBuilder::create_mesh(vector<float3> &vertices,
 
   generate_vertices_and_quads(vertices_is, quads);
 
-  convert_object_space(vertices_is, vertices);
+  convert_object_space(vertices_is, vertices, face_overlap_avoidance);
 
   convert_quads_to_tris(quads, indices, face_normals);
 }
@@ -255,85 +270,97 @@ void VolumeMeshBuilder::create_mesh(vector<float3> &vertices,
 void VolumeMeshBuilder::generate_vertices_and_quads(vector<ccl::int3> &vertices_is,
                                                     vector<QuadData> &quads)
 {
+#ifdef WITH_OPENVDB
+  const openvdb::MaskGrid::TreeType &tree = topology_grid->tree();
+  tree.evalLeafBoundingBox(bbox);
+
+  const int3 resolution = make_int3(bbox.dim().x(), bbox.dim().y(), bbox.dim().z());
+
   unordered_map<size_t, int> used_verts;
 
-  for (int z = 0; z < res.z; ++z) {
-    for (int y = 0; y < res.y; ++y) {
-      for (int x = 0; x < res.x; ++x) {
-        int64_t voxel_index = compute_voxel_index(res, x, y, z);
-        if (grid[voxel_index] == 0) {
-          continue;
-        }
+  for (auto iter = tree.cbeginLeaf(); iter; ++iter) {
+    openvdb::CoordBBox leaf_bbox = iter->getNodeBoundingBox();
+    /* +1 to convert from exclusive to include bounds. */
+    leaf_bbox.max() = leaf_bbox.max().offsetBy(1);
 
-        /* Compute min and max coords of the node in index space. */
-        int3 min = make_int3((x - pad_offset.x) * CUBE_SIZE,
-                             (y - pad_offset.y) * CUBE_SIZE,
-                             (z - pad_offset.z) * CUBE_SIZE);
+    int3 min = make_int3(leaf_bbox.min().x(), leaf_bbox.min().y(), leaf_bbox.min().z());
+    int3 max = make_int3(leaf_bbox.max().x(), leaf_bbox.max().y(), leaf_bbox.max().z());
 
-        /* Maximum is just CUBE_SIZE voxels away from minimum on each axis. */
-        int3 max = make_int3(min.x + CUBE_SIZE, min.y + CUBE_SIZE, min.z + CUBE_SIZE);
+    int3 corners[8] = {
+        make_int3(min[0], min[1], min[2]),
+        make_int3(max[0], min[1], min[2]),
+        make_int3(max[0], max[1], min[2]),
+        make_int3(min[0], max[1], min[2]),
+        make_int3(min[0], min[1], max[2]),
+        make_int3(max[0], min[1], max[2]),
+        make_int3(max[0], max[1], max[2]),
+        make_int3(min[0], max[1], max[2]),
+    };
 
-        int3 corners[8] = {
-            make_int3(min[0], min[1], min[2]),
-            make_int3(max[0], min[1], min[2]),
-            make_int3(max[0], max[1], min[2]),
-            make_int3(min[0], max[1], min[2]),
-            make_int3(min[0], min[1], max[2]),
-            make_int3(max[0], min[1], max[2]),
-            make_int3(max[0], max[1], max[2]),
-            make_int3(min[0], max[1], max[2]),
-        };
+    /* Only create a quad if on the border between an active and an inactive leaf.
+     *
+     * We verify that a leaf exists by probing a coordinate that is at its center,
+     * to do so we compute the center of the current leaf and offset this coordinate
+     * by the size of a leaf in each direction.
+     */
+    static const int LEAF_DIM = openvdb::MaskGrid::TreeType::LeafNodeType::DIM;
+    auto center = leaf_bbox.min() + openvdb::Coord(LEAF_DIM / 2);
 
-        /* Only create a quad if on the border between an active and
-         * an inactive node.
-         */
+    if (!tree.probeLeaf(openvdb::Coord(center.x() - LEAF_DIM, center.y(), center.z()))) {
+      create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_X_MIN);
+    }
 
-        voxel_index = compute_voxel_index(res, x - 1, y, z);
-        if (voxel_index == VOXEL_INDEX_NONE || grid[voxel_index] == 0) {
-          create_quad(corners, vertices_is, quads, res, used_verts, QUAD_X_MIN);
-        }
+    if (!tree.probeLeaf(openvdb::Coord(center.x() + LEAF_DIM, center.y(), center.z()))) {
+      create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_X_MAX);
+    }
 
-        voxel_index = compute_voxel_index(res, x + 1, y, z);
-        if (voxel_index == VOXEL_INDEX_NONE || grid[voxel_index] == 0) {
-          create_quad(corners, vertices_is, quads, res, used_verts, QUAD_X_MAX);
-        }
+    if (!tree.probeLeaf(openvdb::Coord(center.x(), center.y() - LEAF_DIM, center.z()))) {
+      create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Y_MIN);
+    }
 
-        voxel_index = compute_voxel_index(res, x, y - 1, z);
-        if (voxel_index == VOXEL_INDEX_NONE || grid[voxel_index] == 0) {
-          create_quad(corners, vertices_is, quads, res, used_verts, QUAD_Y_MIN);
-        }
+    if (!tree.probeLeaf(openvdb::Coord(center.x(), center.y() + LEAF_DIM, center.z()))) {
+      create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Y_MAX);
+    }
 
-        voxel_index = compute_voxel_index(res, x, y + 1, z);
-        if (voxel_index == VOXEL_INDEX_NONE || grid[voxel_index] == 0) {
-          create_quad(corners, vertices_is, quads, res, used_verts, QUAD_Y_MAX);
-        }
+    if (!tree.probeLeaf(openvdb::Coord(center.x(), center.y(), center.z() - LEAF_DIM))) {
+      create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Z_MIN);
+    }
 
-        voxel_index = compute_voxel_index(res, x, y, z - 1);
-        if (voxel_index == VOXEL_INDEX_NONE || grid[voxel_index] == 0) {
-          create_quad(corners, vertices_is, quads, res, used_verts, QUAD_Z_MIN);
-        }
-
-        voxel_index = compute_voxel_index(res, x, y, z + 1);
-        if (voxel_index == VOXEL_INDEX_NONE || grid[voxel_index] == 0) {
-          create_quad(corners, vertices_is, quads, res, used_verts, QUAD_Z_MAX);
-        }
-      }
+    if (!tree.probeLeaf(openvdb::Coord(center.x(), center.y(), center.z() + LEAF_DIM))) {
+      create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Z_MAX);
     }
   }
+#else
+  (void)vertices_is;
+  (void)quads;
+#endif
 }
 
 void VolumeMeshBuilder::convert_object_space(const vector<int3> &vertices,
-                                             vector<float3> &out_vertices)
+                                             vector<float3> &out_vertices,
+                                             const float face_overlap_avoidance)
 {
+#ifdef WITH_OPENVDB
+  /* compute the offset for the face overlap avoidance */
+  bbox = topology_grid->evalActiveVoxelBoundingBox();
+  openvdb::Coord dim = bbox.dim();
+
+  float3 cell_size = make_float3(1.0f / dim.x(), 1.0f / dim.y(), 1.0f / dim.z());
+  float3 point_offset = cell_size * face_overlap_avoidance;
+
   out_vertices.reserve(vertices.size());
 
   for (size_t i = 0; i < vertices.size(); ++i) {
-    float3 vertex = make_float3(vertices[i].x, vertices[i].y, vertices[i].z);
-    vertex *= params->cell_size;
-    vertex += params->start_point;
-
-    out_vertices.push_back(vertex);
+    openvdb::math::Vec3d p = topology_grid->indexToWorld(
+        openvdb::math::Vec3d(vertices[i].x, vertices[i].y, vertices[i].z));
+    float3 vertex = make_float3((float)p.x(), (float)p.y(), (float)p.z());
+    out_vertices.push_back(vertex + point_offset);
   }
+#else
+  (void)vertices;
+  (void)out_vertices;
+  (void)face_overlap_avoidance;
+#endif
 }
 
 void VolumeMeshBuilder::convert_quads_to_tris(const vector<QuadData> &quads,
@@ -359,57 +386,115 @@ void VolumeMeshBuilder::convert_quads_to_tris(const vector<QuadData> &quads,
   }
 }
 
-/* ************************************************************************** */
+bool VolumeMeshBuilder::empty_grid() const
+{
+#ifdef WITH_OPENVDB
+  return !topology_grid || topology_grid->tree().leafCount() == 0;
+#else
+  return true;
+#endif
+}
 
-struct VoxelAttributeGrid {
-  float *data;
-  int channels;
-};
+#ifdef WITH_OPENVDB
+template<typename GridType>
+static openvdb::GridBase::ConstPtr openvdb_grid_from_device_texture(device_texture *image_memory,
+                                                                    float volume_clipping,
+                                                                    Transform transform_3d)
+{
+  using ValueType = typename GridType::ValueType;
+
+  openvdb::CoordBBox dense_bbox(0,
+                                0,
+                                0,
+                                image_memory->data_width - 1,
+                                image_memory->data_height - 1,
+                                image_memory->data_depth - 1);
+  openvdb::tools::Dense<ValueType, openvdb::tools::MemoryLayout::LayoutXYZ> dense(
+      dense_bbox, static_cast<ValueType *>(image_memory->host_pointer));
+
+  typename GridType::Ptr sparse = GridType::create(ValueType(0.0f));
+  openvdb::tools::copyFromDense(dense, *sparse, ValueType(volume_clipping));
+
+  /* copyFromDense will remove any leaf node that contains constant data and replace it with a tile,
+   * however, we need to preserve the leaves in order to generate the mesh, so revoxelize the leaves
+   * that were pruned. This should not affect areas that were skipped due to the volume_clipping parameter. */
+  sparse->tree().voxelizeActiveTiles();
+
+  /* Compute index to world matrix. */
+  float3 voxel_size = make_float3(1.0f / image_memory->data_width, 1.0f / image_memory->data_height, 1.0f / image_memory->data_depth);
+
+  transform_3d = transform_inverse(transform_3d);
+
+  openvdb::Mat4R index_to_world_mat((double)(voxel_size.x * transform_3d[0][0]), 0.0, 0.0, 0.0,
+                           0.0, (double)(voxel_size.y * transform_3d[1][1]), 0.0, 0.0,
+                           0.0, 0.0, (double)(voxel_size.z * transform_3d[2][2]), 0.0,
+                           (double)transform_3d[0][3], (double)transform_3d[1][3], (double)transform_3d[2][3], 1.0);
+
+  openvdb::math::Transform::Ptr index_to_world_tfm = openvdb::math::Transform::createLinearTransform(index_to_world_mat);
+
+  sparse->setTransform(index_to_world_tfm);
+
+  return sparse;
+}
+#endif
+
+/* ************************************************************************** */
 
 void GeometryManager::create_volume_mesh(Mesh *mesh, Progress &progress)
 {
   string msg = string_printf("Computing Volume Mesh %s", mesh->name.c_str());
   progress.set_status("Updating Mesh", msg);
 
-  vector<VoxelAttributeGrid> voxel_grids;
+  VolumeMeshBuilder builder;
 
-  /* Compute volume parameters. */
-  VolumeParams volume_params;
-  volume_params.resolution = make_int3(0, 0, 0);
-
-  Transform transform = transform_identity();
-
+#ifdef WITH_OPENVDB
   foreach (Attribute &attr, mesh->attributes.attributes) {
     if (attr.element != ATTR_ELEMENT_VOXEL) {
       continue;
     }
 
+    bool do_clipping = false;
+
     ImageHandle &handle = attr.data_voxel();
-    device_texture *image_memory = handle.image_memory();
-    int3 resolution = make_int3(
-        image_memory->data_width, image_memory->data_height, image_memory->data_depth);
 
-    if (volume_params.resolution == make_int3(0, 0, 0)) {
-      volume_params.resolution = resolution;
-    }
-    else if (volume_params.resolution != resolution) {
-      /* TODO: support this as it's common for OpenVDB. */
-      VLOG(1) << "Can't create accurate volume mesh, all voxel grid resolutions must be equal\n";
-      continue;
+    /* Try building from OpenVDB grid directly. */
+    VDBImageLoader *vdb_loader = handle.vdb_loader();
+    openvdb::GridBase::ConstPtr grid;
+    if (vdb_loader) {
+      grid = vdb_loader->get_grid();
+
+      /* If building from an OpenVDB grid, we need to manually clip the values. */
+      do_clipping = true;
     }
 
-    VoxelAttributeGrid voxel_grid;
-    voxel_grid.data = static_cast<float *>(image_memory->host_pointer);
-    voxel_grid.channels = image_memory->data_elements;
-    voxel_grids.push_back(voxel_grid);
+    /* Else fall back to creating an OpenVDB grid from the dense volume data. */
+    if (!grid) {
+      device_texture *image_memory = handle.image_memory();
 
-    /* TODO: support multiple transforms. */
-    if (image_memory->info.use_transform_3d) {
-      transform = image_memory->info.transform_3d;
+      if (image_memory->data_elements == 1) {
+        grid = openvdb_grid_from_device_texture<openvdb::FloatGrid>(image_memory,
+                                                                    mesh->volume_clipping,
+                                                                    handle.metadata().transform_3d);
+      }
+      else if (image_memory->data_elements == 3) {
+        grid = openvdb_grid_from_device_texture<openvdb::Vec3fGrid>(image_memory,
+                                                                    mesh->volume_clipping,
+                                                                    handle.metadata().transform_3d);
+      }
+      else if (image_memory->data_elements == 4) {
+        grid = openvdb_grid_from_device_texture<openvdb::Vec4fGrid>(image_memory,
+                                                                    mesh->volume_clipping,
+                                                                    handle.metadata().transform_3d);
+      }
+    }
+
+    if (grid) {
+      builder.add_grid(grid, do_clipping, mesh->volume_clipping);
     }
   }
+#endif
 
-  if (voxel_grids.empty()) {
+  if (builder.empty_grid()) {
     return;
   }
 
@@ -438,56 +523,19 @@ void GeometryManager::create_volume_mesh(Mesh *mesh, Progress &progress)
     return;
   }
 
-  /* Compute start point and cell size from transform. */
-  const int3 resolution = volume_params.resolution;
-  float3 start_point = make_float3(0.0f, 0.0f, 0.0f);
-  float3 cell_size = make_float3(1.0f / resolution.x, 1.0f / resolution.y, 1.0f / resolution.z);
-
-  /* TODO: support arbitrary transforms, not just scale + translate. */
-  const Transform itfm = transform_inverse(transform);
-  start_point = transform_point(&itfm, start_point);
-  cell_size = transform_direction(&itfm, cell_size);
+  builder.add_padding(pad_size);
 
   /* Slightly offset vertex coordinates to avoid overlapping faces with other
    * volumes or meshes. The proper solution would be to improve intersection in
    * the kernel to support robust handling of multiple overlapping faces or use
    * an all-hit intersection similar to shadows. */
-  const float3 face_overlap_avoidance = cell_size * 0.1f *
-                                        hash_uint_to_float(hash_string(mesh->name.c_str()));
-
-  volume_params.start_point = start_point + face_overlap_avoidance;
-  volume_params.cell_size = cell_size;
-  volume_params.pad_size = pad_size;
-
-  /* Build bounding mesh around non-empty volume cells. */
-  VolumeMeshBuilder builder(&volume_params);
-  const float clipping = mesh->volume_clipping;
-
-  for (int z = 0; z < resolution.z; ++z) {
-    for (int y = 0; y < resolution.y; ++y) {
-      for (int x = 0; x < resolution.x; ++x) {
-        int64_t voxel_index = compute_voxel_index(resolution, x, y, z);
-
-        for (size_t i = 0; i < voxel_grids.size(); ++i) {
-          const VoxelAttributeGrid &voxel_grid = voxel_grids[i];
-          const int channels = voxel_grid.channels;
-
-          for (int c = 0; c < channels; c++) {
-            if (voxel_grid.data[voxel_index * channels + c] >= clipping) {
-              builder.add_node_with_padding(x, y, z);
-              break;
-            }
-          }
-        }
-      }
-    }
-  }
+  const float face_overlap_avoidance = 0.1f * hash_uint_to_float(hash_string(mesh->name.c_str()));
 
   /* Create mesh. */
   vector<float3> vertices;
   vector<int> indices;
   vector<float3> face_normals;
-  builder.create_mesh(vertices, indices, face_normals);
+  builder.create_mesh(vertices, indices, face_normals, face_overlap_avoidance);
 
   mesh->clear(true);
   mesh->reserve_mesh(vertices.size(), indices.size() / 3);
@@ -513,10 +561,6 @@ void GeometryManager::create_volume_mesh(Mesh *mesh, Progress &progress)
           << ((vertices.size() + face_normals.size()) * sizeof(float3) +
               indices.size() * sizeof(int)) /
                  (1024.0 * 1024.0)
-          << "Mb.";
-
-  VLOG(1) << "Memory usage volume grid: "
-          << (resolution.x * resolution.y * resolution.z * sizeof(float)) / (1024.0 * 1024.0)
           << "Mb.";
 }
 

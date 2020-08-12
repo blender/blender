@@ -43,6 +43,12 @@ class VDBImageLoader : public ImageLoader {
 
   virtual void cleanup() override;
 
+  virtual bool is_vdb_loader() const override;
+
+#ifdef WITH_OPENVDB
+  openvdb::GridBase::ConstPtr get_grid();
+#endif
+
  protected:
   string grid_name;
 #ifdef WITH_OPENVDB

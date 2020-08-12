@@ -39,6 +39,7 @@ class Progress;
 class RenderStats;
 class Scene;
 class ColorSpaceProcessor;
+class VDBImageLoader;
 
 /* Image Parameters */
 class ImageParams {
@@ -124,6 +125,8 @@ class ImageLoader {
   virtual bool equals(const ImageLoader &other) const = 0;
   static bool equals(const ImageLoader *a, const ImageLoader *b);
 
+  virtual bool is_vdb_loader() const;
+
   /* Work around for no RTTI. */
 };
 
@@ -148,6 +151,8 @@ class ImageHandle {
   ImageMetaData metadata();
   int svm_slot(const int tile_index = 0) const;
   device_texture *image_memory(const int tile_index = 0) const;
+
+  VDBImageLoader *vdb_loader(const int tile_index = 0) const;
 
  protected:
   vector<int> tile_slots;

@@ -18,6 +18,7 @@
 #include "device/device.h"
 #include "render/colorspace.h"
 #include "render/image_oiio.h"
+#include "render/image_vdb.h"
 #include "render/scene.h"
 #include "render/stats.h"
 
@@ -172,6 +173,31 @@ device_texture *ImageHandle::image_memory(const int tile_index) const
   return img ? img->mem : NULL;
 }
 
+VDBImageLoader *ImageHandle::vdb_loader(const int tile_index) const
+{
+  if (tile_index >= tile_slots.size()) {
+    return NULL;
+  }
+
+  ImageManager::Image *img = manager->images[tile_slots[tile_index]];
+
+  if (img == NULL) {
+    return NULL;
+  }
+
+  ImageLoader *loader = img->loader;
+
+  if (loader == NULL) {
+    return NULL;
+  }
+
+  if (loader->is_vdb_loader()) {
+    return dynamic_cast<VDBImageLoader *>(loader);
+  }
+
+  return NULL;
+}
+
 bool ImageHandle::operator==(const ImageHandle &other) const
 {
   return manager == other.manager && tile_slots == other.tile_slots;
@@ -256,6 +282,11 @@ bool ImageLoader::equals(const ImageLoader *a, const ImageLoader *b)
   else {
     return (a && b && typeid(*a) == typeid(*b) && a->equals(*b));
   }
+}
+
+bool ImageLoader::is_vdb_loader() const
+{
+  return false;
 }
 
 /* Image Manager */

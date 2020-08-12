@@ -88,6 +88,7 @@ set(SRC_HEADERS
   util_murmurhash.h
   util_openimagedenoise.h
   util_opengl.h
+  util_openvdb.h
   util_optimization.h
   util_param.h
   util_path.h
