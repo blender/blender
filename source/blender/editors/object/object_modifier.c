@@ -1022,7 +1022,7 @@ bool edit_modifier_poll_generic(bContext *C,
   }
 
   if (ID_IS_OVERRIDE_LIBRARY(ob)) {
-    if ((mod != NULL) && (mod->flag & eModifierFlag_OverrideLibrary_Local) == 0) {
+    if ((mod == NULL) || (mod->flag & eModifierFlag_OverrideLibrary_Local) == 0) {
       CTX_wm_operator_poll_msg_set(C, "Cannot edit modifiers coming from library override");
       return false;
     }
