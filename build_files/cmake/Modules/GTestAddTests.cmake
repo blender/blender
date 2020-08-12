@@ -1,5 +1,5 @@
-# Distributed under the OSI-approved BSD 3-Clause License.  See accompanying
-# file Copyright.txt or https://cmake.org/licensing for details.
+# Distributed under the OSI-approved BSD 3-Clause License,
+# see accompanying file BSD-3-Clause-license.txt for details.
 
 # Blender: disable ASAN leak detection when trying to discover tests.
 set(ENV{ASAN_OPTIONS} "detect_leaks=0")

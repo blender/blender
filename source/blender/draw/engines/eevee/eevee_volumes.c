@@ -62,6 +62,7 @@ static struct {
   GPUTexture *dummy_density;
   GPUTexture *dummy_color;
   GPUTexture *dummy_flame;
+  GPUTexture *dummy_missing;
 
   GPUTexture *dummy_scatter;
   GPUTexture *dummy_transmit;
@@ -141,6 +142,9 @@ static void eevee_create_shader_volumes(void)
 
   const float flame = 0.0f;
   e_data.dummy_flame = DRW_texture_create_3d(1, 1, 1, GPU_R8, DRW_TEX_WRAP, &flame);
+
+  const float missing[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  e_data.dummy_missing = DRW_texture_create_3d(1, 1, 1, GPU_RGBA8, DRW_TEX_WRAP, missing);
 }
 
 void EEVEE_volumes_set_jitter(EEVEE_ViewLayerData *sldata, uint current_sample)
@@ -355,7 +359,7 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
       /* Fix principle volumetric not working with world materials. */
       ListBase gpu_grids = GPU_material_volume_grids(mat);
       LISTBASE_FOREACH (GPUMaterialVolumeGrid *, gpu_grid, &gpu_grids) {
-        DRW_shgroup_uniform_texture(grp, gpu_grid->sampler_name, e_data.dummy_density);
+        DRW_shgroup_uniform_texture(grp, gpu_grid->sampler_name, e_data.dummy_missing);
       }
 
       DRW_shgroup_call_procedural_triangles(grp, NULL, common_data->vol_tex_size[2]);
@@ -443,7 +447,7 @@ static bool eevee_volume_object_grids_init(Object *ob, ListBase *gpu_grids, DRWS
                                   NULL;
 
     DRW_shgroup_uniform_texture(
-        grp, gpu_grid->sampler_name, (drw_grid) ? drw_grid->texture : e_data.dummy_density);
+        grp, gpu_grid->sampler_name, (drw_grid) ? drw_grid->texture : e_data.dummy_missing);
 
     if (drw_grid && multiple_transforms) {
       /* Specify per-volume transform matrix that is applied after the
@@ -830,6 +834,7 @@ void EEVEE_volumes_free(void)
   DRW_TEXTURE_FREE_SAFE(e_data.dummy_density);
   DRW_TEXTURE_FREE_SAFE(e_data.dummy_flame);
   DRW_TEXTURE_FREE_SAFE(e_data.dummy_color);
+  DRW_TEXTURE_FREE_SAFE(e_data.dummy_missing);
 
   DRW_SHADER_FREE_SAFE(e_data.volumetric_clear_sh);
   DRW_SHADER_FREE_SAFE(e_data.scatter_sh);

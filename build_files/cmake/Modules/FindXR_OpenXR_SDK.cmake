@@ -20,12 +20,8 @@
 #  XR_OPENXR_SDK_LOADER_LIBRARY, where to find the OpenXR-SDK loader library.
 
 #=============================================================================
-# Distributed under the OSI-approved BSD License (the "License");
-# see accompanying file Copyright.txt for details.
-#
-# This software is distributed WITHOUT ANY WARRANTY; without even the
-# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# See the License for more information.
+# Distributed under the OSI-approved BSD 3-Clause License,
+# see accompanying file BSD-3-Clause-license.txt for details.
 #=============================================================================
 
 # If XR_OPENXR_SDK_ROOT_DIR was defined in the environment, use it.

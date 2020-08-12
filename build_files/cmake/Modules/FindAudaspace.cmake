@@ -11,6 +11,13 @@
 #  AUDASPACE_PY_INCLUDE_DIRS - the audaspace's python binding include directories
 #  AUDASPACE_PY_LIBRARIES - link these to use audaspace's python binding
 
+#=============================================================================
+# Copyright 2014 Blender Foundation.
+#
+# Distributed under the OSI-approved BSD 3-Clause License,
+# see accompanying file BSD-3-Clause-license.txt for details.
+#=============================================================================
+
 IF(NOT AUDASPACE_ROOT_DIR AND NOT $ENV{AUDASPACE_ROOT_DIR} STREQUAL "")
  SET(AUDASPACE_ROOT_DIR $ENV{AUDASPACE_ROOT_DIR})
 ENDIF()
