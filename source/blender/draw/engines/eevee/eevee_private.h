@@ -920,6 +920,9 @@ typedef struct EEVEE_PrivateData {
   float camtexcofac[4];
   float size_orig[2];
 
+  /* Cached original camera when rendering for motion blur (see T79637). */
+  struct Object *cam_original_ob;
+
   /* Mist Settings */
   float mist_start, mist_inv_dist, mist_falloff;
 
