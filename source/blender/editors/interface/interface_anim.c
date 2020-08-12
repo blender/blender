@@ -312,8 +312,7 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
 
 void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 {
-  const int rnaindex = (but->rnaindex == -1) ? 0 : but->rnaindex;
-  ED_autokeyframe_property(C, scene, &but->rnapoin, but->rnaprop, rnaindex, cfra);
+  ED_autokeyframe_property(C, scene, &but->rnapoin, but->rnaprop, but->rnaindex, cfra);
 }
 
 void ui_but_anim_copy_driver(bContext *C)
