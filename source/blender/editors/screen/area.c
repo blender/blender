@@ -2658,29 +2658,35 @@ void ED_region_panels_layout_ex(const bContext *C,
   if (has_instanced_panel) {
     LISTBASE_FOREACH (Panel *, panel, &region->panels) {
       if (panel->type == NULL) {
-        continue; /* Some panels don't have a type.. */
+        continue; /* Some panels don't have a type. */
       }
-      if (panel->type->flag & PNL_INSTANCED) {
-        if (panel && UI_panel_is_dragging(panel)) {
-          /* Prevent View2d.tot rectangle size changes while dragging panels. */
-          update_tot_size = false;
-        }
+      if (!(panel->type->flag & PNL_INSTANCED)) {
+        continue;
+      }
+      if (use_category_tabs && panel->type->category[0] &&
+          !STREQ(category, panel->type->category)) {
+        continue;
+      }
 
-        /* Use a unique identifier for instanced panels, otherwise an old block for a different
-         * panel of the same type might be found. */
-        char unique_panel_str[8];
-        UI_list_panel_unique_str(panel, unique_panel_str);
-        ed_panel_draw(C,
-                      area,
-                      region,
-                      &region->panels,
-                      panel->type,
-                      panel,
-                      (panel->type->flag & PNL_DRAW_BOX) ? w_box_panel : w,
-                      em,
-                      vertical,
-                      unique_panel_str);
+      if (panel && UI_panel_is_dragging(panel)) {
+        /* Prevent View2d.tot rectangle size changes while dragging panels. */
+        update_tot_size = false;
       }
+
+      /* Use a unique identifier for instanced panels, otherwise an old block for a different
+       * panel of the same type might be found. */
+      char unique_panel_str[8];
+      UI_list_panel_unique_str(panel, unique_panel_str);
+      ed_panel_draw(C,
+                    area,
+                    region,
+                    &region->panels,
+                    panel->type,
+                    panel,
+                    (panel->type->flag & PNL_DRAW_BOX) ? w_box_panel : w,
+                    em,
+                    vertical,
+                    unique_panel_str);
     }
   }
 
