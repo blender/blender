@@ -3188,7 +3188,7 @@ void SCULPT_relax_vertex(SculptSession *ss,
   }
 
   if (avg_count > 0) {
-    mul_v3_fl(smooth_pos, 1.0f / (float)avg_count);
+    mul_v3_fl(smooth_pos, 1.0f / avg_count);
   }
   else {
     copy_v3_v3(r_final_pos, vd->co);
@@ -5183,7 +5183,7 @@ static float sculpt_clay_thumb_get_stabilized_pressure(StrokeCache *cache)
   for (int i = 0; i < SCULPT_CLAY_STABILIZER_LEN; i++) {
     final_pressure += cache->clay_pressure_stabilizer[i];
   }
-  return final_pressure / (float)SCULPT_CLAY_STABILIZER_LEN;
+  return final_pressure / SCULPT_CLAY_STABILIZER_LEN;
 }
 
 static void do_clay_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
@@ -7461,7 +7461,7 @@ static void sculpt_stroke_update_step(bContext *C,
   else {
     BKE_pbvh_bmesh_detail_size_set(ss->pbvh,
                                    (ss->cache->radius / ss->cache->dyntopo_pixel_radius) *
-                                       (float)(sd->detail_size * U.pixelsize) / 0.4f);
+                                       (sd->detail_size * U.pixelsize) / 0.4f);
   }
 
   if (SCULPT_stroke_is_dynamic_topology(ss, brush)) {

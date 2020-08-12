@@ -327,7 +327,7 @@ void SCULPT_do_paint_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
     if (swptd.tot_samples > 0 && is_finite_v4(swptd.color)) {
       copy_v4_v4(wet_color, swptd.color);
-      mul_v4_fl(wet_color, 1.0f / (float)swptd.tot_samples);
+      mul_v4_fl(wet_color, 1.0f / swptd.tot_samples);
       CLAMP4(wet_color, 0.0f, 1.0f);
 
       if (ss->cache->first_time) {

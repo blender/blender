@@ -306,7 +306,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
         const uint *hash_co = (const uint *)orig_co;
         const uint hash = BLI_hash_int_2d(hash_co[0], hash_co[1]) ^
                           BLI_hash_int_2d(hash_co[2], ss->filter_cache->random_seed);
-        mul_v3_fl(normal, hash * (1.0f / (float)0xFFFFFFFF) - 0.5f);
+        mul_v3_fl(normal, hash * (1.0f / 0xFFFFFFFF) - 0.5f);
         mul_v3_v3fl(disp, normal, fade);
         break;
       }
@@ -435,9 +435,8 @@ static void mesh_filter_sharpen_init_factors(SculptSession *ss)
       SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
       if (total > 0) {
-        mul_v3_v3fl(
-            ss->filter_cache->sharpen_detail_directions[i], direction_avg, 1.0f / (float)total);
-        ss->filter_cache->sharpen_factor[i] = sharpen_avg / (float)total;
+        mul_v3_v3fl(ss->filter_cache->sharpen_detail_directions[i], direction_avg, 1.0f / total);
+        ss->filter_cache->sharpen_factor[i] = sharpen_avg / total;
       }
     }
   }
