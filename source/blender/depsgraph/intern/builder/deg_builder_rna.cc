@@ -311,7 +311,11 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
           contains(prop_identifier, "rotation_axis_angle") ||
           contains(prop_identifier, "rotation_euler") ||
           contains(prop_identifier, "rotation_mode") ||
-          contains(prop_identifier, "rotation_quaternion") || contains(prop_identifier, "scale")) {
+          contains(prop_identifier, "rotation_quaternion") || contains(prop_identifier, "scale") ||
+          contains(prop_identifier, "delta_location") ||
+          contains(prop_identifier, "delta_rotation_euler") ||
+          contains(prop_identifier, "delta_rotation_quaternion") ||
+          contains(prop_identifier, "delta_scale")) {
         node_identifier.type = NodeType::TRANSFORM;
         return node_identifier;
       }
