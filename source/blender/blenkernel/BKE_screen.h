@@ -183,6 +183,16 @@ typedef struct ARegionType {
   /* return context data */
   int (*context)(const struct bContext *C, const char *member, struct bContextDataResult *result);
 
+  /* Is called whenever the current visible View2D's region changes.
+   *
+   * Used from user code such as view navigation/zoom operators to inform region about changes.
+   * The goal is to support zoom-to-fit features which gets disabled when manual navigation is
+   * performed.
+   *
+   * This callback is not called on indirect changes of the current viewport (which could happen
+   * when the `v2d->tot is changed and `cur` is adopted accordingly).  */
+  void (*on_view2d_changed)(const struct bContext *C, struct ARegion *region);
+
   /* custom drawing callbacks */
   ListBase drawcalls;
 
