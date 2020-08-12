@@ -372,7 +372,7 @@ static void panel_delete(const bContext *C, ARegion *region, ListBase *panels, P
  * \note Can be called with NULL \a C, but it should be avoided because
  * handlers might not be removed.
  */
-void UI_panels_free_instanced(bContext *C, ARegion *region)
+void UI_panels_free_instanced(const bContext *C, ARegion *region)
 {
   /* Delete panels with the instanced flag. */
   LISTBASE_FOREACH_MUTABLE (Panel *, panel, &region->panels) {

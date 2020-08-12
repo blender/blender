@@ -1715,7 +1715,7 @@ struct Panel *UI_panel_add_instanced(struct ScrArea *area,
                                      char *panel_idname,
                                      int list_index,
                                      struct PointerRNA *custom_data);
-void UI_panels_free_instanced(struct bContext *C, struct ARegion *region);
+void UI_panels_free_instanced(const struct bContext *C, struct ARegion *region);
 
 #define LIST_PANEL_UNIQUE_STR_LEN 4
 void UI_list_panel_unique_str(struct Panel *panel, char *r_name);
