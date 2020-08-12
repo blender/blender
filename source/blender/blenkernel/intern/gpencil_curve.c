@@ -216,12 +216,8 @@ static Collection *gpencil_get_parent_collection(Scene *scene, Object *ob)
 
   return mycol;
 }
-static int gpencil_get_stroke_material_fromcurve(Main *bmain,
-                                                 Object *ob_gp,
-                                                 Object *ob_cu,
-                                                 const bool only_stroke,
-                                                 bool *do_stroke,
-                                                 bool *do_fill)
+static int gpencil_get_stroke_material_fromcurve(
+    Main *bmain, Object *ob_gp, Object *ob_cu, bool *do_stroke, bool *do_fill)
 {
   Curve *cu = (Curve *)ob_cu->data;
 
@@ -295,7 +291,6 @@ static void gpencil_convert_spline(Main *bmain,
                                    Object *ob_gp,
                                    Object *ob_cu,
                                    const bool gpencil_lines,
-                                   const bool only_stroke,
                                    const float scale_thickness,
                                    const float sample,
                                    bGPDframe *gpf,
@@ -336,8 +331,7 @@ static void gpencil_convert_spline(Main *bmain,
    * Notice: The color of the material is the color of viewport and not the final shader color.
    */
   bool do_stroke, do_fill;
-  int r_idx = gpencil_get_stroke_material_fromcurve(
-      bmain, ob_gp, ob_cu, only_stroke, &do_stroke, &do_fill);
+  int r_idx = gpencil_get_stroke_material_fromcurve(bmain, ob_gp, ob_cu, &do_stroke, &do_fill);
   CLAMP_MIN(r_idx, 0);
 
   /* Assign material index to stroke. */
@@ -468,7 +462,6 @@ static void gpencil_convert_spline(Main *bmain,
  * \param ob_cu: Curve to convert.
  * \param gpencil_lines: Use lines for strokes.
  * \param use_collections: Create layers using collection names.
- * \param only_stroke: The material must be only stroke without fill.
  * \param scale_thickness: Scale thickness factor.
  * \param sample: Sample distance, zero to disable.
  */
@@ -478,7 +471,6 @@ void BKE_gpencil_convert_curve(Main *bmain,
                                Object *ob_cu,
                                const bool gpencil_lines,
                                const bool use_collections,
-                               const bool only_stroke,
                                const float scale_thickness,
                                const float sample)
 {
@@ -518,8 +510,7 @@ void BKE_gpencil_convert_curve(Main *bmain,
 
   /* Read all splines of the curve and create a stroke for each. */
   LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
-    gpencil_convert_spline(
-        bmain, ob_gp, ob_cu, gpencil_lines, only_stroke, scale_thickness, sample, gpf, nu);
+    gpencil_convert_spline(bmain, ob_gp, ob_cu, gpencil_lines, scale_thickness, sample, gpf, nu);
   }
 
   /* Merge any similar material. */
