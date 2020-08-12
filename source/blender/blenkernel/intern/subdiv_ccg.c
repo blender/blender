@@ -1933,4 +1933,47 @@ void BKE_subdiv_ccg_grid_hidden_ensure(SubdivCCG *subdiv_ccg, int grid_index)
   subdiv_ccg->grid_hidden[grid_index] = BLI_BITMAP_NEW(key.grid_area, __func__);
 }
 
+static void subdiv_ccg_coord_to_ptex_coord(const SubdivCCG *subdiv_ccg,
+                                           const SubdivCCGCoord *coord,
+                                           int *r_ptex_face_index,
+                                           float *r_u,
+                                           float *r_v)
+{
+  Subdiv *subdiv = subdiv_ccg->subdiv;
+
+  const float grid_size = subdiv_ccg->grid_size;
+  const float grid_size_1_inv = 1.0f / (grid_size - 1);
+
+  const float grid_u = coord->x * grid_size_1_inv;
+  const float grid_v = coord->y * grid_size_1_inv;
+
+  const int face_index = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, coord->grid_index);
+  const SubdivCCGFace *faces = subdiv_ccg->faces;
+  const SubdivCCGFace *face = &faces[face_index];
+  const int *face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv);
+  *r_ptex_face_index = face_ptex_offset[face_index];
+
+  const float corner = coord->grid_index - face->start_grid_index;
+
+  if (face->num_grids == 4) {
+    BKE_subdiv_rotate_grid_to_quad(corner, grid_u, grid_v, r_u, r_v);
+  }
+  else {
+    *r_ptex_face_index += corner;
+    *r_u = 1.0f - grid_v;
+    *r_v = 1.0f - grid_u;
+  }
+}
+
+void BKE_subdiv_ccg_eval_limit_point(const SubdivCCG *subdiv_ccg,
+                                     const SubdivCCGCoord *coord,
+                                     float r_point[3])
+{
+  Subdiv *subdiv = subdiv_ccg->subdiv;
+  int ptex_face_index;
+  float u, v;
+  subdiv_ccg_coord_to_ptex_coord(subdiv_ccg, coord, &ptex_face_index, &u, &v);
+  BKE_subdiv_eval_limit_point(subdiv, ptex_face_index, u, v, r_point);
+}
+
 /** \} */

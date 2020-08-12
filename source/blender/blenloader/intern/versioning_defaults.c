@@ -722,6 +722,14 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       brush->sculpt_tool = SCULPT_TOOL_DRAW_FACE_SETS;
     }
 
+    brush_name = "Multires Displacement Eraser";
+    brush = BLI_findstring(&bmain->brushes, brush_name, offsetof(ID, name) + 2);
+    if (!brush) {
+      brush = BKE_brush_add(bmain, brush_name, OB_MODE_SCULPT);
+      id_us_min(&brush->id);
+      brush->sculpt_tool = SCULPT_TOOL_DISPLACEMENT_ERASER;
+    }
+
     /* Use the same tool icon color in the brush cursor */
     for (brush = bmain->brushes.first; brush; brush = brush->id.next) {
       if (brush->ob_mode & OB_MODE_SCULPT) {
