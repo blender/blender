@@ -684,16 +684,17 @@ static int cloth_collision_response_static(ClothModifierData *clmd,
   float w1, w2, w3, u1, u2, u3;
   float v1[3], v2[3], relativeVelocity[3];
   float magrelVel;
-  float epsilon2 = BLI_bvhtree_get_epsilon(collmd->bvhtree);
-  const bool is_hair = (clmd->hairdata != NULL);
+  const float clamp_sq = square_f(clmd->coll_parms->self_clamp * dt);
+  const float time_multiplier = 1.0f / (clmd->sim_parms->dt * clmd->sim_parms->timescale);
+  const float epsilon2 = BLI_bvhtree_get_epsilon(collmd->bvhtree);
+  const float min_distance = (clmd->coll_parms->epsilon + epsilon2) * (8.0f / 9.0f);
 
+  const bool is_hair = (clmd->hairdata != NULL);
   for (int i = 0; i < collision_count; i++, collpair++) {
-    float i1[3], i2[3], i3[3], time_multiplier, d;
+    float i1[3], i2[3], i3[3];
     zero_v3(i1);
     zero_v3(i2);
     zero_v3(i3);
-    time_multiplier = 1.0f / (clmd->sim_parms->dt * clmd->sim_parms->timescale);
-    d = clmd->coll_parms->epsilon * 8.0f / 9.0f + epsilon2 * 8.0f / 9.0f - collpair->distance;
 
     /* Only handle static collisions here. */
     if (collpair->flag & (COLLISION_IN_FUTURE | COLLISION_INACTIVE)) {
@@ -748,6 +749,7 @@ static int cloth_collision_response_static(ClothModifierData *clmd,
     /* Calculate the normal component of the relative velocity
      * (actually only the magnitude - the direction is stored in 'normal'). */
     magrelVel = dot_v3v3(relativeVelocity, collpair->normal);
+    const float d = min_distance - collpair->distance;
 
     /* If magrelVel < 0 the edges are approaching each other. */
     if (magrelVel > 0.0f) {
@@ -827,8 +829,6 @@ static int cloth_collision_response_static(ClothModifierData *clmd,
     }
 
     if (result) {
-      float clamp_sq = clmd->coll_parms->clamp * dt;
-      clamp_sq *= clamp_sq;
       cloth_selfcollision_impulse_vert(clamp_sq, i1, &cloth->verts[collpair->ap1]);
       cloth_selfcollision_impulse_vert(clamp_sq, i2, &cloth->verts[collpair->ap2]);
       cloth_selfcollision_impulse_vert(clamp_sq, i3, &cloth->verts[collpair->ap3]);
@@ -848,12 +848,13 @@ static int cloth_selfcollision_response_static(ClothModifierData *clmd,
   float w1, w2, w3, u1, u2, u3;
   float v1[3], v2[3], relativeVelocity[3];
   float magrelVel;
+  const float clamp_sq = square_f(clmd->coll_parms->self_clamp * dt);
+  const float time_multiplier = 1.0f / (clmd->sim_parms->dt * clmd->sim_parms->timescale);
+  const float min_distance = (2.0f * clmd->coll_parms->selfepsilon) * (8.0f / 9.0f);
 
   for (int i = 0; i < collision_count; i++, collpair++) {
     float ia[3][3] = {{0.0f}};
     float ib[3][3] = {{0.0f}};
-    float time_multiplier = 1.0f / (clmd->sim_parms->dt * clmd->sim_parms->timescale);
-    float d = clmd->coll_parms->selfepsilon * 8.0f / 9.0f * 2.0f - collpair->distance;
 
     /* Only handle static collisions here. */
     if (collpair->flag & (COLLISION_IN_FUTURE | COLLISION_INACTIVE)) {
@@ -899,6 +900,7 @@ static int cloth_selfcollision_response_static(ClothModifierData *clmd,
     /* Calculate the normal component of the relative velocity
      * (actually only the magnitude - the direction is stored in 'normal'). */
     magrelVel = dot_v3v3(relativeVelocity, collpair->normal);
+    const float d = min_distance - collpair->distance;
 
     /* TODO: Impulses should be weighed by mass as this is self col,
      * this has to be done after mass distribution is implemented. */
@@ -955,7 +957,6 @@ static int cloth_selfcollision_response_static(ClothModifierData *clmd,
         }
 
         repulse = max_ff(impulse, repulse);
-
         impulse = repulse / 1.5f;
 
         VECADDMUL(ia[0], collpair->normal, w1 * impulse);
@@ -986,9 +987,6 @@ static int cloth_selfcollision_response_static(ClothModifierData *clmd,
     }
 
     if (result) {
-      float clamp_sq = clmd->coll_parms->self_clamp * dt;
-      clamp_sq *= clamp_sq;
-
       cloth_selfcollision_impulse_vert(clamp_sq, ia[0], &cloth->verts[collpair->ap1]);
       cloth_selfcollision_impulse_vert(clamp_sq, ia[1], &cloth->verts[collpair->ap2]);
       cloth_selfcollision_impulse_vert(clamp_sq, ia[2], &cloth->verts[collpair->ap3]);
