@@ -584,8 +584,6 @@ static int gpencil_stroke_merge_material_exec(bContext *C, wmOperator *op)
   const float val_threshold = RNA_float_get(op->ptr, "val_threshold");
 
   /* Review materials. */
-  GHash *mat_table = BLI_ghash_int_new(__func__);
-
   short *totcol = BKE_object_material_len_p(ob);
   if (totcol == 0) {
     return OPERATOR_CANCELLED;
