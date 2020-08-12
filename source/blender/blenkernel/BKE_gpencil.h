@@ -131,6 +131,11 @@ bool BKE_gpencil_merge_materials_table_get(struct Object *ob,
                                            const float sat_threshold,
                                            const float val_threshold,
                                            struct GHash *r_mat_table);
+bool BKE_gpencil_merge_materials(struct Object *ob,
+                                 const float hue_threshold,
+                                 const float sat_threshold,
+                                 const float val_threshold,
+                                 int *r_removed);
 
 /* statistics functions */
 void BKE_gpencil_stats_update(struct bGPdata *gpd);

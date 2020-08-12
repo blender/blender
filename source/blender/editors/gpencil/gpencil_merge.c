@@ -591,35 +591,9 @@ static int gpencil_stroke_merge_material_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  bool changed = BKE_gpencil_merge_materials_table_get(
-      ob, hue_threshold, sat_threshold, val_threshold, mat_table);
-
-  int removed = BLI_ghash_len(mat_table);
-
-  /* Update stroke material index. */
-  if (changed) {
-    CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
-      LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-          if (ED_gpencil_stroke_can_use(C, gps) == false) {
-            continue;
-          }
-          if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false) {
-            continue;
-          }
-
-          if (BLI_ghash_haskey(mat_table, POINTER_FROM_INT(gps->mat_nr))) {
-            int *idx = BLI_ghash_lookup(mat_table, POINTER_FROM_INT(gps->mat_nr));
-            gps->mat_nr = POINTER_AS_INT(idx);
-          }
-        }
-      }
-    }
-    CTX_DATA_END;
-  }
-
-  /* Free hash memory. */
-  BLI_ghash_free(mat_table, NULL, NULL);
+  int removed;
+  bool changed = BKE_gpencil_merge_materials(
+      ob, hue_threshold, sat_threshold, val_threshold, &removed);
 
   /* notifiers */
   if (changed) {

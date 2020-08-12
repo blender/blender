@@ -1987,6 +1987,73 @@ bool BKE_gpencil_merge_materials_table_get(Object *ob,
 }
 
 /**
+ * Merge similar materials
+ * \param ob: Grease pencil object
+ * \param hue_threshold: Threshold for Hue
+ * \param sat_threshold: Threshold for Saturation
+ * \param val_threshold: Threshold for Value
+ * \param r_removed: Number of materials removed
+ * \return True if done
+ */
+bool BKE_gpencil_merge_materials(Object *ob,
+                                 const float hue_threshold,
+                                 const float sat_threshold,
+                                 const float val_threshold,
+                                 int *r_removed)
+{
+  bGPdata *gpd = ob->data;
+
+  short *totcol = BKE_object_material_len_p(ob);
+  if (totcol == 0) {
+    *r_removed = 0;
+    return 0;
+  }
+
+  /* Review materials. */
+  GHash *mat_table = BLI_ghash_int_new(__func__);
+
+  bool changed = BKE_gpencil_merge_materials_table_get(
+      ob, hue_threshold, sat_threshold, val_threshold, mat_table);
+
+  *r_removed = BLI_ghash_len(mat_table);
+
+  /* Update stroke material index. */
+  if (changed) {
+    LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+      if (gpl->flag & GP_LAYER_HIDE) {
+        continue;
+      }
+
+      LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+          /* Check if the color is editable. */
+          MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, gps->mat_nr + 1);
+          if (gp_style != NULL) {
+            if (gp_style->flag & GP_MATERIAL_HIDE) {
+              continue;
+            }
+            if (((gpl->flag & GP_LAYER_UNLOCK_COLOR) == 0) &&
+                (gp_style->flag & GP_MATERIAL_LOCKED)) {
+              continue;
+            }
+          }
+
+          if (BLI_ghash_haskey(mat_table, POINTER_FROM_INT(gps->mat_nr))) {
+            int *idx = BLI_ghash_lookup(mat_table, POINTER_FROM_INT(gps->mat_nr));
+            gps->mat_nr = POINTER_AS_INT(idx);
+          }
+        }
+      }
+    }
+  }
+
+  /* Free hash memory. */
+  BLI_ghash_free(mat_table, NULL, NULL);
+
+  return changed;
+}
+
+/**
  * Calc grease pencil statistics functions.
  * \param gpd: Grease pencil data-block
  */
