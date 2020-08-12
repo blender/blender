@@ -96,7 +96,8 @@ static SpaceLink *sequencer_create(const ScrArea *UNUSED(area), const Scene *sce
   sseq->chanshown = 0;
   sseq->view = SEQ_VIEW_SEQUENCE;
   sseq->mainb = SEQ_DRAW_IMG_IMBUF;
-  sseq->flag = SEQ_SHOW_GPENCIL | SEQ_USE_ALPHA | SEQ_SHOW_MARKERS | SEQ_SHOW_FCURVES;
+  sseq->flag = SEQ_SHOW_GPENCIL | SEQ_USE_ALPHA | SEQ_SHOW_MARKERS | SEQ_SHOW_FCURVES |
+               SEQ_ZOOM_TO_FIT;
 
   /* Tool header. */
   region = MEM_callocN(sizeof(ARegion), "tool header for sequencer");
@@ -679,6 +680,22 @@ static void sequencer_preview_region_init(wmWindowManager *wm, ARegion *region)
   WM_event_add_keymap_handler_v2d_mask(&region->handlers, keymap);
 }
 
+static void sequencer_preview_region_layout(const bContext *C, ARegion *region)
+{
+  SpaceSeq *sseq = CTX_wm_space_seq(C);
+
+  if (sseq->flag & SEQ_ZOOM_TO_FIT) {
+    View2D *v2d = &region->v2d;
+    v2d->cur = v2d->tot;
+  }
+}
+
+static void sequencer_preview_region_view2d_changed(const bContext *C, ARegion *UNUSED(region))
+{
+  SpaceSeq *sseq = CTX_wm_space_seq(C);
+  sseq->flag &= ~SEQ_ZOOM_TO_FIT;
+}
+
 static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
 {
   ScrArea *area = CTX_wm_area(C);
@@ -881,6 +898,8 @@ void ED_spacetype_sequencer(void)
   art = MEM_callocN(sizeof(ARegionType), "spacetype sequencer region");
   art->regionid = RGN_TYPE_PREVIEW;
   art->init = sequencer_preview_region_init;
+  art->layout = sequencer_preview_region_layout;
+  art->on_view2d_changed = sequencer_preview_region_view2d_changed;
   art->draw = sequencer_preview_region_draw;
   art->listener = sequencer_preview_region_listener;
   art->keymapflag = ED_KEYMAP_TOOL | ED_KEYMAP_GIZMO | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES |

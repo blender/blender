@@ -144,11 +144,11 @@ void SEQUENCER_OT_view_frame(wmOperatorType *ot)
 
 static int sequencer_view_all_preview_exec(bContext *C, wmOperator *UNUSED(op))
 {
+  SpaceSeq *sseq = CTX_wm_space_seq(C);
   bScreen *screen = CTX_wm_screen(C);
   ScrArea *area = CTX_wm_area(C);
 #if 0
   ARegion *region = CTX_wm_region(C);
-  SpaceSeq *sseq = area->spacedata.first;
   Scene *scene = CTX_data_scene(C);
 #endif
   View2D *v2d = UI_view2d_fromcontext(C);
@@ -185,6 +185,8 @@ static int sequencer_view_all_preview_exec(bContext *C, wmOperator *UNUSED(op))
     sseq->zoom = 1.0f;
   }
 #endif
+
+  sseq->flag |= SEQ_ZOOM_TO_FIT;
 
   ED_area_tag_redraw(CTX_wm_area(C));
   return OPERATOR_FINISHED;
@@ -227,6 +229,8 @@ static int sequencer_view_zoom_ratio_exec(bContext *C, wmOperator *op)
   BLI_rctf_resize(&v2d->cur, ceilf(winx * facx / ratio + 0.5f), ceilf(winy * facy / ratio + 0.5f));
 
   ED_region_tag_redraw(CTX_wm_region(C));
+
+  UI_view2d_curRect_changed(C, v2d);
 
   return OPERATOR_FINISHED;
 }

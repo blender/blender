@@ -612,6 +612,7 @@ typedef enum eSpaceSeq_Flag {
   SEQ_SHOW_SAFE_CENTER = (1 << 9),
   SEQ_SHOW_METADATA = (1 << 10),
   SEQ_SHOW_MARKERS = (1 << 11), /* show markers region */
+  SEQ_ZOOM_TO_FIT = (1 << 12),
 } eSpaceSeq_Flag;
 
 /* SpaceSeq.view */
