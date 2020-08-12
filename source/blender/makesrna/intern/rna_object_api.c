@@ -714,7 +714,8 @@ bool rna_Object_generate_gpencil_strokes(Object *ob,
                                          ReportList *reports,
                                          Object *ob_gpencil,
                                          bool gpencil_lines,
-                                         bool use_collections)
+                                         bool use_collections,
+                                         float scale_thickness)
 {
   if (ob->type != OB_CURVE) {
     BKE_reportf(reports,
@@ -726,7 +727,8 @@ bool rna_Object_generate_gpencil_strokes(Object *ob,
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
 
-  BKE_gpencil_convert_curve(bmain, scene, ob_gpencil, ob, gpencil_lines, use_collections, false);
+  BKE_gpencil_convert_curve(
+      bmain, scene, ob_gpencil, ob, gpencil_lines, use_collections, false, scale_thickness);
 
   WM_main_add_notifier(NC_GPENCIL | ND_DATA, NULL);
 
@@ -1190,12 +1192,16 @@ void RNA_api_object(StructRNA *srna)
   RNA_def_function_ui_description(func, "Convert a curve object to grease pencil strokes.");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 
-  parm = RNA_def_pointer(
-      func, "ob_gpencil", "Object", "", "Grease Pencil object used to create new strokes");
+  parm = RNA_def_pointer(func,
+                         "grease_pencil_object",
+                         "Object",
+                         "",
+                         "Grease Pencil object used to create new strokes");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  parm = RNA_def_boolean(func, "gpencil_lines", 0, "", "Create Lines");
-  parm = RNA_def_boolean(func, "use_collections", 1, "", "Use Collections");
-
+  parm = RNA_def_boolean(func, "gpencil_lines", false, "", "Create Lines");
+  parm = RNA_def_boolean(func, "use_collections", true, "", "Use Collections");
+  parm = RNA_def_float(
+      func, "scale_thickness", 1.0f, 0.0f, FLT_MAX, "", "Thickness scaling factor", 0.0f, 100.0f);
   parm = RNA_def_boolean(func, "result", 0, "", "Result");
   RNA_def_function_return(func, parm);
 }

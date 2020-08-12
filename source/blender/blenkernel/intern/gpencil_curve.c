@@ -172,6 +172,7 @@ static void gpencil_convert_spline(Main *bmain,
                                    Object *ob_cu,
                                    const bool gpencil_lines,
                                    const bool only_stroke,
+                                   const float scale_thickness,
                                    bGPDframe *gpf,
                                    Nurb *nu)
 {
@@ -342,8 +343,11 @@ static void gpencil_convert_spline(Main *bmain,
           copy_v3_v3(init_co, &coord_array[0]);
         }
         /* Add points to the stroke */
+        float radius_start = prevbezt->radius * scale_thickness;
+        float radius_end = bezt->radius * scale_thickness;
+
         gpencil_add_new_points(
-            gps, coord_array, prevbezt->radius, bezt->radius, init, resolu, init_co, last);
+            gps, coord_array, radius_start, radius_end, init, resolu, init_co, last);
         /* Free memory. */
         MEM_SAFE_FREE(coord_array);
 
@@ -403,6 +407,7 @@ static void gpencil_convert_spline(Main *bmain,
  * \param gpencil_lines: Use lines for strokes.
  * \param use_collections: Create layers using collection names.
  * \param only_stroke: The material must be only stroke without fill.
+ * \param scale_thickness: Scale thickness factor.
  */
 void BKE_gpencil_convert_curve(Main *bmain,
                                Scene *scene,
@@ -410,7 +415,8 @@ void BKE_gpencil_convert_curve(Main *bmain,
                                Object *ob_cu,
                                const bool gpencil_lines,
                                const bool use_collections,
-                               const bool only_stroke)
+                               const bool only_stroke,
+                               const float scale_thickness)
 {
   if (ELEM(NULL, ob_gp, ob_cu) || (ob_gp->type != OB_GPENCIL) || (ob_gp->data == NULL)) {
     return;
@@ -448,7 +454,8 @@ void BKE_gpencil_convert_curve(Main *bmain,
 
   /* Read all splines of the curve and create a stroke for each. */
   LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
-    gpencil_convert_spline(bmain, ob_gp, ob_cu, gpencil_lines, only_stroke, gpf, nu);
+    gpencil_convert_spline(
+        bmain, ob_gp, ob_cu, gpencil_lines, only_stroke, scale_thickness, gpf, nu);
   }
 
   /* Tag for recalculation */
