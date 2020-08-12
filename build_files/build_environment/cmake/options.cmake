@@ -20,6 +20,7 @@ if(WIN32)
   option(ENABLE_MINGW64 "Enable building of ffmpeg/iconv/libsndfile/fftw3 by installing mingw64" ON)
 endif()
 option(WITH_WEBP "Enable building of oiio with webp support" OFF)
+option(WITH_BOOST_PYTHON "Enable building of boost with python support" OFF)
 set(MAKE_THREADS 1 CACHE STRING "Number of threads to run make with")
 
 if(NOT BUILD_MODE)

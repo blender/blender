@@ -49,6 +49,15 @@ else()
   endif()
 endif()
 
+if(WITH_BOOST_PYTHON)
+  set(JAM_FILE ${BUILD_DIR}/boost.user-config.jam)
+  configure_file(${PATCH_DIR}/boost.user.jam.in ${JAM_FILE})
+  set(BOOST_PYTHON_OPTIONS
+    --with-python
+    --user-config=${JAM_FILE}
+  )
+endif()
+
 set(BOOST_OPTIONS
   --with-filesystem
   --with-locale
@@ -65,6 +74,7 @@ set(BOOST_OPTIONS
   -sNO_LZMA=1
   -sNO_ZSTD=1
   ${BOOST_TOOLSET}
+  ${BOOST_PYTHON_OPTIONS}
 )
 
 string(TOLOWER ${BUILD_MODE} BOOST_BUILD_TYPE)
@@ -81,3 +91,11 @@ ExternalProject_Add(external_boost
   BUILD_IN_SOURCE 1
   INSTALL_COMMAND "${BOOST_HARVEST_CMD}"
 )
+
+if(WITH_BOOST_PYTHON)
+  add_dependencies(
+    external_boost
+    external_python
+    external_numpy
+  )
+endif()

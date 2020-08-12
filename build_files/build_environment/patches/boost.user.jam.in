@@ -1,0 +1,4 @@
+using python : @PYTHON_SHORT_VERSION@ : @PYTHON_BINARY@
+ : @LIBDIR@/python/include @LIBDIR@/python/include/python@PYTHON_SHORT_VERSION@m/ 
+ : @LIBDIR@/python/libs  
+;
