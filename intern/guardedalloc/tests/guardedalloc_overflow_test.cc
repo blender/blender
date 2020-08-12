@@ -11,7 +11,7 @@
 #  define ABORT_PREDICATE ::testing::KilledBySignal(SIGABRT)
 #endif
 
-#ifdef __GNUC__
+#if defined(__GNUC__) && !defined(__clang__)
 /* Disable since it's the purpose of this test. */
 #  pragma GCC diagnostic ignored "-Walloc-size-larger-than="
 #endif

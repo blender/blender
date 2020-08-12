@@ -127,7 +127,7 @@ Relation *DepsgraphRelationBuilder::add_node_handle_relation(const KeyType &key_
   return nullptr;
 }
 
-static bool rigidbody_object_depends_on_evaluated_geometry(const RigidBodyOb *rbo)
+static inline bool rigidbody_object_depends_on_evaluated_geometry(const RigidBodyOb *rbo)
 {
   if (rbo == nullptr) {
     return false;
