@@ -228,20 +228,6 @@ static int gpencil_get_stroke_material_fromcurve(Main *bmain,
   float color_stroke[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   float color_fill[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-  /* Check if grease pencil has a material with same color.*/
-  float color[4];
-  if ((cu->mat) && (*cu->mat)) {
-    Material *mat_cu = *cu->mat;
-    copy_v4_v4(color, &mat_cu->r);
-  }
-  else {
-    /* Gray (unassigned from SVG add-on) */
-    zero_v4(color);
-    add_v3_fl(color, 0.6f);
-    color[3] = 1.0f;
-    do_fill = false;
-  }
-
   /* If the curve has 2 materials, the first is considered as Fill and the second as Stroke.
    * If the has only one material, if the name contains _stroke, the is used
    * as stroke, else as fill.*/
@@ -268,6 +254,7 @@ static int gpencil_get_stroke_material_fromcurve(Main *bmain,
   }
   else {
     /* No materials in the curve. */
+    *do_fill = false;
     return -1;
   }
 
