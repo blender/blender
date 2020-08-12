@@ -234,7 +234,7 @@ static void subdiv_ccg_eval_regular_grid(CCGEvalGridsData *data, const int face_
   SubdivCCG *subdiv_ccg = data->subdiv_ccg;
   const int ptex_face_index = data->face_ptex_offset[face_index];
   const int grid_size = subdiv_ccg->grid_size;
-  const float grid_size_1_inv = 1.0f / (float)(grid_size - 1);
+  const float grid_size_1_inv = 1.0f / (grid_size - 1);
   const int element_size = element_size_bytes_get(subdiv_ccg);
   SubdivCCGFace *faces = subdiv_ccg->faces;
   SubdivCCGFace **grid_faces = subdiv_ccg->grid_faces;
@@ -243,9 +243,9 @@ static void subdiv_ccg_eval_regular_grid(CCGEvalGridsData *data, const int face_
     const int grid_index = face->start_grid_index + corner;
     unsigned char *grid = (unsigned char *)subdiv_ccg->grids[grid_index];
     for (int y = 0; y < grid_size; y++) {
-      const float grid_v = (float)y * grid_size_1_inv;
+      const float grid_v = y * grid_size_1_inv;
       for (int x = 0; x < grid_size; x++) {
-        const float grid_u = (float)x * grid_size_1_inv;
+        const float grid_u = x * grid_size_1_inv;
         float u, v;
         BKE_subdiv_rotate_grid_to_quad(corner, grid_u, grid_v, &u, &v);
         const size_t grid_element_index = (size_t)y * grid_size + x;
@@ -265,7 +265,7 @@ static void subdiv_ccg_eval_special_grid(CCGEvalGridsData *data, const int face_
 {
   SubdivCCG *subdiv_ccg = data->subdiv_ccg;
   const int grid_size = subdiv_ccg->grid_size;
-  const float grid_size_1_inv = 1.0f / (float)(grid_size - 1);
+  const float grid_size_1_inv = 1.0f / (grid_size - 1);
   const int element_size = element_size_bytes_get(subdiv_ccg);
   SubdivCCGFace *faces = subdiv_ccg->faces;
   SubdivCCGFace **grid_faces = subdiv_ccg->grid_faces;
@@ -275,9 +275,9 @@ static void subdiv_ccg_eval_special_grid(CCGEvalGridsData *data, const int face_
     const int ptex_face_index = data->face_ptex_offset[face_index] + corner;
     unsigned char *grid = (unsigned char *)subdiv_ccg->grids[grid_index];
     for (int y = 0; y < grid_size; y++) {
-      const float u = 1.0f - ((float)y * grid_size_1_inv);
+      const float u = 1.0f - (y * grid_size_1_inv);
       for (int x = 0; x < grid_size; x++) {
-        const float v = 1.0f - ((float)x * grid_size_1_inv);
+        const float v = 1.0f - (x * grid_size_1_inv);
         const size_t grid_element_index = (size_t)y * grid_size + x;
         const size_t grid_element_offset = grid_element_index * element_size;
         subdiv_ccg_eval_grid_element(data, ptex_face_index, u, v, &grid[grid_element_offset]);
@@ -766,7 +766,7 @@ static void subdiv_ccg_average_inner_face_normals(SubdivCCG *subdiv_ccg,
         counter++;
       }
       /* Normalize and store. */
-      mul_v3_v3fl(CCG_grid_elem_no(key, grid, x, y), normal_acc, 1.0f / (float)counter);
+      mul_v3_v3fl(CCG_grid_elem_no(key, grid, x, y), normal_acc, 1.0f / counter);
     }
   }
 }
@@ -1009,7 +1009,7 @@ static void subdiv_ccg_average_inner_face_grids(SubdivCCG *subdiv_ccg,
     CCGElem *grid_center_element = CCG_grid_elem(key, grid, 0, 0);
     element_accumulator_add(&center_accumulator, subdiv_ccg, key, grid_center_element);
   }
-  element_accumulator_mul_fl(&center_accumulator, 1.0f / (float)num_face_grids);
+  element_accumulator_mul_fl(&center_accumulator, 1.0f / num_face_grids);
   for (int corner = 0; corner < num_face_grids; corner++) {
     CCGElem *grid = grids[face->start_grid_index + corner];
     CCGElem *grid_center_element = CCG_grid_elem(key, grid, 0, 0);
@@ -1066,7 +1066,7 @@ static void subdiv_ccg_average_grids_boundary(SubdivCCG *subdiv_ccg,
     }
   }
   for (int i = 1; i < grid_size2 - 1; i++) {
-    element_accumulator_mul_fl(&tls->accumulators[i], 1.0f / (float)num_adjacent_faces);
+    element_accumulator_mul_fl(&tls->accumulators[i], 1.0f / num_adjacent_faces);
   }
   /* Copy averaged value to all the other faces. */
   for (int face_index = 0; face_index < num_adjacent_faces; face_index++) {
@@ -1118,7 +1118,7 @@ static void subdiv_ccg_average_grids_corners(SubdivCCG *subdiv_ccg,
         key, subdiv_ccg, &adjacent_vertex->corner_coords[face_index]);
     element_accumulator_add(&accumulator, subdiv_ccg, key, grid_element);
   }
-  element_accumulator_mul_fl(&accumulator, 1.0f / (float)num_adjacent_faces);
+  element_accumulator_mul_fl(&accumulator, 1.0f / num_adjacent_faces);
   /* Copy averaged value to all the other faces. */
   for (int face_index = 0; face_index < num_adjacent_faces; face_index++) {
     CCGElem *grid_element = subdiv_ccg_coord_to_elem(
