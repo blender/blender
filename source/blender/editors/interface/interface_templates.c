@@ -572,6 +572,15 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
             if (override_id != NULL) {
               BKE_main_id_clear_newpoins(bmain);
 
+              if (GS(override_id->name) == ID_OB) {
+                Scene *scene = CTX_data_scene(C);
+                if (!BKE_collection_has_object_recursive(scene->master_collection,
+                                                         (Object *)override_id)) {
+                  BKE_collection_object_add_from(
+                      bmain, scene, (Object *)id, (Object *)override_id);
+                }
+              }
+
               /* Assign new pointer, takes care of updates/notifiers */
               RNA_id_pointer_create(override_id, &idptr);
             }
