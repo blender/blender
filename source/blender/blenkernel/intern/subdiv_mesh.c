@@ -1207,7 +1207,7 @@ Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
       return NULL;
     }
   }
-  /* Initialize subdivion mesh creation context. */
+  /* Initialize subdivision mesh creation context. */
   SubdivMeshContext subdiv_context = {0};
   subdiv_context.settings = settings;
   subdiv_context.coarse_mesh = coarse_mesh;

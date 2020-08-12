@@ -214,7 +214,7 @@ void BKE_subdiv_deform_coarse_vertices(struct Subdiv *subdiv,
     }
   }
 
-  /* Initialize subdivion mesh creation context. */
+  /* Initialize subdivision mesh creation context. */
   SubdivDeformContext subdiv_context = {0};
   subdiv_context.coarse_mesh = coarse_mesh;
   subdiv_context.subdiv = subdiv;

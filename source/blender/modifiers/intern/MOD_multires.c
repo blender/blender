@@ -487,7 +487,7 @@ static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Multires, panel_draw);
   modifier_subpanel_register(
-      region_type, "subdivide", "Subdivions", NULL, subdivisions_panel_draw, panel_type);
+      region_type, "subdivide", "Subdivision", NULL, subdivisions_panel_draw, panel_type);
   modifier_subpanel_register(region_type, "shape", "Shape", NULL, shape_panel_draw, panel_type);
   modifier_subpanel_register(
       region_type, "generate", "Generate", NULL, generate_panel_draw, panel_type);
