@@ -1892,7 +1892,12 @@ bool BKE_gpencil_merge_materials_table_get(Object *ob,
       continue;
     }
 
-    for (int idx_secondary = idx_primary + 1; idx_secondary < *totcol; idx_secondary++) {
+    for (int idx_secondary = 0; idx_secondary < *totcol; idx_secondary++) {
+      if ((idx_secondary == idx_primary) ||
+          BLI_ghash_haskey(r_mat_table, POINTER_FROM_INT(idx_secondary))) {
+        continue;
+      }
+
       /* Read secondary material to compare with primary material. */
       ma_secondary = BKE_gpencil_material(ob, idx_secondary + 1);
       if ((ma_secondary == NULL) ||
@@ -1930,6 +1935,11 @@ bool BKE_gpencil_merge_materials_table_get(Object *ob,
       }
 
       float s_hsv_a[3], s_hsv_b[3], f_hsv_a[3], f_hsv_b[3], col[3];
+      zero_v3(s_hsv_a);
+      zero_v3(s_hsv_b);
+      zero_v3(f_hsv_a);
+      zero_v3(f_hsv_b);
+
       copy_v3_v3(col, gp_style_primary->stroke_rgba);
       rgb_to_hsv_compat_v(col, s_hsv_a);
       copy_v3_v3(col, gp_style_secondary->stroke_rgba);
@@ -1943,14 +1953,22 @@ bool BKE_gpencil_merge_materials_table_get(Object *ob,
       /* Check stroke and fill color (only Hue and Saturation). */
       if ((!compare_ff(s_hsv_a[0], s_hsv_b[0], hue_threshold)) ||
           (!compare_ff(s_hsv_a[1], s_hsv_b[1], sat_threshold)) ||
+          (!compare_ff(s_hsv_a[2], s_hsv_b[2], val_threshold)) ||
           (!compare_ff(f_hsv_a[0], f_hsv_b[0], hue_threshold)) ||
           (!compare_ff(f_hsv_a[1], f_hsv_b[1], sat_threshold)) ||
-          (!compare_ff(s_hsv_a[2], s_hsv_b[2], val_threshold)) ||
-          (!compare_ff(s_hsv_a[2], s_hsv_b[2], val_threshold)) ||
-          (!compare_ff(s_hsv_a[2], s_hsv_b[2], val_threshold)) ||
-          (!compare_ff(s_hsv_a[2], s_hsv_b[2], val_threshold))) {
+          (!compare_ff(f_hsv_a[2], f_hsv_b[2], val_threshold))) {
         continue;
       }
+
+      gp_style_secondary->stroke_rgba[0] = 0.0f;
+      gp_style_secondary->stroke_rgba[1] = 1.0f;
+      gp_style_secondary->stroke_rgba[2] = 0.0f;
+      gp_style_secondary->stroke_rgba[3] = 1.0f;
+
+      gp_style_secondary->fill_rgba[0] = 1.0f;
+      gp_style_secondary->fill_rgba[1] = 0.0f;
+      gp_style_secondary->fill_rgba[2] = 0.0f;
+      gp_style_secondary->fill_rgba[3] = 1.0f;
 
       /* Save conversion indexes. */
       BLI_ghash_insert(
