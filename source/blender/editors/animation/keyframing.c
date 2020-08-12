@@ -3025,8 +3025,11 @@ bool ED_autokeyframe_property(
   bool special;
   bool changed = false;
 
+  /* for entire array buttons we check the first component, it's not perfect
+   * but works well enough in typical cases */
+  const int rnaindex_check = (rnaindex == -1) ? 0 : rnaindex;
   fcu = BKE_fcurve_find_by_rna_context_ui(
-      C, ptr, prop, rnaindex, NULL, &action, &driven, &special);
+      C, ptr, prop, rnaindex_check, NULL, &action, &driven, &special);
 
   if (fcu == NULL) {
     return changed;
