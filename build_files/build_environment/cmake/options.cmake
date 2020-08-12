@@ -195,18 +195,6 @@ set(DEFAULT_CMAKE_FLAGS
 )
 
 if(WIN32)
-  # We need both flavors to build the thumbnail dlls
-  if(MSVC12)
-    set(GENERATOR_32 "Visual Studio 12 2013")
-    set(GENERATOR_64 "Visual Studio 12 2013 Win64")
-  elseif(MSVC14)
-    set(GENERATOR_32 "Visual Studio 14 2015")
-    set(GENERATOR_64 "Visual Studio 14 2015 Win64")
-  endif()
-endif()
-
-
-if(WIN32)
   if(BUILD_MODE STREQUAL Debug)
     set(ZLIB_LIBRARY zlibstaticd${LIBEXT})
   else()
