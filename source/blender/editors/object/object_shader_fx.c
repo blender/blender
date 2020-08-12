@@ -332,6 +332,7 @@ static bool edit_shaderfx_poll_generic(bContext *C, StructRNA *rna_type, int obt
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "shaderfx", rna_type);
   Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : ED_object_active_context(C);
+  ShaderFxData *fx = ptr.data; /* May be NULL. */
 
   if (!ob || ID_IS_LINKED(ob)) {
     return 0;
@@ -344,8 +345,10 @@ static bool edit_shaderfx_poll_generic(bContext *C, StructRNA *rna_type, int obt
   }
 
   if (ID_IS_OVERRIDE_LIBRARY(ob)) {
-    CTX_wm_operator_poll_msg_set(C, "Cannot edit shaderfxs coming from library override");
-    return (((ShaderFxData *)ptr.data)->flag & eShaderFxFlag_OverrideLibrary_Local) != 0;
+    if ((fx == NULL) || (fx->flag & eShaderFxFlag_OverrideLibrary_Local) == 0) {
+      CTX_wm_operator_poll_msg_set(C, "Cannot edit shaderfxs coming from library override");
+      return 0;
+    }
   }
 
   return 1;
