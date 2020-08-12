@@ -425,7 +425,7 @@ struct SculptBoundary *SCULPT_boundary_data_init(Object *object,
                                                  Brush *brush,
                                                  const int initial_vertex,
                                                  const float radius);
-void SCULPT_boundary_data_free(struct SculptBoundary *bdata);
+void SCULPT_boundary_data_free(struct SculptBoundary *boundary);
 void SCULPT_do_boundary_brush(struct Sculpt *sd,
                               struct Object *ob,
                               struct PBVHNode **nodes,
@@ -904,7 +904,7 @@ typedef struct StrokeCache {
   float true_initial_normal[3];
 
   /* Boundary brush */
-  struct SculptBoundary *bdata[PAINT_SYMM_AREAS];
+  struct SculptBoundary *boundaries[PAINT_SYMM_AREAS];
 
   /* Surface Smooth Brush */
   /* Stores the displacement produced by the laplacian step of HC smooth. */

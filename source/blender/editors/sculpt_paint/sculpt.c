@@ -6371,8 +6371,8 @@ void SCULPT_cache_free(StrokeCache *cache)
   }
 
   for (int i = 0; i < PAINT_SYMM_AREAS; i++) {
-    if (cache->bdata[i]) {
-      SCULPT_boundary_data_free(cache->bdata[i]);
+    if (cache->boundaries[i]) {
+      SCULPT_boundary_data_free(cache->boundaries[i]);
     }
   }
 
