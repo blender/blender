@@ -306,8 +306,6 @@ typedef struct OVERLAY_PrivateData {
     float overlay_color[4];
   } edit_text;
   struct {
-    int ghost_ob;
-    int edit_ob;
     bool do_zbufclip;
     bool do_faces;
     bool do_edges;
