@@ -289,8 +289,14 @@ void EEVEE_motion_blur_hair_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
     /* Store transform  */
     DRW_hair_duplimat_get(ob, psys, md, mb_data->obmat[mb_step]);
 
-    EEVEE_GeometryMotionData *mb_geom = EEVEE_motion_blur_hair_data_get(
-        &effects->motion_blur, ob, md);
+    EEVEE_HairMotionData *mb_hair = EEVEE_motion_blur_hair_data_get(&effects->motion_blur, ob);
+    int psys_id = (md != NULL) ? BLI_findindex(&ob->modifiers, md) : 0;
+
+    if (psys_id >= mb_hair->psys_len) {
+      /* This should never happen. It means the modifier list was changed by frame evaluation. */
+      BLI_assert(0);
+      return;
+    }
 
     if (mb_step == MB_CURR) {
       /* Fill missing matrices if the object was hidden in previous or next frame. */
@@ -301,18 +307,21 @@ void EEVEE_motion_blur_hair_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
         copy_m4_m4(mb_data->obmat[MB_NEXT], mb_data->obmat[MB_CURR]);
       }
 
+      GPUTexture *tex_prev = mb_hair->psys[psys_id].hair_pos_tx[MB_PREV];
+      GPUTexture *tex_next = mb_hair->psys[psys_id].hair_pos_tx[MB_NEXT];
+
       grp = DRW_shgroup_hair_create_sub(ob, psys, md, effects->motion_blur.hair_grp);
       DRW_shgroup_uniform_mat4(grp, "prevModelMatrix", mb_data->obmat[MB_PREV]);
       DRW_shgroup_uniform_mat4(grp, "currModelMatrix", mb_data->obmat[MB_CURR]);
       DRW_shgroup_uniform_mat4(grp, "nextModelMatrix", mb_data->obmat[MB_NEXT]);
-      DRW_shgroup_uniform_texture(grp, "prvBuffer", mb_geom->hair_pos_tx[MB_PREV]);
-      DRW_shgroup_uniform_texture(grp, "nxtBuffer", mb_geom->hair_pos_tx[MB_NEXT]);
-      DRW_shgroup_uniform_bool(grp, "useDeform", &mb_geom->use_deform, 1);
+      DRW_shgroup_uniform_texture(grp, "prvBuffer", tex_prev);
+      DRW_shgroup_uniform_texture(grp, "nxtBuffer", tex_next);
+      DRW_shgroup_uniform_bool(grp, "useDeform", &mb_hair->use_deform, 1);
     }
     else {
       /* Store vertex position buffer. */
-      mb_geom->hair_pos[mb_step] = DRW_hair_pos_buffer_get(ob, psys, md);
-      mb_geom->use_deform = true;
+      mb_hair->psys[psys_id].hair_pos[mb_step] = DRW_hair_pos_buffer_get(ob, psys, md);
+      mb_hair->use_deform = true;
     }
   }
 }
@@ -339,7 +348,8 @@ void EEVEE_motion_blur_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
   const bool is_dupli = (ob->base_flag & BASE_FROM_DUPLI) != 0;
   const bool object_moves = is_dupli || has_rigidbody || BKE_object_moves_in_time(ob, true);
 #else
-  /* BKE_object_moves_in_time does not work in some cases. Better  */
+  /* BKE_object_moves_in_time does not work in some cases.
+   * Better detect non moving object after evaluation. */
   const bool object_moves = true;
 #endif
   const bool is_deform = BKE_object_is_deform_modified(DRW_context_state_get()->scene, ob) ||
@@ -375,17 +385,6 @@ void EEVEE_motion_blur_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
       }
 
       if (mb_geom->use_deform) {
-        EEVEE_ObjectEngineData *oedata = EEVEE_object_data_ensure(ob);
-        if (!oedata->geom_update) {
-          /* FIXME(fclem) There can be false positive where the actual mesh is not updated.
-           * This avoids a crash but removes the motion blur from some object.
-           * Maybe an issue with depsgraph tagging. */
-          mb_geom->use_deform = false;
-          oedata->geom_update = false;
-
-          GPU_VERTBUF_DISCARD_SAFE(mb_geom->vbo[MB_PREV]);
-          GPU_VERTBUF_DISCARD_SAFE(mb_geom->vbo[MB_NEXT]);
-        }
         /* Keep to modify later (after init). */
         mb_geom->batch = batch;
       }
@@ -445,29 +444,36 @@ void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
        BLI_ghashIterator_done(&ghi) == false;
        BLI_ghashIterator_step(&ghi)) {
     EEVEE_GeometryMotionData *mb_geom = BLI_ghashIterator_getValue(&ghi);
+    EEVEE_HairMotionData *mb_hair = (EEVEE_HairMotionData *)mb_geom;
 
     if (!mb_geom->use_deform) {
       continue;
     }
 
     switch (mb_geom->type) {
-      case EEVEE_HAIR_GEOM_MOTION_DATA:
+      case EEVEE_MOTION_DATA_HAIR:
         if (mb_step == MB_CURR) {
           /* TODO(fclem) Check if vertex count mismatch. */
-          mb_geom->use_deform = true;
+          mb_hair->use_deform = true;
         }
         else {
-          mb_geom->hair_pos[mb_step] = GPU_vertbuf_duplicate(mb_geom->hair_pos[mb_step]);
+          for (int i = 0; i < mb_hair->psys_len; i++) {
+            if (mb_hair->psys[i].hair_pos[mb_step] == NULL) {
+              continue;
+            }
+            mb_hair->psys[i].hair_pos[mb_step] = GPU_vertbuf_duplicate(
+                mb_hair->psys[i].hair_pos[mb_step]);
 
-          /* Create vbo immediately to bind to texture buffer. */
-          GPU_vertbuf_use(mb_geom->hair_pos[mb_step]);
+            /* Create vbo immediately to bind to texture buffer. */
+            GPU_vertbuf_use(mb_hair->psys[i].hair_pos[mb_step]);
 
-          mb_geom->hair_pos_tx[mb_step] = GPU_texture_create_from_vertbuf(
-              mb_geom->hair_pos[mb_step]);
+            mb_hair->psys[i].hair_pos_tx[mb_step] = GPU_texture_create_from_vertbuf(
+                mb_hair->psys[i].hair_pos[mb_step]);
+          }
         }
         break;
 
-      case EEVEE_MESH_GEOM_MOTION_DATA:
+      case EEVEE_MOTION_DATA_MESH:
         if (mb_step == MB_CURR) {
           /* Modify batch to have data from adjacent frames. */
           GPUBatch *batch = mb_geom->batch;
@@ -485,15 +491,7 @@ void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
                 break;
               }
 
-              /* Modify the batch to include the previous & next position. */
-              if (i == MB_PREV) {
-                GPU_batch_vertbuf_add_ex(batch, vbo, true);
-                mb_geom->vbo[i] = NULL;
-              }
-              else {
-                /* This VBO can be reuse by next time step. Don't pass ownership. */
-                GPU_batch_vertbuf_add_ex(batch, vbo, false);
-              }
+              GPU_batch_vertbuf_add_ex(batch, vbo, false);
             }
           }
         }
@@ -548,16 +546,28 @@ void EEVEE_motion_blur_swap_data(EEVEE_Data *vedata)
        BLI_ghashIterator_done(&ghi) == false;
        BLI_ghashIterator_step(&ghi)) {
     EEVEE_GeometryMotionData *mb_geom = BLI_ghashIterator_getValue(&ghi);
+    EEVEE_HairMotionData *mb_hair = (EEVEE_HairMotionData *)mb_geom;
 
     switch (mb_geom->type) {
-      case EEVEE_HAIR_GEOM_MOTION_DATA:
-        GPU_VERTBUF_DISCARD_SAFE(mb_geom->hair_pos[MB_PREV]);
-        DRW_TEXTURE_FREE_SAFE(mb_geom->hair_pos_tx[MB_PREV]);
-        mb_geom->hair_pos[MB_PREV] = mb_geom->hair_pos[MB_NEXT];
-        mb_geom->hair_pos_tx[MB_PREV] = mb_geom->hair_pos_tx[MB_NEXT];
+      case EEVEE_MOTION_DATA_HAIR:
+        for (int i = 0; i < mb_hair->psys_len; i++) {
+          GPU_VERTBUF_DISCARD_SAFE(mb_hair->psys[i].hair_pos[MB_PREV]);
+          DRW_TEXTURE_FREE_SAFE(mb_hair->psys[i].hair_pos_tx[MB_PREV]);
+          mb_hair->psys[i].hair_pos[MB_PREV] = mb_hair->psys[i].hair_pos[MB_NEXT];
+          mb_hair->psys[i].hair_pos_tx[MB_PREV] = mb_hair->psys[i].hair_pos_tx[MB_NEXT];
+        }
         break;
 
-      case EEVEE_MESH_GEOM_MOTION_DATA:
+      case EEVEE_MOTION_DATA_MESH:
+        if (mb_geom->batch != NULL) {
+          for (int i = 0; i < GPU_BATCH_VBO_MAX_LEN; i++) {
+            if (mb_geom->batch->verts[i] == mb_geom->vbo[MB_PREV] ||
+                mb_geom->batch->verts[i] == mb_geom->vbo[MB_NEXT]) {
+              /* Avoid double reference of the VBOs. */
+              mb_geom->batch->verts[i] = NULL;
+            }
+          }
+        }
         GPU_VERTBUF_DISCARD_SAFE(mb_geom->vbo[MB_PREV]);
         mb_geom->vbo[MB_PREV] = mb_geom->vbo[MB_NEXT];
 

@@ -126,6 +126,9 @@ bool EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
   GPU_framebuffer_ensure_config(&fbl->main_color_fb,
                                 {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(txl->color)});
 
+  /* Camera could change because of Motion blur. */
+  g_data->cam_original_ob = RE_GetCamera(engine->re);
+
   return true;
 }
 
@@ -135,9 +138,10 @@ void EEVEE_render_modules_init(EEVEE_Data *vedata,
 {
   EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
   EEVEE_StorageList *stl = vedata->stl;
+  EEVEE_PrivateData *g_data = vedata->stl->g_data;
   EEVEE_FramebufferList *fbl = vedata->fbl;
   /* TODO(sergey): Shall render hold pointer to an evaluated camera instead? */
-  struct Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
+  struct Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, g_data->cam_original_ob);
   EEVEE_render_view_sync(vedata, engine, depsgraph);
 
   /* `EEVEE_renderpasses_init` will set the active render passes used by `EEVEE_effects_init`.
@@ -156,7 +160,7 @@ void EEVEE_render_view_sync(EEVEE_Data *vedata, RenderEngine *engine, struct Dep
   /* Set the pers & view matrix. */
   float winmat[4][4], viewmat[4][4], viewinv[4][4];
   /* TODO(sergey): Shall render hold pointer to an evaluated camera instead? */
-  struct Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
+  struct Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, g_data->cam_original_ob);
 
   RE_GetCameraWindow(engine->re, ob_camera_eval, winmat);
   RE_GetCameraWindowWithOverscan(engine->re, g_data->overscan, winmat);
