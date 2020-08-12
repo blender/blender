@@ -830,7 +830,9 @@ static int cloth_collision_response_static(ClothModifierData *clmd,
     if (result) {
       cloth_selfcollision_impulse_vert(clamp_sq, i1, &cloth->verts[collpair->ap1]);
       cloth_selfcollision_impulse_vert(clamp_sq, i2, &cloth->verts[collpair->ap2]);
-      cloth_selfcollision_impulse_vert(clamp_sq, i3, &cloth->verts[collpair->ap3]);
+      if (!is_hair) {
+        cloth_selfcollision_impulse_vert(clamp_sq, i3, &cloth->verts[collpair->ap3]);
+      }
     }
   }
 
