@@ -289,8 +289,7 @@ void EEVEE_motion_blur_hair_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
     /* Store transform  */
     DRW_hair_duplimat_get(ob, psys, md, mb_data->obmat[mb_step]);
 
-    EEVEE_GeometryMotionData *mb_geom = EEVEE_motion_blur_hair_data_get(
-        &effects->motion_blur, ob, md);
+    EEVEE_GeometryMotionData *mb_geom = EEVEE_motion_blur_hair_data_get(&effects->motion_blur, ob);
 
     if (mb_step == MB_CURR) {
       /* Fill missing matrices if the object was hidden in previous or next frame. */
@@ -339,7 +338,8 @@ void EEVEE_motion_blur_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
   const bool is_dupli = (ob->base_flag & BASE_FROM_DUPLI) != 0;
   const bool object_moves = is_dupli || has_rigidbody || BKE_object_moves_in_time(ob, true);
 #else
-  /* BKE_object_moves_in_time does not work in some cases. Better  */
+  /* BKE_object_moves_in_time does not work in some cases.
+   * Better detect non moving object after evaluation. */
   const bool object_moves = true;
 #endif
   const bool is_deform = BKE_object_is_deform_modified(DRW_context_state_get()->scene, ob) ||

@@ -149,11 +149,19 @@ EEVEE_ObjectMotionData *EEVEE_motion_blur_object_data_get(EEVEE_MotionBlurData *
 }
 
 static EEVEE_GeometryMotionData *motion_blur_geometry_data_get(EEVEE_MotionBlurData *mb,
-                                                               void *key,
+                                                               Object *ob,
                                                                bool hair)
 {
   if (mb->geom == NULL) {
     return NULL;
+  }
+  DupliObject *dup = DRW_object_get_dupli(ob);
+  void *key;
+  if (dup) {
+    key = dup->ob;
+  }
+  else {
+    key = ob->data;
   }
   key = (char *)key + (int)hair;
   EEVEE_GeometryMotionData *geom_step = BLI_ghash_lookup(mb->geom, key);
@@ -167,25 +175,12 @@ static EEVEE_GeometryMotionData *motion_blur_geometry_data_get(EEVEE_MotionBlurD
 
 EEVEE_GeometryMotionData *EEVEE_motion_blur_geometry_data_get(EEVEE_MotionBlurData *mb, Object *ob)
 {
-  /* Use original data as key to ensure matching accross update. */
-  return motion_blur_geometry_data_get(mb, DEG_get_original_object(ob)->data, false);
+  return motion_blur_geometry_data_get(mb, ob, false);
 }
 
-EEVEE_GeometryMotionData *EEVEE_motion_blur_hair_data_get(EEVEE_MotionBlurData *mb,
-                                                          Object *ob,
-                                                          ModifierData *md)
+EEVEE_GeometryMotionData *EEVEE_motion_blur_hair_data_get(EEVEE_MotionBlurData *mb, Object *ob)
 {
-  void *key;
-  if (md) {
-    /* Particle system. */
-    key = BKE_modifier_get_original(md);
-  }
-  else {
-    /* Hair object. */
-    key = DEG_get_original_object(ob)->data;
-  }
-
-  return motion_blur_geometry_data_get(mb, key, true);
+  return motion_blur_geometry_data_get(mb, ob, true);
 }
 
 /* View Layer data. */
