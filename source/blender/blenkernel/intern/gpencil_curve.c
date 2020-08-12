@@ -447,7 +447,6 @@ static void gpencil_convert_spline(Main *bmain,
     }
   }
   /* Cyclic curve, close stroke. */
-  //  if ((cyclic) && (!do_stroke)) {
   if (cyclic) {
     BKE_gpencil_stroke_close(gps);
   }
@@ -523,8 +522,29 @@ void BKE_gpencil_convert_curve(Main *bmain,
         bmain, ob_gp, ob_cu, gpencil_lines, only_stroke, scale_thickness, sample, gpf, nu);
   }
 
+  /* Merge any similar material. */
+  int removed = 0;
+  BKE_gpencil_merge_materials(ob_gp, 0.001f, 0.001f, 0.001f, &removed);
+
+  /* Remove any unused slot. */
+  int actcol = ob_gp->actcol;
+
+  for (int slot = 1; slot <= ob_gp->totcol; slot++) {
+    while (slot <= ob_gp->totcol && !BKE_object_material_slot_used(ob_gp->data, slot)) {
+      ob_gp->actcol = slot;
+      BKE_object_material_slot_remove(bmain, ob_gp);
+
+      if (actcol >= slot) {
+        actcol--;
+      }
+    }
+  }
+
+  ob_gp->actcol = actcol;
+
   /* Tag for recalculation */
   DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob_gp->id, ID_RECALC_GEOMETRY);
 }
 
 /** \} */
