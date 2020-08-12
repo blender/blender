@@ -64,10 +64,12 @@ static int gpencil_check_same_material_color(Object *ob_gp,
   float hsv_stroke[4], hsv_fill[4];
 
   copy_v4_v4(color_cu, color_stroke);
+  zero_v3(hsv_stroke);
   rgb_to_hsv_v(color_cu, hsv_stroke);
   hsv_stroke[3] = color_stroke[3];
 
   copy_v4_v4(color_cu, color_fill);
+  zero_v3(hsv_fill);
   rgb_to_hsv_v(color_cu, hsv_fill);
   hsv_fill[3] = color_fill[3];
 
@@ -91,6 +93,7 @@ static int gpencil_check_same_material_color(Object *ob_gp,
     /* Check color with small tolerance (better result in HSV). */
     float hsv2[4];
     if (do_fill) {
+      zero_v3(hsv2);
       rgb_to_hsv_v(gp_style->fill_rgba, hsv2);
       hsv2[3] = gp_style->fill_rgba[3];
       if (compare_v4v4(hsv_fill, hsv2, 0.01f)) {
@@ -104,6 +107,7 @@ static int gpencil_check_same_material_color(Object *ob_gp,
     }
 
     if (do_stroke) {
+      zero_v3(hsv2);
       rgb_to_hsv_v(gp_style->stroke_rgba, hsv2);
       hsv2[3] = gp_style->stroke_rgba[3];
       if (compare_v4v4(hsv_stroke, hsv2, 0.01f)) {
