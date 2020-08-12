@@ -352,7 +352,7 @@ typedef struct VertexDupliData {
   Mesh *me_eval;
   BMEditMesh *edit_mesh;
   int totvert;
-  float (*orco)[3];
+  const float (*orco)[3];
   bool use_rotation;
 
   const DupliContext *ctx;
@@ -362,10 +362,10 @@ typedef struct VertexDupliData {
 
 static void get_duplivert_transform(const float co[3],
                                     const short no[3],
-                                    bool use_rotation,
-                                    short axis,
-                                    short upflag,
-                                    float mat[4][4])
+                                    const bool use_rotation,
+                                    const short axis,
+                                    const short upflag,
+                                    float r_mat[4][4])
 {
   float quat[4];
   const float size[3] = {1.0f, 1.0f, 1.0f};
@@ -382,7 +382,7 @@ static void get_duplivert_transform(const float co[3],
     unit_qt(quat);
   }
 
-  loc_quat_size_to_mat4(mat, co, quat, size);
+  loc_quat_size_to_mat4(r_mat, co, quat, size);
 }
 
 static void vertex_dupli(const VertexDupliData *vdd,
@@ -614,16 +614,20 @@ static const DupliGenerator gen_dupli_verts_font = {
 typedef struct FaceDupliData {
   Mesh *me_eval;
   int totface;
-  MPoly *mpoly;
-  MLoop *mloop;
-  MVert *mvert;
-  float (*orco)[3];
-  MLoopUV *mloopuv;
+  const MPoly *mpoly;
+  const MLoop *mloop;
+  const MVert *mvert;
+  const float (*orco)[3];
+  const MLoopUV *mloopuv;
   bool use_scale;
 } FaceDupliData;
 
-static void get_dupliface_transform(
-    MPoly *mpoly, MLoop *mloop, MVert *mvert, bool use_scale, float scale_fac, float mat[4][4])
+static void get_dupliface_transform(const MPoly *mpoly,
+                                    const MLoop *mloop,
+                                    const MVert *mvert,
+                                    const bool use_scale,
+                                    const float scale_fac,
+                                    float r_mat[4][4])
 {
   float loc[3], quat[4], scale, size[3];
   float f_no[3];
@@ -649,17 +653,17 @@ static void get_dupliface_transform(
   }
   size[0] = size[1] = size[2] = scale;
 
-  loc_quat_size_to_mat4(mat, loc, quat, size);
+  loc_quat_size_to_mat4(r_mat, loc, quat, size);
 }
 
 static void make_child_duplis_faces(const DupliContext *ctx, void *userdata, Object *inst_ob)
 {
   FaceDupliData *fdd = userdata;
-  MPoly *mpoly = fdd->mpoly, *mp;
-  MLoop *mloop = fdd->mloop;
-  MVert *mvert = fdd->mvert;
-  float(*orco)[3] = fdd->orco;
-  MLoopUV *mloopuv = fdd->mloopuv;
+  const MPoly *mpoly = fdd->mpoly, *mp;
+  const MLoop *mloop = fdd->mloop;
+  const MVert *mvert = fdd->mvert;
+  const float(*orco)[3] = fdd->orco;
+  const MLoopUV *mloopuv = fdd->mloopuv;
   int a, totface = fdd->totface;
   float child_imat[4][4];
   DupliObject *dob;
@@ -669,7 +673,7 @@ static void make_child_duplis_faces(const DupliContext *ctx, void *userdata, Obj
   mul_m4_m4m4(child_imat, inst_ob->imat, ctx->object->obmat);
 
   for (a = 0, mp = mpoly; a < totface; a++, mp++) {
-    MLoop *loopstart = mloop + mp->loopstart;
+    const MLoop *loopstart = mloop + mp->loopstart;
     float space_mat[4][4], obmat[4][4];
 
     if (UNLIKELY(mp->totloop < 3)) {
