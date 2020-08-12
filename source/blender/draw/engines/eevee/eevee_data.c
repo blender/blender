@@ -70,7 +70,7 @@ static uint eevee_object_key_hash(const void *key)
   EEVEE_ObjectKey *ob_key = (EEVEE_ObjectKey *)key;
   uint hash = BLI_ghashutil_ptrhash(ob_key->ob);
   hash = BLI_ghashutil_combine_hash(hash, BLI_ghashutil_ptrhash(ob_key->parent));
-  for (int i = 0; i < 16; i++) {
+  for (int i = 0; i < MAX_DUPLI_RECUR; i++) {
     if (ob_key->id[i] != 0) {
       hash = BLI_ghashutil_combine_hash(hash, BLI_ghashutil_inthash(ob_key->id[i]));
     }
