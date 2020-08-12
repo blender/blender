@@ -680,14 +680,12 @@ static int cloth_collision_response_static(ClothModifierData *clmd,
                                            const float dt)
 {
   int result = 0;
-  Cloth *cloth1;
+  Cloth *cloth = clmd->clothObject;
   float w1, w2, w3, u1, u2, u3;
   float v1[3], v2[3], relativeVelocity[3];
   float magrelVel;
   float epsilon2 = BLI_bvhtree_get_epsilon(collmd->bvhtree);
   const bool is_hair = (clmd->hairdata != NULL);
-
-  cloth1 = clmd->clothObject;
 
   for (int i = 0; i < collision_count; i++, collpair++) {
     float i1[3], i2[3], i3[3], time_multiplier, d;
@@ -705,25 +703,25 @@ static int cloth_collision_response_static(ClothModifierData *clmd,
     /* Compute barycentric coordinates and relative "velocity" for both collision points. */
     if (is_hair) {
       w2 = line_point_factor_v3(
-          collpair->pa, cloth1->verts[collpair->ap1].tx, cloth1->verts[collpair->ap2].tx);
+          collpair->pa, cloth->verts[collpair->ap1].tx, cloth->verts[collpair->ap2].tx);
 
       w1 = 1.0f - w2;
 
-      interp_v3_v3v3(v1, cloth1->verts[collpair->ap1].tv, cloth1->verts[collpair->ap2].tv, w2);
+      interp_v3_v3v3(v1, cloth->verts[collpair->ap1].tv, cloth->verts[collpair->ap2].tv, w2);
     }
     else {
       collision_compute_barycentric(collpair->pa,
-                                    cloth1->verts[collpair->ap1].tx,
-                                    cloth1->verts[collpair->ap2].tx,
-                                    cloth1->verts[collpair->ap3].tx,
+                                    cloth->verts[collpair->ap1].tx,
+                                    cloth->verts[collpair->ap2].tx,
+                                    cloth->verts[collpair->ap3].tx,
                                     &w1,
                                     &w2,
                                     &w3);
 
       collision_interpolateOnTriangle(v1,
-                                      cloth1->verts[collpair->ap1].tv,
-                                      cloth1->verts[collpair->ap2].tv,
-                                      cloth1->verts[collpair->ap3].tv,
+                                      cloth->verts[collpair->ap1].tv,
+                                      cloth->verts[collpair->ap2].tv,
+                                      cloth->verts[collpair->ap3].tv,
                                       w1,
                                       w2,
                                       w3);
@@ -831,9 +829,9 @@ static int cloth_collision_response_static(ClothModifierData *clmd,
     if (result) {
       float clamp_sq = clmd->coll_parms->clamp * dt;
       clamp_sq *= clamp_sq;
-      cloth_selfcollision_impulse_vert(clamp_sq, i1, &cloth1->verts[collpair->ap1]);
-      cloth_selfcollision_impulse_vert(clamp_sq, i2, &cloth1->verts[collpair->ap2]);
-      cloth_selfcollision_impulse_vert(clamp_sq, i3, &cloth1->verts[collpair->ap3]);
+      cloth_selfcollision_impulse_vert(clamp_sq, i1, &cloth->verts[collpair->ap1]);
+      cloth_selfcollision_impulse_vert(clamp_sq, i2, &cloth->verts[collpair->ap2]);
+      cloth_selfcollision_impulse_vert(clamp_sq, i3, &cloth->verts[collpair->ap3]);
     }
   }
 
@@ -846,12 +844,10 @@ static int cloth_selfcollision_response_static(ClothModifierData *clmd,
                                                const float dt)
 {
   int result = 0;
-  Cloth *cloth1;
+  Cloth *cloth = clmd->clothObject;
   float w1, w2, w3, u1, u2, u3;
   float v1[3], v2[3], relativeVelocity[3];
   float magrelVel;
-
-  cloth1 = clmd->clothObject;
 
   for (int i = 0; i < collision_count; i++, collpair++) {
     float ia[3][3] = {{0.0f}};
@@ -866,34 +862,34 @@ static int cloth_selfcollision_response_static(ClothModifierData *clmd,
 
     /* Compute barycentric coordinates for both collision points. */
     collision_compute_barycentric(collpair->pa,
-                                  cloth1->verts[collpair->ap1].tx,
-                                  cloth1->verts[collpair->ap2].tx,
-                                  cloth1->verts[collpair->ap3].tx,
+                                  cloth->verts[collpair->ap1].tx,
+                                  cloth->verts[collpair->ap2].tx,
+                                  cloth->verts[collpair->ap3].tx,
                                   &w1,
                                   &w2,
                                   &w3);
 
     collision_compute_barycentric(collpair->pb,
-                                  cloth1->verts[collpair->bp1].tx,
-                                  cloth1->verts[collpair->bp2].tx,
-                                  cloth1->verts[collpair->bp3].tx,
+                                  cloth->verts[collpair->bp1].tx,
+                                  cloth->verts[collpair->bp2].tx,
+                                  cloth->verts[collpair->bp3].tx,
                                   &u1,
                                   &u2,
                                   &u3);
 
     /* Calculate relative "velocity". */
     collision_interpolateOnTriangle(v1,
-                                    cloth1->verts[collpair->ap1].tv,
-                                    cloth1->verts[collpair->ap2].tv,
-                                    cloth1->verts[collpair->ap3].tv,
+                                    cloth->verts[collpair->ap1].tv,
+                                    cloth->verts[collpair->ap2].tv,
+                                    cloth->verts[collpair->ap3].tv,
                                     w1,
                                     w2,
                                     w3);
 
     collision_interpolateOnTriangle(v2,
-                                    cloth1->verts[collpair->bp1].tv,
-                                    cloth1->verts[collpair->bp2].tv,
-                                    cloth1->verts[collpair->bp3].tv,
+                                    cloth->verts[collpair->bp1].tv,
+                                    cloth->verts[collpair->bp2].tv,
+                                    cloth->verts[collpair->bp3].tv,
                                     u1,
                                     u2,
                                     u3);
@@ -993,13 +989,13 @@ static int cloth_selfcollision_response_static(ClothModifierData *clmd,
       float clamp_sq = clmd->coll_parms->self_clamp * dt;
       clamp_sq *= clamp_sq;
 
-      cloth_selfcollision_impulse_vert(clamp_sq, ia[0], &cloth1->verts[collpair->ap1]);
-      cloth_selfcollision_impulse_vert(clamp_sq, ia[1], &cloth1->verts[collpair->ap2]);
-      cloth_selfcollision_impulse_vert(clamp_sq, ia[2], &cloth1->verts[collpair->ap3]);
+      cloth_selfcollision_impulse_vert(clamp_sq, ia[0], &cloth->verts[collpair->ap1]);
+      cloth_selfcollision_impulse_vert(clamp_sq, ia[1], &cloth->verts[collpair->ap2]);
+      cloth_selfcollision_impulse_vert(clamp_sq, ia[2], &cloth->verts[collpair->ap3]);
 
-      cloth_selfcollision_impulse_vert(clamp_sq, ib[0], &cloth1->verts[collpair->bp1]);
-      cloth_selfcollision_impulse_vert(clamp_sq, ib[1], &cloth1->verts[collpair->bp2]);
-      cloth_selfcollision_impulse_vert(clamp_sq, ib[2], &cloth1->verts[collpair->bp3]);
+      cloth_selfcollision_impulse_vert(clamp_sq, ib[0], &cloth->verts[collpair->bp1]);
+      cloth_selfcollision_impulse_vert(clamp_sq, ib[1], &cloth->verts[collpair->bp2]);
+      cloth_selfcollision_impulse_vert(clamp_sq, ib[2], &cloth->verts[collpair->bp3]);
     }
   }
 
