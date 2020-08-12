@@ -774,21 +774,21 @@ static int cloth_collision_response_static(ClothModifierData *clmd,
 
         impulse = magtangent / 1.5;
 
-        VECADDMUL(i1, vrel_t_pre, w1 * impulse);
-        VECADDMUL(i2, vrel_t_pre, w2 * impulse);
+        VECADDMUL(i1, vrel_t_pre, (double)w1 * impulse);
+        VECADDMUL(i2, vrel_t_pre, (double)w2 * impulse);
 
         if (!is_hair) {
-          VECADDMUL(i3, vrel_t_pre, w3 * impulse);
+          VECADDMUL(i3, vrel_t_pre, (double)w3 * impulse);
         }
       }
 
       /* Apply velocity stopping impulse. */
       impulse = magrelVel / 1.5f;
 
-      VECADDMUL(i1, collpair->normal, w1 * impulse);
-      VECADDMUL(i2, collpair->normal, w2 * impulse);
+      VECADDMUL(i1, collpair->normal, (double)w1 * impulse);
+      VECADDMUL(i2, collpair->normal, (double)w2 * impulse);
       if (!is_hair) {
-        VECADDMUL(i3, collpair->normal, w3 * impulse);
+        VECADDMUL(i3, collpair->normal, (double)w3 * impulse);
       }
 
       if ((magrelVel < 0.1f * d * time_multiplier) && (d > ALMOST_ZERO)) {
@@ -927,25 +927,25 @@ static int cloth_selfcollision_response_static(ClothModifierData *clmd,
 
         impulse = magtangent / 1.5;
 
-        VECADDMUL(ia[0], vrel_t_pre, w1 * impulse);
-        VECADDMUL(ia[1], vrel_t_pre, w2 * impulse);
-        VECADDMUL(ia[2], vrel_t_pre, w3 * impulse);
+        VECADDMUL(ia[0], vrel_t_pre, (double)w1 * impulse);
+        VECADDMUL(ia[1], vrel_t_pre, (double)w2 * impulse);
+        VECADDMUL(ia[2], vrel_t_pre, (double)w3 * impulse);
 
-        VECADDMUL(ib[0], vrel_t_pre, -u1 * impulse);
-        VECADDMUL(ib[1], vrel_t_pre, -u2 * impulse);
-        VECADDMUL(ib[2], vrel_t_pre, -u3 * impulse);
+        VECADDMUL(ib[0], vrel_t_pre, (double)u1 * -impulse);
+        VECADDMUL(ib[1], vrel_t_pre, (double)u2 * -impulse);
+        VECADDMUL(ib[2], vrel_t_pre, (double)u3 * -impulse);
       }
 
       /* Apply velocity stopping impulse. */
       impulse = magrelVel / 3.0f;
 
-      VECADDMUL(ia[0], collpair->normal, w1 * impulse);
-      VECADDMUL(ia[1], collpair->normal, w2 * impulse);
-      VECADDMUL(ia[2], collpair->normal, w3 * impulse);
+      VECADDMUL(ia[0], collpair->normal, (double)w1 * impulse);
+      VECADDMUL(ia[1], collpair->normal, (double)w2 * impulse);
+      VECADDMUL(ia[2], collpair->normal, (double)w3 * impulse);
 
-      VECADDMUL(ib[0], collpair->normal, -u1 * impulse);
-      VECADDMUL(ib[1], collpair->normal, -u2 * impulse);
-      VECADDMUL(ib[2], collpair->normal, -u3 * impulse);
+      VECADDMUL(ib[0], collpair->normal, (double)u1 * -impulse);
+      VECADDMUL(ib[1], collpair->normal, (double)u2 * -impulse);
+      VECADDMUL(ib[2], collpair->normal, (double)u3 * -impulse);
 
       if ((magrelVel < 0.1f * d * time_multiplier) && (d > ALMOST_ZERO)) {
         repulse = MIN2(d / time_multiplier, 0.1f * d * time_multiplier - magrelVel);
@@ -957,13 +957,13 @@ static int cloth_selfcollision_response_static(ClothModifierData *clmd,
         repulse = max_ff(impulse, repulse);
         impulse = repulse / 1.5f;
 
-        VECADDMUL(ia[0], collpair->normal, w1 * impulse);
-        VECADDMUL(ia[1], collpair->normal, w2 * impulse);
-        VECADDMUL(ia[2], collpair->normal, w3 * impulse);
+        VECADDMUL(ia[0], collpair->normal, (double)w1 * impulse);
+        VECADDMUL(ia[1], collpair->normal, (double)w2 * impulse);
+        VECADDMUL(ia[2], collpair->normal, (double)w3 * impulse);
 
-        VECADDMUL(ib[0], collpair->normal, -u1 * impulse);
-        VECADDMUL(ib[1], collpair->normal, -u2 * impulse);
-        VECADDMUL(ib[2], collpair->normal, -u3 * impulse);
+        VECADDMUL(ib[0], collpair->normal, (double)u1 * -impulse);
+        VECADDMUL(ib[1], collpair->normal, (double)u2 * -impulse);
+        VECADDMUL(ib[2], collpair->normal, (double)u3 * -impulse);
       }
 
       result = 1;
@@ -977,9 +977,9 @@ static int cloth_selfcollision_response_static(ClothModifierData *clmd,
       VECADDMUL(ia[1], collpair->normal, w2 * impulse);
       VECADDMUL(ia[2], collpair->normal, w3 * impulse);
 
-      VECADDMUL(ib[0], collpair->normal, -u1 * impulse);
-      VECADDMUL(ib[1], collpair->normal, -u2 * impulse);
-      VECADDMUL(ib[2], collpair->normal, -u3 * impulse);
+      VECADDMUL(ib[0], collpair->normal, u1 * -impulse);
+      VECADDMUL(ib[1], collpair->normal, u2 * -impulse);
+      VECADDMUL(ib[2], collpair->normal, u3 * -impulse);
 
       result = 1;
     }
