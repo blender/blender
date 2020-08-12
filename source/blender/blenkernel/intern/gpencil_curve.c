@@ -118,13 +118,18 @@ static Material *gpencil_add_from_curve_material(Main *bmain,
 
 /* Helper: Create new stroke section. */
 static void gpencil_add_new_points(bGPDstroke *gps,
-                                   float *coord_array,
-                                   float pressure,
-                                   int init,
-                                   int totpoints,
+                                   const float *coord_array,
+                                   const float pressure_start,
+                                   const float pressure_end,
+                                   const int init,
+                                   const int totpoints,
                                    const float init_co[3],
-                                   bool last)
+                                   const bool last)
 {
+  BLI_assert(totpoints > 0);
+
+  const float step = 1.0f / ((float)totpoints - 1.0f);
+  float factor = 0.0f;
   for (int i = 0; i < totpoints; i++) {
     bGPDspoint *pt = &gps->points[i + init];
     copy_v3_v3(&pt->x, &coord_array[3 * i]);
@@ -139,8 +144,9 @@ static void gpencil_add_new_points(bGPDstroke *gps,
       }
     }
 
-    pt->pressure = pressure;
     pt->strength = 1.0f;
+    pt->pressure = interpf(pressure_end, pressure_start, factor);
+    factor += step;
   }
 }
 
@@ -336,7 +342,8 @@ static void gpencil_convert_spline(Main *bmain,
           copy_v3_v3(init_co, &coord_array[0]);
         }
         /* Add points to the stroke */
-        gpencil_add_new_points(gps, coord_array, bezt->radius, init, resolu, init_co, last);
+        gpencil_add_new_points(
+            gps, coord_array, prevbezt->radius, bezt->radius, init, resolu, init_co, last);
         /* Free memory. */
         MEM_SAFE_FREE(coord_array);
 
@@ -367,7 +374,7 @@ static void gpencil_convert_spline(Main *bmain,
         gps->points = MEM_callocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
 
         /* Add points. */
-        gpencil_add_new_points(gps, coord_array, 1.0f, 0, gps->totpoints, init_co, false);
+        gpencil_add_new_points(gps, coord_array, 1.0f, 1.0f, 0, gps->totpoints, init_co, false);
 
         MEM_SAFE_FREE(coord_array);
       }
