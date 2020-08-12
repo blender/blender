@@ -173,6 +173,7 @@ static void gpencil_convert_spline(Main *bmain,
                                    const bool gpencil_lines,
                                    const bool only_stroke,
                                    const float scale_thickness,
+                                   const float sample,
                                    bGPDframe *gpf,
                                    Nurb *nu)
 {
@@ -392,6 +393,9 @@ static void gpencil_convert_spline(Main *bmain,
   if ((cyclic) && (!do_stroke)) {
     BKE_gpencil_stroke_close(gps);
   }
+  if (sample > 0.0f) {
+    BKE_gpencil_stroke_sample(gps, sample, false);
+  }
 
   /* Recalc fill geometry. */
   BKE_gpencil_stroke_geometry_update(gps);
@@ -408,6 +412,7 @@ static void gpencil_convert_spline(Main *bmain,
  * \param use_collections: Create layers using collection names.
  * \param only_stroke: The material must be only stroke without fill.
  * \param scale_thickness: Scale thickness factor.
+ * \param sample: Sample distance, zero to disable.
  */
 void BKE_gpencil_convert_curve(Main *bmain,
                                Scene *scene,
@@ -416,7 +421,8 @@ void BKE_gpencil_convert_curve(Main *bmain,
                                const bool gpencil_lines,
                                const bool use_collections,
                                const bool only_stroke,
-                               const float scale_thickness)
+                               const float scale_thickness,
+                               const float sample)
 {
   if (ELEM(NULL, ob_gp, ob_cu) || (ob_gp->type != OB_GPENCIL) || (ob_gp->data == NULL)) {
     return;
@@ -455,7 +461,7 @@ void BKE_gpencil_convert_curve(Main *bmain,
   /* Read all splines of the curve and create a stroke for each. */
   LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
     gpencil_convert_spline(
-        bmain, ob_gp, ob_cu, gpencil_lines, only_stroke, scale_thickness, gpf, nu);
+        bmain, ob_gp, ob_cu, gpencil_lines, only_stroke, scale_thickness, sample, gpf, nu);
   }
 
   /* Tag for recalculation */
