@@ -19,17 +19,6 @@
 set(BOOST_ADDRESS_MODEL 64)
 
 if(WIN32)
-  if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-    set(PYTHON_ARCH x64)
-    set(PYTHON_ARCH2 win-AMD64)
-    set(PYTHON_OUTPUTDIR ${BUILD_DIR}/python/src/external_python/pcbuild/amd64/)
-  else()
-    set(PYTHON_ARCH x86)
-    set(PYTHON_ARCH2 win32)
-    set(PYTHON_OUTPUTDIR ${BUILD_DIR}/python/src/external_python/pcbuild/win32/)
-    set(BOOST_ADDRESS_MODEL 32)
-  endif()
-
   set(BOOST_TOOLSET toolset=msvc-14.1)
   set(BOOST_COMPILER_STRING -vc141)
 
