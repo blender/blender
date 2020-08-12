@@ -29,6 +29,7 @@
 
 #include "BKE_duplilist.h"
 #include "BKE_modifier.h"
+#include "BKE_object.h"
 
 #include "DEG_depsgraph_query.h"
 
@@ -42,15 +43,20 @@
 static void eevee_motion_blur_mesh_data_free(void *val)
 {
   EEVEE_GeometryMotionData *geom_mb = (EEVEE_GeometryMotionData *)val;
+  EEVEE_HairMotionData *hair_mb = (EEVEE_HairMotionData *)val;
   switch (geom_mb->type) {
-    case EEVEE_HAIR_GEOM_MOTION_DATA:
-      for (int i = 0; i < ARRAY_SIZE(geom_mb->vbo); i++) {
-        GPU_VERTBUF_DISCARD_SAFE(geom_mb->hair_pos[i]);
-        DRW_TEXTURE_FREE_SAFE(geom_mb->hair_pos_tx[i]);
+    case EEVEE_MOTION_DATA_HAIR:
+      for (int j = 0; j < hair_mb->psys_len; j++) {
+        for (int i = 0; i < ARRAY_SIZE(hair_mb->psys[0].hair_pos); i++) {
+          GPU_VERTBUF_DISCARD_SAFE(hair_mb->psys[j].hair_pos[i]);
+        }
+        for (int i = 0; i < ARRAY_SIZE(hair_mb->psys[0].hair_pos); i++) {
+          DRW_TEXTURE_FREE_SAFE(hair_mb->psys[j].hair_pos_tx[i]);
+        }
       }
       break;
 
-    case EEVEE_MESH_GEOM_MOTION_DATA:
+    case EEVEE_MOTION_DATA_MESH:
       for (int i = 0; i < ARRAY_SIZE(geom_mb->vbo); i++) {
         GPU_VERTBUF_DISCARD_SAFE(geom_mb->vbo[i]);
       }
@@ -148,9 +154,7 @@ EEVEE_ObjectMotionData *EEVEE_motion_blur_object_data_get(EEVEE_MotionBlurData *
   return ob_step;
 }
 
-static EEVEE_GeometryMotionData *motion_blur_geometry_data_get(EEVEE_MotionBlurData *mb,
-                                                               Object *ob,
-                                                               bool hair)
+static void *motion_blur_deform_data_get(EEVEE_MotionBlurData *mb, Object *ob, bool hair)
 {
   if (mb->geom == NULL) {
     return NULL;
@@ -161,13 +165,29 @@ static EEVEE_GeometryMotionData *motion_blur_geometry_data_get(EEVEE_MotionBlurD
     key = dup->ob;
   }
   else {
+    key = ob;
+  }
+  /* Only use data for object that have no modifiers. */
+  if (!BKE_object_is_modified(DRW_context_state_get()->scene, ob)) {
     key = ob->data;
   }
   key = (char *)key + (int)hair;
   EEVEE_GeometryMotionData *geom_step = BLI_ghash_lookup(mb->geom, key);
   if (geom_step == NULL) {
-    geom_step = MEM_callocN(sizeof(EEVEE_GeometryMotionData), __func__);
-    geom_step->type = hair ? EEVEE_HAIR_GEOM_MOTION_DATA : EEVEE_MESH_GEOM_MOTION_DATA;
+    if (hair) {
+      EEVEE_HairMotionData *hair_step;
+      /* Ugly, we allocate for each modifiers and just fill based on modifier index in the list. */
+      int psys_len = (ob->type != OB_HAIR) ? BLI_listbase_count(&ob->modifiers) : 1;
+      hair_step = MEM_callocN(sizeof(EEVEE_HairMotionData) + sizeof(hair_step->psys[0]) * psys_len,
+                              __func__);
+      hair_step->psys_len = psys_len;
+      geom_step = (EEVEE_GeometryMotionData *)hair_step;
+      geom_step->type = EEVEE_MOTION_DATA_HAIR;
+    }
+    else {
+      geom_step = MEM_callocN(sizeof(EEVEE_GeometryMotionData), __func__);
+      geom_step->type = EEVEE_MOTION_DATA_MESH;
+    }
     BLI_ghash_insert(mb->geom, key, geom_step);
   }
   return geom_step;
@@ -175,12 +195,12 @@ static EEVEE_GeometryMotionData *motion_blur_geometry_data_get(EEVEE_MotionBlurD
 
 EEVEE_GeometryMotionData *EEVEE_motion_blur_geometry_data_get(EEVEE_MotionBlurData *mb, Object *ob)
 {
-  return motion_blur_geometry_data_get(mb, ob, false);
+  return motion_blur_deform_data_get(mb, ob, false);
 }
 
-EEVEE_GeometryMotionData *EEVEE_motion_blur_hair_data_get(EEVEE_MotionBlurData *mb, Object *ob)
+EEVEE_HairMotionData *EEVEE_motion_blur_hair_data_get(EEVEE_MotionBlurData *mb, Object *ob)
 {
-  return motion_blur_geometry_data_get(mb, ob, true);
+  return motion_blur_deform_data_get(mb, ob, true);
 }
 
 /* View Layer data. */
