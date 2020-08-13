@@ -361,8 +361,12 @@ typedef struct VertexDupliData {
   float child_imat[4][4];
 } VertexDupliData;
 
+/**
+ * \param no: The direction,
+ * currently this is copied from a `short[3]` normal without division.
+ */
 static void get_duplivert_transform(const float co[3],
-                                    const short no[3],
+                                    const float no[3],
                                     const bool use_rotation,
                                     const short axis,
                                     const short upflag,
@@ -373,11 +377,9 @@ static void get_duplivert_transform(const float co[3],
 
   if (use_rotation) {
     /* Construct rotation matrix from normals. */
-    float nor_f[3];
-    nor_f[0] = (float)-no[0];
-    nor_f[1] = (float)-no[1];
-    nor_f[2] = (float)-no[2];
-    vec_to_quat(quat, nor_f, axis, upflag);
+    float no_flip[3];
+    negate_v3_v3(no_flip, no);
+    vec_to_quat(quat, no_flip, axis, upflag);
   }
   else {
     unit_qt(quat);
@@ -389,7 +391,7 @@ static void get_duplivert_transform(const float co[3],
 static void vertex_dupli(const VertexDupliData *vdd,
                          int index,
                          const float co[3],
-                         const short no[3])
+                         const float no[3])
 {
   Object *inst_ob = vdd->inst_ob;
   DupliObject *dob;
@@ -426,9 +428,10 @@ static void make_child_duplis_verts(const DupliContext *ctx, void *userdata, Obj
   /* Relative transform from parent to child space. */
   mul_m4_m4m4(vdd->child_imat, child->imat, ctx->object->obmat);
 
-  const MVert *mvert = me_eval->mvert;
-  for (int i = 0; i < me_eval->totvert; i++) {
-    vertex_dupli(vdd, i, mvert[i].co, mvert[i].no);
+  const MVert *mv = me_eval->mvert;
+  for (int i = 0; i < me_eval->totvert; i++, mv++) {
+    const float no[3] = {mv->no[0], mv->no[1], mv->no[2]};
+    vertex_dupli(vdd, i, mv->co, no);
   }
 }
 
