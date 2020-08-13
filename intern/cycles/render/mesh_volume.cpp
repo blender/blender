@@ -159,7 +159,7 @@ class VolumeMeshBuilder {
   bool empty_grid() const;
 
 #ifdef WITH_OPENVDB
-  template <typename GridType>
+  template<typename GridType>
   void merge_grid(openvdb::GridBase::ConstPtr grid, bool do_clipping, float volume_clipping)
   {
     typename GridType::ConstPtr typed_grid = openvdb::gridConstPtrCast<GridType>(grid);
@@ -189,7 +189,9 @@ VolumeMeshBuilder::VolumeMeshBuilder()
 }
 
 #ifdef WITH_OPENVDB
-void VolumeMeshBuilder::add_grid(openvdb::GridBase::ConstPtr grid, bool do_clipping, float volume_clipping)
+void VolumeMeshBuilder::add_grid(openvdb::GridBase::ConstPtr grid,
+                                 bool do_clipping,
+                                 float volume_clipping)
 {
   /* set the transform of our grid from the first one */
   if (first_grid) {
@@ -415,22 +417,38 @@ static openvdb::GridBase::ConstPtr openvdb_grid_from_device_texture(device_textu
   typename GridType::Ptr sparse = GridType::create(ValueType(0.0f));
   openvdb::tools::copyFromDense(dense, *sparse, ValueType(volume_clipping));
 
-  /* copyFromDense will remove any leaf node that contains constant data and replace it with a tile,
-   * however, we need to preserve the leaves in order to generate the mesh, so revoxelize the leaves
-   * that were pruned. This should not affect areas that were skipped due to the volume_clipping parameter. */
+  /* copyFromDense will remove any leaf node that contains constant data and replace it with a
+   * tile, however, we need to preserve the leaves in order to generate the mesh, so revoxelize the
+   * leaves that were pruned. This should not affect areas that were skipped due to the
+   * volume_clipping parameter. */
   sparse->tree().voxelizeActiveTiles();
 
   /* Compute index to world matrix. */
-  float3 voxel_size = make_float3(1.0f / image_memory->data_width, 1.0f / image_memory->data_height, 1.0f / image_memory->data_depth);
+  float3 voxel_size = make_float3(1.0f / image_memory->data_width,
+                                  1.0f / image_memory->data_height,
+                                  1.0f / image_memory->data_depth);
 
   transform_3d = transform_inverse(transform_3d);
 
-  openvdb::Mat4R index_to_world_mat((double)(voxel_size.x * transform_3d[0][0]), 0.0, 0.0, 0.0,
-                           0.0, (double)(voxel_size.y * transform_3d[1][1]), 0.0, 0.0,
-                           0.0, 0.0, (double)(voxel_size.z * transform_3d[2][2]), 0.0,
-                           (double)transform_3d[0][3], (double)transform_3d[1][3], (double)transform_3d[2][3], 1.0);
+  openvdb::Mat4R index_to_world_mat((double)(voxel_size.x * transform_3d[0][0]),
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    (double)(voxel_size.y * transform_3d[1][1]),
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    (double)(voxel_size.z * transform_3d[2][2]),
+                                    0.0,
+                                    (double)transform_3d[0][3],
+                                    (double)transform_3d[1][3],
+                                    (double)transform_3d[2][3],
+                                    1.0);
 
-  openvdb::math::Transform::Ptr index_to_world_tfm = openvdb::math::Transform::createLinearTransform(index_to_world_mat);
+  openvdb::math::Transform::Ptr index_to_world_tfm =
+      openvdb::math::Transform::createLinearTransform(index_to_world_mat);
 
   sparse->setTransform(index_to_world_tfm);
 
@@ -472,19 +490,16 @@ void GeometryManager::create_volume_mesh(Mesh *mesh, Progress &progress)
       device_texture *image_memory = handle.image_memory();
 
       if (image_memory->data_elements == 1) {
-        grid = openvdb_grid_from_device_texture<openvdb::FloatGrid>(image_memory,
-                                                                    mesh->volume_clipping,
-                                                                    handle.metadata().transform_3d);
+        grid = openvdb_grid_from_device_texture<openvdb::FloatGrid>(
+            image_memory, mesh->volume_clipping, handle.metadata().transform_3d);
       }
       else if (image_memory->data_elements == 3) {
-        grid = openvdb_grid_from_device_texture<openvdb::Vec3fGrid>(image_memory,
-                                                                    mesh->volume_clipping,
-                                                                    handle.metadata().transform_3d);
+        grid = openvdb_grid_from_device_texture<openvdb::Vec3fGrid>(
+            image_memory, mesh->volume_clipping, handle.metadata().transform_3d);
       }
       else if (image_memory->data_elements == 4) {
-        grid = openvdb_grid_from_device_texture<openvdb::Vec4fGrid>(image_memory,
-                                                                    mesh->volume_clipping,
-                                                                    handle.metadata().transform_3d);
+        grid = openvdb_grid_from_device_texture<openvdb::Vec4fGrid>(
+            image_memory, mesh->volume_clipping, handle.metadata().transform_3d);
       }
     }
 
