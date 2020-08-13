@@ -1002,7 +1002,7 @@ Scene *BKE_scene_set_name(Main *bmain, const char *name)
   return NULL;
 }
 
-/* Used by metaballs, return *all* objects (including duplis)
+/* Used by meta-balls, return *all* objects (including duplis)
  * existing in the scene (including scene's sets). */
 int BKE_scene_base_iter_next(
     Depsgraph *depsgraph, SceneBaseIter *iter, Scene **scene, int val, Base **base, Object **ob)
@@ -1073,7 +1073,7 @@ int BKE_scene_base_iter_next(
       else {
         if (iter->phase != F_DUPLI) {
           if (depsgraph && (*base)->object->transflag & OB_DUPLI) {
-            /* collections cannot be duplicated for metaballs yet,
+            /* Collections cannot be duplicated for meta-balls yet,
              * this enters eternal loop because of
              * makeDispListMBall getting called inside of collection_duplilist */
             if ((*base)->object->instance_collection == NULL) {

@@ -193,7 +193,7 @@ void GLBackend::tex_free(GLuint tex_id)
 /** \name Linked object deletion
  *
  * These objects contain data that are stored per context. We
- * need to do some cleanup if they are used accross context or if context
+ * need to do some cleanup if they are used across context or if context
  * is discarded.
  * \{ */
 

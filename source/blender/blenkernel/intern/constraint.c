@@ -602,8 +602,7 @@ static void constraint_target_to_mat4(Object *ob,
     pchan = BKE_pose_channel_find_name(ob->pose, substring);
     if (pchan) {
       /* Multiply the PoseSpace accumulation/final matrix for this
-       * PoseChannel by the Armature Object's Matrix to get a worldspace
-       * matrix.
+       * PoseChannel by the Armature Object's Matrix to get a world-space matrix.
        */
       bool is_bbone = (pchan->bone) && (pchan->bone->segments > 1) &&
                       (flag & CONSTRAINT_BBONE_SHAPE);
