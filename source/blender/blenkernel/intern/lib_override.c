@@ -1146,7 +1146,15 @@ void BKE_lib_override_library_main_operations_create(Main *bmain, const bool for
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if (ID_IS_OVERRIDE_LIBRARY_REAL(id) &&
         (force_auto || (id->tag & LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH))) {
-      BLI_task_pool_push(task_pool, lib_override_library_operations_create_cb, id, false, NULL);
+      /* Only check overrides if we do have the real reference data available, and not some empty
+       * 'placeholder' for missing data (broken links). */
+      if ((id->override_library->reference->tag & LIB_TAG_MISSING) == 0) {
+        BLI_task_pool_push(task_pool, lib_override_library_operations_create_cb, id, false, NULL);
+      }
+      else {
+        BKE_lib_override_library_properties_tag(
+            id->override_library, IDOVERRIDE_LIBRARY_TAG_UNUSED, false);
+      }
     }
     id->tag &= ~LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH;
   }
