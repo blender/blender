@@ -468,7 +468,7 @@ class DATA_PT_sculpt_vertex_colors(MeshButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.preferences.experimental.use_sculpt_vertex_colors
+        return super().poll(context) and context.preferences.experimental.use_sculpt_vertex_colors
 
     def draw(self, context):
         layout = self.layout
