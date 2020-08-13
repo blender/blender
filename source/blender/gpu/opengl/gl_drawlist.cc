@@ -185,7 +185,8 @@ void GLDrawList::submit(void)
   BLI_assert(MDI_ENABLED);
   BLI_assert(data_);
   BLI_assert(GPU_context_active_get()->shader != NULL);
-  /* TODO could assert that VAO is bound. */
+
+  GLBatch *batch = static_cast<GLBatch *>(batch_);
 
   /* Only do multi-draw indirect if doing more than 2 drawcall. This avoids the overhead of
    * buffer mapping if scene is not very instance friendly. BUT we also need to take into
@@ -202,7 +203,7 @@ void GLDrawList::submit(void)
     data_ = NULL; /* Unmapped */
     data_offset_ += command_offset_;
 
-    static_cast<GLBatch *>(batch_)->bind(0);
+    batch->bind(0);
 
     if (MDI_INDEXED) {
       glMultiDrawElementsIndirect(prim, INDEX_TYPE(batch_->elem), offset, command_len_, 0);
@@ -217,8 +218,8 @@ void GLDrawList::submit(void)
       GLDrawCommandIndexed *cmd = (GLDrawCommandIndexed *)data_;
       for (int i = 0; i < command_len_; i++, cmd++) {
         /* Index start was already added. Avoid counting it twice. */
-        cmd->v_first -= batch_->elem->index_start;
-        GPU_batch_draw_advanced(batch_, cmd->v_first, cmd->v_count, cmd->i_first, cmd->i_count);
+        cmd->v_first -= batch->elem->index_start;
+        batch->draw(cmd->v_first, cmd->v_count, cmd->i_first, cmd->i_count);
       }
       /* Reuse the same data. */
       command_offset_ -= command_len_ * sizeof(GLDrawCommandIndexed);
@@ -226,7 +227,7 @@ void GLDrawList::submit(void)
     else {
       GLDrawCommand *cmd = (GLDrawCommand *)data_;
       for (int i = 0; i < command_len_; i++, cmd++) {
-        GPU_batch_draw_advanced(batch_, cmd->v_first, cmd->v_count, cmd->i_first, cmd->i_count);
+        batch->draw(cmd->v_first, cmd->v_count, cmd->i_first, cmd->i_count);
       }
       /* Reuse the same data. */
       command_offset_ -= command_len_ * sizeof(GLDrawCommand);
