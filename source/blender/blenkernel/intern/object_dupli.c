@@ -696,10 +696,6 @@ static void make_child_duplis_faces(const DupliContext *ctx, void *userdata, Obj
     const MLoop *loopstart = mloop + mp->loopstart;
     float space_mat[4][4], obmat[4][4];
 
-    if (UNLIKELY(mp->totloop < 3)) {
-      continue;
-    }
-
     /* `obmat` is transform to face. */
     get_dupliface_transform(
         mp, loopstart, mvert, fdd->use_scale, ctx->object->instance_faces_scale, obmat);
