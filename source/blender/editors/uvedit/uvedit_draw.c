@@ -449,6 +449,8 @@ static void draw_uvs(SpaceImage *sima,
       }
       col1[3] = overlay_alpha;
 
+      GPU_batch_program_set_builtin(batch->edges, shader);
+
       /* Inner Line. Use depth test to insure selection is drawn on top. */
       GPU_depth_test(true);
       GPU_line_width(1.0f);
