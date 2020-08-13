@@ -2965,6 +2965,9 @@ static void lattice_to_softbody(Scene *scene, Object *ob)
   if (ob->softflag & OB_SB_EDGES) {
     makelatticesprings(lt, ob->soft->bspring, ob->softflag & OB_SB_QUADS, ob);
     build_bps_springlist(ob); /* link bps to springs */
+    if (ob->softflag & OB_SB_SELF) {
+      calculate_collision_balls(ob);
+    }
   }
 }
 
