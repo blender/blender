@@ -4026,7 +4026,7 @@ static void nodelink_batch_draw(SpaceNode *snode)
   GPU_vertbuf_use(g_batch_link.inst_vbo); /* force update. */
 
   GPU_batch_program_set_builtin(g_batch_link.batch, GPU_SHADER_2D_NODELINK_INST);
-  GPU_batch_uniform_4fv_array(g_batch_link.batch, "colors", 6, (float *)colors);
+  GPU_batch_uniform_4fv_array(g_batch_link.batch, "colors", 6, colors);
   GPU_batch_uniform_1f(g_batch_link.batch, "expandSize", snode->aspect * LINK_WIDTH);
   GPU_batch_uniform_1f(g_batch_link.batch, "arrowSize", ARROW_SIZE);
   GPU_batch_draw(g_batch_link.batch);
@@ -4108,8 +4108,8 @@ void node_draw_link_bezier(
 
       GPUBatch *batch = g_batch_link.batch_single;
       GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_NODELINK);
-      GPU_batch_uniform_2fv_array(batch, "bezierPts", 4, (float *)vec);
-      GPU_batch_uniform_4fv_array(batch, "colors", 3, (float *)colors);
+      GPU_batch_uniform_2fv_array(batch, "bezierPts", 4, vec);
+      GPU_batch_uniform_4fv_array(batch, "colors", 3, colors);
       GPU_batch_uniform_1f(batch, "expandSize", snode->aspect * LINK_WIDTH);
       GPU_batch_uniform_1f(batch, "arrowSize", ARROW_SIZE);
       GPU_batch_uniform_1i(batch, "doArrow", drawarrow);

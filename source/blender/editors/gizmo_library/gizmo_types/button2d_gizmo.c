@@ -226,10 +226,10 @@ static void button2d_draw_intern(const bContext *C,
           float color_contrast[4];
           copy_v3_fl(color_contrast, rgb_to_grayscale(color) < 0.2f ? 1 : 0);
           color_contrast[3] = color[3];
-          GPU_batch_uniform_4f(button->shape_batch[i], "color", UNPACK4(color_contrast));
+          GPU_shader_uniform_4f(button->shape_batch[i]->shader, "color", UNPACK4(color_contrast));
         }
         else {
-          GPU_batch_uniform_4f(button->shape_batch[i], "color", UNPACK4(color));
+          GPU_shader_uniform_4f(button->shape_batch[i]->shader, "color", UNPACK4(color));
         }
 
         GPU_batch_draw(button->shape_batch[i]);
