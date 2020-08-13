@@ -2647,7 +2647,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
           ob_gpencil = ED_gpencil_add_object(C, ob->loc, local_view_bits);
           copy_v3_v3(ob_gpencil->rot, ob->rot);
           copy_v3_v3(ob_gpencil->scale, ob->scale);
-          BKE_gpencil_convert_curve(bmain, scene, ob_gpencil, ob, false, false, 1.0f, 0.0f);
+          BKE_gpencil_convert_curve(bmain, scene, ob_gpencil, ob, false, 1.0f, 0.0f);
           gpencilConverted = true;
         }
       }

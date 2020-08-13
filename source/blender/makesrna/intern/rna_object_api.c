@@ -713,7 +713,6 @@ bool rna_Object_generate_gpencil_strokes(Object *ob,
                                          bContext *C,
                                          ReportList *reports,
                                          Object *ob_gpencil,
-                                         bool gpencil_lines,
                                          bool use_collections,
                                          float scale_thickness,
                                          float sample)
@@ -729,7 +728,7 @@ bool rna_Object_generate_gpencil_strokes(Object *ob,
   Scene *scene = CTX_data_scene(C);
 
   BKE_gpencil_convert_curve(
-      bmain, scene, ob_gpencil, ob, gpencil_lines, use_collections, scale_thickness, sample);
+      bmain, scene, ob_gpencil, ob, use_collections, scale_thickness, sample);
 
   WM_main_add_notifier(NC_GPENCIL | ND_DATA, NULL);
 
@@ -1199,7 +1198,6 @@ void RNA_api_object(StructRNA *srna)
                          "",
                          "Grease Pencil object used to create new strokes");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  parm = RNA_def_boolean(func, "gpencil_lines", false, "", "Create Lines");
   parm = RNA_def_boolean(func, "use_collections", true, "", "Use Collections");
   parm = RNA_def_float(
       func, "scale_thickness", 1.0f, 0.0f, FLT_MAX, "", "Thickness scaling factor", 0.0f, 100.0f);
