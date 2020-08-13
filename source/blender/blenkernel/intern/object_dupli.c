@@ -300,6 +300,37 @@ static void make_child_duplis(const DupliContext *ctx,
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Internal Data Access Utilities
+ * \{ */
+
+static Mesh *mesh_data_from_duplicator_object(Object *ob, BMEditMesh **r_em)
+{
+  /* Gather mesh info. */
+  BMEditMesh *em = BKE_editmesh_from_object(ob);
+  Mesh *me_eval;
+
+  *r_em = NULL;
+
+  /* We do not need any render-specific handling anymore, depsgraph takes care of that. */
+  /* NOTE: Do direct access to the evaluated mesh: this function is used
+   * during meta balls evaluation. But even without those all the objects
+   * which are needed for correct instancing are already evaluated. */
+  if (em != NULL) {
+    *r_em = em;
+
+    /* Note that this will only show deformation if #eModifierMode_OnCage is enabled.
+     * We could change this but it matches 2.7x behavior. */
+    me_eval = em->mesh_eval_cage;
+  }
+  else {
+    me_eval = BKE_object_get_evaluated_mesh(ob);
+  }
+  return me_eval;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Dupli-Collection Implementation (#OB_DUPLICOLLECTION)
  * \{ */
 
@@ -444,26 +475,16 @@ static void make_duplis_verts(const DupliContext *ctx)
   vdd.use_rotation = parent->transflag & OB_DUPLIROT;
 
   /* Gather mesh info. */
+  BMEditMesh *em = NULL;
+  Mesh *me_eval = mesh_data_from_duplicator_object(parent, &em);
+  if (me_eval == NULL) {
+    return;
+  }
+
   {
-    vdd.edit_mesh = BKE_editmesh_from_object(parent);
-
-    /* We do not need any render-specific handling anymore, depsgraph takes care of that. */
-    /* NOTE: Do direct access to the evaluated mesh: this function is used
-     * during meta balls evaluation. But even without those all the objects
-     * which are needed for correct instancing are already evaluated. */
-    if (vdd.edit_mesh != NULL) {
-      vdd.me_eval = vdd.edit_mesh->mesh_eval_cage;
-    }
-    else {
-      vdd.me_eval = BKE_object_get_evaluated_mesh(parent);
-    }
-
-    if (vdd.me_eval == NULL) {
-      return;
-    }
-
-    vdd.orco = CustomData_get_layer(&vdd.me_eval->vdata, CD_ORCO);
-    vdd.totvert = vdd.me_eval->totvert;
+    vdd.me_eval = me_eval;
+    vdd.orco = CustomData_get_layer(&me_eval->vdata, CD_ORCO);
+    vdd.totvert = me_eval->totvert;
   }
 
   make_child_duplis(ctx, &vdd, make_child_duplis_verts);
@@ -731,32 +752,22 @@ static void make_duplis_faces(const DupliContext *ctx)
   fdd.use_scale = ((parent->transflag & OB_DUPLIFACES_SCALE) != 0);
 
   /* Gather mesh info. */
+  BMEditMesh *em = NULL;
+  Mesh *me_eval = mesh_data_from_duplicator_object(parent, &em);
+  if (me_eval == NULL) {
+    return;
+  }
+
   {
-    BMEditMesh *em = BKE_editmesh_from_object(parent);
+    fdd.me_eval = me_eval;
+    fdd.orco = CustomData_get_layer(&me_eval->vdata, CD_ORCO);
+    const int uv_idx = CustomData_get_render_layer(&me_eval->ldata, CD_MLOOPUV);
+    fdd.mloopuv = CustomData_get_layer_n(&me_eval->ldata, CD_MLOOPUV, uv_idx);
 
-    /* We do not need any render-specific handling anymore, depsgraph takes care of that. */
-    /* NOTE: Do direct access to the evaluated mesh: this function is used
-     * during meta balls evaluation. But even without those all the objects
-     * which are needed for correct instancing are already evaluated. */
-    if (em != NULL) {
-      fdd.me_eval = em->mesh_eval_cage;
-    }
-    else {
-      fdd.me_eval = BKE_object_get_evaluated_mesh(parent);
-    }
-
-    if (fdd.me_eval == NULL) {
-      return;
-    }
-
-    fdd.orco = CustomData_get_layer(&fdd.me_eval->vdata, CD_ORCO);
-    const int uv_idx = CustomData_get_render_layer(&fdd.me_eval->ldata, CD_MLOOPUV);
-    fdd.mloopuv = CustomData_get_layer_n(&fdd.me_eval->ldata, CD_MLOOPUV, uv_idx);
-
-    fdd.totface = fdd.me_eval->totpoly;
-    fdd.mpoly = fdd.me_eval->mpoly;
-    fdd.mloop = fdd.me_eval->mloop;
-    fdd.mvert = fdd.me_eval->mvert;
+    fdd.totface = me_eval->totpoly;
+    fdd.mpoly = me_eval->mpoly;
+    fdd.mloop = me_eval->mloop;
+    fdd.mvert = me_eval->mvert;
   }
 
   make_child_duplis(ctx, &fdd, make_child_duplis_faces);
