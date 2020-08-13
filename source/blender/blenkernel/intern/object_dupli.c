@@ -834,8 +834,8 @@ static DupliObject *face_dupli(const DupliContext *ctx,
   /* Make offset relative to inst_ob using relative child transform. */
   mul_mat3_m4_v3(child_imat, obmat[3]);
 
-  /* XXX ugly hack to ensure same behavior as in master this should not be needed,
-   * #Object.parentinv is not consistent outside of parenting. */
+  /* XXX ugly hack to ensure same behavior as in master.
+   * This should not be needed, #Object.parentinv is not consistent outside of parenting. */
   {
     float imat[3][3];
     copy_m3_m4(imat, inst_ob->parentinv);
