@@ -109,7 +109,7 @@
 
 /* ************************************************ */
 /* Core/Shared Utilities */
-const static EnumPropertyItem gpencil_primitive_type[] = {
+static const EnumPropertyItem gpencil_primitive_type[] = {
     {GP_STROKE_BOX, "BOX", 0, "Box", ""},
     {GP_STROKE_LINE, "LINE", 0, "Line", ""},
     {GP_STROKE_POLYLINE, "POLYLINE", 0, "Polyline", ""},

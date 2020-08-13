@@ -290,7 +290,7 @@ static int gpencil_get_stroke_material_fromcurve(
 static void gpencil_convert_spline(Main *bmain,
                                    Object *ob_gp,
                                    Object *ob_cu,
-                                   const bool gpencil_lines,
+                                   const bool UNUSED(gpencil_lines),
                                    const float scale_thickness,
                                    const float sample,
                                    bGPDframe *gpf,
