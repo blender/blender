@@ -20,6 +20,14 @@ if(BUILD_MODE STREQUAL Debug)
   set(BLOSC_POST _d)
 endif()
 
+if(WIN32)
+  set(OPENVDB_SHARED ON)
+  set(OPENVDB_STATIC OFF)
+else()
+  set(OPENVDB_SHARED OFF)
+  set(OPENVDB_STATIC ON)
+endif()
+
 set(OPENVDB_EXTRA_ARGS
   -DBoost_COMPILER:STRING=${BOOST_COMPILER_STRING}
   -DBoost_USE_MULTITHREADED=ON
@@ -42,8 +50,10 @@ set(OPENVDB_EXTRA_ARGS
   -DOPENEXR_LIBRARYDIR=${LIBDIR}/openexr/lib
    # All libs live in openexr, even the ilmbase ones
   -DILMBASE_LIBRARYDIR=${LIBDIR}/openexr/lib
-  -DOPENVDB_CORE_SHARED=Off
+  -DOPENVDB_CORE_SHARED=${OPENVDB_SHARED}
+  -DOPENVDB_CORE_STATIC=${OPENVDB_STATIC}
   -DOPENVDB_BUILD_BINARIES=Off
+  -DCMAKE_DEBUG_POSTFIX=_d
 )
 
 if(WIN32)
@@ -87,13 +97,15 @@ if(WIN32)
   if(BUILD_MODE STREQUAL Release)
     ExternalProject_Add_Step(openvdb after_install
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openvdb/include ${HARVEST_TARGET}/openvdb/include
-      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/openvdb/lib/libopenvdb.lib ${HARVEST_TARGET}/openvdb/lib/openvdb.lib
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/openvdb/lib/openvdb.lib ${HARVEST_TARGET}/openvdb/lib/openvdb.lib
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/openvdb/bin/openvdb.dll ${HARVEST_TARGET}/openvdb/bin/openvdb.dll
       DEPENDEES install
     )
   endif()
   if(BUILD_MODE STREQUAL Debug)
     ExternalProject_Add_Step(openvdb after_install
-      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/openvdb/lib/libopenvdb.lib ${HARVEST_TARGET}/openvdb/lib/openvdb_d.lib
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/openvdb/lib/openvdb_d.lib ${HARVEST_TARGET}/openvdb/lib/openvdb_d.lib
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/openvdb/bin/openvdb_d.dll ${HARVEST_TARGET}/openvdb/bin/openvdb_d.dll
       DEPENDEES install
     )
   endif()

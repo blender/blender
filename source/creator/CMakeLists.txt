@@ -722,6 +722,19 @@ elseif(WIN32)
     endif()
   endif()
 
+  if(WITH_OPENVDB)
+      install(
+        FILES ${LIBDIR}/openvdb/bin/openvdb.dll
+        DESTINATION "."
+        CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
+      )
+      install(
+        FILES ${LIBDIR}/openvdb/bin/openvdb_d.dll
+        DESTINATION "."
+        CONFIGURATIONS Debug
+      )
+  endif()
+
   if(WITH_PYTHON)
     string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
 

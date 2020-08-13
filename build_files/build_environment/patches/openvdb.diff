@@ -1,6 +1,6 @@
 diff -Naur orig/cmake/FindIlmBase.cmake openvdb/cmake/FindIlmBase.cmake
---- orig/cmake/FindIlmBase.cmake	2019-12-06 13:11:33 -0700
-+++ openvdb/cmake/FindIlmBase.cmake	2020-01-16 09:06:32 -0700
+--- orig/cmake/FindIlmBase.cmake	2019-12-06 12:11:33 -0700
++++ openvdb/cmake/FindIlmBase.cmake	2020-08-12 12:48:44 -0600
 @@ -225,6 +225,12 @@
    list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
      "-${IlmBase_VERSION_MAJOR}_${IlmBase_VERSION_MINOR}.lib"
@@ -15,8 +15,8 @@ diff -Naur orig/cmake/FindIlmBase.cmake openvdb/cmake/FindIlmBase.cmake
    if(ILMBASE_USE_STATIC_LIBS)
      list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
 diff -Naur orig/cmake/FindOpenEXR.cmake openvdb/cmake/FindOpenEXR.cmake
---- orig/cmake/FindOpenEXR.cmake	2019-12-06 13:11:33 -0700
-+++ openvdb/cmake/FindOpenEXR.cmake	2020-01-16 09:06:39 -0700
+--- orig/cmake/FindOpenEXR.cmake	2019-12-06 12:11:33 -0700
++++ openvdb/cmake/FindOpenEXR.cmake	2020-08-12 12:48:44 -0600
 @@ -218,6 +218,12 @@
    list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
      "-${OpenEXR_VERSION_MAJOR}_${OpenEXR_VERSION_MINOR}.lib"
@@ -31,9 +31,20 @@ diff -Naur orig/cmake/FindOpenEXR.cmake openvdb/cmake/FindOpenEXR.cmake
    if(OPENEXR_USE_STATIC_LIBS)
      list(APPEND CMAKE_FIND_LIBRARY_SUFFIXES
 diff -Naur orig/openvdb/CMakeLists.txt openvdb/openvdb/CMakeLists.txt
---- orig/openvdb/CMakeLists.txt	2019-12-06 13:11:33 -0700
-+++ openvdb/openvdb/CMakeLists.txt	2020-01-16 08:56:25 -0700
-@@ -193,11 +193,12 @@
+--- orig/openvdb/CMakeLists.txt	2019-12-06 12:11:33 -0700
++++ openvdb/openvdb/CMakeLists.txt	2020-08-12 14:12:26 -0600
+@@ -105,7 +105,9 @@
+   #        http://boost.2283326.n4.nabble.com/CMake-config-scripts-broken-in-1-70-td4708957.html
+   #        https://github.com/boostorg/boost_install/commit/160c7cb2b2c720e74463865ef0454d4c4cd9ae7c
+   set(BUILD_SHARED_LIBS ON)
+-  set(Boost_USE_STATIC_LIBS OFF)
++  if(NOT WIN32) # blender links boost statically on windows
++    set(Boost_USE_STATIC_LIBS OFF)
++  endif()
+ endif()
+ 
+ find_package(Boost ${MINIMUM_BOOST_VERSION} REQUIRED COMPONENTS iostreams system)
+@@ -193,6 +195,7 @@
    if(OPENVDB_DISABLE_BOOST_IMPLICIT_LINKING)
      add_definitions(-DBOOST_ALL_NO_LIB)
    endif()
@@ -41,33 +52,69 @@ diff -Naur orig/openvdb/CMakeLists.txt openvdb/openvdb/CMakeLists.txt
  endif()
  
  # @todo Should be target definitions
- if(WIN32)
--  add_definitions(-D_WIN32 -DNOMINMAX -DOPENVDB_DLL)
-+  add_definitions(-D_WIN32 -DNOMINMAX -DOPENVDB_STATICLIB)
+@@ -383,7 +386,12 @@
+ # imported targets.
+ 
+ if(OPENVDB_CORE_SHARED)
+-  add_library(openvdb_shared SHARED ${OPENVDB_LIBRARY_SOURCE_FILES})
++  if(WIN32)
++    configure_file(version.rc.in ${CMAKE_CURRENT_BINARY_DIR}/version.rc @ONLY)
++    add_library(openvdb_shared SHARED ${OPENVDB_LIBRARY_SOURCE_FILES} ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
++  else()
++    add_library(openvdb_shared SHARED ${OPENVDB_LIBRARY_SOURCE_FILES})
++  endif()
  endif()
  
- ##### Core library configuration
-diff -Naur orig/openvdb/cmd/CMakeLists.txt openvdb/openvdb/cmd/CMakeLists.txt
---- orig/openvdb/cmd/CMakeLists.txt	2019-12-06 13:11:33 -0700
-+++ openvdb/openvdb/cmd/CMakeLists.txt	2020-01-16 08:56:25 -0700
-@@ -53,7 +53,7 @@
- endif()
- 
- if(WIN32)
--  add_definitions(-D_WIN32 -DNOMINMAX -DOPENVDB_DLL)
-+  add_definitions(-D_WIN32 -DNOMINMAX -DOPENVDB_STATICLIB)
- endif()
- 
- # rpath handling
-diff -Naur orig/openvdb/unittest/CMakeLists.txt openvdb/openvdb/unittest/CMakeLists.txt
---- orig/openvdb/unittest/CMakeLists.txt	2019-12-06 13:11:33 -0700
-+++ openvdb/openvdb/unittest/CMakeLists.txt	2020-01-16 08:56:25 -0700
-@@ -49,7 +49,7 @@
- endif()
- 
- if(WIN32)
--  add_definitions(-D_WIN32 -DNOMINMAX -DOPENVDB_DLL)
-+  add_definitions(-D_WIN32 -DNOMINMAX -DOPENVDB_STATICLIB)
- endif()
- 
- ##### VDB unit tests
+ if(OPENVDB_CORE_STATIC)
+diff -Naur orig/openvdb/version.rc.in openvdb/openvdb/version.rc.in
+--- orig/openvdb/version.rc.in	1969-12-31 17:00:00 -0700
++++ openvdb/openvdb/version.rc.in	2020-08-12 14:15:01 -0600
+@@ -0,0 +1,48 @@
++#include <winver.h>
++
++#define VER_FILEVERSION             @OpenVDB_MAJOR_VERSION@,@OpenVDB_MINOR_VERSION@,@OpenVDB_PATCH_VERSION@,0
++#define VER_FILEVERSION_STR         "@OpenVDB_MAJOR_VERSION@.@OpenVDB_MINOR_VERSION@.@OpenVDB_PATCH_VERSION@.0\0"
++
++#define VER_PRODUCTVERSION          @OpenVDB_MAJOR_VERSION@,@OpenVDB_MINOR_VERSION@,@OpenVDB_PATCH_VERSION@,0
++#define VER_PRODUCTVERSION_STR      "@OpenVDB_MAJOR_VERSION@.@OpenVDB_MINOR_VERSION@\0"
++
++#ifndef DEBUG
++#define VER_DEBUG                   0
++#else
++#define VER_DEBUG                   VS_FF_DEBUG
++#endif
++
++VS_VERSION_INFO VERSIONINFO
++FILEVERSION     VER_FILEVERSION
++PRODUCTVERSION  VER_PRODUCTVERSION
++FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
++FILEFLAGS       (VER_DEBUG)
++FILEOS          VOS__WINDOWS32
++FILETYPE        VFT_DLL
++FILESUBTYPE     VFT2_UNKNOWN
++BEGIN
++    BLOCK "StringFileInfo"
++    BEGIN
++        BLOCK "040904E4"
++        BEGIN
++            VALUE "FileDescription",  "OpenVDB"
++            VALUE "FileVersion",      VER_FILEVERSION_STR
++            VALUE "InternalName",     "OpenVDB"
++            VALUE "ProductName",      "OpenVDB"
++            VALUE "ProductVersion",   VER_PRODUCTVERSION_STR
++        END
++    END
++
++    BLOCK "VarFileInfo"
++    BEGIN
++        /* The following line should only be modified for localized versions.     */
++        /* It consists of any number of WORD,WORD pairs, with each pair           */
++        /* describing a language,codepage combination supported by the file.      */
++        /*                                                                        */
++        /* For example, a file might have values "0x409,1252" indicating that it  */
++        /* supports English language (0x409) in the Windows ANSI codepage (1252). */
++
++        VALUE "Translation", 0x409, 1252
++
++    END
++END
