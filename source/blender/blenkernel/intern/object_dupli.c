@@ -431,7 +431,7 @@ static void vertex_dupli(const VertexDupliData *vdd,
   /* `obmat` is transform to vertex. */
   get_duplivert_transform(co, no, vdd->use_rotation, inst_ob->trackflag, inst_ob->upflag, obmat);
   /* Make offset relative to inst_ob using relative child transform. */
-  mul_mat3_m4_v3((float(*)[4])vdd->child_imat, obmat[3]);
+  mul_mat3_m4_v3(vdd->child_imat, obmat[3]);
   /* Apply `obmat` _after_ the local vertex transform. */
   mul_m4_m4m4(obmat, inst_ob->obmat, obmat);
 
@@ -449,14 +449,14 @@ static void vertex_dupli(const VertexDupliData *vdd,
   make_recursive_duplis(vdd->ctx, vdd->inst_ob, space_mat, index);
 }
 
-static void make_child_duplis_verts(const DupliContext *ctx, void *userdata, Object *child)
+static void make_child_duplis_verts(const DupliContext *ctx, void *userdata, Object *inst_ob)
 {
   VertexDupliData *vdd = userdata;
 
-  vdd->inst_ob = child;
-  invert_m4_m4(child->imat, child->obmat);
+  vdd->inst_ob = inst_ob;
+  invert_m4_m4(inst_ob->imat, inst_ob->obmat);
   /* Relative transform from parent to child space. */
-  mul_m4_m4m4(vdd->child_imat, child->imat, ctx->object->obmat);
+  mul_m4_m4m4(vdd->child_imat, inst_ob->imat, ctx->object->obmat);
 
   const MVert *mv = vdd->mvert;
   for (int i = 0; i < vdd->totvert; i++, mv++) {
