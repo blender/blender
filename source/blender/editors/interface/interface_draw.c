@@ -2083,7 +2083,6 @@ void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, 
 
   /* Curve filled. */
   immUniformColor3ubvAlpha(wcol->item, 128);
-  GPU_polygon_smooth(true);
   immBegin(GPU_PRIM_TRI_STRIP, (CM_TABLE * 2 + 2) + 4);
   immVertex2f(pos, line_range.xmin, rect->ymin);
   immVertex2f(pos, line_range.xmin, line_range.ymin);
@@ -2096,7 +2095,6 @@ void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, 
   immVertex2f(pos, line_range.xmax, rect->ymin);
   immVertex2f(pos, line_range.xmax, line_range.ymax);
   immEnd();
-  GPU_polygon_smooth(false);
 
   /* Curve line. */
   GPU_line_width(1.0f);
