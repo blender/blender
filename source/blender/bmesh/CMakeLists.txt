@@ -23,6 +23,7 @@ set(INC
   ../blenkernel
   ../blenlib
   ../blentranslation
+  ../depsgraph
   ../makesdna
   ../../../intern/atomic
   ../../../intern/eigen

@@ -1810,6 +1810,12 @@ static void mesh_build_data(struct Depsgraph *depsgraph,
 
   BKE_object_boundbox_calc_from_mesh(ob, mesh_eval);
 
+  /* Make sure that drivers can target shapekey properties.
+   * Note that this causes a potential inconsistency, as the shapekey may have a
+   * different topology than the evaluated mesh. */
+  BLI_assert(mesh->key == NULL || DEG_is_evaluated_id(&mesh->key->id));
+  mesh_eval->key = mesh->key;
+
   if ((ob->mode & OB_MODE_ALL_SCULPT) && ob->sculpt) {
     if (DEG_is_active(depsgraph)) {
       BKE_sculpt_update_object_after_eval(depsgraph, ob);

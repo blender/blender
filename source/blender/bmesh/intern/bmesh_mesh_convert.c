@@ -90,6 +90,8 @@
 #include "BKE_key.h"
 #include "BKE_main.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "bmesh.h"
 #include "intern/bmesh_private.h" /* For element checking. */
 
@@ -231,7 +233,13 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
 
   /* -------------------------------------------------------------------- */
   /* Shape Key */
-  int tot_shape_keys = me->key ? BLI_listbase_count(&me->key->block) : 0;
+  int tot_shape_keys = 0;
+  if (me->key != NULL && DEG_is_original_id(&me->id)) {
+    /* Evaluated meshes can be topologically inconsistent with their shape keys.
+     * Shape keys are also already integrated into the state of the evaluated
+     * mesh, so considering them here would kind of apply them twice. */
+    tot_shape_keys = BLI_listbase_count(&me->key->block);
+  }
   if (is_new == false) {
     tot_shape_keys = min_ii(tot_shape_keys, CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY));
   }
@@ -239,7 +247,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
                                           BLI_array_alloca(shape_key_table, tot_shape_keys) :
                                           NULL;
 
-  if ((params->active_shapekey != 0) && (me->key != NULL)) {
+  if ((params->active_shapekey != 0) && tot_shape_keys > 0) {
     actkey = BLI_findlink(&me->key->block, params->active_shapekey - 1);
   }
   else {
@@ -298,7 +306,8 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
   const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
   const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
   const int cd_edge_crease_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
-  const int cd_shape_key_offset = me->key ? CustomData_get_offset(&bm->vdata, CD_SHAPEKEY) : -1;
+  const int cd_shape_key_offset = tot_shape_keys ? CustomData_get_offset(&bm->vdata, CD_SHAPEKEY) :
+                                                   -1;
   const int cd_shape_keyindex_offset = is_new && (tot_shape_keys || params->add_key_index) ?
                                            CustomData_get_offset(&bm->vdata, CD_SHAPE_KEYINDEX) :
                                            -1;
