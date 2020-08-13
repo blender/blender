@@ -96,8 +96,6 @@ class GLBatch : public Batch {
   ~GLBatch();
 
   void draw(int v_first, int v_count, int i_first, int i_count) override;
-
- private:
   void bind(int i_first);
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLBatch");

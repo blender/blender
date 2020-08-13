@@ -202,6 +202,8 @@ void GLDrawList::submit(void)
     data_ = NULL; /* Unmapped */
     data_offset_ += command_offset_;
 
+    static_cast<GLBatch *>(batch_)->bind(0);
+
     if (MDI_INDEXED) {
       glMultiDrawElementsIndirect(prim, INDEX_TYPE(batch_->elem), offset, command_len_, 0);
     }
