@@ -51,7 +51,7 @@ class GLSharedOrphanLists {
   void orphans_clear(void);
 };
 
-class GLContext : public GPUContext {
+struct GLContext : public GPUContext {
   /* TODO(fclem) these needs to become private. */
  public:
   /** Default VAO for procedural draw calls. */
