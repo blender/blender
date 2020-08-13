@@ -380,9 +380,9 @@ static const DupliGenerator gen_dupli_collection = {
  * \{ */
 
 typedef struct VertexDupliData {
-  Mesh *me_eval;
-  BMEditMesh *edit_mesh;
   int totvert;
+  const MVert *mvert;
+
   const float (*orco)[3];
   bool use_rotation;
 
@@ -452,15 +452,14 @@ static void vertex_dupli(const VertexDupliData *vdd,
 static void make_child_duplis_verts(const DupliContext *ctx, void *userdata, Object *child)
 {
   VertexDupliData *vdd = userdata;
-  Mesh *me_eval = vdd->me_eval;
 
   vdd->inst_ob = child;
   invert_m4_m4(child->imat, child->obmat);
   /* Relative transform from parent to child space. */
   mul_m4_m4m4(vdd->child_imat, child->imat, ctx->object->obmat);
 
-  const MVert *mv = me_eval->mvert;
-  for (int i = 0; i < me_eval->totvert; i++, mv++) {
+  const MVert *mv = vdd->mvert;
+  for (int i = 0; i < vdd->totvert; i++, mv++) {
     const float no[3] = {mv->no[0], mv->no[1], mv->no[2]};
     vertex_dupli(vdd, i, mv->co, no);
   }
@@ -482,14 +481,12 @@ static void make_duplis_verts(const DupliContext *ctx)
   }
 
   {
-    vdd.me_eval = me_eval;
     vdd.orco = CustomData_get_layer(&me_eval->vdata, CD_ORCO);
+    vdd.mvert = me_eval->mvert;
     vdd.totvert = me_eval->totvert;
   }
 
   make_child_duplis(ctx, &vdd, make_child_duplis_verts);
-
-  vdd.me_eval = NULL;
 }
 
 static const DupliGenerator gen_dupli_verts = {
@@ -636,7 +633,6 @@ static const DupliGenerator gen_dupli_verts_font = {
  * \{ */
 
 typedef struct FaceDupliData {
-  Mesh *me_eval;
   int totface;
   const MPoly *mpoly;
   const MLoop *mloop;
@@ -759,7 +755,6 @@ static void make_duplis_faces(const DupliContext *ctx)
   }
 
   {
-    fdd.me_eval = me_eval;
     fdd.orco = CustomData_get_layer(&me_eval->vdata, CD_ORCO);
     const int uv_idx = CustomData_get_render_layer(&me_eval->ldata, CD_MLOOPUV);
     fdd.mloopuv = CustomData_get_layer_n(&me_eval->ldata, CD_MLOOPUV, uv_idx);
@@ -771,8 +766,6 @@ static void make_duplis_faces(const DupliContext *ctx)
   }
 
   make_child_duplis(ctx, &fdd, make_child_duplis_faces);
-
-  fdd.me_eval = NULL;
 }
 
 static const DupliGenerator gen_dupli_faces = {
