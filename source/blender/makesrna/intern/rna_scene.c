@@ -6465,7 +6465,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "simplify_gpencil_shader_fx", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "simplify_gpencil", SIMPLIFY_GPENCIL_FX);
-  RNA_def_property_ui_text(prop, "Shaders Effects", "Display Shader Effects");
+  RNA_def_property_ui_text(prop, "Shader Effects", "Display Shader Effects");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
   prop = RNA_def_property(srna, "simplify_gpencil_tint", PROP_BOOLEAN, PROP_NONE);
