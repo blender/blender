@@ -39,7 +39,7 @@
 #include "gpu_batch_private.hh"
 #include "gpu_context_private.hh"
 #include "gpu_primitive_private.h"
-#include "gpu_shader_private.h"
+#include "gpu_shader_private.hh"
 #include "gpu_vertex_format_private.h"
 
 #include <limits.h>

@@ -33,7 +33,6 @@
 #include "BLI_utildefines.h"
 
 #include "GPU_shader.h"
-#include "gpu_shader_private.h"
 
 #define PACK_DEBUG 0
 
@@ -480,6 +479,8 @@ static void get_fetch_mode_and_comp_type(int gl_type,
 
 void GPU_vertformat_from_shader(GPUVertFormat *format, const GPUShader *shader)
 {
+  UNUSED_VARS(format, shader);
+#if 0 /* TODO (fclem) port to GLShader */
   GPU_vertformat_clear(format);
   GPUVertAttr *attr = &format->attrs[0];
 
@@ -512,4 +513,5 @@ void GPU_vertformat_from_shader(GPUVertFormat *format, const GPUShader *shader)
     attr->comp_type = comp_type;
     attr += 1;
   }
+#endif
 }

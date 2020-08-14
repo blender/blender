@@ -35,7 +35,7 @@
 #include "gpu_attr_binding_private.h"
 #include "gpu_context_private.hh"
 #include "gpu_primitive_private.h"
-#include "gpu_shader_private.h"
+#include "gpu_shader_private.hh"
 #include "gpu_vertex_format_private.h"
 
 #include <stdlib.h>
@@ -145,10 +145,7 @@ GPUVertFormat *immVertexFormat(void)
 
 void immBindShader(GPUShader *shader)
 {
-#if TRUST_NO_ONE
-  assert(imm.bound_program == NULL);
-  assert(glIsProgram(shader->program));
-#endif
+  BLI_assert(imm.bound_program == NULL);
 
   imm.bound_program = shader;
   imm.shader_interface = shader->interface;
@@ -159,8 +156,8 @@ void immBindShader(GPUShader *shader)
 
   GPU_shader_bind(shader);
   get_attr_locations(&imm.vertex_format, &imm.attr_binding, imm.shader_interface);
-  GPU_matrix_bind(imm.shader_interface);
-  GPU_shader_set_srgb_uniform(imm.shader_interface);
+  GPU_matrix_bind(shader);
+  GPU_shader_set_srgb_uniform(shader);
 }
 
 void immBindBuiltinProgram(eGPUBuiltinShader shader_id)
@@ -375,7 +372,7 @@ static void immDrawSetup(void)
   }
 
   if (GPU_matrix_dirty_get()) {
-    GPU_matrix_bind(imm.shader_interface);
+    GPU_matrix_bind(imm.bound_program);
   }
 }
 

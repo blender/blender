@@ -29,7 +29,7 @@
 extern "C" {
 #endif
 
-struct GPUShaderInterface;
+struct GPUShader;
 
 void GPU_matrix_reset(void); /* to Identity transform & empty stack */
 
@@ -147,7 +147,7 @@ const float (*GPU_matrix_normal_get(float m[3][3]))[3];
 const float (*GPU_matrix_normal_inverse_get(float m[3][3]))[3];
 
 /* set uniform values for currently bound shader */
-void GPU_matrix_bind(const struct GPUShaderInterface *);
+void GPU_matrix_bind(struct GPUShader *shader);
 bool GPU_matrix_dirty_get(void); /* since last bind */
 
 /* own working polygon offset */

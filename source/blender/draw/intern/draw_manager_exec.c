@@ -31,8 +31,7 @@
 
 #include "GPU_extensions.h"
 #include "GPU_platform.h"
-#include "intern/gpu_primitive_private.h"
-#include "intern/gpu_shader_private.h"
+#include "GPU_shader.h"
 
 #ifdef USE_GPU_SELECT
 #  include "GPU_select.h"
@@ -821,8 +820,8 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
           break;
         case DRW_UNIFORM_TFEEDBACK_TARGET:
           BLI_assert(uni->pvalue && (*use_tfeedback == false));
-          *use_tfeedback = GPU_shader_transform_feedback_enable(
-              shgroup->shader, ((GPUVertBuf *)uni->pvalue)->vbo_id);
+          *use_tfeedback = GPU_shader_transform_feedback_enable(shgroup->shader,
+                                                                ((GPUVertBuf *)uni->pvalue));
           break;
           /* Legacy/Fallback support. */
         case DRW_UNIFORM_BASE_INSTANCE:

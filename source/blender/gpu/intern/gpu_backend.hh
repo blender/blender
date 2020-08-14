@@ -28,6 +28,7 @@
 #include "gpu_batch_private.hh"
 #include "gpu_context_private.hh"
 #include "gpu_drawlist_private.hh"
+#include "gpu_shader_private.hh"
 
 namespace blender {
 namespace gpu {
@@ -43,7 +44,7 @@ class GPUBackend {
   virtual Batch *batch_alloc(void) = 0;
   virtual DrawList *drawlist_alloc(int list_length) = 0;
   // virtual FrameBuffer *framebuffer_alloc(void) = 0;
-  // virtual Shader *shader_alloc(void) = 0;
+  virtual Shader *shader_alloc(const char *name) = 0;
   // virtual Texture *texture_alloc(void) = 0;
 };
 

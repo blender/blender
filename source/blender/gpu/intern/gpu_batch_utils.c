@@ -28,7 +28,6 @@
 
 #include "GPU_batch.h"
 #include "GPU_batch_utils.h" /* own include */
-#include "gpu_shader_private.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Polygon Creation (2D)

@@ -35,7 +35,6 @@
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h" /* own include */
 #include "GPU_batch_utils.h"
-#include "gpu_shader_private.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Local Structures

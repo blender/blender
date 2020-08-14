@@ -27,14 +27,19 @@
 extern "C" {
 #endif
 
-typedef struct GPUShader GPUShader;
 struct GPUShaderInterface;
 struct GPUTexture;
 struct GPUUniformBuffer;
+struct GPUVertBuf;
 
-/* GPU Shader
- * - only for fragment shaders now
- * - must call texture bind before setting a texture as uniform! */
+/* TODO(fclem) These members should be private and the
+ * whole struct should just be an opaque pointer. */
+typedef struct GPUShader {
+  /** Uniform & attribute locations for shader. */
+  struct GPUShaderInterface *interface;
+  /** For debugging purpose. */
+  char name[64];
+} GPUShader;
 
 typedef enum eGPUShaderTFBType {
   GPU_SHADER_TFB_NONE = 0, /* Transform feedback unsupported. */
@@ -63,10 +68,7 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
                                 const char **tf_names,
                                 const int tf_count,
                                 const char *shader_name);
-GPUShader *GPU_shader_load_from_binary(const char *binary,
-                                       const int binary_format,
-                                       const int binary_len,
-                                       const char *shname);
+
 struct GPU_ShaderCreateFromArray_Params {
   const char **vert, **geom, **frag, **defs;
 };
@@ -81,12 +83,12 @@ void GPU_shader_bind(GPUShader *shader);
 void GPU_shader_unbind(void);
 
 /* Returns true if transform feedback was successfully enabled. */
-bool GPU_shader_transform_feedback_enable(GPUShader *shader, unsigned int vbo_id);
+bool GPU_shader_transform_feedback_enable(GPUShader *shader, struct GPUVertBuf *vertbuf);
 void GPU_shader_transform_feedback_disable(GPUShader *shader);
 
 int GPU_shader_get_program(GPUShader *shader);
 
-void GPU_shader_set_srgb_uniform(const struct GPUShaderInterface *interface);
+void GPU_shader_set_srgb_uniform(GPUShader *shader);
 
 int GPU_shader_get_uniform(GPUShader *shader, const char *name);
 int GPU_shader_get_builtin_uniform(GPUShader *shader, int builtin);

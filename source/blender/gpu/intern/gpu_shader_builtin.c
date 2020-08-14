@@ -42,8 +42,6 @@
 #include "GPU_texture.h"
 #include "GPU_uniformbuffer.h"
 
-#include "gpu_shader_private.h"
-
 /* Adjust these constants as needed. */
 #define MAX_DEFINE_LENGTH 256
 #define MAX_EXT_DEFINE_LENGTH 512
