@@ -28,6 +28,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_duplilist.h"
 #include "BKE_key.h"
+#include "BKE_object.h"
 #include "BKE_particle.h"
 
 #include "BLI_assert.h"
@@ -75,6 +76,29 @@ void HierarchyContext::mark_as_instance_of(const std::string &reference_export_p
 void HierarchyContext::mark_as_not_instanced()
 {
   original_export_path.clear();
+}
+
+bool HierarchyContext::is_object_visible(const enum eEvaluationMode evaluation_mode) const
+{
+  bool is_dupli = duplicator != nullptr;
+  int base_flag;
+
+  if (is_dupli) {
+    /* Construct the object's base flags from its dupli-parent, just like is done in
+     * deg_objects_dupli_iterator_next(). Without this, the visibility check below will fail. Doing
+     * this here, instead of a more suitable location in AbstractHierarchyIterator, prevents
+     * copying the Object for every dupli. */
+    base_flag = object->base_flag;
+    object->base_flag = duplicator->base_flag | BASE_FROM_DUPLI;
+  }
+
+  int visibility = BKE_object_visibility(object, evaluation_mode);
+
+  if (is_dupli) {
+    object->base_flag = base_flag;
+  }
+
+  return (visibility & OB_VISIBLE_SELF) != 0;
 }
 
 EnsuredWriter::EnsuredWriter() : writer_(nullptr), newly_created_(false)

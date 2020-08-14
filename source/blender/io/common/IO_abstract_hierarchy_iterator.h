@@ -37,6 +37,8 @@
 
 #include "IO_dupli_persistent_id.hh"
 
+#include "DEG_depsgraph.h"
+
 #include <map>
 #include <set>
 #include <string>
@@ -111,6 +113,8 @@ struct HierarchyContext {
   bool is_instance() const;
   void mark_as_instance_of(const std::string &reference_export_path);
   void mark_as_not_instanced();
+
+  bool is_object_visible(const enum eEvaluationMode evaluation_mode) const;
 };
 
 /* Abstract writer for objects. Create concrete subclasses to write to USD, Alembic, etc.
