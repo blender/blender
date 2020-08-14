@@ -268,7 +268,6 @@ struct uiBut {
   char *editstr;
   double *editval;
   float *editvec;
-  void *editcoba;
 
   uiButPushedStateFunc pushed_state_func;
   void *pushed_state_arg;
@@ -334,6 +333,13 @@ typedef struct uiButHSVCube {
 
   eButGradientType gradient_type;
 } uiButHSVCube;
+
+/** Derived struct for #UI_BTYPE_CURVEPROFILE. */
+typedef struct uiButColorBand {
+  uiBut but;
+
+  struct ColorBand *edit_coba;
+} uiButColorBand;
 
 /** Derived struct for #UI_BTYPE_CURVEPROFILE. */
 typedef struct uiButCurveProfile {

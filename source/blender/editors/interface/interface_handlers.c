@@ -2086,8 +2086,11 @@ static void ui_apply_but(
   editstr = but->editstr;
   editval = but->editval;
   editvec = but->editvec;
-  editcoba = but->editcoba;
-  if (but->type == UI_BTYPE_CURVE) {
+  if (but->type == UI_BTYPE_COLORBAND) {
+    uiButColorBand *but_coba = (uiButColorBand *)but;
+    editcoba = but_coba->edit_coba;
+  }
+  else if (but->type == UI_BTYPE_CURVE) {
     uiButCurveMapping *but_cumap = (uiButCurveMapping *)but;
     editcumap = but_cumap->edit_cumap;
   }
@@ -2098,8 +2101,11 @@ static void ui_apply_but(
   but->editstr = NULL;
   but->editval = NULL;
   but->editvec = NULL;
-  but->editcoba = NULL;
-  if (but->type == UI_BTYPE_CURVE) {
+  if (but->type == UI_BTYPE_COLORBAND) {
+    uiButColorBand *but_coba = (uiButColorBand *)but;
+    but_coba->edit_coba = NULL;
+  }
+  else if (but->type == UI_BTYPE_CURVE) {
     uiButCurveMapping *but_cumap = (uiButCurveMapping *)but;
     but_cumap->edit_cumap = NULL;
   }
@@ -2215,8 +2221,11 @@ static void ui_apply_but(
   but->editstr = editstr;
   but->editval = editval;
   but->editvec = editvec;
-  but->editcoba = editcoba;
-  if (but->type == UI_BTYPE_CURVE) {
+  if (but->type == UI_BTYPE_COLORBAND) {
+    uiButColorBand *but_coba = (uiButColorBand *)but;
+    but_coba->edit_coba = editcoba;
+  }
+  else if (but->type == UI_BTYPE_CURVE) {
     uiButCurveMapping *but_cumap = (uiButCurveMapping *)but;
     but_cumap->edit_cumap = editcumap;
   }
@@ -3874,8 +3883,9 @@ static void ui_numedit_begin(uiBut *but, uiHandleButtonData *data)
     but_profile->edit_profile = (CurveProfile *)but->poin;
   }
   else if (but->type == UI_BTYPE_COLORBAND) {
+    uiButColorBand *but_coba = (uiButColorBand *)but;
     data->coba = (ColorBand *)but->poin;
-    but->editcoba = data->coba;
+    but_coba->edit_coba = data->coba;
   }
   else if (ELEM(but->type,
                 UI_BTYPE_UNITVEC,
@@ -3961,8 +3971,11 @@ static void ui_numedit_end(uiBut *but, uiHandleButtonData *data)
 {
   but->editval = NULL;
   but->editvec = NULL;
-  but->editcoba = NULL;
-  if (but->type == UI_BTYPE_CURVE) {
+  if (but->type == UI_BTYPE_COLORBAND) {
+    uiButColorBand *but_coba = (uiButColorBand *)but;
+    but_coba->edit_coba = NULL;
+  }
+  else if (but->type == UI_BTYPE_CURVE) {
     uiButCurveMapping *but_cumap = (uiButCurveMapping *)but;
     but_cumap->edit_cumap = NULL;
   }

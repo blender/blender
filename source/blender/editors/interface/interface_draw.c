@@ -1639,7 +1639,9 @@ void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors *UNUSED(wcol), const
   struct ColorManagedDisplay *display = ui_block_cm_display_get(but->block);
   uint pos_id, col_id;
 
-  ColorBand *coba = (ColorBand *)(but->editcoba ? but->editcoba : but->poin);
+  uiButColorBand *but_coba = (uiButColorBand *)but;
+  ColorBand *coba = (but_coba->edit_coba == NULL) ? (ColorBand *)but->poin : but_coba->edit_coba;
+
   if (coba == NULL) {
     return;
   }

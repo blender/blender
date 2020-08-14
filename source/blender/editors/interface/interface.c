@@ -767,7 +767,6 @@ static bool ui_but_update_from_old_block(const bContext *C,
     but->editstr = oldbut->editstr;
     but->editval = oldbut->editval;
     but->editvec = oldbut->editvec;
-    but->editcoba = oldbut->editcoba;
     but->selsta = oldbut->selsta;
     but->selend = oldbut->selend;
     but->softmin = oldbut->softmin;
@@ -3795,6 +3794,10 @@ static void ui_but_alloc_info(const eButType type,
     case UI_BTYPE_HSVCUBE:
       alloc_size = sizeof(uiButHSVCube);
       alloc_str = "uiButHSVCube";
+      break;
+    case UI_BTYPE_COLORBAND:
+      alloc_size = sizeof(uiButColorBand);
+      alloc_str = "uiButColorBand";
       break;
     case UI_BTYPE_CURVE:
       alloc_size = sizeof(uiButCurveMapping);
