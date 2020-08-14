@@ -96,7 +96,8 @@ GHOST_XrSwapchain::GHOST_XrSwapchain(GHOST_IXrGraphicsBinding &gpu_binding,
 GHOST_XrSwapchain::GHOST_XrSwapchain(GHOST_XrSwapchain &&other)
     : m_oxr(std::move(other.m_oxr)),
       m_image_width(other.m_image_width),
-      m_image_height(other.m_image_height)
+      m_image_height(other.m_image_height),
+      m_is_srgb_buffer(other.m_is_srgb_buffer)
 {
   /* Prevent xrDestroySwapchain call for the moved out item. */
   other.m_oxr = nullptr;
