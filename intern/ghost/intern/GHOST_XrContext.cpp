@@ -408,11 +408,9 @@ void GHOST_XrContext::getExtensionsToEnable(
   std::vector<std::string> try_ext;
 
   /* Try enabling debug extension. */
-#ifndef WIN32
   if (isDebugMode()) {
     try_ext.push_back(XR_EXT_DEBUG_UTILS_EXTENSION_NAME);
   }
-#endif
 
   r_ext_names.reserve(try_ext.size() + graphics_binding_types.size());
 
