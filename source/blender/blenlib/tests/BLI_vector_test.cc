@@ -98,14 +98,14 @@ TEST(vector, ListBaseConstructor)
   delete value3;
 }
 
-TEST(vector, ContainerConstructor)
+TEST(vector, IteratorConstructor)
 {
   std::forward_list<int> list;
   list.push_front(3);
   list.push_front(1);
   list.push_front(5);
 
-  Vector<int> vec = Vector<int>::FromContainer(list);
+  Vector<int> vec = Vector<int>(list.begin(), list.end());
   EXPECT_EQ(vec.size(), 3);
   EXPECT_EQ(vec[0], 5);
   EXPECT_EQ(vec[1], 1);
@@ -277,6 +277,15 @@ TEST(vector, ExtendNonDuplicates)
   EXPECT_EQ(vec.size(), 4);
   vec.extend_non_duplicates({0, 1, 2, 3});
   EXPECT_EQ(vec.size(), 5);
+}
+
+TEST(vector, ExtendIterator)
+{
+  Vector<int> vec = {3, 4, 5};
+  std::forward_list<int> list = {8, 9};
+  vec.extend(list.begin(), list.end());
+  EXPECT_EQ(vec.size(), 5);
+  EXPECT_EQ_ARRAY(vec.data(), Span({3, 4, 5, 8, 9}).data(), 5);
 }
 
 TEST(vector, Iterator)
@@ -634,6 +643,70 @@ TEST(vector, Fill)
   EXPECT_EQ(vec[2], 3);
   EXPECT_EQ(vec[3], 3);
   EXPECT_EQ(vec[4], 3);
+}
+
+TEST(vector, InsertAtBeginning)
+{
+  Vector<int> vec = {1, 2, 3};
+  vec.insert(0, {6, 7});
+  EXPECT_EQ(vec.size(), 5);
+  EXPECT_EQ_ARRAY(vec.data(), Span({6, 7, 1, 2, 3}).data(), 5);
+}
+
+TEST(vector, InsertAtEnd)
+{
+  Vector<int> vec = {1, 2, 3};
+  vec.insert(3, {6, 7});
+  EXPECT_EQ(vec.size(), 5);
+  EXPECT_EQ_ARRAY(vec.data(), Span({1, 2, 3, 6, 7}).data(), 5);
+}
+
+TEST(vector, InsertInMiddle)
+{
+  Vector<int> vec = {1, 2, 3};
+  vec.insert(1, {6, 7});
+  EXPECT_EQ(vec.size(), 5);
+  EXPECT_EQ_ARRAY(vec.data(), Span({1, 6, 7, 2, 3}).data(), 5);
+}
+
+TEST(vector, InsertAtIterator)
+{
+  Vector<std::string> vec = {"1", "2", "3"};
+  Vector<std::string> other_vec = {"hello", "world"};
+  vec.insert(vec.begin() + 1, other_vec.begin(), other_vec.end());
+  EXPECT_EQ(vec.size(), 5);
+  EXPECT_EQ_ARRAY(vec.data(), Span<std::string>({"1", "hello", "world", "2", "3"}).data(), 5);
+}
+
+TEST(vector, InsertMoveOnlyType)
+{
+  Vector<std::unique_ptr<int>> vec;
+  vec.append(std::make_unique<int>(1));
+  vec.append(std::make_unique<int>(2));
+  vec.insert(1, std::make_unique<int>(30));
+  EXPECT_EQ(vec.size(), 3);
+  EXPECT_EQ(*vec[0], 1);
+  EXPECT_EQ(*vec[1], 30);
+  EXPECT_EQ(*vec[2], 2);
+}
+
+TEST(vector, Prepend)
+{
+  Vector<int> vec = {1, 2, 3};
+  vec.prepend({7, 8});
+  EXPECT_EQ(vec.size(), 5);
+  EXPECT_EQ_ARRAY(vec.data(), Span({7, 8, 1, 2, 3}).data(), 5);
+}
+
+TEST(vector, ReverseIterator)
+{
+  Vector<int> vec = {4, 5, 6, 7};
+  Vector<int> reversed_vec;
+  for (auto it = vec.rbegin(); it != vec.rend(); ++it) {
+    reversed_vec.append(*it);
+  }
+  EXPECT_EQ(reversed_vec.size(), 4);
+  EXPECT_EQ_ARRAY(reversed_vec.data(), Span({7, 6, 5, 4}).data(), 4);
 }
 
 }  // namespace blender::tests

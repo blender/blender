@@ -2,6 +2,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_strict_flags.h"
+#include "BLI_vector.hh"
 #include "testing/testing.h"
 
 namespace blender::tests {
@@ -171,6 +172,20 @@ TEST(array, Fill)
   EXPECT_EQ(array[2], 3);
   EXPECT_EQ(array[3], 3);
   EXPECT_EQ(array[4], 3);
+}
+
+TEST(array, ReverseIterator)
+{
+  Array<int> array = {3, 4, 5, 6};
+  Vector<int> reversed_vec;
+
+  for (auto it = array.rbegin(); it != array.rend(); ++it) {
+    reversed_vec.append(*it);
+    *it += 10;
+  }
+
+  EXPECT_EQ_ARRAY(reversed_vec.data(), Span({6, 5, 4, 3}).data(), 4);
+  EXPECT_EQ_ARRAY(array.data(), Span({13, 14, 15, 16}).data(), 4);
 }
 
 }  // namespace blender::tests

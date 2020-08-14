@@ -288,7 +288,6 @@ class Array {
   {
     return data_;
   }
-
   const T *end() const
   {
     return data_ + size_;
@@ -298,10 +297,27 @@ class Array {
   {
     return data_;
   }
-
   T *end()
   {
     return data_ + size_;
+  }
+
+  std::reverse_iterator<T *> rbegin()
+  {
+    return std::reverse_iterator<T *>(this->end());
+  }
+  std::reverse_iterator<T *> rend()
+  {
+    return std::reverse_iterator<T *>(this->begin());
+  }
+
+  std::reverse_iterator<const T *> rbegin() const
+  {
+    return std::reverse_iterator<T *>(this->end());
+  }
+  std::reverse_iterator<const T *> rend() const
+  {
+    return std::reverse_iterator<T *>(this->begin());
   }
 
   /**

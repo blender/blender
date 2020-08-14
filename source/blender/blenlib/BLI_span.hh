@@ -213,10 +213,18 @@ template<typename T> class Span {
   {
     return data_;
   }
-
   const T *end() const
   {
     return data_ + size_;
+  }
+
+  std::reverse_iterator<const T *> rbegin() const
+  {
+    return std::reverse_iterator<const T *>(this->end());
+  }
+  std::reverse_iterator<const T *> rend() const
+  {
+    return std::reverse_iterator<const T *>(this->begin());
   }
 
   /**
@@ -502,10 +510,18 @@ template<typename T> class MutableSpan {
   {
     return data_;
   }
-
   T *end() const
   {
     return data_ + size_;
+  }
+
+  std::reverse_iterator<T *> rbegin() const
+  {
+    return std::reverse_iterator<T *>(this->end());
+  }
+  std::reverse_iterator<T *> rend() const
+  {
+    return std::reverse_iterator<T *>(this->begin());
   }
 
   T &operator[](const int64_t index) const

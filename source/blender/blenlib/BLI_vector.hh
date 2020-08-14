@@ -178,17 +178,15 @@ class Vector {
   {
   }
 
-  /**
-   * Create a vector from any container. It must be possible to use the container in a
-   * range-for loop.
-   */
-  template<typename ContainerT> static Vector FromContainer(const ContainerT &container)
+  template<typename InputIt,
+           /* This constructor should not be called with e.g. Vector(3, 10), because that is
+              expected to produce the vector (10, 10, 10). */
+           typename std::enable_if_t<!std::is_convertible_v<InputIt, int>> * = nullptr>
+  Vector(InputIt first, InputIt last, Allocator allocator = {}) : Vector(std::move(allocator))
   {
-    Vector vector;
-    for (const auto &value : container) {
-      vector.append(value);
+    for (InputIt current = first; current != last; ++current) {
+      this->append(*current);
     }
-    return vector;
   }
 
   /**
@@ -560,6 +558,78 @@ class Vector {
     UPDATE_VECTOR_SIZE(this);
   }
 
+  template<typename InputIt> void extend(InputIt first, InputIt last)
+  {
+    this->insert(this->end(), first, last);
+  }
+
+  /**
+   * Insert elements into the vector at the specified position. This has a running time of O(n)
+   * where n is the number of values that have to be moved. Undefined behavior is invoked when the
+   * insert position is out of bounds.
+   */
+  void insert(const int64_t insert_index, const T &value)
+  {
+    this->insert(insert_index, Span<T>(&value, 1));
+  }
+  void insert(const int64_t insert_index, T &&value)
+  {
+    this->insert(
+        insert_index, std::make_move_iterator(&value), std::make_move_iterator(&value + 1));
+  }
+  void insert(const int64_t insert_index, Span<T> array)
+  {
+    this->insert(begin_ + insert_index, array.begin(), array.end());
+  }
+  template<typename InputIt> void insert(const T *insert_position, InputIt first, InputIt last)
+  {
+    const int64_t insert_index = insert_position - begin_;
+    this->insert(insert_index, first, last);
+  }
+  template<typename InputIt> void insert(const int64_t insert_index, InputIt first, InputIt last)
+  {
+    BLI_assert(insert_index >= 0);
+    BLI_assert(insert_index <= this->size());
+
+    const int64_t insert_amount = std::distance(first, last);
+    const int64_t old_size = this->size();
+    const int64_t new_size = old_size + insert_amount;
+    const int64_t move_amount = old_size - insert_index;
+
+    this->reserve(new_size);
+    for (int64_t i = 0; i < move_amount; i++) {
+      const int64_t src_index = insert_index + move_amount - i - 1;
+      const int64_t dst_index = new_size - i - 1;
+      new (static_cast<void *>(begin_ + dst_index)) T(std::move(begin_[src_index]));
+      begin_[src_index].~T();
+    }
+
+    std::uninitialized_copy_n(first, insert_amount, begin_ + insert_index);
+    end_ = begin_ + new_size;
+    UPDATE_VECTOR_SIZE(this);
+  }
+
+  /**
+   * Insert values at the beginning of the vector. The has to move all the other elements, so it
+   * has a linear running time.
+   */
+  void prepend(const T &&value)
+  {
+    this->insert(0, value);
+  }
+  void prepend(T &&value)
+  {
+    this->insert(0, std::move(value));
+  }
+  void prepend(Span<T> values)
+  {
+    this->insert(0, values);
+  }
+  template<typename InputIt> void prepend(InputIt first, InputIt last)
+  {
+    this->insert(0, first, last);
+  }
+
   /**
    * Return a reference to the last element in the vector.
    * This invokes undefined behavior when the vector is empty.
@@ -744,6 +814,24 @@ class Vector {
   const T *end() const
   {
     return end_;
+  }
+
+  std::reverse_iterator<T *> rbegin()
+  {
+    return std::reverse_iterator<T *>(this->end());
+  }
+  std::reverse_iterator<T *> rend()
+  {
+    return std::reverse_iterator<T *>(this->begin());
+  }
+
+  std::reverse_iterator<const T *> rbegin() const
+  {
+    return std::reverse_iterator<T *>(this->end());
+  }
+  std::reverse_iterator<const T *> rend() const
+  {
+    return std::reverse_iterator<T *>(this->begin());
   }
 
   /**

@@ -308,4 +308,32 @@ TEST(span, CopyFrom)
   EXPECT_EQ(dst[3], 8);
 }
 
+TEST(span, ReverseIterator)
+{
+  std::array<int, 4> src = {4, 5, 6, 7};
+  Span<int> span = src;
+  Vector<int> reversed_vec;
+
+  for (auto it = span.rbegin(); it != span.rend(); ++it) {
+    reversed_vec.append(*it);
+  }
+  EXPECT_EQ(reversed_vec.size(), 4);
+  EXPECT_EQ_ARRAY(reversed_vec.data(), Span({7, 6, 5, 4}).data(), 4);
+}
+
+TEST(span, MutableReverseIterator)
+{
+  std::array<int, 4> src = {4, 5, 6, 7};
+  MutableSpan<int> span = src;
+  Vector<int> reversed_vec;
+
+  for (auto it = span.rbegin(); it != span.rend(); ++it) {
+    reversed_vec.append(*it);
+    *it += 10;
+  }
+  EXPECT_EQ(reversed_vec.size(), 4);
+  EXPECT_EQ_ARRAY(reversed_vec.data(), Span({7, 6, 5, 4}).data(), 4);
+  EXPECT_EQ_ARRAY(src.data(), Span({14, 15, 16, 17}).data(), 4);
+}
+
 }  // namespace blender::tests
