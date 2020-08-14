@@ -407,10 +407,7 @@ static void subdivisions_panel_draw(const bContext *C, Panel *panel)
   uiItemS(layout);
 
   uiItemO(layout, IFACE_("Unsubdivide"), ICON_NONE, "OBJECT_OT_multires_unsubdivide");
-
-  row = uiLayoutRow(layout, false);
-  uiItemL(row, "", ICON_NONE);
-  uiItemO(row, IFACE_("Delete Higher"), ICON_NONE, "OBJECT_OT_multires_higher_levels_delete");
+  uiItemO(layout, IFACE_("Delete Higher"), ICON_NONE, "OBJECT_OT_multires_higher_levels_delete");
 }
 
 static void shape_panel_draw(const bContext *C, Panel *panel)
@@ -487,7 +484,7 @@ static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = modifier_panel_register(region_type, eModifierType_Multires, panel_draw);
   modifier_subpanel_register(
-      region_type, "subdivide", "Subdivions", NULL, subdivisions_panel_draw, panel_type);
+      region_type, "subdivide", "Subdivisions", NULL, subdivisions_panel_draw, panel_type);
   modifier_subpanel_register(region_type, "shape", "Shape", NULL, shape_panel_draw, panel_type);
   modifier_subpanel_register(
       region_type, "generate", "Generate", NULL, generate_panel_draw, panel_type);
