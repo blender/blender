@@ -828,6 +828,7 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
     bl_label = "Options"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_ui_units_x = 12
 
     @classmethod
     def poll(cls, context):
