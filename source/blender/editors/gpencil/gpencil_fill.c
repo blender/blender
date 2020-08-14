@@ -237,6 +237,7 @@ static void gpencil_draw_datablock(tGPDfill *tgpf, const float ink[4])
   bGPdata *gpd = tgpf->gpd;
   Brush *brush = tgpf->brush;
   BrushGpencilSettings *brush_settings = brush->gpencil_settings;
+  ToolSettings *ts = tgpf->scene->toolsettings;
 
   tGPDdraw tgpw;
   tgpw.rv3d = tgpf->rv3d;
@@ -309,7 +310,14 @@ static void gpencil_draw_datablock(tGPDfill *tgpf, const float ink[4])
     /* if active layer and no keyframe, create a new one */
     if (gpl == tgpf->gpl) {
       if ((gpl->actframe == NULL) || (gpl->actframe->framenum != tgpf->active_cfra)) {
-        BKE_gpencil_layer_frame_get(gpl, tgpf->active_cfra, GP_GETFRAME_ADD_NEW);
+        short add_frame_mode;
+        if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) {
+          add_frame_mode = GP_GETFRAME_ADD_COPY;
+        }
+        else {
+          add_frame_mode = GP_GETFRAME_ADD_NEW;
+        }
+        BKE_gpencil_layer_frame_get(gpl, tgpf->active_cfra, add_frame_mode);
       }
     }
 
