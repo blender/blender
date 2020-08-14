@@ -1888,14 +1888,9 @@ static void gl_shaded_color(const uchar *color, int shade)
 
 void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, const rcti *rect)
 {
-  CurveMapping *cumap;
-
-  if (but->editcumap) {
-    cumap = but->editcumap;
-  }
-  else {
-    cumap = (CurveMapping *)but->poin;
-  }
+  uiButCurveMapping *but_cumap = (uiButCurveMapping *)but;
+  CurveMapping *cumap = (but_cumap->edit_cumap == NULL) ? (CurveMapping *)but->poin :
+                                                          but_cumap->edit_cumap;
 
   float clip_size_x = BLI_rctf_size_x(&cumap->curr);
   float clip_size_y = BLI_rctf_size_y(&cumap->curr);

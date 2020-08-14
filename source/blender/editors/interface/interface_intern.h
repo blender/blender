@@ -33,6 +33,7 @@
 
 struct AnimationEvalContext;
 struct ARegion;
+struct CurveMapping;
 struct CurveProfile;
 struct ID;
 struct ImBuf;
@@ -268,7 +269,6 @@ struct uiBut {
   double *editval;
   float *editvec;
   void *editcoba;
-  void *editcumap;
 
   uiButPushedStateFunc pushed_state_func;
   void *pushed_state_arg;
@@ -341,6 +341,13 @@ typedef struct uiButCurveProfile {
 
   struct CurveProfile *edit_profile;
 } uiButCurveProfile;
+
+/** Derived struct for #UI_BTYPE_CURVE. */
+typedef struct uiButCurveMapping {
+  uiBut but;
+
+  struct CurveMapping *edit_cumap;
+} uiButCurveMapping;
 
 /**
  * Additional, superimposed icon for a button, invoking an operator.

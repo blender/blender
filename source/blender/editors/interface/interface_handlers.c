@@ -2087,8 +2087,11 @@ static void ui_apply_but(
   editval = but->editval;
   editvec = but->editvec;
   editcoba = but->editcoba;
-  editcumap = but->editcumap;
-  if (but->type == UI_BTYPE_CURVEPROFILE) {
+  if (but->type == UI_BTYPE_CURVE) {
+    uiButCurveMapping *but_cumap = (uiButCurveMapping *)but;
+    editcumap = but_cumap->edit_cumap;
+  }
+  else if (but->type == UI_BTYPE_CURVEPROFILE) {
     uiButCurveProfile *but_profile = (uiButCurveProfile *)but;
     editprofile = but_profile->edit_profile;
   }
@@ -2096,8 +2099,11 @@ static void ui_apply_but(
   but->editval = NULL;
   but->editvec = NULL;
   but->editcoba = NULL;
-  but->editcumap = NULL;
-  if (but->type == UI_BTYPE_CURVEPROFILE) {
+  if (but->type == UI_BTYPE_CURVE) {
+    uiButCurveMapping *but_cumap = (uiButCurveMapping *)but;
+    but_cumap->edit_cumap = NULL;
+  }
+  else if (but->type == UI_BTYPE_CURVEPROFILE) {
     uiButCurveProfile *but_profile = (uiButCurveProfile *)but;
     but_profile->edit_profile = NULL;
   }
@@ -2210,8 +2216,11 @@ static void ui_apply_but(
   but->editval = editval;
   but->editvec = editvec;
   but->editcoba = editcoba;
-  but->editcumap = editcumap;
-  if (but->type == UI_BTYPE_CURVEPROFILE) {
+  if (but->type == UI_BTYPE_CURVE) {
+    uiButCurveMapping *but_cumap = (uiButCurveMapping *)but;
+    but_cumap->edit_cumap = editcumap;
+  }
+  else if (but->type == UI_BTYPE_CURVEPROFILE) {
     uiButCurveProfile *but_profile = (uiButCurveProfile *)but;
     but_profile->edit_profile = editprofile;
   }
@@ -3857,9 +3866,10 @@ static void ui_do_but_textedit_select(
 static void ui_numedit_begin(uiBut *but, uiHandleButtonData *data)
 {
   if (but->type == UI_BTYPE_CURVE) {
-    but->editcumap = (CurveMapping *)but->poin;
+    uiButCurveMapping *but_cumap = (uiButCurveMapping *)but;
+    but_cumap->edit_cumap = (CurveMapping *)but->poin;
   }
-  if (but->type == UI_BTYPE_CURVEPROFILE) {
+  else if (but->type == UI_BTYPE_CURVEPROFILE) {
     uiButCurveProfile *but_profile = (uiButCurveProfile *)but;
     but_profile->edit_profile = (CurveProfile *)but->poin;
   }
@@ -3952,8 +3962,11 @@ static void ui_numedit_end(uiBut *but, uiHandleButtonData *data)
   but->editval = NULL;
   but->editvec = NULL;
   but->editcoba = NULL;
-  but->editcumap = NULL;
-  if (but->type == UI_BTYPE_CURVEPROFILE) {
+  if (but->type == UI_BTYPE_CURVE) {
+    uiButCurveMapping *but_cumap = (uiButCurveMapping *)but;
+    but_cumap->edit_cumap = NULL;
+  }
+  else if (but->type == UI_BTYPE_CURVEPROFILE) {
     uiButCurveProfile *but_profile = (uiButCurveProfile *)but;
     but_profile->edit_profile = NULL;
   }
