@@ -313,6 +313,7 @@ class TextureMaskPanel(BrushPanel):
 class StrokePanel(BrushPanel):
     bl_label = "Stroke"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_ui_units_x = 13
 
     def draw(self, context):
         layout = self.layout

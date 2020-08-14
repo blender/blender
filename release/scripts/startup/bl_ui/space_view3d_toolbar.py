@@ -392,6 +392,7 @@ class VIEW3D_PT_tools_brush_settings_advanced(Panel, View3DPaintBrushPanel):
     bl_parent_id = "VIEW3D_PT_tools_brush_settings"
     bl_label = "Advanced"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_ui_units_x = 14
 
     def draw(self, context):
         layout = self.layout
@@ -598,6 +599,7 @@ class VIEW3D_PT_tools_brush_display(Panel, View3DPaintBrushPanel, DisplayPanel):
     bl_parent_id = "VIEW3D_PT_tools_brush_settings"
     bl_label = "Cursor"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_ui_units_x = 12
 
 
 # TODO, move to space_view3d.py
@@ -1376,6 +1378,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_advanced(View3DPanel, Panel):
     bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_brush_settings'
     bl_category = "Tool"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_ui_units_x = 11
 
     @classmethod
     def poll(cls, context):
@@ -1435,6 +1438,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_stroke(Panel, View3DPanel):
     bl_label = "Stroke"
     bl_category = "Tool"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_ui_units_x = 12
 
     @classmethod
     def poll(cls, context):
@@ -2111,6 +2115,7 @@ class VIEW3D_PT_tools_grease_pencil_paint_appearance(GreasePencilDisplayPanel, P
     bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_brush_settings'
     bl_label = "Cursor"
     bl_category = "Tool"
+    bl_ui_units_x = 15
 
 
 class VIEW3D_PT_tools_grease_pencil_sculpt_appearance(GreasePencilDisplayPanel, Panel, View3DPanel):
