@@ -3797,6 +3797,10 @@ static void ui_but_alloc_info(const eButType type,
       alloc_size = sizeof(uiButHSVCube);
       alloc_str = "uiButHSVCube";
       break;
+    case UI_BTYPE_CURVEPROFILE:
+      alloc_size = sizeof(uiButCurveProfile);
+      alloc_str = "uiButCurveProfile";
+      break;
     default:
       alloc_size = sizeof(uiBut);
       alloc_str = "uiBut";

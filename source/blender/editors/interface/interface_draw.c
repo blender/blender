@@ -2179,13 +2179,10 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
 {
   uint i;
   float fx, fy;
-  CurveProfile *profile;
-  if (but->editprofile) {
-    profile = but->editprofile;
-  }
-  else {
-    profile = (CurveProfile *)but->poin;
-  }
+
+  uiButCurveProfile *but_profile = (uiButCurveProfile *)but;
+  CurveProfile *profile = (but_profile->edit_profile == NULL) ? (CurveProfile *)but->poin :
+                                                                but_profile->edit_profile;
 
   /* Calculate offset and zoom. */
   float zoomx = (BLI_rcti_size_x(rect) - 2.0f) / BLI_rctf_size_x(&profile->view_rect);

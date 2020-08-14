@@ -33,6 +33,7 @@
 
 struct AnimationEvalContext;
 struct ARegion;
+struct CurveProfile;
 struct ID;
 struct ImBuf;
 struct Scene;
@@ -268,7 +269,6 @@ struct uiBut {
   float *editvec;
   void *editcoba;
   void *editcumap;
-  void *editprofile;
 
   uiButPushedStateFunc pushed_state_func;
   void *pushed_state_arg;
@@ -320,6 +320,7 @@ typedef struct uiButDecorator {
   int rnaindex;
 } uiButDecorator;
 
+/** Derived struct for #UI_BTYPE_PROGRESS_BAR. */
 typedef struct uiButProgressbar {
   uiBut but;
 
@@ -327,11 +328,19 @@ typedef struct uiButProgressbar {
   float progress;
 } uiButProgressbar;
 
+/** Derived struct for #UI_BTYPE_HSVCUBE. */
 typedef struct uiButHSVCube {
   uiBut but;
 
   eButGradientType gradient_type;
 } uiButHSVCube;
+
+/** Derived struct for #UI_BTYPE_CURVEPROFILE. */
+typedef struct uiButCurveProfile {
+  uiBut but;
+
+  struct CurveProfile *edit_profile;
+} uiButCurveProfile;
 
 /**
  * Additional, superimposed icon for a button, invoking an operator.

@@ -2088,13 +2088,19 @@ static void ui_apply_but(
   editvec = but->editvec;
   editcoba = but->editcoba;
   editcumap = but->editcumap;
-  editprofile = but->editprofile;
+  if (but->type == UI_BTYPE_CURVEPROFILE) {
+    uiButCurveProfile *but_profile = (uiButCurveProfile *)but;
+    editprofile = but_profile->edit_profile;
+  }
   but->editstr = NULL;
   but->editval = NULL;
   but->editvec = NULL;
   but->editcoba = NULL;
   but->editcumap = NULL;
-  but->editprofile = NULL;
+  if (but->type == UI_BTYPE_CURVEPROFILE) {
+    uiButCurveProfile *but_profile = (uiButCurveProfile *)but;
+    but_profile->edit_profile = NULL;
+  }
 
   /* handle different types */
   switch (but->type) {
@@ -2205,7 +2211,10 @@ static void ui_apply_but(
   but->editvec = editvec;
   but->editcoba = editcoba;
   but->editcumap = editcumap;
-  but->editprofile = editprofile;
+  if (but->type == UI_BTYPE_CURVEPROFILE) {
+    uiButCurveProfile *but_profile = (uiButCurveProfile *)but;
+    but_profile->edit_profile = editprofile;
+  }
 }
 
 /** \} */
@@ -3851,7 +3860,8 @@ static void ui_numedit_begin(uiBut *but, uiHandleButtonData *data)
     but->editcumap = (CurveMapping *)but->poin;
   }
   if (but->type == UI_BTYPE_CURVEPROFILE) {
-    but->editprofile = (CurveProfile *)but->poin;
+    uiButCurveProfile *but_profile = (uiButCurveProfile *)but;
+    but_profile->edit_profile = (CurveProfile *)but->poin;
   }
   else if (but->type == UI_BTYPE_COLORBAND) {
     data->coba = (ColorBand *)but->poin;
@@ -3943,8 +3953,10 @@ static void ui_numedit_end(uiBut *but, uiHandleButtonData *data)
   but->editvec = NULL;
   but->editcoba = NULL;
   but->editcumap = NULL;
-  but->editprofile = NULL;
-
+  if (but->type == UI_BTYPE_CURVEPROFILE) {
+    uiButCurveProfile *but_profile = (uiButCurveProfile *)but;
+    but_profile->edit_profile = NULL;
+  }
   data->dragstartx = 0;
   data->draglastx = 0;
   data->dragchange = false;
