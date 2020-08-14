@@ -114,6 +114,20 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(Material *material)
   return usd_material;
 }
 
+void USDAbstractWriter::write_visibility(const HierarchyContext &context,
+                                         const pxr::UsdTimeCode timecode,
+                                         pxr::UsdGeomImageable &usd_geometry)
+{
+  pxr::UsdAttribute attr_visibility = usd_geometry.CreateVisibilityAttr(pxr::VtValue(), true);
+
+  const bool is_visible = context.is_object_visible(
+      usd_export_context_.export_params.evaluation_mode);
+  const pxr::TfToken visibility = is_visible ? pxr::UsdGeomTokens->inherited :
+                                               pxr::UsdGeomTokens->invisible;
+
+  usd_value_writer_.SetAttribute(attr_visibility, pxr::VtValue(visibility), timecode);
+}
+
 }  // namespace usd
 }  // namespace io
 }  // namespace blender

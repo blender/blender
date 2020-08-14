@@ -72,6 +72,10 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
   pxr::UsdTimeCode get_export_time_code() const;
 
   pxr::UsdShadeMaterial ensure_usd_material(Material *material);
+
+  void write_visibility(const HierarchyContext &context,
+                        const pxr::UsdTimeCode timecode,
+                        pxr::UsdGeomImageable &usd_geometry);
 };
 
 }  // namespace usd

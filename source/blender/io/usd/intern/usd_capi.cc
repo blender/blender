@@ -76,7 +76,12 @@ static void export_startjob(void *customdata,
   // Construct the depsgraph for exporting.
   Scene *scene = DEG_get_input_scene(data->depsgraph);
   ViewLayer *view_layer = DEG_get_input_view_layer(data->depsgraph);
-  DEG_graph_build_from_view_layer(data->depsgraph, data->bmain, scene, view_layer);
+  if (data->params.visible_objects_only) {
+    DEG_graph_build_from_view_layer(data->depsgraph, data->bmain, scene, view_layer);
+  }
+  else {
+    DEG_graph_build_for_all_objects(data->depsgraph, data->bmain, scene, view_layer);
+  }
   BKE_scene_graph_update_tagged(data->depsgraph, data->bmain);
 
   *progress = 0.0f;
