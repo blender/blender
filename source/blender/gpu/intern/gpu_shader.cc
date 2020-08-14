@@ -397,7 +397,7 @@ static const char *string_join_array_maybe_alloc(const char **str_arr, bool *r_i
  * \endcode
  */
 struct GPUShader *GPU_shader_create_from_arrays_impl(
-    const struct GPU_ShaderCreateFromArray_Params *params)
+    const struct GPU_ShaderCreateFromArray_Params *params, const char *func, int line)
 {
   struct {
     const char *str;
@@ -409,8 +409,11 @@ struct GPUShader *GPU_shader_create_from_arrays_impl(
     str_dst[i].str = string_join_array_maybe_alloc(str_src[i], &str_dst[i].is_alloc);
   }
 
+  char name[64];
+  BLI_snprintf(name, sizeof(name), "%s_%d", func, line);
+
   GPUShader *sh = GPU_shader_create(
-      str_dst[0].str, str_dst[1].str, str_dst[2].str, NULL, str_dst[3].str, __func__);
+      str_dst[0].str, str_dst[1].str, str_dst[2].str, NULL, str_dst[3].str, name);
 
   for (int i = 0; i < ARRAY_SIZE(str_dst); i++) {
     if (str_dst[i].is_alloc) {

@@ -73,9 +73,11 @@ struct GPU_ShaderCreateFromArray_Params {
   const char **vert, **geom, **frag, **defs;
 };
 struct GPUShader *GPU_shader_create_from_arrays_impl(
-    const struct GPU_ShaderCreateFromArray_Params *params);
+    const struct GPU_ShaderCreateFromArray_Params *params, const char *func, int line);
+
 #define GPU_shader_create_from_arrays(...) \
-  GPU_shader_create_from_arrays_impl(&(const struct GPU_ShaderCreateFromArray_Params)__VA_ARGS__)
+  GPU_shader_create_from_arrays_impl( \
+      &(const struct GPU_ShaderCreateFromArray_Params)__VA_ARGS__, __func__, __LINE__)
 
 void GPU_shader_free(GPUShader *shader);
 

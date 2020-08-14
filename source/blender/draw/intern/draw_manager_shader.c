@@ -312,16 +312,18 @@ void DRW_deferred_shader_remove(GPUMaterial *mat)
 
 /** \{ */
 
-GPUShader *DRW_shader_create(const char *vert,
-                             const char *geom,
-                             const char *frag,
-                             const char *defines)
+GPUShader *DRW_shader_create_ex(
+    const char *vert, const char *geom, const char *frag, const char *defines, const char *name)
 {
-  return GPU_shader_create(vert, frag, geom, NULL, defines, __func__);
+  return GPU_shader_create(vert, frag, geom, NULL, defines, name);
 }
 
-GPUShader *DRW_shader_create_with_lib(
-    const char *vert, const char *geom, const char *frag, const char *lib, const char *defines)
+GPUShader *DRW_shader_create_with_lib_ex(const char *vert,
+                                         const char *geom,
+                                         const char *frag,
+                                         const char *lib,
+                                         const char *defines,
+                                         const char *name)
 {
   GPUShader *sh;
   char *vert_with_lib = NULL;
@@ -334,7 +336,7 @@ GPUShader *DRW_shader_create_with_lib(
     geom_with_lib = BLI_string_joinN(lib, geom);
   }
 
-  sh = GPU_shader_create(vert_with_lib, frag_with_lib, geom_with_lib, NULL, defines, __func__);
+  sh = GPU_shader_create(vert_with_lib, frag_with_lib, geom_with_lib, NULL, defines, name);
 
   MEM_freeN(vert_with_lib);
   MEM_freeN(frag_with_lib);
@@ -345,18 +347,19 @@ GPUShader *DRW_shader_create_with_lib(
   return sh;
 }
 
-GPUShader *DRW_shader_create_with_shaderlib(const char *vert,
-                                            const char *geom,
-                                            const char *frag,
-                                            const DRWShaderLibrary *lib,
-                                            const char *defines)
+GPUShader *DRW_shader_create_with_shaderlib_ex(const char *vert,
+                                               const char *geom,
+                                               const char *frag,
+                                               const DRWShaderLibrary *lib,
+                                               const char *defines,
+                                               const char *name)
 {
   GPUShader *sh;
   char *vert_with_lib = DRW_shader_library_create_shader_string(lib, vert);
   char *frag_with_lib = DRW_shader_library_create_shader_string(lib, frag);
   char *geom_with_lib = (geom) ? DRW_shader_library_create_shader_string(lib, geom) : NULL;
 
-  sh = GPU_shader_create(vert_with_lib, frag_with_lib, geom_with_lib, NULL, defines, __func__);
+  sh = GPU_shader_create(vert_with_lib, frag_with_lib, geom_with_lib, NULL, defines, name);
 
   MEM_SAFE_FREE(vert_with_lib);
   MEM_SAFE_FREE(frag_with_lib);
@@ -383,22 +386,22 @@ GPUShader *DRW_shader_create_with_transform_feedback(const char *vert,
                               __func__);
 }
 
-GPUShader *DRW_shader_create_fullscreen(const char *frag, const char *defines)
+GPUShader *DRW_shader_create_fullscreen_ex(const char *frag, const char *defines, const char *name)
 {
-  return GPU_shader_create(
-      datatoc_common_fullscreen_vert_glsl, frag, NULL, NULL, defines, __func__);
+  return GPU_shader_create(datatoc_common_fullscreen_vert_glsl, frag, NULL, NULL, defines, name);
 }
 
-GPUShader *DRW_shader_create_fullscreen_with_shaderlib(const char *frag,
-                                                       const DRWShaderLibrary *lib,
-                                                       const char *defines)
+GPUShader *DRW_shader_create_fullscreen_with_shaderlib_ex(const char *frag,
+                                                          const DRWShaderLibrary *lib,
+                                                          const char *defines,
+                                                          const char *name)
 {
 
   GPUShader *sh;
   char *vert = datatoc_common_fullscreen_vert_glsl;
   char *frag_with_lib = DRW_shader_library_create_shader_string(lib, frag);
 
-  sh = GPU_shader_create(vert, frag_with_lib, NULL, NULL, defines, __func__);
+  sh = GPU_shader_create(vert, frag_with_lib, NULL, NULL, defines, name);
 
   MEM_SAFE_FREE(frag_with_lib);
 
