@@ -21,6 +21,8 @@
  * \ingroup gpu
  */
 
+#include "BKE_global.h"
+
 #include "BLI_string.h"
 
 #include "GPU_extensions.h"
@@ -131,10 +133,14 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage, MutableSpan<const char *> 
 
   GLint status;
   glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-  if (!status) {
-    char log[5000];
+  if (!status || (G.debug & G_DEBUG_GPU)) {
+    char log[5000] = "";
     glGetShaderInfoLog(shader, sizeof(log), NULL, log);
-    this->print_errors(sources, log);
+    if (log[0] != '\0') {
+      this->print_errors(sources, log);
+    }
+  }
+  if (!status) {
     glDeleteShader(shader);
     return 0;
   }

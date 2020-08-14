@@ -56,31 +56,131 @@ using namespace blender::gpu;
 /** \name Debug functions
  * \{ */
 
-void Shader::print_errors(Span<const char *> sources, const char *log)
+void Shader::print_errors(Span<const char *> sources, char *log)
 {
-  // int line = 1;
+  const bool pretty = true;
+  const char line_prefix[] = "      | ";
+  char *sources_combined = BLI_string_join_arrayN((const char **)sources.data(), sources.size());
 
-  // for (int i = 0; i < totcode; i++) {
-  //   const char *c, *pos, *end = code[i] + strlen(code[i]);
+  if (pretty) {
+    fprintf(stderr, "\n      \033[1mShader Compilation Log : \033[0m%s\n", this->name);
+  }
+  else {
+    fprintf(stderr, "\n      Shader Compilation Log : %s\n", this->name);
+  }
 
-  //   if (G.debug & G_DEBUG) {
-  //     fprintf(stderr, "===== shader string %d ====\n", i + 1);
-
-  //     c = code[i];
-  //     while ((c < end) && (pos = strchr(c, '\n'))) {
-  //       fprintf(stderr, "%2d  ", line);
-  //       fwrite(c, (pos + 1) - c, 1, stderr);
-  //       c = pos + 1;
-  //       line++;
-  //     }
-
-  //     fprintf(stderr, "%s", c);
-  //   }
-  // }
-  /* TODO display the error lines context. */
-  fprintf(stderr, "%s\n", log);
-
-  UNUSED_VARS(sources);
+  char *log_line = log, *line_end;
+  char *error_line_number_end;
+  int error_line, error_char, last_error_line = -2, last_error_char = -1;
+  bool found_line_id = false;
+  while ((line_end = strchr(log_line, '\n'))) {
+    /* Skip empty lines. */
+    if (line_end == log_line) {
+      log_line++;
+      continue;
+    }
+    /* Skip ERROR: or WARNING:. */
+    const char *prefix[] = {"ERROR", "WARNING"};
+    for (int i = 0; i < ARRAY_SIZE(prefix); i++) {
+      if (STREQLEN(log_line, prefix[i], strlen(prefix[i]))) {
+        log_line += strlen(prefix[i]);
+        break;
+      }
+    }
+    error_line = error_char = -1;
+    if (ELEM(log_line[0], '0', ':') && ELEM(log_line[1], ':', '(', ' ')) {
+      error_line = (int)strtol(log_line + 2, &error_line_number_end, 10);
+      /* Try to fetch the error caracter (not always available). */
+      if (ELEM(error_line_number_end[0], '(', ':')) {
+        error_char = (int)strtol(error_line_number_end + 1, NULL, 10);
+      }
+    }
+    if ((error_line == -1)) {
+      found_line_id = false;
+    }
+    const char *src_line = sources_combined;
+    /* Some drivers use (source:line) instead of (line:char) */
+    if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OFFICIAL) && (error_line != -1) &&
+        (error_char != -1)) {
+      int error_source = error_line;
+      if (error_source < sources.size()) {
+        src_line = sources[error_source];
+        error_line = error_char;
+        error_char = -1;
+      }
+    }
+    /* Separate from previous block. */
+    if (last_error_line != error_line) {
+      fprintf(stderr, "\n");
+    }
+    /* Print line from the source file that is producing the error. */
+    if ((error_line != -1) && (error_line != last_error_line || error_char != last_error_char)) {
+      const char *src_line_end = src_line;
+      found_line_id = false;
+      /* error_line is 1 based in this case. */
+      int src_line_index = 1;
+      while ((src_line_end = strchr(src_line, '\n'))) {
+        if (src_line_index == error_line) {
+          found_line_id = true;
+          break;
+        }
+        /* Continue to next line. */
+        src_line = src_line_end + 1;
+        src_line_index++;
+      }
+      /* Print error source. */
+      if (found_line_id) {
+        fprintf(stderr, "%5d | ", src_line_index);
+        fwrite(src_line, (src_line_end + 1) - src_line, 1, stderr);
+        /* Print char offset. */
+        fprintf(stderr, line_prefix);
+        if (error_char != -1) {
+          for (int i = 0; i < error_char; i++) {
+            fprintf(stderr, " ");
+          }
+          fprintf(stderr, "^");
+        }
+        fprintf(stderr, "\n");
+      }
+    }
+    fprintf(stderr, line_prefix);
+    if (found_line_id) {
+      /* Skip to message. Avoid redundant info. */
+      const char *keywords[] = {"error", "warning"};
+      for (int i = 0; i < ARRAY_SIZE(keywords); i++) {
+        /* Avoid searching following lines. */
+        line_end[0] = '\0';
+        if (strstr(log_line, keywords[i])) {
+          log_line = strstr(log_line, keywords[i]);
+          if (pretty) {
+            if (STREQ(keywords[i], "error")) {
+              fprintf(stderr, "\033[31;1mError\033[0m ");
+            }
+            else if (STREQ(keywords[i], "warning")) {
+              fprintf(stderr, "\033[33;1mWarning\033[0m ");
+            }
+            log_line += strlen(keywords[i]);
+          }
+          break;
+        }
+      }
+      line_end[0] = '\n';
+    }
+    /* Print the error itself. */
+    if (pretty) {
+      fprintf(stderr, "\033[2m");
+    }
+    fwrite(log_line, (line_end + 1) - log_line, 1, stderr);
+    if (pretty) {
+      fprintf(stderr, "\033[0m");
+    }
+    /* Continue to next line. */
+    log_line = line_end + 1;
+    last_error_line = error_line;
+    last_error_char = error_char;
+  }
+  fprintf(stderr, "\n\n");
+  MEM_freeN(sources_combined);
 }
 
 /** \} */

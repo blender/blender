@@ -51,7 +51,7 @@ class Shader : public GPUShader {
   virtual void uniform_int(int location, int comp_len, int array_size, const int *data) = 0;
 
  protected:
-  void print_errors(Span<const char *> sources, const char *log);
+  void print_errors(Span<const char *> sources, char *log);
 };
 
 }  // namespace gpu
