@@ -50,6 +50,8 @@ class Shader : public GPUShader {
   virtual void uniform_float(int location, int comp_len, int array_size, const float *data) = 0;
   virtual void uniform_int(int location, int comp_len, int array_size, const int *data) = 0;
 
+  virtual void vertformat_from_shader(GPUVertFormat *) const = 0;
+
  protected:
   void print_errors(Span<const char *> sources, char *log);
 };

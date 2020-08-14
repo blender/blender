@@ -24,7 +24,9 @@
  */
 
 #include "GPU_vertex_format.h"
+#include "gpu_shader_private.hh"
 #include "gpu_vertex_format_private.h"
+
 #include <stddef.h>
 #include <string.h>
 
@@ -32,13 +34,13 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "GPU_shader.h"
-
 #define PACK_DEBUG 0
 
 #if PACK_DEBUG
 #  include <stdio.h>
 #endif
+
+using namespace blender::gpu;
 
 void GPU_vertformat_clear(GPUVertFormat *format)
 {
@@ -403,115 +405,8 @@ void VertexFormat_pack(GPUVertFormat *format)
   format->packed = true;
 }
 
-static uint calc_component_size(const GLenum gl_type)
+void GPU_vertformat_from_shader(GPUVertFormat *format, const struct GPUShader *gpushader)
 {
-  switch (gl_type) {
-    case GL_FLOAT_VEC2:
-    case GL_INT_VEC2:
-    case GL_UNSIGNED_INT_VEC2:
-      return 2;
-    case GL_FLOAT_VEC3:
-    case GL_INT_VEC3:
-    case GL_UNSIGNED_INT_VEC3:
-      return 3;
-    case GL_FLOAT_VEC4:
-    case GL_FLOAT_MAT2:
-    case GL_INT_VEC4:
-    case GL_UNSIGNED_INT_VEC4:
-      return 4;
-    case GL_FLOAT_MAT3:
-      return 9;
-    case GL_FLOAT_MAT4:
-      return 16;
-    case GL_FLOAT_MAT2x3:
-    case GL_FLOAT_MAT3x2:
-      return 6;
-    case GL_FLOAT_MAT2x4:
-    case GL_FLOAT_MAT4x2:
-      return 8;
-    case GL_FLOAT_MAT3x4:
-    case GL_FLOAT_MAT4x3:
-      return 12;
-    default:
-      return 1;
-  }
-}
-
-static void get_fetch_mode_and_comp_type(int gl_type,
-                                         GPUVertCompType *r_comp_type,
-                                         GPUVertFetchMode *r_fetch_mode)
-{
-  switch (gl_type) {
-    case GL_FLOAT:
-    case GL_FLOAT_VEC2:
-    case GL_FLOAT_VEC3:
-    case GL_FLOAT_VEC4:
-    case GL_FLOAT_MAT2:
-    case GL_FLOAT_MAT3:
-    case GL_FLOAT_MAT4:
-    case GL_FLOAT_MAT2x3:
-    case GL_FLOAT_MAT2x4:
-    case GL_FLOAT_MAT3x2:
-    case GL_FLOAT_MAT3x4:
-    case GL_FLOAT_MAT4x2:
-    case GL_FLOAT_MAT4x3:
-      *r_comp_type = GPU_COMP_F32;
-      *r_fetch_mode = GPU_FETCH_FLOAT;
-      break;
-    case GL_INT:
-    case GL_INT_VEC2:
-    case GL_INT_VEC3:
-    case GL_INT_VEC4:
-      *r_comp_type = GPU_COMP_I32;
-      *r_fetch_mode = GPU_FETCH_INT;
-      break;
-    case GL_UNSIGNED_INT:
-    case GL_UNSIGNED_INT_VEC2:
-    case GL_UNSIGNED_INT_VEC3:
-    case GL_UNSIGNED_INT_VEC4:
-      *r_comp_type = GPU_COMP_U32;
-      *r_fetch_mode = GPU_FETCH_INT;
-      break;
-    default:
-      BLI_assert(0);
-  }
-}
-
-void GPU_vertformat_from_shader(GPUVertFormat *format, const GPUShader *shader)
-{
-  UNUSED_VARS(format, shader);
-#if 0 /* TODO (fclem) port to GLShader */
-  GPU_vertformat_clear(format);
-  GPUVertAttr *attr = &format->attrs[0];
-
-  GLint attr_len;
-  glGetProgramiv(shader->program, GL_ACTIVE_ATTRIBUTES, &attr_len);
-
-  for (int i = 0; i < attr_len; i++) {
-    char name[256];
-    GLenum gl_type;
-    GLint size;
-    glGetActiveAttrib(shader->program, i, sizeof(name), NULL, &size, &gl_type, name);
-
-    /* Ignore OpenGL names like `gl_BaseInstanceARB`, `gl_InstanceID` and `gl_VertexID`. */
-    if (glGetAttribLocation(shader->program, name) == -1) {
-      continue;
-    }
-
-    format->name_len++; /* multiname support */
-    format->attr_len++;
-
-    GPUVertCompType comp_type;
-    GPUVertFetchMode fetch_mode;
-    get_fetch_mode_and_comp_type(gl_type, &comp_type, &fetch_mode);
-
-    attr->names[attr->name_len++] = copy_attr_name(format, name);
-    attr->offset = 0; /* offsets & stride are calculated later (during pack) */
-    attr->comp_len = calc_component_size(gl_type) * size;
-    attr->sz = attr->comp_len * 4;
-    attr->fetch_mode = fetch_mode;
-    attr->comp_type = comp_type;
-    attr += 1;
-  }
-#endif
+  const Shader *shader = static_cast<const Shader *>(gpushader);
+  shader->vertformat_from_shader(format);
 }

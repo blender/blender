@@ -67,6 +67,8 @@ class GLShader : public Shader {
   void uniform_float(int location, int comp_len, int array_size, const float *data) override;
   void uniform_int(int location, int comp_len, int array_size, const int *data) override;
 
+  void vertformat_from_shader(GPUVertFormat *format) const override;
+
  private:
   char *glsl_patch_get(void);
 
