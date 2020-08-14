@@ -23,6 +23,7 @@
 #include <cassert>
 #include <sstream>
 #include <string>
+#include <string_view>
 
 #include "GHOST_Types.h"
 #include "GHOST_XrException.h"
@@ -348,7 +349,8 @@ static bool openxr_layer_is_available(const std::vector<XrApiLayerProperties> &l
 }
 
 static bool openxr_extension_is_available(
-    const std::vector<XrExtensionProperties> &extensions_info, const std::string &extension_name)
+    const std::vector<XrExtensionProperties> &extensions_info,
+    const std::string_view &extension_name)
 {
   for (const XrExtensionProperties &ext_info : extensions_info) {
     if (ext_info.extensionName == extension_name) {
@@ -405,14 +407,12 @@ void GHOST_XrContext::getExtensionsToEnable(
     const std::vector<GHOST_TXrGraphicsBinding> &graphics_binding_types,
     std::vector<const char *> &r_ext_names)
 {
-  std::vector<std::string> try_ext;
+  std::vector<std::string_view> try_ext;
 
   /* Try enabling debug extension. */
-#ifndef WIN32
   if (isDebugMode()) {
     try_ext.push_back(XR_EXT_DEBUG_UTILS_EXTENSION_NAME);
   }
-#endif
 
   r_ext_names.reserve(try_ext.size() + graphics_binding_types.size());
 
@@ -424,9 +424,9 @@ void GHOST_XrContext::getExtensionsToEnable(
     r_ext_names.push_back(gpu_binding);
   }
 
-  for (const std::string &ext : try_ext) {
+  for (const std::string_view &ext : try_ext) {
     if (openxr_extension_is_available(m_oxr->extensions, ext)) {
-      r_ext_names.push_back(ext.c_str());
+      r_ext_names.push_back(ext.data());
     }
   }
 }

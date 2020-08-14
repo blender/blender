@@ -1732,6 +1732,8 @@ void ED_view3d_xr_shading_update(wmWindowManager *wm, const View3D *v3d, const S
 {
   if (v3d->runtime.flag & V3D_RUNTIME_XR_SESSION_ROOT) {
     View3DShading *xr_shading = &wm->xr.session_settings.shading;
+    /* Flags that shouldn't be overridden by the 3D View shading. */
+    const int flag_copy = V3D_SHADING_WORLD_ORIENTATION;
 
     BLI_assert(WM_xr_session_exists(&wm->xr));
 
@@ -1749,7 +1751,9 @@ void ED_view3d_xr_shading_update(wmWindowManager *wm, const View3D *v3d, const S
     }
 
     /* Copy shading from View3D to VR view. */
+    const int old_xr_shading_flag = xr_shading->flag;
     *xr_shading = v3d->shading;
+    xr_shading->flag = (xr_shading->flag & ~flag_copy) | (old_xr_shading_flag & flag_copy);
     if (v3d->shading.prop) {
       xr_shading->prop = IDP_CopyProperty(xr_shading->prop);
     }

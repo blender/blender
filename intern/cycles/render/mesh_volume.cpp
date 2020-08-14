@@ -555,6 +555,7 @@ void GeometryManager::create_volume_mesh(Mesh *mesh, Progress &progress)
   mesh->clear(true);
   mesh->reserve_mesh(vertices.size(), indices.size() / 3);
   mesh->used_shaders.push_back(volume_shader);
+  mesh->need_update_rebuild = true;
 
   for (size_t i = 0; i < vertices.size(); ++i) {
     mesh->add_vertex(vertices[i]);

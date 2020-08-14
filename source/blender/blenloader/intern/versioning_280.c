@@ -4953,8 +4953,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         const View3D *v3d_default = DNA_struct_default_get(View3D);
 
         wm->xr.session_settings.shading = v3d_default->shading;
-        /* Don't rotate light with the viewer by default, make it fixed. */
-        wm->xr.session_settings.shading.flag |= V3D_SHADING_WORLD_ORIENTATION;
         wm->xr.session_settings.draw_flags = (V3D_OFSDRAW_SHOW_GRIDFLOOR |
                                               V3D_OFSDRAW_SHOW_ANNOTATION);
         wm->xr.session_settings.clip_start = v3d_default->clip_start;
@@ -5110,6 +5108,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
           part->pd2->f_wind_factor = 1.0f;
         }
       }
+    }
+
+    for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
+      /* Don't rotate light with the viewer by default, make it fixed. Shading settings can't be
+       * edited and this flag should always be set. So we can always execute this. */
+      wm->xr.session_settings.shading.flag |= V3D_SHADING_WORLD_ORIENTATION;
     }
 
     /* Keep this block, even when empty. */
