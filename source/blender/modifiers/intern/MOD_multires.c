@@ -407,10 +407,7 @@ static void subdivisions_panel_draw(const bContext *C, Panel *panel)
   uiItemS(layout);
 
   uiItemO(layout, IFACE_("Unsubdivide"), ICON_NONE, "OBJECT_OT_multires_unsubdivide");
-
-  row = uiLayoutRow(layout, false);
-  uiItemL(row, "", ICON_NONE);
-  uiItemO(row, IFACE_("Delete Higher"), ICON_NONE, "OBJECT_OT_multires_higher_levels_delete");
+  uiItemO(layout, IFACE_("Delete Higher"), ICON_NONE, "OBJECT_OT_multires_higher_levels_delete");
 }
 
 static void shape_panel_draw(const bContext *C, Panel *panel)
