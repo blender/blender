@@ -250,9 +250,14 @@ void wm_xr_session_draw_data_update(const wmXrSessionState *state,
 
   switch (event) {
     case SESSION_STATE_EVENT_START:
-      /* We want to start the session exactly at landmark position.
-       * Run-times may have a non-[0,0,0] starting position that we have to subtract for that. */
-      copy_v3_v3(draw_data->eye_position_ofs, draw_view->local_pose.position);
+      if (use_position_tracking) {
+        /* We want to start the session exactly at landmark position.
+         * Run-times may have a non-[0,0,0] starting position that we have to subtract for that. */
+        copy_v3_v3(draw_data->eye_position_ofs, draw_view->local_pose.position);
+      }
+      else {
+        copy_v3_fl(draw_data->eye_position_ofs, 0.0f);
+      }
       break;
       /* This should be triggered by the VR add-on if a landmark changes. */
     case SESSION_STATE_EVENT_RESET_TO_BASE_POSE:
