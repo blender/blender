@@ -58,7 +58,7 @@ void *GHOST_XrContext::s_error_handler_customdata = nullptr;
  * \{ */
 
 GHOST_XrContext::GHOST_XrContext(const GHOST_XrContextCreateInfo *create_info)
-    : m_oxr(new OpenXRInstanceData()),
+    : m_oxr(std::make_unique<OpenXRInstanceData>()),
       m_debug(create_info->context_flag & GHOST_kXrContextDebug),
       m_debug_time(create_info->context_flag & GHOST_kXrContextDebugTime)
 {
@@ -327,7 +327,7 @@ void GHOST_XrContext::initApiLayers()
   }
 }
 
-static bool openxr_layer_is_available(const std::vector<XrApiLayerProperties> layers_info,
+static bool openxr_layer_is_available(const std::vector<XrApiLayerProperties> &layers_info,
                                       const std::string &layer_name)
 {
   for (const XrApiLayerProperties &layer_info : layers_info) {
@@ -339,8 +339,8 @@ static bool openxr_layer_is_available(const std::vector<XrApiLayerProperties> la
   return false;
 }
 
-static bool openxr_extension_is_available(const std::vector<XrExtensionProperties> extensions_info,
-                                          const std::string &extension_name)
+static bool openxr_extension_is_available(
+    const std::vector<XrExtensionProperties> &extensions_info, const std::string &extension_name)
 {
   for (const XrExtensionProperties &ext_info : extensions_info) {
     if (ext_info.extensionName == extension_name) {
@@ -459,7 +459,7 @@ void GHOST_XrContext::startSession(const GHOST_XrSessionBeginInfo *begin_info)
   m_custom_funcs.session_exit_customdata = begin_info->exit_customdata;
 
   if (m_session == nullptr) {
-    m_session = std::unique_ptr<GHOST_XrSession>(new GHOST_XrSession(this));
+    m_session = std::make_unique<GHOST_XrSession>(*this);
   }
   m_session->start(begin_info);
 }
@@ -489,7 +489,7 @@ void GHOST_XrContext::drawSessionViews(void *draw_customdata)
 /**
  * Delegates event to session, allowing context to destruct the session if needed.
  */
-void GHOST_XrContext::handleSessionStateChange(const XrEventDataSessionStateChanged *lifecycle)
+void GHOST_XrContext::handleSessionStateChange(const XrEventDataSessionStateChanged &lifecycle)
 {
   if (m_session &&
       m_session->handleStateChangeEvent(lifecycle) == GHOST_XrSession::SESSION_DESTROY) {

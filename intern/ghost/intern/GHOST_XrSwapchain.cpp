@@ -54,11 +54,10 @@ static OpenXRSwapchainData::ImageVec swapchain_images_create(XrSwapchain swapcha
 GHOST_XrSwapchain::GHOST_XrSwapchain(GHOST_IXrGraphicsBinding &gpu_binding,
                                      const XrSession &session,
                                      const XrViewConfigurationView &view_config)
-    : m_oxr(new OpenXRSwapchainData())
+    : m_oxr(std::make_unique<OpenXRSwapchainData>())
 {
   XrSwapchainCreateInfo create_info = {XR_TYPE_SWAPCHAIN_CREATE_INFO};
   uint32_t format_count = 0;
-  int64_t chosen_format;
 
   CHECK_XR(xrEnumerateSwapchainFormats(session, 0, &format_count, nullptr),
            "Failed to get count of swapchain image formats.");
@@ -68,14 +67,16 @@ GHOST_XrSwapchain::GHOST_XrSwapchain(GHOST_IXrGraphicsBinding &gpu_binding,
            "Failed to get swapchain image formats.");
   assert(swapchain_formats.size() == format_count);
 
-  if (!gpu_binding.chooseSwapchainFormat(swapchain_formats, chosen_format, m_is_srgb_buffer)) {
+  std::optional chosen_format = gpu_binding.chooseSwapchainFormat(swapchain_formats,
+                                                                  m_is_srgb_buffer);
+  if (!chosen_format) {
     throw GHOST_XrException(
         "Error: No format matching OpenXR runtime supported swapchain formats found.");
   }
 
   create_info.usageFlags = XR_SWAPCHAIN_USAGE_SAMPLED_BIT |
                            XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
-  create_info.format = chosen_format;
+  create_info.format = *chosen_format;
   create_info.sampleCount = view_config.recommendedSwapchainSampleCount;
   create_info.width = view_config.recommendedImageRectWidth;
   create_info.height = view_config.recommendedImageRectHeight;

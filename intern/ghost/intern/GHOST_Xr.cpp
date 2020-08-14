@@ -31,7 +31,7 @@
 
 GHOST_XrContextHandle GHOST_XrContextCreate(const GHOST_XrContextCreateInfo *create_info)
 {
-  GHOST_XrContext *xr_context = new GHOST_XrContext(create_info);
+  auto xr_context = std::make_unique<GHOST_XrContext>(create_info);
 
   /* TODO GHOST_XrContext's should probably be owned by the GHOST_System, which will handle context
    * creation and destruction. Try-catch logic can be moved to C-API then. */
@@ -40,12 +40,11 @@ GHOST_XrContextHandle GHOST_XrContextCreate(const GHOST_XrContextCreateInfo *cre
   }
   catch (GHOST_XrException &e) {
     xr_context->dispatchErrorMessage(&e);
-    delete xr_context;
-
     return nullptr;
   }
 
-  return (GHOST_XrContextHandle)xr_context;
+  /* Give ownership to the caller. */
+  return (GHOST_XrContextHandle)xr_context.release();
 }
 
 void GHOST_XrContextDestroy(GHOST_XrContextHandle xr_contexthandle)

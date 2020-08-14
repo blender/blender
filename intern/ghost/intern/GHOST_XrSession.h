@@ -37,13 +37,13 @@ class GHOST_XrSession {
     SESSION_DESTROY,
   };
 
-  GHOST_XrSession(GHOST_XrContext *xr_context);
+  GHOST_XrSession(GHOST_XrContext &xr_context);
   ~GHOST_XrSession();
 
   void start(const GHOST_XrSessionBeginInfo *begin_info);
   void requestEnd();
 
-  LifeExpectancy handleStateChangeEvent(const XrEventDataSessionStateChanged *lifecycle);
+  LifeExpectancy handleStateChangeEvent(const XrEventDataSessionStateChanged &lifecycle);
 
   bool isRunning() const;
   bool needsUpsideDownDrawing() const;
@@ -81,5 +81,5 @@ class GHOST_XrSession {
                 XrView &view,
                 void *draw_customdata);
   void beginFrameDrawing();
-  void endFrameDrawing(std::vector<XrCompositionLayerBaseHeader *> *layers);
+  void endFrameDrawing(std::vector<XrCompositionLayerBaseHeader *> &layers);
 };

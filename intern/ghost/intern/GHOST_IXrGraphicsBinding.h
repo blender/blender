@@ -21,15 +21,13 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
 #include "GHOST_Xr_openxr_includes.h"
 
 class GHOST_IXrGraphicsBinding {
-  friend std::unique_ptr<GHOST_IXrGraphicsBinding> GHOST_XrGraphicsBindingCreateFromType(
-      GHOST_TXrGraphicsBinding type);
-
  public:
   union {
 #if defined(WITH_GHOST_X11)
@@ -49,18 +47,17 @@ class GHOST_IXrGraphicsBinding {
    * \param r_requirement_info Return argument to retrieve an informal string on the requirements
    *                           to be met. Useful for error/debug messages.
    */
-  virtual bool checkVersionRequirements(class GHOST_Context *ghost_ctx,
+  virtual bool checkVersionRequirements(class GHOST_Context &ghost_ctx,
                                         XrInstance instance,
                                         XrSystemId system_id,
                                         std::string *r_requirement_info) const = 0;
-  virtual void initFromGhostContext(class GHOST_Context *ghost_ctx) = 0;
-  virtual bool chooseSwapchainFormat(const std::vector<int64_t> &runtime_formats,
-                                     int64_t &r_result,
-                                     bool &r_is_rgb_format) const = 0;
+  virtual void initFromGhostContext(class GHOST_Context &ghost_ctx) = 0;
+  virtual std::optional<int64_t> chooseSwapchainFormat(const std::vector<int64_t> &runtime_formats,
+                                                       bool &r_is_rgb_format) const = 0;
   virtual std::vector<XrSwapchainImageBaseHeader *> createSwapchainImages(
       uint32_t image_count) = 0;
-  virtual void submitToSwapchainImage(XrSwapchainImageBaseHeader *swapchain_image,
-                                      const GHOST_XrDrawViewInfo *draw_info) = 0;
+  virtual void submitToSwapchainImage(XrSwapchainImageBaseHeader &swapchain_image,
+                                      const GHOST_XrDrawViewInfo &draw_info) = 0;
   virtual bool needsUpsideDownDrawing(GHOST_Context &ghost_ctx) const = 0;
 
  protected:
@@ -69,4 +66,4 @@ class GHOST_IXrGraphicsBinding {
 };
 
 std::unique_ptr<GHOST_IXrGraphicsBinding> GHOST_XrGraphicsBindingCreateFromType(
-    GHOST_TXrGraphicsBinding type, GHOST_Context *ghost_ctx);
+    GHOST_TXrGraphicsBinding type, GHOST_Context &ghost_ctx);

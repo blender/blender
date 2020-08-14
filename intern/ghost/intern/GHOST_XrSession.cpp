@@ -62,8 +62,8 @@ struct GHOST_XrDrawInfo {
  *
  * \{ */
 
-GHOST_XrSession::GHOST_XrSession(GHOST_XrContext *xr_context)
-    : m_context(xr_context), m_oxr(new OpenXRSessionData())
+GHOST_XrSession::GHOST_XrSession(GHOST_XrContext &xr_context)
+    : m_context(&xr_context), m_oxr(std::make_unique<OpenXRSessionData>())
 {
 }
 
@@ -113,7 +113,7 @@ void GHOST_XrSession::initSystem()
  *
  * \{ */
 
-static void create_reference_spaces(OpenXRSessionData *oxr, const GHOST_XrPose *base_pose)
+static void create_reference_spaces(OpenXRSessionData &oxr, const GHOST_XrPose &base_pose)
 {
   XrReferenceSpaceCreateInfo create_info = {XR_TYPE_REFERENCE_SPACE_CREATE_INFO};
   create_info.poseInReferenceSpace.orientation.w = 1.0f;
@@ -142,11 +142,11 @@ static void create_reference_spaces(OpenXRSessionData *oxr, const GHOST_XrPose *
   (void)base_pose;
 #endif
 
-  CHECK_XR(xrCreateReferenceSpace(oxr->session, &create_info, &oxr->reference_space),
+  CHECK_XR(xrCreateReferenceSpace(oxr.session, &create_info, &oxr.reference_space),
            "Failed to create reference space.");
 
   create_info.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_VIEW;
-  CHECK_XR(xrCreateReferenceSpace(oxr->session, &create_info, &oxr->view_space),
+  CHECK_XR(xrCreateReferenceSpace(oxr.session, &create_info, &oxr.view_space),
            "Failed to create view reference space.");
 }
 
@@ -173,15 +173,15 @@ void GHOST_XrSession::start(const GHOST_XrSessionBeginInfo *begin_info)
 
   std::string requirement_str;
   m_gpu_binding = GHOST_XrGraphicsBindingCreateFromType(m_context->getGraphicsBindingType(),
-                                                        m_gpu_ctx);
+                                                        *m_gpu_ctx);
   if (!m_gpu_binding->checkVersionRequirements(
-          m_gpu_ctx, m_context->getInstance(), m_oxr->system_id, &requirement_str)) {
+          *m_gpu_ctx, m_context->getInstance(), m_oxr->system_id, &requirement_str)) {
     std::ostringstream strstream;
     strstream << "Available graphics context version does not meet the following requirements: "
               << requirement_str;
     throw GHOST_XrException(strstream.str().c_str());
   }
-  m_gpu_binding->initFromGhostContext(m_gpu_ctx);
+  m_gpu_binding->initFromGhostContext(*m_gpu_ctx);
 
   XrSessionCreateInfo create_info = {};
   create_info.type = XR_TYPE_SESSION_CREATE_INFO;
@@ -195,7 +195,7 @@ void GHOST_XrSession::start(const GHOST_XrSessionBeginInfo *begin_info)
            "detailed error information to the command line.");
 
   prepareDrawing();
-  create_reference_spaces(m_oxr.get(), &begin_info->base_pose);
+  create_reference_spaces(*m_oxr, begin_info->base_pose);
 }
 
 void GHOST_XrSession::requestEnd()
@@ -217,14 +217,14 @@ void GHOST_XrSession::endSession()
 }
 
 GHOST_XrSession::LifeExpectancy GHOST_XrSession::handleStateChangeEvent(
-    const XrEventDataSessionStateChanged *lifecycle)
+    const XrEventDataSessionStateChanged &lifecycle)
 {
-  m_oxr->session_state = lifecycle->state;
+  m_oxr->session_state = lifecycle.state;
 
   /* Runtime may send events for apparently destroyed session. Our handle should be NULL then. */
-  assert((m_oxr->session == XR_NULL_HANDLE) || (m_oxr->session == lifecycle->session));
+  assert((m_oxr->session == XR_NULL_HANDLE) || (m_oxr->session == lifecycle.session));
 
-  switch (lifecycle->state) {
+  switch (lifecycle.state) {
     case XR_SESSION_STATE_READY: {
       beginSession();
       break;
@@ -272,7 +272,7 @@ void GHOST_XrSession::prepareDrawing()
 
   m_oxr->views.resize(view_count, {XR_TYPE_VIEW});
 
-  m_draw_info = std::unique_ptr<GHOST_XrDrawInfo>(new GHOST_XrDrawInfo());
+  m_draw_info = std::make_unique<GHOST_XrDrawInfo>();
 }
 
 void GHOST_XrSession::beginFrameDrawing()
@@ -295,43 +295,43 @@ void GHOST_XrSession::beginFrameDrawing()
   }
 }
 
-static void print_debug_timings(GHOST_XrDrawInfo *draw_info)
+static void print_debug_timings(GHOST_XrDrawInfo &draw_info)
 {
   /** Render time of last 8 frames (in ms) to calculate an average. */
   std::chrono::duration<double, std::milli> duration = std::chrono::high_resolution_clock::now() -
-                                                       draw_info->frame_begin_time;
+                                                       draw_info.frame_begin_time;
   const double duration_ms = duration.count();
   const int avg_frame_count = 8;
   double avg_ms_tot = 0.0;
 
-  if (draw_info->last_frame_times.size() >= avg_frame_count) {
-    draw_info->last_frame_times.pop_front();
-    assert(draw_info->last_frame_times.size() == avg_frame_count - 1);
+  if (draw_info.last_frame_times.size() >= avg_frame_count) {
+    draw_info.last_frame_times.pop_front();
+    assert(draw_info.last_frame_times.size() == avg_frame_count - 1);
   }
-  draw_info->last_frame_times.push_back(duration_ms);
-  for (double ms_iter : draw_info->last_frame_times) {
+  draw_info.last_frame_times.push_back(duration_ms);
+  for (double ms_iter : draw_info.last_frame_times) {
     avg_ms_tot += ms_iter;
   }
 
   printf("VR frame render time: %.0fms - %.2f FPS (%.2f FPS 8 frames average)\n",
          duration_ms,
          1000.0 / duration_ms,
-         1000.0 / (avg_ms_tot / draw_info->last_frame_times.size()));
+         1000.0 / (avg_ms_tot / draw_info.last_frame_times.size()));
 }
 
-void GHOST_XrSession::endFrameDrawing(std::vector<XrCompositionLayerBaseHeader *> *layers)
+void GHOST_XrSession::endFrameDrawing(std::vector<XrCompositionLayerBaseHeader *> &layers)
 {
   XrFrameEndInfo end_info = {XR_TYPE_FRAME_END_INFO};
 
   end_info.displayTime = m_draw_info->frame_state.predictedDisplayTime;
   end_info.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
-  end_info.layerCount = layers->size();
-  end_info.layers = layers->data();
+  end_info.layerCount = layers.size();
+  end_info.layers = layers.data();
 
   CHECK_XR(xrEndFrame(m_oxr->session, &end_info), "Failed to submit rendered frame.");
 
   if (m_context->isDebugTimeMode()) {
-    print_debug_timings(m_draw_info.get());
+    print_debug_timings(*m_draw_info);
   }
 }
 
@@ -349,7 +349,7 @@ void GHOST_XrSession::draw(void *draw_customdata)
     layers.push_back(reinterpret_cast<XrCompositionLayerBaseHeader *>(&proj_layer));
   }
 
-  endFrameDrawing(&layers);
+  endFrameDrawing(layers);
 }
 
 static void copy_openxr_pose_to_ghost_pose(const XrPosef &oxr_pose, GHOST_XrPose &r_ghost_pose)
@@ -399,7 +399,7 @@ void GHOST_XrSession::drawView(GHOST_XrSwapchain &swapchain,
 
   /* Draw! */
   m_context->getCustomFuncs().draw_view_fn(&draw_view_info, draw_customdata);
-  m_gpu_binding->submitToSwapchainImage(swapchain_image, &draw_view_info);
+  m_gpu_binding->submitToSwapchainImage(*swapchain_image, draw_view_info);
 
   swapchain.releaseImage();
 }
