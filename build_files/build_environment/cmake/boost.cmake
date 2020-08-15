@@ -56,6 +56,12 @@ if(WITH_BOOST_PYTHON)
     --with-python
     --user-config=${JAM_FILE}
   )
+  if(WIN32 AND BUILD_MODE STREQUAL Debug)
+    set(BOOST_PYTHON_OPTIONS
+      ${BOOST_PYTHON_OPTIONS}
+      define=BOOST_DEBUG_PYTHON
+    )
+  endif()
 endif()
 
 set(BOOST_OPTIONS
