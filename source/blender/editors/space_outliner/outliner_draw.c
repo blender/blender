@@ -3508,12 +3508,12 @@ static void outliner_draw_tree(bContext *C,
   outliner_draw_highlights(region, space_outliner, startx, &starty);
 
   /* set scissor so tree elements or lines can't overlap restriction icons */
-  float scissor[4] = {0};
+  int scissor[4] = {0};
   if (restrict_column_width > 0.0f) {
     int mask_x = BLI_rcti_size_x(&region->v2d.mask) - (int)restrict_column_width + 1;
     CLAMP_MIN(mask_x, 0);
 
-    GPU_scissor_get_f(scissor);
+    GPU_scissor_get(scissor);
     GPU_scissor(0, 0, mask_x, region->winy);
   }
 

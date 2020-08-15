@@ -748,7 +748,7 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(region),
 #  if 0
   /* prevent drawing outside widget area */
   int scissor[4];
-  GPU_scissor_get_i(scissor);
+  GPU_scissor_get(scissor);
   GPU_scissor(rect->xmin, rect->ymin, w, h);
 #  endif
 
@@ -830,11 +830,8 @@ void UI_draw_safe_areas(uint pos,
   }
 }
 
-static void draw_scope_end(const rctf *rect, GLint *scissor)
+static void draw_scope_end(const rctf *rect)
 {
-  /* Restore scissor test. */
-  GPU_scissor(scissor[0], scissor[1], scissor[2], scissor[3]);
-
   GPU_blend_set_func_separate(
       GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
@@ -942,7 +939,7 @@ void ui_draw_but_HISTOGRAM(ARegion *UNUSED(region),
 
   /* need scissor test, histogram can draw outside of boundary */
   int scissor[4];
-  GPU_scissor_get_i(scissor);
+  GPU_scissor_get(scissor);
   GPU_scissor((rect.xmin - 1),
               (rect.ymin - 1),
               (rect.xmax + 1) - (rect.xmin - 1),
@@ -999,8 +996,11 @@ void ui_draw_but_HISTOGRAM(ARegion *UNUSED(region),
 
   immUnbindProgram();
 
+  /* Restore scissor test. */
+  GPU_scissor(UNPACK4(scissor));
+
   /* outline */
-  draw_scope_end(&rect, scissor);
+  draw_scope_end(&rect);
 }
 
 #undef HISTOGRAM_TOT_GRID_LINES
@@ -1082,7 +1082,7 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(region),
       true, rect.xmin - 1, rect.ymin - 1, rect.xmax + 1, rect.ymax + 1, 3.0f, color);
 
   /* need scissor test, waveform can draw outside of boundary */
-  GPU_scissor_get_i(scissor);
+  GPU_scissor_get(scissor);
   GPU_scissor((rect.xmin - 1),
               (rect.ymin - 1),
               (rect.xmax + 1) - (rect.xmin - 1),
@@ -1257,8 +1257,11 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(region),
 
   immUnbindProgram();
 
+  /* Restore scissor test. */
+  GPU_scissor(UNPACK4(scissor));
+
   /* outline */
-  draw_scope_end(&rect, scissor);
+  draw_scope_end(&rect);
 
   GPU_blend(false);
 }
@@ -1413,7 +1416,7 @@ void ui_draw_but_VECTORSCOPE(ARegion *UNUSED(region),
 
   /* need scissor test, hvectorscope can draw outside of boundary */
   int scissor[4];
-  GPU_scissor_get_i(scissor);
+  GPU_scissor_get(scissor);
   GPU_scissor((rect.xmin - 1),
               (rect.ymin - 1),
               (rect.xmax + 1) - (rect.xmin - 1),
@@ -1481,8 +1484,10 @@ void ui_draw_but_VECTORSCOPE(ARegion *UNUSED(region),
 
   immUnbindProgram();
 
+  /* Restore scissor test. */
+  GPU_scissor(UNPACK4(scissor));
   /* outline */
-  draw_scope_end(&rect, scissor);
+  draw_scope_end(&rect);
 
   GPU_blend(false);
 }
@@ -1917,7 +1922,7 @@ void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, 
 
   /* need scissor test, curve can draw outside of boundary */
   int scissor[4];
-  GPU_scissor_get_i(scissor);
+  GPU_scissor_get(scissor);
   rcti scissor_new = {
       .xmin = rect->xmin,
       .ymin = rect->ymin,
@@ -2194,7 +2199,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
 
   /* Test needed because path can draw outside of boundary. */
   int scissor[4];
-  GPU_scissor_get_i(scissor);
+  GPU_scissor_get(scissor);
   rcti scissor_new = {
       .xmin = rect->xmin,
       .ymin = rect->ymin,
@@ -2468,7 +2473,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(region),
 
   /* need scissor test, preview image can draw outside of boundary */
   int scissor[4];
-  GPU_scissor_get_i(scissor);
+  GPU_scissor_get(scissor);
   GPU_scissor((rect.xmin - 1),
               (rect.ymin - 1),
               (rect.xmax + 1) - (rect.xmin - 1),
@@ -2593,8 +2598,10 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(region),
         true, rect.xmin - 1, rect.ymin, rect.xmax + 1, rect.ymax + 1, 3.0f, color);
   }
 
+  /* Restore scissor test. */
+  GPU_scissor(UNPACK4(scissor));
   /* outline */
-  draw_scope_end(&rect, scissor);
+  draw_scope_end(&rect);
 
   GPU_blend(false);
 }

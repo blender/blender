@@ -188,12 +188,7 @@ void GPU_viewport(int x, int y, int width, int height)
   glViewport(x, y, width, height);
 }
 
-void GPU_scissor_get_f(float coords[4])
-{
-  glGetFloatv(GL_SCISSOR_BOX, coords);
-}
-
-void GPU_scissor_get_i(int coords[4])
+void GPU_scissor_get(int coords[4])
 {
   glGetIntegerv(GL_SCISSOR_BOX, coords);
 }
