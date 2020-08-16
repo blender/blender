@@ -290,8 +290,7 @@ static void file_draw_preview(uiBlock *block,
 
   if (!is_icon && typeflags & FILE_TYPE_BLENDERLIB) {
     /* Datablock preview images use premultiplied alpha. */
-    GPU_blend_set_func_separate(
-        GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+    GPU_blend_set_func_separate(GPU_BLEND_ALPHA_PREMULT);
   }
 
   IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
@@ -309,8 +308,7 @@ static void file_draw_preview(uiBlock *block,
                          1.0f,
                          col);
 
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
 
   if (icon && is_icon) {
     /* Small icon in the middle of large image, scaled to fit container and UI scale */

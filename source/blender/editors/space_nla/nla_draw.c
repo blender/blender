@@ -434,8 +434,7 @@ static void nla_draw_strip(SpaceNla *snla,
    */
   if ((strip->extendmode != NLASTRIP_EXTEND_NOTHING) && (non_solo == 0)) {
     /* enable transparency... */
-    GPU_blend_set_func_separate(
-        GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+    GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
     GPU_blend(true);
 
     switch (strip->extendmode) {
@@ -746,8 +745,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
           /* just draw a semi-shaded rect spanning the width of the viewable area if there's data,
            * and a second darker rect within which we draw keyframe indicator dots if there's data
            */
-          GPU_blend_set_func_separate(
-              GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+          GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
           GPU_blend(true);
 
           /* get colors for drawing */
@@ -854,8 +852,7 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *region)
     float ymax = NLACHANNEL_FIRST_TOP(ac);
 
     /* set blending again, as may not be set in previous step */
-    GPU_blend_set_func_separate(
-        GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+    GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
     GPU_blend(true);
 
     /* loop through channels, and set up drawing depending on their type  */

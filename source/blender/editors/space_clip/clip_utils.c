@@ -415,8 +415,7 @@ void clip_draw_sfra_efra(View2D *v2d, Scene *scene)
   UI_view2d_view_ortho(v2d);
 
   /* currently clip editor supposes that editing clip length is equal to scene frame range */
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
   GPU_blend(true);
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);

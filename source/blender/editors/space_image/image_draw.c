@@ -175,8 +175,7 @@ void ED_image_draw_info(Scene *scene,
   float hue = 0, sat = 0, val = 0, lum = 0, u = 0, v = 0;
   float col[4], finalcol[4];
 
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
   GPU_blend(true);
 
   uint pos = GPU_vertformat_attr_add(
@@ -540,8 +539,7 @@ static void draw_udim_label(ARegion *region, float fx, float fy, const char *lab
   int x, y;
   UI_view2d_view_to_region(&region->v2d, fx, fy, &x, &y);
 
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
   GPU_blend(true);
 
   int textwidth = BLF_width(blf_mono_font, label, strlen(label)) + 10;
@@ -603,8 +601,7 @@ static void draw_image_buffer(const bContext *C,
       imm_draw_box_checker_2d(x, y, x + ibuf->x * zoomx, y + ibuf->y * zoomy);
 
       GPU_blend(true);
-      GPU_blend_set_func_separate(
-          GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+      GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
     }
 
     /* If RGBA display with color management */
@@ -772,8 +769,7 @@ static void draw_image_paint_helpers(
       }
 
       GPU_blend(true);
-      GPU_blend_set_func_separate(
-          GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+      GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
 
       IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
       immDrawPixelsTex(
@@ -1059,8 +1055,7 @@ void draw_image_cache(const bContext *C, ARegion *region)
   const int region_bottom = rect_visible->ymin;
 
   GPU_blend(true);
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
 
   /* Draw cache background. */
   ED_region_cache_draw_background(region);

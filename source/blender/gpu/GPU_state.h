@@ -116,10 +116,7 @@ void GPU_state_init(void);
 
 void GPU_blend(bool enable);
 void GPU_blend_set_func(eGPUBlendFunction sfactor, eGPUBlendFunction dfactor);
-void GPU_blend_set_func_separate(eGPUBlendFunction src_rgb,
-                                 eGPUBlendFunction dst_rgb,
-                                 eGPUBlendFunction src_alpha,
-                                 eGPUBlendFunction dst_alpha);
+void GPU_blend_set_func_separate(eGPUBlend blend);
 void GPU_face_culling(eGPUFaceCullTest culling);
 void GPU_front_facing(bool invert);
 void GPU_provoking_vertex(eGPUProvokingVertex vert);

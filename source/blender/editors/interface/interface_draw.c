@@ -754,7 +754,7 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(region),
 
   GPU_blend(true);
   /* Combine with premultiplied alpha. */
-  GPU_blend_set_func_separate(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA_PREMULT);
 
   if (w != ibuf->x || h != ibuf->y) {
     /* We scale the bitmap, rather than have OGL do a worse job. */
@@ -782,8 +782,7 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(region),
 
   GPU_blend(false);
   /* Reset default. */
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
 
 #  if 0
   // restore scissortest
@@ -832,8 +831,7 @@ void UI_draw_safe_areas(uint pos,
 
 static void draw_scope_end(const rctf *rect)
 {
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
 
   /* outline */
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
@@ -863,7 +861,7 @@ static void histogram_draw_one(float r,
   }
 
   GPU_line_smooth(true);
-  GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE, GPU_ONE, GPU_ONE);
+  GPU_blend_set_func_separate(GPU_BLEND_ADDITIVE);
 
   immUniformColor4fv(color);
 
@@ -893,8 +891,7 @@ static void histogram_draw_one(float r,
     /* curve outline */
     immUniformColor4f(0.0f, 0.0f, 0.0f, 0.25f);
 
-    GPU_blend_set_func_separate(
-        GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+    GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
     immBegin(GPU_PRIM_LINE_STRIP, res);
     for (int i = 0; i < res; i++) {
       float x2 = x + i * (w / (float)res);
@@ -928,8 +925,7 @@ void ui_draw_but_HISTOGRAM(ARegion *UNUSED(region),
   float h = BLI_rctf_size_y(&rect) * hist->ymax;
 
   GPU_blend(true);
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
 
   float color[4];
   UI_GetThemeColor4fv(TH_PREVIEW_BACK, color);
@@ -1072,8 +1068,7 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(region),
   BLF_batch_draw_flush();
 
   GPU_blend(true);
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
 
   float color[4];
   UI_GetThemeColor4fv(TH_PREVIEW_BACK, color);
@@ -1101,8 +1096,7 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(region),
   BLF_batch_draw_flush();
 
   GPU_blend(true);
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -1405,8 +1399,7 @@ void ui_draw_but_VECTORSCOPE(ARegion *UNUSED(region),
   float alpha = scopes->vecscope_alpha * scopes->vecscope_alpha * scopes->vecscope_alpha;
 
   GPU_blend(true);
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
 
   float color[4];
   UI_GetThemeColor4fv(TH_PREVIEW_BACK, color);
@@ -1963,8 +1956,7 @@ void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, 
   if (but->a1 == UI_GRAD_H) {
     /* grid, hsv uses different grid */
     GPU_blend(true);
-    GPU_blend_set_func_separate(
-        GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+    GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
     ARRAY_SET_ITEMS(color_backdrop, 0, 0, 0, 48.0 / 255.0);
     immUniformColor4fv(color_backdrop);
     ui_draw_but_curve_grid(pos, rect, zoomx, zoomy, offsx, offsy, 0.1666666f);
@@ -2468,8 +2460,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(region),
   int height = BLI_rctf_size_y(&rect);
 
   GPU_blend(true);
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
 
   /* need scissor test, preview image can draw outside of boundary */
   int scissor[4];

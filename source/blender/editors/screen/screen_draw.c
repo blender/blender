@@ -296,8 +296,7 @@ static GPUBatch *batch_screen_edges_get(int *corner_len)
  */
 static void scrarea_draw_shape_dark(ScrArea *area, char dir, uint pos)
 {
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
   immUniformColor4ub(0, 0, 0, 50);
 
   draw_join_shape(area, dir, pos);
@@ -308,8 +307,7 @@ static void scrarea_draw_shape_dark(ScrArea *area, char dir, uint pos)
  */
 static void scrarea_draw_shape_light(ScrArea *area, char UNUSED(dir), uint pos)
 {
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
   immUniformColor4ub(255, 255, 255, 25);
 
   immRectf(pos, area->v1->vec.x, area->v1->vec.y, area->v3->vec.x, area->v3->vec.y);
@@ -413,8 +411,7 @@ void ED_screen_draw_edges(wmWindow *win)
   edge_thickness = corner_scale * 0.21f;
 
   GPU_blend(true);
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
 
   GPUBatch *batch = batch_screen_edges_get(&verts_per_corner);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_AREA_EDGES);
@@ -487,8 +484,7 @@ void ED_screen_draw_split_preview(ScrArea *area, const int dir, const float fac)
 
   /* splitpoint */
   GPU_blend(true);
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
 
   immUniformColor4ub(255, 255, 255, 100);
 

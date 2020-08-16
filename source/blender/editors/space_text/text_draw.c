@@ -1353,8 +1353,7 @@ static void draw_text_decoration(SpaceText *st, ARegion *region)
       UI_GetThemeColor4fv(TH_TEXT, highlight_color);
       highlight_color[3] = 0.1f;
       immUniformColor4fv(highlight_color);
-      GPU_blend_set_func_separate(
-          GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+      GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
       GPU_blend(true);
       immRecti(pos, 0, y1, region->winx, y2);
       GPU_blend(false);

@@ -349,8 +349,7 @@ static void draw_uvs(SpaceImage *sima,
     interpedges = (ts->uv_selectmode == UV_SELECT_VERTEX);
   }
 
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
 
   if (batch->faces) {
     GPU_batch_program_set_builtin(batch->faces,

@@ -2784,8 +2784,7 @@ static void widget_menu_back(uiWidgetColors *wcol, rcti *rect, int flag, int dir
     rect->ymax += 0.1f * U.widget_unit;
   }
 
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
   GPU_blend(true);
   widget_softshadow(rect, roundboxalign, wcol->roundness * U.widget_unit);
 
@@ -5165,8 +5164,7 @@ static void ui_draw_widget_back_color(uiWidgetTypeEnum type,
 
   if (use_shadow) {
     GPU_blend(true);
-    GPU_blend_set_func_separate(
-        GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+    GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
     widget_softshadow(rect, UI_CNR_ALL, 0.25f * U.widget_unit);
     GPU_blend(false);
   }

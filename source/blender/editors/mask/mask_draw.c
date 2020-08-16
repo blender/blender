@@ -595,8 +595,7 @@ static void draw_mask_layers(const bContext *C,
                              const int height)
 {
   GPU_blend(true);
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
   GPU_program_point_size(true);
 
   MaskLayer *mask_layer;

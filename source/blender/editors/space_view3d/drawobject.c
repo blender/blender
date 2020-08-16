@@ -131,8 +131,7 @@ void ED_draw_object_facemap(Depsgraph *depsgraph,
   /* Just to create the data to pass to immediate mode, grr! */
   const int *facemap_data = CustomData_get_layer(&me->pdata, CD_FACEMAP);
   if (facemap_data) {
-    GPU_blend_set_func_separate(
-        GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+    GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
     GPU_blend(true);
 
     const MVert *mvert = me->mvert;

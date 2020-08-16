@@ -3493,8 +3493,7 @@ static void outliner_draw_tree(bContext *C,
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
   int starty, startx;
 
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA); /* Only once. */
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA); /* Only once. */
 
   if (space_outliner->outlinevis == SO_DATA_API) {
     /* struct marks */

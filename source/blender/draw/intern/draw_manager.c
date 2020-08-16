@@ -1606,8 +1606,7 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
 
   if (draw_background) {
     /* Reset default. */
-    GPU_blend_set_func_separate(
-        GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+    GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
     GPU_blend(false);
   }
 

@@ -46,25 +46,6 @@ using namespace blender::gpu;
 //   GLStateStack::set_blend(blend);
 // }
 
-static GLenum gpu_get_gl_blendfunction(eGPUBlendFunction blend)
-{
-  switch (blend) {
-    case GPU_ONE:
-      return GL_ONE;
-    case GPU_SRC_ALPHA:
-      return GL_SRC_ALPHA;
-    case GPU_ONE_MINUS_SRC_ALPHA:
-      return GL_ONE_MINUS_SRC_ALPHA;
-    case GPU_DST_COLOR:
-      return GL_DST_COLOR;
-    case GPU_ZERO:
-      return GL_ZERO;
-    default:
-      BLI_assert(!"Unhandled blend mode");
-      return GL_ZERO;
-  }
-}
-
 void GPU_blend(bool enable)
 {
   if (enable) {
@@ -94,15 +75,9 @@ void GPU_blend_set_func(eGPUBlendFunction sfactor, eGPUBlendFunction dfactor)
   }
 }
 
-void GPU_blend_set_func_separate(eGPUBlendFunction src_rgb,
-                                 eGPUBlendFunction dst_rgb,
-                                 eGPUBlendFunction src_alpha,
-                                 eGPUBlendFunction dst_alpha)
+void GPU_blend_set_func_separate(eGPUBlend blend)
 {
-  glBlendFuncSeparate(gpu_get_gl_blendfunction(src_rgb),
-                      gpu_get_gl_blendfunction(dst_rgb),
-                      gpu_get_gl_blendfunction(src_alpha),
-                      gpu_get_gl_blendfunction(dst_alpha));
+  GLStateStack::set_blend(blend);
 }
 
 void GPU_face_culling(eGPUFaceCullTest culling)

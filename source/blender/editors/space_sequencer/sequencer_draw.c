@@ -383,8 +383,7 @@ static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, 
   }
 
   GPU_blend(true);
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
 
   for (seq = seqbase->first; seq; seq = seq->next) {
     chan_min = min_ii(chan_min, seq->machine);
@@ -492,8 +491,7 @@ static void draw_seq_handle(View2D *v2d,
   if (!(seq->type & SEQ_TYPE_EFFECT) || BKE_sequence_effect_get_num_inputs(seq->type) == 0) {
     GPU_blend(true);
 
-    GPU_blend_set_func_separate(
-        GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+    GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
 
     if (seq->flag & whichsel) {
       if (seq_active) {
@@ -755,8 +753,7 @@ static void draw_sequence_extensions(Scene *scene, Sequence *seq, uint pos, floa
   y2 = seq->machine + SEQ_STRIP_OFSTOP;
 
   GPU_blend(true);
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
 
   color3ubv_from_seq(scene, seq, col);
   if (seq->flag & SELECT) {
@@ -845,8 +842,7 @@ static void draw_seq_background(Scene *scene,
 
   if (seq->flag & SEQ_MUTE) {
     GPU_blend(true);
-    GPU_blend_set_func_separate(
-        GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+    GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
 
     col[3] = MUTE_ALPHA;
   }
@@ -1596,8 +1592,7 @@ static void sequencer_draw_display_buffer(const bContext *C,
 
   if (sseq->mainb == SEQ_DRAW_IMG_IMBUF && sseq->flag & SEQ_USE_ALPHA) {
     GPU_blend(true);
-    GPU_blend_set_func_separate(
-        GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+    GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
   }
 
   /* Format needs to be created prior to any immBindShader call.

@@ -4386,8 +4386,7 @@ void ANIM_channel_draw(
   }
 
   /* set blending again, as may not be set in previous step */
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
   GPU_blend(true);
 
   /* step 1) draw backdrop ...........................................  */

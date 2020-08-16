@@ -393,8 +393,7 @@ void drawVertSlide(TransInfo *t)
       GPU_depth_test(false);
 
       GPU_blend(true);
-      GPU_blend_set_func_separate(
-          GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+      GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
 
       GPU_matrix_push();
       GPU_matrix_mul(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->obmat);

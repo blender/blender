@@ -734,8 +734,7 @@ static void annotation_draw_data(
   GPU_line_smooth(true);
 
   /* turn on alpha-blending */
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
   GPU_blend(true);
 
   /* Do not write to depth (avoid self-occlusion). */

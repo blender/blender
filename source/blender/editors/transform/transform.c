@@ -1544,8 +1544,7 @@ static void drawAutoKeyWarning(TransInfo *UNUSED(t), ARegion *region)
 #endif
 
   /* autokey recording icon... */
-  GPU_blend_set_func_separate(
-      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
   GPU_blend(true);
 
   xco -= U.widget_unit;
