@@ -592,15 +592,15 @@ static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *region)
       /* indicate more */
       if (data->items.more) {
         ui_searchbox_butrect(&rect, data, data->items.maxitem - 1);
-        GPU_blend(true);
+        GPU_blend(GPU_BLEND_ALPHA);
         UI_icon_draw(rect.xmax - 18, rect.ymin - 7, ICON_TRIA_DOWN);
-        GPU_blend(false);
+        GPU_blend(GPU_BLEND_NONE);
       }
       if (data->items.offset) {
         ui_searchbox_butrect(&rect, data, 0);
-        GPU_blend(true);
+        GPU_blend(GPU_BLEND_ALPHA);
         UI_icon_draw(rect.xmin, rect.ymax - 9, ICON_TRIA_UP);
-        GPU_blend(false);
+        GPU_blend(GPU_BLEND_NONE);
       }
     }
     else {
@@ -657,15 +657,15 @@ static void ui_searchbox_region_draw_cb(const bContext *C, ARegion *region)
       /* indicate more */
       if (data->items.more) {
         ui_searchbox_butrect(&rect, data, data->items.maxitem - 1);
-        GPU_blend(true);
+        GPU_blend(GPU_BLEND_ALPHA);
         UI_icon_draw((BLI_rcti_size_x(&rect)) / 2, rect.ymin - 9, ICON_TRIA_DOWN);
-        GPU_blend(false);
+        GPU_blend(GPU_BLEND_NONE);
       }
       if (data->items.offset) {
         ui_searchbox_butrect(&rect, data, 0);
-        GPU_blend(true);
+        GPU_blend(GPU_BLEND_ALPHA);
         UI_icon_draw((BLI_rcti_size_x(&rect)) / 2, rect.ymax - 7, ICON_TRIA_UP);
-        GPU_blend(false);
+        GPU_blend(GPU_BLEND_NONE);
       }
     }
   }
@@ -953,15 +953,15 @@ static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARe
     /* indicate more */
     if (data->items.more) {
       ui_searchbox_butrect(&rect, data, data->items.maxitem - 1);
-      GPU_blend(true);
+      GPU_blend(GPU_BLEND_ALPHA);
       UI_icon_draw((BLI_rcti_size_x(&rect)) / 2, rect.ymin - 9, ICON_TRIA_DOWN);
-      GPU_blend(false);
+      GPU_blend(GPU_BLEND_NONE);
     }
     if (data->items.offset) {
       ui_searchbox_butrect(&rect, data, 0);
-      GPU_blend(true);
+      GPU_blend(GPU_BLEND_ALPHA);
       UI_icon_draw((BLI_rcti_size_x(&rect)) / 2, rect.ymax - 7, ICON_TRIA_UP);
-      GPU_blend(false);
+      GPU_blend(GPU_BLEND_NONE);
     }
   }
 }

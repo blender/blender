@@ -303,14 +303,14 @@ static void gizmo_cage3d_draw_intern(
 
   /* Handy for quick testing draw (if it's outside bounds). */
   if (false) {
-    GPU_blend(true);
+    GPU_blend(GPU_BLEND_ALPHA);
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor4fv((const float[4]){1, 1, 1, 0.5f});
     float s = 0.5f;
     immRectf(pos, -s, -s, s, s);
     immUnbindProgram();
-    GPU_blend(false);
+    GPU_blend(GPU_BLEND_NONE);
   }
 
   if (select) {
@@ -382,7 +382,7 @@ static void gizmo_cage3d_draw_intern(
       float color[4], black[3] = {0, 0, 0};
       gizmo_color_get(gz, highlight, color);
 
-      GPU_blend(true);
+      GPU_blend(GPU_BLEND_ALPHA);
 
       cage3d_draw_circle_wire(
           size_real, margin, black, transform_flag, draw_options, gz->line_width + 3.0f);
@@ -395,7 +395,7 @@ static void gizmo_cage3d_draw_intern(
       cage3d_draw_circle_handles(rv3d, matrix_final, size_real, margin, color, true, 40);
       GPU_polygon_smooth(false);
 
-      GPU_blend(false);
+      GPU_blend(GPU_BLEND_NONE);
     }
     else {
       BLI_assert(0);

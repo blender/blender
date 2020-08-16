@@ -249,7 +249,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
 
       /* Draw a green line to indicate the cursor value */
       immUniformThemeColorShadeAlpha(TH_CFRAME, -10, -50);
-      GPU_blend(true);
+      GPU_blend(GPU_BLEND_ALPHA);
       GPU_line_width(2.0);
 
       immBegin(GPU_PRIM_LINES, 2);
@@ -257,7 +257,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
       immVertex2f(pos, v2d->cur.xmax, y);
       immEnd();
 
-      GPU_blend(false);
+      GPU_blend(GPU_BLEND_NONE);
     }
 
     /* current frame or vertical component of vertical component of the cursor */
@@ -268,7 +268,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
       /* to help differentiate this from the current frame,
        * draw slightly darker like the horizontal one */
       immUniformThemeColorShadeAlpha(TH_CFRAME, -40, -50);
-      GPU_blend(true);
+      GPU_blend(GPU_BLEND_ALPHA);
       GPU_line_width(2.0);
 
       immBegin(GPU_PRIM_LINES, 2);
@@ -276,7 +276,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
       immVertex2f(pos, x, v2d->cur.ymax);
       immEnd();
 
-      GPU_blend(false);
+      GPU_blend(GPU_BLEND_NONE);
     }
 
     immUnbindProgram();

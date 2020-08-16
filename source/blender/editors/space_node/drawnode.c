@@ -602,7 +602,7 @@ static void node_draw_reroute(const bContext *C,
 
   /* outline active and selected emphasis */
   if (node->flag & SELECT) {
-    GPU_blend(true);
+    GPU_blend(GPU_BLEND_ALPHA);
     GPU_line_smooth(true);
     /* using different shades of TH_TEXT_HI for the empasis, like triangle */
     if (node->flag & NODE_ACTIVE) {
@@ -614,7 +614,7 @@ static void node_draw_reroute(const bContext *C,
     UI_draw_roundbox_4fv(false, rct->xmin, rct->ymin, rct->xmax, rct->ymax, size, debug_color);
 
     GPU_line_smooth(false);
-    GPU_blend(false);
+    GPU_blend(GPU_BLEND_NONE);
   }
 #endif
 
@@ -3688,12 +3688,12 @@ void draw_nodespace_back_pix(const bContext *C,
         GPU_shader_unbind();
       }
       else if (snode->flag & SNODE_USE_ALPHA) {
-        GPU_blend(true);
-        GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
+        GPU_blend(GPU_BLEND_ALPHA);
+        GPU_blend(GPU_BLEND_ALPHA);
 
         ED_draw_imbuf_ctx(C, ibuf, x, y, false, snode->zoom, snode->zoom);
 
-        GPU_blend(false);
+        GPU_blend(GPU_BLEND_NONE);
       }
       else {
         ED_draw_imbuf_ctx(C, ibuf, x, y, false, snode->zoom, snode->zoom);
@@ -4012,7 +4012,7 @@ static void nodelink_batch_draw(SpaceNode *snode)
     return;
   }
 
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
 
   float colors[6][4] = {{0.0f}};
   UI_GetThemeColor4fv(TH_WIRE_INNER, colors[nodelink_get_color_id(TH_WIRE_INNER)]);
@@ -4032,7 +4032,7 @@ static void nodelink_batch_draw(SpaceNode *snode)
 
   nodelink_batch_reset();
 
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 void nodelink_batch_start(SpaceNode *UNUSED(snode))

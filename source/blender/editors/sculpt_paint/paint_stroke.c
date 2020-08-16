@@ -143,7 +143,7 @@ static void paint_draw_smooth_cursor(bContext *C, int x, int y, void *customdata
 
   if (stroke && brush) {
     GPU_line_smooth(true);
-    GPU_blend(true);
+    GPU_blend(GPU_BLEND_ALPHA);
 
     ARegion *region = stroke->vc.region;
 
@@ -161,7 +161,7 @@ static void paint_draw_smooth_cursor(bContext *C, int x, int y, void *customdata
 
     immUnbindProgram();
 
-    GPU_blend(false);
+    GPU_blend(GPU_BLEND_NONE);
     GPU_line_smooth(false);
   }
 }

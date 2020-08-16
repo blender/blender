@@ -93,8 +93,8 @@ static void region_draw_emboss(const ARegion *region, const rcti *scirct, int si
   rect.ymax = scirct->ymax - region->winrct.ymin;
 
   /* set transp line */
-  GPU_blend(true);
-  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
+  GPU_blend(GPU_BLEND_ALPHA);
+  GPU_blend(GPU_BLEND_ALPHA);
 
   float color[4] = {0.0f, 0.0f, 0.0f, 0.25f};
   UI_GetThemeColor3fv(TH_EDITOR_OUTLINE, color);
@@ -133,7 +133,7 @@ static void region_draw_emboss(const ARegion *region, const rcti *scirct, int si
   immEnd();
   immUnbindProgram();
 
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 void ED_region_pixelspace(ARegion *region)
@@ -246,7 +246,7 @@ static void draw_azone_arrow(float x1, float y1, float x2, float y2, AZEdge edge
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
   /* NOTE(fclem): There is something strange going on with Mesa and GPU_SHADER_2D_UNIFORM_COLOR
    * that causes a crash on some GPUs (see T76113). Using 3D variant avoid the issue. */
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
@@ -264,12 +264,12 @@ static void draw_azone_arrow(float x1, float y1, float x2, float y2, AZEdge edge
   immEnd();
 
   immUnbindProgram();
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 static void region_draw_azone_tab_arrow(ScrArea *area, ARegion *region, AZone *az)
 {
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
 
   /* add code to draw region hidden as 'too small' */
   switch (az->edge) {
@@ -310,8 +310,8 @@ static void region_draw_azones(ScrArea *area, ARegion *region)
   }
 
   GPU_line_width(1.0f);
-  GPU_blend(true);
-  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
+  GPU_blend(GPU_BLEND_ALPHA);
+  GPU_blend(GPU_BLEND_ALPHA);
 
   GPU_matrix_push();
   GPU_matrix_translate_2f(-region->winrct.xmin, -region->winrct.ymin);
@@ -346,7 +346,7 @@ static void region_draw_azones(ScrArea *area, ARegion *region)
 
   GPU_matrix_pop();
 
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 static void region_draw_status_text(ScrArea *area, ARegion *region)
@@ -375,7 +375,7 @@ static void region_draw_status_text(ScrArea *area, ARegion *region)
     const float y1 = pad;
     const float y2 = region->winy - pad;
 
-    GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
+    GPU_blend(GPU_BLEND_ALPHA);
 
     float color[4] = {0.0f, 0.0f, 0.0f, 0.5f};
     UI_GetThemeColor3fv(TH_BACK, color);
@@ -544,7 +544,7 @@ void ED_region_do_draw(bContext *C, ARegion *region)
 
   /* for debugging unneeded area redraws and partial redraw */
   if (G.debug_value == 888) {
-    GPU_blend(true);
+    GPU_blend(GPU_BLEND_ALPHA);
     GPUVertFormat *format = immVertexFormat();
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -555,7 +555,7 @@ void ED_region_do_draw(bContext *C, ARegion *region)
              region->drawrct.xmax - region->winrct.xmin,
              region->drawrct.ymax - region->winrct.ymin);
     immUnbindProgram();
-    GPU_blend(false);
+    GPU_blend(GPU_BLEND_NONE);
   }
 
   memset(&region->drawrct, 0, sizeof(region->drawrct));
@@ -3269,15 +3269,15 @@ void ED_region_info_draw_multiline(ARegion *region,
   GPU_scissor_get(scissor);
   GPU_scissor(rect.xmin, rect.ymin, BLI_rcti_size_x(&rect) + 1, BLI_rcti_size_y(&rect) + 1);
 
-  GPU_blend(true);
-  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
+  GPU_blend(GPU_BLEND_ALPHA);
+  GPU_blend(GPU_BLEND_ALPHA);
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
   immUniformColor4fv(fill_color);
   immRecti(pos, rect.xmin, rect.ymin, rect.xmax + 1, rect.ymax + 1);
   immUnbindProgram();
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 
   /* text */
   UI_FontThemeColor(fontid, TH_TEXT_HI);

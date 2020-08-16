@@ -2729,7 +2729,7 @@ static void outliner_draw_iconrow_number(const uiFontStyle *fstyle,
                            number_text,
                            text_col);
   UI_fontstyle_set(fstyle);
-  GPU_blend(true); /* Roundbox and text drawing disables. */
+  GPU_blend(GPU_BLEND_ALPHA); /* Roundbox and text drawing disables. */
 }
 
 static void outliner_icon_background_colors(float icon_color[4], float icon_border[4])
@@ -2780,7 +2780,7 @@ static void outliner_draw_iconrow_doit(uiBlock *block,
                         (float)ys + UI_UNIT_Y - ufac,
                         (float)UI_UNIT_Y / 4.0f,
                         icon_border);
-    GPU_blend(true); /* Roundbox disables. */
+    GPU_blend(GPU_BLEND_ALPHA); /* Roundbox disables. */
   }
 
   if (tselem->flag & TSE_HIGHLIGHTED) {
@@ -2981,7 +2981,7 @@ static void outliner_draw_tree_element(bContext *C,
       xmax -= restrict_column_width + UI_UNIT_X;
     }
 
-    GPU_blend(true);
+    GPU_blend(GPU_BLEND_ALPHA);
 
     /* colors for active/selected data */
     if (tselem->type == 0) {
@@ -3068,7 +3068,7 @@ static void outliner_draw_tree_element(bContext *C,
                           (float)*starty + UI_UNIT_Y - ufac,
                           UI_UNIT_Y / 4.0f,
                           icon_border);
-      GPU_blend(true); /* roundbox disables it */
+      GPU_blend(GPU_BLEND_ALPHA); /* roundbox disables it */
 
       te->flag |= TE_ACTIVE; /* For lookup in display hierarchies. */
     }
@@ -3116,7 +3116,7 @@ static void outliner_draw_tree_element(bContext *C,
         offsx += UI_UNIT_X + 4 * ufac;
       }
     }
-    GPU_blend(false);
+    GPU_blend(GPU_BLEND_NONE);
 
     /* name */
     if ((tselem->flag & TSE_TEXTBUT) == 0) {
@@ -3140,7 +3140,7 @@ static void outliner_draw_tree_element(bContext *C,
         else if (tselem->type != TSE_R_LAYER) {
           int tempx = startx + offsx;
 
-          GPU_blend(true);
+          GPU_blend(GPU_BLEND_ALPHA);
 
           MergedIconRow merged = {{0}};
           outliner_draw_iconrow(C,
@@ -3156,7 +3156,7 @@ static void outliner_draw_tree_element(bContext *C,
                                 alpha_fac,
                                 &merged);
 
-          GPU_blend(false);
+          GPU_blend(GPU_BLEND_NONE);
         }
       }
     }
@@ -3315,9 +3315,9 @@ static void outliner_draw_hierarchy_lines(SpaceOutliner *space_outliner,
   UI_GetThemeColorBlend3ubv(TH_BACK, TH_TEXT, 0.4f, col);
   col[3] = 255;
 
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
   outliner_draw_hierarchy_lines_recursive(pos, space_outliner, lb, startx, col, false, starty);
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 
   immUnbindProgram();
 }
@@ -3464,7 +3464,7 @@ static void outliner_draw_highlights(ARegion *region,
   UI_GetThemeColor4fv(TH_MATCH, col_searchmatch);
   col_searchmatch[3] = 0.5f;
 
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -3479,7 +3479,7 @@ static void outliner_draw_highlights(ARegion *region,
                                      startx,
                                      starty);
   immUnbindProgram();
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 static void outliner_draw_tree(bContext *C,
@@ -3493,7 +3493,7 @@ static void outliner_draw_tree(bContext *C,
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
   int starty, startx;
 
-  GPU_blend_set_func_separate(GPU_BLEND_ALPHA); /* Only once. */
+  GPU_blend(GPU_BLEND_ALPHA); /* Only once. */
 
   if (space_outliner->outlinevis == SO_DATA_API) {
     /* struct marks */

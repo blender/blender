@@ -195,7 +195,7 @@ static void button2d_draw_intern(const bContext *C,
   }
   else {
 
-    GPU_blend(true);
+    GPU_blend(GPU_BLEND_ALPHA);
 
     if (draw_options & ED_GIZMO_BUTTON_SHOW_BACKDROP) {
       const float fill_alpha = RNA_float_get(gz->ptr, "backdrop_fill_alpha");
@@ -265,7 +265,7 @@ static void button2d_draw_intern(const bContext *C,
       UI_icon_draw_alpha(pos[0], pos[1], button->icon, alpha);
       GPU_polygon_smooth(true);
     }
-    GPU_blend(false);
+    GPU_blend(GPU_BLEND_NONE);
   }
 
   if (need_to_pop) {
@@ -283,9 +283,9 @@ static void gizmo_button2d_draw(const bContext *C, wmGizmo *gz)
 {
   const bool is_highlight = (gz->state & WM_GIZMO_STATE_HIGHLIGHT) != 0;
 
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
   button2d_draw_intern(C, gz, false, is_highlight);
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 static int gizmo_button2d_test_select(bContext *C, wmGizmo *gz, const int mval[2])

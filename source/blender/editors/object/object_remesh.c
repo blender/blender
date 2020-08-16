@@ -294,7 +294,7 @@ static void voxel_size_edit_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar),
 {
   VoxelSizeEditCustomData *cd = arg;
 
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
   GPU_line_smooth(true);
 
   uint pos3d = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
@@ -363,7 +363,7 @@ static void voxel_size_edit_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar),
 
   GPU_matrix_pop();
 
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
   GPU_line_smooth(false);
 }
 

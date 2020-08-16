@@ -407,7 +407,7 @@ static void axis_geom_draw(const wmGizmo *gz,
         BLF_width_and_height(font.id, axis_str, 2, &offset[0], &offset[1]);
         BLF_position(font.id, roundf(offset[0] * -0.5f), roundf(offset[1] * -0.5f), 0);
         BLF_draw_ascii(font.id, axis_str, 2);
-        GPU_blend(true); /* XXX, blf disables */
+        GPU_blend(GPU_BLEND_ALPHA); /* XXX, blf disables */
         GPU_matrix_pop();
 
         immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
@@ -465,9 +465,9 @@ static void axis3d_draw_intern(const bContext *C,
   UNUSED_VARS(C);
 #endif
 
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
   axis_geom_draw(gz, color, select, &draw_info);
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
   GPU_matrix_pop();
 }
 
@@ -478,9 +478,9 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
 
   (void)is_modal;
 
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
   axis3d_draw_intern(C, gz, false, is_highlight);
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 static int gizmo_axis_test_select(bContext *UNUSED(C), wmGizmo *gz, const int mval[2])

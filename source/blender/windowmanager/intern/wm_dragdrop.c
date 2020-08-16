@@ -401,7 +401,7 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
   }
 
   /* XXX todo, multiline drag draws... but maybe not, more types mixed wont work well */
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
   for (drag = wm->drags.first; drag; drag = drag->next) {
     const uchar text_col[] = {255, 255, 255, 255};
     int iconsize = UI_DPI_ICON_SIZE;
@@ -495,5 +495,5 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
       }
     }
   }
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 }

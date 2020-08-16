@@ -734,8 +734,8 @@ static void annotation_draw_data(
   GPU_line_smooth(true);
 
   /* turn on alpha-blending */
-  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
+  GPU_blend(GPU_BLEND_ALPHA);
 
   /* Do not write to depth (avoid self-occlusion). */
   bool prev_depth_mask = GPU_depth_mask_get();
@@ -745,8 +745,8 @@ static void annotation_draw_data(
   annotation_draw_data_layers(gpd, offsx, offsy, winx, winy, cfra, dflag);
 
   /* turn off alpha blending, then smooth lines */
-  GPU_blend(false);        // alpha blending
-  GPU_line_smooth(false);  // smooth lines
+  GPU_blend(GPU_BLEND_NONE);  // alpha blending
+  GPU_line_smooth(false);     // smooth lines
 
   GPU_depth_mask(prev_depth_mask);
 }

@@ -66,12 +66,12 @@ static void draw_background(const rcti *rect)
 
   immUniformThemeColor(TH_TIME_SCRUB_BACKGROUND);
 
-  GPU_blend(true);
-  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
+  GPU_blend(GPU_BLEND_ALPHA);
+  GPU_blend(GPU_BLEND_ALPHA);
 
   immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 
   immUnbindProgram();
 }

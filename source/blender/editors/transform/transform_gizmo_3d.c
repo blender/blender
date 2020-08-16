@@ -1344,7 +1344,7 @@ void drawDial3d(const TransInfo *t)
     gizmo_get_axis_color(axis_idx, NULL, color, color);
 
     GPU_depth_test(false);
-    GPU_blend(true);
+    GPU_blend(GPU_BLEND_ALPHA);
     GPU_line_smooth(true);
 
     ED_gizmotypes_dial_3d_draw_util(mat_basis,
@@ -1360,7 +1360,7 @@ void drawDial3d(const TransInfo *t)
 
     GPU_line_smooth(false);
     GPU_depth_test(true);
-    GPU_blend(false);
+    GPU_blend(GPU_BLEND_NONE);
   }
 }
 

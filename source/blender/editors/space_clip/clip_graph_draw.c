@@ -192,7 +192,7 @@ static void draw_tracks_motion_and_error_curves(View2D *v2d, SpaceClip *sc, uint
   }
 
   /* Draw graph lines. */
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
   clip_graph_tracking_values_iterate(sc,
                                      (sc->flag & SC_SHOW_GRAPH_SEL_ONLY) != 0,
                                      (sc->flag & SC_SHOW_GRAPH_HIDDEN) != 0,
@@ -200,7 +200,7 @@ static void draw_tracks_motion_and_error_curves(View2D *v2d, SpaceClip *sc, uint
                                      tracking_segment_point_cb,
                                      tracking_segment_start_cb,
                                      tracking_segment_end_cb);
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 
   /* Selected knot handles on top of curves. */
   if (draw_knots) {

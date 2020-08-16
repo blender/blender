@@ -123,7 +123,7 @@ void DRW_draw_cursor(void)
 
       /* Draw nice Anti Aliased cursor. */
       GPU_line_width(1.0f);
-      GPU_blend(true);
+      GPU_blend(GPU_BLEND_ALPHA);
       GPU_line_smooth(true);
 
       float eps = 1e-5f;
@@ -188,7 +188,7 @@ void DRW_draw_cursor(void)
 
       GPU_batch_draw(cursor_batch);
 
-      GPU_blend(false);
+      GPU_blend(GPU_BLEND_NONE);
       GPU_line_smooth(false);
       GPU_matrix_pop();
       GPU_matrix_projection_set(original_proj);

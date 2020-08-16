@@ -245,7 +245,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 
       size = 2.5f * UI_GetThemeValuef(TH_VERTEX_SIZE);
 
-      GPU_blend(true);
+      GPU_blend(GPU_BLEND_ALPHA);
 
       uint pos = GPU_vertformat_attr_add(
           immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -271,7 +271,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 
       immUnbindProgram();
 
-      GPU_blend(false);
+      GPU_blend(GPU_BLEND_NONE);
     }
   }
 }

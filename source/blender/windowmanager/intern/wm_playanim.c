@@ -315,8 +315,8 @@ static void playanim_toscreen(
 
   /* checkerboard for case alpha */
   if (ibuf->planes == 32) {
-    GPU_blend(true);
-    GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
+    GPU_blend(GPU_BLEND_ALPHA);
+    GPU_blend(GPU_BLEND_ALPHA);
 
     imm_draw_box_checker_2d_ex(offs_x,
                                offs_y,
@@ -341,7 +341,7 @@ static void playanim_toscreen(
                    ((ps->draw_flip[1] ? -1.0f : 1.0f)) * (ps->zoom / (float)ps->win_y),
                    NULL);
 
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 
   pupdate_time();
 

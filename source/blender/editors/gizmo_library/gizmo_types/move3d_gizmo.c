@@ -207,9 +207,9 @@ static void move3d_draw_intern(const bContext *C,
     GPU_matrix_mul(matrix_align);
   }
 
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
   move_geom_draw(gz, color, select, draw_options);
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
   GPU_matrix_pop();
 
   if (gz->interaction_data) {
@@ -220,9 +220,9 @@ static void move3d_draw_intern(const bContext *C,
       GPU_matrix_mul(matrix_align);
     }
 
-    GPU_blend(true);
+    GPU_blend(GPU_BLEND_ALPHA);
     move_geom_draw(gz, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f}, select, draw_options);
-    GPU_blend(false);
+    GPU_blend(GPU_BLEND_NONE);
     GPU_matrix_pop();
   }
 }
@@ -240,9 +240,9 @@ static void gizmo_move_draw(const bContext *C, wmGizmo *gz)
 
   (void)is_modal;
 
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
   move3d_draw_intern(C, gz, false, is_highlight);
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 static int gizmo_move_modal(bContext *C,

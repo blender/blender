@@ -1765,7 +1765,7 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(region), void
       pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     }
 
-    GPU_blend(true);
+    GPU_blend(GPU_BLEND_ALPHA);
 
     /* Static Tris */
     if (stitch_preview->static_tris) {
@@ -1829,7 +1829,7 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(region), void
       stitch_draw_vbo(vbo_line, GPU_PRIM_LINES, col);
     }
 
-    GPU_blend(false);
+    GPU_blend(GPU_BLEND_NONE);
 
     /* draw stitch vert/lines preview */
     if (ssc->mode == STITCH_VERT) {

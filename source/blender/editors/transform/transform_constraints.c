@@ -884,7 +884,7 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 
     float viewport[4];
     GPU_viewport_size_get_f(viewport);
-    GPU_blend(true);
+    GPU_blend(GPU_BLEND_ALPHA);
 
     immUniform2fv("viewportSize", &viewport[2]);
     immUniform1f("lineWidth", 3.0f * U.pixelsize);

@@ -1891,7 +1891,7 @@ void UI_block_draw(const bContext *C, uiBlock *block)
   }
 
   /* we set this only once */
-  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
+  GPU_blend(GPU_BLEND_ALPHA);
 
   /* scale fonts */
   ui_fontscale(&style.paneltitle.points, block->aspect);

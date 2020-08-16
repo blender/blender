@@ -1000,7 +1000,7 @@ void ui_draw_aligned_panel(uiStyle *style,
     /* Mimick the border between aligned box widgets for the bottom of the header. */
     if (!(is_closed_x || is_closed_y)) {
       immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-      GPU_blend(true);
+      GPU_blend(GPU_BLEND_ALPHA);
 
       immUniformColor4ubv(box_wcol->outline);
       immRectf(pos, rect->xmin, headrect.ymin - U.pixelsize, rect->xmax, headrect.ymin);
@@ -1013,7 +1013,7 @@ void ui_draw_aligned_panel(uiStyle *style,
                rect->xmax,
                headrect.ymin - U.pixelsize - 1);
 
-      GPU_blend(false);
+      GPU_blend(GPU_BLEND_NONE);
       immUnbindProgram();
     }
   }
@@ -1025,7 +1025,7 @@ void ui_draw_aligned_panel(uiStyle *style,
     float y = headrect.ymax;
 
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-    GPU_blend(true);
+    GPU_blend(GPU_BLEND_ALPHA);
 
     /* draw with background color */
     immUniformThemeColor(TH_PANEL_HEADER);
@@ -1041,7 +1041,7 @@ void ui_draw_aligned_panel(uiStyle *style,
 
     immEnd();
 
-    GPU_blend(false);
+    GPU_blend(GPU_BLEND_NONE);
     immUnbindProgram();
   }
 
@@ -1055,7 +1055,7 @@ void ui_draw_aligned_panel(uiStyle *style,
     uchar col_title[4];
     panel_title_color_get(show_background, col_title);
 
-    GPU_blend(true);
+    GPU_blend(GPU_BLEND_ALPHA);
     UI_icon_draw_ex(headrect.xmax - ((PNL_ICON * 2.2f) / block->aspect),
                     headrect.ymin + (5.0f / block->aspect),
                     (panel->flag & PNL_PIN) ? ICON_PINNED : ICON_UNPINNED,
@@ -1064,7 +1064,7 @@ void ui_draw_aligned_panel(uiStyle *style,
                     0.0f,
                     col_title,
                     false);
-    GPU_blend(false);
+    GPU_blend(GPU_BLEND_NONE);
   }
 
   /* horizontal title */
@@ -1134,7 +1134,7 @@ void ui_draw_aligned_panel(uiStyle *style,
     }
 
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-    GPU_blend(true);
+    GPU_blend(GPU_BLEND_ALPHA);
 
     /* Draw panel backdrop if it wasn't already been drawn by the single opaque round box earlier.
      * Note: Sub-panels blend with panels, so they can't be opaque. */
@@ -2366,7 +2366,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
 
   /* draw the background */
   if (is_alpha) {
-    GPU_blend(true);
+    GPU_blend(GPU_BLEND_ALPHA);
     immUniformColor4ubv(theme_col_tab_bg);
   }
   else {
@@ -2383,7 +2383,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
   }
 
   if (is_alpha) {
-    GPU_blend(false);
+    GPU_blend(GPU_BLEND_NONE);
   }
 
   immUnbindProgram();
@@ -2403,7 +2403,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
 
     const bool is_active = STREQ(category_id, category_id_active);
 
-    GPU_blend(true);
+    GPU_blend(GPU_BLEND_ALPHA);
 
 #ifdef USE_FLAT_INACTIVE
     if (is_active)
@@ -2479,7 +2479,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
     /* main tab title */
     BLF_draw(fontid, category_id_draw, category_draw_len);
 
-    GPU_blend(false);
+    GPU_blend(GPU_BLEND_NONE);
 
     /* tab blackline remaining (last tab) */
     pos = GPU_vertformat_attr_add(

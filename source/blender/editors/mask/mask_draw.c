@@ -594,8 +594,8 @@ static void draw_mask_layers(const bContext *C,
                              const int width,
                              const int height)
 {
-  GPU_blend(true);
-  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
+  GPU_blend(GPU_BLEND_ALPHA);
+  GPU_blend(GPU_BLEND_ALPHA);
   GPU_program_point_size(true);
 
   MaskLayer *mask_layer;
@@ -632,7 +632,7 @@ static void draw_mask_layers(const bContext *C,
   }
 
   GPU_program_point_size(false);
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 void ED_mask_draw(const bContext *C, const char draw_flag, const char draw_type)
@@ -739,8 +739,8 @@ void ED_mask_draw_region(
 
     if (overlay_mode != MASK_OVERLAY_ALPHACHANNEL) {
       /* More blending types could be supported in the future. */
-      GPU_blend(true);
-      GPU_blend_set_func_separate(GPU_BLEND_MULTIPLY);
+      GPU_blend(GPU_BLEND_ALPHA);
+      GPU_blend(GPU_BLEND_MULTIPLY);
     }
 
     GPU_matrix_push();
@@ -757,7 +757,7 @@ void ED_mask_draw_region(
     GPU_matrix_pop();
 
     if (overlay_mode != MASK_OVERLAY_ALPHACHANNEL) {
-      GPU_blend(false);
+      GPU_blend(GPU_BLEND_NONE);
     }
 
     MEM_freeN(buffer);

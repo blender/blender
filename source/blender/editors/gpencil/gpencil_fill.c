@@ -252,7 +252,7 @@ static void gpencil_draw_datablock(tGPDfill *tgpf, const float ink[4])
   tgpw.disable_fill = 1;
   tgpw.dflag |= (GP_DRAWFILLS_ONLY3D | GP_DRAWFILLS_NOSTATUS);
 
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
 
   bGPDlayer *gpl_active = BKE_gpencil_layer_active_get(gpd);
   BLI_assert(gpl_active != NULL);
@@ -371,7 +371,7 @@ static void gpencil_draw_datablock(tGPDfill *tgpf, const float ink[4])
     }
   }
 
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 /* draw strokes in offscreen buffer */

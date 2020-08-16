@@ -626,14 +626,14 @@ static void gizmo_cage2d_draw_intern(wmGizmo *gz,
 
   /* Handy for quick testing draw (if it's outside bounds). */
   if (false) {
-    GPU_blend(true);
+    GPU_blend(GPU_BLEND_ALPHA);
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
     immUniformColor4fv((const float[4]){1, 1, 1, 0.5f});
     float s = 0.5f;
     immRectf(pos, -s, -s, s, s);
     immUnbindProgram();
-    GPU_blend(false);
+    GPU_blend(GPU_BLEND_NONE);
   }
 
   if (select) {
@@ -722,7 +722,7 @@ static void gizmo_cage2d_draw_intern(wmGizmo *gz,
       float color[4], black[3] = {0, 0, 0};
       gizmo_color_get(gz, highlight, color);
 
-      GPU_blend(true);
+      GPU_blend(GPU_BLEND_ALPHA);
 
       float outline_line_width = gz->line_width + 3.0f;
       cage2d_draw_circle_wire(&r, margin, black, transform_flag, draw_options, outline_line_width);
@@ -732,7 +732,7 @@ static void gizmo_cage2d_draw_intern(wmGizmo *gz,
       cage2d_draw_circle_handles(&r, margin, color, transform_flag, true);
       cage2d_draw_circle_handles(&r, margin, (const float[3]){0, 0, 0}, transform_flag, false);
 
-      GPU_blend(false);
+      GPU_blend(GPU_BLEND_NONE);
     }
     else {
       BLI_assert(0);

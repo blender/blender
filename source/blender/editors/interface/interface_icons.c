@@ -1595,7 +1595,7 @@ static void icon_draw_cache_flush_ex(bool only_full_caches)
     /* We need to flush widget base first to ensure correct ordering. */
     UI_widgetbase_draw_cache_flush();
 
-    GPU_blend_set_func_separate(GPU_BLEND_ALPHA_PREMULT);
+    GPU_blend(GPU_BLEND_ALPHA_PREMULT);
 
     if (!only_full_caches || g_icon_draw_cache.normal.calls == ICON_DRAW_CACHE_SIZE) {
       icon_draw_cache_texture_flush_ex(icongltex.tex[0], &g_icon_draw_cache.normal);
@@ -1605,7 +1605,7 @@ static void icon_draw_cache_flush_ex(bool only_full_caches)
       icon_draw_cache_texture_flush_ex(icongltex.tex[1], &g_icon_draw_cache.border);
     }
 
-    GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
+    GPU_blend(GPU_BLEND_ALPHA);
   }
 }
 
@@ -1619,9 +1619,9 @@ void UI_icon_draw_cache_end(void)
     return;
   }
 
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
   icon_draw_cache_flush_ex(false);
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 static void icon_draw_texture_cached(float x,
@@ -1689,7 +1689,7 @@ static void icon_draw_texture(float x,
   /* We need to flush widget base first to ensure correct ordering. */
   UI_widgetbase_draw_cache_flush();
 
-  GPU_blend_set_func_separate(GPU_BLEND_ALPHA_PREMULT);
+  GPU_blend(GPU_BLEND_ALPHA_PREMULT);
 
   float x1, x2, y1, y2;
 
@@ -1725,7 +1725,7 @@ static void icon_draw_texture(float x,
 
   GPU_texture_unbind(texture);
 
-  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
+  GPU_blend(GPU_BLEND_ALPHA);
 }
 
 /* Drawing size for preview images */
@@ -1813,9 +1813,9 @@ static void icon_draw_size(float x,
       di->data.geom.inverted = invert;
     }
 
-    GPU_blend_set_func_separate(GPU_BLEND_ALPHA_PREMULT);
+    GPU_blend(GPU_BLEND_ALPHA_PREMULT);
     icon_draw_rect(x, y, w, h, aspect, w, h, ibuf->rect, alpha, desaturate);
-    GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
+    GPU_blend(GPU_BLEND_ALPHA);
   }
   else if (di->type == ICON_TYPE_EVENT) {
     const short event_type = di->data.input.event_type;
@@ -1896,10 +1896,10 @@ static void icon_draw_size(float x,
       }
 
       /* Preview images use premultiplied alpha. */
-      GPU_blend_set_func_separate(GPU_BLEND_ALPHA_PREMULT);
+      GPU_blend(GPU_BLEND_ALPHA_PREMULT);
       icon_draw_rect(
           x, y, w, h, aspect, pi->w[size], pi->h[size], pi->rect[size], alpha, desaturate);
-      GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
+      GPU_blend(GPU_BLEND_ALPHA);
     }
   }
   else if (di->type == ICON_TYPE_GPLAYER) {

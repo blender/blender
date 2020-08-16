@@ -40,17 +40,7 @@
 
 using namespace blender::gpu;
 
-void GPU_blend(bool enable)
-{
-  if (enable) {
-    GLStateStack::set_blend(GPU_BLEND_ALPHA);
-  }
-  else {
-    GLStateStack::set_blend(GPU_BLEND_NONE);
-  }
-}
-
-void GPU_blend_set_func_separate(eGPUBlend blend)
+void GPU_blend(eGPUBlend blend)
 {
   GLStateStack::set_blend(blend);
 }

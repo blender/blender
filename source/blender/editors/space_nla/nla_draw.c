@@ -321,7 +321,7 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc, uin
 
   /* draw with AA'd line */
   GPU_line_smooth(true);
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
 
   /* influence -------------------------- */
   if (strip->flag & NLASTRIP_FLAG_USR_INFLUENCE) {
@@ -374,7 +374,7 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc, uin
 
   /* turn off AA'd lines */
   GPU_line_smooth(false);
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 /* helper call to setup dashed-lines for strip outlines */
@@ -434,8 +434,8 @@ static void nla_draw_strip(SpaceNla *snla,
    */
   if ((strip->extendmode != NLASTRIP_EXTEND_NOTHING) && (non_solo == 0)) {
     /* enable transparency... */
-    GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
-    GPU_blend(true);
+    GPU_blend(GPU_BLEND_ALPHA);
+    GPU_blend(GPU_BLEND_ALPHA);
 
     switch (strip->extendmode) {
       /* since this does both sides,
@@ -467,7 +467,7 @@ static void nla_draw_strip(SpaceNla *snla,
         break;
     }
 
-    GPU_blend(false);
+    GPU_blend(GPU_BLEND_NONE);
   }
 
   /* draw 'inside' of strip itself */
@@ -486,9 +486,9 @@ static void nla_draw_strip(SpaceNla *snla,
     /* strip is in disabled track - make less visible */
     immUniformColor3fvAlpha(color, 0.1f);
 
-    GPU_blend(true);
+    GPU_blend(GPU_BLEND_ALPHA);
     immRectf(shdr_pos, strip->start, yminc, strip->end, ymaxc);
-    GPU_blend(false);
+    GPU_blend(GPU_BLEND_NONE);
   }
 
   /* draw strip's control 'curves'
@@ -745,8 +745,8 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
           /* just draw a semi-shaded rect spanning the width of the viewable area if there's data,
            * and a second darker rect within which we draw keyframe indicator dots if there's data
            */
-          GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
-          GPU_blend(true);
+          GPU_blend(GPU_BLEND_ALPHA);
+          GPU_blend(GPU_BLEND_ALPHA);
 
           /* get colors for drawing */
           float color[4];
@@ -788,7 +788,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
           nla_action_draw_keyframes(
               v2d, adt, ale->data, ycenter, ymin + NLACHANNEL_SKIP, ymax - NLACHANNEL_SKIP);
 
-          GPU_blend(false);
+          GPU_blend(GPU_BLEND_NONE);
           break;
         }
       }
@@ -852,8 +852,8 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *region)
     float ymax = NLACHANNEL_FIRST_TOP(ac);
 
     /* set blending again, as may not be set in previous step */
-    GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
-    GPU_blend(true);
+    GPU_blend(GPU_BLEND_ALPHA);
+    GPU_blend(GPU_BLEND_ALPHA);
 
     /* loop through channels, and set up drawing depending on their type  */
     for (ale = anim_data.first; ale;
@@ -873,7 +873,7 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *region)
     UI_block_end(C, block);
     UI_block_draw(C, block);
 
-    GPU_blend(false);
+    GPU_blend(GPU_BLEND_NONE);
   }
 
   /* free temporary channels */

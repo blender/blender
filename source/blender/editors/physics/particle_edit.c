@@ -3213,11 +3213,11 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
     immUniformColor4ub(255, 255, 255, 128);
 
     GPU_line_smooth(true);
-    GPU_blend(true);
+    GPU_blend(GPU_BLEND_ALPHA);
 
     imm_draw_circle_wire_2d(pos, (float)x, (float)y, pe_brush_size_get(scene, brush), 40);
 
-    GPU_blend(false);
+    GPU_blend(GPU_BLEND_NONE);
     GPU_line_smooth(false);
 
     immUnbindProgram();

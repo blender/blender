@@ -169,7 +169,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
 
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
 
   /* first backdrop strips */
   float ymax = ACHANNEL_FIRST_TOP(ac);
@@ -276,7 +276,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
       }
     }
   }
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 
   /* black line marking 'current frame' for Time-Slide transform mode */
   if (saction->flag & SACTION_MOVING) {
@@ -558,7 +558,7 @@ void timeline_draw_cache(SpaceAction *saction, Object *ob, Scene *scene)
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
 
   /* Iterate over pointcaches on the active object, and draw each one's range. */
   float y_offset = 0.0f;
@@ -577,7 +577,7 @@ void timeline_draw_cache(SpaceAction *saction, Object *ob, Scene *scene)
     y_offset += cache_draw_height;
   }
 
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
   immUnbindProgram();
 
   BLI_freelistN(&pidlist);

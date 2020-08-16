@@ -438,7 +438,7 @@ static void gradient_draw_line(bContext *UNUSED(C), int x, int y, void *customda
 
   if (pop) {
     GPU_line_smooth(true);
-    GPU_blend(true);
+    GPU_blend(GPU_BLEND_ALPHA);
 
     GPUVertFormat *format = immVertexFormat();
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
@@ -467,7 +467,7 @@ static void gradient_draw_line(bContext *UNUSED(C), int x, int y, void *customda
 
     immUnbindProgram();
 
-    GPU_blend(false);
+    GPU_blend(GPU_BLEND_NONE);
     GPU_line_smooth(false);
   }
 }

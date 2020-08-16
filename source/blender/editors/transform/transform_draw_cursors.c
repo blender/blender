@@ -191,7 +191,7 @@ void transform_draw_cursor_draw(bContext *UNUSED(C), int x, int y, void *customd
     }
 
     GPU_line_smooth(true);
-    GPU_blend(true);
+    GPU_blend(GPU_BLEND_ALPHA);
 
     GPU_matrix_push();
 
@@ -339,6 +339,6 @@ void transform_draw_cursor_draw(bContext *UNUSED(C), int x, int y, void *customd
     GPU_matrix_pop();
 
     GPU_line_smooth(false);
-    GPU_blend(false);
+    GPU_blend(GPU_BLEND_NONE);
   }
 }

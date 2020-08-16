@@ -106,7 +106,7 @@ typedef enum eGPUProvokingVertex {
 void GPU_state_init(void);
 
 void GPU_blend(bool enable);
-void GPU_blend_set_func_separate(eGPUBlend blend);
+void GPU_blend(eGPUBlend blend);
 void GPU_face_culling(eGPUFaceCullTest culling);
 void GPU_front_facing(bool invert);
 void GPU_provoking_vertex(eGPUProvokingVertex vert);

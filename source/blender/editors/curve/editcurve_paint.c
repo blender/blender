@@ -420,7 +420,7 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C),
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
       GPU_depth_test(false);
-      GPU_blend(true);
+      GPU_blend(GPU_BLEND_ALPHA);
       GPU_line_smooth(true);
       GPU_line_width(3.0f);
 
@@ -442,7 +442,7 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C),
 
       /* Reset defaults */
       GPU_depth_test(true);
-      GPU_blend(false);
+      GPU_blend(GPU_BLEND_NONE);
       GPU_line_smooth(false);
 
       immUnbindProgram();

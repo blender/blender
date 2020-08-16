@@ -499,15 +499,15 @@ static void draw_marker(
 
   marker_color_get(marker, text_color, line_color);
 
-  GPU_blend(true);
-  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
+  GPU_blend(GPU_BLEND_ALPHA);
+  GPU_blend(GPU_BLEND_ALPHA);
 
   draw_marker_line(line_color, xpos, UI_DPI_FAC * 20, region_height);
 
   int icon_id = marker_get_icon_id(marker, flag);
   UI_icon_draw(xpos - 0.55f * UI_DPI_ICON_SIZE, UI_DPI_FAC * 18, icon_id);
 
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 
   float name_y = UI_DPI_FAC * 18;
   /* Give an offset to the marker name when selected,
@@ -528,12 +528,12 @@ static void draw_markers_background(rctf *rect)
 
   immUniformColor4ubv(shade);
 
-  GPU_blend(true);
-  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
+  GPU_blend(GPU_BLEND_ALPHA);
+  GPU_blend(GPU_BLEND_ALPHA);
 
   immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 
   immUnbindProgram();
 }

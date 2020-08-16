@@ -1353,10 +1353,10 @@ static void draw_text_decoration(SpaceText *st, ARegion *region)
       UI_GetThemeColor4fv(TH_TEXT, highlight_color);
       highlight_color[3] = 0.1f;
       immUniformColor4fv(highlight_color);
-      GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
-      GPU_blend(true);
+      GPU_blend(GPU_BLEND_ALPHA);
+      GPU_blend(GPU_BLEND_ALPHA);
       immRecti(pos, 0, y1, region->winx, y2);
-      GPU_blend(false);
+      GPU_blend(GPU_BLEND_NONE);
     }
   }
 
@@ -1707,9 +1707,9 @@ void draw_text_main(SpaceText *st, ARegion *region)
       UI_GetThemeColor4fv(TH_TEXT, margin_color);
       margin_color[3] = 0.2f;
       immUniformColor4fv(margin_color);
-      GPU_blend(true);
+      GPU_blend(GPU_BLEND_ALPHA);
       immRecti(pos, margin_column_x, 0, margin_column_x + U.pixelsize, region->winy);
-      GPU_blend(false);
+      GPU_blend(GPU_BLEND_NONE);
       immUnbindProgram();
     }
   }

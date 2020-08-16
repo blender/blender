@@ -2268,8 +2268,8 @@ static void gpencil_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_ptr)
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
     GPU_line_smooth(true);
-    GPU_blend(true);
-    GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
+    GPU_blend(GPU_BLEND_ALPHA);
+    GPU_blend(GPU_BLEND_ALPHA);
 
     immUniformColor4ub(255, 100, 100, 20);
     imm_draw_circle_fill_2d(shdr_pos, x, y, p->radius, 40);
@@ -2297,7 +2297,7 @@ static void gpencil_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_ptr)
 
     immUnbindProgram();
 
-    GPU_blend(false);
+    GPU_blend(GPU_BLEND_NONE);
     GPU_line_smooth(false);
   }
 }

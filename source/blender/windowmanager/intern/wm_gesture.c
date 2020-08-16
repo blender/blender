@@ -236,7 +236,7 @@ static void wm_gesture_draw_rect(wmGesture *gt)
   uint shdr_pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
 
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
 
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
   immUniformColor4f(1.0f, 1.0f, 1.0f, 0.05f);
@@ -245,7 +245,7 @@ static void wm_gesture_draw_rect(wmGesture *gt)
 
   immUnbindProgram();
 
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 
   shdr_pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
@@ -274,7 +274,7 @@ static void wm_gesture_draw_circle(wmGesture *gt)
 {
   rcti *rect = (rcti *)gt->customdata;
 
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
 
   const uint shdr_pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -286,7 +286,7 @@ static void wm_gesture_draw_circle(wmGesture *gt)
 
   immUnbindProgram();
 
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 
   immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
@@ -353,8 +353,8 @@ static void draw_filled_lasso(wmGesture *gt)
                                   draw_filled_lasso_px_cb,
                                   &lasso_fill_data);
 
-    GPU_blend(true);
-    GPU_blend_set_func_separate(GPU_BLEND_ADDITIVE);
+    GPU_blend(GPU_BLEND_ALPHA);
+    GPU_blend(GPU_BLEND_ADDITIVE);
 
     IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
     GPU_shader_bind(state.shader);
@@ -368,7 +368,7 @@ static void draw_filled_lasso(wmGesture *gt)
 
     MEM_freeN(pixel_buf);
 
-    GPU_blend(false);
+    GPU_blend(GPU_BLEND_NONE);
   }
 
   MEM_freeN(mcoords);

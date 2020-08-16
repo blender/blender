@@ -482,9 +482,9 @@ static void gizmo_dial_draw(const bContext *C, wmGizmo *gz)
     clip_plane[3] += DIAL_CLIP_BIAS;
   }
 
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
   dial_draw_intern(C, gz, false, is_highlight, clip_plane);
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 static int gizmo_dial_modal(bContext *C,

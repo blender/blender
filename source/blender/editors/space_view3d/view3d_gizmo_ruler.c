@@ -607,7 +607,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
   GPU_matrix_projection_set(rv3d->winmat);
   GPU_matrix_set(rv3d->viewmat);
 
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
 
   const uint shdr_pos_3d = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
@@ -735,7 +735,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
       rot_90_vec_b[1] = dir_ruler[0];
       normalize_v2(rot_90_vec_b);
 
-      GPU_blend(true);
+      GPU_blend(GPU_BLEND_ALPHA);
 
       if (proj_ok[1] && is_act && (ruler_item->flag & RULERITEM_USE_ANGLE_ACTIVE)) {
         GPU_line_width(3.0f);
@@ -781,7 +781,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
         immEnd();
       }
 
-      GPU_blend(false);
+      GPU_blend(GPU_BLEND_NONE);
     }
 
     /* text */
@@ -800,13 +800,13 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
     /* draw text (bg) */
     if (proj_ok[1]) {
       immUniformColor4fv(color_back);
-      GPU_blend(true);
+      GPU_blend(GPU_BLEND_ALPHA);
       immRectf(shdr_pos_2d,
                posit[0] - bg_margin,
                posit[1] - bg_margin,
                posit[0] + bg_margin + numstr_size[0],
                posit[1] + bg_margin + numstr_size[1]);
-      GPU_blend(false);
+      GPU_blend(GPU_BLEND_NONE);
     }
 
     immUnbindProgram();
@@ -831,7 +831,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
 
       normalize_v2(rot_90_vec);
 
-      GPU_blend(true);
+      GPU_blend(GPU_BLEND_ALPHA);
 
       immUniformColor3ubv(color_wire);
 
@@ -855,7 +855,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
         immEnd();
       }
 
-      GPU_blend(false);
+      GPU_blend(GPU_BLEND_NONE);
     }
 
     /* text */
@@ -877,13 +877,13 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
     /* draw text (bg) */
     if (proj_ok[0] && proj_ok[2]) {
       immUniformColor4fv(color_back);
-      GPU_blend(true);
+      GPU_blend(GPU_BLEND_ALPHA);
       immRectf(shdr_pos_2d,
                posit[0] - bg_margin,
                posit[1] - bg_margin,
                posit[0] + bg_margin + numstr_size[0],
                posit[1] + bg_margin + numstr_size[1]);
-      GPU_blend(false);
+      GPU_blend(GPU_BLEND_NONE);
     }
 
     immUnbindProgram();

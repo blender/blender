@@ -692,7 +692,7 @@ static void draw_keylist(View2D *v2d,
   const float smaller_sz = 0.35f * icon_sz;
   const float ipo_sz = 0.1f * icon_sz;
 
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
 
   /* locked channels are less strongly shown, as feedback for locked channels in DopeSheet */
   /* TODO: allow this opacity factor to be themed? */
@@ -848,7 +848,7 @@ static void draw_keylist(View2D *v2d,
     }
   }
 
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 /* *************************** Channel Drawing Funcs *************************** */

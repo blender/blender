@@ -258,7 +258,7 @@ static void draw_line_loop(const float coords[][3], int coords_len, const float 
     GPU_vertbuf_attr_set(vert, pos, i, coords[i]);
   }
 
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
   GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_LINE_LOOP, vert, NULL, GPU_BATCH_OWNS_VBO);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
 
@@ -272,7 +272,7 @@ static void draw_line_loop(const float coords[][3], int coords_len, const float 
   GPU_batch_draw(batch);
 
   GPU_batch_discard(batch);
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 static void draw_line_pairs(const float coords_a[][3],
@@ -291,7 +291,7 @@ static void draw_line_pairs(const float coords_a[][3],
     GPU_vertbuf_attr_set(vert, pos, (i * 2) + 1, coords_b[i]);
   }
 
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
   GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_LINES, vert, NULL, GPU_BATCH_OWNS_VBO);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
 
@@ -305,7 +305,7 @@ static void draw_line_pairs(const float coords_a[][3],
   GPU_batch_draw(batch);
 
   GPU_batch_discard(batch);
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 static void draw_line_bounds(const BoundBox *bounds, const float color[4])
@@ -339,7 +339,7 @@ static void draw_line_bounds(const BoundBox *bounds, const float color[4])
     GPU_vertbuf_attr_set(vert, pos, j++, bounds->vec[edges[i][1]]);
   }
 
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
   GPUBatch *batch = GPU_batch_create_ex(GPU_PRIM_LINES, vert, NULL, GPU_BATCH_OWNS_VBO);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
 
@@ -353,7 +353,7 @@ static void draw_line_bounds(const BoundBox *bounds, const float color[4])
   GPU_batch_draw(batch);
 
   GPU_batch_discard(batch);
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 static bool calc_bbox(struct InteractivePlaceData *ipd, BoundBox *bounds)

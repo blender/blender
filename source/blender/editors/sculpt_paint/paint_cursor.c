@@ -634,8 +634,8 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
     uint texCoord = GPU_vertformat_attr_add(format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
     /* Premultiplied alpha blending. */
-    GPU_blend(true);
-    GPU_blend_set_func_separate(GPU_BLEND_ALPHA_PREMULT);
+    GPU_blend(GPU_BLEND_ALPHA);
+    GPU_blend(GPU_BLEND_ALPHA_PREMULT);
 
     immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
 
@@ -727,8 +727,8 @@ static bool paint_draw_cursor_overlay(
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     uint texCoord = GPU_vertformat_attr_add(format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-    GPU_blend(true);
-    GPU_blend_set_func_separate(GPU_BLEND_ALPHA_PREMULT);
+    GPU_blend(GPU_BLEND_ALPHA);
+    GPU_blend(GPU_BLEND_ALPHA_PREMULT);
 
     immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
 
@@ -918,7 +918,7 @@ static void paint_draw_curve_cursor(Brush *brush, ViewContext *vc)
     PaintCurvePoint *cp = pc->points;
 
     GPU_line_smooth(true);
-    GPU_blend(true);
+    GPU_blend(GPU_BLEND_ALPHA);
 
     /* Draw the bezier handles and the curve segment between the current and next point. */
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -979,7 +979,7 @@ static void paint_draw_curve_cursor(Brush *brush, ViewContext *vc)
     draw_rect_point(
         pos, selec_col, handle_col, &cp->bez.vec[2][0], 8.0f, cp->bez.f3 || cp->bez.f2);
 
-    GPU_blend(false);
+    GPU_blend(GPU_BLEND_NONE);
     GPU_line_smooth(false);
 
     immUnbindProgram();
@@ -1835,7 +1835,7 @@ static void paint_cursor_update_anchored_location(PaintCursorContext *pcontext)
 static void paint_cursor_setup_2D_drawing(PaintCursorContext *pcontext)
 {
   GPU_line_width(2.0f);
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
   GPU_line_smooth(true);
   pcontext->pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -1845,7 +1845,7 @@ static void paint_cursor_setup_2D_drawing(PaintCursorContext *pcontext)
 static void paint_cursor_setup_3D_drawing(PaintCursorContext *pcontext)
 {
   GPU_line_width(2.0f);
-  GPU_blend(true);
+  GPU_blend(GPU_BLEND_ALPHA);
   GPU_line_smooth(true);
   pcontext->pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
@@ -1855,7 +1855,7 @@ static void paint_cursor_setup_3D_drawing(PaintCursorContext *pcontext)
 static void paint_cursor_restore_drawing_state(void)
 {
   immUnbindProgram();
-  GPU_blend(false);
+  GPU_blend(GPU_BLEND_NONE);
   GPU_line_smooth(false);
 }
 

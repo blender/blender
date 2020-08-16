@@ -237,10 +237,10 @@ static void draw_uvs_shadow(SpaceImage *sima,
   if (edges) {
     if (sima->flag & SI_SMOOTH_UV) {
       GPU_line_smooth(true);
-      GPU_blend(true);
+      GPU_blend(GPU_BLEND_ALPHA);
     }
     else if (overlay_alpha < 1.0f) {
-      GPU_blend(true);
+      GPU_blend(GPU_BLEND_ALPHA);
     }
 
     col[3] = overlay_alpha;
@@ -250,10 +250,10 @@ static void draw_uvs_shadow(SpaceImage *sima,
 
     if (sima->flag & SI_SMOOTH_UV) {
       GPU_line_smooth(false);
-      GPU_blend(false);
+      GPU_blend(GPU_BLEND_NONE);
     }
     else if (overlay_alpha < 1.0f) {
-      GPU_blend(false);
+      GPU_blend(GPU_BLEND_NONE);
     }
   }
 }
@@ -349,7 +349,7 @@ static void draw_uvs(SpaceImage *sima,
     interpedges = (ts->uv_selectmode == UV_SELECT_VERTEX);
   }
 
-  GPU_blend_set_func_separate(GPU_BLEND_ALPHA);
+  GPU_blend(GPU_BLEND_ALPHA);
 
   if (batch->faces) {
     GPU_batch_program_set_builtin(batch->faces,
@@ -359,7 +359,7 @@ static void draw_uvs(SpaceImage *sima,
                                                    GPU_SHADER_2D_UV_FACES);
 
     if (!draw_stretch) {
-      GPU_blend(true);
+      GPU_blend(GPU_BLEND_ALPHA);
 
       UI_GetThemeColor4fv(TH_FACE, col1);
       UI_GetThemeColor4fv(TH_FACE_SELECT, col2);
@@ -386,16 +386,16 @@ static void draw_uvs(SpaceImage *sima,
     GPU_batch_draw(batch->faces);
 
     if (!draw_stretch) {
-      GPU_blend(false);
+      GPU_blend(GPU_BLEND_NONE);
     }
   }
   if (batch->edges) {
     if (sima->flag & SI_SMOOTH_UV) {
       GPU_line_smooth(true);
-      GPU_blend(true);
+      GPU_blend(GPU_BLEND_ALPHA);
     }
     else if (overlay_alpha < 1.0f) {
-      GPU_blend(true);
+      GPU_blend(GPU_BLEND_ALPHA);
     }
 
     {
@@ -464,10 +464,10 @@ static void draw_uvs(SpaceImage *sima,
 
     if (sima->flag & SI_SMOOTH_UV) {
       GPU_line_smooth(false);
-      GPU_blend(false);
+      GPU_blend(GPU_BLEND_NONE);
     }
     else if (overlay_alpha < 1.0f) {
-      GPU_blend(false);
+      GPU_blend(GPU_BLEND_NONE);
     }
   }
 
@@ -477,7 +477,7 @@ static void draw_uvs(SpaceImage *sima,
       const float point_size = UI_GetThemeValuef(TH_VERTEX_SIZE);
       const float pinned_col[4] = {1.0f, 0.0f, 0.0f, 1.0f}; /* TODO Theme? */
       UI_GetThemeColor4fv(TH_VERTEX, col1);
-      GPU_blend(true);
+      GPU_blend(GPU_BLEND_ALPHA);
       GPU_program_point_size(true);
 
       GPU_batch_program_set_builtin(batch->verts, GPU_SHADER_2D_UV_VERTS);
@@ -497,7 +497,7 @@ static void draw_uvs(SpaceImage *sima,
       GPU_batch_uniform_4fv(batch->verts, "selectColor", col2);
       GPU_batch_draw(batch->verts);
 
-      GPU_blend(false);
+      GPU_blend(GPU_BLEND_NONE);
       GPU_program_point_size(false);
     }
     if (batch->facedots) {
