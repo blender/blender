@@ -40,12 +40,6 @@
 
 using namespace blender::gpu;
 
-// /* This should replace GPU_blend, GPU_blend_set_func and GPU_blend_set_func_separate. */
-// void GPU_blend_set(eGPUBlend blend)
-// {
-//   GLStateStack::set_blend(blend);
-// }
-
 void GPU_blend(bool enable)
 {
   if (enable) {
@@ -53,25 +47,6 @@ void GPU_blend(bool enable)
   }
   else {
     GLStateStack::set_blend(GPU_BLEND_NONE);
-  }
-}
-
-void GPU_blend_set_func(eGPUBlendFunction sfactor, eGPUBlendFunction dfactor)
-{
-  if (sfactor == GPU_ONE && dfactor == GPU_ONE) {
-    GLStateStack::set_blend(GPU_BLEND_ADDITIVE);
-  }
-  else if (sfactor == GPU_ONE && dfactor == GPU_ONE_MINUS_SRC_ALPHA) {
-    GLStateStack::set_blend(GPU_BLEND_ALPHA_PREMULT);
-  }
-  else if (sfactor == GPU_SRC_ALPHA && dfactor == GPU_ONE_MINUS_SRC_ALPHA) {
-    GLStateStack::set_blend(GPU_BLEND_ALPHA);
-  }
-  else if (sfactor == GPU_DST_COLOR && dfactor == GPU_ZERO) {
-    GLStateStack::set_blend(GPU_BLEND_MULTIPLY);
-  }
-  else {
-    BLI_assert(0);
   }
 }
 

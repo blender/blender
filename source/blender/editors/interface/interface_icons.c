@@ -1595,7 +1595,7 @@ static void icon_draw_cache_flush_ex(bool only_full_caches)
     /* We need to flush widget base first to ensure correct ordering. */
     UI_widgetbase_draw_cache_flush();
 
-    GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+    GPU_blend_set_func_separate(GPU_BLEND_ALPHA_PREMULT);
 
     if (!only_full_caches || g_icon_draw_cache.normal.calls == ICON_DRAW_CACHE_SIZE) {
       icon_draw_cache_texture_flush_ex(icongltex.tex[0], &g_icon_draw_cache.normal);
@@ -1689,7 +1689,7 @@ static void icon_draw_texture(float x,
   /* We need to flush widget base first to ensure correct ordering. */
   UI_widgetbase_draw_cache_flush();
 
-  GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  GPU_blend_set_func_separate(GPU_BLEND_ALPHA_PREMULT);
 
   float x1, x2, y1, y2;
 

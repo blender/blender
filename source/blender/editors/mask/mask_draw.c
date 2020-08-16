@@ -740,7 +740,7 @@ void ED_mask_draw_region(
     if (overlay_mode != MASK_OVERLAY_ALPHACHANNEL) {
       /* More blending types could be supported in the future. */
       GPU_blend(true);
-      GPU_blend_set_func(GPU_DST_COLOR, GPU_ZERO);
+      GPU_blend_set_func_separate(GPU_BLEND_MULTIPLY);
     }
 
     GPU_matrix_push();

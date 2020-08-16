@@ -1161,7 +1161,7 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(region),
   }
 
   if (scopes->ok && scopes->waveform_1 != NULL) {
-    GPU_blend_set_func(GPU_ONE, GPU_ONE);
+    GPU_blend_set_func_separate(GPU_BLEND_ADDITIVE);
     GPU_point_size(1.0);
 
     /* LUMA (1 channel) */
@@ -1463,7 +1463,7 @@ void ui_draw_but_VECTORSCOPE(ARegion *UNUSED(region),
     /* pixel point cloud */
     const float col[3] = {alpha, alpha, alpha};
 
-    GPU_blend_set_func(GPU_ONE, GPU_ONE);
+    GPU_blend_set_func_separate(GPU_BLEND_ADDITIVE);
     GPU_point_size(1.0);
 
     GPU_matrix_push();

@@ -635,7 +635,7 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
 
     /* Premultiplied alpha blending. */
     GPU_blend(true);
-    GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+    GPU_blend_set_func_separate(GPU_BLEND_ALPHA_PREMULT);
 
     immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
 
@@ -728,7 +728,7 @@ static bool paint_draw_cursor_overlay(
     uint texCoord = GPU_vertformat_attr_add(format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
     GPU_blend(true);
-    GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+    GPU_blend_set_func_separate(GPU_BLEND_ALPHA_PREMULT);
 
     immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
 

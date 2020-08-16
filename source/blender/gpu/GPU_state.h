@@ -88,15 +88,6 @@ typedef enum eGPUStencilOp {
   GPU_STENCIL_OP_COUNT_DEPTH_FAIL,
 } eGPUStencilOp;
 
-/* These map directly to the GL_ blend functions, to minimize API add as needed*/
-typedef enum eGPUBlendFunction {
-  GPU_ONE,
-  GPU_SRC_ALPHA,
-  GPU_ONE_MINUS_SRC_ALPHA,
-  GPU_DST_COLOR,
-  GPU_ZERO,
-} eGPUBlendFunction;
-
 typedef enum eGPUFaceCullTest {
   GPU_CULL_NONE = 0, /* Culling disabled. */
   GPU_CULL_FRONT,
@@ -115,7 +106,6 @@ typedef enum eGPUProvokingVertex {
 void GPU_state_init(void);
 
 void GPU_blend(bool enable);
-void GPU_blend_set_func(eGPUBlendFunction sfactor, eGPUBlendFunction dfactor);
 void GPU_blend_set_func_separate(eGPUBlend blend);
 void GPU_face_culling(eGPUFaceCullTest culling);
 void GPU_front_facing(bool invert);
