@@ -500,7 +500,6 @@ static void draw_marker(
   marker_color_get(marker, text_color, line_color);
 
   GPU_blend(GPU_BLEND_ALPHA);
-  GPU_blend(GPU_BLEND_ALPHA);
 
   draw_marker_line(line_color, xpos, UI_DPI_FAC * 20, region_height);
 
@@ -528,7 +527,6 @@ static void draw_markers_background(rctf *rect)
 
   immUniformColor4ubv(shade);
 
-  GPU_blend(GPU_BLEND_ALPHA);
   GPU_blend(GPU_BLEND_ALPHA);
 
   immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);

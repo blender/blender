@@ -595,7 +595,6 @@ static void draw_mask_layers(const bContext *C,
                              const int height)
 {
   GPU_blend(GPU_BLEND_ALPHA);
-  GPU_blend(GPU_BLEND_ALPHA);
   GPU_program_point_size(true);
 
   MaskLayer *mask_layer;
@@ -739,7 +738,6 @@ void ED_mask_draw_region(
 
     if (overlay_mode != MASK_OVERLAY_ALPHACHANNEL) {
       /* More blending types could be supported in the future. */
-      GPU_blend(GPU_BLEND_ALPHA);
       GPU_blend(GPU_BLEND_MULTIPLY);
     }
 

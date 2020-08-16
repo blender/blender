@@ -176,7 +176,6 @@ void ED_image_draw_info(Scene *scene,
   float col[4], finalcol[4];
 
   GPU_blend(GPU_BLEND_ALPHA);
-  GPU_blend(GPU_BLEND_ALPHA);
 
   uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
@@ -540,7 +539,6 @@ static void draw_udim_label(ARegion *region, float fx, float fy, const char *lab
   UI_view2d_view_to_region(&region->v2d, fx, fy, &x, &y);
 
   GPU_blend(GPU_BLEND_ALPHA);
-  GPU_blend(GPU_BLEND_ALPHA);
 
   int textwidth = BLF_width(blf_mono_font, label, strlen(label)) + 10;
   float stepx = BLI_rcti_size_x(&region->v2d.mask) / BLI_rctf_size_x(&region->v2d.cur);
@@ -600,7 +598,6 @@ static void draw_image_buffer(const bContext *C,
     if (sima_flag & SI_USE_ALPHA) {
       imm_draw_box_checker_2d(x, y, x + ibuf->x * zoomx, y + ibuf->y * zoomy);
 
-      GPU_blend(GPU_BLEND_ALPHA);
       GPU_blend(GPU_BLEND_ALPHA);
     }
 
@@ -768,7 +765,6 @@ static void draw_image_paint_helpers(
         return;
       }
 
-      GPU_blend(GPU_BLEND_ALPHA);
       GPU_blend(GPU_BLEND_ALPHA);
 
       IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
@@ -1054,7 +1050,6 @@ void draw_image_cache(const bContext *C, ARegion *region)
   const rcti *rect_visible = ED_region_visible_rect(region);
   const int region_bottom = rect_visible->ymin;
 
-  GPU_blend(GPU_BLEND_ALPHA);
   GPU_blend(GPU_BLEND_ALPHA);
 
   /* Draw cache background. */

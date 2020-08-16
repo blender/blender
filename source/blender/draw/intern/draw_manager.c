@@ -1596,7 +1596,6 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
     GPU_clear(GPU_COLOR_BIT);
     /* Premult Alpha over black background. */
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
-    GPU_blend(GPU_BLEND_ALPHA);
   }
 
   GPU_matrix_identity_set();
@@ -1606,7 +1605,6 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
 
   if (draw_background) {
     /* Reset default. */
-    GPU_blend(GPU_BLEND_ALPHA);
     GPU_blend(GPU_BLEND_NONE);
   }
 

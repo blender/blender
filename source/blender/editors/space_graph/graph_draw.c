@@ -1263,7 +1263,6 @@ void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
 
     /* set blending again, as may not be set in previous step */
     GPU_blend(GPU_BLEND_ALPHA);
-    GPU_blend(GPU_BLEND_ALPHA);
 
     for (ale = anim_data.first; ale; ale = ale->next, ymax -= ACHANNEL_STEP(ac), channel_index++) {
       float ymin = ymax - ACHANNEL_HEIGHT(ac);

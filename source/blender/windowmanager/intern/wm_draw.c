@@ -576,8 +576,7 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
   const float rectg[4] = {rect_geo.xmin, rect_geo.ymin, rect_geo.xmax, rect_geo.ymax};
 
   if (blend) {
-    /* GL_ONE because regions drawn offscreen have premultiplied alpha. */
-    GPU_blend(GPU_BLEND_ALPHA);
+    /* Regions drawn offscreen have premultiplied alpha. */
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
   }
 

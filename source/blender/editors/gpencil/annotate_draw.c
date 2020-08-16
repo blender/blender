@@ -735,7 +735,6 @@ static void annotation_draw_data(
 
   /* turn on alpha-blending */
   GPU_blend(GPU_BLEND_ALPHA);
-  GPU_blend(GPU_BLEND_ALPHA);
 
   /* Do not write to depth (avoid self-occlusion). */
   bool prev_depth_mask = GPU_depth_mask_get();

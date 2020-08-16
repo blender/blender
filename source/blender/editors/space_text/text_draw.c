@@ -1354,7 +1354,6 @@ static void draw_text_decoration(SpaceText *st, ARegion *region)
       highlight_color[3] = 0.1f;
       immUniformColor4fv(highlight_color);
       GPU_blend(GPU_BLEND_ALPHA);
-      GPU_blend(GPU_BLEND_ALPHA);
       immRecti(pos, 0, y1, region->winx, y2);
       GPU_blend(GPU_BLEND_NONE);
     }

@@ -85,7 +85,6 @@ static void textview_draw_sel(const char *str,
     const int end = BLI_str_utf8_offset_to_column(str, min_ii(sel[1], str_len_draw));
 
     GPU_blend(GPU_BLEND_ALPHA);
-    GPU_blend(GPU_BLEND_ALPHA);
 
     GPUVertFormat *format = immVertexFormat();
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);

@@ -3689,7 +3689,6 @@ void draw_nodespace_back_pix(const bContext *C,
       }
       else if (snode->flag & SNODE_USE_ALPHA) {
         GPU_blend(GPU_BLEND_ALPHA);
-        GPU_blend(GPU_BLEND_ALPHA);
 
         ED_draw_imbuf_ctx(C, ibuf, x, y, false, snode->zoom, snode->zoom);
 

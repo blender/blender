@@ -1129,7 +1129,6 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(region), v
     float fcol[4];
 
     GPU_blend(GPU_BLEND_ALPHA);
-    GPU_blend(GPU_BLEND_ALPHA);
 
     GPUVertBuf *vert = GPU_vertbuf_create_with_format(format);
     GPU_vertbuf_data_alloc(vert, kcd->totlinehit);

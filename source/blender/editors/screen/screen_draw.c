@@ -411,7 +411,6 @@ void ED_screen_draw_edges(wmWindow *win)
   edge_thickness = corner_scale * 0.21f;
 
   GPU_blend(GPU_BLEND_ALPHA);
-  GPU_blend(GPU_BLEND_ALPHA);
 
   GPUBatch *batch = batch_screen_edges_get(&verts_per_corner);
   GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_AREA_EDGES);
@@ -483,7 +482,6 @@ void ED_screen_draw_split_preview(ScrArea *area, const int dir, const float fac)
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
   /* splitpoint */
-  GPU_blend(GPU_BLEND_ALPHA);
   GPU_blend(GPU_BLEND_ALPHA);
 
   immUniformColor4ub(255, 255, 255, 100);

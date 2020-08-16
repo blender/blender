@@ -1701,7 +1701,6 @@ static void annotation_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_pt
 
     GPU_line_smooth(true);
     GPU_blend(GPU_BLEND_ALPHA);
-    GPU_blend(GPU_BLEND_ALPHA);
 
     immUniformColor4ub(255, 100, 100, 20);
     imm_draw_circle_fill_2d(shdr_pos, x, y, p->radius, 40);

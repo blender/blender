@@ -99,7 +99,6 @@ void ANIM_draw_previewrange(const bContext *C, View2D *v2d, int end_frame_width)
   /* only draw this if preview range is set */
   if (PRVRANGEON) {
     GPU_blend(GPU_BLEND_ALPHA);
-    GPU_blend(GPU_BLEND_ALPHA);
 
     GPUVertFormat *format = immVertexFormat();
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -132,7 +131,6 @@ void ANIM_draw_previewrange(const bContext *C, View2D *v2d, int end_frame_width)
 void ANIM_draw_framerange(Scene *scene, View2D *v2d)
 {
   /* draw darkened area outside of active timeline frame range */
-  GPU_blend(GPU_BLEND_ALPHA);
   GPU_blend(GPU_BLEND_ALPHA);
 
   GPUVertFormat *format = immVertexFormat();

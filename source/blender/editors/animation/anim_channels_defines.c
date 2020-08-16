@@ -4387,7 +4387,6 @@ void ANIM_channel_draw(
 
   /* set blending again, as may not be set in previous step */
   GPU_blend(GPU_BLEND_ALPHA);
-  GPU_blend(GPU_BLEND_ALPHA);
 
   /* step 1) draw backdrop ...........................................  */
   if (acf->draw_backdrop) {

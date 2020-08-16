@@ -589,7 +589,6 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *region, 
 
       if (ca->passepartalpha != 1.0f) {
         GPU_blend(GPU_BLEND_ALPHA);
-        GPU_blend(GPU_BLEND_ALPHA);
         alpha = ca->passepartalpha;
       }
 
@@ -1027,7 +1026,6 @@ static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
   GPU_line_width(2.0f);
   GPU_line_smooth(true);
   GPU_blend(GPU_BLEND_ALPHA);
-  GPU_blend(GPU_BLEND_ALPHA);
 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -1070,7 +1068,6 @@ static void draw_rotation_guide(const RegionView3D *rv3d)
 
   negate_v3_v3(o, rv3d->ofs);
 
-  GPU_blend(GPU_BLEND_ALPHA);
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_depth_mask(false); /* don't overwrite zbuf */
 

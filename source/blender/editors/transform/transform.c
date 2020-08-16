@@ -1545,7 +1545,6 @@ static void drawAutoKeyWarning(TransInfo *UNUSED(t), ARegion *region)
 
   /* autokey recording icon... */
   GPU_blend(GPU_BLEND_ALPHA);
-  GPU_blend(GPU_BLEND_ALPHA);
 
   xco -= U.widget_unit;
   yco -= (int)printable_size[1] / 2;

@@ -222,7 +222,6 @@ void blf_batch_draw(void)
   }
 
   GPU_blend(GPU_BLEND_ALPHA);
-  GPU_blend(GPU_BLEND_ALPHA);
 
 #ifndef BLF_STANDALONE
   /* We need to flush widget base first to ensure correct ordering. */

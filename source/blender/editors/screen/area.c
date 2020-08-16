@@ -94,7 +94,6 @@ static void region_draw_emboss(const ARegion *region, const rcti *scirct, int si
 
   /* set transp line */
   GPU_blend(GPU_BLEND_ALPHA);
-  GPU_blend(GPU_BLEND_ALPHA);
 
   float color[4] = {0.0f, 0.0f, 0.0f, 0.25f};
   UI_GetThemeColor3fv(TH_EDITOR_OUTLINE, color);
@@ -310,7 +309,6 @@ static void region_draw_azones(ScrArea *area, ARegion *region)
   }
 
   GPU_line_width(1.0f);
-  GPU_blend(GPU_BLEND_ALPHA);
   GPU_blend(GPU_BLEND_ALPHA);
 
   GPU_matrix_push();
@@ -3269,7 +3267,6 @@ void ED_region_info_draw_multiline(ARegion *region,
   GPU_scissor_get(scissor);
   GPU_scissor(rect.xmin, rect.ymin, BLI_rcti_size_x(&rect) + 1, BLI_rcti_size_y(&rect) + 1);
 
-  GPU_blend(GPU_BLEND_ALPHA);
   GPU_blend(GPU_BLEND_ALPHA);
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
