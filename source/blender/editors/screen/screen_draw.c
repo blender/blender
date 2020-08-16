@@ -308,10 +308,9 @@ static void scrarea_draw_shape_dark(ScrArea *area, char dir, uint pos)
  */
 static void scrarea_draw_shape_light(ScrArea *area, char UNUSED(dir), uint pos)
 {
-  GPU_blend_set_func(GPU_DST_COLOR, GPU_SRC_ALPHA);
-  /* value 181 was hardly computed: 181~105 */
-  immUniformColor4ub(255, 255, 255, 50);
-  /* draw_join_shape(area, dir); */
+  GPU_blend_set_func_separate(
+      GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+  immUniformColor4ub(255, 255, 255, 25);
 
   immRectf(pos, area->v1->vec.x, area->v1->vec.y, area->v3->vec.x, area->v3->vec.y);
 }

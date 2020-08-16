@@ -577,8 +577,8 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
 
   if (blend) {
     /* GL_ONE because regions drawn offscreen have premultiplied alpha. */
-    GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
     GPU_blend(true);
+    GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
   }
 
   /* setup actual texture */
@@ -603,7 +603,6 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
   GPU_texture_unbind(texture);
 
   if (blend) {
-    GPU_blend_set_func(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
     GPU_blend(false);
   }
 }

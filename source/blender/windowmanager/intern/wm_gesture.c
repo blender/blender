@@ -370,7 +370,6 @@ static void draw_filled_lasso(wmGesture *gt)
     MEM_freeN(pixel_buf);
 
     GPU_blend(false);
-    GPU_blend_set_func(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
   }
 
   MEM_freeN(mcoords);
