@@ -835,7 +835,7 @@ void ED_node_socket_draw(bNodeSocket *sock, const rcti *rect, const float color[
   uint outline_col_id = GPU_vertformat_attr_add(
       format, "outlineColor", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
-  gpuPushAttr(GPU_BLEND_BIT);
+  eGPUBlend state = GPU_blend_get();
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_program_point_size(true);
 
@@ -860,7 +860,9 @@ void ED_node_socket_draw(bNodeSocket *sock, const rcti *rect, const float color[
 
   immUnbindProgram();
   GPU_program_point_size(false);
-  gpuPopAttr();
+
+  /* Restore. */
+  GPU_blend(state);
 }
 
 /* **************  Socket callbacks *********** */

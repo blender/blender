@@ -82,7 +82,7 @@ void GPU_provoking_vertex(eGPUProvokingVertex vert)
 /* TODO explicit depth test. */
 void GPU_depth_test(bool enable)
 {
-  SET_IMMUTABLE_STATE(depth_test, (enable) ? GPU_DEPTH_LESS : GPU_DEPTH_NONE);
+  SET_IMMUTABLE_STATE(depth_test, (enable) ? GPU_DEPTH_LESS_EQUAL : GPU_DEPTH_NONE);
 }
 
 void GPU_line_smooth(bool enable)
@@ -98,6 +98,11 @@ void GPU_polygon_smooth(bool enable)
 void GPU_logic_op_xor_set(bool enable)
 {
   SET_IMMUTABLE_STATE(logic_op_xor, enable);
+}
+
+void GPU_write_mask(eGPUWriteMask mask)
+{
+  SET_IMMUTABLE_STATE(write_mask, mask);
 }
 
 void GPU_color_mask(bool r, bool g, bool b, bool a)
@@ -205,6 +210,18 @@ void GPU_viewport(int x, int y, int width, int height)
 /** \name State Getters
  * \{ */
 
+eGPUBlend GPU_blend_get()
+{
+  GPUState &state = GPU_context_active_get()->state_stack->stack_top_get();
+  return state.blend;
+}
+
+eGPUWriteMask GPU_write_mask_get()
+{
+  GPUState &state = GPU_context_active_get()->state_stack->stack_top_get();
+  return state.write_mask;
+}
+
 bool GPU_depth_test_enabled()
 {
   GPUState &state = GPU_context_active_get()->state_stack->stack_top_get();
@@ -295,128 +312,13 @@ void GPU_unpack_row_length_set(uint len)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name GPU Push/Pop State
- * \{ */
-
-#define STATE_STACK_DEPTH 16
-
-typedef struct {
-  eGPUAttrMask mask;
-
-  /* GL_BLEND_BIT */
-  uint is_blend : 1;
-
-  /* GL_DEPTH_BUFFER_BIT */
-  uint is_depth_test : 1;
-  int depth_func;
-  double depth_clear_value;
-  bool depth_write_mask;
-
-  /* GL_SCISSOR_BIT */
-  int scissor_box[4];
-  uint is_scissor_test : 1;
-
-  /* GL_VIEWPORT_BIT */
-  int viewport[4];
-  double near_far[2];
-} GPUAttrValues;
-
-typedef struct {
-  GPUAttrValues attr_stack[STATE_STACK_DEPTH];
-  uint top;
-} GPUAttrStack;
-
-static GPUAttrStack state = {
-    {},
-    0,
-};
-
-#define AttrStack state
-#define Attr state.attr_stack[state.top]
-
-/**
- * Replacement for glPush/PopAttributes
- *
- * We don't need to cover all the options of legacy OpenGL
- * but simply the ones used by Blender.
- */
-void gpuPushAttr(eGPUAttrMask mask)
-{
-  Attr.mask = mask;
-
-  if ((mask & GPU_DEPTH_BUFFER_BIT) != 0) {
-    Attr.is_depth_test = glIsEnabled(GL_DEPTH_TEST);
-    glGetIntegerv(GL_DEPTH_FUNC, &Attr.depth_func);
-    glGetDoublev(GL_DEPTH_CLEAR_VALUE, &Attr.depth_clear_value);
-    glGetBooleanv(GL_DEPTH_WRITEMASK, (GLboolean *)&Attr.depth_write_mask);
-  }
-
-  if ((mask & GPU_SCISSOR_BIT) != 0) {
-    Attr.is_scissor_test = glIsEnabled(GL_SCISSOR_TEST);
-    glGetIntegerv(GL_SCISSOR_BOX, (GLint *)&Attr.scissor_box);
-  }
-
-  if ((mask & GPU_VIEWPORT_BIT) != 0) {
-    glGetDoublev(GL_DEPTH_RANGE, (GLdouble *)&Attr.near_far);
-    glGetIntegerv(GL_VIEWPORT, (GLint *)&Attr.viewport);
-  }
-
-  if ((mask & GPU_BLEND_BIT) != 0) {
-    Attr.is_blend = glIsEnabled(GL_BLEND);
-  }
-
-  BLI_assert(AttrStack.top < STATE_STACK_DEPTH);
-  AttrStack.top++;
-}
-
-static void restore_mask(GLenum cap, const bool value)
-{
-  if (value) {
-    glEnable(cap);
-  }
-  else {
-    glDisable(cap);
-  }
-}
-
-void gpuPopAttr(void)
-{
-  BLI_assert(AttrStack.top > 0);
-  AttrStack.top--;
-
-  GLint mask = Attr.mask;
-
-  if ((mask & GPU_DEPTH_BUFFER_BIT) != 0) {
-    restore_mask(GL_DEPTH_TEST, Attr.is_depth_test);
-    glDepthFunc(Attr.depth_func);
-    glClearDepth(Attr.depth_clear_value);
-    glDepthMask(Attr.depth_write_mask);
-  }
-
-  if ((mask & GPU_VIEWPORT_BIT) != 0) {
-    glViewport(Attr.viewport[0], Attr.viewport[1], Attr.viewport[2], Attr.viewport[3]);
-    glDepthRange(Attr.near_far[0], Attr.near_far[1]);
-  }
-
-  if ((mask & GPU_SCISSOR_BIT) != 0) {
-    restore_mask(GL_SCISSOR_TEST, Attr.is_scissor_test);
-    glScissor(Attr.scissor_box[0], Attr.scissor_box[1], Attr.scissor_box[2], Attr.scissor_box[3]);
-  }
-
-  if ((mask & GPU_BLEND_BIT) != 0) {
-    restore_mask(GL_BLEND, Attr.is_blend);
-  }
-}
-
-#undef Attr
-#undef AttrStack
-
-/* Default OpenGL State
+/** \name Default OpenGL State
  *
  * This is called on startup, for opengl offscreen render.
  * Generally we should always return to this state when
  * temporarily modifying the state for drawing, though that are (undocumented)
- * exceptions that we should try to get rid of. */
+ * exceptions that we should try to get rid of.
+ * \{ */
 
 void GPU_state_init(void)
 {

@@ -282,6 +282,12 @@ typedef struct GPUPickState {
       uint *rect_id;
     } nearest;
   };
+
+  /* Previous state to restore after drawing. */
+  int viewport[4];
+  int scissor[4];
+  eGPUWriteMask write_mask;
+  bool depth_test;
 } GPUPickState;
 
 static GPUPickState g_pick_state = {0};
@@ -304,7 +310,9 @@ void gpu_select_pick_begin(uint (*buffer)[4], uint bufsize, const rcti *input, c
 
   /* Restrict OpenGL operations for when we don't have cache */
   if (ps->is_cached == false) {
-    gpuPushAttr(GPU_DEPTH_BUFFER_BIT | GPU_VIEWPORT_BIT);
+    ps->write_mask = GPU_write_mask_get();
+    ps->depth_test = GPU_depth_test_enabled();
+    GPU_scissor_get(ps->scissor);
 
     /* disable writing to the framebuffer */
     GPU_color_mask(false, false, false, false);
@@ -535,8 +543,9 @@ uint gpu_select_pick_end(void)
       /* force finishing last pass */
       gpu_select_pick_load_id(ps->gl.prev_id, true);
     }
-    gpuPopAttr();
-    GPU_color_mask(true, true, true, true);
+    GPU_write_mask(ps->write_mask);
+    GPU_depth_test(ps->depth_test);
+    GPU_viewport(UNPACK4(ps->viewport));
   }
 
   /* assign but never free directly since it may be in cache */

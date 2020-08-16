@@ -901,6 +901,13 @@ struct GPUOffScreen {
 
   GPUTexture *color;
   GPUTexture *depth;
+
+  /** Saved state of the previously bound framebuffer. */
+  /* TODO(fclem) This is quite hacky and a proper fix would be to
+   * put these states directly inside the GPUFrambuffer.
+   * But we don't have a GPUFramebuffer for the default framebuffer yet. */
+  int saved_viewport[4];
+  int saved_scissor[4];
 };
 
 /* Returns the correct framebuffer for the current context. */
@@ -964,21 +971,19 @@ GPUOffScreen *GPU_offscreen_create(
     return NULL;
   }
 
-  gpuPushAttr(GPU_VIEWPORT_BIT);
+  int viewport[4];
+  GPU_viewport_size_get_i(viewport);
 
   GPUFrameBuffer *fb = gpu_offscreen_fb_get(ofs);
 
   /* check validity at the very end! */
   if (!GPU_framebuffer_check_valid(fb, err_out)) {
     GPU_offscreen_free(ofs);
-    gpuPopAttr();
+    GPU_viewport(UNPACK4(viewport));
     return NULL;
   }
-
   GPU_framebuffer_restore();
-
-  gpuPopAttr();
-
+  GPU_viewport(UNPACK4(viewport));
   return ofs;
 }
 
@@ -1002,7 +1007,9 @@ void GPU_offscreen_free(GPUOffScreen *ofs)
 void GPU_offscreen_bind(GPUOffScreen *ofs, bool save)
 {
   if (save) {
-    gpuPushAttr((eGPUAttrMask)(GPU_SCISSOR_BIT | GPU_VIEWPORT_BIT));
+    GPU_scissor_get(ofs->saved_scissor);
+    GPU_viewport_size_get_i(ofs->saved_viewport);
+
     GPUFrameBuffer *fb = GPU_framebuffer_active_get();
     gpuPushFrameBuffer(fb);
   }
@@ -1013,12 +1020,13 @@ void GPU_offscreen_bind(GPUOffScreen *ofs, bool save)
   GPU_shader_set_framebuffer_srgb_target(false);
 }
 
-void GPU_offscreen_unbind(GPUOffScreen *UNUSED(ofs), bool restore)
+void GPU_offscreen_unbind(GPUOffScreen *ofs, bool restore)
 {
   GPUFrameBuffer *fb = NULL;
 
   if (restore) {
-    gpuPopAttr();
+    GPU_scissor(UNPACK4(ofs->saved_scissor));
+    GPU_viewport(UNPACK4(ofs->saved_viewport));
     fb = gpuPopFrameBuffer();
   }
 

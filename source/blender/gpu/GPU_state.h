@@ -22,10 +22,6 @@
 
 #include "BLI_utildefines.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef enum eGPUWriteMask {
   GPU_WRITE_RED = (1 << 0),
   GPU_WRITE_GREEN = (1 << 1),
@@ -103,6 +99,10 @@ typedef enum eGPUProvokingVertex {
   GPU_VERTEX_FIRST = 1, /* Follow Blender loop order. */
 } eGPUProvokingVertex;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Initialize
  * - sets the default Blender opengl state, if in doubt, check
  *   the contents of this function
@@ -119,6 +119,7 @@ bool GPU_depth_test_enabled(void);
 void GPU_scissor_test(bool enable);
 void GPU_line_smooth(bool enable);
 void GPU_line_width(float width);
+void GPU_logic_op_xor_set(bool enable);
 void GPU_point_size(float size);
 void GPU_polygon_smooth(bool enable);
 void GPU_program_point_size(bool enable);
@@ -127,6 +128,7 @@ void GPU_scissor_get(int coords[4]);
 void GPU_viewport(int x, int y, int width, int height);
 void GPU_viewport_size_get_f(float coords[4]);
 void GPU_viewport_size_get_i(int coords[4]);
+void GPU_write_mask(eGPUWriteMask mask);
 void GPU_color_mask(bool r, bool g, bool b, bool a);
 void GPU_depth_mask(bool depth);
 bool GPU_depth_mask_get(void);
@@ -134,22 +136,11 @@ void GPU_unpack_row_length_set(uint len);
 void GPU_clip_distances(int enabled_len);
 bool GPU_mipmap_enabled(void);
 
+eGPUBlend GPU_blend_get(void);
+eGPUWriteMask GPU_write_mask_get(void);
+
 void GPU_flush(void);
 void GPU_finish(void);
-
-void GPU_logic_op_xor_set(bool enable);
-
-/* Attribute push & pop. */
-typedef enum eGPUAttrMask {
-  GPU_DEPTH_BUFFER_BIT = (1 << 0),
-  GPU_ENABLE_BIT = (1 << 1),
-  GPU_SCISSOR_BIT = (1 << 2),
-  GPU_VIEWPORT_BIT = (1 << 3),
-  GPU_BLEND_BIT = (1 << 4),
-} eGPUAttrMask;
-
-void gpuPushAttr(eGPUAttrMask mask);
-void gpuPopAttr(void);
 
 #ifdef __cplusplus
 }

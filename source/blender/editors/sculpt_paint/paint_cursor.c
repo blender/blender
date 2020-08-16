@@ -775,7 +775,8 @@ static bool paint_draw_alpha_overlay(UnifiedPaintSettings *ups,
   bool alpha_overlay_active = false;
 
   ePaintOverlayControlFlags flags = BKE_paint_get_overlay_flags();
-  gpuPushAttr(GPU_DEPTH_BUFFER_BIT | GPU_BLEND_BIT);
+  eGPUBlend blend_state = GPU_blend_get();
+  bool depth_test = GPU_depth_test_enabled();
 
   /* Translate to region. */
   GPU_matrix_push();
@@ -805,7 +806,8 @@ static bool paint_draw_alpha_overlay(UnifiedPaintSettings *ups,
   }
 
   GPU_matrix_pop();
-  gpuPopAttr();
+  GPU_blend(blend_state);
+  GPU_depth_test(depth_test);
 
   return alpha_overlay_active;
 }
