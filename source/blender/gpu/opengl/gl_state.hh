@@ -20,6 +20,8 @@
  * \ingroup gpu
  */
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_utildefines.h"
 
 #include "gpu_state_private.hh"
@@ -52,6 +54,8 @@ class GLStateStack : public GPUStateStack {
   static void set_provoking_vert(const eGPUProvokingVertex vert);
   static void set_shadow_bias(const bool enable);
   static void set_blend(const eGPUBlend value);
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("GLStateStack")
 };
 
 }  // namespace gpu

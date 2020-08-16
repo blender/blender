@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "BLI_utildefines.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -32,6 +34,8 @@ typedef enum eGPUWriteMask {
   GPU_WRITE_DEPTH = (1 << 4),
   GPU_WRITE_COLOR = (GPU_WRITE_RED | GPU_WRITE_GREEN | GPU_WRITE_BLUE | GPU_WRITE_ALPHA),
 } eGPUWriteMask;
+
+ENUM_OPERATORS(eGPUWriteMask)
 
 /**
  * Defines the fixed pipeline blending equation.
@@ -126,7 +130,6 @@ void GPU_viewport_size_get_i(int coords[4]);
 void GPU_color_mask(bool r, bool g, bool b, bool a);
 void GPU_depth_mask(bool depth);
 bool GPU_depth_mask_get(void);
-void GPU_stencil_mask(uint stencil);
 void GPU_unpack_row_length_set(uint len);
 void GPU_clip_distances(int enabled_len);
 bool GPU_mipmap_enabled(void);

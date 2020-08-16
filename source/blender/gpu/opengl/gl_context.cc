@@ -30,6 +30,8 @@
 
 #include "gpu_context_private.hh"
 
+#include "gl_state.hh"
+
 #include "gl_backend.hh" /* TODO remove */
 #include "gl_context.hh"
 
@@ -54,6 +56,8 @@ GLContext::GLContext(void *ghost_window, GLSharedOrphanLists &shared_orphan_list
   glBindBuffer(GL_ARRAY_BUFFER, default_attr_vbo_);
   glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  state_stack = new GLStateStack();
 }
 
 GLContext::~GLContext()

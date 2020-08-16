@@ -137,6 +137,8 @@ class GPUStateStack {
   int mutable_stack_top = 0;
 
  public:
+  virtual ~GPUStateStack(){};
+
   virtual void set_state(GPUState &state) = 0;
   virtual void set_mutable_state(GPUStateMutable &state) = 0;
 

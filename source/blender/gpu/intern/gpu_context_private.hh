@@ -29,6 +29,8 @@
 
 #include "GPU_context.h"
 
+#include "gpu_state_private.hh"
+
 #include <mutex>
 #include <pthread.h>
 #include <string.h>
@@ -44,6 +46,7 @@ struct GPUContext {
   GPUShader *shader = NULL;
   GPUFrameBuffer *current_fbo = NULL;
   GPUMatrixState *matrix_state = NULL;
+  blender::gpu::GPUStateStack *state_stack = NULL;
 
  protected:
   /** Thread on which this context is active. */

@@ -25,6 +25,7 @@
 #  define PIXELSIZE (1.0f)
 #endif
 
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_global.h"
@@ -33,6 +34,8 @@
 #include "GPU_glew.h"
 #include "GPU_state.h"
 
+#include "gpu_context_private.hh"
+
 #include "gpu_state_private.hh"
 
 /* TODO remove */
@@ -40,194 +43,198 @@
 
 using namespace blender::gpu;
 
+#define SET_STATE(_prefix, _state, _value) \
+  do { \
+    GPUStateStack *stack = GPU_context_active_get()->state_stack; \
+    auto &state_object = stack->_prefix##stack_top_get(); \
+    state_object._state = _value; \
+    /* TODO remove this and only push state at draw time. */ \
+    stack->set_##_prefix##state(state_object); \
+  } while (0)
+
+#define SET_IMMUTABLE_STATE(_state, _value) SET_STATE(, _state, _value)
+#define SET_MUTABLE_STATE(_state, _value) SET_STATE(mutable_, _state, _value)
+
+/* -------------------------------------------------------------------- */
+/** \name Immutable state Setters
+ * \{ */
+
 void GPU_blend(eGPUBlend blend)
 {
-  GLStateStack::set_blend(blend);
+  SET_IMMUTABLE_STATE(blend, blend);
 }
 
 void GPU_face_culling(eGPUFaceCullTest culling)
 {
-  if (culling == GPU_CULL_NONE) {
-    glDisable(GL_CULL_FACE);
-  }
-  else {
-    glEnable(GL_CULL_FACE);
-    glCullFace((culling == GPU_CULL_FRONT) ? GL_FRONT : GL_BACK);
-  }
+  SET_IMMUTABLE_STATE(culling_test, culling);
 }
 
 void GPU_front_facing(bool invert)
 {
-  glFrontFace((invert) ? GL_CW : GL_CCW);
+  SET_IMMUTABLE_STATE(invert_facing, invert);
 }
 
 void GPU_provoking_vertex(eGPUProvokingVertex vert)
 {
-  glProvokingVertex((vert == GPU_VERTEX_FIRST) ? GL_FIRST_VERTEX_CONVENTION :
-                                                 GL_LAST_VERTEX_CONVENTION);
+  SET_IMMUTABLE_STATE(provoking_vert, vert);
 }
 
-void GPU_depth_range(float near, float far)
-{
-  /* glDepthRangef is only for OpenGL 4.1 or higher */
-  glDepthRange(near, far);
-}
-
+/* TODO explicit depth test. */
 void GPU_depth_test(bool enable)
 {
-  if (enable) {
-    glEnable(GL_DEPTH_TEST);
-  }
-  else {
-    glDisable(GL_DEPTH_TEST);
-  }
-}
-
-bool GPU_depth_test_enabled()
-{
-  return glIsEnabled(GL_DEPTH_TEST);
+  SET_IMMUTABLE_STATE(depth_test, (enable) ? GPU_DEPTH_LESS : GPU_DEPTH_NONE);
 }
 
 void GPU_line_smooth(bool enable)
 {
-  if (enable && ((G.debug & G_DEBUG_GPU) == 0)) {
-    glEnable(GL_LINE_SMOOTH);
-  }
-  else {
-    glDisable(GL_LINE_SMOOTH);
-  }
-}
-
-void GPU_line_width(float width)
-{
-  float max_size = GPU_max_line_width();
-  float final_size = width * PIXELSIZE;
-  /* Fix opengl errors on certain platform / drivers. */
-  CLAMP(final_size, 1.0f, max_size);
-  glLineWidth(final_size);
-}
-
-void GPU_point_size(float size)
-{
-  glPointSize(size * PIXELSIZE);
+  SET_IMMUTABLE_STATE(line_smooth, enable);
 }
 
 void GPU_polygon_smooth(bool enable)
 {
-  if (enable && ((G.debug & G_DEBUG_GPU) == 0)) {
-    glEnable(GL_POLYGON_SMOOTH);
-  }
-  else {
-    glDisable(GL_POLYGON_SMOOTH);
-  }
+  SET_IMMUTABLE_STATE(polygon_smooth, enable);
+}
+
+void GPU_logic_op_xor_set(bool enable)
+{
+  SET_IMMUTABLE_STATE(logic_op_xor, enable);
+}
+
+void GPU_color_mask(bool r, bool g, bool b, bool a)
+{
+  GPUStateStack *stack = GPU_context_active_get()->state_stack;
+  auto &state = stack->stack_top_get();
+  eGPUWriteMask write_mask = state.write_mask;
+  SET_FLAG_FROM_TEST(write_mask, r, GPU_WRITE_RED);
+  SET_FLAG_FROM_TEST(write_mask, g, GPU_WRITE_GREEN);
+  SET_FLAG_FROM_TEST(write_mask, b, GPU_WRITE_BLUE);
+  SET_FLAG_FROM_TEST(write_mask, a, GPU_WRITE_ALPHA);
+  state.write_mask = write_mask;
+  /* TODO remove this and only push state at draw time. */
+  stack->set_state(state);
+}
+
+void GPU_depth_mask(bool depth)
+{
+  GPUStateStack *stack = GPU_context_active_get()->state_stack;
+  auto &state = stack->stack_top_get();
+  eGPUWriteMask write_mask = state.write_mask;
+  SET_FLAG_FROM_TEST(write_mask, depth, GPU_WRITE_DEPTH);
+  state.write_mask = write_mask;
+  /* TODO remove this and only push state at draw time. */
+  stack->set_state(state);
+}
+
+void GPU_clip_distances(int distances_enabled)
+{
+  SET_IMMUTABLE_STATE(clip_distances, distances_enabled);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Mutable State Setters
+ * \{ */
+
+void GPU_depth_range(float near, float far)
+{
+  GPUStateStack *stack = GPU_context_active_get()->state_stack;
+  auto &state = stack->mutable_stack_top_get();
+  copy_v2_fl2(state.depth_range, near, far);
+  /* TODO remove this and only push state at draw time. */
+  stack->set_mutable_state(state);
+}
+
+void GPU_line_width(float width)
+{
+  SET_MUTABLE_STATE(line_width, width * PIXELSIZE);
+}
+
+void GPU_point_size(float size)
+{
+  SET_MUTABLE_STATE(point_size, size * PIXELSIZE);
 }
 
 /* Programmable point size
  * - shaders set their own point size when enabled
  * - use glPointSize when disabled */
+/* TODO remove and use program point size everywhere */
 void GPU_program_point_size(bool enable)
 {
-  if (enable) {
-    glEnable(GL_PROGRAM_POINT_SIZE);
-  }
-  else {
-    glDisable(GL_PROGRAM_POINT_SIZE);
-  }
+  GPUStateStack *stack = GPU_context_active_get()->state_stack;
+  auto &state = stack->mutable_stack_top_get();
+  /* Set point size sign negative to disable. */
+  state.point_size = fabsf(state.point_size) * (enable ? 1 : -1);
+  /* TODO remove this and only push state at draw time. */
+  stack->set_mutable_state(state);
 }
 
 void GPU_scissor_test(bool enable)
 {
-  if (enable) {
-    glEnable(GL_SCISSOR_TEST);
-  }
-  else {
-    glDisable(GL_SCISSOR_TEST);
-  }
+  GPUStateStack *stack = GPU_context_active_get()->state_stack;
+  auto &state = stack->mutable_stack_top_get();
+  /* Set point size sign negative to disable. */
+  state.scissor_rect[2] = abs(state.scissor_rect[2]) * (enable ? 1 : -1);
+  /* TODO remove this and only push state at draw time. */
+  stack->set_mutable_state(state);
 }
 
 void GPU_scissor(int x, int y, int width, int height)
 {
-  glScissor(x, y, width, height);
+  GPUStateStack *stack = GPU_context_active_get()->state_stack;
+  auto &state = stack->mutable_stack_top_get();
+  int scissor_rect[4] = {x, y, width, height};
+  copy_v4_v4_int(state.scissor_rect, scissor_rect);
+  /* TODO remove this and only push state at draw time. */
+  stack->set_mutable_state(state);
 }
 
 void GPU_viewport(int x, int y, int width, int height)
 {
-  glViewport(x, y, width, height);
+  GPUStateStack *stack = GPU_context_active_get()->state_stack;
+  auto &state = stack->mutable_stack_top_get();
+  int viewport_rect[4] = {x, y, width, height};
+  copy_v4_v4_int(state.viewport_rect, viewport_rect);
+  /* TODO remove this and only push state at draw time. */
+  stack->set_mutable_state(state);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name State Getters
+ * \{ */
+
+bool GPU_depth_test_enabled()
+{
+  GPUState &state = GPU_context_active_get()->state_stack->stack_top_get();
+  return state.depth_test != GPU_DEPTH_NONE;
 }
 
 void GPU_scissor_get(int coords[4])
 {
-  glGetIntegerv(GL_SCISSOR_BOX, coords);
+  GPUStateMutable &state = GPU_context_active_get()->state_stack->mutable_stack_top_get();
+  copy_v4_v4_int(coords, state.scissor_rect);
 }
 
 void GPU_viewport_size_get_f(float coords[4])
 {
-  glGetFloatv(GL_VIEWPORT, coords);
+  GPUStateMutable &state = GPU_context_active_get()->state_stack->mutable_stack_top_get();
+  for (int i = 0; i < 4; i++) {
+    coords[i] = state.viewport_rect[i];
+  }
 }
 
 void GPU_viewport_size_get_i(int coords[4])
 {
-  glGetIntegerv(GL_VIEWPORT, coords);
-}
-
-void GPU_flush(void)
-{
-  glFlush();
-}
-
-void GPU_finish(void)
-{
-  glFinish();
-}
-
-void GPU_unpack_row_length_set(uint len)
-{
-  glPixelStorei(GL_UNPACK_ROW_LENGTH, len);
-}
-
-void GPU_logic_op_xor_set(bool enable)
-{
-  if (enable) {
-    glLogicOp(GL_XOR);
-    glEnable(GL_COLOR_LOGIC_OP);
-  }
-  else {
-    glDisable(GL_COLOR_LOGIC_OP);
-  }
-}
-
-void GPU_color_mask(bool r, bool g, bool b, bool a)
-{
-  glColorMask(r, g, b, a);
-}
-
-void GPU_depth_mask(bool depth)
-{
-  glDepthMask(depth);
+  GPUStateMutable &state = GPU_context_active_get()->state_stack->mutable_stack_top_get();
+  copy_v4_v4_int(coords, state.viewport_rect);
 }
 
 bool GPU_depth_mask_get(void)
 {
-  GLint mask;
-  glGetIntegerv(GL_DEPTH_WRITEMASK, &mask);
-  return mask == GL_TRUE;
-}
-
-void GPU_stencil_mask(uint stencil)
-{
-  glStencilMask(stencil);
-}
-
-void GPU_clip_distances(int distances_new)
-{
-  static int distances_enabled = 0;
-  for (int i = 0; i < distances_new; i++) {
-    glEnable(GL_CLIP_DISTANCE0 + i);
-  }
-  for (int i = distances_new; i < distances_enabled; i++) {
-    glDisable(GL_CLIP_DISTANCE0 + i);
-  }
-  distances_enabled = distances_new;
+  GPUState &state = GPU_context_active_get()->state_stack->stack_top_get();
+  return (state.write_mask & GPU_WRITE_DEPTH) != 0;
 }
 
 bool GPU_mipmap_enabled(void)
@@ -236,8 +243,10 @@ bool GPU_mipmap_enabled(void)
   return true;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/** \name Draw State (DRW_state)
+/** \name GPUStateStack
  * \{ */
 
 void GPUStateStack::push_stack(void)
@@ -260,6 +269,27 @@ void GPUStateStack::push_mutable_stack(void)
 void GPUStateStack::pop_mutable_stack(void)
 {
   mutable_stack_top--;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Context Utils
+ * \{ */
+
+void GPU_flush(void)
+{
+  glFlush();
+}
+
+void GPU_finish(void)
+{
+  glFinish();
+}
+
+void GPU_unpack_row_length_set(uint len)
+{
+  glPixelStorei(GL_UNPACK_ROW_LENGTH, len);
 }
 
 /** \} */

@@ -41,6 +41,9 @@ void GLStateStack::set_state(GPUState &state)
 {
   GPUState changed = state ^ current_;
 
+  if (changed.blend != 0) {
+    set_blend(state.blend);
+  }
   if (changed.write_mask != 0) {
     set_write_mask(state.write_mask);
   }
@@ -101,10 +104,7 @@ void GLStateStack::set_mutable_state(GPUStateMutable &state)
       (changed.scissor_rect[2] != 0) || (changed.scissor_rect[3] != 0)) {
     glScissor(UNPACK4(state.scissor_rect));
 
-    if ((state.scissor_rect[0] != state.viewport_rect[0]) ||
-        (state.scissor_rect[1] != state.viewport_rect[1]) ||
-        (state.scissor_rect[2] != state.viewport_rect[2]) ||
-        (state.scissor_rect[3] != state.viewport_rect[3])) {
+    if ((state.scissor_rect[2] > 0)) {
       glEnable(GL_SCISSOR_TEST);
     }
     else {
