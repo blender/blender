@@ -187,11 +187,7 @@ void ED_area_newspace(struct bContext *C, ScrArea *area, int type, const bool sk
 void ED_area_prevspace(struct bContext *C, ScrArea *area);
 void ED_area_swapspace(struct bContext *C, ScrArea *sa1, ScrArea *sa2);
 int ED_area_headersize(void);
-int ED_area_header_alignment_or_fallback(const ScrArea *area, int fallback);
-int ED_area_header_alignment(const ScrArea *area);
 int ED_area_footersize(void);
-int ED_area_footer_alignment_or_fallback(const ScrArea *area, int fallback);
-int ED_area_footer_alignment(const ScrArea *area);
 int ED_area_global_size_y(const ScrArea *area);
 int ED_area_global_min_size_y(const ScrArea *area);
 int ED_area_global_max_size_y(const ScrArea *area);
