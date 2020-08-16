@@ -284,17 +284,10 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
   else {
     /* for a header menu we set the direction automatic */
     if (!pup->slideout && flip) {
-      ScrArea *area = CTX_wm_area(C);
       ARegion *region = CTX_wm_region(C);
-      if (area && region) {
-        if (ELEM(region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
-          if (RGN_ALIGN_ENUM_FROM_MASK(ED_area_header_alignment(area)) == RGN_ALIGN_BOTTOM) {
-            UI_block_direction_set(block, UI_DIR_UP);
-            UI_block_order_flip(block);
-          }
-        }
-        if (region->regiontype == RGN_TYPE_FOOTER) {
-          if (RGN_ALIGN_ENUM_FROM_MASK(ED_area_footer_alignment(area)) == RGN_ALIGN_BOTTOM) {
+      if (region) {
+        if (RGN_TYPE_IS_HEADER_ANY(region->regiontype)) {
+          if (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_BOTTOM) {
             UI_block_direction_set(block, UI_DIR_UP);
             UI_block_order_flip(block);
           }

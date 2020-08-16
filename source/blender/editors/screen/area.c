@@ -3165,41 +3165,9 @@ int ED_area_headersize(void)
   return U.widget_unit + (int)(UI_DPI_FAC * HEADER_PADDING_Y);
 }
 
-int ED_area_header_alignment_or_fallback(const ScrArea *area, int fallback)
-{
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    if (region->regiontype == RGN_TYPE_HEADER) {
-      return region->alignment;
-    }
-  }
-  return fallback;
-}
-
-int ED_area_header_alignment(const ScrArea *area)
-{
-  return ED_area_header_alignment_or_fallback(
-      area, (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP);
-}
-
 int ED_area_footersize(void)
 {
   return ED_area_headersize();
-}
-
-int ED_area_footer_alignment_or_fallback(const ScrArea *area, int fallback)
-{
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    if (region->regiontype == RGN_TYPE_FOOTER) {
-      return region->alignment;
-    }
-  }
-  return fallback;
-}
-
-int ED_area_footer_alignment(const ScrArea *area)
-{
-  return ED_area_footer_alignment_or_fallback(
-      area, (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_TOP : RGN_ALIGN_BOTTOM);
 }
 
 /**

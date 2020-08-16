@@ -645,6 +645,11 @@ typedef enum eRegionType {
 /* Region supports panel tabs (categories). */
 #define RGN_TYPE_HAS_CATEGORY_MASK (1 << RGN_TYPE_UI)
 
+/* Check for any kind of header region. */
+#define RGN_TYPE_IS_HEADER_ANY(regiontype) \
+  (((1 << (regiontype)) & \
+    ((1 << RGN_TYPE_HEADER) | 1 << (RGN_TYPE_TOOL_HEADER) | (1 << RGN_TYPE_FOOTER))) != 0)
+
 /** #ARegion.alignment */
 enum {
   RGN_ALIGN_NONE = 0,
