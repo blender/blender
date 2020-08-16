@@ -732,8 +732,8 @@ float GPU_polygon_offset_calc(const float (*winmat)[4], float viewdist, float di
 #else
     static float depth_fac = 0.0f;
     if (depth_fac == 0.0f) {
-      int depthbits;
-      glGetIntegerv(GL_DEPTH_BITS, &depthbits);
+      /* Hardcode for 24 bit precision. */
+      int depthbits = 24;
       depth_fac = 1.0f / (float)((1 << depthbits) - 1);
     }
     offs = (-1.0 / winmat[2][2]) * dist * depth_fac;
