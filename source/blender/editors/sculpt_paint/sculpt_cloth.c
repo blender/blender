@@ -1043,11 +1043,7 @@ static EnumPropertyItem prop_cloth_filter_type[] = {
     {CLOTH_FILTER_GRAVITY, "GRAVITY", 0, "Gravity", "Applies gravity to the simulation"},
     {CLOTH_FILTER_INFLATE, "INFLATE", 0, "Inflate", "Inflates the cloth"},
     {CLOTH_FILTER_EXPAND, "EXPAND", 0, "Expand", "Expands the cloth's dimensions"},
-    {CLOTH_FILTER_PINCH,
-     "PINCH",
-     0,
-     "Pinch",
-     "Pinches the cloth to the point where the cursor was when the filter started"},
+    {CLOTH_FILTER_PINCH, "PINCH", 0, "Pinch", "Pulls the cloth to the cursor's start position"},
     {0, NULL, 0, NULL, NULL},
 };
 
