@@ -112,15 +112,6 @@ typedef enum eGPUMatFlag {
   GPU_MATFLAG_BARYCENTRIC = (1 << 4),
 } eGPUMatFlag;
 
-typedef enum eGPUBlendMode {
-  GPU_BLEND_SOLID = 0,
-  GPU_BLEND_ADD = 1,
-  GPU_BLEND_ALPHA = 2,
-  GPU_BLEND_CLIP = 4,
-  GPU_BLEND_ALPHA_SORT = 8,
-  GPU_BLEND_ALPHA_TO_COVERAGE = 16,
-} eGPUBlendMode;
-
 typedef struct GPUNodeStack {
   eGPUType type;
   float vec[4];

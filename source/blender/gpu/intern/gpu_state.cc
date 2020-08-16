@@ -33,6 +33,10 @@
 #include "GPU_glew.h"
 #include "GPU_state.h"
 
+#include "gpu_state_private.hh"
+
+using namespace blender::gpu;
+
 static GLenum gpu_get_gl_blendfunction(eGPUBlendFunction blend)
 {
   switch (blend) {
@@ -78,7 +82,7 @@ void GPU_blend_set_func_separate(eGPUBlendFunction src_rgb,
                       gpu_get_gl_blendfunction(dst_alpha));
 }
 
-void GPU_face_culling(eGPUFaceCull culling)
+void GPU_face_culling(eGPUFaceCullTest culling)
 {
   if (culling == GPU_CULL_NONE) {
     glDisable(GL_CULL_FACE);
@@ -269,6 +273,35 @@ bool GPU_mipmap_enabled(void)
   return true;
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Draw State (DRW_state)
+ * \{ */
+
+void GPUStateStack::push_stack(void)
+{
+  stack[stack_top + 1] = stack[stack_top];
+  stack_top++;
+}
+
+void GPUStateStack::pop_stack(void)
+{
+  stack_top--;
+}
+
+void GPUStateStack::push_mutable_stack(void)
+{
+  mutable_stack[mutable_stack_top + 1] = mutable_stack[mutable_stack_top];
+  mutable_stack_top++;
+}
+
+void GPUStateStack::pop_mutable_stack(void)
+{
+  mutable_stack_top--;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name GPU Push/Pop State
  * \{ */
 
