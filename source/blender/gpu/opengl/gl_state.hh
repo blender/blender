@@ -31,18 +31,17 @@
 namespace blender {
 namespace gpu {
 
-class GLStateStack : public GPUStateStack {
+class GLStateManager : public GPUStateManager {
  private:
   /** Current state of the GL implementation. Avoids resetting the whole state for every change. */
   GPUState current_;
   GPUStateMutable current_mutable_;
 
  public:
-  void set_state(GPUState &state) override;
-  void set_mutable_state(GPUStateMutable &state) override;
+  void set_state(const GPUState &state) override;
+  void set_mutable_state(const GPUStateMutable &state) override;
 
- public:
-  /* TODO to become private */
+ private:
   static void set_write_mask(const eGPUWriteMask value);
   static void set_depth_test(const eGPUDepthTest value);
   static void set_stencil_test(const eGPUStencilTest test, const eGPUStencilOp operation);
@@ -55,7 +54,7 @@ class GLStateStack : public GPUStateStack {
   static void set_shadow_bias(const bool enable);
   static void set_blend(const eGPUBlend value);
 
-  MEM_CXX_CLASS_ALLOC_FUNCS("GLStateStack")
+  MEM_CXX_CLASS_ALLOC_FUNCS("GLStateManager")
 };
 
 }  // namespace gpu

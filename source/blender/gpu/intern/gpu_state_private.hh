@@ -79,6 +79,8 @@ inline GPUState operator^(const GPUState &a, const GPUState &b)
 /* Mutable state that does not require pipeline change. */
 union GPUStateMutable {
   struct {
+    /* Viewport State */
+    /** TODO put inside GPUFramebuffer. */
     /** Offset + Extent of the drawable region inside the framebuffer. */
     int viewport_rect[4];
     /** Offset + Extent of the scissor region inside the framebuffer. */
@@ -126,41 +128,17 @@ inline GPUStateMutable operator^(const GPUStateMutable &a, const GPUStateMutable
   return r;
 }
 
-#define GPU_STATE_STACK_LEN 4
-
-class GPUStateStack {
- private:
-  /** Stack of state for quick temporary modification of the state. */
-  GPUState stack[GPU_STATE_STACK_LEN];
-  GPUStateMutable mutable_stack[GPU_STATE_STACK_LEN];
-  int stack_top = 0;
-  int mutable_stack_top = 0;
+class GPUStateManager {
+ public:
+  GPUState state;
+  GPUStateMutable mutable_state;
 
  public:
-  virtual ~GPUStateStack(){};
+  virtual ~GPUStateManager(){};
 
-  virtual void set_state(GPUState &state) = 0;
-  virtual void set_mutable_state(GPUStateMutable &state) = 0;
-
-  void push_stack(void);
-  void pop_stack(void);
-
-  void push_mutable_stack(void);
-  void pop_mutable_stack(void);
-
-  inline GPUState &stack_top_get(void);
-  inline GPUStateMutable &mutable_stack_top_get(void);
+  virtual void set_state(const GPUState &state) = 0;
+  virtual void set_mutable_state(const GPUStateMutable &state) = 0;
 };
-
-inline GPUState &GPUStateStack::stack_top_get(void)
-{
-  return stack[stack_top];
-}
-
-inline GPUStateMutable &GPUStateStack::mutable_stack_top_get(void)
-{
-  return mutable_stack[mutable_stack_top];
-}
 
 }  // namespace gpu
 }  // namespace blender

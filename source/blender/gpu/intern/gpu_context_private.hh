@@ -46,7 +46,7 @@ struct GPUContext {
   GPUShader *shader = NULL;
   GPUFrameBuffer *current_fbo = NULL;
   GPUMatrixState *matrix_state = NULL;
-  blender::gpu::GPUStateStack *state_stack = NULL;
+  blender::gpu::GPUStateManager *state_manager = NULL;
 
  protected:
   /** Thread on which this context is active. */

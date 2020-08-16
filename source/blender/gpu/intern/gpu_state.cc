@@ -38,15 +38,12 @@
 
 #include "gpu_state_private.hh"
 
-/* TODO remove */
-#include "gl_state.hh"
-
 using namespace blender::gpu;
 
 #define SET_STATE(_prefix, _state, _value) \
   do { \
-    GPUStateStack *stack = GPU_context_active_get()->state_stack; \
-    auto &state_object = stack->_prefix##stack_top_get(); \
+    GPUStateManager *stack = GPU_context_active_get()->state_manager; \
+    auto &state_object = stack->_prefix##state; \
     state_object._state = _value; \
     /* TODO remove this and only push state at draw time. */ \
     stack->set_##_prefix##state(state_object); \
@@ -107,8 +104,8 @@ void GPU_write_mask(eGPUWriteMask mask)
 
 void GPU_color_mask(bool r, bool g, bool b, bool a)
 {
-  GPUStateStack *stack = GPU_context_active_get()->state_stack;
-  auto &state = stack->stack_top_get();
+  GPUStateManager *stack = GPU_context_active_get()->state_manager;
+  auto &state = stack->state;
   eGPUWriteMask write_mask = state.write_mask;
   SET_FLAG_FROM_TEST(write_mask, r, GPU_WRITE_RED);
   SET_FLAG_FROM_TEST(write_mask, g, GPU_WRITE_GREEN);
@@ -121,8 +118,8 @@ void GPU_color_mask(bool r, bool g, bool b, bool a)
 
 void GPU_depth_mask(bool depth)
 {
-  GPUStateStack *stack = GPU_context_active_get()->state_stack;
-  auto &state = stack->stack_top_get();
+  GPUStateManager *stack = GPU_context_active_get()->state_manager;
+  auto &state = stack->state;
   eGPUWriteMask write_mask = state.write_mask;
   SET_FLAG_FROM_TEST(write_mask, depth, GPU_WRITE_DEPTH);
   state.write_mask = write_mask;
@@ -143,8 +140,8 @@ void GPU_clip_distances(int distances_enabled)
 
 void GPU_depth_range(float near, float far)
 {
-  GPUStateStack *stack = GPU_context_active_get()->state_stack;
-  auto &state = stack->mutable_stack_top_get();
+  GPUStateManager *stack = GPU_context_active_get()->state_manager;
+  auto &state = stack->mutable_state;
   copy_v2_fl2(state.depth_range, near, far);
   /* TODO remove this and only push state at draw time. */
   stack->set_mutable_state(state);
@@ -166,8 +163,8 @@ void GPU_point_size(float size)
 /* TODO remove and use program point size everywhere */
 void GPU_program_point_size(bool enable)
 {
-  GPUStateStack *stack = GPU_context_active_get()->state_stack;
-  auto &state = stack->mutable_stack_top_get();
+  GPUStateManager *stack = GPU_context_active_get()->state_manager;
+  auto &state = stack->mutable_state;
   /* Set point size sign negative to disable. */
   state.point_size = fabsf(state.point_size) * (enable ? 1 : -1);
   /* TODO remove this and only push state at draw time. */
@@ -176,8 +173,8 @@ void GPU_program_point_size(bool enable)
 
 void GPU_scissor_test(bool enable)
 {
-  GPUStateStack *stack = GPU_context_active_get()->state_stack;
-  auto &state = stack->mutable_stack_top_get();
+  GPUStateManager *stack = GPU_context_active_get()->state_manager;
+  auto &state = stack->mutable_state;
   /* Set point size sign negative to disable. */
   state.scissor_rect[2] = abs(state.scissor_rect[2]) * (enable ? 1 : -1);
   /* TODO remove this and only push state at draw time. */
@@ -186,8 +183,8 @@ void GPU_scissor_test(bool enable)
 
 void GPU_scissor(int x, int y, int width, int height)
 {
-  GPUStateStack *stack = GPU_context_active_get()->state_stack;
-  auto &state = stack->mutable_stack_top_get();
+  GPUStateManager *stack = GPU_context_active_get()->state_manager;
+  auto &state = stack->mutable_state;
   int scissor_rect[4] = {x, y, width, height};
   copy_v4_v4_int(state.scissor_rect, scissor_rect);
   /* TODO remove this and only push state at draw time. */
@@ -196,8 +193,8 @@ void GPU_scissor(int x, int y, int width, int height)
 
 void GPU_viewport(int x, int y, int width, int height)
 {
-  GPUStateStack *stack = GPU_context_active_get()->state_stack;
-  auto &state = stack->mutable_stack_top_get();
+  GPUStateManager *stack = GPU_context_active_get()->state_manager;
+  auto &state = stack->mutable_state;
   int viewport_rect[4] = {x, y, width, height};
   copy_v4_v4_int(state.viewport_rect, viewport_rect);
   /* TODO remove this and only push state at draw time. */
@@ -212,31 +209,31 @@ void GPU_viewport(int x, int y, int width, int height)
 
 eGPUBlend GPU_blend_get()
 {
-  GPUState &state = GPU_context_active_get()->state_stack->stack_top_get();
+  GPUState &state = GPU_context_active_get()->state_manager->state;
   return state.blend;
 }
 
 eGPUWriteMask GPU_write_mask_get()
 {
-  GPUState &state = GPU_context_active_get()->state_stack->stack_top_get();
+  GPUState &state = GPU_context_active_get()->state_manager->state;
   return state.write_mask;
 }
 
 bool GPU_depth_test_enabled()
 {
-  GPUState &state = GPU_context_active_get()->state_stack->stack_top_get();
+  GPUState &state = GPU_context_active_get()->state_manager->state;
   return state.depth_test != GPU_DEPTH_NONE;
 }
 
 void GPU_scissor_get(int coords[4])
 {
-  GPUStateMutable &state = GPU_context_active_get()->state_stack->mutable_stack_top_get();
+  GPUStateMutable &state = GPU_context_active_get()->state_manager->mutable_state;
   copy_v4_v4_int(coords, state.scissor_rect);
 }
 
 void GPU_viewport_size_get_f(float coords[4])
 {
-  GPUStateMutable &state = GPU_context_active_get()->state_stack->mutable_stack_top_get();
+  GPUStateMutable &state = GPU_context_active_get()->state_manager->mutable_state;
   for (int i = 0; i < 4; i++) {
     coords[i] = state.viewport_rect[i];
   }
@@ -244,13 +241,13 @@ void GPU_viewport_size_get_f(float coords[4])
 
 void GPU_viewport_size_get_i(int coords[4])
 {
-  GPUStateMutable &state = GPU_context_active_get()->state_stack->mutable_stack_top_get();
+  GPUStateMutable &state = GPU_context_active_get()->state_manager->mutable_state;
   copy_v4_v4_int(coords, state.viewport_rect);
 }
 
 bool GPU_depth_mask_get(void)
 {
-  GPUState &state = GPU_context_active_get()->state_stack->stack_top_get();
+  GPUState &state = GPU_context_active_get()->state_manager->state;
   return (state.write_mask & GPU_WRITE_DEPTH) != 0;
 }
 
@@ -258,34 +255,6 @@ bool GPU_mipmap_enabled(void)
 {
   /* TODO(fclem) this used to be a userdef option. */
   return true;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name GPUStateStack
- * \{ */
-
-void GPUStateStack::push_stack(void)
-{
-  stack[stack_top + 1] = stack[stack_top];
-  stack_top++;
-}
-
-void GPUStateStack::pop_stack(void)
-{
-  stack_top--;
-}
-
-void GPUStateStack::push_mutable_stack(void)
-{
-  mutable_stack[mutable_stack_top + 1] = mutable_stack[mutable_stack_top];
-  mutable_stack_top++;
-}
-
-void GPUStateStack::pop_mutable_stack(void)
-{
-  mutable_stack_top--;
 }
 
 /** \} */

@@ -57,7 +57,7 @@ GLContext::GLContext(void *ghost_window, GLSharedOrphanLists &shared_orphan_list
   glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-  state_stack = new GLStateStack();
+  state_manager = new GLStateManager();
 }
 
 GLContext::~GLContext()

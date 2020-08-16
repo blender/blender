@@ -21,23 +21,20 @@
  */
 
 #include "BLI_math_base.h"
-#include "BLI_utildefines.h"
-
-#include "BKE_global.h"
 
 #include "GPU_extensions.h"
-#include "GPU_glew.h"
-#include "GPU_state.h"
+
+#include "glew-mx.h"
 
 #include "gl_state.hh"
 
 using namespace blender::gpu;
 
 /* -------------------------------------------------------------------- */
-/** \name GLStateStack
+/** \name GLStateManager
  * \{ */
 
-void GLStateStack::set_state(GPUState &state)
+void GLStateManager::set_state(const GPUState &state)
 {
   GPUState changed = state ^ current_;
 
@@ -52,7 +49,7 @@ void GLStateStack::set_state(GPUState &state)
   }
   if (changed.stencil_test != 0 || changed.stencil_op != 0) {
     set_stencil_test(state.stencil_test, state.stencil_op);
-    set_stencil_mask(state.stencil_test, mutable_stack_top_get());
+    set_stencil_mask(state.stencil_test, mutable_state);
   }
   if (changed.clip_distances != 0) {
     set_clip_distances(state.clip_distances, current_.clip_distances);
@@ -94,11 +91,14 @@ void GLStateStack::set_state(GPUState &state)
   current_ = state;
 }
 
-void GLStateStack::set_mutable_state(GPUStateMutable &state)
+void GLStateManager::set_mutable_state(const GPUStateMutable &state)
 {
   GPUStateMutable changed = state ^ current_mutable_;
 
-  glViewport(UNPACK4(state.viewport_rect));
+  if ((changed.viewport_rect[0] != 0) || (changed.viewport_rect[1] != 0) ||
+      (changed.viewport_rect[2] != 0) || (changed.viewport_rect[3] != 0)) {
+    glViewport(UNPACK4(state.viewport_rect));
+  }
 
   if ((changed.scissor_rect[0] != 0) || (changed.scissor_rect[1] != 0) ||
       (changed.scissor_rect[2] != 0) || (changed.scissor_rect[3] != 0)) {
@@ -113,12 +113,14 @@ void GLStateStack::set_mutable_state(GPUStateMutable &state)
   }
 
   /* TODO remove, should be uniform. */
-  if (state.point_size > 0.0f) {
-    glEnable(GL_PROGRAM_POINT_SIZE);
-    glPointSize(state.point_size);
-  }
-  else {
-    glDisable(GL_PROGRAM_POINT_SIZE);
+  if (changed.point_size != 0) {
+    if (state.point_size > 0.0f) {
+      glEnable(GL_PROGRAM_POINT_SIZE);
+      glPointSize(state.point_size);
+    }
+    else {
+      glDisable(GL_PROGRAM_POINT_SIZE);
+    }
   }
 
   if (changed.line_width != 0) {
@@ -145,7 +147,7 @@ void GLStateStack::set_mutable_state(GPUStateMutable &state)
 /** \name State set functions
  * \{ */
 
-void GLStateStack::set_write_mask(const eGPUWriteMask value)
+void GLStateManager::set_write_mask(const eGPUWriteMask value)
 {
   glDepthMask((value & GPU_WRITE_DEPTH) != 0);
   glColorMask((value & GPU_WRITE_RED) != 0,
@@ -154,7 +156,7 @@ void GLStateStack::set_write_mask(const eGPUWriteMask value)
               (value & GPU_WRITE_ALPHA) != 0);
 }
 
-void GLStateStack::set_depth_test(const eGPUDepthTest value)
+void GLStateManager::set_depth_test(const eGPUDepthTest value)
 {
   GLenum func;
   switch (value) {
@@ -188,7 +190,7 @@ void GLStateStack::set_depth_test(const eGPUDepthTest value)
   }
 }
 
-void GLStateStack::set_stencil_test(const eGPUStencilTest test, const eGPUStencilOp operation)
+void GLStateManager::set_stencil_test(const eGPUStencilTest test, const eGPUStencilOp operation)
 {
   switch (operation) {
     case GPU_STENCIL_OP_REPLACE:
@@ -215,7 +217,7 @@ void GLStateStack::set_stencil_test(const eGPUStencilTest test, const eGPUStenci
   }
 }
 
-void GLStateStack::set_stencil_mask(const eGPUStencilTest test, const GPUStateMutable state)
+void GLStateManager::set_stencil_mask(const eGPUStencilTest test, const GPUStateMutable state)
 {
   GLenum func;
   switch (test) {
@@ -239,7 +241,7 @@ void GLStateStack::set_stencil_mask(const eGPUStencilTest test, const GPUStateMu
   glStencilFunc(func, state.stencil_reference, state.stencil_compare_mask);
 }
 
-void GLStateStack::set_clip_distances(const int new_dist_len, const int old_dist_len)
+void GLStateManager::set_clip_distances(const int new_dist_len, const int old_dist_len)
 {
   for (int i = 0; i < new_dist_len; i++) {
     glEnable(GL_CLIP_DISTANCE0 + i);
@@ -249,7 +251,7 @@ void GLStateStack::set_clip_distances(const int new_dist_len, const int old_dist
   }
 }
 
-void GLStateStack::set_logic_op(const bool enable)
+void GLStateManager::set_logic_op(const bool enable)
 {
   if (enable) {
     glEnable(GL_COLOR_LOGIC_OP);
@@ -260,12 +262,12 @@ void GLStateStack::set_logic_op(const bool enable)
   }
 }
 
-void GLStateStack::set_facing(const bool invert)
+void GLStateManager::set_facing(const bool invert)
 {
   glFrontFace((invert) ? GL_CW : GL_CCW);
 }
 
-void GLStateStack::set_backface_culling(const eGPUFaceCullTest test)
+void GLStateManager::set_backface_culling(const eGPUFaceCullTest test)
 {
   if (test != GPU_CULL_NONE) {
     glDisable(GL_CULL_FACE);
@@ -276,14 +278,14 @@ void GLStateStack::set_backface_culling(const eGPUFaceCullTest test)
   }
 }
 
-void GLStateStack::set_provoking_vert(const eGPUProvokingVertex vert)
+void GLStateManager::set_provoking_vert(const eGPUProvokingVertex vert)
 {
   GLenum value = (vert == GPU_VERTEX_FIRST) ? GL_FIRST_VERTEX_CONVENTION :
                                               GL_LAST_VERTEX_CONVENTION;
   glProvokingVertex(value);
 }
 
-void GLStateStack::set_shadow_bias(const bool enable)
+void GLStateManager::set_shadow_bias(const bool enable)
 {
   if (enable) {
     glEnable(GL_POLYGON_OFFSET_FILL);
@@ -297,7 +299,7 @@ void GLStateStack::set_shadow_bias(const bool enable)
   }
 }
 
-void GLStateStack::set_blend(const eGPUBlend value)
+void GLStateManager::set_blend(const eGPUBlend value)
 {
   /**
    * Factors to the equation.

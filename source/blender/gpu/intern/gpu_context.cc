@@ -70,7 +70,7 @@ GPUContext::GPUContext()
 GPUContext::~GPUContext()
 {
   GPU_matrix_state_discard(matrix_state);
-  delete state_stack;
+  delete state_manager;
 }
 
 bool GPUContext::is_active_on_thread(void)
