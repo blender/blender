@@ -635,7 +635,10 @@ typedef enum eRegionType {
   RGN_TYPE_EXECUTE = 10,
   RGN_TYPE_FOOTER = 11,
   RGN_TYPE_TOOL_HEADER = 12,
+
+#define RGN_TYPE_LEN (RGN_TYPE_TOOL_HEADER + 1)
 } eRegionType;
+
 /* use for function args */
 #define RGN_TYPE_ANY -1
 
@@ -661,6 +664,7 @@ enum {
 
 /** Mask out flags so we can check the alignment. */
 #define RGN_ALIGN_ENUM_FROM_MASK(align) ((align) & ((1 << 4) - 1))
+#define RGN_ALIGN_FLAG_FROM_MASK(align) ((align) & ~((1 << 4) - 1))
 
 /** #ARegion.flag */
 enum {
