@@ -766,7 +766,7 @@ static EnumPropertyItem prop_cloth_filter_type[] = {
      "PINCH",
      0,
      "Pinch",
-     "Pinches the cloth to the point were the cursor was when the filter started"},
+     "Pinches the cloth to the point where the cursor was when the filter started"},
     {0, NULL, 0, NULL, NULL},
 };
 
