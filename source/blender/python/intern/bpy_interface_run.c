@@ -39,6 +39,7 @@
 #include "BPY_extern_run.h"
 
 #include "bpy_capi_utils.h"
+#include "bpy_intern_string.h"
 #include "bpy_traceback.h"
 
 #include "../generic/py_capi_utils.h"
@@ -64,6 +65,18 @@ static void bpy_text_filename_get(char *fn, const Main *bmain, size_t fn_len, co
 {
   BLI_snprintf(fn, fn_len, "%s%c%s", ID_BLEND_PATH(bmain, &text->id), SEP, text->id.name + 2);
 }
+
+/* Very annoying! Undo #_PyModule_Clear(), see T23871. */
+#define PYMODULE_CLEAR_WORKAROUND
+
+#ifdef PYMODULE_CLEAR_WORKAROUND
+/* bad!, we should never do this, but currently only safe way I could find to keep namespace.
+ * from being cleared. - campbell */
+typedef struct {
+  PyObject_HEAD PyObject *md_dict;
+  /* omit other values, we only want the dict. */
+} PyModuleObject;
+#endif
 
 static bool python_script_exec(
     bContext *C, const char *fn, struct Text *text, struct ReportList *reports, const bool do_jump)

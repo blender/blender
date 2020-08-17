@@ -444,18 +444,6 @@ void BPY_python_backtrace(FILE *fp)
   }
 }
 
-/* super annoying, undo _PyModule_Clear(), bug [#23871] */
-#define PYMODULE_CLEAR_WORKAROUND
-
-#ifdef PYMODULE_CLEAR_WORKAROUND
-/* bad!, we should never do this, but currently only safe way I could find to keep namespace.
- * from being cleared. - campbell */
-typedef struct {
-  PyObject_HEAD PyObject *md_dict;
-  /* omit other values, we only want the dict. */
-} PyModuleObject;
-#endif
-
 void BPY_DECREF(void *pyob_ptr)
 {
   PyGILState_STATE gilstate = PyGILState_Ensure();
