@@ -67,7 +67,9 @@ class AbstractAlembicTest(AbstractBlenderRunnerTest):
         """
 
         command = (self.alembic_root / 'bin' / 'abcls', *arguments)
-        proc = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        # Convert Path to str; Path works fine on Linux, but not on Windows.
+        command_str = [str(arg) for arg in command]
+        proc = subprocess.run(command_str, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                               timeout=30)
 
         coloured_output = proc.stdout
