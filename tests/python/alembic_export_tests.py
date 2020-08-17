@@ -19,6 +19,14 @@
 
 # <pep8 compliant>
 
+"""
+Alembic Export Tests
+
+This test suite runs outside of Blender. Tests run Blender to call the exporter,
+and then use the Alembic CLI tools to inspect the exported Alembic files.
+"""
+
+
 import argparse
 import pathlib
 import subprocess
