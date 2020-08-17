@@ -359,11 +359,6 @@ static void eevee_render_result_occlusion(RenderLayer *rl,
                                           EEVEE_Data *vedata,
                                           EEVEE_ViewLayerData *sldata)
 {
-  if ((vedata->stl->effects->enabled_effects & EFFECT_GTAO) == 0) {
-    /* AO is not enabled. */
-    return;
-  }
-
   if ((vedata->stl->g_data->render_passes & EEVEE_RENDER_PASS_AO) != 0) {
     EEVEE_renderpasses_postprocess(sldata, vedata, EEVEE_RENDER_PASS_AO);
     eevee_render_color_result(

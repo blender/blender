@@ -90,12 +90,8 @@ void EEVEE_renderpasses_init(EEVEE_Data *vedata)
   if (v3d) {
     const Scene *scene = draw_ctx->scene;
     eViewLayerEEVEEPassType render_pass = v3d->shading.render_pass;
-    if (render_pass == EEVEE_RENDER_PASS_AO &&
-        ((scene->eevee.flag & SCE_EEVEE_GTAO_ENABLED) == 0)) {
-      render_pass = EEVEE_RENDER_PASS_COMBINED;
-    }
-    else if (render_pass == EEVEE_RENDER_PASS_BLOOM &&
-             ((scene->eevee.flag & SCE_EEVEE_BLOOM_ENABLED) == 0)) {
+    if (render_pass == EEVEE_RENDER_PASS_BLOOM &&
+        ((scene->eevee.flag & SCE_EEVEE_BLOOM_ENABLED) == 0)) {
       render_pass = EEVEE_RENDER_PASS_COMBINED;
     }
     g_data->render_passes = render_pass;
@@ -392,8 +388,6 @@ void EEVEE_renderpasses_draw(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
       ((stl->g_data->render_passes & EEVEE_RENDERPASSES_LIGHT_PASS) != 0) ?
           (stl->g_data->render_passes & EEVEE_RENDERPASSES_LIGHT_PASS) :
           stl->g_data->render_passes;
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
   bool is_valid = (render_pass & EEVEE_RENDERPASSES_ALL) > 0;
   bool needs_color_transfer = (render_pass & EEVEE_RENDERPASSES_COLOR_PASS) > 0 &&
@@ -402,12 +396,6 @@ void EEVEE_renderpasses_draw(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   if ((render_pass & EEVEE_RENDER_PASS_BLOOM) != 0 &&
       (effects->enabled_effects & EFFECT_BLOOM) == 0) {
-    is_valid = false;
-  }
-
-  /* When SSS isn't available, but the pass is requested, we mark it as invalid */
-  if ((render_pass & EEVEE_RENDER_PASS_AO) != 0 &&
-      (scene_eval->eevee.flag & SCE_EEVEE_GTAO_ENABLED) == 0) {
     is_valid = false;
   }
 
@@ -462,10 +450,10 @@ void EEVEE_renderpasses_draw_debug(EEVEE_Data *vedata)
       tx = txl->color_double_buffer;
       break;
     case 6:
-      tx = effects->gtao_horizons;
+      tx = effects->gtao_horizons_renderpass;
       break;
     case 7:
-      tx = effects->gtao_horizons;
+      tx = effects->gtao_horizons_renderpass;
       break;
     case 8:
       tx = effects->sss_irradiance;

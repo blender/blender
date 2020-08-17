@@ -111,9 +111,7 @@ class VIEWLAYER_PT_eevee_layer_passes_light(ViewLayerButtonsPanel, Panel):
         col.prop(view_layer, "use_pass_emit", text="Emission")
         col.prop(view_layer, "use_pass_environment")
         col.prop(view_layer, "use_pass_shadow")
-        row = col.row()
-        row.prop(view_layer, "use_pass_ambient_occlusion", text="Ambient Occlusion")
-        row.active = scene_eevee.use_gtao
+        col.prop(view_layer, "use_pass_ambient_occlusion", text="Ambient Occlusion")
 
 
 class VIEWLAYER_PT_eevee_layer_passes_effects(ViewLayerButtonsPanel, Panel):
