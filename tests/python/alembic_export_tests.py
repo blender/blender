@@ -116,7 +116,7 @@ class AbstractAlembicTest(AbstractBlenderRunnerTest):
             try:
                 valtype_and_arrsize, name_and_extent = parts[1:]
             except ValueError as ex:
-                raise ValueError('Error parsing result from abcprop "{info.strip()}": {ex}') from ex
+                raise ValueError(f'Error parsing result from abcprop "{info.strip()}": {ex}') from ex
 
             # Parse name and extent
             m = self.abcls_array.match(name_and_extent)
