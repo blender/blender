@@ -44,6 +44,14 @@ GLShader::GLShader(const char *name) : Shader(name)
   BLI_assert(GPU_context_active_get() != NULL);
 #endif
   shader_program_ = glCreateProgram();
+
+#ifndef __APPLE__
+  if ((G.debug & G_DEBUG_GPU) && (GLEW_VERSION_4_3 || GLEW_KHR_debug)) {
+    char sh_name[64];
+    BLI_snprintf(sh_name, sizeof(sh_name), "ShaderProgram-%s", name);
+    glObjectLabel(GL_PROGRAM, shader_program_, -1, sh_name);
+  }
+#endif
 }
 
 GLShader::~GLShader(void)
@@ -144,6 +152,25 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage, MutableSpan<const char *> 
     glDeleteShader(shader);
     return 0;
   }
+
+#ifndef __APPLE__
+  if ((G.debug & G_DEBUG_GPU) && (GLEW_VERSION_4_3 || GLEW_KHR_debug)) {
+    char sh_name[64];
+    switch (gl_stage) {
+      case GL_VERTEX_SHADER:
+        BLI_snprintf(sh_name, sizeof(sh_name), "VertShader-%s", name);
+        break;
+      case GL_GEOMETRY_SHADER:
+        BLI_snprintf(sh_name, sizeof(sh_name), "GeomShader-%s", name);
+        break;
+      case GL_FRAGMENT_SHADER:
+        BLI_snprintf(sh_name, sizeof(sh_name), "FragShader-%s", name);
+        break;
+    }
+    glObjectLabel(GL_SHADER, shader, -1, sh_name);
+  }
+#endif
+
   glAttachShader(shader_program_, shader);
   return shader;
 }
