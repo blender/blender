@@ -126,9 +126,13 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
       }
       else {
         kernel_embree_convert_hit(kg, ray, hit, &current_isect);
-        if (ctx->local_object_id != current_isect.object) {
+        int object = (current_isect.object == OBJECT_NONE) ?
+                         kernel_tex_fetch(__prim_object, current_isect.prim) :
+                         current_isect.object;
+        if (ctx->local_object_id != object) {
           /* This tells Embree to continue tracing. */
           *args->valid = 0;
+          break;
         }
       }
 
