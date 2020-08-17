@@ -622,6 +622,8 @@ void GPU_framebuffer_clear(GPUFrameBuffer *fb,
 {
   CHECK_FRAMEBUFFER_IS_BOUND(fb);
 
+  GPU_context_active_get()->state_manager->apply_state();
+
   if (buffers & GPU_COLOR_BIT) {
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glClearColor(clear_col[0], clear_col[1], clear_col[2], clear_col[3]);
@@ -785,6 +787,8 @@ void GPU_framebuffer_blit(GPUFrameBuffer *fb_read,
   }
 
   GLbitfield mask = convert_buffer_bits_to_gl(blit_buffers);
+
+  GPU_context_active_get()->state_manager->apply_state();
 
   glBlitFramebuffer(0,
                     0,
@@ -1043,6 +1047,8 @@ void GPU_offscreen_draw_to_screen(GPUOffScreen *ofs, int x, int y)
   const int w = GPU_texture_width(ofs->color);
   const int h = GPU_texture_height(ofs->color);
 
+  GPU_context_active_get()->state_manager->apply_state();
+
   GPUFrameBuffer *ofs_fb = gpu_offscreen_fb_get(ofs);
 
   glBindFramebuffer(GL_READ_FRAMEBUFFER, ofs_fb->object);
@@ -1107,6 +1113,7 @@ void GPU_clear_depth(float depth)
 
 void GPU_clear(eGPUFrameBufferBits flags)
 {
+  GPU_context_active_get()->state_manager->apply_state();
   glClear(convert_buffer_bits_to_gl(flags));
 }
 

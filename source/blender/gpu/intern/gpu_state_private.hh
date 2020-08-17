@@ -138,6 +138,12 @@ class GPUStateManager {
 
   virtual void set_state(const GPUState &state) = 0;
   virtual void set_mutable_state(const GPUStateMutable &state) = 0;
+
+  inline void apply_state(void)
+  {
+    this->set_state(this->state);
+    this->set_mutable_state(this->mutable_state);
+  };
 };
 
 }  // namespace gpu

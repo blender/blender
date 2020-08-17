@@ -45,8 +45,6 @@ using namespace blender::gpu;
     GPUStateManager *stack = GPU_context_active_get()->state_manager; \
     auto &state_object = stack->_prefix##state; \
     state_object._state = _value; \
-    /* TODO remove this and only push state at draw time. */ \
-    stack->set_##_prefix##state(state_object); \
   } while (0)
 
 #define SET_IMMUTABLE_STATE(_state, _value) SET_STATE(, _state, _value)
@@ -112,8 +110,6 @@ void GPU_color_mask(bool r, bool g, bool b, bool a)
   SET_FLAG_FROM_TEST(write_mask, b, GPU_WRITE_BLUE);
   SET_FLAG_FROM_TEST(write_mask, a, GPU_WRITE_ALPHA);
   state.write_mask = write_mask;
-  /* TODO remove this and only push state at draw time. */
-  stack->set_state(state);
 }
 
 void GPU_depth_mask(bool depth)
@@ -123,8 +119,6 @@ void GPU_depth_mask(bool depth)
   eGPUWriteMask write_mask = state.write_mask;
   SET_FLAG_FROM_TEST(write_mask, depth, GPU_WRITE_DEPTH);
   state.write_mask = write_mask;
-  /* TODO remove this and only push state at draw time. */
-  stack->set_state(state);
 }
 
 void GPU_clip_distances(int distances_enabled)
@@ -143,8 +137,6 @@ void GPU_depth_range(float near, float far)
   GPUStateManager *stack = GPU_context_active_get()->state_manager;
   auto &state = stack->mutable_state;
   copy_v2_fl2(state.depth_range, near, far);
-  /* TODO remove this and only push state at draw time. */
-  stack->set_mutable_state(state);
 }
 
 void GPU_line_width(float width)
@@ -167,8 +159,6 @@ void GPU_program_point_size(bool enable)
   auto &state = stack->mutable_state;
   /* Set point size sign negative to disable. */
   state.point_size = fabsf(state.point_size) * (enable ? 1 : -1);
-  /* TODO remove this and only push state at draw time. */
-  stack->set_mutable_state(state);
 }
 
 void GPU_scissor_test(bool enable)
@@ -177,8 +167,6 @@ void GPU_scissor_test(bool enable)
   auto &state = stack->mutable_state;
   /* Set point size sign negative to disable. */
   state.scissor_rect[2] = abs(state.scissor_rect[2]) * (enable ? 1 : -1);
-  /* TODO remove this and only push state at draw time. */
-  stack->set_mutable_state(state);
 }
 
 void GPU_scissor(int x, int y, int width, int height)
@@ -187,8 +175,6 @@ void GPU_scissor(int x, int y, int width, int height)
   auto &state = stack->mutable_state;
   int scissor_rect[4] = {x, y, width, height};
   copy_v4_v4_int(state.scissor_rect, scissor_rect);
-  /* TODO remove this and only push state at draw time. */
-  stack->set_mutable_state(state);
 }
 
 void GPU_viewport(int x, int y, int width, int height)
@@ -197,8 +183,6 @@ void GPU_viewport(int x, int y, int width, int height)
   auto &state = stack->mutable_state;
   int viewport_rect[4] = {x, y, width, height};
   copy_v4_v4_int(state.viewport_rect, viewport_rect);
-  /* TODO remove this and only push state at draw time. */
-  stack->set_mutable_state(state);
 }
 
 /** \} */

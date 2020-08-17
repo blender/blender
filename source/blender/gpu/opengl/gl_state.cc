@@ -102,9 +102,8 @@ void GLStateManager::set_mutable_state(const GPUStateMutable &state)
 
   if ((changed.scissor_rect[0] != 0) || (changed.scissor_rect[1] != 0) ||
       (changed.scissor_rect[2] != 0) || (changed.scissor_rect[3] != 0)) {
-    glScissor(UNPACK4(state.scissor_rect));
-
     if ((state.scissor_rect[2] > 0)) {
+      glScissor(UNPACK4(state.scissor_rect));
       glEnable(GL_SCISSOR_TEST);
     }
     else {

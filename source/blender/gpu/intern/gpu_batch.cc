@@ -282,6 +282,8 @@ void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_fi
 /* just draw some vertices and let shader place them where we want. */
 void GPU_draw_primitive(GPUPrimType prim_type, int v_count)
 {
+  GPU_context_active_get()->state_manager->apply_state();
+
   /* we cannot draw without vao ... annoying ... */
   glBindVertexArray(GPU_vao_default());
 

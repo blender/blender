@@ -210,6 +210,8 @@ static bool vertex_count_makes_sense_for_primitive(uint vertex_len, GPUPrimType 
 
 void immBegin(GPUPrimType prim_type, uint vertex_len)
 {
+  GPU_context_active_get()->state_manager->apply_state();
+
 #if TRUST_NO_ONE
   assert(initialized);
   assert(imm.prim_type == GPU_PRIM_NONE); /* make sure we haven't already begun */
