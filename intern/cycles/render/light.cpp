@@ -634,7 +634,7 @@ void LightManager::device_update_background(Device *device,
         sun_direction = transform_direction(&sky_transform, sun_direction);
 
         /* Pack sun direction and size. */
-        float half_angle = sky->sun_size * 0.5f;
+        float half_angle = sky->get_sun_size() * 0.5f;
         kbackground->sun = make_float4(
             sun_direction.x, sun_direction.y, sun_direction.z, half_angle);
 
