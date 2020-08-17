@@ -25,6 +25,7 @@
  */
 
 #include <Python.h>
+#include <frameobject.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -439,10 +440,19 @@ static void python_script_error_jump_text(struct Text *text)
   }
 }
 
-void BPY_python_backtrace(/* FILE */ void *fp)
+void BPY_python_backtrace(FILE *fp)
 {
   fputs("\n# Python backtrace\n", fp);
-  PyC_StackPrint(fp);
+  PyThreadState *tstate = PyGILState_GetThisThreadState();
+  if (tstate != NULL && tstate->frame != NULL) {
+    PyFrameObject *frame = tstate->frame;
+    do {
+      const int line = PyCode_Addr2Line(frame->f_code, frame->f_lasti);
+      const char *filename = _PyUnicode_AsString(frame->f_code->co_filename);
+      const char *funcname = _PyUnicode_AsString(frame->f_code->co_name);
+      fprintf(fp, "  File \"%s\", line %d in %s\n", filename, line, funcname);
+    } while ((frame = frame->f_back));
+  }
 }
 
 /* super annoying, undo _PyModule_Clear(), bug [#23871] */

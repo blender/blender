@@ -28,7 +28,6 @@ void PyC_ObSpit(const char *name, PyObject *var);
 void PyC_ObSpitStr(char *result, size_t result_len, PyObject *var);
 void PyC_LineSpit(void);
 void PyC_StackSpit(void);
-void PyC_StackPrint(/* FILE */ void *fp);
 PyObject *PyC_ExceptionBuffer(void);
 PyObject *PyC_ExceptionBuffer_Simple(void);
 PyObject *PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);
