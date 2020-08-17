@@ -216,13 +216,15 @@ class NODE_MT_add(bpy.types.Menu):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_DEFAULT'
-        props = layout.operator("node.add_search", text="Search...", icon='VIEWZOOM')
-        props.use_transform = True
 
-        layout.separator()
+        if nodeitems_utils.has_node_categories(context):
+            props = layout.operator("node.add_search", text="Search...", icon='VIEWZOOM')
+            props.use_transform = True
 
-        # actual node submenus are defined by draw functions from node categories
-        nodeitems_utils.draw_node_categories_menu(self, context)
+            layout.separator()
+
+            # actual node submenus are defined by draw functions from node categories
+            nodeitems_utils.draw_node_categories_menu(self, context)
 
 
 class NODE_MT_view(Menu):

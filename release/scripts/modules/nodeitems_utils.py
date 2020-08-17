@@ -144,6 +144,14 @@ def node_categories_iter(context):
                 yield cat
 
 
+def has_node_categories(context):
+    for cat_type in _node_categories.values():
+        for cat in cat_type[0]:
+            if cat.poll and ((context is None) or cat.poll(context)):
+                return True
+    return False
+
+
 def node_items_iter(context):
     for cat in node_categories_iter(context):
         for item in cat.items(context):
