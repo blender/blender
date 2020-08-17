@@ -978,23 +978,8 @@ static void node_toggle_button_cb(struct bContext *C, void *node_argv, void *op_
 void node_draw_shadow(SpaceNode *snode, bNode *node, float radius, float alpha)
 {
   rctf *rct = &node->totr;
-
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
-  if (node->parent == NULL) {
-    ui_draw_dropshadow(rct, radius, snode->aspect, alpha, node->flag & SELECT);
-  }
-  else {
-    const float margin = 3.0f;
-
-    const float color[4] = {0.0f, 0.0f, 0.0f, 0.33f};
-    UI_draw_roundbox_aa(true,
-                        rct->xmin - margin,
-                        rct->ymin - margin,
-                        rct->xmax + margin,
-                        rct->ymax + margin,
-                        radius + margin,
-                        color);
-  }
+  ui_draw_dropshadow(rct, radius, snode->aspect, alpha, node->flag & SELECT);
 }
 
 void node_draw_sockets(View2D *v2d,
