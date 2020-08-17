@@ -1264,6 +1264,7 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "head", PROP_FLOAT, PROP_TRANSLATION);
   RNA_def_property_float_sdna(prop, NULL, "head");
+  RNA_def_property_ui_range(prop, 0, FLT_MAX, 10, RNA_TRANSLATION_PREC_DEFAULT);
   RNA_def_property_array(prop, 3);
   RNA_def_property_ui_text(prop, "Head", "Location of head end of the bone");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -1271,6 +1272,7 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "tail", PROP_FLOAT, PROP_TRANSLATION);
   RNA_def_property_float_sdna(prop, NULL, "tail");
+  RNA_def_property_ui_range(prop, 0, FLT_MAX, 10, RNA_TRANSLATION_PREC_DEFAULT);
   RNA_def_property_array(prop, 3);
   RNA_def_property_ui_text(prop, "Tail", "Location of tail end of the bone");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
