@@ -1262,6 +1262,7 @@ class _defs_sculpt:
             layout.prop(props, "strength")
             row = layout.row(align=True)
             row.prop(props, "deform_axis")
+            layout.prop(props, "orientation", expand=False)
             layout.prop(props, "use_face_sets")
             if props.type == 'SURFACE_SMOOTH':
                 layout.prop(props, "surface_smooth_shape_preservation", expand=False)

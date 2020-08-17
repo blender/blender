@@ -76,7 +76,7 @@ void ED_sculpt_init_transform(struct bContext *C)
   ss->pivot_rot[3] = 1.0f;
 
   SCULPT_vertex_random_access_ensure(ss);
-  SCULPT_filter_cache_init(ob, sd, SCULPT_UNDO_COORDS);
+  SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COORDS);
 }
 
 static void sculpt_transform_task_cb(void *__restrict userdata,

@@ -337,7 +337,7 @@ float *SCULPT_boundary_automasking_init(Object *ob,
                                         float *automask_factor);
 
 /* Filters. */
-void SCULPT_filter_cache_init(Object *ob, Sculpt *sd, const int undo_type);
+void SCULPT_filter_cache_init(struct bContext *C, Object *ob, Sculpt *sd, const int undo_type);
 void SCULPT_filter_cache_free(SculptSession *ss);
 
 void SCULPT_mask_filter_smooth_apply(
@@ -944,6 +944,16 @@ typedef struct StrokeCache {
 
 } StrokeCache;
 
+/* Sculpt Filters */
+typedef enum SculptFilterOrientation {
+  SCULPT_FILTER_ORIENTATION_LOCAL = 0,
+  SCULPT_FILTER_ORIENTATION_WORLD = 1,
+  SCULPT_FILTER_ORIENTATION_VIEW = 2,
+} SculptFilterOrientation;
+
+void SCULPT_filter_to_orientation_space(float r_v[3], struct FilterCache *filter_cache);
+void SCULPT_filter_to_object_space(float r_v[3], struct FilterCache *filter_cache);
+
 typedef struct FilterCache {
   bool enabled_axis[3];
   bool enabled_force_axis[3];
@@ -964,6 +974,13 @@ typedef struct FilterCache {
   int sharpen_curvature_smooth_iterations;
   float *sharpen_factor;
   float (*sharpen_detail_directions)[3];
+
+  /* Filter orientaiton. */
+  SculptFilterOrientation orientation;
+  float obmat[4][4];
+  float obmat_inv[4][4];
+  float viewmat[4][4];
+  float viewmat_inv[4][4];
 
   /* unmasked nodes */
   PBVHNode **nodes;

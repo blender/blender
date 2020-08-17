@@ -50,6 +50,7 @@
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
+#include "ED_view3d.h"
 #include "paint_intern.h"
 #include "sculpt_intern.h"
 
@@ -63,6 +64,39 @@
 #include <math.h>
 #include <stdlib.h>
 
+/* Filter orientation utils. */
+void SCULPT_filter_to_orientation_space(float r_v[3], struct FilterCache *filter_cache)
+{
+  switch (filter_cache->orientation) {
+    case SCULPT_FILTER_ORIENTATION_LOCAL:
+      /* Do nothing, Sculpt Mode already works in object space. */
+      break;
+    case SCULPT_FILTER_ORIENTATION_WORLD:
+      mul_mat3_m4_v3(filter_cache->obmat, r_v);
+      break;
+    case SCULPT_FILTER_ORIENTATION_VIEW:
+      mul_mat3_m4_v3(filter_cache->obmat, r_v);
+      mul_mat3_m4_v3(filter_cache->viewmat, r_v);
+      break;
+  }
+}
+
+void SCULPT_filter_to_object_space(float r_v[3], struct FilterCache *filter_cache)
+{
+  switch (filter_cache->orientation) {
+    case SCULPT_FILTER_ORIENTATION_LOCAL:
+      /* Do nothing, Sculpt Mode already works in object space. */
+      break;
+    case SCULPT_FILTER_ORIENTATION_WORLD:
+      mul_mat3_m4_v3(filter_cache->obmat_inv, r_v);
+      break;
+    case SCULPT_FILTER_ORIENTATION_VIEW:
+      mul_mat3_m4_v3(filter_cache->viewmat_inv, r_v);
+      mul_mat3_m4_v3(filter_cache->obmat_inv, r_v);
+      break;
+  }
+}
+
 static void filter_cache_init_task_cb(void *__restrict userdata,
                                       const int i,
                                       const TaskParallelTLS *__restrict UNUSED(tls))
@@ -73,7 +107,7 @@ static void filter_cache_init_task_cb(void *__restrict userdata,
   SCULPT_undo_push_node(data->ob, node, data->filter_undo_type);
 }
 
-void SCULPT_filter_cache_init(Object *ob, Sculpt *sd, const int undo_type)
+void SCULPT_filter_cache_init(bContext *C, Object *ob, Sculpt *sd, const int undo_type)
 {
   SculptSession *ss = ob->sculpt;
   PBVH *pbvh = ob->sculpt->pbvh;
@@ -117,6 +151,16 @@ void SCULPT_filter_cache_init(Object *ob, Sculpt *sd, const int undo_type)
   BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->totnode);
   BLI_task_parallel_range(
       0, ss->filter_cache->totnode, &data, filter_cache_init_task_cb, &settings);
+
+  /* Setup orientation matrices. */
+  copy_m4_m4(ss->filter_cache->obmat, ob->obmat);
+  invert_m4_m4(ss->filter_cache->obmat_inv, ob->obmat);
+
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  ViewContext vc;
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  copy_m4_m4(ss->filter_cache->viewmat, vc.rv3d->viewmat);
+  copy_m4_m4(ss->filter_cache->viewmat_inv, vc.rv3d->viewinv);
 }
 
 void SCULPT_filter_cache_free(SculptSession *ss)
@@ -179,6 +223,25 @@ static EnumPropertyItem prop_mesh_filter_deform_axis_items[] = {
     {MESH_FILTER_DEFORM_X, "X", 0, "X", "Deform in the X axis"},
     {MESH_FILTER_DEFORM_Y, "Y", 0, "Y", "Deform in the Y axis"},
     {MESH_FILTER_DEFORM_Z, "Z", 0, "Z", "Deform in the Z axis"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+static EnumPropertyItem prop_mesh_filter_orientation_items[] = {
+    {SCULPT_FILTER_ORIENTATION_LOCAL,
+     "LOCAL",
+     0,
+     "Local",
+     "Use the local axis to limit the displacement"},
+    {SCULPT_FILTER_ORIENTATION_WORLD,
+     "WORLD",
+     0,
+     "World",
+     "Use the global axis to limit the displacement"},
+    {SCULPT_FILTER_ORIENTATION_VIEW,
+     "VIEW",
+     0,
+     "View",
+     "Use the view axis to limit the displacement"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -372,11 +435,13 @@ static void mesh_filter_task_cb(void *__restrict userdata,
       }
     }
 
+    SCULPT_filter_to_orientation_space(disp, ss->filter_cache);
     for (int it = 0; it < 3; it++) {
       if (!ss->filter_cache->enabled_axis[it]) {
         disp[it] = 0.0f;
       }
     }
+    SCULPT_filter_to_object_space(disp, ss->filter_cache);
 
     if (ELEM(filter_type, MESH_FILTER_SURFACE_SMOOTH, MESH_FILTER_SHARPEN)) {
       madd_v3_v3v3fl(final_pos, vd.co, disp, clamp_f(fade, 0.0f, 1.0f));
@@ -584,7 +649,7 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
     SCULPT_boundary_info_ensure(ob);
   }
 
-  SCULPT_filter_cache_init(ob, sd, SCULPT_UNDO_COORDS);
+  SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COORDS);
 
   if (use_face_sets) {
     ss->filter_cache->active_face_set = SCULPT_active_face_set_get(ss);
@@ -620,6 +685,9 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
   ss->filter_cache->enabled_axis[1] = deform_axis & MESH_FILTER_DEFORM_Y;
   ss->filter_cache->enabled_axis[2] = deform_axis & MESH_FILTER_DEFORM_Z;
 
+  SculptFilterOrientation orientation = RNA_enum_get(op->ptr, "orientation");
+  ss->filter_cache->orientation = orientation;
+
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;
 }
@@ -653,6 +721,12 @@ void SCULPT_OT_mesh_filter(struct wmOperatorType *ot)
                     MESH_FILTER_DEFORM_X | MESH_FILTER_DEFORM_Y | MESH_FILTER_DEFORM_Z,
                     "Deform axis",
                     "Apply the deformation in the selected axis");
+  RNA_def_enum(ot->srna,
+               "orientation",
+               prop_mesh_filter_orientation_items,
+               SCULPT_FILTER_ORIENTATION_LOCAL,
+               "Orientation",
+               "Orientation of the axis to limit the filter displacement");
   ot->prop = RNA_def_boolean(ot->srna,
                              "use_face_sets",
                              false,
