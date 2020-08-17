@@ -2751,6 +2751,8 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 
   seq = ed->seqbasep->first; /* Poll checks this is valid. */
 
+  BKE_sequencer_prefetch_stop(scene);
+
   while (seq) {
     if ((seq->flag & SELECT) && (seq->type == SEQ_TYPE_IMAGE) && (seq->len > 1)) {
       Sequence *seq_next;
@@ -2946,6 +2948,8 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  BKE_sequencer_prefetch_stop(scene);
+
   /* Remove all selected from main list, and put in meta. */
 
   seqm = BKE_sequence_alloc(ed->seqbasep, 1, 1, SEQ_TYPE_META); /* Channel number set later. */
@@ -3030,6 +3034,8 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
   if (last_seq == NULL || last_seq->type != SEQ_TYPE_META) {
     return OPERATOR_CANCELLED;
   }
+
+  BKE_sequencer_prefetch_stop(scene);
 
   for (seq = last_seq->seqbase.first; seq != NULL; seq = seq->next) {
     BKE_sequence_invalidate_cache_composite(scene, seq);
