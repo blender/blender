@@ -997,7 +997,19 @@ static void stroke_done(bContext *C, wmOperator *op)
 /* Returns zero if the stroke dots should not be spaced, non-zero otherwise */
 bool paint_space_stroke_enabled(Brush *br, ePaintMode mode)
 {
-  return (br->flag & BRUSH_SPACE) && paint_supports_dynamic_size(br, mode);
+  if ((br->flag & BRUSH_SPACE) == 0) {
+    return false;
+  }
+
+  if (br->sculpt_tool == SCULPT_TOOL_CLOTH) {
+    /* The Cloth Brush is a special case for stroke spacing. Even if it has grab modes which do
+     * not support dynamic size, stroke spacing needs to be enabled so it is possible to control
+     * whether the simulation runs constantly or only when the brush moves when using the cloth
+     * grab brushes. */
+    return true;
+  }
+
+  return paint_supports_dynamic_size(br, mode);
 }
 
 static bool sculpt_is_grab_tool(Brush *br)
