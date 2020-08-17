@@ -106,11 +106,11 @@ set(SRC
   intern/builder/deg_builder.h
   intern/builder/deg_builder_cache.h
   intern/builder/deg_builder_cycle.h
-  intern/builder/deg_builder_relations_drivers.h
   intern/builder/deg_builder_map.h
   intern/builder/deg_builder_nodes.h
   intern/builder/deg_builder_pchanmap.h
   intern/builder/deg_builder_relations.h
+  intern/builder/deg_builder_relations_drivers.h
   intern/builder/deg_builder_relations_impl.h
   intern/builder/deg_builder_remove_noop.h
   intern/builder/deg_builder_rna.h
