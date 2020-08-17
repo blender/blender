@@ -56,9 +56,9 @@ class BlendfileLoadingBaseTest : public testing::Test {
   void blendfile_free();
 
   /* Create a depsgraph. Assumes a blend file has been loaded to this->bfile. */
-  void depsgraph_create(eEvaluationMode depsgraph_evaluation_mode);
+  virtual void depsgraph_create(eEvaluationMode depsgraph_evaluation_mode);
   /* Free the depsgraph if it's not nullptr. */
-  void depsgraph_free();
+  virtual void depsgraph_free();
 };
 
 #endif /* __BLENDFILE_LOADING_BASE_TEST_H__ */
