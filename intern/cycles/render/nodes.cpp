@@ -776,7 +776,7 @@ static void sky_texture_precompute_nishita(SunSky *sunsky,
   sunsky->nishita_data[5] = pixel_top[2];
   sunsky->nishita_data[6] = sun_elevation;
   sunsky->nishita_data[7] = sun_rotation;
-  sunsky->nishita_data[8] = sun_disc ? sun_size : 0.0f;
+  sunsky->nishita_data[8] = sun_disc ? sun_size : -1.0f;
   sunsky->nishita_data[9] = sun_intensity;
 }
 
@@ -834,7 +834,7 @@ void SkyTextureNode::compile(SVMCompiler &compiler)
 
     sky_texture_precompute_nishita(&sunsky,
                                    sun_disc,
-                                   sun_size,
+                                   get_sun_size(),
                                    sun_intensity,
                                    sun_elevation,
                                    sun_rotation,
@@ -930,7 +930,7 @@ void SkyTextureNode::compile(OSLCompiler &compiler)
 
     sky_texture_precompute_nishita(&sunsky,
                                    sun_disc,
-                                   sun_size,
+                                   get_sun_size(),
                                    sun_intensity,
                                    sun_elevation,
                                    sun_rotation,
