@@ -492,6 +492,8 @@ def disable_all():
         item for item in sys.modules.items()
         if getattr(item[1], "__addon_enabled__", False)
     ]
+    # Check the enabled state again since it's possible the disable call
+    # of one add-on disables others.
     for mod_name, mod in addon_modules:
         if getattr(mod, "__addon_enabled__", False):
             disable(mod_name)
