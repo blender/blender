@@ -121,9 +121,33 @@ void GPU_depth_mask(bool depth)
   state.write_mask = write_mask;
 }
 
+void GPU_shadow_offset(bool enable)
+{
+  SET_IMMUTABLE_STATE(shadow_bias, enable);
+}
+
 void GPU_clip_distances(int distances_enabled)
 {
   SET_IMMUTABLE_STATE(clip_distances, distances_enabled);
+}
+
+void GPU_state_set(eGPUWriteMask write_mask,
+                   eGPUBlend blend,
+                   eGPUFaceCullTest culling_test,
+                   eGPUDepthTest depth_test,
+                   eGPUStencilTest stencil_test,
+                   eGPUStencilOp stencil_op,
+                   eGPUProvokingVertex provoking_vert)
+{
+  GPUStateManager *stack = GPU_context_active_get()->state_manager;
+  auto &state = stack->state;
+  state.write_mask = write_mask;
+  state.blend = blend;
+  state.culling_test = culling_test;
+  state.depth_test = depth_test;
+  state.stencil_test = stencil_test;
+  state.stencil_op = stencil_op;
+  state.provoking_vert = provoking_vert;
 }
 
 /** \} */
@@ -183,6 +207,19 @@ void GPU_viewport(int x, int y, int width, int height)
   auto &state = stack->mutable_state;
   int viewport_rect[4] = {x, y, width, height};
   copy_v4_v4_int(state.viewport_rect, viewport_rect);
+}
+
+void GPU_stencil_reference_set(uint reference)
+{
+  SET_MUTABLE_STATE(stencil_reference, (uint8_t)reference);
+}
+void GPU_stencil_write_mask_set(uint write_mask)
+{
+  SET_MUTABLE_STATE(stencil_write_mask, (uint8_t)write_mask);
+}
+void GPU_stencil_compare_mask_set(uint compare_mask)
+{
+  SET_MUTABLE_STATE(stencil_compare_mask, (uint8_t)compare_mask);
 }
 
 /** \} */

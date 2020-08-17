@@ -32,6 +32,7 @@
 #include "GPU_extensions.h"
 #include "GPU_platform.h"
 #include "GPU_shader.h"
+#include "GPU_state.h"
 
 #ifdef USE_GPU_SELECT
 #  include "GPU_select.h"
@@ -81,309 +82,166 @@ void drw_state_set(DRWState state)
     return;
   }
 
-#define CHANGED_TO(f) \
-  ((DST.state_lock & (f)) ? \
-       0 : \
-       (((DST.state & (f)) ? ((state & (f)) ? 0 : -1) : ((state & (f)) ? 1 : 0))))
+  eGPUWriteMask write_mask = 0;
+  eGPUBlend blend = 0;
+  eGPUFaceCullTest culling_test = 0;
+  eGPUDepthTest depth_test = 0;
+  eGPUStencilTest stencil_test = 0;
+  eGPUStencilOp stencil_op = 0;
+  eGPUProvokingVertex provoking_vert = 0;
 
-#define CHANGED_ANY(f) (((DST.state & (f)) != (state & (f))) && ((DST.state_lock & (f)) == 0))
-
-#define CHANGED_ANY_STORE_VAR(f, enabled) \
-  (((DST.state & (f)) != (enabled = (state & (f)))) && (((DST.state_lock & (f)) == 0)))
-
-  /* Depth Write */
-  {
-    int test;
-    if ((test = CHANGED_TO(DRW_STATE_WRITE_DEPTH))) {
-      GPU_depth_mask(test == 1);
-    }
+  if (state & DRW_STATE_WRITE_DEPTH) {
+    write_mask |= GPU_WRITE_DEPTH;
+  }
+  if (state & DRW_STATE_WRITE_COLOR) {
+    write_mask |= GPU_WRITE_COLOR;
   }
 
-  /* Stencil Write */
-  {
-    DRWState test;
-    if (CHANGED_ANY_STORE_VAR(DRW_STATE_WRITE_STENCIL_ENABLED, test)) {
-      /* Stencil Write */
-      if (test) {
-        glStencilMask(0xFF);
-        switch (test) {
-          case DRW_STATE_WRITE_STENCIL:
-            glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-            break;
-          case DRW_STATE_WRITE_STENCIL_SHADOW_PASS:
-            glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_INCR_WRAP);
-            glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_DECR_WRAP);
-            break;
-          case DRW_STATE_WRITE_STENCIL_SHADOW_FAIL:
-            glStencilOpSeparate(GL_BACK, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
-            glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
-            break;
-          default:
-            BLI_assert(0);
-        }
-      }
-      else {
-        glStencilMask(0x00);
-        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-      }
-    }
+  switch (state & (DRW_STATE_CULL_BACK | DRW_STATE_CULL_FRONT)) {
+    case DRW_STATE_CULL_BACK:
+      culling_test = GPU_CULL_BACK;
+      break;
+    case DRW_STATE_CULL_FRONT:
+      culling_test = GPU_CULL_FRONT;
+      break;
+    default:
+      culling_test = GPU_CULL_NONE;
+      break;
   }
 
-  /* Color Write */
-  {
-    int test;
-    if ((test = CHANGED_TO(DRW_STATE_WRITE_COLOR))) {
-      if (test == 1) {
-        GPU_color_mask(true, true, true, true);
-      }
-      else {
-        GPU_color_mask(false, false, false, false);
-      }
-    }
+  switch (state & DRW_STATE_DEPTH_TEST_ENABLED) {
+    case DRW_STATE_DEPTH_LESS:
+      depth_test = GPU_DEPTH_LESS;
+      break;
+    case DRW_STATE_DEPTH_LESS_EQUAL:
+      depth_test = GPU_DEPTH_LESS_EQUAL;
+      break;
+    case DRW_STATE_DEPTH_EQUAL:
+      depth_test = GPU_DEPTH_EQUAL;
+      break;
+    case DRW_STATE_DEPTH_GREATER:
+      depth_test = GPU_DEPTH_GREATER;
+      break;
+    case DRW_STATE_DEPTH_GREATER_EQUAL:
+      depth_test = GPU_DEPTH_GREATER_EQUAL;
+      break;
+    case DRW_STATE_DEPTH_ALWAYS:
+      depth_test = GPU_DEPTH_ALWAYS;
+      break;
+    default:
+      depth_test = GPU_DEPTH_NONE;
+      break;
   }
 
-  /* Raster Discard */
-  {
-    if (CHANGED_ANY(DRW_STATE_RASTERIZER_ENABLED)) {
-      if ((state & DRW_STATE_RASTERIZER_ENABLED) != 0) {
-        glDisable(GL_RASTERIZER_DISCARD);
-      }
-      else {
-        glEnable(GL_RASTERIZER_DISCARD);
-      }
-    }
+  switch (state & DRW_STATE_WRITE_STENCIL_ENABLED) {
+    case DRW_STATE_WRITE_STENCIL:
+      stencil_op = GPU_STENCIL_OP_REPLACE;
+      break;
+    case DRW_STATE_WRITE_STENCIL_SHADOW_PASS:
+      stencil_op = GPU_STENCIL_OP_COUNT_DEPTH_PASS;
+      break;
+    case DRW_STATE_WRITE_STENCIL_SHADOW_FAIL:
+      stencil_op = GPU_STENCIL_OP_COUNT_DEPTH_FAIL;
+      break;
+    default:
+      stencil_op = GPU_STENCIL_OP_NONE;
+      break;
+  }
+  GPU_stencil_write_mask_set(0xFF);
+
+  switch (state & DRW_STATE_STENCIL_TEST_ENABLED) {
+    case DRW_STATE_STENCIL_ALWAYS:
+      stencil_test = GPU_STENCIL_ALWAYS;
+      break;
+    case DRW_STATE_STENCIL_EQUAL:
+      stencil_test = GPU_STENCIL_EQUAL;
+      break;
+    case DRW_STATE_STENCIL_NEQUAL:
+      stencil_test = GPU_STENCIL_NEQUAL;
+      break;
+    default:
+      stencil_test = GPU_STENCIL_NONE;
+      break;
   }
 
-  /* Cull */
-  {
-    DRWState test;
-    if (CHANGED_ANY_STORE_VAR(DRW_STATE_CULL_BACK | DRW_STATE_CULL_FRONT, test)) {
-      if (test) {
-        glEnable(GL_CULL_FACE);
-
-        if ((state & DRW_STATE_CULL_BACK) != 0) {
-          glCullFace(GL_BACK);
-        }
-        else if ((state & DRW_STATE_CULL_FRONT) != 0) {
-          glCullFace(GL_FRONT);
-        }
-        else {
-          BLI_assert(0);
-        }
-      }
-      else {
-        glDisable(GL_CULL_FACE);
-      }
-    }
+  switch (state & DRW_STATE_BLEND_ENABLED) {
+    case DRW_STATE_BLEND_ADD:
+      blend = GPU_BLEND_ADDITIVE;
+      break;
+    case DRW_STATE_BLEND_ADD_FULL:
+      blend = GPU_BLEND_ADDITIVE_PREMULT;
+      break;
+    case DRW_STATE_BLEND_ALPHA:
+      blend = GPU_BLEND_ALPHA;
+      break;
+    case DRW_STATE_BLEND_ALPHA_PREMUL:
+      blend = GPU_BLEND_ALPHA_PREMULT;
+      break;
+    case DRW_STATE_BLEND_BACKGROUND:
+      blend = GPU_BLEND_BACKGROUND;
+      break;
+    case DRW_STATE_BLEND_OIT:
+      blend = GPU_BLEND_OIT;
+      break;
+    case DRW_STATE_BLEND_MUL:
+      blend = GPU_BLEND_MULTIPLY;
+      break;
+    case DRW_STATE_BLEND_SUB:
+      blend = GPU_BLEND_SUBTRACT;
+      break;
+    case DRW_STATE_BLEND_CUSTOM:
+      blend = GPU_BLEND_CUSTOM;
+      break;
+    case DRW_STATE_LOGIC_INVERT:
+      blend = GPU_BLEND_INVERT;
+      break;
+    default:
+      blend = GPU_BLEND_NONE;
+      break;
   }
 
-  /* Depth Test */
-  {
-    DRWState test;
-    if (CHANGED_ANY_STORE_VAR(DRW_STATE_DEPTH_TEST_ENABLED, test)) {
-      if (test) {
-        glEnable(GL_DEPTH_TEST);
+  GPU_state_set(
+      write_mask, blend, culling_test, depth_test, stencil_test, stencil_op, provoking_vert);
 
-        switch (test) {
-          case DRW_STATE_DEPTH_LESS:
-            glDepthFunc(GL_LESS);
-            break;
-          case DRW_STATE_DEPTH_LESS_EQUAL:
-            glDepthFunc(GL_LEQUAL);
-            break;
-          case DRW_STATE_DEPTH_EQUAL:
-            glDepthFunc(GL_EQUAL);
-            break;
-          case DRW_STATE_DEPTH_GREATER:
-            glDepthFunc(GL_GREATER);
-            break;
-          case DRW_STATE_DEPTH_GREATER_EQUAL:
-            glDepthFunc(GL_GEQUAL);
-            break;
-          case DRW_STATE_DEPTH_ALWAYS:
-            glDepthFunc(GL_ALWAYS);
-            break;
-          default:
-            BLI_assert(0);
-        }
-      }
-      else {
-        glDisable(GL_DEPTH_TEST);
-      }
-    }
+  if (state & DRW_STATE_SHADOW_OFFSET) {
+    GPU_shadow_offset(true);
+  }
+  else {
+    GPU_shadow_offset(false);
   }
 
-  /* Stencil Test */
-  {
-    int test;
-    if (CHANGED_ANY_STORE_VAR(DRW_STATE_STENCIL_TEST_ENABLED, test)) {
-      if (test) {
-        glEnable(GL_STENCIL_TEST);
-      }
-      else {
-        glDisable(GL_STENCIL_TEST);
-      }
-    }
+  /* TODO this should be part of shader state. */
+  if (state & DRW_STATE_CLIP_PLANES) {
+    GPU_clip_distances(DST.view_active->clip_planes_len);
+  }
+  else {
+    GPU_clip_distances(0);
   }
 
-  /* Blending (all buffer) */
-  {
-    int test;
-    if (CHANGED_ANY_STORE_VAR(DRW_STATE_BLEND_ALPHA | DRW_STATE_BLEND_ALPHA_PREMUL |
-                                  DRW_STATE_BLEND_ADD | DRW_STATE_BLEND_MUL |
-                                  DRW_STATE_BLEND_ADD_FULL | DRW_STATE_BLEND_OIT |
-                                  DRW_STATE_BLEND_BACKGROUND | DRW_STATE_BLEND_CUSTOM |
-                                  DRW_STATE_LOGIC_INVERT | DRW_STATE_BLEND_SUB,
-                              test)) {
-      if (test) {
-        glEnable(GL_BLEND);
-
-        switch (test) {
-          case DRW_STATE_BLEND_ALPHA:
-            glBlendFuncSeparate(GL_SRC_ALPHA,
-                                GL_ONE_MINUS_SRC_ALPHA, /* RGB */
-                                GL_ONE,
-                                GL_ONE_MINUS_SRC_ALPHA); /* Alpha */
-            break;
-          case DRW_STATE_BLEND_BACKGROUND:
-            /* Special blend to add color under and multiply dst by alpha. */
-            glBlendFuncSeparate(GL_ONE_MINUS_DST_ALPHA,
-                                GL_SRC_ALPHA, /* RGB */
-                                GL_ZERO,
-                                GL_SRC_ALPHA); /* Alpha */
-            break;
-          case DRW_STATE_BLEND_ALPHA_PREMUL:
-            glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-            break;
-          case DRW_STATE_BLEND_MUL:
-            glBlendFunc(GL_DST_COLOR, GL_ZERO);
-            break;
-          case DRW_STATE_BLEND_OIT:
-            glBlendFuncSeparate(GL_ONE,
-                                GL_ONE, /* RGB */
-                                GL_ZERO,
-                                GL_ONE_MINUS_SRC_ALPHA); /* Alpha */
-            break;
-          case DRW_STATE_BLEND_ADD:
-            /* Do not let alpha accumulate but premult the source RGB by it. */
-            glBlendFuncSeparate(GL_SRC_ALPHA,
-                                GL_ONE, /* RGB */
-                                GL_ZERO,
-                                GL_ONE); /* Alpha */
-            break;
-          case DRW_STATE_BLEND_ADD_FULL:
-            /* Let alpha accumulate. */
-            glBlendFunc(GL_ONE, GL_ONE);
-            break;
-          case DRW_STATE_BLEND_SUB:
-            glBlendFunc(GL_ONE, GL_ONE);
-            break;
-          case DRW_STATE_BLEND_CUSTOM:
-            /* Custom blend parameters using dual source blending.
-             * Can only be used with one Draw Buffer. */
-            glBlendFunc(GL_ONE, GL_SRC1_COLOR);
-            break;
-          case DRW_STATE_LOGIC_INVERT:
-            /* Replace logic op by blend func to support floating point framebuffer. */
-            glBlendFuncSeparate(GL_ONE_MINUS_DST_COLOR,
-                                GL_ZERO, /* RGB */
-                                GL_ZERO,
-                                GL_ONE); /* Alpha */
-            break;
-          default:
-            BLI_assert(0);
-        }
-
-        if (test == DRW_STATE_BLEND_SUB) {
-          glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
-        }
-        else {
-          glBlendEquation(GL_FUNC_ADD);
-        }
-      }
-      else {
-        glDisable(GL_BLEND);
-        glBlendFunc(GL_ONE, GL_ONE); /* Don't multiply incoming color by alpha. */
-      }
-    }
+  if (state & DRW_STATE_IN_FRONT_SELECT) {
+    /* XXX `GPU_depth_range` is not a perfect solution
+     * since very distant geometries can still be occluded.
+     * Also the depth test precision of these geometries is impaired.
+     * However, it solves the selection for the vast majority of cases. */
+    GPU_depth_range(0.0f, 0.01f);
+  }
+  else {
+    GPU_depth_range(0.0f, 1.0f);
   }
 
-  /* Shadow Bias */
-  {
-    int test;
-    if ((test = CHANGED_TO(DRW_STATE_SHADOW_OFFSET))) {
-      if (test == 1) {
-        glEnable(GL_POLYGON_OFFSET_FILL);
-        glEnable(GL_POLYGON_OFFSET_LINE);
-        /* 2.0 Seems to be the lowest possible slope bias that works in every case. */
-        glPolygonOffset(2.0f, 1.0f);
-      }
-      else {
-        glDisable(GL_POLYGON_OFFSET_FILL);
-        glDisable(GL_POLYGON_OFFSET_LINE);
-      }
-    }
+  if (state & DRW_STATE_PROGRAM_POINT_SIZE) {
+    GPU_program_point_size(true);
+  }
+  else {
+    GPU_program_point_size(false);
   }
 
-  /* In Front objects selection */
-  {
-    int test;
-    if ((test = CHANGED_TO(DRW_STATE_IN_FRONT_SELECT))) {
-      if (test == 1) {
-        /* XXX `GPU_depth_range` is not a perfect solution
-         * since very distant geometries can still be occluded.
-         * Also the depth test precision of these geometries is impaired.
-         * However, it solves the selection for the vast majority of cases. */
-        GPU_depth_range(0.0f, 0.01f);
-      }
-      else {
-        GPU_depth_range(0.0f, 1.0f);
-      }
-    }
+  if (state & DRW_STATE_FIRST_VERTEX_CONVENTION) {
+    GPU_provoking_vertex(GPU_VERTEX_FIRST);
   }
-
-  /* Clip Planes */
-  {
-    int test;
-    if ((test = CHANGED_TO(DRW_STATE_CLIP_PLANES))) {
-      if (test == 1) {
-        GPU_clip_distances(DST.view_active->clip_planes_len);
-      }
-      else {
-        GPU_clip_distances(0);
-      }
-    }
+  else {
+    GPU_provoking_vertex(GPU_VERTEX_LAST);
   }
-
-  /* Program Points Size */
-  {
-    int test;
-    if ((test = CHANGED_TO(DRW_STATE_PROGRAM_POINT_SIZE))) {
-      if (test == 1) {
-        GPU_program_point_size(true);
-      }
-      else {
-        GPU_program_point_size(false);
-      }
-    }
-  }
-
-  /* Provoking Vertex */
-  {
-    int test;
-    if ((test = CHANGED_TO(DRW_STATE_FIRST_VERTEX_CONVENTION))) {
-      if (test == 1) {
-        glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
-      }
-      else {
-        glProvokingVertex(GL_LAST_VERTEX_CONVENTION);
-      }
-    }
-  }
-
-#undef CHANGED_TO
-#undef CHANGED_ANY
-#undef CHANGED_ANY_STORE_VAR
 
   DST.state = state;
 }
@@ -395,17 +253,9 @@ static void drw_stencil_state_set(uint write_mask, uint reference, uint compare_
    *   stencil_value being the value stored in the stencil buffer.
    * - (write-mask & reference) is what gets written if the test condition is fulfilled.
    **/
-  glStencilMask(write_mask);
-  DRWState stencil_test = DST.state & DRW_STATE_STENCIL_TEST_ENABLED;
-  if (stencil_test == DRW_STATE_STENCIL_ALWAYS) {
-    glStencilFunc(GL_ALWAYS, reference, compare_mask);
-  }
-  else if (stencil_test == DRW_STATE_STENCIL_EQUAL) {
-    glStencilFunc(GL_EQUAL, reference, compare_mask);
-  }
-  else if (stencil_test == DRW_STATE_STENCIL_NEQUAL) {
-    glStencilFunc(GL_NOTEQUAL, reference, compare_mask);
-  }
+  GPU_stencil_write_mask_set(write_mask);
+  GPU_stencil_reference_set(reference);
+  GPU_stencil_compare_mask_set(compare_mask);
 }
 
 /* Reset state to not interfer with other UI drawcall */

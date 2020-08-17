@@ -23,6 +23,7 @@
 #include "BLI_utildefines.h"
 
 typedef enum eGPUWriteMask {
+  GPU_WRITE_NONE = 0,
   GPU_WRITE_RED = (1 << 0),
   GPU_WRITE_GREEN = (1 << 1),
   GPU_WRITE_BLUE = (1 << 2),
@@ -133,8 +134,20 @@ void GPU_color_mask(bool r, bool g, bool b, bool a);
 void GPU_depth_mask(bool depth);
 bool GPU_depth_mask_get(void);
 void GPU_unpack_row_length_set(uint len);
+void GPU_shadow_offset(bool enable);
 void GPU_clip_distances(int enabled_len);
 bool GPU_mipmap_enabled(void);
+void GPU_state_set(eGPUWriteMask write_mask,
+                   eGPUBlend blend,
+                   eGPUFaceCullTest culling_test,
+                   eGPUDepthTest depth_test,
+                   eGPUStencilTest stencil_test,
+                   eGPUStencilOp stencil_op,
+                   eGPUProvokingVertex provoking_vert);
+
+void GPU_stencil_reference_set(uint reference);
+void GPU_stencil_write_mask_set(uint write_mask);
+void GPU_stencil_compare_mask_set(uint compare_mask);
 
 eGPUBlend GPU_blend_get(void);
 eGPUWriteMask GPU_write_mask_get(void);

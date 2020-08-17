@@ -153,6 +153,13 @@ void GLStateManager::set_write_mask(const eGPUWriteMask value)
               (value & GPU_WRITE_GREEN) != 0,
               (value & GPU_WRITE_BLUE) != 0,
               (value & GPU_WRITE_ALPHA) != 0);
+
+  if (value == GPU_WRITE_NONE) {
+    glEnable(GL_RASTERIZER_DISCARD);
+  }
+  else {
+    glDisable(GL_RASTERIZER_DISCARD);
+  }
 }
 
 void GLStateManager::set_depth_test(const eGPUDepthTest value)
