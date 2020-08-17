@@ -663,7 +663,7 @@ if(WITH_ALEMBIC)
 
   add_python_test(
     alembic_tests
-    ${CMAKE_CURRENT_LIST_DIR}/alembic_tests.py
+    ${CMAKE_CURRENT_LIST_DIR}/alembic_export_tests.py
     --blender "${TEST_BLENDER_EXE}"
     --testdir "${TEST_SRC_DIR}/alembic"
     --alembic-root "${ALEMBIC_ROOT_DIR}"
