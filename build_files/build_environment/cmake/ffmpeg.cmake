@@ -95,8 +95,6 @@ ExternalProject_Add(external_ffmpeg
     --disable-version3
     --disable-debug
     --enable-optimizations
-    --disable-sse
-    --disable-ssse3
     --enable-ffplay
     --disable-openssl
     --disable-securetransport
