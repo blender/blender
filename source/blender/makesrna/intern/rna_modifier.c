@@ -723,7 +723,9 @@ static StructRNA *rna_Modifier_refine(struct PointerRNA *ptr)
     case eModifierType_WeightedNormal:
       return &RNA_WeightedNormalModifier;
     case eModifierType_Simulation:
+#  ifdef WITH_PARTICLE_NODES
       return &RNA_SimulationModifier;
+#  endif
     /* Default */
     case eModifierType_Fluidsim: /* deprecated */
     case eModifierType_None:
@@ -1630,6 +1632,7 @@ static void rna_ParticleInstanceModifier_particle_system_set(PointerRNA *ptr,
   CLAMP_MIN(psmd->psys, 1);
 }
 
+#  ifdef WITH_PARTICLE_NODES
 static void rna_SimulationModifier_simulation_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   SimulationModifierData *smd = ptr->data;
@@ -1672,6 +1675,7 @@ static void rna_SimulationModifier_data_path_set(PointerRNA *ptr, const char *va
     smd->data_path = NULL;
   }
 }
+#  endif
 
 /**
  * Special set callback that just changes the first bit of the expansion flag.
@@ -6898,6 +6902,7 @@ static void rna_def_modifier_weightednormal(BlenderRNA *brna)
   RNA_define_lib_overridable(false);
 }
 
+#  ifdef WITH_PARTICLE_NODES
 static void rna_def_modifier_simulation(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -6926,6 +6931,7 @@ static void rna_def_modifier_simulation(BlenderRNA *brna)
 
   RNA_define_lib_overridable(false);
 }
+#  endif
 
 void RNA_def_modifier(BlenderRNA *brna)
 {
@@ -7055,7 +7061,9 @@ void RNA_def_modifier(BlenderRNA *brna)
   rna_def_modifier_meshseqcache(brna);
   rna_def_modifier_surfacedeform(brna);
   rna_def_modifier_weightednormal(brna);
+#  ifdef WITH_PARTICLE_NODES
   rna_def_modifier_simulation(brna);
+#  endif
 }
 
 #endif

@@ -2181,6 +2181,7 @@ static void rna_SpaceNodeEditor_node_tree_update(const bContext *C, PointerRNA *
   ED_node_tree_update(C);
 }
 
+#  ifdef WITH_PARTICLE_NODES
 static PointerRNA rna_SpaceNodeEditor_simulation_get(PointerRNA *ptr)
 {
   SpaceNode *snode = (SpaceNode *)ptr->data;
@@ -2212,6 +2213,7 @@ static void rna_SpaceNodeEditor_simulation_set(PointerRNA *ptr,
   }
   snode->id = &sim->id;
 }
+#  endif
 
 static int rna_SpaceNodeEditor_tree_type_get(PointerRNA *ptr)
 {
@@ -6266,6 +6268,7 @@ static void rna_def_space_node(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "ID From", "Data-block from which the edited data-block is linked");
 
+#  ifdef WITH_PARTICLE_NODES
   prop = RNA_def_property(srna, "simulation", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_struct_type(prop, "Simulation");
@@ -6276,6 +6279,7 @@ static void rna_def_space_node(BlenderRNA *brna)
                                  NULL,
                                  NULL);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, NULL);
+#  endif
 
   prop = RNA_def_property(srna, "path", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "treepath", NULL);

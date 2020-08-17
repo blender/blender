@@ -428,6 +428,10 @@ if(WIN32)
   option(WITH_TBB_MALLOC_PROXY "Enable the TBB malloc replacement" ON)
 endif()
 
+# This should be turned off when Blender enter beta/rc/release
+option(WITH_EXPERIMENTAL_FEATURES "Enable experimental features (still need to enable them in the user preferences)" OFF)
+mark_as_advanced(WITH_EXPERIMENTAL_FEATURES)
+
 # Unit testsing
 option(WITH_GTESTS "Enable GTest unit testing" OFF)
 option(WITH_OPENGL_RENDER_TESTS "Enable OpenGL render related unit testing (Experimental)" OFF)

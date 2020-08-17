@@ -628,6 +628,7 @@ void BlenderSync::sync_particle_hair(
   }
 }
 
+#ifdef WITH_HAIR_NODES
 static float4 hair_point_as_float4(BL::HairPoint b_point)
 {
   float4 mP = float3_to_float4(get_float3(b_point.co()));
@@ -806,6 +807,15 @@ void BlenderSync::sync_hair(Hair *hair, BL::Object &b_ob, bool motion, int motio
     export_hair_curves(scene, hair, b_hair);
   }
 }
+#else
+void BlenderSync::sync_hair(Hair *hair, BL::Object &b_ob, bool motion, int motion_step)
+{
+  (void)hair;
+  (void)b_ob;
+  (void)motion;
+  (void)motion_step;
+}
+#endif
 
 void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph,
                             BL::Object b_ob,

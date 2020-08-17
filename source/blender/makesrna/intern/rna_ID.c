@@ -251,9 +251,11 @@ short RNA_type_to_ID_code(const StructRNA *type)
   if (base_type == &RNA_FreestyleLineStyle) {
     return ID_LS;
   }
+#  ifdef WITH_HAIR_NODES
   if (base_type == &RNA_Hair) {
     return ID_HA;
   }
+#  endif
   if (base_type == &RNA_Lattice) {
     return ID_LT;
   }
@@ -287,9 +289,11 @@ short RNA_type_to_ID_code(const StructRNA *type)
   if (base_type == &RNA_PaintCurve) {
     return ID_PC;
   }
+#  ifdef WITH_PARTICLE_NODES
   if (base_type == &RNA_PointCloud) {
     return ID_PT;
   }
+#  endif
   if (base_type == &RNA_LightProbe) {
     return ID_LP;
   }
@@ -299,9 +303,11 @@ short RNA_type_to_ID_code(const StructRNA *type)
   if (base_type == &RNA_Screen) {
     return ID_SCR;
   }
+#  ifdef WITH_PARTICLE_NODES
   if (base_type == &RNA_Simulation) {
     return ID_SIM;
   }
+#  endif
   if (base_type == &RNA_Sound) {
     return ID_SO;
   }
@@ -355,7 +361,11 @@ StructRNA *ID_code_to_RNA_type(short idcode)
     case ID_GR:
       return &RNA_Collection;
     case ID_HA:
+#  ifdef WITH_HAIR_NODES
       return &RNA_Hair;
+#  else
+      return &RNA_ID;
+#  endif
     case ID_IM:
       return &RNA_Image;
     case ID_KE:
@@ -389,7 +399,11 @@ StructRNA *ID_code_to_RNA_type(short idcode)
     case ID_PC:
       return &RNA_PaintCurve;
     case ID_PT:
+#  ifdef WITH_PARTICLE_NODES
       return &RNA_PointCloud;
+#  else
+      return &RNA_ID;
+#  endif
     case ID_LP:
       return &RNA_LightProbe;
     case ID_SCE:
@@ -397,7 +411,11 @@ StructRNA *ID_code_to_RNA_type(short idcode)
     case ID_SCR:
       return &RNA_Screen;
     case ID_SIM:
+#  ifdef WITH_PARTICLE_NODES
       return &RNA_Simulation;
+#  else
+      return &RNA_ID;
+#  endif
     case ID_SO:
       return &RNA_Sound;
     case ID_SPK:

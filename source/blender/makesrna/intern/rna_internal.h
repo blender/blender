@@ -455,10 +455,16 @@ void RNA_def_main_cachefiles(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_paintcurves(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_workspaces(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_lightprobes(BlenderRNA *brna, PropertyRNA *cprop);
+#ifdef WITH_PARTICLE_NODES
 void RNA_def_main_hairs(BlenderRNA *brna, PropertyRNA *cprop);
+#endif
+#ifdef WITH_HAIR_NODES
 void RNA_def_main_pointclouds(BlenderRNA *brna, PropertyRNA *cprop);
+#endif
 void RNA_def_main_volumes(BlenderRNA *brna, PropertyRNA *cprop);
+#ifdef WITH_PARTICLE_NODES
 void RNA_def_main_simulations(BlenderRNA *brna, PropertyRNA *cprop);
+#endif
 
 /* ID Properties */
 
