@@ -56,6 +56,12 @@ void DEG_graph_build_from_view_layer(struct Depsgraph *graph,
                                      struct Scene *scene,
                                      struct ViewLayer *view_layer);
 
+/* Build depsgraph for all objects (so also invisible ones) in the given view layer. */
+void DEG_graph_build_for_all_objects(struct Depsgraph *graph,
+                                     struct Main *bmain,
+                                     struct Scene *scene,
+                                     struct ViewLayer *view_layer);
+
 /* Special version of builder which produces dependency graph suitable for the render pipeline.
  * It will contain sequencer and compositor (if needed) and all their dependencies. */
 void DEG_graph_build_for_render_pipeline(struct Depsgraph *graph,

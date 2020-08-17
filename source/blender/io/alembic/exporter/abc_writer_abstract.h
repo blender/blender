@@ -43,6 +43,9 @@ class ABCAbstractWriter : public AbstractHierarchyWriter {
   uint32_t timesample_index_;
   Imath::Box3d bounding_box_;
 
+  /* Visibility of this writer's data in Alembic. */
+  Alembic::Abc::OCharProperty abc_visibility_;
+
  public:
   explicit ABCAbstractWriter(const ABCWriterConstructorArgs &args);
   virtual ~ABCAbstractWriter();
@@ -70,6 +73,8 @@ class ABCAbstractWriter : public AbstractHierarchyWriter {
   virtual void do_write(HierarchyContext &context) = 0;
 
   virtual void update_bounding_box(Object *object);
+
+  void write_visibility(const HierarchyContext &context);
 };
 
 }  // namespace alembic

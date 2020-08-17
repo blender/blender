@@ -92,6 +92,8 @@ void ABCTransformWriter::do_write(HierarchyContext &context)
   xform_sample.setMatrix(convert_matrix_datatype(parent_relative_matrix));
   xform_sample.setInheritsXforms(true);
   abc_xform_schema_.set(xform_sample);
+
+  write_visibility(context);
 }
 
 const OObject ABCTransformWriter::get_alembic_object() const

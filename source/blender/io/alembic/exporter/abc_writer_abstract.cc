@@ -25,6 +25,10 @@
 
 #include "DNA_modifier_types.h"
 
+#include "DEG_depsgraph.h"
+
+#include <Alembic/AbcGeom/Visibility.h>
+
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.alembic"};
 
@@ -94,6 +98,18 @@ void ABCAbstractWriter::update_bounding_box(Object *object)
   bounding_box_.max.x = bb->vec[6][0];
   bounding_box_.max.y = bb->vec[6][2];
   bounding_box_.max.z = -bb->vec[0][1];
+}
+
+void ABCAbstractWriter::write_visibility(const HierarchyContext &context)
+{
+  const bool is_visible = context.is_object_visible(DAG_EVAL_RENDER);
+  Alembic::Abc::OObject abc_object = get_alembic_object();
+
+  if (!abc_visibility_.valid()) {
+    abc_visibility_ = Alembic::AbcGeom::CreateVisibilityProperty(abc_object, timesample_index_);
+  }
+  abc_visibility_.set(is_visible ? Alembic::AbcGeom::kVisibilityVisible :
+                                   Alembic::AbcGeom::kVisibilityHidden);
 }
 
 }  // namespace alembic

@@ -55,6 +55,7 @@ set(SRC
   intern/builder/deg_builder_rna.cc
   intern/builder/deg_builder_transitive.cc
   intern/builder/pipeline.cc
+  intern/builder/pipeline_all_objects.cc
   intern/builder/pipeline_compositor.cc
   intern/builder/pipeline_from_ids.cc
   intern/builder/pipeline_render.cc
@@ -116,6 +117,7 @@ set(SRC
   intern/builder/deg_builder_rna.h
   intern/builder/deg_builder_transitive.h
   intern/builder/pipeline.h
+  intern/builder/pipeline_all_objects.h
   intern/builder/pipeline_compositor.h
   intern/builder/pipeline_from_ids.h
   intern/builder/pipeline_render.h

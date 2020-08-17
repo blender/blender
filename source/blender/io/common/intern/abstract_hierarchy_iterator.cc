@@ -80,7 +80,7 @@ void HierarchyContext::mark_as_not_instanced()
 
 bool HierarchyContext::is_object_visible(const enum eEvaluationMode evaluation_mode) const
 {
-  bool is_dupli = duplicator != nullptr;
+  const bool is_dupli = duplicator != nullptr;
   int base_flag;
 
   if (is_dupli) {
@@ -92,7 +92,7 @@ bool HierarchyContext::is_object_visible(const enum eEvaluationMode evaluation_m
     object->base_flag = duplicator->base_flag | BASE_FROM_DUPLI;
   }
 
-  int visibility = BKE_object_visibility(object, evaluation_mode);
+  const int visibility = BKE_object_visibility(object, evaluation_mode);
 
   if (is_dupli) {
     object->base_flag = base_flag;
