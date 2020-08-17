@@ -15081,4 +15081,3 @@ static const unsigned char searchTexBytes[] = {
 };
 
 /* clang-format off */
-

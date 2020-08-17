@@ -55,4 +55,3 @@ template<typename T> static inline T decltype_helper(T x)
 #else
 #  define BLI_NOINLINE
 #endif
-

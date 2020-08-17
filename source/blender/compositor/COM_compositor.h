@@ -362,4 +362,3 @@ void COM_deinitialize(void);
 #ifdef __cplusplus
 }
 #endif
-
