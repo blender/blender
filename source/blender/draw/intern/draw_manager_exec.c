@@ -136,18 +136,21 @@ void drw_state_set(DRWState state)
   switch (state & DRW_STATE_WRITE_STENCIL_ENABLED) {
     case DRW_STATE_WRITE_STENCIL:
       stencil_op = GPU_STENCIL_OP_REPLACE;
+      GPU_stencil_write_mask_set(0xFF);
       break;
     case DRW_STATE_WRITE_STENCIL_SHADOW_PASS:
       stencil_op = GPU_STENCIL_OP_COUNT_DEPTH_PASS;
+      GPU_stencil_write_mask_set(0xFF);
       break;
     case DRW_STATE_WRITE_STENCIL_SHADOW_FAIL:
       stencil_op = GPU_STENCIL_OP_COUNT_DEPTH_FAIL;
+      GPU_stencil_write_mask_set(0xFF);
       break;
     default:
       stencil_op = GPU_STENCIL_OP_NONE;
+      GPU_stencil_write_mask_set(0x00);
       break;
   }
-  GPU_stencil_write_mask_set(0xFF);
 
   switch (state & DRW_STATE_STENCIL_TEST_ENABLED) {
     case DRW_STATE_STENCIL_ALWAYS:

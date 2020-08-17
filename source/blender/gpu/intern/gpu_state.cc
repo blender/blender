@@ -310,40 +310,43 @@ void GPU_unpack_row_length_set(uint len)
  * exceptions that we should try to get rid of.
  * \{ */
 
+GPUStateManager::GPUStateManager(void)
+{
+  /* Set default state. */
+  state.write_mask = GPU_WRITE_COLOR;
+  state.blend = GPU_BLEND_NONE;
+  state.culling_test = GPU_CULL_NONE;
+  state.depth_test = GPU_DEPTH_NONE;
+  state.stencil_test = GPU_STENCIL_NONE;
+  state.stencil_op = GPU_STENCIL_OP_NONE;
+  state.provoking_vert = GPU_VERTEX_LAST;
+  state.logic_op_xor = false;
+  state.invert_facing = false;
+  state.shadow_bias = false;
+  state.polygon_smooth = false;
+  state.clip_distances = 0;
+
+  /* TODO: We should have better default for viewport and scissors.
+   * For now it's not important since they are overwritten at soon as a framebuffer is bound. */
+  mutable_state.viewport_rect[0] = 0;
+  mutable_state.viewport_rect[1] = 0;
+  mutable_state.viewport_rect[2] = 10;
+  mutable_state.viewport_rect[3] = 10;
+  mutable_state.scissor_rect[0] = 0;
+  mutable_state.scissor_rect[1] = 0;
+  mutable_state.scissor_rect[2] = -10; /* Disable */
+  mutable_state.scissor_rect[3] = 10;
+  mutable_state.depth_range[0] = 0.0f;
+  mutable_state.depth_range[1] = 1.0f;
+  mutable_state.point_size = 1.0f;
+  mutable_state.line_width = 1.0f;
+  mutable_state.stencil_write_mask = 0x00;
+  mutable_state.stencil_compare_mask = 0x00;
+  mutable_state.stencil_reference = 0x00;
+}
+
 void GPU_state_init(void)
 {
-  GPU_program_point_size(false);
-
-  glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-
-  glDisable(GL_BLEND);
-  glDisable(GL_DEPTH_TEST);
-  glDisable(GL_COLOR_LOGIC_OP);
-  glDisable(GL_STENCIL_TEST);
-  glDisable(GL_DITHER);
-
-  glDepthFunc(GL_LEQUAL);
-  glDepthRange(0.0, 1.0);
-
-  glFrontFace(GL_CCW);
-  glCullFace(GL_BACK);
-  glDisable(GL_CULL_FACE);
-
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-
-  /* Is default but better be explicit. */
-  glEnable(GL_MULTISAMPLE);
-
-  /* This is a bit dangerous since addons could change this. */
-  glEnable(GL_PRIMITIVE_RESTART);
-  glPrimitiveRestartIndex((GLuint)0xFFFFFFFF);
-
-  /* TODO: Should become default. But needs at least GL 4.3 */
-  if (GLEW_ARB_ES3_compatibility) {
-    /* Takes predecence over GL_PRIMITIVE_RESTART */
-    glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
-  }
 }
 
 /** \} */

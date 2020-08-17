@@ -34,6 +34,32 @@ using namespace blender::gpu;
 /** \name GLStateManager
  * \{ */
 
+GLStateManager::GLStateManager(void) : GPUStateManager()
+{
+  /* Set other states that never change. */
+  glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+  glEnable(GL_MULTISAMPLE);
+  glEnable(GL_PRIMITIVE_RESTART);
+
+  glDisable(GL_DITHER);
+
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+
+  glPrimitiveRestartIndex((GLuint)0xFFFFFFFF);
+  /* TODO: Should become default. But needs at least GL 4.3 */
+  if (GLEW_ARB_ES3_compatibility) {
+    /* Takes predecence over GL_PRIMITIVE_RESTART */
+    glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
+  }
+
+  /* Force update using default state. */
+  current_ = ~state;
+  current_mutable_ = ~mutable_state;
+  set_state(state);
+  set_mutable_state(mutable_state);
+}
+
 void GLStateManager::set_state(const GPUState &state)
 {
   GPUState changed = state ^ current_;
@@ -276,11 +302,11 @@ void GLStateManager::set_facing(const bool invert)
 void GLStateManager::set_backface_culling(const eGPUFaceCullTest test)
 {
   if (test != GPU_CULL_NONE) {
-    glDisable(GL_CULL_FACE);
-  }
-  else {
     glEnable(GL_CULL_FACE);
     glCullFace((test == GPU_CULL_FRONT) ? GL_FRONT : GL_BACK);
+  }
+  else {
+    glDisable(GL_CULL_FACE);
   }
 }
 

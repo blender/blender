@@ -76,6 +76,13 @@ inline GPUState operator^(const GPUState &a, const GPUState &b)
   return r;
 }
 
+inline GPUState operator~(const GPUState &a)
+{
+  GPUState r;
+  r.data = ~a.data;
+  return r;
+}
+
 /* Mutable state that does not require pipeline change. */
 union GPUStateMutable {
   struct {
@@ -128,12 +135,22 @@ inline GPUStateMutable operator^(const GPUStateMutable &a, const GPUStateMutable
   return r;
 }
 
+inline GPUStateMutable operator~(const GPUStateMutable &a)
+{
+  GPUStateMutable r;
+  for (int i = 0; i < ARRAY_SIZE(a.data); i++) {
+    r.data[i] = ~a.data[i];
+  }
+  return r;
+}
+
 class GPUStateManager {
  public:
   GPUState state;
   GPUStateMutable mutable_state;
 
  public:
+  GPUStateManager();
   virtual ~GPUStateManager(){};
 
   virtual void set_state(const GPUState &state) = 0;

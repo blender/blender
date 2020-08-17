@@ -38,6 +38,8 @@ class GLStateManager : public GPUStateManager {
   GPUStateMutable current_mutable_;
 
  public:
+  GLStateManager();
+
   void set_state(const GPUState &state) override;
   void set_mutable_state(const GPUStateMutable &state) override;
 
