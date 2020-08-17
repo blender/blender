@@ -1611,7 +1611,6 @@ static int cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
   if (use_internal_springs && numpolys > 0) {
     BVHTreeFromMesh treedata = {NULL};
     unsigned int tar_v_idx;
-    BLI_bitmap *verts_used = NULL;
     Mesh *tmp_mesh = NULL;
     RNG *rng;
 
@@ -1622,7 +1621,7 @@ static int cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
       BKE_mesh_calc_normals(tmp_mesh);
     }
 
-    verts_used = BLI_BITMAP_NEW(mvert_num * mvert_num, __func__);
+    EdgeSet *existing_vert_pairs = BLI_edgeset_new("cloth_sewing_edges_graph");
     BKE_bvhtree_from_mesh_get(&treedata, tmp_mesh ? tmp_mesh : mesh, BVHTREE_FROM_LOOPTRI, 2);
     rng = BLI_rng_new_srandom(0);
 
@@ -1635,12 +1634,12 @@ static int cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
               clmd->sim_parms->internal_spring_max_diversion,
               (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_INTERNAL_SPRINGS_NORMAL),
               &tar_v_idx)) {
-        if (BLI_BITMAP_TEST_BOOL(verts_used, i * mvert_num + tar_v_idx)) {
+        if (BLI_edgeset_haskey(existing_vert_pairs, i, tar_v_idx)) {
+          /* We have already created a spring between these verts! */
           continue;
         }
 
-        BLI_BITMAP_ENABLE(verts_used, i * mvert_num + tar_v_idx);
-        BLI_BITMAP_ENABLE(verts_used, tar_v_idx * mvert_num + i);
+        BLI_edgeset_insert(existing_vert_pairs, i, tar_v_idx);
 
         spring = (ClothSpring *)MEM_callocN(sizeof(ClothSpring), "cloth spring");
 
@@ -1666,7 +1665,7 @@ static int cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
         }
         else {
           cloth_free_errorsprings(cloth, edgelist, spring_ref);
-          MEM_freeN(verts_used);
+          BLI_edgeset_free(existing_vert_pairs);
           free_bvhtree_from_mesh(&treedata);
           if (tmp_mesh) {
             BKE_mesh_free(tmp_mesh);
@@ -1675,7 +1674,7 @@ static int cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
         }
       }
     }
-    MEM_freeN(verts_used);
+    BLI_edgeset_free(existing_vert_pairs);
     free_bvhtree_from_mesh(&treedata);
     if (tmp_mesh) {
       BKE_mesh_free(tmp_mesh);
