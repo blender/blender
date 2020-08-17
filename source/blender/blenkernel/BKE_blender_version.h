@@ -50,6 +50,9 @@ extern "C" {
 /** User readable version string. */
 const char *BKE_blender_version_string(void);
 
+/* Returns true when version cycle is alpha, otherwise (beta, rc) returns false. */
+bool BKE_blender_version_is_alpha(void);
+
 #ifdef __cplusplus
 }
 #endif

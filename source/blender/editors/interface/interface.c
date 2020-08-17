@@ -44,6 +44,8 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLO_readfile.h"
+
 #include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_idprop.h"
@@ -6818,6 +6820,8 @@ void UI_init_userdef(Main *bmain)
   /* fix saved themes */
   init_userdef_do_versions(bmain);
   uiStyleInit();
+
+  BLO_sanitize_experimental_features_userpref_blend(&U);
 }
 
 void UI_reinit_font(void)
