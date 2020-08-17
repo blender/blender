@@ -176,8 +176,7 @@ int GPU_batch_instbuf_add_ex(GPUBatch *batch, GPUVertBuf *insts, bool own_vbo)
     if (batch->inst[v] == NULL) {
       /* for now all VertexBuffers must have same vertex_len */
       if (batch->inst[0]) {
-        /* Allow for different size of vertex buf (will choose the smallest
-         * number of verts). */
+        /* Allow for different size of vertex buffer (will choose the smallest number of verts). */
         // BLI_assert(insts->vertex_len == batch->inst[0]->vertex_len);
       }
 

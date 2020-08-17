@@ -417,9 +417,9 @@ static openvdb::GridBase::ConstPtr openvdb_grid_from_device_texture(device_textu
   typename GridType::Ptr sparse = GridType::create(ValueType(0.0f));
   openvdb::tools::copyFromDense(dense, *sparse, ValueType(volume_clipping));
 
-  /* copyFromDense will remove any leaf node that contains constant data and replace it with a
-   * tile, however, we need to preserve the leaves in order to generate the mesh, so revoxelize the
-   * leaves that were pruned. This should not affect areas that were skipped due to the
+  /* #copyFromDense will remove any leaf node that contains constant data and replace it with a
+   * tile, however, we need to preserve the leaves in order to generate the mesh, so re-voxelize
+   * the leaves that were pruned. This should not affect areas that were skipped due to the
    * volume_clipping parameter. */
   sparse->tree().voxelizeActiveTiles();
 

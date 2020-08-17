@@ -100,7 +100,7 @@ const float *SCULPT_vertex_color_get(SculptSession *ss, int index);
 const float *SCULPT_vertex_persistent_co_get(SculptSession *ss, int index);
 void SCULPT_vertex_persistent_normal_get(SculptSession *ss, int index, float no[3]);
 
-/* Returs the info of the limit surface when Multires is available, otherwise it returns the
+/* Returns the info of the limit surface when Multires is available, otherwise it returns the
  * current coordinate of the vertex. */
 void SCULPT_vertex_limit_surface_get(SculptSession *ss, int index, float r_co[3]);
 

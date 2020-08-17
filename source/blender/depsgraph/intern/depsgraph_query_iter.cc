@@ -106,8 +106,8 @@ bool deg_object_hide_original(eEvaluationMode eval_mode, Object *ob, DupliObject
    * visible otherwise. The better solution eventually would be for objects
    * to specify which object they instance, instead of through parenting.
    *
-   * This function should not be used for metaballs. They have custom visibility rules, as hiding
-   * the base metaball will also hide all the other balls in the group. */
+   * This function should not be used for meta-balls. They have custom visibility rules, as hiding
+   * the base meta-ball will also hide all the other balls in the group. */
   if (eval_mode == DAG_EVAL_RENDER || dob) {
     const int hide_original_types = OB_DUPLIVERTS | OB_DUPLIFACES;
 

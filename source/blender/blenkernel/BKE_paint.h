@@ -338,7 +338,7 @@ typedef struct SculptBoundary {
   int num_vertices;
 
   /* Distance from a vertex in the boundary to initial vertex indexed by vertex index, taking into
-   * account the lengh of all edges between them. Any vertex that is not in the boundary will have
+   * account the length of all edges between them. Any vertex that is not in the boundary will have
    * a distance of 0. */
   float *distance;
 

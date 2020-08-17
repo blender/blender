@@ -6032,7 +6032,7 @@ void BKE_constraints_solve(struct Depsgraph *depsgraph,
      */
     enf = con->enforce;
 
-    /* make copy of worldspace matrix pre-constraint for use with blending later */
+    /* make copy of world-space matrix pre-constraint for use with blending later */
     copy_m4_m4(oldmat, cob->matrix);
 
     /* move owner matrix into right space */
@@ -6053,16 +6053,16 @@ void BKE_constraints_solve(struct Depsgraph *depsgraph,
       cti->flush_constraint_targets(con, &targets, 1);
     }
 
-    /* move owner back into worldspace for next constraint/other business */
+    /* move owner back into world-space for next constraint/other business */
     if ((con->flag & CONSTRAINT_SPACEONCE) == 0) {
       BKE_constraint_mat_convertspace(
           cob->ob, cob->pchan, cob->matrix, con->ownspace, CONSTRAINT_SPACE_WORLD, false);
     }
 
     /* Interpolate the enforcement, to blend result of constraint into final owner transform
-     * - all this happens in worldspace to prevent any weirdness creeping in
+     * - all this happens in world-space to prevent any weirdness creeping in
      *   (T26014 and T25725), since some constraints may not convert the solution back to the input
-     *   space before blending but all are guaranteed to end up in good "worldspace" result.
+     *   space before blending but all are guaranteed to end up in good "world-space" result.
      */
     /* Note: all kind of stuff here before (caused trouble), much easier to just interpolate,
      * or did I miss something? -jahka (r.32105) */
