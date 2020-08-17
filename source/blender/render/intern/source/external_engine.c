@@ -519,9 +519,8 @@ float RE_engine_get_camera_shift_x(RenderEngine *engine, Object *camera, bool us
   if (use_spherical_stereo || re == NULL) {
     return BKE_camera_multiview_shift_x(NULL, camera, NULL);
   }
-  else {
-    return BKE_camera_multiview_shift_x(&re->r, camera, re->viewname);
-  }
+
+  return BKE_camera_multiview_shift_x(&re->r, camera, re->viewname);
 }
 
 void RE_engine_get_camera_model_matrix(RenderEngine *engine,
