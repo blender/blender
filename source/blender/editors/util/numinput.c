@@ -38,7 +38,7 @@
 #include "WM_types.h"
 
 #ifdef WITH_PYTHON
-#  include "BPY_extern.h"
+#  include "BPY_extern_run.h"
 #endif
 
 #include "ED_numinput.h"
@@ -294,10 +294,10 @@ bool user_string_to_number(bContext *C,
     bUnit_ReplaceString(
         str_unit_convert, sizeof(str_unit_convert), str, unit_scale, unit->system, type);
 
-    return BPY_execute_string_as_number(C, NULL, str_unit_convert, error_prefix, r_value);
+    return BPY_run_string_as_number(C, NULL, str_unit_convert, error_prefix, r_value);
   }
 
-  int success = BPY_execute_string_as_number(C, NULL, str, error_prefix, r_value);
+  int success = BPY_run_string_as_number(C, NULL, str, error_prefix, r_value);
   *r_value *= bUnit_PreferredInputUnitScalar(unit, type);
   *r_value /= unit_scale;
   return success;

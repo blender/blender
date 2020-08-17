@@ -42,7 +42,7 @@
 #include "script_intern.h"  // own include
 
 #ifdef WITH_PYTHON
-#  include "BPY_extern.h" /* BPY_script_exec */
+#  include "BPY_extern_run.h"
 #endif
 
 static int run_pyfile_exec(bContext *C, wmOperator *op)
@@ -50,7 +50,7 @@ static int run_pyfile_exec(bContext *C, wmOperator *op)
   char path[512];
   RNA_string_get(op->ptr, "filepath", path);
 #ifdef WITH_PYTHON
-  if (BPY_execute_filepath(C, path, op->reports)) {
+  if (BPY_run_filepath(C, path, op->reports)) {
     ARegion *region = CTX_wm_region(C);
     ED_region_tag_redraw(region);
     return OPERATOR_FINISHED;
@@ -120,8 +120,7 @@ static int script_reload_exec(bContext *C, wmOperator *op)
   /* TODO, this crashes on netrender and keying sets, need to look into why
    * disable for now unless running in debug mode */
   WM_cursor_wait(1);
-  BPY_execute_string(
-      C, (const char *[]){"bpy", NULL}, "bpy.utils.load_scripts(reload_scripts=True)");
+  BPY_run_string(C, (const char *[]){"bpy", NULL}, "bpy.utils.load_scripts(reload_scripts=True)");
   WM_cursor_wait(0);
   WM_event_add_notifier(C, NC_WINDOW, NULL);
   return OPERATOR_FINISHED;

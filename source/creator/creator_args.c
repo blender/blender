@@ -61,8 +61,8 @@
 #  endif
 
 #  ifdef WITH_PYTHON
-#    include "BPY_extern.h"
 #    include "BPY_extern_python.h"
+#    include "BPY_extern_run.h"
 #  endif
 
 #  include "RE_engine.h"
@@ -1780,7 +1780,7 @@ static int arg_handle_python_file_run(int argc, const char **argv, void *data)
     BLI_path_abs_from_cwd(filename, sizeof(filename));
 
     bool ok;
-    BPY_CTX_SETUP(ok = BPY_execute_filepath(C, filename, NULL));
+    BPY_CTX_SETUP(ok = BPY_run_filepath(C, filename, NULL));
     if (!ok && app_state.exit_code_on_error.python) {
       printf("\nError: script failed, file: '%s', exiting.\n", argv[1]);
       BPY_python_end();
@@ -1815,7 +1815,7 @@ static int arg_handle_python_text_run(int argc, const char **argv, void *data)
     bool ok;
 
     if (text) {
-      BPY_CTX_SETUP(ok = BPY_execute_text(C, text, NULL, false));
+      BPY_CTX_SETUP(ok = BPY_run_text(C, text, NULL, false));
     }
     else {
       printf("\nError: text block not found %s.\n", argv[1]);
@@ -1852,7 +1852,7 @@ static int arg_handle_python_expr_run(int argc, const char **argv, void *data)
   /* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
   if (argc > 1) {
     bool ok;
-    BPY_CTX_SETUP(ok = BPY_execute_string_ex(C, NULL, argv[1], false));
+    BPY_CTX_SETUP(ok = BPY_run_string_ex(C, NULL, argv[1], false));
     if (!ok && app_state.exit_code_on_error.python) {
       printf("\nError: script failed, expr: '%s', exiting.\n", argv[1]);
       BPY_python_end();
@@ -1879,7 +1879,7 @@ static int arg_handle_python_console_run(int UNUSED(argc), const char **argv, vo
 #  ifdef WITH_PYTHON
   bContext *C = data;
 
-  BPY_CTX_SETUP(BPY_execute_string(C, (const char *[]){"code", NULL}, "code.interact()"));
+  BPY_CTX_SETUP(BPY_run_string(C, (const char *[]){"code", NULL}, "code.interact()"));
 
   return 0;
 #  else
@@ -1952,7 +1952,7 @@ static int arg_handle_addons_set(int argc, const char **argv, void *data)
     BLI_snprintf(str, slen, script_str, argv[1]);
 
     BLI_assert(strlen(str) + 1 == slen);
-    BPY_CTX_SETUP(BPY_execute_string_ex(C, NULL, str, false));
+    BPY_CTX_SETUP(BPY_run_string_ex(C, NULL, str, false));
     free(str);
 #  else
     UNUSED_VARS(argv, data);

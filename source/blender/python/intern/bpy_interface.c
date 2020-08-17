@@ -64,6 +64,7 @@
 
 #include "BPY_extern.h"
 #include "BPY_extern_python.h"
+#include "BPY_extern_run.h"
 
 #include "../generic/py_capi_utils.h"
 
@@ -428,18 +429,6 @@ void BPY_python_use_system_env(void)
   py_use_system_env = true;
 }
 
-static void python_script_error_jump_text(struct Text *text)
-{
-  int lineno;
-  int offset;
-  python_script_error_jump(text->id.name + 2, &lineno, &offset);
-  if (lineno != -1) {
-    /* select the line with the error */
-    txt_move_to(text, lineno - 1, INT_MAX, false);
-    txt_move_to(text, lineno - 1, offset, true);
-  }
-}
-
 void BPY_python_backtrace(FILE *fp)
 {
   fputs("\n# Python backtrace\n", fp);
@@ -467,152 +456,6 @@ typedef struct {
 } PyModuleObject;
 #endif
 
-/* returns a dummy filename for a textblock so we can tell what file a text block comes from */
-static void bpy_text_filename_get(char *fn, const Main *bmain, size_t fn_len, const Text *text)
-{
-  BLI_snprintf(fn, fn_len, "%s%c%s", ID_BLEND_PATH(bmain, &text->id), SEP, text->id.name + 2);
-}
-
-static bool python_script_exec(
-    bContext *C, const char *fn, struct Text *text, struct ReportList *reports, const bool do_jump)
-{
-  Main *bmain_old = CTX_data_main(C);
-  PyObject *main_mod = NULL;
-  PyObject *py_dict = NULL, *py_result = NULL;
-  PyGILState_STATE gilstate;
-
-  BLI_assert(fn || text);
-
-  if (fn == NULL && text == NULL) {
-    return 0;
-  }
-
-  bpy_context_set(C, &gilstate);
-
-  PyC_MainModule_Backup(&main_mod);
-
-  if (text) {
-    char fn_dummy[FILE_MAXDIR];
-    bpy_text_filename_get(fn_dummy, bmain_old, sizeof(fn_dummy), text);
-
-    if (text->compiled == NULL) { /* if it wasn't already compiled, do it now */
-      char *buf;
-      PyObject *fn_dummy_py;
-
-      fn_dummy_py = PyC_UnicodeFromByte(fn_dummy);
-
-      buf = txt_to_buf(text, NULL);
-      text->compiled = Py_CompileStringObject(buf, fn_dummy_py, Py_file_input, NULL, -1);
-      MEM_freeN(buf);
-
-      Py_DECREF(fn_dummy_py);
-
-      if (PyErr_Occurred()) {
-        if (do_jump) {
-          python_script_error_jump_text(text);
-        }
-        BPY_text_free_code(text);
-      }
-    }
-
-    if (text->compiled) {
-      py_dict = PyC_DefaultNameSpace(fn_dummy);
-      py_result = PyEval_EvalCode(text->compiled, py_dict, py_dict);
-    }
-  }
-  else {
-    FILE *fp = BLI_fopen(fn, "r");
-
-    if (fp) {
-      py_dict = PyC_DefaultNameSpace(fn);
-
-#ifdef _WIN32
-      /* Previously we used PyRun_File to run directly the code on a FILE
-       * object, but as written in the Python/C API Ref Manual, chapter 2,
-       * 'FILE structs for different C libraries can be different and
-       * incompatible'.
-       * So now we load the script file data to a buffer.
-       *
-       * Note on use of 'globals()', it's important not copy the dictionary because
-       * tools may inspect 'sys.modules["__main__"]' for variables defined in the code
-       * where using a copy of 'globals()' causes code execution
-       * to leave the main namespace untouched. see: T51444
-       *
-       * This leaves us with the problem of variables being included,
-       * currently this is worked around using 'dict.__del__' it's ugly but works.
-       */
-      {
-        const char *pystring =
-            "with open(__file__, 'rb') as f:"
-            "exec(compile(f.read(), __file__, 'exec'), globals().__delitem__('f') or globals())";
-
-        fclose(fp);
-
-        py_result = PyRun_String(pystring, Py_file_input, py_dict, py_dict);
-      }
-#else
-      py_result = PyRun_File(fp, fn, Py_file_input, py_dict, py_dict);
-      fclose(fp);
-#endif
-    }
-    else {
-      PyErr_Format(
-          PyExc_IOError, "Python file \"%s\" could not be opened: %s", fn, strerror(errno));
-      py_result = NULL;
-    }
-  }
-
-  if (!py_result) {
-    if (text) {
-      if (do_jump) {
-        /* ensure text is valid before use, the script may have freed its self */
-        Main *bmain_new = CTX_data_main(C);
-        if ((bmain_old == bmain_new) && (BLI_findindex(&bmain_new->texts, text) != -1)) {
-          python_script_error_jump_text(text);
-        }
-      }
-    }
-    BPy_errors_to_report(reports);
-  }
-  else {
-    Py_DECREF(py_result);
-  }
-
-  if (py_dict) {
-#ifdef PYMODULE_CLEAR_WORKAROUND
-    PyModuleObject *mmod = (PyModuleObject *)PyDict_GetItem(PyImport_GetModuleDict(),
-                                                            bpy_intern_str___main__);
-    PyObject *dict_back = mmod->md_dict;
-    /* freeing the module will clear the namespace,
-     * gives problems running classes defined in this namespace being used later. */
-    mmod->md_dict = NULL;
-    Py_DECREF(dict_back);
-#endif
-
-#undef PYMODULE_CLEAR_WORKAROUND
-  }
-
-  PyC_MainModule_Restore(main_mod);
-
-  bpy_context_clear(C, &gilstate);
-
-  return (py_result != NULL);
-}
-
-/* Can run a file or text block */
-bool BPY_execute_filepath(bContext *C, const char *filepath, struct ReportList *reports)
-{
-  return python_script_exec(C, filepath, NULL, reports, false);
-}
-
-bool BPY_execute_text(bContext *C,
-                      struct Text *text,
-                      struct ReportList *reports,
-                      const bool do_jump)
-{
-  return python_script_exec(C, NULL, text, reports, do_jump);
-}
-
 void BPY_DECREF(void *pyob_ptr)
 {
   PyGILState_STATE gilstate = PyGILState_Ensure();
@@ -629,177 +472,6 @@ void BPY_DECREF_RNA_INVALIDATE(void *pyob_ptr)
     pyrna_invalidate(pyob_ptr);
   }
   PyGILState_Release(gilstate);
-}
-
-/**
- * \return success
- */
-bool BPY_execute_string_as_number(bContext *C,
-                                  const char *imports[],
-                                  const char *expr,
-                                  const char *report_prefix,
-                                  double *r_value)
-{
-  PyGILState_STATE gilstate;
-  bool ok = true;
-
-  if (!r_value || !expr) {
-    return -1;
-  }
-
-  if (expr[0] == '\0') {
-    *r_value = 0.0;
-    return ok;
-  }
-
-  bpy_context_set(C, &gilstate);
-
-  ok = PyC_RunString_AsNumber(imports, expr, "<expr as number>", r_value);
-
-  if (ok == false) {
-    if (report_prefix != NULL) {
-      BPy_errors_to_report_ex(CTX_wm_reports(C), report_prefix, false, false);
-    }
-    else {
-      PyErr_Clear();
-    }
-  }
-
-  bpy_context_clear(C, &gilstate);
-
-  return ok;
-}
-
-/**
- * \return success
- */
-bool BPY_execute_string_as_string_and_size(bContext *C,
-                                           const char *imports[],
-                                           const char *expr,
-                                           const char *report_prefix,
-                                           char **r_value,
-                                           size_t *r_value_size)
-{
-  BLI_assert(r_value && expr);
-  PyGILState_STATE gilstate;
-  bool ok = true;
-
-  if (expr[0] == '\0') {
-    *r_value = NULL;
-    return ok;
-  }
-
-  bpy_context_set(C, &gilstate);
-
-  ok = PyC_RunString_AsStringAndSize(imports, expr, "<expr as str>", r_value, r_value_size);
-
-  if (ok == false) {
-    if (report_prefix != NULL) {
-      BPy_errors_to_report_ex(CTX_wm_reports(C), false, false, report_prefix);
-    }
-    else {
-      PyErr_Clear();
-    }
-  }
-
-  bpy_context_clear(C, &gilstate);
-
-  return ok;
-}
-
-bool BPY_execute_string_as_string(bContext *C,
-                                  const char *imports[],
-                                  const char *expr,
-                                  const char *report_prefix,
-                                  char **r_value)
-{
-  size_t value_dummy_size;
-  return BPY_execute_string_as_string_and_size(
-      C, imports, expr, report_prefix, r_value, &value_dummy_size);
-}
-
-/**
- * Support both int and pointers.
- *
- * \return success
- */
-bool BPY_execute_string_as_intptr(bContext *C,
-                                  const char *imports[],
-                                  const char *expr,
-                                  const char *report_prefix,
-                                  intptr_t *r_value)
-{
-  BLI_assert(r_value && expr);
-  PyGILState_STATE gilstate;
-  bool ok = true;
-
-  if (expr[0] == '\0') {
-    *r_value = 0;
-    return ok;
-  }
-
-  bpy_context_set(C, &gilstate);
-
-  ok = PyC_RunString_AsIntPtr(imports, expr, "<expr as intptr>", r_value);
-
-  if (ok == false) {
-    if (report_prefix != NULL) {
-      BPy_errors_to_report_ex(CTX_wm_reports(C), report_prefix, false, false);
-    }
-    else {
-      PyErr_Clear();
-    }
-  }
-
-  bpy_context_clear(C, &gilstate);
-
-  return ok;
-}
-
-bool BPY_execute_string_ex(bContext *C, const char *imports[], const char *expr, bool use_eval)
-{
-  BLI_assert(expr);
-  PyGILState_STATE gilstate;
-  PyObject *main_mod = NULL;
-  PyObject *py_dict, *retval;
-  bool ok = true;
-
-  if (expr[0] == '\0') {
-    return ok;
-  }
-
-  bpy_context_set(C, &gilstate);
-
-  PyC_MainModule_Backup(&main_mod);
-
-  py_dict = PyC_DefaultNameSpace("<blender string>");
-
-  if (imports && (!PyC_NameSpace_ImportArray(py_dict, imports))) {
-    Py_DECREF(py_dict);
-    retval = NULL;
-  }
-  else {
-    retval = PyRun_String(expr, use_eval ? Py_eval_input : Py_file_input, py_dict, py_dict);
-  }
-
-  if (retval == NULL) {
-    ok = false;
-    BPy_errors_to_report(CTX_wm_reports(C));
-  }
-  else {
-    Py_DECREF(retval);
-  }
-
-  PyC_MainModule_Restore(main_mod);
-
-  bpy_context_clear(C, &gilstate);
-
-  return ok;
-}
-
-bool BPY_execute_string(bContext *C, const char *imports[], const char *expr)
-{
-  return BPY_execute_string_ex(C, imports, expr, true);
 }
 
 void BPY_modules_load_user(bContext *C)
@@ -834,7 +506,7 @@ void BPY_modules_load_user(bContext *C)
         }
       }
       else {
-        BPY_execute_text(C, text, NULL, false);
+        BPY_run_text(C, text, NULL, false);
 
         /* Check if the script loaded a new file. */
         if (bmain != CTX_data_main(C)) {

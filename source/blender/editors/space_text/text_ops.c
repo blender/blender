@@ -55,6 +55,7 @@
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
+#  include "BPY_extern_run.h"
 #endif
 
 #include "text_format.h"
@@ -756,7 +757,7 @@ static int text_run_script(bContext *C, ReportList *reports)
   void *curl_prev = text->curl;
   int curc_prev = text->curc;
 
-  if (BPY_execute_text(C, text, reports, !is_live)) {
+  if (BPY_run_text(C, text, reports, !is_live)) {
     if (is_live) {
       /* for nice live updates */
       WM_event_add_notifier(C, NC_WINDOW | NA_EDITED, NULL);

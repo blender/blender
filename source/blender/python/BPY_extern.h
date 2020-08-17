@@ -67,40 +67,6 @@ void BPY_thread_restore(BPy_ThreadStatePtr tstate);
   } \
   (void)0
 
-bool BPY_execute_filepath(struct bContext *C, const char *filepath, struct ReportList *reports);
-bool BPY_execute_text(struct bContext *C,
-                      struct Text *text,
-                      struct ReportList *reports,
-                      const bool do_jump);
-
-bool BPY_execute_string_as_number(struct bContext *C,
-                                  const char *imports[],
-                                  const char *expr,
-                                  const char *report_prefix,
-                                  double *r_value);
-bool BPY_execute_string_as_intptr(struct bContext *C,
-                                  const char *imports[],
-                                  const char *expr,
-                                  const char *report_prefix,
-                                  intptr_t *r_value);
-bool BPY_execute_string_as_string_and_size(struct bContext *C,
-                                           const char *imports[],
-                                           const char *expr,
-                                           const char *report_prefix,
-                                           char **r_value,
-                                           size_t *r_value_size);
-bool BPY_execute_string_as_string(struct bContext *C,
-                                  const char *imports[],
-                                  const char *expr,
-                                  const char *report_prefix,
-                                  char **r_value);
-
-bool BPY_execute_string_ex(struct bContext *C,
-                           const char *imports[],
-                           const char *expr,
-                           bool use_eval);
-bool BPY_execute_string(struct bContext *C, const char *imports[], const char *expr);
-
 void BPY_text_free_code(struct Text *text);
 void BPY_modules_update(
     struct bContext *C);  // XXX - annoying, need this for pointers that get out of date
