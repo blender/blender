@@ -2387,6 +2387,8 @@ static void copy_transform_effect(Sequence *dst, Sequence *src, const int UNUSED
 
 static void transform_image(int x,
                             int y,
+                            int start_line,
+                            int total_lines,
                             ImBuf *ibuf1,
                             ImBuf *out,
                             float scale_x,
@@ -2396,34 +2398,27 @@ static void transform_image(int x,
                             float rotate,
                             int interpolation)
 {
-  int xo, yo, xi, yi;
-  float xt, yt, xr, yr;
-  float s, c;
-
-  xo = x;
-  yo = y;
-
   /* Rotate */
-  s = sinf(rotate);
-  c = cosf(rotate);
+  float s = sinf(rotate);
+  float c = cosf(rotate);
 
-  for (yi = 0; yi < yo; yi++) {
-    for (xi = 0; xi < xo; xi++) {
+  for (int yi = start_line; yi < start_line + total_lines; yi++) {
+    for (int xi = 0; xi < x; xi++) {
       /* translate point */
-      xt = xi - translate_x;
-      yt = yi - translate_y;
+      float xt = xi - translate_x;
+      float yt = yi - translate_y;
 
       /* rotate point with center ref */
-      xr = c * xt + s * yt;
-      yr = -s * xt + c * yt;
+      float xr = c * xt + s * yt;
+      float yr = -s * xt + c * yt;
 
       /* scale point with center ref */
       xt = xr / scale_x;
       yt = yr / scale_y;
 
       /* undo reference center point  */
-      xt += (xo / 2.0f);
-      yt += (yo / 2.0f);
+      xt += (x / 2.0f);
+      yt += (y / 2.0f);
 
       /* interpolate */
       switch (interpolation) {
@@ -2441,9 +2436,19 @@ static void transform_image(int x,
   }
 }
 
-static void do_transform(
-    Scene *scene, Sequence *seq, float UNUSED(facf0), int x, int y, ImBuf *ibuf1, ImBuf *out)
+static void do_transform_effect(const SeqRenderData *context,
+                                 Sequence *seq,
+                                 float UNUSED(cfra),
+                                 float UNUSED(facf0),
+                                 float UNUSED(facf1),
+                                 ImBuf *ibuf1,
+                                 ImBuf *UNUSED(ibuf2),
+                                 ImBuf *UNUSED(ibuf3),
+                                 int start_line,
+                                 int total_lines,
+                                 ImBuf *out)
 {
+  Scene *scene = context->scene;
   TransformVars *transform = (TransformVars *)seq->effectdata;
   float scale_x, scale_y, translate_x, translate_y, rotate_radians;
 
@@ -2455,6 +2460,9 @@ static void do_transform(
     scale_x = transform->ScalexIni;
     scale_y = transform->ScaleyIni;
   }
+
+  int x = context->rectx;
+  int y = context->recty;
 
   /* Translate */
   if (!transform->percent) {
@@ -2473,6 +2481,8 @@ static void do_transform(
 
   transform_image(x,
                   y,
+                  start_line,
+                  total_lines,
                   ibuf1,
                   out,
                   scale_x,
@@ -2481,22 +2491,6 @@ static void do_transform(
                   translate_y,
                   rotate_radians,
                   transform->interpolation);
-}
-
-static ImBuf *do_transform_effect(const SeqRenderData *context,
-                                  Sequence *seq,
-                                  float UNUSED(cfra),
-                                  float facf0,
-                                  float UNUSED(facf1),
-                                  ImBuf *ibuf1,
-                                  ImBuf *ibuf2,
-                                  ImBuf *ibuf3)
-{
-  ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
-
-  do_transform(context->scene, seq, facf0, context->rectx, context->recty, ibuf1, out);
-
-  return out;
 }
 
 /*********************** Glow *************************/
@@ -4183,11 +4177,12 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
       rval.execute = do_glow_effect;
       break;
     case SEQ_TYPE_TRANSFORM:
+      rval.multithreaded = true;
       rval.init = init_transform_effect;
       rval.num_inputs = num_inputs_transform;
       rval.free = free_transform_effect;
       rval.copy = copy_transform_effect;
-      rval.execute = do_transform_effect;
+      rval.execute_slice = do_transform_effect;
       break;
     case SEQ_TYPE_SPEED:
       rval.init = init_speed_effect;
