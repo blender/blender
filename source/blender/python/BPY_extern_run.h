@@ -37,6 +37,12 @@ bool BPY_run_text(struct bContext *C,
                   struct ReportList *reports,
                   const bool do_jump);
 
+/* Use the 'eval' for simple single-line expressions,
+ * otherwise 'exec' for full multi-line scripts. */
+bool BPY_run_string_exec(struct bContext *C, const char *imports[], const char *expr);
+bool BPY_run_string_eval(struct bContext *C, const char *imports[], const char *expr);
+
+/* Run, evaluating to fixed type result. */
 bool BPY_run_string_as_number(struct bContext *C,
                               const char *imports[],
                               const char *expr,
@@ -58,10 +64,6 @@ bool BPY_run_string_as_string(struct bContext *C,
                               const char *expr,
                               const char *report_prefix,
                               char **r_value);
-
-bool BPY_run_string_ex(struct bContext *C, const char *imports[], const char *expr, bool use_eval);
-
-bool BPY_run_string(struct bContext *C, const char *imports[], const char *expr);
 
 #ifdef __cplusplus
 } /* extern "C" */

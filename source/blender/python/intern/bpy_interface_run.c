@@ -208,7 +208,14 @@ bool BPY_run_text(bContext *C, struct Text *text, struct ReportList *reports, co
   return python_script_exec(C, NULL, text, reports, do_jump);
 }
 
-bool BPY_run_string_ex(bContext *C, const char *imports[], const char *expr, bool use_eval)
+/**
+ * \param mode: Passed to #PyRun_String, matches Python's `compile` functions mode argument.
+ * #Py_eval_input for `eval`, #Py_file_input for `exec`.
+ */
+static bool bpy_run_string_impl(bContext *C,
+                                const char *imports[],
+                                const char *expr,
+                                const int mode)
 {
   BLI_assert(expr);
   PyGILState_STATE gilstate;
@@ -231,7 +238,7 @@ bool BPY_run_string_ex(bContext *C, const char *imports[], const char *expr, boo
     retval = NULL;
   }
   else {
-    retval = PyRun_String(expr, use_eval ? Py_eval_input : Py_file_input, py_dict, py_dict);
+    retval = PyRun_String(expr, mode, py_dict, py_dict);
   }
 
   if (retval == NULL) {
@@ -249,9 +256,20 @@ bool BPY_run_string_ex(bContext *C, const char *imports[], const char *expr, boo
   return ok;
 }
 
-bool BPY_run_string(bContext *C, const char *imports[], const char *expr)
+/**
+ * Run an expression, matches: `exec(compile(..., "eval"))`
+ */
+bool BPY_run_string_eval(bContext *C, const char *imports[], const char *expr)
 {
-  return BPY_run_string_ex(C, imports, expr, true);
+  return bpy_run_string_impl(C, imports, expr, Py_eval_input);
+}
+
+/**
+ * Run an entire script, matches: `exec(compile(..., "exec"))`
+ */
+bool BPY_run_string_exec(bContext *C, const char *imports[], const char *expr)
+{
+  return bpy_run_string_impl(C, imports, expr, Py_file_input);
 }
 
 /** \} */

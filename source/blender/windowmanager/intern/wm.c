@@ -271,7 +271,7 @@ void WM_keyconfig_reload(bContext *C)
 {
   if (CTX_py_init_get(C) && !G.background) {
 #ifdef WITH_PYTHON
-    BPY_run_string(C, (const char *[]){"bpy", NULL}, "bpy.utils.keyconfig_init()");
+    BPY_run_string_eval(C, (const char *[]){"bpy", NULL}, "bpy.utils.keyconfig_init()");
 #endif
   }
 }
