@@ -122,6 +122,7 @@
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
+#  include "BPY_extern_python.h"
 #endif
 
 #include "DEG_depsgraph.h"

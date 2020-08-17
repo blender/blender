@@ -62,6 +62,7 @@
 #endif
 
 #include "BPY_extern.h"
+#include "BPY_extern_python.h"
 
 #include "../generic/py_capi_utils.h"
 

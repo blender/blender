@@ -50,12 +50,6 @@ void BPY_pyconstraint_update(struct Object *owner, struct bConstraint *con);
 int BPY_is_pyconstraint(struct Text *text);
 //  void BPY_free_pyconstraint_links(struct Text *text);
 
-void BPY_python_start(int argc, const char **argv);
-void BPY_python_end(void);
-void BPY_python_reset(struct bContext *C);
-void BPY_python_use_system_env(void);
-void BPY_python_backtrace(/* FILE */ void *file);
-
 /* global interpreter lock */
 
 typedef void *BPy_ThreadStatePtr;
