@@ -2015,7 +2015,7 @@ static void view_zoom_to_window_xy_3d(ARegion *region, float dfac, const int zoo
 }
 
 static float viewzoom_scale_value(const rcti *winrct,
-                                  const short viewzoom,
+                                  const eViewZoom_Style viewzoom,
                                   const bool zoom_invert,
                                   const bool zoom_invert_force,
                                   const int xy_curr[2],
@@ -2089,7 +2089,7 @@ static float viewzoom_scale_value(const rcti *winrct,
 }
 
 static float viewzoom_scale_value_offset(const rcti *winrct,
-                                         const short viewzoom,
+                                         const eViewZoom_Style viewzoom,
                                          const bool zoom_invert,
                                          const bool zoom_invert_force,
                                          const int xy_curr[2],
@@ -2120,7 +2120,7 @@ static float viewzoom_scale_value_offset(const rcti *winrct,
 
 static void viewzoom_apply_camera(ViewOpsData *vod,
                                   const int xy[2],
-                                  const short viewzoom,
+                                  const eViewZoom_Style viewzoom,
                                   const bool zoom_invert,
                                   const bool zoom_to_pos)
 {
@@ -2155,7 +2155,7 @@ static void viewzoom_apply_camera(ViewOpsData *vod,
 
 static void viewzoom_apply_3d(ViewOpsData *vod,
                               const int xy[2],
-                              const short viewzoom,
+                              const eViewZoom_Style viewzoom,
                               const bool zoom_invert,
                               const bool zoom_to_pos)
 {
@@ -2197,7 +2197,7 @@ static void viewzoom_apply_3d(ViewOpsData *vod,
 
 static void viewzoom_apply(ViewOpsData *vod,
                            const int xy[2],
-                           const short viewzoom,
+                           const eViewZoom_Style viewzoom,
                            const bool zoom_invert,
                            const bool zoom_to_pos)
 {
@@ -2248,7 +2248,7 @@ static int viewzoom_modal(bContext *C, wmOperator *op, const wmEvent *event)
     const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
     viewzoom_apply(vod,
                    &event->x,
-                   U.viewzoom,
+                   (eViewZoom_Style)U.viewzoom,
                    (U.uiflag & USER_ZOOM_INVERT) != 0,
                    (use_cursor_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)));
     if (ED_screen_animation_playing(CTX_wm_manager(C))) {
