@@ -354,10 +354,6 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
 
   if (ob->mode == OB_MODE_SCULPT) {
     ED_sculpt_undo_geometry_begin(ob, "mask slice");
-    /* TODO: The ideal functionality would be to preserve the current face sets and add a new one
-     * for the new triangles, but this data-layer needs to be rebuild in order to make sculpt mode
-     * not crash when modifying the geometry. */
-    CustomData_free_layers(&mesh->pdata, CD_SCULPT_FACE_SETS, mesh->totpoly);
   }
 
   BMesh *bm;
@@ -429,14 +425,14 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
   BKE_mesh_calc_normals(ob->data);
 
   if (ob->mode == OB_MODE_SCULPT) {
-    ED_sculpt_undo_geometry_end(ob);
     SculptSession *ss = ob->sculpt;
-    /* Rebuild a new valid Face Set layer for the object. */
-    ss->face_sets = CustomData_add_layer(
-        &mesh->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, NULL, mesh->totpoly);
-    for (int i = 0; i < mesh->totpoly; i++) {
-      ss->face_sets[i] = 1;
+    ss->face_sets = CustomData_get_layer(&((Mesh *)ob->data)->pdata, CD_SCULPT_FACE_SETS);
+    if (ss->face_sets) {
+      /* Assign a new Face Set ID to the new faces created by the slice operation. */
+      const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(ob->data);
+      ED_sculpt_face_sets_initialize_none_to_id(ob->data, next_face_set_id);
     }
+    ED_sculpt_undo_geometry_end(ob);
   }
 
   BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);

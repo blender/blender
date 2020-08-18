@@ -71,6 +71,37 @@
 #include <math.h>
 #include <stdlib.h>
 
+/* Utils. */
+int ED_sculpt_face_sets_find_next_available_id(struct Mesh *mesh)
+{
+  int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
+  if (!face_sets) {
+    return SCULPT_FACE_SET_NONE;
+  }
+
+  int next_face_set_id = 0;
+  for (int i = 0; i < mesh->totpoly; i++) {
+    next_face_set_id = max_ii(next_face_set_id, abs(face_sets[i]));
+  }
+  next_face_set_id++;
+
+  return next_face_set_id;
+}
+
+void ED_sculpt_face_sets_initialize_none_to_id(struct Mesh *mesh, const int new_id)
+{
+  int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
+  if (!face_sets) {
+    return;
+  }
+
+  for (int i = 0; i < mesh->totpoly; i++) {
+    if (face_sets[i] == SCULPT_FACE_SET_NONE) {
+      face_sets[i] = new_id;
+    }
+  }
+}
+
 /* Draw Face Sets Brush. */
 
 static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
