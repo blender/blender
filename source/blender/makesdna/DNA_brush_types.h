@@ -322,6 +322,11 @@ typedef enum eBrushCurvePreset {
   BRUSH_CURVE_SMOOTHER = 9,
 } eBrushCurvePreset;
 
+typedef enum eBrushDeformTarget {
+  BRUSH_DEFORM_TARGET_GEOMETRY = 0,
+  BRUSH_DEFORM_TARGET_CLOTH_SIM = 1,
+} eBrushDeformTarget;
+
 typedef enum eBrushElasticDeformType {
   BRUSH_ELASTIC_DEFORM_GRAB = 0,
   BRUSH_ELASTIC_DEFORM_GRAB_BISCALE = 1,
@@ -539,7 +544,7 @@ typedef struct Brush {
   /** Source for fill tool color gradient application. */
   char gradient_fill_mode;
 
-  char _pad0[1];
+  char _pad0[5];
 
   /** Projection shape (sphere, circle). */
   char falloff_shape;
@@ -586,6 +591,8 @@ typedef struct Brush {
 
   /* Maximun distance to search fake neighbors from a vertex. */
   float disconnected_distance_max;
+
+  int deform_target;
 
   /* automasking */
   int automasking_flags;

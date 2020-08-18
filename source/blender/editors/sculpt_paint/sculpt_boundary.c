@@ -633,6 +633,7 @@ static void do_boundary_brush_bend_task_cb_ex(void *__restrict userdata,
   const int symm_area = ss->cache->mirror_symmetry_pass;
   SculptBoundary *boundary = ss->cache->boundaries[symm_area];
   const ePaintSymmetryFlags symm = data->sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
+  const Brush *brush = data->brush;
 
   const float strength = ss->cache->bstrength;
 
@@ -657,12 +658,13 @@ static void do_boundary_brush_bend_task_cb_ex(void *__restrict userdata,
               orig_data.co, boundary->initial_vertex_position, symm)) {
         const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
         float t_orig_co[3];
+        float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
         sub_v3_v3v3(t_orig_co, orig_data.co, boundary->bend.pivot_positions[vd.index]);
-        rotate_v3_v3v3fl(vd.co,
+        rotate_v3_v3v3fl(target_co,
                          t_orig_co,
                          boundary->bend.pivot_rotation_axis[vd.index],
                          angle * boundary->edit_info[vd.index].strength_factor * mask);
-        add_v3_v3(vd.co, boundary->bend.pivot_positions[vd.index]);
+        add_v3_v3(target_co, boundary->bend.pivot_positions[vd.index]);
       }
     }
 
@@ -682,6 +684,7 @@ static void do_boundary_brush_slide_task_cb_ex(void *__restrict userdata,
   const int symm_area = ss->cache->mirror_symmetry_pass;
   SculptBoundary *boundary = ss->cache->boundaries[symm_area];
   const ePaintSymmetryFlags symm = data->sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
+  const Brush *brush = data->brush;
 
   const float strength = ss->cache->bstrength;
 
@@ -699,7 +702,8 @@ static void do_boundary_brush_slide_task_cb_ex(void *__restrict userdata,
       if (SCULPT_check_vertex_pivot_symmetry(
               orig_data.co, boundary->initial_vertex_position, symm)) {
         const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
-        madd_v3_v3v3fl(vd.co,
+        float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
+        madd_v3_v3v3fl(target_co,
                        orig_data.co,
                        boundary->slide.directions[vd.index],
                        boundary->edit_info[vd.index].strength_factor * disp * mask * strength);
@@ -722,6 +726,7 @@ static void do_boundary_brush_inflate_task_cb_ex(void *__restrict userdata,
   const int symm_area = ss->cache->mirror_symmetry_pass;
   SculptBoundary *boundary = ss->cache->boundaries[symm_area];
   const ePaintSymmetryFlags symm = data->sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
+  const Brush *brush = data->brush;
 
   const float strength = ss->cache->bstrength;
 
@@ -741,7 +746,8 @@ static void do_boundary_brush_inflate_task_cb_ex(void *__restrict userdata,
         const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
         float normal[3];
         normal_short_to_float_v3(normal, orig_data.no);
-        madd_v3_v3v3fl(vd.co,
+        float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
+        madd_v3_v3v3fl(target_co,
                        orig_data.co,
                        normal,
                        boundary->edit_info[vd.index].strength_factor * disp * mask * strength);
@@ -764,6 +770,7 @@ static void do_boundary_brush_grab_task_cb_ex(void *__restrict userdata,
   const int symm_area = ss->cache->mirror_symmetry_pass;
   SculptBoundary *boundary = ss->cache->boundaries[symm_area];
   const ePaintSymmetryFlags symm = data->sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
+  const Brush *brush = data->brush;
 
   const float strength = ss->cache->bstrength;
 
@@ -779,7 +786,8 @@ static void do_boundary_brush_grab_task_cb_ex(void *__restrict userdata,
       if (SCULPT_check_vertex_pivot_symmetry(
               orig_data.co, boundary->initial_vertex_position, symm)) {
         const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
-        madd_v3_v3v3fl(vd.co,
+        float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
+        madd_v3_v3v3fl(target_co,
                        orig_data.co,
                        ss->cache->grab_delta_symmetry,
                        boundary->edit_info[vd.index].strength_factor * mask * strength);
@@ -802,6 +810,7 @@ static void do_boundary_brush_twist_task_cb_ex(void *__restrict userdata,
   const int symm_area = ss->cache->mirror_symmetry_pass;
   SculptBoundary *boundary = ss->cache->boundaries[symm_area];
   const ePaintSymmetryFlags symm = data->sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
+  const Brush *brush = data->brush;
 
   const float strength = ss->cache->bstrength;
 
@@ -826,12 +835,13 @@ static void do_boundary_brush_twist_task_cb_ex(void *__restrict userdata,
               orig_data.co, boundary->initial_vertex_position, symm)) {
         const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
         float t_orig_co[3];
+        float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
         sub_v3_v3v3(t_orig_co, orig_data.co, boundary->twist.pivot_position);
-        rotate_v3_v3v3fl(vd.co,
+        rotate_v3_v3v3fl(target_co,
                          t_orig_co,
                          boundary->twist.rotation_axis,
                          angle * mask * boundary->edit_info[vd.index].strength_factor);
-        add_v3_v3(vd.co, boundary->twist.pivot_position);
+        add_v3_v3(target_co, boundary->twist.pivot_position);
       }
     }
 

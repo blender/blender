@@ -104,6 +104,12 @@ void SCULPT_vertex_persistent_normal_get(SculptSession *ss, int index, float no[
  * current coordinate of the vertex. */
 void SCULPT_vertex_limit_surface_get(SculptSession *ss, int index, float r_co[3]);
 
+/* Returns the pointer to the coordinates that should be edited from a brush tool iterator
+ * depending on the given deformation target. */
+float *SCULPT_brush_deform_target_vertex_co_get(SculptSession *ss,
+                                                const int deform_target,
+                                                PBVHVertexIter *iter);
+
 #define SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY 256
 typedef struct SculptVertexNeighborIter {
   /* Storage */
@@ -350,6 +356,7 @@ void SCULPT_do_cloth_brush(struct Sculpt *sd,
                            struct Object *ob,
                            struct PBVHNode **nodes,
                            int totnode);
+
 void SCULPT_cloth_simulation_free(struct SculptClothSimulation *cloth_sim);
 
 struct SculptClothSimulation *SCULPT_cloth_brush_simulation_create(struct SculptSession *ss,
@@ -391,8 +398,12 @@ void SCULPT_cloth_plane_falloff_preview_draw(const uint gpuattr,
 
 BLI_INLINE bool SCULPT_is_cloth_deform_brush(const Brush *brush)
 {
-  return brush->sculpt_tool == SCULPT_TOOL_CLOTH &&
-         brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB;
+  return (brush->sculpt_tool == SCULPT_TOOL_CLOTH &&
+          brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB) ||
+         /* All brushes that are not the cloth brush deform the simulation using softbody
+            constriants instead of applying forces. */
+         (brush->sculpt_tool != SCULPT_TOOL_CLOTH &&
+          brush->deform_target == BRUSH_DEFORM_TARGET_CLOTH_SIM);
 }
 
 /* Pose Brush. */

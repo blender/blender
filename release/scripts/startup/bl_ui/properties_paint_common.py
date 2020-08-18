@@ -641,6 +641,8 @@ def brush_settings(layout, context, brush, popover=False):
 
         elif sculpt_tool == 'POSE':
             layout.separator()
+            layout.prop(brush, "deform_target")
+            layout.separator()
             layout.prop(brush, "pose_deform_type")
             layout.prop(brush, "pose_origin_type")
             layout.prop(brush, "pose_offset")
@@ -721,6 +723,8 @@ def brush_settings(layout, context, brush, popover=False):
             col.prop(brush, "smear_deform_type")
 
         elif sculpt_tool == 'BOUNDARY':
+            layout.prop(brush, "deform_target")
+            layout.separator()
             col = layout.column()
             col.prop(brush, "boundary_deform_type")
             col.prop(brush, "boundary_falloff_type")

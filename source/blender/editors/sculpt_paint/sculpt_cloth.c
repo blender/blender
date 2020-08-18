@@ -134,6 +134,7 @@ static float cloth_brush_simulation_falloff_get(const Brush *brush,
 #define CLOTH_SIMULATION_ITERATIONS 5
 #define CLOTH_MAX_CONSTRAINTS_PER_VERTEX 1024
 #define CLOTH_SIMULATION_TIME_STEP 0.01f
+#define CLOTH_DEFORMATION_TARGET_STRENGTH 0.35f
 
 static bool cloth_brush_sim_has_length_constraint(SculptClothSimulation *cloth_sim,
                                                   const int v1,
@@ -297,9 +298,22 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
       }
     }
 
-    if (cloth_is_deform_brush && len_squared < radius_squared) {
-      const float fade = BKE_brush_curve_strength(brush, sqrtf(len_squared), ss->cache->radius);
-      cloth_brush_add_deformation_constraint(data->cloth_sim, vd.index, fade);
+    if (brush && brush->sculpt_tool == SCULPT_TOOL_CLOTH) {
+      /* The cloth brush works by applying forces in most of its modes, but some of them require
+       * deformation coordinates to make the simulation stable. */
+      if (cloth_is_deform_brush && len_squared < radius_squared) {
+        /* When a deform brush is used as part of the cloth brush, deformation constraints are
+         * created with different strengths and only inside the radius of the brush. */
+        const float fade = BKE_brush_curve_strength(brush, sqrtf(len_squared), ss->cache->radius);
+        cloth_brush_add_deformation_constraint(data->cloth_sim, vd.index, fade);
+      }
+    }
+    else if (data->cloth_sim->deformation_pos) {
+      /* Any other tool that target the cloth simulation handle the falloff in
+       * their own code when modifying the deformation coordinates of the simulation, so
+       * deformation constraints are created with a fixed strength for all vercies. */
+      cloth_brush_add_deformation_constraint(
+          data->cloth_sim, vd.index, CLOTH_DEFORMATION_TARGET_STRENGTH);
     }
 
     if (pin_simulation_boundary) {
@@ -716,7 +730,7 @@ static void cloth_brush_satisfy_constraints(SculptSession *ss,
   }
 }
 
-static void cloth_brush_do_simulation_step(
+void SCULPT_cloth_brush_do_simulation_step(
     Sculpt *sd, Object *ob, SculptClothSimulation *cloth_sim, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
@@ -924,7 +938,6 @@ void SCULPT_do_cloth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
-  const int totverts = SCULPT_vertex_count_get(ss);
 
   /* In the first brush step of each symmetry pass, build the constraints for the vertices in all
    * nodes inside the simulation's limits. */
@@ -954,15 +967,13 @@ void SCULPT_do_cloth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   }
 
   /* Store the initial state in the simulation. */
-  for (int i = 0; i < totverts; i++) {
-    copy_v3_v3(ss->cache->cloth_sim->pos[i], SCULPT_vertex_co_get(ss, i));
-  }
+  SCULPT_cloth_brush_store_simulation_state(ss, ss->cache->cloth_sim);
 
   /* Apply forces to the vertices. */
   cloth_brush_apply_brush_foces(sd, ob, nodes, totnode);
 
   /* Update and write the simulation to the nodes. */
-  cloth_brush_do_simulation_step(sd, ob, ss->cache->cloth_sim, nodes, totnode);
+  SCULPT_cloth_brush_do_simulation_step(sd, ob, ss->cache->cloth_sim, nodes, totnode);
 }
 
 void SCULPT_cloth_simulation_free(struct SculptClothSimulation *cloth_sim)
@@ -1189,7 +1200,7 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
       0, ss->filter_cache->totnode, &data, cloth_filter_apply_forces_task_cb, &settings);
 
   /* Update and write the simulation to the nodes. */
-  cloth_brush_do_simulation_step(
+  SCULPT_cloth_brush_do_simulation_step(
       sd, ob, ss->filter_cache->cloth_sim, ss->filter_cache->nodes, ss->filter_cache->totnode);
 
   if (ss->deform_modifiers_active || ss->shapekey_active) {
