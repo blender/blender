@@ -26,11 +26,8 @@
 namespace blender {
 namespace deg {
 
-ViewLayerBuilderPipeline::ViewLayerBuilderPipeline(::Depsgraph *graph,
-                                                   Main *bmain,
-                                                   Scene *scene,
-                                                   ViewLayer *view_layer)
-    : AbstractBuilderPipeline(graph, bmain, scene, view_layer)
+ViewLayerBuilderPipeline::ViewLayerBuilderPipeline(::Depsgraph *graph)
+    : AbstractBuilderPipeline(graph)
 {
 }
 

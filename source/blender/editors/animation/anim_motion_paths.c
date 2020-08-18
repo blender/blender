@@ -91,7 +91,7 @@ Depsgraph *animviz_depsgraph_build(Main *bmain,
   }
 
   /* Build graph from all requested IDs. */
-  DEG_graph_build_from_ids(depsgraph, bmain, scene, view_layer, ids, num_ids);
+  DEG_graph_build_from_ids(depsgraph, ids, num_ids);
   MEM_freeN(ids);
 
   /* Update once so we can access pointers of evaluated animation data. */

@@ -43,8 +43,7 @@ namespace deg {
 
 class FromIDsBuilderPipeline : public AbstractBuilderPipeline {
  public:
-  FromIDsBuilderPipeline(
-      ::Depsgraph *graph, Main *bmain, Scene *scene, ViewLayer *view_layer, Span<ID *> ids);
+  FromIDsBuilderPipeline(::Depsgraph *graph, Span<ID *> ids);
 
  protected:
   virtual unique_ptr<DepsgraphNodeBuilder> construct_node_builder() override;

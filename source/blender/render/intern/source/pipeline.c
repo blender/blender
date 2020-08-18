@@ -1977,7 +1977,7 @@ static void render_init_depsgraph(Render *re)
   DEG_debug_name_set(re->pipeline_depsgraph, "RENDER PIPELINE");
 
   /* Make sure there is a correct evaluated scene pointer. */
-  DEG_graph_build_for_render_pipeline(re->pipeline_depsgraph, re->main, scene, view_layer);
+  DEG_graph_build_for_render_pipeline(re->pipeline_depsgraph);
 
   /* Update immediately so we have proper evaluated scene. */
   render_update_depsgraph(re);

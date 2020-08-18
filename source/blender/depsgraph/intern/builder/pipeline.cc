@@ -33,14 +33,11 @@
 namespace blender {
 namespace deg {
 
-AbstractBuilderPipeline::AbstractBuilderPipeline(::Depsgraph *graph,
-                                                 Main *bmain,
-                                                 Scene *scene,
-                                                 ViewLayer *view_layer)
+AbstractBuilderPipeline::AbstractBuilderPipeline(::Depsgraph *graph)
     : deg_graph_(reinterpret_cast<Depsgraph *>(graph)),
-      bmain_(bmain),
-      scene_(scene),
-      view_layer_(view_layer),
+      bmain_(deg_graph_->bmain),
+      scene_(deg_graph_->scene),
+      view_layer_(deg_graph_->view_layer),
       builder_cache_()
 {
 }

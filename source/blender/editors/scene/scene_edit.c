@@ -119,7 +119,7 @@ void ED_scene_change_update(Main *bmain, Scene *scene, ViewLayer *layer)
   Depsgraph *depsgraph = BKE_scene_get_depsgraph(bmain, scene, layer, true);
 
   BKE_scene_set_background(bmain, scene);
-  DEG_graph_relations_update(depsgraph, bmain, scene, layer);
+  DEG_graph_relations_update(depsgraph);
   DEG_on_visible_update(bmain, false);
 
   ED_render_engine_changed(bmain, false);

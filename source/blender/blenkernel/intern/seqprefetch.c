@@ -220,7 +220,7 @@ static void seq_prefetch_init_depsgraph(PrefetchJob *pfjob)
   DEG_debug_name_set(pfjob->depsgraph, "SEQUENCER PREFETCH");
 
   /* Make sure there is a correct evaluated scene pointer. */
-  DEG_graph_build_for_render_pipeline(pfjob->depsgraph, bmain, scene, view_layer);
+  DEG_graph_build_for_render_pipeline(pfjob->depsgraph);
 
   /* Update immediately so we have proper evaluated scene. */
   seq_prefetch_update_depsgraph(pfjob);

@@ -357,7 +357,7 @@ static void set_trans_object_base_flags(TransInfo *t)
   /* Makes sure base flags and object flags are identical. */
   BKE_scene_base_flag_to_objects(t->view_layer);
   /* Make sure depsgraph is here. */
-  DEG_graph_relations_update(depsgraph, bmain, scene, view_layer);
+  DEG_graph_relations_update(depsgraph);
   /* Clear all flags we need. It will be used to detect dependencies. */
   trans_object_base_deps_flag_prepare(view_layer);
   /* Traverse all bases and set all possible flags. */

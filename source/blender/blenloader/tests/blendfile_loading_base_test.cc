@@ -148,7 +148,7 @@ void BlendfileLoadingBaseTest::depsgraph_create(eEvaluationMode depsgraph_evalua
 {
   depsgraph = DEG_graph_new(
       bfile->main, bfile->curscene, bfile->cur_view_layer, depsgraph_evaluation_mode);
-  DEG_graph_build_from_view_layer(depsgraph, bfile->main, bfile->curscene, bfile->cur_view_layer);
+  DEG_graph_build_from_view_layer(depsgraph);
   BKE_scene_graph_update_tagged(depsgraph, bfile->main);
 }
 

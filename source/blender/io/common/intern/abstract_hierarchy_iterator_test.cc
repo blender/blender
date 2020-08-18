@@ -328,8 +328,7 @@ class AbstractHierarchyIteratorInvisibleTest : public AbstractHierarchyIteratorT
   {
     depsgraph = DEG_graph_new(
         bfile->main, bfile->curscene, bfile->cur_view_layer, depsgraph_evaluation_mode);
-    DEG_graph_build_for_all_objects(
-        depsgraph, bfile->main, bfile->curscene, bfile->cur_view_layer);
+    DEG_graph_build_for_all_objects(depsgraph);
     BKE_scene_graph_update_tagged(depsgraph, bfile->main);
   }
 };

@@ -32,8 +32,7 @@ namespace deg {
 
 class CompositorBuilderPipeline : public AbstractBuilderPipeline {
  public:
-  CompositorBuilderPipeline(
-      ::Depsgraph *graph, Main *bmain, Scene *scene, ViewLayer *view_layer, bNodeTree *nodetree);
+  CompositorBuilderPipeline(::Depsgraph *graph, bNodeTree *nodetree);
 
  protected:
   virtual void build_nodes(DepsgraphNodeBuilder &node_builder) override;

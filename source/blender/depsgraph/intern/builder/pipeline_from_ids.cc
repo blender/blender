@@ -114,9 +114,8 @@ class DepsgraphFromIDsRelationBuilder : public DepsgraphRelationBuilder {
 
 }  // namespace
 
-FromIDsBuilderPipeline::FromIDsBuilderPipeline(
-    ::Depsgraph *graph, Main *bmain, Scene *scene, ViewLayer *view_layer, Span<ID *> ids)
-    : AbstractBuilderPipeline(graph, bmain, scene, view_layer), ids_(ids)
+FromIDsBuilderPipeline::FromIDsBuilderPipeline(::Depsgraph *graph, Span<ID *> ids)
+    : AbstractBuilderPipeline(graph), ids_(ids)
 {
 }
 

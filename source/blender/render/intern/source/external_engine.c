@@ -609,7 +609,7 @@ static void engine_depsgraph_init(RenderEngine *engine, ViewLayer *view_layer)
 
   if (engine->re->r.scemode & R_BUTS_PREVIEW) {
     Depsgraph *depsgraph = engine->depsgraph;
-    DEG_graph_relations_update(depsgraph, bmain, scene, view_layer);
+    DEG_graph_relations_update(depsgraph);
     DEG_evaluate_on_framechange(bmain, depsgraph, CFRA);
     DEG_ids_check_recalc(bmain, depsgraph, scene, view_layer, true);
     DEG_ids_clear_recalc(bmain, depsgraph);

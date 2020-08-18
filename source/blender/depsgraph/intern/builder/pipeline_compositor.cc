@@ -26,9 +26,8 @@
 namespace blender {
 namespace deg {
 
-CompositorBuilderPipeline::CompositorBuilderPipeline(
-    ::Depsgraph *graph, Main *bmain, Scene *scene, ViewLayer *view_layer, bNodeTree *nodetree)
-    : AbstractBuilderPipeline(graph, bmain, scene, view_layer), nodetree_(nodetree)
+CompositorBuilderPipeline::CompositorBuilderPipeline(::Depsgraph *graph, bNodeTree *nodetree)
+    : AbstractBuilderPipeline(graph), nodetree_(nodetree)
 {
   deg_graph_->is_render_pipeline_depsgraph = true;
 }

@@ -210,49 +210,33 @@ struct Depsgraph *DEG_get_graph_from_handle(struct DepsNodeHandle *node_handle)
 /* Graph Building API's */
 
 /* Build depsgraph for the given scene layer, and dump results in given graph container. */
-void DEG_graph_build_from_view_layer(Depsgraph *graph,
-                                     Main *bmain,
-                                     Scene *scene,
-                                     ViewLayer *view_layer)
+void DEG_graph_build_from_view_layer(Depsgraph *graph)
 {
-  deg::ViewLayerBuilderPipeline builder(graph, bmain, scene, view_layer);
+  deg::ViewLayerBuilderPipeline builder(graph);
   builder.build();
 }
 
-void DEG_graph_build_for_all_objects(struct Depsgraph *graph,
-                                     struct Main *bmain,
-                                     struct Scene *scene,
-                                     struct ViewLayer *view_layer)
+void DEG_graph_build_for_all_objects(struct Depsgraph *graph)
 {
-  deg::AllObjectsBuilderPipeline builder(graph, bmain, scene, view_layer);
+  deg::AllObjectsBuilderPipeline builder(graph);
   builder.build();
 }
 
-void DEG_graph_build_for_render_pipeline(Depsgraph *graph,
-                                         Main *bmain,
-                                         Scene *scene,
-                                         ViewLayer *view_layer)
+void DEG_graph_build_for_render_pipeline(Depsgraph *graph)
 {
-  deg::RenderBuilderPipeline builder(graph, bmain, scene, view_layer);
+  deg::RenderBuilderPipeline builder(graph);
   builder.build();
 }
 
-void DEG_graph_build_for_compositor_preview(
-    Depsgraph *graph, Main *bmain, Scene *scene, struct ViewLayer *view_layer, bNodeTree *nodetree)
+void DEG_graph_build_for_compositor_preview(Depsgraph *graph, bNodeTree *nodetree)
 {
-  deg::CompositorBuilderPipeline builder(graph, bmain, scene, view_layer, nodetree);
+  deg::CompositorBuilderPipeline builder(graph, nodetree);
   builder.build();
 }
 
-void DEG_graph_build_from_ids(Depsgraph *graph,
-                              Main *bmain,
-                              Scene *scene,
-                              ViewLayer *view_layer,
-                              ID **ids,
-                              const int num_ids)
+void DEG_graph_build_from_ids(Depsgraph *graph, ID **ids, const int num_ids)
 {
-  deg::FromIDsBuilderPipeline builder(
-      graph, bmain, scene, view_layer, blender::Span(ids, num_ids));
+  deg::FromIDsBuilderPipeline builder(graph, blender::Span(ids, num_ids));
   builder.build();
 }
 
@@ -275,14 +259,14 @@ void DEG_graph_tag_relations_update(Depsgraph *graph)
 }
 
 /* Create or update relations in the specified graph. */
-void DEG_graph_relations_update(Depsgraph *graph, Main *bmain, Scene *scene, ViewLayer *view_layer)
+void DEG_graph_relations_update(Depsgraph *graph)
 {
   deg::Depsgraph *deg_graph = (deg::Depsgraph *)graph;
   if (!deg_graph->need_update) {
     /* Graph is up to date, nothing to do. */
     return;
   }
-  DEG_graph_build_from_view_layer(graph, bmain, scene, view_layer);
+  DEG_graph_build_from_view_layer(graph);
 }
 
 /* Tag all relations for update. */

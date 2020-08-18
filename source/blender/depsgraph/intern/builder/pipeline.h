@@ -49,7 +49,7 @@ class DepsgraphRelationBuilder;
  */
 class AbstractBuilderPipeline {
  public:
-  AbstractBuilderPipeline(::Depsgraph *graph, Main *bmain, Scene *scene, ViewLayer *view_layer);
+  AbstractBuilderPipeline(::Depsgraph *graph);
   virtual ~AbstractBuilderPipeline();
 
   void build();

@@ -352,7 +352,7 @@ void wm_event_do_depsgraph(bContext *C, bool is_after_open_file)
      */
     Depsgraph *depsgraph = BKE_scene_get_depsgraph(bmain, scene, view_layer, true);
     if (is_after_open_file) {
-      DEG_graph_relations_update(depsgraph, bmain, scene, view_layer);
+      DEG_graph_relations_update(depsgraph);
       DEG_graph_on_visible_update(bmain, depsgraph, true);
     }
     DEG_make_active(depsgraph);

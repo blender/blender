@@ -33,7 +33,7 @@ namespace deg {
  * (and their dependencies). */
 class AllObjectsBuilderPipeline : public ViewLayerBuilderPipeline {
  public:
-  AllObjectsBuilderPipeline(::Depsgraph *graph, Main *bmain, Scene *scene, ViewLayer *view_layer);
+  AllObjectsBuilderPipeline(::Depsgraph *graph);
 
  protected:
   virtual unique_ptr<DepsgraphNodeBuilder> construct_node_builder() override;

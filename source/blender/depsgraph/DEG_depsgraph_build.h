@@ -51,50 +51,29 @@ extern "C" {
 /* Graph Building -------------------------------- */
 
 /* Build depsgraph for the given scene, and dump results in given graph container. */
-void DEG_graph_build_from_view_layer(struct Depsgraph *graph,
-                                     struct Main *bmain,
-                                     struct Scene *scene,
-                                     struct ViewLayer *view_layer);
+void DEG_graph_build_from_view_layer(struct Depsgraph *graph);
 
 /* Build depsgraph for all objects (so also invisible ones) in the given view layer. */
-void DEG_graph_build_for_all_objects(struct Depsgraph *graph,
-                                     struct Main *bmain,
-                                     struct Scene *scene,
-                                     struct ViewLayer *view_layer);
+void DEG_graph_build_for_all_objects(struct Depsgraph *graph);
 
 /* Special version of builder which produces dependency graph suitable for the render pipeline.
  * It will contain sequencer and compositor (if needed) and all their dependencies. */
-void DEG_graph_build_for_render_pipeline(struct Depsgraph *graph,
-                                         struct Main *bmain,
-                                         struct Scene *scene,
-                                         struct ViewLayer *view_layer);
+void DEG_graph_build_for_render_pipeline(struct Depsgraph *graph);
 
 /* Builds minimal dependency graph for compositor preview.
  *
  * Note that compositor editor might have pinned node tree, which is different from scene's node
  * tree.
  */
-void DEG_graph_build_for_compositor_preview(struct Depsgraph *graph,
-                                            struct Main *bmain,
-                                            struct Scene *scene,
-                                            struct ViewLayer *view_layer,
-                                            struct bNodeTree *nodetree);
+void DEG_graph_build_for_compositor_preview(struct Depsgraph *graph, struct bNodeTree *nodetree);
 
-void DEG_graph_build_from_ids(struct Depsgraph *graph,
-                              struct Main *bmain,
-                              struct Scene *scene,
-                              struct ViewLayer *view_layer,
-                              struct ID **ids,
-                              const int num_ids);
+void DEG_graph_build_from_ids(struct Depsgraph *graph, struct ID **ids, const int num_ids);
 
 /* Tag relations from the given graph for update. */
 void DEG_graph_tag_relations_update(struct Depsgraph *graph);
 
 /* Create or update relations in the specified graph. */
-void DEG_graph_relations_update(struct Depsgraph *graph,
-                                struct Main *bmain,
-                                struct Scene *scene,
-                                struct ViewLayer *view_layer);
+void DEG_graph_relations_update(struct Depsgraph *graph);
 
 /* Tag all relations in the database for update.*/
 void DEG_relations_tag_update(struct Main *bmain);

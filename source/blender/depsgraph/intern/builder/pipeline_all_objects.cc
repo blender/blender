@@ -58,11 +58,8 @@ class AllObjectsRelationBuilder : public DepsgraphRelationBuilder {
 
 }  // namespace
 
-AllObjectsBuilderPipeline::AllObjectsBuilderPipeline(::Depsgraph *graph,
-                                                     Main *bmain,
-                                                     Scene *scene,
-                                                     ViewLayer *view_layer)
-    : ViewLayerBuilderPipeline(graph, bmain, scene, view_layer)
+AllObjectsBuilderPipeline::AllObjectsBuilderPipeline(::Depsgraph *graph)
+    : ViewLayerBuilderPipeline(graph)
 {
 }
 

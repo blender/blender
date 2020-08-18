@@ -30,7 +30,7 @@ namespace deg {
 
 class RenderBuilderPipeline : public AbstractBuilderPipeline {
  public:
-  RenderBuilderPipeline(::Depsgraph *graph, Main *bmain, Scene *scene, ViewLayer *view_layer);
+  RenderBuilderPipeline(::Depsgraph *graph);
 
  protected:
   virtual void build_nodes(DepsgraphNodeBuilder &node_builder) override;
