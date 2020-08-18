@@ -658,9 +658,6 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
     wm_window_swap_buffers(win);
 
     // GHOST_SetWindowState(ghostwin, GHOST_kWindowStateModified);
-
-    /* standard state vars for window */
-    GPU_state_init();
   }
   else {
     wm_window_set_drawable(wm, prev_windrawable, false);

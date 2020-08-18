@@ -345,8 +345,4 @@ GPUStateManager::GPUStateManager(void)
   mutable_state.stencil_reference = 0x00;
 }
 
-void GPU_state_init(void)
-{
-}
-
 /** \} */

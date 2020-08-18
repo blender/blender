@@ -1755,8 +1755,6 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
     BLI_rcti_init(&render_rect, 0, size[0], 0, size[1]);
   }
 
-  /* Set the default Blender draw state */
-  GPU_state_init();
   /* Reset state before drawing */
   DRW_state_reset();
 
@@ -2785,8 +2783,6 @@ void DRW_opengl_context_create(void)
   if (!G.background) {
     immActivate();
   }
-  /* Set default Blender OpenGL state */
-  GPU_state_init();
   /* So we activate the window's one afterwards. */
   wm_window_reset_drawable();
 }
