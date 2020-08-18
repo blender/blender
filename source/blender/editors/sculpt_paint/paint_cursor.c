@@ -1762,9 +1762,6 @@ static void paint_cursor_cursor_draw_3d_view_brush_cursor_active(PaintCursorCont
 
   GPU_matrix_pop();
 
-  /* This Cloth brush cursor overlay always works in cursor space. */
-  paint_cursor_drawing_setup_cursor_space(pcontext);
-
   GPU_matrix_pop_projection();
   wmWindowViewport(pcontext->win);
 }
