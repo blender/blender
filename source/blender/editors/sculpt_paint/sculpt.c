@@ -2331,7 +2331,7 @@ static float brush_strength(const Sculpt *sd,
       }
 
     case SCULPT_TOOL_SMOOTH:
-      return alpha * pressure * feather;
+      return flip * alpha * pressure * feather;
 
     case SCULPT_TOOL_PINCH:
       if (flip > 0.0f) {
@@ -6365,6 +6365,7 @@ void SCULPT_cache_free(StrokeCache *cache)
   MEM_SAFE_FREE(cache->surface_smooth_laplacian_disp);
   MEM_SAFE_FREE(cache->layer_displacement_factor);
   MEM_SAFE_FREE(cache->prev_colors);
+  MEM_SAFE_FREE(cache->detail_directions);
 
   if (cache->pose_ik_chain) {
     SCULPT_pose_ik_chain_free(cache->pose_ik_chain);

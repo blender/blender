@@ -889,6 +889,9 @@ typedef struct StrokeCache {
   /* Pose brush */
   struct SculptPoseIKChain *pose_ik_chain;
 
+  /* Enhance Details. */
+  float (*detail_directions)[3];
+
   /* Clay Thumb brush */
   /* Angle of the front tilting plane of the brush to simulate clay accumulation. */
   float clay_thumb_front_angle;

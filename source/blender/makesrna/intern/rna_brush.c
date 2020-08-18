@@ -45,6 +45,16 @@ static const EnumPropertyItem prop_direction_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+static const EnumPropertyItem prop_smooth_direction_items[] = {
+    {0, "SMOOTH", ICON_ADD, "Smooth", "Smooth the surfae"},
+    {BRUSH_DIR_IN,
+     "ENHANCE_DETAILS",
+     ICON_REMOVE,
+     "Enhance Details",
+     "Enhance the surface detail"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 static const EnumPropertyItem sculpt_stroke_method_items[] = {
     {0, "DOTS", 0, "Dots", "Apply paint on each mouse move step"},
     {BRUSH_DRAG_DOT, "DRAG_DOT", 0, "Drag Dot", "Allows a single dot to be carefully positioned"},
@@ -527,6 +537,7 @@ static bool rna_BrushCapabilitiesSculpt_has_direction_get(PointerRNA *ptr)
                SCULPT_TOOL_DRAW_SHARP,
                SCULPT_TOOL_CLAY,
                SCULPT_TOOL_CLAY_STRIPS,
+               SCULPT_TOOL_SMOOTH,
                SCULPT_TOOL_LAYER,
                SCULPT_TOOL_INFLATE,
                SCULPT_TOOL_BLOB,
@@ -795,7 +806,8 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
         case SCULPT_TOOL_CLAY:
         case SCULPT_TOOL_CLAY_STRIPS:
           return prop_direction_items;
-
+        case SCULPT_TOOL_SMOOTH:
+          return prop_smooth_direction_items;
         case SCULPT_TOOL_MASK:
           switch ((BrushMaskTool)me->mask_tool) {
             case BRUSH_MASK_DRAW:
