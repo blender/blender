@@ -655,7 +655,7 @@ void FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer)
   ViewLayer *scene_view_layer = (ViewLayer *)BLI_findstring(
       &re->scene->view_layers, view_layer->name, offsetof(ViewLayer, name));
   Depsgraph *depsgraph = DEG_graph_new(re->main, re->scene, scene_view_layer, DAG_EVAL_RENDER);
-  BKE_scene_graph_update_for_newframe(depsgraph, re->main);
+  BKE_scene_graph_update_for_newframe(depsgraph);
 
   // prepare Freestyle:
   //   - load mesh

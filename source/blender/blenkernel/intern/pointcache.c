@@ -4025,7 +4025,6 @@ static void ptcache_dt_to_str(char *str, double dtime)
 /* if bake is not given run simulations to current frame */
 void BKE_ptcache_bake(PTCacheBaker *baker)
 {
-  Main *bmain = baker->bmain;
   Scene *scene = baker->scene;
   ViewLayer *view_layer = baker->view_layer;
   struct Depsgraph *depsgraph = baker->depsgraph;
@@ -4156,7 +4155,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
   stime = ptime = PIL_check_seconds_timer();
 
   for (int fr = CFRA; fr <= endframe; fr += baker->quick_step, CFRA = fr) {
-    BKE_scene_graph_update_for_newframe(depsgraph, bmain);
+    BKE_scene_graph_update_for_newframe(depsgraph);
 
     if (baker->update_progress) {
       float progress = ((float)(CFRA - startframe) / (float)(endframe - startframe));
@@ -4255,7 +4254,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
   CFRA = cfrao;
 
   if (bake) { /* already on cfra unless baking */
-    BKE_scene_graph_update_for_newframe(depsgraph, bmain);
+    BKE_scene_graph_update_for_newframe(depsgraph);
   }
 
   /* TODO: call redraw all windows somehow */

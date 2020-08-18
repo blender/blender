@@ -69,9 +69,9 @@ typedef struct MPathTarget {
 /* ........ */
 
 /* update scene for current frame */
-static void motionpaths_calc_update_scene(Main *bmain, struct Depsgraph *depsgraph)
+static void motionpaths_calc_update_scene(struct Depsgraph *depsgraph)
 {
-  BKE_scene_graph_update_for_newframe(depsgraph, bmain);
+  BKE_scene_graph_update_for_newframe(depsgraph);
 }
 
 Depsgraph *animviz_depsgraph_build(Main *bmain,
@@ -95,7 +95,7 @@ Depsgraph *animviz_depsgraph_build(Main *bmain,
   MEM_freeN(ids);
 
   /* Update once so we can access pointers of evaluated animation data. */
-  motionpaths_calc_update_scene(bmain, depsgraph);
+  motionpaths_calc_update_scene(depsgraph);
   return depsgraph;
 }
 
@@ -471,7 +471,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
     }
     else {
       /* Update relevant data for new frame. */
-      motionpaths_calc_update_scene(bmain, depsgraph);
+      motionpaths_calc_update_scene(depsgraph);
     }
 
     /* perform baking for targets */
@@ -484,7 +484,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
    * We always have to restore the current frame though. */
   CFRA = cfra;
   if (range != ANIMVIZ_CALC_RANGE_CURRENT_FRAME && restore) {
-    motionpaths_calc_update_scene(bmain, depsgraph);
+    motionpaths_calc_update_scene(depsgraph);
   }
 
   if (is_active_depsgraph) {

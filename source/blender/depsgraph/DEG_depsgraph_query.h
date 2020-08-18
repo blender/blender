@@ -55,6 +55,9 @@ struct Scene *DEG_get_input_scene(const Depsgraph *graph);
 /* Get view layer that depsgraph was built for. */
 struct ViewLayer *DEG_get_input_view_layer(const Depsgraph *graph);
 
+/* Get bmain that depsgraph was built for. */
+struct Main *DEG_get_bmain(const Depsgraph *graph);
+
 /* Get evaluation mode that depsgraph was built for. */
 eEvaluationMode DEG_get_mode(const Depsgraph *graph);
 

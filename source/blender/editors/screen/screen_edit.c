@@ -1594,7 +1594,7 @@ void ED_update_for_newframe(Main *bmain, Depsgraph *depsgraph)
   ED_clip_update_frame(bmain, scene->r.cfra);
 
   /* this function applies the changes too */
-  BKE_scene_graph_update_for_newframe(depsgraph, bmain);
+  BKE_scene_graph_update_for_newframe(depsgraph);
 }
 
 /*

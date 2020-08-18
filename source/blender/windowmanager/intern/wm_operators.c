@@ -3151,7 +3151,6 @@ static const EnumPropertyItem redraw_timer_type_items[] = {
 };
 
 static void redraw_timer_step(bContext *C,
-                              Main *bmain,
                               Scene *scene,
                               struct Depsgraph *depsgraph,
                               wmWindow *win,
@@ -3202,7 +3201,7 @@ static void redraw_timer_step(bContext *C,
   }
   else if (type == eRTAnimationStep) {
     scene->r.cfra += (cfra == scene->r.cfra) ? 1 : -1;
-    BKE_scene_graph_update_for_newframe(depsgraph, bmain);
+    BKE_scene_graph_update_for_newframe(depsgraph);
   }
   else if (type == eRTAnimationPlay) {
     /* play anim, return on same frame as started with */
@@ -3215,7 +3214,7 @@ static void redraw_timer_step(bContext *C,
         scene->r.cfra = scene->r.sfra;
       }
 
-      BKE_scene_graph_update_for_newframe(depsgraph, bmain);
+      BKE_scene_graph_update_for_newframe(depsgraph);
       redraw_timer_window_swap(C);
     }
   }
@@ -3231,7 +3230,6 @@ static void redraw_timer_step(bContext *C,
 
 static int redraw_timer_exec(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   wmWindow *win = CTX_wm_window(C);
   ScrArea *area = CTX_wm_area(C);
@@ -3256,7 +3254,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
   wm_window_make_drawable(wm, win);
 
   for (a = 0; a < iter; a++) {
-    redraw_timer_step(C, bmain, scene, depsgraph, win, area, region, type, cfra);
+    redraw_timer_step(C, scene, depsgraph, win, area, region, type, cfra);
     iter_steps += 1;
 
     if (time_limit != 0.0) {

@@ -879,7 +879,6 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 
 static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 {
-  Main *bmain = CTX_data_main(C);
   Scene *scene = oglrender->scene;
   int i;
 
@@ -929,7 +928,7 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
   if (oglrender->timer) { /* exec will not have a timer */
     Depsgraph *depsgraph = oglrender->depsgraph;
     scene->r.cfra = oglrender->cfrao;
-    BKE_scene_graph_update_for_newframe(depsgraph, bmain);
+    BKE_scene_graph_update_for_newframe(depsgraph);
 
     WM_event_remove_timer(oglrender->wm, oglrender->win, oglrender->timer);
   }
@@ -1119,7 +1118,6 @@ static bool schedule_write_result(OGLRender *oglrender, RenderResult *rr)
 
 static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
   OGLRender *oglrender = op->customdata;
   Scene *scene = oglrender->scene;
   Depsgraph *depsgraph = oglrender->depsgraph;
@@ -1134,7 +1132,7 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
     CFRA++;
   }
   while (CFRA < oglrender->nfra) {
-    BKE_scene_graph_update_for_newframe(depsgraph, bmain);
+    BKE_scene_graph_update_for_newframe(depsgraph);
     CFRA++;
   }
 
@@ -1161,7 +1159,7 @@ static bool screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 
   WM_cursor_time(oglrender->win, scene->r.cfra);
 
-  BKE_scene_graph_update_for_newframe(depsgraph, bmain);
+  BKE_scene_graph_update_for_newframe(depsgraph);
 
   if (view_context) {
     if (oglrender->rv3d->persp == RV3D_CAMOB && oglrender->v3d->camera &&

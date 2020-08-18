@@ -174,7 +174,10 @@ static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Objec
   }
 }
 
-static void bakeModifier(Main *bmain, Depsgraph *depsgraph, GpencilModifierData *md, Object *ob)
+static void bakeModifier(Main *UNUSED(bmain),
+                         Depsgraph *depsgraph,
+                         GpencilModifierData *md,
+                         Object *ob)
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   bGPdata *gpd = ob->data;
@@ -184,7 +187,7 @@ static void bakeModifier(Main *bmain, Depsgraph *depsgraph, GpencilModifierData 
     LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
       /* apply mirror effects on this frame */
       CFRA = gpf->framenum;
-      BKE_scene_graph_update_for_newframe(depsgraph, bmain);
+      BKE_scene_graph_update_for_newframe(depsgraph);
 
       /* compute mirror effects on this frame */
       generate_geometry(md, ob, gpl, gpf);
@@ -193,7 +196,7 @@ static void bakeModifier(Main *bmain, Depsgraph *depsgraph, GpencilModifierData 
 
   /* return frame state and DB to original state */
   CFRA = oldframe;
-  BKE_scene_graph_update_for_newframe(depsgraph, bmain);
+  BKE_scene_graph_update_for_newframe(depsgraph);
 }
 
 static bool isDisabled(GpencilModifierData *UNUSED(md), int UNUSED(userRenderParams))

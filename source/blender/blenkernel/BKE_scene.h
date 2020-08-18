@@ -145,7 +145,7 @@ void BKE_scene_update_tag_audio_volume(struct Depsgraph *, struct Scene *scene);
 void BKE_scene_graph_update_tagged(struct Depsgraph *depsgraph, struct Main *bmain);
 void BKE_scene_graph_evaluated_ensure(struct Depsgraph *depsgraph, struct Main *bmain);
 
-void BKE_scene_graph_update_for_newframe(struct Depsgraph *depsgraph, struct Main *bmain);
+void BKE_scene_graph_update_for_newframe(struct Depsgraph *depsgraph);
 
 void BKE_scene_view_layer_graph_evaluated_ensure(struct Main *bmain,
                                                  struct Scene *scene,

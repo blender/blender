@@ -61,6 +61,12 @@ struct ViewLayer *DEG_get_input_view_layer(const Depsgraph *graph)
   return deg_graph->view_layer;
 }
 
+struct Main *DEG_get_bmain(const Depsgraph *graph)
+{
+  const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(graph);
+  return deg_graph->bmain;
+}
+
 eEvaluationMode DEG_get_mode(const Depsgraph *graph)
 {
   const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(graph);

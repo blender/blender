@@ -156,7 +156,7 @@ static void export_startjob(void *customdata,
       // Update the scene for the next frame to render.
       scene->r.cfra = static_cast<int>(frame);
       scene->r.subframe = frame - scene->r.cfra;
-      BKE_scene_graph_update_for_newframe(data->depsgraph, data->bmain);
+      BKE_scene_graph_update_for_newframe(data->depsgraph);
 
       CLOG_INFO(&LOG, 2, "Exporting frame %.2f", frame);
       ExportSubset export_subset = abc_archive->export_subset_for_frame(frame);
@@ -177,7 +177,7 @@ static void export_startjob(void *customdata,
   // Finish up by going back to the keyframe that was current before we started.
   if (CFRA != orig_frame) {
     CFRA = orig_frame;
-    BKE_scene_graph_update_for_newframe(data->depsgraph, data->bmain);
+    BKE_scene_graph_update_for_newframe(data->depsgraph);
   }
 
   data->export_ok = !data->was_canceled;

@@ -1541,10 +1541,11 @@ void BKE_scene_graph_evaluated_ensure(Depsgraph *depsgraph, Main *bmain)
 }
 
 /* applies changes right away, does all sets too */
-void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph, Main *bmain)
+void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph)
 {
   Scene *scene = DEG_get_input_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
+  Main *bmain = DEG_get_bmain(depsgraph);
 
   /* Keep this first. */
   BKE_callback_exec_id(bmain, &scene->id, BKE_CB_EVT_FRAME_CHANGE_PRE);

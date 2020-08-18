@@ -3593,7 +3593,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
 
     /* opengl offscreen render */
     depsgraph = BKE_scene_get_depsgraph(context->bmain, scene, view_layer, true);
-    BKE_scene_graph_update_for_newframe(depsgraph, context->bmain);
+    BKE_scene_graph_update_for_newframe(depsgraph);
     ibuf = sequencer_view3d_fn(
         /* set for OpenGL render (NULL when scrubbing) */
         depsgraph,
@@ -3695,7 +3695,7 @@ finally:
   scene->r.subframe = orig_data.subframe;
 
   if (is_frame_update && (depsgraph != NULL)) {
-    BKE_scene_graph_update_for_newframe(depsgraph, context->bmain);
+    BKE_scene_graph_update_for_newframe(depsgraph);
   }
 
 #ifdef DURIAN_CAMERA_SWITCH

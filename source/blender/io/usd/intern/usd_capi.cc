@@ -127,7 +127,7 @@ static void export_startjob(void *customdata,
       // Update the scene for the next frame to render.
       scene->r.cfra = static_cast<int>(frame);
       scene->r.subframe = frame - scene->r.cfra;
-      BKE_scene_graph_update_for_newframe(data->depsgraph, data->bmain);
+      BKE_scene_graph_update_for_newframe(data->depsgraph);
 
       iter.set_export_frame(frame);
       iter.iterate_and_write();
@@ -147,7 +147,7 @@ static void export_startjob(void *customdata,
   // Finish up by going back to the keyframe that was current before we started.
   if (CFRA != orig_frame) {
     CFRA = orig_frame;
-    BKE_scene_graph_update_for_newframe(data->depsgraph, data->bmain);
+    BKE_scene_graph_update_for_newframe(data->depsgraph);
   }
 
   data->export_ok = true;
