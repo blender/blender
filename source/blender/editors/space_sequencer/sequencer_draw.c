@@ -56,6 +56,7 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 #include "GPU_vertex_buffer.h"
+#include "GPU_viewport.h"
 
 #include "ED_anim_api.h"
 #include "ED_gpencil.h"
@@ -1537,7 +1538,7 @@ static void sequencer_preview_clear(void)
   float col[3];
 
   UI_GetThemeColor3fv(TH_SEQ_PREVIEW, col);
-  GPU_clear_color(col[0], col[1], col[2], 0.0);
+  GPU_clear_color(col[0], col[1], col[2], 1.0f);
   GPU_clear(GPU_COLOR_BIT);
 }
 
@@ -1780,6 +1781,12 @@ void sequencer_draw_preview(const bContext *C,
     return;
   }
 
+  /* Setup offscreen buffers. */
+  GPUViewport *viewport = WM_draw_region_get_viewport(region);
+
+  GPUFrameBuffer *framebuffer_overlay = GPU_viewport_framebuffer_overlay_get(viewport);
+  GPU_framebuffer_bind_no_srgb(framebuffer_overlay);
+
   /* Setup view. */
   sequencer_display_size(scene, viewrect);
   UI_view2d_totRect_set(v2d, viewrect[0] + 0.5f, viewrect[1] + 0.5f);
@@ -1797,6 +1804,9 @@ void sequencer_draw_preview(const bContext *C,
   /* Get image. */
   ibuf = sequencer_ibuf_get(
       bmain, depsgraph, scene, sseq, cfra, frame_ofs, names[sseq->multiview_eye]);
+
+  /* sequencer_ibuf_get can call GPU_framebuffer_bind. So disable srgb framebuffer again. */
+  GPU_framebuffer_bind_no_srgb(framebuffer_overlay);
 
   if (ibuf) {
     scope = sequencer_get_scope(scene, sseq, ibuf, draw_backdrop);

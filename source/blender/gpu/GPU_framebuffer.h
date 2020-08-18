@@ -61,6 +61,7 @@ typedef struct GPUOffScreen GPUOffScreen;
 GPUFrameBuffer *GPU_framebuffer_create(void);
 void GPU_framebuffer_free(GPUFrameBuffer *fb);
 void GPU_framebuffer_bind(GPUFrameBuffer *fb);
+void GPU_framebuffer_bind_no_srgb(GPUFrameBuffer *fb);
 void GPU_framebuffer_restore(void);
 
 bool GPU_framebuffer_bound(GPUFrameBuffer *fb);
