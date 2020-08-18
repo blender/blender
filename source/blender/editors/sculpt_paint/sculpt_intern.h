@@ -976,7 +976,7 @@ typedef struct FilterCache {
   float sharpen_intensify_detail_strength;
   int sharpen_curvature_smooth_iterations;
   float *sharpen_factor;
-  float (*sharpen_detail_directions)[3];
+  float (*detail_directions)[3];
 
   /* Filter orientaiton. */
   SculptFilterOrientation orientation;

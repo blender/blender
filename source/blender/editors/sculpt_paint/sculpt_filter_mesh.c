@@ -176,7 +176,7 @@ void SCULPT_filter_cache_free(SculptSession *ss)
   MEM_SAFE_FREE(ss->filter_cache->automask);
   MEM_SAFE_FREE(ss->filter_cache->surface_smooth_laplacian_disp);
   MEM_SAFE_FREE(ss->filter_cache->sharpen_factor);
-  MEM_SAFE_FREE(ss->filter_cache->sharpen_detail_directions);
+  MEM_SAFE_FREE(ss->filter_cache->detail_directions);
   MEM_SAFE_FREE(ss->filter_cache);
 }
 
@@ -190,6 +190,7 @@ typedef enum eSculptMeshFilterTypes {
   MESH_FILTER_RELAX_FACE_SETS = 6,
   MESH_FILTER_SURFACE_SMOOTH = 7,
   MESH_FILTER_SHARPEN = 8,
+  MESH_FILTER_ENHANCE_DETAILS = 9,
 } eSculptMeshFilterTypes;
 
 static EnumPropertyItem prop_mesh_filter_types[] = {
@@ -210,6 +211,11 @@ static EnumPropertyItem prop_mesh_filter_types[] = {
      "Surface Smooth",
      "Smooth the surface of the mesh, preserving the volume"},
     {MESH_FILTER_SHARPEN, "SHARPEN", 0, "Sharpen", "Sharpen the cavities of the mesh"},
+    {MESH_FILTER_ENHANCE_DETAILS,
+     "ENHANCE_DETAILS",
+     0,
+     "Enhance Details",
+     "Enhance the high frequency surface detail"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -252,6 +258,7 @@ static bool sculpt_mesh_filter_needs_pmap(int filter_type, bool use_face_sets)
                                MESH_FILTER_RELAX,
                                MESH_FILTER_RELAX_FACE_SETS,
                                MESH_FILTER_SURFACE_SMOOTH,
+                               MESH_FILTER_ENHANCE_DETAILS,
                                MESH_FILTER_SHARPEN);
 }
 
@@ -425,7 +432,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
         if (ss->filter_cache->sharpen_intensify_detail_strength > 0.0f) {
           float detail_strength[3];
           normal_short_to_float_v3(detail_strength, orig_data.no);
-          copy_v3_v3(detail_strength, ss->filter_cache->sharpen_detail_directions[vd.index]);
+          copy_v3_v3(detail_strength, ss->filter_cache->detail_directions[vd.index]);
           madd_v3_v3fl(disp,
                        detail_strength,
                        -ss->filter_cache->sharpen_intensify_detail_strength *
@@ -433,6 +440,10 @@ static void mesh_filter_task_cb(void *__restrict userdata,
         }
         break;
       }
+
+      case MESH_FILTER_ENHANCE_DETAILS: {
+        mul_v3_v3fl(disp, ss->filter_cache->detail_directions[vd.index], -fabsf(fade));
+      } break;
     }
 
     SCULPT_filter_to_orientation_space(disp, ss->filter_cache);
@@ -459,14 +470,24 @@ static void mesh_filter_task_cb(void *__restrict userdata,
   BKE_pbvh_node_mark_update(node);
 }
 
+static void mesh_filter_enhance_details_init_directions(SculptSession *ss)
+{
+  const int totvert = SCULPT_vertex_count_get(ss);
+  for (int i = 0; i < totvert; i++) {
+    float avg[3];
+    SCULPT_neighbor_coords_average(ss, avg, i);
+    sub_v3_v3v3(ss->filter_cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, i));
+  }
+}
+
 static void mesh_filter_sharpen_init_factors(SculptSession *ss)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
   for (int i = 0; i < totvert; i++) {
     float avg[3];
     SCULPT_neighbor_coords_average(ss, avg, i);
-    sub_v3_v3v3(ss->filter_cache->sharpen_detail_directions[i], avg, SCULPT_vertex_co_get(ss, i));
-    ss->filter_cache->sharpen_factor[i] = len_v3(ss->filter_cache->sharpen_detail_directions[i]);
+    sub_v3_v3v3(ss->filter_cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, i));
+    ss->filter_cache->sharpen_factor[i] = len_v3(ss->filter_cache->detail_directions[i]);
   }
 
   float max_factor = 0.0f;
@@ -493,14 +514,14 @@ static void mesh_filter_sharpen_init_factors(SculptSession *ss)
 
       SculptVertexNeighborIter ni;
       SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, i, ni) {
-        add_v3_v3(direction_avg, ss->filter_cache->sharpen_detail_directions[ni.index]);
+        add_v3_v3(direction_avg, ss->filter_cache->detail_directions[ni.index]);
         sharpen_avg += ss->filter_cache->sharpen_factor[ni.index];
         total++;
       }
       SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
       if (total > 0) {
-        mul_v3_v3fl(ss->filter_cache->sharpen_detail_directions[i], direction_avg, 1.0f / total);
+        mul_v3_v3fl(ss->filter_cache->detail_directions[i], direction_avg, 1.0f / total);
         ss->filter_cache->sharpen_factor[i] = sharpen_avg / total;
       }
     }
@@ -675,10 +696,16 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
         op->ptr, "sharpen_curvature_smooth_iterations");
 
     ss->filter_cache->sharpen_factor = MEM_mallocN(sizeof(float) * totvert, "sharpen factor");
-    ss->filter_cache->sharpen_detail_directions = MEM_malloc_arrayN(
+    ss->filter_cache->detail_directions = MEM_malloc_arrayN(
         totvert, sizeof(float[3]), "sharpen detail direction");
 
     mesh_filter_sharpen_init_factors(ss);
+  }
+
+  if (RNA_enum_get(op->ptr, "type") == MESH_FILTER_ENHANCE_DETAILS) {
+    ss->filter_cache->detail_directions = MEM_malloc_arrayN(
+        totvert, sizeof(float[3]), "detail direction");
+    mesh_filter_enhance_details_init_directions(ss);
   }
 
   ss->filter_cache->enabled_axis[0] = deform_axis & MESH_FILTER_DEFORM_X;
