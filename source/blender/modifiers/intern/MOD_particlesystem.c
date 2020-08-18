@@ -219,7 +219,7 @@ static void deformVerts(ModifierData *md,
   psmd->totdmedge = psmd->mesh_final->totedge;
   psmd->totdmface = psmd->mesh_final->totface;
 
-  if (!(ctx->object->transflag & OB_NO_PSYS_UPDATE)) {
+  {
     struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
     psmd->flag &= ~eParticleSystemFlag_psys_updated;
     particle_system_update(

@@ -1991,7 +1991,7 @@ Mesh *mesh_get_eval_deform(struct Depsgraph *depsgraph,
   return ob->runtime.mesh_deform_eval;
 }
 
-Mesh *mesh_create_eval_final_render(Depsgraph *depsgraph,
+Mesh *mesh_create_eval_final(Depsgraph *depsgraph,
                                     Scene *scene,
                                     Object *ob,
                                     const CustomData_MeshMasks *dataMask)
@@ -2012,26 +2012,6 @@ Mesh *mesh_create_eval_final_index_render(Depsgraph *depsgraph,
   Mesh *final;
 
   mesh_calc_modifiers(depsgraph, scene, ob, 1, false, dataMask, index, false, false, NULL, &final);
-
-  return final;
-}
-
-Mesh *mesh_create_eval_final_view(Depsgraph *depsgraph,
-                                  Scene *scene,
-                                  Object *ob,
-                                  const CustomData_MeshMasks *dataMask)
-{
-  Mesh *final;
-
-  /* XXX hack
-   * psys modifier updates particle state when called during dupli-list generation,
-   * which can lead to wrong transforms. This disables particle system modifier execution.
-   */
-  ob->transflag |= OB_NO_PSYS_UPDATE;
-
-  mesh_calc_modifiers(depsgraph, scene, ob, 1, false, dataMask, -1, false, false, NULL, &final);
-
-  ob->transflag &= ~OB_NO_PSYS_UPDATE;
 
   return final;
 }

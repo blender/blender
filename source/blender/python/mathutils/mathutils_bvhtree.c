@@ -1053,7 +1053,7 @@ static Mesh *bvh_get_mesh(const char *funcname,
       }
 
       *r_free_mesh = true;
-      return mesh_create_eval_final_render(depsgraph, scene, ob, &data_masks);
+      return mesh_create_eval_final(depsgraph, scene, ob, &data_masks);
     }
     if (ob_eval != NULL) {
       if (use_cage) {

@@ -1134,7 +1134,7 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
         return NULL;
       }
 
-      me_eval = mesh_create_eval_final_render(depsgraph, scene_eval, ob_eval, &data_masks);
+      me_eval = mesh_create_eval_final(depsgraph, scene_eval, ob_eval, &data_masks);
     }
     else {
       if (use_cage) {

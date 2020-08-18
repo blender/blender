@@ -1111,15 +1111,7 @@ static Mesh *mesh_new_from_mesh_object_with_layers(Depsgraph *depsgraph, Object 
 
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   CustomData_MeshMasks mask = CD_MASK_MESH;
-  Mesh *result;
-
-  if (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER) {
-    result = mesh_create_eval_final_render(depsgraph, scene, &object_for_eval, &mask);
-  }
-  else {
-    result = mesh_create_eval_final_view(depsgraph, scene, &object_for_eval, &mask);
-  }
-
+  Mesh *result = mesh_create_eval_final(depsgraph, scene, &object_for_eval, &mask);
   return result;
 }
 

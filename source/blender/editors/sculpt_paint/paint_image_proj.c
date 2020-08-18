@@ -4037,7 +4037,7 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   /* Workaround for subsurf selection, try the display mesh first */
   if (ps->source == PROJ_SRC_IMAGE_CAM) {
     /* using render mesh, assume only camera was rendered from */
-    ps->me_eval = mesh_create_eval_final_render(depsgraph, scene_eval, ob_eval, &cddata_masks);
+    ps->me_eval = mesh_create_eval_final(depsgraph, scene_eval, ob_eval, &cddata_masks);
     ps->me_eval_free = true;
   }
   else {
