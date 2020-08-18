@@ -407,7 +407,6 @@ typedef struct ProjPaintState {
   SpinLock *tile_lock;
 
   Mesh *me_eval;
-  bool me_eval_free;
   int totlooptri_eval;
   int totloop_eval;
   int totpoly_eval;
@@ -4033,27 +4032,14 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   CustomData_MeshMasks cddata_masks = scene_eval->customdata_mask;
   cddata_masks.fmask |= CD_MASK_MTFACE;
   cddata_masks.lmask |= CD_MASK_MLOOPUV;
-
-  /* Workaround for subsurf selection, try the display mesh first */
-  if (ps->source == PROJ_SRC_IMAGE_CAM) {
-    /* using render mesh, assume only camera was rendered from */
-    ps->me_eval = mesh_create_eval_final(depsgraph, scene_eval, ob_eval, &cddata_masks);
-    ps->me_eval_free = true;
+  if (ps->do_face_sel) {
+    cddata_masks.vmask |= CD_MASK_ORIGINDEX;
+    cddata_masks.emask |= CD_MASK_ORIGINDEX;
+    cddata_masks.pmask |= CD_MASK_ORIGINDEX;
   }
-  else {
-    if (ps->do_face_sel) {
-      cddata_masks.vmask |= CD_MASK_ORIGINDEX;
-      cddata_masks.emask |= CD_MASK_ORIGINDEX;
-      cddata_masks.pmask |= CD_MASK_ORIGINDEX;
-    }
-    ps->me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &cddata_masks);
-    ps->me_eval_free = false;
-  }
+  ps->me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &cddata_masks);
 
   if (!CustomData_has_layer(&ps->me_eval->ldata, CD_MLOOPUV)) {
-    if (ps->me_eval_free) {
-      BKE_id_free(NULL, ps->me_eval);
-    }
     ps->me_eval = NULL;
     return false;
   }
@@ -4636,9 +4622,6 @@ static void project_paint_end(ProjPaintState *ps)
       MEM_freeN(ps->cavities);
     }
 
-    if (ps->me_eval_free) {
-      BKE_id_free(NULL, ps->me_eval);
-    }
     ps->me_eval = NULL;
   }
 
