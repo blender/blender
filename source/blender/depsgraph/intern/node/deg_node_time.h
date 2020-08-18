@@ -30,9 +30,6 @@ namespace deg {
 
 /* Time Source Node. */
 struct TimeSourceNode : public Node {
-  /* New "current time". */
-  float cfra;
-
   // TODO: evaluate() operation needed
 
   virtual void tag_update(Depsgraph *graph, eUpdateSource source) override;
