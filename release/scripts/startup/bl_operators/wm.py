@@ -1276,6 +1276,11 @@ class WM_OT_properties_edit(Operator):
 
         # First remove
         item = eval("context.%s" % data_path)
+
+        if (item.id_data and item.id_data.override_library and item.id_data.override_library.reference):
+            self.report({'ERROR'}, "Cannot edit properties from override data")
+            return {'CANCELLED'}
+
         prop_type_old = type(item[prop_old])
 
         rna_idprop_ui_prop_clear(item, prop_old)
@@ -1374,6 +1379,10 @@ class WM_OT_properties_edit(Operator):
         self._last_prop = [self.property]
 
         item = eval("context.%s" % data_path)
+
+        if (item.id_data and item.id_data.override_library and item.id_data.override_library.reference):
+            self.report({'ERROR'}, "Cannot edit properties from override data")
+            return {'CANCELLED'}
 
         # retrieve overridable static
         exec_str = "item.is_property_overridable_library('[\"%s\"]')" % (self.property)
@@ -1498,6 +1507,10 @@ class WM_OT_properties_add(Operator):
         data_path = self.data_path
         item = eval("context.%s" % data_path)
 
+        if (item.id_data and item.id_data.override_library and item.id_data.override_library.reference):
+            self.report({'ERROR'}, "Cannot add properties to override data")
+            return {'CANCELLED'}
+
         def unique_name(names):
             prop = "prop"
             prop_new = prop
@@ -1550,6 +1563,11 @@ class WM_OT_properties_remove(Operator):
         )
         data_path = self.data_path
         item = eval("context.%s" % data_path)
+
+        if (item.id_data and item.id_data.override_library and item.id_data.override_library.reference):
+            self.report({'ERROR'}, "Cannot remove properties from override data")
+            return {'CANCELLED'}
+
         prop = self.property
         rna_idprop_ui_prop_update(item, prop)
         del item[prop]
