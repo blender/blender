@@ -308,7 +308,9 @@ static void wm_region_test_xr_do_draw(const wmWindowManager *wm,
 
 static bool wm_region_use_viewport_by_type(short space_type, short region_type)
 {
-  return (ELEM(space_type, SPACE_VIEW3D, SPACE_IMAGE) && region_type == RGN_TYPE_WINDOW);
+  return (ELEM(space_type, SPACE_VIEW3D, SPACE_IMAGE, SPACE_NODE) &&
+          region_type == RGN_TYPE_WINDOW) ||
+         ((space_type == SPACE_SEQ) && region_type == RGN_TYPE_PREVIEW);
 }
 
 bool WM_region_use_viewport(ScrArea *area, ARegion *region)
