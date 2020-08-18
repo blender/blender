@@ -1611,6 +1611,9 @@ void GPU_texture_clear(GPUTexture *tex, eGPUDataFormat gpu_data_format, const vo
     /* This means that this function can only be used in one context for each texture. */
     BLI_assert(tex->copy_fb_ctx == GPU_context_active_get());
 
+    int viewport[4];
+    GPU_viewport_size_get_i(viewport);
+
     glBindFramebuffer(GL_FRAMEBUFFER, tex->copy_fb);
     glViewport(0, 0, tex->w, tex->h);
 
@@ -1674,6 +1677,8 @@ void GPU_texture_clear(GPUTexture *tex, eGPUDataFormat gpu_data_format, const vo
       glClearColor(r, g, b, a);
       glClear(GL_COLOR_BUFFER_BIT);
     }
+
+    glViewport(UNPACK4(viewport));
 
     if (prev_fb) {
       GPU_framebuffer_bind(prev_fb);

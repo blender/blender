@@ -552,7 +552,7 @@ void GPU_framebuffer_bind(GPUFrameBuffer *fb)
   }
 #endif
 
-  glViewport(0, 0, fb->width, fb->height);
+  GPU_viewport(0, 0, fb->width, fb->height);
 }
 
 /* Workaround for binding a srgb framebuffer without doing the srgb transform. */
@@ -611,7 +611,7 @@ void GPU_framebuffer_viewport_set(GPUFrameBuffer *fb, int x, int y, int w, int h
 {
   CHECK_FRAMEBUFFER_IS_BOUND(fb);
 
-  glViewport(x, y, w, h);
+  GPU_viewport(x, y, w, h);
 }
 
 void GPU_framebuffer_clear(GPUFrameBuffer *fb,
@@ -866,7 +866,7 @@ void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *fb,
 
     BLI_assert(GL_FRAMEBUFFER_COMPLETE == glCheckFramebufferStatus(GL_FRAMEBUFFER));
 
-    glViewport(0, 0, current_dim[0], current_dim[1]);
+    GPU_viewport(0, 0, current_dim[0], current_dim[1]);
     callback(userData, i);
 
     if (current_dim[0] == 1 && current_dim[1] == 1) {
