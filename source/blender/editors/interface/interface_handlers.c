@@ -4790,7 +4790,7 @@ static bool ui_numedit_but_NUM(uiBut *but,
 
     if (is_float == false) {
       /* at minimum, moving cursor 2 pixels should change an int button. */
-      CLAMP_MIN(non_linear_scale, 0.5f * U.pixelsize);
+      CLAMP_MIN(non_linear_scale, 0.5f * UI_DPI_FAC);
     }
 
     data->dragf += (((float)(mx - data->draglastx)) / deler) * non_linear_scale;
