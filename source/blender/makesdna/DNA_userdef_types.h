@@ -689,16 +689,17 @@ typedef struct UserDef {
   int audioformat;
   int audiochannels;
 
-  /** Setting for UI scale. */
+  /** Setting for UI scale (fractional), before screen DPI has been applied. */
   float ui_scale;
   /** Setting for UI line width. */
   int ui_line_width;
   /** Runtime, full DPI divided by `pixelsize`. */
   int dpi;
-  /** Runtime, multiplier to scale UI elements based on DPI. */
+  /** Runtime, multiplier to scale UI elements based on DPI (fractional). */
   float dpi_fac;
+  /** Runtime, `1.0 / dpi_fac` */
   float inv_dpi_fac;
-  /** Runtime, line width and point size based on DPI. */
+  /** Runtime, calculated from line-width and point-size based on DPI (rounded to int). */
   float pixelsize;
   /** Deprecated, for forward compatibility. */
   int virtual_pixel;
