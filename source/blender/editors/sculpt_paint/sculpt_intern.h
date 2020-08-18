@@ -985,6 +985,9 @@ typedef struct FilterCache {
   float viewmat[4][4];
   float viewmat_inv[4][4];
 
+  /* Displacement eraser. */
+  float (*limit_surface_co)[3];
+
   /* unmasked nodes */
   PBVHNode **nodes;
   int totnode;

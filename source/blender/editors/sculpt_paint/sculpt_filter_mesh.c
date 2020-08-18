@@ -177,6 +177,7 @@ void SCULPT_filter_cache_free(SculptSession *ss)
   MEM_SAFE_FREE(ss->filter_cache->surface_smooth_laplacian_disp);
   MEM_SAFE_FREE(ss->filter_cache->sharpen_factor);
   MEM_SAFE_FREE(ss->filter_cache->detail_directions);
+  MEM_SAFE_FREE(ss->filter_cache->limit_surface_co);
   MEM_SAFE_FREE(ss->filter_cache);
 }
 
@@ -191,6 +192,7 @@ typedef enum eSculptMeshFilterTypes {
   MESH_FILTER_SURFACE_SMOOTH = 7,
   MESH_FILTER_SHARPEN = 8,
   MESH_FILTER_ENHANCE_DETAILS = 9,
+  MESH_FILTER_ERASE_DISPLACEMENT = 10,
 } eSculptMeshFilterTypes;
 
 static EnumPropertyItem prop_mesh_filter_types[] = {
@@ -216,6 +218,11 @@ static EnumPropertyItem prop_mesh_filter_types[] = {
      0,
      "Enhance Details",
      "Enhance the high frequency surface detail"},
+    {MESH_FILTER_ERASE_DISPLACEMENT,
+     "ERASE_DISCPLACEMENT",
+     0,
+     "Erase Displacement",
+     "Deletes the displacement of the Multires Modifier"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -444,6 +451,12 @@ static void mesh_filter_task_cb(void *__restrict userdata,
       case MESH_FILTER_ENHANCE_DETAILS: {
         mul_v3_v3fl(disp, ss->filter_cache->detail_directions[vd.index], -fabsf(fade));
       } break;
+      case MESH_FILTER_ERASE_DISPLACEMENT: {
+        fade = clamp_f(fade, 0.0f, 1.0f);
+        sub_v3_v3v3(disp, ss->filter_cache->limit_surface_co[vd.index], orig_co);
+        mul_v3_fl(disp, fade);
+        break;
+      }
     }
 
     SCULPT_filter_to_orientation_space(disp, ss->filter_cache);
@@ -477,6 +490,16 @@ static void mesh_filter_enhance_details_init_directions(SculptSession *ss)
     float avg[3];
     SCULPT_neighbor_coords_average(ss, avg, i);
     sub_v3_v3v3(ss->filter_cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, i));
+  }
+}
+
+static void mesh_filter_init_limit_surface_co(SculptSession *ss)
+{
+  const int totvert = SCULPT_vertex_count_get(ss);
+  ss->filter_cache->limit_surface_co = MEM_malloc_arrayN(
+      3 * sizeof(float), totvert, "limit surface co");
+  for (int i = 0; i < totvert; i++) {
+    SCULPT_vertex_limit_surface_get(ss, i, ss->filter_cache->limit_surface_co[i]);
   }
 }
 
@@ -706,6 +729,10 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
     ss->filter_cache->detail_directions = MEM_malloc_arrayN(
         totvert, sizeof(float[3]), "detail direction");
     mesh_filter_enhance_details_init_directions(ss);
+  }
+
+  if (RNA_enum_get(op->ptr, "type") == MESH_FILTER_ERASE_DISPLACEMENT) {
+    mesh_filter_init_limit_surface_co(ss);
   }
 
   ss->filter_cache->enabled_axis[0] = deform_axis & MESH_FILTER_DEFORM_X;
