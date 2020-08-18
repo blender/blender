@@ -235,6 +235,8 @@ void GLDrawList::submit(void)
   }
   /* Do not submit this buffer again. */
   command_len_ = 0;
+  /* Avoid keeping reference to the batch. */
+  batch_ = NULL;
 }
 
 /** \} */
