@@ -187,6 +187,7 @@ void DRW_globals_update(void)
   /* M_SQRT2 to be at least the same size of the old square */
   gb->sizeVertex = U.pixelsize *
                    (max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * (float)M_SQRT2 / 2.0f));
+  gb->sizeVertexGpencil = U.pixelsize * UI_GetThemeValuef(TH_GP_VERTEX_SIZE);
   gb->sizeFaceDot = U.pixelsize * UI_GetThemeValuef(TH_FACEDOT_SIZE);
   gb->sizeEdge = U.pixelsize * (1.0f / 2.0f); /* TODO Theme */
   gb->sizeEdgeFix = U.pixelsize * (0.5f + 2.0f * (2.0f * (gb->sizeEdge * (float)M_SQRT1_2)));

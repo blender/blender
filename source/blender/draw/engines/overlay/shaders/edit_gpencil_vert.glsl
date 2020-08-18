@@ -73,7 +73,7 @@ void main()
   }
 
 #ifdef USE_POINTS
-  gl_PointSize = sizeVertex * 2.0;
+  gl_PointSize = sizeVertexGpencil * 2.0;
 
   if (is_point_dimmed) {
     finalColor.rgb = clamp(colorUnselect.rgb + vec3(0.3), 0.0, 1.0);
