@@ -137,7 +137,7 @@ const char *BKE_blender_version_string(void)
 
 bool BKE_blender_version_is_alpha(void)
 {
-  static bool is_alpha = STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "alpha");
+  bool is_alpha = STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "alpha");
   return is_alpha;
 }
 
