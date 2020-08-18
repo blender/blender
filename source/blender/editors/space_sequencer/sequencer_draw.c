@@ -1776,16 +1776,16 @@ void sequencer_draw_preview(const bContext *C,
     return;
   }
 
-  if (sseq->render_size == SEQ_PROXY_RENDER_SIZE_NONE) {
-    sequencer_preview_clear();
-    return;
-  }
-
   /* Setup offscreen buffers. */
   GPUViewport *viewport = WM_draw_region_get_viewport(region);
 
   GPUFrameBuffer *framebuffer_overlay = GPU_viewport_framebuffer_overlay_get(viewport);
   GPU_framebuffer_bind_no_srgb(framebuffer_overlay);
+
+  if (sseq->render_size == SEQ_PROXY_RENDER_SIZE_NONE) {
+    sequencer_preview_clear();
+    return;
+  }
 
   /* Setup view. */
   sequencer_display_size(scene, viewrect);

@@ -1762,10 +1762,9 @@ void drawnodespace(const bContext *C, ARegion *region)
   GPUFrameBuffer *framebuffer_overlay = GPU_viewport_framebuffer_overlay_get(viewport);
   GPU_framebuffer_bind_no_srgb(framebuffer_overlay);
 
+  UI_view2d_view_ortho(v2d);
   UI_ThemeClearColor(TH_BACK);
   GPU_clear(GPU_COLOR_BIT);
-
-  UI_view2d_view_ortho(v2d);
 
   /* XXX snode->cursor set in coordspace for placing new nodes, used for drawing noodles too */
   UI_view2d_region_to_view(&region->v2d,
