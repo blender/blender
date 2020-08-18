@@ -58,7 +58,7 @@ void main()
   if ((curveHandleDisplay != CURVE_HANDLE_ALL) && (!handle_selected)) {
     /* Nurbs must show the handles always. */
     bool is_u_segment = (((vertFlag[1] ^ vertFlag[0]) & EVEN_U_BIT) != 0);
-    if (!is_u_segment) {
+    if ((!is_u_segment) && (color_id <= 4)) {
       return;
     }
   }
