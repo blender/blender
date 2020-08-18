@@ -691,6 +691,14 @@ static float paint_space_stroke_spacing(bContext *C,
     spacing = spacing * (1.5f - spacing_pressure);
   }
 
+  if (SCULPT_is_cloth_deform_brush(brush)) {
+    /* The spacing in tools that use the cloth solver should not be affected by the brush radius to
+     * avoid affecting the simulation update rate when changing the radius of the brush.
+     With a value of 100 and the brush default of 10 for spacing, a simulation step runs every 2
+     pixels movement of the cursor. */
+    size_clamp = 100.0f;
+  }
+
   /* stroke system is used for 2d paint too, so we need to account for
    * the fact that brush can be scaled there. */
   spacing *= stroke->zoom_2d;
@@ -1001,7 +1009,7 @@ bool paint_space_stroke_enabled(Brush *br, ePaintMode mode)
     return false;
   }
 
-  if (br->sculpt_tool == SCULPT_TOOL_CLOTH) {
+  if (br->sculpt_tool == SCULPT_TOOL_CLOTH || SCULPT_is_cloth_deform_brush(br)) {
     /* The Cloth Brush is a special case for stroke spacing. Even if it has grab modes which do
      * not support dynamic size, stroke spacing needs to be enabled so it is possible to control
      * whether the simulation runs constantly or only when the brush moves when using the cloth
