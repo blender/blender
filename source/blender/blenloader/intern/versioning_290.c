@@ -190,17 +190,19 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
 
     /* Patch first frame for old files. */
     Scene *scene = bmain->scenes.first;
-    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-      if (ob->type != OB_GPENCIL) {
-        continue;
-      }
-      bGPdata *gpd = ob->data;
-      LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-        bGPDframe *gpf = gpl->frames.first;
-        if (gpf && gpf->framenum > scene->r.sfra) {
-          bGPDframe *gpf_dup = BKE_gpencil_frame_duplicate(gpf);
-          gpf_dup->framenum = scene->r.sfra;
-          BLI_addhead(&gpl->frames, gpf_dup);
+    if (scene != NULL) {
+      LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+        if (ob->type != OB_GPENCIL) {
+          continue;
+        }
+        bGPdata *gpd = ob->data;
+        LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+          bGPDframe *gpf = gpl->frames.first;
+          if (gpf && gpf->framenum > scene->r.sfra) {
+            bGPDframe *gpf_dup = BKE_gpencil_frame_duplicate(gpf);
+            gpf_dup->framenum = scene->r.sfra;
+            BLI_addhead(&gpl->frames, gpf_dup);
+          }
         }
       }
     }
