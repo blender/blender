@@ -207,7 +207,7 @@ static void seq_prefetch_free_depsgraph(PrefetchJob *pfjob)
 
 static void seq_prefetch_update_depsgraph(PrefetchJob *pfjob)
 {
-  DEG_evaluate_on_framechange(pfjob->bmain_eval, pfjob->depsgraph, seq_prefetch_cfra(pfjob));
+  DEG_evaluate_on_framechange(pfjob->depsgraph, seq_prefetch_cfra(pfjob));
 }
 
 static void seq_prefetch_init_depsgraph(PrefetchJob *pfjob)

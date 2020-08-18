@@ -1303,7 +1303,7 @@ void EEVEE_lightbake_job(void *custom_data, short *stop, short *do_update, float
   Depsgraph *depsgraph = lbake->depsgraph;
 
   DEG_graph_relations_update(depsgraph);
-  DEG_evaluate_on_framechange(lbake->bmain, depsgraph, lbake->frame);
+  DEG_evaluate_on_framechange(depsgraph, lbake->frame);
 
   lbake->view_layer = DEG_get_evaluated_view_layer(depsgraph);
   lbake->stop = stop;

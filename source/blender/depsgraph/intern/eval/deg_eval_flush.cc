@@ -351,11 +351,12 @@ void invalidate_tagged_evaluated_data(Depsgraph *graph)
 /* Flush updates from tagged nodes outwards until all affected nodes
  * are tagged.
  */
-void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
+void deg_graph_flush_updates(Depsgraph *graph)
 {
   /* Sanity checks. */
-  BLI_assert(bmain != nullptr);
   BLI_assert(graph != nullptr);
+  Main *bmain = graph->bmain;
+
   /* Nothing to update, early out. */
   if (graph->need_update_time) {
     const Scene *scene_orig = graph->scene;

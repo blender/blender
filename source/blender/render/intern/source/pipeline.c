@@ -1964,7 +1964,7 @@ void RE_SetReports(Render *re, ReportList *reports)
 static void render_update_depsgraph(Render *re)
 {
   Scene *scene = re->scene;
-  DEG_evaluate_on_framechange(re->main, re->pipeline_depsgraph, CFRA);
+  DEG_evaluate_on_framechange(re->pipeline_depsgraph, CFRA);
   BKE_scene_update_sound(re->pipeline_depsgraph, re->main);
 }
 

@@ -149,16 +149,11 @@ void DEG_ids_check_recalc(struct Main *bmain,
 
 /* Graph Evaluation  ----------------------------- */
 
-/* Frame changed recalculation entry point
- * < context_type: context to perform evaluation for
- * < ctime: (frame) new frame to evaluate values on
- */
-void DEG_evaluate_on_framechange(struct Main *bmain, Depsgraph *graph, float ctime);
+/* Frame changed recalculation entry point. */
+void DEG_evaluate_on_framechange(Depsgraph *graph, float ctime);
 
-/* Data changed recalculation entry point.
- * < context_type: context to perform evaluation for
- */
-void DEG_evaluate_on_refresh(struct Main *bmain, Depsgraph *graph);
+/* Data changed recalculation entry point. */
+void DEG_evaluate_on_refresh(Depsgraph *graph);
 
 bool DEG_needs_eval(Depsgraph *graph);
 
