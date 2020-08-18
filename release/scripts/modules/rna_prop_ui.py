@@ -309,13 +309,15 @@ def draw(layout, context, context_member, property_type, use_edit=True):
             # Do not allow editing of overridden properties (we cannot use a poll function of the operators here
             # since they's have no access to the specific property...).
             row.enabled = not(is_lib_override and key in rna_item.id_data.override_library.reference)
-            if not is_rna:
+            if is_rna:
+                row.label(text="API Defined")
+            elif is_lib_override:
+                row.label(text="Library Override")
+            else:
                 props = row.operator("wm.properties_edit", text="Edit")
                 assign_props(props, val_draw, key)
                 props = row.operator("wm.properties_remove", text="", icon='REMOVE')
                 assign_props(props, val_draw, key)
-            else:
-                row.label(text="API Defined")
 
     del flow
 
