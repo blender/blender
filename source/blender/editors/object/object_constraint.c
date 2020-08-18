@@ -663,10 +663,13 @@ static const EnumPropertyItem constraint_owner_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-static bool edit_constraint_poll_generic(bContext *C, StructRNA *rna_type)
+static bool edit_constraint_poll_generic(bContext *C,
+                                         StructRNA *rna_type,
+                                         const bool is_liboverride_allowed)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "constraint", rna_type);
   Object *ob = (ptr.owner_id) ? (Object *)ptr.owner_id : ED_object_active_context(C);
+  bConstraint *con = ptr.data;
 
   if (!ob) {
     CTX_wm_operator_poll_msg_set(C, "Context missing active object");
@@ -678,9 +681,11 @@ static bool edit_constraint_poll_generic(bContext *C, StructRNA *rna_type)
     return false;
   }
 
-  if (ID_IS_OVERRIDE_LIBRARY(ob) && ptr.data != NULL) {
-    CTX_wm_operator_poll_msg_set(C, "Cannot edit constraints coming from library override");
-    return (((bConstraint *)ptr.data)->flag & CONSTRAINT_OVERRIDE_LIBRARY_LOCAL) != 0;
+  if (ID_IS_OVERRIDE_LIBRARY(ob) && !is_liboverride_allowed) {
+    if ((con == NULL) || (con->flag & CONSTRAINT_OVERRIDE_LIBRARY_LOCAL) != 0) {
+      CTX_wm_operator_poll_msg_set(C, "Cannot edit constraints coming from library override");
+      return false;
+    }
   }
 
   return true;
@@ -688,7 +693,14 @@ static bool edit_constraint_poll_generic(bContext *C, StructRNA *rna_type)
 
 static bool edit_constraint_poll(bContext *C)
 {
-  return edit_constraint_poll_generic(C, &RNA_Constraint);
+  return edit_constraint_poll_generic(C, &RNA_Constraint, false);
+}
+
+/* Used by operators performing actions allowed also on constraints from the overridden linked
+ * object (not only from added 'local' ones). */
+static bool edit_constraint_liboverride_allowed_poll(bContext *C)
+{
+  return edit_constraint_poll_generic(C, &RNA_Constraint, true);
 }
 
 static void edit_constraint_properties(wmOperatorType *ot)
@@ -864,7 +876,7 @@ void CONSTRAINT_OT_stretchto_reset(wmOperatorType *ot)
   /* callbacks */
   ot->invoke = stretchto_reset_invoke;
   ot->exec = stretchto_reset_exec;
-  ot->poll = edit_constraint_poll;
+  ot->poll = edit_constraint_liboverride_allowed_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -919,7 +931,7 @@ void CONSTRAINT_OT_limitdistance_reset(wmOperatorType *ot)
   /* callbacks */
   ot->invoke = limitdistance_reset_invoke;
   ot->exec = limitdistance_reset_exec;
-  ot->poll = edit_constraint_poll;
+  ot->poll = edit_constraint_liboverride_allowed_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -997,7 +1009,7 @@ void CONSTRAINT_OT_childof_set_inverse(wmOperatorType *ot)
   /* callbacks */
   ot->invoke = childof_set_inverse_invoke;
   ot->exec = childof_set_inverse_exec;
-  ot->poll = edit_constraint_poll;
+  ot->poll = edit_constraint_liboverride_allowed_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1046,7 +1058,7 @@ void CONSTRAINT_OT_childof_clear_inverse(wmOperatorType *ot)
   /* callbacks */
   ot->invoke = childof_clear_inverse_invoke;
   ot->exec = childof_clear_inverse_exec;
-  ot->poll = edit_constraint_poll;
+  ot->poll = edit_constraint_liboverride_allowed_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1693,8 +1705,8 @@ void POSE_OT_constraints_clear(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = pose_constraints_clear_exec;
-  ot->poll =
-      ED_operator_posemode_exclusive;  // XXX - do we want to ensure there are selected bones too?
+  ot->poll = ED_operator_posemode_exclusive;  // XXX - do we want to ensure there are selected
+                                              // bones too?
 }
 
 static int object_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1942,7 +1954,8 @@ static bool get_new_constraint_target(
 
           /* perform some special operations on the target */
           if (only_curve) {
-            /* Curve-Path option must be enabled for follow-path constraints to be able to work */
+            /* Curve-Path option must be enabled for follow-path constraints to be able to work
+             */
             Curve *cu = (Curve *)ob->data;
             cu->flag |= CU_PATH;
           }
@@ -2214,8 +2227,8 @@ void OBJECT_OT_constraint_add_with_targets(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Add Constraint (with Targets)";
   ot->description =
-      "Add a constraint to the active object, with target (where applicable) set to the selected "
-      "Objects/Bones";
+      "Add a constraint to the active object, with target (where applicable) set to the "
+      "selected Objects/Bones";
   ot->idname = "OBJECT_OT_constraint_add_with_targets";
 
   /* api callbacks */
