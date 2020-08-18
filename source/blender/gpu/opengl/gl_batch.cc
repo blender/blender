@@ -325,6 +325,8 @@ void GLBatch::draw(int v_first, int v_count, int i_first, int i_count)
 {
   this->bind(i_first);
 
+  BLI_assert(v_count > 0 && i_count > 0);
+
   GLenum gl_type = convert_prim_type_to_gl(prim_type);
 
   if (elem) {

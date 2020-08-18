@@ -151,6 +151,11 @@ void GLDrawList::append(GPUBatch *batch, int i_first, int i_count)
     v_count_ = batch->elem ? batch->elem->index_len : batch->verts[0]->vertex_len;
   }
 
+  if (v_count_ == 0) {
+    /* Nothing to draw. */
+    return;
+  }
+
   if (MDI_INDEXED) {
     GLDrawCommandIndexed *cmd = reinterpret_cast<GLDrawCommandIndexed *>(data_ + command_offset_);
     cmd->v_first = v_first_;
