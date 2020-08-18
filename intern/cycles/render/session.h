@@ -157,7 +157,6 @@ class Session {
   void set_denoising_start_sample(int sample);
 
   bool update_scene();
-  bool load_kernels(bool lock_scene = true);
 
   void device_free();
 
@@ -219,25 +218,12 @@ class Session {
   thread_mutex display_mutex;
   thread_condition_variable denoising_cond;
 
-  bool kernels_loaded;
-  DeviceRequestedFeatures loaded_kernel_features;
-
   double reset_time;
   double last_update_time;
   double last_display_time;
 
   /* progressive refine */
   bool update_progressive_refine(bool cancel);
-
-  DeviceRequestedFeatures get_requested_device_features();
-
-  /* ** Split kernel routines ** */
-
-  /* Maximumnumber of closure during session lifetime. */
-  int max_closure_global;
-
-  /* Get maximum number of closures to be used in kernel. */
-  int get_max_closure_count();
 };
 
 CCL_NAMESPACE_END

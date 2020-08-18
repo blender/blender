@@ -29,6 +29,7 @@
 #include "render/osl.h"
 #include "render/particles.h"
 #include "render/scene.h"
+#include "render/session.h"
 #include "render/shader.h"
 #include "render/svm.h"
 #include "render/tables.h"
@@ -109,6 +110,10 @@ Scene::Scene(const SceneParams &params_, Device *device)
   image_manager = new ImageManager(device->info);
   particle_system_manager = new ParticleSystemManager();
   bake_manager = new BakeManager();
+  kernels_loaded = false;
+
+  /* TODO(sergey): Check if it's indeed optimal value for the split kernel. */
+  max_closure_global = 1;
 
   /* OSL only works on the CPU */
   if (device->info.has_osl)
@@ -394,6 +399,163 @@ void Scene::collect_statistics(RenderStats *stats)
 {
   geometry_manager->collect_statistics(this, stats);
   image_manager->collect_statistics(stats);
+}
+
+DeviceRequestedFeatures Scene::get_requested_device_features()
+{
+  DeviceRequestedFeatures requested_features;
+
+  shader_manager->get_requested_features(this, &requested_features);
+
+  /* This features are not being tweaked as often as shaders,
+   * so could be done selective magic for the viewport as well.
+   */
+  bool use_motion = need_motion() == Scene::MotionType::MOTION_BLUR;
+  requested_features.use_hair = false;
+  requested_features.use_hair_thick = (params.hair_shape == CURVE_THICK);
+  requested_features.use_object_motion = false;
+  requested_features.use_camera_motion = use_motion && camera->use_motion();
+  foreach (Object *object, objects) {
+    Geometry *geom = object->geometry;
+    if (use_motion) {
+      requested_features.use_object_motion |= object->use_motion() | geom->use_motion_blur;
+      requested_features.use_camera_motion |= geom->use_motion_blur;
+    }
+    if (object->is_shadow_catcher) {
+      requested_features.use_shadow_tricks = true;
+    }
+    if (geom->type == Geometry::MESH) {
+      Mesh *mesh = static_cast<Mesh *>(geom);
+#ifdef WITH_OPENSUBDIV
+      if (mesh->subdivision_type != Mesh::SUBDIVISION_NONE) {
+        requested_features.use_patch_evaluation = true;
+      }
+#endif
+      requested_features.use_true_displacement |= mesh->has_true_displacement();
+    }
+    else if (geom->type == Geometry::HAIR) {
+      requested_features.use_hair = true;
+    }
+  }
+
+  requested_features.use_background_light = light_manager->has_background_light(this);
+
+  requested_features.use_baking = bake_manager->get_baking();
+  requested_features.use_integrator_branched = (integrator->method == Integrator::BRANCHED_PATH);
+  if (film->denoising_data_pass) {
+    requested_features.use_denoising = true;
+    requested_features.use_shadow_tricks = true;
+  }
+
+  return requested_features;
+}
+
+bool Scene::update(Progress &progress, bool &kernel_switch_needed)
+{
+  /* update scene */
+  if (need_update()) {
+    /* Updated used shader tag so we know which features are need for the kernel. */
+    shader_manager->update_shaders_used(this);
+
+    /* Update max_closures. */
+    KernelIntegrator *kintegrator = &dscene.data.integrator;
+    if (params.background) {
+      kintegrator->max_closures = get_max_closure_count();
+    }
+    else {
+      /* Currently viewport render is faster with higher max_closures, needs investigating. */
+      kintegrator->max_closures = MAX_CLOSURE;
+    }
+
+    /* Load render kernels, before device update where we upload data to the GPU. */
+    bool new_kernels_needed = load_kernels(progress, false);
+
+    progress.set_status("Updating Scene");
+    MEM_GUARDED_CALL(&progress, device_update, device, progress);
+
+    DeviceKernelStatus kernel_switch_status = device->get_active_kernel_switch_state();
+    kernel_switch_needed = kernel_switch_status == DEVICE_KERNEL_FEATURE_KERNEL_AVAILABLE ||
+                           kernel_switch_status == DEVICE_KERNEL_FEATURE_KERNEL_INVALID;
+    if (kernel_switch_status == DEVICE_KERNEL_WAITING_FOR_FEATURE_KERNEL) {
+      progress.set_kernel_status("Compiling render kernels");
+    }
+    if (new_kernels_needed || kernel_switch_needed) {
+      progress.set_kernel_status("Compiling render kernels");
+      device->wait_for_availability(loaded_kernel_features);
+      progress.set_kernel_status("");
+    }
+
+    return true;
+  }
+  return false;
+}
+
+bool Scene::load_kernels(Progress &progress, bool lock_scene)
+{
+  thread_scoped_lock scene_lock;
+  if (lock_scene) {
+    scene_lock = thread_scoped_lock(mutex);
+  }
+
+  DeviceRequestedFeatures requested_features = get_requested_device_features();
+
+  if (!kernels_loaded || loaded_kernel_features.modified(requested_features)) {
+    progress.set_status("Loading render kernels (may take a few minutes the first time)");
+
+    scoped_timer timer;
+
+    VLOG(2) << "Requested features:\n" << requested_features;
+    if (!device->load_kernels(requested_features)) {
+      string message = device->error_message();
+      if (message.empty())
+        message = "Failed loading render kernel, see console for errors";
+
+      progress.set_error(message);
+      progress.set_status(message);
+      progress.set_update();
+      return false;
+    }
+
+    progress.add_skip_time(timer, false);
+    VLOG(1) << "Total time spent loading kernels: " << time_dt() - timer.get_start();
+
+    kernels_loaded = true;
+    loaded_kernel_features = requested_features;
+    return true;
+  }
+  return false;
+}
+
+int Scene::get_max_closure_count()
+{
+  if (shader_manager->use_osl()) {
+    /* OSL always needs the maximum as we can't predict the
+     * number of closures a shader might generate. */
+    return MAX_CLOSURE;
+  }
+
+  int max_closures = 0;
+  for (int i = 0; i < shaders.size(); i++) {
+    Shader *shader = shaders[i];
+    if (shader->used) {
+      int num_closures = shader->graph->get_num_closures();
+      max_closures = max(max_closures, num_closures);
+    }
+  }
+  max_closure_global = max(max_closure_global, max_closures);
+
+  if (max_closure_global > MAX_CLOSURE) {
+    /* This is usually harmless as more complex shader tend to get many
+     * closures discarded due to mixing or low weights. We need to limit
+     * to MAX_CLOSURE as this is hardcoded in CPU/mega kernels, and it
+     * avoids excessive memory usage for split kernels. */
+    VLOG(2) << "Maximum number of closures exceeded: " << max_closure_global << " > "
+            << MAX_CLOSURE;
+
+    max_closure_global = MAX_CLOSURE;
+  }
+
+  return max_closure_global;
 }
 
 CCL_NAMESPACE_END

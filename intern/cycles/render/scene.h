@@ -22,6 +22,7 @@
 #include "render/image.h"
 #include "render/shader.h"
 
+#include "device/device.h"
 #include "device/device_memory.h"
 
 #include "util/util_param.h"
@@ -276,6 +277,8 @@ class Scene {
 
   void collect_statistics(RenderStats *stats);
 
+  bool update(Progress &progress, bool &kernel_switch_needed);
+
  protected:
   /* Check if some heavy data worth logging was updated.
    * Mainly used to suppress extra annoying logging.
@@ -283,6 +286,21 @@ class Scene {
   bool need_data_update();
 
   void free_memory(bool final);
+
+  bool kernels_loaded;
+  DeviceRequestedFeatures loaded_kernel_features;
+
+  bool load_kernels(Progress &progress, bool lock_scene = true);
+
+  /* ** Split kernel routines ** */
+
+  DeviceRequestedFeatures get_requested_device_features();
+
+  /* Maximumnumber of closure during session lifetime. */
+  int max_closure_global;
+
+  /* Get maximum number of closures to be used in kernel. */
+  int get_max_closure_count();
 };
 
 CCL_NAMESPACE_END

@@ -180,7 +180,6 @@ class DeviceRequestedFeatures {
   DeviceRequestedFeatures()
   {
     /* TODO(sergey): Find more meaningful defaults. */
-    experimental = false;
     max_nodes_group = 0;
     nodes_features = 0;
     use_hair = false;
@@ -203,8 +202,7 @@ class DeviceRequestedFeatures {
 
   bool modified(const DeviceRequestedFeatures &requested_features)
   {
-    return !(experimental == requested_features.experimental &&
-             max_nodes_group == requested_features.max_nodes_group &&
+    return !(max_nodes_group == requested_features.max_nodes_group &&
              nodes_features == requested_features.nodes_features &&
              use_hair == requested_features.use_hair &&
              use_hair_thick == requested_features.use_hair_thick &&
