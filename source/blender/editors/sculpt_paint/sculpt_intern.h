@@ -946,6 +946,7 @@ typedef struct StrokeCache {
 
 typedef struct FilterCache {
   bool enabled_axis[3];
+  bool enabled_force_axis[3];
   int random_seed;
 
   /* Used for alternating between filter operations in filters that need to apply different ones to

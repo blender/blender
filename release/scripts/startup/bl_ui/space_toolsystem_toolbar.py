@@ -1286,6 +1286,8 @@ class _defs_sculpt:
             props = tool.operator_properties("sculpt.cloth_filter")
             layout.prop(props, "type", expand=False)
             layout.prop(props, "strength")
+            row = layout.row(align=True)
+            row.prop(props, "force_axis")
             layout.prop(props, "cloth_mass")
             layout.prop(props, "cloth_damping")
             layout.prop(props, "use_face_sets")

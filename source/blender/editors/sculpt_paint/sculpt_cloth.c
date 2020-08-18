@@ -1060,6 +1060,19 @@ static EnumPropertyItem prop_cloth_filter_type[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+typedef enum eClothFilterForceAxis {
+  CLOTH_FILTER_FORCE_X = 1 << 0,
+  CLOTH_FILTER_FORCE_Y = 1 << 1,
+  CLOTH_FILTER_FORCE_Z = 1 << 2,
+} eClothFilterForceAxis;
+
+static EnumPropertyItem prop_cloth_filter_force_axis_items[] = {
+    {CLOTH_FILTER_FORCE_X, "X", 0, "X", "Apply force in the X axis"},
+    {CLOTH_FILTER_FORCE_Y, "Y", 0, "Y", "Apply force in the Y axis"},
+    {CLOTH_FILTER_FORCE_Z, "Z", 0, "Z", "Apply force in the Z axis"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 static void cloth_filter_apply_forces_task_cb(void *__restrict userdata,
                                               const int i,
                                               const TaskParallelTLS *__restrict UNUSED(tls))
@@ -1112,6 +1125,12 @@ static void cloth_filter_apply_forces_task_cb(void *__restrict userdata,
         normalize_v3(force);
         mul_v3_fl(force, fade * data->filter_strength);
         break;
+    }
+
+    for (int axis = 0; axis < 3; axis++) {
+      if (!ss->filter_cache->enabled_force_axis[axis]) {
+        force[axis] = 0.0f;
+      }
     }
 
     add_v3_v3(force, sculpt_gravity);
@@ -1229,6 +1248,11 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
     ss->filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
   }
 
+  const int force_axis = RNA_enum_get(op->ptr, "force_axis");
+  ss->filter_cache->enabled_force_axis[0] = force_axis & CLOTH_FILTER_FORCE_X;
+  ss->filter_cache->enabled_force_axis[1] = force_axis & CLOTH_FILTER_FORCE_Y;
+  ss->filter_cache->enabled_force_axis[2] = force_axis & CLOTH_FILTER_FORCE_Z;
+
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;
 }
@@ -1256,6 +1280,12 @@ void SCULPT_OT_cloth_filter(struct wmOperatorType *ot)
                "Operation that is going to be applied to the mesh");
   RNA_def_float(
       ot->srna, "strength", 1.0f, -10.0f, 10.0f, "Strength", "Filter Strength", -10.0f, 10.0f);
+  RNA_def_enum_flag(ot->srna,
+                    "force_axis",
+                    prop_cloth_filter_force_axis_items,
+                    CLOTH_FILTER_FORCE_X | CLOTH_FILTER_FORCE_Y | CLOTH_FILTER_FORCE_Z,
+                    "Force axis",
+                    "Apply the force in the selected axis");
   RNA_def_float(ot->srna,
                 "cloth_mass",
                 1.0f,
