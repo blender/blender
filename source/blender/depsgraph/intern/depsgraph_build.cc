@@ -251,7 +251,8 @@ void DEG_graph_build_from_ids(Depsgraph *graph,
                               ID **ids,
                               const int num_ids)
 {
-  deg::FromIDsBuilderPipeline builder(graph, bmain, scene, view_layer, ids, num_ids);
+  deg::FromIDsBuilderPipeline builder(
+      graph, bmain, scene, view_layer, blender::Span(ids, num_ids));
   builder.build();
 }
 

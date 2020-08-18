@@ -44,7 +44,7 @@ namespace deg {
 class FromIDsBuilderPipeline : public AbstractBuilderPipeline {
  public:
   FromIDsBuilderPipeline(
-      ::Depsgraph *graph, Main *bmain, Scene *scene, ViewLayer *view_layer, ID **ids, int num_ids);
+      ::Depsgraph *graph, Main *bmain, Scene *scene, ViewLayer *view_layer, Span<ID *> ids);
 
  protected:
   virtual unique_ptr<DepsgraphNodeBuilder> construct_node_builder() override;
@@ -54,8 +54,7 @@ class FromIDsBuilderPipeline : public AbstractBuilderPipeline {
   virtual void build_relations(DepsgraphRelationBuilder &relation_builder) override;
 
  private:
-  ID **ids_;
-  const int num_ids_;
+  Span<ID *> ids_;
 };
 
 }  // namespace deg
