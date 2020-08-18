@@ -115,6 +115,8 @@ Scene::Scene(const SceneParams &params_, Device *device)
   /* TODO(sergey): Check if it's indeed optimal value for the split kernel. */
   max_closure_global = 1;
 
+  film->add_default(this);
+
   /* OSL only works on the CPU */
   if (device->info.has_osl)
     shader_manager = ShaderManager::create(params.shadingsystem);
@@ -322,7 +324,7 @@ Scene::MotionType Scene::need_motion()
 {
   if (integrator->motion_blur)
     return MOTION_BLUR;
-  else if (Pass::contains(film->passes, PASS_MOTION))
+  else if (Pass::contains(passes, PASS_MOTION))
     return MOTION_PASS;
   else
     return MOTION_NONE;
@@ -339,7 +341,7 @@ float Scene::motion_shutter_time()
 bool Scene::need_global_attribute(AttributeStandard std)
 {
   if (std == ATTR_STD_UV)
-    return Pass::contains(film->passes, PASS_UV);
+    return Pass::contains(passes, PASS_UV);
   else if (std == ATTR_STD_MOTION_VERTEX_POSITION)
     return need_motion() != MOTION_NONE;
   else if (std == ATTR_STD_MOTION_VERTEX_NORMAL)

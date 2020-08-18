@@ -372,8 +372,10 @@ void BlenderSync::sync_film(BL::SpaceView3D &b_v3d)
   Film *film = scene->film;
   Film prevfilm = *film;
 
+  vector<Pass> prevpasses = scene->passes;
+
   if (b_v3d) {
-    film->display_pass = update_viewport_display_passes(b_v3d, film->passes);
+    film->display_pass = update_viewport_display_passes(b_v3d, scene->passes);
   }
 
   film->exposure = get_float(cscene, "film_exposure");
@@ -403,7 +405,11 @@ void BlenderSync::sync_film(BL::SpaceView3D &b_v3d)
 
   if (film->modified(prevfilm)) {
     film->tag_update(scene);
-    film->tag_passes_update(scene, prevfilm.passes, false);
+  }
+
+  if (!Pass::equals(prevpasses, scene->passes)) {
+    film->tag_passes_update(scene, prevpasses, false);
+    film->tag_update(scene);
   }
 }
 

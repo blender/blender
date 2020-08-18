@@ -5910,9 +5910,9 @@ OutputAOVNode::OutputAOVNode() : ShaderNode(node_type)
 
 void OutputAOVNode::simplify_settings(Scene *scene)
 {
-  slot = scene->film->get_aov_offset(name.string(), is_color);
+  slot = scene->film->get_aov_offset(scene, name.string(), is_color);
   if (slot == -1) {
-    slot = scene->film->get_aov_offset(name.string(), is_color);
+    slot = scene->film->get_aov_offset(scene, name.string(), is_color);
   }
 
   if (slot == -1 || is_color) {

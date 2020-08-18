@@ -97,17 +97,17 @@ void BakeManager::set(Scene *scene,
   type = type_;
   pass_filter = shader_type_to_pass_filter(type_, pass_filter_);
 
-  Pass::add(PASS_BAKE_PRIMITIVE, scene->film->passes);
-  Pass::add(PASS_BAKE_DIFFERENTIAL, scene->film->passes);
+  Pass::add(PASS_BAKE_PRIMITIVE, scene->passes);
+  Pass::add(PASS_BAKE_DIFFERENTIAL, scene->passes);
 
   if (type == SHADER_EVAL_UV) {
     /* force UV to be available */
-    Pass::add(PASS_UV, scene->film->passes);
+    Pass::add(PASS_UV, scene->passes);
   }
 
   /* force use_light_pass to be true if we bake more than just colors */
   if (pass_filter & ~BAKE_FILTER_COLOR) {
-    Pass::add(PASS_LIGHT, scene->film->passes);
+    Pass::add(PASS_LIGHT, scene->passes);
   }
 
   /* create device and update scene */

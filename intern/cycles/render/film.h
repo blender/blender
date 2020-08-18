@@ -38,14 +38,18 @@ typedef enum FilterType {
   FILTER_NUM_TYPES,
 } FilterType;
 
-class Pass {
+class Pass : public Node {
  public:
+  NODE_DECLARE
+
+  Pass();
+
   PassType type;
   int components;
   bool filter;
   bool exposure;
   PassType divide_type;
-  string name;
+  ustring name;
 
   static void add(PassType type, vector<Pass> &passes, const char *name = NULL);
   static bool equals(const vector<Pass> &A, const vector<Pass> &B);
@@ -57,7 +61,6 @@ class Film : public Node {
   NODE_DECLARE
 
   float exposure;
-  vector<Pass> passes;
   bool denoising_data_pass;
   bool denoising_clean_pass;
   bool denoising_prefiltered_pass;
@@ -88,6 +91,9 @@ class Film : public Node {
   Film();
   ~Film();
 
+  /* add default passes to scene */
+  static void add_default(Scene *scene);
+
   void device_update(Device *device, DeviceScene *dscene, Scene *scene);
   void device_free(Device *device, DeviceScene *dscene, Scene *scene);
 
@@ -95,7 +101,7 @@ class Film : public Node {
   void tag_passes_update(Scene *scene, const vector<Pass> &passes_, bool update_passes = true);
   void tag_update(Scene *scene);
 
-  int get_aov_offset(string name, bool &is_color);
+  int get_aov_offset(Scene *scene, string name, bool &is_color);
 };
 
 CCL_NAMESPACE_END

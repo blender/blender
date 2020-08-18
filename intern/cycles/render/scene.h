@@ -19,6 +19,7 @@
 
 #include "bvh/bvh_params.h"
 
+#include "render/film.h"
 #include "render/image.h"
 #include "render/shader.h"
 
@@ -230,6 +231,7 @@ class Scene {
   vector<Shader *> shaders;
   vector<Light *> lights;
   vector<ParticleSystem *> particle_systems;
+  vector<Pass> passes;
 
   /* data managers */
   ImageManager *image_manager;
