@@ -135,6 +135,12 @@ const char *BKE_blender_version_string(void)
   return blender_version_string;
 }
 
+bool BKE_blender_version_is_alpha(void)
+{
+  static bool is_alpha = STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "alpha");
+  return is_alpha;
+}
+
 void BKE_blender_globals_init(void)
 {
   blender_version_init();

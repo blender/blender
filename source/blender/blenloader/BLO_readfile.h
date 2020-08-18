@@ -186,6 +186,9 @@ void BLO_update_defaults_workspace(struct WorkSpace *workspace, const char *app_
 /* Version patch user preferences. */
 void BLO_version_defaults_userpref_blend(struct Main *mainvar, struct UserDef *userdef);
 
+/* Disable unwanted experimental feature settings on startup. */
+void BLO_sanitize_experimental_features_userpref_blend(struct UserDef *userdef);
+
 struct BlendThumbnail *BLO_thumbnail_from_file(const char *filepath);
 
 /* datafiles (generated theme) */
