@@ -1071,6 +1071,25 @@ static EnumPropertyItem prop_cloth_filter_type[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+static EnumPropertyItem prop_cloth_filter_orientation_items[] = {
+    {SCULPT_FILTER_ORIENTATION_LOCAL,
+     "LOCAL",
+     0,
+     "Local",
+     "Use the local axis to limit the force and set the gravity direction"},
+    {SCULPT_FILTER_ORIENTATION_WORLD,
+     "WORLD",
+     0,
+     "World",
+     "Use the global axis to limit the force and set the gravity direction"},
+    {SCULPT_FILTER_ORIENTATION_VIEW,
+     "VIEW",
+     0,
+     "View",
+     "Use the view axis to limit the force and set the gravity direction"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 typedef enum eClothFilterForceAxis {
   CLOTH_FILTER_FORCE_X = 1 << 0,
   CLOTH_FILTER_FORCE_Y = 1 << 1,
@@ -1120,7 +1139,15 @@ static void cloth_filter_apply_forces_task_cb(void *__restrict userdata,
 
     switch (filter_type) {
       case CLOTH_FILTER_GRAVITY:
-        force[2] = -data->filter_strength * fade;
+        if (ss->filter_cache->orientation == SCULPT_FILTER_ORIENTATION_VIEW) {
+          /* When using the view orientation apply gravity in the -Y axis, this way objects will
+           * fall down instead of backwards. */
+          force[1] = -data->filter_strength * fade;
+        }
+        else {
+          force[2] = -data->filter_strength * fade;
+        }
+        SCULPT_filter_to_object_space(force, ss->filter_cache);
         break;
       case CLOTH_FILTER_INFLATE: {
         float normal[3];
@@ -1138,11 +1165,13 @@ static void cloth_filter_apply_forces_task_cb(void *__restrict userdata,
         break;
     }
 
+    SCULPT_filter_to_orientation_space(force, ss->filter_cache);
     for (int axis = 0; axis < 3; axis++) {
       if (!ss->filter_cache->enabled_force_axis[axis]) {
         force[axis] = 0.0f;
       }
     }
+    SCULPT_filter_to_object_space(force, ss->filter_cache);
 
     add_v3_v3(force, sculpt_gravity);
 
@@ -1264,6 +1293,9 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   ss->filter_cache->enabled_force_axis[1] = force_axis & CLOTH_FILTER_FORCE_Y;
   ss->filter_cache->enabled_force_axis[2] = force_axis & CLOTH_FILTER_FORCE_Z;
 
+  SculptFilterOrientation orientation = RNA_enum_get(op->ptr, "orientation");
+  ss->filter_cache->orientation = orientation;
+
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;
 }
@@ -1297,6 +1329,12 @@ void SCULPT_OT_cloth_filter(struct wmOperatorType *ot)
                     CLOTH_FILTER_FORCE_X | CLOTH_FILTER_FORCE_Y | CLOTH_FILTER_FORCE_Z,
                     "Force axis",
                     "Apply the force in the selected axis");
+  RNA_def_enum(ot->srna,
+               "orientation",
+               prop_cloth_filter_orientation_items,
+               SCULPT_FILTER_ORIENTATION_LOCAL,
+               "Orientation",
+               "Orientation of the axis to limit the filter force");
   RNA_def_float(ot->srna,
                 "cloth_mass",
                 1.0f,
