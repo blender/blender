@@ -615,7 +615,7 @@ static bool gpu_texture_check_capacity(
     GPUTexture *tex, GLenum proxy, GLenum internalformat, GLenum data_format, GLenum data_type)
 {
   if (proxy == GL_PROXY_TEXTURE_CUBE_MAP_ARRAY_ARB &&
-      GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_MAC, GPU_DRIVER_ANY)) {
+      GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY)) {
     /* Special fix for T79703. */
     /* Depth has already been checked. */
     return tex->w <= GPU_max_cube_map_size();
