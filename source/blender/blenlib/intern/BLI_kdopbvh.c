@@ -201,6 +201,23 @@ const float bvhtree_kdop_axes[13][3] = {
     {0, 1.0, -1.0},
 };
 
+/* Used to correct the epsilon and thus match the overlap distance. */
+const float bvhtree_kdop_axes_length[13] = {
+    1.0f,
+    1.0f,
+    1.0f,
+    1.7320508075688772f,
+    1.7320508075688772f,
+    1.7320508075688772f,
+    1.7320508075688772f,
+    1.4142135623730951f,
+    1.4142135623730951f,
+    1.4142135623730951f,
+    1.4142135623730951f,
+    1.4142135623730951f,
+    1.4142135623730951f,
+};
+
 /* -------------------------------------------------------------------- */
 /** \name Utility Functions
  * \{ */
@@ -970,9 +987,18 @@ void BLI_bvhtree_balance(BVHTree *tree)
 #endif
 }
 
-void BLI_bvhtree_insert(BVHTree *tree, int index, const float co[3], int numpoints)
+static void bvhtree_node_inflate(const BVHTree *tree, BVHNode *node, const float dist)
 {
   axis_t axis_iter;
+  for (axis_iter = tree->start_axis; axis_iter < tree->stop_axis; axis_iter++) {
+    float dist_corrected = dist * bvhtree_kdop_axes_length[axis_iter];
+    node->bv[(2 * axis_iter)] -= dist_corrected;     /* minimum */
+    node->bv[(2 * axis_iter) + 1] += dist_corrected; /* maximum */
+  }
+}
+
+void BLI_bvhtree_insert(BVHTree *tree, int index, const float co[3], int numpoints)
+{
   BVHNode *node = NULL;
 
   /* insert should only possible as long as tree->totbranch is 0 */
@@ -986,10 +1012,7 @@ void BLI_bvhtree_insert(BVHTree *tree, int index, const float co[3], int numpoin
   node->index = index;
 
   /* inflate the bv with some epsilon */
-  for (axis_iter = tree->start_axis; axis_iter < tree->stop_axis; axis_iter++) {
-    node->bv[(2 * axis_iter)] -= tree->epsilon;     /* minimum */
-    node->bv[(2 * axis_iter) + 1] += tree->epsilon; /* maximum */
-  }
+  bvhtree_node_inflate(tree, node, tree->epsilon);
 }
 
 /* call before BLI_bvhtree_update_tree() */
@@ -997,7 +1020,6 @@ bool BLI_bvhtree_update_node(
     BVHTree *tree, int index, const float co[3], const float co_moving[3], int numpoints)
 {
   BVHNode *node = NULL;
-  axis_t axis_iter;
 
   /* check if index exists */
   if (index > tree->totleaf) {
@@ -1013,10 +1035,7 @@ bool BLI_bvhtree_update_node(
   }
 
   /* inflate the bv with some epsilon */
-  for (axis_iter = tree->start_axis; axis_iter < tree->stop_axis; axis_iter++) {
-    node->bv[(2 * axis_iter)] -= tree->epsilon;     /* minimum */
-    node->bv[(2 * axis_iter) + 1] += tree->epsilon; /* maximum */
-  }
+  bvhtree_node_inflate(tree, node, tree->epsilon);
 
   return true;
 }
