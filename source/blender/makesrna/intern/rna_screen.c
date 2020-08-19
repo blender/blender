@@ -288,9 +288,11 @@ static void rna_View2D_view_to_region(
   }
 }
 
-static const char *rna_Screen_statusbar_info_get(struct bScreen *screen, Main *bmain, bContext *C)
+static const char *rna_Screen_statusbar_info_get(struct bScreen *UNUSED(screen),
+                                                 Main *bmain,
+                                                 bContext *C)
 {
-  return ED_info_statusbar_string(bmain, screen, C);
+  return ED_info_statusbar_string(bmain, CTX_data_scene(C), CTX_data_view_layer(C));
 }
 
 #else

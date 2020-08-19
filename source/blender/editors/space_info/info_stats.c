@@ -547,19 +547,20 @@ static void get_stats_string(
       info + *ofs, len - *ofs, TIP_(" | Objects:%s/%s"), stats_fmt->totobjsel, stats_fmt->totobj);
 }
 
-const char *ED_info_statusbar_string(Main *bmain, bScreen *screen, bContext *C)
+static const char *info_statusbar_string(Main *bmain,
+                                         Scene *scene,
+                                         ViewLayer *view_layer,
+                                         char statusbar_flag)
 {
   char formatted_mem[15];
   size_t ofs = 0;
-  char *info = screen->statusbar_info;
-  int len = sizeof(screen->statusbar_info);
+  static char info[256];
+  int len = sizeof(info);
 
   info[0] = '\0';
 
   /* Scene statistics. */
-  if (U.statusbar_flag & STATUSBAR_SHOW_STATS) {
-    ViewLayer *view_layer = CTX_data_view_layer(C);
-    Scene *scene = CTX_data_scene(C);
+  if (statusbar_flag & STATUSBAR_SHOW_STATS) {
     SceneStatsFmt stats_fmt;
     if (format_stats(bmain, scene, view_layer, &stats_fmt)) {
       get_stats_string(info + ofs, len, &ofs, view_layer, &stats_fmt);
@@ -567,7 +568,7 @@ const char *ED_info_statusbar_string(Main *bmain, bScreen *screen, bContext *C)
   }
 
   /* Memory status. */
-  if (U.statusbar_flag & STATUSBAR_SHOW_MEMORY) {
+  if (statusbar_flag & STATUSBAR_SHOW_MEMORY) {
     if (info[0]) {
       ofs += BLI_snprintf(info + ofs, len - ofs, " | ");
     }
@@ -577,7 +578,7 @@ const char *ED_info_statusbar_string(Main *bmain, bScreen *screen, bContext *C)
   }
 
   /* GPU VRAM status. */
-  if ((U.statusbar_flag & STATUSBAR_SHOW_VRAM) && (GPU_mem_stats_supported())) {
+  if ((statusbar_flag & STATUSBAR_SHOW_VRAM) && (GPU_mem_stats_supported())) {
     int gpu_free_mem_kb, gpu_tot_mem_kb;
     GPU_mem_stats_get(&gpu_tot_mem_kb, &gpu_free_mem_kb);
     float gpu_total_gb = gpu_tot_mem_kb / 1048576.0f;
@@ -599,7 +600,7 @@ const char *ED_info_statusbar_string(Main *bmain, bScreen *screen, bContext *C)
   }
 
   /* Blender version. */
-  if (U.statusbar_flag & STATUSBAR_SHOW_VERSION) {
+  if (statusbar_flag & STATUSBAR_SHOW_VERSION) {
     if (info[0]) {
       ofs += BLI_snprintf(info + ofs, len - ofs, " | ");
     }
@@ -607,6 +608,20 @@ const char *ED_info_statusbar_string(Main *bmain, bScreen *screen, bContext *C)
   }
 
   return info;
+}
+
+const char *ED_info_statusbar_string(Main *bmain, Scene *scene, ViewLayer *view_layer)
+{
+  return info_statusbar_string(bmain, scene, view_layer, U.statusbar_flag);
+}
+
+const char *ED_info_statistics_string(Main *bmain, Scene *scene, ViewLayer *view_layer)
+{
+  const eUserpref_StatusBar_Flag statistics_status_bar_flag = STATUSBAR_SHOW_STATS |
+                                                              STATUSBAR_SHOW_MEMORY |
+                                                              STATUSBAR_SHOW_VERSION;
+
+  return info_statusbar_string(bmain, scene, view_layer, statistics_status_bar_flag);
 }
 
 static void stats_row(int col1,
