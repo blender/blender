@@ -37,7 +37,7 @@
 
 #include "WM_types.h"
 
-static const EnumPropertyItem rna_enum_attribute_type_items[] = {
+const EnumPropertyItem rna_enum_attribute_type_items[] = {
     {CD_PROP_FLOAT, "FLOAT", 0, "Float", "Floating point value"},
     {CD_PROP_INT32, "INT", 0, "Integer", "32 bit integer"},
     {CD_PROP_FLOAT3, "FLOAT_VECTOR", 0, "Vector", "3D vector with floating point values"},
@@ -47,7 +47,7 @@ static const EnumPropertyItem rna_enum_attribute_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-static const EnumPropertyItem rna_enum_attribute_domain_items[] = {
+const EnumPropertyItem rna_enum_attribute_domain_items[] = {
     /* Not implement yet
     {ATTR_DOMAIN_GEOMETRY, "GEOMETRY", 0, "Geometry", "Attribute on (whole) geometry"}, */
     {ATTR_DOMAIN_VERTEX, "VERTEX", 0, "Vertex", "Attribute on mesh vertex"},
@@ -101,14 +101,10 @@ static int rna_Attribute_type_get(PointerRNA *ptr)
   return layer->type;
 }
 
-static const EnumPropertyItem *rna_Attribute_domain_itemf(bContext *UNUSED(C),
-                                                          PointerRNA *ptr,
-                                                          PropertyRNA *UNUSED(prop),
-                                                          bool *r_free)
+const EnumPropertyItem *rna_enum_attribute_domain_itemf(ID *id, bool *r_free)
 {
   EnumPropertyItem *item = NULL;
   const EnumPropertyItem *domain_item = NULL;
-  ID *id = ptr->owner_id;
   const ID_Type id_type = GS(id->name);
   int totitem = 0, a;
 
@@ -131,6 +127,14 @@ static const EnumPropertyItem *rna_Attribute_domain_itemf(bContext *UNUSED(C),
 
   *r_free = true;
   return item;
+}
+
+static const EnumPropertyItem *rna_Attribute_domain_itemf(bContext *UNUSED(C),
+                                                          PointerRNA *ptr,
+                                                          PropertyRNA *UNUSED(prop),
+                                                          bool *r_free)
+{
+  return rna_enum_attribute_domain_itemf(ptr->owner_id, r_free);
 }
 
 static int rna_Attribute_domain_get(PointerRNA *ptr)
@@ -617,7 +621,7 @@ static void rna_def_attribute_group(BlenderRNA *brna)
                       rna_enum_attribute_domain_items,
                       ATTR_DOMAIN_VERTEX,
                       "Domain",
-                      "Attribute domain");
+                      "Type of element that attribute is stored on");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "attribute", "Attribute", "", "New geometry attribute");
   RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);

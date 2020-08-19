@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Panel, UIList
+from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
 
 
@@ -51,14 +51,68 @@ class DATA_PT_context_hair(DataButtonsPanel, Panel):
             layout.template_ID(space, "pin_id")
 
 
-class DATA_PT_hair(DataButtonsPanel, Panel):
-    bl_label = "Hair"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+class HAIR_MT_add_attribute(Menu):
+    bl_label = "Add Attribute"
+
+    @staticmethod
+    def add_standard_attribute(layout, hair, name, data_type, domain):
+        exists = hair.attributes.get(name) != None
+
+        col = layout.column()
+        col.enabled = not exists
+        col.operator_context = 'EXEC_DEFAULT'
+
+        props = col.operator("geometry.attribute_add", text=name)
+        props.name = name
+        props.data_type = data_type
+        props.domain = domain
 
     def draw(self, context):
         layout = self.layout
         hair = context.hair
-        pass
+
+        self.add_standard_attribute(layout, hair, 'Radius', 'FLOAT', 'POINT')
+        self.add_standard_attribute(layout, hair, 'Color', 'FLOAT_COLOR', 'POINT')
+
+        layout.separator()
+
+        layout.operator_context = 'INVOKE_DEFAULT'
+        layout.operator("geometry.attribute_add", text="Custom...")
+
+
+class HAIR_UL_attributes(UIList):
+    def draw_item(self, context, layout, data, attribute, icon, active_data, active_propname, index):
+        data_type = attribute.bl_rna.properties['data_type'].enum_items[attribute.data_type]
+        domain = attribute.bl_rna.properties['domain'].enum_items[attribute.domain]
+
+        split = layout.split(factor=0.5)
+        row = split.row()
+        row.prop(attribute, "name", text="", emboss=False)
+        sub = split.split()
+        sub.alignment = 'RIGHT'
+        sub.active = False
+        sub.label(text=domain.name)
+        sub.label(text=data_type.name)
+
+
+class DATA_PT_hair_attributes(DataButtonsPanel, Panel):
+    bl_label = "Attributes"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+
+    def draw(self, context):
+        hair = context.hair
+
+        layout = self.layout
+        row = layout.row()
+
+        col = row.column()
+        col.template_list("HAIR_UL_attributes", "attributes", hair, "attributes", hair.attributes, "active_index", rows=3)
+
+        col = row.column(align=True)
+        col.menu("HAIR_MT_add_attribute", icon='ADD', text="")
+        col.operator("geometry.attribute_remove", icon='REMOVE', text="")
+
+
 
 class DATA_PT_custom_props_hair(DataButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
@@ -68,8 +122,10 @@ class DATA_PT_custom_props_hair(DataButtonsPanel, PropertyPanel, Panel):
 
 classes = (
     DATA_PT_context_hair,
-    DATA_PT_hair,
+    DATA_PT_hair_attributes,
     DATA_PT_custom_props_hair,
+    HAIR_MT_add_attribute,
+    HAIR_UL_attributes,
 )
 
 if __name__ == "__main__":  # only for live edit.

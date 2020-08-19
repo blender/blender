@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Panel, UIList
+from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
 
 
@@ -51,14 +51,67 @@ class DATA_PT_context_pointcloud(DataButtonsPanel, Panel):
             layout.template_ID(space, "pin_id")
 
 
-class DATA_PT_pointcloud(DataButtonsPanel, Panel):
-    bl_label = "Point Cloud"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+class POINTCLOUD_MT_add_attribute(Menu):
+    bl_label = "Add Attribute"
+
+    @staticmethod
+    def add_standard_attribute(layout, pointcloud, name, data_type, domain):
+        exists = pointcloud.attributes.get(name) != None
+
+        col = layout.column()
+        col.enabled = not exists
+        col.operator_context = 'EXEC_DEFAULT'
+
+        props = col.operator("geometry.attribute_add", text=name)
+        props.name = name
+        props.data_type = data_type
+        props.domain = domain
 
     def draw(self, context):
         layout = self.layout
         pointcloud = context.pointcloud
-        pass
+
+        self.add_standard_attribute(layout, pointcloud, 'Radius', 'FLOAT', 'POINT')
+        self.add_standard_attribute(layout, pointcloud, 'Color', 'FLOAT_COLOR', 'POINT')
+        self.add_standard_attribute(layout, pointcloud, 'Particle ID', 'INT', 'POINT')
+        self.add_standard_attribute(layout, pointcloud, 'Velocity', 'FLOAT_VECTOR', 'POINT')
+
+        layout.separator()
+
+        layout.operator_context = 'INVOKE_DEFAULT'
+        layout.operator("geometry.attribute_add", text="Custom...")
+
+
+class POINTCLOUD_UL_attributes(UIList):
+    def draw_item(self, context, layout, data, attribute, icon, active_data, active_propname, index):
+        data_type = attribute.bl_rna.properties['data_type'].enum_items[attribute.data_type]
+
+        split = layout.split(factor=0.75)
+        split.prop(attribute, "name", text="", emboss=False)
+        sub = split.row()
+        sub.alignment = 'RIGHT'
+        sub.active = False
+        sub.label(text=data_type.name)
+
+
+class DATA_PT_pointcloud_attributes(DataButtonsPanel, Panel):
+    bl_label = "Attributes"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+
+    def draw(self, context):
+        pointcloud = context.pointcloud
+
+        layout = self.layout
+        row = layout.row()
+
+        col = row.column()
+        col.template_list("POINTCLOUD_UL_attributes", "attributes", pointcloud, "attributes", pointcloud.attributes, "active_index", rows=3)
+
+        col = row.column(align=True)
+        col.menu("POINTCLOUD_MT_add_attribute", icon='ADD', text="")
+        col.operator("geometry.attribute_remove", icon='REMOVE', text="")
+
+
 
 class DATA_PT_custom_props_pointcloud(DataButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
@@ -68,8 +121,10 @@ class DATA_PT_custom_props_pointcloud(DataButtonsPanel, PropertyPanel, Panel):
 
 classes = (
     DATA_PT_context_pointcloud,
-    DATA_PT_pointcloud,
+    DATA_PT_pointcloud_attributes,
     DATA_PT_custom_props_pointcloud,
+    POINTCLOUD_MT_add_attribute,
+    POINTCLOUD_UL_attributes,
 )
 
 if __name__ == "__main__":  # only for live edit.

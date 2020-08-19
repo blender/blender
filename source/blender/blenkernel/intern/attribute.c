@@ -101,6 +101,18 @@ static CustomData *attribute_customdata_find(ID *id, CustomDataLayer *layer)
   return NULL;
 }
 
+bool BKE_id_attributes_supported(struct ID *id)
+{
+  DomainInfo info[ATTR_DOMAIN_NUM];
+  get_domains(id, info);
+  for (AttributeDomain domain = 0; domain < ATTR_DOMAIN_NUM; domain++) {
+    if (info[domain].customdata) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool BKE_id_attribute_rename(ID *id,
                              CustomDataLayer *layer,
                              const char *new_name,
@@ -139,7 +151,7 @@ CustomDataLayer *BKE_id_attribute_new(
   return (index == -1) ? NULL : &(customdata->layers[index]);
 }
 
-void BKE_id_attribute_remove(ID *id, CustomDataLayer *layer, ReportList *reports)
+bool BKE_id_attribute_remove(ID *id, CustomDataLayer *layer, ReportList *reports)
 {
   CustomData *customdata = attribute_customdata_find(id, layer);
   const int index = (customdata) ?
@@ -148,16 +160,17 @@ void BKE_id_attribute_remove(ID *id, CustomDataLayer *layer, ReportList *reports
 
   if (index == -1) {
     BKE_report(reports, RPT_ERROR, "Attribute is not part of this geometry");
-    return;
+    return false;
   }
 
   if (BKE_id_attribute_required(id, layer)) {
     BKE_report(reports, RPT_ERROR, "Attribute is required and can't be removed");
-    return;
+    return false;
   }
 
   const int length = BKE_id_attribute_data_length(id, layer);
   CustomData_free_layer(customdata, layer->type, length, index);
+  return true;
 }
 
 int BKE_id_attributes_length(ID *id, const CustomDataMask mask)
