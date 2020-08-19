@@ -15,7 +15,8 @@
  *
  * The Original Code is written by Rob Haarsma (phase)
  * All rights reserved.
- * This code parses the Freetype font outline data to chains of Blender's beziertriples.
+ *
+ * This code parses the Freetype font outline data to chains of Blender's bezier-triples.
  * Additional information can be found at the bottom of this file.
  *
  * Code that uses exotic character maps is present but commented out.

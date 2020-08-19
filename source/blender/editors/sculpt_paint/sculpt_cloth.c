@@ -311,7 +311,7 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
     else if (data->cloth_sim->deformation_pos) {
       /* Any other tool that target the cloth simulation handle the falloff in
        * their own code when modifying the deformation coordinates of the simulation, so
-       * deformation constraints are created with a fixed strength for all vercies. */
+       * deformation constraints are created with a fixed strength for all vertices. */
       cloth_brush_add_deformation_constraint(
           data->cloth_sim, vd.index, CLOTH_DEFORMATION_TARGET_STRENGTH);
     }
@@ -319,7 +319,7 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
     if (pin_simulation_boundary) {
       const float sim_falloff = cloth_brush_simulation_falloff_get(
           brush, ss->cache->initial_radius, ss->cache->location, vd.co);
-      /* Vertex is inside the area of the simulation without any falloff aplied. */
+      /* Vertex is inside the area of the simulation without any falloff applied. */
       if (sim_falloff < 1.0f) {
         /* Create constraints with more strength the closer the vertex is to the simulation
          * boundary. */

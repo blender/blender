@@ -54,7 +54,7 @@ typedef enum eGPUBlend {
   /** Replace logic op: SRC * (1 - DST)
    * NOTE: Does not modify alpha. */
   GPU_BLEND_INVERT,
-  /** Order independant transparency.
+  /** Order independent transparency.
    * NOTE: Cannot be used as is. Needs special setup (framebuffer, shader ...). */
   GPU_BLEND_OIT,
   /** Special blend to add color under and multiply dst color by src alpha. */

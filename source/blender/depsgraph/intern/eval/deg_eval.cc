@@ -86,8 +86,8 @@ enum class EvaluationStage {
 
   /* Workaround for areas which can not be evaluated in threads.
    *
-   * For example, metaballs, which are iterating over all bases and are requesting dupli-lists
-   * to see whether there are metaballs inside. */
+   * For example, meta-balls, which are iterating over all bases and are requesting dupli-lists
+   * to see whether there are meta-balls inside. */
   SINGLE_THREADED_WORKAROUND,
 };
 

@@ -31,7 +31,7 @@
 namespace blender {
 namespace gpu {
 
-/* Ecapsulate all pipeline state that we need to track.
+/* Encapsulate all pipeline state that we need to track.
  * Try to keep small to reduce validation time. */
 union GPUState {
   struct {

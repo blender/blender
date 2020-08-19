@@ -244,7 +244,7 @@ struct wmGizmo {
   int drag_part;
 
   /** Distance to bias this gizmo above others when picking
-   * (in worldspace, scaled by the gizmo scale - when used). */
+   * (in world-space, scaled by the gizmo scale - when used). */
   float select_bias;
 
   /**
