@@ -390,6 +390,8 @@ if(WITH_GTESTS)
     tests/BLI_task_test.cc
     tests/BLI_vector_set_test.cc
     tests/BLI_vector_test.cc
+
+    tests/BLI_exception_safety_test_utils.hh
   )
   set(TEST_INC
     ../imbuf

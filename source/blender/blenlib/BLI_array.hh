@@ -77,32 +77,39 @@ class Array {
   /**
    * By default an empty array is created.
    */
-  Array()
+  Array(Allocator allocator = {}) noexcept : allocator_(allocator)
   {
     data_ = inline_buffer_;
     size_ = 0;
   }
 
-  /**
-   * Create a new array that contains copies of all values.
-   */
-  template<typename U, typename std::enable_if_t<std::is_convertible_v<U, T>> * = nullptr>
-  Array(Span<U> values, Allocator allocator = {}) : allocator_(allocator)
+  Array(NoExceptConstructor, Allocator allocator = {}) noexcept : Array(allocator)
   {
-    size_ = values.size();
-    data_ = this->get_buffer_for_size(values.size());
-    uninitialized_convert_n<U, T>(values.data(), size_, data_);
   }
 
   /**
    * Create a new array that contains copies of all values.
    */
   template<typename U, typename std::enable_if_t<std::is_convertible_v<U, T>> * = nullptr>
-  Array(const std::initializer_list<U> &values) : Array(Span<U>(values))
+  Array(Span<U> values, Allocator allocator = {}) : Array(NoExceptConstructor(), allocator)
+  {
+    const int64_t size = values.size();
+    data_ = this->get_buffer_for_size(size);
+    uninitialized_convert_n<U, T>(values.data(), size, data_);
+    size_ = size;
+  }
+
+  /**
+   * Create a new array that contains copies of all values.
+   */
+  template<typename U, typename std::enable_if_t<std::is_convertible_v<U, T>> * = nullptr>
+  Array(const std::initializer_list<U> &values, Allocator allocator = {})
+      : Array(Span<U>(values), allocator)
   {
   }
 
-  Array(const std::initializer_list<T> &values) : Array(Span<T>(values))
+  Array(const std::initializer_list<T> &values, Allocator allocator = {})
+      : Array(Span<T>(values), allocator)
   {
   }
 
@@ -114,23 +121,24 @@ class Array {
    * even for non-trivial types. This should not be the default though, because one can easily mess
    * up when dealing with uninitialized memory.
    */
-  explicit Array(int64_t size)
+  explicit Array(int64_t size, Allocator allocator = {}) : Array(NoExceptConstructor(), allocator)
   {
-    size_ = size;
     data_ = this->get_buffer_for_size(size);
     default_construct_n(data_, size);
+    size_ = size;
   }
 
   /**
    * Create a new array with the given size. All values will be initialized by copying the given
    * default.
    */
-  Array(int64_t size, const T &value)
+  Array(int64_t size, const T &value, Allocator allocator = {})
+      : Array(NoExceptConstructor(), allocator)
   {
     BLI_assert(size >= 0);
-    size_ = size;
     data_ = this->get_buffer_for_size(size);
-    uninitialized_fill_n(data_, size_, value);
+    uninitialized_fill_n(data_, size, value);
+    size_ = size;
   }
 
   /**
@@ -145,28 +153,28 @@ class Array {
    * Usage:
    *  Array<std::string> my_strings(10, NoInitialization());
    */
-  Array(int64_t size, NoInitialization)
+  Array(int64_t size, NoInitialization, Allocator allocator = {})
+      : Array(NoExceptConstructor(), allocator)
   {
     BLI_assert(size >= 0);
-    size_ = size;
     data_ = this->get_buffer_for_size(size);
+    size_ = size;
   }
 
   Array(const Array &other) : Array(other.as_span(), other.allocator_)
   {
   }
 
-  Array(Array &&other) noexcept : allocator_(other.allocator_)
+  Array(Array &&other) noexcept(std::is_nothrow_move_constructible_v<T>)
+      : Array(NoExceptConstructor(), other.allocator_)
   {
-    size_ = other.size_;
-
-    if (!other.uses_inline_buffer()) {
-      data_ = other.data_;
+    if (other.uses_inline_buffer()) {
+      uninitialized_relocate_n(other.data_, other.size_, data_);
     }
     else {
-      data_ = this->get_buffer_for_size(size_);
-      uninitialized_relocate_n(other.data_, size_, data_);
+      data_ = other.data_;
     }
+    size_ = other.size_;
 
     other.data_ = other.inline_buffer_;
     other.size_ = 0;
@@ -182,24 +190,12 @@ class Array {
 
   Array &operator=(const Array &other)
   {
-    if (this == &other) {
-      return *this;
-    }
-
-    this->~Array();
-    new (this) Array(other);
-    return *this;
+    return copy_assign_container(*this, other);
   }
 
-  Array &operator=(Array &&other)
+  Array &operator=(Array &&other) noexcept(std::is_nothrow_move_constructible_v<T>)
   {
-    if (this == &other) {
-      return *this;
-    }
-
-    this->~Array();
-    new (this) Array(std::move(other));
-    return *this;
+    return move_assign_container(*this, std::move(other));
   }
 
   T &operator[](int64_t index)

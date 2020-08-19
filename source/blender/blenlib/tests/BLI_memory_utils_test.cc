@@ -7,6 +7,7 @@
 
 namespace blender::tests {
 
+namespace {
 struct MyValue {
   static inline int alive = 0;
 
@@ -33,6 +34,7 @@ struct MyValue {
     alive--;
   }
 };
+}  // namespace
 
 TEST(memory_utils, DefaultConstructN_ActuallyCallsConstructor)
 {

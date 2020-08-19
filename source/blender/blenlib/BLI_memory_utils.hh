@@ -162,7 +162,7 @@ void uninitialized_convert_n(const From *src, int64_t n, To *dst)
   int64_t current = 0;
   try {
     for (; current < n; current++) {
-      new (static_cast<void *>(dst + current)) To((To)src[current]);
+      new (static_cast<void *>(dst + current)) To(static_cast<To>(src[current]));
     }
   }
   catch (...) {
@@ -410,6 +410,15 @@ class NoInitialization {
 };
 
 /**
+ * This can be used to mark a constructor of an object that does not throw exceptions. Other
+ * constructors can delegate to this constructor to make sure that the object lifetime starts.
+ * With this, the destructor of the object will be called, even when the remaining constructor
+ * throws.
+ */
+class NoExceptConstructor {
+};
+
+/**
  * Helper variable that checks if a pointer type can be converted into another pointer type without
  * issues. Possible issues are casting away const and casting a pointer to a child class.
  * Adding const or casting to a parent class is fine.
@@ -425,6 +434,51 @@ inline constexpr bool is_convertible_pointer_v =
 inline constexpr int64_t default_inline_buffer_capacity(size_t element_size)
 {
   return (static_cast<int64_t>(element_size) < 100) ? 4 : 0;
+}
+
+/**
+ * This can be used by containers to implement an exception-safe copy-assignment-operator.
+ * It assumes that the container has an exception safe copy constructor and an exception-safe
+ * move-assignment-operator.
+ */
+template<typename Container> Container &copy_assign_container(Container &dst, const Container &src)
+{
+  if (&src == &dst) {
+    return dst;
+  }
+
+  Container container_copy{src};
+  dst = std::move(container_copy);
+  return dst;
+}
+
+/**
+ * This can be used by containers to implement an exception-safe move-assignment-operator.
+ * It assumes that the container has an exception-safe move-constructor and a noexcept constructor
+ * tagged with the NoExceptConstructor tag.
+ */
+template<typename Container>
+Container &move_assign_container(Container &dst, Container &&src) noexcept(
+    std::is_nothrow_move_constructible_v<Container>)
+{
+  if (&dst == &src) {
+    return dst;
+  }
+
+  dst.~Container();
+  if constexpr (std::is_nothrow_move_constructible_v<Container>) {
+    new (&dst) Container(std::move(src));
+  }
+  else {
+    try {
+      new (&dst) Container(std::move(src));
+    }
+    catch (...) {
+      new (&dst) Container(NoExceptConstructor());
+      throw;
+    }
+  }
+  return dst;
 }
 
 }  // namespace blender

@@ -1,5 +1,6 @@
 /* Apache License, Version 2.0 */
 
+#include "BLI_exception_safety_test_utils.hh"
 #include "BLI_strict_flags.h"
 #include "BLI_vector.hh"
 #include "testing/testing.h"
@@ -707,6 +708,89 @@ TEST(vector, ReverseIterator)
   }
   EXPECT_EQ(reversed_vec.size(), 4);
   EXPECT_EQ_ARRAY(reversed_vec.data(), Span({7, 6, 5, 4}).data(), 4);
+}
+
+TEST(vector, SizeValueConstructorExceptions)
+{
+  ExceptionThrower value;
+  value.throw_during_copy = true;
+  EXPECT_ANY_THROW({ Vector<ExceptionThrower> vec(5, value); });
+}
+
+TEST(vector, SpanConstructorExceptions)
+{
+  std::array<ExceptionThrower, 5> values;
+  values[3].throw_during_copy = true;
+  EXPECT_ANY_THROW({ Vector<ExceptionThrower> vec(values); });
+}
+
+TEST(vector, MoveConstructorExceptions)
+{
+  Vector<ExceptionThrower, 4> vec(3);
+  vec[2].throw_during_move = true;
+  EXPECT_ANY_THROW({ Vector<ExceptionThrower> moved_vector{std::move(vec)}; });
+}
+
+TEST(vector, AppendExceptions)
+{
+  Vector<ExceptionThrower, 4> vec(2);
+  ExceptionThrower *ptr1 = &vec.last();
+  ExceptionThrower value;
+  value.throw_during_copy = true;
+  EXPECT_ANY_THROW({ vec.append(value); });
+  EXPECT_EQ(vec.size(), 2);
+  ExceptionThrower *ptr2 = &vec.last();
+  EXPECT_EQ(ptr1, ptr2);
+}
+
+TEST(vector, ExtendExceptions)
+{
+  Vector<ExceptionThrower> vec(5);
+  std::array<ExceptionThrower, 10> values;
+  values[6].throw_during_copy = true;
+  EXPECT_ANY_THROW({ vec.extend(values); });
+  EXPECT_EQ(vec.size(), 5);
+}
+
+TEST(vector, Insert1Exceptions)
+{
+  Vector<ExceptionThrower> vec(10);
+  std::array<ExceptionThrower, 5> values;
+  values[3].throw_during_copy = true;
+  EXPECT_ANY_THROW({ vec.insert(7, values); });
+}
+
+TEST(vector, Insert2Exceptions)
+{
+  Vector<ExceptionThrower> vec(10);
+  vec.reserve(100);
+  vec[8].throw_during_move = true;
+  std::array<ExceptionThrower, 5> values;
+  EXPECT_ANY_THROW({ vec.insert(3, values); });
+}
+
+TEST(vector, PopLastExceptions)
+{
+  Vector<ExceptionThrower> vec(10);
+  vec.last().throw_during_move = true;
+  EXPECT_ANY_THROW({ vec.pop_last(); }); /* NOLINT: bugprone-throw-keyword-missing */
+  EXPECT_EQ(vec.size(), 10);
+}
+
+TEST(vector, RemoveAndReorderExceptions)
+{
+  Vector<ExceptionThrower> vec(10);
+  vec.last().throw_during_move = true;
+  EXPECT_ANY_THROW({ vec.remove_and_reorder(3); });
+  EXPECT_EQ(vec.size(), 10);
+}
+
+TEST(vector, RemoveExceptions)
+{
+  Vector<ExceptionThrower> vec(10);
+  vec[8].throw_during_move = true;
+  EXPECT_ANY_THROW({ vec.remove(2); });
+  EXPECT_EQ(vec.size(), 10);
 }
 
 }  // namespace blender::tests
