@@ -757,7 +757,6 @@ static char *find_next_op(const char *str, char *remaining_str, int len_max)
     if (ch_is_op(remaining_str[i])) {
       if (scientific_notation) {
         scientific_notation = false;
-        continue;
       }
 
       /* Make sure we don't look backwards before the start of the string. */
