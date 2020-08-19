@@ -110,6 +110,8 @@ void BKE_toolsettings_free(struct ToolSettings *toolsettings);
 struct Scene *BKE_scene_duplicate(struct Main *bmain, struct Scene *sce, eSceneCopyMethod type);
 void BKE_scene_groups_relink(struct Scene *sce);
 
+struct Scene *BKE_scene_find_from_view_layer(const struct Main *bmain,
+                                             const struct ViewLayer *layer);
 struct Scene *BKE_scene_find_from_collection(const struct Main *bmain,
                                              const struct Collection *collection);
 

@@ -926,8 +926,18 @@ static void rna_Scene_volume_update(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 
 static const char *rna_Scene_statistics_string_get(Scene *scene,
                                                    Main *bmain,
+                                                   ReportList *reports,
                                                    ViewLayer *view_layer)
 {
+  if (BKE_scene_find_from_view_layer(bmain, view_layer) != scene) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "View Layer '%s' not found in scene '%s'",
+                view_layer->name,
+                scene->id.name + 2);
+    return "";
+  }
+
   return ED_info_statistics_string(bmain, scene, view_layer);
 }
 
@@ -7680,7 +7690,7 @@ void RNA_def_scene(BlenderRNA *brna)
 
   /* Statistics */
   func = RNA_def_function(srna, "statistics", "rna_Scene_statistics_string_get");
-  RNA_def_function_flag(func, FUNC_USE_MAIN);
+  RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "view_layer", "ViewLayer", "View Layer", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_string(func, "statistics", NULL, 0, "Statistics", "");
