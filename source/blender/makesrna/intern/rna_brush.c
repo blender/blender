@@ -45,6 +45,7 @@ static const EnumPropertyItem prop_direction_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+#ifdef RNA_RUNTIME
 static const EnumPropertyItem prop_smooth_direction_items[] = {
     {0, "SMOOTH", ICON_ADD, "Smooth", "Smooth the surfae"},
     {BRUSH_DIR_IN,
@@ -54,6 +55,7 @@ static const EnumPropertyItem prop_smooth_direction_items[] = {
      "Enhance the surface detail"},
     {0, NULL, 0, NULL, NULL},
 };
+#endif
 
 static const EnumPropertyItem sculpt_stroke_method_items[] = {
     {0, "DOTS", 0, "Dots", "Apply paint on each mouse move step"},

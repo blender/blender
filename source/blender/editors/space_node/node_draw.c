@@ -867,7 +867,7 @@ void ED_node_socket_draw(bNodeSocket *sock, const rcti *rect, const float color[
 
 /* **************  Socket callbacks *********** */
 
-static void node_draw_preview_background(float tile, rctf *rect)
+static void node_draw_preview_background(rctf *rect)
 {
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -909,7 +909,7 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
     scale = yscale;
   }
 
-  node_draw_preview_background(BLI_rctf_size_x(prv) / 10.0f, &draw_rect);
+  node_draw_preview_background(&draw_rect);
 
   GPU_blend(GPU_BLEND_ALPHA);
   /* premul graphics */
