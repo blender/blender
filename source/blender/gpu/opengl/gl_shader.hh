@@ -57,7 +57,7 @@ class GLShader : public Shader {
   bool finalize(void) override;
 
   void transform_feedback_names_set(Span<const char *> name_list,
-                                    const eGPUShaderTFBType geom_type);
+                                    const eGPUShaderTFBType geom_type) override;
   bool transform_feedback_enable(GPUVertBuf *buf) override;
   void transform_feedback_disable(void) override;
 

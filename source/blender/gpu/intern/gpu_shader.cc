@@ -95,7 +95,7 @@ void Shader::print_errors(Span<const char *> sources, char *log)
         error_char = (int)strtol(error_line_number_end + 1, NULL, 10);
       }
     }
-    if ((error_line == -1)) {
+    if (error_line == -1) {
       found_line_id = false;
     }
     const char *src_line = sources_combined;
