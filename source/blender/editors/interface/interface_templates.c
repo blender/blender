@@ -7361,6 +7361,10 @@ int uiTemplateRecentFiles(uiLayout *layout, int rows)
 {
   int i;
   LISTBASE_FOREACH_INDEX (RecentFile *, recent, &G.recent_files, i) {
+    if (i >= rows) {
+      break;
+    }
+
     const char *filename = BLI_path_basename(recent->filepath);
     PointerRNA ptr;
     uiItemFullO(layout,
@@ -7373,10 +7377,6 @@ int uiTemplateRecentFiles(uiLayout *layout, int rows)
                 &ptr);
     RNA_string_set(&ptr, "filepath", recent->filepath);
     RNA_boolean_set(&ptr, "display_file_selector", false);
-
-    if (i > rows) {
-      break;
-    }
   }
 
   return i;
