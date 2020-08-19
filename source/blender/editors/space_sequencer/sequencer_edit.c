@@ -58,6 +58,7 @@
 #include "ED_sequencer.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "DEG_depsgraph.h"
@@ -2383,6 +2384,28 @@ static int sequencer_split_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   return sequencer_split_exec(C, op);
 }
 
+static void sequencer_split_ui(bContext *UNUSED(C), wmOperator *op)
+{
+  uiLayout *layout = op->layout;
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+
+  PointerRNA ptr;
+  RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+
+  uiLayout *row = uiLayoutRow(layout, false);
+  uiItemR(row, &ptr, "type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "frame", 0, NULL, ICON_NONE);
+  uiItemR(layout, &ptr, "side", 0, NULL, ICON_NONE);
+
+  uiItemS(layout);
+
+  uiItemR(layout, &ptr, "use_cursor_position", 0, NULL, ICON_NONE);
+  if (RNA_boolean_get(&ptr, "use_cursor_position")) {
+    uiItemR(layout, &ptr, "channel", 0, NULL, ICON_NONE);
+  }
+}
+
 void SEQUENCER_OT_split(struct wmOperatorType *ot)
 {
   /* Identifiers. */
@@ -2394,6 +2417,7 @@ void SEQUENCER_OT_split(struct wmOperatorType *ot)
   ot->invoke = sequencer_split_invoke;
   ot->exec = sequencer_split_exec;
   ot->poll = sequencer_edit_poll;
+  ot->ui = sequencer_split_ui;
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
