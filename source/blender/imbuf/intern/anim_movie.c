@@ -55,6 +55,7 @@
 
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
@@ -572,6 +573,9 @@ static int startffmpeg(struct anim *anim)
   }
 
   pCodecCtx->workaround_bugs = 1;
+
+  pCodecCtx->thread_count = BLI_system_thread_count();
+  pCodecCtx->thread_type = FF_THREAD_SLICE;
 
   if (avcodec_open2(pCodecCtx, pCodec, NULL) < 0) {
     avformat_close_input(&pFormatCtx);

@@ -37,6 +37,7 @@
 #  endif
 
 #  include "BLI_math_base.h"
+#  include "BLI_threads.h"
 #  include "BLI_utildefines.h"
 
 #  include "BKE_global.h"
@@ -566,8 +567,8 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   /* Set up the codec context */
 
   c = st->codec;
-  c->thread_count = 0;
-  c->thread_type = FF_THREAD_FRAME;
+  c->thread_count = BLI_system_thread_count();
+  c->thread_type = FF_THREAD_SLICE;
 
   c->codec_id = codec_id;
   c->codec_type = AVMEDIA_TYPE_VIDEO;
@@ -780,8 +781,8 @@ static AVStream *alloc_audio_stream(FFMpegContext *context,
   st->id = 1;
 
   c = st->codec;
-  c->thread_count = 0;
-  c->thread_type = FF_THREAD_FRAME;
+  c->thread_count = BLI_system_thread_count();
+  c->thread_type = FF_THREAD_SLICE;
 
   c->codec_id = codec_id;
   c->codec_type = AVMEDIA_TYPE_AUDIO;
