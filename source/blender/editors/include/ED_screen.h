@@ -81,18 +81,12 @@ void ED_region_tag_refresh_ui(struct ARegion *region);
 void ED_region_tag_redraw_editor_overlays(struct ARegion *region);
 
 void ED_region_panels_init(struct wmWindowManager *wm, struct ARegion *region);
-void ED_region_panels_ex(const struct bContext *C,
-                         struct ARegion *region,
-                         const char *contexts[],
-                         int contextnr,
-                         const bool vertical);
+void ED_region_panels_ex(const struct bContext *C, struct ARegion *region, const char *contexts[]);
 void ED_region_panels(const struct bContext *C, struct ARegion *region);
 void ED_region_panels_layout_ex(const struct bContext *C,
                                 struct ARegion *region,
                                 struct ListBase *paneltypes,
                                 const char *contexts[],
-                                int contextnr,
-                                const bool vertical,
                                 const char *category_override);
 
 void ED_region_panels_layout(const struct bContext *C, struct ARegion *region);

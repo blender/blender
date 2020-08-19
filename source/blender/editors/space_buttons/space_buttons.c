@@ -292,9 +292,7 @@ static void buttons_main_region_layout_properties(const bContext *C,
       break;
   }
 
-  const bool vertical = true;
-  ED_region_panels_layout_ex(
-      C, region, &region->type->paneltypes, contexts, sbuts->mainb, vertical, NULL);
+  ED_region_panels_layout_ex(C, region, &region->type->paneltypes, contexts, NULL);
 }
 
 static void buttons_main_region_layout(const bContext *C, ARegion *region)

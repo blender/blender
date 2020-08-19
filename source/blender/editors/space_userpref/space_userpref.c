@@ -141,8 +141,7 @@ static void userpref_main_region_layout(const bContext *C, ARegion *region)
     BLI_str_tolower_ascii(id_lower, strlen(id_lower));
   }
 
-  ED_region_panels_layout_ex(
-      C, region, &region->type->paneltypes, contexts, U.space_data.section_active, true, NULL);
+  ED_region_panels_layout_ex(C, region, &region->type->paneltypes, contexts, NULL);
 }
 
 static void userpref_operatortypes(void)

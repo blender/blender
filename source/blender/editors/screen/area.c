@@ -2575,7 +2575,6 @@ static void ed_panel_draw(const bContext *C,
                           Panel *panel,
                           int w,
                           int em,
-                          bool vertical,
                           char *unique_panel_str)
 {
   const uiStyle *style = UI_style_get_dpi();
@@ -2597,7 +2596,7 @@ static void ed_panel_draw(const bContext *C,
   int xco, yco, h = 0;
   int headerend = w - UI_UNIT_X;
 
-  if (pt->draw_header_preset && !(pt->flag & PNL_NO_HEADER) && (open || vertical)) {
+  if (pt->draw_header_preset && !(pt->flag & PNL_NO_HEADER) && open) {
     /* for preset menu */
     panel->layout = UI_block_layout(block,
                                     UI_LAYOUT_HORIZONTAL,
@@ -2616,7 +2615,7 @@ static void ed_panel_draw(const bContext *C,
     panel->layout = NULL;
   }
 
-  if (pt->draw_header && !(pt->flag & PNL_NO_HEADER) && (open || vertical)) {
+  if (pt->draw_header && !(pt->flag & PNL_NO_HEADER) && open) {
     int labelx, labely;
     UI_panel_label_offset(block, &labelx, &labely);
 
@@ -2693,8 +2692,7 @@ static void ed_panel_draw(const bContext *C,
       Panel *child_panel = UI_panel_find_by_type(&panel->children, child_pt);
 
       if (child_pt->draw && (!child_pt->poll || child_pt->poll(C, child_pt))) {
-        ed_panel_draw(
-            C, region, &panel->children, child_pt, child_panel, w, em, vertical, unique_panel_str);
+        ed_panel_draw(C, region, &panel->children, child_pt, child_panel, w, em, unique_panel_str);
       }
     }
   }
@@ -2711,8 +2709,6 @@ void ED_region_panels_layout_ex(const bContext *C,
                                 ARegion *region,
                                 ListBase *paneltypes,
                                 const char *contexts[],
-                                int contextnr,
-                                const bool vertical,
                                 const char *category_override)
 {
   /* collect panels to draw */
@@ -2763,25 +2759,13 @@ void ED_region_panels_layout_ex(const bContext *C,
   const int category_tabs_width = UI_PANEL_CATEGORY_MARGIN_WIDTH;
   int margin_x = 0;
   const bool region_layout_based = region->flag & RGN_FLAG_DYNAMIC_SIZE;
-  const bool is_context_new = (contextnr != -1) ? UI_view2d_tab_set(v2d, contextnr) : false;
   bool update_tot_size = true;
 
-  /* before setting the view */
-  if (vertical) {
-    /* only allow scrolling in vertical direction */
-    v2d->keepofs |= V2D_LOCKOFS_X | V2D_KEEPOFS_Y;
-    v2d->keepofs &= ~(V2D_LOCKOFS_Y | V2D_KEEPOFS_X);
-    v2d->scroll &= ~V2D_SCROLL_BOTTOM;
-    v2d->scroll |= V2D_SCROLL_RIGHT;
-  }
-  else {
-    /* for now, allow scrolling in both directions (since layouts are optimized for vertical,
-     * they often don't fit in horizontal layout)
-     */
-    v2d->keepofs &= ~(V2D_LOCKOFS_X | V2D_LOCKOFS_Y | V2D_KEEPOFS_X | V2D_KEEPOFS_Y);
-    v2d->scroll |= V2D_SCROLL_BOTTOM;
-    v2d->scroll &= ~V2D_SCROLL_RIGHT;
-  }
+  /* only allow scrolling in vertical direction */
+  v2d->keepofs |= V2D_LOCKOFS_X | V2D_KEEPOFS_Y;
+  v2d->keepofs &= ~(V2D_LOCKOFS_Y | V2D_KEEPOFS_X);
+  v2d->scroll &= ~V2D_SCROLL_BOTTOM;
+  v2d->scroll |= V2D_SCROLL_RIGHT;
 
   /* collect categories */
   if (use_category_tabs) {
@@ -2806,14 +2790,8 @@ void ED_region_panels_layout_ex(const bContext *C,
     }
   }
 
-  if (vertical) {
-    w = BLI_rctf_size_x(&v2d->cur);
-    em = (region->type->prefsizex) ? 10 : 20; /* works out to 10*UI_UNIT_X or 20*UI_UNIT_X */
-  }
-  else {
-    w = UI_PANEL_WIDTH;
-    em = (region->type->prefsizex) ? 10 : 20;
-  }
+  w = BLI_rctf_size_x(&v2d->cur);
+  em = (region->type->prefsizex) ? 10 : 20; /* works out to 10*UI_UNIT_X or 20*UI_UNIT_X */
 
   w -= margin_x;
   int w_box_panel = w - UI_PANEL_BOX_STYLE_MARGIN * 2.0f;
@@ -2852,7 +2830,6 @@ void ED_region_panels_layout_ex(const bContext *C,
                   panel,
                   (pt->flag & PNL_DRAW_BOX) ? w_box_panel : w,
                   em,
-                  vertical,
                   NULL);
   }
 
@@ -2886,7 +2863,6 @@ void ED_region_panels_layout_ex(const bContext *C,
                     panel,
                     (panel->type->flag & PNL_DRAW_BOX) ? w_box_panel : w,
                     em,
-                    vertical,
                     unique_panel_str);
     }
   }
@@ -2914,7 +2890,7 @@ void ED_region_panels_layout_ex(const bContext *C,
       y = fabsf(region->sizey * UI_DPI_FAC - 1);
     }
   }
-  else if (vertical) {
+  else {
     /* We always keep the scroll offset -
      * so the total view gets increased with the scrolled away part. */
     if (v2d->cur.ymax < -FLT_EPSILON) {
@@ -2924,19 +2900,6 @@ void ED_region_panels_layout_ex(const bContext *C,
       }
       else {
         y = min_ii(y, v2d->cur.ymin);
-      }
-    }
-
-    y = -y;
-  }
-  else {
-    /* don't jump back when panels close or hide */
-    if (!is_context_new) {
-      if (v2d->tot.xmax > v2d->winx) {
-        x = max_ii(x, 0);
-      }
-      else {
-        x = max_ii(x, v2d->cur.xmax);
       }
     }
 
@@ -2955,8 +2918,7 @@ void ED_region_panels_layout_ex(const bContext *C,
 
 void ED_region_panels_layout(const bContext *C, ARegion *region)
 {
-  bool vertical = true;
-  ED_region_panels_layout_ex(C, region, &region->type->paneltypes, NULL, -1, vertical, NULL);
+  ED_region_panels_layout_ex(C, region, &region->type->paneltypes, NULL, NULL);
 }
 
 void ED_region_panels_draw(const bContext *C, ARegion *region)
@@ -3000,12 +2962,10 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
   UI_view2d_scrollers_draw(v2d, mask);
 }
 
-void ED_region_panels_ex(
-    const bContext *C, ARegion *region, const char *contexts[], int contextnr, const bool vertical)
+void ED_region_panels_ex(const bContext *C, ARegion *region, const char *contexts[])
 {
   /* TODO: remove? */
-  ED_region_panels_layout_ex(
-      C, region, &region->type->paneltypes, contexts, contextnr, vertical, NULL);
+  ED_region_panels_layout_ex(C, region, &region->type->paneltypes, contexts, NULL);
   ED_region_panels_draw(C, region);
 }
 

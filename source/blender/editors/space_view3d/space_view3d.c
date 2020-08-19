@@ -1323,9 +1323,7 @@ void ED_view3d_buttons_region_layout_ex(const bContext *C,
     paneltypes = &art->paneltypes;
   }
 
-  const bool vertical = true;
-  ED_region_panels_layout_ex(
-      C, region, paneltypes, contexts_base, -1, vertical, category_override);
+  ED_region_panels_layout_ex(C, region, paneltypes, contexts_base, category_override);
 }
 
 static void view3d_buttons_region_layout(const bContext *C, ARegion *region)
@@ -1453,7 +1451,7 @@ static void view3d_tools_region_init(wmWindowManager *wm, ARegion *region)
 
 static void view3d_tools_region_draw(const bContext *C, ARegion *region)
 {
-  ED_region_panels_ex(C, region, (const char *[]){CTX_data_mode_string(C), NULL}, -1, true);
+  ED_region_panels_ex(C, region, (const char *[]){CTX_data_mode_string(C), NULL});
 }
 
 /* area (not region) level listener */
