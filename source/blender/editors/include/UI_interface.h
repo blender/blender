@@ -1667,19 +1667,13 @@ void UI_panels_end(const struct bContext *C, struct ARegion *region, int *r_x, i
 void UI_panels_draw(const struct bContext *C, struct ARegion *region);
 
 struct Panel *UI_panel_find_by_type(struct ListBase *lb, struct PanelType *pt);
-struct Panel *UI_panel_begin(struct ScrArea *area,
-                             struct ARegion *region,
+struct Panel *UI_panel_begin(struct ARegion *region,
                              struct ListBase *lb,
                              uiBlock *block,
                              struct PanelType *pt,
                              struct Panel *panel,
                              bool *r_open);
-void UI_panel_end(const struct ScrArea *area,
-                  const struct ARegion *region,
-                  uiBlock *block,
-                  int width,
-                  int height,
-                  bool open);
+void UI_panel_end(const struct ARegion *region, uiBlock *block, int width, int height, bool open);
 
 void UI_panels_scale(struct ARegion *region, float new_width);
 void UI_panel_label_offset(struct uiBlock *block, int *r_x, int *r_y);

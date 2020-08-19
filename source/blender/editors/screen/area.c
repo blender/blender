@@ -2592,7 +2592,7 @@ static void ed_panel_draw(const bContext *C,
   uiBlock *block = UI_block_begin(C, region, block_name, UI_EMBOSS);
 
   bool open;
-  panel = UI_panel_begin(area, region, lb, block, pt, panel, &open);
+  panel = UI_panel_begin(region, lb, block, pt, panel, &open);
 
   /* bad fixed values */
   int xco, yco, h = 0;
@@ -2708,7 +2708,7 @@ static void ed_panel_draw(const bContext *C,
     }
   }
 
-  UI_panel_end(area, region, block, w, h, open);
+  UI_panel_end(region, block, w, h, open);
 }
 
 /**

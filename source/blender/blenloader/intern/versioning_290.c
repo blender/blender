@@ -208,6 +208,17 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 291, 1)) {
+    LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
+      if (BKE_collection_cycles_fix(bmain, collection)) {
+        printf(
+            "WARNING: Cycle detected in collection '%s', fixed as best as possible.\n"
+            "You may have to reconstruct your View Layers...\n",
+            collection->id.name);
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -219,15 +230,23 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
    * \note Keep this message at the bottom of the function.
    */
   {
-    LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
-      if (BKE_collection_cycles_fix(bmain, collection)) {
-        printf(
-            "WARNING: Cycle detected in collection '%s', fixed as best as possible.\n"
-            "You may have to reconstruct your View Layers...\n",
-            collection->id.name);
-      }
-    }
+
     /* Keep this block, even when empty. */
+  }
+}
+
+static void panels_remove_x_closed_flag_recursive(Panel *panel)
+{
+  const bool was_closed_x = panel->flag & PNL_UNUSED_1;
+  const bool was_closed_y = panel->flag & PNL_CLOSED; /* That value was the Y closed flag. */
+
+  SET_FLAG_FROM_TEST(panel->flag, was_closed_x || was_closed_y, PNL_CLOSED);
+
+  /* Clear the old PNL_CLOSEDX flag. */
+  panel->flag &= ~PNL_UNUSED_1;
+
+  LISTBASE_FOREACH (Panel *, child_panel, &panel->children) {
+    panels_remove_x_closed_flag_recursive(child_panel);
   }
 }
 
@@ -409,17 +428,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #BLO_version_defaults_userpref_blend
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
+  if (!MAIN_VERSION_ATLEAST(bmain, 291, 1)) {
 
     /* Initialize additional parameter of the Nishita sky model and change altitude unit. */
     if (!DNA_struct_elem_find(fd->filesdna, "NodeTexSky", "float", "sun_intensity")) {
@@ -484,5 +493,29 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    /* Remove panel X axis collapsing, a remnant of horizontal panel alignment. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+          LISTBASE_FOREACH (Panel *, panel, &region->panels) {
+            panels_remove_x_closed_flag_recursive(panel);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #BLO_version_defaults_userpref_blend
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }

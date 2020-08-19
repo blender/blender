@@ -758,6 +758,12 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
     userdef->statusbar_flag = STATUSBAR_SHOW_VERSION;
   }
 
+  if (!USER_VERSION_ATLEAST(291, 1)) {
+    if (userdef->collection_instance_empty_size == 0) {
+      userdef->collection_instance_empty_size = 1.0f;
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -769,10 +775,6 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
    */
   {
     /* Keep this block, even when empty. */
-
-    if (userdef->collection_instance_empty_size == 0) {
-      userdef->collection_instance_empty_size = 1.0f;
-    }
   }
 
   if (userdef->pixelsize == 0.0f) {
