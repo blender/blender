@@ -3378,6 +3378,9 @@ CDT_result *BLI_delaunay_2d_cdt_calc(const CDT_input *input, const CDT_output_ty
   if (input != input_orig) {
     free_modified_input((CDT_input *)input);
   }
+  if (new_edge_map != NULL) {
+    MEM_freeN(new_edge_map);
+  }
   new_cdt_free(cdt);
   return result;
 }
