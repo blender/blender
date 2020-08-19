@@ -301,11 +301,8 @@ void DRW_state_reset(void)
   /* Should stay constant during the whole rendering. */
   GPU_point_size(5);
   GPU_line_smooth(false);
-  /* Bypass U.pixelsize factor. */
-  glLineWidth(1.0f);
-
-  /* Reset blending function */
-  glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+  /* Bypass U.pixelsize factor by using a factor of 0.0f. Will be clamped to 1.0f. */
+  GPU_line_width(0.0f);
 }
 
 /** \} */
@@ -762,13 +759,8 @@ static void draw_call_resource_bind(DRWCommandsState *state, const DRWResourceHa
   /* Front face is not a resource but it is inside the resource handle. */
   bool neg_scale = DRW_handle_negative_scale_get(handle);
   if (neg_scale != state->neg_scale) {
-    if (DST.view_active->is_inverted) {
-      glFrontFace(neg_scale ? GL_CCW : GL_CW);
-    }
-    else {
-      glFrontFace(neg_scale ? GL_CW : GL_CCW);
-    }
     state->neg_scale = neg_scale;
+    GPU_front_facing(neg_scale != DST.view_active->is_inverted);
   }
 
   int chunk = DRW_handle_chunk_get(handle);
@@ -898,7 +890,7 @@ static void draw_call_batching_finish(DRWShadingGroup *shgroup, DRWCommandsState
 
   /* Reset state */
   if (state->neg_scale) {
-    glFrontFace(DST.view_active->is_inverted ? GL_CW : GL_CCW);
+    GPU_front_facing(DST.view_active->is_inverted);
   }
   if (state->obmats_loc != -1) {
     GPU_uniformbuffer_unbind(DST.vmempool->matrices_ubo[state->resource_chunk]);
@@ -1110,7 +1102,7 @@ static void drw_draw_pass_ex(DRWPass *pass,
   drw_state_validate();
 
   if (DST.view_active->is_inverted) {
-    glFrontFace(GL_CW);
+    GPU_front_facing(true);
   }
 
   DRW_stats_query_start(pass->name);
@@ -1147,7 +1139,7 @@ static void drw_draw_pass_ex(DRWPass *pass,
 
   /* Reset default. */
   if (DST.view_active->is_inverted) {
-    glFrontFace(GL_CCW);
+    GPU_front_facing(false);
   }
 
   DRW_stats_query_end();
