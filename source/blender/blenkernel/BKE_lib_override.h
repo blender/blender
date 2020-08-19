@@ -68,11 +68,19 @@ void BKE_lib_override_library_dependencies_tag(struct Main *bmain,
                                                struct ID *id_root,
                                                const uint tag,
                                                const bool do_create_main_relashionships);
+void BKE_lib_override_library_override_group_tag(struct Main *bmain,
+                                                 struct ID *id_root,
+                                                 const uint tag,
+                                                 const bool do_create_main_relashionships);
 bool BKE_lib_override_library_create(struct Main *bmain,
                                      struct Scene *scene,
                                      struct ViewLayer *view_layer,
                                      struct ID *id_root,
                                      struct ID *id_reference);
+bool BKE_lib_override_library_resync(struct Main *bmain,
+                                     struct Scene *scene,
+                                     struct ViewLayer *view_layer,
+                                     struct ID *id_root);
 
 struct IDOverrideLibraryProperty *BKE_lib_override_library_property_find(
     struct IDOverrideLibrary *override, const char *rna_path);
