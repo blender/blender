@@ -2569,7 +2569,6 @@ BLI_INLINE bool streq_array_any(const char *s, const char *arr[])
  * correct old \a uiBlock, and NULL otherwise.
  */
 static void ed_panel_draw(const bContext *C,
-                          ScrArea *area,
                           ARegion *region,
                           ListBase *lb,
                           PanelType *pt,
@@ -2694,16 +2693,8 @@ static void ed_panel_draw(const bContext *C,
       Panel *child_panel = UI_panel_find_by_type(&panel->children, child_pt);
 
       if (child_pt->draw && (!child_pt->poll || child_pt->poll(C, child_pt))) {
-        ed_panel_draw(C,
-                      area,
-                      region,
-                      &panel->children,
-                      child_pt,
-                      child_panel,
-                      w,
-                      em,
-                      vertical,
-                      unique_panel_str);
+        ed_panel_draw(
+            C, region, &panel->children, child_pt, child_panel, w, em, vertical, unique_panel_str);
       }
     }
   }
@@ -2855,7 +2846,6 @@ void ED_region_panels_layout_ex(const bContext *C,
     }
 
     ed_panel_draw(C,
-                  area,
                   region,
                   &region->panels,
                   pt,
@@ -2890,7 +2880,6 @@ void ED_region_panels_layout_ex(const bContext *C,
       char unique_panel_str[8];
       UI_list_panel_unique_str(panel, unique_panel_str);
       ed_panel_draw(C,
-                    area,
                     region,
                     &region->panels,
                     panel->type,
