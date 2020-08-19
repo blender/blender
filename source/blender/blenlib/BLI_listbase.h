@@ -186,6 +186,14 @@ struct LinkData *BLI_genericNodeN(void *data);
        ((var != NULL) ? ((void)(var##_iter_prev = (type)(((Link *)(var))->prev)), 1) : 0); \
        var = var##_iter_prev)
 
+/**
+ * A version of #LISTBASE_FOREACH that takes an index variable (declared outside this macro).
+ * This avoids possible accidents where using `continue` could miss incrementing the counter.
+ */
+#define LISTBASE_FOREACH_INDEX(type, var, list, index_var) \
+  for (type var = (((void)(index_var = 0)), (type)((list)->first)); var != NULL; \
+       var = (type)(((Link *)(var))->next), index_var++)
+
 #ifdef __cplusplus
 }
 #endif
