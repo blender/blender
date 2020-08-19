@@ -106,7 +106,7 @@ static const EnumPropertyItem rna_enum_keyframe_type_items[] = {
 };
 
 static const EnumPropertyItem rna_enum_onion_keyframe_type_items[] = {
-    {-1, "ALL", ICON_ACTION, "All Types", "Include all Keyframe types"},
+    {-1, "ALL", 0, "All", "Include all Keyframe types"},
     {BEZT_KEYTYPE_KEYFRAME,
      "KEYFRAME",
      ICON_KEYTYPE_KEYFRAME_VEC,

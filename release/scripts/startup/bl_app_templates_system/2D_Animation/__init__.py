@@ -55,6 +55,13 @@ def load_handler(dummy):
                     space.shading.type = 'MATERIAL'
                     space.shading.use_scene_world = True
 
+    # Grease pencil object
+    scene = bpy.data.scenes[0]
+    if scene:
+        for ob in scene.objects:
+            if ob.type == 'GPENCIL':
+                gpd = ob.data
+                gpd.onion_keyframe_type = 'ALL'
 
 def register():
     bpy.app.handlers.load_factory_startup_post.append(load_handler)
