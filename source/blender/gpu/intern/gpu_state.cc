@@ -44,7 +44,7 @@ using namespace blender::gpu;
   do { \
     GPUStateManager *stack = GPU_context_active_get()->state_manager; \
     auto &state_object = stack->_prefix##state; \
-    state_object._state = _value; \
+    state_object._state = (_value); \
   } while (0)
 
 #define SET_IMMUTABLE_STATE(_state, _value) SET_STATE(, _state, _value)
@@ -104,11 +104,11 @@ void GPU_color_mask(bool r, bool g, bool b, bool a)
 {
   GPUStateManager *stack = GPU_context_active_get()->state_manager;
   auto &state = stack->state;
-  eGPUWriteMask write_mask = state.write_mask;
-  SET_FLAG_FROM_TEST(write_mask, r, GPU_WRITE_RED);
-  SET_FLAG_FROM_TEST(write_mask, g, GPU_WRITE_GREEN);
-  SET_FLAG_FROM_TEST(write_mask, b, GPU_WRITE_BLUE);
-  SET_FLAG_FROM_TEST(write_mask, a, GPU_WRITE_ALPHA);
+  uint32_t write_mask = state.write_mask;
+  SET_FLAG_FROM_TEST(write_mask, r, (uint32_t)GPU_WRITE_RED);
+  SET_FLAG_FROM_TEST(write_mask, g, (uint32_t)GPU_WRITE_GREEN);
+  SET_FLAG_FROM_TEST(write_mask, b, (uint32_t)GPU_WRITE_BLUE);
+  SET_FLAG_FROM_TEST(write_mask, a, (uint32_t)GPU_WRITE_ALPHA);
   state.write_mask = write_mask;
 }
 
@@ -116,8 +116,8 @@ void GPU_depth_mask(bool depth)
 {
   GPUStateManager *stack = GPU_context_active_get()->state_manager;
   auto &state = stack->state;
-  eGPUWriteMask write_mask = state.write_mask;
-  SET_FLAG_FROM_TEST(write_mask, depth, GPU_WRITE_DEPTH);
+  uint32_t write_mask = state.write_mask;
+  SET_FLAG_FROM_TEST(write_mask, depth, (uint32_t)GPU_WRITE_DEPTH);
   state.write_mask = write_mask;
 }
 
@@ -141,13 +141,13 @@ void GPU_state_set(eGPUWriteMask write_mask,
 {
   GPUStateManager *stack = GPU_context_active_get()->state_manager;
   auto &state = stack->state;
-  state.write_mask = write_mask;
-  state.blend = blend;
-  state.culling_test = culling_test;
-  state.depth_test = depth_test;
-  state.stencil_test = stencil_test;
-  state.stencil_op = stencil_op;
-  state.provoking_vert = provoking_vert;
+  state.write_mask = (uint32_t)write_mask;
+  state.blend = (uint32_t)blend;
+  state.culling_test = (uint32_t)culling_test;
+  state.depth_test = (uint32_t)depth_test;
+  state.stencil_test = (uint32_t)stencil_test;
+  state.stencil_op = (uint32_t)stencil_op;
+  state.provoking_vert = (uint32_t)provoking_vert;
 }
 
 /** \} */
@@ -231,13 +231,13 @@ void GPU_stencil_compare_mask_set(uint compare_mask)
 eGPUBlend GPU_blend_get()
 {
   GPUState &state = GPU_context_active_get()->state_manager->state;
-  return state.blend;
+  return (eGPUBlend)state.blend;
 }
 
 eGPUWriteMask GPU_write_mask_get()
 {
   GPUState &state = GPU_context_active_get()->state_manager->state;
-  return state.write_mask;
+  return (eGPUWriteMask)state.write_mask;
 }
 
 bool GPU_depth_test_enabled()

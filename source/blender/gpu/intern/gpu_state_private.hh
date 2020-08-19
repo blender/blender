@@ -35,13 +35,20 @@ namespace gpu {
  * Try to keep small to reduce validation time. */
 union GPUState {
   struct {
-    eGPUWriteMask write_mask : 13;
-    eGPUBlend blend : 4;
-    eGPUFaceCullTest culling_test : 2;
-    eGPUDepthTest depth_test : 3;
-    eGPUStencilTest stencil_test : 3;
-    eGPUStencilOp stencil_op : 3;
-    eGPUProvokingVertex provoking_vert : 1;
+    /** eGPUWriteMask */
+    uint32_t write_mask : 13;
+    /** eGPUBlend */
+    uint32_t blend : 4;
+    /** eGPUFaceCullTest */
+    uint32_t culling_test : 2;
+    /** eGPUDepthTest */
+    uint32_t depth_test : 3;
+    /** eGPUStencilTest */
+    uint32_t stencil_test : 3;
+    /** eGPUStencilOp */
+    uint32_t stencil_op : 3;
+    /** eGPUProvokingVertex */
+    uint32_t provoking_vert : 1;
     /** Enable bits. */
     uint32_t logic_op_xor : 1;
     uint32_t invert_facing : 1;
