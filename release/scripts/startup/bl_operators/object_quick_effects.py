@@ -400,7 +400,8 @@ class QuickSmoke(ObjectModeOperator, Operator):
             obj.modifiers[-1].domain_settings.use_noise = True
 
         # ensure correct cache file format for smoke
-        obj.modifiers[-1].domain_settings.cache_data_format = 'OPENVDB'
+        if bpy.app.build_options.openvdb:
+            obj.modifiers[-1].domain_settings.cache_data_format = 'OPENVDB'
 
         # Setup material
 
@@ -515,7 +516,8 @@ class QuickLiquid(Operator):
         obj.modifiers[-1].domain_settings.use_collision_border_bottom = True
 
         # ensure correct cache file formats for liquid
-        obj.modifiers[-1].domain_settings.cache_data_format = 'OPENVDB'
+        if bpy.app.build_options.openvdb:
+            obj.modifiers[-1].domain_settings.cache_data_format = 'OPENVDB'
         obj.modifiers[-1].domain_settings.cache_mesh_format = 'BOBJECT'
 
         # change domain type, will also allocate and show particle system for FLIP
