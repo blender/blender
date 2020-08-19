@@ -589,7 +589,7 @@ class Vector {
       catch (...) {
         /* Destruct all values that have been moved already. */
         destruct_n(begin_ + dst_index + 1, i);
-        end_ = begin_ + src_index;
+        end_ = begin_ + src_index + 1;
         UPDATE_VECTOR_SIZE(this);
         throw;
       }
