@@ -431,7 +431,7 @@ if(WIN32)
 endif()
 
 # This should be turned off when Blender enter beta/rc/release
-option(WITH_EXPERIMENTAL_FEATURES "Enable experimental features (still need to enable them in the user preferences)" OFF)
+option(WITH_EXPERIMENTAL_FEATURES "Enable experimental features (still need to enable them in the user preferences)" ON)
 mark_as_advanced(WITH_EXPERIMENTAL_FEATURES)
 
 # Unit testsing
