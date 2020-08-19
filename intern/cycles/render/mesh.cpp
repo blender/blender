@@ -135,7 +135,8 @@ NODE_DEFINE(Mesh)
   return type;
 }
 
-Mesh::Mesh() : Geometry(node_type, Geometry::MESH), subd_attributes(this, ATTR_PRIM_SUBD)
+Mesh::Mesh(const NodeType *node_type_, Type geom_type_)
+    : Geometry(node_type_, geom_type_), subd_attributes(this, ATTR_PRIM_SUBD)
 {
   vert_offset = 0;
 
@@ -145,16 +146,16 @@ Mesh::Mesh() : Geometry(node_type, Geometry::MESH), subd_attributes(this, ATTR_P
 
   num_subd_verts = 0;
 
-  volume_clipping = 0.001f;
-  volume_step_size = 0.0f;
-  volume_object_space = false;
-
   num_ngons = 0;
 
   subdivision_type = SUBDIVISION_NONE;
   subd_params = NULL;
 
   patch_table = NULL;
+}
+
+Mesh::Mesh() : Mesh(node_type, Geometry::MESH)
+{
 }
 
 Mesh::~Mesh()

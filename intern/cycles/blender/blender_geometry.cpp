@@ -19,6 +19,7 @@
 #include "render/hair.h"
 #include "render/mesh.h"
 #include "render/object.h"
+#include "render/volume.h"
 
 #include "blender/blender_sync.h"
 #include "blender/blender_util.h"
@@ -26,6 +27,19 @@
 #include "util/util_foreach.h"
 
 CCL_NAMESPACE_BEGIN
+
+static Geometry::Type determine_geom_type(BL::Object &b_ob, bool use_particle_hair)
+{
+  if (b_ob.type() == BL::Object::type_HAIR || use_particle_hair) {
+    return Geometry::HAIR;
+  }
+
+  if (b_ob.type() == BL::Object::type_VOLUME || object_fluid_gas_domain_find(b_ob)) {
+    return Geometry::VOLUME;
+  }
+
+  return Geometry::MESH;
+}
 
 Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
                                      BL::Object &b_ob,
@@ -40,9 +54,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
   BL::Material material_override = view_layer.material_override;
   Shader *default_shader = (b_ob.type() == BL::Object::type_VOLUME) ? scene->default_volume :
                                                                       scene->default_surface;
-  Geometry::Type geom_type = (b_ob.type() == BL::Object::type_HAIR || use_particle_hair) ?
-                                 Geometry::HAIR :
-                                 Geometry::MESH;
+  Geometry::Type geom_type = determine_geom_type(b_ob, use_particle_hair);
 
   /* Find shader indices. */
   vector<Shader *> used_shaders;
@@ -72,6 +84,9 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
     /* Add new geometry if it did not exist yet. */
     if (geom_type == Geometry::HAIR) {
       geom = new Hair();
+    }
+    else if (geom_type == Geometry::VOLUME) {
+      geom = new Volume();
     }
     else {
       geom = new Mesh();
@@ -121,13 +136,13 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
 
   geom->name = ustring(b_ob_data.name().c_str());
 
-  if (b_ob.type() == BL::Object::type_HAIR || use_particle_hair) {
+  if (geom_type == Geometry::HAIR) {
     Hair *hair = static_cast<Hair *>(geom);
     sync_hair(b_depsgraph, b_ob, hair, used_shaders);
   }
-  else if (b_ob.type() == BL::Object::type_VOLUME || object_fluid_gas_domain_find(b_ob)) {
-    Mesh *mesh = static_cast<Mesh *>(geom);
-    sync_volume(b_ob, mesh, used_shaders);
+  else if (geom_type == Geometry::VOLUME) {
+    Volume *volume = static_cast<Volume *>(geom);
+    sync_volume(b_ob, volume, used_shaders);
   }
   else {
     Mesh *mesh = static_cast<Mesh *>(geom);

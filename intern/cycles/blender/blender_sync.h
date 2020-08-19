@@ -148,7 +148,7 @@ class BlenderSync {
                       bool *use_portal);
 
   /* Volume */
-  void sync_volume(BL::Object &b_ob, Mesh *mesh, const vector<Shader *> &used_shaders);
+  void sync_volume(BL::Object &b_ob, Volume *volume, const vector<Shader *> &used_shaders);
 
   /* Mesh */
   void sync_mesh(BL::Depsgraph b_depsgraph,

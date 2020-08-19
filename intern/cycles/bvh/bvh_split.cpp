@@ -458,7 +458,7 @@ void BVHSpatialSplit::split_object_reference(
 {
   Geometry *geom = object->geometry;
 
-  if (geom->type == Geometry::MESH) {
+  if (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME) {
     Mesh *mesh = static_cast<Mesh *>(geom);
     for (int tri_idx = 0; tri_idx < mesh->num_triangles(); ++tri_idx) {
       split_triangle_primitive(mesh, &object->tfm, tri_idx, dim, pos, left_bounds, right_bounds);

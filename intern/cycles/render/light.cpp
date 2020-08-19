@@ -250,7 +250,7 @@ void LightManager::test_enabled_lights(Scene *scene)
 bool LightManager::object_usable_as_light(Object *object)
 {
   Geometry *geom = object->geometry;
-  if (geom->type != Geometry::MESH) {
+  if (geom->type != Geometry::MESH && geom->type != Geometry::VOLUME) {
     return false;
   }
   /* Skip objects with NaNs */

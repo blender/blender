@@ -34,7 +34,6 @@ set(SRC
   mesh.cpp
   mesh_displace.cpp
   mesh_subdivision.cpp
-  mesh_volume.cpp
   nodes.cpp
   object.cpp
   osl.cpp
@@ -48,6 +47,7 @@ set(SRC
   svm.cpp
   tables.cpp
   tile.cpp
+  volume.cpp
 )
 
 set(SRC_HEADERS
@@ -86,6 +86,7 @@ set(SRC_HEADERS
   svm.h
   tables.h
   tile.h
+  volume.h
 )
 
 set(LIB

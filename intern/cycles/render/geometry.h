@@ -40,6 +40,7 @@ class RenderStats;
 class Scene;
 class SceneParams;
 class Shader;
+class Volume;
 
 /* Geometry
  *
@@ -52,6 +53,7 @@ class Geometry : public Node {
   enum Type {
     MESH,
     HAIR,
+    VOLUME,
   };
 
   Type type;
@@ -166,7 +168,7 @@ class GeometryManager {
  protected:
   bool displace(Device *device, DeviceScene *dscene, Scene *scene, Mesh *mesh, Progress &progress);
 
-  void create_volume_mesh(Mesh *mesh, Progress &progress);
+  void create_volume_mesh(Volume *volume, Progress &progress);
 
   /* Attributes */
   void update_osl_attributes(Device *device,

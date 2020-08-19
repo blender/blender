@@ -167,7 +167,7 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
       size = 1;
       break;
     case ATTR_ELEMENT_VERTEX:
-      if (geom->type == Geometry::MESH) {
+      if (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         size = mesh->verts.size() + mesh->num_ngons;
         if (prim == ATTR_PRIM_SUBD) {
@@ -185,7 +185,7 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
       }
       break;
     case ATTR_ELEMENT_FACE:
-      if (geom->type == Geometry::MESH) {
+      if (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         if (prim == ATTR_PRIM_GEOMETRY) {
           size = mesh->num_triangles();
@@ -485,6 +485,25 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
       case ATTR_STD_GENERATED_TRANSFORM:
         attr = add(name, TypeDesc::TypeMatrix, ATTR_ELEMENT_MESH);
         break;
+      case ATTR_STD_POINTINESS:
+        attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_VERTEX);
+        break;
+      case ATTR_STD_RANDOM_PER_ISLAND:
+        attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_FACE);
+        break;
+      default:
+        assert(0);
+        break;
+    }
+  }
+  else if (geometry->type == Geometry::VOLUME) {
+    switch (std) {
+      case ATTR_STD_VERTEX_NORMAL:
+        attr = add(name, TypeDesc::TypeNormal, ATTR_ELEMENT_VERTEX);
+        break;
+      case ATTR_STD_FACE_NORMAL:
+        attr = add(name, TypeDesc::TypeNormal, ATTR_ELEMENT_FACE);
+        break;
       case ATTR_STD_VOLUME_DENSITY:
       case ATTR_STD_VOLUME_FLAME:
       case ATTR_STD_VOLUME_HEAT:
@@ -496,12 +515,6 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
         break;
       case ATTR_STD_VOLUME_VELOCITY:
         attr = add(name, TypeDesc::TypeVector, ATTR_ELEMENT_VOXEL);
-        break;
-      case ATTR_STD_POINTINESS:
-        attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_VERTEX);
-        break;
-      case ATTR_STD_RANDOM_PER_ISLAND:
-        attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_FACE);
         break;
       default:
         assert(0);

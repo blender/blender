@@ -95,7 +95,7 @@ void BVHOptiX::pack_blas()
       }
     }
   }
-  else if (geom->type == Geometry::MESH) {
+  else if (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME) {
     Mesh *const mesh = static_cast<Mesh *const>(geom);
     if (mesh->num_triangles() > 0) {
       const size_t num_triangles = mesh->num_triangles();

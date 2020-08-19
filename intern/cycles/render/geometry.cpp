@@ -31,6 +31,7 @@
 #include "render/scene.h"
 #include "render/shader.h"
 #include "render/stats.h"
+#include "render/volume.h"
 
 #include "subd/subd_patch_table.h"
 #include "subd/subd_split.h"
@@ -796,7 +797,7 @@ void GeometryManager::mesh_calc_offset(Scene *scene)
   size_t optix_prim_size = 0;
 
   foreach (Geometry *geom, scene->geometry) {
-    if (geom->type == Geometry::MESH) {
+    if (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME) {
       Mesh *mesh = static_cast<Mesh *>(geom);
 
       mesh->vert_offset = vert_size;
@@ -854,7 +855,7 @@ void GeometryManager::device_update_mesh(
   size_t patch_size = 0;
 
   foreach (Geometry *geom, scene->geometry) {
-    if (geom->type == Geometry::MESH) {
+    if (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME) {
       Mesh *mesh = static_cast<Mesh *>(geom);
 
       vert_size += mesh->verts.size();
@@ -888,7 +889,7 @@ void GeometryManager::device_update_mesh(
      * really use same semantic of arrays.
      */
     foreach (Geometry *geom, scene->geometry) {
-      if (geom->type == Geometry::MESH) {
+      if (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         for (size_t i = 0; i < mesh->num_triangles(); ++i) {
           tri_prim_index[i + mesh->prim_offset] = 3 * (i + mesh->prim_offset);
@@ -916,7 +917,7 @@ void GeometryManager::device_update_mesh(
     float2 *tri_patch_uv = dscene->tri_patch_uv.alloc(vert_size);
 
     foreach (Geometry *geom, scene->geometry) {
-      if (geom->type == Geometry::MESH) {
+      if (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         mesh->pack_shaders(scene, &tri_shader[mesh->prim_offset]);
         mesh->pack_normals(&vnormal[mesh->vert_offset]);
@@ -992,7 +993,7 @@ void GeometryManager::device_update_mesh(
   if (for_displacement) {
     float4 *prim_tri_verts = dscene->prim_tri_verts.alloc(tri_size * 3);
     foreach (Geometry *geom, scene->geometry) {
-      if (geom->type == Geometry::MESH) {
+      if (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         for (size_t i = 0; i < mesh->num_triangles(); ++i) {
           Mesh::Triangle t = mesh->get_triangle(i);
@@ -1122,18 +1123,16 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
       }
     }
 
-    if (need_update && geom->has_volume && geom->type == Geometry::MESH) {
+    if (need_update && geom->type == Geometry::VOLUME) {
       /* Create volume meshes if there is voxel data. */
-      if (geom->has_voxel_attributes()) {
-        if (!volume_images_updated) {
-          progress.set_status("Updating Meshes Volume Bounds");
-          device_update_volume_images(device, scene, progress);
-          volume_images_updated = true;
-        }
-
-        Mesh *mesh = static_cast<Mesh *>(geom);
-        create_volume_mesh(mesh, progress);
+      if (!volume_images_updated) {
+        progress.set_status("Updating Meshes Volume Bounds");
+        device_update_volume_images(device, scene, progress);
+        volume_images_updated = true;
       }
+
+      Volume *volume = static_cast<Volume *>(geom);
+      create_volume_mesh(volume, progress);
     }
 
     if (geom->type == Geometry::HAIR) {
@@ -1238,7 +1237,7 @@ void GeometryManager::device_update(Device *device,
         geom->need_update = true;
     }
 
-    if (geom->need_update && geom->type == Geometry::MESH) {
+    if (geom->need_update && (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME)) {
       Mesh *mesh = static_cast<Mesh *>(geom);
 
       /* Update normals. */

@@ -52,6 +52,9 @@ struct PackedPatchTable;
 /* Mesh */
 
 class Mesh : public Geometry {
+ protected:
+  Mesh(const NodeType *node_type_, Type geom_type_);
+
  public:
   NODE_DECLARE
 
@@ -132,10 +135,6 @@ class Mesh : public Geometry {
   /* used for storing patch info for subd triangles, only allocated if there are patches */
   array<int> triangle_patch; /* must be < 0 for non subd triangles */
   array<float2> vert_patch_uv;
-
-  float volume_clipping;
-  float volume_step_size;
-  bool volume_object_space;
 
   array<SubdFace> subd_faces;
   array<int> subd_face_corners;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 Blender Foundation
+ * Copyright 2020 Blender Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+#include "render/volume.h"
 #include "render/attribute.h"
 #include "render/image_vdb.h"
-#include "render/mesh.h"
 #include "render/scene.h"
 
 #ifdef WITH_OPENVDB
@@ -33,6 +33,33 @@
 #include "util/util_types.h"
 
 CCL_NAMESPACE_BEGIN
+
+NODE_DEFINE(Volume)
+{
+  NodeType *type = NodeType::add("volume", create, NodeType::NONE, Geometry::node_base_type);
+
+  SOCKET_INT_ARRAY(triangles, "Triangles", array<int>());
+  SOCKET_POINT_ARRAY(verts, "Vertices", array<float3>());
+  SOCKET_INT_ARRAY(shader, "Shader", array<int>());
+
+  SOCKET_FLOAT(clipping, "Clipping", 0.001f);
+  SOCKET_FLOAT(step_size, "Step Size", 0.0f);
+  SOCKET_BOOLEAN(object_space, "Object Space", false);
+
+  return type;
+}
+
+Volume::Volume() : Mesh(node_type, Geometry::VOLUME)
+{
+  clipping = 0.001f;
+  step_size = 0.0f;
+  object_space = false;
+}
+
+void Volume::clear()
+{
+  Mesh::clear(true);
+}
 
 struct QuadData {
   int v0, v1, v2, v3;
@@ -458,15 +485,15 @@ static openvdb::GridBase::ConstPtr openvdb_grid_from_device_texture(device_textu
 
 /* ************************************************************************** */
 
-void GeometryManager::create_volume_mesh(Mesh *mesh, Progress &progress)
+void GeometryManager::create_volume_mesh(Volume *volume, Progress &progress)
 {
-  string msg = string_printf("Computing Volume Mesh %s", mesh->name.c_str());
+  string msg = string_printf("Computing Volume Mesh %s", volume->name.c_str());
   progress.set_status("Updating Mesh", msg);
 
   VolumeMeshBuilder builder;
 
 #ifdef WITH_OPENVDB
-  foreach (Attribute &attr, mesh->attributes.attributes) {
+  foreach (Attribute &attr, volume->attributes.attributes) {
     if (attr.element != ATTR_ELEMENT_VOXEL) {
       continue;
     }
@@ -491,20 +518,20 @@ void GeometryManager::create_volume_mesh(Mesh *mesh, Progress &progress)
 
       if (image_memory->data_elements == 1) {
         grid = openvdb_grid_from_device_texture<openvdb::FloatGrid>(
-            image_memory, mesh->volume_clipping, handle.metadata().transform_3d);
+            image_memory, volume->clipping, handle.metadata().transform_3d);
       }
       else if (image_memory->data_elements == 3) {
         grid = openvdb_grid_from_device_texture<openvdb::Vec3fGrid>(
-            image_memory, mesh->volume_clipping, handle.metadata().transform_3d);
+            image_memory, volume->clipping, handle.metadata().transform_3d);
       }
       else if (image_memory->data_elements == 4) {
         grid = openvdb_grid_from_device_texture<openvdb::Vec4fGrid>(
-            image_memory, mesh->volume_clipping, handle.metadata().transform_3d);
+            image_memory, volume->clipping, handle.metadata().transform_3d);
       }
     }
 
     if (grid) {
-      builder.add_grid(grid, do_clipping, mesh->volume_clipping);
+      builder.add_grid(grid, do_clipping, volume->clipping);
     }
   }
 #endif
@@ -517,7 +544,7 @@ void GeometryManager::create_volume_mesh(Mesh *mesh, Progress &progress)
   Shader *volume_shader = NULL;
   int pad_size = 0;
 
-  foreach (Shader *shader, mesh->used_shaders) {
+  foreach (Shader *shader, volume->used_shaders) {
     if (!shader->has_volume) {
       continue;
     }
@@ -544,7 +571,8 @@ void GeometryManager::create_volume_mesh(Mesh *mesh, Progress &progress)
    * volumes or meshes. The proper solution would be to improve intersection in
    * the kernel to support robust handling of multiple overlapping faces or use
    * an all-hit intersection similar to shadows. */
-  const float face_overlap_avoidance = 0.1f * hash_uint_to_float(hash_string(mesh->name.c_str()));
+  const float face_overlap_avoidance = 0.1f *
+                                       hash_uint_to_float(hash_string(volume->name.c_str()));
 
   /* Create mesh. */
   vector<float3> vertices;
@@ -552,20 +580,20 @@ void GeometryManager::create_volume_mesh(Mesh *mesh, Progress &progress)
   vector<float3> face_normals;
   builder.create_mesh(vertices, indices, face_normals, face_overlap_avoidance);
 
-  mesh->clear(true);
-  mesh->reserve_mesh(vertices.size(), indices.size() / 3);
-  mesh->used_shaders.push_back(volume_shader);
-  mesh->need_update_rebuild = true;
+  volume->clear();
+  volume->reserve_mesh(vertices.size(), indices.size() / 3);
+  volume->used_shaders.push_back(volume_shader);
+  volume->need_update_rebuild = true;
 
   for (size_t i = 0; i < vertices.size(); ++i) {
-    mesh->add_vertex(vertices[i]);
+    volume->add_vertex(vertices[i]);
   }
 
   for (size_t i = 0; i < indices.size(); i += 3) {
-    mesh->add_triangle(indices[i], indices[i + 1], indices[i + 2], 0, false);
+    volume->add_triangle(indices[i], indices[i + 1], indices[i + 2], 0, false);
   }
 
-  Attribute *attr_fN = mesh->attributes.add(ATTR_STD_FACE_NORMAL);
+  Attribute *attr_fN = volume->attributes.add(ATTR_STD_FACE_NORMAL);
   float3 *fN = attr_fN->data_float3();
 
   for (size_t i = 0; i < face_normals.size(); ++i) {

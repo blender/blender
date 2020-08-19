@@ -1389,7 +1389,7 @@ class OptiXDevice : public CUDADevice {
           return false;
         }
       }
-      else if (geom->type == Geometry::MESH) {
+      else if (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME) {
         // Build BLAS for triangle primitives
         Mesh *const mesh = static_cast<Mesh *const>(ob->geometry);
         if (mesh->num_triangles() == 0) {
