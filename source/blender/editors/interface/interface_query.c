@@ -276,7 +276,7 @@ uiBut *ui_but_find_mouse_over_ex(ARegion *region, const int x, const int y, cons
     float mx = x, my = y;
     ui_window_to_block_fl(region, block, &mx, &my);
 
-    for (uiBut *but = block->buttons.last; but; but = but->prev) {
+    LISTBASE_FOREACH_BACKWARD (uiBut *, but, &block->buttons) {
       if (ui_but_is_interactive(but, labeledit)) {
         if (but->pie_dir != UI_RADIAL_NONE) {
           if (ui_but_isect_pie_seg(block, but)) {
@@ -324,7 +324,7 @@ uiBut *ui_but_find_rect_over(const struct ARegion *region, const rcti *rect_px)
     rctf rect_block;
     ui_window_to_block_rctf(region, block, &rect_block, &rect_px_fl);
 
-    for (uiBut *but = block->buttons.last; but; but = but->prev) {
+    LISTBASE_FOREACH_BACKWARD (uiBut *, but, &block->buttons) {
       if (ui_but_is_interactive(but, labeledit)) {
         /* No pie menu support. */
         BLI_assert(but->pie_dir == UI_RADIAL_NONE);
@@ -354,7 +354,7 @@ uiBut *ui_list_find_mouse_over_ex(ARegion *region, int x, int y)
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     float mx = x, my = y;
     ui_window_to_block_fl(region, block, &mx, &my);
-    for (uiBut *but = block->buttons.last; but; but = but->prev) {
+    LISTBASE_FOREACH_BACKWARD (uiBut *, but, &block->buttons) {
       if (but->type == UI_BTYPE_LISTBOX && ui_but_contains_pt(but, mx, my)) {
         return but;
       }
@@ -399,14 +399,10 @@ uiBut *ui_but_next(uiBut *but)
 
 uiBut *ui_but_first(uiBlock *block)
 {
-  uiBut *but;
-
-  but = block->buttons.first;
-  while (but) {
+  LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
     if (ui_but_is_editable(but)) {
       return but;
     }
-    but = but->next;
   }
   return NULL;
 }

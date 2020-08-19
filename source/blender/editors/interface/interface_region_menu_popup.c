@@ -130,9 +130,10 @@ static uiBut *ui_popup_menu_memory__internal(uiBlock *block, uiBut *but)
   }
 
   /* get */
-  for (but = block->buttons.first; but; but = but->next) {
-    if (mem[hash_mod] == ui_popup_string_hash(but->str, but->flag & UI_BUT_HAS_SEP_CHAR)) {
-      return but;
+  LISTBASE_FOREACH (uiBut *, but_iter, &block->buttons) {
+    if (mem[hash_mod] ==
+        ui_popup_string_hash(but_iter->str, but_iter->flag & UI_BUT_HAS_SEP_CHAR)) {
+      return but_iter;
     }
   }
 
@@ -232,7 +233,6 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
   UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT);
 
   if (pup->popup) {
-    uiBut *bt;
     int offset[2];
 
     uiBut *but_activate = NULL;
@@ -241,6 +241,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
     UI_block_direction_set(block, direction);
 
     /* offset the mouse position, possibly based on earlier selection */
+    uiBut *bt;
     if ((block->flag & UI_BLOCK_POPUP_MEMORY) && (bt = ui_popup_menu_memory_get(block))) {
       /* position mouse on last clicked item, at 0.8*width of the
        * button, so it doesn't overlap the text too much, also note
@@ -257,15 +258,16 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
       /* position mouse at 0.8*width of the button and below the tile
        * on the first item */
       offset[0] = 0;
-      for (bt = block->buttons.first; bt; bt = bt->next) {
-        offset[0] = min_ii(offset[0], -(bt->rect.xmin + 0.8f * BLI_rctf_size_x(&bt->rect)));
+      LISTBASE_FOREACH (uiBut *, but_iter, &block->buttons) {
+        offset[0] = min_ii(offset[0],
+                           -(but_iter->rect.xmin + 0.8f * BLI_rctf_size_x(&but_iter->rect)));
       }
 
       offset[1] = 2.1 * UI_UNIT_Y;
 
-      for (bt = block->buttons.first; bt; bt = bt->next) {
-        if (ui_but_is_editable(bt)) {
-          but_activate = bt;
+      LISTBASE_FOREACH (uiBut *, but_iter, &block->buttons) {
+        if (ui_but_is_editable(but_iter)) {
+          but_activate = but_iter;
           break;
         }
       }
@@ -499,8 +501,6 @@ uiLayout *UI_popup_menu_layout(uiPopupMenu *pup)
 
 void UI_popup_menu_reports(bContext *C, ReportList *reports)
 {
-  Report *report;
-
   uiPopupMenu *pup = NULL;
   uiLayout *layout;
 
@@ -508,7 +508,7 @@ void UI_popup_menu_reports(bContext *C, ReportList *reports)
     return;
   }
 
-  for (report = reports->list.first; report; report = report->next) {
+  LISTBASE_FOREACH (Report *, report, &reports->list) {
     int icon;
     const char *msg, *msg_next;
 

@@ -203,11 +203,12 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
     if (!handle->refresh) {
       uiBut *but = NULL;
       uiBut *but_first = NULL;
-      for (but = block->buttons.first; but; but = but->next) {
-        if ((but_first == NULL) && ui_but_is_editable(but)) {
-          but_first = but;
+      LISTBASE_FOREACH (uiBut *, but_iter, &block->buttons) {
+        if ((but_first == NULL) && ui_but_is_editable(but_iter)) {
+          but_first = but_iter;
         }
-        if (but->flag & (UI_SELECT | UI_SELECT_DRAW)) {
+        if (but_iter->flag & (UI_SELECT | UI_SELECT_DRAW)) {
+          but = but_iter;
           break;
         }
       }

@@ -714,12 +714,8 @@ bool UI_butstore_is_valid(uiButStore *bs)
 
 bool UI_butstore_is_registered(uiBlock *block, uiBut *but)
 {
-  uiButStore *bs_handle;
-
-  for (bs_handle = block->butstore.first; bs_handle; bs_handle = bs_handle->next) {
-    uiButStoreElem *bs_elem;
-
-    for (bs_elem = bs_handle->items.first; bs_elem; bs_elem = bs_elem->next) {
+  LISTBASE_FOREACH (uiButStore *, bs_handle, &block->butstore) {
+    LISTBASE_FOREACH (uiButStoreElem *, bs_elem, &bs_handle->items) {
       if (*bs_elem->but_p == but) {
         return true;
       }
@@ -740,10 +736,7 @@ void UI_butstore_register(uiButStore *bs_handle, uiBut **but_p)
 
 void UI_butstore_unregister(uiButStore *bs_handle, uiBut **but_p)
 {
-  uiButStoreElem *bs_elem, *bs_elem_next;
-
-  for (bs_elem = bs_handle->items.first; bs_elem; bs_elem = bs_elem_next) {
-    bs_elem_next = bs_elem->next;
+  LISTBASE_FOREACH_MUTABLE (uiButStoreElem *, bs_elem, &bs_handle->items) {
     if (bs_elem->but_p == but_p) {
       BLI_remlink(&bs_handle->items, bs_elem);
       MEM_freeN(bs_elem);
@@ -758,12 +751,10 @@ void UI_butstore_unregister(uiButStore *bs_handle, uiBut **but_p)
  */
 bool UI_butstore_register_update(uiBlock *block, uiBut *but_dst, const uiBut *but_src)
 {
-  uiButStore *bs_handle;
   bool found = false;
 
-  for (bs_handle = block->butstore.first; bs_handle; bs_handle = bs_handle->next) {
-    uiButStoreElem *bs_elem;
-    for (bs_elem = bs_handle->items.first; bs_elem; bs_elem = bs_elem->next) {
+  LISTBASE_FOREACH (uiButStore *, bs_handle, &block->butstore) {
+    LISTBASE_FOREACH (uiButStoreElem *, bs_elem, &bs_handle->items) {
       if (*bs_elem->but_p == but_src) {
         *bs_elem->but_p = but_dst;
         found = true;
@@ -779,14 +770,9 @@ bool UI_butstore_register_update(uiBlock *block, uiBut *but_dst, const uiBut *bu
  */
 void UI_butstore_clear(uiBlock *block)
 {
-  uiButStore *bs_handle;
-
-  for (bs_handle = block->butstore.first; bs_handle; bs_handle = bs_handle->next) {
-    uiButStoreElem *bs_elem;
-
+  LISTBASE_FOREACH (uiButStore *, bs_handle, &block->butstore) {
     bs_handle->block = NULL;
-
-    for (bs_elem = bs_handle->items.first; bs_elem; bs_elem = bs_elem->next) {
+    LISTBASE_FOREACH (uiButStoreElem *, bs_elem, &bs_handle->items) {
       *bs_elem->but_p = NULL;
     }
   }
@@ -797,8 +783,6 @@ void UI_butstore_clear(uiBlock *block)
  */
 void UI_butstore_update(uiBlock *block)
 {
-  uiButStore *bs_handle;
-
   /* move this list to the new block */
   if (block->oldblock) {
     if (block->oldblock->butstore.first) {
@@ -812,17 +796,14 @@ void UI_butstore_update(uiBlock *block)
 
   /* warning, loop-in-loop, in practice we only store <10 buttons at a time,
    * so this isn't going to be a problem, if that changes old-new mapping can be cached first */
-  for (bs_handle = block->butstore.first; bs_handle; bs_handle = bs_handle->next) {
-
+  LISTBASE_FOREACH (uiButStore *, bs_handle, &block->butstore) {
     BLI_assert((bs_handle->block == NULL) || (bs_handle->block == block) ||
                (block->oldblock && block->oldblock == bs_handle->block));
 
     if (bs_handle->block == block->oldblock) {
-      uiButStoreElem *bs_elem;
-
       bs_handle->block = block;
 
-      for (bs_elem = bs_handle->items.first; bs_elem; bs_elem = bs_elem->next) {
+      LISTBASE_FOREACH (uiButStoreElem *, bs_elem, &bs_handle->items) {
         if (*bs_elem->but_p) {
           uiBut *but_new = ui_but_find_new(block, *bs_elem->but_p);
 

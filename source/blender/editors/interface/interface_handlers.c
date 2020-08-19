@@ -874,7 +874,7 @@ static void ui_apply_but_autokey(bContext *C, uiBut *but)
 
 static void ui_apply_but_funcs_after(bContext *C)
 {
-  uiAfterFunc *afterf, after;
+  uiAfterFunc after;
   PointerRNA opptr;
   ListBase funcs;
 
@@ -882,7 +882,7 @@ static void ui_apply_but_funcs_after(bContext *C)
   funcs = UIAfterFuncs;
   BLI_listbase_clear(&UIAfterFuncs);
 
-  for (afterf = funcs.first; afterf; afterf = after.next) {
+  LISTBASE_FOREACH_MUTABLE (uiAfterFunc *, afterf, &funcs) {
     after = *afterf; /* copy to avoid memleak on exit() */
     BLI_freelinkN(&funcs, afterf);
 
@@ -1009,14 +1009,12 @@ static void ui_apply_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data)
 
 static void ui_apply_but_ROW(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data)
 {
-  uiBut *bt;
-
   ui_but_value_set(but, but->hardmax);
 
   ui_apply_but_func(C, but);
 
   /* states of other row buttons */
-  for (bt = block->buttons.first; bt; bt = bt->next) {
+  LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
     if (bt != but && bt->poin == but->poin && ELEM(bt->type, UI_BTYPE_ROW, UI_BTYPE_LISTROW)) {
       ui_but_update_edited(bt);
     }
@@ -1180,9 +1178,7 @@ static uiButMultiState *ui_multibut_lookup(uiHandleButtonData *data, const uiBut
 
 static void ui_multibut_restore(bContext *C, uiHandleButtonData *data, uiBlock *block)
 {
-  uiBut *but;
-
-  for (but = block->buttons.first; but; but = but->next) {
+  LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
     if (but->flag & UI_BUT_DRAG_MULTI) {
       uiButMultiState *mbut_state = ui_multibut_lookup(data, but);
       if (mbut_state) {
@@ -1235,7 +1231,6 @@ static bool ui_multibut_states_tag(uiBut *but_active,
                                    uiHandleButtonData *data,
                                    const wmEvent *event)
 {
-  uiBut *but;
   float seg[2][2];
   bool changed = false;
 
@@ -1253,7 +1248,7 @@ static bool ui_multibut_states_tag(uiBut *but_active,
   data->multi_data.has_mbuts = false;
 
   /* follow ui_but_find_mouse_over_ex logic */
-  for (but = but_active->block->buttons.first; but; but = but->next) {
+  LISTBASE_FOREACH (uiBut *, but, &but_active->block->buttons) {
     bool drag_prev = false;
     bool drag_curr = false;
 
@@ -1318,12 +1313,11 @@ static void ui_multibut_states_apply(bContext *C, uiHandleButtonData *data, uiBl
   const double value_delta = data->value - data->origvalue;
   const double value_scale = data->multi_data.is_proportional ? (data->value / data->origvalue) :
                                                                 0.0;
-  uiBut *but;
 
   BLI_assert(data->multi_data.init == BUTTON_MULTI_INIT_ENABLE);
   BLI_assert(data->multi_data.skip == false);
 
-  for (but = block->buttons.first; but; but = but->next) {
+  LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
     if (but->flag & UI_BUT_DRAG_MULTI) {
       /* mbut_states for delta */
       uiButMultiState *mbut_state = ui_multibut_lookup(data, but);
@@ -1447,18 +1441,15 @@ static bool ui_drag_toggle_set_xy_xy(
   /* popups such as layers won't re-evaluate on redraw */
   const bool do_check = (region->regiontype == RGN_TYPE_TEMPORARY);
   bool changed = false;
-  uiBlock *block;
 
-  for (block = region->uiblocks.first; block; block = block->next) {
-    uiBut *but;
-
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     float xy_a_block[2] = {UNPACK2(xy_src)};
     float xy_b_block[2] = {UNPACK2(xy_dst)};
 
     ui_window_to_block_fl(region, block, &xy_a_block[0], &xy_a_block[1]);
     ui_window_to_block_fl(region, block, &xy_b_block[0], &xy_b_block[1]);
 
-    for (but = block->buttons.first; but; but = but->next) {
+    LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
       /* Note: ctrl is always true here because (at least for now)
        * we always want to consider text control in this case, even when not embossed. */
       if (ui_but_is_interactive(but, true)) {
@@ -2246,10 +2237,9 @@ static void ui_apply_but(
 /* only call if event type is EVT_DROP */
 static void ui_but_drop(bContext *C, const wmEvent *event, uiBut *but, uiHandleButtonData *data)
 {
-  wmDrag *wmd;
   ListBase *drags = event->customdata; /* drop event type has listbase customdata by default */
 
-  for (wmd = drags->first; wmd; wmd = wmd->next) {
+  LISTBASE_FOREACH (wmDrag *, wmd, drags) {
     if (wmd->type == WM_DRAG_ID) {
       /* align these types with UI_but_active_drop_name */
       if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
@@ -4178,7 +4168,7 @@ static uiButExtraOpIcon *ui_but_extra_operator_icon_mouse_over_get(uiBut *but,
   }
 
   /* Inverse order, from right to left. */
-  for (uiButExtraOpIcon *op_icon = but->extra_op_icons.last; op_icon; op_icon = op_icon->prev) {
+  LISTBASE_FOREACH_BACKWARD (uiButExtraOpIcon *, op_icon, &but->extra_op_icons) {
     if ((x > (xmax - icon_size)) && x < xmax) {
       return op_icon;
     }
@@ -7777,15 +7767,13 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 
 static void ui_blocks_set_tooltips(ARegion *region, const bool enable)
 {
-  uiBlock *block;
-
   if (!region) {
     return;
   }
 
   /* we disabled buttons when when they were already shown, and
    * re-enable them on mouse move */
-  for (block = region->uiblocks.first; block; block = block->next) {
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     block->tooltipdisabled = !enable;
   }
 }
@@ -8164,7 +8152,6 @@ static void button_activate_exit(
 {
   wmWindow *win = data->window;
   uiBlock *block = but->block;
-  uiBut *bt;
 
   if (but->type == UI_BTYPE_GRIP) {
     WM_cursor_modal_restore(win);
@@ -8182,7 +8169,7 @@ static void button_activate_exit(
 
 #ifdef USE_DRAG_MULTINUM
   if (data->multi_data.has_mbuts) {
-    for (bt = block->buttons.first; bt; bt = bt->next) {
+    LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
       if (bt->flag & UI_BUT_DRAG_MULTI) {
         bt->flag &= ~UI_BUT_DRAG_MULTI;
 
@@ -8238,12 +8225,12 @@ static void button_activate_exit(
   }
 
   /* disable tooltips until mousemove + last active flag */
-  for (block = data->region->uiblocks.first; block; block = block->next) {
-    for (bt = block->buttons.first; bt; bt = bt->next) {
+  LISTBASE_FOREACH (uiBlock *, block_iter, &data->region->uiblocks) {
+    LISTBASE_FOREACH (uiBut *, bt, &block_iter->buttons) {
       bt->flag &= ~UI_BUT_LAST_ACTIVE;
     }
 
-    block->tooltipdisabled = 1;
+    block_iter->tooltipdisabled = 1;
   }
 
   ui_blocks_set_tooltips(data->region, false);
@@ -8308,12 +8295,11 @@ static uiBut *ui_context_button_active(ARegion *region, bool (*but_check_cb)(uiB
   uiBut *but_found = NULL;
 
   while (region) {
-    uiBlock *block;
-    uiBut *but, *activebut = NULL;
+    uiBut *activebut = NULL;
 
     /* find active button */
-    for (block = region->uiblocks.first; block; block = block->next) {
-      for (but = block->buttons.first; but; but = but->next) {
+    LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
+      LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
         if (but->active) {
           activebut = but;
         }
@@ -8436,7 +8422,6 @@ void UI_context_active_but_clear(bContext *C, wmWindow *win, ARegion *region)
 wmOperator *UI_context_active_operator_get(const struct bContext *C)
 {
   ARegion *region_ctx = CTX_wm_region(C);
-  uiBlock *block;
 
   /* background mode */
   if (region_ctx == NULL) {
@@ -8444,7 +8429,7 @@ wmOperator *UI_context_active_operator_get(const struct bContext *C)
   }
 
   /* scan active regions ui */
-  for (block = region_ctx->uiblocks.first; block; block = block->next) {
+  LISTBASE_FOREACH (uiBlock *, block, &region_ctx->uiblocks) {
     if (block->ui_operator) {
       return block->ui_operator;
     }
@@ -8453,13 +8438,12 @@ wmOperator *UI_context_active_operator_get(const struct bContext *C)
   /* scan popups */
   {
     bScreen *screen = CTX_wm_screen(C);
-    ARegion *region;
 
-    for (region = screen->regionbase.first; region; region = region->next) {
+    LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
       if (region == region_ctx) {
         continue;
       }
-      for (block = region->uiblocks.first; block; block = block->next) {
+      LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
         if (block->ui_operator) {
           return block->ui_operator;
         }
@@ -8478,15 +8462,14 @@ void UI_context_update_anim_flag(const bContext *C)
   struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
       depsgraph, (scene) ? scene->r.cfra : 0.0f);
-  uiBlock *block;
-  uiBut *but, *activebut;
+  uiBut *activebut;
 
   while (region) {
     /* find active button */
     activebut = NULL;
 
-    for (block = region->uiblocks.first; block; block = block->next) {
-      for (but = block->buttons.first; but; but = but->next) {
+    LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
+      LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
         ui_but_anim_flag(but, &anim_eval_context);
         ui_but_override_flag(CTX_data_main(C), but);
         if (UI_but_is_decorator(but)) {
@@ -8529,11 +8512,8 @@ void UI_context_update_anim_flag(const bContext *C)
 
 static uiBut *ui_but_find_open_event(ARegion *region, const wmEvent *event)
 {
-  uiBlock *block;
-  uiBut *but;
-
-  for (block = region->uiblocks.first; block; block = block->next) {
-    for (but = block->buttons.first; but; but = but->next) {
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
+    LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
       if (but == event->customdata) {
         return but;
       }
@@ -10289,10 +10269,8 @@ static int ui_but_pie_menu_apply(bContext *C,
 
 static uiBut *ui_block_pie_dir_activate(uiBlock *block, const wmEvent *event, RadialDirection dir)
 {
-  uiBut *but;
-
   if ((block->flag & UI_BLOCK_NUMSELECT) && event->val == KM_PRESS) {
-    for (but = block->buttons.first; but; but = but->next) {
+    LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
       if (but->pie_dir == dir && !ELEM(but->type, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE)) {
         return but;
       }
@@ -10324,7 +10302,6 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 {
   ARegion *region;
   uiBlock *block;
-  uiBut *but;
   float event_xy[2];
   double duration;
   bool is_click_style;
@@ -10346,7 +10323,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
   is_click_style = (block->pie_data.flags & UI_PIE_CLICK_STYLE);
 
   /* if there's an active modal button, don't check events or outside, except for search menu */
-  but = ui_region_find_active_but(region);
+  uiBut *but_active = ui_region_find_active_but(region);
 
   if (menu->scrolltimer == NULL) {
     menu->scrolltimer = WM_event_add_timer(
@@ -10364,7 +10341,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
   /* Distance from initial point. */
   dist = ui_block_calc_pie_segment(block, event_xy);
 
-  if (but && button_modal_state(but->active->state)) {
+  if (but_active && button_modal_state(but_active->active->state)) {
     retval = ui_handle_menu_button(C, event, menu);
   }
   else {
@@ -10386,7 +10363,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
             block->pie_data.flags |= UI_PIE_ANIMATION_FINISHED;
           }
 
-          for (but = block->buttons.first; but; but = but->next) {
+          LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
             if (but->pie_dir != UI_RADIAL_NONE) {
               float vec[2];
               float center[2];
@@ -10425,7 +10402,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
         }
 
         if (len_sq < 1.0f) {
-          but = ui_region_find_active_but(menu->region);
+          uiBut *but = ui_region_find_active_but(menu->region);
 
           if (but) {
             return ui_but_pie_menu_apply(C, menu, but, true);
@@ -10451,7 +10428,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
           block->pie_data.flags |= UI_PIE_CLICK_STYLE;
         }
         else {
-          but = ui_region_find_active_but(menu->region);
+          uiBut *but = ui_region_find_active_but(menu->region);
 
           if (but && (U.pie_menu_confirm > 0) &&
               (dist >= U.dpi_fac * (U.pie_menu_threshold + U.pie_menu_confirm))) {
@@ -10536,7 +10513,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
         case EVT_ZKEY: {
           if ((event->val == KM_PRESS || event->val == KM_DBL_CLICK) &&
               !IS_EVENT_MOD(event, shift, ctrl, oskey)) {
-            for (but = block->buttons.first; but; but = but->next) {
+            LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
               if (but->menu_key == event->type) {
                 ui_but_pie_button_activate(C, but, menu);
               }
@@ -10569,7 +10546,7 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
           ATTR_FALLTHROUGH;
           CASE_NUM_TO_DIR(9, UI_RADIAL_NE);
           {
-            but = ui_block_pie_dir_activate(block, event, num_dir);
+            uiBut *but = ui_block_pie_dir_activate(block, event, num_dir);
             retval = ui_but_pie_button_activate(C, but, menu);
             break;
           }
@@ -11033,26 +11010,28 @@ bool UI_textbutton_activate_rna(const bContext *C,
                                 const void *rna_poin_data,
                                 const char *rna_prop_id)
 {
-  uiBlock *block;
-  uiBut *but = NULL;
+  uiBlock *block_text = NULL;
+  uiBut *but_text = NULL;
 
-  for (block = region->uiblocks.first; block; block = block->next) {
-    for (but = block->buttons.first; but; but = but->next) {
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
+    LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
       if (but->type == UI_BTYPE_TEXT) {
         if (but->rnaprop && but->rnapoin.data == rna_poin_data) {
           if (STREQ(RNA_property_identifier(but->rnaprop), rna_prop_id)) {
+            block_text = block;
+            but_text = but;
             break;
           }
         }
       }
     }
-    if (but) {
+    if (but_text) {
       break;
     }
   }
 
-  if (but) {
-    UI_but_active_only(C, region, block, but);
+  if (but_text) {
+    UI_but_active_only(C, region, block_text, but_text);
     return true;
   }
   return false;
@@ -11061,23 +11040,25 @@ bool UI_textbutton_activate_rna(const bContext *C,
 bool UI_textbutton_activate_but(const bContext *C, uiBut *actbut)
 {
   ARegion *region = CTX_wm_region(C);
-  uiBlock *block;
-  uiBut *but = NULL;
+  uiBlock *block_text = NULL;
+  uiBut *but_text = NULL;
 
-  for (block = region->uiblocks.first; block; block = block->next) {
-    for (but = block->buttons.first; but; but = but->next) {
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
+    LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
       if (but == actbut && but->type == UI_BTYPE_TEXT) {
+        block_text = block;
+        but_text = but;
         break;
       }
     }
 
-    if (but) {
+    if (but_text) {
       break;
     }
   }
 
-  if (but) {
-    UI_but_active_only(C, region, block, but);
+  if (but_text) {
+    UI_but_active_only(C, region, block_text, but_text);
     return true;
   }
   return false;

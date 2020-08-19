@@ -59,8 +59,6 @@
  */
 void ui_popup_translate(ARegion *region, const int mdiff[2])
 {
-  uiBlock *block;
-
   BLI_rcti_translate(&region->winrct, UNPACK2(mdiff));
 
   ED_region_update_rect(region);
@@ -68,13 +66,12 @@ void ui_popup_translate(ARegion *region, const int mdiff[2])
   ED_region_tag_redraw(region);
 
   /* update blocks */
-  for (block = region->uiblocks.first; block; block = block->next) {
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     uiPopupBlockHandle *handle = block->handle;
     /* Make empty, will be initialized on next use, see T60608. */
     BLI_rctf_init(&handle->prev_block_rect, 0, 0, 0, 0);
 
-    uiSafetyRct *saferct;
-    for (saferct = block->saferct.first; saferct; saferct = saferct->next) {
+    LISTBASE_FOREACH (uiSafetyRct *, saferct, &block->saferct) {
       BLI_rctf_translate(&saferct->parent, UNPACK2(mdiff));
       BLI_rctf_translate(&saferct->safety, UNPACK2(mdiff));
     }
@@ -373,16 +370,13 @@ static void ui_block_region_refresh(const bContext *C, ARegion *region)
 {
   ScrArea *ctx_area = CTX_wm_area(C);
   ARegion *ctx_region = CTX_wm_region(C);
-  uiBlock *block;
 
   if (region->do_draw & RGN_REFRESH_UI) {
     ScrArea *handle_ctx_area;
     ARegion *handle_ctx_region;
-    uiBlock *block_next;
 
     region->do_draw &= ~RGN_REFRESH_UI;
-    for (block = region->uiblocks.first; block; block = block_next) {
-      block_next = block->next;
+    LISTBASE_FOREACH_MUTABLE (uiBlock *, block, &region->uiblocks) {
       uiPopupBlockHandle *handle = block->handle;
 
       if (handle->can_refresh) {
@@ -409,9 +403,7 @@ static void ui_block_region_refresh(const bContext *C, ARegion *region)
 
 static void ui_block_region_draw(const bContext *C, ARegion *region)
 {
-  uiBlock *block;
-
-  for (block = region->uiblocks.first; block; block = block->next) {
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     UI_block_draw(C, block);
   }
 }
@@ -441,7 +433,6 @@ static void ui_block_region_popup_window_listener(wmWindow *UNUSED(win),
 
 static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 {
-  uiBut *bt;
   const float xmin_orig = block->rect.xmin;
   const int margin = UI_SCREEN_MARGIN;
   int winx, winy;
@@ -475,7 +466,7 @@ static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 
   /* ensure menu items draw inside left/right boundary */
   const float xofs = block->rect.xmin - xmin_orig;
-  for (bt = block->buttons.first; bt; bt = bt->next) {
+  LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
     bt->rect.xmin += xofs;
     bt->rect.xmax += xofs;
   }
@@ -483,11 +474,9 @@ static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 
 void ui_popup_block_scrolltest(uiBlock *block)
 {
-  uiBut *bt;
-
   block->flag &= ~(UI_BLOCK_CLIPBOTTOM | UI_BLOCK_CLIPTOP);
 
-  for (bt = block->buttons.first; bt; bt = bt->next) {
+  LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
     bt->flag &= ~UI_SCROLLED;
   }
 
@@ -496,7 +485,7 @@ void ui_popup_block_scrolltest(uiBlock *block)
   }
 
   /* mark buttons that are outside boundary */
-  for (bt = block->buttons.first; bt; bt = bt->next) {
+  LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
     if (bt->rect.ymin < block->rect.ymin) {
       bt->flag |= UI_SCROLLED;
       block->flag |= UI_BLOCK_CLIPBOTTOM;
@@ -508,7 +497,7 @@ void ui_popup_block_scrolltest(uiBlock *block)
   }
 
   /* mark buttons overlapping arrows, if we have them */
-  for (bt = block->buttons.first; bt; bt = bt->next) {
+  LISTBASE_FOREACH (uiBut *, bt, &block->buttons) {
     if (block->flag & UI_BLOCK_CLIPBOTTOM) {
       if (bt->rect.ymin < block->rect.ymin + UI_MENU_SCROLL_ARROW) {
         bt->flag |= UI_SCROLLED;
@@ -535,9 +524,10 @@ static void ui_popup_block_remove(bContext *C, uiPopupBlockHandle *handle)
   /* There may actually be a different window active than the one showing the popup, so lookup real
    * one. */
   if (BLI_findindex(&screen->regionbase, handle->region) == -1) {
-    for (win = wm->windows.first; win; win = win->next) {
-      screen = WM_window_get_active_screen(win);
+    LISTBASE_FOREACH (wmWindow *, win_iter, &wm->windows) {
+      screen = WM_window_get_active_screen(win_iter);
       if (BLI_findindex(&screen->regionbase, handle->region) != -1) {
+        win = win_iter;
         break;
       }
     }

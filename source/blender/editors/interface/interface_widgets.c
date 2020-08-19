@@ -29,6 +29,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
@@ -2242,7 +2243,7 @@ static void widget_draw_extra_icons(const uiWidgetColors *wcol,
                                     float alpha)
 {
   /* inverse order, from right to left. */
-  for (uiButExtraOpIcon *op_icon = but->extra_op_icons.last; op_icon; op_icon = op_icon->prev) {
+  LISTBASE_FOREACH_BACKWARD (uiButExtraOpIcon *, op_icon, &but->extra_op_icons) {
     rcti temp = *rect;
 
     temp.xmin = temp.xmax - (BLI_rcti_size_y(rect) * 1.08f);

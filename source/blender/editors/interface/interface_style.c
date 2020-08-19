@@ -426,7 +426,6 @@ int UI_fontstyle_height_max(const uiFontStyle *fs)
 /* reading without uifont will create one */
 void uiStyleInit(void)
 {
-  uiFont *font;
   uiStyle *style = U.uistyles.first;
 
   /* recover from uninitialized dpi */
@@ -435,7 +434,7 @@ void uiStyleInit(void)
   }
   CLAMP(U.dpi, 48, 144);
 
-  for (font = U.uifonts.first; font; font = font->next) {
+  LISTBASE_FOREACH (uiFont *, font, &U.uifonts) {
     BLF_unload_id(font->blf_id);
   }
 
@@ -449,24 +448,24 @@ void uiStyleInit(void)
     blf_mono_font_render = -1;
   }
 
-  font = U.uifonts.first;
+  uiFont *font_first = U.uifonts.first;
 
   /* default builtin */
-  if (font == NULL) {
-    font = MEM_callocN(sizeof(uiFont), "ui font");
-    BLI_addtail(&U.uifonts, font);
+  if (font_first == NULL) {
+    font_first = MEM_callocN(sizeof(uiFont), "ui font");
+    BLI_addtail(&U.uifonts, font_first);
   }
 
   if (U.font_path_ui[0]) {
-    BLI_strncpy(font->filename, U.font_path_ui, sizeof(font->filename));
-    font->uifont_id = UIFONT_CUSTOM1;
+    BLI_strncpy(font_first->filename, U.font_path_ui, sizeof(font_first->filename));
+    font_first->uifont_id = UIFONT_CUSTOM1;
   }
   else {
-    BLI_strncpy(font->filename, "default", sizeof(font->filename));
-    font->uifont_id = UIFONT_DEFAULT;
+    BLI_strncpy(font_first->filename, "default", sizeof(font_first->filename));
+    font_first->uifont_id = UIFONT_DEFAULT;
   }
 
-  for (font = U.uifonts.first; font; font = font->next) {
+  LISTBASE_FOREACH (uiFont *, font, &U.uifonts) {
     const bool unique = false;
 
     if (font->uifont_id == UIFONT_DEFAULT) {
@@ -535,7 +534,7 @@ void uiStyleInit(void)
       flag_enable |= BLF_MONOCHROME;
     }
 
-    for (font = U.uifonts.first; font; font = font->next) {
+    LISTBASE_FOREACH (uiFont *, font, &U.uifonts) {
       if (font->blf_id != -1) {
         BLF_disable(font->blf_id, flag_disable);
         BLF_enable(font->blf_id, flag_enable);

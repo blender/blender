@@ -715,8 +715,7 @@ static void ui_context_selected_bones_via_pose(bContext *C, ListBase *r_lb)
   lb = CTX_data_collection_get(C, "selected_pose_bones");
 
   if (!BLI_listbase_is_empty(&lb)) {
-    CollectionPointerLink *link;
-    for (link = lb.first; link; link = link->next) {
+    LISTBASE_FOREACH (CollectionPointerLink *, link, &lb) {
       bPoseChannel *pchan = link->ptr.data;
       RNA_pointer_create(link->ptr.owner_id, &RNA_Bone, pchan->bone, &link->ptr);
     }
@@ -843,12 +842,10 @@ bool UI_context_copy_to_selected_list(bContext *C,
 
     /* Now filter by type */
     if (node) {
-      CollectionPointerLink *link, *link_next;
       lb = CTX_data_collection_get(C, "selected_nodes");
 
-      for (link = lb.first; link; link = link_next) {
+      LISTBASE_FOREACH_MUTABLE (CollectionPointerLink *, link, &lb) {
         bNode *node_data = link->ptr.data;
-        link_next = link->next;
 
         if (node_data->type != node->type) {
           BLI_remlink(&lb, link);
@@ -876,9 +873,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
 
       /* de-duplicate obdata */
       if (!BLI_listbase_is_empty(&lb)) {
-        CollectionPointerLink *link, *link_next;
-
-        for (link = lb.first; link; link = link->next) {
+        LISTBASE_FOREACH (CollectionPointerLink *, link, &lb) {
           Object *ob = (Object *)link->ptr.owner_id;
           if (ob->data) {
             ID *id_data = ob->data;
@@ -886,10 +881,9 @@ bool UI_context_copy_to_selected_list(bContext *C,
           }
         }
 
-        for (link = lb.first; link; link = link_next) {
+        LISTBASE_FOREACH_MUTABLE (CollectionPointerLink *, link, &lb) {
           Object *ob = (Object *)link->ptr.owner_id;
           ID *id_data = ob->data;
-          link_next = link->next;
 
           if ((id_data == NULL) || (id_data->tag & LIB_TAG_DOIT) == 0 || ID_IS_LINKED(id_data) ||
               (GS(id_data->name) != id_code)) {
@@ -970,12 +964,11 @@ static bool copy_to_selected_button(bContext *C, bool all, bool poll)
   if (ptr.data && prop) {
     char *path = NULL;
     bool use_path_from_id;
-    CollectionPointerLink *link;
     ListBase lb = {NULL};
 
     if (UI_context_copy_to_selected_list(C, &ptr, prop, &lb, &use_path_from_id, &path) &&
         !BLI_listbase_is_empty(&lb)) {
-      for (link = lb.first; link; link = link->next) {
+      LISTBASE_FOREACH (CollectionPointerLink *, link, &lb) {
         if (link->ptr.data != ptr.data) {
           if (use_path_from_id) {
             /* Path relative to ID. */
@@ -1299,13 +1292,14 @@ static int editsource_text_edit(bContext *C,
                                 const int line)
 {
   struct Main *bmain = CTX_data_main(C);
-  Text *text;
+  Text *text = NULL;
 
   /* Developers may wish to copy-paste to an external editor. */
   printf("%s:%d\n", filepath, line);
 
-  for (text = bmain->texts.first; text; text = text->id.next) {
-    if (text->filepath && BLI_path_cmp(text->filepath, filepath) == 0) {
+  LISTBASE_FOREACH (Text *, text_iter, &bmain->texts) {
+    if (text_iter->filepath && BLI_path_cmp(text_iter->filepath, filepath) == 0) {
+      text = text_iter;
       break;
     }
   }

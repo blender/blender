@@ -24,6 +24,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
 
@@ -385,7 +386,6 @@ static void ui_block_align_but_to_region(uiBut *but, const ARegion *region)
  */
 void ui_block_align_calc(uiBlock *block, const ARegion *region)
 {
-  uiBut *but;
   int num_buttons = 0;
 
   const int sides_to_ui_but_align_flags[4] = SIDE_TO_UI_BUT_ALIGN;
@@ -398,7 +398,7 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
   /* First loop: we count number of buttons belonging to an align group,
    * and clear their align flag.
    * Tabs get some special treatment here, they get aligned to region border. */
-  for (but = block->buttons.first; but; but = but->next) {
+  LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
     /* special case: tabs need to be aligned to a region border, drawflag tells which one */
     if (but->type == UI_BTYPE_TAB) {
       ui_block_align_but_to_region(but, region);
@@ -431,7 +431,8 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
   memset(butal_array, 0, sizeof(*butal_array) * (size_t)num_buttons);
 
   /* Second loop: we initialize our ButAlign data for each button. */
-  for (but = block->buttons.first, butal = butal_array; but; but = but->next) {
+  butal = butal_array;
+  LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
     if (but->alignnr != 0) {
       butal->but = but;
       butal->borders[LEFT] = &but->rect.xmin;
@@ -726,11 +727,10 @@ static void ui_block_align_calc_but(uiBut *first, short nr)
 
 void ui_block_align_calc(uiBlock *block, const struct ARegion *UNUSED(region))
 {
-  uiBut *but;
   short nr;
 
   /* align buttons with same align nr */
-  for (but = block->buttons.first; but;) {
+  LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
     if (but->alignnr) {
       nr = but->alignnr;
       ui_block_align_calc_but(but, nr);

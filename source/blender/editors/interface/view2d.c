@@ -870,8 +870,6 @@ void UI_view2d_curRect_changed(const bContext *C, View2D *v2d)
  * to make sure 'related' views stay in synchrony */
 void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
 {
-  ARegion *region;
-
   /* don't continue if no view syncing to be done */
   if ((v2dcur->flag & (V2D_VIEWSYNC_SCREEN_TIME | V2D_VIEWSYNC_AREA_VERTICAL)) == 0) {
     return;
@@ -879,7 +877,7 @@ void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
 
   /* check if doing within area syncing (i.e. channels/vertical) */
   if ((v2dcur->flag & V2D_VIEWSYNC_AREA_VERTICAL) && (area)) {
-    for (region = area->regionbase.first; region; region = region->next) {
+    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       /* don't operate on self */
       if (v2dcur != &region->v2d) {
         /* only if view has vertical locks enabled */
@@ -905,7 +903,7 @@ void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
   /* check if doing whole screen syncing (i.e. time/horizontal) */
   if ((v2dcur->flag & V2D_VIEWSYNC_SCREEN_TIME) && (screen)) {
     LISTBASE_FOREACH (ScrArea *, area_iter, &screen->areabase) {
-      for (region = area_iter->regionbase.first; region; region = region->next) {
+      LISTBASE_FOREACH (ARegion *, region, &area_iter->regionbase) {
         /* don't operate on self */
         if (v2dcur != &region->v2d) {
           /* only if view has horizontal locks enabled */
