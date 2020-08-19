@@ -151,7 +151,13 @@ class SequencerFadesClear(Operator):
         return context.scene and context.scene.sequence_editor and context.scene.sequence_editor.active_strip
 
     def execute(self, context):
-        fcurves = context.scene.animation_data.action.fcurves
+        animation_data = context.scene.animation_data
+        if animation_data is None:
+            return {'CANCELLED'}
+        action = animation_data.action
+        if action is None:
+            return {'CANCELLED'}
+        fcurves = action.fcurves
         fcurve_map = {
             curve.data_path: curve
             for curve in fcurves
