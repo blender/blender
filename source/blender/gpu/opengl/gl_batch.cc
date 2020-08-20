@@ -171,10 +171,9 @@ void GLVaoCache::clear(void)
   }
 
   for (int i = 0; i < count; i++) {
-    if (interfaces[i] == NULL) {
-      continue;
+    if (interfaces[i] != NULL) {
+      const_cast<GLShaderInterface *>(interfaces[i])->ref_remove(this);
     }
-    const_cast<GLShaderInterface *>(interfaces[i])->ref_add(this);
   }
 
   if (is_dynamic_vao_count) {
