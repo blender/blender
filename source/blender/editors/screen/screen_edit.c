@@ -230,7 +230,8 @@ bScreen *screen_add(Main *bmain, const char *name, const rcti *rect)
 
 void screen_data_copy(bScreen *to, bScreen *from)
 {
-  ScrVert *s2;
+  ScrVert *s1, *s2;
+  ScrEdge *se;
   ScrArea *area, *saf;
 
   /* free contents of 'to', is from blenkernel screen.c */
@@ -244,11 +245,11 @@ void screen_data_copy(bScreen *to, bScreen *from)
   BLI_listbase_clear(&to->regionbase);
 
   s2 = to->vertbase.first;
-  LISTBASE_FOREACH (ScrVert *, s1, &from->vertbase) {
+  for (s1 = from->vertbase.first; s1; s1 = s1->next, s2 = s2->next) {
     s1->newv = s2;
   }
 
-  LISTBASE_FOREACH (ScrEdge *, se, &to->edgebase) {
+  for (se = to->edgebase.first; se; se = se->next) {
     se->v1 = se->v1->newv;
     se->v2 = se->v2->newv;
     BKE_screen_sort_scrvert(&(se->v1), &(se->v2));
@@ -270,7 +271,7 @@ void screen_data_copy(bScreen *to, bScreen *from)
   }
 
   /* put at zero (needed?) */
-  LISTBASE_FOREACH (ScrVert *, s1, &from->vertbase) {
+  for (s1 = from->vertbase.first; s1; s1 = s1->next) {
     s1->newv = NULL;
   }
 }
@@ -537,7 +538,9 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 /* file read, set all screens, ... */
 void ED_screens_init(Main *bmain, wmWindowManager *wm)
 {
-  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+  wmWindow *win;
+
+  for (win = wm->windows.first; win; win = win->next) {
     if (BKE_workspace_active_get(win->workspace_hook) == NULL) {
       BKE_workspace_active_set(win->workspace_hook, bmain->workspaces.first);
     }
@@ -549,7 +552,7 @@ void ED_screens_init(Main *bmain, wmWindowManager *wm)
   }
 
   if (U.uiflag & USER_HEADER_FROM_PREF) {
-    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
       BKE_screen_header_alignment_reset(screen);
     }
   }
@@ -611,6 +614,7 @@ void ED_area_exit(bContext *C, ScrArea *area)
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
   ScrArea *prevsa = CTX_wm_area(C);
+  ARegion *region;
 
   if (area->type && area->type->exit) {
     area->type->exit(wm, area);
@@ -618,7 +622,7 @@ void ED_area_exit(bContext *C, ScrArea *area)
 
   CTX_wm_area_set(C, area);
 
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+  for (region = area->regionbase.first; region; region = region->next) {
     ED_region_exit(C, region);
   }
 
@@ -679,11 +683,10 @@ static void screen_cursor_set(wmWindow *win, const int xy[2])
 {
   const bScreen *screen = WM_window_get_active_screen(win);
   AZone *az = NULL;
-  ScrArea *area = NULL;
+  ScrArea *area;
 
-  LISTBASE_FOREACH (ScrArea *, area_iter, &screen->areabase) {
+  for (area = screen->areabase.first; area; area = area->next) {
     if ((az = ED_area_actionzone_find_xy(area, xy))) {
-      area = area_iter;
       break;
     }
   }
@@ -730,6 +733,7 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
   }
 
   ScrArea *area = NULL;
+  ARegion *region;
   ARegion *region_prev = screen->active_region;
 
   ED_screen_areas_iter (win, screen, area_iter) {
@@ -746,7 +750,7 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
   }
   if (area) {
     /* Make overlap active when mouse over. */
-    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+    for (region = area->regionbase.first; region; region = region->next) {
       if (ED_region_contains_xy(region, xy)) {
         screen->active_region = region;
         break;
@@ -763,7 +767,8 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
     ED_screen_areas_iter (win, screen, area_iter) {
       bool do_draw = false;
 
-      LISTBASE_FOREACH (ARegion *, region, &area_iter->regionbase) {
+      for (region = area_iter->regionbase.first; region; region = region->next) {
+
         /* Call old area's deactivate if assigned. */
         if (region == region_prev && area_iter->type->deactivate) {
           area_iter->type->deactivate(area_iter);
@@ -784,7 +789,7 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
       }
 
       if (do_draw) {
-        LISTBASE_FOREACH (ARegion *, region, &area_iter->regionbase) {
+        for (region = area_iter->regionbase.first; region; region = region->next) {
           if (ELEM(region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
             ED_region_tag_redraw_no_rebuild(region);
           }
@@ -821,12 +826,13 @@ int ED_screen_area_active(const bContext *C)
 
   if (win && screen && area) {
     AZone *az = ED_area_actionzone_find_xy(area, &win->eventstate->x);
+    ARegion *region;
 
     if (az && az->type == AZONE_REGION) {
       return 1;
     }
 
-    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+    for (region = area->regionbase.first; region; region = region->next) {
       if (region == screen->active_region) {
         return 1;
       }
@@ -877,8 +883,9 @@ static void screen_global_area_refresh(wmWindow *win,
                                        const short height_min,
                                        const short height_max)
 {
-  ScrArea *area = NULL;
-  LISTBASE_FOREACH (ScrArea *, area_iter, &win->global_areas.areabase) {
+  ScrArea *area;
+
+  for (area = win->global_areas.areabase.first; area; area = area->next) {
     if (area->spacetype == space_type) {
       break;
     }
@@ -1074,6 +1081,7 @@ static void screen_set_3dview_camera(Scene *scene,
     v3d->camera = BKE_view_layer_camera_find(view_layer);
     // XXX if (screen == curscreen) handle_view3d_lock();
     if (!v3d->camera) {
+      ARegion *region;
       ListBase *regionbase;
 
       /* regionbase is in different place depending if space is active */
@@ -1084,7 +1092,7 @@ static void screen_set_3dview_camera(Scene *scene,
         regionbase = &v3d->regionbase;
       }
 
-      LISTBASE_FOREACH (ARegion *, region, regionbase) {
+      for (region = regionbase->first; region; region = region->next) {
         if (region->regiontype == RGN_TYPE_WINDOW) {
           RegionView3D *rv3d = region->regiondata;
           if (rv3d->persp == RV3D_CAMOB) {
@@ -1232,12 +1240,13 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
   wmWindowManager *wm = CTX_wm_manager(C);
   WorkSpace *workspace = WM_window_get_active_workspace(win);
   bScreen *screen, *oldscreen;
+  ARegion *region;
 
   if (area) {
     /* ensure we don't have a button active anymore, can crash when
      * switching screens with tooltip open because region and tooltip
      * are no longer in the same screen */
-    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+    for (region = area->regionbase.first; region; region = region->next) {
       UI_blocklist_free(C, &region->uiblocks);
 
       if (region->regiontimer) {
@@ -1290,7 +1299,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
         glob_area->global->flag &= ~GLOBAL_AREA_IS_HIDDEN;
       }
       /* restore the old side panels/header visibility */
-      LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+      for (region = area->regionbase.first; region; region = region->next) {
         region->flag = region->flagfullscreen;
       }
     }
@@ -1355,7 +1364,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
         glob_area->global->flag |= GLOBAL_AREA_IS_HIDDEN;
       }
       /* temporarily hide the side panels/header */
-      LISTBASE_FOREACH (ARegion *, region, &newa->regionbase) {
+      for (region = newa->regionbase.first; region; region = region->next) {
         region->flagfullscreen = region->flag;
 
         if (ELEM(region->regiontype,
@@ -1528,11 +1537,13 @@ void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable)
 static ARegion *time_top_left_3dwindow(bScreen *screen)
 {
   ARegion *aret = NULL;
+  ScrArea *area;
   int min = 10000;
 
-  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+  for (area = screen->areabase.first; area; area = area->next) {
     if (area->spacetype == SPACE_VIEW3D) {
-      LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+      ARegion *region;
+      for (region = area->regionbase.first; region; region = region->next) {
         if (region->regiontype == RGN_TYPE_WINDOW) {
           if (region->winrct.xmin - region->winrct.ymin < min) {
             aret = region;
@@ -1570,9 +1581,10 @@ void ED_update_for_newframe(Main *bmain, Depsgraph *depsgraph)
 #ifdef DURIAN_CAMERA_SWITCH
   void *camera = BKE_scene_camera_switch_find(scene);
   if (camera && scene->camera != camera) {
+    bScreen *screen;
     scene->camera = camera;
     /* are there cameras in the views that are not in the scene? */
-    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+    for (screen = bmain->screens.first; screen; screen = screen->id.next) {
       BKE_screen_view3d_scene_sync(screen, scene);
     }
     DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
@@ -1590,9 +1602,10 @@ void ED_update_for_newframe(Main *bmain, Depsgraph *depsgraph)
  */
 bool ED_screen_stereo3d_required(const bScreen *screen, const Scene *scene)
 {
+  ScrArea *area;
   const bool is_multiview = (scene->r.scemode & R_MULTIVIEW) != 0;
 
-  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+  for (area = screen->areabase.first; area; area = area->next) {
     switch (area->spacetype) {
       case SPACE_VIEW3D: {
         View3D *v3d;
@@ -1603,7 +1616,8 @@ bool ED_screen_stereo3d_required(const bScreen *screen, const Scene *scene)
 
         v3d = area->spacedata.first;
         if (v3d->camera && v3d->stereo3d_camera == STEREO_3D_ID) {
-          LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+          ARegion *region;
+          for (region = area->regionbase.first; region; region = region->next) {
             if (region->regiondata && region->regiontype == RGN_TYPE_WINDOW) {
               RegionView3D *rv3d = region->regiondata;
               if (rv3d->persp == RV3D_CAMOB) {

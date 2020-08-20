@@ -168,7 +168,8 @@ static bool workspace_change_find_new_layout_cb(const WorkSpaceLayout *layout, v
 
 static bScreen *screen_fullscreen_find_associated_normal_screen(const Main *bmain, bScreen *screen)
 {
-  LISTBASE_FOREACH (bScreen *, screen_iter, &bmain->screens) {
+  for (bScreen *screen_iter = bmain->screens.first; screen_iter;
+       screen_iter = screen_iter->id.next) {
     if ((screen_iter != screen) && ELEM(screen_iter->state, SCREENMAXIMIZED, SCREENFULL)) {
       ScrArea *area = screen_iter->areabase.first;
       if (area && area->full == screen) {
