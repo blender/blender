@@ -65,7 +65,7 @@ typedef struct GPUQueryState {
   int viewport[4];
   int scissor[4];
   eGPUWriteMask write_mask;
-  bool depth_test;
+  eGPUDepthTest depth_test;
 } GPUQueryState;
 
 static GPUQueryState g_query_state = {0};
@@ -91,7 +91,7 @@ void gpu_select_query_begin(
   glGenQueries(g_query_state.num_of_queries, g_query_state.queries);
 
   g_query_state.write_mask = GPU_write_mask_get();
-  g_query_state.depth_test = GPU_depth_test_enabled();
+  g_query_state.depth_test = GPU_depth_test_get();
   GPU_scissor_get(g_query_state.scissor);
 
   /* disable writing to the framebuffer */

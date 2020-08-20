@@ -1314,15 +1314,15 @@ void DRW_draw_callbacks_post_scene(void)
     /* annotations - temporary drawing buffer (3d space) */
     /* XXX: Or should we use a proper draw/overlay engine for this case? */
     if (do_annotations) {
-      GPU_depth_test(false);
+      GPU_depth_test(GPU_DEPTH_NONE);
       /* XXX: as scene->gpd is not copied for COW yet */
       ED_annotation_draw_view3d(DEG_get_input_scene(depsgraph), depsgraph, v3d, region, true);
-      GPU_depth_test(true);
+      GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
     }
 
     drw_debug_draw();
 
-    GPU_depth_test(false);
+    GPU_depth_test(GPU_DEPTH_NONE);
     ED_region_draw_cb_draw(DST.draw_ctx.evil_C, DST.draw_ctx.region, REGION_DRAW_POST_VIEW);
 
     /* Callback can be nasty and do whatever they want with the state.
@@ -1331,11 +1331,11 @@ void DRW_draw_callbacks_post_scene(void)
 
     /* needed so gizmo isn't obscured */
     if ((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0) {
-      GPU_depth_test(false);
+      GPU_depth_test(GPU_DEPTH_NONE);
       DRW_draw_gizmo_3d();
     }
 
-    GPU_depth_test(false);
+    GPU_depth_test(GPU_DEPTH_NONE);
     drw_engines_draw_text();
 
     DRW_draw_region_info();
@@ -1343,7 +1343,7 @@ void DRW_draw_callbacks_post_scene(void)
     /* annotations - temporary drawing buffer (screenspace) */
     /* XXX: Or should we use a proper draw/overlay engine for this case? */
     if (((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) && (do_annotations)) {
-      GPU_depth_test(false);
+      GPU_depth_test(GPU_DEPTH_NONE);
       /* XXX: as scene->gpd is not copied for COW yet */
       ED_annotation_draw_view3d(DEG_get_input_scene(depsgraph), depsgraph, v3d, region, false);
     }
@@ -1351,18 +1351,18 @@ void DRW_draw_callbacks_post_scene(void)
     if ((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0) {
       /* Draw 2D after region info so we can draw on top of the camera passepartout overlay.
        * 'DRW_draw_region_info' sets the projection in pixel-space. */
-      GPU_depth_test(false);
+      GPU_depth_test(GPU_DEPTH_NONE);
       DRW_draw_gizmo_2d();
     }
 
     if (G.debug_value > 20 && G.debug_value < 30) {
-      GPU_depth_test(false);
+      GPU_depth_test(GPU_DEPTH_NONE);
       /* local coordinate visible rect inside region, to accommodate overlapping ui */
       const rcti *rect = ED_region_visible_rect(DST.draw_ctx.region);
       DRW_stats_draw(rect);
     }
 
-    GPU_depth_test(true);
+    GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
   }
 }
 
@@ -2438,7 +2438,7 @@ void DRW_draw_depth_object(
 
   GPU_framebuffer_bind(fbl->depth_only_fb);
   GPU_framebuffer_clear_depth(fbl->depth_only_fb, 1.0f);
-  GPU_depth_test(true);
+  GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
 
   const float(*world_clip_planes)[4] = NULL;
   if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
@@ -2485,7 +2485,7 @@ void DRW_draw_depth_object(
   }
 
   GPU_matrix_set(rv3d->viewmat);
-  GPU_depth_test(false);
+  GPU_depth_test(GPU_DEPTH_NONE);
   GPU_framebuffer_restore();
   DRW_opengl_context_disable();
 }

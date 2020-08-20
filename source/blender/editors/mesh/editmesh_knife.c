@@ -1051,7 +1051,7 @@ static void knife_init_colors(KnifeColors *colors)
 static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(region), void *arg)
 {
   const KnifeTool_OpData *kcd = arg;
-  GPU_depth_test(false);
+  GPU_depth_test(GPU_DEPTH_NONE);
 
   GPU_matrix_push_projection();
   GPU_polygon_offset(1.0f, 1.0f);
@@ -1222,7 +1222,7 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(region), v
   GPU_matrix_pop_projection();
 
   /* Reset default */
-  GPU_depth_test(true);
+  GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
 }
 
 /**

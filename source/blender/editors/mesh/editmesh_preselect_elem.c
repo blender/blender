@@ -133,7 +133,7 @@ void EDBM_preselect_elem_draw(struct EditMesh_PreSelElem *psel, const float matr
     return;
   }
 
-  GPU_depth_test(false);
+  GPU_depth_test(GPU_DEPTH_NONE);
 
   GPU_matrix_push();
   GPU_matrix_mul(matrix);
@@ -204,7 +204,7 @@ void EDBM_preselect_elem_draw(struct EditMesh_PreSelElem *psel, const float matr
   GPU_matrix_pop();
 
   /* Reset default */
-  GPU_depth_test(true);
+  GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
 }
 
 static void view3d_preselect_mesh_elem_update_from_vert(struct EditMesh_PreSelElem *psel,

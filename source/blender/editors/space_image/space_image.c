@@ -662,7 +662,7 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
   srgb_to_linearrgb_v3_v3(col, col);
   GPU_clear_color(col[0], col[1], col[2], 1.0f);
   GPU_clear(GPU_COLOR_BIT);
-  GPU_depth_test(false);
+  GPU_depth_test(GPU_DEPTH_NONE);
 
   image_user_refresh_scene(C, sima);
 

@@ -66,9 +66,9 @@ typedef enum eGPUBlend {
 
 typedef enum eGPUDepthTest {
   GPU_DEPTH_NONE = 0,
-  GPU_DEPTH_ALWAYS,
+  GPU_DEPTH_ALWAYS, /* Used to draw to the depth buffer without really testing. */
   GPU_DEPTH_LESS,
-  GPU_DEPTH_LESS_EQUAL,
+  GPU_DEPTH_LESS_EQUAL, /* Default. */
   GPU_DEPTH_EQUAL,
   GPU_DEPTH_GREATER,
   GPU_DEPTH_GREATER_EQUAL,
@@ -106,11 +106,10 @@ extern "C" {
 
 void GPU_blend(eGPUBlend blend);
 void GPU_face_culling(eGPUFaceCullTest culling);
-void GPU_front_facing(bool invert);
+void GPU_depth_test(eGPUDepthTest test);
 void GPU_provoking_vertex(eGPUProvokingVertex vert);
+void GPU_front_facing(bool invert);
 void GPU_depth_range(float near, float far);
-void GPU_depth_test(bool enable);
-bool GPU_depth_test_enabled(void);
 void GPU_scissor_test(bool enable);
 void GPU_line_smooth(bool enable);
 void GPU_line_width(float width);
@@ -144,6 +143,7 @@ void GPU_stencil_write_mask_set(uint write_mask);
 void GPU_stencil_compare_mask_set(uint compare_mask);
 
 eGPUBlend GPU_blend_get(void);
+eGPUDepthTest GPU_depth_test_get(void);
 eGPUWriteMask GPU_write_mask_get(void);
 
 void GPU_flush(void);

@@ -1343,7 +1343,7 @@ void drawDial3d(const TransInfo *t)
     BLI_assert(axis_idx >= MAN_AXIS_RANGE_ROT_START && axis_idx < MAN_AXIS_RANGE_ROT_END);
     gizmo_get_axis_color(axis_idx, NULL, color, color);
 
-    GPU_depth_test(false);
+    GPU_depth_test(GPU_DEPTH_NONE);
     GPU_blend(GPU_BLEND_ALPHA);
     GPU_line_smooth(true);
 
@@ -1359,7 +1359,7 @@ void drawDial3d(const TransInfo *t)
                                     });
 
     GPU_line_smooth(false);
-    GPU_depth_test(true);
+    GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
     GPU_blend(GPU_BLEND_NONE);
   }
 }

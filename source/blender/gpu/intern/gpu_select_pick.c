@@ -287,7 +287,7 @@ typedef struct GPUPickState {
   int viewport[4];
   int scissor[4];
   eGPUWriteMask write_mask;
-  bool depth_test;
+  eGPUDepthTest depth_test;
 } GPUPickState;
 
 static GPUPickState g_pick_state = {0};
@@ -311,7 +311,7 @@ void gpu_select_pick_begin(uint (*buffer)[4], uint bufsize, const rcti *input, c
   /* Restrict OpenGL operations for when we don't have cache */
   if (ps->is_cached == false) {
     ps->write_mask = GPU_write_mask_get();
-    ps->depth_test = GPU_depth_test_enabled();
+    ps->depth_test = GPU_depth_test_get();
     GPU_scissor_get(ps->scissor);
 
     /* disable writing to the framebuffer */

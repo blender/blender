@@ -419,7 +419,7 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C),
       uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
-      GPU_depth_test(false);
+      GPU_depth_test(GPU_DEPTH_NONE);
       GPU_blend(GPU_BLEND_ALPHA);
       GPU_line_smooth(true);
       GPU_line_width(3.0f);
@@ -441,7 +441,7 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C),
       immEnd();
 
       /* Reset defaults */
-      GPU_depth_test(true);
+      GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
       GPU_blend(GPU_BLEND_NONE);
       GPU_line_smooth(false);
 

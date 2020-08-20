@@ -84,13 +84,13 @@ void wm_gizmo_geometryinfo_draw(const GizmoGeomInfo *info,
    * since it causes issues leaving the GL state modified. */
 #if 0
   GPU_face_culling(GPU_CULL_BACK);
-  GPU_depth_test(true);
+  GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
 #endif
 
   GPU_batch_draw(batch);
 
 #if 0
-  GPU_depth_test(false);
+  GPU_depth_test(GPU_DEPTH_NONE);
   GPU_face_culling(GPU_CULL_NONE);
 #endif
 

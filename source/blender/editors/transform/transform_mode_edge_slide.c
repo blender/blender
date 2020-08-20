@@ -1147,7 +1147,7 @@ void drawEdgeSlide(TransInfo *t)
 
   const float line_size = UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 0.5f;
 
-  GPU_depth_test(false);
+  GPU_depth_test(GPU_DEPTH_NONE);
 
   GPU_blend(GPU_BLEND_ALPHA);
 
@@ -1266,7 +1266,7 @@ void drawEdgeSlide(TransInfo *t)
 
   GPU_blend(GPU_BLEND_NONE);
 
-  GPU_depth_test(true);
+  GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
 }
 
 static void edge_slide_snap_apply(TransInfo *t, float *value)

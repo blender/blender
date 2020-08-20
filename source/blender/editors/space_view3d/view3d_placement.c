@@ -586,23 +586,23 @@ static void draw_primitive_view(const struct bContext *C, ARegion *UNUSED(region
   UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, color);
 
   const bool use_depth = !XRAY_ENABLED(ipd->v3d);
-  const bool depth_test_enabled = GPU_depth_test_enabled();
+  const eGPUDepthTest depth_test_enabled = GPU_depth_test_get();
 
   if (use_depth) {
-    GPU_depth_test(false);
+    GPU_depth_test(GPU_DEPTH_NONE);
     color[3] = 0.15f;
     draw_primitive_view_impl(C, ipd, color);
   }
 
   if (use_depth) {
-    GPU_depth_test(true);
+    GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
   }
   color[3] = 1.0f;
   draw_primitive_view_impl(C, ipd, color);
 
   if (use_depth) {
     if (depth_test_enabled == false) {
-      GPU_depth_test(false);
+      GPU_depth_test(GPU_DEPTH_NONE);
     }
   }
 }

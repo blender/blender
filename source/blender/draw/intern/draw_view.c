@@ -105,7 +105,7 @@ void DRW_draw_cursor(void)
 
   GPU_color_mask(true, true, true, true);
   GPU_depth_mask(false);
-  GPU_depth_test(false);
+  GPU_depth_test(GPU_DEPTH_NONE);
 
   if (is_cursor_visible(draw_ctx, scene, view_layer)) {
     int co[2];

@@ -1618,7 +1618,7 @@ void view3d_main_region_draw(const bContext *C, ARegion *region)
   GPU_pass_cache_garbage_collect();
 
   /* No depth test for drawing action zones afterwards. */
-  GPU_depth_test(false);
+  GPU_depth_test(GPU_DEPTH_NONE);
 
   v3d->flag |= V3D_INVALID_BACKBUF;
 }
@@ -2321,12 +2321,12 @@ void ED_view3d_draw_depth_gpencil(Depsgraph *depsgraph, Scene *scene, ARegion *r
 
   GPU_clear(GPU_DEPTH_BIT);
 
-  GPU_depth_test(true);
+  GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
 
   GPUViewport *viewport = WM_draw_region_get_viewport(region);
   DRW_draw_depth_loop_gpencil(depsgraph, region, v3d, viewport);
 
-  GPU_depth_test(false);
+  GPU_depth_test(GPU_DEPTH_NONE);
 }
 
 /* *********************** customdata **************** */

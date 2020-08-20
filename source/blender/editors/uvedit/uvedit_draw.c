@@ -451,13 +451,13 @@ static void draw_uvs(SpaceImage *sima,
       GPU_batch_program_set_builtin(batch->edges, shader);
 
       /* Inner Line. Use depth test to insure selection is drawn on top. */
-      GPU_depth_test(true);
+      GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
       GPU_line_width(1.0f);
       GPU_batch_uniform_4fv(batch->edges, "edgeColor", col1);
       GPU_batch_uniform_4fv(batch->edges, "selectColor", col2);
       GPU_batch_uniform_1f(batch->edges, "dashWidth", dash_width);
       GPU_batch_draw(batch->edges);
-      GPU_depth_test(false);
+      GPU_depth_test(GPU_DEPTH_NONE);
 
       GPU_provoking_vertex(GPU_VERTEX_LAST);
     }

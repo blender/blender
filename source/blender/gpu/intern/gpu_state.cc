@@ -74,10 +74,9 @@ void GPU_provoking_vertex(eGPUProvokingVertex vert)
   SET_IMMUTABLE_STATE(provoking_vert, vert);
 }
 
-/* TODO explicit depth test. */
-void GPU_depth_test(bool enable)
+void GPU_depth_test(eGPUDepthTest test)
 {
-  SET_IMMUTABLE_STATE(depth_test, (enable) ? GPU_DEPTH_LESS_EQUAL : GPU_DEPTH_NONE);
+  SET_IMMUTABLE_STATE(depth_test, test);
 }
 
 void GPU_line_smooth(bool enable)
@@ -240,10 +239,10 @@ eGPUWriteMask GPU_write_mask_get()
   return (eGPUWriteMask)state.write_mask;
 }
 
-bool GPU_depth_test_enabled()
+eGPUDepthTest GPU_depth_test_get()
 {
   GPUState &state = GPU_context_active_get()->state_manager->state;
-  return state.depth_test != GPU_DEPTH_NONE;
+  return (eGPUDepthTest)state.depth_test;
 }
 
 void GPU_scissor_get(int coords[4])

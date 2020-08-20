@@ -566,7 +566,7 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
 
   if (load_tex(brush, vc, zoom, col, primary)) {
     GPU_color_mask(true, true, true, true);
-    GPU_depth_test(false);
+    GPU_depth_test(GPU_DEPTH_NONE);
 
     if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
       GPU_matrix_push();
@@ -693,7 +693,7 @@ static bool paint_draw_cursor_overlay(
     float center[2];
 
     GPU_color_mask(true, true, true, true);
-    GPU_depth_test(false);
+    GPU_depth_test(GPU_DEPTH_NONE);
 
     if (ups->draw_anchored) {
       copy_v2_v2(center, ups->anchored_initial_mouse);
@@ -776,7 +776,7 @@ static bool paint_draw_alpha_overlay(UnifiedPaintSettings *ups,
 
   ePaintOverlayControlFlags flags = BKE_paint_get_overlay_flags();
   eGPUBlend blend_state = GPU_blend_get();
-  bool depth_test = GPU_depth_test_enabled();
+  eGPUDepthTest depth_test = GPU_depth_test_get();
 
   /* Translate to region. */
   GPU_matrix_push();
@@ -1147,9 +1147,9 @@ static void sculpt_geometry_preview_lines_draw(const uint gpuattr,
   immUniformColor4f(1.0f, 1.0f, 1.0f, 0.6f);
 
   /* Cursor normally draws on top, but for this part we need depth tests. */
-  const bool depth_test = GPU_depth_test_enabled();
+  const eGPUDepthTest depth_test = GPU_depth_test_get();
   if (!depth_test) {
-    GPU_depth_test(true);
+    GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
   }
 
   GPU_line_width(1.0f);
@@ -1163,7 +1163,7 @@ static void sculpt_geometry_preview_lines_draw(const uint gpuattr,
 
   /* Restore depth test value. */
   if (!depth_test) {
-    GPU_depth_test(false);
+    GPU_depth_test(GPU_DEPTH_NONE);
   }
 }
 

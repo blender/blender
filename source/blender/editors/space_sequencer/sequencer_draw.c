@@ -1772,7 +1772,7 @@ void sequencer_draw_preview(const bContext *C,
 
   GPUFrameBuffer *framebuffer_overlay = GPU_viewport_framebuffer_overlay_get(viewport);
   GPU_framebuffer_bind_no_srgb(framebuffer_overlay);
-  GPU_depth_test(false);
+  GPU_depth_test(GPU_DEPTH_NONE);
 
   if (sseq->render_size == SEQ_PROXY_RENDER_SIZE_NONE) {
     sequencer_preview_clear();

@@ -348,7 +348,7 @@ static void gpencil_draw_strokes(tGPDdraw *tgpw)
       const int no_xray = (tgpw->dflag & GP_DRAWDATA_NO_XRAY);
 
       if (no_xray) {
-        GPU_depth_test(true);
+        GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
 
         /* first arg is normally rv3d->dist, but this isn't
          * available here and seems to work quite well without */
@@ -393,7 +393,7 @@ static void gpencil_draw_strokes(tGPDdraw *tgpw)
         }
       }
       if (no_xray) {
-        GPU_depth_test(false);
+        GPU_depth_test(GPU_DEPTH_NONE);
 
         GPU_polygon_offset(0.0f, 0.0f);
       }
