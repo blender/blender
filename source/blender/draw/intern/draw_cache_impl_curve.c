@@ -307,7 +307,7 @@ static int curve_render_data_normal_len_get(const CurveRenderData *rdata)
   return rdata->normal.len;
 }
 
-static void curve_cd_calc_used_gpu_layers(int *cd_layers,
+static void curve_cd_calc_used_gpu_layers(CustomDataMask *cd_layers,
                                           struct GPUMaterial **gpumat_array,
                                           int gpumat_array_len)
 {
@@ -334,16 +334,16 @@ static void curve_cd_calc_used_gpu_layers(int *cd_layers,
 
       switch (type) {
         case CD_MTFACE:
-          *cd_layers |= CD_MLOOPUV;
+          *cd_layers |= CD_MASK_MLOOPUV;
           break;
         case CD_TANGENT:
-          *cd_layers |= CD_TANGENT;
+          *cd_layers |= CD_MASK_TANGENT;
           break;
         case CD_MCOL:
           /* Curve object don't have Color data. */
           break;
         case CD_ORCO:
-          *cd_layers |= CD_ORCO;
+          *cd_layers |= CD_MASK_ORCO;
           break;
       }
     }
@@ -397,7 +397,7 @@ typedef struct CurveBatchCache {
   GPUIndexBuf **surf_per_mat_tris;
   GPUBatch **surf_per_mat;
   int mat_len;
-  int cd_used, cd_needed;
+  CustomDataMask cd_used, cd_needed;
 
   /* settings to determine if cache is invalid */
   bool is_dirty;
@@ -998,10 +998,10 @@ void DRW_curve_batch_cache_create_requested(Object *ob)
       if (cache->mat_len > 1) {
         DRW_ibo_request(cache->surf_per_mat[i], &cache->surf_per_mat_tris[i]);
       }
-      if (cache->cd_used & CD_MLOOPUV) {
+      if (cache->cd_used & CD_MASK_MLOOPUV) {
         DRW_vbo_request(cache->surf_per_mat[i], &cache->ordered.loop_uv);
       }
-      if (cache->cd_used & CD_TANGENT) {
+      if (cache->cd_used & CD_MASK_TANGENT) {
         DRW_vbo_request(cache->surf_per_mat[i], &cache->ordered.loop_tan);
       }
       DRW_vbo_request(cache->surf_per_mat[i], &cache->ordered.loop_pos_nor);
