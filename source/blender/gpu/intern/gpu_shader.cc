@@ -196,9 +196,7 @@ Shader::Shader(const char *sh_name)
 
 Shader::~Shader()
 {
-  if (interface) {
-    delete interface;
-  }
+  delete interface;
 }
 
 static void standard_defines(Vector<const char *> &sources)
