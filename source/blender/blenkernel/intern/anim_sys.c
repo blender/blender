@@ -2192,7 +2192,15 @@ static bool animsys_evaluate_nla(NlaEvalData *echannels,
       if (is_inplace_tweak) {
         /* edit active action in-place according to its active strip, so copy the data  */
         memcpy(dummy_strip, adt->actstrip, sizeof(NlaStrip));
+        /* Prevents nla eval from considering active strip's adj strips.
+         * For user, this means entering tweak mode on a strip ignores evaluating adjacent strips
+         * in the same track. */
         dummy_strip->next = dummy_strip->prev = NULL;
+
+        /* If tweaked strip is syncing action length, then evaluate using action length. */
+        if (dummy_strip->flag & NLASTRIP_FLAG_SYNC_LENGTH) {
+          BKE_nlastrip_recalculate_bounds_sync_action(dummy_strip);
+        }
       }
       else {
         /* set settings of dummy NLA strip from AnimData settings */
@@ -2237,9 +2245,11 @@ static bool animsys_evaluate_nla(NlaEvalData *echannels,
       /* If computing the context for keyframing, store data there instead of the list. */
       else {
         /* The extend mode here effectively controls
-         * whether it is possible to key-frame beyond the ends. */
-        dummy_strip->extendmode = is_inplace_tweak ? NLASTRIP_EXTEND_NOTHING :
-                                                     NLASTRIP_EXTEND_HOLD;
+         * whether it is possible to key-frame beyond the ends.*/
+        dummy_strip->extendmode = (is_inplace_tweak &&
+                                   !(dummy_strip->flag & NLASTRIP_FLAG_SYNC_LENGTH)) ?
+                                      NLASTRIP_EXTEND_NOTHING :
+                                      NLASTRIP_EXTEND_HOLD;
 
         r_context->eval_strip = nes = nlastrips_ctime_get_strip(
             NULL, &dummy_trackslist, -1, anim_eval_context, flush_to_original);
