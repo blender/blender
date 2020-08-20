@@ -692,10 +692,9 @@ static bool actionzone_area_poll(bContext *C)
 
   if (screen && win && win->eventstate) {
     const int *xy = &win->eventstate->x;
-    AZone *az;
 
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      for (az = area->actionzones.first; az; az = az->next) {
+      LISTBASE_FOREACH (AZone *, az, &area->actionzones) {
         if (BLI_rcti_isect_pt_v(&az->rect, xy)) {
           return 1;
         }
@@ -3068,13 +3067,12 @@ static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
 static int marker_jump_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  TimeMarker *marker;
   int closest = CFRA;
   const bool next = RNA_boolean_get(op->ptr, "next");
   bool found = false;
 
   /* find matching marker in the right direction */
-  for (marker = scene->markers.first; marker; marker = marker->next) {
+  LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
     if (next) {
       if ((marker->frame > CFRA) && (!found || closest > marker->frame)) {
         closest = marker->frame;
@@ -3170,8 +3168,9 @@ static int screen_maximize_area_exec(bContext *C, wmOperator *op)
 
   /* search current screen for 'fullscreen' areas */
   /* prevents restoring info header, when mouse is over it */
-  for (area = screen->areabase.first; area; area = area->next) {
-    if (area->full) {
+  LISTBASE_FOREACH (ScrArea *, area_iter, &screen->areabase) {
+    if (area_iter->full) {
+      area = area_iter;
       break;
     }
   }
@@ -3619,12 +3618,10 @@ static void SCREEN_OT_area_options(wmOperatorType *ot)
 static int spacedata_cleanup_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
-  bScreen *screen;
-  ScrArea *area;
   int tot = 0;
 
-  for (screen = bmain->screens.first; screen; screen = screen->id.next) {
-    for (area = screen->areabase.first; area; area = area->next) {
+  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       if (area->spacedata.first != area->spacedata.last) {
         SpaceLink *sl = area->spacedata.first;
 
@@ -3854,7 +3851,6 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
     region->alignment = 0;
 
     if (area->spacetype == SPACE_VIEW3D) {
-      ARegion *region_iter;
       RegionView3D *rv3d = region->regiondata;
 
       /* if this is a locked view, use settings from 'User' view */
@@ -3878,7 +3874,7 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
       rv3d->rflag |= RV3D_GPULIGHT_UPDATE;
 
       /* Accumulate locks, in case they're mixed. */
-      for (region_iter = area->regionbase.first; region_iter; region_iter = region_iter->next) {
+      LISTBASE_FOREACH (ARegion *, region_iter, &area->regionbase) {
         if (region_iter->regiontype == RGN_TYPE_WINDOW) {
           RegionView3D *rv3d_iter = region_iter->regiondata;
           rv3d->viewlock_quad |= rv3d_iter->viewlock;
@@ -4441,8 +4437,6 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
     wmTimer *wt = screen->animtimer;
     ScreenAnimData *sad = wt->customdata;
     wmWindowManager *wm = CTX_wm_manager(C);
-    wmWindow *window;
-    ScrArea *area;
     int sync;
     double time;
 
@@ -4588,12 +4582,11 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
       ED_update_for_newframe(bmain, depsgraph);
     }
 
-    for (window = wm->windows.first; window; window = window->next) {
+    LISTBASE_FOREACH (wmWindow *, window, &wm->windows) {
       const bScreen *win_screen = WM_window_get_active_screen(window);
 
-      for (area = win_screen->areabase.first; area; area = area->next) {
-        ARegion *region;
-        for (region = area->regionbase.first; region; region = region->next) {
+      LISTBASE_FOREACH (ScrArea *, area, &win_screen->areabase) {
+        LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
           bool redraw = false;
           if (region == sad->region) {
             redraw = true;
@@ -4867,8 +4860,9 @@ static int fullscreen_back_exec(bContext *C, wmOperator *op)
   ScrArea *area = NULL;
 
   /* search current screen for 'fullscreen' areas */
-  for (area = screen->areabase.first; area; area = area->next) {
+  LISTBASE_FOREACH (ScrArea *, area_iter, &screen->areabase) {
     if (area->full) {
+      area = area_iter;
       break;
     }
   }

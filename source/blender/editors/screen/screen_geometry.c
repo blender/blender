@@ -162,7 +162,6 @@ void screen_geom_vertices_scale(const wmWindow *win, bScreen *screen)
 
   const int screen_size_x = BLI_rcti_size_x(&screen_rect);
   const int screen_size_y = BLI_rcti_size_y(&screen_rect);
-  ScrVert *sv = NULL;
   int screen_size_x_prev, screen_size_y_prev;
   float min[2], max[2];
 
@@ -170,7 +169,7 @@ void screen_geom_vertices_scale(const wmWindow *win, bScreen *screen)
   min[0] = min[1] = 20000.0f;
   max[0] = max[1] = 0.0f;
 
-  for (sv = screen->vertbase.first; sv; sv = sv->next) {
+  LISTBASE_FOREACH (ScrVert *, sv, &screen->vertbase) {
     const float fv[2] = {(float)sv->vec.x, (float)sv->vec.y};
     minmax_v2v2_v2(min, max, fv);
   }
@@ -183,7 +182,7 @@ void screen_geom_vertices_scale(const wmWindow *win, bScreen *screen)
     const float facy = ((float)screen_size_y - 1) / ((float)screen_size_y_prev - 1);
 
     /* make sure it fits! */
-    for (sv = screen->vertbase.first; sv; sv = sv->next) {
+    LISTBASE_FOREACH (ScrVert *, sv, &screen->vertbase) {
       sv->vec.x = screen_rect.xmin + round_fl_to_short((sv->vec.x - min[0]) * facx);
       CLAMP(sv->vec.x, screen_rect.xmin, screen_rect.xmax - 1);
 
@@ -208,7 +207,7 @@ void screen_geom_vertices_scale(const wmWindow *win, bScreen *screen)
             screen_geom_select_connected_edge(win, se);
 
             /* all selected vertices get the right offset */
-            for (sv = screen->vertbase.first; sv; sv = sv->next) {
+            LISTBASE_FOREACH (ScrVert *, sv, &screen->vertbase) {
               /* if is a collapsed area */
               if (sv != area->v1 && sv != area->v4) {
                 if (sv->flag) {
@@ -232,7 +231,7 @@ void screen_geom_vertices_scale(const wmWindow *win, bScreen *screen)
             screen_geom_select_connected_edge(win, se);
 
             /* all selected vertices get the right offset */
-            for (sv = screen->vertbase.first; sv; sv = sv->next) {
+            LISTBASE_FOREACH (ScrVert *, sv, &screen->vertbase) {
               /* if is not a collapsed area */
               if (sv != area->v2 && sv != area->v3) {
                 if (sv->flag) {

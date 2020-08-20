@@ -204,7 +204,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
   }
   if (CTX_data_equals(member, "visible_bones") || CTX_data_equals(member, "editable_bones")) {
     bArmature *arm = (obedit && obedit->type == OB_ARMATURE) ? obedit->data : NULL;
-    EditBone *ebone, *flipbone = NULL;
+    EditBone *flipbone = NULL;
     const bool editable_bones = CTX_data_equals(member, "editable_bones");
 
     if (arm && arm->edbo) {
@@ -216,7 +216,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
         arm = ob->data;
 
         /* Attention: X-Axis Mirroring is also handled here... */
-        for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+        LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
           /* first and foremost, bone must be visible and selected */
           if (EBONE_VISIBLE(arm, ebone)) {
             /* Get 'x-axis mirror equivalent' bone if the X-Axis Mirroring option is enabled
@@ -262,7 +262,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
   if (CTX_data_equals(member, "selected_bones") ||
       CTX_data_equals(member, "selected_editable_bones")) {
     bArmature *arm = (obedit && obedit->type == OB_ARMATURE) ? obedit->data : NULL;
-    EditBone *ebone, *flipbone = NULL;
+    EditBone *flipbone = NULL;
     const bool selected_editable_bones = CTX_data_equals(member, "selected_editable_bones");
 
     if (arm && arm->edbo) {
@@ -274,7 +274,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
         arm = ob->data;
 
         /* Attention: X-Axis Mirroring is also handled here... */
-        for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+        LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
           /* first and foremost, bone must be visible and selected */
           if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_SELECTED)) {
             /* Get 'x-axis mirror equivalent' bone if the X-Axis Mirroring option is enabled
@@ -479,8 +479,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
   if (CTX_data_equals(member, "sequences")) {
     Editing *ed = BKE_sequencer_editing_get(scene, false);
     if (ed) {
-      Sequence *seq;
-      for (seq = ed->seqbasep->first; seq; seq = seq->next) {
+      LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
         CTX_data_list_add(result, &scene->id, &RNA_Sequence, seq);
       }
       CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
@@ -491,8 +490,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
   if (CTX_data_equals(member, "selected_sequences")) {
     Editing *ed = BKE_sequencer_editing_get(scene, false);
     if (ed) {
-      Sequence *seq;
-      for (seq = ed->seqbasep->first; seq; seq = seq->next) {
+      LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
         if (seq->flag & SELECT) {
           CTX_data_list_add(result, &scene->id, &RNA_Sequence, seq);
         }
@@ -505,8 +503,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
   if (CTX_data_equals(member, "selected_editable_sequences")) {
     Editing *ed = BKE_sequencer_editing_get(scene, false);
     if (ed) {
-      Sequence *seq;
-      for (seq = ed->seqbasep->first; seq; seq = seq->next) {
+      LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
         if (seq->flag & SELECT && !(seq->flag & SEQ_LOCK)) {
           CTX_data_list_add(result, &scene->id, &RNA_Sequence, seq);
         }
@@ -520,16 +517,14 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     bAnimContext ac;
     if (ANIM_animdata_get_context(C, &ac) != 0) {
       ListBase anim_data = {NULL, NULL};
-      bAnimListElem *ale;
 
       ANIM_animdata_filter(&ac, &anim_data, ANIMFILTER_DATA_VISIBLE, ac.data, ac.datatype);
-      for (ale = anim_data.first; ale; ale = ale->next) {
+      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
         if (ale->datatype != ALE_NLASTRIP) {
           continue;
         }
         NlaTrack *nlt = (NlaTrack *)ale->data;
-        NlaStrip *strip;
-        for (strip = nlt->strips.first; strip; strip = strip->next) {
+        LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
           if (strip->flag & NLASTRIP_FLAG_SELECT) {
             CTX_data_list_add(result, &scene->id, &RNA_NlaStrip, strip);
           }
@@ -637,9 +632,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     bGPdata *gpd = ED_gpencil_data_get_active_direct(area, obact);
 
     if (gpd) {
-      bGPDlayer *gpl;
-
-      for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+      LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
         if ((gpl->flag & GP_LAYER_HIDE) == 0) {
           CTX_data_list_add(result, &gpd->id, &RNA_GPencilLayer, gpl);
         }
@@ -653,9 +646,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     bGPdata *gpd = ED_gpencil_data_get_active_direct(area, obact);
 
     if (gpd) {
-      bGPDlayer *gpl;
-
-      for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+      LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
         if (BKE_gpencil_layer_is_editable(gpl)) {
           CTX_data_list_add(result, &gpd->id, &RNA_GPencilLayer, gpl);
         }
@@ -670,12 +661,9 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
     if (gpd) {
-      bGPDlayer *gpl;
-
-      for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+      LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
         if (BKE_gpencil_layer_is_editable(gpl) && (gpl->actframe)) {
           bGPDframe *gpf;
-          bGPDstroke *gps;
           bGPDframe *init_gpf = gpl->actframe;
           if (is_multiedit) {
             init_gpf = gpl->frames.first;
@@ -683,7 +671,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 
           for (gpf = init_gpf; gpf; gpf = gpf->next) {
             if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
-              for (gps = gpf->strokes.first; gps; gps = gps->next) {
+              LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
                 if (ED_gpencil_stroke_can_use_direct(area, gps)) {
                   /* check if the color is editable */
                   if (ED_gpencil_stroke_color_use(obact, gpl, gps) == false) {
