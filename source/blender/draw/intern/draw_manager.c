@@ -1703,7 +1703,7 @@ void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph
   GPU_viewport_free(DST.viewport);
   DRW_state_reset();
 
-  glDisable(GL_DEPTH_TEST);
+  GPU_depth_test(GPU_DEPTH_NONE);
 
   /* Restore Drawing area. */
   GPU_framebuffer_restore();
