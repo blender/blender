@@ -357,14 +357,9 @@ void deg_graph_flush_updates(Depsgraph *graph)
   BLI_assert(graph != nullptr);
   Main *bmain = graph->bmain;
 
+  graph->time_source->flush_update_tag(graph);
+
   /* Nothing to update, early out. */
-  if (graph->need_update_time) {
-    const Scene *scene_orig = graph->scene;
-    const float ctime = BKE_scene_frame_get(scene_orig);
-    TimeSourceNode *time_source = graph->find_time_source();
-    graph->ctime = ctime;
-    time_source->tag_update(graph, DEG_UPDATE_SOURCE_TIME);
-  }
   if (graph->entry_tags.is_empty()) {
     return;
   }
@@ -412,6 +407,8 @@ void deg_graph_clear_tags(Depsgraph *graph)
   }
   /* Clear any entry tags which haven't been flushed. */
   graph->entry_tags.clear();
+
+  graph->time_source->tagged_for_update = false;
 }
 
 }  // namespace deg

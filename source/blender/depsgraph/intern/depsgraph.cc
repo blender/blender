@@ -63,7 +63,6 @@ namespace deg {
 Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluationMode mode)
     : time_source(nullptr),
       need_update(true),
-      need_update_time(false),
       bmain(bmain),
       scene(scene),
       view_layer(view_layer),
@@ -101,6 +100,11 @@ TimeSourceNode *Depsgraph::add_time_source()
 TimeSourceNode *Depsgraph::find_time_source() const
 {
   return time_source;
+}
+
+void Depsgraph::tag_time_source()
+{
+  time_source->tag_update(this, DEG_UPDATE_SOURCE_TIME);
 }
 
 IDNode *Depsgraph::find_id_node(const ID *id) const

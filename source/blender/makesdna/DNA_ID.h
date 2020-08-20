@@ -686,10 +686,6 @@ typedef enum IDRecalcFlag {
 
   ID_RECALC_PARAMETERS = (1 << 21),
 
-  /* Makes it so everything what depends on time.
-   * Basically, the same what changing frame in a timeline will do. */
-  ID_RECALC_TIME = (1 << 22),
-
   /* Input has changed and datablock is to be reload from disk.
    * Applies to movie clips to inform that copy-on-written version is to be refreshed for the new
    * input file or for color space changes. */

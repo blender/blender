@@ -127,6 +127,12 @@ void DEG_graph_id_tag_update(struct Main *bmain,
                              struct ID *id,
                              int flag);
 
+/* Tag all dependency graphs when time has changed. */
+void DEG_time_tag_update(struct Main *bmain);
+
+/* Tag a dependency graph when time has changed. */
+void DEG_graph_time_tag_update(struct Depsgraph *depsgraph);
+
 /* Mark a particular datablock type as having changing. This does
  * not cause any updates but is used by external render engines to detect if for
  * example a datablock was removed. */
@@ -154,8 +160,6 @@ void DEG_evaluate_on_framechange(Depsgraph *graph, float ctime);
 
 /* Data changed recalculation entry point. */
 void DEG_evaluate_on_refresh(Depsgraph *graph);
-
-bool DEG_needs_eval(Depsgraph *graph);
 
 /* Editors Integration  -------------------------- */
 

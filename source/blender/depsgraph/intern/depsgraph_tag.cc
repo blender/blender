@@ -66,6 +66,7 @@
 #include "intern/node/deg_node_factory.h"
 #include "intern/node/deg_node_id.h"
 #include "intern/node/deg_node_operation.h"
+#include "intern/node/deg_node_time.h"
 
 namespace deg = blender::deg;
 
@@ -230,9 +231,6 @@ void depsgraph_tag_to_component_opcode(const ID *id,
     case ID_RECALC_SOURCE:
       *component_type = NodeType::PARAMETERS;
       break;
-    case ID_RECALC_TIME:
-      BLI_assert(!"Should be handled outside of this function");
-      break;
     case ID_RECALC_ALL:
     case ID_RECALC_PSYS_ALL:
       BLI_assert(!"Should not happen");
@@ -372,12 +370,6 @@ void graph_id_tag_update_single_flag(Main *bmain,
     }
     return;
   }
-  if (tag == ID_RECALC_TIME) {
-    if (graph != nullptr) {
-      graph->need_update_time = true;
-    }
-    return;
-  }
   /* Get description of what is to be tagged. */
   NodeType component_type;
   OperationCode operation_code;
@@ -462,8 +454,8 @@ const char *update_source_as_string(eUpdateSource source)
 
 int deg_recalc_flags_for_legacy_zero()
 {
-  return ID_RECALC_ALL & ~(ID_RECALC_PSYS_ALL | ID_RECALC_ANIMATION | ID_RECALC_SOURCE |
-                           ID_RECALC_TIME | ID_RECALC_EDITORS);
+  return ID_RECALC_ALL &
+         ~(ID_RECALC_PSYS_ALL | ID_RECALC_ANIMATION | ID_RECALC_SOURCE | ID_RECALC_EDITORS);
 }
 
 int deg_recalc_flags_effective(Depsgraph *graph, int flags)
@@ -734,8 +726,6 @@ const char *DEG_update_tag_as_string(IDRecalcFlag flag)
       return "AUDIO";
     case ID_RECALC_PARAMETERS:
       return "PARAMETERS";
-    case ID_RECALC_TIME:
-      return "TIME";
     case ID_RECALC_SOURCE:
       return "SOURCE";
     case ID_RECALC_ALL:
@@ -770,6 +760,19 @@ void DEG_graph_id_tag_update(struct Main *bmain,
 {
   deg::Depsgraph *graph = (deg::Depsgraph *)depsgraph;
   deg::graph_id_tag_update(bmain, graph, id, flag, deg::DEG_UPDATE_SOURCE_USER_EDIT);
+}
+
+void DEG_time_tag_update(struct Main *bmain)
+{
+  for (deg::Depsgraph *depsgraph : deg::get_all_registered_graphs(bmain)) {
+    DEG_graph_time_tag_update(reinterpret_cast<::Depsgraph *>(depsgraph));
+  }
+}
+
+void DEG_graph_time_tag_update(struct Depsgraph *depsgraph)
+{
+  deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
+  deg_graph->tag_time_source();
 }
 
 /* Mark a particular datablock type as having changing. */

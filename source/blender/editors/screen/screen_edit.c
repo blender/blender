@@ -1576,7 +1576,7 @@ void ED_update_for_newframe(Main *bmain, Depsgraph *depsgraph)
 {
   Scene *scene = DEG_get_input_scene(depsgraph);
 
-  DEG_id_tag_update_ex(bmain, &scene->id, ID_RECALC_TIME);
+  DEG_time_tag_update(bmain);
 
 #ifdef DURIAN_CAMERA_SWITCH
   void *camera = BKE_scene_camera_switch_find(scene);
