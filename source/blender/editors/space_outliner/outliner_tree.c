@@ -244,14 +244,12 @@ static TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
 /* -------------------------------------------------------- */
 
 /**
- * Check if an element type needs a full rebuild if the open/collapsed state changes.
- * These element types don't add children if collapsed.
- *
- * This current check isn't great really. A per element-type flag would be preferable.
+ * Check if a display mode needs a full rebuild if the open/collapsed state changes.
+ * Element types in these modes don't actually add children if collapsed, so the rebuild is needed.
  */
-bool outliner_element_needs_rebuild_on_open_change(const TreeStoreElem *tselem)
+bool outliner_mode_requires_always_rebuild(const SpaceOutliner *space_outliner)
 {
-  return ELEM(tselem->type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_KEYMAP);
+  return ELEM(space_outliner->outlinevis, SO_DATA_API);
 }
 
 /* special handling of hierarchical non-lib data */

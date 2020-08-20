@@ -193,13 +193,7 @@ static int outliner_item_openclose_modal(bContext *C, wmOperator *op, const wmEv
       if (te->xs == data->x_location) {
         outliner_item_openclose(te, data->open, false);
 
-        /* Avoid rebuild if possible. */
-        if (outliner_element_needs_rebuild_on_open_change(TREESTORE(te))) {
-          ED_region_tag_redraw(region);
-        }
-        else {
-          ED_region_tag_redraw_no_rebuild(region);
-        }
+        outliner_tag_redraw_avoid_rebuild_on_open_change(space_outliner, region);
       }
     }
 
@@ -239,13 +233,7 @@ static int outliner_item_openclose_invoke(bContext *C, wmOperator *op, const wmE
                       (toggle_all && (outliner_flag_is_any_test(&te->subtree, TSE_CLOSED, 1)));
 
     outliner_item_openclose(te, open, toggle_all);
-    /* Avoid rebuild if possible. */
-    if (outliner_element_needs_rebuild_on_open_change(TREESTORE(te))) {
-      ED_region_tag_redraw(region);
-    }
-    else {
-      ED_region_tag_redraw_no_rebuild(region);
-    }
+    outliner_tag_redraw_avoid_rebuild_on_open_change(space_outliner, region);
 
     /* Only toggle once for single click toggling */
     if (event->type == LEFTMOUSE) {

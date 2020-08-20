@@ -37,6 +37,7 @@
 
 #include "ED_armature.h"
 #include "ED_outliner.h"
+#include "ED_screen.h"
 
 #include "UI_interface.h"
 #include "UI_view2d.h"
@@ -452,6 +453,23 @@ void outliner_scroll_view(ARegion *region, int delta_y)
     offset = y_min - region->v2d.cur.ymin;
     region->v2d.cur.ymax += offset;
     region->v2d.cur.ymin += offset;
+  }
+}
+
+/**
+ * The outliner should generally use #ED_region_tag_redraw_no_rebuild() to avoid unnecessary tree
+ * rebuilds. If elements are open or closed, we may still have to rebuild.
+ * Upon changing the open/closed state, call this to avoid rebuilds if possible.
+ */
+void outliner_tag_redraw_avoid_rebuild_on_open_change(const SpaceOutliner *space_outliner,
+                                                      ARegion *region)
+{
+  /* Avoid rebuild if possible. */
+  if (outliner_mode_requires_always_rebuild(space_outliner)) {
+    ED_region_tag_redraw(region);
+  }
+  else {
+    ED_region_tag_redraw_no_rebuild(region);
   }
 }
 

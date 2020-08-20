@@ -114,6 +114,8 @@ static void outliner_main_region_listener(wmWindow *UNUSED(win),
       switch (wmn->data) {
         case ND_OB_ACTIVE:
         case ND_OB_SELECT:
+          ED_region_tag_redraw_no_rebuild(region);
+          break;
         case ND_OB_VISIBLE:
         case ND_OB_RENDER:
         case ND_MODE:
@@ -121,15 +123,23 @@ static void outliner_main_region_listener(wmWindow *UNUSED(win),
         case ND_FRAME:
         case ND_RENDER_OPTIONS:
         case ND_SEQUENCER:
-        case ND_LAYER:
         case ND_LAYER_CONTENT:
         case ND_WORLD:
         case ND_SCENEBROWSE:
           ED_region_tag_redraw(region);
           break;
+        case ND_LAYER:
+          /* Avoid rebuild if only the active collection changes */
+          if ((wmn->subtype == NS_LAYER_COLLECTION) && (wmn->action == NA_ACTIVATED)) {
+            ED_region_tag_redraw_no_rebuild(region);
+            break;
+          }
+
+          ED_region_tag_redraw(region);
+          break;
       }
-      if (wmn->action & NA_EDITED) {
-        ED_region_tag_redraw(region);
+      if (wmn->action == NA_EDITED) {
+        ED_region_tag_redraw_no_rebuild(region);
       }
       break;
     case NC_OBJECT:
@@ -181,7 +191,7 @@ static void outliner_main_region_listener(wmWindow *UNUSED(win),
     case NC_MATERIAL:
       switch (wmn->data) {
         case ND_SHADING_LINKS:
-          ED_region_tag_redraw(region);
+          ED_region_tag_redraw_no_rebuild(region);
           break;
       }
       break;

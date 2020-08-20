@@ -1000,7 +1000,9 @@ static eOLDrawState tree_element_active_master_collection(bContext *C,
     ViewLayer *view_layer = CTX_data_view_layer(C);
     LayerCollection *layer_collection = view_layer->layer_collections.first;
     BKE_layer_collection_activate(view_layer, layer_collection);
-    WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
+    /* A very precise notifier - ND_LAYER alone is quite vague, we want to avoid unnecessary work
+     * when only the active collection changes. */
+    WM_main_add_notifier(NC_SCENE | ND_LAYER | NS_LAYER_COLLECTION | NA_ACTIVATED, NULL);
   }
 
   return OL_DRAWSEL_NONE;
@@ -1022,7 +1024,9 @@ static eOLDrawState tree_element_active_layer_collection(bContext *C,
     LayerCollection *layer_collection = te->directdata;
     ViewLayer *view_layer = BKE_view_layer_find_from_collection(scene, layer_collection);
     BKE_layer_collection_activate(view_layer, layer_collection);
-    WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
+    /* A very precise notifier - ND_LAYER alone is quite vague, we want to avoid unnecessary work
+     * when only the active collection changes. */
+    WM_main_add_notifier(NC_SCENE | ND_LAYER | NS_LAYER_COLLECTION | NA_ACTIVATED, NULL);
   }
 
   return OL_DRAWSEL_NONE;
@@ -1507,7 +1511,7 @@ static int outliner_box_select_exec(bContext *C, wmOperator *op)
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
-  ED_region_tag_redraw(region);
+  ED_region_tag_redraw_no_rebuild(region);
 
   ED_outliner_select_sync_from_outliner(C, space_outliner);
 
@@ -1729,7 +1733,7 @@ static int outliner_walk_select_invoke(bContext *C, wmOperator *op, const wmEven
   outliner_walk_scroll(region, active_te);
 
   ED_outliner_select_sync_from_outliner(C, space_outliner);
-  ED_region_tag_redraw(region);
+  outliner_tag_redraw_avoid_rebuild_on_open_change(space_outliner, region);
 
   return OPERATOR_FINISHED;
 }

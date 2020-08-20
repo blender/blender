@@ -440,6 +440,9 @@ typedef struct wmNotifier {
 #define NS_VIEW3D_GPU (16 << 8)
 #define NS_VIEW3D_SHADING (16 << 9)
 
+/* subtype layer editing */
+#define NS_LAYER_COLLECTION (24 << 8)
+
 /* action classification */
 #define NOTE_ACTION (0x000000FF)
 #define NA_EDITED 1
@@ -448,7 +451,8 @@ typedef struct wmNotifier {
 #define NA_REMOVED 4
 #define NA_RENAME 5
 #define NA_SELECTED 6
-#define NA_PAINTING 7
+#define NA_ACTIVATED 7
+#define NA_PAINTING 8
 
 /* ************** Gesture Manager data ************** */
 
