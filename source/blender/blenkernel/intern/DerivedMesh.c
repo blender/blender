@@ -1991,9 +1991,9 @@ Mesh *mesh_get_eval_deform(struct Depsgraph *depsgraph,
 }
 
 Mesh *mesh_create_eval_final(Depsgraph *depsgraph,
-                                    Scene *scene,
-                                    Object *ob,
-                                    const CustomData_MeshMasks *dataMask)
+                             Scene *scene,
+                             Object *ob,
+                             const CustomData_MeshMasks *dataMask)
 {
   Mesh *final;
 

@@ -2437,16 +2437,16 @@ static void transform_image(int x,
 }
 
 static void do_transform_effect(const SeqRenderData *context,
-                                 Sequence *seq,
-                                 float UNUSED(cfra),
-                                 float UNUSED(facf0),
-                                 float UNUSED(facf1),
-                                 ImBuf *ibuf1,
-                                 ImBuf *UNUSED(ibuf2),
-                                 ImBuf *UNUSED(ibuf3),
-                                 int start_line,
-                                 int total_lines,
-                                 ImBuf *out)
+                                Sequence *seq,
+                                float UNUSED(cfra),
+                                float UNUSED(facf0),
+                                float UNUSED(facf1),
+                                ImBuf *ibuf1,
+                                ImBuf *UNUSED(ibuf2),
+                                ImBuf *UNUSED(ibuf3),
+                                int start_line,
+                                int total_lines,
+                                ImBuf *out)
 {
   Scene *scene = context->scene;
   TransformVars *transform = (TransformVars *)seq->effectdata;

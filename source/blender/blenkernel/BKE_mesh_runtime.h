@@ -72,9 +72,9 @@ struct Mesh *mesh_get_eval_deform(struct Depsgraph *depsgraph,
                                   const struct CustomData_MeshMasks *dataMask);
 
 struct Mesh *mesh_create_eval_final(struct Depsgraph *depsgraph,
-                                           struct Scene *scene,
-                                           struct Object *ob,
-                                           const struct CustomData_MeshMasks *dataMask);
+                                    struct Scene *scene,
+                                    struct Object *ob,
+                                    const struct CustomData_MeshMasks *dataMask);
 
 struct Mesh *mesh_create_eval_final_index_render(struct Depsgraph *depsgraph,
                                                  struct Scene *scene,

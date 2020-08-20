@@ -448,7 +448,8 @@ void BKE_lib_override_library_override_group_tag(Main *bmain,
     BKE_main_relations_create(bmain, 0);
   }
 
-  /* We tag all liboverride data-blocks from the same library as reference one, being used by the root ID. */
+  /* We tag all liboverride data-blocks from the same library as reference one,
+   * being used by the root ID. */
   lib_override_hierarchy_recursive_tag(
       bmain, id_root, tag, id_root->override_library->reference->lib);
 
