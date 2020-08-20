@@ -1883,11 +1883,10 @@ static void object_simplify_update(Object *ob)
   }
 
   if (ob->instance_collection) {
-    CollectionObject *cob;
-
-    for (cob = ob->instance_collection->gobject.first; cob; cob = cob->next) {
-      object_simplify_update(cob->ob);
+    FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (ob->instance_collection, ob_collection) {
+      object_simplify_update(ob_collection);
     }
+    FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
   }
 }
 
