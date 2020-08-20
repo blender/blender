@@ -784,6 +784,50 @@ bool BKE_lib_override_library_resync(Main *bmain, Scene *scene, ViewLayer *view_
   return success;
 }
 
+/**
+ * Advanced 'smart' function to delete library overrides (including their existing override
+ * hierarchy) and remap their usages to their linked reference IDs.
+ *
+ * \note All IDs tagged with `LIB_TAG_DOIT` will be deleted.
+ *
+ * \param id_root The root liboverride ID to resync from.
+ */
+void BKE_lib_override_library_delete(Main *bmain, ID *id_root)
+{
+  BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_root));
+
+  /* Tag all collections and objects, as well as other IDs using them. */
+  id_root->tag |= LIB_TAG_DOIT;
+
+  /* Make a mapping 'linked reference IDs' -> 'Local override IDs' of existing overrides, and tag
+   * linked reference ones to be overridden again. */
+  BKE_lib_override_library_override_group_tag(bmain, id_root, LIB_TAG_DOIT, true);
+
+  ID *id;
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    if (id->tag & LIB_TAG_DOIT) {
+      if (ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+        ID *id_override_reference = id->override_library->reference;
+
+        /* Remap the whole local IDs to use the linked data. */
+        BKE_libblock_remap(bmain, id, id_override_reference, ID_REMAP_SKIP_INDIRECT_USAGE);
+      }
+    }
+  }
+  FOREACH_MAIN_ID_END;
+
+  /* Delete the override IDs. */
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    if (id->tag & LIB_TAG_DOIT) {
+      BKE_id_delete(bmain, id);
+    }
+  }
+  FOREACH_MAIN_ID_END;
+
+  /* Should not actually be needed here... */
+  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+}
+
 BLI_INLINE IDOverrideLibraryRuntime *override_library_rna_path_runtime_ensure(
     IDOverrideLibrary *override)
 {

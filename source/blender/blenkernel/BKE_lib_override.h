@@ -81,6 +81,7 @@ bool BKE_lib_override_library_resync(struct Main *bmain,
                                      struct Scene *scene,
                                      struct ViewLayer *view_layer,
                                      struct ID *id_root);
+void BKE_lib_override_library_delete(struct Main *bmain, struct ID *id_root);
 
 struct IDOverrideLibraryProperty *BKE_lib_override_library_property_find(
     struct IDOverrideLibrary *override, const char *rna_path);
