@@ -353,7 +353,7 @@ static void draw_filled_lasso(wmGesture *gt)
                                   draw_filled_lasso_px_cb,
                                   &lasso_fill_data);
 
-    GPU_blend(GPU_BLEND_ADDITIVE);
+    GPU_blend(GPU_BLEND_ADDITIVE_PREMULT);
 
     IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
     GPU_shader_bind(state.shader);
