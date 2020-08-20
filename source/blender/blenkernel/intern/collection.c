@@ -408,18 +408,28 @@ static Collection *collection_duplicate_recursive(Main *bmain,
   }
 
   if (do_objects) {
+    /* We need to first duplicate the objects in a separate loop, to support the master collection
+     * case, where both old and new collections are the same.
+     * Otherwise, depending on naming scheme and sorting, we may end up duplicating the new objects
+     * we just added, in some infinite loop. */
+    LISTBASE_FOREACH (CollectionObject *, cob, &collection_old->gobject) {
+      Object *ob_old = cob->ob;
+
+      if (ob_old->id.newid == NULL) {
+        BKE_object_duplicate(
+            bmain, ob_old, duplicate_flags, duplicate_options | LIB_ID_DUPLICATE_IS_SUBPROCESS);
+      }
+    }
+
     /* We can loop on collection_old's objects, but have to consider it mutable because with master
      * collections collection_old and collection_new are the same data here. */
     LISTBASE_FOREACH_MUTABLE (CollectionObject *, cob, &collection_old->gobject) {
       Object *ob_old = cob->ob;
       Object *ob_new = (Object *)ob_old->id.newid;
 
-      if (ob_new == NULL) {
-        ob_new = BKE_object_duplicate(
-            bmain, ob_old, duplicate_flags, duplicate_options | LIB_ID_DUPLICATE_IS_SUBPROCESS);
-      }
-
-      if (ob_new == ob_old) {
+      /* New object can be NULL in master collection case, since new and old objects are in same
+       * collection. */
+      if (ELEM(ob_new, ob_old, NULL)) {
         continue;
       }
 
