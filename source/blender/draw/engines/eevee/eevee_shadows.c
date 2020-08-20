@@ -71,8 +71,8 @@ void EEVEE_shadows_init(EEVEE_ViewLayerData *sldata)
 
   if (!sldata->lights) {
     sldata->lights = MEM_callocN(sizeof(EEVEE_LightsInfo), "EEVEE_LightsInfo");
-    sldata->light_ubo = DRW_uniformbuffer_create(sizeof(EEVEE_Light) * MAX_LIGHT, NULL);
-    sldata->shadow_ubo = DRW_uniformbuffer_create(shadow_ubo_size, NULL);
+    sldata->light_ubo = GPU_uniformbuf_create_ex(sizeof(EEVEE_Light) * MAX_LIGHT, NULL, "evLight");
+    sldata->shadow_ubo = GPU_uniformbuf_create_ex(shadow_ubo_size, NULL, "evShadow");
 
     for (int i = 0; i < 2; i++) {
       sldata->shcasters_buffers[i].bbox = MEM_callocN(
@@ -338,7 +338,7 @@ void EEVEE_shadows_draw(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, DRWView
 
   if (any_visible) {
     sldata->common_data.ray_type = EEVEE_RAY_SHADOW;
-    DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
+    GPU_uniformbuf_update(sldata->common_ubo, &sldata->common_data);
   }
 
   DRW_stats_group_start("Cube Shadow Maps");
@@ -361,11 +361,11 @@ void EEVEE_shadows_draw(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, DRWView
 
   DRW_view_set_active(view);
 
-  DRW_uniformbuffer_update(sldata->shadow_ubo, &linfo->shadow_data); /* Update all data at once */
+  GPU_uniformbuf_update(sldata->shadow_ubo, &linfo->shadow_data); /* Update all data at once */
 
   if (any_visible) {
     sldata->common_data.ray_type = saved_ray_type;
-    DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
+    GPU_uniformbuf_update(sldata->common_ubo, &sldata->common_data);
   }
 }
 

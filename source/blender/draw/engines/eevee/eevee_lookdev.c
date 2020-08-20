@@ -275,7 +275,7 @@ void EEVEE_lookdev_draw(EEVEE_Data *vedata)
     common->ao_dist = 0.0f;
     common->ao_factor = 0.0f;
     common->ao_settings = 0.0f;
-    DRW_uniformbuffer_update(sldata->common_ubo, common);
+    GPU_uniformbuf_update(sldata->common_ubo, common);
 
     /* override matrices */
     float winmat[4][4], viewmat[4][4];

@@ -74,7 +74,7 @@ static void square_to_circle(float x, float y, float *r, float *T)
 #define KERNEL_RAD (3)
 #define SAMP_LEN SQUARE_UNSAFE(KERNEL_RAD * 2 + 1)
 
-static void workbench_dof_setup_samples(struct GPUUniformBuffer **ubo,
+static void workbench_dof_setup_samples(struct GPUUniformBuf **ubo,
                                         float **data,
                                         float bokeh_sides,
                                         float bokeh_rotation,
@@ -84,7 +84,7 @@ static void workbench_dof_setup_samples(struct GPUUniformBuffer **ubo,
     *data = MEM_callocN(sizeof(float[4]) * SAMP_LEN, "workbench dof samples");
   }
   if (*ubo == NULL) {
-    *ubo = DRW_uniformbuffer_create(sizeof(float[4]) * SAMP_LEN, NULL);
+    *ubo = GPU_uniformbuf_create(sizeof(float[4]) * SAMP_LEN);
   }
 
   float *samp = *data;
@@ -120,7 +120,7 @@ static void workbench_dof_setup_samples(struct GPUUniformBuffer **ubo,
     }
   }
 
-  DRW_uniformbuffer_update(*ubo, *data);
+  GPU_uniformbuf_update(*ubo, *data);
 }
 
 void workbench_dof_engine_init(WORKBENCH_Data *vedata)

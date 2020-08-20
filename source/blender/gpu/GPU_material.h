@@ -39,7 +39,7 @@ struct GPUNode;
 struct GPUNodeLink;
 struct GPUNodeStack;
 struct GPUTexture;
-struct GPUUniformBuffer;
+struct GPUUniformBuf;
 struct Image;
 struct ImageUser;
 struct ListBase;
@@ -158,10 +158,10 @@ bool GPU_stack_link(GPUMaterial *mat,
                     GPUNodeStack *in,
                     GPUNodeStack *out,
                     ...);
-GPUNodeLink *GPU_uniformbuffer_link_out(struct GPUMaterial *mat,
-                                        struct bNode *node,
-                                        struct GPUNodeStack *stack,
-                                        const int index);
+GPUNodeLink *GPU_uniformbuf_link_out(struct GPUMaterial *mat,
+                                     struct bNode *node,
+                                     struct GPUNodeStack *stack,
+                                     const int index);
 
 void GPU_material_output_link(GPUMaterial *material, GPUNodeLink *link);
 
@@ -169,9 +169,9 @@ void GPU_material_sss_profile_create(GPUMaterial *material,
                                      float radii[3],
                                      const short *falloff_type,
                                      const float *sharpness);
-struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material,
-                                                      int sample_len,
-                                                      struct GPUTexture **tex_profile);
+struct GPUUniformBuf *GPU_material_sss_profile_get(GPUMaterial *material,
+                                                   int sample_len,
+                                                   struct GPUTexture **tex_profile);
 
 /* High level functions to create and use GPU materials */
 GPUMaterial *GPU_material_from_nodetree_find(struct ListBase *gpumaterials,
@@ -201,9 +201,9 @@ struct GPUShader *GPU_material_get_shader(GPUMaterial *material);
 struct Material *GPU_material_get_material(GPUMaterial *material);
 eGPUMaterialStatus GPU_material_status(GPUMaterial *mat);
 
-struct GPUUniformBuffer *GPU_material_uniform_buffer_get(GPUMaterial *material);
+struct GPUUniformBuf *GPU_material_uniform_buffer_get(GPUMaterial *material);
 void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs);
-struct GPUUniformBuffer *GPU_material_create_sss_profile_ubo(void);
+struct GPUUniformBuf *GPU_material_create_sss_profile_ubo(void);
 
 bool GPU_material_has_surface_output(GPUMaterial *mat);
 bool GPU_material_has_volume_output(GPUMaterial *mat);

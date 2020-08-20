@@ -41,7 +41,7 @@
 #include "GPU_platform.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
-#include "GPU_uniformbuffer.h"
+#include "GPU_uniform_buffer.h"
 
 #include "gpu_backend.hh"
 #include "gpu_context_private.hh"

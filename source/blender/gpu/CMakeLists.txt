@@ -84,7 +84,7 @@ set(SRC
   intern/gpu_shader_interface.cc
   intern/gpu_state.cc
   intern/gpu_texture.cc
-  intern/gpu_uniformbuffer.cc
+  intern/gpu_uniform_buffer.cc
   intern/gpu_vertex_buffer.cc
   intern/gpu_vertex_format.cc
   intern/gpu_viewport.c
@@ -122,7 +122,7 @@ set(SRC
   GPU_shader.h
   GPU_state.h
   GPU_texture.h
-  GPU_uniformbuffer.h
+  GPU_uniform_buffer.h
   GPU_vertex_buffer.h
   GPU_vertex_format.h
   GPU_viewport.h

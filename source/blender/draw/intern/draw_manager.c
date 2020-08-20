@@ -69,7 +69,7 @@
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
-#include "GPU_uniformbuffer.h"
+#include "GPU_uniform_buffer.h"
 #include "GPU_viewport.h"
 
 #include "IMB_colormanagement.h"
@@ -600,7 +600,7 @@ static void drw_viewport_var_init(void)
   }
 
   if (G_draw.view_ubo == NULL) {
-    G_draw.view_ubo = DRW_uniformbuffer_create(sizeof(DRWViewUboStorage), NULL);
+    G_draw.view_ubo = GPU_uniformbuf_create_ex(sizeof(DRWViewUboStorage), NULL, "G_draw.view_ubo");
   }
 
   if (DST.draw_list == NULL) {

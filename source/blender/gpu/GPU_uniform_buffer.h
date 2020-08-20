@@ -29,22 +29,20 @@ extern "C" {
 
 struct ListBase;
 
-typedef struct GPUUniformBuffer GPUUniformBuffer;
+typedef struct GPUUniformBuf GPUUniformBuf;
 
-GPUUniformBuffer *GPU_uniformbuffer_create(int size, const void *data, char err_out[256]);
-GPUUniformBuffer *GPU_uniformbuffer_dynamic_create(struct ListBase *inputs, char err_out[256]);
+GPUUniformBuf *GPU_uniformbuf_create_ex(size_t size, const void *data, const char *name);
+GPUUniformBuf *GPU_uniformbuf_dynamic_create(struct ListBase *inputs, const char *name);
 
-void GPU_uniformbuffer_free(GPUUniformBuffer *ubo);
+#define GPU_uniformbuf_create(size) GPU_uniformbuf_create_ex(size, NULL, __func__);
 
-void GPU_uniformbuffer_update(GPUUniformBuffer *ubo, const void *data);
-void GPU_uniformbuffer_dynamic_update(GPUUniformBuffer *ubo_);
+void GPU_uniformbuf_free(GPUUniformBuf *ubo);
 
-void GPU_uniformbuffer_bind(GPUUniformBuffer *ubo, int number);
-void GPU_uniformbuffer_unbind(GPUUniformBuffer *ubo);
-void GPU_uniformbuffer_unbind_all(void);
+void GPU_uniformbuf_update(GPUUniformBuf *ubo, const void *data);
 
-bool GPU_uniformbuffer_is_empty(GPUUniformBuffer *ubo);
-bool GPU_uniformbuffer_is_dirty(GPUUniformBuffer *ubo);
+void GPU_uniformbuf_bind(GPUUniformBuf *ubo, int number);
+void GPU_uniformbuf_unbind(GPUUniformBuf *ubo);
+void GPU_uniformbuf_unbind_all(void);
 
 #define GPU_UBO_BLOCK_NAME "nodeTree"
 

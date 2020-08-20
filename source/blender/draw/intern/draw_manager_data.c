@@ -48,6 +48,7 @@
 
 #include "GPU_buffers.h"
 #include "GPU_material.h"
+#include "GPU_uniform_buffer.h"
 
 #include "intern/gpu_codegen.h"
 
@@ -85,27 +86,12 @@ static void draw_call_sort(DRWCommand *array, DRWCommand *array_tmp, int array_l
   memcpy(array, array_tmp, sizeof(*array) * array_len);
 }
 
-GPUUniformBuffer *DRW_uniformbuffer_create(int size, const void *data)
-{
-  return GPU_uniformbuffer_create(size, data, NULL);
-}
-
-void DRW_uniformbuffer_update(GPUUniformBuffer *ubo, const void *data)
-{
-  GPU_uniformbuffer_update(ubo, data);
-}
-
-void DRW_uniformbuffer_free(GPUUniformBuffer *ubo)
-{
-  GPU_uniformbuffer_free(ubo);
-}
-
 void drw_resource_buffer_finish(ViewportMemoryPool *vmempool)
 {
   int chunk_id = DRW_handle_chunk_get(&DST.resource_handle);
   int elem_id = DRW_handle_id_get(&DST.resource_handle);
   int ubo_len = 1 + chunk_id - ((elem_id == 0) ? 1 : 0);
-  size_t list_size = sizeof(GPUUniformBuffer *) * ubo_len;
+  size_t list_size = sizeof(GPUUniformBuf *) * ubo_len;
 
   /* TODO find a better system. currently a lot of obinfos UBO are going to be unused
    * if not rendering with Eevee. */
@@ -118,8 +104,8 @@ void drw_resource_buffer_finish(ViewportMemoryPool *vmempool)
 
   /* Remove unnecessary buffers */
   for (int i = ubo_len; i < vmempool->ubo_len; i++) {
-    GPU_uniformbuffer_free(vmempool->matrices_ubo[i]);
-    GPU_uniformbuffer_free(vmempool->obinfos_ubo[i]);
+    GPU_uniformbuf_free(vmempool->matrices_ubo[i]);
+    GPU_uniformbuf_free(vmempool->obinfos_ubo[i]);
   }
 
   if (ubo_len != vmempool->ubo_len) {
@@ -133,15 +119,13 @@ void drw_resource_buffer_finish(ViewportMemoryPool *vmempool)
     void *data_obmat = BLI_memblock_elem_get(vmempool->obmats, i, 0);
     void *data_infos = BLI_memblock_elem_get(vmempool->obinfos, i, 0);
     if (vmempool->matrices_ubo[i] == NULL) {
-      vmempool->matrices_ubo[i] = GPU_uniformbuffer_create(
-          sizeof(DRWObjectMatrix) * DRW_RESOURCE_CHUNK_LEN, data_obmat, NULL);
-      vmempool->obinfos_ubo[i] = GPU_uniformbuffer_create(
-          sizeof(DRWObjectInfos) * DRW_RESOURCE_CHUNK_LEN, data_infos, NULL);
+      vmempool->matrices_ubo[i] = GPU_uniformbuf_create(sizeof(DRWObjectMatrix) *
+                                                        DRW_RESOURCE_CHUNK_LEN);
+      vmempool->obinfos_ubo[i] = GPU_uniformbuf_create(sizeof(DRWObjectInfos) *
+                                                       DRW_RESOURCE_CHUNK_LEN);
     }
-    else {
-      GPU_uniformbuffer_update(vmempool->matrices_ubo[i], data_obmat);
-      GPU_uniformbuffer_update(vmempool->obinfos_ubo[i], data_infos);
-    }
+    GPU_uniformbuf_update(vmempool->matrices_ubo[i], data_obmat);
+    GPU_uniformbuf_update(vmempool->obinfos_ubo[i], data_infos);
   }
 
   /* Aligned alloc to avoid unaligned memcpy. */
@@ -210,10 +194,10 @@ static void drw_shgroup_uniform_create_ex(DRWShadingGroup *shgroup,
       memcpy(uni->fvalue, value, sizeof(float) * length);
       break;
     case DRW_UNIFORM_BLOCK:
-      uni->block = (GPUUniformBuffer *)value;
+      uni->block = (GPUUniformBuf *)value;
       break;
     case DRW_UNIFORM_BLOCK_REF:
-      uni->block_ref = (GPUUniformBuffer **)value;
+      uni->block_ref = (GPUUniformBuf **)value;
       break;
     case DRW_UNIFORM_TEXTURE:
       uni->texture = (GPUTexture *)value;
@@ -279,16 +263,14 @@ void DRW_shgroup_uniform_texture_ref(DRWShadingGroup *shgroup, const char *name,
 
 void DRW_shgroup_uniform_block(DRWShadingGroup *shgroup,
                                const char *name,
-                               const GPUUniformBuffer *ubo)
+                               const GPUUniformBuf *ubo)
 {
   BLI_assert(ubo != NULL);
   int loc = GPU_shader_get_uniform_block_binding(shgroup->shader, name);
   drw_shgroup_uniform_create_ex(shgroup, loc, DRW_UNIFORM_BLOCK, ubo, 0, 0, 1);
 }
 
-void DRW_shgroup_uniform_block_ref(DRWShadingGroup *shgroup,
-                                   const char *name,
-                                   GPUUniformBuffer **ubo)
+void DRW_shgroup_uniform_block_ref(DRWShadingGroup *shgroup, const char *name, GPUUniformBuf **ubo)
 {
   BLI_assert(ubo != NULL);
   int loc = GPU_shader_get_uniform_block_binding(shgroup->shader, name);
@@ -1327,7 +1309,7 @@ void DRW_shgroup_add_material_resources(DRWShadingGroup *grp, struct GPUMaterial
     }
   }
 
-  GPUUniformBuffer *ubo = GPU_material_uniform_buffer_get(material);
+  GPUUniformBuf *ubo = GPU_material_uniform_buffer_get(material);
   if (ubo != NULL) {
     DRW_shgroup_uniform_block(grp, GPU_UBO_BLOCK_NAME, ubo);
   }

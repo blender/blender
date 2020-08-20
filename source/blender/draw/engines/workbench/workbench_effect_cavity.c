@@ -139,8 +139,8 @@ void workbench_cavity_samples_ubo_ensure(WORKBENCH_PrivateData *wpd)
     float *samples = create_disk_samples(cavity_sample_count_single_iteration, max_iter_count);
     wpd->vldata->cavity_jitter_tx = create_jitter_texture(cavity_sample_count);
     /* NOTE: Uniform buffer needs to always be filled to be valid. */
-    wpd->vldata->cavity_sample_ubo = DRW_uniformbuffer_create(
-        sizeof(float[4]) * CAVITY_MAX_SAMPLES, samples);
+    wpd->vldata->cavity_sample_ubo = GPU_uniformbuf_create_ex(
+        sizeof(float[4]) * CAVITY_MAX_SAMPLES, samples, "wb_CavitySamples");
     wpd->vldata->cavity_sample_count = cavity_sample_count;
     MEM_freeN(samples);
   }

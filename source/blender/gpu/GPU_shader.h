@@ -28,7 +28,7 @@ extern "C" {
 #endif
 
 struct GPUTexture;
-struct GPUUniformBuffer;
+struct GPUUniformBuf;
 struct GPUVertBuf;
 
 /* TODO(fclem) These members should be private and the

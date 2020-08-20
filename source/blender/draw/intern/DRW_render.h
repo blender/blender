@@ -48,6 +48,7 @@
 #include "GPU_primitive.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
+#include "GPU_uniform_buffer.h"
 
 #include "draw_cache.h"
 #include "draw_common.h"
@@ -67,7 +68,7 @@ struct GPUFrameBuffer;
 struct GPUMaterial;
 struct GPUShader;
 struct GPUTexture;
-struct GPUUniformBuffer;
+struct GPUUniformBuf;
 struct Object;
 struct ParticleSystem;
 struct RenderEngineType;
@@ -184,14 +185,10 @@ void DRW_texture_free(struct GPUTexture *tex);
     } \
   } while (0)
 
-/* UBOs */
-struct GPUUniformBuffer *DRW_uniformbuffer_create(int size, const void *data);
-void DRW_uniformbuffer_update(struct GPUUniformBuffer *ubo, const void *data);
-void DRW_uniformbuffer_free(struct GPUUniformBuffer *ubo);
 #define DRW_UBO_FREE_SAFE(ubo) \
   do { \
     if (ubo != NULL) { \
-      DRW_uniformbuffer_free(ubo); \
+      GPU_uniformbuf_free(ubo); \
       ubo = NULL; \
     } \
   } while (0)
@@ -516,10 +513,10 @@ void DRW_shgroup_uniform_texture_ref(DRWShadingGroup *shgroup,
                                      struct GPUTexture **tex);
 void DRW_shgroup_uniform_block(DRWShadingGroup *shgroup,
                                const char *name,
-                               const struct GPUUniformBuffer *ubo);
+                               const struct GPUUniformBuf *ubo);
 void DRW_shgroup_uniform_block_ref(DRWShadingGroup *shgroup,
                                    const char *name,
-                                   struct GPUUniformBuffer **ubo);
+                                   struct GPUUniformBuf **ubo);
 void DRW_shgroup_uniform_float(DRWShadingGroup *shgroup,
                                const char *name,
                                const float *value,

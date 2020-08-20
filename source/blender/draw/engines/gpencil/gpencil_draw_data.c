@@ -30,7 +30,7 @@
 #include "BLI_math_color.h"
 #include "BLI_memblock.h"
 
-#include "GPU_uniformbuffer.h"
+#include "GPU_uniform_buffer.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -46,7 +46,7 @@ static GPENCIL_MaterialPool *gpencil_material_pool_add(GPENCIL_PrivateData *pd)
   matpool->next = NULL;
   matpool->used_count = 0;
   if (matpool->ubo == NULL) {
-    matpool->ubo = GPU_uniformbuffer_create(sizeof(matpool->mat_data), NULL, NULL);
+    matpool->ubo = GPU_uniformbuf_create(sizeof(matpool->mat_data));
   }
   pd->last_material_pool = matpool;
   return matpool;
@@ -301,7 +301,7 @@ void gpencil_material_resources_get(GPENCIL_MaterialPool *first_pool,
                                     int mat_id,
                                     GPUTexture **r_tex_stroke,
                                     GPUTexture **r_tex_fill,
-                                    GPUUniformBuffer **r_ubo_mat)
+                                    GPUUniformBuf **r_ubo_mat)
 {
   GPENCIL_MaterialPool *matpool = first_pool;
   int pool_id = mat_id / GP_MATERIAL_BUFFER_LEN;
@@ -331,7 +331,7 @@ GPENCIL_LightPool *gpencil_light_pool_add(GPENCIL_PrivateData *pd)
   /* Tag light list end. */
   lightpool->light_data[0].color[0] = -1.0;
   if (lightpool->ubo == NULL) {
-    lightpool->ubo = GPU_uniformbuffer_create(sizeof(lightpool->light_data), NULL, NULL);
+    lightpool->ubo = GPU_uniformbuf_create(sizeof(lightpool->light_data));
   }
   pd->last_light_pool = lightpool;
   return lightpool;

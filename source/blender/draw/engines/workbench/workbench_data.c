@@ -32,24 +32,24 @@
 
 #include "UI_resources.h"
 
-#include "GPU_uniformbuffer.h"
+#include "GPU_uniform_buffer.h"
 
 /* -------------------------------------------------------------------- */
 /** \name World Data
  * \{ */
 
-GPUUniformBuffer *workbench_material_ubo_alloc(WORKBENCH_PrivateData *wpd)
+GPUUniformBuf *workbench_material_ubo_alloc(WORKBENCH_PrivateData *wpd)
 {
-  struct GPUUniformBuffer **ubo = BLI_memblock_alloc(wpd->material_ubo);
+  struct GPUUniformBuf **ubo = BLI_memblock_alloc(wpd->material_ubo);
   if (*ubo == NULL) {
-    *ubo = GPU_uniformbuffer_create(sizeof(WORKBENCH_UBO_Material) * MAX_MATERIAL, NULL, NULL);
+    *ubo = GPU_uniformbuf_create(sizeof(WORKBENCH_UBO_Material) * MAX_MATERIAL);
   }
   return *ubo;
 }
 
 static void workbench_ubo_free(void *elem)
 {
-  GPUUniformBuffer **ubo = elem;
+  GPUUniformBuf **ubo = elem;
   DRW_UBO_FREE_SAFE(*ubo);
 }
 
@@ -78,7 +78,7 @@ static WORKBENCH_ViewLayerData *workbench_view_layer_data_ensure_ex(struct ViewL
     size_t matbuf_size = sizeof(WORKBENCH_UBO_Material) * MAX_MATERIAL;
     (*vldata)->material_ubo_data = BLI_memblock_create_ex(matbuf_size, matbuf_size * 2);
     (*vldata)->material_ubo = BLI_memblock_create_ex(sizeof(void *), sizeof(void *) * 8);
-    (*vldata)->world_ubo = DRW_uniformbuffer_create(sizeof(WORKBENCH_UBO_World), NULL);
+    (*vldata)->world_ubo = GPU_uniformbuf_create_ex(sizeof(WORKBENCH_UBO_World), NULL, "wb_World");
   }
 
   return *vldata;
@@ -275,7 +275,7 @@ void workbench_update_world_ubo(WORKBENCH_PrivateData *wpd)
   workbench_shadow_data_update(wpd, &wd);
   workbench_cavity_data_update(wpd, &wd);
 
-  DRW_uniformbuffer_update(wpd->world_ubo, &wd);
+  GPU_uniformbuf_update(wpd->world_ubo, &wd);
 }
 
 void workbench_update_material_ubos(WORKBENCH_PrivateData *UNUSED(wpd))
@@ -288,9 +288,9 @@ void workbench_update_material_ubos(WORKBENCH_PrivateData *UNUSED(wpd))
   BLI_memblock_iternew(vldata->material_ubo_data, &iter_data);
   WORKBENCH_UBO_Material *matchunk;
   while ((matchunk = BLI_memblock_iterstep(&iter_data))) {
-    GPUUniformBuffer **ubo = BLI_memblock_iterstep(&iter);
+    GPUUniformBuf **ubo = BLI_memblock_iterstep(&iter);
     BLI_assert(*ubo != NULL);
-    GPU_uniformbuffer_update(*ubo, matchunk);
+    GPU_uniformbuf_update(*ubo, matchunk);
   }
 
   BLI_memblock_clear(vldata->material_ubo, workbench_ubo_free);

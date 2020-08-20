@@ -592,10 +592,10 @@ bool GPU_stack_link(GPUMaterial *material,
   return true;
 }
 
-GPUNodeLink *GPU_uniformbuffer_link_out(GPUMaterial *mat,
-                                        bNode *node,
-                                        GPUNodeStack *stack,
-                                        const int index)
+GPUNodeLink *GPU_uniformbuf_link_out(GPUMaterial *mat,
+                                     bNode *node,
+                                     GPUNodeStack *stack,
+                                     const int index)
 {
   return gpu_uniformbuffer_link(mat, node, stack, index, SOCK_OUT);
 }

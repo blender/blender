@@ -67,7 +67,7 @@
 
 #include "GPU_material.h"
 #include "GPU_texture.h"
-#include "GPU_uniformbuffer.h"
+#include "GPU_uniform_buffer.h"
 
 #ifdef __cplusplus
 #  include "FN_multi_function_builder.hh"

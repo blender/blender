@@ -33,46 +33,52 @@
 #include "GPU_extensions.h"
 #include "GPU_glew.h"
 #include "GPU_material.h"
-#include "GPU_uniformbuffer.h"
+#include "GPU_uniform_buffer.h"
 
-typedef struct GPUUniformBuffer {
+typedef struct GPUUniformBuf {
   /** Data size in bytes. */
   int size;
   /** GL handle for UBO. */
   GLuint bindcode;
   /** Current binding point. */
   int bindpoint;
-  /** Continuous memory block to copy to GPU. Is own by the GPUUniformBuffer. */
+  /** Continuous memory block to copy to GPU. Is own by the GPUUniformBuf. */
   void *data;
-} GPUUniformBuffer;
 
-GPUUniformBuffer *GPU_uniformbuffer_create(int size, const void *data, char err_out[256])
+#ifndef NDEBUG
+  char name[64];
+#endif
+} GPUUniformBuf;
+
+GPUUniformBuf *GPU_uniformbuf_create_ex(size_t size, const void *data, const char *name)
 {
   /* Make sure that UBO is padded to size of vec4 */
   BLI_assert((size % 16) == 0);
 
   if (size > GPU_max_ubo_size()) {
-    if (err_out) {
-      BLI_strncpy(err_out, "GPUUniformBuffer: UBO too big", 256);
-    }
+    fprintf(stderr, "GPUUniformBuf: UBO too big. %s", name);
     return NULL;
   }
 
-  GPUUniformBuffer *ubo = (GPUUniformBuffer *)MEM_mallocN(sizeof(GPUUniformBuffer), __func__);
+  GPUUniformBuf *ubo = (GPUUniformBuf *)MEM_mallocN(sizeof(GPUUniformBuf), __func__);
   ubo->size = size;
   ubo->data = NULL;
   ubo->bindcode = 0;
   ubo->bindpoint = -1;
 
+#ifndef NDEBUG
+  BLI_strncpy(ubo->name, name, sizeof(ubo->name));
+#endif
+
   /* Direct init. */
   if (data != NULL) {
-    GPU_uniformbuffer_update(ubo, data);
+    GPU_uniformbuf_update(ubo, data);
   }
 
   return ubo;
 }
 
-void GPU_uniformbuffer_free(GPUUniformBuffer *ubo)
+void GPU_uniformbuf_free(GPUUniformBuf *ubo)
 {
   MEM_SAFE_FREE(ubo->data);
   GPU_buf_free(ubo->bindcode);
@@ -179,7 +185,7 @@ static void gpu_uniformbuffer_inputs_sort(ListBase *inputs)
  *
  * \param inputs: ListBase of #BLI_genericNodeN(#GPUInput).
  */
-GPUUniformBuffer *GPU_uniformbuffer_dynamic_create(ListBase *inputs, char err_out[256])
+GPUUniformBuf *GPU_uniformbuf_dynamic_create(ListBase *inputs, const char *name)
 {
   /* There is no point on creating an UBO if there is no arguments. */
   if (BLI_listbase_is_empty(inputs)) {
@@ -208,19 +214,19 @@ GPUUniformBuffer *GPU_uniformbuffer_dynamic_create(ListBase *inputs, char err_ou
   }
 
   /* Pass data as NULL for late init. */
-  GPUUniformBuffer *ubo = GPU_uniformbuffer_create(buffer_size, NULL, err_out);
+  GPUUniformBuf *ubo = GPU_uniformbuf_create_ex(buffer_size, NULL, name);
   /* Data will be update just before binding. */
   ubo->data = data;
   return ubo;
 }
 
-static void gpu_uniformbuffer_init(GPUUniformBuffer *ubo)
+static void gpu_uniformbuffer_init(GPUUniformBuf *ubo)
 {
   BLI_assert(ubo->bindcode == 0);
   ubo->bindcode = GPU_buf_alloc();
 
   if (ubo->bindcode == 0) {
-    fprintf(stderr, "GPUUniformBuffer: UBO create failed");
+    fprintf(stderr, "GPUUniformBuf: UBO create failed");
     BLI_assert(0);
     return;
   }
@@ -229,7 +235,7 @@ static void gpu_uniformbuffer_init(GPUUniformBuffer *ubo)
   glBufferData(GL_UNIFORM_BUFFER, ubo->size, NULL, GL_DYNAMIC_DRAW);
 }
 
-void GPU_uniformbuffer_update(GPUUniformBuffer *ubo, const void *data)
+void GPU_uniformbuf_update(GPUUniformBuf *ubo, const void *data)
 {
   if (ubo->bindcode == 0) {
     gpu_uniformbuffer_init(ubo);
@@ -240,10 +246,10 @@ void GPU_uniformbuffer_update(GPUUniformBuffer *ubo, const void *data)
   glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
-void GPU_uniformbuffer_bind(GPUUniformBuffer *ubo, int number)
+void GPU_uniformbuf_bind(GPUUniformBuf *ubo, int number)
 {
   if (number >= GPU_max_ubo_binds()) {
-    fprintf(stderr, "Not enough UBO slots.\n");
+    fprintf(stderr, "GPUUniformBuf: UBO too big.");
     return;
   }
 
@@ -252,7 +258,7 @@ void GPU_uniformbuffer_bind(GPUUniformBuffer *ubo, int number)
   }
 
   if (ubo->data != NULL) {
-    GPU_uniformbuffer_update(ubo, ubo->data);
+    GPU_uniformbuf_update(ubo, ubo->data);
     MEM_SAFE_FREE(ubo->data);
   }
 
@@ -260,7 +266,7 @@ void GPU_uniformbuffer_bind(GPUUniformBuffer *ubo, int number)
   ubo->bindpoint = number;
 }
 
-void GPU_uniformbuffer_unbind(GPUUniformBuffer *ubo)
+void GPU_uniformbuf_unbind(GPUUniformBuf *ubo)
 {
 #ifndef NDEBUG
   glBindBufferBase(GL_UNIFORM_BUFFER, ubo->bindpoint, 0);
@@ -268,7 +274,7 @@ void GPU_uniformbuffer_unbind(GPUUniformBuffer *ubo)
   ubo->bindpoint = 0;
 }
 
-void GPU_uniformbuffer_unbind_all(void)
+void GPU_uniformbuf_unbind_all(void)
 {
   for (int i = 0; i < GPU_max_ubo_binds(); i++) {
     glBindBufferBase(GL_UNIFORM_BUFFER, i, 0);

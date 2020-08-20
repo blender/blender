@@ -41,7 +41,7 @@
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 #include "GPU_texture.h"
-#include "GPU_uniformbuffer.h"
+#include "GPU_uniform_buffer.h"
 #include "GPU_viewport.h"
 
 #include "DRW_engine.h"
@@ -1020,8 +1020,8 @@ void GPU_viewport_free(GPUViewport *viewport)
   }
 
   for (int i = 0; i < viewport->vmempool.ubo_len; i++) {
-    GPU_uniformbuffer_free(viewport->vmempool.matrices_ubo[i]);
-    GPU_uniformbuffer_free(viewport->vmempool.obinfos_ubo[i]);
+    GPU_uniformbuf_free(viewport->vmempool.matrices_ubo[i]);
+    GPU_uniformbuf_free(viewport->vmempool.obinfos_ubo[i]);
   }
   MEM_SAFE_FREE(viewport->vmempool.matrices_ubo);
   MEM_SAFE_FREE(viewport->vmempool.obinfos_ubo);

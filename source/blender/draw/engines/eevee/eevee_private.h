@@ -818,9 +818,9 @@ typedef struct EEVEE_ViewLayerData {
   /* Lights */
   struct EEVEE_LightsInfo *lights;
 
-  struct GPUUniformBuffer *light_ubo;
-  struct GPUUniformBuffer *shadow_ubo;
-  struct GPUUniformBuffer *shadow_samples_ubo;
+  struct GPUUniformBuf *light_ubo;
+  struct GPUUniformBuf *shadow_ubo;
+  struct GPUUniformBuf *shadow_samples_ubo;
 
   struct GPUFrameBuffer *shadow_fb;
 
@@ -832,24 +832,24 @@ typedef struct EEVEE_ViewLayerData {
   /* Probes */
   struct EEVEE_LightProbesInfo *probes;
 
-  struct GPUUniformBuffer *probe_ubo;
-  struct GPUUniformBuffer *grid_ubo;
-  struct GPUUniformBuffer *planar_ubo;
+  struct GPUUniformBuf *probe_ubo;
+  struct GPUUniformBuf *grid_ubo;
+  struct GPUUniformBuf *planar_ubo;
 
   /* Material Render passes */
   struct {
-    struct GPUUniformBuffer *combined;
-    struct GPUUniformBuffer *environment;
-    struct GPUUniformBuffer *diff_color;
-    struct GPUUniformBuffer *diff_light;
-    struct GPUUniformBuffer *spec_color;
-    struct GPUUniformBuffer *spec_light;
-    struct GPUUniformBuffer *emit;
+    struct GPUUniformBuf *combined;
+    struct GPUUniformBuf *environment;
+    struct GPUUniformBuf *diff_color;
+    struct GPUUniformBuf *diff_light;
+    struct GPUUniformBuf *spec_color;
+    struct GPUUniformBuf *spec_light;
+    struct GPUUniformBuf *emit;
   } renderpass_ubo;
 
   /* Common Uniform Buffer */
   struct EEVEE_CommonUniformBuffer common_data;
-  struct GPUUniformBuffer *common_ubo;
+  struct GPUUniformBuf *common_ubo;
 
   struct LightCache *fallback_lightcache;
 
@@ -953,7 +953,7 @@ typedef struct EEVEE_PrivateData {
   GPUTexture *renderpass_col_input;
   GPUTexture *renderpass_light_input;
   /* Renderpass ubo reference used by material pass. */
-  struct GPUUniformBuffer *renderpass_ubo;
+  struct GPUUniformBuf *renderpass_ubo;
   /** For rendering shadows. */
   struct DRWView *cube_views[6];
   /** For rendering probes. */

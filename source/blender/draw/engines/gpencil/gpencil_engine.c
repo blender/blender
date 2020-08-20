@@ -42,7 +42,7 @@
 #include "DNA_view3d_types.h"
 
 #include "GPU_texture.h"
-#include "GPU_uniformbuffer.h"
+#include "GPU_uniform_buffer.h"
 
 #include "gpencil_engine.h"
 
@@ -345,8 +345,8 @@ typedef struct gpIterPopulateData {
   GPENCIL_MaterialPool *matpool;
   DRWShadingGroup *grp;
   /* Last material UBO bound. Used to avoid uneeded buffer binding. */
-  GPUUniformBuffer *ubo_mat;
-  GPUUniformBuffer *ubo_lights;
+  GPUUniformBuf *ubo_mat;
+  GPUUniformBuf *ubo_lights;
   /* Last texture bound. */
   GPUTexture *tex_fill;
   GPUTexture *tex_stroke;
@@ -501,7 +501,7 @@ static void gpencil_stroke_cache_populate(bGPDlayer *gpl,
     return;
   }
 
-  GPUUniformBuffer *ubo_mat;
+  GPUUniformBuf *ubo_mat;
   GPUTexture *tex_stroke, *tex_fill;
   gpencil_material_resources_get(
       iter->matpool, iter->mat_ofs + gps->mat_nr, &tex_stroke, &tex_fill, &ubo_mat);
@@ -654,13 +654,13 @@ void GPENCIL_cache_finish(void *ved)
   BLI_memblock_iternew(pd->gp_material_pool, &iter);
   GPENCIL_MaterialPool *pool;
   while ((pool = (GPENCIL_MaterialPool *)BLI_memblock_iterstep(&iter))) {
-    GPU_uniformbuffer_update(pool->ubo, pool->mat_data);
+    GPU_uniformbuf_update(pool->ubo, pool->mat_data);
   }
 
   BLI_memblock_iternew(pd->gp_light_pool, &iter);
   GPENCIL_LightPool *lpool;
   while ((lpool = (GPENCIL_LightPool *)BLI_memblock_iterstep(&iter))) {
-    GPU_uniformbuffer_update(lpool->ubo, lpool->light_data);
+    GPU_uniformbuf_update(lpool->ubo, lpool->light_data);
   }
 
   /* Sort object by decreasing Z to avoid most of alpha ordering issues. */

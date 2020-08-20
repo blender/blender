@@ -108,7 +108,7 @@ typedef struct GPENCIL_MaterialPool {
   /* GPU representatin of materials. */
   gpMaterial mat_data[GP_MATERIAL_BUFFER_LEN];
   /* Matching ubo. */
-  struct GPUUniformBuffer *ubo;
+  struct GPUUniformBuf *ubo;
   /* Texture per material. NULL means none. */
   struct GPUTexture *tex_fill[GP_MATERIAL_BUFFER_LEN];
   struct GPUTexture *tex_stroke[GP_MATERIAL_BUFFER_LEN];
@@ -120,7 +120,7 @@ typedef struct GPENCIL_LightPool {
   /* GPU representatin of materials. */
   gpLight light_data[GPENCIL_LIGHT_BUFFER_LEN];
   /* Matching ubo. */
-  struct GPUUniformBuffer *ubo;
+  struct GPUUniformBuf *ubo;
   /* Number of light in the pool. */
   int light_used;
 } GPENCIL_LightPool;
@@ -384,7 +384,7 @@ void gpencil_material_resources_get(GPENCIL_MaterialPool *first_pool,
                                     int mat_id,
                                     struct GPUTexture **r_tex_stroke,
                                     struct GPUTexture **r_tex_fill,
-                                    struct GPUUniformBuffer **r_ubo_mat);
+                                    struct GPUUniformBuf **r_ubo_mat);
 
 void gpencil_light_ambient_add(GPENCIL_LightPool *lightpool, const float color[3]);
 void gpencil_light_pool_populate(GPENCIL_LightPool *matpool, Object *ob);

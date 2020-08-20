@@ -38,7 +38,7 @@
 #include "GPU_drawlist.h"
 #include "GPU_framebuffer.h"
 #include "GPU_shader.h"
-#include "GPU_uniformbuffer.h"
+#include "GPU_uniform_buffer.h"
 #include "GPU_viewport.h"
 
 #include "draw_instance_data.h"
@@ -308,8 +308,8 @@ struct DRWUniform {
     };
     /* DRW_UNIFORM_BLOCK */
     union {
-      GPUUniformBuffer *block;
-      GPUUniformBuffer **block_ref;
+      GPUUniformBuf *block;
+      GPUUniformBuf **block_ref;
     };
     /* DRW_UNIFORM_FLOAT_COPY */
     float fvalue[4];

@@ -214,10 +214,11 @@ void DRW_globals_update(void)
   }
 
   if (G_draw.block_ubo == NULL) {
-    G_draw.block_ubo = DRW_uniformbuffer_create(sizeof(GlobalsUboStorage), gb);
+    G_draw.block_ubo = GPU_uniformbuf_create_ex(
+        sizeof(GlobalsUboStorage), gb, "GlobalsUboStorage");
   }
 
-  DRW_uniformbuffer_update(G_draw.block_ubo, gb);
+  GPU_uniformbuf_update(G_draw.block_ubo, gb);
 
   if (!G_draw.ramp) {
     ColorBand ramp = {0};

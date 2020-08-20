@@ -214,5 +214,5 @@ void EEVEE_lights_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *UNUSED(v
 
   sldata->common_data.la_num_light = linfo->num_light;
 
-  DRW_uniformbuffer_update(sldata->light_ubo, &linfo->light_data);
+  GPU_uniformbuf_update(sldata->light_ubo, &linfo->light_data);
 }

@@ -47,7 +47,7 @@
 #include "GPU_material.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
-#include "GPU_uniformbuffer.h"
+#include "GPU_uniform_buffer.h"
 
 #include "DRW_engine.h"
 
@@ -88,11 +88,11 @@ struct GPUMaterial {
   eGPUMatFlag flag;
 
   /* Used by 2.8 pipeline */
-  GPUUniformBuffer *ubo; /* UBOs for shader uniforms. */
+  GPUUniformBuf *ubo; /* UBOs for shader uniforms. */
 
   /* Eevee SSS */
-  GPUUniformBuffer *sss_profile; /* UBO containing SSS profile. */
-  GPUTexture *sss_tex_profile;   /* Texture containing SSS profile. */
+  GPUUniformBuf *sss_profile;  /* UBO containing SSS profile. */
+  GPUTexture *sss_tex_profile; /* Texture containing SSS profile. */
   float sss_enabled;
   float sss_radii[3];
   int sss_samples;
@@ -174,13 +174,13 @@ static void gpu_material_free_single(GPUMaterial *material)
     GPU_pass_release(material->pass);
   }
   if (material->ubo != NULL) {
-    GPU_uniformbuffer_free(material->ubo);
+    GPU_uniformbuf_free(material->ubo);
   }
   if (material->sss_tex_profile != NULL) {
     GPU_texture_free(material->sss_tex_profile);
   }
   if (material->sss_profile != NULL) {
-    GPU_uniformbuffer_free(material->sss_profile);
+    GPU_uniformbuf_free(material->sss_profile);
   }
   if (material->coba_tex != NULL) {
     GPU_texture_free(material->coba_tex);
@@ -220,7 +220,7 @@ Material *GPU_material_get_material(GPUMaterial *material)
   return material->ma;
 }
 
-GPUUniformBuffer *GPU_material_uniform_buffer_get(GPUMaterial *material)
+GPUUniformBuf *GPU_material_uniform_buffer_get(GPUMaterial *material)
 {
   return material->ubo;
 }
@@ -232,7 +232,12 @@ GPUUniformBuffer *GPU_material_uniform_buffer_get(GPUMaterial *material)
  */
 void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs)
 {
-  material->ubo = GPU_uniformbuffer_dynamic_create(inputs, NULL);
+#ifndef NDEBUG
+  const char *name = material->name;
+#else
+  const char *name = NULL;
+#endif
+  material->ubo = GPU_uniformbuf_dynamic_create(inputs, name);
 }
 
 /* Eevee Subsurface scattering. */
@@ -507,13 +512,13 @@ void GPU_material_sss_profile_create(GPUMaterial *material,
 
   /* Update / Create UBO */
   if (material->sss_profile == NULL) {
-    material->sss_profile = GPU_uniformbuffer_create(sizeof(GPUSssKernelData), NULL, NULL);
+    material->sss_profile = GPU_uniformbuf_create(sizeof(GPUSssKernelData));
   }
 }
 
-struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material,
-                                                      int sample_len,
-                                                      GPUTexture **tex_profile)
+struct GPUUniformBuf *GPU_material_sss_profile_get(GPUMaterial *material,
+                                                   int sample_len,
+                                                   GPUTexture **tex_profile)
 {
   if (!material->sss_enabled) {
     return NULL;
@@ -530,7 +535,7 @@ struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material,
     compute_sss_kernel(&kd, material->sss_radii, sample_len, material->sss_falloff, sharpness);
 
     /* Update / Create UBO */
-    GPU_uniformbuffer_update(material->sss_profile, &kd);
+    GPU_uniformbuf_update(material->sss_profile, &kd);
 
     /* Update / Create Tex */
     float *translucence_profile;
@@ -555,9 +560,9 @@ struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material,
   return material->sss_profile;
 }
 
-struct GPUUniformBuffer *GPU_material_create_sss_profile_ubo(void)
+struct GPUUniformBuf *GPU_material_create_sss_profile_ubo(void)
 {
-  return GPU_uniformbuffer_create(sizeof(GPUSssKernelData), NULL, NULL);
+  return GPU_uniformbuf_create(sizeof(GPUSssKernelData));
 }
 
 #undef SSS_EXPONENT
@@ -735,7 +740,7 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
     gpu_node_graph_free(&mat->graph);
   }
 
-  /* Only free after GPU_pass_shader_get where GPUUniformBuffer
+  /* Only free after GPU_pass_shader_get where GPUUniformBuf
    * read data from the local tree. */
   ntreeFreeLocalTree(localtree);
   MEM_freeN(localtree);

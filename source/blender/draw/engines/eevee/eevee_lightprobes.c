@@ -39,6 +39,7 @@
 #include "GPU_extensions.h"
 #include "GPU_material.h"
 #include "GPU_texture.h"
+#include "GPU_uniform_buffer.h"
 
 #include "DEG_depsgraph_query.h"
 
@@ -203,10 +204,9 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   if (!sldata->probes) {
     sldata->probes = MEM_callocN(sizeof(EEVEE_LightProbesInfo), "EEVEE_LightProbesInfo");
-    sldata->probe_ubo = DRW_uniformbuffer_create(sizeof(EEVEE_LightProbe) * MAX_PROBE, NULL);
-    sldata->grid_ubo = DRW_uniformbuffer_create(sizeof(EEVEE_LightGrid) * MAX_GRID, NULL);
-    sldata->planar_ubo = DRW_uniformbuffer_create(sizeof(EEVEE_PlanarReflection) * MAX_PLANAR,
-                                                  NULL);
+    sldata->probe_ubo = GPU_uniformbuf_create(sizeof(EEVEE_LightProbe) * MAX_PROBE);
+    sldata->grid_ubo = GPU_uniformbuf_create(sizeof(EEVEE_LightGrid) * MAX_GRID);
+    sldata->planar_ubo = GPU_uniformbuf_create(sizeof(EEVEE_PlanarReflection) * MAX_PLANAR);
   }
 
   common_data->prb_num_planar = 0;
@@ -724,8 +724,8 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 
   eevee_lightprobes_extract_from_cache(sldata->probes, light_cache);
 
-  DRW_uniformbuffer_update(sldata->probe_ubo, &sldata->probes->probe_data);
-  DRW_uniformbuffer_update(sldata->grid_ubo, &sldata->probes->grid_data);
+  GPU_uniformbuf_update(sldata->probe_ubo, &sldata->probes->probe_data);
+  GPU_uniformbuf_update(sldata->grid_ubo, &sldata->probes->grid_data);
 
   /* For shading, save max level of the octahedron map */
   sldata->common_data.prb_lod_cube_max = (float)light_cache->mips_len;
@@ -1241,7 +1241,7 @@ void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 
   common_data->ray_type = EEVEE_RAY_GLOSSY;
   common_data->ray_depth = 1.0f;
-  DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
+  GPU_uniformbuf_update(sldata->common_ubo, &sldata->common_data);
 
   /* Rendering happens here! */
   eevee_lightbake_render_scene_to_planars(sldata, vedata);
@@ -1249,7 +1249,7 @@ void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
   /* Make sure no additional visibility check runs after this. */
   pinfo->vis_data.collection = NULL;
 
-  DRW_uniformbuffer_update(sldata->planar_ubo, &sldata->probes->planar_data);
+  GPU_uniformbuf_update(sldata->planar_ubo, &sldata->probes->planar_data);
 
   /* Restore */
   common_data->prb_num_planar = pinfo->num_planar;

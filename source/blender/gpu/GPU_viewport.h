@@ -55,8 +55,8 @@ typedef struct ViewportMemoryPool {
   struct BLI_memblock *views;
   struct BLI_memblock *passes;
   struct BLI_memblock *images;
-  struct GPUUniformBuffer **matrices_ubo;
-  struct GPUUniformBuffer **obinfos_ubo;
+  struct GPUUniformBuf **matrices_ubo;
+  struct GPUUniformBuf **obinfos_ubo;
   uint ubo_len;
 } ViewportMemoryPool;
 

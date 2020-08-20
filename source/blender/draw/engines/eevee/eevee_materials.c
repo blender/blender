@@ -243,33 +243,34 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata,
   {
     /* Create RenderPass UBO */
     if (sldata->renderpass_ubo.combined == NULL) {
-      sldata->renderpass_ubo.combined = DRW_uniformbuffer_create(
-          sizeof(EEVEE_RenderPassData),
-          &(const EEVEE_RenderPassData){true, true, true, true, true, false, false});
+      EEVEE_RenderPassData data;
+      data = (EEVEE_RenderPassData){true, true, true, true, true, false, false};
+      sldata->renderpass_ubo.combined = GPU_uniformbuf_create_ex(
+          sizeof(data), &data, "renderpass_ubo.combined");
 
-      sldata->renderpass_ubo.diff_color = DRW_uniformbuffer_create(
-          sizeof(EEVEE_RenderPassData),
-          &(const EEVEE_RenderPassData){true, false, false, false, false, true, false});
+      data = (EEVEE_RenderPassData){true, false, false, false, false, true, false};
+      sldata->renderpass_ubo.diff_color = GPU_uniformbuf_create_ex(
+          sizeof(data), &data, "renderpass_ubo.diff_color");
 
-      sldata->renderpass_ubo.diff_light = DRW_uniformbuffer_create(
-          sizeof(EEVEE_RenderPassData),
-          &(const EEVEE_RenderPassData){true, true, false, false, false, false, false});
+      data = (EEVEE_RenderPassData){true, true, false, false, false, false, false};
+      sldata->renderpass_ubo.diff_light = GPU_uniformbuf_create_ex(
+          sizeof(data), &data, "renderpass_ubo.diff_light");
 
-      sldata->renderpass_ubo.spec_color = DRW_uniformbuffer_create(
-          sizeof(EEVEE_RenderPassData),
-          &(const EEVEE_RenderPassData){false, false, true, false, false, false, false});
+      data = (EEVEE_RenderPassData){false, false, true, false, false, false, false};
+      sldata->renderpass_ubo.spec_color = GPU_uniformbuf_create_ex(
+          sizeof(data), &data, "renderpass_ubo.spec_color");
 
-      sldata->renderpass_ubo.spec_light = DRW_uniformbuffer_create(
-          sizeof(EEVEE_RenderPassData),
-          &(const EEVEE_RenderPassData){false, false, true, true, false, false, false});
+      data = (EEVEE_RenderPassData){false, false, true, true, false, false, false};
+      sldata->renderpass_ubo.spec_light = GPU_uniformbuf_create_ex(
+          sizeof(data), &data, "renderpass_ubo.spec_light");
 
-      sldata->renderpass_ubo.emit = DRW_uniformbuffer_create(
-          sizeof(EEVEE_RenderPassData),
-          &(const EEVEE_RenderPassData){false, false, false, false, true, false, false});
+      data = (EEVEE_RenderPassData){false, false, false, false, true, false, false};
+      sldata->renderpass_ubo.emit = GPU_uniformbuf_create_ex(
+          sizeof(data), &data, "renderpass_ubo.emit");
 
-      sldata->renderpass_ubo.environment = DRW_uniformbuffer_create(
-          sizeof(EEVEE_RenderPassData),
-          &(const EEVEE_RenderPassData){true, true, true, true, true, false, true});
+      data = (EEVEE_RenderPassData){true, true, true, true, true, false, true};
+      sldata->renderpass_ubo.environment = GPU_uniformbuf_create_ex(
+          sizeof(data), &data, "renderpass_ubo.environment");
     }
 
     /* Used combined pass by default. */
@@ -962,7 +963,7 @@ static void material_renderpass_accumulate(EEVEE_FramebufferList *fbl,
                                            DRWPass *renderpass,
                                            EEVEE_PrivateData *pd,
                                            GPUTexture *output_tx,
-                                           struct GPUUniformBuffer *renderpass_option_ubo)
+                                           struct GPUUniformBuf *renderpass_option_ubo)
 {
   GPU_framebuffer_texture_attach(fbl->material_accum_fb, output_tx, 0, 0);
   GPU_framebuffer_bind(fbl->material_accum_fb);
