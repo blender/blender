@@ -361,7 +361,7 @@ static void draw_filled_lasso(wmGesture *gt)
         state.shader, GPU_shader_get_uniform(state.shader, "shuffle"), 4, 1, red);
 
     immDrawPixelsTex(
-        &state, rect.xmin, rect.ymin, w, h, GL_R8, false, pixel_buf, 1.0f, 1.0f, NULL);
+        &state, rect.xmin, rect.ymin, w, h, GPU_R8, false, pixel_buf, 1.0f, 1.0f, NULL);
 
     GPU_shader_unbind();
 

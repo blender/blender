@@ -523,7 +523,7 @@ static void sima_draw_zbuffloat_pixels(Scene *scene,
   GPU_shader_uniform_vector(
       state.shader, GPU_shader_get_uniform(state.shader, "shuffle"), 4, 1, red);
 
-  immDrawPixelsTex(&state, x1, y1, rectx, recty, GL_R16F, false, rectf, zoomx, zoomy, NULL);
+  immDrawPixelsTex(&state, x1, y1, rectx, recty, GPU_R16F, false, rectf, zoomx, zoomy, NULL);
 
   MEM_freeN(rectf);
 }
