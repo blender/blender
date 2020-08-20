@@ -343,7 +343,7 @@ static PyObject *bpy_app_debug_value_get(PyObject *UNUSED(self), void *UNUSED(cl
 
 static int bpy_app_debug_value_set(PyObject *UNUSED(self), PyObject *value, void *UNUSED(closure))
 {
-  short param = PyC_Long_AsI16(value);
+  const short param = PyC_Long_AsI16(value);
 
   if (param == -1 && PyErr_Occurred()) {
     PyC_Err_SetString_Prefix(PyExc_TypeError,

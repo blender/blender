@@ -63,7 +63,7 @@ static PyObject *make_opensubdiv_info(void)
 #define SetObjItem(obj) PyStructSequence_SET_ITEM(opensubdiv_info, pos++, obj)
 
 #ifdef WITH_OPENSUBDIV
-  int curversion = openSubdiv_getVersionHex();
+  const int curversion = openSubdiv_getVersionHex();
   SetObjItem(PyBool_FromLong(1));
   SetObjItem(PyC_Tuple_Pack_I32(curversion / 10000, (curversion / 100) % 100, curversion % 100));
   SetObjItem(PyUnicode_FromFormat(

@@ -315,7 +315,7 @@ static PyObject *M_Geometry_intersect_tri_tri_2d(PyObject *UNUSED(self), PyObjec
     }
   }
 
-  bool ret = isect_tri_tri_v2(UNPACK3(tri_pair[0]), UNPACK3(tri_pair[1]));
+  const bool ret = isect_tri_tri_v2(UNPACK3(tri_pair[0]), UNPACK3(tri_pair[1]));
   return PyBool_FromLong(ret);
 }
 
@@ -492,7 +492,7 @@ static PyObject *M_Geometry_intersect_line_plane(PyObject *UNUSED(self), PyObjec
   PyObject *py_line_a, *py_line_b, *py_plane_co, *py_plane_no;
   float line_a[3], line_b[3], plane_co[3], plane_no[3];
   float isect[3];
-  bool no_flip = false;
+  const bool no_flip = false;
 
   if (!PyArg_ParseTuple(args,
                         "OOOO|O&:intersect_line_plane",

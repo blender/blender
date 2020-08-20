@@ -71,8 +71,8 @@ static PyObject *bpy_app_icons_new_triangles(PyObject *UNUSED(self), PyObject *a
     return NULL;
   }
 
-  int coords_size = sizeof(uchar[2]) * tris_len * 3;
-  int colors_size = sizeof(uchar[4]) * tris_len * 3;
+  const int coords_size = sizeof(uchar[2]) * tris_len * 3;
+  const int colors_size = sizeof(uchar[4]) * tris_len * 3;
   uchar(*coords)[2] = MEM_mallocN(coords_size, __func__);
   uchar(*colors)[4] = MEM_mallocN(colors_size, __func__);
 
@@ -86,7 +86,7 @@ static PyObject *bpy_app_icons_new_triangles(PyObject *UNUSED(self), PyObject *a
   geom->coords = coords;
   geom->colors = colors;
   geom->icon_id = 0;
-  int icon_id = BKE_icon_geom_ensure(geom);
+  const int icon_id = BKE_icon_geom_ensure(geom);
   return PyLong_FromLong(icon_id);
 }
 
@@ -117,7 +117,7 @@ static PyObject *bpy_app_icons_new_triangles_from_file(PyObject *UNUSED(self),
     PyErr_SetString(PyExc_ValueError, "Unable to load from file");
     return NULL;
   }
-  int icon_id = BKE_icon_geom_ensure(geom);
+  const int icon_id = BKE_icon_geom_ensure(geom);
   return PyLong_FromLong(icon_id);
 }
 

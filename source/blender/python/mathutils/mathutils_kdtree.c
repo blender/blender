@@ -191,7 +191,7 @@ static int py_find_nearest_cb(void *user_data, int index, const float co[3], flo
 
   if (result) {
     bool use_node;
-    int ok = PyC_ParseBool(result, &use_node);
+    const int ok = PyC_ParseBool(result, &use_node);
     Py_DECREF(result);
     if (ok) {
       return (int)use_node;

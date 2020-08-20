@@ -589,7 +589,7 @@ static PyObject *py_bvhtree_overlap(PyBVHTree *self, PyBVHTree *other)
     /* pass */
   }
   else {
-    bool use_unique = (self->orig_index || other->orig_index);
+    const bool use_unique = (self->orig_index || other->orig_index);
     GSet *pair_test = use_unique ?
                           BLI_gset_new_ex(overlap_hash, overlap_cmp, __func__, overlap_len) :
                           NULL;
@@ -1037,7 +1037,7 @@ static Mesh *bvh_get_mesh(const char *funcname,
 {
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
   /* we only need minimum mesh data for topology and vertex locations */
-  CustomData_MeshMasks data_masks = CD_MASK_BAREMESH;
+  const CustomData_MeshMasks data_masks = CD_MASK_BAREMESH;
   const bool use_render = DEG_get_mode(depsgraph) == DAG_EVAL_RENDER;
   *r_free_mesh = false;
 

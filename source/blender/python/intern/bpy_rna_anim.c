@@ -131,7 +131,7 @@ static int pyrna_struct_anim_args_parse_ex(PointerRNA *ptr,
       }
     }
     else {
-      int array_len = RNA_property_array_length(&r_ptr, prop);
+      const int array_len = RNA_property_array_length(&r_ptr, prop);
       if ((*r_index) < -1 || (*r_index) >= array_len) {
         PyErr_Format(PyExc_TypeError,
                      "%.200s index out of range \"%s\", given %d, array length is %d",
@@ -316,7 +316,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
   int index = -1;
   float cfra = FLT_MAX;
   const char *group_name = NULL;
-  char keytype = BEZT_KEYTYPE_KEYFRAME; /* XXX: Expose this as a one-off option... */
+  const char keytype = BEZT_KEYTYPE_KEYFRAME; /* XXX: Expose this as a one-off option... */
   int options = 0;
 
   PYRNA_STRUCT_CHECK_OBJ(self);

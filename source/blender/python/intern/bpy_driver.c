@@ -228,7 +228,7 @@ static void bpy_pydriver_namespace_clear_self(void)
 void BPY_driver_reset(void)
 {
   PyGILState_STATE gilstate;
-  bool use_gil = true; /* !PyC_IsInterpreterActive(); */
+  const bool use_gil = true; /* !PyC_IsInterpreterActive(); */
 
   if (use_gil) {
     gilstate = PyGILState_Ensure();
@@ -594,7 +594,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
 #endif
     {
       /* try to get variable value */
-      float tval = driver_get_variable_value(driver, dvar);
+      const float tval = driver_get_variable_value(driver, dvar);
       driver_arg = PyFloat_FromDouble((double)tval);
     }
 

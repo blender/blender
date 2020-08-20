@@ -92,7 +92,7 @@ static GHashKey *_ghashutil_keyalloc(const void *msgctxt, const void *msgid)
 static uint _ghashutil_keyhash(const void *ptr)
 {
   const GHashKey *key = ptr;
-  uint hash = BLI_ghashutil_strhash(key->msgctxt);
+  const uint hash = BLI_ghashutil_strhash(key->msgctxt);
   return hash ^ BLI_ghashutil_strhash(key->msgid);
 }
 

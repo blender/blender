@@ -65,7 +65,7 @@ static double py_timer_execute(uintptr_t UNUSED(uuid), void *user_data)
   gilstate = PyGILState_Ensure();
 
   PyObject *py_ret = PyObject_CallObject(function, NULL);
-  double ret = handle_returned_value(function, py_ret);
+  const double ret = handle_returned_value(function, py_ret);
 
   PyGILState_Release(gilstate);
 
@@ -151,7 +151,7 @@ PyDoc_STRVAR(bpy_app_timers_is_registered_doc,
              "   :rtype: bool\n");
 static PyObject *bpy_app_timers_is_registered(PyObject *UNUSED(self), PyObject *function)
 {
-  bool ret = BLI_timer_is_registered((intptr_t)function);
+  const bool ret = BLI_timer_is_registered((intptr_t)function);
   return PyBool_FromLong(ret);
 }
 

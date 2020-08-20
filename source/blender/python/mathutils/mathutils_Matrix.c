@@ -809,7 +809,7 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
   else {
     /* arbitrary plane */
 
-    int vec_size = (matSize == 2 ? 2 : 3);
+    const int vec_size = (matSize == 2 ? 2 : 3);
     float tvec[4];
 
     if (mathutils_array_parse(tvec,
@@ -2156,7 +2156,8 @@ static PyObject *Matrix_str(MatrixObject *self)
   for (col = 0; col < self->num_col; col++) {
     maxsize[col] = 0;
     for (row = 0; row < self->num_row; row++) {
-      int size = BLI_snprintf(dummy_buf, sizeof(dummy_buf), "%.4f", MATRIX_ITEM(self, row, col));
+      const int size = BLI_snprintf(
+          dummy_buf, sizeof(dummy_buf), "%.4f", MATRIX_ITEM(self, row, col));
       maxsize[col] = max_ii(maxsize[col], size);
     }
   }

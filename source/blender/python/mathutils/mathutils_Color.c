@@ -749,7 +749,7 @@ PyDoc_STRVAR(Color_channel_hsv_v_doc, "HSV Value component in [0, 1].\n\n:type: 
 static PyObject *Color_channel_hsv_get(ColorObject *self, void *type)
 {
   float hsv[3];
-  int i = POINTER_AS_INT(type);
+  const int i = POINTER_AS_INT(type);
 
   if (BaseMath_ReadCallback(self) == -1) {
     return NULL;
@@ -763,7 +763,7 @@ static PyObject *Color_channel_hsv_get(ColorObject *self, void *type)
 static int Color_channel_hsv_set(ColorObject *self, PyObject *value, void *type)
 {
   float hsv[3];
-  int i = POINTER_AS_INT(type);
+  const int i = POINTER_AS_INT(type);
   float f = PyFloat_AsDouble(value);
 
   if (f == -1 && PyErr_Occurred()) {

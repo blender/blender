@@ -208,7 +208,7 @@ int mathutils_array_parse(
 
   if (size != -1) {
     if (flag & MU_ARRAY_ZERO) {
-      int size_left = array_max - size;
+      const int size_left = array_max - size;
       if (size_left) {
         memset(&array[size], 0, sizeof(float) * size_left);
       }
@@ -541,9 +541,9 @@ int EXPP_FloatsAreEqual(float af, float bf, int maxDiff)
 {
   /* solid, fast routine across all platforms
    * with constant time behavior */
-  int ai = *(int *)(&af);
-  int bi = *(int *)(&bf);
-  int test = SIGNMASK(ai ^ bi);
+  const int ai = *(int *)(&af);
+  const int bi = *(int *)(&bf);
+  const int test = SIGNMASK(ai ^ bi);
   int diff, v1, v2;
 
   assert((0 == test) || (0xFFFFFFFF == test));

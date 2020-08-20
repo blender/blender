@@ -134,7 +134,7 @@ static bool bpygpu_vertbuf_fill_impl(GPUVertBuf *vbo,
       return false;
     }
 
-    uint comp_len = pybuffer.ndim == 1 ? 1 : (uint)pybuffer.shape[1];
+    const uint comp_len = pybuffer.ndim == 1 ? 1 : (uint)pybuffer.shape[1];
 
     if (pybuffer.shape[0] != vbo->vertex_len) {
       PyErr_Format(

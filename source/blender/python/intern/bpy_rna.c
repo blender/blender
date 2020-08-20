@@ -464,7 +464,7 @@ static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype)
   if (subtype == MATHUTILS_CB_SUBTYPE_EUL) {
     EulerObject *eul = (EulerObject *)bmo;
     PropertyRNA *prop_eul_order = NULL;
-    short order = pyrna_rotation_euler_order_get(&self->ptr, eul->order, &prop_eul_order);
+    const short order = pyrna_rotation_euler_order_get(&self->ptr, eul->order, &prop_eul_order);
     if (order != eul->order) {
       RNA_property_enum_set(&self->ptr, prop_eul_order, eul->order);
       if (RNA_property_update_check(prop_eul_order)) {
@@ -599,7 +599,7 @@ static short pyrna_rotation_euler_order_get(PointerRNA *ptr,
   }
 
   if (*r_prop_eul_order) {
-    short order = RNA_property_enum_get(ptr, *r_prop_eul_order);
+    const short order = RNA_property_enum_get(ptr, *r_prop_eul_order);
     /* Could be quat or axisangle. */
     if (order >= EULER_ORDER_XYZ && order <= EULER_ORDER_ZYX) {
       return order;
@@ -714,7 +714,8 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
             /* Attempt to get order,
              * only needed for thick types since wrapped with update via callbacks. */
             PropertyRNA *prop_eul_order = NULL;
-            short order = pyrna_rotation_euler_order_get(ptr, EULER_ORDER_XYZ, &prop_eul_order);
+            const short order = pyrna_rotation_euler_order_get(
+                ptr, EULER_ORDER_XYZ, &prop_eul_order);
 
             ret = Euler_CreatePyObject(NULL, order, NULL); /* TODO, get order from RNA. */
             RNA_property_float_get_array(ptr, prop, ((EulerObject *)ret)->eul);
@@ -1725,7 +1726,7 @@ static int pyrna_py_to_prop(
       }
       case PROP_INT: {
         int overflow;
-        long param = PyLong_AsLongAndOverflow(value, &overflow);
+        const long param = PyLong_AsLongAndOverflow(value, &overflow);
         if (overflow || (param > INT_MAX) || (param < INT_MIN)) {
           PyErr_Format(PyExc_ValueError,
                        "%.200s %.200s.%.200s value not in 'int' range "
@@ -1757,7 +1758,7 @@ static int pyrna_py_to_prop(
         break;
       }
       case PROP_FLOAT: {
-        float param = PyFloat_AsDouble(value);
+        const float param = PyFloat_AsDouble(value);
         if (PyErr_Occurred()) {
           PyErr_Format(PyExc_TypeError,
                        "%.200s %.200s.%.200s expected a float type, not %.200s",
@@ -1935,8 +1936,8 @@ static int pyrna_py_to_prop(
         PyObject *value_new = NULL;
 
         StructRNA *ptr_type = RNA_property_pointer_type(ptr, prop);
-        int flag = RNA_property_flag(prop);
-        int flag_parameter = RNA_parameter_flag(prop);
+        const int flag = RNA_property_flag(prop);
+        const int flag_parameter = RNA_parameter_flag(prop);
 
         /* This is really nasty! Done so we can fake the operator having direct properties, eg:
          * layout.prop(self, "filepath")
@@ -2075,7 +2076,7 @@ static int pyrna_py_to_prop(
             BKE_reports_init(&reports, RPT_STORE);
             RNA_property_pointer_set(
                 ptr, prop, value == Py_None ? PointerRNA_NULL : param->ptr, &reports);
-            int err = (BPy_reports_to_error(&reports, PyExc_RuntimeError, true));
+            const int err = (BPy_reports_to_error(&reports, PyExc_RuntimeError, true));
             if (err == -1) {
               Py_XDECREF(value_new);
               return -1;
@@ -2233,7 +2234,7 @@ static int pyrna_py_to_prop_array_index(BPy_PropertyArrayRNA *self, int index, P
     /* See if we can coerce into a Python type - 'PropertyType'. */
     switch (RNA_property_type(prop)) {
       case PROP_BOOLEAN: {
-        int param = PyC_Long_AsBool(value);
+        const int param = PyC_Long_AsBool(value);
 
         if (param == -1) {
           /* Error is set. */
@@ -2698,7 +2699,7 @@ static PyObject *pyrna_prop_collection_subscript(BPy_PropertyRNA *self, PyObject
     return pyrna_prop_collection_subscript_str(self, _PyUnicode_AsString(key));
   }
   if (PyIndex_Check(key)) {
-    Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
+    const Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
     if (i == -1 && PyErr_Occurred()) {
       return NULL;
     }
@@ -2732,7 +2733,7 @@ static PyObject *pyrna_prop_collection_subscript(BPy_PropertyRNA *self, PyObject
 
     if (start < 0 || stop < 0) {
       /* Only get the length for negative values. */
-      Py_ssize_t len = (Py_ssize_t)RNA_property_collection_length(&self->ptr, self->prop);
+      const Py_ssize_t len = (Py_ssize_t)RNA_property_collection_length(&self->ptr, self->prop);
       if (start < 0) {
         start += len;
       }
@@ -2827,7 +2828,7 @@ static int pyrna_prop_collection_ass_subscript(BPy_PropertyRNA *self,
   else
 #endif
   if (PyIndex_Check(key)) {
-    Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
+    const Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
     if (i == -1 && PyErr_Occurred()) {
       return -1;
     }
@@ -2899,7 +2900,7 @@ static PyObject *pyrna_prop_array_subscript(BPy_PropertyArrayRNA *self, PyObject
   else
 #endif
   if (PyIndex_Check(key)) {
-    Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
+    const Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
     if (i == -1 && PyErr_Occurred()) {
       return NULL;
     }
@@ -2919,11 +2920,11 @@ static PyObject *pyrna_prop_array_subscript(BPy_PropertyArrayRNA *self, PyObject
     if (key_slice->start == Py_None && key_slice->stop == Py_None) {
       /* Note: no significant advantage with optimizing [:] slice as with collections,
        * but include here for consistency with collection slice func */
-      Py_ssize_t len = (Py_ssize_t)pyrna_prop_array_length(self);
+      const Py_ssize_t len = (Py_ssize_t)pyrna_prop_array_length(self);
       return pyrna_prop_array_subscript_slice(self, &self->ptr, self->prop, 0, len, len);
     }
 
-    int len = pyrna_prop_array_length(self);
+    const int len = pyrna_prop_array_length(self);
     Py_ssize_t start, stop, slicelength;
 
     if (PySlice_GetIndicesEx(key, len, &start, &stop, &step, &slicelength) < 0) {
@@ -3055,7 +3056,7 @@ static int prop_subscript_ass_array_slice__bool_recursive(PyObject **value_items
   BLI_assert(totdim == 1);
   int i;
   for (i = 0; i != length; i++) {
-    int v = PyLong_AsLong(value_items[i]);
+    const int v = PyLong_AsLong(value_items[i]);
     value[i] = v;
   }
   return i;
@@ -3097,7 +3098,7 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr,
   }
 
   int dimsize[3];
-  int totdim = RNA_property_array_dimension(ptr, prop, dimsize);
+  const int totdim = RNA_property_array_dimension(ptr, prop, dimsize);
   if (totdim > 1) {
     BLI_assert(dimsize[arraydim] == length);
   }
@@ -3247,7 +3248,7 @@ static int pyrna_prop_array_ass_subscript(BPy_PropertyArrayRNA *self,
   }
 
   else if (PyIndex_Check(key)) {
-    Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
+    const Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
     if (i == -1 && PyErr_Occurred()) {
       ret = -1;
     }
@@ -3256,7 +3257,7 @@ static int pyrna_prop_array_ass_subscript(BPy_PropertyArrayRNA *self,
     }
   }
   else if (PySlice_Check(key)) {
-    Py_ssize_t len = pyrna_prop_array_length(self);
+    const Py_ssize_t len = pyrna_prop_array_length(self);
     Py_ssize_t start, stop, step, slicelength;
 
     if (PySlice_GetIndicesEx(key, len, &start, &stop, &step, &slicelength) < 0) {
@@ -4249,7 +4250,7 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
       ListBase newlb;
       short newtype;
 
-      int done = CTX_data_get(C, name, &newptr, &newlb, &newtype);
+      const int done = CTX_data_get(C, name, &newptr, &newlb, &newtype);
 
       if (done == 1) { /* Found. */
         switch (newtype) {
@@ -4401,7 +4402,7 @@ static int pyrna_struct_meta_idprop_setattro(PyObject *cls, PyObject *attr, PyOb
   if (value) {
     /* Check if the value is a property. */
     if (is_deferred_prop) {
-      int ret = deferred_register_prop(srna, attr, value);
+      const int ret = deferred_register_prop(srna, attr, value);
       if (ret == -1) {
         /* Error set. */
         return ret;
@@ -4471,7 +4472,7 @@ static int pyrna_struct_setattro(BPy_StructRNA *self, PyObject *pyname, PyObject
     ListBase newlb;
     short newtype;
 
-    int done = CTX_data_get(C, name, &newptr, &newlb, &newtype);
+    const int done = CTX_data_get(C, name, &newptr, &newlb, &newtype);
 
     if (done == 1) {
       PyErr_Format(
@@ -4646,7 +4647,7 @@ static PyObject *pyrna_prop_collection_idprop_add(BPy_PropertyRNA *self)
 
 static PyObject *pyrna_prop_collection_idprop_remove(BPy_PropertyRNA *self, PyObject *value)
 {
-  int key = PyLong_AsLong(value);
+  const int key = PyLong_AsLong(value);
 
 #ifdef USE_PEDANTIC_WRITE
   if (rna_disallow_writes && rna_id_write_error(&self->ptr, NULL)) {
@@ -5172,7 +5173,7 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
 
 static bool foreach_compat_buffer(RawPropertyType raw_type, int attr_signed, const char *format)
 {
-  char f = format ? *format : 'B'; /* B is assumed when not set */
+  const char f = format ? *format : 'B'; /* B is assumed when not set */
 
   switch (raw_type) {
     case PROP_RAW_CHAR:
@@ -5400,7 +5401,7 @@ static PyObject *pyprop_array_foreach_getset(BPy_PropertyArrayRNA *self,
   PyObject *item = NULL;
   Py_ssize_t i, seq_size, size;
   void *array = NULL;
-  PropertyType prop_type = RNA_property_type(self->prop);
+  const PropertyType prop_type = RNA_property_type(self->prop);
 
   /* Get/set both take the same args currently. */
   PyObject *seq;
@@ -5498,7 +5499,7 @@ static PyObject *pyprop_array_foreach_getset(BPy_PropertyArrayRNA *self,
     }
   }
   else {
-    char f = buf.format ? buf.format[0] : 0;
+    const char f = buf.format ? buf.format[0] : 0;
     if ((prop_type == PROP_INT && (buf.itemsize != sizeof(int) || (f != 'l' && f != 'i'))) ||
         (prop_type == PROP_FLOAT && (buf.itemsize != sizeof(float) || f != 'f'))) {
       PyBuffer_Release(&buf);
@@ -8030,7 +8031,7 @@ static int rna_function_arg_count(FunctionRNA *func, int *min_count)
   const ListBase *lb = RNA_function_defined_parameters(func);
   PropertyRNA *parm;
   Link *link;
-  int flag = RNA_function_flag(func);
+  const int flag = RNA_function_flag(func);
   const bool is_staticmethod = (flag & FUNC_NO_SELF) && !(flag & FUNC_USE_SELF_TYPE);
   int count = is_staticmethod ? 0 : 1;
   bool done_min_count = false;
@@ -8273,7 +8274,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
   ParameterIterator iter;
   PointerRNA funcptr;
   int err = 0, i, ret_len = 0, arg_count;
-  int flag = RNA_function_flag(func);
+  const int flag = RNA_function_flag(func);
   const bool is_staticmethod = (flag & FUNC_NO_SELF) && !(flag & FUNC_USE_SELF_TYPE);
   const bool is_classmethod = (flag & FUNC_NO_SELF) && (flag & FUNC_USE_SELF_TYPE);
 
@@ -9015,7 +9016,7 @@ void pyrna_struct_type_extend_capi(struct StructRNA *srna,
         py_method = PyCFunction_New(method, NULL);
       }
 
-      int err = PyDict_SetItemString(dict, method->ml_name, py_method);
+      const int err = PyDict_SetItemString(dict, method->ml_name, py_method);
       Py_DECREF(py_method);
       BLI_assert(!(err < 0));
       UNUSED_VARS_NDEBUG(err);

@@ -78,7 +78,7 @@ static int bpygpu_uniform_location_get(GPUShader *shader,
                                        const char *name,
                                        const char *error_prefix)
 {
-  int uniform = GPU_shader_get_uniform(shader, name);
+  const int uniform = GPU_shader_get_uniform(shader, name);
 
   if (uniform == -1) {
     PyErr_Format(PyExc_ValueError, "%s: uniform %.32s not found", error_prefix, name);
@@ -158,7 +158,7 @@ static PyObject *bpygpu_shader_uniform_from_name(BPyGPUShader *self, PyObject *a
     return NULL;
   }
 
-  int uniform = bpygpu_uniform_location_get(self->shader, name, "GPUShader.get_uniform");
+  const int uniform = bpygpu_uniform_location_get(self->shader, name, "GPUShader.get_uniform");
 
   if (uniform == -1) {
     return NULL;
@@ -184,7 +184,7 @@ static PyObject *bpygpu_shader_uniform_block_from_name(BPyGPUShader *self, PyObj
     return NULL;
   }
 
-  int uniform = GPU_shader_get_uniform_block(self->shader, name);
+  const int uniform = GPU_shader_get_uniform_block(self->shader, name);
 
   if (uniform == -1) {
     PyErr_Format(PyExc_ValueError, "GPUShader.get_uniform_block: uniform %.32s not found", name);
@@ -504,7 +504,7 @@ static PyObject *bpygpu_shader_attr_from_name(BPyGPUShader *self, PyObject *arg)
     return NULL;
   }
 
-  int attr = GPU_shader_get_attribute(self->shader, name);
+  const int attr = GPU_shader_get_attribute(self->shader, name);
 
   if (attr == -1) {
     PyErr_Format(PyExc_ValueError, "GPUShader.attr_from_name: attribute %.32s not found", name);

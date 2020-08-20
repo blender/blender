@@ -361,7 +361,7 @@ static int validate_array(PyObject *rvalue,
                           const char *error_prefix)
 {
   int dimsize[MAX_ARRAY_DIMENSION];
-  int totdim = RNA_property_array_dimension(ptr, prop, dimsize);
+  const int totdim = RNA_property_array_dimension(ptr, prop, dimsize);
 
   /* validate type first because length validation may modify property array length */
 
@@ -466,7 +466,7 @@ static char *copy_values(PyObject *seq,
                          const ItemConvert_FuncArg *convert_item,
                          RNA_SetIndexFunc rna_set_index)
 {
-  int totdim = RNA_property_array_dimension(ptr, prop, NULL);
+  const int totdim = RNA_property_array_dimension(ptr, prop, NULL);
   const Py_ssize_t seq_size = PySequence_Size(seq);
   Py_ssize_t i;
 
@@ -487,7 +487,7 @@ static char *copy_values(PyObject *seq,
   if (dim == 0) {
     if (MatrixObject_Check(seq)) {
       MatrixObject *pymat = (MatrixObject *)seq;
-      size_t allocsize = pymat->num_col * pymat->num_row * sizeof(float);
+      const size_t allocsize = pymat->num_col * pymat->num_row * sizeof(float);
 
       /* read callback already done by validate */
       /* since this is the first iteration we can assume data is allocated */
@@ -993,7 +993,7 @@ PyObject *pyrna_py_from_array(PointerRNA *ptr, PropertyRNA *prop)
 /* TODO, multi-dimensional arrays */
 int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 {
-  int len = RNA_property_array_length(ptr, prop);
+  const int len = RNA_property_array_length(ptr, prop);
   int type;
   int i;
 
@@ -1011,7 +1011,7 @@ int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 
   switch (type) {
     case PROP_FLOAT: {
-      float value_f = PyFloat_AsDouble(value);
+      const float value_f = PyFloat_AsDouble(value);
       if (value_f == -1 && PyErr_Occurred()) {
         PyErr_Clear();
         return 0;
@@ -1044,7 +1044,7 @@ int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
       break;
     }
     case PROP_INT: {
-      int value_i = PyC_Long_AsI32(value);
+      const int value_i = PyC_Long_AsI32(value);
       if (value_i == -1 && PyErr_Occurred()) {
         PyErr_Clear();
         return 0;
@@ -1077,7 +1077,7 @@ int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
       break;
     }
     case PROP_BOOLEAN: {
-      int value_i = PyC_Long_AsBool(value);
+      const int value_i = PyC_Long_AsBool(value);
       if (value_i == -1 && PyErr_Occurred()) {
         PyErr_Clear();
         return 0;

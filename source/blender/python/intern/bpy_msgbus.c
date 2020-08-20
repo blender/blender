@@ -192,7 +192,7 @@ static void bpy_msgbus_notify(bContext *C,
 static void bpy_msgbus_subscribe_value_free_data(struct wmMsgSubscribeKey *UNUSED(msg_key),
                                                  struct wmMsgSubscribeValue *msg_val)
 {
-  PyGILState_STATE gilstate = PyGILState_Ensure();
+  const PyGILState_STATE gilstate = PyGILState_Ensure();
   Py_DECREF(msg_val->owner);
   Py_DECREF(msg_val->user_data);
   PyGILState_Release(gilstate);

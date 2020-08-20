@@ -321,7 +321,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 {
   Main *bmain = CTX_data_main(BPy_GetContext());
   Main *mainl = NULL;
-  int err = 0;
+  const int err = 0;
   const bool do_append = ((self->flag & FILE_LINK) == 0);
 
   BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, true);
@@ -338,7 +338,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
         // printf("lib: %s\n", name_plural);
         if (ls && PyList_Check(ls)) {
           /* loop */
-          Py_ssize_t size = PyList_GET_SIZE(ls);
+          const Py_ssize_t size = PyList_GET_SIZE(ls);
           Py_ssize_t i;
 
           for (i = 0; i < size; i++) {
@@ -423,7 +423,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
         const char *name_plural = BKE_idtype_idcode_to_name_plural(idcode);
         PyObject *ls = PyDict_GetItemString(self->dict, name_plural);
         if (ls && PyList_Check(ls)) {
-          Py_ssize_t size = PyList_GET_SIZE(ls);
+          const Py_ssize_t size = PyList_GET_SIZE(ls);
           Py_ssize_t i;
           PyObject *item;
 

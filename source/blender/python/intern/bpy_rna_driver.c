@@ -57,7 +57,7 @@ PyObject *pyrna_driver_get_variable_value(struct ChannelDriver *driver, struct D
       }
       else {
         /* object & property */
-        PropertyType type = RNA_property_type(prop);
+        const PropertyType type = RNA_property_type(prop);
         if (type == PROP_ENUM) {
           /* Note that enum's are converted to strings by default,
            * we want to avoid that, see: T52213 */

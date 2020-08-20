@@ -1093,7 +1093,7 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
   bool use_deform = true;
   bool use_cage = false;
   bool use_fnorm = true;
-  CustomData_MeshMasks data_masks = CD_MASK_BMESH;
+  const CustomData_MeshMasks data_masks = CD_MASK_BMESH;
 
   BPY_BM_CHECK_OBJ(self);
 
@@ -1346,7 +1346,7 @@ static PyObject *bpy_bmesh_transform(BPy_BMElem *self, PyObject *args, PyObject 
     }
   }
   else {
-    char filter_flags_ch = (char)filter_flags;
+    const char filter_flags_ch = (char)filter_flags;
     BM_ITER_MESH (eve, &iter, self->bm, BM_VERTS_OF_MESH) {
       if (BM_elem_flag_test(eve, filter_flags_ch)) {
         mul_m4_v3((float(*)[4])mat_ptr, eve->co);
@@ -3222,7 +3222,7 @@ static PyObject *bpy_bmelemseq_subscript(BPy_BMElemSeq *self, PyObject *key)
 {
   /* don't need error check here */
   if (PyIndex_Check(key)) {
-    Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
+    const Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
     if (i == -1 && PyErr_Occurred()) {
       return NULL;
     }
@@ -3255,7 +3255,7 @@ static PyObject *bpy_bmelemseq_subscript(BPy_BMElemSeq *self, PyObject *key)
 
     if (start < 0 || stop < 0) {
       /* only get the length for negative values */
-      Py_ssize_t len = bpy_bmelemseq_length(self);
+      const Py_ssize_t len = bpy_bmelemseq_length(self);
       if (start < 0) {
         start += len;
       }

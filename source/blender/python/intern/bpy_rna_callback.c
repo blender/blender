@@ -84,7 +84,7 @@ static void cb_region_draw(const bContext *C, ARegion *UNUSED(region), void *cus
 static PyObject *PyC_Tuple_CopySized(PyObject *src, int len_dst)
 {
   PyObject *dst = PyTuple_New(len_dst);
-  int len_src = PyTuple_GET_SIZE(src);
+  const int len_src = PyTuple_GET_SIZE(src);
   BLI_assert(len_src <= len_dst);
   for (int i = 0; i < len_src; i++) {
     PyObject *item = PyTuple_GET_ITEM(src, i);

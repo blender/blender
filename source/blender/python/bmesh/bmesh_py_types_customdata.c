@@ -714,7 +714,7 @@ static PyObject *bpy_bmlayercollection_subscript_slice(BPy_BMLayerCollection *se
                                                        Py_ssize_t start,
                                                        Py_ssize_t stop)
 {
-  Py_ssize_t len = bpy_bmlayercollection_length(self);
+  const Py_ssize_t len = bpy_bmlayercollection_length(self);
   int count = 0;
 
   PyObject *tuple;
@@ -746,7 +746,7 @@ static PyObject *bpy_bmlayercollection_subscript(BPy_BMLayerCollection *self, Py
     return bpy_bmlayercollection_subscript_str(self, _PyUnicode_AsString(key));
   }
   if (PyIndex_Check(key)) {
-    Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
+    const Py_ssize_t i = PyNumber_AsSsize_t(key, PyExc_IndexError);
     if (i == -1 && PyErr_Occurred()) {
       return NULL;
     }
@@ -779,7 +779,7 @@ static PyObject *bpy_bmlayercollection_subscript(BPy_BMLayerCollection *self, Py
 
     if (start < 0 || stop < 0) {
       /* only get the length for negative values */
-      Py_ssize_t len = bpy_bmlayercollection_length(self);
+      const Py_ssize_t len = bpy_bmlayercollection_length(self);
       if (start < 0) {
         start += len;
       }
@@ -1127,7 +1127,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
     }
     case CD_PROP_FLOAT:
     case CD_PAINT_MASK: {
-      float tmp_val = PyFloat_AsDouble(py_value);
+      const float tmp_val = PyFloat_AsDouble(py_value);
       if (UNLIKELY(tmp_val == -1 && PyErr_Occurred())) {
         PyErr_Format(
             PyExc_TypeError, "expected a float, not a %.200s", Py_TYPE(py_value)->tp_name);
@@ -1140,7 +1140,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
     }
     case CD_PROP_INT32:
     case CD_FACEMAP: {
-      int tmp_val = PyC_Long_AsI32(py_value);
+      const int tmp_val = PyC_Long_AsI32(py_value);
       if (UNLIKELY(tmp_val == -1 && PyErr_Occurred())) {
         /* error is set */
         ret = -1;
@@ -1187,7 +1187,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
       break;
     }
     case CD_BWEIGHT: {
-      float tmp_val = PyFloat_AsDouble(py_value);
+      const float tmp_val = PyFloat_AsDouble(py_value);
       if (UNLIKELY(tmp_val == -1 && PyErr_Occurred())) {
         PyErr_Format(
             PyExc_TypeError, "expected a float, not a %.200s", Py_TYPE(py_value)->tp_name);
@@ -1199,7 +1199,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
       break;
     }
     case CD_CREASE: {
-      float tmp_val = PyFloat_AsDouble(py_value);
+      const float tmp_val = PyFloat_AsDouble(py_value);
       if (UNLIKELY(tmp_val == -1 && PyErr_Occurred())) {
         PyErr_Format(
             PyExc_TypeError, "expected a float, not a %.200s", Py_TYPE(py_value)->tp_name);

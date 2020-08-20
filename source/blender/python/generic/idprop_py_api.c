@@ -435,7 +435,7 @@ static IDProperty *idp_from_PyBytes(const char *name, PyObject *ob)
 
 static int idp_array_type_from_formatstr_and_size(const char *typestr, Py_ssize_t itemsize)
 {
-  char format = PyC_StructFmt_type_from_str(typestr);
+  const char format = PyC_StructFmt_type_from_str(typestr);
 
   if (PyC_StructFmt_type_is_float_any(format)) {
     if (itemsize == 4) {
@@ -473,7 +473,7 @@ static IDProperty *idp_from_PySequence_Buffer(const char *name, Py_buffer *buffe
   IDProperty *prop;
   IDPropertyTemplate val = {0};
 
-  int id_type = idp_array_type_from_formatstr_and_size(buffer->format, buffer->itemsize);
+  const int id_type = idp_array_type_from_formatstr_and_size(buffer->format, buffer->itemsize);
   if (id_type == -1) {
     /* should never happen as the type has been checked before */
     return NULL;
@@ -560,7 +560,7 @@ static IDProperty *idp_from_PySequence(const char *name, PyObject *ob)
 
   if (PyObject_CheckBuffer(ob)) {
     PyObject_GetBuffer(ob, &buffer, PyBUF_SIMPLE | PyBUF_FORMAT);
-    char format = PyC_StructFmt_type_from_str(buffer.format);
+    const char format = PyC_StructFmt_type_from_str(buffer.format);
     if (PyC_StructFmt_type_is_float_any(format) ||
         (PyC_StructFmt_type_is_int_any(format) && buffer.itemsize == 4)) {
       use_buffer = true;
@@ -589,7 +589,7 @@ static IDProperty *idp_from_PySequence(const char *name, PyObject *ob)
 static IDProperty *idp_from_PyMapping(const char *name, PyObject *ob)
 {
   IDProperty *prop;
-  IDPropertyTemplate val = {0};
+  const IDPropertyTemplate val = {0};
 
   PyObject *keys, *vals, *key, *pval;
   int i, len;
@@ -1559,8 +1559,8 @@ static int itemsize_by_idarray_type(int array_type)
 static int BPy_IDArray_getbuffer(BPy_IDArray *self, Py_buffer *view, int flags)
 {
   IDProperty *prop = self->prop;
-  int itemsize = itemsize_by_idarray_type(prop->subtype);
-  int length = itemsize * prop->len;
+  const int itemsize = itemsize_by_idarray_type(prop->subtype);
+  const int length = itemsize * prop->len;
 
   if (PyBuffer_FillInfo(view, (PyObject *)self, IDP_Array(prop), length, false, flags) == -1) {
     return -1;

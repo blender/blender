@@ -112,7 +112,7 @@ static int bpygpu_ParseVertCompType(PyObject *o, void *p)
     return 0;
   }
 
-  int comp_type = bpygpu_parse_component_type(str, length);
+  const int comp_type = bpygpu_parse_component_type(str, length);
   if (comp_type == -1) {
     PyErr_Format(PyExc_ValueError, "unknown component type: '%s", str);
     return 0;
@@ -132,7 +132,7 @@ static int bpygpu_ParseVertFetchMode(PyObject *o, void *p)
     return 0;
   }
 
-  int fetch_mode = bpygpu_parse_fetch_mode(str, length);
+  const int fetch_mode = bpygpu_parse_fetch_mode(str, length);
   if (fetch_mode == -1) {
     PyErr_Format(PyExc_ValueError, "unknown type literal: '%s'", str);
     return 0;

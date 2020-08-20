@@ -318,7 +318,7 @@ void bpy_app_generic_callback(struct Main *UNUSED(main),
 {
   PyObject *cb_list = py_cb_array[POINTER_AS_INT(arg)];
   if (PyList_GET_SIZE(cb_list) > 0) {
-    PyGILState_STATE gilstate = PyGILState_Ensure();
+    const PyGILState_STATE gilstate = PyGILState_Ensure();
 
     const int num_arguments = 2;
     PyObject *args_all = PyTuple_New(num_arguments); /* save python creating each call */

@@ -228,7 +228,7 @@ static int bpy_slot_from_py(BMesh *bm,
       break;
     }
     case BMO_OP_SLOT_FLT: {
-      float param = PyFloat_AsDouble(value);
+      const float param = PyFloat_AsDouble(value);
       if (param == -1 && PyErr_Occurred()) {
         PyErr_Format(PyExc_TypeError,
                      "%.200s: keyword \"%.200s\" expected a float, not %.200s",
@@ -840,7 +840,7 @@ PyObject *BPy_BMO_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *kw)
       {
         char slot_name_strip[MAX_SLOTNAME];
         const char *ch = strchr(slot->slot_name, '.'); /* can't fail! */
-        int tot = ch - slot->slot_name;
+        const int tot = ch - slot->slot_name;
         BLI_assert(ch != NULL);
         memcpy(slot_name_strip, slot->slot_name, tot);
         slot_name_strip[tot] = '\0';

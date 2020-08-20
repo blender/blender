@@ -169,7 +169,7 @@ void BPY_text_free_code(Text *text)
 {
   if (text->compiled) {
     PyGILState_STATE gilstate;
-    bool use_gil = !PyC_IsInterpreterActive();
+    const bool use_gil = !PyC_IsInterpreterActive();
 
     if (use_gil) {
       gilstate = PyGILState_Ensure();
@@ -446,14 +446,14 @@ void BPY_python_backtrace(FILE *fp)
 
 void BPY_DECREF(void *pyob_ptr)
 {
-  PyGILState_STATE gilstate = PyGILState_Ensure();
+  const PyGILState_STATE gilstate = PyGILState_Ensure();
   Py_DECREF((PyObject *)pyob_ptr);
   PyGILState_Release(gilstate);
 }
 
 void BPY_DECREF_RNA_INVALIDATE(void *pyob_ptr)
 {
-  PyGILState_STATE gilstate = PyGILState_Ensure();
+  const PyGILState_STATE gilstate = PyGILState_Ensure();
   const int do_invalidate = (Py_REFCNT((PyObject *)pyob_ptr) > 1);
   Py_DECREF((PyObject *)pyob_ptr);
   if (do_invalidate) {
@@ -509,7 +509,7 @@ void BPY_modules_load_user(bContext *C)
 int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *result)
 {
   PyGILState_STATE gilstate;
-  bool use_gil = !PyC_IsInterpreterActive();
+  const bool use_gil = !PyC_IsInterpreterActive();
 
   PyObject *pyctx;
   PyObject *item;
@@ -544,7 +544,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
       PyErr_Clear();
     }
     else {
-      int len = PySequence_Fast_GET_SIZE(seq_fast);
+      const int len = PySequence_Fast_GET_SIZE(seq_fast);
       PyObject **seq_fast_items = PySequence_Fast_ITEMS(seq_fast);
       int i;
 

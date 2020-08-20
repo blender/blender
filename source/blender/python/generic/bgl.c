@@ -461,7 +461,7 @@ int BGL_typeSize(int type)
 static int gl_buffer_type_from_py_buffer(Py_buffer *pybuffer)
 {
   const char format = PyC_StructFmt_type_from_str(pybuffer->format);
-  Py_ssize_t itemsize = pybuffer->itemsize;
+  const Py_ssize_t itemsize = pybuffer->itemsize;
 
   if (PyC_StructFmt_type_is_float_any(format)) {
     if (itemsize == 4) {
@@ -705,7 +705,7 @@ static int BGL_BufferOrOffsetConverter(PyObject *object, BufferOrOffset *buffer)
     return 1;
   }
   if (PyNumber_Check(object)) {
-    Py_ssize_t offset = PyNumber_AsSsize_t(object, PyExc_IndexError);
+    const Py_ssize_t offset = PyNumber_AsSsize_t(object, PyExc_IndexError);
     if (offset == -1 && PyErr_Occurred()) {
       return 0;
     }
@@ -907,7 +907,7 @@ static int Buffer_ass_item(Buffer *self, int i, PyObject *v)
     Buffer *row = (Buffer *)Buffer_item(self, i);
 
     if (row) {
-      int ret = Buffer_ass_slice(row, 0, self->dimensions[1], v);
+      const int ret = Buffer_ass_slice(row, 0, self->dimensions[1], v);
       Py_DECREF(row);
       return ret;
     }
