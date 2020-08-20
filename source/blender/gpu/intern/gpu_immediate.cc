@@ -749,123 +749,77 @@ void immVertex2iv(uint attr_id, const int data[2])
 
 /* --- generic uniform functions --- */
 
-#if 0
-#  if TRUST_NO_ONE
-#    define GET_UNIFORM \
-      const GPUShaderInput *uniform = GPU_shaderinterface_uniform(imm.shader_interface, name); \
-      assert(uniform);
-#  else
-#    define GET_UNIFORM \
-      const GPUShaderInput *uniform = GPU_shaderinterface_uniform(imm.shader_interface, name);
-#  endif
-#else
-/* NOTE: It is possible to have uniform fully optimized out from the shader.
- *       In this case we can't assert failure or allow NULL-pointer dereference.
- * TODO(sergey): How can we detect existing-but-optimized-out uniform but still
- *               catch typos in uniform names passed to immUniform*() functions? */
-#  define GET_UNIFORM \
-    const GPUShaderInput *uniform = GPU_shaderinterface_uniform(imm.shader_interface, name); \
-    if (uniform == NULL) \
-      return;
-#endif
-
 void immUniform1f(const char *name, float x)
 {
-  GET_UNIFORM
-  glUniform1f(uniform->location, x);
+  GPU_shader_uniform_1f(imm.bound_program, name, x);
 }
 
 void immUniform2f(const char *name, float x, float y)
 {
-  GET_UNIFORM
-  glUniform2f(uniform->location, x, y);
+  GPU_shader_uniform_2f(imm.bound_program, name, x, y);
 }
 
 void immUniform2fv(const char *name, const float data[2])
 {
-  GET_UNIFORM
-  glUniform2fv(uniform->location, 1, data);
+  GPU_shader_uniform_2fv(imm.bound_program, name, data);
 }
 
 void immUniform3f(const char *name, float x, float y, float z)
 {
-  GET_UNIFORM
-  glUniform3f(uniform->location, x, y, z);
+  GPU_shader_uniform_3f(imm.bound_program, name, x, y, z);
 }
 
 void immUniform3fv(const char *name, const float data[3])
 {
-  GET_UNIFORM
-  glUniform3fv(uniform->location, 1, data);
-}
-
-/* can increase this limit or move to another file */
-#define MAX_UNIFORM_NAME_LEN 60
-
-/* Note array index is not supported for name (i.e: "array[0]"). */
-void immUniformArray3fv(const char *name, const float *data, int count)
-{
-  GET_UNIFORM
-  glUniform3fv(uniform->location, count, data);
+  GPU_shader_uniform_3fv(imm.bound_program, name, data);
 }
 
 void immUniform4f(const char *name, float x, float y, float z, float w)
 {
-  GET_UNIFORM
-  glUniform4f(uniform->location, x, y, z, w);
+  GPU_shader_uniform_4f(imm.bound_program, name, x, y, z, w);
 }
 
 void immUniform4fv(const char *name, const float data[4])
 {
-  GET_UNIFORM
-  glUniform4fv(uniform->location, 1, data);
+  GPU_shader_uniform_4fv(imm.bound_program, name, data);
 }
 
 /* Note array index is not supported for name (i.e: "array[0]"). */
 void immUniformArray4fv(const char *name, const float *data, int count)
 {
-  GET_UNIFORM
-  glUniform4fv(uniform->location, count, data);
+  GPU_shader_uniform_4fv_array(imm.bound_program, name, count, (float(*)[4])data);
 }
 
 void immUniformMatrix4fv(const char *name, const float data[4][4])
 {
-  GET_UNIFORM
-  glUniformMatrix4fv(uniform->location, 1, GL_FALSE, (float *)data);
+  GPU_shader_uniform_mat4(imm.bound_program, name, data);
 }
 
 void immUniform1i(const char *name, int x)
 {
-  GET_UNIFORM
-  glUniform1i(uniform->location, x);
-}
-
-void immUniform4iv(const char *name, const int data[4])
-{
-  GET_UNIFORM
-  glUniform4iv(uniform->location, 1, data);
+  GPU_shader_uniform_1i(imm.bound_program, name, x);
 }
 
 void immBindTexture(const char *name, GPUTexture *tex)
 {
-  GET_UNIFORM
-  GPU_texture_bind(tex, uniform->binding);
+  int binding = GPU_shader_get_texture_binding(imm.bound_program, name);
+  GPU_texture_bind(tex, binding);
 }
 
 void immBindTextureSampler(const char *name, GPUTexture *tex, eGPUSamplerState state)
 {
-  GET_UNIFORM
-  GPU_texture_bind_ex(tex, state, uniform->binding, true);
+  int binding = GPU_shader_get_texture_binding(imm.bound_program, name);
+  GPU_texture_bind_ex(tex, state, binding, true);
 }
 
 /* --- convenience functions for setting "uniform vec4 color" --- */
 
 void immUniformColor4f(float r, float g, float b, float a)
 {
-  int32_t uniform_loc = GPU_shaderinterface_uniform_builtin(imm.shader_interface,
-                                                            GPU_UNIFORM_COLOR);
+  int32_t uniform_loc = GPU_shader_get_builtin_uniform(imm.bound_program, GPU_UNIFORM_COLOR);
   BLI_assert(uniform_loc != -1);
-  glUniform4f(uniform_loc, r, g, b, a);
+  float data[4] = {r, g, b, a};
+  GPU_shader_uniform_vector(imm.bound_program, uniform_loc, 4, 1, data);
 }
 
 void immUniformColor4fv(const float rgba[4])

@@ -649,14 +649,13 @@ void GPU_matrix_bind(GPUShader *shader)
    * call this before a draw call if desired matrices are dirty
    * call glUseProgram before this, as glUniform expects program to be bound
    */
-  const GPUShaderInterface *shaderface = shader->interface;
-  int32_t MV = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_MODELVIEW);
-  int32_t P = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_PROJECTION);
-  int32_t MVP = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_MVP);
+  int32_t MV = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MODELVIEW);
+  int32_t P = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_PROJECTION);
+  int32_t MVP = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MVP);
 
-  int32_t N = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_NORMAL);
-  int32_t MV_inv = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_MODELVIEW_INV);
-  int32_t P_inv = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_PROJECTION_INV);
+  int32_t N = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_NORMAL);
+  int32_t MV_inv = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_MODELVIEW_INV);
+  int32_t P_inv = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_PROJECTION_INV);
 
   if (MV != -1) {
     GPU_shader_uniform_vector(shader, MV, 16, 1, (const float *)GPU_matrix_model_view_get(NULL));
