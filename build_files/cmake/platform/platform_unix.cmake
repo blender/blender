@@ -590,6 +590,14 @@ endif()
 if(CMAKE_COMPILER_IS_GNUCC)
   set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
 
+  # `maybe-uninitialized` is unreliable in release builds, but fine in debug builds.
+  set(GCC_EXTRA_FLAGS_RELEASE "-Wno-maybe-uninitialized")
+  set(CMAKE_C_FLAGS_RELEASE          "${GCC_EXTRA_FLAGS_RELEASE} ${CMAKE_C_FLAGS_RELEASE}")
+  set(CMAKE_C_FLAGS_RELWITHDEBINFO   "${GCC_EXTRA_FLAGS_RELEASE} ${CMAKE_C_FLAGS_RELWITHDEBINFO}")
+  set(CMAKE_CXX_FLAGS_RELEASE        "${GCC_EXTRA_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS_RELEASE}")
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${GCC_EXTRA_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+  unset(GCC_EXTRA_FLAGS_RELEASE)
+
   if(WITH_LINKER_GOLD)
     execute_process(
       COMMAND ${CMAKE_C_COMPILER} -fuse-ld=gold -Wl,--version
