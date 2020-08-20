@@ -26,6 +26,7 @@
 
 #include <stdlib.h>
 
+#include "GPU_framebuffer.h"
 #include "GPU_glew.h"
 #include "GPU_select.h"
 #include "GPU_state.h"
@@ -112,20 +113,17 @@ void gpu_select_query_begin(
   if (mode == GPU_SELECT_ALL) {
     /* glQueries on Windows+Intel drivers only works with depth testing turned on.
      * See T62947 for details */
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_ALWAYS);
-    glDepthMask(GL_TRUE);
+    GPU_depth_test(GPU_DEPTH_ALWAYS);
+    GPU_depth_mask(true);
   }
   else if (mode == GPU_SELECT_NEAREST_FIRST_PASS) {
-    glClear(GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LEQUAL);
+    GPU_clear(GPU_DEPTH_BIT);
+    GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
+    GPU_depth_mask(true);
   }
   else if (mode == GPU_SELECT_NEAREST_SECOND_PASS) {
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_FALSE);
-    glDepthFunc(GL_EQUAL);
+    GPU_depth_test(GPU_DEPTH_EQUAL);
+    GPU_depth_mask(false);
   }
 }
 

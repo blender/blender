@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "GPU_framebuffer.h"
 #include "GPU_glew.h"
 #include "GPU_immediate.h"
 #include "GPU_select.h"
@@ -317,12 +318,11 @@ void gpu_select_pick_begin(uint (*buffer)[4], uint bufsize, const rcti *input, c
     /* disable writing to the framebuffer */
     GPU_color_mask(false, false, false, false);
 
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
+    GPU_depth_mask(true);
     /* Always use #GL_LEQUAL even though GPU_SELECT_PICK_ALL always clears the buffer. This is
      * because individual objects themselves might have sections that overlap and we need these
      * to have the correct distance information. */
-    glDepthFunc(GL_LEQUAL);
+    GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
 
     float viewport[4];
     GPU_viewport_size_get_f(viewport);
@@ -339,7 +339,7 @@ void gpu_select_pick_begin(uint (*buffer)[4], uint bufsize, const rcti *input, c
 
     /* It's possible we don't want to clear depth buffer,
      * so existing elements are masked by current z-buffer. */
-    glClear(GL_DEPTH_BUFFER_BIT);
+    GPU_clear(GPU_DEPTH_BIT);
 
     /* scratch buffer (read new values here) */
     ps->gl.rect_depth_test = depth_buf_malloc(rect_len);
@@ -519,7 +519,7 @@ bool gpu_select_pick_load_id(uint id, bool end)
 
       if (g_pick_state.mode == GPU_SELECT_PICK_ALL) {
         /* we want new depths every time */
-        glClear(GL_DEPTH_BUFFER_BIT);
+        GPU_clear(GPU_DEPTH_BIT);
       }
     }
   }
