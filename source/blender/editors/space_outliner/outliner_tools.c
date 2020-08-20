@@ -792,10 +792,11 @@ static void id_override_library_create_fn(bContext *C,
     }
     else if (ID_IS_OVERRIDABLE_LIBRARY(id_root)) {
       BKE_lib_override_library_create_from_id(bmain, id_root, true);
-    }
 
-    BKE_main_id_clear_newpoins(bmain);
-    BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+      /* Cleanup. */
+      BKE_main_id_clear_newpoins(bmain);
+      BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+    }
   }
 }
 
@@ -829,7 +830,7 @@ static void id_override_library_reset_fn(bContext *C,
 
 static void id_override_library_resync_fn(bContext *C,
                                           ReportList *UNUSED(reports),
-                                          Scene *UNUSED(scene),
+                                          Scene *scene,
                                           TreeElement *te,
                                           TreeStoreElem *UNUSED(tsep),
                                           TreeStoreElem *tselem,
@@ -853,10 +854,8 @@ static void id_override_library_resync_fn(bContext *C,
       }
       te->store_elem->id->tag |= LIB_TAG_DOIT;
     }
-    BKE_lib_override_library_resync(bmain, CTX_data_scene(C), CTX_data_view_layer(C), id_root);
 
-    BKE_main_id_clear_newpoins(bmain);
-    BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+    BKE_lib_override_library_resync(bmain, scene, CTX_data_view_layer(C), id_root);
   }
 }
 
@@ -886,9 +885,8 @@ static void id_override_library_delete_fn(bContext *C,
       }
       te->store_elem->id->tag |= LIB_TAG_DOIT;
     }
-    BKE_lib_override_library_delete(bmain, id_root);
 
-    BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+    BKE_lib_override_library_delete(bmain, id_root);
   }
 }
 
@@ -1901,7 +1899,6 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
       break;
     }
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE: {
-      /* make local */
       outliner_do_libdata_operation(C,
                                     op->reports,
                                     scene,
@@ -1913,7 +1910,6 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
       break;
     }
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE_HIERARCHY: {
-      /* make local */
       outliner_do_libdata_operation(C,
                                     op->reports,
                                     scene,
@@ -1925,7 +1921,6 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
       break;
     }
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET: {
-      /* make local */
       outliner_do_libdata_operation(C,
                                     op->reports,
                                     scene,
@@ -1937,7 +1932,6 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
       break;
     }
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET_HIERARCHY: {
-      /* make local */
       outliner_do_libdata_operation(C,
                                     op->reports,
                                     scene,
@@ -1949,7 +1943,6 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
       break;
     }
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_RESYNC_HIERARCHY: {
-      /* make local */
       outliner_do_libdata_operation(C,
                                     op->reports,
                                     scene,
@@ -1961,7 +1954,6 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
       break;
     }
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_DELETE_HIERARCHY: {
-      /* make local */
       outliner_do_libdata_operation(C,
                                     op->reports,
                                     scene,
