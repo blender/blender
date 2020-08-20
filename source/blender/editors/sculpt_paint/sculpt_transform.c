@@ -326,6 +326,12 @@ static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
     MEM_SAFE_FREE(nodes);
   }
 
+  /* Update the viewport navigation rotation origin. */
+  UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
+  copy_v3_v3(ups->average_stroke_accum, ss->pivot_pos);
+  ups->average_stroke_counter = 1;
+  ups->last_stroke_valid = true;
+
   ED_region_tag_redraw(region);
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
 
