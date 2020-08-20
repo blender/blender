@@ -33,6 +33,7 @@
 
 #include "gpu_batch_private.hh"
 #include "gpu_primitive_private.h"
+#include "gpu_shader_private.hh"
 
 #include "gl_batch.hh"
 #include "gl_context.hh"
@@ -71,7 +72,7 @@ void GLVaoCache::init(void)
 }
 
 /* Create a new VAO object and store it in the cache. */
-void GLVaoCache::insert(const GPUShaderInterface *interface, GLuint vao)
+void GLVaoCache::insert(const GLShaderInterface *interface, GLuint vao)
 {
   /* Now insert the cache. */
   if (!is_dynamic_vao_count) {
@@ -90,8 +91,7 @@ void GLVaoCache::insert(const GPUShaderInterface *interface, GLuint vao)
       /* Erase previous entries, they will be added back if drawn again. */
       for (int i = 0; i < GPU_VAO_STATIC_LEN; i++) {
         if (static_vaos.interfaces[i] != NULL) {
-          GPU_shaderinterface_remove_batch_ref(
-              const_cast<GPUShaderInterface *>(static_vaos.interfaces[i]), this);
+          const_cast<GLShaderInterface *>(static_vaos.interfaces[i])->ref_remove(this);
           context_->vao_free(static_vaos.vao_ids[i]);
         }
       }
@@ -99,8 +99,8 @@ void GLVaoCache::insert(const GPUShaderInterface *interface, GLuint vao)
       is_dynamic_vao_count = true;
       /* Init dynamic arrays and let the branch below set the values. */
       dynamic_vaos.count = GPU_BATCH_VAO_DYN_ALLOC_COUNT;
-      dynamic_vaos.interfaces = (const GPUShaderInterface **)MEM_callocN(
-          dynamic_vaos.count * sizeof(GPUShaderInterface *), "dyn vaos interfaces");
+      dynamic_vaos.interfaces = (const GLShaderInterface **)MEM_callocN(
+          dynamic_vaos.count * sizeof(GLShaderInterface *), "dyn vaos interfaces");
       dynamic_vaos.vao_ids = (GLuint *)MEM_callocN(dynamic_vaos.count * sizeof(GLuint),
                                                    "dyn vaos ids");
     }
@@ -118,8 +118,8 @@ void GLVaoCache::insert(const GPUShaderInterface *interface, GLuint vao)
       /* Not enough place, realloc the array. */
       i = dynamic_vaos.count;
       dynamic_vaos.count += GPU_BATCH_VAO_DYN_ALLOC_COUNT;
-      dynamic_vaos.interfaces = (const GPUShaderInterface **)MEM_recallocN(
-          (void *)dynamic_vaos.interfaces, sizeof(GPUShaderInterface *) * dynamic_vaos.count);
+      dynamic_vaos.interfaces = (const GLShaderInterface **)MEM_recallocN(
+          (void *)dynamic_vaos.interfaces, sizeof(GLShaderInterface *) * dynamic_vaos.count);
       dynamic_vaos.vao_ids = (GLuint *)MEM_recallocN(dynamic_vaos.vao_ids,
                                                      sizeof(GLuint) * dynamic_vaos.count);
     }
@@ -127,15 +127,15 @@ void GLVaoCache::insert(const GPUShaderInterface *interface, GLuint vao)
     dynamic_vaos.vao_ids[i] = vao;
   }
 
-  GPU_shaderinterface_add_batch_ref(const_cast<GPUShaderInterface *>(interface), this);
+  const_cast<GLShaderInterface *>(interface)->ref_add(this);
 }
 
-void GLVaoCache::remove(const GPUShaderInterface *interface)
+void GLVaoCache::remove(const GLShaderInterface *interface)
 {
   const int count = (is_dynamic_vao_count) ? dynamic_vaos.count : GPU_VAO_STATIC_LEN;
   GLuint *vaos = (is_dynamic_vao_count) ? dynamic_vaos.vao_ids : static_vaos.vao_ids;
-  const GPUShaderInterface **interfaces = (is_dynamic_vao_count) ? dynamic_vaos.interfaces :
-                                                                   static_vaos.interfaces;
+  const GLShaderInterface **interfaces = (is_dynamic_vao_count) ? dynamic_vaos.interfaces :
+                                                                  static_vaos.interfaces;
   for (int i = 0; i < count; i++) {
     if (interfaces[i] == interface) {
       context_->vao_free(vaos[i]);
@@ -151,8 +151,8 @@ void GLVaoCache::clear(void)
   GLContext *ctx = static_cast<GLContext *>(GPU_context_active_get());
   const int count = (is_dynamic_vao_count) ? dynamic_vaos.count : GPU_VAO_STATIC_LEN;
   GLuint *vaos = (is_dynamic_vao_count) ? dynamic_vaos.vao_ids : static_vaos.vao_ids;
-  const GPUShaderInterface **interfaces = (is_dynamic_vao_count) ? dynamic_vaos.interfaces :
-                                                                   static_vaos.interfaces;
+  const GLShaderInterface **interfaces = (is_dynamic_vao_count) ? dynamic_vaos.interfaces :
+                                                                  static_vaos.interfaces;
   /* Early out, nothing to free. */
   if (context_ == NULL) {
     return;
@@ -174,7 +174,7 @@ void GLVaoCache::clear(void)
     if (interfaces[i] == NULL) {
       continue;
     }
-    GPU_shaderinterface_remove_batch_ref(const_cast<GPUShaderInterface *>(interfaces[i]), this);
+    const_cast<GLShaderInterface *>(interfaces[i])->ref_add(this);
   }
 
   if (is_dynamic_vao_count) {
@@ -190,11 +190,11 @@ void GLVaoCache::clear(void)
 }
 
 /* Return 0 on cache miss (invalid VAO) */
-GLuint GLVaoCache::lookup(const GPUShaderInterface *interface)
+GLuint GLVaoCache::lookup(const GLShaderInterface *interface)
 {
   const int count = (is_dynamic_vao_count) ? dynamic_vaos.count : GPU_VAO_STATIC_LEN;
-  const GPUShaderInterface **interfaces = (is_dynamic_vao_count) ? dynamic_vaos.interfaces :
-                                                                   static_vaos.interfaces;
+  const GLShaderInterface **interfaces = (is_dynamic_vao_count) ? dynamic_vaos.interfaces :
+                                                                  static_vaos.interfaces;
   for (int i = 0; i < count; i++) {
     if (interfaces[i] == interface) {
       return (is_dynamic_vao_count) ? dynamic_vaos.vao_ids[i] : static_vaos.vao_ids[i];
@@ -226,7 +226,9 @@ GLuint GLVaoCache::base_instance_vao_get(GPUBatch *batch, int i_first)
 {
   this->context_check();
   /* Make sure the interface is up to date. */
-  if (interface_ != GPU_context_active_get()->shader->interface) {
+  Shader *shader = static_cast<Shader *>(GPU_context_active_get()->shader);
+  GLShaderInterface *interface = static_cast<GLShaderInterface *>(shader->interface);
+  if (interface_ != interface) {
     vao_get(batch);
     /* Trigger update. */
     base_instance_ = 0;
@@ -255,9 +257,10 @@ GLuint GLVaoCache::vao_get(GPUBatch *batch)
 {
   this->context_check();
 
-  GPUContext *ctx = GPU_context_active_get();
-  if (interface_ != ctx->shader->interface) {
-    interface_ = ctx->shader->interface;
+  Shader *shader = static_cast<Shader *>(GPU_context_active_get()->shader);
+  GLShaderInterface *interface = static_cast<GLShaderInterface *>(shader->interface);
+  if (interface_ != interface) {
+    interface_ = interface;
     vao_id_ = this->lookup(interface_);
 
     if (vao_id_ == 0) {

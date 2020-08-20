@@ -32,10 +32,10 @@
 
 #include "glew-mx.h"
 
-#include "GPU_shader_interface.h"
-
 namespace blender {
 namespace gpu {
+
+class GLShaderInterface;
 
 #define GPU_VAO_STATIC_LEN 3
 
@@ -47,7 +47,7 @@ class GLVaoCache {
   /** Context for which the vao_cache_ was generated. */
   struct GLContext *context_ = NULL;
   /** Last interface this batch was drawn with. */
-  GPUShaderInterface *interface_ = NULL;
+  GLShaderInterface *interface_ = NULL;
   /** Cached vao for the last interface. */
   GLuint vao_id_ = 0;
   /** Used whend arb_base_instance is not supported. */
@@ -58,13 +58,13 @@ class GLVaoCache {
   union {
     /** Static handle count */
     struct {
-      const GPUShaderInterface *interfaces[GPU_VAO_STATIC_LEN];
+      const GLShaderInterface *interfaces[GPU_VAO_STATIC_LEN];
       GLuint vao_ids[GPU_VAO_STATIC_LEN];
     } static_vaos;
     /** Dynamic handle count */
     struct {
       uint count;
-      const GPUShaderInterface **interfaces;
+      const GLShaderInterface **interfaces;
       GLuint *vao_ids;
     } dynamic_vaos;
   };
@@ -76,9 +76,9 @@ class GLVaoCache {
   GLuint vao_get(GPUBatch *batch);
   GLuint base_instance_vao_get(GPUBatch *batch, int i_first);
 
-  GLuint lookup(const GPUShaderInterface *interface);
-  void insert(const GPUShaderInterface *interface, GLuint vao_id);
-  void remove(const GPUShaderInterface *interface);
+  GLuint lookup(const GLShaderInterface *interface);
+  void insert(const GLShaderInterface *interface, GLuint vao_id);
+  void remove(const GLShaderInterface *interface);
   void clear(void);
 
  private:

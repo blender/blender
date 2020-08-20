@@ -25,8 +25,8 @@
 
 #pragma once
 
-#include "GPU_shader_interface.h"
 #include "GPU_vertex_format.h"
+#include "gpu_shader_interface.hh"
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,9 +35,7 @@ extern "C" {
 /* TODO(fclem) remove, use shaderface directly. */
 void AttrBinding_clear(GPUAttrBinding *binding);
 
-void get_attr_locations(const GPUVertFormat *format,
-                        GPUAttrBinding *binding,
-                        const GPUShaderInterface *shaderface);
+void get_attr_locations(const GPUVertFormat *format, GPUAttrBinding *binding, GPUShader *shader);
 uint read_attr_location(const GPUAttrBinding *binding, uint a_idx);
 
 #ifdef __cplusplus

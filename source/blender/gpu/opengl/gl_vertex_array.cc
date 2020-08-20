@@ -23,9 +23,9 @@
 
 #include "GPU_glew.h"
 
-#include "GPU_shader_interface.h"
 #include "GPU_vertex_buffer.h"
 
+#include "gpu_shader_interface.hh"
 #include "gpu_vertex_format_private.h"
 
 #include "gl_batch.hh"
@@ -33,14 +33,14 @@
 
 #include "gl_vertex_array.hh"
 
-using namespace blender::gpu;
+namespace blender::gpu {
 
 /* -------------------------------------------------------------------- */
 /** \name Vertex Array Bindings
  * \{ */
 
 /* Returns enabled vertex pointers as a bitflag (one bit per attrib). */
-static uint16_t vbo_bind(const GPUShaderInterface *interface,
+static uint16_t vbo_bind(const ShaderInterface *interface,
                          const GPUVertFormat *format,
                          uint v_first,
                          uint v_len,
@@ -68,7 +68,7 @@ static uint16_t vbo_bind(const GPUShaderInterface *interface,
 
     for (uint n_idx = 0; n_idx < a->name_len; n_idx++) {
       const char *name = GPU_vertformat_attr_name_get(format, a, n_idx);
-      const GPUShaderInput *input = GPU_shaderinterface_attr(interface, name);
+      const ShaderInput *input = interface->attr_get(name);
 
       if (input == NULL) {
         continue;
@@ -111,10 +111,10 @@ static uint16_t vbo_bind(const GPUShaderInterface *interface,
 /* Update the Attrib Binding of the currently bound VAO. */
 void GLVertArray::update_bindings(const GLuint vao,
                                   const GPUBatch *batch,
-                                  const GPUShaderInterface *interface,
+                                  const ShaderInterface *interface,
                                   const int base_instance)
 {
-  uint16_t attr_mask = interface->enabled_attr_mask;
+  uint16_t attr_mask = interface->enabled_attr_mask_;
 
   glBindVertexArray(vao);
 
@@ -156,3 +156,5 @@ void GLVertArray::update_bindings(const GLuint vao,
 }
 
 /** \} */
+
+}  // namespace blender::gpu

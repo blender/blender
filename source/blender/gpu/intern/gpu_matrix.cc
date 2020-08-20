@@ -21,8 +21,6 @@
  * \ingroup gpu
  */
 
-#include "GPU_shader_interface.h"
-
 #include "gpu_context_private.hh"
 #include "gpu_matrix_private.h"
 

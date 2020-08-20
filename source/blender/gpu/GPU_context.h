@@ -27,7 +27,6 @@
 
 #include "GPU_batch.h"
 #include "GPU_common.h"
-#include "GPU_shader_interface.h"
 
 #ifdef __cplusplus
 extern "C" {

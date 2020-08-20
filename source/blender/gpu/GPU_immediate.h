@@ -29,7 +29,6 @@
 #include "GPU_immediate_util.h"
 #include "GPU_primitive.h"
 #include "GPU_shader.h"
-#include "GPU_shader_interface.h"
 #include "GPU_texture.h"
 #include "GPU_vertex_format.h"
 

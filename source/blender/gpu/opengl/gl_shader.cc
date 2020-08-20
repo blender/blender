@@ -29,6 +29,7 @@
 #include "GPU_platform.h"
 
 #include "gl_shader.hh"
+#include "gl_shader_interface.hh"
 
 using namespace blender;
 using namespace blender::gpu;
@@ -203,10 +204,7 @@ bool GLShader::finalize(void)
     return false;
   }
 
-  /* TODO(fclem) We need this to modify the image binding points using glUniform.
-   * This could be avoided using glProgramUniform in GL 4.1. */
-  glUseProgram(shader_program_);
-  interface = GPU_shaderinterface_create(shader_program_);
+  interface = new GLShaderInterface(shader_program_);
 
   return true;
 }

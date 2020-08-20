@@ -73,7 +73,6 @@ typedef struct {
   GLuint vao_id;
 
   GPUShader *bound_program;
-  const GPUShaderInterface *shader_interface;
   GPUAttrBinding attr_binding;
   uint16_t prev_enabled_attr_bits; /* <-- only affects this VAO, so we're ok */
 } Immediate;
@@ -148,14 +147,13 @@ void immBindShader(GPUShader *shader)
   BLI_assert(imm.bound_program == NULL);
 
   imm.bound_program = shader;
-  imm.shader_interface = shader->interface;
 
   if (!imm.vertex_format.packed) {
     VertexFormat_pack(&imm.vertex_format);
   }
 
   GPU_shader_bind(shader);
-  get_attr_locations(&imm.vertex_format, &imm.attr_binding, imm.shader_interface);
+  get_attr_locations(&imm.vertex_format, &imm.attr_binding, shader);
   GPU_matrix_bind(shader);
   GPU_shader_set_srgb_uniform(shader);
 }

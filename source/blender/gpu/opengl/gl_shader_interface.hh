@@ -13,32 +13,48 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2016 by Mike Erwin.
+ * The Original Code is Copyright (C) 2020 Blender Foundation.
  * All rights reserved.
  */
 
 /** \file
  * \ingroup gpu
  *
- * GPU geometry batch
- * Contains VAOs + VBOs + Shader representing a drawable entity.
+ * GPU shader interface (C --> GLSL)
+ *
+ * Structure detailling needed vertex inputs and resources for a specific shader.
+ * A shader interface can be shared between two similar shaders.
  */
 
 #pragma once
 
-#include "GPU_batch.h"
-#include "GPU_context.h"
+#include "MEM_guardedalloc.h"
 
-namespace blender {
-namespace gpu {
+#include "BLI_vector.hh"
 
-class Batch : public GPUBatch {
+#include "glew-mx.h"
+
+#include "gpu_shader_interface.hh"
+
+namespace blender::gpu {
+
+class GLVaoCache;
+
+class GLShaderInterface : public ShaderInterface {
+ private:
+  /** Reference to VaoCaches using this interface */
+  Vector<GLVaoCache *> refs_;
+
  public:
-  Batch(){};
-  virtual ~Batch(){};
+  GLShaderInterface(GLuint program);
+  ~GLShaderInterface();
 
-  virtual void draw(int v_first, int v_count, int i_first, int i_count) = 0;
+  void ref_add(GLVaoCache *ref);
+  void ref_remove(GLVaoCache *ref);
+
+  // bool resource_binding_validate();
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("GLShaderInterface");
 };
 
-}  // namespace gpu
-}  // namespace blender
+}  // namespace blender::gpu

@@ -61,9 +61,7 @@ static void write_attr_location(GPUAttrBinding *binding, uint a_idx, uint locati
   binding->enabled_bits |= 1 << a_idx;
 }
 
-void get_attr_locations(const GPUVertFormat *format,
-                        GPUAttrBinding *binding,
-                        const GPUShaderInterface *shaderface)
+void get_attr_locations(const GPUVertFormat *format, GPUAttrBinding *binding, GPUShader *shader)
 {
   AttrBinding_clear(binding);
 
@@ -71,13 +69,12 @@ void get_attr_locations(const GPUVertFormat *format,
     const GPUVertAttr *a = &format->attrs[a_idx];
     for (uint n_idx = 0; n_idx < a->name_len; n_idx++) {
       const char *name = GPU_vertformat_attr_name_get(format, a, n_idx);
-      const GPUShaderInput *input = GPU_shaderinterface_attr(shaderface, name);
-#if TRUST_NO_ONE
-      assert(input != NULL);
+      int loc = GPU_shader_get_attribute(shader, name);
       /* TODO: make this a recoverable runtime error?
        * indicates mismatch between vertex format and program. */
-#endif
-      write_attr_location(binding, a_idx, input->location);
+      BLI_assert(loc != -1);
+
+      write_attr_location(binding, a_idx, loc);
     }
   }
 }

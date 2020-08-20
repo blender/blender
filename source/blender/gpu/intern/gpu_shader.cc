@@ -196,8 +196,8 @@ Shader::Shader(const char *sh_name)
 
 Shader::~Shader()
 {
-  if (this->interface) {
-    GPU_shaderinterface_discard(this->interface);
+  if (interface) {
+    delete interface;
   }
 }
 
@@ -484,43 +484,49 @@ void GPU_shader_transform_feedback_disable(GPUShader *shader)
 
 int GPU_shader_get_uniform(GPUShader *shader, const char *name)
 {
-  const GPUShaderInput *uniform = GPU_shaderinterface_uniform(shader->interface, name);
+  ShaderInterface *interface = static_cast<Shader *>(shader)->interface;
+  const ShaderInput *uniform = interface->uniform_get(name);
   return uniform ? uniform->location : -1;
 }
 
 int GPU_shader_get_builtin_uniform(GPUShader *shader, int builtin)
 {
-  return GPU_shaderinterface_uniform_builtin(shader->interface,
-                                             static_cast<GPUUniformBuiltin>(builtin));
+  ShaderInterface *interface = static_cast<Shader *>(shader)->interface;
+  return interface->uniform_builtin((GPUUniformBuiltin)builtin);
 }
 
 int GPU_shader_get_builtin_block(GPUShader *shader, int builtin)
 {
-  return GPU_shaderinterface_block_builtin(shader->interface,
-                                           static_cast<GPUUniformBlockBuiltin>(builtin));
+  ShaderInterface *interface = static_cast<Shader *>(shader)->interface;
+  return interface->ubo_builtin((GPUUniformBlockBuiltin)builtin);
 }
 
+/* DEPRECATED. */
 int GPU_shader_get_uniform_block(GPUShader *shader, const char *name)
 {
-  const GPUShaderInput *ubo = GPU_shaderinterface_ubo(shader->interface, name);
+  ShaderInterface *interface = static_cast<Shader *>(shader)->interface;
+  const ShaderInput *ubo = interface->ubo_get(name);
   return ubo ? ubo->location : -1;
 }
 
 int GPU_shader_get_uniform_block_binding(GPUShader *shader, const char *name)
 {
-  const GPUShaderInput *ubo = GPU_shaderinterface_ubo(shader->interface, name);
+  ShaderInterface *interface = static_cast<Shader *>(shader)->interface;
+  const ShaderInput *ubo = interface->ubo_get(name);
   return ubo ? ubo->binding : -1;
 }
 
 int GPU_shader_get_texture_binding(GPUShader *shader, const char *name)
 {
-  const GPUShaderInput *tex = GPU_shaderinterface_uniform(shader->interface, name);
+  ShaderInterface *interface = static_cast<Shader *>(shader)->interface;
+  const ShaderInput *tex = interface->uniform_get(name);
   return tex ? tex->binding : -1;
 }
 
 int GPU_shader_get_attribute(GPUShader *shader, const char *name)
 {
-  const GPUShaderInput *attr = GPU_shaderinterface_attr(shader->interface, name);
+  ShaderInterface *interface = static_cast<Shader *>(shader)->interface;
+  const ShaderInput *attr = interface->attr_get(name);
   return attr ? attr->location : -1;
 }
 

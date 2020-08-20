@@ -26,7 +26,7 @@
 #include "glew-mx.h"
 
 #include "GPU_batch.h"
-#include "GPU_shader_interface.h"
+#include "gl_shader_interface.hh"
 
 namespace blender {
 namespace gpu {
@@ -35,7 +35,7 @@ namespace GLVertArray {
 
 void update_bindings(const GLuint vao,
                      const GPUBatch *batch,
-                     const GPUShaderInterface *interface,
+                     const ShaderInterface *interface,
                      const int base_instance);
 
 }  // namespace GLVertArray
