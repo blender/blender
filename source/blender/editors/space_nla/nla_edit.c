@@ -1847,11 +1847,7 @@ static int nlaedit_sync_actlen_exec(bContext *C, wmOperator *op)
           continue;
         }
 
-        /* recalculate the length of the action */
-        calc_action_range(strip->act, &strip->actstart, &strip->actend, 0);
-
-        /* adjust the strip extents in response to this */
-        BKE_nlastrip_recalculate_bounds(strip);
+        BKE_nlastrip_recalculate_bounds_sync_action(strip);
 
         ale->update |= ANIM_UPDATE_DEPS;
       }

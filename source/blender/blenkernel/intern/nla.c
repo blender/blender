@@ -1361,6 +1361,25 @@ static void nlastrip_fix_resize_overlaps(NlaStrip *strip)
   }
 }
 
+/** Recalculate the start and end frames for the strip to match the bounds of its action such that
+ * the overall NLA animation result is unchanged. */
+void BKE_nlastrip_recalculate_bounds_sync_action(NlaStrip *strip)
+{
+  float prev_actstart;
+
+  if (strip == NULL || strip->type != NLASTRIP_TYPE_CLIP) {
+    return;
+  }
+
+  prev_actstart = strip->actstart;
+
+  calc_action_range(strip->act, &strip->actstart, &strip->actend, 0);
+
+  /* Set start such that key's do not visually move, to preserve the overall animation result. */
+  strip->start += (strip->actstart - prev_actstart) * strip->scale;
+
+  BKE_nlastrip_recalculate_bounds(strip);
+}
 /* Recalculate the start and end frames for the current strip, after changing
  * the extents of the action or the mapping (repeats or scale factor) info
  */
@@ -2133,11 +2152,7 @@ void BKE_nla_tweakmode_exit(AnimData *adt)
 
     /* must be action-clip only (transitions don't have scale) */
     if ((strip->type == NLASTRIP_TYPE_CLIP) && (strip->act)) {
-      /* recalculate the length of the action */
-      calc_action_range(strip->act, &strip->actstart, &strip->actend, 0);
-
-      /* adjust the strip extents in response to this */
-      BKE_nlastrip_recalculate_bounds(strip);
+      BKE_nlastrip_recalculate_bounds_sync_action(strip);
     }
   }
 
@@ -2151,11 +2166,7 @@ void BKE_nla_tweakmode_exit(AnimData *adt)
       /* sync strip extents if this strip uses the same action */
       if ((adt->actstrip) && (adt->actstrip->act == strip->act) &&
           (strip->flag & NLASTRIP_FLAG_SYNC_LENGTH)) {
-        /* recalculate the length of the action */
-        calc_action_range(strip->act, &strip->actstart, &strip->actend, 0);
-
-        /* adjust the strip extents in response to this */
-        BKE_nlastrip_recalculate_bounds(strip);
+        BKE_nlastrip_recalculate_bounds_sync_action(strip);
       }
 
       /* clear tweakuser flag */

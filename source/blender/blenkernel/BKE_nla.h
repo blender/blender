@@ -102,6 +102,7 @@ void BKE_nlastrip_set_active(struct AnimData *adt, struct NlaStrip *strip);
 
 bool BKE_nlastrip_within_bounds(struct NlaStrip *strip, float min, float max);
 void BKE_nlastrip_recalculate_bounds(struct NlaStrip *strip);
+void BKE_nlastrip_recalculate_bounds_sync_action(struct NlaStrip *strip);
 
 void BKE_nlastrip_validate_name(struct AnimData *adt, struct NlaStrip *strip);
 
