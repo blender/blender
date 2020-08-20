@@ -647,9 +647,9 @@ DO_INLINE void collision_interpolateOnTriangle(float to[3],
   VECADDMUL(to, v3, w3);
 }
 
-static void cloth_selfcollision_impulse_vert(const float clamp_sq,
-                                             const float impulse[3],
-                                             struct ClothVertex *vert)
+static void cloth_collision_impulse_vert(const float clamp_sq,
+                                         const float impulse[3],
+                                         struct ClothVertex *vert)
 {
   float impulse_len_sq = len_squared_v3(impulse);
 
@@ -681,7 +681,7 @@ static int cloth_collision_response_static(ClothModifierData *clmd,
 {
   int result = 0;
   Cloth *cloth = clmd->clothObject;
-  const float clamp_sq = square_f(clmd->coll_parms->self_clamp * dt);
+  const float clamp_sq = square_f(clmd->coll_parms->clamp * dt);
   const float time_multiplier = 1.0f / (clmd->sim_parms->dt * clmd->sim_parms->timescale);
   const float epsilon2 = BLI_bvhtree_get_epsilon(collmd->bvhtree);
   const float min_distance = (clmd->coll_parms->epsilon + epsilon2) * (8.0f / 9.0f);
@@ -828,10 +828,10 @@ static int cloth_collision_response_static(ClothModifierData *clmd,
     }
 
     if (result) {
-      cloth_selfcollision_impulse_vert(clamp_sq, i1, &cloth->verts[collpair->ap1]);
-      cloth_selfcollision_impulse_vert(clamp_sq, i2, &cloth->verts[collpair->ap2]);
+      cloth_collision_impulse_vert(clamp_sq, i1, &cloth->verts[collpair->ap1]);
+      cloth_collision_impulse_vert(clamp_sq, i2, &cloth->verts[collpair->ap2]);
       if (!is_hair) {
-        cloth_selfcollision_impulse_vert(clamp_sq, i3, &cloth->verts[collpair->ap3]);
+        cloth_collision_impulse_vert(clamp_sq, i3, &cloth->verts[collpair->ap3]);
       }
     }
   }
@@ -987,13 +987,13 @@ static int cloth_selfcollision_response_static(ClothModifierData *clmd,
     }
 
     if (result) {
-      cloth_selfcollision_impulse_vert(clamp_sq, ia[0], &cloth->verts[collpair->ap1]);
-      cloth_selfcollision_impulse_vert(clamp_sq, ia[1], &cloth->verts[collpair->ap2]);
-      cloth_selfcollision_impulse_vert(clamp_sq, ia[2], &cloth->verts[collpair->ap3]);
+      cloth_collision_impulse_vert(clamp_sq, ia[0], &cloth->verts[collpair->ap1]);
+      cloth_collision_impulse_vert(clamp_sq, ia[1], &cloth->verts[collpair->ap2]);
+      cloth_collision_impulse_vert(clamp_sq, ia[2], &cloth->verts[collpair->ap3]);
 
-      cloth_selfcollision_impulse_vert(clamp_sq, ib[0], &cloth->verts[collpair->bp1]);
-      cloth_selfcollision_impulse_vert(clamp_sq, ib[1], &cloth->verts[collpair->bp2]);
-      cloth_selfcollision_impulse_vert(clamp_sq, ib[2], &cloth->verts[collpair->bp3]);
+      cloth_collision_impulse_vert(clamp_sq, ib[0], &cloth->verts[collpair->bp1]);
+      cloth_collision_impulse_vert(clamp_sq, ib[1], &cloth->verts[collpair->bp2]);
+      cloth_collision_impulse_vert(clamp_sq, ib[2], &cloth->verts[collpair->bp3]);
     }
   }
 
