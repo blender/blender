@@ -4669,16 +4669,6 @@ static void lib_link_object(BlendLibReader *reader, Object *ob)
     BLO_read_id_address(reader, ob->id.lib, &ob->rigidbody_constraint->ob2);
   }
 
-  {
-    LISTBASE_FOREACH (LodLevel *, level, &ob->lodlevels) {
-      BLO_read_id_address(reader, ob->id.lib, &level->source);
-
-      if (!level->source && level == ob->lodlevels.first) {
-        level->source = ob;
-      }
-    }
-  }
-
   if (warn) {
     BKE_report(reader->fd->reports, RPT_WARNING, "Warning in console");
   }
@@ -5342,9 +5332,6 @@ static void direct_link_object(BlendDataReader *reader, Object *ob)
       BKE_object_sculpt_data_create(ob);
     }
   }
-
-  BLO_read_list(reader, &ob->lodlevels);
-  ob->currentlod = ob->lodlevels.first;
 
   ob->preview = direct_link_preview_image(reader, ob->preview);
 }
@@ -10239,12 +10226,6 @@ static void expand_object(BlendExpander *expander, Object *ob)
   if (ob->rigidbody_constraint) {
     BLO_expand(expander, ob->rigidbody_constraint->ob1);
     BLO_expand(expander, ob->rigidbody_constraint->ob2);
-  }
-
-  if (ob->currentlod) {
-    LISTBASE_FOREACH (LodLevel *, level, &ob->lodlevels) {
-      BLO_expand(expander, level->source);
-    }
   }
 }
 

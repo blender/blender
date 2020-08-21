@@ -108,15 +108,6 @@ enum {
   BOUNDBOX_DIRTY = (1 << 1),
 };
 
-typedef struct LodLevel {
-  struct LodLevel *next, *prev;
-  struct Object *source;
-  int flags;
-  float distance;
-  char _pad0[4];
-  int obhysteresis;
-} LodLevel;
-
 struct CustomData_MeshMasks;
 
 /* Not saved in file! */
@@ -392,10 +383,6 @@ typedef struct Object {
   char empty_image_depth;
   char empty_image_flag;
   char _pad8[5];
-
-  /** Contains data for levels of detail. */
-  ListBase lodlevels;
-  LodLevel *currentlod;
 
   struct PreviewImage *preview;
 

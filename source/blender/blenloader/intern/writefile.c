@@ -1693,7 +1693,6 @@ static void write_object(BlendWriter *writer, Object *ob, const void *id_address
     write_shaderfxs(writer, &ob->shader_fx);
 
     BLO_write_struct_list(writer, LinkData, &ob->pc_ids);
-    BLO_write_struct_list(writer, LodLevel, &ob->lodlevels);
 
     write_previews(writer, ob->preview);
   }
