@@ -134,7 +134,9 @@ static void panel_title_color_get(bool show_background, uchar color[4])
   }
 }
 
-static bool panel_active_animation_changed(ListBase *lb, Panel **pa_animation, bool *no_animation)
+static bool panel_active_animation_changed(ListBase *lb,
+                                           Panel **r_panel_animation,
+                                           bool *r_no_animation)
 {
   LISTBASE_FOREACH (Panel *, panel, lb) {
     /* Detect panel active flag changes. */
@@ -148,7 +150,7 @@ static bool panel_active_animation_changed(ListBase *lb, Panel **pa_animation, b
     }
 
     if ((panel->runtime_flag & PNL_ACTIVE) && !(panel->flag & PNL_CLOSED)) {
-      if (panel_active_animation_changed(&panel->children, pa_animation, no_animation)) {
+      if (panel_active_animation_changed(&panel->children, r_panel_animation, r_no_animation)) {
         return true;
       }
     }
@@ -157,15 +159,15 @@ static bool panel_active_animation_changed(ListBase *lb, Panel **pa_animation, b
     if (panel->activedata) {
       uiHandlePanelData *data = panel->activedata;
       if (data->state == PANEL_STATE_ANIMATION) {
-        *pa_animation = panel;
+        *r_panel_animation = panel;
       }
       else {
         /* Don't animate while handling other interaction. */
-        *no_animation = true;
+        *r_no_animation = true;
       }
     }
-    if ((panel->runtime_flag & PNL_ANIM_ALIGN) && !(*pa_animation)) {
-      *pa_animation = panel;
+    if ((panel->runtime_flag & PNL_ANIM_ALIGN) && !(*r_panel_animation)) {
+      *r_panel_animation = panel;
     }
   }
 
@@ -842,54 +844,43 @@ void UI_panel_label_offset(uiBlock *block, int *r_x, int *r_y)
   }
 }
 
-static void ui_draw_aligned_panel_header(
-    uiStyle *style, uiBlock *block, const rcti *rect, char dir, const bool show_background)
+static void ui_draw_aligned_panel_header(const uiStyle *style,
+                                         const uiBlock *block,
+                                         const rcti *rect,
+                                         const bool show_background)
 {
-  Panel *panel = block->panel;
-  rcti hrect;
-  int pnl_icons;
-  const char *activename = panel->drawname;
+  const Panel *panel = block->panel;
   const bool is_subpanel = (panel->type && panel->type->parent);
-  uiFontStyle *fontstyle = (is_subpanel) ? &style->widgetlabel : &style->paneltitle;
-  uchar col_title[4];
+  const uiFontStyle *fontstyle = (is_subpanel) ? &style->widgetlabel : &style->paneltitle;
 
   /* + 0.001f to avoid flirting with float inaccuracy */
-  pnl_icons = (panel->labelofs + (1.1f * PNL_ICON)) / block->aspect + 0.001f;
+  int pnl_icons = (panel->labelofs + (1.1f * PNL_ICON)) / block->aspect + 0.001f;
 
   /* draw text label */
+  uchar col_title[4];
   panel_title_color_get(show_background, col_title);
   col_title[3] = 255;
 
-  hrect = *rect;
-  if (dir == 'h') {
-    hrect.xmin = rect->xmin + pnl_icons;
-    hrect.ymin -= 2.0f / block->aspect;
-    UI_fontstyle_draw(fontstyle,
-                      &hrect,
-                      activename,
-                      col_title,
-                      &(struct uiFontStyleDraw_Params){
-                          .align = UI_STYLE_TEXT_LEFT,
-                      });
-  }
-  else {
-    /* ignore 'pnl_icons', otherwise the text gets offset horizontally
-     * + 0.001f to avoid flirting with float inaccuracy
-     */
-    hrect.xmin = rect->xmin + (PNL_ICON + 5) / block->aspect + 0.001f;
-    UI_fontstyle_draw_rotated(fontstyle, &hrect, activename, col_title);
-  }
+  rcti hrect = *rect;
+  hrect.xmin = rect->xmin + pnl_icons;
+  hrect.ymin -= 2.0f / block->aspect;
+  UI_fontstyle_draw(fontstyle,
+                    &hrect,
+                    panel->drawname,
+                    col_title,
+                    &(struct uiFontStyleDraw_Params){
+                        .align = UI_STYLE_TEXT_LEFT,
+                    });
 }
 
 /* panel integrated in buttonswindow, tool/property lists etc */
-void ui_draw_aligned_panel(uiStyle *style,
-                           uiBlock *block,
+void ui_draw_aligned_panel(const uiStyle *style,
+                           const uiBlock *block,
                            const rcti *rect,
                            const bool show_pin,
                            const bool show_background)
 {
-  Panel *panel = block->panel;
-  rctf itemrect;
+  const Panel *panel = block->panel;
   float color[4];
   const bool is_subpanel = (panel->type && panel->type->parent);
   const bool show_drag = (!is_subpanel &&
@@ -1005,11 +996,12 @@ void ui_draw_aligned_panel(uiStyle *style,
   if (is_subpanel) {
     titlerect.xmin += (0.7f * UI_UNIT_X) / block->aspect + 0.001f;
   }
-  ui_draw_aligned_panel_header(style, block, &titlerect, 'h', show_background);
+  ui_draw_aligned_panel_header(style, block, &titlerect, show_background);
 
   if (show_drag) {
     /* itemrect smaller */
     const float scale = 0.7;
+    rctf itemrect;
     itemrect.xmax = headrect.xmax - (0.2f * UI_UNIT_X);
     itemrect.xmin = itemrect.xmax - BLI_rcti_size_y(&headrect);
     itemrect.ymin = headrect.ymin;
@@ -1090,20 +1082,16 @@ void ui_draw_aligned_panel(uiStyle *style,
     immUnbindProgram();
   }
 
-  uchar col_title[4];
-  panel_title_color_get(show_background, col_title);
-
   /* draw collapse icon */
-
-  /* itemrect smaller */
-  itemrect.xmin = titlerect.xmin;
-  itemrect.xmax = itemrect.xmin + BLI_rcti_size_y(&titlerect);
-  itemrect.ymin = titlerect.ymin;
-  itemrect.ymax = titlerect.ymax;
-
-  BLI_rctf_scale(&itemrect, 0.25f);
-
   {
+    rctf itemrect = {.xmin = titlerect.xmin,
+                     .xmax = itemrect.xmin + BLI_rcti_size_y(&titlerect),
+                     .ymin = titlerect.ymin,
+                     .ymax = titlerect.ymax};
+    BLI_rctf_scale(&itemrect, 0.25f);
+
+    uchar col_title[4];
+    panel_title_color_get(show_background, col_title);
     float tria_color[4];
     rgb_uchar_to_float(tria_color, col_title);
     tria_color[3] = 1.0f;
@@ -1240,11 +1228,10 @@ static void align_sub_panels(Panel *panel)
 /* returns 1 when it did something */
 static bool uiAlignPanelStep(ARegion *region, const float fac, const bool drag)
 {
-  PanelSort *ps, *panelsort, *psnext;
-  int a, tot = 0;
-  bool done;
+  int i;
 
   /* count active, not tabbed panels */
+  int tot = 0;
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
     if (panel->runtime_flag & PNL_ACTIVE) {
       tot++;
@@ -1256,9 +1243,9 @@ static bool uiAlignPanelStep(ARegion *region, const float fac, const bool drag)
   }
 
   /* sort panels */
-  panelsort = MEM_callocN(tot * sizeof(PanelSort), "panelsort");
+  PanelSort *panelsort = MEM_callocN(tot * sizeof(PanelSort), "panelsort");
 
-  ps = panelsort;
+  PanelSort *ps = panelsort;
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
     if (panel->runtime_flag & PNL_ACTIVE) {
       ps->panel = MEM_dupallocN(panel);
@@ -1271,8 +1258,8 @@ static bool uiAlignPanelStep(ARegion *region, const float fac, const bool drag)
     /* while we are dragging, we sort on location and update sortorder */
     qsort(panelsort, tot, sizeof(PanelSort), find_highest_panel);
 
-    for (ps = panelsort, a = 0; a < tot; a++, ps++) {
-      ps->orig->sortorder = a;
+    for (ps = panelsort, i = 0; i < tot; i++, ps++) {
+      ps->orig->sortorder = i;
     }
   }
   else {
@@ -1287,8 +1274,8 @@ static bool uiAlignPanelStep(ARegion *region, const float fac, const bool drag)
   ps->panel->ofsy = -get_panel_size_y(ps->panel);
   ps->panel->ofsx += ps->panel->runtime.region_ofsx;
 
-  for (a = 0; a < tot - 1; a++, ps++) {
-    psnext = ps + 1;
+  for (i = 0; i < tot - 1; i++, ps++) {
+    PanelSort *psnext = ps + 1;
 
     bool use_box = ps->panel->type && ps->panel->type->flag & PNL_DRAW_BOX;
     bool use_box_next = psnext->panel->type && psnext->panel->type->flag & PNL_DRAW_BOX;
@@ -1307,16 +1294,16 @@ static bool uiAlignPanelStep(ARegion *region, const float fac, const bool drag)
   }
 
   /* we interpolate */
-  done = false;
+  bool changed = false;
   ps = panelsort;
-  for (a = 0; a < tot; a++, ps++) {
+  for (i = 0; i < tot; i++, ps++) {
     if ((ps->panel->flag & PNL_SELECT) == 0) {
       if ((ps->orig->ofsx != ps->panel->ofsx) || (ps->orig->ofsy != ps->panel->ofsy)) {
         ps->orig->ofsx = round_fl_to_int(fac * (float)ps->panel->ofsx +
                                          (1.0f - fac) * (float)ps->orig->ofsx);
         ps->orig->ofsy = round_fl_to_int(fac * (float)ps->panel->ofsy +
                                          (1.0f - fac) * (float)ps->orig->ofsy);
-        done = true;
+        changed = true;
       }
     }
   }
@@ -1331,12 +1318,12 @@ static bool uiAlignPanelStep(ARegion *region, const float fac, const bool drag)
   }
 
   /* free panelsort array */
-  for (ps = panelsort, a = 0; a < tot; a++, ps++) {
+  for (ps = panelsort, i = 0; i < tot; i++, ps++) {
     MEM_freeN(ps->panel);
   }
   MEM_freeN(panelsort);
 
-  return done;
+  return changed;
 }
 
 static void ui_panels_size(ARegion *region, int *r_x, int *r_y)
@@ -1370,9 +1357,8 @@ static void ui_do_animate(bContext *C, Panel *panel)
 {
   uiHandlePanelData *data = panel->activedata;
   ARegion *region = CTX_wm_region(C);
-  float fac;
 
-  fac = (PIL_check_seconds_timer() - data->starttime) / ANIMATION_TIME;
+  float fac = (PIL_check_seconds_timer() - data->starttime) / ANIMATION_TIME;
   fac = min_ff(sqrtf(fac), 1.0f);
 
   /* for max 1 second, interpolate positions */
@@ -1422,7 +1408,6 @@ void UI_panels_begin(const bContext *UNUSED(C), ARegion *region)
 void UI_panels_end(const bContext *C, ARegion *region, int *r_x, int *r_y)
 {
   ScrArea *area = CTX_wm_area(C);
-  Panel *panel, *panel_first;
 
   /* offset contents */
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
@@ -1432,6 +1417,7 @@ void UI_panels_end(const bContext *C, ARegion *region, int *r_x, int *r_y)
   }
 
   /* re-align, possibly with animation */
+  Panel *panel;
   if (panels_need_realign(area, region, &panel)) {
     if (panel) {
       panel_activate_state(C, panel, PANEL_STATE_ANIMATION);
@@ -1442,7 +1428,7 @@ void UI_panels_end(const bContext *C, ARegion *region, int *r_x, int *r_y)
   }
 
   /* tag first panel */
-  panel_first = NULL;
+  Panel *panel_first = NULL;
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     if (block->active && block->panel) {
       if (!panel_first || block->panel->sortorder < panel_first->sortorder) {
@@ -1512,8 +1498,8 @@ static void ui_do_drag(const bContext *C, const wmEvent *event, Panel *panel)
   float dy = (float)(y - data->starty);
 
   /* Adjust for region zoom. */
-  dx *= (float)BLI_rctf_size_x(&region->v2d.cur) / (float)BLI_rcti_size_x(&region->winrct);
-  dy *= (float)BLI_rctf_size_y(&region->v2d.cur) / (float)BLI_rcti_size_y(&region->winrct);
+  dx *= BLI_rctf_size_x(&region->v2d.cur) / (float)BLI_rcti_size_x(&region->winrct);
+  dy *= BLI_rctf_size_y(&region->v2d.cur) / (float)BLI_rcti_size_y(&region->winrct);
 
   if (data->state == PANEL_STATE_DRAG_SCALE) {
     panel->sizex = MAX2(data->startsizex + dx, UI_PANEL_MINX);
@@ -1577,23 +1563,21 @@ static void ui_panel_drag_collapse_handler_remove(bContext *UNUSED(C), void *use
   MEM_freeN(dragcol_data);
 }
 
-static void ui_panel_drag_collapse(bContext *C,
-                                   uiPanelDragCollapseHandle *dragcol_data,
+static void ui_panel_drag_collapse(const bContext *C,
+                                   const uiPanelDragCollapseHandle *dragcol_data,
                                    const int xy_dst[2])
 {
   ARegion *region = CTX_wm_region(C);
-  Panel *panel;
 
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     float xy_a_block[2] = {UNPACK2(dragcol_data->xy_init)};
     float xy_b_block[2] = {UNPACK2(xy_dst)};
-    rctf rect = block->rect;
-    int oldflag;
+    Panel *panel = block->panel;
 
-    if ((panel = block->panel) == 0 || (panel->type && (panel->type->flag & PNL_NO_HEADER))) {
+    if (panel == NULL || (panel->type && (panel->type->flag & PNL_NO_HEADER))) {
       continue;
     }
-    oldflag = panel->flag;
+    int oldflag = panel->flag;
 
     /* lock axis */
     xy_b_block[0] = dragcol_data->xy_init[0];
@@ -1603,6 +1587,7 @@ static void ui_panel_drag_collapse(bContext *C,
     ui_window_to_block_fl(region, block, &xy_b_block[0], &xy_b_block[1]);
 
     /* set up rect to match header size */
+    rctf rect = block->rect;
     rect.ymin = rect.ymax;
     rect.ymax = rect.ymin + PNL_HEADER;
 
@@ -1934,10 +1919,9 @@ static void ui_panel_category_draw_tab(bool filled,
                                        const uchar col[3])
 {
   float vec[4][2] = {{0.195, 0.02}, {0.55, 0.169}, {0.831, 0.45}, {0.98, 0.805}};
-  int a;
 
   /* mult */
-  for (a = 0; a < 4; a++) {
+  for (int a = 0; a < 4; a++) {
     mul_v2_fl(vec[a], rad);
   }
 
@@ -1962,7 +1946,7 @@ static void ui_panel_category_draw_tab(bool filled,
   if (use_highlight) {
     if (roundboxtype & UI_CNR_TOP_RIGHT) {
       imm_buf_append(vbuf, cbuf, maxx, maxy - rad, col, &buf_index);
-      for (a = 0; a < 4; a++) {
+      for (int a = 0; a < 4; a++) {
         imm_buf_append(vbuf, cbuf, maxx - vec[a][1], maxy - rad + vec[a][0], col, &buf_index);
       }
       imm_buf_append(vbuf, cbuf, maxx - rad, maxy, col, &buf_index);
@@ -1974,7 +1958,7 @@ static void ui_panel_category_draw_tab(bool filled,
     /* corner left-top */
     if (roundboxtype & UI_CNR_TOP_LEFT) {
       imm_buf_append(vbuf, cbuf, minx + rad, maxy, col, &buf_index);
-      for (a = 0; a < 4; a++) {
+      for (int a = 0; a < 4; a++) {
         imm_buf_append(vbuf, cbuf, minx + rad - vec[a][0], maxy - vec[a][1], col, &buf_index);
       }
       imm_buf_append(vbuf, cbuf, minx, maxy - rad, col, &buf_index);
@@ -1992,7 +1976,7 @@ static void ui_panel_category_draw_tab(bool filled,
     /* corner left-bottom */
     if (roundboxtype & UI_CNR_BOTTOM_LEFT) {
       imm_buf_append(vbuf, cbuf, minx, miny + rad, col, &buf_index);
-      for (a = 0; a < 4; a++) {
+      for (int a = 0; a < 4; a++) {
         imm_buf_append(vbuf, cbuf, minx + vec[a][1], miny + rad - vec[a][0], col, &buf_index);
       }
       imm_buf_append(vbuf, cbuf, minx + rad, miny, col, &buf_index);
@@ -2004,7 +1988,7 @@ static void ui_panel_category_draw_tab(bool filled,
     /* corner right-bottom */
     if (roundboxtype & UI_CNR_BOTTOM_RIGHT) {
       imm_buf_append(vbuf, cbuf, maxx - rad, miny, col, &buf_index);
-      for (a = 0; a < 4; a++) {
+      for (int a = 0; a < 4; a++) {
         imm_buf_append(vbuf, cbuf, maxx - rad + vec[a][0], miny + vec[a][1], col, &buf_index);
       }
       imm_buf_append(vbuf, cbuf, maxx, miny + rad, col, &buf_index);
@@ -2386,11 +2370,9 @@ int ui_handler_panel_region(bContext *C,
                             ARegion *region,
                             const uiBut *active_but)
 {
-  Panel *panel;
-  int retval, mx, my;
-  bool has_category_tabs = UI_panel_category_is_visible(region);
+  const bool has_category_tabs = UI_panel_category_is_visible(region);
 
-  retval = WM_UI_HANDLER_CONTINUE;
+  int retval = WM_UI_HANDLER_CONTINUE;
 
   if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
     return retval;
@@ -2431,12 +2413,12 @@ int ui_handler_panel_region(bContext *C,
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     uiPanelMouseState mouse_state;
 
-    mx = event->x;
-    my = event->y;
+    int mx = event->x;
+    int my = event->y;
     ui_window_to_block(region, block, &mx, &my);
 
     /* checks for mouse position inside */
-    panel = block->panel;
+    Panel *panel = block->panel;
 
     if (!panel) {
       continue;

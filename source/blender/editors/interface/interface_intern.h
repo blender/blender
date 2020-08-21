@@ -794,8 +794,8 @@ extern int ui_handler_panel_region(struct bContext *C,
                                    const struct wmEvent *event,
                                    struct ARegion *region,
                                    const uiBut *active_but);
-extern void ui_draw_aligned_panel(struct uiStyle *style,
-                                  uiBlock *block,
+extern void ui_draw_aligned_panel(const struct uiStyle *style,
+                                  const uiBlock *block,
                                   const rcti *rect,
                                   const bool show_pin,
                                   const bool show_background);
