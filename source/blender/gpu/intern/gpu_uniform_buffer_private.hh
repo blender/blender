@@ -33,6 +33,10 @@ namespace gpu {
 #  define DEBUG_NAME_LEN 64
 #endif
 
+/**
+ * Implementation of Uniform Buffers.
+ * Base class which is then specialized for each implementation (GL, VK, ...).
+ **/
 class UniformBuf {
  protected:
   /** Data size in bytes. */

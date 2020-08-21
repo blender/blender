@@ -40,6 +40,9 @@ namespace blender::gpu {
 
 class GLVaoCache;
 
+/**
+ * Implementation of Shader interface using OpenGL.
+ **/
 class GLShaderInterface : public ShaderInterface {
  private:
   /** Reference to VaoCaches using this interface */

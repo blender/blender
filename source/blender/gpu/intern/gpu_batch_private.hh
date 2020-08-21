@@ -32,6 +32,10 @@
 namespace blender {
 namespace gpu {
 
+/**
+ * Base class which is then specialized for each implementation (GL, VK, ...).
+ * NOTE: Extends GPUBatch as we still needs to expose some of the internals to the outside C code.
+ **/
 class Batch : public GPUBatch {
  public:
   Batch(){};

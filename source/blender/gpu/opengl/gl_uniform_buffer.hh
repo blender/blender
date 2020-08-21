@@ -32,6 +32,9 @@
 namespace blender {
 namespace gpu {
 
+/**
+ * Implementation of Uniform Buffers using OpenGL.
+ **/
 class GLUniformBuf : public UniformBuf {
  private:
   int slot_ = -1;

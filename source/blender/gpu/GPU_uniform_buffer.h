@@ -19,6 +19,13 @@
 
 /** \file
  * \ingroup gpu
+ *
+ * Uniform buffers API. Used to handle many uniforms update at once.
+ * Make sure that the data structure is compatible with what the implementation expect.
+ * (see "7.6.2.2 Standard Uniform Block Layout" from the OpenGL spec for more info about std140
+ * layout)
+ * Rule of thumb: Padding to 16bytes, don't use vec3, don't use arrays of anything that is not vec4
+ * aligned .
  */
 
 #pragma once
@@ -29,7 +36,7 @@ extern "C" {
 
 struct ListBase;
 
-/** Opaque pointer */
+/** Opaque pointer hiding blender::gpu::UniformBuf. */
 typedef struct GPUUniformBuf {
   void *dummy;
 } GPUUniformBuf;

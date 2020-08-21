@@ -19,6 +19,9 @@
 
 /** \file
  * \ingroup gpu
+ *
+ * Implementation of Multi Draw Indirect using OpenGL.
+ * Fallback if the needed extensions are not supported.
  */
 
 #pragma once
@@ -37,6 +40,9 @@
 namespace blender {
 namespace gpu {
 
+/**
+ * Implementation of Multi Draw Indirect using OpenGL.
+ **/
 class GLDrawList : public DrawList {
  public:
   GLDrawList(int length);

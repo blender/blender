@@ -19,9 +19,6 @@
 
 /** \file
  * \ingroup gpu
- *
- * GPUDrawList is an API to do lots of similar draw-calls very fast using
- * multi-draw-indirect. There is a fallback if the feature is not supported.
  */
 
 #pragma once
@@ -35,6 +32,9 @@
 namespace blender {
 namespace gpu {
 
+/**
+ * Implementation of shader compilation and uniforms handling using OpenGL.
+ **/
 class GLShader : public Shader {
  private:
   /** Handle for full program (links shader stages below). */

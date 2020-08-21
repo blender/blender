@@ -45,6 +45,10 @@ typedef struct ShaderInput {
   int32_t binding;
 } ShaderInput;
 
+/**
+ * Implementation of Shader interface.
+ * Base class which is then specialized for each implementation (GL, VK, ...).
+ **/
 class ShaderInterface {
   /* TODO(fclem) should be protected. */
  public:
