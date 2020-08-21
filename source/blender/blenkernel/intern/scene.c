@@ -469,7 +469,7 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
   }
   if (scene->ed) {
     Sequence *seq;
-    SEQP_BEGIN (scene->ed, seq) {
+    SEQ_BEGIN (scene->ed, seq) {
       BKE_LIB_FOREACHID_PROCESS(data, seq->scene, IDWALK_CB_NEVER_SELF);
       BKE_LIB_FOREACHID_PROCESS(data, seq->scene_camera, IDWALK_CB_NOP);
       BKE_LIB_FOREACHID_PROCESS(data, seq->clip, IDWALK_CB_USER);
