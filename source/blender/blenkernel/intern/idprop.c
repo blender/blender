@@ -26,17 +26,21 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "BLI_endian_switch.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
 
 #include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "BLO_read_write.h"
 
 #include "BLI_strict_flags.h"
 
@@ -1167,6 +1171,272 @@ void IDP_foreach_property(IDProperty *id_property_root,
     }
     default:
       break; /* Nothing to do here with other types of IDProperties... */
+  }
+}
+
+void IDP_WriteProperty_OnlyData(const IDProperty *prop, BlendWriter *writer);
+
+static void IDP_WriteArray(const IDProperty *prop, BlendWriter *writer)
+{
+  /*REMEMBER to set totalen to len in the linking code!!*/
+  if (prop->data.pointer) {
+    BLO_write_raw(writer, (int)MEM_allocN_len(prop->data.pointer), prop->data.pointer);
+
+    if (prop->subtype == IDP_GROUP) {
+      IDProperty **array = prop->data.pointer;
+      int a;
+
+      for (a = 0; a < prop->len; a++) {
+        IDP_BlendWrite(writer, array[a]);
+      }
+    }
+  }
+}
+
+static void IDP_WriteIDPArray(const IDProperty *prop, BlendWriter *writer)
+{
+  /*REMEMBER to set totalen to len in the linking code!!*/
+  if (prop->data.pointer) {
+    const IDProperty *array = prop->data.pointer;
+    int a;
+
+    BLO_write_struct_array(writer, IDProperty, prop->len, array);
+
+    for (a = 0; a < prop->len; a++) {
+      IDP_WriteProperty_OnlyData(&array[a], writer);
+    }
+  }
+}
+
+static void IDP_WriteString(const IDProperty *prop, BlendWriter *writer)
+{
+  /*REMEMBER to set totalen to len in the linking code!!*/
+  BLO_write_raw(writer, prop->len, prop->data.pointer);
+}
+
+static void IDP_WriteGroup(const IDProperty *prop, BlendWriter *writer)
+{
+  IDProperty *loop;
+
+  for (loop = prop->data.group.first; loop; loop = loop->next) {
+    IDP_BlendWrite(writer, loop);
+  }
+}
+
+/* Functions to read/write ID Properties */
+void IDP_WriteProperty_OnlyData(const IDProperty *prop, BlendWriter *writer)
+{
+  switch (prop->type) {
+    case IDP_GROUP:
+      IDP_WriteGroup(prop, writer);
+      break;
+    case IDP_STRING:
+      IDP_WriteString(prop, writer);
+      break;
+    case IDP_ARRAY:
+      IDP_WriteArray(prop, writer);
+      break;
+    case IDP_IDPARRAY:
+      IDP_WriteIDPArray(prop, writer);
+      break;
+  }
+}
+
+void IDP_BlendWrite(BlendWriter *writer, const IDProperty *prop)
+{
+  BLO_write_struct(writer, IDProperty, prop);
+  IDP_WriteProperty_OnlyData(prop, writer);
+}
+
+static void IDP_DirectLinkProperty(IDProperty *prop, BlendDataReader *reader);
+
+static void IDP_DirectLinkIDPArray(IDProperty *prop, BlendDataReader *reader)
+{
+  IDProperty *array;
+  int i;
+
+  /* since we didn't save the extra buffer, set totallen to len */
+  prop->totallen = prop->len;
+  BLO_read_data_address(reader, &prop->data.pointer);
+
+  array = (IDProperty *)prop->data.pointer;
+
+  /* note!, idp-arrays didn't exist in 2.4x, so the pointer will be cleared
+   * there's not really anything we can do to correct this, at least don't crash */
+  if (array == NULL) {
+    prop->len = 0;
+    prop->totallen = 0;
+  }
+
+  for (i = 0; i < prop->len; i++) {
+    IDP_DirectLinkProperty(&array[i], reader);
+  }
+}
+
+static void IDP_DirectLinkArray(IDProperty *prop, BlendDataReader *reader)
+{
+  IDProperty **array;
+  int i;
+
+  /* since we didn't save the extra buffer, set totallen to len */
+  prop->totallen = prop->len;
+
+  if (prop->subtype == IDP_GROUP) {
+    BLO_read_pointer_array(reader, &prop->data.pointer);
+    array = prop->data.pointer;
+
+    for (i = 0; i < prop->len; i++) {
+      IDP_DirectLinkProperty(array[i], reader);
+    }
+  }
+  else if (prop->subtype == IDP_DOUBLE) {
+    BLO_read_double_array(reader, prop->len, (double **)&prop->data.pointer);
+  }
+  else {
+    /* also used for floats */
+    BLO_read_int32_array(reader, prop->len, (int **)&prop->data.pointer);
+  }
+}
+
+static void IDP_DirectLinkString(IDProperty *prop, BlendDataReader *reader)
+{
+  /*since we didn't save the extra string buffer, set totallen to len.*/
+  prop->totallen = prop->len;
+  BLO_read_data_address(reader, &prop->data.pointer);
+}
+
+static void IDP_DirectLinkGroup(IDProperty *prop, BlendDataReader *reader)
+{
+  ListBase *lb = &prop->data.group;
+  IDProperty *loop;
+
+  BLO_read_list(reader, lb);
+
+  /*Link child id properties now*/
+  for (loop = prop->data.group.first; loop; loop = loop->next) {
+    IDP_DirectLinkProperty(loop, reader);
+  }
+}
+
+static void IDP_DirectLinkProperty(IDProperty *prop, BlendDataReader *reader)
+{
+  switch (prop->type) {
+    case IDP_GROUP:
+      IDP_DirectLinkGroup(prop, reader);
+      break;
+    case IDP_STRING:
+      IDP_DirectLinkString(prop, reader);
+      break;
+    case IDP_ARRAY:
+      IDP_DirectLinkArray(prop, reader);
+      break;
+    case IDP_IDPARRAY:
+      IDP_DirectLinkIDPArray(prop, reader);
+      break;
+    case IDP_DOUBLE:
+      /* Workaround for doubles.
+       * They are stored in the same field as `int val, val2` in the IDPropertyData struct,
+       * they have to deal with endianness specifically.
+       *
+       * In theory, val and val2 would've already been swapped
+       * if switch_endian is true, so we have to first unswap
+       * them then re-swap them as a single 64-bit entity. */
+      if (BLO_read_requires_endian_switch(reader)) {
+        BLI_endian_switch_int32(&prop->data.val);
+        BLI_endian_switch_int32(&prop->data.val2);
+        BLI_endian_switch_int64((int64_t *)&prop->data.val);
+      }
+      break;
+    case IDP_INT:
+    case IDP_FLOAT:
+    case IDP_ID:
+      break; /* Nothing special to do here. */
+    default:
+      /* Unknown IDP type, nuke it (we cannot handle unknown types everywhere in code,
+       * IDP are way too polymorphic to do it safely. */
+      printf(
+          "%s: found unknown IDProperty type %d, reset to Integer one !\n", __func__, prop->type);
+      /* Note: we do not attempt to free unknown prop, we have no way to know how to do that! */
+      prop->type = IDP_INT;
+      prop->subtype = 0;
+      IDP_Int(prop) = 0;
+  }
+}
+
+void IDP_BlendDataRead_impl(BlendDataReader *reader, IDProperty **prop, const char *caller_func_id)
+{
+  if (*prop) {
+    if ((*prop)->type == IDP_GROUP) {
+      IDP_DirectLinkGroup(*prop, reader);
+    }
+    else {
+      /* corrupt file! */
+      printf("%s: found non group data, freeing type %d!\n", caller_func_id, (*prop)->type);
+      /* don't risk id, data's likely corrupt. */
+      // IDP_FreePropertyContent(*prop);
+      *prop = NULL;
+    }
+  }
+}
+
+void IDP_BlendLibRead(BlendLibReader *reader, IDProperty *prop)
+{
+  if (!prop) {
+    return;
+  }
+
+  switch (prop->type) {
+    case IDP_ID: /* PointerProperty */
+    {
+      void *newaddr = BLO_read_get_new_id_address(reader, NULL, IDP_Id(prop));
+      if (IDP_Id(prop) && !newaddr && G.debug) {
+        printf("Error while loading \"%s\". Data not found in file!\n", prop->name);
+      }
+      prop->data.pointer = newaddr;
+      break;
+    }
+    case IDP_IDPARRAY: /* CollectionProperty */
+    {
+      IDProperty *idp_array = IDP_IDPArray(prop);
+      for (int i = 0; i < prop->len; i++) {
+        IDP_BlendLibRead(reader, &(idp_array[i]));
+      }
+      break;
+    }
+    case IDP_GROUP: /* PointerProperty */
+    {
+      LISTBASE_FOREACH (IDProperty *, loop, &prop->data.group) {
+        IDP_BlendLibRead(reader, loop);
+      }
+      break;
+    }
+    default:
+      break; /* Nothing to do for other IDProps. */
+  }
+}
+
+void IDP_BlendExpand(struct BlendExpander *expander, IDProperty *prop)
+{
+  if (!prop) {
+    return;
+  }
+
+  switch (prop->type) {
+    case IDP_ID:
+      BLO_expand(expander, IDP_Id(prop));
+      break;
+    case IDP_IDPARRAY: {
+      IDProperty *idp_array = IDP_IDPArray(prop);
+      for (int i = 0; i < prop->len; i++) {
+        IDP_BlendExpand(expander, &idp_array[i]);
+      }
+      break;
+    }
+    case IDP_GROUP:
+      LISTBASE_FOREACH (IDProperty *, loop, &prop->data.group) {
+        IDP_BlendExpand(expander, loop);
+      }
+      break;
   }
 }
 

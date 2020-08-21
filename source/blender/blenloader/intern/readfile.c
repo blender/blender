@@ -2269,185 +2269,6 @@ static void link_glob_list(FileData *fd, ListBase *lb) /* for glob data */
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID Properties
- * \{ */
-
-static void IDP_DirectLinkProperty(IDProperty *prop, BlendDataReader *reader);
-static void IDP_LibLinkProperty(IDProperty *prop, BlendLibReader *reader);
-
-static void IDP_DirectLinkIDPArray(IDProperty *prop, BlendDataReader *reader)
-{
-  IDProperty *array;
-  int i;
-
-  /* since we didn't save the extra buffer, set totallen to len */
-  prop->totallen = prop->len;
-  BLO_read_data_address(reader, &prop->data.pointer);
-
-  array = (IDProperty *)prop->data.pointer;
-
-  /* note!, idp-arrays didn't exist in 2.4x, so the pointer will be cleared
-   * there's not really anything we can do to correct this, at least don't crash */
-  if (array == NULL) {
-    prop->len = 0;
-    prop->totallen = 0;
-  }
-
-  for (i = 0; i < prop->len; i++) {
-    IDP_DirectLinkProperty(&array[i], reader);
-  }
-}
-
-static void IDP_DirectLinkArray(IDProperty *prop, BlendDataReader *reader)
-{
-  IDProperty **array;
-  int i;
-
-  /* since we didn't save the extra buffer, set totallen to len */
-  prop->totallen = prop->len;
-
-  if (prop->subtype == IDP_GROUP) {
-    BLO_read_pointer_array(reader, &prop->data.pointer);
-    array = prop->data.pointer;
-
-    for (i = 0; i < prop->len; i++) {
-      IDP_DirectLinkProperty(array[i], reader);
-    }
-  }
-  else if (prop->subtype == IDP_DOUBLE) {
-    BLO_read_double_array(reader, prop->len, (double **)&prop->data.pointer);
-  }
-  else {
-    /* also used for floats */
-    BLO_read_int32_array(reader, prop->len, (int **)&prop->data.pointer);
-  }
-}
-
-static void IDP_DirectLinkString(IDProperty *prop, BlendDataReader *reader)
-{
-  /*since we didn't save the extra string buffer, set totallen to len.*/
-  prop->totallen = prop->len;
-  BLO_read_data_address(reader, &prop->data.pointer);
-}
-
-static void IDP_DirectLinkGroup(IDProperty *prop, BlendDataReader *reader)
-{
-  ListBase *lb = &prop->data.group;
-  IDProperty *loop;
-
-  BLO_read_list(reader, lb);
-
-  /*Link child id properties now*/
-  for (loop = prop->data.group.first; loop; loop = loop->next) {
-    IDP_DirectLinkProperty(loop, reader);
-  }
-}
-
-static void IDP_DirectLinkProperty(IDProperty *prop, BlendDataReader *reader)
-{
-  switch (prop->type) {
-    case IDP_GROUP:
-      IDP_DirectLinkGroup(prop, reader);
-      break;
-    case IDP_STRING:
-      IDP_DirectLinkString(prop, reader);
-      break;
-    case IDP_ARRAY:
-      IDP_DirectLinkArray(prop, reader);
-      break;
-    case IDP_IDPARRAY:
-      IDP_DirectLinkIDPArray(prop, reader);
-      break;
-    case IDP_DOUBLE:
-      /* Workaround for doubles.
-       * They are stored in the same field as `int val, val2` in the IDPropertyData struct,
-       * they have to deal with endianness specifically.
-       *
-       * In theory, val and val2 would've already been swapped
-       * if switch_endian is true, so we have to first unswap
-       * them then re-swap them as a single 64-bit entity. */
-      if (BLO_read_requires_endian_switch(reader)) {
-        BLI_endian_switch_int32(&prop->data.val);
-        BLI_endian_switch_int32(&prop->data.val2);
-        BLI_endian_switch_int64((int64_t *)&prop->data.val);
-      }
-      break;
-    case IDP_INT:
-    case IDP_FLOAT:
-    case IDP_ID:
-      break; /* Nothing special to do here. */
-    default:
-      /* Unknown IDP type, nuke it (we cannot handle unknown types everywhere in code,
-       * IDP are way too polymorphic to do it safely. */
-      printf(
-          "%s: found unknown IDProperty type %d, reset to Integer one !\n", __func__, prop->type);
-      /* Note: we do not attempt to free unknown prop, we have no way to know how to do that! */
-      prop->type = IDP_INT;
-      prop->subtype = 0;
-      IDP_Int(prop) = 0;
-  }
-}
-
-#define IDP_DirectLinkGroup_OrFree(prop, reader) \
-  _IDP_DirectLinkGroup_OrFree(prop, reader, __func__)
-
-static void _IDP_DirectLinkGroup_OrFree(IDProperty **prop,
-                                        BlendDataReader *reader,
-                                        const char *caller_func_id)
-{
-  if (*prop) {
-    if ((*prop)->type == IDP_GROUP) {
-      IDP_DirectLinkGroup(*prop, reader);
-    }
-    else {
-      /* corrupt file! */
-      printf("%s: found non group data, freeing type %d!\n", caller_func_id, (*prop)->type);
-      /* don't risk id, data's likely corrupt. */
-      // IDP_FreePropertyContent(*prop);
-      *prop = NULL;
-    }
-  }
-}
-
-static void IDP_LibLinkProperty(IDProperty *prop, BlendLibReader *reader)
-{
-  if (!prop) {
-    return;
-  }
-
-  switch (prop->type) {
-    case IDP_ID: /* PointerProperty */
-    {
-      void *newaddr = BLO_read_get_new_id_address(reader, NULL, IDP_Id(prop));
-      if (IDP_Id(prop) && !newaddr && G.debug) {
-        printf("Error while loading \"%s\". Data not found in file!\n", prop->name);
-      }
-      prop->data.pointer = newaddr;
-      break;
-    }
-    case IDP_IDPARRAY: /* CollectionProperty */
-    {
-      IDProperty *idp_array = IDP_IDPArray(prop);
-      for (int i = 0; i < prop->len; i++) {
-        IDP_LibLinkProperty(&(idp_array[i]), reader);
-      }
-      break;
-    }
-    case IDP_GROUP: /* PointerProperty */
-    {
-      LISTBASE_FOREACH (IDProperty *, loop, &prop->data.group) {
-        IDP_LibLinkProperty(loop, reader);
-      }
-      break;
-    }
-    default:
-      break; /* Nothing to do for other IDProps. */
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read Image Preview
  * \{ */
 
@@ -2503,7 +2324,7 @@ static void lib_link_id(BlendLibReader *reader, ID *id)
 {
   /* Note: WM IDProperties are never written to file, hence they should always be NULL here. */
   BLI_assert((GS(id->name) != ID_WM) || id->properties == NULL);
-  IDP_LibLinkProperty(id->properties, reader);
+  IDP_BlendLibRead(reader, id->properties);
 
   AnimData *adt = BKE_animdata_from_id(id);
   if (adt != NULL) {
@@ -2662,7 +2483,7 @@ static void direct_link_id_common(
   if (id->properties) {
     BLO_read_data_address(reader, &id->properties);
     /* this case means the data was written incorrectly, it should not happen */
-    IDP_DirectLinkGroup_OrFree(&id->properties, reader);
+    IDP_BlendDataRead(reader, &id->properties);
   }
 
   id->flag &= ~LIB_INDIRECT_WEAK_LINK;
@@ -3005,7 +2826,7 @@ static void direct_link_fmodifiers(BlendDataReader *reader, ListBase *list, FCur
         FMod_Python *data = (FMod_Python *)fcm->data;
 
         BLO_read_data_address(reader, &data->prop);
-        IDP_DirectLinkGroup_OrFree(&data->prop, reader);
+        IDP_BlendDataRead(reader, &data->prop);
 
         break;
       }
@@ -3338,7 +3159,7 @@ static void direct_link_workspace(BlendDataReader *reader, WorkSpace *workspace,
   LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
     tref->runtime = NULL;
     BLO_read_data_address(reader, &tref->properties);
-    IDP_DirectLinkGroup_OrFree(&tref->properties, reader);
+    IDP_BlendDataRead(reader, &tref->properties);
   }
 
   workspace->status_text = NULL;
@@ -3363,7 +3184,7 @@ static void lib_link_workspace_instance_hook(BlendLibReader *reader,
 
 static void lib_link_node_socket(BlendLibReader *reader, Library *lib, bNodeSocket *sock)
 {
-  IDP_LibLinkProperty(sock->prop, reader);
+  IDP_BlendLibRead(reader, sock->prop);
 
   switch ((eNodeSocketDatatype)sock->type) {
     case SOCK_OBJECT: {
@@ -3410,7 +3231,7 @@ static void lib_link_ntree(BlendLibReader *reader, Library *lib, bNodeTree *ntre
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     /* Link ID Properties -- and copy this comment EXACTLY for easy finding
      * of library blocks that implement this.*/
-    IDP_LibLinkProperty(node->prop, reader);
+    IDP_BlendLibRead(reader, node->prop);
 
     BLO_read_id_address(reader, lib, &node->id);
 
@@ -3445,7 +3266,7 @@ static void lib_link_nodetree(BlendLibReader *reader, bNodeTree *ntree)
 static void direct_link_node_socket(BlendDataReader *reader, bNodeSocket *sock)
 {
   BLO_read_data_address(reader, &sock->prop);
-  IDP_DirectLinkGroup_OrFree(&sock->prop, reader);
+  IDP_BlendDataRead(reader, &sock->prop);
 
   BLO_read_data_address(reader, &sock->link);
   sock->typeinfo = NULL;
@@ -3481,7 +3302,7 @@ static void direct_link_nodetree(BlendDataReader *reader, bNodeTree *ntree)
     BLO_read_list(reader, &node->outputs);
 
     BLO_read_data_address(reader, &node->prop);
-    IDP_DirectLinkGroup_OrFree(&node->prop, reader);
+    IDP_BlendDataRead(reader, &node->prop);
 
     BLO_read_list(reader, &node->internal_links);
     for (link = node->internal_links.first; link; link = link->next) {
@@ -3662,7 +3483,7 @@ static void direct_link_constraints(BlendDataReader *reader, ListBase *lb)
         BLO_read_list(reader, &data->targets);
 
         BLO_read_data_address(reader, &data->prop);
-        IDP_DirectLinkGroup_OrFree(&data->prop, reader);
+        IDP_BlendDataRead(reader, &data->prop);
         break;
       }
       case CONSTRAINT_TYPE_ARMATURE: {
@@ -3741,7 +3562,7 @@ static void lib_link_pose(BlendLibReader *reader, Object *ob, bPose *pose)
 
     pchan->bone = BKE_armature_find_bone_name(arm, pchan->name);
 
-    IDP_LibLinkProperty(pchan->prop, reader);
+    IDP_BlendLibRead(reader, pchan->prop);
 
     BLO_read_id_address(reader, arm->id.lib, &pchan->custom);
     if (UNLIKELY(pchan->bone == NULL)) {
@@ -3763,7 +3584,7 @@ static void lib_link_pose(BlendLibReader *reader, Object *ob, bPose *pose)
 
 static void lib_link_bones(BlendLibReader *reader, Bone *bone)
 {
-  IDP_LibLinkProperty(bone->prop, reader);
+  IDP_BlendLibRead(reader, bone->prop);
 
   LISTBASE_FOREACH (Bone *, curbone, &bone->childbase) {
     lib_link_bones(reader, curbone);
@@ -3783,7 +3604,7 @@ static void direct_link_bones(BlendDataReader *reader, Bone *bone)
 
   BLO_read_data_address(reader, &bone->parent);
   BLO_read_data_address(reader, &bone->prop);
-  IDP_DirectLinkGroup_OrFree(&bone->prop, reader);
+  IDP_BlendDataRead(reader, &bone->prop);
 
   BLO_read_data_address(reader, &bone->bbone_next);
   BLO_read_data_address(reader, &bone->bbone_prev);
@@ -5154,7 +4975,7 @@ static void direct_link_pose(BlendDataReader *reader, bPose *pose)
     direct_link_constraints(reader, &pchan->constraints);
 
     BLO_read_data_address(reader, &pchan->prop);
-    IDP_DirectLinkGroup_OrFree(&pchan->prop, reader);
+    IDP_BlendDataRead(reader, &pchan->prop);
 
     BLO_read_data_address(reader, &pchan->mpath);
     if (pchan->mpath) {
@@ -5827,7 +5648,7 @@ static void direct_link_view_layer(BlendDataReader *reader, ViewLayer *view_laye
   BLO_read_data_address(reader, &view_layer->active_collection);
 
   BLO_read_data_address(reader, &view_layer->id_properties);
-  IDP_DirectLinkGroup_OrFree(&view_layer->id_properties, reader);
+  IDP_BlendDataRead(reader, &view_layer->id_properties);
 
   BLO_read_list(reader, &(view_layer->freestyle_config.modules));
   BLO_read_list(reader, &(view_layer->freestyle_config.linesets));
@@ -5888,7 +5709,7 @@ static void lib_link_view_layer(BlendLibReader *reader, Library *lib, ViewLayer 
 
   BLO_read_id_address(reader, lib, &view_layer->mat_override);
 
-  IDP_LibLinkProperty(view_layer->id_properties, reader);
+  IDP_BlendLibRead(reader, view_layer->id_properties);
 }
 
 /** \} */
@@ -6068,7 +5889,7 @@ static void direct_link_view3dshading(BlendDataReader *reader, View3DShading *sh
 {
   if (shading->prop) {
     BLO_read_data_address(reader, &shading->prop);
-    IDP_DirectLinkGroup_OrFree(&shading->prop, reader);
+    IDP_BlendDataRead(reader, &shading->prop);
   }
 }
 
@@ -6188,7 +6009,7 @@ static void lib_link_scene(BlendLibReader *reader, Scene *sce)
 
   Sequence *seq;
   SEQ_BEGIN (sce->ed, seq) {
-    IDP_LibLinkProperty(seq->prop, reader);
+    IDP_BlendLibRead(reader, seq->prop);
 
     if (seq->ipo) {
       BLO_read_id_address(
@@ -6503,7 +6324,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
       }
 
       BLO_read_data_address(reader, &seq->prop);
-      IDP_DirectLinkGroup_OrFree(&seq->prop, reader);
+      IDP_BlendDataRead(reader, &seq->prop);
 
       BLO_read_data_address(reader, &seq->strip);
       if (seq->strip && seq->strip->done == 0) {
@@ -6597,7 +6418,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
   }
   if (sce->r.ffcodecdata.properties) {
     BLO_read_data_address(reader, &sce->r.ffcodecdata.properties);
-    IDP_DirectLinkGroup_OrFree(&sce->r.ffcodecdata.properties, reader);
+    IDP_BlendDataRead(reader, &sce->r.ffcodecdata.properties);
   }
 
   BLO_read_list(reader, &(sce->markers));
@@ -6607,7 +6428,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
 
   for (srl = sce->r.layers.first; srl; srl = srl->next) {
     BLO_read_data_address(reader, &srl->prop);
-    IDP_DirectLinkGroup_OrFree(&srl->prop, reader);
+    IDP_BlendDataRead(reader, &srl->prop);
     BLO_read_list(reader, &(srl->freestyleConfig.modules));
     BLO_read_list(reader, &(srl->freestyleConfig.linesets));
   }
@@ -6688,7 +6509,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
   direct_link_view3dshading(reader, &sce->display.shading);
 
   BLO_read_data_address(reader, &sce->layer_properties);
-  IDP_DirectLinkGroup_OrFree(&sce->layer_properties, reader);
+  IDP_BlendDataRead(reader, &sce->layer_properties);
 }
 
 /** \} */
@@ -6820,7 +6641,7 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
     ui_list->type = NULL;
     ui_list->dyn_data = NULL;
     BLO_read_data_address(reader, &ui_list->properties);
-    IDP_DirectLinkGroup_OrFree(&ui_list->properties, reader);
+    IDP_BlendDataRead(reader, &ui_list->properties);
   }
 
   BLO_read_list(reader, &region->ui_previews);
@@ -9743,7 +9564,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
 static void direct_link_keymapitem(BlendDataReader *reader, wmKeyMapItem *kmi)
 {
   BLO_read_data_address(reader, &kmi->properties);
-  IDP_DirectLinkGroup_OrFree(&kmi->properties, reader);
+  IDP_BlendDataRead(reader, &kmi->properties);
   kmi->ptr = NULL;
   kmi->flag &= ~KMI_UPDATE;
 }
@@ -9802,7 +9623,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 
   LISTBASE_FOREACH (wmKeyConfigPref *, kpt, &user->user_keyconfig_prefs) {
     BLO_read_data_address(reader, &kpt->prop);
-    IDP_DirectLinkGroup_OrFree(&kpt->prop, reader);
+    IDP_BlendDataRead(reader, &kpt->prop);
   }
 
   LISTBASE_FOREACH (bUserMenu *, um, &user->user_menus) {
@@ -9811,14 +9632,14 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
       if (umi->type == USER_MENU_TYPE_OPERATOR) {
         bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)umi;
         BLO_read_data_address(reader, &umi_op->prop);
-        IDP_DirectLinkGroup_OrFree(&umi_op->prop, reader);
+        IDP_BlendDataRead(reader, &umi_op->prop);
       }
     }
   }
 
   for (addon = user->addons.first; addon; addon = addon->next) {
     BLO_read_data_address(reader, &addon->prop);
-    IDP_DirectLinkGroup_OrFree(&addon->prop, reader);
+    IDP_BlendDataRead(reader, &addon->prop);
   }
 
   // XXX
@@ -10372,31 +10193,6 @@ static void expand_animdata(BlendExpander *expander, AnimData *adt)
   }
 }
 
-static void expand_idprops(BlendExpander *expander, IDProperty *prop)
-{
-  if (!prop) {
-    return;
-  }
-
-  switch (prop->type) {
-    case IDP_ID:
-      BLO_expand(expander, IDP_Id(prop));
-      break;
-    case IDP_IDPARRAY: {
-      IDProperty *idp_array = IDP_IDPArray(prop);
-      for (int i = 0; i < prop->len; i++) {
-        expand_idprops(expander, &idp_array[i]);
-      }
-      break;
-    }
-    case IDP_GROUP:
-      LISTBASE_FOREACH (IDProperty *, loop, &prop->data.group) {
-        expand_idprops(expander, loop);
-      }
-      break;
-  }
-}
-
 static void expand_id(BlendExpander *expander, ID *id);
 static void expand_nodetree(BlendExpander *expander, bNodeTree *ntree);
 static void expand_collection(BlendExpander *expander, Collection *collection);
@@ -10421,7 +10217,7 @@ static void expand_id_embedded_id(BlendExpander *expander, ID *id)
 
 static void expand_id(BlendExpander *expander, ID *id)
 {
-  expand_idprops(expander, id->properties);
+  IDP_BlendExpand(expander, id->properties);
 
   if (id->override_library) {
     BLO_expand(expander, id->override_library->reference);
@@ -10547,7 +10343,7 @@ static void expand_key(BlendExpander *expander, Key *key)
 
 static void expand_node_socket(BlendExpander *expander, bNodeSocket *sock)
 {
-  expand_idprops(expander, sock->prop);
+  IDP_BlendExpand(expander, sock->prop);
 
   if (sock->default_value != NULL) {
 
@@ -10600,7 +10396,7 @@ static void expand_nodetree(BlendExpander *expander, bNodeTree *ntree)
       BLO_expand(expander, node->id);
     }
 
-    expand_idprops(expander, node->prop);
+    IDP_BlendExpand(expander, node->prop);
 
     expand_node_sockets(expander, &node->inputs);
     expand_node_sockets(expander, &node->outputs);
@@ -10728,14 +10524,14 @@ static void expand_pose(BlendExpander *expander, bPose *pose)
 
   for (chan = pose->chanbase.first; chan; chan = chan->next) {
     expand_constraints(expander, &chan->constraints);
-    expand_idprops(expander, chan->prop);
+    IDP_BlendExpand(expander, chan->prop);
     BLO_expand(expander, chan->custom);
   }
 }
 
 static void expand_bones(BlendExpander *expander, Bone *bone)
 {
-  expand_idprops(expander, bone->prop);
+  IDP_BlendExpand(expander, bone->prop);
 
   LISTBASE_FOREACH (Bone *, curBone, &bone->childbase) {
     expand_bones(expander, curBone);
@@ -10898,7 +10694,7 @@ static void expand_scene(BlendExpander *expander, Scene *sce)
   }
 
   LISTBASE_FOREACH (ViewLayer *, view_layer, &sce->view_layers) {
-    expand_idprops(expander, view_layer->id_properties);
+    IDP_BlendExpand(expander, view_layer->id_properties);
 
     for (module = view_layer->freestyle_config.modules.first; module; module = module->next) {
       if (module->script) {
@@ -10922,7 +10718,7 @@ static void expand_scene(BlendExpander *expander, Scene *sce)
     Sequence *seq;
 
     SEQ_BEGIN (sce->ed, seq) {
-      expand_idprops(expander, seq->prop);
+      IDP_BlendExpand(expander, seq->prop);
 
       if (seq->scene) {
         BLO_expand(expander, seq->scene);
