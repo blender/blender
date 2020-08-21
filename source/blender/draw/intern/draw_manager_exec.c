@@ -78,6 +78,9 @@ typedef struct DRWCommandsState {
 
 void drw_state_set(DRWState state)
 {
+  /* Mask locked state. */
+  state = (~DST.state_lock & state) | (DST.state_lock & DST.state);
+
   if (DST.state == state) {
     return;
   }
