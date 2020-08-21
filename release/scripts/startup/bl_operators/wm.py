@@ -1284,18 +1284,11 @@ class WM_OT_properties_edit(Operator):
         prop_type_old = type(item[prop_old])
 
         rna_idprop_ui_prop_clear(item, prop_old)
-        exec_str = "del item[%r]" % prop_old
-        # print(exec_str)
-        exec(exec_str)
+        del item[prop_old]
 
         # Reassign
-        exec_str = "item[%r] = %s" % (prop, repr(value_eval))
-        # print(exec_str)
-        exec(exec_str)
-
-        exec_str = "item.property_overridable_library_set('[\"%s\"]', %s)" % (prop, self.is_overridable_library)
-        exec(exec_str)
-
+        item[prop] = value_eval
+        item.property_overridable_library_set('["%s"]' % prop, self.is_overridable_library)
         rna_idprop_ui_prop_update(item, prop)
 
         self._last_prop[:] = [prop]
@@ -1385,8 +1378,9 @@ class WM_OT_properties_edit(Operator):
             return {'CANCELLED'}
 
         # retrieve overridable static
-        exec_str = "item.is_property_overridable_library('[\"%s\"]')" % (self.property)
-        self.is_overridable_library = bool(eval(exec_str))
+        is_overridable = item.is_property_overridable_library(f'["{self.property}"]')
+        self.is_overridable_library = bool(is_overridable)
+
 
         # default default value
         prop_type, is_array = rna_idprop_value_item_type(self.get_value_eval())
