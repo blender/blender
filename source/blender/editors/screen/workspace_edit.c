@@ -409,8 +409,7 @@ static void workspace_add_menu(bContext *UNUSED(C), uiLayout *layout, void *temp
   WorkspaceConfigFileData *builtin_config = workspace_system_file_read(app_template);
 
   if (startup_config) {
-    for (WorkSpace *workspace = startup_config->workspaces.first; workspace;
-         workspace = workspace->id.next) {
+    LISTBASE_FOREACH (WorkSpace *, workspace, &startup_config->workspaces) {
       uiLayout *row = uiLayoutRow(layout, false);
       workspace_append_button(row, ot_append, workspace, startup_config->main);
       has_startup_items = true;
@@ -420,8 +419,7 @@ static void workspace_add_menu(bContext *UNUSED(C), uiLayout *layout, void *temp
   if (builtin_config) {
     bool has_title = false;
 
-    for (WorkSpace *workspace = builtin_config->workspaces.first; workspace;
-         workspace = workspace->id.next) {
+    LISTBASE_FOREACH (WorkSpace *, workspace, &builtin_config->workspaces) {
       if (startup_config &&
           BLI_findstring(&startup_config->workspaces, workspace->id.name, offsetof(ID, name))) {
         continue;

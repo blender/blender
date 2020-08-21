@@ -379,11 +379,9 @@ void ED_screen_draw_edges(wmWindow *win)
   float col[4], corner_scale, edge_thickness;
   int verts_per_corner = 0;
 
-  ScrArea *area;
-
   rcti scissor_rect;
   BLI_rcti_init_minmax(&scissor_rect);
-  for (area = screen->areabase.first; area; area = area->next) {
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     BLI_rcti_do_minmax_v(&scissor_rect, (int[2]){area->v1->vec.x, area->v1->vec.y});
     BLI_rcti_do_minmax_v(&scissor_rect, (int[2]){area->v3->vec.x, area->v3->vec.y});
   }
@@ -418,7 +416,7 @@ void ED_screen_draw_edges(wmWindow *win)
   GPU_batch_uniform_1f(batch, "scale", corner_scale);
   GPU_batch_uniform_4fv(batch, "color", col);
 
-  for (area = screen->areabase.first; area; area = area->next) {
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     drawscredge_area(area, winsize_x, winsize_y, edge_thickness);
   }
 
