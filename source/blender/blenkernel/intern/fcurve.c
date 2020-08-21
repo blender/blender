@@ -48,6 +48,8 @@
 #include "BKE_lib_query.h"
 #include "BKE_nla.h"
 
+#include "BLO_read_write.h"
+
 #include "RNA_access.h"
 
 #include "CLG_log.h"
@@ -1946,4 +1948,263 @@ float calculate_fcurve(PathResolvedRNA *anim_rna,
   }
   fcu->curval = curval; /* debug display only, not thread safe! */
   return curval;
+}
+
+/* ***************************** F-Curve - .blend file API ********************************* */
+
+void BKE_fmodifiers_blend_write(BlendWriter *writer, ListBase *fmodifiers)
+{
+  /* Write all modifiers first (for faster reloading) */
+  BLO_write_struct_list(writer, FModifier, fmodifiers);
+
+  /* Modifiers */
+  LISTBASE_FOREACH (FModifier *, fcm, fmodifiers) {
+    const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
+
+    /* Write the specific data */
+    if (fmi && fcm->data) {
+      /* firstly, just write the plain fmi->data struct */
+      BLO_write_struct_by_name(writer, fmi->structName, fcm->data);
+
+      /* do any modifier specific stuff */
+      switch (fcm->type) {
+        case FMODIFIER_TYPE_GENERATOR: {
+          FMod_Generator *data = fcm->data;
+
+          /* write coefficients array */
+          if (data->coefficients) {
+            BLO_write_float_array(writer, data->arraysize, data->coefficients);
+          }
+
+          break;
+        }
+        case FMODIFIER_TYPE_ENVELOPE: {
+          FMod_Envelope *data = fcm->data;
+
+          /* write envelope data */
+          if (data->data) {
+            BLO_write_struct_array(writer, FCM_EnvelopeData, data->totvert, data->data);
+          }
+
+          break;
+        }
+        case FMODIFIER_TYPE_PYTHON: {
+          FMod_Python *data = fcm->data;
+
+          /* Write ID Properties -- and copy this comment EXACTLY for easy finding
+           * of library blocks that implement this.*/
+          IDP_BlendWrite(writer, data->prop);
+
+          break;
+        }
+      }
+    }
+  }
+}
+
+void BKE_fmodifiers_blend_data_read(BlendDataReader *reader, ListBase *fmodifiers, FCurve *curve)
+{
+  LISTBASE_FOREACH (FModifier *, fcm, fmodifiers) {
+    /* relink general data */
+    BLO_read_data_address(reader, &fcm->data);
+    fcm->curve = curve;
+
+    /* do relinking of data for specific types */
+    switch (fcm->type) {
+      case FMODIFIER_TYPE_GENERATOR: {
+        FMod_Generator *data = (FMod_Generator *)fcm->data;
+        BLO_read_float_array(reader, data->arraysize, &data->coefficients);
+        break;
+      }
+      case FMODIFIER_TYPE_ENVELOPE: {
+        FMod_Envelope *data = (FMod_Envelope *)fcm->data;
+
+        BLO_read_data_address(reader, &data->data);
+
+        break;
+      }
+      case FMODIFIER_TYPE_PYTHON: {
+        FMod_Python *data = (FMod_Python *)fcm->data;
+
+        BLO_read_data_address(reader, &data->prop);
+        IDP_BlendDataRead(reader, &data->prop);
+
+        break;
+      }
+    }
+  }
+}
+
+void BKE_fmodifiers_blend_lib_read(BlendLibReader *reader, ID *id, ListBase *fmodifiers)
+{
+  LISTBASE_FOREACH (FModifier *, fcm, fmodifiers) {
+    /* data for specific modifiers */
+    switch (fcm->type) {
+      case FMODIFIER_TYPE_PYTHON: {
+        FMod_Python *data = (FMod_Python *)fcm->data;
+        BLO_read_id_address(reader, id->lib, &data->script);
+        break;
+      }
+    }
+  }
+}
+
+void BKE_fmodifiers_blend_expand(BlendExpander *expander, ListBase *fmodifiers)
+{
+  LISTBASE_FOREACH (FModifier *, fcm, fmodifiers) {
+    /* library data for specific F-Modifier types */
+    switch (fcm->type) {
+      case FMODIFIER_TYPE_PYTHON: {
+        FMod_Python *data = (FMod_Python *)fcm->data;
+        BLO_expand(expander, data->script);
+        break;
+      }
+    }
+  }
+}
+
+void BKE_fcurve_blend_write(BlendWriter *writer, ListBase *fcurves)
+{
+  BLO_write_struct_list(writer, FCurve, fcurves);
+  LISTBASE_FOREACH (FCurve *, fcu, fcurves) {
+    /* curve data */
+    if (fcu->bezt) {
+      BLO_write_struct_array(writer, BezTriple, fcu->totvert, fcu->bezt);
+    }
+    if (fcu->fpt) {
+      BLO_write_struct_array(writer, FPoint, fcu->totvert, fcu->fpt);
+    }
+
+    if (fcu->rna_path) {
+      BLO_write_string(writer, fcu->rna_path);
+    }
+
+    /* driver data */
+    if (fcu->driver) {
+      ChannelDriver *driver = fcu->driver;
+
+      BLO_write_struct(writer, ChannelDriver, driver);
+
+      /* variables */
+      BLO_write_struct_list(writer, DriverVar, &driver->variables);
+      LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
+        DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
+          if (dtar->rna_path) {
+            BLO_write_string(writer, dtar->rna_path);
+          }
+        }
+        DRIVER_TARGETS_LOOPER_END;
+      }
+    }
+
+    /* write F-Modifiers */
+    BKE_fmodifiers_blend_write(writer, &fcu->modifiers);
+  }
+}
+
+void BKE_fcurve_blend_data_read(BlendDataReader *reader, ListBase *fcurves)
+{
+  /* link F-Curve data to F-Curve again (non ID-libs) */
+  LISTBASE_FOREACH (FCurve *, fcu, fcurves) {
+    /* curve data */
+    BLO_read_data_address(reader, &fcu->bezt);
+    BLO_read_data_address(reader, &fcu->fpt);
+
+    /* rna path */
+    BLO_read_data_address(reader, &fcu->rna_path);
+
+    /* group */
+    BLO_read_data_address(reader, &fcu->grp);
+
+    /* clear disabled flag - allows disabled drivers to be tried again ([#32155]),
+     * but also means that another method for "reviving disabled F-Curves" exists
+     */
+    fcu->flag &= ~FCURVE_DISABLED;
+
+    /* driver */
+    BLO_read_data_address(reader, &fcu->driver);
+    if (fcu->driver) {
+      ChannelDriver *driver = fcu->driver;
+
+      /* Compiled expression data will need to be regenerated
+       * (old pointer may still be set here). */
+      driver->expr_comp = NULL;
+      driver->expr_simple = NULL;
+
+      /* give the driver a fresh chance - the operating environment may be different now
+       * (addons, etc. may be different) so the driver namespace may be sane now [#32155]
+       */
+      driver->flag &= ~DRIVER_FLAG_INVALID;
+
+      /* relink variables, targets and their paths */
+      BLO_read_list(reader, &driver->variables);
+      LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
+        DRIVER_TARGETS_LOOPER_BEGIN (dvar) {
+          /* only relink the targets being used */
+          if (tarIndex < dvar->num_targets) {
+            BLO_read_data_address(reader, &dtar->rna_path);
+          }
+          else {
+            dtar->rna_path = NULL;
+          }
+        }
+        DRIVER_TARGETS_LOOPER_END;
+      }
+    }
+
+    /* modifiers */
+    BLO_read_list(reader, &fcu->modifiers);
+    BKE_fmodifiers_blend_data_read(reader, &fcu->modifiers, fcu);
+  }
+}
+
+void BKE_fcurve_blend_lib_read(BlendLibReader *reader, ID *id, ListBase *fcurves)
+{
+  if (fcurves == NULL) {
+    return;
+  }
+
+  /* relink ID-block references... */
+  LISTBASE_FOREACH (FCurve *, fcu, fcurves) {
+    /* driver data */
+    if (fcu->driver) {
+      ChannelDriver *driver = fcu->driver;
+      LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
+        DRIVER_TARGETS_LOOPER_BEGIN (dvar) {
+          /* only relink if still used */
+          if (tarIndex < dvar->num_targets) {
+            BLO_read_id_address(reader, id->lib, &dtar->id);
+          }
+          else {
+            dtar->id = NULL;
+          }
+        }
+        DRIVER_TARGETS_LOOPER_END;
+      }
+    }
+
+    /* modifiers */
+    BKE_fmodifiers_blend_lib_read(reader, id, &fcu->modifiers);
+  }
+}
+
+void BKE_fcurve_blend_expand(BlendExpander *expander, ListBase *fcurves)
+{
+  LISTBASE_FOREACH (FCurve *, fcu, fcurves) {
+    /* Driver targets if there is a driver */
+    if (fcu->driver) {
+      ChannelDriver *driver = fcu->driver;
+
+      LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
+        DRIVER_TARGETS_LOOPER_BEGIN (dvar) {
+          // TODO: only expand those that are going to get used?
+          BLO_expand(expander, dtar->id);
+        }
+        DRIVER_TARGETS_LOOPER_END;
+      }
+    }
+
+    /* F-Curve Modifiers */
+    BKE_fmodifiers_blend_expand(expander, &fcu->modifiers);
+  }
 }

@@ -121,6 +121,7 @@
 #include "BKE_curve.h"
 #include "BKE_curveprofile.h"
 #include "BKE_effect.h"
+#include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_fluid.h"
 #include "BKE_global.h"  // for G
@@ -2715,142 +2716,6 @@ static void lib_link_constraint_channels(BlendLibReader *reader, ID *id, ListBas
 /** \name Read ID: Action
  * \{ */
 
-static void lib_link_fmodifiers(BlendLibReader *reader, ID *id, ListBase *list)
-{
-  LISTBASE_FOREACH (FModifier *, fcm, list) {
-    /* data for specific modifiers */
-    switch (fcm->type) {
-      case FMODIFIER_TYPE_PYTHON: {
-        FMod_Python *data = (FMod_Python *)fcm->data;
-        BLO_read_id_address(reader, id->lib, &data->script);
-
-        break;
-      }
-    }
-  }
-}
-
-static void lib_link_fcurves(BlendLibReader *reader, ID *id, ListBase *list)
-{
-  if (list == NULL) {
-    return;
-  }
-
-  /* relink ID-block references... */
-  LISTBASE_FOREACH (FCurve *, fcu, list) {
-    /* driver data */
-    if (fcu->driver) {
-      ChannelDriver *driver = fcu->driver;
-      LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
-        DRIVER_TARGETS_LOOPER_BEGIN (dvar) {
-          /* only relink if still used */
-          if (tarIndex < dvar->num_targets) {
-            BLO_read_id_address(reader, id->lib, &dtar->id);
-          }
-          else {
-            dtar->id = NULL;
-          }
-        }
-        DRIVER_TARGETS_LOOPER_END;
-      }
-    }
-
-    /* modifiers */
-    lib_link_fmodifiers(reader, id, &fcu->modifiers);
-  }
-}
-
-/* NOTE: this assumes that link_list has already been called on the list */
-static void direct_link_fmodifiers(BlendDataReader *reader, ListBase *list, FCurve *curve)
-{
-  LISTBASE_FOREACH (FModifier *, fcm, list) {
-    /* relink general data */
-    BLO_read_data_address(reader, &fcm->data);
-    fcm->curve = curve;
-
-    /* do relinking of data for specific types */
-    switch (fcm->type) {
-      case FMODIFIER_TYPE_GENERATOR: {
-        FMod_Generator *data = (FMod_Generator *)fcm->data;
-        BLO_read_float_array(reader, data->arraysize, &data->coefficients);
-        break;
-      }
-      case FMODIFIER_TYPE_ENVELOPE: {
-        FMod_Envelope *data = (FMod_Envelope *)fcm->data;
-
-        BLO_read_data_address(reader, &data->data);
-
-        break;
-      }
-      case FMODIFIER_TYPE_PYTHON: {
-        FMod_Python *data = (FMod_Python *)fcm->data;
-
-        BLO_read_data_address(reader, &data->prop);
-        IDP_BlendDataRead(reader, &data->prop);
-
-        break;
-      }
-    }
-  }
-}
-
-/* NOTE: this assumes that link_list has already been called on the list */
-static void direct_link_fcurves(BlendDataReader *reader, ListBase *list)
-{
-  /* link F-Curve data to F-Curve again (non ID-libs) */
-  LISTBASE_FOREACH (FCurve *, fcu, list) {
-    /* curve data */
-    BLO_read_data_address(reader, &fcu->bezt);
-    BLO_read_data_address(reader, &fcu->fpt);
-
-    /* rna path */
-    BLO_read_data_address(reader, &fcu->rna_path);
-
-    /* group */
-    BLO_read_data_address(reader, &fcu->grp);
-
-    /* clear disabled flag - allows disabled drivers to be tried again ([#32155]),
-     * but also means that another method for "reviving disabled F-Curves" exists
-     */
-    fcu->flag &= ~FCURVE_DISABLED;
-
-    /* driver */
-    BLO_read_data_address(reader, &fcu->driver);
-    if (fcu->driver) {
-      ChannelDriver *driver = fcu->driver;
-
-      /* Compiled expression data will need to be regenerated
-       * (old pointer may still be set here). */
-      driver->expr_comp = NULL;
-      driver->expr_simple = NULL;
-
-      /* give the driver a fresh chance - the operating environment may be different now
-       * (addons, etc. may be different) so the driver namespace may be sane now [#32155]
-       */
-      driver->flag &= ~DRIVER_FLAG_INVALID;
-
-      /* relink variables, targets and their paths */
-      BLO_read_list(reader, &driver->variables);
-      LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
-        DRIVER_TARGETS_LOOPER_BEGIN (dvar) {
-          /* only relink the targets being used */
-          if (tarIndex < dvar->num_targets) {
-            BLO_read_data_address(reader, &dtar->rna_path);
-          }
-          else {
-            dtar->rna_path = NULL;
-          }
-        }
-        DRIVER_TARGETS_LOOPER_END;
-      }
-    }
-
-    /* modifiers */
-    BLO_read_list(reader, &fcu->modifiers);
-    direct_link_fmodifiers(reader, &fcu->modifiers, fcu);
-  }
-}
-
 static void lib_link_action(BlendLibReader *reader, bAction *act)
 {
   // XXX deprecated - old animation system <<<
@@ -2860,7 +2725,7 @@ static void lib_link_action(BlendLibReader *reader, bAction *act)
   }
   // >>> XXX deprecated - old animation system
 
-  lib_link_fcurves(reader, &act->id, &act->curves);
+  BKE_fcurve_blend_lib_read(reader, &act->id, &act->curves);
 
   LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
     if (marker->camera) {
@@ -2884,7 +2749,7 @@ static void direct_link_action(BlendDataReader *reader, bAction *act)
   }
   // >>> XXX deprecated - old animation system
 
-  direct_link_fcurves(reader, &act->curves);
+  BKE_fcurve_blend_data_read(reader, &act->curves);
 
   LISTBASE_FOREACH (bActionGroup *, agrp, &act->groups) {
     BLO_read_data_address(reader, &agrp->channels.first);
@@ -2899,7 +2764,7 @@ static void lib_link_nladata_strips(BlendLibReader *reader, ID *id, ListBase *li
     lib_link_nladata_strips(reader, id, &strip->strips);
 
     /* check strip's F-Curves */
-    lib_link_fcurves(reader, id, &strip->fcurves);
+    BKE_fcurve_blend_lib_read(reader, id, &strip->fcurves);
 
     /* reassign the counted-reference to action */
     BLO_read_id_address(reader, id->lib, &strip->act);
@@ -2926,11 +2791,11 @@ static void direct_link_nladata_strips(BlendDataReader *reader, ListBase *list)
 
     /* strip's F-Curves */
     BLO_read_list(reader, &strip->fcurves);
-    direct_link_fcurves(reader, &strip->fcurves);
+    BKE_fcurve_blend_data_read(reader, &strip->fcurves);
 
     /* strip's F-Modifiers */
     BLO_read_list(reader, &strip->modifiers);
-    direct_link_fmodifiers(reader, &strip->modifiers, NULL);
+    BKE_fmodifiers_blend_data_read(reader, &strip->modifiers, NULL);
   }
 }
 
@@ -2986,7 +2851,7 @@ static void lib_link_animdata(BlendLibReader *reader, ID *id, AnimData *adt)
   BLO_read_id_address(reader, id->lib, &adt->tmpact);
 
   /* link drivers */
-  lib_link_fcurves(reader, id, &adt->drivers);
+  BKE_fcurve_blend_lib_read(reader, id, &adt->drivers);
 
   /* overrides don't have lib-link for now, so no need to do anything */
 
@@ -3003,7 +2868,7 @@ static void direct_link_animdata(BlendDataReader *reader, AnimData *adt)
 
   /* link drivers */
   BLO_read_list(reader, &adt->drivers);
-  direct_link_fcurves(reader, &adt->drivers);
+  BKE_fcurve_blend_data_read(reader, &adt->drivers);
   adt->driver_array = NULL;
 
   /* link overrides */
@@ -9925,43 +9790,6 @@ static void expand_constraint_channels(BlendExpander *expander, ListBase *chanba
   }
 }
 
-static void expand_fmodifiers(BlendExpander *expander, ListBase *list)
-{
-  LISTBASE_FOREACH (FModifier *, fcm, list) {
-    /* library data for specific F-Modifier types */
-    switch (fcm->type) {
-      case FMODIFIER_TYPE_PYTHON: {
-        FMod_Python *data = (FMod_Python *)fcm->data;
-
-        BLO_expand(expander, data->script);
-
-        break;
-      }
-    }
-  }
-}
-
-static void expand_fcurves(BlendExpander *expander, ListBase *list)
-{
-  LISTBASE_FOREACH (FCurve *, fcu, list) {
-    /* Driver targets if there is a driver */
-    if (fcu->driver) {
-      ChannelDriver *driver = fcu->driver;
-
-      LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
-        DRIVER_TARGETS_LOOPER_BEGIN (dvar) {
-          // TODO: only expand those that are going to get used?
-          BLO_expand(expander, dtar->id);
-        }
-        DRIVER_TARGETS_LOOPER_END;
-      }
-    }
-
-    /* F-Curve Modifiers */
-    expand_fmodifiers(expander, &fcu->modifiers);
-  }
-}
-
 static void expand_animdata_nlastrips(BlendExpander *expander, ListBase *list)
 {
   LISTBASE_FOREACH (NlaStrip *, strip, list) {
@@ -9969,10 +9797,10 @@ static void expand_animdata_nlastrips(BlendExpander *expander, ListBase *list)
     expand_animdata_nlastrips(expander, &strip->strips);
 
     /* check F-Curves */
-    expand_fcurves(expander, &strip->fcurves);
+    BKE_fcurve_blend_expand(expander, &strip->fcurves);
 
     /* check F-Modifiers */
-    expand_fmodifiers(expander, &strip->modifiers);
+    BKE_fmodifiers_blend_expand(expander, &strip->modifiers);
 
     /* relink referenced action */
     BLO_expand(expander, strip->act);
@@ -9986,7 +9814,7 @@ static void expand_animdata(BlendExpander *expander, AnimData *adt)
   BLO_expand(expander, adt->tmpact);
 
   /* drivers - assume that these F-Curves have driver data to be in this list... */
-  expand_fcurves(expander, &adt->drivers);
+  BKE_fcurve_blend_expand(expander, &adt->drivers);
 
   /* nla-data - referenced actions */
   LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
@@ -10043,7 +9871,7 @@ static void expand_action(BlendExpander *expander, bAction *act)
   // ---------------------------------------------------
 
   /* F-Curves in Action */
-  expand_fcurves(expander, &act->curves);
+  BKE_fcurve_blend_expand(expander, &act->curves);
 
   LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
     if (marker->camera) {

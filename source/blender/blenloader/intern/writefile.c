@@ -708,102 +708,13 @@ static void write_previews(BlendWriter *writer, const PreviewImage *prv_orig)
   }
 }
 
-static void write_fmodifiers(BlendWriter *writer, ListBase *fmodifiers)
-{
-  /* Write all modifiers first (for faster reloading) */
-  BLO_write_struct_list(writer, FModifier, fmodifiers);
-
-  /* Modifiers */
-  LISTBASE_FOREACH (FModifier *, fcm, fmodifiers) {
-    const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
-
-    /* Write the specific data */
-    if (fmi && fcm->data) {
-      /* firstly, just write the plain fmi->data struct */
-      BLO_write_struct_by_name(writer, fmi->structName, fcm->data);
-
-      /* do any modifier specific stuff */
-      switch (fcm->type) {
-        case FMODIFIER_TYPE_GENERATOR: {
-          FMod_Generator *data = fcm->data;
-
-          /* write coefficients array */
-          if (data->coefficients) {
-            BLO_write_float_array(writer, data->arraysize, data->coefficients);
-          }
-
-          break;
-        }
-        case FMODIFIER_TYPE_ENVELOPE: {
-          FMod_Envelope *data = fcm->data;
-
-          /* write envelope data */
-          if (data->data) {
-            BLO_write_struct_array(writer, FCM_EnvelopeData, data->totvert, data->data);
-          }
-
-          break;
-        }
-        case FMODIFIER_TYPE_PYTHON: {
-          FMod_Python *data = fcm->data;
-
-          /* Write ID Properties -- and copy this comment EXACTLY for easy finding
-           * of library blocks that implement this.*/
-          IDP_BlendWrite(writer, data->prop);
-
-          break;
-        }
-      }
-    }
-  }
-}
-
-static void write_fcurves(BlendWriter *writer, ListBase *fcurves)
-{
-  BLO_write_struct_list(writer, FCurve, fcurves);
-  LISTBASE_FOREACH (FCurve *, fcu, fcurves) {
-    /* curve data */
-    if (fcu->bezt) {
-      BLO_write_struct_array(writer, BezTriple, fcu->totvert, fcu->bezt);
-    }
-    if (fcu->fpt) {
-      BLO_write_struct_array(writer, FPoint, fcu->totvert, fcu->fpt);
-    }
-
-    if (fcu->rna_path) {
-      BLO_write_string(writer, fcu->rna_path);
-    }
-
-    /* driver data */
-    if (fcu->driver) {
-      ChannelDriver *driver = fcu->driver;
-
-      BLO_write_struct(writer, ChannelDriver, driver);
-
-      /* variables */
-      BLO_write_struct_list(writer, DriverVar, &driver->variables);
-      LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
-        DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
-          if (dtar->rna_path) {
-            BLO_write_string(writer, dtar->rna_path);
-          }
-        }
-        DRIVER_TARGETS_LOOPER_END;
-      }
-    }
-
-    /* write F-Modifiers */
-    write_fmodifiers(writer, &fcu->modifiers);
-  }
-}
-
 static void write_action(BlendWriter *writer, bAction *act, const void *id_address)
 {
   if (act->id.us > 0 || BLO_write_is_undo(writer)) {
     BLO_write_id_struct(writer, bAction, id_address, &act->id);
     write_iddata(writer, &act->id);
 
-    write_fcurves(writer, &act->curves);
+    BKE_fcurve_blend_write(writer, &act->curves);
 
     LISTBASE_FOREACH (bActionGroup *, grp, &act->groups) {
       BLO_write_struct(writer, bActionGroup, grp);
@@ -838,8 +749,8 @@ static void write_nlastrips(BlendWriter *writer, ListBase *strips)
   BLO_write_struct_list(writer, NlaStrip, strips);
   LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     /* write the strip's F-Curves and modifiers */
-    write_fcurves(writer, &strip->fcurves);
-    write_fmodifiers(writer, &strip->modifiers);
+    BKE_fcurve_blend_write(writer, &strip->fcurves);
+    BKE_fmodifiers_blend_write(writer, &strip->modifiers);
 
     /* write the strip's children */
     write_nlastrips(writer, &strip->strips);
@@ -864,7 +775,7 @@ static void write_animdata(BlendWriter *writer, AnimData *adt)
   BLO_write_struct(writer, AnimData, adt);
 
   /* write drivers */
-  write_fcurves(writer, &adt->drivers);
+  BKE_fcurve_blend_write(writer, &adt->drivers);
 
   /* write overrides */
   // FIXME: are these needed?

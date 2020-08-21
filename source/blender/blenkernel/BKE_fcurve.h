@@ -44,6 +44,10 @@ struct PropertyRNA;
 struct StructRNA;
 struct bAction;
 struct bContext;
+struct BlendWriter;
+struct BlendDataReader;
+struct BlendLibReader;
+struct BlendExpander;
 
 /* ************** Keyframe Tools ***************** */
 
@@ -310,6 +314,24 @@ float fcurve_samplingcb_evalcurve(struct FCurve *fcu, void *data, float evaltime
  */
 void fcurve_store_samples(
     struct FCurve *fcu, void *data, int start, int end, FcuSampleFunc sample_cb);
+
+/* ************* F-Curve .blend file API ******************** */
+
+void BKE_fmodifiers_blend_write(struct BlendWriter *writer, struct ListBase *fmodifiers);
+void BKE_fmodifiers_blend_data_read(struct BlendDataReader *reader,
+                                    ListBase *fmodifiers,
+                                    struct FCurve *curve);
+void BKE_fmodifiers_blend_lib_read(struct BlendLibReader *reader,
+                                   struct ID *id,
+                                   struct ListBase *fmodifiers);
+void BKE_fmodifiers_blend_expand(struct BlendExpander *expander, struct ListBase *fmodifiers);
+
+void BKE_fcurve_blend_write(struct BlendWriter *writer, struct ListBase *fcurves);
+void BKE_fcurve_blend_data_read(struct BlendDataReader *reader, struct ListBase *fcurves);
+void BKE_fcurve_blend_lib_read(struct BlendLibReader *reader,
+                               struct ID *id,
+                               struct ListBase *fcurves);
+void BKE_fcurve_blend_expand(struct BlendExpander *expander, struct ListBase *fcurves);
 
 #ifdef __cplusplus
 }
