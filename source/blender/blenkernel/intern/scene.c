@@ -2266,31 +2266,38 @@ static Depsgraph **scene_get_depsgraph_p(Main *bmain,
    */
   DepsgraphKey key;
   key.view_layer = view_layer;
+
   Depsgraph **depsgraph_ptr;
-  if (allocate_ghash_entry) {
-    DepsgraphKey **key_ptr;
-    if (!BLI_ghash_ensure_p_ex(
-            scene->depsgraph_hash, &key, (void ***)&key_ptr, (void ***)&depsgraph_ptr)) {
-      *key_ptr = MEM_mallocN(sizeof(DepsgraphKey), __func__);
-      **key_ptr = key;
-      if (allocate_depsgraph) {
-        *depsgraph_ptr = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_VIEWPORT);
-        /* TODO(sergey): Would be cool to avoid string format print,
-         * but is a bit tricky because we can't know in advance whether
-         * we will ever enable debug messages for this depsgraph.
-         */
-        char name[1024];
-        BLI_snprintf(name, sizeof(name), "%s :: %s", scene->id.name, view_layer->name);
-        DEG_debug_name_set(*depsgraph_ptr, name);
-      }
-      else {
-        *depsgraph_ptr = NULL;
-      }
-    }
-  }
-  else {
+  if (!allocate_ghash_entry) {
     depsgraph_ptr = (Depsgraph **)BLI_ghash_lookup_p(scene->depsgraph_hash, &key);
+    return depsgraph_ptr;
   }
+
+  DepsgraphKey **key_ptr;
+  if (BLI_ghash_ensure_p_ex(
+          scene->depsgraph_hash, &key, (void ***)&key_ptr, (void ***)&depsgraph_ptr)) {
+    /* Depsgraph was found in the ghash. */
+    return depsgraph_ptr;
+  }
+
+  if (!allocate_depsgraph) {
+    /* Not found and not allowed to allocate. */
+    *depsgraph_ptr = NULL;
+    return depsgraph_ptr;
+  }
+
+  *key_ptr = MEM_mallocN(sizeof(DepsgraphKey), __func__);
+  **key_ptr = key;
+
+  *depsgraph_ptr = DEG_graph_new(bmain, scene, view_layer, DAG_EVAL_VIEWPORT);
+  /* TODO(sergey): Would be cool to avoid string format print,
+   * but is a bit tricky because we can't know in advance whether
+   * we will ever enable debug messages for this depsgraph.
+   */
+  char name[1024];
+  BLI_snprintf(name, sizeof(name), "%s :: %s", scene->id.name, view_layer->name);
+  DEG_debug_name_set(*depsgraph_ptr, name);
+
   return depsgraph_ptr;
 }
 
