@@ -94,19 +94,22 @@ void gpu_select_query_begin(
   g_query_state.write_mask = GPU_write_mask_get();
   g_query_state.depth_test = GPU_depth_test_get();
   GPU_scissor_get(g_query_state.scissor);
+  GPU_viewport_size_get_i(g_query_state.viewport);
 
-  /* disable writing to the framebuffer */
-  GPU_color_mask(false, false, false, false);
+  /* Write to color buffer. Seems to fix issues with selecting alpha blended geom (see T7997). */
+  GPU_color_mask(true, true, true, true);
 
   /* In order to save some fill rate we minimize the viewport using rect.
    * We need to get the region of the viewport so that our geometry doesn't
    * get rejected before the depth test. Should probably cull rect against
    * the viewport but this is a rare case I think */
-  GPU_viewport_size_get_i(g_query_state.viewport);
-  GPU_viewport(g_query_state.viewport[0],
-               g_query_state.viewport[1],
-               BLI_rcti_size_x(input),
-               BLI_rcti_size_y(input));
+
+  int viewport[4] = {
+      UNPACK2(g_query_state.viewport), BLI_rcti_size_x(input), BLI_rcti_size_y(input)};
+
+  GPU_viewport(UNPACK4(viewport));
+  GPU_scissor(UNPACK4(viewport));
+  GPU_scissor_test(false);
 
   /* occlusion queries operates on fragments that pass tests and since we are interested on all
    * objects in the view frustum independently of their order, we need to disable the depth test */
@@ -117,9 +120,9 @@ void gpu_select_query_begin(
     GPU_depth_mask(true);
   }
   else if (mode == GPU_SELECT_NEAREST_FIRST_PASS) {
-    GPU_clear(GPU_DEPTH_BIT);
     GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
     GPU_depth_mask(true);
+    GPU_clear(GPU_DEPTH_BIT);
   }
   else if (mode == GPU_SELECT_NEAREST_SECOND_PASS) {
     GPU_depth_test(GPU_DEPTH_EQUAL);
