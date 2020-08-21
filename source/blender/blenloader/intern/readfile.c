@@ -10315,20 +10315,12 @@ static void expand_hair(BlendExpander *expander, Hair *hair)
   for (int a = 0; a < hair->totcol; a++) {
     BLO_expand(expander, hair->mat[a]);
   }
-
-  if (hair->adt) {
-    BKE_animdata_blend_expand(expander, hair->adt);
-  }
 }
 
 static void expand_pointcloud(BlendExpander *expander, PointCloud *pointcloud)
 {
   for (int a = 0; a < pointcloud->totcol; a++) {
     BLO_expand(expander, pointcloud->mat[a]);
-  }
-
-  if (pointcloud->adt) {
-    BKE_animdata_blend_expand(expander, pointcloud->adt);
   }
 }
 
@@ -10337,17 +10329,10 @@ static void expand_volume(BlendExpander *expander, Volume *volume)
   for (int a = 0; a < volume->totcol; a++) {
     BLO_expand(expander, volume->mat[a]);
   }
-
-  if (volume->adt) {
-    BKE_animdata_blend_expand(expander, volume->adt);
-  }
 }
 
 static void expand_simulation(BlendExpander *expander, Simulation *simulation)
 {
-  if (simulation->adt) {
-    BKE_animdata_blend_expand(expander, simulation->adt);
-  }
   LISTBASE_FOREACH (SimulationDependency *, dependency, &simulation->dependencies) {
     BLO_expand(expander, dependency->id);
   }
