@@ -49,7 +49,7 @@ static void rna_RegionView3D_update(ID *id, RegionView3D *rv3d, bContext *C)
       if (WM_window_get_active_screen(win) == screen) {
         Scene *scene = WM_window_get_active_scene(win);
         ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-        Depsgraph *depsgraph = BKE_scene_get_depsgraph(bmain, scene, view_layer, true);
+        Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
 
         ED_view3d_update_viewmat(depsgraph, scene, v3d, region, NULL, NULL, NULL, false);
         break;

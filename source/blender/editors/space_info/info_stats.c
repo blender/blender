@@ -426,7 +426,7 @@ static bool format_stats(Main *bmain,
     if (wm->is_interface_locked) {
       return false;
     }
-    Depsgraph *depsgraph = BKE_scene_get_depsgraph(bmain, scene, view_layer, true);
+    Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
     stats_update(depsgraph, view_layer);
   }
 

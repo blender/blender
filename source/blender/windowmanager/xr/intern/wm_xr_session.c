@@ -195,7 +195,7 @@ static void wm_xr_session_scene_and_evaluated_depsgraph_get(Main *bmain,
   Scene *scene = WM_window_get_active_scene(root_win);
   ViewLayer *view_layer = WM_window_get_active_view_layer(root_win);
 
-  Depsgraph *depsgraph = BKE_scene_get_depsgraph(bmain, scene, view_layer, false);
+  Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer);
   BLI_assert(scene && view_layer && depsgraph);
   BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
   *r_scene = scene;

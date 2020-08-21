@@ -246,7 +246,7 @@ static PyObject *bpygpu_offscreen_draw_view3d(BPyGPUOffScreen *self,
 
   BLI_assert(BKE_id_is_in_global_main(&scene->id));
 
-  depsgraph = BKE_scene_get_depsgraph(G_MAIN, scene, view_layer, true);
+  depsgraph = BKE_scene_ensure_depsgraph(G_MAIN, scene, view_layer);
 
   rv3d_mats = ED_view3d_mats_rv3d_backup(region->regiondata);
 

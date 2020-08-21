@@ -184,10 +184,7 @@ static PointerRNA rna_ViewLayer_depsgraph_get(PointerRNA *ptr)
   if (GS(id->name) == ID_SCE) {
     Scene *scene = (Scene *)id;
     ViewLayer *view_layer = (ViewLayer *)ptr->data;
-    // NOTE: We don't allocate new depsgraph here, so the bmain is ignored. So it's easier to pass
-    // NULL.
-    // Still weak though.
-    Depsgraph *depsgraph = BKE_scene_get_depsgraph(NULL, scene, view_layer, false);
+    Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer);
     return rna_pointer_inherit_refine(ptr, &RNA_Depsgraph, depsgraph);
   }
   return PointerRNA_NULL;
@@ -206,7 +203,7 @@ static void rna_ViewLayer_update_tagged(ID *id_ptr,
                                         ReportList *reports)
 {
   Scene *scene = (Scene *)id_ptr;
-  Depsgraph *depsgraph = BKE_scene_get_depsgraph(bmain, scene, view_layer, true);
+  Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
 
   if (DEG_is_evaluating(depsgraph)) {
     BKE_report(reports, RPT_ERROR, "Dependency graph update requested during evaluation");

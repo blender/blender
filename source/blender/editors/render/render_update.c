@@ -194,7 +194,7 @@ void ED_render_engine_changed(Main *bmain, const bool update_scene_data)
     update_ctx.scene = scene;
     LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
       /* TDODO(sergey): Iterate over depsgraphs instead? */
-      update_ctx.depsgraph = BKE_scene_get_depsgraph(bmain, scene, view_layer, true);
+      update_ctx.depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
       update_ctx.view_layer = view_layer;
       ED_render_id_flush_update(&update_ctx, &scene->id);
     }

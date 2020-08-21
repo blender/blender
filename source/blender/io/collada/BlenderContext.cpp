@@ -123,7 +123,7 @@ bContext *BlenderContext::get_context()
 Depsgraph *BlenderContext::get_depsgraph()
 {
   if (!depsgraph) {
-    depsgraph = BKE_scene_get_depsgraph(main, scene, view_layer, true);
+    depsgraph = BKE_scene_ensure_depsgraph(main, scene, view_layer);
   }
   return depsgraph;
 }
