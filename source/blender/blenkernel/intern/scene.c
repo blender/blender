@@ -469,7 +469,7 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
   }
   if (scene->ed) {
     Sequence *seq;
-    SEQ_BEGIN (scene->ed, seq) {
+    SEQ_ALL_BEGIN (scene->ed, seq) {
       BKE_LIB_FOREACHID_PROCESS(data, seq->scene, IDWALK_CB_NEVER_SELF);
       BKE_LIB_FOREACHID_PROCESS(data, seq->scene_camera, IDWALK_CB_NOP);
       BKE_LIB_FOREACHID_PROCESS(data, seq->clip, IDWALK_CB_USER);
@@ -486,7 +486,7 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
         BKE_LIB_FOREACHID_PROCESS(data, text_data->text_font, IDWALK_CB_USER);
       }
     }
-    SEQ_END;
+    SEQ_ALL_END;
   }
 
   /* This pointer can be NULL during old files reading, better be safe than sorry. */
@@ -2570,13 +2570,13 @@ static void scene_sequencer_disable_sound_strips(Scene *scene)
     return;
   }
   Sequence *seq;
-  SEQ_BEGIN (scene->ed, seq) {
+  SEQ_ALL_BEGIN (scene->ed, seq) {
     if (seq->scene_sound != NULL) {
       BKE_sound_remove_scene_sound(scene, seq->scene_sound);
       seq->scene_sound = NULL;
     }
   }
-  SEQ_END;
+  SEQ_ALL_END;
 }
 
 void BKE_scene_eval_sequencer_sequences(Depsgraph *depsgraph, Scene *scene)
@@ -2587,7 +2587,7 @@ void BKE_scene_eval_sequencer_sequences(Depsgraph *depsgraph, Scene *scene)
   }
   BKE_sound_ensure_scene(scene);
   Sequence *seq;
-  SEQ_BEGIN (scene->ed, seq) {
+  SEQ_ALL_BEGIN (scene->ed, seq) {
     if (seq->scene_sound == NULL) {
       if (seq->sound != NULL) {
         if (seq->scene_sound == NULL) {
@@ -2625,7 +2625,7 @@ void BKE_scene_eval_sequencer_sequences(Depsgraph *depsgraph, Scene *scene)
           seq->scene_sound, seq->pan, (seq->flag & SEQ_AUDIO_PAN_ANIMATED) != 0);
     }
   }
-  SEQ_END;
+  SEQ_ALL_END;
   BKE_sequencer_update_muting(scene->ed);
   BKE_sequencer_update_sound_bounds_all(scene);
 }

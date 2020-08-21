@@ -507,11 +507,12 @@ void BKE_sequencer_editing_free(Scene *scene, const bool do_id_user)
   BKE_sequencer_prefetch_free(scene);
   BKE_sequencer_cache_destruct(scene);
 
-  SEQ_BEGIN (ed, seq) {
+  SEQ_ALL_BEGIN(ed, seq)
+  {
     /* handle cache freeing above */
     BKE_sequence_free_ex(scene, seq, false, do_id_user, false);
   }
-  SEQ_END;
+  SEQ_ALL_END;
 
   BLI_freelistN(&ed->metastack);
   MEM_freeN(ed);
@@ -662,7 +663,7 @@ void BKE_sequencer_new_render_data(Main *bmain,
 
 /* ************************* iterator ************************** */
 /* *************** (replaces old WHILE_SEQ) ********************* */
-/* **************** use now SEQ_BEGIN () SEQ_END ***************** */
+/* **************** use now SEQ_ALL_BEGIN () SEQ_ALL_END ***************** */
 
 /* sequence strip iterator:
  * - builds a full array, recursively into meta strips
@@ -697,7 +698,10 @@ static void seq_build_array(ListBase *seqbase, Sequence ***array, int depth)
   }
 }
 
-static void seq_array(Editing *ed, Sequence ***seqarray, int *tot, bool use_pointer)
+static void seq_array(Editing *ed,
+                      Sequence ***seqarray,
+                      int *tot,
+                      const bool use_current_sequences)
 {
   Sequence **array;
 
@@ -708,7 +712,7 @@ static void seq_array(Editing *ed, Sequence ***seqarray, int *tot, bool use_poin
     return;
   }
 
-  if (use_pointer) {
+  if (use_current_sequences) {
     seq_count(ed->seqbasep, tot);
   }
   else {
@@ -720,7 +724,7 @@ static void seq_array(Editing *ed, Sequence ***seqarray, int *tot, bool use_poin
   }
 
   *seqarray = array = MEM_mallocN(sizeof(Sequence *) * (*tot), "SeqArray");
-  if (use_pointer) {
+  if (use_current_sequences) {
     seq_build_array(ed->seqbasep, &array, 0);
   }
   else {
@@ -728,10 +732,10 @@ static void seq_array(Editing *ed, Sequence ***seqarray, int *tot, bool use_poin
   }
 }
 
-void BKE_sequence_iterator_begin(Editing *ed, SeqIterator *iter, bool use_pointer)
+void BKE_sequence_iterator_begin(Editing *ed, SeqIterator *iter, const bool use_current_sequences)
 {
   memset(iter, 0, sizeof(*iter));
-  seq_array(ed, &iter->array, &iter->tot, use_pointer);
+  seq_array(ed, &iter->array, &iter->tot, use_current_sequences);
 
   if (iter->tot) {
     iter->cur = 0;
@@ -6168,7 +6172,8 @@ void BKE_sequencer_check_uuids_unique_and_report(const Scene *scene)
       BLI_session_uuid_ghash_hash, BLI_session_uuid_ghash_compare, "sequencer used uuids");
 
   const Sequence *sequence;
-  SEQ_BEGIN (scene->ed, sequence) {
+  SEQ_ALL_BEGIN(scene->ed, sequence)
+  {
     const SessionUUID *session_uuid = &sequence->runtime.session_uuid;
     if (!BLI_session_uuid_is_generated(session_uuid)) {
       printf("Sequence %s does not have UUID generated.\n", sequence->name);
@@ -6182,7 +6187,7 @@ void BKE_sequencer_check_uuids_unique_and_report(const Scene *scene)
 
     BLI_gset_insert(used_uuids, (void *)session_uuid);
   }
-  SEQ_END;
+  SEQ_ALL_END;
 
   BLI_gset_free(used_uuids, NULL);
 }

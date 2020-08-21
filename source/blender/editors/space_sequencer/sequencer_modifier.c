@@ -232,7 +232,8 @@ static int strip_modifier_copy_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  SEQP_BEGIN (ed, seq_iter) {
+  SEQ_CURRENT_BEGIN(ed, seq_iter)
+  {
     if (seq_iter->flag & SELECT) {
       if (seq_iter == seq) {
         continue;
@@ -254,7 +255,7 @@ static int strip_modifier_copy_exec(bContext *C, wmOperator *op)
       BKE_sequence_modifier_list_copy(seq_iter, seq);
     }
   }
-  SEQ_END;
+  SEQ_CURRENT_END;
 
   BKE_sequence_invalidate_cache_preprocessed(scene, seq);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);

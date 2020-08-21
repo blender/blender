@@ -1828,7 +1828,7 @@ void DepsgraphNodeBuilder::build_scene_sequencer(Scene *scene)
                      function_bind(BKE_scene_eval_sequencer_sequences, _1, scene_cow));
   /* Make sure data for sequences is in the graph. */
   Sequence *seq;
-  SEQ_BEGIN (scene->ed, seq) {
+  SEQ_ALL_BEGIN (scene->ed, seq) {
     build_idproperties(seq->prop);
     if (seq->sound != nullptr) {
       build_sound(seq->sound);
@@ -1845,7 +1845,7 @@ void DepsgraphNodeBuilder::build_scene_sequencer(Scene *scene)
     }
     /* TODO(sergey): Movie clip, scene, camera, mask. */
   }
-  SEQ_END;
+  SEQ_ALL_END;
 }
 
 void DepsgraphNodeBuilder::build_scene_audio(Scene *scene)

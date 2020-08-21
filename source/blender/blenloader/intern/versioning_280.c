@@ -3463,7 +3463,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
       if (scene->ed) {
         Sequence *seq;
-        SEQ_BEGIN (scene->ed, seq) {
+        SEQ_ALL_BEGIN (scene->ed, seq) {
           seq->flag &= ~(SEQ_FLAG_UNUSED_6 | SEQ_FLAG_UNUSED_18 | SEQ_FLAG_UNUSED_19 |
                          SEQ_FLAG_UNUSED_21);
           if (seq->type == SEQ_TYPE_SPEED) {
@@ -3471,7 +3471,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
             s->flags &= ~(SEQ_SPEED_UNUSED_1);
           }
         }
-        SEQ_END;
+        SEQ_ALL_END;
       }
     }
 

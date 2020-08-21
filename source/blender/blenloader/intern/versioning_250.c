@@ -666,7 +666,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 
     for (scene = bmain->scenes.first; scene; scene = scene->id.next) {
       if (scene->ed && scene->ed->seqbasep) {
-        SEQ_BEGIN (scene->ed, seq) {
+        SEQ_ALL_BEGIN (scene->ed, seq) {
           if (seq->type == SEQ_TYPE_SOUND_HD) {
             char str[FILE_MAX];
             BLI_join_dirfile(str, sizeof(str), seq->strip->dir, seq->strip->stripdata->name);
@@ -682,7 +682,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 #undef SEQ_USE_PROXY_CUSTOM_DIR
 #undef SEQ_USE_PROXY_CUSTOM_FILE
         }
-        SEQ_END;
+        SEQ_ALL_END;
       }
     }
 
@@ -1409,10 +1409,10 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
         sce->r.ffcodecdata.audio_codec = 0x0;  // CODEC_ID_NONE
       }
 
-      SEQ_BEGIN (sce->ed, seq) {
+      SEQ_ALL_BEGIN (sce->ed, seq) {
         seq->volume = 1.0f;
       }
-      SEQ_END;
+      SEQ_ALL_END;
     }
 
     /* particle brush strength factor was changed from int to float */
@@ -1681,12 +1681,12 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 
     for (scene = bmain->scenes.first; scene; scene = scene->id.next) {
       Sequence *seq;
-      SEQ_BEGIN (scene->ed, seq) {
+      SEQ_ALL_BEGIN (scene->ed, seq) {
         if (seq->sat == 0.0f) {
           seq->sat = 1.0f;
         }
       }
-      SEQ_END;
+      SEQ_ALL_END;
     }
 
     /* GSOC 2010 Sculpt - New settings for Brush */
@@ -2166,10 +2166,10 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       for (scene = bmain->scenes.first; scene; scene = scene->id.next) {
         scene->r.ffcodecdata.audio_channels = 2;
         scene->audio.volume = 1.0f;
-        SEQ_BEGIN (scene->ed, seq) {
+        SEQ_ALL_BEGIN (scene->ed, seq) {
           seq->pitch = 1.0f;
         }
-        SEQ_END;
+        SEQ_ALL_END;
       }
     }
 

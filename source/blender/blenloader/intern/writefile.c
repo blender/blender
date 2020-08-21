@@ -2343,15 +2343,15 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
 
     /* reset write flags too */
 
-    SEQ_BEGIN (ed, seq) {
+    SEQ_ALL_BEGIN (ed, seq) {
       if (seq->strip) {
         seq->strip->done = false;
       }
       BLO_write_struct(writer, Sequence, seq);
     }
-    SEQ_END;
+    SEQ_ALL_END;
 
-    SEQ_BEGIN (ed, seq) {
+    SEQ_ALL_BEGIN (ed, seq) {
       if (seq->strip && seq->strip->done == 0) {
         /* write strip with 'done' at 0 because readfile */
 
@@ -2416,7 +2416,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
 
       write_sequence_modifiers(writer, &seq->modifiers);
     }
-    SEQ_END;
+    SEQ_ALL_END;
 
     /* new; meta stack too, even when its nasty restore code */
     LISTBASE_FOREACH (MetaStack *, ms, &ed->metastack) {

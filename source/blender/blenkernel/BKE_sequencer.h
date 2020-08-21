@@ -62,29 +62,33 @@ typedef struct SeqIterator {
   int valid;
 } SeqIterator;
 
-void BKE_sequence_iterator_begin(struct Editing *ed, SeqIterator *iter, bool use_pointer);
+void BKE_sequence_iterator_begin(struct Editing *ed,
+                                 SeqIterator *iter,
+                                 const bool use_current_sequences);
 void BKE_sequence_iterator_next(SeqIterator *iter);
 void BKE_sequence_iterator_end(SeqIterator *iter);
 
-#define SEQP_BEGIN(_ed, _seq) \
-  { \
-    SeqIterator iter_macro; \
-    for (BKE_sequence_iterator_begin(_ed, &iter_macro, true); iter_macro.valid; \
-         BKE_sequence_iterator_next(&iter_macro)) { \
-      _seq = iter_macro.seq;
-
-#define SEQ_BEGIN(ed, _seq) \
+#define SEQ_ALL_BEGIN(ed, _seq) \
   { \
     SeqIterator iter_macro; \
     for (BKE_sequence_iterator_begin(ed, &iter_macro, false); iter_macro.valid; \
          BKE_sequence_iterator_next(&iter_macro)) { \
       _seq = iter_macro.seq;
 
-#define SEQ_END \
+#define SEQ_ALL_END \
   } \
   BKE_sequence_iterator_end(&iter_macro); \
   } \
   ((void)0)
+
+#define SEQ_CURRENT_BEGIN(_ed, _seq) \
+  { \
+    SeqIterator iter_macro; \
+    for (BKE_sequence_iterator_begin(_ed, &iter_macro, true); iter_macro.valid; \
+         BKE_sequence_iterator_next(&iter_macro)) { \
+      _seq = iter_macro.seq;
+
+#define SEQ_CURRENT_END SEQ_ALL_END
 
 typedef enum eSeqTaskId {
   SEQ_TASK_MAIN_RENDER,

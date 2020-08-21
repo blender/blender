@@ -5624,7 +5624,7 @@ static void lib_link_scene(BlendLibReader *reader, Scene *sce)
   }
 
   Sequence *seq;
-  SEQ_BEGIN (sce->ed, seq) {
+  SEQ_ALL_BEGIN (sce->ed, seq) {
     IDP_BlendLibRead(reader, seq->prop);
 
     if (seq->ipo) {
@@ -5666,7 +5666,7 @@ static void lib_link_scene(BlendLibReader *reader, Scene *sce)
 
     lib_link_sequence_modifiers(reader, sce, &seq->modifiers);
   }
-  SEQ_END;
+  SEQ_ALL_END;
 
   LISTBASE_FOREACH (TimeMarker *, marker, &sce->markers) {
     if (marker->camera) {
@@ -5899,7 +5899,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
     link_recurs_seq(reader, &ed->seqbase);
 
     Sequence *seq;
-    SEQ_BEGIN (ed, seq) {
+    SEQ_ALL_BEGIN (ed, seq) {
       /* Do as early as possible, so that other parts of reading can rely on valid session UUID. */
       BKE_sequence_session_uuid_generate(seq);
 
@@ -5962,7 +5962,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
 
       direct_link_sequence_modifiers(reader, &seq->modifiers);
     }
-    SEQ_END;
+    SEQ_ALL_END;
 
     /* link metastack, slight abuse of structs here,
      * have to restore pointer to internal part in struct */
@@ -10158,7 +10158,7 @@ static void expand_scene(BlendExpander *expander, Scene *sce)
   if (sce->ed) {
     Sequence *seq;
 
-    SEQ_BEGIN (sce->ed, seq) {
+    SEQ_ALL_BEGIN (sce->ed, seq) {
       IDP_BlendExpand(expander, seq->prop);
 
       if (seq->scene) {
@@ -10182,7 +10182,7 @@ static void expand_scene(BlendExpander *expander, Scene *sce)
         BLO_expand(expander, data->text_font);
       }
     }
-    SEQ_END;
+    SEQ_ALL_END;
   }
 
   if (sce->rigidbody_world) {

@@ -1267,12 +1267,12 @@ void IMB_colormanagement_check_file_config(Main *bmain)
 
     /* check sequencer strip input color space settings */
     Sequence *seq;
-    SEQ_BEGIN (scene->ed, seq) {
+    SEQ_ALL_BEGIN (scene->ed, seq) {
       if (seq->strip) {
         colormanage_check_colorspace_settings(&seq->strip->colorspace_settings, "sequencer strip");
       }
     }
-    SEQ_END;
+    SEQ_ALL_END;
   }
 
   /* ** check input color space settings ** */
