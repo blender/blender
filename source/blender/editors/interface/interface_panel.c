@@ -212,8 +212,7 @@ static bool panels_need_realign(ScrArea *area, ARegion *region, Panel **r_panel_
 
 /********* Functions for instanced panels. ***********/
 
-static Panel *UI_panel_add_instanced_ex(ScrArea *area,
-                                        ARegion *region,
+static Panel *UI_panel_add_instanced_ex(ARegion *region,
                                         ListBase *panels,
                                         PanelType *panel_type,
                                         int list_index,
@@ -230,7 +229,7 @@ static Panel *UI_panel_add_instanced_ex(ScrArea *area,
    * function to create them, as UI_panel_begin does other things we don't need to do. */
   LISTBASE_FOREACH (LinkData *, child, &panel_type->children) {
     PanelType *child_type = child->data;
-    UI_panel_add_instanced_ex(area, region, &panel->children, child_type, list_index, custom_data);
+    UI_panel_add_instanced_ex(region, &panel->children, child_type, list_index, custom_data);
   }
 
   /* Make sure the panel is added to the end of the display-order as well. This is needed for
@@ -255,12 +254,8 @@ static Panel *UI_panel_add_instanced_ex(ScrArea *area,
  * Called in situations where panels need to be added dynamically rather than having only one panel
  * corresponding to each PanelType.
  */
-Panel *UI_panel_add_instanced(ScrArea *area,
-                              ARegion *region,
-                              ListBase *panels,
-                              char *panel_idname,
-                              int list_index,
-                              PointerRNA *custom_data)
+Panel *UI_panel_add_instanced(
+    ARegion *region, ListBase *panels, char *panel_idname, int list_index, PointerRNA *custom_data)
 {
   ARegionType *region_type = region->type;
 
@@ -272,7 +267,7 @@ Panel *UI_panel_add_instanced(ScrArea *area,
     return NULL;
   }
 
-  return UI_panel_add_instanced_ex(area, region, panels, panel_type, list_index, custom_data);
+  return UI_panel_add_instanced_ex(region, panels, panel_type, list_index, custom_data);
 }
 
 /**
