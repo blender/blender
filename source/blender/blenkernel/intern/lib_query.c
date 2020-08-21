@@ -644,7 +644,7 @@ static void library_foreach_ID_link(Main *bmain,
         }
         if (scene->ed) {
           Sequence *seq;
-          SEQP_BEGIN (scene->ed, seq) {
+          SEQ_BEGIN (scene->ed, seq) {
             CALLBACK_INVOKE(seq->scene, IDWALK_CB_NEVER_SELF);
             CALLBACK_INVOKE(seq->scene_camera, IDWALK_CB_NOP);
             CALLBACK_INVOKE(seq->clip, IDWALK_CB_USER);
