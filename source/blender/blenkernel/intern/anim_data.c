@@ -54,6 +54,8 @@
 
 #include "DEG_depsgraph.h"
 
+#include "BLO_read_write.h"
+
 #include "RNA_access.h"
 
 #include "CLG_log.h"
@@ -1496,4 +1498,86 @@ void BKE_animdata_fix_paths_rename_all(ID *ref_id,
 
   /* scenes */
   RENAMEFIX_ANIM_NODETREE_IDS(bmain->scenes.first, Scene);
+}
+
+/* .blend file API -------------------------------------------- */
+
+void BKE_animdata_blend_write(BlendWriter *writer, struct AnimData *adt)
+{
+  /* firstly, just write the AnimData block */
+  BLO_write_struct(writer, AnimData, adt);
+
+  /* write drivers */
+  BKE_fcurve_blend_write(writer, &adt->drivers);
+
+  /* write overrides */
+  // FIXME: are these needed?
+  LISTBASE_FOREACH (AnimOverride *, aor, &adt->overrides) {
+    /* overrides consist of base data + rna_path */
+    BLO_write_struct(writer, AnimOverride, aor);
+    BLO_write_string(writer, aor->rna_path);
+  }
+
+  // TODO write the remaps (if they are needed)
+
+  /* write NLA data */
+  BKE_nla_blend_write(writer, &adt->nla_tracks);
+}
+
+void BKE_animdata_blend_data_read(BlendDataReader *reader, AnimData *adt)
+{
+  /* NOTE: must have called BLO_read_data_address already before doing this... */
+  if (adt == NULL) {
+    return;
+  }
+
+  /* link drivers */
+  BLO_read_list(reader, &adt->drivers);
+  BKE_fcurve_blend_data_read(reader, &adt->drivers);
+  adt->driver_array = NULL;
+
+  /* link overrides */
+  // TODO...
+
+  /* link NLA-data */
+  BLO_read_list(reader, &adt->nla_tracks);
+  BKE_nla_blend_data_read(reader, &adt->nla_tracks);
+
+  /* relink active track/strip - even though strictly speaking this should only be used
+   * if we're in 'tweaking mode', we need to be able to have this loaded back for
+   * undo, but also since users may not exit tweakmode before saving (#24535)
+   */
+  // TODO: it's not really nice that anyone should be able to save the file in this
+  //      state, but it's going to be too hard to enforce this single case...
+  BLO_read_data_address(reader, &adt->act_track);
+  BLO_read_data_address(reader, &adt->actstrip);
+}
+
+void BKE_animdata_blend_lib_read(BlendLibReader *reader, ID *id, AnimData *adt)
+{
+  if (adt == NULL) {
+    return;
+  }
+
+  /* link action data */
+  BLO_read_id_address(reader, id->lib, &adt->action);
+  BLO_read_id_address(reader, id->lib, &adt->tmpact);
+
+  /* link drivers */
+  BKE_fcurve_blend_lib_read(reader, id, &adt->drivers);
+
+  /* overrides don't have lib-link for now, so no need to do anything */
+
+  /* link NLA-data */
+  BKE_nla_blend_lib_read(reader, id, &adt->nla_tracks);
+}
+
+void BKE_animdata_blend_expand(struct BlendExpander *expander, AnimData *adt)
+{
+  /* own action */
+  BLO_expand(expander, adt->action);
+  BLO_expand(expander, adt->tmpact);
+
+  /* drivers - assume that these F-Curves have driver data to be in this list... */
+  BKE_fcurve_blend_expand(expander, &adt->drivers);
 }

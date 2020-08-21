@@ -152,6 +152,7 @@
 #include "MEM_guardedalloc.h"  // MEM_freeN
 
 #include "BKE_action.h"
+#include "BKE_anim_data.h"
 #include "BKE_armature.h"
 #include "BKE_blender_version.h"
 #include "BKE_bpath.h"
@@ -171,7 +172,6 @@
 #include "BKE_lib_override.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
-#include "BKE_nla.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_pointcache.h"
@@ -745,28 +745,6 @@ static void write_keyingsets(BlendWriter *writer, ListBase *list)
   }
 }
 
-static void write_animdata(BlendWriter *writer, AnimData *adt)
-{
-  /* firstly, just write the AnimData block */
-  BLO_write_struct(writer, AnimData, adt);
-
-  /* write drivers */
-  BKE_fcurve_blend_write(writer, &adt->drivers);
-
-  /* write overrides */
-  // FIXME: are these needed?
-  LISTBASE_FOREACH (AnimOverride *, aor, &adt->overrides) {
-    /* overrides consist of base data + rna_path */
-    BLO_write_struct(writer, AnimOverride, aor);
-    BLO_write_string(writer, aor->rna_path);
-  }
-
-  // TODO write the remaps (if they are needed)
-
-  /* write NLA data */
-  BKE_nla_blend_write(writer, &adt->nla_tracks);
-}
-
 static void write_node_socket_default_value(BlendWriter *writer, bNodeSocket *sock)
 {
   if (sock->default_value == NULL) {
@@ -838,7 +816,7 @@ static void write_nodetree_nolib(BlendWriter *writer, bNodeTree *ntree)
   /* for link_list() speed, we write per list */
 
   if (ntree->adt) {
-    write_animdata(writer, ntree->adt);
+    BKE_animdata_blend_write(writer, ntree->adt);
   }
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
@@ -1196,7 +1174,7 @@ static void write_particlesettings(BlendWriter *writer,
     write_iddata(writer, &part->id);
 
     if (part->adt) {
-      write_animdata(writer, part->adt);
+      BKE_animdata_blend_write(writer, part->adt);
     }
     BLO_write_struct(writer, PartDeflect, part->pd);
     BLO_write_struct(writer, PartDeflect, part->pd2);
@@ -1618,7 +1596,7 @@ static void write_object(BlendWriter *writer, Object *ob, const void *id_address
     write_iddata(writer, &ob->id);
 
     if (ob->adt) {
-      write_animdata(writer, ob->adt);
+      BKE_animdata_blend_write(writer, ob->adt);
     }
 
     /* direct data */
@@ -1702,7 +1680,7 @@ static void write_key(BlendWriter *writer, Key *key, const void *id_address)
     write_iddata(writer, &key->id);
 
     if (key->adt) {
-      write_animdata(writer, key->adt);
+      BKE_animdata_blend_write(writer, key->adt);
     }
 
     /* direct data */
@@ -1723,7 +1701,7 @@ static void write_camera(BlendWriter *writer, Camera *cam, const void *id_addres
     write_iddata(writer, &cam->id);
 
     if (cam->adt) {
-      write_animdata(writer, cam->adt);
+      BKE_animdata_blend_write(writer, cam->adt);
     }
 
     LISTBASE_FOREACH (CameraBGImage *, bgpic, &cam->bg_images) {
@@ -1750,7 +1728,7 @@ static void write_mball(BlendWriter *writer, MetaBall *mb, const void *id_addres
     /* direct data */
     BLO_write_pointer_array(writer, mb->totcol, mb->mat);
     if (mb->adt) {
-      write_animdata(writer, mb->adt);
+      BKE_animdata_blend_write(writer, mb->adt);
     }
 
     LISTBASE_FOREACH (MetaElem *, ml, &mb->elems) {
@@ -1774,7 +1752,7 @@ static void write_curve(BlendWriter *writer, Curve *cu, const void *id_address)
     /* direct data */
     BLO_write_pointer_array(writer, cu->totcol, cu->mat);
     if (cu->adt) {
-      write_animdata(writer, cu->adt);
+      BKE_animdata_blend_write(writer, cu->adt);
     }
 
     if (cu->vfont) {
@@ -1945,7 +1923,7 @@ static void write_mesh(BlendWriter *writer, Mesh *mesh, const void *id_address)
 
     /* direct data */
     if (mesh->adt) {
-      write_animdata(writer, mesh->adt);
+      BKE_animdata_blend_write(writer, mesh->adt);
     }
 
     BLO_write_pointer_array(writer, mesh->totcol, mesh->mat);
@@ -1990,7 +1968,7 @@ static void write_lattice(BlendWriter *writer, Lattice *lt, const void *id_addre
 
     /* write animdata */
     if (lt->adt) {
-      write_animdata(writer, lt->adt);
+      BKE_animdata_blend_write(writer, lt->adt);
     }
 
     /* direct data */
@@ -2048,7 +2026,7 @@ static void write_texture(BlendWriter *writer, Tex *tex, const void *id_address)
     write_iddata(writer, &tex->id);
 
     if (tex->adt) {
-      write_animdata(writer, tex->adt);
+      BKE_animdata_blend_write(writer, tex->adt);
     }
 
     /* direct data */
@@ -2078,7 +2056,7 @@ static void write_material(BlendWriter *writer, Material *ma, const void *id_add
     write_iddata(writer, &ma->id);
 
     if (ma->adt) {
-      write_animdata(writer, ma->adt);
+      BKE_animdata_blend_write(writer, ma->adt);
     }
 
     /* nodetree is integral part of material, no libdata */
@@ -2107,7 +2085,7 @@ static void write_world(BlendWriter *writer, World *wrld, const void *id_address
     write_iddata(writer, &wrld->id);
 
     if (wrld->adt) {
-      write_animdata(writer, wrld->adt);
+      BKE_animdata_blend_write(writer, wrld->adt);
     }
 
     /* nodetree is integral part of world, no libdata */
@@ -2128,7 +2106,7 @@ static void write_light(BlendWriter *writer, Light *la, const void *id_address)
     write_iddata(writer, &la->id);
 
     if (la->adt) {
-      write_animdata(writer, la->adt);
+      BKE_animdata_blend_write(writer, la->adt);
     }
 
     if (la->curfalloff) {
@@ -2299,7 +2277,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
   write_iddata(writer, &sce->id);
 
   if (sce->adt) {
-    write_animdata(writer, sce->adt);
+    BKE_animdata_blend_write(writer, sce->adt);
   }
   write_keyingsets(writer, &sce->keyingsets);
 
@@ -2533,7 +2511,7 @@ static void write_gpencil(BlendWriter *writer, bGPdata *gpd, const void *id_addr
     write_iddata(writer, &gpd->id);
 
     if (gpd->adt) {
-      write_animdata(writer, gpd->adt);
+      BKE_animdata_blend_write(writer, gpd->adt);
     }
 
     BLO_write_pointer_array(writer, gpd->totcol, gpd->mat);
@@ -2882,7 +2860,7 @@ static void write_armature(BlendWriter *writer, bArmature *arm, const void *id_a
     write_iddata(writer, &arm->id);
 
     if (arm->adt) {
-      write_animdata(writer, arm->adt);
+      BKE_animdata_blend_write(writer, arm->adt);
     }
 
     /* Direct data */
@@ -2930,7 +2908,7 @@ static void write_speaker(BlendWriter *writer, Speaker *spk, const void *id_addr
     write_iddata(writer, &spk->id);
 
     if (spk->adt) {
-      write_animdata(writer, spk->adt);
+      BKE_animdata_blend_write(writer, spk->adt);
     }
   }
 }
@@ -2964,7 +2942,7 @@ static void write_probe(BlendWriter *writer, LightProbe *prb, const void *id_add
     write_iddata(writer, &prb->id);
 
     if (prb->adt) {
-      write_animdata(writer, prb->adt);
+      BKE_animdata_blend_write(writer, prb->adt);
     }
   }
 }
@@ -3112,7 +3090,7 @@ static void write_movieclip(BlendWriter *writer, MovieClip *clip, const void *id
     write_iddata(writer, &clip->id);
 
     if (clip->adt) {
-      write_animdata(writer, clip->adt);
+      BKE_animdata_blend_write(writer, clip->adt);
     }
 
     write_movieTracks(writer, &tracking->tracks);
@@ -3141,7 +3119,7 @@ static void write_mask(BlendWriter *writer, Mask *mask, const void *id_address)
     write_iddata(writer, &mask->id);
 
     if (mask->adt) {
-      write_animdata(writer, mask->adt);
+      BKE_animdata_blend_write(writer, mask->adt);
     }
 
     for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
@@ -3451,7 +3429,7 @@ static void write_linestyle(BlendWriter *writer,
     write_iddata(writer, &linestyle->id);
 
     if (linestyle->adt) {
-      write_animdata(writer, linestyle->adt);
+      BKE_animdata_blend_write(writer, linestyle->adt);
     }
 
     write_linestyle_color_modifiers(writer, &linestyle->color_modifiers);
@@ -3482,7 +3460,7 @@ static void write_cachefile(BlendWriter *writer, CacheFile *cache_file, const vo
     BLO_write_id_struct(writer, CacheFile, id_address, &cache_file->id);
 
     if (cache_file->adt) {
-      write_animdata(writer, cache_file->adt);
+      BKE_animdata_blend_write(writer, cache_file->adt);
     }
   }
 }
@@ -3519,7 +3497,7 @@ static void write_hair(BlendWriter *writer, Hair *hair, const void *id_address)
     write_customdata(writer, &hair->id, hair->totcurve, &hair->cdata, clayers, CD_MASK_ALL);
     BLO_write_pointer_array(writer, hair->totcol, hair->mat);
     if (hair->adt) {
-      write_animdata(writer, hair->adt);
+      BKE_animdata_blend_write(writer, hair->adt);
     }
 
     /* Remove temporary data. */
@@ -3548,7 +3526,7 @@ static void write_pointcloud(BlendWriter *writer, PointCloud *pointcloud, const 
         writer, &pointcloud->id, pointcloud->totpoint, &pointcloud->pdata, players, CD_MASK_ALL);
     BLO_write_pointer_array(writer, pointcloud->totcol, pointcloud->mat);
     if (pointcloud->adt) {
-      write_animdata(writer, pointcloud->adt);
+      BKE_animdata_blend_write(writer, pointcloud->adt);
     }
 
     /* Remove temporary data. */
@@ -3571,7 +3549,7 @@ static void write_volume(BlendWriter *writer, Volume *volume, const void *id_add
     /* direct data */
     BLO_write_pointer_array(writer, volume->totcol, volume->mat);
     if (volume->adt) {
-      write_animdata(writer, volume->adt);
+      BKE_animdata_blend_write(writer, volume->adt);
     }
 
     if (volume->packedfile) {
@@ -3589,7 +3567,7 @@ static void write_simulation(BlendWriter *writer, Simulation *simulation, const 
     write_iddata(writer, &simulation->id);
 
     if (simulation->adt) {
-      write_animdata(writer, simulation->adt);
+      BKE_animdata_blend_write(writer, simulation->adt);
     }
 
     /* nodetree is integral part of simulation, no libdata */
