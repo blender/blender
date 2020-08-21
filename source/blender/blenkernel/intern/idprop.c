@@ -1335,11 +1335,11 @@ static void IDP_DirectLinkProperty(IDProperty *prop, BlendDataReader *reader)
       break;
     case IDP_DOUBLE:
       /* Workaround for doubles.
-       * They are stored in the same field as `int val, val2` in the IDPropertyData struct,
+       * They are stored in the same field as `int val, val2` in the #IDPropertyData struct,
        * they have to deal with endianness specifically.
        *
        * In theory, val and val2 would've already been swapped
-       * if switch_endian is true, so we have to first unswap
+       * if switch_endian is true, so we have to first un-swap
        * them then re-swap them as a single 64-bit entity. */
       if (BLO_read_requires_endian_switch(reader)) {
         BLI_endian_switch_int32(&prop->data.val);

@@ -22,7 +22,7 @@
  *
  * GPU shader interface (C --> GLSL)
  *
- * Structure detailling needed vertex inputs and resources for a specific shader.
+ * Structure detailing needed vertex inputs and resources for a specific shader.
  * A shader interface can be shared between two similar shaders.
  */
 

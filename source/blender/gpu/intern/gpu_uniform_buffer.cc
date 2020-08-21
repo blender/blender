@@ -101,7 +101,7 @@ static int inputs_cmp(const void *a, const void *b)
  */
 static void buffer_from_list_inputs_sort(ListBase *inputs)
 {
-/* Only support up to this type, if you want to extend it, make sure tstatic void
+/* Only support up to this type, if you want to extend it, make sure static void
  * inputs_sobuffer_size_compute *inputs) padding logic is correct for the new types. */
 #define MAX_UBO_GPU_TYPE GPU_MAT4
 

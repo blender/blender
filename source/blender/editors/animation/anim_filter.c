@@ -1555,7 +1555,7 @@ static size_t animfilter_nla(bAnimContext *UNUSED(ac),
       next = nlt->next;
     }
 
-    /* if we're in NLA-tweakmode, don't show this track if it was disabled
+    /* If we're in NLA-tweak-mode, don't show this track if it was disabled
      * (due to tweaking) for now:
      * - active track should still get shown though (even though it has disabled flag set)
      */
