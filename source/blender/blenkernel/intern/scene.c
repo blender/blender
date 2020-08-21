@@ -1129,15 +1129,9 @@ int BKE_scene_base_iter_next(
   return iter->phase;
 }
 
-Scene *BKE_scene_find_from_view_layer(const Main *bmain, const ViewLayer *layer)
+bool BKE_scene_has_view_layer(const Scene *scene, const ViewLayer *layer)
 {
-  for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
-    if (BLI_findindex(&scene->view_layers, layer) != -1) {
-      return scene;
-    }
-  }
-
-  return NULL;
+  return BLI_findindex(&scene->view_layers, layer) != -1;
 }
 
 Scene *BKE_scene_find_from_collection(const Main *bmain, const Collection *collection)
@@ -2255,9 +2249,11 @@ static Depsgraph **scene_get_depsgraph_p(Main *bmain,
                                          const bool allocate_ghash_entry,
                                          const bool allocate_depsgraph)
 {
+  /* bmain may be NULL here! */
   BLI_assert(scene != NULL);
   BLI_assert(view_layer != NULL);
-  BLI_assert(BKE_scene_find_from_view_layer(bmain, view_layer) == scene);
+  BLI_assert(BKE_scene_has_view_layer(scene, view_layer));
+
   /* Make sure hash itself exists. */
   if (allocate_ghash_entry) {
     BKE_scene_ensure_depsgraph_hash(scene);

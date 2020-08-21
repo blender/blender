@@ -929,7 +929,7 @@ static const char *rna_Scene_statistics_string_get(Scene *scene,
                                                    ReportList *reports,
                                                    ViewLayer *view_layer)
 {
-  if (BKE_scene_find_from_view_layer(bmain, view_layer) != scene) {
+  if (!BKE_scene_has_view_layer(scene, view_layer)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "View Layer '%s' not found in scene '%s'",
