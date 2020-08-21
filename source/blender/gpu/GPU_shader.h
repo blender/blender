@@ -31,12 +31,8 @@ struct GPUTexture;
 struct GPUUniformBuf;
 struct GPUVertBuf;
 
-/* TODO(fclem) These members should be private and the
- * whole struct should just be an opaque pointer. */
-typedef struct GPUShader {
-  /** For debugging purpose. */
-  char name[64];
-} GPUShader;
+/** Opaque type hidding blender::gpu::Shader */
+typedef struct GPUShader GPUShader;
 
 typedef enum eGPUShaderTFBType {
   GPU_SHADER_TFB_NONE = 0, /* Transform feedback unsupported. */

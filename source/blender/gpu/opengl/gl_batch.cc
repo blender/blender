@@ -225,7 +225,7 @@ GLuint GLVaoCache::base_instance_vao_get(GPUBatch *batch, int i_first)
 {
   this->context_check();
   /* Make sure the interface is up to date. */
-  Shader *shader = static_cast<Shader *>(GPU_context_active_get()->shader);
+  Shader *shader = GPU_context_active_get()->shader;
   GLShaderInterface *interface = static_cast<GLShaderInterface *>(shader->interface);
   if (interface_ != interface) {
     vao_get(batch);
@@ -256,7 +256,7 @@ GLuint GLVaoCache::vao_get(GPUBatch *batch)
 {
   this->context_check();
 
-  Shader *shader = static_cast<Shader *>(GPU_context_active_get()->shader);
+  Shader *shader = GPU_context_active_get()->shader;
   GLShaderInterface *interface = static_cast<GLShaderInterface *>(shader->interface);
   if (interface_ != interface) {
     interface_ = interface;

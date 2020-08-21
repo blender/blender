@@ -605,11 +605,7 @@ static bool ubo_bindings_validate(DRWShadingGroup *shgroup)
       DRWPass *parent_pass = DRW_memblock_elem_from_handle(DST.vmempool->passes,
                                                            &shgroup->pass_handle);
 
-      printf("Pass : %s, Shader : %s, Block : %s, Binding %d\n",
-             parent_pass->name,
-             shgroup->shader->name,
-             blockname,
-             binding);
+      printf("Pass : %s, Block : %s, Binding %d\n", parent_pass->name, blockname, binding);
     }
   }
 #  endif

@@ -407,6 +407,6 @@ void VertexFormat_pack(GPUVertFormat *format)
 
 void GPU_vertformat_from_shader(GPUVertFormat *format, const struct GPUShader *gpushader)
 {
-  const Shader *shader = static_cast<const Shader *>(gpushader);
+  const Shader *shader = reinterpret_cast<const Shader *>(gpushader);
   shader->vertformat_from_shader(format);
 }

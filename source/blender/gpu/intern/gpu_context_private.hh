@@ -29,6 +29,7 @@
 
 #include "GPU_context.h"
 
+#include "gpu_shader_private.hh"
 #include "gpu_state_private.hh"
 
 #include <mutex>
@@ -43,7 +44,7 @@ struct GPUMatrixState;
 struct GPUContext {
  public:
   /** State managment */
-  GPUShader *shader = NULL;
+  blender::gpu::Shader *shader = NULL;
   GPUFrameBuffer *current_fbo = NULL;
   GPUMatrixState *matrix_state = NULL;
   blender::gpu::GPUStateManager *state_manager = NULL;

@@ -29,10 +29,14 @@
 namespace blender {
 namespace gpu {
 
-class Shader : public GPUShader {
+class Shader {
  public:
   /** Uniform & attribute locations for shader. */
   ShaderInterface *interface;
+
+ protected:
+  /** For debugging purpose. */
+  char name[64];
 
  public:
   Shader(const char *name);
