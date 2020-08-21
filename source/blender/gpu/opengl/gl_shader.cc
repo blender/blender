@@ -151,6 +151,7 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage, MutableSpan<const char *> 
   }
   if (!status) {
     glDeleteShader(shader);
+    compilation_failed_ = true;
     return 0;
   }
 
@@ -193,6 +194,10 @@ void GLShader::fragment_shader_from_glsl(MutableSpan<const char *> sources)
 
 bool GLShader::finalize(void)
 {
+  if (compilation_failed_) {
+    return false;
+  }
+
   glLinkProgram(shader_program_);
 
   GLint status;

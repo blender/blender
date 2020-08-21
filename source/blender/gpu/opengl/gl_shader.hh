@@ -39,10 +39,12 @@ class GLShader : public Shader {
  private:
   /** Handle for full program (links shader stages below). */
   GLuint shader_program_ = 0;
-
+  /** Individual shader stages. */
   GLuint vert_shader_ = 0;
   GLuint geom_shader_ = 0;
   GLuint frag_shader_ = 0;
+  /** True if any shader failed to compile. */
+  bool compilation_failed_ = false;
 
   eGPUShaderTFBType transform_feedback_type_ = GPU_SHADER_TFB_NONE;
 
