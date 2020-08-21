@@ -59,13 +59,21 @@
 
 static CLG_LogRef LOG = {"bke.fcurve"};
 
-/* ************************** Data-Level Functions ************************* */
+/* -------------------------------------------------------------------- */
+/** \name F-Curve Data Create
+ * \{ */
+
 FCurve *BKE_fcurve_create(void)
 {
   FCurve *fcu = MEM_callocN(sizeof(FCurve), __func__);
   return fcu;
 }
-/* ---------------------- Freeing --------------------------- */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name F-Curve Data Free
+ * \{ */
 
 /* Frees the F-Curve itself too, so make sure BLI_remlink is called before calling this... */
 void BKE_fcurve_free(FCurve *fcu)
@@ -112,7 +120,11 @@ void BKE_fcurves_free(ListBase *list)
   BLI_listbase_clear(list);
 }
 
-/* ---------------------- Copy --------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name F-Curve Data Copy
+ * \{ */
 
 /* duplicate an F-Curve */
 FCurve *BKE_fcurve_copy(const FCurve *fcu)
@@ -480,7 +492,11 @@ FCurve *BKE_fcurve_find_by_rna_context_ui(bContext *C,
   return fcu;
 }
 
-/* ----------------- Finding Keyframes/Extents -------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Finding Keyframes/Extents
+ * \{ */
 
 /* Binary search algorithm for finding where to insert BezTriple,
  * with optional argument for precision required.
@@ -811,7 +827,11 @@ bool BKE_fcurve_calc_range(
   return foundvert;
 }
 
-/* ----------------- Status Checks -------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Status Checks
+ * \{ */
 
 /* Are keyframes on F-Curve of any use?
  * Usability of keyframes refers to whether they should be displayed,
@@ -901,7 +921,11 @@ bool BKE_fcurve_is_keyframable(FCurve *fcu)
   return true;
 }
 
-/* ***************************** Keyframe Column Tools ********************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Keyframe Column Tools
+ * \{ */
 
 /* add a BezTriple to a column */
 void bezt_add_to_cfra_elem(ListBase *lb, BezTriple *bezt)
@@ -935,7 +959,12 @@ void bezt_add_to_cfra_elem(ListBase *lb, BezTriple *bezt)
   cen->sel = bezt->f2;
 }
 
-/* ***************************** Samples Utilities ******************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Samples Utilities
+ * \{ */
+
 /* Some utilities for working with FPoints (i.e. 'sampled' animation curve data, such as
  * data imported from BVH/Mocap files), which are specialized for use with high density datasets,
  * which BezTriples/Keyframe data are ill equipped to do.
@@ -1273,7 +1302,11 @@ short test_time_fcurve(FCurve *fcu)
   return 0;
 }
 
-/* ***************************** Curve Calculations ********************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name F-Curve Calculations
+ * \{ */
 
 /* The total length of the handles is not allowed to be more
  * than the horizontal distance between (v1-v4).
@@ -1451,7 +1484,11 @@ static void berekeny(float f1, float f2, float f3, float f4, float *o, int b)
   }
 }
 
-/* -------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name F-Curve Evaluation
+ * \{ */
 
 static float fcurve_eval_keyframes_extrapolate(
     FCurve *fcu, BezTriple *bezts, float evaltime, int endpoint_offset, int direction_to_neighbor)
@@ -1814,7 +1851,11 @@ static float fcurve_eval_samples(FCurve *fcu, FPoint *fpts, float evaltime)
   return cvalue;
 }
 
-/* ***************************** F-Curve - Evaluation ********************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name F-Curve - Evaluation
+ * \{ */
 
 /* Evaluate and return the value of the given F-Curve at the specified frame ("evaltime")
  * Note: this is also used for drivers
@@ -1950,7 +1991,11 @@ float calculate_fcurve(PathResolvedRNA *anim_rna,
   return curval;
 }
 
-/* ***************************** F-Curve - .blend file API ********************************* */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name F-Curve - .blend file API
+ * \{ */
 
 void BKE_fmodifiers_blend_write(BlendWriter *writer, ListBase *fmodifiers)
 {
@@ -2208,3 +2253,5 @@ void BKE_fcurve_blend_expand(BlendExpander *expander, ListBase *fcurves)
     BKE_fmodifiers_blend_expand(expander, &fcu->modifiers);
   }
 }
+
+/** \} */
