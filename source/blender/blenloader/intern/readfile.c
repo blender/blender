@@ -141,6 +141,7 @@
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
+#include "BKE_nla.h"
 #include "BKE_node.h"  // for tree type defines
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -2757,60 +2758,6 @@ static void direct_link_action(BlendDataReader *reader, bAction *act)
   }
 }
 
-static void lib_link_nladata_strips(BlendLibReader *reader, ID *id, ListBase *list)
-{
-  LISTBASE_FOREACH (NlaStrip *, strip, list) {
-    /* check strip's children */
-    lib_link_nladata_strips(reader, id, &strip->strips);
-
-    /* check strip's F-Curves */
-    BKE_fcurve_blend_lib_read(reader, id, &strip->fcurves);
-
-    /* reassign the counted-reference to action */
-    BLO_read_id_address(reader, id->lib, &strip->act);
-  }
-}
-
-static void lib_link_nladata(BlendLibReader *reader, ID *id, ListBase *list)
-{
-  /* we only care about the NLA strips inside the tracks */
-  LISTBASE_FOREACH (NlaTrack *, nlt, list) {
-    lib_link_nladata_strips(reader, id, &nlt->strips);
-  }
-}
-
-/* This handles Animato NLA-Strips linking
- * NOTE: this assumes that link_list has already been called on the list
- */
-static void direct_link_nladata_strips(BlendDataReader *reader, ListBase *list)
-{
-  LISTBASE_FOREACH (NlaStrip *, strip, list) {
-    /* strip's child strips */
-    BLO_read_list(reader, &strip->strips);
-    direct_link_nladata_strips(reader, &strip->strips);
-
-    /* strip's F-Curves */
-    BLO_read_list(reader, &strip->fcurves);
-    BKE_fcurve_blend_data_read(reader, &strip->fcurves);
-
-    /* strip's F-Modifiers */
-    BLO_read_list(reader, &strip->modifiers);
-    BKE_fmodifiers_blend_data_read(reader, &strip->modifiers, NULL);
-  }
-}
-
-/* NOTE: this assumes that BLO_read_list has already been called on the list */
-static void direct_link_nladata(BlendDataReader *reader, ListBase *list)
-{
-  LISTBASE_FOREACH (NlaTrack *, nlt, list) {
-    /* relink list of strips */
-    BLO_read_list(reader, &nlt->strips);
-
-    /* relink strip data */
-    direct_link_nladata_strips(reader, &nlt->strips);
-  }
-}
-
 /* ------- */
 
 static void lib_link_keyingsets(BlendLibReader *reader, ID *id, ListBase *list)
@@ -2856,7 +2803,7 @@ static void lib_link_animdata(BlendLibReader *reader, ID *id, AnimData *adt)
   /* overrides don't have lib-link for now, so no need to do anything */
 
   /* link NLA-data */
-  lib_link_nladata(reader, id, &adt->nla_tracks);
+  BKE_nla_blend_lib_read(reader, id, &adt->nla_tracks);
 }
 
 static void direct_link_animdata(BlendDataReader *reader, AnimData *adt)
@@ -2876,7 +2823,7 @@ static void direct_link_animdata(BlendDataReader *reader, AnimData *adt)
 
   /* link NLA-data */
   BLO_read_list(reader, &adt->nla_tracks);
-  direct_link_nladata(reader, &adt->nla_tracks);
+  BKE_nla_blend_data_read(reader, &adt->nla_tracks);
 
   /* relink active track/strip - even though strictly speaking this should only be used
    * if we're in 'tweaking mode', we need to be able to have this loaded back for
@@ -9777,23 +9724,6 @@ static void expand_constraint_channels(BlendExpander *expander, ListBase *chanba
   }
 }
 
-static void expand_animdata_nlastrips(BlendExpander *expander, ListBase *list)
-{
-  LISTBASE_FOREACH (NlaStrip *, strip, list) {
-    /* check child strips */
-    expand_animdata_nlastrips(expander, &strip->strips);
-
-    /* check F-Curves */
-    BKE_fcurve_blend_expand(expander, &strip->fcurves);
-
-    /* check F-Modifiers */
-    BKE_fmodifiers_blend_expand(expander, &strip->modifiers);
-
-    /* relink referenced action */
-    BLO_expand(expander, strip->act);
-  }
-}
-
 static void expand_animdata(BlendExpander *expander, AnimData *adt)
 {
   /* own action */
@@ -9802,11 +9732,6 @@ static void expand_animdata(BlendExpander *expander, AnimData *adt)
 
   /* drivers - assume that these F-Curves have driver data to be in this list... */
   BKE_fcurve_blend_expand(expander, &adt->drivers);
-
-  /* nla-data - referenced actions */
-  LISTBASE_FOREACH (NlaTrack *, nlt, &adt->nla_tracks) {
-    expand_animdata_nlastrips(expander, &nlt->strips);
-  }
 }
 
 static void expand_id(BlendExpander *expander, ID *id);

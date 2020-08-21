@@ -171,6 +171,7 @@
 #include "BKE_lib_override.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
+#include "BKE_nla.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_pointcache.h"
@@ -744,31 +745,6 @@ static void write_keyingsets(BlendWriter *writer, ListBase *list)
   }
 }
 
-static void write_nlastrips(BlendWriter *writer, ListBase *strips)
-{
-  BLO_write_struct_list(writer, NlaStrip, strips);
-  LISTBASE_FOREACH (NlaStrip *, strip, strips) {
-    /* write the strip's F-Curves and modifiers */
-    BKE_fcurve_blend_write(writer, &strip->fcurves);
-    BKE_fmodifiers_blend_write(writer, &strip->modifiers);
-
-    /* write the strip's children */
-    write_nlastrips(writer, &strip->strips);
-  }
-}
-
-static void write_nladata(BlendWriter *writer, ListBase *nlabase)
-{
-  /* write all the tracks */
-  LISTBASE_FOREACH (NlaTrack *, nlt, nlabase) {
-    /* write the track first */
-    BLO_write_struct(writer, NlaTrack, nlt);
-
-    /* write the track's strips */
-    write_nlastrips(writer, &nlt->strips);
-  }
-}
-
 static void write_animdata(BlendWriter *writer, AnimData *adt)
 {
   /* firstly, just write the AnimData block */
@@ -788,7 +764,7 @@ static void write_animdata(BlendWriter *writer, AnimData *adt)
   // TODO write the remaps (if they are needed)
 
   /* write NLA data */
-  write_nladata(writer, &adt->nla_tracks);
+  BKE_nla_blend_write(writer, &adt->nla_tracks);
 }
 
 static void write_node_socket_default_value(BlendWriter *writer, bNodeSocket *sock)
