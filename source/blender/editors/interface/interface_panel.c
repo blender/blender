@@ -606,7 +606,7 @@ static void panels_collapse_all(const bContext *C, ARegion *region, const Panel 
       if (!pt->context[0] || !from_pt->context[0] || STREQ(pt->context, from_pt->context)) {
         if ((panel->flag & PNL_PIN) || !category || !pt->category[0] ||
             STREQ(pt->category, category)) {
-          panel->flag &= ~PNL_CLOSED;
+          panel->flag |= PNL_CLOSED;
         }
       }
     }
