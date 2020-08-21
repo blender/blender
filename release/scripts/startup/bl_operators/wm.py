@@ -1378,7 +1378,7 @@ class WM_OT_properties_edit(Operator):
             return {'CANCELLED'}
 
         # retrieve overridable static
-        is_overridable = item.is_property_overridable_library(f'["{self.property}"]')
+        is_overridable = item.is_property_overridable_library('["%s"]' % self.property)
         self.is_overridable_library = bool(is_overridable)
 
 
