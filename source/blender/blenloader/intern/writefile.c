@@ -710,13 +710,11 @@ static void write_previews(BlendWriter *writer, const PreviewImage *prv_orig)
 
 static void write_fmodifiers(BlendWriter *writer, ListBase *fmodifiers)
 {
-  FModifier *fcm;
-
   /* Write all modifiers first (for faster reloading) */
   BLO_write_struct_list(writer, FModifier, fmodifiers);
 
   /* Modifiers */
-  for (fcm = fmodifiers->first; fcm; fcm = fcm->next) {
+  LISTBASE_FOREACH (FModifier *, fcm, fmodifiers) {
     const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 
     /* Write the specific data */
@@ -762,10 +760,8 @@ static void write_fmodifiers(BlendWriter *writer, ListBase *fmodifiers)
 
 static void write_fcurves(BlendWriter *writer, ListBase *fcurves)
 {
-  FCurve *fcu;
-
   BLO_write_struct_list(writer, FCurve, fcurves);
-  for (fcu = fcurves->first; fcu; fcu = fcu->next) {
+  LISTBASE_FOREACH (FCurve *, fcu, fcurves) {
     /* curve data */
     if (fcu->bezt) {
       BLO_write_struct_array(writer, BezTriple, fcu->totvert, fcu->bezt);
@@ -781,13 +777,12 @@ static void write_fcurves(BlendWriter *writer, ListBase *fcurves)
     /* driver data */
     if (fcu->driver) {
       ChannelDriver *driver = fcu->driver;
-      DriverVar *dvar;
 
       BLO_write_struct(writer, ChannelDriver, driver);
 
       /* variables */
       BLO_write_struct_list(writer, DriverVar, &driver->variables);
-      for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
+      LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
         DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
           if (dtar->rna_path) {
             BLO_write_string(writer, dtar->rna_path);
@@ -822,15 +817,12 @@ static void write_action(BlendWriter *writer, bAction *act, const void *id_addre
 
 static void write_keyingsets(BlendWriter *writer, ListBase *list)
 {
-  KeyingSet *ks;
-  KS_Path *ksp;
-
-  for (ks = list->first; ks; ks = ks->next) {
+  LISTBASE_FOREACH (KeyingSet *, ks, list) {
     /* KeyingSet */
     BLO_write_struct(writer, KeyingSet, ks);
 
     /* Paths */
-    for (ksp = ks->paths.first; ksp; ksp = ksp->next) {
+    LISTBASE_FOREACH (KS_Path *, ksp, &ks->paths) {
       /* Path */
       BLO_write_struct(writer, KS_Path, ksp);
 
@@ -843,10 +835,8 @@ static void write_keyingsets(BlendWriter *writer, ListBase *list)
 
 static void write_nlastrips(BlendWriter *writer, ListBase *strips)
 {
-  NlaStrip *strip;
-
   BLO_write_struct_list(writer, NlaStrip, strips);
-  for (strip = strips->first; strip; strip = strip->next) {
+  LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     /* write the strip's F-Curves and modifiers */
     write_fcurves(writer, &strip->fcurves);
     write_fmodifiers(writer, &strip->modifiers);
@@ -858,10 +848,8 @@ static void write_nlastrips(BlendWriter *writer, ListBase *strips)
 
 static void write_nladata(BlendWriter *writer, ListBase *nlabase)
 {
-  NlaTrack *nlt;
-
   /* write all the tracks */
-  for (nlt = nlabase->first; nlt; nlt = nlt->next) {
+  LISTBASE_FOREACH (NlaTrack *, nlt, nlabase) {
     /* write the track first */
     BLO_write_struct(writer, NlaTrack, nlt);
 
@@ -872,8 +860,6 @@ static void write_nladata(BlendWriter *writer, ListBase *nlabase)
 
 static void write_animdata(BlendWriter *writer, AnimData *adt)
 {
-  AnimOverride *aor;
-
   /* firstly, just write the AnimData block */
   BLO_write_struct(writer, AnimData, adt);
 
@@ -882,7 +868,7 @@ static void write_animdata(BlendWriter *writer, AnimData *adt)
 
   /* write overrides */
   // FIXME: are these needed?
-  for (aor = adt->overrides.first; aor; aor = aor->next) {
+  LISTBASE_FOREACH (AnimOverride *, aor, &adt->overrides) {
     /* overrides consist of base data + rna_path */
     BLO_write_struct(writer, AnimOverride, aor);
     BLO_write_string(writer, aor->rna_path);
@@ -962,31 +948,27 @@ static void write_node_socket_interface(BlendWriter *writer, bNodeSocket *sock)
 /* this is only direct data, tree itself should have been written */
 static void write_nodetree_nolib(BlendWriter *writer, bNodeTree *ntree)
 {
-  bNode *node;
-  bNodeSocket *sock;
-  bNodeLink *link;
-
   /* for link_list() speed, we write per list */
 
   if (ntree->adt) {
     write_animdata(writer, ntree->adt);
   }
 
-  for (node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     BLO_write_struct(writer, bNode, node);
 
     if (node->prop) {
       IDP_BlendWrite(writer, node->prop);
     }
 
-    for (sock = node->inputs.first; sock; sock = sock->next) {
+    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
       write_node_socket(writer, sock);
     }
-    for (sock = node->outputs.first; sock; sock = sock->next) {
+    LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
       write_node_socket(writer, sock);
     }
 
-    for (link = node->internal_links.first; link; link = link->next) {
+    LISTBASE_FOREACH (bNodeLink *, link, &node->internal_links) {
       BLO_write_struct(writer, bNodeLink, link);
     }
 
@@ -1050,26 +1032,26 @@ static void write_nodetree_nolib(BlendWriter *writer, bNodeTree *ntree)
 
     if (node->type == CMP_NODE_OUTPUT_FILE) {
       /* inputs have own storage data */
-      for (sock = node->inputs.first; sock; sock = sock->next) {
+      LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
         BLO_write_struct(writer, NodeImageMultiFileSocket, sock->storage);
       }
     }
     if (ELEM(node->type, CMP_NODE_IMAGE, CMP_NODE_R_LAYERS)) {
       /* write extra socket info */
-      for (sock = node->outputs.first; sock; sock = sock->next) {
+      LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
         BLO_write_struct(writer, NodeImageLayer, sock->storage);
       }
     }
   }
 
-  for (link = ntree->links.first; link; link = link->next) {
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
     BLO_write_struct(writer, bNodeLink, link);
   }
 
-  for (sock = ntree->inputs.first; sock; sock = sock->next) {
+  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs) {
     write_node_socket_interface(writer, sock);
   }
-  for (sock = ntree->outputs.first; sock; sock = sock->next) {
+  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs) {
     write_node_socket_interface(writer, sock);
   }
 }
@@ -1131,15 +1113,15 @@ typedef struct RenderInfo {
 static void write_renderinfo(WriteData *wd, Main *mainvar)
 {
   bScreen *curscreen;
-  Scene *sce, *curscene = NULL;
+  Scene *curscene = NULL;
   ViewLayer *view_layer;
-  RenderInfo data;
 
   /* XXX in future, handle multiple windows with multiple screens? */
   current_screen_compat(mainvar, false, &curscreen, &curscene, &view_layer);
 
-  for (sce = mainvar->scenes.first; sce; sce = sce->id.next) {
+  LISTBASE_FOREACH (Scene *, sce, &mainvar->scenes) {
     if (sce->id.lib == NULL && (sce == curscene || (sce->r.scemode & R_BG_RENDER))) {
+      RenderInfo data;
       data.sfra = sce->r.sfra;
       data.efra = sce->r.efra;
       memset(data.scene_name, 0, sizeof(data.scene_name));
@@ -1234,11 +1216,9 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
 
 static void write_boid_state(BlendWriter *writer, BoidState *state)
 {
-  BoidRule *rule = state->rules.first;
-
   BLO_write_struct(writer, BoidState, state);
 
-  for (; rule; rule = rule->next) {
+  LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
     switch (rule->type) {
       case eBoidRuleType_Goal:
       case eBoidRuleType_Avoid:
@@ -1287,21 +1267,14 @@ static const char *ptcache_extra_struct[] = {
 };
 static void write_pointcaches(BlendWriter *writer, ListBase *ptcaches)
 {
-  PointCache *cache = ptcaches->first;
-  int i;
-
-  for (; cache; cache = cache->next) {
+  LISTBASE_FOREACH (PointCache *, cache, ptcaches) {
     BLO_write_struct(writer, PointCache, cache);
 
     if ((cache->flag & PTCACHE_DISK_CACHE) == 0) {
-      PTCacheMem *pm = cache->mem_cache.first;
-
-      for (; pm; pm = pm->next) {
-        PTCacheExtra *extra = pm->extradata.first;
-
+      LISTBASE_FOREACH (PTCacheMem *, pm, &cache->mem_cache) {
         BLO_write_struct(writer, PTCacheMem, pm);
 
-        for (i = 0; i < BPHYS_TOT_DATA; i++) {
+        for (int i = 0; i < BPHYS_TOT_DATA; i++) {
           if (pm->data[i] && pm->data_types & (1 << i)) {
             if (ptcache_data_struct[i][0] == '\0') {
               BLO_write_raw(writer, MEM_allocN_len(pm->data[i]), pm->data[i]);
@@ -1313,7 +1286,7 @@ static void write_pointcaches(BlendWriter *writer, ListBase *ptcaches)
           }
         }
 
-        for (; extra; extra = extra->next) {
+        LISTBASE_FOREACH (PTCacheExtra *, extra, &pm->extradata) {
           if (ptcache_extra_struct[extra->type][0] == '\0') {
             continue;
           }
@@ -1390,11 +1363,7 @@ static void write_particlesettings(BlendWriter *writer,
 
 static void write_particlesystems(BlendWriter *writer, ListBase *particles)
 {
-  ParticleSystem *psys = particles->first;
-  ParticleTarget *pt;
-  int a;
-
-  for (; psys; psys = psys->next) {
+  LISTBASE_FOREACH (ParticleSystem *, psys, particles) {
     BLO_write_struct(writer, ParticleSystem, psys);
 
     if (psys->particles) {
@@ -1403,7 +1372,7 @@ static void write_particlesystems(BlendWriter *writer, ListBase *particles)
       if (psys->particles->hair) {
         ParticleData *pa = psys->particles;
 
-        for (a = 0; a < psys->totpart; a++, pa++) {
+        for (int a = 0; a < psys->totpart; a++, pa++) {
           BLO_write_struct_array(writer, HairKey, pa->totkey, pa->hair);
         }
       }
@@ -1418,8 +1387,7 @@ static void write_particlesystems(BlendWriter *writer, ListBase *particles)
             writer, ParticleSpring, psys->tot_fluidsprings, psys->fluid_springs);
       }
     }
-    pt = psys->targets.first;
-    for (; pt; pt = pt->next) {
+    LISTBASE_FOREACH (ParticleTarget *, pt, &psys->targets) {
       BLO_write_struct(writer, ParticleTarget, pt);
     }
 
@@ -1453,9 +1421,7 @@ static void write_motionpath(BlendWriter *writer, bMotionPath *mpath)
 
 static void write_constraints(BlendWriter *writer, ListBase *conlist)
 {
-  bConstraint *con;
-
-  for (con = conlist->first; con; con = con->next) {
+  LISTBASE_FOREACH (bConstraint *, con, conlist) {
     const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 
     /* Write the specific data */
@@ -1467,10 +1433,9 @@ static void write_constraints(BlendWriter *writer, ListBase *conlist)
       switch (con->type) {
         case CONSTRAINT_TYPE_PYTHON: {
           bPythonConstraint *data = con->data;
-          bConstraintTarget *ct;
 
           /* write targets */
-          for (ct = data->targets.first; ct; ct = ct->next) {
+          LISTBASE_FOREACH (bConstraintTarget *, ct, &data->targets) {
             BLO_write_struct(writer, bConstraintTarget, ct);
           }
 
@@ -1482,10 +1447,9 @@ static void write_constraints(BlendWriter *writer, ListBase *conlist)
         }
         case CONSTRAINT_TYPE_ARMATURE: {
           bArmatureConstraint *data = con->data;
-          bConstraintTarget *ct;
 
           /* write targets */
-          for (ct = data->targets.first; ct; ct = ct->next) {
+          LISTBASE_FOREACH (bConstraintTarget *, ct, &data->targets) {
             BLO_write_struct(writer, bConstraintTarget, ct);
           }
 
@@ -1509,9 +1473,6 @@ static void write_constraints(BlendWriter *writer, ListBase *conlist)
 
 static void write_pose(BlendWriter *writer, bPose *pose, bArmature *arm)
 {
-  bPoseChannel *chan;
-  bActionGroup *grp;
-
   /* Write each channel */
   if (pose == NULL) {
     return;
@@ -1520,7 +1481,7 @@ static void write_pose(BlendWriter *writer, bPose *pose, bArmature *arm)
   BLI_assert(arm != NULL);
 
   /* Write channels */
-  for (chan = pose->chanbase.first; chan; chan = chan->next) {
+  LISTBASE_FOREACH (bPoseChannel *, chan, &pose->chanbase) {
     /* Write ID Properties -- and copy this comment EXACTLY for easy finding
      * of library blocks that implement this.*/
     if (chan->prop) {
@@ -1546,7 +1507,7 @@ static void write_pose(BlendWriter *writer, bPose *pose, bArmature *arm)
   }
 
   /* Write groups */
-  for (grp = pose->agroups.first; grp; grp = grp->next) {
+  LISTBASE_FOREACH (bActionGroup *, grp, &pose->agroups) {
     BLO_write_struct(writer, bActionGroup, grp);
   }
 
@@ -1578,13 +1539,11 @@ static void write_fmaps(BlendWriter *writer, ListBase *fbase)
 
 static void write_modifiers(BlendWriter *writer, ListBase *modbase)
 {
-  ModifierData *md;
-
   if (modbase == NULL) {
     return;
   }
 
-  for (md = modbase->first; md; md = md->next) {
+  LISTBASE_FOREACH (ModifierData *, md, modbase) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
     if (mti == NULL) {
       return;
@@ -1643,15 +1602,14 @@ static void write_modifiers(BlendWriter *writer, ListBase *modbase)
       DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 
       if (pmd->canvas) {
-        DynamicPaintSurface *surface;
         BLO_write_struct(writer, DynamicPaintCanvasSettings, pmd->canvas);
 
         /* write surfaces */
-        for (surface = pmd->canvas->surfaces.first; surface; surface = surface->next) {
+        LISTBASE_FOREACH (DynamicPaintSurface *, surface, &pmd->canvas->surfaces) {
           BLO_write_struct(writer, DynamicPaintSurface, surface);
         }
         /* write caches and effector weights */
-        for (surface = pmd->canvas->surfaces.first; surface; surface = surface->next) {
+        LISTBASE_FOREACH (DynamicPaintSurface *, surface, &pmd->canvas->surfaces) {
           write_pointcaches(writer, &(surface->ptcaches));
 
           BLO_write_struct(writer, EffectorWeights, surface->effector_weights);
@@ -1683,13 +1641,11 @@ static void write_modifiers(BlendWriter *writer, ListBase *modbase)
 
 static void write_gpencil_modifiers(BlendWriter *writer, ListBase *modbase)
 {
-  GpencilModifierData *md;
-
   if (modbase == NULL) {
     return;
   }
 
-  for (md = modbase->first; md; md = md->next) {
+  LISTBASE_FOREACH (GpencilModifierData *, md, modbase) {
     const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(md->type);
     if (mti == NULL) {
       return;
@@ -1750,13 +1706,11 @@ static void write_gpencil_modifiers(BlendWriter *writer, ListBase *modbase)
 
 static void write_shaderfxs(BlendWriter *writer, ListBase *fxbase)
 {
-  ShaderFxData *fx;
-
   if (fxbase == NULL) {
     return;
   }
 
-  for (fx = fxbase->first; fx; fx = fx->next) {
+  LISTBASE_FOREACH (ShaderFxData *, fx, fxbase) {
     const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(fx->type);
     if (fxi == NULL) {
       return;
@@ -1985,10 +1939,8 @@ static void write_dverts(BlendWriter *writer, int count, MDeformVert *dvlist)
 static void write_mdisps(BlendWriter *writer, int count, MDisps *mdlist, int external)
 {
   if (mdlist) {
-    int i;
-
     BLO_write_struct_array(writer, MDisps, count, mdlist);
-    for (i = 0; i < count; i++) {
+    for (int i = 0; i < count; i++) {
       MDisps *md = &mdlist[i];
       if (md->disps) {
         if (!external) {
@@ -2006,10 +1958,8 @@ static void write_mdisps(BlendWriter *writer, int count, MDisps *mdlist, int ext
 static void write_grid_paint_mask(BlendWriter *writer, int count, GridPaintMask *grid_paint_mask)
 {
   if (grid_paint_mask) {
-    int i;
-
     BLO_write_struct_array(writer, GridPaintMask, count, grid_paint_mask);
-    for (i = 0; i < count; i++) {
+    for (int i = 0; i < count; i++) {
       GridPaintMask *gpm = &grid_paint_mask[i];
       if (gpm->data) {
         const int gridsize = BKE_ccg_gridsize(gpm->level);
@@ -2026,8 +1976,6 @@ static void write_customdata(BlendWriter *writer,
                              CustomDataLayer *layers,
                              CustomDataMask cddata_mask)
 {
-  int i;
-
   /* write external customdata (not for undo) */
   if (data->external && !BLO_write_is_undo(writer)) {
     CustomData_external_write(data, id, cddata_mask, count, 0);
@@ -2035,7 +1983,7 @@ static void write_customdata(BlendWriter *writer,
 
   BLO_write_struct_array_at_address(writer, CustomDataLayer, data->totlayer, data->layers, layers);
 
-  for (i = 0; i < data->totlayer; i++) {
+  for (int i = 0; i < data->totlayer; i++) {
     CustomDataLayer *layer = &layers[i];
     const char *structname;
     int structnum, datasize;
@@ -2344,9 +2292,7 @@ static void write_collection(BlendWriter *writer, Collection *collection, const 
 
 static void write_sequence_modifiers(BlendWriter *writer, ListBase *modbase)
 {
-  SequenceModifierData *smd;
-
-  for (smd = modbase->first; smd; smd = smd->next) {
+  LISTBASE_FOREACH (SequenceModifierData *, smd, modbase) {
     const SequenceModifierTypeInfo *smti = BKE_sequence_modifier_type_info_get(smd->type);
 
     if (smti) {
@@ -2914,18 +2860,16 @@ static void write_area_regions(BlendWriter *writer, ScrArea *area)
     }
     else if (sl->spacetype == SPACE_NODE) {
       SpaceNode *snode = (SpaceNode *)sl;
-      bNodeTreePath *path;
       BLO_write_struct(writer, SpaceNode, snode);
 
-      for (path = snode->treepath.first; path; path = path->next) {
+      LISTBASE_FOREACH (bNodeTreePath *, path, &snode->treepath) {
         BLO_write_struct(writer, bNodeTreePath, path);
       }
     }
     else if (sl->spacetype == SPACE_CONSOLE) {
       SpaceConsole *con = (SpaceConsole *)sl;
-      ConsoleLine *cl;
 
-      for (cl = con->history.first; cl; cl = cl->next) {
+      LISTBASE_FOREACH (ConsoleLine *, cl, &con->history) {
         /* 'len_alloc' is invalid on write, set from 'len' on read */
         BLO_write_struct(writer, ConsoleLine, cl);
         BLO_write_raw(writer, cl->len + 1, cl->line);
@@ -4051,9 +3995,9 @@ static bool write_file_handle(Main *mainvar,
         memcpy(id_buffer, id, idtype_struct_size);
 
         ((ID *)id_buffer)->tag = 0;
-        /* Those listbase data change every time we add/remove an ID, and also often when renaming
-         * one (due to re-sorting). This avoids generating a lot of false 'is changed' detections
-         * between undo steps. */
+        /* Those listbase data change every time we add/remove an ID, and also often when
+         * renaming one (due to re-sorting). This avoids generating a lot of false 'is changed'
+         * detections between undo steps. */
         ((ID *)id_buffer)->prev = NULL;
         ((ID *)id_buffer)->next = NULL;
 
@@ -4330,7 +4274,8 @@ bool BLO_write_file(Main *mainvar,
   if (remap_mode != BLO_WRITE_PATH_REMAP_NONE) {
 
     if (remap_mode == BLO_WRITE_PATH_REMAP_RELATIVE) {
-      /* Make all relative as none of the existing paths can be relative in an unsaved document. */
+      /* Make all relative as none of the existing paths can be relative in an unsaved document.
+       */
       if (G.relbase_valid == false) {
         remap_mode = BLO_WRITE_PATH_REMAP_RELATIVE_ALL;
       }
