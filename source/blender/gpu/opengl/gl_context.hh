@@ -32,12 +32,12 @@
 
 #include "glew-mx.h"
 
-#include "gl_batch.hh"
-
 #include <mutex>
 
 namespace blender {
 namespace gpu {
+
+class GLVaoCache;
 
 class GLSharedOrphanLists {
  public:
@@ -51,7 +51,7 @@ class GLSharedOrphanLists {
   void orphans_clear(void);
 };
 
-struct GLContext : public GPUContext {
+class GLContext : public GPUContext {
   /* TODO(fclem) these needs to become private. */
  public:
   /** Default VAO for procedural draw calls. */

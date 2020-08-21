@@ -49,7 +49,7 @@ GLShader::GLShader(const char *name) : Shader(name)
 #ifndef __APPLE__
   if ((G.debug & G_DEBUG_GPU) && (GLEW_VERSION_4_3 || GLEW_KHR_debug)) {
     char sh_name[64];
-    BLI_snprintf(sh_name, sizeof(sh_name), "ShaderProgram-%s", name);
+    SNPRINTF(sh_name, "ShaderProgram-%s", name);
     glObjectLabel(GL_PROGRAM, shader_program_, -1, sh_name);
   }
 #endif

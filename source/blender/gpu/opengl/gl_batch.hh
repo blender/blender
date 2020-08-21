@@ -35,6 +35,7 @@
 namespace blender {
 namespace gpu {
 
+class GLContext;
 class GLShaderInterface;
 
 #define GPU_VAO_STATIC_LEN 3
@@ -45,7 +46,7 @@ class GLShaderInterface;
 class GLVaoCache {
  private:
   /** Context for which the vao_cache_ was generated. */
-  struct GLContext *context_ = NULL;
+  GLContext *context_ = NULL;
   /** Last interface this batch was drawn with. */
   GLShaderInterface *interface_ = NULL;
   /** Cached vao for the last interface. */

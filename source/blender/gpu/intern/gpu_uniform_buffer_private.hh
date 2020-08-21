@@ -14,42 +14,52 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Copyright 2020, Blender Foundation.
- * All rights reserved.
  */
 
 /** \file
  * \ingroup gpu
- *
- * GPUBackend derived class contain allocators that do not need a context bound.
- * The backend is init at startup and is accessible using GPU_backend_get() */
+ */
 
 #pragma once
 
-struct GPUContext;
+#include "BLI_sys_types.h"
 
 namespace blender {
 namespace gpu {
 
-class Batch;
-class DrawList;
-class Shader;
-class UniformBuf;
+#ifdef DEBUG
+#  define DEBUG_NAME_LEN 8
+#else
+#  define DEBUG_NAME_LEN 64
+#endif
 
-class GPUBackend {
+class UniformBuf {
+ protected:
+  /** Data size in bytes. */
+  size_t size_in_bytes_;
+  /** Continuous memory block to copy to GPU. This data is owned by the UniformBuf. */
+  void *data_ = NULL;
+  /** Debugging name */
+  char name_[DEBUG_NAME_LEN];
+
  public:
-  virtual ~GPUBackend(){};
+  UniformBuf(size_t size, const char *name);
+  virtual ~UniformBuf();
 
-  static GPUBackend *get(void);
+  virtual void update(const void *data) = 0;
+  virtual void bind(int slot) = 0;
+  virtual void unbind(void) = 0;
 
-  virtual GPUContext *context_alloc(void *ghost_window) = 0;
-
-  virtual Batch *batch_alloc(void) = 0;
-  virtual DrawList *drawlist_alloc(int list_length) = 0;
-  // virtual FrameBuffer *framebuffer_alloc(void) = 0;
-  virtual Shader *shader_alloc(const char *name) = 0;
-  // virtual Texture *texture_alloc(void) = 0;
-  virtual UniformBuf *uniformbuf_alloc(int size, const char *name) = 0;
+  /** Used to defer data upload at drawing time.
+   * This is useful if the thread has no context bound.
+   * This transfers ownership to this UniformBuf. */
+  void attach_data(void *data)
+  {
+    data_ = data;
+  }
 };
+
+#undef DEBUG_NAME_LEN
 
 }  // namespace gpu
 }  // namespace blender

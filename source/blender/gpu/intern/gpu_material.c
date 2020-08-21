@@ -237,7 +237,7 @@ void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs)
 #else
   const char *name = NULL;
 #endif
-  material->ubo = GPU_uniformbuf_dynamic_create(inputs, name);
+  material->ubo = GPU_uniformbuf_create_from_list(inputs, name);
 }
 
 /* Eevee Subsurface scattering. */

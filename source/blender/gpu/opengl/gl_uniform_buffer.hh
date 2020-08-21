@@ -13,7 +13,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
+ * The Original Code is Copyright (C) 2020 Blender Foundation.
  * All rights reserved.
  */
 
@@ -23,32 +23,33 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "MEM_guardedalloc.h"
 
-struct ListBase;
+#include "gpu_uniform_buffer_private.hh"
 
-/** Opaque pointer */
-typedef struct GPUUniformBuf {
-  void *dummy;
-} GPUUniformBuf;
+#include "glew-mx.h"
 
-GPUUniformBuf *GPU_uniformbuf_create_ex(size_t size, const void *data, const char *name);
-GPUUniformBuf *GPU_uniformbuf_create_from_list(struct ListBase *inputs, const char *name);
+namespace blender {
+namespace gpu {
 
-#define GPU_uniformbuf_create(size) GPU_uniformbuf_create_ex(size, NULL, __func__);
+class GLUniformBuf : public UniformBuf {
+ private:
+  int slot_ = -1;
+  GLuint ubo_id_ = 0;
 
-void GPU_uniformbuf_free(GPUUniformBuf *ubo);
+ public:
+  GLUniformBuf(size_t size, const char *name);
+  ~GLUniformBuf();
 
-void GPU_uniformbuf_update(GPUUniformBuf *ubo, const void *data);
+  void update(const void *data) override;
+  void bind(int slot) override;
+  void unbind(void) override;
 
-void GPU_uniformbuf_bind(GPUUniformBuf *ubo, int number);
-void GPU_uniformbuf_unbind(GPUUniformBuf *ubo);
-void GPU_uniformbuf_unbind_all(void);
+ private:
+  void init(void);
 
-#define GPU_UBO_BLOCK_NAME "nodeTree"
+  MEM_CXX_CLASS_ALLOC_FUNCS("GLUniformBuf");
+};
 
-#ifdef __cplusplus
-}
-#endif
+}  // namespace gpu
+}  // namespace blender

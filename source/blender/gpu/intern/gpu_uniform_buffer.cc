@@ -13,7 +13,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
+ * The Original Code is Copyright (C) 2020 Blender Foundation.
  * All rights reserved.
  */
 
@@ -27,63 +27,45 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_base.h"
 
-#include "gpu_context_private.hh"
+#include "gpu_backend.hh"
 #include "gpu_node_graph.h"
 
-#include "GPU_extensions.h"
-#include "GPU_glew.h"
 #include "GPU_material.h"
+
+#include "GPU_extensions.h"
+
 #include "GPU_uniform_buffer.h"
+#include "gpu_uniform_buffer_private.hh"
 
-typedef struct GPUUniformBuf {
-  /** Data size in bytes. */
-  int size;
-  /** GL handle for UBO. */
-  GLuint bindcode;
-  /** Current binding point. */
-  int bindpoint;
-  /** Continuous memory block to copy to GPU. Is own by the GPUUniformBuf. */
-  void *data;
+/* -------------------------------------------------------------------- */
+/** \name Creation & Deletion
+ * \{ */
 
-#ifndef NDEBUG
-  char name[64];
-#endif
-} GPUUniformBuf;
+namespace blender::gpu {
 
-GPUUniformBuf *GPU_uniformbuf_create_ex(size_t size, const void *data, const char *name)
+UniformBuf::UniformBuf(size_t size, const char *name)
 {
   /* Make sure that UBO is padded to size of vec4 */
   BLI_assert((size % 16) == 0);
+  BLI_assert(size <= GPU_max_ubo_size());
 
-  if (size > GPU_max_ubo_size()) {
-    fprintf(stderr, "GPUUniformBuf: UBO too big. %s", name);
-    return NULL;
-  }
+  size_in_bytes_ = size;
 
-  GPUUniformBuf *ubo = (GPUUniformBuf *)MEM_mallocN(sizeof(GPUUniformBuf), __func__);
-  ubo->size = size;
-  ubo->data = NULL;
-  ubo->bindcode = 0;
-  ubo->bindpoint = -1;
-
-#ifndef NDEBUG
-  BLI_strncpy(ubo->name, name, sizeof(ubo->name));
-#endif
-
-  /* Direct init. */
-  if (data != NULL) {
-    GPU_uniformbuf_update(ubo, data);
-  }
-
-  return ubo;
+  BLI_strncpy(name_, name, sizeof(name_));
 }
 
-void GPU_uniformbuf_free(GPUUniformBuf *ubo)
+UniformBuf::~UniformBuf()
 {
-  MEM_SAFE_FREE(ubo->data);
-  GPU_buf_free(ubo->bindcode);
-  MEM_freeN(ubo);
+  MEM_SAFE_FREE(data_);
 }
+
+}  // namespace blender::gpu
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Uniform buffer from GPUInput list
+ * \{ */
 
 /**
  * We need to pad some data types (vec3) on the C side
@@ -117,10 +99,10 @@ static int inputs_cmp(const void *a, const void *b)
  * Make sure we respect the expected alignment of UBOs.
  * mat4, vec4, pad vec3 as vec4, then vec2, then floats.
  */
-static void gpu_uniformbuffer_inputs_sort(ListBase *inputs)
+static void buffer_from_list_inputs_sort(ListBase *inputs)
 {
-/* Only support up to this type, if you want to extend it, make sure the
- * padding logic is correct for the new types. */
+/* Only support up to this type, if you want to extend it, make sure tstatic void
+ * inputs_sobuffer_size_compute *inputs) padding logic is correct for the new types. */
 #define MAX_UBO_GPU_TYPE GPU_MAT4
 
   /* Order them as mat4, vec4, vec3, vec2, float. */
@@ -179,23 +161,9 @@ static void gpu_uniformbuffer_inputs_sort(ListBase *inputs)
 #undef MAX_UBO_GPU_TYPE
 }
 
-/**
- * Create dynamic UBO from parameters
- * Return NULL if failed to create or if \param inputs: is empty.
- *
- * \param inputs: ListBase of #BLI_genericNodeN(#GPUInput).
- */
-GPUUniformBuf *GPU_uniformbuf_dynamic_create(ListBase *inputs, const char *name)
+static inline size_t buffer_size_from_list(ListBase *inputs)
 {
-  /* There is no point on creating an UBO if there is no arguments. */
-  if (BLI_listbase_is_empty(inputs)) {
-    return NULL;
-  }
-  /* Make sure we comply to the ubo alignment requirements. */
-  gpu_uniformbuffer_inputs_sort(inputs);
-
   size_t buffer_size = 0;
-
   LISTBASE_FOREACH (LinkData *, link, inputs) {
     const eGPUType gputype = get_padded_gpu_type(link);
     buffer_size += gputype * sizeof(float);
@@ -203,8 +171,12 @@ GPUUniformBuf *GPU_uniformbuf_dynamic_create(ListBase *inputs, const char *name)
   /* Round up to size of vec4. (Opengl Requirement) */
   size_t alignment = sizeof(float[4]);
   buffer_size = divide_ceil_u(buffer_size, alignment) * alignment;
-  void *data = MEM_mallocN(buffer_size, __func__);
 
+  return buffer_size;
+}
+
+static inline void buffer_fill_from_list(void *data, ListBase *inputs)
+{
   /* Now that we know the total ubo size we can start populating it. */
   float *offset = (float *)data;
   LISTBASE_FOREACH (LinkData *, link, inputs) {
@@ -212,71 +184,73 @@ GPUUniformBuf *GPU_uniformbuf_dynamic_create(ListBase *inputs, const char *name)
     memcpy(offset, input->vec, input->type * sizeof(float));
     offset += get_padded_gpu_type(link);
   }
-
-  /* Pass data as NULL for late init. */
-  GPUUniformBuf *ubo = GPU_uniformbuf_create_ex(buffer_size, NULL, name);
-  /* Data will be update just before binding. */
-  ubo->data = data;
-  return ubo;
 }
 
-static void gpu_uniformbuffer_init(GPUUniformBuf *ubo)
-{
-  BLI_assert(ubo->bindcode == 0);
-  ubo->bindcode = GPU_buf_alloc();
+/** \} */
 
-  if (ubo->bindcode == 0) {
-    fprintf(stderr, "GPUUniformBuf: UBO create failed");
-    BLI_assert(0);
-    return;
+/* -------------------------------------------------------------------- */
+/** \name C-API
+ * \{ */
+
+using namespace blender::gpu;
+
+GPUUniformBuf *GPU_uniformbuf_create_ex(size_t size, const void *data, const char *name)
+{
+  UniformBuf *ubo = GPUBackend::get()->uniformbuf_alloc(size, name);
+  /* Direct init. */
+  if (data != NULL) {
+    ubo->update(data);
+  }
+  return reinterpret_cast<GPUUniformBuf *>(ubo);
+}
+
+/**
+ * Create UBO from inputs list.
+ * Return NULL if failed to create or if \param inputs: is empty.
+ *
+ * \param inputs: ListBase of #BLI_genericNodeN(#GPUInput).
+ */
+GPUUniformBuf *GPU_uniformbuf_create_from_list(ListBase *inputs, const char *name)
+{
+  /* There is no point on creating an UBO if there is no arguments. */
+  if (BLI_listbase_is_empty(inputs)) {
+    return NULL;
   }
 
-  glBindBuffer(GL_UNIFORM_BUFFER, ubo->bindcode);
-  glBufferData(GL_UNIFORM_BUFFER, ubo->size, NULL, GL_DYNAMIC_DRAW);
+  buffer_from_list_inputs_sort(inputs);
+  size_t buffer_size = buffer_size_from_list(inputs);
+  void *data = MEM_mallocN(buffer_size, __func__);
+  buffer_fill_from_list(data, inputs);
+
+  UniformBuf *ubo = GPUBackend::get()->uniformbuf_alloc(buffer_size, name);
+  /* Defer data upload. */
+  ubo->attach_data(data);
+  return reinterpret_cast<GPUUniformBuf *>(ubo);
+}
+
+void GPU_uniformbuf_free(GPUUniformBuf *ubo)
+{
+  delete reinterpret_cast<UniformBuf *>(ubo);
 }
 
 void GPU_uniformbuf_update(GPUUniformBuf *ubo, const void *data)
 {
-  if (ubo->bindcode == 0) {
-    gpu_uniformbuffer_init(ubo);
-  }
-
-  glBindBuffer(GL_UNIFORM_BUFFER, ubo->bindcode);
-  glBufferSubData(GL_UNIFORM_BUFFER, 0, ubo->size, data);
-  glBindBuffer(GL_UNIFORM_BUFFER, 0);
+  reinterpret_cast<UniformBuf *>(ubo)->update(data);
 }
 
-void GPU_uniformbuf_bind(GPUUniformBuf *ubo, int number)
+void GPU_uniformbuf_bind(GPUUniformBuf *ubo, int slot)
 {
-  if (number >= GPU_max_ubo_binds()) {
-    fprintf(stderr, "GPUUniformBuf: UBO too big.");
-    return;
-  }
-
-  if (ubo->bindcode == 0) {
-    gpu_uniformbuffer_init(ubo);
-  }
-
-  if (ubo->data != NULL) {
-    GPU_uniformbuf_update(ubo, ubo->data);
-    MEM_SAFE_FREE(ubo->data);
-  }
-
-  glBindBufferBase(GL_UNIFORM_BUFFER, number, ubo->bindcode);
-  ubo->bindpoint = number;
+  reinterpret_cast<UniformBuf *>(ubo)->bind(slot);
 }
 
 void GPU_uniformbuf_unbind(GPUUniformBuf *ubo)
 {
-#ifndef NDEBUG
-  glBindBufferBase(GL_UNIFORM_BUFFER, ubo->bindpoint, 0);
-#endif
-  ubo->bindpoint = 0;
+  reinterpret_cast<UniformBuf *>(ubo)->unbind();
 }
 
 void GPU_uniformbuf_unbind_all(void)
 {
-  for (int i = 0; i < GPU_max_ubo_binds(); i++) {
-    glBindBufferBase(GL_UNIFORM_BUFFER, i, 0);
-  }
+  /* FIXME */
 }
+
+/** \} */
