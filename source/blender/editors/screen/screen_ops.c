@@ -4861,7 +4861,7 @@ static int fullscreen_back_exec(bContext *C, wmOperator *op)
 
   /* search current screen for 'fullscreen' areas */
   LISTBASE_FOREACH (ScrArea *, area_iter, &screen->areabase) {
-    if (area->full) {
+    if (area_iter->full) {
       area = area_iter;
       break;
     }
