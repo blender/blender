@@ -102,6 +102,11 @@ if(POLICY CMP0068)
   cmake_policy(SET CMP0068 NEW)
 endif()
 
+# find_package() uses <PackageName>_ROOT variables.
+if(POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW)
+endif()
+
 #-----------------------------------------------------------------------------
 # Load some macros.
 include(build_files/cmake/macros.cmake)
