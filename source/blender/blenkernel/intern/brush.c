@@ -1539,7 +1539,6 @@ void BKE_brush_sculpt_reset(Brush *br)
       break;
     case SCULPT_TOOL_SMOOTH:
       br->flag &= ~BRUSH_SPACE_ATTEN;
-      br->automasking_flags |= BRUSH_AUTOMASKING_BOUNDARY_EDGES;
       br->spacing = 5;
       br->alpha = 0.7f;
       br->surface_smooth_shape_preservation = 0.5f;

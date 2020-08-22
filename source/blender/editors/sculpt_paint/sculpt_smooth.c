@@ -66,25 +66,40 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss, float result[3],
 {
   float avg[3] = {0.0f, 0.0f, 0.0f};
   int total = 0;
+  int neighbor_count = 0;
+  const bool is_boundary = SCULPT_vertex_is_boundary(ss, index);
 
-  if (SCULPT_vertex_is_boundary(ss, index)) {
+  SculptVertexNeighborIter ni;
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, index, ni) {
+    neighbor_count++;
+    if (is_boundary) {
+      /* Boundary vertices use only other boundary vertices. */
+      if (SCULPT_vertex_is_boundary(ss, ni.index)) {
+        add_v3_v3(avg, SCULPT_vertex_co_get(ss, ni.index));
+        total++;
+      }
+    }
+    else {
+      /* Interior vertices use all neighbors. */
+      add_v3_v3(avg, SCULPT_vertex_co_get(ss, ni.index));
+      total++;
+    }
+  }
+  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+  /* Do not modify corner vertices. */
+  if (neighbor_count <= 2) {
     copy_v3_v3(result, SCULPT_vertex_co_get(ss, index));
     return;
   }
 
-  SculptVertexNeighborIter ni;
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, index, ni) {
-    add_v3_v3(avg, SCULPT_vertex_co_get(ss, ni.index));
-    total++;
-  }
-  SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
-
-  if (total > 0) {
-    mul_v3_v3fl(result, avg, 1.0f / total);
-  }
-  else {
+  /* Avoid division by 0 when there are no neighbors. */
+  if (total == 0) {
     copy_v3_v3(result, SCULPT_vertex_co_get(ss, index));
+    return;
   }
+
+  mul_v3_v3fl(result, avg, 1.0f / total);
 }
 
 /* For bmesh: Average surrounding verts based on an orthogonality measure.
@@ -316,7 +331,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
       }
       else {
         float avg[3], val[3];
-        SCULPT_neighbor_coords_average(ss, avg, vd.index);
+        SCULPT_neighbor_coords_average_interior(ss, avg, vd.index);
         sub_v3_v3v3(val, avg, vd.co);
         madd_v3_v3v3fl(val, vd.co, val, fade);
         SCULPT_clip(sd, ss, vd.co, val);
