@@ -235,7 +235,7 @@ void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs)
 #ifndef NDEBUG
   const char *name = material->name;
 #else
-  const char *name = NULL;
+  const char *name = "Material";
 #endif
   material->ubo = GPU_uniformbuf_create_from_list(inputs, name);
 }
