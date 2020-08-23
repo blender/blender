@@ -79,6 +79,11 @@ void GPU_depth_test(eGPUDepthTest test)
   SET_IMMUTABLE_STATE(depth_test, test);
 }
 
+void GPU_stencil_test(eGPUStencilTest test)
+{
+  SET_IMMUTABLE_STATE(stencil_test, test);
+}
+
 void GPU_line_smooth(bool enable)
 {
   SET_IMMUTABLE_STATE(line_smooth, enable);
@@ -212,10 +217,12 @@ void GPU_stencil_reference_set(uint reference)
 {
   SET_MUTABLE_STATE(stencil_reference, (uint8_t)reference);
 }
+
 void GPU_stencil_write_mask_set(uint write_mask)
 {
   SET_MUTABLE_STATE(stencil_write_mask, (uint8_t)write_mask);
 }
+
 void GPU_stencil_compare_mask_set(uint compare_mask)
 {
   SET_MUTABLE_STATE(stencil_compare_mask, (uint8_t)compare_mask);
@@ -239,10 +246,22 @@ eGPUWriteMask GPU_write_mask_get()
   return (eGPUWriteMask)state.write_mask;
 }
 
+uint GPU_stencil_mask_get()
+{
+  GPUStateMutable &state = GPU_context_active_get()->state_manager->mutable_state;
+  return state.stencil_write_mask;
+}
+
 eGPUDepthTest GPU_depth_test_get()
 {
   GPUState &state = GPU_context_active_get()->state_manager->state;
   return (eGPUDepthTest)state.depth_test;
+}
+
+eGPUStencilTest GPU_stencil_test_get()
+{
+  GPUState &state = GPU_context_active_get()->state_manager->state;
+  return (eGPUStencilTest)state.stencil_test;
 }
 
 void GPU_scissor_get(int coords[4])
