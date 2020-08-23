@@ -42,9 +42,6 @@ typedef struct UvNearestHit {
   /** Always set if we have a hit. */
   struct BMFace *efa;
   struct BMLoop *l;
-  struct MLoopUV *luv, *luv_next;
-  /** Index of loop within face. */
-  int lindex;
   /** Needs to be set before calling nearest functions. */
   float dist_sq;
 } UvNearestHit;

@@ -671,9 +671,6 @@ bool uv_find_nearest_edge(Scene *scene, Object *obedit, const float co[2], UvNea
         hit->efa = efa;
 
         hit->l = l;
-        hit->luv = luv;
-        hit->luv_next = luv_next;
-        hit->lindex = i;
 
         hit->dist_sq = dist_test_sq;
         found = true;
@@ -713,7 +710,6 @@ bool uv_find_nearest_face(Scene *scene, Object *obedit, const float co[2], UvNea
   if (uv_find_nearest_edge(scene, obedit, co, &hit)) {
     hit.dist_sq = dist_sq_init;
     hit.l = NULL;
-    hit.luv = hit.luv_next = NULL;
 
     BMIter iter;
     BMFace *efa;
@@ -783,7 +779,6 @@ bool uv_find_nearest_vert(Scene *scene,
     hit.dist_sq = dist_sq_init;
 
     hit.l = NULL;
-    hit.luv = hit.luv_next = NULL;
 
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMFace *efa;
@@ -822,10 +817,7 @@ bool uv_find_nearest_vert(Scene *scene,
           hit.dist_sq = dist_test_sq;
 
           hit.l = l;
-          hit.luv = luv;
-          hit.luv_next = BM_ELEM_CD_GET_VOID_P(l->next, cd_loop_uv_offset);
           hit.efa = efa;
-          hit.lindex = i;
           found = true;
         }
       }
