@@ -142,7 +142,6 @@ static void info_main_region_draw(const bContext *C, ARegion *region)
 
   /* clear and setup matrix */
   UI_ThemeClearColor(TH_BACK);
-  GPU_clear(GPU_COLOR_BIT);
 
   /* quick way to avoid drawing if not bug enough */
   if (region->winy < 16) {

@@ -455,7 +455,7 @@ static bool gpencil_render_offscreen(tGPDfill *tgpf)
   GPU_matrix_identity_set();
 
   GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
-  GPU_clear(GPU_COLOR_BIT | GPU_DEPTH_BIT);
+  GPU_clear_depth(1.0f);
 
   ED_view3d_update_viewmat(
       tgpf->depsgraph, tgpf->scene, tgpf->v3d, tgpf->region, NULL, winmat, NULL, true);

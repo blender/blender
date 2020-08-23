@@ -2319,7 +2319,7 @@ void ED_view3d_draw_depth_gpencil(Depsgraph *depsgraph, Scene *scene, ARegion *r
   /* Setup view matrix. */
   ED_view3d_draw_setup_view(NULL, NULL, depsgraph, scene, region, v3d, NULL, NULL, NULL);
 
-  GPU_clear(GPU_DEPTH_BIT);
+  GPU_clear_depth(1.0f);
 
   GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
 

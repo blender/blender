@@ -217,8 +217,7 @@ static void hud_region_draw(const bContext *C, ARegion *region)
 {
   UI_view2d_view_ortho(&region->v2d);
   wmOrtho2_region_pixelspace(region);
-  GPU_clear_color(0, 0, 0, 0.0f);
-  GPU_clear(GPU_COLOR_BIT);
+  GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
 
   if ((region->flag & RGN_FLAG_HIDDEN) == 0) {
     ui_draw_menu_back(NULL,

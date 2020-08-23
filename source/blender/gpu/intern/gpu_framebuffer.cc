@@ -1117,18 +1117,22 @@ void GPU_offscreen_viewport_data_get(GPUOffScreen *ofs,
 
 void GPU_clear_color(float red, float green, float blue, float alpha)
 {
+  BLI_assert((GPU_write_mask_get() & GPU_WRITE_COLOR) != 0);
+
+  GPU_context_active_get()->state_manager->apply_state();
+
   glClearColor(red, green, blue, alpha);
+  glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void GPU_clear_depth(float depth)
 {
-  glClearDepth(depth);
-}
+  BLI_assert((GPU_write_mask_get() & GPU_WRITE_DEPTH) != 0);
 
-void GPU_clear(eGPUFrameBufferBits flags)
-{
   GPU_context_active_get()->state_manager->apply_state();
-  glClear(convert_buffer_bits_to_gl(flags));
+
+  glClearDepth(depth);
+  glClear(GL_DEPTH_BUFFER_BIT);
 }
 
 void GPU_frontbuffer_read_pixels(

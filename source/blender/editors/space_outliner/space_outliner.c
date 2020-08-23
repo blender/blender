@@ -87,7 +87,6 @@ static void outliner_main_region_draw(const bContext *C, ARegion *region)
 
   /* clear */
   UI_ThemeClearColor(TH_BACK);
-  GPU_clear(GPU_COLOR_BIT);
 
   draw_outliner(C);
 

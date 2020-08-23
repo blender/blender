@@ -449,7 +449,6 @@ static void file_main_region_draw(const bContext *C, ARegion *region)
   FileSelectParams *params = ED_fileselect_get_params(sfile);
 
   View2D *v2d = &region->v2d;
-  float col[3];
 
   /* Needed, because filelist is not initialized on loading */
   if (!sfile->files || filelist_empty(sfile->files)) {
@@ -457,9 +456,7 @@ static void file_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* clear and setup matrix */
-  UI_GetThemeColor3fv(TH_BACK, col);
-  GPU_clear_color(col[0], col[1], col[2], 1.0f);
-  GPU_clear(GPU_COLOR_BIT);
+  UI_ThemeClearColor(TH_BACK);
 
   /* Allow dynamically sliders to be set, saves notifiers etc. */
 

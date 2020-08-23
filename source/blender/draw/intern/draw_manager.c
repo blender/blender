@@ -1593,7 +1593,6 @@ void DRW_draw_render_loop_offscreen(struct Depsgraph *depsgraph,
      * be to do that in the colormanagmeent shader. */
     GPU_offscreen_bind(ofs, false);
     GPU_clear_color(0.0f, 0.0f, 0.0f, 1.0f);
-    GPU_clear(GPU_COLOR_BIT);
     /* Premult Alpha over black background. */
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
   }

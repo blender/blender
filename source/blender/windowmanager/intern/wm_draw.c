@@ -720,8 +720,7 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
 
       wm_draw_region_buffer_create(region, false, false);
       wm_draw_region_bind(region, 0);
-      GPU_clear_color(0, 0, 0, 0);
-      GPU_clear(GPU_COLOR_BIT);
+      GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
       ED_region_do_draw(C, region);
       wm_draw_region_unbind(region);
 
@@ -744,7 +743,6 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
    * If it becomes a problem we should clear only when window size changes. */
 #if 0
   GPU_clear_color(0, 0, 0, 0);
-  GPU_clear(GPU_COLOR_BIT);
 #endif
 
   /* Blit non-overlapping area regions. */

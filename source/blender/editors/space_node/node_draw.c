@@ -1343,8 +1343,6 @@ static void node_draw_basis(const bContext *C,
     }
   }
 
-  UI_ThemeClearColor(color_id);
-
   UI_block_end(C, node->block);
   UI_block_draw(C, node->block);
   node->block = NULL;
@@ -1737,8 +1735,8 @@ void drawnodespace(const bContext *C, ARegion *region)
 
   UI_view2d_view_ortho(v2d);
   UI_ThemeClearColor(TH_BACK);
-  GPU_clear(GPU_COLOR_BIT);
   GPU_depth_test(GPU_DEPTH_NONE);
+  GPU_scissor_test(true);
 
   /* XXX snode->cursor set in coordspace for placing new nodes, used for drawing noodles too */
   UI_view2d_region_to_view(&region->v2d,

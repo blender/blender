@@ -122,7 +122,7 @@ void gpu_select_query_begin(
   else if (mode == GPU_SELECT_NEAREST_FIRST_PASS) {
     GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
     GPU_depth_mask(true);
-    GPU_clear(GPU_DEPTH_BIT);
+    GPU_clear_depth(1.0f);
   }
   else if (mode == GPU_SELECT_NEAREST_SECOND_PASS) {
     GPU_depth_test(GPU_DEPTH_EQUAL);

@@ -1474,13 +1474,6 @@ void UI_ThemeClearColor(int colorid)
   GPU_clear_color(col[0], col[1], col[2], 1.0f);
 }
 
-void UI_ThemeClearColorAlpha(int colorid, float alpha)
-{
-  float col[3];
-  UI_GetThemeColor3fv(colorid, col);
-  GPU_clear_color(col[0], col[1], col[2], alpha);
-}
-
 int UI_ThemeMenuShadowWidth(void)
 {
   bTheme *btheme = UI_GetTheme();

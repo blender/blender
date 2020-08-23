@@ -147,7 +147,6 @@ static int report_textview_begin(TextViewContext *tvc)
   tvc->iter = reports->list.last;
 
   UI_ThemeClearColor(TH_BACK);
-  GPU_clear(GPU_COLOR_BIT);
 
   tvc->iter_tmp = 0;
   if (tvc->iter && report_textview_skip__internal(tvc)) {

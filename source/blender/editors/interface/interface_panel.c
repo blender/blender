@@ -1442,10 +1442,6 @@ void UI_panels_end(const bContext *C, ARegion *region, int *r_x, int *r_y)
 
 void UI_panels_draw(const bContext *C, ARegion *region)
 {
-  if (region->alignment != RGN_ALIGN_FLOAT) {
-    UI_ThemeClearColor(TH_BACK);
-  }
-
   /* Draw panels, selected on top. Also in reverse order, because
    * UI blocks are added in reverse order and we need child panels
    * to draw on top. */

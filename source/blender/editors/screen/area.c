@@ -351,11 +351,9 @@ static void region_draw_status_text(ScrArea *area, ARegion *region)
 
   if (overlap) {
     GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
-    GPU_clear(GPU_COLOR_BIT);
   }
   else {
     UI_ThemeClearColor(TH_HEADER);
-    GPU_clear(GPU_COLOR_BIT);
   }
 
   int fontid = BLF_set_default();
@@ -519,7 +517,6 @@ void ED_region_do_draw(bContext *C, ARegion *region)
 
   if (area && area_is_pseudo_minimized(area)) {
     UI_ThemeClearColor(TH_EDITOR_OUTLINE);
-    GPU_clear(GPU_COLOR_BIT);
     return;
   }
   /* optional header info instead? */
@@ -2529,11 +2526,9 @@ static void region_clear_color(const bContext *C, const ARegion *region, ThemeCo
     float back[4];
     UI_GetThemeColor4fv(colorid, back);
     GPU_clear_color(back[3] * back[0], back[3] * back[1], back[3] * back[2], back[3]);
-    GPU_clear(GPU_COLOR_BIT);
   }
   else {
     UI_ThemeClearColor(colorid);
-    GPU_clear(GPU_COLOR_BIT);
   }
 }
 

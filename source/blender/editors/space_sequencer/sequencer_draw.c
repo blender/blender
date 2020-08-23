@@ -1529,11 +1529,7 @@ static void sequencer_stop_running_jobs(const bContext *C, Scene *scene)
 
 static void sequencer_preview_clear(void)
 {
-  float col[3];
-
-  UI_GetThemeColor3fv(TH_SEQ_PREVIEW, col);
-  GPU_clear_color(col[0], col[1], col[2], 1.0f);
-  GPU_clear(GPU_COLOR_BIT);
+  UI_ThemeClearColor(TH_SEQ_PREVIEW);
 }
 
 static void sequencer_preview_get_rect(rctf *preview,
@@ -2266,7 +2262,6 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   else {
     GPU_clear_color(col[0], col[1], col[2], 0.0f);
   }
-  GPU_clear(GPU_COLOR_BIT);
 
   UI_view2d_view_ortho(v2d);
   /* Get timeline boundbox, needed for the scrollers. */

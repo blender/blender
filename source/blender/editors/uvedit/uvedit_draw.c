@@ -553,7 +553,6 @@ void ED_uvedit_draw_main(SpaceImage *sima,
           view_layer, ((View3D *)NULL), &objects_len);
       if (objects_len > 0) {
         GPU_clear_depth(1.0f);
-        GPU_clear(GPU_DEPTH_BIT);
       }
 
       /* go over all objects and create the batches + add their areas to the total */

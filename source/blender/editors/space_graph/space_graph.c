@@ -200,12 +200,9 @@ static void graph_main_region_draw(const bContext *C, ARegion *region)
   Scene *scene = CTX_data_scene(C);
   bAnimContext ac;
   View2D *v2d = &region->v2d;
-  float col[3];
 
   /* clear and setup matrix */
-  UI_GetThemeColor3fv(TH_BACK, col);
-  GPU_clear_color(col[0], col[1], col[2], 1.0f);
-  GPU_clear(GPU_COLOR_BIT);
+  UI_ThemeClearColor(TH_BACK);
 
   UI_view2d_view_ortho(v2d);
 
@@ -358,12 +355,9 @@ static void graph_channel_region_draw(const bContext *C, ARegion *region)
 {
   bAnimContext ac;
   View2D *v2d = &region->v2d;
-  float col[3];
 
   /* clear and setup matrix */
-  UI_GetThemeColor3fv(TH_BACK, col);
-  GPU_clear_color(col[0], col[1], col[2], 1.0f);
-  GPU_clear(GPU_COLOR_BIT);
+  UI_ThemeClearColor(TH_BACK);
 
   UI_view2d_view_ortho(v2d);
 

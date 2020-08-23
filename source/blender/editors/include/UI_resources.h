@@ -431,11 +431,8 @@ void UI_GetColorPtrBlendShade3ubv(const unsigned char cp1[3],
 // (for anything fancy use UI_GetThemeColor[Fancy] then BLF_color)
 void UI_FontThemeColor(int fontid, int colorid);
 
-// clear the openGL ClearColor using the input colorid
+// clear the framebuffer using the input colorid
 void UI_ThemeClearColor(int colorid);
-
-// clear the openGL ClearColor using the input colorid using optional transparency
-void UI_ThemeClearColorAlpha(int colorid, float alpha);
 
 // internal (blender) usage only, for init and set active
 void UI_SetTheme(int spacetype, int regionid);

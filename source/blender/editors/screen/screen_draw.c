@@ -606,8 +606,8 @@ void ED_screen_preview_render(const bScreen *screen, int size_x, int size_y, uin
   GPUOffScreen *offscreen = GPU_offscreen_create(size_x, size_y, true, false, err_out);
 
   GPU_offscreen_bind(offscreen, true);
-  GPU_clear_color(0.0, 0.0, 0.0, 0.0);
-  GPU_clear(GPU_COLOR_BIT | GPU_DEPTH_BIT);
+  GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
+  GPU_clear_depth(1.0f);
 
   screen_preview_draw(screen, size_x, size_y);
 

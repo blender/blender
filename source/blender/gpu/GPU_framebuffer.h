@@ -225,7 +225,6 @@ void GPU_offscreen_viewport_data_get(GPUOffScreen *ofs,
 
 void GPU_clear_color(float red, float green, float blue, float alpha);
 void GPU_clear_depth(float depth);
-void GPU_clear(eGPUFrameBufferBits flags);
 
 void GPU_frontbuffer_read_pixels(
     int x, int y, int w, int h, int channels, eGPUDataFormat format, void *data);

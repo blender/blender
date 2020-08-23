@@ -126,7 +126,7 @@ void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata)
   /* In case a framebuffer is still bound from drawing the last eye. */
   GPU_framebuffer_restore();
   /* Some systems have drawing glitches without this. */
-  GPU_clear(GPU_DEPTH_BIT);
+  GPU_clear_depth(1.0f);
 
   /* Draws the view into the surface_data->viewport's framebuffers */
   ED_view3d_draw_offscreen_simple(draw_data->depsgraph,

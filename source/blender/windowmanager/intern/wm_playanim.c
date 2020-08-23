@@ -310,8 +310,7 @@ static void playanim_toscreen(
   CLAMP(offs_x, 0.0f, 1.0f);
   CLAMP(offs_y, 0.0f, 1.0f);
 
-  GPU_clear_color(0.1, 0.1, 0.1, 0.0);
-  GPU_clear(GPU_COLOR_BIT);
+  GPU_clear_color(0.1f, 0.1f, 0.1f, 0.0f);
 
   /* checkerboard for case alpha */
   if (ibuf->planes == 32) {
@@ -1313,8 +1312,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
     maxwiny = ibuf->y * (1 + (maxwiny / ibuf->y));
   }
 
-  GPU_clear_color(0.1, 0.1, 0.1, 0.0);
-  GPU_clear(GPU_COLOR_BIT);
+  GPU_clear_color(0.1f, 0.1f, 0.1f, 0.0f);
 
   int win_x, win_y;
   playanim_window_get_size(&win_x, &win_y);

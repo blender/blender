@@ -339,7 +339,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
       GPU_offscreen_bind(oglrender->ofs, true);
 
       GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
-      GPU_clear(GPU_COLOR_BIT | GPU_DEPTH_BIT);
+      GPU_clear_depth(1.0f);
 
       GPU_matrix_reset();
       wmOrtho2(0, scene->r.xsch, 0, scene->r.ysch);
