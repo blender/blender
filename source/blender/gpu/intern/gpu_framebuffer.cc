@@ -622,23 +622,37 @@ void GPU_framebuffer_clear(GPUFrameBuffer *fb,
 {
   CHECK_FRAMEBUFFER_IS_BOUND(fb);
 
-  GPU_context_active_get()->state_manager->apply_state();
+  /* Save and restore the state. */
+  eGPUWriteMask write_mask = GPU_write_mask_get();
+  uint stencil_mask = GPU_stencil_mask_get();
+  eGPUStencilTest stencil_test = GPU_stencil_test_get();
 
   if (buffers & GPU_COLOR_BIT) {
-    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    GPU_color_mask(true, true, true, true);
     glClearColor(clear_col[0], clear_col[1], clear_col[2], clear_col[3]);
   }
   if (buffers & GPU_DEPTH_BIT) {
-    glDepthMask(GL_TRUE);
+    GPU_depth_mask(true);
     glClearDepth(clear_depth);
   }
   if (buffers & GPU_STENCIL_BIT) {
-    glStencilMask(0xFF);
+    GPU_stencil_write_mask_set(0xFFu);
+    GPU_stencil_test(GPU_STENCIL_ALWAYS);
     glClearStencil(clear_stencil);
   }
 
+  GPU_context_active_get()->state_manager->apply_state();
+
   GLbitfield mask = convert_buffer_bits_to_gl(buffers);
   glClear(mask);
+
+  if (buffers & (GPU_COLOR_BIT | GPU_DEPTH_BIT)) {
+    GPU_write_mask(write_mask);
+  }
+  if (buffers & GPU_STENCIL_BIT) {
+    GPU_stencil_write_mask_set(stencil_mask);
+    GPU_stencil_test(stencil_test);
+  }
 }
 
 /* Clear all textures bound to this framebuffer with a different color. */
