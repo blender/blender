@@ -390,6 +390,9 @@ void wm_event_do_refresh_wm_and_depsgraph(bContext *C)
 static void wm_event_execute_timers(bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
+  if (UNLIKELY(wm == NULL)) {
+    return;
+  }
 
   /* Set the first window as context, so that there is some minimal context. This avoids crashes
    * when calling code that assumes that there is always a window in the context (which many
@@ -402,15 +405,16 @@ static void wm_event_execute_timers(bContext *C)
 /* called in mainloop */
 void wm_event_do_notifiers(bContext *C)
 {
-  wmWindowManager *wm = CTX_wm_manager(C);
   wmNotifier *note, *next;
   wmWindow *win;
 
+  /* Run the timer before assigning 'wm' in the unlikely case a timer loads a file, see T80028. */
+  wm_event_execute_timers(C);
+
+  wmWindowManager *wm = CTX_wm_manager(C);
   if (wm == NULL) {
     return;
   }
-
-  wm_event_execute_timers(C);
 
   /* disable? - keep for now since its used for window level notifiers. */
 #if 1
