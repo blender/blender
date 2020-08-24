@@ -735,7 +735,6 @@
         preview_stitch_unstitchable="#ff0000ff"
         preview_stitch_active="#e1d2c323"
         uv_shadow="#707070ff"
-        uv_others="#606060ff"
         frame_current="#5680c2"
         metadatabg="#000000"
         metadatatext="#ffffff"

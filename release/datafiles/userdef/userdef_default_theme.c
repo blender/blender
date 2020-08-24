@@ -710,7 +710,6 @@ const bTheme U_theme_default = {
     .preview_stitch_unstitchable = RGBA(0xff0000ff),
     .preview_stitch_active = RGBA(0xe1d2c323),
     .uv_shadow = RGBA(0x707070ff),
-    .uv_others = RGBA(0x606060ff),
     .paint_curve_pivot = RGBA(0xff7f7f7f),
     .paint_curve_handle = RGBA(0x7fff7f7f),
     .metadatatext = RGBA(0xffffffff),

@@ -774,9 +774,6 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           cp = ts->metadatatext;
           break;
 
-        case TH_UV_OTHERS:
-          cp = ts->uv_others;
-          break;
         case TH_UV_SHADOW:
           cp = ts->uv_shadow;
           break;
