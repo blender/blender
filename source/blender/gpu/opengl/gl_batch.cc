@@ -305,6 +305,7 @@ void GLBatch::bind(int i_first)
   GPU_context_active_get()->state_manager->apply_state();
 
   if (flag & GPU_BATCH_DIRTY) {
+    flag &= ~GPU_BATCH_DIRTY;
     vao_cache_.clear();
   }
 
