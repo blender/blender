@@ -77,6 +77,8 @@ Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluati
   memset(id_type_updated, 0, sizeof(id_type_updated));
   memset(id_type_exist, 0, sizeof(id_type_exist));
   memset(physics_relations, 0, sizeof(physics_relations));
+
+  add_time_source();
 }
 
 Depsgraph::~Depsgraph()
