@@ -398,8 +398,9 @@ void SCULPT_cloth_plane_falloff_preview_draw(const uint gpuattr,
 
 BLI_INLINE bool SCULPT_is_cloth_deform_brush(const Brush *brush)
 {
-  return (brush->sculpt_tool == SCULPT_TOOL_CLOTH &&
-          brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB) ||
+  return (brush->sculpt_tool == SCULPT_TOOL_CLOTH && ELEM(brush->cloth_deform_type,
+                                                          BRUSH_CLOTH_DEFORM_GRAB,
+                                                          BRUSH_CLOTH_DEFORM_SNAKE_HOOK)) ||
          /* All brushes that are not the cloth brush deform the simulation using softbody
             constriants instead of applying forces. */
          (brush->sculpt_tool != SCULPT_TOOL_CLOTH &&

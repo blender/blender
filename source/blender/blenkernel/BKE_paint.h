@@ -259,6 +259,16 @@ typedef struct SculptPoseIKChain {
 
 /* Cloth Brush */
 
+typedef enum eSculptClothConstraintType {
+  /* Constraint that creates the structure of the cloth. */
+  SCULPT_CLOTH_CONSTRAINT_STRUCTURAL = 0,
+  /* Constraint that references the position of a vertex and a position in deformation_pos which
+     can be deformed by the tools. */
+  SCULPT_CLOTH_CONSTRAINT_DEFORMATION = 1,
+  /* Constarint that references the vertex position and its initial position. */
+  SCULPT_CLOTH_CONSTRAINT_SOFTBODY = 2,
+} eSculptClothConstraintType;
+
 typedef struct SculptClothLengthConstraint {
   /* Elements that are affected by the constraint. */
   /* Element a should always be a mesh vertex with the index stored in elem_index_a as it is always
@@ -274,6 +284,8 @@ typedef struct SculptClothLengthConstraint {
 
   float length;
   float strength;
+
+  eSculptClothConstraintType type;
 } SculptClothLengthConstraint;
 
 typedef struct SculptClothSimulation {
@@ -287,6 +299,7 @@ typedef struct SculptClothSimulation {
    * final positions of the simulated vertices are updated with constraints that use these points
    * as targets. */
   float (*deformation_pos)[3];
+  float *deformation_strength;
 
   float mass;
   float damping;

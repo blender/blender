@@ -2016,6 +2016,7 @@ static void rna_def_brush(BlenderRNA *brna)
       {BRUSH_CLOTH_DEFORM_INFLATE, "INFLATE", 0, "Inflate", ""},
       {BRUSH_CLOTH_DEFORM_GRAB, "GRAB", 0, "Grab", ""},
       {BRUSH_CLOTH_DEFORM_EXPAND, "EXPAND", 0, "Expand", ""},
+      {BRUSH_CLOTH_DEFORM_SNAKE_HOOK, "SNAKE_HOOK", 0, "Snake Hook", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
