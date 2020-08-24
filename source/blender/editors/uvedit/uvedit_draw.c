@@ -486,7 +486,12 @@ static void draw_uvs(SpaceImage *sima,
       GPU_batch_uniform_4fv(batch->verts, "pinnedColor", pinned_col);
       GPU_batch_uniform_1f(batch->verts, "pointSize", (point_size + 1.5f) * M_SQRT2);
       GPU_batch_uniform_1f(batch->verts, "outlineWidth", 0.75f);
-      GPU_batch_draw(batch->verts);
+
+      /* #GPU_batch_draw_advanced is needed as unbinding the shader and redrawing
+       * causes the vertices not to draw at the right size. */
+      GPU_shader_bind(batch->verts->shader);
+
+      GPU_batch_draw_advanced(batch->verts, 0, 0, 0, 0);
 
       /* We have problem in this mode when face order make some verts
        * appear unselected because an adjacent face is not selected and
@@ -495,7 +500,11 @@ static void draw_uvs(SpaceImage *sima,
        * on top. A bit overkill but it's simple. */
       GPU_batch_uniform_4fv(batch->verts, "vertColor", transparent);
       GPU_batch_uniform_4fv(batch->verts, "selectColor", col2);
-      GPU_batch_draw(batch->verts);
+
+      GPU_batch_draw_advanced(batch->verts, 0, 0, 0, 0);
+
+      GPU_shader_unbind();
+      /* Finish #GPU_batch_draw_advanced drawing. */
 
       GPU_blend(GPU_BLEND_NONE);
       GPU_program_point_size(false);
