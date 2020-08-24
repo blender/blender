@@ -923,8 +923,7 @@ static void create_subd_mesh(Scene *scene,
 
 /* Sync */
 
-static BL::MeshSequenceCacheModifier object_mesh_cache_find(BL::Object &b_ob,
-                                                            BL::Scene /*b_scene*/)
+static BL::MeshSequenceCacheModifier object_mesh_cache_find(BL::Object &b_ob)
 {
   BL::Object::modifiers_iterator b_mod;
 
@@ -943,15 +942,12 @@ static BL::MeshSequenceCacheModifier object_mesh_cache_find(BL::Object &b_ob,
   return BL::MeshSequenceCacheModifier(PointerRNA_NULL);
 }
 
-static void sync_mesh_cached_velocities(BL::Object &b_ob,
-                                        BL::Scene b_scene,
-                                        Scene *scene,
-                                        Mesh *mesh)
+static void sync_mesh_cached_velocities(BL::Object &b_ob, Scene *scene, Mesh *mesh)
 {
   if (scene->need_motion() == Scene::MOTION_NONE)
     return;
 
-  BL::MeshSequenceCacheModifier b_mesh_cache = object_mesh_cache_find(b_ob, b_scene);
+  BL::MeshSequenceCacheModifier b_mesh_cache = object_mesh_cache_find(b_ob);
 
   if (!b_mesh_cache) {
     return;
@@ -1071,7 +1067,7 @@ void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph,
   }
 
   /* cached velocities (e.g. from alembic archive) */
-  sync_mesh_cached_velocities(b_ob, b_depsgraph.scene(), scene, mesh);
+  sync_mesh_cached_velocities(b_ob, scene, mesh);
 
   /* mesh fluid motion mantaflow */
   sync_mesh_fluid_motion(b_ob, scene, mesh);
@@ -1095,7 +1091,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
   }
 
   /* Cached motion blur already exported. */
-  BL::MeshSequenceCacheModifier mesh_cache = object_mesh_cache_find(b_ob, b_scene);
+  BL::MeshSequenceCacheModifier mesh_cache = object_mesh_cache_find(b_ob);
   if (mesh_cache) {
     return;
   }
