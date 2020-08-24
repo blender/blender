@@ -552,6 +552,7 @@ void ED_uvedit_draw_main(SpaceImage *sima,
       Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
           view_layer, ((View3D *)NULL), &objects_len);
       if (objects_len > 0) {
+        GPU_depth_mask(true);
         GPU_clear_depth(1.0f);
       }
 
