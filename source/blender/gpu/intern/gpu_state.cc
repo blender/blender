@@ -201,7 +201,8 @@ void GPU_scissor(int x, int y, int width, int height)
 {
   GPUStateManager *stack = GPU_context_active_get()->state_manager;
   auto &state = stack->mutable_state;
-  int scissor_rect[4] = {x, y, width, height};
+  bool enabled = state.scissor_rect[2] > 0;
+  int scissor_rect[4] = {x, y, enabled ? width : -width, height};
   copy_v4_v4_int(state.scissor_rect, scissor_rect);
 }
 
