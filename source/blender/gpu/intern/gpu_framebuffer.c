@@ -544,18 +544,6 @@ void GPU_framebuffer_bind(GPUFrameBuffer *fb)
   glViewport(0, 0, fb->width, fb->height);
 }
 
-/* Workaround for binding a srgb framebuffer without doing the srgb transform. */
-void GPU_framebuffer_bind_no_srgb(GPUFrameBuffer *fb)
-{
-  GPU_framebuffer_bind(fb);
-
-  glDisable(GL_FRAMEBUFFER_SRGB);
-
-  GPUTexture *first_target = fb->attachments[GPU_FB_COLOR_ATTACHMENT0].tex;
-  const bool is_srgb_target = (first_target && (GPU_texture_format(first_target) == GPU_SRGB8_A8));
-  GPU_shader_set_framebuffer_srgb_target(!is_srgb_target);
-}
-
 void GPU_framebuffer_restore(void)
 {
   if (GPU_framebuffer_active_get() != NULL) {
