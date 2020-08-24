@@ -96,7 +96,7 @@
 #elif defined(__QNXNTO__)
 #  define OS_QNX 1
 #elif defined(__asmjs__) || defined(__wasm__)
-#  define OS_ASMJS
+#  define OS_ASMJS 1
 #else
 #  error Please add support for your platform in build_config.h
 #endif
