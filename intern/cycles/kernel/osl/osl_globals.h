@@ -90,6 +90,7 @@ struct OSLTraceData {
   ShaderData sd;
   bool setup;
   bool init;
+  bool hit;
 };
 
 /* thread key for thread specific data lookup */

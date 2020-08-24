@@ -1481,6 +1481,7 @@ bool OSLRenderServices::trace(TraceOpt &options,
   tracedata->ray = ray;
   tracedata->setup = false;
   tracedata->init = true;
+  tracedata->hit = false;
   tracedata->sd.osl_globals = sd->osl_globals;
 
   KernelGlobals *kg = sd->osl_globals;
@@ -1492,7 +1493,8 @@ bool OSLRenderServices::trace(TraceOpt &options,
 
   /* Raytrace, leaving out shadow opaque to avoid early exit. */
   uint visibility = PATH_RAY_ALL_VISIBILITY - PATH_RAY_SHADOW_OPAQUE;
-  return scene_intersect(kg, &ray, visibility, &tracedata->isect);
+  tracedata->hit = scene_intersect(kg, &ray, visibility, &tracedata->isect);
+  return tracedata->hit;
 }
 
 bool OSLRenderServices::getmessage(OSL::ShaderGlobals *sg,
@@ -1506,9 +1508,9 @@ bool OSLRenderServices::getmessage(OSL::ShaderGlobals *sg,
 
   if (source == u_trace && tracedata->init) {
     if (name == u_hit) {
-      return set_attribute_int((tracedata->isect.prim != PRIM_NONE), type, derivatives, val);
+      return set_attribute_int(tracedata->hit, type, derivatives, val);
     }
-    else if (tracedata->isect.prim != PRIM_NONE) {
+    else if (tracedata->hit) {
       if (name == u_hitdist) {
         float f[3] = {tracedata->isect.t, 0.0f, 0.0f};
         return set_attribute_float(f, type, derivatives, val);
