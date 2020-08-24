@@ -67,6 +67,7 @@ set(LIB
   cycles_render
   cycles_kernel
   cycles_util
+  ${BLENDER_GL_LIBRARIES}
 )
 
 if(WITH_CUDA_DYNLOAD)
