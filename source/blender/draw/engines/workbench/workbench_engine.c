@@ -114,7 +114,7 @@ static void workbench_cache_sculpt_populate(WORKBENCH_PrivateData *wpd,
                                             eV3DShadingColorType color_type)
 {
   const bool use_single_drawcall = !ELEM(color_type, V3D_SHADING_MATERIAL_COLOR);
-  BLI_assert(wpd->shading.color_type != V3D_SHADING_TEXTURE_COLOR);
+  BLI_assert(color_type != V3D_SHADING_TEXTURE_COLOR);
 
   if (use_single_drawcall) {
     DRWShadingGroup *grp = workbench_material_setup(wpd, ob, 0, color_type, NULL);
@@ -307,6 +307,11 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
     else if (is_vertpaint_mode && me && me->mloopcol) {
       color_type = V3D_SHADING_VERTEX_COLOR;
     }
+  }
+
+  if (is_sculpt_pbvh && color_type == V3D_SHADING_TEXTURE_COLOR) {
+    /* Force use of material color for sculpt. */
+    color_type = V3D_SHADING_MATERIAL_COLOR;
   }
 
   if (r_draw_shadow) {
