@@ -171,14 +171,18 @@ class Map {
    * This is necessary to avoid a high cost when no elements are added at all. An optimized grow
    * operation is performed on the first insertion.
    */
-  Map()
+  Map(Allocator allocator = {}) noexcept
       : removed_slots_(0),
         occupied_and_removed_slots_(0),
         usable_slots_(0),
         slot_mask_(0),
         hash_(),
         is_equal_(),
-        slots_(1)
+        slots_(1, allocator)
+  {
+  }
+
+  Map(NoExceptConstructor, Allocator allocator = {}) noexcept : Map(allocator)
   {
   }
 
@@ -186,41 +190,38 @@ class Map {
 
   Map(const Map &other) = default;
 
-  Map(Map &&other) noexcept
-      : removed_slots_(other.removed_slots_),
-        occupied_and_removed_slots_(other.occupied_and_removed_slots_),
-        usable_slots_(other.usable_slots_),
-        slot_mask_(other.slot_mask_),
-        hash_(std::move(other.hash_)),
-        is_equal_(std::move(other.is_equal_)),
-        slots_(std::move(other.slots_))
+  Map(Map &&other) noexcept(std::is_nothrow_move_constructible_v<SlotArray>)
+      : Map(NoExceptConstructor(), other.slots_.allocator())
   {
-    other.~Map();
-    new (&other) Map();
+    if constexpr (std::is_nothrow_move_constructible_v<SlotArray>) {
+      slots_ = std::move(other.slots_);
+    }
+    else {
+      try {
+        slots_ = std::move(other.slots_);
+      }
+      catch (...) {
+        other.noexcept_reset();
+        throw;
+      }
+    }
+    removed_slots_ = other.removed_slots_;
+    occupied_and_removed_slots_ = other.occupied_and_removed_slots_;
+    usable_slots_ = other.usable_slots_;
+    slot_mask_ = other.slot_mask_;
+    hash_ = std::move(other.hash_);
+    is_equal_ = std::move(other.is_equal_);
+    other.noexcept_reset();
   }
 
   Map &operator=(const Map &other)
   {
-    if (this == &other) {
-      return *this;
-    }
-
-    this->~Map();
-    new (this) Map(other);
-
-    return *this;
+    return copy_assign_container(*this, other);
   }
 
   Map &operator=(Map &&other)
   {
-    if (this == &other) {
-      return *this;
-    }
-
-    this->~Map();
-    new (this) Map(std::move(other));
-
-    return *this;
+    return move_assign_container(*this, std::move(other));
   }
 
   /**
@@ -843,8 +844,7 @@ class Map {
    */
   void clear()
   {
-    this->~Map();
-    new (this) Map();
+    this->noexcept_reset();
   }
 
   /**
@@ -869,8 +869,13 @@ class Map {
      * Optimize the case when the map was empty beforehand. We can avoid some copies here.
      */
     if (this->size() == 0) {
-      slots_.~Array();
-      new (&slots_) SlotArray(total_slots);
+      try {
+        slots_.reinitialize(total_slots);
+      }
+      catch (...) {
+        this->noexcept_reset();
+        throw;
+      }
       removed_slots_ = 0;
       occupied_and_removed_slots_ = 0;
       usable_slots_ = usable_slots;
@@ -880,35 +885,44 @@ class Map {
 
     SlotArray new_slots(total_slots);
 
-    for (Slot &slot : slots_) {
-      if (slot.is_occupied()) {
-        this->add_after_grow_and_destruct_old(slot, new_slots, new_slot_mask);
+    try {
+      for (Slot &slot : slots_) {
+        if (slot.is_occupied()) {
+          this->add_after_grow(slot, new_slots, new_slot_mask);
+          slot.remove();
+        }
       }
+      slots_ = std::move(new_slots);
+    }
+    catch (...) {
+      this->noexcept_reset();
+      throw;
     }
 
-    /* All occupied slots have been destructed already and empty/removed slots are assumed to be
-     * trivially destructible. */
-    slots_.clear_without_destruct();
-    slots_ = std::move(new_slots);
     occupied_and_removed_slots_ -= removed_slots_;
     usable_slots_ = usable_slots;
     removed_slots_ = 0;
     slot_mask_ = new_slot_mask;
   }
 
-  void add_after_grow_and_destruct_old(Slot &old_slot,
-                                       SlotArray &new_slots,
-                                       uint64_t new_slot_mask)
+  void add_after_grow(Slot &old_slot, SlotArray &new_slots, uint64_t new_slot_mask)
   {
     uint64_t hash = old_slot.get_hash(Hash());
     SLOT_PROBING_BEGIN (ProbingStrategy, hash, new_slot_mask, slot_index) {
       Slot &slot = new_slots[slot_index];
       if (slot.is_empty()) {
-        slot.relocate_occupied_here(old_slot, hash);
+        slot.occupy(std::move(*old_slot.key()), std::move(*old_slot.value()), hash);
         return;
       }
     }
     SLOT_PROBING_END();
+  }
+
+  void noexcept_reset() noexcept
+  {
+    Allocator allocator = slots_.allocator();
+    this->~Map();
+    new (this) Map(NoExceptConstructor(), allocator);
   }
 
   template<typename ForwardKey> bool contains__impl(const ForwardKey &key, uint64_t hash) const
@@ -930,11 +944,11 @@ class Map {
     BLI_assert(!this->contains_as(key));
 
     this->ensure_can_add();
-    occupied_and_removed_slots_++;
 
     MAP_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.is_empty()) {
         slot.occupy(std::forward<ForwardKey>(key), std::forward<ForwardValue>(value), hash);
+        occupied_and_removed_slots_++;
         return;
       }
     }
@@ -978,11 +992,10 @@ class Map {
   {
     BLI_assert(this->contains_as(key));
 
-    removed_slots_++;
-
     MAP_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.contains(key, is_equal_, hash)) {
         slot.remove();
+        removed_slots_++;
         return;
       }
     }
@@ -993,12 +1006,11 @@ class Map {
   {
     BLI_assert(this->contains_as(key));
 
-    removed_slots_++;
-
     MAP_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.contains(key, is_equal_, hash)) {
         Value value = std::move(*slot.value());
         slot.remove();
+        removed_slots_++;
         return value;
       }
     }
@@ -1054,10 +1066,19 @@ class Map {
 
     MAP_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.is_empty()) {
-        occupied_and_removed_slots_++;
-        slot.occupy_without_value(std::forward<ForwardKey>(key), hash);
         Value *value_ptr = slot.value();
-        return create_value(value_ptr);
+        if constexpr (std::is_void_v<CreateReturnT>) {
+          create_value(value_ptr);
+          slot.occupy_no_value(std::forward<ForwardKey>(key), hash);
+          occupied_and_removed_slots_++;
+          return;
+        }
+        else {
+          auto return_value = create_value(value_ptr);
+          slot.occupy_no_value(std::forward<ForwardKey>(key), hash);
+          occupied_and_removed_slots_++;
+          return return_value;
+        }
       }
       if (slot.contains(key, is_equal_, hash)) {
         Value *value_ptr = slot.value();

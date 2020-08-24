@@ -236,4 +236,18 @@ TEST(array, Last)
   EXPECT_EQ(const_cast<const Array<int> &>(array).last(), 1);
 }
 
+TEST(array, Reinitialize)
+{
+  Array<std::string> array = {"hello", "world"};
+  EXPECT_EQ(array.size(), 2);
+  EXPECT_EQ(array[1], "world");
+  array.reinitialize(3);
+  EXPECT_EQ(array.size(), 3);
+  EXPECT_EQ(array[0], "");
+  EXPECT_EQ(array[1], "");
+  EXPECT_EQ(array[2], "");
+  array.reinitialize(0);
+  EXPECT_EQ(array.size(), 0);
+}
+
 }  // namespace blender::tests

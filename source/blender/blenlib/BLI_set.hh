@@ -170,62 +170,68 @@ class Set {
    * is. This is necessary to avoid a high cost when no elements are added at all. An optimized
    * grow operation is performed on the first insertion.
    */
-  Set()
+  Set(Allocator allocator = {}) noexcept
       : removed_slots_(0),
         occupied_and_removed_slots_(0),
         usable_slots_(0),
         slot_mask_(0),
-        slots_(1)
+        slots_(1, allocator)
+  {
+  }
+
+  Set(NoExceptConstructor, Allocator allocator = {}) noexcept : Set(allocator)
+  {
+  }
+
+  Set(Span<Key> values, Allocator allocator = {}) : Set(NoExceptConstructor(), allocator)
+  {
+    this->add_multiple(values);
+  }
+
+  /**
+   * Construct a set that contains the given keys. Duplicates will be removed automatically.
+   */
+  Set(const std::initializer_list<Key> &values) : Set(Span<Key>(values))
   {
   }
 
   ~Set() = default;
 
-  /**
-   * Construct a set that contains the given keys. Duplicates will be removed automatically.
-   */
-  Set(const std::initializer_list<Key> &list) : Set()
-  {
-    this->add_multiple(list);
-  }
-
   Set(const Set &other) = default;
 
-  Set(Set &&other) noexcept
-      : removed_slots_(other.removed_slots_),
-        occupied_and_removed_slots_(other.occupied_and_removed_slots_),
-        usable_slots_(other.usable_slots_),
-        slot_mask_(other.slot_mask_),
-        hash_(std::move(other.hash_)),
-        is_equal_(std::move(other.is_equal_)),
-        slots_(std::move(other.slots_))
+  Set(Set &&other) noexcept(std::is_nothrow_move_constructible_v<SlotArray>)
+      : Set(NoExceptConstructor(), other.slots_.allocator())
+
   {
-    other.~Set();
-    new (&other) Set();
+    if constexpr (std::is_nothrow_move_constructible_v<SlotArray>) {
+      slots_ = std::move(other.slots_);
+    }
+    else {
+      try {
+        slots_ = std::move(other.slots_);
+      }
+      catch (...) {
+        other.noexcept_reset();
+        throw;
+      }
+    }
+    removed_slots_ = other.removed_slots_;
+    occupied_and_removed_slots_ = other.occupied_and_removed_slots_;
+    usable_slots_ = other.usable_slots_;
+    slot_mask_ = other.slot_mask_;
+    hash_ = std::move(other.hash_);
+    is_equal_ = std::move(other.is_equal_);
+    other.noexcept_reset();
   }
 
   Set &operator=(const Set &other)
   {
-    if (this == &other) {
-      return *this;
-    }
-
-    this->~Set();
-    new (this) Set(other);
-
-    return *this;
+    return copy_assign_container(*this, other);
   }
 
   Set &operator=(Set &&other)
   {
-    if (this == &other) {
-      return *this;
-    }
-
-    this->~Set();
-    new (this) Set(std::move(other));
-
-    return *this;
+    return move_assign_container(*this, std::move(other));
   }
 
   /**
@@ -562,8 +568,13 @@ class Set {
      * Optimize the case when the set was empty beforehand. We can avoid some copies here.
      */
     if (this->size() == 0) {
-      slots_.~Array();
-      new (&slots_) SlotArray(total_slots);
+      try {
+        slots_.reinitialize(total_slots);
+      }
+      catch (...) {
+        this->noexcept_reset();
+        throw;
+      }
       removed_slots_ = 0;
       occupied_and_removed_slots_ = 0;
       usable_slots_ = usable_slots;
@@ -574,36 +585,49 @@ class Set {
     /* The grown array that we insert the keys into. */
     SlotArray new_slots(total_slots);
 
-    for (Slot &slot : slots_) {
-      if (slot.is_occupied()) {
-        this->add_after_grow_and_destruct_old(slot, new_slots, new_slot_mask);
+    try {
+      for (Slot &slot : slots_) {
+        if (slot.is_occupied()) {
+          this->add_after_grow(slot, new_slots, new_slot_mask);
+          slot.remove();
+        }
       }
+      slots_ = std::move(new_slots);
+    }
+    catch (...) {
+      this->noexcept_reset();
+      throw;
     }
 
-    /* All occupied slots have been destructed already and empty/removed slots are assumed to be
-     * trivially destructible. */
-    slots_.clear_without_destruct();
-    slots_ = std::move(new_slots);
     occupied_and_removed_slots_ -= removed_slots_;
     usable_slots_ = usable_slots;
     removed_slots_ = 0;
     slot_mask_ = new_slot_mask;
   }
 
-  void add_after_grow_and_destruct_old(Slot &old_slot,
-                                       SlotArray &new_slots,
-                                       const uint64_t new_slot_mask)
+  void add_after_grow(Slot &old_slot, SlotArray &new_slots, const uint64_t new_slot_mask)
   {
     const uint64_t hash = old_slot.get_hash(Hash());
 
     SLOT_PROBING_BEGIN (ProbingStrategy, hash, new_slot_mask, slot_index) {
       Slot &slot = new_slots[slot_index];
       if (slot.is_empty()) {
-        slot.relocate_occupied_here(old_slot, hash);
+        slot.occupy(std::move(*old_slot.key()), hash);
         return;
       }
     }
     SLOT_PROBING_END();
+  }
+
+  /**
+   * In some cases when exceptions are thrown, it's best to just reset the entire container to make
+   * sure that invariants are maintained. This should happen very rarely in practice.
+   */
+  void noexcept_reset() noexcept
+  {
+    Allocator allocator = slots_.allocator();
+    this->~Set();
+    new (this) Set(NoExceptConstructor(), allocator);
   }
 
   template<typename ForwardKey>
@@ -699,11 +723,11 @@ class Set {
   void remove_contained__impl(const ForwardKey &key, const uint64_t hash)
   {
     BLI_assert(this->contains_as(key));
-    removed_slots_++;
 
     SET_SLOT_PROBING_BEGIN (hash, slot) {
       if (slot.contains(key, is_equal_, hash)) {
         slot.remove();
+        removed_slots_++;
         return;
       }
     }

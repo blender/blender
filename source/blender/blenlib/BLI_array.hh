@@ -168,7 +168,7 @@ class Array {
   Array(Array &&other) noexcept(std::is_nothrow_move_constructible_v<T>)
       : Array(NoExceptConstructor(), other.allocator_)
   {
-    if (other.uses_inline_buffer()) {
+    if (other.data_ == other.inline_buffer_) {
       uninitialized_relocate_n(other.data_, other.size_, data_);
     }
     else {
@@ -183,9 +183,7 @@ class Array {
   ~Array()
   {
     destruct_n(data_, size_);
-    if (!this->uses_inline_buffer()) {
-      allocator_.deallocate(static_cast<void *>(data_));
-    }
+    this->deallocate_if_not_inline(data_);
   }
 
   Array &operator=(const Array &other)
@@ -365,6 +363,37 @@ class Array {
     return InlineBufferCapacity;
   }
 
+  /**
+   * Destruct values and create a new array of the given size. The values in the new array are
+   * default constructed.
+   */
+  void reinitialize(const int64_t new_size)
+  {
+    BLI_assert(new_size >= 0);
+    int64_t old_size = size_;
+
+    destruct_n(data_, size_);
+    size_ = 0;
+
+    if (new_size <= old_size) {
+      default_construct_n(data_, new_size);
+    }
+    else {
+      T *new_data = this->get_buffer_for_size(new_size);
+      try {
+        default_construct_n(new_data, new_size);
+      }
+      catch (...) {
+        this->deallocate_if_not_inline(new_data);
+        throw;
+      }
+      this->deallocate_if_not_inline(data_);
+      data_ = new_data;
+    }
+
+    size_ = new_size;
+  }
+
  private:
   T *get_buffer_for_size(int64_t size)
   {
@@ -382,9 +411,11 @@ class Array {
         allocator_.allocate(static_cast<size_t>(size) * sizeof(T), alignof(T), AT));
   }
 
-  bool uses_inline_buffer() const
+  void deallocate_if_not_inline(T *ptr)
   {
-    return data_ == inline_buffer_;
+    if (ptr != inline_buffer_) {
+      allocator_.deallocate(ptr);
+    }
   }
 };
 

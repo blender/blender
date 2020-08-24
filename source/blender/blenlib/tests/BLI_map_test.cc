@@ -1,5 +1,6 @@
 /* Apache License, Version 2.0 */
 
+#include "BLI_exception_safety_test_utils.hh"
 #include "BLI_map.hh"
 #include "BLI_rand.h"
 #include "BLI_set.hh"
@@ -477,6 +478,72 @@ TEST(map, ForeachItem)
   EXPECT_EQ(values.size(), 2);
   EXPECT_EQ(keys.first_index_of(3), values.first_index_of(4));
   EXPECT_EQ(keys.first_index_of(1), values.first_index_of(8));
+}
+
+TEST(map, CopyConstructorExceptions)
+{
+  using MapType = Map<ExceptionThrower, ExceptionThrower>;
+  MapType map;
+  map.add(2, 2);
+  map.add(4, 4);
+  map.lookup(2).throw_during_copy = true;
+  EXPECT_ANY_THROW({ MapType map_copy(map); });
+}
+
+TEST(map, MoveConstructorExceptions)
+{
+  using MapType = Map<ExceptionThrower, ExceptionThrower>;
+  MapType map;
+  map.add(1, 1);
+  map.add(2, 2);
+  map.lookup(1).throw_during_move = true;
+  EXPECT_ANY_THROW({ MapType map_moved(std::move(map)); });
+  map.add(5, 5);
+}
+
+TEST(map, AddNewExceptions)
+{
+  Map<ExceptionThrower, ExceptionThrower> map;
+  ExceptionThrower key1 = 1;
+  key1.throw_during_copy = true;
+  ExceptionThrower value1;
+  EXPECT_ANY_THROW({ map.add_new(key1, value1); });
+  EXPECT_EQ(map.size(), 0);
+  ExceptionThrower key2 = 2;
+  ExceptionThrower value2;
+  value2.throw_during_copy = true;
+  EXPECT_ANY_THROW({ map.add_new(key2, value2); });
+}
+
+TEST(map, ReserveExceptions)
+{
+  Map<ExceptionThrower, ExceptionThrower> map;
+  map.add(3, 3);
+  map.add(5, 5);
+  map.add(2, 2);
+  map.lookup(2).throw_during_move = true;
+  EXPECT_ANY_THROW({ map.reserve(100); });
+  map.add(1, 1);
+  map.add(5, 5);
+}
+
+TEST(map, PopExceptions)
+{
+  Map<ExceptionThrower, ExceptionThrower> map;
+  map.add(3, 3);
+  map.lookup(3).throw_during_move = true;
+  EXPECT_ANY_THROW({ map.pop(3); });
+  EXPECT_EQ(map.size(), 1);
+  map.add(1, 1);
+  EXPECT_EQ(map.size(), 2);
+}
+
+TEST(map, AddOrModifyExceptions)
+{
+  Map<ExceptionThrower, ExceptionThrower> map;
+  auto create_fn = [](ExceptionThrower *UNUSED(v)) { throw std::runtime_error(""); };
+  auto modify_fn = [](ExceptionThrower *UNUSED(v)) {};
+  EXPECT_ANY_THROW({ map.add_or_modify(3, create_fn, modify_fn); });
 }
 
 /**

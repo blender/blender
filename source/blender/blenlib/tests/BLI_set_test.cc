@@ -3,6 +3,7 @@
 #include <set>
 #include <unordered_set>
 
+#include "BLI_exception_safety_test_utils.hh"
 #include "BLI_ghash.h"
 #include "BLI_rand.h"
 #include "BLI_set.hh"
@@ -460,6 +461,55 @@ TEST(set, StringViewKeys)
   EXPECT_FALSE(set.contains("worlds"));
   EXPECT_TRUE(set.contains("world"));
   EXPECT_TRUE(set.contains("hello"));
+}
+
+TEST(set, SpanConstructorExceptions)
+{
+  std::array<ExceptionThrower, 5> array = {1, 2, 3, 4, 5};
+  array[3].throw_during_copy = true;
+  Span<ExceptionThrower> span = array;
+
+  EXPECT_ANY_THROW({ Set<ExceptionThrower> set(span); });
+}
+
+TEST(set, CopyConstructorExceptions)
+{
+  Set<ExceptionThrower> set = {1, 2, 3, 4, 5};
+  set.lookup_key(3).throw_during_copy = true;
+  EXPECT_ANY_THROW({ Set<ExceptionThrower> set_copy(set); });
+}
+
+TEST(set, MoveConstructorExceptions)
+{
+  using SetType = Set<ExceptionThrower, 4>;
+  SetType set = {1, 2, 3};
+  set.lookup_key(2).throw_during_move = true;
+  EXPECT_ANY_THROW({ SetType set_moved(std::move(set)); });
+  EXPECT_EQ(set.size(), 0);
+  set.add_multiple({3, 6, 7});
+  EXPECT_EQ(set.size(), 3);
+}
+
+TEST(set, AddNewExceptions)
+{
+  Set<ExceptionThrower> set;
+  ExceptionThrower value;
+  value.throw_during_copy = true;
+  EXPECT_ANY_THROW({ set.add_new(value); });
+  EXPECT_EQ(set.size(), 0);
+  EXPECT_ANY_THROW({ set.add_new(value); });
+  EXPECT_EQ(set.size(), 0);
+}
+
+TEST(set, AddExceptions)
+{
+  Set<ExceptionThrower> set;
+  ExceptionThrower value;
+  value.throw_during_copy = true;
+  EXPECT_ANY_THROW({ set.add(value); });
+  EXPECT_EQ(set.size(), 0);
+  EXPECT_ANY_THROW({ set.add(value); });
+  EXPECT_EQ(set.size(), 0);
 }
 
 /**

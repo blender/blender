@@ -1,3 +1,4 @@
+#include "BLI_hash.hh"
 #include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
 #include "testing/testing.h"
@@ -16,18 +17,21 @@ class ExceptionThrower {
   void *my_memory_;
 
  public:
-  bool throw_during_copy;
-  bool throw_during_move;
+  mutable bool throw_during_copy;
+  mutable bool throw_during_move;
+  /* Used for hashing and comparing. */
+  int value;
 
-  ExceptionThrower()
+  ExceptionThrower(int value = 0)
       : state_(is_alive_state),
         my_memory_(MEM_mallocN(1, AT)),
         throw_during_copy(false),
-        throw_during_move(false)
+        throw_during_move(false),
+        value(value)
   {
   }
 
-  ExceptionThrower(const ExceptionThrower &other) : ExceptionThrower()
+  ExceptionThrower(const ExceptionThrower &other) : ExceptionThrower(other.value)
   {
     EXPECT_EQ(other.state_, is_alive_state);
     if (other.throw_during_copy) {
@@ -35,7 +39,7 @@ class ExceptionThrower {
     }
   }
 
-  ExceptionThrower(ExceptionThrower &&other) : ExceptionThrower()
+  ExceptionThrower(ExceptionThrower &&other) : ExceptionThrower(other.value)
   {
     EXPECT_EQ(other.state_, is_alive_state);
     if (other.throw_during_move) {
@@ -49,6 +53,7 @@ class ExceptionThrower {
     if (throw_during_copy || other.throw_during_copy) {
       throw std::runtime_error("throwing during copy, as requested");
     }
+    value = other.value;
     return *this;
   }
 
@@ -58,14 +63,39 @@ class ExceptionThrower {
     if (throw_during_move || other.throw_during_move) {
       throw std::runtime_error("throwing during move, as requested");
     }
+    value = other.value;
     return *this;
   }
 
   ~ExceptionThrower()
   {
-    EXPECT_EQ(state_, is_alive_state);
+    const char *message = "";
+    if (state_ != is_alive_state) {
+      if (state_ == is_destructed_state) {
+        message = "Trying to destruct an already destructed instance.";
+      }
+      else {
+        message = "Trying to destruct an uninitialized instance.";
+      }
+    }
+    EXPECT_EQ(state_, is_alive_state) << message;
     state_ = is_destructed_state;
     MEM_freeN(my_memory_);
+  }
+
+  uint64_t hash() const
+  {
+    return static_cast<uint64_t>(value);
+  }
+
+  friend bool operator==(const ExceptionThrower &a, const ExceptionThrower &b)
+  {
+    return a.value == b.value;
+  }
+
+  friend bool operator!=(const ExceptionThrower &a, const ExceptionThrower &b)
+  {
+    return !(a == b);
   }
 };
 
