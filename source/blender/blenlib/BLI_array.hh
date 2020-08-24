@@ -269,6 +269,21 @@ class Array {
   }
 
   /**
+   * Return a reference to the last element in the array.
+   * This invokes undefined behavior when the array is empty.
+   */
+  const T &last() const
+  {
+    BLI_assert(size_ > 0);
+    return *(data_ + size_ - 1);
+  }
+  T &last()
+  {
+    BLI_assert(size_ > 0);
+    return *(data_ + size_ - 1);
+  }
+
+  /**
    * Get a pointer to the beginning of the array.
    */
   const T *data() const
