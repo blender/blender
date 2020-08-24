@@ -316,7 +316,7 @@ class Map {
   }
   template<typename ForwardKey> bool contains_as(const ForwardKey &key) const
   {
-    return this->contains__impl(key, hash_(key));
+    return this->lookup_slot_ptr(key, hash_(key)) != nullptr;
   }
 
   /**
@@ -331,7 +331,13 @@ class Map {
   }
   template<typename ForwardKey> bool remove_as(const ForwardKey &key)
   {
-    return this->remove__impl(key, hash_(key));
+    Slot *slot = this->lookup_slot_ptr(key, hash_(key));
+    if (slot == nullptr) {
+      return false;
+    }
+    slot->remove();
+    removed_slots_++;
+    return true;
   }
 
   /**
@@ -344,7 +350,9 @@ class Map {
   }
   template<typename ForwardKey> void remove_contained_as(const ForwardKey &key)
   {
-    this->remove_contained__impl(key, hash_(key));
+    Slot &slot = this->lookup_slot(key, hash_(key));
+    slot.remove();
+    removed_slots_++;
   }
 
   /**
@@ -357,7 +365,11 @@ class Map {
   }
   template<typename ForwardKey> Value pop_as(const ForwardKey &key)
   {
-    return this->pop__impl(key, hash_(key));
+    Slot &slot = this->lookup_slot(key, hash_(key));
+    Value value = std::move(*slot.value());
+    slot.remove();
+    removed_slots_++;
+    return value;
   }
 
   /**
@@ -370,7 +382,14 @@ class Map {
   }
   template<typename ForwardKey> std::optional<Value> pop_try_as(const ForwardKey &key)
   {
-    return this->pop_try__impl(key, hash_(key));
+    Slot *slot = this->lookup_slot_ptr(key, hash_(key));
+    if (slot == nullptr) {
+      return {};
+    }
+    std::optional<Value> value = std::move(*slot->value());
+    slot->remove();
+    removed_slots_++;
+    return value;
   }
 
   /**
@@ -388,7 +407,14 @@ class Map {
   template<typename ForwardKey, typename ForwardValue>
   Value pop_default_as(const ForwardKey &key, ForwardValue &&default_value)
   {
-    return this->pop_default__impl(key, std::forward<ForwardValue>(default_value), hash_(key));
+    Slot *slot = this->lookup_slot_ptr(key, hash_(key));
+    if (slot == nullptr) {
+      return std::forward<ForwardValue>(default_value);
+    }
+    Value value = std::move(*slot->value());
+    slot->remove();
+    removed_slots_++;
+    return value;
   }
 
   /**
@@ -449,11 +475,12 @@ class Map {
   }
   template<typename ForwardKey> const Value *lookup_ptr_as(const ForwardKey &key) const
   {
-    return this->lookup_ptr__impl(key, hash_(key));
+    const Slot *slot = this->lookup_slot_ptr(key, hash_(key));
+    return (slot != nullptr) ? slot->value() : nullptr;
   }
   template<typename ForwardKey> Value *lookup_ptr_as(const ForwardKey &key)
   {
-    return const_cast<Value *>(this->lookup_ptr__impl(key, hash_(key)));
+    return const_cast<Value *>(const_cast<const Map *>(this)->lookup_ptr_as(key));
   }
 
   /**
@@ -925,19 +952,6 @@ class Map {
     new (this) Map(NoExceptConstructor(), allocator);
   }
 
-  template<typename ForwardKey> bool contains__impl(const ForwardKey &key, uint64_t hash) const
-  {
-    MAP_SLOT_PROBING_BEGIN (hash, slot) {
-      if (slot.is_empty()) {
-        return false;
-      }
-      if (slot.contains(key, is_equal_, hash)) {
-        return true;
-      }
-    }
-    MAP_SLOT_PROBING_END();
-  }
-
   template<typename ForwardKey, typename ForwardValue>
   void add_new__impl(ForwardKey &&key, ForwardValue &&value, uint64_t hash)
   {
@@ -968,84 +982,6 @@ class Map {
       }
       if (slot.contains(key, is_equal_, hash)) {
         return false;
-      }
-    }
-    MAP_SLOT_PROBING_END();
-  }
-
-  template<typename ForwardKey> bool remove__impl(const ForwardKey &key, uint64_t hash)
-  {
-    MAP_SLOT_PROBING_BEGIN (hash, slot) {
-      if (slot.contains(key, is_equal_, hash)) {
-        slot.remove();
-        removed_slots_++;
-        return true;
-      }
-      if (slot.is_empty()) {
-        return false;
-      }
-    }
-    MAP_SLOT_PROBING_END();
-  }
-
-  template<typename ForwardKey> void remove_contained__impl(const ForwardKey &key, uint64_t hash)
-  {
-    BLI_assert(this->contains_as(key));
-
-    MAP_SLOT_PROBING_BEGIN (hash, slot) {
-      if (slot.contains(key, is_equal_, hash)) {
-        slot.remove();
-        removed_slots_++;
-        return;
-      }
-    }
-    MAP_SLOT_PROBING_END();
-  }
-
-  template<typename ForwardKey> Value pop__impl(const ForwardKey &key, uint64_t hash)
-  {
-    BLI_assert(this->contains_as(key));
-
-    MAP_SLOT_PROBING_BEGIN (hash, slot) {
-      if (slot.contains(key, is_equal_, hash)) {
-        Value value = std::move(*slot.value());
-        slot.remove();
-        removed_slots_++;
-        return value;
-      }
-    }
-    MAP_SLOT_PROBING_END();
-  }
-
-  template<typename ForwardKey>
-  std::optional<Value> pop_try__impl(const ForwardKey &key, uint64_t hash)
-  {
-    MAP_SLOT_PROBING_BEGIN (hash, slot) {
-      if (slot.contains(key, is_equal_, hash)) {
-        std::optional<Value> value = std::move(*slot.value());
-        slot.remove();
-        removed_slots_++;
-        return value;
-      }
-      if (slot.is_empty()) {
-        return {};
-      }
-    }
-    MAP_SLOT_PROBING_END();
-  }
-
-  template<typename ForwardKey, typename ForwardValue>
-  Value pop_default__impl(const ForwardKey &key, ForwardValue &&default_value, uint64_t hash)
-  {
-    MAP_SLOT_PROBING_BEGIN (hash, slot) {
-      if (slot.contains(key, is_equal_, hash)) {
-        Value value = std::move(*slot.value());
-        slot.remove();
-        removed_slots_++;
-        return value;
-      }
-      if (slot.is_empty()) {
-        return std::forward<ForwardValue>(default_value);
       }
     }
     MAP_SLOT_PROBING_END();
@@ -1140,17 +1076,39 @@ class Map {
   }
 
   template<typename ForwardKey>
-  const Value *lookup_ptr__impl(const ForwardKey &key, uint64_t hash) const
+  const Slot &lookup_slot(const ForwardKey &key, const uint64_t hash) const
   {
+    BLI_assert(this->contains_as(key));
     MAP_SLOT_PROBING_BEGIN (hash, slot) {
-      if (slot.is_empty()) {
-        return nullptr;
-      }
       if (slot.contains(key, is_equal_, hash)) {
-        return slot.value();
+        return slot;
       }
     }
     MAP_SLOT_PROBING_END();
+  }
+
+  template<typename ForwardKey> Slot &lookup_slot(const ForwardKey &key, const uint64_t hash)
+  {
+    return const_cast<Slot &>(const_cast<const Map *>(this)->lookup_slot(key, hash));
+  }
+
+  template<typename ForwardKey>
+  const Slot *lookup_slot_ptr(const ForwardKey &key, const uint64_t hash) const
+  {
+    MAP_SLOT_PROBING_BEGIN (hash, slot) {
+      if (slot.contains(key, is_equal_, hash)) {
+        return &slot;
+      }
+      if (slot.is_empty()) {
+        return nullptr;
+      }
+    }
+    MAP_SLOT_PROBING_END();
+  }
+
+  template<typename ForwardKey> Slot *lookup_slot_ptr(const ForwardKey &key, const uint64_t hash)
+  {
+    return const_cast<Slot *>(const_cast<const Map *>(this)->lookup_slot_ptr(key, hash));
   }
 
   template<typename ForwardKey>
