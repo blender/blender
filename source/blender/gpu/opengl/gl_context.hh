@@ -34,6 +34,15 @@
 
 #include <mutex>
 
+#ifdef DEBUG
+/* Enabled on MacOS by default since there is no support for debug callbacks. */
+#  ifdef __APPLE__
+#    define GL_CHECK_ERROR(info) GLContext::check_error(info)
+#  else
+#    define GL_CHECK_ERROR(info)
+#  endif
+#endif
+
 namespace blender {
 namespace gpu {
 
@@ -77,6 +86,8 @@ class GLContext : public GPUContext {
  public:
   GLContext(void *ghost_window, GLSharedOrphanLists &shared_orphan_list);
   ~GLContext();
+
+  static void check_error(const char *info);
 
   void activate(void) override;
   void deactivate(void) override;
