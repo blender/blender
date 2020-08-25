@@ -5577,7 +5577,7 @@ print_info() {
 
   _buildargs="-U *SNDFILE* -U PYTHON* -U *BOOST* -U *Boost* -U *TBB*"
   _buildargs="$_buildargs -U *OPENCOLORIO* -U *OPENEXR* -U *OPENIMAGEIO* -U *LLVM* -U *CYCLES*"
-  _buildargs="$_buildargs -U *OPENSUBDIV* -U *OPENVDB* -U *COLLADA* -U *FFMPEG* -U *ALEMBIC* -U *USD*"
+  _buildargs="$_buildargs -U *OPENSUBDIV* -U *OPENVDB*  -U *BLOSC* -U *COLLADA* -U *FFMPEG* -U *ALEMBIC* -U *USD*"
   _buildargs="$_buildargs -U *EMBREE* -U *OPENIMAGEDENOISE* -U *OPENXR*"
 
   _1="-D WITH_CODEC_SNDFILE=ON"
