@@ -2090,7 +2090,7 @@ void SCENE_OT_freestyle_stroke_material_create(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Textue Slot Move Operator
+/** \name Texture Slot Move Operator
  * \{ */
 
 static int texture_slot_move_exec(bContext *C, wmOperator *op)

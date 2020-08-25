@@ -190,7 +190,7 @@ void multiresModifier_subdivide_to_level(struct Object *object,
 
   Mesh *coarse_mesh = object->data;
   if (coarse_mesh->totloop == 0) {
-    /* If there are no loops in the mesh inplies there is no CD_MDISPS as well. So can early output
+    /* If there are no loops in the mesh implies there is no CD_MDISPS as well. So can early output
      * from here as there is nothing to subdivide. */
     return;
   }
