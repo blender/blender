@@ -660,7 +660,9 @@ void GPU_framebuffer_multi_clear(GPUFrameBuffer *fb, const float (*clear_cols)[4
 {
   CHECK_FRAMEBUFFER_IS_BOUND(fb);
 
-  glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+  /* Save and restore the state. */
+  eGPUWriteMask write_mask = GPU_write_mask_get();
+  GPU_color_mask(true, true, true, true);
 
   int i_type = GPU_FB_COLOR_ATTACHMENT0;
   for (int i = 0; i_type < GPU_FB_MAX_ATTACHEMENT; i++, i_type++) {
@@ -669,6 +671,8 @@ void GPU_framebuffer_multi_clear(GPUFrameBuffer *fb, const float (*clear_cols)[4
       glClearBufferfv(GL_COLOR, i, clear_cols[i]);
     }
   }
+
+  GPU_write_mask(write_mask);
 }
 
 void GPU_framebuffer_read_depth(GPUFrameBuffer *fb, int x, int y, int w, int h, float *data)
