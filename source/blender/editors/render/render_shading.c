@@ -95,6 +95,10 @@
 
 #include "render_intern.h"  // own include
 
+/* -------------------------------------------------------------------- */
+/** \name Local Utilities
+ * \{ */
+
 /**
  * Object list for material operations.
  * has exception for pinned object.
@@ -127,7 +131,11 @@ static Object **object_array_for_shading(bContext *C, uint *r_objects_len)
   return objects;
 }
 
-/********************** material slot operators *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Material Slot Add Operator
+ * \{ */
 
 static int material_slot_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -167,6 +175,12 @@ void OBJECT_OT_material_slot_add(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Material Slot Remove Operator
+ * \{ */
 
 static int material_slot_remove_exec(bContext *C, wmOperator *op)
 {
@@ -212,6 +226,12 @@ void OBJECT_OT_material_slot_remove(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Material Slot Assign Operator
+ * \{ */
 
 static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -315,6 +335,12 @@ void OBJECT_OT_material_slot_assign(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Material Slot (De)Select Operator
+ * \{ */
 
 static int material_slot_de_select(bContext *C, bool select)
 {
@@ -461,6 +487,12 @@ void OBJECT_OT_material_slot_deselect(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Material Slot Copy Operator
+ * \{ */
+
 static int material_slot_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Main *bmain = CTX_data_main(C);
@@ -514,6 +546,12 @@ void OBJECT_OT_material_slot_copy(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Material Slot Move Operator
+ * \{ */
 
 static int material_slot_move_exec(bContext *C, wmOperator *op)
 {
@@ -590,6 +628,12 @@ void OBJECT_OT_material_slot_move(wmOperatorType *ot)
                "Direction to move the active material towards");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Material Slot Remove Unused Operator
+ * \{ */
+
 static int material_slot_remove_unused_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
@@ -657,7 +701,11 @@ void OBJECT_OT_material_slot_remove_unused(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************** new material operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name New Material Operator
+ * \{ */
 
 static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -727,7 +775,11 @@ void MATERIAL_OT_new(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
-/********************** new texture operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name New Texture Operator
+ * \{ */
 
 static int new_texture_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -776,7 +828,11 @@ void TEXTURE_OT_new(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
-/********************** new world operator *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name new world operator
+ * \{ */
 
 static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -827,7 +883,11 @@ void WORLD_OT_new(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
-/********************** render layer operators *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Render Layer Add Operator
+ * \{ */
 
 static int view_layer_add_exec(bContext *C, wmOperator *op)
 {
@@ -877,6 +937,12 @@ void SCENE_OT_view_layer_add(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Render Layer Remove Operator
+ * \{ */
+
 static bool view_layer_remove_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
@@ -913,7 +979,12 @@ void SCENE_OT_view_layer_remove(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
-/********************** light cache operators *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Light Cache Bake Operator
+ * \{ */
+
 enum {
   LIGHTCACHE_SUBSET_ALL = 0,
   LIGHTCACHE_SUBSET_DIRTY,
@@ -1079,6 +1150,12 @@ void SCENE_OT_light_cache_bake(wmOperatorType *ot)
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Light Cache Free Operator
+ * \{ */
+
 static bool light_cache_free_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
@@ -1122,7 +1199,11 @@ void SCENE_OT_light_cache_free(wmOperatorType *ot)
   ot->poll = light_cache_free_poll;
 }
 
-/********************** render view operators *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Render View Remove Operator
+ * \{ */
 
 static bool render_view_remove_poll(bContext *C)
 {
@@ -1158,6 +1239,12 @@ void SCENE_OT_render_view_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Render View Add Operator
+ * \{ */
+
 static int render_view_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
@@ -1187,7 +1274,13 @@ void SCENE_OT_render_view_remove(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
 #ifdef WITH_FREESTYLE
+
+/* -------------------------------------------------------------------- */
+/** \name Free Style Module Add Operator
+ * \{ */
 
 static bool freestyle_linestyle_check_report(FreestyleLineSet *lineset, ReportList *reports)
 {
@@ -1241,6 +1334,12 @@ void SCENE_OT_freestyle_module_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Free Style Module Remove Operator
+ * \{ */
+
 static int freestyle_module_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
@@ -1287,6 +1386,12 @@ static int freestyle_module_move_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Free Style Module Move Operator
+ * \{ */
+
 void SCENE_OT_freestyle_module_move(wmOperatorType *ot)
 {
   static const EnumPropertyItem direction_items[] = {
@@ -1316,6 +1421,12 @@ void SCENE_OT_freestyle_module_move(wmOperatorType *ot)
                "Direction to move the chosen style module towards");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Free Style Line Set Add Operator
+ * \{ */
+
 static int freestyle_lineset_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Main *bmain = CTX_data_main(C);
@@ -1343,6 +1454,12 @@ void SCENE_OT_freestyle_lineset_add(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Free Style Line Set Copy Operator
+ * \{ */
 
 static bool freestyle_active_lineset_poll(bContext *C)
 {
@@ -1379,6 +1496,12 @@ void SCENE_OT_freestyle_lineset_copy(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Free Style Line Set Paste Operator
+ * \{ */
+
 static int freestyle_lineset_paste_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
@@ -1407,6 +1530,12 @@ void SCENE_OT_freestyle_lineset_paste(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Free Style Line Set Remove Operator
+ * \{ */
+
 static int freestyle_lineset_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
@@ -1434,6 +1563,12 @@ void SCENE_OT_freestyle_lineset_remove(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Free Style Line Set Move Operator
+ * \{ */
 
 static int freestyle_lineset_move_exec(bContext *C, wmOperator *op)
 {
@@ -1478,6 +1613,12 @@ void SCENE_OT_freestyle_lineset_move(wmOperatorType *ot)
                "Direction to move the active line set towards");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Free Style Line Set New Operator
+ * \{ */
+
 static int freestyle_linestyle_new_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -1515,6 +1656,12 @@ void SCENE_OT_freestyle_linestyle_new(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Free Style Modifier Add "Color" Operator
+ * \{ */
 
 static int freestyle_color_modifier_add_exec(bContext *C, wmOperator *op)
 {
@@ -1557,6 +1704,12 @@ void SCENE_OT_freestyle_color_modifier_add(wmOperatorType *ot)
       ot->srna, "type", rna_enum_linestyle_color_modifier_type_items, 0, "Type", "");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Free Style Modifier Add "Alpha" Operator
+ * \{ */
+
 static int freestyle_alpha_modifier_add_exec(bContext *C, wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1597,6 +1750,12 @@ void SCENE_OT_freestyle_alpha_modifier_add(wmOperatorType *ot)
   ot->prop = RNA_def_enum(
       ot->srna, "type", rna_enum_linestyle_alpha_modifier_type_items, 0, "Type", "");
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Free Style Modifier Add "Thickness" Operator
+ * \{ */
 
 static int freestyle_thickness_modifier_add_exec(bContext *C, wmOperator *op)
 {
@@ -1639,6 +1798,12 @@ void SCENE_OT_freestyle_thickness_modifier_add(wmOperatorType *ot)
       ot->srna, "type", rna_enum_linestyle_thickness_modifier_type_items, 0, "Type", "");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Free Style Modifier Add "Geometry" Operator
+ * \{ */
+
 static int freestyle_geometry_modifier_add_exec(bContext *C, wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1679,6 +1844,12 @@ void SCENE_OT_freestyle_geometry_modifier_add(wmOperatorType *ot)
   ot->prop = RNA_def_enum(
       ot->srna, "type", rna_enum_linestyle_geometry_modifier_type_items, 0, "Type", "");
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Free Style Modifier Remove Operator
+ * \{ */
 
 static int freestyle_get_modifier_type(PointerRNA *ptr)
 {
@@ -1747,6 +1918,12 @@ void SCENE_OT_freestyle_modifier_remove(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Free Style Modifier Copy Operator
+ * \{ */
+
 static int freestyle_modifier_copy_exec(bContext *C, wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1796,6 +1973,12 @@ void SCENE_OT_freestyle_modifier_copy(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Free Style Modifier Move Operator
+ * \{ */
 
 static int freestyle_modifier_move_exec(bContext *C, wmOperator *op)
 {
@@ -1866,6 +2049,12 @@ void SCENE_OT_freestyle_modifier_move(wmOperatorType *ot)
                "Direction to move the chosen modifier towards");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Free Style Stroke Material Create Operator
+ * \{ */
+
 static int freestyle_stroke_material_create_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -1897,6 +2086,12 @@ void SCENE_OT_freestyle_stroke_material_create(wmOperatorType *ot)
 }
 
 #endif /* WITH_FREESTYLE */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Textue Slot Move Operator
+ * \{ */
 
 static int texture_slot_move_exec(bContext *C, wmOperator *op)
 {
@@ -1966,7 +2161,11 @@ void TEXTURE_OT_slot_move(wmOperatorType *ot)
   RNA_def_enum(ot->srna, "type", slot_move, 0, "Type", "");
 }
 
-/********************** material operators *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Material Copy Operator
+ * \{ */
 
 /* material copy/paste */
 static int copy_material_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1997,6 +2196,12 @@ void MATERIAL_OT_copy(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_INTERNAL;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Material Paste Operator
+ * \{ */
+
 static int paste_material_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Material *ma = CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
@@ -2026,6 +2231,12 @@ void MATERIAL_OT_paste(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #MTex Copy/Paste Utilities
+ * \{ */
 
 static short mtexcopied = 0; /* must be reset on file load */
 static MTex mtexcopybuf;
@@ -2093,6 +2304,12 @@ static void paste_mtex_copybuf(ID *id)
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Texture Slot Copy Operator
+ * \{ */
+
 static int copy_mtex_exec(bContext *C, wmOperator *UNUSED(op))
 {
   ID *id = CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).owner_id;
@@ -2130,6 +2347,12 @@ void TEXTURE_OT_slot_copy(wmOperatorType *ot)
   /* no undo needed since no changes are made to the mtex */
   ot->flag = OPTYPE_REGISTER | OPTYPE_INTERNAL;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Texture Slot Paste Operator
+ * \{ */
 
 static int paste_mtex_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -2185,3 +2408,5 @@ void TEXTURE_OT_slot_paste(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
+
+/** \} */
