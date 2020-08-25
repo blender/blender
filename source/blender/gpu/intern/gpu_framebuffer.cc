@@ -125,14 +125,6 @@ static void gpu_print_framebuffer_error(GLenum status, char err_out[256])
   }
 }
 
-void gpu_framebuffer_module_init(void)
-{
-}
-
-void gpu_framebuffer_module_exit(void)
-{
-}
-
 GPUFrameBuffer *GPU_framebuffer_active_get(void)
 {
   GPUContext *ctx = GPU_context_active_get();

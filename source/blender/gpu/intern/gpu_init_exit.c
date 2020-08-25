@@ -53,7 +53,6 @@ void GPU_init(void)
 
   gpu_codegen_init();
   gpu_material_library_init();
-  gpu_framebuffer_module_init();
 
   if (G.debug & G_DEBUG_GPU) {
     gpu_debug_init();
@@ -86,7 +85,6 @@ void GPU_exit(void)
     gpu_debug_exit();
   }
 
-  gpu_framebuffer_module_exit();
   gpu_material_library_exit();
   gpu_codegen_exit();
 
