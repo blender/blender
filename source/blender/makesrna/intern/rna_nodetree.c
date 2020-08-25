@@ -5434,7 +5434,8 @@ static void def_sh_bevel(StructRNA *srna)
 
   prop = RNA_def_property(srna, "samples", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, NULL, "custom1");
-  RNA_def_property_range(prop, 2, 16);
+  RNA_def_property_range(prop, 2, 128);
+  RNA_def_property_ui_range(prop, 2, 16, 1, 1);
   RNA_def_property_ui_text(prop, "Samples", "Number of rays to trace per shader evaluation");
   RNA_def_property_update(prop, 0, "rna_Node_update");
 }
