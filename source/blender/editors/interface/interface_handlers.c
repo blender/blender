@@ -3484,7 +3484,7 @@ static void ui_do_but_textedit(
           ui_searchbox_event(C, data->searchbox, but, data->region, event);
         }
 #else
-        ui_searchbox_event(C, data->searchbox, but, event);
+        ui_searchbox_event(C, data->searchbox, but, data->region, event);
 #endif
       }
 
