@@ -281,7 +281,9 @@ static void node_socket_add_replace(const bContext *C,
 
     /* also preserve mapping for texture nodes */
     if (node_from->typeinfo->nclass == NODE_CLASS_TEXTURE &&
-        node_prev->typeinfo->nclass == NODE_CLASS_TEXTURE) {
+        node_prev->typeinfo->nclass == NODE_CLASS_TEXTURE &&
+        /* White noise texture node does not have NodeTexBase. */
+        node_from->storage != NULL && node_prev->storage != NULL) {
       memcpy(node_from->storage, node_prev->storage, sizeof(NodeTexBase));
     }
 

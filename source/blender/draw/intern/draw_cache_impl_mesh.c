@@ -1548,6 +1548,9 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
                                      scene,
                                      ts,
                                      use_hide);
+  /* TODO(jbakker): Work-around for threading issues in 2.90. See T79533, T79038. Needs to be
+   * solved or made permanent in 2.91. Underlying issue still needs to be researched. */
+  BLI_task_graph_work_and_wait(task_graph);
 #ifdef DEBUG
   drw_mesh_batch_cache_check_available(task_graph, me);
 #endif
