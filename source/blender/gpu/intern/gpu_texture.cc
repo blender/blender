@@ -1158,9 +1158,9 @@ static GLenum convert_target_to_gl(int dimension, bool is_array)
 {
   switch (dimension) {
     case 1:
-      return is_array ? GL_TEXTURE_1D : GL_TEXTURE_1D_ARRAY;
+      return is_array ? GL_TEXTURE_1D_ARRAY : GL_TEXTURE_1D;
     case 2:
-      return is_array ? GL_TEXTURE_2D : GL_TEXTURE_2D_ARRAY;
+      return is_array ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
     case 3:
       return GL_TEXTURE_3D;
     default:
