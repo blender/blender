@@ -69,6 +69,7 @@ void GLVaoCache::init(void)
   }
   vao_base_instance_ = 0;
   base_instance_ = 0;
+  vao_id_ = 0;
 }
 
 /* Create a new VAO object and store it in the cache. */
@@ -239,6 +240,7 @@ GLuint GLVaoCache::base_instance_vao_get(GPUBatch *batch, int i_first)
 #ifdef __APPLE__
   glDeleteVertexArrays(1, &vao_base_instance_);
   vao_base_instance_ = 0;
+  base_instance_ = 0;
 #endif
 
   if (vao_base_instance_ == 0) {
