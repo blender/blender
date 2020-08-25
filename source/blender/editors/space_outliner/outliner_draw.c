@@ -2188,7 +2188,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
           GpencilModifierData *md = BLI_findlink(&ob->greasepencil_modifiers, tselem->nr);
           switch ((GpencilModifierType)md->type) {
             case eGpencilModifierType_Noise:
-              data.icon = ICON_RNDCURVE;
+              data.icon = ICON_MOD_NOISE;
               break;
             case eGpencilModifierType_Subdiv:
               data.icon = ICON_MOD_SUBSURF;
@@ -2231,6 +2231,15 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
               break;
             case eGpencilModifierType_Armature:
               data.icon = ICON_MOD_ARMATURE;
+              break;
+            case eGpencilModifierType_Multiply:
+              data.icon = ICON_GP_MULTIFRAME_EDITING;
+              break;
+            case eGpencilModifierType_Time:
+              data.icon = ICON_MOD_TIME;
+              break;
+            case eGpencilModifierType_Texture:
+              data.icon = ICON_TEXTURE;
               break;
 
               /* Default */
@@ -2354,6 +2363,11 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         data.icon = ICON_OUTLINER_DATA_GP_LAYER;
         break;
       }
+      case TSE_GPENCIL_EFFECT_BASE:
+      case TSE_GPENCIL_EFFECT:
+        data.drag_id = tselem->id;
+        data.icon = ICON_SHADERFX;
+        break;
       default:
         data.icon = ICON_DOT;
         break;

@@ -32,6 +32,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_hair_types.h"
 #include "DNA_key_types.h"
@@ -46,6 +47,7 @@
 #include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_shader_fx_types.h"
 #include "DNA_simulation_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_volume_types.h"
@@ -546,6 +548,70 @@ static void outliner_add_object_contents(SpaceOutliner *space_outliner,
         ten_psys = outliner_add_element(space_outliner, &ten->subtree, ob, te, TSE_LINKED_PSYS, 0);
         ten_psys->directdata = psys;
         ten_psys->name = psys->part->id.name + 2;
+      }
+    }
+  }
+
+  /* Grease Pencil modifiers. */
+  if (!BLI_listbase_is_empty(&ob->greasepencil_modifiers)) {
+    TreeElement *ten_mod = outliner_add_element(
+        space_outliner, &te->subtree, ob, te, TSE_MODIFIER_BASE, 0);
+
+    ten_mod->name = IFACE_("Modifiers");
+    int index;
+    LISTBASE_FOREACH_INDEX (GpencilModifierData *, md, &ob->greasepencil_modifiers, index) {
+      TreeElement *ten = outliner_add_element(
+          space_outliner, &ten_mod->subtree, ob, ten_mod, TSE_MODIFIER, index);
+      ten->name = md->name;
+      ten->directdata = md;
+
+      if (md->type == eGpencilModifierType_Armature) {
+        outliner_add_element(space_outliner,
+                             &ten->subtree,
+                             ((ArmatureGpencilModifierData *)md)->object,
+                             ten,
+                             TSE_LINKED_OB,
+                             0);
+      }
+      else if (md->type == eGpencilModifierType_Hook) {
+        outliner_add_element(space_outliner,
+                             &ten->subtree,
+                             ((HookGpencilModifierData *)md)->object,
+                             ten,
+                             TSE_LINKED_OB,
+                             0);
+      }
+      else if (md->type == eGpencilModifierType_Lattice) {
+        outliner_add_element(space_outliner,
+                             &ten->subtree,
+                             ((LatticeGpencilModifierData *)md)->object,
+                             ten,
+                             TSE_LINKED_OB,
+                             0);
+      }
+    }
+  }
+
+  /* Grease Pencil effects. */
+  if (!BLI_listbase_is_empty(&ob->shader_fx)) {
+    TreeElement *ten_fx = outliner_add_element(
+        space_outliner, &te->subtree, ob, te, TSE_GPENCIL_EFFECT_BASE, 0);
+
+    ten_fx->name = IFACE_("Effects");
+    int index;
+    LISTBASE_FOREACH_INDEX (ShaderFxData *, fx, &ob->shader_fx, index) {
+      TreeElement *ten = outliner_add_element(
+          space_outliner, &ten_fx->subtree, ob, ten_fx, TSE_GPENCIL_EFFECT, index);
+      ten->name = fx->name;
+      ten->directdata = fx;
+
+      if (fx->type == eShaderFxType_Swirl) {
+        outliner_add_element(space_outliner,
+                             &ten->subtree,
+                             ((SwirlShaderFxData *)fx)->object,
+                             ten,
+                             TSE_LINKED_OB,
+                             0);
       }
     }
   }
