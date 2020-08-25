@@ -459,7 +459,7 @@ bool RenderBuffers::get_pass_rect(
   return false;
 }
 
-bool RenderBuffers::set_pass_rect(PassType type, int components, float *pixels)
+bool RenderBuffers::set_pass_rect(PassType type, int components, float *pixels, int samples)
 {
   if (buffer.data() == NULL) {
     return false;
@@ -482,8 +482,17 @@ bool RenderBuffers::set_pass_rect(PassType type, int components, float *pixels)
     assert(pass.components == components);
 
     for (int i = 0; i < size; i++, out += pass_stride, pixels += components) {
-      for (int j = 0; j < components; j++) {
-        out[j] = pixels[j];
+      if (pass.filter) {
+        /* Scale by the number of samples, inverse of what we do in get_pass_rect.
+         * A better solution would be to remove the need for set_pass_rect entirely,
+         * and change baking to bake multiple objects in a tile at once. */
+        for (int j = 0; j < components; j++) {
+          out[j] = pixels[j] * samples;
+        }
+      }
+      else {
+        /* For non-filtered passes just straight copy, these may contain non-float data. */
+        memcpy(out, pixels, sizeof(float) * components);
       }
     }
 

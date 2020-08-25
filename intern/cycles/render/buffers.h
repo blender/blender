@@ -92,7 +92,7 @@ class RenderBuffers {
       const string &name, float exposure, int sample, int components, float *pixels);
   bool get_denoising_pass_rect(
       int offset, float exposure, int sample, int components, float *pixels);
-  bool set_pass_rect(PassType type, int components, float *pixels);
+  bool set_pass_rect(PassType type, int components, float *pixels, int samples);
 };
 
 /* Display Buffer
