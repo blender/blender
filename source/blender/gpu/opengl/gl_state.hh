@@ -40,6 +40,8 @@ class GLStateManager : public GPUStateManager {
   /** Current state of the GL implementation. Avoids resetting the whole state for every change. */
   GPUState current_;
   GPUStateMutable current_mutable_;
+  /** Limits. */
+  float line_width_range_[2];
 
  public:
   GLStateManager();

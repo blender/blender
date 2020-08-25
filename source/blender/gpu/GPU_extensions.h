@@ -40,7 +40,6 @@ int GPU_max_color_texture_samples(void);
 int GPU_max_cube_map_size(void);
 int GPU_max_ubo_binds(void);
 int GPU_max_ubo_size(void);
-float GPU_max_line_width(void);
 void GPU_get_dfdy_factors(float fac[2]);
 bool GPU_arb_base_instance_is_supported(void);
 bool GPU_arb_texture_cube_map_array_is_supported(void);

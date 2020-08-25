@@ -71,12 +71,10 @@ static struct GPUGlobal {
   GLint maxubosize;
   GLint maxubobinds;
   int samples_color_texture_max;
-  float line_width_range[2];
   /* workaround for different calculation of dfdy factors on GPUs. Some GPUs/drivers
    * calculate dfdy in shader differently when drawing to an off-screen buffer. First
    * number is factor on screen and second is off-screen */
   float dfdyfactors[2];
-  float max_anisotropy;
   /* Some Intel drivers have limited support for `GLEW_ARB_base_instance` so in
    * these cases it is best to indicate that it is not supported. See T67951 */
   bool glew_arb_base_instance_is_supported;
@@ -164,11 +162,6 @@ int GPU_max_textures_vert(void)
   return GG.maxtexturesvert;
 }
 
-float GPU_max_texture_anisotropy(void)
-{
-  return GG.max_anisotropy;
-}
-
 int GPU_max_color_texture_samples(void)
 {
   return GG.samples_color_texture_max;
@@ -187,11 +180,6 @@ int GPU_max_ubo_binds(void)
 int GPU_max_ubo_size(void)
 {
   return GG.maxubosize;
-}
-
-float GPU_max_line_width(void)
-{
-  return GG.line_width_range[1];
 }
 
 void GPU_get_dfdy_factors(float fac[2])
@@ -264,17 +252,8 @@ void gpu_extensions_init(void)
   glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &GG.maxtexlayers);
   glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &GG.maxcubemapsize);
 
-  if (GLEW_EXT_texture_filter_anisotropic) {
-    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &GG.max_anisotropy);
-  }
-  else {
-    GG.max_anisotropy = 1.0f;
-  }
-
   glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_BLOCKS, &GG.maxubobinds);
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &GG.maxubosize);
-
-  glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, GG.line_width_range);
 
   glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES, &GG.samples_color_texture_max);
 

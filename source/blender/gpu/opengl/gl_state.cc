@@ -26,6 +26,7 @@
 
 #include "glew-mx.h"
 
+#include "gl_context.hh"
 #include "gl_state.hh"
 
 using namespace blender::gpu;
@@ -52,6 +53,9 @@ GLStateManager::GLStateManager(void) : GPUStateManager()
     /* Takes predecence over GL_PRIMITIVE_RESTART */
     glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
   }
+
+  /* Limits. */
+  glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, line_width_range_);
 
   /* Force update using default state. */
   current_ = ~state;
@@ -150,7 +154,7 @@ void GLStateManager::set_mutable_state(const GPUStateMutable &state)
 
   if (changed.line_width != 0) {
     /* TODO remove, should use wide line shader. */
-    glLineWidth(clamp_f(state.line_width, 1.0f, GPU_max_line_width()));
+    glLineWidth(clamp_f(state.line_width, line_width_range_[0], line_width_range_[1]));
   }
 
   if (changed.depth_range[0] != 0 || changed.depth_range[1] != 0) {
