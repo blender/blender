@@ -130,6 +130,7 @@ typedef struct MeshRenderData {
 static MeshRenderData *mesh_render_data_create(Mesh *me,
                                                const bool is_editmode,
                                                const bool is_paint_mode,
+                                               const bool is_mode_active,
                                                const float obmat[4][4],
                                                const bool do_final,
                                                const bool do_uvedit,
@@ -151,9 +152,10 @@ static MeshRenderData *mesh_render_data_create(Mesh *me,
     BLI_assert(me->edit_mesh->mesh_eval_cage && me->edit_mesh->mesh_eval_final);
     mr->bm = me->edit_mesh->bm;
     mr->edit_bmesh = me->edit_mesh;
-    mr->edit_data = me->runtime.edit_data;
+    mr->edit_data = is_mode_active ? mr->me->runtime.edit_data : NULL;
     mr->me = (do_final) ? me->edit_mesh->mesh_eval_final : me->edit_mesh->mesh_eval_cage;
-    bool use_mapped = !do_uvedit && mr->me && !mr->me->runtime.is_original;
+
+    bool use_mapped = is_mode_active && (!do_uvedit && mr->me && !mr->me->runtime.is_original);
 
     int bm_ensure_types = BM_VERT | BM_EDGE | BM_LOOP | BM_FACE;
 
@@ -4605,6 +4607,7 @@ void mesh_buffer_cache_create_requested(MeshBatchCache *cache,
                                         Mesh *me,
                                         const bool is_editmode,
                                         const bool is_paint_mode,
+                                        const bool is_mode_active,
                                         const float obmat[4][4],
                                         const bool do_final,
                                         const bool do_uvedit,
@@ -4669,6 +4672,7 @@ void mesh_buffer_cache_create_requested(MeshBatchCache *cache,
   MeshRenderData *mr = mesh_render_data_create(me,
                                                is_editmode,
                                                is_paint_mode,
+                                               is_mode_active,
                                                obmat,
                                                do_final,
                                                do_uvedit,

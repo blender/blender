@@ -1035,7 +1035,15 @@ void DRW_mesh_batch_cache_create_requested(
     BLI_assert(me->edit_mesh->mesh_eval_final != NULL);
   }
 
-  const bool is_editmode = (me->edit_mesh != NULL) && DRW_object_is_in_edit_mode(ob);
+  /* Don't check `DRW_object_is_in_edit_mode(ob)` here because it means the same mesh
+   * may draw with edit-mesh data and regular mesh data.
+   * In this case the custom-data layers used wont always match in `me->runtime.batch_cache`.
+   * If we want to display regular mesh data, we should have a separate cache for the edit-mesh.
+   * See T77359. */
+  const bool is_editmode = (me->edit_mesh != NULL) /* && DRW_object_is_in_edit_mode(ob) */;
+
+  /* This could be set for paint mode too, currently it's only used for edit-mode. */
+  const bool is_mode_active = is_editmode && DRW_object_is_in_edit_mode(ob);
 
   DRWBatchFlag batch_requested = cache->batch_requested;
   cache->batch_requested = 0;
@@ -1373,6 +1381,7 @@ void DRW_mesh_batch_cache_create_requested(
                                        me,
                                        is_editmode,
                                        is_paint_mode,
+                                       is_mode_active,
                                        ob->obmat,
                                        false,
                                        true,
@@ -1389,6 +1398,7 @@ void DRW_mesh_batch_cache_create_requested(
                                        me,
                                        is_editmode,
                                        is_paint_mode,
+                                       is_mode_active,
                                        ob->obmat,
                                        false,
                                        false,
@@ -1404,6 +1414,7 @@ void DRW_mesh_batch_cache_create_requested(
                                      me,
                                      is_editmode,
                                      is_paint_mode,
+                                     is_mode_active,
                                      ob->obmat,
                                      true,
                                      false,
