@@ -1618,9 +1618,7 @@ static bool ui_selectcontext_begin(bContext *C, uiBut *but, uiSelectContextStore
 
   /* if there is a valid property that is editable... */
   if (ptr.data && prop) {
-    CollectionPointerLink *link;
     bool use_path_from_id;
-    int i;
 
     /* some facts we want to know */
     const bool is_array = RNA_property_array_check(prop);
@@ -1631,8 +1629,11 @@ static bool ui_selectcontext_begin(bContext *C, uiBut *but, uiSelectContextStore
       selctx_data->elems_len = BLI_listbase_count(&lb);
       selctx_data->elems = MEM_mallocN(sizeof(uiSelectContextElem) * selctx_data->elems_len,
                                        __func__);
-
-      for (i = 0, link = lb.first; i < selctx_data->elems_len; i++, link = link->next) {
+      int i;
+      LISTBASE_FOREACH_INDEX (CollectionPointerLink *, link, &lb, i) {
+        if (i >= selctx_data->elems_len) {
+          break;
+        }
         uiSelectContextElem *other = &selctx_data->elems[i];
         /* TODO,. de-duplicate copy_to_selected_button */
         if (link->ptr.data != ptr.data) {
@@ -1737,7 +1738,6 @@ static void ui_selectcontext_apply(bContext *C,
     PropertyRNA *prop = but->rnaprop;
     PropertyRNA *lprop = but->rnaprop;
     int index = but->rnaindex;
-    int i;
     const bool use_delta = (selctx_data->is_copy == false);
 
     union {
@@ -1792,7 +1792,7 @@ static void ui_selectcontext_apply(bContext *C,
 
           tmparray[index] = true;
 
-          for (i = 0; i < selctx_data->elems_len; i++) {
+          for (int i = 0; i < selctx_data->elems_len; i++) {
             uiSelectContextElem *other = &selctx_data->elems[i];
             PointerRNA lptr = other->ptr;
             RNA_property_boolean_set_array(&lptr, lprop, tmparray);
@@ -1807,7 +1807,7 @@ static void ui_selectcontext_apply(bContext *C,
     }
 #  endif
 
-    for (i = 0; i < selctx_data->elems_len; i++) {
+    for (int i = 0; i < selctx_data->elems_len; i++) {
       uiSelectContextElem *other = &selctx_data->elems[i];
       PointerRNA lptr = other->ptr;
 
@@ -2770,11 +2770,10 @@ void ui_but_clipboard_free(void)
 static int ui_text_position_from_hidden(uiBut *but, int pos)
 {
   const char *strpos, *butstr;
-  int i;
 
   butstr = (but->editstr) ? but->editstr : but->drawstr;
-
-  for (i = 0, strpos = butstr; i < pos; i++) {
+  strpos = butstr;
+  for (int i = 0; i < pos; i++) {
     strpos = BLI_str_find_next_char_utf8(strpos, NULL);
   }
 
@@ -3559,10 +3558,8 @@ static void ui_do_but_textedit(
       /* for double click: we do a press again for when you first click on button
        * (selects all text, no cursor pos) */
       if (event->val == KM_PRESS || event->val == KM_DBL_CLICK) {
-        float mx, my;
-
-        mx = event->x;
-        my = event->y;
+        float mx = event->x;
+        float my = event->y;
         ui_window_to_block_fl(data->region, block, &mx, &my);
 
         if (ui_but_contains_pt(but, mx, my)) {
@@ -3832,12 +3829,12 @@ static void ui_do_but_textedit(
 static void ui_do_but_textedit_select(
     bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
-  int mx, my, retval = WM_UI_HANDLER_CONTINUE;
+  int retval = WM_UI_HANDLER_CONTINUE;
 
   switch (event->type) {
     case MOUSEMOVE: {
-      mx = event->x;
-      my = event->y;
+      int mx = event->x;
+      int my = event->y;
       ui_window_to_block(data->region, block, &mx, &my);
 
       ui_textedit_set_cursor_select(but, data, event->x);
@@ -4297,7 +4294,7 @@ static int ui_do_but_HOTKEYEVT(bContext *C,
 
     if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
       /* only cancel if click outside the button */
-      if (ui_but_contains_point_px(but, but->active->region, event->x, event->y) == 0) {
+      if (ui_but_contains_point_px(but, but->active->region, event->x, event->y) == false) {
         /* data->cancel doesn't work, this button opens immediate */
         if (but->flag & UI_BUT_IMMEDIATE) {
           ui_but_value_set(but, 0);
@@ -4933,13 +4930,14 @@ static void ui_numedit_set_active(uiBut *but)
 static int ui_do_but_NUM(
     bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
-  int mx, my;               /* mouse location scaled to fit the UI */
-  int screen_mx, screen_my; /* mouse location kept at screen pixel coords */
   int click = 0;
   int retval = WM_UI_HANDLER_CONTINUE;
 
-  mx = screen_mx = event->x;
-  my = screen_my = event->y;
+  /* mouse location scaled to fit the UI */
+  int mx = event->x;
+  int my = event->y;
+  /* mouse location kept at screen pixel coords */
+  const int screen_mx = event->x;
 
   ui_window_to_block(data->region, block, &mx, &my);
   ui_numedit_set_active(but);
@@ -5245,11 +5243,11 @@ static bool ui_numedit_but_SLI(uiBut *but,
 static int ui_do_but_SLI(
     bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
-  int mx, my, click = 0;
+  int click = 0;
   int retval = WM_UI_HANDLER_CONTINUE;
 
-  mx = event->x;
-  my = event->y;
+  int mx = event->x;
+  int my = event->y;
   ui_window_to_block(data->region, block, &mx, &my);
 
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
@@ -5448,12 +5446,11 @@ static int ui_do_but_SLI(
 static int ui_do_but_SCROLL(
     bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
-  int mx, my /*, click = 0 */;
   int retval = WM_UI_HANDLER_CONTINUE;
   bool horizontal = (BLI_rctf_size_x(&but->rect) > BLI_rctf_size_y(&but->rect));
 
-  mx = event->x;
-  my = event->y;
+  int mx = event->x;
+  int my = event->y;
   ui_window_to_block(data->region, block, &mx, &my);
 
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
@@ -5470,12 +5467,6 @@ static int ui_do_but_SCROLL(
         button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
         retval = WM_UI_HANDLER_BREAK;
       }
-      /* UNUSED - otherwise code is ok, add back if needed */
-#if 0
-      else if (ELEM(event->type, PADENTER, RETKEY) && event->val == KM_PRESS) {
-        click = 1;
-      }
-#endif
     }
   }
   else if (data->state == BUTTON_STATE_NUM_EDITING) {
@@ -5506,7 +5497,6 @@ static int ui_do_but_SCROLL(
 static int ui_do_but_GRIP(
     bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
-  int mx, my;
   int retval = WM_UI_HANDLER_CONTINUE;
   const bool horizontal = (BLI_rctf_size_x(&but->rect) < BLI_rctf_size_y(&but->rect));
 
@@ -5516,8 +5506,8 @@ static int ui_do_but_GRIP(
    *       See T37739.
    */
 
-  mx = event->x;
-  my = event->y;
+  int mx = event->x;
+  int my = event->y;
   ui_window_to_block(data->region, block, &mx, &my);
 
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
@@ -5666,7 +5656,7 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, co
 static bool ui_numedit_but_UNITVEC(
     uiBut *but, uiHandleButtonData *data, int mx, int my, const enum eSnapType snap)
 {
-  float dx, dy, rad, radsq, mrad, *fp;
+  float rad, radsq, mrad, *fp;
   int mdx, mdy;
   bool changed = true;
 
@@ -5694,8 +5684,8 @@ static bool ui_numedit_but_UNITVEC(
     mdx = mdy = 0;
   }
 
-  dx = (float)(mx + mdx - data->dragstartx);
-  dy = (float)(my + mdy - data->dragstarty);
+  float dx = (float)(mx + mdx - data->dragstartx);
+  float dy = (float)(my + mdy - data->dragstarty);
 
   fp = data->vec;
   mrad = dx * dx + dy * dy;
@@ -5724,11 +5714,10 @@ static bool ui_numedit_but_UNITVEC(
     const int snap_steps = (snap == SNAP_ON) ? 4 : 12; /* 45 or 15 degree increments */
     const float snap_steps_angle = M_PI / snap_steps;
     float angle, angle_snap;
-    int i;
 
     /* round each axis of 'fp' to the next increment
      * do this in "angle" space - this gives increments of same size */
-    for (i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) {
       angle = asinf(fp[i]);
       angle_snap = roundf((angle / snap_steps_angle)) * snap_steps_angle;
       fp[i] = sinf(angle_snap);
@@ -5903,10 +5892,8 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
 static int ui_do_but_UNITVEC(
     bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
-  int mx, my;
-
-  mx = event->x;
-  my = event->y;
+  int mx = event->x;
+  int my = event->y;
   ui_window_to_block(data->region, block, &mx, &my);
 
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
@@ -6199,10 +6186,8 @@ static int ui_do_but_HSVCUBE(
     bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
   uiButHSVCube *hsv_but = (uiButHSVCube *)but;
-  int mx, my;
-
-  mx = event->x;
-  my = event->y;
+  int mx = event->x;
+  int my = event->y;
   ui_window_to_block(data->region, block, &mx, &my);
 
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
@@ -6477,9 +6462,8 @@ static int ui_do_but_HSVCIRCLE(
 {
   ColorPicker *cpicker = but->custom_data;
   float *hsv = cpicker->color_data;
-  int mx, my;
-  mx = event->x;
-  my = event->y;
+  int mx = event->x;
+  int my = event->y;
   ui_window_to_block(data->region, block, &mx, &my);
 
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
@@ -6581,7 +6565,6 @@ static int ui_do_but_HSVCIRCLE(
 
 static bool ui_numedit_but_COLORBAND(uiBut *but, uiHandleButtonData *data, int mx)
 {
-  float dx;
   bool changed = false;
 
   if (data->draglastx == mx) {
@@ -6592,7 +6575,7 @@ static bool ui_numedit_but_COLORBAND(uiBut *but, uiHandleButtonData *data, int m
     return changed;
   }
 
-  dx = ((float)(mx - data->draglastx)) / BLI_rctf_size_x(&but->rect);
+  float dx = ((float)(mx - data->draglastx)) / BLI_rctf_size_x(&but->rect);
   data->dragcbd->pos += dx;
   CLAMP(data->dragcbd->pos, 0.0f, 1.0f);
 
@@ -6609,13 +6592,9 @@ static int ui_do_but_COLORBAND(
     bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
   ColorBand *coba;
-  CBData *cbd;
-  /* ignore zoom-level for mindist */
-  int mindist = (50 * UI_DPI_FAC) * block->aspect;
-  int mx, my, a, xco;
 
-  mx = event->x;
-  my = event->y;
+  int mx = event->x;
+  int my = event->y;
   ui_window_to_block(data->region, block, &mx, &my);
 
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
@@ -6629,12 +6608,17 @@ static int ui_do_but_COLORBAND(
         button_activate_state(C, but, BUTTON_STATE_EXIT);
       }
       else {
+        CBData *cbd;
+        /* ignore zoom-level for mindist */
+        int mindist = (50 * UI_DPI_FAC) * block->aspect;
+        int xco;
         data->dragstartx = mx;
         data->dragstarty = my;
         data->draglastx = mx;
         data->draglasty = my;
 
         /* activate new key when mouse is close */
+        int a;
         for (a = 0, cbd = coba->data; a < coba->tot; a++, cbd++) {
           xco = but->rect.xmin + (cbd->pos * BLI_rctf_size_x(&but->rect));
           xco = abs(xco - mx);
@@ -6693,22 +6677,20 @@ static bool ui_numedit_but_CURVE(uiBlock *block,
   CurveMapping *cumap = (CurveMapping *)but->poin;
   CurveMap *cuma = cumap->cm + cumap->cur;
   CurveMapPoint *cmp = cuma->curve;
-  float fx, fy, zoomx, zoomy;
-  int mx, my, dragx, dragy;
-  int a;
+  float fx, fy;
   bool changed = false;
 
   /* evtx evty and drag coords are absolute mousecoords,
    * prevents errors when editing when layout changes */
-  mx = evtx;
-  my = evty;
+  int mx = evtx;
+  int my = evty;
   ui_window_to_block(data->region, block, &mx, &my);
-  dragx = data->draglastx;
-  dragy = data->draglasty;
+  int dragx = data->draglastx;
+  int dragy = data->draglasty;
   ui_window_to_block(data->region, block, &dragx, &dragy);
 
-  zoomx = BLI_rctf_size_x(&but->rect) / BLI_rctf_size_x(&cumap->curr);
-  zoomy = BLI_rctf_size_y(&but->rect) / BLI_rctf_size_y(&cumap->curr);
+  const float zoomx = BLI_rctf_size_x(&but->rect) / BLI_rctf_size_x(&cumap->curr);
+  const float zoomy = BLI_rctf_size_y(&but->rect) / BLI_rctf_size_y(&cumap->curr);
 
   if (snap) {
     float d[2];
@@ -6732,7 +6714,7 @@ static bool ui_numedit_but_CURVE(uiBlock *block,
     fx *= mval_factor;
     fy *= mval_factor;
 
-    for (a = 0; a < cuma->totpoint; a++) {
+    for (int a = 0; a < cuma->totpoint; a++) {
       if (cmp[a].flag & CUMA_SELECT) {
         float origx = cmp[a].x, origy = cmp[a].y;
         cmp[a].x += fx;
@@ -6807,13 +6789,12 @@ static bool ui_numedit_but_CURVE(uiBlock *block,
 static int ui_do_but_CURVE(
     bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
-  int mx, my, a;
   bool changed = false;
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  mx = event->x;
-  my = event->y;
+  int mx = event->x;
+  int my = event->y;
   ui_window_to_block(data->region, block, &mx, &my);
 
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
@@ -6836,7 +6817,7 @@ static int ui_do_but_CURVE(
 
       /* check for selecting of a point */
       cmp = cuma->curve; /* ctrl adds point, new malloc */
-      for (a = 0; a < cuma->totpoint; a++) {
+      for (int a = 0; a < cuma->totpoint; a++) {
         float f_xy[2];
         BLI_rctf_transform_pt_v(&but->rect, &cumap->curr, f_xy, &cmp[a].x);
         const float dist_sq = len_squared_v2v2(m_xy, f_xy);
@@ -6847,7 +6828,6 @@ static int ui_do_but_CURVE(
       }
 
       if (sel == -1) {
-        int i;
         float f_xy[2], f_xy_prev[2];
 
         /* if the click didn't select anything, check if it's clicked on the
@@ -6860,7 +6840,7 @@ static int ui_do_but_CURVE(
         dist_min_sq = square_f(U.dpi_fac * 8.0f);
 
         /* loop through the curve segment table and find what's near the mouse. */
-        for (i = 1; i <= CM_TABLE; i++) {
+        for (int i = 1; i <= CM_TABLE; i++) {
           copy_v2_v2(f_xy_prev, f_xy);
           BLI_rctf_transform_pt_v(&but->rect, &cumap->curr, f_xy, &cmp[i].x);
 
@@ -6877,7 +6857,7 @@ static int ui_do_but_CURVE(
             cmp = cuma->curve;
 
             /* find newly added point and make it 'sel' */
-            for (a = 0; a < cuma->totpoint; a++) {
+            for (int a = 0; a < cuma->totpoint; a++) {
               if (cmp[a].x == f_xy[0]) {
                 sel = a;
               }
@@ -6891,7 +6871,7 @@ static int ui_do_but_CURVE(
         /* ok, we move a point */
         /* deselect all if this one is deselect. except if we hold shift */
         if (!event->shift) {
-          for (a = 0; a < cuma->totpoint; a++) {
+          for (int a = 0; a < cuma->totpoint; a++) {
             cmp[a].flag &= ~CUMA_SELECT;
           }
           cmp[sel].flag |= CUMA_SELECT;
@@ -6935,7 +6915,7 @@ static int ui_do_but_CURVE(
         if (data->dragchange == false) {
           /* deselect all, select one */
           if (!event->shift) {
-            for (a = 0; a < cuma->totpoint; a++) {
+            for (int a = 0; a < cuma->totpoint; a++) {
               cmp[a].flag &= ~CUMA_SELECT;
             }
             cmp[data->dragsel].flag |= CUMA_SELECT;
@@ -6970,22 +6950,20 @@ static bool ui_numedit_but_CURVEPROFILE(uiBlock *block,
 {
   CurveProfile *profile = (CurveProfile *)but->poin;
   CurveProfilePoint *pts = profile->path;
-  float fx, fy, zoomx, zoomy;
-  int mx, my, dragx, dragy;
-  int a;
+  float fx, fy;
   bool changed = false;
 
   /* evtx evty and drag coords are absolute mousecoords,
    * prevents errors when editing when layout changes */
-  mx = evtx;
-  my = evty;
+  int mx = evtx;
+  int my = evty;
   ui_window_to_block(data->region, block, &mx, &my);
-  dragx = data->draglastx;
-  dragy = data->draglasty;
+  int dragx = data->draglastx;
+  int dragy = data->draglasty;
   ui_window_to_block(data->region, block, &dragx, &dragy);
 
-  zoomx = BLI_rctf_size_x(&but->rect) / BLI_rctf_size_x(&profile->view_rect);
-  zoomy = BLI_rctf_size_y(&but->rect) / BLI_rctf_size_y(&profile->view_rect);
+  const float zoomx = BLI_rctf_size_x(&but->rect) / BLI_rctf_size_x(&profile->view_rect);
+  const float zoomy = BLI_rctf_size_y(&but->rect) / BLI_rctf_size_y(&profile->view_rect);
 
   if (snap) {
     float d[2];
@@ -7011,7 +6989,7 @@ static bool ui_numedit_but_CURVEPROFILE(uiBlock *block,
 
     /* Move all selected points. */
     const float delta[2] = {fx, fy};
-    for (a = 0; a < profile->path_len; a++) {
+    for (int a = 0; a < profile->path_len; a++) {
       /* Don't move the last and first control points. */
       if ((pts[a].flag & PROF_SELECT) && (a != 0) && (a != profile->path_len)) {
         moved_point |= BKE_curveprofile_move_point(profile, &pts[a], snap, delta);
@@ -7284,10 +7262,8 @@ static bool ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int m
 static int ui_do_but_HISTOGRAM(
     bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
-  int mx, my;
-
-  mx = event->x;
-  my = event->y;
+  int mx = event->x;
+  int my = event->y;
   ui_window_to_block(data->region, block, &mx, &my);
 
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
@@ -7342,9 +7318,8 @@ static bool ui_numedit_but_WAVEFORM(uiBut *but, uiHandleButtonData *data, int mx
 {
   Scopes *scopes = (Scopes *)but->poin;
   bool changed = true;
-  float dy;
 
-  dy = my - data->draglasty;
+  float dy = my - data->draglasty;
 
   /* scale waveform values */
   scopes->wavefrm_yfac += dy / 200.0f;
@@ -7360,10 +7335,8 @@ static bool ui_numedit_but_WAVEFORM(uiBut *but, uiHandleButtonData *data, int mx
 static int ui_do_but_WAVEFORM(
     bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
-  int mx, my;
-
-  mx = event->x;
-  my = event->y;
+  int mx = event->x;
+  int my = event->y;
   ui_window_to_block(data->region, block, &mx, &my);
 
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
@@ -7419,10 +7392,9 @@ static bool ui_numedit_but_TRACKPREVIEW(
 {
   MovieClipScopes *scopes = (MovieClipScopes *)but->poin;
   bool changed = true;
-  float dx, dy;
 
-  dx = mx - data->draglastx;
-  dy = my - data->draglasty;
+  float dx = mx - data->draglastx;
+  float dy = my - data->draglasty;
 
   if (shift) {
     dx /= 5.0f;
@@ -7454,10 +7426,8 @@ static bool ui_numedit_but_TRACKPREVIEW(
 static int ui_do_but_TRACKPREVIEW(
     bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
-  int mx, my;
-
-  mx = event->x;
-  my = event->y;
+  int mx = event->x;
+  int my = event->y;
   ui_window_to_block(data->region, block, &mx, &my);
 
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
@@ -8978,7 +8948,6 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
   int retval = WM_UI_HANDLER_CONTINUE;
   int type = event->type, val = event->val;
   bool redraw = false;
-  int mx, my;
 
   ui_list = listbox->custom_data;
   if (!ui_list || !ui_list->dyn_data) {
@@ -8986,8 +8955,8 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
   }
   dyn_data = ui_list->dyn_data;
 
-  mx = event->x;
-  my = event->y;
+  int mx = event->x;
+  int my = event->y;
   ui_window_to_block(region, listbox->block, &mx, &my);
 
   /* Convert pan to scroll-wheel. */
@@ -9023,11 +8992,11 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
          * collection order, we have some work! */
         int *org_order = MEM_mallocN(dyn_data->items_shown * sizeof(int), __func__);
         const int *new_order = dyn_data->items_filter_neworder;
-        int i, org_idx = -1, len = dyn_data->items_len;
+        int org_idx = -1, len = dyn_data->items_len;
         int current_idx = -1;
         int filter_exclude = ui_list->filter_flag & UILST_FLT_EXCLUDE;
 
-        for (i = 0; i < len; i++) {
+        for (int i = 0; i < len; i++) {
           if (!dyn_data->items_filter_flags ||
               ((dyn_data->items_filter_flags[i] & UILST_FLT_ITEM) ^ filter_exclude)) {
             org_order[new_order ? new_order[++org_idx] : ++org_idx] = i;
@@ -9568,7 +9537,7 @@ static int ui_handle_menu_event(bContext *C,
   ARegion *region;
   uiBlock *block;
   uiBut *but;
-  int mx, my, retval;
+  int retval;
   bool inside;
   bool inside_title; /* check for title dragging */
 
@@ -9577,8 +9546,8 @@ static int ui_handle_menu_event(bContext *C,
 
   retval = WM_UI_HANDLER_CONTINUE;
 
-  mx = event->x;
-  my = event->y;
+  int mx = event->x;
+  int my = event->y;
   ui_window_to_block(region, block, &mx, &my);
 
   /* check if mouse is inside block */
@@ -10007,7 +9976,7 @@ static int ui_handle_menu_event(bContext *C,
        * Events handled above may have already set the return value,
        * don't overwrite them, see: T61015.
        */
-      if ((inside == 0) && (menu->menuretval == 0)) {
+      if ((inside == false) && (menu->menuretval == 0)) {
         uiSafetyRct *saferct = block->saferct.first;
 
         if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE)) {
@@ -10094,7 +10063,7 @@ static int ui_handle_menu_event(bContext *C,
       else {
 
         /* check mouse moving outside of the menu */
-        if (inside == 0 && (block->flag & (UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_POPOVER))) {
+        if (inside == false && (block->flag & (UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_POPOVER))) {
           uiSafetyRct *saferct;
 
           ui_mouse_motion_towards_check(block, menu, &event->x, is_parent_inside == false);
@@ -10590,10 +10559,8 @@ static int ui_handle_menus_recursive(bContext *C,
 
     if (do_recursion) {
       if (is_parent_inside == false) {
-        int mx, my;
-
-        mx = event->x;
-        my = event->y;
+        int mx = event->x;
+        int my = event->y;
         ui_window_to_block(menu->region, block, &mx, &my);
         inside = BLI_rctf_isect_pt(&block->rect, mx, my);
       }
@@ -10613,7 +10580,7 @@ static int ui_handle_menus_recursive(bContext *C,
       (void)submenu;
       /* we may want to quit the submenu and handle the even in this menu,
        * if its important to use it, check 'data->menu' first */
-      if (((retval == WM_UI_HANDLER_BREAK) && do_ret_out_parent) == 0) {
+      if (((retval == WM_UI_HANDLER_BREAK) && do_ret_out_parent) == false) {
         /* skip applying the event */
         return retval;
       }
