@@ -640,7 +640,7 @@ ID *BKE_id_copy_for_duplicate(Main *bmain, ID *id, const eDupli_ID_Flags duplica
 
     BKE_animdata_duplicate_id_action(bmain, id_new, duplicate_flags);
     if (key_new != NULL) {
-      BKE_animdata_duplicate_id_action(bmain, id_new, duplicate_flags);
+      BKE_animdata_duplicate_id_action(bmain, key_new, duplicate_flags);
     }
     /* Note that actions of embedded data (root nodetrees and master collections) are handled
      * by `BKE_animdata_duplicate_id_action` as well. */
