@@ -2819,7 +2819,10 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 
         sub_v3_v3v3(offset_global, ob_active->loc, ob_iter->obmat[3]);
         copy_m3_m4(bmat, ob_active->obmat);
-        invert_m3_m3(imat, bmat);
+
+        /* Inverse transform for all selected curves in this object,
+         * See #object_join_exec for detailed comment on why the safe version is used. */
+        invert_m3_m3_safe_ortho(imat, bmat);
         mul_m3_v3(imat, offset_global);
         mul_v3_m3v3(offset_local, imat, offset_global);
 
@@ -2830,7 +2833,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 
           /* recalculate all stroke points */
           BKE_gpencil_parent_matrix_get(depsgraph, ob_iter, gpl_src, diff_mat);
-          invert_m4_m4(inverse_diff_mat, diff_mat);
+          invert_m4_m4_safe_ortho(inverse_diff_mat, diff_mat);
 
           Material *ma_src = NULL;
           LISTBASE_FOREACH (bGPDframe *, gpf, &gpl_new->frames) {

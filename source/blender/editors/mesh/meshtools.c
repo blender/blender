@@ -590,8 +590,9 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   loopofs = 0;
   polyofs = 0;
 
-  /* inverse transform for all selected meshes in this object */
-  invert_m4_m4(imat, ob->obmat);
+  /* Inverse transform for all selected meshes in this object,
+   * See #object_join_exec for detailed comment on why the safe version is used. */
+  invert_m4_m4_safe_ortho(imat, ob->obmat);
 
   /* Add back active mesh first.
    * This allows to keep things similar as they were, as much as possible

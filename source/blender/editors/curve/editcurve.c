@@ -6923,8 +6923,9 @@ int ED_curve_join_objects_exec(bContext *C, wmOperator *op)
 
   BLI_listbase_clear(&tempbase);
 
-  /* trasnform all selected curves inverse in obact */
-  invert_m4_m4(imat, ob_active->obmat);
+  /* Inverse transform for all selected curves in this object,
+   * See #object_join_exec for detailed comment on why the safe version is used. */
+  invert_m4_m4_safe_ortho(imat, ob_active->obmat);
 
   CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
     if (ob_iter->type == ob_active->type) {

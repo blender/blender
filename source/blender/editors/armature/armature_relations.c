@@ -304,6 +304,10 @@ int ED_armature_join_objects_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  /* Inverse transform for all selected armatures in this object,
+   * See #object_join_exec for detailed comment on why the safe version is used. */
+  invert_m4_m4_safe_ortho(oimat, ob_active->obmat);
+
   /* Get edit-bones of active armature to add edit-bones to */
   ED_armature_to_edit(arm);
 
@@ -334,7 +338,6 @@ int ED_armature_join_objects_exec(bContext *C, wmOperator *op)
       // BASACT->flag &= ~OB_MODE_POSE;
 
       /* Find the difference matrix */
-      invert_m4_m4(oimat, ob_active->obmat);
       mul_m4_m4m4(mat, oimat, ob_iter->obmat);
 
       /* Copy bones and posechannels from the object to the edit armature */
