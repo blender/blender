@@ -134,6 +134,7 @@ set(SRC
   intern/gpu_codegen.h
   intern/gpu_context_private.hh
   intern/gpu_drawlist_private.hh
+  intern/gpu_framebuffer_private.hh
   intern/gpu_material_library.h
   intern/gpu_matrix_private.h
   intern/gpu_node_graph.h

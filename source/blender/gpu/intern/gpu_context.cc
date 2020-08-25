@@ -185,40 +185,6 @@ void GPU_tex_free(GLuint tex_id)
   static_cast<GLBackend *>(backend)->tex_free(tex_id);
 }
 
-/* GPUBatch & GPUFrameBuffer contains respectively VAO & FBO indices
- * which are not shared across contexts. So we need to keep track of
- * ownership. */
-
-void gpu_context_add_framebuffer(GPUContext *ctx, GPUFrameBuffer *fb)
-{
-#ifdef DEBUG
-  BLI_assert(ctx);
-  static_cast<GLContext *>(ctx)->framebuffer_register(fb);
-#else
-  UNUSED_VARS(ctx, fb);
-#endif
-}
-
-void gpu_context_remove_framebuffer(GPUContext *ctx, GPUFrameBuffer *fb)
-{
-#ifdef DEBUG
-  BLI_assert(ctx);
-  static_cast<GLContext *>(ctx)->framebuffer_unregister(fb);
-#else
-  UNUSED_VARS(ctx, fb);
-#endif
-}
-
-void gpu_context_active_framebuffer_set(GPUContext *ctx, GPUFrameBuffer *fb)
-{
-  ctx->current_fbo = fb;
-}
-
-GPUFrameBuffer *gpu_context_active_framebuffer_get(GPUContext *ctx)
-{
-  return ctx->current_fbo;
-}
-
 struct GPUMatrixState *gpu_context_active_matrix_state_get()
 {
   BLI_assert(active_ctx);
