@@ -518,8 +518,13 @@ bool gpu_select_pick_load_id(uint id, bool end)
       SWAP(DepthBufCache *, ps->gl.rect_depth, ps->gl.rect_depth_test);
 
       if (g_pick_state.mode == GPU_SELECT_PICK_ALL) {
+        /* (fclem) This is to be on the safe side. I don't know if this is required. */
+        bool prev_depth_mask = GPU_depth_mask_get();
         /* we want new depths every time */
+        GPU_depth_mask(true);
         GPU_clear_depth(1.0f);
+
+        GPU_depth_mask(prev_depth_mask);
       }
     }
   }
