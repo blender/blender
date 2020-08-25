@@ -299,6 +299,9 @@ bool has_zero_axis_m4(const float matrix[4][4]);
 
 void invert_m4_m4_safe(float Ainv[4][4], const float A[4][4]);
 
+void invert_m3_m3_safe_ortho(float Ainv[3][3], const float A[3][3]);
+void invert_m4_m4_safe_ortho(float Ainv[4][4], const float A[4][4]);
+
 /****************************** Transformations ******************************/
 
 void scale_m3_fl(float R[3][3], float scale);

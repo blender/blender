@@ -3118,6 +3118,115 @@ void invert_m4_m4_safe(float Ainv[4][4], const float A[4][4])
   }
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Invert (Safe Orthographic)
+ *
+ * Invert the matrix, filling in zeroed axes using the valid ones where possible.
+ *
+ * Unlike #invert_m4_m4_safe set degenerate axis unit length instead of adding a small value,
+ * which has the results in:
+ *
+ * - Scaling by a large value on the resulting matrix.
+ * - Changing axis which aren't degenerate.
+ *
+ * \note We could support passing in a length value if there is a good use-case
+ * where we want to specify the length of the degenerate axes.
+ * \{ */
+
+/**
+ * Return true if invert should be attempted again.
+ *
+ * \note Takes an array of points to be usable from 3x3 and 4x4 matrices.
+ */
+static bool invert_m3_m3_safe_ortho_prepare(float *mat[3])
+{
+  enum { X = 1 << 0, Y = 1 << 1, Z = 1 << 2 };
+  int flag = 0;
+  for (int i = 0; i < 3; i++) {
+    flag |= (len_squared_v3(mat[i]) == 0.0f) ? (1 << i) : 0;
+  }
+
+  /* Either all or none are zero, either way we can't properly resolve this
+   * since we need to fill invalid axes from valid ones. */
+  if (ELEM(flag, 0, X | Y | Z)) {
+    return false;
+  }
+
+  switch (flag) {
+    case X | Y: {
+      ortho_v3_v3(mat[1], mat[2]);
+      ATTR_FALLTHROUGH;
+    }
+    case X: {
+      cross_v3_v3v3(mat[0], mat[1], mat[2]);
+      break;
+    }
+
+    case Y | Z: {
+      ortho_v3_v3(mat[2], mat[0]);
+      ATTR_FALLTHROUGH;
+    }
+    case Y: {
+      cross_v3_v3v3(mat[1], mat[0], mat[2]);
+      break;
+    }
+
+    case Z | X: {
+      ortho_v3_v3(mat[0], mat[1]);
+      ATTR_FALLTHROUGH;
+    }
+    case Z: {
+      cross_v3_v3v3(mat[2], mat[0], mat[1]);
+      break;
+    }
+    default: {
+      BLI_assert(0); /* Unreachable! */
+    }
+  }
+
+  for (int i = 0; i < 3; i++) {
+    if (flag & (1 << i)) {
+      if (UNLIKELY(normalize_v3(mat[i]) == 0.0f)) {
+        mat[i][i] = 1.0f;
+      }
+    }
+  }
+
+  return true;
+}
+
+/**
+ * A safe version of invert that uses valid axes, calculating the zero'd axis
+ * based on the non-zero ones.
+ *
+ * This works well for transformation matrices, when a single axis is zerod.
+ */
+void invert_m4_m4_safe_ortho(float Ainv[4][4], const float A[4][4])
+{
+  if (UNLIKELY(!invert_m4_m4(Ainv, A))) {
+    float Atemp[4][4];
+    copy_m4_m4(Atemp, A);
+    if (UNLIKELY(!(invert_m3_m3_safe_ortho_prepare((float *[3]){UNPACK3(Atemp)}) &&
+                   invert_m4_m4(Ainv, Atemp)))) {
+      unit_m4(Ainv);
+    }
+  }
+}
+
+void invert_m3_m3_safe_ortho(float Ainv[3][3], const float A[3][3])
+{
+  if (UNLIKELY(!invert_m3_m3(Ainv, A))) {
+    float Atemp[3][3];
+    copy_m3_m3(Atemp, A);
+    if (UNLIKELY(!(invert_m3_m3_safe_ortho_prepare((float *[3]){UNPACK3(Atemp)}) &&
+                   invert_m3_m3(Ainv, Atemp)))) {
+      unit_m3(Ainv);
+    }
+  }
+}
+
+/** \} */
+
 /**
  * #SpaceTransform struct encapsulates all needed data to convert between two coordinate spaces
  * (where conversion can be represented by a matrix multiplication).
