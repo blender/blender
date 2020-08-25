@@ -415,8 +415,7 @@ static int sequencer_select_exec(bContext *C, wmOperator *op)
 
     const float x = UI_view2d_region_to_view_x(v2d, mval[0]);
 
-    SEQ_CURRENT_BEGIN(ed, seq)
-    {
+    SEQ_CURRENT_BEGIN (ed, seq) {
       if (((x < CFRA) && (seq->enddisp <= CFRA)) || ((x >= CFRA) && (seq->startdisp >= CFRA))) {
         /* Select left or right. */
         seq->flag |= SELECT;
@@ -976,8 +975,7 @@ static int sequencer_select_side_of_frame_exec(bContext *C, wmOperator *op)
     ED_sequencer_deselect_all(scene);
   }
   const int cfra = CFRA;
-  SEQ_CURRENT_BEGIN(ed, seq)
-  {
+  SEQ_CURRENT_BEGIN (ed, seq) {
     bool test = false;
     switch (side) {
       case -1:
@@ -1284,8 +1282,7 @@ static bool select_grouped_type(Editing *ed, Sequence *actseq, const int channel
   Sequence *seq;
   bool changed = false;
 
-  SEQ_CURRENT_BEGIN(ed, seq)
-  {
+  SEQ_CURRENT_BEGIN (ed, seq) {
     if (SEQ_CHANNEL_CHECK(seq, channel) && seq->type == actseq->type) {
       seq->flag |= SELECT;
       changed = true;
@@ -1302,8 +1299,7 @@ static bool select_grouped_type_basic(Editing *ed, Sequence *actseq, const int c
   bool changed = false;
   const bool is_sound = SEQ_IS_SOUND(actseq);
 
-  SEQ_CURRENT_BEGIN(ed, seq)
-  {
+  SEQ_CURRENT_BEGIN (ed, seq) {
     if (SEQ_CHANNEL_CHECK(seq, channel) && (is_sound ? SEQ_IS_SOUND(seq) : !SEQ_IS_SOUND(seq))) {
       seq->flag |= SELECT;
       changed = true;
@@ -1320,8 +1316,7 @@ static bool select_grouped_type_effect(Editing *ed, Sequence *actseq, const int 
   bool changed = false;
   const bool is_effect = SEQ_IS_EFFECT(actseq);
 
-  SEQ_CURRENT_BEGIN(ed, seq)
-  {
+  SEQ_CURRENT_BEGIN (ed, seq) {
     if (SEQ_CHANNEL_CHECK(seq, channel) &&
         (is_effect ? SEQ_IS_EFFECT(seq) : !SEQ_IS_EFFECT(seq))) {
       seq->flag |= SELECT;
@@ -1344,8 +1339,7 @@ static bool select_grouped_data(Editing *ed, Sequence *actseq, const int channel
   }
 
   if (SEQ_HAS_PATH(actseq) && dir) {
-    SEQ_CURRENT_BEGIN(ed, seq)
-    {
+    SEQ_CURRENT_BEGIN (ed, seq) {
       if (SEQ_CHANNEL_CHECK(seq, channel) && SEQ_HAS_PATH(seq) && seq->strip &&
           STREQ(seq->strip->dir, dir)) {
         seq->flag |= SELECT;
@@ -1356,8 +1350,7 @@ static bool select_grouped_data(Editing *ed, Sequence *actseq, const int channel
   }
   else if (actseq->type == SEQ_TYPE_SCENE) {
     Scene *sce = actseq->scene;
-    SEQ_CURRENT_BEGIN(ed, seq)
-    {
+    SEQ_CURRENT_BEGIN (ed, seq) {
       if (SEQ_CHANNEL_CHECK(seq, channel) && seq->type == SEQ_TYPE_SCENE && seq->scene == sce) {
         seq->flag |= SELECT;
         changed = true;
@@ -1367,8 +1360,7 @@ static bool select_grouped_data(Editing *ed, Sequence *actseq, const int channel
   }
   else if (actseq->type == SEQ_TYPE_MOVIECLIP) {
     MovieClip *clip = actseq->clip;
-    SEQ_CURRENT_BEGIN(ed, seq)
-    {
+    SEQ_CURRENT_BEGIN (ed, seq) {
       if (SEQ_CHANNEL_CHECK(seq, channel) && seq->type == SEQ_TYPE_MOVIECLIP &&
           seq->clip == clip) {
         seq->flag |= SELECT;
@@ -1379,8 +1371,7 @@ static bool select_grouped_data(Editing *ed, Sequence *actseq, const int channel
   }
   else if (actseq->type == SEQ_TYPE_MASK) {
     struct Mask *mask = actseq->mask;
-    SEQ_CURRENT_BEGIN(ed, seq)
-    {
+    SEQ_CURRENT_BEGIN (ed, seq) {
       if (SEQ_CHANNEL_CHECK(seq, channel) && seq->type == SEQ_TYPE_MASK && seq->mask == mask) {
         seq->flag |= SELECT;
         changed = true;
@@ -1403,8 +1394,7 @@ static bool select_grouped_effect(Editing *ed, Sequence *actseq, const int chann
     effects[i] = false;
   }
 
-  SEQ_CURRENT_BEGIN(ed, seq)
-  {
+  SEQ_CURRENT_BEGIN (ed, seq) {
     if (SEQ_CHANNEL_CHECK(seq, channel) && (seq->type & SEQ_TYPE_EFFECT) &&
         ELEM(actseq, seq->seq1, seq->seq2, seq->seq3)) {
       effects[seq->type] = true;
@@ -1412,8 +1402,7 @@ static bool select_grouped_effect(Editing *ed, Sequence *actseq, const int chann
   }
   SEQ_CURRENT_END;
 
-  SEQ_CURRENT_BEGIN(ed, seq)
-  {
+  SEQ_CURRENT_BEGIN (ed, seq) {
     if (SEQ_CHANNEL_CHECK(seq, channel) && effects[seq->type]) {
       if (seq->seq1) {
         seq->seq1->flag |= SELECT;
@@ -1437,8 +1426,7 @@ static bool select_grouped_time_overlap(Editing *ed, Sequence *actseq)
   Sequence *seq;
   bool changed = false;
 
-  SEQ_CURRENT_BEGIN(ed, seq)
-  {
+  SEQ_CURRENT_BEGIN (ed, seq) {
     if (seq->startdisp < actseq->enddisp && seq->enddisp > actseq->startdisp) {
       seq->flag |= SELECT;
       changed = true;
@@ -1459,8 +1447,7 @@ static bool select_grouped_effect_link(Editing *ed, Sequence *actseq, const int 
   int machine = actseq->machine;
   SeqIterator iter;
 
-  SEQ_CURRENT_BEGIN(ed, seq)
-  {
+  SEQ_CURRENT_BEGIN (ed, seq) {
     seq->tmp = NULL;
   }
   SEQ_CURRENT_END;
@@ -1536,8 +1523,7 @@ static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
   bool changed = false;
 
   if (!extend) {
-    SEQ_CURRENT_BEGIN(ed, seq)
-    {
+    SEQ_CURRENT_BEGIN (ed, seq) {
       seq->flag &= ~SELECT;
       changed = true;
     }

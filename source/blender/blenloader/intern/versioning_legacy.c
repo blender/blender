@@ -1251,8 +1251,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     while (sce) {
       ed = sce->ed;
       if (ed) {
-        SEQ_ALL_BEGIN(sce->ed, seq)
-        {
+        SEQ_ALL_BEGIN (sce->ed, seq) {
           if (seq->type == SEQ_TYPE_IMAGE || seq->type == SEQ_TYPE_MOVIE) {
             seq->alpha_mode = SEQ_ALPHA_STRAIGHT;
           }
@@ -2443,8 +2442,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     Sequence *seq;
 
     for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
-      SEQ_ALL_BEGIN(sce->ed, seq)
-      {
+      SEQ_ALL_BEGIN (sce->ed, seq) {
         if (seq->blend_mode == 0) {
           seq->blend_opacity = 100.0f;
         }
@@ -2597,8 +2595,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     while (sce) {
       ed = sce->ed;
       if (ed) {
-        SEQ_CURRENT_BEGIN(ed, seq)
-        {
+        SEQ_CURRENT_BEGIN (ed, seq) {
           if (seq->strip && seq->strip->proxy) {
             seq->strip->proxy->quality = 90;
           }

@@ -623,8 +623,7 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
       bool seq_found = false;
 
       if (&scene->sequencer_colorspace_settings != colorspace_settings) {
-        SEQ_ALL_BEGIN(scene->ed, seq)
-        {
+        SEQ_ALL_BEGIN (scene->ed, seq) {
           if (seq->strip && &seq->strip->colorspace_settings == colorspace_settings) {
             seq_found = true;
             break;
@@ -644,8 +643,7 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
         BKE_sequence_invalidate_cache_preprocessed(scene, seq);
       }
       else {
-        SEQ_ALL_BEGIN(scene->ed, seq)
-        {
+        SEQ_ALL_BEGIN (scene->ed, seq) {
           BKE_sequence_free_anim(seq);
         }
         SEQ_ALL_END;

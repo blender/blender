@@ -507,8 +507,7 @@ void BKE_sequencer_editing_free(Scene *scene, const bool do_id_user)
   BKE_sequencer_prefetch_free(scene);
   BKE_sequencer_cache_destruct(scene);
 
-  SEQ_ALL_BEGIN(ed, seq)
-  {
+  SEQ_ALL_BEGIN (ed, seq) {
     /* handle cache freeing above */
     BKE_sequence_free_ex(scene, seq, false, do_id_user, false);
   }
@@ -6172,8 +6171,7 @@ void BKE_sequencer_check_uuids_unique_and_report(const Scene *scene)
       BLI_session_uuid_ghash_hash, BLI_session_uuid_ghash_compare, "sequencer used uuids");
 
   const Sequence *sequence;
-  SEQ_ALL_BEGIN(scene->ed, sequence)
-  {
+  SEQ_ALL_BEGIN (scene->ed, sequence) {
     const SessionUUID *session_uuid = &sequence->runtime.session_uuid;
     if (!BLI_session_uuid_is_generated(session_uuid)) {
       printf("Sequence %s does not have UUID generated.\n", sequence->name);

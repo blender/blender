@@ -232,8 +232,7 @@ static int strip_modifier_copy_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  SEQ_CURRENT_BEGIN(ed, seq_iter)
-  {
+  SEQ_CURRENT_BEGIN (ed, seq_iter) {
     if (seq_iter->flag & SELECT) {
       if (seq_iter == seq) {
         continue;

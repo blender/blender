@@ -217,8 +217,7 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
   file_list = BLI_gset_new(BLI_ghashutil_strhash_p, BLI_ghashutil_strcmp, "file list");
   bool selected = false; /* Check for no selected strips */
 
-  SEQ_CURRENT_BEGIN(ed, seq)
-  {
+  SEQ_CURRENT_BEGIN (ed, seq) {
     if (!ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE, SEQ_TYPE_META) ||
         (seq->flag & SELECT) == 0) {
       continue;
@@ -484,8 +483,7 @@ void ED_sequencer_deselect_all(Scene *scene)
     return;
   }
 
-  SEQ_CURRENT_BEGIN(ed, seq)
-  {
+  SEQ_CURRENT_BEGIN (ed, seq) {
     seq->flag &= ~SEQ_ALLSEL;
   }
   SEQ_CURRENT_END;
@@ -1068,8 +1066,7 @@ static void UNUSED_FUNCTION(seq_remap_paths)(Scene *scene)
     return;
   }
 
-  SEQ_CURRENT_BEGIN(ed, seq)
-  {
+  SEQ_CURRENT_BEGIN (ed, seq) {
     if (seq->flag & SELECT) {
       if (STREQLEN(seq->strip->dir, from, strlen(from))) {
         printf("found %s\n", seq->strip->dir);
@@ -2298,16 +2295,14 @@ static int sequencer_split_exec(bContext *C, wmOperator *op)
     Sequence *seq;
     if (ignore_selection) {
       if (use_cursor_position) {
-        SEQ_CURRENT_BEGIN(ed, seq)
-        {
+        SEQ_CURRENT_BEGIN (ed, seq) {
           if (seq->enddisp == split_frame && seq->machine == split_channel) {
             seq_selected = seq->flag & SEQ_ALLSEL;
           }
         }
         SEQ_CURRENT_END;
         if (!seq_selected) {
-          SEQ_CURRENT_BEGIN(ed, seq)
-          {
+          SEQ_CURRENT_BEGIN (ed, seq) {
             if (seq->startdisp == split_frame && seq->machine == split_channel) {
               seq->flag &= ~SEQ_ALLSEL;
             }
@@ -2318,8 +2313,7 @@ static int sequencer_split_exec(bContext *C, wmOperator *op)
     }
     else {
       if (split_side != SEQ_SIDE_BOTH) {
-        SEQ_CURRENT_BEGIN(ed, seq)
-        {
+        SEQ_CURRENT_BEGIN (ed, seq) {
           if (split_side == SEQ_SIDE_LEFT) {
             if (seq->startdisp >= split_frame) {
               seq->flag &= ~SEQ_ALLSEL;
@@ -2334,8 +2328,7 @@ static int sequencer_split_exec(bContext *C, wmOperator *op)
         SEQ_CURRENT_END;
       }
     }
-    SEQ_CURRENT_BEGIN(ed, seq)
-    {
+    SEQ_CURRENT_BEGIN (ed, seq) {
       if (seq->seq1 || seq->seq2 || seq->seq3) {
         BKE_sequence_calc(scene, seq);
       }
@@ -2552,8 +2545,7 @@ static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
 
   BKE_sequencer_prefetch_stop(scene);
 
-  SEQ_CURRENT_BEGIN(scene->ed, seq)
-  {
+  SEQ_CURRENT_BEGIN (scene->ed, seq) {
     if (seq->flag & SELECT) {
       BKE_sequencer_flag_for_removal(scene, ed->seqbasep, seq);
     }
@@ -3508,8 +3500,7 @@ static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
 
   file_list = BLI_gset_new(BLI_ghashutil_strhash_p, BLI_ghashutil_strcmp, "file list");
 
-  SEQ_CURRENT_BEGIN(ed, seq)
-  {
+  SEQ_CURRENT_BEGIN (ed, seq) {
     if ((seq->flag & SELECT)) {
       ListBase queue = {NULL, NULL};
       LinkData *link;
@@ -3577,8 +3568,7 @@ static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
     turnon = false;
   }
 
-  SEQ_CURRENT_BEGIN(ed, seq)
-  {
+  SEQ_CURRENT_BEGIN (ed, seq) {
     if ((seq->flag & SELECT)) {
       if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE, SEQ_TYPE_META)) {
         BKE_sequencer_proxy_set(seq, turnon);
@@ -4000,8 +3990,7 @@ static int sequencer_export_subtitles_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  SEQ_ALL_BEGIN(ed, seq)
-  {
+  SEQ_ALL_BEGIN (ed, seq) {
     if (seq->type == SEQ_TYPE_TEXT) {
       BLI_addtail(&text_seq, MEM_dupallocN(seq));
     }
