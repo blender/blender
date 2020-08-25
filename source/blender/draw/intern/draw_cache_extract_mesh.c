@@ -311,9 +311,14 @@ static void mesh_render_data_update_normals(MeshRenderData *mr,
   }
 }
 
+/**
+ * \param is_mode_active: When true, use the modifiers from the edit-data,
+ * otherwise don't use modifiers as they are not from this object.
+ */
 static MeshRenderData *mesh_render_data_create(Mesh *me,
                                                const bool is_editmode,
                                                const bool is_paint_mode,
+                                               const bool is_mode_active,
                                                const float obmat[4][4],
                                                const bool do_final,
                                                const bool do_uvedit,
@@ -333,7 +338,7 @@ static MeshRenderData *mesh_render_data_create(Mesh *me,
     mr->bm = me->edit_mesh->bm;
     mr->edit_bmesh = me->edit_mesh;
     mr->me = (do_final) ? me->edit_mesh->mesh_eval_final : me->edit_mesh->mesh_eval_cage;
-    mr->edit_data = mr->me->runtime.edit_data;
+    mr->edit_data = is_mode_active ? mr->me->runtime.edit_data : NULL;
 
     if (mr->edit_data) {
       EditMeshData *emd = mr->edit_data;
@@ -348,8 +353,9 @@ static MeshRenderData *mesh_render_data_create(Mesh *me,
       mr->bm_poly_centers = mr->edit_data->polyCos;
     }
 
-    bool has_mdata = (mr->me->runtime.wrapper_type == ME_WRAPPER_TYPE_MDATA);
-    bool use_mapped = has_mdata && !do_uvedit && mr->me && !mr->me->runtime.is_original;
+    bool has_mdata = is_mode_active && (mr->me->runtime.wrapper_type == ME_WRAPPER_TYPE_MDATA);
+    bool use_mapped = is_mode_active &&
+                      (has_mdata && !do_uvedit && mr->me && !mr->me->runtime.is_original);
 
     int bm_ensure_types = BM_VERT | BM_EDGE | BM_LOOP | BM_FACE;
 
@@ -5534,6 +5540,7 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
 
                                         const bool is_editmode,
                                         const bool is_paint_mode,
+                                        const bool is_mode_active,
                                         const float obmat[4][4],
                                         const bool do_final,
                                         const bool do_uvedit,
@@ -5633,6 +5640,7 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
   MeshRenderData *mr = mesh_render_data_create(me,
                                                is_editmode,
                                                is_paint_mode,
+                                               is_mode_active,
                                                obmat,
                                                do_final,
                                                do_uvedit,
