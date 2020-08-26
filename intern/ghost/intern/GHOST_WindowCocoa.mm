@@ -415,7 +415,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
     [parentWindow->getCocoaWindow() addChildWindow:m_window ordered:NSWindowAbove];
     [m_window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenAuxiliary];
   }
-  else if (state != GHOST_kWindowStateFullScreen) {
+  else {
     [m_window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
   }
 
