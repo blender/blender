@@ -765,15 +765,15 @@ extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
 #  define ENUM_OPERATORS(_enum_type) \
     inline constexpr _enum_type operator|(_enum_type a, _enum_type b) \
     { \
-      return a = static_cast<_enum_type>(static_cast<int>(a) | b); \
+      return static_cast<_enum_type>(static_cast<int>(a) | b); \
     } \
     inline constexpr _enum_type operator&(_enum_type a, _enum_type b) \
     { \
-      return a = static_cast<_enum_type>(static_cast<int>(a) & b); \
+      return static_cast<_enum_type>(static_cast<int>(a) & b); \
     } \
     inline constexpr _enum_type operator~(_enum_type a) \
     { \
-      return a = static_cast<_enum_type>(~static_cast<int>(a)); \
+      return static_cast<_enum_type>(~static_cast<int>(a)); \
     } \
     inline _enum_type &operator|=(_enum_type &a, _enum_type b) \
     { \
