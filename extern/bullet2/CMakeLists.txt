@@ -419,7 +419,8 @@ if(MSVC)
   # bullet is responsible for quite a few silly warnings
   # suppress all of them. Not great, but they really needed
   # to sort that out themselves.
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W0")
+  remove_cc_flag("/W3")
+  add_c_flag("/W0")
 endif()
 
 blender_add_lib(extern_bullet "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
