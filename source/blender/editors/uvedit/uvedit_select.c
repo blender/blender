@@ -71,10 +71,14 @@
 #include "uvedit_intern.h"
 
 static void uv_select_all_perform(Scene *scene, Object *obedit, int action);
+
+static void uv_select_all_perform_multi_ex(
+    Scene *scene, Object **objects, const uint objects_len, int action, const Object *ob_exclude);
 static void uv_select_all_perform_multi(Scene *scene,
                                         Object **objects,
                                         const uint objects_len,
                                         int action);
+
 static void uv_select_flush_from_tag_face(SpaceImage *sima,
                                           Scene *scene,
                                           Object *obedit,
@@ -612,7 +616,7 @@ void uvedit_uv_select_disable(const Scene *scene,
   }
 }
 
-static BMLoop *uvedit_loop_find_other_radial_loop_with_visible_face(Scene *scene,
+static BMLoop *uvedit_loop_find_other_radial_loop_with_visible_face(const Scene *scene,
                                                                     BMLoop *l_src,
                                                                     const int cd_loop_uv_offset)
 {
@@ -635,6 +639,37 @@ static BMLoop *uvedit_loop_find_other_radial_loop_with_visible_face(Scene *scene
     } while ((l_iter = l_iter->radial_next) != l_src);
   }
   return l_other;
+}
+
+static BMLoop *uvedit_loop_find_other_boundary_loop_with_visible_face(const Scene *scene,
+                                                                      BMLoop *l_edge,
+                                                                      BMVert *v_pivot,
+                                                                      const int cd_loop_uv_offset)
+{
+  BLI_assert(uvedit_loop_find_other_radial_loop_with_visible_face(
+                 scene, l_edge, cd_loop_uv_offset) == NULL);
+
+  BMLoop *l_step = l_edge;
+  l_step = (l_step->v == v_pivot) ? l_step->prev : l_step->next;
+  BMLoop *l_step_last = NULL;
+  do {
+    BLI_assert(BM_vert_in_edge(l_step->e, v_pivot));
+    l_step_last = l_step;
+    l_step = uvedit_loop_find_other_radial_loop_with_visible_face(
+        scene, l_step, cd_loop_uv_offset);
+    if (l_step) {
+      l_step = (l_step->v == v_pivot) ? l_step->prev : l_step->next;
+    }
+  } while (l_step != NULL);
+
+  BM_elem_flag_set(l_step_last->e, BM_ELEM_SMOOTH, false);
+
+  if (l_step_last != NULL) {
+    BLI_assert(uvedit_loop_find_other_radial_loop_with_visible_face(
+                   scene, l_step_last, cd_loop_uv_offset) == NULL);
+  }
+
+  return l_step_last;
 }
 
 /** \} */
@@ -971,179 +1006,171 @@ BMLoop *uv_find_nearest_loop_from_edge(struct Scene *scene,
 /** \name Edge Loop Select
  * \{ */
 
-static void uv_select_edgeloop_vertex_loop_flag(UvMapVert *first)
+/** Mode for selecting edge loops at boundaries. */
+enum eUVEdgeLoopBoundaryMode {
+  /** Delimit at face corners (don't walk over multiple edges in the same face). */
+  UV_EDGE_LOOP_BOUNDARY_LOOP = 1,
+  /** Don't delimit, walk over the all connected boundary loops. */
+  UV_EDGE_LOOP_BOUNDARY_ALL = 2,
+};
+
+static BMLoop *bm_select_edgeloop_double_side_next(const Scene *scene,
+                                                   BMLoop *l_step,
+                                                   BMVert *v_from,
+                                                   const int cd_loop_uv_offset)
 {
-  UvMapVert *iterv;
-  int count = 0;
-
-  for (iterv = first; iterv; iterv = iterv->next) {
-    if (iterv->separate && iterv != first) {
-      break;
-    }
-
-    count++;
-  }
-
-  if (count < 5) {
-    first->flag = 1;
-  }
-}
-
-static UvMapVert *uv_select_edgeloop_vertex_map_get(UvVertMap *vmap, BMFace *efa, BMLoop *l)
-{
-  UvMapVert *iterv, *first;
-  first = BM_uv_vert_map_at_index(vmap, BM_elem_index_get(l->v));
-
-  for (iterv = first; iterv; iterv = iterv->next) {
-    if (iterv->separate) {
-      first = iterv;
-    }
-    if (iterv->poly_index == BM_elem_index_get(efa)) {
-      return first;
+  if (l_step->f->len == 4) {
+    BMVert *v_from_next = BM_edge_other_vert(l_step->e, v_from);
+    BMLoop *l_step_over = (v_from == l_step->v) ? l_step->next : l_step->prev;
+    l_step_over = uvedit_loop_find_other_radial_loop_with_visible_face(
+        scene, l_step_over, cd_loop_uv_offset);
+    if (l_step_over) {
+      return (l_step_over->v == v_from_next) ? l_step_over->prev : l_step_over->next;
     }
   }
-
   return NULL;
 }
 
-static bool uv_select_edgeloop_edge_tag_faces(BMEditMesh *em,
-                                              UvMapVert *first1,
-                                              UvMapVert *first2,
-                                              int *totface)
+static BMLoop *bm_select_edgeloop_single_side_next(const Scene *scene,
+                                                   BMLoop *l_step,
+                                                   BMVert *v_from,
+                                                   const int cd_loop_uv_offset)
 {
-  UvMapVert *iterv1, *iterv2;
-  BMFace *efa;
-  int tot = 0;
-
-  /* count number of faces this edge has */
-  for (iterv1 = first1; iterv1; iterv1 = iterv1->next) {
-    if (iterv1->separate && iterv1 != first1) {
-      break;
-    }
-
-    for (iterv2 = first2; iterv2; iterv2 = iterv2->next) {
-      if (iterv2->separate && iterv2 != first2) {
-        break;
-      }
-
-      if (iterv1->poly_index == iterv2->poly_index) {
-        /* if face already tagged, don't do this edge */
-        efa = BM_face_at_index(em->bm, iterv1->poly_index);
-        if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
-          return false;
-        }
-
-        tot++;
-        break;
-      }
-    }
-  }
-
-  if (*totface == 0) { /* start edge */
-    *totface = tot;
-  }
-  else if (tot != *totface) { /* check for same number of faces as start edge */
-    return false;
-  }
-
-  /* tag the faces */
-  for (iterv1 = first1; iterv1; iterv1 = iterv1->next) {
-    if (iterv1->separate && iterv1 != first1) {
-      break;
-    }
-
-    for (iterv2 = first2; iterv2; iterv2 = iterv2->next) {
-      if (iterv2->separate && iterv2 != first2) {
-        break;
-      }
-
-      if (iterv1->poly_index == iterv2->poly_index) {
-        efa = BM_face_at_index(em->bm, iterv1->poly_index);
-        BM_elem_flag_enable(efa, BM_ELEM_TAG);
-        break;
-      }
-    }
-  }
-
-  return true;
+  BMVert *v_from_next = BM_edge_other_vert(l_step->e, v_from);
+  return uvedit_loop_find_other_boundary_loop_with_visible_face(
+      scene, l_step, v_from_next, cd_loop_uv_offset);
 }
 
-static int uv_select_edgeloop(Scene *scene, Object *obedit, UvNearestHit *hit, const bool extend)
+/* TODO(campbell): support this in the BMesh API, as we have for clearing other types. */
+static void bm_loop_tags_clear(BMesh *bm)
 {
-  BMEditMesh *em = BKE_editmesh_from_object(obedit);
-  BMFace *efa;
-  BMIter iter, liter;
-  BMLoop *l;
-  UvVertMap *vmap;
-  UvMapVert *iterv_curr;
-  UvMapVert *iterv_next;
-  int starttotf;
-  bool looking, select;
-
-  const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-
-  /* setup */
-  BM_mesh_elem_table_ensure(em->bm, BM_FACE);
-  vmap = BM_uv_vert_map_create(em->bm, false, false);
-
-  BM_mesh_elem_index_ensure(em->bm, BM_VERT | BM_FACE);
-
-  if (!extend) {
-    uv_select_all_perform(scene, obedit, SEL_DESELECT);
-  }
-
-  BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, false);
-
-  /* set flags for first face and verts */
-  iterv_curr = uv_select_edgeloop_vertex_map_get(vmap, hit->efa, hit->l);
-  iterv_next = uv_select_edgeloop_vertex_map_get(vmap, hit->efa, hit->l->next);
-  uv_select_edgeloop_vertex_loop_flag(iterv_curr);
-  uv_select_edgeloop_vertex_loop_flag(iterv_next);
-
-  starttotf = 0;
-  uv_select_edgeloop_edge_tag_faces(em, iterv_curr, iterv_next, &starttotf);
-
-  /* sorry, first edge isn't even ok */
-  looking = !(iterv_curr->flag == 0 && iterv_next->flag == 0);
-
-  /* iterate */
-  while (looking) {
-    looking = false;
-
-    /* find correct valence edges which are not tagged yet, but connect to tagged one */
-
-    BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-      if (!BM_elem_flag_test(efa, BM_ELEM_TAG) && uvedit_face_visible_test(scene, efa)) {
-        BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-          /* check face not hidden and not tagged */
-          if (!(iterv_curr = uv_select_edgeloop_vertex_map_get(vmap, efa, l))) {
-            continue;
-          }
-          if (!(iterv_next = uv_select_edgeloop_vertex_map_get(vmap, efa, l->next))) {
-            continue;
-          }
-
-          /* check if vertex is tagged and has right valence */
-          if (iterv_curr->flag || iterv_next->flag) {
-            if (uv_select_edgeloop_edge_tag_faces(em, iterv_curr, iterv_next, &starttotf)) {
-              looking = true;
-              BM_elem_flag_enable(efa, BM_ELEM_TAG);
-
-              uv_select_edgeloop_vertex_loop_flag(iterv_curr);
-              uv_select_edgeloop_vertex_loop_flag(iterv_next);
-              break;
-            }
-          }
-        }
-      }
+  BMIter iter;
+  BMFace *f;
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    BMIter liter;
+    BMLoop *l_iter;
+    BM_ITER_ELEM (l_iter, &liter, f, BM_LOOPS_OF_FACE) {
+      BM_elem_flag_disable(l_iter, BM_ELEM_TAG);
     }
   }
+}
 
-  /* do the actual select/deselect */
-  iterv_curr = uv_select_edgeloop_vertex_map_get(vmap, hit->efa, hit->l);
-  iterv_next = uv_select_edgeloop_vertex_map_get(vmap, hit->efa, hit->l->next);
-  iterv_curr->flag = 1;
-  iterv_next->flag = 1;
+/**
+ * Tag all loops which should be selected, the caller must select.
+ */
+static void uv_select_edgeloop_double_side_tag(const Scene *scene,
+                                               BMEditMesh *em,
+                                               BMLoop *l_init_pair[2],
+                                               const int cd_loop_uv_offset)
+{
+  bm_loop_tags_clear(em->bm);
+
+  for (int side = 0; side < 2; side++) {
+    BMLoop *l_step_pair[2] = {l_init_pair[0], l_init_pair[1]};
+    BMVert *v_from = side ? l_step_pair[0]->e->v1 : l_step_pair[0]->e->v2;
+    /* Disable since we start from the same edge. */
+    BM_elem_flag_disable(l_step_pair[0], BM_ELEM_TAG);
+    BM_elem_flag_disable(l_step_pair[1], BM_ELEM_TAG);
+    while ((l_step_pair[0] != NULL) && (l_step_pair[1] != NULL)) {
+      if (!uvedit_face_visible_test(scene, l_step_pair[0]->f) ||
+          !uvedit_face_visible_test(scene, l_step_pair[1]->f) ||
+          /* Check loops have not diverged. */
+          (uvedit_loop_find_other_radial_loop_with_visible_face(
+               scene, l_step_pair[0], cd_loop_uv_offset) != l_step_pair[1])) {
+        break;
+      }
+
+      BLI_assert(l_step_pair[0]->e == l_step_pair[1]->e);
+
+      BM_elem_flag_enable(l_step_pair[0], BM_ELEM_TAG);
+      BM_elem_flag_enable(l_step_pair[1], BM_ELEM_TAG);
+
+      BMVert *v_from_next = BM_edge_other_vert(l_step_pair[0]->e, v_from);
+      /* Walk over both sides, ensure they keep on the same edge. */
+      for (int i = 0; i < ARRAY_SIZE(l_step_pair); i++) {
+        l_step_pair[i] = bm_select_edgeloop_double_side_next(
+            scene, l_step_pair[i], v_from, cd_loop_uv_offset);
+      }
+
+      if ((l_step_pair[0] && BM_elem_flag_test(l_step_pair[0], BM_ELEM_TAG)) ||
+          (l_step_pair[1] && BM_elem_flag_test(l_step_pair[1], BM_ELEM_TAG))) {
+        break;
+      }
+      v_from = v_from_next;
+    }
+  }
+}
+
+/**
+ * Tag all loops which should be selected, the caller must select.
+ *
+ * \param r_count_by_select: Count the number of unselected and selected loops,
+ * this is needed to implement cycling between #eUVEdgeLoopBoundaryMode.
+ */
+static void uv_select_edgeloop_single_side_tag(const Scene *scene,
+                                               BMEditMesh *em,
+                                               BMLoop *l_init,
+                                               const int cd_loop_uv_offset,
+                                               enum eUVEdgeLoopBoundaryMode boundary_mode,
+                                               int r_count_by_select[2])
+{
+  if (r_count_by_select) {
+    r_count_by_select[0] = r_count_by_select[1] = 0;
+  }
+
+  bm_loop_tags_clear(em->bm);
+
+  for (int side = 0; side < 2; side++) {
+    BMLoop *l_step = l_init;
+    BMVert *v_from = side ? l_step->e->v1 : l_step->e->v2;
+    /* Disable since we start from the same edge. */
+    BM_elem_flag_disable(l_step, BM_ELEM_TAG);
+    while (l_step != NULL) {
+
+      if (!uvedit_face_visible_test(scene, l_step->f) ||
+          /* Check the boundary is still a  boundary. */
+          (uvedit_loop_find_other_radial_loop_with_visible_face(
+               scene, l_step, cd_loop_uv_offset) != NULL)) {
+        break;
+      }
+
+      if (r_count_by_select != NULL) {
+        r_count_by_select[uvedit_edge_select_test(scene, l_step, cd_loop_uv_offset)] += 1;
+        /* Early exit when mixed could be optional if needed. */
+        if (r_count_by_select[0] && r_count_by_select[1]) {
+          r_count_by_select[0] = r_count_by_select[1] = -1;
+          break;
+        }
+      }
+
+      BM_elem_flag_enable(l_step, BM_ELEM_TAG);
+
+      BMVert *v_from_next = BM_edge_other_vert(l_step->e, v_from);
+      BMFace *f_step_prev = l_step->f;
+
+      l_step = bm_select_edgeloop_single_side_next(scene, l_step, v_from, cd_loop_uv_offset);
+
+      if (l_step && BM_elem_flag_test(l_step, BM_ELEM_TAG)) {
+        break;
+      }
+      if (boundary_mode == UV_EDGE_LOOP_BOUNDARY_LOOP) {
+        /* Don't allow walking over the the face. */
+        if (f_step_prev == l_step->f) {
+          break;
+        }
+      }
+      v_from = v_from_next;
+    }
+  }
+}
+
+static int uv_select_edgeloop(
+    SpaceImage *sima, Scene *scene, Object *obedit, UvNearestHit *hit, const bool extend)
+{
+  BMEditMesh *em = BKE_editmesh_from_object(obedit);
+  bool select;
+
+  const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
   if (extend) {
     select = !(uvedit_uv_select_test(scene, hit->l, cd_loop_uv_offset));
@@ -1152,18 +1179,61 @@ static int uv_select_edgeloop(Scene *scene, Object *obedit, UvNearestHit *hit, c
     select = true;
   }
 
-  BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-    BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-      iterv_curr = uv_select_edgeloop_vertex_map_get(vmap, efa, l);
+  BMLoop *l_init_pair[2] = {
+      hit->l,
+      uvedit_loop_find_other_radial_loop_with_visible_face(scene, hit->l, cd_loop_uv_offset),
+  };
 
-      if (iterv_curr->flag) {
-        uvedit_uv_select_set(scene, em, l, select, false, cd_loop_uv_offset);
+  /* When selecting boundaries, support cycling between selection modes. */
+  enum eUVEdgeLoopBoundaryMode boundary_mode = UV_EDGE_LOOP_BOUNDARY_LOOP;
+
+  /* Tag all loops that are part of the edge loop (select after).
+   * This is done so we can */
+  if (l_init_pair[1] == NULL) {
+    int count_by_select[2];
+    /* If the loops selected toggle the boundaries. */
+    uv_select_edgeloop_single_side_tag(
+        scene, em, l_init_pair[0], cd_loop_uv_offset, boundary_mode, count_by_select);
+    if (count_by_select[!select] == 0) {
+      boundary_mode = UV_EDGE_LOOP_BOUNDARY_ALL;
+
+      /* If the boundary is selected, toggle back to the loop. */
+      uv_select_edgeloop_single_side_tag(
+          scene, em, l_init_pair[0], cd_loop_uv_offset, boundary_mode, count_by_select);
+      if (count_by_select[!select] == 0) {
+        boundary_mode = UV_EDGE_LOOP_BOUNDARY_LOOP;
       }
     }
   }
 
-  /* cleanup */
-  BM_uv_vert_map_free(vmap);
+  if (l_init_pair[1] == NULL) {
+    uv_select_edgeloop_single_side_tag(
+        scene, em, l_init_pair[0], cd_loop_uv_offset, boundary_mode, NULL);
+  }
+  else {
+    uv_select_edgeloop_double_side_tag(scene, em, l_init_pair, cd_loop_uv_offset);
+  }
+
+  /* Apply the selection. */
+  if (!extend) {
+    uv_select_all_perform(scene, obedit, SEL_DESELECT);
+  }
+
+  /* Select all tagged loops. */
+  {
+    BMIter iter;
+    BMFace *f;
+    BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
+      BMIter liter;
+      BMLoop *l_iter;
+      BM_ITER_ELEM (l_iter, &liter, f, BM_LOOPS_OF_FACE) {
+        if (BM_elem_flag_test(l_iter, BM_ELEM_TAG)) {
+          uvedit_edge_select_set_with_sticky(
+              sima, scene, em, l_iter, select, false, cd_loop_uv_offset);
+        }
+      }
+    }
+  }
 
   return (select) ? 1 : -1;
 }
@@ -1762,10 +1832,8 @@ static void uv_select_all_perform(Scene *scene, Object *obedit, int action)
   }
 }
 
-static void uv_select_all_perform_multi(Scene *scene,
-                                        Object **objects,
-                                        const uint objects_len,
-                                        int action)
+static void uv_select_all_perform_multi_ex(
+    Scene *scene, Object **objects, const uint objects_len, int action, const Object *ob_exclude)
 {
   if (action == SEL_TOGGLE) {
     action = uvedit_select_is_any_selected_multi(scene, objects, objects_len) ? SEL_DESELECT :
@@ -1774,8 +1842,19 @@ static void uv_select_all_perform_multi(Scene *scene,
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
+    if (ob_exclude && (obedit == ob_exclude)) {
+      continue;
+    }
     uv_select_all_perform(scene, obedit, action);
   }
+}
+
+static void uv_select_all_perform_multi(Scene *scene,
+                                        Object **objects,
+                                        const uint objects_len,
+                                        int action)
+{
+  uv_select_all_perform_multi_ex(scene, objects, objects_len, action, NULL);
 }
 
 static int uv_select_all_exec(bContext *C, wmOperator *op)
@@ -1923,8 +2002,7 @@ static int uv_mouse_select_multi(bContext *C,
   /* do selection */
   if (selectmode == UV_SELECT_ISLAND) {
     if (!extend) {
-      /* TODO(MULTI_EDIT): We only need to de-select non-active */
-      uv_select_all_perform_multi(scene, objects, objects_len, SEL_DESELECT);
+      uv_select_all_perform_multi_ex(scene, objects, objects_len, SEL_DESELECT, obedit);
     }
     /* Current behavior of 'extend'
      * is actually toggling, so pass extend flag as 'toggle' here */
@@ -2114,12 +2192,11 @@ static int uv_mouse_select_loop_generic_multi(bContext *C,
 
   /* Do selection. */
   if (!extend) {
-    /* TODO(MULTI_EDIT): We only need to de-select non-active */
-    uv_select_all_perform_multi(scene, objects, objects_len, SEL_DESELECT);
+    uv_select_all_perform_multi_ex(scene, objects, objects_len, SEL_DESELECT, obedit);
   }
 
   if (loop_type == UV_LOOP_SELECT) {
-    flush = uv_select_edgeloop(scene, obedit, &hit, extend);
+    flush = uv_select_edgeloop(sima, scene, obedit, &hit, extend);
   }
   else if (loop_type == UV_RING_SELECT) {
     flush = uv_select_edgering(sima, scene, obedit, &hit, extend);
