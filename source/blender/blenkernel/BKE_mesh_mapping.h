@@ -48,9 +48,6 @@ typedef struct UvMapVert {
   unsigned int poly_index;
   unsigned short loop_of_poly_index;
   bool separate;
-  /* Zero-ed by map creation, left for use by specific areas. Is not
-   * initialized to anything. */
-  unsigned char flag;
 } UvMapVert;
 
 /* UvElement stores per uv information so that we can quickly access information for a uv.

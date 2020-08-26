@@ -523,7 +523,7 @@ void EDBM_flag_enable_all(BMEditMesh *em, const char hflag)
  * \{ */
 
 /**
- * Return a new UVVertMap from the editmesh
+ * Return a new #UvVertMap from the edit-mesh.
  */
 UvVertMap *BM_uv_vert_map_create(BMesh *bm, const bool use_select, const bool use_winding)
 {
