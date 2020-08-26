@@ -85,23 +85,45 @@
 #  include "wm_window.h"
 #endif
 
-/* place the mouse at the scaled down location when un-grabbing */
+/* -------------------------------------------------------------------- */
+/** \name Feature Defines
+ *
+ * These defines allow developers to locally toggle functionality which
+ * may be useful for testing (especially conflicts in dragging).
+ * Ideally the code would be refactored to support this functionality in a less fragile way.
+ * Until then keep these defines.
+ * \{ */
+
+/** Place the mouse at the scaled down location when un-grabbing. */
 #define USE_CONT_MOUSE_CORRECT
-/* support dragging toggle buttons */
+/** Support dragging toggle buttons. */
 #define USE_DRAG_TOGGLE
 
-/* support dragging multiple number buttons at once */
+/** Support dragging multiple number buttons at once. */
 #define USE_DRAG_MULTINUM
 
-/* allow dragging/editing all other selected items at once */
+/** Allow dragging/editing all other selected items at once. */
 #define USE_ALLSELECT
 
-/* so we can avoid very small mouse-moves from jumping away from keyboard navigation [#34936] */
+/**
+ * Check to avoid very small mouse-moves from jumping away from keyboard navigation,
+ * while larger mouse motion will override keyboard input, see: T34936.
+ */
 #define USE_KEYNAV_LIMIT
 
-/* drag popups by their header */
+/** Support dragging popups by their header. */
 #define USE_DRAG_POPUP
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Local Defines
+ * \{ */
+
+/**
+ * The buffer side used for password strings, where the password is stored internally,
+ * but not displayed.
+ */
 #define UI_MAX_PASSWORD_STR 128
 
 /**
@@ -117,7 +139,12 @@
  */
 #define UI_DRAG_MAP_SOFT_RANGE_PIXEL_MAX 1000
 
-/* proto */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Local Prototypes
+ * \{ */
+
 static int ui_do_but_EXIT(bContext *C,
                           uiBut *but,
                           struct uiHandleButtonData *data,
@@ -130,6 +157,8 @@ static void button_tooltip_timer_reset(bContext *C, uiBut *but);
 static void ui_mouse_motion_keynav_init(struct uiKeyNavLock *keynav, const wmEvent *event);
 static bool ui_mouse_motion_keynav_test(struct uiKeyNavLock *keynav, const wmEvent *event);
 #endif
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Structs & Defines
