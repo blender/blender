@@ -256,8 +256,8 @@ static void ui_searchbox_butrect(rcti *r_rect, uiSearchboxData *data, int itemnr
 {
   /* thumbnail preview */
   if (data->preview) {
-    int butw = (BLI_rcti_size_x(&data->bbox) - 2 * MENU_BORDER) / data->prv_cols;
-    int buth = (BLI_rcti_size_y(&data->bbox) - 2 * MENU_BORDER) / data->prv_rows;
+    const int butw = (BLI_rcti_size_x(&data->bbox) - 2 * MENU_BORDER) / data->prv_cols;
+    const int buth = (BLI_rcti_size_y(&data->bbox) - 2 * MENU_BORDER) / data->prv_rows;
     int row, col;
 
     *r_rect = data->bbox;
@@ -273,7 +273,7 @@ static void ui_searchbox_butrect(rcti *r_rect, uiSearchboxData *data, int itemnr
   }
   /* list view */
   else {
-    int buth = (BLI_rcti_size_y(&data->bbox) - 2 * UI_POPUP_MENU_TOP) / SEARCH_ITEMS;
+    const int buth = (BLI_rcti_size_y(&data->bbox) - 2 * UI_POPUP_MENU_TOP) / SEARCH_ITEMS;
 
     *r_rect = data->bbox;
     r_rect->xmin = data->bbox.xmin + 3.0f;
@@ -701,7 +701,7 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiButSearc
   static ARegionType type;
   ARegion *region;
   uiSearchboxData *data;
-  float aspect = but->block->aspect;
+  const float aspect = but->block->aspect;
   rctf rect_fl;
   rcti rect_i;
   const int margin = UI_POPUP_MARGIN;

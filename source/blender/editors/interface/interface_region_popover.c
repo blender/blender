@@ -151,7 +151,7 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
     UI_block_bounds_set_normal(block, block_margin);
 
     /* If menu slides out of other menu, override direction. */
-    bool slideout = ui_block_is_menu(pup->but->block);
+    const bool slideout = ui_block_is_menu(pup->but->block);
     if (slideout) {
       UI_block_direction_set(block, UI_DIR_RIGHT);
     }
@@ -254,7 +254,7 @@ uiPopupBlockHandle *ui_popover_panel_create(
 
   /* FIXME: maybe one day we want non panel popovers? */
   {
-    int ui_units_x = ((PanelType *)arg)->ui_units_x;
+    const int ui_units_x = ((PanelType *)arg)->ui_units_x;
     pup->ui_size_x = U.widget_unit * (ui_units_x ? ui_units_x : UI_POPOVER_WIDTH_UNITS);
   }
 

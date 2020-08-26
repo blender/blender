@@ -60,7 +60,7 @@ static FCurve *ui_but_get_fcurve(
 {
   /* for entire array buttons we check the first component, it's not perfect
    * but works well enough in typical cases */
-  int rnaindex = (but->rnaindex == -1) ? 0 : but->rnaindex;
+  const int rnaindex = (but->rnaindex == -1) ? 0 : but->rnaindex;
 
   return BKE_fcurve_find_by_rna_context_ui(
       but->block->evil_C, &but->rnapoin, but->rnaprop, rnaindex, adt, action, r_driven, r_special);
@@ -158,7 +158,7 @@ void ui_but_anim_decorate_update_from_flag(uiButDecorator *decorator_but)
     return;
   }
 
-  int flag = but_anim->flag;
+  const int flag = but_anim->flag;
 
   if (flag & UI_BUT_DRIVEN) {
     but->icon = ICON_DECORATE_DRIVER;

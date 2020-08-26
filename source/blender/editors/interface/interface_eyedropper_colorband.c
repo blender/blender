@@ -109,7 +109,7 @@ static bool eyedropper_colorband_init(bContext *C, wmOperator *op)
   }
 
   if (!band) {
-    PointerRNA ptr = CTX_data_pointer_get_type(C, "color_ramp", &RNA_ColorRamp);
+    const PointerRNA ptr = CTX_data_pointer_get_type(C, "color_ramp", &RNA_ColorRamp);
     if (ptr.data != NULL) {
       band = ptr.data;
 
@@ -200,7 +200,7 @@ static void eyedropper_colorband_apply(bContext *C, wmOperator *op)
 {
   EyedropperColorband *eye = op->customdata;
   /* Always filter, avoids noise in resulting color-band. */
-  bool filter_samples = true;
+  const bool filter_samples = true;
   BKE_colorband_init_from_table_rgba(
       eye->color_band, eye->color_buffer, eye->color_buffer_len, filter_samples);
   eye->is_set = true;
@@ -339,7 +339,7 @@ static bool eyedropper_colorband_poll(bContext *C)
   if (but && but->type == UI_BTYPE_COLORBAND) {
     return true;
   }
-  PointerRNA ptr = CTX_data_pointer_get_type(C, "color_ramp", &RNA_ColorRamp);
+  const PointerRNA ptr = CTX_data_pointer_get_type(C, "color_ramp", &RNA_ColorRamp);
   if (ptr.data != NULL) {
     return true;
   }

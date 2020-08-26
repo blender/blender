@@ -622,10 +622,10 @@ void UI_draw_roundbox_shade_y(bool filled,
 
 void UI_draw_text_underline(int pos_x, int pos_y, int len, int height, const float color[4])
 {
-  int ofs_y = 4 * U.pixelsize;
+  const int ofs_y = 4 * U.pixelsize;
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+  const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
 
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
   immUniformColor4fv(color);
@@ -644,8 +644,9 @@ void ui_draw_but_TAB_outline(const rcti *rect,
                              uchar highlight_fade[3])
 {
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+  const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const uint col = GPU_vertformat_attr_add(
+      format, "color", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
   /* add a 1px offset, looks nicer */
   const int minx = rect->xmin + U.pixelsize, maxx = rect->xmax - U.pixelsize;
   const int miny = rect->ymin + U.pixelsize, maxy = rect->ymax - U.pixelsize;
@@ -741,8 +742,8 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(region),
     return;
   }
 
-  int w = BLI_rcti_size_x(rect);
-  int h = BLI_rcti_size_y(rect);
+  const int w = BLI_rcti_size_x(rect);
+  const int h = BLI_rcti_size_y(rect);
 
   /* scissor doesn't seem to be doing the right thing...? */
 #  if 0
@@ -813,13 +814,13 @@ void UI_draw_safe_areas(uint pos,
 
   for (int i = 0; i < safe_len; i++) {
     if (safe_areas[i][0] || safe_areas[i][1]) {
-      float margin_x = safe_areas[i][0] * size_x_half;
-      float margin_y = safe_areas[i][1] * size_y_half;
+      const float margin_x = safe_areas[i][0] * size_x_half;
+      const float margin_y = safe_areas[i][1] * size_y_half;
 
-      float minx = x1 + margin_x;
-      float miny = y1 + margin_y;
-      float maxx = x2 - margin_x;
-      float maxy = y2 - margin_y;
+      const float minx = x1 + margin_x;
+      const float miny = y1 + margin_y;
+      const float maxx = x2 - margin_x;
+      const float maxy = y2 - margin_y;
 
       imm_draw_box_wire_2d(pos, minx, miny, maxx, maxy);
     }
@@ -868,7 +869,7 @@ static void histogram_draw_one(float r,
 
     immBegin(GPU_PRIM_LINE_STRIP, res);
     for (int i = 0; i < res; i++) {
-      float x2 = x + i * (w / (float)res);
+      const float x2 = x + i * (w / (float)res);
       immVertex2f(pos_attr, x2, y + (data[i] * h));
     }
     immEnd();
@@ -879,7 +880,7 @@ static void histogram_draw_one(float r,
     immVertex2f(pos_attr, x, y);
     immVertex2f(pos_attr, x, y + (data[0] * h));
     for (int i = 1; i < res; i++) {
-      float x2 = x + i * (w / (float)res);
+      const float x2 = x + i * (w / (float)res);
       immVertex2f(pos_attr, x2, y + (data[i] * h));
       immVertex2f(pos_attr, x2, y);
     }
@@ -891,7 +892,7 @@ static void histogram_draw_one(float r,
     GPU_blend(GPU_BLEND_ALPHA);
     immBegin(GPU_PRIM_LINE_STRIP, res);
     for (int i = 0; i < res; i++) {
-      float x2 = x + i * (w / (float)res);
+      const float x2 = x + i * (w / (float)res);
       immVertex2f(pos_attr, x2, y + (data[i] * h));
     }
     immEnd();
@@ -908,7 +909,7 @@ void ui_draw_but_HISTOGRAM(ARegion *UNUSED(region),
                            const rcti *recti)
 {
   Histogram *hist = (Histogram *)but->poin;
-  int res = hist->x_resolution;
+  const int res = hist->x_resolution;
   const bool is_line = (hist->flag & HISTO_FLAG_LINE) != 0;
 
   rctf rect = {
@@ -918,8 +919,8 @@ void ui_draw_but_HISTOGRAM(ARegion *UNUSED(region),
       .ymax = (float)recti->ymax - 1,
   };
 
-  float w = BLI_rctf_size_x(&rect);
-  float h = BLI_rctf_size_y(&rect) * hist->ymax;
+  const float w = BLI_rctf_size_x(&rect);
+  const float h = BLI_rctf_size_y(&rect) * hist->ymax;
 
   GPU_blend(GPU_BLEND_ALPHA);
 
@@ -938,7 +939,7 @@ void ui_draw_but_HISTOGRAM(ARegion *UNUSED(region),
               (rect.ymax + 1) - (rect.ymin - 1));
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -1000,7 +1001,7 @@ void ui_draw_but_HISTOGRAM(ARegion *UNUSED(region),
 static void waveform_draw_one(float *waveform, int nbr, const float col[3])
 {
   GPUVertFormat format = {0};
-  uint pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const uint pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
   GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
   GPU_vertbuf_data_alloc(vbo, nbr);
@@ -1043,13 +1044,13 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(region),
   if (scopes->wavefrm_yfac < 0.5f) {
     scopes->wavefrm_yfac = 0.98f;
   }
-  float w = BLI_rctf_size_x(&rect) - 7;
-  float h = BLI_rctf_size_y(&rect) * scopes->wavefrm_yfac;
-  float yofs = rect.ymin + (BLI_rctf_size_y(&rect) - h) * 0.5f;
-  float w3 = w / 3.0f;
+  const float w = BLI_rctf_size_x(&rect) - 7;
+  const float h = BLI_rctf_size_y(&rect) * scopes->wavefrm_yfac;
+  const float yofs = rect.ymin + (BLI_rctf_size_y(&rect) - h) * 0.5f;
+  const float w3 = w / 3.0f;
 
   /* log scale for alpha */
-  float alpha = scopes->wavefrm_alpha * scopes->wavefrm_alpha;
+  const float alpha = scopes->wavefrm_alpha * scopes->wavefrm_alpha;
 
   unit_m3(colors);
 
@@ -1093,7 +1094,7 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(region),
   GPU_blend(GPU_BLEND_ALPHA);
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -1200,7 +1201,7 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(region),
                   SCOPES_WAVEFRM_YCC_601,
                   SCOPES_WAVEFRM_YCC_709,
                   SCOPES_WAVEFRM_YCC_JPEG)) {
-      int rgb = (scopes->wavefrm_mode == SCOPES_WAVEFRM_RGB_PARADE);
+      const int rgb = (scopes->wavefrm_mode == SCOPES_WAVEFRM_RGB_PARADE);
 
       GPU_matrix_push();
       GPU_matrix_translate_2f(rect.xmin, yofs);
@@ -1384,13 +1385,13 @@ void ui_draw_but_VECTORSCOPE(ARegion *UNUSED(region),
       .ymax = (float)recti->ymax - 1,
   };
 
-  float w = BLI_rctf_size_x(&rect);
-  float h = BLI_rctf_size_y(&rect);
-  float centerx = rect.xmin + w * 0.5f;
-  float centery = rect.ymin + h * 0.5f;
-  float diam = (w < h) ? w : h;
+  const float w = BLI_rctf_size_x(&rect);
+  const float h = BLI_rctf_size_y(&rect);
+  const float centerx = rect.xmin + w * 0.5f;
+  const float centery = rect.ymin + h * 0.5f;
+  const float diam = (w < h) ? w : h;
 
-  float alpha = scopes->vecscope_alpha * scopes->vecscope_alpha * scopes->vecscope_alpha;
+  const float alpha = scopes->vecscope_alpha * scopes->vecscope_alpha * scopes->vecscope_alpha;
 
   GPU_blend(GPU_BLEND_ALPHA);
 
@@ -1409,7 +1410,7 @@ void ui_draw_but_VECTORSCOPE(ARegion *UNUSED(region),
               (rect.ymax + 1) - (rect.ymin - 1));
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -1538,11 +1539,11 @@ static void ui_draw_colorband_handle(uint shdr_pos,
   const float min_width = 3.0f;
   float colf[3] = {UNPACK3(rgb)};
 
-  float half_width = floorf(sizey / 3.5f);
-  float height = half_width * 1.4f;
+  const float half_width = floorf(sizey / 3.5f);
+  const float height = half_width * 1.4f;
 
   float y1 = rect->ymin + (sizey * 0.16f);
-  float y2 = rect->ymax;
+  const float y2 = rect->ymax;
 
   /* align to pixels */
   x = floorf(x + 0.5f);
@@ -1637,11 +1638,11 @@ void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors *UNUSED(wcol), const
     return;
   }
 
-  float x1 = rect->xmin;
-  float sizex = rect->xmax - x1;
-  float sizey = BLI_rcti_size_y(rect);
-  float sizey_solid = sizey * 0.25f;
-  float y1 = rect->ymin;
+  const float x1 = rect->xmin;
+  const float sizex = rect->xmax - x1;
+  const float sizey = BLI_rcti_size_y(rect);
+  const float sizey_solid = sizey * 0.25f;
+  const float y1 = rect->ymin;
 
   /* exit early if too narrow */
   if (sizex <= 0) {
@@ -1680,7 +1681,7 @@ void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors *UNUSED(wcol), const
 
   immBegin(GPU_PRIM_TRI_STRIP, (sizex + 1) * 2);
   for (int a = 0; a <= sizex; a++) {
-    float pos = ((float)a) / sizex;
+    const float pos = ((float)a) / sizex;
     BKE_colorband_evaluate(coba, pos, colf);
     if (display) {
       IMB_colormanagement_scene_linear_to_display_v3(colf, display);
@@ -1700,7 +1701,7 @@ void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors *UNUSED(wcol), const
 
   immBegin(GPU_PRIM_TRI_STRIP, (sizex + 1) * 2);
   for (int a = 0; a <= sizex; a++) {
-    float pos = ((float)a) / sizex;
+    const float pos = ((float)a) / sizex;
     BKE_colorband_evaluate(coba, pos, colf);
     if (display) {
       IMB_colormanagement_scene_linear_to_display_v3(colf, display);
@@ -1748,7 +1749,7 @@ void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors *UNUSED(wcol), const
   /* layer: draw handles */
   for (int a = 0; a < coba->tot; a++, cbd++) {
     if (a != coba->cur) {
-      float pos = x1 + cbd->pos * (sizex - 1) + 1;
+      const float pos = x1 + cbd->pos * (sizex - 1) + 1;
       ui_draw_colorband_handle(pos_id, rect, pos, &cbd->r, display, false);
     }
   }
@@ -1756,7 +1757,7 @@ void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors *UNUSED(wcol), const
   /* layer: active handle */
   if (coba->tot != 0) {
     cbd = &coba->data[coba->cur];
-    float pos = x1 + cbd->pos * (sizex - 1) + 1;
+    const float pos = x1 + cbd->pos * (sizex - 1) + 1;
     ui_draw_colorband_handle(pos_id, rect, pos, &cbd->r, display, true);
   }
 
@@ -1783,7 +1784,7 @@ void ui_draw_but_UNITVEC(uiBut *but, const uiWidgetColors *wcol, const rcti *rec
   /* transform to button */
   GPU_matrix_push();
 
-  bool use_project_matrix = (size >= -GPU_MATRIX_ORTHO_CLIP_NEAR_DEFAULT);
+  const bool use_project_matrix = (size >= -GPU_MATRIX_ORTHO_CLIP_NEAR_DEFAULT);
   if (use_project_matrix) {
     GPU_matrix_push_projection();
     GPU_matrix_ortho_set_z(-size, size);
@@ -1804,7 +1805,7 @@ void ui_draw_but_UNITVEC(uiBut *but, const uiWidgetColors *wcol, const rcti *rec
 
   /* AA circle */
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
   immUniformColor3ubv(wcol->inner);
 
@@ -1827,13 +1828,13 @@ void ui_draw_but_UNITVEC(uiBut *but, const uiWidgetColors *wcol, const rcti *rec
 static void ui_draw_but_curve_grid(
     uint pos, const rcti *rect, float zoomx, float zoomy, float offsx, float offsy, float step)
 {
-  float dx = step * zoomx;
+  const float dx = step * zoomx;
   float fx = rect->xmin + zoomx * (-offsx);
   if (fx > rect->xmin) {
     fx -= dx * (floorf(fx - rect->xmin));
   }
 
-  float dy = step * zoomy;
+  const float dy = step * zoomy;
   float fy = rect->ymin + zoomy * (-offsy);
   if (fy > rect->ymin) {
     fy -= dy * (floorf(fy - rect->ymin));
@@ -1885,8 +1886,8 @@ void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, 
   CurveMapping *cumap = (but_cumap->edit_cumap == NULL) ? (CurveMapping *)but->poin :
                                                           but_cumap->edit_cumap;
 
-  float clip_size_x = BLI_rctf_size_x(&cumap->curr);
-  float clip_size_y = BLI_rctf_size_y(&cumap->curr);
+  const float clip_size_x = BLI_rctf_size_x(&cumap->curr);
+  const float clip_size_y = BLI_rctf_size_y(&cumap->curr);
 
   /* zero-sized curve */
   if (clip_size_x == 0.0f || clip_size_y == 0.0f) {
@@ -1894,10 +1895,10 @@ void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, 
   }
 
   /* calculate offset and zoom */
-  float zoomx = (BLI_rcti_size_x(rect) - 2.0f) / clip_size_x;
-  float zoomy = (BLI_rcti_size_y(rect) - 2.0f) / clip_size_y;
-  float offsx = cumap->curr.xmin - (1.0f / zoomx);
-  float offsy = cumap->curr.ymin - (1.0f / zoomy);
+  const float zoomx = (BLI_rcti_size_x(rect) - 2.0f) / clip_size_x;
+  const float zoomy = (BLI_rcti_size_y(rect) - 2.0f) / clip_size_y;
+  const float offsx = cumap->curr.xmin - (1.0f / zoomx);
+  const float offsy = cumap->curr.ymin - (1.0f / zoomy);
 
   /* exit early if too narrow */
   if (zoomx == 0.0f) {
@@ -1915,7 +1916,7 @@ void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, 
       .xmax = rect->xmax,
       .ymax = rect->ymax,
   };
-  rcti scissor_region = {0, region->winx, 0, region->winy};
+  const rcti scissor_region = {0, region->winx, 0, region->winy};
   BLI_rcti_isect(&scissor_new, &scissor_region, &scissor_new);
   GPU_scissor(scissor_new.xmin,
               scissor_new.ymin,
@@ -2014,7 +2015,7 @@ void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, 
       immVertex2f(pos, rect->xmin + zoomx * (hsv[0] - offsx), rect->ymax);
     }
     else if (cumap->cur == 3) {
-      float lum = IMB_colormanagement_get_luminance(cumap->sample);
+      const float lum = IMB_colormanagement_get_luminance(cumap->sample);
       immUniformColor3ub(240, 240, 240);
 
       immVertex2f(pos, rect->xmin + zoomx * (lum - offsx), rect->ymin);
@@ -2073,8 +2074,8 @@ void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, 
   immVertex2f(pos, line_range.xmin, rect->ymin);
   immVertex2f(pos, line_range.xmin, line_range.ymin);
   for (int a = 0; a <= CM_TABLE; a++) {
-    float fx = rect->xmin + zoomx * (cmp[a].x - offsx);
-    float fy = rect->ymin + zoomy * (cmp[a].y - offsy);
+    const float fx = rect->xmin + zoomx * (cmp[a].x - offsx);
+    const float fy = rect->ymin + zoomy * (cmp[a].y - offsy);
     immVertex2f(pos, fx, rect->ymin);
     immVertex2f(pos, fx, fy);
   }
@@ -2089,8 +2090,8 @@ void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, 
   immBegin(GPU_PRIM_LINE_STRIP, (CM_TABLE + 1) + 2);
   immVertex2f(pos, line_range.xmin, line_range.ymin);
   for (int a = 0; a <= CM_TABLE; a++) {
-    float fx = rect->xmin + zoomx * (cmp[a].x - offsx);
-    float fy = rect->ymin + zoomy * (cmp[a].y - offsy);
+    const float fx = rect->xmin + zoomx * (cmp[a].x - offsx);
+    const float fy = rect->ymin + zoomy * (cmp[a].y - offsy);
     immVertex2f(pos, fx, fy);
   }
   immVertex2f(pos, line_range.xmax, line_range.ymax);
@@ -2104,7 +2105,7 @@ void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, 
   /* The points, use aspect to make them visible on edges. */
   format = immVertexFormat();
   pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  const uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
   /* Calculate vertex colors based on text theme. */
@@ -2123,8 +2124,8 @@ void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, 
   GPU_point_size(max_ff(1.0f, min_ff(UI_DPI_FAC / but->block->aspect * 4.0f, 4.0f)));
   immBegin(GPU_PRIM_POINTS, cuma->totpoint);
   for (int a = 0; a < cuma->totpoint; a++) {
-    float fx = rect->xmin + zoomx * (cmp[a].x - offsx);
-    float fy = rect->ymin + zoomy * (cmp[a].y - offsy);
+    const float fx = rect->xmin + zoomx * (cmp[a].x - offsx);
+    const float fy = rect->ymin + zoomy * (cmp[a].y - offsy);
     immAttr4fv(col, (cmp[a].flag & CUMA_SELECT) ? color_vert_select : color_vert);
     immVertex2f(pos, fx, fy);
   }
@@ -2171,10 +2172,10 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
                                                                 but_profile->edit_profile;
 
   /* Calculate offset and zoom. */
-  float zoomx = (BLI_rcti_size_x(rect) - 2.0f) / BLI_rctf_size_x(&profile->view_rect);
-  float zoomy = (BLI_rcti_size_y(rect) - 2.0f) / BLI_rctf_size_y(&profile->view_rect);
-  float offsx = profile->view_rect.xmin - (1.0f / zoomx);
-  float offsy = profile->view_rect.ymin - (1.0f / zoomy);
+  const float zoomx = (BLI_rcti_size_x(rect) - 2.0f) / BLI_rctf_size_x(&profile->view_rect);
+  const float zoomy = (BLI_rcti_size_y(rect) - 2.0f) / BLI_rctf_size_y(&profile->view_rect);
+  const float offsx = profile->view_rect.xmin - (1.0f / zoomx);
+  const float offsy = profile->view_rect.ymin - (1.0f / zoomy);
 
   /* Exit early if too narrow. */
   if (zoomx == 0.0f) {
@@ -2190,7 +2191,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
       .xmax = rect->xmax,
       .ymax = rect->ymax,
   };
-  rcti scissor_region = {0, region->winx, 0, region->winy};
+  const rcti scissor_region = {0, region->winx, 0, region->winy};
   BLI_rcti_isect(&scissor_new, &scissor_region, &scissor_new);
   GPU_scissor(scissor_new.xmin,
               scissor_new.ymin,
@@ -2235,10 +2236,10 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   }
   CurveProfilePoint *pts = profile->table;
   /* Also add the last points on the right and bottom edges to close off the fill polygon. */
-  bool add_left_tri = profile->view_rect.xmin < 0.0f;
-  bool add_bottom_tri = profile->view_rect.ymin < 0.0f;
+  const bool add_left_tri = profile->view_rect.xmin < 0.0f;
+  const bool add_bottom_tri = profile->view_rect.ymin < 0.0f;
   uint tot_points = (uint)PROF_TABLE_LEN(profile->path_len) + 1 + add_left_tri + add_bottom_tri;
-  uint tot_triangles = tot_points - 2;
+  const uint tot_triangles = tot_points - 2;
 
   /* Create array of the positions of the table's points. */
   float(*table_coords)[2] = MEM_mallocN(sizeof(*table_coords) * tot_points, "table x coords");
@@ -2349,7 +2350,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   /* New GPU instructions for control points and sampled points. */
   format = immVertexFormat();
   pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  const uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
   /* Calculate vertex colors based on text theme. */
@@ -2448,8 +2449,8 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(region),
       .ymax = (float)recti->ymax - 1,
   };
 
-  int width = BLI_rctf_size_x(&rect) + 1;
-  int height = BLI_rctf_size_y(&rect);
+  const int width = BLI_rctf_size_x(&rect) + 1;
+  const int height = BLI_rctf_size_y(&rect);
 
   GPU_blend(GPU_BLEND_ALPHA);
 
@@ -2535,8 +2536,8 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(region),
       GPU_scissor(rect.xmin, rect.ymin, BLI_rctf_size_x(&rect), BLI_rctf_size_y(&rect));
 
       GPUVertFormat *format = immVertexFormat();
-      uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-      uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+      const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+      const uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
       immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
       UI_GetThemeColor4fv(TH_SEL_MARKER, col_sel);
@@ -2547,10 +2548,10 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(region),
       const float pos_sel[8] = {-10.0f, -7.0f, -4.0f, -1.0f, 2.0f, 5.0f, 8.0f, 11.0f};
       for (int axe = 0; axe < 2; axe++) {
         for (int i = 0; i < 7; i++) {
-          float x1 = pos_sel[i] * (1 - axe);
-          float y1 = pos_sel[i] * axe;
-          float x2 = pos_sel[i + 1] * (1 - axe);
-          float y2 = pos_sel[i + 1] * axe;
+          const float x1 = pos_sel[i] * (1 - axe);
+          const float y1 = pos_sel[i] * axe;
+          const float x2 = pos_sel[i + 1] * (1 - axe);
+          const float y2 = pos_sel[i + 1] * axe;
 
           if (i % 2 == 1) {
             immAttr4fv(col, col_sel);
@@ -2669,7 +2670,7 @@ void UI_draw_box_shadow(uchar alpha, float minx, float miny, float maxx, float m
   GPU_blend(GPU_BLEND_ALPHA);
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   uint color = GPU_vertformat_attr_add(
       format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 

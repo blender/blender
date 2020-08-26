@@ -249,7 +249,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
       break;
     case PROP_POINTER: {
       if (icon == 0) {
-        PointerRNA pptr = RNA_property_pointer_get(ptr, prop);
+        const PointerRNA pptr = RNA_property_pointer_get(ptr, prop);
         icon = RNA_struct_ui_icon(pptr.type ? pptr.type : RNA_property_pointer_type(ptr, prop));
       }
       if (icon == ICON_DOT) {
@@ -436,7 +436,7 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
     int name_prefix_offset = 0;
     int iconid = ICON_NONE;
     bool has_sep_char = false;
-    bool is_id = itemptr.type && RNA_struct_is_ID(itemptr.type);
+    const bool is_id = itemptr.type && RNA_struct_is_ID(itemptr.type);
 
     if (is_id) {
       iconid = ui_id_icon_get(C, itemptr.data, false);

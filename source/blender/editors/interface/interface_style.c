@@ -184,7 +184,7 @@ void UI_fontstyle_draw_ex(const uiFontStyle *fs,
   }
   else {
     /* draw from boundbox center */
-    float height = BLF_ascender(fs->uifont_id) + BLF_descender(fs->uifont_id);
+    const float height = BLF_ascender(fs->uifont_id) + BLF_descender(fs->uifont_id);
     yofs = ceil(0.5f * (BLI_rcti_size_y(rect) - height));
   }
 
@@ -517,7 +517,8 @@ void uiStyleInit(void)
 
   /* Set default flags based on UI preferences (not render fonts) */
   {
-    int flag_disable = (BLF_MONOCHROME | BLF_HINTING_NONE | BLF_HINTING_SLIGHT | BLF_HINTING_FULL);
+    const int flag_disable = (BLF_MONOCHROME | BLF_HINTING_NONE | BLF_HINTING_SLIGHT |
+                              BLF_HINTING_FULL);
     int flag_enable = 0;
 
     if (U.text_render & USER_TEXT_HINTING_NONE) {

@@ -91,7 +91,7 @@ static IDProperty *shortcut_property_from_rna(bContext *C, uiBut *but)
 
   /* Create ID property of data path, to pass to the operator. */
   IDProperty *prop;
-  IDPropertyTemplate val = {0};
+  const IDPropertyTemplate val = {0};
   prop = IDP_New(IDP_GROUP, &val, __func__);
   IDP_AddToGroup(prop, IDP_NewString(final_data_path, "data_path", strlen(final_data_path) + 1));
 
@@ -517,7 +517,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
   uiLayout *layout;
 
   {
-    uiStringInfo label = {BUT_GET_LABEL, NULL};
+    const uiStringInfo label = {BUT_GET_LABEL, NULL};
 
     /* highly unlikely getting the label ever fails */
     UI_but_string_info_get(C, but, &label, NULL);
@@ -548,9 +548,9 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
     const PropertyType type = RNA_property_type(prop);
     const PropertySubType subtype = RNA_property_subtype(prop);
     bool is_anim = RNA_property_animateable(ptr, prop);
-    bool is_editable = RNA_property_editable(ptr, prop);
-    bool is_idprop = RNA_property_is_idprop(prop);
-    bool is_set = RNA_property_is_set(ptr, prop);
+    const bool is_editable = RNA_property_editable(ptr, prop);
+    const bool is_idprop = RNA_property_is_idprop(prop);
+    const bool is_set = RNA_property_is_set(ptr, prop);
 
     /* second slower test,
      * saved people finding keyframe items in menus when its not possible */
@@ -1044,7 +1044,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
   if (idname != NULL) {
     uiBlock *block = uiLayoutGetBlock(layout);
     uiBut *but2;
-    int w = uiLayoutGetWidth(layout);
+    const int w = uiLayoutGetWidth(layout);
     wmKeyMap *km;
 
     /* We want to know if this op has a shortcut, be it hotkey or not. */

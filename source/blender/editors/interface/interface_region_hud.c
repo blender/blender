@@ -178,7 +178,7 @@ static void hud_region_layout(const bContext *C, ARegion *region)
   }
 
   ScrArea *area = CTX_wm_area(C);
-  int size_y = region->sizey;
+  const int size_y = region->sizey;
 
   ED_region_panels_layout(C, region);
 
@@ -316,7 +316,7 @@ void ED_area_type_hud_ensure(bContext *C, ScrArea *area)
   }
 
   bool init = false;
-  bool was_hidden = region == NULL || region->visible == false;
+  const bool was_hidden = region == NULL || region->visible == false;
   ARegion *region_op = CTX_wm_region(C);
   BLI_assert((region_op == NULL) || (region_op->regiontype != RGN_TYPE_HUD));
   if (!last_redo_poll(C, region_op ? region_op->regiontype : -1)) {

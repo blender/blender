@@ -67,10 +67,10 @@ static float select_major_distance(const float *possible_distances,
     return possible_distances[0];
   }
 
-  float pixels_per_view_unit = pixel_width / view_width;
+  const float pixels_per_view_unit = pixel_width / view_width;
 
   for (uint i = 0; i < amount; i++) {
-    float distance = possible_distances[i];
+    const float distance = possible_distances[i];
     if (pixels_per_view_unit * distance >= MIN_MAJOR_LINE_DISTANCE) {
       return distance;
     }
@@ -111,7 +111,7 @@ static float view2d_major_step_y__continuous(const View2D *v2d)
 
 static float view2d_major_step_x__time(const View2D *v2d, const Scene *scene)
 {
-  double fps = FPS;
+  const double fps = FPS;
 
   float *possible_distances = NULL;
   BLI_array_staticdeclare(possible_distances, 32);
@@ -207,7 +207,7 @@ static void draw_parallel_lines(const ParallelLinesSet *lines,
   }
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
   if (U.pixelsize > 1.0f) {
     float viewport[4];
@@ -227,14 +227,14 @@ static void draw_parallel_lines(const ParallelLinesSet *lines,
 
   if (direction == 'v') {
     for (uint i = 0; i < steps; i++) {
-      float xpos = first + i * lines->distance;
+      const float xpos = first + i * lines->distance;
       immVertex2f(pos, xpos, rect->ymin);
       immVertex2f(pos, xpos, rect->ymax);
     }
   }
   else {
     for (uint i = 0; i < steps; i++) {
-      float ypos = first + i * lines->distance;
+      const float ypos = first + i * lines->distance;
       immVertex2f(pos, rect->xmin, ypos);
       immVertex2f(pos, rect->xmax, ypos);
     }
@@ -322,16 +322,16 @@ static void draw_horizontal_scale_indicators(const ARegion *region,
 
   BLF_batch_draw_begin();
 
-  float ypos = rect->ymin + 4 * UI_DPI_FAC;
-  float xmin = rect->xmin;
-  float xmax = rect->xmax;
+  const float ypos = rect->ymin + 4 * UI_DPI_FAC;
+  const float xmin = rect->xmin;
+  const float xmax = rect->xmax;
 
   for (uint i = 0; i < steps; i++) {
-    float xpos_view = start + i * distance;
-    float xpos_region = UI_view2d_view_to_region_x(v2d, xpos_view);
+    const float xpos_view = start + i * distance;
+    const float xpos_region = UI_view2d_view_to_region_x(v2d, xpos_view);
     char text[32];
     to_string(to_string_data, xpos_view, distance, sizeof(text), text);
-    float text_width = BLF_width(font_id, text, strlen(text));
+    const float text_width = BLF_width(font_id, text, strlen(text));
 
     if (xpos_region - text_width / 2.0f >= xmin && xpos_region + text_width / 2.0f <= xmax) {
       BLF_draw_default_ascii(xpos_region - text_width / 2.0f, ypos, 0.0f, text, sizeof(text));
@@ -384,16 +384,16 @@ static void draw_vertical_scale_indicators(const ARegion *region,
 
   BLF_batch_draw_begin();
 
-  float xpos = rect->xmax - 2.0f * UI_DPI_FAC;
-  float ymin = rect->ymin;
-  float ymax = rect->ymax;
+  const float xpos = rect->xmax - 2.0f * UI_DPI_FAC;
+  const float ymin = rect->ymin;
+  const float ymax = rect->ymax;
 
   for (uint i = 0; i < steps; i++) {
-    float ypos_view = start + i * distance;
-    float ypos_region = UI_view2d_view_to_region_y(v2d, ypos_view + display_offset);
+    const float ypos_view = start + i * distance;
+    const float ypos_region = UI_view2d_view_to_region_y(v2d, ypos_view + display_offset);
     char text[32];
     to_string(to_string_data, ypos_view, distance, sizeof(text), text);
-    float text_width = BLF_width(font_id, text, strlen(text));
+    const float text_width = BLF_width(font_id, text, strlen(text));
 
     if (ypos_region - text_width / 2.0f >= ymin && ypos_region + text_width / 2.0f <= ymax) {
       BLF_draw_default_ascii(xpos, ypos_region - text_width / 2.0f, 0.0f, text, sizeof(text));
@@ -417,7 +417,7 @@ static void view_to_string__time(
 {
   const Scene *scene = (const Scene *)user_data;
 
-  int brevity_level = 0;
+  const int brevity_level = 0;
   BLI_timecode_string_from_time(
       r_str, max_len, brevity_level, v2d_pos / (float)FPS, FPS, U.timecode_style);
 }
@@ -462,25 +462,25 @@ float UI_view2d_grid_resolution_y__values(const struct View2D *v2d)
 
 void UI_view2d_draw_lines_x__discrete_values(const View2D *v2d)
 {
-  uint major_line_distance = view2d_major_step_x__discrete(v2d);
+  const uint major_line_distance = view2d_major_step_x__discrete(v2d);
   view2d_draw_lines(v2d, major_line_distance, major_line_distance > 1, 'v');
 }
 
 void UI_view2d_draw_lines_x__values(const View2D *v2d)
 {
-  float major_line_distance = view2d_major_step_x__continuous(v2d);
+  const float major_line_distance = view2d_major_step_x__continuous(v2d);
   view2d_draw_lines(v2d, major_line_distance, true, 'v');
 }
 
 void UI_view2d_draw_lines_y__values(const View2D *v2d)
 {
-  float major_line_distance = view2d_major_step_y__continuous(v2d);
+  const float major_line_distance = view2d_major_step_y__continuous(v2d);
   view2d_draw_lines(v2d, major_line_distance, true, 'h');
 }
 
 void UI_view2d_draw_lines_x__discrete_time(const View2D *v2d, const Scene *scene)
 {
-  float major_line_distance = view2d_major_step_x__time(v2d, scene);
+  const float major_line_distance = view2d_major_step_x__time(v2d, scene);
   view2d_draw_lines(v2d, major_line_distance, major_line_distance > 1, 'v');
 }
 
@@ -516,7 +516,7 @@ static void UI_view2d_draw_scale_x__discrete_values(const ARegion *region,
                                                     const rcti *rect,
                                                     int colorid)
 {
-  float number_step = view2d_major_step_x__discrete(v2d);
+  const float number_step = view2d_major_step_x__discrete(v2d);
   draw_horizontal_scale_indicators(
       region, v2d, number_step, rect, view_to_string__frame_number, NULL, colorid);
 }
@@ -524,7 +524,7 @@ static void UI_view2d_draw_scale_x__discrete_values(const ARegion *region,
 static void UI_view2d_draw_scale_x__discrete_time(
     const ARegion *region, const View2D *v2d, const rcti *rect, const Scene *scene, int colorid)
 {
-  float step = view2d_major_step_x__time(v2d, scene);
+  const float step = view2d_major_step_x__time(v2d, scene);
   draw_horizontal_scale_indicators(
       region, v2d, step, rect, view_to_string__time, (void *)scene, colorid);
 }
@@ -534,7 +534,7 @@ static void UI_view2d_draw_scale_x__values(const ARegion *region,
                                            const rcti *rect,
                                            int colorid)
 {
-  float step = view2d_major_step_x__continuous(v2d);
+  const float step = view2d_major_step_x__continuous(v2d);
   draw_horizontal_scale_indicators(region, v2d, step, rect, view_to_string__value, NULL, colorid);
 }
 
@@ -543,7 +543,7 @@ void UI_view2d_draw_scale_y__values(const ARegion *region,
                                     const rcti *rect,
                                     int colorid)
 {
-  float step = view2d_major_step_y__continuous(v2d);
+  const float step = view2d_major_step_y__continuous(v2d);
   draw_vertical_scale_indicators(
       region, v2d, step, 0.0f, rect, view_to_string__value, NULL, colorid);
 }

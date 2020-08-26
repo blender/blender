@@ -489,7 +489,7 @@ static void reorder_instanced_panel_list(bContext *C, ARegion *region, Panel *dr
  */
 static bool panel_set_expand_from_list_data_recursive(Panel *panel, short flag, short *flag_index)
 {
-  bool open = (flag & (1 << *flag_index));
+  const bool open = (flag & (1 << *flag_index));
   bool changed = (open == (bool)(panel->flag & PNL_CLOSED));
   SET_FLAG_FROM_TEST(panel->flag, !open, PNL_CLOSED);
 
@@ -514,7 +514,7 @@ void UI_panel_set_expand_from_list_data(const bContext *C, Panel *panel)
     return;
   }
 
-  short expand_flag = panel->type->get_list_data_expand_flag(C, panel);
+  const short expand_flag = panel->type->get_list_data_expand_flag(C, panel);
   short flag_index = 0;
 
   /* Start panel animation if the open state was changed. */
@@ -528,7 +528,7 @@ void UI_panel_set_expand_from_list_data(const bContext *C, Panel *panel)
  */
 static void get_panel_expand_flag(Panel *panel, short *flag, short *flag_index)
 {
-  bool open = !(panel->flag & PNL_CLOSED);
+  const bool open = !(panel->flag & PNL_CLOSED);
   SET_FLAG_FROM_TEST(*flag, open, (1 << *flag_index));
 
   LISTBASE_FOREACH (Panel *, child, &panel->children) {
@@ -574,7 +574,7 @@ static void set_panels_list_data_expand_flag(const bContext *C, ARegion *region)
  */
 static bool panel_set_flag_recursive(Panel *panel, int flag, bool value)
 {
-  short flag_original = panel->flag;
+  const short flag_original = panel->flag;
 
   SET_FLAG_FROM_TEST(panel->flag, value, flag);
 
@@ -760,8 +760,8 @@ void UI_panel_end(const ARegion *region, uiBlock *block, int width, int height, 
     panel->sizey = height;
   }
   else {
-    int old_sizex = panel->sizex, old_sizey = panel->sizey;
-    int old_region_ofsx = panel->runtime.region_ofsx;
+    const int old_sizex = panel->sizex, old_sizey = panel->sizey;
+    const int old_region_ofsx = panel->runtime.region_ofsx;
 
     /* update width/height if non-zero */
     if (width != 0) {
@@ -791,7 +791,7 @@ static void ui_offset_panel_block(uiBlock *block)
   /* compute bounds and offset */
   ui_block_bounds_calc(block);
 
-  int ofsy = block->panel->sizey - style->panelspace;
+  const int ofsy = block->panel->sizey - style->panelspace;
 
   LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
     but->rect.ymin += ofsy;
@@ -808,9 +808,9 @@ static void ui_offset_panel_block(uiBlock *block)
 /* triangle 'icon' for panel header */
 void UI_draw_icon_tri(float x, float y, char dir, const float color[4])
 {
-  float f3 = 0.05 * U.widget_unit;
-  float f5 = 0.15 * U.widget_unit;
-  float f7 = 0.25 * U.widget_unit;
+  const float f3 = 0.05 * U.widget_unit;
+  const float f5 = 0.15 * U.widget_unit;
+  const float f7 = 0.25 * U.widget_unit;
 
   if (dir == 'h') {
     UI_draw_anti_tria(x - f3, y - f5, x - f3, y + f5, x + f7, y, color);
@@ -849,7 +849,7 @@ static void ui_draw_aligned_panel_header(const uiStyle *style,
   const uiFontStyle *fontstyle = (is_subpanel) ? &style->widgetlabel : &style->paneltitle;
 
   /* + 0.001f to avoid flirting with float inaccuracy */
-  int pnl_icons = (panel->labelofs + (1.1f * PNL_ICON)) / block->aspect + 0.001f;
+  const int pnl_icons = (panel->labelofs + (1.1f * PNL_ICON)) / block->aspect + 0.001f;
 
   /* draw text label */
   uchar col_title[4];
@@ -892,7 +892,8 @@ void ui_draw_aligned_panel(const uiStyle *style,
     box_wcol = &btheme->tui.wcol_box;
   }
 
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const uint pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
   if (panel->type && (panel->type->flag & PNL_NO_HEADER)) {
     if (show_background) {
@@ -940,8 +941,8 @@ void ui_draw_aligned_panel(const uiStyle *style,
 
   /* Draw the header backdrop. */
   if (show_background && !is_subpanel && !draw_box_style) {
-    float minx = rect->xmin;
-    float y = headrect.ymax;
+    const float minx = rect->xmin;
+    const float y = headrect.ymax;
 
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
     GPU_blend(GPU_BLEND_ALPHA);
@@ -1113,7 +1114,7 @@ static int get_panel_size_y(const Panel *panel)
 
 static int get_panel_real_size_y(const Panel *panel)
 {
-  int sizey = (panel->flag & PNL_CLOSED) ? 0 : panel->sizey;
+  const int sizey = (panel->flag & PNL_CLOSED) ? 0 : panel->sizey;
 
   if (panel->type && (panel->type->flag & PNL_NO_HEADER)) {
     return sizey;
@@ -1272,8 +1273,8 @@ static bool uiAlignPanelStep(ARegion *region, const float fac, const bool drag)
   for (i = 0; i < tot - 1; i++, ps++) {
     PanelSort *psnext = ps + 1;
 
-    bool use_box = ps->panel->type && ps->panel->type->flag & PNL_DRAW_BOX;
-    bool use_box_next = psnext->panel->type && psnext->panel->type->flag & PNL_DRAW_BOX;
+    const bool use_box = ps->panel->type && ps->panel->type->flag & PNL_DRAW_BOX;
+    const bool use_box_next = psnext->panel->type && psnext->panel->type->flag & PNL_DRAW_BOX;
     psnext->panel->ofsx = ps->panel->ofsx;
     psnext->panel->ofsy = get_panel_real_ofsy(ps->panel) - get_panel_size_y(psnext->panel);
 
@@ -1329,8 +1330,8 @@ static void ui_panels_size(ARegion *region, int *r_x, int *r_y)
   /* compute size taken up by panels, for setting in view2d */
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
     if (panel->runtime_flag & PNL_ACTIVE) {
-      int pa_sizex = panel->ofsx + panel->sizex;
-      int pa_sizey = get_panel_real_ofsy(panel);
+      const int pa_sizex = panel->ofsx + panel->sizex;
+      const int pa_sizey = get_panel_real_ofsy(panel);
 
       sizex = max_ii(sizex, pa_sizex);
       sizey = min_ii(sizey, pa_sizey);
@@ -1462,7 +1463,7 @@ void UI_panels_scale(ARegion *region, float new_width)
 {
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     if (block->panel) {
-      float fac = new_width / (float)block->panel->sizex;
+      const float fac = new_width / (float)block->panel->sizex;
       block->panel->sizex = new_width;
 
       LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
@@ -1482,8 +1483,8 @@ static void ui_do_drag(const bContext *C, const wmEvent *event, Panel *panel)
   ARegion *region = CTX_wm_region(C);
 
   /* Keep the drag position in the region with a small pad to keep the panel visible. */
-  int x = clamp_i(event->x, region->winrct.xmin, region->winrct.xmax + DRAG_REGION_PAD);
-  int y = clamp_i(event->y, region->winrct.ymin, region->winrct.ymax + DRAG_REGION_PAD);
+  const int x = clamp_i(event->x, region->winrct.xmin, region->winrct.xmax + DRAG_REGION_PAD);
+  const int y = clamp_i(event->y, region->winrct.ymin, region->winrct.ymax + DRAG_REGION_PAD);
 
   float dx = (float)(x - data->startx);
   float dy = (float)(y - data->starty);
@@ -1568,7 +1569,7 @@ static void ui_panel_drag_collapse(const bContext *C,
     if (panel == NULL || (panel->type && (panel->type->flag & PNL_NO_HEADER))) {
       continue;
     }
-    int oldflag = panel->flag;
+    const int oldflag = panel->flag;
 
     /* lock axis */
     xy_b_block[0] = dragcol_data->xy_init[0];
@@ -1990,14 +1991,14 @@ static void ui_panel_category_draw_tab(bool filled,
   }
 
   if (use_flip_x) {
-    float midx = (minx + maxx) / 2.0f;
+    const float midx = (minx + maxx) / 2.0f;
     for (int i = 0; i < buf_index; i++) {
       vbuf[i][0] = midx - (vbuf[i][0] - midx);
     }
   }
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   uint color = GPU_vertformat_attr_add(
       format, "color", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
@@ -2169,7 +2170,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
     const rcti *rct = &pc_dyn->rect;
     const char *category_id = pc_dyn->idname;
     const char *category_id_draw = IFACE_(category_id);
-    int category_width = BLI_rcti_size_y(rct) - (tab_v_pad_text * 2);
+    const int category_width = BLI_rcti_size_y(rct) - (tab_v_pad_text * 2);
     size_t category_draw_len = BLF_DRAW_STR_DUMMY_MAX;
     // int category_width = BLF_width(fontid, category_id_draw, BLF_DRAW_STR_DUMMY_MAX);
 
@@ -2522,7 +2523,7 @@ PointerRNA *UI_region_panel_custom_data_under_cursor(const bContext *C, const wm
     int mx = event->x;
     int my = event->y;
     ui_window_to_block(region, block, &mx, &my);
-    int mouse_state = ui_panel_mouse_state_get(block, panel, mx, my);
+    const int mouse_state = ui_panel_mouse_state_get(block, panel, mx, my);
     if (ELEM(mouse_state, PANEL_MOUSE_INSIDE_CONTENT, PANEL_MOUSE_INSIDE_HEADER)) {
       break;
     }
@@ -2588,7 +2589,7 @@ static void panel_activate_state(const bContext *C, Panel *panel, uiHandlePanelS
     return;
   }
 
-  bool was_drag_drop = (data && data->state == PANEL_STATE_DRAG);
+  const bool was_drag_drop = (data && data->state == PANEL_STATE_DRAG);
 
   /* Set selection state for the panel and its sub-panels, which need to know they are selected
    * too so they can be drawn above their parent when it's dragged. */

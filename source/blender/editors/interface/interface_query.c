@@ -256,7 +256,7 @@ bool ui_but_contains_point_px_icon(const uiBut *but, ARegion *region, const wmEv
     rect.xmax = rect.xmin + (BLI_rcti_size_y(&rect));
   }
   else {
-    int delta = BLI_rcti_size_x(&rect) - BLI_rcti_size_y(&rect);
+    const int delta = BLI_rcti_size_x(&rect) - BLI_rcti_size_y(&rect);
     rect.xmin += delta / 2;
     rect.xmax -= delta / 2;
   }
@@ -315,7 +315,7 @@ uiBut *ui_but_find_rect_over(const struct ARegion *region, const rcti *rect_px)
   }
 
   /* Currently no need to expose this at the moment. */
-  bool labeledit = true;
+  const bool labeledit = true;
   rctf rect_px_fl;
   BLI_rctf_rcti_copy(&rect_px_fl, rect_px);
   uiBut *butover = NULL;

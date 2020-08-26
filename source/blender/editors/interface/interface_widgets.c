@@ -475,7 +475,7 @@ GPUBatch *ui_batch_roundbox_shadow_get(void)
     uint32_t last_data;
     GPUVertBufRaw vflag_step;
     GPUVertBuf *vbo = GPU_vertbuf_create_with_format(vflag_format());
-    int vcount = (WIDGET_SIZE_MAX + 1) * 2 + 2 + WIDGET_SIZE_MAX;
+    const int vcount = (WIDGET_SIZE_MAX + 1) * 2 + 2 + WIDGET_SIZE_MAX;
     GPU_vertbuf_data_alloc(vbo, vcount);
     GPU_vertbuf_attr_get_raw_data(vbo, g_ui_batch_cache.vflag_id, &vflag_step);
 
@@ -528,7 +528,8 @@ void UI_draw_anti_tria(
 
   GPU_blend(GPU_BLEND_ALPHA);
 
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const uint pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
   immUniformColor4fv(draw_color);
@@ -552,12 +553,12 @@ void UI_draw_anti_tria(
 void ui_draw_anti_tria_rect(const rctf *rect, char dir, const float color[4])
 {
   if (dir == 'h') {
-    float half = 0.5f * BLI_rctf_size_y(rect);
+    const float half = 0.5f * BLI_rctf_size_y(rect);
     UI_draw_anti_tria(
         rect->xmin, rect->ymin, rect->xmin, rect->ymax, rect->xmax, rect->ymin + half, color);
   }
   else {
-    float half = 0.5f * BLI_rctf_size_x(rect);
+    const float half = 0.5f * BLI_rctf_size_x(rect);
     UI_draw_anti_tria(
         rect->xmin, rect->ymax, rect->xmax, rect->ymax, rect->xmin + half, rect->ymin, color);
   }
@@ -572,7 +573,8 @@ void UI_draw_anti_fan(float tri_array[][2], uint length, const float color[4])
 
   GPU_blend(GPU_BLEND_ALPHA);
 
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const uint pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
   immUniformColor4fv(draw_color);
@@ -706,14 +708,14 @@ static void round_box__edges(
     uiWidgetBase *wt, int roundboxalign, const rcti *rect, float rad, float radi)
 {
   float vec[WIDGET_CURVE_RESOLU][2], veci[WIDGET_CURVE_RESOLU][2];
-  float minx = rect->xmin, miny = rect->ymin, maxx = rect->xmax, maxy = rect->ymax;
-  float minxi = minx + U.pixelsize; /* boundbox inner */
-  float maxxi = maxx - U.pixelsize;
-  float minyi = miny + U.pixelsize;
-  float maxyi = maxy - U.pixelsize;
+  const float minx = rect->xmin, miny = rect->ymin, maxx = rect->xmax, maxy = rect->ymax;
+  const float minxi = minx + U.pixelsize; /* boundbox inner */
+  const float maxxi = maxx - U.pixelsize;
+  const float minyi = miny + U.pixelsize;
+  const float maxyi = maxy - U.pixelsize;
   /* for uv, can divide by zero */
-  float facxi = (maxxi != minxi) ? 1.0f / (maxxi - minxi) : 0.0f;
-  float facyi = (maxyi != minyi) ? 1.0f / (maxyi - minyi) : 0.0f;
+  const float facxi = (maxxi != minxi) ? 1.0f / (maxxi - minxi) : 0.0f;
+  const float facyi = (maxyi != minyi) ? 1.0f / (maxyi - minyi) : 0.0f;
   int a, tot = 0, minsize;
   const int hnum = ((roundboxalign & (UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT)) ==
                         (UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT) ||
@@ -1012,8 +1014,8 @@ static void widget_draw_vertex_buffer(uint pos,
 
 static void shape_preset_trias_from_rect_menu(uiWidgetTrias *tria, const rcti *rect)
 {
-  float width = BLI_rcti_size_x(rect);
-  float height = BLI_rcti_size_y(rect);
+  const float width = BLI_rcti_size_x(rect);
+  const float height = BLI_rcti_size_y(rect);
   float centx, centy, size;
 
   tria->type = ROUNDBOX_TRIA_MENU;
@@ -1120,7 +1122,7 @@ static void widgetbase_set_uniform_alpha_check(uiWidgetBase *wtb, const bool alp
 
 static void widgetbase_set_uniform_discard_factor(uiWidgetBase *wtb, const float discard_factor)
 {
-  bool alpha_check = wtb->uniform_params.alpha_discard < 0.0f;
+  const bool alpha_check = wtb->uniform_params.alpha_discard < 0.0f;
   widgetbase_set_uniform_alpha_discard(wtb, alpha_check, discard_factor);
 }
 
@@ -1344,8 +1346,8 @@ static void widget_draw_preview(BIFIconID icon, float alpha, const rcti *rect)
   size -= PREVIEW_PAD * 2; /* padding */
 
   if (size > 0) {
-    int x = rect->xmin + w / 2 - size / 2;
-    int y = rect->ymin + h / 2 - size / 2;
+    const int x = rect->xmin + w / 2 - size / 2;
+    const int y = rect->ymin + h / 2 - size / 2;
 
     UI_icon_draw_preview(x, y, icon, 1.0f, alpha, size);
   }
@@ -1406,7 +1408,7 @@ static void widget_draw_icon(
   GPU_blend(GPU_BLEND_ALPHA);
 
   if (icon && icon != ICON_BLANK1) {
-    float ofs = 1.0f / aspect;
+    const float ofs = 1.0f / aspect;
 
     if (but->drawflag & UI_BUT_ICON_LEFT) {
       /* special case - icon_only pie buttons */
@@ -1434,7 +1436,7 @@ static void widget_draw_icon(
 
     /* Get theme color. */
     uchar color[4] = {mono_color[0], mono_color[1], mono_color[2], mono_color[3]};
-    bool has_theme = UI_icon_get_theme_color(icon, color);
+    const bool has_theme = UI_icon_get_theme_color(icon, color);
 
     /* to indicate draggable */
     if (but->dragpoin && (but->flag & UI_ACTIVE)) {
@@ -1486,7 +1488,7 @@ static void widget_draw_submenu_tria(const uiBut *but,
 static void ui_text_clip_give_prev_off(uiBut *but, const char *str)
 {
   const char *prev_utf8 = BLI_str_find_prev_char_utf8(str, str + but->ofs);
-  int bytes = str + but->ofs - prev_utf8;
+  const int bytes = str + but->ofs - prev_utf8;
 
   but->ofs -= bytes;
 }
@@ -1494,7 +1496,7 @@ static void ui_text_clip_give_prev_off(uiBut *but, const char *str)
 static void ui_text_clip_give_next_off(uiBut *but, const char *str)
 {
   const char *next_utf8 = BLI_str_find_next_char_utf8(str + but->ofs, NULL);
-  int bytes = next_utf8 - (str + but->ofs);
+  const int bytes = next_utf8 - (str + but->ofs);
 
   but->ofs += bytes;
 }
@@ -1823,7 +1825,7 @@ static void ui_text_clip_right_label(const uiFontStyle *fstyle, uiBut *but, cons
     /* chop off the leading text, starting from the right */
     while (but->strwidth > okwidth && cp2 > but->drawstr) {
       const char *prev_utf8 = BLI_str_find_prev_char_utf8(but->drawstr, cp2);
-      int bytes = cp2 - prev_utf8;
+      const int bytes = cp2 - prev_utf8;
 
       /* shift the text after and including cp2 back by 1 char,
        * +1 to include null terminator */
@@ -2286,7 +2288,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
                                   rcti *rect)
 {
   const bool show_menu_icon = ui_but_draw_menu_icon(but);
-  float alpha = (float)wcol->text[3] / 255.0f;
+  const float alpha = (float)wcol->text[3] / 255.0f;
   char password_str[UI_MAX_DRAW_STR];
   bool no_text_padding = but->drawflag & UI_BUT_NO_TEXT_PADDING;
 
@@ -2354,7 +2356,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
 #endif
 
     const BIFIconID icon = ui_but_icon(but);
-    int icon_size_init = is_tool ? ICON_DEFAULT_HEIGHT_TOOLBAR : ICON_DEFAULT_HEIGHT;
+    const int icon_size_init = is_tool ? ICON_DEFAULT_HEIGHT_TOOLBAR : ICON_DEFAULT_HEIGHT;
     const float icon_size = icon_size_init / (but->block->aspect * U.inv_dpi_fac);
     const float icon_padding = 2 * UI_DPI_FAC;
 
@@ -2399,7 +2401,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
       rect->xmin += text_padding;
     }
     else if (but->flag & UI_BUT_DRAG_MULTI) {
-      bool text_is_edited = ui_but_drag_multi_edit_get(but) != NULL;
+      const bool text_is_edited = ui_but_drag_multi_edit_get(but) != NULL;
       if (text_is_edited || (but->drawflag & UI_BUT_TEXT_LEFT)) {
         rect->xmin += text_padding;
       }
@@ -2487,7 +2489,7 @@ static void ui_widget_color_disabled(uiWidgetType *wt)
 
 static void widget_active_color(uiWidgetColors *wcol)
 {
-  bool dark = (rgb_to_grayscale_byte(wcol->text) > rgb_to_grayscale_byte(wcol->inner));
+  const bool dark = (rgb_to_grayscale_byte(wcol->text) > rgb_to_grayscale_byte(wcol->inner));
   color_mul_hsl_v3(wcol->inner, 1.0f, 1.15f, dark ? 1.2f : 1.1f);
   color_mul_hsl_v3(wcol->outline, 1.0f, 1.15f, 1.15f);
   color_mul_hsl_v3(wcol->text, 1.0f, 1.15f, dark ? 1.25f : 0.8f);
@@ -2746,12 +2748,13 @@ static void widget_softshadow(const rcti *rect, int roundboxalign, const float r
   /* we draw a number of increasing size alpha quad strips */
   alphastep = 3.0f * btheme->tui.menu_shadow_fac / radout;
 
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const uint pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
   for (step = 1; step <= (int)radout; step++) {
-    float expfac = sqrtf(step / radout);
+    const float expfac = sqrtf(step / radout);
 
     round_box_shadow_edges(wtb.outer_v, &rect1, radin, UI_CNR_ALL, (float)step);
 
@@ -2798,7 +2801,8 @@ static void widget_menu_back(uiWidgetColors *wcol, rcti *rect, int flag, int dir
 
 static void ui_hsv_cursor(float x, float y)
 {
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const uint pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -2861,11 +2865,11 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
   const float radstep = 2.0f * (float)M_PI / (float)tot;
   const float centx = BLI_rcti_cent_x_fl(rect);
   const float centy = BLI_rcti_cent_y_fl(rect);
-  float radius = (float)min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
+  const float radius = (float)min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
 
   ColorPicker *cpicker = but->custom_data;
   float rgb[3], hsv[3], rgb_center[3];
-  bool is_color_gamma = ui_but_is_color_gamma(but);
+  const bool is_color_gamma = ui_but_is_color_gamma(but);
 
   /* Initialize for compatibility. */
   copy_v3_v3(hsv, cpicker->color_data);
@@ -2899,7 +2903,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  uint color = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  const uint color = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
   immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 
@@ -2909,8 +2913,8 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, const uiWidgetColors *wcol, const 
 
   float ang = 0.0f;
   for (int a = 0; a <= tot; a++, ang += radstep) {
-    float si = sinf(ang);
-    float co = cosf(ang);
+    const float si = sinf(ang);
+    const float co = cosf(ang);
     float hsv_ang[3];
     float rgb_ang[3];
 
@@ -2975,7 +2979,7 @@ void ui_draw_gradient(const rcti *rect,
   const int steps = 48;
   const float color_step = 1.0f / steps;
   int a;
-  float h = hsv[0], s = hsv[1], v = hsv[2];
+  const float h = hsv[0], s = hsv[1], v = hsv[2];
   float dx, dy, sx1, sx2, sy;
   float col0[4][3]; /* left half, rect bottom to top */
   float col1[4][3]; /* right half, rect bottom to top */
@@ -3030,8 +3034,8 @@ void ui_draw_gradient(const rcti *rect,
 
   /* old below */
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 
   immBegin(GPU_PRIM_TRIS, steps * 3 * 6);
@@ -3193,7 +3197,8 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
   ui_hsv_cursor(x, y);
 
   /* outline */
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const uint pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
   immUniformColor3ub(0, 0, 0);
   imm_draw_box_wire_2d(pos, (rect->xmin), (rect->ymin), (rect->xmax), (rect->ymax));
@@ -3224,7 +3229,7 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 
   /* map v from property range to [0,1] */
   if (hsv_but->gradient_type == UI_GRAD_V_ALT) {
-    float min = but->softmin, max = but->softmax;
+    const float min = but->softmin, max = but->softmax;
     v = (v - min) / (max - min);
   }
 
@@ -3259,7 +3264,7 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 /** Separator for menus. */
 static void ui_draw_separator(const rcti *rect, const uiWidgetColors *wcol)
 {
-  int y = rect->ymin + BLI_rcti_size_y(rect) / 2 - 1;
+  const int y = rect->ymin + BLI_rcti_size_y(rect) / 2 - 1;
   const uchar col[4] = {
       wcol->text[0],
       wcol->text[1],
@@ -3267,7 +3272,8 @@ static void ui_draw_separator(const rcti *rect, const uiWidgetColors *wcol)
       30,
   };
 
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const uint pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
   GPU_blend(GPU_BLEND_ALPHA);
@@ -3619,8 +3625,8 @@ static void widget_progressbar(
   widget_init(&wtb_bar);
 
   /* round corners */
-  float value = but_progressbar->progress;
-  float offs = wcol->roundness * BLI_rcti_size_y(&rect_prog);
+  const float value = but_progressbar->progress;
+  const float offs = wcol->roundness * BLI_rcti_size_y(&rect_prog);
   float w = value * BLI_rcti_size_x(&rect_prog);
 
   /* ensure minimium size */
@@ -3647,7 +3653,7 @@ static void widget_nodesocket(
     uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int UNUSED(roundboxalign))
 {
   uiWidgetBase wtb;
-  int radi = 5;
+  const int radi = 5;
   uchar old_inner[3], old_outline[3];
 
   widget_init(&wtb);
@@ -3663,8 +3669,8 @@ static void widget_nodesocket(
   wcol->outline[2] = 0;
   wcol->outline[3] = 150;
 
-  int cent_x = BLI_rcti_cent_x(rect);
-  int cent_y = BLI_rcti_cent_y(rect);
+  const int cent_x = BLI_rcti_cent_x(rect);
+  const int cent_y = BLI_rcti_cent_y(rect);
   rect->xmin = cent_x - radi;
   rect->xmax = cent_x + radi;
   rect->ymin = cent_y - radi;
@@ -3712,7 +3718,7 @@ static void widget_numslider(
     rect1 = *rect;
     float factor, factor_ui;
     float factor_discard = 1.0f; /* No discard. */
-    float value = (float)ui_but_value_get(but);
+    const float value = (float)ui_but_value_get(but);
 
     if (but->rnaprop && (RNA_property_subtype(but->rnaprop) == PROP_PERCENTAGE)) {
       factor = value / but->softmax;
@@ -3721,7 +3727,7 @@ static void widget_numslider(
       factor = (value - but->softmin) / (but->softmax - but->softmin);
     }
 
-    float width = (float)BLI_rcti_size_x(rect);
+    const float width = (float)BLI_rcti_size_x(rect);
     factor_ui = factor * width;
 
     if (factor_ui <= offs) {
@@ -3829,8 +3835,8 @@ static void widget_swatch(
   widgetbase_draw_ex(&wtb, wcol, show_alpha_checkers);
   if (color_but->is_pallete_color &&
       ((Palette *)but->rnapoin.owner_id)->active_color == color_but->palette_color_index) {
-    float width = rect->xmax - rect->xmin;
-    float height = rect->ymax - rect->ymin;
+    const float width = rect->xmax - rect->xmin;
+    const float height = rect->ymax - rect->ymin;
     /* find color luminance and change it slightly */
     float bw = rgb_to_grayscale(col);
 
@@ -3841,7 +3847,8 @@ static void widget_swatch(
     UI_widgetbase_draw_cache_flush();
     GPU_blend(GPU_BLEND_NONE);
 
-    uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+    const uint pos = GPU_vertformat_attr_add(
+        immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
     immUniformColor3f(bw, bw, bw);
@@ -3969,7 +3976,7 @@ static void widget_menu_radial_itembut(
 {
   uiWidgetBase wtb;
   float rad;
-  float fac = but->block->pie_data.alphafac;
+  const float fac = but->block->pie_data.alphafac;
 
   widget_init(&wtb);
 
@@ -4011,7 +4018,7 @@ static void widget_optionbut(uiWidgetColors *wcol,
                              int state,
                              int UNUSED(roundboxalign))
 {
-  bool text_before_widget = (state & UI_STATE_TEXT_BEFORE_WIDGET);
+  const bool text_before_widget = (state & UI_STATE_TEXT_BEFORE_WIDGET);
   uiWidgetBase wtb;
   rcti recttemp = *rect;
   float rad;
@@ -4233,7 +4240,8 @@ static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *
     but->block->drawextra(
         C, but->poin, but->block->drawextra_arg1, but->block->drawextra_arg2, rect);
 
-    uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+    const uint pos = GPU_vertformat_attr_add(
+        immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
     /* make mask to draw over image */
@@ -4475,7 +4483,7 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
 
   /* align with open menu */
   if (but->active && (but->type != UI_BTYPE_POPOVER) && !ui_but_menu_draw_as_popover(but)) {
-    int direction = ui_but_menu_direction(but);
+    const int direction = ui_but_menu_direction(but);
 
     if (direction == UI_DIR_UP) {
       roundbox &= ~(UI_CNR_TOP_RIGHT | UI_CNR_TOP_LEFT);
@@ -4923,7 +4931,8 @@ static void ui_draw_popover_back_impl(const uiWidgetColors *wcol,
 
   /* Draw popover arrow (top/bottom) */
   if (ELEM(direction, UI_DIR_UP, UI_DIR_DOWN)) {
-    uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+    const uint pos = GPU_vertformat_attr_add(
+        immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
     const bool is_down = (direction == UI_DIR_DOWN);
@@ -5044,18 +5053,18 @@ static void draw_disk_shaded(float start,
 void ui_draw_pie_center(uiBlock *block)
 {
   bTheme *btheme = UI_GetTheme();
-  float cx = block->pie_data.pie_center_spawned[0];
-  float cy = block->pie_data.pie_center_spawned[1];
+  const float cx = block->pie_data.pie_center_spawned[0];
+  const float cy = block->pie_data.pie_center_spawned[1];
 
   float *pie_dir = block->pie_data.pie_dir;
 
-  float pie_radius_internal = U.dpi_fac * U.pie_menu_threshold;
-  float pie_radius_external = U.dpi_fac * (U.pie_menu_threshold + 7.0f);
+  const float pie_radius_internal = U.dpi_fac * U.pie_menu_threshold;
+  const float pie_radius_external = U.dpi_fac * (U.pie_menu_threshold + 7.0f);
 
-  int subd = 40;
+  const int subd = 40;
 
-  float angle = atan2f(pie_dir[1], pie_dir[0]);
-  float range = (block->pie_data.flags & UI_PIE_DEGREES_RANGE_LARGE) ? M_PI_2 : M_PI_4;
+  const float angle = atan2f(pie_dir[1], pie_dir[0]);
+  const float range = (block->pie_data.flags & UI_PIE_DEGREES_RANGE_LARGE) ? M_PI_2 : M_PI_4;
 
   GPU_matrix_push();
   GPU_matrix_translate_2f(cx, cy);
@@ -5118,7 +5127,7 @@ void ui_draw_pie_center(uiBlock *block)
   }
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
   immUniformColor4ubv(btheme->tui.wcol_pie_menu.outline);
 
@@ -5129,8 +5138,9 @@ void ui_draw_pie_center(uiBlock *block)
 
   if (U.pie_menu_confirm > 0 &&
       !(block->pie_data.flags & (UI_PIE_INVALID_DIR | UI_PIE_CLICK_STYLE))) {
-    float pie_confirm_radius = U.dpi_fac * (pie_radius_internal + U.pie_menu_confirm);
-    float pie_confirm_external = U.dpi_fac * (pie_radius_internal + U.pie_menu_confirm + 7.0f);
+    const float pie_confirm_radius = U.dpi_fac * (pie_radius_internal + U.pie_menu_confirm);
+    const float pie_confirm_external = U.dpi_fac *
+                                       (pie_radius_internal + U.pie_menu_confirm + 7.0f);
 
     const uchar col[4] = {UNPACK3(btheme->tui.wcol_pie_menu.text_sel), 64};
     draw_disk_shaded(angle - range / 2.0f,
@@ -5213,7 +5223,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
                        int *r_xmax)
 {
   uiWidgetType *wt = widget_type(UI_WTYPE_MENU_ITEM);
-  rcti _rect = *rect;
+  const rcti _rect = *rect;
   char *cpoin = NULL;
 
   wt->state(wt, state, 0);
@@ -5283,8 +5293,8 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
 
   if (iconid) {
     float height, aspect;
-    int xs = rect->xmin + 0.2f * UI_UNIT_X;
-    int ys = rect->ymin + 0.1f * BLI_rcti_size_y(rect);
+    const int xs = rect->xmin + 0.2f * UI_UNIT_X;
+    const int ys = rect->ymin + 0.1f * BLI_rcti_size_y(rect);
 
     height = ICON_SIZE_FROM_BUTRECT(rect);
     aspect = ICON_DEFAULT_HEIGHT / height;

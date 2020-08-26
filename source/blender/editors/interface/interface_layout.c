@@ -225,7 +225,7 @@ typedef struct uiLayoutItemRoot {
 
 static const char *ui_item_name_add_colon(const char *name, char namestr[UI_MAX_NAME_STR])
 {
-  int len = strlen(name);
+  const int len = strlen(name);
 
   if (len != 0 && len + 1 < UI_MAX_NAME_STR) {
     memcpy(namestr, name, len);
@@ -251,7 +251,7 @@ static int ui_item_fit(
       return available - pos;
     }
 
-    float width = *extra_pixel + (item * available) / (float)all;
+    const float width = *extra_pixel + (item * available) / (float)all;
     *extra_pixel = width - (int)width;
     return (int)width;
   }
@@ -262,7 +262,7 @@ static int ui_item_fit(
       return available - pos;
     }
 
-    float width = *extra_pixel + (item * available) / (float)all;
+    const float width = *extra_pixel + (item * available) / (float)all;
     *extra_pixel = width - (int)width;
     return (int)width;
   }
@@ -457,8 +457,8 @@ static void ui_layer_but_cb(bContext *C, void *arg_but, void *arg_index)
   PointerRNA *ptr = &but->rnapoin;
   PropertyRNA *prop = but->rnaprop;
   int i, index = POINTER_AS_INT(arg_index);
-  int shift = win->eventstate->shift;
-  int len = RNA_property_array_length(ptr, prop);
+  const int shift = win->eventstate->shift;
+  const int len = RNA_property_array_length(ptr, prop);
 
   if (!shift) {
     RNA_property_boolean_set_index(ptr, prop, index, true);
@@ -519,7 +519,7 @@ static void ui_item_array(uiLayout *layout,
   if (type == PROP_BOOLEAN && ELEM(subtype, PROP_LAYER, PROP_LAYER_MEMBER)) {
     /* special check for layer layout */
     int butw, buth, unit;
-    int cols = (len >= 20) ? 2 : 1;
+    const int cols = (len >= 20) ? 2 : 1;
     const uint colbuts = len / (2 * cols);
     uint layer_used = 0;
     uint layer_active = 0;
@@ -721,7 +721,7 @@ static void ui_item_enum_expand_handle(bContext *C, void *arg1, void *arg2)
 
   if (!win->eventstate->shift) {
     uiBut *but = (uiBut *)arg1;
-    int enum_value = POINTER_AS_INT(arg2);
+    const int enum_value = POINTER_AS_INT(arg2);
 
     int current_value = RNA_property_enum_get(&but->rnapoin, but->rnaprop);
     if (!(current_value & enum_value)) {
@@ -814,7 +814,7 @@ static void ui_item_enum_expand_exec(uiLayout *layout,
   BLI_assert(RNA_property_type(prop) == PROP_ENUM);
 
   uiLayout *layout_radial = NULL;
-  bool radial = (layout->root->type == UI_LAYOUT_PIEMENU);
+  const bool radial = (layout->root->type == UI_LAYOUT_PIEMENU);
   if (radial) {
     RNA_property_enum_items_gettexted_all(block->evil_C, ptr, prop, &item_array, NULL, &free);
   }
@@ -1179,7 +1179,7 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
 
   w = ui_text_icon_width(layout, name, icon, 0);
 
-  int prev_emboss = layout->emboss;
+  const int prev_emboss = layout->emboss;
   if (flag & UI_ITEM_R_NO_BG) {
     layout->emboss = UI_EMBOSS_NONE;
   }
@@ -1223,7 +1223,7 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
       opptr->data = properties;
     }
     else {
-      IDPropertyTemplate val = {0};
+      const IDPropertyTemplate val = {0};
       opptr->data = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
     }
     if (r_opptr) {
@@ -2043,7 +2043,7 @@ void uiItemFullR(uiLayout *layout,
     if ((layout->root->type == UI_LAYOUT_MENU) ||
         /* Use checkboxes only as a fallback in pie-menu's, when no icon is defined. */
         ((layout->root->type == UI_LAYOUT_PIEMENU) && (icon == ICON_NONE))) {
-      int prop_flag = RNA_property_flag(prop);
+      const int prop_flag = RNA_property_flag(prop);
       if (type == PROP_BOOLEAN) {
         if ((is_array == false) || (index != RNA_NO_INDEX)) {
           if (prop_flag & PROP_ICONS_CONSECUTIVE) {
@@ -2060,7 +2060,7 @@ void uiItemFullR(uiLayout *layout,
       }
       else if (type == PROP_ENUM) {
         if (index == RNA_ENUM_VALUE) {
-          int enum_value = RNA_property_enum_get(ptr, prop);
+          const int enum_value = RNA_property_enum_get(ptr, prop);
           if (prop_flag & PROP_ICONS_CONSECUTIVE) {
             icon = ICON_CHECKBOX_DEHLT; /* but->iconadd will set to correct icon */
           }
@@ -2099,7 +2099,7 @@ void uiItemFullR(uiLayout *layout,
   int w, h;
   ui_item_rna_size(layout, name, icon, ptr, prop, index, icon_only, compact, &w, &h);
 
-  int prev_emboss = layout->emboss;
+  const int prev_emboss = layout->emboss;
   if (no_bg) {
     layout->emboss = UI_EMBOSS_NONE;
   }
@@ -3193,7 +3193,7 @@ uiLayout *uiItemL_respect_property_split(uiLayout *layout, const char *text, int
 {
   if (layout->item.flag & UI_ITEM_PROP_SEP) {
     uiBlock *block = uiLayoutGetBlock(layout);
-    uiPropertySplitWrapper split_wrapper = uiItemPropertySplitWrapperCreate(layout);
+    const uiPropertySplitWrapper split_wrapper = uiItemPropertySplitWrapperCreate(layout);
     /* Further items added to 'layout' will automatically be added to split_wrapper.property_row */
 
     uiItemL_(split_wrapper.label_column, text, icon);
@@ -3272,7 +3272,7 @@ void uiItemV(uiLayout *layout, const char *name, int icon, int argval)
 void uiItemS_ex(uiLayout *layout, float factor)
 {
   uiBlock *block = layout->root->block;
-  bool is_menu = ui_block_is_menu(block);
+  const bool is_menu = ui_block_is_menu(block);
   if (is_menu && !UI_block_can_add_separator(block)) {
     return;
   }
@@ -3794,7 +3794,7 @@ static void ui_litem_layout_radial(uiLayout *litem)
    * also the old code at http://developer.blender.org/T5103
    */
 
-  int pie_radius = U.pie_menu_radius * UI_DPI_FAC;
+  const int pie_radius = U.pie_menu_radius * UI_DPI_FAC;
 
   x = litem->x;
   y = litem->y;

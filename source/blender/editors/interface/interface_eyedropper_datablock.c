@@ -117,7 +117,7 @@ static int datadropper_init(bContext *C, wmOperator *op)
    * because this struct has very short lifetime. */
   ddr->idcode_name = TIP_(BKE_idtype_idcode_to_name(ddr->idcode));
 
-  PointerRNA ptr = RNA_property_pointer_get(&ddr->ptr, ddr->prop);
+  const PointerRNA ptr = RNA_property_pointer_get(&ddr->ptr, ddr->prop);
   ddr->init_id = ptr.owner_id;
 
   return true;

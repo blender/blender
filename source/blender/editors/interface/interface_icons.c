@@ -264,9 +264,9 @@ static void viconutil_set_point(GLint pt[2], int x, int y)
 static void vicon_small_tri_right_draw(int x, int y, int w, int UNUSED(h), float alpha)
 {
   GLint pts[3][2];
-  int cx = x + w / 2 - 4;
-  int cy = y + w / 2;
-  int d = w / 5, d2 = w / 7;
+  const int cx = x + w / 2 - 4;
+  const int cy = y + w / 2;
+  const int d = w / 5, d2 = w / 7;
 
   viconutil_set_point(pts[0], cx - d2, cy + d);
   viconutil_set_point(pts[1], cx - d2, cy - d);
@@ -301,17 +301,17 @@ static void vicon_keytype_draw_wrapper(
    * while the draw_keyframe_shape() function needs the midpoint for
    * the keyframe
    */
-  float xco = x + w / 2 + 0.5f;
-  float yco = y + h / 2 + 0.5f;
+  const float xco = x + w / 2 + 0.5f;
+  const float yco = y + h / 2 + 0.5f;
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  uint size_id = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  const uint pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  const uint size_id = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   uint color_id = GPU_vertformat_attr_add(
       format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
   uint outline_color_id = GPU_vertformat_attr_add(
       format, "outlineColor", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-  uint flags_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
+  const uint flags_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
   GPU_program_point_size(true);
   immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
@@ -323,7 +323,7 @@ static void vicon_keytype_draw_wrapper(
    * - size: (default icon size == 16, default dopesheet icon size == 10)
    * - sel: true unless in handletype icons (so that "keyframe" state shows the iconic yellow icon)
    */
-  bool sel = (handle_type == KEYFRAME_HANDLE_NONE);
+  const bool sel = (handle_type == KEYFRAME_HANDLE_NONE);
 
   draw_keyframe_shape(xco,
                       yco,
@@ -490,7 +490,7 @@ static void init_brush_icons(void)
 #    define INIT_BRUSH_ICON(icon_id, name) \
       { \
         uchar *rect = (uchar *)datatoc_##name##_png; \
-        int size = datatoc_##name##_png_size; \
+        const int size = datatoc_##name##_png_size; \
         DrawInfo *di; \
 \
         di = def_internal_icon(NULL, icon_id, 0, 0, w, ICON_TYPE_BUFFER, 0); \
@@ -732,7 +732,7 @@ static ImBuf *create_mono_icon_with_border(ImBuf *buf,
 
   for (int y = 0; y < ICON_GRID_ROWS; y++) {
     for (int x = 0; x < ICON_GRID_COLS; x++) {
-      IconType icontype = icontypes[y * ICON_GRID_COLS + x];
+      const IconType icontype = icontypes[y * ICON_GRID_COLS + x];
       if (icontype.type != ICON_TYPE_MONO_TEXTURE) {
         continue;
       }
@@ -743,7 +743,7 @@ static ImBuf *create_mono_icon_with_border(ImBuf *buf,
       sy = sy / resolution_divider;
 
       /* blur the alpha channel and store it in blurred_alpha_buffer */
-      int blur_size = 2 / resolution_divider;
+      const int blur_size = 2 / resolution_divider;
       for (int bx = 0; bx < icon_width; bx++) {
         const int asx = MAX2(bx - blur_size, 0);
         const int aex = MIN2(bx + blur_size + 1, icon_width);
@@ -758,7 +758,7 @@ static ImBuf *create_mono_icon_with_border(ImBuf *buf,
           for (int ax = asx; ax < aex; ax++) {
             for (int ay = asy; ay < aey; ay++) {
               const int offset_read = (sy + ay) * buf->x + (sx + ax);
-              uint color_read = buf->rect[offset_read];
+              const uint color_read = buf->rect[offset_read];
               const float alpha_read = ((color_read & 0xff000000) >> 24) / 255.0;
               alpha_accum += alpha_read;
               alpha_samples += 1;
@@ -790,8 +790,8 @@ static ImBuf *create_mono_icon_with_border(ImBuf *buf,
           blend_color_interpolate_float(dest_rgba, orig_rgba, border_rgba, 1.0 - orig_rgba[3]);
           linearrgb_to_srgb_v4(dest_srgb, dest_rgba);
 
-          uint alpha_mask = ((uint)(dest_srgb[3] * 255)) << 24;
-          uint cpack = rgb_to_cpack(dest_srgb[0], dest_srgb[1], dest_srgb[2]) | alpha_mask;
+          const uint alpha_mask = ((uint)(dest_srgb[3] * 255)) << 24;
+          const uint cpack = rgb_to_cpack(dest_srgb[0], dest_srgb[1], dest_srgb[2]) | alpha_mask;
           result->rect[offset_write] = cpack;
         }
       }
@@ -820,7 +820,7 @@ void UI_icons_reload_internal_textures(void)
   bTheme *btheme = UI_GetTheme();
   ImBuf *b16buf = NULL, *b32buf = NULL, *b16buf_border = NULL, *b32buf_border = NULL;
   const float icon_border_intensity = btheme->tui.icon_border_intensity;
-  bool need_icons_with_border = icon_border_intensity > 0.0f;
+  const bool need_icons_with_border = icon_border_intensity > 0.0f;
 
   if (b16buf == NULL) {
     b16buf = IMB_ibImageFromMemory((const uchar *)datatoc_blender_icons16_png,
@@ -936,7 +936,7 @@ static void init_internal_icons(void)
   for (y = 0; y < ICON_GRID_ROWS; y++) {
     /* Row W has monochrome icons. */
     for (x = 0; x < ICON_GRID_COLS; x++) {
-      IconType icontype = icontypes[y * ICON_GRID_COLS + x];
+      const IconType icontype = icontypes[y * ICON_GRID_COLS + x];
       if (!ELEM(icontype.type, ICON_TYPE_COLOR_TEXTURE, ICON_TYPE_MONO_TEXTURE)) {
         continue;
       }
@@ -1130,7 +1130,7 @@ void UI_icons_free_drawinfo(void *drawinfo)
  */
 static DrawInfo *icon_create_drawinfo(Icon *icon)
 {
-  int icon_data_type = icon->obj_type;
+  const int icon_data_type = icon->obj_type;
   DrawInfo *di = NULL;
 
   di = MEM_callocN(sizeof(DrawInfo), "di_icon");
@@ -1246,7 +1246,7 @@ int UI_preview_render_size(enum eIconSizes size)
  */
 static void icon_create_rect(struct PreviewImage *prv_img, enum eIconSizes size)
 {
-  uint render_size = UI_preview_render_size(size);
+  const uint render_size = UI_preview_render_size(size);
 
   if (!prv_img) {
     if (G.debug & G_DEBUG) {
@@ -1351,7 +1351,7 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
 
               img->w = STUDIOLIGHT_ICON_SIZE;
               img->h = STUDIOLIGHT_ICON_SIZE;
-              size_t size = STUDIOLIGHT_ICON_SIZE * STUDIOLIGHT_ICON_SIZE * sizeof(uint);
+              const size_t size = STUDIOLIGHT_ICON_SIZE * STUDIOLIGHT_ICON_SIZE * sizeof(uint);
               img->rect = MEM_mallocN(size, __func__);
               memset(img->rect, 0, size);
               di->data.buffer.image = img;
@@ -1479,7 +1479,7 @@ static void icon_draw_rect(float x,
     return;
   }
   /* modulate color */
-  float col[4] = {alpha, alpha, alpha, alpha};
+  const float col[4] = {alpha, alpha, alpha, alpha};
 
   /* rect contains image in 'rendersize', we only scale if needed */
   if (rw != w || rh != h) {
@@ -1565,8 +1565,8 @@ static void icon_draw_cache_texture_flush_ex(GPUTexture *texture,
   GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_MULTI_RECT_COLOR);
   GPU_shader_bind(shader);
 
-  int img_binding = GPU_shader_get_texture_binding(shader, "image");
-  int data_loc = GPU_shader_get_uniform(shader, "calls_data");
+  const int img_binding = GPU_shader_get_texture_binding(shader, "image");
+  const int data_loc = GPU_shader_get_uniform(shader, "calls_data");
 
   GPU_texture_bind(texture, img_binding);
   GPU_sampler_icon_bind(img_binding);
@@ -1703,10 +1703,10 @@ static void icon_draw_texture(float x,
   GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_RECT_COLOR);
   GPU_shader_bind(shader);
 
-  int img_binding = GPU_shader_get_texture_binding(shader, "image");
-  int color_loc = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_COLOR);
-  int rect_tex_loc = GPU_shader_get_uniform(shader, "rect_icon");
-  int rect_geom_loc = GPU_shader_get_uniform(shader, "rect_geom");
+  const int img_binding = GPU_shader_get_texture_binding(shader, "image");
+  const int color_loc = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_COLOR);
+  const int rect_tex_loc = GPU_shader_get_uniform(shader, "rect_icon");
+  const int rect_geom_loc = GPU_shader_get_uniform(shader, "rect_geom");
 
   if (rgb) {
     GPU_shader_uniform_vector(shader, color_loc, 4, 1, (float[4]){UNPACK3(rgb), alpha});
@@ -1838,7 +1838,7 @@ static void icon_draw_size(float x,
   }
   else if (di->type == ICON_TYPE_MONO_TEXTURE) {
     /* Monochrome icon that uses text or theme color. */
-    bool with_border = mono_border && (btheme->tui.icon_border_intensity > 0.0f);
+    const bool with_border = mono_border && (btheme->tui.icon_border_intensity > 0.0f);
     float color[4];
     if (mono_rgba) {
       rgba_uchar_to_float(color, (const uchar *)mono_rgba);
@@ -2222,7 +2222,7 @@ int UI_rnaptr_icon_get(bContext *C, PointerRNA *ptr, int rnaicon, const bool big
 
   /* get icon from ID */
   if (id) {
-    int icon = ui_id_icon_get(C, id, big);
+    const int icon = ui_id_icon_get(C, id, big);
 
     return icon ? icon : rnaicon;
   }
@@ -2334,7 +2334,7 @@ void UI_icon_draw_ex(float x,
                      const uchar mono_color[4],
                      const bool mono_border)
 {
-  int draw_size = get_draw_size(ICON_SIZE_ICON);
+  const int draw_size = get_draw_size(ICON_SIZE_ICON);
   icon_draw_size(x,
                  y,
                  icon_id,

@@ -201,7 +201,7 @@ static int copy_as_driver_button_exec(bContext *C, wmOperator *op)
 
   if (ptr.owner_id && ptr.data && prop) {
     ID *id;
-    int dim = RNA_property_array_dimension(&ptr, prop, NULL);
+    const int dim = RNA_property_array_dimension(&ptr, prop, NULL);
     char *path = RNA_path_from_real_ID_to_property_index(bmain, &ptr, prop, dim, index, &id);
 
     if (path) {
@@ -378,7 +378,7 @@ static bool assign_default_button_poll(bContext *C)
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
   if (ptr.data && prop && RNA_property_editable(&ptr, prop)) {
-    PropertyType type = RNA_property_type(prop);
+    const PropertyType type = RNA_property_type(prop);
 
     return RNA_property_is_idprop(prop) && !RNA_property_array_check(prop) &&
            ELEM(type, PROP_INT, PROP_FLOAT);
@@ -1174,7 +1174,7 @@ bool ui_jump_to_target_button_poll(bContext *C)
 
 static int jump_to_target_button_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  bool success = jump_to_target_button(C, false);
+  const bool success = jump_to_target_button(C, false);
 
   return (success) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
@@ -1474,16 +1474,16 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
     const char *root = U.i18ndir;
     const char *uilng = BLT_lang_get();
 
-    uiStringInfo but_label = {BUT_GET_LABEL, NULL};
-    uiStringInfo rna_label = {BUT_GET_RNA_LABEL, NULL};
-    uiStringInfo enum_label = {BUT_GET_RNAENUM_LABEL, NULL};
-    uiStringInfo but_tip = {BUT_GET_TIP, NULL};
-    uiStringInfo rna_tip = {BUT_GET_RNA_TIP, NULL};
-    uiStringInfo enum_tip = {BUT_GET_RNAENUM_TIP, NULL};
-    uiStringInfo rna_struct = {BUT_GET_RNASTRUCT_IDENTIFIER, NULL};
-    uiStringInfo rna_prop = {BUT_GET_RNAPROP_IDENTIFIER, NULL};
-    uiStringInfo rna_enum = {BUT_GET_RNAENUM_IDENTIFIER, NULL};
-    uiStringInfo rna_ctxt = {BUT_GET_RNA_LABEL_CONTEXT, NULL};
+    const uiStringInfo but_label = {BUT_GET_LABEL, NULL};
+    const uiStringInfo rna_label = {BUT_GET_RNA_LABEL, NULL};
+    const uiStringInfo enum_label = {BUT_GET_RNAENUM_LABEL, NULL};
+    const uiStringInfo but_tip = {BUT_GET_TIP, NULL};
+    const uiStringInfo rna_tip = {BUT_GET_RNA_TIP, NULL};
+    const uiStringInfo enum_tip = {BUT_GET_RNAENUM_TIP, NULL};
+    const uiStringInfo rna_struct = {BUT_GET_RNASTRUCT_IDENTIFIER, NULL};
+    const uiStringInfo rna_prop = {BUT_GET_RNAPROP_IDENTIFIER, NULL};
+    const uiStringInfo rna_enum = {BUT_GET_RNAENUM_IDENTIFIER, NULL};
+    const uiStringInfo rna_ctxt = {BUT_GET_RNA_LABEL_CONTEXT, NULL};
 
     if (!BLI_is_dir(root)) {
       BKE_report(op->reports,

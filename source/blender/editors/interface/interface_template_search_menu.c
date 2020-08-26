@@ -535,7 +535,7 @@ static struct MenuSearch_Data *menu_items_from_ui_create(
         RNA_pointer_create(&screen->id, &RNA_Area, area, &ptr);
         const int space_type_ui = RNA_property_enum_get(&ptr, prop_ui_type);
 
-        int space_type_ui_index = RNA_enum_from_value(space_type_ui_items, space_type_ui);
+        const int space_type_ui_index = RNA_enum_from_value(space_type_ui_items, space_type_ui);
         if (space_type_ui_index == -1) {
           continue;
         }
@@ -952,7 +952,7 @@ static void menu_search_exec_fn(bContext *C, void *UNUSED(arg1), void *arg2)
     case MENU_SEARCH_TYPE_RNA: {
       PointerRNA *ptr = &item->rna.ptr;
       PropertyRNA *prop = item->rna.prop;
-      int index = item->rna.index;
+      const int index = item->rna.index;
       const int prop_type = RNA_property_type(prop);
       bool changed = false;
 
@@ -1131,7 +1131,7 @@ void UI_but_func_menu_search(uiBut *but)
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
   /* When run from top-bar scan all areas in the current window. */
-  bool include_all_areas = (area && (area->spacetype == SPACE_TOPBAR));
+  const bool include_all_areas = (area && (area->spacetype == SPACE_TOPBAR));
   struct MenuSearch_Data *data = menu_items_from_ui_create(
       C, win, area, region, include_all_areas);
   UI_but_func_search_set(but,

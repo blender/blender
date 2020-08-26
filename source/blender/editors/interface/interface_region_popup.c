@@ -565,8 +565,8 @@ uiBlock *ui_popup_block_refresh(bContext *C,
   wmWindow *window = CTX_wm_window(C);
   ARegion *region = handle->region;
 
-  uiBlockCreateFunc create_func = handle->popup_create_vars.create_func;
-  uiBlockHandleCreateFunc handle_create_func = handle->popup_create_vars.handle_create_func;
+  const uiBlockCreateFunc create_func = handle->popup_create_vars.create_func;
+  const uiBlockHandleCreateFunc handle_create_func = handle->popup_create_vars.handle_create_func;
   void *arg = handle->popup_create_vars.arg;
 
   uiBlock *block_old = region->uiblocks.first;
@@ -638,7 +638,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
   }
 
   if (block->flag & UI_BLOCK_RADIAL) {
-    int win_width = UI_SCREEN_MARGIN;
+    const int win_width = UI_SCREEN_MARGIN;
     int winx, winy;
 
     int x_offset = 0, y_offset = 0;
@@ -712,7 +712,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
      * the same height. */
     if (handle->refresh && handle->prev_block_rect.ymax > block->rect.ymax) {
       if (block->bounds_type != UI_BLOCK_BOUNDS_POPUP_CENTER) {
-        float offset = handle->prev_block_rect.ymax - block->rect.ymax;
+        const float offset = handle->prev_block_rect.ymax - block->rect.ymax;
         UI_block_translate(block, 0, offset);
         block->rect.ymin = handle->prev_block_rect.ymin;
       }

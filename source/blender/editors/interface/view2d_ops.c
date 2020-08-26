@@ -436,8 +436,8 @@ static float edge_pan_speed(v2dViewPanData *vpd,
   ARegion *region = vpd->region;
 
   /* Find the distance from the start of the drag zone. */
-  int min = (x_dir ? region->winrct.xmin : region->winrct.ymin) + EDGE_PAN_REGION_PAD;
-  int max = (x_dir ? region->winrct.xmax : region->winrct.ymax) - EDGE_PAN_REGION_PAD;
+  const int min = (x_dir ? region->winrct.xmin : region->winrct.ymin) + EDGE_PAN_REGION_PAD;
+  const int max = (x_dir ? region->winrct.xmax : region->winrct.ymax) - EDGE_PAN_REGION_PAD;
   int distance = 0.0;
   if (event_loc > max) {
     distance = event_loc - max;
@@ -451,8 +451,8 @@ static float edge_pan_speed(v2dViewPanData *vpd,
   }
 
   /* Apply a fade in to the speed based on a start time delay. */
-  double start_time = x_dir ? vpd->edge_pan_start_time_x : vpd->edge_pan_start_time_y;
-  float delay_factor = smootherstep(EDGE_PAN_DELAY, (float)(current_time - start_time));
+  const double start_time = x_dir ? vpd->edge_pan_start_time_x : vpd->edge_pan_start_time_y;
+  const float delay_factor = smootherstep(EDGE_PAN_DELAY, (float)(current_time - start_time));
 
   return distance * EDGE_PAN_SPEED_PER_PIXEL * delay_factor;
 }
@@ -475,7 +475,7 @@ static int view_edge_pan_modal(bContext *C, wmOperator *op, const wmEvent *event
    * On successful handling, always pass events on to other handlers. */
   const int success_retval = OPERATOR_PASS_THROUGH;
 
-  int outside_padding = RNA_int_get(op->ptr, "outside_padding") * UI_UNIT_X;
+  const int outside_padding = RNA_int_get(op->ptr, "outside_padding") * UI_UNIT_X;
   rcti padding_rect;
   if (outside_padding != 0) {
     padding_rect = region->winrct;
@@ -504,14 +504,14 @@ static int view_edge_pan_modal(bContext *C, wmOperator *op, const wmEvent *event
   edge_pan_manage_delay_timers(vpd, pan_dir_x, pan_dir_y, current_time);
 
   /* Calculate the delta since the last time the operator was called. */
-  float dtime = (float)(current_time - vpd->edge_pan_last_time);
+  const float dtime = (float)(current_time - vpd->edge_pan_last_time);
   float dx = 0.0f, dy = 0.0f;
   if (pan_dir_x != 0) {
-    float speed = edge_pan_speed(vpd, event->x, true, current_time);
+    const float speed = edge_pan_speed(vpd, event->x, true, current_time);
     dx = dtime * speed * (float)pan_dir_x;
   }
   if (pan_dir_y != 0) {
-    float speed = edge_pan_speed(vpd, event->y, false, current_time);
+    const float speed = edge_pan_speed(vpd, event->y, false, current_time);
     dy = dtime * speed * (float)pan_dir_y;
   }
   vpd->edge_pan_last_time = current_time;
@@ -911,9 +911,9 @@ static void view_zoomstep_apply_ex(
         /* only move view to mouse if zoom fac is inside minzoom/maxzoom */
         if (((v2d->keepzoom & V2D_LIMITZOOM) == 0) ||
             IN_RANGE_INCL(zoomx, v2d->minzoom, v2d->maxzoom)) {
-          float mval_fac = (vzd->mx_2d - cur_old.xmin) / BLI_rctf_size_x(&cur_old);
-          float mval_faci = 1.0f - mval_fac;
-          float ofs = (mval_fac * dx) - (mval_faci * dx);
+          const float mval_fac = (vzd->mx_2d - cur_old.xmin) / BLI_rctf_size_x(&cur_old);
+          const float mval_faci = 1.0f - mval_fac;
+          const float ofs = (mval_fac * dx) - (mval_faci * dx);
 
           v2d->cur.xmin += ofs;
           v2d->cur.xmax += ofs;
@@ -946,9 +946,9 @@ static void view_zoomstep_apply_ex(
         /* only move view to mouse if zoom fac is inside minzoom/maxzoom */
         if (((v2d->keepzoom & V2D_LIMITZOOM) == 0) ||
             IN_RANGE_INCL(zoomy, v2d->minzoom, v2d->maxzoom)) {
-          float mval_fac = (vzd->my_2d - cur_old.ymin) / BLI_rctf_size_y(&cur_old);
-          float mval_faci = 1.0f - mval_fac;
-          float ofs = (mval_fac * dy) - (mval_faci * dy);
+          const float mval_fac = (vzd->my_2d - cur_old.ymin) / BLI_rctf_size_y(&cur_old);
+          const float mval_faci = 1.0f - mval_fac;
+          const float ofs = (mval_fac * dy) - (mval_faci * dy);
 
           v2d->cur.ymin += ofs;
           v2d->cur.ymax += ofs;
@@ -1167,8 +1167,8 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 
   /* continuous zoom shouldn't move that fast... */
   if (U.viewzoom == USER_ZOOM_CONT) {  // XXX store this setting as RNA prop?
-    double time = PIL_check_seconds_timer();
-    float time_step = (float)(time - vzd->timer_lastdraw);
+    const double time = PIL_check_seconds_timer();
+    const float time_step = (float)(time - vzd->timer_lastdraw);
 
     dx *= time_step * 0.5f;
     dy *= time_step * 0.5f;
@@ -1183,9 +1183,9 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
     }
     else {
       if (zoom_to_pos) {
-        float mval_fac = (vzd->mx_2d - v2d->cur.xmin) / BLI_rctf_size_x(&v2d->cur);
-        float mval_faci = 1.0f - mval_fac;
-        float ofs = (mval_fac * dx) - (mval_faci * dx);
+        const float mval_fac = (vzd->mx_2d - v2d->cur.xmin) / BLI_rctf_size_x(&v2d->cur);
+        const float mval_faci = 1.0f - mval_fac;
+        const float ofs = (mval_fac * dx) - (mval_faci * dx);
 
         v2d->cur.xmin += ofs + dx;
         v2d->cur.xmax += ofs - dx;
@@ -1202,9 +1202,9 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
     }
     else {
       if (zoom_to_pos) {
-        float mval_fac = (vzd->my_2d - v2d->cur.ymin) / BLI_rctf_size_y(&v2d->cur);
-        float mval_faci = 1.0f - mval_fac;
-        float ofs = (mval_fac * dy) - (mval_faci * dy);
+        const float mval_fac = (vzd->my_2d - v2d->cur.ymin) / BLI_rctf_size_y(&v2d->cur);
+        const float mval_faci = 1.0f - mval_fac;
+        const float ofs = (mval_fac * dy) - (mval_faci * dy);
 
         v2d->cur.ymin += ofs + dy;
         v2d->cur.ymax += ofs - dy;
@@ -1987,8 +1987,8 @@ static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_
                  (mouse >= (sh_min - V2D_SCROLL_HANDLE_SIZE_HOTSPOT)));
   bool in_bar = ((mouse < (sh_max - V2D_SCROLL_HANDLE_SIZE_HOTSPOT)) &&
                  (mouse > (sh_min + V2D_SCROLL_HANDLE_SIZE_HOTSPOT)));
-  bool out_min = mouse < (sh_min - V2D_SCROLL_HANDLE_SIZE_HOTSPOT);
-  bool out_max = mouse > (sh_max + V2D_SCROLL_HANDLE_SIZE_HOTSPOT);
+  const bool out_min = mouse < (sh_min - V2D_SCROLL_HANDLE_SIZE_HOTSPOT);
+  const bool out_max = mouse > (sh_max + V2D_SCROLL_HANDLE_SIZE_HOTSPOT);
 
   if (in_bar) {
     return SCROLLHANDLE_BAR;

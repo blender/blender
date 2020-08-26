@@ -387,7 +387,7 @@ void ui_pie_menu_level_create(uiBlock *block,
 {
   const int totitem_parent = PIE_MAX_ITEMS - 1;
   const int totitem_remain = totitem - totitem_parent;
-  size_t array_size = sizeof(EnumPropertyItem) * totitem_remain;
+  const size_t array_size = sizeof(EnumPropertyItem) * totitem_remain;
 
   /* used as but->func_argN so freeing is handled elsewhere */
   EnumPropertyItem *remaining = MEM_mallocN(array_size + sizeof(EnumPropertyItem),

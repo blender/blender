@@ -95,8 +95,8 @@ static void driverdropper_sample(bContext *C, wmOperator *op, const wmEvent *eve
   DriverDropper *ddr = (DriverDropper *)op->customdata;
   uiBut *but = eyedropper_get_property_button_under_mouse(C, event);
 
-  short mapping_type = RNA_enum_get(op->ptr, "mapping_type");
-  short flag = 0;
+  const short mapping_type = RNA_enum_get(op->ptr, "mapping_type");
+  const short flag = 0;
 
   /* we can only add a driver if we know what RNA property it corresponds to */
   if (but == NULL) {
@@ -105,7 +105,7 @@ static void driverdropper_sample(bContext *C, wmOperator *op, const wmEvent *eve
   /* Get paths for src... */
   PointerRNA *target_ptr = &but->rnapoin;
   PropertyRNA *target_prop = but->rnaprop;
-  int target_index = but->rnaindex;
+  const int target_index = but->rnaindex;
 
   char *target_path = RNA_path_from_ID_to_property(target_ptr, target_prop);
 
