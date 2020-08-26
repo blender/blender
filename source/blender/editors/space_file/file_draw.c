@@ -441,7 +441,9 @@ static void draw_background(FileLayout *layout, View2D *v2d)
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-  immUniformThemeColorShade(TH_BACK, -7);
+  float col_alternating[4];
+  UI_GetThemeColor4fv(TH_ROW_ALTERNATE, col_alternating);
+  immUniformThemeColorBlend(TH_BACK, TH_ROW_ALTERNATE, col_alternating[3]);
 
   /* alternating flat shade background */
   for (i = 2; (i <= layout->rows + 1); i += 2) {
