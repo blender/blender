@@ -795,8 +795,12 @@ const char *buttons_context_dir[] = {
     "line_style",
     "collection",
     "gpencil",
+#ifdef WITH_HAIR_NODES
     "hair",
+#endif
+#ifdef WITH_PARTICLE_NODES
     "pointcloud",
+#endif
     "volume",
     NULL,
 };

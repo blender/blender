@@ -37,6 +37,7 @@
 #include "BKE_bvhutils.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 
 #include "ED_armature.h"
@@ -1760,6 +1761,9 @@ void ED_mesh_deform_bind_callback(MeshDeformModifierData *mmd,
   start_progress_bar();
 
   memset(&mdb, 0, sizeof(MeshDeformBind));
+
+  /* No need to support other kinds of mesh data as binding is a one-off action. */
+  BKE_mesh_wrapper_ensure_mdata(cagemesh);
 
   /* get mesh and cage mesh */
   mdb.vertexcos = MEM_callocN(sizeof(float[3]) * totvert, "MeshDeformCos");
