@@ -454,6 +454,7 @@ static bool gpencil_render_offscreen(tGPDfill *tgpf)
   GPU_matrix_push();
   GPU_matrix_identity_set();
 
+  GPU_depth_mask(true);
   GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
   GPU_clear_depth(1.0f);
 
@@ -466,6 +467,8 @@ static bool gpencil_render_offscreen(tGPDfill *tgpf)
   /* draw strokes */
   const float ink[4] = {1.0f, 0.0f, 0.0f, 1.0f};
   gpencil_draw_datablock(tgpf, ink);
+
+  GPU_depth_mask(false);
 
   GPU_matrix_pop_projection();
   GPU_matrix_pop();
