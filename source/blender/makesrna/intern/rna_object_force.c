@@ -26,6 +26,7 @@
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_pointcache_types.h"
+#include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 
 #include "RNA_define.h"
@@ -777,7 +778,18 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
     }
   }
   else {
-    Object *ob = (Object *)ptr->owner_id;
+    ID *id = ptr->owner_id;
+
+    if (id && GS(id->name) == ID_SCE) {
+      const Scene *scene = (Scene *)id;
+      const RigidBodyWorld *rbw = scene->rigidbody_world;
+
+      if (rbw->effector_weights == ew) {
+        return BLI_strdup("rigidbody_world.effector_weights");
+      }
+    }
+
+    Object *ob = (Object *)id;
     ModifierData *md;
 
     /* check softbody modifier */
