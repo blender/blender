@@ -742,6 +742,27 @@ class Vector {
   }
 
   /**
+   * Remove a contiguous chunk of elements and move all values coming after it towards the front.
+   * This takes O(n) time.
+   *
+   * This is similar to std::vector::erase.
+   */
+  void remove(const int64_t start_index, const int64_t amount)
+  {
+    const int64_t old_size = this->size();
+    BLI_assert(start_index >= 0);
+    BLI_assert(amount >= 0);
+    BLI_assert(start_index + amount <= old_size);
+    const int64_t move_amount = old_size - start_index - amount;
+    for (int64_t i = 0; i < move_amount; i++) {
+      begin_[start_index + i] = std::move(begin_[start_index + amount + i]);
+    }
+    destruct_n(end_ - amount, amount);
+    end_ -= amount;
+    UPDATE_VECTOR_SIZE(this);
+  }
+
+  /**
    * Do a linear search to find the value in the vector.
    * When found, return the first index, otherwise return -1.
    */

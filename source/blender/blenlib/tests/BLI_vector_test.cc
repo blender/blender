@@ -793,4 +793,36 @@ TEST(vector, RemoveExceptions)
   EXPECT_EQ(vec.size(), 10);
 }
 
+TEST(vector, RemoveChunk)
+{
+  Vector<int> vec = {2, 3, 4, 5, 6, 7, 8};
+  EXPECT_EQ(vec.size(), 7);
+  vec.remove(2, 4);
+  EXPECT_EQ(vec.size(), 3);
+  EXPECT_EQ(vec[0], 2);
+  EXPECT_EQ(vec[1], 3);
+  EXPECT_EQ(vec[2], 8);
+  vec.remove(0, 1);
+  EXPECT_EQ(vec.size(), 2);
+  EXPECT_EQ(vec[0], 3);
+  EXPECT_EQ(vec[1], 8);
+  vec.remove(1, 1);
+  EXPECT_EQ(vec.size(), 1);
+  EXPECT_EQ(vec[0], 3);
+  vec.remove(0, 1);
+  EXPECT_EQ(vec.size(), 0);
+  vec.remove(0, 0);
+  EXPECT_EQ(vec.size(), 0);
+}
+
+TEST(vector, RemoveChunkExceptitons)
+{
+  Vector<ExceptionThrower> vec(10);
+  vec.remove(1, 3);
+  EXPECT_EQ(vec.size(), 7);
+  vec[5].throw_during_move = true;
+  EXPECT_ANY_THROW({ vec.remove(2, 3); });
+  EXPECT_EQ(vec.size(), 7);
+}
+
 }  // namespace blender::tests
