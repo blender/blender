@@ -31,6 +31,7 @@
 #include "BLI_lasso_2d.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
+#include "BLI_rect.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
@@ -221,11 +222,169 @@ void PAINT_OT_mask_flood_fill(struct wmOperatorType *ot)
       1.0f);
 }
 
-/* Box select, operator is VIEW3D_OT_select_box, defined in view3d_select.c. */
+/* Sculpt Gesture Operators. */
 
-static bool is_effected(float planes[4][4], const float co[3])
+typedef enum eSculptGestureShapeType {
+  SCULPT_GESTURE_SHAPE_BOX,
+  SCULPT_GESTURE_SHAPE_LASSO,
+} eMaskGesturesShapeType;
+
+typedef struct LassoGestureData {
+  float projviewobjmat[4][4];
+
+  rcti boundbox;
+  int width;
+
+  /* 2D bitmap to test if a vertex is affected by the lasso shape. */
+  BLI_bitmap *mask_px;
+} LassoGestureData;
+
+typedef struct SculptGestureContext {
+  SculptSession *ss;
+  ViewContext vc;
+
+  /* Enabled and currently active symmetry. */
+  ePaintSymmetryFlags symm;
+  ePaintSymmetryFlags symmpass;
+
+  /* Operation parameters. */
+  eMaskGesturesShapeType shape_type;
+  bool front_faces_only;
+
+  /* Mask operation parameters. */
+  PaintMaskFloodMode mask_mode;
+  float mask_value;
+
+  /* View parameters. */
+  float true_view_normal[3];
+  float view_normal[3];
+
+  float true_clip_planes[4][4];
+  float clip_planes[4][4];
+
+  /* Lasso Gesture. */
+  LassoGestureData lasso;
+
+  /* Task Callback Data. */
+  PBVHNode **nodes;
+  int totnode;
+} SculptGestureContext;
+
+static void sculpt_gesture_operator_properties(wmOperatorType *ot)
 {
-  return isect_point_planes_v3(planes, 4, co);
+  RNA_def_boolean(ot->srna,
+                  "use_front_faces_only",
+                  false,
+                  "Front Faces Only",
+                  "Affect only faces facing towards the view");
+}
+
+static void sculpt_gesture_context_init_common(bContext *C,
+                                               wmOperator *op,
+                                               SculptGestureContext *sgcontext)
+{
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  ED_view3d_viewcontext_init(C, &sgcontext->vc, depsgraph);
+
+  Sculpt *sd = sgcontext->vc.scene->toolsettings->sculpt;
+  Object *ob = sgcontext->vc.obact;
+
+  /* Operator properties. */
+  sgcontext->front_faces_only = RNA_boolean_get(op->ptr, "use_front_faces_only");
+
+  /* SculptSession */
+  sgcontext->ss = ob->sculpt;
+
+  /* Symmetry. */
+  sgcontext->symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
+
+  /* View Normal. */
+  float mat[3][3];
+  float view_dir[3] = {0.0f, 0.0f, 1.0f};
+  copy_m3_m4(mat, sgcontext->vc.rv3d->viewinv);
+  mul_m3_v3(mat, view_dir);
+  copy_m3_m4(mat, ob->imat);
+  mul_m3_v3(mat, view_dir);
+  normalize_v3_v3(sgcontext->true_view_normal, view_dir);
+}
+
+static void sculpt_gesture_lasso_px_cb(int x, int x_end, int y, void *user_data)
+{
+  SculptGestureContext *mcontext = user_data;
+  LassoGestureData *lasso = &mcontext->lasso;
+  int index = (y * lasso->width) + x;
+  int index_end = (y * lasso->width) + x_end;
+  do {
+    BLI_BITMAP_ENABLE(lasso->mask_px, index);
+  } while (++index != index_end);
+}
+
+static SculptGestureContext *sculpt_gesture_init_from_lasso(bContext *C, wmOperator *op)
+{
+  SculptGestureContext *sgcontext = MEM_callocN(sizeof(SculptGestureContext),
+                                                "sculpt gesture context lasso");
+  sgcontext->shape_type = SCULPT_GESTURE_SHAPE_LASSO;
+
+  sculpt_gesture_context_init_common(C, op, sgcontext);
+
+  int mcoords_len;
+  const int(*mcoords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcoords_len);
+
+  if (!mcoords) {
+    return NULL;
+  }
+
+  ED_view3d_ob_project_mat_get(
+      sgcontext->vc.rv3d, sgcontext->vc.obact, sgcontext->lasso.projviewobjmat);
+  BLI_lasso_boundbox(&sgcontext->lasso.boundbox, mcoords, mcoords_len);
+  sgcontext->lasso.width = sgcontext->lasso.boundbox.xmax - sgcontext->lasso.boundbox.xmin;
+  sgcontext->lasso.mask_px = BLI_BITMAP_NEW(
+      sgcontext->lasso.width * (sgcontext->lasso.boundbox.ymax - sgcontext->lasso.boundbox.ymin),
+      __func__);
+
+  BLI_bitmap_draw_2d_poly_v2i_n(sgcontext->lasso.boundbox.xmin,
+                                sgcontext->lasso.boundbox.ymin,
+                                sgcontext->lasso.boundbox.xmax,
+                                sgcontext->lasso.boundbox.ymax,
+                                mcoords,
+                                mcoords_len,
+                                sculpt_gesture_lasso_px_cb,
+                                sgcontext);
+
+  BoundBox bb;
+  ED_view3d_clipping_calc(&bb,
+                          sgcontext->true_clip_planes,
+                          sgcontext->vc.region,
+                          sgcontext->vc.obact,
+                          &sgcontext->lasso.boundbox);
+  MEM_freeN((void *)mcoords);
+
+  return sgcontext;
+}
+
+static SculptGestureContext *sculpt_gesture_init_from_box(bContext *C, wmOperator *op)
+{
+  SculptGestureContext *sgcontext = MEM_callocN(sizeof(SculptGestureContext),
+                                                "sculpt gesture context box");
+  sgcontext->shape_type = SCULPT_GESTURE_SHAPE_BOX;
+
+  sculpt_gesture_context_init_common(C, op, sgcontext);
+
+  rcti rect;
+  WM_operator_properties_border_to_rcti(op, &rect);
+
+  BoundBox bb;
+  ED_view3d_clipping_calc(
+      &bb, sgcontext->true_clip_planes, sgcontext->vc.region, sgcontext->vc.obact, &rect);
+
+  return sgcontext;
+}
+
+static void sculpt_gesture_context_free(SculptGestureContext *sgcontext)
+{
+  MEM_SAFE_FREE(sgcontext->lasso.mask_px);
+  MEM_SAFE_FREE(sgcontext->nodes);
+  MEM_SAFE_FREE(sgcontext);
 }
 
 static void flip_plane(float out[4], const float in[4], const char symm)
@@ -252,43 +411,107 @@ static void flip_plane(float out[4], const float in[4], const char symm)
   out[3] = in[3];
 }
 
-static void mask_box_select_task_cb(void *__restrict userdata,
-                                    const int i,
-                                    const TaskParallelTLS *__restrict UNUSED(tls))
+static void sculpt_gesture_flip_for_symmetry_pass(SculptGestureContext *sgcontext,
+                                                  const ePaintSymmetryFlags symmpass)
 {
-  MaskTaskData *data = userdata;
+  sgcontext->symmpass = symmpass;
+  for (int j = 0; j < 4; j++) {
+    flip_plane(sgcontext->clip_planes[j], sgcontext->true_clip_planes[j], symmpass);
+  }
+  negate_m4(sgcontext->clip_planes);
+  flip_v3_v3(sgcontext->view_normal, sgcontext->true_view_normal, symmpass);
+}
 
-  PBVHNode *node = data->nodes[i];
+static void sculpt_gesture_update_effected_nodes(SculptGestureContext *sgcontext)
+{
+  SculptSession *ss = sgcontext->ss;
+  float clip_planes[4][4];
+  copy_m4_m4(clip_planes, sgcontext->clip_planes);
+  negate_m4(clip_planes);
+  PBVHFrustumPlanes frustum = {.planes = clip_planes, .num_planes = 4};
+  BKE_pbvh_search_gather(ss->pbvh,
+                         BKE_pbvh_node_frustum_contain_AABB,
+                         &frustum,
+                         &sgcontext->nodes,
+                         &sgcontext->totnode);
+}
 
-  const PaintMaskFloodMode mode = data->mode;
-  const float value = data->value;
-  float(*clip_planes_final)[4] = data->clip_planes_final;
+static bool sculpt_gesture_is_effected_lasso(SculptGestureContext *sgcontext, const float co[3])
+{
+  float scr_co_f[2];
+  int scr_co_s[2];
+  float co_final[3];
 
-  PBVHVertexIter vi;
+  flip_v3_v3(co_final, co, sgcontext->symmpass);
+
+  /* First project point to 2d space. */
+  ED_view3d_project_float_v2_m4(
+      sgcontext->vc.region, co_final, scr_co_f, sgcontext->lasso.projviewobjmat);
+
+  scr_co_s[0] = scr_co_f[0];
+  scr_co_s[1] = scr_co_f[1];
+
+  /* Clip against lasso boundbox. */
+  LassoGestureData *lasso = &sgcontext->lasso;
+  if (!BLI_rcti_isect_pt(&lasso->boundbox, scr_co_s[0], scr_co_s[1])) {
+    return false;
+  }
+
+  scr_co_s[0] -= lasso->boundbox.xmin;
+  scr_co_s[1] -= lasso->boundbox.ymin;
+
+  return BLI_BITMAP_TEST_BOOL(lasso->mask_px, scr_co_s[1] * lasso->width + scr_co_s[0]);
+}
+
+static bool sculpt_gesture_is_vertex_effected(SculptGestureContext *sgcontext, PBVHVertexIter *vd)
+{
+  float vertex_normal[3];
+  SCULPT_vertex_normal_get(sgcontext->ss, vd->index, vertex_normal);
+  float dot = dot_v3v3(sgcontext->view_normal, vertex_normal);
+  const bool is_effected_front_face = !(sgcontext->front_faces_only && dot < 0.0f);
+
+  if (!is_effected_front_face) {
+    return false;
+  }
+
+  switch (sgcontext->shape_type) {
+    case SCULPT_GESTURE_SHAPE_BOX:
+      return isect_point_planes_v3(sgcontext->clip_planes, 4, vd->co);
+    case SCULPT_GESTURE_SHAPE_LASSO:
+      return sculpt_gesture_is_effected_lasso(sgcontext, vd->co);
+  }
+  return false;
+}
+
+static void mask_gesture_apply_task_cb(void *__restrict userdata,
+                                       const int i,
+                                       const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  SculptGestureContext *sgcontext = userdata;
+  Object *ob = sgcontext->vc.obact;
+  PBVHNode *node = sgcontext->nodes[i];
+
+  const bool is_multires = BKE_pbvh_type(sgcontext->ss->pbvh) == PBVH_GRIDS;
+
+  PBVHVertexIter vd;
   bool any_masked = false;
   bool redraw = false;
 
-  float vertex_normal[3];
-
-  BKE_pbvh_vertex_iter_begin(data->pbvh, node, vi, PBVH_ITER_UNIQUE)
+  BKE_pbvh_vertex_iter_begin(sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
   {
-    SCULPT_vertex_normal_get(data->ob->sculpt, vi.index, vertex_normal);
-    float dot = dot_v3v3(data->view_normal, vertex_normal);
-    const bool is_effected_front_face = !(data->front_faces_only && dot < 0.0f);
-
-    if (is_effected_front_face && is_effected(clip_planes_final, vi.co)) {
-      float prevmask = *vi.mask;
+    if (sculpt_gesture_is_vertex_effected(sgcontext, &vd)) {
+      float prevmask = *vd.mask;
       if (!any_masked) {
         any_masked = true;
 
-        SCULPT_undo_push_node(data->ob, node, SCULPT_UNDO_MASK);
+        SCULPT_undo_push_node(ob, node, SCULPT_UNDO_MASK);
 
-        if (data->multires) {
+        if (is_multires) {
           BKE_pbvh_node_mark_normals_update(node);
         }
       }
-      mask_flood_fill_set_elem(vi.mask, mode, value);
-      if (prevmask != *vi.mask) {
+      mask_flood_fill_set_elem(vd.mask, sgcontext->mask_mode, sgcontext->mask_value);
+      if (prevmask != *vd.mask) {
         redraw = true;
       }
     }
@@ -300,313 +523,82 @@ static void mask_box_select_task_cb(void *__restrict userdata,
   }
 }
 
-static int paint_mask_gesture_box_exec(bContext *C, wmOperator *op)
+static void sculpt_gesture_apply(bContext *C, SculptGestureContext *mcontext)
 {
-  ViewContext vc;
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  BKE_sculpt_update_object_for_edit(depsgraph, mcontext->vc.obact, false, true, false);
 
-  Sculpt *sd = vc.scene->toolsettings->sculpt;
-  BoundBox bb;
-  float clip_planes[4][4];
-  float clip_planes_final[4][4];
-  ARegion *region = vc.region;
-  Object *ob = vc.obact;
-  bool multires;
-  PBVH *pbvh;
-  PBVHNode **nodes;
-  int totnode;
-  int symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
+  SCULPT_undo_push_begin("Sculpt Gesture Apply");
 
-  const PaintMaskFloodMode mode = RNA_enum_get(op->ptr, "mode");
-  const float value = RNA_float_get(op->ptr, "value");
-  const bool front_faces_only = RNA_boolean_get(op->ptr, "use_front_faces_only");
-
-  rcti rect;
-  WM_operator_properties_border_to_rcti(op, &rect);
-
-  /* Transform the clip planes in object space. */
-  ED_view3d_clipping_calc(&bb, clip_planes, vc.region, vc.obact, &rect);
-
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true, false);
-  pbvh = ob->sculpt->pbvh;
-  multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
-
-  SCULPT_undo_push_begin("Mask box fill");
-
-  /* Calculate the view normal in object space. */
-  float mat[3][3];
-  float view_dir[3] = {0.0f, 0.0f, 1.0f};
-  float true_view_normal[3];
-  copy_m3_m4(mat, vc.rv3d->viewinv);
-  mul_m3_v3(mat, view_dir);
-  copy_m3_m4(mat, ob->imat);
-  mul_m3_v3(mat, view_dir);
-  normalize_v3_v3(true_view_normal, view_dir);
-
-  for (int symmpass = 0; symmpass <= symm; symmpass++) {
-    if (symmpass == 0 || (symm & symmpass && (symm != 5 || symmpass != 3) &&
-                          (symm != 6 || (symmpass != 3 && symmpass != 5)))) {
-
-      /* Flip the planes symmetrically as needed. */
-      for (int j = 0; j < 4; j++) {
-        flip_plane(clip_planes_final[j], clip_planes[j], symmpass);
-      }
-
-      PBVHFrustumPlanes frustum = {.planes = clip_planes_final, .num_planes = 4};
-      BKE_pbvh_search_gather(pbvh, BKE_pbvh_node_frustum_contain_AABB, &frustum, &nodes, &totnode);
-
-      negate_m4(clip_planes_final);
-
-      MaskTaskData data = {
-          .ob = ob,
-          .pbvh = pbvh,
-          .nodes = nodes,
-          .multires = multires,
-          .mode = mode,
-          .value = value,
-          .clip_planes_final = clip_planes_final,
-          .front_faces_only = front_faces_only,
-      };
-
-      flip_v3_v3(data.view_normal, true_view_normal, symmpass);
+  for (ePaintSymmetryFlags symmpass = 0; symmpass <= mcontext->symm; symmpass++) {
+    if (SCULPT_is_symmetry_iteration_valid(symmpass, mcontext->symm)) {
+      sculpt_gesture_flip_for_symmetry_pass(mcontext, symmpass);
+      sculpt_gesture_update_effected_nodes(mcontext);
 
       TaskParallelSettings settings;
-      BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-      BLI_task_parallel_range(0, totnode, &data, mask_box_select_task_cb, &settings);
+      BKE_pbvh_parallel_range_settings(&settings, true, mcontext->totnode);
+      BLI_task_parallel_range(
+          0, mcontext->totnode, mcontext, mask_gesture_apply_task_cb, &settings);
 
-      if (nodes) {
-        MEM_freeN(nodes);
-      }
+      MEM_SAFE_FREE(mcontext->nodes);
     }
   }
 
-  if (multires) {
-    multires_mark_as_modified(depsgraph, ob, MULTIRES_COORDS_MODIFIED);
+  if (BKE_pbvh_type(mcontext->ss->pbvh) == PBVH_GRIDS) {
+    multires_mark_as_modified(depsgraph, mcontext->vc.obact, MULTIRES_COORDS_MODIFIED);
   }
 
-  BKE_pbvh_update_vertex_data(pbvh, PBVH_UpdateMask);
+  BKE_pbvh_update_vertex_data(mcontext->ss->pbvh, PBVH_UpdateMask);
 
   SCULPT_undo_push_end();
 
-  ED_region_tag_redraw(region);
-
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
-
-  return true;
+  ED_region_tag_redraw(mcontext->vc.region);
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, mcontext->vc.obact);
 }
 
-typedef struct LassoMaskData {
-  struct ViewContext *vc;
-  float projviewobjmat[4][4];
-  BLI_bitmap *px;
-  int width;
-  /* Bounding box for scanfilling. */
-  rcti rect;
-  int symmpass;
-
-  MaskTaskData task_data;
-} LassoMaskData;
-
-/**
- * Lasso select. This could be defined as part of #VIEW3D_OT_select_lasso,
- * still the shortcuts conflict, so we will use a separate operator.
- */
-static bool is_effected_lasso(LassoMaskData *data, const float co[3])
+static void sculpt_gesture_init_mask_properties(SculptGestureContext *sgcontext, wmOperator *op)
 {
-  float scr_co_f[2];
-  int scr_co_s[2];
-  float co_final[3];
+  sgcontext->mask_mode = RNA_enum_get(op->ptr, "mode");
+  sgcontext->mask_value = RNA_float_get(op->ptr, "value");
+}
 
-  flip_v3_v3(co_final, co, data->symmpass);
-  /* First project point to 2d space. */
-  ED_view3d_project_float_v2_m4(data->vc->region, co_final, scr_co_f, data->projviewobjmat);
+static void paint_mask_gesture_operator_properties(wmOperatorType *ot)
+{
+  RNA_def_enum(ot->srna, "mode", mode_items, PAINT_MASK_FLOOD_VALUE, "Mode", NULL);
+  RNA_def_float(
+      ot->srna,
+      "value",
+      1.0f,
+      0.0f,
+      1.0f,
+      "Value",
+      "Mask level to use when mode is 'Value'; zero means no masking and one is fully masked",
+      0.0f,
+      1.0f);
+}
 
-  scr_co_s[0] = scr_co_f[0];
-  scr_co_s[1] = scr_co_f[1];
-
-  /* Clip against screen, because lasso is limited to screen only. */
-  if ((scr_co_s[0] < data->rect.xmin) || (scr_co_s[1] < data->rect.ymin) ||
-      (scr_co_s[0] >= data->rect.xmax) || (scr_co_s[1] >= data->rect.ymax)) {
-    return false;
+static int paint_mask_gesture_box_exec(bContext *C, wmOperator *op)
+{
+  SculptGestureContext *sgcontext = sculpt_gesture_init_from_box(C, op);
+  if (!sgcontext) {
+    return OPERATOR_CANCELLED;
   }
-
-  scr_co_s[0] -= data->rect.xmin;
-  scr_co_s[1] -= data->rect.ymin;
-
-  return BLI_BITMAP_TEST_BOOL(data->px, scr_co_s[1] * data->width + scr_co_s[0]);
-}
-
-static void mask_lasso_px_cb(int x, int x_end, int y, void *user_data)
-{
-  LassoMaskData *data = user_data;
-  int index = (y * data->width) + x;
-  int index_end = (y * data->width) + x_end;
-  do {
-    BLI_BITMAP_ENABLE(data->px, index);
-  } while (++index != index_end);
-}
-
-static void mask_gesture_lasso_task_cb(void *__restrict userdata,
-                                       const int i,
-                                       const TaskParallelTLS *__restrict UNUSED(tls))
-{
-  LassoMaskData *lasso_data = userdata;
-  MaskTaskData *data = &lasso_data->task_data;
-
-  PBVHNode *node = data->nodes[i];
-
-  const PaintMaskFloodMode mode = data->mode;
-  const float value = data->value;
-
-  PBVHVertexIter vi;
-  bool any_masked = false;
-
-  float vertex_normal[3];
-
-  BKE_pbvh_vertex_iter_begin(data->pbvh, node, vi, PBVH_ITER_UNIQUE)
-  {
-    SCULPT_vertex_normal_get(data->ob->sculpt, vi.index, vertex_normal);
-    float dot = dot_v3v3(lasso_data->task_data.view_normal, vertex_normal);
-    const bool is_effected_front_face = !(data->front_faces_only && dot < 0.0f);
-
-    if (is_effected_front_face && is_effected_lasso(lasso_data, vi.co)) {
-      if (!any_masked) {
-        any_masked = true;
-
-        SCULPT_undo_push_node(data->ob, node, SCULPT_UNDO_MASK);
-
-        BKE_pbvh_node_mark_redraw(node);
-        if (data->multires) {
-          BKE_pbvh_node_mark_normals_update(node);
-        }
-      }
-
-      mask_flood_fill_set_elem(vi.mask, mode, value);
-    }
-  }
-  BKE_pbvh_vertex_iter_end;
+  sculpt_gesture_init_mask_properties(sgcontext, op);
+  sculpt_gesture_apply(C, sgcontext);
+  sculpt_gesture_context_free(sgcontext);
+  return OPERATOR_FINISHED;
 }
 
 static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 {
-  int mcoords_len;
-  const int(*mcoords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcoords_len);
-
-  if (mcoords) {
-    Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-    float clip_planes[4][4], clip_planes_final[4][4];
-    BoundBox bb;
-    Object *ob;
-    ViewContext vc;
-    LassoMaskData data;
-    Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-    int symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
-    PBVH *pbvh;
-    PBVHNode **nodes;
-    int totnode;
-    bool multires;
-    PaintMaskFloodMode mode = RNA_enum_get(op->ptr, "mode");
-    float value = RNA_float_get(op->ptr, "value");
-    const bool front_faces_only = RNA_boolean_get(op->ptr, "use_front_faces_only");
-
-    /* Calculations of individual vertices are done in 2D screen space to diminish the amount of
-     * calculations done. Bounding box PBVH collision is not computed against enclosing rectangle
-     * of lasso. */
-    ED_view3d_viewcontext_init(C, &vc, depsgraph);
-
-    /* Lasso data calculations. */
-    data.vc = &vc;
-    ob = vc.obact;
-    ED_view3d_ob_project_mat_get(vc.rv3d, ob, data.projviewobjmat);
-
-    BLI_lasso_boundbox(&data.rect, mcoords, mcoords_len);
-    data.width = data.rect.xmax - data.rect.xmin;
-    data.px = BLI_BITMAP_NEW(data.width * (data.rect.ymax - data.rect.ymin), __func__);
-
-    BLI_bitmap_draw_2d_poly_v2i_n(data.rect.xmin,
-                                  data.rect.ymin,
-                                  data.rect.xmax,
-                                  data.rect.ymax,
-                                  mcoords,
-                                  mcoords_len,
-                                  mask_lasso_px_cb,
-                                  &data);
-
-    ED_view3d_clipping_calc(&bb, clip_planes, vc.region, vc.obact, &data.rect);
-
-    BKE_sculpt_update_object_for_edit(depsgraph, ob, false, true, false);
-    pbvh = ob->sculpt->pbvh;
-    multires = (BKE_pbvh_type(pbvh) == PBVH_GRIDS);
-
-    SCULPT_undo_push_begin("Mask lasso fill");
-
-    /* Calculate the view normal in object space. */
-    float mat[3][3];
-    float view_dir[3] = {0.0f, 0.0f, 1.0f};
-    float true_view_normal[3];
-    copy_m3_m4(mat, vc.rv3d->viewinv);
-    mul_m3_v3(mat, view_dir);
-    copy_m3_m4(mat, ob->imat);
-    mul_m3_v3(mat, view_dir);
-    normalize_v3_v3(true_view_normal, view_dir);
-
-    for (int symmpass = 0; symmpass <= symm; symmpass++) {
-      if ((symmpass == 0) || (symm & symmpass && (symm != 5 || symmpass != 3) &&
-                              (symm != 6 || (symmpass != 3 && symmpass != 5)))) {
-
-        /* Flip the planes symmetrically as needed. */
-        for (int j = 0; j < 4; j++) {
-          flip_plane(clip_planes_final[j], clip_planes[j], symmpass);
-        }
-
-        flip_v3_v3(data.task_data.view_normal, true_view_normal, symmpass);
-
-        data.symmpass = symmpass;
-
-        /* Gather nodes inside lasso's enclosing rectangle
-         * (should greatly help with bigger meshes). */
-        PBVHFrustumPlanes frustum = {.planes = clip_planes_final, .num_planes = 4};
-        BKE_pbvh_search_gather(
-            pbvh, BKE_pbvh_node_frustum_contain_AABB, &frustum, &nodes, &totnode);
-
-        negate_m4(clip_planes_final);
-
-        data.task_data.ob = ob;
-        data.task_data.pbvh = pbvh;
-        data.task_data.nodes = nodes;
-        data.task_data.multires = multires;
-        data.task_data.mode = mode;
-        data.task_data.value = value;
-        data.task_data.front_faces_only = front_faces_only;
-
-        TaskParallelSettings settings;
-        BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-        BLI_task_parallel_range(0, totnode, &data, mask_gesture_lasso_task_cb, &settings);
-
-        if (nodes) {
-          MEM_freeN(nodes);
-        }
-      }
-    }
-
-    if (multires) {
-      multires_mark_as_modified(depsgraph, ob, MULTIRES_COORDS_MODIFIED);
-    }
-
-    BKE_pbvh_update_vertex_data(pbvh, PBVH_UpdateMask);
-
-    SCULPT_undo_push_end();
-
-    ED_region_tag_redraw(vc.region);
-    MEM_freeN((void *)mcoords);
-    MEM_freeN(data.px);
-
-    WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
-
-    return OPERATOR_FINISHED;
+  SculptGestureContext *sgcontext = sculpt_gesture_init_from_lasso(C, op);
+  if (!sgcontext) {
+    return OPERATOR_CANCELLED;
   }
-  return OPERATOR_PASS_THROUGH;
+  sculpt_gesture_init_mask_properties(sgcontext, op);
+  sculpt_gesture_apply(C, sgcontext);
+  sculpt_gesture_context_free(sgcontext);
+  return OPERATOR_FINISHED;
 }
 
 void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot)
@@ -625,23 +617,9 @@ void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot)
 
   /* Properties. */
   WM_operator_properties_gesture_lasso(ot);
+  sculpt_gesture_operator_properties(ot);
 
-  RNA_def_enum(ot->srna, "mode", mode_items, PAINT_MASK_FLOOD_VALUE, "Mode", NULL);
-  RNA_def_float(
-      ot->srna,
-      "value",
-      1.0f,
-      0.0f,
-      1.0f,
-      "Value",
-      "Mask level to use when mode is 'Value'; zero means no masking and one is fully masked",
-      0.0f,
-      1.0f);
-  RNA_def_boolean(ot->srna,
-                  "use_front_faces_only",
-                  false,
-                  "Front Faces Only",
-                  "Affect only faces facing towards the view");
+  paint_mask_gesture_operator_properties(ot);
 }
 
 void PAINT_OT_mask_box_gesture(wmOperatorType *ot)
@@ -660,21 +638,7 @@ void PAINT_OT_mask_box_gesture(wmOperatorType *ot)
 
   /* Properties. */
   WM_operator_properties_border(ot);
+  sculpt_gesture_operator_properties(ot);
 
-  RNA_def_enum(ot->srna, "mode", mode_items, PAINT_MASK_FLOOD_VALUE, "Mode", NULL);
-  RNA_def_float(
-      ot->srna,
-      "value",
-      1.0f,
-      0.0f,
-      1.0f,
-      "Value",
-      "Mask level to use when mode is 'Value'; zero means no masking and one is fully masked",
-      0.0f,
-      1.0f);
-  RNA_def_boolean(ot->srna,
-                  "use_front_faces_only",
-                  false,
-                  "Front Faces Only",
-                  "Affect only faces facing towards the view");
+  paint_mask_gesture_operator_properties(ot);
 }
