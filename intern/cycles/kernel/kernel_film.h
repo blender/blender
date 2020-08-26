@@ -47,7 +47,7 @@ ccl_device float4 film_get_pass_result(KernelGlobals *kg,
 
     if (kernel_data.film.use_display_exposure) {
       float exposure = kernel_data.film.exposure;
-      pass_result *= make_float4(exposure, exposure, exposure, alpha);
+      pass_result *= make_float4(exposure, exposure, exposure, 1.0f);
     }
   }
   else if (display_pass_components == 1) {
