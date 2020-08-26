@@ -1423,15 +1423,13 @@ void MESH_OT_select_mode(wmOperatorType *ot)
 static void walker_select_count(BMEditMesh *em,
                                 int walkercode,
                                 void *start,
-                                const bool select,
-                                const bool select_mix,
-                                int *r_totsel,
-                                int *r_totunsel)
+                                int r_count_by_select[2])
 {
   BMesh *bm = em->bm;
   BMElem *ele;
   BMWalker walker;
-  int tot[2] = {0, 0};
+
+  r_count_by_select[0] = r_count_by_select[1] = 0;
 
   BMW_init(&walker,
            bm,
@@ -1443,16 +1441,14 @@ static void walker_select_count(BMEditMesh *em,
            BMW_NIL_LAY);
 
   for (ele = BMW_begin(&walker, start); ele; ele = BMW_step(&walker)) {
-    tot[(BM_elem_flag_test_bool(ele, BM_ELEM_SELECT) != select)] += 1;
+    r_count_by_select[BM_elem_flag_test(ele, BM_ELEM_SELECT) ? 1 : 0] += 1;
 
-    if (!select_mix && tot[0] && tot[1]) {
-      tot[0] = tot[1] = -1;
+    /* Early exit when mixed (could be optional if needed. */
+    if (r_count_by_select[0] && r_count_by_select[1]) {
+      r_count_by_select[0] = r_count_by_select[1] = -1;
       break;
     }
   }
-
-  *r_totsel = tot[0];
-  *r_totunsel = tot[1];
 
   BMW_end(&walker);
 }
@@ -1590,18 +1586,18 @@ static void mouse_mesh_loop_edge(
 {
   bool edge_boundary = false;
 
-  /* cycle between BMW_EDGELOOP / BMW_EDGEBOUNDARY  */
+  /* Cycle between BMW_EDGELOOP / BMW_EDGEBOUNDARY. */
   if (select_cycle && BM_edge_is_boundary(eed)) {
-    int tot[2];
+    int count_by_select[2];
 
-    /* if the loops selected toggle the boundaries */
-    walker_select_count(em, BMW_EDGELOOP, eed, select, false, &tot[0], &tot[1]);
-    if (tot[select] == 0) {
+    /* If the loops selected toggle the boundaries. */
+    walker_select_count(em, BMW_EDGELOOP, eed, count_by_select);
+    if (count_by_select[!select] == 0) {
       edge_boundary = true;
 
-      /* if the boundaries selected, toggle back to the loop */
-      walker_select_count(em, BMW_EDGEBOUNDARY, eed, select, false, &tot[0], &tot[1]);
-      if (tot[select] == 0) {
+      /* If the boundaries selected, toggle back to the loop. */
+      walker_select_count(em, BMW_EDGEBOUNDARY, eed, count_by_select);
+      if (count_by_select[!select] == 0) {
         edge_boundary = false;
       }
     }
