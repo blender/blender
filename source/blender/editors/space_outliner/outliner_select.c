@@ -1634,6 +1634,40 @@ static TreeElement *outliner_find_next_element(SpaceOutliner *space_outliner, Tr
   return te;
 }
 
+static TreeElement *outliner_walk_left(SpaceOutliner *space_outliner,
+                                       TreeElement *te,
+                                       bool toggle_all)
+{
+  TreeStoreElem *tselem = TREESTORE(te);
+
+  if (TSELEM_OPEN(tselem, space_outliner)) {
+    outliner_item_openclose(te, false, toggle_all);
+  }
+  /* Only walk up a level if the element is closed and not toggling expand */
+  else if (!toggle_all && te->parent) {
+    te = te->parent;
+  }
+
+  return te;
+}
+
+static TreeElement *outliner_walk_right(SpaceOutliner *space_outliner,
+                                        TreeElement *te,
+                                        bool toggle_all)
+{
+  TreeStoreElem *tselem = TREESTORE(te);
+
+  /* Only walk down a level if the element is open and not toggling expand */
+  if (!toggle_all && TSELEM_OPEN(tselem, space_outliner) && !BLI_listbase_is_empty(&te->subtree)) {
+    te = te->subtree.first;
+  }
+  else {
+    outliner_item_openclose(te, true, toggle_all);
+  }
+
+  return te;
+}
+
 static TreeElement *do_outliner_select_walk(SpaceOutliner *space_outliner,
                                             TreeElement *te,
                                             const int direction,
@@ -1650,10 +1684,10 @@ static TreeElement *do_outliner_select_walk(SpaceOutliner *space_outliner,
       te = outliner_find_next_element(space_outliner, te);
       break;
     case UI_SELECT_WALK_LEFT:
-      outliner_item_openclose(te, false, toggle_all);
+      te = outliner_walk_left(space_outliner, te, toggle_all);
       break;
     case UI_SELECT_WALK_RIGHT:
-      outliner_item_openclose(te, true, toggle_all);
+      te = outliner_walk_right(space_outliner, te, toggle_all);
       break;
   }
 
