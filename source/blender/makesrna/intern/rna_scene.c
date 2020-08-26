@@ -5935,7 +5935,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_int_funcs(prop, "rna_RenderSettings_threads_get", NULL, NULL);
   RNA_def_property_ui_text(prop,
                            "Threads",
-                           "Number of CPU threads to use simultaneously while rendering "
+                           "Maximum number of CPU cores to use simultaneously while rendering "
                            "(for multi-core/CPU systems)");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
