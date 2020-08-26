@@ -253,6 +253,8 @@ void Pass::add(PassType type, vector<Pass> &passes, const char *name)
     case PASS_BAKE_PRIMITIVE:
     case PASS_BAKE_DIFFERENTIAL:
       pass.components = 4;
+      pass.exposure = false;
+      pass.filter = false;
       break;
     default:
       assert(false);

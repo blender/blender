@@ -363,7 +363,8 @@ void BlenderSession::do_write_update_render_tile(RenderTile &rtile,
       PassType pass_type = BlenderSync::get_pass_type(b_pass);
       int components = b_pass.channels();
 
-      rtile.buffers->set_pass_rect(pass_type, components, (float *)b_pass.rect());
+      rtile.buffers->set_pass_rect(
+          pass_type, components, (float *)b_pass.rect(), rtile.num_samples);
     }
 
     end_render_result(b_engine, b_rr, false, false, false);
