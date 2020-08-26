@@ -69,7 +69,7 @@ void load(const char* filename, MatrixXd& V, MatrixXi& F)
 	};
 
 	/// Hash function for obj_vertex
-	struct obj_vertexHash : std::unary_function<obj_vertex, size_t> {
+	struct obj_vertexHash {
 		std::size_t operator()(const obj_vertex &v) const {
 			size_t hash = std::hash<uint32_t>()(v.p);
 			hash = hash * 37 + std::hash<uint32_t>()(v.uv);
