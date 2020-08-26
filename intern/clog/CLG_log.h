@@ -132,7 +132,7 @@ void CLG_logf(CLG_LogType *lg,
               const char *format,
               ...) _CLOG_ATTR_NONNULL(1, 3, 4, 5) _CLOG_ATTR_PRINTF_FORMAT(5, 6);
 
-/* Main initializer and distructor (per session, not logger). */
+/* Main initializer and destructor (per session, not logger). */
 void CLG_init(void);
 void CLG_exit(void);
 

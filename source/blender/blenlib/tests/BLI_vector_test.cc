@@ -815,7 +815,7 @@ TEST(vector, RemoveChunk)
   EXPECT_EQ(vec.size(), 0);
 }
 
-TEST(vector, RemoveChunkExceptitons)
+TEST(vector, RemoveChunkExceptions)
 {
   Vector<ExceptionThrower> vec(10);
   vec.remove(1, 3);
