@@ -751,6 +751,25 @@ static int arg_handle_abort_handler_disable(int UNUSED(argc),
   return 0;
 }
 
+static void clog_abort_on_error_callback(void *fp)
+{
+  BLI_system_backtrace(fp);
+  fflush(fp);
+  abort();
+}
+
+static const char arg_handle_debug_exit_on_error_doc[] =
+    "\n\t"
+    "Immediately exit when internal errors are detected.";
+static int arg_handle_debug_exit_on_error(int UNUSED(argc),
+                                          const char **UNUSED(argv),
+                                          void *UNUSED(data))
+{
+  MEM_enable_fail_on_memleak();
+  CLG_error_fn_set(clog_abort_on_error_callback);
+  return 0;
+}
+
 static const char arg_handle_background_mode_set_doc[] =
     "\n\t"
     "Run in background (often used for UI-less rendering).";
@@ -2214,6 +2233,7 @@ void main_args_setup(bContext *C, bArgs *ba)
               "--debug-gpu-force-workarounds",
               CB_EX(arg_handle_debug_mode_generic_set, gpumem),
               (void *)G_DEBUG_GPU_FORCE_WORKAROUNDS);
+  BLI_argsAdd(ba, 1, NULL, "--debug-exit-on-error", CB(arg_handle_debug_exit_on_error), NULL);
 
   BLI_argsAdd(ba, 1, NULL, "--verbose", CB(arg_handle_verbosity_set), NULL);
 

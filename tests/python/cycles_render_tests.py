@@ -20,6 +20,8 @@ def get_arguments(filepath, output_filepath):
         "-noaudio",
         "--factory-startup",
         "--enable-autoexec",
+        "--debug-memory",
+        "--debug-exit-on-error",
         filepath,
         "-E", "CYCLES",
         "-o", output_filepath,

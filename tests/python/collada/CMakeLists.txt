@@ -36,12 +36,12 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${TEST_OUT_DIR})
 # all calls to blender use this
 if(APPLE)
   if(${CMAKE_GENERATOR} MATCHES "Xcode")
-    set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup)
+    set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup --debug-memory --debug-exit-on-error)
   else()
-    set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
+    set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup --debug-memory --debug-exit-on-error --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
   endif()
 else()
-  set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
+  set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup --debug-memory --debug-exit-on-error --env-system-scripts ${CMAKE_SOURCE_DIR}/release/scripts)
 endif()
 
 # for testing with valgrind prefix: valgrind --track-origins=yes --error-limit=no

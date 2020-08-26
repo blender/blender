@@ -79,6 +79,8 @@ class AbstractBlenderRunnerTest(unittest.TestCase):
             '-noaudio',
             '--factory-startup',
             '--enable-autoexec',
+            '--debug-memory',
+            '--debug-exit-on-error',
         ]
 
         if blendfile:

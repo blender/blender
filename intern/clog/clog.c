@@ -98,6 +98,7 @@ typedef struct CLogContext {
   } default_type;
 
   struct {
+    void (*error_fn)(void *file_handle);
     void (*fatal_fn)(void *file_handle);
     void (*backtrace_fn)(void *file_handle);
   } callbacks;
@@ -352,6 +353,13 @@ static CLG_LogType *clg_ctx_type_register(CLogContext *ctx, const char *identifi
   return ty;
 }
 
+static void clg_ctx_error_action(CLogContext *ctx)
+{
+  if (ctx->callbacks.error_fn != NULL) {
+    ctx->callbacks.error_fn(ctx->output_file);
+  }
+}
+
 static void clg_ctx_fatal_action(CLogContext *ctx)
 {
   if (ctx->callbacks.fatal_fn != NULL) {
@@ -522,6 +530,10 @@ void CLG_logf(CLG_LogType *lg,
     clg_ctx_backtrace(lg->ctx);
   }
 
+  if (severity == CLG_SEVERITY_ERROR) {
+    clg_ctx_error_action(lg->ctx);
+  }
+
   if (severity == CLG_SEVERITY_FATAL) {
     clg_ctx_fatal_action(lg->ctx);
   }
@@ -553,6 +565,12 @@ static void CLG_ctx_output_use_timestamp_set(CLogContext *ctx, int value)
   if (ctx->use_timestamp) {
     ctx->timestamp_tick_start = clg_timestamp_ticks_get();
   }
+}
+
+/** Action on error severity. */
+static void CLT_ctx_error_fn_set(CLogContext *ctx, void (*error_fn)(void *file_handle))
+{
+  ctx->callbacks.error_fn = error_fn;
 }
 
 /** Action on fatal severity. */
@@ -672,6 +690,11 @@ void CLG_output_use_basename_set(int value)
 void CLG_output_use_timestamp_set(int value)
 {
   CLG_ctx_output_use_timestamp_set(g_ctx, value);
+}
+
+void CLG_error_fn_set(void (*error_fn)(void *file_handle))
+{
+  CLT_ctx_error_fn_set(g_ctx, error_fn);
 }
 
 void CLG_fatal_fn_set(void (*fatal_fn)(void *file_handle))
