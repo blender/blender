@@ -1300,7 +1300,7 @@ static int arg_handle_register_extension(int UNUSED(argc), const char **UNUSED(a
   if (data) {
     G.background = 1;
   }
-  RegisterBlendExtension();
+  BLI_windows_register_blend_extension(G.background);
 #  else
   (void)data; /* unused */
 #  endif

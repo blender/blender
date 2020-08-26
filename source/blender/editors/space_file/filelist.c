@@ -1127,7 +1127,7 @@ static void parent_dir_until_exists_or_default_root(char *dir)
 {
   if (!BLI_path_parent_dir_until_exists(dir)) {
 #ifdef WIN32
-    get_default_root(dir);
+    BLI_windows_get_default_root_dir(dir);
 #else
     strcpy(dir, "/");
 #endif

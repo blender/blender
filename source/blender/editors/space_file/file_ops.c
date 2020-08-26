@@ -2297,7 +2297,7 @@ static void file_expand_directory(bContext *C)
     }
 #else
     {
-      get_default_root(sfile->params->dir);
+      BLI_windows_get_default_root_dir(sfile->params->dir);
     }
     /* change "C:" --> "C:\", [#28102] */
     else if ((isalpha(sfile->params->dir[0]) && (sfile->params->dir[1] == ':')) &&

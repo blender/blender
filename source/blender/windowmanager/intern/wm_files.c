@@ -1576,7 +1576,7 @@ void wm_autosave_location(char *filepath)
    * Blender installed on D:\ drive, D:\ drive has D:\tmp\
    * Now, BLI_exists() will find '/tmp/' exists, but
    * BLI_make_file_string will create string that has it most likely on C:\
-   * through get_default_root().
+   * through BLI_windows_get_default_root_dir().
    * If there is no C:\tmp autosave fails. */
   if (!BLI_exists(BKE_tempdir_base())) {
     savedir = BKE_appdir_folder_id_create(BLENDER_USER_AUTOSAVE, NULL);

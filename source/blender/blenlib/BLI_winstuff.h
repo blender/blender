@@ -28,6 +28,8 @@
 #  error "This include is for Windows only!"
 #endif
 
+#include "BLI_sys_types.h"
+
 #define WIN32_LEAN_AND_MEAN
 
 #include <windows.h>
@@ -86,6 +88,7 @@ typedef long ssize_t;
 #  endif
 #endif
 
+/* Directory reading compatibility with UNIX. */
 struct dirent {
   int d_ino;
   int d_off;
@@ -99,13 +102,12 @@ typedef struct __dirstream DIR;
 DIR *opendir(const char *path);
 struct dirent *readdir(DIR *dp);
 int closedir(DIR *dp);
-
-void RegisterBlendExtension(void);
-void get_default_root(char *root);
-int check_file_chars(char *filename);
 const char *dirname(char *path);
 
-int BLI_getInstallationDir(char *str);
+/* Windows utility functions. */
+void BLI_windows_register_blend_extension(const bool background);
+void BLI_windows_get_default_root_dir(char *root_dir);
+int BLI_windows_get_executable_dir(char *str);
 
 #ifdef __cplusplus
 }
