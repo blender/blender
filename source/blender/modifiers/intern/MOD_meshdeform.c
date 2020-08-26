@@ -37,7 +37,6 @@
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
-#include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.h"
@@ -332,12 +331,7 @@ static void meshdeform_vert_task(void *__restrict userdata,
   if (totweight > 0.0f) {
     mul_v3_fl(co, fac / totweight);
     mul_m3_v3(data->icagemat, co);
-    if (G.debug_value != 527) {
-      add_v3_v3(vertexCos[iter], co);
-    }
-    else {
-      copy_v3_v3(vertexCos[iter], co);
-    }
+    add_v3_v3(vertexCos[iter], co);
   }
 }
 
@@ -435,14 +429,9 @@ static void meshdeformModifier_do(ModifierData *md,
     /* get cage vertex in world space with binding transform */
     copy_v3_v3(co, cagecos[a]);
 
-    if (G.debug_value != 527) {
-      mul_m4_v3(mmd->bindmat, co);
-      /* compute difference with world space bind coord */
-      sub_v3_v3v3(dco[a], co, bindcagecos[a]);
-    }
-    else {
-      copy_v3_v3(dco[a], co);
-    }
+    mul_m4_v3(mmd->bindmat, co);
+    /* compute difference with world space bind coord */
+    sub_v3_v3v3(dco[a], co, bindcagecos[a]);
   }
 
   MOD_get_vgroup(ob, mesh, mmd->defgrp_name, &dvert, &defgrp_index);
