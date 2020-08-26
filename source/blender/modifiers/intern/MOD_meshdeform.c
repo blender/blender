@@ -353,9 +353,8 @@ static void meshdeformModifier_do(ModifierData *md,
   Mesh *cagemesh;
   MDeformVert *dvert = NULL;
   float imat[4][4], cagemat[4][4], iobmat[4][4], icagemat[3][3], cmat[4][4];
-  float co[3], (*dco)[3] = NULL, (*bindcagecos)[3];
+  float(*dco)[3] = NULL, (*bindcagecos)[3];
   int a, totvert, totcagevert, defgrp_index;
-  float(*cagecos)[3] = NULL;
   MeshdeformUserdata data;
 
   static int recursive_bind_sentinel = 0;
@@ -406,7 +405,7 @@ static void meshdeformModifier_do(ModifierData *md,
 
   /* verify we have compatible weights */
   totvert = numVerts;
-  totcagevert = cagemesh->totvert;
+  totcagevert = BKE_mesh_wrapper_vert_len(cagemesh);
 
   if (mmd->totvert != totvert) {
     BKE_modifier_set_error(md, "Vertices changed from %d to %d", mmd->totvert, totvert);
@@ -422,26 +421,23 @@ static void meshdeformModifier_do(ModifierData *md,
     goto finally;
   }
 
-  /* setup deformation data */
-  cagecos = BKE_mesh_vert_coords_alloc(cagemesh, NULL);
-  bindcagecos = (float(*)[3])mmd->bindcagecos;
-
   /* We allocate 1 element extra to make it possible to
    * load the values to SSE registers, which are float4.
    */
   dco = MEM_calloc_arrayN((totcagevert + 1), sizeof(*dco), "MDefDco");
   zero_v3(dco[totcagevert]);
-  for (a = 0; a < totcagevert; a++) {
-    /* get cage vertex in world space with binding transform */
-    copy_v3_v3(co, cagecos[a]);
 
-    if (G.debug_value != 527) {
-      mul_m4_v3(mmd->bindmat, co);
+  /* setup deformation data */
+  BKE_mesh_wrapper_vert_coords_copy(cagemesh, dco, totcagevert);
+  bindcagecos = (float(*)[3])mmd->bindcagecos;
+
+  if (G.debug_value != 527) {
+    for (a = 0; a < totcagevert; a++) {
+      /* get cage vertex in world space with binding transform */
+      float co[3];
+      mul_v3_m4v3(co, mmd->bindmat, dco[a]);
       /* compute difference with world space bind coord */
       sub_v3_v3v3(dco[a], co, bindcagecos[a]);
-    }
-    else {
-      copy_v3_v3(dco[a], co);
     }
   }
 
@@ -464,7 +460,6 @@ static void meshdeformModifier_do(ModifierData *md,
 
 finally:
   MEM_SAFE_FREE(dco);
-  MEM_SAFE_FREE(cagecos);
 }
 
 static void deformVerts(ModifierData *md,
