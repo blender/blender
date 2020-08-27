@@ -1101,6 +1101,422 @@ void ui_draw_aligned_panel(const uiStyle *style,
   }
 }
 
+/********************** category drawing ***************************/
+
+static void imm_buf_append(
+    float vbuf[][2], uchar cbuf[][3], float x, float y, const uchar col[3], int *index)
+{
+  ARRAY_SET_ITEMS(vbuf[*index], x, y);
+  ARRAY_SET_ITEMS(cbuf[*index], UNPACK3(col));
+  (*index)++;
+}
+
+/* based on UI_draw_roundbox, check on making a version which allows us to skip some sides */
+static void ui_panel_category_draw_tab(bool filled,
+                                       float minx,
+                                       float miny,
+                                       float maxx,
+                                       float maxy,
+                                       float rad,
+                                       const int roundboxtype,
+                                       const bool use_highlight,
+                                       const bool use_shadow,
+                                       const bool use_flip_x,
+                                       const uchar highlight_fade[3],
+                                       const uchar col[3])
+{
+  float vec[4][2] = {{0.195, 0.02}, {0.55, 0.169}, {0.831, 0.45}, {0.98, 0.805}};
+
+  /* mult */
+  for (int a = 0; a < 4; a++) {
+    mul_v2_fl(vec[a], rad);
+  }
+
+  uint vert_len = 0;
+  if (use_highlight) {
+    vert_len += (roundboxtype & UI_CNR_TOP_RIGHT) ? 6 : 1;
+    vert_len += (roundboxtype & UI_CNR_TOP_LEFT) ? 6 : 1;
+  }
+  if (use_highlight && !use_shadow) {
+    vert_len++;
+  }
+  else {
+    vert_len += (roundboxtype & UI_CNR_BOTTOM_RIGHT) ? 6 : 1;
+    vert_len += (roundboxtype & UI_CNR_BOTTOM_LEFT) ? 6 : 1;
+  }
+  /* Maximum size. */
+  float vbuf[24][2];
+  uchar cbuf[24][3];
+  int buf_index = 0;
+
+  /* start with corner right-top */
+  if (use_highlight) {
+    if (roundboxtype & UI_CNR_TOP_RIGHT) {
+      imm_buf_append(vbuf, cbuf, maxx, maxy - rad, col, &buf_index);
+      for (int a = 0; a < 4; a++) {
+        imm_buf_append(vbuf, cbuf, maxx - vec[a][1], maxy - rad + vec[a][0], col, &buf_index);
+      }
+      imm_buf_append(vbuf, cbuf, maxx - rad, maxy, col, &buf_index);
+    }
+    else {
+      imm_buf_append(vbuf, cbuf, maxx, maxy, col, &buf_index);
+    }
+
+    /* corner left-top */
+    if (roundboxtype & UI_CNR_TOP_LEFT) {
+      imm_buf_append(vbuf, cbuf, minx + rad, maxy, col, &buf_index);
+      for (int a = 0; a < 4; a++) {
+        imm_buf_append(vbuf, cbuf, minx + rad - vec[a][0], maxy - vec[a][1], col, &buf_index);
+      }
+      imm_buf_append(vbuf, cbuf, minx, maxy - rad, col, &buf_index);
+    }
+    else {
+      imm_buf_append(vbuf, cbuf, minx, maxy, col, &buf_index);
+    }
+  }
+
+  if (use_highlight && !use_shadow) {
+    imm_buf_append(
+        vbuf, cbuf, minx, miny + rad, highlight_fade ? col : highlight_fade, &buf_index);
+  }
+  else {
+    /* corner left-bottom */
+    if (roundboxtype & UI_CNR_BOTTOM_LEFT) {
+      imm_buf_append(vbuf, cbuf, minx, miny + rad, col, &buf_index);
+      for (int a = 0; a < 4; a++) {
+        imm_buf_append(vbuf, cbuf, minx + vec[a][1], miny + rad - vec[a][0], col, &buf_index);
+      }
+      imm_buf_append(vbuf, cbuf, minx + rad, miny, col, &buf_index);
+    }
+    else {
+      imm_buf_append(vbuf, cbuf, minx, miny, col, &buf_index);
+    }
+
+    /* corner right-bottom */
+    if (roundboxtype & UI_CNR_BOTTOM_RIGHT) {
+      imm_buf_append(vbuf, cbuf, maxx - rad, miny, col, &buf_index);
+      for (int a = 0; a < 4; a++) {
+        imm_buf_append(vbuf, cbuf, maxx - rad + vec[a][0], miny + vec[a][1], col, &buf_index);
+      }
+      imm_buf_append(vbuf, cbuf, maxx, miny + rad, col, &buf_index);
+    }
+    else {
+      imm_buf_append(vbuf, cbuf, maxx, miny, col, &buf_index);
+    }
+  }
+
+  if (use_flip_x) {
+    const float midx = (minx + maxx) / 2.0f;
+    for (int i = 0; i < buf_index; i++) {
+      vbuf[i][0] = midx - (vbuf[i][0] - midx);
+    }
+  }
+
+  GPUVertFormat *format = immVertexFormat();
+  const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  uint color = GPU_vertformat_attr_add(
+      format, "color", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+
+  immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
+  immBegin(filled ? GPU_PRIM_TRI_FAN : GPU_PRIM_LINE_STRIP, vert_len);
+  for (int i = 0; i < buf_index; i++) {
+    immAttr3ubv(color, cbuf[i]);
+    immVertex2fv(pos, vbuf[i]);
+  }
+  immEnd();
+  immUnbindProgram();
+}
+
+/**
+ * Draw vertical tabs on the left side of the region,
+ * one tab per category.
+ */
+void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
+{
+  /* no tab outlines for */
+  // #define USE_FLAT_INACTIVE
+  const bool is_left = RGN_ALIGN_ENUM_FROM_MASK(region->alignment != RGN_ALIGN_RIGHT);
+  View2D *v2d = &region->v2d;
+  const uiStyle *style = UI_style_get();
+  const uiFontStyle *fstyle = &style->widget;
+  const int fontid = fstyle->uifont_id;
+  short fstyle_points = fstyle->points;
+  const float aspect = ((uiBlock *)region->uiblocks.first)->aspect;
+  const float zoom = 1.0f / aspect;
+  const int px = max_ii(1, round_fl_to_int(U.pixelsize));
+  const int px_x_sign = is_left ? px : -px;
+  const int category_tabs_width = round_fl_to_int(UI_PANEL_CATEGORY_MARGIN_WIDTH * zoom);
+  const float dpi_fac = UI_DPI_FAC;
+  /* padding of tabs around text */
+  const int tab_v_pad_text = round_fl_to_int((2 + ((px * 3) * dpi_fac)) * zoom);
+  /* padding between tabs */
+  const int tab_v_pad = round_fl_to_int((4 + (2 * px * dpi_fac)) * zoom);
+  const float tab_curve_radius = ((px * 3) * dpi_fac) * zoom;
+  /* We flip the tab drawing, so always use these flags. */
+  const int roundboxtype = UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT;
+  bool is_alpha;
+  bool do_scaletabs = false;
+#ifdef USE_FLAT_INACTIVE
+  bool is_active_prev = false;
+#endif
+  float scaletabs = 1.0f;
+  /* same for all tabs */
+  /* intentionally dont scale by 'px' */
+  const int rct_xmin = is_left ? v2d->mask.xmin + 3 : (v2d->mask.xmax - category_tabs_width);
+  const int rct_xmax = is_left ? v2d->mask.xmin + category_tabs_width : (v2d->mask.xmax - 3);
+  const int text_v_ofs = (rct_xmax - rct_xmin) * 0.3f;
+
+  int y_ofs = tab_v_pad;
+
+  /* Primary theme colors */
+  uchar theme_col_back[4];
+  uchar theme_col_text[3];
+  uchar theme_col_text_hi[3];
+
+  /* Tab colors */
+  uchar theme_col_tab_bg[4];
+  uchar theme_col_tab_active[3];
+  uchar theme_col_tab_inactive[3];
+
+  /* Secondary theme colors */
+  uchar theme_col_tab_outline[3];
+  uchar theme_col_tab_divider[3]; /* line that divides tabs from the main region */
+  uchar theme_col_tab_highlight[3];
+  uchar theme_col_tab_highlight_inactive[3];
+
+  UI_GetThemeColor4ubv(TH_BACK, theme_col_back);
+  UI_GetThemeColor3ubv(TH_TEXT, theme_col_text);
+  UI_GetThemeColor3ubv(TH_TEXT_HI, theme_col_text_hi);
+
+  UI_GetThemeColor4ubv(TH_TAB_BACK, theme_col_tab_bg);
+  UI_GetThemeColor3ubv(TH_TAB_ACTIVE, theme_col_tab_active);
+  UI_GetThemeColor3ubv(TH_TAB_INACTIVE, theme_col_tab_inactive);
+  UI_GetThemeColor3ubv(TH_TAB_OUTLINE, theme_col_tab_outline);
+
+  interp_v3_v3v3_uchar(theme_col_tab_divider, theme_col_back, theme_col_tab_outline, 0.3f);
+  interp_v3_v3v3_uchar(theme_col_tab_highlight, theme_col_back, theme_col_text_hi, 0.2f);
+  interp_v3_v3v3_uchar(
+      theme_col_tab_highlight_inactive, theme_col_tab_inactive, theme_col_text_hi, 0.12f);
+
+  is_alpha = (region->overlap && (theme_col_back[3] != 255));
+
+  if (fstyle->kerning == 1) {
+    BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
+  }
+
+  BLF_enable(fontid, BLF_ROTATION);
+  BLF_rotation(fontid, M_PI_2);
+  // UI_fontstyle_set(&style->widget);
+  ui_fontscale(&fstyle_points, aspect / (U.pixelsize * 1.1f));
+  BLF_size(fontid, fstyle_points, U.dpi);
+
+  /* Check the region type supports categories to avoid an assert
+   * for showing 3D view panels in the properties space. */
+  if ((1 << region->regiontype) & RGN_TYPE_HAS_CATEGORY_MASK) {
+    BLI_assert(UI_panel_category_is_visible(region));
+  }
+
+  /* calculate tab rect's and check if we need to scale down */
+  LISTBASE_FOREACH (PanelCategoryDyn *, pc_dyn, &region->panels_category) {
+
+    rcti *rct = &pc_dyn->rect;
+    const char *category_id = pc_dyn->idname;
+    const char *category_id_draw = IFACE_(category_id);
+    const int category_width = BLF_width(fontid, category_id_draw, BLF_DRAW_STR_DUMMY_MAX);
+
+    rct->xmin = rct_xmin;
+    rct->xmax = rct_xmax;
+
+    rct->ymin = v2d->mask.ymax - (y_ofs + category_width + (tab_v_pad_text * 2));
+    rct->ymax = v2d->mask.ymax - (y_ofs);
+
+    y_ofs += category_width + tab_v_pad + (tab_v_pad_text * 2);
+  }
+
+  if (y_ofs > BLI_rcti_size_y(&v2d->mask)) {
+    scaletabs = (float)BLI_rcti_size_y(&v2d->mask) / (float)y_ofs;
+
+    LISTBASE_FOREACH (PanelCategoryDyn *, pc_dyn, &region->panels_category) {
+      rcti *rct = &pc_dyn->rect;
+      rct->ymin = ((rct->ymin - v2d->mask.ymax) * scaletabs) + v2d->mask.ymax;
+      rct->ymax = ((rct->ymax - v2d->mask.ymax) * scaletabs) + v2d->mask.ymax;
+    }
+
+    do_scaletabs = true;
+  }
+
+  /* begin drawing */
+  GPU_line_smooth(true);
+
+  uint pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+  /* draw the background */
+  if (is_alpha) {
+    GPU_blend(GPU_BLEND_ALPHA);
+    immUniformColor4ubv(theme_col_tab_bg);
+  }
+  else {
+    immUniformColor3ubv(theme_col_tab_bg);
+  }
+
+  if (is_left) {
+    immRecti(
+        pos, v2d->mask.xmin, v2d->mask.ymin, v2d->mask.xmin + category_tabs_width, v2d->mask.ymax);
+  }
+  else {
+    immRecti(
+        pos, v2d->mask.xmax - category_tabs_width, v2d->mask.ymin, v2d->mask.xmax, v2d->mask.ymax);
+  }
+
+  if (is_alpha) {
+    GPU_blend(GPU_BLEND_NONE);
+  }
+
+  immUnbindProgram();
+
+  const int divider_xmin = is_left ? (v2d->mask.xmin + (category_tabs_width - px)) :
+                                     (v2d->mask.xmax - category_tabs_width) + px;
+  const int divider_xmax = is_left ? (v2d->mask.xmin + category_tabs_width) :
+                                     (v2d->mask.xmax - (category_tabs_width + px)) + px;
+
+  LISTBASE_FOREACH (PanelCategoryDyn *, pc_dyn, &region->panels_category) {
+    const rcti *rct = &pc_dyn->rect;
+    const char *category_id = pc_dyn->idname;
+    const char *category_id_draw = IFACE_(category_id);
+    const int category_width = BLI_rcti_size_y(rct) - (tab_v_pad_text * 2);
+    size_t category_draw_len = BLF_DRAW_STR_DUMMY_MAX;
+    // int category_width = BLF_width(fontid, category_id_draw, BLF_DRAW_STR_DUMMY_MAX);
+
+    const bool is_active = STREQ(category_id, category_id_active);
+
+    GPU_blend(GPU_BLEND_ALPHA);
+
+#ifdef USE_FLAT_INACTIVE
+    if (is_active)
+#endif
+    {
+      const bool use_flip_x = !is_left;
+      ui_panel_category_draw_tab(true,
+                                 rct->xmin,
+                                 rct->ymin,
+                                 rct->xmax,
+                                 rct->ymax,
+                                 tab_curve_radius - px,
+                                 roundboxtype,
+                                 true,
+                                 true,
+                                 use_flip_x,
+                                 NULL,
+                                 is_active ? theme_col_tab_active : theme_col_tab_inactive);
+
+      /* tab outline */
+      ui_panel_category_draw_tab(false,
+                                 rct->xmin - px_x_sign,
+                                 rct->ymin - px,
+                                 rct->xmax - px_x_sign,
+                                 rct->ymax + px,
+                                 tab_curve_radius,
+                                 roundboxtype,
+                                 true,
+                                 true,
+                                 use_flip_x,
+                                 NULL,
+                                 theme_col_tab_outline);
+
+      /* tab highlight (3d look) */
+      ui_panel_category_draw_tab(false,
+                                 rct->xmin,
+                                 rct->ymin,
+                                 rct->xmax,
+                                 rct->ymax,
+                                 tab_curve_radius,
+                                 roundboxtype,
+                                 true,
+                                 false,
+                                 use_flip_x,
+                                 is_active ? theme_col_back : theme_col_tab_inactive,
+                                 is_active ? theme_col_tab_highlight :
+                                             theme_col_tab_highlight_inactive);
+    }
+
+    /* tab blackline */
+    if (!is_active) {
+      pos = GPU_vertformat_attr_add(
+          immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+      immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+      immUniformColor3ubv(theme_col_tab_divider);
+      immRecti(pos, divider_xmin, rct->ymin - tab_v_pad, divider_xmax, rct->ymax + tab_v_pad);
+      immUnbindProgram();
+    }
+
+    if (do_scaletabs) {
+      category_draw_len = BLF_width_to_strlen(
+          fontid, category_id_draw, category_draw_len, category_width, NULL);
+    }
+
+    BLF_position(fontid, rct->xmax - text_v_ofs, rct->ymin + tab_v_pad_text, 0.0f);
+
+    /* tab titles */
+
+    /* draw white shadow to give text more depth */
+    BLF_color3ubv(fontid, theme_col_text);
+
+    /* main tab title */
+    BLF_draw(fontid, category_id_draw, category_draw_len);
+
+    GPU_blend(GPU_BLEND_NONE);
+
+    /* tab blackline remaining (last tab) */
+    pos = GPU_vertformat_attr_add(
+        immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+    if (pc_dyn->prev == NULL) {
+      immUniformColor3ubv(theme_col_tab_divider);
+      immRecti(pos, divider_xmin, rct->ymax + px, divider_xmax, v2d->mask.ymax);
+    }
+    if (pc_dyn->next == NULL) {
+      immUniformColor3ubv(theme_col_tab_divider);
+      immRecti(pos, divider_xmin, 0, divider_xmax, rct->ymin);
+    }
+
+#ifdef USE_FLAT_INACTIVE
+    /* draw line between inactive tabs */
+    if (is_active == false && is_active_prev == false && pc_dyn->prev) {
+      immUniformColor3ubv(theme_col_tab_divider);
+      immRecti(pos,
+               v2d->mask.xmin + (category_tabs_width / 5),
+               rct->ymax + px,
+               (v2d->mask.xmin + category_tabs_width) - (category_tabs_width / 5),
+               rct->ymax + (px * 3));
+    }
+
+    is_active_prev = is_active;
+#endif
+    immUnbindProgram();
+
+    /* not essential, but allows events to be handled right up until the region edge [#38171] */
+    if (is_left) {
+      pc_dyn->rect.xmin = v2d->mask.xmin;
+    }
+    else {
+      pc_dyn->rect.xmax = v2d->mask.xmax;
+    }
+  }
+
+  GPU_line_smooth(false);
+
+  BLF_disable(fontid, BLF_ROTATION);
+
+  if (fstyle->kerning == 1) {
+    BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
+  }
+
+#undef USE_FLAT_INACTIVE
+}
+
 /************************** panel alignment *************************/
 
 static int get_panel_size_y(const Panel *panel)
@@ -1886,420 +2302,6 @@ void UI_panel_category_add(ARegion *region, const char *name)
 void UI_panel_category_clear_all(ARegion *region)
 {
   BLI_freelistN(&region->panels_category);
-}
-
-static void imm_buf_append(
-    float vbuf[][2], uchar cbuf[][3], float x, float y, const uchar col[3], int *index)
-{
-  ARRAY_SET_ITEMS(vbuf[*index], x, y);
-  ARRAY_SET_ITEMS(cbuf[*index], UNPACK3(col));
-  (*index)++;
-}
-
-/* based on UI_draw_roundbox, check on making a version which allows us to skip some sides */
-static void ui_panel_category_draw_tab(bool filled,
-                                       float minx,
-                                       float miny,
-                                       float maxx,
-                                       float maxy,
-                                       float rad,
-                                       const int roundboxtype,
-                                       const bool use_highlight,
-                                       const bool use_shadow,
-                                       const bool use_flip_x,
-                                       const uchar highlight_fade[3],
-                                       const uchar col[3])
-{
-  float vec[4][2] = {{0.195, 0.02}, {0.55, 0.169}, {0.831, 0.45}, {0.98, 0.805}};
-
-  /* mult */
-  for (int a = 0; a < 4; a++) {
-    mul_v2_fl(vec[a], rad);
-  }
-
-  uint vert_len = 0;
-  if (use_highlight) {
-    vert_len += (roundboxtype & UI_CNR_TOP_RIGHT) ? 6 : 1;
-    vert_len += (roundboxtype & UI_CNR_TOP_LEFT) ? 6 : 1;
-  }
-  if (use_highlight && !use_shadow) {
-    vert_len++;
-  }
-  else {
-    vert_len += (roundboxtype & UI_CNR_BOTTOM_RIGHT) ? 6 : 1;
-    vert_len += (roundboxtype & UI_CNR_BOTTOM_LEFT) ? 6 : 1;
-  }
-  /* Maximum size. */
-  float vbuf[24][2];
-  uchar cbuf[24][3];
-  int buf_index = 0;
-
-  /* start with corner right-top */
-  if (use_highlight) {
-    if (roundboxtype & UI_CNR_TOP_RIGHT) {
-      imm_buf_append(vbuf, cbuf, maxx, maxy - rad, col, &buf_index);
-      for (int a = 0; a < 4; a++) {
-        imm_buf_append(vbuf, cbuf, maxx - vec[a][1], maxy - rad + vec[a][0], col, &buf_index);
-      }
-      imm_buf_append(vbuf, cbuf, maxx - rad, maxy, col, &buf_index);
-    }
-    else {
-      imm_buf_append(vbuf, cbuf, maxx, maxy, col, &buf_index);
-    }
-
-    /* corner left-top */
-    if (roundboxtype & UI_CNR_TOP_LEFT) {
-      imm_buf_append(vbuf, cbuf, minx + rad, maxy, col, &buf_index);
-      for (int a = 0; a < 4; a++) {
-        imm_buf_append(vbuf, cbuf, minx + rad - vec[a][0], maxy - vec[a][1], col, &buf_index);
-      }
-      imm_buf_append(vbuf, cbuf, minx, maxy - rad, col, &buf_index);
-    }
-    else {
-      imm_buf_append(vbuf, cbuf, minx, maxy, col, &buf_index);
-    }
-  }
-
-  if (use_highlight && !use_shadow) {
-    imm_buf_append(
-        vbuf, cbuf, minx, miny + rad, highlight_fade ? col : highlight_fade, &buf_index);
-  }
-  else {
-    /* corner left-bottom */
-    if (roundboxtype & UI_CNR_BOTTOM_LEFT) {
-      imm_buf_append(vbuf, cbuf, minx, miny + rad, col, &buf_index);
-      for (int a = 0; a < 4; a++) {
-        imm_buf_append(vbuf, cbuf, minx + vec[a][1], miny + rad - vec[a][0], col, &buf_index);
-      }
-      imm_buf_append(vbuf, cbuf, minx + rad, miny, col, &buf_index);
-    }
-    else {
-      imm_buf_append(vbuf, cbuf, minx, miny, col, &buf_index);
-    }
-
-    /* corner right-bottom */
-    if (roundboxtype & UI_CNR_BOTTOM_RIGHT) {
-      imm_buf_append(vbuf, cbuf, maxx - rad, miny, col, &buf_index);
-      for (int a = 0; a < 4; a++) {
-        imm_buf_append(vbuf, cbuf, maxx - rad + vec[a][0], miny + vec[a][1], col, &buf_index);
-      }
-      imm_buf_append(vbuf, cbuf, maxx, miny + rad, col, &buf_index);
-    }
-    else {
-      imm_buf_append(vbuf, cbuf, maxx, miny, col, &buf_index);
-    }
-  }
-
-  if (use_flip_x) {
-    const float midx = (minx + maxx) / 2.0f;
-    for (int i = 0; i < buf_index; i++) {
-      vbuf[i][0] = midx - (vbuf[i][0] - midx);
-    }
-  }
-
-  GPUVertFormat *format = immVertexFormat();
-  const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  uint color = GPU_vertformat_attr_add(
-      format, "color", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
-
-  immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
-  immBegin(filled ? GPU_PRIM_TRI_FAN : GPU_PRIM_LINE_STRIP, vert_len);
-  for (int i = 0; i < buf_index; i++) {
-    immAttr3ubv(color, cbuf[i]);
-    immVertex2fv(pos, vbuf[i]);
-  }
-  immEnd();
-  immUnbindProgram();
-}
-
-/**
- * Draw vertical tabs on the left side of the region,
- * one tab per category.
- */
-void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
-{
-  /* no tab outlines for */
-  // #define USE_FLAT_INACTIVE
-  const bool is_left = RGN_ALIGN_ENUM_FROM_MASK(region->alignment != RGN_ALIGN_RIGHT);
-  View2D *v2d = &region->v2d;
-  const uiStyle *style = UI_style_get();
-  const uiFontStyle *fstyle = &style->widget;
-  const int fontid = fstyle->uifont_id;
-  short fstyle_points = fstyle->points;
-  const float aspect = ((uiBlock *)region->uiblocks.first)->aspect;
-  const float zoom = 1.0f / aspect;
-  const int px = max_ii(1, round_fl_to_int(U.pixelsize));
-  const int px_x_sign = is_left ? px : -px;
-  const int category_tabs_width = round_fl_to_int(UI_PANEL_CATEGORY_MARGIN_WIDTH * zoom);
-  const float dpi_fac = UI_DPI_FAC;
-  /* padding of tabs around text */
-  const int tab_v_pad_text = round_fl_to_int((2 + ((px * 3) * dpi_fac)) * zoom);
-  /* padding between tabs */
-  const int tab_v_pad = round_fl_to_int((4 + (2 * px * dpi_fac)) * zoom);
-  const float tab_curve_radius = ((px * 3) * dpi_fac) * zoom;
-  /* We flip the tab drawing, so always use these flags. */
-  const int roundboxtype = UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT;
-  bool is_alpha;
-  bool do_scaletabs = false;
-#ifdef USE_FLAT_INACTIVE
-  bool is_active_prev = false;
-#endif
-  float scaletabs = 1.0f;
-  /* same for all tabs */
-  /* intentionally dont scale by 'px' */
-  const int rct_xmin = is_left ? v2d->mask.xmin + 3 : (v2d->mask.xmax - category_tabs_width);
-  const int rct_xmax = is_left ? v2d->mask.xmin + category_tabs_width : (v2d->mask.xmax - 3);
-  const int text_v_ofs = (rct_xmax - rct_xmin) * 0.3f;
-
-  int y_ofs = tab_v_pad;
-
-  /* Primary theme colors */
-  uchar theme_col_back[4];
-  uchar theme_col_text[3];
-  uchar theme_col_text_hi[3];
-
-  /* Tab colors */
-  uchar theme_col_tab_bg[4];
-  uchar theme_col_tab_active[3];
-  uchar theme_col_tab_inactive[3];
-
-  /* Secondary theme colors */
-  uchar theme_col_tab_outline[3];
-  uchar theme_col_tab_divider[3]; /* line that divides tabs from the main region */
-  uchar theme_col_tab_highlight[3];
-  uchar theme_col_tab_highlight_inactive[3];
-
-  UI_GetThemeColor4ubv(TH_BACK, theme_col_back);
-  UI_GetThemeColor3ubv(TH_TEXT, theme_col_text);
-  UI_GetThemeColor3ubv(TH_TEXT_HI, theme_col_text_hi);
-
-  UI_GetThemeColor4ubv(TH_TAB_BACK, theme_col_tab_bg);
-  UI_GetThemeColor3ubv(TH_TAB_ACTIVE, theme_col_tab_active);
-  UI_GetThemeColor3ubv(TH_TAB_INACTIVE, theme_col_tab_inactive);
-  UI_GetThemeColor3ubv(TH_TAB_OUTLINE, theme_col_tab_outline);
-
-  interp_v3_v3v3_uchar(theme_col_tab_divider, theme_col_back, theme_col_tab_outline, 0.3f);
-  interp_v3_v3v3_uchar(theme_col_tab_highlight, theme_col_back, theme_col_text_hi, 0.2f);
-  interp_v3_v3v3_uchar(
-      theme_col_tab_highlight_inactive, theme_col_tab_inactive, theme_col_text_hi, 0.12f);
-
-  is_alpha = (region->overlap && (theme_col_back[3] != 255));
-
-  if (fstyle->kerning == 1) {
-    BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-  }
-
-  BLF_enable(fontid, BLF_ROTATION);
-  BLF_rotation(fontid, M_PI_2);
-  // UI_fontstyle_set(&style->widget);
-  ui_fontscale(&fstyle_points, aspect / (U.pixelsize * 1.1f));
-  BLF_size(fontid, fstyle_points, U.dpi);
-
-  /* Check the region type supports categories to avoid an assert
-   * for showing 3D view panels in the properties space. */
-  if ((1 << region->regiontype) & RGN_TYPE_HAS_CATEGORY_MASK) {
-    BLI_assert(UI_panel_category_is_visible(region));
-  }
-
-  /* calculate tab rect's and check if we need to scale down */
-  LISTBASE_FOREACH (PanelCategoryDyn *, pc_dyn, &region->panels_category) {
-
-    rcti *rct = &pc_dyn->rect;
-    const char *category_id = pc_dyn->idname;
-    const char *category_id_draw = IFACE_(category_id);
-    const int category_width = BLF_width(fontid, category_id_draw, BLF_DRAW_STR_DUMMY_MAX);
-
-    rct->xmin = rct_xmin;
-    rct->xmax = rct_xmax;
-
-    rct->ymin = v2d->mask.ymax - (y_ofs + category_width + (tab_v_pad_text * 2));
-    rct->ymax = v2d->mask.ymax - (y_ofs);
-
-    y_ofs += category_width + tab_v_pad + (tab_v_pad_text * 2);
-  }
-
-  if (y_ofs > BLI_rcti_size_y(&v2d->mask)) {
-    scaletabs = (float)BLI_rcti_size_y(&v2d->mask) / (float)y_ofs;
-
-    LISTBASE_FOREACH (PanelCategoryDyn *, pc_dyn, &region->panels_category) {
-      rcti *rct = &pc_dyn->rect;
-      rct->ymin = ((rct->ymin - v2d->mask.ymax) * scaletabs) + v2d->mask.ymax;
-      rct->ymax = ((rct->ymax - v2d->mask.ymax) * scaletabs) + v2d->mask.ymax;
-    }
-
-    do_scaletabs = true;
-  }
-
-  /* begin drawing */
-  GPU_line_smooth(true);
-
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-
-  /* draw the background */
-  if (is_alpha) {
-    GPU_blend(GPU_BLEND_ALPHA);
-    immUniformColor4ubv(theme_col_tab_bg);
-  }
-  else {
-    immUniformColor3ubv(theme_col_tab_bg);
-  }
-
-  if (is_left) {
-    immRecti(
-        pos, v2d->mask.xmin, v2d->mask.ymin, v2d->mask.xmin + category_tabs_width, v2d->mask.ymax);
-  }
-  else {
-    immRecti(
-        pos, v2d->mask.xmax - category_tabs_width, v2d->mask.ymin, v2d->mask.xmax, v2d->mask.ymax);
-  }
-
-  if (is_alpha) {
-    GPU_blend(GPU_BLEND_NONE);
-  }
-
-  immUnbindProgram();
-
-  const int divider_xmin = is_left ? (v2d->mask.xmin + (category_tabs_width - px)) :
-                                     (v2d->mask.xmax - category_tabs_width) + px;
-  const int divider_xmax = is_left ? (v2d->mask.xmin + category_tabs_width) :
-                                     (v2d->mask.xmax - (category_tabs_width + px)) + px;
-
-  LISTBASE_FOREACH (PanelCategoryDyn *, pc_dyn, &region->panels_category) {
-    const rcti *rct = &pc_dyn->rect;
-    const char *category_id = pc_dyn->idname;
-    const char *category_id_draw = IFACE_(category_id);
-    const int category_width = BLI_rcti_size_y(rct) - (tab_v_pad_text * 2);
-    size_t category_draw_len = BLF_DRAW_STR_DUMMY_MAX;
-    // int category_width = BLF_width(fontid, category_id_draw, BLF_DRAW_STR_DUMMY_MAX);
-
-    const bool is_active = STREQ(category_id, category_id_active);
-
-    GPU_blend(GPU_BLEND_ALPHA);
-
-#ifdef USE_FLAT_INACTIVE
-    if (is_active)
-#endif
-    {
-      const bool use_flip_x = !is_left;
-      ui_panel_category_draw_tab(true,
-                                 rct->xmin,
-                                 rct->ymin,
-                                 rct->xmax,
-                                 rct->ymax,
-                                 tab_curve_radius - px,
-                                 roundboxtype,
-                                 true,
-                                 true,
-                                 use_flip_x,
-                                 NULL,
-                                 is_active ? theme_col_tab_active : theme_col_tab_inactive);
-
-      /* tab outline */
-      ui_panel_category_draw_tab(false,
-                                 rct->xmin - px_x_sign,
-                                 rct->ymin - px,
-                                 rct->xmax - px_x_sign,
-                                 rct->ymax + px,
-                                 tab_curve_radius,
-                                 roundboxtype,
-                                 true,
-                                 true,
-                                 use_flip_x,
-                                 NULL,
-                                 theme_col_tab_outline);
-
-      /* tab highlight (3d look) */
-      ui_panel_category_draw_tab(false,
-                                 rct->xmin,
-                                 rct->ymin,
-                                 rct->xmax,
-                                 rct->ymax,
-                                 tab_curve_radius,
-                                 roundboxtype,
-                                 true,
-                                 false,
-                                 use_flip_x,
-                                 is_active ? theme_col_back : theme_col_tab_inactive,
-                                 is_active ? theme_col_tab_highlight :
-                                             theme_col_tab_highlight_inactive);
-    }
-
-    /* tab blackline */
-    if (!is_active) {
-      pos = GPU_vertformat_attr_add(
-          immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-      immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-
-      immUniformColor3ubv(theme_col_tab_divider);
-      immRecti(pos, divider_xmin, rct->ymin - tab_v_pad, divider_xmax, rct->ymax + tab_v_pad);
-      immUnbindProgram();
-    }
-
-    if (do_scaletabs) {
-      category_draw_len = BLF_width_to_strlen(
-          fontid, category_id_draw, category_draw_len, category_width, NULL);
-    }
-
-    BLF_position(fontid, rct->xmax - text_v_ofs, rct->ymin + tab_v_pad_text, 0.0f);
-
-    /* tab titles */
-
-    /* draw white shadow to give text more depth */
-    BLF_color3ubv(fontid, theme_col_text);
-
-    /* main tab title */
-    BLF_draw(fontid, category_id_draw, category_draw_len);
-
-    GPU_blend(GPU_BLEND_NONE);
-
-    /* tab blackline remaining (last tab) */
-    pos = GPU_vertformat_attr_add(
-        immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-    if (pc_dyn->prev == NULL) {
-      immUniformColor3ubv(theme_col_tab_divider);
-      immRecti(pos, divider_xmin, rct->ymax + px, divider_xmax, v2d->mask.ymax);
-    }
-    if (pc_dyn->next == NULL) {
-      immUniformColor3ubv(theme_col_tab_divider);
-      immRecti(pos, divider_xmin, 0, divider_xmax, rct->ymin);
-    }
-
-#ifdef USE_FLAT_INACTIVE
-    /* draw line between inactive tabs */
-    if (is_active == false && is_active_prev == false && pc_dyn->prev) {
-      immUniformColor3ubv(theme_col_tab_divider);
-      immRecti(pos,
-               v2d->mask.xmin + (category_tabs_width / 5),
-               rct->ymax + px,
-               (v2d->mask.xmin + category_tabs_width) - (category_tabs_width / 5),
-               rct->ymax + (px * 3));
-    }
-
-    is_active_prev = is_active;
-#endif
-    immUnbindProgram();
-
-    /* not essential, but allows events to be handled right up until the region edge [#38171] */
-    if (is_left) {
-      pc_dyn->rect.xmin = v2d->mask.xmin;
-    }
-    else {
-      pc_dyn->rect.xmax = v2d->mask.xmax;
-    }
-  }
-
-  GPU_line_smooth(false);
-
-  BLF_disable(fontid, BLF_ROTATION);
-
-  if (fstyle->kerning == 1) {
-    BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-  }
-
-#undef USE_FLAT_INACTIVE
 }
 
 static int ui_handle_panel_category_cycling(const wmEvent *event,
