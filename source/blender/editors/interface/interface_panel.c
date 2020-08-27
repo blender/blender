@@ -2388,6 +2388,8 @@ int ui_handler_panel_region(bContext *C,
     return retval;
   }
 
+  const bool region_has_active_button = (ui_region_find_active_but(region) != NULL);
+
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     Panel *panel = block->panel;
     if (panel == NULL || panel->type == NULL) {
@@ -2402,7 +2404,7 @@ int ui_handler_panel_region(bContext *C,
     int my = event->y;
     ui_window_to_block(region, block, &mx, &my);
 
-    uiPanelMouseState mouse_state = ui_panel_mouse_state_get(block, panel, mx, my);
+    const uiPanelMouseState mouse_state = ui_panel_mouse_state_get(block, panel, mx, my);
 
     /* The panel collapse / expand key "A" is special as it takes priority over
      * active button handling. */
@@ -2415,7 +2417,7 @@ int ui_handler_panel_region(bContext *C,
     }
 
     /* Don't do any other panel handling with an active button. */
-    if (ui_region_find_active_but(region) != NULL) {
+    if (region_has_active_button) {
       continue;
     }
 
