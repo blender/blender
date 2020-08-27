@@ -64,9 +64,6 @@ endif()
 
 if(WITH_OPENVDB)
   add_definitions(-DOPENVDB=1)
-  if(NOT WIN32)
-    add_definitions(-DOPENVDB_STATICLIB)
-  endif()
 endif()
 
 if(WITH_OPENVDB_BLOSC)
