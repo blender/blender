@@ -2238,12 +2238,12 @@ static Material *gpencil_add_material(Main *bmain,
     gp_style->flag |= GP_MATERIAL_STROKE_SHOW;
   }
   else {
-    linearrgb_to_srgb_v4(gp_style->stroke_rgba, color);
+    copy_v4_v4(gp_style->stroke_rgba, color);
     gp_style->flag &= ~GP_MATERIAL_STROKE_SHOW;
   }
 
   /* Fill color. */
-  linearrgb_to_srgb_v4(gp_style->fill_rgba, color);
+  copy_v4_v4(gp_style->fill_rgba, color);
   if (use_fill) {
     gp_style->flag |= GP_MATERIAL_FILL_SHOW;
   }
