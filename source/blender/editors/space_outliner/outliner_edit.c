@@ -152,11 +152,8 @@ void OUTLINER_OT_highlight_update(wmOperatorType *ot)
 /* Open or close a tree element, optionally toggling all children recursively */
 void outliner_item_openclose(TreeElement *te, bool open, bool toggle_all)
 {
-  if (BLI_listbase_is_empty(&te->subtree)) {
-    return;
-  }
-
   TreeStoreElem *tselem = TREESTORE(te);
+
   if (open) {
     tselem->flag &= ~TSE_CLOSED;
   }

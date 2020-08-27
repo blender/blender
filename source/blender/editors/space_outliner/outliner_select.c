@@ -1661,7 +1661,10 @@ static TreeElement *outliner_walk_right(SpaceOutliner *space_outliner,
   if (!toggle_all && TSELEM_OPEN(tselem, space_outliner) && !BLI_listbase_is_empty(&te->subtree)) {
     te = te->subtree.first;
   }
-  else {
+  /* Prevent opening leaf elements in the tree.
+   * This cannot be done in `outliner_item_openclose` because the Data API display mode subtrees
+   * are empty unless expanded. */
+  else if (!BLI_listbase_is_empty(&te->subtree)) {
     outliner_item_openclose(te, true, toggle_all);
   }
 
