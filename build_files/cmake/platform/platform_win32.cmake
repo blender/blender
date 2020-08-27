@@ -136,6 +136,13 @@ add_definitions(
 # MSVC11 needs _ALLOW_KEYWORD_MACROS to build
 add_definitions(-D_ALLOW_KEYWORD_MACROS)
 
+# RTTI is on by default even without this switch
+# however having it in the CXX Flags makes it difficult
+# to remove for individual files that want to disable it
+# using the /GR- flag without generating a build warning
+# that both /GR and /GR- are specified.
+remove_cc_flag("/GR")
+
 # We want to support Windows 7 level ABI
 add_definitions(-D_WIN32_WINNT=0x601)
 include(build_files/cmake/platform/platform_win32_bundle_crt.cmake)
