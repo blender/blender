@@ -374,7 +374,10 @@ void item_object_mode_exit_fn(struct bContext *C,
 
 void outliner_set_coordinates(struct ARegion *region, struct SpaceOutliner *space_outliner);
 
-void outliner_item_openclose(TreeElement *te, bool open, bool toggle_all);
+void outliner_item_openclose(struct SpaceOutliner *space_outliner,
+                             TreeElement *te,
+                             bool open,
+                             bool toggle_all);
 
 /* outliner_dragdrop.c */
 void outliner_dropboxes(void);

@@ -150,10 +150,18 @@ void OUTLINER_OT_highlight_update(wmOperatorType *ot)
  * \{ */
 
 /* Open or close a tree element, optionally toggling all children recursively */
-void outliner_item_openclose(TreeElement *te, bool open, bool toggle_all)
+void outliner_item_openclose(SpaceOutliner *space_outliner,
+                             TreeElement *te,
+                             bool open,
+                             bool toggle_all)
 {
-  TreeStoreElem *tselem = TREESTORE(te);
+  /* Prevent opening leaf elements in the tree unless in the Data API display mode because in that
+   * mode subtrees are empty unless expanded. */
+  if (space_outliner->outlinevis != SO_DATA_API && BLI_listbase_is_empty(&te->subtree)) {
+    return;
+  }
 
+  TreeStoreElem *tselem = TREESTORE(te);
   if (open) {
     tselem->flag &= ~TSE_CLOSED;
   }
@@ -191,7 +199,7 @@ static int outliner_item_openclose_modal(bContext *C, wmOperator *op, const wmEv
 
       /* Only toggle openclose on the same level as the first clicked element */
       if (te->xs == data->x_location) {
-        outliner_item_openclose(te, data->open, false);
+        outliner_item_openclose(space_outliner, te, data->open, false);
 
         outliner_tag_redraw_avoid_rebuild_on_open_change(space_outliner, region);
       }
@@ -232,7 +240,7 @@ static int outliner_item_openclose_invoke(bContext *C, wmOperator *op, const wmE
     const bool open = (tselem->flag & TSE_CLOSED) ||
                       (toggle_all && (outliner_flag_is_any_test(&te->subtree, TSE_CLOSED, 1)));
 
-    outliner_item_openclose(te, open, toggle_all);
+    outliner_item_openclose(space_outliner, te, open, toggle_all);
     outliner_tag_redraw_avoid_rebuild_on_open_change(space_outliner, region);
 
     /* Only toggle once for single click toggling */
