@@ -31,7 +31,7 @@ char free_after_leak_detection_message[] =
 
 namespace {
 
-static bool fail_on_memleak = false;
+bool fail_on_memleak = false;
 
 class MemLeakPrinter {
  public:
