@@ -76,15 +76,11 @@
 #define PNL_NEW_ADDED 16
 #define PNL_FIRST 32
 
-/* only show pin header button for pinned panels */
-#define USE_PIN_HIDDEN
-
 /* the state of the mouse position relative to the panel */
 typedef enum uiPanelMouseState {
-  PANEL_MOUSE_OUTSIDE,        /* mouse is not in the panel */
-  PANEL_MOUSE_INSIDE_CONTENT, /* mouse is in the actual panel content */
-  PANEL_MOUSE_INSIDE_HEADER,  /* mouse is in the panel header */
-  PANEL_MOUSE_INSIDE_SCALE,   /* mouse is inside panel scale widget */
+  PANEL_MOUSE_OUTSIDE,        /** Mouse is not in the panel. */
+  PANEL_MOUSE_INSIDE_CONTENT, /** Mouse is in the actual panel content. */
+  PANEL_MOUSE_INSIDE_HEADER,  /** Mouse is in the panel header. */
 } uiPanelMouseState;
 
 typedef enum uiHandlePanelState {
@@ -545,7 +541,7 @@ static void get_panel_expand_flag(Panel *panel, short *flag, short *flag_index)
  * expansion could have been the subpanel of a instanced panel, meaning it might not know
  * which list item it corresponds to.
  */
-static void set_panels_list_data_expand_flag(const bContext *C, ARegion *region)
+static void set_panels_list_data_expand_flag(const bContext *C, const ARegion *region)
 {
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
     PanelType *panel_type = panel->type;
@@ -587,7 +583,7 @@ static bool panel_set_flag_recursive(Panel *panel, int flag, bool value)
   return changed;
 }
 
-static void panels_collapse_all(const bContext *C, ARegion *region, const Panel *from_panel)
+static void panels_collapse_all(ARegion *region, const Panel *from_panel)
 {
   const bool has_category_tabs = UI_panel_category_is_visible(region);
   const char *category = has_category_tabs ? UI_panel_category_active_get(region, false) : NULL;
@@ -606,7 +602,6 @@ static void panels_collapse_all(const bContext *C, ARegion *region, const Panel 
       }
     }
   }
-  set_panels_list_data_expand_flag(C, region);
 }
 
 static bool panel_type_context_poll(ARegion *region,
@@ -965,13 +960,8 @@ void ui_draw_aligned_panel(const uiStyle *style,
     immUnbindProgram();
   }
 
-/* draw optional pin icon */
-#ifdef USE_PIN_HIDDEN
-  if (show_pin && (block->panel->flag & PNL_PIN))
-#else
-  if (show_pin)
-#endif
-  {
+  /* draw optional pin icon */
+  if (show_pin && (block->panel->flag & PNL_PIN)) {
     uchar col_title[4];
     panel_title_color_get(show_background, col_title);
 
@@ -2066,122 +2056,112 @@ static void ui_panel_drag_collapse_handler_add(const bContext *C, const bool was
                           0);
 }
 
-/* this function is supposed to call general window drawing too */
-/* also it supposes a block has panel, and isn't a menu */
-static void ui_handle_panel_header(
-    const bContext *C, uiBlock *block, int mx, int event, short ctrl, short shift)
+/**
+ * Supposing the block has a panel and isn't a menu, handle opening, closing, pinning, etc.
+ * Code currently assumes layout style for location of widgets
+ *
+ * \param mx The mouse x coordinate, in panel space.
+ */
+static void ui_handle_panel_header(const bContext *C,
+                                   uiBlock *block,
+                                   const int mx,
+                                   short int event_type,
+                                   const short ctrl,
+                                   const short shift)
 {
+  Panel *panel = block->panel;
   ARegion *region = CTX_wm_region(C);
-#ifdef USE_PIN_HIDDEN
-  const bool show_pin = UI_panel_category_is_visible(region) &&
-                        (block->panel->type->parent == NULL) && (block->panel->flag & PNL_PIN);
-#else
-  const bool show_pin = UI_panel_category_is_visible(region) &&
-                        (block->panel->type->parent == NULL);
-#endif
-  const bool is_subpanel = (block->panel->type && block->panel->type->parent);
+
+  BLI_assert(panel->type != NULL);
+  BLI_assert(!(panel->type->flag & PNL_NO_HEADER));
+
+  const bool is_subpanel = (panel->type->parent != NULL);
+  const bool use_pin = UI_panel_category_is_visible(region) && !is_subpanel;
+  const bool show_pin = use_pin && (panel->flag & PNL_PIN);
   const bool show_drag = !is_subpanel;
 
-  int button = 0;
+  /* Handle panel pinning. */
+  if (use_pin && ELEM(event_type, EVT_RETKEY, EVT_PADENTER, LEFTMOUSE) && shift) {
+    panel->flag ^= PNL_PIN;
+    ED_region_tag_redraw(region);
+    return;
+  }
 
-  rctf rect_drag, rect_pin;
-  float rect_leftmost;
-
-  /* drag and pin rect's */
-  rect_drag = block->rect;
-  rect_drag.xmin = block->rect.xmax - (PNL_ICON * 1.5f);
-  rect_pin = rect_drag;
+  float expansion_area_xmax = block->rect.xmax;
+  if (show_drag) {
+    expansion_area_xmax -= (PNL_ICON * 1.5f);
+  }
   if (show_pin) {
-    BLI_rctf_translate(&rect_pin, -PNL_ICON, 0.0f);
-  }
-  rect_leftmost = rect_pin.xmin;
-
-  /* mouse coordinates in panel space! */
-
-  /* XXX weak code, currently it assumes layout style for location of widgets */
-
-  /* check open/collapsed button */
-  if (event == EVT_RETKEY) {
-    button = 1;
-  }
-  else if (event == EVT_AKEY) {
-    button = 1;
-  }
-  else if (ELEM(event, 0, EVT_RETKEY, LEFTMOUSE) && shift) {
-    if (block->panel->type->parent == NULL) {
-      block->panel->flag ^= PNL_PIN;
-      button = 2;
-    }
-  }
-  else if (mx < rect_leftmost) {
-    button = 1;
+    expansion_area_xmax -= PNL_ICON;
   }
 
-  if (button) {
-    if (button == 2) { /* close */
-      ED_region_tag_redraw(region);
-    }
-    else {
-      /* Collapse and expand panels. */
+  /* Collapse and expand panels. */
+  if (ELEM(event_type, EVT_RETKEY, EVT_PADENTER, EVT_AKEY) || mx < expansion_area_xmax) {
+    if (ctrl && !is_subpanel) {
+      /* For parent panels, collapse all other panels or toggle children. */
+      if (panel->flag & PNL_CLOSED || BLI_listbase_is_empty(&panel->children)) {
+        panels_collapse_all(region, panel);
 
-      if (ctrl) {
-        /* For parent panels, collapse all other panels or toggle children. */
-        if (block->panel->type != NULL && block->panel->type->parent == NULL) {
-          if (block->panel->flag & PNL_CLOSED || BLI_listbase_is_empty(&block->panel->children)) {
-            panels_collapse_all(C, region, block->panel);
-
-            /* Reset the view - we don't want to display a view without content. */
-            UI_view2d_offset(&region->v2d, 0.0f, 1.0f);
-          }
-          else {
-            /* If a panel has sub-panels and it's open, toggle the expansion
-             * of the sub-panels (based on the expansion of the first subpanel). */
-            Panel *first_child = block->panel->children.first;
-            BLI_assert(first_child != NULL);
-            panel_set_flag_recursive(block->panel, PNL_CLOSED, !(first_child->flag & PNL_CLOSED));
-            block->panel->flag |= PNL_CLOSED;
-          }
-        }
-      }
-
-      if (block->panel->flag & PNL_CLOSED) {
-        block->panel->flag &= ~PNL_CLOSED;
-        /* snap back up so full panel aligns with screen edge */
-        if (block->panel->snap & PNL_SNAP_BOTTOM) {
-          block->panel->ofsy = 0;
-        }
-
-        if (event == LEFTMOUSE) {
-          ui_panel_drag_collapse_handler_add(C, false);
-        }
+        /* Reset the view - we don't want to display a view without content. */
+        UI_view2d_offset(&region->v2d, 0.0f, 1.0f);
       }
       else {
-        /* snap down to bottom screen edge */
-        block->panel->flag |= PNL_CLOSED;
-        if (block->panel->snap & PNL_SNAP_BOTTOM) {
-          block->panel->ofsy = -block->panel->sizey;
-        }
+        /* If a panel has sub-panels and it's open, toggle the expansion
+         * of the sub-panels (based on the expansion of the first subpanel). */
+        Panel *first_child = panel->children.first;
+        BLI_assert(first_child != NULL);
+        panel_set_flag_recursive(panel, PNL_CLOSED, !(first_child->flag & PNL_CLOSED));
+        panel->flag |= PNL_CLOSED;
+      }
+    }
 
-        if (event == LEFTMOUSE) {
-          ui_panel_drag_collapse_handler_add(C, true);
-        }
+    if (panel->flag & PNL_CLOSED) {
+      panel->flag &= ~PNL_CLOSED;
+      /* Snap back up so full panel aligns with screen edge. */
+      if (panel->snap & PNL_SNAP_BOTTOM) {
+        panel->ofsy = 0;
       }
 
-      set_panels_list_data_expand_flag(C, region);
+      if (event_type == LEFTMOUSE) {
+        ui_panel_drag_collapse_handler_add(C, false);
+      }
+    }
+    else {
+      /* Snap down to bottom screen edge. */
+      panel->flag |= PNL_CLOSED;
+      if (panel->snap & PNL_SNAP_BOTTOM) {
+        panel->ofsy = -panel->sizey;
+      }
+
+      if (event_type == LEFTMOUSE) {
+        ui_panel_drag_collapse_handler_add(C, true);
+      }
     }
 
-    panel_activate_state(C, block->panel, PANEL_STATE_ANIMATION);
+    set_panels_list_data_expand_flag(C, region);
+    panel_activate_state(C, panel, PANEL_STATE_ANIMATION);
+    return;
   }
-  else if (show_drag && BLI_rctf_isect_x(&rect_drag, mx)) {
-    /* XXX, for now don't allow dragging in floating windows yet. */
-    if (region->alignment == RGN_ALIGN_FLOAT) {
+
+  /* Handle panel dragging. For now don't allow dragging in floating regions. */
+  if (show_drag && !(region->alignment == RGN_ALIGN_FLOAT)) {
+    const float drag_area_xmin = block->rect.xmax - (PNL_ICON * 1.5f);
+    const float drag_area_xmax = block->rect.xmax;
+    if (IN_RANGE(mx, drag_area_xmin, drag_area_xmax)) {
+      panel_activate_state(C, panel, PANEL_STATE_DRAG);
       return;
     }
-    panel_activate_state(C, block->panel, PANEL_STATE_DRAG);
   }
-  else if (show_pin && BLI_rctf_isect_x(&rect_pin, mx)) {
-    block->panel->flag ^= PNL_PIN;
-    ED_region_tag_redraw(region);
+
+  /* Handle panel unpinning. */
+  if (show_pin) {
+    const float pin_area_xmin = expansion_area_xmax;
+    const float pin_area_xmax = pin_area_xmin + PNL_ICON;
+    if (IN_RANGE(mx, pin_area_xmin, pin_area_xmax)) {
+      panel->flag ^= PNL_PIN;
+      ED_region_tag_redraw(region);
+      return;
+    }
   }
 }
 
@@ -2356,47 +2336,51 @@ static int ui_handle_panel_category_cycling(const wmEvent *event,
   return WM_UI_HANDLER_CONTINUE;
 }
 
-/* XXX should become modal keymap */
-/* AKey is opening/closing panels, independent of button state now */
-
+/**
+ * Handle region panel events like opening anc closing panels, changing categories, etc.
+ *
+ * \note Could become a modal keymap.
+ */
 int ui_handler_panel_region(bContext *C,
                             const wmEvent *event,
                             ARegion *region,
                             const uiBut *active_but)
 {
-  const bool has_category_tabs = UI_panel_category_is_visible(region);
-
-  int retval = WM_UI_HANDLER_CONTINUE;
-
+  /* Mousemove events are handled by separate handlers for dragging and drag collapsing. */
   if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
-    return retval;
+    return WM_UI_HANDLER_CONTINUE;
+  }
+
+  /* We only use KM_PRESS events in this function, so it's simpler to return early. */
+  if (event->val != KM_PRESS) {
+    return WM_UI_HANDLER_CONTINUE;
   }
 
   /* Scrollbars can overlap panels now, they have handling priority. */
   if (UI_view2d_mouse_in_scrollers(region, &region->v2d, event->x, event->y)) {
-    return retval;
+    return WM_UI_HANDLER_CONTINUE;
   }
 
-  /* handle category tabs */
-  if (has_category_tabs) {
-    if (event->val == KM_PRESS) {
-      if (event->type == LEFTMOUSE) {
-        PanelCategoryDyn *pc_dyn = UI_panel_category_find_mouse_over(region, event);
-        if (pc_dyn) {
-          UI_panel_category_active_set(region, pc_dyn->idname);
-          ED_region_tag_redraw(region);
+  int retval = WM_UI_HANDLER_CONTINUE;
 
-          /* reset scroll to the top [#38348] */
-          UI_view2d_offset(&region->v2d, -1.0f, 1.0f);
+  /* Handle category tabs. */
+  if (UI_panel_category_is_visible(region)) {
+    if (event->type == LEFTMOUSE) {
+      PanelCategoryDyn *pc_dyn = UI_panel_category_find_mouse_over(region, event);
+      if (pc_dyn) {
+        UI_panel_category_active_set(region, pc_dyn->idname);
+        ED_region_tag_redraw(region);
 
-          retval = WM_UI_HANDLER_BREAK;
-        }
+        /* Reset scroll to the top (T38348). */
+        UI_view2d_offset(&region->v2d, -1.0f, 1.0f);
+
+        retval = WM_UI_HANDLER_BREAK;
       }
-      else if ((event->type == EVT_TABKEY && event->ctrl) ||
-               ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE)) {
-        /* cycle tabs */
-        retval = ui_handle_panel_category_cycling(event, region, active_but);
-      }
+    }
+    else if ((event->type == EVT_TABKEY && event->ctrl) ||
+             ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE)) {
+      /* Cycle tabs. */
+      retval = ui_handle_panel_category_cycling(event, region, active_but);
     }
   }
 
@@ -2405,85 +2389,53 @@ int ui_handler_panel_region(bContext *C,
   }
 
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
-    uiPanelMouseState mouse_state;
+    Panel *panel = block->panel;
+    if (panel == NULL || panel->type == NULL) {
+      continue;
+    }
+    /* We can't expand or collapse panels without headers, they would disappear. */
+    if (panel->type->flag & PNL_NO_HEADER) {
+      continue;
+    }
 
     int mx = event->x;
     int my = event->y;
     ui_window_to_block(region, block, &mx, &my);
 
-    /* checks for mouse position inside */
-    Panel *panel = block->panel;
+    uiPanelMouseState mouse_state = ui_panel_mouse_state_get(block, panel, mx, my);
 
-    if (!panel) {
-      continue;
-    }
-    /* XXX - accessed freed panels when scripts reload, need to fix. */
-    if (panel->type && panel->type->flag & PNL_NO_HEADER) {
-      continue;
-    }
-
-    mouse_state = ui_panel_mouse_state_get(block, panel, mx, my);
-
-    /* XXX hardcoded key warning */
-    if (ELEM(mouse_state, PANEL_MOUSE_INSIDE_CONTENT, PANEL_MOUSE_INSIDE_HEADER) &&
-        event->val == KM_PRESS) {
-      if (event->type == EVT_AKEY &&
-          ((event->ctrl + event->oskey + event->shift + event->alt) == 0)) {
-
-        if (panel->flag & PNL_CLOSED) {
-          if ((block->rect.ymax <= my) && (block->rect.ymax + PNL_HEADER >= my)) {
-            ui_handle_panel_header(C, block, mx, event->type, event->ctrl, event->shift);
-          }
-        }
-        else {
-          ui_handle_panel_header(C, block, mx, event->type, event->ctrl, event->shift);
-        }
-
+    /* The panel collapse / expand key "A" is special as it takes priority over
+     * active button handling. */
+    if (ELEM(mouse_state, PANEL_MOUSE_INSIDE_CONTENT, PANEL_MOUSE_INSIDE_HEADER)) {
+      if (event->type == EVT_AKEY && !IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
         retval = WM_UI_HANDLER_BREAK;
+        ui_handle_panel_header(C, block, mx, event->type, event->ctrl, event->shift);
         continue;
       }
     }
 
-    /* on active button, do not handle panels */
+    /* Don't do any other panel handling with an active button. */
     if (ui_region_find_active_but(region) != NULL) {
       continue;
     }
 
-    if (ELEM(mouse_state, PANEL_MOUSE_INSIDE_CONTENT, PANEL_MOUSE_INSIDE_HEADER)) {
+    /* All mouse clicks inside panels should return in break, but continue handling
+     * in case there is a subpanel header at the mouse location. */
+    if (event->type == LEFTMOUSE &&
+        ELEM(mouse_state, PANEL_MOUSE_INSIDE_CONTENT, PANEL_MOUSE_INSIDE_HEADER)) {
+      retval = WM_UI_HANDLER_BREAK;
+    }
 
-      if (event->val == KM_PRESS) {
-
-        /* open close on header */
-        if (ELEM(event->type, EVT_RETKEY, EVT_PADENTER)) {
-          if (mouse_state == PANEL_MOUSE_INSIDE_HEADER) {
-            ui_handle_panel_header(C, block, mx, EVT_RETKEY, event->ctrl, event->shift);
-            retval = WM_UI_HANDLER_BREAK;
-            break;
-          }
-        }
-        else if (event->type == LEFTMOUSE) {
-          /* all inside clicks should return in break - overlapping/float panels */
-          retval = WM_UI_HANDLER_BREAK;
-
-          if (mouse_state == PANEL_MOUSE_INSIDE_HEADER) {
-            ui_handle_panel_header(C, block, mx, event->type, event->ctrl, event->shift);
-            retval = WM_UI_HANDLER_BREAK;
-            break;
-          }
-          if ((mouse_state == PANEL_MOUSE_INSIDE_SCALE) && !(panel->flag & PNL_CLOSED)) {
-            panel_activate_state(C, panel, PANEL_STATE_DRAG_SCALE);
-            retval = WM_UI_HANDLER_BREAK;
-            break;
-          }
-        }
-        else if (event->type == RIGHTMOUSE) {
-          if (mouse_state == PANEL_MOUSE_INSIDE_HEADER) {
-            ui_popup_context_menu_for_panel(C, region, block->panel);
-            retval = WM_UI_HANDLER_BREAK;
-            break;
-          }
-        }
+    if (mouse_state == PANEL_MOUSE_INSIDE_HEADER) {
+      if (ELEM(event->type, EVT_RETKEY, EVT_PADENTER, LEFTMOUSE)) {
+        retval = WM_UI_HANDLER_BREAK;
+        ui_handle_panel_header(C, block, mx, event->type, event->ctrl, event->shift);
       }
+      else if (event->type == RIGHTMOUSE) {
+        retval = WM_UI_HANDLER_BREAK;
+        ui_popup_context_menu_for_panel(C, region, block->panel);
+      }
+      break;
     }
   }
 
