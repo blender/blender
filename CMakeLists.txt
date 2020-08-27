@@ -1571,6 +1571,12 @@ endif()
 
 if(MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
+  # Make MSVC properly report the value of the __cplusplus preprocessor macro
+  # Available MSVC 15.7 (1914) and up, without this it reports 199711L regardless
+  # of the C++ standard chosen above 
+  if(MSVC_VERSION GREATER 1913)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus")
+  endif()
 elseif(
   CMAKE_COMPILER_IS_GNUCC OR
   CMAKE_C_COMPILER_ID MATCHES "Clang" OR
