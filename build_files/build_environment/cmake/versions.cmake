@@ -312,6 +312,7 @@ set(NASM_HASH f4fd1329b1713e1ccd34b2fc121c4bcd278c9f91cc4cb205ae8fcd2e4728dd14)
 set(XR_OPENXR_SDK_VERSION 1.0.8)
 set(XR_OPENXR_SDK_URI https://github.com/KhronosGroup/OpenXR-SDK/archive/release-${XR_OPENXR_SDK_VERSION}.tar.gz)
 set(XR_OPENXR_SDK_HASH c6de63d2e0f9029aa58dfa97cad8ce07)
+
 set(ISPC_VERSION v1.13.0)
 set(ISPC_URI https://github.com/ispc/ispc/archive/${ISPC_VERSION}.tar.gz)
 set(ISPC_HASH 4bf5e8d0020c4b9980faa702c1a6f25f)
