@@ -36,6 +36,8 @@ class AlembicExportTest : public testing::Test {
 
     bmain = BKE_main_new();
 
+    DEG_register_node_types();
+
     /* TODO(sergey): Pass scene layer somehow? */
     ViewLayer *view_layer = (ViewLayer *)scene.view_layers.first;
     depsgraph = DEG_graph_new(bmain, &scene, view_layer, DAG_EVAL_RENDER);
@@ -45,6 +47,7 @@ class AlembicExportTest : public testing::Test {
   {
     BKE_main_free(bmain);
     DEG_graph_free(depsgraph);
+    DEG_free_node_types();
     deleteArchive();
   }
 
