@@ -2410,7 +2410,7 @@ int ui_handler_panel_region(bContext *C,
       if (event->type == EVT_AKEY && !IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
         retval = WM_UI_HANDLER_BREAK;
         ui_handle_panel_header(C, block, mx, event->type, event->ctrl, event->shift);
-        continue;
+        break;
       }
     }
 
