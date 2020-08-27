@@ -46,6 +46,7 @@
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
 #include "BKE_workspace.h"
@@ -193,12 +194,17 @@ static void do_outliner_item_posemode_toggle(
   }
   else {
     bool ok = false;
-    if (ob->mode & OB_MODE_POSE) {
+
+    if (ID_IS_LINKED(ob)) {
+      BKE_report(CTX_wm_reports(C), RPT_WARNING, "Cannot pose libdata");
+    }
+    else if (ob->mode & OB_MODE_POSE) {
       ok = ED_object_posemode_exit_ex(bmain, ob);
     }
     else {
       ok = ED_object_posemode_enter_ex(bmain, ob);
     }
+
     if (ok) {
       ED_object_base_select(base, (ob->mode & OB_MODE_POSE) ? BA_SELECT : BA_DESELECT);
 
