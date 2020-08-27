@@ -191,6 +191,12 @@ if(WITH_BUILDINFO)
     message(FATAL_ERROR "File \"${buildinfo_h_fake}\" found, this should never be created, remove!")
   endif()
 
+  # From the cmake documentation "If the output of the custom command is not actually created as a
+  # file on disk it should be marked with the SYMBOLIC source file property."
+  #
+  # Not doing this leads to build warnings for the not generated file on windows when using msbuild
+  SET_SOURCE_FILES_PROPERTIES(${buildinfo_h_fake} PROPERTIES SYMBOLIC TRUE)
+
   # a custom target that is always built
   add_custom_target(buildinfo ALL
     DEPENDS ${buildinfo_h_fake})
