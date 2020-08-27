@@ -1996,10 +1996,8 @@ static void blo_cache_storage_entry_register(ID *id,
 }
 
 /** Restore a cache data entry from old ID into new one, when reading some undo memfile. */
-static void blo_cache_storage_entry_restore_in_new(ID *UNUSED(id),
-                                                   const IDCacheKey *key,
-                                                   void **cache_p, uint flags,
-                                                   void *cache_storage_v)
+static void blo_cache_storage_entry_restore_in_new(
+    ID *UNUSED(id), const IDCacheKey *key, void **cache_p, uint flags, void *cache_storage_v)
 {
   BLOCacheStorage *cache_storage = cache_storage_v;
 
