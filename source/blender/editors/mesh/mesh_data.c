@@ -1014,6 +1014,10 @@ static int mesh_customdata_custom_splitnormals_clear_exec(bContext *C, wmOperato
   Mesh *me = ED_mesh_context(C);
 
   if (BKE_mesh_has_custom_loop_normals(me)) {
+    BMEditMesh *em = me->edit_mesh;
+    if (em != NULL && em->bm->lnor_spacearr != NULL) {
+      BKE_lnor_spacearr_clear(em->bm->lnor_spacearr);
+    }
     return mesh_customdata_clear_exec__internal(C, BM_LOOP, CD_CUSTOMLOOPNORMAL);
   }
   return OPERATOR_CANCELLED;
