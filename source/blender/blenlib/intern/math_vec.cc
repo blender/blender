@@ -146,6 +146,7 @@ double3 double3::cross_poly(Span<double3> poly)
   return n;
 }
 
+#ifdef WITH_GMP
 mpq3 mpq3::cross_poly(Span<mpq3> poly)
 {
   /* Newell's Method. */
@@ -189,5 +190,6 @@ uint64_t mpq3::hash() const
   uint64_t hashz = hash_mpq_class(this->z);
   return hashx ^ (hashy * 33) ^ (hashz * 33 * 37);
 }
+#endif
 
 }  // namespace blender

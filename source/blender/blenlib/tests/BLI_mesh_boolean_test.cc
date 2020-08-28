@@ -15,6 +15,7 @@
 #include "BLI_mpq3.hh"
 #include "BLI_vector.hh"
 
+#ifdef WITH_GMP
 namespace blender::meshintersect::tests {
 
 constexpr bool DO_OBJ = false;
@@ -906,3 +907,4 @@ TEST(boolean_polymesh, CubePlane)
 }
 
 }  // namespace blender::meshintersect::tests
+#endif

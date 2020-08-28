@@ -18,6 +18,7 @@
 #define DO_REGULAR_TESTS 1
 #define DO_PERF_TESTS 0
 
+#ifdef WITH_GMP
 namespace blender::meshintersect::tests {
 
 constexpr bool DO_OBJ = false;
@@ -1070,3 +1071,4 @@ TEST(mesh_intersect_perf, SphereGrid)
 #endif
 
 }  // namespace blender::meshintersect::tests
+#endif
