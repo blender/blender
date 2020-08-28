@@ -23,6 +23,9 @@
 
 #include "MEM_guardedalloc.h"
 
+/* allow using deprecated functionality for .blend file I/O */
+#define DNA_DEPRECATED_ALLOW
+
 #include "DNA_defaults.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
@@ -32,6 +35,7 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_edgehash.h"
+#include "BLI_endian_switch.h"
 #include "BLI_ghash.h"
 #include "BLI_hash.h"
 #include "BLI_linklist.h"
@@ -43,6 +47,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_anim_data.h"
+#include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
@@ -62,6 +67,8 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
+
+#include "BLO_read_write.h"
 
 static void mesh_clear_geometry(Mesh *mesh);
 static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata);
@@ -163,6 +170,158 @@ static void mesh_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  Mesh *mesh = (Mesh *)id;
+  if (mesh->id.us > 0 || BLO_write_is_undo(writer)) {
+    /* cache only - don't write */
+    mesh->mface = NULL;
+    mesh->totface = 0;
+    memset(&mesh->fdata, 0, sizeof(mesh->fdata));
+    memset(&mesh->runtime, 0, sizeof(mesh->runtime));
+
+    BLO_write_id_struct(writer, Mesh, id_address, &mesh->id);
+    BKE_id_blend_write(writer, &mesh->id);
+
+    /* direct data */
+    if (mesh->adt) {
+      BKE_animdata_blend_write(writer, mesh->adt);
+    }
+
+    BLO_write_pointer_array(writer, mesh->totcol, mesh->mat);
+    BLO_write_raw(writer, sizeof(MSelect) * mesh->totselect, mesh->mselect);
+
+    CustomData_blend_write(writer, &mesh->vdata, mesh->totvert, CD_MASK_MESH.vmask, &mesh->id);
+    CustomData_blend_write(writer, &mesh->edata, mesh->totedge, CD_MASK_MESH.emask, &mesh->id);
+    /* fdata is really a dummy - written so slots align */
+    CustomData_blend_write(writer, &mesh->fdata, mesh->totface, CD_MASK_MESH.fmask, &mesh->id);
+    CustomData_blend_write(writer, &mesh->ldata, mesh->totloop, CD_MASK_MESH.lmask, &mesh->id);
+    CustomData_blend_write(writer, &mesh->pdata, mesh->totpoly, CD_MASK_MESH.pmask, &mesh->id);
+  }
+}
+
+static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  Mesh *mesh = (Mesh *)id;
+  BLO_read_pointer_array(reader, (void **)&mesh->mat);
+
+  BLO_read_data_address(reader, &mesh->mvert);
+  BLO_read_data_address(reader, &mesh->medge);
+  BLO_read_data_address(reader, &mesh->mface);
+  BLO_read_data_address(reader, &mesh->mloop);
+  BLO_read_data_address(reader, &mesh->mpoly);
+  BLO_read_data_address(reader, &mesh->tface);
+  BLO_read_data_address(reader, &mesh->mtface);
+  BLO_read_data_address(reader, &mesh->mcol);
+  BLO_read_data_address(reader, &mesh->dvert);
+  BLO_read_data_address(reader, &mesh->mloopcol);
+  BLO_read_data_address(reader, &mesh->mloopuv);
+  BLO_read_data_address(reader, &mesh->mselect);
+
+  /* animdata */
+  BLO_read_data_address(reader, &mesh->adt);
+  BKE_animdata_blend_read_data(reader, mesh->adt);
+
+  /* Normally BKE_defvert_blend_read should be called in CustomData_blend_read,
+   * but for backwards compatibility in do_versions to work we do it here. */
+  BKE_defvert_blend_read(reader, mesh->totvert, mesh->dvert);
+
+  CustomData_blend_read(reader, &mesh->vdata, mesh->totvert);
+  CustomData_blend_read(reader, &mesh->edata, mesh->totedge);
+  CustomData_blend_read(reader, &mesh->fdata, mesh->totface);
+  CustomData_blend_read(reader, &mesh->ldata, mesh->totloop);
+  CustomData_blend_read(reader, &mesh->pdata, mesh->totpoly);
+
+  mesh->texflag &= ~ME_AUTOSPACE_EVALUATED;
+  mesh->edit_mesh = NULL;
+  BKE_mesh_runtime_reset(mesh);
+
+  /* happens with old files */
+  if (mesh->mselect == NULL) {
+    mesh->totselect = 0;
+  }
+
+  /* Multires data */
+  BLO_read_data_address(reader, &mesh->mr);
+  if (mesh->mr) {
+    BLO_read_list(reader, &mesh->mr->levels);
+    MultiresLevel *lvl = mesh->mr->levels.first;
+
+    CustomData_blend_read(reader, &mesh->mr->vdata, lvl->totvert);
+    BKE_defvert_blend_read(
+        reader, lvl->totvert, CustomData_get(&mesh->mr->vdata, 0, CD_MDEFORMVERT));
+    CustomData_blend_read(reader, &mesh->mr->fdata, lvl->totface);
+
+    BLO_read_data_address(reader, &mesh->mr->edge_flags);
+    BLO_read_data_address(reader, &mesh->mr->edge_creases);
+
+    BLO_read_data_address(reader, &mesh->mr->verts);
+
+    /* If mesh has the same number of vertices as the
+     * highest multires level, load the current mesh verts
+     * into multires and discard the old data. Needed
+     * because some saved files either do not have a verts
+     * array, or the verts array contains out-of-date
+     * data. */
+    if (mesh->totvert == ((MultiresLevel *)mesh->mr->levels.last)->totvert) {
+      if (mesh->mr->verts) {
+        MEM_freeN(mesh->mr->verts);
+      }
+      mesh->mr->verts = MEM_dupallocN(mesh->mvert);
+    }
+
+    for (; lvl; lvl = lvl->next) {
+      BLO_read_data_address(reader, &lvl->verts);
+      BLO_read_data_address(reader, &lvl->faces);
+      BLO_read_data_address(reader, &lvl->edges);
+      BLO_read_data_address(reader, &lvl->colfaces);
+    }
+  }
+
+  /* if multires is present but has no valid vertex data,
+   * there's no way to recover it; silently remove multires */
+  if (mesh->mr && !mesh->mr->verts) {
+    multires_free(mesh->mr);
+    mesh->mr = NULL;
+  }
+
+  if ((BLO_read_requires_endian_switch(reader)) && mesh->tface) {
+    TFace *tf = mesh->tface;
+    for (int i = 0; i < mesh->totface; i++, tf++) {
+      BLI_endian_switch_uint32_array(tf->col, 4);
+    }
+  }
+}
+
+static void mesh_blend_read_lib(BlendLibReader *reader, ID *id)
+{
+  Mesh *me = (Mesh *)id;
+  /* this check added for python created meshes */
+  if (me->mat) {
+    for (int i = 0; i < me->totcol; i++) {
+      BLO_read_id_address(reader, me->id.lib, &me->mat[i]);
+    }
+  }
+  else {
+    me->totcol = 0;
+  }
+
+  BLO_read_id_address(reader, me->id.lib, &me->ipo);  // XXX: deprecated: old anim sys
+  BLO_read_id_address(reader, me->id.lib, &me->key);
+  BLO_read_id_address(reader, me->id.lib, &me->texcomesh);
+}
+
+static void mesh_read_expand(BlendExpander *expander, ID *id)
+{
+  Mesh *me = (Mesh *)id;
+  for (int a = 0; a < me->totcol; a++) {
+    BLO_expand(expander, me->mat[a]);
+  }
+
+  BLO_expand(expander, me->key);
+  BLO_expand(expander, me->texcomesh);
+}
+
 IDTypeInfo IDType_ID_ME = {
     .id_code = ID_ME,
     .id_filter = FILTER_ID_ME,
@@ -180,10 +339,10 @@ IDTypeInfo IDType_ID_ME = {
     .foreach_id = mesh_foreach_id,
     .foreach_cache = NULL,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
-    .blend_read_lib = NULL,
-    .blend_read_expand = NULL,
+    .blend_write = mesh_blend_write,
+    .blend_read_data = mesh_blend_read_data,
+    .blend_read_lib = mesh_blend_read_lib,
+    .blend_read_expand = mesh_read_expand,
 };
 
 enum {

@@ -59,6 +59,8 @@ struct Main;
 struct PointerRNA;
 struct PropertyRNA;
 struct bContext;
+struct BlendWriter;
+struct BlendDataReader;
 
 size_t BKE_libblock_get_alloc_info(short type, const char **name);
 void *BKE_libblock_alloc_notest(short type) ATTR_WARN_UNUSED_RESULT;
@@ -284,6 +286,8 @@ bool BKE_id_is_in_global_main(struct ID *id);
 
 void BKE_id_ordered_list(struct ListBase *ordered_lb, const struct ListBase *lb);
 void BKE_id_reorder(const struct ListBase *lb, struct ID *id, struct ID *relative, bool after);
+
+void BKE_id_blend_write(struct BlendWriter *writer, struct ID *id);
 
 #define IS_TAGGED(_id) ((_id) && (((ID *)_id)->tag & LIB_TAG_DOIT))
 
