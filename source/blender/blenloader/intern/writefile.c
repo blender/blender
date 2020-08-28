@@ -1758,29 +1758,6 @@ static void write_curve(BlendWriter *writer, Curve *cu, const void *id_address)
   }
 }
 
-static void write_lattice(BlendWriter *writer, Lattice *lt, const void *id_address)
-{
-  if (lt->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-    lt->editlatt = NULL;
-    lt->batch_cache = NULL;
-
-    /* write LibData */
-    BLO_write_id_struct(writer, Lattice, id_address, &lt->id);
-    BKE_id_blend_write(writer, &lt->id);
-
-    /* write animdata */
-    if (lt->adt) {
-      BKE_animdata_blend_write(writer, lt->adt);
-    }
-
-    /* direct data */
-    BLO_write_struct_array(writer, BPoint, lt->pntsu * lt->pntsv * lt->pntsw, lt->def);
-
-    BKE_defvert_blend_write(writer, lt->pntsu * lt->pntsv * lt->pntsw, lt->dvert);
-  }
-}
-
 static void write_image(BlendWriter *writer, Image *ima, const void *id_address)
 {
   if (ima->id.us > 0 || BLO_write_is_undo(writer)) {
@@ -3684,9 +3661,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_LA:
             write_light(&writer, (Light *)id_buffer, id);
             break;
-          case ID_LT:
-            write_lattice(&writer, (Lattice *)id_buffer, id);
-            break;
           case ID_VF:
             write_vfont(&writer, (VFont *)id_buffer, id);
             break;
@@ -3763,6 +3737,7 @@ static bool write_file_handle(Main *mainvar,
             write_simulation(&writer, (Simulation *)id_buffer, id);
             break;
           case ID_ME:
+          case ID_LT:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:

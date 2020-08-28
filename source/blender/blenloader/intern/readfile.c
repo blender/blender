@@ -4112,32 +4112,6 @@ static void direct_link_particlesystems(BlendDataReader *reader, ListBase *parti
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Lattice
- * \{ */
-
-static void lib_link_latt(BlendLibReader *reader, Lattice *lt)
-{
-  BLO_read_id_address(reader, lt->id.lib, &lt->ipo);  // XXX deprecated - old animation system
-  BLO_read_id_address(reader, lt->id.lib, &lt->key);
-}
-
-static void direct_link_latt(BlendDataReader *reader, Lattice *lt)
-{
-  BLO_read_data_address(reader, &lt->def);
-
-  BLO_read_data_address(reader, &lt->dvert);
-  BKE_defvert_blend_read(reader, lt->pntsu * lt->pntsv * lt->pntsw, lt->dvert);
-
-  lt->editlatt = NULL;
-  lt->batch_cache = NULL;
-
-  BLO_read_data_address(reader, &lt->adt);
-  BKE_animdata_blend_read_data(reader, lt->adt);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: Object
  * \{ */
 
@@ -8079,9 +8053,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_KE:
       direct_link_key(&reader, (Key *)id);
       break;
-    case ID_LT:
-      direct_link_latt(&reader, (Lattice *)id);
-      break;
     case ID_WO:
       direct_link_world(&reader, (World *)id);
       break;
@@ -8155,6 +8126,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
       direct_link_simulation(&reader, (Simulation *)id);
       break;
     case ID_ME:
+    case ID_LT:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -8820,9 +8792,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_LA:
         lib_link_light(&reader, (Light *)id);
         break;
-      case ID_LT:
-        lib_link_latt(&reader, (Lattice *)id);
-        break;
       case ID_MB:
         lib_link_mball(&reader, (MetaBall *)id);
         break;
@@ -8883,6 +8852,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
         lib_link_library(&reader, (Library *)id); /* Only init users. */
         break;
       case ID_ME:
+      case ID_LT:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -9699,12 +9669,6 @@ static void expand_light(BlendExpander *expander, Light *la)
   BLO_expand(expander, la->ipo);  // XXX deprecated - old animation system
 }
 
-static void expand_lattice(BlendExpander *expander, Lattice *lt)
-{
-  BLO_expand(expander, lt->ipo);  // XXX deprecated - old animation system
-  BLO_expand(expander, lt->key);
-}
-
 static void expand_world(BlendExpander *expander, World *wrld)
 {
   BLO_expand(expander, wrld->ipo);  // XXX deprecated - old animation system
@@ -10184,9 +10148,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_WO:
               expand_world(&expander, (World *)id);
-              break;
-            case ID_LT:
-              expand_lattice(&expander, (Lattice *)id);
               break;
             case ID_LA:
               expand_light(&expander, (Light *)id);
