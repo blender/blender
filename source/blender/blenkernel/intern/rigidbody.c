@@ -229,6 +229,23 @@ void BKE_rigidbody_free_constraint(Object *ob)
   ob->rigidbody_constraint = NULL;
 }
 
+bool BKE_rigidbody_is_affected_by_simulation(Object *ob)
+{
+  /* Check if the object will have its transform changed by the rigidbody simulation. */
+
+  /* True if the shape of this object's parent is of type compound */
+  bool obCompoundParent = (ob->parent != NULL && ob->parent->rigidbody_object != NULL &&
+                           ob->parent->rigidbody_object->shape == RB_SHAPE_COMPOUND);
+
+  RigidBodyOb *rbo = ob->rigidbody_object;
+  if (rbo == NULL || rbo->flag & RBO_FLAG_KINEMATIC || rbo->type == RBO_TYPE_PASSIVE ||
+      obCompoundParent) {
+    return false;
+  }
+
+  return true;
+}
+
 #ifdef WITH_BULLET
 
 /* Copying Methods --------------------- */
@@ -1899,23 +1916,6 @@ static void rigidbody_update_simulation_post_step(Depsgraph *depsgraph, RigidBod
 bool BKE_rigidbody_check_sim_running(RigidBodyWorld *rbw, float ctime)
 {
   return (rbw && (rbw->flag & RBW_FLAG_MUTED) == 0 && ctime > rbw->shared->pointcache->startframe);
-}
-
-bool BKE_rigidbody_is_affected_by_simulation(Object *ob)
-{
-  /* Check if the object will have its transform changed by the rigidbody simulation. */
-
-  /* True if the shape of this object's parent is of type compound */
-  bool obCompoundParent = (ob->parent != NULL && ob->parent->rigidbody_object != NULL &&
-                           ob->parent->rigidbody_object->shape == RB_SHAPE_COMPOUND);
-
-  RigidBodyOb *rbo = ob->rigidbody_object;
-  if (rbo == NULL || rbo->flag & RBO_FLAG_KINEMATIC || rbo->type == RBO_TYPE_PASSIVE ||
-      obCompoundParent) {
-    return false;
-  }
-
-  return true;
 }
 
 /* Sync rigid body and object transformations */
