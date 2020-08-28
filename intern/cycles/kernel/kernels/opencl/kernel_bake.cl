@@ -12,12 +12,11 @@
 
 __kernel void kernel_ocl_bake(
 	ccl_constant KernelData *data,
-	ccl_global uint4 *input,
-	ccl_global float4 *output,
+	ccl_global float *buffer,
 
 	KERNEL_BUFFER_PARAMS,
 
-	int type, int filter, int sx, int sw, int offset, int sample)
+	int sx, int sy, int sw, int sh, int offset, int stride, int sample)
 {
 	KernelGlobals kglobals, *kg = &kglobals;
 
@@ -27,12 +26,11 @@ __kernel void kernel_ocl_bake(
 	kernel_set_buffer_info(kg);
 
 	int x = sx + ccl_global_id(0);
+	int y = sy + ccl_global_id(1);
 
-	if(x < sx + sw) {
-#ifdef __NO_BAKING__
-		output[x] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-#else
-		kernel_bake_evaluate(kg, input, output, (ShaderEvalType)type, filter, x, offset, sample);
+	if(x < sx + sw && y < sy + sh) {
+#ifndef __NO_BAKING__
+		kernel_bake_evaluate(kg, buffer, sample, x, y, offset, stride);
 #endif
 	}
 }
