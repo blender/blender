@@ -64,7 +64,9 @@
 
 #include "interface_intern.h"
 
-/*********************** defines and structs ************************/
+/* -------------------------------------------------------------------- */
+/** \name Defines & Structs
+ * \{ */
 
 #define ANIMATION_TIME 0.30
 #define ANIMATION_INTERVAL 0.02
@@ -116,6 +118,12 @@ static int compare_panel(const void *a1, const void *a2);
 static bool panel_type_context_poll(ARegion *region,
                                     const PanelType *panel_type,
                                     const char *context);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Local Functions
+ * \{ */
 
 static void panel_title_color_get(bool show_background, uchar color[4])
 {
@@ -206,7 +214,11 @@ static bool panels_need_realign(ScrArea *area, ARegion *region, Panel **r_panel_
   return false;
 }
 
-/********* Functions for instanced panels. ***********/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Functions for Instanced Panels
+ * \{ */
 
 static Panel *UI_panel_add_instanced_ex(ARegion *region,
                                         ListBase *panels,
@@ -561,7 +573,11 @@ static void set_panels_list_data_expand_flag(const bContext *C, const ARegion *r
   }
 }
 
-/****************************** panels ******************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Panels
+ * \{ */
 
 /**
  * Set flag state for a panel and its sub-panels.
@@ -798,7 +814,11 @@ static void ui_offset_panel_block(uiBlock *block)
   block->rect.xmin = block->rect.ymin = 0.0;
 }
 
-/**************************** drawing *******************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Drawing
+ * \{ */
 
 /* triangle 'icon' for panel header */
 void UI_draw_icon_tri(float x, float y, char dir, const float color[4])
@@ -1093,7 +1113,11 @@ void ui_draw_aligned_panel(const uiStyle *style,
   }
 }
 
-/********************** category drawing ***************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Category Drawing (Tabs)
+ * \{ */
 
 static void imm_buf_append(
     float vbuf[][2], uchar cbuf[][3], float x, float y, const uchar col[3], int *index)
@@ -1511,7 +1535,11 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
 #undef USE_FLAT_INACTIVE
 }
 
-/************************** panel alignment *************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Panel Alignment
+ * \{ */
 
 static int get_panel_size_y(const Panel *panel)
 {
@@ -1886,7 +1914,11 @@ void UI_panels_scale(ARegion *region, float new_width)
   }
 }
 
-/************************ panel dragging ****************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Panel Dragging
+ * \{ */
 
 #define DRAG_REGION_PAD (PNL_HEADER * 0.5)
 static void ui_do_drag(const bContext *C, const wmEvent *event, Panel *panel)
@@ -1932,7 +1964,11 @@ static void ui_do_drag(const bContext *C, const wmEvent *event, Panel *panel)
 }
 #undef DRAG_REGION_PAD
 
-/******************* region level panel interaction *****************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Region Level Panel Interaction
+ * \{ */
 
 static uiPanelMouseState ui_panel_mouse_state_get(const uiBlock *block,
                                                   const Panel *panel,
@@ -2500,7 +2536,11 @@ PointerRNA *UI_region_panel_custom_data_under_cursor(const bContext *C, const wm
   return customdata;
 }
 
-/**************** window level modal panel interaction **************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Window Level Modal Panel Interaction
+ * \{ */
 
 /* note, this is modal handler and should not swallow events for animation */
 static int ui_handler_panel(bContext *C, const wmEvent *event, void *userdata)
@@ -2625,3 +2665,5 @@ PanelType *UI_paneltype_find(int space_id, int region_id, const char *idname)
   }
   return NULL;
 }
+
+/** \} */
