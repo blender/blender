@@ -1901,20 +1901,32 @@ bool BKE_rigidbody_check_sim_running(RigidBodyWorld *rbw, float ctime)
   return (rbw && (rbw->flag & RBW_FLAG_MUTED) == 0 && ctime > rbw->shared->pointcache->startframe);
 }
 
-/* Sync rigid body and object transformations */
-void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime)
+bool BKE_rigidbody_is_affected_by_simulation(Object *ob)
 {
-  RigidBodyOb *rbo = ob->rigidbody_object;
+  /* Check if the object will have its transform changed by the rigidbody simulation. */
 
   /* True if the shape of this object's parent is of type compound */
   bool obCompoundParent = (ob->parent != NULL && ob->parent->rigidbody_object != NULL &&
                            ob->parent->rigidbody_object->shape == RB_SHAPE_COMPOUND);
 
-  /* keep original transform for kinematic and passive objects */
-  if (ELEM(NULL, rbw, rbo) || rbo->flag & RBO_FLAG_KINEMATIC || rbo->type == RBO_TYPE_PASSIVE ||
+  RigidBodyOb *rbo = ob->rigidbody_object;
+  if (rbo == NULL || rbo->flag & RBO_FLAG_KINEMATIC || rbo->type == RBO_TYPE_PASSIVE ||
       obCompoundParent) {
+    return false;
+  }
+
+  return true;
+}
+
+/* Sync rigid body and object transformations */
+void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime)
+{
+  if (!BKE_rigidbody_is_affected_by_simulation(ob)) {
+    /* Don't sync transforms for objects that are not affected/changed by the simulation. */
     return;
   }
+
+  RigidBodyOb *rbo = ob->rigidbody_object;
 
   /* use rigid body transform after cache start frame if objects is not being transformed */
   if (BKE_rigidbody_check_sim_running(rbw, ctime) &&
@@ -1941,8 +1953,8 @@ void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime)
 void BKE_rigidbody_aftertrans_update(
     Object *ob, float loc[3], float rot[3], float quat[4], float rotAxis[3], float rotAngle)
 {
+  bool correct_delta = BKE_rigidbody_is_affected_by_simulation(ob);
   RigidBodyOb *rbo = ob->rigidbody_object;
-  bool correct_delta = !(rbo->flag & RBO_FLAG_KINEMATIC || rbo->type == RBO_TYPE_PASSIVE);
 
   /* return rigid body and object to their initial states */
   copy_v3_v3(rbo->pos, ob->loc);

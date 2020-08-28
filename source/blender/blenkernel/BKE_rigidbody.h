@@ -143,6 +143,7 @@ void BKE_rigidbody_aftertrans_update(struct Object *ob,
                                      float rotAngle);
 void BKE_rigidbody_sync_transforms(struct RigidBodyWorld *rbw, struct Object *ob, float ctime);
 bool BKE_rigidbody_check_sim_running(struct RigidBodyWorld *rbw, float ctime);
+bool BKE_rigidbody_is_affected_by_simulation(struct Object *ob);
 void BKE_rigidbody_cache_reset(struct RigidBodyWorld *rbw);
 void BKE_rigidbody_rebuild_world(struct Depsgraph *depsgraph, struct Scene *scene, float ctime);
 void BKE_rigidbody_do_simulation(struct Depsgraph *depsgraph, struct Scene *scene, float ctime);

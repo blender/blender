@@ -1703,9 +1703,6 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
       if (object->rigidbody_object == nullptr) {
         continue;
       }
-      if (object->rigidbody_object->type == RBO_TYPE_PASSIVE) {
-        continue;
-      }
 
       if (object->parent != nullptr && object->parent->rigidbody_object != nullptr &&
           object->parent->rigidbody_object->shape == RB_SHAPE_COMPOUND) {
@@ -1716,10 +1713,6 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
         continue;
       }
 
-      OperationKey rb_transform_copy_key(
-          &object->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_TRANSFORM_COPY);
-      /* Rigid body synchronization depends on the actual simulation. */
-      add_relation(rb_simulate_key, rb_transform_copy_key, "Rigidbody Sim Eval -> RBO Sync");
       /* Simulation uses object transformation after parenting and solving constraints. */
       OperationKey object_transform_simulation_init_key(
           &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_SIMULATION_INIT);
@@ -1737,47 +1730,27 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
         ComponentKey object_geometry_key(&object->id, NodeType::GEOMETRY);
         add_relation(object_geometry_key,
                      rb_simulate_key,
-                     "Object Geom Eval -> Rigidbody Rebuild",
+                     "Object Geom Eval -> Rigidbody Sim Eval",
                      RELATION_FLAG_GODMODE);
       }
+
       /* Final transform is whetever solver gave to us. */
-      OperationKey object_transform_final_key(
-          &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL);
-      add_relation(
-          rb_transform_copy_key, object_transform_final_key, "Rigidbody Sync -> Transform Final");
-    }
-    FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
-  }
-  /* Constraints. */
-  if (rbw->constraints != nullptr) {
-    FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (rbw->constraints, object) {
-      RigidBodyCon *rbc = object->rigidbody_constraint;
-      if (rbc == nullptr || rbc->ob1 == nullptr || rbc->ob2 == nullptr) {
-        /* When either ob1 or ob2 is nullptr, the constraint doesn't
-         * work. */
-        continue;
+      if (BKE_rigidbody_is_affected_by_simulation(object)) {
+        /* We do not have to update the objects final transform after the simulation if it is
+         * passive or controlled by the animation system in blender.
+         * (Bullet doesn't move the object at all in these cases)
+         */
+        OperationKey rb_transform_copy_key(
+            &object->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_TRANSFORM_COPY);
+        /* Rigid body synchronization depends on the actual simulation. */
+        add_relation(rb_simulate_key, rb_transform_copy_key, "Rigidbody Sim Eval -> RBO Sync");
+
+        OperationKey object_transform_final_key(
+            &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL);
+        add_relation(rb_transform_copy_key,
+                     object_transform_final_key,
+                     "Rigidbody Sync -> Transform Final");
       }
-      /* Make sure indirectly linked objects are fully built. */
-      build_object(object);
-      build_object(rbc->ob1);
-      build_object(rbc->ob2);
-      /* final result of the constraint object's transform controls how
-       * the constraint affects the physics sim for these objects. */
-      ComponentKey trans_key(&object->id, NodeType::TRANSFORM);
-      if (rbc->ob1->rigidbody_object->type == RBO_TYPE_ACTIVE) {
-        OperationKey ob1_key(
-            &rbc->ob1->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_TRANSFORM_COPY);
-        /* Constrained-objects sync depends on the constraint-holder. */
-        add_relation(trans_key, ob1_key, "RigidBodyConstraint -> RBC.Object_1");
-      }
-      if (rbc->ob2->rigidbody_object->type == RBO_TYPE_ACTIVE) {
-        OperationKey ob2_key(
-            &rbc->ob2->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_TRANSFORM_COPY);
-        /* Constrained-objects sync depends on the constraint-holder. */
-        add_relation(trans_key, ob2_key, "RigidBodyConstraint -> RBC.Object_2");
-      }
-      /* Ensure that sim depends on this constraint's transform. */
-      add_relation(trans_key, rb_simulate_key, "RigidBodyConstraint Transform -> RB Simulation");
     }
     FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
   }
