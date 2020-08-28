@@ -161,7 +161,12 @@ void outliner_item_openclose(SpaceOutliner *space_outliner,
     return;
   }
 
+  /* Don't allow collapsing the scene collection. */
   TreeStoreElem *tselem = TREESTORE(te);
+  if (tselem->type == TSE_VIEW_COLLECTION_BASE) {
+    return;
+  }
+
   if (open) {
     tselem->flag &= ~TSE_CLOSED;
   }
