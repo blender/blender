@@ -1825,37 +1825,35 @@ void ui_draw_but_UNITVEC(uiBut *but, const uiWidgetColors *wcol, const rcti *rec
   immUnbindProgram();
 }
 
-static void ui_draw_but_curve_grid(
-    uint pos, const rcti *rect, float zoomx, float zoomy, float offsx, float offsy, float step)
+static void ui_draw_but_curve_grid(const uint pos,
+                                   const rcti *rect,
+                                   const float zoom_x,
+                                   const float zoom_y,
+                                   const float offset_x,
+                                   const float offset_y,
+                                   const float step)
 {
-  const float dx = step * zoomx;
-  float fx = rect->xmin + zoomx * (-offsx);
-  if (fx > rect->xmin) {
-    fx -= dx * (floorf(fx - rect->xmin));
+  const float start_x = (ceilf(offset_x / step) * step - offset_x) * zoom_x + rect->xmin;
+  const float start_y = (ceilf(offset_y / step) * step - offset_y) * zoom_y + rect->ymin;
+
+  const int line_count_x = ceilf((rect->xmax - start_x) / (step * zoom_x));
+  const int line_count_y = ceilf((rect->ymax - start_y) / (step * zoom_y));
+
+  if (line_count_x + line_count_y == 0) {
+    return;
   }
 
-  const float dy = step * zoomy;
-  float fy = rect->ymin + zoomy * (-offsy);
-  if (fy > rect->ymin) {
-    fy -= dy * (floorf(fy - rect->ymin));
+  immBegin(GPU_PRIM_LINES, (line_count_x + line_count_y) * 2);
+  for (int i = 0; i < line_count_x; i++) {
+    const float x = start_x + i * step * zoom_x;
+    immVertex2f(pos, x, rect->ymin);
+    immVertex2f(pos, x, rect->ymax);
   }
-
-  float line_count = (floorf((rect->xmax - fx) / dx) + 1.0f + floorf((rect->ymax - fy) / dy) +
-                      1.0f);
-
-  immBegin(GPU_PRIM_LINES, (int)line_count * 2);
-  while (fx <= rect->xmax) {
-    immVertex2f(pos, fx, rect->ymin);
-    immVertex2f(pos, fx, rect->ymax);
-    fx += dx;
+  for (int i = 0; i < line_count_y; i++) {
+    const float y = start_y + i * step * zoom_y;
+    immVertex2f(pos, rect->xmin, y);
+    immVertex2f(pos, rect->xmax, y);
   }
-  while (fy <= rect->ymax) {
-    immVertex2f(pos, rect->xmin, fy);
-    immVertex2f(pos, rect->xmax, fy);
-    fy += dy;
-  }
-  /* Note: Assertion fails with here when the view is moved farther below the center.
-   * Missing two points from the number given with immBegin. */
   immEnd();
 }
 
