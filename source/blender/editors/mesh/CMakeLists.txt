@@ -93,6 +93,10 @@ if(WITH_BULLET)
   add_definitions(-DWITH_BULLET)
 endif()
 
+if(WITH_GMP)
+  add_definitions(-DWITH_GMP)
+endif()
+
 add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_editor_mesh "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

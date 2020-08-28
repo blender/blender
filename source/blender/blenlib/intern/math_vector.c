@@ -669,6 +669,15 @@ void project_v3_v3v3(float out[3], const float p[3], const float v_proj[3])
   out[2] = mul * v_proj[2];
 }
 
+void project_v3_v3v3_db(double out[3], const double p[3], const double v_proj[3])
+{
+  const double mul = dot_v3v3_db(p, v_proj) / dot_v3v3_db(v_proj, v_proj);
+
+  out[0] = mul * v_proj[0];
+  out[1] = mul * v_proj[1];
+  out[2] = mul * v_proj[2];
+}
+
 /**
  * Project \a p onto a unit length \a v_proj
  */
@@ -790,6 +799,17 @@ void reflect_v3_v3v3(float out[3], const float v[3], const float normal[3])
   const float dot2 = 2.0f * dot_v3v3(v, normal);
 
   BLI_ASSERT_UNIT_V3(normal);
+
+  out[0] = v[0] - (dot2 * normal[0]);
+  out[1] = v[1] - (dot2 * normal[1]);
+  out[2] = v[2] - (dot2 * normal[2]);
+}
+
+void reflect_v3_v3v3_db(double out[3], const double v[3], const double normal[3])
+{
+  const double dot2 = 2.0 * dot_v3v3_db(v, normal);
+
+  /* BLI_ASSERT_UNIT_V3_DB(normal); this assert is not known? */
 
   out[0] = v[0] - (dot2 * normal[0]);
   out[1] = v[1] - (dot2 * normal[1]);

@@ -32,6 +32,7 @@ set(INC
 set(INC_SYS
   ${ZLIB_INCLUDE_DIRS}
   ${FREETYPE_INCLUDE_DIRS}
+  ${GMP_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -64,7 +65,7 @@ set(SRC
   intern/boxpack_2d.c
   intern/buffer.c
   intern/convexhull_2d.c
-  intern/delaunay_2d.c
+  intern/delaunay_2d.cc
   intern/dot_export.cc
   intern/dynlib.c
   intern/easing.c
@@ -89,6 +90,7 @@ set(SRC
   intern/math_base_inline.c
   intern/math_base_safe_inline.c
   intern/math_bits_inline.c
+  intern/math_boolean.cc
   intern/math_color.c
   intern/math_color_blend_inline.c
   intern/math_color_inline.c
@@ -99,9 +101,12 @@ set(SRC
   intern/math_rotation.c
   intern/math_solvers.c
   intern/math_statistics.c
+  intern/math_vec.cc
   intern/math_vector.c
   intern/math_vector_inline.c
   intern/memory_utils.c
+  intern/mesh_boolean.cc
+  intern/mesh_intersect.cc
   intern/noise.c
   intern/path_util.c
   intern/polyfill_2d.c
@@ -170,6 +175,8 @@ set(SRC
   BLI_dlrbTree.h
   BLI_dot_export.hh
   BLI_dot_export_attribute_enums.hh
+  BLI_double2.hh
+  BLI_double3.hh
   BLI_dynlib.h
   BLI_dynstr.h
   BLI_easing.h
@@ -214,11 +221,13 @@ set(SRC
   BLI_math_base.h
   BLI_math_base_safe.h
   BLI_math_bits.h
+  BLI_math_boolean.hh
   BLI_math_color.h
   BLI_math_color_blend.h
   BLI_math_geom.h
   BLI_math_inline.h
   BLI_math_interp.h
+  BLI_math_mpq.hh
   BLI_math_matrix.h
   BLI_math_rotation.h
   BLI_math_solvers.h
@@ -230,6 +239,10 @@ set(SRC
   BLI_memory_utils.h
   BLI_memory_utils.hh
   BLI_mempool.h
+  BLI_mesh_boolean.hh
+  BLI_mesh_intersect.hh
+  BLI_mpq2.hh
+  BLI_mpq3.hh
   BLI_noise.h
   BLI_path_util.h
   BLI_polyfill_2d.h
@@ -306,6 +319,18 @@ if(WITH_TBB)
   )
 endif()
 
+if(WITH_GMP)
+  add_definitions(-DWITH_GMP)
+
+  list(APPEND INC_SYS
+    ${GMP_INCLUDE_DIRS}
+  )
+
+  list(APPEND LIB
+    ${GMP_LIBRARIES}
+  )
+endif()
+
 if(WIN32)
   list(APPEND INC
     ../../../intern/utfconv
@@ -374,6 +399,8 @@ if(WITH_GTESTS)
     tests/BLI_math_vector_test.cc
     tests/BLI_memiter_test.cc
     tests/BLI_memory_utils_test.cc
+    tests/BLI_mesh_boolean_test.cc
+    tests/BLI_mesh_intersect_test.cc
     tests/BLI_multi_value_map_test.cc
     tests/BLI_path_util_test.cc
     tests/BLI_polyfill_2d_test.cc

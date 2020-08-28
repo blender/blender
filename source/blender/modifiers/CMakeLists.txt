@@ -171,6 +171,10 @@ if(WITH_CYCLES)
   add_definitions(-DWITH_CYCLES)
 endif()
 
+if(WITH_GMP)
+  add_definitions(-DWITH_GMP)
+endif()
+
 # So we can have special tricks in modifier system.
 add_definitions(${GL_DEFINITIONS})
 

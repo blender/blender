@@ -154,13 +154,13 @@ add_blender_test(
   --run-all-tests
 )
 
-add_blender_test(
-  bmesh_boolean
-  ${TEST_SRC_DIR}/modeling/bool_regression.blend
-  --python ${TEST_PYTHON_DIR}/boolean_operator.py
-  --
-  --run-all-tests
-)
+# add_blender_test(
+#  bmesh_boolean
+#  ${TEST_SRC_DIR}/modeling/bool_regression.blend
+#  --python ${TEST_PYTHON_DIR}/boolean_operator.py
+#  --
+#  --run-all-tests
+#)
 
 add_blender_test(
   bmesh_split_faces
@@ -176,13 +176,13 @@ add_blender_test(
   --python-text run_tests.py
 )
 
-add_blender_test(
-  modifiers
-  ${TEST_SRC_DIR}/modeling/modifiers.blend
-  --python ${TEST_PYTHON_DIR}/modifiers.py
-  --
-  --run-all-tests
-)
+#add_blender_test(
+#  modifiers
+#  ${TEST_SRC_DIR}/modeling/modifiers.blend
+#  --python ${TEST_PYTHON_DIR}/modifiers.py
+#  --
+#  --run-all-tests
+#)
 
 add_blender_test(
   physics_cloth

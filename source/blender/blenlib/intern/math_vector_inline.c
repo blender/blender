@@ -571,6 +571,13 @@ MINLINE void mul_v3_v3fl(float r[3], const float a[3], float f)
   r[2] = a[2] * f;
 }
 
+MINLINE void mul_v3_v3db_db(double r[3], const double a[3], double f)
+{
+  r[0] = a[0] * f;
+  r[1] = a[1] * f;
+  r[2] = a[2] * f;
+}
+
 MINLINE void mul_v2_v2(float r[2], const float a[2])
 {
   r[0] *= a[0];
@@ -988,6 +995,11 @@ MINLINE float len_squared_v3(const float v[3])
   return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
 }
 
+MINLINE double len_squared_v3_db(const double v[3])
+{
+  return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
+}
+
 MINLINE float len_manhattan_v2(const float v[2])
 {
   return fabsf(v[0]) + fabsf(v[1]);
@@ -1043,6 +1055,11 @@ MINLINE float len_v2v2_int(const int v1[2], const int v2[2])
 MINLINE float len_v3(const float a[3])
 {
   return sqrtf(dot_v3v3(a, a));
+}
+
+MINLINE double len_v3_db(const double a[3])
+{
+  return sqrt(dot_v3v3_db(a, a));
 }
 
 MINLINE float len_squared_v2v2(const float a[2], const float b[2])
@@ -1161,7 +1178,29 @@ MINLINE float normalize_v3_v3(float r[3], const float a[3])
   return normalize_v3_v3_length(r, a, 1.0f);
 }
 
-MINLINE double normalize_v3_length_d(double n[3], const double unit_length)
+MINLINE double normalize_v3_v3_length_db(double r[3], const double a[3], double unit_length)
+{
+  double d = dot_v3v3_db(a, a);
+
+  /* a larger value causes normalize errors in a
+   * scaled down models with camera extreme close */
+  if (d > 1.0e-70) {
+    d = sqrt(d);
+    mul_v3_v3db_db(r, a, unit_length / d);
+  }
+  else {
+    zero_v3_db(r);
+    d = 0.0;
+  }
+
+  return d;
+}
+MINLINE double normalize_v3_v3_db(double r[3], const double a[3])
+{
+  return normalize_v3_v3_length_db(r, a, 1.0);
+}
+
+MINLINE double normalize_v3_length_db(double n[3], const double unit_length)
 {
   double d = n[0] * n[0] + n[1] * n[1] + n[2] * n[2];
 
@@ -1184,9 +1223,9 @@ MINLINE double normalize_v3_length_d(double n[3], const double unit_length)
 
   return d;
 }
-MINLINE double normalize_v3_d(double n[3])
+MINLINE double normalize_v3_db(double n[3])
 {
-  return normalize_v3_length_d(n, 1.0);
+  return normalize_v3_length_db(n, 1.0);
 }
 
 MINLINE float normalize_v3_length(float n[3], const float unit_length)

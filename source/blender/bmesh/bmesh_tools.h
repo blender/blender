@@ -30,6 +30,7 @@ extern "C" {
 #include "tools/bmesh_beautify.h"
 #include "tools/bmesh_bevel.h"
 #include "tools/bmesh_bisect_plane.h"
+#include "tools/bmesh_boolean.h"
 #include "tools/bmesh_decimate.h"
 #include "tools/bmesh_edgenet.h"
 #include "tools/bmesh_edgesplit.h"

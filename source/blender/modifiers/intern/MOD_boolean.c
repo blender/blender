@@ -62,6 +62,7 @@
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
+#include "tools/bmesh_boolean.h"
 #include "tools/bmesh_intersect.h"
 
 #ifdef DEBUG_TIME
@@ -75,6 +76,11 @@ static void initData(ModifierData *md)
 
   bmd->double_threshold = 1e-6f;
   bmd->operation = eBooleanModifierOp_Difference;
+#ifdef WITH_GMP
+  bmd->solver = eBooleanModifierSolver_Exact;
+#else
+  bmd->solver = eBooleanModifierSolver_Fast;
+#endif
 }
 
 static bool isDisabled(const struct Scene *UNUSED(scene),
@@ -315,19 +321,30 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
                                0;
         }
 
-        BM_mesh_intersect(bm,
-                          looptris,
-                          tottri,
-                          bm_face_isect_pair,
-                          NULL,
-                          false,
-                          use_separate,
-                          use_dissolve,
-                          use_island_connect,
-                          false,
-                          false,
-                          bmd->operation,
-                          bmd->double_threshold);
+#ifdef WITH_GMP
+        bool use_exact = bmd->solver == eBooleanModifierSolver_Exact;
+#else
+        bool use_exact = false;
+#endif
+
+        if (use_exact) {
+          BM_mesh_boolean(bm, looptris, tottri, bm_face_isect_pair, NULL, false, bmd->operation);
+        }
+        else {
+          BM_mesh_intersect(bm,
+                            looptris,
+                            tottri,
+                            bm_face_isect_pair,
+                            NULL,
+                            false,
+                            use_separate,
+                            use_dissolve,
+                            use_island_connect,
+                            false,
+                            false,
+                            bmd->operation,
+                            bmd->double_threshold);
+        }
 
         MEM_freeN(looptris);
       }
@@ -374,7 +391,18 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   uiItemR(layout, &ptr, "object", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "double_threshold", 0, NULL, ICON_NONE);
+
+#ifdef WITH_GMP
+  bool use_exact = RNA_enum_get(&ptr, "solver") == eBooleanModifierSolver_Exact;
+#else
+  bool use_exact = false;
+#endif
+  if (!use_exact) {
+    uiItemR(layout, &ptr, "double_threshold", 0, NULL, ICON_NONE);
+  }
+#ifdef WITH_GMP
+  uiItemR(layout, &ptr, "solver", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+#endif
 
   if (G.debug) {
     uiLayout *col = uiLayoutColumn(layout, true);
@@ -394,7 +422,7 @@ ModifierTypeInfo modifierType_Boolean = {
     /* structName */ "BooleanModifierData",
     /* structSize */ sizeof(BooleanModifierData),
     /* type */ eModifierTypeType_Nonconstructive,
-    /* flags */ eModifierTypeFlag_AcceptsMesh,
+    /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
 
     /* copyData */ BKE_modifier_copydata_generic,
 

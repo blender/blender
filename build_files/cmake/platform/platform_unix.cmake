@@ -427,6 +427,15 @@ if(WITH_TBB)
   find_package_wrapper(TBB)
 endif()
 
+if(WITH_GMP)
+  find_package(GMP)
+
+  if(NOT GMP_FOUND)
+    set(WITH_GMP OFF)
+    message(STATUS "GMP not found")
+  endif()
+endif()
+
 if(WITH_XR_OPENXR)
   find_package(XR_OpenXR_SDK)
   if(NOT XR_OPENXR_SDK_FOUND)

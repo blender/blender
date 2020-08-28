@@ -243,6 +243,11 @@ struct float3 {
   {
     return a * (1 - t) + b * t;
   }
+
+  static float3 abs(const float3 &a)
+  {
+    return float3(fabsf(a.x), fabsf(a.y), fabsf(a.z));
+  }
 };
 
 }  // namespace blender
