@@ -2215,11 +2215,11 @@ static void blend_data_read_nla_strips(BlendDataReader *reader, ListBase *strips
 
     /* strip's F-Curves */
     BLO_read_list(reader, &strip->fcurves);
-    BKE_fcurve_blend_data_read(reader, &strip->fcurves);
+    BKE_fcurve_blend_read_data(reader, &strip->fcurves);
 
     /* strip's F-Modifiers */
     BLO_read_list(reader, &strip->modifiers);
-    BKE_fmodifiers_blend_data_read(reader, &strip->modifiers, NULL);
+    BKE_fmodifiers_blend_read_data(reader, &strip->modifiers, NULL);
   }
 }
 
@@ -2230,24 +2230,24 @@ static void blend_lib_read_nla_strips(BlendLibReader *reader, ID *id, ListBase *
     blend_lib_read_nla_strips(reader, id, &strip->strips);
 
     /* check strip's F-Curves */
-    BKE_fcurve_blend_lib_read(reader, id, &strip->fcurves);
+    BKE_fcurve_blend_read_lib(reader, id, &strip->fcurves);
 
     /* reassign the counted-reference to action */
     BLO_read_id_address(reader, id->lib, &strip->act);
   }
 }
 
-static void blend_expand_nla_strips(BlendExpander *expander, ListBase *strips)
+static void blend_read_expand_nla_strips(BlendExpander *expander, ListBase *strips)
 {
   LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     /* check child strips */
-    blend_expand_nla_strips(expander, &strip->strips);
+    blend_read_expand_nla_strips(expander, &strip->strips);
 
     /* check F-Curves */
-    BKE_fcurve_blend_expand(expander, &strip->fcurves);
+    BKE_fcurve_blend_read_expand(expander, &strip->fcurves);
 
     /* check F-Modifiers */
-    BKE_fmodifiers_blend_expand(expander, &strip->modifiers);
+    BKE_fmodifiers_blend_read_expand(expander, &strip->modifiers);
 
     /* relink referenced action */
     BLO_expand(expander, strip->act);
@@ -2266,7 +2266,7 @@ void BKE_nla_blend_write(BlendWriter *writer, ListBase *tracks)
   }
 }
 
-void BKE_nla_blend_data_read(BlendDataReader *reader, ListBase *tracks)
+void BKE_nla_blend_read_data(BlendDataReader *reader, ListBase *tracks)
 {
   LISTBASE_FOREACH (NlaTrack *, nlt, tracks) {
     /* relink list of strips */
@@ -2277,7 +2277,7 @@ void BKE_nla_blend_data_read(BlendDataReader *reader, ListBase *tracks)
   }
 }
 
-void BKE_nla_blend_lib_read(BlendLibReader *reader, ID *id, ListBase *tracks)
+void BKE_nla_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *tracks)
 {
   /* we only care about the NLA strips inside the tracks */
   LISTBASE_FOREACH (NlaTrack *, nlt, tracks) {
@@ -2285,10 +2285,10 @@ void BKE_nla_blend_lib_read(BlendLibReader *reader, ID *id, ListBase *tracks)
   }
 }
 
-void BKE_nla_blend_expand(struct BlendExpander *expander, struct ListBase *tracks)
+void BKE_nla_blend_read_expand(struct BlendExpander *expander, struct ListBase *tracks)
 {
   /* nla-data - referenced actions */
   LISTBASE_FOREACH (NlaTrack *, nlt, tracks) {
-    blend_expand_nla_strips(expander, &nlt->strips);
+    blend_read_expand_nla_strips(expander, &nlt->strips);
   }
 }

@@ -1524,7 +1524,7 @@ void BKE_animdata_blend_write(BlendWriter *writer, struct AnimData *adt)
   BKE_nla_blend_write(writer, &adt->nla_tracks);
 }
 
-void BKE_animdata_blend_data_read(BlendDataReader *reader, AnimData *adt)
+void BKE_animdata_blend_read_data(BlendDataReader *reader, AnimData *adt)
 {
   /* NOTE: must have called BLO_read_data_address already before doing this... */
   if (adt == NULL) {
@@ -1533,7 +1533,7 @@ void BKE_animdata_blend_data_read(BlendDataReader *reader, AnimData *adt)
 
   /* link drivers */
   BLO_read_list(reader, &adt->drivers);
-  BKE_fcurve_blend_data_read(reader, &adt->drivers);
+  BKE_fcurve_blend_read_data(reader, &adt->drivers);
   adt->driver_array = NULL;
 
   /* link overrides */
@@ -1541,7 +1541,7 @@ void BKE_animdata_blend_data_read(BlendDataReader *reader, AnimData *adt)
 
   /* link NLA-data */
   BLO_read_list(reader, &adt->nla_tracks);
-  BKE_nla_blend_data_read(reader, &adt->nla_tracks);
+  BKE_nla_blend_read_data(reader, &adt->nla_tracks);
 
   /* relink active track/strip - even though strictly speaking this should only be used
    * if we're in 'tweaking mode', we need to be able to have this loaded back for
@@ -1553,7 +1553,7 @@ void BKE_animdata_blend_data_read(BlendDataReader *reader, AnimData *adt)
   BLO_read_data_address(reader, &adt->actstrip);
 }
 
-void BKE_animdata_blend_lib_read(BlendLibReader *reader, ID *id, AnimData *adt)
+void BKE_animdata_blend_read_lib(BlendLibReader *reader, ID *id, AnimData *adt)
 {
   if (adt == NULL) {
     return;
@@ -1564,20 +1564,20 @@ void BKE_animdata_blend_lib_read(BlendLibReader *reader, ID *id, AnimData *adt)
   BLO_read_id_address(reader, id->lib, &adt->tmpact);
 
   /* link drivers */
-  BKE_fcurve_blend_lib_read(reader, id, &adt->drivers);
+  BKE_fcurve_blend_read_lib(reader, id, &adt->drivers);
 
   /* overrides don't have lib-link for now, so no need to do anything */
 
   /* link NLA-data */
-  BKE_nla_blend_lib_read(reader, id, &adt->nla_tracks);
+  BKE_nla_blend_read_lib(reader, id, &adt->nla_tracks);
 }
 
-void BKE_animdata_blend_expand(struct BlendExpander *expander, AnimData *adt)
+void BKE_animdata_blend_read_expand(struct BlendExpander *expander, AnimData *adt)
 {
   /* own action */
   BLO_expand(expander, adt->action);
   BLO_expand(expander, adt->tmpact);
 
   /* drivers - assume that these F-Curves have driver data to be in this list... */
-  BKE_fcurve_blend_expand(expander, &adt->drivers);
+  BKE_fcurve_blend_read_expand(expander, &adt->drivers);
 }

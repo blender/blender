@@ -1363,7 +1363,7 @@ static void IDP_DirectLinkProperty(IDProperty *prop, BlendDataReader *reader)
   }
 }
 
-void IDP_BlendDataRead_impl(BlendDataReader *reader, IDProperty **prop, const char *caller_func_id)
+void IDP_BlendReadData_impl(BlendDataReader *reader, IDProperty **prop, const char *caller_func_id)
 {
   if (*prop) {
     if ((*prop)->type == IDP_GROUP) {
@@ -1379,7 +1379,7 @@ void IDP_BlendDataRead_impl(BlendDataReader *reader, IDProperty **prop, const ch
   }
 }
 
-void IDP_BlendLibRead(BlendLibReader *reader, IDProperty *prop)
+void IDP_BlendReadLib(BlendLibReader *reader, IDProperty *prop)
 {
   if (!prop) {
     return;
@@ -1399,14 +1399,14 @@ void IDP_BlendLibRead(BlendLibReader *reader, IDProperty *prop)
     {
       IDProperty *idp_array = IDP_IDPArray(prop);
       for (int i = 0; i < prop->len; i++) {
-        IDP_BlendLibRead(reader, &(idp_array[i]));
+        IDP_BlendReadLib(reader, &(idp_array[i]));
       }
       break;
     }
     case IDP_GROUP: /* PointerProperty */
     {
       LISTBASE_FOREACH (IDProperty *, loop, &prop->data.group) {
-        IDP_BlendLibRead(reader, loop);
+        IDP_BlendReadLib(reader, loop);
       }
       break;
     }
@@ -1415,7 +1415,7 @@ void IDP_BlendLibRead(BlendLibReader *reader, IDProperty *prop)
   }
 }
 
-void IDP_BlendExpand(struct BlendExpander *expander, IDProperty *prop)
+void IDP_BlendReadExpand(struct BlendExpander *expander, IDProperty *prop)
 {
   if (!prop) {
     return;
@@ -1428,13 +1428,13 @@ void IDP_BlendExpand(struct BlendExpander *expander, IDProperty *prop)
     case IDP_IDPARRAY: {
       IDProperty *idp_array = IDP_IDPArray(prop);
       for (int i = 0; i < prop->len; i++) {
-        IDP_BlendExpand(expander, &idp_array[i]);
+        IDP_BlendReadExpand(expander, &idp_array[i]);
       }
       break;
     }
     case IDP_GROUP:
       LISTBASE_FOREACH (IDProperty *, loop, &prop->data.group) {
-        IDP_BlendExpand(expander, loop);
+        IDP_BlendReadExpand(expander, loop);
       }
       break;
   }

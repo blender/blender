@@ -99,11 +99,11 @@ void BKE_animdata_merge_copy(struct Main *bmain,
                              bool fix_drivers);
 
 void BKE_animdata_blend_write(struct BlendWriter *writer, struct AnimData *adt);
-void BKE_animdata_blend_data_read(struct BlendDataReader *reader, struct AnimData *adt);
-void BKE_animdata_blend_lib_read(struct BlendLibReader *reader,
+void BKE_animdata_blend_read_data(struct BlendDataReader *reader, struct AnimData *adt);
+void BKE_animdata_blend_read_lib(struct BlendLibReader *reader,
                                  struct ID *id,
                                  struct AnimData *adt);
-void BKE_animdata_blend_expand(struct BlendExpander *expander, struct AnimData *adt);
+void BKE_animdata_blend_read_expand(struct BlendExpander *expander, struct AnimData *adt);
 
 #ifdef __cplusplus
 }

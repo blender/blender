@@ -318,20 +318,20 @@ void fcurve_store_samples(
 /* ************* F-Curve .blend file API ******************** */
 
 void BKE_fmodifiers_blend_write(struct BlendWriter *writer, struct ListBase *fmodifiers);
-void BKE_fmodifiers_blend_data_read(struct BlendDataReader *reader,
+void BKE_fmodifiers_blend_read_data(struct BlendDataReader *reader,
                                     ListBase *fmodifiers,
                                     struct FCurve *curve);
-void BKE_fmodifiers_blend_lib_read(struct BlendLibReader *reader,
+void BKE_fmodifiers_blend_read_lib(struct BlendLibReader *reader,
                                    struct ID *id,
                                    struct ListBase *fmodifiers);
-void BKE_fmodifiers_blend_expand(struct BlendExpander *expander, struct ListBase *fmodifiers);
+void BKE_fmodifiers_blend_read_expand(struct BlendExpander *expander, struct ListBase *fmodifiers);
 
 void BKE_fcurve_blend_write(struct BlendWriter *writer, struct ListBase *fcurves);
-void BKE_fcurve_blend_data_read(struct BlendDataReader *reader, struct ListBase *fcurves);
-void BKE_fcurve_blend_lib_read(struct BlendLibReader *reader,
+void BKE_fcurve_blend_read_data(struct BlendDataReader *reader, struct ListBase *fcurves);
+void BKE_fcurve_blend_read_lib(struct BlendLibReader *reader,
                                struct ID *id,
                                struct ListBase *fcurves);
-void BKE_fcurve_blend_expand(struct BlendExpander *expander, struct ListBase *fcurves);
+void BKE_fcurve_blend_read_expand(struct BlendExpander *expander, struct ListBase *fcurves);
 
 #ifdef __cplusplus
 }

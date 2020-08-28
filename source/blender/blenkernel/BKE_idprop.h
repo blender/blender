@@ -201,12 +201,12 @@ void IDP_repr_fn(const IDProperty *prop,
 void IDP_print(const struct IDProperty *prop);
 
 void IDP_BlendWrite(struct BlendWriter *writer, const struct IDProperty *prop);
-void IDP_BlendDataRead_impl(struct BlendDataReader *reader,
+void IDP_BlendReadData_impl(struct BlendDataReader *reader,
                             IDProperty **prop,
                             const char *caller_func_id);
-#define IDP_BlendDataRead(reader, prop) IDP_BlendDataRead_impl(reader, prop, __func__)
-void IDP_BlendLibRead(struct BlendLibReader *reader, IDProperty *prop);
-void IDP_BlendExpand(struct BlendExpander *expander, IDProperty *prop);
+#define IDP_BlendDataRead(reader, prop) IDP_BlendReadData_impl(reader, prop, __func__)
+void IDP_BlendReadLib(struct BlendLibReader *reader, IDProperty *prop);
+void IDP_BlendReadExpand(struct BlendExpander *expander, IDProperty *prop);
 
 #ifdef __cplusplus
 }
