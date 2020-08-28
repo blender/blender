@@ -39,7 +39,6 @@
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
-#include "BLI_winstuff.h"
 
 #include "BLT_translation.h"
 
