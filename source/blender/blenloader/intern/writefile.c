@@ -161,6 +161,7 @@
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_curveprofile.h"
+#include "BKE_deform.h"
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.h"  // for G
@@ -1784,22 +1785,6 @@ static void write_curve(BlendWriter *writer, Curve *cu, const void *id_address)
   }
 }
 
-static void write_dverts(BlendWriter *writer, int count, MDeformVert *dvlist)
-{
-  if (dvlist) {
-
-    /* Write the dvert list */
-    BLO_write_struct_array(writer, MDeformVert, count, dvlist);
-
-    /* Write deformation data for each dvert */
-    for (int i = 0; i < count; i++) {
-      if (dvlist[i].dw) {
-        BLO_write_struct_array(writer, MDeformWeight, dvlist[i].totweight, dvlist[i].dw);
-      }
-    }
-  }
-}
-
 static void write_mdisps(BlendWriter *writer, int count, MDisps *mdlist, int external)
 {
   if (mdlist) {
@@ -1854,7 +1839,7 @@ static void write_customdata(BlendWriter *writer,
 
     if (layer->type == CD_MDEFORMVERT) {
       /* layer types that allocate own memory need special handling */
-      write_dverts(writer, count, layer->data);
+      BKE_defvert_blend_write(writer, count, layer->data);
     }
     else if (layer->type == CD_MDISPS) {
       write_mdisps(writer, count, layer->data, layer->flag & CD_FLAG_EXTERNAL);
@@ -1974,7 +1959,7 @@ static void write_lattice(BlendWriter *writer, Lattice *lt, const void *id_addre
     /* direct data */
     BLO_write_struct_array(writer, BPoint, lt->pntsu * lt->pntsv * lt->pntsw, lt->def);
 
-    write_dverts(writer, lt->pntsu * lt->pntsv * lt->pntsw, lt->dvert);
+    BKE_defvert_blend_write(writer, lt->pntsu * lt->pntsv * lt->pntsw, lt->dvert);
   }
 }
 
@@ -2529,7 +2514,7 @@ static void write_gpencil(BlendWriter *writer, bGPdata *gpd, const void *id_addr
         LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
           BLO_write_struct_array(writer, bGPDspoint, gps->totpoints, gps->points);
           BLO_write_struct_array(writer, bGPDtriangle, gps->tot_triangles, gps->triangles);
-          write_dverts(writer, gps->totpoints, gps->dvert);
+          BKE_defvert_blend_write(writer, gps->totpoints, gps->dvert);
         }
       }
     }

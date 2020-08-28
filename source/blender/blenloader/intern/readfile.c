@@ -120,6 +120,7 @@
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_curveprofile.h"
+#include "BKE_deform.h"
 #include "BKE_effect.h"
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
@@ -4125,29 +4126,6 @@ static void lib_link_mesh(BlendLibReader *reader, Mesh *me)
   BLO_read_id_address(reader, me->id.lib, &me->texcomesh);
 }
 
-static void direct_link_dverts(BlendDataReader *reader, int count, MDeformVert *mdverts)
-{
-  if (mdverts == NULL) {
-    return;
-  }
-
-  for (int i = count; i > 0; i--, mdverts++) {
-    /*convert to vgroup allocation system*/
-    MDeformWeight *dw;
-    if (mdverts->dw && (dw = BLO_read_get_new_data_address(reader, mdverts->dw))) {
-      const ssize_t dw_len = mdverts->totweight * sizeof(MDeformWeight);
-      void *dw_tmp = MEM_mallocN(dw_len, "direct_link_dverts");
-      memcpy(dw_tmp, dw, dw_len);
-      mdverts->dw = dw_tmp;
-      MEM_freeN(dw);
-    }
-    else {
-      mdverts->dw = NULL;
-      mdverts->totweight = 0;
-    }
-  }
-}
-
 static void direct_link_mdisps(BlendDataReader *reader, int count, MDisps *mdisps, int external)
 {
   if (mdisps) {
@@ -4251,9 +4229,9 @@ static void direct_link_mesh(BlendDataReader *reader, Mesh *mesh)
   BLO_read_data_address(reader, &mesh->adt);
   BKE_animdata_blend_read_data(reader, mesh->adt);
 
-  /* Normally direct_link_dverts should be called in direct_link_customdata,
+  /* Normally BKE_defvert_blend_read should be called in direct_link_customdata,
    * but for backwards compatibility in do_versions to work we do it here. */
-  direct_link_dverts(reader, mesh->totvert, mesh->dvert);
+  BKE_defvert_blend_read(reader, mesh->totvert, mesh->dvert);
 
   direct_link_customdata(reader, &mesh->vdata, mesh->totvert);
   direct_link_customdata(reader, &mesh->edata, mesh->totedge);
@@ -4277,7 +4255,8 @@ static void direct_link_mesh(BlendDataReader *reader, Mesh *mesh)
     MultiresLevel *lvl = mesh->mr->levels.first;
 
     direct_link_customdata(reader, &mesh->mr->vdata, lvl->totvert);
-    direct_link_dverts(reader, lvl->totvert, CustomData_get(&mesh->mr->vdata, 0, CD_MDEFORMVERT));
+    BKE_defvert_blend_read(
+        reader, lvl->totvert, CustomData_get(&mesh->mr->vdata, 0, CD_MDEFORMVERT));
     direct_link_customdata(reader, &mesh->mr->fdata, lvl->totface);
 
     BLO_read_data_address(reader, &mesh->mr->edge_flags);
@@ -4338,7 +4317,7 @@ static void direct_link_latt(BlendDataReader *reader, Lattice *lt)
   BLO_read_data_address(reader, &lt->def);
 
   BLO_read_data_address(reader, &lt->dvert);
-  direct_link_dverts(reader, lt->pntsu * lt->pntsv * lt->pntsw, lt->dvert);
+  BKE_defvert_blend_read(reader, lt->pntsu * lt->pntsv * lt->pntsw, lt->dvert);
 
   lt->editlatt = NULL;
   lt->batch_cache = NULL;
@@ -6202,7 +6181,7 @@ static void direct_link_gpencil(BlendDataReader *reader, bGPdata *gpd)
         /* relink weight data */
         if (gps->dvert) {
           BLO_read_data_address(reader, &gps->dvert);
-          direct_link_dverts(reader, gps->totpoints, gps->dvert);
+          BKE_defvert_blend_read(reader, gps->totpoints, gps->dvert);
         }
       }
     }

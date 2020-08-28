@@ -50,6 +50,8 @@
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
 
+#include "BLO_read_write.h"
+
 #include "data_transfer_intern.h"
 
 bDeformGroup *BKE_object_defgroup_new(Object *ob, const char *name)
@@ -1519,6 +1521,52 @@ void BKE_defvert_weight_to_rgb(float r_rgb[3], const float weight)
     r_rgb[0] = 1.0f;
     r_rgb[1] = 0.0f;
     r_rgb[2] = 1.0f;
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name .blend file I/O
+ * \{ */
+
+void BKE_defvert_blend_write(BlendWriter *writer, int count, MDeformVert *dvlist)
+{
+  if (dvlist == NULL) {
+    return;
+  }
+
+  /* Write the dvert list */
+  BLO_write_struct_array(writer, MDeformVert, count, dvlist);
+
+  /* Write deformation data for each dvert */
+  for (int i = 0; i < count; i++) {
+    if (dvlist[i].dw) {
+      BLO_write_struct_array(writer, MDeformWeight, dvlist[i].totweight, dvlist[i].dw);
+    }
+  }
+}
+
+void BKE_defvert_blend_read(BlendDataReader *reader, int count, MDeformVert *mdverts)
+{
+  if (mdverts == NULL) {
+    return;
+  }
+
+  for (int i = count; i > 0; i--, mdverts++) {
+    /*convert to vgroup allocation system*/
+    MDeformWeight *dw;
+    if (mdverts->dw && (dw = BLO_read_get_new_data_address(reader, mdverts->dw))) {
+      const ssize_t dw_len = mdverts->totweight * sizeof(MDeformWeight);
+      void *dw_tmp = MEM_mallocN(dw_len, __func__);
+      memcpy(dw_tmp, dw, dw_len);
+      mdverts->dw = dw_tmp;
+      MEM_freeN(dw);
+    }
+    else {
+      mdverts->dw = NULL;
+      mdverts->totweight = 0;
+    }
   }
 }
 

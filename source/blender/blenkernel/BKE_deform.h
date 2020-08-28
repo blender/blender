@@ -35,6 +35,8 @@ struct MLoop;
 struct MPoly;
 struct Object;
 struct bDeformGroup;
+struct BlendWriter;
+struct BlendDataReader;
 
 struct bDeformGroup *BKE_object_defgroup_new(struct Object *ob, const char *name);
 void BKE_defgroup_copy_list(struct ListBase *lb1, const struct ListBase *lb2);
@@ -161,6 +163,11 @@ void BKE_defvert_extract_vgroup_to_polyweights(struct MDeformVert *dvert,
                                                const bool invert_vgroup);
 
 void BKE_defvert_weight_to_rgb(float r_rgb[3], const float weight);
+
+void BKE_defvert_blend_write(struct BlendWriter *writer, int count, struct MDeformVert *dvlist);
+void BKE_defvert_blend_read(struct BlendDataReader *reader,
+                            int count,
+                            struct MDeformVert *mdverts);
 
 #ifdef __cplusplus
 }
