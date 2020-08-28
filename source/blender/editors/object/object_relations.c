@@ -134,13 +134,11 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *obedit = CTX_data_edit_object(C);
-  BMVert *eve;
-  BMIter iter;
-  Nurb *nu;
-  BezTriple *bezt;
-  BPoint *bp;
   Object *par;
-  int a, v1 = 0, v2 = 0, v3 = 0, v4 = 0, nr = 1;
+
+#define INDEX_UNSET -1
+  int par1, par2, par3, par4;
+  par1 = par2 = par3 = par4 = INDEX_UNSET;
 
   /* we need 1 to 3 selected vertices */
 
@@ -165,114 +163,108 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
      * objects are also up to date. */
     BKE_scene_graph_update_tagged(depsgraph, bmain);
 
-    BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+    BMVert *eve;
+    BMIter iter;
+    int curr_index;
+    BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, curr_index) {
       if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-        if (v1 == 0) {
-          v1 = nr;
+        if (par1 == INDEX_UNSET) {
+          par1 = curr_index;
         }
-        else if (v2 == 0) {
-          v2 = nr;
+        else if (par2 == INDEX_UNSET) {
+          par2 = curr_index;
         }
-        else if (v3 == 0) {
-          v3 = nr;
+        else if (par3 == INDEX_UNSET) {
+          par3 = curr_index;
         }
-        else if (v4 == 0) {
-          v4 = nr;
+        else if (par4 == INDEX_UNSET) {
+          par4 = curr_index;
         }
         else {
           break;
         }
       }
-      nr++;
     }
   }
   else if (ELEM(obedit->type, OB_SURF, OB_CURVE)) {
     ListBase *editnurb = object_editcurve_get(obedit);
 
-    nu = editnurb->first;
-    while (nu) {
+    for (Nurb *nu = editnurb->first; nu != NULL; nu = nu->next) {
       if (nu->type == CU_BEZIER) {
-        bezt = nu->bezt;
-        a = nu->pntsu;
-        while (a--) {
+        BezTriple *bezt = nu->bezt;
+        for (int curr_index = 0; curr_index < nu->pntsu; curr_index++, bezt++) {
           if (BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt)) {
-            if (v1 == 0) {
-              v1 = nr;
+            if (par1 == INDEX_UNSET) {
+              par1 = curr_index;
             }
-            else if (v2 == 0) {
-              v2 = nr;
+            else if (par2 == INDEX_UNSET) {
+              par2 = curr_index;
             }
-            else if (v3 == 0) {
-              v3 = nr;
+            else if (par3 == INDEX_UNSET) {
+              par3 = curr_index;
             }
-            else if (v4 == 0) {
-              v4 = nr;
+            else if (par4 == INDEX_UNSET) {
+              par4 = curr_index;
             }
             else {
               break;
             }
           }
-          nr++;
-          bezt++;
         }
       }
       else {
-        bp = nu->bp;
-        a = nu->pntsu * nu->pntsv;
-        while (a--) {
+        BPoint *bp = nu->bp;
+        const int num_points = nu->pntsu * nu->pntsv;
+        for (int curr_index = 0; curr_index < num_points; curr_index++, bp++) {
           if (bp->f1 & SELECT) {
-            if (v1 == 0) {
-              v1 = nr;
+            if (par1 == INDEX_UNSET) {
+              par1 = curr_index;
             }
-            else if (v2 == 0) {
-              v2 = nr;
+            else if (par2 == INDEX_UNSET) {
+              par2 = curr_index;
             }
-            else if (v3 == 0) {
-              v3 = nr;
+            else if (par3 == INDEX_UNSET) {
+              par3 = curr_index;
             }
-            else if (v4 == 0) {
-              v4 = nr;
+            else if (par4 == INDEX_UNSET) {
+              par4 = curr_index;
             }
             else {
               break;
             }
           }
-          nr++;
-          bp++;
         }
       }
-      nu = nu->next;
     }
   }
   else if (obedit->type == OB_LATTICE) {
     Lattice *lt = obedit->data;
 
-    a = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv * lt->editlatt->latt->pntsw;
-    bp = lt->editlatt->latt->def;
-    while (a--) {
+    const int num_points = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv *
+                           lt->editlatt->latt->pntsw;
+    BPoint *bp = lt->editlatt->latt->def;
+    for (int curr_index = 0; curr_index < num_points; curr_index++, bp++) {
       if (bp->f1 & SELECT) {
-        if (v1 == 0) {
-          v1 = nr;
+        if (par1 == INDEX_UNSET) {
+          par1 = curr_index;
         }
-        else if (v2 == 0) {
-          v2 = nr;
+        else if (par2 == INDEX_UNSET) {
+          par2 = curr_index;
         }
-        else if (v3 == 0) {
-          v3 = nr;
+        else if (par3 == INDEX_UNSET) {
+          par3 = curr_index;
         }
-        else if (v4 == 0) {
-          v4 = nr;
+        else if (par4 == INDEX_UNSET) {
+          par4 = curr_index;
         }
         else {
           break;
         }
       }
-      nr++;
-      bp++;
     }
   }
 
-  if (v4 || !((v1 && v2 == 0 && v3 == 0) || (v1 && v2 && v3))) {
+  if (par4 != INDEX_UNSET || par1 == INDEX_UNSET || (par2 != INDEX_UNSET && par3 == INDEX_UNSET)) {
     BKE_report(op->reports, RPT_ERROR, "Select either 1 or 3 vertices to parent to");
     return OPERATOR_CANCELLED;
   }
@@ -289,11 +281,11 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
         Object workob;
 
         ob->parent = BASACT(view_layer)->object;
-        if (v3) {
+        if (par3 != INDEX_UNSET) {
           ob->partype = PARVERT3;
-          ob->par1 = v1 - 1;
-          ob->par2 = v2 - 1;
-          ob->par3 = v3 - 1;
+          ob->par1 = par1;
+          ob->par2 = par2;
+          ob->par3 = par3;
 
           /* inverse parent matrix */
           BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
@@ -301,7 +293,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
         }
         else {
           ob->partype = PARVERT1;
-          ob->par1 = v1 - 1;
+          ob->par1 = par1;
 
           /* inverse parent matrix */
           BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
@@ -317,6 +309,8 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_OBJECT, NULL);
 
   return OPERATOR_FINISHED;
+
+#undef INDEX_UNSET
 }
 
 void OBJECT_OT_vertex_parent_set(wmOperatorType *ot)
@@ -1474,7 +1468,8 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
   /* redraw the 3D view because the object center points are colored differently */
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, NULL);
 
-  /* one day multiple scenes will be visible, then we should have some update function for them */
+  /* one day multiple scenes will be visible, then we should have some update function for them
+   */
   return OPERATOR_FINISHED;
 }
 
@@ -1794,9 +1789,9 @@ static Collection *single_object_users_collection(Main *bmain,
 
     if (is_master_collection && copy_collections && child->collection != collection_child_new) {
       /* We do not want a collection sync here, our collections are in a complete uninitialized
-       * state currently. With current code, that would lead to a memory leak - because of reasons.
-       * It would be a useless loss of computing anyway, since caller has to fully refresh
-       * view-layers/collections caching at the end. */
+       * state currently. With current code, that would lead to a memory leak - because of
+       * reasons. It would be a useless loss of computing anyway, since caller has to fully
+       * refresh view-layers/collections caching at the end. */
       BKE_collection_child_add_no_sync(collection, collection_child_new);
       BLI_remlink(&collection->children, child);
       MEM_freeN(child);
