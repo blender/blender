@@ -35,6 +35,8 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_pointcloud_types.h"
 
+#include "BLI_bitmap.h"
+#include "BLI_endian_switch.h"
 #include "BLI_math.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_mempool.h"
@@ -47,10 +49,14 @@
 
 #include "BKE_customdata.h"
 #include "BKE_customdata_file.h"
+#include "BKE_deform.h"
 #include "BKE_main.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remap.h"
 #include "BKE_multires.h"
+#include "BKE_subsurf.h"
+
+#include "BLO_read_write.h"
 
 #include "bmesh.h"
 
@@ -5154,4 +5160,182 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap,
   }
 
   MEM_SAFE_FREE(tmp_data_src);
+}
+
+static void write_mdisps(BlendWriter *writer, int count, MDisps *mdlist, int external)
+{
+  if (mdlist) {
+    BLO_write_struct_array(writer, MDisps, count, mdlist);
+    for (int i = 0; i < count; i++) {
+      MDisps *md = &mdlist[i];
+      if (md->disps) {
+        if (!external) {
+          BLO_write_float3_array(writer, md->totdisp, &md->disps[0][0]);
+        }
+      }
+
+      if (md->hidden) {
+        BLO_write_raw(writer, BLI_BITMAP_SIZE(md->totdisp), md->hidden);
+      }
+    }
+  }
+}
+
+static void write_grid_paint_mask(BlendWriter *writer, int count, GridPaintMask *grid_paint_mask)
+{
+  if (grid_paint_mask) {
+    BLO_write_struct_array(writer, GridPaintMask, count, grid_paint_mask);
+    for (int i = 0; i < count; i++) {
+      GridPaintMask *gpm = &grid_paint_mask[i];
+      if (gpm->data) {
+        const int gridsize = BKE_ccg_gridsize(gpm->level);
+        BLO_write_raw(writer, sizeof(*gpm->data) * gridsize * gridsize, gpm->data);
+      }
+    }
+  }
+}
+
+void CustomData_blend_write(
+    BlendWriter *writer, CustomData *data, int count, CustomDataMask cddata_mask, ID *id)
+{
+  CustomDataLayer *layers = NULL;
+  CustomDataLayer layers_buff[CD_TEMP_CHUNK_SIZE];
+  CustomData_file_write_prepare(data, &layers, layers_buff, ARRAY_SIZE(layers_buff));
+
+  /* write external customdata (not for undo) */
+  if (data->external && !BLO_write_is_undo(writer)) {
+    CustomData_external_write(data, id, cddata_mask, count, 0);
+  }
+
+  BLO_write_struct_array_at_address(writer, CustomDataLayer, data->totlayer, data->layers, layers);
+
+  for (int i = 0; i < data->totlayer; i++) {
+    CustomDataLayer *layer = &layers[i];
+
+    if (layer->type == CD_MDEFORMVERT) {
+      /* layer types that allocate own memory need special handling */
+      BKE_defvert_blend_write(writer, count, layer->data);
+    }
+    else if (layer->type == CD_MDISPS) {
+      write_mdisps(writer, count, layer->data, layer->flag & CD_FLAG_EXTERNAL);
+    }
+    else if (layer->type == CD_PAINT_MASK) {
+      const float *layer_data = layer->data;
+      BLO_write_raw(writer, sizeof(*layer_data) * count, layer_data);
+    }
+    else if (layer->type == CD_SCULPT_FACE_SETS) {
+      const float *layer_data = layer->data;
+      BLO_write_raw(writer, sizeof(*layer_data) * count, layer_data);
+    }
+    else if (layer->type == CD_GRID_PAINT_MASK) {
+      write_grid_paint_mask(writer, count, layer->data);
+    }
+    else if (layer->type == CD_FACEMAP) {
+      const int *layer_data = layer->data;
+      BLO_write_raw(writer, sizeof(*layer_data) * count, layer_data);
+    }
+    else {
+      const char *structname;
+      int structnum;
+      CustomData_file_write_info(layer->type, &structname, &structnum);
+      if (structnum) {
+        int datasize = structnum * count;
+        BLO_write_struct_array_by_name(writer, structname, datasize, layer->data);
+      }
+      else if (!BLO_write_is_undo(writer)) { /* Do not warn on undo. */
+        printf("%s error: layer '%s':%d - can't be written to file\n",
+               __func__,
+               structname,
+               layer->type);
+      }
+    }
+  }
+
+  if (data->external) {
+    BLO_write_struct(writer, CustomDataExternal, data->external);
+  }
+
+  if (!ELEM(layers, NULL, layers_buff)) {
+    MEM_freeN(layers);
+  }
+}
+
+static void blend_read_mdisps(BlendDataReader *reader, int count, MDisps *mdisps, int external)
+{
+  if (mdisps) {
+    for (int i = 0; i < count; i++) {
+      BLO_read_data_address(reader, &mdisps[i].disps);
+      BLO_read_data_address(reader, &mdisps[i].hidden);
+
+      if (mdisps[i].totdisp && !mdisps[i].level) {
+        /* this calculation is only correct for loop mdisps;
+         * if loading pre-BMesh face mdisps this will be
+         * overwritten with the correct value in
+         * bm_corners_to_loops() */
+        float gridsize = sqrtf(mdisps[i].totdisp);
+        mdisps[i].level = (int)(logf(gridsize - 1.0f) / (float)M_LN2) + 1;
+      }
+
+      if (BLO_read_requires_endian_switch(reader) && (mdisps[i].disps)) {
+        /* DNA_struct_switch_endian doesn't do endian swap for (*disps)[] */
+        /* this does swap for data written at write_mdisps() - readfile.c */
+        BLI_endian_switch_float_array(*mdisps[i].disps, mdisps[i].totdisp * 3);
+      }
+      if (!external && !mdisps[i].disps) {
+        mdisps[i].totdisp = 0;
+      }
+    }
+  }
+}
+
+static void blend_read_paint_mask(BlendDataReader *reader,
+                                  int count,
+                                  GridPaintMask *grid_paint_mask)
+{
+  if (grid_paint_mask) {
+    for (int i = 0; i < count; i++) {
+      GridPaintMask *gpm = &grid_paint_mask[i];
+      if (gpm->data) {
+        BLO_read_data_address(reader, &gpm->data);
+      }
+    }
+  }
+}
+
+void CustomData_blend_read(BlendDataReader *reader, CustomData *data, int count)
+{
+  BLO_read_data_address(reader, &data->layers);
+
+  /* annoying workaround for bug [#31079] loading legacy files with
+   * no polygons _but_ have stale customdata */
+  if (UNLIKELY(count == 0 && data->layers == NULL && data->totlayer != 0)) {
+    CustomData_reset(data);
+    return;
+  }
+
+  BLO_read_data_address(reader, &data->external);
+
+  int i = 0;
+  while (i < data->totlayer) {
+    CustomDataLayer *layer = &data->layers[i];
+
+    if (layer->flag & CD_FLAG_EXTERNAL) {
+      layer->flag &= ~CD_FLAG_IN_MEMORY;
+    }
+
+    layer->flag &= ~CD_FLAG_NOFREE;
+
+    if (CustomData_verify_versions(data, i)) {
+      BLO_read_data_address(reader, &layer->data);
+      if (layer->type == CD_MDISPS) {
+        blend_read_mdisps(reader, count, layer->data, layer->flag & CD_FLAG_EXTERNAL);
+      }
+      else if (layer->type == CD_GRID_PAINT_MASK) {
+        blend_read_paint_mask(reader, count, layer->data);
+      }
+      i++;
+    }
+  }
+
+  CustomData_update_typemap(data);
 }

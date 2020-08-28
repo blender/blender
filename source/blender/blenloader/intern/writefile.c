@@ -1785,100 +1785,6 @@ static void write_curve(BlendWriter *writer, Curve *cu, const void *id_address)
   }
 }
 
-static void write_mdisps(BlendWriter *writer, int count, MDisps *mdlist, int external)
-{
-  if (mdlist) {
-    BLO_write_struct_array(writer, MDisps, count, mdlist);
-    for (int i = 0; i < count; i++) {
-      MDisps *md = &mdlist[i];
-      if (md->disps) {
-        if (!external) {
-          BLO_write_float3_array(writer, md->totdisp, &md->disps[0][0]);
-        }
-      }
-
-      if (md->hidden) {
-        BLO_write_raw(writer, BLI_BITMAP_SIZE(md->totdisp), md->hidden);
-      }
-    }
-  }
-}
-
-static void write_grid_paint_mask(BlendWriter *writer, int count, GridPaintMask *grid_paint_mask)
-{
-  if (grid_paint_mask) {
-    BLO_write_struct_array(writer, GridPaintMask, count, grid_paint_mask);
-    for (int i = 0; i < count; i++) {
-      GridPaintMask *gpm = &grid_paint_mask[i];
-      if (gpm->data) {
-        const int gridsize = BKE_ccg_gridsize(gpm->level);
-        BLO_write_raw(writer, sizeof(*gpm->data) * gridsize * gridsize, gpm->data);
-      }
-    }
-  }
-}
-
-static void write_customdata(BlendWriter *writer,
-                             ID *id,
-                             int count,
-                             CustomData *data,
-                             CustomDataLayer *layers,
-                             CustomDataMask cddata_mask)
-{
-  /* write external customdata (not for undo) */
-  if (data->external && !BLO_write_is_undo(writer)) {
-    CustomData_external_write(data, id, cddata_mask, count, 0);
-  }
-
-  BLO_write_struct_array_at_address(writer, CustomDataLayer, data->totlayer, data->layers, layers);
-
-  for (int i = 0; i < data->totlayer; i++) {
-    CustomDataLayer *layer = &layers[i];
-    const char *structname;
-    int structnum, datasize;
-
-    if (layer->type == CD_MDEFORMVERT) {
-      /* layer types that allocate own memory need special handling */
-      BKE_defvert_blend_write(writer, count, layer->data);
-    }
-    else if (layer->type == CD_MDISPS) {
-      write_mdisps(writer, count, layer->data, layer->flag & CD_FLAG_EXTERNAL);
-    }
-    else if (layer->type == CD_PAINT_MASK) {
-      const float *layer_data = layer->data;
-      BLO_write_raw(writer, sizeof(*layer_data) * count, layer_data);
-    }
-    else if (layer->type == CD_SCULPT_FACE_SETS) {
-      const float *layer_data = layer->data;
-      BLO_write_raw(writer, sizeof(*layer_data) * count, layer_data);
-    }
-    else if (layer->type == CD_GRID_PAINT_MASK) {
-      write_grid_paint_mask(writer, count, layer->data);
-    }
-    else if (layer->type == CD_FACEMAP) {
-      const int *layer_data = layer->data;
-      BLO_write_raw(writer, sizeof(*layer_data) * count, layer_data);
-    }
-    else {
-      CustomData_file_write_info(layer->type, &structname, &structnum);
-      if (structnum) {
-        datasize = structnum * count;
-        BLO_write_struct_array_by_name(writer, structname, datasize, layer->data);
-      }
-      else if (!BLO_write_is_undo(writer)) { /* Do not warn on undo. */
-        printf("%s error: layer '%s':%d - can't be written to file\n",
-               __func__,
-               structname,
-               layer->type);
-      }
-    }
-  }
-
-  if (data->external) {
-    BLO_write_struct(writer, CustomDataExternal, data->external);
-  }
-}
-
 static void write_mesh(BlendWriter *writer, Mesh *mesh, const void *id_address)
 {
   if (mesh->id.us > 0 || BLO_write_is_undo(writer)) {
@@ -1887,21 +1793,6 @@ static void write_mesh(BlendWriter *writer, Mesh *mesh, const void *id_address)
     mesh->totface = 0;
     memset(&mesh->fdata, 0, sizeof(mesh->fdata));
     memset(&mesh->runtime, 0, sizeof(mesh->runtime));
-
-    /* Reduce xdata layers, fill xlayers with layers to be written.
-     * This makes xdata invalid for Blender, which is why we made a
-     * temporary local copy. */
-    CustomDataLayer *vlayers = NULL, vlayers_buff[CD_TEMP_CHUNK_SIZE];
-    CustomDataLayer *elayers = NULL, elayers_buff[CD_TEMP_CHUNK_SIZE];
-    CustomDataLayer *flayers = NULL, flayers_buff[CD_TEMP_CHUNK_SIZE];
-    CustomDataLayer *llayers = NULL, llayers_buff[CD_TEMP_CHUNK_SIZE];
-    CustomDataLayer *players = NULL, players_buff[CD_TEMP_CHUNK_SIZE];
-
-    CustomData_file_write_prepare(&mesh->vdata, &vlayers, vlayers_buff, ARRAY_SIZE(vlayers_buff));
-    CustomData_file_write_prepare(&mesh->edata, &elayers, elayers_buff, ARRAY_SIZE(elayers_buff));
-    flayers = flayers_buff;
-    CustomData_file_write_prepare(&mesh->ldata, &llayers, llayers_buff, ARRAY_SIZE(llayers_buff));
-    CustomData_file_write_prepare(&mesh->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
 
     BLO_write_id_struct(writer, Mesh, id_address, &mesh->id);
     write_iddata(writer, &mesh->id);
@@ -1914,29 +1805,12 @@ static void write_mesh(BlendWriter *writer, Mesh *mesh, const void *id_address)
     BLO_write_pointer_array(writer, mesh->totcol, mesh->mat);
     BLO_write_raw(writer, sizeof(MSelect) * mesh->totselect, mesh->mselect);
 
-    write_customdata(writer, &mesh->id, mesh->totvert, &mesh->vdata, vlayers, CD_MASK_MESH.vmask);
-    write_customdata(writer, &mesh->id, mesh->totedge, &mesh->edata, elayers, CD_MASK_MESH.emask);
+    CustomData_blend_write(writer, &mesh->vdata, mesh->totvert, CD_MASK_MESH.vmask, &mesh->id);
+    CustomData_blend_write(writer, &mesh->edata, mesh->totedge, CD_MASK_MESH.emask, &mesh->id);
     /* fdata is really a dummy - written so slots align */
-    write_customdata(writer, &mesh->id, mesh->totface, &mesh->fdata, flayers, CD_MASK_MESH.fmask);
-    write_customdata(writer, &mesh->id, mesh->totloop, &mesh->ldata, llayers, CD_MASK_MESH.lmask);
-    write_customdata(writer, &mesh->id, mesh->totpoly, &mesh->pdata, players, CD_MASK_MESH.pmask);
-
-    /* free temporary data */
-    if (vlayers && vlayers != vlayers_buff) {
-      MEM_freeN(vlayers);
-    }
-    if (elayers && elayers != elayers_buff) {
-      MEM_freeN(elayers);
-    }
-    if (flayers && flayers != flayers_buff) {
-      MEM_freeN(flayers);
-    }
-    if (llayers && llayers != llayers_buff) {
-      MEM_freeN(llayers);
-    }
-    if (players && players != players_buff) {
-      MEM_freeN(players);
-    }
+    CustomData_blend_write(writer, &mesh->fdata, mesh->totface, CD_MASK_MESH.fmask, &mesh->id);
+    CustomData_blend_write(writer, &mesh->ldata, mesh->totloop, CD_MASK_MESH.lmask, &mesh->id);
+    CustomData_blend_write(writer, &mesh->pdata, mesh->totpoly, CD_MASK_MESH.pmask, &mesh->id);
   }
 }
 
@@ -3468,29 +3342,16 @@ static void write_workspace(BlendWriter *writer, WorkSpace *workspace, const voi
 static void write_hair(BlendWriter *writer, Hair *hair, const void *id_address)
 {
   if (hair->id.us > 0 || BLO_write_is_undo(writer)) {
-    CustomDataLayer *players = NULL, players_buff[CD_TEMP_CHUNK_SIZE];
-    CustomDataLayer *clayers = NULL, clayers_buff[CD_TEMP_CHUNK_SIZE];
-    CustomData_file_write_prepare(&hair->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
-    CustomData_file_write_prepare(&hair->cdata, &clayers, clayers_buff, ARRAY_SIZE(clayers_buff));
-
     /* Write LibData */
     BLO_write_id_struct(writer, Hair, id_address, &hair->id);
     write_iddata(writer, &hair->id);
 
     /* Direct data */
-    write_customdata(writer, &hair->id, hair->totpoint, &hair->pdata, players, CD_MASK_ALL);
-    write_customdata(writer, &hair->id, hair->totcurve, &hair->cdata, clayers, CD_MASK_ALL);
+    CustomData_blend_write(writer, &hair->pdata, hair->totpoint, CD_MASK_ALL, &hair->id);
+    CustomData_blend_write(writer, &hair->cdata, hair->totcurve, CD_MASK_ALL, &hair->id);
     BLO_write_pointer_array(writer, hair->totcol, hair->mat);
     if (hair->adt) {
       BKE_animdata_blend_write(writer, hair->adt);
-    }
-
-    /* Remove temporary data. */
-    if (players && players != players_buff) {
-      MEM_freeN(players);
-    }
-    if (clayers && clayers != clayers_buff) {
-      MEM_freeN(clayers);
     }
   }
 }
@@ -3507,8 +3368,8 @@ static void write_pointcloud(BlendWriter *writer, PointCloud *pointcloud, const 
     write_iddata(writer, &pointcloud->id);
 
     /* Direct data */
-    write_customdata(
-        writer, &pointcloud->id, pointcloud->totpoint, &pointcloud->pdata, players, CD_MASK_ALL);
+    CustomData_blend_write(
+        writer, &pointcloud->pdata, pointcloud->totpoint, CD_MASK_ALL, &pointcloud->id);
     BLO_write_pointer_array(writer, pointcloud->totcol, pointcloud->mat);
     if (pointcloud->adt) {
       BKE_animdata_blend_write(writer, pointcloud->adt);
@@ -3569,21 +3430,11 @@ static void write_simulation(BlendWriter *writer, Simulation *simulation, const 
         ParticleSimulationState *particle_state = (ParticleSimulationState *)state;
         BLO_write_struct(writer, ParticleSimulationState, particle_state);
 
-        CustomDataLayer *layers = NULL;
-        CustomDataLayer layers_buff[CD_TEMP_CHUNK_SIZE];
-        CustomData_file_write_prepare(
-            &particle_state->attributes, &layers, layers_buff, ARRAY_SIZE(layers_buff));
-
-        write_customdata(writer,
-                         &simulation->id,
-                         particle_state->tot_particles,
-                         &particle_state->attributes,
-                         layers,
-                         CD_MASK_ALL);
-
-        if (layers != NULL && layers != layers_buff) {
-          MEM_freeN(layers);
-        }
+        CustomData_blend_write(writer,
+                               &particle_state->attributes,
+                               particle_state->tot_particles,
+                               CD_MASK_ALL,
+                               &simulation->id);
       }
       else if (STREQ(state->type, SIM_TYPE_NAME_PARTICLE_MESH_EMITTER)) {
         ParticleMeshEmitterSimulationState *emitter_state = (ParticleMeshEmitterSimulationState *)

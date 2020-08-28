@@ -37,6 +37,8 @@ struct BMesh;
 struct CustomData;
 struct CustomData_MeshMasks;
 struct ID;
+struct BlendWriter;
+struct BlendDataReader;
 typedef uint64_t CustomDataMask;
 
 /*a data type large enough to hold 1 element from any customdata layer type*/
@@ -570,6 +572,14 @@ typedef struct CustomDataTransferLayerMap {
 /* Those functions assume src_n and dst_n layers of given type exist in resp. src and dst. */
 void CustomData_data_transfer(const struct MeshPairRemap *me_remap,
                               const CustomDataTransferLayerMap *laymap);
+
+/* .blend file I/O */
+void CustomData_blend_write(struct BlendWriter *writer,
+                            struct CustomData *data,
+                            int count,
+                            CustomDataMask cddata_mask,
+                            struct ID *id);
+void CustomData_blend_read(struct BlendDataReader *reader, struct CustomData *data, int count);
 
 #ifdef __cplusplus
 }

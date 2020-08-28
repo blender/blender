@@ -4126,88 +4126,6 @@ static void lib_link_mesh(BlendLibReader *reader, Mesh *me)
   BLO_read_id_address(reader, me->id.lib, &me->texcomesh);
 }
 
-static void direct_link_mdisps(BlendDataReader *reader, int count, MDisps *mdisps, int external)
-{
-  if (mdisps) {
-    for (int i = 0; i < count; i++) {
-      BLO_read_data_address(reader, &mdisps[i].disps);
-      BLO_read_data_address(reader, &mdisps[i].hidden);
-
-      if (mdisps[i].totdisp && !mdisps[i].level) {
-        /* this calculation is only correct for loop mdisps;
-         * if loading pre-BMesh face mdisps this will be
-         * overwritten with the correct value in
-         * bm_corners_to_loops() */
-        float gridsize = sqrtf(mdisps[i].totdisp);
-        mdisps[i].level = (int)(logf(gridsize - 1.0f) / (float)M_LN2) + 1;
-      }
-
-      if (BLO_read_requires_endian_switch(reader) && (mdisps[i].disps)) {
-        /* DNA_struct_switch_endian doesn't do endian swap for (*disps)[] */
-        /* this does swap for data written at write_mdisps() - readfile.c */
-        BLI_endian_switch_float_array(*mdisps[i].disps, mdisps[i].totdisp * 3);
-      }
-      if (!external && !mdisps[i].disps) {
-        mdisps[i].totdisp = 0;
-      }
-    }
-  }
-}
-
-static void direct_link_grid_paint_mask(BlendDataReader *reader,
-                                        int count,
-                                        GridPaintMask *grid_paint_mask)
-{
-  if (grid_paint_mask) {
-    for (int i = 0; i < count; i++) {
-      GridPaintMask *gpm = &grid_paint_mask[i];
-      if (gpm->data) {
-        BLO_read_data_address(reader, &gpm->data);
-      }
-    }
-  }
-}
-
-/*this isn't really a public api function, so prototyped here*/
-static void direct_link_customdata(BlendDataReader *reader, CustomData *data, int count)
-{
-
-  BLO_read_data_address(reader, &data->layers);
-
-  /* annoying workaround for bug [#31079] loading legacy files with
-   * no polygons _but_ have stale customdata */
-  if (UNLIKELY(count == 0 && data->layers == NULL && data->totlayer != 0)) {
-    CustomData_reset(data);
-    return;
-  }
-
-  BLO_read_data_address(reader, &data->external);
-
-  int i = 0;
-  while (i < data->totlayer) {
-    CustomDataLayer *layer = &data->layers[i];
-
-    if (layer->flag & CD_FLAG_EXTERNAL) {
-      layer->flag &= ~CD_FLAG_IN_MEMORY;
-    }
-
-    layer->flag &= ~CD_FLAG_NOFREE;
-
-    if (CustomData_verify_versions(data, i)) {
-      BLO_read_data_address(reader, &layer->data);
-      if (layer->type == CD_MDISPS) {
-        direct_link_mdisps(reader, count, layer->data, layer->flag & CD_FLAG_EXTERNAL);
-      }
-      else if (layer->type == CD_GRID_PAINT_MASK) {
-        direct_link_grid_paint_mask(reader, count, layer->data);
-      }
-      i++;
-    }
-  }
-
-  CustomData_update_typemap(data);
-}
-
 static void direct_link_mesh(BlendDataReader *reader, Mesh *mesh)
 {
   BLO_read_pointer_array(reader, (void **)&mesh->mat);
@@ -4229,15 +4147,15 @@ static void direct_link_mesh(BlendDataReader *reader, Mesh *mesh)
   BLO_read_data_address(reader, &mesh->adt);
   BKE_animdata_blend_read_data(reader, mesh->adt);
 
-  /* Normally BKE_defvert_blend_read should be called in direct_link_customdata,
+  /* Normally BKE_defvert_blend_read should be called in CustomData_blend_read,
    * but for backwards compatibility in do_versions to work we do it here. */
   BKE_defvert_blend_read(reader, mesh->totvert, mesh->dvert);
 
-  direct_link_customdata(reader, &mesh->vdata, mesh->totvert);
-  direct_link_customdata(reader, &mesh->edata, mesh->totedge);
-  direct_link_customdata(reader, &mesh->fdata, mesh->totface);
-  direct_link_customdata(reader, &mesh->ldata, mesh->totloop);
-  direct_link_customdata(reader, &mesh->pdata, mesh->totpoly);
+  CustomData_blend_read(reader, &mesh->vdata, mesh->totvert);
+  CustomData_blend_read(reader, &mesh->edata, mesh->totedge);
+  CustomData_blend_read(reader, &mesh->fdata, mesh->totface);
+  CustomData_blend_read(reader, &mesh->ldata, mesh->totloop);
+  CustomData_blend_read(reader, &mesh->pdata, mesh->totpoly);
 
   mesh->texflag &= ~ME_AUTOSPACE_EVALUATED;
   mesh->edit_mesh = NULL;
@@ -4254,10 +4172,10 @@ static void direct_link_mesh(BlendDataReader *reader, Mesh *mesh)
     BLO_read_list(reader, &mesh->mr->levels);
     MultiresLevel *lvl = mesh->mr->levels.first;
 
-    direct_link_customdata(reader, &mesh->mr->vdata, lvl->totvert);
+    CustomData_blend_read(reader, &mesh->mr->vdata, lvl->totvert);
     BKE_defvert_blend_read(
         reader, lvl->totvert, CustomData_get(&mesh->mr->vdata, 0, CD_MDEFORMVERT));
-    direct_link_customdata(reader, &mesh->mr->fdata, lvl->totface);
+    CustomData_blend_read(reader, &mesh->mr->fdata, lvl->totface);
 
     BLO_read_data_address(reader, &mesh->mr->edge_flags);
     BLO_read_data_address(reader, &mesh->mr->edge_creases);
@@ -7984,8 +7902,8 @@ static void direct_link_hair(BlendDataReader *reader, Hair *hair)
   BKE_animdata_blend_read_data(reader, hair->adt);
 
   /* Geometry */
-  direct_link_customdata(reader, &hair->pdata, hair->totpoint);
-  direct_link_customdata(reader, &hair->cdata, hair->totcurve);
+  CustomData_blend_read(reader, &hair->pdata, hair->totpoint);
+  CustomData_blend_read(reader, &hair->cdata, hair->totcurve);
   BKE_hair_update_customdata_pointers(hair);
 
   /* Materials */
@@ -8011,7 +7929,7 @@ static void direct_link_pointcloud(BlendDataReader *reader, PointCloud *pointclo
   BKE_animdata_blend_read_data(reader, pointcloud->adt);
 
   /* Geometry */
-  direct_link_customdata(reader, &pointcloud->pdata, pointcloud->totpoint);
+  CustomData_blend_read(reader, &pointcloud->pdata, pointcloud->totpoint);
   BKE_pointcloud_update_customdata_pointers(pointcloud);
 
   /* Materials */
@@ -8072,7 +7990,7 @@ static void direct_link_simulation(BlendDataReader *reader, Simulation *simulati
     BLO_read_data_address(reader, &state->type);
     if (STREQ(state->type, SIM_TYPE_NAME_PARTICLE_SIMULATION)) {
       ParticleSimulationState *particle_state = (ParticleSimulationState *)state;
-      direct_link_customdata(reader, &particle_state->attributes, particle_state->tot_particles);
+      CustomData_blend_read(reader, &particle_state->attributes, particle_state->tot_particles);
     }
   }
 
