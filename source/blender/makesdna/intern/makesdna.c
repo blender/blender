@@ -1373,6 +1373,7 @@ static int make_structDNA(const char *base_directory,
   /* write a simple enum with all structs offsets,
    * should only be accessed via SDNA_TYPE_FROM_STRUCT macro */
   {
+    fprintf(file_offsets, "#pragma once\n");
     fprintf(file_offsets, "#define SDNA_TYPE_FROM_STRUCT(id) _SDNA_TYPE_##id\n");
     fprintf(file_offsets, "enum {\n");
     for (i = 0; i < structs_len; i++) {
