@@ -99,6 +99,9 @@ void drw_state_set(DRWState state)
   if (state & DRW_STATE_WRITE_COLOR) {
     write_mask |= GPU_WRITE_COLOR;
   }
+  if (state & DRW_STATE_WRITE_STENCIL_ENABLED) {
+    write_mask |= GPU_WRITE_STENCIL;
+  }
 
   switch (state & (DRW_STATE_CULL_BACK | DRW_STATE_CULL_FRONT)) {
     case DRW_STATE_CULL_BACK:

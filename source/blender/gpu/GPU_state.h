@@ -29,6 +29,7 @@ typedef enum eGPUWriteMask {
   GPU_WRITE_BLUE = (1 << 2),
   GPU_WRITE_ALPHA = (1 << 3),
   GPU_WRITE_DEPTH = (1 << 4),
+  GPU_WRITE_STENCIL = (1 << 5),
   GPU_WRITE_COLOR = (GPU_WRITE_RED | GPU_WRITE_GREEN | GPU_WRITE_BLUE | GPU_WRITE_ALPHA),
 } eGPUWriteMask;
 
