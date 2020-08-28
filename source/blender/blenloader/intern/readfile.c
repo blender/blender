@@ -2631,12 +2631,12 @@ static void direct_link_paint_curve(BlendDataReader *reader, PaintCurve *pc)
 /** \name Read PackedFile
  * \{ */
 
-static PackedFile *direct_link_packedfile(BlendDataReader *reader, PackedFile *oldpf)
+static PackedFile *direct_link_packedfile(BlendDataReader *reader, PackedFile *pf)
 {
-  PackedFile *pf = newpackedadr(reader->fd, oldpf);
+  BLO_read_packed_address(reader, &pf);
 
   if (pf) {
-    pf->data = newpackedadr(reader->fd, pf->data);
+    BLO_read_packed_address(reader, &pf->data);
     if (pf->data == NULL) {
       /* We cannot allow a PackedFile with a NULL data field,
        * the whole code assumes this is not possible. See T70315. */
@@ -11087,6 +11087,11 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 void *BLO_read_get_new_data_address(BlendDataReader *reader, const void *old_address)
 {
   return newdataadr(reader->fd, old_address);
+}
+
+void *BLO_read_get_new_packed_address(BlendDataReader *reader, const void *old_address)
+{
+  return newpackedadr(reader->fd, old_address);
 }
 
 ID *BLO_read_get_new_id_address(BlendLibReader *reader, Library *lib, ID *id)
