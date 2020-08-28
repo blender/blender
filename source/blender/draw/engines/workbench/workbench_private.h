@@ -33,6 +33,10 @@
 
 #include "workbench_engine.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern struct DrawEngineType draw_engine_workbench;
 
 #define WORKBENCH_ENGINE "BLENDER_WORKBENCH"
@@ -519,3 +523,6 @@ void workbench_render(void *ved,
 void workbench_render_update_passes(struct RenderEngine *engine,
                                     struct Scene *scene,
                                     struct ViewLayer *view_layer);
+#ifdef __cplusplus
+}
+#endif

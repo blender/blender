@@ -32,6 +32,10 @@
 
 #include "BKE_camera.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct EEVEE_ShadowCasterBuffer;
 struct GPUFrameBuffer;
 struct Object;
@@ -1363,3 +1367,7 @@ static const float cubefacemat[6][4][4] = {
      {0.0f, 0.0f, 1.0f, 0.0f},
      {0.0f, 0.0f, 0.0f, 1.0f}},
 };
+
+#ifdef __cplusplus
+}
+#endif

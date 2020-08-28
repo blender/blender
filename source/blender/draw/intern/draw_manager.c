@@ -84,6 +84,7 @@
 
 #include "draw_color_management.h"
 #include "draw_manager_profiling.h"
+#include "draw_manager_testing.h"
 #include "draw_manager_text.h"
 
 /* only for callbacks */
@@ -2887,6 +2888,8 @@ void DRW_gpu_render_context_disable(void *UNUSED(re_gpu_context))
   GPU_context_active_set(NULL);
 }
 
+/** \} */
+
 #ifdef WITH_XR_OPENXR
 
 /* XXX
@@ -2922,4 +2925,17 @@ void DRW_xr_drawing_end(void)
 }
 
 #endif
+
+/** \name Internal testing API for gtests
+ * \{ */
+
+#ifdef WITH_OPENGL_DRAW_TESTS
+
+void DRW_draw_state_init_gtests(eGPUShaderConfig sh_cfg)
+{
+  DST.draw_ctx.sh_cfg = sh_cfg;
+}
+
+#endif
+
 /** \} */

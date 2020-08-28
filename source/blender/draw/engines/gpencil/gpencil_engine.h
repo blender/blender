@@ -24,9 +24,15 @@
 
 #include "DNA_gpencil_types.h"
 
+#include "DRW_render.h"
+
 #include "BLI_bitmap.h"
 
 #include "GPU_batch.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 extern DrawEngineType draw_engine_gpencil_type;
 
@@ -397,7 +403,6 @@ void gpencil_vfx_cache_populate(GPENCIL_Data *vedata, Object *ob, GPENCIL_tObjec
 /* Shaders */
 struct GPUShader *GPENCIL_shader_antialiasing(int stage);
 struct GPUShader *GPENCIL_shader_geometry_get(void);
-struct GPUShader *GPENCIL_shader_composite_get(void);
 struct GPUShader *GPENCIL_shader_layer_blend_get(void);
 struct GPUShader *GPENCIL_shader_mask_invert_get(void);
 struct GPUShader *GPENCIL_shader_depth_merge_get(void);
@@ -438,3 +443,6 @@ void GPENCIL_render_to_image(void *vedata,
 void gpencil_light_pool_free(void *storage);
 void gpencil_material_pool_free(void *storage);
 GPENCIL_ViewLayerData *GPENCIL_view_layer_data_ensure(void);
+#ifdef __cplusplus
+}
+#endif

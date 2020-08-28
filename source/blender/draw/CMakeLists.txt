@@ -419,6 +419,28 @@ if(WITH_XR_OPENXR)
   add_definitions(-DWITH_XR_OPENXR)
 endif()
 
+if(WITH_GTESTS)
+  if(WITH_OPENGL_DRAW_TESTS)
+    add_definitions(-DWITH_OPENGL_DRAW_TESTS)
+  endif()
+endif()
+
 add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_draw "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+if(WITH_GTESTS)
+  if(WITH_OPENGL_DRAW_TESTS)
+    set(TEST_SRC
+      tests/shaders_test.cc
+    )
+    set(TEST_INC
+      "../../../intern/ghost/"
+    )
+    set(TEST_LIB
+      bf_draw
+    )
+    include(GTestTesting)
+    blender_add_test_lib(bf_draw_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
+  endif()
+endif()

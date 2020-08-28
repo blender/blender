@@ -22,6 +22,12 @@
 
 #pragma once
 
+#include "DRW_render.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifdef __APPLE__
 #  define USE_GEOM_SHADER_WORKAROUND 1
 #else
@@ -627,3 +633,7 @@ GPUShader *OVERLAY_shader_xray_fade(void);
 OVERLAY_InstanceFormats *OVERLAY_shader_instance_formats_get(void);
 
 void OVERLAY_shader_free(void);
+
+#ifdef __cplusplus
+}
+#endif
