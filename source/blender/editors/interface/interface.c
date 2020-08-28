@@ -3481,6 +3481,9 @@ static void ui_but_build_drawstr_float(uiBut *but, double value)
     subtype = RNA_property_subtype(but->rnaprop);
   }
 
+  /* Change negative zero to regular zero, without altering anything else.  */
+  value += +0.0f;
+
   if (value == (double)FLT_MAX) {
     STR_CONCAT(but->drawstr, slen, "inf");
   }
