@@ -212,9 +212,7 @@ void Face::populate_plane(bool need_exact)
 
 Face::~Face()
 {
-  if (plane != nullptr) {
-    delete plane;
-  }
+  delete plane;
 }
 
 bool Face::operator==(const Face &other) const
