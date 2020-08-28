@@ -970,7 +970,7 @@ static bool do_lasso_select_curve(ViewContext *vc,
 
   /* Deselect items that were not added to selection (indicated by temp flag). */
   if (deselect_all) {
-    BKE_nurbList_flag_set_from_flag(nurbs, BEZT_FLAG_TEMP_TAG, SELECT);
+    data.is_changed |= BKE_nurbList_flag_set_from_flag(nurbs, BEZT_FLAG_TEMP_TAG, SELECT);
   }
 
   if (data.is_changed) {
@@ -2772,7 +2772,7 @@ static bool do_nurbs_box_select(ViewContext *vc, rcti *rect, const eSelectOp sel
 
   /* Deselect items that were not added to selection (indicated by temp flag). */
   if (deselect_all) {
-    BKE_nurbList_flag_set_from_flag(nurbs, BEZT_FLAG_TEMP_TAG, SELECT);
+    data.is_changed |= BKE_nurbList_flag_set_from_flag(nurbs, BEZT_FLAG_TEMP_TAG, SELECT);
   }
 
   BKE_curve_nurb_vert_active_validate(vc->obedit->data);
@@ -3693,7 +3693,6 @@ static bool nurbscurve_circle_select(ViewContext *vc,
   const bool select = (sel_op != SEL_OP_SUB);
   const bool deselect_all = (sel_op == SEL_OP_SET);
   CircleSelectUserData data;
-  bool changed = false;
 
   view3d_userdata_circleselect_init(&data, vc, select, mval, rad);
 
@@ -3711,12 +3710,12 @@ static bool nurbscurve_circle_select(ViewContext *vc,
 
   /* Deselect items that were not added to selection (indicated by temp flag). */
   if (deselect_all) {
-    BKE_nurbList_flag_set_from_flag(nurbs, BEZT_FLAG_TEMP_TAG, SELECT);
+    data.is_changed |= BKE_nurbList_flag_set_from_flag(nurbs, BEZT_FLAG_TEMP_TAG, SELECT);
   }
 
   BKE_curve_nurb_vert_active_validate(vc->obedit->data);
 
-  return changed || data.is_changed;
+  return data.is_changed;
 }
 
 static void latticecurve_circle_doSelect(void *userData, BPoint *bp, const float screen_co[2])
