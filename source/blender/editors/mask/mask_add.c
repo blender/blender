@@ -462,8 +462,10 @@ static int add_vertex_handle_cyclic_at_point(bContext *C,
   const float tolerance_in_pixels_squared = 4 * 4;
 
   if (spline->flag & MASK_SPLINE_CYCLIC) {
-    /* No cycling toggle needed, we've got nothing meaningful to do in this operator. */
-    return OPERATOR_CANCELLED;
+    /* The spline is already cyclic, so there is no need to handle anything here.
+     * Return PASS_THROUGH so that it's possible to add vertices close to the endpoints of the
+     * cyclic spline. */
+    return OPERATOR_PASS_THROUGH;
   }
 
   float co_pixel[2];
