@@ -25,23 +25,22 @@
 #include "BLI_double3.hh"
 
 #ifdef WITH_GMP
-#include "BLI_math_mpq.hh"
-#include "BLI_mpq2.hh"
-#include "BLI_mpq3.hh"
+#  include "BLI_math_mpq.hh"
+#  include "BLI_mpq2.hh"
+#  include "BLI_mpq3.hh"
 #endif
 
 namespace blender {
 
 /* #orient2d gives the exact result, using multi-precision arithmetic when result
-* is close to zero. orient3d_fast just uses double arithmetic, so may be
-* wrong if the answer is very close to zero.
-* Similarly, for #incircle and #incircle_fast. */
+ * is close to zero. orient3d_fast just uses double arithmetic, so may be
+ * wrong if the answer is very close to zero.
+ * Similarly, for #incircle and #incircle_fast. */
 int orient2d(const double2 &a, const double2 &b, const double2 &c);
 int orient2d_fast(const double2 &a, const double2 &b, const double2 &c);
 
 int incircle(const double2 &a, const double2 &b, const double2 &c, const double2 &d);
 int incircle_fast(const double2 &a, const double2 &b, const double2 &c, const double2 &d);
-
 
 /* #orient3d gives the exact result, using multi-precision arithmetic when result
  * is close to zero. orient3d_fast just uses double arithmetic, so may be
@@ -50,8 +49,10 @@ int incircle_fast(const double2 &a, const double2 &b, const double2 &c, const do
 int orient3d(const double3 &a, const double3 &b, const double3 &c, const double3 &d);
 int orient3d_fast(const double3 &a, const double3 &b, const double3 &c, const double3 &d);
 
-int insphere(const double3 &a, const double3 &b, const double3 &c, const double3 &d, const double3 &e);
-int insphere_fast(const double3 &a, const double3 &b, const double3 &c, const double3 &d, const double3 &e);
+int insphere(
+    const double3 &a, const double3 &b, const double3 &c, const double3 &d, const double3 &e);
+int insphere_fast(
+    const double3 &a, const double3 &b, const double3 &c, const double3 &d, const double3 &e);
 
 #ifdef WITH_GMP
 int orient2d(const mpq2 &a, const mpq2 &b, const mpq2 &c);

@@ -2530,4 +2530,4 @@ int insphere_fast(
   return sgn(robust_pred::inspherefast(a, b, c, d, e));
 }
 
-} // namespace blender
+}  // namespace blender

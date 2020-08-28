@@ -157,7 +157,7 @@ static int find_edge_pos_in_tri(const Vert *v0, const Vert *v1, const Face *f)
   return -1;
 }
 
-#if DO_REGULAR_TESTS
+#  if DO_REGULAR_TESTS
 TEST(mesh_intersect, Mesh)
 {
   Vector<const Vert *> verts;
@@ -703,9 +703,9 @@ TEST(mesh_intersect, CubeCubeStep)
     write_obj_mesh(out2, "test_cubecubestep_nary");
   }
 }
-#endif
+#  endif
 
-#if DO_PERF_TESTS
+#  if DO_PERF_TESTS
 
 static void get_sphere_params(
     int nrings, int nsegs, bool triangulate, int *r_num_verts, int *r_num_faces)
@@ -1068,7 +1068,7 @@ TEST(mesh_intersect_perf, SphereGrid)
   spheregrid_test(64, 4, 0.1, false);
 }
 
-#endif
+#  endif
 
 }  // namespace blender::meshintersect::tests
 #endif
