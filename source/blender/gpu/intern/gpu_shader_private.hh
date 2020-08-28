@@ -36,7 +36,7 @@ namespace gpu {
 class Shader {
  public:
   /** Uniform & attribute locations for shader. */
-  ShaderInterface *interface;
+  ShaderInterface *interface = nullptr;
 
  protected:
   /** For debugging purpose. */
