@@ -812,8 +812,8 @@ double orient3dfast(const double *pa, const double *pb, const double *pc, const 
 /**
  * \note since this code comes from an external source, prefer not to break it
  * up to fix this clang-tidy warning.
- * NOLINTNEXTLINE: readability-function-size
  */
+/* NOLINTNEXTLINE: readability-function-size */
 static double orient3dadapt(
     const double *pa, const double *pb, const double *pc, const double *pd, double permanent)
 {
@@ -1326,8 +1326,8 @@ double incirclefast(const double *pa, const double *pb, const double *pc, const 
 /**
  * \note since this code comes from an external source, prefer not to break it
  * up to fix this clang-tidy warning.
- * NOLINTNEXTLINE: readability-function-size
  */
+/* NOLINTNEXTLINE: readability-function-size */
 static double incircleadapt(
     const double *pa, const double *pb, const double *pc, const double *pd, double permanent)
 {
