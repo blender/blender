@@ -127,12 +127,6 @@ GLuint GPU_vao_default(void)
   return static_cast<GLContext *>(active_ctx)->default_vao_;
 }
 
-GLuint GPU_framebuffer_default(void)
-{
-  BLI_assert(active_ctx); /* need at least an active context */
-  return static_cast<GLContext *>(active_ctx)->default_framebuffer_;
-}
-
 GLuint GPU_vao_alloc(void)
 {
   GLuint new_vao_id = 0;

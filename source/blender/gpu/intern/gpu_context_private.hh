@@ -79,7 +79,6 @@ struct GPUContext {
 };
 
 GLuint GPU_vao_default(void);
-GLuint GPU_framebuffer_default(void);
 
 /* These require a gl ctx bound. */
 GLuint GPU_buf_alloc(void);

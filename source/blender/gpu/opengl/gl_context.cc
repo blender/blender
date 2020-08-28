@@ -46,10 +46,6 @@ using namespace blender::gpu;
 GLContext::GLContext(void *ghost_window, GLSharedOrphanLists &shared_orphan_list)
     : shared_orphan_list_(shared_orphan_list)
 {
-  default_framebuffer_ = ghost_window ?
-                             GHOST_GetDefaultOpenGLFramebuffer((GHOST_WindowHandle)ghost_window) :
-                             0;
-
   glGenVertexArrays(1, &default_vao_);
 
   float data[4] = {0.0f, 0.0f, 0.0f, 1.0f};

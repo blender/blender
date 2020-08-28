@@ -63,8 +63,6 @@ class GLContext : public GPUContext {
  public:
   /** Default VAO for procedural draw calls. */
   GLuint default_vao_;
-  /** Default framebuffer object for some GL implementation. */
-  GLuint default_framebuffer_;
   /** VBO for missing vertex attrib binding. Avoid undefined behavior on some implementation. */
   GLuint default_attr_vbo_;
   /**
