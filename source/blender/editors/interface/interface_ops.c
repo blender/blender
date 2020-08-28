@@ -1474,16 +1474,16 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
     const char *root = U.i18ndir;
     const char *uilng = BLT_lang_get();
 
-    const uiStringInfo but_label = {BUT_GET_LABEL, NULL};
-    const uiStringInfo rna_label = {BUT_GET_RNA_LABEL, NULL};
-    const uiStringInfo enum_label = {BUT_GET_RNAENUM_LABEL, NULL};
-    const uiStringInfo but_tip = {BUT_GET_TIP, NULL};
-    const uiStringInfo rna_tip = {BUT_GET_RNA_TIP, NULL};
-    const uiStringInfo enum_tip = {BUT_GET_RNAENUM_TIP, NULL};
-    const uiStringInfo rna_struct = {BUT_GET_RNASTRUCT_IDENTIFIER, NULL};
-    const uiStringInfo rna_prop = {BUT_GET_RNAPROP_IDENTIFIER, NULL};
-    const uiStringInfo rna_enum = {BUT_GET_RNAENUM_IDENTIFIER, NULL};
-    const uiStringInfo rna_ctxt = {BUT_GET_RNA_LABEL_CONTEXT, NULL};
+    uiStringInfo but_label = {BUT_GET_LABEL, NULL};
+    uiStringInfo rna_label = {BUT_GET_RNA_LABEL, NULL};
+    uiStringInfo enum_label = {BUT_GET_RNAENUM_LABEL, NULL};
+    uiStringInfo but_tip = {BUT_GET_TIP, NULL};
+    uiStringInfo rna_tip = {BUT_GET_RNA_TIP, NULL};
+    uiStringInfo enum_tip = {BUT_GET_RNAENUM_TIP, NULL};
+    uiStringInfo rna_struct = {BUT_GET_RNASTRUCT_IDENTIFIER, NULL};
+    uiStringInfo rna_prop = {BUT_GET_RNAPROP_IDENTIFIER, NULL};
+    uiStringInfo rna_enum = {BUT_GET_RNAENUM_IDENTIFIER, NULL};
+    uiStringInfo rna_ctxt = {BUT_GET_RNA_LABEL_CONTEXT, NULL};
 
     if (!BLI_is_dir(root)) {
       BKE_report(op->reports,

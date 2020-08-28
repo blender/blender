@@ -535,7 +535,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
     char *shortcut = NULL;
 
     {
-      const uiStringInfo op_keymap = {BUT_GET_OP_KEYMAP, NULL};
+      uiStringInfo op_keymap = {BUT_GET_OP_KEYMAP, NULL};
       UI_but_string_info_get(C, but, &op_keymap, NULL);
       shortcut = op_keymap.strinfo;
     }
@@ -768,14 +768,14 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
 
 static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 {
-  const uiStringInfo but_label = {BUT_GET_LABEL, NULL};
-  const uiStringInfo but_tip = {BUT_GET_TIP, NULL};
-  const uiStringInfo enum_label = {BUT_GET_RNAENUM_LABEL, NULL};
-  const uiStringInfo enum_tip = {BUT_GET_RNAENUM_TIP, NULL};
-  const uiStringInfo op_keymap = {BUT_GET_OP_KEYMAP, NULL};
-  const uiStringInfo prop_keymap = {BUT_GET_PROP_KEYMAP, NULL};
-  const uiStringInfo rna_struct = {BUT_GET_RNASTRUCT_IDENTIFIER, NULL};
-  const uiStringInfo rna_prop = {BUT_GET_RNAPROP_IDENTIFIER, NULL};
+  uiStringInfo but_label = {BUT_GET_LABEL, NULL};
+  uiStringInfo but_tip = {BUT_GET_TIP, NULL};
+  uiStringInfo enum_label = {BUT_GET_RNAENUM_LABEL, NULL};
+  uiStringInfo enum_tip = {BUT_GET_RNAENUM_TIP, NULL};
+  uiStringInfo op_keymap = {BUT_GET_OP_KEYMAP, NULL};
+  uiStringInfo prop_keymap = {BUT_GET_PROP_KEYMAP, NULL};
+  uiStringInfo rna_struct = {BUT_GET_RNASTRUCT_IDENTIFIER, NULL};
+  uiStringInfo rna_prop = {BUT_GET_RNAPROP_IDENTIFIER, NULL};
 
   char buf[512];
 

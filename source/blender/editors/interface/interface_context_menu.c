@@ -517,7 +517,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
   uiLayout *layout;
 
   {
-    const uiStringInfo label = {BUT_GET_LABEL, NULL};
+    uiStringInfo label = {BUT_GET_LABEL, NULL};
 
     /* highly unlikely getting the label ever fails */
     UI_but_string_info_get(C, but, &label, NULL);
