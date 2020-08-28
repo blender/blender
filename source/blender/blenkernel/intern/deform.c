@@ -1557,7 +1557,7 @@ void BKE_defvert_blend_read(BlendDataReader *reader, int count, MDeformVert *mdv
     /*convert to vgroup allocation system*/
     MDeformWeight *dw;
     if (mdverts->dw && (dw = BLO_read_get_new_data_address(reader, mdverts->dw))) {
-      const ssize_t dw_len = mdverts->totweight * sizeof(MDeformWeight);
+      const size_t dw_len = MAX2(mdverts->totweight, 0) * sizeof(MDeformWeight);
       void *dw_tmp = MEM_mallocN(dw_len, __func__);
       memcpy(dw_tmp, dw, dw_len);
       mdverts->dw = dw_tmp;
