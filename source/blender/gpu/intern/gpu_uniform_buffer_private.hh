@@ -28,9 +28,9 @@ namespace blender {
 namespace gpu {
 
 #ifdef DEBUG
-#  define DEBUG_NAME_LEN 8
-#else
 #  define DEBUG_NAME_LEN 64
+#else
+#  define DEBUG_NAME_LEN 8
 #endif
 
 /**
