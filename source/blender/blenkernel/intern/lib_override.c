@@ -1685,6 +1685,20 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
   /* XXX And crashing in complex cases (e.g. because depsgraph uses same data...). */
   BKE_id_free_ex(bmain, tmp_id, LIB_ID_FREE_NO_UI_USER, true);
 
+  if (GS(local->name) == ID_AR) {
+    /* Funtime again, thanks to bone pointers in pose data of objects. We keep same ID addresses,
+     * but internal data has changed for sure, so we need to invalidate posebones caches. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      if (ob->pose != NULL && ob->data == local) {
+        BLI_assert(ob->type == OB_ARMATURE);
+        ob->pose->flag |= POSE_RECALC;
+        /* We need to clear pose bone pointers immediately, some code may access those before pose
+         * is actually recomputed, which can lead to segfault. */
+        BKE_pose_clear_pointers(ob->pose);
+      }
+    }
+  }
+
   if (local->override_library->storage) {
     /* We know this datablock is not used anywhere besides local->override->storage. */
     /* XXX For until we get fully shadow copies, we still need to ensure storage releases
