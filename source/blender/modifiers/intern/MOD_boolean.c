@@ -392,17 +392,17 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiItemR(layout, &ptr, "object", 0, NULL, ICON_NONE);
 
-#ifdef WITH_GMP
-  bool use_exact = RNA_enum_get(&ptr, "solver") == eBooleanModifierSolver_Exact;
-#else
+#ifndef WITH_GMP
   bool use_exact = false;
+#else
+  bool use_exact = RNA_enum_get(&ptr, "solver") == eBooleanModifierSolver_Exact;
+
+  uiItemR(layout, &ptr, "solver", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 #endif
+
   if (!use_exact) {
     uiItemR(layout, &ptr, "double_threshold", 0, NULL, ICON_NONE);
   }
-#ifdef WITH_GMP
-  uiItemR(layout, &ptr, "solver", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
-#endif
 
   if (G.debug) {
     uiLayout *col = uiLayoutColumn(layout, true);
