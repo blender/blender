@@ -6634,12 +6634,12 @@ static float sculpt_brush_dynamic_size_get(Brush *brush, StrokeCache *cache, flo
  * generally used to create grab deformations. */
 static bool sculpt_needs_delta_from_anchored_origin(Brush *brush)
 {
-  if ELEM (brush->sculpt_tool,
+  if (ELEM(brush->sculpt_tool,
            SCULPT_TOOL_GRAB,
            SCULPT_TOOL_POSE,
            SCULPT_TOOL_BOUNDARY,
            SCULPT_TOOL_THUMB,
-           SCULPT_TOOL_ELASTIC_DEFORM) {
+           SCULPT_TOOL_ELASTIC_DEFORM)) {
     return true;
   }
   if (brush->sculpt_tool == SCULPT_TOOL_CLOTH &&
