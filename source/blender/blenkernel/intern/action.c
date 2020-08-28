@@ -184,6 +184,12 @@ IDTypeInfo IDType_ID_AC = {
     .free_data = action_free_data,
     .make_local = NULL,
     .foreach_id = action_foreach_id,
+    .foreach_cache = NULL,
+
+    .blend_write = NULL,
+    .blend_read_data = NULL,
+    .blend_read_lib = NULL,
+    .blend_read_expand = NULL,
 };
 
 /* ***************** Library data level operations on action ************** */

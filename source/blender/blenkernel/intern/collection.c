@@ -173,6 +173,12 @@ IDTypeInfo IDType_ID_GR = {
     .free_data = collection_free_data,
     .make_local = NULL,
     .foreach_id = collection_foreach_id,
+    .foreach_cache = NULL,
+
+    .blend_write = NULL,
+    .blend_read_data = NULL,
+    .blend_read_lib = NULL,
+    .blend_read_expand = NULL,
 };
 
 /** \} */

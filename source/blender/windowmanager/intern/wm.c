@@ -113,6 +113,12 @@ IDTypeInfo IDType_ID_WM = {
     .free_data = window_manager_free_data,
     .make_local = NULL,
     .foreach_id = window_manager_foreach_id,
+    .foreach_cache = NULL,
+
+    .blend_write = NULL,
+    .blend_read_data = NULL,
+    .blend_read_lib = NULL,
+    .blend_read_expand = NULL,
 };
 
 #define MAX_OP_REGISTERED 32

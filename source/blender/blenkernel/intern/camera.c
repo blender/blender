@@ -128,6 +128,12 @@ IDTypeInfo IDType_ID_CA = {
     .free_data = camera_free_data,
     .make_local = camera_make_local,
     .foreach_id = camera_foreach_id,
+    .foreach_cache = NULL,
+
+    .blend_write = NULL,
+    .blend_read_data = NULL,
+    .blend_read_lib = NULL,
+    .blend_read_expand = NULL,
 };
 
 /** \} */

@@ -180,6 +180,12 @@ IDTypeInfo IDType_ID_AR = {
     .free_data = armature_free_data,
     .make_local = NULL,
     .foreach_id = armature_foreach_id,
+    .foreach_cache = NULL,
+
+    .blend_write = NULL,
+    .blend_read_data = NULL,
+    .blend_read_lib = NULL,
+    .blend_read_expand = NULL,
 };
 
 /** \} */

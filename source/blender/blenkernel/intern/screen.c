@@ -245,6 +245,12 @@ IDTypeInfo IDType_ID_SCR = {
     .free_data = screen_free_data,
     .make_local = NULL,
     .foreach_id = screen_foreach_id,
+    .foreach_cache = NULL,
+
+    .blend_write = NULL,
+    .blend_read_data = NULL,
+    .blend_read_lib = NULL,
+    .blend_read_expand = NULL,
 };
 
 /* ************ Spacetype/regiontype handling ************** */

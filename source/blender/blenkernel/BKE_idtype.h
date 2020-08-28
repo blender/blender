@@ -34,6 +34,10 @@ extern "C" {
 struct ID;
 struct LibraryForeachIDData;
 struct Main;
+struct BlendWriter;
+struct BlendDataReader;
+struct BlendLibReader;
+struct BlendExpander;
 
 /** IDTypeInfo.flags. */
 enum {
@@ -88,6 +92,13 @@ typedef void (*IDTypeForeachCacheFunctionCallback)(struct ID *id,
 typedef void (*IDTypeForeachCacheFunction)(struct ID *id,
                                            IDTypeForeachCacheFunctionCallback function_callback,
                                            void *user_data);
+
+typedef void (*IDTypeBlendWriteFunction)(struct BlendWriter *writer,
+                                         struct ID *id,
+                                         const void *id_address);
+typedef void (*IDTypeBlendReadDataFunction)(struct BlendDataReader *reader, struct ID *id);
+typedef void (*IDTypeBlendReadLibFunction)(struct BlendLibReader *reader, struct ID *id);
+typedef void (*IDTypeBlendReadExpandFunction)(struct BlendExpander *expander, struct ID *id);
 
 typedef struct IDTypeInfo {
   /* ********** General IDType data. ********** */
@@ -161,6 +172,26 @@ typedef struct IDTypeInfo {
    * Iterator over all cache pointers of given ID.
    */
   IDTypeForeachCacheFunction foreach_cache;
+
+  /**
+   * Write all structs that should be saved in a .blend file.
+   */
+  IDTypeBlendWriteFunction blend_write;
+
+  /**
+   * Update pointers for all structs directly owned by this data block.
+   */
+  IDTypeBlendReadDataFunction blend_read_data;
+
+  /**
+   * Update pointers to other id data blocks.
+   */
+  IDTypeBlendReadLibFunction blend_read_lib;
+
+  /**
+   * Specify which other id data blocks should be loaded when the current one is loaded.
+   */
+  IDTypeBlendReadExpandFunction blend_read_expand;
 } IDTypeInfo;
 
 /* ********** Declaration of each IDTypeInfo. ********** */

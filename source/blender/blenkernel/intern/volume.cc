@@ -525,6 +525,11 @@ IDTypeInfo IDType_ID_VO = {
     /* make_local */ nullptr,
     /* foreach_id */ volume_foreach_id,
     /* foreach_cache */ volume_foreach_cache,
+
+    /* blend_write */ NULL,
+    /* blend_read_data */ NULL,
+    /* blend_read_lib */ NULL,
+    /* blend_read_expand */ NULL,
 };
 
 void BKE_volume_init_grids(Volume *volume)

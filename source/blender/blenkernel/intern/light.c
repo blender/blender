@@ -134,6 +134,12 @@ IDTypeInfo IDType_ID_LA = {
     .free_data = light_free_data,
     .make_local = NULL,
     .foreach_id = light_foreach_id,
+    .foreach_cache = NULL,
+
+    .blend_write = NULL,
+    .blend_read_data = NULL,
+    .blend_read_lib = NULL,
+    .blend_read_expand = NULL,
 };
 
 Light *BKE_light_add(Main *bmain, const char *name)

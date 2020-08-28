@@ -124,6 +124,12 @@ IDTypeInfo IDType_ID_IP = {
     .free_data = ipo_free_data,
     .make_local = NULL,
     .foreach_id = NULL,
+    .foreach_cache = NULL,
+
+    .blend_write = NULL,
+    .blend_read_data = NULL,
+    .blend_read_lib = NULL,
+    .blend_read_expand = NULL,
 };
 
 /* *************************************************** */

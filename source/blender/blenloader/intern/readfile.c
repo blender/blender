@@ -8240,6 +8240,9 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
   }
 
   const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
+  if (id_type->blend_read_data != NULL) {
+    id_type->blend_read_data(&reader, id);
+  }
 
   /* XXX Very weakly handled currently, see comment in read_libblock() before trying to
    * use it for anything new. */
@@ -8958,6 +8961,11 @@ static void lib_link_all(FileData *fd, Main *bmain)
     }
 
     lib_link_id(&reader, id);
+
+    const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
+    if (id_type->blend_read_lib != NULL) {
+      id_type->blend_read_lib(&reader, id);
+    }
 
     /* Note: ID types are processed in reverse order as defined by INDEX_ID_XXX enums in DNA_ID.h.
      * This ensures handling of most dependencies in proper order, as elsewhere in code.
@@ -10371,6 +10379,11 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
       while (id) {
         if (id->tag & LIB_TAG_NEED_EXPAND) {
           expand_id(&expander, id);
+
+          const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
+          if (id_type->blend_read_expand != NULL) {
+            id_type->blend_read_expand(&expander, id);
+          }
 
           switch (GS(id->name)) {
             case ID_OB:

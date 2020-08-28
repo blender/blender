@@ -160,6 +160,12 @@ IDTypeInfo IDType_ID_SIM = {
     /* free_data */ simulation_free_data,
     /* make_local */ nullptr,
     /* foreach_id */ simulation_foreach_id,
+    /* foreach_cache */ NULL,
+
+    /* blend_write */ NULL,
+    /* blend_read_data */ NULL,
+    /* blend_read_lib */ NULL,
+    /* blend_read_expand */ NULL,
 };
 
 void *BKE_simulation_add(Main *bmain, const char *name)

@@ -175,6 +175,12 @@ IDTypeInfo IDType_ID_MA = {
     .free_data = material_free_data,
     .make_local = NULL,
     .foreach_id = material_foreach_id,
+    .foreach_cache = NULL,
+
+    .blend_write = NULL,
+    .blend_read_data = NULL,
+    .blend_read_lib = NULL,
+    .blend_read_expand = NULL,
 };
 
 void BKE_gpencil_material_attr_init(Material *ma)

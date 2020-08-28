@@ -119,6 +119,12 @@ IDTypeInfo IDType_ID_HA = {
     .free_data = hair_free_data,
     .make_local = NULL,
     .foreach_id = hair_foreach_id,
+    .foreach_cache = NULL,
+
+    .blend_write = NULL,
+    .blend_read_data = NULL,
+    .blend_read_lib = NULL,
+    .blend_read_expand = NULL,
 };
 
 static void hair_random(Hair *hair)

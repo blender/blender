@@ -209,6 +209,12 @@ IDTypeInfo IDType_ID_PA = {
     .free_data = particle_settings_free_data,
     .make_local = NULL,
     .foreach_id = particle_settings_foreach_id,
+    .foreach_cache = NULL,
+
+    .blend_write = NULL,
+    .blend_read_data = NULL,
+    .blend_read_lib = NULL,
+    .blend_read_expand = NULL,
 };
 
 unsigned int PSYS_FRAND_SEED_OFFSET[PSYS_FRAND_COUNT];

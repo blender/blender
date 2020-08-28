@@ -117,6 +117,12 @@ IDTypeInfo IDType_ID_PAL = {
     .free_data = palette_free_data,
     .make_local = NULL,
     .foreach_id = NULL,
+    .foreach_cache = NULL,
+
+    .blend_write = NULL,
+    .blend_read_data = NULL,
+    .blend_read_lib = NULL,
+    .blend_read_expand = NULL,
 };
 
 static void paint_curve_copy_data(Main *UNUSED(bmain),
@@ -155,6 +161,12 @@ IDTypeInfo IDType_ID_PC = {
     .free_data = paint_curve_free_data,
     .make_local = NULL,
     .foreach_id = NULL,
+    .foreach_cache = NULL,
+
+    .blend_write = NULL,
+    .blend_read_data = NULL,
+    .blend_read_lib = NULL,
+    .blend_read_expand = NULL,
 };
 
 const char PAINT_CURSOR_SCULPT[3] = {255, 100, 100};

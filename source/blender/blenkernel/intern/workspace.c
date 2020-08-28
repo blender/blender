@@ -90,6 +90,12 @@ IDTypeInfo IDType_ID_WS = {
     .free_data = workspace_free_data,
     .make_local = NULL,
     .foreach_id = workspace_foreach_id,
+    .foreach_cache = NULL,
+
+    .blend_write = NULL,
+    .blend_read_data = NULL,
+    .blend_read_lib = NULL,
+    .blend_read_expand = NULL,
 };
 
 /** \name Internal Utils

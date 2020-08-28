@@ -137,6 +137,12 @@ IDTypeInfo IDType_ID_WO = {
     .free_data = world_free_data,
     .make_local = NULL,
     .foreach_id = world_foreach_id,
+    .foreach_cache = NULL,
+
+    .blend_write = NULL,
+    .blend_read_data = NULL,
+    .blend_read_lib = NULL,
+    .blend_read_expand = NULL,
 };
 
 World *BKE_world_add(Main *bmain, const char *name)

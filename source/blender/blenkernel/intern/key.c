@@ -113,6 +113,12 @@ IDTypeInfo IDType_ID_KE = {
     .free_data = shapekey_free_data,
     .make_local = NULL,
     .foreach_id = shapekey_foreach_id,
+    .foreach_cache = NULL,
+
+    .blend_write = NULL,
+    .blend_read_data = NULL,
+    .blend_read_lib = NULL,
+    .blend_read_expand = NULL,
 };
 
 #define KEY_MODE_DUMMY 0 /* use where mode isn't checked for */

@@ -100,6 +100,12 @@ IDTypeInfo IDType_ID_CF = {
     .free_data = cache_file_free_data,
     .make_local = NULL,
     .foreach_id = NULL,
+    .foreach_cache = NULL,
+
+    .blend_write = NULL,
+    .blend_read_data = NULL,
+    .blend_read_lib = NULL,
+    .blend_read_expand = NULL,
 };
 
 /* TODO: make this per cache file to avoid global locks. */

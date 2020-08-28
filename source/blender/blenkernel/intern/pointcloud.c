@@ -113,6 +113,12 @@ IDTypeInfo IDType_ID_PT = {
     .free_data = pointcloud_free_data,
     .make_local = NULL,
     .foreach_id = pointcloud_foreach_id,
+    .foreach_cache = NULL,
+
+    .blend_write = NULL,
+    .blend_read_data = NULL,
+    .blend_read_lib = NULL,
+    .blend_read_expand = NULL,
 };
 
 static void pointcloud_random(PointCloud *pointcloud)

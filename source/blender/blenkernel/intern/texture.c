@@ -149,6 +149,12 @@ IDTypeInfo IDType_ID_TE = {
     .free_data = texture_free_data,
     .make_local = NULL,
     .foreach_id = texture_foreach_id,
+    .foreach_cache = NULL,
+
+    .blend_write = NULL,
+    .blend_read_data = NULL,
+    .blend_read_lib = NULL,
+    .blend_read_expand = NULL,
 };
 
 /* Utils for all IDs using those texture slots. */

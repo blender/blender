@@ -3865,6 +3865,11 @@ static bool write_file_handle(Main *mainvar,
         ((ID *)id_buffer)->prev = NULL;
         ((ID *)id_buffer)->next = NULL;
 
+        const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
+        if (id_type->blend_write != NULL) {
+          id_type->blend_write(&writer, (ID *)id_buffer, id);
+        }
+
         switch ((ID_Type)GS(id->name)) {
           case ID_WM:
             write_windowmanager(&writer, (wmWindowManager *)id_buffer, id);

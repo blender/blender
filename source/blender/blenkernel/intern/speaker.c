@@ -65,6 +65,12 @@ IDTypeInfo IDType_ID_SPK = {
     .free_data = NULL,
     .make_local = NULL,
     .foreach_id = speaker_foreach_id,
+    .foreach_cache = NULL,
+
+    .blend_write = NULL,
+    .blend_read_data = NULL,
+    .blend_read_lib = NULL,
+    .blend_read_expand = NULL,
 };
 
 void *BKE_speaker_add(Main *bmain, const char *name)

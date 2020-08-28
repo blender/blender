@@ -210,6 +210,12 @@ IDTypeInfo IDType_ID_BR = {
     .free_data = brush_free_data,
     .make_local = brush_make_local,
     .foreach_id = brush_foreach_id,
+    .foreach_cache = NULL,
+
+    .blend_write = NULL,
+    .blend_read_data = NULL,
+    .blend_read_lib = NULL,
+    .blend_read_expand = NULL,
 };
 
 static RNG *brush_rng;

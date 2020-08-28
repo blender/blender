@@ -204,6 +204,12 @@ IDTypeInfo IDType_ID_LS = {
     .free_data = linestyle_free_data,
     .make_local = NULL,
     .foreach_id = linestyle_foreach_id,
+    .foreach_cache = NULL,
+
+    .blend_write = NULL,
+    .blend_read_data = NULL,
+    .blend_read_lib = NULL,
+    .blend_read_expand = NULL,
 };
 
 static const char *modifier_name[LS_MODIFIER_NUM] = {

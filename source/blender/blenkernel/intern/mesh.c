@@ -178,6 +178,12 @@ IDTypeInfo IDType_ID_ME = {
     .free_data = mesh_free_data,
     .make_local = NULL,
     .foreach_id = mesh_foreach_id,
+    .foreach_cache = NULL,
+
+    .blend_write = NULL,
+    .blend_read_data = NULL,
+    .blend_read_lib = NULL,
+    .blend_read_expand = NULL,
 };
 
 enum {
