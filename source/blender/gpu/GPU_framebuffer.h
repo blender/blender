@@ -59,7 +59,7 @@ typedef struct GPUFrameBuffer {
 
 typedef struct GPUOffScreen GPUOffScreen;
 
-GPUFrameBuffer *GPU_framebuffer_create(void);
+GPUFrameBuffer *GPU_framebuffer_create(const char *name);
 void GPU_framebuffer_free(GPUFrameBuffer *fb);
 void GPU_framebuffer_bind(GPUFrameBuffer *fb);
 void GPU_framebuffer_bind_no_srgb(GPUFrameBuffer *fb);
@@ -109,7 +109,7 @@ void GPU_framebuffer_texture_detach(GPUFrameBuffer *fb, struct GPUTexture *tex);
 #define GPU_framebuffer_ensure_config(_fb, ...) \
   do { \
     if (*(_fb) == NULL) { \
-      *(_fb) = GPU_framebuffer_create(); \
+      *(_fb) = GPU_framebuffer_create(#_fb); \
     } \
     GPUAttachment config[] = __VA_ARGS__; \
     GPU_framebuffer_config_array(*(_fb), config, (sizeof(config) / sizeof(GPUAttachment))); \

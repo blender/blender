@@ -116,7 +116,7 @@ static void gpu_detect_mip_render_workaround(void)
   glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_MAX_LEVEL, 0);
   GPU_texture_unbind(tex);
 
-  GPUFrameBuffer *fb = GPU_framebuffer_create();
+  GPUFrameBuffer *fb = GPU_framebuffer_create(__func__);
   GPU_framebuffer_texture_attach(fb, tex, 0, 1);
   GPU_framebuffer_bind(fb);
   GPU_framebuffer_clear_color(fb, clear_color);

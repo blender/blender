@@ -214,11 +214,11 @@ void FrameBuffer::recursive_downsample(int max_lvl,
 using namespace blender;
 using namespace blender::gpu;
 
-GPUFrameBuffer *GPU_framebuffer_create()
+GPUFrameBuffer *GPU_framebuffer_create(const char *name)
 {
   /* We generate the FB object later at first use in order to
    * create the framebuffer in the right opengl context. */
-  return (GPUFrameBuffer *)GPUBackend::get()->framebuffer_alloc("FB");
+  return (GPUFrameBuffer *)GPUBackend::get()->framebuffer_alloc(name);
 }
 
 void GPU_framebuffer_free(GPUFrameBuffer *gpu_fb)

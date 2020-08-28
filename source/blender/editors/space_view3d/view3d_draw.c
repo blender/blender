@@ -2153,7 +2153,7 @@ static void view3d_opengl_read_Z_pixels(GPUViewport *viewport, rcti *rect, void 
 {
   DefaultTextureList *dtxl = (DefaultTextureList *)GPU_viewport_texture_list_get(viewport);
 
-  GPUFrameBuffer *tmp_fb = GPU_framebuffer_create();
+  GPUFrameBuffer *tmp_fb = GPU_framebuffer_create(__func__);
   GPU_framebuffer_texture_attach(tmp_fb, dtxl->depth, 0, 0);
   GPU_framebuffer_bind(tmp_fb);
 

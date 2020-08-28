@@ -65,7 +65,7 @@ static void select_engine_framebuffer_setup(void)
   size[1] = GPU_texture_height(dtxl->depth);
 
   if (e_data.framebuffer_select_id == NULL) {
-    e_data.framebuffer_select_id = GPU_framebuffer_create();
+    e_data.framebuffer_select_id = GPU_framebuffer_create("framebuffer_select_id");
   }
 
   if ((e_data.texture_u32 != NULL) && ((GPU_texture_width(e_data.texture_u32) != size[0]) ||

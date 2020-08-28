@@ -1917,7 +1917,7 @@ static struct DRWSelectBuffer {
 static void draw_select_framebuffer_depth_only_setup(const int size[2])
 {
   if (g_select_buffer.framebuffer_depth_only == NULL) {
-    g_select_buffer.framebuffer_depth_only = GPU_framebuffer_create();
+    g_select_buffer.framebuffer_depth_only = GPU_framebuffer_create("framebuffer_depth_only");
   }
 
   if ((g_select_buffer.texture_depth != NULL) &&

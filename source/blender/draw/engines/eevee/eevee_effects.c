@@ -195,7 +195,7 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
   }
 
   if (fbl->downsample_fb == NULL) {
-    fbl->downsample_fb = GPU_framebuffer_create();
+    fbl->downsample_fb = GPU_framebuffer_create("downsample_fb");
   }
 
   /**

@@ -263,7 +263,7 @@ void EEVEE_shadows_update(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   }
 
   if (sldata->shadow_fb == NULL) {
-    sldata->shadow_fb = GPU_framebuffer_create();
+    sldata->shadow_fb = GPU_framebuffer_create("shadow_fb");
   }
 
   /* Gather all light own update bits. to avoid costly intersection check.  */
