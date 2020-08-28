@@ -645,11 +645,8 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
       GHOST_SetWindowState(ghostwin, (GHOST_TWindowState)win->windowstate);
     }
 #endif
-    /* Crash on OSS ATI: bugs.launchpad.net/ubuntu/+source/mesa/+bug/656100 */
-    if (!GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE)) {
-      /* until screens get drawn, make it nice gray */
-      GPU_clear_color(0.55f, 0.55f, 0.55f, 1.0f);
-    }
+    /* until screens get drawn, make it nice gray */
+    GPU_clear_color(0.55f, 0.55f, 0.55f, 1.0f);
 
     /* needed here, because it's used before it reads userdef */
     WM_window_set_dpi(win);
