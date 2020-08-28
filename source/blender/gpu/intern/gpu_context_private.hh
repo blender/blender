@@ -49,6 +49,18 @@ struct GPUContext {
   GPUMatrixState *matrix_state = NULL;
   blender::gpu::GPUStateManager *state_manager = NULL;
 
+  /**
+   * All 4 window framebuffers.
+   * None of them are valid in an offscreen context.
+   * Right framebuffers are only available if using stereo rendering.
+   * Front framebuffers contains (in principle, but not always) the last frame color.
+   * Default framebuffer is back_left.
+   */
+  blender::gpu::FrameBuffer *back_left = NULL;
+  blender::gpu::FrameBuffer *front_left = NULL;
+  blender::gpu::FrameBuffer *back_right = NULL;
+  blender::gpu::FrameBuffer *front_right = NULL;
+
  protected:
   /** Thread on which this context is active. */
   pthread_t thread_;

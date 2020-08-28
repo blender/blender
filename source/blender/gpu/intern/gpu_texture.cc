@@ -44,6 +44,7 @@
 #include "GPU_texture.h"
 
 #include "gpu_context_private.hh"
+#include "gpu_framebuffer_private.hh"
 
 #define WARN_NOT_BOUND(_tex) \
   { \
@@ -108,6 +109,9 @@ struct GPUTexture {
   GLuint copy_fb;
   GPUContext *copy_fb_ctx;
 };
+
+using namespace blender;
+using namespace blender::gpu;
 
 static uint gpu_get_bytesize(eGPUTextureFormat data_type);
 static void gpu_texture_framebuffer_ensure(GPUTexture *tex);
@@ -2020,7 +2024,8 @@ void GPU_texture_free(GPUTexture *tex)
   if (tex->refcount == 0) {
     for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; i++) {
       if (tex->fb[i] != NULL) {
-        GPU_framebuffer_texture_detach_slot(tex->fb[i], tex, tex->fb_attachment[i]);
+        FrameBuffer *framebuffer = reinterpret_cast<FrameBuffer *>(tex->fb[i]);
+        framebuffer->attachment_set((GPUAttachmentType)tex->fb_attachment[i], GPU_ATTACHMENT_NONE);
       }
     }
 
@@ -2132,17 +2137,26 @@ void GPU_texture_attach_framebuffer(GPUTexture *tex, GPUFrameBuffer *fb, int att
 }
 
 /* Return previous attachment point */
-int GPU_texture_detach_framebuffer(GPUTexture *tex, GPUFrameBuffer *fb)
+void GPU_texture_detach_framebuffer(GPUTexture *tex, GPUFrameBuffer *fb)
 {
   for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; i++) {
     if (tex->fb[i] == fb) {
       tex->fb[i] = NULL;
+      return;
+    }
+  }
+  BLI_assert(!"Error: Texture: Framebuffer is not attached");
+}
+
+/* Return attachment type for the given framebuffer or -1 if not attached. */
+int GPU_texture_framebuffer_attachement_get(GPUTexture *tex, GPUFrameBuffer *fb)
+{
+  for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; i++) {
+    if (tex->fb[i] == fb) {
       return tex->fb_attachment[i];
     }
   }
-
-  BLI_assert(!"Error: Texture: Framebuffer is not attached");
-  return 0;
+  return -1;
 }
 
 void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *size)

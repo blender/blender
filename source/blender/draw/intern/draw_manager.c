@@ -1462,7 +1462,7 @@ void DRW_draw_render_loop_ex(struct Depsgraph *depsgraph,
   DRW_hair_init();
 
   /* No framebuffer allowed before drawing. */
-  BLI_assert(GPU_framebuffer_active_get() == NULL);
+  BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
 
   /* Init engines */
   drw_engines_init();

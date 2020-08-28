@@ -84,7 +84,7 @@ void wm_surface_set_drawable(wmSurface *surface, bool activate)
 
 void wm_surface_make_drawable(wmSurface *surface)
 {
-  BLI_assert(GPU_framebuffer_active_get() == NULL);
+  BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
 
   if (surface != g_drawable) {
     wm_surface_clear_drawable();
@@ -95,7 +95,7 @@ void wm_surface_make_drawable(wmSurface *surface)
 void wm_surface_reset_drawable(void)
 {
   BLI_assert(BLI_thread_is_main());
-  BLI_assert(GPU_framebuffer_active_get() == NULL);
+  BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
 
   if (g_drawable) {
     wm_surface_clear_drawable();

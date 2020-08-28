@@ -30,6 +30,7 @@
 #include "gl_batch.hh"
 #include "gl_context.hh"
 #include "gl_drawlist.hh"
+#include "gl_framebuffer.hh"
 #include "gl_shader.hh"
 #include "gl_uniform_buffer.hh"
 
@@ -59,6 +60,11 @@ class GLBackend : public GPUBackend {
   DrawList *drawlist_alloc(int list_length)
   {
     return new GLDrawList(list_length);
+  };
+
+  FrameBuffer *framebuffer_alloc(const char *name)
+  {
+    return new GLFrameBuffer(name);
   };
 
   Shader *shader_alloc(const char *name)

@@ -92,6 +92,7 @@ set(SRC
   opengl/gl_batch.cc
   opengl/gl_context.cc
   opengl/gl_drawlist.cc
+  opengl/gl_framebuffer.cc
   opengl/gl_shader.cc
   opengl/gl_shader_interface.cc
   opengl/gl_state.cc
@@ -151,9 +152,11 @@ set(SRC
   opengl/gl_batch.hh
   opengl/gl_context.hh
   opengl/gl_drawlist.hh
+  opengl/gl_framebuffer.hh
   opengl/gl_shader.hh
   opengl/gl_shader_interface.hh
   opengl/gl_state.hh
+  opengl/gl_texture.hh
   opengl/gl_uniform_buffer.hh
   opengl/gl_vertex_array.hh
 )

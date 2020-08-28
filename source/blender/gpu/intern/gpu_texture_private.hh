@@ -13,43 +13,40 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Copyright 2020, Blender Foundation.
+ * The Original Code is Copyright (C) 2020 Blender Foundation.
  * All rights reserved.
  */
 
 /** \file
  * \ingroup gpu
- *
- * GPUBackend derived class contain allocators that do not need a context bound.
- * The backend is init at startup and is accessible using GPU_backend_get() */
+ */
 
 #pragma once
 
-struct GPUContext;
+#include "BLI_assert.h"
 
 namespace blender {
 namespace gpu {
 
-class Batch;
-class DrawList;
-class FrameBuffer;
-class Shader;
-class UniformBuf;
-
-class GPUBackend {
+class Texture {
  public:
-  virtual ~GPUBackend(){};
-
-  static GPUBackend *get(void);
-
-  virtual GPUContext *context_alloc(void *ghost_window) = 0;
-
-  virtual Batch *batch_alloc(void) = 0;
-  virtual DrawList *drawlist_alloc(int list_length) = 0;
-  virtual FrameBuffer *framebuffer_alloc(const char *name) = 0;
-  virtual Shader *shader_alloc(const char *name) = 0;
-  // virtual Texture *texture_alloc(void) = 0;
-  virtual UniformBuf *uniformbuf_alloc(int size, const char *name) = 0;
+  /** TODO(fclem): make it a non-static function. */
+  static GPUAttachmentType attachment_type(GPUTexture *tex, int slot)
+  {
+    switch (GPU_texture_format(tex)) {
+      case GPU_DEPTH_COMPONENT32F:
+      case GPU_DEPTH_COMPONENT24:
+      case GPU_DEPTH_COMPONENT16:
+        BLI_assert(slot == 0);
+        return GPU_FB_DEPTH_ATTACHMENT;
+      case GPU_DEPTH24_STENCIL8:
+      case GPU_DEPTH32F_STENCIL8:
+        BLI_assert(slot == 0);
+        return GPU_FB_DEPTH_STENCIL_ATTACHMENT;
+      default:
+        return static_cast<GPUAttachmentType>(GPU_FB_COLOR_ATTACHMENT0 + slot);
+    }
+  }
 };
 
 }  // namespace gpu

@@ -59,6 +59,35 @@ GLContext::GLContext(void *ghost_window, GLSharedOrphanLists &shared_orphan_list
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   state_manager = new GLStateManager();
+
+  if (ghost_window) {
+    GLuint default_fbo = GHOST_GetDefaultOpenGLFramebuffer((GHOST_WindowHandle)ghost_window);
+    GHOST_RectangleHandle bounds = GHOST_GetClientBounds((GHOST_WindowHandle)ghost_window);
+    int w = GHOST_GetWidthRectangle(bounds);
+    int h = GHOST_GetHeightRectangle(bounds);
+    GHOST_DisposeRectangle(bounds);
+
+    if (default_fbo != 0) {
+      front_left = new GLFrameBuffer("front_left", this, GL_COLOR_ATTACHMENT0, default_fbo, w, h);
+      back_left = new GLFrameBuffer("back_left", this, GL_COLOR_ATTACHMENT0, default_fbo, w, h);
+    }
+    else {
+      front_left = new GLFrameBuffer("front_left", this, GL_FRONT_LEFT, 0, w, h);
+      back_left = new GLFrameBuffer("back_left", this, GL_BACK_LEFT, 0, w, h);
+    }
+    /* TODO(fclem) enable is supported. */
+    const bool supports_stereo_quad_buffer = false;
+    if (supports_stereo_quad_buffer) {
+      front_right = new GLFrameBuffer("front_right", this, GL_FRONT_RIGHT, 0, w, h);
+      back_right = new GLFrameBuffer("back_right", this, GL_BACK_RIGHT, 0, w, h);
+    }
+  }
+  else {
+    /* For offscreen contexts. Default framebuffer is NULL. */
+    back_left = new GLFrameBuffer("back_left", this, GL_NONE, 0, 0, 0);
+  }
+
+  active_fb = back_left;
 }
 
 GLContext::~GLContext()
@@ -73,6 +102,19 @@ GLContext::~GLContext()
   }
   glDeleteVertexArrays(1, &default_vao_);
   glDeleteBuffers(1, &default_attr_vbo_);
+
+  if (front_left) {
+    delete front_left;
+  }
+  if (back_left) {
+    delete back_left;
+  }
+  if (front_right) {
+    delete front_right;
+  }
+  if (back_right) {
+    delete back_right;
+  }
 }
 
 /** \} */
