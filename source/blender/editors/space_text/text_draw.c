@@ -1660,25 +1660,16 @@ void draw_text_main(SpaceText *st, ARegion *region)
     }
 
     if (st->showlinenrs && !wrap_skip) {
-      /* draw line number */
-      if (tmp == text->curl) {
-        UI_FontThemeColor(tdc.font_id, TH_HILITE);
-      }
-      else {
-        UI_FontThemeColor(tdc.font_id, TH_LINENUMBERS);
-      }
-
+      /* Draw line number. */
+      UI_FontThemeColor(tdc.font_id, (tmp == text->curl) ? TH_HILITE : TH_LINENUMBERS);
       BLI_snprintf(linenr,
                    sizeof(linenr),
                    "%*d",
                    st->runtime.line_number_display_digits,
                    i + linecount + 1);
-      /* itoa(i + linecount + 1, linenr, 10); */ /* not ansi-c :/ */
       text_font_draw(&tdc, TXT_NUMCOL_PAD * st->runtime.cwidth_px, y, linenr);
-
-      if (tmp == text->curl) {
-        UI_FontThemeColor(tdc.font_id, TH_TEXT);
-      }
+      /* Change back to text color. */
+      UI_FontThemeColor(tdc.font_id, TH_TEXT);
     }
 
     if (st->wordwrap) {
