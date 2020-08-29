@@ -1060,12 +1060,12 @@ static void spheregrid_test(int nrings, int grid_level, double z_offset, bool us
 
 TEST(mesh_intersect_perf, SphereSphere)
 {
-  spheresphere_test(64, 0.5, false);
+  spheresphere_test(512, 0.5, false);
 }
 
 TEST(mesh_intersect_perf, SphereGrid)
 {
-  spheregrid_test(64, 4, 0.1, false);
+  spheregrid_test(512, 4, 0.1, false);
 }
 
 #  endif
