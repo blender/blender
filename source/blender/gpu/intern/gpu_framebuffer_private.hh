@@ -130,6 +130,12 @@ class FrameBuffer {
                             void (*callback)(void *userData, int level),
                             void *userData);
 
+  inline void size_set(int width, int height)
+  {
+    width_ = width;
+    height_ = height;
+  }
+
   inline GPUTexture *depth_tex(void) const
   {
     if (attachments_[GPU_FB_DEPTH_ATTACHMENT].tex) {

@@ -214,8 +214,7 @@ void GLFrameBuffer::update_attachments(void)
     GPUAttachment &attach = attachments_[first_attachment];
     int size[3];
     GPU_texture_get_mipmap_size(attach.tex, attach.mip, size);
-    width_ = size[0];
-    height_ = size[1];
+    this->size_set(size[0], size[1]);
     srgb_ = (GPU_texture_format(attach.tex) == GPU_SRGB8_A8);
   }
 

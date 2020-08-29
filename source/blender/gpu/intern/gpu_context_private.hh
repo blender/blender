@@ -65,6 +65,8 @@ struct GPUContext {
   /** Thread on which this context is active. */
   pthread_t thread_;
   bool is_active_;
+  /** Avoid including GHOST headers. Can be NULL for offscreen contexts. */
+  void *ghost_window_;
 
  public:
   GPUContext();
