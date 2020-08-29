@@ -1489,7 +1489,7 @@ static Edge find_good_sorting_edge(const Vert *testp,
     std::cout << "FIND_GOOD_SORTING_EDGE testp = " << testp << ", closestp = " << closestp << "\n";
   }
   /* We want to project the edges incident to closestp onto a plane
-   * whose ordinate direction will be regarded as going from closetp to testp,
+   * whose ordinate direction will be regarded as going from closestp to testp,
    * and whose abscissa direction is some perpendicular to that.
    * A perpendicular direction can be found by swapping two coordinates
    * and negating one, and zeroing out the third, being careful that one
@@ -2560,7 +2560,7 @@ static Array<Face *> triangulate_poly(Face *f, IMeshArena *arena)
 
 /**
  * Return an #IMesh that is a triangulation of a mesh with general
- * polygonal faces, #imesh.
+ * polygonal faces, #IMesh.
  * Added diagonals will be distinguishable by having edge original
  * indices of #NO_INDEX.
  */

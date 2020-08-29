@@ -41,17 +41,17 @@ enum class BoolOpType {
 
 /**
  * Do the boolean operation op on the mesh pm_in.
- * The boolean operation has nshapes input shapes. Each is a disjoint subset of the input mesh.
+ * The boolean operation has \a nshapes input shapes. Each is a disjoint subset of the input mesh.
  * The shape_fn argument, when applied to an input face argument, says which shape it is in
- * (should be a value from -1 to nshapes - 1: if -1, it is not part of any shape).
- * The use_self arg says whether or not the function should assume that faces in the
+ * (should be a value from -1 to `nshapes - 1`: if -1, it is not part of any shape).
+ * The use_self argument says whether or not the function should assume that faces in the
  * same shape intersect - if the argument is true, such self-intersections will be found.
  * Sometimes the caller has already done a triangulation of the faces,
  * and if so, *pm_triangulated contains a triangulation: if non-null, it contains a mesh
  * of triangles, each of whose orig_field says which face in pm that triangle belongs to.
- * pm arg isn't const because we may populate its verts (for debugging).
- * Same goes for the pm_triangulated arg.
- * The output IMesh will have faces whose orig fields map back to faces and edges in
+ * pm argument isn't `const` because we may populate its verts (for debugging).
+ * Same goes for the pm_triangulated argument.
+ * The output #IMesh will have faces whose orig fields map back to faces and edges in
  * the input mesh.
  */
 IMesh boolean_mesh(IMesh &imesh,
@@ -63,7 +63,7 @@ IMesh boolean_mesh(IMesh &imesh,
                    IMeshArena *arena);
 
 /**
- * This is like boolean, but operates on IMesh's whose faces are all triangles.
+ * This is like boolean, but operates on #IMesh's whose faces are all triangles.
  * It is exposed mainly for unit testing, at the moment: boolean_mesh() uses
  * it to do most of its work.
  */

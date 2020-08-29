@@ -971,7 +971,7 @@ static void childof_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
   }
 
   /* Multiply together the target (parent) matrix, parent inverse,
-   * and the owner transform matrixto get the effect of this constraint
+   * and the owner transform matrix to get the effect of this constraint
    * (i.e.  owner is 'parented' to parent). */
   float orig_cob_matrix[4][4];
   copy_m4_m4(orig_cob_matrix, cob->matrix);

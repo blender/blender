@@ -339,7 +339,7 @@ static int lib_id_expand_local_cb(LibraryIDLinkCallbackData *cb_data)
   int const cb_flag = cb_data->cb_flag;
 
   if (cb_flag & IDWALK_CB_LOOPBACK) {
-    /* We should never have anything to do with loopback pointers here. */
+    /* We should never have anything to do with loop-back pointers here. */
     return IDWALK_RET_NOP;
   }
 
