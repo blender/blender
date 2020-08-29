@@ -200,8 +200,7 @@ void FrameBuffer::recursive_downsample(int max_lvl,
       attachments_[att].mip = 0;
     }
   }
-  /* Reattach base level textures. */
-  this->bind(true);
+  dirty_attachments_ = true;
 }
 
 /** \} */
