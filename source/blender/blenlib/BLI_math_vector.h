@@ -338,6 +338,7 @@ MINLINE bool equals_v3v3(const float a[3], const float b[3]) ATTR_WARN_UNUSED_RE
 MINLINE bool equals_v4v4(const float a[4], const float b[4]) ATTR_WARN_UNUSED_RESULT;
 
 MINLINE bool equals_v2v2_int(const int v1[2], const int v2[2]) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool equals_v4v4_int(const int v1[4], const int v2[4]) ATTR_WARN_UNUSED_RESULT;
 
 MINLINE bool compare_v2v2(const float a[2],
                           const float b[2],
