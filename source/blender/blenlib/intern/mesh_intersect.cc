@@ -927,7 +927,7 @@ class CoplanarCluster {
   void add_tri(int t, const BoundingBox &bb)
   {
     tris_.append(t);
-    bb_ = bb;
+    bb_.combine(bb);
   }
   int tot_tri() const
   {
@@ -1129,6 +1129,8 @@ static bool non_trivially_2d_point_in_tri(const int orients[3][3], int pi)
  * overlap in a "hex" pattern? That is, the overlap region is a hexagon, which
  * one gets by having, each point of one triangle being strictly right-of one
  * edge of the other and strictly left of the other two edges; and vice versa.
+ * In addition, it must not be the case that all of the points of one triangle
+ * are totally to one side of one edge of the other triangle, and vice versa.
  */
 static bool non_trivially_2d_hex_overlap(int orients[2][3][3])
 {
@@ -1137,6 +1139,10 @@ static bool non_trivially_2d_hex_overlap(int orients[2][3][3])
       bool ok = orients[ab][i][0] + orients[ab][i][1] + orients[ab][i][2] == 1 &&
                 orients[ab][i][0] != 0 && orients[ab][i][1] != 0 && orients[i][2] != 0;
       if (!ok) {
+        return false;
+      }
+      int s = orients[ab][0][i] + orients[ab][1][i] + orients[ab][2][i];
+      if (s == 3 || s == -3) {
         return false;
       }
     }
@@ -2845,6 +2851,9 @@ static CoplanarClusterInfo find_clusters(const IMesh &tm, const Array<BoundingBo
       Vector<CoplanarCluster *> int_cls;
       Vector<CoplanarCluster *> no_int_cls;
       for (CoplanarCluster &cl : curcls) {
+        if (dbg_level > 1) {
+          std::cout << "consider intersecting with cluster " << cl << "\n";
+        }
         if (bbs_might_intersect(tri_bb[t], cl.bounding_box()) &&
             non_trivially_coplanar_intersects(tm, t, cl, proj_axis)) {
           if (dbg_level > 1) {
@@ -3026,6 +3035,7 @@ IMesh trimesh_nary_intersect(const IMesh &tm_in,
       for (int t : tm_in.face_index_range()) {
         std::cout << "shape(" << t << ") = " << shape_fn(tm_in.face(t)->orig) << "\n";
       }
+      write_obj_mesh(const_cast<IMesh &>(tm_in), "trimesh_input");
     }
   }
 #  ifdef PERFDEBUG
