@@ -27,6 +27,7 @@
 
 #include "gl_backend.hh"
 #include "gl_framebuffer.hh"
+#include "gl_state.hh"
 #include "gl_texture.hh"
 
 namespace blender::gpu {
@@ -47,6 +48,7 @@ GLFrameBuffer::GLFrameBuffer(
     : FrameBuffer(name)
 {
   context_ = ctx;
+  state_manager_ = static_cast<GLStateManager *>(ctx->state_manager);
   immutable_ = true;
   fbo_id_ = fbo;
   gl_attachments_[0] = target;
@@ -55,6 +57,11 @@ GLFrameBuffer::GLFrameBuffer(
   width_ = w;
   height_ = h;
   srgb_ = false;
+
+  viewport_[0] = scissor_[0] = 0;
+  viewport_[1] = scissor_[1] = 0;
+  viewport_[2] = scissor_[2] = w;
+  viewport_[3] = scissor_[3] = h;
 
 #ifndef __APPLE__
   if (fbo_id_ && (G.debug & G_DEBUG_GPU) && (GLEW_VERSION_4_3 || GLEW_KHR_debug)) {
@@ -82,6 +89,7 @@ GLFrameBuffer::~GLFrameBuffer()
 void GLFrameBuffer::init(void)
 {
   context_ = static_cast<GLContext *>(GPU_context_active_get());
+  state_manager_ = static_cast<GLStateManager *>(context_->state_manager);
   glGenFramebuffers(1, &fbo_id_);
 
 #ifndef __APPLE__
@@ -227,6 +235,25 @@ void GLFrameBuffer::update_attachments(void)
   }
 }
 
+void GLFrameBuffer::apply_state(void)
+{
+  if (dirty_state_ == false) {
+    return;
+  }
+
+  glViewport(UNPACK4(viewport_));
+  glScissor(UNPACK4(scissor_));
+
+  if (scissor_test_) {
+    glEnable(GL_SCISSOR_TEST);
+  }
+  else {
+    glDisable(GL_SCISSOR_TEST);
+  }
+
+  dirty_state_ = false;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -235,18 +262,16 @@ void GLFrameBuffer::update_attachments(void)
 
 void GLFrameBuffer::bind(bool enabled_srgb)
 {
-  GPUContext *ctx = GPU_context_active_get();
-  BLI_assert(ctx);
-
-  if (context_ != NULL && context_ != ctx) {
-    BLI_assert(!"Trying to use the same framebuffer in multiple context");
-  }
-
   if (!immutable_ && fbo_id_ == 0) {
     this->init();
   }
 
-  if (ctx->active_fb != this) {
+  if (context_ != GPU_context_active_get()) {
+    BLI_assert(!"Trying to use the same framebuffer in multiple context");
+    return;
+  }
+
+  if (context_->active_fb != this) {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo_id_);
     /* Internal framebuffers have only one color output and needs to be set everytime. */
     if (immutable_ && fbo_id_ == 0) {
@@ -256,10 +281,14 @@ void GLFrameBuffer::bind(bool enabled_srgb)
 
   if (dirty_attachments_) {
     this->update_attachments();
+    this->viewport_reset();
+    this->scissor_reset();
   }
 
-  if (ctx->active_fb != this) {
-    ctx->active_fb = this;
+  if (context_->active_fb != this) {
+    context_->active_fb = this;
+    state_manager_->active_fb = this;
+    dirty_state_ = true;
 
     if (enabled_srgb) {
       glEnable(GL_FRAMEBUFFER_SRGB);
@@ -270,8 +299,6 @@ void GLFrameBuffer::bind(bool enabled_srgb)
 
     GPU_shader_set_framebuffer_srgb_target(enabled_srgb && srgb_);
   }
-
-  GPU_viewport(0, 0, width_, height_);
 }
 
 /** \} */
@@ -285,6 +312,9 @@ void GLFrameBuffer::clear(eGPUFrameBufferBits buffers,
                           float clear_depth,
                           uint clear_stencil)
 {
+  BLI_assert(GPU_context_active_get() == context_);
+  BLI_assert(context_->active_fb == this);
+
   /* Save and restore the state. */
   eGPUWriteMask write_mask = GPU_write_mask_get();
   uint stencil_mask = GPU_stencil_mask_get();
@@ -320,6 +350,9 @@ void GLFrameBuffer::clear(eGPUFrameBufferBits buffers,
 
 void GLFrameBuffer::clear_multi(const float (*clear_cols)[4])
 {
+  BLI_assert(GPU_context_active_get() == context_);
+  BLI_assert(context_->active_fb == this);
+
   /* Save and restore the state. */
   eGPUWriteMask write_mask = GPU_write_mask_get();
   GPU_color_mask(true, true, true, true);
@@ -401,7 +434,7 @@ void GLFrameBuffer::blit_to(
     glDrawBuffer(dst->gl_attachments_[dst_slot]);
   }
 
-  GPU_context_active_get()->state_manager->apply_state();
+  context_->state_manager->apply_state();
 
   int w = src->width_;
   int h = src->height_;

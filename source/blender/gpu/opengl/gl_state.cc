@@ -27,6 +27,7 @@
 #include "glew-mx.h"
 
 #include "gl_context.hh"
+#include "gl_framebuffer.hh"
 #include "gl_state.hh"
 
 using namespace blender::gpu;
@@ -63,6 +64,13 @@ GLStateManager::GLStateManager(void) : GPUStateManager()
   set_state(state);
   set_mutable_state(mutable_state);
 }
+
+void GLStateManager::apply_state(void)
+{
+  this->set_state(this->state);
+  this->set_mutable_state(this->mutable_state);
+  active_fb->apply_state();
+};
 
 void GLStateManager::set_state(const GPUState &state)
 {
@@ -124,22 +132,6 @@ void GLStateManager::set_state(const GPUState &state)
 void GLStateManager::set_mutable_state(const GPUStateMutable &state)
 {
   GPUStateMutable changed = state ^ current_mutable_;
-
-  if ((changed.viewport_rect[0] != 0) || (changed.viewport_rect[1] != 0) ||
-      (changed.viewport_rect[2] != 0) || (changed.viewport_rect[3] != 0)) {
-    glViewport(UNPACK4(state.viewport_rect));
-  }
-
-  if ((changed.scissor_rect[0] != 0) || (changed.scissor_rect[1] != 0) ||
-      (changed.scissor_rect[2] != 0) || (changed.scissor_rect[3] != 0)) {
-    if ((state.scissor_rect[2] > 0)) {
-      glScissor(UNPACK4(state.scissor_rect));
-      glEnable(GL_SCISSOR_TEST);
-    }
-    else {
-      glDisable(GL_SCISSOR_TEST);
-    }
-  }
 
   /* TODO remove, should be uniform. */
   if (changed.point_size != 0) {

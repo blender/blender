@@ -94,11 +94,6 @@ inline GPUState operator~(const GPUState &a)
 union GPUStateMutable {
   struct {
     /* Viewport State */
-    /** TODO put inside GPUFramebuffer. */
-    /** Offset + Extent of the drawable region inside the framebuffer. */
-    int viewport_rect[4];
-    /** Offset + Extent of the scissor region inside the framebuffer. */
-    int scissor_rect[4];
     /** TODO remove */
     float depth_range[2];
     /** TODO remove, use explicit clear calls. */
@@ -164,14 +159,7 @@ class GPUStateManager {
   GPUStateManager();
   virtual ~GPUStateManager(){};
 
-  virtual void set_state(const GPUState &state) = 0;
-  virtual void set_mutable_state(const GPUStateMutable &state) = 0;
-
-  inline void apply_state(void)
-  {
-    this->set_state(this->state);
-    this->set_mutable_state(this->mutable_state);
-  };
+  virtual void apply_state(void) = 0;
 };
 
 }  // namespace gpu

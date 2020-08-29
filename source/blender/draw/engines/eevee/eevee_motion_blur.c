@@ -616,6 +616,8 @@ void EEVEE_motion_blur_draw(EEVEE_Data *vedata)
 
       DRW_draw_pass(psl->velocity_tiles_expand[buf]);
 
+      GPU_framebuffer_viewport_reset(fbl->velocity_tiles_fb[buf]);
+
       buf = buf ? 0 : 1;
     }
 

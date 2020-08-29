@@ -33,6 +33,8 @@
 
 namespace blender::gpu {
 
+class GLStateManager;
+
 /**
  * Implementation of FrameBuffer object using OpenGL.
  **/
@@ -42,6 +44,8 @@ class GLFrameBuffer : public FrameBuffer {
   GLuint fbo_id_ = 0;
   /** Context the handle is from. Framebuffers are not shared accros contexts. */
   GLContext *context_ = NULL;
+  /** State Manager of the same contexts. */
+  GLStateManager *state_manager_ = NULL;
   /** Copy of the GL state. Contains ONLY color attachments enums for slot binding. */
   GLenum gl_attachments_[GPU_FB_MAX_COLOR_ATTACHMENT];
   /** Internal framebuffers are immutable. */
@@ -91,6 +95,8 @@ class GLFrameBuffer : public FrameBuffer {
                int dst_slot,
                int dst_offset_x,
                int dst_offset_y) override;
+
+  void apply_state(void);
 
  private:
   void init(void);

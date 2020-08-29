@@ -331,6 +331,8 @@ void EEVEE_lookdev_draw(EEVEE_Data *vedata)
 
     DRW_draw_pass(psl->lookdev_glossy_pass);
 
+    GPU_framebuffer_viewport_reset(fb);
+
     DRW_stats_group_end();
 
     DRW_view_set_active(NULL);

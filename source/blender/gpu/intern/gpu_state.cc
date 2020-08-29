@@ -191,27 +191,19 @@ void GPU_program_point_size(bool enable)
 
 void GPU_scissor_test(bool enable)
 {
-  GPUStateManager *stack = GPU_context_active_get()->state_manager;
-  auto &state = stack->mutable_state;
-  /* Set point size sign negative to disable. */
-  state.scissor_rect[2] = abs(state.scissor_rect[2]) * (enable ? 1 : -1);
+  GPU_context_active_get()->active_fb->scissor_test_set(enable);
 }
 
 void GPU_scissor(int x, int y, int width, int height)
 {
-  GPUStateManager *stack = GPU_context_active_get()->state_manager;
-  auto &state = stack->mutable_state;
-  bool enabled = state.scissor_rect[2] > 0;
-  int scissor_rect[4] = {x, y, enabled ? width : -width, height};
-  copy_v4_v4_int(state.scissor_rect, scissor_rect);
+  int scissor_rect[4] = {x, y, width, height};
+  GPU_context_active_get()->active_fb->scissor_set(scissor_rect);
 }
 
 void GPU_viewport(int x, int y, int width, int height)
 {
-  GPUStateManager *stack = GPU_context_active_get()->state_manager;
-  auto &state = stack->mutable_state;
   int viewport_rect[4] = {x, y, width, height};
-  copy_v4_v4_int(state.viewport_rect, viewport_rect);
+  GPU_context_active_get()->active_fb->viewport_set(viewport_rect);
 }
 
 void GPU_stencil_reference_set(uint reference)
@@ -267,22 +259,21 @@ eGPUStencilTest GPU_stencil_test_get()
 
 void GPU_scissor_get(int coords[4])
 {
-  GPUStateMutable &state = GPU_context_active_get()->state_manager->mutable_state;
-  copy_v4_v4_int(coords, state.scissor_rect);
+  GPU_context_active_get()->active_fb->scissor_get(coords);
 }
 
 void GPU_viewport_size_get_f(float coords[4])
 {
-  GPUStateMutable &state = GPU_context_active_get()->state_manager->mutable_state;
+  int viewport[4];
+  GPU_context_active_get()->active_fb->viewport_get(viewport);
   for (int i = 0; i < 4; i++) {
-    coords[i] = state.viewport_rect[i];
+    coords[i] = viewport[i];
   }
 }
 
 void GPU_viewport_size_get_i(int coords[4])
 {
-  GPUStateMutable &state = GPU_context_active_get()->state_manager->mutable_state;
-  copy_v4_v4_int(coords, state.viewport_rect);
+  GPU_context_active_get()->active_fb->viewport_get(coords);
 }
 
 bool GPU_depth_mask_get(void)
@@ -345,16 +336,6 @@ GPUStateManager::GPUStateManager(void)
   state.polygon_smooth = false;
   state.clip_distances = 0;
 
-  /* TODO: We should have better default for viewport and scissors.
-   * For now it's not important since they are overwritten at soon as a framebuffer is bound. */
-  mutable_state.viewport_rect[0] = 0;
-  mutable_state.viewport_rect[1] = 0;
-  mutable_state.viewport_rect[2] = 10;
-  mutable_state.viewport_rect[3] = 10;
-  mutable_state.scissor_rect[0] = 0;
-  mutable_state.scissor_rect[1] = 0;
-  mutable_state.scissor_rect[2] = -10; /* Disable */
-  mutable_state.scissor_rect[3] = 10;
   mutable_state.depth_range[0] = 0.0f;
   mutable_state.depth_range[1] = 1.0f;
   mutable_state.point_size = 1.0f;

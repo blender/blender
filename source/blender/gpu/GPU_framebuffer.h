@@ -163,6 +163,8 @@ void GPU_framebuffer_config_array(GPUFrameBuffer *fb, const GPUAttachment *confi
 /* Framebuffer operations */
 
 void GPU_framebuffer_viewport_set(GPUFrameBuffer *fb, int x, int y, int w, int h);
+void GPU_framebuffer_viewport_get(GPUFrameBuffer *fb, int r_viewport[4]);
+void GPU_framebuffer_viewport_reset(GPUFrameBuffer *fb);
 
 void GPU_framebuffer_clear(GPUFrameBuffer *fb,
                            eGPUFrameBufferBits buffers,

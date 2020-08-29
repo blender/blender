@@ -55,6 +55,7 @@ FrameBuffer::FrameBuffer(const char *name)
   }
   /* Force config on first use. */
   dirty_attachments_ = true;
+  dirty_state_ = true;
 
   for (int i = 0; i < ARRAY_SIZE(attachments_); i++) {
     attachments_[i].tex = NULL;
@@ -341,20 +342,29 @@ void GPU_framebuffer_config_array(GPUFrameBuffer *gpu_fb,
   }
 }
 
-/* ---------- Framebuffer Operations ----------- */
+/* ---------- Viewport & Scissor Region ----------- */
 
-#define CHECK_FRAMEBUFFER_IS_BOUND(_fb) \
-  BLI_assert(GPU_framebuffer_bound(_fb)); \
-  UNUSED_VARS_NDEBUG(_fb); \
-  ((void)0)
-
-/* Needs to be done after binding. */
-void GPU_framebuffer_viewport_set(GPUFrameBuffer *gpu_fb, int x, int y, int w, int h)
+/* Viewport and scissor size is stored per framebuffer.
+ * It is only reset to its original dimensions explicitely OR when binding the framebuffer after
+ * modifiying its attachments. */
+void GPU_framebuffer_viewport_set(GPUFrameBuffer *gpu_fb, int x, int y, int width, int height)
 {
-  CHECK_FRAMEBUFFER_IS_BOUND(gpu_fb);
-
-  GPU_viewport(x, y, w, h);
+  int viewport_rect[4] = {x, y, width, height};
+  reinterpret_cast<FrameBuffer *>(gpu_fb)->viewport_set(viewport_rect);
 }
+
+void GPU_framebuffer_viewport_get(GPUFrameBuffer *gpu_fb, int r_viewport[4])
+{
+  reinterpret_cast<FrameBuffer *>(gpu_fb)->viewport_get(r_viewport);
+}
+
+/* Reset to its attachement(s) size. */
+void GPU_framebuffer_viewport_reset(GPUFrameBuffer *gpu_fb)
+{
+  reinterpret_cast<FrameBuffer *>(gpu_fb)->viewport_reset();
+}
+
+/* ---------- Framebuffer Operations ----------- */
 
 void GPU_framebuffer_clear(GPUFrameBuffer *gpu_fb,
                            eGPUFrameBufferBits buffers,
@@ -582,19 +592,14 @@ GPUOffScreen *GPU_offscreen_create(
     return NULL;
   }
 
-  int viewport[4];
-  GPU_viewport_size_get_i(viewport);
-
   GPUFrameBuffer *fb = gpu_offscreen_fb_get(ofs);
 
   /* check validity at the very end! */
   if (!GPU_framebuffer_check_valid(fb, err_out)) {
     GPU_offscreen_free(ofs);
-    GPU_viewport(UNPACK4(viewport));
     return NULL;
   }
   GPU_framebuffer_restore();
-  GPU_viewport(UNPACK4(viewport));
   return ofs;
 }
 

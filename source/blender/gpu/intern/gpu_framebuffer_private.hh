@@ -30,6 +30,7 @@
 
 #pragma once
 
+#include "BLI_math_vector.h"
 #include "BLI_span.hh"
 
 #include "MEM_guardedalloc.h"
@@ -97,6 +98,11 @@ class FrameBuffer {
   int width_, height_;
   /** Debug name. */
   char name_[DEBUG_NAME_LEN];
+  /** Framebuffer state. */
+  int viewport_[4];
+  int scissor_[4];
+  bool scissor_test_ = false;
+  bool dirty_state_;
 
  public:
   FrameBuffer(const char *name);
@@ -134,6 +140,55 @@ class FrameBuffer {
   {
     width_ = width;
     height_ = height;
+    dirty_state_ = true;
+  }
+
+  inline void viewport_set(const int viewport[4])
+  {
+    if (!equals_v4v4_int(viewport_, viewport)) {
+      copy_v4_v4_int(viewport_, viewport);
+      dirty_state_ = true;
+    }
+  }
+
+  inline void scissor_set(const int scissor[4])
+  {
+    if (!equals_v4v4_int(scissor_, scissor)) {
+      copy_v4_v4_int(scissor_, scissor);
+      dirty_state_ = true;
+    }
+  }
+
+  inline void scissor_test_set(bool test)
+  {
+    scissor_test_ = test;
+  }
+
+  inline void viewport_get(int r_viewport[4]) const
+  {
+    copy_v4_v4_int(r_viewport, viewport_);
+  }
+
+  inline void scissor_get(int r_scissor[4]) const
+  {
+    copy_v4_v4_int(r_scissor, scissor_);
+  }
+
+  inline bool scissor_test_get(void) const
+  {
+    return scissor_test_;
+  }
+
+  inline void viewport_reset(void)
+  {
+    int viewport_rect[4] = {0, 0, width_, height_};
+    viewport_set(viewport_rect);
+  }
+
+  inline void scissor_reset(void)
+  {
+    int scissor_rect[4] = {0, 0, width_, height_};
+    scissor_set(scissor_rect);
   }
 
   inline GPUTexture *depth_tex(void) const

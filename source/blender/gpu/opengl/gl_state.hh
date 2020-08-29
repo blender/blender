@@ -31,11 +31,17 @@
 namespace blender {
 namespace gpu {
 
+class GLFrameBuffer;
+
 /**
  * State manager keeping track of the draw state and applying it before drawing.
  * Opengl Implementation.
  **/
 class GLStateManager : public GPUStateManager {
+ public:
+  /** Anothter reference to tje active framebuffer. */
+  GLFrameBuffer *active_fb;
+
  private:
   /** Current state of the GL implementation. Avoids resetting the whole state for every change. */
   GPUState current_;
@@ -46,8 +52,7 @@ class GLStateManager : public GPUStateManager {
  public:
   GLStateManager();
 
-  void set_state(const GPUState &state) override;
-  void set_mutable_state(const GPUStateMutable &state) override;
+  void apply_state(void) override;
 
  private:
   static void set_write_mask(const eGPUWriteMask value);
@@ -61,6 +66,9 @@ class GLStateManager : public GPUStateManager {
   static void set_provoking_vert(const eGPUProvokingVertex vert);
   static void set_shadow_bias(const bool enable);
   static void set_blend(const eGPUBlend value);
+
+  void set_state(const GPUState &state);
+  void set_mutable_state(const GPUStateMutable &state);
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLStateManager")
 };

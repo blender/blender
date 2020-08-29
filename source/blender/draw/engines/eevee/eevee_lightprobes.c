@@ -1080,10 +1080,12 @@ void EEVEE_lightbake_filter_glossy(EEVEE_ViewLayerData *sldata,
                            log(2);
     pinfo->firefly_fac = (firefly_fac > 0.0) ? firefly_fac : 1e16;
 
-    GPU_framebuffer_ensure_config(
-        &fb, {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE_MIP(light_cache->cube_tx.tex, i)});
+    GPU_framebuffer_ensure_config(&fb,
+                                  {
+                                      GPU_ATTACHMENT_NONE,
+                                      GPU_ATTACHMENT_TEXTURE_MIP(light_cache->cube_tx.tex, i),
+                                  });
     GPU_framebuffer_bind(fb);
-    GPU_framebuffer_viewport_set(fb, 0, 0, mipsize, mipsize);
     DRW_draw_pass(psl->probe_glossy_compute);
 
     mipsize /= 2;
@@ -1144,6 +1146,7 @@ void EEVEE_lightbake_filter_diffuse(EEVEE_ViewLayerData *sldata,
   GPU_framebuffer_bind(fb);
   GPU_framebuffer_viewport_set(fb, x, y, size[0], size[1]);
   DRW_draw_pass(psl->probe_diffuse_compute);
+  GPU_framebuffer_viewport_reset(fb);
 }
 
 /* Filter rt_depth to light_cache->grid_tx.tex at index grid_offset */
@@ -1182,6 +1185,7 @@ void EEVEE_lightbake_filter_visibility(EEVEE_ViewLayerData *sldata,
   GPU_framebuffer_bind(fb);
   GPU_framebuffer_viewport_set(fb, x, y, vis_size, vis_size);
   DRW_draw_pass(psl->probe_visibility_compute);
+  GPU_framebuffer_viewport_reset(fb);
 }
 
 /* Actually a simple down-sampling. */
