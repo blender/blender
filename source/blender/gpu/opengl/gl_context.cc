@@ -102,18 +102,10 @@ GLContext::~GLContext()
   glDeleteVertexArrays(1, &default_vao_);
   glDeleteBuffers(1, &default_attr_vbo_);
 
-  if (front_left) {
-    delete front_left;
-  }
-  if (back_left) {
-    delete back_left;
-  }
-  if (front_right) {
-    delete front_right;
-  }
-  if (back_right) {
-    delete back_right;
-  }
+  delete front_left;
+  delete back_left;
+  delete front_right;
+  delete back_right;
 }
 
 /** \} */
