@@ -61,18 +61,12 @@ struct GPUShader {
 /** \name Debug functions
  * \{ */
 
-void Shader::print_errors(Span<const char *> sources, char *log)
+void Shader::print_errors(Span<const char *> sources, char *log, const char *stage)
 {
-  const bool pretty = true;
   const char line_prefix[] = "      | ";
   char *sources_combined = BLI_string_join_arrayN((const char **)sources.data(), sources.size());
 
-  if (pretty) {
-    fprintf(stderr, "\n      \033[1mShader Compilation Log : \033[0m%s\n", this->name);
-  }
-  else {
-    fprintf(stderr, "\n      Shader Compilation Log : %s\n", this->name);
-  }
+  fprintf(stderr, "GPUShader: Compilation Log : %s : %s\n", this->name, stage);
 
   char *log_line = log, *line_end;
   char *error_line_number_end;
@@ -84,39 +78,73 @@ void Shader::print_errors(Span<const char *> sources, char *log)
       log_line++;
       continue;
     }
+    /* 0 = error, 1 = warning. */
+    int type = -1;
     /* Skip ERROR: or WARNING:. */
     const char *prefix[] = {"ERROR", "WARNING"};
     for (int i = 0; i < ARRAY_SIZE(prefix); i++) {
       if (STREQLEN(log_line, prefix[i], strlen(prefix[i]))) {
         log_line += strlen(prefix[i]);
+        type = i;
         break;
       }
     }
+    /* Skip whitespaces and separators. */
+    while (ELEM(log_line[0], ':', '(', ' ')) {
+      log_line++;
+    }
+    /* Parse error line & char numbers. */
     error_line = error_char = -1;
-    if (ELEM(log_line[0], '0', ':') && ELEM(log_line[1], ':', '(', ' ')) {
-      error_line = (int)strtol(log_line + 2, &error_line_number_end, 10);
+    if (log_line[0] >= '0' && log_line[0] <= '9') {
+      error_line = (int)strtol(log_line, &error_line_number_end, 10);
       /* Try to fetch the error caracter (not always available). */
-      if (ELEM(error_line_number_end[0], '(', ':')) {
-        error_char = (int)strtol(error_line_number_end + 1, NULL, 10);
+      if (ELEM(error_line_number_end[0], '(', ':') && error_line_number_end[1] != ' ') {
+        error_char = (int)strtol(error_line_number_end + 1, &log_line, 10);
       }
+      else {
+        log_line = error_line_number_end;
+      }
+      /* There can be a 3rd number (case of mesa driver). */
+      if (ELEM(log_line[0], '(', ':') && log_line[1] >= '0' && log_line[1] <= '9') {
+        error_line = error_char;
+        error_char = (int)strtol(log_line + 1, &error_line_number_end, 10);
+        log_line = error_line_number_end;
+      }
+    }
+    /* Skip whitespaces and separators. */
+    while (ELEM(log_line[0], ':', ')', ' ')) {
+      log_line++;
     }
     if (error_line == -1) {
       found_line_id = false;
     }
     const char *src_line = sources_combined;
-    /* Some drivers use (source:line) instead of (line:char) */
-    if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OFFICIAL) && (error_line != -1) &&
-        (error_char != -1)) {
-      int error_source = error_line;
-      if (error_source < sources.size()) {
-        src_line = sources[error_source];
+    if ((error_line != -1) && (error_char != -1)) {
+      if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OFFICIAL)) {
+        /* source:line */
+        int error_source = error_line;
+        if (error_source < sources.size()) {
+          src_line = sources[error_source];
+          error_line = error_char;
+          error_char = -1;
+        }
+      }
+      else if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_OFFICIAL) ||
+               GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_OFFICIAL)) {
+        /* 0:line */
         error_line = error_char;
         error_char = -1;
+      }
+      else {
+        /* line:char */
       }
     }
     /* Separate from previous block. */
     if (last_error_line != error_line) {
-      fprintf(stderr, "\n");
+      fprintf(stderr, "\033[90m%s\033[39m\n", line_prefix);
+    }
+    else if (error_char != last_error_char) {
+      fprintf(stderr, "%s\n", line_prefix);
     }
     /* Print line from the source file that is producing the error. */
     if ((error_line != -1) && (error_line != last_error_line || error_char != last_error_char)) {
@@ -135,7 +163,12 @@ void Shader::print_errors(Span<const char *> sources, char *log)
       }
       /* Print error source. */
       if (found_line_id) {
-        fprintf(stderr, "%5d | ", src_line_index);
+        if (error_line != last_error_line) {
+          fprintf(stderr, "%5d | ", src_line_index);
+        }
+        else {
+          fprintf(stderr, line_prefix);
+        }
         fwrite(src_line, (src_line_end + 1) - src_line, 1, stderr);
         /* Print char offset. */
         fprintf(stderr, line_prefix);
@@ -149,42 +182,35 @@ void Shader::print_errors(Span<const char *> sources, char *log)
       }
     }
     fprintf(stderr, line_prefix);
-    if (found_line_id) {
-      /* Skip to message. Avoid redundant info. */
-      const char *keywords[] = {"error", "warning"};
-      for (int i = 0; i < ARRAY_SIZE(keywords); i++) {
-        /* Avoid searching following lines. */
-        line_end[0] = '\0';
-        if (strstr(log_line, keywords[i])) {
-          log_line = strstr(log_line, keywords[i]);
-          if (pretty) {
-            if (STREQ(keywords[i], "error")) {
-              fprintf(stderr, "\033[31;1mError\033[0m ");
-            }
-            else if (STREQ(keywords[i], "warning")) {
-              fprintf(stderr, "\033[33;1mWarning\033[0m ");
-            }
-            log_line += strlen(keywords[i]);
-          }
-          break;
-        }
+    /* Skip to message. Avoid redundant info. */
+    const char *keywords[] = {"error", "warning"};
+    for (int i = 0; i < ARRAY_SIZE(prefix); i++) {
+      if (STREQLEN(log_line, keywords[i], strlen(keywords[i]))) {
+        log_line += strlen(keywords[i]);
+        type = i;
+        break;
       }
-      line_end[0] = '\n';
+    }
+    /* Skip and separators. */
+    while (ELEM(log_line[0], ':', ')')) {
+      log_line++;
+    }
+    if (type == 0) {
+      fprintf(stderr, "\033[31;1mError\033[0;2m: ");
+    }
+    else if (type == 1) {
+      fprintf(stderr, "\033[33;1mWarning\033[0;2m: ");
     }
     /* Print the error itself. */
-    if (pretty) {
-      fprintf(stderr, "\033[2m");
-    }
+    fprintf(stderr, "\033[2m");
     fwrite(log_line, (line_end + 1) - log_line, 1, stderr);
-    if (pretty) {
-      fprintf(stderr, "\033[0m");
-    }
+    fprintf(stderr, "\033[0m");
     /* Continue to next line. */
     log_line = line_end + 1;
     last_error_line = error_line;
     last_error_char = error_char;
   }
-  fprintf(stderr, "\n\n");
+  fprintf(stderr, "\n");
   MEM_freeN(sources_combined);
 }
 
