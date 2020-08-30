@@ -365,6 +365,10 @@ struct Object **BKE_view_layer_array_selected_objects_params(
     uint *r_len,
     const struct ObjectsInViewLayerParams *params);
 
+#define BKE_view_layer_array_selected_objects(view_layer, v3d, r_len, ...) \
+  BKE_view_layer_array_selected_objects_params( \
+      view_layer, v3d, r_len, &(const struct ObjectsInViewLayerParams)__VA_ARGS__)
+
 struct ObjectsInModeParams {
   int object_mode;
   uint no_dup_data : 1;

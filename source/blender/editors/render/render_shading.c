@@ -102,51 +102,6 @@ static bool object_materials_supported_poll_ex(bContext *C, const Object *ob);
 /** \name Local Utilities
  * \{ */
 
-static Object **object_array_for_shading_impl(bContext *C,
-                                              bool (*filter_fn)(struct Object *ob,
-                                                                void *user_data),
-                                              void *filter_user_data,
-                                              uint *r_objects_len)
-{
-  Object **objects;
-
-  Object *ob = NULL;
-  bool use_ob = true;
-  if (CTX_wm_space_properties(C)) {
-    /* May return pinned object. */
-    ob = ED_object_context(C);
-  }
-  else {
-    /* Otherwise use full selection. */
-    use_ob = false;
-  }
-
-  if (use_ob) {
-    if (!filter_fn(ob, filter_user_data)) {
-      ob = NULL;
-    }
-    *r_objects_len = (ob != NULL) ? 1 : 0;
-    objects = MEM_mallocN(sizeof(*objects) * *r_objects_len, __func__);
-    if (ob != NULL) {
-      objects[0] = ob;
-    }
-  }
-  else {
-    ViewLayer *view_layer = CTX_data_view_layer(C);
-    const View3D *v3d = CTX_wm_view3d(C); /* may be NULL. */
-    objects = BKE_view_layer_array_selected_objects_params(
-        view_layer,
-        v3d,
-        r_objects_len,
-        &((const struct ObjectsInViewLayerParams){
-            .no_dup_data = true,
-            .filter_fn = filter_fn,
-            .filter_userdata = filter_user_data,
-        }));
-  }
-  return objects;
-}
-
 static bool object_array_for_shading_edit_mode_enabled_filter(Object *ob, void *user_data)
 {
   bContext *C = user_data;
@@ -160,7 +115,7 @@ static bool object_array_for_shading_edit_mode_enabled_filter(Object *ob, void *
 
 static Object **object_array_for_shading_edit_mode_enabled(bContext *C, uint *r_objects_len)
 {
-  return object_array_for_shading_impl(
+  return ED_object_array_in_mode_or_selected(
       C, object_array_for_shading_edit_mode_enabled_filter, C, r_objects_len);
 }
 
@@ -177,7 +132,7 @@ static bool object_array_for_shading_edit_mode_disabled_filter(Object *ob, void 
 
 static Object **object_array_for_shading_edit_mode_disabled(bContext *C, uint *r_objects_len)
 {
-  return object_array_for_shading_impl(
+  return ED_object_array_in_mode_or_selected(
       C, object_array_for_shading_edit_mode_disabled_filter, C, r_objects_len);
 }
 
