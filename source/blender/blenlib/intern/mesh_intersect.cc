@@ -1397,6 +1397,11 @@ static double supremum_dot_cross(const double3 &a, const double3 &b)
   return double3::dot(c, c);
 }
 
+/* The index of dot when inputs are plane_coords with index 1 is much higher.
+ * Plane coords have index 6.
+ */
+constexpr int index_dot_plane_coords = 15;
+
 /**
  * Used with supremum to get error bound. See Burnikel et al paper.
  * index_plane_coord is the index of a plane coordinate calculated
@@ -1409,18 +1414,14 @@ static double supremum_dot_cross(const double3 &a, const double3 &b)
  */
 constexpr int index_dot_cross = 11;
 
+/* Not using this at the moment. Leaving it for a bit in case we want it again. */
+#  if 0
 static double supremum_dot(const double3 &a, const double3 &b)
 {
   double3 abs_a = double3::abs(a);
   double3 abs_b = double3::abs(b);
   return double3::dot(abs_a, abs_b);
 }
-
-/* Actually index_dot = 3 + 2 * (max index of input coordinates). */
-/* The index of dot when inputs are plane_coords with index 1 is much higher.
- * Plane coords have index 6.
- */
-constexpr int index_dot_plane_coords = 15;
 
 static double supremum_orient3d(const double3 &a,
                                 const double3 &b,
@@ -1524,6 +1525,7 @@ static bool dot_must_be_positive(const double3 &a, const double3 &b)
   }
   return false;
 }
+#  endif
 
 /**
  * Return the approximate side of point p on a plane with normal plane_no and point plane_p.
@@ -1554,6 +1556,8 @@ static int filter_plane_side(const double3 &p,
   return 0;
 }
 
+/* Not using this at the moment. Leave it here for a while in case we want it again. */
+#  if 0
 /**
  * A fast, non-exhaustive test for non_trivial intersection.
  * If this returns false then we are sure that tri1 and tri2
@@ -1627,6 +1631,7 @@ static bool may_non_trivially_intersect(Face *t1, Face *t2)
   /* We weren't able to prove that any intersection is trivial. */
   return true;
 }
+#  endif
 
 /*
  * interesect_tri_tri and helper functions.
