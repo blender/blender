@@ -352,6 +352,19 @@ void BKE_view_layer_visible_bases_iterator_end(BLI_Iterator *iter);
 
 /* layer_utils.c */
 
+struct ObjectsInViewLayerParams {
+  uint no_dup_data : 1;
+
+  bool (*filter_fn)(struct Object *ob, void *user_data);
+  void *filter_userdata;
+};
+
+struct Object **BKE_view_layer_array_selected_objects_params(
+    struct ViewLayer *view_layer,
+    const struct View3D *v3d,
+    uint *r_len,
+    const struct ObjectsInViewLayerParams *params);
+
 struct ObjectsInModeParams {
   int object_mode;
   uint no_dup_data : 1;
