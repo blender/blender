@@ -456,7 +456,6 @@ static void node_draw_frame(const bContext *C,
                             bNodeInstanceKey UNUSED(key))
 {
   rctf *rct = &node->totr;
-  int color_id = node_get_colorid(node);
   float color[4];
   float alpha;
 
@@ -498,8 +497,6 @@ static void node_draw_frame(const bContext *C,
 
   /* label */
   node_draw_frame_label(ntree, node, snode->aspect);
-
-  UI_ThemeClearColor(color_id);
 
   UI_block_end(C, node->block);
   UI_block_draw(C, node->block);
