@@ -34,16 +34,16 @@ from modules.mesh_test import OperatorTest
 
 def main():
     tests = [
-        ['FACE', {0, 1, 2, 3, 4, 5}, 'Cubecube', 'Cubecube_result_1', 'intersect_boolean', {'operation': 'UNION'}],
-        ['FACE', {0, 1, 2, 3, 4, 5}, 'Cubecube', 'Cubecube_result_2', 'intersect_boolean', {'operation': 'INTERSECT'}],
-        ['FACE', {0, 1, 2, 3, 4, 5}, 'Cubecube', 'Cubecube_result_3', 'intersect_boolean', {'operation': 'DIFFERENCE'}],
-        ['FACE', {0, 1, 2, 3, 4, 5}, 'Cubecube', 'Cubecube_result_4', 'intersect', {'separate_mode': 'CUT'}],
-        ['FACE', {0, 1, 2, 3, 4, 5}, 'Cubecube', 'Cubecube_result_5', 'intersect', {'separate_mode': 'ALL'}],
-        ['FACE', {0, 1, 2, 3, 4, 5}, 'Cubecube', 'Cubecube_result_6', 'intersect', {'separate_mode': 'NONE'}],
+        ['FACE', {0, 1, 2, 3, 4, 5}, 'Cubecube', 'Cubecube_result_1', 'intersect_boolean', {'operation': 'UNION', 'solver' : 'FAST'}],
+        ['FACE', {0, 1, 2, 3, 4, 5}, 'Cubecube', 'Cubecube_result_2', 'intersect_boolean', {'operation': 'INTERSECT', 'solver' : 'FAST'}],
+        ['FACE', {0, 1, 2, 3, 4, 5}, 'Cubecube', 'Cubecube_result_3', 'intersect_boolean', {'operation': 'DIFFERENCE', 'solver' : 'FAST'}],
+        ['FACE', {0, 1, 2, 3, 4, 5}, 'Cubecube', 'Cubecube_result_4', 'intersect', {'separate_mode': 'CUT', 'solver' : 'FAST'}],
+        ['FACE', {0, 1, 2, 3, 4, 5}, 'Cubecube', 'Cubecube_result_5', 'intersect', {'separate_mode': 'ALL', 'solver' : 'FAST'}],
+        ['FACE', {0, 1, 2, 3, 4, 5}, 'Cubecube', 'Cubecube_result_6', 'intersect', {'separate_mode': 'NONE', 'solver' : 'FAST'}],
         ['FACE', {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 'Cubecube', 'Cubecube_result_7', 'intersect',
-         {'mode': 'SELECT', 'separate_mode': 'NONE'}],
-        ['FACE', {6, 7, 8, 9, 10}, 'Cubecone', 'Cubecone_result_1', 'intersect_boolean', {'operation': 'UNION'}],
-        ['FACE', {0, 1, 2, 3, 4, 5}, 'Cubecones', 'Cubecones_result_1', 'intersect_boolean', {'operation': 'UNION'}],
+         {'mode': 'SELECT', 'separate_mode': 'NONE', 'solver' : 'FAST'}],
+        ['FACE', {6, 7, 8, 9, 10}, 'Cubecone', 'Cubecone_result_1', 'intersect_boolean', {'operation': 'UNION', 'solver' : 'FAST'}],
+        ['FACE', {0, 1, 2, 3, 4, 5}, 'Cubecones', 'Cubecones_result_1', 'intersect_boolean', {'operation': 'UNION', 'solver' : 'FAST'}],
     ]
 
     operator_test = OperatorTest(tests)
