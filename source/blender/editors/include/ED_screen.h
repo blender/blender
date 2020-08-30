@@ -344,6 +344,7 @@ bool ED_operator_console_active(struct bContext *C);
 bool ED_operator_object_active(struct bContext *C);
 bool ED_operator_object_active_editable_ex(struct bContext *C, const Object *ob);
 bool ED_operator_object_active_editable(struct bContext *C);
+bool ED_operator_object_active_local_editable_ex(struct bContext *C, const Object *ob);
 bool ED_operator_object_active_local_editable(struct bContext *C);
 bool ED_operator_object_active_editable_mesh(struct bContext *C);
 bool ED_operator_object_active_editable_font(struct bContext *C);
