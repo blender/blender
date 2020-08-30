@@ -78,6 +78,7 @@ static void metadata_panel_context_draw(const bContext *C, Panel *panel)
   struct Main *bmain = CTX_data_main(C);
   struct Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
   struct Scene *scene = CTX_data_scene(C);
+  ARegion *region = CTX_wm_region(C);
   SpaceSeq *space_sequencer = CTX_wm_space_seq(C);
   /* NOTE: We can only reliably show metadata for the original (current)
    * frame when split view is used. */
@@ -88,7 +89,8 @@ static void metadata_panel_context_draw(const bContext *C, Panel *panel)
   }
   /* NOTE: We disable multiview for drawing, since we don't know what is the
    * from the panel (is kind of all the views?). */
-  ImBuf *ibuf = sequencer_ibuf_get(bmain, depsgraph, scene, space_sequencer, scene->r.cfra, 0, "");
+  ImBuf *ibuf = sequencer_ibuf_get(
+      bmain, region, depsgraph, scene, space_sequencer, scene->r.cfra, 0, "");
   if (ibuf != NULL) {
     ED_region_image_metadata_panel_draw(ibuf, panel->layout);
     IMB_freeImBuf(ibuf);

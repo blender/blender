@@ -1230,7 +1230,14 @@ void ED_sequencer_special_preview_clear(void)
   sequencer_special_update_set(NULL);
 }
 
+/**
+ * Rendering using opengl will change the current viewport/context.
+ * This is why we need the ARegion, to set back the render area.
+ * TODO do not rely on such hack and just update the ibuf ouside of
+ * the UI drawing code.
+ **/
 ImBuf *sequencer_ibuf_get(struct Main *bmain,
+                          ARegion *region,
                           struct Depsgraph *depsgraph,
                           Scene *scene,
                           SpaceSeq *sseq,
@@ -1266,9 +1273,16 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain,
    * by Escape pressed somewhere in the past. */
   G.is_break = false;
 
-  /* Rendering can change OGL context. Save & Restore framebuffer. */
+  GPUViewport *viewport = WM_draw_region_get_bound_viewport(region);
   GPUFrameBuffer *fb = GPU_framebuffer_active_get();
-  GPU_framebuffer_restore();
+  if (viewport) {
+    /* Unbind viewport to release the DRW context. */
+    GPU_viewport_unbind(viewport);
+  }
+  else {
+    /* Rendering can change OGL context. Save & Restore framebuffer. */
+    GPU_framebuffer_restore();
+  }
 
   if (special_seq_update) {
     ibuf = BKE_sequencer_give_ibuf_direct(&context, cfra + frame_ofs, special_seq_update);
@@ -1277,7 +1291,12 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain,
     ibuf = BKE_sequencer_give_ibuf(&context, cfra + frame_ofs, sseq->chanshown);
   }
 
-  if (fb) {
+  if (viewport) {
+    /* Follows same logic as wm_draw_window_offscreen to make sure to restore the same viewport. */
+    int view = (sseq->multiview_eye == STEREO_RIGHT_ID) ? 1 : 0;
+    GPU_viewport_bind(viewport, view, &region->winrct);
+  }
+  else if (fb) {
     GPU_framebuffer_bind(fb);
   }
 
@@ -1764,9 +1783,12 @@ void sequencer_draw_preview(const bContext *C,
     return;
   }
 
+  /* Get image. */
+  ibuf = sequencer_ibuf_get(
+      bmain, region, depsgraph, scene, sseq, cfra, frame_ofs, names[sseq->multiview_eye]);
+
   /* Setup offscreen buffers. */
   GPUViewport *viewport = WM_draw_region_get_viewport(region);
-
   GPUFrameBuffer *framebuffer_overlay = GPU_viewport_framebuffer_overlay_get(viewport);
   GPU_framebuffer_bind_no_srgb(framebuffer_overlay);
   GPU_depth_test(GPU_DEPTH_NONE);
@@ -1790,12 +1812,6 @@ void sequencer_draw_preview(const bContext *C,
       imm_draw_box_checker_2d(v2d->tot.xmin, v2d->tot.ymin, v2d->tot.xmax, v2d->tot.ymax);
     }
   }
-  /* Get image. */
-  ibuf = sequencer_ibuf_get(
-      bmain, depsgraph, scene, sseq, cfra, frame_ofs, names[sseq->multiview_eye]);
-
-  /* sequencer_ibuf_get can call GPU_framebuffer_bind. So disable srgb framebuffer again. */
-  GPU_framebuffer_bind_no_srgb(framebuffer_overlay);
 
   if (ibuf) {
     scope = sequencer_get_scope(scene, sseq, ibuf, draw_backdrop);
