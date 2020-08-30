@@ -407,8 +407,10 @@ void GLStateManager::set_blend(const eGPUBlend value)
     }
   }
 
+  /* Always set the blend function. This avoid a rendering error when blending is disabled but
+   * GPU_BLEND_CUSTOM was used just before and the framebuffer is using more than 1 color targe */
+  glBlendFuncSeparate(src_rgb, dst_rgb, src_alpha, dst_alpha);
   if (value != GPU_BLEND_NONE) {
-    glBlendFuncSeparate(src_rgb, dst_rgb, src_alpha, dst_alpha);
     glEnable(GL_BLEND);
   }
   else {
