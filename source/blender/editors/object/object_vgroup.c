@@ -72,14 +72,79 @@
 
 #include "ED_mesh.h"
 #include "ED_object.h"
+#include "ED_screen.h"
 
 #include "UI_resources.h"
 
 #include "object_intern.h"
 
+static bool vertex_group_supported_poll_ex(bContext *C, const Object *ob);
+
 /* -------------------------------------------------------------------- */
-/** \name Public Utility Functions
+/** \name Local Utility Functions
  * \{ */
+
+static Object **object_array_for_wpaint_impl(bContext *C,
+                                             bool (*filter_fn)(struct Object *ob, void *user_data),
+                                             void *filter_user_data,
+                                             uint *r_objects_len)
+{
+  Object **objects;
+
+  Object *ob = NULL;
+  bool use_ob = true;
+  if (CTX_wm_space_properties(C)) {
+    /* May return pinned object. */
+    ob = ED_object_context(C);
+  }
+  else if (CTX_data_mode_enum(C) == CTX_MODE_PAINT_WEIGHT) {
+    /* When painting, limit to active. */
+    ob = CTX_data_active_object(C);
+  }
+  else {
+    /* Otherwise use full selection. */
+    use_ob = false;
+  }
+
+  if (use_ob) {
+    if (!filter_fn(ob, filter_user_data)) {
+      ob = NULL;
+    }
+    *r_objects_len = (ob != NULL) ? 1 : 0;
+    objects = MEM_mallocN(sizeof(*objects) * *r_objects_len, __func__);
+    if (ob != NULL) {
+      objects[0] = ob;
+    }
+  }
+  else {
+    ViewLayer *view_layer = CTX_data_view_layer(C);
+    const View3D *v3d = CTX_wm_view3d(C); /* may be NULL. */
+    objects = BKE_view_layer_array_selected_objects_params(
+        view_layer,
+        v3d,
+        r_objects_len,
+        &((const struct ObjectsInViewLayerParams){
+            .no_dup_data = true,
+            .filter_fn = filter_fn,
+            .filter_userdata = filter_user_data,
+        }));
+  }
+  return objects;
+}
+
+static bool object_array_for_wpaint_filter(Object *ob, void *user_data)
+{
+  bContext *C = user_data;
+  if (vertex_group_supported_poll_ex(C, ob)) {
+    return true;
+  }
+  return false;
+}
+
+static Object **object_array_for_wpaint(bContext *C, uint *r_objects_len)
+{
+  return object_array_for_wpaint_impl(C, object_array_for_wpaint_filter, C, r_objects_len);
+}
 
 static bool vertex_group_use_vert_sel(Object *ob)
 {
@@ -99,6 +164,12 @@ static Lattice *vgroup_edit_lattice(Object *ob)
   BLI_assert(ob->type == OB_LATTICE);
   return (lt->editlatt) ? lt->editlatt->latt : lt;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public Utility Functions
+ * \{ */
 
 bool ED_vgroup_sync_from_pose(Object *ob)
 {
@@ -2659,14 +2730,21 @@ static void vgroup_assign_verts(Object *ob, const float weight)
 /** \name Shared Operator Poll Functions
  * \{ */
 
+static bool vertex_group_supported_poll_ex(bContext *C, const Object *ob)
+{
+  if (!ED_operator_object_active_local_editable_ex(C, ob)) {
+    return false;
+  }
+  const ID *data = ob->data;
+  return (OB_TYPE_SUPPORT_VGROUP(ob->type) &&
+          /* Data checks. */
+          (data != NULL) && !ID_IS_LINKED(data) && !ID_IS_OVERRIDE_LIBRARY(data));
+}
+
 static bool vertex_group_supported_poll(bContext *C)
 {
   Object *ob = ED_object_context(C);
-  ID *data = (ob) ? ob->data : NULL;
-
-  return (ob && !ID_IS_LINKED(ob) && OB_TYPE_SUPPORT_VGROUP(ob->type) &&
-          !ID_IS_OVERRIDE_LIBRARY(ob) && data && !ID_IS_LINKED(data) &&
-          !ID_IS_OVERRIDE_LIBRARY(data));
+  return vertex_group_supported_poll_ex(C, ob);
 }
 
 static bool vertex_group_poll(bContext *C)
@@ -3512,22 +3590,11 @@ static int vertex_group_smooth_exec(bContext *C, wmOperator *op)
 {
   const float fac = RNA_float_get(op->ptr, "factor");
   const int repeat = RNA_int_get(op->ptr, "repeat");
-  eVGroupSelect subset_type = RNA_enum_get(op->ptr, "group_select_mode");
+  const eVGroupSelect subset_type = RNA_enum_get(op->ptr, "group_select_mode");
   const float fac_expand = RNA_float_get(op->ptr, "expand");
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *ob_ctx = ED_object_context(C);
 
   uint objects_len;
-  Object **objects;
-  if (ob_ctx->mode == OB_MODE_WEIGHT_PAINT) {
-    /* Until weight paint supports multi-edit, use only the active. */
-    objects_len = 1;
-    objects = &ob_ctx;
-  }
-  else {
-    objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
-        view_layer, CTX_wm_view3d(C), &objects_len, ob_ctx->mode);
-  }
+  Object **objects = object_array_for_wpaint(C, &objects_len);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
@@ -3544,9 +3611,7 @@ static int vertex_group_smooth_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
   }
-  if (objects != &ob_ctx) {
-    MEM_freeN(objects);
-  }
+  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }
@@ -3588,22 +3653,29 @@ void OBJECT_OT_vertex_group_smooth(wmOperatorType *ot)
 
 static int vertex_group_clean_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_context(C);
+  const float limit = RNA_float_get(op->ptr, "limit");
+  const bool keep_single = RNA_boolean_get(op->ptr, "keep_single");
+  const eVGroupSelect subset_type = RNA_enum_get(op->ptr, "group_select_mode");
 
-  float limit = RNA_float_get(op->ptr, "limit");
-  bool keep_single = RNA_boolean_get(op->ptr, "keep_single");
-  eVGroupSelect subset_type = RNA_enum_get(op->ptr, "group_select_mode");
+  uint objects_len;
+  Object **objects = object_array_for_wpaint(C, &objects_len);
 
-  int subset_count, vgroup_tot;
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *ob = objects[ob_index];
 
-  const bool *vgroup_validmap = BKE_object_defgroup_subset_from_select_type(
-      ob, subset_type, &vgroup_tot, &subset_count);
-  vgroup_clean_subset(ob, vgroup_validmap, vgroup_tot, subset_count, limit, keep_single);
-  MEM_freeN((void *)vgroup_validmap);
+    int subset_count, vgroup_tot;
 
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
-  WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+    const bool *vgroup_validmap = BKE_object_defgroup_subset_from_select_type(
+        ob, subset_type, &vgroup_tot, &subset_count);
+
+    vgroup_clean_subset(ob, vgroup_validmap, vgroup_tot, subset_count, limit, keep_single);
+    MEM_freeN((void *)vgroup_validmap);
+
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+  }
+  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }
@@ -3611,7 +3683,7 @@ static int vertex_group_clean_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_group_clean(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Clean Vertex Group";
+  ot->name = "Clean Vertex Group Weights";
   ot->idname = "OBJECT_OT_vertex_group_clean";
   ot->description = "Remove vertex group assignments which are not required";
 
