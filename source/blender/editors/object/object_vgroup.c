@@ -3716,25 +3716,36 @@ void OBJECT_OT_vertex_group_quantize(wmOperatorType *ot)
 
 static int vertex_group_limit_total_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_context(C);
-
   const int limit = RNA_int_get(op->ptr, "limit");
-  eVGroupSelect subset_type = RNA_enum_get(op->ptr, "group_select_mode");
+  const eVGroupSelect subset_type = RNA_enum_get(op->ptr, "group_select_mode");
+  int remove_multi_count = 0;
 
-  int subset_count, vgroup_tot;
+  uint objects_len;
+  Object **objects = object_array_for_wpaint(C, &objects_len);
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *ob = objects[ob_index];
 
-  const bool *vgroup_validmap = BKE_object_defgroup_subset_from_select_type(
-      ob, subset_type, &vgroup_tot, &subset_count);
-  int remove_tot = vgroup_limit_total_subset(ob, vgroup_validmap, vgroup_tot, subset_count, limit);
-  MEM_freeN((void *)vgroup_validmap);
+    int subset_count, vgroup_tot;
+    const bool *vgroup_validmap = BKE_object_defgroup_subset_from_select_type(
+        ob, subset_type, &vgroup_tot, &subset_count);
+    const int remove_count = vgroup_limit_total_subset(
+        ob, vgroup_validmap, vgroup_tot, subset_count, limit);
+    MEM_freeN((void *)vgroup_validmap);
 
-  BKE_reportf(
-      op->reports, remove_tot ? RPT_INFO : RPT_WARNING, "%d vertex weights limited", remove_tot);
+    if (remove_count != 0) {
+      DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+      WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+      WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+    }
+    remove_multi_count += remove_count;
+  }
+  MEM_freeN(objects);
 
-  if (remove_tot) {
-    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
-    WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+  if (remove_multi_count) {
+    BKE_reportf(op->reports,
+                remove_multi_count ? RPT_INFO : RPT_WARNING,
+                "%d vertex weights limited",
+                remove_multi_count);
 
     return OPERATOR_FINISHED;
   }

@@ -2734,6 +2734,10 @@ class VIEW3D_MT_object_cleanup(Menu):
         layout = self.layout
 
         layout.operator("object.vertex_group_clean", text="Clean Vertex Group Weights").group_select_mode = 'ALL'
+        layout.operator("object.vertex_group_limit_total", text="Limit Total Vertex Groups").group_select_mode = 'ALL'
+
+        layout.separator()
+
         layout.operator("object.material_slot_remove_unused", text="Remove Unused Material Slots")
 
 
