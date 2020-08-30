@@ -1088,7 +1088,7 @@ bool BKE_base_is_visible(const View3D *v3d, const Base *base)
   return base->flag & BASE_VISIBLE_VIEWLAYER;
 }
 
-bool BKE_object_is_visible_in_viewport(const struct View3D *v3d, const struct Object *ob)
+bool BKE_object_is_visible_in_viewport(const View3D *v3d, const struct Object *ob)
 {
   BLI_assert(v3d != NULL);
 
@@ -1231,7 +1231,7 @@ static void layer_collection_local_sync(ViewLayer *view_layer,
   }
 }
 
-void BKE_layer_collection_local_sync(ViewLayer *view_layer, View3D *v3d)
+void BKE_layer_collection_local_sync(ViewLayer *view_layer, const View3D *v3d)
 {
   const unsigned short local_collections_uuid = v3d->local_collections_uuid;
 
@@ -1251,7 +1251,7 @@ void BKE_layer_collection_local_sync(ViewLayer *view_layer, View3D *v3d)
  * Same as BKE_layer_collection_isolate_local but for a viewport
  */
 void BKE_layer_collection_isolate_local(ViewLayer *view_layer,
-                                        View3D *v3d,
+                                        const View3D *v3d,
                                         LayerCollection *lc,
                                         bool extend)
 {
@@ -1463,11 +1463,11 @@ bool BKE_scene_has_object(Scene *scene, Object *ob)
  * \{ */
 
 typedef struct LayerObjectBaseIteratorData {
-  View3D *v3d;
+  const View3D *v3d;
   Base *base;
 } LayerObjectBaseIteratorData;
 
-static bool object_bases_iterator_is_valid(View3D *v3d, Base *base, const int flag)
+static bool object_bases_iterator_is_valid(const View3D *v3d, Base *base, const int flag)
 {
   BLI_assert((v3d == NULL) || (v3d->spacetype == SPACE_VIEW3D));
 
@@ -1484,7 +1484,7 @@ static void object_bases_iterator_begin(BLI_Iterator *iter, void *data_in_v, con
 {
   ObjectsVisibleIteratorData *data_in = data_in_v;
   ViewLayer *view_layer = data_in->view_layer;
-  View3D *v3d = data_in->v3d;
+  const View3D *v3d = data_in->v3d;
   Base *base = view_layer->object_bases.first;
 
   /* when there are no objects */

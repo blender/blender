@@ -34,8 +34,12 @@
 
 #include "MEM_guardedalloc.h"
 
+/* -------------------------------------------------------------------- */
+/** \name Objects in Mode Array
+ * \{ */
+
 Base **BKE_view_layer_array_from_bases_in_mode_params(ViewLayer *view_layer,
-                                                      View3D *v3d,
+                                                      const View3D *v3d,
                                                       uint *r_len,
                                                       const struct ObjectsInModeParams *params)
 {
@@ -83,7 +87,7 @@ Base **BKE_view_layer_array_from_bases_in_mode_params(ViewLayer *view_layer,
 }
 
 Object **BKE_view_layer_array_from_objects_in_mode_params(ViewLayer *view_layer,
-                                                          View3D *v3d,
+                                                          const View3D *v3d,
                                                           uint *r_len,
                                                           const struct ObjectsInModeParams *params)
 {
@@ -96,6 +100,12 @@ Object **BKE_view_layer_array_from_objects_in_mode_params(ViewLayer *view_layer,
   }
   return (Object **)base_array;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Filter Functions
+ * \{ */
 
 bool BKE_view_layer_filter_edit_mesh_has_uvs(Object *ob, void *UNUSED(user_data))
 {
@@ -124,3 +134,5 @@ bool BKE_view_layer_filter_edit_mesh_has_edges(Object *ob, void *UNUSED(user_dat
   }
   return false;
 }
+
+/** \} */
