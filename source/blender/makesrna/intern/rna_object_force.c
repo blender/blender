@@ -1918,7 +1918,7 @@ static void rna_def_softbody(BlenderRNA *brna)
   prop = RNA_def_property(srna, "plastic", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "plastic");
   RNA_def_property_range(prop, 0.0f, 100.0f);
-  RNA_def_property_ui_text(prop, "Plastic", "Permanent deform");
+  RNA_def_property_ui_text(prop, "Plasticity", "Permanent deform");
   RNA_def_property_update(prop, 0, "rna_softbody_update");
 
   prop = RNA_def_property(srna, "bend", PROP_FLOAT, PROP_NONE);
