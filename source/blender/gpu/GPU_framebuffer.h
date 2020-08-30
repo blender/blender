@@ -150,15 +150,11 @@ void GPU_framebuffer_config_array(GPUFrameBuffer *fb, const GPUAttachment *confi
     _tex, _face, _mip, \
   }
 
-#define GPU_framebuffer_texture_attach(_fb, _texture, _slot, _mip) \
-  GPU_framebuffer_texture_attach_ex( \
-      _fb, (GPUAttachment)GPU_ATTACHMENT_TEXTURE_MIP(_texture, _mip), _slot)
-#define GPU_framebuffer_texture_layer_attach(_fb, _texture, _slot, layer, _mip) \
-  GPU_framebuffer_texture_attach_ex( \
-      _fb, (GPUAttachment)GPU_ATTACHMENT_TEXTURE_LAYER_MIP(_texture, layer, _mip), _slot)
-#define GPU_framebuffer_texture_cubeface_attach(_fb, _texture, _slot, face, _mip) \
-  GPU_framebuffer_texture_attach_ex( \
-      _fb, (GPUAttachment)GPU_ATTACHMENT_TEXTURE_CUBEFACE_MIP(_texture, face, _mip), _slot)
+void GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot, int mip);
+void GPU_framebuffer_texture_layer_attach(
+    GPUFrameBuffer *fb, GPUTexture *tex, int slot, int layer, int mip);
+void GPU_framebuffer_texture_cubeface_attach(
+    GPUFrameBuffer *fb, GPUTexture *tex, int slot, int face, int mip);
 
 /* Framebuffer operations */
 

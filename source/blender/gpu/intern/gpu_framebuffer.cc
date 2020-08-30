@@ -292,6 +292,26 @@ void GPU_framebuffer_texture_attach_ex(GPUFrameBuffer *gpu_fb, GPUAttachment att
   reinterpret_cast<FrameBuffer *>(gpu_fb)->attachment_set(type, attachement);
 }
 
+void GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot, int mip)
+{
+  GPUAttachment attachement = GPU_ATTACHMENT_TEXTURE_MIP(tex, mip);
+  GPU_framebuffer_texture_attach_ex(fb, attachement, slot);
+}
+
+void GPU_framebuffer_texture_layer_attach(
+    GPUFrameBuffer *fb, GPUTexture *tex, int slot, int layer, int mip)
+{
+  GPUAttachment attachement = GPU_ATTACHMENT_TEXTURE_LAYER_MIP(tex, layer, mip);
+  GPU_framebuffer_texture_attach_ex(fb, attachement, slot);
+}
+
+void GPU_framebuffer_texture_cubeface_attach(
+    GPUFrameBuffer *fb, GPUTexture *tex, int slot, int face, int mip)
+{
+  GPUAttachment attachement = GPU_ATTACHMENT_TEXTURE_CUBEFACE_MIP(tex, face, mip);
+  GPU_framebuffer_texture_attach_ex(fb, attachement, slot);
+}
+
 void GPU_framebuffer_texture_detach(GPUFrameBuffer *gpu_fb, GPUTexture *tex)
 {
   GPUAttachment attachement = GPU_ATTACHMENT_NONE;
