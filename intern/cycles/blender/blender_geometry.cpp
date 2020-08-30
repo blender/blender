@@ -83,13 +83,13 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
   if (geom == NULL) {
     /* Add new geometry if it did not exist yet. */
     if (geom_type == Geometry::HAIR) {
-      geom = new Hair();
+      geom = scene->create_node<Hair>();
     }
     else if (geom_type == Geometry::VOLUME) {
-      geom = new Volume();
+      geom = scene->create_node<Volume>();
     }
     else {
-      geom = new Mesh();
+      geom = scene->create_node<Mesh>();
     }
     geometry_map.add(key, geom);
   }

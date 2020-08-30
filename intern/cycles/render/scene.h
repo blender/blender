@@ -59,6 +59,7 @@ class Progress;
 class BakeManager;
 class BakeData;
 class RenderStats;
+class Volume;
 
 /* Scene Device Data */
 
@@ -212,7 +213,7 @@ class SceneParams {
 
 /* Scene */
 
-class Scene {
+class Scene : public NodeOwner {
  public:
   /* Optional name. Is used for logging and reporting. */
   string name;
@@ -281,6 +282,40 @@ class Scene {
 
   bool update(Progress &progress, bool &kernel_switch_needed);
 
+  /* This function is used to create a node of a specified type instead of
+   * calling 'new', and sets the scene as the owner of the node.
+   * The function has overloads that will also add the created node to the right
+   * node array (e.g. Scene::geometry for Geometry nodes) and tag the appropriate
+   * manager for an update.
+   */
+  template<typename T, typename... Args> T *create_node(Args &&... args)
+  {
+    T *node = new T(args...);
+    node->set_owner(this);
+    return node;
+  }
+
+  /* This function is used to delete a node from the scene instead of calling 'delete'
+   * and manually removing the node from the data array. It also tags the
+   * appropriate manager for an update, if any, and checks that the scene is indeed
+   * the owner of the node. Calling this function on a node not owned by the scene
+   * will likely cause a crash which we want in order to detect such cases.
+   */
+  template<typename T> void delete_node(T *node)
+  {
+    assert(node->get_owner() == this);
+    delete_node_impl(node);
+  }
+
+  /* Same as above, but specify the actual owner.
+   */
+  template<typename T> void delete_node(T *node, const NodeOwner *owner)
+  {
+    assert(node->get_owner() == owner);
+    delete_node_impl(node);
+    (void)owner;
+  }
+
  protected:
   /* Check if some heavy data worth logging was updated.
    * Mainly used to suppress extra annoying logging.
@@ -303,7 +338,42 @@ class Scene {
 
   /* Get maximum number of closures to be used in kernel. */
   int get_max_closure_count();
+
+  template<typename T> void delete_node_impl(T *node)
+  {
+    delete node;
+  }
 };
+
+template<> Light *Scene::create_node<Light>();
+
+template<> Mesh *Scene::create_node<Mesh>();
+
+template<> Object *Scene::create_node<Object>();
+
+template<> Hair *Scene::create_node<Hair>();
+
+template<> Volume *Scene::create_node<Volume>();
+
+template<> ParticleSystem *Scene::create_node<ParticleSystem>();
+
+template<> Shader *Scene::create_node<Shader>();
+
+template<> void Scene::delete_node_impl(Light *node);
+
+template<> void Scene::delete_node_impl(Mesh *node);
+
+template<> void Scene::delete_node_impl(Volume *node);
+
+template<> void Scene::delete_node_impl(Hair *node);
+
+template<> void Scene::delete_node_impl(Geometry *node);
+
+template<> void Scene::delete_node_impl(Object *node);
+
+template<> void Scene::delete_node_impl(ParticleSystem *node);
+
+template<> void Scene::delete_node_impl(Shader *node);
 
 CCL_NAMESPACE_END
 

@@ -29,7 +29,13 @@ CCL_NAMESPACE_BEGIN
 
 /* Particle System */
 
-ParticleSystem::ParticleSystem()
+NODE_DEFINE(ParticleSystem)
+{
+  NodeType *type = NodeType::add("particle_system", create);
+  return type;
+}
+
+ParticleSystem::ParticleSystem() : Node(node_type)
 {
 }
 

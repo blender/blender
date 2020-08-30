@@ -207,7 +207,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
   /* test if we need to sync */
   bool object_updated = false;
 
-  if (object_map.add_or_update(&object, b_ob, b_parent, key))
+  if (object_map.add_or_update(scene, &object, b_ob, b_parent, key))
     object_updated = true;
 
   /* mesh sync */
@@ -405,14 +405,10 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
     sync_background_light(b_v3d, use_portal);
 
     /* handle removed data and modified pointers */
-    if (light_map.post_sync())
-      scene->light_manager->tag_update(scene);
-    if (geometry_map.post_sync())
-      scene->geometry_manager->tag_update(scene);
-    if (object_map.post_sync())
-      scene->object_manager->tag_update(scene);
-    if (particle_system_map.post_sync())
-      scene->particle_system_manager->tag_update(scene);
+    light_map.post_sync(scene);
+    geometry_map.post_sync(scene);
+    object_map.post_sync(scene);
+    particle_system_map.post_sync(scene);
   }
 
   if (motion)

@@ -53,7 +53,8 @@ bool BlenderSync::sync_dupli_particle(BL::Object &b_ob,
   ParticleSystem *psys;
 
   bool first_use = !particle_system_map.is_used(key);
-  bool need_update = particle_system_map.add_or_update(&psys, b_ob, b_instance.object(), key);
+  bool need_update = particle_system_map.add_or_update(
+      scene, &psys, b_ob, b_instance.object(), key);
 
   /* no update needed? */
   if (!need_update && !object->geometry->need_update && !scene->object_manager->need_update)

@@ -93,7 +93,8 @@ class OSLShaderManager : public ShaderManager {
   OSLShaderInfo *shader_loaded_info(const string &hash);
 
   /* create OSL node using OSLQuery */
-  static OSLNode *osl_node(ShaderManager *manager,
+  static OSLNode *osl_node(ShaderGraph *graph,
+                           ShaderManager *manager,
                            const std::string &filepath,
                            const std::string &bytecode_hash = "",
                            const std::string &bytecode = "");

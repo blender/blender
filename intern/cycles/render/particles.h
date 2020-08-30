@@ -20,6 +20,8 @@
 #include "util/util_array.h"
 #include "util/util_types.h"
 
+#include "graph/node.h"
+
 CCL_NAMESPACE_BEGIN
 
 class Device;
@@ -40,8 +42,10 @@ struct Particle {
   float3 angular_velocity;
 };
 
-class ParticleSystem {
+class ParticleSystem : public Node {
  public:
+  NODE_DECLARE
+
   ParticleSystem();
   ~ParticleSystem();
 

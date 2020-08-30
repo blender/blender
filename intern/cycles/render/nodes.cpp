@@ -262,9 +262,9 @@ ImageTextureNode::ImageTextureNode() : ImageSlotTextureNode(node_type)
   tiles.push_back(1001);
 }
 
-ShaderNode *ImageTextureNode::clone() const
+ShaderNode *ImageTextureNode::clone(ShaderGraph *graph) const
 {
-  ImageTextureNode *node = new ImageTextureNode(*this);
+  ImageTextureNode *node = graph->create_node<ImageTextureNode>(*this);
   node->handle = handle;
   return node;
 }
@@ -525,9 +525,9 @@ EnvironmentTextureNode::EnvironmentTextureNode() : ImageSlotTextureNode(node_typ
   animated = false;
 }
 
-ShaderNode *EnvironmentTextureNode::clone() const
+ShaderNode *EnvironmentTextureNode::clone(ShaderGraph *graph) const
 {
-  EnvironmentTextureNode *node = new EnvironmentTextureNode(*this);
+  EnvironmentTextureNode *node = graph->create_node<EnvironmentTextureNode>(*this);
   node->handle = handle;
   return node;
 }
@@ -1234,9 +1234,9 @@ IESLightNode::IESLightNode() : TextureNode(node_type)
   slot = -1;
 }
 
-ShaderNode *IESLightNode::clone() const
+ShaderNode *IESLightNode::clone(ShaderGraph *graph) const
 {
-  IESLightNode *node = new IESLightNode(*this);
+  IESLightNode *node = graph->create_node<IESLightNode>(*this);
 
   node->light_manager = NULL;
   node->slot = -1;
@@ -1782,12 +1782,12 @@ PointDensityTextureNode::~PointDensityTextureNode()
 {
 }
 
-ShaderNode *PointDensityTextureNode::clone() const
+ShaderNode *PointDensityTextureNode::clone(ShaderGraph *graph) const
 {
   /* Increase image user count for new node. We need to ensure to not call
    * add_image again, to work around access of freed data on the Blender
    * side. A better solution should be found to avoid this. */
-  PointDensityTextureNode *node = new PointDensityTextureNode(*this);
+  PointDensityTextureNode *node = graph->create_node<PointDensityTextureNode>(*this);
   node->handle = handle; /* TODO: not needed? */
   return node;
 }
@@ -2783,8 +2783,8 @@ void PrincipledBsdfNode::expand(ShaderGraph *graph)
   ShaderInput *emission_in = input("Emission");
   if (emission_in->link || emission != make_float3(0.0f, 0.0f, 0.0f)) {
     /* Create add closure and emission. */
-    AddClosureNode *add = new AddClosureNode();
-    EmissionNode *emission_node = new EmissionNode();
+    AddClosureNode *add = graph->create_node<AddClosureNode>();
+    EmissionNode *emission_node = graph->create_node<EmissionNode>();
     ShaderOutput *new_out = add->output("Closure");
 
     graph->add(add);
@@ -2802,8 +2802,8 @@ void PrincipledBsdfNode::expand(ShaderGraph *graph)
   ShaderInput *alpha_in = input("Alpha");
   if (alpha_in->link || alpha != 1.0f) {
     /* Create mix and transparent BSDF for alpha transparency. */
-    MixClosureNode *mix = new MixClosureNode();
-    TransparentBsdfNode *transparent = new TransparentBsdfNode();
+    MixClosureNode *mix = graph->create_node<MixClosureNode>();
+    TransparentBsdfNode *transparent = graph->create_node<TransparentBsdfNode>();
 
     graph->add(mix);
     graph->add(transparent);
@@ -4475,7 +4475,7 @@ void VolumeInfoNode::expand(ShaderGraph *graph)
 {
   ShaderOutput *color_out = output("Color");
   if (!color_out->links.empty()) {
-    AttributeNode *attr = new AttributeNode();
+    AttributeNode *attr = graph->create_node<AttributeNode>();
     attr->attribute = "color";
     graph->add(attr);
     graph->relink(color_out, attr->output("Color"));
@@ -4483,7 +4483,7 @@ void VolumeInfoNode::expand(ShaderGraph *graph)
 
   ShaderOutput *density_out = output("Density");
   if (!density_out->links.empty()) {
-    AttributeNode *attr = new AttributeNode();
+    AttributeNode *attr = graph->create_node<AttributeNode>();
     attr->attribute = "density";
     graph->add(attr);
     graph->relink(density_out, attr->output("Fac"));
@@ -4491,7 +4491,7 @@ void VolumeInfoNode::expand(ShaderGraph *graph)
 
   ShaderOutput *flame_out = output("Flame");
   if (!flame_out->links.empty()) {
-    AttributeNode *attr = new AttributeNode();
+    AttributeNode *attr = graph->create_node<AttributeNode>();
     attr->attribute = "flame";
     graph->add(attr);
     graph->relink(flame_out, attr->output("Fac"));
@@ -4499,7 +4499,7 @@ void VolumeInfoNode::expand(ShaderGraph *graph)
 
   ShaderOutput *temperature_out = output("Temperature");
   if (!temperature_out->links.empty()) {
-    AttributeNode *attr = new AttributeNode();
+    AttributeNode *attr = graph->create_node<AttributeNode>();
     attr->attribute = "temperature";
     graph->add(attr);
     graph->relink(temperature_out, attr->output("Fac"));
@@ -5768,7 +5768,7 @@ void MapRangeNode::expand(ShaderGraph *graph)
   if (clamp) {
     ShaderOutput *result_out = output("Result");
     if (!result_out->links.empty()) {
-      ClampNode *clamp_node = new ClampNode();
+      ClampNode *clamp_node = graph->create_node<ClampNode>();
       clamp_node->type = NODE_CLAMP_RANGE;
       graph->add(clamp_node);
       graph->relink(result_out, clamp_node->output("Result"));
@@ -6009,7 +6009,7 @@ void MathNode::expand(ShaderGraph *graph)
   if (use_clamp) {
     ShaderOutput *result_out = output("Value");
     if (!result_out->links.empty()) {
-      ClampNode *clamp_node = new ClampNode();
+      ClampNode *clamp_node = graph->create_node<ClampNode>();
       clamp_node->type = NODE_CLAMP_MINMAX;
       clamp_node->min = 0.0f;
       clamp_node->max = 1.0f;
@@ -6337,7 +6337,7 @@ void BumpNode::constant_fold(const ConstantFolder &folder)
 
   if (height_in->link == NULL) {
     if (normal_in->link == NULL) {
-      GeometryNode *geom = new GeometryNode();
+      GeometryNode *geom = folder.graph->create_node<GeometryNode>();
       folder.graph->add(geom);
       folder.bypass(geom->output("Normal"));
     }
@@ -6620,12 +6620,12 @@ OSLNode::~OSLNode()
   delete type;
 }
 
-ShaderNode *OSLNode::clone() const
+ShaderNode *OSLNode::clone(ShaderGraph *graph) const
 {
-  return OSLNode::create(this->inputs.size(), this);
+  return OSLNode::create(graph, this->inputs.size(), this);
 }
 
-OSLNode *OSLNode::create(size_t num_inputs, const OSLNode *from)
+OSLNode *OSLNode::create(ShaderGraph *graph, size_t num_inputs, const OSLNode *from)
 {
   /* allocate space for the node itself and parameters, aligned to 16 bytes
    * assuming that's the most parameter types need */
@@ -6636,7 +6636,9 @@ OSLNode *OSLNode::create(size_t num_inputs, const OSLNode *from)
   memset(node_memory, 0, node_size + inputs_size);
 
   if (!from) {
-    return new (node_memory) OSLNode();
+    OSLNode *node = new (node_memory) OSLNode();
+    node->set_owner(graph);
+    return node;
   }
   else {
     /* copy input default values and node type for cloning */
@@ -6644,6 +6646,7 @@ OSLNode *OSLNode::create(size_t num_inputs, const OSLNode *from)
 
     OSLNode *node = new (node_memory) OSLNode(*from);
     node->type = new NodeType(*(from->type));
+    node->set_owner(from->owner);
     return node;
   }
 }

@@ -26,9 +26,15 @@ CCL_NAMESPACE_BEGIN
 
 /* Node Type */
 
+NodeOwner::~NodeOwner()
+{
+}
+
 Node::Node(const NodeType *type_, ustring name_) : name(name_), type(type_)
 {
   assert(type);
+
+  owner = nullptr;
 
   /* assign non-empty name, convenient for debugging */
   if (name.empty()) {
@@ -677,6 +683,16 @@ bool Node::is_a(const NodeType *type_)
     }
   }
   return false;
+}
+
+const NodeOwner *Node::get_owner() const
+{
+  return owner;
+}
+
+void Node::set_owner(const NodeOwner *owner_)
+{
+  owner_ = owner;
 }
 
 CCL_NAMESPACE_END

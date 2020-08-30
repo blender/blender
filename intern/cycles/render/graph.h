@@ -159,7 +159,7 @@ class ShaderNode : public Node {
   ShaderInput *input(ustring name);
   ShaderOutput *output(ustring name);
 
-  virtual ShaderNode *clone() const = 0;
+  virtual ShaderNode *clone(ShaderGraph *graph) const = 0;
   virtual void attributes(Shader *shader, AttributeRequestSet *attributes);
   virtual void compile(SVMCompiler &compiler) = 0;
   virtual void compile(OSLCompiler &compiler) = 0;
@@ -275,9 +275,9 @@ class ShaderNode : public Node {
 #define SHADER_NODE_CLASS(type) \
   NODE_DECLARE \
   type(); \
-  virtual ShaderNode *clone() const \
+  virtual ShaderNode *clone(ShaderGraph *graph) const \
   { \
-    return new type(*this); \
+    return graph->create_node<type>(*this); \
   } \
   virtual void compile(SVMCompiler &compiler); \
   virtual void compile(OSLCompiler &compiler);
@@ -289,9 +289,9 @@ class ShaderNode : public Node {
   virtual void compile(OSLCompiler &compiler);
 
 #define SHADER_NODE_BASE_CLASS(type) \
-  virtual ShaderNode *clone() const \
+  virtual ShaderNode *clone(ShaderGraph *graph) const \
   { \
-    return new type(*this); \
+    return graph->create_node<type>(*this); \
   } \
   virtual void compile(SVMCompiler &compiler); \
   virtual void compile(OSLCompiler &compiler);
@@ -312,7 +312,7 @@ typedef map<ShaderNode *, ShaderNode *, ShaderNodeIDComparator> ShaderNodeMap;
  * Shader graph of nodes. Also does graph manipulations for default inputs,
  * bump mapping from displacement, and possibly other things in the future. */
 
-class ShaderGraph {
+class ShaderGraph : public NodeOwner {
  public:
   list<ShaderNode *> nodes;
   size_t num_node_ids;
@@ -344,6 +344,24 @@ class ShaderGraph {
   int get_num_closures();
 
   void dump_graph(const char *filename);
+
+  /* This function is used to create a node of a specified type instead of
+   * calling 'new', and sets the graph as the owner of the node.
+   */
+  template<typename T, typename... Args> T *create_node(Args &&... args)
+  {
+    T *node = new T(args...);
+    node->set_owner(this);
+    return node;
+  }
+
+  /* This function is used to delete a node created and owned by the graph.
+   */
+  template<typename T> void delete_node(T *node)
+  {
+    assert(node->get_owner() == this);
+    delete node;
+  }
 
  protected:
   typedef pair<ShaderNode *const, ShaderNode *> NodePair;

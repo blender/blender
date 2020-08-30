@@ -19,6 +19,8 @@
 
 #include <string.h>
 
+#include "render/scene.h"
+
 #include "util/util_map.h"
 #include "util/util_set.h"
 #include "util/util_vector.h"
@@ -32,9 +34,8 @@ CCL_NAMESPACE_BEGIN
 
 template<typename K, typename T> class id_map {
  public:
-  id_map(vector<T *> *scene_data_)
+  id_map()
   {
-    scene_data = scene_data_;
   }
 
   T *find(const BL::ID &id)
@@ -76,7 +77,6 @@ template<typename K, typename T> class id_map {
   void add(const K &key, T *data)
   {
     assert(find(key) == NULL);
-    scene_data->push_back(data);
     b_map[key] = data;
     used(data);
   }
@@ -97,22 +97,23 @@ template<typename K, typename T> class id_map {
   }
 
   /* Combined add and update as needed. */
-  bool add_or_update(T **r_data, const BL::ID &id)
+  bool add_or_update(Scene *scene, T **r_data, const BL::ID &id)
   {
-    return add_or_update(r_data, id, id, id.ptr.owner_id);
+    return add_or_update(scene, r_data, id, id, id.ptr.owner_id);
   }
-  bool add_or_update(T **r_data, const BL::ID &id, const K &key)
+  bool add_or_update(Scene *scene, T **r_data, const BL::ID &id, const K &key)
   {
-    return add_or_update(r_data, id, id, key);
+    return add_or_update(scene, r_data, id, id, key);
   }
-  bool add_or_update(T **r_data, const BL::ID &id, const BL::ID &parent, const K &key)
+  bool add_or_update(
+      Scene *scene, T **r_data, const BL::ID &id, const BL::ID &parent, const K &key)
   {
     T *data = find(key);
     bool recalc;
 
     if (!data) {
       /* Add data if it didn't exist yet. */
-      data = new T();
+      data = scene->create_node<T>();
       add(key, data);
       recalc = true;
     }
@@ -144,27 +145,8 @@ template<typename K, typename T> class id_map {
     b_map[NULL] = data;
   }
 
-  bool post_sync(bool do_delete = true)
+  void post_sync(Scene *scene, bool do_delete = true)
   {
-    /* remove unused data */
-    vector<T *> new_scene_data;
-    typename vector<T *>::iterator it;
-    bool deleted = false;
-
-    for (it = scene_data->begin(); it != scene_data->end(); it++) {
-      T *data = *it;
-
-      if (do_delete && used_set.find(data) == used_set.end()) {
-        delete data;
-        deleted = true;
-      }
-      else
-        new_scene_data.push_back(data);
-    }
-
-    *scene_data = new_scene_data;
-
-    /* update mapping */
     map<K, T *> new_map;
     typedef pair<const K, T *> TMapPair;
     typename map<K, T *>::iterator jt;
@@ -172,15 +154,17 @@ template<typename K, typename T> class id_map {
     for (jt = b_map.begin(); jt != b_map.end(); jt++) {
       TMapPair &pair = *jt;
 
-      if (used_set.find(pair.second) != used_set.end())
+      if (do_delete && used_set.find(pair.second) == used_set.end()) {
+        scene->delete_node(pair.second);
+      }
+      else {
         new_map[pair.first] = pair.second;
+      }
     }
 
     used_set.clear();
     b_recalc.clear();
     b_map = new_map;
-
-    return deleted;
   }
 
   const map<K, T *> &key_to_scene_data()
@@ -189,7 +173,6 @@ template<typename K, typename T> class id_map {
   }
 
  protected:
-  vector<T *> *scene_data;
   map<K, T *> b_map;
   set<T *> used_set;
   set<void *> b_recalc;

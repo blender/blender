@@ -439,7 +439,8 @@ const char *OSLShaderManager::shader_load_bytecode(const string &hash, const str
 
 /* This is a static function to avoid RTTI link errors with only this
  * file being compiled without RTTI to match OSL and LLVM libraries. */
-OSLNode *OSLShaderManager::osl_node(ShaderManager *manager,
+OSLNode *OSLShaderManager::osl_node(ShaderGraph *graph,
+                                    ShaderManager *manager,
                                     const std::string &filepath,
                                     const std::string &bytecode_hash,
                                     const std::string &bytecode)
@@ -482,7 +483,7 @@ OSLNode *OSLShaderManager::osl_node(ShaderManager *manager,
   }
 
   /* create node */
-  OSLNode *node = OSLNode::create(num_inputs);
+  OSLNode *node = OSLNode::create(graph, num_inputs);
 
   /* add new sockets from parameters */
   set<void *> used_sockets;

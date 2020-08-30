@@ -31,6 +31,10 @@ struct Transform;
 
 /* Node */
 
+struct NodeOwner {
+  virtual ~NodeOwner();
+};
+
 struct Node {
   explicit Node(const NodeType *type, ustring name = ustring());
   virtual ~Node() = 0;
@@ -99,6 +103,12 @@ struct Node {
 
   ustring name;
   const NodeType *type;
+
+  const NodeOwner *get_owner() const;
+  void set_owner(const NodeOwner *owner_);
+
+ protected:
+  const NodeOwner *owner;
 };
 
 CCL_NAMESPACE_END

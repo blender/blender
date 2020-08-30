@@ -92,7 +92,7 @@ class ImageSlotTextureNode : public TextureNode {
 class ImageTextureNode : public ImageSlotTextureNode {
  public:
   SHADER_NODE_NO_CLONE_CLASS(ImageTextureNode)
-  ShaderNode *clone() const;
+  ShaderNode *clone(ShaderGraph *graph) const;
   void attributes(Shader *shader, AttributeRequestSet *attributes);
   bool has_attribute_dependency()
   {
@@ -126,7 +126,7 @@ class ImageTextureNode : public ImageSlotTextureNode {
 class EnvironmentTextureNode : public ImageSlotTextureNode {
  public:
   SHADER_NODE_NO_CLONE_CLASS(EnvironmentTextureNode)
-  ShaderNode *clone() const;
+  ShaderNode *clone(ShaderGraph *graph) const;
   void attributes(Shader *shader, AttributeRequestSet *attributes);
   bool has_attribute_dependency()
   {
@@ -364,7 +364,7 @@ class PointDensityTextureNode : public ShaderNode {
   }
 
   ~PointDensityTextureNode();
-  ShaderNode *clone() const;
+  ShaderNode *clone(ShaderGraph *graph) const;
   void attributes(Shader *shader, AttributeRequestSet *attributes);
   bool has_attribute_dependency()
   {
@@ -400,7 +400,7 @@ class IESLightNode : public TextureNode {
   SHADER_NODE_NO_CLONE_CLASS(IESLightNode)
 
   ~IESLightNode();
-  ShaderNode *clone() const;
+  ShaderNode *clone(ShaderGraph *graph) const;
   virtual int get_group()
   {
     return NODE_GROUP_LEVEL_2;
@@ -1501,10 +1501,10 @@ class SetNormalNode : public ShaderNode {
 
 class OSLNode : public ShaderNode {
  public:
-  static OSLNode *create(size_t num_inputs, const OSLNode *from = NULL);
+  static OSLNode *create(ShaderGraph *graph, size_t num_inputs, const OSLNode *from = NULL);
   ~OSLNode();
 
-  ShaderNode *clone() const;
+  ShaderNode *clone(ShaderGraph *graph) const;
 
   char *input_default_value();
   void add_input(ustring name, SocketType::Type type);

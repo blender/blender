@@ -39,9 +39,9 @@ void BlenderSync::sync_light(BL::Object &b_parent,
   BL::Light b_light(b_ob.data());
 
   /* Update if either object or light data changed. */
-  if (!light_map.add_or_update(&light, b_ob, b_parent, key)) {
+  if (!light_map.add_or_update(scene, &light, b_ob, b_parent, key)) {
     Shader *shader;
-    if (!shader_map.add_or_update(&shader, b_light)) {
+    if (!shader_map.add_or_update(scene, &shader, b_light)) {
       if (light->is_portal)
         *use_portal = true;
       return;
@@ -176,7 +176,7 @@ void BlenderSync::sync_background_light(BL::SpaceView3D &b_v3d, bool use_portal)
       Light *light;
       ObjectKey key(b_world, 0, b_world, false);
 
-      if (light_map.add_or_update(&light, b_world, b_world, key) || world_recalc ||
+      if (light_map.add_or_update(scene, &light, b_world, b_world, key) || world_recalc ||
           b_world.ptr.data != world_map) {
         light->type = LIGHT_BACKGROUND;
         if (sampling_method == SAMPLING_MANUAL) {
