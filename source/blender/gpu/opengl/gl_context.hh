@@ -61,8 +61,6 @@ class GLSharedOrphanLists {
 class GLContext : public GPUContext {
   /* TODO(fclem) these needs to become private. */
  public:
-  /** Default VAO for procedural draw calls. */
-  GLuint default_vao_;
   /** VBO for missing vertex attrib binding. Avoid undefined behavior on some implementation. */
   GLuint default_attr_vbo_;
   /**

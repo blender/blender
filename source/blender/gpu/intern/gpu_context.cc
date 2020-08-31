@@ -126,12 +126,6 @@ GPUContext *GPU_context_active_get(void)
   return active_ctx;
 }
 
-GLuint GPU_vao_default(void)
-{
-  BLI_assert(active_ctx); /* need at least an active context */
-  return static_cast<GLContext *>(active_ctx)->default_vao_;
-}
-
 GLuint GPU_vao_alloc(void)
 {
   GLuint new_vao_id = 0;

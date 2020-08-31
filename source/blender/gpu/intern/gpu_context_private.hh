@@ -82,8 +82,6 @@ struct GPUContext {
   MEM_CXX_CLASS_ALLOC_FUNCS("GPUContext")
 };
 
-GLuint GPU_vao_default(void);
-
 /* These require a gl ctx bound. */
 GLuint GPU_buf_alloc(void);
 GLuint GPU_tex_alloc(void);

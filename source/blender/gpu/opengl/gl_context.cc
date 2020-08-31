@@ -47,8 +47,6 @@ using namespace blender::gpu;
 GLContext::GLContext(void *ghost_window, GLSharedOrphanLists &shared_orphan_list)
     : shared_orphan_list_(shared_orphan_list)
 {
-  glGenVertexArrays(1, &default_vao_);
-
   float data[4] = {0.0f, 0.0f, 0.0f, 1.0f};
   glGenBuffers(1, &default_attr_vbo_);
   glBindBuffer(GL_ARRAY_BUFFER, default_attr_vbo_);
@@ -101,7 +99,6 @@ GLContext::~GLContext()
   for (GLVaoCache *cache : vao_caches_) {
     cache->clear();
   }
-  glDeleteVertexArrays(1, &default_vao_);
   glDeleteBuffers(1, &default_attr_vbo_);
 }
 

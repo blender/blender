@@ -154,9 +154,6 @@ void GPU_batch_draw_instanced(GPUBatch *batch, int i_count);
 /* This does not bind/unbind shader and does not call GPU_matrix_bind() */
 void GPU_batch_draw_advanced(GPUBatch *, int v_first, int v_count, int i_first, int i_count);
 
-/* Does not even need batch */
-void GPU_draw_primitive(GPUPrimType, int v_count);
-
 #if 0 /* future plans */
 
 /* Can multiple batches share a GPUVertBuf? Use ref count? */

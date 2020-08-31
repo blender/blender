@@ -280,22 +280,6 @@ void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_fi
   static_cast<Batch *>(batch)->draw(v_first, v_count, i_first, i_count);
 }
 
-/* just draw some vertices and let shader place them where we want. */
-void GPU_draw_primitive(GPUPrimType prim_type, int v_count)
-{
-  GPU_context_active_get()->state_manager->apply_state();
-
-  /* we cannot draw without vao ... annoying ... */
-  glBindVertexArray(GPU_vao_default());
-
-  GLenum type = blender::gpu::to_gl(prim_type);
-  glDrawArrays(type, 0, v_count);
-
-  /* Performance hog if you are drawing with the same vao multiple time.
-   * Only activate for debugging.*/
-  // glBindVertexArray(0);
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
