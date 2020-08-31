@@ -43,6 +43,8 @@ struct GPUBatch *GPU_batch_preset_panel_drag_widget(const float pixelsize,
                                                     const float col_dark[4],
                                                     const float width) ATTR_WARN_UNUSED_RESULT;
 
+struct GPUBatch *GPU_batch_preset_quad(void);
+
 void gpu_batch_presets_init(void);
 void gpu_batch_presets_register(struct GPUBatch *preset_batch);
 bool gpu_batch_presets_unregister(struct GPUBatch *preset_batch);

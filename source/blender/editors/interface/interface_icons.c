@@ -28,6 +28,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "GPU_batch.h"
+#include "GPU_batch_presets.h"
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
@@ -1573,7 +1574,9 @@ static void icon_draw_cache_texture_flush_ex(GPUTexture *texture,
   GPU_shader_uniform_vector(
       shader, data_loc, 4, ICON_DRAW_CACHE_SIZE * 3, (float *)texture_draw_calls->drawcall_cache);
 
-  GPU_draw_primitive(GPU_PRIM_TRIS, 6 * texture_draw_calls->calls);
+  GPUBatch *quad = GPU_batch_preset_quad();
+  GPU_batch_set_shader(quad, shader);
+  GPU_batch_draw_instanced(quad, texture_draw_calls->calls);
 
   GPU_texture_unbind(texture);
 
@@ -1721,7 +1724,9 @@ static void icon_draw_texture(float x,
   GPU_texture_bind(texture, img_binding);
   GPU_sampler_icon_bind(img_binding);
 
-  GPU_draw_primitive(GPU_PRIM_TRI_STRIP, 4);
+  GPUBatch *quad = GPU_batch_preset_quad();
+  GPU_batch_set_shader(quad, shader);
+  GPU_batch_draw(quad);
 
   GPU_texture_unbind(texture);
 

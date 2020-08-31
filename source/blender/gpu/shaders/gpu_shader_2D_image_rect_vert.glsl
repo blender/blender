@@ -14,12 +14,12 @@ void main()
   vec2 uv;
   vec2 co;
   if (gl_VertexID == 0) {
-    co = rect_geom.xw;
-    uv = rect_icon.xw;
-  }
-  else if (gl_VertexID == 1) {
     co = rect_geom.xy;
     uv = rect_icon.xy;
+  }
+  else if (gl_VertexID == 1) {
+    co = rect_geom.xw;
+    uv = rect_icon.xw;
   }
   else if (gl_VertexID == 2) {
     co = rect_geom.zw;

@@ -51,6 +51,7 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
+#include "GPU_batch_presets.h"
 #include "GPU_context.h"
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
@@ -597,7 +598,9 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
   GPU_shader_uniform_vector(shader, rect_geo_loc, 4, 1, rectg);
   GPU_shader_uniform_vector(shader, color_loc, 4, 1, (const float[4]){1, 1, 1, 1});
 
-  GPU_draw_primitive(GPU_PRIM_TRI_STRIP, 4);
+  GPUBatch *quad = GPU_batch_preset_quad();
+  GPU_batch_set_shader(quad, shader);
+  GPU_batch_draw(quad);
 
   GPU_texture_unbind(texture);
 

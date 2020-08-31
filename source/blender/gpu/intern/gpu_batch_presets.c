@@ -62,6 +62,7 @@ static struct {
 static struct {
   struct {
     GPUBatch *panel_drag_widget;
+    GPUBatch *quad;
   } batch;
 
   float panel_drag_widget_pixelsize;
@@ -328,6 +329,24 @@ GPUBatch *GPU_batch_preset_panel_drag_widget(const float pixelsize,
     copy_v4_v4(g_presets_2d.panel_drag_widget_col_dark, col_dark);
   }
   return g_presets_2d.batch.panel_drag_widget;
+}
+
+/* To be used with procedural placement inside shader. */
+GPUBatch *GPU_batch_preset_quad(void)
+{
+  if (!g_presets_2d.batch.quad) {
+    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(preset_2d_format());
+    GPU_vertbuf_data_alloc(vbo, 4);
+
+    float pos_data[4][2] = {{0.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 1.0f}, {1.0f, 0.0f}};
+    GPU_vertbuf_attr_fill(vbo, g_presets_2d.attr_id.pos, pos_data);
+    /* Don't fill the color. */
+
+    g_presets_2d.batch.quad = GPU_batch_create_ex(GPU_PRIM_TRI_FAN, vbo, NULL, GPU_BATCH_OWNS_VBO);
+
+    gpu_batch_presets_register(g_presets_2d.batch.quad);
+  }
+  return g_presets_2d.batch.quad;
 }
 
 /** \} */
