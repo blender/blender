@@ -26,6 +26,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_mesh_types.h"
@@ -99,71 +100,61 @@ void ED_object_facemap_face_remove(Object *ob, bFaceMap *fmap, int facenum)
   }
 }
 
-static void object_fmap_swap_edit_mode(Object *ob, int num1, int num2)
+static void object_fmap_remap_edit_mode(Object *ob, const int *remap)
 {
-  if (ob->type == OB_MESH) {
-    Mesh *me = ob->data;
+  if (ob->type != OB_MESH) {
+    return;
+  }
 
-    if (me->edit_mesh) {
-      BMEditMesh *em = me->edit_mesh;
-      const int cd_fmap_offset = CustomData_get_offset(&em->bm->pdata, CD_FACEMAP);
+  Mesh *me = ob->data;
+  if (me->edit_mesh) {
+    BMEditMesh *em = me->edit_mesh;
+    const int cd_fmap_offset = CustomData_get_offset(&em->bm->pdata, CD_FACEMAP);
 
-      if (cd_fmap_offset != -1) {
-        BMFace *efa;
-        BMIter iter;
-        int *map;
+    if (cd_fmap_offset != -1) {
+      BMFace *efa;
+      BMIter iter;
+      int *map;
 
-        BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-          map = BM_ELEM_CD_GET_VOID_P(efa, cd_fmap_offset);
+      BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+        map = BM_ELEM_CD_GET_VOID_P(efa, cd_fmap_offset);
 
-          if (map) {
-            if (num1 != -1) {
-              if (*map == num1) {
-                *map = num2;
-              }
-              else if (*map == num2) {
-                *map = num1;
-              }
-            }
-          }
+        if (map && *map != -1) {
+          *map = remap[*map];
         }
       }
     }
   }
 }
 
-static void object_fmap_swap_object_mode(Object *ob, int num1, int num2)
+static void object_fmap_remap_object_mode(Object *ob, const int *remap)
 {
-  if (ob->type == OB_MESH) {
-    Mesh *me = ob->data;
+  if (ob->type != OB_MESH) {
+    return;
+  }
 
-    if (CustomData_has_layer(&me->pdata, CD_FACEMAP)) {
-      int *map = CustomData_get_layer(&me->pdata, CD_FACEMAP);
-      int i;
+  Mesh *me = ob->data;
+  if (CustomData_has_layer(&me->pdata, CD_FACEMAP)) {
+    int *map = CustomData_get_layer(&me->pdata, CD_FACEMAP);
+    int i;
 
-      if (map) {
-        for (i = 0; i < me->totpoly; i++) {
-          if (num1 != -1) {
-            if (map[i] == num1) {
-              map[i] = num2;
-            }
-            else if (map[i] == num2) {
-              map[i] = num1;
-            }
-          }
+    if (map) {
+      for (i = 0; i < me->totpoly; i++) {
+        if (map[i] != -1) {
+          map[i] = remap[map[i]];
         }
       }
     }
   }
 }
 
-static void object_facemap_swap(Object *ob, int num1, int num2)
+static void object_facemap_remap(Object *ob, const int *remap)
 {
   if (BKE_object_is_in_editmode(ob)) {
-    object_fmap_swap_edit_mode(ob, num1, num2);
+    object_fmap_remap_edit_mode(ob, remap);
   }
   else {
-    object_fmap_swap_object_mode(ob, num1, num2);
+    object_fmap_remap_object_mode(ob, remap);
   }
 }
 
@@ -432,45 +423,46 @@ static int face_map_move_exec(bContext *C, wmOperator *op)
   Object *ob = ED_object_context(C);
   bFaceMap *fmap;
   int dir = RNA_enum_get(op->ptr, "direction");
-  int pos1, pos2 = -1, count;
 
   fmap = BLI_findlink(&ob->fmaps, ob->actfmap - 1);
   if (!fmap) {
     return OPERATOR_CANCELLED;
   }
 
-  count = BLI_listbase_count(&ob->fmaps);
-  pos1 = BLI_findindex(&ob->fmaps, fmap);
+  if (!fmap->prev && !fmap->next) {
+    return OPERATOR_CANCELLED;
+  }
 
+  int pos1 = BLI_findindex(&ob->fmaps, fmap);
+  int pos2 = pos1 - dir;
+  int len = BLI_listbase_count(&ob->fmaps);
+  int *map = MEM_mallocN(len * sizeof(*map), __func__);
+
+  if (!IN_RANGE(pos2, -1, len)) {
+    const int offset = len - dir;
+    for (int i = 0; i < len; i++) {
+      map[i] = (i + offset) % len;
+    }
+    pos2 = map[pos1];
+  }
+  else {
+    range_vn_i(map, len, 0);
+    SWAP(int, map[pos1], map[pos2]);
+  }
+
+  void *prev = fmap->prev;
+  void *next = fmap->next;
+  BLI_remlink(&ob->fmaps, fmap);
   if (dir == 1) { /*up*/
-    void *prev = fmap->prev;
-
-    if (prev) {
-      pos2 = pos1 - 1;
-    }
-    else {
-      pos2 = count - 1;
-    }
-
-    BLI_remlink(&ob->fmaps, fmap);
     BLI_insertlinkbefore(&ob->fmaps, prev, fmap);
   }
   else { /*down*/
-    void *next = fmap->next;
-
-    if (next) {
-      pos2 = pos1 + 1;
-    }
-    else {
-      pos2 = 0;
-    }
-
-    BLI_remlink(&ob->fmaps, fmap);
     BLI_insertlinkafter(&ob->fmaps, next, fmap);
   }
 
-  /* iterate through mesh and substitute the indices as necessary */
-  object_facemap_swap(ob, pos2, pos1);
+  /* Iterate through mesh and substitute the indices as necessary. */
+  object_facemap_remap(ob, map);
+  MEM_freeN(map);
 
   ob->actfmap = pos2 + 1;
 
