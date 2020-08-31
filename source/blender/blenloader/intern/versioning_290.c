@@ -206,6 +206,17 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 290, 8)) {
+    LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
+      if (BKE_collection_cycles_fix(bmain, collection)) {
+        printf(
+            "WARNING: Cycle detected in collection '%s', fixed as best as possible.\n"
+            "You may have to reconstruct your View Layers...\n",
+            collection->id.name);
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -217,14 +228,6 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
    * \note Keep this message at the bottom of the function.
    */
   {
-    LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
-      if (BKE_collection_cycles_fix(bmain, collection)) {
-        printf(
-            "WARNING: Cycle detected in collection '%s', fixed as best as possible.\n"
-            "You may have to reconstruct your View Layers...\n",
-            collection->id.name);
-      }
-    }
     /* Keep this block, even when empty. */
   }
 }
@@ -407,18 +410,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #BLO_version_defaults_userpref_blend
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
-
+  if (!MAIN_VERSION_ATLEAST(bmain, 290, 8)) {
     /* Initialize additional parameter of the Nishita sky model and change altitude unit. */
     if (!DNA_struct_elem_find(fd->filesdna, "NodeTexSky", "float", "sun_intensity")) {
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
@@ -448,5 +440,18 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #BLO_version_defaults_userpref_blend
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }
