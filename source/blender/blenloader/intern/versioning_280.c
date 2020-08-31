@@ -1737,27 +1737,6 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 290, 8)) {
-    /* Paint Brush. This ensure that the brush paints by default. Used during the development and
-     * patch review of the initial Sculpt Vertex Colors implementation (D5975) */
-    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-      if (brush->ob_mode & OB_MODE_SCULPT && brush->sculpt_tool == SCULPT_TOOL_PAINT) {
-        brush->tip_roundness = 1.0f;
-        brush->flow = 1.0f;
-        brush->density = 1.0f;
-        brush->tip_scale_x = 1.0f;
-      }
-    }
-
-    /* Pose Brush with support for loose parts. */
-    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-      if (brush->sculpt_tool == SCULPT_TOOL_POSE && brush->disconnected_distance_max == 0.0f) {
-        brush->flag2 |= BRUSH_USE_CONNECTED_ONLY;
-        brush->disconnected_distance_max = 0.1f;
-      }
-    }
-  }
-
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -5080,31 +5059,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
         brush->rgb[1] = 1.0f;
         brush->rgb[2] = 0.498f;
       }
-    }
-  }
-
-  if (!MAIN_VERSION_ATLEAST(bmain, 290, 8)) {
-    /* Set the cloth wind factor to 1 for old forces. */
-    if (!DNA_struct_elem_find(fd->filesdna, "PartDeflect", "float", "f_wind_factor")) {
-      LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-        if (ob->pd) {
-          ob->pd->f_wind_factor = 1.0f;
-        }
-      }
-      LISTBASE_FOREACH (ParticleSettings *, part, &bmain->particles) {
-        if (part->pd) {
-          part->pd->f_wind_factor = 1.0f;
-        }
-        if (part->pd2) {
-          part->pd2->f_wind_factor = 1.0f;
-        }
-      }
-    }
-
-    for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
-      /* Don't rotate light with the viewer by default, make it fixed. Shading settings can't be
-       * edited and this flag should always be set. So we can always execute this. */
-      wm->xr.session_settings.shading.flag |= V3D_SHADING_WORLD_ORIENTATION;
     }
   }
 
