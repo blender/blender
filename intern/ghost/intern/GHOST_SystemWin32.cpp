@@ -328,9 +328,9 @@ GHOST_IWindow *GHOST_SystemWin32::createWindow(const char *title,
  * Never explicitly delete the window, use #disposeContext() instead.
  * \return The new context (or 0 if creation failed).
  */
-GHOST_IContext *GHOST_SystemWin32::createOffscreenContext()
+GHOST_IContext *GHOST_SystemWin32::createOffscreenContext(GHOST_GLSettings glSettings)
 {
-  bool debug_context = false; /* TODO: inform as a parameter */
+  const bool debug_context = (glSettings.flags & GHOST_glDebugContext) != 0;
 
   GHOST_Context *context;
 

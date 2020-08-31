@@ -142,7 +142,7 @@ class GHOST_SystemWin32 : public GHOST_System {
    * Never explicitly delete the window, use disposeContext() instead.
    * \return  The new context (or 0 if creation failed).
    */
-  GHOST_IContext *createOffscreenContext();
+  GHOST_IContext *createOffscreenContext(GHOST_GLSettings glSettings);
 
   /**
    * Dispose of a context.

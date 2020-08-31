@@ -394,7 +394,7 @@ GHOST_IWindow *GHOST_SystemX11::createWindow(const char *title,
  * Never explicitly delete the context, use disposeContext() instead.
  * \return  The new context (or 0 if creation failed).
  */
-GHOST_IContext *GHOST_SystemX11::createOffscreenContext()
+GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GLSettings glSettings)
 {
   // During development:
   //   try 4.x compatibility profile
@@ -405,6 +405,8 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext()
   //   try 4.x core profile
   //   try 3.3 core profile
   //   no fallbacks
+
+  const bool debug_context = (glSettings.flags & GHOST_glDebugContext) != 0;
 
 #if defined(WITH_GL_PROFILE_CORE)
   {
@@ -446,7 +448,7 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext()
                                    4,
                                    minor,
                                    GHOST_OPENGL_EGL_CONTEXT_FLAGS |
-                                       (false ? EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR : 0),
+                                       (debug_context ? EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR : 0),
                                    GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
                                    EGL_OPENGL_API);
 #else
@@ -458,7 +460,7 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext()
                                    4,
                                    minor,
                                    GHOST_OPENGL_GLX_CONTEXT_FLAGS |
-                                       (false ? GLX_CONTEXT_DEBUG_BIT_ARB : 0),
+                                       (debug_context ? GLX_CONTEXT_DEBUG_BIT_ARB : 0),
                                    GHOST_OPENGL_GLX_RESET_NOTIFICATION_STRATEGY);
 #endif
 
@@ -476,7 +478,7 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext()
                                  3,
                                  3,
                                  GHOST_OPENGL_EGL_CONTEXT_FLAGS |
-                                     (false ? EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR : 0),
+                                     (debug_context ? EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR : 0),
                                  GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
                                  EGL_OPENGL_API);
 #else
@@ -488,7 +490,7 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext()
                                  3,
                                  3,
                                  GHOST_OPENGL_GLX_CONTEXT_FLAGS |
-                                     (false ? GLX_CONTEXT_DEBUG_BIT_ARB : 0),
+                                     (debug_context ? GLX_CONTEXT_DEBUG_BIT_ARB : 0),
                                  GHOST_OPENGL_GLX_RESET_NOTIFICATION_STRATEGY);
 #endif
 

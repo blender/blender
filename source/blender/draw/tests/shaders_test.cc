@@ -24,8 +24,9 @@ class DrawTest : public ::testing::Test {
 
   void SetUp() override
   {
+    GHOST_GLSettings glSettings = {0};
     ghost_system = GHOST_CreateSystem();
-    ghost_context = GHOST_CreateOpenGLContext(ghost_system);
+    ghost_context = GHOST_CreateOpenGLContext(ghost_system, glSettings);
     context = GPU_context_create(0);
     GPU_init();
     DRW_draw_state_init_gtests(GPU_SHADER_CFG_DEFAULT);

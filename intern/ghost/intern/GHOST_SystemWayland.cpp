@@ -1481,7 +1481,7 @@ void GHOST_SystemWayland::getAllDisplayDimensions(GHOST_TUns32 &width, GHOST_TUn
   getMainDisplayDimensions(width, height);
 }
 
-GHOST_IContext *GHOST_SystemWayland::createOffscreenContext()
+GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings glSettings)
 {
   /* Create new off-screen window. */
   wl_surface *os_surface = wl_compositor_create_surface(compositor());
