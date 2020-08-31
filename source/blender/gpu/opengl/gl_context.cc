@@ -25,12 +25,15 @@
 #include "BLI_system.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_global.h"
+
 #include "GPU_framebuffer.h"
 
 #include "GHOST_C-api.h"
 
 #include "gpu_context_private.hh"
 
+#include "gl_debug.hh"
 #include "gl_immediate.hh"
 #include "gl_state.hh"
 
@@ -47,6 +50,10 @@ using namespace blender::gpu;
 GLContext::GLContext(void *ghost_window, GLSharedOrphanLists &shared_orphan_list)
     : shared_orphan_list_(shared_orphan_list)
 {
+  if (G.debug & G_DEBUG_GPU) {
+    debug::init_gl_callbacks();
+  }
+
   float data[4] = {0.0f, 0.0f, 0.0f, 1.0f};
   glGenBuffers(1, &default_attr_vbo_);
   glBindBuffer(GL_ARRAY_BUFFER, default_attr_vbo_);

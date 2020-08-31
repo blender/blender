@@ -12,9 +12,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
  */
 
 /** \file
@@ -23,13 +20,12 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+namespace blender {
+namespace gpu {
+namespace debug {
 
-/* prints something if debug mode is active only */
-void GPU_print_error_debug(const char *str);
+void init_gl_callbacks(void);
 
-#ifdef __cplusplus
-}
-#endif
+}  // namespace debug
+}  // namespace gpu
+}  // namespace blender

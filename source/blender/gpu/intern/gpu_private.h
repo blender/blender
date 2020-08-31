@@ -32,10 +32,6 @@ void gpu_platform_exit(void);
 void gpu_extensions_init(void);
 void gpu_extensions_exit(void);
 
-/* gpu_debug.c */
-void gpu_debug_init(void);
-void gpu_debug_exit(void);
-
 /* gpu_pbvh.c */
 void gpu_pbvh_init(void);
 void gpu_pbvh_exit(void);

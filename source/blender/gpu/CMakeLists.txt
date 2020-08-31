@@ -90,6 +90,7 @@ set(SRC
   opengl/gl_batch.cc
   opengl/gl_context.cc
   opengl/gl_drawlist.cc
+  opengl/gl_debug.cc
   opengl/gl_framebuffer.cc
   opengl/gl_immediate.cc
   opengl/gl_shader.cc
@@ -148,6 +149,7 @@ set(SRC
   opengl/gl_backend.hh
   opengl/gl_batch.hh
   opengl/gl_context.hh
+  opengl/gl_debug.hh
   opengl/gl_drawlist.hh
   opengl/gl_framebuffer.hh
   opengl/gl_immediate.hh
