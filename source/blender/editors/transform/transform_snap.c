@@ -1515,7 +1515,7 @@ bool transform_snap_grid(TransInfo *t, float *val)
   return true;
 }
 
-static void snap_increment_apply_ex(TransInfo *t,
+static void snap_increment_apply_ex(TransInfo *UNUSED(t),
                                     const int max_index,
                                     const float increment_val,
                                     const float aspect[3],
