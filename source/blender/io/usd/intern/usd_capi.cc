@@ -32,6 +32,7 @@
 
 #include "DNA_scene_types.h"
 
+#include "BKE_appdir.h"
 #include "BKE_blender_version.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -43,6 +44,17 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+/* Workaround to make it possible to pass a path at runtime to USD.
+ *
+ * USD requires some JSON files, and it uses a static constructor to determine the possible
+ * file-system paths to find those files. This made it impossible for Blender to pass a path to
+ * the USD library at runtime, as the constructor would run before Blender's main() function.
+ * We have patched USD (see usd.diff) to avoid that particular static constructor, and have an
+ * initialization function instead.
+ *
+ * This function is implemented in the USD source code, `pxr/base/plug/initConfig.cpp`. */
+extern "C" void usd_initialise_plugin_path(const char *datafiles_usd_path);
 
 namespace blender {
 namespace io {
@@ -58,6 +70,19 @@ struct ExportJobData {
 
   bool export_ok;
 };
+
+static void ensure_usd_plugin_path_registered(void)
+{
+  static bool plugin_path_registered = false;
+  if (plugin_path_registered) {
+    return;
+  }
+  plugin_path_registered = true;
+
+  /* Tell USD which directory to search for its JSON files. If 'datafiles/usd'
+   * does not exist, the USD library will not be able to read or write any files. */
+  usd_initialise_plugin_path(BKE_appdir_folder_id(BLENDER_DATAFILES, "usd"));
+}
 
 static void export_startjob(void *customdata,
                             /* Cannot be const, this function implements wm_jobs_start_callback.
@@ -179,6 +204,8 @@ bool USD_export(bContext *C,
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Scene *scene = CTX_data_scene(C);
+
+  blender::io::usd::ensure_usd_plugin_path_registered();
 
   blender::io::usd::ExportJobData *job = static_cast<blender::io::usd::ExportJobData *>(
       MEM_mallocN(sizeof(blender::io::usd::ExportJobData), "ExportJobData"));
