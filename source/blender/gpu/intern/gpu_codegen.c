@@ -686,7 +686,7 @@ static char *code_generate_vertex(GPUNodeGraph *graph,
   BLI_dynstr_append(ds, "#define USE_ATTR\n\n");
 
   BLI_dynstr_append(ds, vert_code);
-  BLI_dynstr_append(ds, "\n");
+  BLI_dynstr_append(ds, "\n\n");
 
   BLI_dynstr_append(ds, "void pass_attr(vec3 position, mat3 normalmat, mat4 modelmatinv) {\n");
 
@@ -755,15 +755,16 @@ static char *code_generate_geometry(GPUNodeGraph *graph,
 
   /* Generate varying assignments. */
   BLI_dynstr_append(ds, "#define USE_ATTR\n");
-  BLI_dynstr_append(ds, "void pass_attr(const int vert) {\n");
+  /* This needs to be a define. Some drivers don't like variable vert index inside dataAttrIn. */
+  BLI_dynstr_append(ds, "#define pass_attr(vert) {\\\n");
 
   if (builtins & GPU_BARYCENTRIC_TEXCO) {
-    BLI_dynstr_append(ds, "  dataAttrOut.barycentricTexCo = calc_barycentric_co(vert);\n");
+    BLI_dynstr_append(ds, "dataAttrOut.barycentricTexCo = calc_barycentric_co(vert);\\\n");
   }
 
   LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &graph->attributes) {
     /* TODO let shader choose what to do depending on what the attribute is. */
-    BLI_dynstr_appendf(ds, "  dataAttrOut.var%d = dataAttrIn[vert].var%d;\n", attr->id, attr->id);
+    BLI_dynstr_appendf(ds, "dataAttrOut.var%d = dataAttrIn[vert].var%d;\\\n", attr->id, attr->id);
   }
   BLI_dynstr_append(ds, "}\n\n");
 
