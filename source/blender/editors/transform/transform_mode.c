@@ -1014,7 +1014,7 @@ void ElementResize(TransInfo *t, TransDataContainer *tc, TransData *td, float ma
 
     /* scale stroke thickness */
     if (td->val) {
-      snapGridIncrement(t, t->values_final);
+      transform_snap_increment(t, t->values_final);
       applyNumInput(&t->num, t->values_final);
 
       float ratio = t->values_final[0];

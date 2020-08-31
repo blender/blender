@@ -104,7 +104,7 @@ static void Bend(TransInfo *t, const int UNUSED(mval[2]))
     const float radius_snap = 0.1f;
     const float snap_hack = (t->snap[1] * data->warp_init_dist) / radius_snap;
     values.scale *= snap_hack;
-    snapGridIncrement(t, values.vector);
+    transform_snap_increment(t, values.vector);
     values.scale /= snap_hack;
   }
 #endif

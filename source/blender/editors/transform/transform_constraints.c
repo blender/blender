@@ -167,7 +167,7 @@ static void postConstraintChecks(TransInfo *t, float vec[3])
 {
   mul_m3_v3(t->spacemtx_inv, vec);
 
-  snapGridIncrement(t, vec);
+  transform_snap_increment(t, vec);
 
   if (t->flag & T_NULL_ONE) {
     if (!(t->con.mode & CON_AXIS0)) {

@@ -56,7 +56,7 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 
   distance = t->values[0];
 
-  snapGridIncrement(t, &distance);
+  transform_snap_increment(t, &distance);
 
   applyNumInput(&t->num, &distance);
 

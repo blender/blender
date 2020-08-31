@@ -362,15 +362,28 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
   }
   else {
     copy_v3_v3(global_dir, t->values);
-    if ((t->con.mode & CON_APPLY) == 0) {
-      snapGridIncrement(t, global_dir);
-    }
-
     if (applyNumInput(&t->num, global_dir)) {
       removeAspectRatio(t, global_dir);
     }
+    else {
+      applySnapping(t, global_dir);
 
-    applySnapping(t, global_dir);
+      if (!validSnap(t) && !(t->con.mode & CON_APPLY)) {
+        float dist_sq = FLT_MAX;
+        if (transform_snap_grid(t, global_dir)) {
+          dist_sq = len_squared_v3v3(t->values, global_dir);
+        }
+
+        /* Check the snap distance to the initial value to work with mixed snap. */
+        float increment_loc[3];
+        copy_v3_v3(increment_loc, t->values);
+        if (transform_snap_increment(t, increment_loc)) {
+          if ((dist_sq == FLT_MAX) || (len_squared_v3v3(t->values, increment_loc) < dist_sq)) {
+            copy_v3_v3(global_dir, increment_loc);
+          }
+        }
+      }
+    }
   }
 
   if (t->con.mode & CON_APPLY) {

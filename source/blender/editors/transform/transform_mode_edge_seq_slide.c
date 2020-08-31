@@ -102,7 +102,7 @@ static void applySeqSlide(TransInfo *t, const int mval[2])
     copy_v3_v3(t->values_final, tvec);
   }
   else {
-    // snapGridIncrement(t, t->values);
+    // transform_snap_increment(t, t->values);
     applyNumInput(&t->num, t->values);
     copy_v3_v3(t->values_final, t->values);
   }

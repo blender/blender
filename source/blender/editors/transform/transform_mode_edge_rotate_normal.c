@@ -99,7 +99,7 @@ static void applyNormalRotation(TransInfo *t, const int UNUSED(mval[2]))
     float angle = t->values[0];
     copy_v3_v3(axis, axis_final);
 
-    snapGridIncrement(t, &angle);
+    transform_snap_increment(t, &angle);
 
     applySnapping(t, &angle);
 

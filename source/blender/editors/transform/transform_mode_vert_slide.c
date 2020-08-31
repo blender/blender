@@ -587,7 +587,9 @@ static void applyVertSlide(TransInfo *t, const int UNUSED(mval[2]))
   final = t->values[0];
 
   applySnapping(t, &final);
-  snapGridIncrement(t, &final);
+  if (!validSnap(t)) {
+    transform_snap_increment(t, &final);
+  }
 
   /* only do this so out of range values are not displayed */
   if (is_constrained) {

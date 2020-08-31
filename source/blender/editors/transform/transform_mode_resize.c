@@ -91,7 +91,7 @@ static void applyResize(TransInfo *t, const int UNUSED(mval[2]))
 
     copy_v3_fl(t->values_final, ratio);
 
-    snapGridIncrement(t, t->values_final);
+    transform_snap_increment(t, t->values_final);
 
     if (applyNumInput(&t->num, t->values_final)) {
       constraintNumInput(t, t->values_final);

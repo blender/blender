@@ -200,7 +200,7 @@ static void applyRotation(TransInfo *t, const int UNUSED(mval[2]))
 
   final = t->values[0];
 
-  snapGridIncrement(t, &final);
+  transform_snap_increment(t, &final);
 
   float axis_final[3];
   /* Use the negative axis to match the default Z axis of the view matrix. */

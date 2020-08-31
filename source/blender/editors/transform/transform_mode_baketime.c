@@ -67,7 +67,7 @@ static void applyBakeTime(TransInfo *t, const int mval[2])
     time = (float)(t->center2d[0] - mval[0]) * fac;
   }
 
-  snapGridIncrement(t, &time);
+  transform_snap_increment(t, &time);
 
   applyNumInput(&t->num, &time);
 

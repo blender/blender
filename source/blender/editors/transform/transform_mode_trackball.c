@@ -93,7 +93,7 @@ static void applyTrackball(TransInfo *t, const int UNUSED(mval[2]))
 
   copy_v2_v2(phi, t->values);
 
-  snapGridIncrement(t, phi);
+  transform_snap_increment(t, phi);
 
   applyNumInput(&t->num, phi);
 

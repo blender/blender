@@ -54,7 +54,7 @@ static void applyTilt(TransInfo *t, const int UNUSED(mval[2]))
 
   final = t->values[0];
 
-  snapGridIncrement(t, &final);
+  transform_snap_increment(t, &final);
 
   applyNumInput(&t->num, &final);
 

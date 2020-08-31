@@ -55,7 +55,7 @@ static void applyCrease(TransInfo *t, const int UNUSED(mval[2]))
 
   CLAMP_MAX(crease, 1.0f);
 
-  snapGridIncrement(t, &crease);
+  transform_snap_increment(t, &crease);
 
   applyNumInput(&t->num, &crease);
 

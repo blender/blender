@@ -55,7 +55,7 @@ static void applyBevelWeight(TransInfo *t, const int UNUSED(mval[2]))
 
   CLAMP_MAX(weight, 1.0f);
 
-  snapGridIncrement(t, &weight);
+  transform_snap_increment(t, &weight);
 
   applyNumInput(&t->num, &weight);
 

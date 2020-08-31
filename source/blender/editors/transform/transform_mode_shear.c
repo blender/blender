@@ -128,7 +128,7 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
 
   value = t->values[0];
 
-  snapGridIncrement(t, &value);
+  transform_snap_increment(t, &value);
 
   applyNumInput(&t->num, &value);
 
