@@ -24,6 +24,14 @@ namespace blender {
 namespace gpu {
 namespace debug {
 
+/* Enabled on MacOS by default since there is no support for debug callbacks. */
+#if defined(DEBUG) && defined(__APPLE__)
+#  define GL_CHECK_ERROR(info) debug::check_gl_error(info)
+#else
+#  define GL_CHECK_ERROR(info)
+#endif
+
+void check_gl_error(const char *info);
 void init_gl_callbacks(void);
 
 }  // namespace debug

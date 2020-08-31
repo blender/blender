@@ -36,6 +36,7 @@
 
 #include "gl_batch.hh"
 #include "gl_context.hh"
+#include "gl_debug.hh"
 #include "gl_primitive.hh"
 #include "gl_vertex_array.hh"
 

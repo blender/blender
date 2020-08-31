@@ -137,4 +137,42 @@ void init_gl_callbacks(void)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Error Checking
+ *
+ * This is only useful for implementation that does not support the KHR_debug extension.
+ * \{ */
+
+void check_gl_error(const char *info)
+{
+  GLenum error = glGetError();
+
+#define ERROR_CASE(err) \
+  case err: { \
+    char msg[256]; \
+    SNPRINTF(msg, "%s : %s", #err, info); \
+    debug_callback(0, GL_DEBUG_TYPE_ERROR, 0, GL_DEBUG_SEVERITY_HIGH, 0, msg, NULL); \
+    break; \
+  }
+
+  switch (error) {
+    ERROR_CASE(GL_INVALID_ENUM)
+    ERROR_CASE(GL_INVALID_VALUE)
+    ERROR_CASE(GL_INVALID_OPERATION)
+    ERROR_CASE(GL_INVALID_FRAMEBUFFER_OPERATION)
+    ERROR_CASE(GL_OUT_OF_MEMORY)
+    ERROR_CASE(GL_STACK_UNDERFLOW)
+    ERROR_CASE(GL_STACK_OVERFLOW)
+    case GL_NO_ERROR:
+      break;
+    default:
+      char msg[256];
+      SNPRINTF(msg, "Unknown GL error: %x : %s", error, info);
+      debug_callback(0, GL_DEBUG_TYPE_ERROR, 0, GL_DEBUG_SEVERITY_HIGH, 0, msg, NULL);
+      break;
+  }
+}
+
+/** \} */
+
 }  // namespace blender::gpu::debug

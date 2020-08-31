@@ -34,13 +34,6 @@
 
 #include <mutex>
 
-/* Enabled on MacOS by default since there is no support for debug callbacks. */
-#if defined(DEBUG) && defined(__APPLE__)
-#  define GL_CHECK_ERROR(info) GLContext::check_error(info)
-#else
-#  define GL_CHECK_ERROR(info)
-#endif
-
 namespace blender {
 namespace gpu {
 
