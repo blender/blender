@@ -388,6 +388,7 @@ static void axis_geom_draw(const wmGizmo *gz,
           GPU_matrix_scale_1f(1.0 / sphere_scale);
         }
 
+        GPU_batch_program_set_builtin(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
         GPU_batch_uniform_4fv(sphere, "color", is_pos_color ? color_current : color_current_fade);
         GPU_batch_draw(sphere);
         GPU_matrix_pop();

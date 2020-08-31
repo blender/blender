@@ -45,6 +45,7 @@ namespace blender::gpu {
 GLImmediate::GLImmediate()
 {
   glGenVertexArrays(1, &vao_id_);
+  glBindVertexArray(vao_id_); /* Necessary for glObjectLabel. */
 
   buffer.buffer_size = DEFAULT_INTERNAL_BUFFER_SIZE;
   glGenBuffers(1, &buffer.vbo_id);
@@ -57,6 +58,7 @@ GLImmediate::GLImmediate()
   glBufferData(GL_ARRAY_BUFFER, buffer_strict.buffer_size, NULL, GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindVertexArray(0);
 
 #ifndef __APPLE__
   if ((G.debug & G_DEBUG_GPU) && (GLEW_VERSION_4_3 || GLEW_KHR_debug)) {
