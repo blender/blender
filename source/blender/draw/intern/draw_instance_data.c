@@ -38,8 +38,6 @@
 #include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
 
-#include "intern/gpu_primitive_private.h"
-
 struct DRWInstanceData {
   struct DRWInstanceData *next;
   bool used;        /* If this data is used or not. */

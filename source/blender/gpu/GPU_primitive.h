@@ -56,8 +56,11 @@ typedef enum {
   GPU_PRIM_CLASS_ANY = GPU_PRIM_CLASS_POINT | GPU_PRIM_CLASS_LINE | GPU_PRIM_CLASS_SURFACE,
 } GPUPrimClass;
 
-GPUPrimClass GPU_primtype_class(GPUPrimType);
-bool GPU_primtype_belongs_to_class(GPUPrimType, GPUPrimClass);
+/**
+ * TODO Improve error checking by validating that the shader is suited for this primitive type.
+ * GPUPrimClass GPU_primtype_class(GPUPrimType);
+ * bool GPU_primtype_belongs_to_class(GPUPrimType, GPUPrimClass);
+ **/
 
 #ifdef __cplusplus
 }

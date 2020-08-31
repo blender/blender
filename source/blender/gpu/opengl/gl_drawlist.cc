@@ -33,10 +33,10 @@
 
 #include "gpu_context_private.hh"
 #include "gpu_drawlist_private.hh"
-#include "gpu_primitive_private.h"
 
 #include "gl_backend.hh"
 #include "gl_drawlist.hh"
+#include "gl_primitive.hh"
 
 #include <limits.h>
 
@@ -199,7 +199,7 @@ void GLDrawList::submit(void)
    * case where only a few instances are needed to finish filling a call buffer. */
   const bool is_finishing_a_buffer = (command_offset_ >= data_size_);
   if (command_len_ > 2 || is_finishing_a_buffer) {
-    GLenum prim = convert_prim_type_to_gl(batch_->prim_type);
+    GLenum prim = to_gl(batch_->prim_type);
     void *offset = (void *)data_offset_;
 
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buffer_id_);

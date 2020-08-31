@@ -38,9 +38,10 @@
 #include "gpu_backend.hh"
 #include "gpu_batch_private.hh"
 #include "gpu_context_private.hh"
-#include "gpu_primitive_private.h"
 #include "gpu_shader_private.hh"
 #include "gpu_vertex_format_private.h"
+
+#include "gl_primitive.hh" /* TODO remove */
 
 #include <limits.h>
 #include <stdlib.h>
@@ -287,7 +288,7 @@ void GPU_draw_primitive(GPUPrimType prim_type, int v_count)
   /* we cannot draw without vao ... annoying ... */
   glBindVertexArray(GPU_vao_default());
 
-  GLenum type = convert_prim_type_to_gl(prim_type);
+  GLenum type = blender::gpu::to_gl(prim_type);
   glDrawArrays(type, 0, v_count);
 
   /* Performance hog if you are drawing with the same vao multiple time.
