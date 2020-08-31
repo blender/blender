@@ -3650,8 +3650,6 @@ static void ntreeUpdateSimulationDependencies(Main *main, bNodeTree *simulation_
 
 void ntreeUpdateTree(Main *bmain, bNodeTree *ntree)
 {
-  bNode *node;
-
   if (!ntree) {
     return;
   }
@@ -3668,7 +3666,7 @@ void ntreeUpdateTree(Main *bmain, bNodeTree *ntree)
   }
 
   /* update individual nodes */
-  for (node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH(bNode *, node, &ntree->nodes) {
     /* node tree update tags override individual node update flags */
     if ((node->update & NODE_UPDATE) || (ntree->update & NTREE_UPDATE)) {
       if (node->typeinfo->updatefunc) {
@@ -3711,7 +3709,7 @@ void ntreeUpdateTree(Main *bmain, bNodeTree *ntree)
   }
 
   /* clear update flags */
-  for (node = ntree->nodes.first; node; node = node->next) {
+  LISTBASE_FOREACH(bNode *, node, &ntree->nodes) {
     node->update = 0;
   }
   ntree->update = 0;
