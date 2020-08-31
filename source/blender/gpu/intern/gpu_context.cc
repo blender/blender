@@ -75,6 +75,7 @@ GPUContext::~GPUContext()
   delete back_left;
   delete front_right;
   delete back_right;
+  delete imm;
 }
 
 bool GPUContext::is_active_on_thread(void)

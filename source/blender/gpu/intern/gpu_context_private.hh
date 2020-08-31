@@ -30,6 +30,7 @@
 #include "GPU_context.h"
 
 #include "gpu_framebuffer_private.hh"
+#include "gpu_immediate_private.hh"
 #include "gpu_shader_private.hh"
 #include "gpu_state_private.hh"
 
@@ -48,6 +49,7 @@ struct GPUContext {
   blender::gpu::FrameBuffer *active_fb = NULL;
   GPUMatrixState *matrix_state = NULL;
   blender::gpu::GPUStateManager *state_manager = NULL;
+  blender::gpu::Immediate *imm = NULL;
 
   /**
    * All 4 window framebuffers.

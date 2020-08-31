@@ -31,6 +31,7 @@
 
 #include "gpu_context_private.hh"
 
+#include "gl_immediate.hh"
 #include "gl_state.hh"
 
 #include "gl_backend.hh" /* TODO remove */
@@ -55,6 +56,7 @@ GLContext::GLContext(void *ghost_window, GLSharedOrphanLists &shared_orphan_list
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   state_manager = new GLStateManager();
+  imm = new GLImmediate();
   ghost_window_ = ghost_window;
 
   if (ghost_window) {

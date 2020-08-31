@@ -38,6 +38,11 @@ void update_bindings(const GLuint vao,
                      const ShaderInterface *interface,
                      const int base_instance);
 
+void update_bindings(const GLuint vao,
+                     const uint v_first,
+                     const GPUVertFormat *format,
+                     const ShaderInterface *interface);
+
 }  // namespace GLVertArray
 
 }  // namespace gpu

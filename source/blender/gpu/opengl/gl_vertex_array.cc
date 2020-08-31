@@ -155,6 +155,17 @@ void GLVertArray::update_bindings(const GLuint vao,
   }
 }
 
+/* Another version of update_bindings for Immediate mode. */
+void GLVertArray::update_bindings(const GLuint vao,
+                                  const uint v_first,
+                                  const GPUVertFormat *format,
+                                  const ShaderInterface *interface)
+{
+  glBindVertexArray(vao);
+
+  vbo_bind(interface, format, v_first, 0, false);
+}
+
 /** \} */
 
 }  // namespace blender::gpu
