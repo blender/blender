@@ -40,6 +40,31 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="2.90" date="2020-08-31">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>Nishita sky texture for Cycles</li>
+                    <li>EEVEE motion blur</li>
+                    <li>Cloth filter</li>
+                    <li>Ocean modifier spray</li>
+                    <li>Correct face attributes modeling</li>
+                    <li>OpenVDB fluid integration with mantaflow</li>
+                    <li>Nuke lens distortion model for motion tracking</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>Intel Embree for faster motion blur in Cycles</li>
+                    <li>Viewport Intel OpenImageDenoise</li>
+                    <li>Shadow terminator offset setting</li>
+                    <li>NVLink support for CUDA and Optix</li>
+                    <li>Multires unsubdivide, rebuild and modes</li>
+                    <li>Pose brush transformations</li>
+                    <li>Correct face attributes modeling</li>
+                    <li>User interface improvements: new search, modifiers, headings, stats</li>
+                </ul>
+            </description>
+        </release>
         <release version="2.83" date="2020-06-03">
             <description>
                 <p>New features:</p>
