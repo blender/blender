@@ -92,8 +92,6 @@ class GLContext : public GPUContext {
   void fbo_free(GLuint fbo_id);
   void vao_cache_register(GLVaoCache *cache);
   void vao_cache_unregister(GLVaoCache *cache);
-  void framebuffer_register(struct GPUFrameBuffer *fb);
-  void framebuffer_unregister(struct GPUFrameBuffer *fb);
 };
 
 }  // namespace gpu

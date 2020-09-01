@@ -276,26 +276,4 @@ void GLContext::vao_cache_unregister(GLVaoCache *cache)
   lists_mutex_.unlock();
 }
 
-void GLContext::framebuffer_register(struct GPUFrameBuffer *fb)
-{
-#ifdef DEBUG
-  lists_mutex_.lock();
-  framebuffers_.add(fb);
-  lists_mutex_.unlock();
-#else
-  UNUSED_VARS(fb);
-#endif
-}
-
-void GLContext::framebuffer_unregister(struct GPUFrameBuffer *fb)
-{
-#ifdef DEBUG
-  lists_mutex_.lock();
-  framebuffers_.remove(fb);
-  lists_mutex_.unlock();
-#else
-  UNUSED_VARS(fb);
-#endif
-}
-
 /** \} */
