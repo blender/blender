@@ -81,7 +81,7 @@ struct rbRigidBody {
 };
 
 struct rbVert {
-  float x, y, z;
+  btScalar x, y, z;
 };
 struct rbTri {
   int v0, v1, v2;
@@ -356,8 +356,8 @@ void RB_body_delete(rbRigidBody *object)
 
   /* motion state */
   btMotionState *ms = body->getMotionState();
-  if (ms)
-    delete ms;
+
+  delete ms;
 
   /* collision shape is done elsewhere... */
 
@@ -399,8 +399,9 @@ float RB_body_get_mass(rbRigidBody *object)
    */
   float value = (float)body->getInvMass();
 
-  if (value)
+  if (value) {
     value = 1.0f / value;
+  }
 
   return value;
 }
@@ -551,10 +552,12 @@ void RB_body_set_angular_factor(rbRigidBody *object, float x, float y, float z)
 void RB_body_set_kinematic_state(rbRigidBody *object, int kinematic)
 {
   btRigidBody *body = object->body;
-  if (kinematic)
+  if (kinematic) {
     body->setCollisionFlags(body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
-  else
+  }
+  else {
     body->setCollisionFlags(body->getCollisionFlags() & ~btCollisionObject::CF_KINEMATIC_OBJECT);
+  }
 }
 
 /* ............ */
@@ -562,10 +565,12 @@ void RB_body_set_kinematic_state(rbRigidBody *object, int kinematic)
 void RB_body_set_activation_state(rbRigidBody *object, int use_deactivation)
 {
   btRigidBody *body = object->body;
-  if (use_deactivation)
+  if (use_deactivation) {
     body->forceActivationState(ACTIVE_TAG);
-  else
+  }
+  else {
     body->setActivationState(DISABLE_DEACTIVATION);
+  }
 }
 void RB_body_activate(rbRigidBody *object)
 {
@@ -621,8 +626,9 @@ void RB_body_set_scale(rbRigidBody *object, const float scale[3])
     cshape->setLocalScaling(btVector3(scale[0], scale[1], scale[2]));
 
     /* GIimpact shapes have to be updated to take scaling into account */
-    if (cshape->getShapeType() == GIMPACT_SHAPE_PROXYTYPE)
+    if (cshape->getShapeType() == GIMPACT_SHAPE_PROXYTYPE) {
       ((btGImpactMeshShape *)cshape)->updateBound();
+    }
   }
 }
 
@@ -778,7 +784,7 @@ void RB_trimesh_finish(rbMeshData *mesh)
                                                      (int *)mesh->triangles,
                                                      sizeof(rbTri),
                                                      mesh->num_vertices,
-                                                     (float *)mesh->vertices,
+                                                     (btScalar *)mesh->vertices,
                                                      sizeof(rbVert));
 }
 
@@ -805,8 +811,9 @@ void RB_shape_trimesh_update(rbCollisionShape *shape,
                              float min[3],
                              float max[3])
 {
-  if (shape->mesh == NULL || num_verts != shape->mesh->num_vertices)
+  if (shape->mesh == NULL || num_verts != shape->mesh->num_vertices) {
     return;
+  }
 
   for (int i = 0; i < num_verts; i++) {
     float *vert = (float *)(((char *)vertices + i * vert_stride));
@@ -882,11 +889,12 @@ void RB_shape_delete(rbCollisionShape *shape)
   if (shape->cshape->getShapeType() == SCALED_TRIANGLE_MESH_SHAPE_PROXYTYPE) {
     btBvhTriangleMeshShape *child_shape =
         ((btScaledBvhTriangleMeshShape *)shape->cshape)->getChildShape();
-    if (child_shape)
-      delete child_shape;
+
+    delete child_shape;
   }
-  if (shape->mesh)
+  if (shape->mesh) {
     RB_trimesh_data_delete(shape->mesh);
+  }
   delete shape->cshape;
 
   /* Delete compound child shapes if there are any */
