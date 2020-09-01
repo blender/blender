@@ -1977,9 +1977,7 @@ void uiItemFullR(uiLayout *layout,
     uiLayout *layout;
     uiBut *but;
   } ui_decorate = {
-      .use_prop_decorate = (((layout->item.flag & UI_ITEM_PROP_DECORATE) != 0) &&
-                            (use_prop_sep && ptr->owner_id &&
-                             id_can_have_animdata(ptr->owner_id))),
+      .use_prop_decorate = (((layout->item.flag & UI_ITEM_PROP_DECORATE) != 0) && use_prop_sep),
   };
 #endif /* UI_PROP_DECORATE */
 
