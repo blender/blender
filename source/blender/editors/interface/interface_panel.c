@@ -288,29 +288,6 @@ void UI_list_panel_unique_str(Panel *panel, char *r_name)
 }
 
 /**
- * Remove the #uiBlock corresponding to a panel. The lookup is needed because panels don't store
- * a reference to their corresponding #uiBlock.
- */
-static void panel_free_block(const bContext *C, ARegion *region, Panel *panel)
-{
-  BLI_assert(panel->type);
-
-  char block_name[BKE_ST_MAXNAME + LIST_PANEL_UNIQUE_STR_LEN];
-  strncpy(block_name, panel->type->idname, BKE_ST_MAXNAME);
-  char unique_panel_str[LIST_PANEL_UNIQUE_STR_LEN];
-  UI_list_panel_unique_str(panel, unique_panel_str);
-  strncat(block_name, unique_panel_str, LIST_PANEL_UNIQUE_STR_LEN);
-
-  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
-    if (STREQ(block->name, block_name)) {
-      BLI_remlink(&region->uiblocks, block);
-      UI_block_free(C, block);
-      break; /* Only delete one block for this panel. */
-    }
-  }
-}
-
-/**
  * Free a panel and it's children. Custom data is shared by the panel and its children
  * and is freed by #UI_panels_free_instanced.
  *
@@ -324,8 +301,6 @@ static void panel_delete(const bContext *C, ARegion *region, ListBase *panels, P
     panel_delete(C, region, &panel->children, child);
   }
   BLI_freelistN(&panel->children);
-
-  panel_free_block(C, region, panel);
 
   BLI_remlink(panels, panel);
   if (panel->activedata) {
