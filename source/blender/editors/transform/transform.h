@@ -575,6 +575,9 @@ enum {
   TFM_MODAL_PROPSIZE = 26,
   /* node editor insert offset (aka auto-offset) direction toggle */
   TFM_MODAL_INSERTOFS_TOGGLE_DIR = 27,
+
+  TFM_MODAL_AUTOCONSTRAINT = 28,
+  TFM_MODAL_CONSTRAINTPLANE = 29,
 };
 
 bool initTransform(struct bContext *C,
