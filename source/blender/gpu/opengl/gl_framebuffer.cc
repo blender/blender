@@ -75,7 +75,13 @@ GLFrameBuffer::GLFrameBuffer(
 GLFrameBuffer::~GLFrameBuffer()
 {
   if (context_ != NULL) {
-    context_->fbo_free(fbo_id_);
+    if (context_ == GPU_context_active_get()) {
+      /* Context might be partially freed. This happens when destroying the window framebuffers. */
+      glDeleteFramebuffers(1, &fbo_id_);
+    }
+    else {
+      context_->fbo_free(fbo_id_);
+    }
     /* Restore default framebuffer if this framebuffer was bound. */
     if (context_->active_fb == this && context_->back_left != this) {
       /* If this assert triggers it means the framebuffer is being freed while in use by another
