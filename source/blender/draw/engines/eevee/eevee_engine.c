@@ -571,7 +571,6 @@ static void eevee_render_to_image(void *vedata,
 static void eevee_engine_free(void)
 {
   EEVEE_shaders_free();
-  EEVEE_bloom_free();
   EEVEE_depth_of_field_free();
   EEVEE_effects_free();
   EEVEE_lightprobes_free();

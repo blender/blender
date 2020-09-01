@@ -252,6 +252,14 @@ TEST_F(DrawTest, eevee_glsl_shaders_static)
   EEVEE_shaders_lightprobe_shaders_init();
   EEVEE_shaders_material_shaders_init();
 
+  EXPECT_NE(EEVEE_shaders_bloom_blit_get(false), nullptr);
+  EXPECT_NE(EEVEE_shaders_bloom_blit_get(true), nullptr);
+  EXPECT_NE(EEVEE_shaders_bloom_downsample_get(false), nullptr);
+  EXPECT_NE(EEVEE_shaders_bloom_downsample_get(true), nullptr);
+  EXPECT_NE(EEVEE_shaders_bloom_upsample_get(false), nullptr);
+  EXPECT_NE(EEVEE_shaders_bloom_upsample_get(true), nullptr);
+  EXPECT_NE(EEVEE_shaders_bloom_resolve_get(false), nullptr);
+  EXPECT_NE(EEVEE_shaders_bloom_resolve_get(true), nullptr);
   EXPECT_NE(EEVEE_shaders_probe_filter_glossy_sh_get(), nullptr);
   EXPECT_NE(EEVEE_shaders_probe_filter_diffuse_sh_get(), nullptr);
   EXPECT_NE(EEVEE_shaders_probe_filter_visibility_sh_get(), nullptr);

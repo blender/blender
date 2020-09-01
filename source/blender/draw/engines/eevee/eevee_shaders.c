@@ -69,6 +69,12 @@ static struct {
   struct GPUShader *taa_resolve_sh;
   struct GPUShader *taa_resolve_reproject_sh;
 
+  /* Bloom */
+  struct GPUShader *bloom_blit_sh[2];
+  struct GPUShader *bloom_downsample_sh[2];
+  struct GPUShader *bloom_upsample_sh[2];
+  struct GPUShader *bloom_resolve_sh[2];
+
   /* General purpose Shaders. */
   struct GPUShader *lookdev_background;
   struct GPUShader *update_noise_sh;
@@ -403,6 +409,62 @@ GPUShader *EEVEE_shaders_taa_resolve_sh_get(EEVEE_EffectsFlag enabled_effects)
   }
 
   return *sh;
+}
+
+GPUShader *EEVEE_shaders_bloom_blit_get(bool high_quality)
+{
+  int index = high_quality ? 1 : 0;
+
+  if (e_data.bloom_blit_sh[index] == NULL) {
+    const char *define = high_quality ? "#define STEP_BLIT\n"
+                                        "#define HIGH_QUALITY\n" :
+                                        "#define STEP_BLIT\n";
+    e_data.bloom_blit_sh[index] = DRW_shader_create_fullscreen(datatoc_effect_bloom_frag_glsl,
+                                                               define);
+  }
+  return e_data.bloom_blit_sh[index];
+}
+
+GPUShader *EEVEE_shaders_bloom_downsample_get(bool high_quality)
+{
+  int index = high_quality ? 1 : 0;
+
+  if (e_data.bloom_downsample_sh[index] == NULL) {
+    const char *define = high_quality ? "#define STEP_DOWNSAMPLE\n"
+                                        "#define HIGH_QUALITY\n" :
+                                        "#define STEP_DOWNSAMPLE\n";
+    e_data.bloom_downsample_sh[index] = DRW_shader_create_fullscreen(
+        datatoc_effect_bloom_frag_glsl, define);
+  }
+  return e_data.bloom_downsample_sh[index];
+}
+
+GPUShader *EEVEE_shaders_bloom_upsample_get(bool high_quality)
+{
+  int index = high_quality ? 1 : 0;
+
+  if (e_data.bloom_upsample_sh[index] == NULL) {
+    const char *define = high_quality ? "#define STEP_UPSAMPLE\n"
+                                        "#define HIGH_QUALITY\n" :
+                                        "#define STEP_UPSAMPLE\n";
+    e_data.bloom_upsample_sh[index] = DRW_shader_create_fullscreen(datatoc_effect_bloom_frag_glsl,
+                                                                   define);
+  }
+  return e_data.bloom_upsample_sh[index];
+}
+
+GPUShader *EEVEE_shaders_bloom_resolve_get(bool high_quality)
+{
+  int index = high_quality ? 1 : 0;
+
+  if (e_data.bloom_resolve_sh[index] == NULL) {
+    const char *define = high_quality ? "#define STEP_RESOLVE\n"
+                                        "#define HIGH_QUALITY\n" :
+                                        "#define STEP_RESOLVE\n";
+    e_data.bloom_resolve_sh[index] = DRW_shader_create_fullscreen(datatoc_effect_bloom_frag_glsl,
+                                                                  define);
+  }
+  return e_data.bloom_resolve_sh[index];
 }
 
 Material *EEVEE_material_default_diffuse_get(void)
@@ -771,6 +833,13 @@ void EEVEE_shaders_free(void)
   DRW_SHADER_FREE_SAFE(e_data.velocity_resolve_sh);
   DRW_SHADER_FREE_SAFE(e_data.taa_resolve_sh);
   DRW_SHADER_FREE_SAFE(e_data.taa_resolve_reproject_sh);
+
+  for (int i = 0; i < 2; i++) {
+    DRW_SHADER_FREE_SAFE(e_data.bloom_blit_sh[i]);
+    DRW_SHADER_FREE_SAFE(e_data.bloom_downsample_sh[i]);
+    DRW_SHADER_FREE_SAFE(e_data.bloom_upsample_sh[i]);
+    DRW_SHADER_FREE_SAFE(e_data.bloom_resolve_sh[i]);
+  }
   DRW_SHADER_LIB_FREE_SAFE(e_data.lib);
 
   if (e_data.default_world) {
