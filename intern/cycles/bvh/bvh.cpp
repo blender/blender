@@ -98,14 +98,15 @@ BVH::BVH(const BVHParams &params_,
 
 BVH *BVH::create(const BVHParams &params,
                  const vector<Geometry *> &geometry,
-                 const vector<Object *> &objects)
+                 const vector<Object *> &objects,
+                 const Device *device)
 {
   switch (params.bvh_layout) {
     case BVH_LAYOUT_BVH2:
       return new BVH2(params, geometry, objects);
     case BVH_LAYOUT_EMBREE:
 #ifdef WITH_EMBREE
-      return new BVHEmbree(params, geometry, objects);
+      return new BVHEmbree(params, geometry, objects, device);
 #else
       break;
 #endif

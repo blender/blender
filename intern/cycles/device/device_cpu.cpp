@@ -24,6 +24,10 @@
 #  include <OSL/oslexec.h>
 #endif
 
+#ifdef WITH_EMBREE
+#  include <embree3/rtcore.h>
+#endif
+
 #include "device/device.h"
 #include "device/device_denoising.h"
 #include "device/device_intern.h"
@@ -183,6 +187,9 @@ class CPUDevice : public Device {
   oidn::FilterRef oidn_filter;
 #endif
   thread_spin_lock oidn_task_lock;
+#ifdef WITH_EMBREE
+  RTCDevice embree_device;
+#endif
 
   bool use_split_kernel;
 
@@ -302,6 +309,9 @@ class CPUDevice : public Device {
 #ifdef WITH_OSL
     kernel_globals.osl = &osl_globals;
 #endif
+#ifdef WITH_EMBREE
+    embree_device = rtcNewDevice("verbose=0");
+#endif
     use_split_kernel = DebugFlags().cpu.split_kernel;
     if (use_split_kernel) {
       VLOG(1) << "Will be using split kernel.";
@@ -339,6 +349,9 @@ class CPUDevice : public Device {
 
   ~CPUDevice()
   {
+#ifdef WITH_EMBREE
+    rtcReleaseDevice(embree_device);
+#endif
     task_pool.cancel();
     texture_info.free();
   }
@@ -518,6 +531,15 @@ class CPUDevice : public Device {
   {
 #ifdef WITH_OSL
     return &osl_globals;
+#else
+    return NULL;
+#endif
+  }
+
+  void *bvh_device() const override
+  {
+#ifdef WITH_EMBREE
+    return embree_device;
 #else
     return NULL;
 #endif

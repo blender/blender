@@ -89,7 +89,8 @@ class BVH {
 
   static BVH *create(const BVHParams &params,
                      const vector<Geometry *> &geometry,
-                     const vector<Object *> &objects);
+                     const vector<Object *> &objects,
+                     const Device *device);
   virtual ~BVH()
   {
   }

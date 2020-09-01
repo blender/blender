@@ -215,7 +215,7 @@ void Geometry::compute_bvh(
       bparams.curve_subdivisions = params->curve_subdivisions();
 
       delete bvh;
-      bvh = BVH::create(bparams, geometry, objects);
+      bvh = BVH::create(bparams, geometry, objects, device);
       MEM_GUARDED_CALL(progress, bvh->build, *progress);
     }
   }
@@ -1030,7 +1030,7 @@ void GeometryManager::device_update_bvh(Device *device,
 
   VLOG(1) << "Using " << bvh_layout_name(bparams.bvh_layout) << " layout.";
 
-  BVH *bvh = BVH::create(bparams, scene->geometry, scene->objects);
+  BVH *bvh = BVH::create(bparams, scene->geometry, scene->objects, device);
   bvh->build(progress, &device->stats);
 
   if (progress.get_cancel()) {

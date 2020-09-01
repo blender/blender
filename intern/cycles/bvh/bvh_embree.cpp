@@ -298,12 +298,6 @@ static bool rtc_progress_func(void *user_ptr, const double n)
   return !progress->get_cancel();
 }
 
-/* This is to have a shared device between all BVH instances.
-   It would be useful to actually to use a separte RTCDevice per Cycles instance. */
-RTCDevice BVHEmbree::rtc_shared_device = NULL;
-int BVHEmbree::rtc_shared_users = 0;
-thread_mutex BVHEmbree::rtc_shared_mutex;
-
 static size_t count_primitives(Geometry *geom)
 {
   if (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME) {
@@ -320,11 +314,13 @@ static size_t count_primitives(Geometry *geom)
 
 BVHEmbree::BVHEmbree(const BVHParams &params_,
                      const vector<Geometry *> &geometry_,
-                     const vector<Object *> &objects_)
+                     const vector<Object *> &objects_,
+                     const Device *device)
     : BVH(params_, geometry_, objects_),
       scene(NULL),
       mem_used(0),
       top_level(NULL),
+      rtc_device((RTCDevice)device->bvh_device()),
       stats(NULL),
       curve_subdivisions(params.curve_subdivisions),
       build_quality(RTC_BUILD_QUALITY_REFIT),
@@ -332,47 +328,8 @@ BVHEmbree::BVHEmbree(const BVHParams &params_,
 {
   _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
   _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
-  thread_scoped_lock lock(rtc_shared_mutex);
-  if (rtc_shared_users == 0) {
-    rtc_shared_device = rtcNewDevice("verbose=0");
-    /* Check here if Embree was built with the correct flags. */
-    ssize_t ret = rtcGetDeviceProperty(rtc_shared_device, RTC_DEVICE_PROPERTY_RAY_MASK_SUPPORTED);
-    if (ret != 1) {
-      assert(0);
-      VLOG(1) << "Embree is compiled without the RTC_DEVICE_PROPERTY_RAY_MASK_SUPPORTED flag."
-                 "Ray visibility will not work.";
-    }
-    ret = rtcGetDeviceProperty(rtc_shared_device, RTC_DEVICE_PROPERTY_FILTER_FUNCTION_SUPPORTED);
-    if (ret != 1) {
-      assert(0);
-      VLOG(1)
-          << "Embree is compiled without the RTC_DEVICE_PROPERTY_FILTER_FUNCTION_SUPPORTED flag."
-             "Renders may not look as expected.";
-    }
-    ret = rtcGetDeviceProperty(rtc_shared_device, RTC_DEVICE_PROPERTY_CURVE_GEOMETRY_SUPPORTED);
-    if (ret != 1) {
-      assert(0);
-      VLOG(1)
-          << "Embree is compiled without the RTC_DEVICE_PROPERTY_CURVE_GEOMETRY_SUPPORTED flag. "
-             "Line primitives will not be rendered.";
-    }
-    ret = rtcGetDeviceProperty(rtc_shared_device, RTC_DEVICE_PROPERTY_TRIANGLE_GEOMETRY_SUPPORTED);
-    if (ret != 1) {
-      assert(0);
-      VLOG(1) << "Embree is compiled without the RTC_DEVICE_PROPERTY_TRIANGLE_GEOMETRY_SUPPORTED "
-                 "flag. "
-                 "Triangle primitives will not be rendered.";
-    }
-    ret = rtcGetDeviceProperty(rtc_shared_device, RTC_DEVICE_PROPERTY_BACKFACE_CULLING_ENABLED);
-    if (ret != 0) {
-      assert(0);
-      VLOG(1) << "Embree is compiled with the RTC_DEVICE_PROPERTY_BACKFACE_CULLING_ENABLED flag. "
-                 "Renders may not look as expected.";
-    }
-  }
-  ++rtc_shared_users;
 
-  rtcSetDeviceErrorFunction(rtc_shared_device, rtc_error_func, NULL);
+  rtcSetDeviceErrorFunction(rtc_device, rtc_error_func, NULL);
 
   pack.root_index = -1;
 }
@@ -389,12 +346,6 @@ void BVHEmbree::destroy(RTCScene scene)
   if (scene) {
     rtcReleaseScene(scene);
     scene = NULL;
-  }
-  thread_scoped_lock lock(rtc_shared_mutex);
-  --rtc_shared_users;
-  if (rtc_shared_users == 0) {
-    rtcReleaseDevice(rtc_shared_device);
-    rtc_shared_device = NULL;
   }
 }
 
@@ -421,9 +372,9 @@ void BVHEmbree::delete_rtcScene()
 
 void BVHEmbree::build(Progress &progress, Stats *stats_)
 {
-  assert(rtc_shared_device);
+  assert(rtc_device);
   stats = stats_;
-  rtcSetDeviceMemoryMonitorFunction(rtc_shared_device, rtc_memory_monitor_func, stats);
+  rtcSetDeviceMemoryMonitorFunction(rtc_device, rtc_memory_monitor_func, stats);
 
   progress.set_substatus("Building BVH");
 
@@ -434,7 +385,7 @@ void BVHEmbree::build(Progress &progress, Stats *stats_)
 
   const bool dynamic = params.bvh_type == SceneParams::BVH_DYNAMIC;
 
-  scene = rtcNewScene(rtc_shared_device);
+  scene = rtcNewScene(rtc_device);
   const RTCSceneFlags scene_flags = (dynamic ? RTC_SCENE_FLAG_DYNAMIC : RTC_SCENE_FLAG_NONE) |
                                     RTC_SCENE_FLAG_COMPACT | RTC_SCENE_FLAG_ROBUST;
   rtcSetSceneFlags(scene, scene_flags);
@@ -561,7 +512,7 @@ void BVHEmbree::add_instance(Object *ob, int i)
   const size_t num_motion_steps = min(num_object_motion_steps, RTC_MAX_TIME_STEP_COUNT);
   assert(num_object_motion_steps <= RTC_MAX_TIME_STEP_COUNT);
 
-  RTCGeometry geom_id = rtcNewGeometry(rtc_shared_device, RTC_GEOMETRY_TYPE_INSTANCE);
+  RTCGeometry geom_id = rtcNewGeometry(rtc_device, RTC_GEOMETRY_TYPE_INSTANCE);
   rtcSetGeometryInstancedScene(geom_id, instance_bvh->scene);
   rtcSetGeometryTimeStepCount(geom_id, num_motion_steps);
 
@@ -615,7 +566,7 @@ void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, int i)
   assert(num_geometry_motion_steps <= RTC_MAX_TIME_STEP_COUNT);
 
   const size_t num_triangles = mesh->num_triangles();
-  RTCGeometry geom_id = rtcNewGeometry(rtc_shared_device, RTC_GEOMETRY_TYPE_TRIANGLE);
+  RTCGeometry geom_id = rtcNewGeometry(rtc_device, RTC_GEOMETRY_TYPE_TRIANGLE);
   rtcSetGeometryBuildQuality(geom_id, build_quality);
   rtcSetGeometryTimeStepCount(geom_id, num_motion_steps);
 
@@ -804,7 +755,7 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
                                    RTC_GEOMETRY_TYPE_FLAT_CATMULL_ROM_CURVE :
                                    RTC_GEOMETRY_TYPE_ROUND_CATMULL_ROM_CURVE);
 
-  RTCGeometry geom_id = rtcNewGeometry(rtc_shared_device, type);
+  RTCGeometry geom_id = rtcNewGeometry(rtc_device, type);
   rtcSetGeometryTessellationRate(geom_id, curve_subdivisions + 1);
   unsigned *rtc_indices = (unsigned *)rtcSetNewGeometryBuffer(
       geom_id, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT, sizeof(int), num_segments);
