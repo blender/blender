@@ -6500,7 +6500,7 @@ class VIEW3D_PT_overlay_vertex_paint(Panel):
         col = layout.column()
         col.active = display_all
 
-        col.prop(overlay, "vertex_paint_mode_opacity", text="Opacity")
+        col.prop(overlay, "vertex_paint_mode_opacity")
         col.prop(overlay, "show_paint_wire")
 
 
