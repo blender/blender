@@ -237,7 +237,8 @@ TEST(span, ContainsPtr)
   EXPECT_TRUE(a_span.contains_ptr(&a[0] + 1));
   EXPECT_TRUE(a_span.contains_ptr(&a[0] + 2));
   EXPECT_FALSE(a_span.contains_ptr(&a[0] + 3));
-  EXPECT_FALSE(a_span.contains_ptr(&a[0] - 1));
+  int *ptr_before = reinterpret_cast<int *>(reinterpret_cast<uintptr_t>(a.data()) - 1);
+  EXPECT_FALSE(a_span.contains_ptr(ptr_before));
   EXPECT_FALSE(a_span.contains_ptr(&other));
 }
 
