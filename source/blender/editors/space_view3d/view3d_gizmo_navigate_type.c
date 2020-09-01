@@ -241,6 +241,8 @@ static void axis_geom_draw(const wmGizmo *gz,
 
   const float axis_depth_bias = 0.01f;
   const float sphere_scale = 1.15f;
+  /* TODO(fclem) Is there a way to get the widget radius? */
+  const float widget_pix_size = 40.0f * U.dpi_fac;
 
 #ifdef USE_AXIS_FONT
   struct {
@@ -277,10 +279,22 @@ static void axis_geom_draw(const wmGizmo *gz,
     GPU_matrix_ortho_set_z(-clip_range, clip_range);
   }
 
+  UI_draw_roundbox_corner_set(UI_CNR_ALL);
+  GPU_polygon_smooth(false);
+
   /* Circle defining active area. */
   if (is_active) {
-    immUniformColor4fv(color);
-    imm_draw_circle_fill_3d(pos_id, 0, 0, 1.0f, DIAL_RESOLUTION);
+    immUnbindProgram();
+
+    float rad = widget_pix_size;
+    GPU_matrix_push();
+    GPU_matrix_scale_1f(1.0f / rad);
+
+    UI_draw_roundbox_4fv(true, -rad, -rad, rad, rad, rad, color);
+
+    GPU_matrix_pop();
+
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   }
 
   GPU_matrix_push();
@@ -343,6 +357,8 @@ static void axis_geom_draw(const wmGizmo *gz,
         float v_start[3];
         immUnbindProgram();
 
+        GPU_blend(GPU_BLEND_ALPHA);
+
         immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
         immUniform2fv("viewportSize", &viewport[2]);
         immUniform1f("lineWidth", 2.0f * U.pixelsize);
@@ -370,6 +386,34 @@ static void axis_geom_draw(const wmGizmo *gz,
       }
 
       /* Axis Ball. */
+#ifdef USE_AXIS_FONT
+      if (select == false) {
+        immUnbindProgram();
+
+        GPU_matrix_push();
+        GPU_matrix_translate_3fv(v_final);
+        GPU_matrix_mul(font.matrix);
+
+        float rad = widget_pix_size * (is_pos ? AXIS_HANDLE_SIZE_FG : AXIS_HANDLE_SIZE_BG);
+
+        /* Black outlines for negative axis balls, otherwise they can be hard to see since
+         * they use a faded color which can be similar to the circle backdrop in tone. */
+        if (is_active && !is_highlight && !is_pos && !select && !(axis_align == axis)) {
+          static const float axis_black_faded[4] = {0.0f, 0.0f, 0.0f, 0.2f};
+          float outline = rad * sphere_scale;
+          UI_draw_roundbox_4fv(
+              true, -outline, -outline, outline, outline, outline, axis_black_faded);
+        }
+
+        const float *col = is_pos_color ? color_current : color_current_fade;
+        UI_draw_roundbox_4fv(true, -rad, -rad, rad, rad, rad, col);
+
+        GPU_matrix_pop();
+
+        immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+      }
+      else
+#endif
       {
         GPU_matrix_push();
         GPU_matrix_translate_3fv(v_final);
