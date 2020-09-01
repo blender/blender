@@ -692,7 +692,8 @@ const NodeOwner *Node::get_owner() const
 
 void Node::set_owner(const NodeOwner *owner_)
 {
-  owner_ = owner;
+  assert(owner_);
+  owner = owner_;
 }
 
 CCL_NAMESPACE_END

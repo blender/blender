@@ -585,7 +585,7 @@ void ShaderGraph::constant_fold(Scene *scene)
    * that happens to ensure there is still a valid graph for displacement.
    */
   if (has_displacement && !output()->input("Displacement")->link) {
-    ColorNode *value = (ColorNode *)add(new ColorNode());
+    ColorNode *value = (ColorNode *)add(create_node<ColorNode>());
     value->value = output()->displacement;
 
     connect(value->output("Color"), output()->input("Displacement"));
@@ -999,10 +999,10 @@ void ShaderGraph::bump_from_displacement(bool use_object_space)
    * output, so it can finally set the shader normal, note we are only doing
    * this for bump from displacement, this will be the only bump allowed to
    * overwrite the shader normal */
-  ShaderNode *set_normal = add(new SetNormalNode());
+  ShaderNode *set_normal = add(create_node<SetNormalNode>());
 
   /* add bump node and connect copied graphs to it */
-  BumpNode *bump = (BumpNode *)add(new BumpNode());
+  BumpNode *bump = (BumpNode *)add(create_node<BumpNode>());
   bump->use_object_space = use_object_space;
   bump->distance = 1.0f;
 
@@ -1012,15 +1012,15 @@ void ShaderGraph::bump_from_displacement(bool use_object_space)
   ShaderOutput *out_dy = nodes_dy[out->parent]->output(out->name());
 
   /* convert displacement vector to height */
-  VectorMathNode *dot_center = (VectorMathNode *)add(new VectorMathNode());
-  VectorMathNode *dot_dx = (VectorMathNode *)add(new VectorMathNode());
-  VectorMathNode *dot_dy = (VectorMathNode *)add(new VectorMathNode());
+  VectorMathNode *dot_center = (VectorMathNode *)add(create_node<VectorMathNode>());
+  VectorMathNode *dot_dx = (VectorMathNode *)add(create_node<VectorMathNode>());
+  VectorMathNode *dot_dy = (VectorMathNode *)add(create_node<VectorMathNode>());
 
   dot_center->type = NODE_VECTOR_MATH_DOT_PRODUCT;
   dot_dx->type = NODE_VECTOR_MATH_DOT_PRODUCT;
   dot_dy->type = NODE_VECTOR_MATH_DOT_PRODUCT;
 
-  GeometryNode *geom = (GeometryNode *)add(new GeometryNode());
+  GeometryNode *geom = (GeometryNode *)add(create_node<GeometryNode>());
   connect(geom->output("Normal"), dot_center->input("Vector2"));
   connect(geom->output("Normal"), dot_dx->input("Vector2"));
   connect(geom->output("Normal"), dot_dy->input("Vector2"));
