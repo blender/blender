@@ -40,46 +40,6 @@
 #include "GPU_texture.h"
 #include "eevee_private.h"
 
-static struct {
-  /* Depth Of Field */
-  struct GPUShader *dof_downsample_sh[2];
-  struct GPUShader *dof_scatter_sh[2];
-  struct GPUShader *dof_resolve_sh[2];
-} e_data = {{NULL}}; /* Engine data */
-
-extern char datatoc_effect_dof_vert_glsl[];
-extern char datatoc_effect_dof_frag_glsl[];
-
-extern char datatoc_common_view_lib_glsl[];
-
-static void eevee_create_shader_depth_of_field(const bool use_alpha)
-{
-  DRWShaderLibrary *lib = EEVEE_shader_lib_get();
-
-  e_data.dof_downsample_sh[use_alpha] = DRW_shader_create_fullscreen_with_shaderlib(
-      datatoc_effect_dof_frag_glsl,
-      lib,
-      use_alpha ? "#define USE_ALPHA_DOF\n"
-                  "#define STEP_DOWNSAMPLE\n" :
-                  "#define STEP_DOWNSAMPLE\n");
-
-  e_data.dof_scatter_sh[use_alpha] = DRW_shader_create_with_shaderlib(
-      datatoc_effect_dof_vert_glsl,
-      NULL,
-      datatoc_effect_dof_frag_glsl,
-      lib,
-      use_alpha ? "#define USE_ALPHA_DOF\n"
-                  "#define STEP_SCATTER\n" :
-                  "#define STEP_SCATTER\n");
-
-  e_data.dof_resolve_sh[use_alpha] = DRW_shader_create_fullscreen_with_shaderlib(
-      datatoc_effect_dof_frag_glsl,
-      lib,
-      use_alpha ? "#define USE_ALPHA_DOF\n"
-                  "#define STEP_RESOLVE\n" :
-                  "#define STEP_RESOLVE\n");
-}
-
 int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata),
                               EEVEE_Data *vedata,
                               Object *camera)
@@ -95,12 +55,6 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata),
 
   if (cam && (cam->dof.flag & CAM_DOF_ENABLED)) {
     RegionView3D *rv3d = draw_ctx->rv3d;
-    const bool use_alpha = !DRW_state_draw_background();
-
-    if (!e_data.dof_downsample_sh[use_alpha]) {
-      eevee_create_shader_depth_of_field(use_alpha);
-    }
-
     const float *viewport_size = DRW_viewport_size_get();
 
     /* Retrieve Near and Far distance */
@@ -212,7 +166,8 @@ void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
 
     DRW_PASS_CREATE(psl->dof_down, DRW_STATE_WRITE_COLOR);
 
-    grp = DRW_shgroup_create(e_data.dof_downsample_sh[use_alpha], psl->dof_down);
+    grp = DRW_shgroup_create(EEVEE_shaders_depth_of_field_downsample_get(use_alpha),
+                             psl->dof_down);
     DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", &effects->source_buffer);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
     DRW_shgroup_uniform_vec2(grp, "nearFar", effects->dof_near_far, 1);
@@ -226,7 +181,8 @@ void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
     const float *viewport_size = DRW_viewport_size_get();
     const int sprite_len = ((int)viewport_size[0] / 2) *
                            ((int)viewport_size[1] / 2); /* brackets matters */
-    grp = DRW_shgroup_create(e_data.dof_scatter_sh[use_alpha], psl->dof_scatter);
+    grp = DRW_shgroup_create(EEVEE_shaders_depth_of_field_scatter_get(use_alpha),
+                             psl->dof_scatter);
     DRW_shgroup_uniform_texture_ref(grp, "nearBuffer", &effects->dof_down_near);
     DRW_shgroup_uniform_texture_ref(grp, "farBuffer", &effects->dof_down_far);
     DRW_shgroup_uniform_texture_ref(grp, "cocBuffer", &effects->dof_coc);
@@ -236,7 +192,8 @@ void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
 
     DRW_PASS_CREATE(psl->dof_resolve, DRW_STATE_WRITE_COLOR);
 
-    grp = DRW_shgroup_create(e_data.dof_resolve_sh[use_alpha], psl->dof_resolve);
+    grp = DRW_shgroup_create(EEVEE_shaders_depth_of_field_resolve_get(use_alpha),
+                             psl->dof_resolve);
     DRW_shgroup_uniform_texture_ref(grp, "scatterBuffer", &effects->dof_blur);
     DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", &effects->source_buffer);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
@@ -276,14 +233,5 @@ void EEVEE_depth_of_field_draw(EEVEE_Data *vedata)
     GPU_framebuffer_bind(effects->target_buffer);
     DRW_draw_pass(psl->dof_resolve);
     SWAP_BUFFERS();
-  }
-}
-
-void EEVEE_depth_of_field_free(void)
-{
-  for (int i = 0; i < 2; i++) {
-    DRW_SHADER_FREE_SAFE(e_data.dof_downsample_sh[i]);
-    DRW_SHADER_FREE_SAFE(e_data.dof_scatter_sh[i]);
-    DRW_SHADER_FREE_SAFE(e_data.dof_resolve_sh[i]);
   }
 }

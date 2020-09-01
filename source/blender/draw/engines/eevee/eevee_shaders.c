@@ -75,6 +75,11 @@ static struct {
   struct GPUShader *bloom_upsample_sh[2];
   struct GPUShader *bloom_resolve_sh[2];
 
+  /* Depth Of Field */
+  struct GPUShader *dof_downsample_sh[2];
+  struct GPUShader *dof_scatter_sh[2];
+  struct GPUShader *dof_resolve_sh[2];
+
   /* General purpose Shaders. */
   struct GPUShader *lookdev_background;
   struct GPUShader *update_noise_sh;
@@ -411,6 +416,10 @@ GPUShader *EEVEE_shaders_taa_resolve_sh_get(EEVEE_EffectsFlag enabled_effects)
   return *sh;
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Bloom
+ * \{ */
+
 GPUShader *EEVEE_shaders_bloom_blit_get(bool high_quality)
 {
   int index = high_quality ? 1 : 0;
@@ -466,6 +475,58 @@ GPUShader *EEVEE_shaders_bloom_resolve_get(bool high_quality)
   }
   return e_data.bloom_resolve_sh[index];
 }
+
+/* \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Depth of field
+ * \{ */
+
+GPUShader *EEVEE_shaders_depth_of_field_downsample_get(bool use_alpha)
+{
+  int index = use_alpha ? 1 : 0;
+  if (e_data.dof_downsample_sh[index] == NULL) {
+    e_data.dof_downsample_sh[index] = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_effect_dof_frag_glsl,
+        e_data.lib,
+        use_alpha ? "#define USE_ALPHA_DOF\n"
+                    "#define STEP_DOWNSAMPLE\n" :
+                    "#define STEP_DOWNSAMPLE\n");
+  }
+  return e_data.dof_downsample_sh[index];
+}
+
+GPUShader *EEVEE_shaders_depth_of_field_scatter_get(bool use_alpha)
+{
+  int index = use_alpha ? 1 : 0;
+  if (e_data.dof_scatter_sh[index] == NULL) {
+    e_data.dof_scatter_sh[index] = DRW_shader_create_with_shaderlib(datatoc_effect_dof_vert_glsl,
+                                                                    NULL,
+                                                                    datatoc_effect_dof_frag_glsl,
+                                                                    e_data.lib,
+                                                                    use_alpha ?
+                                                                        "#define USE_ALPHA_DOF\n"
+                                                                        "#define STEP_SCATTER\n" :
+                                                                        "#define STEP_SCATTER\n");
+  }
+  return e_data.dof_scatter_sh[index];
+}
+
+GPUShader *EEVEE_shaders_depth_of_field_resolve_get(bool use_alpha)
+{
+  int index = use_alpha ? 1 : 0;
+  if (e_data.dof_resolve_sh[index] == NULL) {
+    e_data.dof_resolve_sh[index] = DRW_shader_create_fullscreen_with_shaderlib(
+        datatoc_effect_dof_frag_glsl,
+        e_data.lib,
+        use_alpha ? "#define USE_ALPHA_DOF\n"
+                    "#define STEP_RESOLVE\n" :
+                    "#define STEP_RESOLVE\n");
+  }
+  return e_data.dof_resolve_sh[index];
+}
+
+/* \} */
 
 Material *EEVEE_material_default_diffuse_get(void)
 {
@@ -833,12 +894,14 @@ void EEVEE_shaders_free(void)
   DRW_SHADER_FREE_SAFE(e_data.velocity_resolve_sh);
   DRW_SHADER_FREE_SAFE(e_data.taa_resolve_sh);
   DRW_SHADER_FREE_SAFE(e_data.taa_resolve_reproject_sh);
-
   for (int i = 0; i < 2; i++) {
     DRW_SHADER_FREE_SAFE(e_data.bloom_blit_sh[i]);
     DRW_SHADER_FREE_SAFE(e_data.bloom_downsample_sh[i]);
     DRW_SHADER_FREE_SAFE(e_data.bloom_upsample_sh[i]);
     DRW_SHADER_FREE_SAFE(e_data.bloom_resolve_sh[i]);
+    DRW_SHADER_FREE_SAFE(e_data.dof_downsample_sh[i]);
+    DRW_SHADER_FREE_SAFE(e_data.dof_scatter_sh[i]);
+    DRW_SHADER_FREE_SAFE(e_data.dof_resolve_sh[i]);
   }
   DRW_SHADER_LIB_FREE_SAFE(e_data.lib);
 
