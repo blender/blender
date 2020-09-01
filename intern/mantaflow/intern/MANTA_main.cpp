@@ -1086,15 +1086,19 @@ string MANTA::parseScript(const string &setup_string, FluidModifierData *fmd)
 }
 
 /* Dirty hack: Needed to format paths from python code that is run via PyRun_SimpleString */
-static string escapeSlashes(string const &s)
+static string escapePath(string const &s)
 {
   string result = "";
-  for (string::const_iterator i = s.begin(), end = s.end(); i != end; ++i) {
-    unsigned char c = *i;
-    if (c == '\\')
+  for (char c : s) {
+    if (c == '\\') {
       result += "\\\\";
-    else
+    }
+    else if (c == '\'') {
+      result += "\\\'";
+    }
+    else {
       result += c;
+    }
   }
   return result;
 }
@@ -1155,13 +1159,13 @@ bool MANTA::writeData(FluidModifierData *fmd, int framenr)
 
   if (mUsingSmoke) {
     ss.str("");
-    ss << "smoke_save_data_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
+    ss << "smoke_save_data_" << mCurrentID << "('" << escapePath(directory) << "', " << framenr
        << ", '" << volume_format << "', " << resumable_cache << ")";
     pythonCommands.push_back(ss.str());
   }
   if (mUsingLiquid) {
     ss.str("");
-    ss << "liquid_save_data_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
+    ss << "liquid_save_data_" << mCurrentID << "('" << escapePath(directory) << "', " << framenr
        << ", '" << volume_format << "', " << resumable_cache << ")";
     pythonCommands.push_back(ss.str());
   }
@@ -1183,7 +1187,7 @@ bool MANTA::writeNoise(FluidModifierData *fmd, int framenr)
 
   if (mUsingSmoke && mUsingNoise) {
     ss.str("");
-    ss << "smoke_save_noise_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
+    ss << "smoke_save_noise_" << mCurrentID << "('" << escapePath(directory) << "', " << framenr
        << ", '" << volume_format << "', " << resumable_cache << ")";
     pythonCommands.push_back(ss.str());
   }
@@ -1256,7 +1260,7 @@ bool MANTA::readData(FluidModifierData *fmd, int framenr, bool resumable)
 
   if (mUsingSmoke) {
     ss.str("");
-    ss << "smoke_load_data_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
+    ss << "smoke_load_data_" << mCurrentID << "('" << escapePath(directory) << "', " << framenr
        << ", '" << volume_format << "', " << resumable_cache << ")";
     pythonCommands.push_back(ss.str());
     result &= runPythonString(pythonCommands);
@@ -1264,7 +1268,7 @@ bool MANTA::readData(FluidModifierData *fmd, int framenr, bool resumable)
   }
   if (mUsingLiquid) {
     ss.str("");
-    ss << "liquid_load_data_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
+    ss << "liquid_load_data_" << mCurrentID << "('" << escapePath(directory) << "', " << framenr
        << ", '" << volume_format << "', " << resumable_cache << ")";
     pythonCommands.push_back(ss.str());
     result &= runPythonString(pythonCommands);
@@ -1298,7 +1302,7 @@ bool MANTA::readNoise(FluidModifierData *fmd, int framenr, bool resumable)
     return false;
 
   ss.str("");
-  ss << "smoke_load_noise_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
+  ss << "smoke_load_noise_" << mCurrentID << "('" << escapePath(directory) << "', " << framenr
      << ", '" << volume_format << "', " << resumable_cache << ")";
   pythonCommands.push_back(ss.str());
 
@@ -1326,14 +1330,14 @@ bool MANTA::readMesh(FluidModifierData *fmd, int framenr)
     return false;
 
   ss.str("");
-  ss << "liquid_load_mesh_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
+  ss << "liquid_load_mesh_" << mCurrentID << "('" << escapePath(directory) << "', " << framenr
      << ", '" << mesh_format << "')";
   pythonCommands.push_back(ss.str());
 
   if (mUsingMVel) {
     ss.str("");
-    ss << "liquid_load_meshvel_" << mCurrentID << "('" << escapeSlashes(directory) << "', "
-       << framenr << ", '" << volume_format << "')";
+    ss << "liquid_load_meshvel_" << mCurrentID << "('" << escapePath(directory) << "', " << framenr
+       << ", '" << volume_format << "')";
     pythonCommands.push_back(ss.str());
   }
 
@@ -1367,8 +1371,8 @@ bool MANTA::readParticles(FluidModifierData *fmd, int framenr, bool resumable)
     return false;
 
   ss.str("");
-  ss << "liquid_load_particles_" << mCurrentID << "('" << escapeSlashes(directory) << "', "
-     << framenr << ", '" << volume_format << "', " << resumable_cache << ")";
+  ss << "liquid_load_particles_" << mCurrentID << "('" << escapePath(directory) << "', " << framenr
+     << ", '" << volume_format << "', " << resumable_cache << ")";
   pythonCommands.push_back(ss.str());
 
   return (mParticlesFromFile = runPythonString(pythonCommands));
@@ -1399,13 +1403,13 @@ bool MANTA::readGuiding(FluidModifierData *fmd, int framenr, bool sourceDomain)
 
   if (sourceDomain) {
     ss.str("");
-    ss << "fluid_load_vel_" << mCurrentID << "('" << escapeSlashes(directory) << "', " << framenr
+    ss << "fluid_load_vel_" << mCurrentID << "('" << escapePath(directory) << "', " << framenr
        << ", '" << volume_format << "')";
   }
   else {
     ss.str("");
-    ss << "fluid_load_guiding_" << mCurrentID << "('" << escapeSlashes(directory) << "', "
-       << framenr << ", '" << volume_format << "')";
+    ss << "fluid_load_guiding_" << mCurrentID << "('" << escapePath(directory) << "', " << framenr
+       << ", '" << volume_format << "')";
   }
   pythonCommands.push_back(ss.str());
 
@@ -1439,7 +1443,7 @@ bool MANTA::bakeData(FluidModifierData *fmd, int framenr)
   BLI_path_make_safe(cacheDirGuiding);
 
   ss.str("");
-  ss << "bake_fluid_data_" << mCurrentID << "('" << escapeSlashes(cacheDirData) << "', " << framenr
+  ss << "bake_fluid_data_" << mCurrentID << "('" << escapePath(cacheDirData) << "', " << framenr
      << ", '" << volume_format << "')";
   pythonCommands.push_back(ss.str());
 
@@ -1465,7 +1469,7 @@ bool MANTA::bakeNoise(FluidModifierData *fmd, int framenr)
   BLI_path_make_safe(cacheDirNoise);
 
   ss.str("");
-  ss << "bake_noise_" << mCurrentID << "('" << escapeSlashes(cacheDirNoise) << "', " << framenr
+  ss << "bake_noise_" << mCurrentID << "('" << escapePath(cacheDirNoise) << "', " << framenr
      << ", '" << volume_format << "')";
   pythonCommands.push_back(ss.str());
 
@@ -1492,8 +1496,8 @@ bool MANTA::bakeMesh(FluidModifierData *fmd, int framenr)
   BLI_path_make_safe(cacheDirMesh);
 
   ss.str("");
-  ss << "bake_mesh_" << mCurrentID << "('" << escapeSlashes(cacheDirMesh) << "', " << framenr
-     << ", '" << volume_format << "', '" << mesh_format << "')";
+  ss << "bake_mesh_" << mCurrentID << "('" << escapePath(cacheDirMesh) << "', " << framenr << ", '"
+     << volume_format << "', '" << mesh_format << "')";
   pythonCommands.push_back(ss.str());
 
   return runPythonString(pythonCommands);
@@ -1522,7 +1526,7 @@ bool MANTA::bakeParticles(FluidModifierData *fmd, int framenr)
   BLI_path_make_safe(cacheDirParticles);
 
   ss.str("");
-  ss << "bake_particles_" << mCurrentID << "('" << escapeSlashes(cacheDirParticles) << "', "
+  ss << "bake_particles_" << mCurrentID << "('" << escapePath(cacheDirParticles) << "', "
      << framenr << ", '" << volume_format << "', " << resumable_cache << ")";
   pythonCommands.push_back(ss.str());
 
@@ -1552,7 +1556,7 @@ bool MANTA::bakeGuiding(FluidModifierData *fmd, int framenr)
   BLI_path_make_safe(cacheDirGuiding);
 
   ss.str("");
-  ss << "bake_guiding_" << mCurrentID << "('" << escapeSlashes(cacheDirGuiding) << "', " << framenr
+  ss << "bake_guiding_" << mCurrentID << "('" << escapePath(cacheDirGuiding) << "', " << framenr
      << ", '" << volume_format << "', " << resumable_cache << ")";
   pythonCommands.push_back(ss.str());
 
