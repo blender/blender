@@ -63,11 +63,11 @@ static void APIENTRY debug_callback(GLenum UNUSED(source),
                                     const GLchar *message,
                                     const GLvoid *UNUSED(userParm))
 {
-  const char format[] = "GPUDebug: %s%s\e[0m\n";
+  const char format[] = "GPUDebug: %s%s\033[0m\n";
 
   if (ELEM(severity, GL_DEBUG_SEVERITY_LOW, GL_DEBUG_SEVERITY_NOTIFICATION)) {
     if (VERBOSE) {
-      fprintf(stderr, format, "\e[2m", message);
+      fprintf(stderr, format, "\033[2m", message);
     }
   }
   else {
@@ -75,22 +75,22 @@ static void APIENTRY debug_callback(GLenum UNUSED(source),
       case GL_DEBUG_TYPE_ERROR:
       case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
       case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-        fprintf(stderr, format, "\e[31;1mError\e[39m: ", message);
+        fprintf(stderr, format, "\033[31;1mError\033[39m: ", message);
         break;
       case GL_DEBUG_TYPE_PORTABILITY:
       case GL_DEBUG_TYPE_PERFORMANCE:
       case GL_DEBUG_TYPE_OTHER:
       case GL_DEBUG_TYPE_MARKER: /* KHR has this, ARB does not */
       default:
-        fprintf(stderr, format, "\e[33;1mWarning\e[39m: ", message);
+        fprintf(stderr, format, "\033[33;1mWarning\033[39m: ", message);
         break;
     }
 
     if (VERBOSE && severity == GL_DEBUG_SEVERITY_HIGH) {
       /* Focus on error message. */
-      fprintf(stderr, "\e[2m");
+      fprintf(stderr, "\033[2m");
       BLI_system_backtrace(stderr);
-      fprintf(stderr, "\e[0m\n");
+      fprintf(stderr, "\033[0m\n");
       fflush(stderr);
     }
   }
