@@ -3107,6 +3107,12 @@ void OBJECT_OT_vertex_group_deselect(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Vertex Group Copy Operator
+ * \{ */
+
 static int vertex_group_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Object *ob = ED_object_context(C);
@@ -3119,12 +3125,6 @@ static int vertex_group_copy_exec(bContext *C, wmOperator *UNUSED(op))
 
   return OPERATOR_FINISHED;
 }
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Vertex Group Copy Operator
- * \{ */
 
 void OBJECT_OT_vertex_group_copy(wmOperatorType *ot)
 {
@@ -3140,6 +3140,12 @@ void OBJECT_OT_vertex_group_copy(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Vertex Group Levels Operator
+ * \{ */
 
 static int vertex_group_levels_exec(bContext *C, wmOperator *op)
 {
@@ -3163,12 +3169,6 @@ static int vertex_group_levels_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Vertex Group Levels Operator
- * \{ */
-
 void OBJECT_OT_vertex_group_levels(wmOperatorType *ot)
 {
   /* identifiers */
@@ -3191,6 +3191,12 @@ void OBJECT_OT_vertex_group_levels(wmOperatorType *ot)
       ot->srna, "gain", 1.f, 0.f, FLT_MAX, "Gain", "Value to multiply weights by", 0.0f, 10.f);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Vertex Group Normalize Operator
+ * \{ */
+
 static int vertex_group_normalize_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Object *ob = ED_object_context(C);
@@ -3208,12 +3214,6 @@ static int vertex_group_normalize_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_CANCELLED;
 }
 
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Vertex Group Normalize Operator
- * \{ */
-
 void OBJECT_OT_vertex_group_normalize(wmOperatorType *ot)
 {
   /* identifiers */
@@ -3229,6 +3229,12 @@ void OBJECT_OT_vertex_group_normalize(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Vertex Group Normalize All Operator
+ * \{ */
 
 static int vertex_group_normalize_all_exec(bContext *C, wmOperator *op)
 {
@@ -3255,12 +3261,6 @@ static int vertex_group_normalize_all_exec(bContext *C, wmOperator *op)
   /* allow to adjust settings */
   return OPERATOR_FINISHED;
 }
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Vertex Group Normalize All Operator
- * \{ */
 
 void OBJECT_OT_vertex_group_normalize_all(wmOperatorType *ot)
 {
