@@ -688,11 +688,6 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
        0,
        "Automatically detects one direction for constraint",
        ""},
-      {TFM_MODAL_CONSTRAINTPLANE,
-       "CONSTRAINPLANE",
-       0,
-       "modifier that enables the plane type constraint",
-       ""},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -713,10 +708,6 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
    * WM_modalkeymap_add_item(keymap, EVT_RKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_ROTATE);
    * WM_modalkeymap_add_item(keymap, EVT_SKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_RESIZE);
    * WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_PRESS, KM_ANY, 0, TFM_MODAL_AUTOCONSTRAINT);
-   * WM_modalkeymap_add_item(
-   *     keymap, EVT_LEFTSHIFTKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_CONSTRAINTPLANE);
-   * WM_modalkeymap_add_item(
-   *     keymap, EVT_RIGHTSHIFTKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_CONSTRAINTPLANE);
    * \endcode
    */
 
@@ -981,6 +972,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         break;
       case TFM_MODAL_PLANE_X:
         if ((t->flag & (T_NO_CONSTRAINT | T_2D_EDIT)) == 0) {
+          t->modifiers |= MOD_CONSTRAINT_PLANE;
           transform_event_xyz_constraint(t, EVT_XKEY, true);
           t->redraw |= TREDRAW_HARD;
           handled = true;
@@ -988,6 +980,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         break;
       case TFM_MODAL_PLANE_Y:
         if ((t->flag & (T_NO_CONSTRAINT | T_2D_EDIT)) == 0) {
+          t->modifiers |= MOD_CONSTRAINT_PLANE;
           transform_event_xyz_constraint(t, EVT_YKEY, true);
           t->redraw |= TREDRAW_HARD;
           handled = true;
@@ -995,6 +988,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         break;
       case TFM_MODAL_PLANE_Z:
         if ((t->flag & (T_NO_CONSTRAINT | T_2D_EDIT)) == 0) {
+          t->modifiers |= MOD_CONSTRAINT_PLANE;
           transform_event_xyz_constraint(t, EVT_ZKEY, true);
           t->redraw |= TREDRAW_HARD;
           handled = true;
@@ -1115,11 +1109,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           t->redraw |= TREDRAW_HARD;
           handled = true;
         }
-        break;
-      case TFM_MODAL_CONSTRAINTPLANE:
-        t->modifiers |= MOD_CONSTRAINT_PLANE;
-        t->redraw |= TREDRAW_HARD;
-        handled = true;
         break;
       /* Those two are only handled in transform's own handler, see T44634! */
       case TFM_MODAL_EDGESLIDE_UP:

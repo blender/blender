@@ -3936,8 +3936,6 @@ def km_transform_modal_map(_params):
         ("AUTOIK_CHAIN_LEN_DOWN", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "shift": True}, None),
         ("INSERTOFS_TOGGLE_DIR", {"type": 'T', "value": 'PRESS'}, None),
         ("AUTOCONSTRAIN", {"type": 'MIDDLEMOUSE', "value": 'PRESS'}, None),
-        ("CONSTRAINPLANE", {"type": 'LEFT_SHIFT', "value": 'PRESS', "repeat": False}, None),
-        ("CONSTRAINPLANE", {"type": 'RIGHT_SHIFT', "value": 'PRESS', "repeat": False}, None),
     ])
 
     return keymap
