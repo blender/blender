@@ -57,9 +57,14 @@ in float dummy;
 
 vec2 do_widget(void)
 {
+  /* Offset to avoid loosing pixels (mimics conservative rasterization). */
+  const vec2 ofs = vec2(0.5, -0.5);
   lineWidth = abs(rect.x - recti.x);
   vec2 emboss_ofs = vec2(0.0, -lineWidth);
-  vec2 v_pos[4] = vec2[4](rect.xz + emboss_ofs, rect.xw, rect.yz + emboss_ofs, rect.yw);
+  vec2 v_pos[4] = vec2[4](rect.xz + emboss_ofs + ofs.yy,
+                          rect.xw + ofs.yx,
+                          rect.yz + emboss_ofs + ofs.xy,
+                          rect.yw + ofs.xx);
   vec2 pos = v_pos[gl_VertexID];
 
   uvInterp = pos - rect.xz;
