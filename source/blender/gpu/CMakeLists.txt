@@ -96,6 +96,7 @@ set(SRC
   opengl/gl_shader.cc
   opengl/gl_shader_interface.cc
   opengl/gl_state.cc
+  opengl/gl_texture.cc
   opengl/gl_uniform_buffer.cc
   opengl/gl_vertex_array.cc
 
@@ -143,6 +144,7 @@ set(SRC
   intern/gpu_shader_private.hh
   intern/gpu_shader_interface.hh
   intern/gpu_state_private.hh
+  intern/gpu_texture_private.hh
   intern/gpu_uniform_buffer_private.hh
   intern/gpu_vertex_format_private.h
 

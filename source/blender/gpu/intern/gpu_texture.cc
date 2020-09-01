@@ -46,6 +46,48 @@
 #include "gpu_context_private.hh"
 #include "gpu_framebuffer_private.hh"
 
+#include "gpu_texture_private.hh"
+
+namespace blender::gpu {
+
+/* -------------------------------------------------------------------- */
+/** \name Creation & Deletion
+ * \{ */
+
+Texture::Texture(const char *name)
+{
+  if (name) {
+    BLI_strncpy(name_, name, sizeof(name_));
+  }
+  else {
+    name_[0] = '\0';
+  }
+}
+
+Texture::~Texture()
+{
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operation
+ * \{ */
+
+void Texture::attach_to(FrameBuffer *)
+{
+}
+
+/** \} */
+
+}  // namespace blender::gpu
+
+/* -------------------------------------------------------------------- */
+/** \name C-API
+ * \{ */
+
+using namespace blender::gpu;
+
 static struct GPUTextureGlobal {
   /** Texture used in place of invalid textures (not loaded correctly, missing). */
   GPUTexture *invalid_tex_1D;
@@ -2237,6 +2279,8 @@ void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *size)
     size[2] = max_ii(1, tex->d / div);
   }
 }
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name GPU Sampler Objects

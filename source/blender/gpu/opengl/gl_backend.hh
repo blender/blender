@@ -32,6 +32,7 @@
 #include "gl_drawlist.hh"
 #include "gl_framebuffer.hh"
 #include "gl_shader.hh"
+#include "gl_texture.hh"
 #include "gl_uniform_buffer.hh"
 
 namespace blender {
@@ -70,6 +71,11 @@ class GLBackend : public GPUBackend {
   Shader *shader_alloc(const char *name)
   {
     return new GLShader(name);
+  };
+
+  Texture *texture_alloc(const char *name)
+  {
+    return new GLTexture(name);
   };
 
   UniformBuf *uniformbuf_alloc(int size, const char *name)

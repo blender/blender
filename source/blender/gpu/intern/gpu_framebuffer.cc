@@ -292,7 +292,8 @@ bool GPU_framebuffer_check_valid(GPUFrameBuffer *gpu_fb, char err_out[256])
 
 void GPU_framebuffer_texture_attach_ex(GPUFrameBuffer *gpu_fb, GPUAttachment attachment, int slot)
 {
-  GPUAttachmentType type = blender::gpu::Texture::attachment_type(attachment.tex, slot);
+  Texture *tex = reinterpret_cast<Texture *>(attachment.tex);
+  GPUAttachmentType type = tex->attachment_type(slot);
   reinterpret_cast<FrameBuffer *>(gpu_fb)->attachment_set(type, attachment);
 }
 

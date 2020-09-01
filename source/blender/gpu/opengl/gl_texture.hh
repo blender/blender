@@ -31,14 +31,107 @@
 
 #pragma once
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_assert.h"
+
+#include "gpu_texture_private.hh"
 
 #include "glew-mx.h"
 
 namespace blender {
 namespace gpu {
 
-static GLenum to_gl(eGPUDataFormat format)
+#if 0
+class GLContext {
+  /** Currently bound textures. Updated before drawing. */
+  GLuint bound_textures[64];
+  GLuint bound_samplers[64];
+  /** All sampler objects. Last one is for icon sampling. */
+  GLuint samplers[GPU_SAMPLER_MAX + 1];
+};
+#endif
+
+class GLTexture : public Texture {
+ private:
+  /** Texture unit to which this texture is bound. */
+  int slot = -1;
+  /** Target to bind the texture to (GL_TEXTURE_1D, GL_TEXTURE_2D, etc...)*/
+  GLenum target_ = -1;
+  /** opengl identifier for texture. */
+  GLuint tex_id_ = 0;
+  /** Legacy workaround for texture copy. */
+  GLuint copy_fb = 0;
+  GPUContext *copy_fb_ctx = NULL;
+
+ public:
+  GLTexture(const char *name);
+  ~GLTexture();
+
+  void bind(int slot) override;
+  void update(void *data) override;
+  void update_sub(void *data, int offset[3], int size[3]) override;
+  void generate_mipmap(void) override;
+  void copy_to(Texture *tex) override;
+
+  void swizzle_set(char swizzle_mask[4]) override;
+
+  /* TODO(fclem) Legacy. Should be removed at some point. */
+  uint gl_bindcode_get(void) override;
+
+ private:
+  void init(void);
+};
+
+static inline GLenum target_to_gl(eGPUTextureFlag target)
+{
+  switch (target & GPU_TEXTURE_TARGET) {
+    case GPU_TEXTURE_1D:
+      return GL_TEXTURE_1D;
+    case GPU_TEXTURE_1D | GPU_TEXTURE_ARRAY:
+      return GL_TEXTURE_1D_ARRAY;
+    case GPU_TEXTURE_2D:
+      return GL_TEXTURE_2D;
+    case GPU_TEXTURE_2D | GPU_TEXTURE_ARRAY:
+      return GL_TEXTURE_2D_ARRAY;
+    case GPU_TEXTURE_3D:
+      return GL_TEXTURE_3D;
+    case GPU_TEXTURE_CUBE:
+      return GL_TEXTURE_CUBE_MAP;
+    case GPU_TEXTURE_CUBE | GPU_TEXTURE_ARRAY:
+      return GL_TEXTURE_CUBE_MAP_ARRAY_ARB;
+    case GPU_TEXTURE_BUFFER:
+      return GL_TEXTURE_BUFFER;
+    default:
+      BLI_assert(0);
+      return GPU_TEXTURE_1D;
+  }
+}
+
+static inline GLenum swizzle_to_gl(const char swizzle)
+{
+  switch (swizzle) {
+    default:
+    case 'x':
+    case 'r':
+      return GL_RED;
+    case 'y':
+    case 'g':
+      return GL_GREEN;
+    case 'z':
+    case 'b':
+      return GL_BLUE;
+    case 'w':
+    case 'a':
+      return GL_ALPHA;
+    case '0':
+      return GL_ZERO;
+    case '1':
+      return GL_ONE;
+  }
+}
+
+static inline GLenum to_gl(eGPUDataFormat format)
 {
   switch (format) {
     case GPU_DATA_FLOAT:
@@ -60,7 +153,7 @@ static GLenum to_gl(eGPUDataFormat format)
 }
 
 /* Assume Unorm / Float target. Used with glReadPixels. */
-static GLenum channel_len_to_gl(int channel_len)
+static inline GLenum channel_len_to_gl(int channel_len)
 {
   switch (channel_len) {
     case 1:
