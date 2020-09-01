@@ -497,7 +497,6 @@ enum {
   MOD_PRECISION = 1 << 1,
   MOD_SNAP = 1 << 2,
   MOD_SNAP_INVERT = 1 << 3,
-  MOD_CONSTRAINT_PLANE = 1 << 4,
 };
 
 /* use node center for transform instead of upper-left corner.

@@ -972,7 +972,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         break;
       case TFM_MODAL_PLANE_X:
         if ((t->flag & (T_NO_CONSTRAINT | T_2D_EDIT)) == 0) {
-          t->modifiers |= MOD_CONSTRAINT_PLANE;
           transform_event_xyz_constraint(t, EVT_XKEY, true);
           t->redraw |= TREDRAW_HARD;
           handled = true;
@@ -980,7 +979,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         break;
       case TFM_MODAL_PLANE_Y:
         if ((t->flag & (T_NO_CONSTRAINT | T_2D_EDIT)) == 0) {
-          t->modifiers |= MOD_CONSTRAINT_PLANE;
           transform_event_xyz_constraint(t, EVT_YKEY, true);
           t->redraw |= TREDRAW_HARD;
           handled = true;
@@ -988,7 +986,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         break;
       case TFM_MODAL_PLANE_Z:
         if ((t->flag & (T_NO_CONSTRAINT | T_2D_EDIT)) == 0) {
-          t->modifiers |= MOD_CONSTRAINT_PLANE;
           transform_event_xyz_constraint(t, EVT_ZKEY, true);
           t->redraw |= TREDRAW_HARD;
           handled = true;
@@ -1209,7 +1206,6 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         /* Disable modifiers. */
         int modifiers = t->modifiers;
         modifiers &= ~MOD_CONSTRAINT_SELECT;
-        modifiers &= ~MOD_CONSTRAINT_PLANE;
         if (modifiers != t->modifiers) {
           if (t->modifiers & MOD_CONSTRAINT_SELECT) {
             postSelectConstraint(t);
