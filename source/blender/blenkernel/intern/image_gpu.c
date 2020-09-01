@@ -182,8 +182,6 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
   GPUTexture *tex = IMB_touch_gpu_texture(
       main_ibuf, arraywidth, arrayheight, arraylayers, use_high_bitdepth);
 
-  GPU_texture_bind(tex, 0);
-
   /* Upload each tile one by one. */
   LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
     int tilelayer = tile->runtime.tilearray_layer;
@@ -224,8 +222,6 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
   else {
     GPU_texture_mipmap_mode(tex, false, true);
   }
-
-  GPU_texture_unbind(tex);
 
   return tex;
 }
@@ -323,9 +319,7 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
     *tex = IMB_create_gpu_texture(ibuf_intern, use_high_bitdepth, store_premultiplied);
 
     if (GPU_mipmap_enabled()) {
-      GPU_texture_bind(*tex, 0);
       GPU_texture_generate_mipmap(*tex);
-      GPU_texture_unbind(*tex);
       if (ima) {
         ima->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
       }
@@ -665,8 +659,6 @@ static void gpu_texture_update_from_ibuf(
           rect_float, x, y, w, h, ibuf, store_premultiplied);
     }
   }
-
-  GPU_texture_bind(tex, 0);
 
   if (scaled) {
     /* Slower update where we first have to scale the input pixels. */

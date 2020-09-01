@@ -187,8 +187,6 @@ static GPUTexture *blf_batch_cache_texture_load(void)
     int offset_x = bitmap_len_landed % tex_width;
     int offset_y = bitmap_len_landed / tex_width;
 
-    GPU_texture_bind(gc->texture, 0);
-
     /* TODO(germano): Update more than one row in a single call. */
     while (remain) {
       int remain_row = tex_width - offset_x;
@@ -229,15 +227,16 @@ void blf_batch_draw(void)
 #endif
 
   GPUTexture *texture = blf_batch_cache_texture_load();
-  GPU_texture_bind(texture, 0);
   GPU_vertbuf_data_len_set(g_batch.verts, g_batch.glyph_len);
   GPU_vertbuf_use(g_batch.verts); /* send data */
 
   GPU_batch_program_set_builtin(g_batch.batch, GPU_SHADER_TEXT);
-  GPU_batch_uniform_1i(g_batch.batch, "glyph", 0);
+  GPU_batch_texture_bind(g_batch.batch, "glyph", texture);
   GPU_batch_draw(g_batch.batch);
 
   GPU_blend(GPU_BLEND_NONE);
+
+  GPU_texture_unbind(texture);
 
   /* restart to 1st vertex data pointers */
   GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.pos_loc, &g_batch.pos_step);

@@ -128,9 +128,7 @@ static void swizzle_texture_channel_single(GPUTexture *tex)
 {
   /* Swizzle texture channels so that we get useful RGBA values when sampling
    * a texture with fewer channels, e.g. when using density as color. */
-  GPU_texture_bind(tex, 0);
   GPU_texture_swizzle_set(tex, "rrr1");
-  GPU_texture_unbind(tex);
 }
 
 static GPUTexture *create_field_texture(FluidDomainSettings *fds)

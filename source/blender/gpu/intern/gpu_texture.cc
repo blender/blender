@@ -46,16 +46,6 @@
 #include "gpu_context_private.hh"
 #include "gpu_framebuffer_private.hh"
 
-#define WARN_NOT_BOUND(_tex) \
-  { \
-    if (_tex->number == -1) { \
-      fprintf(stderr, "Warning : Trying to set parameter on a texture not bound.\n"); \
-      BLI_assert(0); \
-      return; \
-    } \
-  } \
-  ((void)0)
-
 static struct GPUTextureGlobal {
   /** Texture used in place of invalid textures (not loaded correctly, missing). */
   GPUTexture *invalid_tex_1D;
@@ -229,6 +219,33 @@ static const char *gl_enum_to_str(GLenum e)
       return "Unkown enum";
   };
 #undef ENUM_TO_STRING
+}
+
+static GLenum gl_enum_target_to_binding(GLenum target)
+{
+  switch (target) {
+    default:
+      BLI_assert(0);
+      ATTR_FALLTHROUGH;
+    case GL_TEXTURE_1D:
+      return GL_TEXTURE_BINDING_1D;
+    case GL_TEXTURE_1D_ARRAY:
+      return GL_TEXTURE_BINDING_1D_ARRAY;
+    case GL_TEXTURE_2D:
+      return GL_TEXTURE_BINDING_2D;
+    case GL_TEXTURE_2D_ARRAY:
+      return GL_TEXTURE_BINDING_2D_ARRAY;
+    case GL_TEXTURE_2D_MULTISAMPLE:
+      return GL_TEXTURE_BINDING_2D_MULTISAMPLE;
+    case GL_TEXTURE_3D:
+      return GL_TEXTURE_BINDING_3D;
+    case GL_TEXTURE_BUFFER:
+      return GL_TEXTURE_BINDING_BUFFER;
+    case GL_TEXTURE_CUBE_MAP:
+      return GL_TEXTURE_BINDING_CUBE_MAP;
+    case GL_TEXTURE_CUBE_MAP_ARRAY_ARB:
+      return GL_TEXTURE_BINDING_CUBE_MAP_ARRAY_ARB;
+  }
 }
 
 static int gpu_get_component_count(eGPUTextureFormat format)
@@ -1493,7 +1510,16 @@ void GPU_texture_update_sub(GPUTexture *tex,
   GLenum data_format = gpu_get_gl_dataformat(tex->format, &tex->format_flag);
   GLenum data_type = gpu_get_gl_datatype(gpu_data_format);
 
-  WARN_NOT_BOUND(tex);
+  /* Save and restore. */
+  GLint texture_bound = 0;
+  if (tex->number == -1) {
+    glActiveTexture(GL_TEXTURE0);
+    glGetIntegerv(gl_enum_target_to_binding(tex->target), &texture_bound);
+    glBindTexture(tex->target, tex->bindcode);
+  }
+  else {
+    glActiveTexture(GL_TEXTURE0 + tex->number);
+  }
 
   switch (tex->target) {
     case GL_TEXTURE_1D:
@@ -1521,6 +1547,10 @@ void GPU_texture_update_sub(GPUTexture *tex,
       break;
     default:
       BLI_assert(!"tex->target mode not supported");
+  }
+
+  if (tex->number == -1) {
+    glBindTexture(tex->target, texture_bound);
   }
 }
 
@@ -1822,12 +1852,19 @@ void GPU_texture_unbind_all(void)
 
 void GPU_texture_generate_mipmap(GPUTexture *tex)
 {
-  WARN_NOT_BOUND(tex);
-
   gpu_texture_memory_footprint_remove(tex);
   int levels = 1 + floor(log2(max_ii(tex->w, tex->h)));
 
-  glActiveTexture(GL_TEXTURE0 + tex->number);
+  /* Save and restore. */
+  GLint texture_bound = 0;
+  if (tex->number == -1) {
+    glActiveTexture(GL_TEXTURE0);
+    glGetIntegerv(gl_enum_target_to_binding(tex->target), &texture_bound);
+    glBindTexture(tex->target, tex->bindcode);
+  }
+  else {
+    glActiveTexture(GL_TEXTURE0 + tex->number);
+  }
 
   if (GPU_texture_depth(tex)) {
     /* Some drivers have bugs when using glGenerateMipmap with depth textures (see T56789).
@@ -1846,6 +1883,10 @@ void GPU_texture_generate_mipmap(GPUTexture *tex)
 
   tex->mipmaps = levels;
   gpu_texture_memory_footprint_add(tex);
+
+  if (tex->number == -1) {
+    glBindTexture(tex->target, texture_bound);
+  }
 }
 
 static GLenum gpu_texture_default_attachment(GPUTexture *tex)
@@ -2002,7 +2043,16 @@ static int gpu_texture_swizzle_to_enum(const char swizzle)
 
 void GPU_texture_swizzle_set(GPUTexture *tex, const char swizzle[4])
 {
-  WARN_NOT_BOUND(tex);
+  /* Save and restore. */
+  GLint texture_bound = 0;
+  if (tex->number == -1) {
+    glActiveTexture(GL_TEXTURE0);
+    glGetIntegerv(gl_enum_target_to_binding(tex->target), &texture_bound);
+    glBindTexture(tex->target, tex->bindcode);
+  }
+  else {
+    glActiveTexture(GL_TEXTURE0 + tex->number);
+  }
 
   GLint gl_swizzle[4] = {gpu_texture_swizzle_to_enum(swizzle[0]),
                          gpu_texture_swizzle_to_enum(swizzle[1]),
@@ -2011,6 +2061,10 @@ void GPU_texture_swizzle_set(GPUTexture *tex, const char swizzle[4])
 
   glActiveTexture(GL_TEXTURE0 + tex->number);
   glTexParameteriv(tex->target_base, GL_TEXTURE_SWIZZLE_RGBA, gl_swizzle);
+
+  if (tex->number == -1) {
+    glBindTexture(tex->target, texture_bound);
+  }
 }
 
 void GPU_texture_free(GPUTexture *tex)

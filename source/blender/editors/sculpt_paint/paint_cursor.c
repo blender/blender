@@ -352,9 +352,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
           size, size, 0, 2, buffer, format, GPU_DATA_UNSIGNED_BYTE, 0, false, NULL);
 
       if (!col) {
-        GPU_texture_bind(target->overlay_texture, 0);
         GPU_texture_swizzle_set(target->overlay_texture, "rrrr");
-        GPU_texture_unbind(target->overlay_texture);
       }
     }
 
@@ -471,9 +469,7 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
       cursor_snap.overlay_texture = GPU_texture_create_nD(
           size, size, 0, 2, buffer, GPU_R8, GPU_DATA_UNSIGNED_BYTE, 0, false, NULL);
 
-      GPU_texture_bind(cursor_snap.overlay_texture, 0);
       GPU_texture_swizzle_set(cursor_snap.overlay_texture, "rrrr");
-      GPU_texture_unbind(cursor_snap.overlay_texture);
     }
 
     if (init) {

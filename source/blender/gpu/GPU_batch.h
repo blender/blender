@@ -146,6 +146,8 @@ void GPU_batch_program_set_builtin_with_config(GPUBatch *batch,
   GPU_shader_uniform_4fv_array((batch)->shader, name, len, val);
 #define GPU_batch_uniform_mat4(batch, name, val) \
   GPU_shader_uniform_mat4((batch)->shader, name, val);
+#define GPU_batch_texture_bind(batch, name, tex) \
+  GPU_texture_bind(tex, GPU_shader_get_texture_binding((batch)->shader, name));
 
 void GPU_batch_draw(GPUBatch *batch);
 void GPU_batch_draw_range(GPUBatch *batch, int v_first, int v_count);

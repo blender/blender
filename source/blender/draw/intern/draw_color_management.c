@@ -53,10 +53,10 @@ void DRW_transform_none(GPUTexture *tex)
   GPUBatch *geom = DRW_cache_fullscreen_quad_get();
   GPU_batch_program_set_builtin(geom, GPU_SHADER_2D_IMAGE_COLOR);
   GPU_batch_uniform_4f(geom, "color", 1.0f, 1.0f, 1.0f, 1.0f);
-  GPU_batch_uniform_1i(geom, "image", 0);
+  GPU_batch_texture_bind(geom, "image", tex);
 
-  GPU_texture_bind(tex, 0);
   GPU_batch_draw(geom);
+
   GPU_texture_unbind(tex);
 }
 

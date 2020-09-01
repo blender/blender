@@ -143,11 +143,9 @@ void GPENCIL_render_init(GPENCIL_Data *vedata,
     int w = BLI_rcti_size_x(rect);
     int h = BLI_rcti_size_y(rect);
     if (pix_col) {
-      GPU_texture_bind(txl->render_color_tx, 0);
       GPU_texture_update_sub(txl->render_color_tx, GPU_DATA_FLOAT, pix_col, x, y, 0, w, h, 0);
     }
     if (pix_z) {
-      GPU_texture_bind(txl->render_depth_tx, 0);
       GPU_texture_update_sub(txl->render_depth_tx, GPU_DATA_FLOAT, pix_z, x, y, 0, w, h, 0);
     }
   }
