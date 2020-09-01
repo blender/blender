@@ -47,6 +47,7 @@
 
 #include "GPU_immediate.h"
 #include "GPU_shader.h"
+#include "GPU_uniform_buffer.h"
 
 using namespace OCIO_NAMESPACE;
 
@@ -119,8 +120,8 @@ struct OCIO_GLSLLut3d {
 struct OCIO_GLSLCurveMappping {
   /** Cache IDs */
   size_t cacheId;
-  /** OpenGL Uniform Buffer handle. 0 if not allocated. */
-  GLuint buffer;
+  /** GPU Uniform Buffer handle. 0 if not allocated. */
+  GPUUniformBuf *buffer;
   /** OpenGL Texture handles. 0 if not allocated. */
   GLuint texture;
   /** Error checking. */
@@ -370,10 +371,7 @@ static void ensureGLSLCurveMapping(OCIO_GLSLCurveMappping **curvemap_ptr,
   allocateCurveMappingTexture(curvemap, curve_mapping_settings);
 
   /* Uniform buffer object. */
-  glGenBuffers(1, &curvemap->buffer);
-  glBindBuffer(GL_UNIFORM_BUFFER, curvemap->buffer);
-  glBufferData(GL_UNIFORM_BUFFER, sizeof(OCIO_GLSLCurveMappingParameters), 0, GL_DYNAMIC_DRAW);
-  glBindBuffer(GL_UNIFORM_BUFFER, 0);
+  curvemap->buffer = GPU_uniformbuf_create(sizeof(OCIO_GLSLCurveMappingParameters));
 
   curvemap->valid = (curvemap->texture != 0);
   curvemap->cacheId = 0;
@@ -384,7 +382,7 @@ static void ensureGLSLCurveMapping(OCIO_GLSLCurveMappping **curvemap_ptr,
 static void freeGLSLCurveMapping(OCIO_GLSLCurveMappping *curvemap)
 {
   glDeleteTextures(1, &curvemap->texture);
-  glDeleteBuffers(1, &curvemap->buffer);
+  GPU_uniformbuf_free(curvemap->buffer);
 
   OBJECT_GUARDED_DELETE(curvemap, OCIO_GLSLCurveMappping);
 }
@@ -438,9 +436,7 @@ static void updateGLSLCurveMapping(OCIO_GLSLCurveMappping *curvemap,
   data.curve_mapping_lut_size = curve_mapping_settings->lut_size;
   data.curve_mapping_use_extend_extrapolate = curve_mapping_settings->use_extend_extrapolate;
 
-  glBindBuffer(GL_UNIFORM_BUFFER, curvemap->buffer);
-  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(OCIO_GLSLCurveMappingParameters), &data);
-  glBindBuffer(GL_UNIFORM_BUFFER, 0);
+  GPU_uniformbuf_update(curvemap->buffer, &data);
 
   curvemap->cacheId = cacheId;
 }
@@ -597,7 +593,7 @@ bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r,
     glActiveTexture(GL_TEXTURE0);
 
     /* Bind UBO. */
-    glBindBufferBase(GL_UNIFORM_BUFFER, shader->ubo_bind, shader_curvemap->buffer);
+    GPU_uniformbuf_bind(shader_curvemap->buffer, shader->ubo_bind);
 
     /* TODO(fclem) remove remains of IMM. */
     immBindShader(shader->shader);
