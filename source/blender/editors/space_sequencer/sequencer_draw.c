@@ -2271,6 +2271,11 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
 
   seq_prefetch_wm_notify(C, scene);
 
+  GPUViewport *viewport = WM_draw_region_get_viewport(region);
+  GPUFrameBuffer *framebuffer_overlay = GPU_viewport_framebuffer_overlay_get(viewport);
+  GPU_framebuffer_bind_no_srgb(framebuffer_overlay);
+  GPU_depth_test(GPU_DEPTH_NONE);
+
   UI_GetThemeColor3fv(TH_BACK, col);
   if (ed && ed->metastack.first) {
     GPU_clear_color(col[0], col[1], col[2] - 0.1f, 0.0f);
