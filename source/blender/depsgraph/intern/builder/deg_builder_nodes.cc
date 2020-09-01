@@ -1130,7 +1130,7 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
         continue;
       }
 
-      if (!BKE_rigidbody_is_affected_by_simulation(object)) {
+      if (object->rigidbody_object->type == RBO_TYPE_PASSIVE) {
         continue;
       }
 
