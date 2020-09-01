@@ -2110,7 +2110,6 @@ int BKE_gpencil_object_material_index_get(Object *ob, Material *ma)
  */
 void BKE_gpencil_palette_ensure(Main *bmain, Scene *scene)
 {
-  const int totcol = 120;
   const char *hexcol[] = {
       "FFFFFF", "F2F2F2", "E6E6E6", "D9D9D9", "CCCCCC", "BFBFBF", "B2B2B2", "A6A6A6", "999999",
       "8C8C8C", "808080", "737373", "666666", "595959", "4C4C4C", "404040", "333333", "262626",
@@ -2128,33 +2127,34 @@ void BKE_gpencil_palette_ensure(Main *bmain, Scene *scene)
       "0000FF", "3F007F", "00007F"};
 
   ToolSettings *ts = scene->toolsettings;
-  GpPaint *gp_paint = ts->gp_paint;
-  Paint *paint = &gp_paint->paint;
-
-  if (paint->palette != NULL) {
+  if (ts->gp_paint->paint.palette != NULL) {
     return;
   }
 
-  paint->palette = BLI_findstring(&bmain->palettes, "Palette", offsetof(ID, name) + 2);
-  /* Try with first palette. */
-  if (bmain->palettes.first != NULL) {
-    paint->palette = bmain->palettes.first;
-    ts->gp_vertexpaint->paint.palette = paint->palette;
-    return;
+  /* Try to find the default palette. */
+  const char *palette_id = "Palette";
+  struct Palette *palette = BLI_findstring(&bmain->palettes, palette_id, offsetof(ID, name) + 2);
+
+  if (palette == NULL) {
+    /* Fall back to the first palette. */
+    palette = bmain->palettes.first;
   }
 
-  if (paint->palette == NULL) {
-    paint->palette = BKE_palette_add(bmain, "Palette");
-    ts->gp_vertexpaint->paint.palette = paint->palette;
+  if (palette == NULL) {
+    /* Fall back to creating a palette. */
+    palette = BKE_palette_add(bmain, palette_id);
+    id_us_min(&palette->id);
 
     /* Create Colors. */
-    for (int i = 0; i < totcol; i++) {
-      PaletteColor *palcol = BKE_palette_color_add(paint->palette);
-      if (palcol) {
-        hex_to_rgb((char *)hexcol[i], palcol->rgb, palcol->rgb + 1, palcol->rgb + 2);
-      }
+    for (int i = 0; i < ARRAY_SIZE(hexcol); i++) {
+      PaletteColor *palcol = BKE_palette_color_add(palette);
+      hex_to_rgb(hexcol[i], palcol->rgb, palcol->rgb + 1, palcol->rgb + 2);
     }
   }
+
+  BLI_assert(palette != NULL);
+  BKE_paint_palette_set(&ts->gp_paint->paint, palette);
+  BKE_paint_palette_set(&ts->gp_vertexpaint->paint, palette);
 }
 
 /**

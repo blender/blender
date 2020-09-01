@@ -38,6 +38,7 @@
 
 #include "BKE_context.h"
 #include "BKE_gpencil.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_paint.h"
@@ -208,9 +209,13 @@ static void eyedropper_add_palette_color(bContext *C, const float col_conv[4])
 
   /* Check for Palette in Draw and Vertex Paint Mode. */
   if (paint->palette == NULL) {
-    paint->palette = BKE_palette_add(bmain, "Grease Pencil");
+    Palette *palette = BKE_palette_add(bmain, "Grease Pencil");
+    id_us_min(&palette->id);
+
+    BKE_paint_palette_set(paint, palette);
+
     if (vertexpaint->palette == NULL) {
-      vertexpaint->palette = paint->palette;
+      BKE_paint_palette_set(vertexpaint, palette);
     }
   }
   /* Check if the color exist already. */
