@@ -110,7 +110,7 @@ void EDBM_select_mirrored(BMEditMesh *em,
     }
   }
 
-  EDBM_verts_mirror_cache_begin(em, axis, true, true, use_topology);
+  EDBM_verts_mirror_cache_begin(em, axis, true, true, false, use_topology);
 
   if (!extend) {
     EDBM_flag_disable_all(em, BM_ELEM_SELECT);
