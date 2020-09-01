@@ -1114,6 +1114,8 @@ static int gpencil_generic_select_exec(
       gps->flag &= ~GP_STROKE_SELECT;
     }
     CTX_DATA_END;
+
+    changed = true;
   }
 
   /* select/deselect points */
