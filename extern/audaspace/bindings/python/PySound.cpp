@@ -2016,7 +2016,7 @@ AUD_API Sound* checkSound(PyObject* sound)
 
 bool initializeSound()
 {
-	import_array();
+	import_array1(false);
 
 	return PyType_Ready(&SoundType) >= 0;
 }
