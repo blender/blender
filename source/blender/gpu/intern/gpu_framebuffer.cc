@@ -77,7 +77,7 @@ FrameBuffer::~FrameBuffer()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Attachments managment
+/** \name Attachments Management
  * \{ */
 
 void FrameBuffer::attachment_set(GPUAttachmentType type, const GPUAttachment &new_attachment)
@@ -139,13 +139,13 @@ void FrameBuffer::recursive_downsample(int max_lvl,
                                        void *userData)
 {
   GPUContext *ctx = GPU_context_active_get();
-  /* Bind to make sure the framebuffer is up to date. */
+  /* Bind to make sure the frame-buffer is up to date. */
   this->bind(true);
 
   if (width_ == 1 && height_ == 1) {
     return;
   }
-  /* HACK: Make the framebuffer appear not bound to avoid assert in GPU_texture_bind. */
+  /* HACK: Make the frame-buffer appear not bound to avoid assert in GPU_texture_bind. */
   ctx->active_fb = NULL;
 
   int levels = floor(log2(max_ii(width_, height_)));
@@ -157,7 +157,7 @@ void FrameBuffer::recursive_downsample(int max_lvl,
     /* calculate next viewport size */
     current_dim[0] = max_ii(current_dim[0] / 2, 1);
     current_dim[1] = max_ii(current_dim[1] / 2, 1);
-    /* Replace attaached miplevel for each attachement. */
+    /* Replace attached mip-level for each attachment. */
     for (int att = 0; att < ARRAY_SIZE(attachments_); att++) {
       GPUTexture *tex = attachments_[att].tex;
       if (tex != NULL) {
@@ -177,7 +177,7 @@ void FrameBuffer::recursive_downsample(int max_lvl,
     /* Update the internal attachments and viewport size. */
     dirty_attachments_ = true;
     this->bind(true);
-    /* HACK: Make the framebuffer appear not bound to avoid assert in GPU_texture_bind. */
+    /* HACK: Make the frame-buffer appear not bound to avoid assert in GPU_texture_bind. */
     ctx->active_fb = NULL;
 
     callback(userData, mip_lvl);
@@ -217,7 +217,7 @@ using namespace blender::gpu;
 GPUFrameBuffer *GPU_framebuffer_create(const char *name)
 {
   /* We generate the FB object later at first use in order to
-   * create the framebuffer in the right opengl context. */
+   * create the frame-buffer in the right opengl context. */
   return (GPUFrameBuffer *)GPUBackend::get()->framebuffer_alloc(name);
 }
 
@@ -235,7 +235,9 @@ void GPU_framebuffer_bind(GPUFrameBuffer *gpu_fb)
   fb->bind(enable_srgb);
 }
 
-/* Workaround for binding a srgb framebuffer without doing the srgb transform. */
+/**
+ * Workaround for binding a SRGB frame-buffer without doing the SRGB transform.
+ */
 void GPU_framebuffer_bind_no_srgb(GPUFrameBuffer *gpu_fb)
 {
   FrameBuffer *fb = reinterpret_cast<FrameBuffer *>(gpu_fb);
@@ -243,7 +245,9 @@ void GPU_framebuffer_bind_no_srgb(GPUFrameBuffer *gpu_fb)
   fb->bind(enable_srgb);
 }
 
-/* For stereo rendering. */
+/**
+ * For stereo rendering.
+ */
 void GPU_backbuffer_bind(eGPUBackBuffer buffer)
 {
   GPUContext *ctx = GPU_context_active_get();
@@ -267,7 +271,7 @@ GPUFrameBuffer *GPU_framebuffer_active_get(void)
   return reinterpret_cast<GPUFrameBuffer *>(ctx ? ctx->active_fb : NULL);
 }
 
-/* Returns the default framebuffer. Will always exists even if it's just a dummy. */
+/* Returns the default frame-buffer. Will always exists even if it's just a dummy. */
 GPUFrameBuffer *GPU_framebuffer_back_get(void)
 {
   GPUContext *ctx = GPU_context_active_get();
@@ -363,9 +367,11 @@ void GPU_framebuffer_config_array(GPUFrameBuffer *gpu_fb,
 
 /* ---------- Viewport & Scissor Region ----------- */
 
-/* Viewport and scissor size is stored per framebuffer.
- * It is only reset to its original dimensions explicitely OR when binding the framebuffer after
- * modifiying its attachments. */
+/**
+ * Viewport and scissor size is stored per frame-buffer.
+ * It is only reset to its original dimensions explicitly OR when binding the frame-buffer after
+ * modifying its attachments.
+ */
 void GPU_framebuffer_viewport_set(GPUFrameBuffer *gpu_fb, int x, int y, int width, int height)
 {
   int viewport_rect[4] = {x, y, width, height};
@@ -377,7 +383,9 @@ void GPU_framebuffer_viewport_get(GPUFrameBuffer *gpu_fb, int r_viewport[4])
   reinterpret_cast<FrameBuffer *>(gpu_fb)->viewport_get(r_viewport);
 }
 
-/* Reset to its attachement(s) size. */
+/**
+ * Reset to its attachment(s) size.
+ */
 void GPU_framebuffer_viewport_reset(GPUFrameBuffer *gpu_fb)
 {
   reinterpret_cast<FrameBuffer *>(gpu_fb)->viewport_reset();
@@ -394,7 +402,9 @@ void GPU_framebuffer_clear(GPUFrameBuffer *gpu_fb,
   reinterpret_cast<FrameBuffer *>(gpu_fb)->clear(buffers, clear_col, clear_depth, clear_stencil);
 }
 
-/* Clear all textures attached to this framebuffer with a different color. */
+/**
+ * Clear all textures attached to this frame-buffer with a different color.
+ */
 void GPU_framebuffer_multi_clear(GPUFrameBuffer *gpu_fb, const float (*clear_cols)[4])
 {
   reinterpret_cast<FrameBuffer *>(gpu_fb)->clear_multi(clear_cols);
@@ -487,7 +497,7 @@ void GPU_framebuffer_blit(GPUFrameBuffer *gpufb_read,
 }
 
 /**
- * Use this if you need to custom down-sample your texture and use the previous mip level as
+ * Use this if you need to custom down-sample your texture and use the previous mip-level as
  * input. This function only takes care of the correct texture handling. It execute the callback
  * for each texture level.
  */
@@ -504,7 +514,7 @@ void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *gpu_fb,
 /* -------------------------------------------------------------------- */
 /** \name GPUOffScreen
  *
- * Container that holds a framebuffer and its textures.
+ * Container that holds a frame-buffer and its textures.
  * Might be bound to multiple contexts.
  * \{ */
 
@@ -543,7 +553,9 @@ struct GPUOffScreen {
   GPUTexture *depth;
 };
 
-/* Returns the correct framebuffer for the current context. */
+/**
+ * Returns the correct frame-buffer for the current context.
+ */
 static GPUFrameBuffer *gpu_offscreen_fb_get(GPUOffScreen *ofs)
 {
   GPUContext *ctx = GPU_context_active_get();
@@ -689,7 +701,9 @@ GPUTexture *GPU_offscreen_color_texture(const GPUOffScreen *ofs)
   return ofs->color;
 }
 
-/* only to be used by viewport code! */
+/**
+ * \note only to be used by viewport code!
+ */
 void GPU_offscreen_viewport_data_get(GPUOffScreen *ofs,
                                      GPUFrameBuffer **r_fb,
                                      GPUTexture **r_color,

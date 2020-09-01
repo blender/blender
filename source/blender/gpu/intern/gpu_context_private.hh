@@ -44,7 +44,7 @@ struct GPUMatrixState;
 
 struct GPUContext {
  public:
-  /** State managment */
+  /** State management */
   blender::gpu::Shader *shader = NULL;
   blender::gpu::FrameBuffer *active_fb = NULL;
   GPUMatrixState *matrix_state = NULL;
@@ -52,11 +52,11 @@ struct GPUContext {
   blender::gpu::Immediate *imm = NULL;
 
   /**
-   * All 4 window framebuffers.
-   * None of them are valid in an offscreen context.
-   * Right framebuffers are only available if using stereo rendering.
-   * Front framebuffers contains (in principle, but not always) the last frame color.
-   * Default framebuffer is back_left.
+   * All 4 window frame-buffers.
+   * None of them are valid in an off-screen context.
+   * Right frame-buffers are only available if using stereo rendering.
+   * Front frame-buffers contains (in principle, but not always) the last frame color.
+   * Default frame-buffer is back_left.
    */
   blender::gpu::FrameBuffer *back_left = NULL;
   blender::gpu::FrameBuffer *front_left = NULL;
@@ -67,7 +67,7 @@ struct GPUContext {
   /** Thread on which this context is active. */
   pthread_t thread_;
   bool is_active_;
-  /** Avoid including GHOST headers. Can be NULL for offscreen contexts. */
+  /** Avoid including GHOST headers. Can be NULL for off-screen contexts. */
   void *ghost_window_;
 
  public:
@@ -82,13 +82,13 @@ struct GPUContext {
   MEM_CXX_CLASS_ALLOC_FUNCS("GPUContext")
 };
 
-/* These require a gl ctx bound. */
+/* These require a OpenGL ctx bound. */
 GLuint GPU_buf_alloc(void);
 GLuint GPU_tex_alloc(void);
 GLuint GPU_vao_alloc(void);
 GLuint GPU_fbo_alloc(void);
 
-/* These can be called any threads even without gl ctx. */
+/* These can be called any threads even without OpenGL ctx. */
 void GPU_buf_free(GLuint buf_id);
 void GPU_tex_free(GLuint tex_id);
 /* These two need the ctx the id was created with. */

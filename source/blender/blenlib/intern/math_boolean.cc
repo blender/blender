@@ -121,9 +121,9 @@ namespace robust_pred {
  * and to export only the following declared non-static functions.
  *
  * Since this is C++, an instantiated singleton class is used to make
- * sure that exactinit() is called once.
- * (Because of undefinedness of when this is called in initialization of all
- * modules, other modules shouldn't use these functions in initialization.)
+ * sure that #exactinit() is called once.
+ * (Because it's undefined when this is called in initialization of all modules,
+ other modules shouldn't use these functions in initialization.)
  */
 
 void exactinit();

@@ -43,7 +43,7 @@ namespace blender::gpu::debug {
 /** \name Debug Callbacks
  *
  * Hooks up debug callbacks to a debug OpenGL context using extensions or 4.3 core debug
- * capabiliities.
+ * capabilities.
  * \{ */
 
 /* Debug callbacks need the same calling convention as OpenGL functions. */

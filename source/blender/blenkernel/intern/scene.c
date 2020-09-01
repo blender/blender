@@ -1501,8 +1501,7 @@ static void scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain, bool on
     /* Flush editing data if needed. */
     prepare_mesh_for_viewport_render(bmain, view_layer);
     /* Update all objects: drivers, matrices, displists, etc. flags set
-     * by depgraph or manual, no layer check here, gets correct flushed.
-     */
+     * by depsgraph or manual, no layer check here, gets correct flushed. */
     DEG_evaluate_on_refresh(depsgraph);
     /* Update sound system. */
     BKE_scene_update_sound(depsgraph, bmain);

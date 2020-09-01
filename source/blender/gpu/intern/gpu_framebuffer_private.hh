@@ -90,15 +90,15 @@ namespace gpu {
 
 class FrameBuffer {
  protected:
-  /** Set of texture attachements to render to. DEPTH and DEPTH_STENCIL are mutualy exclusive. */
+  /** Set of texture attachments to render to. DEPTH and DEPTH_STENCIL are mutually exclusive. */
   GPUAttachment attachments_[GPU_FB_MAX_ATTACHEMENT];
   /** Is true if internal representation need to be updated. */
   bool dirty_attachments_;
-  /** Size of attachement textures. */
+  /** Size of attachment textures. */
   int width_, height_;
   /** Debug name. */
   char name_[DEBUG_NAME_LEN];
-  /** Framebuffer state. */
+  /** Frame-buffer state. */
   int viewport_[4];
   int scissor_[4];
   bool scissor_test_ = false;

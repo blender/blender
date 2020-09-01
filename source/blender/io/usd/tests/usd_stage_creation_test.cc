@@ -44,8 +44,8 @@ TEST_F(USDStageCreationTest, JSONFileLoadingTest)
   const size_t path_len = BLI_path_join(
       usd_datafiles_dir, FILE_MAX, release_dir.c_str(), "datafiles", "usd", nullptr);
 
-  /* BLI_path_join removes trailing slashes, but the USD library requires one in order to recognise
-   * the path as directory. */
+  /* #BLI_path_join removes trailing slashes, but the USD library requires one in order to
+   * recognize the path as directory. */
   BLI_assert(path_len + 1 < FILE_MAX);
   usd_datafiles_dir[path_len] = '/';
   usd_datafiles_dir[path_len + 1] = '\0';

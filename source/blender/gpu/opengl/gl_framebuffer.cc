@@ -38,7 +38,7 @@ namespace blender::gpu {
 
 GLFrameBuffer::GLFrameBuffer(const char *name) : FrameBuffer(name)
 {
-  /* Just-In-Time init. See GLFrameBuffer::init(). */
+  /* Just-In-Time init. See #GLFrameBuffer::init(). */
   immutable_ = false;
   fbo_id_ = 0;
 }
@@ -52,7 +52,7 @@ GLFrameBuffer::GLFrameBuffer(
   immutable_ = true;
   fbo_id_ = fbo;
   gl_attachments_[0] = target;
-  /* Never update an internal framebuffer. */
+  /* Never update an internal frame-buffer. */
   dirty_attachments_ = false;
   width_ = w;
   height_ = h;
@@ -79,15 +79,15 @@ GLFrameBuffer::~GLFrameBuffer()
   }
 
   if (context_ == GPU_context_active_get()) {
-    /* Context might be partially freed. This happens when destroying the window framebuffers. */
+    /* Context might be partially freed. This happens when destroying the window frame-buffers. */
     glDeleteFramebuffers(1, &fbo_id_);
   }
   else {
     context_->fbo_free(fbo_id_);
   }
-  /* Restore default framebuffer if this framebuffer was bound. */
+  /* Restore default frame-buffer if this frame-buffer was bound. */
   if (context_->active_fb == this && context_->back_left != this) {
-    /* If this assert triggers it means the framebuffer is being freed while in use by another
+    /* If this assert triggers it means the frame-buffer is being freed while in use by another
      * context which, by the way, is TOTALLY UNSAFE!!!  */
     BLI_assert(context_ == GPU_context_active_get());
     GPU_framebuffer_restore();
@@ -149,7 +149,7 @@ bool GLFrameBuffer::check(char err_out[256])
 
 #undef FORMAT_STATUS
 
-  const char *format = "GPUFrameBuffer: framebuffer status %s\n";
+  const char *format = "GPUFrameBuffer: frame-buffer status %s\n";
 
   if (err_out) {
     BLI_snprintf(err_out, 256, format, err);
@@ -163,11 +163,11 @@ bool GLFrameBuffer::check(char err_out[256])
 
 void GLFrameBuffer::update_attachments(void)
 {
-  /* Default framebuffers cannot have attachements. */
+  /* Default frame-buffers cannot have attachments. */
   BLI_assert(immutable_ == false);
 
   /* First color texture OR the depth texture if no color is attached.
-   * Used to determine framebuffer colorspace and dimensions. */
+   * Used to determine frame-buffer color-space and dimensions. */
   GPUAttachmentType first_attachment = GPU_FB_MAX_ATTACHEMENT;
   /* NOTE: Inverse iteration to get the first color texture. */
   for (GPUAttachmentType type = GPU_FB_MAX_ATTACHEMENT - 1; type >= 0; --type) {
@@ -179,7 +179,7 @@ void GLFrameBuffer::update_attachments(void)
       first_attachment = (attach.tex) ? type : first_attachment;
     }
     else if (first_attachment == GPU_FB_MAX_ATTACHEMENT) {
-      /* Only use depth texture to get infos if there is no color attachment. */
+      /* Only use depth texture to get information if there is no color attachment. */
       first_attachment = (attach.tex) ? type : first_attachment;
     }
 
@@ -190,7 +190,7 @@ void GLFrameBuffer::update_attachments(void)
     GLuint gl_tex = GPU_texture_opengl_bindcode(attach.tex);
     if (attach.layer > -1 && GPU_texture_cube(attach.tex) && !GPU_texture_array(attach.tex)) {
       /* Could be avoided if ARB_direct_state_access is required. In this case
-       * glFramebufferTextureLayer would bind the correct face. */
+       * #glFramebufferTextureLayer would bind the correct face. */
       GLenum gl_target = GL_TEXTURE_CUBE_MAP_POSITIVE_X + attach.layer;
       glFramebufferTexture2D(GL_FRAMEBUFFER, gl_attachment, gl_target, gl_tex, attach.mip);
     }
@@ -198,7 +198,7 @@ void GLFrameBuffer::update_attachments(void)
       glFramebufferTextureLayer(GL_FRAMEBUFFER, gl_attachment, gl_tex, attach.mip, attach.layer);
     }
     else {
-      /* The whole texture level is attached. The framebuffer is potentially layered. */
+      /* The whole texture level is attached. The frame-buffer is potentially layered. */
       glFramebufferTexture(GL_FRAMEBUFFER, gl_attachment, gl_tex, attach.mip);
     }
     /* We found one depth buffer type. Stop here, otherwise we would
@@ -275,13 +275,13 @@ void GLFrameBuffer::bind(bool enabled_srgb)
   }
 
   if (context_ != GPU_context_active_get()) {
-    BLI_assert(!"Trying to use the same framebuffer in multiple context");
+    BLI_assert(!"Trying to use the same frame-buffer in multiple context");
     return;
   }
 
   if (context_->active_fb != this) {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo_id_);
-    /* Internal framebuffers have only one color output and needs to be set everytime. */
+    /* Internal frame-buffers have only one color output and needs to be set every time. */
     if (immutable_ && fbo_id_ == 0) {
       glDrawBuffer(gl_attachments_[0]);
     }
@@ -367,7 +367,7 @@ void GLFrameBuffer::clear_multi(const float (*clear_cols)[4])
 
   context_->state_manager->apply_state();
 
-  /* WATCH: This can easilly access clear_cols out of bounds it clear_cols is not big enough for
+  /* WATCH: This can easily access clear_cols out of bounds it clear_cols is not big enough for
    * all attachments.
    * TODO(fclem) fix this insecurity? */
   int type = GPU_FB_COLOR_ATTACHMENT0;
@@ -406,7 +406,7 @@ void GLFrameBuffer::read(eGPUFrameBufferBits plane,
       fprintf(stderr, "GPUFramebuffer: Error: Trying to read stencil bit. Unsupported.");
       return;
     default:
-      fprintf(stderr, "GPUFramebuffer: Error: Trying to read more than one framebuffer plane.");
+      fprintf(stderr, "GPUFramebuffer: Error: Trying to read more than one frame-buffer plane.");
       return;
   }
 
@@ -415,14 +415,16 @@ void GLFrameBuffer::read(eGPUFrameBufferBits plane,
   glReadPixels(UNPACK4(area), format, type, r_data);
 }
 
-/* Copy src at the give offset inside dst. */
+/**
+ * Copy \a src at the give offset inside \a dst.
+ */
 void GLFrameBuffer::blit_to(
     eGPUFrameBufferBits planes, int src_slot, FrameBuffer *dst_, int dst_slot, int x, int y)
 {
   GLFrameBuffer *src = this;
   GLFrameBuffer *dst = static_cast<GLFrameBuffer *>(dst_);
 
-  /* Framebuffers must be up to date. This simplify this function. */
+  /* Frame-buffers must be up to date. This simplify this function. */
   if (src->dirty_attachments_) {
     src->bind(true);
   }

@@ -211,7 +211,7 @@ void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *fb,
                                           void *userData);
 
 /* GPU OffScreen
- * - wrapper around framebuffer and texture for simple offscreen drawing
+ * - wrapper around frame-buffer and texture for simple off-screen drawing
  */
 
 GPUOffScreen *GPU_offscreen_create(
