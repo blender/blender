@@ -2407,6 +2407,9 @@ void uiItemTabsEnumR_prop(uiLayout *layout,
                           PropertyRNA *prop,
                           bool icon_only);
 
+/* Only for testing, inspecting layouts. */
+const char *UI_layout_introspect(uiLayout *layout);
+
 /* UI Operators */
 typedef struct uiDragColorHandle {
   float color[3];

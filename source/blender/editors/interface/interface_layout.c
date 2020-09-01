@@ -31,6 +31,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_alloca.h"
+#include "BLI_dynstr.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
@@ -5634,6 +5635,129 @@ void UI_paneltype_draw(bContext *C, PanelType *pt, uiLayout *layout)
   if (layout->context) {
     CTX_store_set(C, NULL);
   }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Layout (Debuging/Introspection)
+ *
+ * Serialize the layout as a Python compatible dictionary,
+ *
+ * \note Proper string escaping isn't used,
+ * triple quotes are used to prevent single quotes from interfering with Python syntax.
+ * If we want this to be fool-proof, we would need full Python compatible string escape support.
+ * As we don't use triple quotes in the UI it's good-enough in practice.
+ * \{ */
+
+static void ui_layout_introspect_button(DynStr *ds, uiButtonItem *bitem)
+{
+  uiBut *but = bitem->but;
+  BLI_dynstr_appendf(ds, "'type':%d, ", (int)but->type);
+  BLI_dynstr_appendf(ds, "'draw_string':'''%s''', ", but->drawstr);
+  /* Not exactly needed, rna has this. */
+  BLI_dynstr_appendf(ds, "'tip':'''%s''', ", but->tip ? but->tip : "");
+
+  if (but->optype) {
+    char *opstr = WM_operator_pystring_ex(
+        but->block->evil_C, NULL, false, true, but->optype, but->opptr);
+    BLI_dynstr_appendf(ds, "'operator':'''%s''', ", opstr ? opstr : "");
+    MEM_freeN(opstr);
+  }
+
+  {
+    PropertyRNA *prop = NULL;
+    wmOperatorType *ot = UI_but_operatortype_get_from_enum_menu(but, &prop);
+    if (ot) {
+      char *opstr = WM_operator_pystring_ex(but->block->evil_C, NULL, false, true, ot, NULL);
+      BLI_dynstr_appendf(ds, "'operator':'''%s''', ", opstr ? opstr : "");
+      BLI_dynstr_appendf(ds, "'property':'''%s''', ", prop ? RNA_property_identifier(prop) : "");
+      MEM_freeN(opstr);
+    }
+  }
+
+  if (but->rnaprop) {
+    BLI_dynstr_appendf(ds,
+                       "'rna':'%s.%s[%d]', ",
+                       RNA_struct_identifier(but->rnapoin.type),
+                       RNA_property_identifier(but->rnaprop),
+                       but->rnaindex);
+  }
+}
+
+static void ui_layout_introspect_items(DynStr *ds, ListBase *lb)
+{
+  uiItem *item;
+
+  BLI_dynstr_append(ds, "[");
+
+  for (item = lb->first; item; item = item->next) {
+
+    BLI_dynstr_append(ds, "{");
+
+#define CASE_ITEM(id) \
+  case id: { \
+    const char *id_str = STRINGIFY(id); \
+    BLI_dynstr_append(ds, "'type': '"); \
+    /* Skip 'ITEM_'. */ \
+    BLI_dynstr_append(ds, id_str + 5); \
+    BLI_dynstr_append(ds, "', "); \
+    break; \
+  } \
+    ((void)0)
+
+    switch (item->type) {
+      CASE_ITEM(ITEM_BUTTON);
+      CASE_ITEM(ITEM_LAYOUT_ROW);
+      CASE_ITEM(ITEM_LAYOUT_COLUMN);
+      CASE_ITEM(ITEM_LAYOUT_COLUMN_FLOW);
+      CASE_ITEM(ITEM_LAYOUT_ROW_FLOW);
+      CASE_ITEM(ITEM_LAYOUT_BOX);
+      CASE_ITEM(ITEM_LAYOUT_ABSOLUTE);
+      CASE_ITEM(ITEM_LAYOUT_SPLIT);
+      CASE_ITEM(ITEM_LAYOUT_OVERLAP);
+      CASE_ITEM(ITEM_LAYOUT_ROOT);
+      CASE_ITEM(ITEM_LAYOUT_GRID_FLOW);
+      CASE_ITEM(ITEM_LAYOUT_RADIAL);
+    }
+
+#undef CASE_ITEM
+
+    switch (item->type) {
+      case ITEM_BUTTON:
+        ui_layout_introspect_button(ds, (uiButtonItem *)item);
+        break;
+      default:
+        BLI_dynstr_append(ds, "'items':");
+        ui_layout_introspect_items(ds, &((uiLayout *)item)->items);
+        break;
+    }
+
+    BLI_dynstr_append(ds, "}");
+
+    if (item != lb->last) {
+      BLI_dynstr_append(ds, ", ");
+    }
+  }
+  /* Don't use a comma here as it's not needed and
+   * causes the result to evaluate to a tuple of 1. */
+  BLI_dynstr_append(ds, "]");
+}
+
+/**
+ * Evaluate layout items as a Python dictionary.
+ */
+const char *UI_layout_introspect(uiLayout *layout)
+{
+  DynStr *ds = BLI_dynstr_new();
+  uiLayout layout_copy = *layout;
+  layout_copy.item.next = NULL;
+  layout_copy.item.prev = NULL;
+  ListBase layout_dummy_list = {&layout_copy, &layout_copy};
+  ui_layout_introspect_items(ds, &layout_dummy_list);
+  const char *result = BLI_dynstr_get_cstring(ds);
+  BLI_dynstr_free(ds);
+  return result;
 }
 
 /** \} */

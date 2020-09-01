@@ -9010,10 +9010,11 @@ void pyrna_struct_type_extend_capi(struct StructRNA *srna,
         py_method = PyClassMethod_New(cfunc);
         Py_DECREF(cfunc);
       }
-      else {
-        /* Currently only static and class methods are used. */
-        BLI_assert(method->ml_flags & METH_STATIC);
+      else if (method->ml_flags & METH_STATIC) {
         py_method = PyCFunction_New(method, NULL);
+      }
+      else {
+        py_method = PyDescr_NewMethod(type, method);
       }
 
       const int err = PyDict_SetItemString(dict, method->ml_name, py_method);
