@@ -35,6 +35,7 @@
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_gpencil.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
@@ -478,6 +479,12 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
 
   CurveMapping *custom_curve = NULL;
 
+  /* Optionally assign a material preset. */
+  enum {
+    PRESET_MATERIAL_NONE = 0,
+    PRESET_MATERIAL_DOT_STROKE,
+  } material_preset = PRESET_MATERIAL_NONE;
+
   /* Set general defaults at brush level. */
   brush->smooth_stroke_radius = SMOOTH_STROKE_RADIUS;
   brush->smooth_stroke_factor = SMOOTH_STROKE_FACTOR;
@@ -521,19 +528,10 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_tool = GPAINT_TOOL_DRAW;
       brush->gpencil_settings->icon_id = GP_BRUSH_ICON_AIRBRUSH;
 
-      /* Create and link Black Dots material to brush.
-       * This material is required because the brush uses the material to define how the stroke is
-       * drawn. */
-      Material *ma = BLI_findstring(&bmain->materials, "Dots Stroke", offsetof(ID, name) + 2);
-      if (ma == NULL) {
-        ma = BKE_gpencil_material_add(bmain, "Dots Stroke");
-        ma->gp_style->mode = GP_MATERIAL_MODE_DOT;
-      }
-      brush->gpencil_settings->material = ma;
-      /* Pin the matterial to the brush. */
-      brush->gpencil_settings->flag |= GP_BRUSH_MATERIAL_PINNED;
-
       zero_v3(brush->secondary_rgb);
+
+      material_preset = PRESET_MATERIAL_DOT_STROKE;
+
       break;
     }
     case GP_BRUSH_PRESET_INK_PEN: {
@@ -746,19 +744,10 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
       brush->gpencil_settings->icon_id = GP_BRUSH_ICON_PENCIL;
       brush->gpencil_tool = GPAINT_TOOL_DRAW;
 
-      /* Create and link Black Dots material to brush.
-       * This material is required because the brush uses the material to define how the stroke is
-       * drawn. */
-      Material *ma = BLI_findstring(&bmain->materials, "Dots Stroke", offsetof(ID, name) + 2);
-      if (ma == NULL) {
-        ma = BKE_gpencil_material_add(bmain, "Dots Stroke");
-        ma->gp_style->mode = GP_MATERIAL_MODE_DOT;
-      }
-      brush->gpencil_settings->material = ma;
-      /* Pin the matterial to the brush. */
-      brush->gpencil_settings->flag |= GP_BRUSH_MATERIAL_PINNED;
-
       zero_v3(brush->secondary_rgb);
+
+      material_preset = PRESET_MATERIAL_DOT_STROKE;
+
       break;
     }
     case GP_BRUSH_PRESET_PENCIL: {
@@ -1069,6 +1058,30 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
     }
     default:
       break;
+  }
+
+  switch (material_preset) {
+    case PRESET_MATERIAL_NONE:
+      break;
+    case PRESET_MATERIAL_DOT_STROKE: {
+      /* Create and link Black Dots material to brush.
+       * This material is required because the brush uses the material
+       * to define how the stroke is drawn. */
+      const char *ma_id = "Dots Stroke";
+      Material *ma = BLI_findstring(&bmain->materials, ma_id, offsetof(ID, name) + 2);
+      if (ma == NULL) {
+        ma = BKE_gpencil_material_add(bmain, ma_id);
+        ma->gp_style->mode = GP_MATERIAL_MODE_DOT;
+        BLI_assert(ma->id.us == 1);
+        id_us_min(&ma->id);
+      }
+
+      BKE_gpencil_brush_material_set(brush, ma);
+
+      /* Pin the material to the brush. */
+      brush->gpencil_settings->flag |= GP_BRUSH_MATERIAL_PINNED;
+      break;
+    }
   }
 }
 
