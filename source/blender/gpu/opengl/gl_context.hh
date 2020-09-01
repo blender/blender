@@ -52,6 +52,10 @@ class GLSharedOrphanLists {
 };
 
 class GLContext : public GPUContext {
+ public:
+  /** Used for debugging purpose. Bitflags of all bound slots. */
+  uint16_t bound_ubo_slots;
+
   /* TODO(fclem) these needs to become private. */
  public:
   /** VBO for missing vertex attrib binding. Avoid undefined behavior on some implementation. */

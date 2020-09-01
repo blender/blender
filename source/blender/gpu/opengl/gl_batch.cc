@@ -330,6 +330,7 @@ void GLBatch::bind(int i_first)
 
 void GLBatch::draw(int v_first, int v_count, int i_first, int i_count)
 {
+  GL_CHECK_RESOURCES("Batch");
   GL_CHECK_ERROR("Batch Pre drawing");
 
   this->bind(i_first);

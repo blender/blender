@@ -37,7 +37,9 @@ namespace gpu {
  **/
 class GLUniformBuf : public UniformBuf {
  private:
+  /** Slot to which this UBO is currently bound. -1 if not bound. */
   int slot_ = -1;
+  /** OpenGL Object handle. */
   GLuint ubo_id_ = 0;
 
  public:

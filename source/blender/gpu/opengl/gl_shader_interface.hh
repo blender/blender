@@ -55,8 +55,6 @@ class GLShaderInterface : public ShaderInterface {
   void ref_add(GLVaoCache *ref);
   void ref_remove(GLVaoCache *ref);
 
-  // bool resource_binding_validate();
-
   MEM_CXX_CLASS_ALLOC_FUNCS("GLShaderInterface");
 };
 

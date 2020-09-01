@@ -567,58 +567,6 @@ BLI_INLINE void draw_indirect_call(DRWShadingGroup *shgroup, DRWCommandsState *s
   }
 }
 
-#ifndef NDEBUG
-/**
- * Opengl specification is strict on buffer binding.
- *
- * " If any active uniform block is not backed by a
- * sufficiently large buffer object, the results of shader
- * execution are undefined, and may result in GL interruption or
- * termination. " - Opengl 3.3 Core Specification
- *
- * For now we only check if the binding is correct. Not the size of
- * the bound ubo.
- *
- * See T55475.
- * */
-static bool ubo_bindings_validate(DRWShadingGroup *shgroup)
-{
-  bool valid = true;
-#  ifdef DEBUG_UBO_BINDING
-  /* Check that all active uniform blocks have a non-zero buffer bound. */
-  GLint program = 0;
-  GLint active_blocks = 0;
-
-  glGetIntegerv(GL_CURRENT_PROGRAM, &program);
-  glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &active_blocks);
-
-  for (uint i = 0; i < active_blocks; i++) {
-    int binding = 0;
-    int buffer = 0;
-
-    glGetActiveUniformBlockiv(program, i, GL_UNIFORM_BLOCK_BINDING, &binding);
-    glGetIntegeri_v(GL_UNIFORM_BUFFER_BINDING, binding, &buffer);
-
-    if (buffer == 0) {
-      char blockname[64];
-      glGetActiveUniformBlockName(program, i, sizeof(blockname), NULL, blockname);
-
-      if (valid) {
-        printf("Trying to draw with missing UBO binding.\n");
-        valid = false;
-      }
-
-      DRWPass *parent_pass = DRW_memblock_elem_from_handle(DST.vmempool->passes,
-                                                           &shgroup->pass_handle);
-
-      printf("Pass : %s, Block : %s, Binding %d\n", parent_pass->name, blockname, binding);
-    }
-  }
-#  endif
-  return valid;
-}
-#endif
-
 static void draw_update_uniforms(DRWShadingGroup *shgroup,
                                  DRWCommandsState *state,
                                  bool *use_tfeedback)
@@ -688,8 +636,6 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
       }
     }
   }
-
-  BLI_assert(ubo_bindings_validate(shgroup));
 }
 
 BLI_INLINE void draw_select_buffer(DRWShadingGroup *shgroup,

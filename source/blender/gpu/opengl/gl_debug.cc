@@ -30,6 +30,9 @@
 
 #include "glew-mx.h"
 
+#include "gl_context.hh"
+#include "gl_uniform_buffer.hh"
+
 #include "gl_debug.hh"
 
 #include <stdio.h>
@@ -140,7 +143,8 @@ void init_gl_callbacks(void)
 /* -------------------------------------------------------------------- */
 /** \name Error Checking
  *
- * This is only useful for implementation that does not support the KHR_debug extension.
+ * This is only useful for implementation that does not support the KHR_debug extension OR when the
+ * implementations do not report any errors even when clearly doing shady things.
  * \{ */
 
 void check_gl_error(const char *info)
@@ -170,6 +174,31 @@ void check_gl_error(const char *info)
       SNPRINTF(msg, "Unknown GL error: %x : %s", error, info);
       debug_callback(0, GL_DEBUG_TYPE_ERROR, 0, GL_DEBUG_SEVERITY_HIGH, 0, msg, NULL);
       break;
+  }
+}
+
+void check_gl_resources(const char *info)
+{
+  GLContext *ctx = static_cast<GLContext *>(GPU_context_active_get());
+  ShaderInterface *interface = ctx->shader->interface;
+  /* NOTE: This only check binding. To be valid, the bound ubo needs to
+   * be big enough to feed the data range the shader awaits. */
+  uint16_t ubo_needed = interface->enabled_ubo_mask_;
+  ubo_needed &= ~ctx->bound_ubo_slots;
+
+  if (ubo_needed == 0) {
+    return;
+  }
+
+  for (int i = 0; ubo_needed != 0; i++, ubo_needed >>= 1) {
+    if ((ubo_needed & 1) != 0) {
+      const ShaderInput *ubo_input = interface->ubo_get(i);
+      const char *ubo_name = interface->input_name_get(ubo_input);
+      const char *sh_name = ctx->shader->name_get();
+      char msg[256];
+      SNPRINTF(msg, "Missing UBO bind at slot %d : %s > %s : %s", i, sh_name, ubo_name, info);
+      debug_callback(0, GL_DEBUG_TYPE_ERROR, 0, GL_DEBUG_SEVERITY_HIGH, 0, msg, NULL);
+    }
   }
 }
 

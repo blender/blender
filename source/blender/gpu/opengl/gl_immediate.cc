@@ -90,6 +90,7 @@ uchar *GLImmediate::begin()
   /* Does the current buffer have enough room? */
   const size_t available_bytes = buffer_size() - buffer_offset();
 
+  GL_CHECK_RESOURCES("Immediate");
   GL_CHECK_ERROR("Immediate Pre-Begin");
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_id());
