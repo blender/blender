@@ -17,6 +17,8 @@
  * All rights reserved.
  */
 #include "testing/testing.h"
+
+#include <pxr/base/plug/registry.h>
 #include <pxr/usd/usd/stage.h>
 
 #include <string>
@@ -25,11 +27,6 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_appdir.h"
-
-extern "C" {
-/* Workaround to make it possible to pass a path at runtime to USD. See creator.c. */
-void usd_initialise_plugin_path(const char *datafiles_usd_path);
-}
 
 namespace blender::io::usd {
 
@@ -44,9 +41,16 @@ TEST_F(USDStageCreationTest, JSONFileLoadingTest)
   }
 
   char usd_datafiles_dir[FILE_MAX];
-  BLI_path_join(usd_datafiles_dir, FILE_MAX, release_dir.c_str(), "datafiles", "usd", nullptr);
+  const size_t path_len = BLI_path_join(
+      usd_datafiles_dir, FILE_MAX, release_dir.c_str(), "datafiles", "usd", nullptr);
 
-  usd_initialise_plugin_path(usd_datafiles_dir);
+  /* BLI_path_join removes trailing slashes, but the USD library requires one in order to recognise
+   * the path as directory. */
+  BLI_assert(path_len + 1 < FILE_MAX);
+  usd_datafiles_dir[path_len] = '/';
+  usd_datafiles_dir[path_len + 1] = '\0';
+
+  pxr::PlugRegistry::GetInstance().RegisterPlugins(usd_datafiles_dir);
 
   /* Simply the ability to create a USD Stage for a specific filename means that the extension
    * has been recognized by the USD library, and that a USD plugin has been loaded to write such
@@ -61,9 +65,8 @@ TEST_F(USDStageCreationTest, JSONFileLoadingTest)
     unlink(filename.c_str());
   }
   else {
-    FAIL() << "unable to find suitable USD plugin to write " << filename
-           << "; re-run with the environment variable PXR_PATH_DEBUG non-empty to see which paths "
-              "are considered.";
+    FAIL() << "unable to find suitable USD plugin to write " << filename << "; looked in "
+           << usd_datafiles_dir;
   }
 }
 

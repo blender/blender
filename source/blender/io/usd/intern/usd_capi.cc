@@ -20,6 +20,7 @@
 #include "usd.h"
 #include "usd_hierarchy_iterator.h"
 
+#include <pxr/base/plug/registry.h>
 #include <pxr/pxr.h>
 #include <pxr/usd/usd/stage.h>
 #include <pxr/usd/usdGeom/tokens.h>
@@ -44,17 +45,6 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
-
-/* Workaround to make it possible to pass a path at runtime to USD.
- *
- * USD requires some JSON files, and it uses a static constructor to determine the possible
- * file-system paths to find those files. This made it impossible for Blender to pass a path to
- * the USD library at runtime, as the constructor would run before Blender's main() function.
- * We have patched USD (see usd.diff) to avoid that particular static constructor, and have an
- * initialization function instead.
- *
- * This function is implemented in the USD source code, `pxr/base/plug/initConfig.cpp`. */
-extern "C" void usd_initialise_plugin_path(const char *datafiles_usd_path);
 
 namespace blender {
 namespace io {
@@ -81,7 +71,9 @@ static void ensure_usd_plugin_path_registered(void)
 
   /* Tell USD which directory to search for its JSON files. If 'datafiles/usd'
    * does not exist, the USD library will not be able to read or write any files. */
-  usd_initialise_plugin_path(BKE_appdir_folder_id(BLENDER_DATAFILES, "usd"));
+  const std::string blender_usd_datafiles = BKE_appdir_folder_id(BLENDER_DATAFILES, "usd");
+  /* The trailing slash indicates to the USD library that the path is a directory. */
+  pxr::PlugRegistry::GetInstance().RegisterPlugins(blender_usd_datafiles + "/");
 }
 
 static void export_startjob(void *customdata,
