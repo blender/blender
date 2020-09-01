@@ -438,8 +438,7 @@ static const EnumPropertyItem keymap_modifiers_items[] = {
 };
 #endif
 
-#ifndef RNA_RUNTIME
-static const EnumPropertyItem operator_flag_items[] = {
+const EnumPropertyItem rna_enum_operator_type_flag_items[] = {
     {OPTYPE_REGISTER,
      "REGISTER",
      0,
@@ -465,7 +464,6 @@ static const EnumPropertyItem operator_flag_items[] = {
     {OPTYPE_INTERNAL, "INTERNAL", 0, "Internal", "Removes the operator from search results"},
     {0, NULL, 0, NULL, NULL},
 };
-#endif
 
 const EnumPropertyItem rna_enum_operator_return_items[] = {
     {OPERATOR_RUNNING_MODAL,
@@ -1928,7 +1926,7 @@ static void rna_def_operator(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "type->flag");
-  RNA_def_property_enum_items(prop, operator_flag_items);
+  RNA_def_property_enum_items(prop, rna_enum_operator_type_flag_items);
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
   RNA_def_property_ui_text(prop, "Options", "Options for this operator type");
 
@@ -2020,7 +2018,7 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "type->flag");
-  RNA_def_property_enum_items(prop, operator_flag_items);
+  RNA_def_property_enum_items(prop, rna_enum_operator_type_flag_items);
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
   RNA_def_property_ui_text(prop, "Options", "Options for this operator type");
 

@@ -436,12 +436,22 @@ static PyObject *pyop_getrna_type(PyObject *UNUSED(self), PyObject *value)
   return (PyObject *)pyrna;
 }
 
+static PyObject *pyop_get_bl_options(PyObject *UNUSED(self), PyObject *value)
+{
+  wmOperatorType *ot;
+  if ((ot = ot_lookup_from_py_string(value, "get_bl_options")) == NULL) {
+    return NULL;
+  }
+  return pyrna_enum_bitfield_to_py(rna_enum_operator_type_flag_items, ot->flag);
+}
+
 static struct PyMethodDef bpy_ops_methods[] = {
     {"poll", (PyCFunction)pyop_poll, METH_VARARGS, NULL},
     {"call", (PyCFunction)pyop_call, METH_VARARGS, NULL},
     {"as_string", (PyCFunction)pyop_as_string, METH_VARARGS, NULL},
     {"dir", (PyCFunction)pyop_dir, METH_NOARGS, NULL},
     {"get_rna_type", (PyCFunction)pyop_getrna_type, METH_O, NULL},
+    {"get_bl_options", (PyCFunction)pyop_get_bl_options, METH_O, NULL},
     {"macro_define", (PyCFunction)PYOP_wrap_macro_define, METH_VARARGS, NULL},
     {NULL, NULL, 0, NULL},
 };
