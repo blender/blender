@@ -23,6 +23,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -338,6 +339,46 @@ static void applyarmature_process_selected_recursive(bArmature *arm,
   }
 }
 
+/* Reset bone constraint so that it is correct after the pose has been applied. */
+static void applyarmature_reset_bone_constraint(const bConstraint *constraint)
+{
+  /* TODO(Sybren): This function needs too much knowledge of the internals of specific constraints.
+   * When it is extended with one or two more constraints, move the functionality into a
+   * bConstraintTypeInfo callback function. */
+  switch (constraint->type) {
+    case CONSTRAINT_TYPE_STRETCHTO: {
+      bStretchToConstraint *stretch_to = (bStretchToConstraint *)constraint->data;
+      stretch_to->orglength = 0.0f; /* Force recalculation on next evaluation. */
+      break;
+    }
+    default:
+      /* Most constraints don't need resetting. */
+      break;
+  }
+}
+
+/* Reset bone constraints of the given pose channel so that they are correct after the pose has
+ * been applied. */
+static void applyarmature_reset_bone_constraints(const bPoseChannel *pchan)
+{
+  LISTBASE_FOREACH (bConstraint *, constraint, &pchan->constraints) {
+    applyarmature_reset_bone_constraint(constraint);
+  }
+}
+
+/* Reset all (or only selected) bone constraints so that they are correct after the pose has been
+ * applied. */
+static void applyarmature_reset_constraints(bPose *pose, const bool use_selected)
+{
+  for (bPoseChannel *pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
+    BLI_assert(pchan->bone != NULL);
+    if (use_selected && (pchan->bone->flag & BONE_SELECTED) == 0) {
+      continue;
+    }
+    applyarmature_reset_bone_constraints(pchan);
+  }
+}
+
 /* set the current pose as the restpose */
 static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 {
@@ -415,6 +456,9 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 
   /* fix parenting of objects which are bone-parented */
   applyarmature_fix_boneparents(C, scene, ob);
+
+  /* For the affected bones, reset specific constraints that are now known to be invalid. */
+  applyarmature_reset_constraints(pose, use_selected);
 
   /* note, notifier might evolve */
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
