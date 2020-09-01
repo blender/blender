@@ -2430,7 +2430,7 @@ void ED_vgroup_mirror(Object *ob,
         goto cleanup;
       }
 
-      EDBM_verts_mirror_cache_begin(em, 0, true, false, use_topology);
+      EDBM_verts_mirror_cache_begin(em, 0, true, false, false, use_topology);
 
       BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
 

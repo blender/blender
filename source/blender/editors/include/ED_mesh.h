@@ -59,6 +59,7 @@ void EDBM_verts_mirror_cache_begin_ex(struct BMEditMesh *em,
                                       const int axis,
                                       const bool use_self,
                                       const bool use_select,
+                                      const bool respecthide,
                                       const bool use_topology,
                                       float maxdist,
                                       int *r_index);
@@ -66,6 +67,7 @@ void EDBM_verts_mirror_cache_begin(struct BMEditMesh *em,
                                    const int axis,
                                    const bool use_self,
                                    const bool use_select,
+                                   const bool respecthide,
                                    const bool use_toplogy);
 void EDBM_verts_mirror_apply(struct BMEditMesh *em, const int sel_from, const int sel_to);
 struct BMVert *EDBM_verts_mirror_get(struct BMEditMesh *em, struct BMVert *v);

@@ -1059,6 +1059,7 @@ static BMVert *cache_mirr_intptr_as_bmvert(const intptr_t *index_lookup, int ind
  * \param em: Editmesh.
  * \param use_self: Allow a vertex to point to its self (middle verts).
  * \param use_select: Restrict to selected verts.
+ * \param respecthide: Skip hidden vertices.
  * \param use_topology: Use topology mirror.
  * \param maxdist: Distance for close point test.
  * \param r_index: Optional array to write into, as an alternative to a customdata layer
@@ -1068,6 +1069,7 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
                                       const int axis,
                                       const bool use_self,
                                       const bool use_select,
+                                      const bool respecthide,
                                       /* extra args */
                                       const bool use_topology,
                                       float maxdist,
@@ -1110,6 +1112,10 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
   else {
     tree = BLI_kdtree_3d_new(bm->totvert);
     BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+      if (respecthide && BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
+        continue;
+      }
+
       BLI_kdtree_3d_insert(tree, i, v->co);
     }
     BLI_kdtree_3d_balance(tree);
@@ -1118,44 +1124,45 @@ void EDBM_verts_mirror_cache_begin_ex(BMEditMesh *em,
 #define VERT_INTPTR(_v, _i) (r_index ? &r_index[_i] : BM_ELEM_CD_GET_VOID_P(_v, cd_vmirr_offset))
 
   BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
-    BLI_assert(BM_elem_index_get(v) == i);
+    if (respecthide && BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
+      continue;
+    }
 
-    /* temporary for testing, check for selection */
     if (use_select && !BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-      /* do nothing */
+      continue;
+    }
+
+    BLI_assert(BM_elem_index_get(v) == i);
+    BMVert *v_mirr;
+    int *idx = VERT_INTPTR(v, i);
+
+    if (use_topology) {
+      v_mirr = cache_mirr_intptr_as_bmvert(mesh_topo_store.index_lookup, i);
     }
     else {
-      BMVert *v_mirr;
-      int *idx = VERT_INTPTR(v, i);
+      int i_mirr;
+      float co[3];
+      copy_v3_v3(co, v->co);
+      co[axis] *= -1.0f;
 
-      if (use_topology) {
-        v_mirr = cache_mirr_intptr_as_bmvert(mesh_topo_store.index_lookup, i);
-      }
-      else {
-        int i_mirr;
-        float co[3];
-        copy_v3_v3(co, v->co);
-        co[axis] *= -1.0f;
-
-        v_mirr = NULL;
-        i_mirr = BLI_kdtree_3d_find_nearest(tree, co, NULL);
-        if (i_mirr != -1) {
-          BMVert *v_test = BM_vert_at_index(bm, i_mirr);
-          if (len_squared_v3v3(co, v_test->co) < maxdist_sq) {
-            v_mirr = v_test;
-          }
+      v_mirr = NULL;
+      i_mirr = BLI_kdtree_3d_find_nearest(tree, co, NULL);
+      if (i_mirr != -1) {
+        BMVert *v_test = BM_vert_at_index(bm, i_mirr);
+        if (len_squared_v3v3(co, v_test->co) < maxdist_sq) {
+          v_mirr = v_test;
         }
       }
+    }
 
-      if (v_mirr && (use_self || (v_mirr != v))) {
-        const int i_mirr = BM_elem_index_get(v_mirr);
-        *idx = i_mirr;
-        idx = VERT_INTPTR(v_mirr, i_mirr);
-        *idx = i;
-      }
-      else {
-        *idx = -1;
-      }
+    if (v_mirr && (use_self || (v_mirr != v))) {
+      const int i_mirr = BM_elem_index_get(v_mirr);
+      *idx = i_mirr;
+      idx = VERT_INTPTR(v_mirr, i_mirr);
+      *idx = i;
+    }
+    else {
+      *idx = -1;
     }
   }
 
@@ -1173,12 +1180,14 @@ void EDBM_verts_mirror_cache_begin(BMEditMesh *em,
                                    const int axis,
                                    const bool use_self,
                                    const bool use_select,
+                                   const bool respecthide,
                                    const bool use_topology)
 {
   EDBM_verts_mirror_cache_begin_ex(em,
                                    axis,
                                    use_self,
                                    use_select,
+                                   respecthide,
                                    /* extra args */
                                    use_topology,
                                    BM_SEARCH_MAXDIST_MIRR,

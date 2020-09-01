@@ -2513,7 +2513,7 @@ static int edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
 
     /* mirror before smooth */
     if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
-      EDBM_verts_mirror_cache_begin(em, 0, false, true, use_topology);
+      EDBM_verts_mirror_cache_begin(em, 0, false, true, false, use_topology);
     }
 
     /* if there is a mirror modifier with clipping, flag the verts that
@@ -2658,7 +2658,7 @@ static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
 
     /* Mirror before smooth. */
     if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
-      EDBM_verts_mirror_cache_begin(em, 0, false, true, use_topology);
+      EDBM_verts_mirror_cache_begin(em, 0, false, true, false, use_topology);
     }
 
     bool failed_repeat_loop = false;
@@ -7600,7 +7600,7 @@ static int mesh_symmetry_snap_exec(bContext *C, wmOperator *op)
     BMVert *v;
     int i;
 
-    EDBM_verts_mirror_cache_begin_ex(em, axis, true, true, use_topology, thresh, index);
+    EDBM_verts_mirror_cache_begin_ex(em, axis, true, true, false, use_topology, thresh, index);
 
     BM_mesh_elem_table_ensure(bm, BM_VERT);
 
