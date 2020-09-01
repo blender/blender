@@ -140,7 +140,9 @@ void KERNEL_FUNCTION_FULL_NAME(bake)(
 #  ifdef KERNEL_STUB
   STUB_ASSERT(KERNEL_ARCH, bake);
 #  else
+#    ifdef __BAKING__
   kernel_bake_evaluate(kg, buffer, sample, x, y, offset, stride);
+#    endif
 #  endif /* KERNEL_STUB */
 }
 
