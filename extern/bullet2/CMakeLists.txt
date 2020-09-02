@@ -20,11 +20,8 @@
 
 # avoid noisy warnings
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
-  add_c_flag(
-    "-Wno-unused-result -Wno-unused-variable -Wno-unused-but-set-variable -Wno-reorder"
-  )
   remove_cc_flag(
-    "-Wmissing-declarations"
+    "-Wall"
   )
 endif()
 
