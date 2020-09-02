@@ -1075,7 +1075,7 @@ static uiTooltipData *ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
                                 NULL;
       if (gzop != NULL) {
         /* Description */
-        char *info = WM_operatortype_description(C, gzop->type, &gzop->ptr);
+        char *info = WM_operatortype_description_or_name(C, gzop->type, &gzop->ptr);
 
         if (info != NULL) {
           char *text = info;

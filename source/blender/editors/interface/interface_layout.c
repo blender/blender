@@ -3404,14 +3404,7 @@ void uiItemMenuEnumO_ptr(uiLayout *layout,
   BLI_strncpy(lvl->propname, propname, sizeof(lvl->propname));
   lvl->opcontext = layout->root->opcontext;
 
-  but = ui_item_menu(layout,
-                     name,
-                     icon,
-                     menu_item_enum_opname_menu,
-                     NULL,
-                     lvl,
-                     RNA_struct_ui_description(ot->srna),
-                     true);
+  but = ui_item_menu(layout, name, icon, menu_item_enum_opname_menu, NULL, lvl, NULL, true);
 
   /* add hotkey here, lower UI code can't detect it */
   if ((layout->root->block->flag & UI_BLOCK_LOOP) && (ot->prop && ot->invoke)) {
@@ -5498,6 +5491,24 @@ void uiLayoutSetContextFromBut(uiLayout *layout, uiBut *but)
     uiLayoutSetContextPointer(layout, "button_prop", &ptr_prop);
     uiLayoutSetContextPointer(layout, "button_pointer", &but->rnapoin);
   }
+}
+
+/* this is a bit of a hack but best keep it in one place at least */
+wmOperatorType *UI_but_operatortype_get_from_enum_menu(uiBut *but, PropertyRNA **r_prop)
+{
+  if (r_prop != NULL) {
+    *r_prop = NULL;
+  }
+
+  if (but->menu_create_func == menu_item_enum_opname_menu) {
+    MenuItemLevel *lvl = but->func_argN;
+    wmOperatorType *ot = WM_operatortype_find(lvl->opname, false);
+    if ((ot != NULL) && (r_prop != NULL)) {
+      *r_prop = RNA_struct_type_find_property(ot->srna, lvl->propname);
+    }
+    return ot;
+  }
+  return NULL;
 }
 
 /* this is a bit of a hack but best keep it in one place at least */

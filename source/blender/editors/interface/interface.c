@@ -6758,9 +6758,6 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
       else if (but->tip && but->tip[0]) {
         tmp = BLI_strdup(but->tip);
       }
-      else if (but->optype && but->optype->get_description) {
-        tmp = WM_operatortype_description(C, but->optype, but->opptr);
-      }
       else {
         type = BUT_GET_RNA_TIP; /* Fail-safe solution... */
       }
@@ -6805,13 +6802,10 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
       }
       else if (but->optype) {
         if (type == BUT_GET_RNA_LABEL) {
-          tmp = BLI_strdup(WM_operatortype_name(but->optype, NULL));
+          tmp = BLI_strdup(WM_operatortype_name(but->optype, but->opptr));
         }
         else {
-          const char *t = RNA_struct_ui_description(but->optype->srna);
-          if (t && t[0]) {
-            tmp = BLI_strdup(t);
-          }
+          tmp = WM_operatortype_description(C, but->optype, but->opptr);
         }
       }
       else if (ELEM(but->type, UI_BTYPE_MENU, UI_BTYPE_PULLDOWN, UI_BTYPE_POPOVER)) {
@@ -6829,6 +6823,18 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
                   tmp = BLI_strdup(t);
                 }
               }
+            }
+          }
+        }
+
+        if (tmp == NULL) {
+          wmOperatorType *ot = UI_but_operatortype_get_from_enum_menu(but, NULL);
+          if (ot) {
+            if (type == BUT_GET_RNA_LABEL) {
+              tmp = BLI_strdup(WM_operatortype_name(ot, NULL));
+            }
+            else {
+              tmp = WM_operatortype_description(C, ot, NULL);
             }
           }
         }

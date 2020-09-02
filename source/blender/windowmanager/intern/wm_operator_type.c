@@ -611,15 +611,27 @@ char *WM_operatortype_description(struct bContext *C,
   }
 
   const char *info = RNA_struct_ui_description(ot->srna);
-
-  if (!(info && info[0])) {
-    info = RNA_struct_ui_name(ot->srna);
-  }
-
   if (info && info[0]) {
     return BLI_strdup(info);
   }
   return NULL;
+}
+
+/**
+ * Use when we want a label, preferring the description.
+ */
+char *WM_operatortype_description_or_name(struct bContext *C,
+                                          struct wmOperatorType *ot,
+                                          struct PointerRNA *properties)
+{
+  char *text = WM_operatortype_description(C, ot, properties);
+  if (text == NULL) {
+    const char *text_orig = WM_operatortype_name(ot, properties);
+    if (text_orig != NULL) {
+      text = BLI_strdup(text_orig);
+    }
+  }
+  return text;
 }
 
 /** \} */
