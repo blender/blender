@@ -751,9 +751,9 @@ float Camera::world_to_raster_size(float3 P)
     }
 #else
     camera_sample_panorama(&kernel_camera,
-# ifdef __CAMERA_MOTION__
+#  ifdef __CAMERA_MOTION__
                            kernel_camera_motion.data(),
-# endif
+#  endif
                            0.5f * full_width,
                            0.5f * full_height,
                            0.0f,
