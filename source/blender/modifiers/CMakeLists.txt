@@ -156,9 +156,11 @@ if(WITH_OPENSUBDIV)
 endif()
 
 if(WITH_BULLET)
-  list(APPEND LIB
-    extern_bullet
-  )
+  if(NOT WITH_SYSTEM_BULLET)
+    list(APPEND LIB
+      extern_bullet
+    )
+  endif()
   add_definitions(-DWITH_BULLET)
 endif()
 

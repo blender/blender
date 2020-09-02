@@ -1372,6 +1372,24 @@ MINLINE bool compare_len_v3v3(const float v1[3], const float v2[3], const float 
   return (dot_v3v3(d, d) <= (limit * limit));
 }
 
+MINLINE bool compare_size_v3v3(const float v1[3], const float v2[3], const float limit)
+{
+  for (int i = 0; i < 3; i++) {
+    if (v2[i] == 0.0f) {
+      /* Catch division by zero. */
+      if (v1[i] != v2[i]) {
+        return false;
+      }
+    }
+    else {
+      if (fabsf(v1[i] / v2[i] - 1.0f) > limit) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 /** \name Vector Clamping
  * \{ */
 

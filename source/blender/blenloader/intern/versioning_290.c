@@ -33,6 +33,7 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_rigidbody_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_shader_fx_types.h"
 
@@ -515,6 +516,23 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
           }
         }
       }
+    }
+  }
+
+  for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
+    RigidBodyWorld *rbw = scene->rigidbody_world;
+
+    if (rbw == NULL) {
+      continue;
+    }
+
+    /* The substep method changed from "per second" to "per frame".
+     * To get the new value simply divide the old bullet sim fps with the scene fps.
+     */
+    rbw->substeps_per_frame /= FPS;
+
+    if (rbw->substeps_per_frame <= 0) {
+      rbw->substeps_per_frame = 1;
     }
   }
 

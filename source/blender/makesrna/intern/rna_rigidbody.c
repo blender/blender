@@ -906,15 +906,15 @@ static void rna_def_rigidbody_world(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE, "rna_RigidBodyWorld_reset");
 
   /* timestep */
-  prop = RNA_def_property(srna, "steps_per_second", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, NULL, "steps_per_second");
+  prop = RNA_def_property(srna, "substeps_per_frame", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "substeps_per_frame");
   RNA_def_property_range(prop, 1, SHRT_MAX);
-  RNA_def_property_ui_range(prop, 60, 1000, 1, -1);
-  RNA_def_property_int_default(prop, 60);
+  RNA_def_property_ui_range(prop, 1, 1000, 1, -1);
+  RNA_def_property_int_default(prop, 10);
   RNA_def_property_ui_text(
       prop,
-      "Steps Per Second",
-      "Number of simulation steps taken per second (higher values are more accurate "
+      "Substeps Per Frame",
+      "Number of simulation steps taken per frame (higher values are more accurate "
       "but slower)");
   RNA_def_property_update(prop, NC_SCENE, "rna_RigidBodyWorld_reset");
 

@@ -385,8 +385,8 @@ class SCENE_PT_rigid_body_world_settings(RigidBodySubPanel, Panel):
             col.prop(rbw, "use_split_impulse")
 
             col = col.column()
-            col.prop(rbw, "steps_per_second", text="Steps Per Second")
-            col.prop(rbw, "solver_iterations", text="Solver Iterations")
+            col.prop(rbw, "substeps_per_frame")
+            col.prop(rbw, "solver_iterations")
 
 
 class SCENE_PT_rigid_body_cache(RigidBodySubPanel, Panel):

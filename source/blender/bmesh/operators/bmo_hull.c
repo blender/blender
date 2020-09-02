@@ -28,7 +28,7 @@
 #  include "BLI_listbase.h"
 #  include "BLI_math.h"
 
-#  include "Bullet-C-Api.h"
+#  include "RBI_hull_api.h"
 
 /* XXX: using 128 for totelem and pchunk of mempool, no idea what good
  * values would be though */

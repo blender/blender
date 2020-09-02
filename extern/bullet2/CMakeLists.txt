@@ -18,6 +18,19 @@
 # All rights reserved.
 # ***** END GPL LICENSE BLOCK *****
 
+# avoid noisy warnings
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+  add_c_flag(
+    "-Wno-unused-result -Wno-unused-variable -Wno-unused-but-set-variable -Wno-reorder"
+  )
+  remove_cc_flag(
+    "-Wmissing-declarations"
+  )
+endif()
+
+# Use double precision to make simulations of small objects stable.
+add_definitions(-DBT_USE_DOUBLE_PRECISION)
+
 set(INC
   .
   src

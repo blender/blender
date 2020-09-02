@@ -75,8 +75,8 @@ typedef struct RigidBodyWorld {
   /** Number of objects in rigid body group. */
   int numbodies;
 
-  /** Number of simulation steps thaken per second. */
-  short steps_per_second;
+  /** Number of simulation substeps steps taken per frame. */
+  short substeps_per_frame;
   /** Number of constraint solver iterations made per simulation step. */
   short num_solver_iterations;
 

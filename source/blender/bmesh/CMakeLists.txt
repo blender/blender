@@ -189,10 +189,15 @@ endif()
 if(WITH_BULLET)
   list(APPEND INC_SYS
     ${BULLET_INCLUDE_DIRS}
+    "../../../intern/rigidbody/"
   )
+  if(NOT WITH_SYSTEM_BULLET)
   list(APPEND LIB
     extern_bullet
+    )
+  endif()
 
+  list(APPEND LIB
     ${BULLET_LIBRARIES}
   )
   add_definitions(-DWITH_BULLET)

@@ -482,9 +482,15 @@ if(WITH_BULLET)
   list(APPEND INC
     ../../../intern/rigidbody
   )
+
+  if(NOT WITH_SYSTEM_BULLET)
+    list(APPEND LIB
+      extern_bullet
+    )
+  endif()
+
   list(APPEND LIB
     bf_intern_rigidbody
-    extern_bullet
 
     ${BULLET_LIBRARIES}
   )

@@ -649,6 +649,16 @@ void RB_body_get_orientation(rbRigidBody *object, float v_out[4])
   copy_quat_btquat(v_out, body->getWorldTransform().getRotation());
 }
 
+void RB_body_get_scale(rbRigidBody *object, float v_out[3])
+{
+  btRigidBody *body = object->body;
+
+  btCollisionShape *cshape = body->getCollisionShape();
+  /* The body should have a collision shape when we try to set the scale. */
+  btAssert(cshape);
+  copy_v3_btvec3(v_out, cshape->getLocalScaling());
+}
+
 /* ............ */
 /* Overrides for simulation */
 

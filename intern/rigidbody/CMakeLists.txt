@@ -18,6 +18,8 @@
 # All rights reserved.
 # ***** END GPL LICENSE BLOCK *****
 
+add_definitions(-DBT_USE_DOUBLE_PRECISION)
+
 set(INC
   .
 )
@@ -28,7 +30,9 @@ set(INC_SYS
 
 set(SRC
   rb_bullet_api.cpp
+  rb_convex_hull_api.cpp
 
+  RBI_hull_api.h
   RBI_api.h
 )
 
