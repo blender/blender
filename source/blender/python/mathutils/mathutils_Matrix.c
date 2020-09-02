@@ -3301,13 +3301,13 @@ static bool Matrix_ParseCheck(MatrixObject *pymat)
   if (!MatrixObject_Check(pymat)) {
     PyErr_Format(
         PyExc_TypeError, "expected a mathutils.Matrix, not a %.200s", Py_TYPE(pymat)->tp_name);
-    return 0;
+    return false;
   }
   /* sets error */
   if (BaseMath_ReadCallback(pymat) == -1) {
-    return 0;
+    return false;
   }
-  return 1;
+  return true;
 }
 
 int Matrix_ParseAny(PyObject *o, void *p)

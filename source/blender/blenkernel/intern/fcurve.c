@@ -1267,13 +1267,13 @@ void sort_time_fcurve(FCurve *fcu)
 }
 
 /* This function tests if any BezTriples are out of order, thus requiring a sort */
-short test_time_fcurve(FCurve *fcu)
+bool test_time_fcurve(FCurve *fcu)
 {
   unsigned int a;
 
   /* sanity checks */
   if (fcu == NULL) {
-    return 0;
+    return false;
   }
 
   /* currently, only need to test beztriples */
@@ -1283,7 +1283,7 @@ short test_time_fcurve(FCurve *fcu)
     /* loop through all BezTriples, stopping when one exceeds the one after it */
     for (a = 0, bezt = fcu->bezt; a < (fcu->totvert - 1); a++, bezt++) {
       if (bezt->vec[1][0] > (bezt + 1)->vec[1][0]) {
-        return 1;
+        return true;
       }
     }
   }
@@ -1293,13 +1293,13 @@ short test_time_fcurve(FCurve *fcu)
     /* loop through all FPoints, stopping when one exceeds the one after it */
     for (a = 0, fpt = fcu->fpt; a < (fcu->totvert - 1); a++, fpt++) {
       if (fpt->vec[0] > (fpt + 1)->vec[0]) {
-        return 1;
+        return true;
       }
     }
   }
 
   /* none need any swapping */
-  return 0;
+  return false;
 }
 
 /** \} */

@@ -355,12 +355,12 @@ static bool datadropper_poll(bContext *C)
       StructRNA *type = RNA_property_pointer_type(&ptr, prop);
       const short idcode = RNA_type_to_ID_code(type);
       if ((idcode == ID_OB) || OB_DATA_SUPPORT_ID(idcode)) {
-        return 1;
+        return true;
       }
     }
   }
 
-  return 0;
+  return false;
 }
 
 void UI_OT_eyedropper_id(wmOperatorType *ot)

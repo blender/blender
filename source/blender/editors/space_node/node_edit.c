@@ -358,10 +358,10 @@ bool composite_node_active(bContext *C)
   if (ED_operator_node_active(C)) {
     SpaceNode *snode = CTX_wm_space_node(C);
     if (ED_node_is_compositor(snode)) {
-      return 1;
+      return true;
     }
   }
-  return 0;
+  return false;
 }
 
 /* operator poll callback */
@@ -370,10 +370,10 @@ bool composite_node_editable(bContext *C)
   if (ED_operator_node_editable(C)) {
     SpaceNode *snode = CTX_wm_space_node(C);
     if (ED_node_is_compositor(snode)) {
-      return 1;
+      return true;
     }
   }
-  return 0;
+  return false;
 }
 
 void snode_dag_update(bContext *C, SpaceNode *snode)
@@ -1089,21 +1089,21 @@ void NODE_OT_resize(wmOperatorType *ot)
 
 /* ********************** hidden sockets ******************** */
 
-int node_has_hidden_sockets(bNode *node)
+bool node_has_hidden_sockets(bNode *node)
 {
   bNodeSocket *sock;
 
   for (sock = node->inputs.first; sock; sock = sock->next) {
     if (sock->flag & SOCK_HIDDEN) {
-      return 1;
+      return true;
     }
   }
   for (sock = node->outputs.first; sock; sock = sock->next) {
     if (sock->flag & SOCK_HIDDEN) {
-      return 1;
+      return true;
     }
   }
-  return 0;
+  return false;
 }
 
 void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set)

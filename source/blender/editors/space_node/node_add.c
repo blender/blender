@@ -109,12 +109,12 @@ static bool add_reroute_intersect_check(bNodeLink *link,
         if (isect_seg_seg_v2(mcoords[i], mcoords[i + 1], coord_array[b], coord_array[b + 1]) > 0) {
           result[0] = (mcoords[i][0] + mcoords[i + 1][0]) / 2.0f;
           result[1] = (mcoords[i][1] + mcoords[i + 1][1]) / 2.0f;
-          return 1;
+          return true;
         }
       }
     }
   }
-  return 0;
+  return false;
 }
 
 typedef struct bNodeSocketLink {

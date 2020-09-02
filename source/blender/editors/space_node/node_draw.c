@@ -188,7 +188,7 @@ static bool compare_nodes(const bNode *a, const bNode *b)
   for (parent = a->parent; parent; parent = parent->parent) {
     /* if b is an ancestor, it is always behind a */
     if (parent == b) {
-      return 1;
+      return true;
     }
     /* any selected ancestor moves the node forward */
     if (parent->flag & NODE_ACTIVE) {
@@ -201,7 +201,7 @@ static bool compare_nodes(const bNode *a, const bNode *b)
   for (parent = b->parent; parent; parent = parent->parent) {
     /* if a is an ancestor, it is always behind b */
     if (parent == a) {
-      return 0;
+      return false;
     }
     /* any selected ancestor moves the node forward */
     if (parent->flag & NODE_ACTIVE) {
@@ -214,21 +214,21 @@ static bool compare_nodes(const bNode *a, const bNode *b)
 
   /* if one of the nodes is in the background and the other not */
   if ((a->flag & NODE_BACKGROUND) && !(b->flag & NODE_BACKGROUND)) {
-    return 0;
+    return false;
   }
   if (!(a->flag & NODE_BACKGROUND) && (b->flag & NODE_BACKGROUND)) {
-    return 1;
+    return true;
   }
 
   /* if one has a higher selection state (active > selected > nothing) */
   if (!b_active && a_active) {
-    return 1;
+    return true;
   }
   if (!b_select && (a_active || a_select)) {
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 /* Sorts nodes by selection: unselected nodes first, then selected,

@@ -281,9 +281,9 @@ void DM_from_template(DerivedMesh *dm,
 
 /**
  * Utility function to release a DerivedMesh's layers
- * returns 1 if DerivedMesh has to be released by the backend, 0 otherwise.
+ * returns true if DerivedMesh has to be released by the backend, false otherwise.
  */
-int DM_release(DerivedMesh *dm);
+bool DM_release(DerivedMesh *dm);
 
 void DM_set_only_copy(DerivedMesh *dm, const struct CustomData_MeshMasks *mask);
 

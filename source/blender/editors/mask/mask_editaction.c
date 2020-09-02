@@ -122,12 +122,12 @@ bool ED_masklayer_frame_select_check(MaskLayer *mask_layer)
   for (mask_layer_shape = mask_layer->splines_shapes.first; mask_layer_shape;
        mask_layer_shape = mask_layer_shape->next) {
     if (mask_layer_shape->flag & MASK_SHAPE_SELECT) {
-      return 1;
+      return true;
     }
   }
 
   /* not found */
-  return 0;
+  return false;
 }
 
 /* helper function - select mask-frame based on SELECT_* mode */

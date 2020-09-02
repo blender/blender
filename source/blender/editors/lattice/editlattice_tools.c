@@ -58,7 +58,7 @@ static bool make_regular_poll(bContext *C)
   Object *ob;
 
   if (ED_operator_editlattice(C)) {
-    return 1;
+    return true;
   }
 
   ob = CTX_data_active_object(C);

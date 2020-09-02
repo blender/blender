@@ -10988,11 +10988,11 @@ bool UI_but_active_drop_name(bContext *C)
 
   if (but) {
     if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
-      return 1;
+      return true;
     }
   }
 
-  return 0;
+  return false;
 }
 
 bool UI_but_active_drop_color(bContext *C)

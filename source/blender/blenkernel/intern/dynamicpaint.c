@@ -4276,12 +4276,12 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(
   }
 }
 
-static int dynamicPaint_paintMesh(Depsgraph *depsgraph,
-                                  DynamicPaintSurface *surface,
-                                  DynamicPaintBrushSettings *brush,
-                                  Object *brushOb,
-                                  Scene *scene,
-                                  float timescale)
+static bool dynamicPaint_paintMesh(Depsgraph *depsgraph,
+                                   DynamicPaintSurface *surface,
+                                   DynamicPaintBrushSettings *brush,
+                                   Object *brushOb,
+                                   Scene *scene,
+                                   float timescale)
 {
   PaintSurfaceData *sData = surface->data;
   PaintBakeData *bData = sData->bData;
@@ -4298,7 +4298,7 @@ static int dynamicPaint_paintMesh(Depsgraph *depsgraph,
 
   Mesh *brush_mesh = dynamicPaint_brush_mesh_get(brush);
   if (brush_mesh == NULL) {
-    return 0;
+    return false;
   }
 
   {
@@ -4395,7 +4395,7 @@ static int dynamicPaint_paintMesh(Depsgraph *depsgraph,
     MEM_freeN(brushVelocity);
   }
 
-  return 1;
+  return true;
 }
 
 /*
@@ -4576,10 +4576,10 @@ static void dynamic_paint_paint_particle_cell_point_cb_ex(
   }
 }
 
-static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
-                                       ParticleSystem *psys,
-                                       DynamicPaintBrushSettings *brush,
-                                       float timescale)
+static bool dynamicPaint_paintParticles(DynamicPaintSurface *surface,
+                                        ParticleSystem *psys,
+                                        DynamicPaintBrushSettings *brush,
+                                        float timescale)
 {
   ParticleSettings *part = psys->part;
   PaintSurfaceData *sData = surface->data;
@@ -4601,7 +4601,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
   Bounds3D part_bb = {{0}};
 
   if (psys->totpart < 1) {
-    return 1;
+    return true;
   }
 
   /*
@@ -4644,7 +4644,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
   /* If no suitable particles were found, exit */
   if (particlesAdded < 1) {
     BLI_kdtree_3d_free(tree);
-    return 1;
+    return true;
   }
 
   /* only continue if particle bb is close enough to canvas bb */
@@ -4684,7 +4684,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
   }
   BLI_kdtree_3d_free(tree);
 
-  return 1;
+  return true;
 }
 
 /* paint a single point of defined proximity radius to the surface */
@@ -4780,7 +4780,7 @@ static void dynamic_paint_paint_single_point_cb_ex(void *__restrict userdata,
   }
 }
 
-static int dynamicPaint_paintSinglePoint(
+static bool dynamicPaint_paintSinglePoint(
     Depsgraph *depsgraph,
     DynamicPaintSurface *surface,
     /* Cannot be const, because it is assigned to non-const variable.
@@ -4822,7 +4822,7 @@ static int dynamicPaint_paintSinglePoint(
   BLI_task_parallel_range(
       0, sData->total_points, &data, dynamic_paint_paint_single_point_cb_ex, &settings);
 
-  return 1;
+  return true;
 }
 
 /***************************** Dynamic Paint Step / Baking ******************************/
@@ -6057,9 +6057,9 @@ static void dynamic_paint_generate_bake_data_cb(void *__restrict userdata,
   }
 }
 
-static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
-                                         Depsgraph *depsgraph,
-                                         Object *ob)
+static bool dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
+                                          Depsgraph *depsgraph,
+                                          Object *ob)
 {
   PaintSurfaceData *sData = surface->data;
   PaintBakeData *bData = sData->bData;
@@ -6090,14 +6090,14 @@ static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
 
     /* if previous data exists and mesh hasn't moved, no need to recalc */
     if (!surface_moved) {
-      return 1;
+      return true;
     }
   }
 
   canvas_verts = (struct Vec3f *)MEM_mallocN(canvasNumOfVerts * sizeof(struct Vec3f),
                                              "Dynamic Paint transformed canvas verts");
   if (!canvas_verts) {
-    return 0;
+    return false;
   }
 
   /* allocate memory if required */
@@ -6108,7 +6108,7 @@ static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
       if (canvas_verts) {
         MEM_freeN(canvas_verts);
       }
-      return 0;
+      return false;
     }
 
     /* Init bdata */
@@ -6200,7 +6200,7 @@ static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
 
   bData->clear = 0;
 
-  return 1;
+  return true;
 }
 
 /*

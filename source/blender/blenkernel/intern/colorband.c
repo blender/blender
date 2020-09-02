@@ -641,24 +641,22 @@ CBData *BKE_colorband_element_add(struct ColorBand *coba, float position)
   return coba->data + coba->cur;
 }
 
-int BKE_colorband_element_remove(struct ColorBand *coba, int index)
+bool BKE_colorband_element_remove(struct ColorBand *coba, int index)
 {
-  int a;
-
   if (coba->tot < 2) {
-    return 0;
+    return false;
   }
 
   if (index < 0 || index >= coba->tot) {
-    return 0;
+    return false;
   }
 
   coba->tot--;
-  for (a = index; a < coba->tot; a++) {
+  for (int a = index; a < coba->tot; a++) {
     coba->data[a] = coba->data[a + 1];
   }
   if (coba->cur) {
     coba->cur--;
   }
-  return 1;
+  return true;
 }

@@ -496,13 +496,13 @@ static bool view3d_camera_to_view_poll(bContext *C)
     if (v3d && v3d->camera && !ID_IS_LINKED(v3d->camera)) {
       if (rv3d && (RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ANY_TRANSFORM) == 0) {
         if (rv3d->persp != RV3D_CAMOB) {
-          return 1;
+          return true;
         }
       }
     }
   }
 
-  return 0;
+  return false;
 }
 
 void VIEW3D_OT_camera_to_view(wmOperatorType *ot)

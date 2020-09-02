@@ -472,9 +472,9 @@ static bool uv_edge_compare(const void *a, const void *b)
   const UvEdge *edge2 = b;
 
   if ((edge1->uv1 == edge2->uv1) && (edge1->uv2 == edge2->uv2)) {
-    return 0;
+    return false;
   }
-  return 1;
+  return true;
 }
 
 static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wmEvent *event)

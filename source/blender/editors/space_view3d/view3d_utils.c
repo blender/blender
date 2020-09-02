@@ -1077,9 +1077,9 @@ static bool depth_segment_cb(int x, int y, void *userData)
 
   if (depth != FLT_MAX) {
     data->depth = depth;
-    return 0;
+    return false;
   }
-  return 1;
+  return true;
 }
 
 bool ED_view3d_autodist_depth_seg(

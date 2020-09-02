@@ -273,7 +273,7 @@ void calchandles_fcurve(struct FCurve *fcu);
 void calchandles_fcurve_ex(struct FCurve *fcu, eBezTriple_Flag handle_sel_flag);
 void testhandles_fcurve(struct FCurve *fcu, eBezTriple_Flag sel_flag, const bool use_handle);
 void sort_time_fcurve(struct FCurve *fcu);
-short test_time_fcurve(struct FCurve *fcu);
+bool test_time_fcurve(struct FCurve *fcu);
 
 void correct_bezpart(const float v1[2], float v2[2], float v3[2], const float v4[2]);
 

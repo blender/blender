@@ -3766,7 +3766,7 @@ static bool node_link_bezier_handles(View2D *v2d,
   }
   else {
     if (snode == NULL) {
-      return 0;
+      return false;
     }
     copy_v2_v2(vec[0], cursor);
     fromreroute = 0;
@@ -3778,7 +3778,7 @@ static bool node_link_bezier_handles(View2D *v2d,
   }
   else {
     if (snode == NULL) {
-      return 0;
+      return false;
     }
     copy_v2_v2(vec[3], cursor);
     toreroute = 0;
@@ -3791,7 +3791,7 @@ static bool node_link_bezier_handles(View2D *v2d,
     /* Straight line: align all points. */
     mid_v2_v2v2(vec[1], vec[0], vec[3]);
     mid_v2_v2v2(vec[2], vec[1], vec[3]);
-    return 1;
+    return true;
   }
 
   dist = curving * 0.10f * fabsf(vec[0][0] - vec[3][0]);
@@ -3828,13 +3828,13 @@ static bool node_link_bezier_handles(View2D *v2d,
   }
 
   if (v2d && min_ffff(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) > v2d->cur.xmax) {
-    return 0; /* clipped */
+    return false; /* clipped */
   }
   if (v2d && max_ffff(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) < v2d->cur.xmin) {
-    return 0; /* clipped */
+    return false; /* clipped */
   }
 
-  return 1;
+  return true;
 }
 
 /* if v2d not NULL, it clips and returns 0 if not visible */

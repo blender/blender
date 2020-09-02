@@ -749,10 +749,10 @@ static bool sound_poll(bContext *C)
   Editing *ed = CTX_data_scene(C)->ed;
 
   if (!ed || !ed->act_seq || ed->act_seq->type != SEQ_TYPE_SOUND_RAM) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 /********************* pack operator *********************/
 

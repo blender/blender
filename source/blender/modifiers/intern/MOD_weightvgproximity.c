@@ -415,7 +415,7 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
   WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
   /* If no vertex group, bypass. */
   if (wmd->defgrp_name[0] == '\0') {
-    return 1;
+    return true;
   }
   /* If no target object, bypass. */
   return (wmd->proximity_ob_target == NULL);

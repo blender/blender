@@ -270,10 +270,10 @@ static bool space_image_main_area_not_uv_brush_poll(bContext *C)
   ToolSettings *toolsettings = scene->toolsettings;
 
   if (sima && !toolsettings->uvsculpt && (CTX_data_edit_object(C) == NULL)) {
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 /** \} */
@@ -2897,16 +2897,16 @@ static bool image_pack_test(bContext *C, wmOperator *op)
   Image *ima = image_from_context(C);
 
   if (!ima) {
-    return 0;
+    return false;
   }
 
   if (ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE, IMA_SRC_TILED)) {
     BKE_report(
         op->reports, RPT_ERROR, "Packing movies, image sequences or tiled images not supported");
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 static int image_pack_exec(bContext *C, wmOperator *op)

@@ -1207,9 +1207,9 @@ static bool debug_element_compare(const void *a, const void *b)
   const SimDebugElement *elem2 = b;
 
   if (elem1->hash == elem2->hash) {
-    return 0;
+    return false;
   }
-  return 1;
+  return true;
 }
 
 static void debug_element_free(void *val)

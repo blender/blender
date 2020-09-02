@@ -255,13 +255,13 @@ static bool gpencil_primitive_add_poll(bContext *C)
   /* only 3D view */
   ScrArea *area = CTX_wm_area(C);
   if (area && area->spacetype != SPACE_VIEW3D) {
-    return 0;
+    return false;
   }
 
   /* need data to create primitive */
   bGPdata *gpd = CTX_data_gpencil_data(C);
   if (gpd == NULL) {
-    return 0;
+    return false;
   }
 
   /* only in edit and paint modes
@@ -271,7 +271,7 @@ static bool gpencil_primitive_add_poll(bContext *C)
    */
   if ((gpd->flag & (GP_DATA_STROKE_PAINTMODE | GP_DATA_STROKE_EDITMODE)) == 0) {
     CTX_wm_operator_poll_msg_set(C, "Primitives can only be added in Draw or Edit modes");
-    return 0;
+    return false;
   }
 
   /* don't allow operator to function if the active layer is locked/hidden
@@ -281,10 +281,10 @@ static bool gpencil_primitive_add_poll(bContext *C)
   if ((gpl) && (gpl->flag & (GP_LAYER_LOCKED | GP_LAYER_HIDE))) {
     CTX_wm_operator_poll_msg_set(C,
                                  "Primitives cannot be added as active layer is locked or hidden");
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 /* Allocate memory to stroke, adds MAX_EDGES on every call */

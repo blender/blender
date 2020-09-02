@@ -72,7 +72,7 @@
 
 /* -------------- */
 
-static int graph_panel_context(const bContext *C, bAnimListElem **ale, FCurve **fcu)
+static bool graph_panel_context(const bContext *C, bAnimListElem **ale, FCurve **fcu)
 {
   bAnimContext ac;
   bAnimListElem *elem = NULL;
@@ -83,13 +83,13 @@ static int graph_panel_context(const bContext *C, bAnimListElem **ale, FCurve **
    * There's no point showing empty panels?
    */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
-    return 0;
+    return false;
   }
 
   /* try to find 'active' F-Curve */
   elem = get_active_fcurve_channel(&ac);
   if (elem == NULL) {
-    return 0;
+    return false;
   }
 
   if (fcu) {
@@ -102,7 +102,7 @@ static int graph_panel_context(const bContext *C, bAnimListElem **ale, FCurve **
     MEM_freeN(elem);
   }
 
-  return 1;
+  return true;
 }
 
 static bool graph_panel_poll(const bContext *C, PanelType *UNUSED(pt))
@@ -235,7 +235,7 @@ static void graph_panel_properties(const bContext *C, Panel *panel)
 /* ******************* active Keyframe ************** */
 
 /* get 'active' keyframe for panel editing */
-static short get_active_fcurve_keyframe_edit(FCurve *fcu, BezTriple **bezt, BezTriple **prevbezt)
+static bool get_active_fcurve_keyframe_edit(FCurve *fcu, BezTriple **bezt, BezTriple **prevbezt)
 {
   BezTriple *b;
   int i;
@@ -245,7 +245,7 @@ static short get_active_fcurve_keyframe_edit(FCurve *fcu, BezTriple **bezt, BezT
 
   /* sanity checks */
   if ((fcu->bezt == NULL) || (fcu->totvert == 0)) {
-    return 0;
+    return false;
   }
 
   /* find first selected keyframe for now, and call it the active one
@@ -261,12 +261,12 @@ static short get_active_fcurve_keyframe_edit(FCurve *fcu, BezTriple **bezt, BezT
       *prevbezt = (i > 0) ? b - 1 : b;
       *bezt = b;
 
-      return 1;
+      return true;
     }
   }
 
   /* not found */
-  return 0;
+  return false;
 }
 
 /* update callback for active keyframe properties - base updates stuff */

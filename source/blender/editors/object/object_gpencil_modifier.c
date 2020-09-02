@@ -117,7 +117,7 @@ static bool gpencil_object_modifier_remove(Main *bmain,
    * get called twice on same modifier, so make
    * sure it is in list. */
   if (BLI_findindex(&ob->greasepencil_modifiers, md) == -1) {
-    return 0;
+    return false;
   }
 
   DEG_relations_tag_update(bmain);
@@ -126,7 +126,7 @@ static bool gpencil_object_modifier_remove(Main *bmain,
   BKE_gpencil_modifier_free(md);
   BKE_object_free_derived_caches(ob);
 
-  return 1;
+  return true;
 }
 
 bool ED_object_gpencil_modifier_remove(ReportList *reports,
@@ -141,13 +141,13 @@ bool ED_object_gpencil_modifier_remove(ReportList *reports,
 
   if (!ok) {
     BKE_reportf(reports, RPT_ERROR, "Modifier '%s' not in object '%s'", md->name, ob->id.name);
-    return 0;
+    return false;
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   DEG_relations_tag_update(bmain);
 
-  return 1;
+  return true;
 }
 
 void ED_object_gpencil_modifier_clear(Main *bmain, Object *ob)

@@ -366,7 +366,7 @@ static void rna_ColorRampElement_remove(struct ColorBand *coba,
 {
   CBData *element = element_ptr->data;
   int index = (int)(element - coba->data);
-  if (BKE_colorband_element_remove(coba, index) == false) {
+  if (!BKE_colorband_element_remove(coba, index)) {
     BKE_report(reports, RPT_ERROR, "Element not found in element collection or last element");
     return;
   }

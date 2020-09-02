@@ -207,9 +207,9 @@ static int driverdropper_exec(bContext *C, wmOperator *op)
 static bool driverdropper_poll(bContext *C)
 {
   if (!CTX_wm_window(C)) {
-    return 0;
+    return false;
   }
-  return 1;
+  return true;
 }
 
 void UI_OT_eyedropper_driver(wmOperatorType *ot)

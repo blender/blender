@@ -397,13 +397,13 @@ bool ED_object_modifier_remove(
 
   if (!ok) {
     BKE_reportf(reports, RPT_ERROR, "Modifier '%s' not in object '%s'", md->name, ob->id.name);
-    return 0;
+    return false;
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   DEG_relations_tag_update(bmain);
 
-  return 1;
+  return true;
 }
 
 void ED_object_modifier_clear(Main *bmain, Scene *scene, Object *ob)
@@ -513,13 +513,13 @@ bool ED_object_modifier_move_to_index(ReportList *reports,
   return true;
 }
 
-int ED_object_modifier_convert(ReportList *UNUSED(reports),
-                               Main *bmain,
-                               Depsgraph *depsgraph,
-                               Scene *scene,
-                               ViewLayer *view_layer,
-                               Object *ob,
-                               ModifierData *md)
+bool ED_object_modifier_convert(ReportList *UNUSED(reports),
+                                Main *bmain,
+                                Depsgraph *depsgraph,
+                                Scene *scene,
+                                ViewLayer *view_layer,
+                                Object *ob,
+                                ModifierData *md)
 {
   Object *obn;
   ParticleSystem *psys_orig, *psys_eval;
@@ -533,21 +533,21 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports),
   int totpart = 0, totchild = 0;
 
   if (md->type != eModifierType_ParticleSystem) {
-    return 0;
+    return false;
   }
   if (ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
-    return 0;
+    return false;
   }
 
   psys_orig = ((ParticleSystemModifierData *)md)->psys;
   part = psys_orig->part;
 
   if (part->ren_as != PART_DRAW_PATH) {
-    return 0;
+    return false;
   }
   psys_eval = psys_eval_get(depsgraph, ob, psys_orig);
   if (psys_eval->pathcache == NULL) {
-    return 0;
+    return false;
   }
 
   totpart = psys_eval->totcached;
@@ -579,7 +579,7 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports),
   }
 
   if (totvert == 0) {
-    return 0;
+    return false;
   }
 
   /* add new mesh */
@@ -637,7 +637,7 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports),
 
   DEG_relations_tag_update(bmain);
 
-  return 1;
+  return true;
 }
 
 /* Gets mesh for the modifier which corresponds to an evaluated state. */

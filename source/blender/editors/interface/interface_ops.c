@@ -91,11 +91,11 @@ static bool copy_data_path_button_poll(bContext *C)
 
     if (path) {
       MEM_freeN(path);
-      return 1;
+      return true;
     }
   }
 
-  return 0;
+  return false;
 }
 
 static int copy_data_path_button_exec(bContext *C, wmOperator *op)
@@ -182,11 +182,11 @@ static bool copy_as_driver_button_poll(bContext *C)
 
     if (path) {
       MEM_freeN(path);
-      return 1;
+      return true;
     }
   }
 
-  return 0;
+  return false;
 }
 
 static int copy_as_driver_button_exec(bContext *C, wmOperator *op)

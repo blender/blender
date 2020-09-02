@@ -40,7 +40,7 @@ struct ColorBand *BKE_colorband_add(bool rangetype);
 bool BKE_colorband_evaluate(const struct ColorBand *coba, float in, float out[4]);
 void BKE_colorband_evaluate_table_rgba(const struct ColorBand *coba, float **array, int *size);
 struct CBData *BKE_colorband_element_add(struct ColorBand *coba, float position);
-int BKE_colorband_element_remove(struct ColorBand *coba, int index);
+bool BKE_colorband_element_remove(struct ColorBand *coba, int index);
 void BKE_colorband_update_sort(struct ColorBand *coba);
 
 #ifdef __cplusplus

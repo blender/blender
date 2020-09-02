@@ -311,10 +311,10 @@ void BKE_object_handle_update_ex(struct Depsgraph *depsgraph,
 
 void BKE_object_sculpt_data_create(struct Object *ob);
 
-int BKE_object_obdata_texspace_get(struct Object *ob,
-                                   short **r_texflag,
-                                   float **r_loc,
-                                   float **r_size);
+bool BKE_object_obdata_texspace_get(struct Object *ob,
+                                    short **r_texflag,
+                                    float **r_loc,
+                                    float **r_size);
 
 struct Mesh *BKE_object_get_evaluated_mesh(struct Object *object);
 struct Mesh *BKE_object_get_pre_modified_mesh(struct Object *object);

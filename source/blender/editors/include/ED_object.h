@@ -381,7 +381,7 @@ bool ED_object_modifier_move_to_index(struct ReportList *reports,
                                       struct ModifierData *md,
                                       const int index);
 
-int ED_object_modifier_convert(struct ReportList *reports,
+bool ED_object_modifier_convert(struct ReportList *reports,
                                struct Main *bmain,
                                struct Depsgraph *depsgraph,
                                struct Scene *scene,

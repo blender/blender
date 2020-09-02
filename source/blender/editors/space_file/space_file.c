@@ -662,10 +662,10 @@ static bool filepath_drop_poll(bContext *C,
   if (drag->type == WM_DRAG_PATH) {
     SpaceFile *sfile = CTX_wm_space_file(C);
     if (sfile) {
-      return 1;
+      return true;
     }
   }
-  return 0;
+  return false;
 }
 
 static void filepath_drop_copy(wmDrag *drag, wmDropBox *drop)

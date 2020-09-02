@@ -162,10 +162,10 @@ typedef struct LayerTypeInfo {
   void (*copyvalue)(const void *source, void *dest, const int mixmode, const float mixfactor);
 
   /** a function to read data from a cdf file */
-  int (*read)(CDataFile *cdf, void *data, int count);
+  bool (*read)(CDataFile *cdf, void *data, int count);
 
   /** a function to write data to a cdf file */
-  int (*write)(CDataFile *cdf, const void *data, int count);
+  bool (*write)(CDataFile *cdf, const void *data, int count);
 
   /** a function to determine file size */
   size_t (*filesize)(CDataFile *cdf, const void *data, int count);
@@ -659,12 +659,11 @@ static void layerFree_mdisps(void *data, int count, int UNUSED(size))
   }
 }
 
-static int layerRead_mdisps(CDataFile *cdf, void *data, int count)
+static bool layerRead_mdisps(CDataFile *cdf, void *data, int count)
 {
   MDisps *d = data;
-  int i;
 
-  for (i = 0; i < count; i++) {
+  for (int i = 0; i < count; i++) {
     if (!d[i].disps) {
       d[i].disps = MEM_calloc_arrayN(d[i].totdisp, sizeof(float[3]), "mdisps read");
     }
@@ -675,22 +674,21 @@ static int layerRead_mdisps(CDataFile *cdf, void *data, int count)
     }
   }
 
-  return 1;
+  return true;
 }
 
-static int layerWrite_mdisps(CDataFile *cdf, const void *data, int count)
+static bool layerWrite_mdisps(CDataFile *cdf, const void *data, int count)
 {
   const MDisps *d = data;
-  int i;
 
-  for (i = 0; i < count; i++) {
+  for (int i = 0; i < count; i++) {
     if (!cdf_write_data(cdf, sizeof(float[3]) * d[i].totdisp, d[i].disps)) {
       CLOG_ERROR(&LOG, "failed to write multires displacement %d/%d %d", i, count, d[i].totdisp);
       return 0;
     }
   }
 
-  return 1;
+  return true;
 }
 
 static size_t layerFilesize_mdisps(CDataFile *UNUSED(cdf), const void *data, int count)
@@ -2594,12 +2592,12 @@ void CustomData_clear_layer_flag(struct CustomData *data, int type, int flag)
   }
 }
 
-static int customData_resize(CustomData *data, int amount)
+static bool customData_resize(CustomData *data, int amount)
 {
   CustomDataLayer *tmp = MEM_calloc_arrayN(
       (data->maxlayer + amount), sizeof(*tmp), "CustomData->layers");
   if (!tmp) {
-    return 0;
+    return false;
   }
 
   data->maxlayer += amount;
@@ -2609,7 +2607,7 @@ static int customData_resize(CustomData *data, int amount)
   }
   data->layers = tmp;
 
-  return 1;
+  return true;
 }
 
 static CustomDataLayer *customData_add_layer__internal(CustomData *data,
