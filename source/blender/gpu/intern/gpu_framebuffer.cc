@@ -86,7 +86,7 @@ void FrameBuffer::attachment_set(GPUAttachmentType type, const GPUAttachment &ne
     return; /* GPU_ATTACHMENT_LEAVE */
   }
 
-  if (type >= GPU_FB_MAX_ATTACHEMENT) {
+  if (type >= GPU_FB_MAX_ATTACHMENT) {
     fprintf(stderr,
             "GPUFramebuffer: Error: Trying to attach texture to type %d but maximum slot is %d.\n",
             type - GPU_FB_COLOR_ATTACHMENT0,
@@ -290,38 +290,38 @@ bool GPU_framebuffer_check_valid(GPUFrameBuffer *gpu_fb, char err_out[256])
   return reinterpret_cast<FrameBuffer *>(gpu_fb)->check(err_out);
 }
 
-void GPU_framebuffer_texture_attach_ex(GPUFrameBuffer *gpu_fb, GPUAttachment attachement, int slot)
+void GPU_framebuffer_texture_attach_ex(GPUFrameBuffer *gpu_fb, GPUAttachment attachment, int slot)
 {
-  GPUAttachmentType type = blender::gpu::Texture::attachment_type(attachement.tex, slot);
-  reinterpret_cast<FrameBuffer *>(gpu_fb)->attachment_set(type, attachement);
+  GPUAttachmentType type = blender::gpu::Texture::attachment_type(attachment.tex, slot);
+  reinterpret_cast<FrameBuffer *>(gpu_fb)->attachment_set(type, attachment);
 }
 
 void GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot, int mip)
 {
-  GPUAttachment attachement = GPU_ATTACHMENT_TEXTURE_MIP(tex, mip);
-  GPU_framebuffer_texture_attach_ex(fb, attachement, slot);
+  GPUAttachment attachment = GPU_ATTACHMENT_TEXTURE_MIP(tex, mip);
+  GPU_framebuffer_texture_attach_ex(fb, attachment, slot);
 }
 
 void GPU_framebuffer_texture_layer_attach(
     GPUFrameBuffer *fb, GPUTexture *tex, int slot, int layer, int mip)
 {
-  GPUAttachment attachement = GPU_ATTACHMENT_TEXTURE_LAYER_MIP(tex, layer, mip);
-  GPU_framebuffer_texture_attach_ex(fb, attachement, slot);
+  GPUAttachment attachment = GPU_ATTACHMENT_TEXTURE_LAYER_MIP(tex, layer, mip);
+  GPU_framebuffer_texture_attach_ex(fb, attachment, slot);
 }
 
 void GPU_framebuffer_texture_cubeface_attach(
     GPUFrameBuffer *fb, GPUTexture *tex, int slot, int face, int mip)
 {
-  GPUAttachment attachement = GPU_ATTACHMENT_TEXTURE_CUBEFACE_MIP(tex, face, mip);
-  GPU_framebuffer_texture_attach_ex(fb, attachement, slot);
+  GPUAttachment attachment = GPU_ATTACHMENT_TEXTURE_CUBEFACE_MIP(tex, face, mip);
+  GPU_framebuffer_texture_attach_ex(fb, attachment, slot);
 }
 
 void GPU_framebuffer_texture_detach(GPUFrameBuffer *gpu_fb, GPUTexture *tex)
 {
-  GPUAttachment attachement = GPU_ATTACHMENT_NONE;
-  int type = GPU_texture_framebuffer_attachement_get(tex, gpu_fb);
+  GPUAttachment attachment = GPU_ATTACHMENT_NONE;
+  int type = GPU_texture_framebuffer_attachment_get(tex, gpu_fb);
   if (type != -1) {
-    reinterpret_cast<FrameBuffer *>(gpu_fb)->attachment_set((GPUAttachmentType)type, attachement);
+    reinterpret_cast<FrameBuffer *>(gpu_fb)->attachment_set((GPUAttachmentType)type, attachment);
   }
   else {
     BLI_assert(!"Error: Texture: Framebuffer is not attached");
@@ -340,27 +340,27 @@ void GPU_framebuffer_config_array(GPUFrameBuffer *gpu_fb,
 {
   FrameBuffer *fb = reinterpret_cast<FrameBuffer *>(gpu_fb);
 
-  const GPUAttachment &depth_attachement = config[0];
+  const GPUAttachment &depth_attachment = config[0];
   Span<GPUAttachment> color_attachments(config + 1, config_len - 1);
 
-  if (depth_attachement.mip == -1) {
+  if (depth_attachment.mip == -1) {
     /* GPU_ATTACHMENT_LEAVE */
   }
-  else if (depth_attachement.tex == NULL) {
+  else if (depth_attachment.tex == NULL) {
     /* GPU_ATTACHMENT_NONE: Need to clear both targets. */
-    fb->attachment_set(GPU_FB_DEPTH_STENCIL_ATTACHMENT, depth_attachement);
-    fb->attachment_set(GPU_FB_DEPTH_ATTACHMENT, depth_attachement);
+    fb->attachment_set(GPU_FB_DEPTH_STENCIL_ATTACHMENT, depth_attachment);
+    fb->attachment_set(GPU_FB_DEPTH_ATTACHMENT, depth_attachment);
   }
   else {
-    GPUAttachmentType type = GPU_texture_stencil(depth_attachement.tex) ?
+    GPUAttachmentType type = GPU_texture_stencil(depth_attachment.tex) ?
                                  GPU_FB_DEPTH_STENCIL_ATTACHMENT :
                                  GPU_FB_DEPTH_ATTACHMENT;
-    fb->attachment_set(type, depth_attachement);
+    fb->attachment_set(type, depth_attachment);
   }
 
   GPUAttachmentType type = GPU_FB_COLOR_ATTACHMENT0;
-  for (const GPUAttachment &attachement : color_attachments) {
-    fb->attachment_set(type, attachement);
+  for (const GPUAttachment &attachment : color_attachments) {
+    fb->attachment_set(type, attachment);
     ++type;
   }
 }

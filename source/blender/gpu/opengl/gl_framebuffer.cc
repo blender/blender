@@ -168,9 +168,9 @@ void GLFrameBuffer::update_attachments(void)
 
   /* First color texture OR the depth texture if no color is attached.
    * Used to determine frame-buffer color-space and dimensions. */
-  GPUAttachmentType first_attachment = GPU_FB_MAX_ATTACHEMENT;
+  GPUAttachmentType first_attachment = GPU_FB_MAX_ATTACHMENT;
   /* NOTE: Inverse iteration to get the first color texture. */
-  for (GPUAttachmentType type = GPU_FB_MAX_ATTACHEMENT - 1; type >= 0; --type) {
+  for (GPUAttachmentType type = GPU_FB_MAX_ATTACHMENT - 1; type >= 0; --type) {
     GPUAttachment &attach = attachments_[type];
     GLenum gl_attachment = to_gl(type);
 
@@ -178,7 +178,7 @@ void GLFrameBuffer::update_attachments(void)
       gl_attachments_[type - GPU_FB_COLOR_ATTACHMENT0] = (attach.tex) ? gl_attachment : GL_NONE;
       first_attachment = (attach.tex) ? type : first_attachment;
     }
-    else if (first_attachment == GPU_FB_MAX_ATTACHEMENT) {
+    else if (first_attachment == GPU_FB_MAX_ATTACHMENT) {
       /* Only use depth texture to get information if there is no color attachment. */
       first_attachment = (attach.tex) ? type : first_attachment;
     }
@@ -226,7 +226,7 @@ void GLFrameBuffer::update_attachments(void)
     }
   }
 
-  if (first_attachment != GPU_FB_MAX_ATTACHEMENT) {
+  if (first_attachment != GPU_FB_MAX_ATTACHMENT) {
     GPUAttachment &attach = attachments_[first_attachment];
     int size[3];
     GPU_texture_get_mipmap_size(attach.tex, attach.mip, size);
@@ -371,7 +371,7 @@ void GLFrameBuffer::clear_multi(const float (*clear_cols)[4])
    * all attachments.
    * TODO(fclem) fix this insecurity? */
   int type = GPU_FB_COLOR_ATTACHMENT0;
-  for (int i = 0; type < GPU_FB_MAX_ATTACHEMENT; i++, type++) {
+  for (int i = 0; type < GPU_FB_MAX_ATTACHMENT; i++, type++) {
     if (attachments_[type].tex != NULL) {
       glClearBufferfv(GL_COLOR, i, clear_cols[i]);
     }

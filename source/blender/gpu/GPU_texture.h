@@ -278,7 +278,7 @@ void GPU_texture_swizzle_set(GPUTexture *tex, const char swizzle[4]);
 /* TODO should be private internal functions. */
 void GPU_texture_attach_framebuffer(GPUTexture *tex, struct GPUFrameBuffer *fb, int attachment);
 void GPU_texture_detach_framebuffer(GPUTexture *tex, struct GPUFrameBuffer *fb);
-int GPU_texture_framebuffer_attachement_get(GPUTexture *tex, struct GPUFrameBuffer *fb);
+int GPU_texture_framebuffer_attachment_get(GPUTexture *tex, struct GPUFrameBuffer *fb);
 
 int GPU_texture_target(const GPUTexture *tex);
 int GPU_texture_width(const GPUTexture *tex);

@@ -2149,7 +2149,7 @@ void GPU_texture_detach_framebuffer(GPUTexture *tex, GPUFrameBuffer *fb)
 }
 
 /* Return attachment type for the given framebuffer or -1 if not attached. */
-int GPU_texture_framebuffer_attachement_get(GPUTexture *tex, GPUFrameBuffer *fb)
+int GPU_texture_framebuffer_attachment_get(GPUTexture *tex, GPUFrameBuffer *fb)
 {
   for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; i++) {
     if (tex->fb[i] == fb) {
