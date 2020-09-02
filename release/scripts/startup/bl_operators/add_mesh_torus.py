@@ -149,7 +149,7 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
         default=12,
     )
     mode: EnumProperty(
-        name="Torus Dimensions",
+        name="Dimensions Mode",
         items=(
             ('MAJOR_MINOR', "Major/Minor",
              "Use the major/minor radii for torus dimensions"),
@@ -204,47 +204,30 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
     def draw(self, _context):
         layout = self.layout
 
-        col = layout.column(align=True)
-        col.prop(self, "generate_uvs")
-        col.separator()
-        col.prop(self, "align")
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
-        col = layout.column(align=True)
-        col.label(text="Location")
-        col.prop(self, "location", text="")
+        layout.separator()
 
-        col = layout.column(align=True)
-        col.label(text="Rotation")
-        col.prop(self, "rotation", text="")
+        layout.prop(self, "major_segments")
+        layout.prop(self, "minor_segments")
 
-        col = layout.column(align=True)
-        col.label(text="Major Segments")
-        col.prop(self, "major_segments", text="")
+        layout.separator()
 
-        col = layout.column(align=True)
-        col.label(text="Minor Segments")
-        col.prop(self, "minor_segments", text="")
-
-        col = layout.column(align=True)
-        col.label(text="Torus Dimensions")
-        col.row().prop(self, "mode", expand=True)
-
+        layout.prop(self, "mode")
         if self.mode == 'MAJOR_MINOR':
-            col = layout.column(align=True)
-            col.label(text="Major Radius")
-            col.prop(self, "major_radius", text="")
-
-            col = layout.column(align=True)
-            col.label(text="Minor Radius")
-            col.prop(self, "minor_radius", text="")
+            layout.prop(self, "major_radius")
+            layout.prop(self, "minor_radius")
         else:
-            col = layout.column(align=True)
-            col.label(text="Exterior Radius")
-            col.prop(self, "abso_major_rad", text="")
+            layout.prop(self, "abso_major_rad")
+            layout.prop(self, "abso_minor_rad")
 
-            col = layout.column(align=True)
-            col.label(text="Interior Radius")
-            col.prop(self, "abso_minor_rad", text="")
+        layout.separator()
+
+        layout.prop(self, "generate_uvs")
+        layout.prop(self, "align")
+        layout.prop(self, "location")
+        layout.prop(self, "rotation")
 
     def invoke(self, context, _event):
         object_utils.object_add_grid_scale_apply_operator(self, context)
