@@ -1305,7 +1305,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 
   LRESULT lResult = 0;
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
+#ifdef WITH_INPUT_IME
   GHOST_EventManager *eventManager = system->getEventManager();
+#endif
   GHOST_ASSERT(system, "GHOST_SystemWin32::s_wndProc(): system not initialized");
 
   if (hwnd) {
