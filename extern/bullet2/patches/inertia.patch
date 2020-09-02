@@ -1,0 +1,113 @@
+From 1b4c1687748bafd3c521f454bfdfc89b3857b65e Mon Sep 17 00:00:00 2001
+From: David Vogel <Dadido3@aol.com>
+Date: Mon, 30 Mar 2020 19:45:23 +0200
+Subject: [PATCH 1/2] Fix inertia and margin calculation for
+ btPolyhedralConvexShape
+
+---
+ .../CollisionShapes/btPolyhedralConvexShape.cpp    | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/src/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp b/src/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp
+index 521ecfc760..e4bd7bb4d5 100644
+--- a/src/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp
++++ b/src/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp
+@@ -463,17 +463,17 @@ void btPolyhedralConvexShape::calculateLocalInertia(btScalar mass, btVector3& in
+ #ifndef __SPU__
+ 	//not yet, return box inertia
+ 
+-	btScalar margin = getMargin();
++	//btScalar margin = getMargin();
+ 
+ 	btTransform ident;
+ 	ident.setIdentity();
+ 	btVector3 aabbMin, aabbMax;
+-	getAabb(ident, aabbMin, aabbMax);
++	getAabb(ident, aabbMin, aabbMax);  // This already contains the margin
+ 	btVector3 halfExtents = (aabbMax - aabbMin) * btScalar(0.5);
+ 
+-	btScalar lx = btScalar(2.) * (halfExtents.x() + margin);
+-	btScalar ly = btScalar(2.) * (halfExtents.y() + margin);
+-	btScalar lz = btScalar(2.) * (halfExtents.z() + margin);
++	btScalar lx = btScalar(2.) * (halfExtents.x());
++	btScalar ly = btScalar(2.) * (halfExtents.y());
++	btScalar lz = btScalar(2.) * (halfExtents.z());
+ 	const btScalar x2 = lx * lx;
+ 	const btScalar y2 = ly * ly;
+ 	const btScalar z2 = lz * lz;
+@@ -529,8 +529,8 @@ void btPolyhedralConvexAabbCachingShape::recalcLocalAabb()
+ 
+ 	for (int i = 0; i < 3; ++i)
+ 	{
+-		m_localAabbMax[i] = _supporting[i][i] + m_collisionMargin;
+-		m_localAabbMin[i] = _supporting[i + 3][i] - m_collisionMargin;
++		m_localAabbMax[i] = _supporting[i][i];
++		m_localAabbMin[i] = _supporting[i + 3][i];
+ 	}
+ 
+ #else
+
+From 4b9a201d4c1b8cacbcdd68f9cdb55745caa6adc4 Mon Sep 17 00:00:00 2001
+From: David Vogel <Dadido3@aol.com>
+Date: Mon, 30 Mar 2020 20:43:55 +0200
+Subject: [PATCH 2/2]  Fix margins
+
+- Margin in ineratia calculation of btConeShape is already contained in the AABB
+- Remove margin from the cached AABB in btConvexInternalShape, as it is added on getAabb()
+---
+ src/BulletCollision/CollisionShapes/btConeShape.h      | 10 ++++------
+ .../CollisionShapes/btConvexInternalShape.cpp          |  8 ++++----
+ 2 files changed, 8 insertions(+), 10 deletions(-)
+
+diff --git a/src/BulletCollision/CollisionShapes/btConeShape.h b/src/BulletCollision/CollisionShapes/btConeShape.h
+index 49f26bc4e5..ee6786c807 100644
+--- a/src/BulletCollision/CollisionShapes/btConeShape.h
++++ b/src/BulletCollision/CollisionShapes/btConeShape.h
+@@ -56,15 +56,13 @@ btConeShape : public btConvexInternalShape
+ 		btTransform identity;
+ 		identity.setIdentity();
+ 		btVector3 aabbMin, aabbMax;
+-		getAabb(identity, aabbMin, aabbMax);
+ 
++		getAabb(identity, aabbMin, aabbMax);  // This already contains the margin
+ 		btVector3 halfExtents = (aabbMax - aabbMin) * btScalar(0.5);
+ 
+-		btScalar margin = getMargin();
+-
+-		btScalar lx = btScalar(2.) * (halfExtents.x() + margin);
+-		btScalar ly = btScalar(2.) * (halfExtents.y() + margin);
+-		btScalar lz = btScalar(2.) * (halfExtents.z() + margin);
++		btScalar lx = btScalar(2.) * (halfExtents.x());
++		btScalar ly = btScalar(2.) * (halfExtents.y());
++		btScalar lz = btScalar(2.) * (halfExtents.z());
+ 		const btScalar x2 = lx * lx;
+ 		const btScalar y2 = ly * ly;
+ 		const btScalar z2 = lz * lz;
+diff --git a/src/BulletCollision/CollisionShapes/btConvexInternalShape.cpp b/src/BulletCollision/CollisionShapes/btConvexInternalShape.cpp
+index 4d598b1aa2..b847f8f40f 100644
+--- a/src/BulletCollision/CollisionShapes/btConvexInternalShape.cpp
++++ b/src/BulletCollision/CollisionShapes/btConvexInternalShape.cpp
+@@ -117,8 +117,8 @@ void btConvexInternalAabbCachingShape::recalcLocalAabb()
+ 
+ 	for (int i = 0; i < 3; ++i)
+ 	{
+-		m_localAabbMax[i] = _supporting[i][i] + m_collisionMargin;
+-		m_localAabbMin[i] = _supporting[i + 3][i] - m_collisionMargin;
++		m_localAabbMax[i] = _supporting[i][i];
++		m_localAabbMin[i] = _supporting[i + 3][i];
+ 	}
+ 
+ #else
+@@ -128,10 +128,10 @@ void btConvexInternalAabbCachingShape::recalcLocalAabb()
+ 		btVector3 vec(btScalar(0.), btScalar(0.), btScalar(0.));
+ 		vec[i] = btScalar(1.);
+ 		btVector3 tmp = localGetSupportingVertex(vec);
+-		m_localAabbMax[i] = tmp[i] + m_collisionMargin;
++		m_localAabbMax[i] = tmp[i];
+ 		vec[i] = btScalar(-1.);
+ 		tmp = localGetSupportingVertex(vec);
+-		m_localAabbMin[i] = tmp[i] - m_collisionMargin;
++		m_localAabbMin[i] = tmp[i];
+ 	}
+ #endif
+ }
