@@ -2273,9 +2273,12 @@ static float brush_strength(const Sculpt *sd,
     case SCULPT_TOOL_DISPLACEMENT_ERASER:
       return alpha * pressure * overlap * feather;
     case SCULPT_TOOL_CLOTH:
-      if (ELEM(brush->cloth_deform_type, BRUSH_CLOTH_DEFORM_GRAB, BRUSH_CLOTH_DEFORM_SNAKE_HOOK)) {
+      if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB) {
         /* Grab deform uses the same falloff as a regular grab brush. */
         return root_alpha * feather;
+      }
+      else if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_SNAKE_HOOK) {
+        return root_alpha * feather * pressure * overlap;
       }
       else if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_EXPAND) {
         /* Expand is more sensible to strength as it keeps expanding the cloth when sculpting over
