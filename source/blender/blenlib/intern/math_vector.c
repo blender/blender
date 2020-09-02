@@ -706,7 +706,7 @@ void project_v3_v3v3_normalized(float out[3], const float p[3], const float v_pr
 /**
  * In this case plane is a 3D vector only (no 4th component).
  *
- * Projecting will make \a c a copy of \a v orthogonal to \a v_plane.
+ * Projecting will make \a out a copy of \a p orthogonal to \a v_plane.
  *
  * \note If \a v is exactly perpendicular to \a v_plane, \a c will just be a copy of \a v.
  *
