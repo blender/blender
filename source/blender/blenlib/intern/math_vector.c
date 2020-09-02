@@ -708,12 +708,12 @@ void project_v3_v3v3_normalized(float out[3], const float p[3], const float v_pr
  *
  * Projecting will make \a out a copy of \a p orthogonal to \a v_plane.
  *
- * \note If \a v is exactly perpendicular to \a v_plane, \a c will just be a copy of \a v.
+ * \note If \a p is exactly perpendicular to \a v_plane, \a out will just be a copy of \a p.
  *
  * \note This function is a convenience to call:
  * \code{.c}
- * project_v3_v3v3(c, v, v_plane);
- * sub_v3_v3v3(c, v, c);
+ * project_v3_v3v3(out, p, v_plane);
+ * sub_v3_v3v3(out, p, out);
  * \endcode
  */
 void project_plane_v3_v3v3(float out[3], const float p[3], const float v_plane[3])
