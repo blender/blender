@@ -899,7 +899,7 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
       return OPERATOR_CANCELLED;
     }
   }
-  else if (ED_space_image_check_show_maskedit(sima, view_layer)) {
+  else if (ED_space_image_check_show_maskedit(sima, obedit)) {
     if (!ED_mask_selected_minmax(C, min, max)) {
       return OPERATOR_CANCELLED;
     }

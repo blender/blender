@@ -623,7 +623,8 @@ bool ED_operator_mask(bContext *C)
       case SPACE_IMAGE: {
         SpaceImage *sima = area->spacedata.first;
         ViewLayer *view_layer = CTX_data_view_layer(C);
-        return ED_space_image_check_show_maskedit(sima, view_layer);
+        Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+        return ED_space_image_check_show_maskedit(sima, obedit);
       }
     }
   }

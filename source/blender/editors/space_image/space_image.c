@@ -368,10 +368,9 @@ static void image_listener(wmWindow *win, ScrArea *area, wmNotifier *wmn, Scene 
       }
       break;
     case NC_MASK: {
-      // Scene *scene = wmn->window->screen->scene;
-      /* ideally would check for: ED_space_image_check_show_maskedit(scene, sima)
-       * but we cant get the scene */
-      if (sima->mode == SI_MODE_MASK) {
+      ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+      Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+      if (ED_space_image_check_show_maskedit(sima, obedit)) {
         switch (wmn->data) {
           case ND_SELECT:
             ED_area_tag_redraw(area);
