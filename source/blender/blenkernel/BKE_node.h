@@ -446,8 +446,8 @@ void ntreeSetOutput(struct bNodeTree *ntree);
 
 void ntreeFreeCache(struct bNodeTree *ntree);
 
-int ntreeNodeExists(struct bNodeTree *ntree, struct bNode *testnode);
-int ntreeOutputExists(struct bNode *node, struct bNodeSocket *testsock);
+bool ntreeNodeExists(struct bNodeTree *ntree, struct bNode *testnode);
+bool ntreeOutputExists(struct bNode *node, struct bNodeSocket *testsock);
 void ntreeNodeFlagSet(const bNodeTree *ntree, const int flag, const bool enable);
 struct bNodeTree *ntreeLocalize(struct bNodeTree *ntree);
 void ntreeLocalSync(struct bNodeTree *localtree, struct bNodeTree *ntree);
@@ -618,10 +618,10 @@ void nodePositionRelative(struct bNode *from_node,
 void nodePositionPropagate(struct bNode *node);
 
 struct bNode *nodeFindNodebyName(struct bNodeTree *ntree, const char *name);
-int nodeFindNode(struct bNodeTree *ntree,
-                 struct bNodeSocket *sock,
-                 struct bNode **nodep,
-                 int *sockindex);
+bool nodeFindNode(struct bNodeTree *ntree,
+                  struct bNodeSocket *sock,
+                  struct bNode **r_node,
+                  int *r_sockindex);
 struct bNode *nodeFindRootParent(bNode *node);
 
 bool nodeIsChildOf(const bNode *parent, const bNode *child);
