@@ -37,6 +37,7 @@ set(SRC
 )
 
 set(LIB
+  extern_bullet
   ${BULLET_LIBRARIES}
 )
 
