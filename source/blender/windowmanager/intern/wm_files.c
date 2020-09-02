@@ -1982,7 +1982,10 @@ void WM_OT_read_history(wmOperatorType *ot)
 
 static int wm_homefile_read_exec(bContext *C, wmOperator *op)
 {
-  const bool use_factory_settings = (STREQ(op->type->idname, "WM_OT_read_factory_settings"));
+  const bool use_factory_startup_and_userdef = STREQ(op->type->idname,
+                                                     "WM_OT_read_factory_settings");
+  const bool use_factory_settings = use_factory_startup_and_userdef ||
+                                    RNA_boolean_get(op->ptr, "use_factory_startup");
   bool use_userdef = false;
   char filepath_buf[FILE_MAX];
   const char *filepath = NULL;
@@ -2007,10 +2010,12 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
     }
   }
   else {
-    /* always load UI for factory settings (prefs will re-init) */
-    G.fileflags &= ~G_FILE_NO_UI;
-    /* Always load preferences with factory settings. */
-    use_userdef = true;
+    if (use_factory_startup_and_userdef) {
+      /* always load UI for factory settings (prefs will re-init) */
+      G.fileflags &= ~G_FILE_NO_UI;
+      /* Always load preferences with factory settings. */
+      use_userdef = true;
+    }
   }
 
   char app_template_buf[sizeof(U.app_template)];
@@ -2125,6 +2130,12 @@ void WM_OT_read_homefile(wmOperatorType *ot)
 
   /* So the splash can be kept open after loading a file (for templates). */
   prop = RNA_def_boolean(ot->srna, "use_splash", false, "Splash", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
+  /* So scripts can load factory-startup without resetting preferences
+   * (which has other implications such as reloading all add-ons).
+   * Match naming for `--factory-startup` command line argument. */
+  prop = RNA_def_boolean(ot->srna, "use_factory_startup", false, "Factory Startup", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
   read_homefile_props(ot);
