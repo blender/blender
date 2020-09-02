@@ -247,6 +247,8 @@ static void axis_geom_draw(const wmGizmo *gz,
 #ifdef USE_AXIS_FONT
   struct {
     float matrix[4][4];
+    float matrix_m3[3][3];
+    float matrix_m3_invert[3][3];
     int id;
   } font;
 
@@ -254,7 +256,10 @@ static void axis_geom_draw(const wmGizmo *gz,
     font.id = blf_mono_font;
     BLF_disable(font.id, BLF_ROTATION | BLF_SHADOW | BLF_MATRIX | BLF_ASPECT | BLF_WORD_WRAP);
     BLF_color4fv(font.id, axis_black);
-    BLF_size(font.id, 11 * U.dpi_fac, 72);
+    BLF_size(font.id, 12 * U.dpi_fac, 72);
+
+    /* The view matrix is used to position the text.  */
+    BLF_position(font.id, 0, 0, 0);
 
     /* Calculate the inverse of the (matrix_final * matrix_offset).
      * This allows us to use the final location, while reversing the rotation so fonts
@@ -264,7 +269,9 @@ static void axis_geom_draw(const wmGizmo *gz,
     copy_m3_m4(m3, draw_info->matrix_final);
     copy_m3_m4(m3_offset, gz->matrix_offset);
     mul_m3_m3m3(m3, m3, m3_offset);
+    copy_m3_m3(font.matrix_m3_invert, m3);
     invert_m3(m3);
+    copy_m3_m3(font.matrix_m3, m3);
     copy_m4_m3(font.matrix, m3);
   }
 #endif
@@ -441,27 +448,40 @@ static void axis_geom_draw(const wmGizmo *gz,
       /* Axis XYZ Character. */
       if (show_axis_char && (select == false)) {
 #ifdef USE_AXIS_FONT
+        float axis_str_size[2] = {0};
+        const char axis_str[2] = {'X' + axis, 0};
+        BLF_width_and_height(font.id, axis_str, 2, &axis_str_size[0], &axis_str_size[1]);
+
+        /* Calculate pixel aligned location, without this text draws fuzzy. */
+        float v_final_px[3];
+        mul_v3_m3v3(v_final_px, font.matrix_m3_invert, v_final);
+        /* Center the test and pixel align, it's important to round once
+         * otherwise the characters are noticeably not-centered.
+         * If this wasn't an issue we could use #BLF_position to place the text. */
+        v_final_px[0] = roundf(v_final_px[0] - (axis_str_size[0] / 2.0f));
+        v_final_px[1] = roundf(v_final_px[1] - (axis_str_size[1] / 2.0f));
+        mul_m3_v3(font.matrix_m3, v_final_px);
+
         immUnbindProgram();
 
         GPU_matrix_push();
-        GPU_matrix_translate_3fv(v_final);
+        GPU_matrix_translate_3fv(v_final_px);
         GPU_matrix_mul(font.matrix);
 
-        const char axis_str[2] = {'X' + axis, 0};
-        float offset[2] = {0};
-        BLF_width_and_height(font.id, axis_str, 2, &offset[0], &offset[1]);
-        BLF_position(font.id, roundf(offset[0] * -0.5f), roundf(offset[1] * -0.5f), 0);
         BLF_draw_ascii(font.id, axis_str, 2);
         GPU_blend(GPU_BLEND_ALPHA); /* XXX, blf disables */
         GPU_matrix_pop();
 
         immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 #else
+        immUnbindProgram();
+        immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
         GPU_line_width(1.0f);
         float m3[3][3];
         copy_m3_m4(m3, gz->matrix_offset);
         immUniformColor4fv(axis_black);
         draw_xyz_wire(pos_id, m3, v_final, 1.0, axis);
+        immUnbindProgram();
 #endif
       }
     }

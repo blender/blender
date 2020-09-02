@@ -298,8 +298,8 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *g
 
   if (show_rotate_gizmo) {
     gz = navgroup->gz_array[GZ_INDEX_ROTATE];
-    gz->matrix_basis[3][0] = co_rotate[0];
-    gz->matrix_basis[3][1] = co_rotate[1];
+    gz->matrix_basis[3][0] = roundf(co_rotate[0]);
+    gz->matrix_basis[3][1] = roundf(co_rotate[1]);
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
   }
 
