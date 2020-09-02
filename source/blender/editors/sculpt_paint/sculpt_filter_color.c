@@ -228,7 +228,7 @@ static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent 
     return OPERATOR_RUNNING_MODAL;
   }
 
-  float len = event->prevclickx - event->mval[0];
+  const float len = event->prevclickx - event->x;
   filter_strength = filter_strength * -len * 0.001f;
 
   float fill_color[3];
