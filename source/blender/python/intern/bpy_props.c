@@ -93,13 +93,13 @@ static const EnumPropertyItem property_flag_override_items[] = {
      "LIBRARY_OVERRIDABLE",
      0,
      "Library Overridable",
-     "Allow that property to be overridable from library linked data-blocks"},
+     "Make that property editable in library overrides of linked data-blocks"},
     {0, NULL, 0, NULL, NULL},
 };
 
 #define BPY_PROPDEF_OPTIONS_OVERRIDE_DOC \
-  "   :arg options: Enumerator in ['LIBRARY_OVERRIDE'].\n" \
-  "   :type options: set\n"
+  "   :arg override: Enumerator in ['LIBRARY_OVERRIDABLE'].\n" \
+  "   :type override: set\n"
 
 static const EnumPropertyItem property_flag_override_collection_items[] = {
     {PROPOVERRIDE_OVERRIDABLE_LIBRARY,
@@ -116,8 +116,8 @@ static const EnumPropertyItem property_flag_override_collection_items[] = {
 };
 
 #define BPY_PROPDEF_OPTIONS_OVERRIDE_COLLECTION_DOC \
-  "   :arg options: Enumerator in ['LIBRARY_OVERRIDE', 'NO_PROPERTY_NAME'].\n" \
-  "   :type options: set\n"
+  "   :arg override: Enumerator in ['LIBRARY_OVERRIDABLE', 'NO_PROPERTY_NAME'].\n" \
+  "   :type override: set\n"
 
 /* subtypes */
 /* XXX Keep in sync with rna_rna.c's rna_enum_property_subtype_items ???
