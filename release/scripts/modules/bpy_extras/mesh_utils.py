@@ -268,7 +268,8 @@ def ngon_tessellate(from_data, indices, fix_loops=True, debug_print=True):
         # Manhatten length of a vector, faster then length.
         return abs(co[0]) + abs(co[1]) + abs(co[2])
 
-    def vert_treplet(v, i):
+    def vert_from_vector_with_extra_data(v, i):
+        # Calculate data per-vector, for reuse.
         return v, vector_to_tuple(v, 6), i, mlen(v)
 
     def ed_key_mlen(v1, v2):
@@ -298,12 +299,12 @@ def ngon_tessellate(from_data, indices, fix_loops=True, debug_print=True):
 
         if type(from_data) in {tuple, list}:
             verts = [
-                vert_treplet(Vector(from_data[i]), ii)
+                vert_from_vector_with_extra_data(Vector(from_data[i]), ii)
                 for ii, i in enumerate(indices)
             ]
         else:
             verts = [
-                vert_treplet(from_data.vertices[i].co, ii)
+                vert_from_vector_with_extra_data(from_data.vertices[i].co, ii)
                 for ii, i in enumerate(indices)
             ]
 
