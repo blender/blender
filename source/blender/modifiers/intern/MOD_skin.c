@@ -1950,28 +1950,27 @@ static void requiredDataMask(Object *UNUSED(ob),
   r_cddata_masks->vmask |= CD_MASK_MVERT_SKIN | CD_MASK_MDEFORMVERT;
 }
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *row;
   uiLayout *layout = panel->layout;
   int toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
 
-  PointerRNA ptr;
   PointerRNA ob_ptr;
-  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   PointerRNA op_ptr;
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "branch_smoothing", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "branch_smoothing", 0, NULL, ICON_NONE);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Symmetry"));
-  uiItemR(row, &ptr, "use_x_symmetry", toggles_flag, NULL, ICON_NONE);
-  uiItemR(row, &ptr, "use_y_symmetry", toggles_flag, NULL, ICON_NONE);
-  uiItemR(row, &ptr, "use_z_symmetry", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, ptr, "use_x_symmetry", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, ptr, "use_y_symmetry", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, ptr, "use_z_symmetry", toggles_flag, NULL, ICON_NONE);
 
-  uiItemR(layout, &ptr, "use_smooth_shade", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_smooth_shade", 0, NULL, ICON_NONE);
 
   row = uiLayoutRow(layout, false);
   uiItemO(row, IFACE_("Create Armature"), ICON_NONE, "OBJECT_OT_skin_armature_create");
@@ -2000,7 +1999,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemO(layout, IFACE_("Mark Root"), ICON_NONE, "OBJECT_OT_skin_root_mark");
   uiItemO(layout, IFACE_("Equalize Radii"), ICON_NONE, "OBJECT_OT_skin_radii_equalize");
 
-  modifier_panel_end(layout, &ptr);
+  modifier_panel_end(layout, ptr);
 }
 
 static void panelRegister(ARegionType *region_type)

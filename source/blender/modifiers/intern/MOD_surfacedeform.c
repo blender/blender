@@ -1397,29 +1397,28 @@ static bool isDisabled(const Scene *UNUSED(scene), ModifierData *md, bool UNUSED
          !(smd->verts != NULL && !(smd->flags & MOD_SDEF_BIND));
 }
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
   PointerRNA ob_ptr;
-  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  PointerRNA target_ptr = RNA_pointer_get(&ptr, "target");
+  PointerRNA target_ptr = RNA_pointer_get(ptr, "target");
 
-  bool is_bound = RNA_boolean_get(&ptr, "is_bound");
+  bool is_bound = RNA_boolean_get(ptr, "is_bound");
 
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, false);
   uiLayoutSetActive(col, !is_bound);
-  uiItemR(col, &ptr, "target", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "target", 0, NULL, ICON_NONE);
 
-  uiItemR(col, &ptr, "falloff", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "strength", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "falloff", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "strength", 0, NULL, ICON_NONE);
 
-  modifier_vgroup_ui(layout, &ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
 
   uiItemS(layout);
 
@@ -1431,7 +1430,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiLayoutSetActive(col, !RNA_pointer_is_null(&target_ptr));
     uiItemO(col, IFACE_("Bind"), ICON_NONE, "OBJECT_OT_surfacedeform_bind");
   }
-  modifier_panel_end(layout, &ptr);
+  modifier_panel_end(layout, ptr);
 }
 
 static void panelRegister(ARegionType *region_type)

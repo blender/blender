@@ -1698,6 +1698,8 @@ void UI_panel_category_draw_all(struct ARegion *region, const char *category_id_
 
 struct PanelType *UI_paneltype_find(int space_id, int region_id, const char *idname);
 
+/* Panel custom data. */
+struct PointerRNA *UI_panel_custom_data_get(const struct Panel *panel);
 struct PointerRNA *UI_region_panel_custom_data_under_cursor(const struct bContext *C,
                                                             const struct wmEvent *event);
 void UI_panel_custom_data_set(struct Panel *panel, struct PointerRNA *custom_data);
@@ -1706,11 +1708,10 @@ void UI_panel_custom_data_set(struct Panel *panel, struct PointerRNA *custom_dat
 struct Panel *UI_panel_add_instanced(struct ARegion *region,
                                      struct ListBase *panels,
                                      char *panel_idname,
-                                     int list_index,
                                      struct PointerRNA *custom_data);
 void UI_panels_free_instanced(const struct bContext *C, struct ARegion *region);
 
-#define LIST_PANEL_UNIQUE_STR_LEN 4
+#define INSTANCED_PANEL_UNIQUE_STR_LEN 4
 void UI_list_panel_unique_str(struct Panel *panel, char *r_name);
 
 void UI_panel_set_expand_from_list_data(const struct bContext *C, struct Panel *panel);

@@ -1186,43 +1186,42 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return mesh;
 }
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *row, *col;
   uiLayout *layout = panel->layout;
   int toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
 
-  PointerRNA ptr;
   PointerRNA ob_ptr;
-  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
-  bool has_vertex_group = RNA_string_length(&ptr, "vertex_group") != 0;
+  bool has_vertex_group = RNA_string_length(ptr, "vertex_group") != 0;
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemPointerR(layout, &ptr, "particle_uv", &obj_data_ptr, "uv_layers", NULL, ICON_NONE);
+  uiItemPointerR(layout, ptr, "particle_uv", &obj_data_ptr, "uv_layers", NULL, ICON_NONE);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Show"));
-  uiItemR(row, &ptr, "show_alive", toggles_flag, NULL, ICON_NONE);
-  uiItemR(row, &ptr, "show_dead", toggles_flag, NULL, ICON_NONE);
-  uiItemR(row, &ptr, "show_unborn", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, ptr, "show_alive", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, ptr, "show_dead", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, ptr, "show_unborn", toggles_flag, NULL, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, &ptr, "use_edge_cut", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "use_size", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "use_edge_cut", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "use_size", 0, NULL, ICON_NONE);
 
-  modifier_vgroup_ui(layout, &ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
 
   row = uiLayoutRow(layout, false);
   uiLayoutSetActive(row, has_vertex_group);
-  uiItemR(row, &ptr, "protect", 0, NULL, ICON_NONE);
+  uiItemR(row, ptr, "protect", 0, NULL, ICON_NONE);
 
   uiItemO(layout, IFACE_("Refresh"), ICON_NONE, "OBJECT_OT_explode_refresh");
 
-  modifier_panel_end(layout, &ptr);
+  modifier_panel_end(layout, ptr);
 }
 
 static void panelRegister(ARegionType *region_type)

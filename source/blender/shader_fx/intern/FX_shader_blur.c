@@ -54,25 +54,24 @@ static void copyData(const ShaderFxData *md, ShaderFxData *target)
   BKE_shaderfx_copydata_generic(md, target);
 }
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  shaderfx_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, NULL);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "samples", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "samples", 0, NULL, ICON_NONE);
 
-  uiItemR(layout, &ptr, "use_dof_mode", 0, IFACE_("Use Depth of Field"), ICON_NONE);
+  uiItemR(layout, ptr, "use_dof_mode", 0, IFACE_("Use Depth of Field"), ICON_NONE);
   col = uiLayoutColumn(layout, false);
-  uiLayoutSetActive(col, !RNA_boolean_get(&ptr, "use_dof_mode"));
-  uiItemR(col, &ptr, "size", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "rotation", 0, NULL, ICON_NONE);
+  uiLayoutSetActive(col, !RNA_boolean_get(ptr, "use_dof_mode"));
+  uiItemR(col, ptr, "size", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "rotation", 0, NULL, ICON_NONE);
 
-  shaderfx_panel_end(layout, &ptr);
+  shaderfx_panel_end(layout, ptr);
 }
 
 static void panelRegister(ARegionType *region_type)

@@ -464,70 +464,68 @@ static void deformVertsEM(ModifierData *md,
   }
 }
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *row;
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
   PointerRNA ob_ptr;
-  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  int deform_method = RNA_enum_get(&ptr, "deform_method");
+  int deform_method = RNA_enum_get(ptr, "deform_method");
 
   row = uiLayoutRow(layout, false);
-  uiItemR(row, &ptr, "deform_method", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(row, ptr, "deform_method", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
 
   if (ELEM(deform_method, MOD_SIMPLEDEFORM_MODE_TAPER, MOD_SIMPLEDEFORM_MODE_STRETCH)) {
-    uiItemR(layout, &ptr, "factor", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "factor", 0, NULL, ICON_NONE);
   }
   else {
-    uiItemR(layout, &ptr, "angle", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "angle", 0, NULL, ICON_NONE);
   }
 
-  uiItemR(layout, &ptr, "origin", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "deform_axis", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "origin", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "deform_axis", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
-  modifier_panel_end(layout, &ptr);
+  modifier_panel_end(layout, ptr);
 }
 
-static void restrictions_panel_draw(const bContext *C, Panel *panel)
+static void restrictions_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *row;
   uiLayout *layout = panel->layout;
   int toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
 
-  PointerRNA ptr;
   PointerRNA ob_ptr;
-  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  int deform_method = RNA_enum_get(&ptr, "deform_method");
+  int deform_method = RNA_enum_get(ptr, "deform_method");
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "limits", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "limits", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 
   if (ELEM(deform_method,
            MOD_SIMPLEDEFORM_MODE_TAPER,
            MOD_SIMPLEDEFORM_MODE_STRETCH,
            MOD_SIMPLEDEFORM_MODE_TWIST)) {
-    int deform_axis = RNA_enum_get(&ptr, "deform_axis");
+    int deform_axis = RNA_enum_get(ptr, "deform_axis");
 
     row = uiLayoutRowWithHeading(layout, true, IFACE_("Lock"));
     if (deform_axis != 0) {
-      uiItemR(row, &ptr, "lock_x", toggles_flag, NULL, ICON_NONE);
+      uiItemR(row, ptr, "lock_x", toggles_flag, NULL, ICON_NONE);
     }
     if (deform_axis != 1) {
-      uiItemR(row, &ptr, "lock_y", toggles_flag, NULL, ICON_NONE);
+      uiItemR(row, ptr, "lock_y", toggles_flag, NULL, ICON_NONE);
     }
     if (deform_axis != 2) {
-      uiItemR(row, &ptr, "lock_z", toggles_flag, NULL, ICON_NONE);
+      uiItemR(row, ptr, "lock_z", toggles_flag, NULL, ICON_NONE);
     }
   }
 
-  modifier_vgroup_ui(layout, &ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
 }
 
 static void panelRegister(ARegionType *region_type)

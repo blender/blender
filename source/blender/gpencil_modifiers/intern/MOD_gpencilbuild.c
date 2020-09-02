@@ -539,76 +539,73 @@ static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Objec
   }
 }
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *row, *sub;
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
   PointerRNA ob_ptr;
-  gpencil_modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  int mode = RNA_enum_get(&ptr, "mode");
+  int mode = RNA_enum_get(ptr, "mode");
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "mode", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "mode", 0, NULL, ICON_NONE);
   if (mode == GP_BUILD_MODE_CONCURRENT) {
-    uiItemR(layout, &ptr, "concurrent_time_alignment", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "concurrent_time_alignment", 0, NULL, ICON_NONE);
   }
 
   uiItemS(layout);
 
-  uiItemR(layout, &ptr, "transition", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "start_delay", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "length", 0, IFACE_("Frames"), ICON_NONE);
+  uiItemR(layout, ptr, "transition", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "start_delay", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "length", 0, IFACE_("Frames"), ICON_NONE);
 
   uiItemS(layout);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Use Factor"));
-  uiItemR(row, &ptr, "use_percentage", 0, "", ICON_NONE);
+  uiItemR(row, ptr, "use_percentage", 0, "", ICON_NONE);
   sub = uiLayoutRow(row, true);
-  uiLayoutSetActive(sub, RNA_boolean_get(&ptr, "use_percentage"));
-  uiItemR(sub, &ptr, "percentage_factor", 0, "", ICON_NONE);
+  uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_percentage"));
+  uiItemR(sub, ptr, "percentage_factor", 0, "", ICON_NONE);
 
   /* Check for incompatible time modifier. */
   Object *ob = ob_ptr.data;
-  GpencilModifierData *md = ptr.data;
+  GpencilModifierData *md = ptr->data;
   if (BKE_gpencil_modifiers_findby_type(ob, eGpencilModifierType_Time) != NULL) {
     BKE_gpencil_modifier_set_error(md, "Build and Time Offset modifiers are incompatible");
   }
 
-  gpencil_modifier_panel_end(layout, &ptr);
+  gpencil_modifier_panel_end(layout, ptr);
 }
 
-static void frame_range_header_draw(const bContext *C, Panel *panel)
+static void frame_range_header_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  gpencil_modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
 
-  uiItemR(layout, &ptr, "use_restrict_frame_range", 0, IFACE_("Custom Range"), ICON_NONE);
+  uiItemR(layout, ptr, "use_restrict_frame_range", 0, IFACE_("Custom Range"), ICON_NONE);
 }
 
-static void frame_range_panel_draw(const bContext *C, Panel *panel)
+static void frame_range_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  gpencil_modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
 
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, &ptr, "frame_start", 0, IFACE_("Start"), ICON_NONE);
-  uiItemR(col, &ptr, "frame_end", 0, IFACE_("End"), ICON_NONE);
+  uiItemR(col, ptr, "frame_start", 0, IFACE_("Start"), ICON_NONE);
+  uiItemR(col, ptr, "frame_end", 0, IFACE_("End"), ICON_NONE);
 }
 
-static void mask_panel_draw(const bContext *C, Panel *panel)
+static void mask_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
-  gpencil_modifier_masking_panel_draw(C, panel, false, false);
+  gpencil_modifier_masking_panel_draw(panel, false, false);
 }
 
 static void panelRegister(ARegionType *region_type)

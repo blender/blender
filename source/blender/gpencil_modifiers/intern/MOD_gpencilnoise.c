@@ -280,54 +280,51 @@ static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, 
   walk(userData, ob, (ID **)&mmd->material, IDWALK_CB_USER);
 }
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  gpencil_modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
 
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, &ptr, "factor", 0, IFACE_("Position"), ICON_NONE);
-  uiItemR(col, &ptr, "factor_strength", 0, IFACE_("Strength"), ICON_NONE);
-  uiItemR(col, &ptr, "factor_thickness", 0, IFACE_("Thickness"), ICON_NONE);
-  uiItemR(col, &ptr, "factor_uvs", 0, IFACE_("UV"), ICON_NONE);
-  uiItemR(col, &ptr, "noise_scale", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "factor", 0, IFACE_("Position"), ICON_NONE);
+  uiItemR(col, ptr, "factor_strength", 0, IFACE_("Strength"), ICON_NONE);
+  uiItemR(col, ptr, "factor_thickness", 0, IFACE_("Thickness"), ICON_NONE);
+  uiItemR(col, ptr, "factor_uvs", 0, IFACE_("UV"), ICON_NONE);
+  uiItemR(col, ptr, "noise_scale", 0, NULL, ICON_NONE);
 
-  gpencil_modifier_panel_end(layout, &ptr);
+  gpencil_modifier_panel_end(layout, ptr);
 }
 
-static void random_header_draw(const bContext *C, Panel *panel)
+static void random_header_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  gpencil_modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
 
-  uiItemR(layout, &ptr, "random", 0, IFACE_("Randomize"), ICON_NONE);
+  uiItemR(layout, ptr, "random", 0, IFACE_("Randomize"), ICON_NONE);
 }
 
-static void random_panel_draw(const bContext *C, Panel *panel)
+static void random_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  gpencil_modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiLayoutSetActive(layout, RNA_boolean_get(&ptr, "random"));
+  uiLayoutSetActive(layout, RNA_boolean_get(ptr, "random"));
 
-  uiItemR(layout, &ptr, "step", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "seed", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "step", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "seed", 0, NULL, ICON_NONE);
 }
 
-static void mask_panel_draw(const bContext *C, Panel *panel)
+static void mask_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
-  gpencil_modifier_masking_panel_draw(C, panel, true, true);
+  gpencil_modifier_masking_panel_draw(panel, true, true);
 }
 
 static void panelRegister(ARegionType *region_type)

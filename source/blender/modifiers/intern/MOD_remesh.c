@@ -237,47 +237,45 @@ static Mesh *modifyMesh(ModifierData *UNUSED(md),
 
 #endif /* !WITH_MOD_REMESH */
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 #ifdef WITH_MOD_REMESH
   uiLayout *row, *col;
 
-  PointerRNA ptr;
   PointerRNA ob_ptr;
-  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  int mode = RNA_enum_get(&ptr, "mode");
+  int mode = RNA_enum_get(ptr, "mode");
 
-  uiItemR(layout, &ptr, "mode", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, false);
   if (mode == MOD_REMESH_VOXEL) {
-    uiItemR(col, &ptr, "voxel_size", 0, NULL, ICON_NONE);
-    uiItemR(col, &ptr, "adaptivity", 0, NULL, ICON_NONE);
+    uiItemR(col, ptr, "voxel_size", 0, NULL, ICON_NONE);
+    uiItemR(col, ptr, "adaptivity", 0, NULL, ICON_NONE);
   }
   else {
-    uiItemR(col, &ptr, "octree_depth", 0, NULL, ICON_NONE);
-    uiItemR(col, &ptr, "scale", 0, NULL, ICON_NONE);
+    uiItemR(col, ptr, "octree_depth", 0, NULL, ICON_NONE);
+    uiItemR(col, ptr, "scale", 0, NULL, ICON_NONE);
 
     if (mode == MOD_REMESH_SHARP_FEATURES) {
-      uiItemR(col, &ptr, "sharpness", 0, NULL, ICON_NONE);
+      uiItemR(col, ptr, "sharpness", 0, NULL, ICON_NONE);
     }
 
-    uiItemR(layout, &ptr, "use_remove_disconnected", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "use_remove_disconnected", 0, NULL, ICON_NONE);
     row = uiLayoutRow(layout, false);
-    uiLayoutSetActive(row, RNA_boolean_get(&ptr, "use_remove_disconnected"));
-    uiItemR(layout, &ptr, "threshold", 0, NULL, ICON_NONE);
+    uiLayoutSetActive(row, RNA_boolean_get(ptr, "use_remove_disconnected"));
+    uiItemR(layout, ptr, "threshold", 0, NULL, ICON_NONE);
   }
-  uiItemR(layout, &ptr, "use_smooth_shade", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_smooth_shade", 0, NULL, ICON_NONE);
 
-  modifier_panel_end(layout, &ptr);
+  modifier_panel_end(layout, ptr);
 
 #else  /* WITH_MOD_REMESH */
   uiItemL(layout, IFACE_("Built without Remesh modifier"), ICON_NONE);
-  UNUSED_VARS(C);
 #endif /* WITH_MOD_REMESH */
 }
 

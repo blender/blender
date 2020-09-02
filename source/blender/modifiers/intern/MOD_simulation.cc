@@ -121,21 +121,20 @@ static PointCloud *modifyPointCloud(ModifierData *md,
   return pointcloud;
 }
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
   PointerRNA ob_ptr;
-  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  uiItemR(layout, &ptr, "simulation", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "data_path", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "simulation", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "data_path", 0, NULL, ICON_NONE);
 
-  modifier_panel_end(layout, &ptr);
+  modifier_panel_end(layout, ptr);
 }
 
 static void panelRegister(ARegionType *region_type)

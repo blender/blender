@@ -702,75 +702,72 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return normalEditModifier_do((NormalEditModifierData *)md, ctx, ctx->object, mesh);
 }
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
   PointerRNA ob_ptr;
-  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  int mode = RNA_enum_get(&ptr, "mode");
+  int mode = RNA_enum_get(ptr, "mode");
 
-  uiItemR(layout, &ptr, "mode", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "mode", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "target", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "target", 0, NULL, ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
   uiLayoutSetActive(col, mode == MOD_NORMALEDIT_MODE_DIRECTIONAL);
-  uiItemR(col, &ptr, "use_direction_parallel", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "use_direction_parallel", 0, NULL, ICON_NONE);
 
-  modifier_panel_end(layout, &ptr);
+  modifier_panel_end(layout, ptr);
 }
 
 /* This panel could be open by default, but it isn't currently. */
-static void mix_mode_panel_draw(const bContext *C, Panel *panel)
+static void mix_mode_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *row;
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
   PointerRNA ob_ptr;
-  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "mix_mode", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "mix_factor", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "mix_mode", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "mix_factor", 0, NULL, ICON_NONE);
 
-  modifier_vgroup_ui(layout, &ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
 
   row = uiLayoutRow(layout, true);
-  uiItemR(row, &ptr, "mix_limit", 0, NULL, ICON_NONE);
+  uiItemR(row, ptr, "mix_limit", 0, NULL, ICON_NONE);
   uiItemR(row,
-          &ptr,
+          ptr,
           "no_polynors_fix",
           0,
           "",
-          (RNA_boolean_get(&ptr, "no_polynors_fix") ? ICON_LOCKED : ICON_UNLOCKED));
+          (RNA_boolean_get(ptr, "no_polynors_fix") ? ICON_LOCKED : ICON_UNLOCKED));
 }
 
-static void offset_panel_draw(const bContext *C, Panel *panel)
+static void offset_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
 
-  int mode = RNA_enum_get(&ptr, "mode");
-  PointerRNA target_ptr = RNA_pointer_get(&ptr, "target");
+  int mode = RNA_enum_get(ptr, "mode");
+  PointerRNA target_ptr = RNA_pointer_get(ptr, "target");
   bool needs_object_offset = (mode == MOD_NORMALEDIT_MODE_RADIAL &&
                               RNA_pointer_is_null(&target_ptr)) ||
                              (mode == MOD_NORMALEDIT_MODE_DIRECTIONAL &&
-                              RNA_boolean_get(&ptr, "use_direction_parallel"));
+                              RNA_boolean_get(ptr, "use_direction_parallel"));
 
   uiLayoutSetPropSep(layout, true);
 
   uiLayoutSetActive(layout, needs_object_offset);
-  uiItemR(layout, &ptr, "offset", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "offset", 0, NULL, ICON_NONE);
 }
 
 static void panelRegister(ARegionType *region_type)

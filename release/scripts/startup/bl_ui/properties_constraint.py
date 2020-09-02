@@ -114,11 +114,7 @@ class ConstraintButtonsPanel(Panel):
                 col.prop_search(con, "subtarget", con.target, "vertex_groups", text="Vertex Group")
 
     def get_constraint(self, context):
-        con = None
-        if context.pose_bone:
-            con = context.pose_bone.constraints[self.list_panel_index]
-        else:
-            con = context.object.constraints[self.list_panel_index]
+        con = self.custom_data
         self.layout.context_pointer_set("constraint", con)
         return con
 
@@ -963,11 +959,7 @@ class ConstraintButtonsSubPanel(Panel):
     bl_options = {'DRAW_BOX'}
 
     def get_constraint(self, context):
-        con = None
-        if context.pose_bone:
-            con = context.pose_bone.constraints[self.list_panel_index]
-        else:
-            con = context.object.constraints[self.list_panel_index]
+        con = self.custom_data
         self.layout.context_pointer_set("constraint", con)
         return con
 

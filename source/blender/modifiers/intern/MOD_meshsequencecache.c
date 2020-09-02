@@ -222,28 +222,27 @@ static void panel_draw(const bContext *C, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
   PointerRNA ob_ptr;
-  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  PointerRNA cache_file_ptr = RNA_pointer_get(&ptr, "cache_file");
+  PointerRNA cache_file_ptr = RNA_pointer_get(ptr, "cache_file");
   bool has_cache_file = !RNA_pointer_is_null(&cache_file_ptr);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiTemplateCacheFile(layout, C, &ptr, "cache_file");
+  uiTemplateCacheFile(layout, C, ptr, "cache_file");
 
   if (has_cache_file) {
-    uiItemPointerR(layout, &ptr, "object_path", &cache_file_ptr, "object_paths", NULL, ICON_NONE);
+    uiItemPointerR(layout, ptr, "object_path", &cache_file_ptr, "object_paths", NULL, ICON_NONE);
   }
 
   if (RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
-    uiItemR(layout, &ptr, "read_data", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "read_data", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
   }
 
-  uiItemR(layout, &ptr, "velocity_scale", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "velocity_scale", 0, NULL, ICON_NONE);
 
-  modifier_panel_end(layout, &ptr);
+  modifier_panel_end(layout, ptr);
 }
 
 static void panelRegister(ARegionType *region_type)

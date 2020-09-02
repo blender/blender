@@ -560,36 +560,35 @@ void BKE_modifier_mdef_compact_influences(ModifierData *md)
   mmd->bindweights = NULL;
 }
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
   PointerRNA ob_ptr;
-  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  bool is_bound = RNA_boolean_get(&ptr, "is_bound");
+  bool is_bound = RNA_boolean_get(ptr, "is_bound");
 
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, true);
   uiLayoutSetEnabled(col, !is_bound);
-  uiItemR(col, &ptr, "object", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "object", 0, NULL, ICON_NONE);
 
-  modifier_vgroup_ui(layout, &ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
 
   col = uiLayoutColumn(layout, false);
   uiLayoutSetEnabled(col, !is_bound);
-  uiItemR(col, &ptr, "precision", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "use_dynamic_bind", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "precision", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "use_dynamic_bind", 0, NULL, ICON_NONE);
 
   uiItemO(layout,
           is_bound ? IFACE_("Unbind") : IFACE_("Bind"),
           ICON_NONE,
           "OBJECT_OT_meshdeform_bind");
 
-  modifier_panel_end(layout, &ptr);
+  modifier_panel_end(layout, ptr);
 }
 
 static void panelRegister(ARegionType *region_type)

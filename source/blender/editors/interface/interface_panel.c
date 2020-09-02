@@ -223,21 +223,19 @@ static bool panels_need_realign(ScrArea *area, ARegion *region, Panel **r_panel_
 static Panel *UI_panel_add_instanced_ex(ARegion *region,
                                         ListBase *panels,
                                         PanelType *panel_type,
-                                        int list_index,
                                         PointerRNA *custom_data)
 {
   Panel *panel = MEM_callocN(sizeof(Panel), "instanced panel");
   panel->type = panel_type;
   BLI_strncpy(panel->panelname, panel_type->idname, sizeof(panel->panelname));
 
-  panel->runtime.list_index = list_index;
   panel->runtime.custom_data_ptr = custom_data;
 
   /* Add the panel's children too. Although they aren't instanced panels, we can still use this
    * function to create them, as UI_panel_begin does other things we don't need to do. */
   LISTBASE_FOREACH (LinkData *, child, &panel_type->children) {
     PanelType *child_type = child->data;
-    UI_panel_add_instanced_ex(region, &panel->children, child_type, list_index, custom_data);
+    UI_panel_add_instanced_ex(region, &panel->children, child_type, custom_data);
   }
 
   /* Make sure the panel is added to the end of the display-order as well. This is needed for
@@ -262,8 +260,10 @@ static Panel *UI_panel_add_instanced_ex(ARegion *region,
  * Called in situations where panels need to be added dynamically rather than having only one panel
  * corresponding to each #PanelType.
  */
-Panel *UI_panel_add_instanced(
-    ARegion *region, ListBase *panels, char *panel_idname, int list_index, PointerRNA *custom_data)
+Panel *UI_panel_add_instanced(ARegion *region,
+                              ListBase *panels,
+                              char *panel_idname,
+                              PointerRNA *custom_data)
 {
   ARegionType *region_type = region->type;
 
@@ -275,7 +275,7 @@ Panel *UI_panel_add_instanced(
     return NULL;
   }
 
-  return UI_panel_add_instanced_ex(region, panels, panel_type, list_index, custom_data);
+  return UI_panel_add_instanced_ex(region, panels, panel_type, custom_data);
 }
 
 /**
@@ -284,7 +284,9 @@ Panel *UI_panel_add_instanced(
  */
 void UI_list_panel_unique_str(Panel *panel, char *r_name)
 {
-  snprintf(r_name, LIST_PANEL_UNIQUE_STR_LEN, "%d", panel->runtime.list_index);
+  /* The panel sortorder will be unique for a specific panel type because the instanced
+   * panel list is regenerated for every change in the data order / length. */
+  snprintf(r_name, INSTANCED_PANEL_UNIQUE_STR_LEN, "%d", panel->sortorder);
 }
 
 /**
@@ -452,11 +454,6 @@ static void reorder_instanced_panel_list(bContext *C, ARegion *region, Panel *dr
     MEM_freeN(sort_index->panel);
   }
   MEM_freeN(panel_sort);
-
-  /* Don't reorder the panel didn't change order after being dropped. */
-  if (move_to_index == drag_panel->runtime.list_index) {
-    return;
-  }
 
   /* Set the bit to tell the interface to instanced the list. */
   drag_panel->flag |= PNL_INSTANCED_LIST_ORDER_CHANGED;
@@ -2482,6 +2479,11 @@ void UI_panel_custom_data_set(Panel *panel, PointerRNA *custom_data)
   ui_panel_custom_data_set_recursive(panel, custom_data);
 }
 
+PointerRNA *UI_panel_custom_data_get(const Panel *panel)
+{
+  return panel->runtime.custom_data_ptr;
+}
+
 PointerRNA *UI_region_panel_custom_data_under_cursor(const bContext *C, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
@@ -2506,9 +2508,7 @@ PointerRNA *UI_region_panel_custom_data_under_cursor(const bContext *C, const wm
     return NULL;
   }
 
-  PointerRNA *customdata = panel->runtime.custom_data_ptr;
-
-  return customdata;
+  return UI_panel_custom_data_get(panel);
 }
 
 /** \} */

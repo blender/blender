@@ -284,43 +284,40 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, struct
   return result;
 }
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "frame_start", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "frame_duration", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "use_reverse", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "frame_start", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "frame_duration", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_reverse", 0, NULL, ICON_NONE);
 
-  modifier_panel_end(layout, &ptr);
+  modifier_panel_end(layout, ptr);
 }
 
-static void random_panel_header_draw(const bContext *C, Panel *panel)
+static void random_panel_header_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
 
-  uiItemR(layout, &ptr, "use_random_order", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_random_order", 0, NULL, ICON_NONE);
 }
 
-static void random_panel_draw(const bContext *C, Panel *panel)
+static void random_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiLayoutSetActive(layout, RNA_boolean_get(&ptr, "use_random_order"));
-  uiItemR(layout, &ptr, "seed", 0, NULL, ICON_NONE);
+  uiLayoutSetActive(layout, RNA_boolean_get(ptr, "use_random_order"));
+  uiItemR(layout, ptr, "seed", 0, NULL, ICON_NONE);
 }
 
 static void panelRegister(ARegionType *region_type)

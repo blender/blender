@@ -59,37 +59,36 @@ static void copyData(const ShaderFxData *md, ShaderFxData *target)
   BKE_shaderfx_copydata_generic(md, target);
 }
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  shaderfx_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, NULL);
 
-  int mode = RNA_enum_get(&ptr, "mode");
+  int mode = RNA_enum_get(ptr, "mode");
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "mode", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "mode", 0, NULL, ICON_NONE);
 
   if (mode == eShaderFxGlowMode_Luminance) {
-    uiItemR(layout, &ptr, "threshold", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "threshold", 0, NULL, ICON_NONE);
   }
   else {
-    uiItemR(layout, &ptr, "select_color", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "select_color", 0, NULL, ICON_NONE);
   }
-  uiItemR(layout, &ptr, "glow_color", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "glow_color", 0, NULL, ICON_NONE);
 
   uiItemS(layout);
 
-  uiItemR(layout, &ptr, "blend_mode", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "opacity", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "size", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "rotation", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "samples", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "use_glow_under", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "blend_mode", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "opacity", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "size", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "rotation", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "samples", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_glow_under", 0, NULL, ICON_NONE);
 
-  shaderfx_panel_end(layout, &ptr);
+  shaderfx_panel_end(layout, ptr);
 }
 
 static void panelRegister(ARegionType *region_type)

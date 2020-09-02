@@ -260,16 +260,15 @@ static void deformVertsEM(ModifierData *md,
 }
 #endif
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
   PointerRNA ob_ptr;
-  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   Object *ob = ob_ptr.data;
-  ModifierData *md = (ModifierData *)ptr.data;
+  ModifierData *md = (ModifierData *)ptr->data;
   ParticleSystem *psys = ((ParticleSystemModifierData *)md)->psys;
 
   uiItemL(layout, IFACE_("Settings are in the particle tab"), ICON_NONE);
@@ -289,7 +288,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     }
   }
 
-  modifier_panel_end(layout, &ptr);
+  modifier_panel_end(layout, ptr);
 }
 
 static void panelRegister(ARegionType *region_type)

@@ -52,25 +52,24 @@ static void copyData(const ShaderFxData *md, ShaderFxData *target)
   BKE_shaderfx_copydata_generic(md, target);
 }
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  shaderfx_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, NULL);
 
   uiLayoutSetPropSep(layout, true);
 
   /* Add the X, Y labels manually because size is a #PROP_PIXEL. */
   col = uiLayoutColumn(layout, true);
-  PropertyRNA *prop = RNA_struct_find_property(&ptr, "size");
-  uiItemFullR(col, &ptr, prop, 0, 0, 0, IFACE_("Size X"), ICON_NONE);
-  uiItemFullR(col, &ptr, prop, 1, 0, 0, IFACE_("Y"), ICON_NONE);
+  PropertyRNA *prop = RNA_struct_find_property(ptr, "size");
+  uiItemFullR(col, ptr, prop, 0, 0, 0, IFACE_("Size X"), ICON_NONE);
+  uiItemFullR(col, ptr, prop, 1, 0, 0, IFACE_("Y"), ICON_NONE);
 
-  uiItemR(layout, &ptr, "use_antialiasing", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_antialiasing", 0, NULL, ICON_NONE);
 
-  shaderfx_panel_end(layout, &ptr);
+  shaderfx_panel_end(layout, ptr);
 }
 
 static void panelRegister(ARegionType *region_type)

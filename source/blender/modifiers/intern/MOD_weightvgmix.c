@@ -461,44 +461,41 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return mesh;
 }
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
   PointerRNA ob_ptr;
-  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   uiLayoutSetPropSep(layout, true);
 
-  modifier_vgroup_ui(layout, &ptr, &ob_ptr, "vertex_group_a", "invert_vertex_group_a", NULL);
-  modifier_vgroup_ui(
-      layout, &ptr, &ob_ptr, "vertex_group_b", "invert_vertex_group_b", IFACE_("B"));
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group_a", "invert_vertex_group_a", NULL);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group_b", "invert_vertex_group_b", IFACE_("B"));
 
   uiItemS(layout);
 
-  uiItemR(layout, &ptr, "default_weight_a", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "default_weight_b", 0, IFACE_("B"), ICON_NONE);
+  uiItemR(layout, ptr, "default_weight_a", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "default_weight_b", 0, IFACE_("B"), ICON_NONE);
 
   uiItemS(layout);
 
-  uiItemR(layout, &ptr, "mix_set", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "mix_mode", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "mix_set", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "mix_mode", 0, NULL, ICON_NONE);
 
-  uiItemR(layout, &ptr, "normalize", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "normalize", 0, NULL, ICON_NONE);
 
-  modifier_panel_end(layout, &ptr);
+  modifier_panel_end(layout, ptr);
 }
 
 static void influence_panel_draw(const bContext *C, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
   PointerRNA ob_ptr;
-  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  weightvg_ui_common(C, &ob_ptr, &ptr, layout);
+  weightvg_ui_common(C, &ob_ptr, ptr, layout);
 }
 
 static void panelRegister(ARegionType *region_type)

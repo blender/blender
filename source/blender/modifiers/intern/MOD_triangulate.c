@@ -126,22 +126,21 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx)
   return result;
 }
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
   PointerRNA ob_ptr;
-  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "quad_method", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "ngon_method", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "min_vertices", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "keep_custom_normals", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "quad_method", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "ngon_method", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "min_vertices", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "keep_custom_normals", 0, NULL, ICON_NONE);
 
-  modifier_panel_end(layout, &ptr);
+  modifier_panel_end(layout, ptr);
 }
 
 static void panelRegister(ARegionType *region_type)

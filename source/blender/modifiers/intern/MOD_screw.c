@@ -1168,74 +1168,72 @@ static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk,
   walk(userData, ob, &ltmd->ob_axis, IDWALK_CB_NOP);
 }
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *sub, *row, *col;
   uiLayout *layout = panel->layout;
   int toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
 
-  PointerRNA ptr;
-  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
 
-  PointerRNA screw_obj_ptr = RNA_pointer_get(&ptr, "object");
+  PointerRNA screw_obj_ptr = RNA_pointer_get(ptr, "object");
 
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, &ptr, "angle", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "angle", 0, NULL, ICON_NONE);
   row = uiLayoutRow(col, false);
   uiLayoutSetActive(row,
                     RNA_pointer_is_null(&screw_obj_ptr) ||
-                        !RNA_boolean_get(&ptr, "use_object_screw_offset"));
-  uiItemR(row, &ptr, "screw_offset", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "iterations", 0, NULL, ICON_NONE);
+                        !RNA_boolean_get(ptr, "use_object_screw_offset"));
+  uiItemR(row, ptr, "screw_offset", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "iterations", 0, NULL, ICON_NONE);
 
   uiItemS(layout);
   col = uiLayoutColumn(layout, false);
   row = uiLayoutRow(col, false);
-  uiItemR(row, &ptr, "axis", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "object", 0, IFACE_("Axis Object"), ICON_NONE);
+  uiItemR(row, ptr, "axis", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(col, ptr, "object", 0, IFACE_("Axis Object"), ICON_NONE);
   sub = uiLayoutColumn(col, false);
   uiLayoutSetActive(sub, !RNA_pointer_is_null(&screw_obj_ptr));
-  uiItemR(sub, &ptr, "use_object_screw_offset", 0, NULL, ICON_NONE);
+  uiItemR(sub, ptr, "use_object_screw_offset", 0, NULL, ICON_NONE);
 
   uiItemS(layout);
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, &ptr, "steps", 0, IFACE_("Steps Viewport"), ICON_NONE);
-  uiItemR(col, &ptr, "render_steps", 0, IFACE_("Render"), ICON_NONE);
+  uiItemR(col, ptr, "steps", 0, IFACE_("Steps Viewport"), ICON_NONE);
+  uiItemR(col, ptr, "render_steps", 0, IFACE_("Render"), ICON_NONE);
 
   uiItemS(layout);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Merge"));
-  uiItemR(row, &ptr, "use_merge_vertices", 0, "", ICON_NONE);
+  uiItemR(row, ptr, "use_merge_vertices", 0, "", ICON_NONE);
   sub = uiLayoutRow(row, true);
-  uiLayoutSetActive(sub, RNA_boolean_get(&ptr, "use_merge_vertices"));
-  uiItemR(sub, &ptr, "merge_threshold", 0, "", ICON_NONE);
+  uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_merge_vertices"));
+  uiItemR(sub, ptr, "merge_threshold", 0, "", ICON_NONE);
 
   uiItemS(layout);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Stretch UVs"));
-  uiItemR(row, &ptr, "use_stretch_u", toggles_flag, IFACE_("U"), ICON_NONE);
-  uiItemR(row, &ptr, "use_stretch_v", toggles_flag, IFACE_("V"), ICON_NONE);
+  uiItemR(row, ptr, "use_stretch_u", toggles_flag, IFACE_("U"), ICON_NONE);
+  uiItemR(row, ptr, "use_stretch_v", toggles_flag, IFACE_("V"), ICON_NONE);
 
-  modifier_panel_end(layout, &ptr);
+  modifier_panel_end(layout, ptr);
 }
 
-static void normals_panel_draw(const bContext *C, Panel *panel)
+static void normals_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
 
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, &ptr, "use_smooth_shade", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "use_normal_calculate", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "use_normal_flip", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "use_smooth_shade", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "use_normal_calculate", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "use_normal_flip", 0, NULL, ICON_NONE);
 }
 
 static void panelRegister(ARegionType *region_type)

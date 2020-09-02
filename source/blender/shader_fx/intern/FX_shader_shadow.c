@@ -99,78 +99,74 @@ static void foreachObjectLink(ShaderFxData *fx,
   walk(userData, ob, &fxd->object, IDWALK_CB_NOP);
 }
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *row, *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  shaderfx_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, NULL);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "shadow_color", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "shadow_color", 0, NULL, ICON_NONE);
 
   /* Add the X, Y labels manually because size is a #PROP_PIXEL. */
   col = uiLayoutColumn(layout, true);
-  PropertyRNA *prop = RNA_struct_find_property(&ptr, "offset");
-  uiItemFullR(col, &ptr, prop, 0, 0, 0, IFACE_("Offset X"), ICON_NONE);
-  uiItemFullR(col, &ptr, prop, 1, 0, 0, IFACE_("Y"), ICON_NONE);
+  PropertyRNA *prop = RNA_struct_find_property(ptr, "offset");
+  uiItemFullR(col, ptr, prop, 0, 0, 0, IFACE_("Offset X"), ICON_NONE);
+  uiItemFullR(col, ptr, prop, 1, 0, 0, IFACE_("Y"), ICON_NONE);
 
-  uiItemR(layout, &ptr, "scale", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "rotation", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "scale", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "rotation", 0, NULL, ICON_NONE);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Object Pivot"));
-  uiItemR(row, &ptr, "use_object", 0, "", ICON_NONE);
-  uiItemR(row, &ptr, "object", 0, "", ICON_NONE);
+  uiItemR(row, ptr, "use_object", 0, "", ICON_NONE);
+  uiItemR(row, ptr, "object", 0, "", ICON_NONE);
 
-  shaderfx_panel_end(layout, &ptr);
+  shaderfx_panel_end(layout, ptr);
 }
 
-static void blur_panel_draw(const bContext *C, Panel *panel)
+static void blur_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  shaderfx_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, NULL);
 
   uiLayoutSetPropSep(layout, true);
 
   /* Add the X, Y labels manually because size is a #PROP_PIXEL. */
   col = uiLayoutColumn(layout, true);
-  PropertyRNA *prop = RNA_struct_find_property(&ptr, "blur");
-  uiItemFullR(col, &ptr, prop, 0, 0, 0, IFACE_("Blur X"), ICON_NONE);
-  uiItemFullR(col, &ptr, prop, 1, 0, 0, IFACE_("Y"), ICON_NONE);
+  PropertyRNA *prop = RNA_struct_find_property(ptr, "blur");
+  uiItemFullR(col, ptr, prop, 0, 0, 0, IFACE_("Blur X"), ICON_NONE);
+  uiItemFullR(col, ptr, prop, 1, 0, 0, IFACE_("Y"), ICON_NONE);
 
-  uiItemR(layout, &ptr, "samples", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "samples", 0, NULL, ICON_NONE);
 }
 
-static void wave_header_draw(const bContext *C, Panel *panel)
+static void wave_header_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  shaderfx_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, NULL);
 
-  uiItemR(layout, &ptr, "use_wave", 0, IFACE_("Wave Effect"), ICON_NONE);
+  uiItemR(layout, ptr, "use_wave", 0, IFACE_("Wave Effect"), ICON_NONE);
 }
 
-static void wave_panel_draw(const bContext *C, Panel *panel)
+static void wave_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  shaderfx_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, NULL);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiLayoutSetActive(layout, RNA_boolean_get(&ptr, "use_wave"));
+  uiLayoutSetActive(layout, RNA_boolean_get(ptr, "use_wave"));
 
-  uiItemR(layout, &ptr, "orientation", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "amplitude", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "period", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "phase", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "orientation", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "amplitude", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "period", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "phase", 0, NULL, ICON_NONE);
 }
 
 static void panelRegister(ARegionType *region_type)

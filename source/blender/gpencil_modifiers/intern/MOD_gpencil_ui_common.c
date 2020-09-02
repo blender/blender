@@ -68,9 +68,9 @@ static bool gpencil_modifier_ui_poll(const bContext *C, PanelType *UNUSED(pt))
  */
 static void gpencil_modifier_reorder(bContext *C, Panel *panel, int new_index)
 {
-  Object *ob = ED_object_active_context(C);
+  PointerRNA *md_ptr = UI_panel_custom_data_get(panel);
+  GpencilModifierData *md = (GpencilModifierData *)md_ptr->data;
 
-  GpencilModifierData *md = BLI_findlink(&ob->greasepencil_modifiers, panel->runtime.list_index);
   PointerRNA props_ptr;
   wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_gpencil_modifier_move_to_index", false);
   WM_operator_properties_create_ptr(&props_ptr, ot);
@@ -80,18 +80,19 @@ static void gpencil_modifier_reorder(bContext *C, Panel *panel, int new_index)
   WM_operator_properties_free(&props_ptr);
 }
 
-static short get_gpencil_modifier_expand_flag(const bContext *C, Panel *panel)
+static short get_gpencil_modifier_expand_flag(const bContext *UNUSED(C), Panel *panel)
 {
-  Object *ob = ED_object_active_context(C);
-  GpencilModifierData *md = BLI_findlink(&ob->greasepencil_modifiers, panel->runtime.list_index);
+  PointerRNA *md_ptr = UI_panel_custom_data_get(panel);
+  GpencilModifierData *md = (GpencilModifierData *)md_ptr->data;
   return md->ui_expand_flag;
-  return 0;
 }
 
-static void set_gpencil_modifier_expand_flag(const bContext *C, Panel *panel, short expand_flag)
+static void set_gpencil_modifier_expand_flag(const bContext *UNUSED(C),
+                                             Panel *panel,
+                                             short expand_flag)
 {
-  Object *ob = ED_object_active_context(C);
-  GpencilModifierData *md = BLI_findlink(&ob->greasepencil_modifiers, panel->runtime.list_index);
+  PointerRNA *md_ptr = UI_panel_custom_data_get(panel);
+  GpencilModifierData *md = (GpencilModifierData *)md_ptr->data;
   md->ui_expand_flag = expand_flag;
 }
 
@@ -101,40 +102,36 @@ static void set_gpencil_modifier_expand_flag(const bContext *C, Panel *panel, sh
 /** \name Modifier Panel Layouts
  * \{ */
 
-void gpencil_modifier_masking_panel_draw(const bContext *C,
-                                         Panel *panel,
-                                         bool use_material,
-                                         bool use_vertex)
+void gpencil_modifier_masking_panel_draw(Panel *panel, bool use_material, bool use_vertex)
 {
   uiLayout *row, *col, *sub;
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
   PointerRNA ob_ptr;
-  gpencil_modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
-  bool has_layer = RNA_string_length(&ptr, "layer") != 0;
+  bool has_layer = RNA_string_length(ptr, "layer") != 0;
 
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, true);
   row = uiLayoutRow(col, true);
-  uiItemPointerR(row, &ptr, "layer", &obj_data_ptr, "layers", NULL, ICON_GREASEPENCIL);
+  uiItemPointerR(row, ptr, "layer", &obj_data_ptr, "layers", NULL, ICON_GREASEPENCIL);
   sub = uiLayoutRow(row, true);
   uiLayoutSetActive(sub, has_layer);
   uiLayoutSetPropDecorate(sub, false);
-  uiItemR(sub, &ptr, "invert_layers", 0, "", ICON_ARROW_LEFTRIGHT);
+  uiItemR(sub, ptr, "invert_layers", 0, "", ICON_ARROW_LEFTRIGHT);
 
   row = uiLayoutRow(col, true);
-  uiItemR(row, &ptr, "layer_pass", 0, NULL, ICON_NONE);
+  uiItemR(row, ptr, "layer_pass", 0, NULL, ICON_NONE);
   sub = uiLayoutRow(row, true);
-  uiLayoutSetActive(sub, RNA_int_get(&ptr, "layer_pass") != 0);
+  uiLayoutSetActive(sub, RNA_int_get(ptr, "layer_pass") != 0);
   uiLayoutSetPropDecorate(sub, false);
-  uiItemR(sub, &ptr, "invert_layer_pass", 0, "", ICON_ARROW_LEFTRIGHT);
+  uiItemR(sub, ptr, "invert_layer_pass", 0, "", ICON_ARROW_LEFTRIGHT);
 
   if (use_material) {
-    PointerRNA material_ptr = RNA_pointer_get(&ptr, "material");
+    PointerRNA material_ptr = RNA_pointer_get(ptr, "material");
     bool has_material = !RNA_pointer_is_null(&material_ptr);
 
     /* Because the Gpencil modifier material property used to be a string in an earlier version of
@@ -161,7 +158,7 @@ void gpencil_modifier_masking_panel_draw(const bContext *C,
     row = uiLayoutRow(col, true);
     uiLayoutSetRedAlert(row, !valid);
     uiItemPointerR(row,
-                   &ptr,
+                   ptr,
                    "material",
                    &obj_data_ptr,
                    "materials",
@@ -170,46 +167,44 @@ void gpencil_modifier_masking_panel_draw(const bContext *C,
     sub = uiLayoutRow(row, true);
     uiLayoutSetActive(sub, has_material);
     uiLayoutSetPropDecorate(sub, false);
-    uiItemR(sub, &ptr, "invert_materials", 0, "", ICON_ARROW_LEFTRIGHT);
+    uiItemR(sub, ptr, "invert_materials", 0, "", ICON_ARROW_LEFTRIGHT);
 
     row = uiLayoutRow(col, true);
-    uiItemR(row, &ptr, "pass_index", 0, NULL, ICON_NONE);
+    uiItemR(row, ptr, "pass_index", 0, NULL, ICON_NONE);
     sub = uiLayoutRow(row, true);
-    uiLayoutSetActive(sub, RNA_int_get(&ptr, "pass_index") != 0);
+    uiLayoutSetActive(sub, RNA_int_get(ptr, "pass_index") != 0);
     uiLayoutSetPropDecorate(sub, false);
-    uiItemR(sub, &ptr, "invert_material_pass", 0, "", ICON_ARROW_LEFTRIGHT);
+    uiItemR(sub, ptr, "invert_material_pass", 0, "", ICON_ARROW_LEFTRIGHT);
   }
 
   if (use_vertex) {
-    bool has_vertex_group = RNA_string_length(&ptr, "vertex_group") != 0;
+    bool has_vertex_group = RNA_string_length(ptr, "vertex_group") != 0;
 
     row = uiLayoutRow(layout, true);
-    uiItemPointerR(row, &ptr, "vertex_group", &ob_ptr, "vertex_groups", NULL, ICON_NONE);
+    uiItemPointerR(row, ptr, "vertex_group", &ob_ptr, "vertex_groups", NULL, ICON_NONE);
     sub = uiLayoutRow(row, true);
     uiLayoutSetActive(sub, has_vertex_group);
     uiLayoutSetPropDecorate(sub, false);
-    uiItemR(sub, &ptr, "invert_vertex", 0, "", ICON_ARROW_LEFTRIGHT);
+    uiItemR(sub, ptr, "invert_vertex", 0, "", ICON_ARROW_LEFTRIGHT);
   }
 }
 
-void gpencil_modifier_curve_header_draw(const bContext *C, Panel *panel)
+void gpencil_modifier_curve_header_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  gpencil_modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
 
-  uiItemR(layout, &ptr, "use_custom_curve", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_custom_curve", 0, NULL, ICON_NONE);
 }
 
-void gpencil_modifier_curve_panel_draw(const bContext *C, Panel *panel)
+void gpencil_modifier_curve_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  gpencil_modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
 
-  uiTemplateCurveMapping(layout, &ptr, "curve", 0, false, false, false, false);
+  uiTemplateCurveMapping(layout, ptr, "curve", 0, false, false, false, false);
 }
 
 /**
@@ -228,25 +223,22 @@ void gpencil_modifier_panel_end(uiLayout *layout, PointerRNA *ptr)
  * Gets RNA pointers for the active object and the panel's modifier data.
  */
 #define ERROR_LIBDATA_MESSAGE TIP_("External library data")
-void gpencil_modifier_panel_get_property_pointers(const bContext *C,
-                                                  Panel *panel,
-                                                  PointerRNA *r_ob_ptr,
-                                                  PointerRNA *r_md_ptr)
+PointerRNA *gpencil_modifier_panel_get_property_pointers(Panel *panel, PointerRNA *r_ob_ptr)
 {
-  Object *ob = ED_object_active_context(C);
-  GpencilModifierData *md = BLI_findlink(&ob->greasepencil_modifiers, panel->runtime.list_index);
-
-  RNA_pointer_create(&ob->id, &RNA_GpencilModifier, md, r_md_ptr);
+  PointerRNA *ptr = UI_panel_custom_data_get(panel);
+  BLI_assert(RNA_struct_is_a(ptr->type, &RNA_GpencilModifier));
 
   if (r_ob_ptr != NULL) {
-    RNA_pointer_create(&ob->id, &RNA_Object, ob, r_ob_ptr);
+    RNA_pointer_create(ptr->owner_id, &RNA_Object, ptr->owner_id, r_ob_ptr);
   }
 
   uiBlock *block = uiLayoutGetBlock(panel->layout);
   UI_block_lock_clear(block);
-  UI_block_lock_set(block, ob && ID_IS_LINKED(ob), ERROR_LIBDATA_MESSAGE);
+  UI_block_lock_set(block, ID_IS_LINKED((Object *)ptr->owner_id), ERROR_LIBDATA_MESSAGE);
 
-  uiLayoutSetContextPointer(panel->layout, "modifier", r_md_ptr);
+  uiLayoutSetContextPointer(panel->layout, "modifier", ptr);
+
+  return ptr;
 }
 
 static void gpencil_modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
@@ -311,16 +303,15 @@ static void gpencil_modifier_ops_extra_draw(bContext *C, uiLayout *layout, void 
   }
 }
 
-static void gpencil_modifier_panel_header(const bContext *C, Panel *panel)
+static void gpencil_modifier_panel_header(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *row, *sub;
   uiLayout *layout = panel->layout;
 
-  Object *ob = ED_object_active_context(C);
-  GpencilModifierData *md = BLI_findlink(&ob->greasepencil_modifiers, panel->runtime.list_index);
-  PointerRNA ptr;
-  RNA_pointer_create(&ob->id, &RNA_GpencilModifier, md, &ptr);
-  uiLayoutSetContextPointer(panel->layout, "modifier", &ptr);
+  PointerRNA *ptr = UI_panel_custom_data_get(panel);
+  GpencilModifierData *md = (GpencilModifierData *)ptr->data;
+
+  uiLayoutSetContextPointer(panel->layout, "modifier", ptr);
 
   const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(md->type);
   bool narrow_panel = (panel->sizex < UI_UNIT_X * 9 && panel->sizex != 0);
@@ -330,12 +321,12 @@ static void gpencil_modifier_panel_header(const bContext *C, Panel *panel)
   if (mti->isDisabled && mti->isDisabled(md, 0)) {
     uiLayoutSetRedAlert(row, true);
   }
-  uiItemL(row, "", RNA_struct_ui_icon(ptr.type));
+  uiItemL(row, "", RNA_struct_ui_icon(ptr->type));
 
   /* Modifier name. */
   row = uiLayoutRow(layout, true);
   if (!narrow_panel) {
-    uiItemR(row, &ptr, "name", 0, "", ICON_NONE);
+    uiItemR(row, ptr, "name", 0, "", ICON_NONE);
   }
   else {
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
@@ -344,10 +335,10 @@ static void gpencil_modifier_panel_header(const bContext *C, Panel *panel)
   /* Display mode buttons. */
   if (mti->flags & eGpencilModifierTypeFlag_SupportsEditmode) {
     sub = uiLayoutRow(row, true);
-    uiItemR(sub, &ptr, "show_in_editmode", 0, "", ICON_NONE);
+    uiItemR(sub, ptr, "show_in_editmode", 0, "", ICON_NONE);
   }
-  uiItemR(row, &ptr, "show_viewport", 0, "", ICON_NONE);
-  uiItemR(row, &ptr, "show_render", 0, "", ICON_NONE);
+  uiItemR(row, ptr, "show_viewport", 0, "", ICON_NONE);
+  uiItemR(row, ptr, "show_render", 0, "", ICON_NONE);
 
   /* Extra operators. */
   // row = uiLayoutRow(layout, true);

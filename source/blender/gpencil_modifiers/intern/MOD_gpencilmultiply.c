@@ -315,57 +315,54 @@ static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, 
   walk(userData, ob, (ID **)&mmd->material, IDWALK_CB_USER);
 }
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  gpencil_modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "duplicates", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "duplicates", 0, NULL, ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
-  uiLayoutSetActive(layout, RNA_int_get(&ptr, "duplicates") > 0);
-  uiItemR(col, &ptr, "distance", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "offset", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+  uiLayoutSetActive(layout, RNA_int_get(ptr, "duplicates") > 0);
+  uiItemR(col, ptr, "distance", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "offset", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 
-  gpencil_modifier_panel_end(layout, &ptr);
+  gpencil_modifier_panel_end(layout, ptr);
 }
 
-static void fade_header_draw(const bContext *C, Panel *panel)
+static void fade_header_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  gpencil_modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
 
-  uiItemR(layout, &ptr, "use_fade", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_fade", 0, NULL, ICON_NONE);
 }
 
-static void fade_panel_draw(const bContext *C, Panel *panel)
+static void fade_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  gpencil_modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiLayoutSetActive(layout, RNA_boolean_get(&ptr, "use_fade"));
+  uiLayoutSetActive(layout, RNA_boolean_get(ptr, "use_fade"));
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, &ptr, "fading_center", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "fading_thickness", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "fading_opacity", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+  uiItemR(col, ptr, "fading_center", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "fading_thickness", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+  uiItemR(col, ptr, "fading_opacity", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 }
 
-static void mask_panel_draw(const bContext *C, Panel *panel)
+static void mask_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
-  gpencil_modifier_masking_panel_draw(C, panel, true, false);
+  gpencil_modifier_masking_panel_draw(panel, true, false);
 }
 
 static void panelRegister(ARegionType *region_type)

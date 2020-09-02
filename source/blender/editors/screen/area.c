@@ -2564,11 +2564,11 @@ static void ed_panel_draw(const bContext *C,
 
   /* Draw panel. */
 
-  char block_name[BKE_ST_MAXNAME + LIST_PANEL_UNIQUE_STR_LEN];
+  char block_name[BKE_ST_MAXNAME + INSTANCED_PANEL_UNIQUE_STR_LEN];
   strncpy(block_name, pt->idname, BKE_ST_MAXNAME);
   if (unique_panel_str != NULL) {
     /* Instanced panels should have already been added at this point. */
-    strncat(block_name, unique_panel_str, LIST_PANEL_UNIQUE_STR_LEN);
+    strncat(block_name, unique_panel_str, INSTANCED_PANEL_UNIQUE_STR_LEN);
   }
   uiBlock *block = UI_block_begin(C, region, block_name, UI_EMBOSS);
 
@@ -2837,7 +2837,7 @@ void ED_region_panels_layout_ex(const bContext *C,
 
       /* Use a unique identifier for instanced panels, otherwise an old block for a different
        * panel of the same type might be found. */
-      char unique_panel_str[8];
+      char unique_panel_str[INSTANCED_PANEL_UNIQUE_STR_LEN];
       UI_list_panel_unique_str(panel, unique_panel_str);
       ed_panel_draw(C,
                     region,

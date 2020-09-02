@@ -69,9 +69,9 @@ static bool modifier_ui_poll(const bContext *C, PanelType *UNUSED(pt))
  */
 static void modifier_reorder(bContext *C, Panel *panel, int new_index)
 {
-  Object *ob = ED_object_active_context(C);
+  PointerRNA *md_ptr = UI_panel_custom_data_get(panel);
+  ModifierData *md = (ModifierData *)md_ptr->data;
 
-  ModifierData *md = BLI_findlink(&ob->modifiers, panel->runtime.list_index);
   PointerRNA props_ptr;
   wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_modifier_move_to_index", false);
   WM_operator_properties_create_ptr(&props_ptr, ot);
@@ -81,17 +81,17 @@ static void modifier_reorder(bContext *C, Panel *panel, int new_index)
   WM_operator_properties_free(&props_ptr);
 }
 
-static short get_modifier_expand_flag(const bContext *C, Panel *panel)
+static short get_modifier_expand_flag(const bContext *UNUSED(C), Panel *panel)
 {
-  Object *ob = ED_object_active_context(C);
-  ModifierData *md = BLI_findlink(&ob->modifiers, panel->runtime.list_index);
+  PointerRNA *md_ptr = UI_panel_custom_data_get(panel);
+  ModifierData *md = (ModifierData *)md_ptr->data;
   return md->ui_expand_flag;
 }
 
-static void set_modifier_expand_flag(const bContext *C, Panel *panel, short expand_flag)
+static void set_modifier_expand_flag(const bContext *UNUSED(C), Panel *panel, short expand_flag)
 {
-  Object *ob = ED_object_active_context(C);
-  ModifierData *md = BLI_findlink(&ob->modifiers, panel->runtime.list_index);
+  PointerRNA *md_ptr = UI_panel_custom_data_get(panel);
+  ModifierData *md = (ModifierData *)md_ptr->data;
   md->ui_expand_flag = expand_flag;
 }
 
@@ -116,27 +116,26 @@ void modifier_panel_end(uiLayout *layout, PointerRNA *ptr)
 /**
  * Gets RNA pointers for the active object and the panel's modifier data. Also locks
  * the layout if the modifier is from a linked object, and sets the context pointer.
+ *
+ * \note The modifier #PointerRNA is owned by the panel so we only need a pointer to it.
  */
 #define ERROR_LIBDATA_MESSAGE TIP_("External library data")
-void modifier_panel_get_property_pointers(const bContext *C,
-                                          Panel *panel,
-                                          PointerRNA *r_ob_ptr,
-                                          PointerRNA *r_md_ptr)
+PointerRNA *modifier_panel_get_property_pointers(Panel *panel, PointerRNA *r_ob_ptr)
 {
-  Object *ob = ED_object_active_context(C);
-
-  ModifierData *md = BLI_findlink(&ob->modifiers, panel->runtime.list_index);
-
-  RNA_pointer_create(&ob->id, &RNA_Modifier, md, r_md_ptr);
+  PointerRNA *ptr = UI_panel_custom_data_get(panel);
+  BLI_assert(!RNA_pointer_is_null(ptr));
+  BLI_assert(RNA_struct_is_a(ptr->type, &RNA_Modifier));
 
   if (r_ob_ptr != NULL) {
-    RNA_pointer_create(&ob->id, &RNA_Object, ob, r_ob_ptr);
+    RNA_pointer_create(ptr->owner_id, &RNA_Object, ptr->owner_id, r_ob_ptr);
   }
 
   uiBlock *block = uiLayoutGetBlock(panel->layout);
-  UI_block_lock_set(block, ID_IS_LINKED(ob), ERROR_LIBDATA_MESSAGE);
+  UI_block_lock_set(block, ID_IS_LINKED((Object *)ptr->owner_id), ERROR_LIBDATA_MESSAGE);
 
-  uiLayoutSetContextPointer(panel->layout, "modifier", r_md_ptr);
+  uiLayoutSetContextPointer(panel->layout, "modifier", ptr);
+
+  return ptr;
 }
 
 /**
@@ -296,24 +295,23 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
   uiLayout *row, *sub, *name_row;
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  Object *ob = ED_object_active_context(C);
-
   /* Don't use #modifier_panel_get_property_pointers, we don't want to lock the header. */
-  ModifierData *md = BLI_findlink(&ob->modifiers, panel->runtime.list_index);
-  RNA_pointer_create(&ob->id, &RNA_Modifier, md, &ptr);
-  uiLayoutSetContextPointer(panel->layout, "modifier", &ptr);
+  PointerRNA *ptr = UI_panel_custom_data_get(panel);
+  ModifierData *md = (ModifierData *)ptr->data;
+  Object *ob = (Object *)ptr->owner_id;
+
+  uiLayoutSetContextPointer(panel->layout, "modifier", ptr);
 
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
   Scene *scene = CTX_data_scene(C);
-  int index = panel->runtime.list_index;
+  int index = BLI_findindex(&ob->modifiers, md);
 
   /* Modifier Icon. */
   sub = uiLayoutRow(layout, true);
   if (mti->isDisabled && mti->isDisabled(scene, md, 0)) {
     uiLayoutSetRedAlert(sub, true);
   }
-  uiItemL(sub, "", RNA_struct_ui_icon(ptr.type));
+  uiItemL(sub, "", RNA_struct_ui_icon(ptr->type));
 
   row = uiLayoutRow(layout, true);
 
@@ -331,14 +329,14 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
       if (index < cage_index || !BKE_modifier_couldbe_cage(scene, md)) {
         uiLayoutSetActive(sub, false);
       }
-      uiItemR(sub, &ptr, "show_on_cage", 0, "", ICON_NONE);
+      uiItemR(sub, ptr, "show_on_cage", 0, "", ICON_NONE);
       buttons_number++;
     }
   } /* Tessellation point for curve-typed objects. */
   else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
     if (mti->type != eModifierTypeType_Constructive) {
       /* Constructive modifiers tessellates curve before applying. */
-      uiItemR(row, &ptr, "use_apply_on_spline", 0, "", ICON_NONE);
+      uiItemR(row, ptr, "use_apply_on_spline", 0, "", ICON_NONE);
       buttons_number++;
     }
   }
@@ -348,11 +346,11 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
     if (mti->flags & eModifierTypeFlag_SupportsEditmode) {
       sub = uiLayoutRow(row, true);
       uiLayoutSetActive(sub, (md->mode & eModifierMode_Realtime));
-      uiItemR(sub, &ptr, "show_in_editmode", 0, "", ICON_NONE);
+      uiItemR(sub, ptr, "show_in_editmode", 0, "", ICON_NONE);
       buttons_number++;
     }
-    uiItemR(row, &ptr, "show_viewport", 0, "", ICON_NONE);
-    uiItemR(row, &ptr, "show_render", 0, "", ICON_NONE);
+    uiItemR(row, ptr, "show_viewport", 0, "", ICON_NONE);
+    uiItemR(row, ptr, "show_render", 0, "", ICON_NONE);
     buttons_number += 2;
   }
 
@@ -381,7 +379,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
 
   bool display_name = (panel->sizex / UI_UNIT_X - buttons_number > 5) || (panel->sizex == 0);
   if (display_name) {
-    uiItemR(name_row, &ptr, "name", 0, "", ICON_NONE);
+    uiItemR(name_row, ptr, "name", 0, "", ICON_NONE);
   }
   else {
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);

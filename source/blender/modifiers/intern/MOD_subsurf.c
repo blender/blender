@@ -339,9 +339,8 @@ static bool get_show_adaptive_options(const bContext *C, Panel *panel)
   }
 
   /* Only show adaptive options if this is the last modifier. */
-  PointerRNA md_ptr;
-  modifier_panel_get_property_pointers(C, panel, NULL, &md_ptr);
-  ModifierData *md = md_ptr.data;
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, NULL);
+  ModifierData *md = ptr->data;
   if (md->next != NULL) {
     return false;
   }
@@ -365,9 +364,8 @@ static void panel_draw(const bContext *C, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
   PointerRNA ob_ptr;
-  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   /* Only test for adaptive subdivision if built with cycles. */
   bool show_adaptive_options = false;
@@ -386,9 +384,11 @@ static void panel_draw(const bContext *C, Panel *panel)
       show_adaptive_options = get_show_adaptive_options(C, panel);
     }
   }
+#else
+  UNUSED_VARS(C);
 #endif
 
-  uiItemR(layout, &ptr, "subdivision_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "subdivision_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -414,26 +414,25 @@ static void panel_draw(const bContext *C, Panel *panel)
 
     uiItemS(layout);
 
-    uiItemR(layout, &ptr, "levels", 0, IFACE_("Levels Viewport"), ICON_NONE);
+    uiItemR(layout, ptr, "levels", 0, IFACE_("Levels Viewport"), ICON_NONE);
   }
   else {
     uiLayout *col = uiLayoutColumn(layout, true);
-    uiItemR(col, &ptr, "levels", 0, IFACE_("Levels Viewport"), ICON_NONE);
-    uiItemR(col, &ptr, "render_levels", 0, IFACE_("Render"), ICON_NONE);
+    uiItemR(col, ptr, "levels", 0, IFACE_("Levels Viewport"), ICON_NONE);
+    uiItemR(col, ptr, "render_levels", 0, IFACE_("Render"), ICON_NONE);
   }
 
-  uiItemR(layout, &ptr, "show_only_control_edges", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "show_only_control_edges", 0, NULL, ICON_NONE);
 
-  modifier_panel_end(layout, &ptr);
+  modifier_panel_end(layout, ptr);
 }
 
 static void advanced_panel_draw(const bContext *C, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
   PointerRNA ob_ptr;
-  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   bool ob_use_adaptive_subdivision = false;
   bool show_adaptive_options = false;
@@ -446,15 +445,17 @@ static void advanced_panel_draw(const bContext *C, Panel *panel)
       show_adaptive_options = get_show_adaptive_options(C, panel);
     }
   }
+#else
+  UNUSED_VARS(C);
 #endif
 
   uiLayoutSetPropSep(layout, true);
 
   uiLayoutSetActive(layout, !(show_adaptive_options && ob_use_adaptive_subdivision));
-  uiItemR(layout, &ptr, "quality", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "uv_smooth", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "use_creases", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "use_custom_normals", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "quality", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "uv_smooth", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_creases", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_custom_normals", 0, NULL, ICON_NONE);
 }
 
 static void panelRegister(ARegionType *region_type)

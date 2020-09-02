@@ -1882,7 +1882,7 @@ void uiTemplateModifiers(uiLayout *UNUSED(layout), bContext *C)
       PointerRNA *md_ptr = MEM_mallocN(sizeof(PointerRNA), "panel customdata");
       RNA_pointer_create(&ob->id, &RNA_Modifier, md, md_ptr);
 
-      Panel *new_panel = UI_panel_add_instanced(region, &region->panels, panel_idname, i, md_ptr);
+      Panel *new_panel = UI_panel_add_instanced(region, &region->panels, panel_idname, md_ptr);
 
       if (new_panel != NULL) {
         UI_panel_set_expand_from_list_data(C, new_panel);
@@ -1967,10 +1967,11 @@ static ListBase *get_constraints(const bContext *C, bool use_bone_constraints)
  */
 static void constraint_reorder(bContext *C, Panel *panel, int new_index)
 {
-  const bool constraint_from_bone = constraint_panel_is_bone(panel);
-  ListBase *lb = get_constraints(C, constraint_from_bone);
+  bool constraint_from_bone = constraint_panel_is_bone(panel);
 
-  bConstraint *con = BLI_findlink(lb, panel->runtime.list_index);
+  PointerRNA *con_ptr = UI_panel_custom_data_get(panel);
+  bConstraint *con = (bConstraint *)con_ptr->data;
+
   PointerRNA props_ptr;
   wmOperatorType *ot = WM_operatortype_find("CONSTRAINT_OT_move_to_index", false);
   WM_operator_properties_create_ptr(&props_ptr, ot);
@@ -1985,24 +1986,21 @@ static void constraint_reorder(bContext *C, Panel *panel, int new_index)
 /**
  * Get the expand flag from the active constraint to use for the panel.
  */
-static short get_constraint_expand_flag(const bContext *C, Panel *panel)
+static short get_constraint_expand_flag(const bContext *UNUSED(C), Panel *panel)
 {
-  const bool constraint_from_bone = constraint_panel_is_bone(panel);
-  ListBase *lb = get_constraints(C, constraint_from_bone);
+  PointerRNA *con_ptr = UI_panel_custom_data_get(panel);
+  bConstraint *con = (bConstraint *)con_ptr->data;
 
-  bConstraint *con = BLI_findlink(lb, panel->runtime.list_index);
   return con->ui_expand_flag;
 }
 
 /**
  * Save the expand flag for the panel and sub-panels to the constraint.
  */
-static void set_constraint_expand_flag(const bContext *C, Panel *panel, short expand_flag)
+static void set_constraint_expand_flag(const bContext *UNUSED(C), Panel *panel, short expand_flag)
 {
-  const bool constraint_from_bone = constraint_panel_is_bone(panel);
-  ListBase *lb = get_constraints(C, constraint_from_bone);
-
-  bConstraint *con = BLI_findlink(lb, panel->runtime.list_index);
+  PointerRNA *con_ptr = UI_panel_custom_data_get(panel);
+  bConstraint *con = (bConstraint *)con_ptr->data;
   con->ui_expand_flag = expand_flag;
 }
 
@@ -2057,7 +2055,7 @@ void uiTemplateConstraints(uiLayout *UNUSED(layout), bContext *C, bool use_bone_
       PointerRNA *con_ptr = MEM_mallocN(sizeof(PointerRNA), "panel customdata");
       RNA_pointer_create(&ob->id, &RNA_Constraint, con, con_ptr);
 
-      Panel *new_panel = UI_panel_add_instanced(region, &region->panels, panel_idname, i, con_ptr);
+      Panel *new_panel = UI_panel_add_instanced(region, &region->panels, panel_idname, con_ptr);
 
       if (new_panel) {
         /* Set the list panel functionality function pointers since we don't do it with python. */
@@ -2138,7 +2136,7 @@ void uiTemplateGpencilModifiers(uiLayout *UNUSED(layout), bContext *C)
       PointerRNA *md_ptr = MEM_mallocN(sizeof(PointerRNA), "panel customdata");
       RNA_pointer_create(&ob->id, &RNA_GpencilModifier, md, md_ptr);
 
-      Panel *new_panel = UI_panel_add_instanced(region, &region->panels, panel_idname, i, md_ptr);
+      Panel *new_panel = UI_panel_add_instanced(region, &region->panels, panel_idname, md_ptr);
 
       if (new_panel != NULL) {
         UI_panel_set_expand_from_list_data(C, new_panel);
@@ -2220,7 +2218,7 @@ void uiTemplateShaderFx(uiLayout *UNUSED(layout), bContext *C)
       PointerRNA *fx_ptr = MEM_mallocN(sizeof(PointerRNA), "panel customdata");
       RNA_pointer_create(&ob->id, &RNA_ShaderFx, fx, fx_ptr);
 
-      Panel *new_panel = UI_panel_add_instanced(region, &region->panels, panel_idname, i, fx_ptr);
+      Panel *new_panel = UI_panel_add_instanced(region, &region->panels, panel_idname, fx_ptr);
 
       if (new_panel != NULL) {
         UI_panel_set_expand_from_list_data(C, new_panel);

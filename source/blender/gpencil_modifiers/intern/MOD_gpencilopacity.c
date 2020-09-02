@@ -208,51 +208,48 @@ static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, 
   walk(userData, ob, (ID **)&mmd->material, IDWALK_CB_USER);
 }
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  gpencil_modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
 
   uiLayoutSetPropSep(layout, true);
 
-  int modify_color = RNA_enum_get(&ptr, "modify_color");
+  int modify_color = RNA_enum_get(ptr, "modify_color");
 
-  uiItemR(layout, &ptr, "modify_color", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "modify_color", 0, NULL, ICON_NONE);
 
   if (modify_color == GP_MODIFY_COLOR_HARDNESS) {
-    uiItemR(layout, &ptr, "hardness", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "hardness", 0, NULL, ICON_NONE);
   }
   else {
-    uiItemR(layout, &ptr, "normalize_opacity", 0, NULL, ICON_NONE);
-    const char *text = (RNA_boolean_get(&ptr, "normalize_opacity")) ? IFACE_("Strength") :
-                                                                      IFACE_("Opacity Factor");
-    uiItemR(layout, &ptr, "hardness", 0, text, ICON_NONE);
+    uiItemR(layout, ptr, "normalize_opacity", 0, NULL, ICON_NONE);
+    const char *text = (RNA_boolean_get(ptr, "normalize_opacity")) ? IFACE_("Strength") :
+                                                                     IFACE_("Opacity Factor");
+    uiItemR(layout, ptr, "hardness", 0, text, ICON_NONE);
   }
 
-  gpencil_modifier_panel_end(layout, &ptr);
+  gpencil_modifier_panel_end(layout, ptr);
 }
 
-static void mask_panel_draw(const bContext *C, Panel *panel)
+static void mask_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
-  PointerRNA ptr;
-  gpencil_modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
 
-  int modify_color = RNA_enum_get(&ptr, "modify_color");
+  int modify_color = RNA_enum_get(ptr, "modify_color");
   bool show_vertex = (modify_color != GP_MODIFY_COLOR_HARDNESS);
 
-  gpencil_modifier_masking_panel_draw(C, panel, true, show_vertex);
+  gpencil_modifier_masking_panel_draw(panel, true, show_vertex);
 }
 
 static void curve_header_draw(const bContext *C, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  gpencil_modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
 
-  int modify_color = RNA_enum_get(&ptr, "modify_color");
+  int modify_color = RNA_enum_get(ptr, "modify_color");
   uiLayoutSetActive(layout, modify_color != GP_MODIFY_COLOR_HARDNESS);
 
   gpencil_modifier_curve_header_draw(C, panel);
@@ -262,10 +259,9 @@ static void curve_panel_draw(const bContext *C, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  gpencil_modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
 
-  int modify_color = RNA_enum_get(&ptr, "modify_color");
+  int modify_color = RNA_enum_get(ptr, "modify_color");
   uiLayoutSetActive(layout, modify_color != GP_MODIFY_COLOR_HARDNESS);
 
   gpencil_modifier_curve_panel_draw(C, panel);

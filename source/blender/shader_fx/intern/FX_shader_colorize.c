@@ -55,31 +55,30 @@ static void copyData(const ShaderFxData *md, ShaderFxData *target)
   BKE_shaderfx_copydata_generic(md, target);
 }
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  shaderfx_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, NULL);
 
-  int mode = RNA_enum_get(&ptr, "mode");
+  int mode = RNA_enum_get(ptr, "mode");
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "mode", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "mode", 0, NULL, ICON_NONE);
 
   if (ELEM(mode, eShaderFxColorizeMode_Custom, eShaderFxColorizeMode_Duotone)) {
     const char *text = (mode == eShaderFxColorizeMode_Duotone) ? IFACE_("Low Color") :
                                                                  IFACE_("Color");
-    uiItemR(layout, &ptr, "low_color", 0, text, ICON_NONE);
+    uiItemR(layout, ptr, "low_color", 0, text, ICON_NONE);
   }
   if (mode == eShaderFxColorizeMode_Duotone) {
-    uiItemR(layout, &ptr, "high_color", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "high_color", 0, NULL, ICON_NONE);
   }
 
-  uiItemR(layout, &ptr, "factor", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "factor", 0, NULL, ICON_NONE);
 
-  shaderfx_panel_end(layout, &ptr);
+  shaderfx_panel_end(layout, ptr);
 }
 
 static void panelRegister(ARegionType *region_type)

@@ -86,21 +86,19 @@ static void foreachObjectLink(ShaderFxData *fx,
   walk(userData, ob, &fxd->object, IDWALK_CB_NOP);
 }
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  PointerRNA ob_ptr;
-  shaderfx_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, NULL);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "object", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "radius", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "angle", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "object", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "radius", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "angle", 0, NULL, ICON_NONE);
 
-  shaderfx_panel_end(layout, &ptr);
+  shaderfx_panel_end(layout, ptr);
 }
 
 static void panelRegister(ARegionType *region_type)

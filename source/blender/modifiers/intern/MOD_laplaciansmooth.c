@@ -584,34 +584,33 @@ static void deformVertsEM(ModifierData *md,
   }
 }
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *row;
   uiLayout *layout = panel->layout;
   int toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
 
-  PointerRNA ptr;
   PointerRNA ob_ptr;
-  modifier_panel_get_property_pointers(C, panel, &ob_ptr, &ptr);
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "iterations", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "iterations", 0, NULL, ICON_NONE);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Axis"));
-  uiItemR(row, &ptr, "use_x", toggles_flag, NULL, ICON_NONE);
-  uiItemR(row, &ptr, "use_y", toggles_flag, NULL, ICON_NONE);
-  uiItemR(row, &ptr, "use_z", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, ptr, "use_x", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, ptr, "use_y", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, ptr, "use_z", toggles_flag, NULL, ICON_NONE);
 
-  uiItemR(layout, &ptr, "lambda_factor", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "lambda_border", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "lambda_factor", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "lambda_border", 0, NULL, ICON_NONE);
 
-  uiItemR(layout, &ptr, "use_volume_preserve", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "use_normalized", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_volume_preserve", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_normalized", 0, NULL, ICON_NONE);
 
-  modifier_vgroup_ui(layout, &ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
 
-  modifier_panel_end(layout, &ptr);
+  modifier_panel_end(layout, ptr);
 }
 
 static void panelRegister(ARegionType *region_type)

@@ -344,40 +344,39 @@ static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, 
   foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }
 
-static void panel_draw(const bContext *C, Panel *panel)
+static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA ptr;
-  gpencil_modifier_panel_get_property_pointers(C, panel, NULL, &ptr);
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
 
-  int tint_type = RNA_enum_get(&ptr, "tint_type");
+  int tint_type = RNA_enum_get(ptr, "tint_type");
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, &ptr, "vertex_mode", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "factor", 0, NULL, ICON_NONE);
-  uiItemR(layout, &ptr, "tint_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "vertex_mode", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "factor", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "tint_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
   if (tint_type == GP_TINT_UNIFORM) {
-    uiItemR(layout, &ptr, "color", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "color", 0, NULL, ICON_NONE);
   }
   else {
     col = uiLayoutColumn(layout, false);
     uiLayoutSetPropSep(col, false);
-    uiTemplateColorRamp(col, &ptr, "colors", true);
+    uiTemplateColorRamp(col, ptr, "colors", true);
     uiItemS(layout);
-    uiItemR(layout, &ptr, "object", 0, NULL, ICON_NONE);
-    uiItemR(layout, &ptr, "radius", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "object", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "radius", 0, NULL, ICON_NONE);
   }
 
-  gpencil_modifier_panel_end(layout, &ptr);
+  gpencil_modifier_panel_end(layout, ptr);
 }
 
-static void mask_panel_draw(const bContext *C, Panel *panel)
+static void mask_panel_draw(const bContext *UNUSED(C), Panel *panel)
 {
-  gpencil_modifier_masking_panel_draw(C, panel, true, true);
+  gpencil_modifier_masking_panel_draw(panel, true, true);
 }
 
 static void panelRegister(ARegionType *region_type)

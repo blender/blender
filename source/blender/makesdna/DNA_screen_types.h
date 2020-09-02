@@ -133,8 +133,7 @@ typedef struct Panel_Runtime {
   /* Applied to Panel.ofsx, but saved separately so we can track changes between redraws. */
   int region_ofsx;
 
-  /* For instanced panels: Index of the list item the panel corresponds to. */
-  int list_index;
+  char _pad[4];
 
   /**
    * Pointer for storing which data the panel corresponds to.
