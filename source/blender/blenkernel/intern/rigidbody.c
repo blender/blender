@@ -174,7 +174,7 @@ void BKE_rigidbody_free_object(Object *ob, RigidBodyWorld *rbw)
   /* free physics references */
   if (is_orig) {
     if (rbo->shared->physics_object) {
-      if (rbw != NULL) {
+      if (rbw != NULL && rbw->shared->physics_world != NULL) {
         /* We can only remove the body from the world if the world is known.
          * The world is generally only unknown if it's an evaluated copy of
          * an object that's being freed, in which case this code isn't run anyway. */
@@ -185,7 +185,7 @@ void BKE_rigidbody_free_object(Object *ob, RigidBodyWorld *rbw)
          * loop over all scenes then. */
         for (Scene *scene = G_MAIN->scenes.first; scene != NULL; scene = scene->id.next) {
           RigidBodyWorld *scene_rbw = scene->rigidbody_world;
-          if (scene_rbw != NULL) {
+          if (scene_rbw != NULL && scene_rbw->shared->physics_world != NULL) {
             RB_dworld_remove_body(scene_rbw->shared->physics_world, rbo->shared->physics_object);
           }
         }
@@ -816,7 +816,9 @@ static void rigidbody_validate_sim_object(RigidBodyWorld *rbw, Object *ob, bool 
     rigidbody_validate_sim_shape(rbw, ob, true);
   }
 
-  if (rbo->shared->physics_object) {
+  if (rbo->shared->physics_object && !rebuild) {
+    /* Don't remove body on rebuild as it has already been removed when deleting and rebuilding the
+     * world. */
     RB_dworld_remove_body(rbw->shared->physics_world, rbo->shared->physics_object);
   }
   if (!rbo->shared->physics_object || rebuild) {
@@ -1559,6 +1561,10 @@ void BKE_rigidbody_remove_object(Main *bmain, Scene *scene, Object *ob, const bo
 
   /* flag cache as outdated */
   BKE_rigidbody_cache_reset(rbw);
+  /* Reset cache as the object order probably changed after freeing the object. */
+  PTCacheID pid;
+  BKE_ptcache_id_from_rigidbody(&pid, NULL, rbw);
+  BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
 
   /* Dependency graph update */
   DEG_relations_tag_update(bmain);
@@ -1771,6 +1777,8 @@ static void rigidbody_update_simulation(Depsgraph *depsgraph,
    * T70667). */
   if (rebuild || rbw->shared->physics_world == NULL) {
     BKE_rigidbody_validate_sim_world(scene, rbw, rebuild);
+    /* We have rebuilt the world so we need to make sure the rest is rebuilt as well. */
+    rebuild = true;
   }
 
   rigidbody_update_sim_world(scene, rbw);
