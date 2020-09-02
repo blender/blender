@@ -33,6 +33,22 @@ if(WITH_CYCLES_NATIVE_ONLY)
   if(NOT MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
     set(CYCLES_KERNEL_FLAGS "-march=native")
+  else()
+    if(NOT MSVC_NATIVE_ARCH_FLAGS)
+        TRY_RUN(
+            arch_run_result
+            arch_compile_result
+            ${CMAKE_CURRENT_BINARY_DIR}/
+            ${CMAKE_CURRENT_SOURCE_DIR}/cmake/msvc_arch_flags.c
+            COMPILE_OUTPUT_VARIABLE arch_compile_output
+            RUN_OUTPUT_VARIABLE arch_run_output
+        )
+        if (arch_compile_result AND "${arch_run_result}" EQUAL "0")
+            string(STRIP ${arch_run_output} arch_run_output)
+            set(MSVC_NATIVE_ARCH_FLAGS ${arch_run_output} CACHE STRING "MSVC Native architecture flags")
+        endif()
+    endif()
+    set(CYCLES_KERNEL_FLAGS "${MSVC_NATIVE_ARCH_FLAGS}")
   endif()
 elseif(NOT WITH_CPU_SSE)
   set(CXX_HAS_SSE FALSE)
