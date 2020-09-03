@@ -44,13 +44,13 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
 
   if (GPU_material_is_volume_shader(mat)) {
     if (out[0].hasoutput) {
-      out[0].link = GPU_volume_grid(mat, attr->name);
+      out[0].link = GPU_volume_grid(mat, attr->name, GPU_VOLUME_DEFAULT_0);
     }
     if (out[1].hasoutput) {
-      out[1].link = GPU_volume_grid(mat, attr->name);
+      out[1].link = GPU_volume_grid(mat, attr->name, GPU_VOLUME_DEFAULT_0);
     }
     if (out[2].hasoutput) {
-      out[2].link = GPU_volume_grid(mat, attr->name);
+      out[2].link = GPU_volume_grid(mat, attr->name, GPU_VOLUME_DEFAULT_0);
     }
 
     return 1;

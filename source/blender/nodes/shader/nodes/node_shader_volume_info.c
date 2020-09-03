@@ -34,16 +34,16 @@ static int node_shader_gpu_volume_info(GPUMaterial *mat,
                                        GPUNodeStack *out)
 {
   if (out[0].hasoutput) {
-    out[0].link = GPU_volume_grid(mat, "color");
+    out[0].link = GPU_volume_grid(mat, "color", GPU_VOLUME_DEFAULT_0);
   }
   if (out[1].hasoutput) {
-    out[1].link = GPU_volume_grid(mat, "density");
+    out[1].link = GPU_volume_grid(mat, "density", GPU_VOLUME_DEFAULT_0);
   }
   if (out[2].hasoutput) {
-    out[2].link = GPU_volume_grid(mat, "flame");
+    out[2].link = GPU_volume_grid(mat, "flame", GPU_VOLUME_DEFAULT_0);
   }
   if (out[3].hasoutput) {
-    out[3].link = GPU_volume_grid(mat, "temperature");
+    out[3].link = GPU_volume_grid(mat, "temperature", GPU_VOLUME_DEFAULT_0);
   }
 
   return true;

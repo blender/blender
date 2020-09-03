@@ -333,13 +333,15 @@ static GPUMaterialTexture *gpu_node_graph_add_texture(GPUNodeGraph *graph,
   return tex;
 }
 
-static GPUMaterialVolumeGrid *gpu_node_graph_add_volume_grid(GPUNodeGraph *graph, const char *name)
+static GPUMaterialVolumeGrid *gpu_node_graph_add_volume_grid(GPUNodeGraph *graph,
+                                                             const char *name,
+                                                             eGPUVolumeDefaultValue default_value)
 {
   /* Find existing volume grid. */
   int num_grids = 0;
   GPUMaterialVolumeGrid *grid = graph->volume_grids.first;
   for (; grid; grid = grid->next) {
-    if (STREQ(grid->name, name)) {
+    if (STREQ(grid->name, name) && grid->default_value == default_value) {
       break;
     }
     num_grids++;
@@ -349,6 +351,7 @@ static GPUMaterialVolumeGrid *gpu_node_graph_add_volume_grid(GPUNodeGraph *graph
   if (grid == NULL) {
     grid = MEM_callocN(sizeof(*grid), __func__);
     grid->name = BLI_strdup(name);
+    grid->default_value = default_value;
     BLI_snprintf(grid->sampler_name, sizeof(grid->sampler_name), "vsamp%d", num_grids);
     BLI_snprintf(grid->transform_name, sizeof(grid->transform_name), "vtfm%d", num_grids);
     BLI_addtail(&graph->volume_grids, grid);
@@ -442,14 +445,16 @@ GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *ro
   return link;
 }
 
-GPUNodeLink *GPU_volume_grid(GPUMaterial *mat, const char *name)
+GPUNodeLink *GPU_volume_grid(GPUMaterial *mat,
+                             const char *name,
+                             eGPUVolumeDefaultValue default_value)
 {
   /* NOTE: this could be optimized by automatically merging duplicate
    * lookups of the same attribute. */
   GPUNodeGraph *graph = gpu_material_node_graph(mat);
   GPUNodeLink *link = gpu_node_link_create();
   link->link_type = GPU_NODE_LINK_VOLUME_GRID;
-  link->volume_grid = gpu_node_graph_add_volume_grid(graph, name);
+  link->volume_grid = gpu_node_graph_add_volume_grid(graph, name, default_value);
 
   GPUNodeLink *transform_link = gpu_node_link_create();
   transform_link->link_type = GPU_NODE_LINK_VOLUME_GRID_TRANSFORM;

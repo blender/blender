@@ -78,13 +78,13 @@ static int node_shader_gpu_volume_principled(GPUMaterial *mat,
     }
 
     if (STREQ(sock->name, "Density Attribute")) {
-      density = GPU_volume_grid(mat, attribute_name);
+      density = GPU_volume_grid(mat, attribute_name, GPU_VOLUME_DEFAULT_1);
     }
     else if (STREQ(sock->name, "Color Attribute")) {
-      color = GPU_volume_grid(mat, attribute_name);
+      color = GPU_volume_grid(mat, attribute_name, GPU_VOLUME_DEFAULT_1);
     }
     else if (use_blackbody && STREQ(sock->name, "Temperature Attribute")) {
-      temperature = GPU_volume_grid(mat, attribute_name);
+      temperature = GPU_volume_grid(mat, attribute_name, GPU_VOLUME_DEFAULT_0);
     }
   }
 

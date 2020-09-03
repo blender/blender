@@ -128,6 +128,11 @@ typedef enum eGPUMaterialStatus {
   GPU_MAT_SUCCESS,
 } eGPUMaterialStatus;
 
+typedef enum eGPUVolumeDefaultValue {
+  GPU_VOLUME_DEFAULT_0,
+  GPU_VOLUME_DEFAULT_1,
+} eGPUVolumeDefaultValue;
+
 typedef void (*GPUMaterialEvalCallbackFn)(GPUMaterial *mat,
                                           int options,
                                           const char **vert_code,
@@ -148,7 +153,9 @@ GPUNodeLink *GPU_image_tiled(GPUMaterial *mat,
                              eGPUSamplerState sampler_state);
 GPUNodeLink *GPU_image_tiled_mapping(GPUMaterial *mat, struct Image *ima, struct ImageUser *iuser);
 GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *layer);
-GPUNodeLink *GPU_volume_grid(GPUMaterial *mat, const char *name);
+GPUNodeLink *GPU_volume_grid(GPUMaterial *mat,
+                             const char *name,
+                             eGPUVolumeDefaultValue default_value);
 GPUNodeLink *GPU_builtin(eGPUBuiltin builtin);
 
 bool GPU_link(GPUMaterial *mat, const char *name, ...);
@@ -242,6 +249,7 @@ typedef struct GPUMaterialTexture {
 typedef struct GPUMaterialVolumeGrid {
   struct GPUMaterialVolumeGrid *next, *prev;
   char *name;
+  eGPUVolumeDefaultValue default_value;
   char sampler_name[32];   /* Name of sampler in GLSL. */
   char transform_name[32]; /* Name of 4x4 matrix in GLSL. */
   int users;

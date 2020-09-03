@@ -59,10 +59,9 @@ static struct {
 
   GPUTexture *depth_src;
 
-  GPUTexture *dummy_density;
-  GPUTexture *dummy_color;
+  GPUTexture *dummy_zero;
+  GPUTexture *dummy_one;
   GPUTexture *dummy_flame;
-  GPUTexture *dummy_missing;
 
   GPUTexture *dummy_scatter;
   GPUTexture *dummy_transmit;
@@ -137,14 +136,24 @@ static void eevee_create_shader_volumes(void)
   e_data.volumetric_accum_sh = DRW_shader_create_fullscreen_with_shaderlib(
       datatoc_volumetric_accum_frag_glsl, lib, SHADER_DEFINES);
 
-  const float density[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-  e_data.dummy_density = DRW_texture_create_3d(1, 1, 1, GPU_RGBA8, DRW_TEX_WRAP, density);
+  const float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  e_data.dummy_zero = DRW_texture_create_3d(1, 1, 1, GPU_RGBA8, DRW_TEX_WRAP, zero);
+
+  const float one[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+  e_data.dummy_one = DRW_texture_create_3d(1, 1, 1, GPU_RGBA8, DRW_TEX_WRAP, one);
 
   const float flame = 0.0f;
   e_data.dummy_flame = DRW_texture_create_3d(1, 1, 1, GPU_R8, DRW_TEX_WRAP, &flame);
+}
 
-  const float missing[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-  e_data.dummy_missing = DRW_texture_create_3d(1, 1, 1, GPU_RGBA8, DRW_TEX_WRAP, missing);
+static GPUTexture *eevee_volume_default_texture(eGPUVolumeDefaultValue default_value)
+{
+  switch (default_value) {
+    case GPU_VOLUME_DEFAULT_0:
+      return e_data.dummy_zero;
+    case GPU_VOLUME_DEFAULT_1:
+      return e_data.dummy_one;
+  }
 }
 
 void EEVEE_volumes_set_jitter(EEVEE_ViewLayerData *sldata, uint current_sample)
@@ -359,7 +368,8 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
       /* Fix principle volumetric not working with world materials. */
       ListBase gpu_grids = GPU_material_volume_grids(mat);
       LISTBASE_FOREACH (GPUMaterialVolumeGrid *, gpu_grid, &gpu_grids) {
-        DRW_shgroup_uniform_texture(grp, gpu_grid->sampler_name, e_data.dummy_missing);
+        DRW_shgroup_uniform_texture(
+            grp, gpu_grid->sampler_name, eevee_volume_default_texture(gpu_grid->default_value));
       }
 
       DRW_shgroup_call_procedural_triangles(grp, NULL, common_data->vol_tex_size[2]);
@@ -449,7 +459,9 @@ static bool eevee_volume_object_grids_init(Object *ob, ListBase *gpu_grids, DRWS
                                   NULL;
 
     DRW_shgroup_uniform_texture(
-        grp, gpu_grid->sampler_name, (drw_grid) ? drw_grid->texture : e_data.dummy_missing);
+        grp,
+        gpu_grid->sampler_name,
+        (drw_grid) ? drw_grid->texture : eevee_volume_default_texture(gpu_grid->default_value));
 
     if (drw_grid && multiple_transforms) {
       /* Specify per-volume transform matrix that is applied after the
@@ -497,21 +509,20 @@ static bool eevee_volume_object_mesh_init(Scene *scene,
 
     LISTBASE_FOREACH (GPUMaterialVolumeGrid *, gpu_grid, gpu_grids) {
       if (STREQ(gpu_grid->name, "density")) {
-        DRW_shgroup_uniform_texture_ref(grp,
-                                        gpu_grid->sampler_name,
-                                        fds->tex_density ? &fds->tex_density :
-                                                           &e_data.dummy_density);
+        DRW_shgroup_uniform_texture_ref(
+            grp, gpu_grid->sampler_name, fds->tex_density ? &fds->tex_density : &e_data.dummy_one);
       }
       else if (STREQ(gpu_grid->name, "color")) {
         DRW_shgroup_uniform_texture_ref(
-            grp, gpu_grid->sampler_name, fds->tex_color ? &fds->tex_color : &e_data.dummy_density);
+            grp, gpu_grid->sampler_name, fds->tex_color ? &fds->tex_color : &e_data.dummy_one);
       }
       else if (STREQ(gpu_grid->name, "flame") || STREQ(gpu_grid->name, "temperature")) {
         DRW_shgroup_uniform_texture_ref(
             grp, gpu_grid->sampler_name, fds->tex_flame ? &fds->tex_flame : &e_data.dummy_flame);
       }
       else {
-        DRW_shgroup_uniform_texture_ref(grp, gpu_grid->sampler_name, &e_data.dummy_density);
+        DRW_shgroup_uniform_texture(
+            grp, gpu_grid->sampler_name, eevee_volume_default_texture(gpu_grid->default_value));
       }
     }
 
@@ -527,7 +538,8 @@ static bool eevee_volume_object_mesh_init(Scene *scene,
   }
   else {
     LISTBASE_FOREACH (GPUMaterialVolumeGrid *, gpu_grid, gpu_grids) {
-      DRW_shgroup_uniform_texture(grp, gpu_grid->sampler_name, e_data.dummy_density);
+      DRW_shgroup_uniform_texture(
+          grp, gpu_grid->sampler_name, eevee_volume_default_texture(gpu_grid->default_value));
     }
   }
 
@@ -836,10 +848,9 @@ void EEVEE_volumes_free(void)
   DRW_TEXTURE_FREE_SAFE(e_data.dummy_scatter);
   DRW_TEXTURE_FREE_SAFE(e_data.dummy_transmit);
 
-  DRW_TEXTURE_FREE_SAFE(e_data.dummy_density);
+  DRW_TEXTURE_FREE_SAFE(e_data.dummy_zero);
+  DRW_TEXTURE_FREE_SAFE(e_data.dummy_one);
   DRW_TEXTURE_FREE_SAFE(e_data.dummy_flame);
-  DRW_TEXTURE_FREE_SAFE(e_data.dummy_color);
-  DRW_TEXTURE_FREE_SAFE(e_data.dummy_missing);
 
   DRW_SHADER_FREE_SAFE(e_data.volumetric_clear_sh);
   DRW_SHADER_FREE_SAFE(e_data.scatter_sh);
