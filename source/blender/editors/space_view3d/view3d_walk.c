@@ -985,7 +985,8 @@ static float getVelocityZeroTime(const float gravity, const float velocity)
 
 static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
 {
-#define WALK_ROTATE_FAC 2.2f /* more is faster */
+#define WALK_ROTATE_RELATIVE_FAC 2.2f           /* More is faster, relative to region size. */
+#define WALK_ROTATE_CONSTANT_FAC DEG2RAD(0.15f) /* More is faster, radians per-pixel. */
 #define WALK_TOP_LIMIT DEG2RADF(85.0f)
 #define WALK_BOTTOM_LIMIT DEG2RADF(-80.0f)
 #define WALK_MOVE_SPEED base_speed
@@ -1063,10 +1064,19 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
           float y;
 
           /* relative offset */
-          y = (float)moffset[1] / region->winy;
+          y = (float)moffset[1];
 
-          /* speed factor */
-          y *= WALK_ROTATE_FAC;
+          /* Speed factor. */
+#ifdef USE_TABLET_SUPPORT
+          if (walk->is_cursor_absolute) {
+            y /= region->winy;
+            y *= WALK_ROTATE_RELATIVE_FAC;
+          }
+          else
+#endif
+          {
+            y *= WALK_ROTATE_CONSTANT_FAC;
+          }
 
           /* user adjustment factor */
           y *= walk->mouse_speed;
@@ -1103,10 +1113,19 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
           }
 
           /* relative offset */
-          x = (float)moffset[0] / region->winx;
+          x = (float)moffset[0];
 
-          /* speed factor */
-          x *= WALK_ROTATE_FAC;
+          /* Speed factor. */
+#ifdef USE_TABLET_SUPPORT
+          if (walk->is_cursor_absolute) {
+            x /= region->winx;
+            x *= WALK_ROTATE_RELATIVE_FAC;
+          }
+          else
+#endif
+          {
+            x *= WALK_ROTATE_CONSTANT_FAC;
+          }
 
           /* user adjustment factor */
           x *= walk->mouse_speed;
@@ -1320,10 +1339,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
   }
 
   return OPERATOR_FINISHED;
-#undef WALK_ROTATE_FAC
-#undef WALK_ZUP_CORRECT_FAC
-#undef WALK_ZUP_CORRECT_ACCEL
-#undef WALK_SMOOTH_FAC
+#undef WALK_ROTATE_RELATIVE_FAC
 #undef WALK_TOP_LIMIT
 #undef WALK_BOTTOM_LIMIT
 #undef WALK_MOVE_SPEED
