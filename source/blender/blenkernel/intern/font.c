@@ -1261,6 +1261,7 @@ static bool vfont_to_curve(Object *ob,
 
       ct = chartransdata;
       minx = maxx = ct->xof;
+      ct++;
       for (i = 1; i <= slen; i++, ct++) {
         if (minx > ct->xof) {
           minx = ct->xof;
