@@ -976,6 +976,11 @@ void startConstraint(TransInfo *t)
 
 void stopConstraint(TransInfo *t)
 {
+  if (t->orient_curr != 0) {
+    t->orient_curr = 0;
+    transform_orientations_current_set(t, t->orient_curr);
+  }
+
   t->con.mode &= ~(CON_APPLY | CON_SELECT);
   *t->con.text = '\0';
   t->num.idx_max = t->idx_max;
