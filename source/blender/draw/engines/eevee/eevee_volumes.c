@@ -154,6 +154,8 @@ static GPUTexture *eevee_volume_default_texture(eGPUVolumeDefaultValue default_v
     case GPU_VOLUME_DEFAULT_1:
       return e_data.dummy_one;
   }
+
+  return e_data.dummy_zero;
 }
 
 void EEVEE_volumes_set_jitter(EEVEE_ViewLayerData *sldata, uint current_sample)
@@ -458,10 +460,16 @@ static bool eevee_volume_object_grids_init(Object *ob, ListBase *gpu_grids, DRWS
                                   DRW_volume_batch_cache_get_grid(volume, volume_grid) :
                                   NULL;
 
-    DRW_shgroup_uniform_texture(
-        grp,
-        gpu_grid->sampler_name,
-        (drw_grid) ? drw_grid->texture : eevee_volume_default_texture(gpu_grid->default_value));
+    /* Handle 3 cases here:
+     * - Grid exists and texture was loaded -> use texture.
+     * - Grid exists but has zero size or failed to load -> use zero.
+     * - Grid does not exist -> use default value. */
+    GPUTexture *grid_tex = (drw_grid) ? drw_grid->texture :
+                                        (volume_grid) ?
+                                        e_data.dummy_zero :
+                                        eevee_volume_default_texture(gpu_grid->default_value);
+
+    DRW_shgroup_uniform_texture(grp, gpu_grid->sampler_name, grid_tex);
 
     if (drw_grid && multiple_transforms) {
       /* Specify per-volume transform matrix that is applied after the
