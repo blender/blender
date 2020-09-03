@@ -567,9 +567,9 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
   const TransInfo *t = op->customdata;
   switch (value) {
     case TFM_MODAL_CANCEL: {
-      if ((t->flag & T_RELEASE_CONFIRM) && ISMOUSE(t->launch_event)) {
-        return false;
-      }
+      /* TODO: Canceling with LMB is not possible when the operator is activated
+       * through tweak and the LMB is pressed.
+       * Therefore, this item should not appear in the status bar. */
       break;
     }
     case TFM_MODAL_PROPSIZE:
