@@ -115,6 +115,9 @@ class FrameBuffer {
                      float clear_depth,
                      uint clear_stencil) = 0;
   virtual void clear_multi(const float (*clear_col)[4]) = 0;
+  virtual void clear_attachment(GPUAttachmentType type,
+                                eGPUDataFormat data_format,
+                                const void *clear_value) = 0;
 
   virtual void read(eGPUFrameBufferBits planes,
                     eGPUDataFormat format,

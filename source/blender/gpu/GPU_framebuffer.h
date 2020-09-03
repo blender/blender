@@ -32,6 +32,14 @@
 
 #include "GPU_texture.h"
 
+typedef enum eGPUFrameBufferBits {
+  GPU_COLOR_BIT = (1 << 0),
+  GPU_DEPTH_BIT = (1 << 1),
+  GPU_STENCIL_BIT = (1 << 2),
+} eGPUFrameBufferBits;
+
+ENUM_OPERATORS(eGPUFrameBufferBits)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -40,12 +48,6 @@ typedef struct GPUAttachment {
   struct GPUTexture *tex;
   int layer, mip;
 } GPUAttachment;
-
-typedef enum eGPUFrameBufferBits {
-  GPU_COLOR_BIT = (1 << 0),
-  GPU_DEPTH_BIT = (1 << 1),
-  GPU_STENCIL_BIT = (1 << 2),
-} eGPUFrameBufferBits;
 
 typedef enum eGPUBackBuffer {
   GPU_BACKBUFFER_LEFT = 0,

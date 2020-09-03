@@ -356,7 +356,9 @@ void GLFrameBuffer::clear(eGPUFrameBufferBits buffers,
   }
 }
 
-void GLFrameBuffer::clear_multi(const float (*clear_cols)[4])
+void GLFrameBuffer::clear_attachment(GPUAttachmentType type,
+                                     eGPUDataFormat data_format,
+                                     const void *clear_value)
 {
   BLI_assert(GPU_context_active_get() == context_);
   BLI_assert(context_->active_fb == this);
@@ -367,17 +369,56 @@ void GLFrameBuffer::clear_multi(const float (*clear_cols)[4])
 
   context_->state_manager->apply_state();
 
+  if (type == GPU_FB_DEPTH_STENCIL_ATTACHMENT) {
+    BLI_assert(data_format == GPU_DATA_UNSIGNED_INT_24_8);
+    float depth = ((*(uint32_t *)clear_value) & 0x00FFFFFFu) / (float)0x00FFFFFFu;
+    int stencil = ((*(uint32_t *)clear_value) >> 24);
+    glClearBufferfi(GL_DEPTH_STENCIL, 0, depth, stencil);
+  }
+  else if (type == GPU_FB_DEPTH_ATTACHMENT) {
+    if (data_format == GPU_DATA_FLOAT) {
+      glClearBufferfv(GL_DEPTH, 0, (GLfloat *)clear_value);
+    }
+    else if (data_format == GPU_DATA_UNSIGNED_INT) {
+      float depth = *(uint32_t *)clear_value / (float)0xFFFFFFFFu;
+      glClearBufferfv(GL_DEPTH, 0, &depth);
+    }
+    else {
+      BLI_assert(!"Unhandled data format");
+    }
+  }
+  else {
+    int slot = type - GPU_FB_COLOR_ATTACHMENT0;
+    switch (data_format) {
+      case GPU_DATA_FLOAT:
+        glClearBufferfv(GL_COLOR, slot, (GLfloat *)clear_value);
+        break;
+      case GPU_DATA_UNSIGNED_INT:
+        glClearBufferuiv(GL_COLOR, slot, (GLuint *)clear_value);
+        break;
+      case GPU_DATA_INT:
+        glClearBufferiv(GL_COLOR, slot, (GLint *)clear_value);
+        break;
+      default:
+        BLI_assert(!"Unhandled data format");
+        break;
+    }
+  }
+
+  GPU_write_mask(write_mask);
+}
+
+void GLFrameBuffer::clear_multi(const float (*clear_cols)[4])
+{
   /* WATCH: This can easily access clear_cols out of bounds it clear_cols is not big enough for
    * all attachments.
    * TODO(fclem) fix this insecurity? */
   int type = GPU_FB_COLOR_ATTACHMENT0;
   for (int i = 0; type < GPU_FB_MAX_ATTACHMENT; i++, type++) {
     if (attachments_[type].tex != NULL) {
-      glClearBufferfv(GL_COLOR, i, clear_cols[i]);
+      this->clear_attachment(GPU_FB_COLOR_ATTACHMENT0 + i, GPU_DATA_FLOAT, clear_cols[i]);
     }
   }
-
-  GPU_write_mask(write_mask);
 }
 
 void GLFrameBuffer::read(eGPUFrameBufferBits plane,

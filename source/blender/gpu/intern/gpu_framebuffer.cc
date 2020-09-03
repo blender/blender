@@ -96,10 +96,7 @@ void FrameBuffer::attachment_set(GPUAttachmentType type, const GPUAttachment &ne
 
   if (new_attachment.tex) {
     if (new_attachment.layer > 0) {
-      BLI_assert(ELEM(GPU_texture_target(new_attachment.tex),
-                      GL_TEXTURE_2D_ARRAY,
-                      GL_TEXTURE_CUBE_MAP,
-                      GL_TEXTURE_CUBE_MAP_ARRAY_ARB));
+      BLI_assert(GPU_texture_cube(new_attachment.tex) || GPU_texture_array(new_attachment.tex));
     }
     if (GPU_texture_stencil(new_attachment.tex)) {
       BLI_assert(ELEM(type, GPU_FB_DEPTH_STENCIL_ATTACHMENT));
