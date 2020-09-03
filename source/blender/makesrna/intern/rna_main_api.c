@@ -228,57 +228,17 @@ static Object *rna_Main_objects_new(Main *bmain, ReportList *reports, const char
 
   Object *ob;
   int type = OB_EMPTY;
-  if (data) {
-    /* keep in sync with OB_DATA_SUPPORT_ID() macro */
-    switch (GS(data->name)) {
-      case ID_ME:
-        type = OB_MESH;
-        break;
-      case ID_CU:
-        type = BKE_curve_type_get((Curve *)data);
-        break;
-      case ID_MB:
-        type = OB_MBALL;
-        break;
-      case ID_LA:
-        type = OB_LAMP;
-        break;
-      case ID_SPK:
-        type = OB_SPEAKER;
-        break;
-      case ID_CA:
-        type = OB_CAMERA;
-        break;
-      case ID_LT:
-        type = OB_LATTICE;
-        break;
-      case ID_GD:
-        type = OB_GPENCIL;
-        break;
-      case ID_AR:
-        type = OB_ARMATURE;
-        break;
-      case ID_LP:
-        type = OB_LIGHTPROBE;
-        break;
-      case ID_HA:
-        type = OB_HAIR;
-        break;
-      case ID_PT:
-        type = OB_POINTCLOUD;
-        break;
-      case ID_VO:
-        type = OB_VOLUME;
-        break;
-      default: {
-        const char *idname;
-        if (RNA_enum_id_from_value(rna_enum_id_type_items, GS(data->name), &idname) == 0) {
-          idname = "UNKNOWN";
-        }
 
-        BKE_reportf(reports, RPT_ERROR, "ID type '%s' is not valid for an object", idname);
-        return NULL;
+  if (data) {
+    type = BKE_object_obdata_to_type(data);
+    if (type == -1) {
+      const char *idname;
+      if (RNA_enum_id_from_value(rna_enum_id_type_items, GS(data->name), &idname) == 0) {
+        idname = "UNKNOWN";
       }
+
+      BKE_reportf(reports, RPT_ERROR, "ID type '%s' is not valid for an object", idname);
+      return NULL;
     }
 
     id_us_plus(data);

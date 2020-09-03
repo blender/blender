@@ -268,7 +268,7 @@ ListBase *BKE_curve_editNurbs_get(Curve *cu)
   return NULL;
 }
 
-short BKE_curve_type_get(Curve *cu)
+short BKE_curve_type_get(const Curve *cu)
 {
   Nurb *nu;
   int type = cu->type;

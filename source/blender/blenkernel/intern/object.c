@@ -1274,6 +1274,44 @@ void *BKE_object_obdata_add_from_type(Main *bmain, int type, const char *name)
   }
 }
 
+/**
+ * Return -1 on failure.
+ */
+int BKE_object_obdata_to_type(const ID *id)
+{
+  /* Keep in sync with #OB_DATA_SUPPORT_ID macro. */
+  switch (GS(id->name)) {
+    case ID_ME:
+      return OB_MESH;
+    case ID_CU:
+      return BKE_curve_type_get((const Curve *)id);
+    case ID_MB:
+      return OB_MBALL;
+    case ID_LA:
+      return OB_LAMP;
+    case ID_SPK:
+      return OB_SPEAKER;
+    case ID_CA:
+      return OB_CAMERA;
+    case ID_LT:
+      return OB_LATTICE;
+    case ID_GD:
+      return OB_GPENCIL;
+    case ID_AR:
+      return OB_ARMATURE;
+    case ID_LP:
+      return OB_LIGHTPROBE;
+    case ID_HA:
+      return OB_HAIR;
+    case ID_PT:
+      return OB_POINTCLOUD;
+    case ID_VO:
+      return OB_VOLUME;
+    default:
+      return -1;
+  }
+}
+
 /* more general add: creates minimum required data, but without vertices etc. */
 Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
 {
