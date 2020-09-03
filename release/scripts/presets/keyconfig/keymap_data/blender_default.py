@@ -6319,6 +6319,27 @@ def km_3d_view_tool_sculpt_lasso_mask(params):
         ]},
     )
 
+def km_3d_view_tool_sculpt_box_face_set(params):
+    return (
+        "3D View Tool: Sculpt, Box Face Set",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("sculpt.face_set_box_gesture", {"type": params.tool_tweak, "value": 'ANY'},
+             None),
+        ]},
+    )
+
+
+def km_3d_view_tool_sculpt_lasso_face_set(params):
+    return (
+        "3D View Tool: Sculpt, Lasso Face Set",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("sculpt.face_set_lasso_gesture", {"type": params.tool_tweak, "value": 'ANY'},
+             None),
+        ]},
+    )
+
 def km_3d_view_tool_sculpt_mesh_filter(params):
     return (
         "3D View Tool: Sculpt, Mesh Filter",
@@ -6912,6 +6933,8 @@ def generate_keymaps(params=None):
         km_3d_view_tool_sculpt_box_hide(params),
         km_3d_view_tool_sculpt_box_mask(params),
         km_3d_view_tool_sculpt_lasso_mask(params),
+        km_3d_view_tool_sculpt_box_face_set(params),
+        km_3d_view_tool_sculpt_lasso_face_set(params),
         km_3d_view_tool_sculpt_mesh_filter(params),
         km_3d_view_tool_sculpt_cloth_filter(params),
         km_3d_view_tool_sculpt_color_filter(params),

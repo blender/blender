@@ -37,6 +37,7 @@
 
 #include "BKE_ccg.h"
 #include "BKE_context.h"
+#include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
@@ -229,6 +230,11 @@ typedef enum eSculptGestureShapeType {
   SCULPT_GESTURE_SHAPE_LASSO,
 } eMaskGesturesShapeType;
 
+typedef enum eSculptGestureOperationType {
+  SCULPT_GESTURE_MASK,
+  SCULPT_GESTURE_FACE_SET,
+} eSculptGestureOperationType;
+
 typedef struct LassoGestureData {
   float projviewobjmat[4][4];
 
@@ -249,11 +255,15 @@ typedef struct SculptGestureContext {
 
   /* Operation parameters. */
   eMaskGesturesShapeType shape_type;
+  eSculptGestureOperationType operation;
   bool front_faces_only;
 
   /* Mask operation parameters. */
   PaintMaskFloodMode mask_mode;
   float mask_value;
+
+  /* Face Set operation parameters. */
+  int new_face_set_id;
 
   /* View parameters. */
   float true_view_normal[3];
@@ -523,12 +533,45 @@ static void mask_gesture_apply_task_cb(void *__restrict userdata,
   }
 }
 
+static void face_set_gesture_apply_task_cb(void *__restrict userdata,
+                                           const int i,
+                                           const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  SculptGestureContext *sgcontext = userdata;
+  PBVHNode *node = sgcontext->nodes[i];
+  PBVHVertexIter vd;
+  bool any_updated = false;
+
+  BKE_pbvh_vertex_iter_begin(sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
+  {
+    if (sculpt_gesture_is_vertex_effected(sgcontext, &vd)) {
+      SCULPT_vertex_face_set_set(sgcontext->ss, vd.index, sgcontext->new_face_set_id);
+      any_updated = true;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+
+  if (any_updated) {
+    BKE_pbvh_node_mark_update_visibility(node);
+  }
+}
+
 static void sculpt_gesture_apply(bContext *C, SculptGestureContext *mcontext)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  BKE_sculpt_update_object_for_edit(depsgraph, mcontext->vc.obact, false, true, false);
+
+  const bool needs_mask = mcontext->operation == SCULPT_GESTURE_MASK;
+  const bool needs_connectivity = mcontext->operation == SCULPT_GESTURE_FACE_SET;
+
+  BKE_sculpt_update_object_for_edit(
+      depsgraph, mcontext->vc.obact, needs_connectivity, needs_mask, false);
 
   SCULPT_undo_push_begin("Sculpt Gesture Apply");
+
+  if (mcontext->operation == SCULPT_GESTURE_FACE_SET) {
+    /* Face Sets modifications do a single undo push. */
+    SCULPT_undo_push_node(mcontext->vc.obact, NULL, SCULPT_UNDO_FACE_SETS);
+  }
 
   for (ePaintSymmetryFlags symmpass = 0; symmpass <= mcontext->symm; symmpass++) {
     if (SCULPT_is_symmetry_iteration_valid(symmpass, mcontext->symm)) {
@@ -537,18 +580,33 @@ static void sculpt_gesture_apply(bContext *C, SculptGestureContext *mcontext)
 
       TaskParallelSettings settings;
       BKE_pbvh_parallel_range_settings(&settings, true, mcontext->totnode);
-      BLI_task_parallel_range(
-          0, mcontext->totnode, mcontext, mask_gesture_apply_task_cb, &settings);
+      switch (mcontext->operation) {
+        case SCULPT_GESTURE_MASK:
+          BLI_task_parallel_range(
+              0, mcontext->totnode, mcontext, mask_gesture_apply_task_cb, &settings);
+          break;
+        case SCULPT_GESTURE_FACE_SET:
+          BLI_task_parallel_range(
+              0, mcontext->totnode, mcontext, face_set_gesture_apply_task_cb, &settings);
+          break;
+      }
 
       MEM_SAFE_FREE(mcontext->nodes);
     }
   }
 
-  if (BKE_pbvh_type(mcontext->ss->pbvh) == PBVH_GRIDS) {
-    multires_mark_as_modified(depsgraph, mcontext->vc.obact, MULTIRES_COORDS_MODIFIED);
-  }
+  switch (mcontext->operation) {
+    case SCULPT_GESTURE_MASK:
+      if (BKE_pbvh_type(mcontext->ss->pbvh) == PBVH_GRIDS) {
+        multires_mark_as_modified(depsgraph, mcontext->vc.obact, MULTIRES_COORDS_MODIFIED);
+      }
+      BKE_pbvh_update_vertex_data(mcontext->ss->pbvh, PBVH_UpdateMask);
+      break;
 
-  BKE_pbvh_update_vertex_data(mcontext->ss->pbvh, PBVH_UpdateMask);
+    case SCULPT_GESTURE_FACE_SET:
+      BKE_pbvh_update_vertex_data(mcontext->ss->pbvh, PBVH_UpdateVisibility);
+      break;
+  }
 
   SCULPT_undo_push_end();
 
@@ -556,8 +614,17 @@ static void sculpt_gesture_apply(bContext *C, SculptGestureContext *mcontext)
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, mcontext->vc.obact);
 }
 
+static void sculpt_gesture_init_face_set_properties(SculptGestureContext *sgcontext,
+                                                    wmOperator *UNUSED(op))
+{
+  sgcontext->operation = SCULPT_GESTURE_FACE_SET;
+  struct Mesh *mesh = BKE_mesh_from_object(sgcontext->vc.obact);
+  sgcontext->new_face_set_id = ED_sculpt_face_sets_find_next_available_id(mesh);
+}
+
 static void sculpt_gesture_init_mask_properties(SculptGestureContext *sgcontext, wmOperator *op)
 {
+  sgcontext->operation = SCULPT_GESTURE_MASK;
   sgcontext->mask_mode = RNA_enum_get(op->ptr, "mode");
   sgcontext->mask_value = RNA_float_get(op->ptr, "value");
 }
@@ -596,6 +663,30 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   sculpt_gesture_init_mask_properties(sgcontext, op);
+  sculpt_gesture_apply(C, sgcontext);
+  sculpt_gesture_context_free(sgcontext);
+  return OPERATOR_FINISHED;
+}
+
+static int face_set_gesture_box_exec(bContext *C, wmOperator *op)
+{
+  SculptGestureContext *sgcontext = sculpt_gesture_init_from_box(C, op);
+  if (!sgcontext) {
+    return OPERATOR_CANCELLED;
+  }
+  sculpt_gesture_init_face_set_properties(sgcontext, op);
+  sculpt_gesture_apply(C, sgcontext);
+  sculpt_gesture_context_free(sgcontext);
+  return OPERATOR_FINISHED;
+}
+
+static int face_set_gesture_lasso_exec(bContext *C, wmOperator *op)
+{
+  SculptGestureContext *sgcontext = sculpt_gesture_init_from_lasso(C, op);
+  if (!sgcontext) {
+    return OPERATOR_CANCELLED;
+  }
+  sculpt_gesture_init_face_set_properties(sgcontext, op);
   sculpt_gesture_apply(C, sgcontext);
   sculpt_gesture_context_free(sgcontext);
   return OPERATOR_FINISHED;
@@ -641,4 +732,42 @@ void PAINT_OT_mask_box_gesture(wmOperatorType *ot)
   sculpt_gesture_operator_properties(ot);
 
   paint_mask_gesture_operator_properties(ot);
+}
+
+void SCULPT_OT_face_set_lasso_gesture(wmOperatorType *ot)
+{
+  ot->name = "Face Set Lasso Gesture";
+  ot->idname = "SCULPT_OT_face_set_lasso_gesture";
+  ot->description = "Add face set within the lasso as you move the brush";
+
+  ot->invoke = WM_gesture_lasso_invoke;
+  ot->modal = WM_gesture_lasso_modal;
+  ot->exec = face_set_gesture_lasso_exec;
+
+  ot->poll = SCULPT_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER;
+
+  /* Properties. */
+  WM_operator_properties_gesture_lasso(ot);
+  sculpt_gesture_operator_properties(ot);
+}
+
+void SCULPT_OT_face_set_box_gesture(wmOperatorType *ot)
+{
+  ot->name = "Face Set Box Gesture";
+  ot->idname = "SCULPT_OT_face_set_box_gesture";
+  ot->description = "Add face set within the box as you move the brush";
+
+  ot->invoke = WM_gesture_box_invoke;
+  ot->modal = WM_gesture_box_modal;
+  ot->exec = face_set_gesture_box_exec;
+
+  ot->poll = SCULPT_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER;
+
+  /* Properties. */
+  WM_operator_properties_border(ot);
+  sculpt_gesture_operator_properties(ot);
 }

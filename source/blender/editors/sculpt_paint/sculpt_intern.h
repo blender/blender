@@ -1050,6 +1050,10 @@ bool SCULPT_get_redraw_rect(struct ARegion *region,
 
 /* Operators. */
 
+/* Gestures. */
+void SCULPT_OT_face_set_lasso_gesture(struct wmOperatorType *ot);
+void SCULPT_OT_face_set_box_gesture(struct wmOperatorType *ot);
+
 /* Face Sets. */
 void SCULPT_OT_face_sets_randomize_colors(struct wmOperatorType *ot);
 void SCULPT_OT_face_sets_change_visibility(struct wmOperatorType *ot);
