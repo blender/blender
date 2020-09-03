@@ -144,14 +144,13 @@ ccl_device void voronoi_distance_to_edge_1d(float w, float randomness, float *ou
   float cellPosition = floorf(w);
   float localPosition = w - cellPosition;
 
-  float minDistance = 8.0f;
-  for (int i = -1; i <= 1; i++) {
-    float cellOffset = i;
-    float pointPosition = cellOffset + hash_float_to_float(cellPosition + cellOffset) * randomness;
-    float distanceToPoint = fabsf(pointPosition - localPosition);
-    minDistance = min(distanceToPoint, minDistance);
-  }
-  *outDistance = minDistance;
+  float midPointPosition = hash_float_to_float(cellPosition) * randomness;
+  float leftPointPosition = -1.0f + hash_float_to_float(cellPosition - 1.0f) * randomness;
+  float rightPointPosition = 1.0f + hash_float_to_float(cellPosition + 1.0f) * randomness;
+  float distanceToMidLeft = fabsf((midPointPosition + leftPointPosition) / 2.0f - localPosition);
+  float distanceToMidRight = fabsf((midPointPosition + rightPointPosition) / 2.0f - localPosition);
+
+  *outDistance = min(distanceToMidLeft, distanceToMidRight);
 }
 
 ccl_device void voronoi_n_sphere_radius_1d(float w, float randomness, float *outRadius)

@@ -158,14 +158,13 @@ void node_tex_voronoi_distance_to_edge_1d(vec3 coord,
   float cellPosition = floor(scaledCoord);
   float localPosition = scaledCoord - cellPosition;
 
-  float minDistance = 8.0;
-  for (int i = -1; i <= 1; i++) {
-    float cellOffset = float(i);
-    float pointPosition = cellOffset + hash_float_to_float(cellPosition + cellOffset) * randomness;
-    float distanceToPoint = voronoi_distance(pointPosition, localPosition, metric, exponent);
-    minDistance = min(distanceToPoint, minDistance);
-  }
-  outDistance = minDistance;
+  float midPointPosition = hash_float_to_float(cellPosition) * randomness;
+  float leftPointPosition = -1.0 + hash_float_to_float(cellPosition - 1.0) * randomness;
+  float rightPointPosition = 1.0 + hash_float_to_float(cellPosition + 1.0) * randomness;
+  float distanceToMidLeft = distance((midPointPosition + leftPointPosition) / 2.0, localPosition);
+  float distanceToMidRight = distance((midPointPosition + rightPointPosition) / 2.0, localPosition);
+
+  outDistance = min(distanceToMidLeft, distanceToMidRight);
 }
 
 void node_tex_voronoi_n_sphere_radius_1d(vec3 coord,
