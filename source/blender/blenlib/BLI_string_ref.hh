@@ -122,6 +122,11 @@ class StringRefBase {
     return data_ + size_;
   }
 
+  IndexRange index_range() const
+  {
+    return IndexRange(size_);
+  }
+
   /**
    * Copy the string into a buffer. The buffer has to be one byte larger than the size of the
    * string, because the copied string will be null-terminated. Only use this when you are
