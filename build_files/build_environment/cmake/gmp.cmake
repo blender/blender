@@ -25,6 +25,13 @@ else()
   set(GMP_OPTIONS --enable-static --disable-shared )
 endif()
 
+if(APPLE AND ("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64"))
+  set(GMP_OPTIONS
+     ${GMP_OPTIONS}
+     --disable-assembly
+  )
+endif()
+
 ExternalProject_Add(external_gmp
   URL ${GMP_URI}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
