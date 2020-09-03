@@ -485,7 +485,7 @@ TEST(set, MoveConstructorExceptions)
   SetType set = {1, 2, 3};
   set.lookup_key(2).throw_during_move = true;
   EXPECT_ANY_THROW({ SetType set_moved(std::move(set)); });
-  EXPECT_EQ(set.size(), 0);
+  EXPECT_EQ(set.size(), 0); /* NOLINT: bugprone-use-after-move */
   set.add_multiple({3, 6, 7});
   EXPECT_EQ(set.size(), 3);
 }

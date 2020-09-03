@@ -498,7 +498,7 @@ TEST(map, MoveConstructorExceptions)
   map.add(2, 2);
   map.lookup(1).throw_during_move = true;
   EXPECT_ANY_THROW({ MapType map_moved(std::move(map)); });
-  map.add(5, 5);
+  map.add(5, 5); /* NOLINT: bugprone-use-after-move */
 }
 
 TEST(map, AddNewExceptions)
@@ -532,7 +532,7 @@ TEST(map, PopExceptions)
   Map<ExceptionThrower, ExceptionThrower> map;
   map.add(3, 3);
   map.lookup(3).throw_during_move = true;
-  EXPECT_ANY_THROW({ map.pop(3); });
+  EXPECT_ANY_THROW({ map.pop(3); }); /* NOLINT: bugprone-throw-keyword-missing */
   EXPECT_EQ(map.size(), 1);
   map.add(1, 1);
   EXPECT_EQ(map.size(), 2);
