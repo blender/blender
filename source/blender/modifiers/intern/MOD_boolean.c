@@ -76,11 +76,7 @@ static void initData(ModifierData *md)
 
   bmd->double_threshold = 1e-6f;
   bmd->operation = eBooleanModifierOp_Difference;
-#ifdef WITH_GMP
   bmd->solver = eBooleanModifierSolver_Exact;
-#else
-  bmd->solver = eBooleanModifierSolver_Fast;
-#endif
 }
 
 static bool isDisabled(const struct Scene *UNUSED(scene),
@@ -322,12 +318,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
         }
 
 #ifdef WITH_GMP
-        bool use_exact = bmd->solver == eBooleanModifierSolver_Exact;
+        const bool use_exact = bmd->solver == eBooleanModifierSolver_Exact;
 #else
         if (bmd->solver == eBooleanModifierSolver_Exact) {
           BKE_modifier_set_error(md, "Compiled without GMP, using fast solver");
         }
-        bool use_exact = false;
+        const bool use_exact = false;
 #endif
 
         if (use_exact) {
