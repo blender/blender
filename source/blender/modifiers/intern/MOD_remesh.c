@@ -165,6 +165,9 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx)
       return NULL;
     }
     result = BKE_mesh_remesh_voxel_to_mesh_nomain(mesh, rmd->voxel_size, rmd->adaptivity, 0.0f);
+    if (result == NULL) {
+      return NULL;
+    }
   }
   else {
     /* Dualcon modes. */
