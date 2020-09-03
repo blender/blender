@@ -227,7 +227,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
     uiItemR(layout, ptr, "normalize_opacity", 0, NULL, ICON_NONE);
     const char *text = (RNA_boolean_get(ptr, "normalize_opacity")) ? IFACE_("Strength") :
                                                                      IFACE_("Opacity Factor");
-    uiItemR(layout, ptr, "hardness", 0, text, ICON_NONE);
+    uiItemR(layout, ptr, "factor", 0, text, ICON_NONE);
   }
 
   gpencil_modifier_panel_end(layout, ptr);
