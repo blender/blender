@@ -1890,13 +1890,6 @@ void uiTemplateModifiers(uiLayout *UNUSED(layout), bContext *C)
     }
   }
   else {
-    /* The expansion might have been changed elsewhere, so we still need to set it. */
-    LISTBASE_FOREACH (Panel *, panel, &region->panels) {
-      if ((panel->type != NULL) && (panel->type->flag & PNL_INSTANCED)) {
-        UI_panel_set_expand_from_list_data(C, panel);
-      }
-    }
-
     /* Assuming there's only one group of instanced panels, update the custom data pointers. */
     Panel *panel = region->panels.first;
     LISTBASE_FOREACH (ModifierData *, md, modifiers) {
@@ -1916,6 +1909,13 @@ void uiTemplateModifiers(uiLayout *UNUSED(layout), bContext *C)
       UI_panel_custom_data_set(panel, md_ptr);
 
       panel = panel->next;
+    }
+
+    /* The expansion might have been changed elsewhere, so we still need to set it. */
+    LISTBASE_FOREACH (Panel *, panel_iter, &region->panels) {
+      if ((panel_iter->type != NULL) && (panel_iter->type->flag & PNL_INSTANCED)) {
+        UI_panel_set_expand_from_list_data(C, panel_iter);
+      }
     }
   }
 }
@@ -2068,13 +2068,6 @@ void uiTemplateConstraints(uiLayout *UNUSED(layout), bContext *C, bool use_bone_
     }
   }
   else {
-    /* The expansion might have been changed elsewhere, so we still need to set it. */
-    LISTBASE_FOREACH (Panel *, panel, &region->panels) {
-      if ((panel->type != NULL) && (panel->type->flag & PNL_INSTANCED)) {
-        UI_panel_set_expand_from_list_data(C, panel);
-      }
-    }
-
     /* Assuming there's only one group of instanced panels, update the custom data pointers. */
     Panel *panel = region->panels.first;
     LISTBASE_FOREACH (bConstraint *, con, constraints) {
@@ -2089,6 +2082,13 @@ void uiTemplateConstraints(uiLayout *UNUSED(layout), bContext *C, bool use_bone_
       UI_panel_custom_data_set(panel, con_ptr);
 
       panel = panel->next;
+    }
+
+    /* The expansion might have been changed elsewhere, so we still need to set it. */
+    LISTBASE_FOREACH (Panel *, panel_iter, &region->panels) {
+      if ((panel_iter->type != NULL) && (panel_iter->type->flag & PNL_INSTANCED)) {
+        UI_panel_set_expand_from_list_data(C, panel_iter);
+      }
     }
   }
 }
@@ -2144,13 +2144,6 @@ void uiTemplateGpencilModifiers(uiLayout *UNUSED(layout), bContext *C)
     }
   }
   else {
-    /* The expansion might have been changed elsewhere, so we still need to set it. */
-    LISTBASE_FOREACH (Panel *, panel, &region->panels) {
-      if ((panel->type != NULL) && (panel->type->flag & PNL_INSTANCED)) {
-        UI_panel_set_expand_from_list_data(C, panel);
-      }
-    }
-
     /* Assuming there's only one group of instanced panels, update the custom data pointers. */
     Panel *panel = region->panels.first;
     LISTBASE_FOREACH (ModifierData *, md, modifiers) {
@@ -2170,6 +2163,13 @@ void uiTemplateGpencilModifiers(uiLayout *UNUSED(layout), bContext *C)
       UI_panel_custom_data_set(panel, md_ptr);
 
       panel = panel->next;
+    }
+
+    /* The expansion might have been changed elsewhere, so we still need to set it. */
+    LISTBASE_FOREACH (Panel *, panel_iter, &region->panels) {
+      if ((panel_iter->type != NULL) && (panel_iter->type->flag & PNL_INSTANCED)) {
+        UI_panel_set_expand_from_list_data(C, panel_iter);
+      }
     }
   }
 }
@@ -2226,13 +2226,6 @@ void uiTemplateShaderFx(uiLayout *UNUSED(layout), bContext *C)
     }
   }
   else {
-    /* The expansion might have been changed elsewhere, so we still need to set it. */
-    LISTBASE_FOREACH (Panel *, panel, &region->panels) {
-      if ((panel->type != NULL) && (panel->type->flag & PNL_INSTANCED)) {
-        UI_panel_set_expand_from_list_data(C, panel);
-      }
-    }
-
     /* Assuming there's only one group of instanced panels, update the custom data pointers. */
     Panel *panel = region->panels.first;
     LISTBASE_FOREACH (ShaderFxData *, fx, shaderfx) {
@@ -2252,6 +2245,13 @@ void uiTemplateShaderFx(uiLayout *UNUSED(layout), bContext *C)
       UI_panel_custom_data_set(panel, fx_ptr);
 
       panel = panel->next;
+    }
+
+    /* The expansion might have been changed elsewhere, so we still need to set it. */
+    LISTBASE_FOREACH (Panel *, panel_iter, &region->panels) {
+      if ((panel_iter->type != NULL) && (panel_iter->type->flag & PNL_INSTANCED)) {
+        UI_panel_set_expand_from_list_data(C, panel_iter);
+      }
     }
   }
 }
