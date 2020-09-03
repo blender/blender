@@ -218,7 +218,7 @@ const UserDef U_default = {
             .flag = FILE_HIDE_DOT,
             .filter_id = FILTER_ID_ALL,
 
-            .temp_win_sizex = 1020,
+            .temp_win_sizex = 1060,
             .temp_win_sizey = 600,
         },
 
