@@ -34,6 +34,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_gpencil_modifier_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -53,6 +54,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_cache.h"
 #include "BKE_global.h"
+#include "BKE_gpencil_modifier.h"
 #include "BKE_idtype.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
@@ -653,9 +655,7 @@ ModifierData *BKE_modifier_get_last_preview(struct Scene *scene,
 ModifierData *BKE_modifiers_get_virtual_modifierlist(const Object *ob,
                                                      VirtualModifierData *virtualModifierData)
 {
-  ModifierData *md;
-
-  md = ob->modifiers.first;
+  ModifierData *md = ob->modifiers.first;
 
   *virtualModifierData = virtualModifierCommonData;
 
@@ -700,22 +700,46 @@ ModifierData *BKE_modifiers_get_virtual_modifierlist(const Object *ob,
  */
 Object *BKE_modifiers_is_deformed_by_armature(Object *ob)
 {
-  VirtualModifierData virtualModifierData;
-  ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
-  ArmatureModifierData *amd = NULL;
+  if (ob->type == OB_GPENCIL) {
+    GpencilVirtualModifierData gpencilvirtualModifierData;
+    ArmatureGpencilModifierData *agmd = NULL;
+    GpencilModifierData *gmd = BKE_gpencil_modifiers_get_virtual_modifierlist(
+        ob, &gpencilvirtualModifierData);
+    gmd = ob->greasepencil_modifiers.first;
 
-  /* return the first selected armature, this lets us use multiple armatures */
-  for (; md; md = md->next) {
-    if (md->type == eModifierType_Armature) {
-      amd = (ArmatureModifierData *)md;
-      if (amd->object && (amd->object->base_flag & BASE_SELECTED)) {
-        return amd->object;
+    /* return the first selected armature, this lets us use multiple armatures */
+    for (; gmd; gmd = gmd->next) {
+      if (gmd->type == eGpencilModifierType_Armature) {
+        agmd = (ArmatureGpencilModifierData *)gmd;
+        if (agmd->object && (agmd->object->base_flag & BASE_SELECTED)) {
+          return agmd->object;
+        }
       }
     }
+    /* If we're still here then return the last armature. */
+    if (agmd) {
+      return agmd->object;
+    }
   }
+  else {
+    VirtualModifierData virtualModifierData;
+    ArmatureModifierData *amd = NULL;
+    ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
+    md = ob->modifiers.first;
 
-  if (amd) { /* if we're still here then return the last armature */
-    return amd->object;
+    /* return the first selected armature, this lets us use multiple armatures */
+    for (; md; md = md->next) {
+      if (md->type == eModifierType_Armature) {
+        amd = (ArmatureModifierData *)md;
+        if (amd->object && (amd->object->base_flag & BASE_SELECTED)) {
+          return amd->object;
+        }
+      }
+    }
+    /* If we're still here then return the last armature. */
+    if (amd) {
+      return amd->object;
+    }
   }
 
   return NULL;

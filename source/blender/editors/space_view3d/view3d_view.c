@@ -22,6 +22,7 @@
  */
 
 #include "DNA_camera_types.h"
+#include "DNA_gpencil_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -37,6 +38,7 @@
 #include "BKE_camera.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_gpencil_modifier.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
@@ -949,7 +951,7 @@ static bool drw_select_loop_pass(eDRWSelectStage stage, void *user_data)
 eV3DSelectObjectFilter ED_view3d_select_filter_from_mode(const Scene *scene, const Object *obact)
 {
   if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
-    if (obact && (obact->mode & OB_MODE_WEIGHT_PAINT) &&
+    if (obact && (obact->mode & OB_MODE_ALL_WEIGHT_PAINT) &&
         BKE_object_pose_armature_get((Object *)obact)) {
       return VIEW3D_SELECT_FILTER_WPAINT_POSE_MODE_LOCK;
     }
@@ -1053,18 +1055,33 @@ int view3d_opengl_select(ViewContext *vc,
     }
     case VIEW3D_SELECT_FILTER_WPAINT_POSE_MODE_LOCK: {
       Object *obact = vc->obact;
-      BLI_assert(obact && (obact->mode & OB_MODE_WEIGHT_PAINT));
-
+      BLI_assert(obact && (obact->mode & OB_MODE_ALL_WEIGHT_PAINT));
       /* While this uses 'alloca' in a loop (which we typically avoid),
        * the number of items is nearly always 1, maybe 2..3 in rare cases. */
       LinkNode *ob_pose_list = NULL;
-      VirtualModifierData virtualModifierData;
-      const ModifierData *md = BKE_modifiers_get_virtual_modifierlist(obact, &virtualModifierData);
-      for (; md; md = md->next) {
-        if (md->type == eModifierType_Armature) {
-          ArmatureModifierData *amd = (ArmatureModifierData *)md;
-          if (amd->object && (amd->object->mode & OB_MODE_POSE)) {
-            BLI_linklist_prepend_alloca(&ob_pose_list, amd->object);
+      if (obact->type == OB_GPENCIL) {
+        GpencilVirtualModifierData virtualModifierData;
+        const GpencilModifierData *md = BKE_gpencil_modifiers_get_virtual_modifierlist(
+            obact, &virtualModifierData);
+        for (; md; md = md->next) {
+          if (md->type == eGpencilModifierType_Armature) {
+            ArmatureGpencilModifierData *agmd = (ArmatureGpencilModifierData *)md;
+            if (agmd->object && (agmd->object->mode & OB_MODE_POSE)) {
+              BLI_linklist_prepend_alloca(&ob_pose_list, agmd->object);
+            }
+          }
+        }
+      }
+      else {
+        VirtualModifierData virtualModifierData;
+        const ModifierData *md = BKE_modifiers_get_virtual_modifierlist(obact,
+                                                                        &virtualModifierData);
+        for (; md; md = md->next) {
+          if (md->type == eModifierType_Armature) {
+            ArmatureModifierData *amd = (ArmatureModifierData *)md;
+            if (amd->object && (amd->object->mode & OB_MODE_POSE)) {
+              BLI_linklist_prepend_alloca(&ob_pose_list, amd->object);
+            }
           }
         }
       }

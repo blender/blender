@@ -2208,7 +2208,7 @@ static bool ed_object_select_pick(bContext *C,
 
           /* In weight-paint, we use selected bone to select vertex-group,
            * so don't switch to new active object. */
-          if (oldbasact && (oldbasact->object->mode & OB_MODE_WEIGHT_PAINT)) {
+          if (oldbasact && (oldbasact->object->mode & OB_MODE_ALL_WEIGHT_PAINT)) {
             /* Prevent activating.
              * Selection causes this to be considered the 'active' pose in weight-paint mode.
              * Eventually this limitation may be removed.
@@ -2382,7 +2382,7 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
   bool object = (RNA_boolean_get(op->ptr, "object") &&
                  (obedit || BKE_paint_select_elem_test(obact) ||
                   /* so its possible to select bones in weight-paint mode (LMB select) */
-                  (obact && (obact->mode & OB_MODE_WEIGHT_PAINT) &&
+                  (obact && (obact->mode & OB_MODE_ALL_WEIGHT_PAINT) &&
                    BKE_object_pose_armature_get(obact))));
 
   bool retval = false;

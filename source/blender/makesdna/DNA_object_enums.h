@@ -60,6 +60,9 @@ typedef enum eDrawType {
 /** Any mode that uses Object.sculpt. */
 #define OB_MODE_ALL_SCULPT (OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)
 
+/** Any mode that uses weightpaint. */
+#define OB_MODE_ALL_WEIGHT_PAINT (OB_MODE_WEIGHT_PAINT | OB_MODE_WEIGHT_GPENCIL)
+
 /**
  * Any mode that has data or for Grease Pencil modes, we need to free when switching modes,
  * see: #ED_object_mode_generic_exit

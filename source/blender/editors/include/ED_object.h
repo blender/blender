@@ -352,6 +352,11 @@ void ED_object_mode_generic_exit(struct Main *bmain,
                                  struct Object *ob);
 bool ED_object_mode_generic_has_data(struct Depsgraph *depsgraph, struct Object *ob);
 
+void ED_object_posemode_set_for_weight_paint(struct bContext *C,
+                                                    struct Main *bmain,
+                                                    struct Object *ob,
+                                                    const bool is_mode_set);
+
 /* object_modifier.c */
 enum {
   MODIFIER_APPLY_DATA = 1,

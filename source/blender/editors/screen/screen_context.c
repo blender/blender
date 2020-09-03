@@ -449,7 +449,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     return 1;
   }
   if (CTX_data_equals(member, "weight_paint_object")) {
-    if (obact && (obact->mode & OB_MODE_WEIGHT_PAINT)) {
+    if (obact && (obact->mode & OB_MODE_ALL_WEIGHT_PAINT)) {
       CTX_data_id_pointer_set(result, &obact->id);
     }
 

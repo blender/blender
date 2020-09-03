@@ -113,7 +113,7 @@ bool OVERLAY_armature_is_pose_mode(Object *ob, const DRWContextState *draw_ctx)
   }
 
   /* Armature parent is also handled by pose mode engine. */
-  if ((active_ob != NULL) && ((draw_ctx->object_mode & OB_MODE_WEIGHT_PAINT) != 0)) {
+  if ((active_ob != NULL) && (draw_ctx->object_mode & OB_MODE_ALL_WEIGHT_PAINT)) {
     if (ob == draw_ctx->object_pose) {
       return true;
     }
@@ -2000,7 +2000,7 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
                   (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) == 0) ||
                  /* Allow selection when in weight-paint mode
                   * (selection code ensures this wont become active). */
-                 ((draw_ctx->object_mode == OB_MODE_WEIGHT_PAINT) &&
+                 ((draw_ctx->object_mode & OB_MODE_ALL_WEIGHT_PAINT) &&
                   (draw_ctx->object_pose != NULL))))) &&
         DRW_state_is_select();
 
@@ -2011,7 +2011,7 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
   }
 
   /* In weight paint mode retrieve the vertex group lock status. */
-  if ((draw_ctx->object_mode == OB_MODE_WEIGHT_PAINT) && (draw_ctx->object_pose == ob) &&
+  if ((draw_ctx->object_mode & OB_MODE_ALL_WEIGHT_PAINT) && (draw_ctx->object_pose == ob) &&
       (draw_ctx->obact != NULL)) {
     draw_locked_weights = true;
 

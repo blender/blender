@@ -29,7 +29,10 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_gpencil_modifier.h"
 #include "BKE_layer.h"
+#include "BKE_main.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
@@ -302,6 +305,75 @@ static bool ed_object_mode_generic_exit_ex(struct Main *bmain,
   }
 
   return false;
+}
+
+/* When locked, it's almost impossible to select the pose-object
+ * then the mesh-object to enter weight paint mode.
+ * Even when the object mode is not locked this is inconvenient - so allow in either case.
+ *
+ * In this case move our pose object in/out of pose mode.
+ * This is in fits with the convention of selecting multiple objects and entering a mode.
+ */
+static void ed_object_posemode_set_for_weight_paint_ex(bContext *C,
+                                                              Main *bmain,
+                                                              Object *ob_arm,
+                                                              const bool is_mode_set)
+{
+  View3D *v3d = CTX_wm_view3d(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+
+  if (ob_arm != NULL) {
+    const Base *base_arm = BKE_view_layer_base_find(view_layer, ob_arm);
+    if (base_arm && BASE_VISIBLE(v3d, base_arm)) {
+      if (is_mode_set) {
+        if ((ob_arm->mode & OB_MODE_POSE) != 0) {
+          ED_object_posemode_exit_ex(bmain, ob_arm);
+        }
+      }
+      else {
+        /* Only check selected status when entering weight-paint mode
+         * because we may have multiple armature objects.
+         * Selecting one will de-select the other, which would leave it in pose-mode
+         * when exiting weight paint mode. While usable, this looks like inconsistent
+         * behavior from a user perspective. */
+        if (base_arm->flag & BASE_SELECTED) {
+          if ((ob_arm->mode & OB_MODE_POSE) == 0) {
+            ED_object_posemode_enter_ex(bmain, ob_arm);
+          }
+        }
+      }
+    }
+  }
+}
+
+void ED_object_posemode_set_for_weight_paint(bContext *C,
+                                                    Main *bmain,
+                                                    Object *ob,
+                                                    const bool is_mode_set)
+{
+  if (ob->type == OB_GPENCIL) {
+    GpencilVirtualModifierData virtualModifierData;
+    GpencilModifierData *md = BKE_gpencil_modifiers_get_virtual_modifierlist(ob,
+                                                                             &virtualModifierData);
+    for (; md; md = md->next) {
+      if (md->type == eGpencilModifierType_Armature) {
+        ArmatureGpencilModifierData *amd = (ArmatureGpencilModifierData *)md;
+        Object *ob_arm = amd->object;
+        ed_object_posemode_set_for_weight_paint_ex(C, bmain, ob_arm, is_mode_set);
+      }
+    }
+  }
+  else {
+    VirtualModifierData virtualModifierData;
+    ModifierData *md = BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData);
+    for (; md; md = md->next) {
+      if (md->type == eModifierType_Armature) {
+        ArmatureModifierData *amd = (ArmatureModifierData *)md;
+        Object *ob_arm = amd->object;
+        ed_object_posemode_set_for_weight_paint_ex(C, bmain, ob_arm, is_mode_set);
+      }
+    }
+  }
 }
 
 void ED_object_mode_generic_exit(struct Main *bmain,

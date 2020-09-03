@@ -292,6 +292,14 @@ void BKE_gpencil_modifiers_foreach_tex_link(struct Object *ob,
                                             GreasePencilTexWalkFunc walk,
                                             void *userData);
 
+typedef struct GpencilVirtualModifierData {
+  ArmatureGpencilModifierData amd;
+  LatticeGpencilModifierData lmd;
+} GpencilVirtualModifierData;
+
+struct GpencilModifierData *BKE_gpencil_modifiers_get_virtual_modifierlist(
+    const struct Object *ob, struct GpencilVirtualModifierData *data);
+
 bool BKE_gpencil_has_geometry_modifiers(struct Object *ob);
 bool BKE_gpencil_has_time_modifiers(struct Object *ob);
 bool BKE_gpencil_has_transform_modifiers(struct Object *ob);

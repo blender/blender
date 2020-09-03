@@ -33,6 +33,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_armature_types.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_meshdata_types.h"
@@ -57,6 +58,10 @@
 
 static CLG_LogRef LOG = {"bke.gpencil_modifier"};
 static GpencilModifierTypeInfo *modifier_gpencil_types[NUM_GREASEPENCIL_MODIFIER_TYPES] = {NULL};
+#if 0
+/* Note that GPencil actually does not support these atm, but might do in the future. */
+static GpencilVirtualModifierData virtualModifierCommonData;
+#endif
 
 /* Lattice Modifier ---------------------------------- */
 /* Usually, evaluation of the lattice modifier is self-contained.
@@ -109,6 +114,34 @@ void BKE_gpencil_lattice_clear(Object *ob)
 
 /* *************************************************** */
 /* Modifier Methods - Evaluation Loops, etc. */
+
+/* This is to include things that are not modifiers in the evaluation of the modifier stack, for
+ * example parenting to an armature or lattice without having a real modifier. */
+GpencilModifierData *BKE_gpencil_modifiers_get_virtual_modifierlist(
+    const Object *ob, GpencilVirtualModifierData *UNUSED(virtualModifierData))
+{
+  GpencilModifierData *md = ob->greasepencil_modifiers.first;
+
+#if 0
+  /* Note that GPencil actually does not support these atm, but might do in the future. */
+  *virtualModifierData = virtualModifierCommonData;
+  if (ob->parent) {
+    if (ob->parent->type == OB_ARMATURE && ob->partype == PARSKEL) {
+      virtualModifierData->amd.object = ob->parent;
+      virtualModifierData->amd.modifier.next = md;
+      virtualModifierData->amd.deformflag = ((bArmature *)(ob->parent->data))->deformflag;
+      md = &virtualModifierData->amd.modifier;
+    }
+    else if (ob->parent->type == OB_LATTICE && ob->partype == PARSKEL) {
+      virtualModifierData->lmd.object = ob->parent;
+      virtualModifierData->lmd.modifier.next = md;
+      md = &virtualModifierData->lmd.modifier;
+    }
+  }
+#endif
+
+  return md;
+}
 
 /**
  * Check if object has grease pencil Geometry modifiers.
@@ -229,6 +262,22 @@ void BKE_gpencil_modifier_init(void)
 {
   /* Initialize modifier types */
   gpencil_modifier_type_init(modifier_gpencil_types); /* MOD_gpencil_util.c */
+
+#if 0
+  /* Note that GPencil actually does not support these atm, but might do in the future. */
+  /* Initialize global cmmon storage used for virtual modifier list */
+  GpencilModifierData *md;
+  md = BKE_gpencil_modifier_new(eGpencilModifierType_Armature);
+  virtualModifierCommonData.amd = *((ArmatureGpencilModifierData *)md);
+  BKE_gpencil_modifier_free(md);
+
+  md = BKE_gpencil_modifier_new(eGpencilModifierType_Lattice);
+  virtualModifierCommonData.lmd = *((LatticeGpencilModifierData *)md);
+  BKE_gpencil_modifier_free(md);
+
+  virtualModifierCommonData.amd.modifier.mode |= eGpencilModifierMode_Virtual;
+  virtualModifierCommonData.lmd.modifier.mode |= eGpencilModifierMode_Virtual;
+#endif
 }
 
 /**

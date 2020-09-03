@@ -58,6 +58,7 @@ typedef enum GpencilModifierMode {
   eGpencilModifierMode_Render = (1 << 1),
   eGpencilModifierMode_Editmode = (1 << 2),
   eGpencilModifierMode_Expanded_DEPRECATED = (1 << 3),
+  eGpencilModifierMode_Virtual = (1 << 4),
 } GpencilModifierMode;
 
 typedef enum {

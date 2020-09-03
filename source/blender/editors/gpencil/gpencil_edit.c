@@ -39,6 +39,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -52,7 +53,9 @@
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_geom.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_object.h"
@@ -75,6 +78,7 @@
 
 #include "UI_view2d.h"
 
+#include "ED_armature.h"
 #include "ED_gpencil.h"
 #include "ED_object.h"
 #include "ED_outliner.h"
@@ -571,6 +575,8 @@ static int gpencil_weightmode_toggle_exec(bContext *C, wmOperator *op)
     gpd = ob->data;
     is_object = true;
   }
+  const int mode_flag = OB_MODE_WEIGHT_GPENCIL;
+  const bool is_mode_set = (ob->mode & mode_flag) != 0;
 
   if (gpd == NULL) {
     return OPERATOR_CANCELLED;
@@ -593,6 +599,9 @@ static int gpencil_weightmode_toggle_exec(bContext *C, wmOperator *op)
     }
     ob->restore_mode = ob->mode;
     ob->mode = mode;
+
+    /* Prepare armature posemode. */
+    ED_object_posemode_set_for_weight_paint(C, bmain, ob, is_mode_set);
   }
 
   if (mode == OB_MODE_WEIGHT_GPENCIL) {
