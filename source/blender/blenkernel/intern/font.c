@@ -1274,18 +1274,21 @@ static bool vfont_to_curve(Object *ob,
       /* We put the x-coordinate exact at the curve, the y is rotated. */
 
       /* length correction */
-      float chartrans_size_x = maxx - minx;
-      if (UNLIKELY(chartrans_size_x == 0.0f)) {
-        /* Happens when there are no characters,
-         * the result isn't useful in this case, just avoid divide by zero. */
-        chartrans_size_x = 1.0f;
+      const float chartrans_size_x = maxx - minx;
+      if (chartrans_size_x != 0.0f) {
+        const float totdist = cu->textoncurve->runtime.curve_cache->path->totdist;
+        distfac = (sizefac * totdist) / chartrans_size_x;
+        distfac = (distfac > 1.0f) ? (1.0f / distfac) : 1.0f;
       }
-      distfac = sizefac * cu->textoncurve->runtime.curve_cache->path->totdist / chartrans_size_x;
+      else {
+        /* Happens when there are no characters, set this value to place the text cursor. */
+        distfac = 0.0f;
+      }
+
       timeofs = 0.0f;
 
-      if (distfac > 1.0f) {
+      if (distfac < 1.0f) {
         /* Path longer than text: space-mode is involved. */
-        distfac = 1.0f / distfac;
 
         if (cu->spacemode == CU_ALIGN_X_RIGHT) {
           timeofs = 1.0f - distfac;
@@ -1297,11 +1300,10 @@ static bool vfont_to_curve(Object *ob,
           distfac = 1.0f;
         }
       }
-      else {
-        distfac = 1.0;
-      }
 
-      distfac /= chartrans_size_x;
+      if (chartrans_size_x != 0.0f) {
+        distfac /= chartrans_size_x;
+      }
 
       timeofs += distfac * cu->xof; /* not cyclic */
 
