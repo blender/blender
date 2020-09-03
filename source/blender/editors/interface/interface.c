@@ -4078,12 +4078,6 @@ void ui_def_but_icon_clear(uiBut *but)
   but->drawflag &= ~UI_BUT_ICON_LEFT;
 }
 
-static void ui_def_but_rna__disable(uiBut *but, const char *info)
-{
-  but->flag |= UI_BUT_DISABLED;
-  but->disabled_info = info;
-}
-
 static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *but_p)
 {
   uiBlock *block = uiLayoutGetBlock(layout);
@@ -4502,7 +4496,7 @@ static uiBut *ui_def_but_rna(uiBlock *block,
 
   const char *info;
   if (but->rnapoin.data && !RNA_property_editable_info(&but->rnapoin, prop, &info)) {
-    ui_def_but_rna__disable(but, info);
+    UI_but_disable(but, info);
   }
 
   if (but->flag & UI_BUT_UNDO && (ui_but_is_rna_undo(but) == false)) {
@@ -4550,7 +4544,7 @@ static uiBut *ui_def_but_rna_propname(uiBlock *block,
     but = ui_def_but(
         block, type, retval, propname, x, y, width, height, NULL, min, max, a1, a2, tip);
 
-    ui_def_but_rna__disable(but, "Unknown Property.");
+    UI_but_disable(but, "Unknown Property.");
   }
 
   return but;
@@ -4588,8 +4582,7 @@ static uiBut *ui_def_but_operator_ptr(uiBlock *block,
   but->flag &= ~UI_BUT_UNDO; /* no need for ui_but_is_rna_undo(), we never need undo here */
 
   if (!ot) {
-    but->flag |= UI_BUT_DISABLED;
-    but->disabled_info = "";
+    UI_but_disable(but, "");
   }
 
   return but;
@@ -6032,6 +6025,18 @@ void UI_but_drawflag_enable(uiBut *but, int flag)
 void UI_but_drawflag_disable(uiBut *but, int flag)
 {
   but->drawflag &= ~flag;
+}
+
+void UI_but_disable(uiBut *but, const char *disabled_hint)
+{
+  UI_but_flag_enable(but, UI_BUT_DISABLED);
+
+  /* Only one disabled hint at a time currently. Don't override the previous one here. */
+  if (but->disabled_info && but->disabled_info[0]) {
+    return;
+  }
+
+  but->disabled_info = disabled_hint;
 }
 
 void UI_but_type_set_menu_from_pulldown(uiBut *but)

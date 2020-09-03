@@ -732,6 +732,8 @@ bool UI_but_flag_is_set(uiBut *but, int flag);
 void UI_but_drawflag_enable(uiBut *but, int flag);
 void UI_but_drawflag_disable(uiBut *but, int flag);
 
+void UI_but_disable(uiBut *but, const char *disabled_hint);
+
 void UI_but_type_set_menu_from_pulldown(uiBut *but);
 
 /* special button case, only draw it when used actively, for outliner etc */

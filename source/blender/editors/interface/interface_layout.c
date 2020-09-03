@@ -1139,8 +1139,7 @@ static void ui_item_disabled(uiLayout *layout, const char *name)
   w = ui_text_icon_width(layout, name, 0, 0);
 
   but = uiDefBut(block, UI_BTYPE_LABEL, 0, name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
-  but->flag |= UI_BUT_DISABLED;
-  but->disabled_info = "";
+  UI_but_disable(but, "");
 }
 
 /**
