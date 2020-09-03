@@ -682,7 +682,7 @@ static bool edit_constraint_poll_generic(bContext *C,
   }
 
   if (ID_IS_OVERRIDE_LIBRARY(ob) && !is_liboverride_allowed) {
-    if ((con == NULL) || (con->flag & CONSTRAINT_OVERRIDE_LIBRARY_LOCAL) != 0) {
+    if ((con == NULL) || (con->flag & CONSTRAINT_OVERRIDE_LIBRARY_LOCAL) == 0) {
       CTX_wm_operator_poll_msg_set(C, "Cannot edit constraints coming from library override");
       return false;
     }
