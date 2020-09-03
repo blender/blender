@@ -1057,6 +1057,18 @@ void BKE_screen_view3d_shading_init(View3DShading *shading)
   memcpy(shading, shading_default, sizeof(*shading));
 }
 
+ARegion *BKE_screen_find_main_region_at_xy(bScreen *screen,
+                                           const int space_type,
+                                           const int x,
+                                           const int y)
+{
+  ScrArea *area = BKE_screen_find_area_xy(screen, space_type, x, y);
+  if (!area) {
+    return NULL;
+  }
+  return BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, x, y);
+}
+
 /* magic zoom calculation, no idea what
  * it signifies, if you find out, tell me! -zr
  */

@@ -3112,6 +3112,10 @@ class VIEW3D_MT_face_sets(Menu):
 
         layout.separator()
 
+        op = layout.operator("mesh.face_set_extract", text='Extract Face Set')
+
+        layout.separator()
+
         op = layout.operator("sculpt.face_set_change_visibility", text='Invert Visible Face Sets')
         op.mode = 'INVERT'
 

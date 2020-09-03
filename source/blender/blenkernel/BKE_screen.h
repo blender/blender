@@ -399,6 +399,11 @@ struct ARegion *BKE_screen_find_region_xy(struct bScreen *screen,
                                           int x,
                                           int y) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
+struct ARegion *BKE_screen_find_main_region_at_xy(struct bScreen *screen,
+                                                  const int space_type,
+                                                  const int x,
+                                                  const int y);
+
 struct ScrArea *BKE_screen_find_area_from_space(struct bScreen *screen,
                                                 struct SpaceLink *sl) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2);

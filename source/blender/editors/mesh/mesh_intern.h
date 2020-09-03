@@ -253,6 +253,7 @@ void MESH_OT_mod_weighted_strength(struct wmOperatorType *ot);
 
 /* *** editmesh_mask_extract.c *** */
 void MESH_OT_paint_mask_extract(struct wmOperatorType *ot);
+void MESH_OT_face_set_extract(struct wmOperatorType *ot);
 void MESH_OT_paint_mask_slice(struct wmOperatorType *ot);
 
 struct wmKeyMap *point_normals_modal_keymap(wmKeyConfig *keyconf);

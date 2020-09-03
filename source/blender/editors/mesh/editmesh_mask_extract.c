@@ -27,6 +27,8 @@
 
 #include "BLI_math.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
@@ -35,6 +37,7 @@
 #include "BKE_modifier.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
+#include "BKE_screen.h"
 #include "BKE_shrinkwrap.h"
 
 #include "DEG_depsgraph.h"
@@ -58,12 +61,17 @@
 
 #include "mesh_intern.h" /* own include */
 
-static bool paint_mask_extract_poll(bContext *C)
+typedef enum eGeometryExtractModeType {
+  GEOMETRY_EXTRACT_MASK = 0,
+  GEOMETRY_EXTRACT_FACE_SET = 1,
+} eGeometryExtractModeType;
+
+static bool geometry_extract_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   if (ob != NULL && ob->mode == OB_MODE_SCULPT) {
     if (ob->sculpt->bm) {
-      CTX_wm_operator_poll_msg_set(C, "The mask can not be extracted with dyntopo activated");
+      CTX_wm_operator_poll_msg_set(C, "The geometry can not be extracted with dyntopo activated");
       return false;
     }
     return ED_operator_object_active_editable_mesh(C);
@@ -71,14 +79,66 @@ static bool paint_mask_extract_poll(bContext *C)
   return false;
 }
 
-static int paint_mask_extract_exec(bContext *C, wmOperator *op)
+static void geometry_extract_tag_masked_faces(BMesh *bm, const float threshold)
+{
+  BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
+  const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
+
+  BMFace *f;
+  BMIter iter;
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    bool keep_face = true;
+    BMVert *v;
+    BMIter face_iter;
+    BM_ITER_ELEM (v, &face_iter, f, BM_VERTS_OF_FACE) {
+      const float mask = BM_ELEM_CD_GET_FLOAT(v, cd_vert_mask_offset);
+      if (mask < threshold) {
+        keep_face = false;
+        break;
+      }
+    }
+    BM_elem_flag_set(f, BM_ELEM_TAG, !keep_face);
+  }
+}
+
+static void geometry_extract_tag_face_set(BMesh *bm, const int tag_face_set_id)
+{
+  BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
+  const int cd_face_sets_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
+
+  BMFace *f;
+  BMIter iter;
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    const int face_set_id = abs(BM_ELEM_CD_GET_INT(f, cd_face_sets_offset));
+    BM_elem_flag_set(f, BM_ELEM_TAG, face_set_id != tag_face_set_id);
+  }
+}
+
+typedef struct GeometryExtactParams {
+  /* For extracting Face Sets. */
+  int active_face_set;
+
+  /* For extracting Mask. */
+  float mask_threshold;
+
+  /* Common paramenters. */
+  bool add_boundary_loop;
+  int num_smooth_iterations;
+  bool apply_shrinkwrap;
+  bool add_solidify;
+} GeometryExtractParams;
+
+static int geometry_extract_apply(bContext *C,
+                                  wmOperator *op,
+                                  eGeometryExtractModeType mode,
+                                  GeometryExtractParams *params)
 {
   struct Main *bmain = CTX_data_main(C);
   Object *ob = CTX_data_active_object(C);
   View3D *v3d = CTX_wm_view3d(C);
   Scene *scene = CTX_data_scene(C);
-
   Depsgraph *depsgraph = CTX_data_depsgraph_on_load(C);
+
   ED_object_sculptmode_exit(C, depsgraph);
 
   BKE_sculpt_mask_layers_ensure(ob, NULL);
@@ -102,27 +162,20 @@ static int paint_mask_extract_exec(bContext *C, wmOperator *op)
   BMEditMesh *em = BKE_editmesh_create(bm, false);
   BMVert *v;
   BMEdge *ed;
-  BMFace *f;
   BMIter iter;
-  BMIter face_iter;
 
-  /* Delete all unmasked faces */
-  BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
-  const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
-
-  float mask_threshold = RNA_float_get(op->ptr, "mask_threshold");
-  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-    bool keep_face = true;
-    BM_ITER_ELEM (v, &face_iter, f, BM_VERTS_OF_FACE) {
-      const float mask = BM_ELEM_CD_GET_FLOAT(v, cd_vert_mask_offset);
-      if (mask < mask_threshold) {
-        keep_face = false;
-        break;
-      }
+  switch (mode) {
+    case GEOMETRY_EXTRACT_MASK: {
+      geometry_extract_tag_masked_faces(bm, params->mask_threshold);
+      break;
     }
-    BM_elem_flag_set(f, BM_ELEM_TAG, !keep_face);
+    case GEOMETRY_EXTRACT_FACE_SET: {
+      geometry_extract_tag_face_set(bm, params->active_face_set);
+      break;
+    }
   }
 
+  /* Delete all tagged faces. */
   BM_mesh_delete_hflag_context(bm, BM_ELEM_TAG, DEL_FACES);
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
 
@@ -130,14 +183,13 @@ static int paint_mask_extract_exec(bContext *C, wmOperator *op)
     mul_v3_v3(v->co, ob->scale);
   }
 
-  if (RNA_boolean_get(op->ptr, "add_boundary_loop")) {
+  if (params->add_boundary_loop) {
     BM_ITER_MESH (ed, &iter, bm, BM_EDGES_OF_MESH) {
       BM_elem_flag_set(ed, BM_ELEM_TAG, BM_edge_is_boundary(ed));
     }
     edbm_extrude_edges_indiv(em, op, BM_ELEM_TAG, false);
 
-    int smooth_iterations = RNA_int_get(op->ptr, "smooth_iterations");
-    for (int repeat = 0; repeat < smooth_iterations; repeat++) {
+    for (int repeat = 0; repeat < params->num_smooth_iterations; repeat++) {
       BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
       BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
         BM_elem_flag_set(v, BM_ELEM_TAG, !BM_vert_is_boundary(v));
@@ -215,13 +267,13 @@ static int paint_mask_extract_exec(bContext *C, wmOperator *op)
   Mesh *new_ob_mesh = new_ob->data;
   CustomData_free_layers(&new_ob_mesh->pdata, CD_SCULPT_FACE_SETS, new_ob_mesh->totpoly);
 
-  if (RNA_boolean_get(op->ptr, "apply_shrinkwrap")) {
+  if (params->apply_shrinkwrap) {
     BKE_shrinkwrap_mesh_nearest_surface_deform(C, new_ob, ob);
   }
 
-  if (RNA_boolean_get(op->ptr, "add_solidify")) {
+  if (params->add_solidify) {
     ED_object_modifier_add(
-        op->reports, bmain, scene, new_ob, "mask_extract_solidify", eModifierType_Solidify);
+        op->reports, bmain, scene, new_ob, "geometry_extract_solidify", eModifierType_Solidify);
     SolidifyModifierData *sfmd = (SolidifyModifierData *)BKE_modifiers_findby_name(
         new_ob, "mask_extract_solidify");
     if (sfmd) {
@@ -240,6 +292,51 @@ static int paint_mask_extract_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int paint_mask_extract_exec(bContext *C, wmOperator *op)
+{
+  GeometryExtractParams params;
+  params.mask_threshold = RNA_float_get(op->ptr, "mask_threshold");
+  params.num_smooth_iterations = RNA_int_get(op->ptr, "smooth_iterations");
+  params.add_boundary_loop = RNA_boolean_get(op->ptr, "add_boundary_loop");
+  params.apply_shrinkwrap = RNA_boolean_get(op->ptr, "apply_shrinkwrap");
+  params.add_solidify = RNA_boolean_get(op->ptr, "add_solidify");
+  return geometry_extract_apply(C, op, GEOMETRY_EXTRACT_MASK, &params);
+}
+
+static int paint_mask_extract_invoke(bContext *C, wmOperator *op, const wmEvent *e)
+{
+  return WM_operator_props_popup_confirm(C, op, e);
+}
+
+static void geometry_extract_props(StructRNA *srna)
+{
+  RNA_def_boolean(srna,
+                  "add_boundary_loop",
+                  true,
+                  "Add Boundary Loop",
+                  "Add an extra edge loop to better preserve the shape when applying a "
+                  "subdivision surface modifier");
+  RNA_def_int(srna,
+              "smooth_iterations",
+              4,
+              0,
+              INT_MAX,
+              "Smooth Iterations",
+              "Smooth iterations applied to the extracted mesh",
+              0,
+              20);
+  RNA_def_boolean(srna,
+                  "apply_shrinkwrap",
+                  true,
+                  "Project to Sculpt",
+                  "Project the extracted mesh into the original sculpt");
+  RNA_def_boolean(srna,
+                  "add_solidify",
+                  true,
+                  "Extract as Solid",
+                  "Extract the mask as a solid object with a solidify modifier");
+}
+
 void MESH_OT_paint_mask_extract(wmOperatorType *ot)
 {
   /* identifiers */
@@ -248,8 +345,8 @@ void MESH_OT_paint_mask_extract(wmOperatorType *ot)
   ot->idname = "MESH_OT_paint_mask_extract";
 
   /* api callbacks */
-  ot->poll = paint_mask_extract_poll;
-  ot->invoke = WM_operator_props_popup_confirm;
+  ot->poll = geometry_extract_poll;
+  ot->invoke = paint_mask_extract_invoke;
   ot->exec = paint_mask_extract_exec;
 
   ot->flag = OPTYPE_REGISTER;
@@ -264,31 +361,81 @@ void MESH_OT_paint_mask_extract(wmOperatorType *ot)
       "Minimum mask value to consider the vertex valid to extract a face from the original mesh",
       0.0f,
       1.0f);
-  RNA_def_boolean(ot->srna,
-                  "add_boundary_loop",
-                  true,
-                  "Add Boundary Loop",
-                  "Add an extra edge loop to better preserve the shape when applying a "
-                  "subdivision surface modifier");
-  RNA_def_int(ot->srna,
-              "smooth_iterations",
-              4,
-              0,
-              INT_MAX,
-              "Smooth Iterations",
-              "Smooth iterations applied to the extracted mesh",
-              0,
-              20);
-  RNA_def_boolean(ot->srna,
-                  "apply_shrinkwrap",
-                  true,
-                  "Project to Sculpt",
-                  "Project the extracted mesh into the original sculpt");
-  RNA_def_boolean(ot->srna,
-                  "add_solidify",
-                  true,
-                  "Extract as Solid",
-                  "Extract the mask as a solid object with a solidify modifier");
+
+  geometry_extract_props(ot->srna);
+}
+
+static int face_set_extract_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e))
+{
+  ED_workspace_status_text(C, TIP_("Click on the mesh to select a Face Set"));
+  WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_EYEDROPPER);
+  WM_event_add_modal_handler(C, op);
+  return OPERATOR_RUNNING_MODAL;
+}
+
+static int face_set_extract_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  switch (event->type) {
+    case LEFTMOUSE:
+      if (event->val == KM_PRESS) {
+        WM_cursor_modal_restore(CTX_wm_window(C));
+        ED_workspace_status_text(C, NULL);
+
+        /* This modal operator uses and eyedropper to pick a Face Set from the mesh. This ensures
+         * that the mouse clicked in a viewport region and its coordinates can be used to raycast
+         * the PBVH and update the active Face Set ID. */
+        bScreen *screen = CTX_wm_screen(C);
+        ARegion *region = BKE_screen_find_main_region_at_xy(
+            screen, SPACE_VIEW3D, event->x, event->y);
+
+        if (!region) {
+          return OPERATOR_CANCELLED;
+        }
+
+        const float mval[2] = {event->x - region->winrct.xmin, event->y - region->winrct.ymin};
+
+        Object *ob = CTX_data_active_object(C);
+        const int face_set_id = ED_sculpt_face_sets_active_update_and_get(C, ob, mval);
+        if (face_set_id == SCULPT_FACE_SET_NONE) {
+          return OPERATOR_CANCELLED;
+        }
+
+        GeometryExtractParams params;
+        params.active_face_set = face_set_id;
+        params.num_smooth_iterations = 0;
+        params.add_boundary_loop = false;
+        params.apply_shrinkwrap = true;
+        params.add_solidify = true;
+        return geometry_extract_apply(C, op, GEOMETRY_EXTRACT_FACE_SET, &params);
+      }
+      break;
+
+    case RIGHTMOUSE: {
+      WM_cursor_modal_restore(CTX_wm_window(C));
+      ED_workspace_status_text(C, NULL);
+
+      return OPERATOR_CANCELLED;
+    }
+  }
+
+  return OPERATOR_RUNNING_MODAL;
+}
+
+void MESH_OT_face_set_extract(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Face Set Extract";
+  ot->description = "Create a new mesh object from the selected Face Set";
+  ot->idname = "MESH_OT_face_set_extract";
+
+  /* api callbacks */
+  ot->poll = geometry_extract_poll;
+  ot->invoke = face_set_extract_invoke;
+  ot->modal = face_set_extract_modal;
+
+  ot->flag = OPTYPE_REGISTER;
+
+  geometry_extract_props(ot->srna);
 }
 
 static void slice_paint_mask(BMesh *bm, bool invert, bool fill_holes, float mask_threshold)
@@ -451,7 +598,7 @@ void MESH_OT_paint_mask_slice(wmOperatorType *ot)
   ot->idname = "MESH_OT_paint_mask_slice";
 
   /* api callbacks */
-  ot->poll = paint_mask_extract_poll;
+  ot->poll = geometry_extract_poll;
   ot->exec = paint_mask_slice_exec;
 
   ot->flag = OPTYPE_REGISTER;

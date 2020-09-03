@@ -57,6 +57,10 @@ void ED_sculpt_undo_geometry_end(struct Object *ob);
 int ED_sculpt_face_sets_find_next_available_id(struct Mesh *mesh);
 void ED_sculpt_face_sets_initialize_none_to_id(struct Mesh *mesh, const int new_id);
 
+int ED_sculpt_face_sets_active_update_and_get(struct bContext *C,
+                                              struct Object *ob,
+                                              const float mval[2]);
+
 /* Undo for changes happening on a base mesh for multires sculpting.
  * if there is no multires sculpt active regular undo is used. */
 void ED_sculpt_undo_push_multires_mesh_begin(struct bContext *C, const char *str);

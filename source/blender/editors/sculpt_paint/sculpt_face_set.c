@@ -102,6 +102,18 @@ void ED_sculpt_face_sets_initialize_none_to_id(struct Mesh *mesh, const int new_
   }
 }
 
+int ED_sculpt_face_sets_active_update_and_get(bContext *C, Object *ob, const float mval[2])
+{
+  SculptSession *ss = ob->sculpt;
+  if (!ss) {
+    return SCULPT_FACE_SET_NONE;
+  }
+
+  SculptCursorGeometryInfo gi;
+  SCULPT_cursor_geometry_info_update(C, &gi, mval, false);
+  return SCULPT_active_face_set_get(ss);
+}
+
 /* Draw Face Sets Brush. */
 
 static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
