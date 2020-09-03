@@ -1273,7 +1273,13 @@ static bool vfont_to_curve(Object *ob,
       /* We put the x-coordinate exact at the curve, the y is rotated. */
 
       /* length correction */
-      distfac = sizefac * cu->textoncurve->runtime.curve_cache->path->totdist / (maxx - minx);
+      float chartrans_size_x = maxx - minx;
+      if (UNLIKELY(chartrans_size_x == 0.0f)) {
+        /* Happens when there are no characters,
+         * the result isn't useful in this case, just avoid divide by zero. */
+        chartrans_size_x = 1.0f;
+      }
+      distfac = sizefac * cu->textoncurve->runtime.curve_cache->path->totdist / chartrans_size_x;
       timeofs = 0.0f;
 
       if (distfac > 1.0f) {
@@ -1294,7 +1300,7 @@ static bool vfont_to_curve(Object *ob,
         distfac = 1.0;
       }
 
-      distfac /= (maxx - minx);
+      distfac /= chartrans_size_x;
 
       timeofs += distfac * cu->xof; /* not cyclic */
 
