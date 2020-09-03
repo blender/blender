@@ -5,6 +5,14 @@ if(WITH_WINDOWS_BUNDLE_CRT)
   set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
   set(CMAKE_INSTALL_UCRT_LIBRARIES TRUE)
   set(CMAKE_INSTALL_OPENMP_LIBRARIES ${WITH_OPENMP})
+
+  # This sometimes can change when updates are installed and the compiler version
+  # changes, so test if it exists and if not, give InstallRequiredSystemLibraries
+  # another chance to figure out the path.
+  if(MSVC_REDIST_DIR AND NOT EXISTS "${MSVC_REDIST_DIR}")
+    unset(MSVC_REDIST_DIR CACHE)
+  endif()
+
   include(InstallRequiredSystemLibraries)
 
   # Install the CRT to the blender.crt Sub folder.
