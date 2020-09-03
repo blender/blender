@@ -3852,7 +3852,7 @@ void GPENCIL_OT_draw(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Grease Pencil Draw";
   ot->idname = "GPENCIL_OT_draw";
-  ot->description = "Draw mouse_prv new stroke in the active Grease Pencil Object";
+  ot->description = "Draw a new stroke in the active Grease Pencil object";
 
   /* api callbacks */
   ot->exec = gpencil_draw_exec;
