@@ -70,7 +70,7 @@ void ABCNurbsWriter::create_alembic_objects(const HierarchyContext *context)
   }
 }
 
-const OObject ABCNurbsWriter::get_alembic_object() const
+OObject ABCNurbsWriter::get_alembic_object() const
 {
   if (abc_nurbs_.empty()) {
     return OObject();

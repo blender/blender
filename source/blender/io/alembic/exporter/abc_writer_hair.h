@@ -41,7 +41,7 @@ class ABCHairWriter : public ABCAbstractWriter {
   explicit ABCHairWriter(const ABCWriterConstructorArgs &args);
 
   virtual void create_alembic_objects(const HierarchyContext *context) override;
-  virtual const Alembic::Abc::OObject get_alembic_object() const override;
+  virtual Alembic::Abc::OObject get_alembic_object() const override;
 
  protected:
   virtual void do_write(HierarchyContext &context) override;

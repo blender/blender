@@ -48,7 +48,7 @@
 #include "collada_utils.h"
 
 // get node name, or fall back to original id if not present (name is optional)
-template<class T> static const std::string bc_get_dae_name(T *node)
+template<class T> static std::string bc_get_dae_name(T *node)
 {
   return node->getName().empty() ? node->getOriginalId() : node->getName();
 }

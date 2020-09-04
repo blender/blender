@@ -421,7 +421,7 @@ const Polygon3r &CurvePoint::occludee() const
   return __A->getFEdge(*__B)->occludee();
 }
 
-const bool CurvePoint::occludee_empty() const
+bool CurvePoint::occludee_empty() const
 {
   if (__A == 0) {
     return __B->occludee_empty();

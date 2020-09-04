@@ -977,7 +977,7 @@ void AnimationImporter::apply_matrix_curves(Object *ob,
  * If both values are specified, then the aspect ration is simply xfov/yfov
  * and if aspect ratio is defined, then .. well then its that one.
  */
-static const double get_aspect_ratio(const COLLADAFW::Camera *camera)
+static double get_aspect_ratio(const COLLADAFW::Camera *camera)
 {
   double aspect = camera->getAspectRatio().getValue();
 

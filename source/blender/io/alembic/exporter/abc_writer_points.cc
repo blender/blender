@@ -55,7 +55,7 @@ void ABCPointsWriter::create_alembic_objects(const HierarchyContext * /*context*
   abc_points_schema_ = abc_points_.getSchema();
 }
 
-const Alembic::Abc::OObject ABCPointsWriter::get_alembic_object() const
+Alembic::Abc::OObject ABCPointsWriter::get_alembic_object() const
 {
   return abc_points_;
 }

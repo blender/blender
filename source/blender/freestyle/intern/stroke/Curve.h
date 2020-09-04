@@ -325,7 +325,7 @@ class CurvePoint : public Interface0D {
   int occluders_size() const;
   const Polygon3r &occludee() const;
   const SShape *occluded_shape() const;
-  const bool occludee_empty() const;
+  bool occludee_empty() const;
   real z_discontinuity() const;
 #if 0
   float local_average_depth() const;

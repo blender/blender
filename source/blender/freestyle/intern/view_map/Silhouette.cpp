@@ -83,7 +83,7 @@ const SShape *SVertex::shape() const
   return _Shape;
 }
 
-const int SVertex::qi() const
+int SVertex::qi() const
 {
   if (getNature() & Nature::T_VERTEX) {
     Exception::raiseException();
@@ -139,7 +139,7 @@ const SShape *SVertex::occluded_shape() const
   return (_FEdges[0])->occluded_shape();
 }
 
-const bool SVertex::occludee_empty() const
+bool SVertex::occludee_empty() const
 {
   if (getNature() & Nature::T_VERTEX) {
     Exception::raiseException();
@@ -275,7 +275,7 @@ int FEdge::occluders_size() const
   return _ViewEdge->occluders_size();
 }
 
-const bool FEdge::occludee_empty() const
+bool FEdge::occludee_empty() const
 {
   return _ViewEdge->occludee_empty();
 }

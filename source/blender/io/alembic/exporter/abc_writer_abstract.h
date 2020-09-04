@@ -67,7 +67,7 @@ class ABCAbstractWriter : public AbstractHierarchyWriter {
    * is_supported(). */
   virtual void create_alembic_objects(const HierarchyContext *context) = 0;
 
-  virtual const Alembic::Abc::OObject get_alembic_object() const = 0;
+  virtual Alembic::Abc::OObject get_alembic_object() const = 0;
 
  protected:
   virtual void do_write(HierarchyContext &context) = 0;

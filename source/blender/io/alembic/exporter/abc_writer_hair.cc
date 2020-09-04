@@ -59,7 +59,7 @@ void ABCHairWriter::create_alembic_objects(const HierarchyContext * /*context*/)
   abc_curves_schema_ = abc_curves_.getSchema();
 }
 
-const Alembic::Abc::OObject ABCHairWriter::get_alembic_object() const
+Alembic::Abc::OObject ABCHairWriter::get_alembic_object() const
 {
   return abc_curves_;
 }

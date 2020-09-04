@@ -216,7 +216,7 @@ void BCMatrix::get_matrix(Matrix &mat,
   }
 }
 
-const bool BCMatrix::in_range(const BCMatrix &other, float distance) const
+bool BCMatrix::in_range(const BCMatrix &other, float distance) const
 {
   for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 4; j++) {

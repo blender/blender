@@ -239,7 +239,7 @@ class AnimationExporter : COLLADASW::LibraryAnimations {
                                            bool *has_tangents);
 
   std::string get_axis_name(std::string channel, int id);
-  const std::string get_collada_name(std::string channel_target) const;
+  std::string get_collada_name(std::string channel_target) const;
   std::string get_collada_sid(const BCAnimationCurve &curve, const std::string axis_name);
 
   /* ===================================== */

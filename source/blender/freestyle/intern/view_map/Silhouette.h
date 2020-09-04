@@ -430,14 +430,14 @@ class SVertex : public Interface0D {
   const SShape *shape() const;
   float shape_importance() const;
 
-  const int qi() const;
+  int qi() const;
   occluder_container::const_iterator occluders_begin() const;
   occluder_container::const_iterator occluders_end() const;
   bool occluders_empty() const;
   int occluders_size() const;
   const Polygon3r &occludee() const;
   const SShape *occluded_shape() const;
-  const bool occludee_empty() const;
+  bool occludee_empty() const;
   real z_discontinuity() const;
 #if 0
   inline float local_average_depth() const;
@@ -907,7 +907,7 @@ class FEdge : public Interface1D {
   }
 #endif
 
-  const bool occludee_empty() const;
+  bool occludee_empty() const;
   real z_discontinuity() const;
 
 #if 0

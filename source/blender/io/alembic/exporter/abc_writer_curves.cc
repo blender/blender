@@ -63,7 +63,7 @@ void ABCCurveWriter::create_alembic_objects(const HierarchyContext *context)
   user_prop_resolu.set(cu->resolu);
 }
 
-const Alembic::Abc::OObject ABCCurveWriter::get_alembic_object() const
+Alembic::Abc::OObject ABCCurveWriter::get_alembic_object() const
 {
   return abc_curve_;
 }

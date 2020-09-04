@@ -371,7 +371,7 @@ struct VolumeGrid {
     return NULL;
   }
 
-  const bool grid_is_loaded() const
+  bool grid_is_loaded() const
   {
     return is_loaded;
   }

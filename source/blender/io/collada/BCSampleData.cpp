@@ -40,7 +40,7 @@ void BCSample::add_bone_matrix(Bone *bone, Matrix &mat)
 }
 
 /* Get channel value */
-const bool BCSample::get_value(std::string channel_target, const int array_index, float *val) const
+bool BCSample::get_value(std::string channel_target, const int array_index, float *val) const
 {
   std::string bname = bc_string_before(channel_target, ".");
   std::string channel_type = bc_string_after(channel_target, ".");

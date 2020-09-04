@@ -119,7 +119,7 @@ ABCGenericMeshWriter::~ABCGenericMeshWriter()
 {
 }
 
-const Alembic::Abc::OObject ABCGenericMeshWriter::get_alembic_object() const
+Alembic::Abc::OObject ABCGenericMeshWriter::get_alembic_object() const
 {
   if (is_subd_) {
     return abc_subdiv_;

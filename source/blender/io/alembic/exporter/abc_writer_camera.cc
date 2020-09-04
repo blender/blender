@@ -62,7 +62,7 @@ void ABCCameraWriter::create_alembic_objects(const HierarchyContext * /*context*
       abc_custom_data_container_, "eyeSeparation", timesample_index_);
 }
 
-const Alembic::Abc::OObject ABCCameraWriter::get_alembic_object() const
+Alembic::Abc::OObject ABCCameraWriter::get_alembic_object() const
 {
   return abc_camera_;
 }

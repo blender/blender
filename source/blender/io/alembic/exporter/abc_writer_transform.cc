@@ -96,7 +96,7 @@ void ABCTransformWriter::do_write(HierarchyContext &context)
   write_visibility(context);
 }
 
-const OObject ABCTransformWriter::get_alembic_object() const
+OObject ABCTransformWriter::get_alembic_object() const
 {
   return abc_xform_;
 }

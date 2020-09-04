@@ -771,7 +771,7 @@ std::string AnimationExporter::collada_linear_interpolation_source(int tot,
   return source_id;
 }
 
-const std::string AnimationExporter::get_collada_name(std::string channel_type) const
+std::string AnimationExporter::get_collada_name(std::string channel_type) const
 {
   /*
    * Translation table to map FCurve animation types to Collada animation.
