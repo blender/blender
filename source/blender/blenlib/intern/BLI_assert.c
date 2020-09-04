@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void _BLI_assert_print_pos(const char *file, int line, const char *function, const char *id)
+void _BLI_assert_print_pos(const char *file, const int line, const char *function, const char *id)
 {
   fprintf(stderr, "BLI_assert failed: %s:%d, %s(), at \'%s\'\n", file, line, function, id);
 }

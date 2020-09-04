@@ -1178,7 +1178,7 @@ MINLINE float normalize_v3_v3(float r[3], const float a[3])
   return normalize_v3_v3_length(r, a, 1.0f);
 }
 
-MINLINE double normalize_v3_v3_length_db(double r[3], const double a[3], double unit_length)
+MINLINE double normalize_v3_v3_length_db(double r[3], const double a[3], double const unit_length)
 {
   double d = dot_v3v3_db(a, a);
 

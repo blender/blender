@@ -1581,7 +1581,7 @@ bool UI_search_item_add(uiSearchItems *items,
                         void *poin,
                         int iconid,
                         int state,
-                        uint8_t name_prefix_offset);
+                        const uint8_t name_prefix_offset);
 
 void UI_but_func_search_set(uiBut *but,
                             uiButSearchCreateFn search_create_fn,
