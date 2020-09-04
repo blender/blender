@@ -106,8 +106,6 @@ extern "C" char build_hash[];
 #include "collada_internal.h"
 #include "collada_utils.h"
 
-extern bool bc_has_object_type(LinkNode *export_set, short obtype);
-
 // can probably go after refactor is complete
 #include "InstanceWriter.h"
 #include "TransformWriter.h"
