@@ -4439,8 +4439,9 @@ static void curvemap_buttons_layout(uiLayout *layout,
   /* curve itself */
   size = max_ii(uiLayoutGetWidth(layout), UI_UNIT_X);
   row = uiLayoutRow(layout, false);
-  uiDefBut(
-      block, UI_BTYPE_CURVE, 0, "", 0, 0, size, 8.0f * UI_UNIT_X, cumap, 0.0f, 1.0f, bg, 0, "");
+  uiButCurveMapping *curve_but = (uiButCurveMapping *)uiDefBut(
+      block, UI_BTYPE_CURVE, 0, "", 0, 0, size, 8.0f * UI_UNIT_X, cumap, 0.0f, 1.0f, 0, 0, "");
+  curve_but->gradient_type = bg;
 
   /* sliders for selected point */
   for (i = 0; i < cm->totpoint; i++) {

@@ -334,7 +334,7 @@ typedef struct uiButHSVCube {
   eButGradientType gradient_type;
 } uiButHSVCube;
 
-/** Derived struct for #UI_BTYPE_CURVEPROFILE. */
+/** Derived struct for #UI_BTYPE_COLORBAND. */
 typedef struct uiButColorBand {
   uiBut but;
 
@@ -353,6 +353,7 @@ typedef struct uiButCurveMapping {
   uiBut but;
 
   struct CurveMapping *edit_cumap;
+  eButGradientType gradient_type;
 } uiButCurveMapping;
 
 /**
