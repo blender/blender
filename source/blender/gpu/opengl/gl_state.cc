@@ -503,6 +503,17 @@ void GLStateManager::texture_bind_apply(void)
   }
 }
 
+uint64_t GLStateManager::bound_texture_slots(void)
+{
+  uint64_t bound_slots = 0;
+  for (int i = 0; i < ARRAY_SIZE(textures_); i++) {
+    if (textures_[i] != 0) {
+      bound_slots |= 1 << i;
+    }
+  }
+  return bound_slots;
+}
+
 /** \} */
 
 }  // namespace blender::gpu

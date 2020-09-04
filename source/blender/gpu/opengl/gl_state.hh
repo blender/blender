@@ -74,6 +74,8 @@ class GLStateManager : public GPUStateManager {
   void texture_unbind(Texture *tex) override;
   void texture_unbind_all(void) override;
 
+  uint64_t bound_texture_slots(void);
+
  private:
   static void set_write_mask(const eGPUWriteMask value);
   static void set_depth_test(const eGPUDepthTest value);
