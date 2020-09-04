@@ -131,6 +131,100 @@ static void swizzle_texture_channel_single(GPUTexture *tex)
   GPU_texture_swizzle_set(tex, "rrr1");
 }
 
+static float *rescale_3d(const int dim[3],
+                         const int final_dim[3],
+                         int channels,
+                         const float *fpixels)
+{
+  const uint w = dim[0], h = dim[1], d = dim[2];
+  const uint fw = final_dim[0], fh = final_dim[1], fd = final_dim[2];
+  const uint xf = w / fw, yf = h / fh, zf = d / fd;
+  const uint pixel_count = fw * fh * fd;
+  float *nfpixels = (float *)MEM_mallocN(channels * sizeof(float) * pixel_count, __func__);
+
+  if (nfpixels) {
+    printf("Performance: You need to scale a 3D texture, feel the pain!\n");
+
+    for (uint k = 0; k < fd; k++) {
+      for (uint j = 0; j < fh; j++) {
+        for (uint i = 0; i < fw; i++) {
+          /* Obviously doing nearest filtering here,
+           * it's going to be slow in any case, let's not make it worse. */
+          float xb = i * xf;
+          float yb = j * yf;
+          float zb = k * zf;
+          uint offset = k * (fw * fh) + i * fh + j;
+          uint offset_orig = (zb) * (w * h) + (xb)*h + (yb);
+
+          if (channels == 4) {
+            nfpixels[offset * 4] = fpixels[offset_orig * 4];
+            nfpixels[offset * 4 + 1] = fpixels[offset_orig * 4 + 1];
+            nfpixels[offset * 4 + 2] = fpixels[offset_orig * 4 + 2];
+            nfpixels[offset * 4 + 3] = fpixels[offset_orig * 4 + 3];
+          }
+          else if (channels == 1) {
+            nfpixels[offset] = fpixels[offset_orig];
+          }
+          else {
+            BLI_assert(0);
+          }
+        }
+      }
+    }
+  }
+  return nfpixels;
+}
+
+/* Will resize input to fit GL system limits. */
+static GPUTexture *create_volume_texture(const int dim[3],
+                                         eGPUTextureFormat format,
+                                         const float *data)
+{
+  GPUTexture *tex = NULL;
+  int final_dim[3] = {UNPACK3(dim)};
+
+  while (1) {
+    tex = GPU_texture_create_nD(
+        UNPACK3(final_dim), 3, NULL, format, GPU_DATA_FLOAT, 0, false, NULL);
+
+    if (tex != NULL) {
+      break;
+    }
+
+    if (final_dim[0] == 1 && final_dim[1] == 1 && final_dim[2] == 1) {
+      break;
+    }
+
+    for (int i = 0; i < 3; i++) {
+      final_dim[i] = max_ii(1, final_dim[i] / 2);
+    }
+  }
+
+  if (tex == NULL) {
+    printf("Error: Could not create 3D texture.\n");
+    tex = GPU_texture_create_error(3, false);
+  }
+  else if (equals_v3v3_int(dim, final_dim)) {
+    /* No need to resize, just upload the data. */
+    GPU_texture_update_sub(tex, GPU_DATA_FLOAT, data, 0, 0, 0, UNPACK3(final_dim));
+  }
+  else {
+    /* We need to resize the input. */
+    int channels = (format == GPU_R8) ? 1 : 4;
+    float *rescaled_data = rescale_3d(dim, final_dim, channels, data);
+    if (rescaled_data) {
+      GPU_texture_update_sub(tex, GPU_DATA_FLOAT, rescaled_data, 0, 0, 0, UNPACK3(final_dim));
+      MEM_freeN(rescaled_data);
+    }
+    else {
+      printf("Error: Could not allocate rescaled 3d texture!\n");
+      GPU_texture_free(tex);
+      tex = GPU_texture_create_error(3, false);
+    }
+  }
+  return tex;
+}
+
 static GPUTexture *create_field_texture(FluidDomainSettings *fds)
 {
   float *field = NULL;
@@ -182,9 +276,7 @@ static GPUTexture *create_field_texture(FluidDomainSettings *fds)
       return NULL;
   }
 
-  GPUTexture *tex = GPU_texture_create_nD(
-      UNPACK3(fds->res), 3, field, GPU_R8, GPU_DATA_FLOAT, 0, true, NULL);
-
+  GPUTexture *tex = create_volume_texture(fds->res, GPU_R8, field);
   swizzle_texture_channel_single(tex);
   return tex;
 }
@@ -201,11 +293,8 @@ static GPUTexture *create_density_texture(FluidDomainSettings *fds, int highres)
     data = manta_smoke_get_density(fds->fluid);
   }
 
-  GPUTexture *tex = GPU_texture_create_nD(
-      UNPACK3(dim), 3, data, GPU_R8, GPU_DATA_FLOAT, 0, true, NULL);
-
+  GPUTexture *tex = create_volume_texture(dim, GPU_R8, data);
   swizzle_texture_channel_single(tex);
-
   return tex;
 }
 
@@ -233,8 +322,7 @@ static GPUTexture *create_color_texture(FluidDomainSettings *fds, int highres)
     manta_smoke_get_rgba(fds->fluid, data, 0);
   }
 
-  GPUTexture *tex = GPU_texture_create_nD(
-      dim[0], dim[1], dim[2], 3, data, GPU_RGBA8, GPU_DATA_FLOAT, 0, true, NULL);
+  GPUTexture *tex = create_volume_texture(dim, GPU_RGBA8, data);
 
   MEM_freeN(data);
 
@@ -259,11 +347,8 @@ static GPUTexture *create_flame_texture(FluidDomainSettings *fds, int highres)
     source = manta_smoke_get_flame(fds->fluid);
   }
 
-  GPUTexture *tex = GPU_texture_create_nD(
-      dim[0], dim[1], dim[2], 3, source, GPU_R8, GPU_DATA_FLOAT, 0, true, NULL);
-
+  GPUTexture *tex = create_volume_texture(dim, GPU_R8, source);
   swizzle_texture_channel_single(tex);
-
   return tex;
 }
 
@@ -354,14 +439,8 @@ void DRW_smoke_ensure(FluidModifierData *fmd, int highres)
       fds->tex_flame_coba = create_transfer_function(TFUNC_FLAME_SPECTRUM, NULL);
     }
     if (!fds->tex_shadow) {
-      fds->tex_shadow = GPU_texture_create_nD(UNPACK3(fds->res),
-                                              3,
-                                              manta_smoke_get_shadow(fds->fluid),
-                                              GPU_R8,
-                                              GPU_DATA_FLOAT,
-                                              0,
-                                              true,
-                                              NULL);
+      fds->tex_shadow = create_volume_texture(
+          fds->res, GPU_R8, manta_smoke_get_shadow(fds->fluid));
     }
   }
 #endif /* WITH_FLUID */

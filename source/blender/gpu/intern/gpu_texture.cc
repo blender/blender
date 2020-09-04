@@ -218,13 +218,6 @@ GPUTexture *GPU_texture_create_nD(int w,
       break;
   }
 
-#if 0 /* TODO */
-  if (can_rescale && n == 3) {
-    /* Search small enough supported texture on the system. */
-    /* Rescale input. */
-  }
-#endif
-
   if (!success) {
     delete tex;
     return NULL;
