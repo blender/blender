@@ -508,8 +508,7 @@ void blf_glyph_render(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, float x, fl
       if (gc->texture) {
         GPU_texture_free(gc->texture);
       }
-      gc->texture = GPU_texture_create_nD(
-          w, h, 0, 1, NULL, GPU_R8, GPU_DATA_UNSIGNED_BYTE, 0, false, NULL);
+      gc->texture = GPU_texture_create_1d_array(w, h, GPU_R8, false, NULL);
 
       gc->bitmap_len_landed = 0;
     }

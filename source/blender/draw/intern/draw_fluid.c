@@ -184,8 +184,7 @@ static GPUTexture *create_volume_texture(const int dim[3],
   int final_dim[3] = {UNPACK3(dim)};
 
   while (1) {
-    tex = GPU_texture_create_nD(
-        UNPACK3(final_dim), 3, NULL, format, GPU_DATA_FLOAT, 0, false, NULL);
+    tex = GPU_texture_create_3d(UNPACK3(final_dim), format, NULL, NULL);
 
     if (tex != NULL) {
       break;

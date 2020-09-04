@@ -56,27 +56,12 @@ void GPENCIL_antialiasing_init(struct GPENCIL_Data *vedata)
   }
 
   if (txl->smaa_search_tx == NULL) {
-    txl->smaa_search_tx = GPU_texture_create_nD(SEARCHTEX_WIDTH,
-                                                SEARCHTEX_HEIGHT,
-                                                0,
-                                                2,
-                                                searchTexBytes,
-                                                GPU_R8,
-                                                GPU_DATA_UNSIGNED_BYTE,
-                                                0,
-                                                false,
-                                                NULL);
+    txl->smaa_search_tx = GPU_texture_create_2d(
+        SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, GPU_R8, NULL, NULL);
+    GPU_texture_update(txl->smaa_search_tx, GPU_DATA_UNSIGNED_BYTE, searchTexBytes);
 
-    txl->smaa_area_tx = GPU_texture_create_nD(AREATEX_WIDTH,
-                                              AREATEX_HEIGHT,
-                                              0,
-                                              2,
-                                              areaTexBytes,
-                                              GPU_RG8,
-                                              GPU_DATA_UNSIGNED_BYTE,
-                                              0,
-                                              false,
-                                              NULL);
+    txl->smaa_area_tx = GPU_texture_create_2d(AREATEX_WIDTH, AREATEX_HEIGHT, GPU_RG8, NULL, NULL);
+    GPU_texture_update(txl->smaa_area_tx, GPU_DATA_UNSIGNED_BYTE, areaTexBytes);
 
     GPU_texture_filter_mode(txl->smaa_search_tx, true);
     GPU_texture_filter_mode(txl->smaa_area_tx, true);

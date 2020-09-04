@@ -401,16 +401,9 @@ static bool eevee_lightcache_static_load(LightCache *lcache)
   }
 
   if (lcache->grid_tx.tex == NULL) {
-    lcache->grid_tx.tex = GPU_texture_create_nD(lcache->grid_tx.tex_size[0],
-                                                lcache->grid_tx.tex_size[1],
-                                                lcache->grid_tx.tex_size[2],
-                                                2,
-                                                lcache->grid_tx.data,
-                                                IRRADIANCE_FORMAT,
-                                                GPU_DATA_UNSIGNED_BYTE,
-                                                0,
-                                                false,
-                                                NULL);
+    lcache->grid_tx.tex = GPU_texture_create_2d_array(
+        UNPACK3(lcache->grid_tx.tex_size), IRRADIANCE_FORMAT, NULL, NULL);
+    GPU_texture_update(lcache->grid_tx.tex, GPU_DATA_UNSIGNED_BYTE, lcache->grid_tx.data);
 
     if (lcache->grid_tx.tex == NULL) {
       lcache->flag |= LIGHTCACHE_NOT_USABLE;
@@ -422,24 +415,17 @@ static bool eevee_lightcache_static_load(LightCache *lcache)
 
   if (lcache->cube_tx.tex == NULL) {
     if (GPU_arb_texture_cube_map_array_is_supported()) {
-      lcache->cube_tx.tex = GPU_texture_cube_create(lcache->cube_tx.tex_size[0],
-                                                    lcache->cube_tx.tex_size[2] / 6,
-                                                    lcache->cube_tx.data,
-                                                    GPU_R11F_G11F_B10F,
-                                                    GPU_DATA_10_11_11_REV,
-                                                    NULL);
+      lcache->cube_tx.tex = GPU_texture_create_cube_array(lcache->cube_tx.tex_size[0],
+                                                          lcache->cube_tx.tex_size[2] / 6,
+                                                          GPU_R11F_G11F_B10F,
+                                                          NULL,
+                                                          NULL);
+      GPU_texture_update(lcache->cube_tx.tex, GPU_DATA_10_11_11_REV, lcache->cube_tx.data);
     }
     else {
-      lcache->cube_tx.tex = GPU_texture_create_nD(lcache->cube_tx.tex_size[0],
-                                                  lcache->cube_tx.tex_size[1],
-                                                  lcache->cube_tx.tex_size[2],
-                                                  2,
-                                                  lcache->cube_tx.data,
-                                                  GPU_R11F_G11F_B10F,
-                                                  GPU_DATA_10_11_11_REV,
-                                                  0,
-                                                  false,
-                                                  NULL);
+      lcache->cube_tx.tex = GPU_texture_create_2d_array(
+          UNPACK3(lcache->cube_tx.tex_size), GPU_R11F_G11F_B10F, NULL, NULL);
+      GPU_texture_update(lcache->cube_tx.tex, GPU_DATA_10_11_11_REV, lcache->cube_tx.data);
     }
 
     if (lcache->cube_tx.tex == NULL) {

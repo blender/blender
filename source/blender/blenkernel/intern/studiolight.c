@@ -520,16 +520,9 @@ static void studiolight_create_matcap_gputexture(StudioLightImage *sli)
     copy_v3_v3(*offset3, *offset4);
   }
 
-  sli->gputexture = GPU_texture_create_nD(ibuf->x,
-                                          ibuf->y,
-                                          0,
-                                          2,
-                                          gpu_matcap_3components,
-                                          GPU_R11F_G11F_B10F,
-                                          GPU_DATA_FLOAT,
-                                          0,
-                                          false,
-                                          NULL);
+  sli->gputexture = GPU_texture_create_2d(ibuf->x, ibuf->y, GPU_R11F_G11F_B10F, NULL, NULL);
+  GPU_texture_update(sli->gputexture, GPU_DATA_FLOAT, gpu_matcap_3components);
+
   MEM_SAFE_FREE(gpu_matcap_3components);
 }
 

@@ -165,8 +165,13 @@ GPUTexture *IMB_touch_gpu_texture(ImBuf *ibuf, int w, int h, int layers, bool us
   eGPUTextureFormat tex_format;
   imb_gpu_get_format(ibuf, use_high_bitdepth, &data_format, &tex_format);
 
-  GPUTexture *tex = GPU_texture_create_nD(
-      w, h, layers, 2, NULL, tex_format, data_format, 0, false, NULL);
+  GPUTexture *tex;
+  if (layers > 0) {
+    tex = GPU_texture_create_2d_array(w, h, layers, tex_format, NULL, NULL);
+  }
+  else {
+    tex = GPU_texture_create_2d(w, h, tex_format, NULL, NULL);
+  }
 
   GPU_texture_anisotropic_filter(tex, true);
   return tex;
@@ -248,7 +253,8 @@ GPUTexture *IMB_create_gpu_texture(ImBuf *ibuf, bool use_high_bitdepth, bool use
   void *data = imb_gpu_get_data(ibuf, do_rescale, size, compress_as_srgb, use_premult, &freebuf);
 
   /* Create Texture. */
-  tex = GPU_texture_create_nD(UNPACK2(size), 0, 2, data, tex_format, data_format, 0, false, NULL);
+  tex = GPU_texture_create_2d(UNPACK2(size), tex_format, NULL, NULL);
+  GPU_texture_update(tex, data_format, data);
 
   GPU_texture_anisotropic_filter(tex, true);
 
