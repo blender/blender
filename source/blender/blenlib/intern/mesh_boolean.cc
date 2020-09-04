@@ -401,12 +401,12 @@ class Cell {
     patches_.append_non_duplicates(p);
   }
 
-  const Span<int> patches() const
+  Span<int> patches() const
   {
     return Span<int>(patches_);
   }
 
-  const Span<int> winding() const
+  Span<int> winding() const
   {
     return Span<int>(winding_);
   }
