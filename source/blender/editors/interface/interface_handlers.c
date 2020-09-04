@@ -1888,7 +1888,7 @@ static bool ui_but_drag_init(bContext *C,
   WM_gestures_remove(CTX_wm_window(C));
 
   /* Clamp the maximum to half the UI unit size so a high user preference
-   * doesn't require the user to drag more then half the default button height. */
+   * doesn't require the user to drag more than half the default button height. */
   const int drag_threshold = min_ii(
       WM_event_drag_threshold(event),
       (int)((UI_UNIT_Y / 2) * ui_block_to_window_scale(data->region, but->block)));
