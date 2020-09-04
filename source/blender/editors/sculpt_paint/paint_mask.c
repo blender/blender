@@ -230,11 +230,6 @@ typedef enum eSculptGestureShapeType {
   SCULPT_GESTURE_SHAPE_LASSO,
 } eMaskGesturesShapeType;
 
-typedef enum eSculptGestureOperationType {
-  SCULPT_GESTURE_MASK,
-  SCULPT_GESTURE_FACE_SET,
-} eSculptGestureOperationType;
-
 typedef struct LassoGestureData {
   float projviewobjmat[4][4];
 
@@ -244,6 +239,8 @@ typedef struct LassoGestureData {
   /* 2D bitmap to test if a vertex is affected by the lasso shape. */
   BLI_bitmap *mask_px;
 } LassoGestureData;
+
+struct SculptGestureOperation;
 
 typedef struct SculptGestureContext {
   SculptSession *ss;
@@ -255,15 +252,9 @@ typedef struct SculptGestureContext {
 
   /* Operation parameters. */
   eMaskGesturesShapeType shape_type;
-  eSculptGestureOperationType operation;
   bool front_faces_only;
 
-  /* Mask operation parameters. */
-  PaintMaskFloodMode mask_mode;
-  float mask_value;
-
-  /* Face Set operation parameters. */
-  int new_face_set_id;
+  struct SculptGestureOperation *operation;
 
   /* View parameters. */
   float true_view_normal[3];
@@ -279,6 +270,18 @@ typedef struct SculptGestureContext {
   PBVHNode **nodes;
   int totnode;
 } SculptGestureContext;
+
+typedef struct SculptGestureOperation {
+  /* Initial setup (data updates, special undo push...). */
+  void (*sculpt_gesture_begin)(struct bContext *, SculptGestureContext *);
+
+  /* Apply the gesture action for each symmetry pass. */
+  void (*sculpt_gesture_apply_for_symmetry_pass)(struct bContext *, SculptGestureContext *);
+
+  /* Remaining actions after finishing the symmetry passes iterations (updating datalayers, tagging
+   * PBVH updates...) */
+  void (*sculpt_gesture_end)(struct bContext *, SculptGestureContext *);
+} SculptGestureOperation;
 
 static void sculpt_gesture_operator_properties(wmOperatorType *ot)
 {
@@ -393,6 +396,7 @@ static SculptGestureContext *sculpt_gesture_init_from_box(bContext *C, wmOperato
 static void sculpt_gesture_context_free(SculptGestureContext *sgcontext)
 {
   MEM_SAFE_FREE(sgcontext->lasso.mask_px);
+  MEM_SAFE_FREE(sgcontext->operation);
   MEM_SAFE_FREE(sgcontext->nodes);
   MEM_SAFE_FREE(sgcontext);
 }
@@ -493,11 +497,126 @@ static bool sculpt_gesture_is_vertex_effected(SculptGestureContext *sgcontext, P
   return false;
 }
 
+static void sculpt_gesture_apply(bContext *C, SculptGestureContext *sgcontext)
+{
+  SculptGestureOperation *operation = sgcontext->operation;
+  SCULPT_undo_push_begin("Sculpt Gesture Apply");
+
+  operation->sculpt_gesture_begin(C, sgcontext);
+
+  for (ePaintSymmetryFlags symmpass = 0; symmpass <= sgcontext->symm; symmpass++) {
+    if (SCULPT_is_symmetry_iteration_valid(symmpass, sgcontext->symm)) {
+      sculpt_gesture_flip_for_symmetry_pass(sgcontext, symmpass);
+      sculpt_gesture_update_effected_nodes(sgcontext);
+
+      operation->sculpt_gesture_apply_for_symmetry_pass(C, sgcontext);
+
+      MEM_SAFE_FREE(sgcontext->nodes);
+    }
+  }
+
+  operation->sculpt_gesture_end(C, sgcontext);
+
+  SCULPT_undo_push_end();
+
+  ED_region_tag_redraw(sgcontext->vc.region);
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, sgcontext->vc.obact);
+}
+
+/* Face Set Gesture Operation. */
+
+typedef struct SculptGestureFaceSetOperation {
+  SculptGestureOperation op;
+
+  int new_face_set_id;
+} SculptGestureFaceSetOperation;
+
+static void sculpt_gesture_face_set_begin(bContext *C, SculptGestureContext *sgcontext)
+{
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, true, false, false);
+
+  /* Face Sets modifications do a single undo push. */
+  SCULPT_undo_push_node(sgcontext->vc.obact, NULL, SCULPT_UNDO_FACE_SETS);
+}
+
+static void face_set_gesture_apply_task_cb(void *__restrict userdata,
+                                           const int i,
+                                           const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  SculptGestureContext *sgcontext = userdata;
+  SculptGestureFaceSetOperation *face_set_operation = (SculptGestureFaceSetOperation *)
+                                                          sgcontext->operation;
+  PBVHNode *node = sgcontext->nodes[i];
+  PBVHVertexIter vd;
+  bool any_updated = false;
+
+  BKE_pbvh_vertex_iter_begin(sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
+  {
+    if (sculpt_gesture_is_vertex_effected(sgcontext, &vd)) {
+      SCULPT_vertex_face_set_set(sgcontext->ss, vd.index, face_set_operation->new_face_set_id);
+      any_updated = true;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+
+  if (any_updated) {
+    BKE_pbvh_node_mark_update_visibility(node);
+  }
+}
+
+static void sculpt_gesture_face_set_apply_for_symmetry_pass(bContext *UNUSED(C),
+                                                            SculptGestureContext *sgcontext)
+{
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, sgcontext->totnode);
+  BLI_task_parallel_range(
+      0, sgcontext->totnode, sgcontext, face_set_gesture_apply_task_cb, &settings);
+}
+
+static void sculpt_gesture_face_set_end(bContext *UNUSED(C), SculptGestureContext *sgcontext)
+{
+  BKE_pbvh_update_vertex_data(sgcontext->ss->pbvh, PBVH_UpdateVisibility);
+}
+
+static void sculpt_gesture_init_face_set_properties(SculptGestureContext *sgcontext,
+                                                    wmOperator *UNUSED(op))
+{
+  struct Mesh *mesh = BKE_mesh_from_object(sgcontext->vc.obact);
+  sgcontext->operation = MEM_callocN(sizeof(SculptGestureFaceSetOperation), "Face Set Operation");
+
+  SculptGestureFaceSetOperation *face_set_operation = (SculptGestureFaceSetOperation *)
+                                                          sgcontext->operation;
+
+  face_set_operation->op.sculpt_gesture_begin = sculpt_gesture_face_set_begin;
+  face_set_operation->op.sculpt_gesture_apply_for_symmetry_pass =
+      sculpt_gesture_face_set_apply_for_symmetry_pass;
+  face_set_operation->op.sculpt_gesture_end = sculpt_gesture_face_set_end;
+
+  face_set_operation->new_face_set_id = ED_sculpt_face_sets_find_next_available_id(mesh);
+}
+
+/* Mask Gesture Operation. */
+
+typedef struct SculptGestureMaskOperation {
+  SculptGestureOperation op;
+
+  PaintMaskFloodMode mode;
+  float value;
+} SculptGestureMaskOperation;
+
+static void sculpt_gesture_mask_begin(bContext *C, SculptGestureContext *sgcontext)
+{
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, false, true, false);
+}
+
 static void mask_gesture_apply_task_cb(void *__restrict userdata,
                                        const int i,
                                        const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptGestureContext *sgcontext = userdata;
+  SculptGestureMaskOperation *mask_operation = (SculptGestureMaskOperation *)sgcontext->operation;
   Object *ob = sgcontext->vc.obact;
   PBVHNode *node = sgcontext->nodes[i];
 
@@ -520,7 +639,7 @@ static void mask_gesture_apply_task_cb(void *__restrict userdata,
           BKE_pbvh_node_mark_normals_update(node);
         }
       }
-      mask_flood_fill_set_elem(vd.mask, sgcontext->mask_mode, sgcontext->mask_value);
+      mask_flood_fill_set_elem(vd.mask, mask_operation->mode, mask_operation->value);
       if (prevmask != *vd.mask) {
         redraw = true;
       }
@@ -533,100 +652,36 @@ static void mask_gesture_apply_task_cb(void *__restrict userdata,
   }
 }
 
-static void face_set_gesture_apply_task_cb(void *__restrict userdata,
-                                           const int i,
-                                           const TaskParallelTLS *__restrict UNUSED(tls))
+static void sculpt_gesture_mask_apply_for_symmetry_pass(bContext *UNUSED(C),
+                                                        SculptGestureContext *sgcontext)
 {
-  SculptGestureContext *sgcontext = userdata;
-  PBVHNode *node = sgcontext->nodes[i];
-  PBVHVertexIter vd;
-  bool any_updated = false;
-
-  BKE_pbvh_vertex_iter_begin(sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
-  {
-    if (sculpt_gesture_is_vertex_effected(sgcontext, &vd)) {
-      SCULPT_vertex_face_set_set(sgcontext->ss, vd.index, sgcontext->new_face_set_id);
-      any_updated = true;
-    }
-  }
-  BKE_pbvh_vertex_iter_end;
-
-  if (any_updated) {
-    BKE_pbvh_node_mark_update_visibility(node);
-  }
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, sgcontext->totnode);
+  BLI_task_parallel_range(0, sgcontext->totnode, sgcontext, mask_gesture_apply_task_cb, &settings);
 }
 
-static void sculpt_gesture_apply(bContext *C, SculptGestureContext *mcontext)
+static void sculpt_gesture_mask_end(bContext *C, SculptGestureContext *sgcontext)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-
-  const bool needs_mask = mcontext->operation == SCULPT_GESTURE_MASK;
-  const bool needs_connectivity = mcontext->operation == SCULPT_GESTURE_FACE_SET;
-
-  BKE_sculpt_update_object_for_edit(
-      depsgraph, mcontext->vc.obact, needs_connectivity, needs_mask, false);
-
-  SCULPT_undo_push_begin("Sculpt Gesture Apply");
-
-  if (mcontext->operation == SCULPT_GESTURE_FACE_SET) {
-    /* Face Sets modifications do a single undo push. */
-    SCULPT_undo_push_node(mcontext->vc.obact, NULL, SCULPT_UNDO_FACE_SETS);
+  if (BKE_pbvh_type(sgcontext->ss->pbvh) == PBVH_GRIDS) {
+    multires_mark_as_modified(depsgraph, sgcontext->vc.obact, MULTIRES_COORDS_MODIFIED);
   }
-
-  for (ePaintSymmetryFlags symmpass = 0; symmpass <= mcontext->symm; symmpass++) {
-    if (SCULPT_is_symmetry_iteration_valid(symmpass, mcontext->symm)) {
-      sculpt_gesture_flip_for_symmetry_pass(mcontext, symmpass);
-      sculpt_gesture_update_effected_nodes(mcontext);
-
-      TaskParallelSettings settings;
-      BKE_pbvh_parallel_range_settings(&settings, true, mcontext->totnode);
-      switch (mcontext->operation) {
-        case SCULPT_GESTURE_MASK:
-          BLI_task_parallel_range(
-              0, mcontext->totnode, mcontext, mask_gesture_apply_task_cb, &settings);
-          break;
-        case SCULPT_GESTURE_FACE_SET:
-          BLI_task_parallel_range(
-              0, mcontext->totnode, mcontext, face_set_gesture_apply_task_cb, &settings);
-          break;
-      }
-
-      MEM_SAFE_FREE(mcontext->nodes);
-    }
-  }
-
-  switch (mcontext->operation) {
-    case SCULPT_GESTURE_MASK:
-      if (BKE_pbvh_type(mcontext->ss->pbvh) == PBVH_GRIDS) {
-        multires_mark_as_modified(depsgraph, mcontext->vc.obact, MULTIRES_COORDS_MODIFIED);
-      }
-      BKE_pbvh_update_vertex_data(mcontext->ss->pbvh, PBVH_UpdateMask);
-      break;
-
-    case SCULPT_GESTURE_FACE_SET:
-      BKE_pbvh_update_vertex_data(mcontext->ss->pbvh, PBVH_UpdateVisibility);
-      break;
-  }
-
-  SCULPT_undo_push_end();
-
-  ED_region_tag_redraw(mcontext->vc.region);
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, mcontext->vc.obact);
-}
-
-static void sculpt_gesture_init_face_set_properties(SculptGestureContext *sgcontext,
-                                                    wmOperator *UNUSED(op))
-{
-  sgcontext->operation = SCULPT_GESTURE_FACE_SET;
-  struct Mesh *mesh = BKE_mesh_from_object(sgcontext->vc.obact);
-  sgcontext->new_face_set_id = ED_sculpt_face_sets_find_next_available_id(mesh);
+  BKE_pbvh_update_vertex_data(sgcontext->ss->pbvh, PBVH_UpdateMask);
 }
 
 static void sculpt_gesture_init_mask_properties(SculptGestureContext *sgcontext, wmOperator *op)
 {
-  sgcontext->operation = SCULPT_GESTURE_MASK;
-  sgcontext->mask_mode = RNA_enum_get(op->ptr, "mode");
-  sgcontext->mask_value = RNA_float_get(op->ptr, "value");
+  sgcontext->operation = MEM_callocN(sizeof(SculptGestureFaceSetOperation), "Mask Operation");
+
+  SculptGestureMaskOperation *mask_operation = (SculptGestureMaskOperation *)sgcontext->operation;
+
+  mask_operation->op.sculpt_gesture_begin = sculpt_gesture_mask_begin;
+  mask_operation->op.sculpt_gesture_apply_for_symmetry_pass =
+      sculpt_gesture_mask_apply_for_symmetry_pass;
+  mask_operation->op.sculpt_gesture_end = sculpt_gesture_mask_end;
+
+  mask_operation->mode = RNA_enum_get(op->ptr, "mode");
+  mask_operation->value = RNA_float_get(op->ptr, "value");
 }
 
 static void paint_mask_gesture_operator_properties(wmOperatorType *ot)
