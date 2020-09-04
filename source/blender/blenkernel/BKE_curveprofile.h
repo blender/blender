@@ -23,6 +23,8 @@
  * \ingroup bke
  */
 
+#include "DNA_curveprofile_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,7 +36,7 @@ struct CurveProfilePoint;
 
 void BKE_curveprofile_set_defaults(struct CurveProfile *profile);
 
-struct CurveProfile *BKE_curveprofile_add(int preset);
+struct CurveProfile *BKE_curveprofile_add(eCurveProfilePresets preset);
 
 void BKE_curveprofile_free_data(struct CurveProfile *profile);
 

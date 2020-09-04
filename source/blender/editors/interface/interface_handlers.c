@@ -6954,10 +6954,7 @@ static bool ui_numedit_but_CURVEPROFILE(uiBlock *block,
   const float zoomy = BLI_rctf_size_y(&but->rect) / BLI_rctf_size_y(&profile->view_rect);
 
   if (snap) {
-    float d[2];
-
-    d[0] = mx - data->dragstartx;
-    d[1] = my - data->dragstarty;
+    float d[2] = {mx - data->dragstartx, data->dragstarty};
 
     if (len_squared_v2(d) < (9.0f * U.dpi_fac)) {
       snap = false;
@@ -6979,7 +6976,7 @@ static bool ui_numedit_but_CURVEPROFILE(uiBlock *block,
     const float delta[2] = {fx, fy};
     for (int a = 0; a < profile->path_len; a++) {
       /* Don't move the last and first control points. */
-      if ((pts[a].flag & PROF_SELECT) && (a != 0) && (a != profile->path_len)) {
+      if (pts[a].flag & PROF_SELECT) {
         moved_point |= BKE_curveprofile_move_point(profile, &pts[a], snap, delta);
         last_x = pts[a].x;
         last_y = pts[a].y;
