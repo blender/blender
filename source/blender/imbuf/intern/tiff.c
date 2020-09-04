@@ -795,7 +795,7 @@ int imb_savetiff(ImBuf *ibuf, const char *filepath, int flags)
 
   /* create image as a file */
 #ifdef WIN32
-  wchar_t *wname = alloc_utf16_from_8(name, 0);
+  wchar_t *wname = alloc_utf16_from_8(filepath, 0);
   image = TIFFOpenW(wname, "w");
   free(wname);
 #else
