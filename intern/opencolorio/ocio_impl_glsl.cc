@@ -34,8 +34,6 @@
 #include <sstream>
 #include <string.h>
 
-#include "glew-mx.h"
-
 #ifdef _MSC_VER
 #  pragma warning(push)
 #  pragma warning(disable : 4251 4275)
@@ -111,8 +109,8 @@ struct OCIO_GLSLLut3d {
   /** Cache IDs */
   std::string cacheId;
   /** OpenGL Texture handles. 0 if not allocated. */
-  GLuint texture;
-  GLuint texture_display;
+  GPUTexture *texture;
+  GPUTexture *texture_display;
   /** Error checking. */
   bool valid;
 };
@@ -123,7 +121,7 @@ struct OCIO_GLSLCurveMappping {
   /** GPU Uniform Buffer handle. 0 if not allocated. */
   GPUUniformBuf *buffer;
   /** OpenGL Texture handles. 0 if not allocated. */
-  GLuint texture;
+  GPUTexture *texture;
   /** Error checking. */
   bool valid;
 };
@@ -258,24 +256,13 @@ static void updateGLSLLut3d(OCIO_GLSLLut3d *lut3d,
 
   for (int i = 0; i < 2; i++) {
     ConstProcessorRcPtr *processor = ocio_processors[i];
-    GLuint texture = (&lut3d->texture)[i];
+    GPUTexture *texture = (&lut3d->texture)[i];
 
     (*processor)->getGpuLut3D(lut_data, *shader_desc);
 
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_3D, texture);
-
-    glTexSubImage3D(GL_TEXTURE_3D,
-                    0,
-                    0,
-                    0,
-                    0,
-                    LUT3D_EDGE_SIZE,
-                    LUT3D_EDGE_SIZE,
-                    LUT3D_EDGE_SIZE,
-                    GL_RGB,
-                    GL_FLOAT,
-                    lut_data);
+    int offset[3] = {0, 0, 0};
+    int extent[3] = {LUT3D_EDGE_SIZE, LUT3D_EDGE_SIZE, LUT3D_EDGE_SIZE};
+    GPU_texture_update_sub(texture, GPU_DATA_FLOAT, lut_data, UNPACK3(offset), UNPACK3(extent));
   }
 
   MEM_freeN(lut_data);
@@ -295,29 +282,13 @@ static void ensureGLSLLut3d(OCIO_GLSLLut3d **lut3d_ptr,
 
   OCIO_GLSLLut3d *lut3d = OBJECT_GUARDED_NEW(OCIO_GLSLLut3d);
 
-  glGenTextures(3, &lut3d->texture);
-
   for (int i = 0; i < 2; i++) {
-    GLuint texture = (&lut3d->texture)[i];
+    int extent[3] = {LUT3D_EDGE_SIZE, LUT3D_EDGE_SIZE, LUT3D_EDGE_SIZE};
+    GPUTexture *tex = GPU_texture_create_3d(UNPACK3(extent), GPU_RGB16F, NULL, NULL);
+    GPU_texture_filter_mode(tex, true);
+    GPU_texture_wrap_mode(tex, false, true);
 
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_3D, texture);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-    glTexImage3D(GL_TEXTURE_3D,
-                 0,
-                 GL_RGB16F,
-                 LUT3D_EDGE_SIZE,
-                 LUT3D_EDGE_SIZE,
-                 LUT3D_EDGE_SIZE,
-                 0,
-                 GL_RGB,
-                 GL_FLOAT,
-                 NULL);
+    (&lut3d->texture)[i] = tex;
   }
 
   updateGLSLLut3d(lut3d, processor_scene_to_ui, processpr_ui_to_display, shaderDesc, cache_id);
@@ -329,7 +300,8 @@ static void ensureGLSLLut3d(OCIO_GLSLLut3d **lut3d_ptr,
 
 static void freeGLSLLut3d(OCIO_GLSLLut3d *lut3d)
 {
-  glDeleteTextures(1, &lut3d->texture);
+  GPU_texture_free(lut3d->texture);
+  GPU_texture_free(lut3d->texture_display);
 
   OBJECT_GUARDED_DELETE(lut3d, OCIO_GLSLLut3d);
 }
@@ -342,19 +314,11 @@ static void freeGLSLLut3d(OCIO_GLSLLut3d *lut3d)
 static void allocateCurveMappingTexture(OCIO_GLSLCurveMappping *curvemap,
                                         OCIO_CurveMappingSettings *curve_mapping_settings)
 {
-  glGenTextures(1, &curvemap->texture);
-
-  glActiveTexture(GL_TEXTURE2);
-  glBindTexture(GL_TEXTURE_1D, curvemap->texture);
-  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-  /* Do not initialize. Only if used. */
   int lut_size = curve_mapping_settings ? curve_mapping_settings->lut_size : 1;
-  glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA16F, lut_size, 0, GL_RGBA, GL_FLOAT, NULL);
+  /* Do not initialize. Only if used. */
+  curvemap->texture = GPU_texture_create_1d(lut_size, GPU_RGBA16F, NULL, NULL);
+  GPU_texture_filter_mode(curvemap->texture, false);
+  GPU_texture_wrap_mode(curvemap->texture, false, true);
 }
 
 /* curve_mapping_settings can be null. In this case we alloc a dummy curvemap. */
@@ -381,7 +345,7 @@ static void ensureGLSLCurveMapping(OCIO_GLSLCurveMappping **curvemap_ptr,
 
 static void freeGLSLCurveMapping(OCIO_GLSLCurveMappping *curvemap)
 {
-  glDeleteTextures(1, &curvemap->texture);
+  GPU_texture_free(curvemap->texture);
   GPU_uniformbuf_free(curvemap->buffer);
 
   OBJECT_GUARDED_DELETE(curvemap, OCIO_GLSLCurveMappping);
@@ -400,20 +364,16 @@ static void updateGLSLCurveMapping(OCIO_GLSLCurveMappping *curvemap,
 
   if (curvemap->cacheId == 0) {
     /* This cache was previously used as dummy. Recreate the texture. */
-    glDeleteTextures(1, &curvemap->texture);
+    GPU_texture_free(curvemap->texture);
     allocateCurveMappingTexture(curvemap, curve_mapping_settings);
   }
 
   /* Update texture. */
-  glActiveTexture(GL_TEXTURE2);
-  glBindTexture(GL_TEXTURE_1D, curvemap->texture);
-  glTexSubImage1D(GL_TEXTURE_1D,
-                  0,
-                  0,
-                  curve_mapping_settings->lut_size,
-                  GL_RGBA,
-                  GL_FLOAT,
-                  curve_mapping_settings->lut);
+  int offset[3] = {0, 0, 0};
+  int extent[3] = {curve_mapping_settings->lut_size, 0, 0};
+  const float *pixels = curve_mapping_settings->lut;
+  GPU_texture_update_sub(
+      curvemap->texture, GPU_DATA_FLOAT, pixels, UNPACK3(offset), UNPACK3(extent));
 
   /* Update uniforms. */
   OCIO_GLSLCurveMappingParameters data;
@@ -581,16 +541,9 @@ bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r,
     /* Bind textures to sampler units. Texture 0 is set by caller.
      * Uniforms have already been set for texture bind points.*/
 
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_3D, shader_lut->texture);
-
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_3D, shader_lut->texture_display);
-
-    glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_1D, shader_curvemap->texture);
-
-    glActiveTexture(GL_TEXTURE0);
+    GPU_texture_bind(shader_lut->texture, 2);
+    GPU_texture_bind(shader_lut->texture_display, 3);
+    GPU_texture_bind(shader_curvemap->texture, 4);
 
     /* Bind UBO. */
     GPU_uniformbuf_bind(shader_curvemap->buffer, shader->ubo_bind);
@@ -599,12 +552,12 @@ bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r,
     immBindShader(shader->shader);
 
     /* Bind Shader and set uniforms. */
-    // glUseProgram(shader->program);
-    glUniform1f(shader->dither_loc, dither);
-    glUniform1i(shader->overlay_tex_loc, use_overlay ? 1 : 0);
-    glUniform1i(shader->overlay_loc, use_overlay);
-    glUniform1i(shader->predivide_loc, use_predivide);
-    glUniform1i(shader->curve_mapping_loc, use_curve_mapping);
+    // GPU_shader_bind(shader->shader);
+    GPU_shader_uniform_float(shader->shader, shader->dither_loc, dither);
+    GPU_shader_uniform_int(shader->shader, shader->overlay_tex_loc, use_overlay ? 1 : 0);
+    GPU_shader_uniform_int(shader->shader, shader->overlay_loc, use_overlay);
+    GPU_shader_uniform_int(shader->shader, shader->predivide_loc, use_predivide);
+    GPU_shader_uniform_int(shader->shader, shader->curve_mapping_loc, use_curve_mapping);
 
     return true;
   }
