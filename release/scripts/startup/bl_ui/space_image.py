@@ -499,9 +499,9 @@ class IMAGE_MT_uvs_context_menu(Menu):
             layout.separator()
 
             # Remove
-            layout.operator("uv.remove_doubles", text="Merge By Distance")
+            layout.menu("IMAGE_MT_uvs_merge")
             layout.operator("uv.stitch")
-            layout.operator("uv.weld")
+            layout.menu("IMAGE_MT_uvs_split")
 
 
 class IMAGE_MT_pivot_pie(Menu):
