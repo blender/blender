@@ -2424,6 +2424,10 @@ void BKE_scene_transform_orientation_remove(Scene *scene, TransformOrientation *
       orient_slot->type = V3D_ORIENT_GLOBAL;
       orient_slot->index_custom = -1;
     }
+    else if (orient_slot->index_custom > orientation_index) {
+      BLI_assert(orient_slot->type == V3D_ORIENT_CUSTOM);
+      orient_slot->index_custom--;
+    }
   }
 
   BLI_freelinkN(&scene->transform_spaces, orientation);
