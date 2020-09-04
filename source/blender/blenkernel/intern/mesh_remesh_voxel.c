@@ -102,11 +102,9 @@ Mesh *BKE_mesh_remesh_voxel_ovdb_volume_to_mesh_nomain(struct OpenVDBLevelSet *l
                                                        double adaptivity,
                                                        bool relax_disoriented_triangles)
 {
-#  ifdef WITH_OPENVDB
   struct OpenVDBVolumeToMeshData output_mesh;
   OpenVDBLevelSet_volume_to_mesh(
       level_set, &output_mesh, isovalue, adaptivity, relax_disoriented_triangles);
-#  endif
 
   Mesh *mesh = BKE_mesh_new_nomain(output_mesh.totvertices,
                                    0,

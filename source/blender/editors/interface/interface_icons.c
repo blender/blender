@@ -483,22 +483,20 @@ static void vicon_gplayer_color_draw(Icon *icon, int x, int y, int w, int h)
   immUnbindProgram();
 }
 
-#  ifndef WITH_HEADLESS
-
 static void init_brush_icons(void)
 {
 
-#    define INIT_BRUSH_ICON(icon_id, name) \
-      { \
-        uchar *rect = (uchar *)datatoc_##name##_png; \
-        const int size = datatoc_##name##_png_size; \
-        DrawInfo *di; \
+#  define INIT_BRUSH_ICON(icon_id, name) \
+    { \
+      uchar *rect = (uchar *)datatoc_##name##_png; \
+      const int size = datatoc_##name##_png_size; \
+      DrawInfo *di; \
 \
-        di = def_internal_icon(NULL, icon_id, 0, 0, w, ICON_TYPE_BUFFER, 0); \
-        di->data.buffer.image->datatoc_rect = rect; \
-        di->data.buffer.image->datatoc_size = size; \
-      } \
-      ((void)0)
+      di = def_internal_icon(NULL, icon_id, 0, 0, w, ICON_TYPE_BUFFER, 0); \
+      di->data.buffer.image->datatoc_rect = rect; \
+      di->data.buffer.image->datatoc_size = size; \
+    } \
+    ((void)0)
   /* end INIT_BRUSH_ICON */
 
   const int w = 96; /* warning, brush size hardcoded in C, but it gets scaled */
@@ -556,7 +554,7 @@ static void init_brush_icons(void)
   INIT_BRUSH_ICON(ICON_GPBRUSH_ERASE_HARD, gp_brush_erase_hard);
   INIT_BRUSH_ICON(ICON_GPBRUSH_ERASE_STROKE, gp_brush_erase_stroke);
 
-#    undef INIT_BRUSH_ICON
+#  undef INIT_BRUSH_ICON
 }
 
 static DrawInfo *g_di_event_list = NULL;
@@ -630,16 +628,16 @@ static void init_event_icons(void)
 {
   DrawInfo *di_next = NULL;
 
-#    define INIT_EVENT_ICON(icon_id, type, value) \
-      { \
-        DrawInfo *di = def_internal_icon(NULL, icon_id, 0, 0, w, ICON_TYPE_EVENT, 0); \
-        di->data.input.event_type = type; \
-        di->data.input.event_value = value; \
-        di->data.input.icon = icon_id; \
-        di->data.input.next = di_next; \
-        di_next = di; \
-      } \
-      ((void)0)
+#  define INIT_EVENT_ICON(icon_id, type, value) \
+    { \
+      DrawInfo *di = def_internal_icon(NULL, icon_id, 0, 0, w, ICON_TYPE_EVENT, 0); \
+      di->data.input.event_type = type; \
+      di->data.input.event_value = value; \
+      di->data.input.icon = icon_id; \
+      di->data.input.next = di_next; \
+      di_next = di; \
+    } \
+    ((void)0)
   /* end INIT_EVENT_ICON */
 
   const int w = 16; /* DUMMY */
@@ -695,7 +693,7 @@ static void init_event_icons(void)
 
   g_di_event_list = di_next;
 
-#    undef INIT_EVENT_ICON
+#  undef INIT_EVENT_ICON
 }
 
 static void icon_verify_datatoc(IconImage *iimg)
@@ -906,7 +904,7 @@ static void init_internal_icons(void)
 {
   int x, y;
 
-#    if 0  // temp disabled
+#  if 0  // temp disabled
   if ((btheme != NULL) && btheme->tui.iconfile[0]) {
     char *icondir = BKE_appdir_folder_id(BLENDER_DATAFILES, "icons");
     char iconfilestr[FILE_MAX];
@@ -931,7 +929,7 @@ static void init_internal_icons(void)
       printf("%s: 'icons' data path not found, continuing\n", __func__);
     }
   }
-#    endif
+#  endif
 
   /* Define icons. */
   for (y = 0; y < ICON_GRID_ROWS; y++) {
@@ -987,7 +985,6 @@ static void init_internal_icons(void)
   def_internal_vicon(ICON_COLORSET_19_VEC, vicon_colorset_draw_19);
   def_internal_vicon(ICON_COLORSET_20_VEC, vicon_colorset_draw_20);
 }
-#  endif /* WITH_HEADLESS */
 
 static void init_iconfile_list(struct ListBase *list)
 {
