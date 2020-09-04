@@ -1,3 +1,17 @@
+# Copyright 2011-2020 Blender Foundation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 if(WITH_GTESTS)
   Include(GTestTesting)
 
@@ -30,79 +44,17 @@ set(ALL_CYCLES_LIBRARIES
   cycles_subd
   cycles_util
   extern_clew
-  ${BLENDER_GL_LIBRARIES}
-  ${BLENDER_GLEW_LIBRARIES}
-  ${CYCLES_APP_GLEW_LIBRARY}
-  ${OPENIMAGEIO_LIBRARIES}
+  ${CYCLES_GL_LIBRARIES}
 )
-if(WITH_CYCLES_OSL)
-  list(APPEND ALL_CYCLES_LIBRARIES
-    cycles_kernel_osl
-    ${OSL_LIBRARIES}
-    ${LLVM_LIBRARIES}
-  )
-endif()
-if(WITH_OPENCOLORIO)
-  list(APPEND ALL_CYCLES_LIBRARIES
-    ${OPENCOLORIO_LIBRARIES}
-  )
-endif()
-if(WITH_IMAGE_OPENJPEG)
-  list(APPEND ALL_CYCLES_LIBRARIES ${OPENJPEG_LIBRARIES})
-endif()
-if(WITH_OPENSUBDIV)
-  add_definitions(-DWITH_OPENSUBDIV)
-  include_directories(
-    SYSTEM
-    ${OPENSUBDIV_INCLUDE_DIR}
-  )
-  list(APPEND ALL_CYCLES_LIBRARIES
-    ${OPENSUBDIV_LIBRARIES}
-  )
-endif()
-if(WITH_CYCLES_EMBREE)
-  list(APPEND ALL_CYCLES_LIBRARIES
-    ${EMBREE_LIBRARIES}
-  )
-endif()
-if(WITH_CUDA_DYNLOAD)
-  list(APPEND ALL_CYCLES_LIBRARIES extern_cuew)
-else()
-  list(APPEND ALL_CYCLES_LIBRARIES ${CUDA_CUDA_LIBRARY})
-endif()
-if(NOT CYCLES_STANDALONE_REPOSITORY)
-  list(APPEND ALL_CYCLES_LIBRARIES bf_intern_glew_mx bf_intern_guardedalloc ${GLEW_LIBRARY})
-endif()
-
-list(APPEND ALL_CYCLES_LIBRARIES
-  ${BOOST_LIBRARIES}
-  ${PNG_LIBRARIES}
-  ${JPEG_LIBRARIES}
-  ${ZLIB_LIBRARIES}
-  ${TIFF_LIBRARY}
-  ${OPENIMAGEIO_LIBRARIES}
-  ${OPENEXR_LIBRARIES}
-  ${OPENVDB_LIBRARIES}
-)
-
 include_directories(${INC})
 
-link_directories(
-  ${OPENIMAGEIO_LIBPATH}
-  ${BOOST_LIBPATH}
-  ${PNG_LIBPATH}
-  ${JPEG_LIBPATH}
-  ${ZLIB_LIBPATH}
-  ${TIFF_LIBPATH}
-  ${OPENEXR_LIBPATH}
-  ${OPENCOLORIO_LIBPATH}
-  ${OPENVDB_LIBPATH}
-)
+cycles_link_directories()
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${PLATFORM_LINKFLAGS}")
 set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${PLATFORM_LINKFLAGS_DEBUG}")
 
 CYCLES_TEST(render_graph_finalize "${ALL_CYCLES_LIBRARIES};bf_intern_numaapi")
+cycles_target_link_libraries(cycles_render_graph_finalize_test)
 CYCLES_TEST(util_aligned_malloc "cycles_util")
 CYCLES_TEST(util_path "cycles_util;${OPENIMAGEIO_LIBRARIES};${BOOST_LIBRARIES}")
 CYCLES_TEST(util_string "cycles_util;${OPENIMAGEIO_LIBRARIES};${BOOST_LIBRARIES}")
