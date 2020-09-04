@@ -2631,6 +2631,12 @@ static void rna_def_gpencil_interpolate(BlenderRNA *brna)
       prop, "Type", "Interpolation method to use the next time 'Interpolate Sequence' is run");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
+  prop = RNA_def_property(srna, "step", PROP_INT, PROP_NONE);
+  RNA_def_property_range(prop, 1, MAXFRAME);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Step", "Number of frames between generated interpolated frames");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
   /* easing */
   prop = RNA_def_property(srna, "easing", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "easing");

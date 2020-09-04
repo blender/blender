@@ -949,6 +949,7 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
 
   GP_Interpolate_Settings *ipo_settings = &ts->gp_interpolate;
   eGP_Interpolate_SettingsFlag flag = ipo_settings->flag;
+  const int step = ipo_settings->step;
 
   /* cannot interpolate if not between 2 frames */
   if (ELEM(NULL, actframe, actframe->next)) {
@@ -990,7 +991,7 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
     nextFrame = gpl->actframe->next;
 
     /* Loop over intermediary frames and create the interpolation */
-    for (cframe = prevFrame->framenum + 1; cframe < nextFrame->framenum; cframe++) {
+    for (cframe = prevFrame->framenum + step; cframe < nextFrame->framenum; cframe += step) {
       bGPDframe *interFrame = NULL;
       float factor;
 

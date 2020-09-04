@@ -1702,6 +1702,7 @@ class VIEW3D_PT_tools_grease_pencil_interpolate(Panel):
 
         col = layout.column(align=True)
         col.label(text="Sequence Options:")
+        col.prop(settings, "step")
         col.prop(settings, "type")
         if settings.type == 'CUSTOM':
             # TODO: Options for loading/saving curve presets?
