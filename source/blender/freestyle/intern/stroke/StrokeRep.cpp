@@ -19,6 +19,8 @@
  * \brief Class to define the representation of a stroke (for display purpose)
  */
 
+#include <cmath>
+
 #include "StrokeRep.h"
 #include "Stroke.h"
 #include "StrokeAdvancedIterators.h"
@@ -573,7 +575,7 @@ void Strip::computeTexCoordWithTips(const vector<StrokeVertex *> &iStrokeVertice
   v = iStrokeVertices.begin();
   vend = iStrokeVertices.end();
   l = (*v)->strokeLength() / spacedThickness;
-  tiles = int(l + 0.5);  // round to the nearest
+  tiles = std::roundf(l);  // round to the nearest
   fact = (float(tiles) + 0.5) / l;
 
 #if 0

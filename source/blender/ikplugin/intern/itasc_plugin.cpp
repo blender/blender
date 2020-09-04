@@ -22,6 +22,7 @@
  * \ingroup ikplugin
  */
 
+#include <cmath>
 #include <stdlib.h>
 #include <string.h>
 #include <vector>
@@ -1765,7 +1766,7 @@ static void execute_scene(struct Depsgraph *depsgraph,
 
   if (ikscene->cache && !reiterate && simulation) {
     iTaSC::CacheTS sts, cts;
-    sts = cts = (iTaSC::CacheTS)(timestamp * 1000.0 + 0.5);
+    sts = cts = (iTaSC::CacheTS)std::round(timestamp * 1000.0);
     if (ikscene->cache->getPreviousCacheItem(ikscene->armature, 0, &cts) == NULL || cts == 0) {
       // the cache is empty before this time, reiterate
       if (ikparam->flag & ITASC_INITIAL_REITERATION) {

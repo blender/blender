@@ -16,6 +16,8 @@
  * Copyright 2011, Blender Foundation.
  */
 
+#include <math.h>
+
 #include "COM_WrapOperation.h"
 
 WrapOperation::WrapOperation(DataType datatype) : ReadBufferOperation(datatype)
@@ -90,7 +92,7 @@ bool WrapOperation::determineDependingAreaOfInterest(rcti *input,
   if (m_wrappingType == CMP_NODE_WRAP_X || m_wrappingType == CMP_NODE_WRAP_XY) {
     // wrap only on the x-axis if tile is wrapping
     newInput.xmin = getWrappedOriginalXPos(input->xmin);
-    newInput.xmax = getWrappedOriginalXPos(input->xmax) + 0.5f;
+    newInput.xmax = roundf(getWrappedOriginalXPos(input->xmax));
     if (newInput.xmin >= newInput.xmax) {
       newInput.xmin = 0;
       newInput.xmax = this->getWidth();
@@ -99,7 +101,7 @@ bool WrapOperation::determineDependingAreaOfInterest(rcti *input,
   if (m_wrappingType == CMP_NODE_WRAP_Y || m_wrappingType == CMP_NODE_WRAP_XY) {
     // wrap only on the y-axis if tile is wrapping
     newInput.ymin = getWrappedOriginalYPos(input->ymin);
-    newInput.ymax = getWrappedOriginalYPos(input->ymax) + 0.5f;
+    newInput.ymax = roundf(getWrappedOriginalYPos(input->ymax));
     if (newInput.ymin >= newInput.ymax) {
       newInput.ymin = 0;
       newInput.ymax = this->getHeight();

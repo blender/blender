@@ -24,6 +24,7 @@
  * \ingroup bke
  */
 
+#include <math.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -2204,8 +2205,8 @@ void BKE_sequencer_proxy_rebuild(SeqIndexBuildContext *context,
   BKE_sequencer_new_render_data(bmain,
                                 context->depsgraph,
                                 context->scene,
-                                (scene->r.size * (float)scene->r.xsch) / 100.0f + 0.5f,
-                                (scene->r.size * (float)scene->r.ysch) / 100.0f + 0.5f,
+                                roundf((scene->r.size * (float)scene->r.xsch) / 100.0f),
+                                roundf((scene->r.size * (float)scene->r.ysch) / 100.0f),
                                 100,
                                 false,
                                 &render_context);

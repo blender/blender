@@ -21,6 +21,7 @@
  * \ingroup spseq
  */
 
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -304,7 +305,7 @@ static void sequencer_refresh(const bContext *C, ScrArea *area)
         /* Final check that both preview and main height are reasonable. */
         if (region_preview->sizey < 10 || region_main->sizey < 10 ||
             region_preview->sizey + region_main->sizey > height) {
-          region_preview->sizey = (int)(height * 0.4f + 0.5f);
+          region_preview->sizey = roundf(height * 0.4f);
           region_main->sizey = (int)(height - region_preview->sizey);
           view_changed = true;
         }

@@ -1320,10 +1320,10 @@ void BKE_histogram_update_sample_line(Histogram *hist,
   const float *fp;
   unsigned char *cp;
 
-  int x1 = 0.5f + hist->co[0][0] * ibuf->x;
-  int x2 = 0.5f + hist->co[1][0] * ibuf->x;
-  int y1 = 0.5f + hist->co[0][1] * ibuf->y;
-  int y2 = 0.5f + hist->co[1][1] * ibuf->y;
+  int x1 = roundf(hist->co[0][0] * ibuf->x);
+  int x2 = roundf(hist->co[1][0] * ibuf->x);
+  int y1 = roundf(hist->co[0][1] * ibuf->y);
+  int y2 = roundf(hist->co[1][1] * ibuf->y);
 
   struct ColormanageProcessor *cm_processor = NULL;
 

@@ -22,6 +22,8 @@
  * \ingroup imbuf
  */
 
+#include <math.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_base.h"
@@ -527,7 +529,7 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
               else {
                 for (c = 0; c < depth; c++) {
                   ((unsigned char *)dstbuf)[depth * index + c] =
-                      acc[c] > 255 ? 255 : (acc[c] < 0 ? 0 : ((unsigned char)(acc[c] + 0.5f)));
+                      acc[c] > 255 ? 255 : (acc[c] < 0 ? 0 : (unsigned char)roundf(acc[c]));
                 }
               }
 

@@ -567,7 +567,7 @@ static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu_, View2D *v2
    *   the displayed values appear correctly in the viewport
    */
 
-  n = (etime - stime) / samplefreq + 0.5f;
+  n = roundf((etime - stime) / samplefreq);
 
   if (n > 0) {
     immBegin(GPU_PRIM_LINE_STRIP, (n + 1));

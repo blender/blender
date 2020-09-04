@@ -22,6 +22,8 @@
  * \ingroup imbuf
  */
 
+#include <math.h>
+
 #include "BLI_math_color.h"
 #include "BLI_math_interp.h"
 #include "BLI_utildefines.h"
@@ -1000,10 +1002,10 @@ static ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
         val[3] = rect[3];
         rect += 4;
 
-        newrect[0] = ((nval[0] + sample * val[0]) / add + 0.5f);
-        newrect[1] = ((nval[1] + sample * val[1]) / add + 0.5f);
-        newrect[2] = ((nval[2] + sample * val[2]) / add + 0.5f);
-        newrect[3] = ((nval[3] + sample * val[3]) / add + 0.5f);
+        newrect[0] = roundf((nval[0] + sample * val[0]) / add);
+        newrect[1] = roundf((nval[1] + sample * val[1]) / add);
+        newrect[2] = roundf((nval[2] + sample * val[2]) / add);
+        newrect[3] = roundf((nval[3] + sample * val[3]) / add);
 
         newrect += 4;
       }
@@ -1142,10 +1144,10 @@ static ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
         val[3] = rect[3];
         rect += skipx;
 
-        newrect[0] = ((nval[0] + sample * val[0]) / add + 0.5f);
-        newrect[1] = ((nval[1] + sample * val[1]) / add + 0.5f);
-        newrect[2] = ((nval[2] + sample * val[2]) / add + 0.5f);
-        newrect[3] = ((nval[3] + sample * val[3]) / add + 0.5f);
+        newrect[0] = roundf((nval[0] + sample * val[0]) / add);
+        newrect[1] = roundf((nval[1] + sample * val[1]) / add);
+        newrect[2] = roundf((nval[2] + sample * val[2]) / add);
+        newrect[3] = roundf((nval[3] + sample * val[3]) / add);
 
         newrect += skipx;
       }
@@ -1573,8 +1575,8 @@ static void scalefast_Z_ImBuf(ImBuf *ibuf, int newx, int newy)
     return;
   }
 
-  stepx = (65536.0 * (ibuf->x - 1.0) / (newx - 1.0)) + 0.5;
-  stepy = (65536.0 * (ibuf->y - 1.0) / (newy - 1.0)) + 0.5;
+  stepx = round(65536.0 * (ibuf->x - 1.0) / (newx - 1.0));
+  stepy = round(65536.0 * (ibuf->y - 1.0) / (newy - 1.0));
   ofsy = 32768;
 
   newzbuf = _newzbuf;
@@ -1713,8 +1715,8 @@ bool IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy
     newrectf = _newrectf;
   }
 
-  stepx = (65536.0 * (ibuf->x - 1.0) / (newx - 1.0)) + 0.5;
-  stepy = (65536.0 * (ibuf->y - 1.0) / (newy - 1.0)) + 0.5;
+  stepx = round(65536.0 * (ibuf->x - 1.0) / (newx - 1.0));
+  stepy = round(65536.0 * (ibuf->y - 1.0) / (newy - 1.0));
   ofsy = 32768;
 
   for (y = newy; y > 0; y--, ofsy += stepy) {

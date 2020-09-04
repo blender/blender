@@ -25,6 +25,7 @@
  * Also some operator reports utility functions.
  */
 
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -3230,7 +3231,7 @@ void wm_event_do_handlers(bContext *C)
           if (is_playing_sound == 0) {
             const double time = BKE_sound_sync_scene(scene_eval);
             if (isfinite(time)) {
-              int ncfra = time * FPS + 0.5;
+              int ncfra = round(time * FPS);
               if (ncfra != scene->r.cfra) {
                 scene->r.cfra = ncfra;
                 ED_update_for_newframe(CTX_data_main(C), depsgraph);

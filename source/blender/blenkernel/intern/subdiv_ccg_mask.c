@@ -21,6 +21,8 @@
  * \ingroup bke
  */
 
+#include <math.h>
+
 #include "BKE_subdiv_ccg.h"
 
 #include "DNA_mesh_types.h"
@@ -87,8 +89,8 @@ BLI_INLINE float read_mask_grid(const GridPaintMask *mask_grid,
     return 0;
   }
   const int grid_size = BKE_subdiv_grid_size_from_level(mask_grid->level);
-  const int x = (grid_u * (grid_size - 1) + 0.5f);
-  const int y = (grid_v * (grid_size - 1) + 0.5f);
+  const int x = roundf(grid_u * (grid_size - 1));
+  const int y = roundf(grid_v * (grid_size - 1));
   return mask_grid->data[y * grid_size + x];
 }
 

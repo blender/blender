@@ -25,7 +25,6 @@ Checks:  >
 
   -bugprone-sizeof-expression,
   -bugprone-integer-division,
-  -bugprone-incorrect-roundings,
   -bugprone-copy-constructor-init,
 
 WarningsAsErrors: '*'
