@@ -423,7 +423,7 @@ Stroke::Stroke()
   _rep = NULL;
 }
 
-Stroke::Stroke(const Stroke &iBrother)
+Stroke::Stroke(const Stroke &iBrother) : Interface1D(iBrother)
 {
   for (vertex_container::const_iterator v = iBrother._Vertices.begin(),
                                         vend = iBrother._Vertices.end();
