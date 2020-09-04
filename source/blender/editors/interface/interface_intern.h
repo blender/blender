@@ -174,7 +174,6 @@ struct uiBut {
 
   /**
    * For #uiBut.type:
-   * - UI_BTYPE_NUM:          Use to store RNA 'step' value, for dragging and click-step.
    * - UI_BTYPE_LABEL:        Use `(a1 == 1.0f)` to use a2 as a blending factor (imaginative!).
    * - UI_BTYPE_SCROLL:       Use as scroll size.
    * - UI_BTYPE_SEARCH_MENU:  Use as number or rows.
@@ -184,7 +183,6 @@ struct uiBut {
   /**
    * For #uiBut.type:
    * - UI_BTYPE_HSVCIRCLE:    Use to store the luminosity.
-   * - UI_BTYPE_NUM:          Use to store RNA 'precision' value, for dragging and click-step.
    * - UI_BTYPE_LABEL:        If `(a1 == 1.0f)` use a2 as a blending factor.
    * - UI_BTYPE_SEARCH_MENU:  Use as number or columns.
    */
@@ -275,6 +273,14 @@ struct uiBut {
   /* pointer back */
   uiBlock *block;
 };
+
+/** Derived struct for #UI_BTYPE_NUM */
+typedef struct uiButNumber {
+  uiBut but;
+
+  float step_size;
+  float precision;
+} uiButNumber;
 
 /** Derived struct for #UI_BTYPE_COLOR */
 typedef struct uiButColor {

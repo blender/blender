@@ -175,33 +175,39 @@ static void uvedit_vertex_buttons(const bContext *C, uiBlock *block)
       digits = 2;
     }
 
+    uiBut *but;
+
     UI_block_align_begin(block);
-    uiDefButF(block,
-              UI_BTYPE_NUM,
-              B_UVEDIT_VERTEX,
-              IFACE_("X:"),
-              0,
-              0,
-              width,
-              UI_UNIT_Y,
-              &uvedit_old_center[0],
-              UNPACK2(range_xy[0]),
-              step,
-              digits,
-              "");
-    uiDefButF(block,
-              UI_BTYPE_NUM,
-              B_UVEDIT_VERTEX,
-              IFACE_("Y:"),
-              width,
-              0,
-              width,
-              UI_UNIT_Y,
-              &uvedit_old_center[1],
-              UNPACK2(range_xy[1]),
-              step,
-              digits,
-              "");
+    but = uiDefButF(block,
+                    UI_BTYPE_NUM,
+                    B_UVEDIT_VERTEX,
+                    IFACE_("X:"),
+                    0,
+                    0,
+                    width,
+                    UI_UNIT_Y,
+                    &uvedit_old_center[0],
+                    UNPACK2(range_xy[0]),
+                    0,
+                    0,
+                    "");
+    UI_but_number_step_size_set(but, step);
+    UI_but_number_precision_set(but, digits);
+    but = uiDefButF(block,
+                    UI_BTYPE_NUM,
+                    B_UVEDIT_VERTEX,
+                    IFACE_("Y:"),
+                    width,
+                    0,
+                    width,
+                    UI_UNIT_Y,
+                    &uvedit_old_center[1],
+                    UNPACK2(range_xy[1]),
+                    0,
+                    0,
+                    "");
+    UI_but_number_step_size_set(but, step);
+    UI_but_number_precision_set(but, digits);
     UI_block_align_end(block);
   }
 

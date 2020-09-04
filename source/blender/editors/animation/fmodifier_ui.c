@@ -196,9 +196,10 @@ static void draw_modifier__generator(uiLayout *layout,
           &data->poly_order,
           1,
           100,
-          1,
+          0,
           0,
           TIP_("'Order' of the Polynomial (for a polynomial with n terms, 'order' is n-1)"));
+      UI_but_number_step_size_set(but, 1);
       UI_but_func_set(but, validate_fmodifier_cb, fcm, fcurve_owner_id);
 
       /* calculate maximum width of label for "x^n" labels */
@@ -256,20 +257,22 @@ static void draw_modifier__generator(uiLayout *layout,
         }
 
         /* coefficient */
-        uiDefButF(block,
-                  UI_BTYPE_NUM,
-                  B_FMODIFIER_REDRAW,
-                  "",
-                  0,
-                  0,
-                  bwidth / 2,
-                  UI_UNIT_Y,
-                  cp,
-                  -UI_FLT_MAX,
-                  UI_FLT_MAX,
-                  10,
-                  3,
-                  TIP_("Coefficient for polynomial"));
+        but = uiDefButF(block,
+                        UI_BTYPE_NUM,
+                        B_FMODIFIER_REDRAW,
+                        "",
+                        0,
+                        0,
+                        bwidth / 2,
+                        UI_UNIT_Y,
+                        cp,
+                        -UI_FLT_MAX,
+                        UI_FLT_MAX,
+                        0,
+                        0,
+                        TIP_("Coefficient for polynomial"));
+        UI_but_number_step_size_set(but, 10);
+        UI_but_number_precision_set(but, 3);
 
         /* 'x' param (and '+' if necessary) */
         if (i == 0) {
@@ -334,10 +337,11 @@ static void draw_modifier__generator(uiLayout *layout,
           &data->poly_order,
           1,
           100,
-          1,
+          0,
           0,
           TIP_("'Order' of the Polynomial (for a polynomial with n terms, 'order' is n-1)"));
       UI_but_func_set(but, validate_fmodifier_cb, fcm, fcurve_owner_id);
+      UI_but_number_step_size_set(but, 1);
 
       /* draw controls for each pair of coefficients */
       row = uiLayoutRow(layout, true);
@@ -386,20 +390,22 @@ static void draw_modifier__generator(uiLayout *layout,
             block, UI_BTYPE_LABEL, 1, "(", 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 
         /* coefficients */
-        uiDefButF(block,
-                  UI_BTYPE_NUM,
-                  B_FMODIFIER_REDRAW,
-                  "",
-                  0,
-                  0,
-                  5 * UI_UNIT_X,
-                  UI_UNIT_Y,
-                  cp,
-                  -UI_FLT_MAX,
-                  UI_FLT_MAX,
-                  10,
-                  3,
-                  TIP_("Coefficient of x"));
+        but = uiDefButF(block,
+                        UI_BTYPE_NUM,
+                        B_FMODIFIER_REDRAW,
+                        "",
+                        0,
+                        0,
+                        5 * UI_UNIT_X,
+                        UI_UNIT_Y,
+                        cp,
+                        -UI_FLT_MAX,
+                        UI_FLT_MAX,
+                        0,
+                        0,
+                        TIP_("Coefficient of x"));
+        UI_but_number_step_size_set(but, 10);
+        UI_but_number_precision_set(but, 3);
 
         uiDefBut(block,
                  UI_BTYPE_LABEL,
@@ -416,20 +422,22 @@ static void draw_modifier__generator(uiLayout *layout,
                  0,
                  "");
 
-        uiDefButF(block,
-                  UI_BTYPE_NUM,
-                  B_FMODIFIER_REDRAW,
-                  "",
-                  0,
-                  0,
-                  5 * UI_UNIT_X,
-                  UI_UNIT_Y,
-                  cp + 1,
-                  -UI_FLT_MAX,
-                  UI_FLT_MAX,
-                  10,
-                  3,
-                  TIP_("Second coefficient"));
+        but = uiDefButF(block,
+                        UI_BTYPE_NUM,
+                        B_FMODIFIER_REDRAW,
+                        "",
+                        0,
+                        0,
+                        5 * UI_UNIT_X,
+                        UI_UNIT_Y,
+                        cp + 1,
+                        -UI_FLT_MAX,
+                        UI_FLT_MAX,
+                        0,
+                        0,
+                        TIP_("Second coefficient"));
+        UI_but_number_step_size_set(but, 10);
+        UI_but_number_precision_set(but, 3);
 
         /* closing bracket and multiplication sign */
         if ((i != (data->poly_order - 1)) || ((i == 0) && data->poly_order == 2)) {
@@ -724,54 +732,60 @@ static void draw_modifier__envelope(uiLayout *layout,
     block = uiLayoutGetBlock(row);
 
     UI_block_align_begin(block);
-    uiDefButR(block,
-              UI_BTYPE_NUM,
-              B_FMODIFIER_REDRAW,
-              IFACE_("Fra:"),
-              0,
-              0,
-              4.5 * UI_UNIT_X,
-              UI_UNIT_Y,
-              &ctrl_ptr,
-              "frame",
-              -1,
-              -MAXFRAMEF,
-              MAXFRAMEF,
-              10,
-              1,
-              NULL);
-    uiDefButR(block,
-              UI_BTYPE_NUM,
-              B_FMODIFIER_REDRAW,
-              IFACE_("Min:"),
-              0,
-              0,
-              5 * UI_UNIT_X,
-              UI_UNIT_Y,
-              &ctrl_ptr,
-              "min",
-              -1,
-              -UI_FLT_MAX,
-              UI_FLT_MAX,
-              10,
-              2,
-              NULL);
-    uiDefButR(block,
-              UI_BTYPE_NUM,
-              B_FMODIFIER_REDRAW,
-              IFACE_("Max:"),
-              0,
-              0,
-              5 * UI_UNIT_X,
-              UI_UNIT_Y,
-              &ctrl_ptr,
-              "max",
-              -1,
-              -UI_FLT_MAX,
-              UI_FLT_MAX,
-              10,
-              2,
-              NULL);
+    but = uiDefButR(block,
+                    UI_BTYPE_NUM,
+                    B_FMODIFIER_REDRAW,
+                    IFACE_("Fra:"),
+                    0,
+                    0,
+                    4.5 * UI_UNIT_X,
+                    UI_UNIT_Y,
+                    &ctrl_ptr,
+                    "frame",
+                    -1,
+                    -MAXFRAMEF,
+                    MAXFRAMEF,
+                    0,
+                    0,
+                    NULL);
+    UI_but_number_step_size_set(but, 10);
+    UI_but_number_precision_set(but, 1);
+    but = uiDefButR(block,
+                    UI_BTYPE_NUM,
+                    B_FMODIFIER_REDRAW,
+                    IFACE_("Min:"),
+                    0,
+                    0,
+                    5 * UI_UNIT_X,
+                    UI_UNIT_Y,
+                    &ctrl_ptr,
+                    "min",
+                    -1,
+                    -UI_FLT_MAX,
+                    UI_FLT_MAX,
+                    0,
+                    0,
+                    NULL);
+    UI_but_number_step_size_set(but, 10);
+    UI_but_number_precision_set(but, 2);
+    but = uiDefButR(block,
+                    UI_BTYPE_NUM,
+                    B_FMODIFIER_REDRAW,
+                    IFACE_("Max:"),
+                    0,
+                    0,
+                    5 * UI_UNIT_X,
+                    UI_UNIT_Y,
+                    &ctrl_ptr,
+                    "max",
+                    -1,
+                    -UI_FLT_MAX,
+                    UI_FLT_MAX,
+                    0,
+                    0,
+                    NULL);
+    UI_but_number_step_size_set(but, 10);
+    UI_but_number_precision_set(but, 2);
 
     but = uiDefIconBut(block,
                        UI_BTYPE_BUT,

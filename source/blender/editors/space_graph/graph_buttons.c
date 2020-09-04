@@ -437,8 +437,8 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       0,
-                      -1,
-                      -1,
+                      0,
+                      0,
                       NULL);
 
       uiItemL_respect_property_split(col, IFACE_("Value"), ICON_NONE);
@@ -455,8 +455,8 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       1,
                       0,
                       0,
-                      -1,
-                      -1,
+                      0,
+                      0,
                       NULL);
       UI_but_func_set(but, graphedit_activekey_update_cb, fcu, bezt);
       UI_but_unit_type_set(but, unit);
@@ -501,8 +501,8 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       0,
-                      -1,
-                      -1,
+                      0,
+                      0,
                       NULL);
       UI_but_func_set(but, graphedit_activekey_left_handle_coord_cb, fcu, bezt);
 
@@ -520,8 +520,8 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       1,
                       0,
                       0,
-                      -1,
-                      -1,
+                      0,
+                      0,
                       NULL);
       UI_but_func_set(but, graphedit_activekey_left_handle_coord_cb, fcu, bezt);
       UI_but_unit_type_set(but, unit);
@@ -565,8 +565,8 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       0,
-                      -1,
-                      -1,
+                      0,
+                      0,
                       NULL);
       UI_but_func_set(but, graphedit_activekey_right_handle_coord_cb, fcu, bezt);
 
@@ -584,8 +584,8 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       1,
                       0,
                       0,
-                      -1,
-                      -1,
+                      0,
+                      0,
                       NULL);
       UI_but_func_set(but, graphedit_activekey_right_handle_coord_cb, fcu, bezt);
       UI_but_unit_type_set(but, unit);

@@ -629,7 +629,10 @@ static void ui_item_array(uiLayout *layout,
                           w,
                           UI_UNIT_Y);
       if (slider && but->type == UI_BTYPE_NUM) {
-        but->type = UI_BTYPE_NUM_SLIDER;
+        uiButNumber *number_but = (uiButNumber *)but;
+
+        but->a1 = number_but->step_size;
+        ui_but_change_type(but, UI_BTYPE_NUM_SLIDER);
       }
     }
   }
@@ -697,7 +700,10 @@ static void ui_item_array(uiLayout *layout,
 
         but = uiDefAutoButR(block, ptr, prop, a, str_buf, icon, 0, 0, width_item, UI_UNIT_Y);
         if (slider && but->type == UI_BTYPE_NUM) {
-          but->type = UI_BTYPE_NUM_SLIDER;
+          uiButNumber *number_but = (uiButNumber *)but;
+
+          but->a1 = number_but->step_size;
+          ui_but_change_type(but, UI_BTYPE_NUM_SLIDER);
         }
         if ((toggle == 1) && but->type == UI_BTYPE_CHECKBOX) {
           but->type = UI_BTYPE_TOGGLE;
@@ -2290,7 +2296,10 @@ void uiItemFullR(uiLayout *layout,
     but = uiDefAutoButR(block, ptr, prop, index, name, icon, 0, 0, w, h);
 
     if (slider && but->type == UI_BTYPE_NUM) {
-      but->type = UI_BTYPE_NUM_SLIDER;
+      uiButNumber *num_but = (uiButNumber *)but;
+
+      but->a1 = num_but->step_size;
+      ui_but_change_type(but, UI_BTYPE_NUM_SLIDER);
     }
 
     if (flag & UI_ITEM_R_CHECKBOX_INVERT) {

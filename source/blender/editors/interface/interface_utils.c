@@ -164,7 +164,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
       }
       else {
         but = uiDefButR_prop(
-            block, UI_BTYPE_NUM, 0, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, -1, -1, NULL);
+            block, UI_BTYPE_NUM, 0, name, x1, y1, x2, y2, ptr, prop, index, 0, 0, 0, 0, NULL);
       }
 
       if (RNA_property_flag(prop) & PROP_TEXTEDIT_UPDATE) {

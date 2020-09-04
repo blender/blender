@@ -3319,20 +3319,22 @@ static void colorband_buttons_layout(uiLayout *layout,
       split = uiLayoutSplit(layout, 0.3f, false);
 
       row = uiLayoutRow(split, false);
-      uiDefButS(block,
-                UI_BTYPE_NUM,
-                0,
-                "",
-                0,
-                0,
-                5.0f * UI_UNIT_X,
-                UI_UNIT_Y,
-                &coba->cur,
-                0.0,
-                (float)(MAX2(0, coba->tot - 1)),
-                1,
-                0,
-                TIP_("Choose active color stop"));
+      bt = uiDefButS(block,
+                     UI_BTYPE_NUM,
+                     0,
+                     "",
+                     0,
+                     0,
+                     5.0f * UI_UNIT_X,
+                     UI_UNIT_Y,
+                     &coba->cur,
+                     0.0,
+                     (float)(MAX2(0, coba->tot - 1)),
+                     0,
+                     0,
+                     TIP_("Choose active color stop"));
+      UI_but_number_step_size_set(bt, 1);
+
       row = uiLayoutRow(split, false);
       uiItemR(row, &ptr, "position", 0, IFACE_("Pos"), ICON_NONE);
       bt = block->buttons.last;
@@ -3349,20 +3351,22 @@ static void colorband_buttons_layout(uiLayout *layout,
       subsplit = uiLayoutSplit(split, 0.35f, false);
 
       row = uiLayoutRow(subsplit, false);
-      uiDefButS(block,
-                UI_BTYPE_NUM,
-                0,
-                "",
-                0,
-                0,
-                5.0f * UI_UNIT_X,
-                UI_UNIT_Y,
-                &coba->cur,
-                0.0,
-                (float)(MAX2(0, coba->tot - 1)),
-                1,
-                0,
-                TIP_("Choose active color stop"));
+      bt = uiDefButS(block,
+                     UI_BTYPE_NUM,
+                     0,
+                     "",
+                     0,
+                     0,
+                     5.0f * UI_UNIT_X,
+                     UI_UNIT_Y,
+                     &coba->cur,
+                     0.0,
+                     (float)(MAX2(0, coba->tot - 1)),
+                     0,
+                     0,
+                     TIP_("Choose active color stop"));
+      UI_but_number_step_size_set(bt, 1);
+
       row = uiLayoutRow(subsplit, false);
       uiItemR(row, &ptr, "position", UI_ITEM_R_SLIDER, IFACE_("Pos"), ICON_NONE);
       bt = block->buttons.last;
@@ -3915,62 +3919,70 @@ static uiBlock *curvemap_clipping_func(bContext *C, ARegion *region, void *cumap
   UI_but_func_set(bt, curvemap_buttons_setclip, cumap, NULL);
 
   UI_block_align_begin(block);
-  uiDefButF(block,
-            UI_BTYPE_NUM,
-            0,
-            IFACE_("Min X:"),
-            0,
-            4 * UI_UNIT_Y,
-            width,
-            UI_UNIT_Y,
-            &cumap->clipr.xmin,
-            -100.0,
-            cumap->clipr.xmax,
-            10,
-            2,
-            "");
-  uiDefButF(block,
-            UI_BTYPE_NUM,
-            0,
-            IFACE_("Min Y:"),
-            0,
-            3 * UI_UNIT_Y,
-            width,
-            UI_UNIT_Y,
-            &cumap->clipr.ymin,
-            -100.0,
-            cumap->clipr.ymax,
-            10,
-            2,
-            "");
-  uiDefButF(block,
-            UI_BTYPE_NUM,
-            0,
-            IFACE_("Max X:"),
-            0,
-            2 * UI_UNIT_Y,
-            width,
-            UI_UNIT_Y,
-            &cumap->clipr.xmax,
-            cumap->clipr.xmin,
-            100.0,
-            10,
-            2,
-            "");
-  uiDefButF(block,
-            UI_BTYPE_NUM,
-            0,
-            IFACE_("Max Y:"),
-            0,
-            UI_UNIT_Y,
-            width,
-            UI_UNIT_Y,
-            &cumap->clipr.ymax,
-            cumap->clipr.ymin,
-            100.0,
-            10,
-            2,
-            "");
+  bt = uiDefButF(block,
+                 UI_BTYPE_NUM,
+                 0,
+                 IFACE_("Min X:"),
+                 0,
+                 4 * UI_UNIT_Y,
+                 width,
+                 UI_UNIT_Y,
+                 &cumap->clipr.xmin,
+                 -100.0,
+                 cumap->clipr.xmax,
+                 0,
+                 0,
+                 "");
+  UI_but_number_step_size_set(bt, 10);
+  UI_but_number_precision_set(bt, 2);
+  bt = uiDefButF(block,
+                 UI_BTYPE_NUM,
+                 0,
+                 IFACE_("Min Y:"),
+                 0,
+                 3 * UI_UNIT_Y,
+                 width,
+                 UI_UNIT_Y,
+                 &cumap->clipr.ymin,
+                 -100.0,
+                 cumap->clipr.ymax,
+                 0,
+                 0,
+                 "");
+  UI_but_number_step_size_set(bt, 10);
+  UI_but_number_precision_set(bt, 2);
+  bt = uiDefButF(block,
+                 UI_BTYPE_NUM,
+                 0,
+                 IFACE_("Max X:"),
+                 0,
+                 2 * UI_UNIT_Y,
+                 width,
+                 UI_UNIT_Y,
+                 &cumap->clipr.xmax,
+                 cumap->clipr.xmin,
+                 100.0,
+                 0,
+                 0,
+                 "");
+  UI_but_number_step_size_set(bt, 10);
+  UI_but_number_precision_set(bt, 2);
+  bt = uiDefButF(block,
+                 UI_BTYPE_NUM,
+                 0,
+                 IFACE_("Max Y:"),
+                 0,
+                 UI_UNIT_Y,
+                 width,
+                 UI_UNIT_Y,
+                 &cumap->clipr.ymax,
+                 cumap->clipr.ymin,
+                 100.0,
+                 0,
+                 0,
+                 "");
+  UI_but_number_step_size_set(bt, 10);
+  UI_but_number_precision_set(bt, 2);
 
   UI_block_bounds_set_normal(block, 0.3f * U.widget_unit);
   UI_block_direction_set(block, UI_DIR_DOWN);
@@ -4464,34 +4476,38 @@ static void curvemap_buttons_layout(uiLayout *layout,
 
     uiLayoutRow(layout, true);
     UI_block_funcN_set(block, curvemap_buttons_update, MEM_dupallocN(cb), cumap);
-    uiDefButF(block,
-              UI_BTYPE_NUM,
-              0,
-              "X",
-              0,
-              2 * UI_UNIT_Y,
-              UI_UNIT_X * 10,
-              UI_UNIT_Y,
-              &cmp->x,
-              bounds.xmin,
-              bounds.xmax,
-              1,
-              5,
-              "");
-    uiDefButF(block,
-              UI_BTYPE_NUM,
-              0,
-              "Y",
-              0,
-              1 * UI_UNIT_Y,
-              UI_UNIT_X * 10,
-              UI_UNIT_Y,
-              &cmp->y,
-              bounds.ymin,
-              bounds.ymax,
-              1,
-              5,
-              "");
+    bt = uiDefButF(block,
+                   UI_BTYPE_NUM,
+                   0,
+                   "X",
+                   0,
+                   2 * UI_UNIT_Y,
+                   UI_UNIT_X * 10,
+                   UI_UNIT_Y,
+                   &cmp->x,
+                   bounds.xmin,
+                   bounds.xmax,
+                   0,
+                   0,
+                   "");
+    UI_but_number_step_size_set(bt, 1);
+    UI_but_number_precision_set(bt, 5);
+    bt = uiDefButF(block,
+                   UI_BTYPE_NUM,
+                   0,
+                   "Y",
+                   0,
+                   1 * UI_UNIT_Y,
+                   UI_UNIT_X * 10,
+                   UI_UNIT_Y,
+                   &cmp->y,
+                   bounds.ymin,
+                   bounds.ymax,
+                   0,
+                   0,
+                   "");
+    UI_but_number_step_size_set(bt, 1);
+    UI_but_number_precision_set(bt, 5);
   }
 
   /* black/white levels */
@@ -5075,9 +5091,11 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, RNAUp
                    selection_x,
                    bounds.xmin,
                    bounds.xmax,
-                   1,
-                   5,
+                   0,
+                   0,
                    "");
+    UI_but_number_step_size_set(bt, 1);
+    UI_but_number_precision_set(bt, 5);
     UI_but_funcN_set(bt, CurveProfile_buttons_update, MEM_dupallocN(cb), profile);
     if (point_last_or_first) {
       UI_but_flag_enable(bt, UI_BUT_DISABLED);
@@ -5093,9 +5111,11 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, RNAUp
                    selection_y,
                    bounds.ymin,
                    bounds.ymax,
-                   1,
-                   5,
+                   0,
+                   0,
                    "");
+    UI_but_number_step_size_set(bt, 1);
+    UI_but_number_precision_set(bt, 5);
     UI_but_funcN_set(bt, CurveProfile_buttons_update, MEM_dupallocN(cb), profile);
     if (point_last_or_first) {
       UI_but_flag_enable(bt, UI_BUT_DISABLED);

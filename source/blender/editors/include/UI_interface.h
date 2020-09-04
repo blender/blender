@@ -1602,6 +1602,9 @@ int UI_search_items_find_index(uiSearchItems *items, const char *name);
 
 void UI_but_node_link_set(uiBut *but, struct bNodeSocket *socket, const float draw_color[4]);
 
+void UI_but_number_step_size_set(uiBut *but, float step_size);
+void UI_but_number_precision_set(uiBut *but, float precision);
+
 void UI_block_func_handle_set(uiBlock *block, uiBlockHandleFunc func, void *arg);
 void UI_block_func_butmenu_set(uiBlock *block, uiMenuHandleFunc func, void *arg);
 void UI_block_func_set(uiBlock *block, uiButHandleFunc func, void *arg1, void *arg2);
