@@ -1313,6 +1313,11 @@ MINLINE bool equals_v2v2_int(const int v1[2], const int v2[2])
   return ((v1[0] == v2[0]) && (v1[1] == v2[1]));
 }
 
+MINLINE bool equals_v3v3_int(const int v1[3], const int v2[3])
+{
+  return ((v1[0] == v2[0]) && (v1[1] == v2[1]) && (v1[2] == v2[2]));
+}
+
 MINLINE bool equals_v4v4_int(const int v1[4], const int v2[4])
 {
   return ((v1[0] == v2[0]) && (v1[1] == v2[1]) && (v1[2] == v2[2]) && (v1[3] == v2[3]));
