@@ -1,3 +1,6 @@
+# The warnings below are disabled because they are too pedantic and not worth fixing.
+# Some of them will be enabled as part of the Clang-Tidy task, see T78535.
+
 Checks:  >
   -*,
   readability-*,
