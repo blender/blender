@@ -128,7 +128,7 @@ void WriteBufferOperation::executeOpenCLRegion(OpenCLDevice *device,
   const unsigned int outputBufferWidth = outputBuffer->getWidth();
   const unsigned int outputBufferHeight = outputBuffer->getHeight();
 
-  const cl_image_format *imageFormat = device->determineImageFormat(outputBuffer);
+  const cl_image_format *imageFormat = OpenCLDevice::determineImageFormat(outputBuffer);
 
   cl_mem clOutputBuffer = clCreateImage2D(device->getContext(),
                                           CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR,

@@ -14,7 +14,6 @@ Checks:  >
 
   -readability-inconsistent-declaration-parameter-name,
   -readability-redundant-member-init,
-  -readability-static-accessed-through-instance,
   -readability-redundant-declaration,
   -readability-qualified-auto,
   -readability-use-anyofallof,

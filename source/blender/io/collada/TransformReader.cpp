@@ -130,7 +130,7 @@ void TransformReader::dae_scale_to_mat4(COLLADAFW::Transformation *tm, float m[4
 
 void TransformReader::dae_matrix_to_mat4(COLLADAFW::Transformation *tm, float m[4][4])
 {
-  unit_converter->dae_matrix_to_mat4_(m, ((COLLADAFW::Matrix *)tm)->getMatrix());
+  UnitConverter::dae_matrix_to_mat4_(m, ((COLLADAFW::Matrix *)tm)->getMatrix());
 }
 
 void TransformReader::dae_translate_to_v3(COLLADAFW::Transformation *tm, float v[3])

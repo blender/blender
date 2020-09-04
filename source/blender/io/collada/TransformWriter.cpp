@@ -47,9 +47,7 @@ void TransformWriter::add_joint_transform(COLLADASW::Node &node,
   }
 
   double dmat[4][4];
-  UnitConverter *converter = new UnitConverter();
-  converter->mat4_to_dae_double(dmat, local);
-  delete converter;
+  UnitConverter::mat4_to_dae_double(dmat, local);
 
   if (export_settings.get_object_transformation_type() == BC_TRANSFORMATION_TYPE_MATRIX) {
     node.addMatrix("transform", dmat);
@@ -81,9 +79,8 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node &node,
 
   switch (export_settings.get_object_transformation_type()) {
     case BC_TRANSFORMATION_TYPE_MATRIX: {
-      UnitConverter converter;
       double d_obmat[4][4];
-      converter.mat4_to_dae_double(d_obmat, f_obmat);
+      UnitConverter::mat4_to_dae_double(d_obmat, f_obmat);
 
       if (limit_precision) {
         BCMatrix::sanitize(d_obmat, LIMITTED_PRECISION);

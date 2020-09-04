@@ -2043,7 +2043,7 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm,
             mj = 0;
           }
         }
-        unit_converter->dae_matrix_to_mat4_(mat, matrix);
+        UnitConverter::dae_matrix_to_mat4_(mat, matrix);
         return true;
       }
     }

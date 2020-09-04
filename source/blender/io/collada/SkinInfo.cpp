@@ -115,7 +115,7 @@ void SkinInfo::borrow_skin_controller_data(const COLLADAFW::SkinControllerData *
     weights.push_back(bc_get_float_value(weight, i));
   }
 
-  unit_converter->dae_matrix_to_mat4_(bind_shape_matrix, skin->getBindShapeMatrix());
+  UnitConverter::dae_matrix_to_mat4_(bind_shape_matrix, skin->getBindShapeMatrix());
 }
 
 void SkinInfo::free()
@@ -132,7 +132,7 @@ void SkinInfo::free()
 void SkinInfo::add_joint(const COLLADABU::Math::Matrix4 &matrix)
 {
   JointData jd;
-  unit_converter->dae_matrix_to_mat4_(jd.inv_bind_mat, matrix);
+  UnitConverter::dae_matrix_to_mat4_(jd.inv_bind_mat, matrix);
   joint_data.push_back(jd);
 }
 
