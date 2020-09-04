@@ -356,12 +356,12 @@ class CPUDevice : public Device {
     texture_info.free();
   }
 
-  virtual bool show_samples() const
+  virtual bool show_samples() const override
   {
     return (info.cpu_threads == 1);
   }
 
-  virtual BVHLayoutMask get_bvh_layout_mask() const
+  virtual BVHLayoutMask get_bvh_layout_mask() const override
   {
     BVHLayoutMask bvh_layout_mask = BVH_LAYOUT_BVH2;
 #ifdef WITH_EMBREE
@@ -378,7 +378,7 @@ class CPUDevice : public Device {
     }
   }
 
-  void mem_alloc(device_memory &mem)
+  virtual void mem_alloc(device_memory &mem) override
   {
     if (mem.type == MEM_TEXTURE) {
       assert(!"mem_alloc not supported for textures.");
@@ -408,7 +408,7 @@ class CPUDevice : public Device {
     }
   }
 
-  void mem_copy_to(device_memory &mem)
+  virtual void mem_copy_to(device_memory &mem) override
   {
     if (mem.type == MEM_GLOBAL) {
       global_free(mem);
@@ -430,12 +430,13 @@ class CPUDevice : public Device {
     }
   }
 
-  void mem_copy_from(device_memory & /*mem*/, int /*y*/, int /*w*/, int /*h*/, int /*elem*/)
+  virtual void mem_copy_from(
+      device_memory & /*mem*/, int /*y*/, int /*w*/, int /*h*/, int /*elem*/) override
   {
     /* no-op */
   }
 
-  void mem_zero(device_memory &mem)
+  virtual void mem_zero(device_memory &mem) override
   {
     if (!mem.device_pointer) {
       mem_alloc(mem);
@@ -446,7 +447,7 @@ class CPUDevice : public Device {
     }
   }
 
-  void mem_free(device_memory &mem)
+  virtual void mem_free(device_memory &mem) override
   {
     if (mem.type == MEM_GLOBAL) {
       global_free(mem);
@@ -464,12 +465,12 @@ class CPUDevice : public Device {
     }
   }
 
-  virtual device_ptr mem_alloc_sub_ptr(device_memory &mem, int offset, int /*size*/)
+  virtual device_ptr mem_alloc_sub_ptr(device_memory &mem, int offset, int /*size*/) override
   {
     return (device_ptr)(((char *)mem.device_pointer) + mem.memory_elements_size(offset));
   }
 
-  void const_copy_to(const char *name, void *host, size_t size)
+  virtual void const_copy_to(const char *name, void *host, size_t size) override
   {
     kernel_const_copy(&kernel_globals, name, host, size);
   }
@@ -527,7 +528,7 @@ class CPUDevice : public Device {
     }
   }
 
-  void *osl_memory()
+  virtual void *osl_memory() override
   {
 #ifdef WITH_OSL
     return &osl_globals;
@@ -1396,7 +1397,7 @@ class CPUDevice : public Device {
     delete kg;
   }
 
-  int get_split_task_count(DeviceTask &task)
+  virtual int get_split_task_count(DeviceTask &task) override
   {
     if (task.type == DeviceTask::SHADER)
       return task.get_subtask_count(info.cpu_threads, 256);
@@ -1404,7 +1405,7 @@ class CPUDevice : public Device {
       return task.get_subtask_count(info.cpu_threads);
   }
 
-  void task_add(DeviceTask &task)
+  virtual void task_add(DeviceTask &task) override
   {
     /* Load texture info. */
     load_texture_info();
@@ -1432,12 +1433,12 @@ class CPUDevice : public Device {
     }
   }
 
-  void task_wait()
+  virtual void task_wait() override
   {
     task_pool.wait_work();
   }
 
-  void task_cancel()
+  virtual void task_cancel() override
   {
     task_pool.cancel();
   }
@@ -1481,7 +1482,7 @@ class CPUDevice : public Device {
 #endif
   }
 
-  virtual bool load_kernels(const DeviceRequestedFeatures &requested_features_)
+  virtual bool load_kernels(const DeviceRequestedFeatures &requested_features_) override
   {
     requested_features = requested_features_;
 
