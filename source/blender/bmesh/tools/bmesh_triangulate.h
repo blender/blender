@@ -29,4 +29,4 @@ void BM_mesh_triangulate(BMesh *bm,
                          const bool tag_only,
                          BMOperator *op,
                          BMOpSlot *slot_facemap_out,
-                         BMOpSlot *slot_doubles_out);
+                         BMOpSlot *slot_facemap_double_out);

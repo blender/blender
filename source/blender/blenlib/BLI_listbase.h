@@ -85,7 +85,8 @@ void BLI_insertlinkbefore(struct ListBase *listbase, void *vnextlink, void *vnew
     ATTR_NONNULL(1);
 void BLI_insertlinkafter(struct ListBase *listbase, void *vprevlink, void *vnewlink)
     ATTR_NONNULL(1);
-void BLI_insertlinkreplace(ListBase *listbase, void *v_l_src, void *v_l_dst) ATTR_NONNULL(1, 2, 3);
+void BLI_insertlinkreplace(ListBase *listbase, void *vreplacelink, void *vnewlink)
+    ATTR_NONNULL(1, 2, 3);
 void BLI_listbase_sort(struct ListBase *listbase, int (*cmp)(const void *, const void *))
     ATTR_NONNULL(1, 2);
 void BLI_listbase_sort_r(ListBase *listbase,

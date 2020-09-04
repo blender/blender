@@ -148,7 +148,7 @@ EditBone *ED_armature_ebone_add_primitive(struct Object *obedit_arm,
 
 /* armature_edit.c */
 float ED_armature_ebone_roll_to_vector(const EditBone *bone,
-                                       const float new_up_axis[3],
+                                       const float align_axis[3],
                                        const bool axis_only);
 void ED_armature_origin_set(
     struct Main *bmain, struct Object *ob, const float cursor[3], int centermode, int around);

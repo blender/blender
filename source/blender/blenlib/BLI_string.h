@@ -73,7 +73,7 @@ size_t BLI_snprintf(char *__restrict dst, size_t maxncpy, const char *__restrict
 size_t BLI_snprintf_rlen(char *__restrict dst, size_t maxncpy, const char *__restrict format, ...)
     ATTR_NONNULL(1, 3) ATTR_PRINTF_FORMAT(3, 4);
 
-size_t BLI_vsnprintf(char *__restrict dst,
+size_t BLI_vsnprintf(char *__restrict buffer,
                      size_t maxncpy,
                      const char *__restrict format,
                      va_list arg) ATTR_PRINTF_FORMAT(3, 0);
@@ -90,7 +90,8 @@ size_t BLI_strescape(char *__restrict dst, const char *__restrict src, const siz
 
 size_t BLI_str_format_int_grouped(char dst[16], int num) ATTR_NONNULL();
 size_t BLI_str_format_uint64_grouped(char dst[16], uint64_t num) ATTR_NONNULL();
-void BLI_str_format_byte_unit(char dst[15], long long int size, const bool base_10) ATTR_NONNULL();
+void BLI_str_format_byte_unit(char dst[15], long long int bytes, const bool base_10)
+    ATTR_NONNULL();
 
 int BLI_strcaseeq(const char *a, const char *b) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 char *BLI_strcasestr(const char *s, const char *find) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();

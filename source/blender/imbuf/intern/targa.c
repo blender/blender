@@ -286,7 +286,7 @@ static bool dumptarga(struct ImBuf *ibuf, FILE *file)
   return 1;
 }
 
-int imb_savetarga(struct ImBuf *ibuf, const char *name, int flags)
+int imb_savetarga(struct ImBuf *ibuf, const char *filepath, int flags)
 {
   char buf[20] = {0};
   FILE *fildes;
@@ -321,7 +321,7 @@ int imb_savetarga(struct ImBuf *ibuf, const char *name, int flags)
   if (ibuf->planes == 32) {
     buf[17] |= 0x08;
   }
-  fildes = BLI_fopen(name, "wb");
+  fildes = BLI_fopen(filepath, "wb");
   if (!fildes) {
     return 0;
   }

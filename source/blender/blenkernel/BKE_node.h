@@ -434,7 +434,7 @@ bool ntreeHasType(const struct bNodeTree *ntree, int type);
 bool ntreeHasTree(const struct bNodeTree *ntree, const struct bNodeTree *lookup);
 void ntreeUpdateTree(struct Main *main, struct bNodeTree *ntree);
 void ntreeUpdateAllNew(struct Main *main);
-void ntreeUpdateAllUsers(struct Main *main, struct ID *id);
+void ntreeUpdateAllUsers(struct Main *main, struct ID *ngroup);
 
 void ntreeGetDependencyList(struct bNodeTree *ntree, struct bNode ***deplist, int *totnodes);
 
@@ -1221,7 +1221,7 @@ void ntreeCompositExecTree(struct Scene *scene,
                            const struct ColorManagedViewSettings *view_settings,
                            const struct ColorManagedDisplaySettings *display_settings,
                            const char *view_name);
-void ntreeCompositTagRender(struct Scene *sce);
+void ntreeCompositTagRender(struct Scene *scene);
 void ntreeCompositUpdateRLayers(struct bNodeTree *ntree);
 void ntreeCompositRegisterPass(struct bNodeTree *ntree,
                                struct Scene *scene,
@@ -1302,7 +1302,7 @@ struct bNodeTreeExec *ntreeTexBeginExecTree(struct bNodeTree *ntree);
 void ntreeTexEndExecTree(struct bNodeTreeExec *exec);
 int ntreeTexExecTree(struct bNodeTree *ntree,
                      struct TexResult *target,
-                     float coord[3],
+                     float co[3],
                      float dxt[3],
                      float dyt[3],
                      int osatex,

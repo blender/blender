@@ -119,7 +119,7 @@ struct Mesh *BKE_mesh_new_nomain_from_template_ex(const struct Mesh *me_src,
                                                   int polys_len,
                                                   struct CustomData_MeshMasks mask);
 
-void BKE_mesh_eval_delete(struct Mesh *me_eval);
+void BKE_mesh_eval_delete(struct Mesh *mesh_eval);
 
 /* Performs copy for use during evaluation,
  * optional referencing original arrays to reduce memory. */
@@ -256,7 +256,7 @@ void BKE_mesh_vert_coords_apply_with_mat4(struct Mesh *mesh,
                                           const float (*vert_coords)[3],
                                           const float mat[4][4]);
 void BKE_mesh_vert_coords_apply(struct Mesh *mesh, const float (*vert_coords)[3]);
-void BKE_mesh_vert_normals_apply(struct Mesh *mesh, const short (*vertNormals)[3]);
+void BKE_mesh_vert_normals_apply(struct Mesh *mesh, const short (*vert_normals)[3]);
 
 /* *** mesh_evaluate.c *** */
 
@@ -504,7 +504,7 @@ void BKE_mesh_loops_to_mface_corners(struct CustomData *fdata,
                                      int findex,
                                      const int polyindex,
                                      const int mf_len,
-                                     const int numTex,
+                                     const int numUV,
                                      const int numCol,
                                      const bool hasPCol,
                                      const bool hasOrigSpace,
@@ -669,7 +669,7 @@ void BKE_mesh_calc_edges_tessface(struct Mesh *mesh);
 
 /* In DerivedMesh.c */
 void BKE_mesh_wrapper_deferred_finalize(struct Mesh *me_eval,
-                                        const CustomData_MeshMasks *final_datamask);
+                                        const CustomData_MeshMasks *cd_mask_finalize);
 
 /* **** Depsgraph evaluation **** */
 

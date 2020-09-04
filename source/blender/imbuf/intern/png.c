@@ -119,7 +119,7 @@ BLI_INLINE unsigned short ftoshort(float val)
   return unit_float_to_ushort_clamp(val);
 }
 
-int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
+int imb_savepng(struct ImBuf *ibuf, const char *filepath, int flags)
 {
   png_structp png_ptr;
   png_infop info_ptr;
@@ -155,25 +155,26 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 
   /* for prints */
   if (flags & IB_mem) {
-    name = "<memory>";
+    filepath = "<memory>";
   }
 
   bytesperpixel = (ibuf->planes + 7) >> 3;
   if ((bytesperpixel > 4) || (bytesperpixel == 2)) {
-    printf("imb_savepng: Unsupported bytes per pixel: %d for file: '%s'\n", bytesperpixel, name);
+    printf(
+        "imb_savepng: Unsupported bytes per pixel: %d for file: '%s'\n", bytesperpixel, filepath);
     return 0;
   }
 
   png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
   if (png_ptr == NULL) {
-    printf("imb_savepng: Cannot png_create_write_struct for file: '%s'\n", name);
+    printf("imb_savepng: Cannot png_create_write_struct for file: '%s'\n", filepath);
     return 0;
   }
 
   info_ptr = png_create_info_struct(png_ptr);
   if (info_ptr == NULL) {
     png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
-    printf("imb_savepng: Cannot png_create_info_struct for file: '%s'\n", name);
+    printf("imb_savepng: Cannot png_create_info_struct for file: '%s'\n", filepath);
     return 0;
   }
 
@@ -192,13 +193,13 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
         ibuf->x,
         ibuf->y,
         bytesperpixel,
-        name);
+        filepath);
   }
 
   /* allocate memory for an array of row-pointers */
   row_pointers = (png_bytepp)MEM_mallocN(ibuf->y * sizeof(png_bytep), "row_pointers");
   if (row_pointers == NULL) {
-    printf("imb_savepng: Cannot allocate row-pointers array for file '%s'\n", name);
+    printf("imb_savepng: Cannot allocate row-pointers array for file '%s'\n", filepath);
   }
 
   if ((pixels == NULL && pixels16 == NULL) || (row_pointers == NULL) ||
@@ -396,7 +397,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
     png_set_write_fn(png_ptr, (png_voidp)ibuf, WriteData, Flush);
   }
   else {
-    fp = BLI_fopen(name, "wb");
+    fp = BLI_fopen(filepath, "wb");
     if (!fp) {
       png_destroy_write_struct(&png_ptr, &info_ptr);
       if (pixels) {
@@ -405,7 +406,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
       if (pixels16) {
         MEM_freeN(pixels16);
       }
-      printf("imb_savepng: Cannot open file for writing: '%s'\n", name);
+      printf("imb_savepng: Cannot open file for writing: '%s'\n", filepath);
       return 0;
     }
     png_init_io(png_ptr, fp);

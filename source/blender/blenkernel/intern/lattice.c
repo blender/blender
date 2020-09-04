@@ -524,12 +524,12 @@ float (*BKE_lattice_vert_coords_alloc(const Lattice *lt, int *r_vert_len))[3]
 }
 
 void BKE_lattice_vert_coords_apply_with_mat4(struct Lattice *lt,
-                                             const float (*vertexCos)[3],
+                                             const float (*vert_coords)[3],
                                              const float mat[4][4])
 {
   int i, numVerts = lt->pntsu * lt->pntsv * lt->pntsw;
   for (i = 0; i < numVerts; i++) {
-    mul_v3_m4v3(lt->def[i].vec, mat, vertexCos[i]);
+    mul_v3_m4v3(lt->def[i].vec, mat, vert_coords[i]);
   }
 }
 

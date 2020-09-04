@@ -152,7 +152,7 @@ class AnimationExporter : COLLADASW::LibraryAnimations {
   void exportAnimation(Object *ob, BCAnimationSampler &sampler);
 
   /* export animation as separate trans/rot/scale curves */
-  void export_curve_animation_set(Object *ob, BCAnimationSampler &sampler, bool export_tm_curves);
+  void export_curve_animation_set(Object *ob, BCAnimationSampler &sampler, bool export_as_matrix);
 
   /* export one single curve */
   void export_curve_animation(Object *ob, BCAnimationCurve &curve);
@@ -164,7 +164,7 @@ class AnimationExporter : COLLADASW::LibraryAnimations {
   void export_bone_animations_recursive(Object *ob_arm, Bone *bone, BCAnimationSampler &sampler);
 
   /* Export for one bone */
-  void export_bone_animation(Object *ob, Bone *bone, BCFrames &frames, BCMatrixSampleMap &outmats);
+  void export_bone_animation(Object *ob, Bone *bone, BCFrames &frames, BCMatrixSampleMap &samples);
 
   /* call to the low level collada exporter */
   void export_collada_curve_animation(std::string id,
@@ -179,7 +179,7 @@ class AnimationExporter : COLLADASW::LibraryAnimations {
                                        std::string name,
                                        std::string target,
                                        BCFrames &frames,
-                                       BCMatrixSampleMap &outmats,
+                                       BCMatrixSampleMap &samples,
                                        BC_global_rotation_type global_rotation_type,
                                        Matrix &parentinv);
 
@@ -193,7 +193,7 @@ class AnimationExporter : COLLADASW::LibraryAnimations {
   void close_animation_container(bool has_container);
 
   /* Input and Output sources (single valued) */
-  std::string collada_source_from_values(BC_animation_source_type tm_channel,
+  std::string collada_source_from_values(BC_animation_source_type source_type,
                                          COLLADASW::InputSemantic::Semantics semantic,
                                          std::vector<float> &values,
                                          const std::string &anim_id,
@@ -239,7 +239,7 @@ class AnimationExporter : COLLADASW::LibraryAnimations {
                                            bool *has_tangents);
 
   std::string get_axis_name(std::string channel, int id);
-  std::string get_collada_name(std::string channel_target) const;
+  std::string get_collada_name(std::string channel_type) const;
   std::string get_collada_sid(const BCAnimationCurve &curve, const std::string axis_name);
 
   /* ===================================== */

@@ -67,10 +67,10 @@ size_t BLI_strnlen_utf8_ex(const char *strc, const size_t maxlen, size_t *r_len_
 size_t BLI_strnlen_utf8(const char *strc, const size_t maxlen) ATTR_NONNULL();
 size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst,
                                  const wchar_t *__restrict src,
-                                 const size_t maxcpy) ATTR_NONNULL();
+                                 const size_t maxncpy) ATTR_NONNULL();
 size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst,
                                    const char *__restrict src,
-                                   const size_t maxcpy) ATTR_NONNULL();
+                                   const size_t maxncpy) ATTR_NONNULL();
 
 /* count columns that character/string occupies, based on wcwidth.c */
 int BLI_wcwidth(char32_t ucs);

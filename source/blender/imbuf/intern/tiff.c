@@ -304,13 +304,13 @@ static TIFF *imb_tiff_client_open(ImbTIFFMemFile *memFile, const unsigned char *
  * hence my manual comparison. - Jonathan Merritt (lancelet) 4th Sept 2005.
  */
 #define IMB_TIFF_NCB 4 /* number of comparison bytes used */
-int imb_is_a_tiff(const unsigned char *mem)
+int imb_is_a_tiff(const unsigned char *buf)
 {
   const char big_endian[IMB_TIFF_NCB] = {0x4d, 0x4d, 0x00, 0x2a};
   const char lil_endian[IMB_TIFF_NCB] = {0x49, 0x49, 0x2a, 0x00};
 
-  return ((memcmp(big_endian, mem, IMB_TIFF_NCB) == 0) ||
-          (memcmp(lil_endian, mem, IMB_TIFF_NCB) == 0));
+  return ((memcmp(big_endian, buf, IMB_TIFF_NCB) == 0) ||
+          (memcmp(lil_endian, buf, IMB_TIFF_NCB) == 0));
 }
 
 static void scanline_contig_16bit(float *rectf,
@@ -742,7 +742,7 @@ void imb_loadtiletiff(
  * \return: 1 if the function is successful, 0 on failure.
  */
 
-int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
+int imb_savetiff(ImBuf *ibuf, const char *filepath, int flags)
 {
   TIFF *image = NULL;
   uint16 samplesperpixel, bitspersample;
@@ -799,7 +799,7 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
   image = TIFFOpenW(wname, "w");
   free(wname);
 #else
-  image = TIFFOpen(name, "w");
+  image = TIFFOpen(filepath, "w");
 #endif
 
   if (image == NULL) {

@@ -221,15 +221,15 @@ void BKE_camera_params_init(CameraParams *params)
   params->clip_end = 100.0f;
 }
 
-void BKE_camera_params_from_object(CameraParams *params, const Object *ob)
+void BKE_camera_params_from_object(CameraParams *params, const Object *cam_ob)
 {
-  if (!ob) {
+  if (!cam_ob) {
     return;
   }
 
-  if (ob->type == OB_CAMERA) {
+  if (cam_ob->type == OB_CAMERA) {
     /* camera object */
-    Camera *cam = ob->data;
+    Camera *cam = cam_ob->data;
 
     if (cam->type == CAM_ORTHO) {
       params->is_ortho = true;
@@ -247,9 +247,9 @@ void BKE_camera_params_from_object(CameraParams *params, const Object *ob)
     params->clip_start = cam->clip_start;
     params->clip_end = cam->clip_end;
   }
-  else if (ob->type == OB_LAMP) {
+  else if (cam_ob->type == OB_LAMP) {
     /* light object */
-    Light *la = ob->data;
+    Light *la = cam_ob->data;
     params->lens = 16.0f / tanf(la->spotsize * 0.5f);
     if (params->lens == 0.0f) {
       params->lens = 35.0f;
@@ -305,13 +305,13 @@ void BKE_camera_params_from_view3d(CameraParams *params,
 }
 
 void BKE_camera_params_compute_viewplane(
-    CameraParams *params, int winx, int winy, float xasp, float yasp)
+    CameraParams *params, int winx, int winy, float aspx, float aspy)
 {
   rctf viewplane;
   float pixsize, viewfac, sensor_size, dx, dy;
   int sensor_fit;
 
-  params->ycor = yasp / xasp;
+  params->ycor = aspy / aspx;
 
   if (params->is_ortho) {
     /* orthographic camera */
@@ -325,7 +325,7 @@ void BKE_camera_params_compute_viewplane(
   }
 
   /* determine sensor fit */
-  sensor_fit = BKE_camera_sensor_fit(params->sensor_fit, xasp * winx, yasp * winy);
+  sensor_fit = BKE_camera_sensor_fit(params->sensor_fit, aspx * winx, aspy * winy);
 
   if (sensor_fit == CAMERA_SENSOR_FIT_HOR) {
     viewfac = winx;

@@ -59,7 +59,7 @@ IMesh boolean_mesh(IMesh &imesh,
                    int nshapes,
                    std::function<int(int)> shape_fn,
                    bool use_self,
-                   IMesh *pm_triangulated,
+                   IMesh *imesh_triangulated,
                    IMeshArena *arena);
 
 /**
@@ -67,7 +67,7 @@ IMesh boolean_mesh(IMesh &imesh,
  * It is exposed mainly for unit testing, at the moment: boolean_mesh() uses
  * it to do most of its work.
  */
-IMesh boolean_trimesh(IMesh &trimesh,
+IMesh boolean_trimesh(IMesh &tm_in,
                       BoolOpType op,
                       int nshapes,
                       std::function<int(int)> shape_fn,

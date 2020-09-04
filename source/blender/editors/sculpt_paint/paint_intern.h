@@ -214,15 +214,15 @@ void paint_2d_gradient_fill(const struct bContext *C,
                             void *ps);
 void *paint_proj_new_stroke(struct bContext *C, struct Object *ob, const float mouse[2], int mode);
 void paint_proj_stroke(const struct bContext *C,
-                       void *ps,
-                       const float prevmval_i[2],
-                       const float mval_i[2],
+                       void *ps_handle_p,
+                       const float prev_pos[2],
+                       const float pos[2],
                        const bool eraser,
                        float pressure,
                        float distance,
                        float size);
-void paint_proj_redraw(const struct bContext *C, void *pps, bool final);
-void paint_proj_stroke_done(void *ps);
+void paint_proj_redraw(const struct bContext *C, void *ps_handle_p, bool final);
+void paint_proj_stroke_done(void *ps_handle_p);
 
 void paint_brush_color_get(struct Scene *scene,
                            struct Brush *br,

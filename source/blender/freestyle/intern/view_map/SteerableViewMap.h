@@ -78,7 +78,7 @@ class SteerableViewMap {
    *  \param dir:
    *    The direction
    */
-  unsigned getSVMNumber(const Vec2f &dir);
+  unsigned getSVMNumber(Vec2f dir);
 
   /*! Returns the number of the SVM to which a FEdge belongs most.
    *  \param id:

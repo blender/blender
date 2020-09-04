@@ -69,7 +69,7 @@ void BKE_curveprofile_reverse(struct CurveProfile *profile);
 void BKE_curveprofile_reset(struct CurveProfile *profile);
 
 void BKE_curveprofile_create_samples(struct CurveProfile *profile,
-                                     int segments_len,
+                                     int n_segments,
                                      bool sample_straight_edges,
                                      struct CurveProfilePoint *r_samples);
 
@@ -87,7 +87,7 @@ void BKE_curveprofile_update(struct CurveProfile *profile, const int update_flag
 float BKE_curveprofile_total_length(const struct CurveProfile *profile);
 
 void BKE_curveprofile_create_samples_even_spacing(struct CurveProfile *profile,
-                                                  int segments_len,
+                                                  int n_segments,
                                                   struct CurveProfilePoint *r_samples);
 
 /* Length portion is the fraction of the total path length where we want the location */

@@ -129,7 +129,7 @@ ViewportMemoryPool *GPU_viewport_mempool_get(GPUViewport *viewport);
 struct DRWInstanceDataList *GPU_viewport_instance_data_list_get(GPUViewport *viewport);
 
 void *GPU_viewport_engine_data_create(GPUViewport *viewport, void *engine_type);
-void *GPU_viewport_engine_data_get(GPUViewport *viewport, void *engine_type);
+void *GPU_viewport_engine_data_get(GPUViewport *viewport, void *engine_handle);
 void *GPU_viewport_framebuffer_list_get(GPUViewport *viewport);
 void GPU_viewport_stereo_composite(GPUViewport *viewport, Stereo3dFormat *stereo_format);
 void *GPU_viewport_texture_list_get(GPUViewport *viewport);

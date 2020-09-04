@@ -147,8 +147,8 @@ void draw_keyframe_shape(float x,
                          unsigned int size_id,
                          unsigned int color_id,
                          unsigned int outline_color_id,
-                         unsigned int linemask_id,
-                         short ipo_type,
+                         unsigned int flags_id,
+                         short handle_type,
                          short extreme_type);
 
 /* ******************************* Methods ****************************** */
@@ -264,10 +264,10 @@ void mask_to_keylist(struct bDopeSheet *UNUSED(ads),
 short compare_ak_cfraPtr(void *node, void *data);
 
 /* Checks if ActKeyColumn has any block data */
-bool actkeyblock_is_valid(ActKeyColumn *ab);
+bool actkeyblock_is_valid(ActKeyColumn *ac);
 
 /* Checks if ActKeyColumn can be used as a block (i.e. drawn/used to detect "holds") */
-int actkeyblock_get_valid_hold(ActKeyColumn *ab);
+int actkeyblock_get_valid_hold(ActKeyColumn *ac);
 
 #ifdef __cplusplus
 }

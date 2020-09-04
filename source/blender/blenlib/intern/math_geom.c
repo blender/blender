@@ -802,14 +802,14 @@ float dist_squared_ray_to_aabb_v3(const struct DistRayAABB_Precalc *data,
 
 float dist_squared_ray_to_aabb_v3_simple(const float ray_origin[3],
                                          const float ray_direction[3],
-                                         const float bbmin[3],
-                                         const float bbmax[3],
+                                         const float bb_min[3],
+                                         const float bb_max[3],
                                          float r_point[3],
                                          float *r_depth)
 {
   struct DistRayAABB_Precalc data;
   dist_squared_ray_to_aabb_v3_precalc(&data, ray_origin, ray_direction);
-  return dist_squared_ray_to_aabb_v3(&data, bbmin, bbmax, r_point, r_depth);
+  return dist_squared_ray_to_aabb_v3(&data, bb_min, bb_max, r_point, r_depth);
 }
 /** \} */
 
@@ -1022,31 +1022,31 @@ float dist_squared_to_projected_aabb_simple(const float projmat[4][4],
  *
  * Set 'r' to the point in triangle (a, b, c) closest to point 'p' */
 void closest_on_tri_to_point_v3(
-    float r[3], const float p[3], const float a[3], const float b[3], const float c[3])
+    float r[3], const float p[3], const float v1[3], const float v2[3], const float v3[3])
 {
   float ab[3], ac[3], ap[3], d1, d2;
   float bp[3], d3, d4, vc, cp[3], d5, d6, vb, va;
   float denom, v, w;
 
   /* Check if P in vertex region outside A */
-  sub_v3_v3v3(ab, b, a);
-  sub_v3_v3v3(ac, c, a);
-  sub_v3_v3v3(ap, p, a);
+  sub_v3_v3v3(ab, v2, v1);
+  sub_v3_v3v3(ac, v3, v1);
+  sub_v3_v3v3(ap, p, v1);
   d1 = dot_v3v3(ab, ap);
   d2 = dot_v3v3(ac, ap);
   if (d1 <= 0.0f && d2 <= 0.0f) {
     /* barycentric coordinates (1,0,0) */
-    copy_v3_v3(r, a);
+    copy_v3_v3(r, v1);
     return;
   }
 
   /* Check if P in vertex region outside B */
-  sub_v3_v3v3(bp, p, b);
+  sub_v3_v3v3(bp, p, v2);
   d3 = dot_v3v3(ab, bp);
   d4 = dot_v3v3(ac, bp);
   if (d3 >= 0.0f && d4 <= d3) {
     /* barycentric coordinates (0,1,0) */
-    copy_v3_v3(r, b);
+    copy_v3_v3(r, v2);
     return;
   }
   /* Check if P in edge region of AB, if so return projection of P onto AB */
@@ -1054,16 +1054,16 @@ void closest_on_tri_to_point_v3(
   if (vc <= 0.0f && d1 >= 0.0f && d3 <= 0.0f) {
     v = d1 / (d1 - d3);
     /* barycentric coordinates (1-v,v,0) */
-    madd_v3_v3v3fl(r, a, ab, v);
+    madd_v3_v3v3fl(r, v1, ab, v);
     return;
   }
   /* Check if P in vertex region outside C */
-  sub_v3_v3v3(cp, p, c);
+  sub_v3_v3v3(cp, p, v3);
   d5 = dot_v3v3(ab, cp);
   d6 = dot_v3v3(ac, cp);
   if (d6 >= 0.0f && d5 <= d6) {
     /* barycentric coordinates (0,0,1) */
-    copy_v3_v3(r, c);
+    copy_v3_v3(r, v3);
     return;
   }
   /* Check if P in edge region of AC, if so return projection of P onto AC */
@@ -1071,7 +1071,7 @@ void closest_on_tri_to_point_v3(
   if (vb <= 0.0f && d2 >= 0.0f && d6 <= 0.0f) {
     w = d2 / (d2 - d6);
     /* barycentric coordinates (1-w,0,w) */
-    madd_v3_v3v3fl(r, a, ac, w);
+    madd_v3_v3v3fl(r, v1, ac, w);
     return;
   }
   /* Check if P in edge region of BC, if so return projection of P onto BC */
@@ -1079,9 +1079,9 @@ void closest_on_tri_to_point_v3(
   if (va <= 0.0f && (d4 - d3) >= 0.0f && (d5 - d6) >= 0.0f) {
     w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
     /* barycentric coordinates (0,1-w,w) */
-    sub_v3_v3v3(r, c, b);
+    sub_v3_v3v3(r, v3, v2);
     mul_v3_fl(r, w);
-    add_v3_v3(r, b);
+    add_v3_v3(r, v2);
     return;
   }
 
@@ -1094,7 +1094,7 @@ void closest_on_tri_to_point_v3(
   /* ac * w */
   mul_v3_fl(ac, w);
   /* a + ab * v */
-  madd_v3_v3v3fl(r, a, ab, v);
+  madd_v3_v3v3fl(r, v1, ab, v);
   /* a + ab * v + ac * w */
   add_v3_v3(r, ac);
 }
@@ -4972,28 +4972,28 @@ void projmat_from_subregion(const float projmat[4][4],
   }
 }
 
-static void i_multmatrix(const float icand[4][4], float Vm[4][4])
+static void i_multmatrix(const float icand[4][4], float mat[4][4])
 {
   int row, col;
   float temp[4][4];
 
   for (row = 0; row < 4; row++) {
     for (col = 0; col < 4; col++) {
-      temp[row][col] = (icand[row][0] * Vm[0][col] + icand[row][1] * Vm[1][col] +
-                        icand[row][2] * Vm[2][col] + icand[row][3] * Vm[3][col]);
+      temp[row][col] = (icand[row][0] * mat[0][col] + icand[row][1] * mat[1][col] +
+                        icand[row][2] * mat[2][col] + icand[row][3] * mat[3][col]);
     }
   }
-  copy_m4_m4(Vm, temp);
+  copy_m4_m4(mat, temp);
 }
 
-void polarview_m4(float Vm[4][4], float dist, float azimuth, float incidence, float twist)
+void polarview_m4(float mat[4][4], float dist, float azimuth, float incidence, float twist)
 {
-  unit_m4(Vm);
+  unit_m4(mat);
 
-  translate_m4(Vm, 0.0, 0.0, -dist);
-  rotate_m4(Vm, 'Z', -twist);
-  rotate_m4(Vm, 'X', -incidence);
-  rotate_m4(Vm, 'Z', -azimuth);
+  translate_m4(mat, 0.0, 0.0, -dist);
+  rotate_m4(mat, 'Z', -twist);
+  rotate_m4(mat, 'X', -incidence);
+  rotate_m4(mat, 'Z', -azimuth);
 }
 
 void lookat_m4(

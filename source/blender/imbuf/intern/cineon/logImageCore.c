@@ -46,18 +46,28 @@ static int logImageSetData8(LogImageFile *logImage, LogImageElement logElement, 
 static int logImageSetData10(LogImageFile *logImage, LogImageElement logElement, float *data);
 static int logImageSetData12(LogImageFile *logImage, LogImageElement logElement, float *data);
 static int logImageSetData16(LogImageFile *logImage, LogImageElement logElement, float *data);
-static int logImageElementGetData(LogImageFile *dpx, LogImageElement logElement, float *data);
-static int logImageElementGetData1(LogImageFile *dpx, LogImageElement logElement, float *data);
-static int logImageElementGetData8(LogImageFile *dpx, LogImageElement logElement, float *data);
-static int logImageElementGetData10(LogImageFile *dpx, LogImageElement logElement, float *data);
-static int logImageElementGetData10Packed(LogImageFile *dpx,
+static int logImageElementGetData(LogImageFile *logImage, LogImageElement logElement, float *data);
+static int logImageElementGetData1(LogImageFile *logImage,
+                                   LogImageElement logElement,
+                                   float *data);
+static int logImageElementGetData8(LogImageFile *logImage,
+                                   LogImageElement logElement,
+                                   float *data);
+static int logImageElementGetData10(LogImageFile *logImage,
+                                    LogImageElement logElement,
+                                    float *data);
+static int logImageElementGetData10Packed(LogImageFile *logImage,
                                           LogImageElement logElement,
                                           float *data);
-static int logImageElementGetData12(LogImageFile *dpx, LogImageElement logElement, float *data);
-static int logImageElementGetData12Packed(LogImageFile *dpx,
+static int logImageElementGetData12(LogImageFile *logImage,
+                                    LogImageElement logElement,
+                                    float *data);
+static int logImageElementGetData12Packed(LogImageFile *logImage,
                                           LogImageElement logElement,
                                           float *data);
-static int logImageElementGetData16(LogImageFile *dpx, LogImageElement logElement, float *data);
+static int logImageElementGetData16(LogImageFile *logImage,
+                                    LogImageElement logElement,
+                                    float *data);
 static int convertLogElementToRGBA(float *src,
                                    float *dst,
                                    LogImageFile *logImage,

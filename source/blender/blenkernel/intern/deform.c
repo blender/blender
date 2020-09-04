@@ -944,7 +944,7 @@ float BKE_defvert_lock_relative_weight(float weight,
 /** \name Defvert Array functions
  * \{ */
 
-void BKE_defvert_array_copy(MDeformVert *dst, const MDeformVert *src, int copycount)
+void BKE_defvert_array_copy(MDeformVert *dst, const MDeformVert *src, int totvert)
 {
   /* Assumes dst is already set up */
   int i;
@@ -953,9 +953,9 @@ void BKE_defvert_array_copy(MDeformVert *dst, const MDeformVert *src, int copyco
     return;
   }
 
-  memcpy(dst, src, copycount * sizeof(MDeformVert));
+  memcpy(dst, src, totvert * sizeof(MDeformVert));
 
-  for (i = 0; i < copycount; i++) {
+  for (i = 0; i < totvert; i++) {
     if (src[i].dw) {
       dst[i].dw = MEM_mallocN(sizeof(MDeformWeight) * src[i].totweight, "copy_deformWeight");
       memcpy(dst[i].dw, src[i].dw, sizeof(MDeformWeight) * src[i].totweight);

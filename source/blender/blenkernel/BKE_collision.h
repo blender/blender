@@ -165,7 +165,7 @@ typedef struct ColliderCache {
   struct CollisionModifierData *collmd;
 } ColliderCache;
 
-struct ListBase *BKE_collider_cache_create(struct Depsgraph *scene,
+struct ListBase *BKE_collider_cache_create(struct Depsgraph *depsgraph,
                                            struct Object *self,
                                            struct Collection *collection);
 void BKE_collider_cache_free(struct ListBase **colliders);

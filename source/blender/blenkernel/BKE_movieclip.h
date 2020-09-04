@@ -39,9 +39,9 @@ struct MovieClip *BKE_movieclip_copy(struct Main *bmain, const struct MovieClip 
 
 struct MovieClip *BKE_movieclip_file_add(struct Main *bmain, const char *name);
 struct MovieClip *BKE_movieclip_file_add_exists_ex(struct Main *bmain,
-                                                   const char *name,
+                                                   const char *filepath,
                                                    bool *r_exists);
-struct MovieClip *BKE_movieclip_file_add_exists(struct Main *bmain, const char *name);
+struct MovieClip *BKE_movieclip_file_add_exists(struct Main *bmain, const char *filepath);
 void BKE_movieclip_reload(struct Main *bmain, struct MovieClip *clip);
 void BKE_movieclip_clear_cache(struct MovieClip *clip);
 void BKE_movieclip_clear_proxy_cache(struct MovieClip *clip);

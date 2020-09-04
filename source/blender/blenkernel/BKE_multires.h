@@ -151,7 +151,7 @@ void multiresModifier_ensure_external_read(struct Mesh *mesh,
 void old_mdisps_bilinear(float out[3], float (*disps)[3], const int st, float u, float v);
 int mdisp_rot_face_to_crn(struct MVert *mvert,
                           struct MPoly *mpoly,
-                          struct MLoop *mloops,
+                          struct MLoop *mloop,
                           const struct MLoopTri *lt,
                           const int face_side,
                           const float u,

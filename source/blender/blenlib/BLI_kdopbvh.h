@@ -246,7 +246,7 @@ int BLI_bvhtree_find_nearest_projected(BVHTree *tree,
                                        float winsize[2],
                                        float mval[2],
                                        float clip_planes[6][4],
-                                       int clip_num,
+                                       int clip_plane_len,
                                        BVHTreeNearest *nearest,
                                        BVHTree_NearestProjectedCallback callback,
                                        void *userdata);

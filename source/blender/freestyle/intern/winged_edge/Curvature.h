@@ -122,7 +122,7 @@ class Face_Curvature_Info {
 #endif
 };
 
-bool gts_vertex_mean_curvature_normal(WVertex *v, Vec3r &n);
+bool gts_vertex_mean_curvature_normal(WVertex *v, Vec3r &Kh);
 
 bool gts_vertex_gaussian_curvature(WVertex *v, real *Kg);
 

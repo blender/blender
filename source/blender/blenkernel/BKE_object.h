@@ -84,7 +84,7 @@ void BKE_object_free_shaderfx(struct Object *ob, const int flag);
 void BKE_object_make_proxy(struct Main *bmain,
                            struct Object *ob,
                            struct Object *target,
-                           struct Object *gob);
+                           struct Object *cob);
 void BKE_object_copy_proxy_drivers(struct Object *ob, struct Object *target);
 
 bool BKE_object_exists_check(struct Main *bmain, const struct Object *obtest);
@@ -142,7 +142,7 @@ struct Object *BKE_object_duplicate(struct Main *bmain,
                                     uint dupflag,
                                     const uint duplicate_options);
 
-void BKE_object_obdata_size_init(struct Object *ob, const float scale);
+void BKE_object_obdata_size_init(struct Object *ob, const float size);
 
 void BKE_object_scale_to_mat3(struct Object *ob, float r_mat[3][3]);
 void BKE_object_rot_to_mat3(const struct Object *ob, float r_mat[3][3], bool use_drot);

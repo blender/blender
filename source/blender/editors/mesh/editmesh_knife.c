@@ -258,7 +258,7 @@ static void knife_input_ray_segment(KnifeTool_OpData *kcd,
                                     const float mval[2],
                                     const float ofs,
                                     float r_origin[3],
-                                    float r_dest[3]);
+                                    float r_origin_ofs[3]);
 
 static bool knife_verts_edge_in_face(KnifeVert *v1, KnifeVert *v2, BMFace *f);
 

@@ -204,7 +204,7 @@ unsigned int BLI_gset_len(GSet *gs) ATTR_WARN_UNUSED_RESULT;
 void BLI_gset_flag_set(GSet *gs, unsigned int flag);
 void BLI_gset_flag_clear(GSet *gs, unsigned int flag);
 void BLI_gset_free(GSet *gs, GSetKeyFreeFP keyfreefp);
-void BLI_gset_insert(GSet *gh, void *key);
+void BLI_gset_insert(GSet *gs, void *key);
 bool BLI_gset_add(GSet *gs, void *key);
 bool BLI_gset_ensure_p_ex(GSet *gs, const void *key, void ***r_key);
 bool BLI_gset_reinsert(GSet *gh, void *key, GSetKeyFreeFP keyfreefp);
@@ -217,7 +217,7 @@ void BLI_gset_clear_ex(GSet *gs, GSetKeyFreeFP keyfreefp, const unsigned int nen
 void BLI_gset_clear(GSet *gs, GSetKeyFreeFP keyfreefp);
 
 /* When set's are used for key & value. */
-void *BLI_gset_lookup(GSet *gh, const void *key) ATTR_WARN_UNUSED_RESULT;
+void *BLI_gset_lookup(GSet *gs, const void *key) ATTR_WARN_UNUSED_RESULT;
 void *BLI_gset_pop_key(GSet *gs, const void *key) ATTR_WARN_UNUSED_RESULT;
 
 /** \} */
@@ -342,8 +342,8 @@ bool BLI_ghashutil_ptrcmp(const void *a, const void *b);
 unsigned int BLI_ghashutil_strhash_n(const char *key, size_t n);
 #define BLI_ghashutil_strhash(key) \
   (CHECK_TYPE_ANY(key, char *, const char *, const char *const), BLI_ghashutil_strhash_p(key))
-unsigned int BLI_ghashutil_strhash_p(const void *key);
-unsigned int BLI_ghashutil_strhash_p_murmur(const void *key);
+unsigned int BLI_ghashutil_strhash_p(const void *ptr);
+unsigned int BLI_ghashutil_strhash_p_murmur(const void *ptr);
 bool BLI_ghashutil_strcmp(const void *a, const void *b);
 
 #define BLI_ghashutil_inthash(key) \

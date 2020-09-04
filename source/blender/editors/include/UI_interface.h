@@ -559,9 +559,9 @@ uiPopupMenu *UI_popup_menu_begin_ex(struct bContext *C,
                                     const char *title,
                                     const char *block_name,
                                     int icon) ATTR_NONNULL();
-void UI_popup_menu_end(struct bContext *C, struct uiPopupMenu *head);
+void UI_popup_menu_end(struct bContext *C, struct uiPopupMenu *pup);
 bool UI_popup_menu_end_or_cancel(struct bContext *C, struct uiPopupMenu *head);
-struct uiLayout *UI_popup_menu_layout(uiPopupMenu *head);
+struct uiLayout *UI_popup_menu_layout(uiPopupMenu *pup);
 
 void UI_popup_menu_reports(struct bContext *C, struct ReportList *reports) ATTR_NONNULL();
 int UI_popup_menu_invoke(struct bContext *C, const char *idname, struct ReportList *reports)
@@ -581,8 +581,8 @@ int UI_popover_panel_invoke(struct bContext *C,
 
 uiPopover *UI_popover_begin(struct bContext *C, int menu_width, bool from_active_button)
     ATTR_NONNULL(1);
-void UI_popover_end(struct bContext *C, struct uiPopover *head, struct wmKeyMap *keymap);
-struct uiLayout *UI_popover_layout(uiPopover *head);
+void UI_popover_end(struct bContext *C, struct uiPopover *pup, struct wmKeyMap *keymap);
+struct uiLayout *UI_popover_layout(uiPopover *pup);
 void UI_popover_once_clear(uiPopover *pup);
 
 /* interface_region_menu_pie.c */
@@ -720,7 +720,7 @@ void UI_but_drag_set_path(uiBut *but, const char *path, const bool use_free);
 void UI_but_drag_set_name(uiBut *but, const char *name);
 void UI_but_drag_set_value(uiBut *but);
 void UI_but_drag_set_image(
-    uiBut *but, const char *path, int icon, struct ImBuf *ima, float scale, const bool use_free);
+    uiBut *but, const char *path, int icon, struct ImBuf *imb, float scale, const bool use_free);
 
 bool UI_but_active_drop_name(struct bContext *C);
 bool UI_but_active_drop_color(struct bContext *C);
@@ -774,10 +774,10 @@ uiBut *uiDefBut(uiBlock *block,
                 int type,
                 int retval,
                 const char *str,
-                int x1,
-                int y1,
-                short x2,
-                short y2,
+                int x,
+                int y,
+                short width,
+                short height,
                 void *poin,
                 float min,
                 float max,
@@ -957,10 +957,10 @@ uiBut *uiDefIconBut(uiBlock *block,
                     int type,
                     int retval,
                     int icon,
-                    int x1,
-                    int y1,
-                    short x2,
-                    short y2,
+                    int x,
+                    int y,
+                    short width,
+                    short height,
                     void *poin,
                     float min,
                     float max,
@@ -1143,10 +1143,10 @@ uiBut *uiDefIconTextBut(uiBlock *block,
                         int retval,
                         int icon,
                         const char *str,
-                        int x1,
-                        int y1,
-                        short x2,
-                        short y2,
+                        int x,
+                        int y,
+                        short width,
+                        short height,
                         void *poin,
                         float min,
                         float max,
@@ -1452,7 +1452,7 @@ uiBut *uiDefIconMenuBut(uiBlock *block,
 
 uiBut *uiDefBlockBut(uiBlock *block,
                      uiBlockCreateFunc func,
-                     void *func_arg1,
+                     void *arg,
                      const char *str,
                      int x,
                      int y,
@@ -1879,7 +1879,7 @@ void uiLayoutSetContextFromBut(uiLayout *layout, uiBut *but);
 void uiLayoutSetOperatorContext(uiLayout *layout, int opcontext);
 void uiLayoutSetActive(uiLayout *layout, bool active);
 void uiLayoutSetActiveDefault(uiLayout *layout, bool active_default);
-void uiLayoutSetActivateInit(uiLayout *layout, bool active);
+void uiLayoutSetActivateInit(uiLayout *layout, bool activate_init);
 void uiLayoutSetEnabled(uiLayout *layout, bool enabled);
 void uiLayoutSetRedAlert(uiLayout *layout, bool redalert);
 void uiLayoutSetAlignment(uiLayout *layout, char alignment);
@@ -2057,7 +2057,10 @@ void uiTemplateColorPicker(uiLayout *layout,
                            bool lock,
                            bool lock_luminosity,
                            bool cubic);
-void uiTemplatePalette(uiLayout *layout, struct PointerRNA *ptr, const char *propname, bool color);
+void uiTemplatePalette(uiLayout *layout,
+                       struct PointerRNA *ptr,
+                       const char *propname,
+                       bool colors);
 void uiTemplateCryptoPicker(uiLayout *layout, struct PointerRNA *ptr, const char *propname);
 void uiTemplateLayers(uiLayout *layout,
                       struct PointerRNA *ptr,
@@ -2241,7 +2244,7 @@ void uiItemFullO_ptr(uiLayout *layout,
                      int flag,
                      PointerRNA *r_opptr);
 void uiItemFullO(uiLayout *layout,
-                 const char *idname,
+                 const char *opname,
                  const char *name,
                  int icon,
                  struct IDProperty *properties,
@@ -2378,7 +2381,7 @@ void uiItemSpacer(uiLayout *layout);
 void uiItemPopoverPanel_ptr(
     uiLayout *layout, struct bContext *C, struct PanelType *pt, const char *name, int icon);
 void uiItemPopoverPanel(
-    uiLayout *layout, struct bContext *C, const char *panelname, const char *name, int icon);
+    uiLayout *layout, struct bContext *C, const char *panel_type, const char *name, int icon);
 void uiItemPopoverPanelFromGroup(uiLayout *layout,
                                  struct bContext *C,
                                  int space_id,
@@ -2458,7 +2461,7 @@ void UI_context_active_but_prop_get_templateID(struct bContext *C,
 struct ID *UI_context_active_but_get_tab_ID(struct bContext *C);
 
 uiBut *UI_region_active_but_get(struct ARegion *region);
-uiBut *UI_region_but_find_rect_over(const struct ARegion *region, const struct rcti *isect);
+uiBut *UI_region_but_find_rect_over(const struct ARegion *region, const struct rcti *rect_px);
 uiBlock *UI_region_block_find_mouse_over(const struct ARegion *region,
                                          const int xy[2],
                                          bool only_clip);

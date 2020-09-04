@@ -677,7 +677,7 @@ void ED_view3d_lock_clear(struct View3D *v3d);
 
 float ED_view3d_offset_distance(const float mat[4][4],
                                 const float ofs[3],
-                                const float dist_fallback);
+                                const float fallback_dist);
 void ED_view3d_distance_set(struct RegionView3D *rv3d, const float dist);
 bool ED_view3d_distance_set_from_location(struct RegionView3D *rv3d,
                                           const float dist_co[3],

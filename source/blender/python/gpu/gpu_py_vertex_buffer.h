@@ -32,4 +32,4 @@ typedef struct BPyGPUVertBuf {
       struct GPUVertBuf *buf;
 } BPyGPUVertBuf;
 
-PyObject *BPyGPUVertBuf_CreatePyObject(struct GPUVertBuf *vbo) ATTR_NONNULL(1);
+PyObject *BPyGPUVertBuf_CreatePyObject(struct GPUVertBuf *buf) ATTR_NONNULL(1);

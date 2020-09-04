@@ -1478,30 +1478,30 @@ void ccgVertIterator_next(CCGVertIterator *vi)
   ccg_ehashIterator_next((EHashIterator *)vi);
 }
 
-CCGEdge *ccgEdgeIterator_getCurrent(CCGEdgeIterator *vi)
+CCGEdge *ccgEdgeIterator_getCurrent(CCGEdgeIterator *ei)
 {
-  return (CCGEdge *)ccg_ehashIterator_getCurrent((EHashIterator *)vi);
+  return (CCGEdge *)ccg_ehashIterator_getCurrent((EHashIterator *)ei);
 }
-int ccgEdgeIterator_isStopped(CCGEdgeIterator *vi)
+int ccgEdgeIterator_isStopped(CCGEdgeIterator *ei)
 {
-  return ccg_ehashIterator_isStopped((EHashIterator *)vi);
+  return ccg_ehashIterator_isStopped((EHashIterator *)ei);
 }
-void ccgEdgeIterator_next(CCGEdgeIterator *vi)
+void ccgEdgeIterator_next(CCGEdgeIterator *ei)
 {
-  ccg_ehashIterator_next((EHashIterator *)vi);
+  ccg_ehashIterator_next((EHashIterator *)ei);
 }
 
-CCGFace *ccgFaceIterator_getCurrent(CCGFaceIterator *vi)
+CCGFace *ccgFaceIterator_getCurrent(CCGFaceIterator *fi)
 {
-  return (CCGFace *)ccg_ehashIterator_getCurrent((EHashIterator *)vi);
+  return (CCGFace *)ccg_ehashIterator_getCurrent((EHashIterator *)fi);
 }
-int ccgFaceIterator_isStopped(CCGFaceIterator *vi)
+int ccgFaceIterator_isStopped(CCGFaceIterator *fi)
 {
-  return ccg_ehashIterator_isStopped((EHashIterator *)vi);
+  return ccg_ehashIterator_isStopped((EHashIterator *)fi);
 }
-void ccgFaceIterator_next(CCGFaceIterator *vi)
+void ccgFaceIterator_next(CCGFaceIterator *fi)
 {
-  ccg_ehashIterator_next((EHashIterator *)vi);
+  ccg_ehashIterator_next((EHashIterator *)fi);
 }
 
 /*** Extern API final vert/edge/face interface ***/

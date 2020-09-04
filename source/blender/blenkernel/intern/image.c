@@ -2970,9 +2970,9 @@ void BKE_image_path_from_imtype(char *string,
                                 const char imtype,
                                 const bool use_ext,
                                 const bool use_frames,
-                                const char *view)
+                                const char *suffix)
 {
-  do_makepicstring(string, base, relbase, frame, imtype, NULL, use_ext, use_frames, view);
+  do_makepicstring(string, base, relbase, frame, imtype, NULL, use_ext, use_frames, suffix);
 }
 
 struct anim *openanim_noload(const char *name,

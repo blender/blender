@@ -263,10 +263,10 @@ struct Mask *BKE_sequencer_mask_get(struct Scene *scene);
 
 /* apply functions recursively */
 int BKE_sequencer_base_recursive_apply(struct ListBase *seqbase,
-                                       int (*apply_func)(struct Sequence *seq, void *),
+                                       int (*apply_fn)(struct Sequence *seq, void *),
                                        void *arg);
 int BKE_sequencer_recursive_apply(struct Sequence *seq,
-                                  int (*apply_func)(struct Sequence *, void *),
+                                  int (*apply_fn)(struct Sequence *, void *),
                                   void *arg);
 
 /* maintenance functions, mostly for RNA */
@@ -319,7 +319,7 @@ bool BKE_sequencer_proxy_rebuild_context(struct Main *bmain,
 void BKE_sequencer_proxy_rebuild(struct SeqIndexBuildContext *context,
                                  short *stop,
                                  short *do_update,
-                                 float *num_frames_prefetched);
+                                 float *progress);
 void BKE_sequencer_proxy_rebuild_finish(struct SeqIndexBuildContext *context, bool stop);
 
 void BKE_sequencer_proxy_set(struct Sequence *seq, bool value);
@@ -340,7 +340,7 @@ void BKE_sequencer_cache_put(const SeqRenderData *context,
                              struct Sequence *seq,
                              float cfra,
                              int type,
-                             struct ImBuf *nval,
+                             struct ImBuf *i,
                              float cost,
                              bool skip_disk_cache);
 bool BKE_sequencer_cache_put_if_possible(const SeqRenderData *context,

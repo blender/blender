@@ -105,8 +105,8 @@ bool BLI_rcti_isect_circle(const struct rcti *rect, const float xy[2], const flo
 bool BLI_rctf_isect_circle(const struct rctf *rect, const float xy[2], const float radius);
 bool BLI_rcti_inside_rcti(const rcti *rct_a, const rcti *rct_b);
 bool BLI_rctf_inside_rctf(const rctf *rct_a, const rctf *rct_b);
-void BLI_rcti_union(struct rcti *rcti1, const struct rcti *rcti2);
-void BLI_rctf_union(struct rctf *rctf1, const struct rctf *rctf2);
+void BLI_rcti_union(struct rcti *rct1, const struct rcti *rct2);
+void BLI_rctf_union(struct rctf *rct1, const struct rctf *rct2);
 void BLI_rcti_rctf_copy(struct rcti *dst, const struct rctf *src);
 void BLI_rctf_rcti_copy(struct rctf *dst, const struct rcti *src);
 void BLI_rcti_rctf_copy_floor(struct rcti *dst, const struct rctf *src);

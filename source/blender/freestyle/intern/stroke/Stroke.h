@@ -835,7 +835,7 @@ class Stroke : public Interface1D {
 
   // embedding vertex iterator
   const_vertex_iterator vertices_begin() const;
-  vertex_iterator vertices_begin(float t = 0.0f);
+  vertex_iterator vertices_begin(float sampling = 0.0f);
   const_vertex_iterator vertices_end() const;
   vertex_iterator vertices_end();
 

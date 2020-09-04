@@ -973,7 +973,7 @@ typedef struct EEVEE_PrivateData {
 /* eevee_data.c */
 void EEVEE_motion_blur_data_init(EEVEE_MotionBlurData *mb);
 void EEVEE_motion_blur_data_free(EEVEE_MotionBlurData *mb);
-void EEVEE_view_layer_data_free(void *sldata);
+void EEVEE_view_layer_data_free(void *storage);
 EEVEE_ViewLayerData *EEVEE_view_layer_data_get(void);
 EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure_ex(struct ViewLayer *view_layer);
 EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure(void);
@@ -1152,8 +1152,8 @@ void EEVEE_lightbake_filter_visibility(EEVEE_ViewLayerData *sldata,
                                        float vis_blur,
                                        int vis_size);
 
-void EEVEE_lightprobes_grid_data_from_object(Object *ob, EEVEE_LightGrid *prb_data, int *offset);
-void EEVEE_lightprobes_cube_data_from_object(Object *ob, EEVEE_LightProbe *prb_data);
+void EEVEE_lightprobes_grid_data_from_object(Object *ob, EEVEE_LightGrid *egrid, int *offset);
+void EEVEE_lightprobes_cube_data_from_object(Object *ob, EEVEE_LightProbe *eprobe);
 void EEVEE_lightprobes_planar_data_from_object(Object *ob,
                                                EEVEE_PlanarReflection *eplanar,
                                                EEVEE_LightProbeVisTest *vis_test);
@@ -1309,7 +1309,7 @@ void EEVEE_render_cache(void *vedata,
                         struct Depsgraph *depsgraph);
 void EEVEE_render_draw(EEVEE_Data *vedata,
                        struct RenderEngine *engine,
-                       struct RenderLayer *render_layer,
+                       struct RenderLayer *rl,
                        const struct rcti *rect);
 void EEVEE_render_read_result(EEVEE_Data *vedata,
                               struct RenderEngine *engine,

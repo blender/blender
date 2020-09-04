@@ -701,20 +701,20 @@ void DepsgraphNodeBuilder::build_object_flags(int base_index,
                                    is_from_set));
 }
 
-void DepsgraphNodeBuilder::build_object_proxy_from(Object *object, bool is_visible)
+void DepsgraphNodeBuilder::build_object_proxy_from(Object *object, bool is_object_visible)
 {
   if (object->proxy_from == nullptr) {
     return;
   }
-  build_object(-1, object->proxy_from, DEG_ID_LINKED_INDIRECTLY, is_visible);
+  build_object(-1, object->proxy_from, DEG_ID_LINKED_INDIRECTLY, is_object_visible);
 }
 
-void DepsgraphNodeBuilder::build_object_proxy_group(Object *object, bool is_visible)
+void DepsgraphNodeBuilder::build_object_proxy_group(Object *object, bool is_object_visible)
 {
   if (object->proxy_group == nullptr) {
     return;
   }
-  build_object(-1, object->proxy_group, DEG_ID_LINKED_INDIRECTLY, is_visible);
+  build_object(-1, object->proxy_group, DEG_ID_LINKED_INDIRECTLY, is_object_visible);
 }
 
 void DepsgraphNodeBuilder::build_object_instance_collection(Object *object, bool is_object_visible)

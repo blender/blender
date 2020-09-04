@@ -62,7 +62,7 @@ typedef enum ThumbSource {
 struct ImBuf *IMB_thumb_create(const char *path,
                                ThumbSize size,
                                ThumbSource source,
-                               struct ImBuf *ibuf);
+                               struct ImBuf *img);
 
 /* read thumbnail for file and returns new imbuf for thumbnail */
 struct ImBuf *IMB_thumb_read(const char *path, ThumbSize size);

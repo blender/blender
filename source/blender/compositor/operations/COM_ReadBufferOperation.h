@@ -30,7 +30,7 @@ class ReadBufferOperation : public NodeOperation {
   MemoryBuffer *m_buffer;
 
  public:
-  ReadBufferOperation(DataType datetype);
+  ReadBufferOperation(DataType datatype);
   void setMemoryProxy(MemoryProxy *memoryProxy)
   {
     this->m_memoryProxy = memoryProxy;

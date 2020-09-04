@@ -88,7 +88,7 @@ void _bli_array_wrap(void *arr_v, unsigned int arr_len, size_t arr_stride, int d
  *
  * Access via #BLI_array_wrap
  */
-void _bli_array_permute(void *arr_v,
+void _bli_array_permute(void *arr,
                         const unsigned int arr_len,
                         const size_t arr_stride,
                         const unsigned int *order,
@@ -106,11 +106,11 @@ void _bli_array_permute(void *arr_v,
     arr_orig = arr_temp;
   }
 
-  memcpy(arr_orig, arr_v, len);
+  memcpy(arr_orig, arr, len);
 
   for (i = 0; i < arr_len; i++) {
     BLI_assert(order[i] < arr_len);
-    memcpy(POINTER_OFFSET(arr_v, arr_stride_uint * i),
+    memcpy(POINTER_OFFSET(arr, arr_stride_uint * i),
            POINTER_OFFSET(arr_orig, arr_stride_uint * order[i]),
            arr_stride);
   }

@@ -52,9 +52,9 @@ typedef struct GPU_PBVH_Buffers GPU_PBVH_Buffers;
 GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const struct MPoly *mpoly,
                                               const struct MLoop *mloop,
                                               const struct MLoopTri *looptri,
-                                              const struct MVert *verts,
+                                              const struct MVert *mvert,
                                               const int *face_indices,
-                                              const int *sculpt_facemap,
+                                              const int *sculpt_face_sets,
                                               const int face_indices_len,
                                               const struct Mesh *mesh);
 

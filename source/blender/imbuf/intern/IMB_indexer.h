@@ -94,8 +94,8 @@ void IMB_index_builder_proc_frame(anim_index_builder *fp,
 void IMB_index_builder_finish(anim_index_builder *fp, int rollback);
 
 struct anim_index *IMB_indexer_open(const char *name);
-unsigned long long IMB_indexer_get_seek_pos(struct anim_index *idx, int frameno_index);
-unsigned long long IMB_indexer_get_seek_pos_dts(struct anim_index *idx, int frameno_index);
+unsigned long long IMB_indexer_get_seek_pos(struct anim_index *idx, int frame_index);
+unsigned long long IMB_indexer_get_seek_pos_dts(struct anim_index *idx, int frame_index);
 
 int IMB_indexer_get_frame_index(struct anim_index *idx, int frameno);
 unsigned long long IMB_indexer_get_pts(struct anim_index *idx, int frame_index);

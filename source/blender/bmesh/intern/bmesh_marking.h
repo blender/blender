@@ -28,7 +28,7 @@ typedef struct BMEditSelection {
 
 /* geometry hiding code */
 #define BM_elem_hide_set(bm, ele, hide) _bm_elem_hide_set(bm, &(ele)->head, hide)
-void _bm_elem_hide_set(BMesh *bm, BMHeader *ele, const bool hide);
+void _bm_elem_hide_set(BMesh *bm, BMHeader *head, const bool hide);
 void BM_vert_hide_set(BMVert *v, const bool hide);
 void BM_edge_hide_set(BMEdge *e, const bool hide);
 void BM_face_hide_set(BMFace *f, const bool hide);
@@ -66,7 +66,7 @@ void BM_face_select_set(BMesh *bm, BMFace *f, const bool select);
 
 /* lower level functions which don't do flushing */
 void BM_edge_select_set_noflush(BMesh *bm, BMEdge *e, const bool select);
-void BM_face_select_set_noflush(BMesh *bm, BMFace *e, const bool select);
+void BM_face_select_set_noflush(BMesh *bm, BMFace *f, const bool select);
 
 void BM_mesh_select_mode_clean_ex(BMesh *bm, const short selectmode);
 void BM_mesh_select_mode_clean(BMesh *bm);

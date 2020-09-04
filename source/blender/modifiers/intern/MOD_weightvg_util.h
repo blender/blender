@@ -55,7 +55,7 @@ struct uiLayout;
 
 void weightvg_do_map(int num,
                      float *new_w,
-                     short mode,
+                     short falloff_type,
                      const bool do_invert,
                      struct CurveMapping *cmap,
                      struct RNG *rng);

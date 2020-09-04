@@ -29,7 +29,7 @@ struct ListBase;
 
 /* multiple edgeloops (ListBase) */
 int BM_mesh_edgeloops_find(BMesh *bm,
-                           struct ListBase *r_lb,
+                           struct ListBase *r_eloops,
                            bool (*test_fn)(BMEdge *, void *user_data),
                            void *user_data);
 bool BM_mesh_edgeloops_find_path(BMesh *bm,

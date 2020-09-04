@@ -67,9 +67,9 @@ void ED_file_exit(void);
 #define REGION_DRAW_PRE_VIEW 2
 #define REGION_DRAW_BACKDROP 3
 
-void *ED_region_draw_cb_activate(struct ARegionType *,
+void *ED_region_draw_cb_activate(struct ARegionType *art,
                                  void (*draw)(const struct bContext *, struct ARegion *, void *),
-                                 void *custumdata,
+                                 void *customdata,
                                  int type);
 void ED_region_draw_cb_draw(const struct bContext *, struct ARegion *, int);
 void ED_region_draw_cb_exit(struct ARegionType *, void *);

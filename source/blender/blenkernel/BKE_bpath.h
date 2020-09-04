@@ -35,17 +35,20 @@ struct ReportList;
  * path has changed, and in that case, should write the result to pathOut. */
 typedef bool (*BPathVisitor)(void *userdata, char *path_dst, const char *path_src);
 /* Executes 'visit' for each path associated with 'id'. */
-void BKE_bpath_traverse_id(
-    struct Main *bmain, struct ID *id, BPathVisitor visit_cb, const int flag, void *userdata);
+void BKE_bpath_traverse_id(struct Main *bmain,
+                           struct ID *id,
+                           BPathVisitor visit_cb,
+                           const int flag,
+                           void *bpath_user_data);
 void BKE_bpath_traverse_id_list(struct Main *bmain,
                                 struct ListBase *lb,
                                 BPathVisitor visit_cb,
                                 const int flag,
-                                void *userdata);
+                                void *bpath_user_data);
 void BKE_bpath_traverse_main(struct Main *bmain,
                              BPathVisitor visit_cb,
                              const int flag,
-                             void *userdata);
+                             void *bpath_user_data);
 bool BKE_bpath_relocate_visitor(void *oldbasepath, char *path_dst, const char *path_src);
 
 /* Functions for temp backup/restore of paths, path count must NOT change */

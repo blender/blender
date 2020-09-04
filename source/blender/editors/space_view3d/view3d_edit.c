@@ -284,7 +284,7 @@ static void viewops_data_alloc(bContext *C, wmOperator *op)
 }
 
 void view3d_orbit_apply_dyn_ofs(float r_ofs[3],
-                                const float ofs_init[3],
+                                const float ofs_old[3],
                                 const float viewquat_old[4],
                                 const float viewquat_new[4],
                                 const float dyn_ofs[3])
@@ -295,7 +295,7 @@ void view3d_orbit_apply_dyn_ofs(float r_ofs[3],
 
   invert_qt_normalized(q);
 
-  sub_v3_v3v3(r_ofs, ofs_init, dyn_ofs);
+  sub_v3_v3v3(r_ofs, ofs_old, dyn_ofs);
   mul_qt_v3(q, r_ofs);
   add_v3_v3(r_ofs, dyn_ofs);
 }

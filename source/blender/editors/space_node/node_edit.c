@@ -556,35 +556,35 @@ void ED_node_composit_default(const bContext *C, struct Scene *sce)
 
 /* assumes nothing being done in ntree yet, sets the default in/out node */
 /* called from shading buttons or header */
-void ED_node_texture_default(const bContext *C, Tex *tx)
+void ED_node_texture_default(const bContext *C, Tex *tex)
 {
   bNode *in, *out;
   bNodeSocket *fromsock, *tosock;
 
   /* but lets check it anyway */
-  if (tx->nodetree) {
+  if (tex->nodetree) {
     if (G.debug & G_DEBUG) {
       printf("error in texture initialize\n");
     }
     return;
   }
 
-  tx->nodetree = ntreeAddTree(NULL, "Texture Nodetree", ntreeType_Texture->idname);
+  tex->nodetree = ntreeAddTree(NULL, "Texture Nodetree", ntreeType_Texture->idname);
 
-  out = nodeAddStaticNode(C, tx->nodetree, TEX_NODE_OUTPUT);
+  out = nodeAddStaticNode(C, tex->nodetree, TEX_NODE_OUTPUT);
   out->locx = 300.0f;
   out->locy = 300.0f;
 
-  in = nodeAddStaticNode(C, tx->nodetree, TEX_NODE_CHECKER);
+  in = nodeAddStaticNode(C, tex->nodetree, TEX_NODE_CHECKER);
   in->locx = 10.0f;
   in->locy = 300.0f;
-  nodeSetActive(tx->nodetree, in);
+  nodeSetActive(tex->nodetree, in);
 
   fromsock = in->outputs.first;
   tosock = out->inputs.first;
-  nodeAddLink(tx->nodetree, in, fromsock, out, tosock);
+  nodeAddLink(tex->nodetree, in, fromsock, out, tosock);
 
-  ntreeUpdateTree(CTX_data_main(C), tx->nodetree);
+  ntreeUpdateTree(CTX_data_main(C), tex->nodetree);
 }
 
 /* Here we set the active tree(s), even called for each redraw now, so keep it fast :) */

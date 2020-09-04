@@ -130,12 +130,12 @@ bNodeSocket *Node::getEditorInputSocket(int editorNodeInputSocketIndex)
   }
   return NULL;
 }
-bNodeSocket *Node::getEditorOutputSocket(int editorNodeInputSocketIndex)
+bNodeSocket *Node::getEditorOutputSocket(int editorNodeOutputSocketIndex)
 {
   bNodeSocket *bSock = (bNodeSocket *)this->getbNode()->outputs.first;
   int index = 0;
   while (bSock != NULL) {
-    if (index == editorNodeInputSocketIndex) {
+    if (index == editorNodeOutputSocketIndex) {
       return bSock;
     }
     index++;

@@ -115,7 +115,7 @@ class Cluster {
     return "cluster_" + std::to_string((uintptr_t)this);
   }
 
-  void set_parent_cluster(Cluster *cluster);
+  void set_parent_cluster(Cluster *new_parent);
   void set_parent_cluster(Cluster &cluster)
   {
     this->set_parent_cluster(&cluster);

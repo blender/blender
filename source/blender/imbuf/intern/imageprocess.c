@@ -322,7 +322,7 @@ void nearest_interpolation_color_wrap(
   }
 }
 
-void nearest_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, int yout)
+void nearest_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, int yout)
 {
   unsigned char *outI = NULL;
   float *outF = NULL;
@@ -334,7 +334,7 @@ void nearest_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, in
   /* gcc warns these could be uninitialized, but its ok. */
   pixel_from_buffer(out, &outI, &outF, xout, yout);
 
-  nearest_interpolation_color(in, outI, outF, x, y);
+  nearest_interpolation_color(in, outI, outF, u, v);
 }
 
 /*********************** Threaded image processing *************************/

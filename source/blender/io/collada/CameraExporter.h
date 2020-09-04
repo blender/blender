@@ -36,6 +36,6 @@ class CamerasExporter : COLLADASW::LibraryCameras {
   void operator()(Object *ob, Scene *sce);
 
  private:
-  bool exportBlenderProfile(COLLADASW::Camera &cla, Camera *cam);
+  bool exportBlenderProfile(COLLADASW::Camera &cm, Camera *cam);
   BCExportSettings &export_settings;
 };

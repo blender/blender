@@ -32,8 +32,8 @@ PyObject *pyrna_callback_add(BPy_StructRNA *self, PyObject *args);
 PyObject *pyrna_callback_remove(BPy_StructRNA *self, PyObject *args);
 #endif
 
-PyObject *pyrna_callback_classmethod_add(PyObject *cls, PyObject *args);
-PyObject *pyrna_callback_classmethod_remove(PyObject *cls, PyObject *args);
+PyObject *pyrna_callback_classmethod_add(PyObject *self, PyObject *args);
+PyObject *pyrna_callback_classmethod_remove(PyObject *self, PyObject *args);
 
 #ifdef __cplusplus
 }

@@ -39,7 +39,7 @@ extern "C" {
 
 void BLI_covariance_m_vn_ex(const int n,
                             const float *cos_vn,
-                            const int nbr_cos_v3,
+                            const int nbr_cos_vn,
                             const float *center,
                             const bool use_sample_correction,
                             float *r_covmat);

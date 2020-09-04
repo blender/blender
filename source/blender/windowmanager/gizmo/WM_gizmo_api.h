@@ -96,7 +96,7 @@ void WM_gizmo_set_matrix_rotation_from_yz_axis(struct wmGizmo *gz,
                                                const float y_axis[3],
                                                const float z_axis[3]);
 
-void WM_gizmo_set_matrix_offset_location(struct wmGizmo *gz, const float origin[3]);
+void WM_gizmo_set_matrix_offset_location(struct wmGizmo *gz, const float offset[3]);
 void WM_gizmo_set_matrix_offset_rotation_from_z_axis(struct wmGizmo *gz, const float z_axis[3]);
 void WM_gizmo_set_matrix_offset_rotation_from_yz_axis(struct wmGizmo *gz,
                                                       const float y_axis[3],
@@ -130,20 +130,20 @@ void WM_gizmo_calc_matrix_final(const struct wmGizmo *gz, float r_mat[4][4]);
 
 /* properties */
 void WM_gizmo_properties_create_ptr(struct PointerRNA *ptr, struct wmGizmoType *gzt);
-void WM_gizmo_properties_create(struct PointerRNA *ptr, const char *opstring);
+void WM_gizmo_properties_create(struct PointerRNA *ptr, const char *gtstring);
 void WM_gizmo_properties_alloc(struct PointerRNA **ptr,
                                struct IDProperty **properties,
-                               const char *wtstring);
+                               const char *gtstring);
 void WM_gizmo_properties_sanitize(struct PointerRNA *ptr, const bool no_context);
 bool WM_gizmo_properties_default(struct PointerRNA *ptr, const bool do_update);
-void WM_gizmo_properties_reset(struct wmGizmo *op);
+void WM_gizmo_properties_reset(struct wmGizmo *gz);
 void WM_gizmo_properties_clear(struct PointerRNA *ptr);
 void WM_gizmo_properties_free(struct PointerRNA *ptr);
 
 /* wm_gizmo_type.c */
 const struct wmGizmoType *WM_gizmotype_find(const char *idname, bool quiet);
-void WM_gizmotype_append(void (*wtfunc)(struct wmGizmoType *));
-void WM_gizmotype_append_ptr(void (*mnpfunc)(struct wmGizmoType *, void *), void *userdata);
+void WM_gizmotype_append(void (*gtfunc)(struct wmGizmoType *));
+void WM_gizmotype_append_ptr(void (*gtfunc)(struct wmGizmoType *, void *), void *userdata);
 bool WM_gizmotype_remove(struct bContext *C, struct Main *bmain, const char *idname);
 void WM_gizmotype_remove_ptr(struct bContext *C, struct Main *bmain, struct wmGizmoType *gzt);
 void WM_gizmotype_iter(struct GHashIterator *ghi);
@@ -151,11 +151,11 @@ void WM_gizmotype_iter(struct GHashIterator *ghi);
 /* wm_gizmo_group_type.c */
 struct wmGizmoGroupType *WM_gizmogrouptype_find(const char *idname, bool quiet);
 struct wmGizmoGroupType *WM_gizmogrouptype_append(void (*wtfunc)(struct wmGizmoGroupType *));
-struct wmGizmoGroupType *WM_gizmogrouptype_append_ptr(void (*mnpfunc)(struct wmGizmoGroupType *,
-                                                                      void *),
+struct wmGizmoGroupType *WM_gizmogrouptype_append_ptr(void (*wtfunc)(struct wmGizmoGroupType *,
+                                                                     void *),
                                                       void *userdata);
 bool WM_gizmogrouptype_free(const char *idname);
-void WM_gizmogrouptype_free_ptr(struct wmGizmoGroupType *wt);
+void WM_gizmogrouptype_free_ptr(struct wmGizmoGroupType *gzgt);
 void WM_gizmogrouptype_iter(struct GHashIterator *ghi);
 
 struct wmGizmoGroupTypeRef *WM_gizmogrouptype_append_and_link(

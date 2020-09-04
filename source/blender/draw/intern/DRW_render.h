@@ -206,19 +206,19 @@ typedef void (*GPUMaterialEvalCallbackFn)(struct GPUMaterial *mat,
 #endif
 
 struct GPUShader *DRW_shader_create_ex(
-    const char *vert, const char *geom, const char *frag, const char *defines, const char *func);
+    const char *vert, const char *geom, const char *frag, const char *defines, const char *name);
 struct GPUShader *DRW_shader_create_with_lib_ex(const char *vert,
                                                 const char *geom,
                                                 const char *frag,
                                                 const char *lib,
                                                 const char *defines,
-                                                const char *func);
+                                                const char *name);
 struct GPUShader *DRW_shader_create_with_shaderlib_ex(const char *vert,
                                                       const char *geom,
                                                       const char *frag,
                                                       const DRWShaderLibrary *lib,
                                                       const char *defines,
-                                                      const char *func);
+                                                      const char *name);
 struct GPUShader *DRW_shader_create_with_transform_feedback(const char *vert,
                                                             const char *geom,
                                                             const char *defines,
@@ -227,11 +227,11 @@ struct GPUShader *DRW_shader_create_with_transform_feedback(const char *vert,
                                                             const int varying_count);
 struct GPUShader *DRW_shader_create_fullscreen_ex(const char *frag,
                                                   const char *defines,
-                                                  const char *func);
+                                                  const char *name);
 struct GPUShader *DRW_shader_create_fullscreen_with_shaderlib_ex(const char *frag,
                                                                  const DRWShaderLibrary *lib,
                                                                  const char *defines,
-                                                                 const char *func);
+                                                                 const char *name);
 #define DRW_shader_create(vert, geom, frag, defines) \
   DRW_shader_create_ex(vert, geom, frag, defines, __func__)
 #define DRW_shader_create_with_lib(vert, geom, frag, lib, defines) \
@@ -416,29 +416,30 @@ void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
                          void *user_data);
 
 /* If ob is NULL, unit modelmatrix is assumed and culling is bypassed. */
-#define DRW_shgroup_call(shgrp, geom, ob) DRW_shgroup_call_ex(shgrp, ob, NULL, geom, false, NULL)
+#define DRW_shgroup_call(shgroup, geom, ob) \
+  DRW_shgroup_call_ex(shgroup, ob, NULL, geom, false, NULL)
 
 /* Same as DRW_shgroup_call but override the obmat. Not culled. */
-#define DRW_shgroup_call_obmat(shgrp, geom, obmat) \
-  DRW_shgroup_call_ex(shgrp, NULL, obmat, geom, false, NULL)
+#define DRW_shgroup_call_obmat(shgroup, geom, obmat) \
+  DRW_shgroup_call_ex(shgroup, NULL, obmat, geom, false, NULL)
 
 /* TODO(fclem) remove this when we have DRWView */
 /* user_data is used by DRWCallVisibilityFn defined in DRWView. */
-#define DRW_shgroup_call_with_callback(shgrp, geom, ob, user_data) \
-  DRW_shgroup_call_ex(shgrp, ob, NULL, geom, false, user_data)
+#define DRW_shgroup_call_with_callback(shgroup, geom, ob, user_data) \
+  DRW_shgroup_call_ex(shgroup, ob, NULL, geom, false, user_data)
 
 /* Same as DRW_shgroup_call but bypass culling even if ob is not NULL. */
-#define DRW_shgroup_call_no_cull(shgrp, geom, ob) \
-  DRW_shgroup_call_ex(shgrp, ob, NULL, geom, true, NULL)
+#define DRW_shgroup_call_no_cull(shgroup, geom, ob) \
+  DRW_shgroup_call_ex(shgroup, ob, NULL, geom, true, NULL)
 
 void DRW_shgroup_call_range(
     DRWShadingGroup *shgroup, Object *ob, struct GPUBatch *geom, uint v_sta, uint v_ct);
 void DRW_shgroup_call_instance_range(
-    DRWShadingGroup *shgroup, Object *ob, struct GPUBatch *geom, uint v_sta, uint v_ct);
+    DRWShadingGroup *shgroup, Object *ob, struct GPUBatch *geom, uint i_sta, uint i_ct);
 
-void DRW_shgroup_call_procedural_points(DRWShadingGroup *sh, Object *ob, uint point_ct);
-void DRW_shgroup_call_procedural_lines(DRWShadingGroup *sh, Object *ob, uint line_ct);
-void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *sh, Object *ob, uint tri_ct);
+void DRW_shgroup_call_procedural_points(DRWShadingGroup *sh, Object *ob, uint point_count);
+void DRW_shgroup_call_procedural_lines(DRWShadingGroup *sh, Object *ob, uint line_count);
+void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *sh, Object *ob, uint tri_count);
 /* Warning: Only use with Shaders that have IN_PLACE_INSTANCES defined. */
 void DRW_shgroup_call_instances(DRWShadingGroup *shgroup,
                                 Object *ob,
@@ -453,15 +454,15 @@ void DRW_shgroup_call_instances_with_attrs(DRWShadingGroup *shgroup,
 void DRW_shgroup_call_sculpt(DRWShadingGroup *sh, Object *ob, bool wire, bool mask);
 void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **sh, int num_sh, Object *ob);
 
-DRWCallBuffer *DRW_shgroup_call_buffer(DRWShadingGroup *shading_group,
+DRWCallBuffer *DRW_shgroup_call_buffer(DRWShadingGroup *shgroup,
                                        struct GPUVertFormat *format,
                                        GPUPrimType prim_type);
-DRWCallBuffer *DRW_shgroup_call_buffer_instance(DRWShadingGroup *shading_group,
+DRWCallBuffer *DRW_shgroup_call_buffer_instance(DRWShadingGroup *shgroup,
                                                 struct GPUVertFormat *format,
                                                 struct GPUBatch *geom);
 
 void DRW_buffer_add_entry_struct(DRWCallBuffer *callbuf, const void *data);
-void DRW_buffer_add_entry_array(DRWCallBuffer *buffer, const void *attr[], uint attr_len);
+void DRW_buffer_add_entry_array(DRWCallBuffer *callbuf, const void *attr[], uint attr_len);
 
 #define DRW_buffer_add_entry(buffer, ...) \
   do { \
@@ -558,9 +559,9 @@ void DRW_shgroup_uniform_mat3(DRWShadingGroup *shgroup, const char *name, const 
 void DRW_shgroup_uniform_mat4(DRWShadingGroup *shgroup, const char *name, const float (*value)[4]);
 /* Store value instead of referencing it. */
 void DRW_shgroup_uniform_int_copy(DRWShadingGroup *shgroup, const char *name, const int value);
-void DRW_shgroup_uniform_ivec2_copy(DRWShadingGroup *shgrp, const char *name, const int *value);
-void DRW_shgroup_uniform_ivec3_copy(DRWShadingGroup *shgrp, const char *name, const int *value);
-void DRW_shgroup_uniform_ivec4_copy(DRWShadingGroup *shgrp, const char *name, const int *value);
+void DRW_shgroup_uniform_ivec2_copy(DRWShadingGroup *shgroup, const char *name, const int *value);
+void DRW_shgroup_uniform_ivec3_copy(DRWShadingGroup *shgroup, const char *name, const int *value);
+void DRW_shgroup_uniform_ivec4_copy(DRWShadingGroup *shgroup, const char *name, const int *value);
 void DRW_shgroup_uniform_bool_copy(DRWShadingGroup *shgroup, const char *name, const bool value);
 void DRW_shgroup_uniform_float_copy(DRWShadingGroup *shgroup, const char *name, const float value);
 void DRW_shgroup_uniform_vec2_copy(DRWShadingGroup *shgroup, const char *name, const float *value);
@@ -582,7 +583,7 @@ void DRW_pass_state_set(DRWPass *pass, DRWState state);
 void DRW_pass_state_add(DRWPass *pass, DRWState state);
 void DRW_pass_state_remove(DRWPass *pass, DRWState state);
 void DRW_pass_foreach_shgroup(DRWPass *pass,
-                              void (*callback)(void *userData, DRWShadingGroup *shgrp),
+                              void (*callback)(void *userData, DRWShadingGroup *shgroup),
                               void *userData);
 void DRW_pass_sort_shgroup_z(DRWPass *pass);
 void DRW_pass_sort_shgroup_reverse(DRWPass *pass);
@@ -684,7 +685,7 @@ void **DRW_view_layer_engine_data_ensure(DrawEngineType *engine_type,
                                          void (*callback)(void *storage));
 
 /* DrawData */
-DrawData *DRW_drawdata_get(ID *ib, DrawEngineType *engine_type);
+DrawData *DRW_drawdata_get(ID *id, DrawEngineType *engine_type);
 DrawData *DRW_drawdata_ensure(ID *id,
                               DrawEngineType *engine_type,
                               size_t size,

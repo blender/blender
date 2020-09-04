@@ -212,20 +212,20 @@ class CurvePoint : public Interface0D {
    *    The first SVertex
    *  \param iB:
    *    The second SVertex
-   *  \param t2d:
+   *  \param t:
    *    A 2D interpolation parameter used to linearly interpolate \a iA and \a iB
    */
-  CurvePoint(SVertex *iA, SVertex *iB, float t2d);
+  CurvePoint(SVertex *iA, SVertex *iB, float t);
 
   /*! Builds a CurvePoint from two CurvePoint and an interpolation parameter.
    *  \param iA:
    *    The first CurvePoint
    *  \param iB:
    *    The second CurvePoint
-   *  \param t2d:
+   *  \param t:
    *    The 2D interpolation parameter used to linearly interpolate \a iA and \a iB.
    */
-  CurvePoint(CurvePoint *iA, CurvePoint *iB, float t2d);
+  CurvePoint(CurvePoint *iA, CurvePoint *iB, float t);
 
   // CurvePoint(SVertex *iA, SVertex *iB, float t2d, float t3d);
 

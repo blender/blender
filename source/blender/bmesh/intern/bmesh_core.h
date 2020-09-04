@@ -46,7 +46,7 @@ BMFace *BM_face_create(BMesh *bm,
                        const BMFace *f_example,
                        const eBMCreateFlag create_flag);
 BMFace *BM_face_create_verts(BMesh *bm,
-                             BMVert **verts,
+                             BMVert **vert_arr,
                              const int len,
                              const BMFace *f_example,
                              const eBMCreateFlag create_flag,
@@ -100,8 +100,8 @@ void bmesh_kernel_edge_separate(BMesh *bm, BMEdge *e, BMLoop *l_sep, const bool 
 
 BMFace *bmesh_kernel_split_face_make_edge(BMesh *bm,
                                           BMFace *f,
-                                          BMLoop *l1,
-                                          BMLoop *l2,
+                                          BMLoop *l_v1,
+                                          BMLoop *l_v2,
                                           BMLoop **r_l,
 #ifdef USE_BMESH_HOLES
                                           ListBase *holes,
@@ -114,13 +114,13 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
                                          BMEdge *e_kill,
                                          BMVert *v_kill,
                                          const bool do_del,
-                                         const bool check_edge_splice,
+                                         const bool check_edge_exists,
                                          const bool kill_degenerate_faces);
 BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
                                          BMEdge *e_kill,
                                          BMVert *v_kill,
                                          const bool do_del,
-                                         const bool check_edge_double,
+                                         const bool check_edge_exists,
                                          const bool kill_degenerate_faces);
 BMFace *bmesh_kernel_join_face_kill_edge(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e);
 

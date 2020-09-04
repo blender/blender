@@ -82,7 +82,7 @@ void wrap_offset(const struct SpaceText *st,
                  int *offc);
 void wrap_offset_in_line(const struct SpaceText *st,
                          struct ARegion *region,
-                         struct TextLine *linep,
+                         struct TextLine *linein,
                          int cursin,
                          int *offl,
                          int *offc);

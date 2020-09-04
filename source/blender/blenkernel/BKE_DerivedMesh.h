@@ -257,7 +257,7 @@ void DM_init(DerivedMesh *dm,
              DerivedMeshType type,
              int numVerts,
              int numEdges,
-             int numFaces,
+             int numTessFaces,
              int numLoops,
              int numPolys);
 
@@ -275,7 +275,7 @@ void DM_from_template(DerivedMesh *dm,
                       DerivedMeshType type,
                       int numVerts,
                       int numEdges,
-                      int numFaces,
+                      int numTessFaces,
                       int numLoops,
                       int numPolys);
 
@@ -353,7 +353,7 @@ struct Mesh *editbmesh_get_eval_cage(struct Depsgraph *depsgraph,
                                      const struct CustomData_MeshMasks *dataMask);
 struct Mesh *editbmesh_get_eval_cage_from_orig(struct Depsgraph *depsgraph,
                                                struct Scene *scene,
-                                               struct Object *object,
+                                               struct Object *obedit,
                                                const struct CustomData_MeshMasks *dataMask);
 struct Mesh *editbmesh_get_eval_cage_and_final(struct Depsgraph *depsgraph,
                                                struct Scene *scene,
@@ -375,7 +375,7 @@ void makeDerivedMesh(struct Depsgraph *depsgraph,
 void DM_calc_loop_tangents(DerivedMesh *dm,
                            bool calc_active_tangent,
                            const char (*tangent_names)[MAX_NAME],
-                           int tangent_names_count);
+                           int tangent_names_len);
 
 /* debug only */
 #ifndef NDEBUG

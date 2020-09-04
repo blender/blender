@@ -96,7 +96,7 @@ class GeometryExporter : COLLADASW::LibraryGeometries {
   void createNormalsSource(std::string geom_id, Mesh *me, std::vector<Normal> &nor);
 
   void create_normals(std::vector<Normal> &nor,
-                      std::vector<BCPolygonNormalsIndices> &ind,
+                      std::vector<BCPolygonNormalsIndices> &polygons_normals,
                       Mesh *me);
 
   std::string getIdBySemantics(std::string geom_id,

@@ -31,16 +31,16 @@
 #include "BLI_strict_flags.h"
 
 /**
- * Check if memory is zero'd, as with memset(s, 0, nbytes)
+ * Check if memory is zero'd, as with memset(arr, 0, arr_size)
  */
-bool BLI_memory_is_zero(const void *s, const size_t nbytes)
+bool BLI_memory_is_zero(const void *arr, const size_t arr_size)
 {
-  const char *s_byte = s;
-  const char *s_end = (const char *)s + nbytes;
+  const char *arr_byte = arr;
+  const char *arr_end = (const char *)arr + arr_size;
 
-  while ((s_byte != s_end) && (*s_byte == 0)) {
-    s_byte++;
+  while ((arr_byte != arr_end) && (*arr_byte == 0)) {
+    arr_byte++;
   }
 
-  return (s_byte == s_end);
+  return (arr_byte == arr_end);
 }

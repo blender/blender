@@ -58,7 +58,7 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph,
                                 struct Scene *scene,
                                 struct Object *ob);
 
-struct MDeformVert *BKE_lattice_deform_verts_get(const struct Object *lattice);
+struct MDeformVert *BKE_lattice_deform_verts_get(const struct Object *oblatt);
 struct BPoint *BKE_lattice_active_point_get(struct Lattice *lt);
 
 struct BoundBox *BKE_lattice_boundbox_get(struct Object *ob);
@@ -115,7 +115,7 @@ void BKE_lattice_deform_coords(const struct Object *ob_lattice,
                                const int vert_coords_len,
                                const short flag,
                                const char *defgrp_name,
-                               float influence);
+                               float fac);
 
 void BKE_lattice_deform_coords_with_mesh(const struct Object *ob_lattice,
                                          const struct Object *ob_target,
@@ -123,7 +123,7 @@ void BKE_lattice_deform_coords_with_mesh(const struct Object *ob_lattice,
                                          const int vert_coords_len,
                                          const short flag,
                                          const char *defgrp_name,
-                                         const float influence,
+                                         const float fac,
                                          const struct Mesh *me_target);
 
 void BKE_lattice_deform_coords_with_editmesh(const struct Object *ob_lattice,
@@ -132,7 +132,7 @@ void BKE_lattice_deform_coords_with_editmesh(const struct Object *ob_lattice,
                                              const int vert_coords_len,
                                              const short flag,
                                              const char *defgrp_name,
-                                             const float influence,
+                                             const float fac,
                                              struct BMEditMesh *em_target);
 /** \} */
 

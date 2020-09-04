@@ -140,8 +140,8 @@ class BCSampleFrameContainer {
   int get_frames(Object *ob, Bone *bone, BCFrames &frames) const;
 
   int get_samples(Object *ob, BCFrameSampleMap &samples) const;
-  int get_matrices(Object *ob, BCMatrixSampleMap &matrices) const;
-  int get_matrices(Object *ob, Bone *bone, BCMatrixSampleMap &bones) const;
+  int get_matrices(Object *ob, BCMatrixSampleMap &samples) const;
+  int get_matrices(Object *ob, Bone *bone, BCMatrixSampleMap &samples) const;
 };
 
 class BCAnimationSampler {
@@ -168,7 +168,7 @@ class BCAnimationSampler {
       BCAnimation &animation, float *ref, float *val, std::string data_path, int length);
 
  public:
-  BCAnimationSampler(BCExportSettings &export_settings, BCObjectSet &animated_subset);
+  BCAnimationSampler(BCExportSettings &export_settings, BCObjectSet &object_set);
   ~BCAnimationSampler();
 
   void add_object(Object *ob);

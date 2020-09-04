@@ -576,22 +576,22 @@ static int constraint_type_get(Object *owner, bPoseChannel *pchan)
 /* checks validity of object pointers, and NULLs,
  * if Bone doesn't exist it sets the CONSTRAINT_DISABLE flag.
  */
-static void test_constraints(Main *bmain, Object *owner, bPoseChannel *pchan)
+static void test_constraints(Main *bmain, Object *ob, bPoseChannel *pchan)
 {
   bConstraint *curcon;
   ListBase *conlist = NULL;
   int type;
 
-  if (owner == NULL) {
+  if (ob == NULL) {
     return;
   }
 
-  type = constraint_type_get(owner, pchan);
+  type = constraint_type_get(ob, pchan);
 
   /* Get the constraint list for this object */
   switch (type) {
     case CONSTRAINT_OBTYPE_OBJECT:
-      conlist = &owner->constraints;
+      conlist = &ob->constraints;
       break;
     case CONSTRAINT_OBTYPE_BONE:
       conlist = &pchan->constraints;
@@ -601,46 +601,46 @@ static void test_constraints(Main *bmain, Object *owner, bPoseChannel *pchan)
   /* Check all constraints - is constraint valid? */
   if (conlist) {
     for (curcon = conlist->first; curcon; curcon = curcon->next) {
-      test_constraint(bmain, owner, pchan, curcon, type);
+      test_constraint(bmain, ob, pchan, curcon, type);
     }
   }
 }
 
-void object_test_constraints(Main *bmain, Object *owner)
+void object_test_constraints(Main *bmain, Object *ob)
 {
-  if (owner->constraints.first) {
-    test_constraints(bmain, owner, NULL);
+  if (ob->constraints.first) {
+    test_constraints(bmain, ob, NULL);
   }
 
-  if (owner->type == OB_ARMATURE && owner->pose) {
+  if (ob->type == OB_ARMATURE && ob->pose) {
     bPoseChannel *pchan;
 
-    for (pchan = owner->pose->chanbase.first; pchan; pchan = pchan->next) {
+    for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
       if (pchan->constraints.first) {
-        test_constraints(bmain, owner, pchan);
+        test_constraints(bmain, ob, pchan);
       }
     }
   }
 }
 
-static void object_test_constraint(Main *bmain, Object *owner, bConstraint *con)
+static void object_test_constraint(Main *bmain, Object *ob, bConstraint *con)
 {
-  if (owner->type == OB_ARMATURE && owner->pose) {
-    if (BLI_findindex(&owner->constraints, con) != -1) {
-      test_constraint(bmain, owner, NULL, con, CONSTRAINT_OBTYPE_OBJECT);
+  if (ob->type == OB_ARMATURE && ob->pose) {
+    if (BLI_findindex(&ob->constraints, con) != -1) {
+      test_constraint(bmain, ob, NULL, con, CONSTRAINT_OBTYPE_OBJECT);
     }
     else {
       bPoseChannel *pchan;
-      for (pchan = owner->pose->chanbase.first; pchan; pchan = pchan->next) {
+      for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
         if (BLI_findindex(&pchan->constraints, con) != -1) {
-          test_constraint(bmain, owner, pchan, con, CONSTRAINT_OBTYPE_BONE);
+          test_constraint(bmain, ob, pchan, con, CONSTRAINT_OBTYPE_BONE);
           break;
         }
       }
     }
   }
   else {
-    test_constraint(bmain, owner, NULL, con, CONSTRAINT_OBTYPE_OBJECT);
+    test_constraint(bmain, ob, NULL, con, CONSTRAINT_OBTYPE_OBJECT);
   }
 }
 

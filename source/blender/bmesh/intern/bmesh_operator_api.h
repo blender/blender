@@ -575,7 +575,7 @@ void BMO_slot_map_insert(BMOperator *op, BMOpSlot *slot, const void *element, co
 void BMO_slot_map_to_flag(BMesh *bm,
                           BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
                           const char *slot_name,
-                          const char hflag,
+                          const char htype,
                           const short oflag);
 
 void *BMO_slot_buffer_alloc(BMOperator *op,

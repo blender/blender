@@ -105,7 +105,7 @@ class NodeGraph {
 
   NodeInputs find_inputs(const NodeRange &node_range, bNodeSocket *b_socket);
   NodeOutput *find_output(const NodeRange &node_range, bNodeSocket *b_socket);
-  void add_bNodeLink(const NodeRange &node_range, bNodeLink *bNodeLink);
+  void add_bNodeLink(const NodeRange &node_range, bNodeLink *b_nodelink);
 
   /* **** Special proxy node type conversions **** */
   /* These nodes are not represented in the node graph themselves,

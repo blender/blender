@@ -176,7 +176,7 @@ int bpy_bm_generic_valid_check(BPy_BMGeneric *self);
 int bpy_bm_generic_valid_check_source(BMesh *bm_source,
                                       const char *error_prefix,
                                       void **args,
-                                      uint args_n) ATTR_NONNULL(1, 2);
+                                      uint args_tot) ATTR_NONNULL(1, 2);
 
 #define BPY_BM_CHECK_OBJ(obj) \
   if (UNLIKELY(bpy_bm_generic_valid_check((BPy_BMGeneric *)obj) == -1)) { \

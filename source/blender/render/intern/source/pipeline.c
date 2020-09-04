@@ -265,9 +265,9 @@ static int render_imbuf_write_stamp_test(ReportList *reports,
   return ok;
 }
 
-void RE_FreeRenderResult(RenderResult *res)
+void RE_FreeRenderResult(RenderResult *rr)
 {
-  render_result_free(res);
+  render_result_free(rr);
 }
 
 float *RE_RenderLayerGetPass(volatile RenderLayer *rl, const char *name, const char *viewname)

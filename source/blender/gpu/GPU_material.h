@@ -152,7 +152,7 @@ GPUNodeLink *GPU_image_tiled(GPUMaterial *mat,
                              struct ImageUser *iuser,
                              eGPUSamplerState sampler_state);
 GPUNodeLink *GPU_image_tiled_mapping(GPUMaterial *mat, struct Image *ima, struct ImageUser *iuser);
-GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *layer);
+GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *row);
 GPUNodeLink *GPU_volume_grid(GPUMaterial *mat,
                              const char *name,
                              eGPUVolumeDefaultValue default_value);

@@ -664,7 +664,7 @@ static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_
 }
 
 void uiTemplateNodeLink(
-    uiLayout *layout, bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *sock)
+    uiLayout *layout, bContext *C, bNodeTree *ntree, bNode *node, bNodeSocket *input)
 {
   uiBlock *block = uiLayoutGetBlock(layout);
   NodeLinkArg *arg;
@@ -674,17 +674,17 @@ void uiTemplateNodeLink(
   arg = MEM_callocN(sizeof(NodeLinkArg), "NodeLinkArg");
   arg->ntree = ntree;
   arg->node = node;
-  arg->sock = sock;
+  arg->sock = input;
 
   PointerRNA node_ptr;
   RNA_pointer_create((ID *)ntree, &RNA_Node, node, &node_ptr);
-  node_socket_color_get(C, ntree, &node_ptr, sock, socket_col);
+  node_socket_color_get(C, ntree, &node_ptr, input, socket_col);
 
   UI_block_layout_set_current(block, layout);
 
-  if (sock->link || sock->type == SOCK_SHADER || (sock->flag & SOCK_HIDE_VALUE)) {
+  if (input->link || input->type == SOCK_SHADER || (input->flag & SOCK_HIDE_VALUE)) {
     char name[UI_MAX_NAME_STR];
-    ui_node_sock_name(ntree, sock, name);
+    ui_node_sock_name(ntree, input, name);
     but = uiDefMenuBut(
         block, ui_template_node_link_menu, NULL, name, 0, 0, UI_UNIT_X * 4, UI_UNIT_Y, "");
   }
@@ -694,14 +694,14 @@ void uiTemplateNodeLink(
   }
 
   UI_but_type_set_menu_from_pulldown(but);
-  UI_but_node_link_set(but, sock, socket_col);
+  UI_but_node_link_set(but, input, socket_col);
   UI_but_drawflag_enable(but, UI_BUT_ICON_LEFT);
 
   but->poin = (char *)but;
   but->func_argN = arg;
 
-  if (sock->link && sock->link->fromnode) {
-    if (sock->link->fromnode->flag & NODE_ACTIVE_TEXTURE) {
+  if (input->link && input->link->fromnode) {
+    if (input->link->fromnode->flag & NODE_ACTIVE_TEXTURE) {
       but->flag |= UI_BUT_NODE_ACTIVE;
     }
   }

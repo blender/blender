@@ -733,9 +733,9 @@ void BM_elem_select_set(BMesh *bm, BMElem *ele, const bool select)
 }
 
 /* this replaces the active flag used in uv/face mode */
-void BM_mesh_active_face_set(BMesh *bm, BMFace *efa)
+void BM_mesh_active_face_set(BMesh *bm, BMFace *f)
 {
-  bm->act_face = efa;
+  bm->act_face = f;
 }
 
 BMFace *BM_mesh_active_face_get(BMesh *bm, const bool is_sloppy, const bool is_selected)

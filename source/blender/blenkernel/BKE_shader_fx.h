@@ -167,7 +167,7 @@ typedef struct ShaderFxTypeInfo {
 /* Initialize  global data (type info and some common global storages). */
 void BKE_shaderfx_init(void);
 
-void BKE_shaderfxType_panel_id(ShaderFxType type, char *panel_id);
+void BKE_shaderfxType_panel_id(ShaderFxType type, char *r_idname);
 const ShaderFxTypeInfo *BKE_shaderfx_get_info(ShaderFxType type);
 struct ShaderFxData *BKE_shaderfx_new(int type);
 void BKE_shaderfx_free_ex(struct ShaderFxData *fx, const int flag);

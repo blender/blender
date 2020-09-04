@@ -1764,7 +1764,7 @@ void sequencer_draw_preview(const bContext *C,
                             ARegion *region,
                             SpaceSeq *sseq,
                             int cfra,
-                            int frame_ofs,
+                            int offset,
                             bool draw_overlay,
                             bool draw_backdrop)
 {
@@ -1785,7 +1785,7 @@ void sequencer_draw_preview(const bContext *C,
 
   /* Get image. */
   ibuf = sequencer_ibuf_get(
-      bmain, region, depsgraph, scene, sseq, cfra, frame_ofs, names[sseq->multiview_eye]);
+      bmain, region, depsgraph, scene, sseq, cfra, offset, names[sseq->multiview_eye]);
 
   /* Setup off-screen buffers. */
   GPUViewport *viewport = WM_draw_region_get_viewport(region);

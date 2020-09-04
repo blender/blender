@@ -227,12 +227,12 @@ class ExecutionGroup {
    * \note Check if a certain area is available, when not available this are will be checked.
    * \note This method is called from other ExecutionGroup's.
    * \param graph:
-   * \param rect:
+   * \param area:
    * \return [true:false]
    * true: package(s) are scheduled
    * false: scheduling is deferred (depending workpackages are scheduled)
    */
-  bool scheduleAreaWhenPossible(ExecutionSystem *graph, rcti *rect);
+  bool scheduleAreaWhenPossible(ExecutionSystem *graph, rcti *area);
 
   /**
    * \brief add a chunk to the WorkScheduler.
@@ -336,7 +336,7 @@ class ExecutionGroup {
    * \brief compose multiple chunks into a single chunk
    * \return Memorybuffer *consolidated chunk
    */
-  MemoryBuffer *constructConsolidatedMemoryBuffer(MemoryProxy *memoryProxy, rcti *output);
+  MemoryBuffer *constructConsolidatedMemoryBuffer(MemoryProxy *memoryProxy, rcti *rect);
 
   /**
    * \brief initExecution is called just before the execution of the whole graph will be done.
@@ -395,9 +395,9 @@ class ExecutionGroup {
    * After determining the order of the chunks the chunks will be scheduled
    *
    * \see ViewerOperation
-   * \param system:
+   * \param graph:
    */
-  void execute(ExecutionSystem *system);
+  void execute(ExecutionSystem *graph);
 
   /**
    * \brief this method determines the MemoryProxy's where this execution group depends on.

@@ -4146,13 +4146,13 @@ ImBuf *BKE_sequencer_give_ibuf(const SeqRenderData *context, float cfra, int cha
 
 ImBuf *BKE_sequencer_give_ibuf_seqbase(const SeqRenderData *context,
                                        float cfra,
-                                       int chanshown,
+                                       int chan_shown,
                                        ListBase *seqbasep)
 {
   SeqRenderState state;
   sequencer_state_init(&state);
 
-  return seq_render_strip_stack(context, &state, seqbasep, cfra, chanshown);
+  return seq_render_strip_stack(context, &state, seqbasep, cfra, chan_shown);
 }
 
 ImBuf *BKE_sequencer_give_ibuf_direct(const SeqRenderData *context, float cfra, Sequence *seq)

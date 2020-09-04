@@ -50,12 +50,12 @@ void unit_qt(float q[4])
   q[1] = q[2] = q[3] = 0.0f;
 }
 
-void copy_qt_qt(float q1[4], const float q2[4])
+void copy_qt_qt(float q[4], const float a[4])
 {
-  q1[0] = q2[0];
-  q1[1] = q2[1];
-  q1[2] = q2[2];
-  q1[3] = q2[3];
+  q[0] = a[0];
+  q[1] = a[1];
+  q[2] = a[2];
+  q[3] = a[3];
 }
 
 bool is_zero_qt(const float q[4])
@@ -63,14 +63,14 @@ bool is_zero_qt(const float q[4])
   return (q[0] == 0 && q[1] == 0 && q[2] == 0 && q[3] == 0);
 }
 
-void mul_qt_qtqt(float q[4], const float q1[4], const float q2[4])
+void mul_qt_qtqt(float q[4], const float a[4], const float b[4])
 {
   float t0, t1, t2;
 
-  t0 = q1[0] * q2[0] - q1[1] * q2[1] - q1[2] * q2[2] - q1[3] * q2[3];
-  t1 = q1[0] * q2[1] + q1[1] * q2[0] + q1[2] * q2[3] - q1[3] * q2[2];
-  t2 = q1[0] * q2[2] + q1[2] * q2[0] + q1[3] * q2[1] - q1[1] * q2[3];
-  q[3] = q1[0] * q2[3] + q1[3] * q2[0] + q1[1] * q2[2] - q1[2] * q2[1];
+  t0 = a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3];
+  t1 = a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2];
+  t2 = a[0] * b[2] + a[2] * b[0] + a[3] * b[1] - a[1] * b[3];
+  q[3] = a[0] * b[3] + a[3] * b[0] + a[1] * b[2] - a[2] * b[1];
   q[0] = t0;
   q[1] = t1;
   q[2] = t2;
@@ -95,22 +95,22 @@ void mul_qt_qtqt(float q[4], const float q1[4], const float q2[4])
  *
  * \note Multiplying by 3x3 matrix is ~25% faster.
  */
-void mul_qt_v3(const float q[4], float v[3])
+void mul_qt_v3(const float q[4], float r[3])
 {
   float t0, t1, t2;
 
-  t0 = -q[1] * v[0] - q[2] * v[1] - q[3] * v[2];
-  t1 = q[0] * v[0] + q[2] * v[2] - q[3] * v[1];
-  t2 = q[0] * v[1] + q[3] * v[0] - q[1] * v[2];
-  v[2] = q[0] * v[2] + q[1] * v[1] - q[2] * v[0];
-  v[0] = t1;
-  v[1] = t2;
+  t0 = -q[1] * r[0] - q[2] * r[1] - q[3] * r[2];
+  t1 = q[0] * r[0] + q[2] * r[2] - q[3] * r[1];
+  t2 = q[0] * r[1] + q[3] * r[0] - q[1] * r[2];
+  r[2] = q[0] * r[2] + q[1] * r[1] - q[2] * r[0];
+  r[0] = t1;
+  r[1] = t2;
 
-  t1 = t0 * -q[1] + v[0] * q[0] - v[1] * q[3] + v[2] * q[2];
-  t2 = t0 * -q[2] + v[1] * q[0] - v[2] * q[1] + v[0] * q[3];
-  v[2] = t0 * -q[3] + v[2] * q[0] - v[0] * q[2] + v[1] * q[1];
-  v[0] = t1;
-  v[1] = t2;
+  t1 = t0 * -q[1] + r[0] * q[0] - r[1] * q[3] + r[2] * q[2];
+  t2 = t0 * -q[2] + r[1] * q[0] - r[2] * q[1] + r[0] * q[3];
+  r[2] = t0 * -q[3] + r[2] * q[0] - r[0] * q[2] + r[1] * q[1];
+  r[0] = t1;
+  r[1] = t2;
 }
 
 void conjugate_qt_qt(float q1[4], const float q2[4])
@@ -128,9 +128,9 @@ void conjugate_qt(float q[4])
   q[3] = -q[3];
 }
 
-float dot_qtqt(const float q1[4], const float q2[4])
+float dot_qtqt(const float a[4], const float b[4])
 {
-  return q1[0] * q2[0] + q1[1] * q2[1] + q1[2] * q2[2] + q1[3] * q2[3];
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
 }
 
 void invert_qt(float q[4])
@@ -177,16 +177,16 @@ void mul_qt_fl(float q[4], const float f)
   q[3] *= f;
 }
 
-void sub_qt_qtqt(float q[4], const float q1[4], const float q2[4])
+void sub_qt_qtqt(float q[4], const float a[4], const float b[4])
 {
-  float nq2[4];
+  float n_b[4];
 
-  nq2[0] = -q2[0];
-  nq2[1] = q2[1];
-  nq2[2] = q2[2];
-  nq2[3] = q2[3];
+  n_b[0] = -b[0];
+  n_b[1] = b[1];
+  n_b[2] = b[2];
+  n_b[3] = b[3];
 
-  mul_qt_qtqt(q, q1, nq2);
+  mul_qt_qtqt(q, a, n_b);
 }
 
 /* raise a unit quaternion to the specified power */
@@ -867,38 +867,38 @@ void interp_dot_slerp(const float t, const float cosom, float r_w[2])
   }
 }
 
-void interp_qt_qtqt(float result[4], const float quat1[4], const float quat2[4], const float t)
+void interp_qt_qtqt(float q[4], const float a[4], const float b[4], const float t)
 {
   float quat[4], cosom, w[2];
 
-  BLI_ASSERT_UNIT_QUAT(quat1);
-  BLI_ASSERT_UNIT_QUAT(quat2);
+  BLI_ASSERT_UNIT_QUAT(a);
+  BLI_ASSERT_UNIT_QUAT(b);
 
-  cosom = dot_qtqt(quat1, quat2);
+  cosom = dot_qtqt(a, b);
 
   /* rotate around shortest angle */
   if (cosom < 0.0f) {
     cosom = -cosom;
-    negate_v4_v4(quat, quat1);
+    negate_v4_v4(quat, a);
   }
   else {
-    copy_qt_qt(quat, quat1);
+    copy_qt_qt(quat, a);
   }
 
   interp_dot_slerp(t, cosom, w);
 
-  result[0] = w[0] * quat[0] + w[1] * quat2[0];
-  result[1] = w[0] * quat[1] + w[1] * quat2[1];
-  result[2] = w[0] * quat[2] + w[1] * quat2[2];
-  result[3] = w[0] * quat[3] + w[1] * quat2[3];
+  q[0] = w[0] * quat[0] + w[1] * b[0];
+  q[1] = w[0] * quat[1] + w[1] * b[1];
+  q[2] = w[0] * quat[2] + w[1] * b[2];
+  q[3] = w[0] * quat[3] + w[1] * b[3];
 }
 
-void add_qt_qtqt(float result[4], const float quat1[4], const float quat2[4], const float t)
+void add_qt_qtqt(float q[4], const float a[4], const float b[4], const float t)
 {
-  result[0] = quat1[0] + t * quat2[0];
-  result[1] = quat1[1] + t * quat2[1];
-  result[2] = quat1[2] + t * quat2[2];
-  result[3] = quat1[3] + t * quat2[3];
+  q[0] = a[0] + t * b[0];
+  q[1] = a[1] + t * b[1];
+  q[2] = a[2] + t * b[2];
+  q[3] = a[3] + t * b[3];
 }
 
 /* same as tri_to_quat() but takes pre-computed normal from the triangle
@@ -958,12 +958,12 @@ void tri_to_quat_ex(
 /**
  * \return the length of the normal, use to test for degenerate triangles.
  */
-float tri_to_quat(float quat[4], const float v1[3], const float v2[3], const float v3[3])
+float tri_to_quat(float q[4], const float a[3], const float b[3], const float c[3])
 {
   float vec[3];
-  const float len = normal_tri_v3(vec, v1, v2, v3);
+  const float len = normal_tri_v3(vec, a, b, c);
 
-  tri_to_quat_ex(quat, v1, v2, v3, vec);
+  tri_to_quat_ex(q, a, b, c, vec);
   return len;
 }
 
@@ -974,25 +974,25 @@ void print_qt(const char *str, const float q[4])
 
 /******************************** Axis Angle *********************************/
 
-void axis_angle_normalized_to_quat(float q[4], const float axis[3], const float angle)
+void axis_angle_normalized_to_quat(float r[4], const float axis[3], const float angle)
 {
   const float phi = 0.5f * angle;
   const float si = sinf(phi);
   const float co = cosf(phi);
   BLI_ASSERT_UNIT_V3(axis);
-  q[0] = co;
-  mul_v3_v3fl(q + 1, axis, si);
+  r[0] = co;
+  mul_v3_v3fl(r + 1, axis, si);
 }
 
-void axis_angle_to_quat(float q[4], const float axis[3], const float angle)
+void axis_angle_to_quat(float r[4], const float axis[3], const float angle)
 {
   float nor[3];
 
   if (LIKELY(normalize_v3_v3(nor, axis) != 0.0f)) {
-    axis_angle_normalized_to_quat(q, nor, angle);
+    axis_angle_normalized_to_quat(r, nor, angle);
   }
   else {
-    unit_qt(q);
+    unit_qt(r);
   }
 }
 
@@ -1094,33 +1094,33 @@ void axis_angle_normalized_to_mat3_ex(float mat[3][3],
   mat[2][2] = n_22 + angle_cos;
 }
 
-void axis_angle_normalized_to_mat3(float mat[3][3], const float axis[3], const float angle)
+void axis_angle_normalized_to_mat3(float R[3][3], const float axis[3], const float angle)
 {
-  axis_angle_normalized_to_mat3_ex(mat, axis, sinf(angle), cosf(angle));
+  axis_angle_normalized_to_mat3_ex(R, axis, sinf(angle), cosf(angle));
 }
 
 /* axis angle to 3x3 matrix - safer version (normalization of axis performed) */
-void axis_angle_to_mat3(float mat[3][3], const float axis[3], const float angle)
+void axis_angle_to_mat3(float R[3][3], const float axis[3], const float angle)
 {
   float nor[3];
 
   /* normalize the axis first (to remove unwanted scaling) */
   if (normalize_v3_v3(nor, axis) == 0.0f) {
-    unit_m3(mat);
+    unit_m3(R);
     return;
   }
 
-  axis_angle_normalized_to_mat3(mat, nor, angle);
+  axis_angle_normalized_to_mat3(R, nor, angle);
 }
 
 /* axis angle to 4x4 matrix - safer version (normalization of axis performed) */
-void axis_angle_to_mat4(float mat[4][4], const float axis[3], const float angle)
+void axis_angle_to_mat4(float R[4][4], const float axis[3], const float angle)
 {
   float tmat[3][3];
 
   axis_angle_to_mat3(tmat, axis, angle);
-  unit_m4(mat);
-  copy_m4_m3(mat, tmat);
+  unit_m4(R);
+  copy_m4_m3(R, tmat);
 }
 
 /* 3x3 matrix to axis angle */
@@ -1165,52 +1165,52 @@ void mat4_to_axis_angle(float axis[3], float *angle, const float mat[4][4])
   quat_to_axis_angle(axis, angle, q);
 }
 
-void axis_angle_to_mat4_single(float mat[4][4], const char axis, const float angle)
+void axis_angle_to_mat4_single(float R[4][4], const char axis, const float angle)
 {
   float mat3[3][3];
   axis_angle_to_mat3_single(mat3, axis, angle);
-  copy_m4_m3(mat, mat3);
+  copy_m4_m3(R, mat3);
 }
 
 /* rotation matrix from a single axis */
-void axis_angle_to_mat3_single(float mat[3][3], const char axis, const float angle)
+void axis_angle_to_mat3_single(float R[3][3], const char axis, const float angle)
 {
   const float angle_cos = cosf(angle);
   const float angle_sin = sinf(angle);
 
   switch (axis) {
     case 'X': /* rotation around X */
-      mat[0][0] = 1.0f;
-      mat[0][1] = 0.0f;
-      mat[0][2] = 0.0f;
-      mat[1][0] = 0.0f;
-      mat[1][1] = angle_cos;
-      mat[1][2] = angle_sin;
-      mat[2][0] = 0.0f;
-      mat[2][1] = -angle_sin;
-      mat[2][2] = angle_cos;
+      R[0][0] = 1.0f;
+      R[0][1] = 0.0f;
+      R[0][2] = 0.0f;
+      R[1][0] = 0.0f;
+      R[1][1] = angle_cos;
+      R[1][2] = angle_sin;
+      R[2][0] = 0.0f;
+      R[2][1] = -angle_sin;
+      R[2][2] = angle_cos;
       break;
     case 'Y': /* rotation around Y */
-      mat[0][0] = angle_cos;
-      mat[0][1] = 0.0f;
-      mat[0][2] = -angle_sin;
-      mat[1][0] = 0.0f;
-      mat[1][1] = 1.0f;
-      mat[1][2] = 0.0f;
-      mat[2][0] = angle_sin;
-      mat[2][1] = 0.0f;
-      mat[2][2] = angle_cos;
+      R[0][0] = angle_cos;
+      R[0][1] = 0.0f;
+      R[0][2] = -angle_sin;
+      R[1][0] = 0.0f;
+      R[1][1] = 1.0f;
+      R[1][2] = 0.0f;
+      R[2][0] = angle_sin;
+      R[2][1] = 0.0f;
+      R[2][2] = angle_cos;
       break;
     case 'Z': /* rotation around Z */
-      mat[0][0] = angle_cos;
-      mat[0][1] = angle_sin;
-      mat[0][2] = 0.0f;
-      mat[1][0] = -angle_sin;
-      mat[1][1] = angle_cos;
-      mat[1][2] = 0.0f;
-      mat[2][0] = 0.0f;
-      mat[2][1] = 0.0f;
-      mat[2][2] = 1.0f;
+      R[0][0] = angle_cos;
+      R[0][1] = angle_sin;
+      R[0][2] = 0.0f;
+      R[1][0] = -angle_sin;
+      R[1][1] = angle_cos;
+      R[1][2] = 0.0f;
+      R[2][0] = 0.0f;
+      R[2][1] = 0.0f;
+      R[2][2] = 1.0f;
       break;
     default:
       BLI_assert(0);
@@ -1218,16 +1218,16 @@ void axis_angle_to_mat3_single(float mat[3][3], const char axis, const float ang
   }
 }
 
-void angle_to_mat2(float mat[2][2], const float angle)
+void angle_to_mat2(float R[2][2], const float angle)
 {
   const float angle_cos = cosf(angle);
   const float angle_sin = sinf(angle);
 
   /* 2D rotation matrix */
-  mat[0][0] = angle_cos;
-  mat[0][1] = angle_sin;
-  mat[1][0] = -angle_sin;
-  mat[1][1] = angle_cos;
+  R[0][0] = angle_cos;
+  R[0][1] = angle_sin;
+  R[1][0] = -angle_sin;
+  R[1][1] = angle_cos;
 }
 
 void axis_angle_to_quat_single(float q[4], const char axis, const float angle)
@@ -1989,7 +1989,7 @@ void mat4_to_dquat(DualQuat *dq, const float basemat[4][4], const float mat[4][4
   dq->trans[3] = 0.5f * (t[0] * q[2] - t[1] * q[1] + t[2] * q[0]);
 }
 
-void dquat_to_mat4(float mat[4][4], const DualQuat *dq)
+void dquat_to_mat4(float R[4][4], const DualQuat *dq)
 {
   float len, q0[4];
   const float *t;
@@ -2005,40 +2005,40 @@ void dquat_to_mat4(float mat[4][4], const DualQuat *dq)
   mul_qt_fl(q0, len);
 
   /* rotation */
-  quat_to_mat4(mat, q0);
+  quat_to_mat4(R, q0);
 
   /* translation */
   t = dq->trans;
-  mat[3][0] = 2.0f * (-t[0] * q0[1] + t[1] * q0[0] - t[2] * q0[3] + t[3] * q0[2]) * len;
-  mat[3][1] = 2.0f * (-t[0] * q0[2] + t[1] * q0[3] + t[2] * q0[0] - t[3] * q0[1]) * len;
-  mat[3][2] = 2.0f * (-t[0] * q0[3] - t[1] * q0[2] + t[2] * q0[1] + t[3] * q0[0]) * len;
+  R[3][0] = 2.0f * (-t[0] * q0[1] + t[1] * q0[0] - t[2] * q0[3] + t[3] * q0[2]) * len;
+  R[3][1] = 2.0f * (-t[0] * q0[2] + t[1] * q0[3] + t[2] * q0[0] - t[3] * q0[1]) * len;
+  R[3][2] = 2.0f * (-t[0] * q0[3] - t[1] * q0[2] + t[2] * q0[1] + t[3] * q0[0]) * len;
 
   /* scaling */
   if (dq->scale_weight) {
-    mul_m4_m4m4(mat, mat, dq->scale);
+    mul_m4_m4m4(R, R, dq->scale);
   }
 }
 
-void add_weighted_dq_dq(DualQuat *dqsum, const DualQuat *dq, float weight)
+void add_weighted_dq_dq(DualQuat *dq_sum, const DualQuat *dq, float weight)
 {
   bool flipped = false;
 
   /* make sure we interpolate quats in the right direction */
-  if (dot_qtqt(dq->quat, dqsum->quat) < 0) {
+  if (dot_qtqt(dq->quat, dq_sum->quat) < 0) {
     flipped = true;
     weight = -weight;
   }
 
   /* interpolate rotation and translation */
-  dqsum->quat[0] += weight * dq->quat[0];
-  dqsum->quat[1] += weight * dq->quat[1];
-  dqsum->quat[2] += weight * dq->quat[2];
-  dqsum->quat[3] += weight * dq->quat[3];
+  dq_sum->quat[0] += weight * dq->quat[0];
+  dq_sum->quat[1] += weight * dq->quat[1];
+  dq_sum->quat[2] += weight * dq->quat[2];
+  dq_sum->quat[3] += weight * dq->quat[3];
 
-  dqsum->trans[0] += weight * dq->trans[0];
-  dqsum->trans[1] += weight * dq->trans[1];
-  dqsum->trans[2] += weight * dq->trans[2];
-  dqsum->trans[3] += weight * dq->trans[3];
+  dq_sum->trans[0] += weight * dq->trans[0];
+  dq_sum->trans[1] += weight * dq->trans[1];
+  dq_sum->trans[2] += weight * dq->trans[2];
+  dq_sum->trans[3] += weight * dq->trans[3];
 
   /* Interpolate scale - but only if there is scale present. If any dual
    * quaternions without scale are added, they will be compensated for in
@@ -2053,8 +2053,8 @@ void add_weighted_dq_dq(DualQuat *dqsum, const DualQuat *dq, float weight)
 
     copy_m4_m4(wmat, (float(*)[4])dq->scale);
     mul_m4_fl(wmat, weight);
-    add_m4_m4m4(dqsum->scale, dqsum->scale, wmat);
-    dqsum->scale_weight += weight;
+    add_m4_m4m4(dq_sum->scale, dq_sum->scale, wmat);
+    dq_sum->scale_weight += weight;
   }
 }
 
@@ -2083,7 +2083,7 @@ void normalize_dq(DualQuat *dq, float totweight)
   }
 }
 
-void mul_v3m3_dq(float co[3], float mat[3][3], DualQuat *dq)
+void mul_v3m3_dq(float r[3], float R[3][3], DualQuat *dq)
 {
   float M[3][3], t[3], scalemat[3][3], len2;
   float w = dq->quat[0], x = dq->quat[1], y = dq->quat[2], z = dq->quat[3];
@@ -2114,31 +2114,31 @@ void mul_v3m3_dq(float co[3], float mat[3][3], DualQuat *dq)
 
   /* apply scaling */
   if (dq->scale_weight) {
-    mul_m4_v3(dq->scale, co);
+    mul_m4_v3(dq->scale, r);
   }
 
   /* apply rotation and translation */
-  mul_m3_v3(M, co);
-  co[0] = (co[0] + t[0]) * len2;
-  co[1] = (co[1] + t[1]) * len2;
-  co[2] = (co[2] + t[2]) * len2;
+  mul_m3_v3(M, r);
+  r[0] = (r[0] + t[0]) * len2;
+  r[1] = (r[1] + t[1]) * len2;
+  r[2] = (r[2] + t[2]) * len2;
 
   /* Compute crazy-space correction matrix. */
-  if (mat) {
+  if (R) {
     if (dq->scale_weight) {
       copy_m3_m4(scalemat, dq->scale);
-      mul_m3_m3m3(mat, M, scalemat);
+      mul_m3_m3m3(R, M, scalemat);
     }
     else {
-      copy_m3_m3(mat, M);
+      copy_m3_m3(R, M);
     }
-    mul_m3_fl(mat, len2);
+    mul_m3_fl(R, len2);
   }
 }
 
-void copy_dq_dq(DualQuat *dq1, const DualQuat *dq2)
+void copy_dq_dq(DualQuat *r, const DualQuat *dq)
 {
-  memcpy(dq1, dq2, sizeof(DualQuat));
+  memcpy(r, dq, sizeof(DualQuat));
 }
 
 /* axis matches eTrackToAxis_Modes */

@@ -341,11 +341,11 @@ bool BLI_file_alias_target(
  * Returns the st_mode from stat-ing the specified path name, or 0 if stat fails
  * (most likely doesn't exist or no access).
  */
-int BLI_exists(const char *name)
+int BLI_exists(const char *path)
 {
 #if defined(WIN32)
   BLI_stat_t st;
-  wchar_t *tmp_16 = alloc_utf16_from_8(name, 1);
+  wchar_t *tmp_16 = alloc_utf16_from_8(path, 1);
   int len, res;
 
   len = wcslen(tmp_16);
@@ -375,9 +375,9 @@ int BLI_exists(const char *name)
   }
 #else
   struct stat st;
-  BLI_assert(!BLI_path_is_rel(name));
-  if (stat(name, &st)) {
-    return 0;
+  BLI_assert(!BLI_path_is_rel(path));
+  if (stat(path, &st)) {
+    return (0);
   }
 #endif
   return (st.st_mode);
@@ -582,9 +582,9 @@ void *BLI_file_read_text_as_mem_with_newline_as_nil(const char *filepath,
 /**
  * Reads the contents of a text file and returns the lines in a linked list.
  */
-LinkNode *BLI_file_read_as_lines(const char *name)
+LinkNode *BLI_file_read_as_lines(const char *filepath)
 {
-  FILE *fp = BLI_fopen(name, "r");
+  FILE *fp = BLI_fopen(filepath, "r");
   LinkNodePair lines = {NULL, NULL};
   char *buf;
   size_t size;

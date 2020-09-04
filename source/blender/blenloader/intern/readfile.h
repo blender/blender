@@ -142,7 +142,7 @@ void blo_split_main(ListBase *mainlist, struct Main *main);
 BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath);
 
 FileData *blo_filedata_from_file(const char *filepath, struct ReportList *reports);
-FileData *blo_filedata_from_memory(const void *buffer, int buffersize, struct ReportList *reports);
+FileData *blo_filedata_from_memory(const void *mem, int memsize, struct ReportList *reports);
 FileData *blo_filedata_from_memfile(struct MemFile *memfile,
                                     const struct BlendFileReadParams *params,
                                     struct ReportList *reports);

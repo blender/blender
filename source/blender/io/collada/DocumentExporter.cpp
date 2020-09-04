@@ -144,9 +144,10 @@ char *bc_CustomData_get_active_layer_name(const CustomData *data, int type)
   return data->layers[layer_index].name;
 }
 
-DocumentExporter::DocumentExporter(BlenderContext &blender_context, ExportSettings *exportSettings)
+DocumentExporter::DocumentExporter(BlenderContext &blender_context,
+                                   ExportSettings *export_settings)
     : blender_context(blender_context),
-      export_settings(BCExportSettings(exportSettings, blender_context))
+      export_settings(BCExportSettings(export_settings, blender_context))
 {
 }
 

@@ -835,9 +835,9 @@ bool Controller::getFaceSmoothness() const
   return _EnableFaceSmoothness;
 }
 
-void Controller::setComputeRidgesAndValleysFlag(bool iBool)
+void Controller::setComputeRidgesAndValleysFlag(bool b)
 {
-  _ComputeRidges = iBool;
+  _ComputeRidges = b;
 }
 
 bool Controller::getComputeRidgesAndValleysFlag() const

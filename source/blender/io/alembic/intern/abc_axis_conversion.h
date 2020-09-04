@@ -94,7 +94,7 @@ typedef enum {
 } AbcMatrixMode;
 
 void create_transform_matrix(Object *obj,
-                             float r_transform_mat[4][4],
+                             float r_yup_mat[4][4],
                              AbcMatrixMode mode,
                              Object *proxy_from);
 

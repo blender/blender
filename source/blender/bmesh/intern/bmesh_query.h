@@ -153,7 +153,7 @@ float BM_loop_calc_face_normal_safe_vcos(const BMLoop *l,
                                          float const (*vertexCos)[3],
                                          float r_normal[3]) ATTR_NONNULL();
 
-void BM_loop_calc_face_direction(const BMLoop *l, float r_normal[3]);
+void BM_loop_calc_face_direction(const BMLoop *l, float r_dir[3]);
 void BM_loop_calc_face_tangent(const BMLoop *l, float r_tangent[3]);
 
 float BM_edge_calc_face_angle_ex(const BMEdge *e, const float fallback) ATTR_WARN_UNUSED_RESULT
@@ -185,7 +185,7 @@ float BM_vert_calc_median_tagged_edge_length(const BMVert *v) ATTR_WARN_UNUSED_R
 BMLoop *BM_face_find_shortest_loop(BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BMLoop *BM_face_find_longest_loop(BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
-BMEdge *BM_edge_exists(BMVert *v1, BMVert *v2) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+BMEdge *BM_edge_exists(BMVert *v_a, BMVert *v_b) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 BMEdge *BM_edge_find_double(BMEdge *e) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 BMFace *BM_face_exists(BMVert **varr, int len) ATTR_NONNULL(1);

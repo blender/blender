@@ -49,19 +49,19 @@ struct IDNameLib_Map *BKE_main_idmap_create(struct Main *bmain,
                                             struct Main *old_bmain,
                                             const int idmap_types) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1);
-void BKE_main_idmap_destroy(struct IDNameLib_Map *id_typemap) ATTR_NONNULL();
-struct Main *BKE_main_idmap_main_get(struct IDNameLib_Map *id_typemap) ATTR_WARN_UNUSED_RESULT
+void BKE_main_idmap_destroy(struct IDNameLib_Map *id_map) ATTR_NONNULL();
+struct Main *BKE_main_idmap_main_get(struct IDNameLib_Map *id_map) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
-struct ID *BKE_main_idmap_lookup_name(struct IDNameLib_Map *id_typemap,
+struct ID *BKE_main_idmap_lookup_name(struct IDNameLib_Map *id_map,
                                       short id_type,
                                       const char *name,
                                       const struct Library *lib) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 3);
-struct ID *BKE_main_idmap_lookup_id(struct IDNameLib_Map *id_typemap,
+struct ID *BKE_main_idmap_lookup_id(struct IDNameLib_Map *id_map,
                                     const struct ID *id) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2);
 
-struct ID *BKE_main_idmap_lookup_uuid(struct IDNameLib_Map *id_typemap,
+struct ID *BKE_main_idmap_lookup_uuid(struct IDNameLib_Map *id_map,
                                       const uint session_uuid) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1);
 

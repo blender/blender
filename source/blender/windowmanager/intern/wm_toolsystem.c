@@ -450,10 +450,10 @@ static bool toolsystem_key_ensure_check(const bToolKey *tkey)
   return false;
 }
 
-int WM_toolsystem_mode_from_spacetype(ViewLayer *view_layer, ScrArea *area, int spacetype)
+int WM_toolsystem_mode_from_spacetype(ViewLayer *view_layer, ScrArea *area, int space_type)
 {
   int mode = -1;
-  switch (spacetype) {
+  switch (space_type) {
     case SPACE_VIEW3D: {
       /* 'area' may be NULL in this case. */
       Object *obact = OBACT(view_layer);

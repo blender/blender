@@ -59,7 +59,7 @@ extern void sbFreeSimulation(struct SoftBody *sb);
 extern void sbObjectStep(struct Depsgraph *depsgraph,
                          struct Scene *scene,
                          struct Object *ob,
-                         float framnr,
+                         float cfra,
                          float (*vertexCos)[3],
                          int numVerts);
 

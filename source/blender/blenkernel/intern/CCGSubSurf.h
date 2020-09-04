@@ -72,7 +72,7 @@ typedef enum {
 /***/
 
 CCGSubSurf *ccgSubSurf_new(CCGMeshIFC *ifc,
-                           int subdivisionLevels,
+                           int subdivLevels,
                            CCGAllocatorIFC *allocatorIFC,
                            CCGAllocatorHDL allocator);
 void ccgSubSurf_free(CCGSubSurf *ss);
@@ -100,11 +100,14 @@ CCGError ccgSubSurf_syncFaceDel(CCGSubSurf *ss, CCGFaceHDL fHDL);
 
 CCGError ccgSubSurf_processSync(CCGSubSurf *ss);
 
-CCGError ccgSubSurf_updateFromFaces(CCGSubSurf *ss, int lvl, CCGFace **faces, int numFaces);
-CCGError ccgSubSurf_updateToFaces(CCGSubSurf *ss, int lvl, CCGFace **faces, int numFaces);
-CCGError ccgSubSurf_updateNormals(CCGSubSurf *ss, CCGFace **faces, int numFaces);
-CCGError ccgSubSurf_updateLevels(CCGSubSurf *ss, int lvl, CCGFace **faces, int numFaces);
-CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **faces, int numFaces);
+CCGError ccgSubSurf_updateFromFaces(CCGSubSurf *ss,
+                                    int lvl,
+                                    CCGFace **effectedF,
+                                    int numEffectedF);
+CCGError ccgSubSurf_updateToFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, int numEffectedF);
+CCGError ccgSubSurf_updateNormals(CCGSubSurf *ss, CCGFace **effectedF, int numEffectedF);
+CCGError ccgSubSurf_updateLevels(CCGSubSurf *ss, int lvl, CCGFace **effectedF, int numEffectedF);
+CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, int numEffectedF);
 
 CCGError ccgSubSurf_setSubdivisionLevels(CCGSubSurf *ss, int subdivisionLevels);
 

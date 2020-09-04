@@ -275,8 +275,8 @@ void ntreeTexEndExecTree(bNodeTreeExec *exec)
   }
 }
 
-int ntreeTexExecTree(bNodeTree *nodes,
-                     TexResult *texres,
+int ntreeTexExecTree(bNodeTree *ntree,
+                     TexResult *target,
                      float co[3],
                      float dxt[3],
                      float dyt[3],
@@ -289,16 +289,16 @@ int ntreeTexExecTree(bNodeTree *nodes,
                      MTex *mtex)
 {
   TexCallData data;
-  float *nor = texres->nor;
+  float *nor = target->nor;
   int retval = TEX_INT;
   bNodeThreadStack *nts = NULL;
-  bNodeTreeExec *exec = nodes->execdata;
+  bNodeTreeExec *exec = ntree->execdata;
 
   data.co = co;
   data.dxt = dxt;
   data.dyt = dyt;
   data.osatex = osatex;
-  data.target = texres;
+  data.target = target;
   data.do_preview = preview;
   data.do_manage = true;
   data.thread = thread;
@@ -309,26 +309,26 @@ int ntreeTexExecTree(bNodeTree *nodes,
   /* ensure execdata is only initialized once */
   if (!exec) {
     BLI_thread_lock(LOCK_NODES);
-    if (!nodes->execdata) {
-      ntreeTexBeginExecTree(nodes);
+    if (!ntree->execdata) {
+      ntreeTexBeginExecTree(ntree);
     }
     BLI_thread_unlock(LOCK_NODES);
 
-    exec = nodes->execdata;
+    exec = ntree->execdata;
   }
 
   nts = ntreeGetThreadStack(exec, thread);
   ntreeExecThreadNodes(exec, nts, &data, thread);
   ntreeReleaseThreadStack(nts);
 
-  if (texres->nor) {
+  if (target->nor) {
     retval |= TEX_NOR;
   }
   retval |= TEX_RGB;
   /* confusing stuff; the texture output node sets this to NULL to indicate no normal socket was
    * set however, the texture code checks this for other reasons
    * (namely, a normal is required for material). */
-  texres->nor = nor;
+  target->nor = nor;
 
   return retval;
 }

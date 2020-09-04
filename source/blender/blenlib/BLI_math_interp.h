@@ -88,7 +88,7 @@ void BLI_ewa_filter(const int width,
                     const float du[2],
                     const float dv[2],
                     ewa_filter_read_pixel_cb read_pixel_cb,
-                    void *customdata,
+                    void *userdata,
                     float result[4]);
 
 #ifdef __cplusplus

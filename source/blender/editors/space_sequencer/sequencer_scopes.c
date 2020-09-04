@@ -398,17 +398,17 @@ static void draw_zebra_float(ImBuf *src, ImBuf *ibuf, float perc)
   }
 }
 
-ImBuf *make_zebra_view_from_ibuf(ImBuf *src, float perc)
+ImBuf *make_zebra_view_from_ibuf(ImBuf *ibuf, float perc)
 {
-  ImBuf *ibuf = IMB_allocImBuf(src->x, src->y, 32, IB_rect);
+  ImBuf *new_ibuf = IMB_allocImBuf(ibuf->x, ibuf->y, 32, IB_rect);
 
-  if (src->rect_float) {
-    draw_zebra_float(src, ibuf, perc);
+  if (ibuf->rect_float) {
+    draw_zebra_float(ibuf, new_ibuf, perc);
   }
   else {
-    draw_zebra_byte(src, ibuf, perc);
+    draw_zebra_byte(ibuf, new_ibuf, perc);
   }
-  return ibuf;
+  return new_ibuf;
 }
 
 static void draw_histogram_marker(ImBuf *ibuf, int x)

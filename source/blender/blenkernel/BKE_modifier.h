@@ -423,7 +423,7 @@ void BKE_modifier_session_uuid_generate(struct ModifierData *md);
 bool BKE_modifier_unique_name(struct ListBase *modifiers, struct ModifierData *md);
 
 void BKE_modifier_copydata_generic(const struct ModifierData *md,
-                                   struct ModifierData *target,
+                                   struct ModifierData *md_dst,
                                    const int flag);
 void BKE_modifier_copydata(struct ModifierData *md, struct ModifierData *target);
 void BKE_modifier_copydata_ex(struct ModifierData *md,

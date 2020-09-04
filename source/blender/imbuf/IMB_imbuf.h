@@ -247,8 +247,8 @@ void IMB_rectclip(struct ImBuf *dbuf,
                   int *srcy,
                   int *width,
                   int *height);
-void IMB_rectcpy(struct ImBuf *drect,
-                 const struct ImBuf *srect,
+void IMB_rectcpy(struct ImBuf *dbuf,
+                 const struct ImBuf *sbuf,
                  int destx,
                  int desty,
                  int srcx,
@@ -260,7 +260,7 @@ void IMB_rectblend(struct ImBuf *dbuf,
                    const struct ImBuf *sbuf,
                    unsigned short *dmask,
                    const unsigned short *curvemask,
-                   const unsigned short *mmask,
+                   const unsigned short *texmask,
                    float mask_max,
                    int destx,
                    int desty,
@@ -277,7 +277,7 @@ void IMB_rectblend_threaded(struct ImBuf *dbuf,
                             const struct ImBuf *sbuf,
                             unsigned short *dmask,
                             const unsigned short *curvemask,
-                            const unsigned short *mmask,
+                            const unsigned short *texmask,
                             float mask_max,
                             int destx,
                             int desty,
@@ -594,15 +594,15 @@ void bilinear_interpolation(
     struct ImBuf *in, struct ImBuf *out, float u, float v, int xout, int yout);
 
 void bicubic_interpolation_color(
-    struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
+    struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
 void nearest_interpolation_color(
-    struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
+    struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
 void nearest_interpolation_color_wrap(
-    struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
+    struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
 void bilinear_interpolation_color(
-    struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
+    struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
 void bilinear_interpolation_color_wrap(
-    struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
+    struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
 
 void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[3]);
 void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, const float backcol[3]);

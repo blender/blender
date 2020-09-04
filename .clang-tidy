@@ -15,7 +15,6 @@ Checks:  >
 
   -readability-misleading-indentation,
 
-  -readability-inconsistent-declaration-parameter-name,
   -readability-redundant-member-init,
   -readability-use-anyofallof,
 

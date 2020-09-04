@@ -41,7 +41,7 @@ struct bContextDataResult;
 
 /* area.c */
 void ED_area_data_copy(ScrArea *area_dst, ScrArea *area_src, const bool do_free);
-void ED_area_data_swap(ScrArea *sa1, ScrArea *sa2);
+void ED_area_data_swap(ScrArea *area_dst, ScrArea *area_src);
 void region_toggle_hidden(struct bContext *C, ARegion *region, const bool do_fade);
 
 /* screen_edit.c */

@@ -1761,13 +1761,13 @@ enum {
 
 static char wm_keymap_update_flag = 0;
 
-void WM_keyconfig_update_tag(wmKeyMap *km, wmKeyMapItem *kmi)
+void WM_keyconfig_update_tag(wmKeyMap *keymap, wmKeyMapItem *kmi)
 {
   /* quick tag to do delayed keymap updates */
   wm_keymap_update_flag |= WM_KEYMAP_UPDATE_RECONFIGURE;
 
-  if (km) {
-    km->flag |= KEYMAP_UPDATE;
+  if (keymap) {
+    keymap->flag |= KEYMAP_UPDATE;
   }
   if (kmi) {
     kmi->flag |= KMI_UPDATE;

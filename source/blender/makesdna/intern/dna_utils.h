@@ -38,9 +38,9 @@ char *DNA_elem_id_rename(struct MemArena *mem_arena,
                          const int elem_src_len,
                          const char *elem_dst,
                          const int elem_dst_len,
-                         const char *elem_full_src,
-                         const int elem_full_src_len,
-                         const uint elem_full_offset_start);
+                         const char *elem_src_full,
+                         const int elem_src_full_len,
+                         const uint elem_src_full_offset_len);
 
 /* When requesting version info, support both directions. */
 enum eDNA_RenameDir {

@@ -102,7 +102,7 @@ static bool exr_has_multiview(MultiPartInputFile &file);
 static bool exr_has_multipart_file(MultiPartInputFile &file);
 static bool exr_has_alpha(MultiPartInputFile &file);
 static bool exr_has_zbuffer(MultiPartInputFile &file);
-static void exr_printf(const char *__restrict format, ...);
+static void exr_printf(const char *__restrict fmt, ...);
 static void imb_exr_type_by_channels(ChannelList &channels,
                                      StringVector &views,
                                      bool *r_singlelayer,

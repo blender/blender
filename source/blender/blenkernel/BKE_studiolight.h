@@ -153,7 +153,7 @@ void BKE_studiolight_preview(uint *icon_buffer, StudioLight *sl, int icon_id_typ
 struct ListBase *BKE_studiolight_listbase(void);
 void BKE_studiolight_ensure_flag(StudioLight *sl, int flag);
 void BKE_studiolight_refresh(void);
-StudioLight *BKE_studiolight_load(const char *path, int orientation);
+StudioLight *BKE_studiolight_load(const char *path, int type);
 StudioLight *BKE_studiolight_create(const char *path,
                                     const SolidLight light[4],
                                     const float light_ambient[3]);

@@ -301,25 +301,23 @@ void ntreeCompositRegisterPass(bNodeTree *ntree,
 
 /* called from render pipeline, to tag render input and output */
 /* need to do all scenes, to prevent errors when you re-render 1 scene */
-void ntreeCompositTagRender(Scene *curscene)
+void ntreeCompositTagRender(Scene *scene)
 {
-  Scene *sce;
-
   /* XXX Think using G_MAIN here is valid, since you want to update current file's scene nodes,
    * not the ones in temp main generated for rendering?
    * This is still rather weak though,
    * ideally render struct would store own main AND original G_MAIN. */
 
-  for (sce = G_MAIN->scenes.first; sce; sce = sce->id.next) {
-    if (sce->nodetree) {
+  for (Scene *sce_iter = G_MAIN->scenes.first; sce_iter; sce_iter = sce_iter->id.next) {
+    if (sce_iter->nodetree) {
       bNode *node;
 
-      for (node = sce->nodetree->nodes.first; node; node = node->next) {
-        if (node->id == (ID *)curscene || node->type == CMP_NODE_COMPOSITE) {
-          nodeUpdate(sce->nodetree, node);
+      for (node = sce_iter->nodetree->nodes.first; node; node = node->next) {
+        if (node->id == (ID *)scene || node->type == CMP_NODE_COMPOSITE) {
+          nodeUpdate(sce_iter->nodetree, node);
         }
         else if (node->type == CMP_NODE_TEXTURE) /* uses scene sizex/sizey */ {
-          nodeUpdate(sce->nodetree, node);
+          nodeUpdate(sce_iter->nodetree, node);
         }
       }
     }

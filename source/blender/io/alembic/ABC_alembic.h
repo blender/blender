@@ -106,13 +106,13 @@ void ABC_get_transform(struct CacheReader *reader,
                        float time,
                        float scale);
 
-/* Either modifies current_mesh in-place or constructs a new mesh. */
+/* Either modifies existing_mesh in-place or constructs a new mesh. */
 struct Mesh *ABC_read_mesh(struct CacheReader *reader,
                            struct Object *ob,
-                           struct Mesh *current_mesh,
+                           struct Mesh *existing_mesh,
                            const float time,
                            const char **err_str,
-                           int flags);
+                           int read_flags);
 
 bool ABC_mesh_topology_changed(struct CacheReader *reader,
                                struct Object *ob,
@@ -134,7 +134,7 @@ bool ABC_has_vec3_array_property_named(struct CacheReader *reader, const char *n
 int ABC_read_velocity_cache(struct CacheReader *reader,
                             const char *velocity_name,
                             float time,
-                            float fps,
+                            float velocity_scale,
                             int num_vertices,
                             float *r_vertex_velocities);
 

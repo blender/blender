@@ -4271,7 +4271,7 @@ void CustomData_to_bmesh_block(const CustomData *source,
 void CustomData_from_bmesh_block(const CustomData *source,
                                  CustomData *dest,
                                  void *src_block,
-                                 int dst_index)
+                                 int dest_index)
 {
   int dest_i, src_i;
 
@@ -4297,7 +4297,7 @@ void CustomData_from_bmesh_block(const CustomData *source,
       int offset = source->layers[src_i].offset;
       const void *src_data = POINTER_OFFSET(src_block, offset);
       void *dst_data = POINTER_OFFSET(dest->layers[dest_i].data,
-                                      (size_t)dst_index * typeInfo->size);
+                                      (size_t)dest_index * typeInfo->size);
 
       if (typeInfo->copy) {
         typeInfo->copy(src_data, dst_data, 1);

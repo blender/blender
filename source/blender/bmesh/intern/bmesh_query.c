@@ -1187,16 +1187,16 @@ bool BM_vert_is_boundary(const BMVert *v)
  * \note Could be sped up a bit by not using iterators and by tagging
  * faces on either side, then count the tags rather then searching.
  */
-int BM_face_share_face_count(BMFace *f1, BMFace *f2)
+int BM_face_share_face_count(BMFace *f_a, BMFace *f_b)
 {
   BMIter iter1, iter2;
   BMEdge *e;
   BMFace *f;
   int count = 0;
 
-  BM_ITER_ELEM (e, &iter1, f1, BM_EDGES_OF_FACE) {
+  BM_ITER_ELEM (e, &iter1, f_a, BM_EDGES_OF_FACE) {
     BM_ITER_ELEM (f, &iter2, e, BM_FACES_OF_EDGE) {
-      if (f != f1 && f != f2 && BM_face_share_edge_check(f, f2)) {
+      if (f != f_a && f != f_b && BM_face_share_edge_check(f, f_b)) {
         count++;
       }
     }
@@ -1208,15 +1208,15 @@ int BM_face_share_face_count(BMFace *f1, BMFace *f2)
 /**
  * same as #BM_face_share_face_count but returns a bool
  */
-bool BM_face_share_face_check(BMFace *f1, BMFace *f2)
+bool BM_face_share_face_check(BMFace *f_a, BMFace *f_b)
 {
   BMIter iter1, iter2;
   BMEdge *e;
   BMFace *f;
 
-  BM_ITER_ELEM (e, &iter1, f1, BM_EDGES_OF_FACE) {
+  BM_ITER_ELEM (e, &iter1, f_a, BM_EDGES_OF_FACE) {
     BM_ITER_ELEM (f, &iter2, e, BM_FACES_OF_EDGE) {
-      if (f != f1 && f != f2 && BM_face_share_edge_check(f, f2)) {
+      if (f != f_a && f != f_b && BM_face_share_edge_check(f, f_b)) {
         return true;
       }
     }

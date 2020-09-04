@@ -251,8 +251,8 @@ void RE_ChangeModeFlag(struct Render *re, int flag, bool clear);
 
 /* set up the viewplane/perspective matrix, three choices */
 struct Object *RE_GetCamera(struct Render *re); /* return camera override if set */
-void RE_SetOverrideCamera(struct Render *re, struct Object *camera);
-void RE_SetCamera(struct Render *re, struct Object *camera);
+void RE_SetOverrideCamera(struct Render *re, struct Object *cam_ob);
+void RE_SetCamera(struct Render *re, struct Object *cam_ob);
 void RE_SetWindow(struct Render *re, const rctf *viewplane, float clip_start, float clip_end);
 void RE_SetOrtho(struct Render *re, const rctf *viewplane, float clip_start, float clip_end);
 
@@ -383,8 +383,8 @@ bool RE_allow_render_generic_object(struct Object *ob);
 bool RE_HasCombinedLayer(RenderResult *res);
 bool RE_HasFloatPixels(RenderResult *res);
 bool RE_RenderResult_is_stereo(RenderResult *res);
-struct RenderView *RE_RenderViewGetById(struct RenderResult *res, const int view_id);
-struct RenderView *RE_RenderViewGetByName(struct RenderResult *res, const char *viewname);
+struct RenderView *RE_RenderViewGetById(struct RenderResult *rr, const int view_id);
+struct RenderView *RE_RenderViewGetByName(struct RenderResult *rr, const char *viewname);
 
 RenderResult *RE_DuplicateRenderResult(RenderResult *rr);
 

@@ -73,17 +73,17 @@ class FEdgeXDetector {
   virtual void processShapes(WingedEdge &);
 
   // GENERAL STUFF
-  virtual void preProcessShape(WXShape *iShape);
+  virtual void preProcessShape(WXShape *iWShape);
   virtual void preProcessFace(WXFace *iFace);
   virtual void computeCurvatures(WXVertex *iVertex);
 
   // SILHOUETTE
-  virtual void processSilhouetteShape(WXShape *iShape);
+  virtual void processSilhouetteShape(WXShape *iWShape);
   virtual void ProcessSilhouetteFace(WXFace *iFace);
   virtual void ProcessSilhouetteEdge(WXEdge *iEdge);
 
   // CREASE
-  virtual void processCreaseShape(WXShape *iShape);
+  virtual void processCreaseShape(WXShape *iWShape);
   virtual void ProcessCreaseEdge(WXEdge *iEdge);
 
   /*! Sets the minimum angle for detecting crease edges
@@ -109,15 +109,15 @@ class FEdgeXDetector {
   }
 
   // BORDER
-  virtual void processBorderShape(WXShape *iShape);
+  virtual void processBorderShape(WXShape *iWShape);
   virtual void ProcessBorderEdge(WXEdge *iEdge);
 
   // RIDGES AND VALLEYS
-  virtual void processRidgesAndValleysShape(WXShape *iShape);
+  virtual void processRidgesAndValleysShape(WXShape *iWShape);
   virtual void ProcessRidgeFace(WXFace *iFace);
 
   // SUGGESTIVE CONTOURS
-  virtual void processSuggestiveContourShape(WXShape *iShape);
+  virtual void processSuggestiveContourShape(WXShape *iWShape);
   virtual void ProcessSuggestiveContourFace(WXFace *iFace);
   virtual void postProcessSuggestiveContourShape(WXShape *iShape);
   virtual void postProcessSuggestiveContourFace(WXFace *iFace);

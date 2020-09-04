@@ -265,7 +265,7 @@ void IMB_colormanagement_colorspace_items_add(struct EnumPropertyItem **items, i
 /* ** Tile-based buffer management ** */
 void IMB_partial_display_buffer_update(struct ImBuf *ibuf,
                                        const float *linear_buffer,
-                                       const unsigned char *buffer_byte,
+                                       const unsigned char *byte_buffer,
                                        int stride,
                                        int offset_x,
                                        int offset_y,
@@ -279,7 +279,7 @@ void IMB_partial_display_buffer_update(struct ImBuf *ibuf,
 void IMB_partial_display_buffer_update_threaded(
     struct ImBuf *ibuf,
     const float *linear_buffer,
-    const unsigned char *buffer_byte,
+    const unsigned char *byte_buffer,
     int stride,
     int offset_x,
     int offset_y,

@@ -393,7 +393,7 @@ void gpencil_material_resources_get(GPENCIL_MaterialPool *first_pool,
                                     struct GPUUniformBuf **r_ubo_mat);
 
 void gpencil_light_ambient_add(GPENCIL_LightPool *lightpool, const float color[3]);
-void gpencil_light_pool_populate(GPENCIL_LightPool *matpool, Object *ob);
+void gpencil_light_pool_populate(GPENCIL_LightPool *lightpool, Object *ob);
 GPENCIL_LightPool *gpencil_light_pool_add(GPENCIL_PrivateData *pd);
 GPENCIL_LightPool *gpencil_light_pool_create(GPENCIL_PrivateData *pd, Object *ob);
 

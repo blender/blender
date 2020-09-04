@@ -80,7 +80,7 @@ void BKE_mask_layer_rename(struct Mask *mask,
                            char *oldname,
                            char *newname);
 
-struct MaskLayer *BKE_mask_layer_copy(const struct MaskLayer *layer);
+struct MaskLayer *BKE_mask_layer_copy(const struct MaskLayer *masklay);
 void BKE_mask_layer_copy_list(struct ListBase *masklayers_new, const struct ListBase *masklayers);
 
 /* splines */

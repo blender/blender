@@ -292,7 +292,9 @@ void ArmatureImporter::fix_parent_connect(bArmature *armature, Bone *bone)
   }
 }
 
-void ArmatureImporter::connect_bone_chains(bArmature *armature, Bone *parentbone, int clip)
+void ArmatureImporter::connect_bone_chains(bArmature *armature,
+                                           Bone *parentbone,
+                                           int max_chain_length)
 {
   BoneExtensionMap &extended_bones = bone_extension_manager.getExtensionMap(armature);
   BoneExtended *dominant_child = NULL;
@@ -308,7 +310,7 @@ void ArmatureImporter::connect_bone_chains(bArmature *armature, Bone *parentbone
       BoneExtended *be = extended_bones[child->name];
       if (be != NULL) {
         int chain_len = be->get_chain_length();
-        if (chain_len <= clip) {
+        if (chain_len <= max_chain_length) {
           if (chain_len > maxlen) {
             dominant_child = be;
             maxlen = chain_len;
@@ -470,7 +472,7 @@ ArmatureJoints &ArmatureImporter::get_armature_joints(Object *ob_arm)
   return armature_joints.back();
 }
 #endif
-void ArmatureImporter::create_armature_bones(Main *bmain, std::vector<Object *> &ob_arms)
+void ArmatureImporter::create_armature_bones(Main *bmain, std::vector<Object *> &arm_objs)
 {
   std::vector<COLLADAFW::Node *>::iterator ri;
   std::vector<std::string> layer_labels;
@@ -523,9 +525,9 @@ void ArmatureImporter::create_armature_bones(Main *bmain, std::vector<Object *> 
 
     set_bone_transformation_type(node, ob_arm);
 
-    int index = std::find(ob_arms.begin(), ob_arms.end(), ob_arm) - ob_arms.begin();
+    int index = std::find(arm_objs.begin(), arm_objs.end(), ob_arm) - arm_objs.begin();
     if (index == 0) {
-      ob_arms.push_back(ob_arm);
+      arm_objs.push_back(ob_arm);
     }
 
     DEG_id_tag_update(&ob_arm->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
@@ -787,7 +789,7 @@ void ArmatureImporter::add_root_joint(COLLADAFW::Node *node)
 void ArmatureImporter::make_armatures(bContext *C, std::vector<Object *> &objects_to_scale)
 {
   Main *bmain = CTX_data_main(C);
-  std::vector<Object *> ob_arms;
+  std::vector<Object *> arm_objs;
   std::map<COLLADAFW::UniqueId, SkinInfo>::iterator it;
 
   /* TODO: Make this work for more than one armature in the import file. */
@@ -820,8 +822,8 @@ void ArmatureImporter::make_armatures(bContext *C, std::vector<Object *> &object
           objects_to_scale.push_back(ob_arm);
         }
 
-        if (std::find(ob_arms.begin(), ob_arms.end(), ob_arm) == ob_arms.end()) {
-          ob_arms.push_back(ob_arm);
+        if (std::find(arm_objs.begin(), arm_objs.end(), ob_arm) == arm_objs.end()) {
+          arm_objs.push_back(ob_arm);
         }
       }
       else {
@@ -843,11 +845,11 @@ void ArmatureImporter::make_armatures(bContext *C, std::vector<Object *> &object
   }
 
   /* for bones without skins */
-  create_armature_bones(bmain, ob_arms);
+  create_armature_bones(bmain, arm_objs);
 
   /* Fix bone relations */
   std::vector<Object *>::iterator ob_arm_it;
-  for (ob_arm_it = ob_arms.begin(); ob_arm_it != ob_arms.end(); ob_arm_it++) {
+  for (ob_arm_it = arm_objs.begin(); ob_arm_it != arm_objs.end(); ob_arm_it++) {
 
     Object *ob_arm = *ob_arm_it;
     bArmature *armature = (bArmature *)ob_arm->data;
@@ -1025,9 +1027,9 @@ Object *ArmatureImporter::get_armature_for_joint(COLLADAFW::Node *node)
   return NULL;
 }
 
-void ArmatureImporter::set_tags_map(TagsMap &tagsMap)
+void ArmatureImporter::set_tags_map(TagsMap &tags_map)
 {
-  this->uid_tags_map = tagsMap;
+  this->uid_tags_map = tags_map;
 }
 
 void ArmatureImporter::get_rna_path_for_joint(COLLADAFW::Node *node,

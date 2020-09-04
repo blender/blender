@@ -258,10 +258,10 @@ static int info_textview_main__internal(const SpaceInfo *sinfo,
 void *info_text_pick(const SpaceInfo *sinfo,
                      const ARegion *region,
                      const ReportList *reports,
-                     int mval_y)
+                     int mouse_y)
 {
   void *mval_pick_item = NULL;
-  const int mval[2] = {0, mval_y};
+  const int mval[2] = {0, mouse_y};
 
   info_textview_main__internal(sinfo, region, reports, false, mval, &mval_pick_item, NULL);
   return (void *)mval_pick_item;

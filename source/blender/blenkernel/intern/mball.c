@@ -433,21 +433,21 @@ void BKE_mball_properties_copy(Scene *scene, Object *active_object)
   }
 }
 
-/** \brief This function finds basic MetaBall.
+/** \brief This function finds the basis MetaBall.
  *
- * Basic meta-ball doesn't include any number at the end of
+ * Basis meta-ball doesn't include any number at the end of
  * its name. All meta-balls with same base of name can be
  * blended. meta-balls with different basic name can't be blended.
  *
  * \warning #BKE_mball_is_basis() can fail on returned object, see function docs for details.
  */
-Object *BKE_mball_basis_find(Scene *scene, Object *basis)
+Object *BKE_mball_basis_find(Scene *scene, Object *object)
 {
-  Object *bob = basis;
+  Object *bob = object;
   int basisnr, obnr;
   char basisname[MAX_ID_NAME], obname[MAX_ID_NAME];
 
-  BLI_split_name_num(basisname, &basisnr, basis->id.name + 2, '.');
+  BLI_split_name_num(basisname, &basisnr, object->id.name + 2, '.');
 
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
     LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
@@ -460,7 +460,7 @@ Object *BKE_mball_basis_find(Scene *scene, Object *basis)
            * that it has to have same base of its name. */
           if (STREQ(obname, basisname)) {
             if (obnr < basisnr) {
-              basis = ob;
+              object = ob;
               basisnr = obnr;
             }
           }
@@ -469,7 +469,7 @@ Object *BKE_mball_basis_find(Scene *scene, Object *basis)
     }
   }
 
-  return basis;
+  return object;
 }
 
 bool BKE_mball_minmax_ex(

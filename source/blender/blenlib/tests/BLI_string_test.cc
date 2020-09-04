@@ -608,21 +608,21 @@ class StringCasecmpNatural : public testing::Test {
 
   void testReturnsZeroForAll(const CompareWordsArray &items)
   {
-    for (auto &item : items) {
+    for (const auto &item : items) {
       int res = BLI_strcasecmp_natural(item[0], item[1]);
       EXPECT_EQ(res, 0);
     }
   }
   void testReturnsLessThanZeroForAll(const CompareWordsArray &items)
   {
-    for (auto &item : items) {
+    for (const auto &item : items) {
       int res = BLI_strcasecmp_natural(item[0], item[1]);
       EXPECT_LT(res, 0);
     }
   }
   void testReturnsMoreThanZeroForAll(const CompareWordsArray &items)
   {
-    for (auto &item : items) {
+    for (const auto &item : items) {
       int res = BLI_strcasecmp_natural(item[0], item[1]);
       EXPECT_GT(res, 0);
     }
@@ -635,7 +635,7 @@ class StringCasecmpNatural : public testing::Test {
     /* E.g. {{"a", "b"}, {"ab", "cd"}} becomes {{"b", "a"}, {"cd", "ab"}} */
 
     ret_array.reserve(items.size());
-    for (auto &item : items) {
+    for (const auto &item : items) {
       ret_array.push_back({item[1], item[0]});
     }
 

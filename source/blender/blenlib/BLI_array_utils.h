@@ -37,7 +37,7 @@ void _bli_array_wrap(void *arr, unsigned int arr_len, size_t arr_stride, int dir
 void _bli_array_permute(void *arr,
                         const unsigned int arr_len,
                         const size_t arr_stride,
-                        const unsigned int *index,
+                        const unsigned int *order,
                         void *arr_temp);
 #define BLI_array_permute(arr, arr_len, order) \
   _bli_array_permute(arr, arr_len, sizeof(*(arr)), order, NULL)

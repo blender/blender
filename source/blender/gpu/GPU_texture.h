@@ -202,32 +202,32 @@ GPUTexture *GPU_texture_cube_create(int w,
                                     char err_out[256]);
 
 GPUTexture *GPU_texture_create_1d(int w,
-                                  eGPUTextureFormat data_type,
+                                  eGPUTextureFormat tex_format,
                                   const float *pixels,
                                   char err_out[256]);
 GPUTexture *GPU_texture_create_1d_array(
-    int w, int h, eGPUTextureFormat data_type, const float *pixels, char err_out[256]);
+    int w, int h, eGPUTextureFormat tex_format, const float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_2d(
-    int w, int h, eGPUTextureFormat data_type, const float *pixels, char err_out[256]);
+    int w, int h, eGPUTextureFormat tex_format, const float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_2d_multisample(int w,
                                               int h,
-                                              eGPUTextureFormat data_type,
+                                              eGPUTextureFormat tex_format,
                                               const float *pixels,
                                               int samples,
                                               char err_out[256]);
 GPUTexture *GPU_texture_create_2d_array(
-    int w, int h, int d, eGPUTextureFormat data_type, const float *pixels, char err_out[256]);
+    int w, int h, int d, eGPUTextureFormat tex_format, const float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_3d(
-    int w, int h, int d, eGPUTextureFormat data_type, const float *pixels, char err_out[256]);
+    int w, int h, int d, eGPUTextureFormat tex_format, const float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_cube(int w,
-                                    eGPUTextureFormat data_type,
+                                    eGPUTextureFormat tex_format,
                                     const float *pixels,
                                     char err_out[256]);
 GPUTexture *GPU_texture_create_cube_array(
-    int w, int d, eGPUTextureFormat data_type, const float *pixels, char err_out[256]);
+    int w, int d, eGPUTextureFormat tex_format, const float *pixels, char err_out[256]);
 
 GPUTexture *GPU_texture_create_from_vertbuf(struct GPUVertBuf *vert);
-GPUTexture *GPU_texture_create_buffer(eGPUTextureFormat data_type, const uint buffer);
+GPUTexture *GPU_texture_create_buffer(eGPUTextureFormat tex_format, const uint buffer);
 
 GPUTexture *GPU_texture_create_compressed(
     int w, int h, int miplen, eGPUTextureFormat format, const void *data);
@@ -260,7 +260,7 @@ void GPU_invalid_tex_free(void);
 void GPU_texture_free(GPUTexture *tex);
 
 void GPU_texture_ref(GPUTexture *tex);
-void GPU_texture_bind(GPUTexture *tex, int number);
+void GPU_texture_bind(GPUTexture *tex, int unit);
 void GPU_texture_bind_ex(GPUTexture *tex, eGPUSamplerState state, int unit, const bool set_number);
 void GPU_texture_unbind(GPUTexture *tex);
 void GPU_texture_unbind_all(void);
@@ -298,7 +298,7 @@ int GPU_texture_opengl_bindcode(const GPUTexture *tex);
 
 void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *size);
 
-void GPU_sampler_icon_bind(int number);
+void GPU_sampler_icon_bind(int unit);
 
 #ifdef __cplusplus
 }

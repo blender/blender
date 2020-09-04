@@ -50,7 +50,7 @@ void GPU_uniformbuf_free(GPUUniformBuf *ubo);
 
 void GPU_uniformbuf_update(GPUUniformBuf *ubo, const void *data);
 
-void GPU_uniformbuf_bind(GPUUniformBuf *ubo, int number);
+void GPU_uniformbuf_bind(GPUUniformBuf *ubo, int slot);
 void GPU_uniformbuf_unbind(GPUUniformBuf *ubo);
 void GPU_uniformbuf_unbind_all(void);
 

@@ -53,12 +53,12 @@ float BM_face_calc_perimeter(const BMFace *f) ATTR_WARN_UNUSED_RESULT ATTR_NONNU
 float BM_face_calc_perimeter_with_mat3(const BMFace *f,
                                        const float mat3[3][3]) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
-void BM_face_calc_tangent_edge(const BMFace *f, float r_plane[3]) ATTR_NONNULL();
-void BM_face_calc_tangent_edge_pair(const BMFace *f, float r_plane[3]) ATTR_NONNULL();
-void BM_face_calc_tangent_edge_diagonal(const BMFace *f, float r_plane[3]) ATTR_NONNULL();
-void BM_face_calc_tangent_vert_diagonal(const BMFace *f, float r_plane[3]) ATTR_NONNULL();
-void BM_face_calc_tangent_auto(const BMFace *f, float r_plane[3]) ATTR_NONNULL();
-void BM_face_calc_center_bounds(const BMFace *f, float center[3]) ATTR_NONNULL();
+void BM_face_calc_tangent_edge(const BMFace *f, float r_tangent[3]) ATTR_NONNULL();
+void BM_face_calc_tangent_edge_pair(const BMFace *f, float r_tangent[3]) ATTR_NONNULL();
+void BM_face_calc_tangent_edge_diagonal(const BMFace *f, float r_tangent[3]) ATTR_NONNULL();
+void BM_face_calc_tangent_vert_diagonal(const BMFace *f, float r_tangent[3]) ATTR_NONNULL();
+void BM_face_calc_tangent_auto(const BMFace *f, float r_tangent[3]) ATTR_NONNULL();
+void BM_face_calc_center_bounds(const BMFace *f, float r_cent[3]) ATTR_NONNULL();
 void BM_face_calc_center_bounds_vcos(const BMesh *bm,
                                      const BMFace *f,
                                      float r_center[3],
@@ -68,7 +68,7 @@ void BM_face_calc_center_median_vcos(const BMesh *bm,
                                      const BMFace *f,
                                      float r_center[3],
                                      float const (*vertexCos)[3]) ATTR_NONNULL();
-void BM_face_calc_center_median_weighted(const BMFace *f, float center[3]) ATTR_NONNULL();
+void BM_face_calc_center_median_weighted(const BMFace *f, float r_cent[3]) ATTR_NONNULL();
 
 void BM_face_calc_bounds_expand(const BMFace *f, float min[3], float max[3]);
 

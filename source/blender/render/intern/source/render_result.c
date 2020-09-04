@@ -58,11 +58,11 @@
 
 /********************************** Free *************************************/
 
-static void render_result_views_free(RenderResult *res)
+static void render_result_views_free(RenderResult *rr)
 {
-  while (res->views.first) {
-    RenderView *rv = res->views.first;
-    BLI_remlink(&res->views, rv);
+  while (rr->views.first) {
+    RenderView *rv = rr->views.first;
+    BLI_remlink(&rr->views, rv);
 
     if (rv->rect32) {
       MEM_freeN(rv->rect32);
@@ -79,17 +79,17 @@ static void render_result_views_free(RenderResult *res)
     MEM_freeN(rv);
   }
 
-  res->have_combined = false;
+  rr->have_combined = false;
 }
 
-void render_result_free(RenderResult *res)
+void render_result_free(RenderResult *rr)
 {
-  if (res == NULL) {
+  if (rr == NULL) {
     return;
   }
 
-  while (res->layers.first) {
-    RenderLayer *rl = res->layers.first;
+  while (rr->layers.first) {
+    RenderLayer *rl = rr->layers.first;
 
     while (rl->passes.first) {
       RenderPass *rpass = rl->passes.first;
@@ -99,31 +99,31 @@ void render_result_free(RenderResult *res)
       BLI_remlink(&rl->passes, rpass);
       MEM_freeN(rpass);
     }
-    BLI_remlink(&res->layers, rl);
+    BLI_remlink(&rr->layers, rl);
     MEM_freeN(rl);
   }
 
-  render_result_views_free(res);
+  render_result_views_free(rr);
 
-  if (res->rect32) {
-    MEM_freeN(res->rect32);
+  if (rr->rect32) {
+    MEM_freeN(rr->rect32);
   }
-  if (res->rectz) {
-    MEM_freeN(res->rectz);
+  if (rr->rectz) {
+    MEM_freeN(rr->rectz);
   }
-  if (res->rectf) {
-    MEM_freeN(res->rectf);
+  if (rr->rectf) {
+    MEM_freeN(rr->rectf);
   }
-  if (res->text) {
-    MEM_freeN(res->text);
+  if (rr->text) {
+    MEM_freeN(rr->text);
   }
-  if (res->error) {
-    MEM_freeN(res->error);
+  if (rr->error) {
+    MEM_freeN(rr->error);
   }
 
-  BKE_stamp_data_free(res->stamp_data);
+  BKE_stamp_data_free(rr->stamp_data);
 
-  MEM_freeN(res);
+  MEM_freeN(rr);
 }
 
 /* version that's compatible with fullsample buffers */
@@ -1576,15 +1576,15 @@ void render_result_rect_get_pixels(RenderResult *rr,
 
 /*************************** multiview functions *****************************/
 
-bool RE_HasCombinedLayer(RenderResult *res)
+bool RE_HasCombinedLayer(RenderResult *rr)
 {
   RenderView *rv;
 
-  if (res == NULL) {
+  if (rr == NULL) {
     return false;
   }
 
-  rv = res->views.first;
+  rv = rr->views.first;
   if (rv == NULL) {
     return false;
   }
@@ -1592,11 +1592,11 @@ bool RE_HasCombinedLayer(RenderResult *res)
   return (rv->rect32 || rv->rectf);
 }
 
-bool RE_HasFloatPixels(RenderResult *res)
+bool RE_HasFloatPixels(RenderResult *rr)
 {
   RenderView *rview;
 
-  for (rview = res->views.first; rview; rview = rview->next) {
+  for (rview = rr->views.first; rview; rview = rview->next) {
     if (rview->rect32 && !rview->rectf) {
       return false;
     }
@@ -1605,31 +1605,31 @@ bool RE_HasFloatPixels(RenderResult *res)
   return true;
 }
 
-bool RE_RenderResult_is_stereo(RenderResult *res)
+bool RE_RenderResult_is_stereo(RenderResult *rr)
 {
-  if (!BLI_findstring(&res->views, STEREO_LEFT_NAME, offsetof(RenderView, name))) {
+  if (!BLI_findstring(&rr->views, STEREO_LEFT_NAME, offsetof(RenderView, name))) {
     return false;
   }
 
-  if (!BLI_findstring(&res->views, STEREO_RIGHT_NAME, offsetof(RenderView, name))) {
+  if (!BLI_findstring(&rr->views, STEREO_RIGHT_NAME, offsetof(RenderView, name))) {
     return false;
   }
 
   return true;
 }
 
-RenderView *RE_RenderViewGetById(RenderResult *res, const int view_id)
+RenderView *RE_RenderViewGetById(RenderResult *rr, const int view_id)
 {
-  RenderView *rv = BLI_findlink(&res->views, view_id);
-  BLI_assert(res->views.first);
-  return rv ? rv : res->views.first;
+  RenderView *rv = BLI_findlink(&rr->views, view_id);
+  BLI_assert(rr->views.first);
+  return rv ? rv : rr->views.first;
 }
 
-RenderView *RE_RenderViewGetByName(RenderResult *res, const char *viewname)
+RenderView *RE_RenderViewGetByName(RenderResult *rr, const char *viewname)
 {
-  RenderView *rv = BLI_findstring(&res->views, viewname, offsetof(RenderView, name));
-  BLI_assert(res->views.first);
-  return rv ? rv : res->views.first;
+  RenderView *rv = BLI_findstring(&rr->views, viewname, offsetof(RenderView, name));
+  BLI_assert(rr->views.first);
+  return rv ? rv : rr->views.first;
 }
 
 static RenderPass *duplicate_render_pass(RenderPass *rpass)

@@ -34,7 +34,7 @@ class DoubleEdgeMaskOperation : public NodeOperation {
  public:
   DoubleEdgeMaskOperation();
 
-  void doDoubleEdgeMask(float *inner, float *outer, float *res);
+  void doDoubleEdgeMask(float *imask, float *omask, float *res);
   /**
    * the inner loop of this program
    */

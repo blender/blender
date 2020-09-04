@@ -95,7 +95,7 @@ bool BKE_armature_bone_flag_test_recursive(const struct Bone *bone, int flag);
 void BKE_armature_refresh_layer_used(struct Depsgraph *depsgraph, struct bArmature *arm);
 
 float distfactor_to_bone(
-    const float vec[3], const float b1[3], const float b2[3], float r1, float r2, float rdist);
+    const float vec[3], const float b1[3], const float b2[3], float rad1, float rad2, float rdist);
 
 void BKE_armature_where_is(struct bArmature *arm);
 void BKE_armature_where_is_bone(struct Bone *bone,
@@ -153,8 +153,8 @@ void BKE_armature_mat_pose_to_bone_ex(struct Depsgraph *depsgraph,
 
 void BKE_pchan_mat3_to_rot(struct bPoseChannel *pchan, const float mat[3][3], bool use_compat);
 void BKE_pchan_rot_to_mat3(const struct bPoseChannel *pchan, float r_mat[3][3]);
-void BKE_pchan_apply_mat4(struct bPoseChannel *pchan, const float mat[4][4], bool use_comat);
-void BKE_pchan_to_mat4(const struct bPoseChannel *pchan, float r_mat[4][4]);
+void BKE_pchan_apply_mat4(struct bPoseChannel *pchan, const float mat[4][4], bool use_compat);
+void BKE_pchan_to_mat4(const struct bPoseChannel *pchan, float r_chanmat[4][4]);
 void BKE_pchan_calc_mat(struct bPoseChannel *pchan);
 
 /* Simple helper, computes the offset bone matrix. */

@@ -799,10 +799,10 @@ static void drw_shgroup_call_procedural_add_ex(DRWShadingGroup *shgroup,
   drw_command_draw_procedural(shgroup, geom, handle, vert_count);
 }
 
-void DRW_shgroup_call_procedural_points(DRWShadingGroup *shgroup, Object *ob, uint point_len)
+void DRW_shgroup_call_procedural_points(DRWShadingGroup *shgroup, Object *ob, uint point_count)
 {
   struct GPUBatch *geom = drw_cache_procedural_points_get();
-  drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, point_len);
+  drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, point_count);
 }
 
 void DRW_shgroup_call_procedural_lines(DRWShadingGroup *shgroup, Object *ob, uint line_count)
@@ -811,10 +811,10 @@ void DRW_shgroup_call_procedural_lines(DRWShadingGroup *shgroup, Object *ob, uin
   drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, line_count * 2);
 }
 
-void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *shgroup, Object *ob, uint tria_count)
+void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *shgroup, Object *ob, uint tri_count)
 {
   struct GPUBatch *geom = drw_cache_procedural_triangles_get();
-  drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, tria_count * 3);
+  drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, tri_count * 3);
 }
 
 /* Should be removed */

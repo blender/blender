@@ -108,7 +108,7 @@ class MeshImporter : public MeshImporterBase {
 
   void set_face_uv(MLoopUV *mloopuv,
                    UVDataWrapper &uvs,
-                   int loop_index,
+                   int start_index,
                    COLLADAFW::IndexList &index_list,
                    int count);
 

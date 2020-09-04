@@ -308,7 +308,7 @@ void BLI_task_graph_work_and_wait(struct TaskGraph *task_graph);
 void BLI_task_graph_free(struct TaskGraph *task_graph);
 struct TaskNode *BLI_task_graph_node_create(struct TaskGraph *task_graph,
                                             TaskGraphNodeRunFunction run,
-                                            void *task_data,
+                                            void *user_data,
                                             TaskGraphNodeFreeFunction free_func);
 bool BLI_task_graph_node_push_work(struct TaskNode *task_node);
 void BLI_task_graph_edge_create(struct TaskNode *from_node, struct TaskNode *to_node);

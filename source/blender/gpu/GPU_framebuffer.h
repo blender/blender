@@ -217,7 +217,7 @@ GPUOffScreen *GPU_offscreen_create(
 void GPU_offscreen_free(GPUOffScreen *ofs);
 void GPU_offscreen_bind(GPUOffScreen *ofs, bool save);
 void GPU_offscreen_unbind(GPUOffScreen *ofs, bool restore);
-void GPU_offscreen_read_pixels(GPUOffScreen *ofs, eGPUDataFormat type, void *pixels);
+void GPU_offscreen_read_pixels(GPUOffScreen *ofs, eGPUDataFormat format, void *pixels);
 void GPU_offscreen_draw_to_screen(GPUOffScreen *ofs, int x, int y);
 int GPU_offscreen_width(const GPUOffScreen *ofs);
 int GPU_offscreen_height(const GPUOffScreen *ofs);

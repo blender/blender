@@ -82,7 +82,7 @@ void BKE_subdiv_eval_face_varying(struct Subdiv *subdiv,
                                   const int ptex_face_index,
                                   const float u,
                                   const float v,
-                                  float r_varying[2]);
+                                  float r_face_varying[2]);
 
 /* NOTE: Expects derivatives to be correct.
  *

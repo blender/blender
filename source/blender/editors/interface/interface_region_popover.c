@@ -340,13 +340,13 @@ int UI_popover_panel_invoke(bContext *C, const char *idname, bool keep_open, Rep
  * \param from_active_button: Use the active button for positioning,
  * use when the popover is activated from an operator instead of directly from the button.
  */
-uiPopover *UI_popover_begin(bContext *C, int ui_size_x, bool from_active_button)
+uiPopover *UI_popover_begin(bContext *C, int ui_menu_width, bool from_active_button)
 {
   uiPopover *pup = MEM_callocN(sizeof(uiPopover), "popover menu");
-  if (ui_size_x == 0) {
-    ui_size_x = U.widget_unit * UI_POPOVER_WIDTH_UNITS;
+  if (ui_menu_width == 0) {
+    ui_menu_width = U.widget_unit * UI_POPOVER_WIDTH_UNITS;
   }
-  pup->ui_size_x = ui_size_x;
+  pup->ui_size_x = ui_menu_width;
 
   ARegion *butregion = NULL;
   uiBut *but = NULL;

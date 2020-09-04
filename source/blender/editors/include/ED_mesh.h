@@ -68,7 +68,7 @@ void EDBM_verts_mirror_cache_begin(struct BMEditMesh *em,
                                    const bool use_self,
                                    const bool use_select,
                                    const bool respecthide,
-                                   const bool use_toplogy);
+                                   const bool use_topology);
 void EDBM_verts_mirror_apply(struct BMEditMesh *em, const int sel_from, const int sel_to);
 struct BMVert *EDBM_verts_mirror_get(struct BMEditMesh *em, struct BMVert *v);
 struct BMEdge *EDBM_verts_mirror_get_edge(struct BMEditMesh *em, struct BMEdge *e);
@@ -111,7 +111,7 @@ struct UvElementMap *BM_uv_element_map_create(struct BMesh *bm,
                                               const bool uv_selected,
                                               const bool use_winding,
                                               const bool do_islands);
-void BM_uv_element_map_free(struct UvElementMap *vmap);
+void BM_uv_element_map_free(struct UvElementMap *element_map);
 struct UvElement *BM_uv_element_get(struct UvElementMap *map,
                                     struct BMFace *efa,
                                     struct BMLoop *l);

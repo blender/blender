@@ -593,14 +593,14 @@ static void area_region_panels_free_recursive(Panel *panel)
   MEM_freeN(panel);
 }
 
-void BKE_area_region_panels_free(ListBase *lb)
+void BKE_area_region_panels_free(ListBase *panels)
 {
-  LISTBASE_FOREACH_MUTABLE (Panel *, panel, lb) {
+  LISTBASE_FOREACH_MUTABLE (Panel *, panel, panels) {
     /* Free custom data just for parent panels to avoid a double free. */
     MEM_SAFE_FREE(panel->runtime.custom_data_ptr);
     area_region_panels_free_recursive(panel);
   }
-  BLI_listbase_clear(lb);
+  BLI_listbase_clear(panels);
 }
 
 /* not region itself */

@@ -199,7 +199,7 @@ extern std::string bc_replace_string(std::string data,
 extern std::string bc_url_encode(std::string data);
 extern void bc_match_scale(Object *ob, UnitConverter &bc_unit, bool scale_to_scene);
 extern void bc_match_scale(std::vector<Object *> *objects_done,
-                           UnitConverter &unit_converter,
+                           UnitConverter &bc_unit,
                            bool scale_to_scene);
 
 extern void bc_decompose(float mat[4][4], float *loc, float eul[3], float quat[4], float *size);
@@ -221,7 +221,7 @@ void bc_copy_m4_farray(float r[4][4], float *a);
 void bc_copy_farray_m4(float *r, float a[4][4]);
 void bc_copy_darray_m4d(double *r, double a[4][4]);
 void bc_copy_m4d_v44(double (&r)[4][4], std::vector<std::vector<double>> &a);
-void bc_copy_v44_m4d(std::vector<std::vector<double>> &a, double (&r)[4][4]);
+void bc_copy_v44_m4d(std::vector<std::vector<double>> &r, double (&a)[4][4]);
 
 void bc_sanitize_v3(double v[3], int precision);
 void bc_sanitize_v3(float v[3], int precision);
@@ -237,7 +237,7 @@ extern bool bc_get_property_matrix(Bone *bone, std::string key, float mat[4][4])
 extern void bc_enable_fcurves(bAction *act, char *bone_name);
 extern bool bc_bone_matrix_local_get(Object *ob, Bone *bone, Matrix &mat, bool for_opensim);
 extern bool bc_is_animated(BCMatrixSampleMap &values);
-extern bool bc_has_animations(Scene *sce, LinkNode *node);
+extern bool bc_has_animations(Scene *sce, LinkNode *export_set);
 extern bool bc_has_animations(Object *ob);
 
 extern void bc_add_global_transform(Matrix &to_mat,
@@ -384,7 +384,7 @@ double bc_get_alpha(Material *ma);
 double bc_get_ior(Material *ma);
 double bc_get_shininess(Material *ma);
 
-double bc_get_float_from_shader(bNode *shader, double &ior, std::string nodeid);
+double bc_get_float_from_shader(bNode *shader, double &val, std::string nodeid);
 COLLADASW::ColorOrTexture bc_get_cot_from_shader(bNode *shader,
                                                  std::string nodeid,
                                                  Color &default_color,

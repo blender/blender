@@ -47,10 +47,10 @@ extern "C" {
 /* Common */
 
 int BLI_exists(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-int BLI_copy(const char *path, const char *to) ATTR_NONNULL();
+int BLI_copy(const char *file, const char *to) ATTR_NONNULL();
 int BLI_rename(const char *from, const char *to) ATTR_NONNULL();
-int BLI_delete(const char *path, bool dir, bool recursive) ATTR_NONNULL();
-int BLI_delete_soft(const char *path, const char **error_message) ATTR_NONNULL();
+int BLI_delete(const char *file, bool dir, bool recursive) ATTR_NONNULL();
+int BLI_delete_soft(const char *file, const char **error_message) ATTR_NONNULL();
 #if 0 /* Unused */
 int BLI_move(const char *path, const char *to) ATTR_NONNULL();
 int BLI_create_symlink(const char *path, const char *to) ATTR_NONNULL();
@@ -108,7 +108,7 @@ bool BLI_is_dir(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 bool BLI_is_file(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 bool BLI_dir_create_recursive(const char *dir) ATTR_NONNULL();
 double BLI_dir_free_space(const char *dir) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-char *BLI_current_working_dir(char *dir, const size_t maxlen) ATTR_WARN_UNUSED_RESULT
+char *BLI_current_working_dir(char *dir, const size_t maxncpy) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
 eFileAttributes BLI_file_attributes(const char *path);
 
@@ -161,7 +161,7 @@ size_t BLI_gzip_mem_to_file_at_pos(void *buf,
 size_t BLI_ungzip_file_to_mem_at_pos(void *buf, size_t len, FILE *file, size_t gz_stream_offset)
     ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 size_t BLI_file_descriptor_size(int file) ATTR_WARN_UNUSED_RESULT;
-size_t BLI_file_size(const char *file) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
+size_t BLI_file_size(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /* compare if one was last modified before the other */
 bool BLI_file_older(const char *file1, const char *file2) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();

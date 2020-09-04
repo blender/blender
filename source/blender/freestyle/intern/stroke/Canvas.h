@@ -243,7 +243,7 @@ class Canvas {
 
   void resetModified(bool iMod = false);
   void causalStyleModules(std::vector<unsigned> &vec, unsigned index = 0);
-  void setModified(unsigned index, bool b);
+  void setModified(unsigned index, bool iMod);
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:Canvas")

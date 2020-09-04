@@ -242,11 +242,11 @@ TEST(edgehash, IteratorFindsAllValues)
   BLI_edgehash_insert(eh, 1, 4, VALUE_3);
 
   EdgeHashIterator *ehi = BLI_edgehashIterator_new(eh);
-  auto a = BLI_edgehashIterator_getValue(ehi);
+  auto *a = BLI_edgehashIterator_getValue(ehi);
   BLI_edgehashIterator_step(ehi);
-  auto b = BLI_edgehashIterator_getValue(ehi);
+  auto *b = BLI_edgehashIterator_getValue(ehi);
   BLI_edgehashIterator_step(ehi);
-  auto c = BLI_edgehashIterator_getValue(ehi);
+  auto *c = BLI_edgehashIterator_getValue(ehi);
   BLI_edgehashIterator_step(ehi);
 
   ASSERT_NE(a, b);

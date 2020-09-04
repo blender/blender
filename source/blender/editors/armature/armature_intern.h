@@ -228,14 +228,14 @@ EditBone *make_boneList(struct ListBase *edbo, struct ListBase *bones, struct Bo
 /* duplicate method */
 void preEditBoneDuplicate(struct ListBase *editbones);
 void postEditBoneDuplicate(struct ListBase *editbones, struct Object *ob);
-struct EditBone *duplicateEditBone(struct EditBone *curBone,
+struct EditBone *duplicateEditBone(struct EditBone *cur_bone,
                                    const char *name,
                                    struct ListBase *editbones,
                                    struct Object *ob);
 
 /* duplicate method (cross objects) */
 /* editbones is the target list */
-struct EditBone *duplicateEditBoneObjects(struct EditBone *curBone,
+struct EditBone *duplicateEditBoneObjects(struct EditBone *cur_bone,
                                           const char *name,
                                           struct ListBase *editbones,
                                           struct Object *src_ob,

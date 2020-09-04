@@ -981,7 +981,7 @@ static void singleuser_world_fn(bContext *C,
 }
 
 /**
- * \param select_recurse: Set to false for operations which are already
+ * \param recurse_selected: Set to false for operations which are already
  * recursively operating on their children.
  */
 void outliner_do_object_operation_ex(bContext *C,
@@ -991,7 +991,7 @@ void outliner_do_object_operation_ex(bContext *C,
                                      ListBase *lb,
                                      outliner_operation_fn operation_fn,
                                      void *user_data,
-                                     bool select_recurse)
+                                     bool recurse_selected)
 {
   TreeElement *te;
   for (te = lb->first; te; te = te->next) {
@@ -1013,7 +1013,7 @@ void outliner_do_object_operation_ex(bContext *C,
       }
     }
     if (TSELEM_OPEN(tselem, space_outliner)) {
-      if ((select_handled == false) || select_recurse) {
+      if ((select_handled == false) || recurse_selected) {
         outliner_do_object_operation_ex(C,
                                         reports,
                                         scene_act,
@@ -1021,7 +1021,7 @@ void outliner_do_object_operation_ex(bContext *C,
                                         &te->subtree,
                                         operation_fn,
                                         NULL,
-                                        select_recurse);
+                                        recurse_selected);
       }
     }
   }

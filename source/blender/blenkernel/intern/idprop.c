@@ -538,19 +538,19 @@ void IDP_SyncGroupValues(IDProperty *dest, const IDProperty *src)
   }
 }
 
-void IDP_SyncGroupTypes(IDProperty *dst, const IDProperty *src, const bool do_arraylen)
+void IDP_SyncGroupTypes(IDProperty *dest, const IDProperty *src, const bool do_arraylen)
 {
   IDProperty *prop_dst, *prop_dst_next;
   const IDProperty *prop_src;
 
-  for (prop_dst = dst->data.group.first; prop_dst; prop_dst = prop_dst_next) {
+  for (prop_dst = dest->data.group.first; prop_dst; prop_dst = prop_dst_next) {
     prop_dst_next = prop_dst->next;
     if ((prop_src = IDP_GetPropertyFromGroup((IDProperty *)src, prop_dst->name))) {
       /* check of we should replace? */
       if ((prop_dst->type != prop_src->type || prop_dst->subtype != prop_src->subtype) ||
           (do_arraylen && ELEM(prop_dst->type, IDP_ARRAY, IDP_IDPARRAY) &&
            (prop_src->len != prop_dst->len))) {
-        BLI_insertlinkreplace(&dst->data.group, prop_dst, IDP_CopyProperty(prop_src));
+        BLI_insertlinkreplace(&dest->data.group, prop_dst, IDP_CopyProperty(prop_src));
         IDP_FreeProperty(prop_dst);
       }
       else if (prop_dst->type == IDP_GROUP) {
@@ -558,7 +558,7 @@ void IDP_SyncGroupTypes(IDProperty *dst, const IDProperty *src, const bool do_ar
       }
     }
     else {
-      IDP_FreeFromGroup(dst, prop_dst);
+      IDP_FreeFromGroup(dest, prop_dst);
     }
   }
 }

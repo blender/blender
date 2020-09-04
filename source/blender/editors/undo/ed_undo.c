@@ -641,7 +641,7 @@ void ED_undo_operator_repeat_cb(bContext *C, void *arg_op, void *UNUSED(arg_unus
   ED_undo_operator_repeat(C, (wmOperator *)arg_op);
 }
 
-void ED_undo_operator_repeat_cb_evt(bContext *C, void *arg_op, int UNUSED(arg_event))
+void ED_undo_operator_repeat_cb_evt(bContext *C, void *arg_op, int UNUSED(arg_unused))
 {
   ED_undo_operator_repeat(C, (wmOperator *)arg_op);
 }

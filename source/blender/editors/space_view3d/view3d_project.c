@@ -73,13 +73,13 @@ void ED_view3d_project_float_v2_m4(const ARegion *region,
  * \note use #ED_view3d_ob_project_mat_get to get projecting mat
  */
 void ED_view3d_project_float_v3_m4(const ARegion *region,
-                                   const float vec[3],
+                                   const float co[3],
                                    float r_co[3],
                                    float mat[4][4])
 {
   float vec4[4];
 
-  copy_v3_v3(vec4, vec);
+  copy_v3_v3(vec4, co);
   vec4[3] = 1.0;
   /* r_co[0] = IS_CLIPPED; */ /* always overwritten */
 

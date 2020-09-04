@@ -651,13 +651,13 @@ static float heat_limit_weight(float weight)
 void heat_bone_weighting(Object *ob,
                          Mesh *me,
                          float (*verts)[3],
-                         int numsource,
+                         int numbones,
                          bDeformGroup **dgrouplist,
                          bDeformGroup **dgroupflip,
                          float (*root)[3],
                          float (*tip)[3],
                          const int *selected,
-                         const char **err_str)
+                         const char **error_str)
 {
   LaplacianSystem *sys;
   MLoopTri *mlooptri;
@@ -672,7 +672,7 @@ void heat_bone_weighting(Object *ob,
   bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
   bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
-  *err_str = NULL;
+  *error_str = NULL;
 
   /* bone heat needs triangulated faces */
   tottri = poly_to_tri_count(me->totpoly, me->totloop);
@@ -714,7 +714,7 @@ void heat_bone_weighting(Object *ob,
   sys->heat.verts = verts;
   sys->heat.root = root;
   sys->heat.tip = tip;
-  sys->heat.numsource = numsource;
+  sys->heat.numsource = numbones;
 
   heat_ray_tree_create(sys);
   heat_laplacian_create(sys);
@@ -729,13 +729,13 @@ void heat_bone_weighting(Object *ob,
   }
 
   /* compute weights per bone */
-  for (j = 0; j < numsource; j++) {
+  for (j = 0; j < numbones; j++) {
     if (!selected[j]) {
       continue;
     }
 
     firstsegment = (j == 0 || dgrouplist[j - 1] != dgrouplist[j]);
-    lastsegment = (j == numsource - 1 || dgrouplist[j] != dgrouplist[j + 1]);
+    lastsegment = (j == numbones - 1 || dgrouplist[j] != dgrouplist[j + 1]);
     bbone = !(firstsegment && lastsegment);
 
     /* clear weights */
@@ -805,8 +805,8 @@ void heat_bone_weighting(Object *ob,
         }
       }
     }
-    else if (*err_str == NULL) {
-      *err_str = N_("Bone Heat Weighting: failed to find solution for one or more bones");
+    else if (*error_str == NULL) {
+      *error_str = N_("Bone Heat Weighting: failed to find solution for one or more bones");
       break;
     }
 

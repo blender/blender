@@ -351,10 +351,10 @@ int BPy_BMLoopColor_AssignPyObject(struct MLoopCol *mloopcol, PyObject *value)
   return -1;
 }
 
-PyObject *BPy_BMLoopColor_CreatePyObject(struct MLoopCol *data)
+PyObject *BPy_BMLoopColor_CreatePyObject(struct MLoopCol *mloopcol)
 {
   PyObject *color_capsule;
-  color_capsule = PyCapsule_New(data, NULL, NULL);
+  color_capsule = PyCapsule_New(mloopcol, NULL, NULL);
   return Vector_CreatePyObject_cb(color_capsule, 4, mathutils_bmloopcol_cb_index, 0);
 }
 

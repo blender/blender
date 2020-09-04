@@ -76,7 +76,7 @@ void WM_toolsystem_reinit_all(struct bContext *C, struct wmWindow *win);
 void WM_toolsystem_ref_set_from_runtime(struct bContext *C,
                                         struct WorkSpace *workspace,
                                         struct bToolRef *tref,
-                                        const struct bToolRef_Runtime *tool,
+                                        const struct bToolRef_Runtime *tref_rt,
                                         const char *idname);
 
 void WM_toolsystem_ref_sync_from_context(struct Main *bmain,

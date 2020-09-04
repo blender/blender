@@ -241,13 +241,13 @@ int ED_fsmenu_get_nentries(struct FSMenu *fsmenu, FSMenuCategory category)
   return count;
 }
 
-FSMenuEntry *ED_fsmenu_get_entry(struct FSMenu *fsmenu, FSMenuCategory category, int index)
+FSMenuEntry *ED_fsmenu_get_entry(struct FSMenu *fsmenu, FSMenuCategory category, int idx)
 {
   FSMenuEntry *fsm_iter;
 
-  for (fsm_iter = ED_fsmenu_get_category(fsmenu, category); fsm_iter && index;
+  for (fsm_iter = ED_fsmenu_get_category(fsmenu, category); fsm_iter && idx;
        fsm_iter = fsm_iter->next) {
-    index--;
+    idx--;
   }
 
   return fsm_iter;

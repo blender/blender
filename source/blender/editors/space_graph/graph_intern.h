@@ -83,7 +83,7 @@ void get_graph_keyframe_extents(struct bAnimContext *ac,
                                 float *xmax,
                                 float *ymin,
                                 float *ymax,
-                                const bool do_selected,
+                                const bool do_sel_only,
                                 const bool include_handles);
 
 void GRAPH_OT_previewrange_set(struct wmOperatorType *ot);

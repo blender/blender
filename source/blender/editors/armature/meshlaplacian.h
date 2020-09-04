@@ -56,7 +56,7 @@ void heat_bone_weighting(struct Object *ob,
                          float (*root)[3],
                          float (*tip)[3],
                          const int *selected,
-                         const char **error);
+                         const char **error_str);
 
 #ifdef RIGID_DEFORM
 /* As-Rigid-As-Possible Deformation */

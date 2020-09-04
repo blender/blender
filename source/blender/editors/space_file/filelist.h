@@ -51,7 +51,7 @@ void folderlist_free(struct ListBase *folderlist);
 struct ListBase *folderlist_duplicate(ListBase *folderlist);
 void folderlist_popdir(struct ListBase *folderlist, char *dir);
 void folderlist_pushdir(struct ListBase *folderlist, const char *dir);
-const char *folderlist_peeklastdir(struct ListBase *folderdist);
+const char *folderlist_peeklastdir(struct ListBase *folderlist);
 int folderlist_clear_next(struct SpaceFile *sfile);
 
 void filelist_setsorting(struct FileList *filelist, const short sort, bool invert_sort);

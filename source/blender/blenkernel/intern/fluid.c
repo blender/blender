@@ -555,7 +555,7 @@ static void manta_smoke_calc_transparency(FluidDomainSettings *fds, ViewLayer *v
 static float calc_voxel_transp(
     float *result, const float *input, int res[3], int *pixel, float *t_ray, float correct);
 static void update_distances(int index,
-                             float *fesh_distances,
+                             float *distance_map,
                              BVHTreeFromMesh *tree_data,
                              const float ray_start[3],
                              float surface_thickness,

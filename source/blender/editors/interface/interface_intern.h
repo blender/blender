@@ -742,7 +742,7 @@ void ui_searchbox_free(struct bContext *C, struct ARegion *region);
 void ui_but_search_refresh(uiButSearch *but);
 
 /* interface_region_menu_popup.c */
-int ui_but_menu_step(uiBut *but, int step);
+int ui_but_menu_step(uiBut *but, int direction);
 bool ui_but_menu_step_poll(const uiBut *but);
 uiBut *ui_popup_menu_memory_get(struct uiBlock *block);
 void ui_popup_menu_memory_set(uiBlock *block, struct uiBut *but);
@@ -762,14 +762,14 @@ uiPopupBlockHandle *ui_popup_block_create(struct bContext *C,
 uiPopupBlockHandle *ui_popup_menu_create(struct bContext *C,
                                          struct ARegion *butregion,
                                          uiBut *but,
-                                         uiMenuCreateFunc create_func,
+                                         uiMenuCreateFunc menu_func,
                                          void *arg);
 
 /* interface_region_popover.c */
 uiPopupBlockHandle *ui_popover_panel_create(struct bContext *C,
                                             struct ARegion *butregion,
                                             uiBut *but,
-                                            uiMenuCreateFunc create_func,
+                                            uiMenuCreateFunc menu_func,
                                             void *arg);
 
 /* interface_region_menu_pie.c */
@@ -878,7 +878,7 @@ extern uiBut *ui_but_find_select_in_enum(uiBut *but, int direction);
 bool ui_but_is_editing(const uiBut *but);
 float ui_block_calc_pie_segment(struct uiBlock *block, const float event_xy[2]);
 
-void ui_but_add_shortcut(uiBut *but, const char *key_str, const bool do_strip);
+void ui_but_add_shortcut(uiBut *but, const char *shortcut_str, const bool do_strip);
 void ui_but_clipboard_free(void);
 bool ui_but_rna_equals(const uiBut *a, const uiBut *b);
 bool ui_but_rna_equals_ex(const uiBut *but,
@@ -886,7 +886,7 @@ bool ui_but_rna_equals_ex(const uiBut *but,
                           const PropertyRNA *prop,
                           int index);
 uiBut *ui_but_find_old(uiBlock *block_old, const uiBut *but_new);
-uiBut *ui_but_find_new(uiBlock *block_old, const uiBut *but_new);
+uiBut *ui_but_find_new(uiBlock *block_new, const uiBut *but_old);
 
 #ifdef WITH_INPUT_IME
 void ui_but_ime_reposition(uiBut *but, int x, int y, bool complete);

@@ -146,9 +146,8 @@ double *SteerableViewMap::AddFEdge(FEdge *iFEdge)
   return res;
 }
 
-unsigned SteerableViewMap::getSVMNumber(const Vec2f &orient)
+unsigned SteerableViewMap::getSVMNumber(Vec2f dir)
 {
-  Vec2f dir(orient);
   // soc unsigned res = 0;
   real norm = dir.norm();
   if (norm < 1.0e-6) {

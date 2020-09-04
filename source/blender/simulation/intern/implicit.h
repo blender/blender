@@ -65,7 +65,7 @@ BLI_INLINE void implicit_print_matrix_elem(float v)
 }
 
 void SIM_mass_spring_set_vertex_mass(struct Implicit_Data *data, int index, float mass);
-void SIM_mass_spring_set_rest_transform(struct Implicit_Data *data, int index, float rot[3][3]);
+void SIM_mass_spring_set_rest_transform(struct Implicit_Data *data, int index, float tfm[3][3]);
 
 void SIM_mass_spring_set_motion_state(struct Implicit_Data *data,
                                       int index,

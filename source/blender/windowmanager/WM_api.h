@@ -200,7 +200,7 @@ void WM_lib_reload(struct Library *lib, struct bContext *C, struct ReportList *r
 /* mouse cursors */
 void WM_cursor_set(struct wmWindow *win, int curs);
 bool WM_cursor_set_from_tool(struct wmWindow *win, const ScrArea *area, const ARegion *region);
-void WM_cursor_modal_set(struct wmWindow *win, int curs);
+void WM_cursor_modal_set(struct wmWindow *win, int val);
 void WM_cursor_modal_restore(struct wmWindow *win);
 void WM_cursor_wait(bool val);
 void WM_cursor_grab_enable(struct wmWindow *win, int wrap, bool hide, int bounds[4]);
@@ -269,20 +269,20 @@ typedef void (*wmUIHandlerRemoveFunc)(struct bContext *C, void *userdata);
 
 struct wmEventHandler_UI *WM_event_add_ui_handler(const struct bContext *C,
                                                   ListBase *handlers,
-                                                  wmUIHandlerFunc ui_handle,
-                                                  wmUIHandlerRemoveFunc ui_remove,
-                                                  void *userdata,
+                                                  wmUIHandlerFunc handle_fn,
+                                                  wmUIHandlerRemoveFunc remove_fn,
+                                                  void *user_data,
                                                   const char flag);
 void WM_event_remove_ui_handler(ListBase *handlers,
-                                wmUIHandlerFunc ui_handle,
-                                wmUIHandlerRemoveFunc ui_remove,
-                                void *userdata,
+                                wmUIHandlerFunc handle_fn,
+                                wmUIHandlerRemoveFunc remove_fn,
+                                void *user_data,
                                 const bool postpone);
 void WM_event_remove_area_handler(struct ListBase *handlers, void *area);
 void WM_event_free_ui_handler_all(struct bContext *C,
                                   ListBase *handlers,
-                                  wmUIHandlerFunc ui_handle,
-                                  wmUIHandlerRemoveFunc ui_remove);
+                                  wmUIHandlerFunc handle_fn,
+                                  wmUIHandlerRemoveFunc remove_fn);
 
 struct wmEventHandler_Op *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op);
 void WM_event_modal_handler_area_replace(wmWindow *win,
@@ -676,7 +676,7 @@ struct ID *WM_drag_ID(const struct wmDrag *drag, short idcode);
 struct ID *WM_drag_ID_from_event(const struct wmEvent *event, short idcode);
 
 /* Set OpenGL viewport and scissor */
-void wmViewport(const struct rcti *rect);
+void wmViewport(const struct rcti *winrct);
 void wmPartialViewport(rcti *drawrct, const rcti *winrct, const rcti *partialrct);
 void wmWindowViewport(struct wmWindow *win);
 
@@ -886,7 +886,7 @@ double WM_tooltip_time_closed(void);
 struct wmGenericCallback *WM_generic_callback_steal(struct wmGenericCallback *callback);
 void WM_generic_callback_free(struct wmGenericCallback *callback);
 
-void WM_generic_user_data_free(struct wmGenericUserData *user_data);
+void WM_generic_user_data_free(struct wmGenericUserData *wm_userdata);
 
 bool WM_region_use_viewport(struct ScrArea *area, struct ARegion *region);
 

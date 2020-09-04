@@ -40,7 +40,7 @@ struct wmJob *EEVEE_lightbake_job_create(struct wmWindowManager *wm,
                                          int delay,
                                          int frame);
 void *EEVEE_lightbake_job_data_alloc(struct Main *bmain,
-                                     struct ViewLayer *viewlayer,
+                                     struct ViewLayer *view_layer,
                                      struct Scene *scene,
                                      bool run_as_job,
                                      int frame);

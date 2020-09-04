@@ -642,9 +642,9 @@ static int save_stdjpeg(const char *name, struct ImBuf *ibuf)
   return 1;
 }
 
-int imb_savejpeg(struct ImBuf *ibuf, const char *name, int flags)
+int imb_savejpeg(struct ImBuf *ibuf, const char *filepath, int flags)
 {
 
   ibuf->flags = flags;
-  return save_stdjpeg(name, ibuf);
+  return save_stdjpeg(filepath, ibuf);
 }

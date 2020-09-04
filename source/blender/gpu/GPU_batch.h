@@ -96,12 +96,12 @@ GPUBatch *GPU_batch_calloc(void);
 GPUBatch *GPU_batch_create_ex(GPUPrimType prim,
                               GPUVertBuf *vert,
                               GPUIndexBuf *elem,
-                              eGPUBatchFlag own_flag);
+                              eGPUBatchFlag owns_flag);
 void GPU_batch_init_ex(GPUBatch *batch,
                        GPUPrimType prim,
                        GPUVertBuf *vert,
                        GPUIndexBuf *elem,
-                       eGPUBatchFlag own_flag);
+                       eGPUBatchFlag owns_flag);
 void GPU_batch_copy(GPUBatch *batch_dst, GPUBatch *batch_src);
 
 #define GPU_batch_create(prim, verts, elem) GPU_batch_create_ex(prim, verts, elem, 0)

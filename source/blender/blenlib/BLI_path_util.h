@@ -43,7 +43,7 @@ const char *BLI_path_extension(const char *filepath) ATTR_NONNULL();
 
 void BLI_path_append(char *__restrict dst, const size_t maxlen, const char *__restrict file)
     ATTR_NONNULL();
-void BLI_join_dirfile(char *__restrict string,
+void BLI_join_dirfile(char *__restrict dst,
                       const size_t maxlen,
                       const char *__restrict dir,
                       const char *__restrict file) ATTR_NONNULL();
@@ -77,7 +77,10 @@ bool BLI_path_extension_glob_validate(char *ext_fnmatch) ATTR_NONNULL();
 bool BLI_path_extension_replace(char *path, size_t maxlen, const char *ext) ATTR_NONNULL();
 bool BLI_path_extension_ensure(char *path, size_t maxlen, const char *ext) ATTR_NONNULL();
 bool BLI_path_filename_ensure(char *filepath, size_t maxlen, const char *filename) ATTR_NONNULL();
-int BLI_path_sequence_decode(const char *string, char *head, char *start, unsigned short *numlen);
+int BLI_path_sequence_decode(const char *string,
+                             char *head,
+                             char *tail,
+                             unsigned short *r_num_len);
 void BLI_path_sequence_encode(
     char *string, const char *head, const char *tail, unsigned short numlen, int pic);
 

@@ -43,7 +43,7 @@ struct DerivedMesh *CDDM_from_mesh(struct Mesh *mesh);
 
 /* Copies the given DerivedMesh with verts, faces & edges stored as
  * custom element data. */
-struct DerivedMesh *CDDM_copy(struct DerivedMesh *dm);
+struct DerivedMesh *CDDM_copy(struct DerivedMesh *source);
 
 #ifdef __cplusplus
 }

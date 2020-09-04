@@ -149,7 +149,7 @@ void BLO_write_uint32_array(BlendWriter *writer, int size, const uint32_t *data_
 void BLO_write_float_array(BlendWriter *writer, int size, const float *data_ptr);
 void BLO_write_float3_array(BlendWriter *writer, int size, const float *data_ptr);
 void BLO_write_pointer_array(BlendWriter *writer, int size, const void *data_ptr);
-void BLO_write_string(BlendWriter *writer, const char *data_ptr);
+void BLO_write_string(BlendWriter *writer, const char *str);
 
 /* Misc. */
 bool BLO_write_is_undo(BlendWriter *writer);

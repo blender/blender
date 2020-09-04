@@ -31,7 +31,7 @@
 
 #include "BLI_strict_flags.h"
 
-void BLI_jitterate1(float (*jit1)[2], float (*jit2)[2], int num, float rad1)
+void BLI_jitterate1(float (*jit1)[2], float (*jit2)[2], int num, float radius1)
 {
   int i, j, k;
   float vecx, vecy, dvecx, dvecy, x, y, len;
@@ -45,30 +45,30 @@ void BLI_jitterate1(float (*jit1)[2], float (*jit2)[2], int num, float rad1)
         vecx = jit1[j][0] - x - 1.0f;
         vecy = jit1[j][1] - y - 1.0f;
         for (k = 3; k > 0; k--) {
-          if (fabsf(vecx) < rad1 && fabsf(vecy) < rad1) {
+          if (fabsf(vecx) < radius1 && fabsf(vecy) < radius1) {
             len = sqrtf(vecx * vecx + vecy * vecy);
-            if (len > 0 && len < rad1) {
-              len = len / rad1;
+            if (len > 0 && len < radius1) {
+              len = len / radius1;
               dvecx += vecx / len;
               dvecy += vecy / len;
             }
           }
           vecx += 1.0f;
 
-          if (fabsf(vecx) < rad1 && fabsf(vecy) < rad1) {
+          if (fabsf(vecx) < radius1 && fabsf(vecy) < radius1) {
             len = sqrtf(vecx * vecx + vecy * vecy);
-            if (len > 0 && len < rad1) {
-              len = len / rad1;
+            if (len > 0 && len < radius1) {
+              len = len / radius1;
               dvecx += vecx / len;
               dvecy += vecy / len;
             }
           }
           vecx += 1.0f;
 
-          if (fabsf(vecx) < rad1 && fabsf(vecy) < rad1) {
+          if (fabsf(vecx) < radius1 && fabsf(vecy) < radius1) {
             len = sqrtf(vecx * vecx + vecy * vecy);
-            if (len > 0 && len < rad1) {
-              len = len / rad1;
+            if (len > 0 && len < radius1) {
+              len = len / radius1;
               dvecx += vecx / len;
               dvecy += vecy / len;
             }
@@ -89,7 +89,7 @@ void BLI_jitterate1(float (*jit1)[2], float (*jit2)[2], int num, float rad1)
   memcpy(jit1, jit2, 2 * (unsigned int)num * sizeof(float));
 }
 
-void BLI_jitterate2(float (*jit1)[2], float (*jit2)[2], int num, float rad2)
+void BLI_jitterate2(float (*jit1)[2], float (*jit2)[2], int num, float radius2)
 {
   int i, j;
   float vecx, vecy, dvecx, dvecy, x, y;
@@ -103,28 +103,28 @@ void BLI_jitterate2(float (*jit1)[2], float (*jit2)[2], int num, float rad2)
         vecx = jit1[j][0] - x - 1.0f;
         vecy = jit1[j][1] - y - 1.0f;
 
-        if (fabsf(vecx) < rad2) {
-          dvecx += vecx * rad2;
+        if (fabsf(vecx) < radius2) {
+          dvecx += vecx * radius2;
         }
         vecx += 1.0f;
-        if (fabsf(vecx) < rad2) {
-          dvecx += vecx * rad2;
+        if (fabsf(vecx) < radius2) {
+          dvecx += vecx * radius2;
         }
         vecx += 1.0f;
-        if (fabsf(vecx) < rad2) {
-          dvecx += vecx * rad2;
+        if (fabsf(vecx) < radius2) {
+          dvecx += vecx * radius2;
         }
 
-        if (fabsf(vecy) < rad2) {
-          dvecy += vecy * rad2;
+        if (fabsf(vecy) < radius2) {
+          dvecy += vecy * radius2;
         }
         vecy += 1.0f;
-        if (fabsf(vecy) < rad2) {
-          dvecy += vecy * rad2;
+        if (fabsf(vecy) < radius2) {
+          dvecy += vecy * radius2;
         }
         vecy += 1.0f;
-        if (fabsf(vecy) < rad2) {
-          dvecy += vecy * rad2;
+        if (fabsf(vecy) < radius2) {
+          dvecy += vecy * radius2;
         }
       }
     }

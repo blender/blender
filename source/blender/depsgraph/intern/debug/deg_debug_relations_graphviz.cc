@@ -513,7 +513,7 @@ static void deg_debug_graphviz_graph_relations(DotExportContext &ctx, const Deps
 }  // namespace deg
 }  // namespace blender
 
-void DEG_debug_relations_graphviz(const Depsgraph *graph, FILE *f, const char *label)
+void DEG_debug_relations_graphviz(const Depsgraph *graph, FILE *fp, const char *label)
 {
   if (!graph) {
     return;
@@ -539,5 +539,5 @@ void DEG_debug_relations_graphviz(const Depsgraph *graph, FILE *f, const char *l
   deg::deg_debug_graphviz_legend(ctx);
 
   std::string dot_string = digraph.to_dot_string();
-  fprintf(f, "%s", dot_string.c_str());
+  fprintf(fp, "%s", dot_string.c_str());
 }

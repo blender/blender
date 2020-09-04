@@ -55,7 +55,7 @@ void BLI_dynstr_vappendf(DynStr *__restrict ds, const char *__restrict format, v
 
 int BLI_dynstr_get_len(DynStr *ds) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 char *BLI_dynstr_get_cstring(DynStr *ds) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-void BLI_dynstr_get_cstring_ex(DynStr *__restrict ds, char *__restrict str) ATTR_NONNULL();
+void BLI_dynstr_get_cstring_ex(DynStr *__restrict ds, char *__restrict rets) ATTR_NONNULL();
 
 void BLI_dynstr_clear(DynStr *ds) ATTR_NONNULL();
 void BLI_dynstr_free(DynStr *ds) ATTR_NONNULL();

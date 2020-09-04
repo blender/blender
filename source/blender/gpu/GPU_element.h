@@ -94,9 +94,9 @@ GPUIndexBuf *GPU_indexbuf_build(GPUIndexBufBuilder *);
 void GPU_indexbuf_build_in_place(GPUIndexBufBuilder *, GPUIndexBuf *);
 
 /* Create a subrange of an existing indexbuffer. */
-GPUIndexBuf *GPU_indexbuf_create_subrange(GPUIndexBuf *ibo, uint start, uint length);
-void GPU_indexbuf_create_subrange_in_place(GPUIndexBuf *r_ibo,
-                                           GPUIndexBuf *ibo,
+GPUIndexBuf *GPU_indexbuf_create_subrange(GPUIndexBuf *elem_src, uint start, uint length);
+void GPU_indexbuf_create_subrange_in_place(GPUIndexBuf *elem,
+                                           GPUIndexBuf *elem_src,
                                            uint start,
                                            uint length);
 

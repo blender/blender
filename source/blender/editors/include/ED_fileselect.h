@@ -199,7 +199,7 @@ void ED_fsmenu_set_category(struct FSMenu *fsmenu,
 
 int ED_fsmenu_get_nentries(struct FSMenu *fsmenu, FSMenuCategory category);
 
-struct FSMenuEntry *ED_fsmenu_get_entry(struct FSMenu *fsmenu, FSMenuCategory category, int index);
+struct FSMenuEntry *ED_fsmenu_get_entry(struct FSMenu *fsmenu, FSMenuCategory category, int idx);
 
 char *ED_fsmenu_entry_get_path(struct FSMenuEntry *fsentry);
 void ED_fsmenu_entry_set_path(struct FSMenuEntry *fsentry, const char *path);

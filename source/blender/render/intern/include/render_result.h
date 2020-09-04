@@ -92,7 +92,7 @@ struct RenderPass *render_layer_add_pass(struct RenderResult *rr,
                                          int channels,
                                          const char *name,
                                          const char *viewname,
-                                         const char *chanid);
+                                         const char *chan_id);
 
 void render_result_exr_file_merge(struct RenderResult *rr,
                                   struct RenderResult *rrpart,

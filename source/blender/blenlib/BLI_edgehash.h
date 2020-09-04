@@ -53,7 +53,7 @@ enum {
 
 EdgeHash *BLI_edgehash_new_ex(const char *info, const unsigned int nentries_reserve);
 EdgeHash *BLI_edgehash_new(const char *info) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
-void BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP valfreefp);
+void BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP free_value);
 void BLI_edgehash_print(EdgeHash *eh);
 void BLI_edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val);
 bool BLI_edgehash_reinsert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *val);
@@ -61,21 +61,22 @@ void *BLI_edgehash_lookup(EdgeHash *eh, unsigned int v0, unsigned int v1) ATTR_W
 void *BLI_edgehash_lookup_default(EdgeHash *eh,
                                   unsigned int v0,
                                   unsigned int v1,
-                                  void *val_default) ATTR_WARN_UNUSED_RESULT;
+                                  void *default_value) ATTR_WARN_UNUSED_RESULT;
 void **BLI_edgehash_lookup_p(EdgeHash *eh,
                              unsigned int v0,
                              unsigned int v1) ATTR_WARN_UNUSED_RESULT;
 bool BLI_edgehash_ensure_p(EdgeHash *eh, unsigned int v0, unsigned int v1, void ***r_val)
     ATTR_WARN_UNUSED_RESULT;
-bool BLI_edgehash_remove(EdgeHash *eh, unsigned int v0, unsigned int v1, EdgeHashFreeFP valfreefp);
+bool BLI_edgehash_remove(EdgeHash *eh,
+                         unsigned int v0,
+                         unsigned int v1,
+                         EdgeHashFreeFP free_value);
 
 void *BLI_edgehash_popkey(EdgeHash *eh, unsigned int v0, unsigned int v1) ATTR_WARN_UNUSED_RESULT;
 bool BLI_edgehash_haskey(EdgeHash *eh, unsigned int v0, unsigned int v1) ATTR_WARN_UNUSED_RESULT;
 int BLI_edgehash_len(EdgeHash *eh) ATTR_WARN_UNUSED_RESULT;
-void BLI_edgehash_clear_ex(EdgeHash *eh,
-                           EdgeHashFreeFP valfreefp,
-                           const unsigned int nentries_reserve);
-void BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP valfreefp);
+void BLI_edgehash_clear_ex(EdgeHash *eh, EdgeHashFreeFP free_value, const uint UNUSED(reserve));
+void BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP free_value);
 
 EdgeHashIterator *BLI_edgehashIterator_new(EdgeHash *eh) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 void BLI_edgehashIterator_init(EdgeHashIterator *ehi, EdgeHash *eh);
@@ -134,7 +135,7 @@ bool BLI_edgeset_haskey(EdgeSet *es, unsigned int v0, unsigned int v1) ATTR_WARN
 void BLI_edgeset_free(EdgeSet *es);
 
 /* rely on inline api for now */
-EdgeSetIterator *BLI_edgesetIterator_new(EdgeSet *gs);
+EdgeSetIterator *BLI_edgesetIterator_new(EdgeSet *es);
 void BLI_edgesetIterator_free(EdgeSetIterator *esi);
 
 BLI_INLINE void BLI_edgesetIterator_getKey(EdgeSetIterator *esi,

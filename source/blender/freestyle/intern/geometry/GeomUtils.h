@@ -247,7 +247,7 @@ void fromImageToRetina(const Vec3r &p, Vec3r &q, const int viewport[4]);
  *    The projection matrix expressed in line major order (OpenGL
  *    matrices are column major ordered)
  */
-void fromRetinaToCamera(const Vec3r &p, Vec3r &q, real z, const real projection_matrix[4][4]);
+void fromRetinaToCamera(const Vec3r &p, Vec3r &q, real focal, const real projection_matrix[4][4]);
 
 /*! Projects from camera coordinates to world coordinates
  *  Returns the point's coordinates expressed in the world's

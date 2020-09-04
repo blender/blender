@@ -65,7 +65,7 @@ struct NlaStrip *BKE_nlastrip_new(struct bAction *act);
 struct NlaStrip *BKE_nlastack_add_strip(struct AnimData *adt, struct bAction *act);
 struct NlaStrip *BKE_nla_add_soundstrip(struct Main *bmain,
                                         struct Scene *scene,
-                                        struct Speaker *spk);
+                                        struct Speaker *speaker);
 
 void BKE_nla_strip_foreach_id(struct NlaStrip *strip, struct LibraryForeachIDData *data);
 

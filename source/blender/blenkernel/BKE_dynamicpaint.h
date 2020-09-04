@@ -72,7 +72,7 @@ struct Mesh *dynamicPaint_Modifier_do(struct DynamicPaintModifierData *pmd,
 void dynamicPaint_Modifier_free(struct DynamicPaintModifierData *pmd);
 void dynamicPaint_Modifier_free_runtime(struct DynamicPaintRuntime *runtime);
 void dynamicPaint_Modifier_copy(const struct DynamicPaintModifierData *pmd,
-                                struct DynamicPaintModifierData *tsmd,
+                                struct DynamicPaintModifierData *tpmd,
                                 int flag);
 
 bool dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, struct Scene *scene);

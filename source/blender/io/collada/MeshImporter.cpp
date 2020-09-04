@@ -228,16 +228,16 @@ bool MeshImporter::set_poly_indices(
   return broken_loop;
 }
 
-void MeshImporter::set_vcol(MLoopCol *mlc,
+void MeshImporter::set_vcol(MLoopCol *mloopcol,
                             VCOLDataWrapper &vob,
                             int loop_index,
                             COLLADAFW::IndexList &index_list,
                             int count)
 {
   int index;
-  for (index = 0; index < count; index++, mlc++) {
+  for (index = 0; index < count; index++, mloopcol++) {
     int v_index = index_list.getIndex(index + loop_index);
-    vob.get_vcol(v_index, mlc);
+    vob.get_vcol(v_index, mloopcol);
   }
 }
 
@@ -891,10 +891,10 @@ Object *MeshImporter::get_object_by_geom_uid(const COLLADAFW::UniqueId &geom_uid
   return NULL;
 }
 
-Mesh *MeshImporter::get_mesh_by_geom_uid(const COLLADAFW::UniqueId &mesh_uid)
+Mesh *MeshImporter::get_mesh_by_geom_uid(const COLLADAFW::UniqueId &geom_uid)
 {
-  if (uid_mesh_map.find(mesh_uid) != uid_mesh_map.end()) {
-    return uid_mesh_map[mesh_uid];
+  if (uid_mesh_map.find(geom_uid) != uid_mesh_map.end()) {
+    return uid_mesh_map[geom_uid];
   }
   return NULL;
 }

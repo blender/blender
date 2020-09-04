@@ -193,12 +193,12 @@ void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, uint siz
 }
 
 struct Main *BLO_memfile_main_get(struct MemFile *memfile,
-                                  struct Main *oldmain,
+                                  struct Main *bmain,
                                   struct Scene **r_scene)
 {
   struct Main *bmain_undo = NULL;
-  BlendFileData *bfd = BLO_read_from_memfile(oldmain,
-                                             BKE_main_blendfile_path(oldmain),
+  BlendFileData *bfd = BLO_read_from_memfile(bmain,
+                                             BKE_main_blendfile_path(bmain),
                                              memfile,
                                              &(const struct BlendFileReadParams){0},
                                              NULL);

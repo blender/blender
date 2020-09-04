@@ -25,7 +25,7 @@ class WrapOperation : public ReadBufferOperation {
   int m_wrappingType;
 
  public:
-  WrapOperation(DataType datetype);
+  WrapOperation(DataType datatype);
   bool determineDependingAreaOfInterest(rcti *input,
                                         ReadBufferOperation *readOperation,
                                         rcti *output);

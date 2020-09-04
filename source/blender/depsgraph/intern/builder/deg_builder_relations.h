@@ -195,7 +195,7 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   void add_modifier_to_transform_relation(const DepsNodeHandle *handle, const char *description);
 
   void add_customdata_mask(Object *object, const DEGCustomDataMeshMasks &customdata_masks);
-  void add_special_eval_flag(ID *object, uint32_t flag);
+  void add_special_eval_flag(ID *id, uint32_t flag);
 
   virtual void build_id(ID *id);
 

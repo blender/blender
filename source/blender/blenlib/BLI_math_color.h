@@ -45,8 +45,8 @@ extern "C" {
 
 void hsv_to_rgb(float h, float s, float v, float *r_r, float *r_g, float *r_b);
 void hsv_to_rgb_v(const float hsv[3], float r_rgb[3]);
-void hsl_to_rgb(float h, float c, float l, float *r_r, float *r_g, float *r_b);
-void hsl_to_rgb_v(const float hcl[3], float r_rgb[3]);
+void hsl_to_rgb(float h, float s, float l, float *r_r, float *r_g, float *r_b);
+void hsl_to_rgb_v(const float hsl[3], float r_rgb[3]);
 void hex_to_rgb(const char *hexcol, float *r_r, float *r_g, float *r_b);
 void yuv_to_rgb(float y, float u, float v, float *r_r, float *r_g, float *r_b, int colorspace);
 void ycc_to_rgb(float y, float cb, float cr, float *r_r, float *r_g, float *r_b, int colorspace);

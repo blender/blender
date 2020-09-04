@@ -37,7 +37,7 @@ class ImageNode : public Node {
                                    ImageUser *user,
                                    int framenumber,
                                    int outputsocketIndex,
-                                   int passtype,
+                                   int passindex,
                                    int view,
                                    DataType datatype) const;
 

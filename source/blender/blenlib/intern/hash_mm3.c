@@ -83,9 +83,9 @@ BLI_INLINE uint64_t fmix64(uint64_t k)
   return k;
 }
 
-uint32_t BLI_hash_mm3(const unsigned char *in, size_t len, uint32_t seed)
+uint32_t BLI_hash_mm3(const unsigned char *data, size_t len, uint32_t seed)
 {
-  const uint8_t *data = (const uint8_t *)in;
+  const uint8_t *in_data = (const uint8_t *)data;
   const int nblocks = len / 4;
 
   uint32_t h1 = seed;
@@ -95,7 +95,7 @@ uint32_t BLI_hash_mm3(const unsigned char *in, size_t len, uint32_t seed)
 
   /* body */
 
-  const uint32_t *blocks = (const uint32_t *)(data + nblocks * 4);
+  const uint32_t *blocks = (const uint32_t *)(in_data + nblocks * 4);
 
   for (int i = -nblocks; i; i++) {
     uint32_t k1 = getblock32(blocks, i);
@@ -111,7 +111,7 @@ uint32_t BLI_hash_mm3(const unsigned char *in, size_t len, uint32_t seed)
 
   /* tail */
 
-  const uint8_t *tail = (const uint8_t *)(data + nblocks * 4);
+  const uint8_t *tail = (const uint8_t *)(in_data + nblocks * 4);
 
   uint32_t k1 = 0;
 

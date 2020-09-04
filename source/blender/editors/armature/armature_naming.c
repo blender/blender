@@ -81,13 +81,13 @@ static bool editbone_unique_check(void *arg, const char *name)
 }
 
 /* If bone is already in list, pass it as param to ignore it. */
-void ED_armature_ebone_unique_name(ListBase *edbo, char *name, EditBone *bone)
+void ED_armature_ebone_unique_name(ListBase *ebones, char *name, EditBone *bone)
 {
   struct {
     ListBase *lb;
     void *bone;
   } data;
-  data.lb = edbo;
+  data.lb = ebones;
   data.bone = bone;
 
   BLI_uniquename_cb(editbone_unique_check, &data, DATA_("Bone"), '.', name, sizeof(bone->name));

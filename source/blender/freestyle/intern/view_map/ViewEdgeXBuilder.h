@@ -264,7 +264,7 @@ class ViewEdgeXBuilder {
 
   // SHARP //
   /*! checks whether a WEdge has already been processed or not */
-  bool stopSharpViewEdge(WXEdge *iFace);
+  bool stopSharpViewEdge(WXEdge *iEdge);
   int retrieveFaceMarks(WXEdge *iEdge);
   OWXEdge FindNextWEdge(const OWXEdge &iEdge);
   OWXEdge FindPreviousWEdge(const OWXEdge &iEdge);

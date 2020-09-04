@@ -109,7 +109,7 @@ static void readheader(MFileOffset *inf, IMAGE *image);
 static int writeheader(FILE *outf, IMAGE *image);
 
 static ushort getshort(MFileOffset *inf);
-static uint getlong(MFileOffset *inf);
+static uint getlong(MFileOffset *mofs);
 static void putshort(FILE *outf, ushort val);
 static int putlong(FILE *outf, uint val);
 static int writetab(FILE *outf, uint *tab, int len);
@@ -969,7 +969,7 @@ static int compressrow(uchar *lbuf, uchar *rlebuf, int z, int cnt)
   return optr - (uchar *)rlebuf;
 }
 
-int imb_saveiris(struct ImBuf *ibuf, const char *name, int flags)
+int imb_saveiris(struct ImBuf *ibuf, const char *filepath, int flags)
 {
   short zsize;
   int ret;
@@ -982,7 +982,7 @@ int imb_saveiris(struct ImBuf *ibuf, const char *name, int flags)
   IMB_convert_rgba_to_abgr(ibuf);
   test_endian_zbuf(ibuf);
 
-  ret = output_iris(ibuf->rect, ibuf->x, ibuf->y, zsize, name, ibuf->zbuf);
+  ret = output_iris(ibuf->rect, ibuf->x, ibuf->y, zsize, filepath, ibuf->zbuf);
 
   /* restore! Quite clumsy, 2 times a switch... maybe better a malloc ? */
   IMB_convert_rgba_to_abgr(ibuf);

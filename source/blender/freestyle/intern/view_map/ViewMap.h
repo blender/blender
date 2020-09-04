@@ -153,7 +153,7 @@ class ViewMap {
     return _VEdges.size();
   }
 
-  ViewShape *viewShape(unsigned index);
+  ViewShape *viewShape(unsigned id);
 
   id_to_index_map &shapeIdToIndexMap()
   {

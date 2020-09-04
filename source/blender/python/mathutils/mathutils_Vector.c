@@ -48,7 +48,7 @@
 static PyObject *Vector_copy(VectorObject *self);
 static PyObject *Vector_deepcopy(VectorObject *self, PyObject *args);
 static PyObject *Vector_to_tuple_ex(VectorObject *self, int ndigits);
-static int row_vector_multiplication(float rvec[MAX_DIMENSIONS],
+static int row_vector_multiplication(float r_vec[MAX_DIMENSIONS],
                                      VectorObject *vec,
                                      MatrixObject *mat);
 

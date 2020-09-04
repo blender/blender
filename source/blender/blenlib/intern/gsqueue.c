@@ -114,12 +114,12 @@ void BLI_gsqueue_free(GSQueue *queue)
 /**
  * Copies the source value onto the end of the queue
  *
- * \note This copies #GSQueue.elem_size bytes from \a src,
+ * \note This copies #GSQueue.elem_size bytes from \a item,
  * (the pointer itself is not stored).
  *
- * \param src: source data to be copied to the queue.
+ * \param item: source data to be copied to the queue.
  */
-void BLI_gsqueue_push(GSQueue *queue, const void *src)
+void BLI_gsqueue_push(GSQueue *queue, const void *item)
 {
   queue->chunk_last_index++;
   queue->totelem++;
@@ -150,20 +150,20 @@ void BLI_gsqueue_push(GSQueue *queue, const void *src)
   BLI_assert(queue->chunk_last_index < queue->chunk_elem_max);
 
   /* Return last of queue */
-  memcpy(queue_get_last_elem(queue), src, queue->elem_size);
+  memcpy(queue_get_last_elem(queue), item, queue->elem_size);
 }
 
 /**
  * Retrieves and removes the first element from the queue.
- * The value is copies to \a dst, which must be at least \a elem_size bytes.
+ * The value is copies to \a r_item, which must be at least \a elem_size bytes.
  *
  * Does not reduce amount of allocated memory.
  */
-void BLI_gsqueue_pop(GSQueue *queue, void *dst)
+void BLI_gsqueue_pop(GSQueue *queue, void *r_item)
 {
   BLI_assert(BLI_gsqueue_is_empty(queue) == false);
 
-  memcpy(dst, queue_get_first_elem(queue), queue->elem_size);
+  memcpy(r_item, queue_get_first_elem(queue), queue->elem_size);
   queue->chunk_first_index++;
   queue->totelem--;
 

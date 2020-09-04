@@ -308,7 +308,7 @@ typedef struct WalkInfo {
 #ifdef WITH_INPUT_NDOF
 static void walkApply_ndof(bContext *C, WalkInfo *walk, bool is_confirm);
 #endif /* WITH_INPUT_NDOF */
-static int walkApply(bContext *C, struct WalkInfo *walk, bool force_autokey);
+static int walkApply(bContext *C, struct WalkInfo *walk, bool is_confirm);
 static float getVelocityZeroTime(const float gravity, const float velocity);
 
 static void drawWalkPixel(const struct bContext *UNUSED(C), ARegion *region, void *arg)

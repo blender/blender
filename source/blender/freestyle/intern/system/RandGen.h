@@ -34,7 +34,7 @@ namespace Freestyle {
 class RandGen {
  public:
   static real drand48();
-  static void srand48(long value);
+  static void srand48(long seedval);
 
  private:
   static void next();

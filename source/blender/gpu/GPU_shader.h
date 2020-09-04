@@ -41,26 +41,26 @@ typedef enum eGPUShaderTFBType {
   GPU_SHADER_TFB_TRIANGLES = 3,
 } eGPUShaderTFBType;
 
-GPUShader *GPU_shader_create(const char *vertexcode,
+GPUShader *GPU_shader_create(const char *vertcode,
                              const char *fragcode,
-                             const char *geocode,
+                             const char *geomcode,
                              const char *libcode,
                              const char *defines,
-                             const char *shader_name);
-GPUShader *GPU_shader_create_from_python(const char *vertexcode,
+                             const char *shname);
+GPUShader *GPU_shader_create_from_python(const char *vertcode,
                                          const char *fragcode,
-                                         const char *geocode,
+                                         const char *geomcode,
                                          const char *libcode,
                                          const char *defines);
-GPUShader *GPU_shader_create_ex(const char *vertexcode,
+GPUShader *GPU_shader_create_ex(const char *vertcode,
                                 const char *fragcode,
-                                const char *geocode,
+                                const char *geomcode,
                                 const char *libcode,
                                 const char *defines,
                                 const eGPUShaderTFBType tf_type,
                                 const char **tf_names,
                                 const int tf_count,
-                                const char *shader_name);
+                                const char *shname);
 
 struct GPU_ShaderCreateFromArray_Params {
   const char **vert, **geom, **frag, **defs;

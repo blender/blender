@@ -143,10 +143,10 @@ void BCMatrix::set_transform(Matrix &mat)
   quat_to_eul(this->rot, this->q);
 }
 
-void BCMatrix::copy(Matrix &out, Matrix &in)
+void BCMatrix::copy(Matrix &r, Matrix &a)
 {
   /* destination comes first: */
-  memcpy(out, in, sizeof(Matrix));
+  memcpy(r, a, sizeof(Matrix));
 }
 
 void BCMatrix::transpose(Matrix &mat)

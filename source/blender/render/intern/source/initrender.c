@@ -182,9 +182,9 @@ static void re_camera_params_get(Render *re, CameraParams *params)
   re->viewplane = params->viewplane;
 }
 
-void RE_SetOverrideCamera(Render *re, Object *camera)
+void RE_SetOverrideCamera(Render *re, Object *cam_ob)
 {
-  re->camera_override = camera;
+  re->camera_override = cam_ob;
 }
 
 static void re_camera_params_stereo3d(Render *re, CameraParams *params, Object *cam_ob)

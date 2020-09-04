@@ -1804,7 +1804,7 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
                                          BMEdge *e_kill,
                                          BMVert *v_kill,
                                          const bool do_del,
-                                         const bool check_edge_double,
+                                         const bool check_edge_exists,
                                          const bool kill_degenerate_faces)
 {
   BMEdge *e_old;
@@ -1846,7 +1846,7 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
     valence2 = bmesh_disk_count(v_target);
 #endif
 
-    if (check_edge_double) {
+    if (check_edge_exists) {
       e_splice = BM_edge_exists(v_target, v_old);
     }
 
@@ -1926,7 +1926,7 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(BMesh *bm,
       BM_CHECK_ELEMENT(l->f);
     }
 #endif
-    if (check_edge_double) {
+    if (check_edge_exists) {
       if (e_splice) {
         /* removes e_splice */
         BM_edge_splice(bm, e_old, e_splice);
@@ -1971,7 +1971,7 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
                                          BMEdge *e_kill,
                                          BMVert *v_kill,
                                          const bool do_del,
-                                         const bool check_edge_double,
+                                         const bool check_edge_exists,
                                          const bool kill_degenerate_faces)
 {
   BLI_SMALLSTACK_DECLARE(faces_degenerate, BMFace *);
@@ -2020,14 +2020,14 @@ BMVert *bmesh_kernel_join_vert_kill_edge(BMesh *bm,
     while ((e = v_kill->e)) {
       BMEdge *e_target;
 
-      if (check_edge_double) {
+      if (check_edge_exists) {
         e_target = BM_edge_exists(v_target, BM_edge_other_vert(e, v_kill));
       }
 
       bmesh_edge_vert_swap(e, v_target, v_kill);
       BLI_assert(e->v1 != e->v2);
 
-      if (check_edge_double) {
+      if (check_edge_exists) {
         if (e_target) {
           BM_edge_splice(bm, e_target, e);
         }

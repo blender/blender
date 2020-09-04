@@ -41,13 +41,13 @@ static bool prepare_write_imbuf(const ImFileType *type, ImBuf *ibuf)
   return IMB_prepare_write_ImBuf((type->flag & IM_FTYPE_FLOAT), ibuf);
 }
 
-short IMB_saveiff(struct ImBuf *ibuf, const char *name, int flags)
+short IMB_saveiff(struct ImBuf *ibuf, const char *filepath, int flags)
 {
   const ImFileType *type;
 
   errno = 0;
 
-  BLI_assert(!BLI_path_is_rel(name));
+  BLI_assert(!BLI_path_is_rel(filepath));
 
   if (ibuf == NULL) {
     return false;
@@ -60,7 +60,7 @@ short IMB_saveiff(struct ImBuf *ibuf, const char *name, int flags)
 
       prepare_write_imbuf(type, ibuf);
 
-      result = type->save(ibuf, name, flags);
+      result = type->save(ibuf, filepath, flags);
 
       return result;
     }

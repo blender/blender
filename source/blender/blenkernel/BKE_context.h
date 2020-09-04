@@ -215,7 +215,7 @@ void CTX_data_pointer_set(bContextDataResult *result, struct ID *id, StructRNA *
 void CTX_data_id_list_add(bContextDataResult *result, struct ID *id);
 void CTX_data_list_add(bContextDataResult *result, struct ID *id, StructRNA *type, void *data);
 
-void CTX_data_dir_set(bContextDataResult *result, const char **member);
+void CTX_data_dir_set(bContextDataResult *result, const char **dir);
 
 void CTX_data_type_set(struct bContextDataResult *result, short type);
 short CTX_data_type_get(struct bContextDataResult *result);
@@ -262,7 +262,7 @@ enum eContextObjectMode CTX_data_mode_enum_ex(const struct Object *obedit,
 enum eContextObjectMode CTX_data_mode_enum(const bContext *C);
 
 void CTX_data_main_set(bContext *C, struct Main *bmain);
-void CTX_data_scene_set(bContext *C, struct Scene *bmain);
+void CTX_data_scene_set(bContext *C, struct Scene *scene);
 
 int CTX_data_selected_editable_objects(const bContext *C, ListBase *list);
 int CTX_data_selected_editable_bases(const bContext *C, ListBase *list);

@@ -36,7 +36,7 @@ typedef struct ZSpan {
 void zbuf_alloc_span(struct ZSpan *zspan, int rectx, int recty);
 void zbuf_free_span(struct ZSpan *zspan);
 
-void zspan_scanconvert(struct ZSpan *zpan,
+void zspan_scanconvert(struct ZSpan *zspan,
                        void *handle,
                        float *v1,
                        float *v2,
