@@ -27,6 +27,7 @@
 
 #include "GPU_extensions.h"
 #include "GPU_framebuffer.h"
+#include "GPU_platform.h"
 
 #include "gl_backend.hh"
 #include "gl_debug.hh"
@@ -76,7 +77,9 @@ bool GLTexture::init_internal(void)
 
   target_ = to_gl_target(type_);
 
-  /* TODO(fclem) Proxy check. */
+  if (!this->proxy_check(0)) {
+    return false;
+  }
 
   this->ensure_mipmaps(0);
 
@@ -493,6 +496,112 @@ void GLTexture::samplers_update(void)
 void GLTexture::samplers_free(void)
 {
   glDeleteSamplers(GPU_SAMPLER_MAX, samplers_);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Proxy texture
+ *
+ * Dummy texture to see if the implementation supports the requested size.
+ * \{ */
+
+/* NOTE: This only checks if this mipmap is valid / supported.
+ * TODO(fclem) make the check cover the whole mipmap chain. */
+bool GLTexture::proxy_check(int mip)
+{
+  /* Manual validation first, since some implementation have issues with proxy creation. */
+  int max_size = GPU_max_texture_size();
+  int max_3d_size = GPU_max_texture_3d_size();
+  int max_cube_size = GPU_max_cube_map_size();
+  int size[3] = {1, 1, 1};
+  this->mip_size_get(mip, size);
+
+  if (type_ & GPU_TEXTURE_ARRAY) {
+    if (this->layer_count() > GPU_max_texture_layers()) {
+      return false;
+    }
+  }
+
+  if (type_ == GPU_TEXTURE_3D) {
+    if (size[0] > max_3d_size || size[1] > max_3d_size || size[2] > max_3d_size) {
+      return false;
+    }
+  }
+  else if ((type_ & ~GPU_TEXTURE_ARRAY) == GPU_TEXTURE_2D) {
+    if (size[0] > max_size || size[1] > max_size) {
+      return false;
+    }
+  }
+  else if ((type_ & ~GPU_TEXTURE_ARRAY) == GPU_TEXTURE_1D) {
+    if (size[0] > max_size) {
+      return false;
+    }
+  }
+  else if ((type_ & ~GPU_TEXTURE_ARRAY) == GPU_TEXTURE_CUBE) {
+    if (size[0] > max_cube_size) {
+      return false;
+    }
+  }
+
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_WIN, GPU_DRIVER_ANY) ||
+      GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_MAC, GPU_DRIVER_OFFICIAL) ||
+      GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OFFICIAL)) {
+    /* Some AMD drivers have a faulty `GL_PROXY_TEXTURE_..` check.
+     * (see T55888, T56185, T59351).
+     * Checking with `GL_PROXY_TEXTURE_..` doesn't prevent `Out Of Memory` issue,
+     * it just states that the OGL implementation can support the texture.
+     * So we already manually check the maximum size and maximum number of layers.
+     * Same thing happens on Nvidia/macOS 10.15 (T78175). */
+    return true;
+  }
+
+  if ((type_ == GPU_TEXTURE_CUBE_ARRAY) &&
+      GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY)) {
+    /* Special fix for T79703. */
+    return true;
+  }
+
+  GLenum gl_proxy = to_gl_proxy(type_);
+  GLenum internal_format = to_gl_internal_format(format_);
+  GLenum gl_format = to_gl_data_format(format_);
+  GLenum gl_type = to_gl(to_data_format(format_));
+  /* Small exception. */
+  int dimensions = (type_ == GPU_TEXTURE_CUBE) ? 2 : this->dimensions_count();
+
+  if (format_flag_ & GPU_FORMAT_COMPRESSED) {
+    size_t img_size = ((size[0] + 3) / 4) * ((size[1] + 3) / 4) * to_block_size(format_);
+    switch (dimensions) {
+      default:
+      case 1:
+        glCompressedTexImage1D(gl_proxy, mip, size[0], 0, gl_format, img_size, NULL);
+        break;
+      case 2:
+        glCompressedTexImage2D(gl_proxy, mip, UNPACK2(size), 0, gl_format, img_size, NULL);
+        break;
+      case 3:
+        glCompressedTexImage3D(gl_proxy, mip, UNPACK3(size), 0, gl_format, img_size, NULL);
+        break;
+    }
+  }
+  else {
+    switch (dimensions) {
+      default:
+      case 1:
+        glTexImage1D(gl_proxy, mip, internal_format, size[0], 0, gl_format, gl_type, NULL);
+        break;
+      case 2:
+        glTexImage2D(gl_proxy, mip, internal_format, UNPACK2(size), 0, gl_format, gl_type, NULL);
+        break;
+      case 3:
+        glTexImage3D(gl_proxy, mip, internal_format, UNPACK3(size), 0, gl_format, gl_type, NULL);
+        break;
+    }
+  }
+
+  int width = 0;
+  glGetTexLevelParameteriv(gl_proxy, 0, GL_TEXTURE_WIDTH, &width);
+  return (width > 0);
 }
 
 /** \} */

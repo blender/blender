@@ -62,6 +62,7 @@
 
 static struct GPUGlobal {
   GLint maxtexsize;
+  GLint maxtex3dsize;
   GLint maxtexlayers;
   GLint maxcubemapsize;
   GLint maxtextures;
@@ -135,6 +136,11 @@ static void gpu_detect_mip_render_workaround(void)
 int GPU_max_texture_size(void)
 {
   return GG.maxtexsize;
+}
+
+int GPU_max_texture_3d_size(void)
+{
+  return GG.maxtex3dsize;
 }
 
 int GPU_max_texture_layers(void)
@@ -249,6 +255,7 @@ void gpu_extensions_init(void)
   glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &GG.maxtextures);
 
   glGetIntegerv(GL_MAX_TEXTURE_SIZE, &GG.maxtexsize);
+  glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &GG.maxtex3dsize);
   glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &GG.maxtexlayers);
   glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &GG.maxcubemapsize);
 

@@ -188,6 +188,19 @@ class Texture {
         return 3;
     }
   }
+  /* Return number of array layer (or face layer) for texture array or 1 for the others. */
+  int layer_count(void) const
+  {
+    switch (type_) {
+      case GPU_TEXTURE_1D_ARRAY:
+        return h_;
+      case GPU_TEXTURE_2D_ARRAY:
+      case GPU_TEXTURE_CUBE_ARRAY:
+        return d_;
+      default:
+        return 1;
+    }
+  }
 
   eGPUTextureFormat format_get(void) const
   {

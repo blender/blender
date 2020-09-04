@@ -97,7 +97,8 @@ class GLTexture : public Texture {
   bool init_internal(GPUVertBuf *vbo) override;
 
  private:
-  void ensure_mipmaps(int miplvl);
+  bool proxy_check(int mip);
+  void ensure_mipmaps(int mip);
   GPUFrameBuffer *framebuffer_get(void);
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLTexture")
@@ -226,6 +227,30 @@ inline GLenum to_gl_target(eGPUTextureType type)
       return GL_TEXTURE_CUBE_MAP_ARRAY_ARB;
     case GPU_TEXTURE_BUFFER:
       return GL_TEXTURE_BUFFER;
+    default:
+      BLI_assert(0);
+      return GL_TEXTURE_1D;
+  }
+}
+
+inline GLenum to_gl_proxy(eGPUTextureType type)
+{
+  switch (type) {
+    case GPU_TEXTURE_1D:
+      return GL_PROXY_TEXTURE_1D;
+    case GPU_TEXTURE_1D_ARRAY:
+      return GL_PROXY_TEXTURE_1D_ARRAY;
+    case GPU_TEXTURE_2D:
+      return GL_PROXY_TEXTURE_2D;
+    case GPU_TEXTURE_2D_ARRAY:
+      return GL_PROXY_TEXTURE_2D_ARRAY;
+    case GPU_TEXTURE_3D:
+      return GL_PROXY_TEXTURE_3D;
+    case GPU_TEXTURE_CUBE:
+      return GL_PROXY_TEXTURE_CUBE_MAP;
+    case GPU_TEXTURE_CUBE_ARRAY:
+      return GL_PROXY_TEXTURE_CUBE_MAP_ARRAY_ARB;
+    case GPU_TEXTURE_BUFFER:
     default:
       BLI_assert(0);
       return GL_TEXTURE_1D;
