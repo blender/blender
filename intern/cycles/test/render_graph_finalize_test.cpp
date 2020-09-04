@@ -419,8 +419,8 @@ TEST_F(RenderGraph, constant_fold_mix_add)
                     .set(&MixNode::type, NODE_MIX_ADD)
                     .set(&MixNode::use_clamp, false)
                     .set("Fac", 0.8f)
-                    .set("Color1", make_float3(0.3, 0.5, 0.7))
-                    .set("Color2", make_float3(0.4, 0.8, 0.9)))
+                    .set("Color1", make_float3(0.3f, 0.5f, 0.7f))
+                    .set("Color2", make_float3(0.4f, 0.8f, 0.9f)))
       .output_color("MixAdd::Color");
 
   graph.finalize(scene);
@@ -440,8 +440,8 @@ TEST_F(RenderGraph, constant_fold_mix_add_clamp)
                     .set(&MixNode::type, NODE_MIX_ADD)
                     .set(&MixNode::use_clamp, true)
                     .set("Fac", 0.8f)
-                    .set("Color1", make_float3(0.3, 0.5, 0.7))
-                    .set("Color2", make_float3(0.4, 0.8, 0.9)))
+                    .set("Color1", make_float3(0.3f, 0.5f, 0.7f))
+                    .set("Color2", make_float3(0.4f, 0.8f, 0.9f)))
       .output_color("MixAdd::Color");
 
   graph.finalize(scene);

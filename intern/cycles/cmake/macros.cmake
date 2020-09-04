@@ -391,7 +391,7 @@ macro(cycles_target_link_libraries target)
     target_link_libraries(${target} bf_intern_numaapi)
   endif()
 
-  if(UNIX)
+  if(UNIX AND NOT APPLE)
     if(CYCLES_STANDALONE_REPOSITORY)
       target_link_libraries(${target} extern_libc_compat)
     else()
