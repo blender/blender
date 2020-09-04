@@ -61,11 +61,6 @@
 
 #include "mesh_intern.h" /* own include */
 
-typedef enum eGeometryExtractModeType {
-  GEOMETRY_EXTRACT_MASK = 0,
-  GEOMETRY_EXTRACT_FACE_SET = 1,
-} eGeometryExtractModeType;
-
 static bool geometry_extract_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
@@ -77,41 +72,6 @@ static bool geometry_extract_poll(bContext *C)
     return ED_operator_object_active_editable_mesh(C);
   }
   return false;
-}
-
-static void geometry_extract_tag_masked_faces(BMesh *bm, const float threshold)
-{
-  BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
-  const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
-
-  BMFace *f;
-  BMIter iter;
-  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-    bool keep_face = true;
-    BMVert *v;
-    BMIter face_iter;
-    BM_ITER_ELEM (v, &face_iter, f, BM_VERTS_OF_FACE) {
-      const float mask = BM_ELEM_CD_GET_FLOAT(v, cd_vert_mask_offset);
-      if (mask < threshold) {
-        keep_face = false;
-        break;
-      }
-    }
-    BM_elem_flag_set(f, BM_ELEM_TAG, !keep_face);
-  }
-}
-
-static void geometry_extract_tag_face_set(BMesh *bm, const int tag_face_set_id)
-{
-  BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
-  const int cd_face_sets_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
-
-  BMFace *f;
-  BMIter iter;
-  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-    const int face_set_id = abs(BM_ELEM_CD_GET_INT(f, cd_face_sets_offset));
-    BM_elem_flag_set(f, BM_ELEM_TAG, face_set_id != tag_face_set_id);
-  }
 }
 
 typedef struct GeometryExtactParams {
@@ -128,9 +88,12 @@ typedef struct GeometryExtactParams {
   bool add_solidify;
 } GeometryExtractParams;
 
+/* Function that tags in BMesh the faces that should be deleted in the extracted object. */
+typedef void(GeometryExtractTagMeshFunc)(struct BMesh *, GeometryExtractParams *);
+
 static int geometry_extract_apply(bContext *C,
                                   wmOperator *op,
-                                  eGeometryExtractModeType mode,
+                                  GeometryExtractTagMeshFunc *tag_fn,
                                   GeometryExtractParams *params)
 {
   struct Main *bmain = CTX_data_main(C);
@@ -160,25 +123,17 @@ static int geometry_extract_apply(bContext *C,
                      }));
 
   BMEditMesh *em = BKE_editmesh_create(bm, false);
-  BMVert *v;
-  BMEdge *ed;
-  BMIter iter;
 
-  switch (mode) {
-    case GEOMETRY_EXTRACT_MASK: {
-      geometry_extract_tag_masked_faces(bm, params->mask_threshold);
-      break;
-    }
-    case GEOMETRY_EXTRACT_FACE_SET: {
-      geometry_extract_tag_face_set(bm, params->active_face_set);
-      break;
-    }
-  }
+  /* Generate the tags for deleting geometry in the extracted object. */
+  tag_fn(bm, params);
 
   /* Delete all tagged faces. */
   BM_mesh_delete_hflag_context(bm, BM_ELEM_TAG, DEL_FACES);
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
 
+  BMVert *v;
+  BMEdge *ed;
+  BMIter iter;
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
     mul_v3_v3(v->co, ob->scale);
   }
@@ -292,6 +247,45 @@ static int geometry_extract_apply(bContext *C,
   return OPERATOR_FINISHED;
 }
 
+static void geometry_extract_tag_masked_faces(BMesh *bm, GeometryExtractParams *params)
+{
+  const float threshold = params->mask_threshold;
+
+  BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
+  const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
+
+  BMFace *f;
+  BMIter iter;
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    bool keep_face = true;
+    BMVert *v;
+    BMIter face_iter;
+    BM_ITER_ELEM (v, &face_iter, f, BM_VERTS_OF_FACE) {
+      const float mask = BM_ELEM_CD_GET_FLOAT(v, cd_vert_mask_offset);
+      if (mask < threshold) {
+        keep_face = false;
+        break;
+      }
+    }
+    BM_elem_flag_set(f, BM_ELEM_TAG, !keep_face);
+  }
+}
+
+static void geometry_extract_tag_face_set(BMesh *bm, GeometryExtractParams *params)
+{
+  const int tag_face_set_id = params->active_face_set;
+
+  BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
+  const int cd_face_sets_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
+
+  BMFace *f;
+  BMIter iter;
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    const int face_set_id = abs(BM_ELEM_CD_GET_INT(f, cd_face_sets_offset));
+    BM_elem_flag_set(f, BM_ELEM_TAG, face_set_id != tag_face_set_id);
+  }
+}
+
 static int paint_mask_extract_exec(bContext *C, wmOperator *op)
 {
   GeometryExtractParams params;
@@ -300,7 +294,7 @@ static int paint_mask_extract_exec(bContext *C, wmOperator *op)
   params.add_boundary_loop = RNA_boolean_get(op->ptr, "add_boundary_loop");
   params.apply_shrinkwrap = RNA_boolean_get(op->ptr, "apply_shrinkwrap");
   params.add_solidify = RNA_boolean_get(op->ptr, "add_solidify");
-  return geometry_extract_apply(C, op, GEOMETRY_EXTRACT_MASK, &params);
+  return geometry_extract_apply(C, op, geometry_extract_tag_masked_faces, &params);
 }
 
 static int paint_mask_extract_invoke(bContext *C, wmOperator *op, const wmEvent *e)
@@ -406,7 +400,7 @@ static int face_set_extract_modal(bContext *C, wmOperator *op, const wmEvent *ev
         params.add_boundary_loop = false;
         params.apply_shrinkwrap = true;
         params.add_solidify = true;
-        return geometry_extract_apply(C, op, GEOMETRY_EXTRACT_FACE_SET, &params);
+        return geometry_extract_apply(C, op, geometry_extract_tag_face_set, &params);
       }
       break;
 
