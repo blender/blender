@@ -1391,7 +1391,7 @@ static int arg_handle_output_set(int argc, const char **argv, void *data)
 static const char arg_handle_engine_set_doc[] =
     "<engine>\n"
     "\tSpecify the render engine.\n"
-    "\tUse '-E' help to list available engines.";
+    "\tUse '-E help' to list available engines.";
 static int arg_handle_engine_set(int argc, const char **argv, void *data)
 {
   bContext *C = data;
