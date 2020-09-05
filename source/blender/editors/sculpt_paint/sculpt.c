@@ -9164,6 +9164,8 @@ void ED_operatortypes_sculpt(void)
   WM_operatortype_append(SCULPT_OT_face_sets_edit);
   WM_operatortype_append(SCULPT_OT_face_set_lasso_gesture);
   WM_operatortype_append(SCULPT_OT_face_set_box_gesture);
+  WM_operatortype_append(SCULPT_OT_trim_box_gesture);
+  WM_operatortype_append(SCULPT_OT_trim_lasso_gesture);
 
   WM_operatortype_append(SCULPT_OT_sample_color);
   WM_operatortype_append(SCULPT_OT_loop_to_vertex_colors);

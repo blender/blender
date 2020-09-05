@@ -1284,6 +1284,26 @@ class _defs_sculpt:
             draw_settings=draw_settings,
         )
 
+    @ToolDef.from_fn
+    def trim_box():
+        return dict(
+            idname="builtin.box_trim",
+            label="Box Trim",
+            icon="ops.sculpt.box_trim",
+            widget=None,
+            keymap=(),
+        )
+
+    @ToolDef.from_fn
+    def trim_lasso():
+        return dict(
+            idname="builtin.lasso_trim",
+            label="Lasso Trim",
+            icon="ops.sculpt.lasso_trim",
+            widget=None,
+            keymap=(),
+        )
+
 
     @ToolDef.from_fn
     def mesh_filter():
@@ -2632,6 +2652,10 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                 _defs_sculpt.face_set_lasso,
             ),
             _defs_sculpt.hide_border,
+            (
+                _defs_sculpt.trim_box,
+                _defs_sculpt.trim_lasso,
+            ),
             None,
             _defs_sculpt.mesh_filter,
             _defs_sculpt.cloth_filter,

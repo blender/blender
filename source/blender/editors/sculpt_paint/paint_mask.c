@@ -23,14 +23,18 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_vec_types.h"
 
+#include "BLI_alloca.h"
 #include "BLI_bitmap_draw_2d.h"
 #include "BLI_lasso_2d.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
+#include "BLI_polyfill_2d.h"
 #include "BLI_rect.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
@@ -56,6 +60,8 @@
 #include "ED_view3d.h"
 
 #include "bmesh.h"
+#include "bmesh_tools.h"
+#include "tools/bmesh_boolean.h"
 
 #include "paint_intern.h"
 
@@ -256,9 +262,17 @@ typedef struct SculptGestureContext {
 
   struct SculptGestureOperation *operation;
 
+  /* Gesture data. */
+  /* Screen space points that represent the gesture shape. */
+  float (*gesture_points)[2];
+  int tot_gesture_points;
+
   /* View parameters. */
   float true_view_normal[3];
   float view_normal[3];
+
+  float true_view_origin[3];
+  float view_origin[3];
 
   float true_clip_planes[4][4];
   float clip_planes[4][4];
@@ -319,6 +333,9 @@ static void sculpt_gesture_context_init_common(bContext *C,
   copy_m3_m4(mat, ob->imat);
   mul_m3_v3(mat, view_dir);
   normalize_v3_v3(sgcontext->true_view_normal, view_dir);
+
+  /* View Origin. */
+  copy_v3_v3(sgcontext->true_view_origin, sgcontext->vc.rv3d->viewinv[3]);
 }
 
 static void sculpt_gesture_lasso_px_cb(int x, int x_end, int y, void *user_data)
@@ -370,6 +387,14 @@ static SculptGestureContext *sculpt_gesture_init_from_lasso(bContext *C, wmOpera
                           sgcontext->vc.region,
                           sgcontext->vc.obact,
                           &sgcontext->lasso.boundbox);
+
+  sgcontext->gesture_points = MEM_malloc_arrayN(mcoords_len, sizeof(float[2]), "trim points");
+  sgcontext->tot_gesture_points = mcoords_len;
+  for (int i = 0; i < mcoords_len; i++) {
+    sgcontext->gesture_points[i][0] = mcoords[i][0];
+    sgcontext->gesture_points[i][1] = mcoords[i][1];
+  }
+
   MEM_freeN((void *)mcoords);
 
   return sgcontext;
@@ -390,12 +415,27 @@ static SculptGestureContext *sculpt_gesture_init_from_box(bContext *C, wmOperato
   ED_view3d_clipping_calc(
       &bb, sgcontext->true_clip_planes, sgcontext->vc.region, sgcontext->vc.obact, &rect);
 
+  sgcontext->gesture_points = MEM_calloc_arrayN(4, sizeof(float[2]), "trim points");
+  sgcontext->tot_gesture_points = 4;
+
+  sgcontext->gesture_points[0][0] = rect.xmax;
+  sgcontext->gesture_points[0][1] = rect.ymax;
+
+  sgcontext->gesture_points[1][0] = rect.xmax;
+  sgcontext->gesture_points[1][1] = rect.ymin;
+
+  sgcontext->gesture_points[2][0] = rect.xmin;
+  sgcontext->gesture_points[2][1] = rect.ymin;
+
+  sgcontext->gesture_points[3][0] = rect.xmin;
+  sgcontext->gesture_points[3][1] = rect.ymax;
   return sgcontext;
 }
 
 static void sculpt_gesture_context_free(SculptGestureContext *sgcontext)
 {
   MEM_SAFE_FREE(sgcontext->lasso.mask_px);
+  MEM_SAFE_FREE(sgcontext->gesture_points);
   MEM_SAFE_FREE(sgcontext->operation);
   MEM_SAFE_FREE(sgcontext->nodes);
   MEM_SAFE_FREE(sgcontext);
@@ -434,6 +474,7 @@ static void sculpt_gesture_flip_for_symmetry_pass(SculptGestureContext *sgcontex
   }
   negate_m4(sgcontext->clip_planes);
   flip_v3_v3(sgcontext->view_normal, sgcontext->true_view_normal, symmpass);
+  flip_v3_v3(sgcontext->view_origin, sgcontext->true_view_origin, symmpass);
 }
 
 static void sculpt_gesture_update_effected_nodes(SculptGestureContext *sgcontext)
@@ -699,6 +740,361 @@ static void paint_mask_gesture_operator_properties(wmOperatorType *ot)
       1.0f);
 }
 
+/* Trim Gesture Operation. */
+
+typedef enum eSculptTrimOperationType {
+  SCULPT_GESTURE_TRIM_INTERSECT,
+  SCULPT_GESTURE_TRIM_DIFFERENCE,
+} eSculptTrimOperationType;
+
+static EnumPropertyItem prop_trim_operation_types[] = {
+    {SCULPT_GESTURE_TRIM_INTERSECT, "INTERSECT", 0, "Intersect", ""},
+    {SCULPT_GESTURE_TRIM_DIFFERENCE, "DIFFERENCE", 0, "Difference", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
+typedef struct SculptGestureTrimOperation {
+  SculptGestureOperation op;
+
+  Mesh *mesh;
+  float (*true_mesh_co)[3];
+
+  float depth_front;
+  float depth_back;
+
+  eSculptTrimOperationType mode;
+} SculptGestureTrimOperation;
+
+static void sculpt_gesture_trim_normals_update(SculptGestureContext *sgcontext)
+{
+  SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
+  Mesh *trim_mesh = trim_operation->mesh;
+  BKE_mesh_calc_normals(trim_mesh);
+
+  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(trim_mesh);
+  BMesh *bm;
+  bm = BM_mesh_create(&allocsize,
+                      &((struct BMeshCreateParams){
+                          .use_toolflags = true,
+                      }));
+
+  BM_mesh_bm_from_me(bm,
+                     trim_mesh,
+                     (&(struct BMeshFromMeshParams){
+                         .calc_face_normal = true,
+                     }));
+  BM_mesh_elem_hflag_enable_all(bm, BM_FACE, BM_ELEM_TAG, false);
+  BMO_op_callf(bm,
+               (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
+               "recalc_face_normals faces=%hf",
+               BM_ELEM_TAG);
+  BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
+  Mesh *result = BKE_mesh_from_bmesh_nomain(bm,
+                                            (&(struct BMeshToMeshParams){
+                                                .calc_object_remap = false,
+                                            }),
+                                            trim_mesh);
+  BM_mesh_free(bm);
+  BKE_mesh_free(trim_mesh);
+  trim_operation->mesh = result;
+}
+
+static void sculpt_gesture_trim_calculate_depth(SculptGestureContext *sgcontext)
+{
+  SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
+
+  SculptSession *ss = sgcontext->ss;
+  const int totvert = SCULPT_vertex_count_get(ss);
+
+  float view_plane[4];
+  plane_from_point_normal_v3(view_plane, sgcontext->true_view_origin, sgcontext->true_view_normal);
+
+  trim_operation->depth_front = FLT_MAX;
+  trim_operation->depth_back = -FLT_MAX;
+
+  for (int i = 0; i < totvert; i++) {
+    const float *vco = SCULPT_vertex_co_get(ss, i);
+    const float dist = dist_signed_to_plane_v3(vco, view_plane);
+    trim_operation->depth_front = min_ff(dist, trim_operation->depth_front);
+    trim_operation->depth_back = max_ff(dist, trim_operation->depth_back);
+  }
+}
+
+static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontext)
+{
+  SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
+  ViewContext *vc = &sgcontext->vc;
+  ARegion *region = vc->region;
+
+  const int tot_screen_points = sgcontext->tot_gesture_points;
+  float(*screen_points)[2] = sgcontext->gesture_points;
+
+  const int trim_totverts = tot_screen_points * 2;
+  const int trim_totpolys = (2 * (tot_screen_points - 2)) + (2 * tot_screen_points);
+  trim_operation->mesh = BKE_mesh_new_nomain(
+      trim_totverts, 0, 0, trim_totpolys * 3, trim_totpolys);
+  trim_operation->true_mesh_co = MEM_malloc_arrayN(trim_totverts, 3 * sizeof(float), "mesh orco");
+
+  const float depth_front = trim_operation->depth_front - 0.1f;
+  const float depth_back = trim_operation->depth_back + 0.1f;
+
+  float *view_origin = sgcontext->true_view_origin;
+  float *view_normal = sgcontext->true_view_normal;
+
+  /* Write vertices coordinates for the front face. */
+
+  float depth_point[3];
+  madd_v3_v3v3fl(depth_point, view_origin, view_normal, depth_front);
+  for (int i = 0; i < tot_screen_points; i++) {
+    float new_point[3];
+    ED_view3d_win_to_3d(vc->v3d, region, depth_point, screen_points[i], new_point);
+    copy_v3_v3(trim_operation->mesh->mvert[i].co, new_point);
+    copy_v3_v3(trim_operation->true_mesh_co[i], new_point);
+  }
+
+  /* Write vertices coordinates for the back face. */
+  madd_v3_v3v3fl(depth_point, view_origin, view_normal, depth_back);
+  for (int i = 0; i < tot_screen_points; i++) {
+    float new_point[3];
+    ED_view3d_win_to_3d(vc->v3d, region, depth_point, screen_points[i], new_point);
+    copy_v3_v3(trim_operation->mesh->mvert[i + tot_screen_points].co, new_point);
+    copy_v3_v3(trim_operation->true_mesh_co[i + tot_screen_points], new_point);
+  }
+
+  /* Get the triangulation for the front/back poly. */
+  const int tot_tris_face = tot_screen_points - 2;
+  uint(*r_tris)[3] = MEM_malloc_arrayN(tot_tris_face, 3 * sizeof(uint), "tris");
+  BLI_polyfill_calc(screen_points, tot_screen_points, 0, r_tris);
+
+  /* Write the front face triangle indices. */
+  MPoly *mp = trim_operation->mesh->mpoly;
+  MLoop *ml = trim_operation->mesh->mloop;
+  for (int i = 0; i < tot_tris_face; i++, mp++, ml += 3) {
+    mp->loopstart = (int)(ml - trim_operation->mesh->mloop);
+    mp->totloop = 3;
+    ml[0].v = r_tris[i][0];
+    ml[1].v = r_tris[i][1];
+    ml[2].v = r_tris[i][2];
+  }
+
+  /* Write the back face triangle indices. */
+  for (int i = 0; i < tot_tris_face; i++, mp++, ml += 3) {
+    mp->loopstart = (int)(ml - trim_operation->mesh->mloop);
+    mp->totloop = 3;
+    ml[0].v = r_tris[i][0] + tot_screen_points;
+    ml[1].v = r_tris[i][1] + tot_screen_points;
+    ml[2].v = r_tris[i][2] + tot_screen_points;
+  }
+
+  MEM_freeN(r_tris);
+
+  /* Write the indices for the lateral triangles. */
+  for (int i = 0; i < tot_screen_points; i++, mp++, ml += 3) {
+    mp->loopstart = (int)(ml - trim_operation->mesh->mloop);
+    mp->totloop = 3;
+    int current_index = i;
+    int next_index = current_index + 1;
+    if (next_index >= tot_screen_points) {
+      next_index = 0;
+    }
+    ml[0].v = next_index + tot_screen_points;
+    ml[1].v = next_index;
+    ml[2].v = current_index;
+  }
+
+  for (int i = 0; i < tot_screen_points; i++, mp++, ml += 3) {
+    mp->loopstart = (int)(ml - trim_operation->mesh->mloop);
+    mp->totloop = 3;
+    int current_index = i;
+    int next_index = current_index + 1;
+    if (next_index >= tot_screen_points) {
+      next_index = 0;
+    }
+    ml[0].v = current_index;
+    ml[1].v = current_index + tot_screen_points;
+    ml[2].v = next_index + tot_screen_points;
+  }
+
+  BKE_mesh_calc_edges(trim_operation->mesh, false, false);
+  sculpt_gesture_trim_normals_update(sgcontext);
+}
+
+static void sculpt_gesture_trim_geometry_free(SculptGestureContext *sgcontext)
+{
+  SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
+  BKE_mesh_free(trim_operation->mesh);
+  MEM_freeN(trim_operation->true_mesh_co);
+}
+
+static int bm_face_isect_pair(BMFace *f, void *UNUSED(user_data))
+{
+  return BM_elem_flag_test(f, BM_ELEM_DRAW) ? 1 : 0;
+}
+
+static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
+{
+
+  SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
+  Object *object = sgcontext->vc.obact;
+  Mesh *sculpt_mesh = BKE_mesh_from_object(sgcontext->vc.obact);
+  Mesh *trim_mesh = trim_operation->mesh;
+
+  BMesh *bm;
+  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(sculpt_mesh, trim_mesh);
+  bm = BM_mesh_create(&allocsize,
+                      &((struct BMeshCreateParams){
+                          .use_toolflags = false,
+                      }));
+
+  BM_mesh_bm_from_me(bm,
+                     trim_mesh,
+                     &((struct BMeshFromMeshParams){
+                         .calc_face_normal = true,
+                     }));
+
+  BM_mesh_bm_from_me(bm,
+                     sculpt_mesh,
+                     &((struct BMeshFromMeshParams){
+                         .calc_face_normal = true,
+                     }));
+
+  const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
+  int tottri;
+  BMLoop *(*looptris)[3];
+  looptris = MEM_malloc_arrayN(looptris_tot, sizeof(*looptris), __func__);
+  BM_mesh_calc_tessellation_beauty(bm, looptris, &tottri);
+
+  BMIter iter;
+  int i;
+  const int i_verts_end = trim_mesh->totvert;
+  const int i_faces_end = trim_mesh->totpoly;
+
+  float imat[4][4];
+  float omat[4][4];
+
+  invert_m4_m4(imat, object->obmat);
+  mul_m4_m4m4(omat, imat, object->obmat);
+
+  BMVert *eve;
+  i = 0;
+  BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
+    mul_m4_v3(omat, eve->co);
+    if (++i == i_verts_end) {
+      break;
+    }
+  }
+
+  /* We need face normals because of 'BM_face_split_edgenet'
+   * we could calculate on the fly too (before calling split). */
+  float nmat[3][3];
+  copy_m3_m4(nmat, omat);
+  invert_m3(nmat);
+
+  const short ob_src_totcol = trim_mesh->totcol;
+  short *material_remap = BLI_array_alloca(material_remap, ob_src_totcol ? ob_src_totcol : 1);
+
+  BMFace *efa;
+  i = 0;
+  BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+    mul_transposed_m3_v3(nmat, efa->no);
+    normalize_v3(efa->no);
+
+    /* Temp tag to test which side split faces are from. */
+    BM_elem_flag_enable(efa, BM_ELEM_DRAW);
+
+    /* Remap material. */
+    if (efa->mat_nr < ob_src_totcol) {
+      efa->mat_nr = material_remap[efa->mat_nr];
+    }
+
+    if (++i == i_faces_end) {
+      break;
+    }
+  }
+
+  int boolean_mode;
+  switch (trim_operation->mode) {
+    case SCULPT_GESTURE_TRIM_INTERSECT:
+      boolean_mode = eBooleanModifierOp_Intersect;
+      break;
+    case SCULPT_GESTURE_TRIM_DIFFERENCE:
+      boolean_mode = eBooleanModifierOp_Difference;
+      break;
+  }
+
+  BM_mesh_boolean(bm, looptris, tottri, bm_face_isect_pair, NULL, false, boolean_mode);
+
+  Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, sculpt_mesh);
+  BM_mesh_free(bm);
+  result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+
+  BKE_mesh_nomain_to_mesh(result, sculpt_mesh, sgcontext->vc.obact, &CD_MASK_MESH, true);
+  BKE_mesh_free(result);
+}
+
+static void sculpt_gesture_trim_begin(bContext *C, SculptGestureContext *sgcontext)
+{
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  sculpt_gesture_trim_calculate_depth(sgcontext);
+  sculpt_gesture_trim_geometry_generate(sgcontext);
+  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, true, false, false);
+  SCULPT_undo_push_node(sgcontext->vc.obact, NULL, SCULPT_UNDO_GEOMETRY);
+}
+
+static void sculpt_gesture_trim_apply_for_symmetry_pass(bContext *UNUSED(C),
+                                                        SculptGestureContext *sgcontext)
+{
+  SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
+  Mesh *trim_mesh = trim_operation->mesh;
+  for (int i = 0; i < trim_mesh->totvert; i++) {
+    flip_v3_v3(trim_mesh->mvert[i].co, trim_operation->true_mesh_co[i], sgcontext->symmpass);
+  }
+  sculpt_gesture_trim_normals_update(sgcontext);
+  sculpt_gesture_apply_trim(sgcontext);
+}
+
+static void sculpt_gesture_trim_end(bContext *UNUSED(C), SculptGestureContext *sgcontext)
+{
+  Object *object = sgcontext->vc.obact;
+  SculptSession *ss = object->sculpt;
+  ss->face_sets = CustomData_get_layer(&((Mesh *)object->data)->pdata, CD_SCULPT_FACE_SETS);
+  if (ss->face_sets) {
+    /* Assign a new Face Set ID to the new faces created by the trim operation. */
+    const int next_face_set_id = ED_sculpt_face_sets_find_next_available_id(object->data);
+    ED_sculpt_face_sets_initialize_none_to_id(object->data, next_face_set_id);
+  }
+
+  sculpt_gesture_trim_geometry_free(sgcontext);
+
+  SCULPT_undo_push_node(sgcontext->vc.obact, NULL, SCULPT_UNDO_GEOMETRY);
+  BKE_mesh_batch_cache_dirty_tag(sgcontext->vc.obact->data, BKE_MESH_BATCH_DIRTY_ALL);
+  DEG_id_tag_update(&sgcontext->vc.obact->id, ID_RECALC_GEOMETRY);
+}
+
+static void sculpt_gesture_init_trim_properties(SculptGestureContext *sgcontext, wmOperator *op)
+{
+  sgcontext->operation = MEM_callocN(sizeof(SculptGestureTrimOperation), "Trim Operation");
+
+  SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
+
+  trim_operation->op.sculpt_gesture_begin = sculpt_gesture_trim_begin;
+  trim_operation->op.sculpt_gesture_apply_for_symmetry_pass =
+      sculpt_gesture_trim_apply_for_symmetry_pass;
+  trim_operation->op.sculpt_gesture_end = sculpt_gesture_trim_end;
+
+  trim_operation->mode = RNA_enum_get(op->ptr, "trim_mode");
+}
+
+static void sculpt_trim_gesture_operator_properties(wmOperatorType *ot)
+{
+  RNA_def_enum(ot->srna,
+               "trim_mode",
+               prop_trim_operation_types,
+               SCULPT_GESTURE_TRIM_DIFFERENCE,
+               "Trim Mode",
+               NULL);
+}
+
 static int paint_mask_gesture_box_exec(bContext *C, wmOperator *op)
 {
   SculptGestureContext *sgcontext = sculpt_gesture_init_from_box(C, op);
@@ -742,6 +1138,45 @@ static int face_set_gesture_lasso_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   sculpt_gesture_init_face_set_properties(sgcontext, op);
+  sculpt_gesture_apply(C, sgcontext);
+  sculpt_gesture_context_free(sgcontext);
+  return OPERATOR_FINISHED;
+}
+
+static int sculpt_trim_gesture_box_exec(bContext *C, wmOperator *op)
+{
+  Object *object = CTX_data_active_object(C);
+  SculptSession *ss = object->sculpt;
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+    /* Not supported in Multires and Dyntopo. */
+    return OPERATOR_CANCELLED;
+  }
+
+  SculptGestureContext *sgcontext = sculpt_gesture_init_from_box(C, op);
+  if (!sgcontext) {
+    return OPERATOR_CANCELLED;
+  }
+
+  sculpt_gesture_init_trim_properties(sgcontext, op);
+  sculpt_gesture_apply(C, sgcontext);
+  sculpt_gesture_context_free(sgcontext);
+  return OPERATOR_FINISHED;
+}
+
+static int sculpt_trim_gesture_lasso_exec(bContext *C, wmOperator *op)
+{
+  Object *object = CTX_data_active_object(C);
+  SculptSession *ss = object->sculpt;
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_FACES) {
+    /* Not supported in Multires and Dyntopo. */
+    return OPERATOR_CANCELLED;
+  }
+
+  SculptGestureContext *sgcontext = sculpt_gesture_init_from_lasso(C, op);
+  if (!sgcontext) {
+    return OPERATOR_CANCELLED;
+  }
+  sculpt_gesture_init_trim_properties(sgcontext, op);
   sculpt_gesture_apply(C, sgcontext);
   sculpt_gesture_context_free(sgcontext);
   return OPERATOR_FINISHED;
@@ -825,4 +1260,46 @@ void SCULPT_OT_face_set_box_gesture(wmOperatorType *ot)
   /* Properties. */
   WM_operator_properties_border(ot);
   sculpt_gesture_operator_properties(ot);
+}
+
+void SCULPT_OT_trim_lasso_gesture(wmOperatorType *ot)
+{
+  ot->name = "Trim Lasso Gesture";
+  ot->idname = "SCULPT_OT_trim_lasso_gesture";
+  ot->description = "Trims the mesh within the lasso as you move the brush";
+
+  ot->invoke = WM_gesture_lasso_invoke;
+  ot->modal = WM_gesture_lasso_modal;
+  ot->exec = sculpt_trim_gesture_lasso_exec;
+
+  ot->poll = SCULPT_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER;
+
+  /* Properties. */
+  WM_operator_properties_gesture_lasso(ot);
+  sculpt_gesture_operator_properties(ot);
+
+  sculpt_trim_gesture_operator_properties(ot);
+}
+
+void SCULPT_OT_trim_box_gesture(wmOperatorType *ot)
+{
+  ot->name = "Trim Box Gesture";
+  ot->idname = "SCULPT_OT_trim_box_gesture";
+  ot->description = "Trims the mesh within the box as you move the brush";
+
+  ot->invoke = WM_gesture_box_invoke;
+  ot->modal = WM_gesture_box_modal;
+  ot->exec = sculpt_trim_gesture_box_exec;
+
+  ot->poll = SCULPT_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER;
+
+  /* Properties. */
+  WM_operator_properties_border(ot);
+  sculpt_gesture_operator_properties(ot);
+
+  sculpt_trim_gesture_operator_properties(ot);
 }
