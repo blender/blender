@@ -427,13 +427,13 @@ void GLStateManager::set_blend(const eGPUBlend value)
 /** \name Texture state managment
  * \{ */
 
-void GLStateManager::texture_bind(Texture *tex_, eGPUSamplerState sampler, int unit)
+void GLStateManager::texture_bind(Texture *tex_, eGPUSamplerState sampler_type, int unit)
 {
   BLI_assert(unit < GPU_max_textures());
   GLTexture *tex = static_cast<GLTexture *>(tex_);
   targets_[unit] = tex->target_;
   textures_[unit] = tex->tex_id_;
-  samplers_[unit] = sampler;
+  samplers_[unit] = GLTexture::samplers_[sampler_type];
   tex->is_bound_ = true;
   dirty_texture_binds_ |= 1 << unit;
 }
@@ -462,6 +462,7 @@ void GLStateManager::texture_unbind(Texture *tex_)
   for (int i = 0; i < ARRAY_SIZE(textures_); i++) {
     if (textures_[i] == tex_id) {
       textures_[i] = 0;
+      samplers_[i] = 0;
       dirty_texture_binds_ |= 1 << i;
     }
   }
@@ -473,6 +474,7 @@ void GLStateManager::texture_unbind_all(void)
   for (int i = 0; i < ARRAY_SIZE(textures_); i++) {
     if (textures_[i] != 0) {
       textures_[i] = 0;
+      samplers_[i] = 0;
       dirty_texture_binds_ |= 1 << i;
     }
   }
@@ -494,7 +496,7 @@ void GLStateManager::texture_bind_apply(void)
       if (dirty_bind & 1) {
         glActiveTexture(GL_TEXTURE0 + unit);
         glBindTexture(targets_[unit], textures_[unit]);
-        // glBindSampler(unit, samplers_[unit]);
+        glBindSampler(unit, samplers_[unit]);
       }
     }
     dirty_texture_binds_ = 0;

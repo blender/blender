@@ -66,11 +66,7 @@ ENUM_OPERATORS(eGPUSamplerState)
 extern "C" {
 #endif
 
-#define GPU_SAMPLER_DEFAULT GPU_SAMPLER_FILTER
-#define GPU_SAMPLER_REPEAT (GPU_SAMPLER_REPEAT_S | GPU_SAMPLER_REPEAT_T | GPU_SAMPLER_REPEAT_R)
-
-void GPU_samplers_init(void);
-void GPU_samplers_free(void);
+void GPU_samplers_update(void);
 
 /* GPU Texture
  * - always returns unsigned char RGBA textures
@@ -293,8 +289,6 @@ bool GPU_texture_integer(const GPUTexture *tex);
 int GPU_texture_opengl_bindcode(const GPUTexture *tex);
 
 void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *size);
-
-void GPU_sampler_icon_bind(int unit);
 
 #ifdef __cplusplus
 }

@@ -23,6 +23,8 @@
 
 #include "BKE_global.h"
 
+#include "DNA_userdef_types.h"
+
 #include "GPU_extensions.h"
 #include "GPU_framebuffer.h"
 
@@ -420,6 +422,77 @@ struct GPUFrameBuffer *GLTexture::framebuffer_get(void)
   framebuffer_ = GPU_framebuffer_create(name_);
   GPU_framebuffer_texture_attach(framebuffer_, gputex, 0, 0);
   return framebuffer_;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sampler objects
+ * \{ */
+
+GLuint GLTexture::samplers_[GPU_SAMPLER_MAX] = {0};
+
+void GLTexture::samplers_init(void)
+{
+  glGenSamplers(GPU_SAMPLER_MAX, samplers_);
+  for (int i = 0; i <= GPU_SAMPLER_ICON - 1; i++) {
+    eGPUSamplerState state = static_cast<eGPUSamplerState>(i);
+    GLenum clamp_type = (state & GPU_SAMPLER_CLAMP_BORDER) ? GL_CLAMP_TO_BORDER : GL_CLAMP_TO_EDGE;
+    GLenum wrap_s = (state & GPU_SAMPLER_REPEAT_S) ? GL_REPEAT : clamp_type;
+    GLenum wrap_t = (state & GPU_SAMPLER_REPEAT_T) ? GL_REPEAT : clamp_type;
+    GLenum wrap_r = (state & GPU_SAMPLER_REPEAT_R) ? GL_REPEAT : clamp_type;
+    GLenum mag_filter = (state & GPU_SAMPLER_FILTER) ? GL_LINEAR : GL_NEAREST;
+    GLenum min_filter = (state & GPU_SAMPLER_FILTER) ?
+                            ((state & GPU_SAMPLER_MIPMAP) ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR) :
+                            ((state & GPU_SAMPLER_MIPMAP) ? GL_NEAREST_MIPMAP_LINEAR : GL_NEAREST);
+    GLenum compare_mode = (state & GPU_SAMPLER_COMPARE) ? GL_COMPARE_REF_TO_TEXTURE : GL_NONE;
+
+    glSamplerParameteri(samplers_[i], GL_TEXTURE_WRAP_S, wrap_s);
+    glSamplerParameteri(samplers_[i], GL_TEXTURE_WRAP_T, wrap_t);
+    glSamplerParameteri(samplers_[i], GL_TEXTURE_WRAP_R, wrap_r);
+    glSamplerParameteri(samplers_[i], GL_TEXTURE_MIN_FILTER, min_filter);
+    glSamplerParameteri(samplers_[i], GL_TEXTURE_MAG_FILTER, mag_filter);
+    glSamplerParameteri(samplers_[i], GL_TEXTURE_COMPARE_MODE, compare_mode);
+    glSamplerParameteri(samplers_[i], GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+
+    /** Other states are left to default:
+     * - GL_TEXTURE_BORDER_COLOR is {0, 0, 0, 0}.
+     * - GL_TEXTURE_MIN_LOD is -1000.
+     * - GL_TEXTURE_MAX_LOD is 1000.
+     * - GL_TEXTURE_LOD_BIAS is 0.0f.
+     **/
+  }
+  samplers_update();
+
+  /* Custom sampler for icons. */
+  GLuint icon_sampler = samplers_[GPU_SAMPLER_ICON];
+  glSamplerParameteri(icon_sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+  glSamplerParameteri(icon_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glSamplerParameterf(icon_sampler, GL_TEXTURE_LOD_BIAS, -0.5f);
+}
+
+void GLTexture::samplers_update(void)
+{
+  if (!GLEW_EXT_texture_filter_anisotropic) {
+    return;
+  }
+
+  float max_anisotropy = 1.0f;
+  glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
+
+  float aniso_filter = max_ff(max_anisotropy, U.anisotropic_filter);
+
+  for (int i = 0; i <= GPU_SAMPLER_ICON - 1; i++) {
+    eGPUSamplerState state = static_cast<eGPUSamplerState>(i);
+    if (state & GPU_SAMPLER_MIPMAP) {
+      glSamplerParameterf(samplers_[i], GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso_filter);
+    }
+  }
+}
+
+void GLTexture::samplers_free(void)
+{
+  glDeleteSamplers(GPU_SAMPLER_MAX, samplers_);
 }
 
 /** \} */

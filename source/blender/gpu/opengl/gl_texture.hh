@@ -58,6 +58,9 @@ class GLTexture : public Texture {
   friend class GLStateManager;
 
  private:
+  /** All samplers states. */
+  static GLuint samplers_[GPU_SAMPLER_MAX];
+
   /** Target to bind the texture to (GL_TEXTURE_1D, GL_TEXTURE_2D, etc...)*/
   GLenum target_ = -1;
   /** opengl identifier for texture. */
@@ -84,6 +87,10 @@ class GLTexture : public Texture {
 
   /* TODO(fclem) Legacy. Should be removed at some point. */
   uint gl_bindcode_get(void) const override;
+
+  static void samplers_init(void);
+  static void samplers_free(void);
+  static void samplers_update(void);
 
  protected:
   bool init_internal(void) override;

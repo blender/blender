@@ -364,8 +364,7 @@ static void rna_userdef_load_ui_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
 
 static void rna_userdef_anisotropic_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  GPU_samplers_free();
-  GPU_samplers_init();
+  GPU_samplers_update();
   rna_userdef_update(bmain, scene, ptr);
 }
 

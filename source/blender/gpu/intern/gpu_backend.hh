@@ -43,6 +43,8 @@ class GPUBackend {
 
   static GPUBackend *get(void);
 
+  virtual void samplers_update(void) = 0;
+
   virtual GPUContext *context_alloc(void *ghost_window) = 0;
 
   virtual Batch *batch_alloc(void) = 0;

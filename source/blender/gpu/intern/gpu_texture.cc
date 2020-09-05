@@ -482,6 +482,7 @@ void GPU_texture_bind_ex(GPUTexture *tex_,
                          const bool UNUSED(set_number))
 {
   Texture *tex = reinterpret_cast<Texture *>(tex_);
+  state = (state >= GPU_SAMPLER_MAX) ? tex->sampler_state : state;
   GPU_context_active_get()->state_manager->texture_bind(tex, state, unit);
 }
 
@@ -717,19 +718,10 @@ void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *r_size)
  * Override texture sampler state for one sampler unit only.
  * \{ */
 
-void GPU_samplers_init(void)
+/* Update user defined sampler states. */
+void GPU_samplers_update(void)
 {
-  /* TODO(fclem) port samplers to GLTextures. */
-}
-
-void GPU_sampler_icon_bind(int UNUSED(unit))
-{
-  /* TODO(fclem) port samplers to GLTextures. */
-}
-
-void GPU_samplers_free(void)
-{
-  /* TODO(fclem) port samplers to GLTextures. */
+  GPUBackend::get()->samplers_update();
 }
 
 /** \} */

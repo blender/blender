@@ -386,13 +386,11 @@ void gpu_extensions_init(void)
   }
 
   GPU_invalid_tex_init();
-  GPU_samplers_init();
 }
 
 void gpu_extensions_exit(void)
 {
   GPU_invalid_tex_free();
-  GPU_samplers_free();
 }
 
 bool GPU_mem_stats_supported(void)
