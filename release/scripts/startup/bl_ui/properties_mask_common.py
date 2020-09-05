@@ -324,27 +324,29 @@ class MASK_MT_mask(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("mask.delete")
+        layout.menu("MASK_MT_transform")
+        layout.operator("mask.feather_weight_clear")
 
         layout.separator()
         layout.operator("mask.cyclic_toggle")
-        layout.operator("mask.switch_direction")
-        layout.operator("mask.normals_make_consistent")
         layout.operator("mask.handle_type_set")
-        layout.operator("mask.feather_weight_clear")  # TODO, better place?
-
-        layout.separator()
-        layout.operator("mask.parent_clear")
-        layout.operator("mask.parent_set")
+        layout.operator("mask.normals_make_consistent")
+        layout.operator("mask.switch_direction")
 
         layout.separator()
         layout.operator("mask.copy_splines")
         layout.operator("mask.paste_splines")
 
         layout.separator()
-        layout.menu("MASK_MT_visibility")
-        layout.menu("MASK_MT_transform")
+        layout.operator("mask.parent_clear")
+        layout.operator("mask.parent_set")
+
+        layout.separator()
         layout.menu("MASK_MT_animation")
+
+        layout.separator()
+        layout.menu("MASK_MT_visibility")
+        layout.operator("mask.delete")
 
 
 class MASK_MT_add(Menu):
