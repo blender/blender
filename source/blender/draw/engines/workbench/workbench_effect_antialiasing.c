@@ -243,11 +243,11 @@ void workbench_antialiasing_engine_init(WORKBENCH_Data *vedata)
     /* TODO could be shared for all viewports. */
     if (txl->smaa_search_tx == NULL) {
       txl->smaa_search_tx = GPU_texture_create_2d(
-          SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, GPU_R8, NULL, NULL);
+          "smaa_search", SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, 1, GPU_R8, NULL);
       GPU_texture_update(txl->smaa_search_tx, GPU_DATA_UNSIGNED_BYTE, searchTexBytes);
 
       txl->smaa_area_tx = GPU_texture_create_2d(
-          AREATEX_WIDTH, AREATEX_HEIGHT, GPU_RG8, NULL, NULL);
+          "smaa_area", AREATEX_WIDTH, AREATEX_HEIGHT, 1, GPU_RG8, NULL);
       GPU_texture_update(txl->smaa_area_tx, GPU_DATA_UNSIGNED_BYTE, areaTexBytes);
 
       GPU_texture_filter_mode(txl->smaa_search_tx, true);

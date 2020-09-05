@@ -1639,7 +1639,8 @@ static void sequencer_draw_display_buffer(const bContext *C,
     GPU_matrix_identity_projection_set();
   }
 
-  GPUTexture *texture = GPU_texture_create_2d(ibuf->x, ibuf->y, format, NULL, NULL);
+  GPUTexture *texture = GPU_texture_create_2d(
+      "seq_display_buf", ibuf->x, ibuf->y, 1, format, NULL);
   GPU_texture_update(texture, data, display_buffer);
   GPU_texture_filter_mode(texture, false);
 

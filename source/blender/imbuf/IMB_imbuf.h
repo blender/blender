@@ -736,11 +736,12 @@ const char *IMB_ffmpeg_last_error(void);
  *
  * \attention defined in util_gpu.c
  */
-struct GPUTexture *IMB_create_gpu_texture(struct ImBuf *ibuf,
+struct GPUTexture *IMB_create_gpu_texture(const char *name,
+                                          struct ImBuf *ibuf,
                                           bool use_high_bitdepth,
                                           bool use_premult);
 struct GPUTexture *IMB_touch_gpu_texture(
-    struct ImBuf *ibuf, int w, int h, int layers, bool use_high_bitdepth);
+    const char *name, struct ImBuf *ibuf, int w, int h, int layers, bool use_high_bitdepth);
 void IMB_update_gpu_texture_sub(struct GPUTexture *tex,
                                 struct ImBuf *ibuf,
                                 int x,

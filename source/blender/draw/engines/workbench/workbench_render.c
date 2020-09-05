@@ -79,8 +79,8 @@ static bool workbench_render_framebuffers_init(void)
    * the other views will reuse these buffers */
   if (dtxl->color == NULL) {
     BLI_assert(dtxl->depth == NULL);
-    dtxl->color = GPU_texture_create_2d(size[0], size[1], GPU_RGBA16F, NULL, NULL);
-    dtxl->depth = GPU_texture_create_2d(size[0], size[1], GPU_DEPTH24_STENCIL8, NULL, NULL);
+    dtxl->color = GPU_texture_create_2d("txl.color", UNPACK2(size), 1, GPU_RGBA16F, NULL);
+    dtxl->depth = GPU_texture_create_2d("txl.depth", UNPACK2(size), 1, GPU_DEPTH24_STENCIL8, NULL);
   }
 
   if (!(dtxl->depth && dtxl->color)) {

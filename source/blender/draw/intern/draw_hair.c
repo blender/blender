@@ -120,7 +120,7 @@ void DRW_hair_init(void)
     /* Create vbo immediately to bind to texture buffer. */
     GPU_vertbuf_use(g_dummy_vbo);
 
-    g_dummy_texture = GPU_texture_create_from_vertbuf(g_dummy_vbo);
+    g_dummy_texture = GPU_texture_create_from_vertbuf("hair_dummy_attr", g_dummy_vbo);
   }
 }
 

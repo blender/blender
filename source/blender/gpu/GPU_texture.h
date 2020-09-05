@@ -183,54 +183,40 @@ typedef enum eGPUDataFormat {
 
 unsigned int GPU_texture_memory_usage_get(void);
 
-/* TODO make it static function again. (create function with eGPUDataFormat exposed) */
-GPUTexture *GPU_texture_create_nD(int w,
-                                  int h,
-                                  int d,
-                                  int n,
-                                  const void *pixels,
-                                  eGPUTextureFormat tex_format,
-                                  eGPUDataFormat gpu_data_format,
-                                  int samples,
-                                  const bool can_rescale,
-                                  char err_out[256]);
-GPUTexture *GPU_texture_cube_create(int w,
-                                    int d,
-                                    const void *pixels,
-                                    eGPUTextureFormat tex_format,
-                                    eGPUDataFormat gpu_data_format,
-                                    char err_out[256]);
-
-GPUTexture *GPU_texture_create_1d(int w,
-                                  eGPUTextureFormat tex_format,
-                                  const float *pixels,
-                                  char err_out[256]);
+/**
+ * \note \a data is expected to be float. If the \a format is not compatible with float data or if
+ * the data is not in float format, use GPU_texture_update to upload the data with the right data
+ * format.
+ * \a mips is the number of mip level to allocate. It must be >= 1.
+ */
+GPUTexture *GPU_texture_create_1d(
+    const char *name, int w, int mips, eGPUTextureFormat format, const float *data);
 GPUTexture *GPU_texture_create_1d_array(
-    int w, int h, eGPUTextureFormat tex_format, const float *pixels, char err_out[256]);
+    const char *name, int w, int h, int mips, eGPUTextureFormat format, const float *data);
 GPUTexture *GPU_texture_create_2d(
-    int w, int h, eGPUTextureFormat tex_format, const float *pixels, char err_out[256]);
+    const char *name, int w, int h, int mips, eGPUTextureFormat format, const float *data);
 GPUTexture *GPU_texture_create_2d_array(
-    int w, int h, int d, eGPUTextureFormat tex_format, const float *pixels, char err_out[256]);
+    const char *name, int w, int h, int d, int mips, eGPUTextureFormat format, const float *data);
 GPUTexture *GPU_texture_create_3d(
-    int w, int h, int d, eGPUTextureFormat tex_format, const float *pixels, char err_out[256]);
-GPUTexture *GPU_texture_create_cube(int w,
-                                    eGPUTextureFormat tex_format,
-                                    const float *pixels,
-                                    char err_out[256]);
+    const char *name, int w, int h, int d, int mips, eGPUTextureFormat format, const float *data);
+GPUTexture *GPU_texture_create_cube(
+    const char *name, int w, int mips, eGPUTextureFormat format, const float *data);
 GPUTexture *GPU_texture_create_cube_array(
-    int w, int d, eGPUTextureFormat tex_format, const float *pixels, char err_out[256]);
+    const char *name, int w, int d, int mips, eGPUTextureFormat format, const float *data);
 
-GPUTexture *GPU_texture_create_from_vertbuf(struct GPUVertBuf *vert);
-
-GPUTexture *GPU_texture_create_compressed(
-    int w, int h, int miplen, eGPUTextureFormat format, const void *data);
-
+/* Special textures. */
+GPUTexture *GPU_texture_create_from_vertbuf(const char *name, struct GPUVertBuf *vert);
+/**
+ * \a data should hold all the data for all mipmaps.
+ */
+GPUTexture *GPU_texture_create_compressed_2d(
+    const char *name, int w, int h, int miplen, eGPUTextureFormat format, const void *data);
 GPUTexture *GPU_texture_create_error(int dimension, bool array);
 
-void GPU_texture_add_mipmap(GPUTexture *tex,
-                            eGPUDataFormat gpu_data_format,
-                            int miplvl,
-                            const void *pixels);
+void GPU_texture_update_mipmap(GPUTexture *tex,
+                               int miplvl,
+                               eGPUDataFormat gpu_data_format,
+                               const void *pixels);
 
 void GPU_texture_update(GPUTexture *tex, eGPUDataFormat data_format, const void *pixels);
 void GPU_texture_update_sub(GPUTexture *tex,

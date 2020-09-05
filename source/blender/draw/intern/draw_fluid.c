@@ -117,7 +117,7 @@ static GPUTexture *create_transfer_function(int type, const struct ColorBand *co
       break;
   }
 
-  GPUTexture *tex = GPU_texture_create_1d(TFUNC_WIDTH, GPU_SRGB8_A8, data, NULL);
+  GPUTexture *tex = GPU_texture_create_1d("transf_func", TFUNC_WIDTH, 1, GPU_SRGB8_A8, data);
 
   MEM_freeN(data);
 
@@ -184,7 +184,7 @@ static GPUTexture *create_volume_texture(const int dim[3],
   int final_dim[3] = {UNPACK3(dim)};
 
   while (1) {
-    tex = GPU_texture_create_3d(UNPACK3(final_dim), format, NULL, NULL);
+    tex = GPU_texture_create_3d("volume", UNPACK3(final_dim), 1, format, NULL);
 
     if (tex != NULL) {
       break;
@@ -462,9 +462,9 @@ void DRW_smoke_ensure_velocity(FluidModifierData *fmd)
     }
 
     if (!fds->tex_velocity_x) {
-      fds->tex_velocity_x = GPU_texture_create_3d(UNPACK3(fds->res), GPU_R16F, vel_x, NULL);
-      fds->tex_velocity_y = GPU_texture_create_3d(UNPACK3(fds->res), GPU_R16F, vel_y, NULL);
-      fds->tex_velocity_z = GPU_texture_create_3d(UNPACK3(fds->res), GPU_R16F, vel_z, NULL);
+      fds->tex_velocity_x = GPU_texture_create_3d("velx", UNPACK3(fds->res), 1, GPU_R16F, vel_x);
+      fds->tex_velocity_y = GPU_texture_create_3d("vely", UNPACK3(fds->res), 1, GPU_R16F, vel_y);
+      fds->tex_velocity_z = GPU_texture_create_3d("velz", UNPACK3(fds->res), 1, GPU_R16F, vel_z);
     }
   }
 #endif /* WITH_FLUID */

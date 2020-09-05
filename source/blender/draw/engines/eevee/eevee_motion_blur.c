@@ -468,7 +468,7 @@ void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
             GPU_vertbuf_use(mb_hair->psys[i].hair_pos[mb_step]);
 
             mb_hair->psys[i].hair_pos_tx[mb_step] = GPU_texture_create_from_vertbuf(
-                mb_hair->psys[i].hair_pos[mb_step]);
+                "hair_pos_motion_blur", mb_hair->psys[i].hair_pos[mb_step]);
           }
         }
         break;

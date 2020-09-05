@@ -95,7 +95,7 @@ static GPUTexture *gpu_texture_create_tile_mapping(Image *ima, const int multivi
     tile_info[3] = tile->runtime.tilearray_size[1] / array_h;
   }
 
-  GPUTexture *tex = GPU_texture_create_1d_array(width, 2, GPU_RGBA32F, data, NULL);
+  GPUTexture *tex = GPU_texture_create_1d_array(ima->id.name + 2, width, 2, 1, GPU_RGBA32F, data);
   GPU_texture_mipmap_mode(tex, false, false);
 
   MEM_freeN(data);
@@ -180,7 +180,7 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
   const bool use_high_bitdepth = (ima->flag & IMA_HIGH_BITDEPTH);
   /* Create Texture without content. */
   GPUTexture *tex = IMB_touch_gpu_texture(
-      main_ibuf, arraywidth, arrayheight, arraylayers, use_high_bitdepth);
+      ima->id.name + 2, main_ibuf, arraywidth, arrayheight, arraylayers, use_high_bitdepth);
 
   /* Upload each tile one by one. */
   LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
@@ -316,7 +316,8 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
                                          (ima ? (ima->alpha_mode != IMA_ALPHA_STRAIGHT) : false) :
                                          (ima ? (ima->alpha_mode == IMA_ALPHA_PREMUL) : true);
 
-    *tex = IMB_create_gpu_texture(ibuf_intern, use_high_bitdepth, store_premultiplied);
+    *tex = IMB_create_gpu_texture(
+        ima->id.name + 2, ibuf_intern, use_high_bitdepth, store_premultiplied);
 
     if (GPU_mipmap_enabled()) {
       GPU_texture_generate_mipmap(*tex);

@@ -108,7 +108,7 @@ static void gpu_detect_mip_render_workaround(void)
   float *source_pix = (float *)MEM_callocN(sizeof(float[4][6]) * cube_size * cube_size, __func__);
   float clear_color[4] = {1.0f, 0.5f, 0.0f, 0.0f};
 
-  GPUTexture *tex = GPU_texture_create_cube(cube_size, GPU_RGBA16F, source_pix, NULL);
+  GPUTexture *tex = GPU_texture_create_cube(__func__, cube_size, 2, GPU_RGBA16F, source_pix);
   MEM_freeN(source_pix);
 
   GPU_texture_bind(tex, 0);

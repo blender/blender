@@ -402,7 +402,7 @@ static bool eevee_lightcache_static_load(LightCache *lcache)
 
   if (lcache->grid_tx.tex == NULL) {
     lcache->grid_tx.tex = GPU_texture_create_2d_array(
-        UNPACK3(lcache->grid_tx.tex_size), IRRADIANCE_FORMAT, NULL, NULL);
+        "lightcache_irradiance", UNPACK3(lcache->grid_tx.tex_size), 1, IRRADIANCE_FORMAT, NULL);
     GPU_texture_update(lcache->grid_tx.tex, GPU_DATA_UNSIGNED_BYTE, lcache->grid_tx.data);
 
     if (lcache->grid_tx.tex == NULL) {
@@ -415,17 +415,19 @@ static bool eevee_lightcache_static_load(LightCache *lcache)
 
   if (lcache->cube_tx.tex == NULL) {
     if (GPU_arb_texture_cube_map_array_is_supported()) {
-      lcache->cube_tx.tex = GPU_texture_create_cube_array(lcache->cube_tx.tex_size[0],
+      lcache->cube_tx.tex = GPU_texture_create_cube_array("lightcache_cubemaps",
+                                                          lcache->cube_tx.tex_size[0],
                                                           lcache->cube_tx.tex_size[2] / 6,
+                                                          lcache->mips_len + 1,
                                                           GPU_R11F_G11F_B10F,
-                                                          NULL,
                                                           NULL);
-      GPU_texture_update(lcache->cube_tx.tex, GPU_DATA_10_11_11_REV, lcache->cube_tx.data);
     }
     else {
-      lcache->cube_tx.tex = GPU_texture_create_2d_array(
-          UNPACK3(lcache->cube_tx.tex_size), GPU_R11F_G11F_B10F, NULL, NULL);
-      GPU_texture_update(lcache->cube_tx.tex, GPU_DATA_10_11_11_REV, lcache->cube_tx.data);
+      lcache->cube_tx.tex = GPU_texture_create_2d_array("lightcache_cubemaps_fallback",
+                                                        UNPACK3(lcache->cube_tx.tex_size),
+                                                        lcache->mips_len + 1,
+                                                        GPU_R11F_G11F_B10F,
+                                                        NULL);
     }
 
     if (lcache->cube_tx.tex == NULL) {
@@ -433,9 +435,9 @@ static bool eevee_lightcache_static_load(LightCache *lcache)
       return false;
     }
 
-    for (int mip = 0; mip < lcache->mips_len; mip++) {
-      GPU_texture_add_mipmap(
-          lcache->cube_tx.tex, GPU_DATA_10_11_11_REV, mip + 1, lcache->cube_mips[mip].data);
+    for (int mip = 0; mip <= lcache->mips_len; mip++) {
+      const void *data = (mip == 0) ? lcache->cube_tx.data : lcache->cube_mips[mip - 1].data;
+      GPU_texture_update_mipmap(lcache->cube_tx.tex, mip, GPU_DATA_10_11_11_REV, data);
     }
     GPU_texture_mipmap_mode(lcache->cube_tx.tex, true, true);
   }

@@ -348,7 +348,8 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 
     if (!target->overlay_texture) {
       eGPUTextureFormat format = col ? GPU_RGBA8 : GPU_R8;
-      target->overlay_texture = GPU_texture_create_2d(size, size, format, NULL, NULL);
+      target->overlay_texture = GPU_texture_create_2d(
+          "paint_cursor_overlay", size, size, 1, format, NULL);
       GPU_texture_update(target->overlay_texture, GPU_DATA_UNSIGNED_BYTE, buffer);
 
       if (!col) {
@@ -466,7 +467,8 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
     BLI_task_parallel_range(0, size, &data, load_tex_cursor_task_cb, &settings);
 
     if (!cursor_snap.overlay_texture) {
-      cursor_snap.overlay_texture = GPU_texture_create_2d(size, size, GPU_R8, NULL, NULL);
+      cursor_snap.overlay_texture = GPU_texture_create_2d(
+          "cursor_snap_overaly", size, size, 1, GPU_R8, NULL);
       GPU_texture_update(cursor_snap.overlay_texture, GPU_DATA_UNSIGNED_BYTE, buffer);
 
       GPU_texture_swizzle_set(cursor_snap.overlay_texture, "rrrr");

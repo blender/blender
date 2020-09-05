@@ -282,18 +282,20 @@ static void ensureGLSLLut3d(OCIO_GLSLLut3d **lut3d_ptr,
 
   OCIO_GLSLLut3d *lut3d = OBJECT_GUARDED_NEW(OCIO_GLSLLut3d);
 
-  for (int i = 0; i < 2; i++) {
-    int extent[3] = {LUT3D_EDGE_SIZE, LUT3D_EDGE_SIZE, LUT3D_EDGE_SIZE};
-    GPUTexture *tex = GPU_texture_create_3d(UNPACK3(extent), GPU_RGB16F, NULL, NULL);
-    GPU_texture_filter_mode(tex, true);
-    GPU_texture_wrap_mode(tex, false, true);
+  int extent[3] = {LUT3D_EDGE_SIZE, LUT3D_EDGE_SIZE, LUT3D_EDGE_SIZE};
 
-    (&lut3d->texture)[i] = tex;
-  }
+  lut3d->texture = GPU_texture_create_3d("OCIOLut", UNPACK3(extent), 1, GPU_RGB16F, NULL);
+  GPU_texture_filter_mode(lut3d->texture, true);
+  GPU_texture_wrap_mode(lut3d->texture, false, true);
+
+  lut3d->texture_display = GPU_texture_create_3d(
+      "OCIOLutDisplay", UNPACK3(extent), 1, GPU_RGB16F, NULL);
+  GPU_texture_filter_mode(lut3d->texture_display, true);
+  GPU_texture_wrap_mode(lut3d->texture_display, false, true);
 
   updateGLSLLut3d(lut3d, processor_scene_to_ui, processpr_ui_to_display, shaderDesc, cache_id);
 
-  lut3d->valid = (lut3d->texture != 0);
+  lut3d->valid = (lut3d->texture && lut3d->texture_display);
 
   *lut3d_ptr = lut3d;
 }
@@ -316,7 +318,7 @@ static void allocateCurveMappingTexture(OCIO_GLSLCurveMappping *curvemap,
 {
   int lut_size = curve_mapping_settings ? curve_mapping_settings->lut_size : 1;
   /* Do not initialize. Only if used. */
-  curvemap->texture = GPU_texture_create_1d(lut_size, GPU_RGBA16F, NULL, NULL);
+  curvemap->texture = GPU_texture_create_1d("OCIOCurveMap", lut_size, 1, GPU_RGBA16F, NULL);
   GPU_texture_filter_mode(curvemap->texture, false);
   GPU_texture_wrap_mode(curvemap->texture, false, true);
 }

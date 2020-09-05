@@ -159,7 +159,8 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
 
 /* The ibuf is only here to detect the storage type. The produced texture will have undefined
  * content. It will need to be populated by using IMB_update_gpu_texture_sub(). */
-GPUTexture *IMB_touch_gpu_texture(ImBuf *ibuf, int w, int h, int layers, bool use_high_bitdepth)
+GPUTexture *IMB_touch_gpu_texture(
+    const char *name, ImBuf *ibuf, int w, int h, int layers, bool use_high_bitdepth)
 {
   eGPUDataFormat data_format;
   eGPUTextureFormat tex_format;
@@ -167,10 +168,10 @@ GPUTexture *IMB_touch_gpu_texture(ImBuf *ibuf, int w, int h, int layers, bool us
 
   GPUTexture *tex;
   if (layers > 0) {
-    tex = GPU_texture_create_2d_array(w, h, layers, tex_format, NULL, NULL);
+    tex = GPU_texture_create_2d_array(name, w, h, layers, 1, tex_format, NULL);
   }
   else {
-    tex = GPU_texture_create_2d(w, h, tex_format, NULL, NULL);
+    tex = GPU_texture_create_2d(name, w, h, 9999, tex_format, NULL);
   }
 
   GPU_texture_anisotropic_filter(tex, true);
@@ -210,7 +211,10 @@ void IMB_update_gpu_texture_sub(GPUTexture *tex,
   }
 }
 
-GPUTexture *IMB_create_gpu_texture(ImBuf *ibuf, bool use_high_bitdepth, bool use_premult)
+GPUTexture *IMB_create_gpu_texture(const char *name,
+                                   ImBuf *ibuf,
+                                   bool use_high_bitdepth,
+                                   bool use_premult)
 {
   GPUTexture *tex = NULL;
   const int size[2] = {GPU_texture_size_with_limit(ibuf->x), GPU_texture_size_with_limit(ibuf->y)};
@@ -229,8 +233,12 @@ GPUTexture *IMB_create_gpu_texture(ImBuf *ibuf, bool use_high_bitdepth, bool use
       fprintf(stderr, "Unable to load non-power-of-two DXT image resolution,");
     }
     else {
-      tex = GPU_texture_create_compressed(
-          ibuf->x, ibuf->y, ibuf->dds_data.nummipmaps, compressed_format, ibuf->dds_data.data);
+      tex = GPU_texture_create_compressed_2d(name,
+                                             ibuf->x,
+                                             ibuf->y,
+                                             ibuf->dds_data.nummipmaps,
+                                             compressed_format,
+                                             ibuf->dds_data.data);
 
       if (tex != NULL) {
         return tex;
@@ -253,7 +261,7 @@ GPUTexture *IMB_create_gpu_texture(ImBuf *ibuf, bool use_high_bitdepth, bool use
   void *data = imb_gpu_get_data(ibuf, do_rescale, size, compress_as_srgb, use_premult, &freebuf);
 
   /* Create Texture. */
-  tex = GPU_texture_create_2d(UNPACK2(size), tex_format, NULL, NULL);
+  tex = GPU_texture_create_2d(name, UNPACK2(size), 9999, tex_format, NULL);
   GPU_texture_update(tex, data_format, data);
 
   GPU_texture_anisotropic_filter(tex, true);

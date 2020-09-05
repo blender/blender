@@ -577,13 +577,14 @@ GPUOffScreen *GPU_offscreen_create(
   width = max_ii(1, width);
 
   ofs->color = GPU_texture_create_2d(
-      width, height, (high_bitdepth) ? GPU_RGBA16F : GPU_RGBA8, NULL, err_out);
+      "ofs_color", width, height, 1, (high_bitdepth) ? GPU_RGBA16F : GPU_RGBA8, NULL);
 
   if (depth) {
-    ofs->depth = GPU_texture_create_2d(width, height, GPU_DEPTH24_STENCIL8, NULL, err_out);
+    ofs->depth = GPU_texture_create_2d("ofs_depth", width, height, 1, GPU_DEPTH24_STENCIL8, NULL);
   }
 
   if ((depth && !ofs->depth) || !ofs->color) {
+    BLI_snprintf(err_out, 256, "GPUTexture: Texture allocation failed.");
     GPU_offscreen_free(ofs);
     return NULL;
   }

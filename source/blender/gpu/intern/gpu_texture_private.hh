@@ -25,6 +25,8 @@
 
 #include "BLI_assert.h"
 
+#include "GPU_vertex_buffer.h"
+
 #include "gpu_framebuffer_private.hh"
 
 namespace blender {
@@ -458,6 +460,83 @@ inline eGPUFrameBufferBits to_framebuffer_bits(eGPUTextureFormat tex_format)
     default:
       return GPU_COLOR_BIT;
   }
+}
+
+static inline eGPUTextureFormat to_texture_format(const GPUVertFormat *format)
+{
+  if (format->attr_len > 1 || format->attr_len == 0) {
+    BLI_assert(!"Incorrect vertex format for buffer texture");
+    return GPU_DEPTH_COMPONENT24;
+  }
+  switch (format->attrs[0].comp_len) {
+    case 1:
+      switch (format->attrs[0].comp_type) {
+        case GPU_COMP_I8:
+          return GPU_R8I;
+        case GPU_COMP_U8:
+          return GPU_R8UI;
+        case GPU_COMP_I16:
+          return GPU_R16I;
+        case GPU_COMP_U16:
+          return GPU_R16UI;
+        case GPU_COMP_I32:
+          return GPU_R32I;
+        case GPU_COMP_U32:
+          return GPU_R32UI;
+        case GPU_COMP_F32:
+          return GPU_R32F;
+        default:
+          break;
+      }
+      break;
+    case 2:
+      switch (format->attrs[0].comp_type) {
+        case GPU_COMP_I8:
+          return GPU_RG8I;
+        case GPU_COMP_U8:
+          return GPU_RG8UI;
+        case GPU_COMP_I16:
+          return GPU_RG16I;
+        case GPU_COMP_U16:
+          return GPU_RG16UI;
+        case GPU_COMP_I32:
+          return GPU_RG32I;
+        case GPU_COMP_U32:
+          return GPU_RG32UI;
+        case GPU_COMP_F32:
+          return GPU_RG32F;
+        default:
+          break;
+      }
+      break;
+    case 3:
+      /* Not supported until GL 4.0 */
+      break;
+    case 4:
+      switch (format->attrs[0].comp_type) {
+        case GPU_COMP_I8:
+          return GPU_RGBA8I;
+        case GPU_COMP_U8:
+          return GPU_RGBA8UI;
+        case GPU_COMP_I16:
+          return GPU_RGBA16I;
+        case GPU_COMP_U16:
+          return GPU_RGBA16UI;
+        case GPU_COMP_I32:
+          return GPU_RGBA32I;
+        case GPU_COMP_U32:
+          return GPU_RGBA32UI;
+        case GPU_COMP_F32:
+          return GPU_RGBA32F;
+        default:
+          break;
+      }
+      break;
+    default:
+      break;
+  }
+  BLI_assert(!"Unsupported vertex format for buffer texture");
+  return GPU_DEPTH_COMPONENT24;
 }
 
 }  // namespace gpu

@@ -192,7 +192,7 @@ static void hair_batch_cache_ensure_procedural_pos(Hair *hair, ParticleHairCache
   /* Create vbo immediately to bind to texture buffer. */
   GPU_vertbuf_use(cache->proc_point_buf);
 
-  cache->point_tex = GPU_texture_create_from_vertbuf(cache->proc_point_buf);
+  cache->point_tex = GPU_texture_create_from_vertbuf("hair_point", cache->proc_point_buf);
 }
 
 static void hair_batch_cache_fill_strands_data(Hair *hair,
@@ -230,10 +230,11 @@ static void hair_batch_cache_ensure_procedural_strand_data(Hair *hair, ParticleH
 
   /* Create vbo immediately to bind to texture buffer. */
   GPU_vertbuf_use(cache->proc_strand_buf);
-  cache->strand_tex = GPU_texture_create_from_vertbuf(cache->proc_strand_buf);
+  cache->strand_tex = GPU_texture_create_from_vertbuf("hair_strand", cache->proc_strand_buf);
 
   GPU_vertbuf_use(cache->proc_strand_seg_buf);
-  cache->strand_seg_tex = GPU_texture_create_from_vertbuf(cache->proc_strand_seg_buf);
+  cache->strand_seg_tex = GPU_texture_create_from_vertbuf("hair_strand_seg",
+                                                          cache->proc_strand_seg_buf);
 }
 
 static void hair_batch_cache_ensure_procedural_final_points(ParticleHairCache *cache, int subdiv)
@@ -252,7 +253,8 @@ static void hair_batch_cache_ensure_procedural_final_points(ParticleHairCache *c
   /* Create vbo immediately to bind to texture buffer. */
   GPU_vertbuf_use(cache->final[subdiv].proc_buf);
 
-  cache->final[subdiv].proc_tex = GPU_texture_create_from_vertbuf(cache->final[subdiv].proc_buf);
+  cache->final[subdiv].proc_tex = GPU_texture_create_from_vertbuf("hair_proc",
+                                                                  cache->final[subdiv].proc_buf);
 }
 
 static void hair_batch_cache_fill_segments_indices(Hair *hair,

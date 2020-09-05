@@ -132,7 +132,7 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
   eGPUDataFormat gpu_data = (use_float_data) ? GPU_DATA_FLOAT : GPU_DATA_UNSIGNED_BYTE;
   size_t stride = components * ((use_float_data) ? sizeof(float) : sizeof(uchar));
 
-  GPUTexture *tex = GPU_texture_create_2d(tex_w, tex_h, gpu_format, NULL, NULL);
+  GPUTexture *tex = GPU_texture_create_2d("immDrawPixels", tex_w, tex_h, 1, gpu_format, NULL);
 
   GPU_texture_filter_mode(tex, use_filter);
   GPU_texture_wrap_mode(tex, false, true);

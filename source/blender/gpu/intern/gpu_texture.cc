@@ -181,7 +181,7 @@ void Texture::update(eGPUDataFormat format, const void *data)
 using namespace blender;
 using namespace blender::gpu;
 
-/* ------ Memory Management ------- */
+/* ------ Memory Management ------ */
 
 uint GPU_texture_memory_usage_get(void)
 {
@@ -189,30 +189,34 @@ uint GPU_texture_memory_usage_get(void)
   return 0;
 }
 
-/* -------------------------------- */
+/* ------ Texture Creation ------ */
 
-GPUTexture *GPU_texture_create_nD(int w,
-                                  int h,
-                                  int d,
-                                  int n,
-                                  const void *pixels,
-                                  eGPUTextureFormat tex_format,
-                                  eGPUDataFormat data_format,
-                                  int UNUSED(samples),
-                                  const bool UNUSED(can_rescale),
-                                  char UNUSED(err_out[256]))
+static inline GPUTexture *gpu_texture_create(const char *name,
+                                             const int w,
+                                             const int h,
+                                             const int d,
+                                             const eGPUTextureType type,
+                                             int UNUSED(mips),
+                                             eGPUTextureFormat tex_format,
+                                             const float *fpixels)
 {
-  Texture *tex = GPUBackend::get()->texture_alloc("nD");
+  Texture *tex = GPUBackend::get()->texture_alloc(name);
   bool success = false;
-  switch (n) {
-    case 1:
+  switch (type) {
+    case GPU_TEXTURE_1D:
+    case GPU_TEXTURE_1D_ARRAY:
       success = tex->init_1D(w, h, tex_format);
       break;
-    case 2:
+    case GPU_TEXTURE_2D:
+    case GPU_TEXTURE_2D_ARRAY:
       success = tex->init_2D(w, h, d, tex_format);
       break;
-    case 3:
+    case GPU_TEXTURE_3D:
       success = tex->init_3D(w, h, d, tex_format);
+      break;
+    case GPU_TEXTURE_CUBE:
+    case GPU_TEXTURE_CUBE_ARRAY:
+      success = tex->init_cubemap(w, d, tex_format);
       break;
     default:
       break;
@@ -222,37 +226,59 @@ GPUTexture *GPU_texture_create_nD(int w,
     delete tex;
     return NULL;
   }
-  if (pixels) {
-    tex->update(data_format, pixels);
+  if (fpixels) {
+    tex->update(GPU_DATA_FLOAT, fpixels);
   }
   return reinterpret_cast<GPUTexture *>(tex);
 }
 
-GPUTexture *GPU_texture_cube_create(int w,
-                                    int d,
-                                    const void *pixels,
-                                    eGPUTextureFormat tex_format,
-                                    eGPUDataFormat data_format,
-                                    char UNUSED(err_out[256]))
+GPUTexture *GPU_texture_create_1d(
+    const char *name, int w, int mips, eGPUTextureFormat format, const float *data)
 {
-  Texture *tex = GPUBackend::get()->texture_alloc("Cube");
-  bool success = tex->init_cubemap(w, d, tex_format);
+  return gpu_texture_create(name, w, 0, 0, GPU_TEXTURE_1D, mips, format, data);
+}
 
-  if (!success) {
-    delete tex;
-    return NULL;
-  }
-  if (pixels) {
-    tex->update(data_format, pixels);
-  }
-  return reinterpret_cast<GPUTexture *>(tex);
+GPUTexture *GPU_texture_create_1d_array(
+    const char *name, int w, int h, int mips, eGPUTextureFormat format, const float *data)
+{
+  return gpu_texture_create(name, w, h, 0, GPU_TEXTURE_1D_ARRAY, mips, format, data);
+}
+
+GPUTexture *GPU_texture_create_2d(
+    const char *name, int w, int h, int mips, eGPUTextureFormat format, const float *data)
+{
+  return gpu_texture_create(name, w, h, 0, GPU_TEXTURE_2D, mips, format, data);
+}
+
+GPUTexture *GPU_texture_create_2d_array(
+    const char *name, int w, int h, int d, int mips, eGPUTextureFormat format, const float *data)
+{
+  return gpu_texture_create(name, w, h, d, GPU_TEXTURE_2D_ARRAY, mips, format, data);
+}
+
+GPUTexture *GPU_texture_create_3d(
+    const char *name, int w, int h, int d, int mips, eGPUTextureFormat format, const float *data)
+{
+  return gpu_texture_create(name, w, h, d, GPU_TEXTURE_3D, mips, format, data);
+}
+
+GPUTexture *GPU_texture_create_cube(
+    const char *name, int w, int mips, eGPUTextureFormat format, const float *data)
+{
+  return gpu_texture_create(name, w, w, 0, GPU_TEXTURE_CUBE, mips, format, data);
+}
+
+GPUTexture *GPU_texture_create_cube_array(
+    const char *name, int w, int d, int mips, eGPUTextureFormat format, const float *data)
+{
+  return gpu_texture_create(name, w, w, d, GPU_TEXTURE_CUBE_ARRAY, mips, format, data);
 }
 
 /* DDS texture loading. Return NULL if support is not available. */
-GPUTexture *GPU_texture_create_compressed(
-    int w, int h, int miplen, eGPUTextureFormat tex_format, const void *data)
+GPUTexture *GPU_texture_create_compressed_2d(
+    const char *name, int w, int h, int miplen, eGPUTextureFormat tex_format, const void *data)
 {
-  Texture *tex = GPUBackend::get()->texture_alloc("Cube");
+  Texture *tex = GPUBackend::get()->texture_alloc(name);
   bool success = tex->init_2D(w, h, 0, tex_format);
 
   if (!success) {
@@ -274,100 +300,10 @@ GPUTexture *GPU_texture_create_compressed(
   return reinterpret_cast<GPUTexture *>(tex);
 }
 
-/* Create an error texture that will bind an invalid texture (pink) at draw time. */
-GPUTexture *GPU_texture_create_error(int dimension, bool is_array)
-{
-  float pixel[4] = {1.0f, 0.0f, 1.0f, 1.0f};
-  int w = 1;
-  int h = (dimension < 2 && !is_array) ? 0 : 1;
-  int d = (dimension < 3 && !is_array) ? 0 : 1;
-
-  fprintf(stderr, "GPUTexture: Blender Texture Not Loaded!");
-  return GPU_texture_create_nD(
-      w, h, d, dimension, pixel, GPU_RGBA8, GPU_DATA_FLOAT, 0, false, NULL);
-}
-
-static inline eGPUTextureFormat to_texture_format(const GPUVertFormat *format)
-{
-  if (format->attr_len > 1 || format->attr_len == 0) {
-    BLI_assert(!"Incorrect vertex format for buffer texture");
-    return GPU_DEPTH_COMPONENT24;
-  }
-  switch (format->attrs[0].comp_len) {
-    case 1:
-      switch (format->attrs[0].comp_type) {
-        case GPU_COMP_I8:
-          return GPU_R8I;
-        case GPU_COMP_U8:
-          return GPU_R8UI;
-        case GPU_COMP_I16:
-          return GPU_R16I;
-        case GPU_COMP_U16:
-          return GPU_R16UI;
-        case GPU_COMP_I32:
-          return GPU_R32I;
-        case GPU_COMP_U32:
-          return GPU_R32UI;
-        case GPU_COMP_F32:
-          return GPU_R32F;
-        default:
-          break;
-      }
-      break;
-    case 2:
-      switch (format->attrs[0].comp_type) {
-        case GPU_COMP_I8:
-          return GPU_RG8I;
-        case GPU_COMP_U8:
-          return GPU_RG8UI;
-        case GPU_COMP_I16:
-          return GPU_RG16I;
-        case GPU_COMP_U16:
-          return GPU_RG16UI;
-        case GPU_COMP_I32:
-          return GPU_RG32I;
-        case GPU_COMP_U32:
-          return GPU_RG32UI;
-        case GPU_COMP_F32:
-          return GPU_RG32F;
-        default:
-          break;
-      }
-      break;
-    case 3:
-      /* Not supported until GL 4.0 */
-      break;
-    case 4:
-      switch (format->attrs[0].comp_type) {
-        case GPU_COMP_I8:
-          return GPU_RGBA8I;
-        case GPU_COMP_U8:
-          return GPU_RGBA8UI;
-        case GPU_COMP_I16:
-          return GPU_RGBA16I;
-        case GPU_COMP_U16:
-          return GPU_RGBA16UI;
-        case GPU_COMP_I32:
-          return GPU_RGBA32I;
-        case GPU_COMP_U32:
-          return GPU_RGBA32UI;
-        case GPU_COMP_F32:
-          return GPU_RGBA32F;
-        default:
-          break;
-      }
-      break;
-    default:
-      break;
-  }
-  BLI_assert(!"Unsupported vertex format for buffer texture");
-  return GPU_DEPTH_COMPONENT24;
-}
-
-GPUTexture *GPU_texture_create_from_vertbuf(GPUVertBuf *vert)
+GPUTexture *GPU_texture_create_from_vertbuf(const char *name, GPUVertBuf *vert)
 {
   eGPUTextureFormat tex_format = to_texture_format(&vert->format);
-  Texture *tex = GPUBackend::get()->texture_alloc("Cube");
+  Texture *tex = GPUBackend::get()->texture_alloc(name);
 
   bool success = tex->init_buffer(vert, tex_format);
   if (!success) {
@@ -377,56 +313,26 @@ GPUTexture *GPU_texture_create_from_vertbuf(GPUVertBuf *vert)
   return reinterpret_cast<GPUTexture *>(tex);
 }
 
-GPUTexture *GPU_texture_create_1d(int w,
-                                  eGPUTextureFormat format,
-                                  const float *pixels,
-                                  char out[256])
+/* Create an error texture that will bind an invalid texture (pink) at draw time. */
+GPUTexture *GPU_texture_create_error(int dimension, bool is_array)
 {
-  return GPU_texture_create_nD(w, 0, 0, 1, pixels, format, GPU_DATA_FLOAT, 0, false, out);
+  float pixel[4] = {1.0f, 0.0f, 1.0f, 1.0f};
+  int w = 1;
+  int h = (dimension < 2 && !is_array) ? 0 : 1;
+  int d = (dimension < 3 && !is_array) ? 0 : 1;
+
+  eGPUTextureType type = GPU_TEXTURE_3D;
+  type = (dimension == 2) ? (is_array ? GPU_TEXTURE_2D_ARRAY : GPU_TEXTURE_2D) : type;
+  type = (dimension == 1) ? (is_array ? GPU_TEXTURE_1D_ARRAY : GPU_TEXTURE_1D) : type;
+
+  fprintf(stderr, "GPUTexture: Blender Texture Not Loaded!");
+  return gpu_texture_create("invalid_tex", w, h, d, type, 1, GPU_RGBA8, pixel);
 }
 
-GPUTexture *GPU_texture_create_1d_array(
-    int w, int h, eGPUTextureFormat format, const float *pixels, char out[256])
-{
-  return GPU_texture_create_nD(w, h, 0, 1, pixels, format, GPU_DATA_FLOAT, 0, false, out);
-}
-
-GPUTexture *GPU_texture_create_2d(
-    int w, int h, eGPUTextureFormat format, const float *pixels, char out[256])
-{
-  return GPU_texture_create_nD(w, h, 0, 2, pixels, format, GPU_DATA_FLOAT, 0, false, out);
-}
-
-GPUTexture *GPU_texture_create_2d_array(
-    int w, int h, int d, eGPUTextureFormat format, const float *pixels, char out[256])
-{
-  return GPU_texture_create_nD(w, h, d, 2, pixels, format, GPU_DATA_FLOAT, 0, false, out);
-}
-
-GPUTexture *GPU_texture_create_3d(
-    int w, int h, int d, eGPUTextureFormat format, const float *pixels, char out[256])
-{
-  return GPU_texture_create_nD(w, h, d, 3, pixels, format, GPU_DATA_FLOAT, 0, true, out);
-}
-
-GPUTexture *GPU_texture_create_cube(int w,
-                                    eGPUTextureFormat format,
-                                    const float *fpixels,
-                                    char out[256])
-{
-  return GPU_texture_cube_create(w, 0, fpixels, format, GPU_DATA_FLOAT, out);
-}
-
-GPUTexture *GPU_texture_create_cube_array(
-    int w, int d, eGPUTextureFormat format, const float *fpixels, char out[256])
-{
-  return GPU_texture_cube_create(w, d, fpixels, format, GPU_DATA_FLOAT, out);
-}
-
-void GPU_texture_add_mipmap(GPUTexture *tex_,
-                            eGPUDataFormat gpu_data_format,
-                            int miplvl,
-                            const void *pixels)
+void GPU_texture_update_mipmap(GPUTexture *tex_,
+                               int miplvl,
+                               eGPUDataFormat gpu_data_format,
+                               const void *pixels)
 {
   Texture *tex = reinterpret_cast<Texture *>(tex_);
   int extent[3] = {1, 1, 1}, offset[3] = {0, 0, 0};
@@ -468,6 +374,7 @@ void GPU_texture_clear(GPUTexture *tex, eGPUDataFormat data_format, const void *
   reinterpret_cast<Texture *>(tex)->clear(data_format, data);
 }
 
+/* NOTE: Updates only mip 0. */
 void GPU_texture_update(GPUTexture *tex, eGPUDataFormat data_format, const void *data)
 {
   reinterpret_cast<Texture *>(tex)->update(data_format, data);
@@ -517,11 +424,7 @@ void GPU_texture_unbind_all(void)
 
 void GPU_texture_generate_mipmap(GPUTexture *tex)
 {
-  // gpu_texture_memory_footprint_remove(tex);
-
   reinterpret_cast<Texture *>(tex)->generate_mipmap();
-
-  // gpu_texture_memory_footprint_add(tex);
 }
 
 /* Copy a texture content to a similar texture. Only Mip 0 is copied. */
