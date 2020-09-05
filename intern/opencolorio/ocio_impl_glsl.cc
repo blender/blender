@@ -97,7 +97,6 @@ struct OCIO_GLSLShader {
   /** Uniform locations. */
   GLint dither_loc;
   GLint overlay_loc;
-  GLint overlay_tex_loc;
   GLint predivide_loc;
   GLint curve_mapping_loc;
   GLint ubo_bind;
@@ -108,9 +107,10 @@ struct OCIO_GLSLShader {
 struct OCIO_GLSLLut3d {
   /** Cache IDs */
   std::string cacheId;
-  /** OpenGL Texture handles. 0 if not allocated. */
+  /** OpenGL Texture handles. NULL if not allocated. */
   GPUTexture *texture;
   GPUTexture *texture_display;
+  GPUTexture *texture_dummy;
   /** Error checking. */
   bool valid;
 };
@@ -188,7 +188,6 @@ static void updateGLSLShader(OCIO_GLSLShader *shader,
 
   if (shader->shader) {
     shader->dither_loc = GPU_shader_get_uniform(shader->shader, "dither");
-    shader->overlay_tex_loc = GPU_shader_get_uniform(shader->shader, "overlay_texture");
     shader->overlay_loc = GPU_shader_get_uniform(shader->shader, "overlay");
     shader->predivide_loc = GPU_shader_get_uniform(shader->shader, "predivide");
     shader->curve_mapping_loc = GPU_shader_get_uniform(shader->shader, "curve_mapping");
@@ -200,6 +199,7 @@ static void updateGLSLShader(OCIO_GLSLShader *shader,
     /* Set texture bind point uniform once. This is saved by the shader. */
     GPUShader *sh = shader->shader;
     GPU_shader_uniform_int(sh, GPU_shader_get_uniform(sh, "image_texture"), 0);
+    GPU_shader_uniform_int(sh, GPU_shader_get_uniform(sh, "overlay_texture"), 1);
     GPU_shader_uniform_int(sh, GPU_shader_get_uniform(sh, "lut3d_texture"), 2);
     GPU_shader_uniform_int(sh, GPU_shader_get_uniform(sh, "lut3d_display_texture"), 3);
     GPU_shader_uniform_int(sh, GPU_shader_get_uniform(sh, "curve_mapping_texture"), 4);
@@ -293,6 +293,8 @@ static void ensureGLSLLut3d(OCIO_GLSLLut3d **lut3d_ptr,
   GPU_texture_filter_mode(lut3d->texture_display, true);
   GPU_texture_wrap_mode(lut3d->texture_display, false, true);
 
+  lut3d->texture_dummy = GPU_texture_create_error(2, false);
+
   updateGLSLLut3d(lut3d, processor_scene_to_ui, processpr_ui_to_display, shaderDesc, cache_id);
 
   lut3d->valid = (lut3d->texture && lut3d->texture_display);
@@ -304,6 +306,7 @@ static void freeGLSLLut3d(OCIO_GLSLLut3d *lut3d)
 {
   GPU_texture_free(lut3d->texture);
   GPU_texture_free(lut3d->texture_display);
+  GPU_texture_free(lut3d->texture_dummy);
 
   OBJECT_GUARDED_DELETE(lut3d, OCIO_GLSLLut3d);
 }
@@ -543,6 +546,10 @@ bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r,
     /* Bind textures to sampler units. Texture 0 is set by caller.
      * Uniforms have already been set for texture bind points.*/
 
+    if (!use_overlay) {
+      /* Avoid missing binds. */
+      GPU_texture_bind(shader_lut->texture_dummy, 1);
+    }
     GPU_texture_bind(shader_lut->texture, 2);
     GPU_texture_bind(shader_lut->texture_display, 3);
     GPU_texture_bind(shader_curvemap->texture, 4);
@@ -556,7 +563,6 @@ bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r,
     /* Bind Shader and set uniforms. */
     // GPU_shader_bind(shader->shader);
     GPU_shader_uniform_float(shader->shader, shader->dither_loc, dither);
-    GPU_shader_uniform_int(shader->shader, shader->overlay_tex_loc, use_overlay ? 1 : 0);
     GPU_shader_uniform_int(shader->shader, shader->overlay_loc, use_overlay);
     GPU_shader_uniform_int(shader->shader, shader->predivide_loc, use_predivide);
     GPU_shader_uniform_int(shader->shader, shader->curve_mapping_loc, use_curve_mapping);
