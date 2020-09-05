@@ -162,7 +162,8 @@ void node_tex_voronoi_distance_to_edge_1d(vec3 coord,
   float leftPointPosition = -1.0 + hash_float_to_float(cellPosition - 1.0) * randomness;
   float rightPointPosition = 1.0 + hash_float_to_float(cellPosition + 1.0) * randomness;
   float distanceToMidLeft = distance((midPointPosition + leftPointPosition) / 2.0, localPosition);
-  float distanceToMidRight = distance((midPointPosition + rightPointPosition) / 2.0, localPosition);
+  float distanceToMidRight = distance((midPointPosition + rightPointPosition) / 2.0,
+                                      localPosition);
 
   outDistance = min(distanceToMidLeft, distanceToMidRight);
 }

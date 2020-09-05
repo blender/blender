@@ -315,9 +315,9 @@ static bool ed_object_mode_generic_exit_ex(struct Main *bmain,
  * This is in fits with the convention of selecting multiple objects and entering a mode.
  */
 static void ed_object_posemode_set_for_weight_paint_ex(bContext *C,
-                                                              Main *bmain,
-                                                              Object *ob_arm,
-                                                              const bool is_mode_set)
+                                                       Main *bmain,
+                                                       Object *ob_arm,
+                                                       const bool is_mode_set)
 {
   View3D *v3d = CTX_wm_view3d(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -347,9 +347,9 @@ static void ed_object_posemode_set_for_weight_paint_ex(bContext *C,
 }
 
 void ED_object_posemode_set_for_weight_paint(bContext *C,
-                                                    Main *bmain,
-                                                    Object *ob,
-                                                    const bool is_mode_set)
+                                             Main *bmain,
+                                             Object *ob,
+                                             const bool is_mode_set)
 {
   if (ob->type == OB_GPENCIL) {
     GpencilVirtualModifierData virtualModifierData;

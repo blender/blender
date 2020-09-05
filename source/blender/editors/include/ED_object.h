@@ -353,9 +353,9 @@ void ED_object_mode_generic_exit(struct Main *bmain,
 bool ED_object_mode_generic_has_data(struct Depsgraph *depsgraph, struct Object *ob);
 
 void ED_object_posemode_set_for_weight_paint(struct bContext *C,
-                                                    struct Main *bmain,
-                                                    struct Object *ob,
-                                                    const bool is_mode_set);
+                                             struct Main *bmain,
+                                             struct Object *ob,
+                                             const bool is_mode_set);
 
 /* object_modifier.c */
 enum {
@@ -387,12 +387,12 @@ bool ED_object_modifier_move_to_index(struct ReportList *reports,
                                       const int index);
 
 bool ED_object_modifier_convert(struct ReportList *reports,
-                               struct Main *bmain,
-                               struct Depsgraph *depsgraph,
-                               struct Scene *scene,
-                               struct ViewLayer *view_layer,
-                               struct Object *ob,
-                               struct ModifierData *md);
+                                struct Main *bmain,
+                                struct Depsgraph *depsgraph,
+                                struct Scene *scene,
+                                struct ViewLayer *view_layer,
+                                struct Object *ob,
+                                struct ModifierData *md);
 bool ED_object_modifier_apply(struct Main *bmain,
                               struct ReportList *reports,
                               struct Depsgraph *depsgraph,

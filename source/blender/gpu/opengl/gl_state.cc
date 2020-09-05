@@ -338,7 +338,7 @@ void GLStateManager::set_blend(const eGPUBlend value)
   /**
    * Factors to the equation.
    * SRC is fragment shader output.
-   * DST is framebuffer color.
+   * DST is frame-buffer color.
    * final.rgb = SRC.rgb * src_rgb + DST.rgb * dst_rgb;
    * final.a = SRC.a * src_alpha + DST.a * dst_alpha;
    **/
@@ -414,7 +414,8 @@ void GLStateManager::set_blend(const eGPUBlend value)
   }
 
   /* Always set the blend function. This avoid a rendering error when blending is disabled but
-   * GPU_BLEND_CUSTOM was used just before and the framebuffer is using more than 1 color targe */
+   * GPU_BLEND_CUSTOM was used just before and the frame-buffer is using more than 1 color target.
+   */
   glBlendFuncSeparate(src_rgb, dst_rgb, src_alpha, dst_alpha);
   if (value != GPU_BLEND_NONE) {
     glEnable(GL_BLEND);
@@ -427,7 +428,7 @@ void GLStateManager::set_blend(const eGPUBlend value)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Texture state managment
+/** \name Texture State Management
  * \{ */
 
 void GLStateManager::texture_bind(Texture *tex_, eGPUSamplerState sampler_type, int unit)
@@ -455,7 +456,7 @@ void GLStateManager::texture_bind_temp(GLTexture *tex)
   // BLI_assert(!GLEW_ARB_direct_state_access);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(tex->target_, tex->tex_id_);
-  /* Will reset the first texture that was originaly bound to slot 0 back before drawing. */
+  /* Will reset the first texture that was originally bound to slot 0 back before drawing. */
   dirty_texture_binds_ |= 1UL;
   /* NOTE: This might leave this texture attached to this target even after update.
    * In practice it is not causing problems as we have incorrect binding detection

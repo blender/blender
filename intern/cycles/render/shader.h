@@ -104,7 +104,7 @@ class Shader : public Node {
    * However, graph optimization might remove the volume subgraph, but
    * since the user connected something to the volume output the surface
    * should still be transparent.
-   * Therefore, has_volume_connected stores whether some volume subtree
+   * Therefore, has_volume_connected stores whether some volume sub-tree
    * was connected before optimization. */
   bool has_volume_connected;
 

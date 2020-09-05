@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
 #include <isa_availability.h>
+#include <stdio.h>
 
 /* The MS CRT defines this */
 extern int __isa_available;
 
-const char* get_arch_flags()
+const char *get_arch_flags()
 {
-	if (__isa_available >= __ISA_AVAILABLE_AVX2) {
+  if (__isa_available >= __ISA_AVAILABLE_AVX2) {
     return "/arch:AVX2";
   }
-	if (__isa_available >= __ISA_AVAILABLE_AVX) {
+  if (__isa_available >= __ISA_AVAILABLE_AVX) {
     return "/arch:AVX";
   }
-	return "";
+  return "";
 }
 
 int main()
 {
-    printf("%s\n", get_arch_flags());
-    return 0;
+  printf("%s\n", get_arch_flags());
+  return 0;
 }
