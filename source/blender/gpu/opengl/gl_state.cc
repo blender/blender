@@ -447,7 +447,7 @@ void GLStateManager::texture_bind(Texture *tex_, eGPUSamplerState sampler_type, 
   textures_[unit] = tex->tex_id_;
   samplers_[unit] = GLTexture::samplers_[sampler_type];
   tex->is_bound_ = true;
-  dirty_texture_binds_ |= 1UL << unit;
+  dirty_texture_binds_ |= 1ULL << unit;
 }
 
 /* Bind the texture to slot 0 for editing purpose. Used by legacy pipeline. */
@@ -457,7 +457,7 @@ void GLStateManager::texture_bind_temp(GLTexture *tex)
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(tex->target_, tex->tex_id_);
   /* Will reset the first texture that was originally bound to slot 0 back before drawing. */
-  dirty_texture_binds_ |= 1UL;
+  dirty_texture_binds_ |= 1ULL;
   /* NOTE: This might leave this texture attached to this target even after update.
    * In practice it is not causing problems as we have incorrect binding detection
    * at higher level. */
@@ -475,7 +475,7 @@ void GLStateManager::texture_unbind(Texture *tex_)
     if (textures_[i] == tex_id) {
       textures_[i] = 0;
       samplers_[i] = 0;
-      dirty_texture_binds_ |= 1UL << i;
+      dirty_texture_binds_ |= 1ULL << i;
     }
   }
   tex->is_bound_ = false;
@@ -487,7 +487,7 @@ void GLStateManager::texture_unbind_all(void)
     if (textures_[i] != 0) {
       textures_[i] = 0;
       samplers_[i] = 0;
-      dirty_texture_binds_ |= 1UL << i;
+      dirty_texture_binds_ |= 1ULL << i;
     }
   }
   this->texture_bind_apply();
@@ -525,7 +525,7 @@ uint64_t GLStateManager::bound_texture_slots(void)
   uint64_t bound_slots = 0;
   for (int i = 0; i < ARRAY_SIZE(textures_); i++) {
     if (textures_[i] != 0) {
-      bound_slots |= 1UL << i;
+      bound_slots |= 1ULL << i;
     }
   }
   return bound_slots;
