@@ -59,7 +59,7 @@ class GLTexture : public Texture {
   struct GPUFrameBuffer *framebuffer_ = NULL;
   /** True if this texture is bound to at least one texture unit. */
   /* TODO(fclem) How do we ensure thread safety here? */
-  bool is_bound_;
+  bool is_bound_ = false;
 
  public:
   GLTexture(const char *name);
