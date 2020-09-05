@@ -63,11 +63,11 @@ set(SRC
   intern/gpu_context.cc
   intern/gpu_debug.cc
   intern/gpu_drawlist.cc
-  intern/gpu_element.cc
   intern/gpu_extensions.cc
   intern/gpu_framebuffer.cc
   intern/gpu_immediate.cc
   intern/gpu_immediate_util.c
+  intern/gpu_index_buffer.cc
   intern/gpu_init_exit.c
   intern/gpu_material.c
   intern/gpu_material_library.c
@@ -108,12 +108,12 @@ set(SRC
   GPU_context.h
   GPU_debug.h
   GPU_drawlist.h
-  GPU_element.h
   GPU_extensions.h
   GPU_framebuffer.h
   GPU_glew.h
   GPU_immediate.h
   GPU_immediate_util.h
+  GPU_index_buffer.h
   GPU_init_exit.h
   GPU_legacy_stubs.h
   GPU_material.h

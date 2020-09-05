@@ -20,7 +20,7 @@
 /** \file
  * \ingroup gpu
  *
- * GPU element list (AKA index buffer)
+ * GPU index buffer
  */
 
 #pragma once

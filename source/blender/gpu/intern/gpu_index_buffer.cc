@@ -25,8 +25,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_element.h"
 #include "GPU_glew.h"
+#include "GPU_index_buffer.h"
 
 #include "gpu_context_private.hh"
 

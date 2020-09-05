@@ -23,7 +23,7 @@
 
 #include <Python.h>
 
-#include "GPU_element.h"
+#include "GPU_index_buffer.h"
 
 #include "BLI_math.h"
 

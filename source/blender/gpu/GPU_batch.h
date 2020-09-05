@@ -28,7 +28,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "GPU_element.h"
+#include "GPU_index_buffer.h"
 #include "GPU_shader.h"
 #include "GPU_vertex_buffer.h"
 
