@@ -147,23 +147,19 @@ ScrEdge *screen_geom_find_active_scredge(const wmWindow *win,
 }
 
 /**
- * \brief Main screen-layout calculation function.
- *
- * * Scale areas nicely on window size and DPI changes.
- * * Ensure areas have a minimum height.
- * * Correctly set global areas to their fixed height.
+ * A single pass for moving all screen vertices to fit into \a screen_rect.
+ * \return true if another pass should be run.
  */
-void screen_geom_vertices_scale(const wmWindow *win, bScreen *screen)
+static bool screen_geom_vertices_scale_pass(const wmWindow *win,
+                                            const bScreen *screen,
+                                            const rcti *screen_rect)
 {
-  rcti window_rect, screen_rect;
 
-  WM_window_rect_calc(win, &window_rect);
-  WM_window_screen_rect_calc(win, &screen_rect);
-
-  const int screen_size_x = BLI_rcti_size_x(&screen_rect);
-  const int screen_size_y = BLI_rcti_size_y(&screen_rect);
+  const int screen_size_x = BLI_rcti_size_x(screen_rect);
+  const int screen_size_y = BLI_rcti_size_y(screen_rect);
   int screen_size_x_prev, screen_size_y_prev;
   float min[2], max[2];
+  bool needs_another_pass = false;
 
   /* calculate size */
   min[0] = min[1] = 20000.0f;
@@ -183,11 +179,11 @@ void screen_geom_vertices_scale(const wmWindow *win, bScreen *screen)
 
     /* make sure it fits! */
     LISTBASE_FOREACH (ScrVert *, sv, &screen->vertbase) {
-      sv->vec.x = screen_rect.xmin + round_fl_to_short((sv->vec.x - min[0]) * facx);
-      CLAMP(sv->vec.x, screen_rect.xmin, screen_rect.xmax - 1);
+      sv->vec.x = screen_rect->xmin + round_fl_to_short((sv->vec.x - min[0]) * facx);
+      CLAMP(sv->vec.x, screen_rect->xmin, screen_rect->xmax - 1);
 
-      sv->vec.y = screen_rect.ymin + round_fl_to_short((sv->vec.y - min[1]) * facy);
-      CLAMP(sv->vec.y, screen_rect.ymin, screen_rect.ymax - 1);
+      sv->vec.y = screen_rect->ymin + round_fl_to_short((sv->vec.y - min[1]) * facy);
+      CLAMP(sv->vec.y, screen_rect->ymin, screen_rect->ymax - 1);
     }
 
     /* test for collapsed areas. This could happen in some blender version... */
@@ -198,7 +194,7 @@ void screen_geom_vertices_scale(const wmWindow *win, bScreen *screen)
     if (facy > 1) {
       /* Keep timeline small in video edit workspace. */
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        if (area->spacetype == SPACE_ACTION && area->v1->vec.y == screen_rect.ymin &&
+        if (area->spacetype == SPACE_ACTION && area->v1->vec.y == screen_rect->ymin &&
             screen_geom_area_height(area) <= headery * facy + 1) {
           ScrEdge *se = BKE_screen_find_edge(screen, area->v2, area->v3);
           if (se) {
@@ -212,6 +208,8 @@ void screen_geom_vertices_scale(const wmWindow *win, bScreen *screen)
               if (sv != area->v1 && sv != area->v4) {
                 if (sv->flag) {
                   sv->vec.y = yval;
+                  /* Changed size of a area. Run another pass to ensure everything still fits. */
+                  needs_another_pass = true;
                 }
               }
             }
@@ -236,6 +234,8 @@ void screen_geom_vertices_scale(const wmWindow *win, bScreen *screen)
               if (sv != area->v2 && sv != area->v3) {
                 if (sv->flag) {
                   sv->vec.y = yval;
+                  /* Changed size of a area. Run another pass to ensure everything still fits. */
+                  needs_another_pass = true;
                 }
               }
             }
@@ -244,6 +244,30 @@ void screen_geom_vertices_scale(const wmWindow *win, bScreen *screen)
       }
     }
   }
+
+  return needs_another_pass;
+}
+
+/**
+ * \brief Main screen-layout calculation function.
+ *
+ * * Scale areas nicely on window size and DPI changes.
+ * * Ensure areas have a minimum height.
+ * * Correctly set global areas to their fixed height.
+ */
+void screen_geom_vertices_scale(const wmWindow *win, bScreen *screen)
+{
+  rcti window_rect, screen_rect;
+
+  WM_window_rect_calc(win, &window_rect);
+  WM_window_screen_rect_calc(win, &screen_rect);
+
+  bool needs_another_pass;
+  int max_passes_left = 10; /* Avoids endless loop. Number is rather arbitrary. */
+  do {
+    needs_another_pass = screen_geom_vertices_scale_pass(win, screen, &screen_rect);
+    max_passes_left--;
+  } while (needs_another_pass && (max_passes_left > 0));
 
   /* Global areas have a fixed size that only changes with the DPI.
    * Here we ensure that exactly this size is set. */
