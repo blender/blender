@@ -40,6 +40,18 @@ MINLINE unsigned int bitscan_forward_uint(unsigned int a)
 #endif
 }
 
+MINLINE unsigned int bitscan_forward_uint64(unsigned long long a)
+{
+  BLI_assert(a != 0);
+#ifdef _MSC_VER
+  unsigned long ctz;
+  _BitScanForward64(&ctz, a);
+  return ctz;
+#else
+  return (unsigned int)__builtin_ctz(a);
+#endif
+}
+
 MINLINE int bitscan_forward_i(int a)
 {
   return (int)bitscan_forward_uint((unsigned int)a);
@@ -66,6 +78,18 @@ MINLINE unsigned int bitscan_reverse_uint(unsigned int a)
   return 31 - clz;
 #else
   return (unsigned int)__builtin_clz(a);
+#endif
+}
+
+MINLINE unsigned int bitscan_reverse_uint64(unsigned long long a)
+{
+  BLI_assert(a != 0);
+#ifdef _MSC_VER
+  unsigned long clz;
+  _BitScanReverse64(&clz, a);
+  return 31 - clz;
+#else
+  return (unsigned int)__builtin_clzll(a);
 #endif
 }
 
