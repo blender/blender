@@ -20,7 +20,10 @@
  * \ingroup gpu
  */
 
+#include "BKE_global.h"
+
 #include "BLI_math_base.h"
+#include "BLI_math_bits.h"
 
 #include "GPU_extensions.h"
 
@@ -431,6 +434,11 @@ void GLStateManager::texture_bind(Texture *tex_, eGPUSamplerState sampler_type, 
 {
   BLI_assert(unit < GPU_max_textures());
   GLTexture *tex = static_cast<GLTexture *>(tex_);
+  /* Eliminate redundant binds. */
+  if ((textures_[unit] == tex->tex_id_) &&
+      (samplers_[unit] == GLTexture::samplers_[sampler_type])) {
+    return;
+  }
   targets_[unit] = tex->target_;
   textures_[unit] = tex->tex_id_;
   samplers_[unit] = GLTexture::samplers_[sampler_type];
@@ -486,20 +494,25 @@ void GLStateManager::texture_bind_apply(void)
   if (dirty_texture_binds_ == 0) {
     return;
   }
+  uint64_t dirty_bind = dirty_texture_binds_;
+  dirty_texture_binds_ = 0;
 
-  if (false) {
-    /* TODO multibind */
+  int first = bitscan_forward_uint64(dirty_bind);
+  int last = 64 - bitscan_reverse_uint64(dirty_bind);
+  int count = last - first;
+
+  if (GLEW_ARB_multi_bind) {
+    glBindTextures(first, count, textures_ + first);
+    glBindSamplers(first, count, samplers_ + first);
   }
   else {
-    uint64_t dirty_bind = dirty_texture_binds_;
-    for (int unit = 0; dirty_bind != 0; dirty_bind >>= 1, unit++) {
-      if (dirty_bind & 1) {
+    for (int unit = first; unit < last; unit++) {
+      if ((dirty_bind >> unit) & 1UL) {
         glActiveTexture(GL_TEXTURE0 + unit);
         glBindTexture(targets_[unit], textures_[unit]);
         glBindSampler(unit, samplers_[unit]);
       }
     }
-    dirty_texture_binds_ = 0;
   }
 }
 
