@@ -81,11 +81,19 @@ Static Source Code Checking
    * check_splint:          Run blenders source through splint (C only).
    * check_sparse:          Run blenders source through sparse (C only).
    * check_smatch:          Run blenders source through smatch (C only).
-   * check_spelling_c:      Check for spelling errors (C/C++ only).
-   * check_spelling_c_qtc:  Same as check_spelling_c but outputs QtCreator tasks format.
+   * check_descriptions:    Check for duplicate/invalid descriptions.
+
+Spell Checkers
+
+   * check_spelling_c:      Check for spelling errors (C/C++ only),
    * check_spelling_osl:    Check for spelling errors (OSL only).
    * check_spelling_py:     Check for spelling errors (Python only).
-   * check_descriptions:    Check for duplicate/invalid descriptions.
+
+   Note that spell checkers can tak a 'CHECK_SPELLING_CACHE' filepath argument,
+   so re-running does not need to re-check unchanged files.
+
+   Example:
+      make check_spelling_c CHECK_SPELLING_CACHE=../spelling_cache.data
 
 Utilities
    Not associated with building Blender.
@@ -457,26 +465,17 @@ check_spelling_c: .FORCE
 	cd "$(BUILD_DIR)" ; \
 	PYTHONIOENCODING=utf_8 $(PYTHON) \
 	    "$(BLENDER_DIR)/source/tools/check_source/check_spelling.py" \
+	    --cache-file=$(CHECK_SPELLING_CACHE) \
 	    "$(BLENDER_DIR)/source" \
 	    "$(BLENDER_DIR)/intern/cycles" \
 	    "$(BLENDER_DIR)/intern/guardedalloc" \
 	    "$(BLENDER_DIR)/intern/ghost" \
-
-check_spelling_c_qtc: .FORCE
-	cd "$(BUILD_DIR)" ; USE_QTC_TASK=1 \
-	PYTHONIOENCODING=utf_8 $(PYTHON) \
-	    "$(BLENDER_DIR)/source/tools/check_source/check_spelling.py" \
-	    "$(BLENDER_DIR)/source" \
-	    "$(BLENDER_DIR)/intern/cycles" \
-	    "$(BLENDER_DIR)/intern/guardedalloc" \
-	    "$(BLENDER_DIR)/intern/ghost" \
-	    > \
-	    "$(BLENDER_DIR)/check_spelling_c.tasks"
 
 check_spelling_osl: .FORCE
 	cd "$(BUILD_DIR)" ;\
 	PYTHONIOENCODING=utf_8 $(PYTHON) \
 	    "$(BLENDER_DIR)/source/tools/check_source/check_spelling.py" \
+	    --cache-file=$(CHECK_SPELLING_CACHE) \
 	    "$(BLENDER_DIR)/intern/cycles/kernel/shaders"
 
 check_descriptions: .FORCE
