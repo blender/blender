@@ -703,6 +703,33 @@ TEST(mesh_intersect, CubeCubeStep)
     write_obj_mesh(out2, "test_cubecubestep_nary");
   }
 }
+
+TEST(mesh_intersect, RectCross)
+{
+  const char *spec = R"(8 4
+  3/2 0 1
+  -3/2 0 1
+  -3/2 0 -1
+  3/2 0 -1
+  1 0 -5
+  -1 0 -5
+  1 0 5
+  -1 0 5
+  1 0 3
+  1 3 2
+  5 4 6
+  5 6 7
+  )";
+
+  IMeshBuilder mb(spec);
+  IMesh out = trimesh_self_intersect(mb.imesh, &mb.arena);
+  out.populate_vert();
+  EXPECT_EQ(out.vert_size(), 17);
+  EXPECT_EQ(out.face_size(), 28);
+  if (DO_OBJ) {
+    write_obj_mesh(out, "test_rectcross");
+  }
+}
 #  endif
 
 #  if DO_PERF_TESTS

@@ -1130,7 +1130,7 @@ static bool non_trivially_2d_point_in_tri(const int orients[3][3], int pi)
  * one gets by having, each point of one triangle being strictly right-of one
  * edge of the other and strictly left of the other two edges; and vice versa.
  * In addition, it must not be the case that all of the points of one triangle
- * are totally to one side of one edge of the other triangle, and vice versa.
+ * are totally on the outside of one edge of the other triangle, and vice versa.
  */
 static bool non_trivially_2d_hex_overlap(int orients[2][3][3])
 {
@@ -1142,7 +1142,7 @@ static bool non_trivially_2d_hex_overlap(int orients[2][3][3])
         return false;
       }
       int s = orients[ab][0][i] + orients[ab][1][i] + orients[ab][2][i];
-      if (s == 3 || s == -3) {
+      if (s == -3) {
         return false;
       }
     }
