@@ -436,7 +436,7 @@ void BKE_screen_foreach_id_screen_area(struct LibraryForeachIDData *data, struct
 void BKE_screen_free(struct bScreen *screen);
 void BKE_screen_area_map_free(struct ScrAreaMap *area_map) ATTR_NONNULL();
 
-struct ScrEdge *BKE_screen_find_edge(struct bScreen *screen,
+struct ScrEdge *BKE_screen_find_edge(const struct bScreen *screen,
                                      struct ScrVert *v1,
                                      struct ScrVert *v2);
 void BKE_screen_sort_scrvert(struct ScrVert **v1, struct ScrVert **v2);

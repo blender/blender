@@ -694,7 +694,7 @@ void BKE_screen_free(bScreen *screen)
 
 /* ***************** Screen edges & verts ***************** */
 
-ScrEdge *BKE_screen_find_edge(bScreen *screen, ScrVert *v1, ScrVert *v2)
+ScrEdge *BKE_screen_find_edge(const bScreen *screen, ScrVert *v1, ScrVert *v2)
 {
   ScrEdge *se;
 
