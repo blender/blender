@@ -30,6 +30,8 @@
 
 #include "BKE_global.h"
 
+#include "GPU_platform.h"
+
 #include "glew-mx.h"
 
 #include "gl_context.hh"
@@ -38,6 +40,9 @@
 #include "gl_debug.hh"
 
 #include <stdio.h>
+
+/* Avoid too much NVidia buffer info in the output log. */
+#define TRIM_NVIDIA_BUFFER_INFO 1
 
 namespace blender::gpu::debug {
 
@@ -66,6 +71,13 @@ static void APIENTRY debug_callback(GLenum UNUSED(source),
                                     const GLvoid *UNUSED(userParm))
 {
   const char format[] = "GPUDebug: %s%s\033[0m\n";
+
+  if (TRIM_NVIDIA_BUFFER_INFO &&
+      GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_OFFICIAL) &&
+      STREQLEN("Buffer detailed info", message, 20)) {
+    /** Supress buffer infos flooding the output. */
+    return;
+  }
 
   if (ELEM(severity, GL_DEBUG_SEVERITY_LOW, GL_DEBUG_SEVERITY_NOTIFICATION)) {
     if (VERBOSE) {
