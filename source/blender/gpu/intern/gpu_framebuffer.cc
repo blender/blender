@@ -139,34 +139,20 @@ void FrameBuffer::recursive_downsample(int max_lvl,
   /* Bind to make sure the frame-buffer is up to date. */
   this->bind(true);
 
-  if (width_ == 1 && height_ == 1) {
-    return;
-  }
-  /* HACK: Make the frame-buffer appear not bound to avoid assert in GPU_texture_bind. */
-  ctx->active_fb = NULL;
+  /* FIXME(fclem): This assumes all mips are defined which may not be the case. */
+  max_lvl = min_ii(max_lvl, floor(log2(max_ii(width_, height_))));
 
-  int levels = floor(log2(max_ii(width_, height_)));
-  max_lvl = min_ii(max_lvl, levels);
-
-  int current_dim[2] = {width_, height_};
-  int mip_lvl;
-  for (mip_lvl = 1; mip_lvl < max_lvl + 1; mip_lvl++) {
-    /* calculate next viewport size */
-    current_dim[0] = max_ii(current_dim[0] / 2, 1);
-    current_dim[1] = max_ii(current_dim[1] / 2, 1);
+  for (int mip_lvl = 1; mip_lvl <= max_lvl; mip_lvl++) {
     /* Replace attached mip-level for each attachment. */
     for (int att = 0; att < ARRAY_SIZE(attachments_); att++) {
-      GPUTexture *tex = attachments_[att].tex;
+      Texture *tex = reinterpret_cast<Texture *>(attachments_[att].tex);
       if (tex != NULL) {
         /* Some Intel HDXXX have issue with rendering to a mipmap that is below
          * the texture GL_TEXTURE_MAX_LEVEL. So even if it not correct, in this case
          * we allow GL_TEXTURE_MAX_LEVEL to be one level lower. In practice it does work! */
-        int map_lvl = (GPU_mip_render_workaround()) ? mip_lvl : (mip_lvl - 1);
+        int mip_max = (GPU_mip_render_workaround()) ? mip_lvl : (mip_lvl - 1);
         /* Restrict fetches only to previous level. */
-        GPU_texture_bind(tex, 0);
-        glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_BASE_LEVEL, mip_lvl - 1);
-        glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_MAX_LEVEL, map_lvl);
-        GPU_texture_unbind(tex);
+        tex->mip_range_set(mip_lvl - 1, mip_max);
         /* Bind next level. */
         attachments_[att].mip = mip_lvl;
       }
@@ -174,25 +160,14 @@ void FrameBuffer::recursive_downsample(int max_lvl,
     /* Update the internal attachments and viewport size. */
     dirty_attachments_ = true;
     this->bind(true);
-    /* HACK: Make the frame-buffer appear not bound to avoid assert in GPU_texture_bind. */
-    ctx->active_fb = NULL;
 
     callback(userData, mip_lvl);
-
-    /* This is the last mipmap level. Exit loop without incrementing mip_lvl. */
-    if (current_dim[0] == 1 && current_dim[1] == 1) {
-      break;
-    }
   }
 
   for (int att = 0; att < ARRAY_SIZE(attachments_); att++) {
     if (attachments_[att].tex != NULL) {
       /* Reset mipmap level range. */
-      GPUTexture *tex = attachments_[att].tex;
-      GPU_texture_bind(tex, 0);
-      glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_BASE_LEVEL, 0);
-      glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_MAX_LEVEL, mip_lvl);
-      GPU_texture_unbind(tex);
+      reinterpret_cast<Texture *>(attachments_[att].tex)->mip_range_set(0, max_lvl);
       /* Reset base level. NOTE: might not be the one bound at the start of this function. */
       attachments_[att].mip = 0;
     }
