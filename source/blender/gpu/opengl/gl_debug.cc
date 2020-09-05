@@ -28,6 +28,8 @@
 #include "BLI_system.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_global.h"
+
 #include "glew-mx.h"
 
 #include "gl_context.hh"
@@ -179,6 +181,10 @@ void check_gl_error(const char *info)
 
 void check_gl_resources(const char *info)
 {
+  if (!(G.debug & G_DEBUG_GPU)) {
+    return;
+  }
+
   GLContext *ctx = static_cast<GLContext *>(GPU_context_active_get());
   ShaderInterface *interface = ctx->shader->interface;
   /* NOTE: This only check binding. To be valid, the bound ubo needs to
