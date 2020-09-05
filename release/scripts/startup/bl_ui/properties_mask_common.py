@@ -382,6 +382,13 @@ class MASK_MT_transform(Menu):
         layout.operator("transform.translate")
         layout.operator("transform.rotate")
         layout.operator("transform.resize")
+
+        layout.separator()
+        layout.operator("transform.tosphere")
+        layout.operator("transform.shear")
+        layout.operator("transform.push_pull")
+
+        layout.separator()
         layout.operator("transform.transform", text="Scale Feather").mode = 'MASK_SHRINKFATTEN'
 
 
