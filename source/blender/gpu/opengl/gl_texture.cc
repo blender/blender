@@ -446,6 +446,8 @@ void GLTexture::swizzle_set(const char swizzle[4])
 void GLTexture::mip_range_set(int min, int max)
 {
   BLI_assert(min <= max && min >= 0 && max <= mipmaps_);
+  mip_min_ = min;
+  mip_max_ = max;
   if (GLEW_ARB_direct_state_access) {
     glTextureParameteri(tex_id_, GL_TEXTURE_BASE_LEVEL, min);
     glTextureParameteri(tex_id_, GL_TEXTURE_MAX_LEVEL, max);
@@ -648,6 +650,35 @@ bool GLTexture::proxy_check(int mip)
 }
 
 /** \} */
+
+void GLTexture::check_feedback_loop(void)
+{
+  /* Recursive downsample workaround break this check.
+   * See recursive_downsample() for more infos. */
+  if (GPU_mip_render_workaround()) {
+    return;
+  }
+  GLFrameBuffer *fb = static_cast<GLFrameBuffer *>(GPU_context_active_get()->active_fb);
+  for (int i = 0; i < ARRAY_SIZE(fb_); i++) {
+    if (fb_[i] == fb) {
+      GPUAttachmentType type = fb_attachment_[i];
+      GPUAttachment attachment = fb->attachments_[type];
+      if (attachment.mip <= mip_max_ && attachment.mip >= mip_min_) {
+        char msg[256];
+        SNPRINTF(msg,
+                 "Feedback loop: Trying to bind a texture (%s) with mip range %d-%d but mip %d is "
+                 "attached to the active framebuffer (%s)",
+                 name_,
+                 mip_min_,
+                 mip_max_,
+                 attachment.mip,
+                 fb->name_);
+        debug::raise_gl_error(msg);
+      }
+      return;
+    }
+  }
+}
 
 /* TODO(fclem) Legacy. Should be removed at some point. */
 uint GLTexture::gl_bindcode_get(void) const

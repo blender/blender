@@ -434,6 +434,9 @@ void GLStateManager::texture_bind(Texture *tex_, eGPUSamplerState sampler_type, 
 {
   BLI_assert(unit < GPU_max_textures());
   GLTexture *tex = static_cast<GLTexture *>(tex_);
+  if (G.debug & G_DEBUG_GPU) {
+    tex->check_feedback_loop();
+  }
   /* Eliminate redundant binds. */
   if ((textures_[unit] == tex->tex_id_) &&
       (samplers_[unit] == GLTexture::samplers_[sampler_type])) {

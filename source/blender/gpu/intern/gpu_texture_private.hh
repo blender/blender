@@ -91,11 +91,12 @@ class Texture {
   /** Number of mipmaps this texture has (Max miplvl). */
   /* TODO(fclem) Should become immutable and the need for mipmaps should be specified upfront. */
   int mipmaps_ = -1;
+  /** For error checking */
+  int mip_min_ = 0, mip_max_ = 0;
 
   /** For debugging */
   char name_[DEBUG_NAME_LEN];
 
- private:
   /** Framebuffer references to update on deletion. */
   GPUAttachmentType fb_attachment_[GPU_TEX_MAX_FBO_ATTACHED];
   FrameBuffer *fb_[GPU_TEX_MAX_FBO_ATTACHED];

@@ -39,6 +39,9 @@ class GLStateManager;
  * Implementation of FrameBuffer object using OpenGL.
  **/
 class GLFrameBuffer : public FrameBuffer {
+  /* For debugging purpose. */
+  friend class GLTexture;
+
  private:
   /** OpenGL handle. */
   GLuint fbo_id_ = 0;

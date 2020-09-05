@@ -75,6 +75,8 @@ class GLTexture : public Texture {
   void mip_range_set(int min, int max) override;
   void *read(int mip, eGPUDataFormat format) override;
 
+  void check_feedback_loop(void);
+
   /* TODO(fclem) Legacy. Should be removed at some point. */
   uint gl_bindcode_get(void) const override;
 
