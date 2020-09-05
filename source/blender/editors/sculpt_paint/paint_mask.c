@@ -278,8 +278,8 @@ typedef struct SculptGestureOperation {
   /* Apply the gesture action for each symmetry pass. */
   void (*sculpt_gesture_apply_for_symmetry_pass)(struct bContext *, SculptGestureContext *);
 
-  /* Remaining actions after finishing the symmetry passes iterations (updating datalayers, tagging
-   * PBVH updates...) */
+  /* Remaining actions after finishing the symmetry passes iterations
+   * (updating data-layers, tagging PBVH updates...). */
   void (*sculpt_gesture_end)(struct bContext *, SculptGestureContext *);
 } SculptGestureOperation;
 

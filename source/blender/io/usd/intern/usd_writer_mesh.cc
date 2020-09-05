@@ -106,10 +106,10 @@ struct USDMeshData {
   pxr::VtIntArray crease_vertex_indices;
   /* The per-crease or per-edge sharpness for all creases (Usd.Mesh.SHARPNESS_INFINITE for a
    * perfectly sharp crease). Since 'creaseLengths' encodes the number of vertices in each crease,
-   * the number of elements in this array will be either len(creaseLengths) or the sum over all X
-   * of (creaseLengths[X] - 1). Note that while the RI spec allows each crease to have either a
+   * the number of elements in this array will be either 'len(creaseLengths)' or the sum over all X
+   * of '(creaseLengths[X] - 1)'. Note that while the RI spec allows each crease to have either a
    * single sharpness or a value per-edge, USD will encode either a single sharpness per crease on
-   * a mesh, or sharpnesses for all edges making up the creases on a mesh. */
+   * a mesh, or sharpness's for all edges making up the creases on a mesh. */
   pxr::VtFloatArray crease_sharpnesses;
 };
 
@@ -177,8 +177,8 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
       return;
     }
     /* The material path will be of the form </_materials/{material name}>, which is outside the
-    subtree pointed to by ref_path. As a result, the referenced data is not allowed to point out
-    of its own subtree. It does work when we override the material with exactly the same path,
+    sub-tree pointed to by ref_path. As a result, the referenced data is not allowed to point out
+    of its own sub-tree. It does work when we override the material with exactly the same path,
     though.*/
     if (usd_export_context_.export_params.export_materials) {
       assign_materials(context, usd_mesh, usd_mesh_data.face_groups);

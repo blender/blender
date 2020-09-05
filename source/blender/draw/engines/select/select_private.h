@@ -27,7 +27,7 @@
 #include "DRW_render.h"
 
 /* GPUViewport.storage
- * Is freed everytime the viewport engine changes */
+ * Is freed every time the viewport engine changes. */
 typedef struct SELECTID_StorageList {
   struct SELECTID_PrivateData *g_data;
 } SELECTID_StorageList;

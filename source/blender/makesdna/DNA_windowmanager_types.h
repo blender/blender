@@ -286,8 +286,8 @@ typedef struct wmWindow {
   /** Internal for wm_operators.c. */
   struct wmGesture *tweak;
 
-  /* Input Method Editor data - complex character input (esp. for asian character input)
-   * Currently WIN32, runtime-only data */
+  /* Input Method Editor data - complex character input (especially for Asian character input)
+   * Currently WIN32, runtime-only data. */
   struct wmIMEData *ime_data;
 
   /** All events (ghost level events were handled). */

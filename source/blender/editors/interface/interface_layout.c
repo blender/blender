@@ -5648,7 +5648,7 @@ void UI_paneltype_draw(bContext *C, PanelType *pt, uiLayout *layout)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Layout (Debuging/Introspection)
+/** \name Layout (Debugging/Introspection)
  *
  * Serialize the layout as a Python compatible dictionary,
  *

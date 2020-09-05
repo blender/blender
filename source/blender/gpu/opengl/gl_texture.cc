@@ -653,8 +653,8 @@ bool GLTexture::proxy_check(int mip)
 
 void GLTexture::check_feedback_loop(void)
 {
-  /* Recursive downsample workaround break this check.
-   * See recursive_downsample() for more infos. */
+  /* Recursive down sample workaround break this check.
+   * See #recursive_downsample() for more information. */
   if (GPU_mip_render_workaround()) {
     return;
   }

@@ -141,7 +141,7 @@ template<> double math_abs(const double v)
   return fabs(v);
 }
 
-/* Find an output index corresponding to a given coordinate (appproximately).
+/* Find an output index corresponding to a given coordinate (approximately).
  * Return -1 if not found.
  */
 template<typename T> int get_vertex_by_coord(const CDT_result<T> &out, double x, double y)

@@ -111,8 +111,8 @@ int orient3d(const mpq3 &a, const mpq3 &b, const mpq3 &c, const mpq3 &d)
 /**
  * For double versions of orient and incircle functions, use robust predicates
  * that give exact answers for double inputs.
- * First, encapsulate functions frm Jonathan Shewchuk's implementation.
- * After this namespace, see the implementation of the double3 primitives.
+ * First, encapsulate functions from Jonathan Shewchuk's implementation.
+ * After this name-space, see the implementation of the double3 primitives.
  */
 namespace robust_pred {
 

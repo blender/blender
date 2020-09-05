@@ -164,7 +164,7 @@ typedef struct MouseInput {
    * to avoid jumping values when its toggled.
    *
    * This works well for scaling drag motion,
-   * but not for rotating around a point (rotaton needs its own custom accumulator)
+   * but not for rotating around a point (rotation needs its own custom accumulator)
    */
   bool use_virtual_mval;
   struct {
@@ -282,7 +282,7 @@ typedef struct TransInfo {
   short state;
   /** Current context/options for transform. */
   int options;
-  /** Init value for some transformations (and rotation angle). */
+  /** Initial value for some transformations (and rotation angle). */
   float val;
   void (*transform)(struct TransInfo *, const int[2]);
   /** Transform function pointer. */
@@ -319,7 +319,7 @@ typedef struct TransInfo {
   float snap[3];
   /** Spatial snapping gears(even when rotating, scaling... etc). */
   float snap_spatial[3];
-  /** Mouse side of the cfra, 'L', 'R' or 'B' */
+  /** Mouse side of the current frame, 'L', 'R' or 'B' */
   char frame_side;
 
   /** copy from G.vd, prevents feedback. */

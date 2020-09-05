@@ -56,7 +56,7 @@ GLStateManager::GLStateManager(void) : GPUStateManager()
   glPrimitiveRestartIndex((GLuint)0xFFFFFFFF);
   /* TODO: Should become default. But needs at least GL 4.3 */
   if (GLEW_ARB_ES3_compatibility) {
-    /* Takes predecence over GL_PRIMITIVE_RESTART */
+    /* Takes precedence over #GL_PRIMITIVE_RESTART. */
     glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
   }
 

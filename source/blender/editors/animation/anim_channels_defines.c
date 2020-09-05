@@ -4406,7 +4406,7 @@ void ANIM_channel_draw(
   }
 
   /* step 4) draw special toggles  .................................
-   * - in Graph Editor, checkboxes for visibility in curves area
+   * - in Graph Editor, check-boxes for visibility in curves area
    * - in NLA Editor, glowing dots for solo/not solo...
    * - in Grease Pencil mode, color swatches for layer color
    */
