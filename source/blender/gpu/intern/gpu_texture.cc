@@ -47,17 +47,16 @@ Texture::Texture(const char *name)
     name_[0] = '\0';
   }
 
-  for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; i++) {
-    fb[i] = NULL;
+  for (int i = 0; i < ARRAY_SIZE(fb_); i++) {
+    fb_[i] = NULL;
   }
 }
 
 Texture::~Texture()
 {
-  for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; i++) {
-    if (fb[i] != NULL) {
-      FrameBuffer *framebuffer = reinterpret_cast<FrameBuffer *>(fb[i]);
-      framebuffer->attachment_set((GPUAttachmentType)fb_attachment[i], GPU_ATTACHMENT_NONE);
+  for (int i = 0; i < ARRAY_SIZE(fb_); i++) {
+    if (fb_[i] != NULL) {
+      fb_[i]->attachment_remove(fb_attachment_[i]);
     }
   }
 }
@@ -139,8 +138,28 @@ bool Texture::init_buffer(GPUVertBuf *vbo, eGPUTextureFormat format)
 /** \name Operation
  * \{ */
 
-void Texture::attach_to(FrameBuffer *)
+void Texture::attach_to(FrameBuffer *fb, GPUAttachmentType type)
 {
+  for (int i = 0; i < ARRAY_SIZE(fb_); i++) {
+    if (fb_[i] == NULL) {
+      fb_attachment_[i] = type;
+      fb_[i] = fb;
+      return;
+    }
+  }
+  BLI_assert(!"GPU: Error: Texture: Not enough attachment");
+}
+
+void Texture::detach_from(FrameBuffer *fb)
+{
+  for (int i = 0; i < ARRAY_SIZE(fb_); i++) {
+    if (fb_[i] == fb) {
+      fb_[i]->attachment_remove(fb_attachment_[i]);
+      fb_[i] = NULL;
+      return;
+    }
+  }
+  BLI_assert(!"GPU: Error: Texture: Framebuffer is not attached");
 }
 
 void Texture::update(eGPUDataFormat format, const void *data)
@@ -660,48 +679,6 @@ bool GPU_texture_array(const GPUTexture *tex)
 int GPU_texture_opengl_bindcode(const GPUTexture *tex)
 {
   return reinterpret_cast<const Texture *>(tex)->gl_bindcode_get();
-}
-
-void GPU_texture_attach_framebuffer(GPUTexture *tex_, GPUFrameBuffer *fb, int attachment)
-{
-  /* TODO cleanup casts */
-  Texture *tex = reinterpret_cast<Texture *>(tex_);
-  for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; i++) {
-    if (tex->fb[i] == NULL) {
-      tex->fb[i] = reinterpret_cast<FrameBuffer *>(fb);
-      tex->fb_attachment[i] = (GPUAttachmentType)attachment;
-      return;
-    }
-  }
-
-  BLI_assert(!"Error: Texture: Not enough Framebuffer slots");
-}
-
-/* Return previous attachment point */
-void GPU_texture_detach_framebuffer(GPUTexture *tex_, GPUFrameBuffer *fb)
-{
-  /* TODO cleanup casts */
-  Texture *tex = reinterpret_cast<Texture *>(tex_);
-  for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; i++) {
-    if (tex->fb[i] == reinterpret_cast<FrameBuffer *>(fb)) {
-      tex->fb[i] = NULL;
-      return;
-    }
-  }
-  BLI_assert(!"Error: Texture: Framebuffer is not attached");
-}
-
-/* Return attachment type for the given framebuffer or -1 if not attached. */
-int GPU_texture_framebuffer_attachment_get(GPUTexture *tex_, GPUFrameBuffer *fb)
-{
-  /* TODO cleanup casts */
-  Texture *tex = reinterpret_cast<Texture *>(tex_);
-  for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; i++) {
-    if (tex->fb[i] == reinterpret_cast<FrameBuffer *>(fb)) {
-      return tex->fb_attachment[i];
-    }
-  }
-  return -1;
 }
 
 void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *r_size)

@@ -44,16 +44,6 @@ struct GPUFrameBuffer;
 namespace blender {
 namespace gpu {
 
-#if 0
-class GLContext {
-  /** Currently bound textures. Updated before drawing. */
-  GLuint bound_textures[64];
-  GLuint bound_samplers[64];
-  /** All sampler objects. Last one is for icon sampling. */
-  GLuint samplers[GPU_SAMPLER_MAX + 1];
-};
-#endif
-
 class GLTexture : public Texture {
   friend class GLStateManager;
 

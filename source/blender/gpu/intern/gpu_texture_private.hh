@@ -74,9 +74,6 @@ class Texture {
   int refcount = 1;
   /** Width & Height (of source data), optional. */
   int src_w = 0, src_h = 0;
-  /** Framebuffer references to update on deletion. */
-  GPUAttachmentType fb_attachment[GPU_TEX_MAX_FBO_ATTACHED];
-  FrameBuffer *fb[GPU_TEX_MAX_FBO_ATTACHED];
 
  protected:
   /* ---- Texture format (immutable after init). ---- */
@@ -96,6 +93,11 @@ class Texture {
   /** For debugging */
   char name_[DEBUG_NAME_LEN];
 
+ private:
+  /** Framebuffer references to update on deletion. */
+  GPUAttachmentType fb_attachment_[GPU_TEX_MAX_FBO_ATTACHED];
+  FrameBuffer *fb_[GPU_TEX_MAX_FBO_ATTACHED];
+
  public:
   Texture(const char *name);
   virtual ~Texture();
@@ -114,9 +116,9 @@ class Texture {
   virtual void mip_range_set(int min, int max) = 0;
   virtual void *read(int mip, eGPUDataFormat format) = 0;
 
-  void attach_to(FrameBuffer *fb);
+  void attach_to(FrameBuffer *fb, GPUAttachmentType type);
+  void detach_from(FrameBuffer *fb);
   void update(eGPUDataFormat format, const void *data);
-  void update_mip(int mip, eGPUDataFormat format, const void *data);
 
   virtual void update_sub(
       int mip, int offset[3], int extent[3], eGPUDataFormat format, const void *data) = 0;

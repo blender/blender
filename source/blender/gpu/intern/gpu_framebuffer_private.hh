@@ -134,6 +134,7 @@ class FrameBuffer {
                        int dst_offset_y) = 0;
 
   void attachment_set(GPUAttachmentType type, const GPUAttachment &new_attachment);
+  void attachment_remove(GPUAttachmentType type);
 
   void recursive_downsample(int max_lvl,
                             void (*callback)(void *userData, int level),

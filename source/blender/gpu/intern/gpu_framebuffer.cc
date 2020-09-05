@@ -66,10 +66,9 @@ FrameBuffer::FrameBuffer(const char *name)
 
 FrameBuffer::~FrameBuffer()
 {
-  GPUFrameBuffer *gpu_fb = reinterpret_cast<GPUFrameBuffer *>(this);
   for (int i = 0; i < ARRAY_SIZE(attachments_); i++) {
     if (attachments_[i].tex != NULL) {
-      GPU_texture_detach_framebuffer(attachments_[i].tex, gpu_fb);
+      reinterpret_cast<Texture *>(attachments_[i].tex)->detach_from(this);
     }
   }
 }
@@ -115,19 +114,25 @@ void FrameBuffer::attachment_set(GPUAttachmentType type, const GPUAttachment &ne
   /* Unbind previous and bind new. */
   /* TODO(fclem) cleanup the casts. */
   if (attachment.tex) {
-    GPU_texture_detach_framebuffer(attachment.tex, reinterpret_cast<GPUFrameBuffer *>(this));
+    reinterpret_cast<Texture *>(attachment.tex)->detach_from(this);
   }
 
   attachment = new_attachment;
 
   /* Might be null if this is for unbinding. */
   if (attachment.tex) {
-    GPU_texture_attach_framebuffer(attachment.tex, reinterpret_cast<GPUFrameBuffer *>(this), type);
+    reinterpret_cast<Texture *>(attachment.tex)->attach_to(this, type);
   }
   else {
     /* GPU_ATTACHMENT_NONE */
   }
 
+  dirty_attachments_ = true;
+}
+
+void FrameBuffer::attachment_remove(GPUAttachmentType type)
+{
+  attachments_[type] = GPU_ATTACHMENT_NONE;
   dirty_attachments_ = true;
 }
 
@@ -291,14 +296,8 @@ void GPU_framebuffer_texture_cubeface_attach(
 
 void GPU_framebuffer_texture_detach(GPUFrameBuffer *gpu_fb, GPUTexture *tex)
 {
-  GPUAttachment attachment = GPU_ATTACHMENT_NONE;
-  int type = GPU_texture_framebuffer_attachment_get(tex, gpu_fb);
-  if (type != -1) {
-    reinterpret_cast<FrameBuffer *>(gpu_fb)->attachment_set((GPUAttachmentType)type, attachment);
-  }
-  else {
-    BLI_assert(!"Error: Texture: Framebuffer is not attached");
-  }
+  FrameBuffer *fb = reinterpret_cast<FrameBuffer *>(gpu_fb);
+  reinterpret_cast<Texture *>(tex)->detach_from(fb);
 }
 
 /**
