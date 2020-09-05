@@ -20,6 +20,8 @@
  * \ingroup gpu
  */
 
+#pragma once
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
@@ -32,6 +34,7 @@ namespace blender {
 namespace gpu {
 
 class GLFrameBuffer;
+class GLTexture;
 
 /**
  * State manager keeping track of the draw state and applying it before drawing.
@@ -49,10 +52,27 @@ class GLStateManager : public GPUStateManager {
   /** Limits. */
   float line_width_range_[2];
 
+  /** Texture state:
+   * We keep the full stack of textures and sampler bounds to use multi bind, and to be able to
+   * edit and restore texture binds on the fly without querying the context.
+   * Also this allows us to keep track of textures bounds to many texture units.
+   * Keep the targets to know what target to set to 0 for unbinding (legacy).
+   * Init first target to GL_TEXTURE_2D for texture_bind_temp to work.
+   */
+  GLuint targets_[64] = {GL_TEXTURE_2D};
+  GLuint textures_[64] = {0};
+  GLuint samplers_[64] = {0};
+  uint64_t dirty_texture_binds_ = 0;
+
  public:
   GLStateManager();
 
   void apply_state(void) override;
+
+  void texture_bind(Texture *tex, eGPUSamplerState sampler, int unit) override;
+  void texture_bind_temp(GLTexture *tex);
+  void texture_unbind(Texture *tex) override;
+  void texture_unbind_all(void) override;
 
  private:
   static void set_write_mask(const eGPUWriteMask value);
@@ -69,6 +89,8 @@ class GLStateManager : public GPUStateManager {
 
   void set_state(const GPUState &state);
   void set_mutable_state(const GPUStateMutable &state);
+
+  void texture_bind_apply(void);
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLStateManager")
 };

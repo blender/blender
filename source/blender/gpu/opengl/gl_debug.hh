@@ -37,6 +37,7 @@ namespace debug {
 #  define GL_CHECK_RESOURCES(info)
 #endif
 
+void raise_gl_error(const char *info);
 void check_gl_error(const char *info);
 void check_gl_resources(const char *info);
 void init_gl_callbacks(void);

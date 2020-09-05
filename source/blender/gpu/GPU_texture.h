@@ -44,6 +44,7 @@ typedef struct GPUTexture GPUTexture;
  * - All states are created at startup to avoid runtime costs.
  */
 typedef enum eGPUSamplerState {
+  GPU_SAMPLER_DEFAULT = 0,
   GPU_SAMPLER_FILTER = (1 << 0),
   GPU_SAMPLER_MIPMAP = (1 << 1),
   GPU_SAMPLER_REPEAT_S = (1 << 2),
@@ -52,8 +53,11 @@ typedef enum eGPUSamplerState {
   GPU_SAMPLER_CLAMP_BORDER = (1 << 5), /* Clamp to border color instead of border texel. */
   GPU_SAMPLER_COMPARE = (1 << 6),
   GPU_SAMPLER_ANISO = (1 << 7),
+  GPU_SAMPLER_ICON = (1 << 8),
+
+  GPU_SAMPLER_REPEAT = (GPU_SAMPLER_REPEAT_S | GPU_SAMPLER_REPEAT_T | GPU_SAMPLER_REPEAT_R),
   /* Don't use that. */
-  GPU_SAMPLER_MAX = (1 << 8),
+  GPU_SAMPLER_MAX = (GPU_SAMPLER_ICON + 1),
 } eGPUSamplerState;
 
 ENUM_OPERATORS(eGPUSamplerState)
@@ -209,12 +213,6 @@ GPUTexture *GPU_texture_create_1d_array(
     int w, int h, eGPUTextureFormat tex_format, const float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_2d(
     int w, int h, eGPUTextureFormat tex_format, const float *pixels, char err_out[256]);
-GPUTexture *GPU_texture_create_2d_multisample(int w,
-                                              int h,
-                                              eGPUTextureFormat tex_format,
-                                              const float *pixels,
-                                              int samples,
-                                              char err_out[256]);
 GPUTexture *GPU_texture_create_2d_array(
     int w, int h, int d, eGPUTextureFormat tex_format, const float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_3d(
@@ -227,7 +225,6 @@ GPUTexture *GPU_texture_create_cube_array(
     int w, int d, eGPUTextureFormat tex_format, const float *pixels, char err_out[256]);
 
 GPUTexture *GPU_texture_create_from_vertbuf(struct GPUVertBuf *vert);
-GPUTexture *GPU_texture_create_buffer(eGPUTextureFormat tex_format, const uint buffer);
 
 GPUTexture *GPU_texture_create_compressed(
     int w, int h, int miplen, eGPUTextureFormat format, const void *data);
@@ -286,7 +283,6 @@ int GPU_texture_height(const GPUTexture *tex);
 int GPU_texture_orig_width(const GPUTexture *tex);
 int GPU_texture_orig_height(const GPUTexture *tex);
 void GPU_texture_orig_size_set(GPUTexture *tex, int w, int h);
-int GPU_texture_layers(const GPUTexture *tex);
 eGPUTextureFormat GPU_texture_format(const GPUTexture *tex);
 int GPU_texture_samples(const GPUTexture *tex);
 bool GPU_texture_array(const GPUTexture *tex);

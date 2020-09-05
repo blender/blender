@@ -28,9 +28,11 @@
 
 #include "gl_context.hh"
 #include "gl_framebuffer.hh"
+#include "gl_texture.hh"
+
 #include "gl_state.hh"
 
-using namespace blender::gpu;
+namespace blender::gpu {
 
 /* -------------------------------------------------------------------- */
 /** \name GLStateManager
@@ -69,6 +71,7 @@ void GLStateManager::apply_state(void)
 {
   this->set_state(this->state);
   this->set_mutable_state(this->mutable_state);
+  this->texture_bind_apply();
   active_fb->apply_state();
 };
 
@@ -419,3 +422,85 @@ void GLStateManager::set_blend(const eGPUBlend value)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Texture state managment
+ * \{ */
+
+void GLStateManager::texture_bind(Texture *tex_, eGPUSamplerState sampler, int unit)
+{
+  BLI_assert(unit < GPU_max_textures());
+  GLTexture *tex = static_cast<GLTexture *>(tex_);
+  targets_[unit] = tex->target_;
+  textures_[unit] = tex->tex_id_;
+  samplers_[unit] = sampler;
+  tex->is_bound_ = true;
+  dirty_texture_binds_ |= 1 << unit;
+}
+
+/* Bind the texture to slot 0 for editing purpose. Used by legacy pipeline. */
+void GLStateManager::texture_bind_temp(GLTexture *tex)
+{
+  // BLI_assert(!GLEW_ARB_direct_state_access);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(tex->target_, tex->tex_id_);
+  /* Will reset the first texture that was originaly bound to slot 0 back before drawing. */
+  dirty_texture_binds_ |= 1;
+  /* NOTE: This might leave this texture attached to this target even after update.
+   * In practice it is not causing problems as we have incorrect binding detection
+   * at higher level. */
+}
+
+void GLStateManager::texture_unbind(Texture *tex_)
+{
+  GLTexture *tex = static_cast<GLTexture *>(tex_);
+  if (!tex->is_bound_) {
+    return;
+  }
+
+  GLuint tex_id = tex->tex_id_;
+  for (int i = 0; i < ARRAY_SIZE(textures_); i++) {
+    if (textures_[i] == tex_id) {
+      textures_[i] = 0;
+      dirty_texture_binds_ |= 1 << i;
+    }
+  }
+  tex->is_bound_ = false;
+}
+
+void GLStateManager::texture_unbind_all(void)
+{
+  for (int i = 0; i < ARRAY_SIZE(textures_); i++) {
+    if (textures_[i] != 0) {
+      textures_[i] = 0;
+      dirty_texture_binds_ |= 1 << i;
+    }
+  }
+  this->texture_bind_apply();
+}
+
+void GLStateManager::texture_bind_apply(void)
+{
+  if (dirty_texture_binds_ == 0) {
+    return;
+  }
+
+  if (false) {
+    /* TODO multibind */
+  }
+  else {
+    uint64_t dirty_bind = dirty_texture_binds_;
+    for (int unit = 0; dirty_bind != 0; dirty_bind >>= 1, unit++) {
+      if (dirty_bind & 1) {
+        glActiveTexture(GL_TEXTURE0 + unit);
+        glBindTexture(targets_[unit], textures_[unit]);
+        // glBindSampler(unit, samplers_[unit]);
+      }
+    }
+    dirty_texture_binds_ = 0;
+  }
+}
+
+/** \} */
+
+}  // namespace blender::gpu

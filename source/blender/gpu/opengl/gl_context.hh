@@ -30,6 +30,8 @@
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
 
+#include "gl_state.hh"
+
 #include "glew-mx.h"
 
 #include <mutex>
@@ -82,6 +84,12 @@ class GLContext : public GPUContext {
 
   void activate(void) override;
   void deactivate(void) override;
+
+  static inline GLStateManager *state_manager_active_get()
+  {
+    GLContext *ctx = static_cast<GLContext *>(GPU_context_active_get());
+    return static_cast<GLStateManager *>(ctx->state_manager);
+  };
 
   /* TODO(fclem) these needs to become private. */
  public:

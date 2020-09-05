@@ -202,6 +202,11 @@ void check_gl_resources(const char *info)
   }
 }
 
+void raise_gl_error(const char *msg)
+{
+  debug_callback(0, GL_DEBUG_TYPE_ERROR, 0, GL_DEBUG_SEVERITY_HIGH, 0, msg, NULL);
+}
+
 /** \} */
 
 }  // namespace blender::gpu::debug
