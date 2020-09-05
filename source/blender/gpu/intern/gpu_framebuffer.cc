@@ -140,7 +140,6 @@ void FrameBuffer::recursive_downsample(int max_lvl,
                                        void (*callback)(void *userData, int level),
                                        void *userData)
 {
-  GPUContext *ctx = GPU_context_active_get();
   /* Bind to make sure the frame-buffer is up to date. */
   this->bind(true);
 
