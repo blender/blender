@@ -247,6 +247,7 @@ static GPUTexture **get_image_gpu_texture_ptr(Image *ima,
 
 static GPUTexture *image_gpu_texture_error_create(eGPUTextureTarget textarget)
 {
+  fprintf(stderr, "GPUTexture: Blender Texture Not Loaded!\n");
   switch (textarget) {
     case TEXTARGET_2D_ARRAY:
       return GPU_texture_create_error(2, true);

@@ -1917,6 +1917,7 @@ GPUTexture *BKE_movieclip_get_gpu_texture(MovieClip *clip, MovieClipUser *cuser)
   /* check if we have a valid image buffer */
   ImBuf *ibuf = BKE_movieclip_get_ibuf(clip, cuser);
   if (ibuf == NULL) {
+    fprintf(stderr, "GPUTexture: Blender Texture Not Loaded!\n");
     *tex = GPU_texture_create_error(2, false);
     return *tex;
   }

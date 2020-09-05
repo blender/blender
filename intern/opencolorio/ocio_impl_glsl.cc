@@ -184,7 +184,7 @@ static void updateGLSLShader(OCIO_GLSLShader *shader,
                                      NULL,
                                      NULL,
                                      NULL,
-                                     __func__);
+                                     "OCIOShader");
 
   if (shader->shader) {
     shader->dither_loc = GPU_shader_get_uniform(shader->shader, "dither");

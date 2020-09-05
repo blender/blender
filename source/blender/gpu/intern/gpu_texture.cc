@@ -325,7 +325,6 @@ GPUTexture *GPU_texture_create_error(int dimension, bool is_array)
   type = (dimension == 2) ? (is_array ? GPU_TEXTURE_2D_ARRAY : GPU_TEXTURE_2D) : type;
   type = (dimension == 1) ? (is_array ? GPU_TEXTURE_1D_ARRAY : GPU_TEXTURE_1D) : type;
 
-  fprintf(stderr, "GPUTexture: Blender Texture Not Loaded!");
   return gpu_texture_create("invalid_tex", w, h, d, type, 1, GPU_RGBA8, pixel);
 }
 
