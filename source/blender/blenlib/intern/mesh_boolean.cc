@@ -2358,18 +2358,26 @@ static double generalized_winding_number(const IMesh &tm,
 /**
  * Return true if point \a testp is inside the volume implied by the
  * faces for which the shape_fn returns the value shape.
+ * If \a high_confidence is true then we want a higher degree
+ * of "insideness" than if it is false.
  */
 static bool point_is_inside_shape(const IMesh &tm,
                                   std::function<int(int)> shape_fn,
                                   const double3 &testp,
-                                  int shape)
+                                  int shape,
+                                  bool high_confidence)
 {
   double gwn = generalized_winding_number(tm, shape_fn, testp, shape);
   /* Due to floating point error, an outside point should get a value
    * of zero for gwn, but may have a very slightly positive value instead.
    * It is not important to get this epsilon very small, because practical
    * cases of interest will have gwn at least 0.2 if it is not zero. */
-  return (gwn > 0.01);
+  if (high_confidence) {
+    return (gwn > 0.9);
+  }
+  else {
+    return (gwn > 0.01);
+  }
 }
 
 /**
@@ -2415,7 +2423,15 @@ static IMesh gwn_boolean(const IMesh &tm,
       std::cout << "test point = " << test_point_db << "\n";
     }
     int other_shape = 1 - shape;
-    bool inside = point_is_inside_shape(tm, shape_fn, test_point_db, other_shape);
+    /* The point_is_inside_shape function has to approximate if the other
+     * shape is not PWN. For most operations, even a hint of being inside
+     * givs good results, but when shape is the cutter in a Difference
+     * operation, we want to be pretty sure that the point is inside other_shape.
+     * E.g., T75827.
+     */
+    bool need_high_confidence = (op == BoolOpType::Difference) && (shape == 1);
+    bool inside = point_is_inside_shape(
+        tm, shape_fn, test_point_db, other_shape, need_high_confidence);
     if (dbg_level > 0) {
       std::cout << "test point is " << (inside ? "inside\n" : "outside\n");
     }
