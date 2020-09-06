@@ -139,10 +139,10 @@ void GLDrawList::append(GPUBatch *gpu_batch, int i_first, int i_count)
     this->submit();
     batch_ = batch;
     /* Cached for faster access. */
-    GLIndexBuf *el = batch_->gl_elem();
+    GLIndexBuf *el = batch_->elem_();
     base_index_ = el ? el->index_base_ : UINT_MAX;
     v_first_ = el ? el->index_start_ : 0;
-    v_count_ = el ? el->index_len_ : batch->verts[0]->vertex_len;
+    v_count_ = el ? el->index_len_ : batch->verts_(0)->vertex_len;
   }
 
   if (v_count_ == 0) {
@@ -202,7 +202,7 @@ void GLDrawList::submit(void)
     batch_->bind(0);
 
     if (MDI_INDEXED) {
-      GLenum gl_type = to_gl(batch_->gl_elem()->index_type_);
+      GLenum gl_type = to_gl(batch_->elem_()->index_type_);
       glMultiDrawElementsIndirect(prim, gl_type, offset, command_len_, 0);
     }
     else {

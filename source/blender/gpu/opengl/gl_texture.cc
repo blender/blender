@@ -111,6 +111,7 @@ bool GLTexture::init_internal(void)
 /* Return true on success. */
 bool GLTexture::init_internal(GPUVertBuf *vbo)
 {
+  GLVertBuf *gl_vbo = static_cast<GLVertBuf *>(unwrap(vbo));
   target_ = to_gl_target(type_);
 
   /* We need to bind once to define the texture type.  */
@@ -119,10 +120,10 @@ bool GLTexture::init_internal(GPUVertBuf *vbo)
   GLenum internal_format = to_gl_internal_format(format_);
 
   if (GLEW_ARB_direct_state_access) {
-    glTextureBuffer(tex_id_, internal_format, vbo->vbo_id);
+    glTextureBuffer(tex_id_, internal_format, gl_vbo->vbo_id);
   }
   else {
-    glTexBuffer(target_, internal_format, vbo->vbo_id);
+    glTexBuffer(target_, internal_format, gl_vbo->vbo_id);
   }
 
 #ifndef __APPLE__

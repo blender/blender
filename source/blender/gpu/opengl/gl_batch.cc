@@ -309,7 +309,7 @@ void GLBatch::bind(int i_first)
 #if GPU_TRACK_INDEX_RANGE
   /* Can be removed if GL 4.3 is required. */
   if (!GLEW_ARB_ES3_compatibility && (elem != NULL)) {
-    glPrimitiveRestartIndex(this->gl_elem()->restart_index());
+    glPrimitiveRestartIndex(this->elem_()->restart_index());
   }
 #endif
 
@@ -334,7 +334,7 @@ void GLBatch::draw(int v_first, int v_count, int i_first, int i_count)
   GLenum gl_type = to_gl(prim_type);
 
   if (elem) {
-    const GLIndexBuf *el = this->gl_elem();
+    const GLIndexBuf *el = this->elem_();
     GLenum index_type = to_gl(el->index_type_);
     GLint base_index = el->index_base_;
     void *v_first_ofs = el->offset_ptr(v_first);

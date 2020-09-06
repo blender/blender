@@ -28,6 +28,7 @@
 #include "gl_batch.hh"
 #include "gl_context.hh"
 #include "gl_index_buffer.hh"
+#include "gl_vertex_buffer.hh"
 
 #include "gl_vertex_array.hh"
 
@@ -62,7 +63,7 @@ static uint16_t vbo_bind(const ShaderInterface *interface,
     }
 
     const GLvoid *pointer = (const GLubyte *)0 + offset + v_first * stride;
-    const GLenum type = convert_comp_type_to_gl(static_cast<GPUVertCompType>(a->comp_type));
+    const GLenum type = to_gl(static_cast<GPUVertCompType>(a->comp_type));
 
     for (uint n_idx = 0; n_idx < a->name_len; n_idx++) {
       const char *name = GPU_vertformat_attr_name_get(format, a, n_idx);
@@ -108,27 +109,28 @@ static uint16_t vbo_bind(const ShaderInterface *interface,
 
 /* Update the Attrib Binding of the currently bound VAO. */
 void GLVertArray::update_bindings(const GLuint vao,
-                                  const GPUBatch *batch,
+                                  const GPUBatch *batch_, /* Should be GLBatch. */
                                   const ShaderInterface *interface,
                                   const int base_instance)
 {
+  const GLBatch *batch = static_cast<const GLBatch *>(batch_);
   uint16_t attr_mask = interface->enabled_attr_mask_;
 
   glBindVertexArray(vao);
 
   /* Reverse order so first VBO'S have more prevalence (in term of attribute override). */
   for (int v = GPU_BATCH_VBO_MAX_LEN - 1; v > -1; v--) {
-    GPUVertBuf *vbo = batch->verts[v];
+    GLVertBuf *vbo = batch->verts_(v);
     if (vbo) {
-      GPU_vertbuf_use(vbo);
+      GPU_vertbuf_use(batch->verts[v]);
       attr_mask &= ~vbo_bind(interface, &vbo->format, 0, vbo->vertex_len, false);
     }
   }
 
   for (int v = GPU_BATCH_INST_VBO_MAX_LEN - 1; v > -1; v--) {
-    GPUVertBuf *vbo = batch->inst[v];
+    GLVertBuf *vbo = batch->inst_(v);
     if (vbo) {
-      GPU_vertbuf_use(vbo);
+      GPU_vertbuf_use(batch->inst[v]);
       attr_mask &= ~vbo_bind(interface, &vbo->format, base_instance, vbo->vertex_len, true);
     }
   }

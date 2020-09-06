@@ -27,20 +27,40 @@
 
 #include "GPU_vertex_buffer.h"
 
-struct GPUVertBuf {
-  GPUVertFormat format;
+namespace blender::gpu {
+
+struct VertBuf {
+  static size_t memory_usage;
+
+  GPUVertFormat format = {};
   /** Number of verts we want to draw. */
-  uint vertex_len;
+  uint vertex_len = 0;
   /** Number of verts data. */
-  uint vertex_alloc;
+  uint vertex_alloc = 0;
   /** 0 indicates not yet allocated. */
-  uint32_t vbo_id;
+  uint32_t vbo_id = 0;
   /** Usage hint for GL optimisation. */
-  GPUUsageType usage;
+  GPUUsageType usage = GPU_USAGE_STATIC;
   /** Status flag. */
-  GPUVertBufStatus flag;
+  GPUVertBufStatus flag = GPU_VERTBUF_INVALID;
   /** This counter will only avoid freeing the GPUVertBuf, not the data. */
-  char handle_refcount;
+  char handle_refcount = 0;
   /** NULL indicates data in VRAM (unmapped) */
-  uchar *data;
+  uchar *data = NULL;
 };
+
+/* Syntacting suggar. */
+static inline GPUVertBuf *wrap(VertBuf *vert)
+{
+  return reinterpret_cast<GPUVertBuf *>(vert);
+}
+static inline VertBuf *unwrap(GPUVertBuf *vert)
+{
+  return reinterpret_cast<VertBuf *>(vert);
+}
+static inline const VertBuf *unwrap(const GPUVertBuf *vert)
+{
+  return reinterpret_cast<const VertBuf *>(vert);
+}
+
+}  // namespace blender::gpu

@@ -31,6 +31,7 @@
 #include "gpu_batch_private.hh"
 
 #include "gl_index_buffer.hh"
+#include "gl_vertex_buffer.hh"
 
 #include "glew-mx.h"
 
@@ -102,9 +103,17 @@ class GLBatch : public Batch {
   void bind(int i_first);
 
   /* Convenience getters. */
-  GLIndexBuf *gl_elem(void)
+  GLIndexBuf *elem_(void) const
   {
     return static_cast<GLIndexBuf *>(unwrap(elem));
+  }
+  GLVertBuf *verts_(const int index) const
+  {
+    return static_cast<GLVertBuf *>(unwrap(verts[index]));
+  }
+  GLVertBuf *inst_(const int index) const
+  {
+    return static_cast<GLVertBuf *>(unwrap(inst[index]));
   }
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLBatch");

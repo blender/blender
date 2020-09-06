@@ -124,7 +124,7 @@ bool Texture::init_buffer(GPUVertBuf *vbo, eGPUTextureFormat format)
   if (format == GPU_DEPTH_COMPONENT24) {
     return false;
   }
-  w_ = vbo->vertex_len;
+  w_ = GPU_vertbuf_get_vertex_len(vbo);
   h_ = 0;
   d_ = 0;
   format_ = format;
@@ -303,7 +303,7 @@ GPUTexture *GPU_texture_create_compressed_2d(
 
 GPUTexture *GPU_texture_create_from_vertbuf(const char *name, GPUVertBuf *vert)
 {
-  eGPUTextureFormat tex_format = to_texture_format(&vert->format);
+  eGPUTextureFormat tex_format = to_texture_format(GPU_vertbuf_get_format(vert));
   Texture *tex = GPUBackend::get()->texture_alloc(name);
 
   bool success = tex->init_buffer(vert, tex_format);

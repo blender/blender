@@ -267,14 +267,14 @@ void GPU_batch_draw_advanced(
       v_count = batch->elem_()->index_len_get();
     }
     else {
-      v_count = batch->verts[0]->vertex_len;
+      v_count = batch->verts_(0)->vertex_len;
     }
   }
   if (i_count == 0) {
-    i_count = (batch->inst[0]) ? batch->inst[0]->vertex_len : 1;
+    i_count = (batch->inst[0]) ? batch->inst_(0)->vertex_len : 1;
     /* Meh. This is to be able to use different numbers of verts in instance vbos. */
     if (batch->inst[1] != NULL) {
-      i_count = min_ii(i_count, batch->inst[1]->vertex_len);
+      i_count = min_ii(i_count, batch->inst_(1)->vertex_len);
     }
   }
 

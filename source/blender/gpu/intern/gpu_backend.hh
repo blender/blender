@@ -37,6 +37,7 @@ class IndexBuf;
 class Shader;
 class Texture;
 class UniformBuf;
+class VertBuf;
 
 class GPUBackend {
  public:
@@ -55,6 +56,7 @@ class GPUBackend {
   virtual Shader *shader_alloc(const char *name) = 0;
   virtual Texture *texture_alloc(const char *name) = 0;
   virtual UniformBuf *uniformbuf_alloc(int size, const char *name) = 0;
+  virtual VertBuf *vertbuf_alloc(void) = 0;
 };
 
 }  // namespace gpu

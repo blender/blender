@@ -19,22 +19,38 @@
 
 /** \file
  * \ingroup gpu
- *
- * GPU vertex format
  */
 
-#pragma once
+#include "gl_backend.hh"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "gl_vertex_buffer.hh"
 
-struct GPUVertFormat;
+namespace blender::gpu {
 
-void VertexFormat_pack(struct GPUVertFormat *format);
-uint padding(uint offset, uint alignment);
-uint vertex_buffer_size(const struct GPUVertFormat *format, uint vertex_len);
-
-#ifdef __cplusplus
+void GLVertBuf::bind(void)
+{
 }
-#endif
+
+void GLVertBuf::upload_data(void)
+{
+}
+
+uchar *GLVertBuf::acquire_data(void)
+{
+  return nullptr;
+}
+
+uchar *GLVertBuf::resize_data(void)
+{
+  return nullptr;
+}
+
+void GLVertBuf::release_data(void)
+{
+}
+
+void GLVertBuf::duplicate_data(VertBuf *)
+{
+}
+
+}  // namespace blender::gpu

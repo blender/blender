@@ -28,6 +28,8 @@
 #include "GPU_extensions.h"
 #include "GPU_platform.h"
 
+#include "gl_vertex_buffer.hh"
+
 #include "gl_shader.hh"
 #include "gl_shader_interface.hh"
 
@@ -260,11 +262,13 @@ void GLShader::transform_feedback_names_set(Span<const char *> name_list,
   transform_feedback_type_ = geom_type;
 }
 
-bool GLShader::transform_feedback_enable(GPUVertBuf *buf)
+bool GLShader::transform_feedback_enable(GPUVertBuf *buf_)
 {
   if (transform_feedback_type_ == GPU_SHADER_TFB_NONE) {
     return false;
   }
+
+  GLVertBuf *buf = static_cast<GLVertBuf *>(unwrap(buf_));
 
   BLI_assert(buf->vbo_id != 0);
 
