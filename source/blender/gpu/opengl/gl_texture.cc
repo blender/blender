@@ -120,10 +120,10 @@ bool GLTexture::init_internal(GPUVertBuf *vbo)
   GLenum internal_format = to_gl_internal_format(format_);
 
   if (GLEW_ARB_direct_state_access) {
-    glTextureBuffer(tex_id_, internal_format, gl_vbo->vbo_id);
+    glTextureBuffer(tex_id_, internal_format, gl_vbo->vbo_id_);
   }
   else {
-    glTexBuffer(target_, internal_format, gl_vbo->vbo_id);
+    glTexBuffer(target_, internal_format, gl_vbo->vbo_id_);
   }
 
 #ifndef __APPLE__

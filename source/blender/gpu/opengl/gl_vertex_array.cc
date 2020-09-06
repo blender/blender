@@ -122,7 +122,7 @@ void GLVertArray::update_bindings(const GLuint vao,
   for (int v = GPU_BATCH_VBO_MAX_LEN - 1; v > -1; v--) {
     GLVertBuf *vbo = batch->verts_(v);
     if (vbo) {
-      GPU_vertbuf_use(batch->verts[v]);
+      vbo->bind();
       attr_mask &= ~vbo_bind(interface, &vbo->format, 0, vbo->vertex_len, false);
     }
   }
@@ -130,7 +130,7 @@ void GLVertArray::update_bindings(const GLuint vao,
   for (int v = GPU_BATCH_INST_VBO_MAX_LEN - 1; v > -1; v--) {
     GLVertBuf *vbo = batch->inst_(v);
     if (vbo) {
-      GPU_vertbuf_use(batch->inst[v]);
+      vbo->bind();
       attr_mask &= ~vbo_bind(interface, &vbo->format, base_instance, vbo->vertex_len, true);
     }
   }

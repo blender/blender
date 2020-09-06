@@ -270,9 +270,9 @@ bool GLShader::transform_feedback_enable(GPUVertBuf *buf_)
 
   GLVertBuf *buf = static_cast<GLVertBuf *>(unwrap(buf_));
 
-  BLI_assert(buf->vbo_id != 0);
+  BLI_assert(buf->vbo_id_ != 0);
 
-  glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, buf->vbo_id);
+  glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, buf->vbo_id_);
 
   switch (transform_feedback_type_) {
     case GPU_SHADER_TFB_POINTS:

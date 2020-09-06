@@ -37,19 +37,20 @@ class GLVertBuf : public VertBuf {
   friend class GLShader;  /* For transform feedback. */
 
  private:
-  // GLuint vbo_id_ = 0;
+  /** OpenGL buffer handle. Init on first upload. Immutable after that. */
+  GLuint vbo_id_ = 0;
   /** Size on the GPU. */
-  // size_t vbo_size_ = 0;
+  size_t vbo_size_ = 0;
 
  public:
   void bind(void);
 
  protected:
-  uchar *acquire_data(void);
-  uchar *resize_data(void);
-  void release_data(void);
-  void upload_data(void);
-  void duplicate_data(VertBuf *dst);
+  void acquire_data(void) override;
+  void resize_data(void) override;
+  void release_data(void) override;
+  void upload_data(void) override;
+  void duplicate_data(VertBuf *dst) override;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLVertBuf");
 };

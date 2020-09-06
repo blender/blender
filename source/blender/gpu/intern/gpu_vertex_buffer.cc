@@ -35,8 +35,6 @@
 
 #include <cstring>
 
-#define VRAM_USAGE 1
-
 /* -------------------------------------------------------------------- */
 /** \name VertBuf
  * \{ */
@@ -44,6 +42,75 @@
 namespace blender::gpu {
 
 size_t VertBuf::memory_usage = 0;
+
+VertBuf::VertBuf()
+{
+  /* Needed by some code check. */
+  format.attr_len = 0;
+}
+
+VertBuf::~VertBuf()
+{
+  /* Should already have been cleared. */
+  BLI_assert(flag == GPU_VERTBUF_INVALID);
+}
+
+void VertBuf::init(const GPUVertFormat *format, GPUUsageType usage)
+{
+  usage_ = usage;
+  flag = GPU_VERTBUF_DATA_DIRTY;
+  GPU_vertformat_copy(&this->format, format);
+  if (!format->packed) {
+    VertexFormat_pack(&this->format);
+  }
+  flag |= GPU_VERTBUF_INIT;
+}
+
+void VertBuf::clear(void)
+{
+  this->release_data();
+  flag = GPU_VERTBUF_INVALID;
+}
+
+VertBuf *VertBuf::duplicate(void)
+{
+  VertBuf *dst = GPUBackend::get()->vertbuf_alloc();
+  /* Full copy. */
+  *dst = *this;
+  /* Almost full copy... */
+  dst->handle_refcount_ = 1;
+  /* Duplicate all needed implementation specifics data. */
+  this->duplicate_data(dst);
+  return dst;
+}
+
+void VertBuf::allocate(uint vert_len)
+{
+  BLI_assert(format.packed);
+  /* Catch any unnecessary usage. */
+  BLI_assert(vertex_alloc != vert_len || data == nullptr);
+  vertex_len = vertex_alloc = vert_len;
+
+  this->acquire_data();
+
+  flag |= GPU_VERTBUF_DATA_DIRTY;
+}
+
+void VertBuf::resize(uint vert_len)
+{
+  /* Catch any unnecessary usage. */
+  BLI_assert(vertex_alloc != vert_len);
+  vertex_len = vertex_alloc = vert_len;
+
+  this->resize_data();
+
+  flag |= GPU_VERTBUF_DATA_DIRTY;
+}
+
+void VertBuf::upload(void)
+{
+  this->upload_data();
+}
 
 }  // namespace blender::gpu
 
@@ -56,8 +123,6 @@ size_t VertBuf::memory_usage = 0;
 using namespace blender;
 using namespace blender::gpu;
 
-static uint GPU_vertbuf_size_get(const VertBuf *verts);
-
 /* -------- Creation & deletion -------- */
 
 GPUVertBuf *GPU_vertbuf_calloc(void)
@@ -68,7 +133,7 @@ GPUVertBuf *GPU_vertbuf_calloc(void)
 GPUVertBuf *GPU_vertbuf_create_with_format_ex(const GPUVertFormat *format, GPUUsageType usage)
 {
   GPUVertBuf *verts = GPU_vertbuf_calloc();
-  GPU_vertbuf_init_with_format_ex(verts, format, usage);
+  unwrap(verts)->init(format, usage);
   return verts;
 }
 
@@ -76,133 +141,48 @@ void GPU_vertbuf_init_with_format_ex(GPUVertBuf *verts_,
                                      const GPUVertFormat *format,
                                      GPUUsageType usage)
 {
-  VertBuf *verts = unwrap(verts_);
-  verts->usage = usage;
-  verts->flag = GPU_VERTBUF_DATA_DIRTY;
-  verts->handle_refcount = 1;
-  GPU_vertformat_copy(&verts->format, format);
-  if (!format->packed) {
-    VertexFormat_pack(&verts->format);
-  }
-  verts->flag |= GPU_VERTBUF_INIT;
+  unwrap(verts_)->init(format, usage);
 }
 
 GPUVertBuf *GPU_vertbuf_duplicate(GPUVertBuf *verts_)
 {
-  VertBuf *verts = unwrap(verts_);
-  VertBuf *verts_dst = unwrap(GPU_vertbuf_calloc());
-  /* Full copy. */
-  *verts_dst = *verts;
-  verts_dst->handle_refcount = 1;
-  GPU_vertformat_copy(&verts_dst->format, &verts->format);
-
-  if (verts->vbo_id) {
-    uint buffer_sz = GPU_vertbuf_size_get(verts);
-
-    verts_dst->vbo_id = GPU_buf_alloc();
-
-    glBindBuffer(GL_COPY_READ_BUFFER, verts->vbo_id);
-    glBindBuffer(GL_COPY_WRITE_BUFFER, verts_dst->vbo_id);
-
-    glBufferData(GL_COPY_WRITE_BUFFER, buffer_sz, NULL, to_gl(verts->usage));
-
-    glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, buffer_sz);
-
-    VertBuf::memory_usage += GPU_vertbuf_size_get(verts);
-  }
-
-  if (verts->data) {
-    verts_dst->data = (uchar *)MEM_dupallocN(verts->data);
-  }
-  return wrap(verts_dst);
+  return wrap(unwrap(verts_)->duplicate());
 }
 
 /** Same as discard but does not free. */
-void GPU_vertbuf_clear(GPUVertBuf *verts_)
+void GPU_vertbuf_clear(GPUVertBuf *verts)
 {
-  VertBuf *verts = unwrap(verts_);
-  if (verts->vbo_id) {
-    GPU_buf_free(verts->vbo_id);
-    verts->vbo_id = 0;
-    VertBuf::memory_usage -= GPU_vertbuf_size_get(verts);
-  }
-  if (verts->data) {
-    MEM_SAFE_FREE(verts->data);
-  }
-  verts->flag = GPU_VERTBUF_INVALID;
+  unwrap(verts)->clear();
 }
 
 void GPU_vertbuf_discard(GPUVertBuf *verts)
 {
-  GPU_vertbuf_clear(verts);
-  GPU_vertbuf_handle_ref_remove(verts);
+  unwrap(verts)->clear();
+  unwrap(verts)->reference_remove();
 }
 
-void GPU_vertbuf_handle_ref_add(GPUVertBuf *verts_)
+void GPU_vertbuf_handle_ref_add(GPUVertBuf *verts)
 {
-  VertBuf *verts = unwrap(verts_);
-  verts->handle_refcount++;
+  unwrap(verts)->reference_add();
 }
 
-void GPU_vertbuf_handle_ref_remove(GPUVertBuf *verts_)
+void GPU_vertbuf_handle_ref_remove(GPUVertBuf *verts)
 {
-  VertBuf *verts = unwrap(verts_);
-  BLI_assert(verts->handle_refcount > 0);
-  verts->handle_refcount--;
-  if (verts->handle_refcount == 0) {
-    /* Should already have been cleared. */
-    BLI_assert(verts->vbo_id == 0 && verts->data == NULL);
-    MEM_freeN(verts);
-  }
-}
-
-uint GPU_vertbuf_size_get(const VertBuf *verts)
-{
-  return vertex_buffer_size(&verts->format, verts->vertex_len);
+  unwrap(verts)->reference_remove();
 }
 
 /* -------- Data update -------- */
 
 /* create a new allocation, discarding any existing data */
-void GPU_vertbuf_data_alloc(GPUVertBuf *verts_, uint v_len)
+void GPU_vertbuf_data_alloc(GPUVertBuf *verts, uint v_len)
 {
-  VertBuf *verts = unwrap(verts_);
-  GPUVertFormat *format = &verts->format;
-  if (!format->packed) {
-    VertexFormat_pack(format);
-  }
-#if TRUST_NO_ONE
-  /* catch any unnecessary use */
-  assert(verts->vertex_alloc != v_len || verts->data == NULL);
-#endif
-  /* discard previous data if any */
-  if (verts->data) {
-    MEM_freeN(verts->data);
-  }
-
-  uint new_size = vertex_buffer_size(&verts->format, v_len);
-  VertBuf::memory_usage += new_size - GPU_vertbuf_size_get(verts);
-
-  verts->flag |= GPU_VERTBUF_DATA_DIRTY;
-  verts->vertex_len = verts->vertex_alloc = v_len;
-  verts->data = (uchar *)MEM_mallocN(sizeof(GLubyte) * GPU_vertbuf_size_get(verts), __func__);
+  unwrap(verts)->allocate(v_len);
 }
 
 /* resize buffer keeping existing data */
-void GPU_vertbuf_data_resize(GPUVertBuf *verts_, uint v_len)
+void GPU_vertbuf_data_resize(GPUVertBuf *verts, uint v_len)
 {
-  VertBuf *verts = unwrap(verts_);
-#if TRUST_NO_ONE
-  assert(verts->data != NULL);
-  assert(verts->vertex_alloc != v_len);
-#endif
-
-  uint new_size = vertex_buffer_size(&verts->format, v_len);
-  VertBuf::memory_usage += new_size - GPU_vertbuf_size_get(verts);
-
-  verts->flag |= GPU_VERTBUF_DATA_DIRTY;
-  verts->vertex_len = verts->vertex_alloc = v_len;
-  verts->data = (uchar *)MEM_reallocN(verts->data, sizeof(GLubyte) * GPU_vertbuf_size_get(verts));
+  unwrap(verts)->resize(v_len);
 }
 
 /* Set vertex count but does not change allocation.
@@ -213,9 +193,6 @@ void GPU_vertbuf_data_len_set(GPUVertBuf *verts_, uint v_len)
   VertBuf *verts = unwrap(verts_);
   BLI_assert(verts->data != NULL); /* Only for dynamic data. */
   BLI_assert(v_len <= verts->vertex_alloc);
-
-  uint new_size = vertex_buffer_size(&verts->format, v_len);
-  VertBuf::memory_usage += new_size - GPU_vertbuf_size_get(verts);
 
   verts->vertex_len = v_len;
 }
@@ -359,34 +336,10 @@ uint GPU_vertbuf_get_memory_usage(void)
   return VertBuf::memory_usage;
 }
 
-static void VertBuffer_upload_data(GPUVertBuf *verts_)
+/* Should be rename to GPU_vertbuf_data_upload */
+void GPU_vertbuf_use(GPUVertBuf *verts)
 {
-  VertBuf *verts = unwrap(verts_);
-  uint buffer_sz = GPU_vertbuf_size_get(verts);
-
-  /* orphan the vbo to avoid sync */
-  glBufferData(GL_ARRAY_BUFFER, buffer_sz, NULL, to_gl(verts->usage));
-  /* upload data */
-  glBufferSubData(GL_ARRAY_BUFFER, 0, buffer_sz, verts->data);
-
-  if (verts->usage == GPU_USAGE_STATIC) {
-    MEM_SAFE_FREE(verts->data);
-  }
-  verts->flag &= ~GPU_VERTBUF_DATA_DIRTY;
-  verts->flag |= GPU_VERTBUF_DATA_UPLOADED;
-}
-
-void GPU_vertbuf_use(GPUVertBuf *verts_)
-{
-  VertBuf *verts = unwrap(verts_);
-  /* only create the buffer the 1st time */
-  if (verts->vbo_id == 0) {
-    verts->vbo_id = GPU_buf_alloc();
-  }
-  glBindBuffer(GL_ARRAY_BUFFER, verts->vbo_id);
-  if (verts->flag & GPU_VERTBUF_DATA_DIRTY) {
-    VertBuffer_upload_data(verts_);
-  }
+  unwrap(verts)->upload();
 }
 
 /** \} */
