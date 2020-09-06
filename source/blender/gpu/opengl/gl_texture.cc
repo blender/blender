@@ -262,7 +262,8 @@ void GLTexture::update_sub(
   GLenum gl_format = to_gl_data_format(format_);
   GLenum gl_type = to_gl(type);
 
-  if (GLEW_ARB_direct_state_access) {
+  /* Some drivers have issues with cubemap & glTextureSubImage3D even if it correct. */
+  if (GLEW_ARB_direct_state_access && (type_ != GPU_TEXTURE_CUBE)) {
     this->update_sub_direct_state_access(mip, offset, extent, gl_format, gl_type, data);
     return;
   }
