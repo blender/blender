@@ -122,7 +122,7 @@ GPUVertBuf *DRW_temp_buffer_request(DRWInstanceDataList *idatalist,
     handle->format = format;
     GPU_VERTBUF_DISCARD_SAFE(handle->buf);
 
-    GPUVertBuf *vert = GPU_vertbuf_create(GPU_USAGE_DYNAMIC);
+    GPUVertBuf *vert = GPU_vertbuf_calloc();
     GPU_vertbuf_init_with_format_ex(vert, format, GPU_USAGE_DYNAMIC);
     GPU_vertbuf_data_alloc(vert, DRW_BUFFER_VERTS_CHUNK);
 

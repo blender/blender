@@ -49,7 +49,7 @@ extern "C" {
 #define VRAM_USAGE 1
 /**
  * How to create a #GPUVertBuf:
- * 1) verts = GPU_vertbuf_create() or GPU_vertbuf_init(verts)
+ * 1) verts = GPU_vertbuf_calloc()
  * 2) GPU_vertformat_attr_add(verts->format, ...)
  * 3) GPU_vertbuf_data_alloc(verts, vertex_len) <-- finalizes/packs vertex format
  * 4) GPU_vertbuf_attr_fill(verts, pos, application_pos_buffer)
@@ -63,6 +63,8 @@ typedef enum {
 } GPUUsageType;
 
 typedef struct GPUVertBuf GPUVertBuf;
+
+#define GPU_vertbuf_calloc() GPU_vertbuf_create(GPU_USAGE_STATIC);
 
 GPUVertBuf *GPU_vertbuf_create(GPUUsageType);
 GPUVertBuf *GPU_vertbuf_create_with_format_ex(const GPUVertFormat *, GPUUsageType);

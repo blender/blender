@@ -86,7 +86,7 @@ BLI_INLINE bool DRW_ibo_requested(GPUIndexBuf *ibo)
 BLI_INLINE void DRW_vbo_request(GPUBatch *batch, GPUVertBuf **vbo)
 {
   if (*vbo == NULL) {
-    *vbo = GPU_vertbuf_create(GPU_USAGE_STATIC);
+    *vbo = GPU_vertbuf_calloc();
   }
   if (batch != NULL) {
     /* HACK we set vbos that may not yet be valid. */
