@@ -31,6 +31,7 @@
 #include "gl_context.hh"
 #include "gl_drawlist.hh"
 #include "gl_framebuffer.hh"
+#include "gl_index_buffer.hh"
 #include "gl_shader.hh"
 #include "gl_texture.hh"
 #include "gl_uniform_buffer.hh"
@@ -80,6 +81,11 @@ class GLBackend : public GPUBackend {
   FrameBuffer *framebuffer_alloc(const char *name)
   {
     return new GLFrameBuffer(name);
+  };
+
+  IndexBuf *indexbuf_alloc(void)
+  {
+    return new GLIndexBuf();
   };
 
   Shader *shader_alloc(const char *name)

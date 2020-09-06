@@ -38,13 +38,10 @@
 #include "gpu_backend.hh"
 #include "gpu_batch_private.hh"
 #include "gpu_context_private.hh"
+#include "gpu_index_buffer_private.hh"
 #include "gpu_shader_private.hh"
 #include "gpu_vertex_format_private.h"
 
-#include "gl_primitive.hh" /* TODO remove */
-
-#include <limits.h>
-#include <stdlib.h>
 #include <string.h>
 
 using namespace blender::gpu;
@@ -257,12 +254,19 @@ void GPU_batch_draw_instanced(GPUBatch *batch, int i_count)
   GPU_shader_unbind();
 }
 
-void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_first, int i_count)
+void GPU_batch_draw_advanced(
+    GPUBatch *gpu_batch, int v_first, int v_count, int i_first, int i_count)
 {
   BLI_assert(GPU_context_active_get()->shader != NULL);
+  Batch *batch = static_cast<Batch *>(gpu_batch);
 
   if (v_count == 0) {
-    v_count = (batch->elem) ? batch->elem->index_len : batch->verts[0]->vertex_len;
+    if (batch->elem) {
+      v_count = batch->elem_()->index_len_get();
+    }
+    else {
+      v_count = batch->verts[0]->vertex_len;
+    }
   }
   if (i_count == 0) {
     i_count = (batch->inst[0]) ? batch->inst[0]->vertex_len : 1;
@@ -277,7 +281,7 @@ void GPU_batch_draw_advanced(GPUBatch *batch, int v_first, int v_count, int i_fi
     return;
   }
 
-  static_cast<Batch *>(batch)->draw(v_first, v_count, i_first, i_count);
+  batch->draw(v_first, v_count, i_first, i_count);
 }
 
 /** \} */

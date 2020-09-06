@@ -55,7 +55,7 @@ class GLDrawList : public DrawList {
   void init(void);
 
   /** Batch for which we are recording commands for. */
-  GPUBatch *batch_;
+  GLBatch *batch_;
   /** Mapped memory bounds. */
   GLbyte *data_;
   /** Length of the mapped buffer (in byte). */

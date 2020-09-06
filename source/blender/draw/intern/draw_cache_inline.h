@@ -80,7 +80,7 @@ BLI_INLINE bool DRW_ibo_requested(GPUIndexBuf *ibo)
 {
   /* TODO do not rely on data uploaded. This prevents multithreading.
    * (need access to a gl context) */
-  return (ibo != NULL && ibo->ibo_id == 0 && ibo->data == NULL);
+  return (ibo != NULL && !GPU_indexbuf_is_init(ibo));
 }
 
 BLI_INLINE void DRW_vbo_request(GPUBatch *batch, GPUVertBuf **vbo)

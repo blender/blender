@@ -25,55 +25,22 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_glew.h"
-#include "GPU_index_buffer.h"
+#include "BLI_utildefines.h"
 
-#include "gpu_context_private.hh"
+#include "gpu_backend.hh"
 
-#include <stdlib.h>
+#include "gpu_index_buffer_private.hh"
 
 #define KEEP_SINGLE_COPY 1
 
 #define RESTART_INDEX 0xFFFFFFFF
 
-static GLenum convert_index_type_to_gl(GPUIndexBufType type)
-{
-#if GPU_TRACK_INDEX_RANGE
-  return (type == GPU_INDEX_U32) ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT;
-#else
-  return GL_UNSIGNED_INT;
-#endif
-}
+/* -------------------------------------------------------------------- */
+/** \name IndexBufBuilder
+ * \{ */
 
-uint GPU_indexbuf_size_get(const GPUIndexBuf *elem)
-{
-#if GPU_TRACK_INDEX_RANGE
-  return elem->index_len *
-         ((elem->index_type == GPU_INDEX_U32) ? sizeof(GLuint) : sizeof(GLshort));
-#else
-  return elem->index_len * sizeof(GLuint);
-#endif
-}
-
-int GPU_indexbuf_primitive_len(GPUPrimType prim_type)
-{
-  switch (prim_type) {
-    case GPU_PRIM_POINTS:
-      return 1;
-    case GPU_PRIM_LINES:
-      return 2;
-    case GPU_PRIM_TRIS:
-      return 3;
-    case GPU_PRIM_LINES_ADJ:
-      return 4;
-    default:
-      break;
-  }
-#if TRUST_NO_ONE
-  assert(false);
-#endif
-  return -1;
-}
+using namespace blender;
+using namespace blender::gpu;
 
 void GPU_indexbuf_init_ex(GPUIndexBufBuilder *builder,
                           GPUPrimType prim_type,
@@ -237,46 +204,69 @@ void GPU_indexbuf_set_tri_restart(GPUIndexBufBuilder *builder, uint elem)
   }
 }
 
-GPUIndexBuf *GPU_indexbuf_create_subrange(GPUIndexBuf *elem_src, uint start, uint length)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Creation & Deletion
+ * \{ */
+
+namespace blender::gpu {
+
+IndexBuf::~IndexBuf()
 {
-  GPUIndexBuf *elem = (GPUIndexBuf *)MEM_callocN(sizeof(GPUIndexBuf), "GPUIndexBuf");
-  GPU_indexbuf_create_subrange_in_place(elem, elem_src, start, length);
-  return elem;
+  if (!is_subrange_) {
+    MEM_SAFE_FREE(data_);
+  }
 }
 
-void GPU_indexbuf_create_subrange_in_place(GPUIndexBuf *elem,
-                                           GPUIndexBuf *elem_src,
-                                           uint start,
-                                           uint length)
+void IndexBuf::init(uint indices_len, uint32_t *indices)
 {
-  BLI_assert(elem_src && !elem_src->is_subrange);
-  BLI_assert((length == 0) || (start + length <= elem_src->index_len));
+  is_init_ = true;
+  data_ = indices;
+  index_start_ = 0;
+  index_len_ = indices_len;
+
 #if GPU_TRACK_INDEX_RANGE
-  elem->index_type = elem_src->index_type;
-  elem->gl_index_type = elem_src->gl_index_type;
-  elem->base_index = elem_src->base_index;
+  /* Everything remains 32 bit while building to keep things simple.
+   * Find min/max after, then convert to smallest index type possible. */
+  uint min_index, max_index;
+  uint range = this->index_range(&min_index, &max_index);
+  /* count the primitive restart index. */
+  range += 1;
+
+  if (range <= 0xFFFF) {
+    index_type_ = GPU_INDEX_U16;
+    this->squeeze_indices_short(min_index, max_index);
+  }
 #endif
-  elem->is_subrange = true;
-  elem->src = elem_src;
-  elem->index_start = start;
-  elem->index_len = length;
 }
 
-#if GPU_TRACK_INDEX_RANGE
-/* Everything remains 32 bit while building to keep things simple.
- * Find min/max after, then convert to smallest index type possible. */
-
-static uint index_range(const uint values[], uint value_len, uint *min_out, uint *max_out)
+void IndexBuf::init_subrange(IndexBuf *elem_src, uint start, uint length)
 {
-  if (value_len == 0) {
-    *min_out = 0;
-    *max_out = 0;
+  /* We don't support nested subranges. */
+  BLI_assert(elem_src && elem_src->is_subrange_ == false);
+  BLI_assert((length == 0) || (start + length <= elem_src->index_len_));
+
+  is_init_ = true;
+  is_subrange_ = true;
+  src_ = elem_src;
+  index_start_ = start;
+  index_len_ = length;
+  index_base_ = elem_src->index_base_;
+  index_type_ = elem_src->index_type_;
+}
+
+uint IndexBuf::index_range(uint *r_min, uint *r_max)
+{
+  if (index_len_ == 0) {
+    *r_min = *r_max = 0;
     return 0;
   }
+  const uint32_t *uint_idx = (uint32_t *)data_;
   uint min_value = RESTART_INDEX;
   uint max_value = 0;
-  for (uint i = 0; i < value_len; i++) {
-    const uint value = values[i];
+  for (uint i = 0; i < index_len_; i++) {
+    const uint value = uint_idx[i];
     if (value == RESTART_INDEX) {
       continue;
     }
@@ -288,120 +278,92 @@ static uint index_range(const uint values[], uint value_len, uint *min_out, uint
     }
   }
   if (min_value == RESTART_INDEX) {
-    *min_out = 0;
-    *max_out = 0;
+    *r_min = *r_max = 0;
     return 0;
   }
-
-  *min_out = min_value;
-  *max_out = max_value;
+  *r_min = min_value;
+  *r_max = max_value;
   return max_value - min_value;
 }
 
-static void squeeze_indices_short(GPUIndexBufBuilder *builder,
-                                  GPUIndexBuf *elem,
-                                  uint min_index,
-                                  uint max_index)
+void IndexBuf::squeeze_indices_short(uint min_idx, uint max_idx)
 {
-  const uint *values = builder->data;
-  const uint index_len = elem->index_len;
-
   /* data will never be *larger* than builder->data...
    * converting in place to avoid extra allocation */
-  GLushort *data = (GLushort *)builder->data;
+  uint16_t *ushort_idx = (uint16_t *)data_;
+  const uint32_t *uint_idx = (uint32_t *)data_;
 
-  if (max_index >= 0xFFFF) {
-    elem->base_index = min_index;
-    for (uint i = 0; i < index_len; i++) {
-      data[i] = (values[i] == RESTART_INDEX) ? 0xFFFF : (GLushort)(values[i] - min_index);
+  if (max_idx >= 0xFFFF) {
+    index_base_ = min_idx;
+    for (uint i = 0; i < index_len_; i++) {
+      ushort_idx[i] = (uint16_t)MAX2(0xFFFF, uint_idx[i] - min_idx);
     }
   }
   else {
-    elem->base_index = 0;
-    for (uint i = 0; i < index_len; i++) {
-      data[i] = (GLushort)(values[i]);
+    index_base_ = 0;
+    for (uint i = 0; i < index_len_; i++) {
+      ushort_idx[i] = (uint16_t)(uint_idx[i]);
     }
   }
 }
 
-#endif /* GPU_TRACK_INDEX_RANGE */
+}  // namespace blender::gpu
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name C-API
+ * \{ */
 
 GPUIndexBuf *GPU_indexbuf_calloc(void)
 {
-  return (GPUIndexBuf *)MEM_callocN(sizeof(GPUIndexBuf), __func__);
+  return wrap(GPUBackend::get()->indexbuf_alloc());
 }
 
 GPUIndexBuf *GPU_indexbuf_build(GPUIndexBufBuilder *builder)
 {
-  GPUIndexBuf *elem = (GPUIndexBuf *)MEM_callocN(sizeof(GPUIndexBuf), "GPUIndexBuf");
+  GPUIndexBuf *elem = GPU_indexbuf_calloc();
   GPU_indexbuf_build_in_place(builder, elem);
+  return elem;
+}
+
+GPUIndexBuf *GPU_indexbuf_create_subrange(GPUIndexBuf *elem_src, uint start, uint length)
+{
+  GPUIndexBuf *elem = GPU_indexbuf_calloc();
+  GPU_indexbuf_create_subrange_in_place(elem, elem_src, start, length);
   return elem;
 }
 
 void GPU_indexbuf_build_in_place(GPUIndexBufBuilder *builder, GPUIndexBuf *elem)
 {
-#if TRUST_NO_ONE
-  assert(builder->data != NULL);
-#endif
-  elem->index_len = builder->index_len;
-  elem->ibo_id = 0; /* Created at first use. */
-
-#if GPU_TRACK_INDEX_RANGE
-  uint min_index, max_index;
-  uint range = index_range(builder->data, builder->index_len, &min_index, &max_index);
-
-  /* count the primitive restart index. */
-  range += 1;
-
-  if (range <= 0xFFFF) {
-    elem->index_type = GPU_INDEX_U16;
-    squeeze_indices_short(builder, elem, min_index, max_index);
-  }
-  else {
-    elem->index_type = GPU_INDEX_U32;
-    elem->base_index = 0;
-  }
-  elem->gl_index_type = convert_index_type_to_gl(elem->index_type);
-#endif
-
+  BLI_assert(builder->data != NULL);
   /* Transfer data ownership to GPUIndexBuf.
    * It will be uploaded upon first use. */
-  elem->data = builder->data;
-  builder->data = NULL;
-  /* other fields are safe to leave */
+  unwrap(elem)->init(builder->index_len, builder->data);
+  builder->data = nullptr;
 }
 
-static void indexbuf_upload_data(GPUIndexBuf *elem)
+void GPU_indexbuf_create_subrange_in_place(GPUIndexBuf *elem,
+                                           GPUIndexBuf *elem_src,
+                                           uint start,
+                                           uint length)
 {
-  /* send data to GPU */
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, GPU_indexbuf_size_get(elem), elem->data, GL_STATIC_DRAW);
-  /* No need to keep copy of data in system memory. */
-  MEM_freeN(elem->data);
-  elem->data = NULL;
-}
-
-void GPU_indexbuf_use(GPUIndexBuf *elem)
-{
-  if (elem->is_subrange) {
-    GPU_indexbuf_use(elem->src);
-    return;
-  }
-  if (elem->ibo_id == 0) {
-    elem->ibo_id = GPU_buf_alloc();
-  }
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem->ibo_id);
-  if (elem->data != NULL) {
-    indexbuf_upload_data(elem);
-  }
+  unwrap(elem)->init_subrange(unwrap(elem_src), start, length);
 }
 
 void GPU_indexbuf_discard(GPUIndexBuf *elem)
 {
-  if (elem->ibo_id) {
-    GPU_buf_free(elem->ibo_id);
-  }
-  if (!elem->is_subrange && elem->data) {
-    MEM_freeN(elem->data);
-  }
-  MEM_freeN(elem);
+  delete unwrap(elem);
 }
+
+bool GPU_indexbuf_is_init(GPUIndexBuf *elem)
+{
+  return unwrap(elem)->is_init();
+}
+
+int GPU_indexbuf_primitive_len(GPUPrimType prim_type)
+{
+  return indices_per_primitive(prim_type);
+}
+
+/** \} */

@@ -31,40 +31,21 @@
 extern "C" {
 #endif
 
-#define GPU_TRACK_INDEX_RANGE 1
-
-typedef enum {
-  GPU_INDEX_U16,
-  GPU_INDEX_U32,
-} GPUIndexBufType;
-
-typedef struct GPUIndexBuf {
-  uint index_start;
-  uint index_len;
-  bool is_subrange;
-#if GPU_TRACK_INDEX_RANGE
-  GPUIndexBufType index_type;
-  uint32_t gl_index_type;
-  uint base_index;
-#endif
-  uint32_t ibo_id; /* 0 indicates not yet sent to VRAM */
-  union {
-    void *data;              /* non-NULL indicates not yet sent to VRAM */
-    struct GPUIndexBuf *src; /* if is_subrange is true, this is the source buffer. */
-  };
-} GPUIndexBuf;
+/**
+ * IMPORTANT: Do not allocate manually as the real struct is bigger (i.e: GLIndexBuf). This is only
+ * the common and "public" part of the struct. Use the provided allocator.
+ * TODO(fclem) Make the content of this struct hidden and expose getters/setters.
+ **/
+typedef struct GPUIndexBuf GPUIndexBuf;
 
 GPUIndexBuf *GPU_indexbuf_calloc(void);
-
-void GPU_indexbuf_use(GPUIndexBuf *);
-uint GPU_indexbuf_size_get(const GPUIndexBuf *);
 
 typedef struct GPUIndexBufBuilder {
   uint max_allowed_index;
   uint max_index_len;
   uint index_len;
   GPUPrimType prim_type;
-  uint *data;
+  uint32_t *data;
 } GPUIndexBufBuilder;
 
 /* supports all primitive types. */
@@ -101,6 +82,8 @@ void GPU_indexbuf_create_subrange_in_place(GPUIndexBuf *elem,
                                            uint length);
 
 void GPU_indexbuf_discard(GPUIndexBuf *);
+
+bool GPU_indexbuf_is_init(GPUIndexBuf *ibo);
 
 int GPU_indexbuf_primitive_len(GPUPrimType prim_type);
 
