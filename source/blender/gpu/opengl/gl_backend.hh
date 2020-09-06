@@ -63,42 +63,42 @@ class GLBackend : public GPUBackend {
     GLTexture::samplers_update();
   };
 
-  GPUContext *context_alloc(void *ghost_window)
+  GPUContext *context_alloc(void *ghost_window) override
   {
     return new GLContext(ghost_window, shared_orphan_list_);
   };
 
-  Batch *batch_alloc(void)
+  Batch *batch_alloc(void) override
   {
     return new GLBatch();
   };
 
-  DrawList *drawlist_alloc(int list_length)
+  DrawList *drawlist_alloc(int list_length) override
   {
     return new GLDrawList(list_length);
   };
 
-  FrameBuffer *framebuffer_alloc(const char *name)
+  FrameBuffer *framebuffer_alloc(const char *name) override
   {
     return new GLFrameBuffer(name);
   };
 
-  IndexBuf *indexbuf_alloc(void)
+  IndexBuf *indexbuf_alloc(void) override
   {
     return new GLIndexBuf();
   };
 
-  Shader *shader_alloc(const char *name)
+  Shader *shader_alloc(const char *name) override
   {
     return new GLShader(name);
   };
 
-  Texture *texture_alloc(const char *name)
+  Texture *texture_alloc(const char *name) override
   {
     return new GLTexture(name);
   };
 
-  UniformBuf *uniformbuf_alloc(int size, const char *name)
+  UniformBuf *uniformbuf_alloc(int size, const char *name) override
   {
     return new GLUniformBuf(size, name);
   };
