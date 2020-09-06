@@ -37,6 +37,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"
@@ -459,16 +461,24 @@ static void view3d_main_region_exit(wmWindowManager *wm, ARegion *region)
   ED_view3d_stop_render_preview(wm, region);
 }
 
-static bool view3d_drop_id_in_main_region_poll(bContext *C,
-                                               wmDrag *drag,
-                                               const wmEvent *event,
-                                               ID_Type id_type)
+static ID *view3d_drop_id_in_main_region_poll_id(bContext *C,
+                                                 wmDrag *drag,
+                                                 const wmEvent *event,
+                                                 ID_Type id_type)
 {
   ScrArea *area = CTX_wm_area(C);
   if (ED_region_overlap_isect_any_xy(area, &event->x)) {
     return false;
   }
-  return WM_drag_ID(drag, id_type) != NULL;
+  return WM_drag_ID(drag, id_type);
+}
+
+static bool view3d_drop_id_in_main_region_poll(bContext *C,
+                                               wmDrag *drag,
+                                               const wmEvent *event,
+                                               ID_Type id_type)
+{
+  return (view3d_drop_id_in_main_region_poll_id(C, drag, event, id_type) != NULL);
 }
 
 static bool view3d_ob_drop_poll(bContext *C,
@@ -493,6 +503,21 @@ static bool view3d_mat_drop_poll(bContext *C,
                                  const char **UNUSED(r_tooltip))
 {
   return view3d_drop_id_in_main_region_poll(C, drag, event, ID_MA);
+}
+
+static bool view3d_object_data_drop_poll(bContext *C,
+                                         wmDrag *drag,
+                                         const wmEvent *event,
+                                         const char **r_tooltip)
+{
+  ID *id = view3d_drop_id_in_main_region_poll_id(C, drag, event, 0);
+  if (id != NULL) {
+    if (BKE_object_obdata_to_type(id) != -1) {
+      *r_tooltip = TIP_("Create object instance from object-data");
+      return true;
+    }
+  }
+  return false;
 }
 
 static bool view3d_ima_drop_poll(bContext *C,
@@ -591,6 +616,14 @@ static void view3d_id_drop_copy(wmDrag *drag, wmDropBox *drop)
   RNA_string_set(drop->ptr, "name", id->name + 2);
 }
 
+static void view3d_id_drop_copy_with_type(wmDrag *drag, wmDropBox *drop)
+{
+  ID *id = WM_drag_ID(drag, 0);
+
+  RNA_string_set(drop->ptr, "name", id->name + 2);
+  RNA_enum_set(drop->ptr, "type", GS(id->name));
+}
+
 static void view3d_id_path_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_ID(drag, 0);
@@ -642,6 +675,10 @@ static void view3d_dropboxes(void)
                  "OBJECT_OT_collection_instance_add",
                  view3d_collection_drop_poll,
                  view3d_collection_drop_copy);
+  WM_dropbox_add(lb,
+                 "OBJECT_OT_data_instance_add",
+                 view3d_object_data_drop_poll,
+                 view3d_id_drop_copy_with_type);
 }
 
 static void view3d_widgets(void)

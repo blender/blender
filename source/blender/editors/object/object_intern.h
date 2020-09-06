@@ -117,6 +117,7 @@ void OBJECT_OT_speaker_add(struct wmOperatorType *ot);
 void OBJECT_OT_hair_add(struct wmOperatorType *ot);
 void OBJECT_OT_pointcloud_add(struct wmOperatorType *ot);
 void OBJECT_OT_collection_instance_add(struct wmOperatorType *ot);
+void OBJECT_OT_data_instance_add(struct wmOperatorType *ot);
 
 void OBJECT_OT_duplicates_make_real(struct wmOperatorType *ot);
 void OBJECT_OT_duplicate(struct wmOperatorType *ot);

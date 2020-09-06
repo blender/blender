@@ -1489,6 +1489,92 @@ void OBJECT_OT_collection_instance_add(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Add Data Instance Operator
+ *
+ * Use for dropping ID's from the outliner.
+ * \{ */
+
+static int object_data_instance_add_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  ID *id = NULL;
+  ushort local_view_bits;
+  float loc[3], rot[3];
+
+  PropertyRNA *prop_name = RNA_struct_find_property(op->ptr, "name");
+  PropertyRNA *prop_type = RNA_struct_find_property(op->ptr, "type");
+  PropertyRNA *prop_location = RNA_struct_find_property(op->ptr, "location");
+
+  /* These shouldn't fail when created by outliner dropping as it checks the ID is valid. */
+  if (!RNA_property_is_set(op->ptr, prop_name) || !RNA_property_is_set(op->ptr, prop_type)) {
+    return OPERATOR_CANCELLED;
+  }
+  const short id_type = RNA_property_enum_get(op->ptr, prop_type);
+  char name[MAX_ID_NAME - 2];
+  RNA_property_string_get(op->ptr, prop_name, name);
+  id = BKE_libblock_find_name(bmain, id_type, name);
+  if (id == NULL) {
+    return OPERATOR_CANCELLED;
+  }
+  const int object_type = BKE_object_obdata_to_type(id);
+  if (object_type == -1) {
+    return OPERATOR_CANCELLED;
+  }
+
+  if (!RNA_property_is_set(op->ptr, prop_location)) {
+    const wmEvent *event = CTX_wm_window(C)->eventstate;
+    ARegion *region = CTX_wm_region(C);
+    const int mval[2] = {event->x - region->winrct.xmin, event->y - region->winrct.ymin};
+    ED_object_location_from_view(C, loc);
+    ED_view3d_cursor3d_position(C, mval, false, loc);
+    RNA_property_float_set_array(op->ptr, prop_location, loc);
+  }
+
+  if (!ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, NULL, NULL, &local_view_bits, NULL)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  Scene *scene = CTX_data_scene(C);
+
+  Object *ob = ED_object_add_type(C, object_type, id->name + 2, loc, rot, false, local_view_bits);
+  ob->data = id;
+  id_us_plus(id);
+
+  BKE_object_materials_test(bmain, ob, ob->data);
+
+  /* Works without this except if you try render right after, see: T22027. */
+  DEG_relations_tag_update(bmain);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+  WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
+  WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
+
+  return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_data_instance_add(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Add Object Data Instance";
+  ot->description = "Add an object data instance";
+  ot->idname = "OBJECT_OT_data_instance_add";
+
+  /* api callbacks */
+  ot->exec = object_data_instance_add_exec;
+  ot->poll = ED_operator_objectmode;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* properties */
+  RNA_def_string(ot->srna, "name", "Name", MAX_ID_NAME - 2, "Name", "ID name to add");
+  PropertyRNA *prop = RNA_def_enum(ot->srna, "type", rna_enum_id_type_items, 0, "Type", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
+  ED_object_add_generic_props(ot, false);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Add Speaker Operator
  * \{ */
 
