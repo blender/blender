@@ -538,10 +538,6 @@ class RENDER_PT_gpencil(RenderButtonsPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
     bl_order = 10
 
-    @classmethod
-    def poll(cls, context):
-        return True
-
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
