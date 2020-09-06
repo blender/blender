@@ -417,15 +417,6 @@ if(WITH_TBB)
   find_package(TBB)
 endif()
 
-if(WITH_GMP)
-  find_package(GMP)
-
-  if(NOT GMP_FOUND)
-    set(WITH_GMP OFF)
-    message(STATUS "GMP not found")
-  endif()
-endif()
-
 if(WITH_POTRACE)
   find_package(Potrace)
   if(NOT POTRACE_FOUND)
