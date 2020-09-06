@@ -68,7 +68,9 @@ static GPUVertBuf *mpath_vbo_get(bMotionPath *mpath)
     mpath->points_vbo = GPU_vertbuf_create_with_format(&format);
     GPU_vertbuf_data_alloc(mpath->points_vbo, mpath->length);
     /* meh... a useless memcpy. */
-    memcpy(mpath->points_vbo->data, mpath->points, sizeof(bMotionPathVert) * mpath->length);
+    memcpy(GPU_vertbuf_get_data(mpath->points_vbo),
+           mpath->points,
+           sizeof(bMotionPathVert) * mpath->length);
   }
   return mpath->points_vbo;
 }

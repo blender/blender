@@ -21,11 +21,8 @@
  * \ingroup gpu
  */
 
-#include "GPU_glew.h"
-
-#include "GPU_vertex_buffer.h"
-
 #include "gpu_shader_interface.hh"
+#include "gpu_vertex_buffer_private.hh"
 #include "gpu_vertex_format_private.h"
 
 #include "gl_batch.hh"

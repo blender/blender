@@ -124,7 +124,8 @@ static bool bpygpu_vertbuf_fill_impl(GPUVertBuf *vbo,
   const char *exc_str_size_mismatch = "Expected a %s of size %d, got %u";
 
   bool ok = true;
-  const GPUVertAttr *attr = &vbo->format.attrs[data_id];
+  const GPUVertAttr *attr = &GPU_vertbuf_get_format(vbo)->attrs[data_id];
+  uint vert_len = GPU_vertbuf_get_vertex_len(vbo);
 
   if (PyObject_CheckBuffer(seq)) {
     Py_buffer pybuffer;
@@ -136,9 +137,9 @@ static bool bpygpu_vertbuf_fill_impl(GPUVertBuf *vbo,
 
     const uint comp_len = pybuffer.ndim == 1 ? 1 : (uint)pybuffer.shape[1];
 
-    if (pybuffer.shape[0] != vbo->vertex_len) {
+    if (pybuffer.shape[0] != vert_len) {
       PyErr_Format(
-          PyExc_ValueError, exc_str_size_mismatch, "sequence", vbo->vertex_len, pybuffer.shape[0]);
+          PyExc_ValueError, exc_str_size_mismatch, "sequence", vert_len, pybuffer.shape[0]);
       ok = false;
     }
     else if (comp_len != attr->comp_len) {
@@ -162,8 +163,8 @@ static bool bpygpu_vertbuf_fill_impl(GPUVertBuf *vbo,
 
     const uint seq_len = PySequence_Fast_GET_SIZE(seq_fast);
 
-    if (seq_len != vbo->vertex_len) {
-      PyErr_Format(PyExc_ValueError, exc_str_size_mismatch, "sequence", vbo->vertex_len, seq_len);
+    if (seq_len != vert_len) {
+      PyErr_Format(PyExc_ValueError, exc_str_size_mismatch, "sequence", vert_len, seq_len);
     }
 
     PyObject **seq_items = PySequence_Fast_ITEMS(seq_fast);
@@ -217,12 +218,12 @@ static int bpygpu_attr_fill(GPUVertBuf *buf,
                             PyObject *py_seq_data,
                             const char *error_prefix)
 {
-  if (id < 0 || id >= buf->format.attr_len) {
+  if (id < 0 || id >= GPU_vertbuf_get_format(buf)->attr_len) {
     PyErr_Format(PyExc_ValueError, "Format id %d out of range", id);
     return 0;
   }
 
-  if (buf->data == NULL) {
+  if (GPU_vertbuf_get_data(buf) == NULL) {
     PyErr_SetString(PyExc_ValueError, "Can't fill, static buffer already in use");
     return 0;
   }
@@ -288,8 +289,9 @@ static PyObject *bpygpu_VertBuf_attr_fill(BPyGPUVertBuf *self, PyObject *args, P
     id = PyLong_AsLong(identifier);
   }
   else if (PyUnicode_Check(identifier)) {
+    const GPUVertFormat *format = GPU_vertbuf_get_format(self->buf);
     const char *name = PyUnicode_AsUTF8(identifier);
-    id = GPU_vertformat_attr_id_get(&self->buf->format, name);
+    id = GPU_vertformat_attr_id_get(format, name);
     if (id == -1) {
       PyErr_SetString(PyExc_ValueError, "Unknown attribute name");
       return NULL;

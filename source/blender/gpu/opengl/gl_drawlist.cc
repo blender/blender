@@ -33,6 +33,7 @@
 
 #include "gpu_context_private.hh"
 #include "gpu_drawlist_private.hh"
+#include "gpu_vertex_buffer_private.hh"
 
 #include "gl_backend.hh"
 #include "gl_drawlist.hh"

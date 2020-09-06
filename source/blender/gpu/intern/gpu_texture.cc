@@ -29,6 +29,7 @@
 #include "gpu_backend.hh"
 #include "gpu_context_private.hh"
 #include "gpu_framebuffer_private.hh"
+#include "gpu_vertex_buffer_private.hh"
 
 #include "gpu_texture_private.hh"
 

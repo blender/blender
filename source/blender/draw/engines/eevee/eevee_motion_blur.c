@@ -480,7 +480,7 @@ void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
           for (int i = 0; i < MB_CURR; i++) {
             GPUVertBuf *vbo = mb_geom->vbo[i];
             if (vbo && batch) {
-              if (vbo->vertex_len != batch->verts[0]->vertex_len) {
+              if (GPU_vertbuf_get_vertex_len(vbo) != GPU_vertbuf_get_vertex_len(batch->verts[0])) {
                 /* Vertex count mismatch, disable deform motion blur. */
                 mb_geom->use_deform = false;
               }
@@ -506,9 +506,9 @@ void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
             /* Perform a copy to avoid loosing it after RE_engine_frame_set(). */
             mb_geom->vbo[mb_step] = vbo = GPU_vertbuf_duplicate(vbo);
             /* Find and replace "pos" attrib name. */
-            int attrib_id = GPU_vertformat_attr_id_get(&vbo->format, "pos");
-            GPU_vertformat_attr_rename(
-                &vbo->format, attrib_id, (mb_step == MB_PREV) ? "prv" : "nxt");
+            GPUVertFormat *format = (GPUVertFormat *)GPU_vertbuf_get_format(vbo);
+            int attrib_id = GPU_vertformat_attr_id_get(format, "pos");
+            GPU_vertformat_attr_rename(format, attrib_id, (mb_step == MB_PREV) ? "prv" : "nxt");
           }
         }
         break;
@@ -573,8 +573,9 @@ void EEVEE_motion_blur_swap_data(EEVEE_Data *vedata)
 
         if (mb_geom->vbo[MB_NEXT]) {
           GPUVertBuf *vbo = mb_geom->vbo[MB_NEXT];
-          int attrib_id = GPU_vertformat_attr_id_get(&vbo->format, "nxt");
-          GPU_vertformat_attr_rename(&vbo->format, attrib_id, "prv");
+          GPUVertFormat *format = (GPUVertFormat *)GPU_vertbuf_get_format(vbo);
+          int attrib_id = GPU_vertformat_attr_id_get(format, "nxt");
+          GPU_vertformat_attr_rename(format, attrib_id, "prv");
         }
         break;
 

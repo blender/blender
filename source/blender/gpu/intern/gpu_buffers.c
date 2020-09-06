@@ -153,13 +153,14 @@ static bool gpu_pbvh_vert_buf_data_set(GPU_PBVH_Buffers *buffers, uint vert_len)
     /* Initialize vertex buffer (match 'VertexBufferFormat'). */
     buffers->vert_buf = GPU_vertbuf_create_with_format_ex(&g_vbo_id.format, GPU_USAGE_STATIC);
   }
-  if (buffers->vert_buf->data == NULL || buffers->vert_buf->vertex_len != vert_len) {
+  if (GPU_vertbuf_get_data(buffers->vert_buf) == NULL ||
+      GPU_vertbuf_get_vertex_len(buffers->vert_buf) != vert_len) {
     /* Allocate buffer if not allocated yet or size changed. */
     GPU_vertbuf_data_alloc(buffers->vert_buf, vert_len);
   }
 #endif
 
-  return buffers->vert_buf->data != NULL;
+  return GPU_vertbuf_get_data(buffers->vert_buf) != NULL;
 }
 
 static void gpu_pbvh_batch_init(GPU_PBVH_Buffers *buffers, GPUPrimType prim)
@@ -1119,7 +1120,7 @@ void GPU_pbvh_buffers_update_flush(GPU_PBVH_Buffers *buffers)
   }
 
   /* Force flushing to the GPU. */
-  if (buffers->vert_buf && buffers->vert_buf->data) {
+  if (buffers->vert_buf && GPU_vertbuf_get_data(buffers->vert_buf)) {
     GPU_vertbuf_use(buffers->vert_buf);
   }
 }

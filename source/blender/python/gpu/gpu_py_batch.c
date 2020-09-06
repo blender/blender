@@ -141,11 +141,12 @@ static PyObject *bpygpu_Batch_vertbuf_add(BPyGPUBatch *self, BPyGPUVertBuf *py_b
     return NULL;
   }
 
-  if (self->batch->verts[0]->vertex_len != py_buf->buf->vertex_len) {
+  if (GPU_vertbuf_get_vertex_len(self->batch->verts[0]) !=
+      GPU_vertbuf_get_vertex_len(py_buf->buf)) {
     PyErr_Format(PyExc_TypeError,
                  "Expected %d length, got %d",
-                 self->batch->verts[0]->vertex_len,
-                 py_buf->buf->vertex_len);
+                 GPU_vertbuf_get_vertex_len(self->batch->verts[0]),
+                 GPU_vertbuf_get_vertex_len(py_buf->buf));
     return NULL;
   }
 

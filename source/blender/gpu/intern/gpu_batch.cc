@@ -36,11 +36,12 @@
 #include "GPU_shader.h"
 
 #include "gpu_backend.hh"
-#include "gpu_batch_private.hh"
 #include "gpu_context_private.hh"
 #include "gpu_index_buffer_private.hh"
 #include "gpu_shader_private.hh"
-#include "gpu_vertex_format_private.h"
+#include "gpu_vertex_buffer_private.hh"
+
+#include "gpu_batch_private.hh"
 
 #include <string.h>
 
@@ -198,7 +199,8 @@ int GPU_batch_vertbuf_add_ex(GPUBatch *batch, GPUVertBuf *verts, bool own_vbo)
     if (batch->verts[v] == NULL) {
       /* for now all VertexBuffers must have same vertex_len */
       if (batch->verts[0] != NULL) {
-        BLI_assert(verts->vertex_len == batch->verts[0]->vertex_len);
+        /* This is an issue for the HACK inside DRW_vbo_request(). */
+        // BLI_assert(verts->vertex_len == batch->verts[0]->vertex_len);
       }
       batch->verts[v] = verts;
       SET_FLAG_FROM_TEST(batch->flag, own_vbo, (eGPUBatchFlag)(GPU_BATCH_OWNS_VBO << v));

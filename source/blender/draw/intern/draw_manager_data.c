@@ -1115,7 +1115,7 @@ DRWCallBuffer *DRW_shgroup_call_buffer_instance(DRWShadingGroup *shgroup,
 void DRW_buffer_add_entry_struct(DRWCallBuffer *callbuf, const void *data)
 {
   GPUVertBuf *buf = callbuf->buf;
-  const bool resize = (callbuf->count == buf->vertex_alloc);
+  const bool resize = (callbuf->count == GPU_vertbuf_get_vertex_alloc(buf));
 
   if (UNLIKELY(resize)) {
     GPU_vertbuf_data_resize(buf, callbuf->count + DRW_BUFFER_VERTS_CHUNK);
@@ -1136,9 +1136,9 @@ void DRW_buffer_add_entry_struct(DRWCallBuffer *callbuf, const void *data)
 void DRW_buffer_add_entry_array(DRWCallBuffer *callbuf, const void *attr[], uint attr_len)
 {
   GPUVertBuf *buf = callbuf->buf;
-  const bool resize = (callbuf->count == buf->vertex_alloc);
+  const bool resize = (callbuf->count == GPU_vertbuf_get_vertex_alloc(buf));
 
-  BLI_assert(attr_len == buf->format.attr_len);
+  BLI_assert(attr_len == GPU_vertbuf_get_format(buf)->attr_len);
   UNUSED_VARS_NDEBUG(attr_len);
 
   if (UNLIKELY(resize)) {

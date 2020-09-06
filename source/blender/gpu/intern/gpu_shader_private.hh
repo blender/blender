@@ -23,7 +23,7 @@
 #include "BLI_span.hh"
 
 #include "GPU_shader.h"
-#include "GPU_vertex_buffer.h"
+#include "gpu_vertex_buffer_private.hh"
 #include "gpu_shader_interface.hh"
 
 namespace blender {

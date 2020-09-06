@@ -150,7 +150,8 @@ GPUBatch *DRW_temp_batch_instance_request(DRWInstanceDataList *idatalist,
   }
 
   GPUBatch *batch = handle->batch;
-  bool instancer_compat = buf ? ((batch->inst[0] == buf) && (buf->vbo_id != 0)) :
+  bool instancer_compat = buf ? ((batch->inst[0] == buf) &&
+                                 (GPU_vertbuf_get_status(buf) & GPU_VERTBUF_DATA_UPLOADED)) :
                                 ((batch->inst[0] == instancer->verts[0]) &&
                                  (batch->inst[1] == instancer->verts[1]));
   bool is_compatible = (batch->prim_type == geom->prim_type) && instancer_compat &&
@@ -184,8 +185,8 @@ GPUBatch *DRW_temp_batch_request(DRWInstanceDataList *idatalist,
   }
 
   GPUBatch *batch = *batch_ptr;
-  bool is_compatible = (batch->verts[0] == buf) && (buf->vbo_id != 0) &&
-                       (batch->prim_type == prim_type);
+  bool is_compatible = (batch->verts[0] == buf) && (batch->prim_type == prim_type) &&
+                       (GPU_vertbuf_get_status(buf) & GPU_VERTBUF_DATA_UPLOADED);
   if (!is_compatible) {
     GPU_batch_clear(batch);
     GPU_batch_init(batch, prim_type, buf, NULL);
@@ -220,7 +221,7 @@ void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
     if (handle->vert_len != NULL) {
       uint vert_len = *(handle->vert_len);
       uint target_buf_size = ((vert_len / DRW_BUFFER_VERTS_CHUNK) + 1) * DRW_BUFFER_VERTS_CHUNK;
-      if (target_buf_size < handle->buf->vertex_alloc) {
+      if (target_buf_size < GPU_vertbuf_get_vertex_alloc(handle->buf)) {
         GPU_vertbuf_data_resize(handle->buf, target_buf_size);
       }
       GPU_vertbuf_data_len_set(handle->buf, vert_len);

@@ -236,8 +236,8 @@ void DRW_vertbuf_create_wiredata(GPUVertBuf *vbo, const int vert_len)
   GPU_vertbuf_init_with_format(vbo, &format);
   GPU_vertbuf_data_alloc(vbo, vert_len);
 
-  if (vbo->format.stride == 1) {
-    memset(vbo->data, 0xFF, (size_t)vert_len);
+  if (GPU_vertbuf_get_format(vbo)->stride == 1) {
+    memset(GPU_vertbuf_get_data(vbo), 0xFF, (size_t)vert_len);
   }
   else {
     GPUVertBufRaw wd_step;

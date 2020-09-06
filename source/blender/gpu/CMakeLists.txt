@@ -148,6 +148,7 @@ set(SRC
   intern/gpu_state_private.hh
   intern/gpu_texture_private.hh
   intern/gpu_uniform_buffer_private.hh
+  intern/gpu_vertex_buffer_private.hh
   intern/gpu_vertex_format_private.h
 
   opengl/gl_backend.hh
