@@ -1715,11 +1715,18 @@ static size_t animdata_filter_shapekey(bAnimContext *ac,
   /* check if channels or only F-Curves */
   if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
     KeyBlock *kb;
+    bDopeSheet *ads = ac->ads;
 
     /* loop through the channels adding ShapeKeys as appropriate */
     for (kb = key->block.first; kb; kb = kb->next) {
       /* skip the first one, since that's the non-animatable basis */
       if (kb == key->block.first) {
+        continue;
+      }
+
+      /* Skip shapekey if the name doesn't match the filter string. */
+      if (ads != NULL && ads->searchstr[0] != '\0' &&
+          name_matches_dopesheet_filter(ads, kb->name) == false) {
         continue;
       }
 
