@@ -257,6 +257,10 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
     uiItemR(layout, ptr, "use_collapse_triangulate", 0, NULL, ICON_NONE);
 
     modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+    sub = uiLayoutRow(layout, true);
+    bool has_vertex_group = RNA_string_length(ptr, "vertex_group") != 0;
+    uiLayoutSetActive(sub, has_vertex_group);
+    uiItemR(sub, ptr, "vertex_group_factor", 0, NULL, ICON_NONE);
   }
   else if (decimate_type == MOD_DECIM_MODE_UNSUBDIV) {
     uiItemR(layout, ptr, "iterations", 0, NULL, ICON_NONE);
