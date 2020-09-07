@@ -2425,7 +2425,7 @@ static IMesh gwn_boolean(const IMesh &tm,
     int other_shape = 1 - shape;
     /* The point_is_inside_shape function has to approximate if the other
      * shape is not PWN. For most operations, even a hint of being inside
-     * givs good results, but when shape is the cutter in a Difference
+     * gives good results, but when shape is the cutter in a Difference
      * operation, we want to be pretty sure that the point is inside other_shape.
      * E.g., T75827.
      */

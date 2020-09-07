@@ -1756,7 +1756,7 @@ void DRW_view_update(DRWView *view,
                      const float (*culling_winmat)[4])
 {
   /* DO NOT UPDATE THE DEFAULT VIEW.
-   * Create subviews instead, or a copy. */
+   * Create sub-views instead, or a copy. */
   BLI_assert(view != DST.view_default);
   BLI_assert(view->parent == NULL);
 

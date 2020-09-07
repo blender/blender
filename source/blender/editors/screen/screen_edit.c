@@ -1484,7 +1484,7 @@ void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable)
     screen->animtimer = WM_event_add_timer(wm, win, TIMER0, (1.0 / FPS));
 
     sad->region = CTX_wm_region(C);
-    /* if startframe is larger than current frame, we put currentframe on startframe.
+    /* If start-frame is larger than current frame, we put current-frame on start-frame.
      * note: first frame then is not drawn! (ton) */
     if (PRVRANGEON) {
       if (scene->r.psfra > scene->r.cfra) {

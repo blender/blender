@@ -403,7 +403,7 @@ static void rna_Object_matrix_local_set(PointerRNA *ptr, const float values[16])
     copy_m4_m4(local_mat, (float(*)[4])values);
   }
 
-  /* Don't use compat so we get predictable rotation, and do not use parenting either,
+  /* Don't use compatible so we get predictable rotation, and do not use parenting either,
    * because it's a local matrix! */
   BKE_object_apply_mat4(ob, local_mat, false, false);
 }

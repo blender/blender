@@ -2735,13 +2735,11 @@ static bool rename_anim_channels(bAnimContext *ac, int channel_index)
 
     /* ok if we can get name property to edit from this channel */
     if (acf->name_prop(ale, &ptr, &prop)) {
-      /* actually showing the rename textfield is done on redraw,
+      /* Actually showing the rename text-field is done on redraw,
        * so here we just store the index of this channel in the
-       * dopesheet data, which will get utilized when drawing the
-       * channel...
+       * dope-sheet data, which will get utilized when drawing the channel.
        *
-       * +1 factor is for backwards compat issues
-       */
+       * +1 factor is for backwards compatibility issues. */
       if (ac->ads) {
         ac->ads->renameIndex = channel_index + 1;
         success = true;

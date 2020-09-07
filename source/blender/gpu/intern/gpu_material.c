@@ -123,7 +123,7 @@ GPUTexture **gpu_material_ramp_texture_row_set(GPUMaterial *mat,
                                                float *pixels,
                                                float *row)
 {
-  /* In order to put all the colorbands into one 1D array texture,
+  /* In order to put all the color-bands into one 1D array texture,
    * we need them to be the same size. */
   BLI_assert(size == CM_TABLE + 1);
   UNUSED_VARS_NDEBUG(size);

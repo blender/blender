@@ -1249,7 +1249,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
             [bitmapImage setSize:imgSize];
 
             /* Convert the image in a RGBA 32bit format */
-            /* As Core Graphics does not support contextes with non premutliplied alpha,
+            /* As Core Graphics does not support contexts with non premutliplied alpha,
              we need to get alpha key values in a separate batch */
 
             /* First get RGB values w/o Alpha to avoid pre-multiplication,

@@ -22,7 +22,7 @@
 
 /**
  * DRW Instance Data Manager
- * This is a special memory manager that keeps memory blocks ready to send as vbo data in one
+ * This is a special memory manager that keeps memory blocks ready to send as VBO data in one
  * continuous allocation. This way we avoid feeding #GPUBatch each instance data one by one and
  * unnecessary memcpy. Since we loose which memory block was used each #DRWShadingGroup we need to
  * redistribute them in the same order/size to avoid to realloc each frame. This is why

@@ -200,7 +200,7 @@ void BKE_object_where_is_calc_time(struct Depsgraph *depsgraph,
                                    float ctime);
 void BKE_object_where_is_calc_mat4(struct Object *ob, float r_obmat[4][4]);
 
-/* possibly belong in own moduke? */
+/* Possibly belong in own module? */
 struct BoundBox *BKE_boundbox_alloc_unit(void);
 void BKE_boundbox_init_from_minmax(struct BoundBox *bb, const float min[3], const float max[3]);
 void BKE_boundbox_calc_center_aabb(const struct BoundBox *bb, float r_cent[3]);

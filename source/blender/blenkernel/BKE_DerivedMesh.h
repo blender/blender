@@ -215,7 +215,7 @@ struct DerivedMesh {
   void *(*getPolyDataArray)(DerivedMesh *dm, int type);
 
   /** Retrieves the base CustomData structures for
-   * verts/edges/tessfaces/loops/facdes*/
+   * verts/edges/tessfaces/loops/faces. */
   CustomData *(*getVertDataLayout)(DerivedMesh *dm);
   CustomData *(*getEdgeDataLayout)(DerivedMesh *dm);
   CustomData *(*getTessFaceDataLayout)(DerivedMesh *dm);

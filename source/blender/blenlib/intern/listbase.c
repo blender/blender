@@ -224,7 +224,7 @@ void BLI_listbase_swaplinks(ListBase *listbase, void *vlinka, void *vlinkb)
 
 /**
  * Swaps \a vlinka and \a vlinkb from their respective lists.
- * Assumes they are both already in their lista!
+ * Assumes they are both already in their \a listbasea!
  */
 void BLI_listbases_swaplinks(ListBase *listbasea, ListBase *listbaseb, void *vlinka, void *vlinkb)
 {

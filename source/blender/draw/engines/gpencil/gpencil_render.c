@@ -101,7 +101,7 @@ void GPENCIL_render_init(GPENCIL_Data *vedata,
   const bool do_clear_z = !pix_z || do_region;
   const bool do_clear_col = !pix_col || do_region;
 
-  /* FIXME(fclem): we have a precision loss in the depth buffer because of this reupload.
+  /* FIXME(fclem): we have a precision loss in the depth buffer because of this re-upload.
    * Find where it comes from! */
   /* In multi view render the textures can be reused. */
   if (txl->render_depth_tx && !do_clear_z) {
