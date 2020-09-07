@@ -270,7 +270,7 @@ AUD_API int AUD_readSound(AUD_Sound* sound, float* buffer, int length, int sampl
 	return length;
 }
 
-AUD_API const char* AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned int length, unsigned int buffersize, const char* filename, AUD_DeviceSpecs specs, AUD_Container format, AUD_Codec codec, unsigned int bitrate)
+AUD_API const char* AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned int length, unsigned int buffersize, const char* filename, AUD_DeviceSpecs specs, AUD_Container format, AUD_Codec codec, unsigned int bitrate, void(*callback)(float, void*), void* data)
 {
 	try
 	{
@@ -280,7 +280,7 @@ AUD_API const char* AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned i
 		std::shared_ptr<IReader> reader = f->createQualityReader();
 		reader->seek(start);
 		std::shared_ptr<IWriter> writer = FileWriter::createWriter(filename, convCToDSpec(specs), static_cast<Container>(format), static_cast<Codec>(codec), bitrate);
-		FileWriter::writeReader(reader, writer, length, buffersize);
+		FileWriter::writeReader(reader, writer, length, buffersize, callback, data);
 
 		return nullptr;
 	}
@@ -290,7 +290,7 @@ AUD_API const char* AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned i
 	}
 }
 
-AUD_API const char* AUD_mixdown_per_channel(AUD_Sound* sound, unsigned int start, unsigned int length, unsigned int buffersize, const char* filename, AUD_DeviceSpecs specs, AUD_Container format, AUD_Codec codec, unsigned int bitrate)
+AUD_API const char* AUD_mixdown_per_channel(AUD_Sound* sound, unsigned int start, unsigned int length, unsigned int buffersize, const char* filename, AUD_DeviceSpecs specs, AUD_Container format, AUD_Codec codec, unsigned int bitrate, void(*callback)(float, void*), void* data)
 {
 	try
 	{
@@ -326,7 +326,7 @@ AUD_API const char* AUD_mixdown_per_channel(AUD_Sound* sound, unsigned int start
 
 		std::shared_ptr<IReader> reader = f->createQualityReader();
 		reader->seek(start);
-		FileWriter::writeReader(reader, writers, length, buffersize);
+		FileWriter::writeReader(reader, writers, length, buffersize, callback, data);
 
 		return nullptr;
 	}

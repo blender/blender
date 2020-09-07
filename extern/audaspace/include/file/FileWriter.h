@@ -63,7 +63,7 @@ public:
 	 * \param length How many samples should be transferred.
 	 * \param buffersize How many samples should be transferred at once.
 	 */
-	static void writeReader(std::shared_ptr<IReader> reader, std::shared_ptr<IWriter> writer, unsigned int length, unsigned int buffersize);
+	static void writeReader(std::shared_ptr<IReader> reader, std::shared_ptr<IWriter> writer, unsigned int length, unsigned int buffersize, void(*callback)(float, void*) = nullptr, void* data = nullptr);
 
 	/**
 	 * Writes a reader to several writers.
@@ -72,7 +72,7 @@ public:
 	 * \param length How many samples should be transferred.
 	 * \param buffersize How many samples should be transferred at once.
 	 */
-	static void writeReader(std::shared_ptr<IReader> reader, std::vector<std::shared_ptr<IWriter> >& writers, unsigned int length, unsigned int buffersize);
+	static void writeReader(std::shared_ptr<IReader> reader, std::vector<std::shared_ptr<IWriter> >& writers, unsigned int length, unsigned int buffersize, void(*callback)(float, void*) = nullptr, void* data = nullptr);
 };
 
 AUD_NAMESPACE_END

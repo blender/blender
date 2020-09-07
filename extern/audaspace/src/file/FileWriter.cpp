@@ -27,7 +27,7 @@ std::shared_ptr<IWriter> FileWriter::createWriter(std::string filename,DeviceSpe
 	return FileManager::createWriter(filename, specs, format, codec, bitrate);
 }
 
-void FileWriter::writeReader(std::shared_ptr<IReader> reader, std::shared_ptr<IWriter> writer, unsigned int length, unsigned int buffersize)
+void FileWriter::writeReader(std::shared_ptr<IReader> reader, std::shared_ptr<IWriter> writer, unsigned int length, unsigned int buffersize, void(*callback)(float, void*), void* data)
 {
 	Buffer buffer(buffersize * AUD_SAMPLE_SIZE(writer->getSpecs()));
 	sample_t* buf = buffer.getBuffer();
@@ -53,10 +53,18 @@ void FileWriter::writeReader(std::shared_ptr<IReader> reader, std::shared_ptr<IW
 		}
 
 		writer->write(len, buf);
+
+		if(callback)
+		{
+			float progress = -1;
+			if(length > 0)
+				progress = pos / float(length);
+			callback(progress, data);
+		}
 	}
 }
 
-void FileWriter::writeReader(std::shared_ptr<IReader> reader, std::vector<std::shared_ptr<IWriter> >& writers, unsigned int length, unsigned int buffersize)
+void FileWriter::writeReader(std::shared_ptr<IReader> reader, std::vector<std::shared_ptr<IWriter> >& writers, unsigned int length, unsigned int buffersize, void(*callback)(float, void*), void* data)
 {
 	Buffer buffer(buffersize * AUD_SAMPLE_SIZE(reader->getSpecs()));
 	Buffer buffer2(buffersize * sizeof(sample_t));
@@ -88,6 +96,14 @@ void FileWriter::writeReader(std::shared_ptr<IReader> reader, std::vector<std::s
 			}
 
 			writers[channel]->write(len, buf2);
+		}
+
+		if(callback)
+		{
+			float progress = -1;
+			if(length > 0)
+				progress = pos / float(length);
+			callback(progress, data);
 		}
 	}
 }

@@ -68,12 +68,15 @@ extern AUD_API int AUD_readSound(AUD_Sound* sound, float* buffer, int length, in
  * \param format The file's container format.
  * \param codec The codec used for encoding the audio data.
  * \param bitrate The bitrate for encoding.
+ * \param callback A callback function that is called periodically during mixdown, reporting progress if length > 0. Can be NULL.
+ * \param data Pass through parameter that is passed to the callback.
  * \return An error message or NULL in case of success.
  */
 extern AUD_API const char* AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned int length,
 							   unsigned int buffersize, const char* filename,
 							   AUD_DeviceSpecs specs, AUD_Container format,
-							   AUD_Codec codec, unsigned int bitrate);
+							   AUD_Codec codec, unsigned int bitrate,
+							   void(*callback)(float, void*), void* data);
 
 /**
  * Mixes a sound down into multiple files.
@@ -86,12 +89,15 @@ extern AUD_API const char* AUD_mixdown(AUD_Sound* sound, unsigned int start, uns
  * \param format The file's container format.
  * \param codec The codec used for encoding the audio data.
  * \param bitrate The bitrate for encoding.
+ * \param callback A callback function that is called periodically during mixdown, reporting progress if length > 0. Can be NULL.
+ * \param data Pass through parameter that is passed to the callback.
  * \return An error message or NULL in case of success.
  */
 extern AUD_API const char* AUD_mixdown_per_channel(AUD_Sound* sound, unsigned int start, unsigned int length,
 										   unsigned int buffersize, const char* filename,
 										   AUD_DeviceSpecs specs, AUD_Container format,
-										   AUD_Codec codec, unsigned int bitrate);
+										   AUD_Codec codec, unsigned int bitrate,
+										   void(*callback)(float, void*), void* data);
 
 /**
  * Opens a read device and prepares it for mixdown of the sound scene.

@@ -386,7 +386,9 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
                                      specs,
                                      container,
                                      codec,
-                                     bitrate);
+                                     bitrate,
+                                     NULL,
+                                     NULL);
   }
   else {
     result = AUD_mixdown(scene_eval->sound_scene,
@@ -397,7 +399,9 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
                          specs,
                          container,
                          codec,
-                         bitrate);
+                         bitrate,
+                         NULL,
+                         NULL);
   }
 
   BKE_sound_reset_scene_specs(scene_eval);
