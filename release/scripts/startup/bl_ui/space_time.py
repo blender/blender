@@ -230,34 +230,37 @@ class TimelinePanelButtons:
 class TIME_PT_playback(TimelinePanelButtons, Panel):
     bl_label = "Playback"
     bl_region_type = 'HEADER'
+    bl_ui_units_x = 11
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
         screen = context.screen
         scene = context.scene
 
-        layout.prop(scene, "sync_mode", text="")
-        layout.prop(scene, "use_audio_scrub")
-        layout.prop(scene, "use_audio", text="Mute Audio")
-
-        layout.prop(scene, "show_subframe", text="Subframes")
-
-        layout.prop(scene, "lock_frame_selection_to_range", text="Limit Playback to Frame Range")
-        layout.prop(screen, "use_follow", text="Follow Current Frame")
-
-        layout.separator()
-
         col = layout.column()
-        col.label(text="Play Animation In:")
-        layout.prop(screen, "use_play_top_left_3d_editor", text="Active Editor Only")
-        layout.prop(screen, "use_play_3d_editors")
-        layout.prop(screen, "use_play_animation_editors")
-        layout.prop(screen, "use_play_properties_editors")
-        layout.prop(screen, "use_play_image_editors")
-        layout.prop(screen, "use_play_sequence_editors")
-        layout.prop(screen, "use_play_node_editors")
-        layout.prop(screen, "use_play_clip_editors")
+        col.prop(scene, "sync_mode", text="Audio")
+        col.prop(scene, "use_audio_scrub", text="Scrubbing")
+        col.prop(scene, "use_audio", text="Mute")
+
+        col = layout.column(heading="Playback")
+        col.prop(scene, "lock_frame_selection_to_range", text="Limit to Frame Range")
+        col.prop(screen, "use_follow", text="Follow Current Frame")
+
+        col = layout.column(heading="Play In")
+        col.prop(screen, "use_play_top_left_3d_editor", text="Active Editor")
+        col.prop(screen, "use_play_3d_editors", text="3D Viewport")
+        col.prop(screen, "use_play_animation_editors", text="Animation Editors")
+        col.prop(screen, "use_play_image_editors", text="Image Editor")
+        col.prop(screen, "use_play_properties_editors", text="Properties Editor")
+        col.prop(screen, "use_play_clip_editors", text="Movie Clip Editor")
+        col.prop(screen, "use_play_node_editors", text="Node Editors")
+        col.prop(screen, "use_play_sequence_editors", text="Video Sequencer")
+
+        col = layout.column(heading="Show")
+        col.prop(scene, "show_subframe", text="Subframes")
 
         layout.separator()
 
