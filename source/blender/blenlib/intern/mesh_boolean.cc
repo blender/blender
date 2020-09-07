@@ -2375,9 +2375,8 @@ static bool point_is_inside_shape(const IMesh &tm,
   if (high_confidence) {
     return (gwn > 0.9);
   }
-  else {
-    return (gwn > 0.01);
-  }
+
+  return (gwn > 0.01);
 }
 
 /**
