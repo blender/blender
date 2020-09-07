@@ -404,6 +404,26 @@ inline bool operator!=(StringRef a, StringRef b)
   return !(a == b);
 }
 
+inline bool operator<(StringRef a, StringRef b)
+{
+  return std::string_view(a) < std::string_view(b);
+}
+
+inline bool operator>(StringRef a, StringRef b)
+{
+  return std::string_view(a) > std::string_view(b);
+}
+
+inline bool operator<=(StringRef a, StringRef b)
+{
+  return std::string_view(a) <= std::string_view(b);
+}
+
+inline bool operator>=(StringRef a, StringRef b)
+{
+  return std::string_view(a) >= std::string_view(b);
+}
+
 /**
  * Return true when the string starts with the given prefix.
  */
