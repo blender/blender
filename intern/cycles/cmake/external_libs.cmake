@@ -18,9 +18,9 @@
 ###########################################################################
 
 macro(_set_default variable value)
-	if(NOT ${variable})
-		set(${variable} ${value})
-	endif()
+  if(NOT ${variable})
+    set(${variable} ${value})
+  endif()
 endmacro()
 
 ###########################################################################
@@ -233,14 +233,14 @@ if(WITH_CYCLES_OSL)
       unset(_llvm_libs_release)
 
       set(OSL_LIBRARIES
-	optimized ${OSL_ROOT_DIR}/lib/oslcomp.lib
-	optimized ${OSL_ROOT_DIR}/lib/oslexec.lib
-	optimized ${OSL_ROOT_DIR}/lib/oslquery.lib
-	optimized ${OSL_ROOT_DIR}/lib/pugixml.lib
-	debug ${OSL_ROOT_DIR}/lib/oslcomp_d.lib
-	debug ${OSL_ROOT_DIR}/lib/oslexec_d.lib
-	debug ${OSL_ROOT_DIR}/lib/oslquery_d.lib
-	debug ${OSL_ROOT_DIR}/lib/pugixml_d.lib
+        optimized ${OSL_ROOT_DIR}/lib/oslcomp.lib
+        optimized ${OSL_ROOT_DIR}/lib/oslexec.lib
+        optimized ${OSL_ROOT_DIR}/lib/oslquery.lib
+        optimized ${OSL_ROOT_DIR}/lib/pugixml.lib
+        debug ${OSL_ROOT_DIR}/lib/oslcomp_d.lib
+        debug ${OSL_ROOT_DIR}/lib/oslexec_d.lib
+        debug ${OSL_ROOT_DIR}/lib/oslquery_d.lib
+        debug ${OSL_ROOT_DIR}/lib/pugixml_d.lib
       )
     endif()
   endif()
