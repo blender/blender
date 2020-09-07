@@ -19,6 +19,9 @@
 /** \file
  * \ingroup DNA
  *
+ * DNA Defaults
+ * ============
+ *
  * This API provides direct access to DNA default structs
  * to avoid duplicating values for initialization, versioning and RNA.
  * This allows DNA default definitions to be defined in a single header along side the types.
@@ -26,10 +29,19 @@
  *
  * Defining the defaults is optional since it doesn't make sense for some structs to have defaults.
  *
+ * Adding Defaults
+ * ---------------
+ *
+ * Adding/removing defaults for existing structs can be done by hand.
+ * When adding new defaults for larger structs you may want to write-out the in-memory data.
+ *
  * To create these defaults there is a GDB script which can be handy to get started:
  * `./source/tools/utils/gdb_struct_repr_c99.py`
  *
  * Magic numbers should be replaced with flags before committing.
+ *
+ * Public API
+ * ----------
  *
  * The main functions to access these are:
  * - #DNA_struct_default_get
@@ -38,6 +50,22 @@
  * These access the struct table #DNA_default_table using the struct number.
  *
  * \note Struct members only define their members (pointers are left as NULL set).
+ *
+ * Typical Usage
+ * -------------
+ *
+ * While there is no restriction for using these defaults,
+ * it's worth noting where these functions are typically used:
+ *
+ * - When creating/allocating new data.
+ * - RNA property defaults, used for "Set Default Value" in the buttons right-click context menu.
+ *
+ * These defaults are not used:
+ *
+ * - When loading old files that don't contain newly added struct members (these will be zeroed)
+ *   to set their values use `versioning_{BLENDER_VERSION}.c` source files.
+ * - For startup file data, to update these defaults use
+ *   #BLO_update_defaults_startup_blend & #BLO_version_defaults_userpref_blend.
  */
 
 #include <limits.h>
