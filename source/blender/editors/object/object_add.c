@@ -1434,55 +1434,58 @@ static int collection_instance_add_exec(bContext *C, wmOperator *op)
   ushort local_view_bits;
   float loc[3], rot[3];
 
-  if (RNA_struct_property_is_set(op->ptr, "name")) {
-    char name[MAX_ID_NAME - 2];
+  PropertyRNA *prop_name = RNA_struct_find_property(op->ptr, "name");
+  PropertyRNA *prop_location = RNA_struct_find_property(op->ptr, "location");
 
-    RNA_string_get(op->ptr, "name", name);
+  if (RNA_property_is_set(op->ptr, prop_name)) {
+    char name[MAX_ID_NAME - 2];
+    RNA_property_string_get(op->ptr, prop_name, name);
     collection = (Collection *)BKE_libblock_find_name(bmain, ID_GR, name);
 
-    if (0 == RNA_struct_property_is_set(op->ptr, "location")) {
+    if (!RNA_property_is_set(op->ptr, prop_location)) {
       const wmEvent *event = CTX_wm_window(C)->eventstate;
       ARegion *region = CTX_wm_region(C);
       const int mval[2] = {event->x - region->winrct.xmin, event->y - region->winrct.ymin};
       ED_object_location_from_view(C, loc);
       ED_view3d_cursor3d_position(C, mval, false, loc);
-      RNA_float_set_array(op->ptr, "location", loc);
+      RNA_property_float_set_array(op->ptr, prop_location, loc);
     }
   }
   else {
     collection = BLI_findlink(&bmain->collections, RNA_enum_get(op->ptr, "collection"));
   }
 
+  if (collection == NULL) {
+    return OPERATOR_CANCELLED;
+  }
+
   if (!ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, NULL, NULL, &local_view_bits, NULL)) {
     return OPERATOR_CANCELLED;
   }
-  if (collection) {
-    Scene *scene = CTX_data_scene(C);
-    ViewLayer *view_layer = CTX_data_view_layer(C);
 
-    /* Avoid dependency cycles. */
-    LayerCollection *active_lc = BKE_layer_collection_get_active(view_layer);
-    while (BKE_collection_cycle_find(active_lc->collection, collection)) {
-      active_lc = BKE_layer_collection_activate_parent(view_layer, active_lc);
-    }
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
 
-    Object *ob = ED_object_add_type(
-        C, OB_EMPTY, collection->id.name + 2, loc, rot, false, local_view_bits);
-    ob->instance_collection = collection;
-    ob->empty_drawsize = U.collection_instance_empty_size;
-    ob->transflag |= OB_DUPLICOLLECTION;
-    id_us_plus(&collection->id);
-
-    /* works without this except if you try render right after, see: 22027 */
-    DEG_relations_tag_update(bmain);
-    DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
-    WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
-    WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
-
-    return OPERATOR_FINISHED;
+  /* Avoid dependency cycles. */
+  LayerCollection *active_lc = BKE_layer_collection_get_active(view_layer);
+  while (BKE_collection_cycle_find(active_lc->collection, collection)) {
+    active_lc = BKE_layer_collection_activate_parent(view_layer, active_lc);
   }
 
-  return OPERATOR_CANCELLED;
+  Object *ob = ED_object_add_type(
+      C, OB_EMPTY, collection->id.name + 2, loc, rot, false, local_view_bits);
+  ob->instance_collection = collection;
+  ob->empty_drawsize = U.collection_instance_empty_size;
+  ob->transflag |= OB_DUPLICOLLECTION;
+  id_us_plus(&collection->id);
+
+  /* works without this except if you try render right after, see: 22027 */
+  DEG_relations_tag_update(bmain);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+  WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
+  WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
+
+  return OPERATOR_FINISHED;
 }
 
 /* only used as menu */
