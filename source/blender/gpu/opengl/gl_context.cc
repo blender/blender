@@ -161,6 +161,22 @@ void GLContext::deactivate(void)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Flush, Finish & sync
+ * \{ */
+
+void GLContext::flush(void)
+{
+  glFlush();
+}
+
+void GLContext::finish(void)
+{
+  glFinish();
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Safe object deletion
  *
  * GPU objects can be freed when the context is not bound.

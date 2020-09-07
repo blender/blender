@@ -97,6 +97,10 @@ class GLContext : public GPUContext {
 
   void activate(void) override;
   void deactivate(void) override;
+
+  void flush(void);
+  void finish(void);
+
   void memory_statistics_get(int *total_mem, int *free_mem) override;
 
   static inline GLStateManager *state_manager_active_get()

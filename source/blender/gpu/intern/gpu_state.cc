@@ -295,12 +295,12 @@ bool GPU_mipmap_enabled(void)
 
 void GPU_flush(void)
 {
-  glFlush();
+  GPU_context_active_get()->flush();
 }
 
 void GPU_finish(void)
 {
-  glFinish();
+  GPU_context_active_get()->finish();
 }
 
 void GPU_unpack_row_length_set(uint len)
