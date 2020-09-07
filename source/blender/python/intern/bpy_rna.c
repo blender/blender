@@ -219,10 +219,10 @@ static void value_id_set(void *id)
 }
 
 static void id_release_weakref_list(struct ID *id, GHash *weakinfo_hash);
-static PyObject *id_free_weakref_cb(PyObject *weakinfo_capsule, PyObject *weakref)
+static PyObject *id_free_weakref_cb(PyObject *weakinfo_pair, PyObject *weakref)
 {
   /* Important to search backwards. */
-  GHash *weakinfo_hash = PyCapsule_GetPointer(weakinfo_capsule, NULL);
+  GHash *weakinfo_hash = PyCapsule_GetPointer(weakinfo_pair, NULL);
 
   if (BLI_ghash_len(weakinfo_hash) > 1) {
     BLI_ghash_remove(weakinfo_hash, weakref, NULL, NULL);
