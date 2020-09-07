@@ -87,6 +87,7 @@ set(SRC
   intern/gpu_vertex_format.cc
   intern/gpu_viewport.c
 
+  opengl/gl_backend.cc
   opengl/gl_batch.cc
   opengl/gl_context.cc
   opengl/gl_drawlist.cc
@@ -143,6 +144,7 @@ set(SRC
   intern/gpu_matrix_private.h
   intern/gpu_node_graph.h
   intern/gpu_private.h
+  intern/gpu_platform_private.hh
   intern/gpu_select_private.h
   intern/gpu_shader_private.hh
   intern/gpu_shader_interface.hh

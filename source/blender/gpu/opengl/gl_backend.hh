@@ -47,11 +47,16 @@ class GLBackend : public GPUBackend {
  public:
   GLBackend()
   {
+    /* platform_init needs to go first. */
+    GLBackend::platform_init();
+
     GLTexture::samplers_init();
   }
   ~GLBackend()
   {
     GLTexture::samplers_free();
+
+    GLBackend::platform_exit();
   }
 
   static GLBackend *get(void)
@@ -118,6 +123,10 @@ class GLBackend : public GPUBackend {
     orphan_list.append(id);
     list_mutex.unlock();
   }
+
+ private:
+  static void platform_init(void);
+  static void platform_exit(void);
 };
 
 }  // namespace gpu
