@@ -166,6 +166,8 @@ class GPUStateManager {
   virtual void texture_bind(Texture *tex, eGPUSamplerState sampler, int unit) = 0;
   virtual void texture_unbind(Texture *tex) = 0;
   virtual void texture_unbind_all(void) = 0;
+
+  virtual void texture_unpack_row_length_set(uint len) = 0;
 };
 
 }  // namespace gpu

@@ -228,6 +228,7 @@ void GPU_texture_update_sub(GPUTexture *tex,
                             int width,
                             int height,
                             int depth);
+void GPU_unpack_row_length_set(uint len);
 
 void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat data_format, int miplvl);
 void GPU_texture_clear(GPUTexture *tex, eGPUDataFormat data_format, const void *data);

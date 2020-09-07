@@ -303,11 +303,6 @@ void GPU_finish(void)
   GPU_context_active_get()->finish();
 }
 
-void GPU_unpack_row_length_set(uint len)
-{
-  glPixelStorei(GL_UNPACK_ROW_LENGTH, len);
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */

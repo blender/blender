@@ -520,6 +520,11 @@ void GLStateManager::texture_bind_apply(void)
   }
 }
 
+void GLStateManager::texture_unpack_row_length_set(uint len)
+{
+  glPixelStorei(GL_UNPACK_ROW_LENGTH, len);
+}
+
 uint64_t GLStateManager::bound_texture_slots(void)
 {
   uint64_t bound_slots = 0;

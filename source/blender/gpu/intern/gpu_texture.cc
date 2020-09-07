@@ -380,6 +380,13 @@ void GPU_texture_update(GPUTexture *tex, eGPUDataFormat data_format, const void 
   reinterpret_cast<Texture *>(tex)->update(data_format, data);
 }
 
+/* Makes data interpretation aware of the source layout.
+ * Skipping pixels correctly when changing rows when doing partial update.*/
+void GPU_unpack_row_length_set(uint len)
+{
+  GPU_context_active_get()->state_manager->texture_unpack_row_length_set(len);
+}
+
 void GPU_invalid_tex_init(void)
 {
   /* TODO remove */
