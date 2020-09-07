@@ -1154,7 +1154,8 @@ static void sculpt_geometry_preview_lines_draw(const uint gpuattr,
   if (ss->preview_vert_index_count > 0) {
     immBegin(GPU_PRIM_LINES, ss->preview_vert_index_count);
     for (int i = 0; i < ss->preview_vert_index_count; i++) {
-      immVertex3fv(gpuattr, SCULPT_vertex_co_get(ss, ss->preview_vert_index_list[i]));
+      immVertex3fv(gpuattr,
+                   SCULPT_vertex_co_for_grab_active_get(ss, ss->preview_vert_index_list[i]));
     }
     immEnd();
   }
@@ -1572,7 +1573,14 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
 
   /* Cursor location symmetry points. */
 
-  const float *active_vertex_co = SCULPT_active_vertex_co_get(pcontext->ss);
+  const float *active_vertex_co;
+  if (brush->sculpt_tool == SCULPT_TOOL_GRAB && brush->flag & BRUSH_GRAB_ACTIVE_VERTEX) {
+    active_vertex_co = SCULPT_vertex_co_for_grab_active_get(
+        pcontext->ss, SCULPT_active_vertex_get(pcontext->ss));
+  }
+  else {
+    active_vertex_co = SCULPT_active_vertex_co_get(pcontext->ss);
+  }
   if (len_v3v3(active_vertex_co, pcontext->location) < pcontext->radius) {
     immUniformColor3fvAlpha(pcontext->outline_col, pcontext->outline_alpha);
     cursor_draw_point_with_symmetry(pcontext->pos,

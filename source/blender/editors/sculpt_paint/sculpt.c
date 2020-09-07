@@ -204,6 +204,14 @@ const float *SCULPT_vertex_persistent_co_get(SculptSession *ss, int index)
   return SCULPT_vertex_co_get(ss, index);
 }
 
+const float *SCULPT_vertex_co_for_grab_active_get(SculptSession *ss, int index)
+{
+  if (ss->mvert) {
+    return ss->mvert[index].co;
+  }
+  return SCULPT_vertex_co_get(ss, index);
+}
+
 void SCULPT_vertex_limit_surface_get(SculptSession *ss, int index, float r_co[3])
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
@@ -6694,7 +6702,8 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
 
     if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
       if (tool == SCULPT_TOOL_GRAB && brush->flag & BRUSH_GRAB_ACTIVE_VERTEX) {
-        copy_v3_v3(cache->orig_grab_location, SCULPT_active_vertex_co_get(ss));
+        copy_v3_v3(cache->orig_grab_location,
+                   SCULPT_vertex_co_for_grab_active_get(ss, SCULPT_active_vertex_get(ss)));
       }
       else {
         copy_v3_v3(cache->orig_grab_location, cache->true_location);
@@ -8366,7 +8375,7 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
         totpoints++;
         if (!BLI_BITMAP_TEST(visited_vertices, to_v)) {
           BLI_BITMAP_ENABLE(visited_vertices, to_v);
-          const float *co = SCULPT_vertex_co_get(ss, to_v);
+          const float *co = SCULPT_vertex_co_for_grab_active_get(ss, to_v);
           if (len_squared_v3v3(brush_co, co) < radius * radius) {
             BLI_gsqueue_push(not_visited_vertices, &to_v);
           }
