@@ -124,6 +124,7 @@ static void workbench_render_result_z(struct RenderLayer *rl,
                                rect->ymin,
                                BLI_rcti_size_x(rect),
                                BLI_rcti_size_y(rect),
+                               GPU_DATA_FLOAT,
                                rp->rect);
 
     float winmat[4][4];

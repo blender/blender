@@ -2157,8 +2157,13 @@ static void view3d_opengl_read_Z_pixels(GPUViewport *viewport, rcti *rect, void 
   GPU_framebuffer_texture_attach(tmp_fb, dtxl->depth, 0, 0);
   GPU_framebuffer_bind(tmp_fb);
 
-  GPU_framebuffer_read_depth(
-      tmp_fb, rect->xmin, rect->ymin, BLI_rcti_size_x(rect), BLI_rcti_size_y(rect), data);
+  GPU_framebuffer_read_depth(tmp_fb,
+                             rect->xmin,
+                             rect->ymin,
+                             BLI_rcti_size_x(rect),
+                             BLI_rcti_size_y(rect),
+                             GPU_DATA_FLOAT,
+                             data);
 
   GPU_framebuffer_restore();
   GPU_framebuffer_free(tmp_fb);

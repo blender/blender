@@ -393,10 +393,11 @@ void GPU_clear_depth(float depth)
   GPU_context_active_get()->active_fb->clear(GPU_DEPTH_BIT, clear_col, depth, 0x0);
 }
 
-void GPU_framebuffer_read_depth(GPUFrameBuffer *gpu_fb, int x, int y, int w, int h, float *data)
+void GPU_framebuffer_read_depth(
+    GPUFrameBuffer *gpu_fb, int x, int y, int w, int h, eGPUDataFormat format, void *data)
 {
   int rect[4] = {x, y, w, h};
-  reinterpret_cast<FrameBuffer *>(gpu_fb)->read(GPU_DEPTH_BIT, GPU_DATA_FLOAT, rect, 1, 1, data);
+  reinterpret_cast<FrameBuffer *>(gpu_fb)->read(GPU_DEPTH_BIT, format, rect, 1, 1, data);
 }
 
 void GPU_framebuffer_read_color(GPUFrameBuffer *gpu_fb,
