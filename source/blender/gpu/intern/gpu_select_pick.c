@@ -346,16 +346,9 @@ void gpu_select_pick_begin(uint (*buffer)[4], uint bufsize, const rcti *input, c
     ps->gl.rect_depth = depth_buf_malloc(rect_len);
 
     /* set initial 'far' value */
-#if 0
-    glReadPixels(UNPACK4(ps->gl.clip_readpixels),
-                 GL_DEPTH_COMPONENT,
-                 GL_UNSIGNED_INT,
-                 ps->gl.rect_depth->buf);
-#else
     for (uint i = 0; i < rect_len; i++) {
       ps->gl.rect_depth->buf[i] = DEPTH_MAX;
     }
-#endif
 
     ps->gl.is_init = false;
     ps->gl.prev_id = 0;
@@ -486,10 +479,9 @@ bool gpu_select_pick_load_id(uint id, bool end)
     }
 
     const uint rect_len = ps->src.rect_len;
-    glReadPixels(UNPACK4(ps->gl.clip_readpixels),
-                 GL_DEPTH_COMPONENT,
-                 GL_UNSIGNED_INT,
-                 ps->gl.rect_depth_test->buf);
+    GPUFrameBuffer *fb = GPU_framebuffer_active_get();
+    GPU_framebuffer_read_depth(
+        fb, UNPACK4(ps->gl.clip_readpixels), GPU_DATA_UNSIGNED_INT, ps->gl.rect_depth_test->buf);
     /* perform initial check since most cases the array remains unchanged  */
 
     bool do_pass = false;
