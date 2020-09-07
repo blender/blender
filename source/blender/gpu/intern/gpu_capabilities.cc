@@ -143,9 +143,7 @@ void GPU_mem_stats_get(int *totalmem, int *freemem)
 /* Return support for the active context + window. */
 bool GPU_stereo_quadbuffer_support(void)
 {
-  GLboolean stereo = GL_FALSE;
-  glGetBooleanv(GL_STEREO, &stereo);
-  return stereo == GL_TRUE;
+  return GPU_context_active_get()->front_right != nullptr;
 }
 
 /** \} */
