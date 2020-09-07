@@ -409,9 +409,9 @@ static bool lib_override_hierarchy_recursive_tag(Main *bmain,
  *
  * This will include all local IDs, and all IDs from the same library as the \a id_root.
  *
- * \param id_root The root of the hierarchy of dependencies to be tagged.
- * \param do_create_main_relashionships Whether main relations needs to be created or already exist
- *                                      (in any case, they will be freed by this function).
+ * \param id_root: The root of the hierarchy of dependencies to be tagged.
+ * \param do_create_main_relashionships: Whether main relations needs to be created or already
+ * exist (in any case, they will be freed by this function).
  */
 void BKE_lib_override_library_dependencies_tag(Main *bmain,
                                                ID *id_root,
@@ -435,9 +435,9 @@ void BKE_lib_override_library_dependencies_tag(Main *bmain,
  * That is, all other liboverrides IDs (in)directly used by \a is_root one, sharing the same
  * library for their reference IDs.
  *
- * \param id_root The root of the hierarchy of liboverride dependencies to be tagged.
- * \param do_create_main_relashionships Whether main relations needs to be created or already exist
- *                                      (in any case, they will be freed by this function).
+ * \param id_root: The root of the hierarchy of liboverride dependencies to be tagged.
+ * \param do_create_main_relashionships: Whether main relations needs to be created or already
+ * exist (in any case, they will be freed by this function).
  */
 void BKE_lib_override_library_override_group_tag(Main *bmain,
                                                  ID *id_root,
@@ -640,10 +640,10 @@ static void lib_override_library_create_post_process(
  * \note In the future that same function may be extended to support 'refresh' of overrides
  * (rebuilding overrides from linked data, trying to preserve local overrides already defined).
  *
- * \param id_root The root ID to create an override from.
- * \param id_reference some reference ID used to do some post-processing after overrides have been
- *                     created, may be NULL. Typically, the Empty object instantiating the linked
- *                     collection we override, currently.
+ * \param id_root: The root ID to create an override from.
+ * \param id_reference: Some reference ID used to do some post-processing after overrides have been
+ * created, may be NULL. Typically, the Empty object instantiating the linked
+ * collection we override, currently.
  * \return true if override was successfully created.
  */
 bool BKE_lib_override_library_create(
@@ -668,7 +668,7 @@ bool BKE_lib_override_library_create(
  * Advanced 'smart' function to resync, re-create fully functional overrides up-to-date with linked
  * data, from an existing override hierarchy.
  *
- * \param id_root The root liboverride ID to resync from.
+ * \param id_root: The root liboverride ID to resync from.
  * \return true if override was successfully resynced.
  */
 bool BKE_lib_override_library_resync(Main *bmain, Scene *scene, ViewLayer *view_layer, ID *id_root)
@@ -790,7 +790,7 @@ bool BKE_lib_override_library_resync(Main *bmain, Scene *scene, ViewLayer *view_
  *
  * \note All IDs tagged with `LIB_TAG_DOIT` will be deleted.
  *
- * \param id_root The root liboverride ID to resync from.
+ * \param id_root: The root liboverride ID to resync from.
  */
 void BKE_lib_override_library_delete(Main *bmain, ID *id_root)
 {

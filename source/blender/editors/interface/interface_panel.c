@@ -2074,7 +2074,7 @@ static void ui_panel_drag_collapse_handler_add(const bContext *C, const bool was
  * Supposing the block has a panel and isn't a menu, handle opening, closing, pinning, etc.
  * Code currently assumes layout style for location of widgets
  *
- * \param mx The mouse x coordinate, in panel space.
+ * \param mx: The mouse x coordinate, in panel space.
  */
 static void ui_handle_panel_header(const bContext *C,
                                    uiBlock *block,

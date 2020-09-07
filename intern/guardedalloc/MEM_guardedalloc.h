@@ -165,7 +165,7 @@ extern void (*MEM_set_error_callback)(void (*func)(const char *));
 /**
  * Are the start/end block markers still correct ?
  *
- * @retval true for correct memory, false for corrupted memory. */
+ * \retval true for correct memory, false for corrupted memory. */
 extern bool (*MEM_consistency_check)(void);
 
 /** Attempt to enforce OSX (or other OS's) to have malloc and stack nonzero */

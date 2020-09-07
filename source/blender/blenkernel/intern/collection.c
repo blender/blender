@@ -1182,10 +1182,10 @@ static bool collection_instance_find_recursive(Collection *collection,
 /**
  * Find potential cycles in collections.
  *
- * \param new_ancestor the potential new owner of given \a collection, or the collection to check
- *                     if the later is NULL.
- * \param collection the collection we want to add to \a new_ancestor, may be NULL if we just want
- *                   to ensure \a new_ancestor does not already have cycles.
+ * \param new_ancestor: the potential new owner of given \a collection,
+ * or the collection to check if the later is NULL.
+ * \param collection: the collection we want to add to \a new_ancestor,
+ * may be NULL if we just want to ensure \a new_ancestor does not already have cycles.
  * \return true if a cycle is found.
  */
 bool BKE_collection_cycle_find(Collection *new_ancestor, Collection *collection)
@@ -1254,7 +1254,7 @@ static bool collection_cycle_fix_recursive(Main *bmain,
 /**
  * Find and fix potential cycles in collections.
  *
- * \param collection the collection to check for existing cycles.
+ * \param collection: The collection to check for existing cycles.
  * \return true if cycles are found and fixed.
  */
 bool BKE_collection_cycles_fix(Main *bmain, Collection *collection)

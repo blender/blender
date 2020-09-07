@@ -1099,7 +1099,7 @@ double bUnit_ApplyPreferredUnit(const struct UnitSettings *settings, int type, d
  * Values will be split by an add sign.
  * 5'2" -> 5*0.3048 + 2*0.0254
  *
- * \param str_prev is optional, when valid it is used to get a base unit when none is set.
+ * \param str_prev: is optional, when valid it is used to get a base unit when none is set.
  *
  * \return True of a change was made.
  */
