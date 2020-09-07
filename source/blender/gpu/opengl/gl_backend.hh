@@ -50,6 +50,7 @@ class GLBackend : public GPUBackend {
     /* platform_init needs to go first. */
     GLBackend::platform_init();
 
+    GLBackend::capabilities_init();
     GLTexture::samplers_init();
   }
   ~GLBackend()
@@ -127,6 +128,8 @@ class GLBackend : public GPUBackend {
  private:
   static void platform_init(void);
   static void platform_exit(void);
+
+  static void capabilities_init(void);
 };
 
 }  // namespace gpu

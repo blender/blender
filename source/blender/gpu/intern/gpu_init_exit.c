@@ -48,7 +48,6 @@ void GPU_init(void)
   }
 
   initialized = true;
-  gpu_extensions_init(); /* must come first */
 
   gpu_codegen_init();
   gpu_material_library_init();
@@ -78,8 +77,6 @@ void GPU_exit(void)
 
   gpu_material_library_exit();
   gpu_codegen_exit();
-
-  gpu_extensions_exit();
 
   initialized = false;
 }

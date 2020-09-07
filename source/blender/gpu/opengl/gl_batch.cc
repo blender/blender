@@ -34,6 +34,7 @@
 #include "gpu_batch_private.hh"
 #include "gpu_shader_private.hh"
 
+#include "gl_backend.hh"
 #include "gl_context.hh"
 #include "gl_debug.hh"
 #include "gl_index_buffer.hh"
@@ -314,7 +315,7 @@ void GLBatch::bind(int i_first)
 #endif
 
   /* Can be removed if GL 4.2 is required. */
-  if (!GPU_arb_base_instance_is_supported() && (i_first > 0)) {
+  if (!GLContext::base_instance_support && (i_first > 0)) {
     glBindVertexArray(vao_cache_.base_instance_vao_get(this, i_first));
   }
   else {
@@ -339,7 +340,7 @@ void GLBatch::draw(int v_first, int v_count, int i_first, int i_count)
     GLint base_index = el->index_base_;
     void *v_first_ofs = el->offset_ptr(v_first);
 
-    if (GPU_arb_base_instance_is_supported()) {
+    if (GLContext::base_instance_support) {
       glDrawElementsInstancedBaseVertexBaseInstance(
           gl_type, v_count, index_type, v_first_ofs, i_count, base_index, i_first);
     }
@@ -353,7 +354,7 @@ void GLBatch::draw(int v_first, int v_count, int i_first, int i_count)
 #ifdef __APPLE__
     glDisable(GL_PRIMITIVE_RESTART);
 #endif
-    if (GPU_arb_base_instance_is_supported()) {
+    if (GLContext::base_instance_support) {
       glDrawArraysInstancedBaseInstance(gl_type, v_first, v_count, i_count, i_first);
     }
     else {

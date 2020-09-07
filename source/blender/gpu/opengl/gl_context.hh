@@ -55,6 +55,19 @@ class GLSharedOrphanLists {
 
 class GLContext : public GPUContext {
  public:
+  /** Capabilities. */
+  static GLint max_texture_3d_size;
+  static GLint max_cubemap_size;
+  static GLint max_ubo_size;
+  static GLint max_ubo_binds;
+  /** Extensions. */
+  static bool base_instance_support;
+  static bool texture_cube_map_array_support;
+  /** Workarounds. */
+  static bool texture_copy_workaround;
+  static bool unused_fb_slot_workaround;
+  static float derivative_signs[2];
+
   /** Used for debugging purpose. Bitflags of all bound slots. */
   uint16_t bound_ubo_slots;
 

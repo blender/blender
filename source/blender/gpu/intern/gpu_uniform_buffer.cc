@@ -47,7 +47,6 @@ UniformBuf::UniformBuf(size_t size, const char *name)
 {
   /* Make sure that UBO is padded to size of vec4 */
   BLI_assert((size % 16) == 0);
-  BLI_assert(size <= GPU_max_ubo_size());
 
   size_in_bytes_ = size;
 

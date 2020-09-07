@@ -76,7 +76,7 @@ GLDrawList::GLDrawList(int length)
   data_ = NULL;
 
   if (USE_MULTI_DRAW_INDIRECT && GLEW_ARB_multi_draw_indirect &&
-      GPU_arb_base_instance_is_supported()) {
+      GLContext::base_instance_support) {
     /* Alloc the biggest possible command list, which is indexed. */
     buffer_size_ = sizeof(GLDrawCommandIndexed) * length;
   }

@@ -24,10 +24,6 @@
 extern "C" {
 #endif
 
-/* call this before running any of the functions below */
-void gpu_extensions_init(void);
-void gpu_extensions_exit(void);
-
 /* gpu_pbvh.c */
 void gpu_pbvh_init(void);
 void gpu_pbvh_exit(void);

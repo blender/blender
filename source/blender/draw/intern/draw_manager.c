@@ -2496,11 +2496,6 @@ void DRW_draw_depth_object(
 /** \name Draw Manager State (DRW_state)
  * \{ */
 
-void DRW_state_dfdy_factors_get(float dfdyfac[2])
-{
-  GPU_get_dfdy_factors(dfdyfac);
-}
-
 /**
  * When false, drawing doesn't output to a pixel buffer
  * eg: Occlusion queries, or when we have setup a context to draw in already.

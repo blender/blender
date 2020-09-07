@@ -41,14 +41,10 @@ int GPU_max_color_texture_samples(void);
 int GPU_max_cube_map_size(void);
 int GPU_max_ubo_binds(void);
 int GPU_max_ubo_size(void);
-void GPU_get_dfdy_factors(float fac[2]);
-bool GPU_arb_base_instance_is_supported(void);
 bool GPU_arb_texture_cube_map_array_is_supported(void);
 bool GPU_mip_render_workaround(void);
 bool GPU_depth_blitting_workaround(void);
-bool GPU_unused_fb_slot_workaround(void);
 bool GPU_use_main_context_workaround(void);
-bool GPU_texture_copy_workaround(void);
 bool GPU_crappy_amd_driver(void);
 
 int GPU_texture_size_with_limit(int res);

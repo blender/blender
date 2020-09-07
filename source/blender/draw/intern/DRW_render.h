@@ -721,7 +721,6 @@ void DRW_state_lock(DRWState state);
 void DRW_select_load_id(uint id);
 
 /* Draw State */
-void DRW_state_dfdy_factors_get(float dfdyfac[2]);
 bool DRW_state_is_fbo(void);
 bool DRW_state_is_select(void);
 bool DRW_state_is_depth(void);

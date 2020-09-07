@@ -28,6 +28,7 @@
 #include "GPU_extensions.h"
 #include "GPU_platform.h"
 
+#include "gl_backend.hh"
 #include "gl_vertex_buffer.hh"
 
 #include "gl_shader.hh"
@@ -118,10 +119,8 @@ char *GLShader::glsl_patch_get(void)
   }
 
   /* Derivative sign can change depending on implementation. */
-  float derivatives[2];
-  GPU_get_dfdy_factors(derivatives);
-  STR_CONCATF(patch, slen, "#define DFDX_SIGN %1.1f\n", derivatives[0]);
-  STR_CONCATF(patch, slen, "#define DFDY_SIGN %1.1f\n", derivatives[1]);
+  STR_CONCATF(patch, slen, "#define DFDX_SIGN %1.1f\n", GLContext::derivative_signs[0]);
+  STR_CONCATF(patch, slen, "#define DFDY_SIGN %1.1f\n", GLContext::derivative_signs[1]);
 
   BLI_assert(slen < sizeof(patch));
   return patch;

@@ -369,7 +369,7 @@ void GLTexture::copy_to(Texture *dst_)
   /* TODO support array / 3D textures. */
   BLI_assert(dst->d_ == 0);
 
-  if (GLEW_ARB_copy_image && !GPU_texture_copy_workaround()) {
+  if (GLEW_ARB_copy_image && !GLContext::texture_copy_workaround) {
     /* Opengl 4.3 */
     int mip = 0;
     /* NOTE: mip_size_get() won't override any dimension that is equal to 0. */
@@ -560,8 +560,8 @@ bool GLTexture::proxy_check(int mip)
 {
   /* Manual validation first, since some implementation have issues with proxy creation. */
   int max_size = GPU_max_texture_size();
-  int max_3d_size = GPU_max_texture_3d_size();
-  int max_cube_size = GPU_max_cube_map_size();
+  int max_3d_size = GLContext::max_texture_3d_size;
+  int max_cube_size = GLContext::max_cubemap_size;
   int size[3] = {1, 1, 1};
   this->mip_size_get(mip, size);
 

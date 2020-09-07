@@ -208,7 +208,7 @@ void GLFrameBuffer::update_attachments(void)
     }
   }
 
-  if (GPU_unused_fb_slot_workaround()) {
+  if (GLContext::unused_fb_slot_workaround) {
     /* Fill normally un-occupied slots to avoid rendering artifacts on some hardware. */
     GLuint gl_tex = 0;
     /* NOTE: Inverse iteration to get the first color texture. */
