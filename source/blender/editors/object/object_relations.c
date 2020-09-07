@@ -954,58 +954,104 @@ static void parent_set_vert_find(KDTree_3d *tree, Object *child, int vert_par[3]
   }
 }
 
+struct ParentingContext {
+  ReportList *reports;
+  Scene *scene;
+  Object *par;
+  int partype;
+  bool is_vertex_tri;
+  bool xmirror;
+  bool keep_transform;
+};
+
+static bool parent_set_nonvertex_parent(bContext *C, struct ParentingContext *parenting_context)
+{
+  CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
+    if (!ED_object_parent_set(parenting_context->reports,
+                              C,
+                              parenting_context->scene,
+                              ob,
+                              parenting_context->par,
+                              parenting_context->partype,
+                              parenting_context->xmirror,
+                              parenting_context->keep_transform,
+                              NULL)) {
+      return false;
+    }
+  }
+  CTX_DATA_END;
+
+  return true;
+}
+
+static bool parent_set_vertex_parent_with_kdtree(bContext *C,
+                                                 struct ParentingContext *parenting_context,
+                                                 struct KDTree_3d *tree)
+{
+  int vert_par[3] = {0, 0, 0};
+
+  CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
+    parent_set_vert_find(tree, ob, vert_par, parenting_context->is_vertex_tri);
+    if (!ED_object_parent_set(parenting_context->reports,
+                              C,
+                              parenting_context->scene,
+                              ob,
+                              parenting_context->par,
+                              parenting_context->partype,
+                              parenting_context->xmirror,
+                              parenting_context->keep_transform,
+                              vert_par)) {
+      return false;
+    }
+  }
+  CTX_DATA_END;
+  return true;
+}
+
+static bool parent_set_vertex_parent(bContext *C, struct ParentingContext *parenting_context)
+{
+  struct KDTree_3d *tree = NULL;
+  int tree_tot;
+
+  tree = BKE_object_as_kdtree(parenting_context->par, &tree_tot);
+  BLI_assert(tree != NULL);
+
+  if (tree_tot < (parenting_context->is_vertex_tri ? 3 : 1)) {
+    BKE_report(parenting_context->reports, RPT_ERROR, "Not enough vertices for vertex-parent");
+    BLI_kdtree_3d_free(tree);
+    return false;
+  }
+
+  const bool ok = parent_set_vertex_parent_with_kdtree(C, parenting_context, tree);
+  BLI_kdtree_3d_free(tree);
+  return ok;
+}
+
 static int parent_set_exec(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
-  Object *par = ED_object_active_context(C);
-  int partype = RNA_enum_get(op->ptr, "type");
-  const bool xmirror = RNA_boolean_get(op->ptr, "xmirror");
-  const bool keep_transform = RNA_boolean_get(op->ptr, "keep_transform");
-  bool ok = true;
+  const int partype = RNA_enum_get(op->ptr, "type");
+  struct ParentingContext parenting_context = {
+      .reports = op->reports,
+      .scene = CTX_data_scene(C),
+      .par = ED_object_active_context(C),
+      .partype = partype,
+      .is_vertex_tri = partype == PAR_VERTEX_TRI,
+      .xmirror = RNA_boolean_get(op->ptr, "xmirror"),
+      .keep_transform = RNA_boolean_get(op->ptr, "keep_transform"),
+  };
 
-  /* vertex parent (kdtree) */
-  const bool is_vert_par = ELEM(partype, PAR_VERTEX, PAR_VERTEX_TRI);
-  const bool is_tri = partype == PAR_VERTEX_TRI;
-  int tree_tot;
-  struct KDTree_3d *tree = NULL;
-  int vert_par[3] = {0, 0, 0};
-  const int *vert_par_p = is_vert_par ? vert_par : NULL;
-
-  if (is_vert_par) {
-    tree = BKE_object_as_kdtree(par, &tree_tot);
-    BLI_assert(tree != NULL);
-
-    if (tree_tot < (is_tri ? 3 : 1)) {
-      BKE_report(op->reports, RPT_ERROR, "Not enough vertices for vertex-parent");
-      ok = false;
-    }
+  bool ok;
+  if (ELEM(parenting_context.partype, PAR_VERTEX, PAR_VERTEX_TRI)) {
+    ok = parent_set_vertex_parent(C, &parenting_context);
   }
-
-  if (ok) {
-    /* Non vertex-parent */
-    CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
-      if (is_vert_par) {
-        parent_set_vert_find(tree, ob, vert_par, is_tri);
-      }
-
-      if (!ED_object_parent_set(
-              op->reports, C, scene, ob, par, partype, xmirror, keep_transform, vert_par_p)) {
-        ok = false;
-        break;
-      }
-    }
-    CTX_DATA_END;
+  else {
+    ok = parent_set_nonvertex_parent(C, &parenting_context);
   }
-
-  if (is_vert_par) {
-    BLI_kdtree_3d_free(tree);
-  }
-
   if (!ok) {
     return OPERATOR_CANCELLED;
   }
 
+  Main *bmain = CTX_data_main(C);
   DEG_relations_tag_update(bmain);
   WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
   WM_event_add_notifier(C, NC_OBJECT | ND_PARENT, NULL);
