@@ -25,8 +25,8 @@ __all__ = (
 
 
 import sys
-if not sys.version.startswith("3"):
-    print("\nPython3.x needed, found %s.\nAborting!\n" %
+if not sys.version_info.major < 3:
+    print("\nPython3.x or newer needed, found %s.\nAborting!\n" %
           sys.version.partition(" ")[0])
     sys.exit(1)
 

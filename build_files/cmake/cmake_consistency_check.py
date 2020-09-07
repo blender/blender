@@ -21,7 +21,7 @@
 # <pep8 compliant>
 
 import sys
-if not sys.version.startswith("3"):
+if sys.version_info.major < 3:
     print("\nPython3.x needed, found %s.\nAborting!\n" %
           sys.version.partition(" ")[0])
     sys.exit(1)
