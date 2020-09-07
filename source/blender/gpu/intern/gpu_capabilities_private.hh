@@ -41,12 +41,13 @@ struct GPUCapabilities {
   int max_textures_vert = 0;
   int max_textures_geom = 0;
   int max_textures_frag = 0;
-
+  bool mem_stats_support = false;
   /* OpenGL related workarounds. */
   bool mip_render_workaround = false;
   bool depth_blitting_workaround = false;
   bool use_main_context_workaround = false;
   bool broken_amd_driver = false;
+  /* Vulkan related workarounds. */
 };
 
 extern GPUCapabilities GCaps;

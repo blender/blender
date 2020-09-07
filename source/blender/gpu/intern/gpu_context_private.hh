@@ -76,6 +76,7 @@ struct GPUContext {
 
   virtual void activate(void) = 0;
   virtual void deactivate(void) = 0;
+  virtual void memory_statistics_get(int *total_mem, int *free_mem) = 0;
 
   bool is_active_on_thread(void);
 

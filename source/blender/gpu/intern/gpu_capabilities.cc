@@ -28,9 +28,9 @@
 
 #include "GPU_capabilities.h"
 
-#include "gpu_capabilities_private.hh"
+#include "gpu_context_private.hh"
 
-#include "gl_backend.hh" /* TODO remove */
+#include "gpu_capabilities_private.hh"
 
 namespace blender::gpu {
 
@@ -110,34 +110,12 @@ bool GPU_crappy_amd_driver(void)
 
 bool GPU_mem_stats_supported(void)
 {
-#ifndef GPU_STANDALONE
-  return (GLEW_NVX_gpu_memory_info || GLEW_ATI_meminfo);
-#else
-  return false;
-#endif
+  return GCaps.mem_stats_support;
 }
 
 void GPU_mem_stats_get(int *totalmem, int *freemem)
 {
-  /* TODO(merwin): use Apple's platform API to get this info */
-
-  if (GLEW_NVX_gpu_memory_info) {
-    /* returned value in Kb */
-    glGetIntegerv(GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, totalmem);
-
-    glGetIntegerv(GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, freemem);
-  }
-  else if (GLEW_ATI_meminfo) {
-    int stats[4];
-
-    glGetIntegerv(GL_TEXTURE_FREE_MEMORY_ATI, stats);
-    *freemem = stats[0];
-    *totalmem = 0;
-  }
-  else {
-    *totalmem = 0;
-    *freemem = 0;
-  }
+  GPU_context_active_get()->memory_statistics_get(totalmem, freemem);
 }
 
 /* Return support for the active context + window. */
