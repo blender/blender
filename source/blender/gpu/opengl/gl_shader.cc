@@ -113,7 +113,7 @@ char *GLShader::glsl_patch_get(void)
     STR_CONCAT(patch, slen, "#extension GL_ARB_shader_draw_parameters : enable\n");
     STR_CONCAT(patch, slen, "#define GPU_ARB_shader_draw_parameters\n");
   }
-  if (GPU_arb_texture_cube_map_array_is_supported()) {
+  if (GLContext::texture_cube_map_array_support) {
     STR_CONCAT(patch, slen, "#extension GL_ARB_texture_cube_map_array : enable\n");
     STR_CONCAT(patch, slen, "#define GPU_ARB_texture_cube_map_array\n");
   }

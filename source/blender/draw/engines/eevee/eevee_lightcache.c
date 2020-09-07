@@ -348,17 +348,14 @@ LightCache *EEVEE_lightcache_create(const int grid_len,
 
   int mips_len = log2_floor_u(cube_size) - MIN_CUBE_LOD_LEVEL;
 
-  if (GPU_arb_texture_cube_map_array_is_supported()) {
-    light_cache->cube_tx.tex = DRW_texture_create_cube_array(
-        cube_size, cube_len, GPU_R11F_G11F_B10F, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
-  }
-  else {
-    light_cache->cube_tx.tex = DRW_texture_create_2d_array(cube_size,
-                                                           cube_size,
-                                                           cube_len * 6,
-                                                           GPU_R11F_G11F_B10F,
-                                                           DRW_TEX_FILTER | DRW_TEX_MIPMAP,
-                                                           NULL);
+  /* Try to create a cubemap array. */
+  DRWTextureFlag cube_texflag = DRW_TEX_FILTER | DRW_TEX_MIPMAP;
+  light_cache->cube_tx.tex = DRW_texture_create_cube_array(
+      cube_size, cube_len, GPU_R11F_G11F_B10F, cube_texflag, NULL);
+  if (light_cache->cube_tx.tex == NULL) {
+    /* Try fallback to 2D array. */
+    light_cache->cube_tx.tex = DRW_texture_create_2d_array(
+        cube_size, cube_size, cube_len * 6, GPU_R11F_G11F_B10F, cube_texflag, NULL);
   }
 
   light_cache->cube_tx.tex_size[0] = cube_size;
@@ -414,15 +411,16 @@ static bool eevee_lightcache_static_load(LightCache *lcache)
   }
 
   if (lcache->cube_tx.tex == NULL) {
-    if (GPU_arb_texture_cube_map_array_is_supported()) {
-      lcache->cube_tx.tex = GPU_texture_create_cube_array("lightcache_cubemaps",
-                                                          lcache->cube_tx.tex_size[0],
-                                                          lcache->cube_tx.tex_size[2] / 6,
-                                                          lcache->mips_len + 1,
-                                                          GPU_R11F_G11F_B10F,
-                                                          NULL);
-    }
-    else {
+    /* Try to create a cubemap array. */
+    lcache->cube_tx.tex = GPU_texture_create_cube_array("lightcache_cubemaps",
+                                                        lcache->cube_tx.tex_size[0],
+                                                        lcache->cube_tx.tex_size[2] / 6,
+                                                        lcache->mips_len + 1,
+                                                        GPU_R11F_G11F_B10F,
+                                                        NULL);
+
+    if (lcache->cube_tx.tex == NULL) {
+      /* Try fallback to 2D array. */
       lcache->cube_tx.tex = GPU_texture_create_2d_array("lightcache_cubemaps_fallback",
                                                         UNPACK3(lcache->cube_tx.tex_size),
                                                         lcache->mips_len + 1,

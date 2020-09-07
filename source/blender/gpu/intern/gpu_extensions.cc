@@ -81,12 +81,6 @@ int GPU_max_textures(void)
   return GCaps.max_textures;
 }
 
-bool GPU_arb_texture_cube_map_array_is_supported(void)
-{
-  /* FIXME bad level call. */
-  return GLContext::texture_cube_map_array_support;
-}
-
 bool GPU_mip_render_workaround(void)
 {
   return GCaps.mip_render_workaround;

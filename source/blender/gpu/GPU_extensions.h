@@ -41,7 +41,6 @@ int GPU_max_color_texture_samples(void);
 int GPU_max_cube_map_size(void);
 int GPU_max_ubo_binds(void);
 int GPU_max_ubo_size(void);
-bool GPU_arb_texture_cube_map_array_is_supported(void);
 bool GPU_mip_render_workaround(void);
 bool GPU_depth_blitting_workaround(void);
 bool GPU_use_main_context_workaround(void);

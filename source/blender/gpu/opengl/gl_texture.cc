@@ -71,8 +71,9 @@ bool GLTexture::init_internal(void)
     format_ = GPU_DEPTH32F_STENCIL8;
   }
 
-  if ((type_ == GPU_TEXTURE_CUBE_ARRAY) && !GPU_arb_texture_cube_map_array_is_supported()) {
-    debug::raise_gl_error("Attempt to create a cubemap array without hardware support!");
+  if ((type_ == GPU_TEXTURE_CUBE_ARRAY) && (GLContext::texture_cube_map_array_support == false)) {
+    /* Silently fail and let the caller handle the error. */
+    // debug::raise_gl_error("Attempt to create a cubemap array without hardware support!");
     return false;
   }
 
