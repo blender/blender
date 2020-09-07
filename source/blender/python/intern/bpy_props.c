@@ -172,6 +172,7 @@ static const EnumPropertyItem property_subtype_array_items[] = {
     {PROP_LAYER, "LAYER", 0, "Layer", ""},
     {PROP_LAYER_MEMBER, "LAYER_MEMBER", 0, "Layer Member", ""},
     {PROP_POWER, "POWER", 0, "Power", ""},
+    {PROP_TEMPERATURE, "TEMPERATURE", 0, "Temperature", ""},
 
     {PROP_NONE, "NONE", 0, "None", ""},
     {0, NULL, 0, NULL, NULL},

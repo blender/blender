@@ -46,8 +46,8 @@ bool bUnit_ReplaceString(
 /* return true if the string contains any valid unit for the given type */
 bool bUnit_ContainsUnit(const char *str, int type);
 
-/* if user does not specify a unit, multiply with this value */
-double bUnit_PreferredInputUnitScalar(const struct UnitSettings *settings, int type);
+/* If user does not specify a unit, this converts it to the unit from the settings. */
+double bUnit_ApplyPreferredUnit(const struct UnitSettings *settings, int type, double value);
 
 /* make string keyboard-friendly: 10µm --> 10um */
 void bUnit_ToUnitAltName(char *str, int len_max, const char *orig_str, int system, int type);
@@ -86,7 +86,8 @@ enum {
   B_UNIT_ACCELERATION = 8,
   B_UNIT_CAMERA = 9,
   B_UNIT_POWER = 10,
-  B_UNIT_TYPE_TOT = 11,
+  B_UNIT_TEMPERATURE = 11,
+  B_UNIT_TYPE_TOT = 12,
 };
 
 #ifdef __cplusplus

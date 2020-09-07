@@ -117,6 +117,7 @@ const EnumPropertyItem rna_enum_property_unit_items[] = {
     {PROP_UNIT_MASS, "MASS", 0, "Mass", ""},
     {PROP_UNIT_CAMERA, "CAMERA", 0, "Camera", ""},
     {PROP_UNIT_POWER, "POWER", 0, "Power", ""},
+    {PROP_UNIT_TEMPERATURE, "TEMPERATURE", 0, "Temperature", ""},
     {0, NULL, 0, NULL, NULL},
 };
 

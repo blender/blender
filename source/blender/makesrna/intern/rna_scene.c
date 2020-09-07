@@ -2568,6 +2568,15 @@ const EnumPropertyItem *rna_UnitSettings_time_unit_itemf(bContext *UNUSED(C),
   return rna_UnitSettings_itemf_wrapper(units->system, B_UNIT_TIME, r_free);
 }
 
+const EnumPropertyItem *rna_UnitSettings_temperature_unit_itemf(bContext *UNUSED(C),
+                                                                PointerRNA *ptr,
+                                                                PropertyRNA *UNUSED(prop),
+                                                                bool *r_free)
+{
+  UnitSettings *units = ptr->data;
+  return rna_UnitSettings_itemf_wrapper(units->system, B_UNIT_TEMPERATURE, r_free);
+}
+
 static void rna_UnitSettings_system_update(Main *UNUSED(bmain),
                                            Scene *scene,
                                            PointerRNA *UNUSED(ptr))
@@ -3905,6 +3914,13 @@ static void rna_def_unit_settings(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, DummyRNA_DEFAULT_items);
   RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_UnitSettings_time_unit_itemf");
   RNA_def_property_ui_text(prop, "Time Unit", "Unit that will be used to display time values");
+  RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+  prop = RNA_def_property(srna, "temperature_unit", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, DummyRNA_DEFAULT_items);
+  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_UnitSettings_temperature_unit_itemf");
+  RNA_def_property_ui_text(
+      prop, "Temperature Unit", "Unit that will be used to display temperature values");
   RNA_def_property_update(prop, NC_WINDOW, NULL);
 }
 

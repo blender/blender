@@ -157,6 +157,8 @@ static void scene_init_data(ID *id)
   scene->unit.length_unit = (uchar)bUnit_GetBaseUnitOfType(USER_UNIT_METRIC, B_UNIT_LENGTH);
   scene->unit.mass_unit = (uchar)bUnit_GetBaseUnitOfType(USER_UNIT_METRIC, B_UNIT_MASS);
   scene->unit.time_unit = (uchar)bUnit_GetBaseUnitOfType(USER_UNIT_METRIC, B_UNIT_TIME);
+  scene->unit.temperature_unit = (uchar)bUnit_GetBaseUnitOfType(USER_UNIT_METRIC,
+                                                                B_UNIT_TEMPERATURE);
 
   /* Anti-Aliasing threshold. */
   scene->grease_pencil_settings.smaa_threshold = 1.0f;

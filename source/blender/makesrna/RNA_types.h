@@ -91,6 +91,7 @@ typedef enum PropertyUnit {
   PROP_UNIT_ACCELERATION = (8 << 16), /* m/(s^2) */
   PROP_UNIT_CAMERA = (9 << 16),       /* mm */
   PROP_UNIT_POWER = (10 << 16),       /* W */
+  PROP_UNIT_TEMPERATURE = (11 << 16), /* C */
 } PropertyUnit;
 
 #define RNA_SUBTYPE_UNIT(subtype) ((subtype)&0x00FF0000)
@@ -156,6 +157,9 @@ typedef enum PropertySubType {
 
   /** Light */
   PROP_POWER = 42 | PROP_UNIT_POWER,
+
+  /* temperature */
+  PROP_TEMPERATURE = 43 | PROP_UNIT_TEMPERATURE,
 } PropertySubType;
 
 /* Make sure enums are updated with these */

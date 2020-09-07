@@ -3199,6 +3199,8 @@ static const char *rna_property_subtypename(PropertySubType type)
       return "PROP_PASSWORD";
     case PROP_POWER:
       return "PROP_POWER";
+    case PROP_TEMPERATURE:
+      return "PROP_TEMPERATURE";
     default: {
       /* in case we don't have a type preset that includes the subtype */
       if (RNA_SUBTYPE_UNIT(type)) {
@@ -3236,6 +3238,8 @@ static const char *rna_property_subtype_unit(PropertySubType type)
       return "PROP_UNIT_CAMERA";
     case PROP_UNIT_POWER:
       return "PROP_UNIT_POWER";
+    case PROP_UNIT_TEMPERATURE:
+      return "PROP_UNIT_TEMPERATURE";
     default:
       return "PROP_UNIT_UNKNOWN";
   }

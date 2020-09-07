@@ -92,6 +92,7 @@ class SCENE_PT_unit(SceneButtonsPanel, Panel):
         subcol.prop(unit, "length_unit", text="Length")
         subcol.prop(unit, "mass_unit", text="Mass")
         subcol.prop(unit, "time_unit", text="Time")
+        subcol.prop(unit, "temperature_unit", text="Temperature")
 
 
 class SceneKeyingSetsPanel:

@@ -80,6 +80,8 @@
 #define UN_SC_LB    0.45359237f
 #define UN_SC_OZ    0.028349523125f
 
+#define UN_SC_FAH	0.555555555555f
+
 /* clang-format on */
 
 /* Define a single unit. */
@@ -101,7 +103,7 @@ typedef struct bUnitDef {
   const char *identifier;
 
   double scalar;
-  /** Not used yet, needed for converting temperature. */
+  /** Needed for converting temperatures. */
   double bias;
   int flag;
 } bUnitDef;
@@ -329,6 +331,22 @@ static struct bUnitDef buPowerDef[] = {
 };
 static struct bUnitCollection buPowerCollection = {buPowerDef, 3, 0, UNIT_COLLECTION_LENGTH(buPowerDef)};
 
+/* Temperature */
+static struct bUnitDef buMetricTempDef[] = {
+  {"kelvin",  "kelvin",  "K",  NULL, "Kelvin",  "KELVIN",  1.0f, 0.0,    B_UNIT_DEF_NONE}, /* Base unit. */
+	{"celsius", "celsius", "°C", "C",  "Celsius", "CELCIUS", 1.0f, 273.15, B_UNIT_DEF_NONE},
+	NULL_UNIT,
+};
+static struct bUnitCollection buMetricTempCollection = {buMetricTempDef, 0, 0, UNIT_COLLECTION_LENGTH(buMetricTempDef)};
+
+static struct bUnitDef buImperialTempDef[] = {
+  {"kelvin",     "kelvin",     "K",  NULL, "Kelvin",     "KELVIN",     1.0f,      0.0,    B_UNIT_DEF_NONE}, /* Base unit. */
+	{"fahrenheit", "fahrenheit", "°F", "F",  "Fahrenheit", "FAHRENHEIT", UN_SC_FAH, 459.67, B_UNIT_DEF_NONE},
+	NULL_UNIT,
+};
+static struct bUnitCollection buImperialTempCollection = {
+    buImperialTempDef, 1, 0, UNIT_COLLECTION_LENGTH(buImperialTempDef)};
+
 /* clang-format on */
 
 #define UNIT_SYSTEM_TOT (((sizeof(bUnitSystems) / B_UNIT_TYPE_TOT) / sizeof(void *)) - 1)
@@ -344,6 +362,7 @@ static const struct bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
      NULL,
      NULL,
      NULL,
+     NULL,
      NULL},
     /* Metric. */
     {NULL,
@@ -356,7 +375,8 @@ static const struct bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
      &buMetricVelCollection,
      &buMetricAclCollection,
      &buCameraLenCollection,
-     &buPowerCollection},
+     &buPowerCollection,
+     &buMetricTempCollection},
     /* Imperial. */
     {NULL,
      &buImperialLenCollection,
@@ -368,7 +388,8 @@ static const struct bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
      &buImperialVelCollection,
      &buImperialAclCollection,
      &buCameraLenCollection,
-     &buPowerCollection},
+     &buPowerCollection,
+     &buImperialTempCollection},
     {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
 };
 
@@ -449,7 +470,7 @@ static size_t unit_as_string(char *str,
     }
   }
 
-  double value_conv = value / unit->scalar;
+  double value_conv = (value / unit->scalar) - unit->bias;
 
   /* Adjust precision to expected number of significant digits.
    * Note that here, we shall not have to worry about very big/small numbers, units are expected
@@ -512,6 +533,7 @@ typedef struct {
   int length;
   int mass;
   int time;
+  int temperature;
 } PreferredUnits;
 
 static PreferredUnits preferred_units_from_UnitSettings(const UnitSettings *settings)
@@ -522,6 +544,7 @@ static PreferredUnits preferred_units_from_UnitSettings(const UnitSettings *sett
   units.length = settings->length_unit;
   units.mass = settings->mass_unit;
   units.time = settings->time_unit;
+  units.temperature = settings->temperature_unit;
   return units;
 }
 
@@ -597,6 +620,11 @@ static const bUnitDef *get_preferred_display_unit_if_used(int type, PreferredUni
         return usys->units + 3;
       }
       break;
+    case B_UNIT_TEMPERATURE:
+      if (units.temperature == USER_UNIT_ADAPTIVE) {
+        return NULL;
+      }
+      return usys->units + MIN2(units.temperature, max_offset);
     default:
       break;
   }
@@ -643,6 +671,7 @@ size_t bUnit_AsString(
   units.length = USER_UNIT_ADAPTIVE;
   units.mass = USER_UNIT_ADAPTIVE;
   units.time = USER_UNIT_ADAPTIVE;
+  units.temperature = USER_UNIT_ADAPTIVE;
   return unit_as_string_main(str, len_max, value, prec, type, split, pad, units);
 }
 
@@ -844,6 +873,35 @@ static bool unit_distribute_negatives(char *str, const int len_max)
   return changed;
 }
 
+/**
+ * Helper for #unit_scale_str for the process of correctly applying the order of operations
+ * for the unit's bias term.
+ */
+static int find_previous_non_value_char(const char *str, const int start_ofs)
+{
+  for (int i = start_ofs; i > 0; i--) {
+    if (ch_is_op(str[i - 1]) || strchr("( )", str[i - 1])) {
+      return i;
+    }
+  }
+  return 0;
+}
+
+/**
+ * Helper for #unit_scale_str for the process of correctly applying the order of operations
+ * for the unit's bias term.
+ */
+static int find_end_of_value_chars(const char *str, const int len_max, const int start_ofs)
+{
+  int i;
+  for (i = start_ofs; i < len_max; i++) {
+    if (!strchr("0123456789eE.", str[i])) {
+      return i;
+    }
+  }
+  return i;
+}
+
 static int unit_scale_str(char *str,
                           int len_max,
                           char *str_tmp,
@@ -866,6 +924,34 @@ static int unit_scale_str(char *str,
   int found_ofs = (int)(str_found - str);
 
   int len = strlen(str);
+
+  /* Deal with unit bias for temperature units. Order of operations is important, so we
+   * have to add parentheses, add the bias, then multiply by the scalar like usual.
+   *
+   * Note: If these changes don't fit in the buffer properly unit evaluation has failed,
+   * just try not to destroy anything while failing. */
+  if (unit->bias != 0.0) {
+    /* Add the open parenthesis. */
+    int prev_op_ofs = find_previous_non_value_char(str, found_ofs);
+    if (len + 1 < len_max) {
+      memmove(str + prev_op_ofs + 1, str + prev_op_ofs, len - prev_op_ofs + 1);
+      str[prev_op_ofs] = '(';
+      len++;
+      found_ofs++;
+      str_found++;
+    } /* If this doesn't fit, we have failed. */
+
+    /* Add the addition sign, the bias, and the close parenthesis after the value. */
+    int value_end_ofs = find_end_of_value_chars(str, len_max, prev_op_ofs + 2);
+    int len_bias_num = BLI_snprintf(str_tmp, TEMP_STR_SIZE, "+%.9g)", unit->bias);
+    if (value_end_ofs + len_bias_num < len_max) {
+      memmove(str + value_end_ofs + len_bias_num, str + value_end_ofs, len - value_end_ofs + 1);
+      memcpy(str + value_end_ofs, str_tmp, len_bias_num);
+      len += len_bias_num;
+      found_ofs += len_bias_num;
+      str_found += len_bias_num;
+    } /* If this doesn't fit, we have failed. */
+  }
 
   int len_name = strlen(replace_str);
   int len_move = (len - (found_ofs + len_name)) + 1; /* 1+ to copy the string terminator. */
@@ -990,15 +1076,15 @@ bool bUnit_ContainsUnit(const char *str, int type)
   return false;
 }
 
-double bUnit_PreferredInputUnitScalar(const struct UnitSettings *settings, int type)
+double bUnit_ApplyPreferredUnit(const struct UnitSettings *settings, int type, double value)
 {
   PreferredUnits units = preferred_units_from_UnitSettings(settings);
   const bUnitDef *unit = get_preferred_display_unit_if_used(type, units);
-  if (unit) {
-    return unit->scalar;
-  }
 
-  return bUnit_BaseScalar(units.system, type);
+  const double scalar = (unit == NULL) ? bUnit_BaseScalar(units.system, type) : unit->scalar;
+  const double bias = (unit == NULL) ? 0.0 : unit->bias; /* Base unit shouldn't have a bias. */
+
+  return value * scalar + bias;
 }
 
 /**

@@ -298,7 +298,7 @@ bool user_string_to_number(bContext *C,
   }
 
   int success = BPY_run_string_as_number(C, NULL, str, error_prefix, r_value);
-  *r_value *= bUnit_PreferredInputUnitScalar(unit, type);
+  *r_value = bUnit_ApplyPreferredUnit(unit, type, *r_value);
   *r_value /= unit_scale;
   return success;
 

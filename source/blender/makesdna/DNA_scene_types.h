@@ -1534,8 +1534,9 @@ typedef struct UnitSettings {
   char length_unit;
   char mass_unit;
   char time_unit;
+  char temperature_unit;
 
-  char _pad[5];
+  char _pad[4];
 } UnitSettings;
 
 /* ------------------------------------------- */
