@@ -322,6 +322,8 @@ void createTransUVs(bContext *C, TransInfo *t)
       }
     }
 
+    float *prop_dists = NULL;
+
     /* Support other objects using PET to adjust these, unless connected is enabled. */
     if (((is_prop_edit && !is_prop_connected) ? count : countsel) == 0) {
       goto finally;
@@ -348,8 +350,6 @@ void createTransUVs(bContext *C, TransInfo *t)
 
     td = tc->data;
     td2d = tc->data_2d;
-
-    float *prop_dists = NULL;
 
     if (is_prop_connected) {
       prop_dists = MEM_callocN(em->bm->totloop * sizeof(float), "TransObPropDists(UV Editing)");
@@ -397,7 +397,7 @@ void createTransUVs(bContext *C, TransInfo *t)
 
   finally:
     if (is_prop_connected) {
-      MEM_freeN(prop_dists);
+      MEM_SAFE_FREE(prop_dists);
     }
     if (is_island_center) {
       BM_uv_element_map_free(elementmap);
