@@ -23,7 +23,7 @@
 
 #include "BKE_global.h"
 
-#include "GPU_extensions.h"
+#include "GPU_capabilities.h"
 
 #include "gl_backend.hh"
 #include "gl_framebuffer.hh"

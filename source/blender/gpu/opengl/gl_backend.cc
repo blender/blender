@@ -23,7 +23,7 @@
 
 #include "BKE_global.h"
 
-#include "gpu_extensions_private.hh"
+#include "gpu_capabilities_private.hh"
 #include "gpu_platform_private.hh"
 
 #include "glew-mx.h"

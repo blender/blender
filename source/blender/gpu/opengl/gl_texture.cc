@@ -25,7 +25,7 @@
 
 #include "DNA_userdef_types.h"
 
-#include "GPU_extensions.h"
+#include "GPU_capabilities.h"
 #include "GPU_framebuffer.h"
 #include "GPU_platform.h"
 

@@ -27,7 +27,7 @@
 #include "BLI_assert.h"
 
 #include "GPU_batch.h"
-#include "GPU_extensions.h"
+#include "GPU_capabilities.h"
 
 #include "glew-mx.h"
 

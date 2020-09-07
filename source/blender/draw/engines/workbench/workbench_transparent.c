@@ -35,8 +35,6 @@
 
 #include "ED_view3d.h"
 
-#include "GPU_extensions.h"
-
 #include "workbench_engine.h"
 #include "workbench_private.h"
 

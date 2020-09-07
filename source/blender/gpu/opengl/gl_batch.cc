@@ -29,8 +29,6 @@
 
 #include "glew-mx.h"
 
-#include "GPU_extensions.h"
-
 #include "gpu_batch_private.hh"
 #include "gpu_shader_private.hh"
 

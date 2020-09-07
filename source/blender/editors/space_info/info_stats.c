@@ -64,7 +64,7 @@
 
 #include "UI_resources.h"
 
-#include "GPU_extensions.h"
+#include "GPU_capabilities.h"
 
 #define MAX_INFO_NUM_LEN 16
 

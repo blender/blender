@@ -34,7 +34,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "GPU_extensions.h"
+#include "GPU_capabilities.h"
 #include "GPU_material.h"
 #include "GPU_shader.h"
 

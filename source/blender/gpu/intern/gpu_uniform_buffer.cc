@@ -32,8 +32,6 @@
 
 #include "GPU_material.h"
 
-#include "GPU_extensions.h"
-
 #include "GPU_uniform_buffer.h"
 #include "gpu_uniform_buffer_private.hh"
 

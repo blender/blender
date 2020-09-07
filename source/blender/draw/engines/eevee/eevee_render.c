@@ -38,7 +38,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "GPU_extensions.h"
+#include "GPU_capabilities.h"
 #include "GPU_framebuffer.h"
 #include "GPU_state.h"
 

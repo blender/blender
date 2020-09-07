@@ -30,7 +30,7 @@
 
 #include "BKE_global.h"
 
-#include "GPU_extensions.h"
+#include "GPU_capabilities.h"
 #include "GPU_texture.h"
 
 #include "IMB_colormanagement.h"

@@ -28,7 +28,7 @@
 #include "BLI_utildefines.h"
 
 #include "GPU_batch.h"
-#include "GPU_extensions.h"
+#include "GPU_capabilities.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 

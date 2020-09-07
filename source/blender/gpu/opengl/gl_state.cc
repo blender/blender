@@ -25,7 +25,7 @@
 #include "BLI_math_base.h"
 #include "BLI_math_bits.h"
 
-#include "GPU_extensions.h"
+#include "GPU_capabilities.h"
 
 #include "glew-mx.h"
 

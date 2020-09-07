@@ -37,7 +37,7 @@
 #include "BKE_displist_tangent.h"
 
 #include "GPU_batch.h"
-#include "GPU_extensions.h"
+#include "GPU_capabilities.h"
 
 #include "draw_cache_inline.h"
 

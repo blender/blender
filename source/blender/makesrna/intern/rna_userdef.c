@@ -188,7 +188,7 @@ static const EnumPropertyItem rna_enum_userdef_viewport_aa_items[] = {
 
 #  include "DEG_depsgraph.h"
 
-#  include "GPU_extensions.h"
+#  include "GPU_capabilities.h"
 #  include "GPU_select.h"
 #  include "GPU_texture.h"
 

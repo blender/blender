@@ -41,8 +41,8 @@
 #include "eevee_lightcache.h"
 #include "eevee_private.h"
 
+#include "GPU_capabilities.h"
 #include "GPU_context.h"
-#include "GPU_extensions.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

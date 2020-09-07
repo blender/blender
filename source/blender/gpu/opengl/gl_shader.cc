@@ -25,7 +25,6 @@
 
 #include "BLI_string.h"
 
-#include "GPU_extensions.h"
 #include "GPU_platform.h"
 
 #include "gl_backend.hh"

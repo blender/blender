@@ -36,7 +36,7 @@
 #include "BKE_object.h"
 #include "MEM_guardedalloc.h"
 
-#include "GPU_extensions.h"
+#include "GPU_capabilities.h"
 #include "GPU_material.h"
 #include "GPU_texture.h"
 #include "GPU_uniform_buffer.h"

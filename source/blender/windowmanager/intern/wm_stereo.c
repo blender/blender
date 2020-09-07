@@ -40,7 +40,7 @@
 
 #include "ED_screen.h"
 
-#include "GPU_extensions.h"
+#include "GPU_capabilities.h"
 #include "GPU_immediate.h"
 #include "GPU_texture.h"
 #include "GPU_viewport.h"

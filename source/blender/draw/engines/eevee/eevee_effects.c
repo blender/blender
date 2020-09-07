@@ -26,7 +26,7 @@
 
 #include "BKE_global.h" /* for G.debug_value */
 
-#include "GPU_extensions.h"
+#include "GPU_capabilities.h"
 #include "GPU_platform.h"
 #include "GPU_state.h"
 #include "GPU_texture.h"

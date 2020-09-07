@@ -40,7 +40,7 @@
 
 #include "BKE_material.h"
 
-#include "GPU_extensions.h"
+#include "GPU_capabilities.h"
 #include "GPU_material.h"
 #include "GPU_shader.h"
 #include "GPU_uniform_buffer.h"

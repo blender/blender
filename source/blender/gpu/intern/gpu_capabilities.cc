@@ -26,9 +26,9 @@
 
 #include "DNA_userdef_types.h"
 
-#include "GPU_extensions.h"
+#include "GPU_capabilities.h"
 
-#include "gpu_extensions_private.hh"
+#include "gpu_capabilities_private.hh"
 
 #include "gl_backend.hh" /* TODO remove */
 

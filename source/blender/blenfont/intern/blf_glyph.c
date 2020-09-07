@@ -46,7 +46,7 @@
 
 #include "BLF_api.h"
 
-#include "GPU_extensions.h"
+#include "GPU_capabilities.h"
 #include "GPU_immediate.h"
 
 #include "blf_internal.h"

@@ -59,7 +59,7 @@
 #include "bmesh.h"
 
 #include "GPU_batch.h"
-#include "GPU_extensions.h"
+#include "GPU_capabilities.h"
 
 #include "DRW_render.h"
 

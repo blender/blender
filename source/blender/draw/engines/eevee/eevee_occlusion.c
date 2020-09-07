@@ -32,7 +32,7 @@
 
 #include "eevee_private.h"
 
-#include "GPU_extensions.h"
+#include "GPU_capabilities.h"
 #include "GPU_platform.h"
 #include "GPU_state.h"
 

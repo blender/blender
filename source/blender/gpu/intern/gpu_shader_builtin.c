@@ -35,7 +35,6 @@
 
 #include "DNA_space_types.h"
 
-#include "GPU_extensions.h"
 #include "GPU_matrix.h"
 #include "GPU_platform.h"
 #include "GPU_shader.h"
