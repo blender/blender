@@ -207,7 +207,7 @@ void check_gl_resources(const char *info)
   /* NOTE: This only check binding. To be valid, the bound texture needs to
    * be the same format/target the shader expects. */
   uint64_t tex_needed = interface->enabled_tex_mask_;
-  tex_needed &= ~ctx->state_manager_active_get()->bound_texture_slots();
+  tex_needed &= ~GLContext::state_manager_active_get()->bound_texture_slots();
 
   if (ubo_needed == 0 && tex_needed == 0) {
     return;
@@ -236,9 +236,9 @@ void check_gl_resources(const char *info)
   }
 }
 
-void raise_gl_error(const char *msg)
+void raise_gl_error(const char *info)
 {
-  debug_callback(0, GL_DEBUG_TYPE_ERROR, 0, GL_DEBUG_SEVERITY_HIGH, 0, msg, NULL);
+  debug_callback(0, GL_DEBUG_TYPE_ERROR, 0, GL_DEBUG_SEVERITY_HIGH, 0, info, NULL);
 }
 
 /** \} */

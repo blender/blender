@@ -81,9 +81,9 @@ void GPU_indexbuf_create_subrange_in_place(GPUIndexBuf *elem,
                                            uint start,
                                            uint length);
 
-void GPU_indexbuf_discard(GPUIndexBuf *);
+void GPU_indexbuf_discard(GPUIndexBuf *elem);
 
-bool GPU_indexbuf_is_init(GPUIndexBuf *ibo);
+bool GPU_indexbuf_is_init(GPUIndexBuf *elem);
 
 int GPU_indexbuf_primitive_len(GPUPrimType prim_type);
 

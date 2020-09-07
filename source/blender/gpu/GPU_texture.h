@@ -218,9 +218,9 @@ void GPU_texture_update_mipmap(GPUTexture *tex,
                                eGPUDataFormat gpu_data_format,
                                const void *pixels);
 
-void GPU_texture_update(GPUTexture *tex, eGPUDataFormat data_format, const void *pixels);
+void GPU_texture_update(GPUTexture *tex, eGPUDataFormat data_format, const void *data);
 void GPU_texture_update_sub(GPUTexture *tex,
-                            eGPUDataFormat gpu_data_format,
+                            eGPUDataFormat data_format,
                             const void *pixels,
                             int offset_x,
                             int offset_y,
@@ -229,8 +229,8 @@ void GPU_texture_update_sub(GPUTexture *tex,
                             int height,
                             int depth);
 
-void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat gpu_data_format, int miplvl);
-void GPU_texture_clear(GPUTexture *tex, eGPUDataFormat gpu_data_format, const void *color);
+void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat data_format, int miplvl);
+void GPU_texture_clear(GPUTexture *tex, eGPUDataFormat data_format, const void *data);
 
 void GPU_invalid_tex_init(void);
 void GPU_invalid_tex_bind(int mode);

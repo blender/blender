@@ -331,17 +331,17 @@ GPUTexture *GPU_texture_create_error(int dimension, bool is_array)
 
 void GPU_texture_update_mipmap(GPUTexture *tex_,
                                int miplvl,
-                               eGPUDataFormat gpu_data_format,
+                               eGPUDataFormat data_format,
                                const void *pixels)
 {
   Texture *tex = reinterpret_cast<Texture *>(tex_);
   int extent[3] = {1, 1, 1}, offset[3] = {0, 0, 0};
   tex->mip_size_get(miplvl, extent);
-  reinterpret_cast<Texture *>(tex)->update_sub(miplvl, offset, extent, gpu_data_format, pixels);
+  reinterpret_cast<Texture *>(tex)->update_sub(miplvl, offset, extent, data_format, pixels);
 }
 
 void GPU_texture_update_sub(GPUTexture *tex,
-                            eGPUDataFormat gpu_data_format,
+                            eGPUDataFormat data_format,
                             const void *pixels,
                             int offset_x,
                             int offset_y,
@@ -352,7 +352,7 @@ void GPU_texture_update_sub(GPUTexture *tex,
 {
   int offset[3] = {offset_x, offset_y, offset_z};
   int extent[3] = {width, height, depth};
-  reinterpret_cast<Texture *>(tex)->update_sub(0, offset, extent, gpu_data_format, pixels);
+  reinterpret_cast<Texture *>(tex)->update_sub(0, offset, extent, data_format, pixels);
 }
 
 void *GPU_texture_read(GPUTexture *tex_, eGPUDataFormat data_format, int miplvl)

@@ -66,14 +66,14 @@ class GLTexture : public Texture {
   ~GLTexture();
 
   void update_sub(
-      int mip, int offset[3], int extent[3], eGPUDataFormat format, const void *data) override;
+      int mip, int offset[3], int extent[3], eGPUDataFormat type, const void *data) override;
 
   void generate_mipmap(void) override;
-  void copy_to(Texture *tex) override;
+  void copy_to(Texture *dst) override;
   void clear(eGPUDataFormat format, const void *data) override;
   void swizzle_set(const char swizzle_mask[4]) override;
   void mip_range_set(int min, int max) override;
-  void *read(int mip, eGPUDataFormat format) override;
+  void *read(int mip, eGPUDataFormat type) override;
 
   void check_feedback_loop(void);
 
