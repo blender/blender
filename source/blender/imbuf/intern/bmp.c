@@ -329,8 +329,8 @@ int imb_savebmp(ImBuf *ibuf, const char *filepath, int UNUSED(flags))
   putShortLSB(is_grayscale ? 8 : 24, ofile);
   putIntLSB(0, ofile);
   putIntLSB(bytesize, ofile);
-  putIntLSB(round(ibuf->ppm[0] + 0.5), ofile);
-  putIntLSB(round(ibuf->ppm[1] + 0.5), ofile);
+  putIntLSB(round(ibuf->ppm[0]), ofile);
+  putIntLSB(round(ibuf->ppm[1]), ofile);
   putIntLSB(0, ofile);
   putIntLSB(0, ofile);
 
