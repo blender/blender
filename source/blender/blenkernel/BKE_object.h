@@ -112,10 +112,9 @@ int BKE_object_visibility(const struct Object *ob, const int dag_eval_mode);
 struct Object *BKE_object_add_only_object(struct Main *bmain, int type, const char *name)
     ATTR_NONNULL(1) ATTR_RETURNS_NONNULL;
 struct Object *BKE_object_add(struct Main *bmain,
-                              struct Scene *scene,
                               struct ViewLayer *view_layer,
                               int type,
-                              const char *name) ATTR_NONNULL(1, 2, 3) ATTR_RETURNS_NONNULL;
+                              const char *name) ATTR_NONNULL(1, 2) ATTR_RETURNS_NONNULL;
 struct Object *BKE_object_add_from(struct Main *bmain,
                                    struct Scene *scene,
                                    struct ViewLayer *view_layer,

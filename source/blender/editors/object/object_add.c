@@ -544,7 +544,7 @@ Object *ED_object_add_type_with_obdata(bContext *C,
     }
   }
   else {
-    ob = BKE_object_add(bmain, scene, view_layer, type, name);
+    ob = BKE_object_add(bmain, view_layer, type, name);
   }
   BASACT(view_layer)->local_view_bits = local_view_bits;
   /* editor level activate, notifiers */

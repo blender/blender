@@ -397,7 +397,6 @@ bool ED_object_modifier_move_to_index(struct ReportList *reports,
 bool ED_object_modifier_convert(struct ReportList *reports,
                                 struct Main *bmain,
                                 struct Depsgraph *depsgraph,
-                                struct Scene *scene,
                                 struct ViewLayer *view_layer,
                                 struct Object *ob,
                                 struct ModifierData *md);

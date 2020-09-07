@@ -1352,8 +1352,7 @@ static Object *object_add_common(Main *bmain, ViewLayer *view_layer, int type, c
  * If there is no linked collection to the active ViewLayer we create a new one.
  */
 /* creates minimum required data, but without vertices etc. */
-Object *BKE_object_add(
-    Main *bmain, Scene *UNUSED(scene), ViewLayer *view_layer, int type, const char *name)
+Object *BKE_object_add(Main *bmain, ViewLayer *view_layer, int type, const char *name)
 {
   Object *ob;
   Base *base;
