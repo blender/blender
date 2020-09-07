@@ -163,6 +163,7 @@ set(SRC
   intern/draw_instance_data.h
   intern/draw_manager.h
   intern/draw_manager_profiling.h
+  intern/draw_manager_testing.h
   intern/draw_manager_text.h
   intern/draw_view.h
   intern/smaa_textures.h

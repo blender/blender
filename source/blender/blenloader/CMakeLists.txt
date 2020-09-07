@@ -103,6 +103,8 @@ if(WITH_GTESTS)
   set(TEST_SRC
     tests/blendfile_load_test.cc
     tests/blendfile_loading_base_test.cc
+
+    tests/blendfile_loading_base_test.h
   )
   set(TEST_INC
   )

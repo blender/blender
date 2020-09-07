@@ -123,6 +123,8 @@ set(SRC
   bpy_utils_units.h
   ../BPY_extern.h
   ../BPY_extern_clog.h
+  ../BPY_extern_python.h
+  ../BPY_extern_run.h
 )
 
 set(LIB
