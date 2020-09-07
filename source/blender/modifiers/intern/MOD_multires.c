@@ -296,7 +296,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 }
 
 static void deformMatrices(ModifierData *md,
-                           const ModifierEvalContext *UNUSED(ctx),
+                           const ModifierEvalContext *ctx,
                            Mesh *mesh,
                            float (*vertex_cos)[3],
                            float (*deform_matrices)[3][3],
@@ -312,11 +312,19 @@ static void deformMatrices(ModifierData *md,
   (void)deform_matrices;
 
   MultiresModifierData *mmd = (MultiresModifierData *)md;
+
   SubdivSettings subdiv_settings;
   BKE_multires_subdiv_settings_init(&subdiv_settings, mmd);
   if (subdiv_settings.level == 0) {
     return;
   }
+
+  SubdivToCCGSettings ccg_settings;
+  multires_ccg_settings_init(&ccg_settings, mmd, ctx, mesh);
+  if (ccg_settings.resolution < 3) {
+    return;
+  }
+
   BKE_subdiv_settings_validate_for_mesh(&subdiv_settings, mesh);
   MultiresRuntimeData *runtime_data = multires_ensure_runtime(mmd);
   Subdiv *subdiv = subdiv_descriptor_ensure(mmd, &subdiv_settings, mesh);
