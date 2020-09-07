@@ -97,18 +97,6 @@ template<typename Key> class SimpleVectorSetSlot {
   }
 
   /**
-   * Move the other slot into this slot and destruct it. We do destruction here, because this way
-   * we can avoid a comparison with the state, since we know the slot is occupied. For this
-   * specific slot implementation, this does not make a difference.
-   */
-  void relocate_occupied_here(SimpleVectorSetSlot &other, uint64_t UNUSED(hash))
-  {
-    BLI_assert(!this->is_occupied());
-    BLI_assert(other.is_occupied());
-    state_ = other.state_;
-  }
-
-  /**
    * Change the state of this slot from empty/removed to occupied. The hash can be used by other
    * slot implementations.
    */

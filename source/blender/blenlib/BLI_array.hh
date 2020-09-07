@@ -353,6 +353,10 @@ class Array {
   {
     return allocator_;
   }
+  const Allocator &allocator() const
+  {
+    return allocator_;
+  }
 
   /**
    * Get the value of the InlineBufferCapacity template argument. This is the number of elements
