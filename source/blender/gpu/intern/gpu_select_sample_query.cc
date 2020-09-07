@@ -27,7 +27,6 @@
 #include <stdlib.h>
 
 #include "GPU_framebuffer.h"
-#include "GPU_glew.h"
 #include "GPU_select.h"
 #include "GPU_state.h"
 
@@ -35,24 +34,25 @@
 
 #include "BLI_rect.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
+
+#include "gpu_backend.hh"
+#include "gpu_query.hh"
 
 #include "gpu_select_private.h"
 
-/* Ad hoc number of queries to allocate to skip doing many glGenQueries */
-#define ALLOC_QUERIES 200
+using namespace blender;
+using namespace blender::gpu;
 
-typedef struct GPUQueryState {
+typedef struct GPUSelectQueryState {
   /* Tracks whether a query has been issued so that gpu_load_id can end the previous one */
   bool query_issued;
-  /* array holding the OpenGL query identifiers */
-  uint *queries;
-  /* array holding the id corresponding to each query */
-  uint *id;
-  /* number of queries in *queries and *id */
-  uint num_of_queries;
-  /* index to the next query to start */
-  uint active_query;
+  /* GPU queries abstraction. Contains an array of queries. */
+  QueryPool *queries;
+  /* Array holding the id corresponding id to each query. */
+  Vector<uint> *ids;
   /* cache on initialization */
   uint (*buffer)[4];
   /* buffer size (stores number of integers, for actual size multiply by sizeof integer)*/
@@ -67,29 +67,23 @@ typedef struct GPUQueryState {
   int scissor[4];
   eGPUWriteMask write_mask;
   eGPUDepthTest depth_test;
-} GPUQueryState;
+} GPUSelectQueryState;
 
-static GPUQueryState g_query_state = {0};
+static GPUSelectQueryState g_query_state = {0};
 
 void gpu_select_query_begin(
     uint (*buffer)[4], uint bufsize, const rcti *input, char mode, int oldhits)
 {
   g_query_state.query_issued = false;
-  g_query_state.active_query = 0;
-  g_query_state.num_of_queries = 0;
   g_query_state.bufsize = bufsize;
   g_query_state.buffer = buffer;
   g_query_state.mode = mode;
   g_query_state.index = 0;
   g_query_state.oldhits = oldhits;
 
-  g_query_state.num_of_queries = ALLOC_QUERIES;
-
-  g_query_state.queries = MEM_mallocN(
-      g_query_state.num_of_queries * sizeof(*g_query_state.queries), "gpu selection queries");
-  g_query_state.id = MEM_mallocN(g_query_state.num_of_queries * sizeof(*g_query_state.id),
-                                 "gpu selection ids");
-  glGenQueries(g_query_state.num_of_queries, g_query_state.queries);
+  g_query_state.ids = new Vector<uint>();
+  g_query_state.queries = GPUBackend::get()->querypool_alloc();
+  g_query_state.queries->init(GPU_QUERY_OCCLUSION);
 
   g_query_state.write_mask = GPU_write_mask_get();
   g_query_state.depth_test = GPU_depth_test_get();
@@ -133,21 +127,11 @@ void gpu_select_query_begin(
 bool gpu_select_query_load_id(uint id)
 {
   if (g_query_state.query_issued) {
-    glEndQuery(GL_SAMPLES_PASSED);
-  }
-  /* if required, allocate extra queries */
-  if (g_query_state.active_query == g_query_state.num_of_queries) {
-    g_query_state.num_of_queries += ALLOC_QUERIES;
-    g_query_state.queries = MEM_reallocN(
-        g_query_state.queries, g_query_state.num_of_queries * sizeof(*g_query_state.queries));
-    g_query_state.id = MEM_reallocN(g_query_state.id,
-                                    g_query_state.num_of_queries * sizeof(*g_query_state.id));
-    glGenQueries(ALLOC_QUERIES, &g_query_state.queries[g_query_state.active_query]);
+    g_query_state.queries->end_query();
   }
 
-  glBeginQuery(GL_SAMPLES_PASSED, g_query_state.queries[g_query_state.active_query]);
-  g_query_state.id[g_query_state.active_query] = id;
-  g_query_state.active_query++;
+  g_query_state.queries->begin_query();
+  g_query_state.ids->append(id);
   g_query_state.query_issued = true;
 
   if (g_query_state.mode == GPU_SELECT_NEAREST_SECOND_PASS) {
@@ -158,39 +142,33 @@ bool gpu_select_query_load_id(uint id)
         g_query_state.index++;
         return true;
       }
-
       return false;
     }
   }
-
   return true;
 }
 
 uint gpu_select_query_end(void)
 {
-  int i;
-
   uint hits = 0;
   const uint maxhits = g_query_state.bufsize;
 
   if (g_query_state.query_issued) {
-    glEndQuery(GL_SAMPLES_PASSED);
+    g_query_state.queries->end_query();
   }
 
-  for (i = 0; i < g_query_state.active_query; i++) {
-    uint result = 0;
-    /* We are not using GL_QUERY_RESULT_AVAILABLE and sleep to wait for results,
-     * because it causes lagging on Windows/NVIDIA, see T61474. */
-    glGetQueryObjectuiv(g_query_state.queries[i], GL_QUERY_RESULT, &result);
-    if (result > 0) {
-      if (g_query_state.mode != GPU_SELECT_NEAREST_SECOND_PASS) {
+  Span<uint> ids = *g_query_state.ids;
+  Vector<uint32_t> result(ids.size());
+  g_query_state.queries->get_occlusion_result(result);
 
+  for (int i = 0; i < result.size(); i++) {
+    if (result[i] != 0) {
+      if (g_query_state.mode != GPU_SELECT_NEAREST_SECOND_PASS) {
         if (hits < maxhits) {
           g_query_state.buffer[hits][0] = 1;
           g_query_state.buffer[hits][1] = 0xFFFF;
           g_query_state.buffer[hits][2] = 0xFFFF;
-          g_query_state.buffer[hits][3] = g_query_state.id[i];
-
+          g_query_state.buffer[hits][3] = ids[i];
           hits++;
         }
         else {
@@ -202,7 +180,7 @@ uint gpu_select_query_end(void)
         int j;
         /* search in buffer and make selected object first */
         for (j = 0; j < g_query_state.oldhits; j++) {
-          if (g_query_state.buffer[j][3] == g_query_state.id[i]) {
+          if (g_query_state.buffer[j][3] == ids[i]) {
             g_query_state.buffer[j][1] = 0;
             g_query_state.buffer[j][2] = 0;
           }
@@ -212,9 +190,8 @@ uint gpu_select_query_end(void)
     }
   }
 
-  glDeleteQueries(g_query_state.num_of_queries, g_query_state.queries);
-  MEM_freeN(g_query_state.queries);
-  MEM_freeN(g_query_state.id);
+  delete g_query_state.queries;
+  delete g_query_state.ids;
 
   GPU_write_mask(g_query_state.write_mask);
   GPU_depth_test(g_query_state.depth_test);

@@ -74,9 +74,10 @@ set(SRC
   intern/gpu_matrix.cc
   intern/gpu_node_graph.c
   intern/gpu_platform.cc
+  intern/gpu_query.cc
   intern/gpu_select.c
   intern/gpu_select_pick.c
-  intern/gpu_select_sample_query.c
+  intern/gpu_select_sample_query.cc
   intern/gpu_shader.cc
   intern/gpu_shader_builtin.c
   intern/gpu_shader_interface.cc
@@ -95,6 +96,7 @@ set(SRC
   opengl/gl_framebuffer.cc
   opengl/gl_immediate.cc
   opengl/gl_index_buffer.cc
+  opengl/gl_query.cc
   opengl/gl_shader.cc
   opengl/gl_shader_interface.cc
   opengl/gl_state.cc
@@ -146,6 +148,7 @@ set(SRC
   intern/gpu_node_graph.h
   intern/gpu_private.h
   intern/gpu_platform_private.hh
+  intern/gpu_query.hh
   intern/gpu_select_private.h
   intern/gpu_shader_private.hh
   intern/gpu_shader_interface.hh
@@ -164,6 +167,7 @@ set(SRC
   opengl/gl_immediate.hh
   opengl/gl_index_buffer.hh
   opengl/gl_primitive.hh
+  opengl/gl_query.hh
   opengl/gl_shader.hh
   opengl/gl_shader_interface.hh
   opengl/gl_state.hh

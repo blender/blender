@@ -34,6 +34,7 @@ class Batch;
 class DrawList;
 class FrameBuffer;
 class IndexBuf;
+class QueryPool;
 class Shader;
 class Texture;
 class UniformBuf;
@@ -53,6 +54,7 @@ class GPUBackend {
   virtual DrawList *drawlist_alloc(int list_length) = 0;
   virtual FrameBuffer *framebuffer_alloc(const char *name) = 0;
   virtual IndexBuf *indexbuf_alloc(void) = 0;
+  virtual QueryPool *querypool_alloc(void) = 0;
   virtual Shader *shader_alloc(const char *name) = 0;
   virtual Texture *texture_alloc(const char *name) = 0;
   virtual UniformBuf *uniformbuf_alloc(int size, const char *name) = 0;

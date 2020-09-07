@@ -32,6 +32,7 @@
 #include "gl_drawlist.hh"
 #include "gl_framebuffer.hh"
 #include "gl_index_buffer.hh"
+#include "gl_query.hh"
 #include "gl_shader.hh"
 #include "gl_texture.hh"
 #include "gl_uniform_buffer.hh"
@@ -93,6 +94,11 @@ class GLBackend : public GPUBackend {
   IndexBuf *indexbuf_alloc(void) override
   {
     return new GLIndexBuf();
+  };
+
+  QueryPool *querypool_alloc(void) override
+  {
+    return new GLQueryPool();
   };
 
   Shader *shader_alloc(const char *name) override

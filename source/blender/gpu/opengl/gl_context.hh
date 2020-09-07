@@ -68,13 +68,13 @@ class GLContext : public GPUContext {
   static bool unused_fb_slot_workaround;
   static float derivative_signs[2];
 
+  /** VBO for missing vertex attrib binding. Avoid undefined behavior on some implementation. */
+  GLuint default_attr_vbo_;
+
   /** Used for debugging purpose. Bitflags of all bound slots. */
   uint16_t bound_ubo_slots;
 
-  /* TODO(fclem) these needs to become private. */
- public:
-  /** VBO for missing vertex attrib binding. Avoid undefined behavior on some implementation. */
-  GLuint default_attr_vbo_;
+ private:
   /**
    * GPUBatch & GPUFramebuffer have references to the context they are from, in the case the
    * context is destroyed, we need to remove any reference to it.
@@ -112,12 +112,12 @@ class GLContext : public GPUContext {
   static void buf_free(GLuint buf_id);
   static void tex_free(GLuint tex_id);
 
-  /* TODO(fclem) these needs to become private. */
- public:
-  static void orphans_add(Vector<GLuint> &orphan_list, std::mutex &list_mutex, GLuint id);
-  void orphans_clear(void);
   void vao_cache_register(GLVaoCache *cache);
   void vao_cache_unregister(GLVaoCache *cache);
+
+ private:
+  static void orphans_add(Vector<GLuint> &orphan_list, std::mutex &list_mutex, GLuint id);
+  void orphans_clear(void);
 };
 
 }  // namespace gpu
