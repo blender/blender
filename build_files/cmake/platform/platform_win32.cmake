@@ -149,8 +149,8 @@ include(build_files/cmake/platform/platform_win32_bundle_crt.cmake)
 remove_cc_flag("/MDd" "/MD" "/Zi")
 
 if(WITH_WINDOWS_PDB)
-	set(PDB_INFO_OVERRIDE_FLAGS "/Z7")
-	set(PDB_INFO_OVERRIDE_LINKER_FLAGS "/DEBUG /OPT:REF /OPT:ICF /INCREMENTAL:NO")
+  set(PDB_INFO_OVERRIDE_FLAGS "/Z7")
+  set(PDB_INFO_OVERRIDE_LINKER_FLAGS "/DEBUG /OPT:REF /OPT:ICF /INCREMENTAL:NO")
 endif()
 
 if(MSVC_CLANG) # Clangs version of cl doesn't support all flags
