@@ -509,15 +509,20 @@ bool ED_object_add_generic_get_opts(bContext *C,
   return true;
 }
 
-/* For object add primitive operators.
- * Do not call undo push in this function (users of this function have to). */
-Object *ED_object_add_type(bContext *C,
-                           int type,
-                           const char *name,
-                           const float loc[3],
-                           const float rot[3],
-                           bool enter_editmode,
-                           ushort local_view_bits)
+/**
+ * For object add primitive operators, or for object creation when `obdata != NULL`.
+ * \param obdata: Assigned to #Object.data, with increased user count.
+ *
+ * \note Do not call undo push in this function (users of this function have to).
+ */
+Object *ED_object_add_type_with_obdata(bContext *C,
+                                       const int type,
+                                       const char *name,
+                                       const float loc[3],
+                                       const float rot[3],
+                                       const bool enter_editmode,
+                                       const ushort local_view_bits,
+                                       ID *obdata)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -530,7 +535,17 @@ Object *ED_object_add_type(bContext *C,
   }
 
   /* deselects all, sets active object */
-  ob = BKE_object_add(bmain, scene, view_layer, type, name);
+  if (obdata != NULL) {
+    BLI_assert(type == BKE_object_obdata_to_type(obdata));
+    ob = BKE_object_add_for_data(bmain, view_layer, type, name, obdata, true);
+    const short *materials_len_p = BKE_id_material_len_p(obdata);
+    if (materials_len_p && *materials_len_p > 0) {
+      BKE_object_materials_test(bmain, ob, ob->data);
+    }
+  }
+  else {
+    ob = BKE_object_add(bmain, scene, view_layer, type, name);
+  }
   BASACT(view_layer)->local_view_bits = local_view_bits;
   /* editor level activate, notifiers */
   ED_object_base_activate(C, view_layer->basact);
@@ -559,6 +574,18 @@ Object *ED_object_add_type(bContext *C,
   ED_outliner_select_sync_from_object_tag(C);
 
   return ob;
+}
+
+Object *ED_object_add_type(bContext *C,
+                           const int type,
+                           const char *name,
+                           const float loc[3],
+                           const float rot[3],
+                           const bool enter_editmode,
+                           const ushort local_view_bits)
+{
+  return ED_object_add_type_with_obdata(
+      C, type, name, loc, rot, enter_editmode, local_view_bits, NULL);
 }
 
 /* for object add operator */
@@ -1536,11 +1563,8 @@ static int object_data_instance_add_exec(bContext *C, wmOperator *op)
 
   Scene *scene = CTX_data_scene(C);
 
-  Object *ob = ED_object_add_type(C, object_type, id->name + 2, loc, rot, false, local_view_bits);
-  ob->data = id;
-  id_us_plus(id);
-
-  BKE_object_materials_test(bmain, ob, ob->data);
+  ED_object_add_type_with_obdata(
+      C, object_type, id->name + 2, loc, rot, false, local_view_bits, id);
 
   /* Works without this except if you try render right after, see: T22027. */
   DEG_relations_tag_update(bmain);
