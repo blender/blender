@@ -33,13 +33,6 @@
 
 #include "eevee_private.h"
 
-extern char datatoc_bsdf_lut_frag_glsl[];
-extern char datatoc_btdf_lut_frag_glsl[];
-extern char datatoc_bsdf_common_lib_glsl[];
-extern char datatoc_bsdf_sampling_lib_glsl[];
-extern char datatoc_lightprobe_geom_glsl[];
-extern char datatoc_lightprobe_vert_glsl[];
-
 static struct GPUTexture *create_ggx_lut_texture(int UNUSED(w), int UNUSED(h))
 {
   struct GPUTexture *tex;
@@ -47,16 +40,8 @@ static struct GPUTexture *create_ggx_lut_texture(int UNUSED(w), int UNUSED(h))
   static float samples_len = 8192.0f;
   static float inv_samples_len = 1.0f / 8192.0f;
 
-  DRWShaderLibrary *lib = EEVEE_shader_lib_get();
-
-  struct GPUShader *sh = DRW_shader_create_with_shaderlib(datatoc_lightprobe_vert_glsl,
-                                                          datatoc_lightprobe_geom_glsl,
-                                                          datatoc_bsdf_lut_frag_glsl,
-                                                          lib,
-                                                          "#define HAMMERSLEY_SIZE 8192\n");
-
   DRWPass *pass = DRW_pass_create("LightProbe Filtering", DRW_STATE_WRITE_COLOR);
-  DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
+  DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_ggx_lut_sh_get(), pass);
   DRW_shgroup_uniform_float(grp, "sampleCount", &samples_len, 1);
   DRW_shgroup_uniform_float(grp, "invSampleCount", &inv_samples_len, 1);
   DRW_shgroup_uniform_texture(grp, "texHammersley", e_data.hammersley);
@@ -105,13 +90,8 @@ static struct GPUTexture *create_ggx_refraction_lut_texture(int w, int h)
   static float a2 = 0.0f;
   static float inv_samples_len = 1.0f / 8192.0f;
 
-  DRWShaderLibrary *lib = EEVEE_shader_lib_get();
-
-  struct GPUShader *sh = DRW_shader_create_fullscreen_with_shaderlib(
-      datatoc_btdf_lut_frag_glsl, lib, "#define HAMMERSLEY_SIZE 8192\n");
-
   DRWPass *pass = DRW_pass_create("LightProbe Filtering", DRW_STATE_WRITE_COLOR);
-  DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
+  DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_ggx_refraction_lut_sh_get(), pass);
   DRW_shgroup_uniform_float(grp, "a2", &a2, 1);
   DRW_shgroup_uniform_float(grp, "sampleCount", &samples_len, 1);
   DRW_shgroup_uniform_float(grp, "invSampleCount", &inv_samples_len, 1);

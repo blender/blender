@@ -37,31 +37,8 @@
 #include "GPU_state.h"
 
 static struct {
-  /* Ground Truth Ambient Occlusion */
-  struct GPUShader *gtao_sh;
-  struct GPUShader *gtao_layer_sh;
-  struct GPUShader *gtao_debug_sh;
-
   struct GPUTexture *dummy_horizon_tx;
 } e_data = {NULL}; /* Engine data */
-
-extern char datatoc_ambient_occlusion_lib_glsl[];
-extern char datatoc_common_view_lib_glsl[];
-extern char datatoc_common_uniforms_lib_glsl[];
-extern char datatoc_bsdf_common_lib_glsl[];
-extern char datatoc_effect_gtao_frag_glsl[];
-
-static void eevee_create_shader_occlusion(void)
-{
-  DRWShaderLibrary *lib = EEVEE_shader_lib_get();
-
-  e_data.gtao_sh = DRW_shader_create_fullscreen_with_shaderlib(
-      datatoc_effect_gtao_frag_glsl, lib, NULL);
-  e_data.gtao_layer_sh = DRW_shader_create_fullscreen_with_shaderlib(
-      datatoc_effect_gtao_frag_glsl, lib, "#define LAYERED_DEPTH\n");
-  e_data.gtao_debug_sh = DRW_shader_create_fullscreen_with_shaderlib(
-      datatoc_effect_gtao_frag_glsl, lib, "#define DEBUG_AO\n");
-}
 
 int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
@@ -82,11 +59,6 @@ int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
       stl->g_data->render_passes & EEVEE_RENDER_PASS_AO) {
     const float *viewport_size = DRW_viewport_size_get();
     const int fs_size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
-
-    /* Shaders */
-    if (!e_data.gtao_sh) {
-      eevee_create_shader_occlusion();
-    }
 
     common_data->ao_dist = scene_eval->eevee.gtao_distance;
     common_data->ao_factor = scene_eval->eevee.gtao_factor;
@@ -169,7 +141,8 @@ void EEVEE_occlusion_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata
   /* Accumulation pass */
   DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD;
   DRW_PASS_CREATE(psl->ao_accum_ps, state);
-  DRWShadingGroup *grp = DRW_shgroup_create(e_data.gtao_debug_sh, psl->ao_accum_ps);
+  DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_effect_ambient_occlusion_debug_sh_get(),
+                                            psl->ao_accum_ps);
   DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
   DRW_shgroup_uniform_texture_ref(grp, "maxzBuffer", &txl->maxzbuffer);
   DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
@@ -203,7 +176,8 @@ void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
      *   lobe present in the shader using the correct normal.
      */
     DRW_PASS_CREATE(psl->ao_horizon_search, DRW_STATE_WRITE_COLOR);
-    DRWShadingGroup *grp = DRW_shgroup_create(e_data.gtao_sh, psl->ao_horizon_search);
+    DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_effect_ambient_occlusion_sh_get(),
+                                              psl->ao_horizon_search);
     DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
     DRW_shgroup_uniform_texture_ref(grp, "maxzBuffer", &txl->maxzbuffer);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &effects->ao_src_depth);
@@ -212,7 +186,8 @@ void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_shgroup_call(grp, quad, NULL);
 
     DRW_PASS_CREATE(psl->ao_horizon_search_layer, DRW_STATE_WRITE_COLOR);
-    grp = DRW_shgroup_create(e_data.gtao_layer_sh, psl->ao_horizon_search_layer);
+    grp = DRW_shgroup_create(EEVEE_shaders_effect_ambient_occlusion_layer_sh_get(),
+                             psl->ao_horizon_search_layer);
     DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
     DRW_shgroup_uniform_texture_ref(grp, "maxzBuffer", &txl->maxzbuffer);
     DRW_shgroup_uniform_texture_ref(grp, "depthBufferLayered", &effects->ao_src_depth);
@@ -223,7 +198,8 @@ void EEVEE_occlusion_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
     if (G.debug_value == 6) {
       DRW_PASS_CREATE(psl->ao_horizon_debug, DRW_STATE_WRITE_COLOR);
-      grp = DRW_shgroup_create(e_data.gtao_debug_sh, psl->ao_horizon_debug);
+      grp = DRW_shgroup_create(EEVEE_shaders_effect_ambient_occlusion_debug_sh_get(),
+                               psl->ao_horizon_debug);
       DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
       DRW_shgroup_uniform_texture_ref(grp, "maxzBuffer", &txl->maxzbuffer);
       DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
@@ -315,8 +291,5 @@ void EEVEE_occlusion_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *
 
 void EEVEE_occlusion_free(void)
 {
-  DRW_SHADER_FREE_SAFE(e_data.gtao_sh);
-  DRW_SHADER_FREE_SAFE(e_data.gtao_layer_sh);
-  DRW_SHADER_FREE_SAFE(e_data.gtao_debug_sh);
   DRW_TEXTURE_FREE_SAFE(e_data.dummy_horizon_tx);
 }

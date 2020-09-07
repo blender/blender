@@ -33,15 +33,6 @@
 
 #include "eevee_private.h"
 
-extern char datatoc_common_view_lib_glsl[];
-extern char datatoc_common_uniforms_lib_glsl[];
-extern char datatoc_bsdf_common_lib_glsl[];
-extern char datatoc_renderpass_postprocess_frag_glsl[];
-
-static struct {
-  struct GPUShader *postprocess_sh;
-} e_data = {NULL}; /* Engine data */
-
 typedef enum eRenderPassPostProcessType {
   PASS_POST_UNDEFINED = 0,
   PASS_POST_ACCUMULATED_COLOR = 1,
@@ -194,15 +185,9 @@ void EEVEE_renderpasses_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ve
   const bool needs_post_processing = (g_data->render_passes &
                                       EEVEE_RENDERPASSES_WITH_POST_PROCESSING) > 0;
   if (needs_post_processing) {
-    if (e_data.postprocess_sh == NULL) {
-      DRWShaderLibrary *lib = EEVEE_shader_lib_get();
-
-      e_data.postprocess_sh = DRW_shader_create_fullscreen_with_shaderlib(
-          datatoc_renderpass_postprocess_frag_glsl, lib, NULL);
-    }
-
     DRW_PASS_CREATE(psl->renderpass_pass, DRW_STATE_WRITE_COLOR);
-    DRWShadingGroup *grp = DRW_shgroup_create(e_data.postprocess_sh, psl->renderpass_pass);
+    DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_renderpasses_post_process_sh_get(),
+                                              psl->renderpass_pass);
     DRW_shgroup_uniform_texture_ref(grp, "inputBuffer", &g_data->renderpass_input);
     DRW_shgroup_uniform_texture_ref(grp, "inputColorBuffer", &g_data->renderpass_col_input);
     DRW_shgroup_uniform_texture_ref(
@@ -418,11 +403,6 @@ void EEVEE_renderpasses_draw(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     GPU_framebuffer_clear_color(dfbl->default_fb, clear_color);
   }
   GPU_framebuffer_bind(fbl->main_fb);
-}
-
-void EEVEE_renderpasses_free(void)
-{
-  DRW_SHADER_FREE_SAFE(e_data.postprocess_sh);
 }
 
 void EEVEE_renderpasses_draw_debug(EEVEE_Data *vedata)

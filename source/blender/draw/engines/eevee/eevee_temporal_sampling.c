@@ -41,10 +41,6 @@ static struct {
   float inverted_cdf[FILTER_CDF_TABLE_SIZE];
 } e_data = {false}; /* Engine data */
 
-extern char datatoc_common_uniforms_lib_glsl[];
-extern char datatoc_common_view_lib_glsl[];
-extern char datatoc_bsdf_common_lib_glsl[];
-
 static float UNUSED_FUNCTION(filter_box)(float UNUSED(x))
 {
   return 1.0f;

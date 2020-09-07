@@ -34,25 +34,6 @@
 
 #include "eevee_private.h"
 
-static struct {
-  struct GPUShader *sss_sh[3];
-} e_data = {{NULL}}; /* Engine data */
-
-extern char datatoc_effect_subsurface_frag_glsl[];
-extern char datatoc_effect_translucency_frag_glsl[];
-
-static void eevee_create_shader_subsurface(void)
-{
-  DRWShaderLibrary *lib = EEVEE_shader_lib_get();
-
-  e_data.sss_sh[0] = DRW_shader_create_fullscreen_with_shaderlib(
-      datatoc_effect_subsurface_frag_glsl, lib, "#define FIRST_PASS\n");
-  e_data.sss_sh[1] = DRW_shader_create_fullscreen_with_shaderlib(
-      datatoc_effect_subsurface_frag_glsl, lib, "#define SECOND_PASS\n");
-  e_data.sss_sh[2] = DRW_shader_create_fullscreen_with_shaderlib(
-      datatoc_effect_translucency_frag_glsl, lib, "#define EEVEE_TRANSLUCENCY\n" SHADER_DEFINES);
-}
-
 void EEVEE_subsurface_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *UNUSED(vedata))
 {
 }
@@ -181,11 +162,6 @@ void EEVEE_subsurface_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
-  /* Shaders */
-  if (!e_data.sss_sh[0]) {
-    eevee_create_shader_subsurface();
-  }
-
   effects->sss_sample_count = 1 + scene_eval->eevee.sss_samples * 2;
   effects->sss_surface_count = 0;
   common_data->sss_jitter_threshold = scene_eval->eevee.sss_jitter_threshold;
@@ -232,7 +208,8 @@ void EEVEE_subsurface_add_pass(EEVEE_ViewLayerData *sldata,
   DRW_shgroup_stencil_mask(shgrp, sss_id);
 
   {
-    DRWShadingGroup *grp = DRW_shgroup_create(e_data.sss_sh[0], psl->sss_blur_ps);
+    DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_subsurface_first_pass_sh_get(),
+                                              psl->sss_blur_ps);
     DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", depth_src);
     DRW_shgroup_uniform_texture_ref(grp, "sssIrradiance", &effects->sss_irradiance);
@@ -243,7 +220,7 @@ void EEVEE_subsurface_add_pass(EEVEE_ViewLayerData *sldata,
     DRW_shgroup_stencil_mask(grp, sss_id);
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
 
-    grp = DRW_shgroup_create(e_data.sss_sh[1], psl->sss_resolve_ps);
+    grp = DRW_shgroup_create(EEVEE_shaders_subsurface_second_pass_sh_get(), psl->sss_resolve_ps);
     DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", depth_src);
     DRW_shgroup_uniform_texture_ref(grp, "sssIrradiance", &effects->sss_blur);
@@ -257,7 +234,8 @@ void EEVEE_subsurface_add_pass(EEVEE_ViewLayerData *sldata,
   }
 
   if (ma->blend_flag & MA_BL_TRANSLUCENCY) {
-    DRWShadingGroup *grp = DRW_shgroup_create(e_data.sss_sh[2], psl->sss_translucency_ps);
+    DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_subsurface_translucency_sh_get(),
+                                              psl->sss_translucency_ps);
     DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
     DRW_shgroup_uniform_texture(grp, "sssTexProfile", sss_tex_profile);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", depth_src);
@@ -380,11 +358,4 @@ void EEVEE_subsurface_output_accumulate(EEVEE_ViewLayerData *UNUSED(sldata), EEV
     /* Restore */
     GPU_framebuffer_bind(fbl->main_fb);
   }
-}
-
-void EEVEE_subsurface_free(void)
-{
-  DRW_SHADER_FREE_SAFE(e_data.sss_sh[0]);
-  DRW_SHADER_FREE_SAFE(e_data.sss_sh[1]);
-  DRW_SHADER_FREE_SAFE(e_data.sss_sh[2]);
 }

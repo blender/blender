@@ -32,15 +32,6 @@
 
 #include "eevee_private.h"
 
-extern char datatoc_common_view_lib_glsl[];
-extern char datatoc_common_uniforms_lib_glsl[];
-extern char datatoc_bsdf_common_lib_glsl[];
-extern char datatoc_effect_mist_frag_glsl[];
-
-static struct {
-  struct GPUShader *mist_sh;
-} e_data = {NULL}; /* Engine data */
-
 void EEVEE_mist_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -55,15 +46,7 @@ void EEVEE_mist_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   const float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-  if (e_data.mist_sh == NULL) {
-    DRWShaderLibrary *lib = EEVEE_shader_lib_get();
-
-    e_data.mist_sh = DRW_shader_create_fullscreen_with_shaderlib(
-        datatoc_effect_mist_frag_glsl, lib, "#define FIRST_PASS\n");
-  }
-
   /* Create FrameBuffer. */
-
   /* Should be enough precision for many samples. */
   DRW_texture_ensure_fullscreen_2d(&txl->mist_accum, GPU_R32F, 0);
 
@@ -107,7 +90,8 @@ void EEVEE_mist_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   /* Create Pass and shgroup. */
   DRW_PASS_CREATE(psl->mist_accum_ps, DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD);
-  DRWShadingGroup *grp = DRW_shgroup_create(e_data.mist_sh, psl->mist_accum_ps);
+  DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_effect_mist_sh_get(),
+                                            psl->mist_accum_ps);
   DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
   DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
   DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
@@ -127,9 +111,4 @@ void EEVEE_mist_output_accumulate(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
     /* Restore */
     GPU_framebuffer_bind(fbl->main_fb);
   }
-}
-
-void EEVEE_mist_free(void)
-{
-  DRW_SHADER_FREE_SAFE(e_data.mist_sh);
 }

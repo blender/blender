@@ -571,17 +571,10 @@ static void eevee_render_to_image(void *vedata,
 static void eevee_engine_free(void)
 {
   EEVEE_shaders_free();
-  EEVEE_effects_free();
   EEVEE_lightprobes_free();
-  EEVEE_shadows_free();
   EEVEE_materials_free();
-  EEVEE_mist_free();
-  EEVEE_motion_blur_free();
   EEVEE_occlusion_free();
-  EEVEE_screen_raytrace_free();
-  EEVEE_subsurface_free();
   EEVEE_volumes_free();
-  EEVEE_renderpasses_free();
 }
 
 static const DrawEngineDataSize eevee_data_size = DRW_VIEWPORT_DATA_SIZE(EEVEE_Data);

@@ -49,45 +49,6 @@
 #include "GPU_texture.h"
 #include "eevee_private.h"
 
-static struct {
-  /* Motion Blur */
-  struct GPUShader *motion_blur_sh;
-  struct GPUShader *motion_blur_object_sh;
-  struct GPUShader *motion_blur_hair_sh;
-  struct GPUShader *velocity_tiles_sh;
-  struct GPUShader *velocity_tiles_expand_sh;
-} e_data = {NULL}; /* Engine data */
-
-extern char datatoc_effect_velocity_tile_frag_glsl[];
-extern char datatoc_effect_motion_blur_frag_glsl[];
-extern char datatoc_object_motion_frag_glsl[];
-extern char datatoc_object_motion_vert_glsl[];
-extern char datatoc_common_hair_lib_glsl[];
-extern char datatoc_common_view_lib_glsl[];
-
-#define EEVEE_VELOCITY_TILE_SIZE 32
-
-static void eevee_create_shader_motion_blur(void)
-{
-#define TILE_SIZE_STR "#define EEVEE_VELOCITY_TILE_SIZE " STRINGIFY(EEVEE_VELOCITY_TILE_SIZE) "\n"
-  DRWShaderLibrary *lib = EEVEE_shader_lib_get();
-  e_data.motion_blur_sh = DRW_shader_create_fullscreen_with_shaderlib(
-      datatoc_effect_motion_blur_frag_glsl, lib, TILE_SIZE_STR);
-  e_data.motion_blur_object_sh = DRW_shader_create_with_shaderlib(
-      datatoc_object_motion_vert_glsl, NULL, datatoc_object_motion_frag_glsl, lib, NULL);
-
-  e_data.motion_blur_hair_sh = DRW_shader_create_with_shaderlib(datatoc_object_motion_vert_glsl,
-                                                                NULL,
-                                                                datatoc_object_motion_frag_glsl,
-                                                                lib,
-                                                                "#define HAIR\n");
-
-  e_data.velocity_tiles_sh = DRW_shader_create_fullscreen(datatoc_effect_velocity_tile_frag_glsl,
-                                                          "#define TILE_GATHER\n" TILE_SIZE_STR);
-  e_data.velocity_tiles_expand_sh = DRW_shader_create_fullscreen(
-      datatoc_effect_velocity_tile_frag_glsl, "#define TILE_EXPANSION\n" TILE_SIZE_STR);
-}
-
 int EEVEE_motion_blur_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 {
   EEVEE_StorageList *stl = vedata->stl;
@@ -105,10 +66,6 @@ int EEVEE_motion_blur_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *veda
   effects->motion_blur_max = max_ii(0, scene->eevee.motion_blur_max);
 
   if ((effects->motion_blur_max > 0) && (scene->eevee.flag & SCE_EEVEE_MOTION_BLUR_ENABLED)) {
-    if (!e_data.motion_blur_sh) {
-      eevee_create_shader_motion_blur();
-    }
-
     if (DRW_state_is_scene_render()) {
       int mb_step = effects->motion_blur_step;
       DRW_view_viewmat_get(NULL, effects->motion_blur.camera[mb_step].viewmat, false);
@@ -188,7 +145,7 @@ void EEVEE_motion_blur_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
       DRW_PASS_CREATE(psl->velocity_tiles, DRW_STATE_WRITE_COLOR);
 
       /* Create max velocity tiles in 2 passes. One for X and one for Y */
-      GPUShader *sh = e_data.velocity_tiles_sh;
+      GPUShader *sh = EEVEE_shaders_effect_motion_blur_velocity_tiles_sh_get();
       grp = DRW_shgroup_create(sh, psl->velocity_tiles_x);
       DRW_shgroup_uniform_texture(grp, "velocityBuffer", effects->velocity_tx);
       DRW_shgroup_uniform_ivec2_copy(grp, "velocityBufferSize", (int[2]){fs_size[0], fs_size[1]});
@@ -208,7 +165,7 @@ void EEVEE_motion_blur_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
       DRW_PASS_CREATE(psl->velocity_tiles_expand[1], DRW_STATE_WRITE_COLOR);
       for (int i = 0; i < 2; i++) {
         GPUTexture *tile_tx = (i == 0) ? effects->velocity_tiles_tx : effects->velocity_tiles_x_tx;
-        GPUShader *sh_expand = e_data.velocity_tiles_expand_sh;
+        GPUShader *sh_expand = EEVEE_shaders_effect_motion_blur_velocity_tiles_expand_sh_get();
         grp = DRW_shgroup_create(sh_expand, psl->velocity_tiles_expand[i]);
         DRW_shgroup_uniform_ivec2_copy(grp, "velocityBufferSize", tx_size);
         DRW_shgroup_uniform_texture(grp, "velocityBuffer", tile_tx);
@@ -224,7 +181,7 @@ void EEVEE_motion_blur_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
       GPUTexture *tile_tx = (expand_steps & 1) ? effects->velocity_tiles_x_tx :
                                                  effects->velocity_tiles_tx;
 
-      grp = DRW_shgroup_create(e_data.motion_blur_sh, psl->motion_blur);
+      grp = DRW_shgroup_create(EEVEE_shaders_effect_motion_blur_sh_get(), psl->motion_blur);
       DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
       DRW_shgroup_uniform_texture_ref_ex(grp, "colorBuffer", &effects->source_buffer, state);
       DRW_shgroup_uniform_texture_ref_ex(grp, "depthBuffer", &dtxl->depth, state);
@@ -241,14 +198,16 @@ void EEVEE_motion_blur_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
     {
       DRW_PASS_CREATE(psl->velocity_object, DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL);
 
-      grp = DRW_shgroup_create(e_data.motion_blur_object_sh, psl->velocity_object);
+      grp = DRW_shgroup_create(EEVEE_shaders_effect_motion_blur_object_sh_get(),
+                               psl->velocity_object);
       DRW_shgroup_uniform_mat4(grp, "prevViewProjMatrix", mb_data->camera[MB_PREV].persmat);
       DRW_shgroup_uniform_mat4(grp, "currViewProjMatrix", mb_data->camera[MB_CURR].persmat);
       DRW_shgroup_uniform_mat4(grp, "nextViewProjMatrix", mb_data->camera[MB_NEXT].persmat);
 
       DRW_PASS_CREATE(psl->velocity_hair, DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL);
 
-      mb_data->hair_grp = grp = DRW_shgroup_create(e_data.motion_blur_hair_sh, psl->velocity_hair);
+      mb_data->hair_grp = grp = DRW_shgroup_create(EEVEE_shaders_effect_motion_blur_hair_sh_get(),
+                                                   psl->velocity_hair);
       DRW_shgroup_uniform_mat4(grp, "prevViewProjMatrix", mb_data->camera[MB_PREV].persmat);
       DRW_shgroup_uniform_mat4(grp, "currViewProjMatrix", mb_data->camera[MB_CURR].persmat);
       DRW_shgroup_uniform_mat4(grp, "nextViewProjMatrix", mb_data->camera[MB_NEXT].persmat);
@@ -396,7 +355,8 @@ void EEVEE_motion_blur_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
         return;
       }
 
-      grp = DRW_shgroup_create(e_data.motion_blur_object_sh, psl->velocity_object);
+      grp = DRW_shgroup_create(EEVEE_shaders_effect_motion_blur_object_sh_get(),
+                               psl->velocity_object);
       DRW_shgroup_uniform_mat4(grp, "prevModelMatrix", mb_data->obmat[MB_PREV]);
       DRW_shgroup_uniform_mat4(grp, "currModelMatrix", mb_data->obmat[MB_CURR]);
       DRW_shgroup_uniform_mat4(grp, "nextModelMatrix", mb_data->obmat[MB_NEXT]);
@@ -626,13 +586,4 @@ void EEVEE_motion_blur_draw(EEVEE_Data *vedata)
     DRW_draw_pass(psl->motion_blur);
     SWAP_BUFFERS();
   }
-}
-
-void EEVEE_motion_blur_free(void)
-{
-  DRW_SHADER_FREE_SAFE(e_data.motion_blur_sh);
-  DRW_SHADER_FREE_SAFE(e_data.motion_blur_object_sh);
-  DRW_SHADER_FREE_SAFE(e_data.motion_blur_hair_sh);
-  DRW_SHADER_FREE_SAFE(e_data.velocity_tiles_sh);
-  DRW_SHADER_FREE_SAFE(e_data.velocity_tiles_expand_sh);
 }

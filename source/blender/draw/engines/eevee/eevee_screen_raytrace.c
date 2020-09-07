@@ -32,55 +32,10 @@
 #include "GPU_texture.h"
 #include "eevee_private.h"
 
-/* SSR shader variations */
-enum {
-  SSR_RESOLVE = (1 << 0),
-  SSR_FULL_TRACE = (1 << 1),
-  SSR_AO = (1 << 3),
-  SSR_MAX_SHADER = (1 << 4),
-};
-
 static struct {
-  /* Screen Space Reflection */
-  struct GPUShader *ssr_sh[SSR_MAX_SHADER];
-
   /* These are just references, not actually allocated */
   struct GPUTexture *depth_src;
-} e_data = {{NULL}}; /* Engine data */
-
-extern char datatoc_effect_ssr_frag_glsl[];
-
-static struct GPUShader *eevee_effects_screen_raytrace_shader_get(int options)
-{
-  if (e_data.ssr_sh[options] == NULL) {
-    DRWShaderLibrary *lib = EEVEE_shader_lib_get();
-
-    DynStr *ds_defines = BLI_dynstr_new();
-    BLI_dynstr_append(ds_defines, SHADER_DEFINES);
-    if (options & SSR_RESOLVE) {
-      BLI_dynstr_append(ds_defines, "#define STEP_RESOLVE\n");
-    }
-    else {
-      BLI_dynstr_append(ds_defines, "#define STEP_RAYTRACE\n");
-      BLI_dynstr_append(ds_defines, "#define PLANAR_PROBE_RAYTRACE\n");
-    }
-    if (options & SSR_FULL_TRACE) {
-      BLI_dynstr_append(ds_defines, "#define FULLRES\n");
-    }
-    if (options & SSR_AO) {
-      BLI_dynstr_append(ds_defines, "#define SSR_AO\n");
-    }
-    char *ssr_define_str = BLI_dynstr_get_cstring(ds_defines);
-    BLI_dynstr_free(ds_defines);
-
-    e_data.ssr_sh[options] = DRW_shader_create_fullscreen_with_shaderlib(
-        datatoc_effect_ssr_frag_glsl, lib, ssr_define_str);
-
-    MEM_freeN(ssr_define_str);
-  }
-
-  return e_data.ssr_sh[options];
-}
+} e_data = {NULL}; /* Engine data */
 
 int EEVEE_screen_raytrace_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
@@ -187,12 +142,12 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
   struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
 
   if ((effects->enabled_effects & EFFECT_SSR) != 0) {
-    int options = (effects->reflection_trace_full) ? SSR_FULL_TRACE : 0;
+    EEVEE_SSRShaderOptions options = (effects->reflection_trace_full) ? SSR_FULL_TRACE : 0;
     options |= ((effects->enabled_effects & EFFECT_GTAO) != 0) ? SSR_AO : 0;
 
-    struct GPUShader *trace_shader = eevee_effects_screen_raytrace_shader_get(options);
-    struct GPUShader *resolve_shader = eevee_effects_screen_raytrace_shader_get(SSR_RESOLVE |
-                                                                                options);
+    struct GPUShader *trace_shader = EEVEE_shaders_effect_screen_raytrace_sh_get(options);
+    struct GPUShader *resolve_shader = EEVEE_shaders_effect_screen_raytrace_sh_get(SSR_RESOLVE |
+                                                                                   options);
 
     /** Screen space raytracing overview
      *
@@ -355,12 +310,5 @@ void EEVEE_reflection_output_accumulate(EEVEE_ViewLayerData *UNUSED(sldata), EEV
   if (stl->g_data->valid_double_buffer) {
     GPU_framebuffer_bind(fbl->ssr_accum_fb);
     DRW_draw_pass(psl->ssr_resolve);
-  }
-}
-
-void EEVEE_screen_raytrace_free(void)
-{
-  for (int i = 0; i < SSR_MAX_SHADER; i++) {
-    DRW_SHADER_FREE_SAFE(e_data.ssr_sh[i]);
   }
 }
