@@ -59,7 +59,7 @@ GLTexture::~GLTexture()
     /* This avoid errors when the texture is still inside the bound texture array. */
     ctx->state_manager->texture_unbind(this);
   }
-  GLBackend::get()->tex_free(tex_id_);
+  GLContext::tex_free(tex_id_);
 }
 
 /* Return true on success. */

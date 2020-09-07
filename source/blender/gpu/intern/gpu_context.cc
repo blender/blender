@@ -126,58 +126,6 @@ GPUContext *GPU_context_active_get(void)
   return active_ctx;
 }
 
-GLuint GPU_vao_alloc(void)
-{
-  GLuint new_vao_id = 0;
-  glGenVertexArrays(1, &new_vao_id);
-  return new_vao_id;
-}
-
-GLuint GPU_fbo_alloc(void)
-{
-  GLuint new_fbo_id = 0;
-  glGenFramebuffers(1, &new_fbo_id);
-  return new_fbo_id;
-}
-
-GLuint GPU_buf_alloc(void)
-{
-  GLuint new_buffer_id = 0;
-  glGenBuffers(1, &new_buffer_id);
-  return new_buffer_id;
-}
-
-GLuint GPU_tex_alloc(void)
-{
-  GLuint new_texture_id = 0;
-  glGenTextures(1, &new_texture_id);
-  return new_texture_id;
-}
-
-void GPU_vao_free(GLuint vao_id, GPUContext *ctx)
-{
-  static_cast<GLContext *>(ctx)->vao_free(vao_id);
-}
-
-void GPU_fbo_free(GLuint fbo_id, GPUContext *ctx)
-{
-  static_cast<GLContext *>(ctx)->fbo_free(fbo_id);
-}
-
-void GPU_buf_free(GLuint buf_id)
-{
-  /* TODO avoid using backend */
-  GPUBackend *backend = GPUBackend::get();
-  static_cast<GLBackend *>(backend)->buf_free(buf_id);
-}
-
-void GPU_tex_free(GLuint tex_id)
-{
-  /* TODO avoid using backend */
-  GPUBackend *backend = GPUBackend::get();
-  static_cast<GLBackend *>(backend)->tex_free(tex_id);
-}
-
 struct GPUMatrixState *gpu_context_active_matrix_state_get()
 {
   BLI_assert(active_ctx);

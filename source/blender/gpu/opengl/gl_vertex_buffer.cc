@@ -21,7 +21,7 @@
  * \ingroup gpu
  */
 
-#include "gl_backend.hh"
+#include "gl_context.hh"
 
 #include "gl_vertex_buffer.hh"
 
@@ -42,7 +42,7 @@ void GLVertBuf::resize_data(void)
 void GLVertBuf::release_data(void)
 {
   if (vbo_id_ != 0) {
-    GLBackend::get()->buf_free(vbo_id_);
+    GLContext::buf_free(vbo_id_);
     vbo_id_ = 0;
     memory_usage -= vbo_size_;
   }

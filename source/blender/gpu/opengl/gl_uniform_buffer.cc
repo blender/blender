@@ -45,7 +45,7 @@ GLUniformBuf::GLUniformBuf(size_t size, const char *name) : UniformBuf(size, nam
 
 GLUniformBuf::~GLUniformBuf()
 {
-  GLBackend::get()->buf_free(ubo_id_);
+  GLContext::buf_free(ubo_id_);
 }
 
 /** \} */

@@ -230,25 +230,27 @@ void GLContext::fbo_free(GLuint fbo_id)
   }
 }
 
-void GLBackend::buf_free(GLuint buf_id)
+void GLContext::buf_free(GLuint buf_id)
 {
   /* Any context can free. */
   if (GPU_context_active_get()) {
     glDeleteBuffers(1, &buf_id);
   }
   else {
-    orphans_add(shared_orphan_list_.buffers, shared_orphan_list_.lists_mutex, buf_id);
+    GLSharedOrphanLists &orphan_list = GLBackend::get()->shared_orphan_list_get();
+    orphans_add(orphan_list.buffers, orphan_list.lists_mutex, buf_id);
   }
 }
 
-void GLBackend::tex_free(GLuint tex_id)
+void GLContext::tex_free(GLuint tex_id)
 {
   /* Any context can free. */
   if (GPU_context_active_get()) {
     glDeleteTextures(1, &tex_id);
   }
   else {
-    orphans_add(shared_orphan_list_.textures, shared_orphan_list_.lists_mutex, tex_id);
+    GLSharedOrphanLists &orphan_list = GLBackend::get()->shared_orphan_list_get();
+    orphans_add(orphan_list.textures, orphan_list.lists_mutex, tex_id);
   }
 }
 

@@ -88,10 +88,7 @@ GLDrawList::GLDrawList(int length)
 
 GLDrawList::~GLDrawList()
 {
-  /* TODO This ... */
-  static_cast<GLBackend *>(GPUBackend::get())->buf_free(buffer_id_);
-  /* ... should be this. */
-  // context_->buf_free(buffer_id_)
+  GLContext::buf_free(buffer_id_);
 }
 
 void GLDrawList::init(void)

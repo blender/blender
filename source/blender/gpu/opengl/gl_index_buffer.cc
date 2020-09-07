@@ -21,7 +21,7 @@
  * \ingroup gpu
  */
 
-#include "gl_backend.hh"
+#include "gl_context.hh"
 #include "gl_debug.hh"
 
 #include "gl_index_buffer.hh"
@@ -30,7 +30,7 @@ namespace blender::gpu {
 
 GLIndexBuf::~GLIndexBuf()
 {
-  GLBackend::get()->buf_free(ibo_id_);
+  GLContext::buf_free(ibo_id_);
 }
 
 void GLIndexBuf::bind(void)
