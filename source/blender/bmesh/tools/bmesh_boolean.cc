@@ -340,8 +340,8 @@ static bool bmesh_boolean(BMesh *bm,
   IMesh m_in = mesh_from_bm(bm, looptris, looptris_tot, &m_triangulated, &arena);
   std::function<int(int)> shape_fn;
   int nshapes;
-  if (use_self) {
-    /* Unary boolean operation. Want every face where test_fn doesn't return -1. */
+  if (use_self && boolean_mode == BoolOpType::None) {
+    /* Unary knife operation. Want every face where test_fn doesn't return -1. */
     nshapes = 1;
     shape_fn = [bm, test_fn, user_data](int f) {
       BMFace *bmf = BM_face_at_index(bm, f);

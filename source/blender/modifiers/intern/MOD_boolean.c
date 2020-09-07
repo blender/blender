@@ -77,6 +77,7 @@ static void initData(ModifierData *md)
   bmd->double_threshold = 1e-6f;
   bmd->operation = eBooleanModifierOp_Difference;
   bmd->solver = eBooleanModifierSolver_Exact;
+  bmd->flag = 0;
 }
 
 static bool isDisabled(const struct Scene *UNUSED(scene),
@@ -319,15 +320,18 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
 #ifdef WITH_GMP
         const bool use_exact = bmd->solver == eBooleanModifierSolver_Exact;
+        const bool use_self = (bmd->flag & eBooleanModifierFlag_Self) != 0;
 #else
         if (bmd->solver == eBooleanModifierSolver_Exact) {
           BKE_modifier_set_error(md, "Compiled without GMP, using fast solver");
         }
         const bool use_exact = false;
+        const bool use_self = false;
 #endif
 
         if (use_exact) {
-          BM_mesh_boolean(bm, looptris, tottri, bm_face_isect_pair, NULL, false, bmd->operation);
+          BM_mesh_boolean(
+              bm, looptris, tottri, bm_face_isect_pair, NULL, use_self, bmd->operation);
         }
         else {
           BM_mesh_intersect(bm,
@@ -393,7 +397,10 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(layout, ptr, "object", 0, NULL, ICON_NONE);
   uiItemR(layout, ptr, "solver", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
-  if (!use_exact) {
+  if (use_exact) {
+    uiItemR(layout, ptr, "use_self", 0, NULL, ICON_NONE);
+  }
+  else {
     uiItemR(layout, ptr, "double_threshold", 0, NULL, ICON_NONE);
   }
 

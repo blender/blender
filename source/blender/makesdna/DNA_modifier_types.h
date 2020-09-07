@@ -863,7 +863,7 @@ typedef struct BooleanModifierData {
   struct Object *object;
   char operation;
   char solver;
-  char _pad[1];
+  char flag;
   char bm_flag;
   float double_threshold;
 } BooleanModifierData;
@@ -878,6 +878,10 @@ typedef enum {
   eBooleanModifierSolver_Fast = 0,
   eBooleanModifierSolver_Exact = 1,
 } BooleanModifierSolver;
+
+enum {
+  eBooleanModifierFlag_Self = (1 << 0),
+};
 
 /* bm_flag only used when G_DEBUG. */
 enum {

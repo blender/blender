@@ -2863,6 +2863,11 @@ static void rna_def_modifier_boolean(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Solver", "Method for calculating booleans");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+  prop = RNA_def_property(srna, "use_self", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", eBooleanModifierFlag_Self);
+  RNA_def_property_ui_text(prop, "Self", "Allow self-intersection in operands");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
   /* BMesh debugging options, only used when G_DEBUG is set */
 
   /* BMesh intersection options */

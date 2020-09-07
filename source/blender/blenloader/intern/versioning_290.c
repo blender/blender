@@ -513,6 +513,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
           if (md->type == eModifierType_Boolean) {
             BooleanModifierData *bmd = (BooleanModifierData *)md;
             bmd->solver = eBooleanModifierSolver_Fast;
+            bmd->flag = 0;
           }
         }
       }
