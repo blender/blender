@@ -526,7 +526,7 @@ static void eevee_lightbake_context_enable(EEVEE_LightBake *lbake)
   if (lbake->gl_context) {
     DRW_opengl_render_context_enable(lbake->gl_context);
     if (lbake->gpu_context == NULL) {
-      lbake->gpu_context = GPU_context_create(0);
+      lbake->gpu_context = GPU_context_create(NULL);
     }
     DRW_gpu_render_context_enable(lbake->gpu_context);
   }

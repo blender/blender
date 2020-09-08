@@ -1113,7 +1113,7 @@ void *RE_gl_context_get(Render *re)
 void *RE_gpu_context_get(Render *re)
 {
   if (re->gpu_context == NULL) {
-    re->gpu_context = GPU_context_create(0);
+    re->gpu_context = GPU_context_create(NULL);
   }
   return re->gpu_context;
 }
