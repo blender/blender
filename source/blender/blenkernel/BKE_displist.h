@@ -30,16 +30,24 @@
 extern "C" {
 #endif
 
-/* dl->type */
-#define DL_POLY 0
-#define DL_SEGM 1
-#define DL_SURF 2
-#define DL_INDEX3 4
-#define DL_INDEX4 5
-// #define DL_VERTCOL              6  // UNUSED
-#define DL_VERTS 7
+/** #DispList.type */
+enum {
+  /** A closed polygon (that can be filled).  */
+  DL_POLY = 0,
+  /** An open polygon.  */
+  DL_SEGM = 1,
+  /** A grid surface that respects #DL_CYCL_U & #DL_CYCL_V.  */
+  DL_SURF = 2,
+  /** Triangles. */
+  DL_INDEX3 = 4,
+  /** Quads, with support for triangles (when values of the 3rd and 4th indices match). */
+  DL_INDEX4 = 5,
+  // DL_VERTCOL = 6, /* UNUSED */
+  /** Isolated points. */
+  DL_VERTS = 7,
+};
 
-/* dl->flag */
+/** #DispList.type */
 enum {
   /** U/V swapped here compared with #Nurb.flagu, #Nurb.flagv and #CU_NURB_CYCLIC */
   DL_CYCL_U = (1 << 0),
