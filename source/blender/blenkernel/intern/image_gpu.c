@@ -320,6 +320,8 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
     *tex = IMB_create_gpu_texture(
         ima->id.name + 2, ibuf_intern, use_high_bitdepth, store_premultiplied);
 
+    GPU_texture_wrap_mode(*tex, true, false);
+
     if (GPU_mipmap_enabled()) {
       GPU_texture_generate_mipmap(*tex);
       if (ima) {
