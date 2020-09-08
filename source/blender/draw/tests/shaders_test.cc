@@ -15,6 +15,8 @@
 #include "engines/overlay/overlay_private.h"
 #include "engines/workbench/workbench_private.h"
 
+namespace blender::draw::tests {
+
 /* Base class for draw test cases. It will setup and tear down the GPU part around each test. */
 class DrawTest : public ::testing::Test {
  private:
@@ -320,3 +322,5 @@ TEST_F(DrawTest, eevee_glsl_shaders_static)
   }
   EEVEE_shaders_free();
 }
+
+}  // namespace blender::draw::tests
