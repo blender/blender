@@ -68,6 +68,10 @@ ENUM_OPERATORS(eGPUTextureType)
 /* Maximum number of FBOs a texture can be attached to. */
 #define GPU_TEX_MAX_FBO_ATTACHED 14
 
+/**
+ * Implementation of Textures.
+ * Base class which is then specialized for each implementation (GL, VK, ...).
+ **/
 class Texture {
  public:
   /** Internal Sampler state. */

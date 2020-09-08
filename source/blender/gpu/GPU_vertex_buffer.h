@@ -61,6 +61,7 @@ typedef enum {
   GPU_USAGE_DYNAMIC,
 } GPUUsageType;
 
+/** Opaque type hiding blender::gpu::VertBuf. */
 typedef struct GPUVertBuf GPUVertBuf;
 
 GPUVertBuf *GPU_vertbuf_calloc(void);

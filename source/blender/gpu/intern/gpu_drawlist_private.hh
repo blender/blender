@@ -25,6 +25,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "GPU_drawlist.h"
+
 namespace blender {
 namespace gpu {
 
@@ -39,6 +41,20 @@ class DrawList {
   virtual void append(GPUBatch *batch, int i_first, int i_count) = 0;
   virtual void submit() = 0;
 };
+
+/* Syntacting suggar. */
+static inline GPUDrawList *wrap(DrawList *vert)
+{
+  return reinterpret_cast<GPUDrawList *>(vert);
+}
+static inline DrawList *unwrap(GPUDrawList *vert)
+{
+  return reinterpret_cast<DrawList *>(vert);
+}
+static inline const DrawList *unwrap(const GPUDrawList *vert)
+{
+  return reinterpret_cast<const DrawList *>(vert);
+}
 
 }  // namespace gpu
 }  // namespace blender

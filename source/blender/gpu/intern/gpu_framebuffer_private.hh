@@ -209,6 +209,20 @@ class FrameBuffer {
   };
 };
 
+/* Syntacting suggar. */
+static inline GPUFrameBuffer *wrap(FrameBuffer *vert)
+{
+  return reinterpret_cast<GPUFrameBuffer *>(vert);
+}
+static inline FrameBuffer *unwrap(GPUFrameBuffer *vert)
+{
+  return reinterpret_cast<FrameBuffer *>(vert);
+}
+static inline const FrameBuffer *unwrap(const GPUFrameBuffer *vert)
+{
+  return reinterpret_cast<const FrameBuffer *>(vert);
+}
+
 #undef DEBUG_NAME_LEN
 
 }  // namespace gpu

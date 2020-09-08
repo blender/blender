@@ -194,21 +194,20 @@ GPUFrameBuffer *GPU_framebuffer_create(const char *name)
 {
   /* We generate the FB object later at first use in order to
    * create the frame-buffer in the right opengl context. */
-  return (GPUFrameBuffer *)GPUBackend::get()->framebuffer_alloc(name);
+  return wrap(GPUBackend::get()->framebuffer_alloc(name));
 }
 
 void GPU_framebuffer_free(GPUFrameBuffer *gpu_fb)
 {
-  delete reinterpret_cast<FrameBuffer *>(gpu_fb);
+  delete unwrap(gpu_fb);
 }
 
 /* ---------- Binding ----------- */
 
 void GPU_framebuffer_bind(GPUFrameBuffer *gpu_fb)
 {
-  FrameBuffer *fb = reinterpret_cast<FrameBuffer *>(gpu_fb);
   const bool enable_srgb = true;
-  fb->bind(enable_srgb);
+  unwrap(gpu_fb)->bind(enable_srgb);
 }
 
 /**
@@ -216,9 +215,8 @@ void GPU_framebuffer_bind(GPUFrameBuffer *gpu_fb)
  */
 void GPU_framebuffer_bind_no_srgb(GPUFrameBuffer *gpu_fb)
 {
-  FrameBuffer *fb = reinterpret_cast<FrameBuffer *>(gpu_fb);
   const bool enable_srgb = false;
-  fb->bind(enable_srgb);
+  unwrap(gpu_fb)->bind(enable_srgb);
 }
 
 /**
@@ -244,14 +242,14 @@ void GPU_framebuffer_restore(void)
 GPUFrameBuffer *GPU_framebuffer_active_get(void)
 {
   GPUContext *ctx = GPU_context_active_get();
-  return reinterpret_cast<GPUFrameBuffer *>(ctx ? ctx->active_fb : NULL);
+  return wrap(ctx ? ctx->active_fb : NULL);
 }
 
 /* Returns the default frame-buffer. Will always exists even if it's just a dummy. */
 GPUFrameBuffer *GPU_framebuffer_back_get(void)
 {
   GPUContext *ctx = GPU_context_active_get();
-  return reinterpret_cast<GPUFrameBuffer *>(ctx ? ctx->back_left : NULL);
+  return wrap(ctx ? ctx->back_left : NULL);
 }
 
 bool GPU_framebuffer_bound(GPUFrameBuffer *gpu_fb)
@@ -263,14 +261,14 @@ bool GPU_framebuffer_bound(GPUFrameBuffer *gpu_fb)
 
 bool GPU_framebuffer_check_valid(GPUFrameBuffer *gpu_fb, char err_out[256])
 {
-  return reinterpret_cast<FrameBuffer *>(gpu_fb)->check(err_out);
+  return unwrap(gpu_fb)->check(err_out);
 }
 
 void GPU_framebuffer_texture_attach_ex(GPUFrameBuffer *gpu_fb, GPUAttachment attachment, int slot)
 {
   Texture *tex = reinterpret_cast<Texture *>(attachment.tex);
   GPUAttachmentType type = tex->attachment_type(slot);
-  reinterpret_cast<FrameBuffer *>(gpu_fb)->attachment_set(type, attachment);
+  unwrap(gpu_fb)->attachment_set(type, attachment);
 }
 
 void GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot, int mip)
@@ -293,10 +291,9 @@ void GPU_framebuffer_texture_cubeface_attach(
   GPU_framebuffer_texture_attach_ex(fb, attachment, slot);
 }
 
-void GPU_framebuffer_texture_detach(GPUFrameBuffer *gpu_fb, GPUTexture *tex)
+void GPU_framebuffer_texture_detach(GPUFrameBuffer *fb, GPUTexture *tex)
 {
-  FrameBuffer *fb = reinterpret_cast<FrameBuffer *>(gpu_fb);
-  reinterpret_cast<Texture *>(tex)->detach_from(fb);
+  unwrap(tex)->detach_from(unwrap(fb));
 }
 
 /**
@@ -309,7 +306,7 @@ void GPU_framebuffer_config_array(GPUFrameBuffer *gpu_fb,
                                   const GPUAttachment *config,
                                   int config_len)
 {
-  FrameBuffer *fb = reinterpret_cast<FrameBuffer *>(gpu_fb);
+  FrameBuffer *fb = unwrap(gpu_fb);
 
   const GPUAttachment &depth_attachment = config[0];
   Span<GPUAttachment> color_attachments(config + 1, config_len - 1);
@@ -346,12 +343,12 @@ void GPU_framebuffer_config_array(GPUFrameBuffer *gpu_fb,
 void GPU_framebuffer_viewport_set(GPUFrameBuffer *gpu_fb, int x, int y, int width, int height)
 {
   int viewport_rect[4] = {x, y, width, height};
-  reinterpret_cast<FrameBuffer *>(gpu_fb)->viewport_set(viewport_rect);
+  unwrap(gpu_fb)->viewport_set(viewport_rect);
 }
 
 void GPU_framebuffer_viewport_get(GPUFrameBuffer *gpu_fb, int r_viewport[4])
 {
-  reinterpret_cast<FrameBuffer *>(gpu_fb)->viewport_get(r_viewport);
+  unwrap(gpu_fb)->viewport_get(r_viewport);
 }
 
 /**
@@ -359,7 +356,7 @@ void GPU_framebuffer_viewport_get(GPUFrameBuffer *gpu_fb, int r_viewport[4])
  */
 void GPU_framebuffer_viewport_reset(GPUFrameBuffer *gpu_fb)
 {
-  reinterpret_cast<FrameBuffer *>(gpu_fb)->viewport_reset();
+  unwrap(gpu_fb)->viewport_reset();
 }
 
 /* ---------- Framebuffer Operations ----------- */
@@ -370,7 +367,7 @@ void GPU_framebuffer_clear(GPUFrameBuffer *gpu_fb,
                            float clear_depth,
                            uint clear_stencil)
 {
-  reinterpret_cast<FrameBuffer *>(gpu_fb)->clear(buffers, clear_col, clear_depth, clear_stencil);
+  unwrap(gpu_fb)->clear(buffers, clear_col, clear_depth, clear_stencil);
 }
 
 /**
@@ -378,7 +375,7 @@ void GPU_framebuffer_clear(GPUFrameBuffer *gpu_fb,
  */
 void GPU_framebuffer_multi_clear(GPUFrameBuffer *gpu_fb, const float (*clear_cols)[4])
 {
-  reinterpret_cast<FrameBuffer *>(gpu_fb)->clear_multi(clear_cols);
+  unwrap(gpu_fb)->clear_multi(clear_cols);
 }
 
 void GPU_clear_color(float red, float green, float blue, float alpha)
@@ -397,7 +394,7 @@ void GPU_framebuffer_read_depth(
     GPUFrameBuffer *gpu_fb, int x, int y, int w, int h, eGPUDataFormat format, void *data)
 {
   int rect[4] = {x, y, w, h};
-  reinterpret_cast<FrameBuffer *>(gpu_fb)->read(GPU_DEPTH_BIT, format, rect, 1, 1, data);
+  unwrap(gpu_fb)->read(GPU_DEPTH_BIT, format, rect, 1, 1, data);
 }
 
 void GPU_framebuffer_read_color(GPUFrameBuffer *gpu_fb,
@@ -411,7 +408,7 @@ void GPU_framebuffer_read_color(GPUFrameBuffer *gpu_fb,
                                 void *data)
 {
   int rect[4] = {x, y, w, h};
-  reinterpret_cast<FrameBuffer *>(gpu_fb)->read(GPU_COLOR_BIT, format, rect, channels, slot, data);
+  unwrap(gpu_fb)->read(GPU_COLOR_BIT, format, rect, channels, slot, data);
 }
 
 /* TODO(fclem) rename to read_color. */
@@ -430,8 +427,8 @@ void GPU_framebuffer_blit(GPUFrameBuffer *gpufb_read,
                           int write_slot,
                           eGPUFrameBufferBits blit_buffers)
 {
-  FrameBuffer *fb_read = reinterpret_cast<FrameBuffer *>(gpufb_read);
-  FrameBuffer *fb_write = reinterpret_cast<FrameBuffer *>(gpufb_write);
+  FrameBuffer *fb_read = unwrap(gpufb_read);
+  FrameBuffer *fb_write = unwrap(gpufb_write);
   BLI_assert(blit_buffers != 0);
 
   FrameBuffer *prev_fb = GPU_context_active_get()->active_fb;
@@ -473,7 +470,7 @@ void GPU_framebuffer_recursive_downsample(GPUFrameBuffer *gpu_fb,
                                           void (*callback)(void *userData, int level),
                                           void *userData)
 {
-  reinterpret_cast<FrameBuffer *>(gpu_fb)->recursive_downsample(max_lvl, callback, userData);
+  unwrap(gpu_fb)->recursive_downsample(max_lvl, callback, userData);
 }
 
 /** \} */
@@ -616,9 +613,9 @@ void GPU_offscreen_bind(GPUOffScreen *ofs, bool save)
 {
   if (save) {
     GPUFrameBuffer *fb = GPU_framebuffer_active_get();
-    gpuPushFrameBuffer(reinterpret_cast<GPUFrameBuffer *>(fb));
+    gpuPushFrameBuffer(fb);
   }
-  reinterpret_cast<FrameBuffer *>(gpu_offscreen_fb_get(ofs))->bind(false);
+  unwrap(gpu_offscreen_fb_get(ofs))->bind(false);
 }
 
 void GPU_offscreen_unbind(GPUOffScreen *UNUSED(ofs), bool restore)
@@ -639,7 +636,7 @@ void GPU_offscreen_unbind(GPUOffScreen *UNUSED(ofs), bool restore)
 void GPU_offscreen_draw_to_screen(GPUOffScreen *ofs, int x, int y)
 {
   GPUContext *ctx = GPU_context_active_get();
-  FrameBuffer *ofs_fb = reinterpret_cast<FrameBuffer *>(gpu_offscreen_fb_get(ofs));
+  FrameBuffer *ofs_fb = unwrap(gpu_offscreen_fb_get(ofs));
   ofs_fb->blit_to(GPU_COLOR_BIT, 0, ctx->active_fb, 0, x, y);
 }
 

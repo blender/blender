@@ -36,6 +36,8 @@ struct MovieClipUser;
 struct PreviewImage;
 
 struct GPUFrameBuffer;
+
+/** Opaque type hiding blender::gpu::Texture. */
 typedef struct GPUTexture GPUTexture;
 
 /* GPU Samplers state

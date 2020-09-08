@@ -198,7 +198,7 @@ GPUUniformBuf *GPU_uniformbuf_create_ex(size_t size, const void *data, const cha
   if (data != NULL) {
     ubo->update(data);
   }
-  return reinterpret_cast<GPUUniformBuf *>(ubo);
+  return wrap(ubo);
 }
 
 /**
@@ -222,27 +222,27 @@ GPUUniformBuf *GPU_uniformbuf_create_from_list(ListBase *inputs, const char *nam
   UniformBuf *ubo = GPUBackend::get()->uniformbuf_alloc(buffer_size, name);
   /* Defer data upload. */
   ubo->attach_data(data);
-  return reinterpret_cast<GPUUniformBuf *>(ubo);
+  return wrap(ubo);
 }
 
 void GPU_uniformbuf_free(GPUUniformBuf *ubo)
 {
-  delete reinterpret_cast<UniformBuf *>(ubo);
+  delete unwrap(ubo);
 }
 
 void GPU_uniformbuf_update(GPUUniformBuf *ubo, const void *data)
 {
-  reinterpret_cast<UniformBuf *>(ubo)->update(data);
+  unwrap(ubo)->update(data);
 }
 
 void GPU_uniformbuf_bind(GPUUniformBuf *ubo, int slot)
 {
-  reinterpret_cast<UniformBuf *>(ubo)->bind(slot);
+  unwrap(ubo)->bind(slot);
 }
 
 void GPU_uniformbuf_unbind(GPUUniformBuf *ubo)
 {
-  reinterpret_cast<UniformBuf *>(ubo)->unbind();
+  unwrap(ubo)->unbind();
 }
 
 void GPU_uniformbuf_unbind_all(void)

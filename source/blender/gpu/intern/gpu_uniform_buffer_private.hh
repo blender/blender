@@ -63,6 +63,20 @@ class UniformBuf {
   }
 };
 
+/* Syntacting suggar. */
+static inline GPUUniformBuf *wrap(UniformBuf *vert)
+{
+  return reinterpret_cast<GPUUniformBuf *>(vert);
+}
+static inline UniformBuf *unwrap(GPUUniformBuf *vert)
+{
+  return reinterpret_cast<UniformBuf *>(vert);
+}
+static inline const UniformBuf *unwrap(const GPUUniformBuf *vert)
+{
+  return reinterpret_cast<const UniformBuf *>(vert);
+}
+
 #undef DEBUG_NAME_LEN
 
 }  // namespace gpu

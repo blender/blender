@@ -32,14 +32,15 @@ extern "C" {
 
 struct GPUBatch;
 
-typedef void *GPUDrawList; /* Opaque pointer. */
+/** Opaque type hiding blender::gpu::DrawList. */
+typedef struct GPUDrawList GPUDrawList;
 
 /* Create a list with at least length drawcalls. Length can affect performance. */
-GPUDrawList GPU_draw_list_create(int length);
-void GPU_draw_list_discard(GPUDrawList list);
+GPUDrawList *GPU_draw_list_create(int length);
+void GPU_draw_list_discard(GPUDrawList *list);
 
-void GPU_draw_list_append(GPUDrawList list, GPUBatch *batch, int i_first, int i_count);
-void GPU_draw_list_submit(GPUDrawList list);
+void GPU_draw_list_append(GPUDrawList *list, GPUBatch *batch, int i_first, int i_count);
+void GPU_draw_list_submit(GPUDrawList *list);
 
 #ifdef __cplusplus
 }

@@ -52,11 +52,6 @@ extern "C" char datatoc_gpu_shader_colorspace_lib_glsl[];
 using namespace blender;
 using namespace blender::gpu;
 
-/** Opaque type hidding blender::gpu::Shader */
-struct GPUShader {
-  char _pad[1];
-};
-
 /* -------------------------------------------------------------------- */
 /** \name Debug functions
  * \{ */
@@ -333,12 +328,12 @@ GPUShader *GPU_shader_create_ex(const char *vertcode,
     return NULL;
   };
 
-  return reinterpret_cast<GPUShader *>(shader);
+  return wrap(shader);
 }
 
 void GPU_shader_free(GPUShader *shader)
 {
-  delete reinterpret_cast<Shader *>(shader);
+  delete unwrap(shader);
 }
 
 /** \} */
@@ -460,7 +455,7 @@ struct GPUShader *GPU_shader_create_from_arrays_impl(
 
 void GPU_shader_bind(GPUShader *gpu_shader)
 {
-  Shader *shader = reinterpret_cast<Shader *>(gpu_shader);
+  Shader *shader = unwrap(gpu_shader);
 
   GPUContext *ctx = GPU_context_active_get();
 
@@ -481,7 +476,7 @@ void GPU_shader_unbind(void)
 #ifndef NDEBUG
   GPUContext *ctx = GPU_context_active_get();
   if (ctx->shader) {
-    reinterpret_cast<Shader *>(ctx->shader)->unbind();
+    ctx->shader->unbind();
   }
   ctx->shader = NULL;
 #endif
@@ -497,12 +492,12 @@ void GPU_shader_unbind(void)
 
 bool GPU_shader_transform_feedback_enable(GPUShader *shader, GPUVertBuf *vertbuf)
 {
-  return reinterpret_cast<Shader *>(shader)->transform_feedback_enable(vertbuf);
+  return unwrap(shader)->transform_feedback_enable(vertbuf);
 }
 
 void GPU_shader_transform_feedback_disable(GPUShader *shader)
 {
-  reinterpret_cast<Shader *>(shader)->transform_feedback_disable();
+  unwrap(shader)->transform_feedback_disable();
 }
 
 /** \} */
@@ -513,48 +508,48 @@ void GPU_shader_transform_feedback_disable(GPUShader *shader)
 
 int GPU_shader_get_uniform(GPUShader *shader, const char *name)
 {
-  ShaderInterface *interface = reinterpret_cast<Shader *>(shader)->interface;
+  ShaderInterface *interface = unwrap(shader)->interface;
   const ShaderInput *uniform = interface->uniform_get(name);
   return uniform ? uniform->location : -1;
 }
 
 int GPU_shader_get_builtin_uniform(GPUShader *shader, int builtin)
 {
-  ShaderInterface *interface = reinterpret_cast<Shader *>(shader)->interface;
+  ShaderInterface *interface = unwrap(shader)->interface;
   return interface->uniform_builtin((GPUUniformBuiltin)builtin);
 }
 
 int GPU_shader_get_builtin_block(GPUShader *shader, int builtin)
 {
-  ShaderInterface *interface = reinterpret_cast<Shader *>(shader)->interface;
+  ShaderInterface *interface = unwrap(shader)->interface;
   return interface->ubo_builtin((GPUUniformBlockBuiltin)builtin);
 }
 
 /* DEPRECATED. */
 int GPU_shader_get_uniform_block(GPUShader *shader, const char *name)
 {
-  ShaderInterface *interface = reinterpret_cast<Shader *>(shader)->interface;
+  ShaderInterface *interface = unwrap(shader)->interface;
   const ShaderInput *ubo = interface->ubo_get(name);
   return ubo ? ubo->location : -1;
 }
 
 int GPU_shader_get_uniform_block_binding(GPUShader *shader, const char *name)
 {
-  ShaderInterface *interface = reinterpret_cast<Shader *>(shader)->interface;
+  ShaderInterface *interface = unwrap(shader)->interface;
   const ShaderInput *ubo = interface->ubo_get(name);
   return ubo ? ubo->binding : -1;
 }
 
 int GPU_shader_get_texture_binding(GPUShader *shader, const char *name)
 {
-  ShaderInterface *interface = reinterpret_cast<Shader *>(shader)->interface;
+  ShaderInterface *interface = unwrap(shader)->interface;
   const ShaderInput *tex = interface->uniform_get(name);
   return tex ? tex->binding : -1;
 }
 
 int GPU_shader_get_attribute(GPUShader *shader, const char *name)
 {
-  ShaderInterface *interface = reinterpret_cast<Shader *>(shader)->interface;
+  ShaderInterface *interface = unwrap(shader)->interface;
   const ShaderInput *attr = interface->attr_get(name);
   return attr ? attr->location : -1;
 }
@@ -581,13 +576,13 @@ int GPU_shader_get_program(GPUShader *UNUSED(shader))
 void GPU_shader_uniform_vector(
     GPUShader *shader, int loc, int len, int arraysize, const float *value)
 {
-  reinterpret_cast<Shader *>(shader)->uniform_float(loc, len, arraysize, value);
+  unwrap(shader)->uniform_float(loc, len, arraysize, value);
 }
 
 void GPU_shader_uniform_vector_int(
     GPUShader *shader, int loc, int len, int arraysize, const int *value)
 {
-  reinterpret_cast<Shader *>(shader)->uniform_int(loc, len, arraysize, value);
+  unwrap(shader)->uniform_int(loc, len, arraysize, value);
 }
 
 void GPU_shader_uniform_int(GPUShader *shader, int location, int value)

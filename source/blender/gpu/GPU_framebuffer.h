@@ -54,10 +54,8 @@ typedef enum eGPUBackBuffer {
   GPU_BACKBUFFER_RIGHT,
 } eGPUBackBuffer;
 
-/** Opaque pointer hiding blender::gpu::FrameBuffer. */
-typedef struct GPUFrameBuffer {
-  void *dummy;
-} GPUFrameBuffer;
+/** Opaque type hiding blender::gpu::FrameBuffer. */
+typedef struct GPUFrameBuffer GPUFrameBuffer;
 
 typedef struct GPUOffScreen GPUOffScreen;
 
