@@ -46,7 +46,7 @@ void BKE_volume_grid_dense_voxels(const struct Volume *volume,
                                   struct VolumeGrid *volume_grid,
                                   const int64_t min[3],
                                   const int64_t max[3],
-                                  float *voxels);
+                                  const float *voxels);
 
 /* Wireframe */
 
