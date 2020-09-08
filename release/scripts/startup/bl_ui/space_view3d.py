@@ -1073,10 +1073,7 @@ class VIEW3D_MT_uv_map(Menu):
     def draw(self, context):
         layout = self.layout
 
-        tool_settings = context.tool_settings
-
         layout.operator("uv.unwrap")
-        layout.prop(tool_settings, "use_edge_path_live_unwrap")
 
         layout.separator()
 

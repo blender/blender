@@ -212,6 +212,9 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
         row.active = tool_settings.use_transform_correct_face_attributes
         row.prop(tool_settings, "use_transform_correct_keep_connected")
 
+        row = layout.row(align=True, heading="UVs")
+        row.prop(tool_settings, "use_edge_path_live_unwrap")
+
         row = layout.row(heading="Mirror")
         sub = row.row(align=True)
         sub.prop(mesh, "use_mirror_x", text="X", toggle=True)
