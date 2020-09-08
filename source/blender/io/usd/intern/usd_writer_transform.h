@@ -22,9 +22,7 @@
 
 #include <pxr/usd/usdGeom/xform.h>
 
-namespace blender {
-namespace io {
-namespace usd {
+namespace blender::io::usd {
 
 class USDTransformWriter : public USDAbstractWriter {
  private:
@@ -38,6 +36,4 @@ class USDTransformWriter : public USDAbstractWriter {
   bool check_is_animated(const HierarchyContext &context) const override;
 };
 
-}  // namespace usd
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::usd

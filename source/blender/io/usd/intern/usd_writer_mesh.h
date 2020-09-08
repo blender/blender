@@ -22,9 +22,7 @@
 
 #include <pxr/usd/usdGeom/mesh.h>
 
-namespace blender {
-namespace io {
-namespace usd {
+namespace blender::io::usd {
 
 struct USDMeshData;
 
@@ -62,6 +60,4 @@ class USDMeshWriter : public USDGenericMeshWriter {
   virtual Mesh *get_export_mesh(Object *object_eval, bool &r_needsfree) override;
 };
 
-}  // namespace usd
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::usd

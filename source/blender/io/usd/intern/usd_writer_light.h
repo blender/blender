@@ -20,9 +20,7 @@
 
 #include "usd_writer_abstract.h"
 
-namespace blender {
-namespace io {
-namespace usd {
+namespace blender::io::usd {
 
 class USDLightWriter : public USDAbstractWriter {
  public:
@@ -33,6 +31,4 @@ class USDLightWriter : public USDAbstractWriter {
   virtual void do_write(HierarchyContext &context) override;
 };
 
-}  // namespace usd
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::usd

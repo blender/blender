@@ -26,9 +26,7 @@
 struct Depsgraph;
 struct Object;
 
-namespace blender {
-namespace io {
-namespace usd {
+namespace blender::io::usd {
 
 class USDHierarchyIterator;
 
@@ -40,6 +38,4 @@ struct USDExporterContext {
   const USDExportParams &export_params;
 };
 
-}  // namespace usd
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::usd

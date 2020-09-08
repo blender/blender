@@ -35,9 +35,7 @@
 struct Material;
 struct Object;
 
-namespace blender {
-namespace io {
-namespace usd {
+namespace blender::io::usd {
 
 using blender::io::AbstractHierarchyWriter;
 using blender::io::HierarchyContext;
@@ -82,6 +80,4 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
   virtual bool mark_as_instance(const HierarchyContext &context, const pxr::UsdPrim &prim);
 };
 
-}  // namespace usd
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::usd

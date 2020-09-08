@@ -46,9 +46,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-namespace blender {
-namespace io {
-namespace usd {
+namespace blender::io::usd {
 
 struct ExportJobData {
   Main *bmain;
@@ -185,9 +183,7 @@ static void export_endjob(void *customdata)
   WM_set_locked_interface(data->wm, false);
 }
 
-}  // namespace usd
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::usd
 
 bool USD_export(bContext *C,
                 const char *filepath,

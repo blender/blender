@@ -34,9 +34,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 
-namespace blender {
-namespace io {
-namespace usd {
+namespace blender::io::usd {
 
 USDMetaballWriter::USDMetaballWriter(const USDExporterContext &ctx) : USDGenericMeshWriter(ctx)
 {
@@ -78,6 +76,4 @@ bool USDMetaballWriter::is_basis_ball(Scene *scene, Object *ob) const
   return ob == basis_ob;
 }
 
-}  // namespace usd
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::usd

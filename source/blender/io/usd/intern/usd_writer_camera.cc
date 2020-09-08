@@ -28,9 +28,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_scene_types.h"
 
-namespace blender {
-namespace io {
-namespace usd {
+namespace blender::io::usd {
 
 USDCameraWriter::USDCameraWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx)
 {
@@ -108,6 +106,4 @@ void USDCameraWriter::do_write(HierarchyContext &context)
   }
 }
 
-}  // namespace usd
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::usd

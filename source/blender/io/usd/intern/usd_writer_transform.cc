@@ -28,9 +28,7 @@
 
 #include "DNA_layer_types.h"
 
-namespace blender {
-namespace io {
-namespace usd {
+namespace blender::io::usd {
 
 USDTransformWriter::USDTransformWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx)
 {
@@ -64,6 +62,4 @@ bool USDTransformWriter::check_is_animated(const HierarchyContext &context) cons
   return BKE_object_moves_in_time(context.object, context.animation_check_include_parent);
 }
 
-}  // namespace usd
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::usd

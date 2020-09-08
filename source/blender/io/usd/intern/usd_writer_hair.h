@@ -20,9 +20,7 @@
 
 #include "usd_writer_abstract.h"
 
-namespace blender {
-namespace io {
-namespace usd {
+namespace blender::io::usd {
 
 /* Writer for writing hair particle data as USD curves. */
 class USDHairWriter : public USDAbstractWriter {
@@ -34,6 +32,4 @@ class USDHairWriter : public USDAbstractWriter {
   virtual bool check_is_animated(const HierarchyContext &context) const override;
 };
 
-}  // namespace usd
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::usd
