@@ -171,34 +171,37 @@ AbstractHierarchyWriter *ABCHierarchyIterator::create_transform_writer(
 AbstractHierarchyWriter *ABCHierarchyIterator::create_data_writer(const HierarchyContext *context)
 {
   const ABCWriterConstructorArgs writer_args = writer_constructor_args(context);
-  ABCAbstractWriter *data_writer = nullptr;
+  ABCAbstractWriter *data_writer = create_data_writer_for_object_type(context, writer_args);
 
+  if (data_writer == nullptr || !data_writer->is_supported(context)) {
+    delete data_writer;
+    return nullptr;
+  }
+
+  data_writer->create_alembic_objects(context);
+  return data_writer;
+}
+
+ABCAbstractWriter *ABCHierarchyIterator::create_data_writer_for_object_type(
+    const HierarchyContext *context, const ABCWriterConstructorArgs &writer_args)
+{
   switch (context->object->type) {
     case OB_MESH:
-      data_writer = new ABCMeshWriter(writer_args);
-      break;
+      return new ABCMeshWriter(writer_args);
     case OB_CAMERA:
-      data_writer = new ABCCameraWriter(writer_args);
-      break;
+      return new ABCCameraWriter(writer_args);
     case OB_CURVE:
       if (params_.curves_as_mesh) {
-        data_writer = new ABCCurveMeshWriter(writer_args);
+        return new ABCCurveMeshWriter(writer_args);
       }
-      else {
-        data_writer = new ABCCurveWriter(writer_args);
-      }
-      break;
+      return new ABCCurveWriter(writer_args);
     case OB_SURF:
       if (params_.curves_as_mesh) {
-        data_writer = new ABCCurveMeshWriter(writer_args);
+        return new ABCCurveMeshWriter(writer_args);
       }
-      else {
-        data_writer = new ABCNurbsWriter(writer_args);
-      }
-      break;
+      return new ABCNurbsWriter(writer_args);
     case OB_MBALL:
-      data_writer = new ABCMetaballWriter(writer_args);
-      break;
+      return new ABCMetaballWriter(writer_args);
 
     case OB_EMPTY:
     case OB_LAMP:
@@ -214,13 +217,8 @@ AbstractHierarchyWriter *ABCHierarchyIterator::create_data_writer(const Hierarch
       return nullptr;
   }
 
-  if (!data_writer->is_supported(context)) {
-    delete data_writer;
-    return nullptr;
-  }
-
-  data_writer->create_alembic_objects(context);
-  return data_writer;
+  /* Just to please the compiler, all cases should be handled by the above switch. */
+  return nullptr;
 }
 
 AbstractHierarchyWriter *ABCHierarchyIterator::create_hair_writer(const HierarchyContext *context)

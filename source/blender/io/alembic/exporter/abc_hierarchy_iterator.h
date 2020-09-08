@@ -36,6 +36,7 @@ namespace blender {
 namespace io {
 namespace alembic {
 
+class ABCAbstractWriter;
 class ABCHierarchyIterator;
 
 struct ABCWriterConstructorArgs {
@@ -85,6 +86,9 @@ class ABCHierarchyIterator : public AbstractHierarchyIterator {
   ABCWriterConstructorArgs writer_constructor_args(const HierarchyContext *context) const;
   void update_archive_bounding_box();
   void update_bounding_box_recursive(Imath::Box3d &bounds, const HierarchyContext *context);
+
+  ABCAbstractWriter *create_data_writer_for_object_type(
+      const HierarchyContext *context, const ABCWriterConstructorArgs &writer_args);
 };
 
 }  // namespace alembic
