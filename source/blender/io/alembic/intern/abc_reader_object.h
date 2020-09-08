@@ -31,9 +31,7 @@ struct Object;
 
 using Alembic::AbcCoreAbstract::chrono_t;
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 struct ImportSettings {
   bool do_convert_mat;
@@ -168,6 +166,4 @@ class AbcObjectReader {
 
 Imath::M44d get_matrix(const Alembic::AbcGeom::IXformSchema &schema, const float time);
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

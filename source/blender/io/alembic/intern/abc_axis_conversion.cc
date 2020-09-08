@@ -25,9 +25,7 @@
 
 #include "DNA_object_types.h"
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 void create_swapped_rotation_matrix(float rot_x_mat[3][3],
                                     float rot_y_mat[3][3],
@@ -168,6 +166,4 @@ void create_transform_matrix(Object *obj,
   copy_m44_axis_swap(r_yup_mat, zup_mat, ABC_YUP_FROM_ZUP);
 }
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

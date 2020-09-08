@@ -32,9 +32,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 ABCMetaballWriter::ABCMetaballWriter(const ABCWriterConstructorArgs &args)
     : ABCGenericMeshWriter(args)
@@ -85,6 +83,4 @@ bool ABCMetaballWriter::is_basis_ball(Scene *scene, Object *ob) const
   return ob == basis_ob;
 }
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

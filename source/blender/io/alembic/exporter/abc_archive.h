@@ -36,9 +36,7 @@
 struct Main;
 struct Scene;
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 /* Container for an Alembic archive and time sampling info.
  *
@@ -82,6 +80,4 @@ class ABCArchive {
   Alembic::Abc::OBox3dProperty abc_archive_bbox_;
 };
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

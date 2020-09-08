@@ -32,9 +32,7 @@ struct Depsgraph;
 struct ID;
 struct Object;
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 class ABCAbstractWriter;
 class ABCHierarchyIterator;
@@ -93,6 +91,4 @@ class ABCHierarchyIterator : public AbstractHierarchyIterator {
       const HierarchyContext *context, const ABCWriterConstructorArgs &writer_args);
 };
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

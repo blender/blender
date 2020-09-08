@@ -12,9 +12,7 @@
 
 #include "DEG_depsgraph.h"
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 class AlembicExportTest : public testing::Test {
  protected:
@@ -159,6 +157,4 @@ TEST_F(AlembicExportTest, TimeSamples180degShutter)
   EXPECT_NEAR(32 + 0.15, frames[9], 1e-5);
 }
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

@@ -37,9 +37,7 @@
 #  include "utfconv.h"
 #endif
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 using Alembic::Abc::ErrorHandler;
 using Alembic::Abc::kWrapExisting;
@@ -260,6 +258,4 @@ void ABCArchive::update_bounding_box(const Imath::Box3d &bounds)
   abc_archive_bbox_.set(bounds);
 }
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

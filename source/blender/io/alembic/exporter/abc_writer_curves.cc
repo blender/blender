@@ -41,9 +41,7 @@ using Alembic::AbcGeom::OInt16Property;
 using Alembic::AbcGeom::ON3fGeomParam;
 using Alembic::AbcGeom::OV2fGeomParam;
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 const std::string ABC_CURVE_RESOLUTION_U_PROPNAME("blender:resolution");
 
@@ -196,6 +194,4 @@ Mesh *ABCCurveMeshWriter::get_export_mesh(Object *object_eval, bool &r_needsfree
   return BKE_mesh_new_nomain_from_curve(object_eval);
 }
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

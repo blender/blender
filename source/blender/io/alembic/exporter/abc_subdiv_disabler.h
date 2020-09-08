@@ -25,9 +25,7 @@ struct ModifierData;
 struct Object;
 struct Scene;
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 /**
  * Temporarily all subdivision modifiers on mesh objects.
@@ -50,6 +48,4 @@ class SubdivModifierDisabler final {
   static ModifierData *get_subdiv_modifier(Scene *scene, Object *ob);
 };
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

@@ -37,9 +37,7 @@ using Alembic::AbcGeom::IFloatProperty;
 using Alembic::AbcGeom::ISampleSelector;
 using Alembic::AbcGeom::kWrapExisting;
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 AbcCameraReader::AbcCameraReader(const Alembic::Abc::IObject &object, ImportSettings &settings)
     : AbcObjectReader(object, settings)
@@ -114,6 +112,4 @@ void AbcCameraReader::readObjectData(Main *bmain, const ISampleSelector &sample_
   m_object->data = bcam;
 }
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

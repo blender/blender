@@ -23,9 +23,7 @@
 
 #include <Alembic/AbcGeom/OCamera.h>
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 class ABCCameraWriter : public ABCAbstractWriter {
  private:
@@ -47,6 +45,4 @@ class ABCCameraWriter : public ABCAbstractWriter {
   virtual void do_write(HierarchyContext &context) override;
 };
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

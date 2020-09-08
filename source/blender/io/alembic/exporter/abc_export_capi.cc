@@ -62,9 +62,7 @@ struct ExportJobData {
   bool export_ok;
 };
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 // Construct the depsgraph for exporting.
 static void build_depsgraph(Depsgraph *depsgraph, const bool visible_objects_only)
@@ -197,9 +195,7 @@ static void export_endjob(void *customdata)
   WM_set_locked_interface(data->wm, false);
 }
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic
 
 bool ABC_export(Scene *scene,
                 bContext *C,

@@ -21,9 +21,7 @@
 
 #include "abc_writer_abstract.h"
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 /* Writer for Alembic instances, i.e. data that references another Alembic object.
  *
@@ -43,6 +41,4 @@ class ABCInstanceWriter : public ABCAbstractWriter {
   virtual void do_write(HierarchyContext &context) override;
 };
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

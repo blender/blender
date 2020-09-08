@@ -32,9 +32,7 @@
 
 #include "BKE_modifier.h"
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 SubdivModifierDisabler::SubdivModifierDisabler(Depsgraph *depsgraph) : depsgraph_(depsgraph)
 {
@@ -102,6 +100,4 @@ ModifierData *SubdivModifierDisabler::get_subdiv_modifier(Scene *scene, Object *
   return nullptr;
 }
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

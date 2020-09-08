@@ -26,9 +26,7 @@
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.alembic"};
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 using Alembic::Abc::OObject;
 
@@ -69,6 +67,4 @@ void ABCInstanceWriter::do_write(HierarchyContext & /*context*/)
   /* Instances don't have data to be written. Just creating them is enough. */
 }
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

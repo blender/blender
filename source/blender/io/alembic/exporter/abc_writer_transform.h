@@ -23,9 +23,7 @@
 
 #include <Alembic/AbcGeom/OXform.h>
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 class ABCTransformWriter : public ABCAbstractWriter {
  private:
@@ -42,6 +40,4 @@ class ABCTransformWriter : public ABCAbstractWriter {
   virtual Alembic::Abc::OObject get_alembic_object() const override;
 };
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

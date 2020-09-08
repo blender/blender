@@ -36,9 +36,7 @@ using Alembic::Abc::chrono_t;
 struct ID;
 struct Object;
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 class AbcObjectReader;
 struct ImportSettings;
@@ -161,6 +159,4 @@ class SimpleLogger {
  */
 std::ostream &operator<<(std::ostream &os, const SimpleLogger &logger);
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

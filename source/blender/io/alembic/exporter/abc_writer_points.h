@@ -26,9 +26,7 @@
 
 #include <Alembic/AbcGeom/OPoints.h>
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 class ABCPointsWriter : public ABCAbstractWriter {
   Alembic::AbcGeom::OPoints abc_points_;
@@ -47,6 +45,4 @@ class ABCPointsWriter : public ABCAbstractWriter {
   virtual void do_write(HierarchyContext &context) override;
 };
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

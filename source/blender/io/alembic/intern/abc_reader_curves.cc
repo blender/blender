@@ -54,9 +54,7 @@ using Alembic::AbcGeom::IInt16Property;
 using Alembic::AbcGeom::ISampleSelector;
 using Alembic::AbcGeom::kWrapExisting;
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 AbcCurveReader::AbcCurveReader(const Alembic::Abc::IObject &object, ImportSettings &settings)
     : AbcObjectReader(object, settings)
@@ -356,6 +354,4 @@ Mesh *AbcCurveReader::read_mesh(Mesh *existing_mesh,
   return BKE_mesh_new_nomain_from_curve(m_object);
 }
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

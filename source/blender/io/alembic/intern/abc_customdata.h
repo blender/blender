@@ -36,9 +36,7 @@ struct Mesh;
 
 using Alembic::Abc::ICompoundProperty;
 using Alembic::Abc::OCompoundProperty;
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 struct UVSample {
   std::vector<Imath::V2f> uvs;
@@ -113,6 +111,4 @@ void read_custom_data(const std::string &iobject_full_name,
                       const CDStreamConfig &config,
                       const Alembic::Abc::ISampleSelector &iss);
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

@@ -27,9 +27,7 @@
 
 #include <Alembic/AbcGeom/OCurves.h>
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 extern const std::string ABC_CURVE_RESOLUTION_U_PROPNAME;
 
@@ -56,6 +54,4 @@ class ABCCurveMeshWriter : public ABCGenericMeshWriter {
   virtual Mesh *get_export_mesh(Object *object_eval, bool &r_needsfree) override;
 };
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

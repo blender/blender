@@ -30,9 +30,7 @@
 struct Material;
 struct Object;
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 class ABCAbstractWriter : public AbstractHierarchyWriter {
  protected:
@@ -77,6 +75,4 @@ class ABCAbstractWriter : public AbstractHierarchyWriter {
   void write_visibility(const HierarchyContext &context);
 };
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

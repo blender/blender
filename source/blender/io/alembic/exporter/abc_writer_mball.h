@@ -21,9 +21,7 @@
 
 #include "abc_writer_mesh.h"
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 class ABCMetaballWriter : public ABCGenericMeshWriter {
  public:
@@ -40,6 +38,4 @@ class ABCMetaballWriter : public ABCGenericMeshWriter {
   bool is_basis_ball(Scene *scene, Object *ob) const;
 };
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

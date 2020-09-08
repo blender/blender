@@ -31,9 +31,7 @@
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.alembic"};
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 using Alembic::AbcGeom::CameraSample;
 using Alembic::AbcGeom::OCamera;
@@ -105,6 +103,4 @@ void ABCCameraWriter::do_write(HierarchyContext &context)
   abc_camera_schema_.set(camera_sample);
 }
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

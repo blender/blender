@@ -40,9 +40,7 @@
 #include "DNA_layer_types.h"
 #include "DNA_object_types.h"
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 ABCHierarchyIterator::ABCHierarchyIterator(Depsgraph *depsgraph,
                                            ABCArchive *abc_archive,
@@ -275,6 +273,4 @@ AbstractHierarchyWriter *ABCHierarchyIterator::create_particle_writer(
   return particle_writer.release();
 }
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

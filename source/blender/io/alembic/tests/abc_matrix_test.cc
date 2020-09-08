@@ -6,9 +6,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 TEST(abc_matrix, CreateRotationMatrixY_YfromZ)
 {
@@ -287,6 +285,4 @@ TEST(abc_matrix, CopyM44AxisSwapWithScale_gimbal_ZfromY)
   EXPECT_M4_NEAR(expect, result, 1e-5f);
 }
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

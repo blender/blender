@@ -32,9 +32,7 @@
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.alembic"};
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 using Alembic::Abc::OObject;
 using Alembic::Abc::TimeSamplingPtr;
@@ -112,6 +110,4 @@ void ABCAbstractWriter::write_visibility(const HierarchyContext &context)
                                    Alembic::AbcGeom::kVisibilityHidden);
 }
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

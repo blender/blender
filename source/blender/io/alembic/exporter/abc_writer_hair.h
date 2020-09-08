@@ -26,9 +26,7 @@
 struct ParticleSettings;
 struct ParticleSystem;
 
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 class ABCHairWriter : public ABCAbstractWriter {
  private:
@@ -63,6 +61,4 @@ class ABCHairWriter : public ABCAbstractWriter {
                                std::vector<int32_t> &hvertices);
 };
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic

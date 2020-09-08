@@ -50,9 +50,7 @@ using Alembic::Abc::V2fArraySample;
 
 using Alembic::AbcGeom::OC4fGeomParam;
 using Alembic::AbcGeom::OV2fGeomParam;
-namespace blender {
-namespace io {
-namespace alembic {
+namespace blender::io::alembic {
 
 static void get_uvs(const CDStreamConfig &config,
                     std::vector<Imath::V2f> &uvs,
@@ -489,6 +487,4 @@ void read_custom_data(const std::string &iobject_full_name,
   }
 }
 
-}  // namespace alembic
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io::alembic
