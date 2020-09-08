@@ -10328,6 +10328,60 @@ static void add_loose_objects_to_scene(Main *mainvar,
   }
 }
 
+static void add_loose_object_data_to_scene(Main *mainvar,
+                                           Main *bmain,
+                                           Scene *scene,
+                                           ViewLayer *view_layer,
+                                           const View3D *v3d,
+                                           const short flag)
+{
+  if ((flag & FILE_OBDATA_INSTANCE) == 0) {
+    return;
+  }
+
+  Collection *active_collection = scene->master_collection;
+  if (flag & FILE_ACTIVE_COLLECTION) {
+    LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
+    active_collection = lc->collection;
+  }
+
+  /* Loop over all ID types, instancing object-data for ID types that have support for it. */
+  ListBase *lbarray[MAX_LIBARRAY];
+  int i = set_listbasepointers(mainvar, lbarray);
+  while (i--) {
+    const short idcode = BKE_idtype_idcode_from_index(i);
+    if (!OB_DATA_SUPPORT_ID(idcode)) {
+      continue;
+    }
+
+    LISTBASE_FOREACH (ID *, id, lbarray[i]) {
+      if (id->tag & LIB_TAG_DOIT) {
+        const int type = BKE_object_obdata_to_type(id);
+        BLI_assert(type != -1);
+        Object *ob = BKE_object_add_only_object(bmain, type, id->name + 2);
+        ob->data = id;
+        id_us_plus(id);
+        BKE_object_materials_test(bmain, ob, ob->data);
+
+        BKE_collection_object_add(bmain, active_collection, ob);
+        Base *base = BKE_view_layer_base_find(view_layer, ob);
+
+        if (v3d != NULL) {
+          base->local_view_bits |= v3d->local_view_uuid;
+        }
+
+        if (flag & FILE_AUTOSELECT) {
+          base->flag |= BASE_SELECTED;
+        }
+
+        BKE_scene_object_base_flag_sync_from_base(base);
+
+        copy_v3_v3(ob->loc, scene->cursor.location);
+      }
+    }
+  }
+}
+
 static void add_collections_to_scene(Main *mainvar,
                                      Main *bmain,
                                      Scene *scene,
@@ -10554,6 +10608,11 @@ static bool library_link_idcode_needs_tag_check(const short idcode, const int fl
     if (ELEM(idcode, ID_OB, ID_GR)) {
       return true;
     }
+    if (flag & FILE_OBDATA_INSTANCE) {
+      if (OB_DATA_SUPPORT_ID(idcode)) {
+        return true;
+      }
+    }
   }
   return false;
 }
@@ -10761,6 +10820,7 @@ static void library_link_end(Main *mainl,
     if (scene != NULL) {
       add_collections_to_scene(mainvar, bmain, scene, view_layer, v3d, curlib, flag);
       add_loose_objects_to_scene(mainvar, bmain, scene, view_layer, v3d, curlib, flag);
+      add_loose_object_data_to_scene(mainvar, bmain, scene, view_layer, v3d, flag);
     }
 
     /* Clear objects and collections instantiating tag. */

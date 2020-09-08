@@ -137,6 +137,9 @@ static short wm_link_append_flag(wmOperator *op)
   if (RNA_boolean_get(op->ptr, "instance_collections")) {
     flag |= FILE_GROUP_INSTANCE;
   }
+  if (RNA_boolean_get(op->ptr, "instance_object_data")) {
+    flag |= FILE_OBDATA_INSTANCE;
+  }
 
   return flag;
 }
@@ -395,7 +398,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
                 RPT_WARNING,
                 "Scene '%s' is linked, instantiation of objects & groups is disabled",
                 scene->id.name + 2);
-    flag &= ~FILE_GROUP_INSTANCE;
+    flag &= ~(FILE_GROUP_INSTANCE | FILE_OBDATA_INSTANCE);
     scene = NULL;
   }
 
@@ -565,6 +568,14 @@ static void wm_link_append_properties_common(wmOperatorType *ot, bool is_link)
       is_link,
       "Instance Collections",
       "Create instances for collections, rather than adding them directly to the scene");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_boolean(
+      ot->srna,
+      "instance_object_data",
+      true,
+      "Instance Object Data",
+      "Create instances for object data which are not referenced by any objects");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

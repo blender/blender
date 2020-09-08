@@ -813,7 +813,7 @@ typedef enum eFileSel_Params_Flag {
   FILE_PARAMS_FLAG_UNUSED_6 = (1 << 6), /* cleared */
   FILE_DIRSEL_ONLY = (1 << 7),
   FILE_FILTER = (1 << 8),
-  FILE_PARAMS_FLAG_UNUSED_9 = (1 << 9), /* cleared */
+  FILE_OBDATA_INSTANCE = (1 << 9),
   FILE_GROUP_INSTANCE = (1 << 10),
   FILE_SORT_INVERT = (1 << 11),
   FILE_HIDE_TOOL_PROPS = (1 << 12),
