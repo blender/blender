@@ -62,6 +62,8 @@ class ABCHierarchyIterator : public AbstractHierarchyIterator {
   virtual void iterate_and_write() override;
   virtual std::string make_valid_name(const std::string &name) const override;
 
+  Alembic::Abc::OObject get_alembic_object(const std::string &export_path) const;
+
  protected:
   virtual bool mark_as_weak_export(const Object *object) const override;
 

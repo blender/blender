@@ -126,16 +126,26 @@ AbstractHierarchyIterator::ExportGraph::key_type ABCHierarchyIterator::determine
       context, dupli_object, dupli_parent_finder);
 }
 
+Alembic::Abc::OObject ABCHierarchyIterator::get_alembic_object(
+    const std::string &export_path) const
+{
+  if (export_path.empty()) {
+    return Alembic::Abc::OObject();
+  }
+
+  AbstractHierarchyWriter *writer = get_writer(export_path);
+  if (writer == nullptr) {
+    return Alembic::Abc::OObject();
+  }
+
+  ABCAbstractWriter *abc_writer = static_cast<ABCAbstractWriter *>(writer);
+  return abc_writer->get_alembic_object();
+}
+
 Alembic::Abc::OObject ABCHierarchyIterator::get_alembic_parent(
     const HierarchyContext *context) const
 {
-  Alembic::Abc::OObject parent;
-
-  if (!context->higher_up_export_path.empty()) {
-    AbstractHierarchyWriter *writer = get_writer(context->higher_up_export_path);
-    ABCAbstractWriter *abc_writer = static_cast<ABCAbstractWriter *>(writer);
-    parent = abc_writer->get_alembic_object();
-  }
+  Alembic::Abc::OObject parent = get_alembic_object(context->higher_up_export_path);
 
   if (!parent.valid()) {
     /* An invalid parent object means "no parent", which should be translated to Alembic's top
