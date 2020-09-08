@@ -46,6 +46,7 @@ namespace gpu {
 
 class GLTexture : public Texture {
   friend class GLStateManager;
+  friend class GLFrameBuffer;
 
  private:
   /** All samplers states. */

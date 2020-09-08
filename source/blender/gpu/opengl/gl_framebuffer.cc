@@ -187,7 +187,7 @@ void GLFrameBuffer::update_attachments(void)
       glFramebufferTexture(GL_FRAMEBUFFER, gl_attachment, 0, 0);
       continue;
     }
-    GLuint gl_tex = GPU_texture_opengl_bindcode(attach.tex);
+    GLuint gl_tex = static_cast<GLTexture *>(unwrap(attach.tex))->tex_id_;
     if (attach.layer > -1 && GPU_texture_cube(attach.tex) && !GPU_texture_array(attach.tex)) {
       /* Could be avoided if ARB_direct_state_access is required. In this case
        * #glFramebufferTextureLayer would bind the correct face. */
@@ -216,7 +216,7 @@ void GLFrameBuffer::update_attachments(void)
       GPUAttachmentType type = GPU_FB_COLOR_ATTACHMENT0 + i;
       GPUAttachment &attach = attachments_[type];
       if (attach.tex != NULL) {
-        gl_tex = GPU_texture_opengl_bindcode(attach.tex);
+        gl_tex = static_cast<GLTexture *>(unwrap(attach.tex))->tex_id_;
       }
       else if (gl_tex != 0) {
         GLenum gl_attachment = to_gl(type);

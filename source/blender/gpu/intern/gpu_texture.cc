@@ -190,7 +190,7 @@ uint GPU_texture_memory_usage_get(void)
   return 0;
 }
 
-/* ------ Texture Creation ------ */
+/* ------ Creation ------ */
 
 static inline GPUTexture *gpu_texture_create(const char *name,
                                              const int w,
@@ -329,6 +329,8 @@ GPUTexture *GPU_texture_create_error(int dimension, bool is_array)
   return gpu_texture_create("invalid_tex", w, h, d, type, 1, GPU_RGBA8, pixel);
 }
 
+/* ------ Update ------ */
+
 void GPU_texture_update_mipmap(GPUTexture *tex_,
                                int miplvl,
                                eGPUDataFormat data_format,
@@ -387,20 +389,7 @@ void GPU_unpack_row_length_set(uint len)
   GPU_context_active_get()->state_manager->texture_unpack_row_length_set(len);
 }
 
-void GPU_invalid_tex_init(void)
-{
-  /* TODO remove */
-}
-
-void GPU_invalid_tex_bind(int UNUSED(mode))
-{
-  /* TODO remove */
-}
-
-void GPU_invalid_tex_free(void)
-{
-  /* TODO remove */
-}
+/* ------ Binding ------ */
 
 void GPU_texture_bind_ex(GPUTexture *tex_,
                          eGPUSamplerState state,
@@ -545,12 +534,6 @@ void GPU_texture_orig_size_set(GPUTexture *tex_, int w, int h)
 eGPUTextureFormat GPU_texture_format(const GPUTexture *tex)
 {
   return reinterpret_cast<const Texture *>(tex)->format_get();
-}
-
-/* TODO remove */
-int GPU_texture_samples(const GPUTexture *UNUSED(tex))
-{
-  return 0;
 }
 
 bool GPU_texture_depth(const GPUTexture *tex)

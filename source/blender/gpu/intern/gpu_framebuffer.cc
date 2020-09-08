@@ -455,11 +455,6 @@ void GPU_framebuffer_blit(GPUFrameBuffer *gpufb_read,
     BLI_assert(GPU_texture_stencil(read_tex) && GPU_texture_stencil(write_tex));
     BLI_assert(GPU_texture_format(read_tex) == GPU_texture_format(write_tex));
   }
-  if (GPU_texture_samples(write_tex) != 0 || GPU_texture_samples(read_tex) != 0) {
-    /* Can only blit multisample textures to another texture of the same size. */
-    BLI_assert((GPU_texture_width(write_tex) == GPU_texture_width(read_tex)) &&
-               (GPU_texture_height(write_tex) == GPU_texture_height(read_tex)));
-  }
 #endif
 
   fb_read->blit_to(blit_buffers, read_slot, fb_write, write_slot, 0, 0);

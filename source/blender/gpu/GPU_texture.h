@@ -233,10 +233,6 @@ void GPU_unpack_row_length_set(uint len);
 void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat data_format, int miplvl);
 void GPU_texture_clear(GPUTexture *tex, eGPUDataFormat data_format, const void *data);
 
-void GPU_invalid_tex_init(void);
-void GPU_invalid_tex_bind(int mode);
-void GPU_invalid_tex_free(void);
-
 void GPU_texture_free(GPUTexture *tex);
 
 void GPU_texture_ref(GPUTexture *tex);
@@ -262,7 +258,6 @@ int GPU_texture_orig_width(const GPUTexture *tex);
 int GPU_texture_orig_height(const GPUTexture *tex);
 void GPU_texture_orig_size_set(GPUTexture *tex, int w, int h);
 eGPUTextureFormat GPU_texture_format(const GPUTexture *tex);
-int GPU_texture_samples(const GPUTexture *tex);
 bool GPU_texture_array(const GPUTexture *tex);
 bool GPU_texture_cube(const GPUTexture *tex);
 bool GPU_texture_depth(const GPUTexture *tex);
