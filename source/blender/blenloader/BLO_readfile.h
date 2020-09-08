@@ -142,13 +142,15 @@ bool BLO_library_path_explode(const char *path, char *r_dir, char **r_group, cha
 /** \name BLO Blend File Linking API
  * \{ */
 
-/* Options controlling behavior of append/link code.
- * Note: merged with 'user-level' options from operators etc. in 16 lower bits
- *       (see eFileSel_Params_Flag in DNA_space_types.h). */
-typedef enum BLO_LibLinkFlags {
-  /* Generate a placeholder (empty ID) if not found in current lib file. */
+/**
+ * Options controlling behavior of append/link code.
+ * \note merged with 'user-level' options from operators etc. in 16 lower bits
+ * (see #eFileSel_Params_Flag in DNA_space_types.h).
+ */
+typedef enum eBLOLibLinkFlags {
+  /** Generate a placeholder (empty ID) if not found in current lib file. */
   BLO_LIBLINK_USE_PLACEHOLDERS = 1 << 16,
-  /* Force loaded ID to be tagged as LIB_TAG_INDIRECT (used in reload context only). */
+  /** Force loaded ID to be tagged as #LIB_TAG_INDIRECT (used in reload context only). */
   BLO_LIBLINK_FORCE_INDIRECT = 1 << 17,
   /**
    * When set, tag ID types that pass the internal check #library_link_idcode_needs_tag_check
@@ -158,7 +160,7 @@ typedef enum BLO_LibLinkFlags {
    * don't need to remember to set this flag.
    */
   BLO_LIBLINK_NEEDS_ID_TAG_DOIT = 1 << 18,
-} BLO_LinkFlags;
+} eBLOLibLinkFlags;
 
 /**
  * Struct for passing arguments to

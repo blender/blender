@@ -159,8 +159,9 @@ typedef struct WMLinkAppendData {
   LinkNodePair items;
   int num_libraries;
   int num_items;
-  /** Combines #eFileSel_Params_Flag from DNA_space_types.h and
-   * BLO_LibLinkFlags from BLO_readfile.h */
+  /**
+   * Combines #eFileSel_Params_Flag from DNA_space_types.h & #eBLOLibLinkFlags from BLO_readfile.h
+   */
   int flag;
 
   /* Internal 'private' data */
@@ -402,7 +403,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
     scene = NULL;
   }
 
-  /* We need to add nothing from BLO_LibLinkFlags to flag here. */
+  /* We need to add nothing from #eBLOLibLinkFlags to flag here. */
 
   /* from here down, no error returns */
 
