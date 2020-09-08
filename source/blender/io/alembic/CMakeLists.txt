@@ -63,6 +63,7 @@ set(SRC
   exporter/abc_writer_camera.cc
   exporter/abc_writer_curves.cc
   exporter/abc_writer_hair.cc
+  exporter/abc_writer_instance.cc
   exporter/abc_writer_mball.cc
   exporter/abc_writer_mesh.cc
   exporter/abc_writer_nurbs.cc
@@ -89,6 +90,7 @@ set(SRC
   exporter/abc_writer_camera.h
   exporter/abc_writer_curves.h
   exporter/abc_writer_hair.h
+  exporter/abc_writer_instance.h
   exporter/abc_writer_mball.h
   exporter/abc_writer_mesh.h
   exporter/abc_writer_nurbs.h

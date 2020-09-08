@@ -60,6 +60,7 @@ struct AlembicExportParams {
   bool triangulate;
   bool export_hair;
   bool export_particles;
+  bool use_instancing;
 
   /* See MOD_TRIANGULATE_NGON_xxx and MOD_TRIANGULATE_QUAD_xxx
    * in DNA_modifier_types.h */

@@ -133,6 +133,7 @@ static int wm_alembic_export_exec(bContext *C, wmOperator *op)
       .use_subdiv_schema = RNA_boolean_get(op->ptr, "subdiv_schema"),
       .export_hair = RNA_boolean_get(op->ptr, "export_hair"),
       .export_particles = RNA_boolean_get(op->ptr, "export_particles"),
+      .use_instancing = RNA_boolean_get(op->ptr, "use_instancing"),
       .packuv = RNA_boolean_get(op->ptr, "packuv"),
       .triangulate = RNA_boolean_get(op->ptr, "triangulate"),
       .quad_method = RNA_enum_get(op->ptr, "quad_method"),
@@ -189,6 +190,7 @@ static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemS(col);
 
   uiItemR(col, imfptr, "flatten", 0, NULL, ICON_NONE);
+  uiItemR(sub, imfptr, "use_instancing", 0, IFACE_("Use Instancing"), ICON_NONE);
   sub = uiLayoutColumnWithHeading(col, true, IFACE_("Only"));
   uiItemR(sub, imfptr, "selected", 0, IFACE_("Selected Objects"), ICON_NONE);
   uiItemR(sub, imfptr, "renderable_only", 0, IFACE_("Renderable Objects"), ICON_NONE);
@@ -400,6 +402,13 @@ void WM_OT_alembic_export(wmOperatorType *ot)
                   false,
                   "Curves as Mesh",
                   "Export curves and NURBS surfaces as meshes");
+
+  RNA_def_boolean(ot->srna,
+                  "use_instancing",
+                  true,
+                  "Use Instancing",
+                  "Export data of duplicated objects as Alembic instances; speeds up the export "
+                  "and can be disabled for compatibility with other software");
 
   RNA_def_float(
       ot->srna,

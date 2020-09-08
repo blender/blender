@@ -22,6 +22,7 @@
 #include "abc_writer_camera.h"
 #include "abc_writer_curves.h"
 #include "abc_writer_hair.h"
+#include "abc_writer_instance.h"
 #include "abc_writer_mball.h"
 #include "abc_writer_mesh.h"
 #include "abc_writer_nurbs.h"
@@ -181,7 +182,14 @@ AbstractHierarchyWriter *ABCHierarchyIterator::create_transform_writer(
 AbstractHierarchyWriter *ABCHierarchyIterator::create_data_writer(const HierarchyContext *context)
 {
   const ABCWriterConstructorArgs writer_args = writer_constructor_args(context);
-  ABCAbstractWriter *data_writer = create_data_writer_for_object_type(context, writer_args);
+  ABCAbstractWriter *data_writer = nullptr;
+
+  if (params_.use_instancing && context->is_instance()) {
+    data_writer = new ABCInstanceWriter(writer_args);
+  }
+  else {
+    data_writer = create_data_writer_for_object_type(context, writer_args);
+  }
 
   if (data_writer == nullptr || !data_writer->is_supported(context)) {
     delete data_writer;
