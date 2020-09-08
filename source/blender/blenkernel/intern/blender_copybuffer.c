@@ -93,9 +93,12 @@ bool BKE_copybuffer_read(Main *bmain_dst,
     return false;
   }
   /* Here appending/linking starts. */
-  Main *mainl = BLO_library_link_begin(bmain_dst, &bh, libname);
+  const int flag = 0;
+  struct LibraryLink_Params liblink_params;
+  BLO_library_link_params_init(&liblink_params, bmain_dst, flag);
+  Main *mainl = BLO_library_link_begin(&bh, libname, &liblink_params);
   BLO_library_link_copypaste(mainl, bh, id_types_mask);
-  BLO_library_link_end(mainl, &bh, 0, NULL, NULL, NULL, NULL);
+  BLO_library_link_end(mainl, &bh, &liblink_params);
   /* Mark all library linked objects to be updated. */
   BKE_main_lib_objects_recalc_all(bmain_dst);
   IMB_colormanagement_check_file_config(bmain_dst);
@@ -144,11 +147,13 @@ int BKE_copybuffer_paste(bContext *C,
   BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, true);
 
   /* here appending/linking starts */
-  mainl = BLO_library_link_begin(bmain, &bh, libname);
+  struct LibraryLink_Params liblink_params;
+  BLO_library_link_params_init_with_context(&liblink_params, bmain, flag, scene, view_layer, v3d);
+  mainl = BLO_library_link_begin(&bh, libname, &liblink_params);
 
   const int num_pasted = BLO_library_link_copypaste(mainl, bh, id_types_mask);
 
-  BLO_library_link_end(mainl, &bh, flag, bmain, scene, view_layer, v3d);
+  BLO_library_link_end(mainl, &bh, &liblink_params);
 
   /* mark all library linked objects to be updated */
   BKE_main_lib_objects_recalc_all(bmain);

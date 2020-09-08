@@ -262,6 +262,7 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname);
 static void direct_link_modifiers(BlendDataReader *reader, ListBase *lb, Object *ob);
 static BHead *find_bhead_from_code_name(FileData *fd, const short idcode, const char *name);
 static BHead *find_bhead_from_idname(FileData *fd, const char *idname);
+static bool library_link_idcode_needs_tag_check(const short idcode, const int flag);
 
 #ifdef USE_COLLECTION_COMPAT_28
 static void expand_scene_collection(BlendExpander *expander, SceneCollection *sc);
@@ -10469,6 +10470,14 @@ static ID *link_named_part(
   /* if we found the id but the id is NULL, this is really bad */
   BLI_assert(!((bhead != NULL) && (id == NULL)));
 
+  /* Tag as loose object (or data associated with objects)
+   * needing to be instantiated in #LibraryLink_Params.scene. */
+  if ((id != NULL) && (flag & BLO_LIBLINK_NEEDS_ID_TAG_DOIT)) {
+    if (library_link_idcode_needs_tag_check(idcode, flag)) {
+      id->tag |= LIB_TAG_DOIT;
+    }
+  }
+
   return id;
 }
 
@@ -10514,23 +10523,6 @@ int BLO_library_link_copypaste(Main *mainl, BlendHandle *bh, const uint64_t id_t
   return num_directly_linked;
 }
 
-static ID *link_named_part_ex(
-    Main *mainl, FileData *fd, const short idcode, const char *name, const int flag)
-{
-  ID *id = link_named_part(mainl, fd, idcode, name, flag);
-
-  if (id && (GS(id->name) == ID_OB)) {
-    /* Tag as loose object needing to be instantiated somewhere... */
-    id->tag |= LIB_TAG_DOIT;
-  }
-  else if (id && (GS(id->name) == ID_GR)) {
-    /* tag as needing to be instantiated or linked */
-    id->tag |= LIB_TAG_DOIT;
-  }
-
-  return id;
-}
-
 /**
  * Link a named data-block from an external blend file.
  *
@@ -10543,41 +10535,53 @@ static ID *link_named_part_ex(
 ID *BLO_library_link_named_part(Main *mainl,
                                 BlendHandle **bh,
                                 const short idcode,
-                                const char *name)
+                                const char *name,
+                                const struct LibraryLink_Params *params)
 {
   FileData *fd = (FileData *)(*bh);
-  return link_named_part(mainl, fd, idcode, name, 0);
-}
-
-/**
- * Link a named data-block from an external blend file.
- * Optionally instantiate the object/collection in the scene when the flags are set.
- *
- * \param mainl: The main database to link from (not the active one).
- * \param bh: The blender file handle.
- * \param idcode: The kind of data-block to link.
- * \param name: The name of the data-block (without the 2 char ID prefix).
- * \param flag: Options for linking, used for instantiating.
- * \return the linked ID when found.
- */
-ID *BLO_library_link_named_part_ex(
-    Main *mainl, BlendHandle **bh, const short idcode, const char *name, const int flag)
-{
-  FileData *fd = (FileData *)(*bh);
-  return link_named_part_ex(mainl, fd, idcode, name, flag);
+  return link_named_part(mainl, fd, idcode, name, params->flag);
 }
 
 /* common routine to append/link something from a library */
 
-static Main *library_link_begin(Main *mainvar, FileData **fd, const char *filepath)
+/**
+ * Checks if the \a idcode needs to be tagged with #LIB_TAG_DOIT when linking/appending.
+ */
+static bool library_link_idcode_needs_tag_check(const short idcode, const int flag)
+{
+  if (flag & BLO_LIBLINK_NEEDS_ID_TAG_DOIT) {
+    /* Always true because of #add_loose_objects_to_scene & #add_collections_to_scene. */
+    if (ELEM(idcode, ID_OB, ID_GR)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Clears #LIB_TAG_DOIT based on the result of #library_link_idcode_needs_tag_check.
+ */
+static void library_link_clear_tag(Main *mainvar, const int flag)
+{
+  for (int i = 0; i < MAX_LIBARRAY; i++) {
+    const short idcode = BKE_idtype_idcode_from_index(i);
+    BLI_assert(idcode != -1);
+    if (library_link_idcode_needs_tag_check(idcode, flag)) {
+      BKE_main_id_tag_idcode(mainvar, idcode, LIB_TAG_DOIT, false);
+    }
+  }
+}
+
+static Main *library_link_begin(Main *mainvar, FileData **fd, const char *filepath, const int flag)
 {
   Main *mainl;
 
   (*fd)->mainlist = MEM_callocN(sizeof(ListBase), "FileData.mainlist");
 
-  /* clear for objects and collections instantiating tag */
-  BKE_main_id_tag_listbase(&(mainvar->objects), LIB_TAG_DOIT, false);
-  BKE_main_id_tag_listbase(&(mainvar->collections), LIB_TAG_DOIT, false);
+  if (flag & BLO_LIBLINK_NEEDS_ID_TAG_DOIT) {
+    /* Clear for objects and collections instantiating tag. */
+    library_link_clear_tag(mainvar, flag);
+  }
 
   /* make mains */
   blo_split_main((*fd)->mainlist, mainvar);
@@ -10595,19 +10599,49 @@ static Main *library_link_begin(Main *mainvar, FileData **fd, const char *filepa
   return mainl;
 }
 
+void BLO_library_link_params_init(struct LibraryLink_Params *params,
+                                  struct Main *bmain,
+                                  const int flag)
+{
+  memset(params, 0, sizeof(*params));
+  params->bmain = bmain;
+  params->flag = flag;
+}
+
+void BLO_library_link_params_init_with_context(struct LibraryLink_Params *params,
+                                               struct Main *bmain,
+                                               const int flag,
+                                               /* Context arguments. */
+                                               struct Scene *scene,
+                                               struct ViewLayer *view_layer,
+                                               const struct View3D *v3d)
+{
+  BLO_library_link_params_init(params, bmain, flag);
+  if (scene != NULL) {
+    /* Tagging is needed for instancing. */
+    params->flag |= BLO_LIBLINK_NEEDS_ID_TAG_DOIT;
+
+    params->context.scene = scene;
+    params->context.view_layer = view_layer;
+    params->context.v3d = v3d;
+  }
+}
+
 /**
  * Initialize the #BlendHandle for linking library data.
  *
- * \param mainvar: The current main database, e.g. #G_MAIN or #CTX_data_main(C).
  * \param bh: A blender file handle as returned by
  * #BLO_blendhandle_from_file or #BLO_blendhandle_from_memory.
  * \param filepath: Used for relative linking, copied to the `lib->filepath`.
- * \return the library #Main, to be passed to #BLO_library_link_named_part_ex as \a mainl.
+ * \param params: Settings for linking that don't change from beginning to end of linking.
+ * \return the library #Main, to be passed to #BLO_library_link_named_part as \a mainl.
  */
-Main *BLO_library_link_begin(Main *mainvar, BlendHandle **bh, const char *filepath)
+Main *BLO_library_link_begin(BlendHandle **bh,
+                             const char *filepath,
+                             const struct LibraryLink_Params *params)
 {
   FileData *fd = (FileData *)(*bh);
-  return library_link_begin(mainvar, &fd, filepath);
+  return library_link_begin(params->bmain, &fd, filepath, params->flag);
 }
 
 static void split_main_newid(Main *mainptr, Main *main_newid)
@@ -10642,8 +10676,8 @@ static void split_main_newid(Main *mainptr, Main *main_newid)
  */
 static void library_link_end(Main *mainl,
                              FileData **fd,
-                             const short flag,
                              Main *bmain,
+                             const int flag,
                              Scene *scene,
                              ViewLayer *view_layer,
                              const View3D *v3d)
@@ -10720,19 +10754,18 @@ static void library_link_end(Main *mainl,
 
   /* Give a base to loose objects and collections.
    * Only directly linked objects & collections are instantiated by
-   * #BLO_library_link_named_part_ex & co,
+   * #BLO_library_link_named_part & co,
    * here we handle indirect ones and other possible edge-cases. */
-  if (scene) {
-    add_collections_to_scene(mainvar, bmain, scene, view_layer, v3d, curlib, flag);
-    add_loose_objects_to_scene(mainvar, bmain, scene, view_layer, v3d, curlib, flag);
-  }
-  else {
-    /* printf("library_append_end, scene is NULL (objects wont get bases)\n"); */
-  }
+  if (flag & BLO_LIBLINK_NEEDS_ID_TAG_DOIT) {
+    /* Should always be true. */
+    if (scene != NULL) {
+      add_collections_to_scene(mainvar, bmain, scene, view_layer, v3d, curlib, flag);
+      add_loose_objects_to_scene(mainvar, bmain, scene, view_layer, v3d, curlib, flag);
+    }
 
-  /* Clear objects and collections instantiating tag. */
-  BKE_main_id_tag_listbase(&(mainvar->objects), LIB_TAG_DOIT, false);
-  BKE_main_id_tag_listbase(&(mainvar->collections), LIB_TAG_DOIT, false);
+    /* Clear objects and collections instantiating tag. */
+    library_link_clear_tag(mainvar, flag);
+  }
 
   /* patch to prevent switch_endian happens twice */
   if ((*fd)->flags & FD_FLAGS_SWITCH_ENDIAN) {
@@ -10748,25 +10781,18 @@ static void library_link_end(Main *mainl,
  *
  * \param mainl: The main database to link from (not the active one).
  * \param bh: The blender file handle (WARNING! may be freed by this function!).
- * \param flag: Options for linking, used for instantiating.
- * \param bmain: The main database in which to instantiate objects/collections
- * \param scene: The scene in which to instantiate objects/collections
- * (if NULL, no instantiation is done).
- * \param view_layer: The scene layer in which to instantiate objects/collections
- * (if NULL, no instantiation is done).
- * \param v3d: The active 3D viewport
- * (only to define local-view for instantiated objects & groups, can be NULL).
+ * \param params: Settings for linking that don't change from beginning to end of linking.
  */
-void BLO_library_link_end(Main *mainl,
-                          BlendHandle **bh,
-                          int flag,
-                          Main *bmain,
-                          Scene *scene,
-                          ViewLayer *view_layer,
-                          const View3D *v3d)
+void BLO_library_link_end(Main *mainl, BlendHandle **bh, const struct LibraryLink_Params *params)
 {
   FileData *fd = (FileData *)(*bh);
-  library_link_end(mainl, &fd, flag, bmain, scene, view_layer, v3d);
+  library_link_end(mainl,
+                   &fd,
+                   params->bmain,
+                   params->flag,
+                   params->context.scene,
+                   params->context.view_layer,
+                   params->context.v3d);
   *bh = (BlendHandle *)fd;
 }
 

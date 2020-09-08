@@ -138,6 +138,10 @@ void BLO_blendhandle_close(BlendHandle *bh);
 bool BLO_has_bfile_extension(const char *str);
 bool BLO_library_path_explode(const char *path, char *r_dir, char **r_group, char **r_name);
 
+/* -------------------------------------------------------------------- */
+/** \name BLO Blend File Linking API
+ * \{ */
+
 /* Options controlling behavior of append/link code.
  * Note: merged with 'user-level' options from operators etc. in 16 lower bits
  *       (see eFileSel_Params_Flag in DNA_space_types.h). */
@@ -146,24 +150,62 @@ typedef enum BLO_LibLinkFlags {
   BLO_LIBLINK_USE_PLACEHOLDERS = 1 << 16,
   /* Force loaded ID to be tagged as LIB_TAG_INDIRECT (used in reload context only). */
   BLO_LIBLINK_FORCE_INDIRECT = 1 << 17,
+  /**
+   * When set, tag ID types that pass the internal check #library_link_idcode_needs_tag_check
+   *
+   * Currently this is only used to instantiate objects in the scene.
+   * Set this from #BLO_library_link_params_init_with_context so callers
+   * don't need to remember to set this flag.
+   */
+  BLO_LIBLINK_NEEDS_ID_TAG_DOIT = 1 << 18,
 } BLO_LinkFlags;
 
-struct Main *BLO_library_link_begin(struct Main *mainvar, BlendHandle **bh, const char *filepath);
+/**
+ * Struct for passing arguments to
+ * #BLO_library_link_begin, #BLO_library_link_named_part & #BLO_library_link_end.
+ * Wrap these in parameters since it's important both functions receive matching values.
+ */
+struct LibraryLink_Params {
+  /** The current main database, e.g. #G_MAIN or `CTX_data_main(C)`. */
+  struct Main *bmain;
+  /** Options for linking, used for instantiating. */
+  int flag;
+  /** Context for instancing objects (optional, no instantiation will be performed when NULL). */
+  struct {
+    /** The scene in which to instantiate objects/collections. */
+    struct Scene *scene;
+    /** The scene layer in which to instantiate objects/collections. */
+    struct ViewLayer *view_layer;
+    /** The active 3D viewport (only used to define local-view). */
+    const struct View3D *v3d;
+  } context;
+};
+
+void BLO_library_link_params_init(struct LibraryLink_Params *params,
+                                  struct Main *bmain,
+                                  const int flag);
+void BLO_library_link_params_init_with_context(struct LibraryLink_Params *params,
+                                               struct Main *bmain,
+                                               const int flag,
+                                               struct Scene *scene,
+                                               struct ViewLayer *view_layer,
+                                               const struct View3D *v3d);
+
+struct Main *BLO_library_link_begin(BlendHandle **bh,
+                                    const char *filepath,
+                                    const struct LibraryLink_Params *params);
 struct ID *BLO_library_link_named_part(struct Main *mainl,
                                        BlendHandle **bh,
                                        const short idcode,
-                                       const char *name);
-struct ID *BLO_library_link_named_part_ex(
-    struct Main *mainl, BlendHandle **bh, const short idcode, const char *name, const int flag);
+                                       const char *name,
+                                       const struct LibraryLink_Params *params);
 void BLO_library_link_end(struct Main *mainl,
                           BlendHandle **bh,
-                          int flag,
-                          struct Main *bmain,
-                          struct Scene *scene,
-                          struct ViewLayer *view_layer,
-                          const struct View3D *v3d);
+                          const struct LibraryLink_Params *params);
 
 int BLO_library_link_copypaste(struct Main *mainl, BlendHandle *bh, const uint64_t id_types_mask);
+
+/** \} */
 
 void *BLO_library_read_struct(struct FileData *fd, struct BHead *bh, const char *blockname);
 
