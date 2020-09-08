@@ -513,6 +513,25 @@ void GLTexture::samplers_init(void)
      * - GL_TEXTURE_MAX_LOD is 1000.
      * - GL_TEXTURE_LOD_BIAS is 0.0f.
      **/
+
+#ifndef __APPLE__
+    if ((G.debug & G_DEBUG_GPU) && (GLEW_VERSION_4_3 || GLEW_KHR_debug)) {
+      char sampler_name[128];
+      SNPRINTF(sampler_name,
+               "Sampler%s%s%s%s%s%s%s%s%s%s",
+               (state == GPU_SAMPLER_DEFAULT) ? "_default" : "",
+               (state & GPU_SAMPLER_FILTER) ? "_filter" : "",
+               (state & GPU_SAMPLER_MIPMAP) ? "_mipmap" : "",
+               (state & GPU_SAMPLER_REPEAT) ? "_repeat-" : "",
+               (state & GPU_SAMPLER_REPEAT_S) ? "S" : "",
+               (state & GPU_SAMPLER_REPEAT_T) ? "T" : "",
+               (state & GPU_SAMPLER_REPEAT_R) ? "R" : "",
+               (state & GPU_SAMPLER_CLAMP_BORDER) ? "_clamp_border" : "",
+               (state & GPU_SAMPLER_COMPARE) ? "_compare" : "",
+               (state & GPU_SAMPLER_ANISO) ? "_aniso" : "");
+      glObjectLabel(GL_SAMPLER, samplers_[i], -1, sampler_name);
+    }
+#endif
   }
   samplers_update();
 
@@ -521,6 +540,12 @@ void GLTexture::samplers_init(void)
   glSamplerParameteri(icon_sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
   glSamplerParameteri(icon_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glSamplerParameterf(icon_sampler, GL_TEXTURE_LOD_BIAS, -0.5f);
+
+#ifndef __APPLE__
+  if ((G.debug & G_DEBUG_GPU) && (GLEW_VERSION_4_3 || GLEW_KHR_debug)) {
+    glObjectLabel(GL_SAMPLER, icon_sampler, -1, "Sampler-icons");
+  }
+#endif
 }
 
 void GLTexture::samplers_update(void)
