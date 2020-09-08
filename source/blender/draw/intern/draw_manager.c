@@ -2862,7 +2862,6 @@ void DRW_opengl_render_context_enable(void *re_gl_context)
 
 void DRW_opengl_render_context_disable(void *re_gl_context)
 {
-  GPU_flush();
   WM_opengl_context_release(re_gl_context);
   /* TODO get rid of the blocking. */
   BLI_ticket_mutex_unlock(DST.gl_context_mutex);
@@ -2880,6 +2879,7 @@ void DRW_gpu_render_context_enable(void *re_gpu_context)
 /* Needs to be called BEFORE DRW_opengl_render_context_disable() */
 void DRW_gpu_render_context_disable(void *UNUSED(re_gpu_context))
 {
+  GPU_flush();
   GPU_context_active_set(NULL);
 }
 
