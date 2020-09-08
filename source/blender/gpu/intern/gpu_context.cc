@@ -185,6 +185,7 @@ void GPU_backend_exit(void)
   /* TODO assert no resource left. Currently UI textures are still not freed in their context
    * correctly. */
   delete g_backend;
+  g_backend = NULL;
 }
 
 GPUBackend *GPUBackend::get(void)
