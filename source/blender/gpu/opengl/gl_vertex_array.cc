@@ -138,7 +138,7 @@ void GLVertArray::update_bindings(const GLuint vao,
   if (attr_mask != 0 && GLEW_ARB_vertex_attrib_binding) {
     for (uint16_t mask = 1, a = 0; a < 16; a++, mask <<= 1) {
       if (attr_mask & mask) {
-        GLContext *ctx = static_cast<GLContext *>(GPU_context_active_get());
+        GLContext *ctx = GLContext::get();
         /* This replaces glVertexAttrib4f(a, 0.0f, 0.0f, 0.0f, 1.0f); with a more modern style.
          * Fix issues for some drivers (see T75069). */
         glBindVertexBuffer(a, ctx->default_attr_vbo_, (intptr_t)0, (intptr_t)0);

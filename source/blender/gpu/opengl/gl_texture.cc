@@ -44,7 +44,7 @@ namespace blender::gpu {
 
 GLTexture::GLTexture(const char *name) : Texture(name)
 {
-  BLI_assert(GPU_context_active_get() != NULL);
+  BLI_assert(GLContext::get() != NULL);
 
   glGenTextures(1, &tex_id_);
 }
@@ -54,7 +54,7 @@ GLTexture::~GLTexture()
   if (framebuffer_) {
     GPU_framebuffer_free(framebuffer_);
   }
-  GPUContext *ctx = GPU_context_active_get();
+  GLContext *ctx = GLContext::get();
   if (ctx != NULL && is_bound_) {
     /* This avoid errors when the texture is still inside the bound texture array. */
     ctx->state_manager->texture_unbind(this);
@@ -662,7 +662,7 @@ void GLTexture::check_feedback_loop(void)
   if (GPU_mip_render_workaround()) {
     return;
   }
-  GLFrameBuffer *fb = static_cast<GLFrameBuffer *>(GPU_context_active_get()->active_fb);
+  GLFrameBuffer *fb = static_cast<GLFrameBuffer *>(GLContext::get()->active_fb);
   for (int i = 0; i < ARRAY_SIZE(fb_); i++) {
     if (fb_[i] == fb) {
       GPUAttachmentType type = fb_attachment_[i];

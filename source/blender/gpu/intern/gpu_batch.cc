@@ -258,7 +258,7 @@ void GPU_batch_draw_instanced(GPUBatch *batch, int i_count)
 void GPU_batch_draw_advanced(
     GPUBatch *gpu_batch, int v_first, int v_count, int i_first, int i_count)
 {
-  BLI_assert(GPU_context_active_get()->shader != NULL);
+  BLI_assert(Context::get()->shader != NULL);
   Batch *batch = static_cast<Batch *>(gpu_batch);
 
   if (v_count == 0) {

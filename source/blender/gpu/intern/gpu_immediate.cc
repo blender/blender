@@ -43,7 +43,7 @@ static thread_local Immediate *imm = NULL;
 
 void immActivate(void)
 {
-  imm = GPU_context_active_get()->imm;
+  imm = Context::get()->imm;
 }
 
 void immDeactivate(void)

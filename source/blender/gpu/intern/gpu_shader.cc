@@ -457,7 +457,7 @@ void GPU_shader_bind(GPUShader *gpu_shader)
 {
   Shader *shader = unwrap(gpu_shader);
 
-  GPUContext *ctx = GPU_context_active_get();
+  Context *ctx = Context::get();
 
   if (ctx->shader != shader) {
     ctx->shader = shader;
@@ -474,7 +474,7 @@ void GPU_shader_bind(GPUShader *gpu_shader)
 void GPU_shader_unbind(void)
 {
 #ifndef NDEBUG
-  GPUContext *ctx = GPU_context_active_get();
+  Context *ctx = Context::get();
   if (ctx->shader) {
     ctx->shader->unbind();
   }

@@ -190,7 +190,7 @@ void GLContext::finish(void)
 void GLSharedOrphanLists::orphans_clear(void)
 {
   /* Check if any context is active on this thread! */
-  BLI_assert(GPU_context_active_get());
+  BLI_assert(GLContext::get());
 
   lists_mutex.lock();
   if (!buffers.is_empty()) {
@@ -232,7 +232,7 @@ void GLContext::orphans_add(Vector<GLuint> &orphan_list, std::mutex &list_mutex,
 
 void GLContext::vao_free(GLuint vao_id)
 {
-  if (this == GPU_context_active_get()) {
+  if (this == GLContext::get()) {
     glDeleteVertexArrays(1, &vao_id);
   }
   else {
@@ -242,7 +242,7 @@ void GLContext::vao_free(GLuint vao_id)
 
 void GLContext::fbo_free(GLuint fbo_id)
 {
-  if (this == GPU_context_active_get()) {
+  if (this == GLContext::get()) {
     glDeleteFramebuffers(1, &fbo_id);
   }
   else {
@@ -253,7 +253,7 @@ void GLContext::fbo_free(GLuint fbo_id)
 void GLContext::buf_free(GLuint buf_id)
 {
   /* Any context can free. */
-  if (GPU_context_active_get()) {
+  if (GLContext::get()) {
     glDeleteBuffers(1, &buf_id);
   }
   else {
@@ -265,7 +265,7 @@ void GLContext::buf_free(GLuint buf_id)
 void GLContext::tex_free(GLuint tex_id)
 {
   /* Any context can free. */
-  if (GPU_context_active_get()) {
+  if (GLContext::get()) {
     glDeleteTextures(1, &tex_id);
   }
   else {

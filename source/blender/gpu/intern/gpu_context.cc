@@ -54,20 +54,22 @@
 
 using namespace blender::gpu;
 
-static thread_local GPUContext *active_ctx = NULL;
+static thread_local Context *active_ctx = NULL;
 
 /* -------------------------------------------------------------------- */
-/** \name GPUContext methods
+/** \name gpu::Context methods
  * \{ */
 
-GPUContext::GPUContext()
+namespace blender::gpu {
+
+Context::Context()
 {
   thread_ = pthread_self();
   is_active_ = false;
   matrix_state = GPU_matrix_state_create();
 }
 
-GPUContext::~GPUContext()
+Context::~Context()
 {
   GPU_matrix_state_discard(matrix_state);
   delete state_manager;
@@ -78,10 +80,17 @@ GPUContext::~GPUContext()
   delete imm;
 }
 
-bool GPUContext::is_active_on_thread(void)
+bool Context::is_active_on_thread(void)
 {
   return (this == active_ctx) && pthread_equal(pthread_self(), thread_);
 }
+
+Context *Context::get(void)
+{
+  return active_ctx;
+}
+
+}  // namespace blender::gpu
 
 /** \} */
 
@@ -94,22 +103,25 @@ GPUContext *GPU_context_create(void *ghost_window)
     GPU_backend_init(GPU_BACKEND_OPENGL);
   }
 
-  GPUContext *ctx = GPUBackend::get()->context_alloc(ghost_window);
+  Context *ctx = GPUBackend::get()->context_alloc(ghost_window);
 
-  GPU_context_active_set(ctx);
-  return ctx;
+  GPU_context_active_set(wrap(ctx));
+  return wrap(ctx);
 }
 
 /* to be called after GPU_context_active_set(ctx_to_destroy) */
-void GPU_context_discard(GPUContext *ctx)
+void GPU_context_discard(GPUContext *ctx_)
 {
+  Context *ctx = unwrap(ctx_);
   delete ctx;
   active_ctx = NULL;
 }
 
 /* ctx can be NULL */
-void GPU_context_active_set(GPUContext *ctx)
+void GPU_context_active_set(GPUContext *ctx_)
 {
+  Context *ctx = unwrap(ctx_);
+
   if (active_ctx) {
     active_ctx->deactivate();
   }
@@ -123,13 +135,7 @@ void GPU_context_active_set(GPUContext *ctx)
 
 GPUContext *GPU_context_active_get(void)
 {
-  return active_ctx;
-}
-
-struct GPUMatrixState *gpu_context_active_matrix_state_get()
-{
-  BLI_assert(active_ctx);
-  return active_ctx->matrix_state;
+  return wrap(Context::get());
 }
 
 /* -------------------------------------------------------------------- */

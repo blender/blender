@@ -34,22 +34,20 @@
 #include "gpu_shader_private.hh"
 #include "gpu_state_private.hh"
 
-#include <mutex>
 #include <pthread.h>
-#include <string.h>
-#include <unordered_set>
-#include <vector>
 
 struct GPUMatrixState;
 
-struct GPUContext {
+namespace blender::gpu {
+
+class Context {
  public:
   /** State management */
-  blender::gpu::Shader *shader = NULL;
-  blender::gpu::FrameBuffer *active_fb = NULL;
+  Shader *shader = NULL;
+  FrameBuffer *active_fb = NULL;
   GPUMatrixState *matrix_state = NULL;
-  blender::gpu::GPUStateManager *state_manager = NULL;
-  blender::gpu::Immediate *imm = NULL;
+  GPUStateManager *state_manager = NULL;
+  Immediate *imm = NULL;
 
   /**
    * All 4 window frame-buffers.
@@ -58,10 +56,10 @@ struct GPUContext {
    * Front frame-buffers contains (in principle, but not always) the last frame color.
    * Default frame-buffer is back_left.
    */
-  blender::gpu::FrameBuffer *back_left = NULL;
-  blender::gpu::FrameBuffer *front_left = NULL;
-  blender::gpu::FrameBuffer *back_right = NULL;
-  blender::gpu::FrameBuffer *front_right = NULL;
+  FrameBuffer *back_left = NULL;
+  FrameBuffer *front_left = NULL;
+  FrameBuffer *back_right = NULL;
+  FrameBuffer *front_right = NULL;
 
  protected:
   /** Thread on which this context is active. */
@@ -71,8 +69,10 @@ struct GPUContext {
   void *ghost_window_;
 
  public:
-  GPUContext();
-  virtual ~GPUContext();
+  Context();
+  virtual ~Context();
+
+  static Context *get(void);
 
   virtual void activate(void) = 0;
   virtual void deactivate(void) = 0;
@@ -85,11 +85,20 @@ struct GPUContext {
   virtual void memory_statistics_get(int *total_mem, int *free_mem) = 0;
 
   bool is_active_on_thread(void);
-
-  MEM_CXX_CLASS_ALLOC_FUNCS("GPUContext")
 };
 
-void gpu_context_active_framebuffer_set(GPUContext *ctx, struct GPUFrameBuffer *fb);
-struct GPUFrameBuffer *gpu_context_active_framebuffer_get(GPUContext *ctx);
+/* Syntacting suggar. */
+static inline GPUContext *wrap(Context *ctx)
+{
+  return reinterpret_cast<GPUContext *>(ctx);
+}
+static inline Context *unwrap(GPUContext *ctx)
+{
+  return reinterpret_cast<Context *>(ctx);
+}
+static inline const Context *unwrap(const GPUContext *ctx)
+{
+  return reinterpret_cast<const Context *>(ctx);
+}
 
-struct GPUMatrixState *gpu_context_active_matrix_state_get(void);
+}  // namespace blender::gpu

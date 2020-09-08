@@ -151,7 +151,7 @@ void GLVaoCache::remove(const GLShaderInterface *interface)
 
 void GLVaoCache::clear(void)
 {
-  GLContext *ctx = static_cast<GLContext *>(GPU_context_active_get());
+  GLContext *ctx = GLContext::get();
   const int count = (is_dynamic_vao_count) ? dynamic_vaos.count : GPU_VAO_STATIC_LEN;
   GLuint *vaos = (is_dynamic_vao_count) ? dynamic_vaos.vao_ids : static_vaos.vao_ids;
   const GLShaderInterface **interfaces = (is_dynamic_vao_count) ? dynamic_vaos.interfaces :
@@ -209,7 +209,7 @@ GLuint GLVaoCache::lookup(const GLShaderInterface *interface)
  * Reset the cache if trying to draw in another context; */
 void GLVaoCache::context_check(void)
 {
-  GLContext *ctx = static_cast<GLContext *>(GPU_context_active_get());
+  GLContext *ctx = GLContext::get();
   BLI_assert(ctx);
 
   if (context_ != ctx) {
@@ -228,7 +228,7 @@ GLuint GLVaoCache::base_instance_vao_get(GPUBatch *batch, int i_first)
 {
   this->context_check();
   /* Make sure the interface is up to date. */
-  Shader *shader = GPU_context_active_get()->shader;
+  Shader *shader = GLContext::get()->shader;
   GLShaderInterface *interface = static_cast<GLShaderInterface *>(shader->interface);
   if (interface_ != interface) {
     vao_get(batch);
@@ -260,7 +260,7 @@ GLuint GLVaoCache::vao_get(GPUBatch *batch)
 {
   this->context_check();
 
-  Shader *shader = GPU_context_active_get()->shader;
+  Shader *shader = GLContext::get()->shader;
   GLShaderInterface *interface = static_cast<GLShaderInterface *>(shader->interface);
   if (interface_ != interface) {
     interface_ = interface;
@@ -298,7 +298,7 @@ GLBatch::~GLBatch()
 
 void GLBatch::bind(int i_first)
 {
-  GPU_context_active_get()->state_manager->apply_state();
+  GLContext::get()->state_manager->apply_state();
 
   if (flag & GPU_BATCH_DIRTY) {
     flag &= ~GPU_BATCH_DIRTY;

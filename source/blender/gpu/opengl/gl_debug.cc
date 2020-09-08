@@ -197,7 +197,7 @@ void check_gl_resources(const char *info)
     return;
   }
 
-  GLContext *ctx = static_cast<GLContext *>(GPU_context_active_get());
+  GLContext *ctx = GLContext::get();
   ShaderInterface *interface = ctx->shader->interface;
   /* NOTE: This only check binding. To be valid, the bound ubo needs to
    * be big enough to feed the data range the shader awaits. */

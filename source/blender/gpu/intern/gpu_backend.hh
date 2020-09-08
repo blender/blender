@@ -25,10 +25,10 @@
 
 #pragma once
 
-struct GPUContext;
-
 namespace blender {
 namespace gpu {
+
+class Context;
 
 class Batch;
 class DrawList;
@@ -48,7 +48,7 @@ class GPUBackend {
 
   virtual void samplers_update(void) = 0;
 
-  virtual GPUContext *context_alloc(void *ghost_window) = 0;
+  virtual Context *context_alloc(void *ghost_window) = 0;
 
   virtual Batch *batch_alloc(void) = 0;
   virtual DrawList *drawlist_alloc(int list_length) = 0;

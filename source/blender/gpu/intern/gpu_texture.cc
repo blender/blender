@@ -386,7 +386,7 @@ void GPU_texture_update(GPUTexture *tex, eGPUDataFormat data_format, const void 
  * Skipping pixels correctly when changing rows when doing partial update.*/
 void GPU_unpack_row_length_set(uint len)
 {
-  GPU_context_active_get()->state_manager->texture_unpack_row_length_set(len);
+  Context::get()->state_manager->texture_unpack_row_length_set(len);
 }
 
 /* ------ Binding ------ */
@@ -398,24 +398,24 @@ void GPU_texture_bind_ex(GPUTexture *tex_,
 {
   Texture *tex = reinterpret_cast<Texture *>(tex_);
   state = (state >= GPU_SAMPLER_MAX) ? tex->sampler_state : state;
-  GPU_context_active_get()->state_manager->texture_bind(tex, state, unit);
+  Context::get()->state_manager->texture_bind(tex, state, unit);
 }
 
 void GPU_texture_bind(GPUTexture *tex_, int unit)
 {
   Texture *tex = reinterpret_cast<Texture *>(tex_);
-  GPU_context_active_get()->state_manager->texture_bind(tex, tex->sampler_state, unit);
+  Context::get()->state_manager->texture_bind(tex, tex->sampler_state, unit);
 }
 
 void GPU_texture_unbind(GPUTexture *tex_)
 {
   Texture *tex = reinterpret_cast<Texture *>(tex_);
-  GPU_context_active_get()->state_manager->texture_unbind(tex);
+  Context::get()->state_manager->texture_unbind(tex);
 }
 
 void GPU_texture_unbind_all(void)
 {
-  GPU_context_active_get()->state_manager->texture_unbind_all();
+  Context::get()->state_manager->texture_unbind_all();
 }
 
 void GPU_texture_generate_mipmap(GPUTexture *tex)

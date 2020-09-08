@@ -32,8 +32,6 @@
 extern "C" {
 #endif
 
-typedef struct GPUContext GPUContext;
-
 typedef enum eGPUBackendType {
   GPU_BACKEND_NONE = 0,
   GPU_BACKEND_OPENGL,
@@ -41,6 +39,9 @@ typedef enum eGPUBackendType {
 
 void GPU_backend_init(eGPUBackendType backend);
 void GPU_backend_exit(void);
+
+/** Opaque type hiding blender::gpu::Context. */
+typedef struct GPUContext GPUContext;
 
 GPUContext *GPU_context_create(void *ghost_window);
 void GPU_context_discard(GPUContext *);

@@ -224,7 +224,7 @@ void GPU_framebuffer_bind_no_srgb(GPUFrameBuffer *gpu_fb)
  */
 void GPU_backbuffer_bind(eGPUBackBuffer buffer)
 {
-  GPUContext *ctx = GPU_context_active_get();
+  Context *ctx = Context::get();
 
   if (buffer == GPU_BACKBUFFER_LEFT) {
     ctx->back_left->bind(false);
@@ -236,19 +236,19 @@ void GPU_backbuffer_bind(eGPUBackBuffer buffer)
 
 void GPU_framebuffer_restore(void)
 {
-  GPU_context_active_get()->back_left->bind(false);
+  Context::get()->back_left->bind(false);
 }
 
 GPUFrameBuffer *GPU_framebuffer_active_get(void)
 {
-  GPUContext *ctx = GPU_context_active_get();
+  Context *ctx = Context::get();
   return wrap(ctx ? ctx->active_fb : NULL);
 }
 
 /* Returns the default frame-buffer. Will always exists even if it's just a dummy. */
 GPUFrameBuffer *GPU_framebuffer_back_get(void)
 {
-  GPUContext *ctx = GPU_context_active_get();
+  Context *ctx = Context::get();
   return wrap(ctx ? ctx->back_left : NULL);
 }
 
@@ -381,13 +381,13 @@ void GPU_framebuffer_multi_clear(GPUFrameBuffer *gpu_fb, const float (*clear_col
 void GPU_clear_color(float red, float green, float blue, float alpha)
 {
   float clear_col[4] = {red, green, blue, alpha};
-  GPU_context_active_get()->active_fb->clear(GPU_COLOR_BIT, clear_col, 0.0f, 0x0);
+  Context::get()->active_fb->clear(GPU_COLOR_BIT, clear_col, 0.0f, 0x0);
 }
 
 void GPU_clear_depth(float depth)
 {
   float clear_col[4] = {0};
-  GPU_context_active_get()->active_fb->clear(GPU_DEPTH_BIT, clear_col, depth, 0x0);
+  Context::get()->active_fb->clear(GPU_DEPTH_BIT, clear_col, depth, 0x0);
 }
 
 void GPU_framebuffer_read_depth(
@@ -416,7 +416,7 @@ void GPU_frontbuffer_read_pixels(
     int x, int y, int w, int h, int channels, eGPUDataFormat format, void *data)
 {
   int rect[4] = {x, y, w, h};
-  GPU_context_active_get()->front_left->read(GPU_COLOR_BIT, format, rect, channels, 0, data);
+  Context::get()->front_left->read(GPU_COLOR_BIT, format, rect, channels, 0, data);
 }
 
 /* read_slot and write_slot are only used for color buffers. */
@@ -431,7 +431,7 @@ void GPU_framebuffer_blit(GPUFrameBuffer *gpufb_read,
   FrameBuffer *fb_write = unwrap(gpufb_write);
   BLI_assert(blit_buffers != 0);
 
-  FrameBuffer *prev_fb = GPU_context_active_get()->active_fb;
+  FrameBuffer *prev_fb = Context::get()->active_fb;
 
 #ifndef NDEBUG
   GPUTexture *read_tex, *write_tex;
@@ -509,7 +509,7 @@ static GPUFrameBuffer *gpuPopFrameBuffer(void)
 
 struct GPUOffScreen {
   struct {
-    GPUContext *ctx;
+    Context *ctx;
     GPUFrameBuffer *fb;
   } framebuffers[MAX_CTX_FB_LEN];
 
@@ -522,7 +522,7 @@ struct GPUOffScreen {
  */
 static GPUFrameBuffer *gpu_offscreen_fb_get(GPUOffScreen *ofs)
 {
-  GPUContext *ctx = GPU_context_active_get();
+  Context *ctx = Context::get();
   BLI_assert(ctx);
 
   for (int i = 0; i < MAX_CTX_FB_LEN; i++) {
@@ -635,7 +635,7 @@ void GPU_offscreen_unbind(GPUOffScreen *UNUSED(ofs), bool restore)
 
 void GPU_offscreen_draw_to_screen(GPUOffScreen *ofs, int x, int y)
 {
-  GPUContext *ctx = GPU_context_active_get();
+  Context *ctx = Context::get();
   FrameBuffer *ofs_fb = unwrap(gpu_offscreen_fb_get(ofs));
   ofs_fb->blit_to(GPU_COLOR_BIT, 0, ctx->active_fb, 0, x, y);
 }

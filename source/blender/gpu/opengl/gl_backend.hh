@@ -71,7 +71,7 @@ class GLBackend : public GPUBackend {
     GLTexture::samplers_update();
   };
 
-  GPUContext *context_alloc(void *ghost_window) override
+  Context *context_alloc(void *ghost_window) override
   {
     return new GLContext(ghost_window, shared_orphan_list_);
   };

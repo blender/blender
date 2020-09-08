@@ -53,7 +53,7 @@ class GLSharedOrphanLists {
   void orphans_clear(void);
 };
 
-class GLContext : public GPUContext {
+class GLContext : public Context {
  public:
   /** Capabilities. */
   static GLint max_texture_3d_size;
@@ -103,9 +103,14 @@ class GLContext : public GPUContext {
 
   void memory_statistics_get(int *total_mem, int *free_mem) override;
 
-  static inline GLStateManager *state_manager_active_get()
+  static GLContext *get()
   {
-    GLContext *ctx = static_cast<GLContext *>(GPU_context_active_get());
+    return static_cast<GLContext *>(Context::get());
+  }
+
+  static GLStateManager *state_manager_active_get()
+  {
+    GLContext *ctx = GLContext::get();
     return static_cast<GLStateManager *>(ctx->state_manager);
   };
 
@@ -122,6 +127,8 @@ class GLContext : public GPUContext {
  private:
   static void orphans_add(Vector<GLuint> &orphan_list, std::mutex &list_mutex, GLuint id);
   void orphans_clear(void);
+
+  MEM_CXX_CLASS_ALLOC_FUNCS("GLContext")
 };
 
 }  // namespace gpu
