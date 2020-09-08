@@ -330,6 +330,7 @@ GLint GLContext::max_ubo_size;
 GLint GLContext::max_ubo_binds;
 /** Extensions. */
 bool GLContext::base_instance_support = false;
+bool GLContext::debug_layer_support = false;
 bool GLContext::texture_cube_map_array_support = false;
 /** Workarounds. */
 bool GLContext::texture_copy_workaround = false;
@@ -354,6 +355,12 @@ void GLBackend::capabilities_init(void)
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &GLContext::max_ubo_size);
   GLContext::base_instance_support = GLEW_ARB_base_instance;
   GLContext::texture_cube_map_array_support = GLEW_ARB_texture_cube_map_array;
+  GLContext::debug_layer_support = (GLEW_VERSION_4_3 || GLEW_KHR_debug);
+
+  if ((G.debug & G_DEBUG_GPU) == 0) {
+    /* Disable this feature entierly when not debugging. */
+    GLContext::debug_layer_support = false;
+  }
 
   detect_workarounds();
 }

@@ -62,13 +62,11 @@ void GLUniformBuf::init(void)
   glBindBuffer(GL_UNIFORM_BUFFER, ubo_id_);
   glBufferData(GL_UNIFORM_BUFFER, size_in_bytes_, NULL, GL_DYNAMIC_DRAW);
 
-#ifndef __APPLE__
-  if ((G.debug & G_DEBUG_GPU) && (GLEW_VERSION_4_3 || GLEW_KHR_debug)) {
+  if (GLContext::debug_layer_support) {
     char sh_name[64];
     SNPRINTF(sh_name, "UBO-%s", name_);
     glObjectLabel(GL_BUFFER, ubo_id_, -1, sh_name);
   }
-#endif
 }
 
 void GLUniformBuf::update(const void *data)

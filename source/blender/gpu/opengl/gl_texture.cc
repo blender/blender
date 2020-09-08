@@ -96,14 +96,12 @@ bool GLTexture::init_internal(void)
     glTexParameteri(target_, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   }
 
-#ifndef __APPLE__
-  if ((G.debug & G_DEBUG_GPU) && (GLEW_VERSION_4_3 || GLEW_KHR_debug)) {
+  if (GLContext::debug_layer_support) {
     char sh_name[64];
     SNPRINTF(sh_name, "Texture-%s", name_);
     /* Binding before setting the label is needed on some drivers. */
     glObjectLabel(GL_TEXTURE, tex_id_, -1, sh_name);
   }
-#endif
 
   GL_CHECK_ERROR("Post-texture creation");
   return true;
@@ -127,14 +125,12 @@ bool GLTexture::init_internal(GPUVertBuf *vbo)
     glTexBuffer(target_, internal_format, gl_vbo->vbo_id_);
   }
 
-#ifndef __APPLE__
-  if ((G.debug & G_DEBUG_GPU) && (GLEW_VERSION_4_3 || GLEW_KHR_debug)) {
+  if (GLContext::debug_layer_support) {
     char sh_name[64];
     SNPRINTF(sh_name, "Texture-%s", name_);
     /* Binding before setting the label is needed on some drivers. */
     glObjectLabel(GL_TEXTURE, tex_id_, -1, sh_name);
   }
-#endif
 
   GL_CHECK_ERROR("Post-texture buffer creation");
   return true;
@@ -514,8 +510,7 @@ void GLTexture::samplers_init(void)
      * - GL_TEXTURE_LOD_BIAS is 0.0f.
      **/
 
-#ifndef __APPLE__
-    if ((G.debug & G_DEBUG_GPU) && (GLEW_VERSION_4_3 || GLEW_KHR_debug)) {
+    if (GLContext::debug_layer_support) {
       char sampler_name[128];
       SNPRINTF(sampler_name,
                "Sampler%s%s%s%s%s%s%s%s%s%s",
@@ -531,7 +526,6 @@ void GLTexture::samplers_init(void)
                (state & GPU_SAMPLER_ANISO) ? "_aniso" : "");
       glObjectLabel(GL_SAMPLER, samplers_[i], -1, sampler_name);
     }
-#endif
   }
   samplers_update();
 
@@ -541,11 +535,9 @@ void GLTexture::samplers_init(void)
   glSamplerParameteri(icon_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glSamplerParameterf(icon_sampler, GL_TEXTURE_LOD_BIAS, -0.5f);
 
-#ifndef __APPLE__
-  if ((G.debug & G_DEBUG_GPU) && (GLEW_VERSION_4_3 || GLEW_KHR_debug)) {
+  if (GLContext::debug_layer_support) {
     glObjectLabel(GL_SAMPLER, icon_sampler, -1, "Sampler-icons");
   }
-#endif
 }
 
 void GLTexture::samplers_update(void)

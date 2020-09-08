@@ -122,7 +122,7 @@ void init_gl_callbacks(void)
   char msg[256] = "";
   const char format[] = "Successfully hooked OpenGL debug callback using %s";
 
-  if (GLEW_VERSION_4_3 || GLEW_KHR_debug) {
+  if (GLContext::debug_layer_support) {
     SNPRINTF(msg, format, GLEW_VERSION_4_3 ? "OpenGL 4.3" : "KHR_debug extension");
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);

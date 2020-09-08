@@ -60,13 +60,11 @@ GLImmediate::GLImmediate()
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
 
-#ifndef __APPLE__
-  if ((G.debug & G_DEBUG_GPU) && (GLEW_VERSION_4_3 || GLEW_KHR_debug)) {
+  if (GLContext::debug_layer_support) {
     glObjectLabel(GL_VERTEX_ARRAY, vao_id_, -1, "VAO-Immediate");
     glObjectLabel(GL_BUFFER, buffer.vbo_id, -1, "VBO-ImmediateBuffer");
     glObjectLabel(GL_BUFFER, buffer_strict.vbo_id, -1, "VBO-ImmediateBufferStrict");
   }
-#endif
 }
 
 GLImmediate::~GLImmediate()
