@@ -131,7 +131,7 @@ void USDAbstractWriter::write_visibility(const HierarchyContext &context,
 }
 
 /* Reference the original data instead of writing a copy. */
-bool USDAbstractWriter::mark_as_instance(HierarchyContext &context, const pxr::UsdPrim &prim)
+bool USDAbstractWriter::mark_as_instance(const HierarchyContext &context, const pxr::UsdPrim &prim)
 {
   BLI_assert(context.is_instance());
 

@@ -79,7 +79,7 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
 
   /* Turn `prim` into an instance referencing `context.original_export_path`.
    * Return true when the instancing was succesful, false otherwise. */
-  virtual bool mark_as_instance(HierarchyContext &context, const pxr::UsdPrim &prim);
+  virtual bool mark_as_instance(const HierarchyContext &context, const pxr::UsdPrim &prim);
 };
 
 }  // namespace usd
