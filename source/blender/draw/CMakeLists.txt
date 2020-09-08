@@ -437,9 +437,9 @@ if(WITH_GTESTS)
     )
     set(TEST_INC
       "../../../intern/ghost/"
+      "../gpu/tests/"
     )
     set(TEST_LIB
-      bf_draw
     )
     include(GTestTesting)
     blender_add_test_lib(bf_draw_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")

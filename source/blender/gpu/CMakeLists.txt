@@ -379,3 +379,19 @@ if(WITH_IMAGE_DDS)
 endif()
 
 blender_add_lib(bf_gpu "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+if(WITH_GTESTS)
+  if(WITH_OPENGL_DRAW_TESTS)
+    set(TEST_SRC
+      tests/gpu_testing.cc
+    )
+    set(TEST_INC
+      "../../../intern/ghost/"
+    )
+    set(TEST_LIB
+
+    )
+    include(GTestTesting)
+    blender_add_test_lib(bf_gpu_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
+  endif()
+endif()

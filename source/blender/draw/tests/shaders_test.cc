@@ -7,40 +7,21 @@
 #include "GPU_context.h"
 #include "GPU_init_exit.h"
 #include "GPU_shader.h"
-
-#include "GHOST_C-api.h"
+#include "gpu_testing.hh"
 
 #include "engines/eevee/eevee_private.h"
 #include "engines/gpencil/gpencil_engine.h"
 #include "engines/overlay/overlay_private.h"
 #include "engines/workbench/workbench_private.h"
 
-namespace blender::draw::tests {
+namespace blender::draw {
 
 /* Base class for draw test cases. It will setup and tear down the GPU part around each test. */
-class DrawTest : public ::testing::Test {
- private:
-  GHOST_SystemHandle ghost_system;
-  GHOST_ContextHandle ghost_context;
-  GPUContext *context;
-
+class DrawTest : public blender::gpu::GPUTest {
   void SetUp() override
   {
-    GHOST_GLSettings glSettings = {0};
-    ghost_system = GHOST_CreateSystem();
-    ghost_context = GHOST_CreateOpenGLContext(ghost_system, glSettings);
-    context = GPU_context_create(NULL);
-    GPU_init();
+    GPUTest::SetUp();
     DRW_draw_state_init_gtests(GPU_SHADER_CFG_DEFAULT);
-  }
-
-  void TearDown() override
-  {
-    GPU_exit();
-    GPU_backend_exit();
-    GPU_context_discard(context);
-    GHOST_DisposeOpenGLContext(ghost_system, ghost_context);
-    GHOST_DisposeSystem(ghost_system);
   }
 };
 
@@ -324,4 +305,4 @@ TEST_F(DrawTest, eevee_glsl_shaders_static)
   EEVEE_shaders_free();
 }
 
-}  // namespace blender::draw::tests
+}  // namespace blender::draw
