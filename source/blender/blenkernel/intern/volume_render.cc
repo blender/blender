@@ -94,7 +94,7 @@ void BKE_volume_grid_dense_voxels(const Volume *volume,
                                   VolumeGrid *volume_grid,
                                   const int64_t min[3],
                                   const int64_t max[3],
-                                  const float *voxels)
+                                  float *voxels)
 {
 #ifdef WITH_OPENVDB
   openvdb::GridBase::ConstPtr grid = BKE_volume_grid_openvdb_for_read(volume, volume_grid);
