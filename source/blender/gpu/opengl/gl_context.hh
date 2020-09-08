@@ -65,6 +65,7 @@ class GLContext : public Context {
   static bool debug_layer_support;
   static bool texture_cube_map_array_support;
   /** Workarounds. */
+  static bool debug_layer_workaround;
   static bool texture_copy_workaround;
   static bool unused_fb_slot_workaround;
   static float derivative_signs[2];

@@ -30,6 +30,7 @@
 #include "glew-mx.h"
 
 #include "gl_context.hh"
+#include "gl_debug.hh"
 #include "gl_framebuffer.hh"
 #include "gl_texture.hh"
 

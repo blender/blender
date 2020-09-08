@@ -74,6 +74,9 @@ GLContext::GLContext(void *ghost_window, GLSharedOrphanLists &shared_orphan_list
     GHOST_DisposeRectangle(bounds);
 
     if (default_fbo != 0) {
+      /* Bind default framebuffer, otherwise state might be undefined because of
+       * detect_mip_render_workaround(). */
+      glBindFramebuffer(GL_FRAMEBUFFER, default_fbo);
       front_left = new GLFrameBuffer("front_left", this, GL_COLOR_ATTACHMENT0, default_fbo, w, h);
       back_left = new GLFrameBuffer("back_left", this, GL_COLOR_ATTACHMENT0, default_fbo, w, h);
     }
@@ -81,6 +84,7 @@ GLContext::GLContext(void *ghost_window, GLSharedOrphanLists &shared_orphan_list
       front_left = new GLFrameBuffer("front_left", this, GL_FRONT_LEFT, 0, w, h);
       back_left = new GLFrameBuffer("back_left", this, GL_BACK_LEFT, 0, w, h);
     }
+
     GLboolean supports_stereo_quad_buffer = GL_FALSE;
     glGetBooleanv(GL_STEREO, &supports_stereo_quad_buffer);
     if (supports_stereo_quad_buffer) {
@@ -95,7 +99,7 @@ GLContext::GLContext(void *ghost_window, GLSharedOrphanLists &shared_orphan_list
 
   active_fb = back_left;
   static_cast<GLStateManager *>(state_manager)->active_fb = static_cast<GLFrameBuffer *>(
-      back_left);
+      active_fb);
 }
 
 GLContext::~GLContext()

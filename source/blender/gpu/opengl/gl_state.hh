@@ -42,8 +42,8 @@ class GLTexture;
  **/
 class GLStateManager : public GPUStateManager {
  public:
-  /** Anothter reference to tje active framebuffer. */
-  GLFrameBuffer *active_fb;
+  /** Anothter reference to the active framebuffer. */
+  GLFrameBuffer *active_fb = nullptr;
 
  private:
   /** Current state of the GL implementation. Avoids resetting the whole state for every change. */

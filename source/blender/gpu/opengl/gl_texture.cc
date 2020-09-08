@@ -96,14 +96,7 @@ bool GLTexture::init_internal(void)
     glTexParameteri(target_, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   }
 
-  if (GLContext::debug_layer_support) {
-    char sh_name[64];
-    SNPRINTF(sh_name, "Texture-%s", name_);
-    /* Binding before setting the label is needed on some drivers. */
-    glObjectLabel(GL_TEXTURE, tex_id_, -1, sh_name);
-  }
-
-  GL_CHECK_ERROR("Post-texture creation");
+  debug::object_label(GL_TEXTURE, tex_id_, name_);
   return true;
 }
 
@@ -125,14 +118,8 @@ bool GLTexture::init_internal(GPUVertBuf *vbo)
     glTexBuffer(target_, internal_format, gl_vbo->vbo_id_);
   }
 
-  if (GLContext::debug_layer_support) {
-    char sh_name[64];
-    SNPRINTF(sh_name, "Texture-%s", name_);
-    /* Binding before setting the label is needed on some drivers. */
-    glObjectLabel(GL_TEXTURE, tex_id_, -1, sh_name);
-  }
+  debug::object_label(GL_TEXTURE, tex_id_, name_);
 
-  GL_CHECK_ERROR("Post-texture buffer creation");
   return true;
 }
 
@@ -193,8 +180,6 @@ void GLTexture::ensure_mipmaps(int miplvl)
           break;
       }
     }
-
-    GL_CHECK_ERROR("Post-mipmap creation");
   }
 
   this->mip_range_set(0, mipmaps_);
@@ -240,7 +225,6 @@ void GLTexture::update_sub_direct_state_access(
         break;
     }
   }
-  GL_CHECK_ERROR("Post-update_sub_direct_state_access");
 }
 
 void GLTexture::update_sub(
@@ -304,8 +288,6 @@ void GLTexture::update_sub(
         break;
     }
   }
-
-  GL_CHECK_ERROR("Post-update_sub");
 }
 
 /** This will create the mipmap images and populate them with filtered data from base level.
@@ -510,22 +492,20 @@ void GLTexture::samplers_init(void)
      * - GL_TEXTURE_LOD_BIAS is 0.0f.
      **/
 
-    if (GLContext::debug_layer_support) {
-      char sampler_name[128];
-      SNPRINTF(sampler_name,
-               "Sampler%s%s%s%s%s%s%s%s%s%s",
-               (state == GPU_SAMPLER_DEFAULT) ? "_default" : "",
-               (state & GPU_SAMPLER_FILTER) ? "_filter" : "",
-               (state & GPU_SAMPLER_MIPMAP) ? "_mipmap" : "",
-               (state & GPU_SAMPLER_REPEAT) ? "_repeat-" : "",
-               (state & GPU_SAMPLER_REPEAT_S) ? "S" : "",
-               (state & GPU_SAMPLER_REPEAT_T) ? "T" : "",
-               (state & GPU_SAMPLER_REPEAT_R) ? "R" : "",
-               (state & GPU_SAMPLER_CLAMP_BORDER) ? "_clamp_border" : "",
-               (state & GPU_SAMPLER_COMPARE) ? "_compare" : "",
-               (state & GPU_SAMPLER_ANISO) ? "_aniso" : "");
-      glObjectLabel(GL_SAMPLER, samplers_[i], -1, sampler_name);
-    }
+    char sampler_name[128] = "\0\0";
+    SNPRINTF(sampler_name,
+             "%s%s%s%s%s%s%s%s%s%s",
+             (state == GPU_SAMPLER_DEFAULT) ? "_default" : "",
+             (state & GPU_SAMPLER_FILTER) ? "_filter" : "",
+             (state & GPU_SAMPLER_MIPMAP) ? "_mipmap" : "",
+             (state & GPU_SAMPLER_REPEAT) ? "_repeat-" : "",
+             (state & GPU_SAMPLER_REPEAT_S) ? "S" : "",
+             (state & GPU_SAMPLER_REPEAT_T) ? "T" : "",
+             (state & GPU_SAMPLER_REPEAT_R) ? "R" : "",
+             (state & GPU_SAMPLER_CLAMP_BORDER) ? "_clamp_border" : "",
+             (state & GPU_SAMPLER_COMPARE) ? "_compare" : "",
+             (state & GPU_SAMPLER_ANISO) ? "_aniso" : "");
+    debug::object_label(GL_SAMPLER, samplers_[i], &sampler_name[1]);
   }
   samplers_update();
 
@@ -535,9 +515,7 @@ void GLTexture::samplers_init(void)
   glSamplerParameteri(icon_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glSamplerParameterf(icon_sampler, GL_TEXTURE_LOD_BIAS, -0.5f);
 
-  if (GLContext::debug_layer_support) {
-    glObjectLabel(GL_SAMPLER, icon_sampler, -1, "Sampler-icons");
-  }
+  debug::object_label(GL_SAMPLER, icon_sampler, "icons");
 }
 
 void GLTexture::samplers_update(void)

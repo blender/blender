@@ -93,6 +93,7 @@ set(SRC
   opengl/gl_context.cc
   opengl/gl_drawlist.cc
   opengl/gl_debug.cc
+  opengl/gl_debug_layer.cc
   opengl/gl_framebuffer.cc
   opengl/gl_immediate.cc
   opengl/gl_index_buffer.cc

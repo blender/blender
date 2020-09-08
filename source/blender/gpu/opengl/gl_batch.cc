@@ -324,7 +324,6 @@ void GLBatch::bind(int i_first)
 void GLBatch::draw(int v_first, int v_count, int i_first, int i_count)
 {
   GL_CHECK_RESOURCES("Batch");
-  GL_CHECK_ERROR("Batch Pre drawing");
 
   this->bind(i_first);
 
@@ -346,7 +345,6 @@ void GLBatch::draw(int v_first, int v_count, int i_first, int i_count)
       glDrawElementsInstancedBaseVertex(
           gl_type, v_count, index_type, v_first_ofs, i_count, base_index);
     }
-    GL_CHECK_ERROR("Batch Post-drawing Indexed");
   }
   else {
 #ifdef __APPLE__
@@ -361,7 +359,6 @@ void GLBatch::draw(int v_first, int v_count, int i_first, int i_count)
 #ifdef __APPLE__
     glEnable(GL_PRIMITIVE_RESTART);
 #endif
-    GL_CHECK_ERROR("Batch Post-drawing Non-indexed");
   }
 }
 

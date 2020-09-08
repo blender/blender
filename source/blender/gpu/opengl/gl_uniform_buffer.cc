@@ -29,6 +29,7 @@
 #include "gpu_context_private.hh"
 
 #include "gl_backend.hh"
+#include "gl_debug.hh"
 #include "gl_uniform_buffer.hh"
 
 namespace blender::gpu {
@@ -62,11 +63,7 @@ void GLUniformBuf::init(void)
   glBindBuffer(GL_UNIFORM_BUFFER, ubo_id_);
   glBufferData(GL_UNIFORM_BUFFER, size_in_bytes_, NULL, GL_DYNAMIC_DRAW);
 
-  if (GLContext::debug_layer_support) {
-    char sh_name[64];
-    SNPRINTF(sh_name, "UBO-%s", name_);
-    glObjectLabel(GL_BUFFER, ubo_id_, -1, sh_name);
-  }
+  debug::object_label(GL_UNIFORM_BUFFER, ubo_id_, name_);
 }
 
 void GLUniformBuf::update(const void *data)

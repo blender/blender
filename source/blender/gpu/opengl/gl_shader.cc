@@ -28,6 +28,7 @@
 #include "GPU_platform.h"
 
 #include "gl_backend.hh"
+#include "gl_debug.hh"
 #include "gl_vertex_buffer.hh"
 
 #include "gl_shader.hh"
@@ -48,11 +49,7 @@ GLShader::GLShader(const char *name) : Shader(name)
 #endif
   shader_program_ = glCreateProgram();
 
-  if (GLContext::debug_layer_support) {
-    char sh_name[64];
-    SNPRINTF(sh_name, "ShaderProgram-%s", name);
-    glObjectLabel(GL_PROGRAM, shader_program_, -1, sh_name);
-  }
+  debug::object_label(GL_PROGRAM, shader_program_, name);
 }
 
 GLShader::~GLShader(void)
@@ -163,21 +160,7 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage, MutableSpan<const char *> 
     return 0;
   }
 
-  if (GLContext::debug_layer_support) {
-    char sh_name[64];
-    switch (gl_stage) {
-      case GL_VERTEX_SHADER:
-        BLI_snprintf(sh_name, sizeof(sh_name), "VertShader-%s", name);
-        break;
-      case GL_GEOMETRY_SHADER:
-        BLI_snprintf(sh_name, sizeof(sh_name), "GeomShader-%s", name);
-        break;
-      case GL_FRAGMENT_SHADER:
-        BLI_snprintf(sh_name, sizeof(sh_name), "FragShader-%s", name);
-        break;
-    }
-    glObjectLabel(GL_SHADER, shader, -1, sh_name);
-  }
+  debug::object_label(gl_stage, shader, name);
 
   glAttachShader(shader_program_, shader);
   return shader;

@@ -178,7 +178,7 @@ static bool detect_mip_render_workaround(void)
   glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
   glClear(GL_COLOR_BUFFER_BIT);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glDrawBuffer(GL_BACK);
+
   /* Read mip 1. If color is not the same as the clear_color, the rendering failed. */
   glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 1, GL_RGBA, GL_FLOAT, source_pix);
   bool enable_workaround = !equals_v4v4(clear_color, source_pix);
@@ -207,10 +207,12 @@ static void detect_workarounds(void)
     printf("    version: %s\n\n", version);
     GCaps.depth_blitting_workaround = true;
     GCaps.mip_render_workaround = true;
+    GLContext::debug_layer_workaround = true;
     GLContext::unused_fb_slot_workaround = true;
     GLContext::texture_copy_workaround = true;
     /* Turn off extensions. */
     GLContext::base_instance_support = false;
+    GLContext::debug_layer_support = false;
     GLContext::texture_cube_map_array_support = false;
     return;
   }
@@ -321,6 +323,10 @@ static void detect_workarounds(void)
       GLContext::derivative_signs[1] = 1.0;
     }
   }
+  /* Enable our own incomplete debug layer if no other is available. */
+  if (GLContext::debug_layer_support == false) {
+    GLContext::debug_layer_workaround = true;
+  }
 }
 
 /** Internal capabilities. */
@@ -333,6 +339,7 @@ bool GLContext::base_instance_support = false;
 bool GLContext::debug_layer_support = false;
 bool GLContext::texture_cube_map_array_support = false;
 /** Workarounds. */
+bool GLContext::debug_layer_workaround = false;
 bool GLContext::texture_copy_workaround = false;
 bool GLContext::unused_fb_slot_workaround = false;
 float GLContext::derivative_signs[2] = {1.0f, 1.0f};
@@ -355,14 +362,15 @@ void GLBackend::capabilities_init(void)
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &GLContext::max_ubo_size);
   GLContext::base_instance_support = GLEW_ARB_base_instance;
   GLContext::texture_cube_map_array_support = GLEW_ARB_texture_cube_map_array;
-  GLContext::debug_layer_support = (GLEW_VERSION_4_3 || GLEW_KHR_debug);
-
-  if ((G.debug & G_DEBUG_GPU) == 0) {
-    /* Disable this feature entierly when not debugging. */
-    GLContext::debug_layer_support = false;
-  }
+  GLContext::debug_layer_support = GLEW_VERSION_4_3 || GLEW_KHR_debug || GLEW_ARB_debug_output;
 
   detect_workarounds();
+
+  /* Disable this feature entirely when not debugging. */
+  if ((G.debug & G_DEBUG_GPU) == 0) {
+    GLContext::debug_layer_support = false;
+    GLContext::debug_layer_workaround = false;
+  }
 }
 
 /** \} */

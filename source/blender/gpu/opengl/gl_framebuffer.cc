@@ -26,9 +26,11 @@
 #include "GPU_capabilities.h"
 
 #include "gl_backend.hh"
-#include "gl_framebuffer.hh"
+#include "gl_debug.hh"
 #include "gl_state.hh"
 #include "gl_texture.hh"
+
+#include "gl_framebuffer.hh"
 
 namespace blender::gpu {
 
@@ -63,10 +65,8 @@ GLFrameBuffer::GLFrameBuffer(
   viewport_[2] = scissor_[2] = w;
   viewport_[3] = scissor_[3] = h;
 
-  if (fbo_id_ && GLContext::debug_layer_support) {
-    char sh_name[32];
-    SNPRINTF(sh_name, "FrameBuffer-%s", name);
-    glObjectLabel(GL_FRAMEBUFFER, fbo_id_, -1, sh_name);
+  if (fbo_id_) {
+    debug::object_label(GL_FRAMEBUFFER, fbo_id_, name_);
   }
 }
 
@@ -97,14 +97,11 @@ void GLFrameBuffer::init(void)
   context_ = GLContext::get();
   state_manager_ = static_cast<GLStateManager *>(context_->state_manager);
   glGenFramebuffers(1, &fbo_id_);
+  /* Binding before setting the label is needed on some drivers.
+   * This is not an issue since we call this function only before binding. */
+  glBindFramebuffer(GL_FRAMEBUFFER, fbo_id_);
 
-  if (GLContext::debug_layer_support) {
-    char sh_name[64];
-    SNPRINTF(sh_name, "FrameBuffer-%s", name_);
-    /* Binding before setting the label is needed on some drivers. */
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo_id_);
-    glObjectLabel(GL_FRAMEBUFFER, fbo_id_, -1, sh_name);
-  }
+  debug::object_label(GL_FRAMEBUFFER, fbo_id_, name_);
 }
 
 /** \} */

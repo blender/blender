@@ -112,17 +112,13 @@ static void APIENTRY debug_callback(GLenum UNUSED(source),
 
 #undef APIENTRY
 
+/* This function needs to be called once per context. */
 void init_gl_callbacks(void)
 {
-#ifdef __APPLE__
-  fprintf(stderr, "GPUDebug: OpenGL debug callback is not available on Apple\n");
-  return;
-#endif /* not Apple */
-
   char msg[256] = "";
   const char format[] = "Successfully hooked OpenGL debug callback using %s";
 
-  if (GLContext::debug_layer_support) {
+  if (GLEW_VERSION_4_3 || GLEW_KHR_debug) {
     SNPRINTF(msg, format, GLEW_VERSION_4_3 ? "OpenGL 4.3" : "KHR_debug extension");
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -148,7 +144,8 @@ void init_gl_callbacks(void)
                             msg);
   }
   else {
-    fprintf(stderr, "GPUDebug: Failed to hook OpenGL debug callback\n");
+    fprintf(stderr, "GPUDebug: Failed to hook OpenGL debug callback. Use fallback debug layer.\n");
+    init_debug_layer();
   }
 }
 
@@ -239,6 +236,70 @@ void check_gl_resources(const char *info)
 void raise_gl_error(const char *info)
 {
   debug_callback(0, GL_DEBUG_TYPE_ERROR, 0, GL_DEBUG_SEVERITY_HIGH, 0, info, NULL);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Object Label
+ *
+ * Useful for debugging through renderdoc. Only defined if using --debug-gpu.
+ * Make sure to bind the object first so that it gets defined by the GL implementation.
+ * \{ */
+
+static const char *to_str_prefix(GLenum type)
+{
+  switch (type) {
+    case GL_FRAGMENT_SHADER:
+    case GL_GEOMETRY_SHADER:
+    case GL_VERTEX_SHADER:
+    case GL_SHADER:
+    case GL_PROGRAM:
+      return "SHD-";
+    case GL_SAMPLER:
+      return "SAM-";
+    case GL_TEXTURE:
+      return "TEX-";
+    case GL_FRAMEBUFFER:
+      return "FBO-";
+    case GL_VERTEX_ARRAY:
+      return "VAO-";
+    case GL_UNIFORM_BUFFER:
+      return "UBO-";
+    case GL_BUFFER:
+      return "BUF-";
+    default:
+      return "";
+  }
+}
+static const char *to_str_suffix(GLenum type)
+{
+  switch (type) {
+    case GL_FRAGMENT_SHADER:
+      return "-Frag";
+    case GL_GEOMETRY_SHADER:
+      return "-Geom";
+    case GL_VERTEX_SHADER:
+      return "-Vert";
+    default:
+      return "";
+  }
+}
+
+void object_label(GLenum type, GLuint object, const char *name)
+{
+  if ((G.debug & G_DEBUG_GPU) && (GLEW_VERSION_4_3 || GLEW_KHR_debug)) {
+    char label[64];
+    SNPRINTF(label, "%s%s%s", to_str_prefix(type), name, to_str_suffix(type));
+    /* Small convenience for caller. */
+    if (ELEM(type, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER, GL_VERTEX_SHADER)) {
+      type = GL_SHADER;
+    }
+    if (ELEM(type, GL_UNIFORM_BUFFER)) {
+      type = GL_BUFFER;
+    }
+    glObjectLabel(type, object, -1, label);
+  }
 }
 
 /** \} */

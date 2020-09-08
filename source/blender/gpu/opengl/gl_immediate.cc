@@ -60,11 +60,9 @@ GLImmediate::GLImmediate()
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
 
-  if (GLContext::debug_layer_support) {
-    glObjectLabel(GL_VERTEX_ARRAY, vao_id_, -1, "VAO-Immediate");
-    glObjectLabel(GL_BUFFER, buffer.vbo_id, -1, "VBO-ImmediateBuffer");
-    glObjectLabel(GL_BUFFER, buffer_strict.vbo_id, -1, "VBO-ImmediateBufferStrict");
-  }
+  debug::object_label(GL_VERTEX_ARRAY, vao_id_, "Immediate");
+  debug::object_label(GL_BUFFER, buffer.vbo_id, "ImmediateVbo");
+  debug::object_label(GL_BUFFER, buffer_strict.vbo_id, "ImmediateVboStrict");
 }
 
 GLImmediate::~GLImmediate()
@@ -89,7 +87,6 @@ uchar *GLImmediate::begin()
   const size_t available_bytes = buffer_size() - buffer_offset();
 
   GL_CHECK_RESOURCES("Immediate");
-  GL_CHECK_ERROR("Immediate Pre-Begin");
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo_id());
 
@@ -133,7 +130,6 @@ uchar *GLImmediate::begin()
   }
   void *data = glMapBufferRange(GL_ARRAY_BUFFER, buffer_offset(), bytes_needed, access);
   BLI_assert(data != NULL);
-  GL_CHECK_ERROR("Immediate Post-Begin");
 
   bytes_mapped_ = bytes_needed;
   return (uchar *)data;
@@ -154,8 +150,6 @@ void GLImmediate::end(void)
     glFlushMappedBufferRange(GL_ARRAY_BUFFER, 0, buffer_bytes_used);
   }
   glUnmapBuffer(GL_ARRAY_BUFFER);
-
-  GL_CHECK_ERROR("Immediate Post-Unmap");
 
   if (vertex_len > 0) {
     GLContext::get()->state_manager->apply_state();
@@ -180,8 +174,6 @@ void GLImmediate::end(void)
      * They are not required so just comment them. (T55722) */
     // glBindBuffer(GL_ARRAY_BUFFER, 0);
     // glBindVertexArray(0);
-
-    GL_CHECK_ERROR("Immediate Post-drawing");
   }
 
   buffer_offset() += buffer_bytes_used;
