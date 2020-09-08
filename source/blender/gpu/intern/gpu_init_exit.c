@@ -54,10 +54,6 @@ void GPU_init(void)
 
   gpu_batch_init();
 
-  if (!G.background) {
-    immInit();
-  }
-
 #ifndef GPU_STANDALONE
   gpu_pbvh_init();
 #endif
@@ -68,10 +64,6 @@ void GPU_exit(void)
 #ifndef GPU_STANDALONE
   gpu_pbvh_exit();
 #endif
-
-  if (!G.background) {
-    immDestroy();
-  }
 
   gpu_batch_exit();
 

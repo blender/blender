@@ -1292,7 +1292,6 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   /* initialize OpenGL immediate mode */
   g_WS.gpu_context = GPU_context_create(g_WS.ghost_window);
   GPU_init();
-  immActivate();
 
   /* initialize the font */
   BLF_init();
@@ -1578,8 +1577,6 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
    * but many areas could skip initialization too for anim play */
 
   GPU_shader_free_builtin_shaders();
-
-  immDeactivate();
 
   if (g_WS.gpu_context) {
     GPU_context_active_set(g_WS.gpu_context);

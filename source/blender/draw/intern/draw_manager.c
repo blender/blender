@@ -2767,17 +2767,11 @@ void DRW_opengl_context_create(void)
   BLI_assert(DST.gl_context == NULL); /* Ensure it's called once */
 
   DST.gl_context_mutex = BLI_ticket_mutex_alloc();
-  if (!G.background) {
-    immDeactivate();
-  }
   /* This changes the active context. */
   DST.gl_context = WM_opengl_context_create();
   WM_opengl_context_activate(DST.gl_context);
   /* Be sure to create gpu_context too. */
   DST.gpu_context = GPU_context_create(0);
-  if (!G.background) {
-    immActivate();
-  }
   /* So we activate the window's one afterwards. */
   wm_window_reset_drawable();
 }
@@ -2794,25 +2788,15 @@ void DRW_opengl_context_destroy(void)
   }
 }
 
-void DRW_opengl_context_enable_ex(bool restore)
+void DRW_opengl_context_enable_ex(bool UNUSED(restore))
 {
   if (DST.gl_context != NULL) {
     /* IMPORTANT: We dont support immediate mode in render mode!
      * This shall remain in effect until immediate mode supports
      * multiple threads. */
     BLI_ticket_mutex_lock(DST.gl_context_mutex);
-    if (BLI_thread_is_main() && restore) {
-      if (!G.background) {
-        immDeactivate();
-      }
-    }
     WM_opengl_context_activate(DST.gl_context);
     GPU_context_active_set(DST.gpu_context);
-    if (BLI_thread_is_main() && restore) {
-      if (!G.background) {
-        immActivate();
-      }
-    }
   }
 }
 

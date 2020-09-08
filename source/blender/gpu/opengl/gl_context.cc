@@ -32,6 +32,7 @@
 #include "GHOST_C-api.h"
 
 #include "gpu_context_private.hh"
+#include "gpu_immediate_private.hh"
 
 #include "gl_debug.hh"
 #include "gl_immediate.hh"
@@ -151,10 +152,13 @@ void GLContext::activate(void)
   /* Not really following the state but we should consider
    * no ubo bound when activating a context. */
   bound_ubo_slots = 0;
+
+  immActivate();
 }
 
 void GLContext::deactivate(void)
 {
+  immDeactivate();
   is_active_ = false;
 }
 

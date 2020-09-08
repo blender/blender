@@ -64,3 +64,6 @@ class Immediate {
 };
 
 }  // namespace blender::gpu
+
+void immActivate(void);
+void immDeactivate(void);

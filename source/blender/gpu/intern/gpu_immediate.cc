@@ -39,12 +39,7 @@
 
 using namespace blender::gpu;
 
-static Immediate *imm = NULL;
-
-void immInit(void)
-{
-  /* TODO Remove */
-}
+static thread_local Immediate *imm = NULL;
 
 void immActivate(void)
 {
@@ -54,11 +49,6 @@ void immActivate(void)
 void immDeactivate(void)
 {
   imm = NULL;
-}
-
-void immDestroy(void)
-{
-  /* TODO Remove */
 }
 
 GPUVertFormat *immVertexFormat(void)

@@ -56,8 +56,6 @@ void wm_surface_clear_drawable(void)
     WM_opengl_context_release(g_drawable->ghost_ctx);
     GPU_context_active_set(NULL);
 
-    immDeactivate();
-
     if (g_drawable->deactivate) {
       g_drawable->deactivate();
     }
@@ -79,7 +77,6 @@ void wm_surface_set_drawable(wmSurface *surface, bool activate)
   }
 
   GPU_context_active_set(surface->gpu_ctx);
-  immActivate();
 }
 
 void wm_surface_make_drawable(wmSurface *surface)

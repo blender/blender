@@ -145,12 +145,6 @@ void immUniformThemeColorBlendShade(int color_id1, int color_id2, float fac, int
 void immUniformThemeColorBlend(int color_id1, int color_id2, float fac);
 void immThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset);
 
-/* These are called by the system -- not part of drawing API. */
-void immInit(void);
-void immActivate(void);
-void immDeactivate(void);
-void immDestroy(void);
-
 #ifdef __cplusplus
 }
 #endif
