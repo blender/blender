@@ -816,7 +816,7 @@ typedef enum eFileSel_Params_Flag {
   FILE_DIRSEL_ONLY = (1 << 7),
   FILE_FILTER = (1 << 8),
   FILE_OBDATA_INSTANCE = (1 << 9),
-  FILE_GROUP_INSTANCE = (1 << 10),
+  FILE_COLLECTION_INSTANCE = (1 << 10),
   FILE_SORT_INVERT = (1 << 11),
   FILE_HIDE_TOOL_PROPS = (1 << 12),
   FILE_CHECK_EXISTING = (1 << 13),

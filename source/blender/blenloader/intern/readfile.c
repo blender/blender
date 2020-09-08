@@ -10313,9 +10313,9 @@ static void add_loose_objects_to_scene(Main *mainvar,
         }
 
         if (flag & FILE_AUTOSELECT) {
-          base->flag |= BASE_SELECTED;
           /* Do NOT make base active here! screws up GUI stuff,
-           * if you want it do it on src/ level. */
+           * if you want it do it at the editor level. */
+          base->flag |= BASE_SELECTED;
         }
 
         BKE_scene_object_base_flag_sync_from_base(base);
@@ -10371,6 +10371,8 @@ static void add_loose_object_data_to_scene(Main *mainvar,
         }
 
         if (flag & FILE_AUTOSELECT) {
+          /* Do NOT make base active here! screws up GUI stuff,
+           * if you want it do it at the editor level. */
           base->flag |= BASE_SELECTED;
         }
 
@@ -10398,7 +10400,7 @@ static void add_collections_to_scene(Main *mainvar,
 
   /* Give all objects which are tagged a base. */
   LISTBASE_FOREACH (Collection *, collection, &mainvar->collections) {
-    if ((flag & FILE_GROUP_INSTANCE) && (collection->id.tag & LIB_TAG_DOIT)) {
+    if ((flag & FILE_COLLECTION_INSTANCE) && (collection->id.tag & LIB_TAG_DOIT)) {
       /* Any indirect collection should not have been tagged. */
       BLI_assert((collection->id.tag & LIB_TAG_INDIRECT) == 0);
 

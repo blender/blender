@@ -135,7 +135,7 @@ static short wm_link_append_flag(wmOperator *op)
     flag |= FILE_LINK;
   }
   if (RNA_boolean_get(op->ptr, "instance_collections")) {
-    flag |= FILE_GROUP_INSTANCE;
+    flag |= FILE_COLLECTION_INSTANCE;
   }
   if (RNA_boolean_get(op->ptr, "instance_object_data")) {
     flag |= FILE_OBDATA_INSTANCE;
@@ -397,9 +397,9 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
   if (scene && scene->id.lib) {
     BKE_reportf(op->reports,
                 RPT_WARNING,
-                "Scene '%s' is linked, instantiation of objects & groups is disabled",
+                "Scene '%s' is linked, instantiation of objects is disabled",
                 scene->id.name + 2);
-    flag &= ~(FILE_GROUP_INSTANCE | FILE_OBDATA_INSTANCE);
+    flag &= ~(FILE_COLLECTION_INSTANCE | FILE_OBDATA_INSTANCE);
     scene = NULL;
   }
 
