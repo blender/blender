@@ -223,36 +223,39 @@ const EnumPropertyItem rna_enum_lightprobes_type_items[] = {
 /* used for 2 enums */
 #define OBTYPE_CU_CURVE \
   { \
-    OB_CURVE, "CURVE", 0, "Curve", "" \
+    OB_CURVE, "CURVE", ICON_OUTLINER_OB_CURVE, "Curve", "" \
   }
 #define OBTYPE_CU_SURF \
   { \
-    OB_SURF, "SURFACE", 0, "Surface", "" \
+    OB_SURF, "SURFACE", ICON_OUTLINER_OB_SURFACE, "Surface", "" \
   }
 #define OBTYPE_CU_FONT \
   { \
-    OB_FONT, "FONT", 0, "Font", "" \
+    OB_FONT, "FONT", ICON_OUTLINER_OB_FONT, "Text", "" \
   }
 
 const EnumPropertyItem rna_enum_object_type_items[] = {
-    {OB_MESH, "MESH", 0, "Mesh", ""},
+    {OB_MESH, "MESH", ICON_OUTLINER_OB_MESH, "Mesh", ""},
     OBTYPE_CU_CURVE,
     OBTYPE_CU_SURF,
-    {OB_MBALL, "META", 0, "Meta", ""},
+    {OB_MBALL, "META", ICON_OUTLINER_OB_META, "Metaball", ""},
     OBTYPE_CU_FONT,
-    {OB_HAIR, "HAIR", 0, "Hair", ""},
-    {OB_POINTCLOUD, "POINTCLOUD", 0, "PointCloud", ""},
-    {OB_VOLUME, "VOLUME", 0, "Volume", ""},
+    {OB_HAIR, "HAIR", ICON_OUTLINER_OB_HAIR, "Hair", ""},
+    {OB_POINTCLOUD, "POINTCLOUD", ICON_OUTLINER_OB_POINTCLOUD, "Point Cloud", ""},
+    {OB_VOLUME, "VOLUME", ICON_OUTLINER_OB_VOLUME, "Volume", ""},
+    {OB_GPENCIL, "GPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil", ""},
     {0, "", 0, NULL, NULL},
-    {OB_ARMATURE, "ARMATURE", 0, "Armature", ""},
-    {OB_LATTICE, "LATTICE", 0, "Lattice", ""},
-    {OB_EMPTY, "EMPTY", 0, "Empty", ""},
-    {OB_GPENCIL, "GPENCIL", 0, "GPencil", ""},
+    {OB_ARMATURE, "ARMATURE", ICON_OUTLINER_OB_ARMATURE, "Armature", ""},
+    {OB_LATTICE, "LATTICE", ICON_OUTLINER_OB_LATTICE, "Lattice", ""},
     {0, "", 0, NULL, NULL},
-    {OB_CAMERA, "CAMERA", 0, "Camera", ""},
-    {OB_LAMP, "LIGHT", 0, "Light", ""},
-    {OB_SPEAKER, "SPEAKER", 0, "Speaker", ""},
-    {OB_LIGHTPROBE, "LIGHT_PROBE", 0, "Probe", ""},
+    {OB_EMPTY, "EMPTY", ICON_OUTLINER_OB_EMPTY, "Empty", ""},
+    {0, "", 0, NULL, NULL},
+    {OB_LAMP, "LIGHT", ICON_OUTLINER_OB_LIGHT, "Light", ""},
+    {OB_LIGHTPROBE, "LIGHT_PROBE", ICON_OUTLINER_OB_LIGHTPROBE, "Light Probe", ""},
+    {0, "", 0, NULL, NULL},
+    {OB_CAMERA, "CAMERA", ICON_OUTLINER_OB_CAMERA, "Camera", ""},
+    {0, "", 0, NULL, NULL},
+    {OB_SPEAKER, "SPEAKER", ICON_OUTLINER_OB_SPEAKER, "Speaker", ""},
     {0, NULL, 0, NULL, NULL},
 };
 

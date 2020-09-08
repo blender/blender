@@ -440,7 +440,7 @@ static int object_select_by_type_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_select_by_type(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Select By Type";
+  ot->name = "Select by Type";
   ot->description = "Select all visible objects that are of a type";
   ot->idname = "OBJECT_OT_select_by_type";
 
