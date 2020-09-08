@@ -155,10 +155,10 @@ static const IDTypeInfo *idtype_get_info_from_name(const char *idtype_name)
   return NULL;
 }
 
-/* Various helpers/wrappers around IDTypeInfo structure. */
+/* Various helpers/wrappers around #IDTypeInfo structure. */
 
 /**
- * Convert an idcode into a name.
+ * Convert an \a idcode into a name.
  *
  * \param idcode: The code to convert.
  * \return A static string representing the name of
@@ -172,7 +172,7 @@ const char *BKE_idtype_idcode_to_name(const short idcode)
 }
 
 /**
- * Convert an idcode into a name (plural).
+ * Convert an \a idcode into a name (plural).
  *
  * \param idcode: The code to convert.
  * \return A static string representing the name of
@@ -186,7 +186,7 @@ const char *BKE_idtype_idcode_to_name_plural(const short idcode)
 }
 
 /**
- * Convert an idcode into its translations' context.
+ * Convert an \a idcode into its translations' context.
  *
  * \param idcode: The code to convert.
  * \return A static string representing the i18n context of the code.
@@ -199,10 +199,10 @@ const char *BKE_idtype_idcode_to_translation_context(const short idcode)
 }
 
 /**
- * Convert an IDType name into an idcode (ie. ID_SCE)
+ * Convert an ID-type name into an \a idcode (ie. #ID_SCE)
  *
- * \param idtype_name: The IDType's 'user visible name' to convert.
- * \return The idcode for the name, or 0 if invalid.
+ * \param idtype_name: The ID-type's "user visible name" to convert.
+ * \return The \a idcode for the name, or 0 if invalid.
  */
 short BKE_idtype_idcode_from_name(const char *idtype_name)
 {
@@ -236,7 +236,7 @@ bool BKE_idtype_idcode_is_linkable(const short idcode)
 }
 
 /**
- * Convert an idcode into an idfilter (e.g. ID_OB -> FILTER_ID_OB).
+ * Convert an \a idcode into an \a idfilter (e.g. ID_OB -> FILTER_ID_OB).
  */
 uint64_t BKE_idtype_idcode_to_idfilter(const short idcode)
 {
@@ -288,7 +288,7 @@ uint64_t BKE_idtype_idcode_to_idfilter(const short idcode)
 }
 
 /**
- * Convert an idfilter into an idcode (e.g. FILTER_ID_OB -> ID_OB).
+ * Convert an \a idfilter into an \a idcode (e.g. #FILTER_ID_OB -> #ID_OB).
  */
 short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter)
 {
@@ -339,7 +339,7 @@ short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter)
 }
 
 /**
- * Convert an idcode into an index (e.g. ID_OB -> INDEX_ID_OB).
+ * Convert an \a idcode into an index (e.g. #ID_OB -> #INDEX_ID_OB).
  */
 int BKE_idtype_idcode_to_index(const short idcode)
 {
@@ -401,7 +401,7 @@ int BKE_idtype_idcode_to_index(const short idcode)
 }
 
 /**
- * Get an idcode from an index (e.g. INDEX_ID_OB -> ID_OB).
+ * Get an \a idcode from an index (e.g. #INDEX_ID_OB -> #ID_OB).
  */
 short BKE_idtype_idcode_from_index(const int index)
 {
@@ -473,7 +473,9 @@ short BKE_idtype_idcode_iter_step(int *index)
   return (*index < ARRAY_SIZE(id_types)) ? BKE_idtype_idcode_from_index((*index)++) : 0;
 }
 
-/** Wrapper around IDTypeInfo foreach_cache that also handles embedded IDs. */
+/**
+ * Wrapper around #IDTypeInfo foreach_cache that also handles embedded IDs.
+ */
 void BKE_idtype_id_foreach_cache(struct ID *id,
                                  IDTypeForeachCacheFunctionCallback function_callback,
                                  void *user_data)
