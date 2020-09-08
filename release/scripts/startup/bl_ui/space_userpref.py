@@ -2164,6 +2164,7 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
             context, (
                 ({"property": "use_new_particle_system"}, "T73324"),
                 ({"property": "use_sculpt_vertex_colors"}, "T71947"),
+                ({"property": "use_tools_missing_icons"}, "T80331"),
             ),
         )
 
