@@ -44,8 +44,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-namespace blender {
-namespace io {
+namespace blender::io {
 
 const HierarchyContext *HierarchyContext::root()
 {
@@ -755,5 +754,4 @@ bool AbstractHierarchyIterator::should_visit_dupli_object(const DupliObject *dup
   return !dupli_object->no_draw;
 }
 
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io

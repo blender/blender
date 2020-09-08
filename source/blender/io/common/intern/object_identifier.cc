@@ -26,8 +26,7 @@ extern "C" {
 #include <cstring>
 #include <sstream>
 
-namespace blender {
-namespace io {
+namespace blender::io {
 
 ObjectIdentifier::ObjectIdentifier(Object *object,
                                    Object *duplicated_by,
@@ -112,5 +111,4 @@ bool operator==(const ObjectIdentifier &obj_ident_a, const ObjectIdentifier &obj
   return obj_ident_a.persistent_id == obj_ident_b.persistent_id;
 }
 
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io

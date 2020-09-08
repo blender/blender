@@ -51,8 +51,7 @@ struct Object;
 struct ParticleSystem;
 struct ViewLayer;
 
-namespace blender {
-namespace io {
+namespace blender::io {
 
 class AbstractHierarchyWriter;
 class DupliParentFinder;
@@ -356,5 +355,4 @@ class AbstractHierarchyIterator {
   ExportChildren &graph_children(const HierarchyContext *parent_context);
 };
 
-}  // namespace io
-}  // namespace blender
+}  // namespace blender::io
