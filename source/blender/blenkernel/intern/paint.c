@@ -406,7 +406,7 @@ Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer)
         case OB_MODE_WEIGHT_GPENCIL:
           return &ts->gp_weightpaint->paint;
         case OB_MODE_EDIT:
-          return &ts->uvsculpt->paint;
+          return ts->uvsculpt ? &ts->uvsculpt->paint : NULL;
         default:
           break;
       }
