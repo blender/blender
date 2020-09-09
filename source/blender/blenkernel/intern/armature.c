@@ -565,7 +565,7 @@ void BKE_armature_refresh_layer_used(struct Depsgraph *depsgraph, struct bArmatu
  * unique names afterwards) strip_number: removes number extensions  (TODO: not used)
  * axis: the axis to name on
  * head/tail: the head/tail co-ordinate of the bone on the specified axis */
-int bone_autoside_name(
+bool bone_autoside_name(
     char name[MAXBONENAME], int UNUSED(strip_number), short axis, float head, float tail)
 {
   unsigned int len;
@@ -574,7 +574,7 @@ int bone_autoside_name(
 
   len = strlen(name);
   if (len == 0) {
-    return 0;
+    return false;
   }
   BLI_strncpy(basename, name, sizeof(basename));
 
@@ -689,9 +689,9 @@ int bone_autoside_name(
 
     BLI_snprintf(name, MAXBONENAME, "%s.%s", basename, extension);
 
-    return 1;
+    return true;
   }
-  return 0;
+  return false;
 }
 
 /** \} */

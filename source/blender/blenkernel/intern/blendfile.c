@@ -413,7 +413,7 @@ static void setup_app_blend_file_data(bContext *C,
   }
 }
 
-static int handle_subversion_warning(Main *main, ReportList *reports)
+static bool handle_subversion_warning(Main *main, ReportList *reports)
 {
   if (main->minversionfile > BLENDER_FILE_VERSION ||
       (main->minversionfile == BLENDER_FILE_VERSION &&
@@ -425,7 +425,7 @@ static int handle_subversion_warning(Main *main, ReportList *reports)
                 main->minsubversionfile);
   }
 
-  return 1;
+  return true;
 }
 
 int BKE_blendfile_read(bContext *C,
@@ -443,7 +443,7 @@ int BKE_blendfile_read(bContext *C,
 
   bfd = BLO_read_from_file(filepath, params->skip_flags, reports);
   if (bfd) {
-    if (0 == handle_subversion_warning(bfd->main, reports)) {
+    if (!handle_subversion_warning(bfd->main, reports)) {
       BKE_main_free(bfd->main);
       MEM_freeN(bfd);
       bfd = NULL;

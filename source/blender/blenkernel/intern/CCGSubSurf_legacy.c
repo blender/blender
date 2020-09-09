@@ -47,15 +47,15 @@ static int _edge_isBoundary(const CCGEdge *e)
   return e->numFaces < 2;
 }
 
-static int _vert_isBoundary(const CCGVert *v)
+static bool _vert_isBoundary(const CCGVert *v)
 {
   int i;
   for (i = 0; i < v->numEdges; i++) {
     if (_edge_isBoundary(v->edges[i])) {
-      return 1;
+      return true;
     }
   }
-  return 0;
+  return false;
 }
 
 static CCGVert *_edge_getOtherVert(CCGEdge *e, CCGVert *vQ)

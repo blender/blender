@@ -83,7 +83,7 @@ struct BoundBox *BKE_armature_boundbox_get(struct Object *ob);
 bool BKE_pose_minmax(
     struct Object *ob, float r_min[3], float r_max[3], bool use_hidden, bool use_select);
 
-int bone_autoside_name(char name[64], int strip_number, short axis, float head, float tail);
+bool bone_autoside_name(char name[64], int strip_number, short axis, float head, float tail);
 
 struct Bone *BKE_armature_find_bone_name(struct bArmature *arm, const char *name);
 
