@@ -943,11 +943,9 @@ void filelist_init_icons(void)
 
 void filelist_free_icons(void)
 {
-  int i;
-
   BLI_assert(G.background == false);
 
-  for (i = 0; i < SPECIAL_IMG_MAX; i++) {
+  for (int i = 0; i < SPECIAL_IMG_MAX; i++) {
     IMB_freeImBuf(gSpecialFileImages[i]);
     gSpecialFileImages[i] = NULL;
   }

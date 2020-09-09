@@ -322,7 +322,7 @@ static void snode_autoconnect(Main *bmain,
   ListBase *nodelist = MEM_callocN(sizeof(ListBase), "items_list");
   bNodeListItem *nli;
   bNode *node;
-  int i, numlinks = 0;
+  int numlinks = 0;
 
   for (node = ntree->nodes.first; node; node = node->next) {
     if (node->flag & NODE_SELECT) {
@@ -376,7 +376,7 @@ static void snode_autoconnect(Main *bmain,
       /* no selected inputs, connect by finding suitable match */
       int num_inputs = BLI_listbase_count(&node_to->inputs);
 
-      for (i = 0; i < num_inputs; i++) {
+      for (int i = 0; i < num_inputs; i++) {
 
         /* find the best guess input socket */
         sock_to = best_socket_input(ntree, node_to, i, replace);
@@ -1007,12 +1007,10 @@ void NODE_OT_link_make(wmOperatorType *ot)
 static bool cut_links_intersect(bNodeLink *link, const float mcoords[][2], int tot)
 {
   float coord_array[NODE_LINK_RESOL + 1][2];
-  int i, b;
 
   if (node_link_bezier_points(NULL, NULL, link, coord_array, NODE_LINK_RESOL)) {
-
-    for (i = 0; i < tot - 1; i++) {
-      for (b = 0; b < NODE_LINK_RESOL; b++) {
+    for (int i = 0; i < tot - 1; i++) {
+      for (int b = 0; b < NODE_LINK_RESOL; b++) {
         if (isect_seg_seg_v2(mcoords[i], mcoords[i + 1], coord_array[b], coord_array[b + 1]) > 0) {
           return 1;
         }
@@ -1536,11 +1534,10 @@ void ED_node_link_intersect_test(ScrArea *area, int test)
 
     if (node_link_bezier_points(NULL, NULL, link, coord_array, NODE_LINK_RESOL)) {
       float dist = FLT_MAX;
-      int i;
 
       /* loop over link coords to find shortest dist to
        * upper left node edge of a intersected line segment */
-      for (i = 0; i < NODE_LINK_RESOL; i++) {
+      for (int i = 0; i < NODE_LINK_RESOL; i++) {
         /* check if the node rect intersetcts the line from this point to next one */
         if (BLI_rctf_isect_segment(&select->totr, coord_array[i], coord_array[i + 1])) {
           /* store the shortest distance to the upper left edge

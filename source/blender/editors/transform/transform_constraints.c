@@ -913,12 +913,11 @@ static void drawObjectConstraint(TransInfo *t)
    * Without drawing the first light, users have little clue what they are doing.
    */
   short options = DRAWLIGHT;
-  int i;
   float tmp_axismtx[3][3];
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
-    for (i = 0; i < tc->data_len; i++, td++) {
+    for (int i = 0; i < tc->data_len; i++, td++) {
       float co[3];
       float(*axismtx)[3];
 

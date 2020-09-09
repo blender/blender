@@ -721,7 +721,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   MVert *mvert;
   Mesh *mesh, *target_mesh;
   int numverts;
-  int i, k;
+  int k;
   float from_ob_imat[4][4], to_ob_imat[4][4];
   float from_imat[4][4], to_imat[4][4];
 
@@ -763,7 +763,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   mvert = mesh->mvert;
 
   /* convert to global coordinates */
-  for (i = 0; i < numverts; i++) {
+  for (int i = 0; i < numverts; i++) {
     mul_m4_v3(to_mat, mvert[i].co);
   }
 
@@ -780,6 +780,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
     return false;
   }
 
+  int i;
   for (i = 0, tpa = target_psys->particles, pa = psys->particles; i < target_psys->totpart;
        i++, tpa++, pa++) {
     float from_co[3];

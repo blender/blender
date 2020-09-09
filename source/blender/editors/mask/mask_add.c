@@ -76,8 +76,7 @@ static void setup_vertex_point(Mask *mask,
        */
       int point_index = reference_point - spline->points;
       int delta = new_point == spline->points ? 1 : -1;
-      int i = 0;
-      for (i = 0; i < spline->tot_point - 1; i++) {
+      for (int i = 0; i < spline->tot_point - 1; i++) {
         MaskSplinePoint *current_point;
 
         point_index += delta;
@@ -199,9 +198,7 @@ static void finSelectedSplinePoint(MaskLayer *mask_layer,
   }
 
   while (cur_spline) {
-    int i;
-
-    for (i = 0; i < cur_spline->tot_point; i++) {
+    for (int i = 0; i < cur_spline->tot_point; i++) {
       MaskSplinePoint *cur_point = &cur_spline->points[i];
 
       if (MASKPOINT_ISSEL_ANY(cur_point)) {
@@ -694,19 +691,17 @@ static int create_primitive_from_points(
     bContext *C, wmOperator *op, const float (*points)[2], int num_points, char handle_type)
 {
   ScrArea *area = CTX_wm_area(C);
-  Mask *mask;
-  MaskLayer *mask_layer;
-  MaskSpline *new_spline;
-  float scale, location[2], frame_size[2];
-  int i, width, height;
   int size = RNA_float_get(op->ptr, "size");
 
+  int width, height;
   ED_mask_get_size(area, &width, &height);
-  scale = (float)size / max_ii(width, height);
+  float scale = (float)size / max_ii(width, height);
 
   /* Get location in mask space. */
+  float frame_size[2];
   frame_size[0] = width;
   frame_size[1] = height;
+  float location[2];
   RNA_float_get_array(op->ptr, "location", location);
   location[0] /= width;
   location[1] /= height;
@@ -717,12 +712,12 @@ static int create_primitive_from_points(
   location[1] -= 0.5f * scale;
 
   bool added_mask = false;
-  mask_layer = ED_mask_layer_ensure(C, &added_mask);
-  mask = CTX_data_edit_mask(C);
+  MaskLayer *mask_layer = ED_mask_layer_ensure(C, &added_mask);
+  Mask *mask = CTX_data_edit_mask(C);
 
   ED_mask_select_toggle_all(mask, SEL_DESELECT);
 
-  new_spline = BKE_mask_spline_add(mask_layer);
+  MaskSpline *new_spline = BKE_mask_spline_add(mask_layer);
   new_spline->flag = MASK_SPLINE_CYCLIC | SELECT;
   new_spline->points = MEM_recallocN(new_spline->points, sizeof(MaskSplinePoint) * num_points);
 
@@ -731,7 +726,7 @@ static int create_primitive_from_points(
 
   const int spline_index = BKE_mask_layer_shape_spline_to_index(mask_layer, new_spline);
 
-  for (i = 0; i < num_points; i++) {
+  for (int i = 0; i < num_points; i++) {
     new_spline->tot_point = i + 1;
 
     MaskSplinePoint *new_point = &new_spline->points[i];

@@ -381,8 +381,6 @@ static int group_sort_exec(bContext *C, wmOperator *UNUSED(op))
   bPoseChannel *pchan;
   tSortActionGroup *agrp_array;
   bActionGroup *agrp;
-  int agrp_count;
-  int i;
 
   if (ELEM(NULL, ob, pose)) {
     return OPERATOR_CANCELLED;
@@ -392,8 +390,9 @@ static int group_sort_exec(bContext *C, wmOperator *UNUSED(op))
   }
 
   /* create temporary array with bone groups and indices */
-  agrp_count = BLI_listbase_count(&pose->agroups);
+  int agrp_count = BLI_listbase_count(&pose->agroups);
   agrp_array = MEM_mallocN(sizeof(tSortActionGroup) * agrp_count, "sort bone groups");
+  int i;
   for (agrp = pose->agroups.first, i = 0; agrp; agrp = agrp->next, i++) {
     BLI_assert(i < agrp_count);
     agrp_array[i].agrp = agrp;

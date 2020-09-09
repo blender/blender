@@ -435,9 +435,7 @@ BLI_INLINE uint mcol_softlight(uint col_src, uint col_dst, int fac)
   cp_dst = (uchar *)&col_dst;
   cp_mix = (uchar *)&col_mix;
 
-  int i = 0;
-
-  for (i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++) {
     if (cp_src[i] < 127) {
       temp = ((2 * ((cp_dst[i] / 2) + 64)) * cp_src[i]) / 255;
     }

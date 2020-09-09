@@ -262,15 +262,16 @@ static bool spline_under_mouse_get(const bContext *C,
   const float threshold = 19.0f;
   ScrArea *area = CTX_wm_area(C);
   SpaceClip *sc = CTX_wm_space_clip(C);
-  int width, height;
-  float pixel_co[2];
   float closest_dist_squared = 0.0f;
   MaskLayer *closest_layer = NULL;
   MaskSpline *closest_spline = NULL;
   bool undistort = false;
   *r_mask_layer = NULL;
   *r_mask_spline = NULL;
+
+  int width, height;
   ED_mask_get_size(area, &width, &height);
+  float pixel_co[2];
   pixel_co[0] = co[0] * width;
   pixel_co[1] = co[1] * height;
   if (sc != NULL) {
@@ -285,16 +286,13 @@ static bool spline_under_mouse_get(const bContext *C,
     for (MaskSpline *spline = mask_layer->splines.first; spline != NULL; spline = spline->next) {
       MaskSplinePoint *points_array;
       float min[2], max[2], center[2];
-      float dist_squared;
-      int i;
-      float max_bb_side;
       if ((spline->flag & SELECT) == 0) {
         continue;
       }
 
       points_array = BKE_mask_spline_point_array(spline);
       INIT_MINMAX2(min, max);
-      for (i = 0; i < spline->tot_point; i++) {
+      for (int i = 0; i < spline->tot_point; i++) {
         MaskSplinePoint *point_deform = &points_array[i];
         BezTriple *bezt = &point_deform->bezt;
 
@@ -311,8 +309,8 @@ static bool spline_under_mouse_get(const bContext *C,
 
       center[0] = (min[0] + max[0]) / 2.0f * width;
       center[1] = (min[1] + max[1]) / 2.0f * height;
-      dist_squared = len_squared_v2v2(pixel_co, center);
-      max_bb_side = min_ff((max[0] - min[0]) * width, (max[1] - min[1]) * height);
+      float dist_squared = len_squared_v2v2(pixel_co, center);
+      float max_bb_side = min_ff((max[0] - min[0]) * width, (max[1] - min[1]) * height);
       if (dist_squared <= max_bb_side * max_bb_side * 0.5f &&
           (closest_spline == NULL || dist_squared < closest_dist_squared)) {
         closest_layer = mask_layer;
@@ -350,9 +348,7 @@ static bool spline_under_mouse_get(const bContext *C,
 
 static bool slide_point_check_initial_feather(MaskSpline *spline)
 {
-  int i;
-
-  for (i = 0; i < spline->tot_point; i++) {
+  for (int i = 0; i < spline->tot_point; i++) {
     MaskSplinePoint *point = &spline->points[i];
 
     if (point->bezt.weight != 0.0f) {
@@ -569,9 +565,7 @@ static int slide_point_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 static void slide_point_delta_all_feather(SlidePointData *data, float delta)
 {
-  int i;
-
-  for (i = 0; i < data->spline->tot_point; i++) {
+  for (int i = 0; i < data->spline->tot_point; i++) {
     MaskSplinePoint *point = &data->spline->points[i];
     MaskSplinePoint *orig_point = &data->orig_spline->points[i];
 
@@ -584,16 +578,13 @@ static void slide_point_delta_all_feather(SlidePointData *data, float delta)
 
 static void slide_point_restore_spline(SlidePointData *data)
 {
-  int i;
-
-  for (i = 0; i < data->spline->tot_point; i++) {
+  for (int i = 0; i < data->spline->tot_point; i++) {
     MaskSplinePoint *point = &data->spline->points[i];
     MaskSplinePoint *orig_point = &data->orig_spline->points[i];
-    int j;
 
     point->bezt = orig_point->bezt;
 
-    for (j = 0; j < point->tot_uw; j++) {
+    for (int j = 0; j < point->tot_uw; j++) {
       point->uw[j] = orig_point->uw[j];
     }
   }
@@ -818,13 +809,11 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
         }
       }
       else if (data->action == SLIDE_ACTION_SPLINE) {
-        int i;
-
         if (data->orig_spline == NULL) {
           data->orig_spline = BKE_mask_spline_copy(data->spline);
         }
 
-        for (i = 0; i < data->spline->tot_point; i++) {
+        for (int i = 0; i < data->spline->tot_point; i++) {
           MaskSplinePoint *point = &data->spline->points[i];
           add_v2_v2(point->bezt.vec[0], delta);
           add_v2_v2(point->bezt.vec[1], delta);
@@ -1330,13 +1319,13 @@ void MASK_OT_cyclic_toggle(wmOperatorType *ot)
 
 static void delete_feather_points(MaskSplinePoint *point)
 {
-  int i, count = 0;
+  int count = 0;
 
   if (!point->tot_uw) {
     return;
   }
 
-  for (i = 0; i < point->tot_uw; i++) {
+  for (int i = 0; i < point->tot_uw; i++) {
     if ((point->uw[i].flag & SELECT) == 0) {
       count++;
     }
@@ -1353,7 +1342,7 @@ static void delete_feather_points(MaskSplinePoint *point)
 
     new_uw = MEM_callocN(count * sizeof(MaskSplinePointUW), "new mask uw points");
 
-    for (i = 0; i < point->tot_uw; i++) {
+    for (int i = 0; i < point->tot_uw; i++) {
       if ((point->uw[i].flag & SELECT) == 0) {
         new_uw[j++] = point->uw[i];
       }
@@ -1383,11 +1372,11 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 
     while (spline) {
       const int tot_point_orig = spline->tot_point;
-      int i, count = 0;
+      int count = 0;
       MaskSpline *next_spline = spline->next;
 
       /* count unselected points */
-      for (i = 0; i < spline->tot_point; i++) {
+      for (int i = 0; i < spline->tot_point; i++) {
         MaskSplinePoint *point = &spline->points[i];
 
         if (!MASKPOINT_ISSEL_ANY(point)) {
@@ -1409,11 +1398,10 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
       }
       else {
         MaskSplinePoint *new_points;
-        int j;
 
         new_points = MEM_callocN(count * sizeof(MaskSplinePoint), "deleteMaskPoints");
 
-        for (i = 0, j = 0; i < tot_point_orig; i++) {
+        for (int i = 0, j = 0; i < tot_point_orig; i++) {
           MaskSplinePoint *point = &spline->points[i];
 
           if (!MASKPOINT_ISSEL_ANY(point)) {

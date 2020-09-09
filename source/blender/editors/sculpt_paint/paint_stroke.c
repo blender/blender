@@ -711,15 +711,12 @@ static float paint_space_stroke_spacing(bContext *C,
 
 static float paint_stroke_overlapped_curve(Brush *br, float x, float spacing)
 {
-  int i;
   const int n = 100 / spacing;
   const float h = spacing / 50.0f;
   const float x0 = x - 1;
 
-  float sum;
-
-  sum = 0;
-  for (i = 0; i < n; i++) {
+  float sum = 0;
+  for (int i = 0; i < n; i++) {
     float xx;
 
     xx = fabsf(x0 + i * h);
@@ -734,21 +731,16 @@ static float paint_stroke_overlapped_curve(Brush *br, float x, float spacing)
 
 static float paint_stroke_integrate_overlap(Brush *br, float factor)
 {
-  int i;
-  int m;
-  float g;
-  float max;
-
   float spacing = br->spacing * factor;
 
   if (!(br->flag & BRUSH_SPACE_ATTEN && (br->spacing < 100))) {
     return 1.0;
   }
 
-  m = 10;
-  g = 1.0f / m;
-  max = 0;
-  for (i = 0; i < m; i++) {
+  int m = 10;
+  float g = 1.0f / m;
+  float max = 0;
+  for (int i = 0; i < m; i++) {
     float overlap = fabs(paint_stroke_overlapped_curve(br, i * g, spacing));
 
     if (overlap > max) {
@@ -1151,13 +1143,11 @@ static void paint_stroke_add_sample(
 
 static void paint_stroke_sample_average(const PaintStroke *stroke, PaintSample *average)
 {
-  int i;
-
   memset(average, 0, sizeof(*average));
 
   BLI_assert(stroke->num_samples > 0);
 
-  for (i = 0; i < stroke->num_samples; i++) {
+  for (int i = 0; i < stroke->num_samples; i++) {
     add_v2_v2(average->mouse, stroke->samples[i].mouse);
     average->pressure += stroke->samples[i].pressure;
   }

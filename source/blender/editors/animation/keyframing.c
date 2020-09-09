@@ -618,22 +618,19 @@ enum {
  */
 static short new_key_needed(FCurve *fcu, float cFrame, float nValue)
 {
-  BezTriple *bezt = NULL, *prev = NULL;
-  int totCount, i;
-  float valA = 0.0f, valB = 0.0f;
-
   /* safety checking */
   if (fcu == NULL) {
     return KEYNEEDED_JUSTADD;
   }
-  totCount = fcu->totvert;
+  int totCount = fcu->totvert;
   if (totCount == 0) {
     return KEYNEEDED_JUSTADD;
   }
 
   /* loop through checking if any are the same */
-  bezt = fcu->bezt;
-  for (i = 0; i < totCount; i++) {
+  BezTriple *bezt = fcu->bezt;
+  BezTriple *prev = NULL;
+  for (int i = 0; i < totCount; i++) {
     float prevPosi = 0.0f, prevVal = 0.0f;
     float beztPosi = 0.0f, beztVal = 0.0f;
 
@@ -712,8 +709,8 @@ static short new_key_needed(FCurve *fcu, float cFrame, float nValue)
    *    keyframe is not equal to last keyframe.
    */
   bezt = (fcu->bezt + (fcu->totvert - 1));
-  valA = bezt->vec[1][1];
-
+  float valA = bezt->vec[1][1];
+  float valB;
   if (prev) {
     valB = prev->vec[1][1];
   }

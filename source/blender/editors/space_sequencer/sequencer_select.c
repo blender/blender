@@ -1388,9 +1388,8 @@ static bool select_grouped_effect(Editing *ed, Sequence *actseq, const int chann
   Sequence *seq;
   bool changed = false;
   bool effects[SEQ_TYPE_MAX + 1];
-  int i;
 
-  for (i = 0; i <= SEQ_TYPE_MAX; i++) {
+  for (int i = 0; i <= SEQ_TYPE_MAX; i++) {
     effects[i] = false;
   }
 

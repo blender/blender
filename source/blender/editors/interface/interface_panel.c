@@ -1636,8 +1636,6 @@ static void align_sub_panels(Panel *panel)
 /* returns 1 when it did something */
 static bool uiAlignPanelStep(ARegion *region, const float fac, const bool drag)
 {
-  int i;
-
   /* count active, not tabbed panels */
   int tot = 0;
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
@@ -1666,6 +1664,7 @@ static bool uiAlignPanelStep(ARegion *region, const float fac, const bool drag)
     /* While we are dragging, we sort on location and update #Panel.sortorder. */
     qsort(panelsort, tot, sizeof(PanelSort), find_highest_panel);
 
+    int i;
     for (ps = panelsort, i = 0; i < tot; i++, ps++) {
       ps->orig->sortorder = i;
     }
@@ -1682,7 +1681,7 @@ static bool uiAlignPanelStep(ARegion *region, const float fac, const bool drag)
   ps->panel->ofsy = -get_panel_size_y(ps->panel);
   ps->panel->ofsx += ps->panel->runtime.region_ofsx;
 
-  for (i = 0; i < tot - 1; i++, ps++) {
+  for (int i = 0; i < tot - 1; i++, ps++) {
     PanelSort *psnext = ps + 1;
 
     const bool use_box = ps->panel->type && ps->panel->type->flag & PNL_DRAW_BOX;
@@ -1704,7 +1703,7 @@ static bool uiAlignPanelStep(ARegion *region, const float fac, const bool drag)
   /* we interpolate */
   bool changed = false;
   ps = panelsort;
-  for (i = 0; i < tot; i++, ps++) {
+  for (int i = 0; i < tot; i++, ps++) {
     if ((ps->panel->flag & PNL_SELECT) == 0) {
       if ((ps->orig->ofsx != ps->panel->ofsx) || (ps->orig->ofsy != ps->panel->ofsy)) {
         ps->orig->ofsx = round_fl_to_int(fac * (float)ps->panel->ofsx +
@@ -1726,6 +1725,7 @@ static bool uiAlignPanelStep(ARegion *region, const float fac, const bool drag)
   }
 
   /* Free `panelsort` array. */
+  int i;
   for (ps = panelsort, i = 0; i < tot; i++, ps++) {
     MEM_freeN(ps->panel);
   }

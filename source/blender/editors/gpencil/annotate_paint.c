@@ -1119,7 +1119,6 @@ static void annotation_stroke_eraser_dostroke(tGPsdata *p,
   bGPDspoint *pt1, *pt2;
   int pc1[2] = {0};
   int pc2[2] = {0};
-  int i;
   int mval_i[2];
   round_v2i_v2fl(mval_i, mval);
 
@@ -1152,7 +1151,7 @@ static void annotation_stroke_eraser_dostroke(tGPsdata *p,
      * we don't miss anything, though things will be
      * slightly slower as a result
      */
-    for (i = 0; i < gps->totpoints; i++) {
+    for (int i = 0; i < gps->totpoints; i++) {
       bGPDspoint *pt = &gps->points[i];
       pt->flag &= ~GP_SPOINT_TAG;
     }
@@ -1161,7 +1160,7 @@ static void annotation_stroke_eraser_dostroke(tGPsdata *p,
      *   1) Thin out parts of the stroke under the brush
      *   2) Tag "too thin" parts for removal (in second pass)
      */
-    for (i = 0; (i + 1) < gps->totpoints; i++) {
+    for (int i = 0; (i + 1) < gps->totpoints; i++) {
       /* get points to work with */
       pt1 = gps->points + i;
       pt2 = gps->points + i + 1;

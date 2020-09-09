@@ -1658,8 +1658,7 @@ static Base *object_mouse_select_menu(bContext *C,
 
 static bool selectbuffer_has_bones(const uint *buffer, const uint hits)
 {
-  uint i;
-  for (i = 0; i < hits; i++) {
+  for (uint i = 0; i < hits; i++) {
     if (buffer[(4 * i) + 3] & 0xFFFF0000) {
       return true;
     }
@@ -2127,11 +2126,10 @@ static bool ed_object_select_pick(bContext *C,
         if (basact->object->type == OB_CAMERA) {
           MovieClip *clip = BKE_object_movieclip_get(scene, basact->object, false);
           if (clip != NULL && oldbasact == basact) {
-            int i, hitresult;
             bool changed = false;
 
-            for (i = 0; i < hits; i++) {
-              hitresult = buffer[3 + (i * 4)];
+            for (int i = 0; i < hits; i++) {
+              int hitresult = buffer[3 + (i * 4)];
 
               /* if there's bundles in buffer select bundles first,
                * so non-camera elements should be ignored in buffer */

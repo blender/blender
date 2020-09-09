@@ -1482,7 +1482,7 @@ static int sequencer_slip_invoke(bContext *C, wmOperator *op, const wmEvent *eve
   Scene *scene = CTX_data_scene(C);
   Editing *ed = BKE_sequencer_editing_get(scene, false);
   float mouseloc[2];
-  int num_seq, i;
+  int num_seq;
   View2D *v2d = UI_view2d_fromcontext(C);
 
   /* Recursively count the trimmed elements. */
@@ -1506,7 +1506,7 @@ static int sequencer_slip_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 
   slip_add_sequences_recursive(ed->seqbasep, data->seq_array, data->trim, 0, true);
 
-  for (i = 0; i < num_seq; i++) {
+  for (int i = 0; i < num_seq; i++) {
     transseq_backup(data->ts + i, data->seq_array[i]);
   }
 
@@ -1611,21 +1611,19 @@ static void sequencer_slip_apply_limits(SlipData *data, int *offset)
 
 static int sequencer_slip_exec(bContext *C, wmOperator *op)
 {
-  SlipData *data;
   Scene *scene = CTX_data_scene(C);
   Editing *ed = BKE_sequencer_editing_get(scene, false);
-  int num_seq, i;
   int offset = RNA_int_get(op->ptr, "offset");
   bool success = false;
 
   /* Recursively count the trimmed elements. */
-  num_seq = slip_count_sequences_recursive(ed->seqbasep, true);
+  int num_seq = slip_count_sequences_recursive(ed->seqbasep, true);
 
   if (num_seq == 0) {
     return OPERATOR_CANCELLED;
   }
 
-  data = op->customdata = MEM_mallocN(sizeof(SlipData), "trimdata");
+  SlipData *data = op->customdata = MEM_mallocN(sizeof(SlipData), "trimdata");
   data->ts = MEM_mallocN(num_seq * sizeof(TransSeq), "trimdata_transform");
   data->seq_array = MEM_mallocN(num_seq * sizeof(Sequence *), "trimdata_sequences");
   data->trim = MEM_mallocN(num_seq * sizeof(bool), "trimdata_trim");
@@ -1633,7 +1631,7 @@ static int sequencer_slip_exec(bContext *C, wmOperator *op)
 
   slip_add_sequences_recursive(ed->seqbasep, data->seq_array, data->trim, 0, true);
 
-  for (i = 0; i < num_seq; i++) {
+  for (int i = 0; i < num_seq; i++) {
     transseq_backup(data->ts + i, data->seq_array[i]);
   }
 
@@ -1749,14 +1747,13 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
 
     case EVT_ESCKEY:
     case RIGHTMOUSE: {
-      int i;
       Editing *ed = BKE_sequencer_editing_get(scene, false);
 
-      for (i = 0; i < data->num_seq; i++) {
+      for (int i = 0; i < data->num_seq; i++) {
         transseq_restore(data->ts + i, data->seq_array[i]);
       }
 
-      for (i = 0; i < data->num_seq; i++) {
+      for (int i = 0; i < data->num_seq; i++) {
         Sequence *seq = data->seq_array[i];
         BKE_sequence_reload_new_file(bmain, scene, seq, false);
         BKE_sequence_calc(scene, seq);

@@ -4255,7 +4255,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
   uiBut *bt;
   const float dx = UI_UNIT_X;
   int icon, size;
-  int bg = -1, i;
+  int bg = -1;
 
   block = uiLayoutGetBlock(layout);
 
@@ -4464,7 +4464,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
   curve_but->gradient_type = bg;
 
   /* sliders for selected point */
-  for (i = 0; i < cm->totpoint; i++) {
+  for (int i = 0; i < cm->totpoint; i++) {
     if (cm->curve[i].flag & CUMA_SELECT) {
       cmp = &cm->curve[i];
       break;

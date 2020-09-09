@@ -672,12 +672,10 @@ static int linehit_compare(const void *vlh1, const void *vlh2)
  */
 static void prepare_linehits_for_cut(KnifeTool_OpData *kcd)
 {
-  KnifeLineHit *linehits, *lhi, *lhj;
-  int i, j, n;
   bool is_double = false;
 
-  n = kcd->totlinehit;
-  linehits = kcd->linehits;
+  int n = kcd->totlinehit;
+  KnifeLineHit *linehits = kcd->linehits;
   if (n == 0) {
     return;
   }
@@ -688,11 +686,11 @@ static void prepare_linehits_for_cut(KnifeTool_OpData *kcd)
    * by a vertex hit that is very near. Mark such edge hits using
    * l == -1 and then do another pass to actually remove.
    * Also remove all but one of a series of vertex hits for the same vertex. */
-  for (i = 0; i < n; i++) {
-    lhi = &linehits[i];
+  for (int i = 0; i < n; i++) {
+    KnifeLineHit *lhi = &linehits[i];
     if (lhi->v) {
-      for (j = i - 1; j >= 0; j--) {
-        lhj = &linehits[j];
+      for (int j = i - 1; j >= 0; j--) {
+        KnifeLineHit *lhj = &linehits[j];
         if (!lhj->kfe || fabsf(lhi->l - lhj->l) > KNIFE_FLT_EPSBIG ||
             fabsf(lhi->m - lhj->m) > KNIFE_FLT_EPSBIG) {
           break;
@@ -703,8 +701,8 @@ static void prepare_linehits_for_cut(KnifeTool_OpData *kcd)
           is_double = true;
         }
       }
-      for (j = i + 1; j < n; j++) {
-        lhj = &linehits[j];
+      for (int j = i + 1; j < n; j++) {
+        KnifeLineHit *lhj = &linehits[j];
         if (fabsf(lhi->l - lhj->l) > KNIFE_FLT_EPSBIG ||
             fabsf(lhi->m - lhj->m) > KNIFE_FLT_EPSBIG) {
           break;
@@ -719,11 +717,11 @@ static void prepare_linehits_for_cut(KnifeTool_OpData *kcd)
 
   if (is_double) {
     /* delete-in-place loop: copying from pos j to pos i+1 */
-    i = 0;
-    j = 1;
+    int i = 0;
+    int j = 1;
     while (j < n) {
-      lhi = &linehits[i];
-      lhj = &linehits[j];
+      KnifeLineHit *lhi = &linehits[i];
+      KnifeLineHit *lhj = &linehits[j];
       if (lhj->l == -1.0f) {
         j++; /* skip copying this one */
       }

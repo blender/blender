@@ -1723,13 +1723,10 @@ static float smooth_view_rect_to_fac(const rctf *rect_a, const rctf *rect_b)
   const float cent_b[2] = {BLI_rctf_cent_x(rect_b), BLI_rctf_cent_y(rect_b)};
 
   float fac_max = 0.0f;
-  float tfac;
 
-  int i;
-
-  for (i = 0; i < 2; i++) {
+  for (int i = 0; i < 2; i++) {
     /* axis translation normalized to scale */
-    tfac = fabsf(cent_a[i] - cent_b[i]) / min_ff(size_a[i], size_b[i]);
+    float tfac = fabsf(cent_a[i] - cent_b[i]) / min_ff(size_a[i], size_b[i]);
     fac_max = max_ff(fac_max, tfac);
     if (fac_max >= 1.0f) {
       break;

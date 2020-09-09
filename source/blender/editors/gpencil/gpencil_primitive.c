@@ -773,7 +773,6 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
   /* get an array of depths, far depths are blended */
   float *depth_arr = NULL;
   if (is_depth) {
-    int i;
     int mval_i[2], mval_prev[2] = {0};
     bool interp_depth = false;
     bool found_depth = false;
@@ -787,7 +786,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 
     depth_arr = MEM_mallocN(sizeof(float) * gps->totpoints, "depth_points");
     tGPspoint *ptc = &points2D[0];
-    for (i = 0; i < gps->totpoints; i++, ptc++) {
+    for (int i = 0; i < gps->totpoints; i++, ptc++) {
       round_v2i_v2fl(mval_i, &ptc->x);
       if ((ED_view3d_autodist_depth(tgpi->region, mval_i, depth_margin, depth_arr + i) == 0) &&
           (i && (ED_view3d_autodist_depth_seg(
@@ -801,14 +800,14 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
     }
 
     if (!found_depth) {
-      for (i = 0; i < gps->totpoints; i++) {
+      for (int i = 0; i < gps->totpoints; i++) {
         depth_arr[i] = 0.9999f;
       }
     }
     else {
       /* if all depth are too high disable */
       bool valid_depth = false;
-      for (i = 0; i < gps->totpoints; i++) {
+      for (int i = 0; i < gps->totpoints; i++) {
         if (depth_arr[i] < 0.9999f) {
           valid_depth = true;
           break;
@@ -826,6 +825,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
           int last_valid = 0;
 
           /* find first valid contact point */
+          int i;
           for (i = 0; i < gps->totpoints; i++) {
             if (depth_arr[i] != FLT_MAX) {
               break;

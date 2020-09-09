@@ -71,11 +71,8 @@ static void object_warp_transverts_minmax_x(TransVertStore *tvs,
   const float x_ofs = (mat_view[3][0] - center_view[0]);
   float min = FLT_MAX, max = -FLT_MAX;
 
-  TransVert *tv;
-  int i;
-
-  tv = tvs->transverts;
-  for (i = 0; i < tvs->transverts_tot; i++, tv++) {
+  TransVert *tv = tvs->transverts;
+  for (int i = 0; i < tvs->transverts_tot; i++, tv++) {
     float val;
 
     /* convert objectspace->viewspace */
@@ -97,7 +94,6 @@ static void object_warp_transverts(TransVertStore *tvs,
                                    const float max)
 {
   TransVert *tv;
-  int i;
   const float angle = -angle_;
   /* cache vars for tiny speedup */
 #if 1
@@ -123,7 +119,7 @@ static void object_warp_transverts(TransVertStore *tvs,
   }
 
   tv = tvs->transverts;
-  for (i = 0; i < tvs->transverts_tot; i++, tv++) {
+  for (int i = 0; i < tvs->transverts_tot; i++, tv++) {
     float co[3], co_add[2];
     float val, phi;
 

@@ -546,12 +546,11 @@ static void gpencil_brush_grab_apply_cached(tGP_BrushEditData *gso,
     return;
   }
 
-  int i;
   float inverse_diff_mat[4][4];
   invert_m4_m4(inverse_diff_mat, diff_mat);
 
   /* Apply dvec to all of the stored points */
-  for (i = 0; i < data->size; i++) {
+  for (int i = 0; i < data->size; i++) {
     bGPDspoint *pt = &gps->points[data->points[i]];
     float delta[3] = {0.0f};
 

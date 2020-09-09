@@ -861,15 +861,13 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern, char *matche
 {
   int match = 0;
 
-  int i;
-  FileDirEntry *file;
   int n = filelist_files_ensure(sfile->files);
 
   /* select any file that matches the pattern, this includes exact match
    * if the user selects a single file by entering the filename
    */
-  for (i = 0; i < n; i++) {
-    file = filelist_file(sfile->files, i);
+  for (int i = 0; i < n; i++) {
+    FileDirEntry *file = filelist_file(sfile->files, i);
     /* Do not check whether file is a file or dir here! Causes T44243
      * (we do accept dirs at this stage). */
     if (fnmatch(pattern, file->relpath, 0) == 0) {
@@ -941,9 +939,8 @@ int autocomplete_file(struct bContext *C, char *str, void *UNUSED(arg_v))
   if (str[0] && sfile->files) {
     AutoComplete *autocpl = UI_autocomplete_begin(str, FILE_MAX);
     int nentries = filelist_files_ensure(sfile->files);
-    int i;
 
-    for (i = 0; i < nentries; i++) {
+    for (int i = 0; i < nentries; i++) {
       FileDirEntry *file = filelist_file(sfile->files, i);
       UI_autocomplete_update_name(autocpl, file->relpath);
     }

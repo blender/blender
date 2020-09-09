@@ -658,8 +658,8 @@ static void buttons_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id
 
   if (sbuts->path) {
     ButsContextPath *path = sbuts->path;
-    int i;
 
+    int i;
     for (i = 0; i < path->len; i++) {
       if (path->ptr[i].owner_id == old_id) {
         break;

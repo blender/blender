@@ -943,11 +943,8 @@ KeyframeEditFunc ANIM_editkeyframes_snap(short mode)
 
 static void mirror_bezier_xaxis_ex(BezTriple *bezt, const float center)
 {
-  float diff;
-  int i;
-
-  for (i = 0; i < 3; i++) {
-    diff = (center - bezt->vec[i][0]);
+  for (int i = 0; i < 3; i++) {
+    float diff = (center - bezt->vec[i][0]);
     bezt->vec[i][0] = (center + diff);
   }
   swap_v3_v3(bezt->vec[0], bezt->vec[2]);
@@ -958,11 +955,8 @@ static void mirror_bezier_xaxis_ex(BezTriple *bezt, const float center)
 
 static void mirror_bezier_yaxis_ex(BezTriple *bezt, const float center)
 {
-  float diff;
-  int i;
-
-  for (i = 0; i < 3; i++) {
-    diff = (center - bezt->vec[i][1]);
+  for (int i = 0; i < 3; i++) {
+    float diff = (center - bezt->vec[i][1]);
     bezt->vec[i][1] = (center + diff);
   }
 }

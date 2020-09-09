@@ -301,8 +301,7 @@ static bool write_internal_bake_pixels(Image *image,
 /* force OpenGL reload */
 static void refresh_images(BakeImages *bake_images)
 {
-  int i;
-  for (i = 0; i < bake_images->size; i++) {
+  for (int i = 0; i < bake_images->size; i++) {
     Image *ima = bake_images->data[i].image;
     LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
       if (tile->ok == IMA_OK_LOADED) {
@@ -413,10 +412,7 @@ static bool is_noncolor_pass(eScenePassType pass_type)
 /* if all is good tag image and return true */
 static bool bake_object_check(ViewLayer *view_layer, Object *ob, ReportList *reports)
 {
-  Image *image;
   Base *base = BKE_view_layer_base_find(view_layer, ob);
-  void *lock;
-  int i;
 
   if (base == NULL) {
     BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is not in view layer", ob->id.name + 2);
@@ -440,10 +436,11 @@ static bool bake_object_check(ViewLayer *view_layer, Object *ob, ReportList *rep
     return false;
   }
 
-  for (i = 0; i < ob->totcol; i++) {
+  for (int i = 0; i < ob->totcol; i++) {
     bNodeTree *ntree = NULL;
     bNode *node = NULL;
     const int mat_nr = i + 1;
+    Image *image;
     ED_object_get_active_image(ob, mat_nr, &image, NULL, &node, &ntree);
 
     if (image) {
@@ -462,6 +459,7 @@ static bool bake_object_check(ViewLayer *view_layer, Object *ob, ReportList *rep
         }
       }
 
+      void *lock;
       ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
 
       if (ibuf) {
@@ -637,13 +635,12 @@ static void bake_images_clear(Main *bmain, const bool is_tangent)
 static void build_image_lookup(Main *bmain, Object *ob, BakeImages *bake_images)
 {
   const int tot_mat = ob->totcol;
-  int i, j;
   int tot_images = 0;
 
   /* error handling and tag (in case multiple materials share the same image) */
   BKE_main_id_tag_idcode(bmain, ID_IM, LIB_TAG_DOIT, false);
 
-  for (i = 0; i < tot_mat; i++) {
+  for (int i = 0; i < tot_mat; i++) {
     Image *image;
     ED_object_get_active_image(ob, i + 1, &image, NULL, NULL, NULL);
 
@@ -652,7 +649,7 @@ static void build_image_lookup(Main *bmain, Object *ob, BakeImages *bake_images)
       bake_images->lookup[i] = -1;
     }
     else if (image->id.tag & LIB_TAG_DOIT) {
-      for (j = 0; j < i; j++) {
+      for (int j = 0; j < i; j++) {
         if (bake_images->data[j].image == image) {
           bake_images->lookup[i] = j;
           break;
@@ -675,15 +672,12 @@ static void build_image_lookup(Main *bmain, Object *ob, BakeImages *bake_images)
  */
 static size_t init_internal_images(BakeImages *bake_images, ReportList *reports)
 {
-  int i;
   size_t tot_size = 0;
 
-  for (i = 0; i < bake_images->size; i++) {
-    ImBuf *ibuf;
-    void *lock;
-
+  for (int i = 0; i < bake_images->size; i++) {
     BakeImage *bk_image = &bake_images->data[i];
-    ibuf = BKE_image_acquire_ibuf(bk_image->image, NULL, &lock);
+    void *lock;
+    ImBuf *ibuf = BKE_image_acquire_ibuf(bk_image->image, NULL, &lock);
 
     if (ibuf) {
       bk_image->width = ibuf->x;
@@ -1228,8 +1222,7 @@ static int bake(Render *re,
 cleanup:
 
   if (highpoly) {
-    int i;
-    for (i = 0; i < tot_highpoly; i++) {
+    for (int i = 0; i < tot_highpoly; i++) {
       if (highpoly[i].me != NULL) {
         BKE_id_free(NULL, &highpoly[i].me->id);
       }

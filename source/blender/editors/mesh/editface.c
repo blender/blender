@@ -58,7 +58,6 @@ void paintface_flush_flags(struct bContext *C, Object *ob, short flag)
   MPoly *polys, *mp_orig;
   const int *index_array = NULL;
   int totpoly;
-  int i;
 
   BLI_assert((flag & ~(SELECT | ME_HIDE)) == 0);
 
@@ -87,7 +86,7 @@ void paintface_flush_flags(struct bContext *C, Object *ob, short flag)
 
   if (me_orig != NULL && me_eval != NULL && me_orig->totpoly == me->totpoly) {
     /* Update the COW copy of the mesh. */
-    for (i = 0; i < me->totpoly; i++) {
+    for (int i = 0; i < me->totpoly; i++) {
       me_orig->mpoly[i].flag = me->mpoly[i].flag;
     }
 
@@ -101,7 +100,7 @@ void paintface_flush_flags(struct bContext *C, Object *ob, short flag)
       totpoly = me_eval->totpoly;
 
       /* loop over final derived polys */
-      for (i = 0; i < totpoly; i++) {
+      for (int i = 0; i < totpoly; i++) {
         if (index_array[i] != ORIGINDEX_NONE) {
           /* Copy flags onto the final derived poly from the original mesh poly */
           mp_orig = me->mpoly + index_array[i];

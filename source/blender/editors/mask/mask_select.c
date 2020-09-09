@@ -55,9 +55,7 @@
 /* 'check' select */
 bool ED_mask_spline_select_check(const MaskSpline *spline)
 {
-  int i;
-
-  for (i = 0; i < spline->tot_point; i++) {
+  for (int i = 0; i < spline->tot_point; i++) {
     MaskSplinePoint *point = &spline->points[i];
 
     if (MASKPOINT_ISSEL_ANY(point)) {
@@ -97,8 +95,6 @@ bool ED_mask_select_check(const Mask *mask)
 /* 'sel' select  */
 void ED_mask_spline_select_set(MaskSpline *spline, const bool do_select)
 {
-  int i;
-
   if (do_select) {
     spline->flag |= SELECT;
   }
@@ -106,7 +102,7 @@ void ED_mask_spline_select_set(MaskSpline *spline, const bool do_select)
     spline->flag &= ~SELECT;
   }
 
-  for (i = 0; i < spline->tot_point; i++) {
+  for (int i = 0; i < spline->tot_point; i++) {
     MaskSplinePoint *point = &spline->points[i];
 
     BKE_mask_point_select_set(point, do_select);
@@ -151,8 +147,7 @@ void ED_mask_select_toggle_all(Mask *mask, int action)
         continue;
       }
       LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
-        int i;
-        for (i = 0; i < spline->tot_point; i++) {
+        for (int i = 0; i < spline->tot_point; i++) {
           MaskSplinePoint *point = &spline->points[i];
           BKE_mask_point_select_set(point, !MASKPOINT_ISSEL_ANY(point));
         }
@@ -654,7 +649,6 @@ static int circle_select_exec(bContext *C, wmOperator *op)
   ARegion *region = CTX_wm_region(C);
 
   Mask *mask = CTX_data_edit_mask(C);
-  int i;
 
   float zoomx, zoomy, offset[2], ellipse[2];
   int width, height;
@@ -692,7 +686,7 @@ static int circle_select_exec(bContext *C, wmOperator *op)
     LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
       MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
-      for (i = 0; i < spline->tot_point; i++) {
+      for (int i = 0; i < spline->tot_point; i++) {
         MaskSplinePoint *point = &spline->points[i];
         MaskSplinePoint *point_deform = &points_array[i];
 
@@ -871,10 +865,9 @@ static int mask_select_more_less(bContext *C, bool more)
     LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
       const bool cyclic = (spline->flag & MASK_SPLINE_CYCLIC) != 0;
       bool start_sel, end_sel, prev_sel, cur_sel;
-      int i;
 
       /* reselect point if any handle is selected to make the result more predictable */
-      for (i = 0; i < spline->tot_point; i++) {
+      for (int i = 0; i < spline->tot_point; i++) {
         BKE_mask_point_select_set(spline->points + i, MASKPOINT_ISSEL_ANY(spline->points + i));
       }
 
@@ -892,7 +885,7 @@ static int mask_select_more_less(bContext *C, bool more)
         end_sel = false;
       }
 
-      for (i = 0; i < spline->tot_point; i++) {
+      for (int i = 0; i < spline->tot_point; i++) {
         if (i == 0 && !cyclic) {
           continue;
         }
@@ -908,7 +901,7 @@ static int mask_select_more_less(bContext *C, bool more)
         }
       }
 
-      for (i = spline->tot_point - 1; i >= 0; i--) {
+      for (int i = spline->tot_point - 1; i >= 0; i--) {
         if (i == spline->tot_point - 1 && !cyclic) {
           continue;
         }

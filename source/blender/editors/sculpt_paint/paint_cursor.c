@@ -911,7 +911,6 @@ static void paint_draw_curve_cursor(Brush *brush, ViewContext *vc)
   GPU_matrix_translate_2f(vc->region->winrct.xmin, vc->region->winrct.ymin);
 
   if (brush->paint_curve && brush->paint_curve->points) {
-    int i;
     PaintCurve *pc = brush->paint_curve;
     PaintCurvePoint *cp = pc->points;
 
@@ -928,7 +927,7 @@ static void paint_draw_curve_cursor(Brush *brush, ViewContext *vc)
     UI_GetThemeColorType4fv(TH_PAINT_CURVE_HANDLE, SPACE_VIEW3D, handle_col);
     UI_GetThemeColorType4fv(TH_PAINT_CURVE_PIVOT, SPACE_VIEW3D, pivot_col);
 
-    for (i = 0; i < pc->tot_points - 1; i++, cp++) {
+    for (int i = 0; i < pc->tot_points - 1; i++, cp++) {
       int j;
       PaintCurvePoint *cp_next = cp + 1;
       float data[(PAINT_CURVE_NUM_SEGMENTS + 1) * 2];

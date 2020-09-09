@@ -682,7 +682,6 @@ static int gpencil_material_to_vertex_exec(bContext *C, wmOperator *op)
   char name[32] = "";
   Material *ma = NULL;
   GPMatArray *mat_elm = NULL;
-  int i;
 
   bool changed = false;
 
@@ -744,6 +743,7 @@ static int gpencil_material_to_vertex_exec(bContext *C, wmOperator *op)
 
           /* Check if material exist. */
           bool found = false;
+          int i;
           for (i = 0; i < totmat; i++) {
             mat_elm = &mat_table[i];
             if (mat_elm->ma == NULL) {
@@ -796,6 +796,7 @@ static int gpencil_material_to_vertex_exec(bContext *C, wmOperator *op)
 
         /* Update all points. */
         bGPDspoint *pt;
+        int i;
         for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
           copy_v3_v3(pt->vert_color, gp_style->stroke_rgba);
           pt->vert_color[3] = 1.0f;

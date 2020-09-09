@@ -2162,7 +2162,6 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
                               const uiWidgetColors *wcol,
                               const rcti *rect)
 {
-  uint i;
   float fx, fy;
 
   uiButCurveProfile *but_profile = (uiButCurveProfile *)but;
@@ -2241,7 +2240,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
 
   /* Create array of the positions of the table's points. */
   float(*table_coords)[2] = MEM_mallocN(sizeof(*table_coords) * tot_points, "table x coords");
-  for (i = 0; i < (uint)PROF_TABLE_LEN(profile->path_len);
+  for (uint i = 0; i < (uint)PROF_TABLE_LEN(profile->path_len);
        i++) { /* Only add the points from the table here. */
     table_coords[i][0] = pts[i].x;
     table_coords[i][1] = pts[i].y;
@@ -2284,7 +2283,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_polygon_smooth(false);
   immBegin(GPU_PRIM_TRIS, 3 * tot_triangles);
-  for (i = 0; i < tot_triangles; i++) {
+  for (uint i = 0; i < tot_triangles; i++) {
     for (uint j = 0; j < 3; j++) {
       uint *tri = tri_indices[i];
       fx = rect->xmin + zoomx * (table_coords[tri[j]][0] - offsx);
@@ -2301,7 +2300,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   immUniformColor3ubvAlpha((const uchar *)wcol->item, 255);
   GPU_line_smooth(true);
   immBegin(GPU_PRIM_LINE_STRIP, tot_points - 1);
-  for (i = 0; i < tot_points - 1; i++) {
+  for (uint i = 0; i < tot_points - 1; i++) {
     fx = rect->xmin + zoomx * (table_coords[i][0] - offsx);
     fy = rect->ymin + zoomy * (table_coords[i][1] - offsy);
     immVertex2f(pos, fx, fy);
@@ -2313,7 +2312,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   pts = profile->path;
   tot_points = (uint)profile->path_len;
   int selected_free_points = 0;
-  for (i = 0; i < tot_points; i++) {
+  for (uint i = 0; i < tot_points; i++) {
     if (point_draw_handles(&pts[i])) {
       selected_free_points++;
     }
@@ -2325,7 +2324,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
     GPU_line_smooth(true);
     immBegin(GPU_PRIM_LINES, selected_free_points * 4);
     float ptx, pty;
-    for (i = 0; i < tot_points; i++) {
+    for (uint i = 0; i < tot_points; i++) {
       if (point_draw_handles(&pts[i])) {
         ptx = rect->xmin + zoomx * (pts[i].x - offsx);
         pty = rect->ymin + zoomy * (pts[i].y - offsy);
@@ -2372,7 +2371,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   GPU_blend(GPU_BLEND_NONE);
   GPU_point_size(max_ff(3.0f, min_ff(UI_DPI_FAC / but->block->aspect * 5.0f, 5.0f)));
   immBegin(GPU_PRIM_POINTS, tot_points);
-  for (i = 0; i < tot_points; i++) {
+  for (uint i = 0; i < tot_points; i++) {
     fx = rect->xmin + zoomx * (pts[i].x - offsx);
     fy = rect->ymin + zoomy * (pts[i].y - offsy);
     immAttr4fv(col, (pts[i].flag & PROF_SELECT) ? color_vert_select : color_vert);
@@ -2386,7 +2385,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
     GPU_blend(GPU_BLEND_NONE);
     GPU_point_size(max_ff(2.0f, min_ff(UI_DPI_FAC / but->block->aspect * 4.0f, 4.0f)));
     immBegin(GPU_PRIM_POINTS, selected_free_points * 2);
-    for (i = 0; i < tot_points; i++) {
+    for (uint i = 0; i < tot_points; i++) {
       if (point_draw_handles(&pts[i])) {
         fx = rect->xmin + zoomx * (pts[i].h1_loc[0] - offsx);
         fy = rect->ymin + zoomy * (pts[i].h1_loc[1] - offsy);
@@ -2408,7 +2407,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   if (tot_points > 0 && pts) {
     GPU_point_size(max_ff(2.0f, min_ff(UI_DPI_FAC / but->block->aspect * 3.0f, 3.0f)));
     immBegin(GPU_PRIM_POINTS, tot_points);
-    for (i = 0; i < tot_points; i++) {
+    for (uint i = 0; i < tot_points; i++) {
       fx = rect->xmin + zoomx * (pts[i].x - offsx);
       fy = rect->ymin + zoomy * (pts[i].y - offsy);
       immAttr4fv(col, color_sample);

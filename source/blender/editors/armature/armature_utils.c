@@ -198,27 +198,26 @@ bool ED_armature_ebone_is_child_recursive(EditBone *ebone_parent, EditBone *ebon
  */
 EditBone *ED_armature_ebone_find_shared_parent(EditBone *ebone_child[], const uint ebone_child_tot)
 {
-  uint i;
-  EditBone *ebone_iter;
-
 #define EBONE_TEMP_UINT(ebone) (*((uint *)(&((ebone)->temp))))
 
   /* clear all */
-  for (i = 0; i < ebone_child_tot; i++) {
-    for (ebone_iter = ebone_child[i]; ebone_iter; ebone_iter = ebone_iter->parent) {
+  for (uint i = 0; i < ebone_child_tot; i++) {
+    for (EditBone *ebone_iter = ebone_child[i]; ebone_iter; ebone_iter = ebone_iter->parent) {
       EBONE_TEMP_UINT(ebone_iter) = 0;
     }
   }
 
   /* accumulate */
-  for (i = 0; i < ebone_child_tot; i++) {
-    for (ebone_iter = ebone_child[i]->parent; ebone_iter; ebone_iter = ebone_iter->parent) {
+  for (uint i = 0; i < ebone_child_tot; i++) {
+    for (EditBone *ebone_iter = ebone_child[i]->parent; ebone_iter;
+         ebone_iter = ebone_iter->parent) {
       EBONE_TEMP_UINT(ebone_iter) += 1;
     }
   }
 
   /* only need search the first chain */
-  for (ebone_iter = ebone_child[0]->parent; ebone_iter; ebone_iter = ebone_iter->parent) {
+  for (EditBone *ebone_iter = ebone_child[0]->parent; ebone_iter;
+       ebone_iter = ebone_iter->parent) {
     if (EBONE_TEMP_UINT(ebone_iter) == ebone_child_tot) {
       return ebone_iter;
     }

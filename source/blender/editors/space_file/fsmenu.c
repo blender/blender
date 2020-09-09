@@ -645,11 +645,10 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
     wchar_t wline[FILE_MAXDIR];
     __int64 tmp;
     char tmps[4], *name;
-    int i;
 
     tmp = GetLogicalDrives();
 
-    for (i = 0; i < 26; i++) {
+    for (int i = 0; i < 26; i++) {
       if ((tmp >> i) & 1) {
         tmps[0] = 'A' + i;
         tmps[1] = ':';

@@ -393,7 +393,6 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
   ButAlign *butal_array;
   ButAlign *butal, *butal_other;
   int side;
-  int i, j;
 
   /* First loop: we count number of buttons belonging to an align group,
    * and clear their align flag.
@@ -452,9 +451,11 @@ void ui_block_align_calc(uiBlock *block, const ARegion *region)
   /* Third loop: for each pair of buttons in the same align group,
    * we compute their potential proximity. Note that each pair is checked only once, and that we
    * break early in case we know all remaining pairs will always be too far away. */
+  int i;
   for (i = 0, butal = butal_array; i < num_buttons; i++, butal++) {
     const short alignnr = butal->but->alignnr;
 
+    int j;
     for (j = i + 1, butal_other = &butal_array[i + 1]; j < num_buttons; j++, butal_other++) {
       const float max_delta = MAX_DELTA;
 

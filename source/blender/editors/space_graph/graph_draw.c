@@ -500,11 +500,7 @@ static void draw_fcurve_samples(SpaceGraph *sipo, ARegion *region, FCurve *fcu)
 static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu_, View2D *v2d, uint pos)
 {
   SpaceGraph *sipo = (SpaceGraph *)ac->sl;
-  float samplefreq;
-  float stime, etime;
-  float unitFac, offset;
   short mapping_flag = ANIM_get_normalization_flags(ac);
-  int i, n;
 
   /* when opening a blend file on a different sized screen or while dragging the toolbar this can
    * happen best just bail out in this case. */
@@ -517,7 +513,9 @@ static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu_, View2D *v2
   fcurve_for_draw.driver = NULL;
 
   /* compute unit correction factor */
-  unitFac = ANIM_unit_mapping_get_factor(ac->scene, id, &fcurve_for_draw, mapping_flag, &offset);
+  float offset;
+  float unitFac = ANIM_unit_mapping_get_factor(
+      ac->scene, id, &fcurve_for_draw, mapping_flag, &offset);
 
   /* Note about sampling frequency:
    * Ideally, this is chosen such that we have 1-2 pixels = 1 segment
@@ -535,7 +533,7 @@ static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu_, View2D *v2
   /* TODO: perhaps we should have 1.0 frames
    * as upper limit so that curves don't get too distorted? */
   float pixels_per_sample = 1.5f;
-  samplefreq = pixels_per_sample / UI_view2d_scale_get_x(v2d);
+  float samplefreq = pixels_per_sample / UI_view2d_scale_get_x(v2d);
 
   if (sipo->flag & SIPO_BEAUTYDRAW_OFF) {
     /* Low Precision = coarse lower-bound clamping
@@ -559,20 +557,21 @@ static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu_, View2D *v2
   }
 
   /* the start/end times are simply the horizontal extents of the 'cur' rect */
-  stime = v2d->cur.xmin;
-  etime = v2d->cur.xmax + samplefreq; /* + samplefreq here so that last item gets included... */
+  float stime = v2d->cur.xmin;
+  float etime = v2d->cur.xmax +
+                samplefreq; /* + samplefreq here so that last item gets included... */
 
   /* at each sampling interval, add a new vertex
    * - apply the unit correction factor to the calculated values so that
    *   the displayed values appear correctly in the viewport
    */
 
-  n = roundf((etime - stime) / samplefreq);
+  int n = roundf((etime - stime) / samplefreq);
 
   if (n > 0) {
     immBegin(GPU_PRIM_LINE_STRIP, (n + 1));
 
-    for (i = 0; i <= n; i++) {
+    for (int i = 0; i <= n; i++) {
       float ctime = stime + i * samplefreq;
       immVertex2f(pos, ctime, (evaluate_fcurve(&fcurve_for_draw, ctime) + offset) * unitFac);
     }

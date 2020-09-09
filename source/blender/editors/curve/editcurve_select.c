@@ -1874,10 +1874,6 @@ static void curve_select_shortest_path_curve(Nurb *nu, int vert_src, int vert_ds
 
 static void curve_select_shortest_path_surf(Nurb *nu, int vert_src, int vert_dst)
 {
-  HeapSimple *heap;
-
-  int i, vert_curr;
-
   int totu = nu->pntsu;
   int totv = nu->pntsv;
   int vert_num = totu * totv;
@@ -1890,34 +1886,32 @@ static void curve_select_shortest_path_surf(Nurb *nu, int vert_src, int vert_dst
 
   /* init connectivity data */
   data = MEM_mallocN(sizeof(*data) * vert_num, __func__);
-  for (i = 0; i < vert_num; i++) {
+  for (int i = 0; i < vert_num; i++) {
     data[i].vert = i;
     data[i].vert_prev = -1;
     data[i].cost = FLT_MAX;
   }
 
   /* init heap */
-  heap = BLI_heapsimple_new();
+  HeapSimple *heap = BLI_heapsimple_new();
 
-  vert_curr = data[vert_src].vert;
+  int vert_curr = data[vert_src].vert;
   BLI_heapsimple_insert(heap, 0.0f, &data[vert_src].vert);
   data[vert_src].cost = 0.0f;
   data[vert_src].vert_prev = vert_src; /* nop */
 
   while (!BLI_heapsimple_is_empty(heap)) {
-    int axis, sign;
-    int u, v;
-
     vert_curr = *((int *)BLI_heapsimple_pop_min(heap));
     if (vert_curr == vert_dst) {
       break;
     }
 
+    int u, v;
     BKE_nurb_index_to_uv(nu, vert_curr, &u, &v);
 
     /* loop over 4 adjacent verts */
-    for (sign = -1; sign != 3; sign += 2) {
-      for (axis = 0; axis != 2; axis += 1) {
+    for (int sign = -1; sign != 3; sign += 2) {
+      for (int axis = 0; axis != 2; axis += 1) {
         int uv_other[2] = {u, v};
         int vert_other;
 
@@ -1943,7 +1937,7 @@ static void curve_select_shortest_path_surf(Nurb *nu, int vert_src, int vert_dst
   BLI_heapsimple_free(heap, NULL);
 
   if (vert_curr == vert_dst) {
-    i = 0;
+    int i = 0;
     while (vert_curr != vert_src && i++ < vert_num) {
       if (nu->type == CU_BEZIER) {
         select_beztriple(&nu->bezt[vert_curr], SELECT, SELECT, HIDDEN);

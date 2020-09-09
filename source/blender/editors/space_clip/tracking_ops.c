@@ -511,7 +511,6 @@ static int mouse_to_tilt_distance_squared(const MovieTrackingMarker *marker,
 
 static bool slide_check_corners(float (*corners)[2])
 {
-  int i, next, prev;
   float cross = 0.0f;
   const float p[2] = {0.0f, 0.0f};
 
@@ -519,16 +518,16 @@ static bool slide_check_corners(float (*corners)[2])
     return false;
   }
 
-  for (i = 0; i < 4; i++) {
-    float v1[2], v2[2], cur_cross;
+  for (int i = 0; i < 4; i++) {
+    float v1[2], v2[2];
 
-    next = (i + 1) % 4;
-    prev = (4 + i - 1) % 4;
+    int next = (i + 1) % 4;
+    int prev = (4 + i - 1) % 4;
 
     sub_v2_v2v2(v1, corners[i], corners[prev]);
     sub_v2_v2v2(v2, corners[next], corners[i]);
 
-    cur_cross = cross_v2v2(v1, v2);
+    float cur_cross = cross_v2v2(v1, v2);
 
     if (fabsf(cur_cross) > FLT_EPSILON) {
       if (cross == 0.0f) {

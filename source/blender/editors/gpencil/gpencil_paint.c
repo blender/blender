@@ -941,7 +941,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
   const bool is_depth = (bool)(*align_flag & (GP_PROJECT_DEPTH_VIEW | GP_PROJECT_DEPTH_STROKE));
   const bool is_camera = (bool)(ts->gp_sculpt.lock_axis == 0) && (rv3d->persp == RV3D_CAMOB) &&
                          (!is_depth);
-  int i, totelem;
+  int totelem;
 
   /* For very low pressure at the end, truncate stroke. */
   if (p->paintmode == GP_PAINTMODE_DRAW) {
@@ -1079,7 +1079,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
     /* reproject to plane (only in 3d space) */
     gpencil_reproject_toplane(p, gps);
     pt = gps->points;
-    for (i = 0; i < gps->totpoints; i++, pt++) {
+    for (int i = 0; i < gps->totpoints; i++, pt++) {
       /* if parented change position relative to parent object */
       gpencil_apply_parent_point(depsgraph, obact, gpl, pt);
     }
@@ -1099,7 +1099,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
       int found_depth = 0;
 
       depth_arr = MEM_mallocN(sizeof(float) * gpd->runtime.sbuffer_used, "depth_points");
-
+      int i;
       for (i = 0, ptc = gpd->runtime.sbuffer; i < gpd->runtime.sbuffer_used; i++, ptc++, pt++) {
 
         round_v2i_v2fl(mval_i, &ptc->x);
@@ -1169,6 +1169,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
     dvert = gps->dvert;
 
     /* convert all points (normal behavior) */
+    int i;
     for (i = 0, ptc = gpd->runtime.sbuffer; i < gpd->runtime.sbuffer_used && ptc;
          i++, ptc++, pt++) {
       /* convert screen-coordinates to appropriate coordinates (and store them) */
@@ -1266,7 +1267,7 @@ static void gpencil_stroke_newfrombuffer(tGPsdata *p)
   /* add weights */
   if ((ts->gpencil_flags & GP_TOOL_FLAG_CREATE_WEIGHTS) && (have_weight)) {
     BKE_gpencil_dvert_ensure(gps);
-    for (i = 0; i < gps->totpoints; i++) {
+    for (int i = 0; i < gps->totpoints; i++) {
       MDeformVert *ve = &gps->dvert[i];
       MDeformWeight *dw = BKE_defvert_ensure_index(ve, def_nr);
       if (dw) {

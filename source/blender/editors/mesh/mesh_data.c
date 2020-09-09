@@ -171,11 +171,10 @@ static void mesh_uv_reset_array(float **fuv, const int len)
   }
   else if (len > 2) {
     float fac = 0.0f, dfac = 1.0f / (float)len;
-    int i;
 
     dfac *= (float)M_PI * 2.0f;
 
-    for (i = 0; i < len; i++) {
+    for (int i = 0; i < len; i++) {
       fuv[i][0] = 0.5f * sinf(fac) + 0.5f;
       fuv[i][1] = 0.5f * cosf(fac) + 0.5f;
 
@@ -201,9 +200,8 @@ static void mesh_uv_reset_bmface(BMFace *f, const int cd_loop_uv_offset)
 static void mesh_uv_reset_mface(MPoly *mp, MLoopUV *mloopuv)
 {
   float **fuv = BLI_array_alloca(fuv, mp->totloop);
-  int i;
 
-  for (i = 0; i < mp->totloop; i++) {
+  for (int i = 0; i < mp->totloop; i++) {
     fuv[i] = mloopuv[mp->loopstart + i].uv;
   }
 
@@ -234,13 +232,10 @@ void ED_mesh_uv_loop_reset_ex(struct Mesh *me, const int layernum)
   }
   else {
     /* Collect Mesh UVs */
-    MLoopUV *mloopuv;
-    int i;
-
     BLI_assert(CustomData_has_layer(&me->ldata, CD_MLOOPUV));
-    mloopuv = CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, layernum);
+    MLoopUV *mloopuv = CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, layernum);
 
-    for (i = 0; i < me->totpoly; i++) {
+    for (int i = 0; i < me->totpoly; i++) {
       mesh_uv_reset_mface(&me->mpoly[i], mloopuv);
     }
   }
@@ -1061,15 +1056,12 @@ void ED_mesh_update(Mesh *mesh, bContext *C, bool calc_edges, bool calc_edges_lo
 
 static void mesh_add_verts(Mesh *mesh, int len)
 {
-  CustomData vdata;
-  MVert *mvert;
-  int i, totvert;
-
   if (len == 0) {
     return;
   }
 
-  totvert = mesh->totvert + len;
+  int totvert = mesh->totvert + len;
+  CustomData vdata;
   CustomData_copy(&mesh->vdata, &vdata, CD_MASK_MESH.vmask, CD_DEFAULT, totvert);
   CustomData_copy_data(&mesh->vdata, &vdata, 0, 0, mesh->totvert);
 
@@ -1084,8 +1076,8 @@ static void mesh_add_verts(Mesh *mesh, int len)
   /* scan the input list and insert the new vertices */
 
   /* set default flags */
-  mvert = &mesh->mvert[mesh->totvert];
-  for (i = 0; i < len; i++, mvert++) {
+  MVert *mvert = &mesh->mvert[mesh->totvert];
+  for (int i = 0; i < len; i++, mvert++) {
     mvert->flag |= SELECT;
   }
 

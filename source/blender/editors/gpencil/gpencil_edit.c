@@ -4725,7 +4725,6 @@ static int gpencil_cutter_lasso_select(bContext *C,
   const float scale = ts->gp_sculpt.isect_threshold;
 
   bGPDspoint *pt;
-  int i;
   GP_SpaceConversion gsc = {NULL};
 
   bool changed = false;
@@ -4741,6 +4740,7 @@ static int gpencil_cutter_lasso_select(bContext *C,
 
   /* deselect all strokes first */
   CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
+    int i;
     for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
       pt->flag &= ~GP_SPOINT_SELECT;
     }
@@ -4753,7 +4753,7 @@ static int gpencil_cutter_lasso_select(bContext *C,
   GP_EDITABLE_STROKES_BEGIN (gpstroke_iter, C, gpl, gps) {
     int tot_inside = 0;
     const int oldtot = gps->totpoints;
-    for (i = 0; i < gps->totpoints; i++) {
+    for (int i = 0; i < gps->totpoints; i++) {
       pt = &gps->points[i];
       if ((pt->flag & GP_SPOINT_SELECT) || (pt->flag & GP_SPOINT_TAG)) {
         continue;
@@ -4777,7 +4777,7 @@ static int gpencil_cutter_lasso_select(bContext *C,
     }
     /* if mark all points inside lasso set to remove all stroke */
     if ((tot_inside == oldtot) || ((tot_inside == 1) && (oldtot == 2))) {
-      for (i = 0; i < gps->totpoints; i++) {
+      for (int i = 0; i < gps->totpoints; i++) {
         pt = &gps->points[i];
         pt->flag |= GP_SPOINT_SELECT;
       }

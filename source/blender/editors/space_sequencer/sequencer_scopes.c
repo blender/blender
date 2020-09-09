@@ -123,11 +123,9 @@ static void wform_put_border(uchar *tgt, int w, int h)
 
 static void wform_put_gridrow(uchar *tgt, float perc, int w, int h)
 {
-  int i;
-
   tgt += (int)(perc / 100.0f * h) * w * 4;
 
-  for (i = 0; i < w * 2; i++) {
+  for (int i = 0; i < w * 2; i++) {
     tgt[0] = 255;
 
     tgt += 4;
@@ -415,11 +413,10 @@ static void draw_histogram_marker(ImBuf *ibuf, int x)
 {
   uchar *p = (uchar *)ibuf->rect;
   int barh = ibuf->y * 0.1;
-  int i;
 
   p += 4 * (x + ibuf->x * (ibuf->y - barh + 1));
 
-  for (i = 0; i < barh - 1; i++) {
+  for (int i = 0; i < barh - 1; i++) {
     p[0] = p[1] = p[2] = 255;
     p += ibuf->x * 4;
   }
@@ -429,11 +426,10 @@ static void draw_histogram_bar(ImBuf *ibuf, int x, float val, int col)
 {
   uchar *p = (uchar *)ibuf->rect;
   int barh = ibuf->y * val * 0.9f;
-  int i;
 
   p += 4 * (x + ibuf->x);
 
-  for (i = 0; i < barh; i++) {
+  for (int i = 0; i < barh; i++) {
     p[col] = 255;
     p += ibuf->x * 4;
   }

@@ -1041,7 +1041,6 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb,
     MDefBoundIsect *isect;
 
     float(*mp_cagecos)[3] = BLI_array_alloca(mp_cagecos, mp->totloop);
-    int i;
 
     /* create MDefBoundIsect, and extra for 'poly_weights[]' */
     isect = BLI_memarena_alloc(mdb->memarena, sizeof(*isect) + (sizeof(float) * mp->totloop));
@@ -1056,7 +1055,7 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb,
     isect->len = max_ff(len_v3v3(co1, isect->co), MESHDEFORM_LEN_THRESHOLD);
 
     /* compute mean value coordinates for interpolation */
-    for (i = 0; i < mp->totloop; i++) {
+    for (int i = 0; i < mp->totloop; i++) {
       copy_v3_v3(mp_cagecos[i], cagecos[mloop[mp->loopstart + i].v]);
     }
 
@@ -1225,9 +1224,8 @@ static float meshdeform_boundary_phi(const MeshDeformBind *mdb,
 {
   const MLoop *mloop = mdb->cagemesh_cache.mloop;
   const MPoly *mp = &mdb->cagemesh_cache.mpoly[isect->poly_index];
-  int i;
 
-  for (i = 0; i < mp->totloop; i++) {
+  for (int i = 0; i < mp->totloop; i++) {
     if (mloop[mp->loopstart + i].v == cagevert) {
       return isect->poly_weights[i];
     }
@@ -1241,16 +1239,18 @@ static float meshdeform_interp_w(MeshDeformBind *mdb,
                                  float *UNUSED(vec),
                                  int UNUSED(cagevert))
 {
-  float dvec[3], ivec[3], wx, wy, wz, result = 0.0f;
-  float weight, totweight = 0.0f;
-  int i, a, x, y, z;
+  float dvec[3], ivec[3], result = 0.0f;
+  float totweight = 0.0f;
 
-  for (i = 0; i < 3; i++) {
+  for (int i = 0; i < 3; i++) {
     ivec[i] = (int)gridvec[i];
     dvec[i] = gridvec[i] - ivec[i];
   }
 
-  for (i = 0; i < 8; i++) {
+  for (int i = 0; i < 8; i++) {
+    int x, y, z;
+    float wx, wy, wz;
+
     if (i & 1) {
       x = ivec[0] + 1;
       wx = dvec[0];
@@ -1282,8 +1282,8 @@ static float meshdeform_interp_w(MeshDeformBind *mdb,
     CLAMP(y, 0, mdb->size - 1);
     CLAMP(z, 0, mdb->size - 1);
 
-    a = meshdeform_index(mdb, x, y, z, 0);
-    weight = wx * wy * wz;
+    int a = meshdeform_index(mdb, x, y, z, 0);
+    float weight = wx * wy * wz;
     result += weight * mdb->phi[a];
     totweight += weight;
   }

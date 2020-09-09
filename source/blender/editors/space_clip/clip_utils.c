@@ -297,11 +297,8 @@ void clip_graph_tracking_iterate(SpaceClip *sc,
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
   ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
-  MovieTrackingTrack *track;
 
-  for (track = tracksbase->first; track; track = track->next) {
-    int i;
-
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
     if (!include_hidden && (track->flag & TRACK_HIDDEN) != 0) {
       continue;
     }
@@ -310,7 +307,7 @@ void clip_graph_tracking_iterate(SpaceClip *sc,
       continue;
     }
 
-    for (i = 0; i < track->markersnr; i++) {
+    for (int i = 0; i < track->markersnr; i++) {
       MovieTrackingMarker *marker = &track->markers[i];
 
       if (marker->flag & MARKER_DISABLED) {

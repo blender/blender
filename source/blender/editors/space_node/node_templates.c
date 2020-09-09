@@ -500,20 +500,20 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
     int totitems;
     char name[UI_MAX_NAME_STR];
     const char *cur_node_name = NULL;
-    int i, num = 0;
+    int num = 0;
     int icon = ICON_NONE;
 
     arg->node_type = ntype;
 
     ui_node_link_items(arg, SOCK_OUT, &items, &totitems);
 
-    for (i = 0; i < totitems; i++) {
+    for (int i = 0; i < totitems; i++) {
       if (ui_compatible_sockets(items[i].socket_type, sock->type)) {
         num++;
       }
     }
 
-    for (i = 0; i < totitems; i++) {
+    for (int i = 0; i < totitems; i++) {
       if (!ui_compatible_sockets(items[i].socket_type, sock->type)) {
         continue;
       }

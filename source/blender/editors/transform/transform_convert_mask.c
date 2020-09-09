@@ -138,12 +138,11 @@ static void MaskPointToTransData(Scene *scene,
   invert_m3_m3(parent_inverse_matrix, parent_matrix);
 
   if (is_prop_edit || is_sel_point) {
-    int i;
 
     tdm->point = point;
     copy_m3_m3(tdm->vec, bezt->vec);
 
-    for (i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) {
       copy_m3_m3(tdm->parent_matrix, parent_matrix);
       copy_m3_m3(tdm->parent_inverse_matrix, parent_inverse_matrix);
 

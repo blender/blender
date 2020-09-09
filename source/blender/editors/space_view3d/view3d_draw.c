@@ -905,7 +905,7 @@ void ED_view3d_grid_steps(const Scene *scene,
                           float r_grid_steps[STEPS_LEN])
 {
   const void *usys;
-  int i, len;
+  int len;
   BKE_unit_system_get(scene->unit.system, B_UNIT_LENGTH, &usys, &len);
   float grid_scale = v3d->grid;
   BLI_assert(STEPS_LEN >= len);
@@ -918,6 +918,7 @@ void ED_view3d_grid_steps(const Scene *scene,
 
     grid_scale /= scene->unit.scale_length;
 
+    int i;
     for (i = 0; i < len; i++) {
       r_grid_steps[i] = (float)BKE_unit_scalar_get(usys, len - 1 - i) * grid_scale;
     }
@@ -932,7 +933,7 @@ void ED_view3d_grid_steps(const Scene *scene,
       grid_scale /= powf(v3d->gridsubdiv, 3);
     }
     int subdiv = 1;
-    for (i = 0;; i++) {
+    for (int i = 0;; i++) {
       r_grid_steps[i] = grid_scale * subdiv;
 
       if (i == STEPS_LEN - 1) {

@@ -242,7 +242,6 @@ static void draw_seq_waveform(View2D *v2d,
   int x2_offset = min_ff(v2d->cur.xmax + 1.0f, x2);
 
   if (seq->sound && ((sseq->flag & SEQ_ALL_WAVEFORMS) || (seq->flag & SEQ_AUDIO_DRAW_WAVEFORM))) {
-    int i, j, p;
     int length = floor((x2_offset - x1_offset) / stepsize) + 1;
     float ymid = (y1 + y2) / 2.0f;
     float yscale = (y2 - y1) / 2.0f;
@@ -303,15 +302,15 @@ static void draw_seq_waveform(View2D *v2d,
     immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
     immBegin(GPU_PRIM_TRI_STRIP, length * 2);
 
-    for (i = 0; i < length; i++) {
+    for (int i = 0; i < length; i++) {
       float sampleoffset = startsample + ((x1_offset - x1) / stepsize + i) * samplestep;
-      p = sampleoffset;
+      int p = sampleoffset;
 
       value1 = waveform->data[p * 3];
       value2 = waveform->data[p * 3 + 1];
 
       if (samplestep > 1.0f) {
-        for (j = p + 1; (j < waveform->length) && (j < p + samplestep); j++) {
+        for (int j = p + 1; (j < waveform->length) && (j < p + samplestep); j++) {
           if (value1 > waveform->data[j * 3]) {
             value1 = waveform->data[j * 3];
           }

@@ -975,7 +975,7 @@ static void init_iconfile_list(struct ListBase *list)
 {
   IconFile *ifile;
   struct direntry *dir;
-  int totfile, i, index = 1;
+  int index = 1;
   const char *icondir;
 
   BLI_listbase_clear(list);
@@ -985,9 +985,9 @@ static void init_iconfile_list(struct ListBase *list)
     return;
   }
 
-  totfile = BLI_filelist_dir_contents(icondir, &dir);
+  int totfile = BLI_filelist_dir_contents(icondir, &dir);
 
-  for (i = 0; i < totfile; i++) {
+  for (int i = 0; i < totfile; i++) {
     if ((dir[i].type & S_IFREG)) {
       const char *filename = dir[i].relname;
 

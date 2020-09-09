@@ -68,9 +68,6 @@ static void tag_object_after_update(Object *object)
 static bool vertex_color_set(Object *ob, uint paintcol)
 {
   Mesh *me;
-  const MPoly *mp;
-  int i, j;
-
   if (((me = BKE_mesh_from_object(ob)) == NULL) || (ED_mesh_color_ensure(me, NULL) == false)) {
     return false;
   }
@@ -78,15 +75,15 @@ static bool vertex_color_set(Object *ob, uint paintcol)
   const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
   const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 
-  mp = me->mpoly;
-  for (i = 0; i < me->totpoly; i++, mp++) {
+  const MPoly *mp = me->mpoly;
+  for (int i = 0; i < me->totpoly; i++, mp++) {
     MLoopCol *lcol = me->mloopcol + mp->loopstart;
 
     if (use_face_sel && !(mp->flag & ME_FACE_SEL)) {
       continue;
     }
 
-    j = 0;
+    int j = 0;
     do {
       uint vidx = me->mloop[mp->loopstart + j].v;
       if (!(use_vert_sel && !(me->mvert[vidx].flag & SELECT))) {
@@ -211,7 +208,6 @@ static void vertex_color_smooth_looptag(Mesh *me, const bool *mlooptag)
   const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
   const MPoly *mp;
   int(*scol)[4];
-  int i, j;
   bool has_shared = false;
 
   /* if no mloopcol: do not do */
@@ -223,11 +219,12 @@ static void vertex_color_smooth_looptag(Mesh *me, const bool *mlooptag)
 
   scol = MEM_callocN(sizeof(int) * me->totvert * 5, "scol");
 
+  int i;
   for (i = 0, mp = me->mpoly; i < me->totpoly; i++, mp++) {
     if ((use_face_sel == false) || (mp->flag & ME_FACE_SEL)) {
       const MLoop *ml = me->mloop + mp->loopstart;
       MLoopCol *lcol = me->mloopcol + mp->loopstart;
-      for (j = 0; j < mp->totloop; j++, ml++, lcol++) {
+      for (int j = 0; j < mp->totloop; j++, ml++, lcol++) {
         scol[ml->v][0] += lcol->r;
         scol[ml->v][1] += lcol->g;
         scol[ml->v][2] += lcol->b;
@@ -250,7 +247,7 @@ static void vertex_color_smooth_looptag(Mesh *me, const bool *mlooptag)
       if ((use_face_sel == false) || (mp->flag & ME_FACE_SEL)) {
         const MLoop *ml = me->mloop + mp->loopstart;
         MLoopCol *lcol = me->mloopcol + mp->loopstart;
-        for (j = 0; j < mp->totloop; j++, ml++, lcol++) {
+        for (int j = 0; j < mp->totloop; j++, ml++, lcol++) {
           if (mlooptag[mp->loopstart + j]) {
             lcol->r = scol[ml->v][0];
             lcol->g = scol[ml->v][1];

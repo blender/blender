@@ -153,21 +153,18 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
     Object *ob_src = CTX_data_active_object(C);
 
     if (ob_src) {
-      Mesh *me_eval;
-      int num_data, i;
-
       Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
       Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
 
       CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH;
       cddata_masks.lmask |= CD_MASK_MLOOPUV;
-      me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, &cddata_masks);
-      num_data = CustomData_number_of_layers(&me_eval->ldata, CD_MLOOPUV);
+      Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, &cddata_masks);
+      int num_data = CustomData_number_of_layers(&me_eval->ldata, CD_MLOOPUV);
 
       RNA_enum_item_add_separator(&item, &totitem);
 
-      for (i = 0; i < num_data; i++) {
+      for (int i = 0; i < num_data; i++) {
         tmp_item.value = i;
         tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(
             &me_eval->ldata, CD_MLOOPUV, i);
@@ -179,21 +176,18 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
     Object *ob_src = CTX_data_active_object(C);
 
     if (ob_src) {
-      Mesh *me_eval;
-      int num_data, i;
-
       Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
       Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
 
       CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH;
       cddata_masks.lmask |= CD_MASK_MLOOPCOL;
-      me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, &cddata_masks);
-      num_data = CustomData_number_of_layers(&me_eval->ldata, CD_MLOOPCOL);
+      Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_src_eval, &cddata_masks);
+      int num_data = CustomData_number_of_layers(&me_eval->ldata, CD_MLOOPCOL);
 
       RNA_enum_item_add_separator(&item, &totitem);
 
-      for (i = 0; i < num_data; i++) {
+      for (int i = 0; i < num_data; i++) {
         tmp_item.value = i;
         tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(
             &me_eval->ldata, CD_MLOOPCOL, i);

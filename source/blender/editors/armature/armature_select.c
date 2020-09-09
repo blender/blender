@@ -177,11 +177,10 @@ static void *ed_armature_pick_bone_from_selectbuffer_impl(const bool is_editmode
   void *firstunSel = NULL, *firstSel = NULL, *data;
   Base *firstunSel_base = NULL, *firstSel_base = NULL;
   uint hitresult;
-  short i;
   bool takeNext = false;
   int minsel = 0xffffffff, minunsel = 0xffffffff;
 
-  for (i = 0; i < hits; i++) {
+  for (short i = 0; i < hits; i++) {
     hitresult = buffer[3 + (i * 4)];
 
     if (hitresult & BONESEL_ANY) { /* to avoid including objects in selection */

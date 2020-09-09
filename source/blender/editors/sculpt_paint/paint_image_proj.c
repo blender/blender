@@ -2676,7 +2676,6 @@ static void project_bucket_clip_face(const bool is_ortho,
     /* calc center */
     float cent[2] = {0.0f, 0.0f};
     /*float up[2] = {0.0f, 1.0f};*/
-    int i;
     bool doubles;
 
     (*tot) = 0;
@@ -2757,7 +2756,7 @@ static void project_bucket_clip_face(const bool is_ortho,
 
     /* now we have all points we need, collect their angles and sort them clockwise */
 
-    for (i = 0; i < (*tot); i++) {
+    for (int i = 0; i < (*tot); i++) {
       cent[0] += isectVCosSS[i][0];
       cent[1] += isectVCosSS[i][1];
     }
@@ -2767,7 +2766,7 @@ static void project_bucket_clip_face(const bool is_ortho,
     /* Collect angles for every point around the center point */
 
 #if 0 /* uses a few more cycles then the above loop */
-    for (i = 0; i < (*tot); i++) {
+    for (int i = 0; i < (*tot); i++) {
       isectVCosSS[i][2] = angle_2d_clockwise(up, cent, isectVCosSS[i]);
     }
 #endif
@@ -2776,7 +2775,7 @@ static void project_bucket_clip_face(const bool is_ortho,
     v1_clipSS[0] = cent[0];
     v1_clipSS[1] = cent[1] + 1.0f;
 
-    for (i = 0; i < (*tot); i++) {
+    for (int i = 0; i < (*tot); i++) {
       v2_clipSS[0] = isectVCosSS[i][0] - cent[0];
       v2_clipSS[1] = isectVCosSS[i][1] - cent[1];
       isectVCosSS[i][2] = atan2f(v1_clipSS[0] * v2_clipSS[1] - v1_clipSS[1] * v2_clipSS[0],
@@ -2794,11 +2793,10 @@ static void project_bucket_clip_face(const bool is_ortho,
     while (doubles == true) {
       doubles = false;
 
-      for (i = 0; i < (*tot); i++) {
+      for (int i = 0; i < (*tot); i++) {
         if (fabsf(isectVCosSS[(i + 1) % *tot][0] - isectVCosSS[i][0]) < PROJ_PIXEL_TOLERANCE &&
             fabsf(isectVCosSS[(i + 1) % *tot][1] - isectVCosSS[i][1]) < PROJ_PIXEL_TOLERANCE) {
-          int j;
-          for (j = i; j < (*tot) - 1; j++) {
+          for (int j = i; j < (*tot) - 1; j++) {
             isectVCosSS[j][0] = isectVCosSS[j + 1][0];
             isectVCosSS[j][1] = isectVCosSS[j + 1][1];
           }
@@ -2817,13 +2815,13 @@ static void project_bucket_clip_face(const bool is_ortho,
     }
 
     if (is_ortho) {
-      for (i = 0; i < (*tot); i++) {
+      for (int i = 0; i < (*tot); i++) {
         barycentric_weights_v2(v1coSS, v2coSS, v3coSS, isectVCosSS[i], w);
         interp_v2_v2v2v2(bucket_bounds_uv[i], uv1co, uv2co, uv3co, w);
       }
     }
     else {
-      for (i = 0; i < (*tot); i++) {
+      for (int i = 0; i < (*tot); i++) {
         barycentric_weights_v2_persp(v1coSS, v2coSS, v3coSS, isectVCosSS[i], w);
         interp_v2_v2v2v2(bucket_bounds_uv[i], uv1co, uv2co, uv3co, w);
       }
@@ -2864,7 +2862,7 @@ static void project_bucket_clip_face(const bool is_ortho,
            uv3co[1]);
 
     printf("[");
-    for (i = 0; i < (*tot); i++) {
+    for (int i = 0; i < (*tot); i++) {
       printf("(%f, %f),", bucket_bounds_uv[i][0], bucket_bounds_uv[i][1]);
     }
     printf("]),\\\n");
@@ -5874,8 +5872,6 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
   ProjStrokeHandle *ps_handle;
   Scene *scene = CTX_data_scene(C);
   ToolSettings *settings = scene->toolsettings;
-  int i;
-  bool is_multi_view;
   char symmetry_flag_views[ARRAY_SIZE(ps_handle->ps_views)] = {0};
 
   ps_handle = MEM_callocN(sizeof(ProjStrokeHandle), "ProjStrokeHandle");
@@ -5893,9 +5889,9 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
 
   ps_handle->symmetry_flags = settings->imapaint.paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
   ps_handle->ps_views_tot = 1 + (pow_i(2, count_bits_i(ps_handle->symmetry_flags)) - 1);
-  is_multi_view = (ps_handle->ps_views_tot != 1);
+  bool is_multi_view = (ps_handle->ps_views_tot != 1);
 
-  for (i = 0; i < ps_handle->ps_views_tot; i++) {
+  for (int i = 0; i < ps_handle->ps_views_tot; i++) {
     ProjPaintState *ps = MEM_callocN(sizeof(ProjPaintState), "ProjectionPaintState");
     ps_handle->ps_views[i] = ps;
   }
@@ -5918,7 +5914,7 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
     BLI_assert(index == ps_handle->ps_views_tot);
   }
 
-  for (i = 0; i < ps_handle->ps_views_tot; i++) {
+  for (int i = 0; i < ps_handle->ps_views_tot; i++) {
     ProjPaintState *ps = ps_handle->ps_views[i];
 
     project_state_init(C, ob, ps, mode);
@@ -5936,7 +5932,7 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
 
   /* allocate and initialize spatial data structures */
 
-  for (i = 0; i < ps_handle->ps_views_tot; i++) {
+  for (int i = 0; i < ps_handle->ps_views_tot; i++) {
     ProjPaintState *ps = ps_handle->ps_views[i];
 
     ps->source = (ps->tool == PAINT_TOOL_FILL) ? PROJ_SRC_VIEW_FILL : PROJ_SRC_VIEW;
@@ -5961,7 +5957,7 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
   return ps_handle;
 
 fail:
-  for (i = 0; i < ps_handle->ps_views_tot; i++) {
+  for (int i = 0; i < ps_handle->ps_views_tot; i++) {
     ProjPaintState *ps = ps_handle->ps_views[i];
     MEM_freeN(ps);
   }

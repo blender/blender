@@ -2914,9 +2914,9 @@ typedef struct SetSelection {
 
 static int flatten_width(SpaceText *st, const char *str)
 {
-  int i, total = 0;
+  int total = 0;
 
-  for (i = 0; str[i]; i += BLI_str_utf8_size_safe(str + i)) {
+  for (int i = 0; str[i]; i += BLI_str_utf8_size_safe(str + i)) {
     if (str[i] == '\t') {
       total += st->tabnumber - total % st->tabnumber;
     }

@@ -108,7 +108,6 @@ void delete_fcurve_key(FCurve *fcu, int index, bool do_recalc)
 /* Delete selected keyframes in given F-Curve */
 bool delete_fcurve_keys(FCurve *fcu)
 {
-  int i;
   bool changed = false;
 
   if (fcu->bezt == NULL) { /* ignore baked curves */
@@ -116,7 +115,7 @@ bool delete_fcurve_keys(FCurve *fcu)
   }
 
   /* Delete selected BezTriples */
-  for (i = 0; i < fcu->totvert; i++) {
+  for (int i = 0; i < fcu->totvert; i++) {
     if (fcu->bezt[i].f2 & SELECT) {
       memmove(&fcu->bezt[i], &fcu->bezt[i + 1], sizeof(BezTriple) * (fcu->totvert - i - 1));
       fcu->totvert--;
@@ -148,19 +147,16 @@ void clear_fcurve_keys(FCurve *fcu)
 /* duplicate selected keyframes for the given F-Curve */
 void duplicate_fcurve_keys(FCurve *fcu)
 {
-  BezTriple *newbezt;
-  int i;
-
   /* this can only work when there is an F-Curve, and also when there are some BezTriples */
   if (ELEM(NULL, fcu, fcu->bezt)) {
     return;
   }
 
-  for (i = 0; i < fcu->totvert; i++) {
+  for (int i = 0; i < fcu->totvert; i++) {
     /* If a key is selected */
     if (fcu->bezt[i].f2 & SELECT) {
       /* Expand the list */
-      newbezt = MEM_callocN(sizeof(BezTriple) * (fcu->totvert + 1), "beztriple");
+      BezTriple *newbezt = MEM_callocN(sizeof(BezTriple) * (fcu->totvert + 1), "beztriple");
 
       memcpy(newbezt, fcu->bezt, sizeof(BezTriple) * (i + 1));
       memcpy(newbezt + i + 1, fcu->bezt + i, sizeof(BezTriple));
@@ -489,16 +485,15 @@ typedef struct tSmooth_Bezt {
 // TODO: introduce scaling factor for weighting falloff
 void smooth_fcurve(FCurve *fcu)
 {
-  BezTriple *bezt;
-  int i, x, totSel = 0;
+  int totSel = 0;
 
   if (fcu->bezt == NULL) {
     return;
   }
 
   /* first loop through - count how many verts are selected */
-  bezt = fcu->bezt;
-  for (i = 0; i < fcu->totvert; i++, bezt++) {
+  BezTriple *bezt = fcu->bezt;
+  for (int i = 0; i < fcu->totvert; i++, bezt++) {
     if (BEZT_ISSEL_ANY(bezt)) {
       totSel++;
     }
@@ -513,7 +508,7 @@ void smooth_fcurve(FCurve *fcu)
 
     /* populate tarray with data of selected points */
     bezt = fcu->bezt;
-    for (i = 0, x = 0; (i < fcu->totvert) && (x < totSel); i++, bezt++) {
+    for (int i = 0, x = 0; (i < fcu->totvert) && (x < totSel); i++, bezt++) {
       if (BEZT_ISSEL_ANY(bezt)) {
         /* tsb simply needs pointer to vec, and index */
         tsb->h1 = &bezt->vec[0][1];
@@ -539,7 +534,7 @@ void smooth_fcurve(FCurve *fcu)
 
     /* round 1: calculate smoothing deltas and new values */
     tsb = tarray;
-    for (i = 0; i < totSel; i++, tsb++) {
+    for (int i = 0; i < totSel; i++, tsb++) {
       /* Don't touch end points (otherwise, curves slowly explode,
        * as we don't have enough data there). */
       if (ELEM(i, 0, (totSel - 1)) == 0) {
@@ -564,7 +559,7 @@ void smooth_fcurve(FCurve *fcu)
 
     /* round 2: apply new values */
     tsb = tarray;
-    for (i = 0; i < totSel; i++, tsb++) {
+    for (int i = 0; i < totSel; i++, tsb++) {
       /* don't touch end points, as their values weren't touched above */
       if (ELEM(i, 0, (totSel - 1)) == 0) {
         /* y2 takes the average of the 2 points */

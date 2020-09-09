@@ -177,9 +177,6 @@ void LATTICE_OT_select_random(wmOperatorType *ot)
 static void ed_lattice_select_mirrored(Lattice *lt, const int axis, const bool extend)
 {
   const int tot = lt->pntsu * lt->pntsv * lt->pntsw;
-  int i;
-  BPoint *bp;
-  BLI_bitmap *selpoints;
 
   bool flip_uvw[3] = {false};
   flip_uvw[axis] = true;
@@ -190,13 +187,13 @@ static void ed_lattice_select_mirrored(Lattice *lt, const int axis, const bool e
   }
 
   /* store "original" selection */
-  selpoints = BLI_BITMAP_NEW(tot, __func__);
+  BLI_bitmap *selpoints = BLI_BITMAP_NEW(tot, __func__);
   BKE_lattice_bitmap_from_flag(lt, selpoints, SELECT, false, false);
 
   /* actual (de)selection */
-  for (i = 0; i < tot; i++) {
+  for (int i = 0; i < tot; i++) {
     const int i_flip = BKE_lattice_index_flip(lt, i, flip_uvw[0], flip_uvw[1], flip_uvw[2]);
-    bp = &lt->def[i];
+    BPoint *bp = &lt->def[i];
     if (!bp->hide) {
       if (BLI_BITMAP_TEST(selpoints, i_flip)) {
         bp->f1 |= SELECT;

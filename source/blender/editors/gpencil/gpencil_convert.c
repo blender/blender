@@ -371,10 +371,9 @@ static void gpencil_stroke_path_animation_preprocess_gaps(tGpTimingData *gtd,
                                                           int *nbr_gaps,
                                                           float *tot_gaps_time)
 {
-  int i;
   float delta_time = 0.0f;
 
-  for (i = 0; i < gtd->num_points; i++) {
+  for (int i = 0; i < gtd->num_points; i++) {
     if (gtd->times[i] < 0 && i) {
       (*nbr_gaps)++;
       gtd->times[i] = -gtd->times[i] - delta_time;
@@ -420,14 +419,11 @@ static void gpencil_stroke_path_animation_add_keyframes(ReportList *reports,
   float delta_time = 0.0f, next_delta_time = 0.0f;
   int nbr_done_gaps = 0;
 
-  int i;
-  float cfra;
-
   /* This is a bit tricky, as:
    * - We can't add arbitrarily close points on FCurve (in time).
    * - We *must* have all "caps" points of all strokes in FCurve, as much as possible!
    */
-  for (i = 0; i < gtd->num_points; i++) {
+  for (int i = 0; i < gtd->num_points; i++) {
     /* If new stroke... */
     if (i > end_stroke_idx) {
       start_stroke_idx = i;
@@ -442,7 +438,7 @@ static void gpencil_stroke_path_animation_add_keyframes(ReportList *reports,
 
     /* Simple proportional stuff... */
     cu->ctime = gtd->dists[i] / gtd->tot_dist * cu->pathlen;
-    cfra = time_start + ((gtd->times[i] + delta_time) / gtd->tot_time * time_range);
+    float cfra = time_start + ((gtd->times[i] + delta_time) / gtd->tot_time * time_range);
 
     /* And now, the checks about timing... */
     if (i == start_stroke_idx) {
@@ -527,7 +523,7 @@ static void gpencil_stroke_path_animation(bContext *C,
   FCurve *fcu;
   PointerRNA ptr;
   PropertyRNA *prop = NULL;
-  int nbr_gaps = 0, i;
+  int nbr_gaps = 0;
 
   if (gtd->mode == GP_STROKECONVERT_TIMING_NONE) {
     return;
@@ -551,7 +547,7 @@ static void gpencil_stroke_path_animation(bContext *C,
 
   if (G.debug & G_DEBUG) {
     printf("%s: tot len: %f\t\ttot time: %f\n", __func__, gtd->tot_dist, gtd->tot_time);
-    for (i = 0; i < gtd->num_points; i++) {
+    for (int i = 0; i < gtd->num_points; i++) {
       printf("\tpoint %d:\t\tlen: %f\t\ttime: %f\n", i, gtd->dists[i], gtd->times[i]);
     }
   }
@@ -628,7 +624,7 @@ static void gpencil_stroke_path_animation(bContext *C,
 
   if (G.debug & G_DEBUG) {
     printf("%s: \ntot len: %f\t\ttot time: %f\n", __func__, gtd->tot_dist, gtd->tot_time);
-    for (i = 0; i < gtd->num_points; i++) {
+    for (int i = 0; i < gtd->num_points; i++) {
       printf("\tpoint %d:\t\tlen: %f\t\ttime: %f\n", i, gtd->dists[i], gtd->times[i]);
     }
     printf("\n\n");
@@ -1251,12 +1247,10 @@ static void gpencil_stroke_finalize_curve_endpoints(Curve *cu)
 
 static void gpencil_stroke_norm_curve_weights(Curve *cu, const float minmax_weights[2])
 {
-  Nurb *nu;
   const float delta = minmax_weights[0];
-  float fac;
-  int i;
 
   /* when delta == minmax_weights[0] == minmax_weights[1], we get div by zero [#35686] */
+  float fac;
   if (IS_EQF(delta, minmax_weights[1])) {
     fac = 1.0f;
   }
@@ -1264,16 +1258,16 @@ static void gpencil_stroke_norm_curve_weights(Curve *cu, const float minmax_weig
     fac = 1.0f / (minmax_weights[1] - delta);
   }
 
-  for (nu = cu->nurb.first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
     if (nu->bezt) {
       BezTriple *bezt = nu->bezt;
-      for (i = 0; i < nu->pntsu; i++, bezt++) {
+      for (int i = 0; i < nu->pntsu; i++, bezt++) {
         bezt->weight = (bezt->weight - delta) * fac;
       }
     }
     else if (nu->bp) {
       BPoint *bp = nu->bp;
-      for (i = 0; i < nu->pntsu; i++, bp++) {
+      for (int i = 0; i < nu->pntsu; i++, bp++) {
         bp->weight = (bp->weight - delta) * fac;
       }
     }

@@ -871,16 +871,11 @@ static void draw_marker_areas(SpaceClip *sc,
 
 static float get_shortest_pattern_side(MovieTrackingMarker *marker)
 {
-  int i, next;
   float len_sq = FLT_MAX;
 
-  for (i = 0; i < 4; i++) {
-    float cur_len;
-
-    next = (i + 1) % 4;
-
-    cur_len = len_squared_v2v2(marker->pattern_corners[i], marker->pattern_corners[next]);
-
+  for (int i = 0; i < 4; i++) {
+    int next = (i + 1) % 4;
+    float cur_len = len_squared_v2v2(marker->pattern_corners[i], marker->pattern_corners[next]);
     len_sq = min_ff(cur_len, len_sq);
   }
 
@@ -983,7 +978,6 @@ static void draw_marker_slide_zones(SpaceClip *sc,
   }
 
   if ((sc->flag & SC_SHOW_MARKER_PATTERN) && ((track->pat_flag & SELECT) == sel || outline)) {
-    int i;
     float pat_min[2], pat_max[2];
     /*      float dx = 12.0f / width, dy = 12.0f / height;*/ /* XXX UNUSED */
     float tilt_ctrl[2];
@@ -993,7 +987,7 @@ static void draw_marker_slide_zones(SpaceClip *sc,
     }
 
     /* pattern's corners sliding squares */
-    for (i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++) {
       draw_marker_slide_square(marker->pattern_corners[i][0],
                                marker->pattern_corners[i][1],
                                patdx / 1.5f,
@@ -1381,8 +1375,7 @@ static void draw_plane_marker_ex(SpaceClip *sc,
         immUniformColor3fv(selected_color);
       }
 
-      int i;
-      for (i = 0; i < 4; i++) {
+      for (int i = 0; i < 4; i++) {
         draw_marker_slide_square(plane_marker->corners[i][0],
                                  plane_marker->corners[i][1],
                                  3.0f * px[0],

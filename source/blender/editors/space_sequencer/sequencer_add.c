@@ -823,7 +823,6 @@ int sequencer_image_seq_get_minmax_frame(wmOperator *op,
 void sequencer_image_seq_reserve_frames(
     wmOperator *op, StripElem *se, int len, int minframe, int numdigits)
 {
-  int i;
   char *filename = NULL;
   RNA_BEGIN (op->ptr, itemptr, "files") {
     filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0);
@@ -837,7 +836,7 @@ void sequencer_image_seq_reserve_frames(
     /* Strip the frame from filename and substitute with `#`. */
     BLI_path_frame_strip(filename, ext);
 
-    for (i = 0; i < len; i++, se++) {
+    for (int i = 0; i < len; i++, se++) {
       BLI_strncpy(filename_stripped, filename, sizeof(filename_stripped));
       BLI_path_frame(filename_stripped, minframe + i, numdigits);
       BLI_snprintf(se->name, sizeof(se->name), "%s%s", filename_stripped, ext);

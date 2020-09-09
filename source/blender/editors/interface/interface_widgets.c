@@ -5002,12 +5002,7 @@ static void draw_disk_shaded(float start,
                              bool shaded)
 {
   const float radius_ext_scale = (0.5f / radius_ext); /* 1 / (2 * radius_ext) */
-  int i;
 
-  float s, c;
-  float y1, y2;
-  float fac;
-  uchar r_col[4];
   uint pos, col;
 
   GPUVertFormat *format = immVertexFormat();
@@ -5022,24 +5017,24 @@ static void draw_disk_shaded(float start,
   }
 
   immBegin(GPU_PRIM_TRI_STRIP, subd * 2);
-  for (i = 0; i < subd; i++) {
-    float a;
-
-    a = start + ((i) / (float)(subd - 1)) * angle;
-    s = sinf(a);
-    c = cosf(a);
-    y1 = s * radius_int;
-    y2 = s * radius_ext;
+  for (int i = 0; i < subd; i++) {
+    float a = start + ((i) / (float)(subd - 1)) * angle;
+    float s = sinf(a);
+    float c = cosf(a);
+    float y1 = s * radius_int;
+    float y2 = s * radius_ext;
 
     if (shaded) {
-      fac = (y1 + radius_ext) * radius_ext_scale;
+      uchar r_col[4];
+      float fac = (y1 + radius_ext) * radius_ext_scale;
       color_blend_v4_v4v4(r_col, col1, col2, fac);
       immAttr4ubv(col, r_col);
     }
     immVertex2f(pos, c * radius_int, s * radius_int);
 
     if (shaded) {
-      fac = (y2 + radius_ext) * radius_ext_scale;
+      uchar r_col[4];
+      float fac = (y2 + radius_ext) * radius_ext_scale;
       color_blend_v4_v4v4(r_col, col1, col2, fac);
       immAttr4ubv(col, r_col);
     }

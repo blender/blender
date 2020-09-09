@@ -333,10 +333,9 @@ static bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
   else if (ob_act && (ob_act->mode & OB_MODE_EDIT) && (ob_act->type == OB_FONT)) {
     Curve *cu = ob_act_eval->data;
     EditFont *ef = cu->editfont;
-    int i;
 
     zero_v3(lastofs);
-    for (i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++) {
       add_v2_v2(lastofs, ef->textcurs[i]);
     }
     mul_v2_fl(lastofs, 1.0f / 4.0f);
@@ -4877,11 +4876,10 @@ static void calc_local_clipping(float clip_local[6][4],
 {
   BoundBox clipbb_local;
   float imat[4][4];
-  int i;
 
   invert_m4_m4(imat, mat);
 
-  for (i = 0; i < 8; i++) {
+  for (int i = 0; i < 8; i++) {
     mul_v3_m4v3(clipbb_local.vec[i], imat, clipbb->vec[i]);
   }
 

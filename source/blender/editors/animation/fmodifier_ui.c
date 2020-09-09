@@ -177,7 +177,6 @@ static void draw_modifier__generator(uiLayout *layout,
       const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
       float *cp = NULL;
       char xval[32];
-      uint i;
       int maxXWidth;
 
       /* draw polynomial order selector */
@@ -221,7 +220,7 @@ static void draw_modifier__generator(uiLayout *layout,
       UI_block_func_set(block, deg_update, fcurve_owner_id, NULL);
 
       cp = data->coefficients;
-      for (i = 0; (i < data->arraysize) && (cp); i++, cp++) {
+      for (uint i = 0; (i < data->arraysize) && (cp); i++, cp++) {
         /* To align with first line... */
         if (i) {
           uiDefBut(block,
@@ -319,7 +318,6 @@ static void draw_modifier__generator(uiLayout *layout,
     case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* Factorized polynomial expression */
     {
       float *cp = NULL;
-      uint i;
 
       /* draw polynomial order selector */
       row = uiLayoutRow(layout, false);
@@ -351,7 +349,7 @@ static void draw_modifier__generator(uiLayout *layout,
       UI_block_func_set(block, deg_update, fcurve_owner_id, NULL);
 
       cp = data->coefficients;
-      for (i = 0; (i < data->poly_order) && (cp); i++, cp += 2) {
+      for (uint i = 0; (i < data->poly_order) && (cp); i++, cp += 2) {
         /* To align with first line */
         if (i) {
           uiDefBut(block,
