@@ -439,8 +439,12 @@ if(WIN32)
 endif()
 
 # This should be turned off when Blender enter beta/rc/release
-option(WITH_EXPERIMENTAL_FEATURES "Enable experimental features (still need to enable them in the user preferences)" ON)
-mark_as_advanced(WITH_EXPERIMENTAL_FEATURES)
+if("${BLENDER_VERSION_CYCLE}" STREQUAL "release" OR
+   "${BLENDER_VERSION_CYCLE}" STREQUAL "rc")
+  set(WITH_EXPERIMENTAL_FEATURES OFF)
+else()
+  set(WITH_EXPERIMENTAL_FEATURES ON)
+endif()
 
 # Unit testsing
 option(WITH_GTESTS "Enable GTest unit testing" OFF)
