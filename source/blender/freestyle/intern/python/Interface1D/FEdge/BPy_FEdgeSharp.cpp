@@ -36,7 +36,7 @@ PyDoc_STRVAR(FEdgeSharp_doc,
              "\n"
              "Class defining a sharp FEdge.  A Sharp FEdge corresponds to an initial\n"
              "edge of the input mesh.  It can be a silhouette, a crease or a border.\n"
-             "If it is a crease edge, then it is borded by two faces of the mesh.\n"
+             "If it is a crease edge, then it is bordered by two faces of the mesh.\n"
              "Face a lies on its right whereas Face b lies on its left.  If it is a\n"
              "border edge, then it doesn't have any face on its right, and thus Face\n"
              "a is None.\n"

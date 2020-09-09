@@ -61,7 +61,7 @@ typedef struct TextFormatType {
   char (*format_identifier)(const char *string);
 
   /* Formats the specified line. If do_next is set, the process will move on to
-   * the succeeding line if it is affected (eg. multiline strings). Format strings
+   * the succeeding line if it is affected (eg. multi-line strings). Format strings
    * may contain any of the following characters:
    *
    * It is terminated with a null-terminator '\0' followed by a continuation

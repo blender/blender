@@ -261,7 +261,7 @@ static void construct_param_handle_face_add(ParamHandle *handle,
   key = (ParamKey)face_index;
 
   /* let parametrizer split the ngon, it can make better decisions
-   * about which split is best for unwrapping than scanfill */
+   * about which split is best for unwrapping than poly-fill. */
   BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
     MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 

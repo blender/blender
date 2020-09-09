@@ -34,7 +34,7 @@ static char ExternalContourUP1D___doc__[] =
     ".. method:: __call__(inter)\n"
     "\n"
     "   Returns true if the Interface1D is an external contour.  An\n"
-    "   Interface1D is an external contour if it is borded by no shape on\n"
+    "   Interface1D is an external contour if it is bordered by no shape on\n"
     "   one of its sides.\n"
     "\n"
     "   :arg inter: An Interface1D object.\n"

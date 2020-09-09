@@ -218,7 +218,7 @@ class QuantitativeInvisibilityUP1D : public UnaryPredicate1D {
 
 // ContourUP1D
 /*! Returns true if the Interface1D is a contour.
- *  An Interface1D is a contour if it is borded by a different shape on each of its sides.
+ *  An Interface1D is a contour if it is bordered by a different shape on each of its sides.
  */
 class ContourUP1D : public UnaryPredicate1D {
  private:
@@ -253,7 +253,7 @@ class ContourUP1D : public UnaryPredicate1D {
 
 // ExternalContourUP1D
 /*! Returns true if the Interface1D is an external contour.
- *  An Interface1D is an external contour if it is borded by no shape on one of its sides.
+ *  An Interface1D is an external contour if it is bordered by no shape on one of its sides.
  */
 class ExternalContourUP1D : public UnaryPredicate1D {
  private:

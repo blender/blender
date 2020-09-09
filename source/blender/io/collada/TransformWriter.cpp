@@ -66,7 +66,7 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node &node,
   bool limit_precision = export_settings.get_limit_precision();
 
   /* Export the local Matrix (relative to the object parent,
-   * be it an object, bone or vertex(-tices)). */
+   * be it an object, bone or vertices (one or more)). */
   Matrix f_obmat;
   BKE_object_matrix_local_get(ob, f_obmat);
 

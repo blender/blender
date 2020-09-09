@@ -20,7 +20,7 @@
 /** \file
  * \ingroup depsgraph
  *
- * Evaluation engine entrypoints for Depsgraph Engine.
+ * Evaluation engine entry-points for Depsgraph Engine.
  */
 
 #pragma once

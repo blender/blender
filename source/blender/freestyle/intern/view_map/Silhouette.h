@@ -1139,7 +1139,7 @@ Interface0DIterator FEdge::pointsEnd(float /*t*/)
 }
 
 /*! Class defining a sharp FEdge. A Sharp FEdge corresponds to an initial edge of the input mesh.
- *  It can be a silhouette, a crease or a border. If it is a crease edge, then it is borded
+ *  It can be a silhouette, a crease or a border. If it is a crease edge, then it is bordered
  *  by two faces of the mesh. Face a lies on its right whereas Face b lies on its left.
  *  If it is a border edge, then it doesn't have any face on its right, and thus Face a = 0.
  */
