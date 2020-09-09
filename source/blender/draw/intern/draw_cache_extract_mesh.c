@@ -152,8 +152,8 @@ static MeshRenderData *mesh_render_data_create(Mesh *me,
     BLI_assert(me->edit_mesh->mesh_eval_cage && me->edit_mesh->mesh_eval_final);
     mr->bm = me->edit_mesh->bm;
     mr->edit_bmesh = me->edit_mesh;
-    mr->edit_data = is_mode_active ? mr->me->runtime.edit_data : NULL;
     mr->me = (do_final) ? me->edit_mesh->mesh_eval_final : me->edit_mesh->mesh_eval_cage;
+    mr->edit_data = is_mode_active ? mr->me->runtime.edit_data : NULL;
 
     bool use_mapped = is_mode_active && (!do_uvedit && mr->me && !mr->me->runtime.is_original);
 
