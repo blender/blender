@@ -364,6 +364,29 @@ class IMAGE_MT_uvs_split(Menu):
         layout.operator("uv.select_split", text="Selection")
 
 
+class IMAGE_MT_uvs_unwrap(Menu):
+    bl_label = "Unwrap"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("uv.unwrap")
+
+        layout.separator()
+
+        layout.operator_context = 'INVOKE_DEFAULT'
+        layout.operator("uv.smart_project")
+        layout.operator("uv.lightmap_pack")
+        layout.operator("uv.follow_active_quads")
+
+        layout.separator()
+
+        layout.operator_context = 'EXEC_REGION_WIN'
+        layout.operator("uv.cube_project")
+        layout.operator("uv.cylinder_project")
+        layout.operator("uv.sphere_project")
+
+
 class IMAGE_MT_uvs(Menu):
     bl_label = "UV"
 
@@ -388,7 +411,7 @@ class IMAGE_MT_uvs(Menu):
         layout.separator()
 
         layout.prop(uv, "use_live_unwrap")
-        layout.operator("uv.unwrap")
+        layout.menu("IMAGE_MT_uvs_unwrap")
 
         layout.separator()
 
@@ -1508,6 +1531,7 @@ classes = (
     IMAGE_MT_uvs_align,
     IMAGE_MT_uvs_merge,
     IMAGE_MT_uvs_split,
+    IMAGE_MT_uvs_unwrap,
     IMAGE_MT_uvs_select_mode,
     IMAGE_MT_uvs_context_menu,
     IMAGE_MT_mask_context_menu,

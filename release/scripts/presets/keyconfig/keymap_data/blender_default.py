@@ -897,7 +897,7 @@ def km_uv_editor(params):
          {"properties": [("clear", False)]}),
         ("uv.pin", {"type": 'P', "value": 'PRESS', "alt": True},
          {"properties": [("clear", True)]}),
-        ("uv.unwrap", {"type": 'U', "value": 'PRESS'}, None),
+        op_menu("IMAGE_MT_uvs_unwrap", {"type": 'U', "value": 'PRESS'}),
         ("uv.hide", {"type": 'H', "value": 'PRESS'},
          {"properties": [("unselected", False)]}),
         ("uv.hide", {"type": 'H', "value": 'PRESS', "shift": True},
