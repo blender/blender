@@ -62,17 +62,28 @@ static ePhysicsRelationType modifier_to_relation_type(unsigned int modifier_type
   BLI_assert(!"Unknown collision modifier type");
   return DEG_PHYSICS_RELATIONS_NUM;
 }
+/* Get ID from an ID type object, in a safe manner. This means that object can be nullptr,
+ * in which case the function returns nullptr.
+ */
+template<class T> static ID *object_id_safe(T *object)
+{
+  if (object == nullptr) {
+    return nullptr;
+  }
+  return &object->id;
+}
 
 ListBase *DEG_get_effector_relations(const Depsgraph *graph, Collection *collection)
 {
   const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(graph);
-  if (deg_graph->physics_relations[DEG_PHYSICS_EFFECTOR] == nullptr) {
+  blender::Map<const ID *, ListBase *> *hash = deg_graph->physics_relations[DEG_PHYSICS_EFFECTOR];
+  if (hash == nullptr) {
     return nullptr;
   }
-
-  ID *collection_orig = DEG_get_original_id(&collection->id);
-  return deg_graph->physics_relations[DEG_PHYSICS_EFFECTOR]->lookup_default(collection_orig,
-                                                                            nullptr);
+  /* Note: nullptr is a valid loolup key here as it means that the relation is not bound to a
+   * specific collection. */
+  ID *collection_orig = DEG_get_original_id(object_id_safe(collection));
+  return hash->lookup_default(collection_orig, nullptr);
 }
 
 ListBase *DEG_get_collision_relations(const Depsgraph *graph,
@@ -81,11 +92,14 @@ ListBase *DEG_get_collision_relations(const Depsgraph *graph,
 {
   const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(graph);
   const ePhysicsRelationType type = modifier_to_relation_type(modifier_type);
-  if (deg_graph->physics_relations[type] == nullptr) {
+  blender::Map<const ID *, ListBase *> *hash = deg_graph->physics_relations[type];
+  if (hash == nullptr) {
     return nullptr;
   }
-  ID *collection_orig = DEG_get_original_id(&collection->id);
-  return deg_graph->physics_relations[type]->lookup_default(collection_orig, nullptr);
+  /* Note: nullptr is a valid loolup key here as it means that the relation is not bound to a
+   * specific collection. */
+  ID *collection_orig = DEG_get_original_id(object_id_safe(collection));
+  return hash->lookup_default(collection_orig, nullptr);
 }
 
 /********************** Depsgraph Building API ************************/
@@ -170,7 +184,12 @@ ListBase *build_effector_relations(Depsgraph *graph, Collection *collection)
     graph->physics_relations[DEG_PHYSICS_EFFECTOR] = new Map<const ID *, ListBase *>();
     hash = graph->physics_relations[DEG_PHYSICS_EFFECTOR];
   }
-  return hash->lookup_or_add_cb(&collection->id, [&]() {
+  /* If collection is nullptr still use it as a key.
+   * In this case the BKE_effector_relations_create() will create relates for all bases in the
+   * view layer.
+   */
+  ID *collection_id = object_id_safe(collection);
+  return hash->lookup_or_add_cb(collection_id, [&]() {
     ::Depsgraph *depsgraph = reinterpret_cast<::Depsgraph *>(graph);
     return BKE_effector_relations_create(depsgraph, graph->view_layer, collection);
   });
@@ -186,7 +205,12 @@ ListBase *build_collision_relations(Depsgraph *graph,
     graph->physics_relations[type] = new Map<const ID *, ListBase *>();
     hash = graph->physics_relations[type];
   }
-  return hash->lookup_or_add_cb(&collection->id, [&]() {
+  /* If collection is nullptr still use it as a key.
+   * In this case the BKE_collision_relations_create() will create relates for all bases in the
+   * view layer.
+   */
+  ID *collection_id = object_id_safe(collection);
+  return hash->lookup_or_add_cb(collection_id, [&]() {
     ::Depsgraph *depsgraph = reinterpret_cast<::Depsgraph *>(graph);
     return BKE_collision_relations_create(depsgraph, collection, modifier_type);
   });
