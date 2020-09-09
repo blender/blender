@@ -99,7 +99,7 @@ void BKE_main_collection_sync(const struct Main *bmain);
 void BKE_scene_collection_sync(const struct Scene *scene);
 void BKE_layer_collection_sync(const struct Scene *scene, struct ViewLayer *view_layer);
 void BKE_layer_collection_local_sync(struct ViewLayer *view_layer, const struct View3D *v3d);
-void BKE_layer_collection_local_sync_all(struct Main *bmain);
+void BKE_layer_collection_local_sync_all(const struct Main *bmain);
 
 void BKE_main_collection_sync_remap(const struct Main *bmain);
 
