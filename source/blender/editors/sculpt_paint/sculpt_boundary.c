@@ -501,6 +501,10 @@ SculptBoundary *SCULPT_boundary_data_init(Object *object,
 {
   SculptSession *ss = object->sculpt;
 
+  if (initial_vertex == BOUNDARY_VERTEX_NONE) {
+    return NULL;
+  }
+
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_boundary_info_ensure(object);
 
