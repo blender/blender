@@ -32,6 +32,7 @@
 #include "BLI_math.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_string_search.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
@@ -1163,6 +1164,16 @@ void NODE_OT_select_same_type_step(wmOperatorType *ot)
 /** \name Find Node by Name Operator
  * \{ */
 
+static void node_find_create_label(const bNode *node, char *str, int maxlen)
+{
+  if (node->label[0]) {
+    BLI_snprintf(str, maxlen, "%s (%s)", node->name, node->label);
+  }
+  else {
+    BLI_strncpy(str, node->name, maxlen);
+  }
+}
+
 /* generic  search invoke */
 static void node_find_update_fn(const struct bContext *C,
                                 void *UNUSED(arg),
@@ -1170,30 +1181,29 @@ static void node_find_update_fn(const struct bContext *C,
                                 uiSearchItems *items)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
-  bNode *node;
 
-  /* Prepare BLI_string_all_words_matched. */
-  const size_t str_len = strlen(str);
-  const int words_max = BLI_string_max_possible_word_count(str_len);
-  int(*words)[2] = BLI_array_alloca(words, words_max);
-  const int words_len = BLI_string_find_split_words(str, str_len, ' ', words, words_max);
+  StringSearch *search = BLI_string_search_new();
 
-  for (node = snode->edittree->nodes.first; node; node = node->next) {
-    if (BLI_string_all_words_matched(node->name, str, words, words_len) ||
-        BLI_string_all_words_matched(node->label, str, words, words_len)) {
-      char name[256];
+  LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
+    char name[256];
+    node_find_create_label(node, name, ARRAY_SIZE(name));
+    BLI_string_search_add(search, name, node);
+  }
 
-      if (node->label[0]) {
-        BLI_snprintf(name, 256, "%s (%s)", node->name, node->label);
-      }
-      else {
-        BLI_strncpy(name, node->name, 256);
-      }
-      if (!UI_search_item_add(items, name, node, ICON_NONE, 0, 0)) {
-        break;
-      }
+  bNode **filtered_nodes;
+  int filtered_amount = BLI_string_search_query(search, str, (void ***)&filtered_nodes);
+
+  for (int i = 0; i < filtered_amount; i++) {
+    bNode *node = filtered_nodes[i];
+    char name[256];
+    node_find_create_label(node, name, ARRAY_SIZE(name));
+    if (!UI_search_item_add(items, name, node, ICON_NONE, 0, 0)) {
+      break;
     }
   }
+
+  MEM_freeN(filtered_nodes);
+  BLI_string_search_free(search);
 }
 
 static void node_find_exec_fn(struct bContext *C, void *UNUSED(arg1), void *arg2)

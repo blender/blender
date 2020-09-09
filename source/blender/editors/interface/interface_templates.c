@@ -44,6 +44,7 @@
 #include "BLI_path_util.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_string_search.h"
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"
 
@@ -330,67 +331,61 @@ static void template_ID_set_property_exec_fn(bContext *C, void *arg_template, vo
   }
 }
 
-static bool id_search_add(const bContext *C,
-                          TemplateID *template_ui,
-                          const int flag,
-                          const char *str,
-                          uiSearchItems *items,
-                          ID *id)
+static bool id_search_allows_id(TemplateID *template_ui, const int flag, ID *id, const char *query)
 {
   ID *id_from = template_ui->ptr.owner_id;
 
-  if (!((flag & PROP_ID_SELF_CHECK) && id == id_from)) {
+  /* Do self check. */
+  if ((flag & PROP_ID_SELF_CHECK) && id == id_from) {
+    return false;
+  }
 
-    /* use filter */
-    if (RNA_property_type(template_ui->prop) == PROP_POINTER) {
-      PointerRNA ptr;
-      RNA_id_pointer_create(id, &ptr);
-      if (RNA_property_pointer_poll(&template_ui->ptr, template_ui->prop, &ptr) == 0) {
-        return true;
-      }
-    }
-
-    /* hide dot-datablocks, but only if filter does not force it visible */
-    if (U.uiflag & USER_HIDE_DOT) {
-      if ((id->name[2] == '.') && (str[0] != '.')) {
-        return true;
-      }
-    }
-
-    /* Prepare BLI_string_all_words_matched. */
-    const size_t str_len = strlen(str);
-    const int words_max = BLI_string_max_possible_word_count(str_len);
-    int(*words)[2] = BLI_array_alloca(words, words_max);
-    const int words_len = BLI_string_find_split_words(str, str_len, ' ', words, words_max);
-
-    if (*str == '\0' || BLI_string_all_words_matched(id->name + 2, str, words, words_len)) {
-      /* +1 is needed because BKE_id_ui_prefix used 3 letter prefix
-       * followed by ID_NAME-2 characters from id->name
-       */
-      char name_ui[MAX_ID_FULL_NAME_UI];
-      int iconid = ui_id_icon_get(C, id, template_ui->preview);
-      const bool use_lib_prefix = template_ui->preview || iconid;
-      const bool has_sep_char = (id->lib != NULL);
-
-      /* When using previews, the library hint (linked, overridden, missing) is added with a
-       * character prefix, otherwise we can use a icon. */
-      int name_prefix_offset;
-      BKE_id_full_name_ui_prefix_get(
-          name_ui, id, use_lib_prefix, UI_SEP_CHAR, &name_prefix_offset);
-      if (!use_lib_prefix) {
-        iconid = UI_library_icon_get(id);
-      }
-
-      if (!UI_search_item_add(items,
-                              name_ui,
-                              id,
-                              iconid,
-                              has_sep_char ? UI_BUT_HAS_SEP_CHAR : 0,
-                              name_prefix_offset)) {
-        return false;
-      }
+  /* Use filter. */
+  if (RNA_property_type(template_ui->prop) == PROP_POINTER) {
+    PointerRNA ptr;
+    RNA_id_pointer_create(id, &ptr);
+    if (RNA_property_pointer_poll(&template_ui->ptr, template_ui->prop, &ptr) == 0) {
+      return false;
     }
   }
+
+  /* Hide dot-datablocks, but only if filter does not force them visible. */
+  if (U.uiflag & USER_HIDE_DOT) {
+    if ((id->name[2] == '.') && (query[0] != '.')) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+static bool id_search_add(const bContext *C, TemplateID *template_ui, uiSearchItems *items, ID *id)
+{
+  /* +1 is needed because BKE_id_ui_prefix used 3 letter prefix
+   * followed by ID_NAME-2 characters from id->name
+   */
+  char name_ui[MAX_ID_FULL_NAME_UI];
+  int iconid = ui_id_icon_get(C, id, template_ui->preview);
+  const bool use_lib_prefix = template_ui->preview || iconid;
+  const bool has_sep_char = (id->lib != NULL);
+
+  /* When using previews, the library hint (linked, overridden, missing) is added with a
+   * character prefix, otherwise we can use a icon. */
+  int name_prefix_offset;
+  BKE_id_full_name_ui_prefix_get(name_ui, id, use_lib_prefix, UI_SEP_CHAR, &name_prefix_offset);
+  if (!use_lib_prefix) {
+    iconid = UI_library_icon_get(id);
+  }
+
+  if (!UI_search_item_add(items,
+                          name_ui,
+                          id,
+                          iconid,
+                          has_sep_char ? UI_BUT_HAS_SEP_CHAR : 0,
+                          name_prefix_offset)) {
+    return false;
+  }
+
   return true;
 }
 
@@ -404,12 +399,26 @@ static void id_search_cb(const bContext *C,
   ListBase *lb = template_ui->idlb;
   const int flag = RNA_property_flag(template_ui->prop);
 
+  StringSearch *search = BLI_string_search_new();
+
   /* ID listbase */
   LISTBASE_FOREACH (ID *, id, lb) {
-    if (!id_search_add(C, template_ui, flag, str, items, id)) {
+    if (id_search_allows_id(template_ui, flag, id, str)) {
+      BLI_string_search_add(search, id->name + 2, id);
+    }
+  }
+
+  ID **filtered_ids;
+  int filtered_amount = BLI_string_search_query(search, str, (void ***)&filtered_ids);
+
+  for (int i = 0; i < filtered_amount; i++) {
+    if (!id_search_add(C, template_ui, items, filtered_ids[i])) {
       break;
     }
   }
+
+  MEM_freeN(filtered_ids);
+  BLI_string_search_free(search);
 }
 
 /**
@@ -424,15 +433,29 @@ static void id_search_cb_tagged(const bContext *C,
   ListBase *lb = template_ui->idlb;
   const int flag = RNA_property_flag(template_ui->prop);
 
+  StringSearch *search = BLI_string_search_new();
+
   /* ID listbase */
   LISTBASE_FOREACH (ID *, id, lb) {
     if (id->tag & LIB_TAG_DOIT) {
-      if (!id_search_add(C, template_ui, flag, str, items, id)) {
-        break;
+      if (id_search_allows_id(template_ui, flag, id, str)) {
+        BLI_string_search_add(search, id->name + 2, id);
       }
       id->tag &= ~LIB_TAG_DOIT;
     }
   }
+
+  ID **filtered_ids;
+  int filtered_amount = BLI_string_search_query(search, str, (void ***)&filtered_ids);
+
+  for (int i = 0; i < filtered_amount; i++) {
+    if (!id_search_add(C, template_ui, items, filtered_ids[i])) {
+      break;
+    }
+  }
+
+  MEM_freeN(filtered_ids);
+  BLI_string_search_free(search);
 }
 
 /**

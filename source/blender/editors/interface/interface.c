@@ -41,6 +41,7 @@
 #include "BLI_math.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_string_search.h"
 #include "BLI_string_utf8.h"
 
 #include "BLI_utildefines.h"
@@ -6651,30 +6652,34 @@ static void operator_enum_search_update_fn(const struct bContext *C,
   }
   else {
     PointerRNA *ptr = UI_but_operator_ptr_get(but); /* Will create it if needed! */
-    const EnumPropertyItem *item, *item_array;
+
     bool do_free;
+    const EnumPropertyItem *all_items;
+    RNA_property_enum_items_gettexted((bContext *)C, ptr, prop, &all_items, NULL, &do_free);
 
-    /* Prepare BLI_string_all_words_matched. */
-    const size_t str_len = strlen(str);
-    const int words_max = BLI_string_max_possible_word_count(str_len);
-    int(*words)[2] = BLI_array_alloca(words, words_max);
-    const int words_len = BLI_string_find_split_words(str, str_len, ' ', words, words_max);
+    StringSearch *search = BLI_string_search_new();
+    for (const EnumPropertyItem *item = all_items; item->identifier; item++) {
+      BLI_string_search_add(search, item->name, (void *)item);
+    }
 
-    RNA_property_enum_items_gettexted((bContext *)C, ptr, prop, &item_array, NULL, &do_free);
+    const EnumPropertyItem **filtered_items;
+    int filtered_amount = BLI_string_search_query(search, str, (void ***)&filtered_items);
 
-    for (item = item_array; item->identifier; item++) {
+    for (int i = 0; i < filtered_amount; i++) {
+      const EnumPropertyItem *item = filtered_items[i];
       /* note: need to give the index rather than the
        * identifier because the enum can be freed */
-      if (BLI_string_all_words_matched(item->name, str, words, words_len)) {
-        if (!UI_search_item_add(
-                items, item->name, POINTER_FROM_INT(item->value), item->icon, 0, 0)) {
-          break;
-        }
+      if (!UI_search_item_add(
+              items, item->name, POINTER_FROM_INT(item->value), item->icon, 0, 0)) {
+        break;
       }
     }
 
+    MEM_freeN(filtered_items);
+    BLI_string_search_free(search);
+
     if (do_free) {
-      MEM_freeN((void *)item_array);
+      MEM_freeN((void *)all_items);
     }
   }
 }
