@@ -4614,8 +4614,8 @@ static float ui_numedit_apply_snapf(
       UnitSettings *unit = but->block->unit;
       const int unit_type = RNA_SUBTYPE_UNIT_VALUE(UI_but_unit_type_get(but));
 
-      if (bUnit_IsValid(unit->system, unit_type)) {
-        fac = (float)bUnit_BaseScalar(unit->system, unit_type);
+      if (BKE_unit_is_valid(unit->system, unit_type)) {
+        fac = (float)BKE_unit_base_scalar(unit->system, unit_type);
         if (ELEM(unit_type, B_UNIT_LENGTH, B_UNIT_AREA, B_UNIT_VOLUME)) {
           fac /= unit->scale_length;
         }

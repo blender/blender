@@ -193,13 +193,13 @@ static void depthdropper_depth_sample_pt(
 
           *r_depth = len_v3v3(view_co, co_align);
 
-          bUnit_AsString2(ddr->name,
-                          sizeof(ddr->name),
-                          (double)*r_depth,
-                          4,
-                          B_UNIT_LENGTH,
-                          &scene->unit,
-                          false);
+          BKE_unit_value_as_string(ddr->name,
+                                   sizeof(ddr->name),
+                                   (double)*r_depth,
+                                   4,
+                                   B_UNIT_LENGTH,
+                                   &scene->unit,
+                                   false);
         }
         else {
           BLI_strncpy(ddr->name, "Nothing under cursor", sizeof(ddr->name));

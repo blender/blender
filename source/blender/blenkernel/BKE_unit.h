@@ -29,49 +29,49 @@ struct UnitSettings;
 /* in all cases the value is assumed to be scaled by the user preference */
 
 /* humanly readable representation of a value in units (used for button drawing) */
-size_t bUnit_AsString(
+size_t BKE_unit_value_as_string_adaptive(
     char *str, int len_max, double value, int prec, int system, int type, bool split, bool pad);
-size_t bUnit_AsString2(char *str,
-                       int len_max,
-                       double value,
-                       int prec,
-                       int type,
-                       const struct UnitSettings *settings,
-                       bool pad);
+size_t BKE_unit_value_as_string(char *str,
+                                int len_max,
+                                double value,
+                                int prec,
+                                int type,
+                                const struct UnitSettings *settings,
+                                bool pad);
 
 /* replace units with values, used before python button evaluation */
-bool bUnit_ReplaceString(
+bool BKE_unit_replace_string(
     char *str, int len_max, const char *str_prev, double scale_pref, int system, int type);
 
 /* return true if the string contains any valid unit for the given type */
-bool bUnit_ContainsUnit(const char *str, int type);
+bool BKE_unit_string_contains_unit(const char *str, int type);
 
 /* If user does not specify a unit, this converts it to the unit from the settings. */
-double bUnit_ApplyPreferredUnit(const struct UnitSettings *settings, int type, double value);
+double BKE_unit_apply_preferred_unit(const struct UnitSettings *settings, int type, double value);
 
 /* make string keyboard-friendly: 10µm --> 10um */
-void bUnit_ToUnitAltName(char *str, int len_max, const char *orig_str, int system, int type);
+void BKE_unit_name_to_alt(char *str, int len_max, const char *orig_str, int system, int type);
 
 /* the size of the unit used for this value (used for calculating the ckickstep) */
-double bUnit_ClosestScalar(double value, int system, int type);
+double BKE_unit_closest_scalar(double value, int system, int type);
 
 /* base scale for these units */
-double bUnit_BaseScalar(int system, int type);
+double BKE_unit_base_scalar(int system, int type);
 
 /* return true is the unit system exists */
-bool bUnit_IsValid(int system, int type);
+bool BKE_unit_is_valid(int system, int type);
 
 /* loop over scales, could add names later */
 // double bUnit_Iter(void **unit, char **name, int system, int type);
 
-void bUnit_GetSystem(int system, int type, void const **r_usys_pt, int *r_len);
-int bUnit_GetBaseUnit(const void *usys_pt);
-int bUnit_GetBaseUnitOfType(int system, int type);
-const char *bUnit_GetName(const void *usys_pt, int index);
-const char *bUnit_GetNameDisplay(const void *usys_pt, int index);
-const char *bUnit_GetIdentifier(const void *usys_pt, int index);
-double bUnit_GetScaler(const void *usys_pt, int index);
-bool bUnit_IsSuppressed(const void *usys_pt, int index);
+void BKE_unit_system_get(int system, int type, const void **r_usys_pt, int *r_len);
+int BKE_unit_base_get(const void *usys_pt);
+int BKE_unit_base_of_type_get(int system, int type);
+const char *BKE_unit_name_get(const void *usys_pt, int index);
+const char *BKE_unit_display_name_get(const void *usys_pt, int index);
+const char *BKE_unit_identifier_get(const void *usys_pt, int index);
+double BKE_unit_scalar_get(const void *usys_pt, int index);
+bool BKE_unit_is_suppressed(const void *usys_pt, int index);
 
 /* aligned with PropertyUnit */
 enum {

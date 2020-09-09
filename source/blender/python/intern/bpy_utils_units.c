@@ -134,7 +134,7 @@ static bool bpyunits_validate(const char *usys_str, const char *ucat_str, int *r
     return false;
   }
 
-  if (!bUnit_IsValid(*r_usys, *r_ucat)) {
+  if (!BKE_unit_is_valid(*r_usys, *r_ucat)) {
     PyErr_Format(PyExc_ValueError,
                  "%.200s / %.200s unit system/category combination is not valid.",
                  usys_str,
@@ -197,7 +197,7 @@ static PyObject *bpyunits_to_value(PyObject *UNUSED(self), PyObject *args, PyObj
   str = PyMem_MALLOC(sizeof(*str) * (size_t)str_len);
   BLI_strncpy(str, inpt, (size_t)str_len);
 
-  bUnit_ReplaceString(str, (int)str_len, uref, scale, usys, ucat);
+  BKE_unit_replace_string(str, (int)str_len, uref, scale, usys, ucat);
 
   if (!PyC_RunString_AsNumber(NULL, str, "<bpy_units_api>", &result)) {
     if (PyErr_Occurred()) {
@@ -291,10 +291,11 @@ static PyObject *bpyunits_to_string(PyObject *UNUSED(self), PyObject *args, PyOb
     char buf1[64], buf2[64], *str;
     PyObject *result;
 
-    bUnit_AsString(buf1, sizeof(buf1), value, precision, usys, ucat, (bool)split_unit, false);
+    BKE_unit_value_as_string_adaptive(
+        buf1, sizeof(buf1), value, precision, usys, ucat, (bool)split_unit, false);
 
     if (compatible_unit) {
-      bUnit_ToUnitAltName(buf2, sizeof(buf2), buf1, usys, ucat);
+      BKE_unit_name_to_alt(buf2, sizeof(buf2), buf1, usys, ucat);
       str = buf2;
     }
     else {

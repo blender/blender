@@ -298,13 +298,13 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
           }
 
           if (unit->system) {
-            numstr_len = bUnit_AsString2(numstr,
-                                         sizeof(numstr),
-                                         len_v3v3(v1, v2) * unit->scale_length,
-                                         3,
-                                         B_UNIT_LENGTH,
-                                         unit,
-                                         false);
+            numstr_len = BKE_unit_value_as_string(numstr,
+                                                  sizeof(numstr),
+                                                  len_v3v3(v1, v2) * unit->scale_length,
+                                                  3,
+                                                  B_UNIT_LENGTH,
+                                                  unit,
+                                                  false);
           }
           else {
             numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), conv_float, len_v3v3(v1, v2));
@@ -440,13 +440,14 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
         mul_m4_v3(ob->obmat, vmid);
 
         if (unit->system) {
-          numstr_len = bUnit_AsString2(numstr,
-                                       sizeof(numstr),
-                                       (double)(area * unit->scale_length * unit->scale_length),
-                                       3,
-                                       B_UNIT_AREA,
-                                       unit,
-                                       false);
+          numstr_len = BKE_unit_value_as_string(
+              numstr,
+              sizeof(numstr),
+              (double)(area * unit->scale_length * unit->scale_length),
+              3,
+              B_UNIT_AREA,
+              unit,
+              false);
         }
         else {
           numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), conv_float, area);

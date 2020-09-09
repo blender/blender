@@ -879,14 +879,14 @@ float ED_scene_grid_scale(const Scene *scene, const char **r_grid_unit)
     const void *usys;
     int len;
 
-    bUnit_GetSystem(scene->unit.system, B_UNIT_LENGTH, &usys, &len);
+    BKE_unit_system_get(scene->unit.system, B_UNIT_LENGTH, &usys, &len);
 
     if (usys) {
-      int i = bUnit_GetBaseUnit(usys);
+      int i = BKE_unit_base_get(usys);
       if (r_grid_unit) {
-        *r_grid_unit = bUnit_GetNameDisplay(usys, i);
+        *r_grid_unit = BKE_unit_display_name_get(usys, i);
       }
-      return (float)bUnit_GetScaler(usys, i) / scene->unit.scale_length;
+      return (float)BKE_unit_scalar_get(usys, i) / scene->unit.scale_length;
     }
   }
 
@@ -906,20 +906,20 @@ void ED_view3d_grid_steps(const Scene *scene,
 {
   const void *usys;
   int i, len;
-  bUnit_GetSystem(scene->unit.system, B_UNIT_LENGTH, &usys, &len);
+  BKE_unit_system_get(scene->unit.system, B_UNIT_LENGTH, &usys, &len);
   float grid_scale = v3d->grid;
   BLI_assert(STEPS_LEN >= len);
 
   if (usys) {
     if (rv3d->view == RV3D_VIEW_USER) {
       /* Skip steps */
-      len = bUnit_GetBaseUnit(usys) + 1;
+      len = BKE_unit_base_get(usys) + 1;
     }
 
     grid_scale /= scene->unit.scale_length;
 
     for (i = 0; i < len; i++) {
-      r_grid_steps[i] = (float)bUnit_GetScaler(usys, len - 1 - i) * grid_scale;
+      r_grid_steps[i] = (float)BKE_unit_scalar_get(usys, len - 1 - i) * grid_scale;
     }
     for (; i < STEPS_LEN; i++) {
       /* Fill last slots */
@@ -971,10 +971,10 @@ float ED_view3d_grid_view_scale(Scene *scene,
     if (r_grid_unit) {
       const void *usys;
       int len;
-      bUnit_GetSystem(scene->unit.system, B_UNIT_LENGTH, &usys, &len);
+      BKE_unit_system_get(scene->unit.system, B_UNIT_LENGTH, &usys, &len);
 
       if (usys) {
-        *r_grid_unit = bUnit_GetNameDisplay(usys, len - i - 1);
+        *r_grid_unit = BKE_unit_display_name_get(usys, len - i - 1);
       }
     }
   }

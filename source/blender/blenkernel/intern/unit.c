@@ -662,7 +662,7 @@ static size_t unit_as_string_main(char *str,
   return unit_as_string(str, len_max, value, prec, usys, main_unit, pad ? ' ' : '\0');
 }
 
-size_t bUnit_AsString(
+size_t BKE_unit_value_as_string_adaptive(
     char *str, int len_max, double value, int prec, int system, int type, bool split, bool pad)
 {
   PreferredUnits units;
@@ -675,13 +675,13 @@ size_t bUnit_AsString(
   return unit_as_string_main(str, len_max, value, prec, type, split, pad, units);
 }
 
-size_t bUnit_AsString2(char *str,
-                       int len_max,
-                       double value,
-                       int prec,
-                       int type,
-                       const UnitSettings *settings,
-                       bool pad)
+size_t BKE_unit_value_as_string(char *str,
+                                int len_max,
+                                double value,
+                                int prec,
+                                int type,
+                                const UnitSettings *settings,
+                                bool pad)
 {
   bool do_split = (settings->flag & USER_UNIT_OPT_SPLIT) != 0;
   PreferredUnits units = preferred_units_from_UnitSettings(settings);
@@ -1059,7 +1059,7 @@ static const bUnitDef *unit_detect_from_str(const bUnitCollection *usys,
   return unit;
 }
 
-bool bUnit_ContainsUnit(const char *str, int type)
+bool BKE_unit_string_contains_unit(const char *str, int type)
 {
   for (int system = 0; system < UNIT_SYSTEM_TOT; system++) {
     const bUnitCollection *usys = unit_get_system(system, type);
@@ -1076,12 +1076,12 @@ bool bUnit_ContainsUnit(const char *str, int type)
   return false;
 }
 
-double bUnit_ApplyPreferredUnit(const struct UnitSettings *settings, int type, double value)
+double BKE_unit_apply_preferred_unit(const struct UnitSettings *settings, int type, double value)
 {
   PreferredUnits units = preferred_units_from_UnitSettings(settings);
   const bUnitDef *unit = get_preferred_display_unit_if_used(type, units);
 
-  const double scalar = (unit == NULL) ? bUnit_BaseScalar(units.system, type) : unit->scalar;
+  const double scalar = (unit == NULL) ? BKE_unit_base_scalar(units.system, type) : unit->scalar;
   const double bias = (unit == NULL) ? 0.0 : unit->bias; /* Base unit shouldn't have a bias. */
 
   return value * scalar + bias;
@@ -1103,7 +1103,7 @@ double bUnit_ApplyPreferredUnit(const struct UnitSettings *settings, int type, d
  *
  * \return True of a change was made.
  */
-bool bUnit_ReplaceString(
+bool BKE_unit_replace_string(
     char *str, int len_max, const char *str_prev, double scale_pref, int system, int type)
 {
   const bUnitCollection *usys = unit_get_system(system, type);
@@ -1133,7 +1133,7 @@ bool bUnit_ReplaceString(
   }
   else {
     /* BLI_snprintf would not fit into str_tmp, cant do much in this case.
-     * Check for this because otherwise bUnit_ReplaceString could call its self forever. */
+     * Check for this because otherwise BKE_unit_replace_string could call its self forever. */
     return changed;
   }
 
@@ -1194,7 +1194,7 @@ bool bUnit_ReplaceString(
 }
 
 /* 45µm --> 45um */
-void bUnit_ToUnitAltName(char *str, int len_max, const char *orig_str, int system, int type)
+void BKE_unit_name_to_alt(char *str, int len_max, const char *orig_str, int system, int type)
 {
   const bUnitCollection *usys = unit_get_system(system, type);
 
@@ -1234,7 +1234,7 @@ void bUnit_ToUnitAltName(char *str, int len_max, const char *orig_str, int syste
   strncpy(str, orig_str, len_max);
 }
 
-double bUnit_ClosestScalar(double value, int system, int type)
+double BKE_unit_closest_scalar(double value, int system, int type)
 {
   const bUnitCollection *usys = unit_get_system(system, type);
 
@@ -1250,7 +1250,7 @@ double bUnit_ClosestScalar(double value, int system, int type)
   return unit->scalar;
 }
 
-double bUnit_BaseScalar(int system, int type)
+double BKE_unit_base_scalar(int system, int type)
 {
   const bUnitCollection *usys = unit_get_system(system, type);
   if (usys) {
@@ -1260,12 +1260,12 @@ double bUnit_BaseScalar(int system, int type)
   return 1.0;
 }
 
-bool bUnit_IsValid(int system, int type)
+bool BKE_unit_is_valid(int system, int type)
 {
   return !(system < 0 || system > UNIT_SYSTEM_TOT || type < 0 || type > B_UNIT_TYPE_TOT);
 }
 
-void bUnit_GetSystem(int system, int type, void const **r_usys_pt, int *r_len)
+void BKE_unit_system_get(int system, int type, void const **r_usys_pt, int *r_len)
 {
   const bUnitCollection *usys = unit_get_system(system, type);
   *r_usys_pt = usys;
@@ -1278,25 +1278,25 @@ void bUnit_GetSystem(int system, int type, void const **r_usys_pt, int *r_len)
   *r_len = usys->length;
 }
 
-int bUnit_GetBaseUnit(const void *usys_pt)
+int BKE_unit_base_get(const void *usys_pt)
 {
   return ((bUnitCollection *)usys_pt)->base_unit;
 }
 
-int bUnit_GetBaseUnitOfType(int system, int type)
+int BKE_unit_base_of_type_get(int system, int type)
 {
   return unit_get_system(system, type)->base_unit;
 }
 
-const char *bUnit_GetName(const void *usys_pt, int index)
+const char *BKE_unit_name_get(const void *usys_pt, int index)
 {
   return ((bUnitCollection *)usys_pt)->units[index].name;
 }
-const char *bUnit_GetNameDisplay(const void *usys_pt, int index)
+const char *BKE_unit_display_name_get(const void *usys_pt, int index)
 {
   return ((bUnitCollection *)usys_pt)->units[index].name_display;
 }
-const char *bUnit_GetIdentifier(const void *usys_pt, int index)
+const char *BKE_unit_identifier_get(const void *usys_pt, int index)
 {
   const bUnitDef *unit = ((const bUnitCollection *)usys_pt)->units + index;
   if (unit->identifier == NULL) {
@@ -1305,12 +1305,12 @@ const char *bUnit_GetIdentifier(const void *usys_pt, int index)
   return unit->identifier;
 }
 
-double bUnit_GetScaler(const void *usys_pt, int index)
+double BKE_unit_scalar_get(const void *usys_pt, int index)
 {
   return ((bUnitCollection *)usys_pt)->units[index].scalar;
 }
 
-bool bUnit_IsSuppressed(const void *usys_pt, int index)
+bool BKE_unit_is_suppressed(const void *usys_pt, int index)
 {
   return (((bUnitCollection *)usys_pt)->units[index].flag & B_UNIT_DEF_SUPPRESS) != 0;
 }

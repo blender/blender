@@ -89,13 +89,13 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
     dist = len_v3(vec);
     if (!(t->flag & T_2D_EDIT) && t->scene->unit.system) {
       for (int i = 0; i < 3; i++) {
-        bUnit_AsString2(&tvec[NUM_STR_REP_LEN * i],
-                        NUM_STR_REP_LEN,
-                        dvec[i] * t->scene->unit.scale_length,
-                        4,
-                        B_UNIT_LENGTH,
-                        &t->scene->unit,
-                        true);
+        BKE_unit_value_as_string(&tvec[NUM_STR_REP_LEN * i],
+                                 NUM_STR_REP_LEN,
+                                 dvec[i] * t->scene->unit.scale_length,
+                                 4,
+                                 B_UNIT_LENGTH,
+                                 &t->scene->unit,
+                                 true);
       }
     }
     else {
@@ -106,13 +106,13 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
   }
 
   if (!(t->flag & T_2D_EDIT) && t->scene->unit.system) {
-    bUnit_AsString2(distvec,
-                    sizeof(distvec),
-                    dist * t->scene->unit.scale_length,
-                    4,
-                    B_UNIT_LENGTH,
-                    &t->scene->unit,
-                    false);
+    BKE_unit_value_as_string(distvec,
+                             sizeof(distvec),
+                             dist * t->scene->unit.scale_length,
+                             4,
+                             B_UNIT_LENGTH,
+                             &t->scene->unit,
+                             false);
   }
   else if (dist > 1e10f || dist < -1e10f) {
     /* prevent string buffer overflow */

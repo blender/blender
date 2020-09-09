@@ -136,14 +136,14 @@ void outputNumInput(NumInput *n, char *str, UnitSettings *unit_settings)
           BLI_strncpy(val, "Invalid", sizeof(val));
         }
         else {
-          bUnit_AsString(val,
-                         sizeof(val),
-                         (double)(n->val[i] * fac),
-                         prec,
-                         n->unit_sys,
-                         n->unit_type[i],
-                         true,
-                         false);
+          BKE_unit_value_as_string_adaptive(val,
+                                            sizeof(val),
+                                            (double)(n->val[i] * fac),
+                                            prec,
+                                            n->unit_sys,
+                                            n->unit_type[i],
+                                            true,
+                                            false);
         }
 
         /* +1 because of trailing '\0' */
@@ -165,7 +165,7 @@ void outputNumInput(NumInput *n, char *str, UnitSettings *unit_settings)
         }
         else {
           char tstr[NUM_STR_REP_LEN];
-          bUnit_AsString(
+          BKE_unit_value_as_string_adaptive(
               tstr, ln, (double)n->val[i], prec, n->unit_sys, n->unit_type[i], true, false);
           BLI_snprintf(&str[j * ln], ln, "%s%s%s", cur, tstr, cur);
         }
@@ -252,14 +252,14 @@ bool applyNumInput(NumInput *n, float *vec)
 static void value_to_editstr(NumInput *n, int idx)
 {
   const int prec = 6; /* editing, higher precision needed. */
-  n->str_cur = bUnit_AsString(n->str,
-                              NUM_STR_REP_LEN,
-                              (double)n->val[idx],
-                              prec,
-                              n->unit_sys,
-                              n->unit_type[idx],
-                              true,
-                              false);
+  n->str_cur = BKE_unit_value_as_string_adaptive(n->str,
+                                                 NUM_STR_REP_LEN,
+                                                 (double)n->val[idx],
+                                                 prec,
+                                                 n->unit_sys,
+                                                 n->unit_type[idx],
+                                                 true,
+                                                 false);
 }
 
 static bool editstr_insert_at_cursor(NumInput *n, const char *buf, const int buf_len)
@@ -288,17 +288,17 @@ bool user_string_to_number(bContext *C,
 {
 #ifdef WITH_PYTHON
   double unit_scale = BKE_scene_unit_scale(unit, type, 1.0);
-  if (bUnit_ContainsUnit(str, type)) {
+  if (BKE_unit_string_contains_unit(str, type)) {
     char str_unit_convert[256];
     BLI_strncpy(str_unit_convert, str, sizeof(str_unit_convert));
-    bUnit_ReplaceString(
+    BKE_unit_replace_string(
         str_unit_convert, sizeof(str_unit_convert), str, unit_scale, unit->system, type);
 
     return BPY_run_string_as_number(C, NULL, str_unit_convert, error_prefix, r_value);
   }
 
   int success = BPY_run_string_as_number(C, NULL, str, error_prefix, r_value);
-  *r_value = bUnit_ApplyPreferredUnit(unit, type, *r_value);
+  *r_value = BKE_unit_apply_preferred_unit(unit, type, *r_value);
   *r_value /= unit_scale;
   return success;
 

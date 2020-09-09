@@ -2571,7 +2571,7 @@ void ui_but_convert_to_unit_alt_name(uiBut *but, char *str, size_t maxlen)
 
     orig_str = BLI_strdup(str);
 
-    bUnit_ToUnitAltName(str, maxlen, orig_str, unit->system, RNA_SUBTYPE_UNIT_VALUE(unit_type));
+    BKE_unit_name_to_alt(str, maxlen, orig_str, unit->system, RNA_SUBTYPE_UNIT_VALUE(unit_type));
 
     MEM_freeN(orig_str);
   }
@@ -2606,13 +2606,13 @@ static void ui_get_but_string_unit(
     precision = float_precision;
   }
 
-  bUnit_AsString2(str,
-                  len_max,
-                  ui_get_but_scale_unit(but, value),
-                  precision,
-                  RNA_SUBTYPE_UNIT_VALUE(unit_type),
-                  unit,
-                  pad);
+  BKE_unit_value_as_string(str,
+                           len_max,
+                           ui_get_but_scale_unit(but, value),
+                           precision,
+                           RNA_SUBTYPE_UNIT_VALUE(unit_type),
+                           unit,
+                           pad);
 }
 
 static float ui_get_but_step_unit(uiBut *but, float step_default)
@@ -2622,12 +2622,13 @@ static float ui_get_but_step_unit(uiBut *but, float step_default)
   /* Scaling up 'step_origg ' here is a bit arbitrary,
    * its just giving better scales from user POV */
   const double scale_step = ui_get_but_scale_unit(but, step_orig * 10);
-  const double step = bUnit_ClosestScalar(scale_step, but->block->unit->system, unit_type);
+  const double step = BKE_unit_closest_scalar(scale_step, but->block->unit->system, unit_type);
 
   /* -1 is an error value */
   if (step != -1.0) {
     const double scale_unit = ui_get_but_scale_unit(but, 1.0);
-    const double step_unit = bUnit_ClosestScalar(scale_unit, but->block->unit->system, unit_type);
+    const double step_unit = BKE_unit_closest_scalar(
+        scale_unit, but->block->unit->system, unit_type);
     double step_final;
 
     BLI_assert(step > 0.0);
