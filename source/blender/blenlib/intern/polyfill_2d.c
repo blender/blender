@@ -907,6 +907,19 @@ void BLI_polyfill_calc(const float (*coords)[2],
                        const int coords_sign,
                        uint (*r_tris)[3])
 {
+  /* Fallback to heap memory for large allocations.
+   * Avoid running out of stack memory on systems with 512kb stack (macOS).
+   * This happens at around 13,000 points, use a much lower value to be safe. */
+  if (UNLIKELY(coords_tot > 8192)) {
+    /* The buffer size only accounts for the index allocation,
+     * worst case we do two allocations when concave, while we should try to be efficient,
+     * any caller that relies on this frequently should use #BLI_polyfill_calc_arena directly. */
+    MemArena *arena = BLI_memarena_new(sizeof(PolyIndex) * coords_tot, __func__);
+    BLI_polyfill_calc_arena(coords, coords_tot, coords_sign, r_tris, arena);
+    BLI_memarena_free(arena);
+    return;
+  }
+
   PolyFill pf;
   PolyIndex *indices = BLI_array_alloca(indices, coords_tot);
 
