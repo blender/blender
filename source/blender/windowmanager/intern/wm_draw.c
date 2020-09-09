@@ -795,6 +795,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   /* After area regions so we can do area 'overlay' drawing. */
   ED_screen_draw_edges(win);
   wm_draw_callbacks(win);
+  wmWindowViewport(win);
 
   /* Blend in floating regions (menus). */
   LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
