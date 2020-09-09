@@ -36,7 +36,7 @@ struct Closure {
 Closure nodetree_exec(void);
 
 /* clang-format off */
-/* Avoid multiline defines. */
+/* Avoid multi-line defines. */
 #ifdef VOLUMETRICS
 #  define CLOSURE_DEFAULT Closure(vec3(0), vec3(0), vec3(0), 0.0)
 #elif !defined(USE_SSS)

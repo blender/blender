@@ -400,7 +400,7 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
     rect->ymin = rect->ymax = cursory;
   }
 
-  /* XXX todo, multiline drag draws... but maybe not, more types mixed wont work well */
+  /* Should we support multi-line drag draws? Maybe not, more types mixed wont work well. */
   GPU_blend(GPU_BLEND_ALPHA);
   for (drag = wm->drags.first; drag; drag = drag->next) {
     const uchar text_col[] = {255, 255, 255, 255};

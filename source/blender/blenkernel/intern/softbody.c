@@ -211,7 +211,7 @@ static float sb_time_scale(Object *ob)
  * will cause unwanted responses of the softbody system (which does inter frame calculations )
  * so first 'cure' would be: interpolate linear in time ..
  * Q: why do i write this?
- * A: because it happened once, that some eger coder 'streamlined' code to fail.
+ * A: because it happened once, that some eager coder 'streamlined' code to fail.
  * We DO linear interpolation for goals .. and i think we should do on animated properties as well
  */
 

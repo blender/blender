@@ -1852,7 +1852,7 @@ int rna_property_override_diff_default(Main *bmain,
 
             if (is_first_insert) {
               /* We need to clean up all possible existing insertion operations,
-               * otherwise we'd end up with a mess of ops everytime something changes. */
+               * otherwise we'd end up with a mess of ops every time something changes. */
               for (IDOverrideLibraryPropertyOperation *opop = op->operations.first;
                    opop != NULL;) {
                 IDOverrideLibraryPropertyOperation *opop_next = opop->next;

@@ -229,7 +229,7 @@ Mesh *MOD_deform_mesh_eval_get(Object *ob,
      * that's properly generated for curves. */
     mesh = BKE_mesh_new_nomain_from_curve(ob);
 
-    /* Currently, that may not be the case everytime
+    /* Currently, that may not be the case every time
      * (texts e.g. tend to give issues,
      * also when deforming curve points instead of generated curve geometry... ). */
     if (mesh != NULL && mesh->totvert != num_verts) {

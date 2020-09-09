@@ -29,7 +29,7 @@
  *  - angle offset of the flaps
  *  - rounding of the flaps (also used to make a circular lens)
  *  - simulate catadioptric
- *  - simulate lensshift
+ *  - simulate lens-shift
  *
  * Per pixel the algorithm determines the edge of the bokeh on the same line as the center of the
  *image and the pixel is evaluating.

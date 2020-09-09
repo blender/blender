@@ -1105,7 +1105,7 @@ static bool gpencil_sculpt_brush_apply_clone(bContext *C, tGP_BrushEditData *gso
       gpencil_brush_clone_adjust(gso);
     }
     else {
-      /* Continuous - Just keep pasting everytime we move */
+      /* Continuous - Just keep pasting every time we move. */
       /* TODO: The spacing of repeat should be controlled using a
        * "stepsize" or similar property? */
       gpencil_brush_clone_add(C, gso);

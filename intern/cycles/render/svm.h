@@ -87,9 +87,7 @@ class SVMCompiler {
     /* Total time spent on all routines. */
     double time_total;
 
-    /* A full multiline description of the state of the compiler after
-     * compilation.
-     */
+    /* A full multi-line description of the state of the compiler after compilation. */
     string full_report() const;
   };
 

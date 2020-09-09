@@ -1284,12 +1284,11 @@ static void nlastrip_fix_resize_overlaps(NlaStrip *strip)
         nls->start = strip->end;
       }
       else {
-        /* shrink transition down to 1 frame long (so that it can still be found),
-         * then offset everything else by the remaining defict to give the strip room
-         */
+        /* Shrink transition down to 1 frame long (so that it can still be found),
+         * then offset everything else by the remaining deficit to give the strip room. */
         nls->start = nls->end - 1.0f;
 
-        /* XXX: review whether preventing fractionals is good here... */
+        /* XXX: review whether preventing fractional values is good here... */
         offset = ceilf(strip->end - nls->start);
 
         /* apply necessary offset to ensure that the strip has enough space */
@@ -1333,12 +1332,11 @@ static void nlastrip_fix_resize_overlaps(NlaStrip *strip)
         nls->end = strip->start;
       }
       else {
-        /* shrink transition down to 1 frame long (so that it can still be found),
-         * then offset everything else by the remaining defict to give the strip room
-         */
+        /* Shrink transition down to 1 frame long (so that it can still be found),
+         * then offset everything else by the remaining deficit to give the strip room. */
         nls->end = nls->start + 1.0f;
 
-        /* XXX: review whether preventing fractionals is good here... */
+        /* XXX: review whether preventing fractional values is good here... */
         offset = ceilf(nls->end - strip->start);
 
         /* apply necessary offset to ensure that the strip has enough space */

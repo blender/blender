@@ -47,7 +47,7 @@ class TaskPool {
     /* Number of all tasks handled by this pool. */
     int num_tasks_handled;
 
-    /* A full multiline description of the state of the pool after
+    /* A full multi-line description of the state of the pool after
      * all work is done.
      */
     string full_report() const;

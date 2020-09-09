@@ -108,7 +108,7 @@ int damerau_levenshtein_distance(StringRef a, StringRef b)
  */
 int get_fuzzy_match_errors(StringRef query, StringRef full)
 {
-  /* If it is a perfect partial match, return immediatly. */
+  /* If it is a perfect partial match, return immediately. */
   if (full.find(query) != StringRef::not_found) {
     return 0;
   }
@@ -180,8 +180,8 @@ int get_fuzzy_match_errors(StringRef query, StringRef full)
  * So "bose" does not match "select boundary". However, individual words can be skipped. For
  * example, "rocc" matches "rotate edge ccw".
  *
- * Returns true when the match was successfull. If it was successfull, the used words are tagged in
- * r_word_is_matched.
+ * \return true when the match was successful.
+ * If it was successful, the used words are tagged in \a r_word_is_matched.
  */
 static bool match_word_initials(StringRef query,
                                 Span<StringRef> words,
@@ -384,7 +384,7 @@ void extract_normalized_words(StringRef str,
     }
     offset += size;
   }
-  /* If the last word is not followed by a separator, it has to be handld separately. */
+  /* If the last word is not followed by a separator, it has to be handled separately. */
   if (is_in_word) {
     r_words.append(str_copy.drop_prefix(static_cast<int>(word_start)));
   }

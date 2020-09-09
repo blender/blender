@@ -65,9 +65,9 @@ void bmo_bisect_plane_exec(BMesh *bm, BMOperator *op)
   BM_mesh_bisect_plane(bm, plane, use_snap_center, true, ELE_CUT, ELE_NEW, dist);
 
   if (clear_outer || clear_inner) {
-    /* Use an array of vertices because 'geom' contains both vers and edges that may use them.
-     * Removing a vert may remove and edge which is later checked by BMO_ITER.
-     * over-alloc the total possible vert count */
+    /* Use an array of vertices because 'geom' contains both verts and edges that may use them.
+     * Removing a vert may remove and edge which is later checked by #BMO_ITER.
+     * over-allocate the total possible vert count. */
     const int vert_arr_max = min_ii(bm->totvert, BMO_slot_buffer_count(op->slots_in, "geom"));
     BMVert **vert_arr = MEM_mallocN(sizeof(*vert_arr) * (size_t)vert_arr_max, __func__);
     BMOIter siter;

@@ -46,7 +46,7 @@ extern char datatoc_common_view_lib_glsl[];
 /* *********** LISTS *********** */
 
 /* GPUViewport.storage
- * Is freed everytime the viewport engine changes */
+ * Is freed every time the viewport engine changes. */
 typedef struct BASIC_StorageList {
   struct BASIC_PrivateData *g_data;
 } BASIC_StorageList;
