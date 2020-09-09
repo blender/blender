@@ -194,30 +194,22 @@ void BKE_crazyspace_set_quats_mesh(Mesh *me,
                                    float (*mappedcos)[3],
                                    float (*quats)[4])
 {
-  int i;
-  MVert *mvert;
-  MLoop *mloop;
-  MPoly *mp;
-
-  mvert = me->mvert;
-  for (i = 0; i < me->totvert; i++, mvert++) {
+  MVert *mvert = me->mvert;
+  for (int i = 0; i < me->totvert; i++, mvert++) {
     mvert->flag &= ~ME_VERT_TMP_TAG;
   }
 
   /* first store two sets of tangent vectors in vertices, we derive it just from the face-edges */
   mvert = me->mvert;
-  mp = me->mpoly;
-  mloop = me->mloop;
+  MPoly *mp = me->mpoly;
+  MLoop *mloop = me->mloop;
 
-  for (i = 0; i < me->totpoly; i++, mp++) {
-    MLoop *ml_prev, *ml_curr, *ml_next;
-    int j;
+  for (int i = 0; i < me->totpoly; i++, mp++) {
+    MLoop *ml_next = &mloop[mp->loopstart];
+    MLoop *ml_curr = &ml_next[mp->totloop - 1];
+    MLoop *ml_prev = &ml_next[mp->totloop - 2];
 
-    ml_next = &mloop[mp->loopstart];
-    ml_curr = &ml_next[mp->totloop - 1];
-    ml_prev = &ml_next[mp->totloop - 2];
-
-    for (j = 0; j < mp->totloop; j++) {
+    for (int j = 0; j < mp->totloop; j++) {
       if ((mvert[ml_curr->v].flag & ME_VERT_TMP_TAG) == 0) {
         const float *co_prev, *co_curr, *co_next; /* orig */
         const float *vd_prev, *vd_curr, *vd_next; /* deform */

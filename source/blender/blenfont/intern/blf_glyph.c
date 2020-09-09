@@ -205,9 +205,7 @@ void blf_glyph_cache_clear(FontBLF *font)
 void blf_glyph_cache_free(GlyphCacheBLF *gc)
 {
   GlyphBLF *g;
-  unsigned int i;
-
-  for (i = 0; i < ARRAY_SIZE(gc->bucket); i++) {
+  for (uint i = 0; i < ARRAY_SIZE(gc->bucket); i++) {
     while ((g = BLI_pophead(&gc->bucket[i]))) {
       blf_glyph_free(g);
     }

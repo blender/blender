@@ -347,8 +347,7 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope
       cuma->curve[1].y = 1;
       break;
     case CURVE_PRESET_MID9: {
-      int i;
-      for (i = 0; i < cuma->totpoint; i++) {
+      for (int i = 0; i < cuma->totpoint; i++) {
         cuma->curve[i].x = i / ((float)cuma->totpoint - 1);
         cuma->curve[i].y = 0.5;
       }
@@ -421,8 +420,7 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope
     const int num_points = cuma->totpoint * 2 - 1;
     CurveMapPoint *new_points = MEM_mallocN(num_points * sizeof(CurveMapPoint),
                                             "curve symmetric points");
-    int i;
-    for (i = 0; i < cuma->totpoint; i++) {
+    for (int i = 0; i < cuma->totpoint; i++) {
       const int src_last_point = cuma->totpoint - i - 1;
       const int dst_last_point = num_points - i - 1;
       new_points[i] = cuma->curve[src_last_point];
@@ -969,12 +967,9 @@ void BKE_curvemapping_changed_all(CurveMapping *cumap)
 /* table should be verified */
 float BKE_curvemap_evaluateF(const CurveMapping *cumap, const CurveMap *cuma, float value)
 {
-  float fi;
-  int i;
-
   /* index in table */
-  fi = (value - cuma->mintable) * cuma->range;
-  i = (int)fi;
+  float fi = (value - cuma->mintable) * cuma->range;
+  int i = (int)fi;
 
   /* fi is table float index and should check against table range i.e. [0.0 CM_TABLE] */
   if (fi < 0.0f || fi > CM_TABLE) {

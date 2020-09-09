@@ -72,8 +72,7 @@ static CCGVert *_vert_new(CCGVertHDL vHDL, CCGSubSurf *ss)
 }
 static void _vert_remEdge(CCGVert *v, CCGEdge *e)
 {
-  int i;
-  for (i = 0; i < v->numEdges; i++) {
+  for (int i = 0; i < v->numEdges; i++) {
     if (v->edges[i] == e) {
       v->edges[i] = v->edges[--v->numEdges];
       break;
@@ -82,8 +81,7 @@ static void _vert_remEdge(CCGVert *v, CCGEdge *e)
 }
 static void _vert_remFace(CCGVert *v, CCGFace *f)
 {
-  int i;
-  for (i = 0; i < v->numFaces; i++) {
+  for (int i = 0; i < v->numFaces; i++) {
     if (v->faces[i] == f) {
       v->faces[i] = v->faces[--v->numFaces];
       break;
@@ -104,8 +102,7 @@ static void _vert_addFace(CCGVert *v, CCGFace *f, CCGSubSurf *ss)
 }
 static CCGEdge *_vert_findEdgeTo(const CCGVert *v, const CCGVert *vQ)
 {
-  int i;
-  for (i = 0; i < v->numEdges; i++) {
+  for (int i = 0; i < v->numEdges; i++) {
     CCGEdge *e = v->edges[v->numEdges - 1 - i];  // XXX, note reverse
     if ((e->v0 == v && e->v1 == vQ) || (e->v1 == v && e->v0 == vQ)) {
       return e;
@@ -155,8 +152,7 @@ static CCGEdge *_edge_new(CCGEdgeHDL eHDL, CCGVert *v0, CCGVert *v1, float creas
 }
 static void _edge_remFace(CCGEdge *e, CCGFace *f)
 {
-  int i;
-  for (i = 0; i < e->numFaces; i++) {
+  for (int i = 0; i < e->numFaces; i++) {
     if (e->faces[i] == f) {
       e->faces[i] = e->faces[--e->numFaces];
       break;
@@ -205,13 +201,12 @@ static CCGFace *_face_new(
       sizeof(CCGFace) + sizeof(CCGVert *) * numVerts + sizeof(CCGEdge *) * numVerts +
           ss->meshIFC.vertDataSize * num_face_data + ss->meshIFC.faceUserSize);
   byte *userData;
-  int i;
 
   f->numVerts = numVerts;
   f->fHDL = fHDL;
   f->flags = 0;
 
-  for (i = 0; i < numVerts; i++) {
+  for (int i = 0; i < numVerts; i++) {
     FACE_getVerts(f)[i] = verts[i];
     FACE_getEdges(f)[i] = edges[i];
     _vert_addFace(verts[i], f, ss);
@@ -1418,9 +1413,7 @@ CCGEdge *ccgSubSurf_getFaceEdge(CCGFace *f, int index)
 }
 int ccgSubSurf_getFaceEdgeIndex(CCGFace *f, CCGEdge *e)
 {
-  int i;
-
-  for (i = 0; i < f->numVerts; i++) {
+  for (int i = 0; i < f->numVerts; i++) {
     if (FACE_getEdges(f)[i] == e) {
       return i;
     }

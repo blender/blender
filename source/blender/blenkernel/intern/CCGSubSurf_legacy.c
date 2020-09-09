@@ -49,8 +49,7 @@ static int _edge_isBoundary(const CCGEdge *e)
 
 static bool _vert_isBoundary(const CCGVert *v)
 {
-  int i;
-  for (i = 0; i < v->numEdges; i++) {
+  for (int i = 0; i < v->numEdges; i++) {
     if (_edge_isBoundary(v->edges[i])) {
       return true;
     }

@@ -782,11 +782,10 @@ float BKE_nurb_calc_length(const Nurb *nu, int resolution)
 /* be sure to call makeknots after this */
 void BKE_nurb_points_add(Nurb *nu, int number)
 {
-  BPoint *bp;
-  int i;
-
   nu->bp = MEM_recallocN(nu->bp, (nu->pntsu + number) * sizeof(BPoint));
 
+  BPoint *bp;
+  int i;
   for (i = 0, bp = &nu->bp[nu->pntsu]; i < number; i++, bp++) {
     bp->radius = 1.0f;
   }
@@ -1718,12 +1717,10 @@ static void forward_diff_bezier_cotangent(const float p0[3],
    * they need to be rotated for this,
    *
    * This could also be optimized like BKE_curve_forward_diff_bezier */
-  int a;
-  for (a = 0; a <= it; a++) {
+  for (int a = 0; a <= it; a++) {
     float t = (float)a / (float)it;
 
-    int i;
-    for (i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) {
       p[i] = (-6.0f * t + 6.0f) * p0[i] + (18.0f * t - 12.0f) * p1[i] +
              (-18.0f * t + 6.0f) * p2[i] + (6.0f * t) * p3[i];
     }
@@ -4074,17 +4071,14 @@ void BKE_nurb_handles_autocalc(Nurb *nu, int flag)
   const float eps = 0.0001f;
   const float eps_sq = eps * eps;
 
-  BezTriple *bezt2, *bezt1, *bezt0;
-  int i;
-
   if (nu == NULL || nu->bezt == NULL) {
     return;
   }
 
-  bezt2 = nu->bezt;
-  bezt1 = bezt2 + (nu->pntsu - 1);
-  bezt0 = bezt1 - 1;
-  i = nu->pntsu;
+  BezTriple *bezt2 = nu->bezt;
+  BezTriple *bezt1 = bezt2 + (nu->pntsu - 1);
+  BezTriple *bezt0 = bezt1 - 1;
+  int i = nu->pntsu;
 
   while (i--) {
     bool align = false, leftsmall = false, rightsmall = false;
@@ -4546,14 +4540,12 @@ void BKE_curve_nurbs_vert_coords_apply_with_mat4(ListBase *lb,
                                                  const bool constrain_2d)
 {
   const float *co = vert_coords[0];
-  Nurb *nu;
-  int i;
 
-  for (nu = lb->first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, lb) {
     if (nu->type == CU_BEZIER) {
       BezTriple *bezt = nu->bezt;
 
-      for (i = 0; i < nu->pntsu; i++, bezt++) {
+      for (int i = 0; i < nu->pntsu; i++, bezt++) {
         mul_v3_m4v3(bezt->vec[0], mat, co);
         co += 3;
         mul_v3_m4v3(bezt->vec[1], mat, co);
@@ -4565,7 +4557,7 @@ void BKE_curve_nurbs_vert_coords_apply_with_mat4(ListBase *lb,
     else {
       BPoint *bp = nu->bp;
 
-      for (i = 0; i < nu->pntsu * nu->pntsv; i++, bp++) {
+      for (int i = 0; i < nu->pntsu * nu->pntsv; i++, bp++) {
         mul_v3_m4v3(bp->vec, mat, co);
         co += 3;
       }
@@ -4655,14 +4647,11 @@ float (*BKE_curve_nurbs_key_vert_coords_alloc(ListBase *lb, float *key, int *r_v
 
 void BKE_curve_nurbs_key_vert_tilts_apply(ListBase *lb, const float *key)
 {
-  Nurb *nu;
-  int i;
-
-  for (nu = lb->first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, lb) {
     if (nu->type == CU_BEZIER) {
       BezTriple *bezt = nu->bezt;
 
-      for (i = 0; i < nu->pntsu; i++, bezt++) {
+      for (int i = 0; i < nu->pntsu; i++, bezt++) {
         bezt->tilt = key[9];
         bezt->radius = key[10];
         key += KEYELEM_FLOAT_LEN_BEZTRIPLE;
@@ -4671,7 +4660,7 @@ void BKE_curve_nurbs_key_vert_tilts_apply(ListBase *lb, const float *key)
     else {
       BPoint *bp = nu->bp;
 
-      for (i = 0; i < nu->pntsu * nu->pntsv; i++, bp++) {
+      for (int i = 0; i < nu->pntsu * nu->pntsv; i++, bp++) {
         bp->tilt = key[3];
         bp->radius = key[4];
         key += KEYELEM_FLOAT_LEN_BPOINT;
@@ -5197,37 +5186,32 @@ void BKE_curve_translate(Curve *cu, const float offset[3], const bool do_keys)
 {
   ListBase *nurb_lb = BKE_curve_nurbs_get(cu);
   Nurb *nu;
-  int i;
 
-  for (nu = nurb_lb->first; nu; nu = nu->next) {
-    BezTriple *bezt;
-    BPoint *bp;
-
+  LISTBASE_FOREACH (Nurb *, nu, nurb_lb) {
     if (nu->type == CU_BEZIER) {
-      i = nu->pntsu;
-      for (bezt = nu->bezt; i--; bezt++) {
+      int i = nu->pntsu;
+      for (BezTriple *bezt = nu->bezt; i--; bezt++) {
         add_v3_v3(bezt->vec[0], offset);
         add_v3_v3(bezt->vec[1], offset);
         add_v3_v3(bezt->vec[2], offset);
       }
     }
     else {
-      i = nu->pntsu * nu->pntsv;
-      for (bp = nu->bp; i--; bp++) {
+      int i = nu->pntsu * nu->pntsv;
+      for (BPoint *bp = nu->bp; i--; bp++) {
         add_v3_v3(bp->vec, offset);
       }
     }
   }
 
   if (do_keys && cu->key) {
-    KeyBlock *kb;
-    for (kb = cu->key->block.first; kb; kb = kb->next) {
+    LISTBASE_FOREACH (KeyBlock *, kb, &cu->key->block) {
       float *fp = kb->data;
       int n = kb->totelem;
 
-      for (nu = cu->nurb.first; nu; nu = nu->next) {
+      LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
         if (nu->type == CU_BEZIER) {
-          for (i = nu->pntsu; i && (n -= KEYELEM_ELEM_LEN_BEZTRIPLE) >= 0; i--) {
+          for (int i = nu->pntsu; i && (n -= KEYELEM_ELEM_LEN_BEZTRIPLE) >= 0; i--) {
             add_v3_v3(&fp[0], offset);
             add_v3_v3(&fp[3], offset);
             add_v3_v3(&fp[6], offset);
@@ -5235,7 +5219,7 @@ void BKE_curve_translate(Curve *cu, const float offset[3], const bool do_keys)
           }
         }
         else {
-          for (i = nu->pntsu * nu->pntsv; i && (n -= KEYELEM_ELEM_LEN_BPOINT) >= 0; i--) {
+          for (int i = nu->pntsu * nu->pntsv; i && (n -= KEYELEM_ELEM_LEN_BPOINT) >= 0; i--) {
             add_v3_v3(fp, offset);
             fp += KEYELEM_FLOAT_LEN_BPOINT;
           }
@@ -5251,17 +5235,14 @@ void BKE_curve_material_index_remove(Curve *cu, int index)
 
   if (curvetype == OB_FONT) {
     struct CharInfo *info = cu->strinfo;
-    int i;
-    for (i = cu->len_char32 - 1; i >= 0; i--, info++) {
+    for (int i = cu->len_char32 - 1; i >= 0; i--, info++) {
       if (info->mat_nr && info->mat_nr >= index) {
         info->mat_nr--;
       }
     }
   }
   else {
-    Nurb *nu;
-
-    for (nu = cu->nurb.first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
       if (nu->mat_nr && nu->mat_nr >= index) {
         nu->mat_nr--;
       }
@@ -5275,17 +5256,14 @@ bool BKE_curve_material_index_used(Curve *cu, int index)
 
   if (curvetype == OB_FONT) {
     struct CharInfo *info = cu->strinfo;
-    int i;
-    for (i = cu->len_char32 - 1; i >= 0; i--, info++) {
+    for (int i = cu->len_char32 - 1; i >= 0; i--, info++) {
       if (info->mat_nr == index) {
         return true;
       }
     }
   }
   else {
-    Nurb *nu;
-
-    for (nu = cu->nurb.first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
       if (nu->mat_nr == index) {
         return true;
       }
@@ -5301,15 +5279,12 @@ void BKE_curve_material_index_clear(Curve *cu)
 
   if (curvetype == OB_FONT) {
     struct CharInfo *info = cu->strinfo;
-    int i;
-    for (i = cu->len_char32 - 1; i >= 0; i--, info++) {
+    for (int i = cu->len_char32 - 1; i >= 0; i--, info++) {
       info->mat_nr = 0;
     }
   }
   else {
-    Nurb *nu;
-
-    for (nu = cu->nurb.first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
       nu->mat_nr = 0;
     }
   }

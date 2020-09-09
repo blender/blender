@@ -172,24 +172,18 @@ void cloth_init(ClothModifierData *clmd)
 
 static BVHTree *bvhtree_build_from_cloth(ClothModifierData *clmd, float epsilon)
 {
-  unsigned int i;
-  BVHTree *bvhtree;
-  Cloth *cloth;
-  ClothVertex *verts;
-  const MVertTri *vt;
-
   if (!clmd) {
     return NULL;
   }
 
-  cloth = clmd->clothObject;
+  Cloth *cloth = clmd->clothObject;
 
   if (!cloth) {
     return NULL;
   }
 
-  verts = cloth->verts;
-  vt = cloth->tri;
+  ClothVertex *verts = cloth->verts;
+  const MVertTri *vt = cloth->tri;
 
   /* in the moment, return zero if no faces there */
   if (!cloth->primitive_num) {
@@ -197,11 +191,11 @@ static BVHTree *bvhtree_build_from_cloth(ClothModifierData *clmd, float epsilon)
   }
 
   /* create quadtree with k=26 */
-  bvhtree = BLI_bvhtree_new(cloth->primitive_num, epsilon, 4, 26);
+  BVHTree *bvhtree = BLI_bvhtree_new(cloth->primitive_num, epsilon, 4, 26);
 
   /* fill tree */
   if (clmd->hairdata == NULL) {
-    for (i = 0; i < cloth->primitive_num; i++, vt++) {
+    for (int i = 0; i < cloth->primitive_num; i++, vt++) {
       float co[3][3];
 
       copy_v3_v3(co[0], verts[vt->tri[0]].xold);
@@ -214,7 +208,7 @@ static BVHTree *bvhtree_build_from_cloth(ClothModifierData *clmd, float epsilon)
   else {
     MEdge *edges = cloth->edges;
 
-    for (i = 0; i < cloth->primitive_num; i++) {
+    for (int i = 0; i < cloth->primitive_num; i++) {
       float co[2][3];
 
       copy_v3_v3(co[0], verts[edges[i].v1].xold);
@@ -997,8 +991,7 @@ BLI_INLINE void spring_verts_ordered_set(ClothSpring *spring, int v0, int v1)
 static void cloth_free_edgelist(LinkNodePair *edgelist, unsigned int mvert_num)
 {
   if (edgelist) {
-    unsigned int i;
-    for (i = 0; i < mvert_num; i++) {
+    for (uint i = 0; i < mvert_num; i++) {
       BLI_linklist_free(edgelist[i].list, NULL);
     }
 

@@ -316,8 +316,7 @@ static GlyphBLF **blf_font_ensure_ascii_table(FontBLF *font, GlyphCacheBLF *gc)
   /* build ascii on demand */
   if (glyph_ascii_table['0'] == NULL) {
     GlyphBLF *g;
-    unsigned int i;
-    for (i = 0; i < 256; i++) {
+    for (uint i = 0; i < 256; i++) {
       g = blf_glyph_search(gc, i);
       if (!g) {
         FT_UInt glyph_index = FT_Get_Char_Index(font->face, i);

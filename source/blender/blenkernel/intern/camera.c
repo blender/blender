@@ -527,9 +527,8 @@ typedef struct CameraViewFrameData {
 static void camera_to_frame_view_cb(const float co[3], void *user_data)
 {
   CameraViewFrameData *data = (CameraViewFrameData *)user_data;
-  unsigned int i;
 
-  for (i = 0; i < CAMERA_VIEWFRAME_NUM_PLANES; i++) {
+  for (uint i = 0; i < CAMERA_VIEWFRAME_NUM_PLANES; i++) {
     const float nd = dist_signed_squared_to_plane_v3(co, data->plane_tx[i]);
     CLAMP_MAX(data->dist_vals_sq[i], nd);
   }
@@ -548,7 +547,6 @@ static void camera_frame_fit_data_init(const Scene *scene,
                                        CameraViewFrameData *data)
 {
   float camera_rotmat_transposed_inversed[4][4];
-  unsigned int i;
 
   /* setup parameters */
   BKE_camera_params_init(params);
@@ -585,7 +583,7 @@ static void camera_frame_fit_data_init(const Scene *scene,
       NULL);
 
   /* Rotate planes and get normals from them */
-  for (i = 0; i < CAMERA_VIEWFRAME_NUM_PLANES; i++) {
+  for (uint i = 0; i < CAMERA_VIEWFRAME_NUM_PLANES; i++) {
     mul_m4_v4(camera_rotmat_transposed_inversed, data->plane_tx[i]);
     normalize_v3_v3(data->normal_tx[i], data->plane_tx[i]);
   }
@@ -606,7 +604,6 @@ static bool camera_frame_fit_calc_from_data(CameraParams *params,
                                             float *r_scale)
 {
   float plane_tx[CAMERA_VIEWFRAME_NUM_PLANES][4];
-  unsigned int i;
 
   if (data->tot <= 1) {
     return false;
@@ -620,7 +617,7 @@ static bool camera_frame_fit_calc_from_data(CameraParams *params,
     float scale_diff;
 
     /* apply the dist-from-plane's to the transformed plane points */
-    for (i = 0; i < CAMERA_VIEWFRAME_NUM_PLANES; i++) {
+    for (int i = 0; i < CAMERA_VIEWFRAME_NUM_PLANES; i++) {
       dists[i] = sqrtf_signed(data->dist_vals_sq[i]);
     }
 
@@ -648,7 +645,7 @@ static bool camera_frame_fit_calc_from_data(CameraParams *params,
   float plane_isect_pt_1[3], plane_isect_pt_2[3];
 
   /* apply the dist-from-plane's to the transformed plane points */
-  for (i = 0; i < CAMERA_VIEWFRAME_NUM_PLANES; i++) {
+  for (int i = 0; i < CAMERA_VIEWFRAME_NUM_PLANES; i++) {
     float co[3];
     mul_v3_v3fl(co, data->normal_tx[i], sqrtf_signed(data->dist_vals_sq[i]));
     plane_from_point_normal_v3(plane_tx[i], co, data->normal_tx[i]);

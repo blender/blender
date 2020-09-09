@@ -67,7 +67,6 @@ void BLF_thumb_preview(const char *filename,
 
   FontBLF *font;
   GlyphCacheBLF *gc;
-  int i;
 
   /* Create a new blender font obj and fill it with default values */
   font = blf_font_new("thumb_font", filename);
@@ -91,7 +90,7 @@ void BLF_thumb_preview(const char *filename,
 
   blf_draw_buffer__start(font);
 
-  for (i = 0; i < draw_str_lines; i++) {
+  for (int i = 0; i < draw_str_lines; i++) {
     const char *draw_str_i18n = i18n_draw_str[i] != NULL ? i18n_draw_str[i] : draw_str[i];
     const size_t draw_str_i18n_len = strlen(draw_str_i18n);
     int draw_str_i18n_nbr = 0;

@@ -3811,7 +3811,6 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
     float newloc[3], newrot[3][3], neweul[3], newsize[3];
     float dbuf[4], sval[3];
     float *const dvec = dbuf + 1;
-    int i;
 
     /* obtain target effect */
     switch (data->from) {
@@ -3854,7 +3853,7 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 
     /* determine where in range current transforms lie */
     if (data->expo) {
-      for (i = 0; i < 3; i++) {
+      for (int i = 0; i < 3; i++) {
         if (from_max[i] - from_min[i]) {
           sval[i] = (dvec[i] - from_min[i]) / (from_max[i] - from_min[i]);
         }
@@ -3865,7 +3864,7 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
     }
     else {
       /* clamp transforms out of range */
-      for (i = 0; i < 3; i++) {
+      for (int i = 0; i < 3; i++) {
         CLAMP(dvec[i], from_min[i], from_max[i]);
         if (from_max[i] - from_min[i]) {
           sval[i] = (dvec[i] - from_min[i]) / (from_max[i] - from_min[i]);
@@ -3881,7 +3880,7 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
       case TRANS_SCALE:
         to_min = data->to_min_scale;
         to_max = data->to_max_scale;
-        for (i = 0; i < 3; i++) {
+        for (int i = 0; i < 3; i++) {
           newsize[i] = to_min[i] + (sval[(int)data->map[i]] * (to_max[i] - to_min[i]));
         }
         switch (data->mix_mode_scale) {
@@ -3897,7 +3896,7 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
       case TRANS_ROTATION:
         to_min = data->to_min_rot;
         to_max = data->to_max_rot;
-        for (i = 0; i < 3; i++) {
+        for (int i = 0; i < 3; i++) {
           neweul[i] = to_min[i] + (sval[(int)data->map[i]] * (to_max[i] - to_min[i]));
         }
         switch (data->mix_mode_rot) {
@@ -3924,7 +3923,7 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
       default:
         to_min = data->to_min;
         to_max = data->to_max;
-        for (i = 0; i < 3; i++) {
+        for (int i = 0; i < 3; i++) {
           newloc[i] = (to_min[i] + (sval[(int)data->map[i]] * (to_max[i] - to_min[i])));
         }
         switch (data->mix_mode_loc) {

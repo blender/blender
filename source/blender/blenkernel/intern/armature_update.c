@@ -125,7 +125,6 @@ static void splineik_init_tree_from_pchan(Scene *UNUSED(scene),
   /* perform binding step if required */
   if ((ikData->flag & CONSTRAINT_SPLINEIK_BOUND) == 0) {
     float segmentLen = (1.0f / (float)segcount);
-    int i;
 
     /* setup new empty array for the points list */
     if (ikData->points) {
@@ -140,7 +139,7 @@ static void splineik_init_tree_from_pchan(Scene *UNUSED(scene),
     /* perform binding of the joints to parametric positions along the curve based
      * proportion of the total length that each bone occupies
      */
-    for (i = 0; i < segcount; i++) {
+    for (int i = 0; i < segcount; i++) {
       /* 'head' joints, traveling towards the root of the chain
        * - 2 methods; the one chosen depends on whether we've got usable lengths
        */
@@ -549,11 +548,9 @@ static void splineik_execute_tree(
 
   /* for each pose-tree, execute it if it is spline, otherwise just free it */
   while ((tree = pchan_root->siktree.first) != NULL) {
-    int i;
-
     /* Firstly, calculate the bone matrix the standard way,
      * since this is needed for roll control. */
-    for (i = tree->chainlen - 1; i >= 0; i--) {
+    for (int i = tree->chainlen - 1; i >= 0; i--) {
       BKE_pose_where_is_bone(depsgraph, scene, ob, tree->chain[i], ctime, 1);
     }
 
@@ -565,7 +562,7 @@ static void splineik_execute_tree(
        * - the chain is traversed in the opposite order to storage order (i.e. parent to children)
        *   so that dependencies are correct
        */
-      for (i = tree->chainlen - 1; i >= 0; i--) {
+      for (int i = tree->chainlen - 1; i >= 0; i--) {
         bPoseChannel *pchan = tree->chain[i];
         splineik_evaluate_bone(tree, ob, pchan, i, &state);
       }

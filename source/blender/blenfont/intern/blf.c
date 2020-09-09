@@ -92,9 +92,7 @@ static FontBLF *blf_get(int fontid)
 
 int BLF_init(void)
 {
-  int i;
-
-  for (i = 0; i < BLF_MAX_FONT; i++) {
+  for (int i = 0; i < BLF_MAX_FONT; i++) {
     global_font[i] = NULL;
   }
 
@@ -111,11 +109,8 @@ void BLF_default_dpi(int dpi)
 
 void BLF_exit(void)
 {
-  FontBLF *font;
-  int i;
-
-  for (i = 0; i < BLF_MAX_FONT; i++) {
-    font = global_font[i];
+  for (int i = 0; i < BLF_MAX_FONT; i++) {
+    FontBLF *font = global_font[i];
     if (font) {
       blf_font_free(font);
       global_font[i] = NULL;
@@ -127,11 +122,8 @@ void BLF_exit(void)
 
 void BLF_cache_clear(void)
 {
-  FontBLF *font;
-  int i;
-
-  for (i = 0; i < BLF_MAX_FONT; i++) {
-    font = global_font[i];
+  for (int i = 0; i < BLF_MAX_FONT; i++) {
+    FontBLF *font = global_font[i];
     if (font) {
       blf_glyph_cache_clear(font);
       blf_kerning_cache_clear(font);
@@ -141,11 +133,8 @@ void BLF_cache_clear(void)
 
 static int blf_search(const char *name)
 {
-  FontBLF *font;
-  int i;
-
-  for (i = 0; i < BLF_MAX_FONT; i++) {
-    font = global_font[i];
+  for (int i = 0; i < BLF_MAX_FONT; i++) {
+    FontBLF *font = global_font[i];
     if (font && (STREQ(font->name, name))) {
       return i;
     }
@@ -156,9 +145,7 @@ static int blf_search(const char *name)
 
 static int blf_search_available(void)
 {
-  int i;
-
-  for (i = 0; i < BLF_MAX_FONT; i++) {
+  for (int i = 0; i < BLF_MAX_FONT; i++) {
     if (!global_font[i]) {
       return i;
     }
@@ -192,13 +179,10 @@ bool BLF_has_glyph(int fontid, unsigned int unicode)
 
 int BLF_load(const char *name)
 {
-  FontBLF *font;
-  int i;
-
   /* check if we already load this font. */
-  i = blf_search(name);
+  int i = blf_search(name);
   if (i >= 0) {
-    font = global_font[i];
+    FontBLF *font = global_font[i];
     font->reference_count++;
     return i;
   }
@@ -208,26 +192,22 @@ int BLF_load(const char *name)
 
 int BLF_load_unique(const char *name)
 {
-  FontBLF *font;
-  char *filename;
-  int i;
-
   /* Don't search in the cache!! make a new
    * object font, this is for keep fonts threads safe.
    */
-  i = blf_search_available();
+  int i = blf_search_available();
   if (i == -1) {
     printf("Too many fonts!!!\n");
     return -1;
   }
 
-  filename = blf_dir_search(name);
+  char *filename = blf_dir_search(name);
   if (!filename) {
     printf("Can't find font: %s\n", name);
     return -1;
   }
 
-  font = blf_font_new(name, filename);
+  FontBLF *font = blf_font_new(name, filename);
   MEM_freeN(filename);
 
   if (!font) {
@@ -251,9 +231,7 @@ void BLF_metrics_attach(int fontid, unsigned char *mem, int mem_size)
 
 int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size)
 {
-  int i;
-
-  i = blf_search(name);
+  int i = blf_search(name);
   if (i >= 0) {
     /*font = global_font[i];*/ /*UNUSED*/
     return i;
@@ -263,14 +241,11 @@ int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size)
 
 int BLF_load_mem_unique(const char *name, const unsigned char *mem, int mem_size)
 {
-  FontBLF *font;
-  int i;
-
   /*
    * Don't search in the cache, make a new object font!
    * this is to keep the font thread safe.
    */
-  i = blf_search_available();
+  int i = blf_search_available();
   if (i == -1) {
     printf("Too many fonts!!!\n");
     return -1;
@@ -281,7 +256,7 @@ int BLF_load_mem_unique(const char *name, const unsigned char *mem, int mem_size
     return -1;
   }
 
-  font = blf_font_new_from_mem(name, mem, mem_size);
+  FontBLF *font = blf_font_new_from_mem(name, mem, mem_size);
   if (!font) {
     printf("Can't load font: %s from memory!!\n", name);
     return -1;
@@ -294,11 +269,8 @@ int BLF_load_mem_unique(const char *name, const unsigned char *mem, int mem_size
 
 void BLF_unload(const char *name)
 {
-  FontBLF *font;
-  int i;
-
-  for (i = 0; i < BLF_MAX_FONT; i++) {
-    font = global_font[i];
+  for (int i = 0; i < BLF_MAX_FONT; i++) {
+    FontBLF *font = global_font[i];
 
     if (font && (STREQ(font->name, name))) {
       BLI_assert(font->reference_count > 0);

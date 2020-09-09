@@ -114,13 +114,11 @@ BVHTree *bvhtree_build_from_mvert(const MVert *mvert,
                                   int tri_num,
                                   float epsilon)
 {
-  BVHTree *tree;
-  const MVertTri *vt;
-  int i;
-
-  tree = BLI_bvhtree_new(tri_num, epsilon, 4, 26);
+  BVHTree *tree = BLI_bvhtree_new(tri_num, epsilon, 4, 26);
 
   /* fill tree */
+  int i;
+  const MVertTri *vt;
   for (i = 0, vt = tri; i < tri_num; i++, vt++) {
     float co[3][3];
 
@@ -144,8 +142,6 @@ void bvhtree_update_from_mvert(BVHTree *bvhtree,
                                int tri_num,
                                bool moving)
 {
-  const MVertTri *vt;
-  int i;
 
   if ((bvhtree == NULL) || (mvert == NULL)) {
     return;
@@ -155,6 +151,8 @@ void bvhtree_update_from_mvert(BVHTree *bvhtree,
     moving = false;
   }
 
+  const MVertTri *vt;
+  int i;
   for (i = 0, vt = tri; i < tri_num; i++, vt++) {
     float co[3][3];
     bool ret;

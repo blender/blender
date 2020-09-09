@@ -115,11 +115,8 @@ char **BLF_dir_get(int *ndir)
 
 void BLF_dir_free(char **dirs, int count)
 {
-  char *path;
-  int i;
-
-  for (i = 0; i < count; i++) {
-    path = dirs[i];
+  for (int i = 0; i < count; i++) {
+    char *path = dirs[i];
     MEM_freeN(path);
   }
   MEM_freeN(dirs);

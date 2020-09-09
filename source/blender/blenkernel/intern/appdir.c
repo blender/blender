@@ -746,8 +746,6 @@ bool BKE_appdir_program_python_search(char *fullpath,
       python_ver,
       basename,
   };
-  int i;
-
   bool is_found = false;
 
   BLI_snprintf(python_ver, sizeof(python_ver), "%s%d.%d", basename, version_major, version_minor);
@@ -756,7 +754,7 @@ bool BKE_appdir_program_python_search(char *fullpath,
     const char *python_bin_dir = BKE_appdir_folder_id(BLENDER_SYSTEM_PYTHON, "bin");
     if (python_bin_dir) {
 
-      for (i = 0; i < ARRAY_SIZE(python_names); i++) {
+      for (int i = 0; i < ARRAY_SIZE(python_names); i++) {
         BLI_join_dirfile(fullpath, fullpath_len, python_bin_dir, python_names[i]);
 
         if (
@@ -774,7 +772,7 @@ bool BKE_appdir_program_python_search(char *fullpath,
   }
 
   if (is_found == false) {
-    for (i = 0; i < ARRAY_SIZE(python_names); i++) {
+    for (int i = 0; i < ARRAY_SIZE(python_names); i++) {
       if (BLI_path_program_search(fullpath, fullpath_len, python_names[i])) {
         is_found = true;
         break;
