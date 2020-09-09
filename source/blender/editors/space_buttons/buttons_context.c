@@ -333,6 +333,9 @@ static bool buttons_context_path_material(ButsContextPath *path)
 
     if (ob && OB_TYPE_SUPPORT_MATERIAL(ob->type)) {
       ma = BKE_object_material_get(ob, ob->actcol);
+      if (ma == NULL) {
+        return false;
+      }
       RNA_id_pointer_create(&ma->id, &path->ptr[path->len]);
       path->len++;
       return true;
