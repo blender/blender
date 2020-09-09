@@ -55,7 +55,7 @@
 /* Loops over the mask-frames for a mask-layer, and applies the given callback */
 bool ED_masklayer_frames_looper(MaskLayer *mask_layer,
                                 Scene *scene,
-                                short (*mask_layer_shape_cb)(MaskLayerShape *, Scene *))
+                                bool (*mask_layer_shape_cb)(MaskLayerShape *, Scene *))
 {
   MaskLayerShape *mask_layer_shape;
 
@@ -310,38 +310,38 @@ void ED_masklayer_frames_duplicate(MaskLayer *mask_layer)
 /* -------------------------------------- */
 /* Snap Tools */
 
-static short snap_mask_layer_nearest(MaskLayerShape *mask_layer_shape, Scene *UNUSED(scene))
+static bool snap_mask_layer_nearest(MaskLayerShape *mask_layer_shape, Scene *UNUSED(scene))
 {
   if (mask_layer_shape->flag & MASK_SHAPE_SELECT) {
     mask_layer_shape->frame = (int)(floor(mask_layer_shape->frame + 0.5));
   }
-  return 0;
+  return false;
 }
 
-static short snap_mask_layer_nearestsec(MaskLayerShape *mask_layer_shape, Scene *scene)
+static bool snap_mask_layer_nearestsec(MaskLayerShape *mask_layer_shape, Scene *scene)
 {
   float secf = (float)FPS;
   if (mask_layer_shape->flag & MASK_SHAPE_SELECT) {
     mask_layer_shape->frame = (int)(floorf(mask_layer_shape->frame / secf + 0.5f) * secf);
   }
-  return 0;
+  return false;
 }
 
-static short snap_mask_layer_cframe(MaskLayerShape *mask_layer_shape, Scene *scene)
+static bool snap_mask_layer_cframe(MaskLayerShape *mask_layer_shape, Scene *scene)
 {
   if (mask_layer_shape->flag & MASK_SHAPE_SELECT) {
     mask_layer_shape->frame = (int)CFRA;
   }
-  return 0;
+  return false;
 }
 
-static short snap_mask_layer_nearmarker(MaskLayerShape *mask_layer_shape, Scene *scene)
+static bool snap_mask_layer_nearmarker(MaskLayerShape *mask_layer_shape, Scene *scene)
 {
   if (mask_layer_shape->flag & MASK_SHAPE_SELECT) {
     mask_layer_shape->frame = (int)ED_markers_find_nearest_marker_time(
         &scene->markers, (float)mask_layer_shape->frame);
   }
-  return 0;
+  return false;
 }
 
 /* snap selected frames to ... */

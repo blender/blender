@@ -306,12 +306,12 @@ static Mesh *dynamicPaint_brush_mesh_get(DynamicPaintBrushSettings *brush)
 /***************************** General Utils ******************************/
 
 /* Set canvas error string to display at the bake report */
-static int setError(DynamicPaintCanvasSettings *canvas, const char *string)
+static bool setError(DynamicPaintCanvasSettings *canvas, const char *string)
 {
   /* Add error to canvas ui info label */
   BLI_strncpy(canvas->error, string, sizeof(canvas->error));
   CLOG_STR_ERROR(&LOG, string);
-  return 0;
+  return false;
 }
 
 /* Get number of surface points for cached types */

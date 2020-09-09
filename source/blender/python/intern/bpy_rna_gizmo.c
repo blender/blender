@@ -507,7 +507,7 @@ fail:
 
 /** \} */
 
-int BPY_rna_gizmo_module(PyObject *mod_par)
+bool BPY_rna_gizmo_module(PyObject *mod_par)
 {
   static PyMethodDef method_def_array[] = {
       /* Gizmo Target Property Define API */
@@ -541,5 +541,5 @@ int BPY_rna_gizmo_module(PyObject *mod_par)
     PyModule_AddObject(mod_par, name_prefix, func_inst);
   }
 
-  return 0;
+  return false;
 }

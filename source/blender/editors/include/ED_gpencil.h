@@ -176,7 +176,7 @@ void ED_annotation_draw_ex(struct Scene *scene,
 /* ----------- Grease-Pencil AnimEdit API ------------------ */
 bool ED_gpencil_layer_frames_looper(struct bGPDlayer *gpl,
                                     struct Scene *scene,
-                                    short (*gpf_cb)(struct bGPDframe *, struct Scene *));
+                                    bool (*gpf_cb)(struct bGPDframe *, struct Scene *));
 void ED_gpencil_layer_make_cfra_list(struct bGPDlayer *gpl, ListBase *elems, bool onlysel);
 
 bool ED_gpencil_layer_frame_select_check(struct bGPDlayer *gpl);

@@ -891,7 +891,8 @@ void ED_mesh_mirror_topo_table_end(Object *UNUSED(ob))
   ED_mesh_mirrtopo_free(&mesh_topo_store);
 }
 
-static int ed_mesh_mirror_topo_table_update(Object *ob, Mesh *me_eval)
+/* Returns true on success. */
+static bool ed_mesh_mirror_topo_table_update(Object *ob, Mesh *me_eval)
 {
   Mesh *me_mirror;
   BMEditMesh *em_mirror;
@@ -900,7 +901,7 @@ static int ed_mesh_mirror_topo_table_update(Object *ob, Mesh *me_eval)
   if (ED_mesh_mirrtopo_recalc_check(em_mirror, me_mirror, &mesh_topo_store)) {
     ED_mesh_mirror_topo_table_begin(ob, me_eval);
   }
-  return 0;
+  return true;
 }
 
 /** \} */
@@ -921,7 +922,7 @@ static int mesh_get_x_mirror_vert_spatial(Object *ob, Mesh *me_eval, int index)
 
 static int mesh_get_x_mirror_vert_topo(Object *ob, Mesh *mesh, int index)
 {
-  if (ed_mesh_mirror_topo_table_update(ob, mesh) == -1) {
+  if (!ed_mesh_mirror_topo_table_update(ob, mesh)) {
     return -1;
   }
 
@@ -963,7 +964,7 @@ static BMVert *editbmesh_get_x_mirror_vert_topo(Object *ob,
                                                 int index)
 {
   intptr_t poinval;
-  if (ed_mesh_mirror_topo_table_update(ob, NULL) == -1) {
+  if (!ed_mesh_mirror_topo_table_update(ob, NULL)) {
     return NULL;
   }
 

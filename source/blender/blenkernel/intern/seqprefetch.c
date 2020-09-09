@@ -483,7 +483,7 @@ static void *seq_prefetch_frames(void *job)
   pfjob->running = false;
   pfjob->scene_eval->ed->prefetch_job = NULL;
 
-  return 0;
+  return NULL;
 }
 
 static PrefetchJob *seq_prefetch_start(const SeqRenderData *context, float cfra)

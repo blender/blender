@@ -58,7 +58,7 @@
 /* Loops over the gp-frames for a gp-layer, and applies the given callback */
 bool ED_gpencil_layer_frames_looper(bGPDlayer *gpl,
                                     Scene *scene,
-                                    short (*gpf_cb)(bGPDframe *, Scene *))
+                                    bool (*gpf_cb)(bGPDframe *, Scene *))
 {
   /* error checker */
   if (gpl == NULL) {
@@ -511,40 +511,40 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
 /* -------------------------------------- */
 /* Snap Tools */
 
-static short gpencil_frame_snap_nearest(bGPDframe *UNUSED(gpf), Scene *UNUSED(scene))
+static bool gpencil_frame_snap_nearest(bGPDframe *UNUSED(gpf), Scene *UNUSED(scene))
 {
 #if 0 /* note: gpf->framenum is already an int! */
   if (gpf->flag & GP_FRAME_SELECT) {
     gpf->framenum = (int)(floor(gpf->framenum + 0.5));
   }
 #endif
-  return 0;
+  return false;
 }
 
-static short gpencil_frame_snap_nearestsec(bGPDframe *gpf, Scene *scene)
+static bool gpencil_frame_snap_nearestsec(bGPDframe *gpf, Scene *scene)
 {
   float secf = (float)FPS;
   if (gpf->flag & GP_FRAME_SELECT) {
     gpf->framenum = (int)(floorf(gpf->framenum / secf + 0.5f) * secf);
   }
-  return 0;
+  return false;
 }
 
-static short gpencil_frame_snap_cframe(bGPDframe *gpf, Scene *scene)
+static bool gpencil_frame_snap_cframe(bGPDframe *gpf, Scene *scene)
 {
   if (gpf->flag & GP_FRAME_SELECT) {
     gpf->framenum = (int)CFRA;
   }
-  return 0;
+  return false;
 }
 
-static short gpencil_frame_snap_nearmarker(bGPDframe *gpf, Scene *scene)
+static bool gpencil_frame_snap_nearmarker(bGPDframe *gpf, Scene *scene)
 {
   if (gpf->flag & GP_FRAME_SELECT) {
     gpf->framenum = (int)ED_markers_find_nearest_marker_time(&scene->markers,
                                                              (float)gpf->framenum);
   }
-  return 0;
+  return false;
 }
 
 /* snap selected frames to ... */
@@ -571,7 +571,7 @@ void ED_gpencil_layer_snap_frames(bGPDlayer *gpl, Scene *scene, short mode)
 /* -------------------------------------- */
 /* Mirror Tools */
 
-static short gpencil_frame_mirror_cframe(bGPDframe *gpf, Scene *scene)
+static bool gpencil_frame_mirror_cframe(bGPDframe *gpf, Scene *scene)
 {
   int diff;
 
@@ -580,10 +580,10 @@ static short gpencil_frame_mirror_cframe(bGPDframe *gpf, Scene *scene)
     gpf->framenum = CFRA + diff;
   }
 
-  return 0;
+  return false;
 }
 
-static short gpencil_frame_mirror_yaxis(bGPDframe *gpf, Scene *UNUSED(scene))
+static bool gpencil_frame_mirror_yaxis(bGPDframe *gpf, Scene *UNUSED(scene))
 {
   int diff;
 
@@ -592,10 +592,10 @@ static short gpencil_frame_mirror_yaxis(bGPDframe *gpf, Scene *UNUSED(scene))
     gpf->framenum = diff;
   }
 
-  return 0;
+  return false;
 }
 
-static short gpencil_frame_mirror_xaxis(bGPDframe *gpf, Scene *UNUSED(scene))
+static bool gpencil_frame_mirror_xaxis(bGPDframe *gpf, Scene *UNUSED(scene))
 {
   int diff;
 
@@ -605,10 +605,10 @@ static short gpencil_frame_mirror_xaxis(bGPDframe *gpf, Scene *UNUSED(scene))
     gpf->framenum = diff;
   }
 
-  return 0;
+  return false;
 }
 
-static short gpencil_frame_mirror_marker(bGPDframe *gpf, Scene *scene)
+static bool gpencil_frame_mirror_marker(bGPDframe *gpf, Scene *scene)
 {
   static TimeMarker *marker;
   static short initialized = 0;
@@ -645,7 +645,7 @@ static short gpencil_frame_mirror_marker(bGPDframe *gpf, Scene *scene)
     }
   }
 
-  return 0;
+  return false;
 }
 
 /* mirror selected gp-frames on... */

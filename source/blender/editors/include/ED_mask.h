@@ -91,8 +91,8 @@ bool ED_mask_layer_shape_auto_key_select(struct Mask *mask, const int frame);
 /* ----------- Mask AnimEdit API ------------------ */
 bool ED_masklayer_frames_looper(struct MaskLayer *mask_layer,
                                 struct Scene *scene,
-                                short (*mask_layer_shape_cb)(struct MaskLayerShape *,
-                                                             struct Scene *));
+                                bool (*mask_layer_shape_cb)(struct MaskLayerShape *,
+                                                            struct Scene *));
 void ED_masklayer_make_cfra_list(struct MaskLayer *mask_layer, ListBase *elems, bool onlysel);
 
 bool ED_masklayer_frame_select_check(struct MaskLayer *mask_layer);

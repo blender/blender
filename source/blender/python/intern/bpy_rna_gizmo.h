@@ -24,7 +24,7 @@
 extern "C" {
 #endif
 
-int BPY_rna_gizmo_module(PyObject *);
+bool BPY_rna_gizmo_module(PyObject *);
 
 #ifdef __cplusplus
 }
