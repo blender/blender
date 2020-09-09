@@ -243,35 +243,87 @@ static void rna_ParticleHairKey_location_object_get(PointerRNA *ptr, float *valu
   }
 }
 
+/* Helper function which returns index of the given hair_key in particle which owns it.
+ * Works with cases when hair_key is coming from the particle which was passed here, and from the
+ * original particle of the given one.
+ *
+ * Such trickery is needed to allow modification of hair keys in the original object using
+ * evaluated particle and object to access proper hair matrix. */
+static int hair_key_index_get(/*const*/ HairKey *hair_key,
+                              /*const*/ ParticleSystemModifierData *modifier,
+                              /*const*/ ParticleData *particle)
+{
+  if (ARRAY_HAS_ITEM(hair_key, particle->hair, particle->totkey)) {
+    return hair_key - particle->hair;
+  }
+
+  const ParticleSystem *particle_system = modifier->psys;
+  const int particle_index = particle - particle_system->particles;
+
+  const ParticleSystemModifierData *original_modifier = (ParticleSystemModifierData *)
+      BKE_modifier_get_original(&modifier->modifier);
+  const ParticleSystem *original_particle_system = original_modifier->psys;
+  const ParticleData *original_particle = &original_particle_system->particles[particle_index];
+
+  if (ARRAY_HAS_ITEM(hair_key, original_particle->hair, original_particle->totkey)) {
+    return hair_key - original_particle->hair;
+  }
+
+  return -1;
+}
+
+/* Set hair_key->co to the given coordinate in object space (the given coordinate will be
+ * converted to the proper space).
+ *
+ * The hair_key can be coming from both original and evaluated object. Object, modifier and
+ * particle are to be from evaluated object, so that all the data needed for hair matrix is
+ * present. */
+static void hair_key_location_object_set(HairKey *hair_key,
+                                         Object *object,
+                                         ParticleSystemModifierData *modifier,
+                                         ParticleData *particle,
+                                         const float src_co[3])
+{
+  Mesh *hair_mesh = (modifier->psys->flag & PSYS_HAIR_DYNAMICS) ? modifier->psys->hair_out_mesh :
+                                                                  NULL;
+
+  if (hair_mesh != NULL) {
+    const int hair_key_index = hair_key_index_get(hair_key, modifier, particle);
+    if (hair_key_index == -1) {
+      return;
+    }
+
+    MVert *mvert = &hair_mesh->mvert[particle->hair_index + (hair_key_index)];
+    copy_v3_v3(mvert->co, src_co);
+    return;
+  }
+
+  float hairmat[4][4];
+  psys_mat_hair_to_object(
+      object, modifier->mesh_final, modifier->psys->part->from, particle, hairmat);
+
+  float imat[4][4];
+  invert_m4_m4(imat, hairmat);
+
+  copy_v3_v3(hair_key->co, src_co);
+  mul_m4_v3(imat, hair_key->co);
+}
+
 static void rna_ParticleHairKey_location_object_set(PointerRNA *ptr, const float *values)
 {
   HairKey *hkey = (HairKey *)ptr->data;
   Object *ob = (Object *)ptr->owner_id;
+
   ParticleSystemModifierData *psmd;
   ParticleData *pa;
-
   rna_ParticleHairKey_location_object_info(ptr, &psmd, &pa);
 
-  if (pa) {
-    Mesh *hair_mesh = (psmd->psys->flag & PSYS_HAIR_DYNAMICS) ? psmd->psys->hair_out_mesh : NULL;
-
-    if (hair_mesh) {
-      MVert *mvert = &hair_mesh->mvert[pa->hair_index + (hkey - pa->hair)];
-      copy_v3_v3(mvert->co, values);
-    }
-    else {
-      float hairmat[4][4];
-      float imat[4][4];
-
-      psys_mat_hair_to_object(ob, psmd->mesh_final, psmd->psys->part->from, pa, hairmat);
-      invert_m4_m4(imat, hairmat);
-      copy_v3_v3(hkey->co, values);
-      mul_m4_v3(imat, hkey->co);
-    }
-  }
-  else {
+  if (pa == NULL) {
     zero_v3(hkey->co);
+    return;
   }
+
+  hair_key_location_object_set(hkey, ob, psmd, pa, values);
 }
 
 static void rna_ParticleHairKey_co_object(HairKey *hairkey,
@@ -299,6 +351,31 @@ static void rna_ParticleHairKey_co_object(HairKey *hairkey,
   else {
     zero_v3(n_co);
   }
+}
+
+static void rna_ParticleHairKey_co_object_set(ID *id,
+                                              HairKey *hair_key,
+                                              Object *object,
+                                              ParticleSystemModifierData *modifier,
+                                              ParticleData *particle,
+                                              float co[3])
+{
+
+  if (particle == NULL) {
+    return;
+  }
+
+  /* Mark particle system as edited, so then particle_system_update() does not reset the hair
+   * keys from path. This behavior is similar to how particle edit mode sets flags. */
+  ParticleSystemModifierData *orig_modifier = (ParticleSystemModifierData *)
+                                                  modifier->modifier.orig_modifier_data;
+  orig_modifier->psys->flag |= PSYS_EDITED;
+
+  hair_key_location_object_set(hair_key, object, modifier, particle, co);
+
+  /* Tag similar to brushes in particle edit mode, so the modifier stack is properly evaluated
+   * with the same particle system recalc flags as during combing. */
+  DEG_id_tag_update(id, ID_RECALC_GEOMETRY | ID_RECALC_PSYS_REDO);
 }
 
 static void rna_Particle_uv_on_emitter(ParticleData *particle,
@@ -1651,6 +1728,19 @@ static void rna_def_particle_hair_key(BlenderRNA *brna)
       func, "co", 3, NULL, -FLT_MAX, FLT_MAX, "Co", "Exported hairkey location", -1e4, 1e4);
   RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0);
   RNA_def_function_output(func, parm);
+
+  func = RNA_def_function(srna, "co_object_set", "rna_ParticleHairKey_co_object_set");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+  RNA_def_function_ui_description(func, "Set hairkey location with particle and modifier data");
+  parm = RNA_def_pointer(func, "object", "Object", "", "Object");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  parm = RNA_def_pointer(func, "modifier", "ParticleSystemModifier", "", "Particle modifier");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  parm = RNA_def_pointer(func, "particle", "Particle", "", "hair particle");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+  parm = RNA_def_float_vector(
+      func, "co", 3, NULL, -FLT_MAX, FLT_MAX, "Co", "Specified hairkey location", -1e4, 1e4);
+  RNA_def_parameter_flags(parm, PROP_THICK_WRAP, PARM_REQUIRED);
 }
 
 static void rna_def_particle_key(BlenderRNA *brna)
