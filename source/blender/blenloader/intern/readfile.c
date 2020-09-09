@@ -10312,7 +10312,7 @@ static void add_loose_objects_to_scene(Main *mainvar,
           base->local_view_bits |= v3d->local_view_uuid;
         }
 
-        if (flag & FILE_AUTOSELECT) {
+        if ((flag & FILE_AUTOSELECT) && (base->flag & BASE_SELECTABLE)) {
           /* Do NOT make base active here! screws up GUI stuff,
            * if you want it do it at the editor level. */
           base->flag |= BASE_SELECTED;
@@ -10370,7 +10370,7 @@ static void add_loose_object_data_to_scene(Main *mainvar,
           base->local_view_bits |= v3d->local_view_uuid;
         }
 
-        if (flag & FILE_AUTOSELECT) {
+        if ((flag & FILE_AUTOSELECT) && (base->flag & BASE_SELECTABLE)) {
           /* Do NOT make base active here! screws up GUI stuff,
            * if you want it do it at the editor level. */
           base->flag |= BASE_SELECTED;
@@ -10416,13 +10416,16 @@ static void add_collections_to_scene(Main *mainvar,
         base->local_view_bits |= v3d->local_view_uuid;
       }
 
-      if (base->flag & BASE_SELECTABLE) {
+      if ((flag & FILE_AUTOSELECT) && (base->flag & BASE_SELECTABLE)) {
         base->flag |= BASE_SELECTED;
       }
 
       BKE_scene_object_base_flag_sync_from_base(base);
       DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
-      view_layer->basact = base;
+
+      if (flag & FILE_AUTOSELECT) {
+        view_layer->basact = base;
+      }
 
       /* Assign the collection. */
       ob->instance_collection = collection;
