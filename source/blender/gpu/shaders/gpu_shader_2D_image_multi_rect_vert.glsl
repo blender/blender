@@ -11,29 +11,33 @@ uniform vec4 calls_data[MAX_CALLS * 3];
 out vec2 texCoord_interp;
 flat out vec4 finalColor;
 
+in vec2 pos;
+
 void main()
 {
-  vec4 pos = calls_data[gl_InstanceID * 3];
+  vec4 rect = calls_data[gl_InstanceID * 3];
   vec4 tex = calls_data[gl_InstanceID * 3 + 1];
   finalColor = calls_data[gl_InstanceID * 3 + 2];
 
-  if (gl_VertexID == 0) {
-    pos.xy = pos.xz;
+  /* Use pos to select the right swizzle (instead of gl_VertexID)
+   * in order to workaround an OSX driver bug. */
+  if (pos == vec2(0.0, 0.0)) {
+    rect.xy = rect.xz;
     tex.xy = tex.xz;
   }
-  else if (gl_VertexID == 1) {
-    pos.xy = pos.xw;
+  else if (pos == vec2(0.0, 1.0)) {
+    rect.xy = rect.xw;
     tex.xy = tex.xw;
   }
-  else if (gl_VertexID == 2) {
-    pos.xy = pos.yw;
+  else if (pos == vec2(1.0, 1.0)) {
+    rect.xy = rect.yw;
     tex.xy = tex.yw;
   }
   else {
-    pos.xy = pos.yz;
+    rect.xy = rect.yz;
     tex.xy = tex.yz;
   }
 
-  gl_Position = vec4(pos.xy, 0.0f, 1.0f);
+  gl_Position = vec4(rect.xy, 0.0f, 1.0f);
   texCoord_interp = tex.xy;
 }
