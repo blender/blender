@@ -214,17 +214,14 @@ void BKE_icons_deferred_free(void)
 
 static PreviewImage *previewimg_create_ex(size_t deferred_data_size)
 {
-  PreviewImage *prv_img = NULL;
-  int i;
-
-  prv_img = MEM_mallocN(sizeof(PreviewImage) + deferred_data_size, "img_prv");
+  PreviewImage *prv_img = MEM_mallocN(sizeof(PreviewImage) + deferred_data_size, "img_prv");
   memset(prv_img, 0, sizeof(*prv_img)); /* leave deferred data dirty */
 
   if (deferred_data_size) {
     prv_img->tag |= PRV_TAG_DEFFERED;
   }
 
-  for (i = 0; i < NUM_ICON_SIZES; i++) {
+  for (int i = 0; i < NUM_ICON_SIZES; i++) {
     prv_img->flag[i] |= PRV_CHANGED;
     prv_img->changed_timestamp[i] = 0;
   }
@@ -240,9 +237,7 @@ void BKE_previewimg_freefunc(void *link)
 {
   PreviewImage *prv = (PreviewImage *)link;
   if (prv) {
-    int i;
-
-    for (i = 0; i < NUM_ICON_SIZES; i++) {
+    for (int i = 0; i < NUM_ICON_SIZES; i++) {
       if (prv->rect[i]) {
         MEM_freeN(prv->rect[i]);
       }
@@ -277,8 +272,7 @@ void BKE_previewimg_clear_single(struct PreviewImage *prv, enum eIconSizes size)
 
 void BKE_previewimg_clear(struct PreviewImage *prv)
 {
-  int i;
-  for (i = 0; i < NUM_ICON_SIZES; i++) {
+  for (int i = 0; i < NUM_ICON_SIZES; i++) {
     BKE_previewimg_clear_single(prv, i);
   }
 }
@@ -286,11 +280,10 @@ void BKE_previewimg_clear(struct PreviewImage *prv)
 PreviewImage *BKE_previewimg_copy(const PreviewImage *prv)
 {
   PreviewImage *prv_img = NULL;
-  int i;
 
   if (prv) {
     prv_img = MEM_dupallocN(prv);
-    for (i = 0; i < NUM_ICON_SIZES; i++) {
+    for (int i = 0; i < NUM_ICON_SIZES; i++) {
       if (prv->rect[i]) {
         prv_img->rect[i] = MEM_dupallocN(prv->rect[i]);
       }
@@ -546,8 +539,7 @@ void BKE_icon_changed(const int icon_id)
 
     /* If we have previews, they all are now invalid changed. */
     if (p_prv && *p_prv) {
-      int i;
-      for (i = 0; i < NUM_ICON_SIZES; i++) {
+      for (int i = 0; i < NUM_ICON_SIZES; i++) {
         (*p_prv)->flag[i] |= PRV_CHANGED;
         (*p_prv)->changed_timestamp[i]++;
       }

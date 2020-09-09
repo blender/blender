@@ -226,10 +226,9 @@ MaskRasterHandle *BKE_maskrasterize_handle_new(void)
 void BKE_maskrasterize_handle_free(MaskRasterHandle *mr_handle)
 {
   const unsigned int layers_tot = mr_handle->layers_tot;
-  unsigned int i;
   MaskRasterLayer *layer = mr_handle->layers;
 
-  for (i = 0; i < layers_tot; i++, layer++) {
+  for (uint i = 0; i < layers_tot; i++, layer++) {
 
     if (layer->face_array) {
       MEM_freeN(layer->face_array);
@@ -672,7 +671,6 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
           if (width != height) {
             float *fp;
             float *ffp;
-            unsigned int i;
             float asp;
 
             if (width < height) {
@@ -686,12 +684,12 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
               asp = (float)height / (float)width;
             }
 
-            for (i = 0; i < tot_diff_point; i++, fp += 2) {
+            for (uint i = 0; i < tot_diff_point; i++, fp += 2) {
               (*fp) = (((*fp) - 0.5f) / asp) + 0.5f;
             }
 
             if (tot_diff_feather_points) {
-              for (i = 0; i < tot_diff_feather_points; i++, ffp += 2) {
+              for (uint i = 0; i < tot_diff_feather_points; i++, ffp += 2) {
                 (*ffp) = (((*ffp) - 0.5f) / asp) + 0.5f;
               }
             }
@@ -1353,13 +1351,12 @@ float BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
   /* if (BLI_rctf_isect_pt_v(&mr_handle->bounds, xy)) */
 
   const unsigned int layers_tot = mr_handle->layers_tot;
-  unsigned int i;
   MaskRasterLayer *layer = mr_handle->layers;
 
   /* return value */
   float value = 0.0f;
 
-  for (i = 0; i < layers_tot; i++, layer++) {
+  for (uint i = 0; i < layers_tot; i++, layer++) {
     float value_layer;
 
     /* also used as signal for unused layer (when render is disabled) */

@@ -475,13 +475,12 @@ static void blendColors(const float t_color[3],
                         float result[4])
 {
   /* Same thing as BLI's blend_color_mix_float(), but for non-premultiplied alpha. */
-  int i;
   float i_alpha = 1.0f - s_alpha;
   float f_alpha = t_alpha * i_alpha + s_alpha;
 
   /* blend colors */
   if (f_alpha) {
-    for (i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) {
       result[i] = (t_color[i] * t_alpha * i_alpha + s_color[i] * s_alpha) / f_alpha;
     }
   }
@@ -1429,9 +1428,6 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, const b
   }
 
   if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
-    int i;
-    int n_pos;
-
     /* For vertex format, count every vertex that is connected by an edge */
     int numOfEdges = mesh->totedge;
     int numOfPolys = mesh->totpoly;
@@ -1440,7 +1436,7 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, const b
     struct MLoop *mloop = mesh->mloop;
 
     /* count number of edges per vertex */
-    for (i = 0; i < numOfEdges; i++) {
+    for (int i = 0; i < numOfEdges; i++) {
       ad->n_num[edge[i].v1]++;
       ad->n_num[edge[i].v2]++;
 
@@ -1450,7 +1446,7 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, const b
 
     /* also add number of vertices to temp_data
      * to locate points on "mesh edge" */
-    for (i = 0; i < numOfPolys; i++) {
+    for (int i = 0; i < numOfPolys; i++) {
       for (int j = 0; j < mpoly[i].totloop; j++) {
         temp_data[mloop[mpoly[i].loopstart + j].v]++;
       }
@@ -1458,7 +1454,7 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, const b
 
     /* now check if total number of edges+faces for
      * each vertex is even, if not -> vertex is on mesh edge */
-    for (i = 0; i < sData->total_points; i++) {
+    for (int i = 0; i < sData->total_points; i++) {
       if ((temp_data[i] % 2) || (temp_data[i] < 4)) {
         ad->flags[i] |= ADJ_ON_MESH_EDGE;
       }
@@ -1468,14 +1464,14 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, const b
     }
 
     /* order n_index array */
-    n_pos = 0;
-    for (i = 0; i < sData->total_points; i++) {
+    int n_pos = 0;
+    for (int i = 0; i < sData->total_points; i++) {
       ad->n_index[i] = n_pos;
       n_pos += ad->n_num[i];
     }
 
     /* and now add neighbor data using that info */
-    for (i = 0; i < numOfEdges; i++) {
+    for (int i = 0; i < numOfEdges; i++) {
       /* first vertex */
       int index = edge[i].v1;
       n_pos = ad->n_index[index] + temp_data[index];
@@ -1616,7 +1612,6 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
   PaintSurfaceData *sData = surface->data;
   PaintPoint *pPoint = (PaintPoint *)sData->type_data;
   Mesh *mesh = dynamicPaint_canvas_mesh_get(surface->canvas);
-  int i;
   const bool scene_color_manage = BKE_scene_check_color_management_enabled(scene);
 
   if (surface->type != MOD_DPAINT_SURFACE_T_PAINT) {
@@ -1630,7 +1625,7 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
   /* Single color */
   if (surface->init_color_type == MOD_DPAINT_INITIAL_COLOR) {
     /* apply color to every surface point */
-    for (i = 0; i < sData->total_points; i++) {
+    for (int i = 0; i < sData->total_points; i++) {
       copy_v4_v4(pPoint[i].color, surface->init_color);
     }
   }
@@ -1703,7 +1698,7 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
         return;
       }
 
-      for (i = 0; i < totloop; i++) {
+      for (int i = 0; i < totloop; i++) {
         rgba_uchar_to_float(pPoint[mloop[i].v].color, (const unsigned char *)&col[mloop[i].v].r);
       }
     }
@@ -2029,8 +2024,7 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
               result->dvert = dvert;
             }
             if (defgrp_index != -1 && dvert) {
-              int i;
-              for (i = 0; i < sData->total_points; i++) {
+              for (int i = 0; i < sData->total_points; i++) {
                 MDeformVert *dv = &dvert[i];
                 MDeformWeight *def_weight = BKE_defvert_find_index(dv, defgrp_index);
 
@@ -4908,13 +4902,12 @@ static void surface_determineForceTargetPoints(const PaintSurfaceData *sData,
 {
   BakeAdjPoint *bNeighs = sData->bData->bNeighs;
   const int numOfNeighs = sData->adj_data->n_num[index];
-  int i;
 
   closest_id[0] = closest_id[1] = -1;
   closest_d[0] = closest_d[1] = -1.0f;
 
   /* find closest neigh */
-  for (i = 0; i < numOfNeighs; i++) {
+  for (int i = 0; i < numOfNeighs; i++) {
     const int n_index = sData->adj_data->n_index[index] + i;
     const float dir_dot = dot_v3v3(bNeighs[n_index].dir, force);
 
@@ -4929,7 +4922,7 @@ static void surface_determineForceTargetPoints(const PaintSurfaceData *sData,
   }
 
   /* find second closest neigh */
-  for (i = 0; i < numOfNeighs; i++) {
+  for (int i = 0; i < numOfNeighs; i++) {
     const int n_index = sData->adj_data->n_index[index] + i;
 
     if (n_index == closest_id[0]) {
@@ -4989,26 +4982,24 @@ static void dynamicPaint_doSmudge(DynamicPaintSurface *surface,
   PaintSurfaceData *sData = surface->data;
   PaintBakeData *bData = sData->bData;
   BakeAdjPoint *bNeighs = sData->bData->bNeighs;
-  int index, steps, step;
-  float eff_scale, max_velocity = 0.0f;
+  float max_velocity = 0.0f;
 
   if (!sData->adj_data) {
     return;
   }
 
   /* find max velocity */
-  for (index = 0; index < sData->total_points; index++) {
+  for (int index = 0; index < sData->total_points; index++) {
     float vel = bData->brush_velocity[index * 4 + 3];
     CLAMP_MIN(max_velocity, vel);
   }
 
-  steps = (int)ceil((double)max_velocity / bData->average_dist * (double)timescale);
+  int steps = (int)ceil((double)max_velocity / bData->average_dist * (double)timescale);
   CLAMP(steps, 0, 12);
-  eff_scale = brush->smudge_strength / (float)steps * timescale;
+  float eff_scale = brush->smudge_strength / (float)steps * timescale;
 
-  for (step = 0; step < steps; step++) {
-    for (index = 0; index < sData->total_points; index++) {
-      int i;
+  for (int step = 0; step < steps; step++) {
+    for (int index = 0; index < sData->total_points; index++) {
 
       if (sData->adj_data->flags[index] & ADJ_BORDER_PIXEL) {
         continue;
@@ -5030,7 +5021,7 @@ static void dynamicPaint_doSmudge(DynamicPaintSurface *surface,
           sData, index, &bData->brush_velocity[index * 4], closest_d, closest_id);
 
       /* Apply movement towards those two points */
-      for (i = 0; i < 2; i++) {
+      for (int i = 0; i < 2; i++) {
         int n_index = closest_id[i];
         if (n_index != -1 && closest_d[i] > 0.0f) {
           float dir_dot = closest_d[i], dir_factor;
@@ -5753,10 +5744,9 @@ static void dynamicPaint_doWaveStep(DynamicPaintSurface *surface, float timescal
 
   /* calculate average neigh distance (single thread) */
   for (index = 0; index < sData->total_points; index++) {
-    int i;
     int numOfNeighs = sData->adj_data->n_num[index];
 
-    for (i = 0; i < numOfNeighs; i++) {
+    for (int i = 0; i < numOfNeighs; i++) {
       average_dist += (double)bNeighs[sData->adj_data->n_index[index] + i].dist;
     }
   }
@@ -5827,8 +5817,7 @@ static void dynamic_paint_surface_pre_step_cb(void *__restrict userdata,
     /* drying */
     if (surface->flags & MOD_DPAINT_USE_DRYING) {
       if (pPoint->wetness >= MIN_WETNESS) {
-        int i;
-        float dry_ratio, f_color[4];
+        float f_color[4];
         float p_wetness = pPoint->wetness;
 
         value_dissolve(&pPoint->wetness,
@@ -5838,7 +5827,7 @@ static void dynamic_paint_surface_pre_step_cb(void *__restrict userdata,
         CLAMP_MIN(pPoint->wetness, 0.0f);
 
         if (pPoint->wetness < surface->color_dry_threshold) {
-          dry_ratio = pPoint->wetness / p_wetness;
+          float dry_ratio = pPoint->wetness / p_wetness;
 
           /*
            * Slowly "shift" paint from wet layer to dry layer as it drys:
@@ -5858,7 +5847,7 @@ static void dynamic_paint_surface_pre_step_cb(void *__restrict userdata,
           /* For each rgb component, calculate a new dry layer color that keeps the final blend
            * color with these new alpha values. (wet layer color doesn't change). */
           if (pPoint->color[3]) {
-            for (i = 0; i < 3; i++) {
+            for (int i = 0; i < 3; i++) {
               pPoint->color[i] = (f_color[i] * f_color[3] -
                                   pPoint->e_color[i] * pPoint->e_color[3]) /
                                  (pPoint->color[3] * (1.0f - pPoint->e_color[3]));
@@ -5914,7 +5903,6 @@ static bool dynamicPaint_surfaceHasMoved(DynamicPaintSurface *surface, Object *o
   MVert *mvert = mesh->mvert;
 
   int numOfVerts = mesh->totvert;
-  int i;
 
   if (!bData->prev_verts) {
     return true;
@@ -5926,7 +5914,7 @@ static bool dynamicPaint_surfaceHasMoved(DynamicPaintSurface *surface, Object *o
   }
 
   /* vertices */
-  for (i = 0; i < numOfVerts; i++) {
+  for (int i = 0; i < numOfVerts; i++) {
     if (!equals_v3v3(bData->prev_verts[i].co, mvert[i].co)) {
       return true;
     }

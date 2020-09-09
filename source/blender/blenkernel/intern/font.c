@@ -434,20 +434,14 @@ static void build_underline(Curve *cu,
   BLI_addtail(nubase, nu2);
 
   if (rot != 0.0f) {
-    float si, co;
-    int i;
+    float si = sinf(rot);
+    float co = cosf(rot);
 
-    si = sinf(rot);
-    co = cosf(rot);
+    for (int i = nu2->pntsu; i > 0; i--) {
+      float *fp = bp->vec;
 
-    for (i = nu2->pntsu; i > 0; i--) {
-      float *fp;
-      float x, y;
-
-      fp = bp->vec;
-
-      x = fp[0] - rect->xmin;
-      y = fp[1] - rect->ymin;
+      float x = fp[0] - rect->xmin;
+      float y = fp[1] - rect->ymin;
 
       fp[0] = (+co * x + si * y) + rect->xmin;
       fp[1] = (-si * x + co * y) + rect->ymin;
@@ -474,35 +468,29 @@ static void buildchar(Curve *cu,
                       int charidx,
                       const float fsize)
 {
-  BezTriple *bezt1, *bezt2;
-  Nurb *nu1 = NULL, *nu2 = NULL;
-  float *fp, shear, x, si, co;
-  VFontData *vfd = NULL;
-  VChar *che = NULL;
-  int i;
-
-  vfd = vfont_get_data(which_vfont(cu, info));
+  VFontData *vfd = vfont_get_data(which_vfont(cu, info));
   if (!vfd) {
     return;
   }
 
   /* make a copy at distance ofsx, ofsy with shear */
-  shear = cu->shear;
-  si = sinf(rot);
-  co = cosf(rot);
+  float shear = cu->shear;
+  float si = sinf(rot);
+  float co = cosf(rot);
 
-  che = find_vfont_char(vfd, character);
+  VChar *che = find_vfont_char(vfd, character);
 
   /* Select the glyph data */
+  Nurb *nu1 = NULL;
   if (che) {
     nu1 = che->nurbsbase.first;
   }
 
   /* Create the character */
   while (nu1) {
-    bezt1 = nu1->bezt;
+    BezTriple *bezt1 = nu1->bezt;
     if (bezt1) {
-      nu2 = (Nurb *)MEM_mallocN(sizeof(Nurb), "duplichar_nurb");
+      Nurb *nu2 = (Nurb *)MEM_mallocN(sizeof(Nurb), "duplichar_nurb");
       if (nu2 == NULL) {
         break;
       }
@@ -520,20 +508,20 @@ static void buildchar(Curve *cu,
       }
       /* nu2->trim.first = 0; */
       /* nu2->trim.last = 0; */
-      i = nu2->pntsu;
+      int u = nu2->pntsu;
 
-      bezt2 = (BezTriple *)MEM_malloc_arrayN(i, sizeof(BezTriple), "duplichar_bezt2");
+      BezTriple *bezt2 = (BezTriple *)MEM_malloc_arrayN(u, sizeof(BezTriple), "duplichar_bezt2");
       if (bezt2 == NULL) {
         MEM_freeN(nu2);
         break;
       }
-      memcpy(bezt2, bezt1, i * sizeof(struct BezTriple));
+      memcpy(bezt2, bezt1, u * sizeof(struct BezTriple));
       nu2->bezt = bezt2;
 
       if (shear != 0.0f) {
         bezt2 = nu2->bezt;
 
-        for (i = nu2->pntsu; i > 0; i--) {
+        for (int i = nu2->pntsu; i > 0; i--) {
           bezt2->vec[0][0] += shear * bezt2->vec[0][1];
           bezt2->vec[1][0] += shear * bezt2->vec[1][1];
           bezt2->vec[2][0] += shear * bezt2->vec[2][1];
@@ -542,10 +530,10 @@ static void buildchar(Curve *cu,
       }
       if (rot != 0.0f) {
         bezt2 = nu2->bezt;
-        for (i = nu2->pntsu; i > 0; i--) {
-          fp = bezt2->vec[0];
+        for (int i = nu2->pntsu; i > 0; i--) {
+          float *fp = bezt2->vec[0];
 
-          x = fp[0];
+          float x = fp[0];
           fp[0] = co * x + si * fp[1];
           fp[1] = -si * x + co * fp[1];
           x = fp[3];
@@ -562,8 +550,8 @@ static void buildchar(Curve *cu,
 
       if (info->flag & CU_CHINFO_SMALLCAPS_CHECK) {
         const float sca = cu->smallcaps_scale;
-        for (i = nu2->pntsu; i > 0; i--) {
-          fp = bezt2->vec[0];
+        for (int i = nu2->pntsu; i > 0; i--) {
+          float *fp = bezt2->vec[0];
           fp[0] *= sca;
           fp[1] *= sca;
           fp[3] *= sca;
@@ -575,8 +563,8 @@ static void buildchar(Curve *cu,
       }
       bezt2 = nu2->bezt;
 
-      for (i = nu2->pntsu; i > 0; i--) {
-        fp = bezt2->vec[0];
+      for (int i = nu2->pntsu; i > 0; i--) {
+        float *fp = bezt2->vec[0];
         fp[0] = (fp[0] + ofsx) * fsize;
         fp[1] = (fp[1] + ofsy) * fsize;
         fp[3] = (fp[3] + ofsx) * fsize;

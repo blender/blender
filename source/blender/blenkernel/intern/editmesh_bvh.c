@@ -66,7 +66,6 @@ BMBVHTree *BKE_bmbvh_new_ex(BMesh *bm,
 
   BMBVHTree *bmtree = MEM_callocN(sizeof(*bmtree), "BMBVHTree");
   float cos[3][3];
-  int i;
   int tottri;
 
   /* avoid testing every tri */
@@ -95,7 +94,7 @@ BMBVHTree *BKE_bmbvh_new_ex(BMesh *bm,
     test_fn_ret = false;
 
     tottri = 0;
-    for (i = 0; i < looptris_tot; i++) {
+    for (int i = 0; i < looptris_tot; i++) {
       f_test = looptris[i][0]->f;
       if (f_test != f_test_prev) {
         test_fn_ret = test_fn(f_test, user_data);
@@ -116,7 +115,7 @@ BMBVHTree *BKE_bmbvh_new_ex(BMesh *bm,
   f_test_prev = NULL;
   test_fn_ret = false;
 
-  for (i = 0; i < looptris_tot; i++) {
+  for (int i = 0; i < looptris_tot; i++) {
     if (test_fn) {
       /* note, the arrays wont align now! take care */
       f_test = looptris[i][0]->f;
@@ -422,13 +421,11 @@ static void bmbvh_find_vert_closest_cb(void *userdata,
   struct VertSearchUserData *bmcb_data = userdata;
   const BMLoop **ltri = bmcb_data->looptris[index];
   const float dist_max_sq = bmcb_data->dist_max_sq;
-  int i;
 
   const float *tri_cos[3];
-
   bmbvh_tri_from_face(tri_cos, ltri, bmcb_data->cos_cage);
 
-  for (i = 0; i < 3; i++) {
+  for (int i = 0; i < 3; i++) {
     const float dist_sq = len_squared_v3v3(co, tri_cos[i]);
     if (dist_sq < hit->dist_sq && dist_sq < dist_max_sq) {
       copy_v3_v3(hit->co, tri_cos[i]);

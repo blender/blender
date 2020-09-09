@@ -178,12 +178,11 @@ static void fcm_generator_evaluate(
       /* we overwrite cvalue with the sum of the polynomial */
       float *powers = MEM_callocN(sizeof(float) * data->arraysize, "Poly Powers");
       float value = 0.0f;
-      unsigned int i;
 
       /* for each x^n, precalculate value based on previous one first... this should be
        * faster that calling pow() for each entry
        */
-      for (i = 0; i < data->arraysize; i++) {
+      for (uint i = 0; i < data->arraysize; i++) {
         /* first entry is x^0 = 1, otherwise, calculate based on previous */
         if (i) {
           powers[i] = powers[i - 1] * evaltime;
@@ -194,7 +193,7 @@ static void fcm_generator_evaluate(
       }
 
       /* for each coefficient, add to value, which we'll write to *cvalue in one go */
-      for (i = 0; i < data->arraysize; i++) {
+      for (uint i = 0; i < data->arraysize; i++) {
         value += data->coefficients[i] * powers[i];
       }
 

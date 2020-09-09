@@ -4073,12 +4073,11 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int entry, 
   }
   else {
     const int totviews = BLI_listbase_count(&ima->views);
-    int i;
     struct ImBuf **ibuf_arr;
 
     ibuf_arr = MEM_mallocN(sizeof(ImBuf *) * totviews, "Image Views Imbufs");
 
-    for (i = 0; i < totfiles; i++) {
+    for (int i = 0; i < totfiles; i++) {
       ibuf_arr[i] = load_sequence_single(ima, iuser, frame, i, &assign);
     }
 
@@ -4090,13 +4089,13 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int entry, 
     ibuf = ibuf_arr[(iuser ? iuser->multi_index : 0)];
 
     if (assign) {
-      for (i = 0; i < totviews; i++) {
+      for (int i = 0; i < totviews; i++) {
         image_assign_ibuf(ima, ibuf_arr[i], i, entry);
       }
     }
 
     /* "remove" the others (decrease their refcount) */
-    for (i = 0; i < totviews; i++) {
+    for (int i = 0; i < totviews; i++) {
       if (ibuf_arr[i] != ibuf) {
         IMB_freeImBuf(ibuf_arr[i]);
       }
@@ -4232,12 +4231,11 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
   const bool is_multiview = BKE_image_is_multiview(ima);
   const int totfiles = image_num_files(ima);
   ImageTile *tile = BKE_image_get_tile(ima, 0);
-  int i;
 
   if (totfiles != BLI_listbase_count_at_most(&ima->anims, totfiles + 1)) {
     image_free_anims(ima);
 
-    for (i = 0; i < totfiles; i++) {
+    for (int i = 0; i < totfiles; i++) {
       /* allocate the ImageAnim */
       ImageAnim *ia = MEM_callocN(sizeof(ImageAnim), "Image Anim");
       BLI_addtail(&ima->anims, ia);
@@ -4254,7 +4252,7 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
 
     ibuf_arr = MEM_mallocN(sizeof(ImBuf *) * totviews, "Image Views (movie) Imbufs");
 
-    for (i = 0; i < totfiles; i++) {
+    for (int i = 0; i < totfiles; i++) {
       ibuf_arr[i] = load_movie_single(ima, iuser, frame, i);
     }
 
@@ -4262,7 +4260,7 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
       IMB_ImBufFromStereo3d(ima->stereo3d_format, ibuf_arr[0], &ibuf_arr[0], &ibuf_arr[1]);
     }
 
-    for (i = 0; i < totviews; i++) {
+    for (int i = 0; i < totviews; i++) {
       if (ibuf_arr[i]) {
         image_assign_ibuf(ima, ibuf_arr[i], i, frame);
       }
@@ -4275,7 +4273,7 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
     ibuf = ibuf_arr[(iuser ? iuser->multi_index : 0)];
 
     /* "remove" the others (decrease their refcount) */
-    for (i = 0; i < totviews; i++) {
+    for (int i = 0; i < totviews; i++) {
       if (ibuf_arr[i] != ibuf) {
         IMB_freeImBuf(ibuf_arr[i]);
       }
@@ -4411,12 +4409,11 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
   else {
     struct ImBuf **ibuf_arr;
     const int totviews = BLI_listbase_count(&ima->views);
-    int i;
     BLI_assert(totviews > 0);
 
     ibuf_arr = MEM_callocN(sizeof(ImBuf *) * totviews, "Image Views Imbufs");
 
-    for (i = 0; i < totfiles; i++) {
+    for (int i = 0; i < totfiles; i++) {
       ibuf_arr[i] = load_image_single(ima, iuser, cfra, i, has_packed, &assign);
     }
 
@@ -4427,7 +4424,7 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
     }
 
     /* return the original requested ImBuf */
-    i = (iuser && iuser->multi_index < totviews) ? iuser->multi_index : 0;
+    int i = (iuser && iuser->multi_index < totviews) ? iuser->multi_index : 0;
     ibuf = ibuf_arr[i];
 
     if (assign) {
@@ -5681,10 +5678,9 @@ static void image_update_views_format(Image *ima, ImageUser *iuser)
     /* nothing to do */
   }
   else if (ima->views_format == R_IMF_VIEWS_STEREO_3D) {
-    int i;
     const char *names[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
 
-    for (i = 0; i < 2; i++) {
+    for (int i = 0; i < 2; i++) {
       image_add_view(ima, names[i], ima->filepath);
     }
     return;

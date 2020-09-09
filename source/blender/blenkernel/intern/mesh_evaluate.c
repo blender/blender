@@ -75,8 +75,7 @@ static CLG_LogRef LOG = {"bke.mesh_evaluate"};
  */
 static void mesh_calc_normals_vert_fallback(MVert *mverts, int numVerts)
 {
-  int i;
-  for (i = 0; i < numVerts; i++) {
+  for (int i = 0; i < numVerts; i++) {
     MVert *mv = &mverts[i];
     float no[3];
 
@@ -149,9 +148,6 @@ void BKE_mesh_calc_normals_mapping_ex(MVert *mverts,
                                       const bool only_face_normals)
 {
   float(*pnors)[3] = r_polyNors, (*fnors)[3] = r_faceNors;
-  int i;
-  const MFace *mf;
-  const MPoly *mp;
 
   if (numPolys == 0) {
     if (only_face_normals == false) {
@@ -180,8 +176,8 @@ void BKE_mesh_calc_normals_mapping_ex(MVert *mverts,
   }
   else {
     /* only calc poly normals */
-    mp = mpolys;
-    for (i = 0; i < numPolys; i++, mp++) {
+    const MPoly *mp = mpolys;
+    for (int i = 0; i < numPolys; i++, mp++) {
       BKE_mesh_calc_poly_normal(mp, mloop + mp->loopstart, mverts, pnors[i]);
     }
   }
@@ -190,8 +186,8 @@ void BKE_mesh_calc_normals_mapping_ex(MVert *mverts,
       /* fnors == r_faceNors */ /* NO NEED TO ALLOC YET */
           fnors != NULL &&
       numFaces) {
-    mf = mfaces;
-    for (i = 0; i < numFaces; i++, mf++, origIndexFace++) {
+    const MFace *mf = mfaces;
+    for (int i = 0; i < numFaces; i++, mf++, origIndexFace++) {
       if (*origIndexFace < numPolys) {
         copy_v3_v3(fnors[i], pnors[*origIndexFace]);
       }
@@ -244,7 +240,6 @@ static void mesh_calc_normals_poly_prepare_cb(void *__restrict userdata,
 
   const int nverts = mp->totloop;
   float(*edgevecbuf)[3] = BLI_array_alloca(edgevecbuf, (size_t)nverts);
-  int i;
 
   /* Polygon Normal and edge-vector */
   /* inline version of #BKE_mesh_calc_poly_normal, also does edge-vectors */
@@ -255,7 +250,7 @@ static void mesh_calc_normals_poly_prepare_cb(void *__restrict userdata,
 
     zero_v3(pnor);
     /* Newell's Method */
-    for (i = 0; i < nverts; i++) {
+    for (int i = 0; i < nverts; i++) {
       v_curr = mverts[ml[i].v].co;
       add_newell_cross_v3_v3v3(pnor, v_prev, v_curr);
 
@@ -277,7 +272,7 @@ static void mesh_calc_normals_poly_prepare_cb(void *__restrict userdata,
   {
     const float *prev_edge = edgevecbuf[nverts - 1];
 
-    for (i = 0; i < nverts; i++) {
+    for (int i = 0; i < nverts; i++) {
       const int lidx = mp->loopstart + i;
       const float *cur_edge = edgevecbuf[i];
 
@@ -475,13 +470,12 @@ void BKE_mesh_calc_normals_looptri(MVert *mverts,
   float(*fnors)[3] = (r_tri_nors) ?
                          r_tri_nors :
                          MEM_calloc_arrayN((size_t)looptri_num, sizeof(*fnors), "meshnormals");
-  int i;
 
   if (!tnorms || !fnors) {
     goto cleanup;
   }
 
-  for (i = 0; i < looptri_num; i++) {
+  for (int i = 0; i < looptri_num; i++) {
     const MLoopTri *lt = &looptri[i];
     float *f_no = fnors[i];
     const unsigned int vtri[3] = {
@@ -502,7 +496,7 @@ void BKE_mesh_calc_normals_looptri(MVert *mverts,
   }
 
   /* following Mesh convention; we use vertex coordinate itself for normal in this case */
-  for (i = 0; i < numVerts; i++) {
+  for (int i = 0; i < numVerts; i++) {
     MVert *mv = &mverts[i];
     float *no = tnorms[i];
 
@@ -1785,7 +1779,6 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
    * and do not want to use angle to define smooth fans! */
   const bool use_split_normals = true;
   const float split_angle = (float)M_PI;
-  int i;
 
   BLI_SMALLSTACK_DECLARE(clnors_data, short *);
 
@@ -1808,14 +1801,14 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
 
   /* Set all given zero vectors to their default value. */
   if (use_vertices) {
-    for (i = 0; i < numVerts; i++) {
+    for (int i = 0; i < numVerts; i++) {
       if (is_zero_v3(r_custom_loopnors[i])) {
         normal_short_to_float_v3(r_custom_loopnors[i], mverts[i].no);
       }
     }
   }
   else {
-    for (i = 0; i < numLoops; i++) {
+    for (int i = 0; i < numLoops; i++) {
       if (is_zero_v3(r_custom_loopnors[i])) {
         copy_v3_v3(r_custom_loopnors[i], lnors[i]);
       }
@@ -1832,7 +1825,7 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
    * when we set custom normals per vertices, running this is absolutely useless.
    */
   if (!use_vertices) {
-    for (i = 0; i < numLoops; i++) {
+    for (int i = 0; i < numLoops; i++) {
       if (!lnors_spacearr.lspacearr[i]) {
         /* This should not happen in theory, but in some rare case (probably ugly geometry)
          * we can get some NULL loopspacearr at this point. :/
@@ -1937,7 +1930,7 @@ static void mesh_normals_loop_custom_set(const MVert *mverts,
 
   /* And we just have to convert plain object-space custom normals to our
    * lnor space-encoded ones. */
-  for (i = 0; i < numLoops; i++) {
+  for (int i = 0; i < numLoops; i++) {
     if (!lnors_spacearr.lspacearr[i]) {
       BLI_BITMAP_DISABLE(done_loops, i);
       if (G.debug & G_DEBUG) {
@@ -2131,13 +2124,12 @@ void BKE_mesh_normals_loop_to_vertex(const int numVerts,
                                      const float (*clnors)[3],
                                      float (*r_vert_clnors)[3])
 {
-  const MLoop *ml;
-  int i;
-
   int *vert_loops_nbr = MEM_calloc_arrayN((size_t)numVerts, sizeof(*vert_loops_nbr), __func__);
 
   copy_vn_fl((float *)r_vert_clnors, 3 * numVerts, 0.0f);
 
+  int i;
+  const MLoop *ml;
   for (i = 0, ml = mloops; i < numLoops; i++, ml++) {
     const unsigned int v = ml->v;
 
@@ -2175,12 +2167,11 @@ static void mesh_calc_ngon_normal(const MPoly *mpoly,
   const int nverts = mpoly->totloop;
   const float *v_prev = mvert[loopstart[nverts - 1].v].co;
   const float *v_curr;
-  int i;
 
   zero_v3(normal);
 
   /* Newell's Method */
-  for (i = 0; i < nverts; i++) {
+  for (int i = 0; i < nverts; i++) {
     v_curr = mvert[loopstart[i].v].co;
     add_newell_cross_v3_v3v3(normal, v_prev, v_curr);
     v_prev = v_curr;
@@ -2225,12 +2216,11 @@ static void mesh_calc_ngon_normal_coords(const MPoly *mpoly,
   const int nverts = mpoly->totloop;
   const float *v_prev = vertex_coords[loopstart[nverts - 1].v];
   const float *v_curr;
-  int i;
 
   zero_v3(r_normal);
 
   /* Newell's Method */
-  for (i = 0; i < nverts; i++) {
+  for (int i = 0; i < nverts; i++) {
     v_curr = vertex_coords[loopstart[i].v];
     add_newell_cross_v3_v3v3(r_normal, v_prev, v_curr);
     v_prev = v_curr;
@@ -2275,11 +2265,10 @@ static void mesh_calc_ngon_center(const MPoly *mpoly,
                                   float cent[3])
 {
   const float w = 1.0f / (float)mpoly->totloop;
-  int i;
 
   zero_v3(cent);
 
-  for (i = 0; i < mpoly->totloop; i++) {
+  for (int i = 0; i < mpoly->totloop; i++) {
     madd_v3_v3fl(cent, mvert[(loopstart++)->v].co, w);
   }
 }
@@ -2315,18 +2304,16 @@ float BKE_mesh_calc_poly_area(const MPoly *mpoly, const MLoop *loopstart, const 
         mvarray[loopstart[0].v].co, mvarray[loopstart[1].v].co, mvarray[loopstart[2].v].co);
   }
 
-  int i;
   const MLoop *l_iter = loopstart;
-  float area;
   float(*vertexcos)[3] = BLI_array_alloca(vertexcos, (size_t)mpoly->totloop);
 
   /* pack vertex cos into an array for area_poly_v3 */
-  for (i = 0; i < mpoly->totloop; i++, l_iter++) {
+  for (int i = 0; i < mpoly->totloop; i++, l_iter++) {
     copy_v3_v3(vertexcos[i], mvarray[l_iter->v].co);
   }
 
   /* finally calculate the area */
-  area = area_poly_v3((const float(*)[3])vertexcos, (unsigned int)mpoly->totloop);
+  float area = area_poly_v3((const float(*)[3])vertexcos, (unsigned int)mpoly->totloop);
 
   return area;
 }
@@ -2462,8 +2449,6 @@ static float mesh_calc_poly_area_centroid(const MPoly *mpoly,
                                           const MVert *mvarray,
                                           float r_cent[3])
 {
-  int i;
-  float tri_area;
   float total_area = 0.0f;
   float v1[3], v2[3], v3[3], normal[3], tri_cent[3];
 
@@ -2472,10 +2457,10 @@ static float mesh_calc_poly_area_centroid(const MPoly *mpoly,
   copy_v3_v3(v2, mvarray[loopstart[1].v].co);
   zero_v3(r_cent);
 
-  for (i = 2; i < mpoly->totloop; i++) {
+  for (int i = 2; i < mpoly->totloop; i++) {
     copy_v3_v3(v3, mvarray[loopstart[i].v].co);
 
-    tri_area = area_tri_signed_v3(v1, v2, v3, normal);
+    float tri_area = area_tri_signed_v3(v1, v2, v3, normal);
     total_area += tri_area;
 
     mid_v3_v3v3v3(tri_cent, v1, v2, v3);
@@ -2693,9 +2678,6 @@ static bool mesh_calc_center_centroid_ex(const MVert *mverts,
                                          const MLoop *mloop,
                                          float r_center[3])
 {
-  const MLoopTri *lt;
-  float totweight;
-  int i;
 
   zero_v3(r_center);
 
@@ -2703,7 +2685,9 @@ static bool mesh_calc_center_centroid_ex(const MVert *mverts,
     return false;
   }
 
-  totweight = 0.0f;
+  float totweight = 0.0f;
+  const MLoopTri *lt;
+  int i;
   for (i = 0, lt = looptri; i < looptri_num; i++, lt++) {
     const MVert *v1 = &mverts[mloop[lt->tri[0]].v];
     const MVert *v2 = &mverts[mloop[lt->tri[1]].v];
@@ -3444,19 +3428,12 @@ static void bm_corners_to_loops_ex(ID *id,
                                    int numTex,
                                    int numCol)
 {
-  MTFace *texface;
-  MCol *mcol;
-  MLoopCol *mloopcol;
-  MLoopUV *mloopuv;
-  MFace *mf;
-  int i;
+  MFace *mf = mface + findex;
 
-  mf = mface + findex;
+  for (int i = 0; i < numTex; i++) {
+    MTFace *texface = CustomData_get_n(fdata, CD_MTFACE, findex, i);
 
-  for (i = 0; i < numTex; i++) {
-    texface = CustomData_get_n(fdata, CD_MTFACE, findex, i);
-
-    mloopuv = CustomData_get_n(ldata, CD_MLOOPUV, loopstart, i);
+    MLoopUV *mloopuv = CustomData_get_n(ldata, CD_MLOOPUV, loopstart, i);
     copy_v2_v2(mloopuv->uv, texface->uv[0]);
     mloopuv++;
     copy_v2_v2(mloopuv->uv, texface->uv[1]);
@@ -3470,9 +3447,9 @@ static void bm_corners_to_loops_ex(ID *id,
     }
   }
 
-  for (i = 0; i < numCol; i++) {
-    mloopcol = CustomData_get_n(ldata, CD_MLOOPCOL, loopstart, i);
-    mcol = CustomData_get_n(fdata, CD_MCOL, findex, i);
+  for (int i = 0; i < numCol; i++) {
+    MLoopCol *mloopcol = CustomData_get_n(ldata, CD_MLOOPCOL, loopstart, i);
+    MCol *mcol = CustomData_get_n(fdata, CD_MCOL, findex, i);
 
     MESH_MLOOPCOL_FROM_MCOL(mloopcol, &mcol[0]);
     mloopcol++;
@@ -3491,7 +3468,7 @@ static void bm_corners_to_loops_ex(ID *id,
     short(*tlnors)[3] = CustomData_get(fdata, findex, CD_TESSLOOPNORMAL);
     const int max = mf->v4 ? 4 : 3;
 
-    for (i = 0; i < max; i++, lnors++, tlnors++) {
+    for (int i = 0; i < max; i++, lnors++, tlnors++) {
       normal_short_to_float_v3(*lnors, *tlnors);
     }
   }
@@ -3521,7 +3498,7 @@ static void bm_corners_to_loops_ex(ID *id,
       const int side = (int)sqrtf((float)(fd->totdisp / corners));
       const int side_sq = side * side;
 
-      for (i = 0; i < tot; i++, disps += side_sq, ld++) {
+      for (int i = 0; i < tot; i++, disps += side_sq, ld++) {
         ld->totdisp = side_sq;
         ld->level = (int)(logf((float)side - 1.0f) / (float)M_LN2) + 1;
 
@@ -3879,15 +3856,11 @@ void BKE_mesh_flush_hidden_from_polys_ex(MVert *mvert,
                                          const MPoly *mpoly,
                                          const int totpoly)
 {
-  const MPoly *mp;
-  int i;
-
-  i = totpoly;
-  for (mp = mpoly; i--; mp++) {
+  int i = totpoly;
+  for (const MPoly *mp = mpoly; i--; mp++) {
     if (mp->flag & ME_HIDE) {
       const MLoop *ml;
-      int j;
-      j = mp->totloop;
+      int j = mp->totloop;
       for (ml = &mloop[mp->loopstart]; j--; ml++) {
         mvert[ml->v].flag |= ME_HIDE;
         medge[ml->e].flag |= ME_HIDE;
@@ -3896,11 +3869,10 @@ void BKE_mesh_flush_hidden_from_polys_ex(MVert *mvert,
   }
 
   i = totpoly;
-  for (mp = mpoly; i--; mp++) {
+  for (const MPoly *mp = mpoly; i--; mp++) {
     if ((mp->flag & ME_HIDE) == 0) {
       const MLoop *ml;
-      int j;
-      j = mp->totloop;
+      int j = mp->totloop;
       for (ml = &mloop[mp->loopstart]; j--; ml++) {
         mvert[ml->v].flag &= (char)~ME_HIDE;
         medge[ml->e].flag &= (short)~ME_HIDE;
@@ -3928,9 +3900,8 @@ void BKE_mesh_flush_select_from_polys_ex(MVert *mvert,
   MVert *mv;
   MEdge *med;
   const MPoly *mp;
-  int i;
 
-  i = totvert;
+  int i = totvert;
   for (mv = mvert; i--; mv++) {
     mv->flag &= (char)~SELECT;
   }
@@ -3971,10 +3942,9 @@ void BKE_mesh_flush_select_from_verts_ex(const MVert *mvert,
 {
   MEdge *med;
   MPoly *mp;
-  int i;
 
   /* edges */
-  i = totedge;
+  int i = totedge;
   for (med = medge; i--; med++) {
     if ((med->flag & ME_HIDE) == 0) {
       if ((mvert[med->v1].flag & SELECT) && (mvert[med->v2].flag & SELECT)) {
@@ -4052,9 +4022,8 @@ void BKE_mesh_calc_relative_deform(const MPoly *mpoly,
 
   for (i = 0, mp = mpoly; i < totpoly; i++, mp++) {
     const MLoop *loopstart = mloop + mp->loopstart;
-    int j;
 
-    for (j = 0; j < mp->totloop; j++) {
+    for (int j = 0; j < mp->totloop; j++) {
       unsigned int v_prev = loopstart[(mp->totloop + (j - 1)) % mp->totloop].v;
       unsigned int v_curr = loopstart[j].v;
       unsigned int v_next = loopstart[(j + 1) % mp->totloop].v;

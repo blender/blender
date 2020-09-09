@@ -484,7 +484,6 @@ bool BKE_mball_minmax_ex(
   LISTBASE_FOREACH (const MetaElem *, ml, &mb->elems) {
     if ((ml->flag & flag) == flag) {
       const float scale_mb = (ml->rad * 0.5f) * scale;
-      int i;
 
       if (obmat) {
         mul_v3_m4v3(centroid, obmat, &ml->x);
@@ -494,7 +493,7 @@ bool BKE_mball_minmax_ex(
       }
 
       /* TODO, non circle shapes cubes etc, probably nobody notices - campbell */
-      for (i = -1; i != 3; i += 2) {
+      for (int i = -1; i != 3; i += 2) {
         copy_v3_v3(vec, centroid);
         add_v3_fl(vec, scale_mb * i);
         minmax_v3v3_v3(min, max, vec);

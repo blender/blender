@@ -1242,7 +1242,6 @@ static float *get_weights_array(Object *ob, char *vgroup, WeightsArrayCache *cac
   defgrp_index = BKE_object_defgroup_name_index(ob, vgroup);
   if (defgrp_index != -1) {
     float *weights;
-    int i;
 
     if (cache) {
       if (cache->defgroup_weights == NULL) {
@@ -1260,6 +1259,7 @@ static float *get_weights_array(Object *ob, char *vgroup, WeightsArrayCache *cac
     weights = MEM_mallocN(totvert * sizeof(float), "weights");
 
     if (em) {
+      int i;
       const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
       BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
         dvert = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
@@ -1267,7 +1267,7 @@ static float *get_weights_array(Object *ob, char *vgroup, WeightsArrayCache *cac
       }
     }
     else {
-      for (i = 0; i < totvert; i++, dvert++) {
+      for (int i = 0; i < totvert; i++, dvert++) {
         weights[i] = BKE_defvert_find_weight(dvert, defgrp_index);
       }
     }
@@ -1860,13 +1860,10 @@ KeyBlock *BKE_keyblock_from_object_reference(Object *ob)
 /* get the appropriate KeyBlock given an index */
 KeyBlock *BKE_keyblock_from_key(Key *key, int index)
 {
-  KeyBlock *kb;
-  int i;
-
   if (key) {
-    kb = key->block.first;
+    KeyBlock *kb = key->block.first;
 
-    for (i = 1; i < key->totkey; i++) {
+    for (int i = 1; i < key->totkey; i++) {
       kb = kb->next;
 
       if (index == i) {

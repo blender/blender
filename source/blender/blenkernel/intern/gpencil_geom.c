@@ -392,9 +392,8 @@ static void stroke_interpolate_deform_weights(
 {
   const MDeformVert *vl = &gps->dvert[index_from];
   const MDeformVert *vr = &gps->dvert[index_to];
-  int i;
 
-  for (i = 0; i < vert->totweight; i++) {
+  for (int i = 0; i < vert->totweight; i++) {
     float wl = BKE_defvert_find_weight(vl, vert->dw[i].def_nr);
     float wr = BKE_defvert_find_weight(vr, vert->dw[i].def_nr);
     vert->dw[i].weight = interpf(wr, wl, ratio);
@@ -411,7 +410,6 @@ bool BKE_gpencil_stroke_sample(bGPDstroke *gps, const float dist, const bool sel
   bGPDspoint *pt = gps->points;
   bGPDspoint *pt1 = NULL;
   bGPDspoint *pt2 = NULL;
-  int i;
   LinkData *ld;
   ListBase def_nr_list = {0};
 
@@ -432,7 +430,7 @@ bool BKE_gpencil_stroke_sample(bGPDstroke *gps, const float dist, const bool sel
   }
 
   int next_point_index = 1;
-  i = 0;
+  int i = 0;
   float pressure, strength, ratio_result;
   float vert_color[4];
   int index_from, index_to;
@@ -518,7 +516,6 @@ bool BKE_gpencil_stroke_sample(bGPDstroke *gps, const float dist, const bool sel
 bool BKE_gpencil_stroke_stretch(bGPDstroke *gps, const float dist, const float tip_length)
 {
   bGPDspoint *pt = gps->points, *last_pt, *second_last, *next_pt;
-  int i;
   float threshold = (tip_length == 0 ? 0.001f : tip_length);
 
   if (gps->totpoints < 2 || dist < FLT_EPSILON) {
@@ -532,7 +529,7 @@ bool BKE_gpencil_stroke_stretch(bGPDstroke *gps, const float dist, const float t
   float len1 = 0.0f;
   float len2 = 0.0f;
 
-  i = 1;
+  int i = 1;
   while (len1 < threshold && gps->totpoints > i) {
     next_pt = &pt[i];
     len1 = len_v3v3(&next_pt->x, &pt->x);
@@ -1298,11 +1295,9 @@ float BKE_gpencil_stroke_length(const bGPDstroke *gps, bool use_3d)
     return 0.0f;
   }
   float *last_pt = &gps->points[0].x;
-  int i;
-  bGPDspoint *pt;
   float total_length = 0.0f;
-  for (i = 1; i < gps->totpoints; i++) {
-    pt = &gps->points[i];
+  for (int i = 1; i < gps->totpoints; i++) {
+    bGPDspoint *pt = &gps->points[i];
     if (use_3d) {
       total_length += len_v3v3(&pt->x, last_pt);
     }
@@ -2313,7 +2308,6 @@ void BKE_gpencil_convert_mesh(Main *bmain,
   MPoly *mp, *mpoly = me_eval->mpoly;
   MLoop *mloop = me_eval->mloop;
   int mpoly_len = me_eval->totpoly;
-  int i;
   int stroke_mat_index = gpencil_material_find_index_by_name_prefix(ob_gp, "Stroke");
   int fill_mat_index = gpencil_material_find_index_by_name_prefix(ob_gp, "Fill");
 
@@ -2340,7 +2334,7 @@ void BKE_gpencil_convert_mesh(Main *bmain,
     if (create_mat) {
       /* Find a material slot with material assigned. */
       bool material_found = false;
-      for (i = 0; i < ob_mesh->totcol; i++) {
+      for (int i = 0; i < ob_mesh->totcol; i++) {
         Material *ma = BKE_object_material_get(ob_mesh, i + 1);
         if (ma != NULL) {
           material_found = true;
@@ -2357,7 +2351,7 @@ void BKE_gpencil_convert_mesh(Main *bmain,
       }
       else {
         /* Create all materials for fill. */
-        for (i = 0; i < ob_mesh->totcol; i++) {
+        for (int i = 0; i < ob_mesh->totcol; i++) {
           Material *ma = BKE_object_material_get(ob_mesh, i + 1);
           if (ma == NULL) {
             continue;
@@ -2378,6 +2372,7 @@ void BKE_gpencil_convert_mesh(Main *bmain,
       }
       bGPDframe *gpf_fill = BKE_gpencil_layer_frame_get(
           gpl_fill, CFRA + frame_offset, GP_GETFRAME_ADD_NEW);
+      int i;
       for (i = 0, mp = mpoly; i < mpoly_len; i++, mp++) {
         MLoop *ml = &mloop[mp->loopstart];
         /* Create fill stroke. */
@@ -2389,8 +2384,7 @@ void BKE_gpencil_convert_mesh(Main *bmain,
         gps_fill->flag |= GP_STROKE_CYCLIC;
 
         /* Add points to strokes. */
-        int j;
-        for (j = 0; j < mp->totloop; j++, ml++) {
+        for (int j = 0; j < mp->totloop; j++, ml++) {
           MVert *mv = &me_eval->mvert[ml->v];
 
           bGPDspoint *pt = &gps_fill->points[j];

@@ -593,8 +593,7 @@ static void clamp_bounds_in_domain(FluidDomainSettings *fds,
                                    int margin,
                                    float dt)
 {
-  int i;
-  for (i = 0; i < 3; i++) {
+  for (int i = 0; i < 3; i++) {
     int adapt = (fds->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN) ? fds->adapt_res : 0;
     /* Add some margin. */
     min[i] -= margin;
@@ -3431,7 +3430,6 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
 
   int num_verts = 8;
   int num_faces = 6;
-  int i;
   float ob_loc[3] = {0};
   float ob_cache_loc[3] = {0};
 
@@ -3551,7 +3549,7 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
     /* Convert shift to local space and apply to vertices. */
     mul_mat3_m4_v3(ob->imat, fds->obj_shift_f);
     /* Apply shift to vertices. */
-    for (i = 0; i < num_verts; i++) {
+    for (int i = 0; i < num_verts; i++) {
       add_v3_v3(mverts[i].co, fds->obj_shift_f);
     }
   }

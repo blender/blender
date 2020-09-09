@@ -74,9 +74,7 @@
 EffectorWeights *BKE_effector_add_weights(Collection *collection)
 {
   EffectorWeights *weights = MEM_callocN(sizeof(EffectorWeights), "EffectorWeights");
-  int i;
-
-  for (i = 0; i < NUM_PFIELD_TYPES; i++) {
+  for (int i = 0; i < NUM_PFIELD_TYPES; i++) {
     weights->weight[i] = 1.0f;
   }
 

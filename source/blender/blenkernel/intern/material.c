@@ -1287,9 +1287,7 @@ void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma)
 
 void BKE_texpaint_slots_refresh_object(Scene *scene, struct Object *ob)
 {
-  int i;
-
-  for (i = 1; i < ob->totcol + 1; i++) {
+  for (int i = 1; i < ob->totcol + 1; i++) {
     Material *ma = BKE_object_material_get(ob, i);
     BKE_texpaint_slot_refresh_cache(scene, ma);
   }

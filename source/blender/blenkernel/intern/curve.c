@@ -5185,7 +5185,6 @@ void BKE_curve_transform(Curve *cu, const float mat[4][4], const bool do_keys, c
 void BKE_curve_translate(Curve *cu, const float offset[3], const bool do_keys)
 {
   ListBase *nurb_lb = BKE_curve_nurbs_get(cu);
-  Nurb *nu;
 
   LISTBASE_FOREACH (Nurb *, nu, nurb_lb) {
     if (nu->type == CU_BEZIER) {
