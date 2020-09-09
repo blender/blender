@@ -931,6 +931,8 @@ void BKE_main_collection_sync(const Main *bmain)
   for (const Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
     BKE_scene_collection_sync(scene);
   }
+
+  BKE_layer_collection_local_sync_all(bmain);
 }
 
 void BKE_main_collection_sync_remap(const Main *bmain)
@@ -1242,6 +1244,28 @@ void BKE_layer_collection_local_sync(ViewLayer *view_layer, const View3D *v3d)
 
   LISTBASE_FOREACH (LayerCollection *, layer_collection, &view_layer->layer_collections) {
     layer_collection_local_sync(view_layer, layer_collection, local_collections_uuid, true);
+  }
+}
+
+/**
+ * Sync the local collection for all the viewports.
+ */
+void BKE_layer_collection_local_sync_all(Main *bmain)
+{
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+    LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+      LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+          if (area->spacetype != SPACE_VIEW3D) {
+            continue;
+          }
+          View3D *v3d = area->spacedata.first;
+          if (v3d->flag & V3D_LOCAL_COLLECTIONS) {
+            BKE_layer_collection_local_sync(view_layer, v3d);
+          }
+        }
+      }
+    }
   }
 }
 
