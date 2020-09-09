@@ -6762,7 +6762,8 @@ void UI_but_number_precision_set(uiBut *but, float precision)
   BLI_assert(but->type == UI_BTYPE_NUM);
 
   but_number->precision = precision;
-  BLI_assert(precision > -1);
+  /* -1 is a valid value, UI code figures out an appropriate precision then. */
+  BLI_assert(precision > -2);
 }
 
 /**
