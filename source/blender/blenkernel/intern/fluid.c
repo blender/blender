@@ -3975,6 +3975,8 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
   copy_v3_v3_int(o_shift, fds->shift);
 
   bool read_partial = false, read_all = false;
+  bool grid_display = fds->use_coba;
+
   /* Try to read from cache and keep track of read success. */
   if (read_cache) {
 
@@ -4038,7 +4040,8 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
         }
       }
 
-      read_partial = !baking_data && !baking_particles && !baking_mesh && next_data;
+      read_partial = !baking_data && !baking_particles && !baking_mesh && next_data &&
+                     !grid_display;
       read_all = !read_partial && with_resumable_cache;
       has_data = manta_read_data(fds->fluid, fmd, data_frame, read_all);
     }
