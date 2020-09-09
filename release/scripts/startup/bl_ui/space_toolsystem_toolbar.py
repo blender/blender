@@ -1201,10 +1201,12 @@ class _defs_sculpt:
     @staticmethod
     def generate_from_brushes(context):
         exclude_filter = {}
-        if not context.preferences.experimental.use_sculpt_vertex_colors:
+        # Use 'bpy.context' instead of 'context' since it can be None.
+        prefs = bpy.context.preferences
+        if not prefs.experimental.use_sculpt_vertex_colors:
             exclude_filter = {'PAINT', 'SMEAR'}
 
-        if not context.preferences.experimental.use_tools_missing_icons:
+        if not prefs.experimental.use_tools_missing_icons:
             exclude_filter = {'PAINT', 'SMEAR', 'BOUNDARY', 'DISPLACEMENT_ERASER'}
 
         return generate_from_enum_ex(
