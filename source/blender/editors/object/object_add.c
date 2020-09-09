@@ -2572,7 +2572,9 @@ static int object_convert_exec(bContext *C, wmOperator *op)
 
       if (newob->type == OB_CURVE) {
         BKE_object_free_modifiers(newob, 0); /* after derivedmesh calls! */
-        ED_rigidbody_object_remove(bmain, scene, newob);
+        if (newob->rigidbody_object != NULL) {
+          ED_rigidbody_object_remove(bmain, scene, newob);
+        }
       }
     }
     else if (ob->type == OB_MESH && target == OB_GPENCIL) {
