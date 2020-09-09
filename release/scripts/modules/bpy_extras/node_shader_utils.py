@@ -505,7 +505,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     @_set_check
     def emission_color_set(self, color):
         if self.use_nodes and self.node_principled_bsdf is not None:
-            color = values_clamp(color, 0.0, 1.0)
+            color = values_clamp(color, 0.0, 1000000.0)
             color = rgb_to_rgba(color)
             self.node_principled_bsdf.inputs["Emission"].default_value = color
 
@@ -523,6 +523,31 @@ class PrincipledBSDFWrapper(ShaderWrapper):
 
     emission_color_texture = property(emission_color_texture_get)
 
+    def emission_strength_get(self):
+        if not self.use_nodes or self.node_principled_bsdf is None:
+            return 1.0
+        return self.node_principled_bsdf.inputs["Emission Strength"].default_value
+
+    @_set_check
+    def emission_strength_set(self, value):
+        value = values_clamp(value, 0.0, 1000000.0)
+        if self.use_nodes and self.node_principled_bsdf is not None:
+            self.node_principled_bsdf.inputs["Emission Strength"].default_value = value
+
+    emission_strength = property(emission_strength_get, emission_strength_set)
+
+
+    def emission_strength_texture_get(self):
+        if not self.use_nodes or self.node_principled_bsdf is None:
+            return None
+        return ShaderImageTextureWrapper(
+            self, self.node_principled_bsdf,
+            self.node_principled_bsdf.inputs["Emission Strength"],
+            grid_row_diff=-1,
+            colorspace_name='Non-Color',
+        )
+
+    emission_strength_texture = property(emission_strength_texture_get)
 
     # --------------------------------------------------------------------
     # Normal map.

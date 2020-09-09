@@ -2755,6 +2755,7 @@ NODE_DEFINE(PrincipledBsdfNode)
   SOCKET_IN_FLOAT(transmission_roughness, "Transmission Roughness", 0.0f);
   SOCKET_IN_FLOAT(anisotropic_rotation, "Anisotropic Rotation", 0.0f);
   SOCKET_IN_COLOR(emission, "Emission", make_float3(0.0f, 0.0f, 0.0f));
+  SOCKET_IN_FLOAT(emission_strength, "Emission Strength", 1.0f);
   SOCKET_IN_FLOAT(alpha, "Alpha", 1.0f);
   SOCKET_IN_NORMAL(normal, "Normal", make_float3(0.0f, 0.0f, 0.0f), SocketType::LINK_NORMAL);
   SOCKET_IN_NORMAL(clearcoat_normal,
@@ -2781,7 +2782,9 @@ void PrincipledBsdfNode::expand(ShaderGraph *graph)
   ShaderOutput *principled_out = output("BSDF");
 
   ShaderInput *emission_in = input("Emission");
-  if (emission_in->link || emission != make_float3(0.0f, 0.0f, 0.0f)) {
+  ShaderInput *emission_strength_in = input("Emission Strength");
+  if ((emission_in->link || emission != make_float3(0.0f, 0.0f, 0.0f)) &&
+      (emission_strength_in->link || emission_strength != 0.0f)) {
     /* Create add closure and emission. */
     AddClosureNode *add = graph->create_node<AddClosureNode>();
     EmissionNode *emission_node = graph->create_node<EmissionNode>();
@@ -2790,7 +2793,7 @@ void PrincipledBsdfNode::expand(ShaderGraph *graph)
     graph->add(add);
     graph->add(emission_node);
 
-    emission_node->strength = 1.0f;
+    graph->relink(emission_strength_in, emission_node->input("Strength"));
     graph->relink(emission_in, emission_node->input("Color"));
     graph->relink(principled_out, new_out);
     graph->connect(emission_node->output("Emission"), add->input("Closure1"));

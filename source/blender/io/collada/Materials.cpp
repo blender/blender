@@ -323,6 +323,11 @@ void MaterialNode::set_emission(COLLADAFW::ColorOrTexture &cot)
       add_link(texture_node, 0, shader_node, 0);
     }
   }
+
+  bNodeSocket *socket = nodeFindSocket(shader_node, SOCK_IN, "Emission Strength");
+  if (socket) {
+    *(float *)socket->default_value = 1.0f;
+  }
 }
 
 void MaterialNode::set_opacity(COLLADAFW::ColorOrTexture &cot)

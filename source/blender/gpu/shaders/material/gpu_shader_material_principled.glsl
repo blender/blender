@@ -54,6 +54,7 @@ void node_bsdf_principled(vec4 base_color,
                           float transmission,
                           float transmission_roughness,
                           vec4 emission,
+                          float emission_strength,
                           float alpha,
                           vec3 N,
                           vec3 CN,
@@ -134,7 +135,7 @@ void node_bsdf_principled(vec4 base_color,
   result.radiance += render_pass_glossy_mask(spec_col, out_spec);
   /* Coarse approx. */
   result.radiance += render_pass_diffuse_mask(sheen_color, out_diff * out_sheen * sheen_color);
-  result.radiance += render_pass_emission_mask(emission.rgb);
+  result.radiance += render_pass_emission_mask(emission.rgb * emission_strength);
   result.radiance *= alpha;
   closure_load_ssr_data(ssr_spec * alpha, roughness, N, viewCameraVec, int(ssr_id), result);
 
@@ -161,6 +162,7 @@ void node_bsdf_principled_dielectric(vec4 base_color,
                                      float transmission,
                                      float transmission_roughness,
                                      vec4 emission,
+                                     float emission_strength,
                                      float alpha,
                                      vec3 N,
                                      vec3 CN,
@@ -193,7 +195,7 @@ void node_bsdf_principled_dielectric(vec4 base_color,
   result.radiance = render_pass_glossy_mask(vec3(1.0), out_spec);
   result.radiance += render_pass_diffuse_mask(sheen_color, out_diff * out_sheen * sheen_color);
   result.radiance += render_pass_diffuse_mask(diffuse, out_diff * diffuse);
-  result.radiance += render_pass_emission_mask(emission.rgb);
+  result.radiance += render_pass_emission_mask(emission.rgb * emission_strength);
   result.radiance *= alpha;
   closure_load_ssr_data(ssr_spec * alpha, roughness, N, viewCameraVec, int(ssr_id), result);
 
@@ -218,6 +220,7 @@ void node_bsdf_principled_metallic(vec4 base_color,
                                    float transmission,
                                    float transmission_roughness,
                                    vec4 emission,
+                                   float emission_strength,
                                    float alpha,
                                    vec3 N,
                                    vec3 CN,
@@ -238,7 +241,7 @@ void node_bsdf_principled_metallic(vec4 base_color,
 
   result = CLOSURE_DEFAULT;
   result.radiance = render_pass_glossy_mask(vec3(1.0), out_spec);
-  result.radiance += render_pass_emission_mask(emission.rgb);
+  result.radiance += render_pass_emission_mask(emission.rgb * emission_strength);
   result.radiance *= alpha;
   closure_load_ssr_data(ssr_spec * alpha, roughness, N, viewCameraVec, int(ssr_id), result);
 
@@ -263,6 +266,7 @@ void node_bsdf_principled_clearcoat(vec4 base_color,
                                     float transmission,
                                     float transmission_roughness,
                                     vec4 emission,
+                                    float emission_strength,
                                     float alpha,
                                     vec3 N,
                                     vec3 CN,
@@ -295,7 +299,7 @@ void node_bsdf_principled_clearcoat(vec4 base_color,
 
   result = CLOSURE_DEFAULT;
   result.radiance = render_pass_glossy_mask(vec3(spec_col), out_spec);
-  result.radiance += render_pass_emission_mask(emission.rgb);
+  result.radiance += render_pass_emission_mask(emission.rgb * emission_strength);
   result.radiance *= alpha;
 
   closure_load_ssr_data(ssr_spec * alpha, roughness, N, viewCameraVec, int(ssr_id), result);
@@ -321,6 +325,7 @@ void node_bsdf_principled_subsurface(vec4 base_color,
                                      float transmission,
                                      float transmission_roughness,
                                      vec4 emission,
+                                     float emission_strength,
                                      float alpha,
                                      vec3 N,
                                      vec3 CN,
@@ -365,7 +370,7 @@ void node_bsdf_principled_subsurface(vec4 base_color,
   result = CLOSURE_DEFAULT;
   result.radiance = render_pass_glossy_mask(vec3(1.0), out_spec);
   result.radiance += render_pass_diffuse_mask(sheen_color, out_diff * out_sheen * sheen_color);
-  result.radiance += render_pass_emission_mask(emission.rgb);
+  result.radiance += render_pass_emission_mask(emission.rgb * emission_strength);
   result.radiance *= alpha;
 
   closure_load_ssr_data(ssr_spec * alpha, roughness, N, viewCameraVec, int(ssr_id), result);
@@ -394,6 +399,7 @@ void node_bsdf_principled_glass(vec4 base_color,
                                 float transmission,
                                 float transmission_roughness,
                                 vec4 emission,
+                                float emission_strength,
                                 float alpha,
                                 vec3 N,
                                 vec3 CN,
@@ -436,7 +442,7 @@ void node_bsdf_principled_glass(vec4 base_color,
   result = CLOSURE_DEFAULT;
   result.radiance = render_pass_glossy_mask(refr_color, out_refr * refr_color);
   result.radiance += render_pass_glossy_mask(spec_col, out_spec * spec_col);
-  result.radiance += render_pass_emission_mask(emission.rgb);
+  result.radiance += render_pass_emission_mask(emission.rgb * emission_strength);
   result.radiance *= alpha;
   closure_load_ssr_data(ssr_spec * alpha, roughness, N, viewCameraVec, int(ssr_id), result);
   result.transmittance = vec3(1.0 - alpha);

@@ -580,6 +580,7 @@ class PrincipledBsdfNode : public BsdfBaseNode {
   ClosureType distribution, distribution_orig;
   ClosureType subsurface_method;
   float3 emission;
+  float emission_strength;
   float alpha;
 
   bool has_integrator_dependency();

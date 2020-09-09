@@ -1326,13 +1326,29 @@ COLLADASW::ColorOrTexture bc_get_base_color(Material *ma)
 
 COLLADASW::ColorOrTexture bc_get_emission(Material *ma)
 {
-  Color default_color = {0, 0, 0, 1};
+  Color default_color = {0, 0, 0, 1}; /* default black */
   bNode *shader = bc_get_master_shader(ma);
-  if (ma->use_nodes && shader) {
-    return bc_get_cot_from_shader(shader, "Emission", default_color);
+  if (!(ma->use_nodes && shader)) {
+    return bc_get_cot(default_color);
   }
 
-  return bc_get_cot(default_color); /* default black */
+  double emission_strength = 0.0;
+  bc_get_float_from_shader(shader, emission_strength, "Emission Strength");
+  if (emission_strength == 0.0) {
+    return bc_get_cot(default_color);
+  }
+
+  COLLADASW::ColorOrTexture cot = bc_get_cot_from_shader(shader, "Emission", default_color);
+
+  /* Multiply in emission strength. If using texture, emission strength is not
+   * supported. */
+  COLLADASW::Color col = cot.getColor();
+  cot.getColor().set(emission_strength * col.getRed(),
+                     emission_strength * col.getGreen(),
+                     emission_strength * col.getBlue(),
+                     col.getAlpha());
+
+  return cot;
 }
 
 COLLADASW::ColorOrTexture bc_get_ambient(Material *ma)
@@ -1393,7 +1409,7 @@ double bc_get_reflectivity(Material *ma)
   return reflectivity;
 }
 
-double bc_get_float_from_shader(bNode *shader, double &val, std::string nodeid)
+bool bc_get_float_from_shader(bNode *shader, double &val, std::string nodeid)
 {
   bNodeSocket *socket = nodeFindSocket(shader, SOCK_IN, nodeid.c_str());
   if (socket) {
