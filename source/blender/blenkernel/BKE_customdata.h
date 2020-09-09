@@ -414,11 +414,6 @@ void CustomData_from_bmesh_block(const struct CustomData *source,
                                  void *src_block,
                                  int dest_index);
 
-void CustomData_file_write_prepare(struct CustomData *data,
-                                   struct CustomDataLayer **r_write_layers,
-                                   struct CustomDataLayer *write_layers_buff,
-                                   size_t write_layers_size);
-
 /* query info over types */
 void CustomData_file_write_info(int type, const char **r_struct_name, int *r_struct_num);
 int CustomData_sizeof(int type);
@@ -574,8 +569,14 @@ void CustomData_data_transfer(const struct MeshPairRemap *me_remap,
                               const CustomDataTransferLayerMap *laymap);
 
 /* .blend file I/O */
+void CustomData_blend_write_prepare(struct CustomData *data,
+                                   struct CustomDataLayer **r_write_layers,
+                                   struct CustomDataLayer *write_layers_buff,
+                                   size_t write_layers_size);
+
 void CustomData_blend_write(struct BlendWriter *writer,
                             struct CustomData *data,
+                            CustomDataLayer *layers,
                             int count,
                             CustomDataMask cddata_mask,
                             struct ID *id);

@@ -4342,10 +4342,10 @@ void CustomData_file_write_info(int type, const char **r_struct_name, int *r_str
  * This means written typemap does not match written layers (as returned by \a r_write_layers).
  * Trivial to fix is ever needed.
  */
-void CustomData_file_write_prepare(CustomData *data,
-                                   CustomDataLayer **r_write_layers,
-                                   CustomDataLayer *write_layers_buff,
-                                   size_t write_layers_size)
+void CustomData_blend_write_prepare(CustomData *data,
+                                    CustomDataLayer **r_write_layers,
+                                    CustomDataLayer *write_layers_buff,
+                                    size_t write_layers_size)
 {
   CustomDataLayer *write_layers = write_layers_buff;
   const size_t chunk_size = (write_layers_size > 0) ? write_layers_size : CD_TEMP_CHUNK_SIZE;
@@ -5193,13 +5193,16 @@ static void write_grid_paint_mask(BlendWriter *writer, int count, GridPaintMask 
   }
 }
 
-void CustomData_blend_write(
-    BlendWriter *writer, CustomData *data, int count, CustomDataMask cddata_mask, ID *id)
+/**
+ * \param layers: The layers argument assigned by #CustomData_blend_write_prepare.
+ */
+void CustomData_blend_write(BlendWriter *writer,
+                            CustomData *data,
+                            CustomDataLayer *layers,
+                            int count,
+                            CustomDataMask cddata_mask,
+                            ID *id)
 {
-  CustomDataLayer *layers = NULL;
-  CustomDataLayer layers_buff[CD_TEMP_CHUNK_SIZE];
-  CustomData_file_write_prepare(data, &layers, layers_buff, ARRAY_SIZE(layers_buff));
-
   /* write external customdata (not for undo) */
   if (data->external && !BLO_write_is_undo(writer)) {
     CustomData_external_write(data, id, cddata_mask, count, 0);
@@ -5251,10 +5254,6 @@ void CustomData_blend_write(
 
   if (data->external) {
     BLO_write_struct(writer, CustomDataExternal, data->external);
-  }
-
-  if (!ELEM(layers, NULL, layers_buff)) {
-    MEM_freeN(layers);
   }
 }
 

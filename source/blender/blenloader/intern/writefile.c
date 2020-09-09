@@ -3263,16 +3263,30 @@ static void write_workspace(BlendWriter *writer, WorkSpace *workspace, const voi
 static void write_hair(BlendWriter *writer, Hair *hair, const void *id_address)
 {
   if (hair->id.us > 0 || BLO_write_is_undo(writer)) {
+    CustomDataLayer *players = NULL, players_buff[CD_TEMP_CHUNK_SIZE];
+    CustomDataLayer *clayers = NULL, clayers_buff[CD_TEMP_CHUNK_SIZE];
+    CustomData_blend_write_prepare(&hair->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
+    CustomData_blend_write_prepare(&hair->cdata, &clayers, clayers_buff, ARRAY_SIZE(clayers_buff));
+
     /* Write LibData */
     BLO_write_id_struct(writer, Hair, id_address, &hair->id);
     BKE_id_blend_write(writer, &hair->id);
 
     /* Direct data */
-    CustomData_blend_write(writer, &hair->pdata, hair->totpoint, CD_MASK_ALL, &hair->id);
-    CustomData_blend_write(writer, &hair->cdata, hair->totcurve, CD_MASK_ALL, &hair->id);
+    CustomData_blend_write(writer, &hair->pdata, players, hair->totpoint, CD_MASK_ALL, &hair->id);
+    CustomData_blend_write(writer, &hair->cdata, clayers, hair->totcurve, CD_MASK_ALL, &hair->id);
+
     BLO_write_pointer_array(writer, hair->totcol, hair->mat);
     if (hair->adt) {
       BKE_animdata_blend_write(writer, hair->adt);
+    }
+
+    /* Remove temporary data. */
+    if (players && players != players_buff) {
+      MEM_freeN(players);
+    }
+    if (clayers && clayers != clayers_buff) {
+      MEM_freeN(clayers);
     }
   }
 }
@@ -3281,7 +3295,7 @@ static void write_pointcloud(BlendWriter *writer, PointCloud *pointcloud, const 
 {
   if (pointcloud->id.us > 0 || BLO_write_is_undo(writer)) {
     CustomDataLayer *players = NULL, players_buff[CD_TEMP_CHUNK_SIZE];
-    CustomData_file_write_prepare(
+    CustomData_blend_write_prepare(
         &pointcloud->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
 
     /* Write LibData */
@@ -3290,7 +3304,8 @@ static void write_pointcloud(BlendWriter *writer, PointCloud *pointcloud, const 
 
     /* Direct data */
     CustomData_blend_write(
-        writer, &pointcloud->pdata, pointcloud->totpoint, CD_MASK_ALL, &pointcloud->id);
+        writer, &pointcloud->pdata, players, pointcloud->totpoint, CD_MASK_ALL, &pointcloud->id);
+
     BLO_write_pointer_array(writer, pointcloud->totcol, pointcloud->mat);
     if (pointcloud->adt) {
       BKE_animdata_blend_write(writer, pointcloud->adt);
@@ -3349,13 +3364,24 @@ static void write_simulation(BlendWriter *writer, Simulation *simulation, const 
       /* TODO: Decentralize this part. */
       if (STREQ(state->type, SIM_TYPE_NAME_PARTICLE_SIMULATION)) {
         ParticleSimulationState *particle_state = (ParticleSimulationState *)state;
+
+        CustomDataLayer *players = NULL, players_buff[CD_TEMP_CHUNK_SIZE];
+        CustomData_blend_write_prepare(
+            &particle_state->attributes, &players, players_buff, ARRAY_SIZE(players_buff));
+
         BLO_write_struct(writer, ParticleSimulationState, particle_state);
 
         CustomData_blend_write(writer,
                                &particle_state->attributes,
+                               players,
                                particle_state->tot_particles,
                                CD_MASK_ALL,
                                &simulation->id);
+
+        /* Remove temporary data. */
+        if (players && players != players_buff) {
+          MEM_freeN(players);
+        }
       }
       else if (STREQ(state->type, SIM_TYPE_NAME_PARTICLE_MESH_EMITTER)) {
         ParticleMeshEmitterSimulationState *emitter_state = (ParticleMeshEmitterSimulationState *)

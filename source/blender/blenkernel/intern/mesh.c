@@ -180,6 +180,18 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     memset(&mesh->fdata, 0, sizeof(mesh->fdata));
     memset(&mesh->runtime, 0, sizeof(mesh->runtime));
 
+    CustomDataLayer *vlayers = NULL, vlayers_buff[CD_TEMP_CHUNK_SIZE];
+    CustomDataLayer *elayers = NULL, elayers_buff[CD_TEMP_CHUNK_SIZE];
+    CustomDataLayer *flayers = NULL, flayers_buff[CD_TEMP_CHUNK_SIZE];
+    CustomDataLayer *llayers = NULL, llayers_buff[CD_TEMP_CHUNK_SIZE];
+    CustomDataLayer *players = NULL, players_buff[CD_TEMP_CHUNK_SIZE];
+
+    CustomData_blend_write_prepare(&mesh->vdata, &vlayers, vlayers_buff, ARRAY_SIZE(vlayers_buff));
+    CustomData_blend_write_prepare(&mesh->edata, &elayers, elayers_buff, ARRAY_SIZE(elayers_buff));
+    flayers = flayers_buff;
+    CustomData_blend_write_prepare(&mesh->ldata, &llayers, llayers_buff, ARRAY_SIZE(llayers_buff));
+    CustomData_blend_write_prepare(&mesh->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
+
     BLO_write_id_struct(writer, Mesh, id_address, &mesh->id);
     BKE_id_blend_write(writer, &mesh->id);
 
@@ -191,12 +203,34 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     BLO_write_pointer_array(writer, mesh->totcol, mesh->mat);
     BLO_write_raw(writer, sizeof(MSelect) * mesh->totselect, mesh->mselect);
 
-    CustomData_blend_write(writer, &mesh->vdata, mesh->totvert, CD_MASK_MESH.vmask, &mesh->id);
-    CustomData_blend_write(writer, &mesh->edata, mesh->totedge, CD_MASK_MESH.emask, &mesh->id);
+    CustomData_blend_write(
+        writer, &mesh->vdata, vlayers, mesh->totvert, CD_MASK_MESH.vmask, &mesh->id);
+    CustomData_blend_write(
+        writer, &mesh->edata, elayers, mesh->totedge, CD_MASK_MESH.emask, &mesh->id);
     /* fdata is really a dummy - written so slots align */
-    CustomData_blend_write(writer, &mesh->fdata, mesh->totface, CD_MASK_MESH.fmask, &mesh->id);
-    CustomData_blend_write(writer, &mesh->ldata, mesh->totloop, CD_MASK_MESH.lmask, &mesh->id);
-    CustomData_blend_write(writer, &mesh->pdata, mesh->totpoly, CD_MASK_MESH.pmask, &mesh->id);
+    CustomData_blend_write(
+        writer, &mesh->fdata, flayers, mesh->totface, CD_MASK_MESH.fmask, &mesh->id);
+    CustomData_blend_write(
+        writer, &mesh->ldata, llayers, mesh->totloop, CD_MASK_MESH.lmask, &mesh->id);
+    CustomData_blend_write(
+        writer, &mesh->pdata, players, mesh->totpoly, CD_MASK_MESH.pmask, &mesh->id);
+
+    /* Free temporary data */
+
+/* Free custom-data layers, when not assigned a buffer value. */
+#define CD_LAYERS_FREE(id) \
+  if (id && id != id##_buff) { \
+    MEM_freeN(id); \
+  } \
+  ((void)0)
+
+    CD_LAYERS_FREE(vlayers);
+    CD_LAYERS_FREE(elayers);
+    /* CD_LAYER_FREE(flayers); */ /* Never allocated. */
+    CD_LAYERS_FREE(llayers);
+    CD_LAYERS_FREE(players);
+
+#undef CD_LAYERS_FREE
   }
 }
 
