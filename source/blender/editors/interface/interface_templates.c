@@ -1950,18 +1950,13 @@ static bool constraint_panel_is_bone(Panel *panel)
  */
 static ListBase *get_constraints(const bContext *C, bool use_bone_constraints)
 {
-  ListBase *constraints = {NULL};
+  ListBase *constraints = NULL;
   if (use_bone_constraints) {
-    bPoseChannel *pose_bone = CTX_data_pointer_get(C, "pose_bone").data;
-    if (pose_bone != NULL) {
-      constraints = &pose_bone->constraints;
-    }
+    constraints = ED_object_pose_constraint_list(C);
   }
   else {
     Object *ob = ED_object_active_context(C);
-    if (ob != NULL) {
-      constraints = &ob->constraints;
-    }
+    constraints = ED_object_constraint_active_list(ob);
   }
   return constraints;
 }
@@ -2043,7 +2038,13 @@ void uiTemplateConstraints(uiLayout *UNUSED(layout), bContext *C, bool use_bone_
   ARegion *region = CTX_wm_region(C);
 
   Object *ob = ED_object_active_context(C);
-  ListBase *constraints = get_constraints(C, use_bone_constraints);
+  ListBase *constraints = {NULL};
+  if (use_bone_constraints) {
+    constraints = ED_object_pose_constraint_list(C);
+  }
+  else {
+    constraints = ED_object_constraint_active_list(ob);
+  }
 
   /* Switch between the bone panel ID function and the object panel ID function. */
   uiListPanelIDFromDataFunc panel_id_func = use_bone_constraints ? bone_constraint_panel_id :

@@ -271,7 +271,7 @@ void BCAnimationSampler::find_depending_animated(std::set<Object *> &animated_ob
     std::set<Object *>::iterator it;
     for (it = candidates.begin(); it != candidates.end(); ++it) {
       Object *cob = *it;
-      ListBase *conlist = ED_object_constraint_list_from_context(cob);
+      ListBase *conlist = ED_object_constraint_active_list(cob);
       if (is_animated_by_constraint(cob, conlist, animated_objects)) {
         animated_objects.insert(cob);
         candidates.erase(cob);
