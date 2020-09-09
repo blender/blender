@@ -80,8 +80,9 @@
 /** \name Constraint Data Accessors
  * \{ */
 
-/* if object in posemode, active bone constraints, else object constraints */
-ListBase *ED_object_constraint_list_from_context(Object *ob)
+/* If object is in posemode, return active bone constraints, else object constraints. No
+ * constraints are returned for a bone on an inactive bonelayer. */
+ListBase *ED_object_constraint_active_list(Object *ob)
 {
   if (ob == NULL) {
     return NULL;
@@ -100,6 +101,18 @@ ListBase *ED_object_constraint_list_from_context(Object *ob)
   }
 
   return NULL;
+}
+
+/* Get the constraints for the active pose bone. Bone may be on an inactive bonelayer (unlike
+ * ED_object_constraint_active_list, such constraints are not excluded here). */
+ListBase *ED_object_pose_constraint_list(const bContext *C)
+{
+  bPoseChannel *pose_bone = CTX_data_pointer_get(C, "pose_bone").data;
+  if (pose_bone == NULL) {
+    return NULL;
+  }
+
+  return &pose_bone->constraints;
 }
 
 /* Find the list that a given constraint belongs to,
@@ -147,7 +160,7 @@ ListBase *ED_object_constraint_list_from_constraint(Object *ob,
 /* single constraint */
 bConstraint *ED_object_constraint_active_get(Object *ob)
 {
-  return BKE_constraints_active_get(ED_object_constraint_list_from_context(ob));
+  return BKE_constraints_active_get(ED_object_constraint_active_list(ob));
 }
 
 /** \} */
@@ -813,7 +826,7 @@ static bConstraint *edit_constraint_property_get(wmOperator *op, Object *ob, int
       printf("edit_constraint_property_get: defaulting to getting list in the standard way\n");
     }
 #endif
-    list = ED_object_constraint_list_from_context(ob);
+    list = ED_object_constraint_active_list(ob);
   }
 
   con = BKE_constraints_find_name(list, constraint_name);
@@ -2161,8 +2174,7 @@ static int pose_constraint_add_exec(bContext *C, wmOperator *op)
     with_targets = 1;
   }
 
-  return constraint_add_exec(
-      C, op, ob, ED_object_constraint_list_from_context(ob), type, with_targets);
+  return constraint_add_exec(C, op, ob, ED_object_constraint_active_list(ob), type, with_targets);
 }
 
 /* ------------------ */
@@ -2363,12 +2375,8 @@ static int pose_ik_add_exec(bContext *C, wmOperator *op)
 
   /* add the constraint - all necessary checks should have
    * been done by the invoke() callback already... */
-  return constraint_add_exec(C,
-                             op,
-                             ob,
-                             ED_object_constraint_list_from_context(ob),
-                             CONSTRAINT_TYPE_KINEMATIC,
-                             with_targets);
+  return constraint_add_exec(
+      C, op, ob, ED_object_constraint_active_list(ob), CONSTRAINT_TYPE_KINEMATIC, with_targets);
 }
 
 void POSE_OT_ik_add(wmOperatorType *ot)

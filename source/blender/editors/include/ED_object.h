@@ -323,7 +323,8 @@ void ED_objects_recalculate_paths(struct bContext *C,
                                   eObjectPathCalcRange range);
 
 /* constraints */
-struct ListBase *ED_object_constraint_list_from_context(struct Object *ob);
+struct ListBase *ED_object_constraint_active_list(struct Object *ob);
+struct ListBase *ED_object_pose_constraint_list(const struct bContext *C);
 struct ListBase *ED_object_constraint_list_from_constraint(struct Object *ob,
                                                            struct bConstraint *con,
                                                            struct bPoseChannel **r_pchan);
