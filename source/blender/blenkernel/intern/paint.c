@@ -72,6 +72,8 @@
 
 #include "RNA_enum_types.h"
 
+#include "BLO_read_write.h"
+
 #include "bmesh.h"
 
 static void palette_init_data(ID *id)
@@ -102,6 +104,26 @@ static void palette_free_data(ID *id)
   BLI_freelistN(&palette->colors);
 }
 
+static void palette_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  Palette *palette = (Palette *)id;
+  if (palette->id.us > 0 || BLO_write_is_undo(writer)) {
+    PaletteColor *color;
+    BLO_write_id_struct(writer, Palette, id_address, &palette->id);
+    BKE_id_blend_write(writer, &palette->id);
+
+    for (color = palette->colors.first; color; color = color->next) {
+      BLO_write_struct(writer, PaletteColor, color);
+    }
+  }
+}
+
+static void palette_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  Palette *palette = (Palette *)id;
+  BLO_read_list(reader, &palette->colors);
+}
+
 IDTypeInfo IDType_ID_PAL = {
     .id_code = ID_PAL,
     .id_filter = FILTER_ID_PAL,
@@ -119,8 +141,8 @@ IDTypeInfo IDType_ID_PAL = {
     .foreach_id = NULL,
     .foreach_cache = NULL,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
+    .blend_write = palette_blend_write,
+    .blend_read_data = palette_blend_read_data,
     .blend_read_lib = NULL,
     .blend_read_expand = NULL,
 };
@@ -146,6 +168,23 @@ static void paint_curve_free_data(ID *id)
   paint_curve->tot_points = 0;
 }
 
+static void paint_curve_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  PaintCurve *pc = (PaintCurve *)id;
+  if (pc->id.us > 0 || BLO_write_is_undo(writer)) {
+    BLO_write_id_struct(writer, PaintCurve, id_address, &pc->id);
+    BKE_id_blend_write(writer, &pc->id);
+
+    BLO_write_struct_array(writer, PaintCurvePoint, pc->tot_points, pc->points);
+  }
+}
+
+static void paint_curve_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  PaintCurve *pc = (PaintCurve *)id;
+  BLO_read_data_address(reader, &pc->points);
+}
+
 IDTypeInfo IDType_ID_PC = {
     .id_code = ID_PC,
     .id_filter = FILTER_ID_PC,
@@ -163,8 +202,8 @@ IDTypeInfo IDType_ID_PC = {
     .foreach_id = NULL,
     .foreach_cache = NULL,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
+    .blend_write = paint_curve_blend_write,
+    .blend_read_data = paint_curve_blend_read_data,
     .blend_read_lib = NULL,
     .blend_read_expand = NULL,
 };

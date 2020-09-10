@@ -2580,32 +2580,6 @@ static void direct_link_brush(BlendDataReader *reader, Brush *brush)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Palette
- * \{ */
-
-static void lib_link_palette(BlendLibReader *UNUSED(reader), Palette *UNUSED(palette))
-{
-}
-
-static void direct_link_palette(BlendDataReader *reader, Palette *palette)
-{
-
-  /* palette itself has been read */
-  BLO_read_list(reader, &palette->colors);
-}
-
-static void lib_link_paint_curve(BlendLibReader *UNUSED(reader), PaintCurve *UNUSED(pc))
-{
-}
-
-static void direct_link_paint_curve(BlendDataReader *reader, PaintCurve *pc)
-{
-  BLO_read_data_address(reader, &pc->points);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read Animation (legacy for version patching)
  * \{ */
 
@@ -7335,12 +7309,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_MSK:
       direct_link_mask(&reader, (Mask *)id);
       break;
-    case ID_PAL:
-      direct_link_palette(&reader, (Palette *)id);
-      break;
-    case ID_PC:
-      direct_link_paint_curve(&reader, (PaintCurve *)id);
-      break;
     case ID_CF:
       direct_link_cachefile(&reader, (CacheFile *)id);
       break;
@@ -7367,6 +7335,8 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_TXT:
     case ID_VF:
     case ID_MC:
+    case ID_PAL:
+    case ID_PC:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -8005,9 +7975,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_PA:
         lib_link_particlesettings(&reader, (ParticleSettings *)id);
         break;
-      case ID_PC:
-        lib_link_paint_curve(&reader, (PaintCurve *)id);
-        break;
       case ID_BR:
         lib_link_brush(&reader, (Brush *)id);
         break;
@@ -8056,9 +8023,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_GD:
         lib_link_gpencil(&reader, (bGPdata *)id);
         break;
-      case ID_PAL:
-        lib_link_palette(&reader, (Palette *)id);
-        break;
       case ID_KE:
         lib_link_key(&reader, (Key *)id);
         break;
@@ -8080,6 +8044,8 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_TXT:
       case ID_VF:
       case ID_MC:
+      case ID_PAL:
+      case ID_PC:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }

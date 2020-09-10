@@ -2483,29 +2483,6 @@ static void write_brush(BlendWriter *writer, Brush *brush, const void *id_addres
   }
 }
 
-static void write_palette(BlendWriter *writer, Palette *palette, const void *id_address)
-{
-  if (palette->id.us > 0 || BLO_write_is_undo(writer)) {
-    PaletteColor *color;
-    BLO_write_id_struct(writer, Palette, id_address, &palette->id);
-    BKE_id_blend_write(writer, &palette->id);
-
-    for (color = palette->colors.first; color; color = color->next) {
-      BLO_write_struct(writer, PaletteColor, color);
-    }
-  }
-}
-
-static void write_paintcurve(BlendWriter *writer, PaintCurve *pc, const void *id_address)
-{
-  if (pc->id.us > 0 || BLO_write_is_undo(writer)) {
-    BLO_write_id_struct(writer, PaintCurve, id_address, &pc->id);
-    BKE_id_blend_write(writer, &pc->id);
-
-    BLO_write_struct_array(writer, PaintCurvePoint, pc->tot_points, pc->points);
-  }
-}
-
 static void write_mask(BlendWriter *writer, Mask *mask, const void *id_address)
 {
   if (mask->id.us > 0 || BLO_write_is_undo(writer)) {
@@ -3040,12 +3017,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_BR:
             write_brush(&writer, (Brush *)id_buffer, id);
             break;
-          case ID_PAL:
-            write_palette(&writer, (Palette *)id_buffer, id);
-            break;
-          case ID_PC:
-            write_paintcurve(&writer, (PaintCurve *)id_buffer, id);
-            break;
           case ID_GD:
             write_gpencil(&writer, (bGPdata *)id_buffer, id);
             break;
@@ -3072,6 +3043,8 @@ static bool write_file_handle(Main *mainvar,
           case ID_TXT:
           case ID_VF:
           case ID_MC:
+          case ID_PC:
+          case ID_PAL:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:
