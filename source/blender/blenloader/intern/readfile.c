@@ -2252,7 +2252,6 @@ static void link_glob_list(FileData *fd, ListBase *lb) /* for glob data */
  * \{ */
 
 static void lib_link_id(BlendLibReader *reader, ID *id);
-static void lib_link_nodetree(BlendLibReader *reader, bNodeTree *ntree);
 static void lib_link_collection(BlendLibReader *reader, Collection *collection);
 
 static void lib_link_id_embedded_id(BlendLibReader *reader, ID *id)
@@ -2262,7 +2261,7 @@ static void lib_link_id_embedded_id(BlendLibReader *reader, ID *id)
   bNodeTree *nodetree = ntreeFromID(id);
   if (nodetree != NULL) {
     lib_link_id(reader, &nodetree->id);
-    lib_link_nodetree(reader, nodetree);
+    ntreeBlendReadLib(reader, nodetree);
   }
 
   if (GS(id->name) == ID_SCE) {
@@ -2316,7 +2315,6 @@ static void direct_link_id_override_property_cb(BlendDataReader *reader, void *d
 
 static void direct_link_id_common(
     BlendDataReader *reader, Library *current_library, ID *id, ID *id_old, const int tag);
-static void direct_link_nodetree(BlendDataReader *reader, bNodeTree *ntree);
 static void direct_link_collection(BlendDataReader *reader, Collection *collection);
 
 static void direct_link_id_embedded_id(BlendDataReader *reader,
@@ -2333,7 +2331,7 @@ static void direct_link_id_embedded_id(BlendDataReader *reader,
                           (ID *)*nodetree,
                           id_old != NULL ? (ID *)ntreeFromID(id_old) : NULL,
                           0);
-    direct_link_nodetree(reader, *nodetree);
+    ntreeBlendReadData(reader, *nodetree);
   }
 
   if (GS(id->name) == ID_SCE) {
@@ -2777,246 +2775,6 @@ static void lib_link_workspace_instance_hook(BlendLibReader *reader,
   WorkSpace *workspace = BKE_workspace_active_get(hook);
   BLO_read_id_address(reader, id->lib, &workspace);
   BKE_workspace_active_set(hook, workspace);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Read ID: Node Tree
- * \{ */
-
-static void lib_link_node_socket(BlendLibReader *reader, Library *lib, bNodeSocket *sock)
-{
-  IDP_BlendReadLib(reader, sock->prop);
-
-  switch ((eNodeSocketDatatype)sock->type) {
-    case SOCK_OBJECT: {
-      bNodeSocketValueObject *default_value = sock->default_value;
-      BLO_read_id_address(reader, lib, &default_value->value);
-      break;
-    }
-    case SOCK_IMAGE: {
-      bNodeSocketValueImage *default_value = sock->default_value;
-      BLO_read_id_address(reader, lib, &default_value->value);
-      break;
-    }
-    case SOCK_FLOAT:
-    case SOCK_VECTOR:
-    case SOCK_RGBA:
-    case SOCK_BOOLEAN:
-    case SOCK_INT:
-    case SOCK_STRING:
-    case __SOCK_MESH:
-    case SOCK_CUSTOM:
-    case SOCK_SHADER:
-    case SOCK_EMITTERS:
-    case SOCK_EVENTS:
-    case SOCK_FORCES:
-    case SOCK_CONTROL_FLOW:
-      break;
-  }
-}
-
-static void lib_link_node_sockets(BlendLibReader *reader, Library *lib, ListBase *sockets)
-{
-  LISTBASE_FOREACH (bNodeSocket *, sock, sockets) {
-    lib_link_node_socket(reader, lib, sock);
-  }
-}
-
-/* Single node tree (also used for material/scene trees), ntree is not NULL */
-static void lib_link_ntree(BlendLibReader *reader, Library *lib, bNodeTree *ntree)
-{
-  ntree->id.lib = lib;
-
-  BLO_read_id_address(reader, lib, &ntree->gpd);
-
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    /* Link ID Properties -- and copy this comment EXACTLY for easy finding
-     * of library blocks that implement this.*/
-    IDP_BlendReadLib(reader, node->prop);
-
-    BLO_read_id_address(reader, lib, &node->id);
-
-    lib_link_node_sockets(reader, lib, &node->inputs);
-    lib_link_node_sockets(reader, lib, &node->outputs);
-  }
-
-  lib_link_node_sockets(reader, lib, &ntree->inputs);
-  lib_link_node_sockets(reader, lib, &ntree->outputs);
-
-  /* Set node->typeinfo pointers. This is done in lib linking, after the
-   * first versioning that can change types still without functions that
-   * update the typeinfo pointers. Versioning after lib linking needs
-   * these top be valid. */
-  ntreeSetTypes(NULL, ntree);
-
-  /* For nodes with static socket layout, add/remove sockets as needed
-   * to match the static layout. */
-  if (!BLO_read_lib_is_undo(reader)) {
-    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      node_verify_socket_templates(ntree, node);
-    }
-  }
-}
-
-/* library ntree linking after fileread */
-static void lib_link_nodetree(BlendLibReader *reader, bNodeTree *ntree)
-{
-  lib_link_ntree(reader, ntree->id.lib, ntree);
-}
-
-static void direct_link_node_socket(BlendDataReader *reader, bNodeSocket *sock)
-{
-  BLO_read_data_address(reader, &sock->prop);
-  IDP_BlendDataRead(reader, &sock->prop);
-
-  BLO_read_data_address(reader, &sock->link);
-  sock->typeinfo = NULL;
-  BLO_read_data_address(reader, &sock->storage);
-  BLO_read_data_address(reader, &sock->default_value);
-  sock->cache = NULL;
-}
-
-/* ntree itself has been read! */
-static void direct_link_nodetree(BlendDataReader *reader, bNodeTree *ntree)
-{
-  /* note: writing and reading goes in sync, for speed */
-
-  ntree->init = 0; /* to set callbacks and force setting types */
-  ntree->is_updating = false;
-  ntree->typeinfo = NULL;
-  ntree->interface_type = NULL;
-
-  ntree->progress = NULL;
-  ntree->execdata = NULL;
-
-  BLO_read_data_address(reader, &ntree->adt);
-  BKE_animdata_blend_read_data(reader, ntree->adt);
-
-  BLO_read_list(reader, &ntree->nodes);
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    node->typeinfo = NULL;
-
-    BLO_read_list(reader, &node->inputs);
-    BLO_read_list(reader, &node->outputs);
-
-    BLO_read_data_address(reader, &node->prop);
-    IDP_BlendDataRead(reader, &node->prop);
-
-    BLO_read_list(reader, &node->internal_links);
-    LISTBASE_FOREACH (bNodeLink *, link, &node->internal_links) {
-      BLO_read_data_address(reader, &link->fromnode);
-      BLO_read_data_address(reader, &link->fromsock);
-      BLO_read_data_address(reader, &link->tonode);
-      BLO_read_data_address(reader, &link->tosock);
-    }
-
-    if (node->type == CMP_NODE_MOVIEDISTORTION) {
-      /* Do nothing, this is runtime cache and hence handled by generic code using
-       * `IDTypeInfo.foreach_cache` callback. */
-    }
-    else {
-      BLO_read_data_address(reader, &node->storage);
-    }
-
-    if (node->storage) {
-      /* could be handlerized at some point */
-      switch (node->type) {
-        case SH_NODE_CURVE_VEC:
-        case SH_NODE_CURVE_RGB:
-        case CMP_NODE_TIME:
-        case CMP_NODE_CURVE_VEC:
-        case CMP_NODE_CURVE_RGB:
-        case CMP_NODE_HUECORRECT:
-        case TEX_NODE_CURVE_RGB:
-        case TEX_NODE_CURVE_TIME: {
-          BKE_curvemapping_blend_read(reader, node->storage);
-          break;
-        }
-        case SH_NODE_SCRIPT: {
-          NodeShaderScript *nss = (NodeShaderScript *)node->storage;
-          BLO_read_data_address(reader, &nss->bytecode);
-          break;
-        }
-        case SH_NODE_TEX_POINTDENSITY: {
-          NodeShaderTexPointDensity *npd = (NodeShaderTexPointDensity *)node->storage;
-          memset(&npd->pd, 0, sizeof(npd->pd));
-          break;
-        }
-        case SH_NODE_TEX_IMAGE: {
-          NodeTexImage *tex = (NodeTexImage *)node->storage;
-          tex->iuser.ok = 1;
-          tex->iuser.scene = NULL;
-          break;
-        }
-        case SH_NODE_TEX_ENVIRONMENT: {
-          NodeTexEnvironment *tex = (NodeTexEnvironment *)node->storage;
-          tex->iuser.ok = 1;
-          tex->iuser.scene = NULL;
-          break;
-        }
-        case CMP_NODE_IMAGE:
-        case CMP_NODE_R_LAYERS:
-        case CMP_NODE_VIEWER:
-        case CMP_NODE_SPLITVIEWER: {
-          ImageUser *iuser = node->storage;
-          iuser->ok = 1;
-          iuser->scene = NULL;
-          break;
-        }
-        case CMP_NODE_CRYPTOMATTE: {
-          NodeCryptomatte *nc = (NodeCryptomatte *)node->storage;
-          BLO_read_data_address(reader, &nc->matte_id);
-          break;
-        }
-        case TEX_NODE_IMAGE: {
-          ImageUser *iuser = node->storage;
-          iuser->ok = 1;
-          iuser->scene = NULL;
-          break;
-        }
-        default:
-          break;
-      }
-    }
-  }
-  BLO_read_list(reader, &ntree->links);
-
-  /* and we connect the rest */
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    BLO_read_data_address(reader, &node->parent);
-    node->lasty = 0;
-
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-      direct_link_node_socket(reader, sock);
-    }
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-      direct_link_node_socket(reader, sock);
-    }
-  }
-
-  /* interface socket lists */
-  BLO_read_list(reader, &ntree->inputs);
-  BLO_read_list(reader, &ntree->outputs);
-  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs) {
-    direct_link_node_socket(reader, sock);
-  }
-  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs) {
-    direct_link_node_socket(reader, sock);
-  }
-
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-    BLO_read_data_address(reader, &link->fromnode);
-    BLO_read_data_address(reader, &link->tonode);
-    BLO_read_data_address(reader, &link->fromsock);
-    BLO_read_data_address(reader, &link->tosock);
-  }
-
-  /* TODO, should be dealt by new generic cache handling of IDs... */
-  ntree->previews = NULL;
-
-  /* type verification is in lib-link */
 }
 
 /** \} */
@@ -7993,9 +7751,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_AR:
       direct_link_armature(&reader, (bArmature *)id);
       break;
-    case ID_NT:
-      direct_link_nodetree(&reader, (bNodeTree *)id);
-      break;
     case ID_BR:
       direct_link_brush(&reader, (Brush *)id);
       break;
@@ -8041,6 +7796,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_ME:
     case ID_LT:
     case ID_AC:
+    case ID_NT:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -8739,10 +8495,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_IM:
         lib_link_image(&reader, (Image *)id);
         break;
-      case ID_NT:
-        /* Has to be done after node users (scene/materials/...), this will verify group nodes. */
-        lib_link_nodetree(&reader, (bNodeTree *)id);
-        break;
       case ID_GD:
         lib_link_gpencil(&reader, (bGPdata *)id);
         break;
@@ -8765,6 +8517,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_ME:
       case ID_LT:
       case ID_AC:
+      case ID_NT:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -9348,7 +9101,6 @@ static void expand_constraint_channels(BlendExpander *expander, ListBase *chanba
 }
 
 static void expand_id(BlendExpander *expander, ID *id);
-static void expand_nodetree(BlendExpander *expander, bNodeTree *ntree);
 static void expand_collection(BlendExpander *expander, Collection *collection);
 
 static void expand_id_embedded_id(BlendExpander *expander, ID *id)
@@ -9357,7 +9109,7 @@ static void expand_id_embedded_id(BlendExpander *expander, ID *id)
   bNodeTree *nodetree = ntreeFromID(id);
   if (nodetree != NULL) {
     expand_id(expander, &nodetree->id);
-    expand_nodetree(expander, nodetree);
+    ntreeBlendReadExpand(expander, nodetree);
   }
 
   if (GS(id->name) == ID_SCE) {
@@ -9454,69 +9206,6 @@ static void expand_collection(BlendExpander *expander, Collection *collection)
 static void expand_key(BlendExpander *expander, Key *key)
 {
   BLO_expand(expander, key->ipo);  // XXX deprecated - old animation system
-}
-
-static void expand_node_socket(BlendExpander *expander, bNodeSocket *sock)
-{
-  IDP_BlendReadExpand(expander, sock->prop);
-
-  if (sock->default_value != NULL) {
-
-    switch ((eNodeSocketDatatype)sock->type) {
-      case SOCK_OBJECT: {
-        bNodeSocketValueObject *default_value = sock->default_value;
-        BLO_expand(expander, default_value->value);
-        break;
-      }
-      case SOCK_IMAGE: {
-        bNodeSocketValueImage *default_value = sock->default_value;
-        BLO_expand(expander, default_value->value);
-        break;
-      }
-      case SOCK_FLOAT:
-      case SOCK_VECTOR:
-      case SOCK_RGBA:
-      case SOCK_BOOLEAN:
-      case SOCK_INT:
-      case SOCK_STRING:
-      case __SOCK_MESH:
-      case SOCK_CUSTOM:
-      case SOCK_SHADER:
-      case SOCK_EMITTERS:
-      case SOCK_EVENTS:
-      case SOCK_FORCES:
-      case SOCK_CONTROL_FLOW:
-        break;
-    }
-  }
-}
-
-static void expand_node_sockets(BlendExpander *expander, ListBase *sockets)
-{
-  LISTBASE_FOREACH (bNodeSocket *, sock, sockets) {
-    expand_node_socket(expander, sock);
-  }
-}
-
-static void expand_nodetree(BlendExpander *expander, bNodeTree *ntree)
-{
-  if (ntree->gpd) {
-    BLO_expand(expander, ntree->gpd);
-  }
-
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->id && node->type != CMP_NODE_R_LAYERS) {
-      BLO_expand(expander, node->id);
-    }
-
-    IDP_BlendReadExpand(expander, node->prop);
-
-    expand_node_sockets(expander, &node->inputs);
-    expand_node_sockets(expander, &node->outputs);
-  }
-
-  expand_node_sockets(expander, &ntree->inputs);
-  expand_node_sockets(expander, &ntree->outputs);
 }
 
 static void expand_texture(BlendExpander *expander, Tex *tex)
@@ -10055,9 +9744,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_GR:
               expand_collection(&expander, (Collection *)id);
-              break;
-            case ID_NT:
-              expand_nodetree(&expander, (bNodeTree *)id);
               break;
             case ID_BR:
               expand_brush(&expander, (Brush *)id);

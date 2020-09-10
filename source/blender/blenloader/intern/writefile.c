@@ -661,182 +661,6 @@ static void writelist_id(WriteData *wd, int filecode, const char *structname, co
  * These functions are used by blender's .blend system for file saving/loading.
  * \{ */
 
-static void write_node_socket_default_value(BlendWriter *writer, bNodeSocket *sock)
-{
-  if (sock->default_value == NULL) {
-    return;
-  }
-
-  switch ((eNodeSocketDatatype)sock->type) {
-    case SOCK_FLOAT:
-      BLO_write_struct(writer, bNodeSocketValueFloat, sock->default_value);
-      break;
-    case SOCK_VECTOR:
-      BLO_write_struct(writer, bNodeSocketValueVector, sock->default_value);
-      break;
-    case SOCK_RGBA:
-      BLO_write_struct(writer, bNodeSocketValueRGBA, sock->default_value);
-      break;
-    case SOCK_BOOLEAN:
-      BLO_write_struct(writer, bNodeSocketValueBoolean, sock->default_value);
-      break;
-    case SOCK_INT:
-      BLO_write_struct(writer, bNodeSocketValueInt, sock->default_value);
-      break;
-    case SOCK_STRING:
-      BLO_write_struct(writer, bNodeSocketValueString, sock->default_value);
-      break;
-    case SOCK_OBJECT:
-      BLO_write_struct(writer, bNodeSocketValueObject, sock->default_value);
-      break;
-    case SOCK_IMAGE:
-      BLO_write_struct(writer, bNodeSocketValueImage, sock->default_value);
-      break;
-    case __SOCK_MESH:
-    case SOCK_CUSTOM:
-    case SOCK_SHADER:
-    case SOCK_EMITTERS:
-    case SOCK_EVENTS:
-    case SOCK_FORCES:
-    case SOCK_CONTROL_FLOW:
-      BLI_assert(false);
-      break;
-  }
-}
-
-static void write_node_socket(BlendWriter *writer, bNodeSocket *sock)
-{
-  /* actual socket writing */
-  BLO_write_struct(writer, bNodeSocket, sock);
-
-  if (sock->prop) {
-    IDP_BlendWrite(writer, sock->prop);
-  }
-
-  write_node_socket_default_value(writer, sock);
-}
-static void write_node_socket_interface(BlendWriter *writer, bNodeSocket *sock)
-{
-  /* actual socket writing */
-  BLO_write_struct(writer, bNodeSocket, sock);
-
-  if (sock->prop) {
-    IDP_BlendWrite(writer, sock->prop);
-  }
-
-  write_node_socket_default_value(writer, sock);
-}
-/* this is only direct data, tree itself should have been written */
-static void write_nodetree_nolib(BlendWriter *writer, bNodeTree *ntree)
-{
-  /* for link_list() speed, we write per list */
-
-  if (ntree->adt) {
-    BKE_animdata_blend_write(writer, ntree->adt);
-  }
-
-  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    BLO_write_struct(writer, bNode, node);
-
-    if (node->prop) {
-      IDP_BlendWrite(writer, node->prop);
-    }
-
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-      write_node_socket(writer, sock);
-    }
-    LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-      write_node_socket(writer, sock);
-    }
-
-    LISTBASE_FOREACH (bNodeLink *, link, &node->internal_links) {
-      BLO_write_struct(writer, bNodeLink, link);
-    }
-
-    if (node->storage) {
-      /* could be handlerized at some point, now only 1 exception still */
-      if ((ntree->type == NTREE_SHADER) &&
-          ELEM(node->type, SH_NODE_CURVE_VEC, SH_NODE_CURVE_RGB)) {
-        BKE_curvemapping_blend_write(writer, node->storage);
-      }
-      else if (ntree->type == NTREE_SHADER && (node->type == SH_NODE_SCRIPT)) {
-        NodeShaderScript *nss = (NodeShaderScript *)node->storage;
-        if (nss->bytecode) {
-          BLO_write_string(writer, nss->bytecode);
-        }
-        BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
-      }
-      else if ((ntree->type == NTREE_COMPOSIT) && ELEM(node->type,
-                                                       CMP_NODE_TIME,
-                                                       CMP_NODE_CURVE_VEC,
-                                                       CMP_NODE_CURVE_RGB,
-                                                       CMP_NODE_HUECORRECT)) {
-        BKE_curvemapping_blend_write(writer, node->storage);
-      }
-      else if ((ntree->type == NTREE_TEXTURE) &&
-               (node->type == TEX_NODE_CURVE_RGB || node->type == TEX_NODE_CURVE_TIME)) {
-        BKE_curvemapping_blend_write(writer, node->storage);
-      }
-      else if ((ntree->type == NTREE_COMPOSIT) && (node->type == CMP_NODE_MOVIEDISTORTION)) {
-        /* pass */
-      }
-      else if ((ntree->type == NTREE_COMPOSIT) && (node->type == CMP_NODE_GLARE)) {
-        /* Simple forward compatibility for fix for T50736.
-         * Not ideal (there is no ideal solution here), but should do for now. */
-        NodeGlare *ndg = node->storage;
-        /* Not in undo case. */
-        if (!BLO_write_is_undo(writer)) {
-          switch (ndg->type) {
-            case 2: /* Grrrr! magic numbers :( */
-              ndg->angle = ndg->streaks;
-              break;
-            case 0:
-              ndg->angle = ndg->star_45;
-              break;
-            default:
-              break;
-          }
-        }
-        BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
-      }
-      else if ((ntree->type == NTREE_COMPOSIT) && (node->type == CMP_NODE_CRYPTOMATTE)) {
-        NodeCryptomatte *nc = (NodeCryptomatte *)node->storage;
-        if (nc->matte_id) {
-          BLO_write_string(writer, nc->matte_id);
-        }
-        BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
-      }
-      else if (node->typeinfo != &NodeTypeUndefined) {
-        BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
-      }
-    }
-
-    if (node->type == CMP_NODE_OUTPUT_FILE) {
-      /* inputs have own storage data */
-      LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-        BLO_write_struct(writer, NodeImageMultiFileSocket, sock->storage);
-      }
-    }
-    if (ELEM(node->type, CMP_NODE_IMAGE, CMP_NODE_R_LAYERS)) {
-      /* write extra socket info */
-      LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-        BLO_write_struct(writer, NodeImageLayer, sock->storage);
-      }
-    }
-  }
-
-  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
-    BLO_write_struct(writer, bNodeLink, link);
-  }
-
-  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs) {
-    write_node_socket_interface(writer, sock);
-  }
-  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs) {
-    write_node_socket_interface(writer, sock);
-  }
-}
-
 /**
  * Take care using 'use_active_win', since we wont want the currently active window
  * to change which scene renders (currently only used for undo).
@@ -1759,7 +1583,7 @@ static void write_texture(BlendWriter *writer, Tex *tex, const void *id_address)
     /* nodetree is integral part of texture, no libdata */
     if (tex->nodetree) {
       BLO_write_struct(writer, bNodeTree, tex->nodetree);
-      write_nodetree_nolib(writer, tex->nodetree);
+      ntreeBlendWrite(writer, tex->nodetree);
     }
 
     BKE_previewimg_blend_write(writer, tex->preview);
@@ -1784,7 +1608,7 @@ static void write_material(BlendWriter *writer, Material *ma, const void *id_add
     /* nodetree is integral part of material, no libdata */
     if (ma->nodetree) {
       BLO_write_struct(writer, bNodeTree, ma->nodetree);
-      write_nodetree_nolib(writer, ma->nodetree);
+      ntreeBlendWrite(writer, ma->nodetree);
     }
 
     BKE_previewimg_blend_write(writer, ma->preview);
@@ -1813,7 +1637,7 @@ static void write_world(BlendWriter *writer, World *wrld, const void *id_address
     /* nodetree is integral part of world, no libdata */
     if (wrld->nodetree) {
       BLO_write_struct(writer, bNodeTree, wrld->nodetree);
-      write_nodetree_nolib(writer, wrld->nodetree);
+      ntreeBlendWrite(writer, wrld->nodetree);
     }
 
     BKE_previewimg_blend_write(writer, wrld->preview);
@@ -1838,7 +1662,7 @@ static void write_light(BlendWriter *writer, Light *la, const void *id_address)
     /* Node-tree is integral part of lights, no libdata. */
     if (la->nodetree) {
       BLO_write_struct(writer, bNodeTree, la->nodetree);
-      write_nodetree_nolib(writer, la->nodetree);
+      ntreeBlendWrite(writer, la->nodetree);
     }
 
     BKE_previewimg_blend_write(writer, la->preview);
@@ -2176,7 +2000,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
 
   if (sce->nodetree) {
     BLO_write_struct(writer, bNodeTree, sce->nodetree);
-    write_nodetree_nolib(writer, sce->nodetree);
+    ntreeBlendWrite(writer, sce->nodetree);
   }
 
   write_view_settings(writer, &sce->view_settings);
@@ -2669,26 +2493,6 @@ static void write_probe(BlendWriter *writer, LightProbe *prb, const void *id_add
   }
 }
 
-static void write_nodetree(BlendWriter *writer, bNodeTree *ntree, const void *id_address)
-{
-  if (ntree->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-    ntree->init = 0; /* to set callbacks and force setting types */
-    ntree->is_updating = false;
-    ntree->typeinfo = NULL;
-    ntree->interface_type = NULL;
-    ntree->progress = NULL;
-    ntree->execdata = NULL;
-
-    BLO_write_id_struct(writer, bNodeTree, id_address, &ntree->id);
-    /* Note that trees directly used by other IDs (materials etc.) are not 'real' ID, they cannot
-     * be linked, etc., so we write actual id data here only, for 'real' ID trees. */
-    BKE_id_blend_write(writer, &ntree->id);
-
-    write_nodetree_nolib(writer, ntree);
-  }
-}
-
 static void write_brush(BlendWriter *writer, Brush *brush, const void *id_address)
 {
   if (brush->id.us > 0 || BLO_write_is_undo(writer)) {
@@ -3165,7 +2969,7 @@ static void write_linestyle(BlendWriter *writer,
     }
     if (linestyle->nodetree) {
       BLO_write_struct(writer, bNodeTree, linestyle->nodetree);
-      write_nodetree_nolib(writer, linestyle->nodetree);
+      ntreeBlendWrite(writer, linestyle->nodetree);
     }
   }
 }
@@ -3297,7 +3101,7 @@ static void write_simulation(BlendWriter *writer, Simulation *simulation, const 
     /* nodetree is integral part of simulation, no libdata */
     if (simulation->nodetree) {
       BLO_write_struct(writer, bNodeTree, simulation->nodetree);
-      write_nodetree_nolib(writer, simulation->nodetree);
+      ntreeBlendWrite(writer, simulation->nodetree);
     }
 
     LISTBASE_FOREACH (SimulationState *, state, &simulation->states) {
@@ -3668,9 +3472,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_PA:
             write_particlesettings(&writer, (ParticleSettings *)id_buffer, id);
             break;
-          case ID_NT:
-            write_nodetree(&writer, (bNodeTree *)id_buffer, id);
-            break;
           case ID_BR:
             write_brush(&writer, (Brush *)id_buffer, id);
             break;
@@ -3704,6 +3505,7 @@ static bool write_file_handle(Main *mainvar,
           case ID_ME:
           case ID_LT:
           case ID_AC:
+          case ID_NT:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:

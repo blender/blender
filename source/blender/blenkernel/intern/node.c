@@ -30,6 +30,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Allow using deprecated functionality for .blend file I/O. */
+#define DNA_DEPRECATED_ALLOW
+
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_gpencil_types.h"
@@ -54,6 +57,7 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
+#include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
@@ -78,6 +82,8 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+
+#include "BLO_read_write.h"
 
 #define NODE_DEFAULT_MAX_WIDTH 700
 
@@ -337,6 +343,511 @@ static void node_foreach_cache(ID *id,
   }
 }
 
+static void write_node_socket_default_value(BlendWriter *writer, bNodeSocket *sock)
+{
+  if (sock->default_value == NULL) {
+    return;
+  }
+
+  switch ((eNodeSocketDatatype)sock->type) {
+    case SOCK_FLOAT:
+      BLO_write_struct(writer, bNodeSocketValueFloat, sock->default_value);
+      break;
+    case SOCK_VECTOR:
+      BLO_write_struct(writer, bNodeSocketValueVector, sock->default_value);
+      break;
+    case SOCK_RGBA:
+      BLO_write_struct(writer, bNodeSocketValueRGBA, sock->default_value);
+      break;
+    case SOCK_BOOLEAN:
+      BLO_write_struct(writer, bNodeSocketValueBoolean, sock->default_value);
+      break;
+    case SOCK_INT:
+      BLO_write_struct(writer, bNodeSocketValueInt, sock->default_value);
+      break;
+    case SOCK_STRING:
+      BLO_write_struct(writer, bNodeSocketValueString, sock->default_value);
+      break;
+    case SOCK_OBJECT:
+      BLO_write_struct(writer, bNodeSocketValueObject, sock->default_value);
+      break;
+    case SOCK_IMAGE:
+      BLO_write_struct(writer, bNodeSocketValueImage, sock->default_value);
+      break;
+    case __SOCK_MESH:
+    case SOCK_CUSTOM:
+    case SOCK_SHADER:
+    case SOCK_EMITTERS:
+    case SOCK_EVENTS:
+    case SOCK_FORCES:
+    case SOCK_CONTROL_FLOW:
+      BLI_assert(false);
+      break;
+  }
+}
+
+static void write_node_socket(BlendWriter *writer, bNodeSocket *sock)
+{
+  /* actual socket writing */
+  BLO_write_struct(writer, bNodeSocket, sock);
+
+  if (sock->prop) {
+    IDP_BlendWrite(writer, sock->prop);
+  }
+
+  write_node_socket_default_value(writer, sock);
+}
+static void write_node_socket_interface(BlendWriter *writer, bNodeSocket *sock)
+{
+  /* actual socket writing */
+  BLO_write_struct(writer, bNodeSocket, sock);
+
+  if (sock->prop) {
+    IDP_BlendWrite(writer, sock->prop);
+  }
+
+  write_node_socket_default_value(writer, sock);
+}
+
+/* this is only direct data, tree itself should have been written */
+void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
+{
+  /* for link_list() speed, we write per list */
+
+  if (ntree->adt) {
+    BKE_animdata_blend_write(writer, ntree->adt);
+  }
+
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    BLO_write_struct(writer, bNode, node);
+
+    if (node->prop) {
+      IDP_BlendWrite(writer, node->prop);
+    }
+
+    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+      write_node_socket(writer, sock);
+    }
+    LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
+      write_node_socket(writer, sock);
+    }
+
+    LISTBASE_FOREACH (bNodeLink *, link, &node->internal_links) {
+      BLO_write_struct(writer, bNodeLink, link);
+    }
+
+    if (node->storage) {
+      /* could be handlerized at some point, now only 1 exception still */
+      if ((ntree->type == NTREE_SHADER) &&
+          ELEM(node->type, SH_NODE_CURVE_VEC, SH_NODE_CURVE_RGB)) {
+        BKE_curvemapping_blend_write(writer, node->storage);
+      }
+      else if (ntree->type == NTREE_SHADER && (node->type == SH_NODE_SCRIPT)) {
+        NodeShaderScript *nss = (NodeShaderScript *)node->storage;
+        if (nss->bytecode) {
+          BLO_write_string(writer, nss->bytecode);
+        }
+        BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
+      }
+      else if ((ntree->type == NTREE_COMPOSIT) && ELEM(node->type,
+                                                       CMP_NODE_TIME,
+                                                       CMP_NODE_CURVE_VEC,
+                                                       CMP_NODE_CURVE_RGB,
+                                                       CMP_NODE_HUECORRECT)) {
+        BKE_curvemapping_blend_write(writer, node->storage);
+      }
+      else if ((ntree->type == NTREE_TEXTURE) &&
+               (node->type == TEX_NODE_CURVE_RGB || node->type == TEX_NODE_CURVE_TIME)) {
+        BKE_curvemapping_blend_write(writer, node->storage);
+      }
+      else if ((ntree->type == NTREE_COMPOSIT) && (node->type == CMP_NODE_MOVIEDISTORTION)) {
+        /* pass */
+      }
+      else if ((ntree->type == NTREE_COMPOSIT) && (node->type == CMP_NODE_GLARE)) {
+        /* Simple forward compatibility for fix for T50736.
+         * Not ideal (there is no ideal solution here), but should do for now. */
+        NodeGlare *ndg = node->storage;
+        /* Not in undo case. */
+        if (!BLO_write_is_undo(writer)) {
+          switch (ndg->type) {
+            case 2: /* Grrrr! magic numbers :( */
+              ndg->angle = ndg->streaks;
+              break;
+            case 0:
+              ndg->angle = ndg->star_45;
+              break;
+            default:
+              break;
+          }
+        }
+        BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
+      }
+      else if ((ntree->type == NTREE_COMPOSIT) && (node->type == CMP_NODE_CRYPTOMATTE)) {
+        NodeCryptomatte *nc = (NodeCryptomatte *)node->storage;
+        if (nc->matte_id) {
+          BLO_write_string(writer, nc->matte_id);
+        }
+        BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
+      }
+      else if (node->typeinfo != &NodeTypeUndefined) {
+        BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
+      }
+    }
+
+    if (node->type == CMP_NODE_OUTPUT_FILE) {
+      /* inputs have own storage data */
+      LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+        BLO_write_struct(writer, NodeImageMultiFileSocket, sock->storage);
+      }
+    }
+    if (ELEM(node->type, CMP_NODE_IMAGE, CMP_NODE_R_LAYERS)) {
+      /* write extra socket info */
+      LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
+        BLO_write_struct(writer, NodeImageLayer, sock->storage);
+      }
+    }
+  }
+
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+    BLO_write_struct(writer, bNodeLink, link);
+  }
+
+  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs) {
+    write_node_socket_interface(writer, sock);
+  }
+  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs) {
+    write_node_socket_interface(writer, sock);
+  }
+}
+
+static void ntree_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  bNodeTree *ntree = (bNodeTree *)id;
+  if (ntree->id.us > 0 || BLO_write_is_undo(writer)) {
+    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+    ntree->init = 0; /* to set callbacks and force setting types */
+    ntree->is_updating = false;
+    ntree->typeinfo = NULL;
+    ntree->interface_type = NULL;
+    ntree->progress = NULL;
+    ntree->execdata = NULL;
+
+    BLO_write_id_struct(writer, bNodeTree, id_address, &ntree->id);
+    /* Note that trees directly used by other IDs (materials etc.) are not 'real' ID, they cannot
+     * be linked, etc., so we write actual id data here only, for 'real' ID trees. */
+    BKE_id_blend_write(writer, &ntree->id);
+
+    ntreeBlendWrite(writer, ntree);
+  }
+}
+
+static void direct_link_node_socket(BlendDataReader *reader, bNodeSocket *sock)
+{
+  BLO_read_data_address(reader, &sock->prop);
+  IDP_BlendDataRead(reader, &sock->prop);
+
+  BLO_read_data_address(reader, &sock->link);
+  sock->typeinfo = NULL;
+  BLO_read_data_address(reader, &sock->storage);
+  BLO_read_data_address(reader, &sock->default_value);
+  sock->cache = NULL;
+}
+
+/* ntree itself has been read! */
+void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
+{
+  /* note: writing and reading goes in sync, for speed */
+  ntree->init = 0; /* to set callbacks and force setting types */
+  ntree->is_updating = false;
+  ntree->typeinfo = NULL;
+  ntree->interface_type = NULL;
+
+  ntree->progress = NULL;
+  ntree->execdata = NULL;
+
+  BLO_read_data_address(reader, &ntree->adt);
+  BKE_animdata_blend_read_data(reader, ntree->adt);
+
+  BLO_read_list(reader, &ntree->nodes);
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    node->typeinfo = NULL;
+
+    BLO_read_list(reader, &node->inputs);
+    BLO_read_list(reader, &node->outputs);
+
+    BLO_read_data_address(reader, &node->prop);
+    IDP_BlendDataRead(reader, &node->prop);
+
+    BLO_read_list(reader, &node->internal_links);
+    LISTBASE_FOREACH (bNodeLink *, link, &node->internal_links) {
+      BLO_read_data_address(reader, &link->fromnode);
+      BLO_read_data_address(reader, &link->fromsock);
+      BLO_read_data_address(reader, &link->tonode);
+      BLO_read_data_address(reader, &link->tosock);
+    }
+
+    if (node->type == CMP_NODE_MOVIEDISTORTION) {
+      /* Do nothing, this is runtime cache and hence handled by generic code using
+       * `IDTypeInfo.foreach_cache` callback. */
+    }
+    else {
+      BLO_read_data_address(reader, &node->storage);
+    }
+
+    if (node->storage) {
+      /* could be handlerized at some point */
+      switch (node->type) {
+        case SH_NODE_CURVE_VEC:
+        case SH_NODE_CURVE_RGB:
+        case CMP_NODE_TIME:
+        case CMP_NODE_CURVE_VEC:
+        case CMP_NODE_CURVE_RGB:
+        case CMP_NODE_HUECORRECT:
+        case TEX_NODE_CURVE_RGB:
+        case TEX_NODE_CURVE_TIME: {
+          BKE_curvemapping_blend_read(reader, node->storage);
+          break;
+        }
+        case SH_NODE_SCRIPT: {
+          NodeShaderScript *nss = (NodeShaderScript *)node->storage;
+          BLO_read_data_address(reader, &nss->bytecode);
+          break;
+        }
+        case SH_NODE_TEX_POINTDENSITY: {
+          NodeShaderTexPointDensity *npd = (NodeShaderTexPointDensity *)node->storage;
+          memset(&npd->pd, 0, sizeof(npd->pd));
+          break;
+        }
+        case SH_NODE_TEX_IMAGE: {
+          NodeTexImage *tex = (NodeTexImage *)node->storage;
+          tex->iuser.ok = 1;
+          tex->iuser.scene = NULL;
+          break;
+        }
+        case SH_NODE_TEX_ENVIRONMENT: {
+          NodeTexEnvironment *tex = (NodeTexEnvironment *)node->storage;
+          tex->iuser.ok = 1;
+          tex->iuser.scene = NULL;
+          break;
+        }
+        case CMP_NODE_IMAGE:
+        case CMP_NODE_R_LAYERS:
+        case CMP_NODE_VIEWER:
+        case CMP_NODE_SPLITVIEWER: {
+          ImageUser *iuser = node->storage;
+          iuser->ok = 1;
+          iuser->scene = NULL;
+          break;
+        }
+        case CMP_NODE_CRYPTOMATTE: {
+          NodeCryptomatte *nc = (NodeCryptomatte *)node->storage;
+          BLO_read_data_address(reader, &nc->matte_id);
+          break;
+        }
+        case TEX_NODE_IMAGE: {
+          ImageUser *iuser = node->storage;
+          iuser->ok = 1;
+          iuser->scene = NULL;
+          break;
+        }
+        default:
+          break;
+      }
+    }
+  }
+  BLO_read_list(reader, &ntree->links);
+
+  /* and we connect the rest */
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    BLO_read_data_address(reader, &node->parent);
+    node->lasty = 0;
+
+    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+      direct_link_node_socket(reader, sock);
+    }
+    LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
+      direct_link_node_socket(reader, sock);
+    }
+  }
+
+  /* interface socket lists */
+  BLO_read_list(reader, &ntree->inputs);
+  BLO_read_list(reader, &ntree->outputs);
+  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs) {
+    direct_link_node_socket(reader, sock);
+  }
+  LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs) {
+    direct_link_node_socket(reader, sock);
+  }
+
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
+    BLO_read_data_address(reader, &link->fromnode);
+    BLO_read_data_address(reader, &link->tonode);
+    BLO_read_data_address(reader, &link->fromsock);
+    BLO_read_data_address(reader, &link->tosock);
+  }
+
+  /* TODO, should be dealt by new generic cache handling of IDs... */
+  ntree->previews = NULL;
+
+  /* type verification is in lib-link */
+}
+
+static void ntree_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  bNodeTree *ntree = (bNodeTree *)id;
+  ntreeBlendReadData(reader, ntree);
+}
+
+static void lib_link_node_socket(BlendLibReader *reader, Library *lib, bNodeSocket *sock)
+{
+  IDP_BlendReadLib(reader, sock->prop);
+
+  switch ((eNodeSocketDatatype)sock->type) {
+    case SOCK_OBJECT: {
+      bNodeSocketValueObject *default_value = sock->default_value;
+      BLO_read_id_address(reader, lib, &default_value->value);
+      break;
+    }
+    case SOCK_IMAGE: {
+      bNodeSocketValueImage *default_value = sock->default_value;
+      BLO_read_id_address(reader, lib, &default_value->value);
+      break;
+    }
+    case SOCK_FLOAT:
+    case SOCK_VECTOR:
+    case SOCK_RGBA:
+    case SOCK_BOOLEAN:
+    case SOCK_INT:
+    case SOCK_STRING:
+    case __SOCK_MESH:
+    case SOCK_CUSTOM:
+    case SOCK_SHADER:
+    case SOCK_EMITTERS:
+    case SOCK_EVENTS:
+    case SOCK_FORCES:
+    case SOCK_CONTROL_FLOW:
+      break;
+  }
+}
+
+static void lib_link_node_sockets(BlendLibReader *reader, Library *lib, ListBase *sockets)
+{
+  LISTBASE_FOREACH (bNodeSocket *, sock, sockets) {
+    lib_link_node_socket(reader, lib, sock);
+  }
+}
+
+void ntreeBlendReadLib(struct BlendLibReader *reader, struct bNodeTree *ntree)
+{
+  Library *lib = ntree->id.lib;
+
+  BLO_read_id_address(reader, lib, &ntree->gpd);
+
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    /* Link ID Properties -- and copy this comment EXACTLY for easy finding
+     * of library blocks that implement this.*/
+    IDP_BlendReadLib(reader, node->prop);
+
+    BLO_read_id_address(reader, lib, &node->id);
+
+    lib_link_node_sockets(reader, lib, &node->inputs);
+    lib_link_node_sockets(reader, lib, &node->outputs);
+  }
+
+  lib_link_node_sockets(reader, lib, &ntree->inputs);
+  lib_link_node_sockets(reader, lib, &ntree->outputs);
+
+  /* Set node->typeinfo pointers. This is done in lib linking, after the
+   * first versioning that can change types still without functions that
+   * update the typeinfo pointers. Versioning after lib linking needs
+   * these top be valid. */
+  ntreeSetTypes(NULL, ntree);
+
+  /* For nodes with static socket layout, add/remove sockets as needed
+   * to match the static layout. */
+  if (!BLO_read_lib_is_undo(reader)) {
+    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+      node_verify_socket_templates(ntree, node);
+    }
+  }
+}
+
+static void ntree_blend_read_lib(BlendLibReader *reader, ID *id)
+{
+  bNodeTree *ntree = (bNodeTree *)id;
+  ntreeBlendReadLib(reader, ntree);
+}
+
+static void expand_node_socket(BlendExpander *expander, bNodeSocket *sock)
+{
+  IDP_BlendReadExpand(expander, sock->prop);
+
+  if (sock->default_value != NULL) {
+
+    switch ((eNodeSocketDatatype)sock->type) {
+      case SOCK_OBJECT: {
+        bNodeSocketValueObject *default_value = sock->default_value;
+        BLO_expand(expander, default_value->value);
+        break;
+      }
+      case SOCK_IMAGE: {
+        bNodeSocketValueImage *default_value = sock->default_value;
+        BLO_expand(expander, default_value->value);
+        break;
+      }
+      case SOCK_FLOAT:
+      case SOCK_VECTOR:
+      case SOCK_RGBA:
+      case SOCK_BOOLEAN:
+      case SOCK_INT:
+      case SOCK_STRING:
+      case __SOCK_MESH:
+      case SOCK_CUSTOM:
+      case SOCK_SHADER:
+      case SOCK_EMITTERS:
+      case SOCK_EVENTS:
+      case SOCK_FORCES:
+      case SOCK_CONTROL_FLOW:
+        break;
+    }
+  }
+}
+
+static void expand_node_sockets(BlendExpander *expander, ListBase *sockets)
+{
+  LISTBASE_FOREACH (bNodeSocket *, sock, sockets) {
+    expand_node_socket(expander, sock);
+  }
+}
+
+void ntreeBlendReadExpand(BlendExpander *expander, bNodeTree *ntree)
+{
+  if (ntree->gpd) {
+    BLO_expand(expander, ntree->gpd);
+  }
+
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->id && node->type != CMP_NODE_R_LAYERS) {
+      BLO_expand(expander, node->id);
+    }
+
+    IDP_BlendReadExpand(expander, node->prop);
+
+    expand_node_sockets(expander, &node->inputs);
+    expand_node_sockets(expander, &node->outputs);
+  }
+
+  expand_node_sockets(expander, &ntree->inputs);
+  expand_node_sockets(expander, &ntree->outputs);
+}
+
+static void ntree_blend_read_expand(BlendExpander *expander, ID *id)
+{
+  bNodeTree *ntree = (bNodeTree *)id;
+  ntreeBlendReadExpand(expander, ntree);
+}
+
 IDTypeInfo IDType_ID_NT = {
     .id_code = ID_NT,
     .id_filter = FILTER_ID_NT,
@@ -354,10 +865,10 @@ IDTypeInfo IDType_ID_NT = {
     .foreach_id = node_foreach_id,
     .foreach_cache = node_foreach_cache,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
-    .blend_read_lib = NULL,
-    .blend_read_expand = NULL,
+    .blend_write = ntree_blend_write,
+    .blend_read_data = ntree_blend_read_data,
+    .blend_read_lib = ntree_blend_read_lib,
+    .blend_read_expand = ntree_blend_read_expand,
 };
 
 static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType *ntype)

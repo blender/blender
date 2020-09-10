@@ -72,6 +72,10 @@ struct bNodeTree;
 struct bNodeTreeExec;
 struct bNodeTreeType;
 struct uiLayout;
+struct BlendWriter;
+struct BlendDataReader;
+struct BlendLibReader;
+struct BlendExpander;
 
 /* -------------------------------------------------------------------- */
 /** \name Node Type Definitions
@@ -452,6 +456,11 @@ void ntreeNodeFlagSet(const bNodeTree *ntree, const int flag, const bool enable)
 struct bNodeTree *ntreeLocalize(struct bNodeTree *ntree);
 void ntreeLocalSync(struct bNodeTree *localtree, struct bNodeTree *ntree);
 void ntreeLocalMerge(struct Main *bmain, struct bNodeTree *localtree, struct bNodeTree *ntree);
+
+void ntreeBlendWrite(struct BlendWriter *writer, struct bNodeTree *ntree);
+void ntreeBlendReadData(struct BlendDataReader *reader, struct bNodeTree *ntree);
+void ntreeBlendReadLib(struct BlendLibReader *reader, struct bNodeTree *ntree);
+void ntreeBlendReadExpand(struct BlendExpander *expander, struct bNodeTree *ntree);
 
 /** \} */
 
