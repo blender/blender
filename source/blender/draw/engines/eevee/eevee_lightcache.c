@@ -388,8 +388,8 @@ LightCache *EEVEE_lightcache_create(const int grid_len,
 static bool eevee_lightcache_static_load(LightCache *lcache)
 {
   /* We use fallback if a texture is not setup and there is no data to restore it. */
-  if ((!lcache->grid_tx.tex && !lcache->grid_tx.data) ||
-      (!lcache->cube_tx.tex && !lcache->cube_tx.data)) {
+  if ((!lcache->grid_tx.tex && !lcache->grid_tx.data) || !lcache->grid_data ||
+      (!lcache->cube_tx.tex && !lcache->cube_tx.data) || !lcache->cube_data) {
     return false;
   }
   /* If cache is too big for this GPU. */
