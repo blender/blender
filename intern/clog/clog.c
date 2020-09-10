@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -235,9 +235,6 @@ static void clg_color_table_init(bool use_color)
     clg_color_table[i] = "";
   }
   if (use_color) {
-#ifdef _WIN32
-    /* TODO */
-#else
     clg_color_table[COLOR_DEFAULT] = "\033[1;37m";
     clg_color_table[COLOR_RED] = "\033[1;31m";
     clg_color_table[COLOR_GREEN] = "\033[1;32m";
@@ -626,7 +623,6 @@ static CLogContext *CLG_ctx_init(void)
 #ifdef WITH_CLOG_PTHREADS
   pthread_mutex_init(&ctx->types_lock, NULL);
 #endif
-  ctx->use_color = true;
   ctx->default_type.level = 1;
   CLG_ctx_output_set(ctx, stdout);
 
