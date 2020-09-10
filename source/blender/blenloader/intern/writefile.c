@@ -2160,19 +2160,6 @@ static void write_sound(BlendWriter *writer, bSound *sound, const void *id_addre
   }
 }
 
-static void write_probe(BlendWriter *writer, LightProbe *prb, const void *id_address)
-{
-  if (prb->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* write LibData */
-    BLO_write_id_struct(writer, LightProbe, id_address, &prb->id);
-    BKE_id_blend_write(writer, &prb->id);
-
-    if (prb->adt) {
-      BKE_animdata_blend_write(writer, prb->adt);
-    }
-  }
-}
-
 static void write_cachefile(BlendWriter *writer, CacheFile *cache_file, const void *id_address)
 {
   if (cache_file->id.us > 0 || BLO_write_is_undo(writer)) {
@@ -2608,9 +2595,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_KE:
             write_key(&writer, (Key *)id_buffer, id);
             break;
-          case ID_LP:
-            write_probe(&writer, (LightProbe *)id_buffer, id);
-            break;
           case ID_SO:
             write_sound(&writer, (bSound *)id_buffer, id);
             break;
@@ -2665,6 +2649,7 @@ static bool write_file_handle(Main *mainvar,
           case ID_MSK:
           case ID_SPK:
           case ID_AR:
+          case ID_LP:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:

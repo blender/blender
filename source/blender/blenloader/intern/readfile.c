@@ -6373,23 +6373,6 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Light Probe
- * \{ */
-
-static void lib_link_lightprobe(BlendLibReader *reader, LightProbe *prb)
-{
-  BLO_read_id_address(reader, prb->id.lib, &prb->visibility_grp);
-}
-
-static void direct_link_lightprobe(BlendDataReader *reader, LightProbe *prb)
-{
-  BLO_read_data_address(reader, &prb->adt);
-  BKE_animdata_blend_read_data(reader, prb->adt);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: Sound
  * \{ */
 
@@ -6715,9 +6698,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_SO:
       direct_link_sound(&reader, (bSound *)id);
       break;
-    case ID_LP:
-      direct_link_lightprobe(&reader, (LightProbe *)id);
-      break;
     case ID_GR:
       direct_link_collection(&reader, (Collection *)id);
       break;
@@ -6766,6 +6746,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_MSK:
     case ID_SPK:
     case ID_AR:
+    case ID_LP:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -7389,9 +7370,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
          * 3D viewport may contains pointers to other ID data (like bgpic)! See T41411. */
         lib_link_screen(&reader, (bScreen *)id);
         break;
-      case ID_LP:
-        lib_link_lightprobe(&reader, (LightProbe *)id);
-        break;
       case ID_PA:
         lib_link_particlesettings(&reader, (ParticleSettings *)id);
         break;
@@ -7453,6 +7431,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_MSK:
       case ID_SPK:
       case ID_AR:
+      case ID_LP:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -8400,10 +8379,6 @@ static void expand_sound(BlendExpander *expander, bSound *snd)
   BLO_expand(expander, snd->ipo);  // XXX deprecated - old animation system
 }
 
-static void expand_lightprobe(BlendExpander *UNUSED(expander), LightProbe *UNUSED(prb))
-{
-}
-
 static void expand_gpencil(BlendExpander *expander, bGPdata *gpd)
 {
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
@@ -8507,9 +8482,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_SO:
               expand_sound(&expander, (bSound *)id);
-              break;
-            case ID_LP:
-              expand_lightprobe(&expander, (LightProbe *)id);
               break;
             case ID_GR:
               expand_collection(&expander, (Collection *)id);
