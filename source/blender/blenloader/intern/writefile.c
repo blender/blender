@@ -1531,36 +1531,6 @@ static void write_texture(BlendWriter *writer, Tex *tex, const void *id_address)
   }
 }
 
-static void write_material(BlendWriter *writer, Material *ma, const void *id_address)
-{
-  if (ma->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-    ma->texpaintslot = NULL;
-    BLI_listbase_clear(&ma->gpumaterial);
-
-    /* write LibData */
-    BLO_write_id_struct(writer, Material, id_address, &ma->id);
-    BKE_id_blend_write(writer, &ma->id);
-
-    if (ma->adt) {
-      BKE_animdata_blend_write(writer, ma->adt);
-    }
-
-    /* nodetree is integral part of material, no libdata */
-    if (ma->nodetree) {
-      BLO_write_struct(writer, bNodeTree, ma->nodetree);
-      ntreeBlendWrite(writer, ma->nodetree);
-    }
-
-    BKE_previewimg_blend_write(writer, ma->preview);
-
-    /* grease pencil settings */
-    if (ma->gp_style) {
-      BLO_write_struct(writer, MaterialGPencilStyle, ma->gp_style);
-    }
-  }
-}
-
 static void write_world(BlendWriter *writer, World *wrld, const void *id_address)
 {
   if (wrld->id.us > 0 || BLO_write_is_undo(writer)) {
@@ -2891,9 +2861,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_OB:
             write_object(&writer, (Object *)id_buffer, id);
             break;
-          case ID_MA:
-            write_material(&writer, (Material *)id_buffer, id);
-            break;
           case ID_TE:
             write_texture(&writer, (Tex *)id_buffer, id);
             break;
@@ -2931,6 +2898,7 @@ static bool write_file_handle(Main *mainvar,
           case ID_BR:
           case ID_IM:
           case ID_LA:
+          case ID_MA:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:

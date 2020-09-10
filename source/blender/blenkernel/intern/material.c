@@ -29,6 +29,9 @@
 
 #include "MEM_guardedalloc.h"
 
+/* Allow using deprecated functionality for .blend file I/O. */
+#define DNA_DEPRECATED_ALLOW
+
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
@@ -54,6 +57,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_anim_data.h"
 #include "BKE_brush.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
@@ -77,6 +81,8 @@
 #include "GPU_material.h"
 
 #include "NOD_shader.h"
+
+#include "BLO_read_write.h"
 
 static CLG_LogRef LOG = {"bke.material"};
 
@@ -160,6 +166,82 @@ static void material_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+static void material_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  Material *ma = (Material *)id;
+  if (ma->id.us > 0 || BLO_write_is_undo(writer)) {
+    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+    ma->texpaintslot = NULL;
+    BLI_listbase_clear(&ma->gpumaterial);
+
+    /* write LibData */
+    BLO_write_id_struct(writer, Material, id_address, &ma->id);
+    BKE_id_blend_write(writer, &ma->id);
+
+    if (ma->adt) {
+      BKE_animdata_blend_write(writer, ma->adt);
+    }
+
+    /* nodetree is integral part of material, no libdata */
+    if (ma->nodetree) {
+      BLO_write_struct(writer, bNodeTree, ma->nodetree);
+      ntreeBlendWrite(writer, ma->nodetree);
+    }
+
+    BKE_previewimg_blend_write(writer, ma->preview);
+
+    /* grease pencil settings */
+    if (ma->gp_style) {
+      BLO_write_struct(writer, MaterialGPencilStyle, ma->gp_style);
+    }
+  }
+}
+
+static void material_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  Material *ma = (Material *)id;
+  BLO_read_data_address(reader, &ma->adt);
+  BKE_animdata_blend_read_data(reader, ma->adt);
+
+  ma->texpaintslot = NULL;
+
+  BLO_read_data_address(reader, &ma->preview);
+  BKE_previewimg_blend_read(reader, ma->preview);
+
+  BLI_listbase_clear(&ma->gpumaterial);
+
+  BLO_read_data_address(reader, &ma->gp_style);
+}
+
+static void material_blend_read_lib(BlendLibReader *reader, ID *id)
+{
+  Material *ma = (Material *)id;
+  BLO_read_id_address(reader, ma->id.lib, &ma->ipo);  // XXX deprecated - old animation system
+
+  /* relink grease pencil settings */
+  if (ma->gp_style != NULL) {
+    MaterialGPencilStyle *gp_style = ma->gp_style;
+    if (gp_style->sima != NULL) {
+      BLO_read_id_address(reader, ma->id.lib, &gp_style->sima);
+    }
+    if (gp_style->ima != NULL) {
+      BLO_read_id_address(reader, ma->id.lib, &gp_style->ima);
+    }
+  }
+}
+
+static void material_blend_read_expand(BlendExpander *expander, ID *id)
+{
+  Material *ma = (Material *)id;
+  BLO_expand(expander, ma->ipo);  // XXX deprecated - old animation system
+
+  if (ma->gp_style) {
+    MaterialGPencilStyle *gp_style = ma->gp_style;
+    BLO_expand(expander, gp_style->sima);
+    BLO_expand(expander, gp_style->ima);
+  }
+}
+
 IDTypeInfo IDType_ID_MA = {
     .id_code = ID_MA,
     .id_filter = FILTER_ID_MA,
@@ -177,10 +259,10 @@ IDTypeInfo IDType_ID_MA = {
     .foreach_id = material_foreach_id,
     .foreach_cache = NULL,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
-    .blend_read_lib = NULL,
-    .blend_read_expand = NULL,
+    .blend_write = material_blend_write,
+    .blend_read_data = material_blend_read_data,
+    .blend_read_lib = material_blend_read_lib,
+    .blend_read_expand = material_blend_read_expand,
 };
 
 void BKE_gpencil_material_attr_init(Material *ma)

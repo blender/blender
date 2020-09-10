@@ -3115,43 +3115,6 @@ static void direct_link_texture(BlendDataReader *reader, Tex *tex)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Material
- * \{ */
-
-static void lib_link_material(BlendLibReader *reader, Material *ma)
-{
-  BLO_read_id_address(reader, ma->id.lib, &ma->ipo);  // XXX deprecated - old animation system
-
-  /* relink grease pencil settings */
-  if (ma->gp_style != NULL) {
-    MaterialGPencilStyle *gp_style = ma->gp_style;
-    if (gp_style->sima != NULL) {
-      BLO_read_id_address(reader, ma->id.lib, &gp_style->sima);
-    }
-    if (gp_style->ima != NULL) {
-      BLO_read_id_address(reader, ma->id.lib, &gp_style->ima);
-    }
-  }
-}
-
-static void direct_link_material(BlendDataReader *reader, Material *ma)
-{
-  BLO_read_data_address(reader, &ma->adt);
-  BKE_animdata_blend_read_data(reader, ma->adt);
-
-  ma->texpaintslot = NULL;
-
-  BLO_read_data_address(reader, &ma->preview);
-  BKE_previewimg_blend_read(reader, ma->preview);
-
-  BLI_listbase_clear(&ma->gpumaterial);
-
-  BLO_read_data_address(reader, &ma->gp_style);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: Particle Settings
  * \{ */
 
@@ -7079,9 +7042,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_MB:
       direct_link_mball(&reader, (MetaBall *)id);
       break;
-    case ID_MA:
-      direct_link_material(&reader, (Material *)id);
-      break;
     case ID_TE:
       direct_link_texture(&reader, (Tex *)id);
       break;
@@ -7155,6 +7115,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_BR:
     case ID_IM:
     case ID_LA:
+    case ID_MA:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -7823,9 +7784,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_VO:
         lib_link_volume(&reader, (Volume *)id);
         break;
-      case ID_MA:
-        lib_link_material(&reader, (Material *)id);
-        break;
       case ID_TE:
         lib_link_texture(&reader, (Tex *)id);
         break;
@@ -7858,6 +7816,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_BR:
       case ID_IM:
       case ID_LA:
+      case ID_MA:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -8554,17 +8513,6 @@ static void expand_texture(BlendExpander *expander, Tex *tex)
   BLO_expand(expander, tex->ipo);  // XXX deprecated - old animation system
 }
 
-static void expand_material(BlendExpander *expander, Material *ma)
-{
-  BLO_expand(expander, ma->ipo);  // XXX deprecated - old animation system
-
-  if (ma->gp_style) {
-    MaterialGPencilStyle *gp_style = ma->gp_style;
-    BLO_expand(expander, gp_style->sima);
-    BLO_expand(expander, gp_style->ima);
-  }
-}
-
 static void expand_world(BlendExpander *expander, World *wrld)
 {
   BLO_expand(expander, wrld->ipo);  // XXX deprecated - old animation system
@@ -9005,9 +8953,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_SCE:
               expand_scene(&expander, (Scene *)id);
-              break;
-            case ID_MA:
-              expand_material(&expander, (Material *)id);
               break;
             case ID_TE:
               expand_texture(&expander, (Tex *)id);
