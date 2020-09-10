@@ -723,7 +723,11 @@ void BlenderSync::free_data_after_sync(BL::Depsgraph &b_depsgraph)
    * footprint during synchronization process.
    */
   const bool is_interface_locked = b_engine.render() && b_engine.render().use_lock_interface();
-  const bool can_free_caches = BlenderSession::headless || is_interface_locked;
+  const bool can_free_caches = (BlenderSession::headless || is_interface_locked) &&
+                               /* Baking re-uses the depsgraph multiple times, clearing crashes
+                                * reading un-evaluated mesh data which isn't aligned with the
+                                * geometry we're baking, see T71012. */
+                               !scene->bake_manager->get_baking();
   if (!can_free_caches) {
     return;
   }
