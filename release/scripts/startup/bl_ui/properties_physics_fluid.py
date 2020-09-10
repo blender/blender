@@ -731,11 +731,18 @@ class PHYSICS_PT_noise(PhysicButtonsPanel, Panel):
 
             # Deactivate bake operator if data has not been baked yet.
             note_flag = True
-            if domain.use_noise and not domain.has_cache_baked_data and domain.cache_type == 'MODULAR':
-                note = layout.split()
-                note_flag = False
-                note.enabled = note_flag
-                note.label(icon='INFO', text="Unbaked Data: Bake Data first")
+            if domain.use_noise and domain.cache_type == 'MODULAR':
+                label = ""
+                if not domain.has_cache_baked_data:
+                    label = "Unbaked Data: Bake Data first"
+                if not domain.cache_resumable:
+                    label = "Non Resumable Cache: Enable resumable option first"
+
+                if label:
+                    note = layout.split()
+                    note_flag = False
+                    note.enabled = note_flag
+                    note.label(icon='INFO', text=label)
 
             split = layout.split()
             split.enabled = domain.has_cache_baked_data and note_flag and ob.mode == 'OBJECT'
@@ -817,11 +824,18 @@ class PHYSICS_PT_mesh(PhysicButtonsPanel, Panel):
 
             # Deactivate bake operator if data has not been baked yet.
             note_flag = True
-            if domain.use_mesh and not domain.has_cache_baked_data and domain.cache_type == 'MODULAR':
-                note = layout.split()
-                note_flag = False
-                note.enabled = note_flag
-                note.label(icon='INFO', text="Unbaked Data: Bake Data first")
+            if domain.use_mesh and domain.cache_type == 'MODULAR':
+                label = ""
+                if not domain.has_cache_baked_data:
+                    label = "Unbaked Data: Bake Data first"
+                if not domain.cache_resumable:
+                    label = "Non Resumable Cache: Enable resumable option first"
+
+                if label:
+                    note = layout.split()
+                    note_flag = False
+                    note.enabled = note_flag
+                    note.label(icon='INFO', text=label)
 
             split = layout.split()
             split.enabled = domain.has_cache_baked_data and note_flag and ob.mode == 'OBJECT'
@@ -931,11 +945,18 @@ class PHYSICS_PT_particles(PhysicButtonsPanel, Panel):
 
             # Deactivate bake operator if data has not been baked yet.
             note_flag = True
-            if using_particles and not domain.has_cache_baked_data and domain.cache_type == 'MODULAR':
-                note = layout.split()
-                note_flag = False
-                note.enabled = note_flag
-                note.label(icon='INFO', text="Unbaked Data: Bake Data first")
+            if using_particles and domain.cache_type == 'MODULAR':
+                label = ""
+                if not domain.has_cache_baked_data:
+                    label = "Unbaked Data: Bake Data first"
+                if not domain.cache_resumable:
+                    label = "Non Resumable Cache: Enable resumable option first"
+
+                if label:
+                    note = layout.split()
+                    note_flag = False
+                    note.enabled = note_flag
+                    note.label(icon='INFO', text=label)
 
             split = layout.split()
             split.enabled = (
