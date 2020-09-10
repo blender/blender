@@ -1492,16 +1492,6 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
         C, op->reports, scene, space_outliner, &space_outliner->tree, item_rename_fn);
     str = "Rename Object";
   }
-  else if (event == OL_OP_OBJECT_MODE_ENTER) {
-    outliner_do_object_operation(
-        C, op->reports, scene, space_outliner, &space_outliner->tree, item_object_mode_enter_fn);
-    str = "Enter Current Mode";
-  }
-  else if (event == OL_OP_OBJECT_MODE_EXIT) {
-    outliner_do_object_operation(
-        C, op->reports, scene, space_outliner, &space_outliner->tree, item_object_mode_exit_fn);
-    str = "Exit Current Mode";
-  }
   else {
     BLI_assert(0);
     return OPERATOR_CANCELLED;

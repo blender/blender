@@ -286,61 +286,6 @@ void OUTLINER_OT_item_openclose(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Object Mode Enter/Exit Utilities
- * \{ */
-
-static void item_object_mode_enter_exit(bContext *C, ReportList *reports, Object *ob, bool enter)
-{
-  ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object *obact = OBACT(view_layer);
-
-  if ((ob->type != obact->type) || ID_IS_LINKED(ob->data)) {
-    return;
-  }
-  if (((ob->mode & obact->mode) != 0) == enter) {
-    return;
-  }
-
-  if (ob == obact) {
-    BKE_report(reports, RPT_WARNING, "Active object mode not changed");
-    return;
-  }
-
-  Base *base = BKE_view_layer_base_find(view_layer, ob);
-  if (base == NULL) {
-    return;
-  }
-  Scene *scene = CTX_data_scene(C);
-  outliner_object_mode_toggle(C, scene, view_layer, base);
-}
-
-void item_object_mode_enter_fn(bContext *C,
-                               ReportList *reports,
-                               Scene *UNUSED(scene),
-                               TreeElement *UNUSED(te),
-                               TreeStoreElem *UNUSED(tsep),
-                               TreeStoreElem *tselem,
-                               void *UNUSED(user_data))
-{
-  Object *ob = (Object *)tselem->id;
-  item_object_mode_enter_exit(C, reports, ob, true);
-}
-
-void item_object_mode_exit_fn(bContext *C,
-                              ReportList *reports,
-                              Scene *UNUSED(scene),
-                              TreeElement *UNUSED(te),
-                              TreeStoreElem *UNUSED(tsep),
-                              TreeStoreElem *tselem,
-                              void *UNUSED(user_data))
-{
-  Object *ob = (Object *)tselem->id;
-  item_object_mode_enter_exit(C, reports, ob, false);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Rename Operator
  * \{ */
 

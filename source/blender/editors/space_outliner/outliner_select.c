@@ -135,14 +135,6 @@ static void do_outliner_item_mode_toggle_generic(bContext *C, TreeViewContext *t
   }
 }
 
-/* For draw callback to run mode switching */
-void outliner_object_mode_toggle(bContext *UNUSED(C),
-                                 Scene *UNUSED(scene),
-                                 ViewLayer *UNUSED(view_layer),
-                                 Base *UNUSED(base))
-{
-}
-
 /* Toggle the item's interaction mode if supported */
 void outliner_item_mode_toggle(bContext *C,
                                TreeViewContext *tvc,
