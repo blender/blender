@@ -113,6 +113,7 @@
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
+#include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_brush.h"
 #include "BKE_collection.h"
@@ -2688,37 +2689,6 @@ static void lib_link_constraint_channels(BlendLibReader *reader, ID *id, ListBas
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read: Keyingsets
- * \{ */
-
-static void lib_link_keyingsets(BlendLibReader *reader, ID *id, ListBase *list)
-{
-  /* here, we're only interested in the ID pointer stored in some of the paths */
-  LISTBASE_FOREACH (KeyingSet *, ks, list) {
-    LISTBASE_FOREACH (KS_Path *, ksp, &ks->paths) {
-      BLO_read_id_address(reader, id->lib, &ksp->id);
-    }
-  }
-}
-
-/* NOTE: this assumes that BLO_read_list has already been called on the list */
-static void direct_link_keyingsets(BlendDataReader *reader, ListBase *list)
-{
-  /* link KeyingSet data to KeyingSet again (non ID-libs) */
-  LISTBASE_FOREACH (KeyingSet *, ks, list) {
-    /* paths */
-    BLO_read_list(reader, &ks->paths);
-
-    LISTBASE_FOREACH (KS_Path *, ksp, &ks->paths) {
-      /* rna path */
-      BLO_read_data_address(reader, &ksp->rna_path);
-    }
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: CacheFiles
  * \{ */
 
@@ -5257,7 +5227,7 @@ static bool scene_validate_setscene__liblink(Scene *sce, const int totscene)
 
 static void lib_link_scene(BlendLibReader *reader, Scene *sce)
 {
-  lib_link_keyingsets(reader, &sce->id, &sce->keyingsets);
+  BKE_keyingsets_blend_read_lib(reader, &sce->id, &sce->keyingsets);
 
   BLO_read_id_address(reader, sce->id.lib, &sce->camera);
   BLO_read_id_address(reader, sce->id.lib, &sce->world);
@@ -5536,7 +5506,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
   BKE_animdata_blend_read_data(reader, sce->adt);
 
   BLO_read_list(reader, &sce->keyingsets);
-  direct_link_keyingsets(reader, &sce->keyingsets);
+  BKE_keyingsets_blend_read_data(reader, &sce->keyingsets);
 
   BLO_read_data_address(reader, &sce->basact);
 
@@ -9416,16 +9386,6 @@ static void expand_id(BlendExpander *expander, ID *id)
   expand_id_embedded_id(expander, id);
 }
 
-static void expand_keyingsets(BlendExpander *expander, ListBase *list)
-{
-  /* expand the ID-pointers in KeyingSets's paths */
-  LISTBASE_FOREACH (KeyingSet *, ks, list) {
-    LISTBASE_FOREACH (KS_Path *, ksp, &ks->paths) {
-      BLO_expand(expander, ksp->id);
-    }
-  }
-}
-
 static void expand_particlesettings(BlendExpander *expander, ParticleSettings *part)
 {
   BLO_expand(expander, part->instance_object);
@@ -9783,7 +9743,7 @@ static void expand_scene(BlendExpander *expander, Scene *sce)
   BLO_expand(expander, sce->camera);
   BLO_expand(expander, sce->world);
 
-  expand_keyingsets(expander, &sce->keyingsets);
+  BKE_keyingsets_blend_read_expand(expander, &sce->keyingsets);
 
   if (sce->set) {
     BLO_expand(expander, sce->set);

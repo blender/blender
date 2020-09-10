@@ -153,6 +153,7 @@
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
+#include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_blender_version.h"
 #include "BKE_bpath.h"
@@ -659,24 +660,6 @@ static void writelist_id(WriteData *wd, int filecode, const char *structname, co
  *
  * These functions are used by blender's .blend system for file saving/loading.
  * \{ */
-
-static void write_keyingsets(BlendWriter *writer, ListBase *list)
-{
-  LISTBASE_FOREACH (KeyingSet *, ks, list) {
-    /* KeyingSet */
-    BLO_write_struct(writer, KeyingSet, ks);
-
-    /* Paths */
-    LISTBASE_FOREACH (KS_Path *, ksp, &ks->paths) {
-      /* Path */
-      BLO_write_struct(writer, KS_Path, ksp);
-
-      if (ksp->rna_path) {
-        BLO_write_string(writer, ksp->rna_path);
-      }
-    }
-  }
-}
 
 static void write_node_socket_default_value(BlendWriter *writer, bNodeSocket *sock)
 {
@@ -2018,7 +2001,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
   if (sce->adt) {
     BKE_animdata_blend_write(writer, sce->adt);
   }
-  write_keyingsets(writer, &sce->keyingsets);
+  BKE_keyingsets_blend_write(writer, &sce->keyingsets);
 
   /* direct data */
   ToolSettings *tos = sce->toolsettings;

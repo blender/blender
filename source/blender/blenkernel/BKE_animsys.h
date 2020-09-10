@@ -46,6 +46,10 @@ struct Scene;
 struct bAction;
 struct bActionGroup;
 struct bContext;
+struct BlendWriter;
+struct BlendDataReader;
+struct BlendLibReader;
+struct BlendExpander;
 
 /* Container for data required to do FCurve and Driver evaluation. */
 typedef struct AnimationEvalContext {
@@ -100,6 +104,13 @@ void BKE_keyingset_free(struct KeyingSet *ks);
 
 /* Free all the KeyingSets in the given list */
 void BKE_keyingsets_free(struct ListBase *list);
+
+void BKE_keyingsets_blend_write(struct BlendWriter *writer, struct ListBase *list);
+void BKE_keyingsets_blend_read_data(struct BlendDataReader *reader, struct ListBase *list);
+void BKE_keyingsets_blend_read_lib(struct BlendLibReader *reader,
+                                   struct ID *id,
+                                   struct ListBase *list);
+void BKE_keyingsets_blend_read_expand(struct BlendExpander *expander, struct ListBase *list);
 
 /* ************************************* */
 /* Path Fixing API */
