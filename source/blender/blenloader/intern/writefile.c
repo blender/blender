@@ -2506,79 +2506,6 @@ static void write_paintcurve(BlendWriter *writer, PaintCurve *pc, const void *id
   }
 }
 
-static void write_movieTracks(BlendWriter *writer, ListBase *tracks)
-{
-  MovieTrackingTrack *track;
-
-  track = tracks->first;
-  while (track) {
-    BLO_write_struct(writer, MovieTrackingTrack, track);
-
-    if (track->markers) {
-      BLO_write_struct_array(writer, MovieTrackingMarker, track->markersnr, track->markers);
-    }
-
-    track = track->next;
-  }
-}
-
-static void write_moviePlaneTracks(BlendWriter *writer, ListBase *plane_tracks_base)
-{
-  MovieTrackingPlaneTrack *plane_track;
-
-  for (plane_track = plane_tracks_base->first; plane_track; plane_track = plane_track->next) {
-    BLO_write_struct(writer, MovieTrackingPlaneTrack, plane_track);
-
-    BLO_write_pointer_array(writer, plane_track->point_tracksnr, plane_track->point_tracks);
-    BLO_write_struct_array(
-        writer, MovieTrackingPlaneMarker, plane_track->markersnr, plane_track->markers);
-  }
-}
-
-static void write_movieReconstruction(BlendWriter *writer,
-                                      MovieTrackingReconstruction *reconstruction)
-{
-  if (reconstruction->camnr) {
-    BLO_write_struct_array(
-        writer, MovieReconstructedCamera, reconstruction->camnr, reconstruction->cameras);
-  }
-}
-
-static void write_movieclip(BlendWriter *writer, MovieClip *clip, const void *id_address)
-{
-  if (clip->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-    clip->anim = NULL;
-    clip->tracking_context = NULL;
-    clip->tracking.stats = NULL;
-
-    MovieTracking *tracking = &clip->tracking;
-    MovieTrackingObject *object;
-
-    BLO_write_id_struct(writer, MovieClip, id_address, &clip->id);
-    BKE_id_blend_write(writer, &clip->id);
-
-    if (clip->adt) {
-      BKE_animdata_blend_write(writer, clip->adt);
-    }
-
-    write_movieTracks(writer, &tracking->tracks);
-    write_moviePlaneTracks(writer, &tracking->plane_tracks);
-    write_movieReconstruction(writer, &tracking->reconstruction);
-
-    object = tracking->objects.first;
-    while (object) {
-      BLO_write_struct(writer, MovieTrackingObject, object);
-
-      write_movieTracks(writer, &object->tracks);
-      write_moviePlaneTracks(writer, &object->plane_tracks);
-      write_movieReconstruction(writer, &object->reconstruction);
-
-      object = object->next;
-    }
-  }
-}
-
 static void write_mask(BlendWriter *writer, Mask *mask, const void *id_address)
 {
   if (mask->id.us > 0 || BLO_write_is_undo(writer)) {
@@ -3056,9 +2983,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_SCR:
             write_screen(&writer, (bScreen *)id_buffer, id);
             break;
-          case ID_MC:
-            write_movieclip(&writer, (MovieClip *)id_buffer, id);
-            break;
           case ID_MSK:
             write_mask(&writer, (Mask *)id_buffer, id);
             break;
@@ -3147,6 +3071,7 @@ static bool write_file_handle(Main *mainvar,
           case ID_LS:
           case ID_TXT:
           case ID_VF:
+          case ID_MC:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:

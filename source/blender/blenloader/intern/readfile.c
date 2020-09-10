@@ -6921,109 +6921,6 @@ static void lib_link_sound(BlendLibReader *reader, bSound *sound)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Movie Clip
- * \{ */
-
-static void direct_link_movieReconstruction(BlendDataReader *reader,
-                                            MovieTrackingReconstruction *reconstruction)
-{
-  BLO_read_data_address(reader, &reconstruction->cameras);
-}
-
-static void direct_link_movieTracks(BlendDataReader *reader, ListBase *tracksbase)
-{
-  BLO_read_list(reader, tracksbase);
-
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
-    BLO_read_data_address(reader, &track->markers);
-  }
-}
-
-static void direct_link_moviePlaneTracks(BlendDataReader *reader, ListBase *plane_tracks_base)
-{
-  BLO_read_list(reader, plane_tracks_base);
-
-  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, plane_tracks_base) {
-    BLO_read_pointer_array(reader, (void **)&plane_track->point_tracks);
-    for (int i = 0; i < plane_track->point_tracksnr; i++) {
-      BLO_read_data_address(reader, &plane_track->point_tracks[i]);
-    }
-
-    BLO_read_data_address(reader, &plane_track->markers);
-  }
-}
-
-static void direct_link_movieclip(BlendDataReader *reader, MovieClip *clip)
-{
-  MovieTracking *tracking = &clip->tracking;
-
-  BLO_read_data_address(reader, &clip->adt);
-
-  direct_link_movieTracks(reader, &tracking->tracks);
-  direct_link_moviePlaneTracks(reader, &tracking->plane_tracks);
-  direct_link_movieReconstruction(reader, &tracking->reconstruction);
-
-  BLO_read_data_address(reader, &clip->tracking.act_track);
-  BLO_read_data_address(reader, &clip->tracking.act_plane_track);
-
-  clip->anim = NULL;
-  clip->tracking_context = NULL;
-  clip->tracking.stats = NULL;
-
-  /* TODO we could store those in undo cache storage as well, and preserve them instead of
-   * re-creating them... */
-  BLI_listbase_clear(&clip->runtime.gputextures);
-
-  /* Needed for proper versioning, will be NULL for all newer files anyway. */
-  BLO_read_data_address(reader, &clip->tracking.stabilization.rot_track);
-
-  clip->tracking.dopesheet.ok = 0;
-  BLI_listbase_clear(&clip->tracking.dopesheet.channels);
-  BLI_listbase_clear(&clip->tracking.dopesheet.coverage_segments);
-
-  BLO_read_list(reader, &tracking->objects);
-
-  LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {
-    direct_link_movieTracks(reader, &object->tracks);
-    direct_link_moviePlaneTracks(reader, &object->plane_tracks);
-    direct_link_movieReconstruction(reader, &object->reconstruction);
-  }
-}
-
-static void lib_link_movieTracks(BlendLibReader *reader, MovieClip *clip, ListBase *tracksbase)
-{
-  LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
-    BLO_read_id_address(reader, clip->id.lib, &track->gpd);
-  }
-}
-
-static void lib_link_moviePlaneTracks(BlendLibReader *reader,
-                                      MovieClip *clip,
-                                      ListBase *tracksbase)
-{
-  LISTBASE_FOREACH (MovieTrackingPlaneTrack *, plane_track, tracksbase) {
-    BLO_read_id_address(reader, clip->id.lib, &plane_track->image);
-  }
-}
-
-static void lib_link_movieclip(BlendLibReader *reader, MovieClip *clip)
-{
-  MovieTracking *tracking = &clip->tracking;
-
-  BLO_read_id_address(reader, clip->id.lib, &clip->gpd);
-
-  lib_link_movieTracks(reader, clip, &tracking->tracks);
-  lib_link_moviePlaneTracks(reader, clip, &tracking->plane_tracks);
-
-  LISTBASE_FOREACH (MovieTrackingObject *, object, &tracking->objects) {
-    lib_link_movieTracks(reader, clip, &object->tracks);
-    lib_link_moviePlaneTracks(reader, clip, &object->plane_tracks);
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: Masks
  * \{ */
 
@@ -7435,9 +7332,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_GD:
       direct_link_gpencil(&reader, (bGPdata *)id);
       break;
-    case ID_MC:
-      direct_link_movieclip(&reader, (MovieClip *)id);
-      break;
     case ID_MSK:
       direct_link_mask(&reader, (Mask *)id);
       break;
@@ -7472,6 +7366,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_LS:
     case ID_TXT:
     case ID_VF:
+    case ID_MC:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -8098,9 +7993,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
          * 3D viewport may contains pointers to other ID data (like bgpic)! See T41411. */
         lib_link_screen(&reader, (bScreen *)id);
         break;
-      case ID_MC:
-        lib_link_movieclip(&reader, (MovieClip *)id);
-        break;
       case ID_WO:
         lib_link_world(&reader, (World *)id);
         break;
@@ -8187,6 +8079,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_LS:
       case ID_TXT:
       case ID_VF:
+      case ID_MC:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -9229,10 +9122,6 @@ static void expand_lightprobe(BlendExpander *UNUSED(expander), LightProbe *UNUSE
 {
 }
 
-static void expand_movieclip(BlendExpander *UNUSED(expander), MovieClip *UNUSED(clip))
-{
-}
-
 static void expand_mask_parent(BlendExpander *expander, MaskParent *parent)
 {
   if (parent->id) {
@@ -9396,9 +9285,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_PA:
               expand_particlesettings(&expander, (ParticleSettings *)id);
-              break;
-            case ID_MC:
-              expand_movieclip(&expander, (MovieClip *)id);
               break;
             case ID_MSK:
               expand_mask(&expander, (Mask *)id);
