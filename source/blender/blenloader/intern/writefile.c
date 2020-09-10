@@ -1431,7 +1431,6 @@ static void write_camera(BlendWriter *writer, Camera *cam, const void *id_addres
   }
 }
 
-
 static void write_curve(BlendWriter *writer, Curve *cu, const void *id_address)
 {
   if (cu->id.us > 0 || BLO_write_is_undo(writer)) {
