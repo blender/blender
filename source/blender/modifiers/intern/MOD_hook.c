@@ -313,10 +313,19 @@ static void deformVerts_do(HookModifierData *hmd,
   MOD_get_vgroup(ob, mesh, hmd->name, &dvert, &hd.defgrp_index);
   int cd_dvert_offset = -1;
 
-  if ((em != NULL) && (hd.defgrp_index != -1)) {
-    cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
-    if (cd_dvert_offset == -1) {
-      hd.defgrp_index = -1;
+  if (hd.defgrp_index != -1) {
+    /* Edit-mesh. */
+    if (em != NULL) {
+      cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
+      if (cd_dvert_offset == -1) {
+        hd.defgrp_index = -1;
+      }
+    }
+    else {
+      /* Regular mesh. */
+      if (dvert == NULL) {
+        hd.defgrp_index = -1;
+      }
     }
   }
 
