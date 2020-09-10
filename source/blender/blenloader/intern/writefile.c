@@ -1440,30 +1440,6 @@ static void write_texture(BlendWriter *writer, Tex *tex, const void *id_address)
   }
 }
 
-static void write_world(BlendWriter *writer, World *wrld, const void *id_address)
-{
-  if (wrld->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-    BLI_listbase_clear(&wrld->gpumaterial);
-
-    /* write LibData */
-    BLO_write_id_struct(writer, World, id_address, &wrld->id);
-    BKE_id_blend_write(writer, &wrld->id);
-
-    if (wrld->adt) {
-      BKE_animdata_blend_write(writer, wrld->adt);
-    }
-
-    /* nodetree is integral part of world, no libdata */
-    if (wrld->nodetree) {
-      BLO_write_struct(writer, bNodeTree, wrld->nodetree);
-      ntreeBlendWrite(writer, wrld->nodetree);
-    }
-
-    BKE_previewimg_blend_write(writer, wrld->preview);
-  }
-}
-
 static void write_collection_nolib(BlendWriter *writer, Collection *collection)
 {
   /* Shared function for collection data-blocks and scene master collection. */
@@ -2740,9 +2716,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_KE:
             write_key(&writer, (Key *)id_buffer, id);
             break;
-          case ID_WO:
-            write_world(&writer, (World *)id_buffer, id);
-            break;
           case ID_SPK:
             write_speaker(&writer, (Speaker *)id_buffer, id);
             break;
@@ -2802,6 +2775,7 @@ static bool write_file_handle(Main *mainvar,
           case ID_MB:
           case ID_CU:
           case ID_CA:
+          case ID_WO:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:

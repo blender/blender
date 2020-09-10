@@ -2912,27 +2912,6 @@ static void direct_link_key(BlendDataReader *reader, Key *key)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: World
- * \{ */
-
-static void lib_link_world(BlendLibReader *reader, World *wrld)
-{
-  BLO_read_id_address(reader, wrld->id.lib, &wrld->ipo);  // XXX deprecated - old animation system
-}
-
-static void direct_link_world(BlendDataReader *reader, World *wrld)
-{
-  BLO_read_data_address(reader, &wrld->adt);
-  BKE_animdata_blend_read_data(reader, wrld->adt);
-
-  BLO_read_data_address(reader, &wrld->preview);
-  BKE_previewimg_blend_read(reader, wrld->preview);
-  BLI_listbase_clear(&wrld->gpumaterial);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: Texture
  * \{ */
 
@@ -6889,9 +6868,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_KE:
       direct_link_key(&reader, (Key *)id);
       break;
-    case ID_WO:
-      direct_link_world(&reader, (World *)id);
-      break;
     case ID_LI:
       direct_link_library(fd, (Library *)id, main);
       break;
@@ -6954,6 +6930,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_MB:
     case ID_CU:
     case ID_CA:
+    case ID_WO:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -7580,9 +7557,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
          * 3D viewport may contains pointers to other ID data (like bgpic)! See T41411. */
         lib_link_screen(&reader, (bScreen *)id);
         break;
-      case ID_WO:
-        lib_link_world(&reader, (World *)id);
-        break;
       case ID_LP:
         lib_link_lightprobe(&reader, (LightProbe *)id);
         break;
@@ -7649,6 +7623,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_MB:
       case ID_CU:
       case ID_CA:
+      case ID_WO:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -8345,11 +8320,6 @@ static void expand_texture(BlendExpander *expander, Tex *tex)
   BLO_expand(expander, tex->ipo);  // XXX deprecated - old animation system
 }
 
-static void expand_world(BlendExpander *expander, World *wrld)
-{
-  BLO_expand(expander, wrld->ipo);  // XXX deprecated - old animation system
-}
-
 /* callback function used to expand constraint ID-links */
 static void expand_constraint_cb(bConstraint *UNUSED(con),
                                  ID **idpoin,
@@ -8744,9 +8714,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_TE:
               expand_texture(&expander, (Tex *)id);
-              break;
-            case ID_WO:
-              expand_world(&expander, (World *)id);
               break;
             case ID_KE:
               expand_key(&expander, (Key *)id);

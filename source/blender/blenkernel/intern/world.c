@@ -27,6 +27,9 @@
 
 #include "MEM_guardedalloc.h"
 
+/* Allow using deprecated functionality for .blend file I/O. */
+#define DNA_DEPRECATED_ALLOW
+
 #include "DNA_defaults.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
@@ -35,6 +38,7 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_anim_data.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
@@ -50,6 +54,8 @@
 #include "DEG_depsgraph.h"
 
 #include "GPU_material.h"
+
+#include "BLO_read_write.h"
 
 /** Free (or release) any data used by this world (does not free the world itself). */
 static void world_free_data(ID *id)
@@ -122,6 +128,54 @@ static void world_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+static void world_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  World *wrld = (World *)id;
+  if (wrld->id.us > 0 || BLO_write_is_undo(writer)) {
+    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+    BLI_listbase_clear(&wrld->gpumaterial);
+
+    /* write LibData */
+    BLO_write_id_struct(writer, World, id_address, &wrld->id);
+    BKE_id_blend_write(writer, &wrld->id);
+
+    if (wrld->adt) {
+      BKE_animdata_blend_write(writer, wrld->adt);
+    }
+
+    /* nodetree is integral part of world, no libdata */
+    if (wrld->nodetree) {
+      BLO_write_struct(writer, bNodeTree, wrld->nodetree);
+      ntreeBlendWrite(writer, wrld->nodetree);
+    }
+
+    BKE_previewimg_blend_write(writer, wrld->preview);
+  }
+}
+
+static void world_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  World *wrld = (World *)id;
+  BLO_read_data_address(reader, &wrld->adt);
+  BKE_animdata_blend_read_data(reader, wrld->adt);
+
+  BLO_read_data_address(reader, &wrld->preview);
+  BKE_previewimg_blend_read(reader, wrld->preview);
+  BLI_listbase_clear(&wrld->gpumaterial);
+}
+
+static void world_blend_read_lib(BlendLibReader *reader, ID *id)
+{
+  World *wrld = (World *)id;
+  BLO_read_id_address(reader, wrld->id.lib, &wrld->ipo);  // XXX deprecated - old animation system
+}
+
+static void world_blend_read_expand(BlendExpander *expander, ID *id)
+{
+  World *wrld = (World *)id;
+  BLO_expand(expander, wrld->ipo);  // XXX deprecated - old animation system
+}
+
 IDTypeInfo IDType_ID_WO = {
     .id_code = ID_WO,
     .id_filter = FILTER_ID_WO,
@@ -139,10 +193,10 @@ IDTypeInfo IDType_ID_WO = {
     .foreach_id = world_foreach_id,
     .foreach_cache = NULL,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
-    .blend_read_lib = NULL,
-    .blend_read_expand = NULL,
+    .blend_write = world_blend_write,
+    .blend_read_data = world_blend_read_data,
+    .blend_read_lib = world_blend_read_lib,
+    .blend_read_expand = world_blend_read_expand,
 };
 
 World *BKE_world_add(Main *bmain, const char *name)
