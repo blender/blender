@@ -141,13 +141,13 @@ void GLStateManager::set_mutable_state(const GPUStateMutable &state)
   GPUStateMutable changed = state ^ current_mutable_;
 
   /* TODO remove, should be uniform. */
-  if (changed.point_size != 0) {
+  if (changed.point_size != 0.0f) {
     if (state.point_size > 0.0f) {
       glEnable(GL_PROGRAM_POINT_SIZE);
-      glPointSize(state.point_size);
     }
     else {
       glDisable(GL_PROGRAM_POINT_SIZE);
+      glPointSize(fabsf(state.point_size));
     }
   }
 
