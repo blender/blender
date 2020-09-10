@@ -548,6 +548,14 @@ static void CLG_ctx_output_set(CLogContext *ctx, void *file_handle)
   ctx->output = fileno(ctx->output_file);
 #if defined(__unix__) || defined(__APPLE__)
   ctx->use_color = isatty(ctx->output);
+#elif defined(WIN32)
+  /* Windows Terminal supports color like the Linux terminals do while the standard console does
+   * not, the way to tell the two apart is to look at the WT_SESSION environment variable which
+   * will only be defined for Windows Terminal. */
+
+  /* getenv is used here rather than BLI_getenv since there are no benefits for using it in this
+   * context. */
+  ctx->use_color = isatty(ctx->output) && getenv("WT_SESSION");
 #endif
 }
 
