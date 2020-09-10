@@ -235,14 +235,12 @@ void GPU_batch_draw(GPUBatch *batch)
 {
   GPU_shader_bind(batch->shader);
   GPU_batch_draw_advanced(batch, 0, 0, 0, 0);
-  GPU_shader_unbind();
 }
 
 void GPU_batch_draw_range(GPUBatch *batch, int v_first, int v_count)
 {
   GPU_shader_bind(batch->shader);
   GPU_batch_draw_advanced(batch, v_first, v_count, 0, 0);
-  GPU_shader_unbind();
 }
 
 /* Draw multiple instance of a batch without having any instance attributes. */
@@ -252,7 +250,6 @@ void GPU_batch_draw_instanced(GPUBatch *batch, int i_count)
 
   GPU_shader_bind(batch->shader);
   GPU_batch_draw_advanced(batch, 0, 0, 0, i_count);
-  GPU_shader_unbind();
 }
 
 void GPU_batch_draw_advanced(
