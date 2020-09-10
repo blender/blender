@@ -52,6 +52,8 @@
 
 #include "RE_render_ext.h" /* RE_texture_evaluate */
 
+#include "BLO_read_write.h"
+
 static void brush_init_data(ID *id)
 {
   Brush *brush = (Brush *)id;
@@ -196,6 +198,163 @@ static void brush_foreach_id(ID *id, LibraryForeachIDData *data)
   BKE_texture_mtex_foreach_id(data, &brush->mask_mtex);
 }
 
+static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  Brush *brush = (Brush *)id;
+  if (brush->id.us > 0 || BLO_write_is_undo(writer)) {
+    BLO_write_id_struct(writer, Brush, id_address, &brush->id);
+    BKE_id_blend_write(writer, &brush->id);
+
+    if (brush->curve) {
+      BKE_curvemapping_blend_write(writer, brush->curve);
+    }
+
+    if (brush->gpencil_settings) {
+      BLO_write_struct(writer, BrushGpencilSettings, brush->gpencil_settings);
+
+      if (brush->gpencil_settings->curve_sensitivity) {
+        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_sensitivity);
+      }
+      if (brush->gpencil_settings->curve_strength) {
+        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_strength);
+      }
+      if (brush->gpencil_settings->curve_jitter) {
+        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_jitter);
+      }
+      if (brush->gpencil_settings->curve_rand_pressure) {
+        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_pressure);
+      }
+      if (brush->gpencil_settings->curve_rand_strength) {
+        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_strength);
+      }
+      if (brush->gpencil_settings->curve_rand_uv) {
+        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_uv);
+      }
+      if (brush->gpencil_settings->curve_rand_hue) {
+        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_hue);
+      }
+      if (brush->gpencil_settings->curve_rand_saturation) {
+        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_saturation);
+      }
+      if (brush->gpencil_settings->curve_rand_value) {
+        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_value);
+      }
+    }
+    if (brush->gradient) {
+      BLO_write_struct(writer, ColorBand, brush->gradient);
+    }
+  }
+}
+
+static void brush_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  Brush *brush = (Brush *)id;
+
+  /* fallof curve */
+  BLO_read_data_address(reader, &brush->curve);
+
+  BLO_read_data_address(reader, &brush->gradient);
+
+  if (brush->curve) {
+    BKE_curvemapping_blend_read(reader, brush->curve);
+  }
+  else {
+    BKE_brush_curve_preset(brush, CURVE_PRESET_SHARP);
+  }
+
+  /* grease pencil */
+  BLO_read_data_address(reader, &brush->gpencil_settings);
+  if (brush->gpencil_settings != NULL) {
+    BLO_read_data_address(reader, &brush->gpencil_settings->curve_sensitivity);
+    BLO_read_data_address(reader, &brush->gpencil_settings->curve_strength);
+    BLO_read_data_address(reader, &brush->gpencil_settings->curve_jitter);
+
+    BLO_read_data_address(reader, &brush->gpencil_settings->curve_rand_pressure);
+    BLO_read_data_address(reader, &brush->gpencil_settings->curve_rand_strength);
+    BLO_read_data_address(reader, &brush->gpencil_settings->curve_rand_uv);
+    BLO_read_data_address(reader, &brush->gpencil_settings->curve_rand_hue);
+    BLO_read_data_address(reader, &brush->gpencil_settings->curve_rand_saturation);
+    BLO_read_data_address(reader, &brush->gpencil_settings->curve_rand_value);
+
+    if (brush->gpencil_settings->curve_sensitivity) {
+      BKE_curvemapping_blend_read(reader, brush->gpencil_settings->curve_sensitivity);
+    }
+
+    if (brush->gpencil_settings->curve_strength) {
+      BKE_curvemapping_blend_read(reader, brush->gpencil_settings->curve_strength);
+    }
+
+    if (brush->gpencil_settings->curve_jitter) {
+      BKE_curvemapping_blend_read(reader, brush->gpencil_settings->curve_jitter);
+    }
+
+    if (brush->gpencil_settings->curve_rand_pressure) {
+      BKE_curvemapping_blend_read(reader, brush->gpencil_settings->curve_rand_pressure);
+    }
+
+    if (brush->gpencil_settings->curve_rand_strength) {
+      BKE_curvemapping_blend_read(reader, brush->gpencil_settings->curve_rand_strength);
+    }
+
+    if (brush->gpencil_settings->curve_rand_uv) {
+      BKE_curvemapping_blend_read(reader, brush->gpencil_settings->curve_rand_uv);
+    }
+
+    if (brush->gpencil_settings->curve_rand_hue) {
+      BKE_curvemapping_blend_read(reader, brush->gpencil_settings->curve_rand_hue);
+    }
+
+    if (brush->gpencil_settings->curve_rand_saturation) {
+      BKE_curvemapping_blend_read(reader, brush->gpencil_settings->curve_rand_saturation);
+    }
+
+    if (brush->gpencil_settings->curve_rand_value) {
+      BKE_curvemapping_blend_read(reader, brush->gpencil_settings->curve_rand_value);
+    }
+  }
+
+  brush->preview = NULL;
+  brush->icon_imbuf = NULL;
+}
+
+static void brush_blend_read_lib(BlendLibReader *reader, ID *id)
+{
+  Brush *brush = (Brush *)id;
+
+  /* brush->(mask_)mtex.obj is ignored on purpose? */
+  BLO_read_id_address(reader, brush->id.lib, &brush->mtex.tex);
+  BLO_read_id_address(reader, brush->id.lib, &brush->mask_mtex.tex);
+  BLO_read_id_address(reader, brush->id.lib, &brush->clone.image);
+  BLO_read_id_address(reader, brush->id.lib, &brush->toggle_brush);
+  BLO_read_id_address(reader, brush->id.lib, &brush->paint_curve);
+
+  /* link default grease pencil palette */
+  if (brush->gpencil_settings != NULL) {
+    if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
+      BLO_read_id_address(reader, brush->id.lib, &brush->gpencil_settings->material);
+
+      if (!brush->gpencil_settings->material) {
+        brush->gpencil_settings->flag &= ~GP_BRUSH_MATERIAL_PINNED;
+      }
+    }
+    else {
+      brush->gpencil_settings->material = NULL;
+    }
+  }
+}
+
+static void brush_blend_read_expand(BlendExpander *expander, ID *id)
+{
+  Brush *brush = (Brush *)id;
+  BLO_expand(expander, brush->mtex.tex);
+  BLO_expand(expander, brush->mask_mtex.tex);
+  BLO_expand(expander, brush->clone.image);
+  BLO_expand(expander, brush->paint_curve);
+  if (brush->gpencil_settings != NULL) {
+    BLO_expand(expander, brush->gpencil_settings->material);
+  }
+}
+
 IDTypeInfo IDType_ID_BR = {
     .id_code = ID_BR,
     .id_filter = FILTER_ID_BR,
@@ -213,10 +372,10 @@ IDTypeInfo IDType_ID_BR = {
     .foreach_id = brush_foreach_id,
     .foreach_cache = NULL,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
-    .blend_read_lib = NULL,
-    .blend_read_expand = NULL,
+    .blend_write = brush_blend_write,
+    .blend_read_data = brush_blend_read_data,
+    .blend_read_lib = brush_blend_read_lib,
+    .blend_read_expand = brush_blend_read_expand,
 };
 
 static RNG *brush_rng;

@@ -2478,108 +2478,6 @@ static void direct_link_id_common(
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Brush
- * \{ */
-
-/* library brush linking after fileread */
-static void lib_link_brush(BlendLibReader *reader, Brush *brush)
-{
-  /* brush->(mask_)mtex.obj is ignored on purpose? */
-  BLO_read_id_address(reader, brush->id.lib, &brush->mtex.tex);
-  BLO_read_id_address(reader, brush->id.lib, &brush->mask_mtex.tex);
-  BLO_read_id_address(reader, brush->id.lib, &brush->clone.image);
-  BLO_read_id_address(reader, brush->id.lib, &brush->toggle_brush);
-  BLO_read_id_address(reader, brush->id.lib, &brush->paint_curve);
-
-  /* link default grease pencil palette */
-  if (brush->gpencil_settings != NULL) {
-    if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
-      BLO_read_id_address(reader, brush->id.lib, &brush->gpencil_settings->material);
-
-      if (!brush->gpencil_settings->material) {
-        brush->gpencil_settings->flag &= ~GP_BRUSH_MATERIAL_PINNED;
-      }
-    }
-    else {
-      brush->gpencil_settings->material = NULL;
-    }
-  }
-}
-
-static void direct_link_brush(BlendDataReader *reader, Brush *brush)
-{
-  /* brush itself has been read */
-
-  /* fallof curve */
-  BLO_read_data_address(reader, &brush->curve);
-
-  BLO_read_data_address(reader, &brush->gradient);
-
-  if (brush->curve) {
-    BKE_curvemapping_blend_read(reader, brush->curve);
-  }
-  else {
-    BKE_brush_curve_preset(brush, CURVE_PRESET_SHARP);
-  }
-
-  /* grease pencil */
-  BLO_read_data_address(reader, &brush->gpencil_settings);
-  if (brush->gpencil_settings != NULL) {
-    BLO_read_data_address(reader, &brush->gpencil_settings->curve_sensitivity);
-    BLO_read_data_address(reader, &brush->gpencil_settings->curve_strength);
-    BLO_read_data_address(reader, &brush->gpencil_settings->curve_jitter);
-
-    BLO_read_data_address(reader, &brush->gpencil_settings->curve_rand_pressure);
-    BLO_read_data_address(reader, &brush->gpencil_settings->curve_rand_strength);
-    BLO_read_data_address(reader, &brush->gpencil_settings->curve_rand_uv);
-    BLO_read_data_address(reader, &brush->gpencil_settings->curve_rand_hue);
-    BLO_read_data_address(reader, &brush->gpencil_settings->curve_rand_saturation);
-    BLO_read_data_address(reader, &brush->gpencil_settings->curve_rand_value);
-
-    if (brush->gpencil_settings->curve_sensitivity) {
-      BKE_curvemapping_blend_read(reader, brush->gpencil_settings->curve_sensitivity);
-    }
-
-    if (brush->gpencil_settings->curve_strength) {
-      BKE_curvemapping_blend_read(reader, brush->gpencil_settings->curve_strength);
-    }
-
-    if (brush->gpencil_settings->curve_jitter) {
-      BKE_curvemapping_blend_read(reader, brush->gpencil_settings->curve_jitter);
-    }
-
-    if (brush->gpencil_settings->curve_rand_pressure) {
-      BKE_curvemapping_blend_read(reader, brush->gpencil_settings->curve_rand_pressure);
-    }
-
-    if (brush->gpencil_settings->curve_rand_strength) {
-      BKE_curvemapping_blend_read(reader, brush->gpencil_settings->curve_rand_strength);
-    }
-
-    if (brush->gpencil_settings->curve_rand_uv) {
-      BKE_curvemapping_blend_read(reader, brush->gpencil_settings->curve_rand_uv);
-    }
-
-    if (brush->gpencil_settings->curve_rand_hue) {
-      BKE_curvemapping_blend_read(reader, brush->gpencil_settings->curve_rand_hue);
-    }
-
-    if (brush->gpencil_settings->curve_rand_saturation) {
-      BKE_curvemapping_blend_read(reader, brush->gpencil_settings->curve_rand_saturation);
-    }
-
-    if (brush->gpencil_settings->curve_rand_value) {
-      BKE_curvemapping_blend_read(reader, brush->gpencil_settings->curve_rand_value);
-    }
-  }
-
-  brush->preview = NULL;
-  brush->icon_imbuf = NULL;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read Animation (legacy for version patching)
  * \{ */
 
@@ -7297,9 +7195,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_AR:
       direct_link_armature(&reader, (bArmature *)id);
       break;
-    case ID_BR:
-      direct_link_brush(&reader, (Brush *)id);
-      break;
     case ID_PA:
       direct_link_particlesettings(&reader, (ParticleSettings *)id);
       break;
@@ -7337,6 +7232,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_MC:
     case ID_PAL:
     case ID_PC:
+    case ID_BR:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -7975,9 +7871,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_PA:
         lib_link_particlesettings(&reader, (ParticleSettings *)id);
         break;
-      case ID_BR:
-        lib_link_brush(&reader, (Brush *)id);
-        break;
       case ID_GR:
         lib_link_collection(&reader, (Collection *)id);
         break;
@@ -8046,6 +7939,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_MC:
       case ID_PAL:
       case ID_PC:
+      case ID_BR:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -8742,17 +8636,6 @@ static void expand_texture(BlendExpander *expander, Tex *tex)
   BLO_expand(expander, tex->ipo);  // XXX deprecated - old animation system
 }
 
-static void expand_brush(BlendExpander *expander, Brush *brush)
-{
-  BLO_expand(expander, brush->mtex.tex);
-  BLO_expand(expander, brush->mask_mtex.tex);
-  BLO_expand(expander, brush->clone.image);
-  BLO_expand(expander, brush->paint_curve);
-  if (brush->gpencil_settings != NULL) {
-    BLO_expand(expander, brush->gpencil_settings->material);
-  }
-}
-
 static void expand_material(BlendExpander *expander, Material *ma)
 {
   BLO_expand(expander, ma->ipo);  // XXX deprecated - old animation system
@@ -9242,9 +9125,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_GR:
               expand_collection(&expander, (Collection *)id);
-              break;
-            case ID_BR:
-              expand_brush(&expander, (Brush *)id);
               break;
             case ID_IP:
               expand_ipo(&expander, (Ipo *)id);  // XXX deprecated - old animation system

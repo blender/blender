@@ -2436,53 +2436,6 @@ static void write_probe(BlendWriter *writer, LightProbe *prb, const void *id_add
   }
 }
 
-static void write_brush(BlendWriter *writer, Brush *brush, const void *id_address)
-{
-  if (brush->id.us > 0 || BLO_write_is_undo(writer)) {
-    BLO_write_id_struct(writer, Brush, id_address, &brush->id);
-    BKE_id_blend_write(writer, &brush->id);
-
-    if (brush->curve) {
-      BKE_curvemapping_blend_write(writer, brush->curve);
-    }
-
-    if (brush->gpencil_settings) {
-      BLO_write_struct(writer, BrushGpencilSettings, brush->gpencil_settings);
-
-      if (brush->gpencil_settings->curve_sensitivity) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_sensitivity);
-      }
-      if (brush->gpencil_settings->curve_strength) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_strength);
-      }
-      if (brush->gpencil_settings->curve_jitter) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_jitter);
-      }
-      if (brush->gpencil_settings->curve_rand_pressure) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_pressure);
-      }
-      if (brush->gpencil_settings->curve_rand_strength) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_strength);
-      }
-      if (brush->gpencil_settings->curve_rand_uv) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_uv);
-      }
-      if (brush->gpencil_settings->curve_rand_hue) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_hue);
-      }
-      if (brush->gpencil_settings->curve_rand_saturation) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_saturation);
-      }
-      if (brush->gpencil_settings->curve_rand_value) {
-        BKE_curvemapping_blend_write(writer, brush->gpencil_settings->curve_rand_value);
-      }
-    }
-    if (brush->gradient) {
-      BLO_write_struct(writer, ColorBand, brush->gradient);
-    }
-  }
-}
-
 static void write_mask(BlendWriter *writer, Mask *mask, const void *id_address)
 {
   if (mask->id.us > 0 || BLO_write_is_undo(writer)) {
@@ -3014,9 +2967,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_PA:
             write_particlesettings(&writer, (ParticleSettings *)id_buffer, id);
             break;
-          case ID_BR:
-            write_brush(&writer, (Brush *)id_buffer, id);
-            break;
           case ID_GD:
             write_gpencil(&writer, (bGPdata *)id_buffer, id);
             break;
@@ -3045,6 +2995,7 @@ static bool write_file_handle(Main *mainvar,
           case ID_MC:
           case ID_PC:
           case ID_PAL:
+          case ID_BR:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:
