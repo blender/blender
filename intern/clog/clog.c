@@ -240,7 +240,6 @@ static void clg_color_table_init(bool use_color)
     clg_color_table[COLOR_GREEN] = "\033[1;32m";
     clg_color_table[COLOR_YELLOW] = "\033[1;33m";
     clg_color_table[COLOR_RESET] = "\033[0m";
-#endif
   }
 }
 
