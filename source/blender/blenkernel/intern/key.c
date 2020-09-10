@@ -28,11 +28,15 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_endian_switch.h"
 #include "BLI_math_vector.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
+
+/* Allow using deprecated functionality for .blend file I/O. */
+#define DNA_DEPRECATED_ALLOW
 
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
@@ -43,6 +47,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_anim_data.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
@@ -57,6 +62,8 @@
 #include "BKE_scene.h"
 
 #include "RNA_access.h"
+
+#include "BLO_read_write.h"
 
 static void shapekey_copy_data(Main *UNUSED(bmain),
                                ID *id_dst,
@@ -98,6 +105,94 @@ static void shapekey_foreach_id(ID *id, LibraryForeachIDData *data)
   BKE_LIB_FOREACHID_PROCESS_ID(data, key->from, IDWALK_CB_LOOPBACK);
 }
 
+static void shapekey_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  Key *key = (Key *)id;
+  if (key->id.us > 0 || BLO_write_is_undo(writer)) {
+    /* write LibData */
+    BLO_write_id_struct(writer, Key, id_address, &key->id);
+    BKE_id_blend_write(writer, &key->id);
+
+    if (key->adt) {
+      BKE_animdata_blend_write(writer, key->adt);
+    }
+
+    /* direct data */
+    LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
+      BLO_write_struct(writer, KeyBlock, kb);
+      if (kb->data) {
+        BLO_write_raw(writer, kb->totelem * key->elemsize, kb->data);
+      }
+    }
+  }
+}
+
+/* old defines from DNA_ipo_types.h for data-type, stored in DNA - don't modify! */
+#define IPO_FLOAT 4
+#define IPO_BEZTRIPLE 100
+#define IPO_BPOINT 101
+
+static void switch_endian_keyblock(Key *key, KeyBlock *kb)
+{
+  int elemsize = key->elemsize;
+  char *data = kb->data;
+
+  for (int a = 0; a < kb->totelem; a++) {
+    const char *cp = key->elemstr;
+    char *poin = data;
+
+    while (cp[0]) {    /* cp[0] == amount */
+      switch (cp[1]) { /* cp[1] = type */
+        case IPO_FLOAT:
+        case IPO_BPOINT:
+        case IPO_BEZTRIPLE: {
+          int b = cp[0];
+          BLI_endian_switch_float_array((float *)poin, b);
+          poin += sizeof(float) * b;
+          break;
+        }
+      }
+
+      cp += 2;
+    }
+    data += elemsize;
+  }
+}
+
+static void shapekey_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  Key *key = (Key *)id;
+  BLO_read_list(reader, &(key->block));
+
+  BLO_read_data_address(reader, &key->adt);
+  BKE_animdata_blend_read_data(reader, key->adt);
+
+  BLO_read_data_address(reader, &key->refkey);
+
+  LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
+    BLO_read_data_address(reader, &kb->data);
+
+    if (BLO_read_requires_endian_switch(reader)) {
+      switch_endian_keyblock(key, kb);
+    }
+  }
+}
+
+static void shapekey_blend_read_lib(BlendLibReader *reader, ID *id)
+{
+  Key *key = (Key *)id;
+  BLI_assert((key->id.tag & LIB_TAG_EXTERN) == 0);
+
+  BLO_read_id_address(reader, key->id.lib, &key->ipo);  // XXX deprecated - old animation system
+  BLO_read_id_address(reader, key->id.lib, &key->from);
+}
+
+static void shapekey_blend_read_expand(BlendExpander *expander, ID *id)
+{
+  Key *key = (Key *)id;
+  BLO_expand(expander, key->ipo);  // XXX deprecated - old animation system
+}
+
 IDTypeInfo IDType_ID_KE = {
     .id_code = ID_KE,
     .id_filter = 0,
@@ -115,20 +210,15 @@ IDTypeInfo IDType_ID_KE = {
     .foreach_id = shapekey_foreach_id,
     .foreach_cache = NULL,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
-    .blend_read_lib = NULL,
-    .blend_read_expand = NULL,
+    .blend_write = shapekey_blend_write,
+    .blend_read_data = shapekey_blend_read_data,
+    .blend_read_lib = shapekey_blend_read_lib,
+    .blend_read_expand = shapekey_blend_read_expand,
 };
 
 #define KEY_MODE_DUMMY 0 /* use where mode isn't checked for */
 #define KEY_MODE_BPOINT 1
 #define KEY_MODE_BEZTRIPLE 2
-
-/* old defines from DNA_ipo_types.h for data-type, stored in DNA - don't modify! */
-#define IPO_FLOAT 4
-#define IPO_BEZTRIPLE 100
-#define IPO_BPOINT 101
 
 /* Internal use only. */
 typedef struct WeightsArrayCache {

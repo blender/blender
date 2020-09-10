@@ -2801,59 +2801,6 @@ void blo_do_versions_key_uidgen(Key *key)
   }
 }
 
-static void lib_link_key(BlendLibReader *reader, Key *key)
-{
-  BLI_assert((key->id.tag & LIB_TAG_EXTERN) == 0);
-
-  BLO_read_id_address(reader, key->id.lib, &key->ipo);  // XXX deprecated - old animation system
-  BLO_read_id_address(reader, key->id.lib, &key->from);
-}
-
-static void switch_endian_keyblock(Key *key, KeyBlock *kb)
-{
-  int elemsize = key->elemsize;
-  char *data = kb->data;
-
-  for (int a = 0; a < kb->totelem; a++) {
-    const char *cp = key->elemstr;
-    char *poin = data;
-
-    while (cp[0]) {    /* cp[0] == amount */
-      switch (cp[1]) { /* cp[1] = type */
-        case IPO_FLOAT:
-        case IPO_BPOINT:
-        case IPO_BEZTRIPLE: {
-          int b = cp[0];
-          BLI_endian_switch_float_array((float *)poin, b);
-          poin += sizeof(float) * b;
-          break;
-        }
-      }
-
-      cp += 2;
-    }
-    data += elemsize;
-  }
-}
-
-static void direct_link_key(BlendDataReader *reader, Key *key)
-{
-  BLO_read_list(reader, &(key->block));
-
-  BLO_read_data_address(reader, &key->adt);
-  BKE_animdata_blend_read_data(reader, key->adt);
-
-  BLO_read_data_address(reader, &key->refkey);
-
-  LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
-    BLO_read_data_address(reader, &kb->data);
-
-    if (BLO_read_requires_endian_switch(reader)) {
-      switch_endian_keyblock(key, kb);
-    }
-  }
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -6689,9 +6636,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_IP:
       direct_link_ipo(&reader, (Ipo *)id);
       break;
-    case ID_KE:
-      direct_link_key(&reader, (Key *)id);
-      break;
     case ID_LI:
       direct_link_library(fd, (Library *)id, main);
       break;
@@ -6747,6 +6691,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_SPK:
     case ID_AR:
     case ID_LP:
+    case ID_KE:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -7397,9 +7342,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_GD:
         lib_link_gpencil(&reader, (bGPdata *)id);
         break;
-      case ID_KE:
-        lib_link_key(&reader, (Key *)id);
-        break;
       case ID_SIM:
         lib_link_simulation(&reader, (Simulation *)id);
         break;
@@ -7432,6 +7374,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_SPK:
       case ID_AR:
       case ID_LP:
+      case ID_KE:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -8117,11 +8060,6 @@ static void expand_collection(BlendExpander *expander, Collection *collection)
 #endif
 }
 
-static void expand_key(BlendExpander *expander, Key *key)
-{
-  BLO_expand(expander, key->ipo);  // XXX deprecated - old animation system
-}
-
 static void expand_texture(BlendExpander *expander, Tex *tex)
 {
   BLO_expand(expander, tex->ima);
@@ -8476,9 +8414,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_TE:
               expand_texture(&expander, (Tex *)id);
-              break;
-            case ID_KE:
-              expand_key(&expander, (Key *)id);
               break;
             case ID_SO:
               expand_sound(&expander, (bSound *)id);
