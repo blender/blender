@@ -6445,28 +6445,6 @@ static void direct_link_lightprobe(BlendDataReader *reader, LightProbe *prb)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Speaker
- * \{ */
-
-static void lib_link_speaker(BlendLibReader *reader, Speaker *spk)
-{
-  BLO_read_id_address(reader, spk->id.lib, &spk->sound);
-}
-
-static void direct_link_speaker(BlendDataReader *reader, Speaker *spk)
-{
-  BLO_read_data_address(reader, &spk->adt);
-  BKE_animdata_blend_read_data(reader, spk->adt);
-
-#if 0
-  spk->sound = newdataadr(fd, spk->sound);
-  direct_link_sound(fd, spk->sound);
-#endif
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: Sound
  * \{ */
 
@@ -6789,9 +6767,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_LI:
       direct_link_library(fd, (Library *)id, main);
       break;
-    case ID_SPK:
-      direct_link_speaker(&reader, (Speaker *)id);
-      break;
     case ID_SO:
       direct_link_sound(&reader, (bSound *)id);
       break;
@@ -6847,6 +6822,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_CA:
     case ID_WO:
     case ID_MSK:
+    case ID_SPK:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -7473,9 +7449,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_LP:
         lib_link_lightprobe(&reader, (LightProbe *)id);
         break;
-      case ID_SPK:
-        lib_link_speaker(&reader, (Speaker *)id);
-        break;
       case ID_PA:
         lib_link_particlesettings(&reader, (ParticleSettings *)id);
         break;
@@ -7538,6 +7511,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_CA:
       case ID_WO:
       case ID_MSK:
+      case ID_SPK:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -8496,11 +8470,6 @@ static void expand_cachefile(BlendExpander *UNUSED(expander), CacheFile *UNUSED(
 {
 }
 
-static void expand_speaker(BlendExpander *expander, Speaker *spk)
-{
-  BLO_expand(expander, spk->sound);
-}
-
 static void expand_sound(BlendExpander *expander, bSound *snd)
 {
   BLO_expand(expander, snd->ipo);  // XXX deprecated - old animation system
@@ -8509,7 +8478,6 @@ static void expand_sound(BlendExpander *expander, bSound *snd)
 static void expand_lightprobe(BlendExpander *UNUSED(expander), LightProbe *UNUSED(prb))
 {
 }
-
 
 static void expand_gpencil(BlendExpander *expander, bGPdata *gpd)
 {
@@ -8611,9 +8579,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_KE:
               expand_key(&expander, (Key *)id);
-              break;
-            case ID_SPK:
-              expand_speaker(&expander, (Speaker *)id);
               break;
             case ID_SO:
               expand_sound(&expander, (bSound *)id);
