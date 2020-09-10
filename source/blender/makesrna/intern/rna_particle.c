@@ -3349,7 +3349,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "keyed_loops", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "keyed_loops");
   RNA_def_property_range(prop, 1.0f, 10000.0f);
-  RNA_def_property_ui_range(prop, 1.0f, 100.0f, 0.1, 3);
+  RNA_def_property_ui_range(prop, 1.0f, 100.0f, 1, 3);
   RNA_def_property_ui_text(prop, "Loop Count", "Number of times the keys are looped");
   RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
