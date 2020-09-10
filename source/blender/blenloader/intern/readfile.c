@@ -2787,61 +2787,6 @@ static void lib_link_pose(BlendLibReader *reader, Object *ob, bPose *pose)
   }
 }
 
-static void lib_link_bones(BlendLibReader *reader, Bone *bone)
-{
-  IDP_BlendReadLib(reader, bone->prop);
-
-  LISTBASE_FOREACH (Bone *, curbone, &bone->childbase) {
-    lib_link_bones(reader, curbone);
-  }
-}
-
-static void lib_link_armature(BlendLibReader *reader, bArmature *arm)
-{
-  LISTBASE_FOREACH (Bone *, curbone, &arm->bonebase) {
-    lib_link_bones(reader, curbone);
-  }
-}
-
-static void direct_link_bones(BlendDataReader *reader, Bone *bone)
-{
-  BLO_read_data_address(reader, &bone->parent);
-  BLO_read_data_address(reader, &bone->prop);
-  IDP_BlendDataRead(reader, &bone->prop);
-
-  BLO_read_data_address(reader, &bone->bbone_next);
-  BLO_read_data_address(reader, &bone->bbone_prev);
-
-  bone->flag &= ~(BONE_DRAW_ACTIVE | BONE_DRAW_LOCKED_WEIGHT);
-
-  BLO_read_list(reader, &bone->childbase);
-
-  LISTBASE_FOREACH (Bone *, child, &bone->childbase) {
-    direct_link_bones(reader, child);
-  }
-}
-
-static void direct_link_armature(BlendDataReader *reader, bArmature *arm)
-{
-  BLO_read_list(reader, &arm->bonebase);
-  arm->bonehash = NULL;
-  arm->edbo = NULL;
-  /* Must always be cleared (armatures don't have their own edit-data). */
-  arm->needs_flush_to_id = 0;
-
-  BLO_read_data_address(reader, &arm->adt);
-  BKE_animdata_blend_read_data(reader, arm->adt);
-
-  LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
-    direct_link_bones(reader, bone);
-  }
-
-  BLO_read_data_address(reader, &arm->act_bone);
-  arm->act_edbone = NULL;
-
-  BKE_armature_bone_hash_make(arm);
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -6776,9 +6721,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_GR:
       direct_link_collection(&reader, (Collection *)id);
       break;
-    case ID_AR:
-      direct_link_armature(&reader, (bArmature *)id);
-      break;
     case ID_PA:
       direct_link_particlesettings(&reader, (ParticleSettings *)id);
       break;
@@ -6823,6 +6765,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_WO:
     case ID_MSK:
     case ID_SPK:
+    case ID_AR:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -7461,9 +7404,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_CF:
         lib_link_cachefiles(&reader, (CacheFile *)id);
         break;
-      case ID_AR:
-        lib_link_armature(&reader, (bArmature *)id);
-        break;
       case ID_HA:
         lib_link_hair(&reader, (Hair *)id);
         break;
@@ -7512,6 +7452,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_WO:
       case ID_MSK:
       case ID_SPK:
+      case ID_AR:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -8243,22 +8184,6 @@ static void expand_pose(BlendExpander *expander, bPose *pose)
   }
 }
 
-static void expand_bones(BlendExpander *expander, Bone *bone)
-{
-  IDP_BlendReadExpand(expander, bone->prop);
-
-  LISTBASE_FOREACH (Bone *, curBone, &bone->childbase) {
-    expand_bones(expander, curBone);
-  }
-}
-
-static void expand_armature(BlendExpander *expander, bArmature *arm)
-{
-  LISTBASE_FOREACH (Bone *, curBone, &arm->bonebase) {
-    expand_bones(expander, curBone);
-  }
-}
-
 static void expand_object_expandModifiers(void *userData,
                                           Object *UNUSED(ob),
                                           ID **idpoin,
@@ -8585,9 +8510,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_LP:
               expand_lightprobe(&expander, (LightProbe *)id);
-              break;
-            case ID_AR:
-              expand_armature(&expander, (bArmature *)id);
               break;
             case ID_GR:
               expand_collection(&expander, (Collection *)id);
