@@ -138,10 +138,10 @@ def modules_refresh(module_cache=addons_fake_modules):
                 mod.__file__ = mod_path
                 mod.__time__ = os.path.getmtime(mod_path)
             except:
-                print("AST error parsing bl_info for:", mod_name)
+                print("AST error parsing bl_info for:", repr(mod_path))
                 import traceback
                 traceback.print_exc()
-                raise
+                return None
 
             if force_support is not None:
                 mod.bl_info["support"] = force_support
