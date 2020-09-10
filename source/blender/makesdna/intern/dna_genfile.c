@@ -805,83 +805,91 @@ static eSDNA_Type sdna_type_nr(const char *dna_type)
 static void cast_elem(
     const char *ctype, const char *otype, int name_array_len, char *curdata, const char *olddata)
 {
-  double val = 0.0;
-  int curlen = 1, oldlen = 1;
-
   eSDNA_Type ctypenr, otypenr;
-
   if ((otypenr = sdna_type_nr(otype)) == -1 || (ctypenr = sdna_type_nr(ctype)) == -1) {
     return;
   }
 
   /* define lengths */
-  oldlen = DNA_elem_type_size(otypenr);
-  curlen = DNA_elem_type_size(ctypenr);
+  const int oldlen = DNA_elem_type_size(otypenr);
+  const int curlen = DNA_elem_type_size(ctypenr);
+
+  double old_value_f = 0.0;
+  uint64_t old_value_i = 0;
 
   while (name_array_len > 0) {
     switch (otypenr) {
       case SDNA_TYPE_CHAR:
-        val = *olddata;
+        old_value_i = *olddata;
+        old_value_f = (double)old_value_i;
         break;
       case SDNA_TYPE_UCHAR:
-        val = *((unsigned char *)olddata);
+        old_value_i = *((unsigned char *)olddata);
+        old_value_f = (double)old_value_i;
         break;
       case SDNA_TYPE_SHORT:
-        val = *((short *)olddata);
+        old_value_i = *((short *)olddata);
+        old_value_f = (double)old_value_i;
         break;
       case SDNA_TYPE_USHORT:
-        val = *((unsigned short *)olddata);
+        old_value_i = *((unsigned short *)olddata);
+        old_value_f = (double)old_value_i;
         break;
       case SDNA_TYPE_INT:
-        val = *((int *)olddata);
+        old_value_i = *((int *)olddata);
+        old_value_f = (double)old_value_i;
         break;
       case SDNA_TYPE_FLOAT:
-        val = *((float *)olddata);
+        old_value_f = *((float *)olddata);
+        old_value_i = (uint64_t)(int64_t)old_value_f;
         break;
       case SDNA_TYPE_DOUBLE:
-        val = *((double *)olddata);
+        old_value_f = *((double *)olddata);
+        old_value_i = (uint64_t)(int64_t)old_value_f;
         break;
       case SDNA_TYPE_INT64:
-        val = *((int64_t *)olddata);
+        old_value_i = (uint64_t) * ((int64_t *)olddata);
+        old_value_f = (double)old_value_i;
         break;
       case SDNA_TYPE_UINT64:
-        val = *((uint64_t *)olddata);
+        old_value_i = *((uint64_t *)olddata);
+        old_value_f = (double)old_value_i;
         break;
     }
 
     switch (ctypenr) {
       case SDNA_TYPE_CHAR:
-        *curdata = val;
+        *curdata = (char)old_value_i;
         break;
       case SDNA_TYPE_UCHAR:
-        *((unsigned char *)curdata) = val;
+        *((unsigned char *)curdata) = (unsigned char)old_value_i;
         break;
       case SDNA_TYPE_SHORT:
-        *((short *)curdata) = val;
+        *((short *)curdata) = (short)old_value_i;
         break;
       case SDNA_TYPE_USHORT:
-        *((unsigned short *)curdata) = val;
+        *((unsigned short *)curdata) = (unsigned short)old_value_i;
         break;
       case SDNA_TYPE_INT:
-        *((int *)curdata) = val;
+        *((int *)curdata) = (int)old_value_i;
         break;
       case SDNA_TYPE_FLOAT:
         if (otypenr < 2) {
-          val /= 255;
+          old_value_f /= 255.0;
         }
-        *((float *)curdata) = val;
+        *((float *)curdata) = old_value_f;
         break;
       case SDNA_TYPE_DOUBLE:
         if (otypenr < 2) {
-          val /= 255;
+          old_value_f /= 255.0;
         }
-        *((double *)curdata) = val;
+        *((double *)curdata) = old_value_f;
         break;
       case SDNA_TYPE_INT64:
-        *((int64_t *)curdata) = val;
+        *((int64_t *)curdata) = (int64_t)old_value_i;
         break;
       case SDNA_TYPE_UINT64:
-        *((uint64_t *)curdata) = val;
+        *((uint64_t *)curdata) = old_value_i;
         break;
     }
 
