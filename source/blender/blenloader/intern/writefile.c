@@ -660,24 +660,6 @@ static void writelist_id(WriteData *wd, int filecode, const char *structname, co
  * These functions are used by blender's .blend system for file saving/loading.
  * \{ */
 
-static void write_action(BlendWriter *writer, bAction *act, const void *id_address)
-{
-  if (act->id.us > 0 || BLO_write_is_undo(writer)) {
-    BLO_write_id_struct(writer, bAction, id_address, &act->id);
-    BKE_id_blend_write(writer, &act->id);
-
-    BKE_fcurve_blend_write(writer, &act->curves);
-
-    LISTBASE_FOREACH (bActionGroup *, grp, &act->groups) {
-      BLO_write_struct(writer, bActionGroup, grp);
-    }
-
-    LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
-      BLO_write_struct(writer, TimeMarker, marker);
-    }
-  }
-}
-
 static void write_keyingsets(BlendWriter *writer, ListBase *list)
 {
   LISTBASE_FOREACH (KeyingSet *, ks, list) {
@@ -3691,9 +3673,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_AR:
             write_armature(&writer, (bArmature *)id_buffer, id);
             break;
-          case ID_AC:
-            write_action(&writer, (bAction *)id_buffer, id);
-            break;
           case ID_OB:
             write_object(&writer, (Object *)id_buffer, id);
             break;
@@ -3741,6 +3720,7 @@ static bool write_file_handle(Main *mainvar,
             break;
           case ID_ME:
           case ID_LT:
+          case ID_AC:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:

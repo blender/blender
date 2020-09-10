@@ -2688,51 +2688,8 @@ static void lib_link_constraint_channels(BlendLibReader *reader, ID *id, ListBas
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Action
+/** \name Read: Keyingsets
  * \{ */
-
-static void lib_link_action(BlendLibReader *reader, bAction *act)
-{
-  // XXX deprecated - old animation system <<<
-  LISTBASE_FOREACH (bActionChannel *, chan, &act->chanbase) {
-    BLO_read_id_address(reader, act->id.lib, &chan->ipo);
-    lib_link_constraint_channels(reader, &act->id, &chan->constraintChannels);
-  }
-  // >>> XXX deprecated - old animation system
-
-  BKE_fcurve_blend_read_lib(reader, &act->id, &act->curves);
-
-  LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
-    if (marker->camera) {
-      BLO_read_id_address(reader, act->id.lib, &marker->camera);
-    }
-  }
-}
-
-static void direct_link_action(BlendDataReader *reader, bAction *act)
-{
-  BLO_read_list(reader, &act->curves);
-  BLO_read_list(reader, &act->chanbase);  // XXX deprecated - old animation system
-  BLO_read_list(reader, &act->groups);
-  BLO_read_list(reader, &act->markers);
-
-  // XXX deprecated - old animation system <<<
-  LISTBASE_FOREACH (bActionChannel *, achan, &act->chanbase) {
-    BLO_read_data_address(reader, &achan->grp);
-
-    BLO_read_list(reader, &achan->constraintChannels);
-  }
-  // >>> XXX deprecated - old animation system
-
-  BKE_fcurve_blend_read_data(reader, &act->curves);
-
-  LISTBASE_FOREACH (bActionGroup *, agrp, &act->groups) {
-    BLO_read_data_address(reader, &agrp->channels.first);
-    BLO_read_data_address(reader, &agrp->channels.last);
-  }
-}
-
-/* ------- */
 
 static void lib_link_keyingsets(BlendLibReader *reader, ID *id, ListBase *list)
 {
@@ -8066,9 +8023,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_AR:
       direct_link_armature(&reader, (bArmature *)id);
       break;
-    case ID_AC:
-      direct_link_action(&reader, (bAction *)id);
-      break;
     case ID_NT:
       direct_link_nodetree(&reader, (bNodeTree *)id);
       break;
@@ -8116,6 +8070,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
       break;
     case ID_ME:
     case ID_LT:
+    case ID_AC:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -8827,9 +8782,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_KE:
         lib_link_key(&reader, (Key *)id);
         break;
-      case ID_AC:
-        lib_link_action(&reader, (bAction *)id);
-        break;
       case ID_SIM:
         lib_link_simulation(&reader, (Simulation *)id);
         break;
@@ -8842,6 +8794,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
         break;
       case ID_ME:
       case ID_LT:
+      case ID_AC:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -9461,25 +9414,6 @@ static void expand_id(BlendExpander *expander, ID *id)
   }
 
   expand_id_embedded_id(expander, id);
-}
-
-static void expand_action(BlendExpander *expander, bAction *act)
-{
-  // XXX deprecated - old animation system --------------
-  LISTBASE_FOREACH (bActionChannel *, chan, &act->chanbase) {
-    BLO_expand(expander, chan->ipo);
-    expand_constraint_channels(expander, &chan->constraintChannels);
-  }
-  // ---------------------------------------------------
-
-  /* F-Curves in Action */
-  BKE_fcurve_blend_read_expand(expander, &act->curves);
-
-  LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
-    if (marker->camera) {
-      BLO_expand(expander, marker->camera);
-    }
-  }
 }
 
 static void expand_keyingsets(BlendExpander *expander, ListBase *list)
@@ -10158,9 +10092,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_AR:
               expand_armature(&expander, (bArmature *)id);
-              break;
-            case ID_AC:
-              expand_action(&expander, (bAction *)id);  // XXX deprecated - old animation system
               break;
             case ID_GR:
               expand_collection(&expander, (Collection *)id);

@@ -28,6 +28,9 @@
 
 #include "MEM_guardedalloc.h"
 
+/* Allow using deprecated functionality for .blend file I/O. */
+#define DNA_DEPRECATED_ALLOW
+
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
@@ -62,6 +65,8 @@
 #include "BIK_api.h"
 
 #include "RNA_access.h"
+
+#include "BLO_read_write.h"
 
 #include "CLG_log.h"
 
@@ -169,6 +174,105 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+static void action_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  bAction *act = (bAction *)id;
+  if (act->id.us > 0 || BLO_write_is_undo(writer)) {
+    BLO_write_id_struct(writer, bAction, id_address, &act->id);
+    BKE_id_blend_write(writer, &act->id);
+
+    BKE_fcurve_blend_write(writer, &act->curves);
+
+    LISTBASE_FOREACH (bActionGroup *, grp, &act->groups) {
+      BLO_write_struct(writer, bActionGroup, grp);
+    }
+
+    LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
+      BLO_write_struct(writer, TimeMarker, marker);
+    }
+  }
+}
+
+static void action_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  bAction *act = (bAction *)id;
+
+  BLO_read_list(reader, &act->curves);
+  BLO_read_list(reader, &act->chanbase);  // XXX deprecated - old animation system
+  BLO_read_list(reader, &act->groups);
+  BLO_read_list(reader, &act->markers);
+
+  // XXX deprecated - old animation system <<<
+  LISTBASE_FOREACH (bActionChannel *, achan, &act->chanbase) {
+    BLO_read_data_address(reader, &achan->grp);
+
+    BLO_read_list(reader, &achan->constraintChannels);
+  }
+  // >>> XXX deprecated - old animation system
+
+  BKE_fcurve_blend_read_data(reader, &act->curves);
+
+  LISTBASE_FOREACH (bActionGroup *, agrp, &act->groups) {
+    BLO_read_data_address(reader, &agrp->channels.first);
+    BLO_read_data_address(reader, &agrp->channels.last);
+  }
+}
+
+static void blend_read_lib_constraint_channels(BlendLibReader *reader, ID *id, ListBase *chanbase)
+{
+  LISTBASE_FOREACH (bConstraintChannel *, chan, chanbase) {
+    BLO_read_id_address(reader, id->lib, &chan->ipo);
+  }
+}
+
+static void action_blend_read_lib(BlendLibReader *reader, ID *id)
+{
+  bAction *act = (bAction *)id;
+
+  // XXX deprecated - old animation system <<<
+  LISTBASE_FOREACH (bActionChannel *, chan, &act->chanbase) {
+    BLO_read_id_address(reader, act->id.lib, &chan->ipo);
+    blend_read_lib_constraint_channels(reader, &act->id, &chan->constraintChannels);
+  }
+  // >>> XXX deprecated - old animation system
+
+  BKE_fcurve_blend_read_lib(reader, &act->id, &act->curves);
+
+  LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
+    if (marker->camera) {
+      BLO_read_id_address(reader, act->id.lib, &marker->camera);
+    }
+  }
+}
+
+static void blend_read_expand_constraint_channels(BlendExpander *expander, ListBase *chanbase)
+{
+  LISTBASE_FOREACH (bConstraintChannel *, chan, chanbase) {
+    BLO_expand(expander, chan->ipo);
+  }
+}
+
+static void action_blend_read_expand(BlendExpander *expander, ID *id)
+{
+  bAction *act = (bAction *)id;
+
+  // XXX deprecated - old animation system --------------
+  LISTBASE_FOREACH (bActionChannel *, chan, &act->chanbase) {
+    BLO_expand(expander, chan->ipo);
+    blend_read_expand_constraint_channels(expander, &chan->constraintChannels);
+  }
+  // ---------------------------------------------------
+
+  /* F-Curves in Action */
+  BKE_fcurve_blend_read_expand(expander, &act->curves);
+
+  LISTBASE_FOREACH (TimeMarker *, marker, &act->markers) {
+    if (marker->camera) {
+      BLO_expand(expander, marker->camera);
+    }
+  }
+}
+
 IDTypeInfo IDType_ID_AC = {
     .id_code = ID_AC,
     .id_filter = FILTER_ID_AC,
@@ -186,10 +290,10 @@ IDTypeInfo IDType_ID_AC = {
     .foreach_id = action_foreach_id,
     .foreach_cache = NULL,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
-    .blend_read_lib = NULL,
-    .blend_read_expand = NULL,
+    .blend_write = action_blend_write,
+    .blend_read_data = action_blend_read_data,
+    .blend_read_lib = action_blend_read_lib,
+    .blend_read_expand = action_blend_read_expand,
 };
 
 /* ***************** Library data level operations on action ************** */
