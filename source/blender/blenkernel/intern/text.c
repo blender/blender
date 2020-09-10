@@ -55,6 +55,8 @@
 #include "BKE_node.h"
 #include "BKE_text.h"
 
+#include "BLO_read_write.h"
+
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
 #endif
@@ -167,6 +169,72 @@ static void text_free_data(ID *id)
 #endif
 }
 
+static void text_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  Text *text = (Text *)id;
+
+  /* Note: we are clearing local temp data here, *not* the flag in the actual 'real' ID. */
+  if ((text->flags & TXT_ISMEM) && (text->flags & TXT_ISEXT)) {
+    text->flags &= ~TXT_ISEXT;
+  }
+
+  /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+  text->compiled = NULL;
+
+  /* write LibData */
+  BLO_write_id_struct(writer, Text, id_address, &text->id);
+  BKE_id_blend_write(writer, &text->id);
+
+  if (text->filepath) {
+    BLO_write_string(writer, text->filepath);
+  }
+
+  if (!(text->flags & TXT_ISEXT)) {
+    /* now write the text data, in two steps for optimization in the readfunction */
+    LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
+      BLO_write_struct(writer, TextLine, tmp);
+    }
+
+    LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
+      BLO_write_raw(writer, tmp->len + 1, tmp->line);
+    }
+  }
+}
+
+static void text_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  Text *text = (Text *)id;
+  BLO_read_data_address(reader, &text->filepath);
+
+  text->compiled = NULL;
+
+#if 0
+  if (text->flags & TXT_ISEXT) {
+    BKE_text_reload(text);
+  }
+  /* else { */
+#endif
+
+  BLO_read_list(reader, &text->lines);
+
+  BLO_read_data_address(reader, &text->curl);
+  BLO_read_data_address(reader, &text->sell);
+
+  LISTBASE_FOREACH (TextLine *, ln, &text->lines) {
+    BLO_read_data_address(reader, &ln->line);
+    ln->format = NULL;
+
+    if (ln->len != (int)strlen(ln->line)) {
+      printf("Error loading text, line lengths differ\n");
+      ln->len = strlen(ln->line);
+    }
+  }
+
+  text->flags = (text->flags) & ~TXT_ISEXT;
+
+  id_us_ensure_real(&text->id);
+}
+
 IDTypeInfo IDType_ID_TXT = {
     .id_code = ID_TXT,
     .id_filter = FILTER_ID_TXT,
@@ -184,8 +252,8 @@ IDTypeInfo IDType_ID_TXT = {
     .foreach_id = NULL,
     .foreach_cache = NULL,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
+    .blend_write = text_blend_write,
+    .blend_read_data = text_blend_read_data,
     .blend_read_lib = NULL,
     .blend_read_expand = NULL,
 };

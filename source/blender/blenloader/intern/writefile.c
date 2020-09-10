@@ -2416,36 +2416,6 @@ static void write_armature(BlendWriter *writer, bArmature *arm, const void *id_a
   }
 }
 
-static void write_text(BlendWriter *writer, Text *text, const void *id_address)
-{
-  /* Note: we are clearing local temp data here, *not* the flag in the actual 'real' ID. */
-  if ((text->flags & TXT_ISMEM) && (text->flags & TXT_ISEXT)) {
-    text->flags &= ~TXT_ISEXT;
-  }
-
-  /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-  text->compiled = NULL;
-
-  /* write LibData */
-  BLO_write_id_struct(writer, Text, id_address, &text->id);
-  BKE_id_blend_write(writer, &text->id);
-
-  if (text->filepath) {
-    BLO_write_string(writer, text->filepath);
-  }
-
-  if (!(text->flags & TXT_ISEXT)) {
-    /* now write the text data, in two steps for optimization in the readfunction */
-    LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
-      BLO_write_struct(writer, TextLine, tmp);
-    }
-
-    LISTBASE_FOREACH (TextLine *, tmp, &text->lines) {
-      BLO_write_raw(writer, tmp->len + 1, tmp->line);
-    }
-  }
-}
-
 static void write_speaker(BlendWriter *writer, Speaker *spk, const void *id_address)
 {
   if (spk->id.us > 0 || BLO_write_is_undo(writer)) {
@@ -3152,9 +3122,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_WO:
             write_world(&writer, (World *)id_buffer, id);
             break;
-          case ID_TXT:
-            write_text(&writer, (Text *)id_buffer, id);
-            break;
           case ID_SPK:
             write_speaker(&writer, (Speaker *)id_buffer, id);
             break;
@@ -3214,6 +3181,7 @@ static bool write_file_handle(Main *mainvar,
           case ID_AC:
           case ID_NT:
           case ID_LS:
+          case ID_TXT:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:

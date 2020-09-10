@@ -3190,49 +3190,6 @@ static void direct_link_vfont(BlendDataReader *reader, VFont *vf)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Text
- * \{ */
-
-static void lib_link_text(BlendLibReader *UNUSED(reader), Text *UNUSED(text))
-{
-}
-
-static void direct_link_text(BlendDataReader *reader, Text *text)
-{
-  BLO_read_data_address(reader, &text->filepath);
-
-  text->compiled = NULL;
-
-#if 0
-  if (text->flags & TXT_ISEXT) {
-    BKE_text_reload(text);
-  }
-  /* else { */
-#endif
-
-  BLO_read_list(reader, &text->lines);
-
-  BLO_read_data_address(reader, &text->curl);
-  BLO_read_data_address(reader, &text->sell);
-
-  LISTBASE_FOREACH (TextLine *, ln, &text->lines) {
-    BLO_read_data_address(reader, &ln->line);
-    ln->format = NULL;
-
-    if (ln->len != (int)strlen(ln->line)) {
-      printf("Error loading text, line lengths differ\n");
-      ln->len = strlen(ln->line);
-    }
-  }
-
-  text->flags = (text->flags) & ~TXT_ISEXT;
-
-  id_us_ensure_real(&text->id);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: Image
  * \{ */
 
@@ -7481,9 +7438,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_VF:
       direct_link_vfont(&reader, (VFont *)id);
       break;
-    case ID_TXT:
-      direct_link_text(&reader, (Text *)id);
-      break;
     case ID_IP:
       direct_link_ipo(&reader, (Ipo *)id);
       break;
@@ -7558,6 +7512,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_AC:
     case ID_NT:
     case ID_LS:
+    case ID_TXT:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -8211,9 +8166,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_SO:
         lib_link_sound(&reader, (bSound *)id);
         break;
-      case ID_TXT:
-        lib_link_text(&reader, (Text *)id);
-        break;
       case ID_CA:
         lib_link_camera(&reader, (Camera *)id);
         break;
@@ -8277,6 +8229,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_AC:
       case ID_NT:
       case ID_LS:
+      case ID_TXT:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
