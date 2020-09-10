@@ -1414,23 +1414,6 @@ static void write_key(BlendWriter *writer, Key *key, const void *id_address)
   }
 }
 
-static void write_camera(BlendWriter *writer, Camera *cam, const void *id_address)
-{
-  if (cam->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* write LibData */
-    BLO_write_id_struct(writer, Camera, id_address, &cam->id);
-    BKE_id_blend_write(writer, &cam->id);
-
-    if (cam->adt) {
-      BKE_animdata_blend_write(writer, cam->adt);
-    }
-
-    LISTBASE_FOREACH (CameraBGImage *, bgpic, &cam->bg_images) {
-      BLO_write_struct(writer, CameraBGImage, bgpic);
-    }
-  }
-}
-
 static void write_texture(BlendWriter *writer, Tex *tex, const void *id_address)
 {
   if (tex->id.us > 0 || BLO_write_is_undo(writer)) {
@@ -2754,9 +2737,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_SCE:
             write_scene(&writer, (Scene *)id_buffer, id);
             break;
-          case ID_CA:
-            write_camera(&writer, (Camera *)id_buffer, id);
-            break;
           case ID_KE:
             write_key(&writer, (Key *)id_buffer, id);
             break;
@@ -2821,6 +2801,7 @@ static bool write_file_handle(Main *mainvar,
           case ID_MA:
           case ID_MB:
           case ID_CU:
+          case ID_CA:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:

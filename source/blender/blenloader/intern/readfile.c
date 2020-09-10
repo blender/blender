@@ -2845,38 +2845,6 @@ static void direct_link_armature(BlendDataReader *reader, bArmature *arm)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Camera
- * \{ */
-
-static void lib_link_camera(BlendLibReader *reader, Camera *ca)
-{
-  BLO_read_id_address(reader, ca->id.lib, &ca->ipo); /* deprecated, for versioning */
-
-  BLO_read_id_address(reader, ca->id.lib, &ca->dof_ob); /* deprecated, for versioning */
-  BLO_read_id_address(reader, ca->id.lib, &ca->dof.focus_object);
-
-  LISTBASE_FOREACH (CameraBGImage *, bgpic, &ca->bg_images) {
-    BLO_read_id_address(reader, ca->id.lib, &bgpic->ima);
-    BLO_read_id_address(reader, ca->id.lib, &bgpic->clip);
-  }
-}
-
-static void direct_link_camera(BlendDataReader *reader, Camera *ca)
-{
-  BLO_read_data_address(reader, &ca->adt);
-  BKE_animdata_blend_read_data(reader, ca->adt);
-
-  BLO_read_list(reader, &ca->bg_images);
-
-  LISTBASE_FOREACH (CameraBGImage *, bgpic, &ca->bg_images) {
-    bgpic->iuser.ok = 1;
-    bgpic->iuser.scene = NULL;
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: Shape Keys
  * \{ */
 
@@ -6927,9 +6895,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_LI:
       direct_link_library(fd, (Library *)id, main);
       break;
-    case ID_CA:
-      direct_link_camera(&reader, (Camera *)id);
-      break;
     case ID_SPK:
       direct_link_speaker(&reader, (Speaker *)id);
       break;
@@ -6988,6 +6953,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_MA:
     case ID_MB:
     case ID_CU:
+    case ID_CA:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -7632,9 +7598,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_SO:
         lib_link_sound(&reader, (bSound *)id);
         break;
-      case ID_CA:
-        lib_link_camera(&reader, (Camera *)id);
-        break;
       case ID_CF:
         lib_link_cachefiles(&reader, (CacheFile *)id);
         break;
@@ -7685,6 +7648,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_MA:
       case ID_MB:
       case ID_CU:
+      case ID_CA:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -8644,20 +8608,6 @@ static void expand_scene(BlendExpander *expander, Scene *sce)
   }
 }
 
-static void expand_camera(BlendExpander *expander, Camera *ca)
-{
-  BLO_expand(expander, ca->ipo);  // XXX deprecated - old animation system
-
-  LISTBASE_FOREACH (CameraBGImage *, bgpic, &ca->bg_images) {
-    if (bgpic->source == CAM_BGIMG_SOURCE_IMAGE) {
-      BLO_expand(expander, bgpic->ima);
-    }
-    else if (bgpic->source == CAM_BGIMG_SOURCE_MOVIE) {
-      BLO_expand(expander, bgpic->ima);
-    }
-  }
-}
-
 static void expand_cachefile(BlendExpander *UNUSED(expander), CacheFile *UNUSED(cache_file))
 {
 }
@@ -8800,9 +8750,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_KE:
               expand_key(&expander, (Key *)id);
-              break;
-            case ID_CA:
-              expand_camera(&expander, (Camera *)id);
               break;
             case ID_SPK:
               expand_speaker(&expander, (Speaker *)id);

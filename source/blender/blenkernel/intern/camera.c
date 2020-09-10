@@ -24,6 +24,9 @@
 #include <stddef.h>
 #include <stdlib.h>
 
+/* Allow using deprecated functionality for .blend file I/O. */
+#define DNA_DEPRECATED_ALLOW
+
 #include "DNA_ID.h"
 #include "DNA_camera_types.h"
 #include "DNA_defaults.h"
@@ -38,6 +41,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_anim_data.h"
 #include "BKE_camera.h"
 #include "BKE_idtype.h"
 #include "BKE_layer.h"
@@ -53,6 +57,8 @@
 #include "DEG_depsgraph_query.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "BLO_read_write.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Camera Data-Block
@@ -113,6 +119,67 @@ static void camera_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+static void camera_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  Camera *cam = (Camera *)id;
+  if (cam->id.us > 0 || BLO_write_is_undo(writer)) {
+    /* write LibData */
+    BLO_write_id_struct(writer, Camera, id_address, &cam->id);
+    BKE_id_blend_write(writer, &cam->id);
+
+    if (cam->adt) {
+      BKE_animdata_blend_write(writer, cam->adt);
+    }
+
+    LISTBASE_FOREACH (CameraBGImage *, bgpic, &cam->bg_images) {
+      BLO_write_struct(writer, CameraBGImage, bgpic);
+    }
+  }
+}
+
+static void camera_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  Camera *ca = (Camera *)id;
+  BLO_read_data_address(reader, &ca->adt);
+  BKE_animdata_blend_read_data(reader, ca->adt);
+
+  BLO_read_list(reader, &ca->bg_images);
+
+  LISTBASE_FOREACH (CameraBGImage *, bgpic, &ca->bg_images) {
+    bgpic->iuser.ok = 1;
+    bgpic->iuser.scene = NULL;
+  }
+}
+
+static void camera_blend_read_lib(BlendLibReader *reader, ID *id)
+{
+  Camera *ca = (Camera *)id;
+  BLO_read_id_address(reader, ca->id.lib, &ca->ipo); /* deprecated, for versioning */
+
+  BLO_read_id_address(reader, ca->id.lib, &ca->dof_ob); /* deprecated, for versioning */
+  BLO_read_id_address(reader, ca->id.lib, &ca->dof.focus_object);
+
+  LISTBASE_FOREACH (CameraBGImage *, bgpic, &ca->bg_images) {
+    BLO_read_id_address(reader, ca->id.lib, &bgpic->ima);
+    BLO_read_id_address(reader, ca->id.lib, &bgpic->clip);
+  }
+}
+
+static void camera_blend_read_expand(BlendExpander *expander, ID *id)
+{
+  Camera *ca = (Camera *)id;
+  BLO_expand(expander, ca->ipo);  // XXX deprecated - old animation system
+
+  LISTBASE_FOREACH (CameraBGImage *, bgpic, &ca->bg_images) {
+    if (bgpic->source == CAM_BGIMG_SOURCE_IMAGE) {
+      BLO_expand(expander, bgpic->ima);
+    }
+    else if (bgpic->source == CAM_BGIMG_SOURCE_MOVIE) {
+      BLO_expand(expander, bgpic->ima);
+    }
+  }
+}
+
 IDTypeInfo IDType_ID_CA = {
     .id_code = ID_CA,
     .id_filter = FILTER_ID_CA,
@@ -130,10 +197,10 @@ IDTypeInfo IDType_ID_CA = {
     .foreach_id = camera_foreach_id,
     .foreach_cache = NULL,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
-    .blend_read_lib = NULL,
-    .blend_read_expand = NULL,
+    .blend_write = camera_blend_write,
+    .blend_read_data = camera_blend_read_data,
+    .blend_read_lib = camera_blend_read_lib,
+    .blend_read_expand = camera_blend_read_expand,
 };
 
 /** \} */
