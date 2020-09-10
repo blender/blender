@@ -166,6 +166,7 @@
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.h"  // for G
 #include "BKE_gpencil_modifier.h"
+#include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_layer.h"
@@ -658,30 +659,6 @@ static void writelist_id(WriteData *wd, int filecode, const char *structname, co
  *
  * These functions are used by blender's .blend system for file saving/loading.
  * \{ */
-
-static void write_previews(BlendWriter *writer, const PreviewImage *prv_orig)
-{
-  /* Note we write previews also for undo steps. It takes up some memory,
-   * but not doing so would causes all previews to be re-rendered after
-   * undo which is too expensive. */
-  if (prv_orig) {
-    PreviewImage prv = *prv_orig;
-
-    /* don't write out large previews if not requested */
-    if (!(U.flag & USER_SAVE_PREVIEWS)) {
-      prv.w[1] = 0;
-      prv.h[1] = 0;
-      prv.rect[1] = NULL;
-    }
-    BLO_write_struct_at_address(writer, PreviewImage, prv_orig, &prv);
-    if (prv.rect[0]) {
-      BLO_write_uint32_array(writer, prv.w[0] * prv.h[0], prv.rect[0]);
-    }
-    if (prv.rect[1]) {
-      BLO_write_uint32_array(writer, prv.w[1] * prv.h[1], prv.rect[1]);
-    }
-  }
-}
 
 static void write_action(BlendWriter *writer, bAction *act, const void *id_address)
 {
@@ -1622,7 +1599,7 @@ static void write_object(BlendWriter *writer, Object *ob, const void *id_address
 
     BLO_write_struct_list(writer, LinkData, &ob->pc_ids);
 
-    write_previews(writer, ob->preview);
+    BKE_previewimg_blend_write(writer, ob->preview);
   }
 }
 
@@ -1783,7 +1760,7 @@ static void write_image(BlendWriter *writer, Image *ima, const void *id_address)
       }
     }
 
-    write_previews(writer, ima->preview);
+    BKE_previewimg_blend_write(writer, ima->preview);
 
     LISTBASE_FOREACH (ImageView *, iv, &ima->views) {
       BLO_write_struct(writer, ImageView, iv);
@@ -1820,7 +1797,7 @@ static void write_texture(BlendWriter *writer, Tex *tex, const void *id_address)
       write_nodetree_nolib(writer, tex->nodetree);
     }
 
-    write_previews(writer, tex->preview);
+    BKE_previewimg_blend_write(writer, tex->preview);
   }
 }
 
@@ -1845,7 +1822,7 @@ static void write_material(BlendWriter *writer, Material *ma, const void *id_add
       write_nodetree_nolib(writer, ma->nodetree);
     }
 
-    write_previews(writer, ma->preview);
+    BKE_previewimg_blend_write(writer, ma->preview);
 
     /* grease pencil settings */
     if (ma->gp_style) {
@@ -1874,7 +1851,7 @@ static void write_world(BlendWriter *writer, World *wrld, const void *id_address
       write_nodetree_nolib(writer, wrld->nodetree);
     }
 
-    write_previews(writer, wrld->preview);
+    BKE_previewimg_blend_write(writer, wrld->preview);
   }
 }
 
@@ -1899,14 +1876,14 @@ static void write_light(BlendWriter *writer, Light *la, const void *id_address)
       write_nodetree_nolib(writer, la->nodetree);
     }
 
-    write_previews(writer, la->preview);
+    BKE_previewimg_blend_write(writer, la->preview);
   }
 }
 
 static void write_collection_nolib(BlendWriter *writer, Collection *collection)
 {
   /* Shared function for collection data-blocks and scene master collection. */
-  write_previews(writer, collection->preview);
+  BKE_previewimg_blend_write(writer, collection->preview);
 
   LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
     BLO_write_struct(writer, CollectionObject, cob);
@@ -2251,7 +2228,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
     write_pointcaches(writer, &(sce->rigidbody_world->shared->ptcaches));
   }
 
-  write_previews(writer, sce->preview);
+  BKE_previewimg_blend_write(writer, sce->preview);
   BKE_curvemapping_curves_blend_write(writer, &sce->r.mblur_shutter_curve);
 
   LISTBASE_FOREACH (ViewLayer *, view_layer, &sce->view_layers) {
@@ -2599,7 +2576,7 @@ static void write_screen(BlendWriter *writer, bScreen *screen, const void *id_ad
     writestruct_at_address(writer->wd, ID_SCRN, bScreen, 1, id_address, screen);
     BKE_id_blend_write(writer, &screen->id);
 
-    write_previews(writer, screen->preview);
+    BKE_previewimg_blend_write(writer, screen->preview);
 
     /* direct data */
     write_area_map(writer, AREAMAP_FROM_SCREEN(screen));

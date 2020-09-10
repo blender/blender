@@ -128,6 +128,7 @@
 #include "BKE_global.h"  // for G
 #include "BKE_gpencil_modifier.h"
 #include "BKE_hair.h"
+#include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_image.h"
@@ -2246,30 +2247,6 @@ static void link_glob_list(FileData *fd, ListBase *lb) /* for glob data */
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read Image Preview
- * \{ */
-
-static PreviewImage *direct_link_preview_image(BlendDataReader *reader, PreviewImage *old_prv)
-{
-  PreviewImage *prv = BLO_read_get_new_data_address(reader, old_prv);
-
-  if (prv) {
-    for (int i = 0; i < NUM_ICON_SIZES; i++) {
-      if (prv->rect[i]) {
-        BLO_read_data_address(reader, &prv->rect[i]);
-      }
-      prv->gputexture[i] = NULL;
-    }
-    prv->icon_id = 0;
-    prv->tag = 0;
-  }
-
-  return prv;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID
  * \{ */
 
@@ -3383,7 +3360,8 @@ static void direct_link_light(BlendDataReader *reader, Light *la)
     BKE_curvemapping_blend_read(reader, la->curfalloff);
   }
 
-  la->preview = direct_link_preview_image(reader, la->preview);
+  BLO_read_data_address(reader, &la->preview);
+  BKE_previewimg_blend_read(reader, la->preview);
 }
 
 /** \} */
@@ -3502,7 +3480,8 @@ static void direct_link_world(BlendDataReader *reader, World *wrld)
   BLO_read_data_address(reader, &wrld->adt);
   BKE_animdata_blend_read_data(reader, wrld->adt);
 
-  wrld->preview = direct_link_preview_image(reader, wrld->preview);
+  BLO_read_data_address(reader, &wrld->preview);
+  BKE_previewimg_blend_read(reader, wrld->preview);
   BLI_listbase_clear(&wrld->gpumaterial);
 }
 
@@ -3607,7 +3586,8 @@ static void direct_link_image(BlendDataReader *reader, Image *ima)
   }
 
   BLI_listbase_clear(&ima->anims);
-  ima->preview = direct_link_preview_image(reader, ima->preview);
+  BLO_read_data_address(reader, &ima->preview);
+  BKE_previewimg_blend_read(reader, ima->preview);
   BLO_read_data_address(reader, &ima->stereo3d_format);
   LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
     tile->ok = IMA_OK;
@@ -3724,7 +3704,8 @@ static void direct_link_texture(BlendDataReader *reader, Tex *tex)
 
   BLO_read_data_address(reader, &tex->coba);
 
-  tex->preview = direct_link_preview_image(reader, tex->preview);
+  BLO_read_data_address(reader, &tex->preview);
+  BKE_previewimg_blend_read(reader, tex->preview);
 
   tex->iuser.ok = 1;
   tex->iuser.scene = NULL;
@@ -3759,7 +3740,9 @@ static void direct_link_material(BlendDataReader *reader, Material *ma)
 
   ma->texpaintslot = NULL;
 
-  ma->preview = direct_link_preview_image(reader, ma->preview);
+  BLO_read_data_address(reader, &ma->preview);
+  BKE_previewimg_blend_read(reader, ma->preview);
+
   BLI_listbase_clear(&ma->gpumaterial);
 
   BLO_read_data_address(reader, &ma->gp_style);
@@ -4989,7 +4972,8 @@ static void direct_link_object(BlendDataReader *reader, Object *ob)
     }
   }
 
-  ob->preview = direct_link_preview_image(reader, ob->preview);
+  BLO_read_data_address(reader, &ob->preview);
+  BKE_previewimg_blend_read(reader, ob->preview);
 }
 
 static void direct_link_view_settings(BlendDataReader *reader,
@@ -5131,7 +5115,8 @@ static void direct_link_collection(BlendDataReader *reader, Collection *collecti
   BLO_read_list(reader, &collection->gobject);
   BLO_read_list(reader, &collection->children);
 
-  collection->preview = direct_link_preview_image(reader, collection->preview);
+  BLO_read_data_address(reader, &collection->preview);
+  BKE_previewimg_blend_read(reader, collection->preview);
 
   collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
   collection->tag = 0;
@@ -5843,7 +5828,8 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
     }
   }
 
-  sce->preview = direct_link_preview_image(reader, sce->preview);
+  BLO_read_data_address(reader, &sce->preview);
+  BKE_previewimg_blend_read(reader, sce->preview);
 
   BKE_curvemapping_blend_read(reader, &sce->r.mblur_shutter_curve);
 
@@ -7147,7 +7133,8 @@ static bool direct_link_screen(BlendDataReader *reader, bScreen *screen)
   screen->context = NULL;
   screen->active_region = NULL;
 
-  screen->preview = direct_link_preview_image(reader, screen->preview);
+  BLO_read_data_address(reader, &screen->preview);
+  BKE_previewimg_blend_read(reader, screen->preview);
 
   if (!direct_link_area_map(reader, AREAMAP_FROM_SCREEN(screen))) {
     printf("Error reading Screen %s... removing it.\n", screen->id.name + 2);

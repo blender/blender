@@ -59,6 +59,8 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_thumbs.h"
 
+#include "BLO_read_write.h"
+
 /**
  * Only allow non-managed icons to be removed (by Python for eg).
  * Previews & ID's have their own functions to remove icons.
@@ -513,6 +515,48 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
       }
     }
   }
+}
+
+void BKE_previewimg_blend_write(BlendWriter *writer, const PreviewImage *prv)
+{
+  /* Note we write previews also for undo steps. It takes up some memory,
+   * but not doing so would causes all previews to be re-rendered after
+   * undo which is too expensive. */
+
+  if (prv == NULL) {
+    return;
+  }
+
+  PreviewImage prv_copy = *prv;
+  /* don't write out large previews if not requested */
+  if (!(U.flag & USER_SAVE_PREVIEWS)) {
+    prv_copy.w[1] = 0;
+    prv_copy.h[1] = 0;
+    prv_copy.rect[1] = NULL;
+  }
+  BLO_write_struct_at_address(writer, PreviewImage, prv, &prv_copy);
+  if (prv_copy.rect[0]) {
+    BLO_write_uint32_array(writer, prv_copy.w[0] * prv_copy.h[0], prv_copy.rect[0]);
+  }
+  if (prv_copy.rect[1]) {
+    BLO_write_uint32_array(writer, prv_copy.w[1] * prv_copy.h[1], prv_copy.rect[1]);
+  }
+}
+
+void BKE_previewimg_blend_read(BlendDataReader *reader, PreviewImage *prv)
+{
+  if (prv == NULL) {
+    return;
+  }
+
+  for (int i = 0; i < NUM_ICON_SIZES; i++) {
+    if (prv->rect[i]) {
+      BLO_read_data_address(reader, &prv->rect[i]);
+    }
+    prv->gputexture[i] = NULL;
+  }
+  prv->icon_id = 0;
+  prv->tag = 0;
 }
 
 void BKE_icon_changed(const int icon_id)

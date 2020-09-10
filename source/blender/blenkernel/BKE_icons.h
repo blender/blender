@@ -78,6 +78,8 @@ struct ImBuf;
 struct PreviewImage;
 struct StudioLight;
 struct bGPDlayer;
+struct BlendWriter;
+struct BlendDataReader;
 
 enum eIconSizes;
 
@@ -155,6 +157,9 @@ struct PreviewImage *BKE_previewimg_cached_thumbnail_read(const char *name,
 
 void BKE_previewimg_cached_release(const char *name);
 void BKE_previewimg_cached_release_pointer(struct PreviewImage *prv);
+
+void BKE_previewimg_blend_write(struct BlendWriter *writer, const struct PreviewImage *prv);
+void BKE_previewimg_blend_read(struct BlendDataReader *reader, struct PreviewImage *prv);
 
 int BKE_icon_geom_ensure(struct Icon_Geom *geom);
 struct Icon_Geom *BKE_icon_geom_from_memory(const uchar *data, size_t data_len);
