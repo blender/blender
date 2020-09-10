@@ -1525,6 +1525,9 @@ static void gpencil_stroke_eraser_dostroke(tGPsdata *p,
       pt1 = gps->points + i;
       pt2 = gps->points + i + 1;
 
+      float inf1 = 0.0f;
+      float inf2 = 0.0f;
+
       /* only process if it hasn't been masked out... */
       if ((p->flags & GP_PAINTFLAG_SELECTMASK) && !(gps->points->flag & GP_SPOINT_SELECT)) {
         continue;
@@ -1603,22 +1606,36 @@ static void gpencil_stroke_eraser_dostroke(tGPsdata *p,
                 pt2->flag |= GP_SPOINT_TAG;
                 do_cull = true;
               }
+
+              inf1 = 1.0f;
+              inf2 = 1.0f;
             }
             else {
-              pt1->pressure -= gpencil_stroke_eraser_calc_influence(p, mval, radius, pc1) *
-                               strength;
-              pt2->pressure -= gpencil_stroke_eraser_calc_influence(p, mval, radius, pc2) *
-                               strength * 0.5f;
+              /* Erase point. Only erase if the eraser is on top of the point. */
+              inf1 = gpencil_stroke_eraser_calc_influence(p, mval, radius, pc1);
+              if (inf1 > 0.0f) {
+                pt1->pressure = 0.0f;
+                pt1->flag |= GP_SPOINT_TAG;
+                do_cull = true;
+              }
+              inf2 = gpencil_stroke_eraser_calc_influence(p, mval, radius, pc2);
+              if (inf2 > 0.0f) {
+                pt2->pressure = 0.0f;
+                pt2->flag |= GP_SPOINT_TAG;
+                do_cull = true;
+              }
             }
 
             /* 2) Tag any point with overly low influence for removal in the next pass */
-            if ((pt1->pressure < cull_thresh) || (p->flags & GP_PAINTFLAG_HARD_ERASER) ||
-                (eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_HARD)) {
+            if ((inf1 > 0.0f) &&
+                (((pt1->pressure < cull_thresh) || (p->flags & GP_PAINTFLAG_HARD_ERASER) ||
+                  (eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_HARD)))) {
               pt1->flag |= GP_SPOINT_TAG;
               do_cull = true;
             }
-            if ((pt2->pressure < cull_thresh) || (p->flags & GP_PAINTFLAG_HARD_ERASER) ||
-                (eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_HARD)) {
+            if ((inf1 > 2.0f) &&
+                (((pt2->pressure < cull_thresh) || (p->flags & GP_PAINTFLAG_HARD_ERASER) ||
+                  (eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_HARD)))) {
               pt2->flag |= GP_SPOINT_TAG;
               do_cull = true;
             }
