@@ -1285,7 +1285,7 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
   if (outliner_is_co_within_restrict_columns(space_outliner, region, view_mval[0])) {
     return OPERATOR_CANCELLED;
   }
-  else if (outliner_is_co_within_mode_column(space_outliner, view_mval)) {
+  if (outliner_is_co_within_mode_column(space_outliner, view_mval)) {
     return OPERATOR_CANCELLED;
   }
 
