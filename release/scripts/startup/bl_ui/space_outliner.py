@@ -358,6 +358,10 @@ class OUTLINER_PT_filter(Panel):
         row.prop(space, "use_sync_select", text="Sync Selection")
         layout.separator()
 
+        row = layout.row(align=True)
+        row.prop(space, "show_mode_column", text="Show Mode Column")
+        layout.separator()
+
         col = layout.column(align=True)
         col.label(text="Search:")
         col.prop(space, "use_filter_complete", text="Exact Match")

@@ -585,6 +585,18 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       do_versions_point_attributes(&pointcloud->pdata);
     }
 
+    /* Show outliner mode column by default. */
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
+          if (space->spacetype == SPACE_OUTLINER) {
+            SpaceOutliner *space_outliner = (SpaceOutliner *)space;
+
+            space_outliner->flag |= SO_MODE_COLUMN;
+          }
+        }
+      }
+    }
     /* Keep this block, even when empty. */
   }
 }

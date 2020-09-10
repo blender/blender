@@ -2294,6 +2294,36 @@ int UI_idcode_icon_get(const int idcode)
   }
 }
 
+int UI_mode_icon_get(const int mode)
+{
+  switch (mode) {
+    case OB_MODE_OBJECT:
+      return ICON_OBJECT_DATAMODE;
+    case OB_MODE_EDIT:
+    case OB_MODE_EDIT_GPENCIL:
+      return ICON_EDITMODE_HLT;
+    case OB_MODE_SCULPT:
+    case OB_MODE_SCULPT_GPENCIL:
+      return ICON_SCULPTMODE_HLT;
+    case OB_MODE_VERTEX_PAINT:
+    case OB_MODE_VERTEX_GPENCIL:
+      return ICON_VPAINT_HLT;
+    case OB_MODE_WEIGHT_PAINT:
+    case OB_MODE_WEIGHT_GPENCIL:
+      return ICON_WPAINT_HLT;
+    case OB_MODE_TEXTURE_PAINT:
+      return ICON_TPAINT_HLT;
+    case OB_MODE_PARTICLE_EDIT:
+      return ICON_PARTICLEMODE;
+    case OB_MODE_POSE:
+      return ICON_POSE_HLT;
+    case OB_MODE_PAINT_GPENCIL:
+      return ICON_GREASEPENCIL;
+    default:
+      return ICON_NONE;
+  }
+}
+
 /* draws icon with dpi scale factor */
 void UI_icon_draw(float x, float y, int icon_id)
 {

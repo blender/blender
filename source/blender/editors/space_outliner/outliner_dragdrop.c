@@ -893,6 +893,9 @@ static int outliner_item_drag_drop_invoke(bContext *C,
   if (outliner_item_is_co_within_close_toggle(te, view_mval[0])) {
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
+  if (outliner_is_co_within_mode_column(space_outliner, view_mval)) {
+    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
+  }
 
   /* Scroll the view when dragging near edges, but not
    * when the drag goes too far outside the region. */

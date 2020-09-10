@@ -53,6 +53,7 @@
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_particle.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
@@ -1884,6 +1885,109 @@ static void outliner_buttons(const bContext *C,
   }
 }
 
+static void outliner_mode_toggle_fn(bContext *C, void *tselem_poin, void *UNUSED(arg2))
+{
+  SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
+  TreeStoreElem *tselem = (TreeStoreElem *)tselem_poin;
+  TreeViewContext tvc;
+  outliner_viewcontext_init(C, &tvc);
+
+  TreeElement *te = outliner_find_tree_element(&space_outliner->tree, tselem);
+  if (!te) {
+    return;
+  }
+
+  wmWindow *win = CTX_wm_window(C);
+  const bool do_extend = win->eventstate->ctrl != 0;
+  outliner_item_mode_toggle(C, &tvc, te, do_extend);
+}
+
+/* Draw icons for adding and removing objects from the current interation mode. */
+static void outliner_draw_mode_column_toggle(uiBlock *block,
+                                             TreeViewContext *tvc,
+                                             TreeElement *te,
+                                             TreeStoreElem *tselem,
+                                             const bool lock_object_modes)
+{
+  const int active_mode = tvc->obact->mode;
+  bool draw_active_icon = true;
+
+  if (tselem->type == 0 && te->idcode == ID_OB) {
+    Object *ob = (Object *)tselem->id;
+
+    /* When not locking object modes, objects can remain in non-object modes. For modes that do not
+     * allow multi-object editing, these other objects should still show be viewed as not in the
+     * mode. Otherwise multiple objects show the same mode icon in the outliner even though only
+     * one object is actually editable in the mode. */
+    if (!lock_object_modes && ob != tvc->obact && !(tvc->ob_edit || tvc->ob_pose)) {
+      draw_active_icon = false;
+    }
+
+    if (ob->type == tvc->obact->type) {
+      int icon;
+      const char *tip;
+
+      if (draw_active_icon && ob->mode == tvc->obact->mode) {
+        icon = UI_mode_icon_get(active_mode);
+        tip = TIP_("Remove from the current mode");
+      }
+      else {
+        /* Not all objects support particle systems */
+        if (active_mode == OB_MODE_PARTICLE_EDIT && !psys_get_current(ob)) {
+          return;
+        }
+        icon = ICON_DOT;
+        tip = TIP_(
+            "Change the object in the current mode\n"
+            "* Ctrl to add to the current mode");
+      }
+
+      uiBut *but = uiDefIconBut(block,
+                                UI_BTYPE_ICON_TOGGLE,
+                                0,
+                                icon,
+                                0,
+                                te->ys,
+                                UI_UNIT_X,
+                                UI_UNIT_Y,
+                                NULL,
+                                0.0,
+                                0.0,
+                                0.0,
+                                0.0,
+                                tip);
+      UI_but_func_set(but, outliner_mode_toggle_fn, tselem, NULL);
+      UI_but_flag_enable(but, UI_BUT_DRAG_LOCK);
+
+      if (ID_IS_LINKED(&ob->id)) {
+        UI_but_disable(but, TIP_("Can't edit external library data"));
+      }
+    }
+  }
+}
+
+static void outliner_draw_mode_column(const bContext *C,
+                                      uiBlock *block,
+                                      TreeViewContext *tvc,
+                                      SpaceOutliner *space_outliner,
+                                      ListBase *tree)
+{
+  TreeStoreElem *tselem;
+  const bool lock_object_modes = tvc->scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK;
+
+  LISTBASE_FOREACH (TreeElement *, te, tree) {
+    tselem = TREESTORE(te);
+
+    if (tvc->obact && tvc->obact->mode != OB_MODE_OBJECT) {
+      outliner_draw_mode_column_toggle(block, tvc, te, tselem, lock_object_modes);
+    }
+
+    if (TSELEM_OPEN(tselem, space_outliner)) {
+      outliner_draw_mode_column(C, block, tvc, space_outliner, &te->subtree);
+    }
+  }
+}
+
 /* ****************************************************** */
 /* Normal Drawing... */
 
@@ -3500,10 +3604,19 @@ static void outliner_draw_tree(bContext *C,
                                ARegion *region,
                                SpaceOutliner *space_outliner,
                                const float restrict_column_width,
+                               const bool use_mode_column,
                                TreeElement **te_edit)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
   int starty, startx;
+
+  /* Move the tree a unit left in view layer mode */
+  short mode_column_offset = (use_mode_column && (space_outliner->outlinevis == SO_SCENES)) ?
+                                 UI_UNIT_X :
+                                 0;
+  if (!use_mode_column && (space_outliner->outlinevis == SO_VIEW_LAYER)) {
+    mode_column_offset -= UI_UNIT_X;
+  }
 
   GPU_blend(GPU_BLEND_ALPHA); /* Only once. */
 
@@ -3530,12 +3643,12 @@ static void outliner_draw_tree(bContext *C,
 
   /* Gray hierarchy lines. */
   starty = (int)region->v2d.tot.ymax - UI_UNIT_Y / 2 - OL_Y_OFFSET;
-  startx = UI_UNIT_X / 2 - (U.pixelsize + 1) / 2;
+  startx = mode_column_offset + UI_UNIT_X / 2 - (U.pixelsize + 1) / 2;
   outliner_draw_hierarchy_lines(space_outliner, &space_outliner->tree, startx, &starty);
 
   /* Items themselves. */
   starty = (int)region->v2d.tot.ymax - UI_UNIT_Y - OL_Y_OFFSET;
-  startx = 0;
+  startx = mode_column_offset;
   LISTBASE_FOREACH (TreeElement *, te, &space_outliner->tree) {
     outliner_draw_tree_element(C,
                                block,
@@ -3658,12 +3771,22 @@ void draw_outliner(const bContext *C)
   /* set matrix for 2d-view controls */
   UI_view2d_view_ortho(v2d);
 
+  /* Only show mode column in View Layers and Scenes view */
+  const bool use_mode_column = (space_outliner->flag & SO_MODE_COLUMN) &&
+                               (ELEM(space_outliner->outlinevis, SO_VIEW_LAYER, SO_SCENES));
+
   /* draw outliner stuff (background, hierarchy lines and names) */
   const float restrict_column_width = outliner_restrict_columns_width(space_outliner);
   outliner_back(region);
   block = UI_block_begin(C, region, __func__, UI_EMBOSS);
-  outliner_draw_tree(
-      (bContext *)C, block, &tvc, region, space_outliner, restrict_column_width, &te_edit);
+  outliner_draw_tree((bContext *)C,
+                     block,
+                     &tvc,
+                     region,
+                     space_outliner,
+                     restrict_column_width,
+                     use_mode_column,
+                     &te_edit);
 
   /* Compute outliner dimensions after it has been drawn. */
   int tree_width, tree_height;
@@ -3696,6 +3819,11 @@ void draw_outliner(const bContext *C)
                                space_outliner,
                                &space_outliner->tree,
                                props_active);
+  }
+
+  /* Draw mode icons */
+  if (use_mode_column) {
+    outliner_draw_mode_column(C, block, &tvc, space_outliner, &space_outliner->tree);
   }
 
   UI_block_emboss_set(block, UI_EMBOSS);
