@@ -77,9 +77,12 @@ class EEVEE_WORLD_PT_mist(WorldButtonsPanel, Panel):
 
         world = context.world
 
-        layout.prop(world.mist_settings, "start")
-        layout.prop(world.mist_settings, "depth")
-        layout.prop(world.mist_settings, "falloff")
+        col = layout.column(align=True)
+        col.prop(world.mist_settings, "start")
+        col.prop(world.mist_settings, "depth")
+
+        col = layout.column()
+        col.prop(world.mist_settings, "falloff")
 
 
 class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel, Panel):
