@@ -774,6 +774,7 @@ typedef enum eBrushFlags2 {
   BRUSH_CLOTH_PIN_SIMULATION_BOUNDARY = (1 << 4),
   BRUSH_POSE_USE_LOCK_ROTATION = (1 << 5),
   BRUSH_CLOTH_USE_COLLISION = (1 << 6),
+  BRUSH_AREA_RADIUS_PRESSURE = (1 << 7),
 } eBrushFlags2;
 
 typedef enum {

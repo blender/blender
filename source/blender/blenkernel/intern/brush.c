@@ -1707,10 +1707,12 @@ void BKE_brush_sculpt_reset(Brush *br)
       break;
     case SCULPT_TOOL_SCRAPE:
     case SCULPT_TOOL_FILL:
-      br->alpha = 1.0f;
+      br->alpha = 0.7f;
+      br->area_radius_factor = 1.0f;
       br->spacing = 7;
       br->flag |= BRUSH_ACCUMULATE;
       br->flag |= BRUSH_INVERT_TO_SCRAPE_FILL;
+      br->flag2 |= BRUSH_AREA_RADIUS_PRESSURE;
       break;
     case SCULPT_TOOL_ROTATE:
       br->alpha = 1.0;
