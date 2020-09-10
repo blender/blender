@@ -2877,31 +2877,6 @@ static void direct_link_camera(BlendDataReader *reader, Camera *ca)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Light
- * \{ */
-
-static void lib_link_light(BlendLibReader *reader, Light *la)
-{
-  BLO_read_id_address(reader, la->id.lib, &la->ipo);  // XXX deprecated - old animation system
-}
-
-static void direct_link_light(BlendDataReader *reader, Light *la)
-{
-  BLO_read_data_address(reader, &la->adt);
-  BKE_animdata_blend_read_data(reader, la->adt);
-
-  BLO_read_data_address(reader, &la->curfalloff);
-  if (la->curfalloff) {
-    BKE_curvemapping_blend_read(reader, la->curfalloff);
-  }
-
-  BLO_read_data_address(reader, &la->preview);
-  BKE_previewimg_blend_read(reader, la->preview);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: Shape Keys
  * \{ */
 
@@ -7110,9 +7085,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_TE:
       direct_link_texture(&reader, (Tex *)id);
       break;
-    case ID_LA:
-      direct_link_light(&reader, (Light *)id);
-      break;
     case ID_IP:
       direct_link_ipo(&reader, (Ipo *)id);
       break;
@@ -7182,6 +7154,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_PC:
     case ID_BR:
     case ID_IM:
+    case ID_LA:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -7829,9 +7802,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_CA:
         lib_link_camera(&reader, (Camera *)id);
         break;
-      case ID_LA:
-        lib_link_light(&reader, (Light *)id);
-        break;
       case ID_MB:
         lib_link_mball(&reader, (MetaBall *)id);
         break;
@@ -7887,6 +7857,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_PC:
       case ID_BR:
       case ID_IM:
+      case ID_LA:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -8594,11 +8565,6 @@ static void expand_material(BlendExpander *expander, Material *ma)
   }
 }
 
-static void expand_light(BlendExpander *expander, Light *la)
-{
-  BLO_expand(expander, la->ipo);  // XXX deprecated - old animation system
-}
-
 static void expand_world(BlendExpander *expander, World *wrld)
 {
   BLO_expand(expander, wrld->ipo);  // XXX deprecated - old animation system
@@ -9048,9 +9014,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_WO:
               expand_world(&expander, (World *)id);
-              break;
-            case ID_LA:
-              expand_light(&expander, (Light *)id);
               break;
             case ID_KE:
               expand_key(&expander, (Key *)id);

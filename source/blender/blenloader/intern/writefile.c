@@ -1585,31 +1585,6 @@ static void write_world(BlendWriter *writer, World *wrld, const void *id_address
   }
 }
 
-static void write_light(BlendWriter *writer, Light *la, const void *id_address)
-{
-  if (la->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* write LibData */
-    BLO_write_id_struct(writer, Light, id_address, &la->id);
-    BKE_id_blend_write(writer, &la->id);
-
-    if (la->adt) {
-      BKE_animdata_blend_write(writer, la->adt);
-    }
-
-    if (la->curfalloff) {
-      BKE_curvemapping_blend_write(writer, la->curfalloff);
-    }
-
-    /* Node-tree is integral part of lights, no libdata. */
-    if (la->nodetree) {
-      BLO_write_struct(writer, bNodeTree, la->nodetree);
-      ntreeBlendWrite(writer, la->nodetree);
-    }
-
-    BKE_previewimg_blend_write(writer, la->preview);
-  }
-}
-
 static void write_collection_nolib(BlendWriter *writer, Collection *collection)
 {
   /* Shared function for collection data-blocks and scene master collection. */
@@ -2892,9 +2867,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_CA:
             write_camera(&writer, (Camera *)id_buffer, id);
             break;
-          case ID_LA:
-            write_light(&writer, (Light *)id_buffer, id);
-            break;
           case ID_KE:
             write_key(&writer, (Key *)id_buffer, id);
             break;
@@ -2958,6 +2930,7 @@ static bool write_file_handle(Main *mainvar,
           case ID_PAL:
           case ID_BR:
           case ID_IM:
+          case ID_LA:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:
