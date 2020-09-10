@@ -2596,20 +2596,18 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       bGPdata *gpd = (bGPdata *)ob_gpencil->data;
       gpd->draw_mode = GP_DRAWMODE_3D;
 
-      BKE_gpencil_convert_mesh(bmain,
-                               depsgraph,
-                               scene,
-                               ob_gpencil,
-                               ob,
-                               angle,
-                               thickness,
-                               offset,
-                               matrix,
-                               0,
-                               use_seams,
-                               use_faces,
-                               false);
-      gpencilConverted = true;
+      gpencilConverted |= BKE_gpencil_convert_mesh(bmain,
+                                                   depsgraph,
+                                                   scene,
+                                                   ob_gpencil,
+                                                   ob,
+                                                   angle,
+                                                   thickness,
+                                                   offset,
+                                                   matrix,
+                                                   0,
+                                                   use_seams,
+                                                   use_faces);
 
       /* Remove unused materials. */
       int actcol = ob_gpencil->actcol;

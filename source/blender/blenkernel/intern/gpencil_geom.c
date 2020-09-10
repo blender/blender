@@ -2252,19 +2252,33 @@ static Material *gpencil_add_material(Main *bmain,
   return mat_gp;
 }
 
-static int gpencil_material_find_index_by_name_prefix(Object *ob, const char *name_prefix)
+static int gpencil_material_find_index_by_name(Object *ob, const char *name)
 {
-  const int name_prefix_len = strlen(name_prefix);
   for (int i = 0; i < ob->totcol; i++) {
     Material *ma = BKE_object_material_get(ob, i + 1);
-    if ((ma != NULL) && (ma->gp_style != NULL) &&
-        (STREQLEN(ma->id.name + 2, name_prefix, name_prefix_len))) {
+    if ((ma != NULL) && (ma->gp_style != NULL) && (STREQ(ma->id.name + 2, name))) {
       return i;
     }
   }
 
   return -1;
 }
+
+/* Create the name with the object name and a subfix. */
+static void make_element_name(char *obname, char *name, const int maxlen, char *r_name)
+{
+  char str[256];
+  sprintf(str, "%s_%s", obname, name);
+  /* Replace any point by underscore. */
+  char *current_pos = strchr(str, '.');
+  while (current_pos) {
+    *current_pos = '_';
+    current_pos = strchr(current_pos, '.');
+  }
+
+  BLI_strncpy_utf8(r_name, str, maxlen);
+}
+
 /**
  * Convert a mesh object to grease pencil stroke.
  *
@@ -2280,9 +2294,8 @@ static int gpencil_material_find_index_by_name_prefix(Object *ob, const char *na
  * \param frame_offset: Destination frame number offset.
  * \param use_seams: Only export seam edges.
  * \param use_faces: Export faces as filled strokes.
- * \simple_material: Create only 2 materials (stroke and fill)
  */
-void BKE_gpencil_convert_mesh(Main *bmain,
+bool BKE_gpencil_convert_mesh(Main *bmain,
                               Depsgraph *depsgraph,
                               Scene *scene,
                               Object *ob_gp,
@@ -2293,11 +2306,10 @@ void BKE_gpencil_convert_mesh(Main *bmain,
                               const float matrix[4][4],
                               const int frame_offset,
                               const bool use_seams,
-                              const bool use_faces,
-                              const bool simple_material)
+                              const bool use_faces)
 {
   if (ELEM(NULL, ob_gp, ob_mesh) || (ob_gp->type != OB_GPENCIL) || (ob_gp->data == NULL)) {
-    return;
+    return false;
   }
 
   bGPdata *gpd = (bGPdata *)ob_gp->data;
@@ -2308,77 +2320,56 @@ void BKE_gpencil_convert_mesh(Main *bmain,
   MPoly *mp, *mpoly = me_eval->mpoly;
   MLoop *mloop = me_eval->mloop;
   int mpoly_len = me_eval->totpoly;
-  int stroke_mat_index = gpencil_material_find_index_by_name_prefix(ob_gp, "Stroke");
-  int fill_mat_index = gpencil_material_find_index_by_name_prefix(ob_gp, "Fill");
-
-  /* If the object has enough materials means it was created in a previous step. */
-  const bool create_mat = ((ob_gp->totcol > 0) && (ob_gp->totcol >= ob_mesh->totcol)) ? false :
-                                                                                        true;
+  char element_name[200];
 
   /* Need at least an edge. */
   if (me_eval->totvert < 2) {
-    return;
+    return false;
   }
 
-  int r_idx;
   const float default_colors[2][4] = {{0.0f, 0.0f, 0.0f, 1.0f}, {0.7f, 0.7f, 0.7f, 1.0f}};
   /* Create stroke material. */
-  if (create_mat) {
-    if (stroke_mat_index == -1) {
-      gpencil_add_material(bmain, ob_gp, "Stroke", default_colors[0], true, false, &r_idx);
-      stroke_mat_index = ob_gp->totcol - 1;
-    }
+  make_element_name(ob_mesh->id.name + 2, "Stroke", 64, element_name);
+  int stroke_mat_index = gpencil_material_find_index_by_name(ob_gp, element_name);
+
+  if (stroke_mat_index == -1) {
+    gpencil_add_material(
+        bmain, ob_gp, element_name, default_colors[0], true, false, &stroke_mat_index);
   }
+
   /* Export faces as filled strokes. */
   if (use_faces) {
-    if (create_mat) {
-      /* Find a material slot with material assigned. */
-      bool material_found = false;
-      for (int i = 0; i < ob_mesh->totcol; i++) {
-        Material *ma = BKE_object_material_get(ob_mesh, i + 1);
-        if (ma != NULL) {
-          material_found = true;
-          break;
-        }
-      }
-
-      /* If no materials or use simple materials, create a simple fill. */
-      if ((!material_found) || (simple_material)) {
-        if (fill_mat_index == -1) {
-          gpencil_add_material(bmain, ob_gp, "Fill", default_colors[1], false, true, &r_idx);
-          fill_mat_index = ob_gp->totcol - 1;
-        }
-      }
-      else {
-        /* Create all materials for fill. */
-        for (int i = 0; i < ob_mesh->totcol; i++) {
-          Material *ma = BKE_object_material_get(ob_mesh, i + 1);
-          if (ma == NULL) {
-            continue;
-          }
-          float color[4];
-          copy_v3_v3(color, &ma->r);
-          color[3] = 1.0f;
-          gpencil_add_material(bmain, ob_gp, ma->id.name + 2, color, false, true, &r_idx);
-        }
-      }
-    }
 
     /* Read all polygons and create fill for each. */
     if (mpoly_len > 0) {
-      bGPDlayer *gpl_fill = BKE_gpencil_layer_named_get(gpd, DATA_("Fills"));
+      make_element_name(ob_mesh->id.name + 2, "Fills", 128, element_name);
+      /* Create Layer and Frame. */
+      bGPDlayer *gpl_fill = BKE_gpencil_layer_named_get(gpd, element_name);
       if (gpl_fill == NULL) {
-        gpl_fill = BKE_gpencil_layer_addnew(gpd, DATA_("Fills"), true);
+        gpl_fill = BKE_gpencil_layer_addnew(gpd, element_name, true);
       }
       bGPDframe *gpf_fill = BKE_gpencil_layer_frame_get(
           gpl_fill, CFRA + frame_offset, GP_GETFRAME_ADD_NEW);
       int i;
       for (i = 0, mp = mpoly; i < mpoly_len; i++, mp++) {
         MLoop *ml = &mloop[mp->loopstart];
-        /* Create fill stroke. */
-        int mat_idx = (simple_material) || (mp->mat_nr + 1 > ob_gp->totcol - 1) ?
-                          MAX2(fill_mat_index, 0) :
-                          mp->mat_nr + 1;
+        /* Find material. */
+        int mat_idx = 0;
+        Material *ma = BKE_object_material_get(ob_mesh, mp->mat_nr + 1);
+        make_element_name(
+            ob_mesh->id.name + 2, (ma != NULL) ? ma->id.name + 2 : "Fill", 64, element_name);
+        mat_idx = gpencil_material_find_index_by_name(ob_gp, element_name);
+        if (mat_idx == -1) {
+          float color[4];
+          if (ma != NULL) {
+            copy_v3_v3(color, &ma->r);
+            color[3] = 1.0f;
+          }
+          else {
+            copy_v4_v4(color, default_colors[1]);
+          }
+          gpencil_add_material(bmain, ob_gp, element_name, color, false, true, &mat_idx);
+        }
 
         bGPDstroke *gps_fill = BKE_gpencil_stroke_add(gpf_fill, mat_idx, mp->totloop, 10, false);
         gps_fill->flag |= GP_STROKE_CYCLIC;
@@ -2386,12 +2377,15 @@ void BKE_gpencil_convert_mesh(Main *bmain,
         /* Add points to strokes. */
         for (int j = 0; j < mp->totloop; j++, ml++) {
           MVert *mv = &me_eval->mvert[ml->v];
-
           bGPDspoint *pt = &gps_fill->points[j];
           copy_v3_v3(&pt->x, mv->co);
           mul_m4_v3(matrix, &pt->x);
           pt->pressure = 1.0f;
           pt->strength = 1.0f;
+        }
+        /* If has only 3 points subdivide. */
+        if (mp->totloop == 3) {
+          BKE_gpencil_stroke_subdivide(gps_fill, 1, GP_SUBDIV_SIMPLE);
         }
 
         BKE_gpencil_stroke_geometry_update(gps_fill);
@@ -2400,17 +2394,23 @@ void BKE_gpencil_convert_mesh(Main *bmain,
   }
 
   /* Create stroke from edges. */
-  bGPDlayer *gpl_stroke = BKE_gpencil_layer_named_get(gpd, DATA_("Lines"));
+  make_element_name(ob_mesh->id.name + 2, "Lines", 128, element_name);
+
+  /* Create Layer and Frame. */
+  bGPDlayer *gpl_stroke = BKE_gpencil_layer_named_get(gpd, element_name);
   if (gpl_stroke == NULL) {
-    gpl_stroke = BKE_gpencil_layer_addnew(gpd, DATA_("Lines"), true);
+    gpl_stroke = BKE_gpencil_layer_addnew(gpd, element_name, true);
   }
   bGPDframe *gpf_stroke = BKE_gpencil_layer_frame_get(
       gpl_stroke, CFRA + frame_offset, GP_GETFRAME_ADD_NEW);
+
   gpencil_generate_edgeloops(
       ob_eval, gpf_stroke, stroke_mat_index, angle, thickness, offset, matrix, use_seams);
 
   /* Tag for recalculation */
   DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+
+  return true;
 }
 
 /**
