@@ -2944,39 +2944,6 @@ static void direct_link_key(BlendDataReader *reader, Key *key)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Meta Ball
- * \{ */
-
-static void lib_link_mball(BlendLibReader *reader, MetaBall *mb)
-{
-  for (int a = 0; a < mb->totcol; a++) {
-    BLO_read_id_address(reader, mb->id.lib, &mb->mat[a]);
-  }
-
-  BLO_read_id_address(reader, mb->id.lib, &mb->ipo);  // XXX deprecated - old animation system
-}
-
-static void direct_link_mball(BlendDataReader *reader, MetaBall *mb)
-{
-  BLO_read_data_address(reader, &mb->adt);
-  BKE_animdata_blend_read_data(reader, mb->adt);
-
-  BLO_read_pointer_array(reader, (void **)&mb->mat);
-
-  BLO_read_list(reader, &(mb->elems));
-
-  BLI_listbase_clear(&mb->disp);
-  mb->editelems = NULL;
-  /* Must always be cleared (meta's don't have their own edit-data). */
-  mb->needs_flush_to_id = 0;
-  /*  mb->edit_elems.first= mb->edit_elems.last= NULL;*/
-  mb->lastelem = NULL;
-  mb->batch_cache = NULL;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: World
  * \{ */
 
@@ -7039,9 +7006,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_CU:
       direct_link_curve(&reader, (Curve *)id);
       break;
-    case ID_MB:
-      direct_link_mball(&reader, (MetaBall *)id);
-      break;
     case ID_TE:
       direct_link_texture(&reader, (Tex *)id);
       break;
@@ -7116,6 +7080,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_IM:
     case ID_LA:
     case ID_MA:
+    case ID_MB:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -7763,9 +7728,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_CA:
         lib_link_camera(&reader, (Camera *)id);
         break;
-      case ID_MB:
-        lib_link_mball(&reader, (MetaBall *)id);
-        break;
       case ID_CU:
         lib_link_curve(&reader, (Curve *)id);
         break;
@@ -7817,6 +7779,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_IM:
       case ID_LA:
       case ID_MA:
+      case ID_MB:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -8518,13 +8481,6 @@ static void expand_world(BlendExpander *expander, World *wrld)
   BLO_expand(expander, wrld->ipo);  // XXX deprecated - old animation system
 }
 
-static void expand_mball(BlendExpander *expander, MetaBall *mb)
-{
-  for (int a = 0; a < mb->totcol; a++) {
-    BLO_expand(expander, mb->mat[a]);
-  }
-}
-
 static void expand_curve(BlendExpander *expander, Curve *cu)
 {
   for (int a = 0; a < cu->totcol; a++) {
@@ -8947,9 +8903,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_CU:
               expand_curve(&expander, (Curve *)id);
-              break;
-            case ID_MB:
-              expand_mball(&expander, (MetaBall *)id);
               break;
             case ID_SCE:
               expand_scene(&expander, (Scene *)id);

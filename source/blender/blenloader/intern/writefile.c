@@ -1431,32 +1431,6 @@ static void write_camera(BlendWriter *writer, Camera *cam, const void *id_addres
   }
 }
 
-static void write_mball(BlendWriter *writer, MetaBall *mb, const void *id_address)
-{
-  if (mb->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-    BLI_listbase_clear(&mb->disp);
-    mb->editelems = NULL;
-    /* Must always be cleared (meta's don't have their own edit-data). */
-    mb->needs_flush_to_id = 0;
-    mb->lastelem = NULL;
-    mb->batch_cache = NULL;
-
-    /* write LibData */
-    BLO_write_id_struct(writer, MetaBall, id_address, &mb->id);
-    BKE_id_blend_write(writer, &mb->id);
-
-    /* direct data */
-    BLO_write_pointer_array(writer, mb->totcol, mb->mat);
-    if (mb->adt) {
-      BKE_animdata_blend_write(writer, mb->adt);
-    }
-
-    LISTBASE_FOREACH (MetaElem *, ml, &mb->elems) {
-      BLO_write_struct(writer, MetaElem, ml);
-    }
-  }
-}
 
 static void write_curve(BlendWriter *writer, Curve *cu, const void *id_address)
 {
@@ -2831,9 +2805,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_CU:
             write_curve(&writer, (Curve *)id_buffer, id);
             break;
-          case ID_MB:
-            write_mball(&writer, (MetaBall *)id_buffer, id);
-            break;
           case ID_CA:
             write_camera(&writer, (Camera *)id_buffer, id);
             break;
@@ -2899,6 +2870,7 @@ static bool write_file_handle(Main *mainvar,
           case ID_IM:
           case ID_LA:
           case ID_MA:
+          case ID_MB:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:
