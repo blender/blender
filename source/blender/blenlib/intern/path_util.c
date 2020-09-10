@@ -1299,6 +1299,11 @@ void BLI_setenv_if_new(const char *env, const char *val)
 
 /**
  * Get an env var, result has to be used immediately.
+ *
+ * On windows getenv gets its variables from a static copy of the enviroment variables taken at
+ * process startup, causing it to not pick up on evenironment variables created during runtime.
+ * This function uses an alternative method to get enviroment variables that does pick up on
+ * runtime environment variables.
  */
 const char *BLI_getenv(const char *env)
 {
