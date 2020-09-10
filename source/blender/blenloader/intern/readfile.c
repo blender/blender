@@ -6505,88 +6505,6 @@ static void lib_link_sound(BlendLibReader *reader, bSound *sound)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Masks
- * \{ */
-
-static void direct_link_mask(BlendDataReader *reader, Mask *mask)
-{
-  BLO_read_data_address(reader, &mask->adt);
-
-  BLO_read_list(reader, &mask->masklayers);
-
-  LISTBASE_FOREACH (MaskLayer *, masklay, &mask->masklayers) {
-    /* can't use newdataadr since it's a pointer within an array */
-    MaskSplinePoint *act_point_search = NULL;
-
-    BLO_read_list(reader, &masklay->splines);
-
-    LISTBASE_FOREACH (MaskSpline *, spline, &masklay->splines) {
-      MaskSplinePoint *points_old = spline->points;
-
-      BLO_read_data_address(reader, &spline->points);
-
-      for (int i = 0; i < spline->tot_point; i++) {
-        MaskSplinePoint *point = &spline->points[i];
-
-        if (point->tot_uw) {
-          BLO_read_data_address(reader, &point->uw);
-        }
-      }
-
-      /* detect active point */
-      if ((act_point_search == NULL) && (masklay->act_point >= points_old) &&
-          (masklay->act_point < points_old + spline->tot_point)) {
-        act_point_search = &spline->points[masklay->act_point - points_old];
-      }
-    }
-
-    BLO_read_list(reader, &masklay->splines_shapes);
-
-    LISTBASE_FOREACH (MaskLayerShape *, masklay_shape, &masklay->splines_shapes) {
-      BLO_read_data_address(reader, &masklay_shape->data);
-
-      if (masklay_shape->tot_vert) {
-        if (BLO_read_requires_endian_switch(reader)) {
-          BLI_endian_switch_float_array(masklay_shape->data,
-                                        masklay_shape->tot_vert * sizeof(float) *
-                                            MASK_OBJECT_SHAPE_ELEM_SIZE);
-        }
-      }
-    }
-
-    BLO_read_data_address(reader, &masklay->act_spline);
-    masklay->act_point = act_point_search;
-  }
-}
-
-static void lib_link_mask_parent(BlendLibReader *reader, Mask *mask, MaskParent *parent)
-{
-  BLO_read_id_address(reader, mask->id.lib, &parent->id);
-}
-
-static void lib_link_mask(BlendLibReader *reader, Mask *mask)
-{
-  LISTBASE_FOREACH (MaskLayer *, masklay, &mask->masklayers) {
-    MaskSpline *spline;
-
-    spline = masklay->splines.first;
-    while (spline) {
-      for (int i = 0; i < spline->tot_point; i++) {
-        MaskSplinePoint *point = &spline->points[i];
-
-        lib_link_mask_parent(reader, mask, &point->parent);
-      }
-
-      lib_link_mask_parent(reader, mask, &spline->parent);
-
-      spline = spline->next;
-    }
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: Hair
  * \{ */
 
@@ -6892,9 +6810,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_GD:
       direct_link_gpencil(&reader, (bGPdata *)id);
       break;
-    case ID_MSK:
-      direct_link_mask(&reader, (Mask *)id);
-      break;
     case ID_CF:
       direct_link_cachefile(&reader, (CacheFile *)id);
       break;
@@ -6931,6 +6846,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_CU:
     case ID_CA:
     case ID_WO:
+    case ID_MSK:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -7536,9 +7452,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
      * Please keep order of entries in that switch matching that order, it's easier to quickly see
      * whether something is wrong then. */
     switch (GS(id->name)) {
-      case ID_MSK:
-        lib_link_mask(&reader, (Mask *)id);
-        break;
       case ID_WM:
         lib_link_windowmanager(&reader, (wmWindowManager *)id);
         break;
@@ -7624,6 +7537,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_CU:
       case ID_CA:
       case ID_WO:
+      case ID_MSK:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -8596,26 +8510,6 @@ static void expand_lightprobe(BlendExpander *UNUSED(expander), LightProbe *UNUSE
 {
 }
 
-static void expand_mask_parent(BlendExpander *expander, MaskParent *parent)
-{
-  if (parent->id) {
-    BLO_expand(expander, parent->id);
-  }
-}
-
-static void expand_mask(BlendExpander *expander, Mask *mask)
-{
-  LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
-    LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
-      for (int i = 0; i < spline->tot_point; i++) {
-        MaskSplinePoint *point = &spline->points[i];
-        expand_mask_parent(expander, &point->parent);
-      }
-
-      expand_mask_parent(expander, &spline->parent);
-    }
-  }
-}
 
 static void expand_gpencil(BlendExpander *expander, bGPdata *gpd)
 {
@@ -8738,9 +8632,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_PA:
               expand_particlesettings(&expander, (ParticleSettings *)id);
-              break;
-            case ID_MSK:
-              expand_mask(&expander, (Mask *)id);
               break;
             case ID_GD:
               expand_gpencil(&expander, (bGPdata *)id);

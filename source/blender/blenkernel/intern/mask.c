@@ -28,6 +28,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_endian_switch.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
@@ -43,6 +44,7 @@
 #include "BKE_curve.h"
 #include "BKE_idtype.h"
 
+#include "BKE_anim_data.h"
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
@@ -52,6 +54,8 @@
 #include "BKE_tracking.h"
 
 #include "DEG_depsgraph_build.h"
+
+#include "BLO_read_write.h"
 
 static CLG_LogRef LOG = {"bke.mask"};
 
@@ -94,6 +98,155 @@ static void mask_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+static void mask_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  Mask *mask = (Mask *)id;
+  if (mask->id.us > 0 || BLO_write_is_undo(writer)) {
+    MaskLayer *masklay;
+
+    BLO_write_id_struct(writer, Mask, id_address, &mask->id);
+    BKE_id_blend_write(writer, &mask->id);
+
+    if (mask->adt) {
+      BKE_animdata_blend_write(writer, mask->adt);
+    }
+
+    for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+      MaskSpline *spline;
+      MaskLayerShape *masklay_shape;
+
+      BLO_write_struct(writer, MaskLayer, masklay);
+
+      for (spline = masklay->splines.first; spline; spline = spline->next) {
+        int i;
+
+        void *points_deform = spline->points_deform;
+        spline->points_deform = NULL;
+
+        BLO_write_struct(writer, MaskSpline, spline);
+        BLO_write_struct_array(writer, MaskSplinePoint, spline->tot_point, spline->points);
+
+        spline->points_deform = points_deform;
+
+        for (i = 0; i < spline->tot_point; i++) {
+          MaskSplinePoint *point = &spline->points[i];
+
+          if (point->tot_uw) {
+            BLO_write_struct_array(writer, MaskSplinePointUW, point->tot_uw, point->uw);
+          }
+        }
+      }
+
+      for (masklay_shape = masklay->splines_shapes.first; masklay_shape;
+           masklay_shape = masklay_shape->next) {
+        BLO_write_struct(writer, MaskLayerShape, masklay_shape);
+        BLO_write_float_array(
+            writer, masklay_shape->tot_vert * MASK_OBJECT_SHAPE_ELEM_SIZE, masklay_shape->data);
+      }
+    }
+  }
+}
+
+static void mask_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  Mask *mask = (Mask *)id;
+  BLO_read_data_address(reader, &mask->adt);
+
+  BLO_read_list(reader, &mask->masklayers);
+
+  LISTBASE_FOREACH (MaskLayer *, masklay, &mask->masklayers) {
+    /* can't use newdataadr since it's a pointer within an array */
+    MaskSplinePoint *act_point_search = NULL;
+
+    BLO_read_list(reader, &masklay->splines);
+
+    LISTBASE_FOREACH (MaskSpline *, spline, &masklay->splines) {
+      MaskSplinePoint *points_old = spline->points;
+
+      BLO_read_data_address(reader, &spline->points);
+
+      for (int i = 0; i < spline->tot_point; i++) {
+        MaskSplinePoint *point = &spline->points[i];
+
+        if (point->tot_uw) {
+          BLO_read_data_address(reader, &point->uw);
+        }
+      }
+
+      /* detect active point */
+      if ((act_point_search == NULL) && (masklay->act_point >= points_old) &&
+          (masklay->act_point < points_old + spline->tot_point)) {
+        act_point_search = &spline->points[masklay->act_point - points_old];
+      }
+    }
+
+    BLO_read_list(reader, &masklay->splines_shapes);
+
+    LISTBASE_FOREACH (MaskLayerShape *, masklay_shape, &masklay->splines_shapes) {
+      BLO_read_data_address(reader, &masklay_shape->data);
+
+      if (masklay_shape->tot_vert) {
+        if (BLO_read_requires_endian_switch(reader)) {
+          BLI_endian_switch_float_array(masklay_shape->data,
+                                        masklay_shape->tot_vert * sizeof(float) *
+                                            MASK_OBJECT_SHAPE_ELEM_SIZE);
+        }
+      }
+    }
+
+    BLO_read_data_address(reader, &masklay->act_spline);
+    masklay->act_point = act_point_search;
+  }
+}
+
+static void lib_link_mask_parent(BlendLibReader *reader, Mask *mask, MaskParent *parent)
+{
+  BLO_read_id_address(reader, mask->id.lib, &parent->id);
+}
+
+static void mask_blend_read_lib(BlendLibReader *reader, ID *id)
+{
+  Mask *mask = (Mask *)id;
+  LISTBASE_FOREACH (MaskLayer *, masklay, &mask->masklayers) {
+    MaskSpline *spline;
+
+    spline = masklay->splines.first;
+    while (spline) {
+      for (int i = 0; i < spline->tot_point; i++) {
+        MaskSplinePoint *point = &spline->points[i];
+
+        lib_link_mask_parent(reader, mask, &point->parent);
+      }
+
+      lib_link_mask_parent(reader, mask, &spline->parent);
+
+      spline = spline->next;
+    }
+  }
+}
+
+static void expand_mask_parent(BlendExpander *expander, MaskParent *parent)
+{
+  if (parent->id) {
+    BLO_expand(expander, parent->id);
+  }
+}
+
+static void mask_blend_read_expand(BlendExpander *expander, ID *id)
+{
+  Mask *mask = (Mask *)id;
+  LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
+    LISTBASE_FOREACH (MaskSpline *, spline, &mask_layer->splines) {
+      for (int i = 0; i < spline->tot_point; i++) {
+        MaskSplinePoint *point = &spline->points[i];
+        expand_mask_parent(expander, &point->parent);
+      }
+
+      expand_mask_parent(expander, &spline->parent);
+    }
+  }
+}
+
 IDTypeInfo IDType_ID_MSK = {
     .id_code = ID_MSK,
     .id_filter = FILTER_ID_MSK,
@@ -111,10 +264,10 @@ IDTypeInfo IDType_ID_MSK = {
     .foreach_id = mask_foreach_id,
     .foreach_cache = NULL,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
-    .blend_read_lib = NULL,
-    .blend_read_expand = NULL,
+    .blend_write = mask_blend_write,
+    .blend_read_data = mask_blend_read_data,
+    .blend_read_lib = mask_blend_read_lib,
+    .blend_read_expand = mask_blend_read_expand,
 };
 
 static struct {

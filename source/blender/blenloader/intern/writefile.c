@@ -2230,54 +2230,6 @@ static void write_probe(BlendWriter *writer, LightProbe *prb, const void *id_add
   }
 }
 
-static void write_mask(BlendWriter *writer, Mask *mask, const void *id_address)
-{
-  if (mask->id.us > 0 || BLO_write_is_undo(writer)) {
-    MaskLayer *masklay;
-
-    BLO_write_id_struct(writer, Mask, id_address, &mask->id);
-    BKE_id_blend_write(writer, &mask->id);
-
-    if (mask->adt) {
-      BKE_animdata_blend_write(writer, mask->adt);
-    }
-
-    for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
-      MaskSpline *spline;
-      MaskLayerShape *masklay_shape;
-
-      BLO_write_struct(writer, MaskLayer, masklay);
-
-      for (spline = masklay->splines.first; spline; spline = spline->next) {
-        int i;
-
-        void *points_deform = spline->points_deform;
-        spline->points_deform = NULL;
-
-        BLO_write_struct(writer, MaskSpline, spline);
-        BLO_write_struct_array(writer, MaskSplinePoint, spline->tot_point, spline->points);
-
-        spline->points_deform = points_deform;
-
-        for (i = 0; i < spline->tot_point; i++) {
-          MaskSplinePoint *point = &spline->points[i];
-
-          if (point->tot_uw) {
-            BLO_write_struct_array(writer, MaskSplinePointUW, point->tot_uw, point->uw);
-          }
-        }
-      }
-
-      for (masklay_shape = masklay->splines_shapes.first; masklay_shape;
-           masklay_shape = masklay_shape->next) {
-        BLO_write_struct(writer, MaskLayerShape, masklay_shape);
-        BLO_write_float_array(
-            writer, masklay_shape->tot_vert * MASK_OBJECT_SHAPE_ELEM_SIZE, masklay_shape->data);
-      }
-    }
-  }
-}
-
 static void write_cachefile(BlendWriter *writer, CacheFile *cache_file, const void *id_address)
 {
   if (cache_file->id.us > 0 || BLO_write_is_undo(writer)) {
@@ -2707,9 +2659,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_SCR:
             write_screen(&writer, (bScreen *)id_buffer, id);
             break;
-          case ID_MSK:
-            write_mask(&writer, (Mask *)id_buffer, id);
-            break;
           case ID_SCE:
             write_scene(&writer, (Scene *)id_buffer, id);
             break;
@@ -2776,6 +2725,7 @@ static bool write_file_handle(Main *mainvar,
           case ID_CU:
           case ID_CA:
           case ID_WO:
+          case ID_MSK:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:
