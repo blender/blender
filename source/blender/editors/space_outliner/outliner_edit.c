@@ -437,7 +437,8 @@ static void id_delete(bContext *C, ReportList *reports, TreeElement *te, TreeSto
   Main *bmain = CTX_data_main(C);
   ID *id = tselem->id;
 
-  BLI_assert(te->idcode != 0 && id != NULL);
+  BLI_assert(id != NULL);
+  BLI_assert((tselem->type == 0 && te->idcode != 0) || tselem->type == TSE_LAYER_COLLECTION);
   UNUSED_VARS_NDEBUG(te);
 
   if (te->idcode == ID_LI && ((Library *)id)->parent != NULL) {

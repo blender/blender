@@ -95,108 +95,103 @@
 /** \name ID/Library/Data Set/Un-link Utilities
  * \{ */
 
-static void set_operation_types(SpaceOutliner *space_outliner,
-                                ListBase *lb,
-                                int *scenelevel,
-                                int *objectlevel,
-                                int *idlevel,
-                                int *datalevel)
+static void get_element_operation_type(
+    TreeElement *te, int *scenelevel, int *objectlevel, int *idlevel, int *datalevel)
 {
-  TreeElement *te;
-  TreeStoreElem *tselem;
-
-  for (te = lb->first; te; te = te->next) {
-    tselem = TREESTORE(te);
-    if (tselem->flag & TSE_SELECTED) {
-      /* Layer collection points to collection ID. */
-      if (!ELEM(tselem->type, 0, TSE_LAYER_COLLECTION)) {
-        if (*datalevel == 0) {
-          *datalevel = tselem->type;
-        }
-        else if (*datalevel != tselem->type) {
-          *datalevel = -1;
-        }
+  TreeStoreElem *tselem = TREESTORE(te);
+  if (tselem->flag & TSE_SELECTED) {
+    /* Layer collection points to collection ID. */
+    if (!ELEM(tselem->type, 0, TSE_LAYER_COLLECTION)) {
+      if (*datalevel == 0) {
+        *datalevel = tselem->type;
       }
-      else {
-        const int idcode = (int)GS(tselem->id->name);
-        bool is_standard_id = false;
-        switch ((ID_Type)idcode) {
-          case ID_SCE:
-            *scenelevel = 1;
-            break;
-          case ID_OB:
-            *objectlevel = 1;
-            break;
-
-          case ID_ME:
-          case ID_CU:
-          case ID_MB:
-          case ID_LT:
-          case ID_LA:
-          case ID_AR:
-          case ID_CA:
-          case ID_SPK:
-          case ID_MA:
-          case ID_TE:
-          case ID_IP:
-          case ID_IM:
-          case ID_SO:
-          case ID_KE:
-          case ID_WO:
-          case ID_AC:
-          case ID_TXT:
-          case ID_GR:
-          case ID_LS:
-          case ID_LI:
-          case ID_VF:
-          case ID_NT:
-          case ID_BR:
-          case ID_PA:
-          case ID_GD:
-          case ID_MC:
-          case ID_MSK:
-          case ID_PAL:
-          case ID_PC:
-          case ID_CF:
-          case ID_WS:
-          case ID_LP:
-          case ID_HA:
-          case ID_PT:
-          case ID_VO:
-          case ID_SIM:
-            is_standard_id = true;
-            break;
-          case ID_WM:
-          case ID_SCR:
-            /* Those are ignored here. */
-            /* Note: while Screens should be manageable here, deleting a screen used by a workspace
-             * will cause crashes when trying to use that workspace, so for now let's play minimal,
-             * safe change. */
-            break;
-        }
-        if (idcode == ID_NLA) {
-          /* Fake one, not an actual ID type... */
-          is_standard_id = true;
-        }
-
-        if (is_standard_id) {
-          if (*idlevel == 0) {
-            *idlevel = idcode;
-          }
-          else if (*idlevel != idcode) {
-            *idlevel = -1;
-          }
-          if (ELEM(*datalevel, TSE_VIEW_COLLECTION_BASE, TSE_SCENE_COLLECTION_BASE)) {
-            *datalevel = 0;
-          }
-        }
+      else if (*datalevel != tselem->type) {
+        *datalevel = -1;
       }
     }
-    if (TSELEM_OPEN(tselem, space_outliner)) {
-      set_operation_types(
-          space_outliner, &te->subtree, scenelevel, objectlevel, idlevel, datalevel);
+    else {
+      const int idcode = (int)GS(tselem->id->name);
+      bool is_standard_id = false;
+      switch ((ID_Type)idcode) {
+        case ID_SCE:
+          *scenelevel = 1;
+          break;
+        case ID_OB:
+          *objectlevel = 1;
+          break;
+
+        case ID_ME:
+        case ID_CU:
+        case ID_MB:
+        case ID_LT:
+        case ID_LA:
+        case ID_AR:
+        case ID_CA:
+        case ID_SPK:
+        case ID_MA:
+        case ID_TE:
+        case ID_IP:
+        case ID_IM:
+        case ID_SO:
+        case ID_KE:
+        case ID_WO:
+        case ID_AC:
+        case ID_TXT:
+        case ID_GR:
+        case ID_LS:
+        case ID_LI:
+        case ID_VF:
+        case ID_NT:
+        case ID_BR:
+        case ID_PA:
+        case ID_GD:
+        case ID_MC:
+        case ID_MSK:
+        case ID_PAL:
+        case ID_PC:
+        case ID_CF:
+        case ID_WS:
+        case ID_LP:
+        case ID_HA:
+        case ID_PT:
+        case ID_VO:
+        case ID_SIM:
+          is_standard_id = true;
+          break;
+        case ID_WM:
+        case ID_SCR:
+          /* Those are ignored here. */
+          /* Note: while Screens should be manageable here, deleting a screen used by a workspace
+           * will cause crashes when trying to use that workspace, so for now let's play minimal,
+           * safe change. */
+          break;
+      }
+      if (idcode == ID_NLA) {
+        /* Fake one, not an actual ID type... */
+        is_standard_id = true;
+      }
+
+      if (is_standard_id) {
+        if (*idlevel == 0) {
+          *idlevel = idcode;
+        }
+        else if (*idlevel != idcode) {
+          *idlevel = -1;
+        }
+        if (ELEM(*datalevel, TSE_VIEW_COLLECTION_BASE, TSE_SCENE_COLLECTION_BASE)) {
+          *datalevel = 0;
+        }
+      }
     }
   }
+}
+
+static TreeElement *get_target_element(SpaceOutliner *space_outliner)
+{
+  TreeElement *te = outliner_find_element_with_flag(&space_outliner->tree, TSE_ACTIVE);
+  BLI_assert(te);
+
+  return te;
 }
 
 static void unlink_action_fn(bContext *C,
@@ -405,7 +400,7 @@ static void outliner_do_libdata_operation(bContext *C,
   for (te = lb->first; te; te = te->next) {
     tselem = TREESTORE(te);
     if (tselem->flag & TSE_SELECTED) {
-      if (ELEM(tselem->type, 0, TSE_LAYER_COLLECTION)) {
+      if ((tselem->type == 0 && te->idcode != 0) || tselem->type == TSE_LAYER_COLLECTION) {
         TreeStoreElem *tsep = te->parent ? TREESTORE(te->parent) : NULL;
         operation_fn(C, reports, scene, te, tsep, tselem, user_data);
       }
@@ -1796,18 +1791,16 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
-  eOutlinerIdOpTypes event;
 
   /* check for invalid states */
   if (space_outliner == NULL) {
     return OPERATOR_CANCELLED;
   }
 
-  set_operation_types(
-      space_outliner, &space_outliner->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
+  TreeElement *te = get_target_element(space_outliner);
+  get_element_operation_type(te, &scenelevel, &objectlevel, &idlevel, &datalevel);
 
-  event = RNA_enum_get(op->ptr, "type");
-
+  eOutlinerIdOpTypes event = RNA_enum_get(op->ptr, "type");
   switch (event) {
     case OUTLINER_IDOP_UNLINK: {
       /* unlink datablock from its parent */
@@ -2128,18 +2121,16 @@ static int outliner_lib_operation_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
-  eOutlinerLibOpTypes event;
 
   /* check for invalid states */
   if (space_outliner == NULL) {
     return OPERATOR_CANCELLED;
   }
 
-  set_operation_types(
-      space_outliner, &space_outliner->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
+  TreeElement *te = get_target_element(space_outliner);
+  get_element_operation_type(te, &scenelevel, &objectlevel, &idlevel, &datalevel);
 
-  event = RNA_enum_get(op->ptr, "type");
-
+  eOutlinerLibOpTypes event = RNA_enum_get(op->ptr, "type");
   switch (event) {
     case OL_LIB_RENAME: {
       outliner_do_libdata_operation(
@@ -2261,8 +2252,9 @@ static int outliner_action_set_exec(bContext *C, wmOperator *op)
   if (space_outliner == NULL) {
     return OPERATOR_CANCELLED;
   }
-  set_operation_types(
-      space_outliner, &space_outliner->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
+
+  TreeElement *te = get_target_element(space_outliner);
+  get_element_operation_type(te, &scenelevel, &objectlevel, &idlevel, &datalevel);
 
   /* get action to use */
   act = BLI_findlink(&bmain->actions, RNA_enum_get(op->ptr, "action"));
@@ -2369,22 +2361,21 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
   wmWindowManager *wm = CTX_wm_manager(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
-  eOutliner_AnimDataOps event;
 
   /* check for invalid states */
   if (space_outliner == NULL) {
     return OPERATOR_CANCELLED;
   }
 
-  event = RNA_enum_get(op->ptr, "type");
-  set_operation_types(
-      space_outliner, &space_outliner->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
+  TreeElement *te = get_target_element(space_outliner);
+  get_element_operation_type(te, &scenelevel, &objectlevel, &idlevel, &datalevel);
 
   if (datalevel != TSE_ANIM_DATA) {
     return OPERATOR_CANCELLED;
   }
 
   /* perform the core operation */
+  eOutliner_AnimDataOps event = RNA_enum_get(op->ptr, "type");
   switch (event) {
     case OUTLINER_ANIMOP_CLEAR_ADT:
       /* Remove Animation Data - this may remove the active action, in some cases... */
@@ -2474,15 +2465,10 @@ static const EnumPropertyItem prop_constraint_op_types[] = {
 static int outliner_constraint_operation_exec(bContext *C, wmOperator *op)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
-  int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
-  eOutliner_PropConstraintOps event;
-
-  event = RNA_enum_get(op->ptr, "type");
-  set_operation_types(
-      space_outliner, &space_outliner->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
+  eOutliner_PropConstraintOps event = RNA_enum_get(op->ptr, "type");
 
   outliner_do_data_operation(
-      space_outliner, datalevel, event, &space_outliner->tree, constraint_fn, C);
+      space_outliner, TSE_CONSTRAINT, event, &space_outliner->tree, constraint_fn, C);
 
   if (event == OL_CONSTRAINTOP_DELETE) {
     outliner_cleanup_tree(space_outliner);
@@ -2526,15 +2512,10 @@ static const EnumPropertyItem prop_modifier_op_types[] = {
 static int outliner_modifier_operation_exec(bContext *C, wmOperator *op)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
-  int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
-  eOutliner_PropModifierOps event;
-
-  event = RNA_enum_get(op->ptr, "type");
-  set_operation_types(
-      space_outliner, &space_outliner->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
+  eOutliner_PropModifierOps event = RNA_enum_get(op->ptr, "type");
 
   outliner_do_data_operation(
-      space_outliner, datalevel, event, &space_outliner->tree, modifier_fn, C);
+      space_outliner, TSE_MODIFIER, event, &space_outliner->tree, modifier_fn, C);
 
   if (event == OL_MODIFIER_OP_DELETE) {
     outliner_cleanup_tree(space_outliner);
@@ -2581,17 +2562,16 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
-  eOutliner_PropDataOps event;
 
   /* check for invalid states */
   if (space_outliner == NULL) {
     return OPERATOR_CANCELLED;
   }
 
-  event = RNA_enum_get(op->ptr, "type");
-  set_operation_types(
-      space_outliner, &space_outliner->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
+  TreeElement *te = get_target_element(space_outliner);
+  get_element_operation_type(te, &scenelevel, &objectlevel, &idlevel, &datalevel);
 
+  eOutliner_PropDataOps event = RNA_enum_get(op->ptr, "type");
   switch (datalevel) {
     case TSE_POSE_CHANNEL: {
       outliner_do_data_operation(
@@ -2690,134 +2670,116 @@ static int outliner_operator_menu(bContext *C, const char *opname)
 }
 
 static int do_outliner_operation_event(bContext *C,
+                                       ReportList *reports,
                                        ARegion *region,
                                        SpaceOutliner *space_outliner,
-                                       TreeElement *te,
-                                       const float mval[2])
+                                       TreeElement *te)
 {
-  ReportList *reports = CTX_wm_reports(C); /* XXX... */
+  int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
+  TreeStoreElem *tselem = TREESTORE(te);
 
-  if (mval[1] > te->ys && mval[1] < te->ys + UI_UNIT_Y) {
-    int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
-    TreeStoreElem *tselem = TREESTORE(te);
-
-    /* select object that's clicked on and popup context menu */
-    if (!(tselem->flag & TSE_SELECTED)) {
-
-      if (outliner_flag_is_any_test(&space_outliner->tree, TSE_SELECTED, 1)) {
-        outliner_flag_set(&space_outliner->tree, TSE_SELECTED, 0);
-      }
-
-      tselem->flag |= TSE_SELECTED;
-
-      /* Only redraw, don't rebuild here because TreeElement pointers will
-       * become invalid and operations will crash. */
-      ED_region_tag_redraw_no_rebuild(region);
-      ED_outliner_select_sync_from_outliner(C, space_outliner);
-    }
-
-    set_operation_types(
-        space_outliner, &space_outliner->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
-
-    if (scenelevel) {
-      if (objectlevel || datalevel || idlevel) {
-        BKE_report(reports, RPT_WARNING, "Mixed selection");
-        return OPERATOR_CANCELLED;
-      }
-      return outliner_operator_menu(C, "OUTLINER_OT_scene_operation");
-    }
-    if (objectlevel) {
-      WM_menu_name_call(C, "OUTLINER_MT_object", WM_OP_INVOKE_REGION_WIN);
-      return OPERATOR_FINISHED;
-    }
-    if (idlevel) {
-      if (idlevel == -1 || datalevel) {
-        BKE_report(reports, RPT_WARNING, "Mixed selection");
-        return OPERATOR_CANCELLED;
-      }
-
-      switch (idlevel) {
-        case ID_GR:
-          WM_menu_name_call(C, "OUTLINER_MT_collection", WM_OP_INVOKE_REGION_WIN);
-          return OPERATOR_FINISHED;
-          break;
-        case ID_LI:
-          return outliner_operator_menu(C, "OUTLINER_OT_lib_operation");
-          break;
-        default:
-          return outliner_operator_menu(C, "OUTLINER_OT_id_operation");
-          break;
-      }
-    }
-    else if (datalevel) {
-      if (datalevel == -1) {
-        BKE_report(reports, RPT_WARNING, "Mixed selection");
-        return OPERATOR_CANCELLED;
-      }
-      if (datalevel == TSE_ANIM_DATA) {
-        return outliner_operator_menu(C, "OUTLINER_OT_animdata_operation");
-      }
-      if (datalevel == TSE_DRIVER_BASE) {
-        /* do nothing... no special ops needed yet */
-        return OPERATOR_CANCELLED;
-      }
-      if (datalevel == TSE_LAYER_COLLECTION) {
-        WM_menu_name_call(C, "OUTLINER_MT_collection", WM_OP_INVOKE_REGION_WIN);
-        return OPERATOR_FINISHED;
-      }
-      if (ELEM(datalevel, TSE_SCENE_COLLECTION_BASE, TSE_VIEW_COLLECTION_BASE)) {
-        WM_menu_name_call(C, "OUTLINER_MT_collection_new", WM_OP_INVOKE_REGION_WIN);
-        return OPERATOR_FINISHED;
-      }
-      if (datalevel == TSE_ID_BASE) {
-        /* do nothing... there are no ops needed here yet */
-        return 0;
-      }
-      if (datalevel == TSE_CONSTRAINT) {
-        return outliner_operator_menu(C, "OUTLINER_OT_constraint_operation");
-      }
-      if (datalevel == TSE_MODIFIER) {
-        return outliner_operator_menu(C, "OUTLINER_OT_modifier_operation");
-      }
-      return outliner_operator_menu(C, "OUTLINER_OT_data_operation");
-    }
-
-    return 0;
+  int select_flag = OL_ITEM_ACTIVATE | OL_ITEM_SELECT;
+  if (tselem->flag & TSE_SELECTED) {
+    select_flag |= OL_ITEM_EXTEND;
   }
 
-  for (te = te->subtree.first; te; te = te->next) {
-    int retval = do_outliner_operation_event(C, region, space_outliner, te, mval);
-    if (retval) {
-      return retval;
+  outliner_item_select(C, space_outliner, te, select_flag);
+
+  /* Only redraw, don't rebuild here because TreeElement pointers will
+   * become invalid and operations will crash. */
+  ED_region_tag_redraw_no_rebuild(region);
+  ED_outliner_select_sync_from_outliner(C, space_outliner);
+
+  get_element_operation_type(te, &scenelevel, &objectlevel, &idlevel, &datalevel);
+
+  if (scenelevel) {
+    if (objectlevel || datalevel || idlevel) {
+      BKE_report(reports, RPT_WARNING, "Mixed selection");
+      return OPERATOR_CANCELLED;
     }
+    return outliner_operator_menu(C, "OUTLINER_OT_scene_operation");
+  }
+  if (objectlevel) {
+    WM_menu_name_call(C, "OUTLINER_MT_object", WM_OP_INVOKE_REGION_WIN);
+    return OPERATOR_FINISHED;
+  }
+  if (idlevel) {
+    if (idlevel == -1 || datalevel) {
+      BKE_report(reports, RPT_WARNING, "Mixed selection");
+      return OPERATOR_CANCELLED;
+    }
+
+    switch (idlevel) {
+      case ID_GR:
+        WM_menu_name_call(C, "OUTLINER_MT_collection", WM_OP_INVOKE_REGION_WIN);
+        return OPERATOR_FINISHED;
+        break;
+      case ID_LI:
+        return outliner_operator_menu(C, "OUTLINER_OT_lib_operation");
+        break;
+      default:
+        return outliner_operator_menu(C, "OUTLINER_OT_id_operation");
+        break;
+    }
+  }
+  else if (datalevel) {
+    if (datalevel == -1) {
+      BKE_report(reports, RPT_WARNING, "Mixed selection");
+      return OPERATOR_CANCELLED;
+    }
+    if (datalevel == TSE_ANIM_DATA) {
+      return outliner_operator_menu(C, "OUTLINER_OT_animdata_operation");
+    }
+    if (datalevel == TSE_DRIVER_BASE) {
+      /* do nothing... no special ops needed yet */
+      return OPERATOR_CANCELLED;
+    }
+    if (datalevel == TSE_LAYER_COLLECTION) {
+      WM_menu_name_call(C, "OUTLINER_MT_collection", WM_OP_INVOKE_REGION_WIN);
+      return OPERATOR_FINISHED;
+    }
+    if (ELEM(datalevel, TSE_SCENE_COLLECTION_BASE, TSE_VIEW_COLLECTION_BASE)) {
+      WM_menu_name_call(C, "OUTLINER_MT_collection_new", WM_OP_INVOKE_REGION_WIN);
+      return OPERATOR_FINISHED;
+    }
+    if (datalevel == TSE_ID_BASE) {
+      /* do nothing... there are no ops needed here yet */
+      return 0;
+    }
+    if (datalevel == TSE_CONSTRAINT) {
+      return outliner_operator_menu(C, "OUTLINER_OT_constraint_operation");
+    }
+    if (datalevel == TSE_MODIFIER) {
+      return outliner_operator_menu(C, "OUTLINER_OT_modifier_operation");
+    }
+    return outliner_operator_menu(C, "OUTLINER_OT_data_operation");
   }
 
   return 0;
 }
 
-static int outliner_operation(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int outliner_operation(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   uiBut *but = UI_context_active_but_get(C);
-  TreeElement *te;
-  float fmval[2];
+  float view_mval[2];
 
   if (but) {
     UI_but_tooltip_timer_remove(C, but);
   }
 
-  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
+  UI_view2d_region_to_view(
+      &region->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
 
-  for (te = space_outliner->tree.first; te; te = te->next) {
-    int retval = do_outliner_operation_event(C, region, space_outliner, te, fmval);
-    if (retval) {
-      return retval;
-    }
+  TreeElement *hovered_te = outliner_find_item_at_y(
+      space_outliner, &space_outliner->tree, view_mval[1]);
+  if (!hovered_te) {
+    /* Let this fall through to 'OUTLINER_MT_context_menu'. */
+    return OPERATOR_PASS_THROUGH;
   }
 
-  /* Let this fall through to 'OUTLINER_MT_context_menu'. */
-  return OPERATOR_PASS_THROUGH;
+  return do_outliner_operation_event(C, op->reports, region, space_outliner, hovered_te);
 }
 
 /* Menu only! Calls other operators */
