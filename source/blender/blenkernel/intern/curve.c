@@ -28,11 +28,15 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_endian_switch.h"
 #include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
+
+/* Allow using deprecated functionality for .blend file I/O. */
+#define DNA_DEPRECATED_ALLOW
 
 #include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
@@ -44,6 +48,7 @@
 #include "DNA_object_types.h"
 #include "DNA_vfont_types.h"
 
+#include "BKE_anim_data.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_font.h"
@@ -58,6 +63,8 @@
 #include "DEG_depsgraph_query.h"
 
 #include "CLG_log.h"
+
+#include "BLO_read_write.h"
 
 /* globals */
 
@@ -131,6 +138,158 @@ static void curve_foreach_id(ID *id, LibraryForeachIDData *data)
   BKE_LIB_FOREACHID_PROCESS(data, curve->vfontbi, IDWALK_CB_USER);
 }
 
+static void curve_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  Curve *cu = (Curve *)id;
+  if (cu->id.us > 0 || BLO_write_is_undo(writer)) {
+    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+    cu->editnurb = NULL;
+    cu->editfont = NULL;
+    cu->batch_cache = NULL;
+
+    /* write LibData */
+    BLO_write_id_struct(writer, Curve, id_address, &cu->id);
+    BKE_id_blend_write(writer, &cu->id);
+
+    /* direct data */
+    BLO_write_pointer_array(writer, cu->totcol, cu->mat);
+    if (cu->adt) {
+      BKE_animdata_blend_write(writer, cu->adt);
+    }
+
+    if (cu->vfont) {
+      BLO_write_raw(writer, cu->len + 1, cu->str);
+      BLO_write_struct_array(writer, CharInfo, cu->len_char32 + 1, cu->strinfo);
+      BLO_write_struct_array(writer, TextBox, cu->totbox, cu->tb);
+    }
+    else {
+      /* is also the order of reading */
+      LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
+        BLO_write_struct(writer, Nurb, nu);
+      }
+      LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
+        if (nu->type == CU_BEZIER) {
+          BLO_write_struct_array(writer, BezTriple, nu->pntsu, nu->bezt);
+        }
+        else {
+          BLO_write_struct_array(writer, BPoint, nu->pntsu * nu->pntsv, nu->bp);
+          if (nu->knotsu) {
+            BLO_write_float_array(writer, KNOTSU(nu), nu->knotsu);
+          }
+          if (nu->knotsv) {
+            BLO_write_float_array(writer, KNOTSV(nu), nu->knotsv);
+          }
+        }
+      }
+    }
+  }
+}
+
+static void switch_endian_knots(Nurb *nu)
+{
+  if (nu->knotsu) {
+    BLI_endian_switch_float_array(nu->knotsu, KNOTSU(nu));
+  }
+  if (nu->knotsv) {
+    BLI_endian_switch_float_array(nu->knotsv, KNOTSV(nu));
+  }
+}
+
+static void curve_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  Curve *cu = (Curve *)id;
+  BLO_read_data_address(reader, &cu->adt);
+  BKE_animdata_blend_read_data(reader, cu->adt);
+
+  /* Protect against integer overflow vulnerability. */
+  CLAMP(cu->len_char32, 0, INT_MAX - 4);
+
+  BLO_read_pointer_array(reader, (void **)&cu->mat);
+
+  BLO_read_data_address(reader, &cu->str);
+  BLO_read_data_address(reader, &cu->strinfo);
+  BLO_read_data_address(reader, &cu->tb);
+
+  if (cu->vfont == NULL) {
+    BLO_read_list(reader, &(cu->nurb));
+  }
+  else {
+    cu->nurb.first = cu->nurb.last = NULL;
+
+    TextBox *tb = MEM_calloc_arrayN(MAXTEXTBOX, sizeof(TextBox), "TextBoxread");
+    if (cu->tb) {
+      memcpy(tb, cu->tb, cu->totbox * sizeof(TextBox));
+      MEM_freeN(cu->tb);
+      cu->tb = tb;
+    }
+    else {
+      cu->totbox = 1;
+      cu->actbox = 1;
+      cu->tb = tb;
+      cu->tb[0].w = cu->linewidth;
+    }
+    if (cu->wordspace == 0.0f) {
+      cu->wordspace = 1.0f;
+    }
+  }
+
+  cu->editnurb = NULL;
+  cu->editfont = NULL;
+  cu->batch_cache = NULL;
+
+  LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
+    BLO_read_data_address(reader, &nu->bezt);
+    BLO_read_data_address(reader, &nu->bp);
+    BLO_read_data_address(reader, &nu->knotsu);
+    BLO_read_data_address(reader, &nu->knotsv);
+    if (cu->vfont == NULL) {
+      nu->charidx = 0;
+    }
+
+    if (BLO_read_requires_endian_switch(reader)) {
+      switch_endian_knots(nu);
+    }
+  }
+  cu->texflag &= ~CU_AUTOSPACE_EVALUATED;
+}
+
+static void curve_blend_read_lib(BlendLibReader *reader, ID *id)
+{
+  Curve *cu = (Curve *)id;
+  for (int a = 0; a < cu->totcol; a++) {
+    BLO_read_id_address(reader, cu->id.lib, &cu->mat[a]);
+  }
+
+  BLO_read_id_address(reader, cu->id.lib, &cu->bevobj);
+  BLO_read_id_address(reader, cu->id.lib, &cu->taperobj);
+  BLO_read_id_address(reader, cu->id.lib, &cu->textoncurve);
+  BLO_read_id_address(reader, cu->id.lib, &cu->vfont);
+  BLO_read_id_address(reader, cu->id.lib, &cu->vfontb);
+  BLO_read_id_address(reader, cu->id.lib, &cu->vfonti);
+  BLO_read_id_address(reader, cu->id.lib, &cu->vfontbi);
+
+  BLO_read_id_address(reader, cu->id.lib, &cu->ipo);  // XXX deprecated - old animation system
+  BLO_read_id_address(reader, cu->id.lib, &cu->key);
+}
+
+static void curve_blend_read_expand(BlendExpander *expander, ID *id)
+{
+  Curve *cu = (Curve *)id;
+  for (int a = 0; a < cu->totcol; a++) {
+    BLO_expand(expander, cu->mat[a]);
+  }
+
+  BLO_expand(expander, cu->vfont);
+  BLO_expand(expander, cu->vfontb);
+  BLO_expand(expander, cu->vfonti);
+  BLO_expand(expander, cu->vfontbi);
+  BLO_expand(expander, cu->key);
+  BLO_expand(expander, cu->ipo);  // XXX deprecated - old animation system
+  BLO_expand(expander, cu->bevobj);
+  BLO_expand(expander, cu->taperobj);
+  BLO_expand(expander, cu->textoncurve);
+}
+
 IDTypeInfo IDType_ID_CU = {
     .id_code = ID_CU,
     .id_filter = FILTER_ID_CU,
@@ -148,10 +307,10 @@ IDTypeInfo IDType_ID_CU = {
     .foreach_id = curve_foreach_id,
     .foreach_cache = NULL,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
-    .blend_read_lib = NULL,
-    .blend_read_expand = NULL,
+    .blend_write = curve_blend_write,
+    .blend_read_data = curve_blend_read_data,
+    .blend_read_lib = curve_blend_read_lib,
+    .blend_read_expand = curve_blend_read_expand,
 };
 
 static int cu_isectLL(const float v1[3],

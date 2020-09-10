@@ -1431,53 +1431,6 @@ static void write_camera(BlendWriter *writer, Camera *cam, const void *id_addres
   }
 }
 
-static void write_curve(BlendWriter *writer, Curve *cu, const void *id_address)
-{
-  if (cu->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-    cu->editnurb = NULL;
-    cu->editfont = NULL;
-    cu->batch_cache = NULL;
-
-    /* write LibData */
-    BLO_write_id_struct(writer, Curve, id_address, &cu->id);
-    BKE_id_blend_write(writer, &cu->id);
-
-    /* direct data */
-    BLO_write_pointer_array(writer, cu->totcol, cu->mat);
-    if (cu->adt) {
-      BKE_animdata_blend_write(writer, cu->adt);
-    }
-
-    if (cu->vfont) {
-      BLO_write_raw(writer, cu->len + 1, cu->str);
-      BLO_write_struct_array(writer, CharInfo, cu->len_char32 + 1, cu->strinfo);
-      BLO_write_struct_array(writer, TextBox, cu->totbox, cu->tb);
-    }
-    else {
-      /* is also the order of reading */
-      LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
-        BLO_write_struct(writer, Nurb, nu);
-      }
-      LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
-        if (nu->type == CU_BEZIER) {
-          BLO_write_struct_array(writer, BezTriple, nu->pntsu, nu->bezt);
-        }
-        else {
-
-          BLO_write_struct_array(writer, BPoint, nu->pntsu * nu->pntsv, nu->bp);
-          if (nu->knotsu) {
-            BLO_write_float_array(writer, KNOTSU(nu), nu->knotsu);
-          }
-          if (nu->knotsv) {
-            BLO_write_float_array(writer, KNOTSV(nu), nu->knotsv);
-          }
-        }
-      }
-    }
-  }
-}
-
 static void write_texture(BlendWriter *writer, Tex *tex, const void *id_address)
 {
   if (tex->id.us > 0 || BLO_write_is_undo(writer)) {
@@ -2801,9 +2754,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_SCE:
             write_scene(&writer, (Scene *)id_buffer, id);
             break;
-          case ID_CU:
-            write_curve(&writer, (Curve *)id_buffer, id);
-            break;
           case ID_CA:
             write_camera(&writer, (Camera *)id_buffer, id);
             break;
@@ -2870,6 +2820,7 @@ static bool write_file_handle(Main *mainvar,
           case ID_LA:
           case ID_MA:
           case ID_MB:
+          case ID_CU:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:

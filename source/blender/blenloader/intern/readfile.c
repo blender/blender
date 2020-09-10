@@ -2965,97 +2965,6 @@ static void direct_link_world(BlendDataReader *reader, World *wrld)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Curve
- * \{ */
-
-static void lib_link_curve(BlendLibReader *reader, Curve *cu)
-{
-  for (int a = 0; a < cu->totcol; a++) {
-    BLO_read_id_address(reader, cu->id.lib, &cu->mat[a]);
-  }
-
-  BLO_read_id_address(reader, cu->id.lib, &cu->bevobj);
-  BLO_read_id_address(reader, cu->id.lib, &cu->taperobj);
-  BLO_read_id_address(reader, cu->id.lib, &cu->textoncurve);
-  BLO_read_id_address(reader, cu->id.lib, &cu->vfont);
-  BLO_read_id_address(reader, cu->id.lib, &cu->vfontb);
-  BLO_read_id_address(reader, cu->id.lib, &cu->vfonti);
-  BLO_read_id_address(reader, cu->id.lib, &cu->vfontbi);
-
-  BLO_read_id_address(reader, cu->id.lib, &cu->ipo);  // XXX deprecated - old animation system
-  BLO_read_id_address(reader, cu->id.lib, &cu->key);
-}
-
-static void switch_endian_knots(Nurb *nu)
-{
-  if (nu->knotsu) {
-    BLI_endian_switch_float_array(nu->knotsu, KNOTSU(nu));
-  }
-  if (nu->knotsv) {
-    BLI_endian_switch_float_array(nu->knotsv, KNOTSV(nu));
-  }
-}
-
-static void direct_link_curve(BlendDataReader *reader, Curve *cu)
-{
-  BLO_read_data_address(reader, &cu->adt);
-  BKE_animdata_blend_read_data(reader, cu->adt);
-
-  /* Protect against integer overflow vulnerability. */
-  CLAMP(cu->len_char32, 0, INT_MAX - 4);
-
-  BLO_read_pointer_array(reader, (void **)&cu->mat);
-
-  BLO_read_data_address(reader, &cu->str);
-  BLO_read_data_address(reader, &cu->strinfo);
-  BLO_read_data_address(reader, &cu->tb);
-
-  if (cu->vfont == NULL) {
-    BLO_read_list(reader, &(cu->nurb));
-  }
-  else {
-    cu->nurb.first = cu->nurb.last = NULL;
-
-    TextBox *tb = MEM_calloc_arrayN(MAXTEXTBOX, sizeof(TextBox), "TextBoxread");
-    if (cu->tb) {
-      memcpy(tb, cu->tb, cu->totbox * sizeof(TextBox));
-      MEM_freeN(cu->tb);
-      cu->tb = tb;
-    }
-    else {
-      cu->totbox = 1;
-      cu->actbox = 1;
-      cu->tb = tb;
-      cu->tb[0].w = cu->linewidth;
-    }
-    if (cu->wordspace == 0.0f) {
-      cu->wordspace = 1.0f;
-    }
-  }
-
-  cu->editnurb = NULL;
-  cu->editfont = NULL;
-  cu->batch_cache = NULL;
-
-  LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
-    BLO_read_data_address(reader, &nu->bezt);
-    BLO_read_data_address(reader, &nu->bp);
-    BLO_read_data_address(reader, &nu->knotsu);
-    BLO_read_data_address(reader, &nu->knotsv);
-    if (cu->vfont == NULL) {
-      nu->charidx = 0;
-    }
-
-    if (BLO_read_requires_endian_switch(reader)) {
-      switch_endian_knots(nu);
-    }
-  }
-  cu->texflag &= ~CU_AUTOSPACE_EVALUATED;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: Texture
  * \{ */
 
@@ -7003,9 +6912,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_OB:
       direct_link_object(&reader, (Object *)id);
       break;
-    case ID_CU:
-      direct_link_curve(&reader, (Curve *)id);
-      break;
     case ID_TE:
       direct_link_texture(&reader, (Tex *)id);
       break;
@@ -7081,6 +6987,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_LA:
     case ID_MA:
     case ID_MB:
+    case ID_CU:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -7728,9 +7635,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_CA:
         lib_link_camera(&reader, (Camera *)id);
         break;
-      case ID_CU:
-        lib_link_curve(&reader, (Curve *)id);
-        break;
       case ID_CF:
         lib_link_cachefiles(&reader, (CacheFile *)id);
         break;
@@ -7780,6 +7684,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_LA:
       case ID_MA:
       case ID_MB:
+      case ID_CU:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -8481,23 +8386,6 @@ static void expand_world(BlendExpander *expander, World *wrld)
   BLO_expand(expander, wrld->ipo);  // XXX deprecated - old animation system
 }
 
-static void expand_curve(BlendExpander *expander, Curve *cu)
-{
-  for (int a = 0; a < cu->totcol; a++) {
-    BLO_expand(expander, cu->mat[a]);
-  }
-
-  BLO_expand(expander, cu->vfont);
-  BLO_expand(expander, cu->vfontb);
-  BLO_expand(expander, cu->vfonti);
-  BLO_expand(expander, cu->vfontbi);
-  BLO_expand(expander, cu->key);
-  BLO_expand(expander, cu->ipo);  // XXX deprecated - old animation system
-  BLO_expand(expander, cu->bevobj);
-  BLO_expand(expander, cu->taperobj);
-  BLO_expand(expander, cu->textoncurve);
-}
-
 /* callback function used to expand constraint ID-links */
 static void expand_constraint_cb(bConstraint *UNUSED(con),
                                  ID **idpoin,
@@ -8900,9 +8788,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
           switch (GS(id->name)) {
             case ID_OB:
               expand_object(&expander, (Object *)id);
-              break;
-            case ID_CU:
-              expand_curve(&expander, (Curve *)id);
               break;
             case ID_SCE:
               expand_scene(&expander, (Scene *)id);
