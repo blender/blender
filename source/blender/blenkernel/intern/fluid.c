@@ -181,7 +181,6 @@ void BKE_fluid_reallocate_copy_fluid(FluidDomainSettings *fds,
     float *n_b = manta_smoke_get_color_b(fds->fluid);
 
     /* Noise smoke fields. */
-    int wt_res_old[3];
     float *o_wt_dens = manta_noise_get_density(fluid_old);
     float *o_wt_react = manta_noise_get_react(fluid_old);
     float *o_wt_flame = manta_noise_get_flame(fluid_old);
@@ -210,6 +209,7 @@ void BKE_fluid_reallocate_copy_fluid(FluidDomainSettings *fds,
     float *n_wt_tcv2 = manta_noise_get_texture_v2(fds->fluid);
     float *n_wt_tcw2 = manta_noise_get_texture_w2(fds->fluid);
 
+    int wt_res_old[3];
     manta_noise_get_res(fluid_old, wt_res_old);
 
     for (int z = o_min[2]; z < o_max[2]; z++) {
@@ -3815,6 +3815,13 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
     }
   }
 
+  /* Adaptive domain needs to know about current state, so save it here. */
+  int o_res[3], o_min[3], o_max[3], o_shift[3];
+  copy_v3_v3_int(o_res, fds->res);
+  copy_v3_v3_int(o_min, fds->res_min);
+  copy_v3_v3_int(o_max, fds->res_max);
+  copy_v3_v3_int(o_shift, fds->shift);
+
   /* Ensure that time parameters are initialized correctly before every step. */
   float fps = scene->r.frs_sec / scene->r.frs_sec_base;
   fds->frame_length = DT_DEFAULT * (25.0f / fps) * fds->time_scale;
@@ -3903,8 +3910,6 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
   bool with_gdomain;
   with_gdomain = (fds->guide_source == FLUID_DOMAIN_GUIDE_SRC_DOMAIN);
 
-  int o_res[3], o_min[3], o_max[3], o_shift[3];
-
   /* Cache mode specific settings. */
   switch (mode) {
     case FLUID_DOMAIN_CACHE_ALL:
@@ -3967,12 +3972,6 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
       bake_cache = false;
       break;
   }
-
-  /* Adaptive domain needs to know about current state, so save it here. */
-  copy_v3_v3_int(o_res, fds->res);
-  copy_v3_v3_int(o_min, fds->res_min);
-  copy_v3_v3_int(o_max, fds->res_max);
-  copy_v3_v3_int(o_shift, fds->shift);
 
   bool read_partial = false, read_all = false;
   bool grid_display = fds->use_coba;
