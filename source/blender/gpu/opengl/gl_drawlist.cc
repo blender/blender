@@ -41,8 +41,6 @@
 
 #include <limits.h>
 
-#define USE_MULTI_DRAW_INDIRECT 1
-
 using namespace blender::gpu;
 
 typedef struct GLDrawCommand {
@@ -75,8 +73,7 @@ GLDrawList::GLDrawList(int length)
   data_size_ = 0;
   data_ = NULL;
 
-  if (USE_MULTI_DRAW_INDIRECT && GLEW_ARB_multi_draw_indirect &&
-      GLContext::base_instance_support) {
+  if (GLContext::multi_draw_indirect_support) {
     /* Alloc the biggest possible command list, which is indexed. */
     buffer_size_ = sizeof(GLDrawCommandIndexed) * length;
   }

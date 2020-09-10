@@ -85,25 +85,15 @@ char *GLShader::glsl_patch_get(void)
 
   /* Enable extensions for features that are not part of our base GLSL version
    * don't use an extension for something already available! */
-  if (GLEW_ARB_texture_gather) {
-    /* There is a bug on older Nvidia GPU where GL_ARB_texture_gather
-     * is reported to be supported but yield a compile error (see T55802). */
-    if (!GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY) || GLEW_VERSION_4_0) {
-      STR_CONCAT(patch, slen, "#extension GL_ARB_texture_gather: enable\n");
-
-      /* Some drivers don't agree on GLEW_ARB_texture_gather and the actual support in the
-       * shader so double check the preprocessor define (see T56544). */
-      if (!GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY) && !GLEW_VERSION_4_0) {
-        STR_CONCAT(patch, slen, "#ifdef GL_ARB_texture_gather\n");
-        STR_CONCAT(patch, slen, "#  define GPU_ARB_texture_gather\n");
-        STR_CONCAT(patch, slen, "#endif\n");
-      }
-      else {
-        STR_CONCAT(patch, slen, "#define GPU_ARB_texture_gather\n");
-      }
-    }
+  if (GLContext::texture_gather_support) {
+    STR_CONCAT(patch, slen, "#extension GL_ARB_texture_gather: enable\n");
+    /* Some drivers don't agree on GLEW_ARB_texture_gather and the actual support in the
+     * shader so double check the preprocessor define (see T56544). */
+    STR_CONCAT(patch, slen, "#ifdef GL_ARB_texture_gather\n");
+    STR_CONCAT(patch, slen, "#  define GPU_ARB_texture_gather\n");
+    STR_CONCAT(patch, slen, "#endif\n");
   }
-  if (GLEW_ARB_shader_draw_parameters) {
+  if (GLContext::shader_draw_parameters_support) {
     STR_CONCAT(patch, slen, "#extension GL_ARB_shader_draw_parameters : enable\n");
     STR_CONCAT(patch, slen, "#define GPU_ARB_shader_draw_parameters\n");
   }

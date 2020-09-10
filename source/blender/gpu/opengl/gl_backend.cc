@@ -209,11 +209,20 @@ static void detect_workarounds(void)
     GCaps.mip_render_workaround = true;
     GLContext::debug_layer_workaround = true;
     GLContext::unused_fb_slot_workaround = true;
-    GLContext::texture_copy_workaround = true;
     /* Turn off extensions. */
     GLContext::base_instance_support = false;
+    GLContext::clear_texture_support = false;
+    GLContext::copy_image_support = false;
     GLContext::debug_layer_support = false;
+    GLContext::direct_state_access_support = false;
+    GLContext::fixed_restart_index_support = false;
+    GLContext::multi_bind_support = false;
+    GLContext::multi_draw_indirect_support = false;
+    GLContext::shader_draw_parameters_support = false;
     GLContext::texture_cube_map_array_support = false;
+    GLContext::texture_filter_anisotropic_support = false;
+    GLContext::texture_gather_support = false;
+    GLContext::vertex_attrib_binding_support = false;
     return;
   }
 
@@ -268,7 +277,7 @@ static void detect_workarounds(void)
    * covered since they only support GL 4.4 on windows.
    * This fixes some issues with workbench anti-aliasing on Win + Intel GPU. (see T76273) */
   if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) && !GLEW_VERSION_4_5) {
-    GLContext::texture_copy_workaround = true;
+    GLContext::copy_image_support = false;
   }
   /* Special fix for theses specific GPUs.
    * Without this workaround, blender crashes on startup. (see T72098) */
@@ -305,6 +314,11 @@ static void detect_workarounds(void)
        strstr(version, "Mesa 19.1") || strstr(version, "Mesa 19.2"))) {
     GLContext::unused_fb_slot_workaround = true;
   }
+  /* There is a bug on older Nvidia GPU where GL_ARB_texture_gather
+   * is reported to be supported but yield a compile error (see T55802). */
+  if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY) && !GLEW_VERSION_4_0) {
+    GLContext::texture_gather_support = false;
+  }
 
   /* dFdx/dFdy calculation factors, those are dependent on driver. */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY) &&
@@ -323,6 +337,11 @@ static void detect_workarounds(void)
       GLContext::derivative_signs[1] = 1.0;
     }
   }
+
+  /* Disable multidraw if the base instance cannot be read. */
+  if (GLContext::shader_draw_parameters_support == false) {
+    GLContext::multi_draw_indirect_support = false;
+  }
   /* Enable our own incomplete debug layer if no other is available. */
   if (GLContext::debug_layer_support == false) {
     GLContext::debug_layer_workaround = true;
@@ -336,11 +355,20 @@ GLint GLContext::max_ubo_size;
 GLint GLContext::max_ubo_binds;
 /** Extensions. */
 bool GLContext::base_instance_support = false;
+bool GLContext::clear_texture_support = false;
+bool GLContext::copy_image_support = false;
 bool GLContext::debug_layer_support = false;
+bool GLContext::direct_state_access_support = false;
+bool GLContext::fixed_restart_index_support = false;
+bool GLContext::multi_bind_support = false;
+bool GLContext::multi_draw_indirect_support = false;
+bool GLContext::shader_draw_parameters_support = false;
 bool GLContext::texture_cube_map_array_support = false;
+bool GLContext::texture_filter_anisotropic_support = false;
+bool GLContext::texture_gather_support = false;
+bool GLContext::vertex_attrib_binding_support = false;
 /** Workarounds. */
 bool GLContext::debug_layer_workaround = false;
-bool GLContext::texture_copy_workaround = false;
 bool GLContext::unused_fb_slot_workaround = false;
 float GLContext::derivative_signs[2] = {1.0f, 1.0f};
 
@@ -361,8 +389,18 @@ void GLBackend::capabilities_init(void)
   glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_BLOCKS, &GLContext::max_ubo_binds);
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &GLContext::max_ubo_size);
   GLContext::base_instance_support = GLEW_ARB_base_instance;
-  GLContext::texture_cube_map_array_support = GLEW_ARB_texture_cube_map_array;
+  GLContext::clear_texture_support = GLEW_ARB_clear_texture;
+  GLContext::copy_image_support = GLEW_ARB_copy_image;
   GLContext::debug_layer_support = GLEW_VERSION_4_3 || GLEW_KHR_debug || GLEW_ARB_debug_output;
+  GLContext::direct_state_access_support = GLEW_ARB_direct_state_access;
+  GLContext::fixed_restart_index_support = GLEW_ARB_ES3_compatibility;
+  GLContext::multi_bind_support = GLEW_ARB_multi_bind;
+  GLContext::multi_draw_indirect_support = GLEW_ARB_multi_draw_indirect;
+  GLContext::shader_draw_parameters_support = GLEW_ARB_shader_draw_parameters;
+  GLContext::texture_cube_map_array_support = GLEW_ARB_texture_cube_map_array;
+  GLContext::texture_filter_anisotropic_support = GLEW_EXT_texture_filter_anisotropic;
+  GLContext::texture_gather_support = GLEW_ARB_texture_gather;
+  GLContext::vertex_attrib_binding_support = GLEW_ARB_vertex_attrib_binding;
 
   detect_workarounds();
 

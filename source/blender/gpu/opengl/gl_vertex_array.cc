@@ -135,7 +135,7 @@ void GLVertArray::update_bindings(const GLuint vao,
     }
   }
 
-  if (attr_mask != 0 && GLEW_ARB_vertex_attrib_binding) {
+  if (attr_mask != 0 && GLContext::vertex_attrib_binding_support) {
     for (uint16_t mask = 1, a = 0; a < 16; a++, mask <<= 1) {
       if (attr_mask & mask) {
         GLContext *ctx = GLContext::get();

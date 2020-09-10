@@ -89,7 +89,7 @@ bool GLTexture::init_internal(void)
   this->ensure_mipmaps(0);
 
   /* Avoid issue with incomplete textures. */
-  if (GLEW_ARB_direct_state_access) {
+  if (GLContext::direct_state_access_support) {
     glTextureParameteri(tex_id_, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   }
   else {
@@ -111,7 +111,7 @@ bool GLTexture::init_internal(GPUVertBuf *vbo)
 
   GLenum internal_format = to_gl_internal_format(format_);
 
-  if (GLEW_ARB_direct_state_access) {
+  if (GLContext::direct_state_access_support) {
     glTextureBuffer(tex_id_, internal_format, gl_vbo->vbo_id_);
   }
   else {
@@ -244,8 +244,8 @@ void GLTexture::update_sub(
   GLenum gl_format = to_gl_data_format(format_);
   GLenum gl_type = to_gl(type);
 
-  /* Some drivers have issues with cubemap & glTextureSubImage3D even if it correct. */
-  if (GLEW_ARB_direct_state_access && (type_ != GPU_TEXTURE_CUBE)) {
+  /* Some drivers have issues with cubemap & glTextureSubImage3D even if it is correct. */
+  if (GLContext::direct_state_access_support && (type_ != GPU_TEXTURE_CUBE)) {
     this->update_sub_direct_state_access(mip, offset, extent, gl_format, gl_type, data);
     return;
   }
@@ -306,7 +306,7 @@ void GLTexture::generate_mipmap(void)
   }
 
   /* Downsample from mip 0 using implementation. */
-  if (GLEW_ARB_direct_state_access) {
+  if (GLContext::direct_state_access_support) {
     glGenerateTextureMipmap(tex_id_);
   }
   else {
@@ -319,7 +319,7 @@ void GLTexture::clear(eGPUDataFormat data_format, const void *data)
 {
   BLI_assert(validate_data_format(format_, data_format));
 
-  if (GLEW_ARB_clear_texture && !(G.debug & G_DEBUG_GPU_FORCE_WORKAROUNDS)) {
+  if (GLContext::clear_texture_support) {
     int mip = 0;
     GLenum gl_format = to_gl_data_format(format_);
     GLenum gl_type = to_gl(data_format);
@@ -348,8 +348,7 @@ void GLTexture::copy_to(Texture *dst_)
   /* TODO support array / 3D textures. */
   BLI_assert(dst->d_ == 0);
 
-  if (GLEW_ARB_copy_image && !GLContext::texture_copy_workaround) {
-    /* Opengl 4.3 */
+  if (GLContext::copy_image_support) {
     int mip = 0;
     /* NOTE: mip_size_get() won't override any dimension that is equal to 0. */
     int extent[3] = {1, 1, 1};
@@ -385,7 +384,7 @@ void *GLTexture::read(int mip, eGPUDataFormat type)
   GLenum gl_format = to_gl_data_format(format_);
   GLenum gl_type = to_gl(type);
 
-  if (GLEW_ARB_direct_state_access) {
+  if (GLContext::direct_state_access_support) {
     glGetTextureImage(tex_id_, mip, gl_format, gl_type, texture_size, data);
   }
   else {
@@ -416,7 +415,7 @@ void GLTexture::swizzle_set(const char swizzle[4])
                          (GLint)swizzle_to_gl(swizzle[1]),
                          (GLint)swizzle_to_gl(swizzle[2]),
                          (GLint)swizzle_to_gl(swizzle[3])};
-  if (GLEW_ARB_direct_state_access) {
+  if (GLContext::direct_state_access_support) {
     glTextureParameteriv(tex_id_, GL_TEXTURE_SWIZZLE_RGBA, gl_swizzle);
   }
   else {
@@ -430,7 +429,7 @@ void GLTexture::mip_range_set(int min, int max)
   BLI_assert(min <= max && min >= 0 && max <= mipmaps_);
   mip_min_ = min;
   mip_max_ = max;
-  if (GLEW_ARB_direct_state_access) {
+  if (GLContext::direct_state_access_support) {
     glTextureParameteri(tex_id_, GL_TEXTURE_BASE_LEVEL, min);
     glTextureParameteri(tex_id_, GL_TEXTURE_MAX_LEVEL, max);
   }
@@ -520,7 +519,7 @@ void GLTexture::samplers_init(void)
 
 void GLTexture::samplers_update(void)
 {
-  if (!GLEW_EXT_texture_filter_anisotropic) {
+  if (!GLContext::texture_filter_anisotropic_support) {
     return;
   }
 

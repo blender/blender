@@ -307,7 +307,7 @@ void GLBatch::bind(int i_first)
 
 #if GPU_TRACK_INDEX_RANGE
   /* Can be removed if GL 4.3 is required. */
-  if (!GLEW_ARB_ES3_compatibility && (elem != NULL)) {
+  if (!GLContext::fixed_restart_index_support && (elem != NULL)) {
     glPrimitiveRestartIndex(this->elem_()->restart_index());
   }
 #endif
