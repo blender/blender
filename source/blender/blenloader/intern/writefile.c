@@ -1393,22 +1393,6 @@ static void write_object(BlendWriter *writer, Object *ob, const void *id_address
   }
 }
 
-static void write_vfont(BlendWriter *writer, VFont *vf, const void *id_address)
-{
-  if (vf->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-    vf->data = NULL;
-    vf->temp_pf = NULL;
-
-    /* write LibData */
-    BLO_write_id_struct(writer, VFont, id_address, &vf->id);
-    BKE_id_blend_write(writer, &vf->id);
-
-    /* direct data */
-    BKE_packedfile_blend_write(writer, vf->packedfile);
-  }
-}
-
 static void write_key(BlendWriter *writer, Key *key, const void *id_address)
 {
   if (key->id.us > 0 || BLO_write_is_undo(writer)) {
@@ -3096,9 +3080,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_LA:
             write_light(&writer, (Light *)id_buffer, id);
             break;
-          case ID_VF:
-            write_vfont(&writer, (VFont *)id_buffer, id);
-            break;
           case ID_KE:
             write_key(&writer, (Key *)id_buffer, id);
             break;
@@ -3165,6 +3146,7 @@ static bool write_file_handle(Main *mainvar,
           case ID_NT:
           case ID_LS:
           case ID_TXT:
+          case ID_VF:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:

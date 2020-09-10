@@ -3151,23 +3151,6 @@ static void direct_link_world(BlendDataReader *reader, World *wrld)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: VFont
- * \{ */
-
-static void lib_link_vfont(BlendLibReader *UNUSED(reader), VFont *UNUSED(vf))
-{
-}
-
-static void direct_link_vfont(BlendDataReader *reader, VFont *vf)
-{
-  vf->data = NULL;
-  vf->temp_pf = NULL;
-  BKE_packedfile_blend_read(reader, &vf->packedfile);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: Image
  * \{ */
 
@@ -7413,9 +7396,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_LA:
       direct_link_light(&reader, (Light *)id);
       break;
-    case ID_VF:
-      direct_link_vfont(&reader, (VFont *)id);
-      break;
     case ID_IP:
       direct_link_ipo(&reader, (Ipo *)id);
       break;
@@ -7491,6 +7471,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_NT:
     case ID_LS:
     case ID_TXT:
+    case ID_VF:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -8162,9 +8143,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_AR:
         lib_link_armature(&reader, (bArmature *)id);
         break;
-      case ID_VF:
-        lib_link_vfont(&reader, (VFont *)id);
-        break;
       case ID_HA:
         lib_link_hair(&reader, (Hair *)id);
         break;
@@ -8208,6 +8186,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_NT:
       case ID_LS:
       case ID_TXT:
+      case ID_VF:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }

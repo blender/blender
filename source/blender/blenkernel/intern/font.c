@@ -57,6 +57,8 @@
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 
+#include "BLO_read_write.h"
+
 static CLG_LogRef LOG = {"bke.data_transfer"};
 static ThreadRWMutex vfont_rwlock = BLI_RWLOCK_INITIALIZER;
 
@@ -120,6 +122,31 @@ static void vfont_free_data(ID *id)
   }
 }
 
+static void vfont_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  VFont *vf = (VFont *)id;
+  if (vf->id.us > 0 || BLO_write_is_undo(writer)) {
+    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+    vf->data = NULL;
+    vf->temp_pf = NULL;
+
+    /* write LibData */
+    BLO_write_id_struct(writer, VFont, id_address, &vf->id);
+    BKE_id_blend_write(writer, &vf->id);
+
+    /* direct data */
+    BKE_packedfile_blend_write(writer, vf->packedfile);
+  }
+}
+
+static void vfont_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  VFont *vf = (VFont *)id;
+  vf->data = NULL;
+  vf->temp_pf = NULL;
+  BKE_packedfile_blend_read(reader, &vf->packedfile);
+}
+
 IDTypeInfo IDType_ID_VF = {
     .id_code = ID_VF,
     .id_filter = FILTER_ID_VF,
@@ -137,8 +164,8 @@ IDTypeInfo IDType_ID_VF = {
     .foreach_id = NULL,
     .foreach_cache = NULL,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
+    .blend_write = vfont_blend_write,
+    .blend_read_data = vfont_blend_read_data,
     .blend_read_lib = NULL,
     .blend_read_expand = NULL,
 };
