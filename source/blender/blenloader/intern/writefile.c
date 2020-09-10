@@ -177,6 +177,7 @@
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
+#include "BKE_packedFile.h"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
@@ -1404,11 +1405,7 @@ static void write_vfont(BlendWriter *writer, VFont *vf, const void *id_address)
     BKE_id_blend_write(writer, &vf->id);
 
     /* direct data */
-    if (vf->packedfile) {
-      PackedFile *pf = vf->packedfile;
-      BLO_write_struct(writer, PackedFile, pf);
-      BLO_write_raw(writer, pf->size, pf->data);
-    }
+    BKE_packedfile_blend_write(writer, vf->packedfile);
   }
 }
 
@@ -1542,11 +1539,7 @@ static void write_image(BlendWriter *writer, Image *ima, const void *id_address)
 
     for (imapf = ima->packedfiles.first; imapf; imapf = imapf->next) {
       BLO_write_struct(writer, ImagePackedFile, imapf);
-      if (imapf->packedfile) {
-        PackedFile *pf = imapf->packedfile;
-        BLO_write_struct(writer, PackedFile, pf);
-        BLO_write_raw(writer, pf->size, pf->data);
-      }
+      BKE_packedfile_blend_write(writer, imapf->packedfile);
     }
 
     BKE_previewimg_blend_write(writer, ima->preview);
@@ -2442,11 +2435,7 @@ static void write_sound(BlendWriter *writer, bSound *sound, const void *id_addre
     BLO_write_id_struct(writer, bSound, id_address, &sound->id);
     BKE_id_blend_write(writer, &sound->id);
 
-    if (sound->packedfile) {
-      PackedFile *pf = sound->packedfile;
-      BLO_write_struct(writer, PackedFile, pf);
-      BLO_write_raw(writer, pf->size, pf->data);
-    }
+    BKE_packedfile_blend_write(writer, sound->packedfile);
   }
 }
 
@@ -2760,11 +2749,7 @@ static void write_volume(BlendWriter *writer, Volume *volume, const void *id_add
       BKE_animdata_blend_write(writer, volume->adt);
     }
 
-    if (volume->packedfile) {
-      PackedFile *pf = volume->packedfile;
-      BLO_write_struct(writer, PackedFile, pf);
-      BLO_write_raw(writer, pf->size, pf->data);
-    }
+    BKE_packedfile_blend_write(writer, volume->packedfile);
   }
 }
 
@@ -2866,9 +2851,7 @@ static void write_libraries(WriteData *wd, Main *main)
       BKE_id_blend_write(&writer, &main->curlib->id);
 
       if (main->curlib->packedfile) {
-        PackedFile *pf = main->curlib->packedfile;
-        writestruct(wd, DATA, PackedFile, 1, pf);
-        writedata(wd, DATA, pf->size, pf->data);
+        BKE_packedfile_blend_write(&writer, main->curlib->packedfile);
         if (wd->use_memfile == false) {
           printf("write packed .blend: %s\n", main->curlib->filepath);
         }

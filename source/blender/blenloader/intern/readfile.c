@@ -147,6 +147,7 @@
 #include "BKE_nla.h"
 #include "BKE_node.h"  // for tree type defines
 #include "BKE_object.h"
+#include "BKE_packedFile.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -2605,29 +2606,6 @@ static void direct_link_paint_curve(BlendDataReader *reader, PaintCurve *pc)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read PackedFile
- * \{ */
-
-static PackedFile *direct_link_packedfile(BlendDataReader *reader, PackedFile *pf)
-{
-  BLO_read_packed_address(reader, &pf);
-
-  if (pf) {
-    BLO_read_packed_address(reader, &pf->data);
-    if (pf->data == NULL) {
-      /* We cannot allow a PackedFile with a NULL data field,
-       * the whole code assumes this is not possible. See T70315. */
-      printf("%s: NULL packedfile data, cleaning up...\n", __func__);
-      MEM_SAFE_FREE(pf);
-    }
-  }
-
-  return pf;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read Animation (legacy for version patching)
  * \{ */
 
@@ -3184,7 +3162,7 @@ static void direct_link_vfont(BlendDataReader *reader, VFont *vf)
 {
   vf->data = NULL;
   vf->temp_pf = NULL;
-  vf->packedfile = direct_link_packedfile(reader, vf->packedfile);
+  BKE_packedfile_blend_read(reader, &vf->packedfile);
 }
 
 /** \} */
@@ -3219,12 +3197,12 @@ static void direct_link_image(BlendDataReader *reader, Image *ima)
 
   if (ima->packedfiles.first) {
     LISTBASE_FOREACH (ImagePackedFile *, imapf, &ima->packedfiles) {
-      imapf->packedfile = direct_link_packedfile(reader, imapf->packedfile);
+      BKE_packedfile_blend_read(reader, &imapf->packedfile);
     }
     ima->packedfile = NULL;
   }
   else {
-    ima->packedfile = direct_link_packedfile(reader, ima->packedfile);
+    BKE_packedfile_blend_read(reader, &ima->packedfile);
   }
 
   BLI_listbase_clear(&ima->anims);
@@ -6834,7 +6812,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
   //  printf("direct_link_library: filepath_abs %s\n", lib->filepath_abs);
 
   BlendDataReader reader = {fd};
-  lib->packedfile = direct_link_packedfile(&reader, lib->packedfile);
+  BKE_packedfile_blend_read(&reader, &lib->packedfile);
 
   /* new main */
   newmain = BKE_main_new();
@@ -6947,8 +6925,8 @@ static void direct_link_sound(BlendDataReader *reader, bSound *sound)
   /* clear waveform loading flag */
   sound->tags &= ~SOUND_TAGS_WAVEFORM_LOADING;
 
-  sound->packedfile = direct_link_packedfile(reader, sound->packedfile);
-  sound->newpackedfile = direct_link_packedfile(reader, sound->newpackedfile);
+  BKE_packedfile_blend_read(reader, &sound->packedfile);
+  BKE_packedfile_blend_read(reader, &sound->newpackedfile);
 }
 
 static void lib_link_sound(BlendLibReader *reader, bSound *sound)
@@ -7218,7 +7196,7 @@ static void direct_link_volume(BlendDataReader *reader, Volume *volume)
   BLO_read_data_address(reader, &volume->adt);
   BKE_animdata_blend_read_data(reader, volume->adt);
 
-  volume->packedfile = direct_link_packedfile(reader, volume->packedfile);
+  BKE_packedfile_blend_read(reader, &volume->packedfile);
   volume->runtime.frame = 0;
 
   /* materials */

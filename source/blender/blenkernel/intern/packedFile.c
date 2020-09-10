@@ -51,6 +51,8 @@
 #include "BKE_sound.h"
 #include "BKE_volume.h"
 
+#include "BLO_read_write.h"
+
 int BKE_packedfile_seek(PackedFile *pf, int offset, int whence)
 {
   int oldseek = -1, seek = 0;
@@ -850,5 +852,31 @@ void BKE_packedfile_id_unpack(Main *bmain, ID *id, ReportList *reports, enum ePF
     }
     default:
       break;
+  }
+}
+
+void BKE_packedfile_blend_write(BlendWriter *writer, PackedFile *pf)
+{
+  if (pf == NULL) {
+    return;
+  }
+  BLO_write_struct(writer, PackedFile, pf);
+  BLO_write_raw(writer, pf->size, pf->data);
+}
+
+void BKE_packedfile_blend_read(BlendDataReader *reader, PackedFile **pf_p)
+{
+  BLO_read_packed_address(reader, pf_p);
+  PackedFile *pf = *pf_p;
+  if (pf == NULL) {
+    return;
+  }
+
+  BLO_read_packed_address(reader, &pf->data);
+  if (pf->data == NULL) {
+    /* We cannot allow a PackedFile with a NULL data field,
+     * the whole code assumes this is not possible. See T70315. */
+    printf("%s: NULL packedfile data, cleaning up...\n", __func__);
+    MEM_SAFE_FREE(pf);
   }
 }
