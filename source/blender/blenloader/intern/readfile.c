@@ -3023,55 +3023,6 @@ static void direct_link_world(BlendDataReader *reader, World *wrld)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Image
- * \{ */
-
-static void lib_link_image(BlendLibReader *UNUSED(reader), Image *ima)
-{
-  /* Images have some kind of 'main' cache, when NULL we should also clear all others. */
-  /* Needs to be done *after* cache pointers are restored (call to
-   * `foreach_cache`/`blo_cache_storage_entry_restore_in_new`), easier for now to do it in
-   * lib_link... */
-  if (ima->cache == NULL) {
-    BKE_image_free_buffers(ima);
-  }
-}
-
-static void direct_link_image(BlendDataReader *reader, Image *ima)
-{
-  BLO_read_list(reader, &ima->tiles);
-
-  BLO_read_list(reader, &(ima->renderslots));
-  if (!BLO_read_data_is_undo(reader)) {
-    /* We reset this last render slot index only when actually reading a file, not for undo. */
-    ima->last_render_slot = ima->render_slot;
-  }
-
-  BLO_read_list(reader, &(ima->views));
-  BLO_read_list(reader, &(ima->packedfiles));
-
-  if (ima->packedfiles.first) {
-    LISTBASE_FOREACH (ImagePackedFile *, imapf, &ima->packedfiles) {
-      BKE_packedfile_blend_read(reader, &imapf->packedfile);
-    }
-    ima->packedfile = NULL;
-  }
-  else {
-    BKE_packedfile_blend_read(reader, &ima->packedfile);
-  }
-
-  BLI_listbase_clear(&ima->anims);
-  BLO_read_data_address(reader, &ima->preview);
-  BKE_previewimg_blend_read(reader, ima->preview);
-  BLO_read_data_address(reader, &ima->stereo3d_format);
-  LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
-    tile->ok = IMA_OK;
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: Curve
  * \{ */
 
@@ -7159,9 +7110,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_TE:
       direct_link_texture(&reader, (Tex *)id);
       break;
-    case ID_IM:
-      direct_link_image(&reader, (Image *)id);
-      break;
     case ID_LA:
       direct_link_light(&reader, (Light *)id);
       break;
@@ -7233,6 +7181,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_PAL:
     case ID_PC:
     case ID_BR:
+    case ID_IM:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -7910,9 +7859,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_TE:
         lib_link_texture(&reader, (Tex *)id);
         break;
-      case ID_IM:
-        lib_link_image(&reader, (Image *)id);
-        break;
       case ID_GD:
         lib_link_gpencil(&reader, (bGPdata *)id);
         break;
@@ -7940,6 +7886,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_PAL:
       case ID_PC:
       case ID_BR:
+      case ID_IM:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }

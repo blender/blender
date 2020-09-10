@@ -47,6 +47,9 @@
 #  include "intern/openexr/openexr_multi.h"
 #endif
 
+/* Allow using deprecated functionality for .blend file I/O. */
+#define DNA_DEPRECATED_ALLOW
+
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_defaults.h"
@@ -96,6 +99,8 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
+
+#include "BLO_read_write.h"
 
 /* for image user iteration */
 #include "DNA_node_types.h"
@@ -216,6 +221,88 @@ static void image_foreach_cache(ID *id,
   }
 }
 
+static void image_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  Image *ima = (Image *)id;
+  if (ima->id.us > 0 || BLO_write_is_undo(writer)) {
+    ImagePackedFile *imapf;
+
+    /* Some trickery to keep forward compatibility of packed images. */
+    BLI_assert(ima->packedfile == NULL);
+    if (ima->packedfiles.first != NULL) {
+      imapf = ima->packedfiles.first;
+      ima->packedfile = imapf->packedfile;
+    }
+
+    /* write LibData */
+    BLO_write_id_struct(writer, Image, id_address, &ima->id);
+    BKE_id_blend_write(writer, &ima->id);
+
+    for (imapf = ima->packedfiles.first; imapf; imapf = imapf->next) {
+      BLO_write_struct(writer, ImagePackedFile, imapf);
+      BKE_packedfile_blend_write(writer, imapf->packedfile);
+    }
+
+    BKE_previewimg_blend_write(writer, ima->preview);
+
+    LISTBASE_FOREACH (ImageView *, iv, &ima->views) {
+      BLO_write_struct(writer, ImageView, iv);
+    }
+    BLO_write_struct(writer, Stereo3dFormat, ima->stereo3d_format);
+
+    BLO_write_struct_list(writer, ImageTile, &ima->tiles);
+
+    ima->packedfile = NULL;
+
+    BLO_write_struct_list(writer, RenderSlot, &ima->renderslots);
+  }
+}
+
+static void image_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  Image *ima = (Image *)id;
+  BLO_read_list(reader, &ima->tiles);
+
+  BLO_read_list(reader, &(ima->renderslots));
+  if (!BLO_read_data_is_undo(reader)) {
+    /* We reset this last render slot index only when actually reading a file, not for undo. */
+    ima->last_render_slot = ima->render_slot;
+  }
+
+  BLO_read_list(reader, &(ima->views));
+  BLO_read_list(reader, &(ima->packedfiles));
+
+  if (ima->packedfiles.first) {
+    LISTBASE_FOREACH (ImagePackedFile *, imapf, &ima->packedfiles) {
+      BKE_packedfile_blend_read(reader, &imapf->packedfile);
+    }
+    ima->packedfile = NULL;
+  }
+  else {
+    BKE_packedfile_blend_read(reader, &ima->packedfile);
+  }
+
+  BLI_listbase_clear(&ima->anims);
+  BLO_read_data_address(reader, &ima->preview);
+  BKE_previewimg_blend_read(reader, ima->preview);
+  BLO_read_data_address(reader, &ima->stereo3d_format);
+  LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+    tile->ok = IMA_OK;
+  }
+}
+
+static void image_blend_read_lib(BlendLibReader *UNUSED(reader), ID *id)
+{
+  Image *ima = (Image *)id;
+  /* Images have some kind of 'main' cache, when NULL we should also clear all others. */
+  /* Needs to be done *after* cache pointers are restored (call to
+   * `foreach_cache`/`blo_cache_storage_entry_restore_in_new`), easier for now to do it in
+   * lib_link... */
+  if (ima->cache == NULL) {
+    BKE_image_free_buffers(ima);
+  }
+}
+
 IDTypeInfo IDType_ID_IM = {
     .id_code = ID_IM,
     .id_filter = FILTER_ID_IM,
@@ -233,9 +320,9 @@ IDTypeInfo IDType_ID_IM = {
     .foreach_id = NULL,
     .foreach_cache = image_foreach_cache,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
-    .blend_read_lib = NULL,
+    .blend_write = image_blend_write,
+    .blend_read_data = image_blend_read_data,
+    .blend_read_lib = image_blend_read_lib,
     .blend_read_expand = NULL,
 };
 

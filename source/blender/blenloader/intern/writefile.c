@@ -1505,42 +1505,6 @@ static void write_curve(BlendWriter *writer, Curve *cu, const void *id_address)
   }
 }
 
-static void write_image(BlendWriter *writer, Image *ima, const void *id_address)
-{
-  if (ima->id.us > 0 || BLO_write_is_undo(writer)) {
-    ImagePackedFile *imapf;
-
-    /* Some trickery to keep forward compatibility of packed images. */
-    BLI_assert(ima->packedfile == NULL);
-    if (ima->packedfiles.first != NULL) {
-      imapf = ima->packedfiles.first;
-      ima->packedfile = imapf->packedfile;
-    }
-
-    /* write LibData */
-    BLO_write_id_struct(writer, Image, id_address, &ima->id);
-    BKE_id_blend_write(writer, &ima->id);
-
-    for (imapf = ima->packedfiles.first; imapf; imapf = imapf->next) {
-      BLO_write_struct(writer, ImagePackedFile, imapf);
-      BKE_packedfile_blend_write(writer, imapf->packedfile);
-    }
-
-    BKE_previewimg_blend_write(writer, ima->preview);
-
-    LISTBASE_FOREACH (ImageView *, iv, &ima->views) {
-      BLO_write_struct(writer, ImageView, iv);
-    }
-    BLO_write_struct(writer, Stereo3dFormat, ima->stereo3d_format);
-
-    BLO_write_struct_list(writer, ImageTile, &ima->tiles);
-
-    ima->packedfile = NULL;
-
-    BLO_write_struct_list(writer, RenderSlot, &ima->renderslots);
-  }
-}
-
 static void write_texture(BlendWriter *writer, Tex *tex, const void *id_address)
 {
   if (tex->id.us > 0 || BLO_write_is_undo(writer)) {
@@ -2925,9 +2889,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_MB:
             write_mball(&writer, (MetaBall *)id_buffer, id);
             break;
-          case ID_IM:
-            write_image(&writer, (Image *)id_buffer, id);
-            break;
           case ID_CA:
             write_camera(&writer, (Camera *)id_buffer, id);
             break;
@@ -2996,6 +2957,7 @@ static bool write_file_handle(Main *mainvar,
           case ID_PC:
           case ID_PAL:
           case ID_BR:
+          case ID_IM:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:
