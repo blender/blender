@@ -632,7 +632,7 @@ static void ui_item_array(uiLayout *layout,
         uiButNumber *number_but = (uiButNumber *)but;
 
         but->a1 = number_but->step_size;
-        ui_but_change_type(but, UI_BTYPE_NUM_SLIDER);
+        but = ui_but_change_type(but, UI_BTYPE_NUM_SLIDER);
       }
     }
   }
@@ -703,7 +703,7 @@ static void ui_item_array(uiLayout *layout,
           uiButNumber *number_but = (uiButNumber *)but;
 
           but->a1 = number_but->step_size;
-          ui_but_change_type(but, UI_BTYPE_NUM_SLIDER);
+          but = ui_but_change_type(but, UI_BTYPE_NUM_SLIDER);
         }
         if ((toggle == 1) && but->type == UI_BTYPE_CHECKBOX) {
           but->type = UI_BTYPE_TOGGLE;
@@ -2299,7 +2299,7 @@ void uiItemFullR(uiLayout *layout,
       uiButNumber *num_but = (uiButNumber *)but;
 
       but->a1 = num_but->step_size;
-      ui_but_change_type(but, UI_BTYPE_NUM_SLIDER);
+      but = ui_but_change_type(but, UI_BTYPE_NUM_SLIDER);
     }
 
     if (flag & UI_ITEM_R_CHECKBOX_INVERT) {
