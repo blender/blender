@@ -175,8 +175,8 @@ void GPU_point_size(float size)
 {
   GPUStateManager *stack = Context::get()->state_manager;
   auto &state = stack->mutable_state;
-  /* Set point size sign negative to disable. */
-  state.point_size = size * signf(state.point_size);
+  /* Keep the sign of point_size since it represents the enable state. */
+  state.point_size = size * ((state.point_size > 0.0) ? 1.0f : -1.0f);
 }
 
 /* Programmable point size

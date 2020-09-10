@@ -141,7 +141,7 @@ void GLStateManager::set_mutable_state(const GPUStateMutable &state)
   GPUStateMutable changed = state ^ current_mutable_;
 
   /* TODO remove, should be uniform. */
-  if (changed.point_size != 0.0f) {
+  if (float_as_uint(changed.point_size) != 0) {
     if (state.point_size > 0.0f) {
       glEnable(GL_PROGRAM_POINT_SIZE);
     }
