@@ -51,6 +51,7 @@ void GPU_vertformat_clear(GPUVertFormat *format)
   format->packed = false;
   format->name_offset = 0;
   format->name_len = 0;
+  format->deinterleaved = false;
 
   for (uint i = 0; i < GPU_VERT_ATTR_MAX_LEN; i++) {
     format->attrs[i].name_len = 0;
