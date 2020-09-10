@@ -52,12 +52,19 @@ if(EXISTS ${LIBDIR})
   message(STATUS "Using pre-compiled LIBDIR: ${LIBDIR}")
 
   file(GLOB LIB_SUBDIRS ${LIBDIR}/*)
+  # Ignore Mesa software OpenGL libraries, they are not intended to be
+  # linked against but to optionally override at runtime.
+  list(REMOVE_ITEM LIB_SUBDIRS ${LIBDIR}/mesa)
   # NOTE: Make sure "proper" compiled zlib comes first before the one
   # which is a part of OpenCollada. They have different ABI, and we
   # do need to use the official one.
   set(CMAKE_PREFIX_PATH ${LIBDIR}/zlib ${LIB_SUBDIRS})
   set(WITH_STATIC_LIBS ON)
-  set(WITH_OPENMP_STATIC ON)
+  # OpenMP usually can't be statically linked into shared libraries,
+  # due to not being compiled with position independent code.
+  if(NOT WITH_PYTHON_MODULE)
+    set(WITH_OPENMP_STATIC ON)
+  endif()
   set(Boost_NO_BOOST_CMAKE ON)
   set(BOOST_ROOT ${LIBDIR}/boost)
   set(BOOST_LIBRARYDIR ${LIBDIR}/boost/lib)

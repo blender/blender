@@ -33,18 +33,9 @@ set(WITH_ALEMBIC             OFF CACHE BOOL "" FORCE)
 # Depends on Python install, do this to quiet warning.
 set(WITH_DRACO               OFF CACHE BOOL "" FORCE)
 
-# Note, if linking errors can be resolved, lines below can be removed.
-# Until then, disable configurations known to fail.
-
-if(UNIX AND NOT APPLE)
-  if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-    # jemalloc causes linking error on import, disable.
-    set(WITH_MEM_JEMALLOC    OFF CACHE BOOL "" FORCE)
-  endif()
-elseif(APPLE)
-  # OpenMP causes linking error on build, disable.
-  set(WITH_MEM_JEMALLOC        OFF CACHE BOOL "" FORCE)
-endif()
+# Jemalloc does not work with dlopen() of Python modules:
+# https://github.com/jemalloc/jemalloc/issues/1237
+set(WITH_MEM_JEMALLOC        OFF CACHE BOOL "" FORCE)
 
 if(WIN32)
   set(WITH_WINDOWS_BUNDLE_CRT  OFF CACHE BOOL "" FORCE)
