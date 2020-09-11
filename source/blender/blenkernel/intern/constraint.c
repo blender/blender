@@ -845,7 +845,8 @@ static void childof_new_data(void *cdata)
   bChildOfConstraint *data = (bChildOfConstraint *)cdata;
 
   data->flag = (CHILDOF_LOCX | CHILDOF_LOCY | CHILDOF_LOCZ | CHILDOF_ROTX | CHILDOF_ROTY |
-                CHILDOF_ROTZ | CHILDOF_SIZEX | CHILDOF_SIZEY | CHILDOF_SIZEZ);
+                CHILDOF_ROTZ | CHILDOF_SIZEX | CHILDOF_SIZEY | CHILDOF_SIZEZ |
+                CHILDOF_SET_INVERSE);
   unit_m4(data->invmat);
 }
 
