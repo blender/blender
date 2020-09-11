@@ -1393,32 +1393,6 @@ static void write_object(BlendWriter *writer, Object *ob, const void *id_address
   }
 }
 
-static void write_texture(BlendWriter *writer, Tex *tex, const void *id_address)
-{
-  if (tex->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* write LibData */
-    BLO_write_id_struct(writer, Tex, id_address, &tex->id);
-    BKE_id_blend_write(writer, &tex->id);
-
-    if (tex->adt) {
-      BKE_animdata_blend_write(writer, tex->adt);
-    }
-
-    /* direct data */
-    if (tex->coba) {
-      BLO_write_struct(writer, ColorBand, tex->coba);
-    }
-
-    /* nodetree is integral part of texture, no libdata */
-    if (tex->nodetree) {
-      BLO_write_struct(writer, bNodeTree, tex->nodetree);
-      ntreeBlendWrite(writer, tex->nodetree);
-    }
-
-    BKE_previewimg_blend_write(writer, tex->preview);
-  }
-}
-
 static void write_collection_nolib(BlendWriter *writer, Collection *collection)
 {
   /* Shared function for collection data-blocks and scene master collection. */
@@ -2580,9 +2554,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_OB:
             write_object(&writer, (Object *)id_buffer, id);
             break;
-          case ID_TE:
-            write_texture(&writer, (Tex *)id_buffer, id);
-            break;
           case ID_PA:
             write_particlesettings(&writer, (ParticleSettings *)id_buffer, id);
             break;
@@ -2627,6 +2598,7 @@ static bool write_file_handle(Main *mainvar,
           case ID_AR:
           case ID_LP:
           case ID_KE:
+          case ID_TE:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:

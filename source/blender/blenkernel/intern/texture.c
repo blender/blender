@@ -36,6 +36,9 @@
 
 #include "BLT_translation.h"
 
+/* Allow using deprecated functionality for .blend file I/O. */
+#define DNA_DEPRECATED_ALLOW
+
 #include "DNA_brush_types.h"
 #include "DNA_color_types.h"
 #include "DNA_defaults.h"
@@ -50,6 +53,7 @@
 
 #include "BKE_main.h"
 
+#include "BKE_anim_data.h"
 #include "BKE_colorband.h"
 #include "BKE_colortools.h"
 #include "BKE_icons.h"
@@ -64,6 +68,8 @@
 #include "BKE_texture.h"
 
 #include "RE_shader_ext.h"
+
+#include "BLO_read_write.h"
 
 static void texture_init_data(ID *id)
 {
@@ -134,6 +140,62 @@ static void texture_foreach_id(ID *id, LibraryForeachIDData *data)
   BKE_LIB_FOREACHID_PROCESS(data, texture->ima, IDWALK_CB_USER);
 }
 
+static void texture_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  Tex *tex = (Tex *)id;
+  if (tex->id.us > 0 || BLO_write_is_undo(writer)) {
+    /* write LibData */
+    BLO_write_id_struct(writer, Tex, id_address, &tex->id);
+    BKE_id_blend_write(writer, &tex->id);
+
+    if (tex->adt) {
+      BKE_animdata_blend_write(writer, tex->adt);
+    }
+
+    /* direct data */
+    if (tex->coba) {
+      BLO_write_struct(writer, ColorBand, tex->coba);
+    }
+
+    /* nodetree is integral part of texture, no libdata */
+    if (tex->nodetree) {
+      BLO_write_struct(writer, bNodeTree, tex->nodetree);
+      ntreeBlendWrite(writer, tex->nodetree);
+    }
+
+    BKE_previewimg_blend_write(writer, tex->preview);
+  }
+}
+
+static void texture_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  Tex *tex = (Tex *)id;
+  BLO_read_data_address(reader, &tex->adt);
+  BKE_animdata_blend_read_data(reader, tex->adt);
+
+  BLO_read_data_address(reader, &tex->coba);
+
+  BLO_read_data_address(reader, &tex->preview);
+  BKE_previewimg_blend_read(reader, tex->preview);
+
+  tex->iuser.ok = 1;
+  tex->iuser.scene = NULL;
+}
+
+static void texture_blend_read_lib(BlendLibReader *reader, ID *id)
+{
+  Tex *tex = (Tex *)id;
+  BLO_read_id_address(reader, tex->id.lib, &tex->ima);
+  BLO_read_id_address(reader, tex->id.lib, &tex->ipo);  // XXX deprecated - old animation system
+}
+
+static void texture_blend_read_expand(BlendExpander *expander, ID *id)
+{
+  Tex *tex = (Tex *)id;
+  BLO_expand(expander, tex->ima);
+  BLO_expand(expander, tex->ipo);  // XXX deprecated - old animation system
+}
+
 IDTypeInfo IDType_ID_TE = {
     .id_code = ID_TE,
     .id_filter = FILTER_ID_TE,
@@ -151,10 +213,10 @@ IDTypeInfo IDType_ID_TE = {
     .foreach_id = texture_foreach_id,
     .foreach_cache = NULL,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
-    .blend_read_lib = NULL,
-    .blend_read_expand = NULL,
+    .blend_write = texture_blend_write,
+    .blend_read_data = texture_blend_read_data,
+    .blend_read_lib = texture_blend_read_lib,
+    .blend_read_expand = texture_blend_read_expand,
 };
 
 /* Utils for all IDs using those texture slots. */

@@ -2804,32 +2804,6 @@ void blo_do_versions_key_uidgen(Key *key)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Texture
- * \{ */
-
-static void lib_link_texture(BlendLibReader *reader, Tex *tex)
-{
-  BLO_read_id_address(reader, tex->id.lib, &tex->ima);
-  BLO_read_id_address(reader, tex->id.lib, &tex->ipo);  // XXX deprecated - old animation system
-}
-
-static void direct_link_texture(BlendDataReader *reader, Tex *tex)
-{
-  BLO_read_data_address(reader, &tex->adt);
-  BKE_animdata_blend_read_data(reader, tex->adt);
-
-  BLO_read_data_address(reader, &tex->coba);
-
-  BLO_read_data_address(reader, &tex->preview);
-  BKE_previewimg_blend_read(reader, tex->preview);
-
-  tex->iuser.ok = 1;
-  tex->iuser.scene = NULL;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: Particle Settings
  * \{ */
 
@@ -6630,9 +6604,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_OB:
       direct_link_object(&reader, (Object *)id);
       break;
-    case ID_TE:
-      direct_link_texture(&reader, (Tex *)id);
-      break;
     case ID_IP:
       direct_link_ipo(&reader, (Ipo *)id);
       break;
@@ -6692,6 +6663,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_AR:
     case ID_LP:
     case ID_KE:
+    case ID_TE:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -7336,9 +7308,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_VO:
         lib_link_volume(&reader, (Volume *)id);
         break;
-      case ID_TE:
-        lib_link_texture(&reader, (Tex *)id);
-        break;
       case ID_GD:
         lib_link_gpencil(&reader, (bGPdata *)id);
         break;
@@ -7375,6 +7344,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_AR:
       case ID_LP:
       case ID_KE:
+      case ID_TE:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -8060,12 +8030,6 @@ static void expand_collection(BlendExpander *expander, Collection *collection)
 #endif
 }
 
-static void expand_texture(BlendExpander *expander, Tex *tex)
-{
-  BLO_expand(expander, tex->ima);
-  BLO_expand(expander, tex->ipo);  // XXX deprecated - old animation system
-}
-
 /* callback function used to expand constraint ID-links */
 static void expand_constraint_cb(bConstraint *UNUSED(con),
                                  ID **idpoin,
@@ -8411,9 +8375,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_SCE:
               expand_scene(&expander, (Scene *)id);
-              break;
-            case ID_TE:
-              expand_texture(&expander, (Tex *)id);
               break;
             case ID_SO:
               expand_sound(&expander, (bSound *)id);
