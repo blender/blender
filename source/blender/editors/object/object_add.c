@@ -529,9 +529,12 @@ Object *ED_object_add_type_with_obdata(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob;
 
-  /* for as long scene has editmode... */
-  if (CTX_data_edit_object(C)) {
-    ED_object_editmode_exit(C, EM_FREEDATA);
+  /* For as long scene has editmode... */
+  {
+    Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+    if (obedit != NULL) {
+      ED_object_editmode_exit_ex(bmain, scene, obedit, EM_FREEDATA);
+    }
   }
 
   /* deselects all, sets active object */
@@ -778,18 +781,20 @@ static int effector_add_exec(bContext *C, wmOperator *op)
   dia = RNA_float_get(op->ptr, "radius");
 
   if (type == PFIELD_GUIDE) {
+    Main *bmain = CTX_data_main(C);
+    Scene *scene = CTX_data_scene(C);
     Curve *cu;
     ob = ED_object_add_type(
         C, OB_CURVE, get_effector_defname(type), loc, rot, false, local_view_bits);
 
     cu = ob->data;
     cu->flag |= CU_PATH | CU_3D;
-    ED_object_editmode_enter(C, 0);
+    ED_object_editmode_enter_ex(bmain, scene, ob, 0);
     ED_object_new_primitive_matrix(C, ob, loc, rot, mat);
     BLI_addtail(&cu->editnurb->nurbs,
                 ED_curve_add_nurbs_primitive(C, ob, mat, CU_NURBS | CU_PRIM_PATH, dia));
     if (!enter_editmode) {
-      ED_object_editmode_exit(C, EM_FREEDATA);
+      ED_object_editmode_exit_ex(bmain, scene, ob, EM_FREEDATA);
     }
   }
   else {
@@ -900,7 +905,10 @@ void OBJECT_OT_camera_add(wmOperatorType *ot)
 
 static int object_metaball_add_exec(bContext *C, wmOperator *op)
 {
-  Object *obedit = CTX_data_edit_object(C);
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
   bool newob = false;
   bool enter_editmode;
   ushort local_view_bits;
@@ -931,7 +939,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 
   /* userdef */
   if (newob && !enter_editmode) {
-    ED_object_editmode_exit(C, EM_FREEDATA);
+    ED_object_editmode_exit_ex(bmain, scene, obedit, EM_FREEDATA);
   }
 
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);
@@ -1017,7 +1025,11 @@ void OBJECT_OT_text_add(wmOperatorType *ot)
 
 static int object_armature_add_exec(bContext *C, wmOperator *op)
 {
-  Object *obedit = CTX_data_edit_object(C);
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   bool newob = false;
   bool enter_editmode;
@@ -1032,7 +1044,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
   }
   if ((obedit == NULL) || (obedit->type != OB_ARMATURE)) {
     obedit = ED_object_add_type(C, OB_ARMATURE, NULL, loc, rot, true, local_view_bits);
-    ED_object_editmode_enter(C, 0);
+    ED_object_editmode_enter_ex(bmain, scene, obedit, 0);
     newob = true;
   }
   else {
@@ -1049,7 +1061,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 
   /* userdef */
   if (newob && !enter_editmode) {
-    ED_object_editmode_exit(C, EM_FREEDATA);
+    ED_object_editmode_exit_ex(bmain, scene, obedit, EM_FREEDATA);
   }
 
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);

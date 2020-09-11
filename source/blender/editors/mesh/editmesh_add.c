@@ -104,7 +104,7 @@ static void make_prim_finish(bContext *C,
 
   /* userdef */
   if (exit_editmode) {
-    ED_object_editmode_exit(C, EM_FREEDATA);
+    ED_object_editmode_exit_ex(CTX_data_main(C), CTX_data_scene(C), obedit, EM_FREEDATA);
   }
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);
 }

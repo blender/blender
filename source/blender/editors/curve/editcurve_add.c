@@ -508,7 +508,10 @@ Nurb *ED_curve_add_nurbs_primitive(
 
 static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 {
-  Object *obedit = CTX_data_edit_object(C);
+  struct Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
   ListBase *editnurb;
   Nurb *nu;
   bool newob = false;
@@ -565,7 +568,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 
   /* userdef */
   if (newob && !enter_editmode) {
-    ED_object_editmode_exit(C, EM_FREEDATA);
+    ED_object_editmode_exit_ex(bmain, scene, obedit, EM_FREEDATA);
   }
 
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);
