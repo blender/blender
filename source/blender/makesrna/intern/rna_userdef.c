@@ -6123,10 +6123,10 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "use_sculpt_vertex_colors", 1);
   RNA_def_property_ui_text(prop, "Sculpt Vertex Colors", "Use the new Vertex Painting system");
 
-  prop = RNA_def_property(srna, "use_drw_image_editor", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "use_drw_image_editor", 1);
+  prop = RNA_def_property(srna, "use_image_editor_legacy_drawing", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "use_image_editor_legacy_drawing", 1);
   RNA_def_property_ui_text(
-      prop, "Image Editor Draw Engine", "Use draw manager for rendering the uv/image editor");
+      prop, "Legacy Image Editor Drawing", "Use legacy UV/Image editor drawing");
 
   prop = RNA_def_property(srna, "use_tools_missing_icons", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_tools_missing_icons", 1);

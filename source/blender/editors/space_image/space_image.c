@@ -666,7 +666,7 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
   }
 
   /* we draw image in pixelspace */
-  if (U.experimental.use_drw_image_editor) {
+  if (!U.experimental.use_image_editor_legacy_drawing) {
     DRW_draw_view(C);
     draw_image_main_helpers(C, region);
 
@@ -750,7 +750,7 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
                         C);
   }
 
-  if ((show_uvedit || mask || show_curve) && !U.experimental.use_drw_image_editor) {
+  if ((show_uvedit || mask || show_curve) && U.experimental.use_image_editor_legacy_drawing) {
     UI_view2d_view_ortho(v2d);
     ED_image_draw_cursor(region, sima->cursor);
     UI_view2d_view_restore(C);

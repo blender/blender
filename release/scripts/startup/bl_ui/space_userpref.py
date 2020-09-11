@@ -2176,7 +2176,6 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
         self._draw_items(
             context, (
                 ({"property": "use_new_hair_type"}, "T68981"),
-                ({"property": "use_drw_image_editor"}, "T67530"),
             ),
         )
 
@@ -2195,6 +2194,7 @@ class USERPREF_PT_experimental_debugging(ExperimentalPanel, Panel):
             context, (
                 ({"property": "use_undo_legacy"}, "T60695"),
                 ({"property": "use_cycles_debug"}, None),
+                ({"property": "use_image_editor_legacy_drawing"}, "T67530"),
             ),
         )
 
