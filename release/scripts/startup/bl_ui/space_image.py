@@ -1019,7 +1019,8 @@ class IMAGE_PT_view_display_uv_edit_overlays(Panel):
         col.prop(uvedit, "show_faces", text="Faces")
 
         col = layout.column()
-        col.prop(uvedit, "show_smooth_edges", text="Smooth")
+        if context.preferences.experimental.use_image_editor_legacy_drawing:
+          col.prop(uvedit, "show_smooth_edges", text="Smooth")
         col.prop(uvedit, "show_modified_edges", text="Modified")
         col.prop(uvedit, "uv_opacity")
 

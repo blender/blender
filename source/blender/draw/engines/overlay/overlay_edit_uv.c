@@ -112,7 +112,7 @@ void OVERLAY_edit_uv_init(OVERLAY_Data *vedata)
 
   pd->edit_uv.dash_length = 4.0f * UI_DPI_FAC;
   pd->edit_uv.line_style = edit_uv_line_style_from_space_image(sima);
-  pd->edit_uv.do_smooth_wire = (sima->flag & SI_SMOOTH_UV) != 0;
+  pd->edit_uv.do_smooth_wire = ((U.gpu_flag & USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE) > 0);
 
   pd->edit_uv.draw_type = sima->dt_uvstretch;
   BLI_listbase_clear(&pd->edit_uv.totals);
@@ -144,7 +144,8 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
             pd->edit_uv_shadow_edges_grp, "alpha", pd->edit_uv.uv_opacity);
         DRW_shgroup_uniform_float(
             pd->edit_uv_shadow_edges_grp, "dashLength", &pd->edit_uv.dash_length, 1);
-        DRW_shgroup_uniform_bool_copy(pd->edit_uv_shadow_edges_grp, "doSmoothWire", true);
+        DRW_shgroup_uniform_bool(
+            pd->edit_uv_shadow_edges_grp, "doSmoothWire", &pd->edit_uv.do_smooth_wire, 1);
       }
 
       if (pd->edit_uv.do_uv_overlay) {
