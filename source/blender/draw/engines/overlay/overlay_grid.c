@@ -26,6 +26,7 @@
 
 #include "DEG_depsgraph_query.h"
 
+#include "ED_image.h"
 #include "ED_view3d.h"
 
 #include "overlay_private.h"
@@ -42,14 +43,31 @@ enum {
   CLIP_ZNEG = (1 << 8),
   GRID_BACK = (1 << 9),
   GRID_CAMERA = (1 << 10),
+  PLANE_IMAGE = (1 << 11),
 };
 
 void OVERLAY_grid_init(OVERLAY_Data *vedata)
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   OVERLAY_ShadingData *shd = &pd->shdata;
-
   const DRWContextState *draw_ctx = DRW_context_state_get();
+
+  shd->grid_flag = 0;
+  shd->zneg_flag = 0;
+  shd->zpos_flag = 0;
+  shd->grid_line_size = max_ff(0.0f, U.pixelsize - 1.0f) * 0.5f;
+
+  if (pd->is_image_editor) {
+    SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
+    shd->grid_flag = ED_space_image_has_buffer(sima) ? 0 : PLANE_IMAGE | SHOW_GRID;
+    shd->grid_distance = 1.0f;
+    shd->grid_mesh_size = 1.0f;
+    for (int step = 0; step < 8; step++) {
+      shd->grid_steps[step] = powf(4, step) * (1.0f / 16.0f);
+    }
+    return;
+  }
+
   View3D *v3d = draw_ctx->v3d;
   Scene *scene = draw_ctx->scene;
   RegionView3D *rv3d = draw_ctx->rv3d;
@@ -59,10 +77,6 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
   const bool show_axis_z = (pd->v3d_gridflag & V3D_SHOW_Z) != 0;
   const bool show_floor = (pd->v3d_gridflag & V3D_SHOW_FLOOR) != 0;
   const bool show_ortho_grid = (pd->v3d_gridflag & V3D_SHOW_ORTHO_GRID) != 0;
-
-  shd->grid_flag = 0;
-  shd->zneg_flag = 0;
-  shd->zpos_flag = 0;
 
   if (pd->hide_overlays || !(pd->v3d_gridflag & (V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_Z |
                                                  V3D_SHOW_FLOOR | V3D_SHOW_ORTHO_GRID))) {
@@ -163,14 +177,16 @@ void OVERLAY_grid_init(OVERLAY_Data *vedata)
   }
 
   shd->grid_distance = dist / 2.0f;
-  shd->grid_line_size = max_ff(0.0f, U.pixelsize - 1.0f) * 0.5f;
 
   ED_view3d_grid_steps(scene, v3d, rv3d, shd->grid_steps);
 }
 
 void OVERLAY_grid_cache_init(OVERLAY_Data *vedata)
 {
-  OVERLAY_ShadingData *shd = &vedata->stl->pd->shdata;
+  OVERLAY_StorageList *stl = vedata->stl;
+  OVERLAY_PrivateData *pd = stl->pd;
+  OVERLAY_ShadingData *shd = &pd->shdata;
+
   OVERLAY_PassList *psl = vedata->psl;
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
@@ -182,12 +198,29 @@ void OVERLAY_grid_cache_init(OVERLAY_Data *vedata)
 
   DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA;
   DRW_PASS_CREATE(psl->grid_ps, state);
-
-  GPUShader *sh = OVERLAY_shader_grid();
+  DRWShadingGroup *grp;
+  GPUShader *sh;
   struct GPUBatch *geom = DRW_cache_grid_get();
 
+  if (pd->is_image_editor) {
+    /* add quad background */
+    sh = OVERLAY_shader_grid_image();
+    grp = DRW_shgroup_create(sh, psl->grid_ps);
+    DRW_shgroup_call(grp, DRW_cache_quad_get(), NULL);
+    float color_back[4];
+    interp_v4_v4v4(color_back, G_draw.block.colorBackground, G_draw.block.colorGrid, 0.5);
+    DRW_shgroup_uniform_vec4_copy(grp, "color", color_back);
+
+    /* add wire border */
+    grp = DRW_shgroup_create(sh, psl->grid_ps);
+    DRW_shgroup_call(grp, DRW_cache_quad_wires_get(), NULL);
+    DRW_shgroup_uniform_vec4_copy(grp, "color", G_draw.block.colorGrid);
+  }
+
+  sh = OVERLAY_shader_grid();
+
   /* Create 3 quads to render ordered transparency Z axis */
-  DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->grid_ps);
+  grp = DRW_shgroup_create(sh, psl->grid_ps);
   DRW_shgroup_uniform_int(grp, "gridFlag", &shd->zneg_flag, 1);
   DRW_shgroup_uniform_vec3(grp, "planeAxes", shd->zplane_axes, 1);
   DRW_shgroup_uniform_float(grp, "gridDistance", &shd->grid_distance, 1);

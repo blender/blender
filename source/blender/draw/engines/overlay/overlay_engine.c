@@ -29,8 +29,12 @@
 
 #include "ED_view3d.h"
 
+#include "UI_interface.h"
+
 #include "BKE_object.h"
 #include "BKE_paint.h"
+
+#include "DNA_space_types.h"
 
 #include "overlay_engine.h"
 #include "overlay_private.h"
@@ -48,6 +52,10 @@ static void OVERLAY_engine_init(void *vedata)
   const View3D *v3d = draw_ctx->v3d;
   const Scene *scene = draw_ctx->scene;
   const ToolSettings *ts = scene->toolsettings;
+  const SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
+  BLI_assert(v3d || sima);
+
+  OVERLAY_shader_library_ensure();
 
   if (!stl->pd) {
     /* Alloc transient pointers */
@@ -55,6 +63,14 @@ static void OVERLAY_engine_init(void *vedata)
   }
 
   OVERLAY_PrivateData *pd = stl->pd;
+  pd->is_image_editor = sima != NULL;
+
+  if (pd->is_image_editor) {
+    pd->clipping_state = 0;
+    OVERLAY_grid_init(data);
+    OVERLAY_edit_uv_init(data);
+    return;
+  }
 
   pd->hide_overlays = (v3d->flag2 & V3D_HIDE_OVERLAYS) != 0;
   pd->ctx_mode = CTX_data_mode_enum_ex(
@@ -121,6 +137,13 @@ static void OVERLAY_cache_init(void *vedata)
   OVERLAY_Data *data = vedata;
   OVERLAY_StorageList *stl = data->stl;
   OVERLAY_PrivateData *pd = stl->pd;
+
+  if (pd->is_image_editor) {
+    OVERLAY_background_cache_init(vedata);
+    OVERLAY_grid_cache_init(vedata);
+    OVERLAY_edit_uv_cache_init(vedata);
+    return;
+  }
 
   switch (pd->ctx_mode) {
     case CTX_MODE_EDIT_MESH:
@@ -240,6 +263,14 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
 {
   OVERLAY_Data *data = vedata;
   OVERLAY_PrivateData *pd = data->stl->pd;
+
+  if (pd->is_image_editor) {
+    if (ob->type == OB_MESH) {
+      OVERLAY_edit_uv_cache_populate(vedata, ob);
+    }
+    return;
+  }
+
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const bool is_select = DRW_state_is_select();
   const bool renderable = DRW_object_is_renderable(ob);
@@ -414,6 +445,12 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
 
 static void OVERLAY_cache_finish(void *vedata)
 {
+  OVERLAY_Data *data = vedata;
+  OVERLAY_PrivateData *pd = data->stl->pd;
+  if (pd->is_image_editor) {
+    return;
+  }
+
   /* TODO(fclem) Only do this when really needed. */
   {
     /* HACK we allocate the in front depth here to avoid the overhead when if is not needed. */
@@ -443,6 +480,16 @@ static void OVERLAY_draw_scene(void *vedata)
     const float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     GPU_framebuffer_bind(dfbl->overlay_only_fb);
     GPU_framebuffer_clear_color(dfbl->overlay_only_fb, clear_col);
+  }
+
+  if (pd->is_image_editor) {
+    OVERLAY_background_draw(data);
+    OVERLAY_grid_draw(data);
+    if (DRW_state_is_fbo()) {
+      GPU_framebuffer_bind(dfbl->overlay_fb);
+    }
+    OVERLAY_edit_uv_draw(data);
+    return;
   }
 
   OVERLAY_image_background_draw(vedata);

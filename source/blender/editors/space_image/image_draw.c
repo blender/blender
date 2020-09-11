@@ -865,7 +865,7 @@ void draw_image_main(const bContext *C, ARegion *region)
   Image *ima;
   ImBuf *ibuf;
   float zoomx, zoomy;
-  bool show_viewer, show_render, show_paint, show_stereo3d, show_multilayer;
+  bool show_viewer, show_stereo3d, show_multilayer;
   void *lock;
 
   /* XXX can we do this in refresh? */
@@ -898,9 +898,6 @@ void draw_image_main(const bContext *C, ARegion *region)
   }
 
   show_viewer = (ima && ima->source == IMA_SRC_VIEWER) != 0;
-  show_render = (show_viewer && ima->type == IMA_TYPE_R_RESULT) != 0;
-  show_paint = (ima && (sima->mode == SI_MODE_PAINT) && (show_viewer == false) &&
-                (show_render == false));
   show_stereo3d = (ima && BKE_image_is_stereo(ima) && (sima->iuser.flag & IMA_SHOW_STEREO));
   show_multilayer = ima && BKE_image_is_multilayer(ima);
 
@@ -998,16 +995,32 @@ void draw_image_main(const bContext *C, ARegion *region)
   }
 
   draw_udim_tile_grids(region, sima, ima);
-
-  /* paint helpers */
-  if (show_paint) {
-    draw_image_paint_helpers(C, region, scene, zoomx, zoomy);
-  }
+  draw_image_main_helpers(C, region);
 
   if (show_viewer) {
     BLI_thread_unlock(LOCK_DRAW_IMAGE);
   }
+}
 
+void draw_image_main_helpers(const bContext *C, ARegion *region)
+{
+  SpaceImage *sima = CTX_wm_space_image(C);
+  Scene *scene = CTX_data_scene(C);
+  Image *ima;
+  float zoomx, zoomy;
+  bool show_viewer, show_render, show_paint;
+
+  ima = ED_space_image(sima);
+  ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
+
+  show_viewer = (ima && ima->source == IMA_SRC_VIEWER) != 0;
+  show_render = (show_viewer && ima->type == IMA_TYPE_R_RESULT) != 0;
+  show_paint = (ima && (sima->mode == SI_MODE_PAINT) && (show_viewer == false) &&
+                (show_render == false));
+  /* paint helpers */
+  if (show_paint) {
+    draw_image_paint_helpers(C, region, scene, zoomx, zoomy);
+  }
   /* render info */
   if (ima && show_render) {
     draw_render_info(C, sima->iuser.scene, ima, region, zoomx, zoomy);

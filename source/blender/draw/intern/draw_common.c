@@ -178,6 +178,9 @@ void DRW_globals_update(void)
   UI_GetThemeColorShadeAlpha4fv(TH_WIRE, 0, -30, gb->colorOutline);
   UI_GetThemeColorShadeAlpha4fv(TH_LIGHT, 0, 255, gb->colorLightNoAlpha);
 
+  /* UV colors */
+  UI_GetThemeColor4fv(TH_UV_SHADOW, gb->colorUVShadow);
+
   gb->sizePixel = U.pixelsize;
   gb->sizeObjectCenter = (UI_GetThemeValuef(TH_OBCENTER_DIA) + 1.0f) * U.pixelsize;
   gb->sizeLightCenter = (UI_GetThemeValuef(TH_OBCENTER_DIA) + 1.5f) * U.pixelsize;
@@ -210,7 +213,7 @@ void DRW_globals_update(void)
       /* TODO more accurate transform. */
       srgb_to_linearrgb_v4(color, color);
       color += 4;
-    } while (color != gb->UBO_LAST_COLOR);
+    } while (color <= gb->UBO_LAST_COLOR);
   }
 
   if (G_draw.block_ubo == NULL) {

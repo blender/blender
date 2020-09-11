@@ -714,6 +714,7 @@ const bTheme U_theme_default = {
     .paint_curve_pivot = RGBA(0xff7f7f7f),
     .paint_curve_handle = RGBA(0x7fff7f7f),
     .metadatatext = RGBA(0xffffffff),
+    .grid = RGBA(0x505050ff),
   },
   .space_text = {
     .back = RGBA(0x30303000),

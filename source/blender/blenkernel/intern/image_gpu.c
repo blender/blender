@@ -272,6 +272,13 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
    * context and might as well ensure we have as much space free as possible. */
   gpu_free_unused_buffers();
 
+  /* Free GPU textures when requesting a different render pass/layer. */
+  if (ima->gpu_pass != iuser->pass || ima->gpu_layer != iuser->layer) {
+    ima->gpu_pass = iuser->pass;
+    ima->gpu_layer = iuser->layer;
+    ima->gpuflag |= IMA_GPU_REFRESH;
+  }
+
   /* currently, gpu refresh tagging is used by ima sequences */
   if (ima->gpuflag & IMA_GPU_REFRESH) {
     image_free_gpu(ima, true);
@@ -282,7 +289,10 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
   BKE_image_tag_time(ima);
 
   /* Test if we already have a texture. */
-  GPUTexture **tex = get_image_gpu_texture_ptr(ima, textarget, iuser ? iuser->multiview_eye : 0);
+  const int current_view = iuser ? ((iuser->flag & IMA_SHOW_STEREO) != 0 ? iuser->multiview_eye :
+                                                                           iuser->view) :
+                                   0;
+  GPUTexture **tex = get_image_gpu_texture_ptr(ima, textarget, current_view);
   if (*tex) {
     return *tex;
   }

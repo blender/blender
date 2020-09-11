@@ -190,7 +190,7 @@ void ViewerOperation::updateImage(rcti *rect)
                                     rect->ymin,
                                     rect->xmax,
                                     rect->ymax);
-
+  this->m_image->gpuflag |= IMA_GPU_REFRESH;
   this->updateDraw();
 }
 

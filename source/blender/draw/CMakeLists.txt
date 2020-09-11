@@ -77,6 +77,8 @@ set(SRC
   intern/draw_select_buffer.c
   intern/draw_view.c
   engines/basic/basic_engine.c
+  engines/image/image_engine.c
+  engines/image/image_shader.c
   engines/eevee/eevee_bloom.c
   engines/eevee/eevee_data.c
   engines/eevee/eevee_depth_of_field.c
@@ -132,6 +134,7 @@ set(SRC
   engines/overlay/overlay_edit_curve.c
   engines/overlay/overlay_edit_mesh.c
   engines/overlay/overlay_edit_text.c
+  engines/overlay/overlay_edit_uv.c
   engines/overlay/overlay_engine.c
   engines/overlay/overlay_extra.c
   engines/overlay/overlay_facing.c
@@ -319,6 +322,7 @@ data_to_c_simple(engines/basic/shaders/conservative_depth_geom.glsl SRC)
 data_to_c_simple(engines/basic/shaders/depth_vert.glsl SRC)
 data_to_c_simple(engines/basic/shaders/depth_frag.glsl SRC)
 
+data_to_c_simple(engines/overlay/shaders/common_overlay_lib.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/antialiasing_frag.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/antialiasing_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/armature_dof_vert.glsl SRC)
@@ -362,6 +366,15 @@ data_to_c_simple(engines/overlay/shaders/edit_mesh_skin_root_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/edit_mesh_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/edit_particle_strand_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/edit_particle_point_vert.glsl SRC)
+data_to_c_simple(engines/overlay/shaders/edit_uv_edges_vert.glsl SRC)
+data_to_c_simple(engines/overlay/shaders/edit_uv_edges_geom.glsl SRC)
+data_to_c_simple(engines/overlay/shaders/edit_uv_edges_frag.glsl SRC)
+data_to_c_simple(engines/overlay/shaders/edit_uv_verts_vert.glsl SRC)
+data_to_c_simple(engines/overlay/shaders/edit_uv_verts_frag.glsl SRC)
+data_to_c_simple(engines/overlay/shaders/edit_uv_faces_vert.glsl SRC)
+data_to_c_simple(engines/overlay/shaders/edit_uv_face_dots_vert.glsl SRC)
+data_to_c_simple(engines/overlay/shaders/edit_uv_stretching_vert.glsl SRC)
+data_to_c_simple(engines/overlay/shaders/edit_uv_tiled_image_borders_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/extra_frag.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/extra_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/extra_groundline_vert.glsl SRC)
@@ -401,6 +414,9 @@ data_to_c_simple(engines/overlay/shaders/volume_velocity_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/wireframe_vert.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/wireframe_frag.glsl SRC)
 data_to_c_simple(engines/overlay/shaders/xray_fade_frag.glsl SRC)
+
+data_to_c_simple(engines/image/shaders/engine_image_frag.glsl SRC)
+data_to_c_simple(engines/image/shaders/engine_image_vert.glsl SRC)
 
 list(APPEND INC
 )

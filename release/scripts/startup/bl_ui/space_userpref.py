@@ -2176,6 +2176,7 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
         self._draw_items(
             context, (
                 ({"property": "use_new_hair_type"}, "T68981"),
+                ({"property": "use_drw_image_editor"}, "T67530"),
             ),
         )
 

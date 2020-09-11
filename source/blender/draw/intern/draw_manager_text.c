@@ -24,6 +24,7 @@
 
 #include "BLI_math.h"
 #include "BLI_memiter.h"
+#include "BLI_rect.h"
 #include "BLI_string.h"
 
 #include "BKE_editmesh.h"
@@ -122,76 +123,105 @@ void DRW_text_cache_add(DRWTextStore *dt,
   }
 }
 
-void DRW_text_cache_draw(DRWTextStore *dt, ARegion *region, struct View3D *v3d)
+static void drw_text_cache_draw_ex(DRWTextStore *dt, ARegion *region)
 {
-  RegionView3D *rv3d = region->regiondata;
   ViewCachedString *vos;
-  int tot = 0;
-
-  /* project first and test */
   BLI_memiter_handle it;
+  int col_pack_prev = 0;
+
+  float original_proj[4][4];
+  GPU_matrix_projection_get(original_proj);
+  wmOrtho2_region_pixelspace(region);
+
+  GPU_matrix_push();
+  GPU_matrix_identity_set();
+
+  const int font_id = BLF_default();
+
+  const uiStyle *style = UI_style_get();
+
+  BLF_size(font_id, style->widget.points * U.pixelsize, U.dpi);
+
   BLI_memiter_iter_init(dt->cache_strings, &it);
   while ((vos = BLI_memiter_iter_step(&it))) {
-    if (ED_view3d_project_short_ex(
-            region,
-            (vos->flag & DRW_TEXT_CACHE_GLOBALSPACE) ? rv3d->persmat : rv3d->persmatob,
-            (vos->flag & DRW_TEXT_CACHE_LOCALCLIP) != 0,
-            vos->vec,
-            vos->sco,
-            V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR) ==
-        V3D_PROJ_RET_OK) {
-      tot++;
-    }
-    else {
-      vos->sco[0] = IS_CLIPPED;
+    if (vos->sco[0] != IS_CLIPPED) {
+      if (col_pack_prev != vos->col.pack) {
+        BLF_color4ubv(font_id, vos->col.ub);
+        col_pack_prev = vos->col.pack;
+      }
+
+      BLF_position(
+          font_id, (float)(vos->sco[0] + vos->xoffs), (float)(vos->sco[1] + vos->yoffs), 2.0f);
+
+      ((vos->flag & DRW_TEXT_CACHE_ASCII) ? BLF_draw_ascii : BLF_draw)(
+          font_id,
+          (vos->flag & DRW_TEXT_CACHE_STRING_PTR) ? *((const char **)vos->str) : vos->str,
+          vos->str_len);
     }
   }
 
-  if (tot) {
-    int col_pack_prev = 0;
+  GPU_matrix_pop();
+  GPU_matrix_projection_set(original_proj);
+}
 
-    /* Disable clipping for text */
-    if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
-      GPU_clip_distances(0);
-    }
-
-    float original_proj[4][4];
-    GPU_matrix_projection_get(original_proj);
-    wmOrtho2_region_pixelspace(region);
-
-    GPU_matrix_push();
-    GPU_matrix_identity_set();
-
-    const int font_id = BLF_default();
-
-    const uiStyle *style = UI_style_get();
-
-    BLF_size(font_id, style->widget.points * U.pixelsize, U.dpi);
-
+void DRW_text_cache_draw(DRWTextStore *dt, ARegion *region, struct View3D *v3d)
+{
+  ViewCachedString *vos;
+  if (v3d) {
+    RegionView3D *rv3d = region->regiondata;
+    int tot = 0;
+    /* project first and test */
+    BLI_memiter_handle it;
     BLI_memiter_iter_init(dt->cache_strings, &it);
     while ((vos = BLI_memiter_iter_step(&it))) {
-      if (vos->sco[0] != IS_CLIPPED) {
-        if (col_pack_prev != vos->col.pack) {
-          BLF_color4ubv(font_id, vos->col.ub);
-          col_pack_prev = vos->col.pack;
-        }
-
-        BLF_position(
-            font_id, (float)(vos->sco[0] + vos->xoffs), (float)(vos->sco[1] + vos->yoffs), 2.0f);
-
-        ((vos->flag & DRW_TEXT_CACHE_ASCII) ? BLF_draw_ascii : BLF_draw)(
-            font_id,
-            (vos->flag & DRW_TEXT_CACHE_STRING_PTR) ? *((const char **)vos->str) : vos->str,
-            vos->str_len);
+      if (ED_view3d_project_short_ex(
+              region,
+              (vos->flag & DRW_TEXT_CACHE_GLOBALSPACE) ? rv3d->persmat : rv3d->persmatob,
+              (vos->flag & DRW_TEXT_CACHE_LOCALCLIP) != 0,
+              vos->vec,
+              vos->sco,
+              V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR) ==
+          V3D_PROJ_RET_OK) {
+        tot++;
+      }
+      else {
+        vos->sco[0] = IS_CLIPPED;
       }
     }
 
-    GPU_matrix_pop();
-    GPU_matrix_projection_set(original_proj);
+    if (tot) {
+      /* Disable clipping for text */
+      const bool rv3d_clipping_enabled = RV3D_CLIPPING_ENABLED(v3d, rv3d);
+      if (rv3d_clipping_enabled) {
+        GPU_clip_distances(0);
+      }
 
-    if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
-      GPU_clip_distances(6);
+      drw_text_cache_draw_ex(dt, region);
+
+      if (rv3d_clipping_enabled) {
+        GPU_clip_distances(6);
+      }
     }
+  }
+  else {
+    /* project first */
+    BLI_memiter_handle it;
+    BLI_memiter_iter_init(dt->cache_strings, &it);
+    View2D *v2d = &region->v2d;
+    float viewmat[4][4];
+    rctf region_space = {0.0f, region->winx, 0.0f, region->winy};
+    BLI_rctf_transform_calc_m4_pivot_min(&v2d->cur, &region_space, viewmat);
+
+    while ((vos = BLI_memiter_iter_step(&it))) {
+      float p[3];
+      copy_v3_v3(p, vos->vec);
+      mul_m4_v3(viewmat, p);
+
+      vos->sco[0] = p[0];
+      vos->sco[1] = p[1];
+    }
+
+    drw_text_cache_draw_ex(dt, region);
   }
 }
 

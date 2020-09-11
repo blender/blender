@@ -76,6 +76,7 @@
 #include "GPU_framebuffer.h"
 #include "GPU_viewport.h"
 
+#include "DRW_engine.h"
 #include "DRW_engine_types.h"
 
 #include "image_intern.h"
@@ -638,8 +639,6 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View2D *v2d = &region->v2d;
-  // View2DScrollers *scrollers;
-  float col[3];
 
   GPUViewport *viewport = WM_draw_region_get_viewport(region);
   GPUFrameBuffer *framebuffer_default, *framebuffer_overlay;
@@ -647,34 +646,13 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
   framebuffer_default = GPU_viewport_framebuffer_default_get(viewport);
   framebuffer_overlay = GPU_viewport_framebuffer_overlay_get(viewport);
 
-  GPU_framebuffer_bind(framebuffer_default);
-  GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
-
-  GPU_framebuffer_bind(framebuffer_overlay);
-
   /* XXX not supported yet, disabling for now */
   scene->r.scemode &= ~R_COMP_CROP;
-
-  /* clear and setup matrix */
-  UI_GetThemeColor3fv(TH_BACK, col);
-  srgb_to_linearrgb_v3_v3(col, col);
-  GPU_clear_color(col[0], col[1], col[2], 1.0f);
-  GPU_depth_test(GPU_DEPTH_NONE);
 
   image_user_refresh_scene(C, sima);
 
   /* we set view2d from own zoom and offset each time */
   image_main_region_set_view2d(sima, region);
-
-  /* we draw image in pixelspace */
-  draw_image_main(C, region);
-
-  /* and uvs in 0.0-1.0 space */
-  UI_view2d_view_ortho(v2d);
-
-  ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
-
-  ED_uvedit_draw_main(sima, scene, view_layer, obedit, obact, depsgraph);
 
   /* check for mask (delay draw) */
   if (ED_space_image_show_uvedit(sima, obedit)) {
@@ -687,21 +665,52 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
     show_curve = true;
   }
 
-  ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);
+  /* we draw image in pixelspace */
+  if (U.experimental.use_drw_image_editor) {
+    DRW_draw_view(C);
+    draw_image_main_helpers(C, region);
 
-  if (sima->flag & SI_SHOW_GPENCIL) {
-    /* Grease Pencil too (in addition to UV's) */
-    draw_image_grease_pencil((bContext *)C, true);
+    /* sample line */
+    UI_view2d_view_ortho(v2d);
+    draw_image_sample_line(sima);
+    UI_view2d_view_restore(C);
   }
+  else {
+    GPU_framebuffer_bind(framebuffer_default);
+    GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
 
-  /* sample line */
-  draw_image_sample_line(sima);
+    GPU_framebuffer_bind(framebuffer_overlay);
 
-  UI_view2d_view_restore(C);
+    float col[3];
+    /* clear and setup matrix */
+    UI_GetThemeColor3fv(TH_BACK, col);
+    srgb_to_linearrgb_v3_v3(col, col);
+    GPU_clear_color(col[0], col[1], col[2], 1.0f);
+    GPU_depth_test(GPU_DEPTH_NONE);
+    draw_image_main(C, region);
 
-  if (sima->flag & SI_SHOW_GPENCIL) {
-    /* draw Grease Pencil - screen space only */
-    draw_image_grease_pencil((bContext *)C, false);
+    /* and uvs in 0.0-1.0 space */
+    UI_view2d_view_ortho(v2d);
+
+    ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
+
+    ED_uvedit_draw_main(sima, scene, view_layer, obedit, obact, depsgraph);
+
+    ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);
+
+    if (sima->flag & SI_SHOW_GPENCIL) {
+      /* Grease Pencil too (in addition to UV's) */
+      draw_image_grease_pencil((bContext *)C, true);
+    }
+    /* sample line */
+    draw_image_sample_line(sima);
+
+    UI_view2d_view_restore(C);
+
+    if (sima->flag & SI_SHOW_GPENCIL) {
+      /* draw Grease Pencil - screen space only */
+      draw_image_grease_pencil((bContext *)C, false);
+    }
   }
 
   if (mask) {
@@ -741,7 +750,7 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
                         C);
   }
 
-  if (show_uvedit || mask || show_curve) {
+  if ((show_uvedit || mask || show_curve) && !U.experimental.use_drw_image_editor) {
     UI_view2d_view_ortho(v2d);
     ED_image_draw_cursor(region, sima->cursor);
     UI_view2d_view_restore(C);

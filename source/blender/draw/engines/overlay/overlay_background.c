@@ -31,6 +31,7 @@
 #define BG_GRADIENT 1
 #define BG_CHECKER 2
 #define BG_RADIAL 3
+#define BG_SOLID_CHECKER 4
 
 void OVERLAY_background_cache_init(OVERLAY_Data *vedata)
 {
@@ -40,7 +41,7 @@ void OVERLAY_background_cache_init(OVERLAY_Data *vedata)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const Scene *scene = draw_ctx->scene;
   const RegionView3D *rv3d = draw_ctx->rv3d;
-  const BoundBox *bb = rv3d->clipbb;
+  const BoundBox *bb = rv3d ? rv3d->clipbb : NULL;
   const View3D *v3d = draw_ctx->v3d;
   bool draw_clipping_bounds = (pd->clipping_state != 0);
 
@@ -50,8 +51,10 @@ void OVERLAY_background_cache_init(OVERLAY_Data *vedata)
 
     if (DRW_state_is_opengl_render() && !DRW_state_draw_background()) {
       background_type = BG_SOLID;
-      zero_v3(color_override);
       color_override[3] = 1.0f;
+    }
+    else if (pd->is_image_editor) {
+      background_type = BG_SOLID_CHECKER;
     }
     else if (!DRW_state_draw_background()) {
       background_type = BG_CHECKER;

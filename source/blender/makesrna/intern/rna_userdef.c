@@ -3061,6 +3061,11 @@ static void rna_def_userdef_theme_space_image(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Metadata Text", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
+  prop = RNA_def_property(srna, "grid", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_array(prop, 4);
+  RNA_def_property_ui_text(prop, "Grid", "");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
+
   rna_def_userdef_theme_spaces_curves(srna, false, false, false, true);
 
   rna_def_userdef_theme_spaces_paint_curves(srna);
@@ -6117,6 +6122,11 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_sculpt_vertex_colors", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_sculpt_vertex_colors", 1);
   RNA_def_property_ui_text(prop, "Sculpt Vertex Colors", "Use the new Vertex Painting system");
+
+  prop = RNA_def_property(srna, "use_drw_image_editor", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "use_drw_image_editor", 1);
+  RNA_def_property_ui_text(
+      prop, "Image Editor Draw Engine", "Use draw manager for rendering the uv/image editor");
 
   prop = RNA_def_property(srna, "use_tools_missing_icons", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_tools_missing_icons", 1);

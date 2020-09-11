@@ -34,6 +34,9 @@ extern "C" {
 #  define USE_GEOM_SHADER_WORKAROUND 0
 #endif
 
+/* Needed for eSpaceImage_UVDT_Stretch */
+#include "DNA_space_types.h"
+
 typedef struct OVERLAY_FramebufferList {
   struct GPUFrameBuffer *overlay_default_fb;
   struct GPUFrameBuffer *overlay_line_fb;
@@ -54,6 +57,14 @@ typedef struct OVERLAY_TextureList {
 
 #define NOT_IN_FRONT 0
 #define IN_FRONT 1
+
+typedef enum OVERLAY_UVLineStyle {
+  OVERLAY_UV_LINE_STYLE_OUTLINE = 0,
+  OVERLAY_UV_LINE_STYLE_DASH = 1,
+  OVERLAY_UV_LINE_STYLE_BLACK = 2,
+  OVERLAY_UV_LINE_STYLE_WHITE = 3,
+  OVERLAY_UV_LINE_STYLE_SHADOW = 4,
+} OVERLAY_UVLineStyle;
 
 typedef struct OVERLAY_PassList {
   DRWPass *antialiasing_ps;
@@ -78,6 +89,11 @@ typedef struct OVERLAY_PassList {
   DRWPass *edit_text_overlay_ps;
   DRWPass *edit_text_darken_ps;
   DRWPass *edit_text_wire_ps[2];
+  DRWPass *edit_uv_edges_ps;
+  DRWPass *edit_uv_verts_ps;
+  DRWPass *edit_uv_faces_ps;
+  DRWPass *edit_uv_stretching_ps;
+  DRWPass *edit_uv_tiled_image_borders_ps;
   DRWPass *extra_ps[2];
   DRWPass *extra_blend_ps;
   DRWPass *extra_centers_ps;
@@ -244,6 +260,12 @@ typedef struct OVERLAY_PrivateData {
   DRWShadingGroup *edit_particle_point_grp;
   DRWShadingGroup *edit_text_overlay_grp;
   DRWShadingGroup *edit_text_wire_grp[2];
+  DRWShadingGroup *edit_uv_verts_grp;
+  DRWShadingGroup *edit_uv_edges_grp;
+  DRWShadingGroup *edit_uv_shadow_edges_grp;
+  DRWShadingGroup *edit_uv_faces_grp;
+  DRWShadingGroup *edit_uv_face_dots_grp;
+  DRWShadingGroup *edit_uv_stretching_grp;
   DRWShadingGroup *extra_grid_grp;
   DRWShadingGroup *facing_grp[2];
   DRWShadingGroup *motion_path_lines_grp;
@@ -286,6 +308,7 @@ typedef struct OVERLAY_PrivateData {
 
   View3DOverlay overlay;
   enum eContextObjectMode ctx_mode;
+  bool is_image_editor;
   bool clear_in_front;
   bool use_in_front;
   bool wireframe_mode;
@@ -324,6 +347,29 @@ typedef struct OVERLAY_PrivateData {
     bool use_weight;
     int select_mode;
   } edit_particle;
+  struct {
+    bool do_uv_overlay;
+    bool do_uv_shadow_overlay;
+    bool do_uv_stretching_overlay;
+    bool do_tiled_image_overlay;
+
+    bool do_faces;
+    bool do_face_dots;
+
+    float uv_opacity;
+    /* edge drawing */
+    OVERLAY_UVLineStyle line_style;
+    float dash_length;
+    int do_smooth_wire;
+
+    /* stretching overlay */
+    float aspect[2];
+    eSpaceImage_UVDT_Stretch draw_type;
+    ListBase totals;
+    float total_area_ratio;
+    float total_area_ratio_inv;
+
+  } edit_uv;
   struct {
     bool transparent;
     bool show_relations;
@@ -472,6 +518,11 @@ void OVERLAY_edit_particle_cache_init(OVERLAY_Data *vedata);
 void OVERLAY_edit_particle_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_edit_particle_draw(OVERLAY_Data *vedata);
 
+void OVERLAY_edit_uv_init(OVERLAY_Data *vedata);
+void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata);
+void OVERLAY_edit_uv_cache_populate(OVERLAY_Data *vedata, Object *ob);
+void OVERLAY_edit_uv_draw(OVERLAY_Data *vedata);
+
 void OVERLAY_extra_cache_init(OVERLAY_Data *vedata);
 void OVERLAY_extra_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_extra_blend_draw(OVERLAY_Data *vedata);
@@ -570,6 +621,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
 void OVERLAY_wireframe_draw(OVERLAY_Data *vedata);
 void OVERLAY_wireframe_in_front_draw(OVERLAY_Data *vedata);
 
+void OVERLAY_shader_library_ensure(void);
 GPUShader *OVERLAY_shader_antialiasing(void);
 GPUShader *OVERLAY_shader_armature_degrees_of_freedom_wire(void);
 GPUShader *OVERLAY_shader_armature_degrees_of_freedom_solid(void);
@@ -599,6 +651,13 @@ GPUShader *OVERLAY_shader_edit_mesh_skin_root(void);
 GPUShader *OVERLAY_shader_edit_mesh_vert(void);
 GPUShader *OVERLAY_shader_edit_particle_strand(void);
 GPUShader *OVERLAY_shader_edit_particle_point(void);
+GPUShader *OVERLAY_shader_edit_uv_edges_get(void);
+GPUShader *OVERLAY_shader_edit_uv_face_get(void);
+GPUShader *OVERLAY_shader_edit_uv_face_dots_get(void);
+GPUShader *OVERLAY_shader_edit_uv_verts_get(void);
+GPUShader *OVERLAY_shader_edit_uv_stretching_area_get(void);
+GPUShader *OVERLAY_shader_edit_uv_stretching_angle_get(void);
+GPUShader *OVERLAY_shader_edit_uv_tiled_image_borders_get(void);
 GPUShader *OVERLAY_shader_extra(bool is_select);
 GPUShader *OVERLAY_shader_extra_groundline(void);
 GPUShader *OVERLAY_shader_extra_wire(bool use_object, bool is_select);
@@ -607,6 +666,7 @@ GPUShader *OVERLAY_shader_extra_point(void);
 GPUShader *OVERLAY_shader_facing(void);
 GPUShader *OVERLAY_shader_gpencil_canvas(void);
 GPUShader *OVERLAY_shader_grid(void);
+GPUShader *OVERLAY_shader_grid_image(void);
 GPUShader *OVERLAY_shader_image(void);
 GPUShader *OVERLAY_shader_motion_path_line(void);
 GPUShader *OVERLAY_shader_motion_path_vert(void);

@@ -233,6 +233,8 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
      * the outliner's, and it's less disruptive to just copy them. */
     copy_v4_v4_uchar(btheme->space_file.back, btheme->space_outliner.back);
     copy_v4_v4_uchar(btheme->space_file.row_alternate, btheme->space_outliner.row_alternate);
+
+    FROM_DEFAULT_V4_UCHAR(space_image.grid);
   }
 
 #undef FROM_DEFAULT_V4_UCHAR

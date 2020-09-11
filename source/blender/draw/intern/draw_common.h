@@ -33,7 +33,7 @@ struct RegionView3D;
 struct ViewLayer;
 
 #define UBO_FIRST_COLOR colorWire
-#define UBO_LAST_COLOR colorFaceFront
+#define UBO_LAST_COLOR colorUVShadow
 
 /* Used as ubo but colors can be directly referenced as well */
 /* Keep in sync with: common_globals_lib.glsl (globalsBlock) */
@@ -140,6 +140,8 @@ typedef struct GlobalsUboStorage {
 
   float colorFaceBack[4];
   float colorFaceFront[4];
+
+  float colorUVShadow[4];
 
   /* NOTE! Put all color before UBO_LAST_COLOR */
   float screenVecs[2][4];                    /* padded as vec4  */

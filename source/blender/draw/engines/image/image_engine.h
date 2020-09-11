@@ -13,18 +13,13 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Copyright 2016, Blender Foundation.
+ * Copyright 2020, Blender Foundation.
  */
 
 /** \file
- * \ingroup draw
+ * \ingroup draw_editors
  */
 
 #pragma once
 
-void DRW_draw_region_info(void);
-void DRW_clear_background(void);
-void DRW_draw_cursor(void);
-void DRW_draw_cursor_2d(void);
-void DRW_draw_gizmo_3d(void);
-void DRW_draw_gizmo_2d(void);
+extern DrawEngineType draw_engine_image_type;

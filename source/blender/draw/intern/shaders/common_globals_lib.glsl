@@ -103,6 +103,8 @@ layout(std140) uniform globalsBlock
   vec4 colorFaceBack;
   vec4 colorFaceFront;
 
+  vec4 colorUVShadow;
+
   vec4 screenVecs[2];
   vec4 sizeViewport; /* Inverted size in zw. */
 
