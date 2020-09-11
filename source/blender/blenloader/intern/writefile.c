@@ -2104,58 +2104,6 @@ static void write_workspace(BlendWriter *writer, WorkSpace *workspace, const voi
   }
 }
 
-static void write_simulation(BlendWriter *writer, Simulation *simulation, const void *id_address)
-{
-  if (simulation->id.us > 0 || BLO_write_is_undo(writer)) {
-    BLO_write_id_struct(writer, Simulation, id_address, &simulation->id);
-    BKE_id_blend_write(writer, &simulation->id);
-
-    if (simulation->adt) {
-      BKE_animdata_blend_write(writer, simulation->adt);
-    }
-
-    /* nodetree is integral part of simulation, no libdata */
-    if (simulation->nodetree) {
-      BLO_write_struct(writer, bNodeTree, simulation->nodetree);
-      ntreeBlendWrite(writer, simulation->nodetree);
-    }
-
-    LISTBASE_FOREACH (SimulationState *, state, &simulation->states) {
-      BLO_write_string(writer, state->name);
-      BLO_write_string(writer, state->type);
-      /* TODO: Decentralize this part. */
-      if (STREQ(state->type, SIM_TYPE_NAME_PARTICLE_SIMULATION)) {
-        ParticleSimulationState *particle_state = (ParticleSimulationState *)state;
-
-        CustomDataLayer *players = NULL, players_buff[CD_TEMP_CHUNK_SIZE];
-        CustomData_blend_write_prepare(
-            &particle_state->attributes, &players, players_buff, ARRAY_SIZE(players_buff));
-
-        BLO_write_struct(writer, ParticleSimulationState, particle_state);
-
-        CustomData_blend_write(writer,
-                               &particle_state->attributes,
-                               players,
-                               particle_state->tot_particles,
-                               CD_MASK_ALL,
-                               &simulation->id);
-
-        /* Remove temporary data. */
-        if (players && players != players_buff) {
-          MEM_freeN(players);
-        }
-      }
-      else if (STREQ(state->type, SIM_TYPE_NAME_PARTICLE_MESH_EMITTER)) {
-        ParticleMeshEmitterSimulationState *emitter_state = (ParticleMeshEmitterSimulationState *)
-            state;
-        BLO_write_struct(writer, ParticleMeshEmitterSimulationState, emitter_state);
-      }
-    }
-
-    BLO_write_struct_list(writer, SimulationDependency, &simulation->dependencies);
-  }
-}
-
 /* Keep it last of write_foodata functions. */
 static void write_libraries(WriteData *wd, Main *main)
 {
@@ -2441,9 +2389,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_CF:
             write_cachefile(&writer, (CacheFile *)id_buffer, id);
             break;
-          case ID_SIM:
-            write_simulation(&writer, (Simulation *)id_buffer, id);
-            break;
           case ID_ME:
           case ID_LT:
           case ID_AC:
@@ -2472,6 +2417,7 @@ static bool write_file_handle(Main *mainvar,
           case ID_HA:
           case ID_PT:
           case ID_VO:
+          case ID_SIM:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:

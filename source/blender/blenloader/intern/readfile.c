@@ -6239,37 +6239,6 @@ static void lib_link_sound(BlendLibReader *reader, bSound *sound)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Simulation
- * \{ */
-
-static void lib_link_simulation(BlendLibReader *reader, Simulation *simulation)
-{
-  LISTBASE_FOREACH (SimulationDependency *, dependency, &simulation->dependencies) {
-    BLO_read_id_address(reader, simulation->id.lib, &dependency->id);
-  }
-}
-
-static void direct_link_simulation(BlendDataReader *reader, Simulation *simulation)
-{
-  BLO_read_data_address(reader, &simulation->adt);
-  BKE_animdata_blend_read_data(reader, simulation->adt);
-
-  BLO_read_list(reader, &simulation->states);
-  LISTBASE_FOREACH (SimulationState *, state, &simulation->states) {
-    BLO_read_data_address(reader, &state->name);
-    BLO_read_data_address(reader, &state->type);
-    if (STREQ(state->type, SIM_TYPE_NAME_PARTICLE_SIMULATION)) {
-      ParticleSimulationState *particle_state = (ParticleSimulationState *)state;
-      CustomData_blend_read(reader, &particle_state->attributes, particle_state->tot_particles);
-    }
-  }
-
-  BLO_read_list(reader, &simulation->dependencies);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read Library Data Block
  * \{ */
 
@@ -6449,9 +6418,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_WS:
       direct_link_workspace(&reader, (WorkSpace *)id, main);
       break;
-    case ID_SIM:
-      direct_link_simulation(&reader, (Simulation *)id);
-      break;
     case ID_ME:
     case ID_LT:
     case ID_AC:
@@ -6480,6 +6446,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_HA:
     case ID_PT:
     case ID_VO:
+    case ID_SIM:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -7115,9 +7082,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_CF:
         lib_link_cachefiles(&reader, (CacheFile *)id);
         break;
-      case ID_SIM:
-        lib_link_simulation(&reader, (Simulation *)id);
-        break;
       case ID_IP:
         /* XXX deprecated... still needs to be maintained for version patches still. */
         lib_link_ipo(&reader, (Ipo *)id);
@@ -7153,6 +7117,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_HA:
       case ID_PT:
       case ID_VO:
+      case ID_SIM:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -8096,13 +8061,6 @@ static void expand_workspace(BlendExpander *expander, WorkSpace *workspace)
   }
 }
 
-static void expand_simulation(BlendExpander *expander, Simulation *simulation)
-{
-  LISTBASE_FOREACH (SimulationDependency *, dependency, &simulation->dependencies) {
-    BLO_expand(expander, dependency->id);
-  }
-}
-
 /**
  * Set the callback func used over all ID data found by \a BLO_expand_main func.
  *
@@ -8169,9 +8127,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_WS:
               expand_workspace(&expander, (WorkSpace *)id);
-              break;
-            case ID_SIM:
-              expand_simulation(&expander, (Simulation *)id);
               break;
             default:
               break;

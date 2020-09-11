@@ -63,6 +63,8 @@
 
 #include "SIM_simulation_update.hh"
 
+#include "BLO_read_write.h"
+
 using StateInitFunction = void (*)(SimulationState *state);
 using StateResetFunction = void (*)(SimulationState *state);
 using StateRemoveFunction = void (*)(SimulationState *state);
@@ -145,6 +147,94 @@ static void simulation_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+static void simulation_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  Simulation *simulation = (Simulation *)id;
+  if (simulation->id.us > 0 || BLO_write_is_undo(writer)) {
+    BLO_write_id_struct(writer, Simulation, id_address, &simulation->id);
+    BKE_id_blend_write(writer, &simulation->id);
+
+    if (simulation->adt) {
+      BKE_animdata_blend_write(writer, simulation->adt);
+    }
+
+    /* nodetree is integral part of simulation, no libdata */
+    if (simulation->nodetree) {
+      BLO_write_struct(writer, bNodeTree, simulation->nodetree);
+      ntreeBlendWrite(writer, simulation->nodetree);
+    }
+
+    LISTBASE_FOREACH (SimulationState *, state, &simulation->states) {
+      BLO_write_string(writer, state->name);
+      BLO_write_string(writer, state->type);
+      /* TODO: Decentralize this part. */
+      if (STREQ(state->type, SIM_TYPE_NAME_PARTICLE_SIMULATION)) {
+        ParticleSimulationState *particle_state = (ParticleSimulationState *)state;
+
+        CustomDataLayer *players = NULL, players_buff[CD_TEMP_CHUNK_SIZE];
+        CustomData_blend_write_prepare(
+            &particle_state->attributes, &players, players_buff, ARRAY_SIZE(players_buff));
+
+        BLO_write_struct(writer, ParticleSimulationState, particle_state);
+
+        CustomData_blend_write(writer,
+                               &particle_state->attributes,
+                               players,
+                               particle_state->tot_particles,
+                               CD_MASK_ALL,
+                               &simulation->id);
+
+        /* Remove temporary data. */
+        if (players && players != players_buff) {
+          MEM_freeN(players);
+        }
+      }
+      else if (STREQ(state->type, SIM_TYPE_NAME_PARTICLE_MESH_EMITTER)) {
+        ParticleMeshEmitterSimulationState *emitter_state = (ParticleMeshEmitterSimulationState *)
+            state;
+        BLO_write_struct(writer, ParticleMeshEmitterSimulationState, emitter_state);
+      }
+    }
+
+    BLO_write_struct_list(writer, SimulationDependency, &simulation->dependencies);
+  }
+}
+
+static void simulation_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  Simulation *simulation = (Simulation *)id;
+  BLO_read_data_address(reader, &simulation->adt);
+  BKE_animdata_blend_read_data(reader, simulation->adt);
+
+  BLO_read_list(reader, &simulation->states);
+  LISTBASE_FOREACH (SimulationState *, state, &simulation->states) {
+    BLO_read_data_address(reader, &state->name);
+    BLO_read_data_address(reader, &state->type);
+    if (STREQ(state->type, SIM_TYPE_NAME_PARTICLE_SIMULATION)) {
+      ParticleSimulationState *particle_state = (ParticleSimulationState *)state;
+      CustomData_blend_read(reader, &particle_state->attributes, particle_state->tot_particles);
+    }
+  }
+
+  BLO_read_list(reader, &simulation->dependencies);
+}
+
+static void simulation_blend_read_lib(BlendLibReader *reader, ID *id)
+{
+  Simulation *simulation = (Simulation *)id;
+  LISTBASE_FOREACH (SimulationDependency *, dependency, &simulation->dependencies) {
+    BLO_read_id_address(reader, simulation->id.lib, &dependency->id);
+  }
+}
+
+static void simulation_blend_read_expand(BlendExpander *expander, ID *id)
+{
+  Simulation *simulation = (Simulation *)id;
+  LISTBASE_FOREACH (SimulationDependency *, dependency, &simulation->dependencies) {
+    BLO_expand(expander, dependency->id);
+  }
+}
+
 IDTypeInfo IDType_ID_SIM = {
     /* id_code */ ID_SIM,
     /* id_filter */ FILTER_ID_SIM,
@@ -162,10 +252,10 @@ IDTypeInfo IDType_ID_SIM = {
     /* foreach_id */ simulation_foreach_id,
     /* foreach_cache */ NULL,
 
-    /* blend_write */ NULL,
-    /* blend_read_data */ NULL,
-    /* blend_read_lib */ NULL,
-    /* blend_read_expand */ NULL,
+    /* blend_write */ simulation_blend_write,
+    /* blend_read_data */ simulation_blend_read_data,
+    /* blend_read_lib */ simulation_blend_read_lib,
+    /* blend_read_expand */ simulation_blend_read_expand,
 };
 
 void *BKE_simulation_add(Main *bmain, const char *name)
