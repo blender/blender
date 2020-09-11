@@ -62,5 +62,6 @@ endif()
 
 add_dependencies(
   external_clang
+  external_xml2
   ll
 )
