@@ -6239,33 +6239,6 @@ static void lib_link_sound(BlendLibReader *reader, bSound *sound)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Hair
- * \{ */
-
-static void lib_link_hair(BlendLibReader *reader, Hair *hair)
-{
-  for (int a = 0; a < hair->totcol; a++) {
-    BLO_read_id_address(reader, hair->id.lib, &hair->mat[a]);
-  }
-}
-
-static void direct_link_hair(BlendDataReader *reader, Hair *hair)
-{
-  BLO_read_data_address(reader, &hair->adt);
-  BKE_animdata_blend_read_data(reader, hair->adt);
-
-  /* Geometry */
-  CustomData_blend_read(reader, &hair->pdata, hair->totpoint);
-  CustomData_blend_read(reader, &hair->cdata, hair->totcurve);
-  BKE_hair_update_customdata_pointers(hair);
-
-  /* Materials */
-  BLO_read_pointer_array(reader, (void **)&hair->mat);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: Point Cloud
  * \{ */
 
@@ -6532,9 +6505,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_WS:
       direct_link_workspace(&reader, (WorkSpace *)id, main);
       break;
-    case ID_HA:
-      direct_link_hair(&reader, (Hair *)id);
-      break;
     case ID_PT:
       direct_link_pointcloud(&reader, (PointCloud *)id);
       break;
@@ -6569,6 +6539,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_KE:
     case ID_TE:
     case ID_GD:
+    case ID_HA:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -7204,9 +7175,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_CF:
         lib_link_cachefiles(&reader, (CacheFile *)id);
         break;
-      case ID_HA:
-        lib_link_hair(&reader, (Hair *)id);
-        break;
       case ID_PT:
         lib_link_pointcloud(&reader, (PointCloud *)id);
         break;
@@ -7248,6 +7216,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_KE:
       case ID_TE:
       case ID_GD:
+      case ID_HA:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -8191,13 +8160,6 @@ static void expand_workspace(BlendExpander *expander, WorkSpace *workspace)
   }
 }
 
-static void expand_hair(BlendExpander *expander, Hair *hair)
-{
-  for (int a = 0; a < hair->totcol; a++) {
-    BLO_expand(expander, hair->mat[a]);
-  }
-}
-
 static void expand_pointcloud(BlendExpander *expander, PointCloud *pointcloud)
 {
   for (int a = 0; a < pointcloud->totcol; a++) {
@@ -8285,9 +8247,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_WS:
               expand_workspace(&expander, (WorkSpace *)id);
-              break;
-            case ID_HA:
-              expand_hair(&expander, (Hair *)id);
               break;
             case ID_PT:
               expand_pointcloud(&expander, (PointCloud *)id);

@@ -47,6 +47,8 @@
 
 #include "DEG_depsgraph_query.h"
 
+#include "BLO_read_write.h"
+
 const char *HAIR_ATTR_POSITION = "Position";
 const char *HAIR_ATTR_RADIUS = "Radius";
 
@@ -109,6 +111,69 @@ static void hair_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+static void hair_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  Hair *hair = (Hair *)id;
+  if (hair->id.us > 0 || BLO_write_is_undo(writer)) {
+    CustomDataLayer *players = NULL, players_buff[CD_TEMP_CHUNK_SIZE];
+    CustomDataLayer *clayers = NULL, clayers_buff[CD_TEMP_CHUNK_SIZE];
+    CustomData_blend_write_prepare(&hair->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
+    CustomData_blend_write_prepare(&hair->cdata, &clayers, clayers_buff, ARRAY_SIZE(clayers_buff));
+
+    /* Write LibData */
+    BLO_write_id_struct(writer, Hair, id_address, &hair->id);
+    BKE_id_blend_write(writer, &hair->id);
+
+    /* Direct data */
+    CustomData_blend_write(writer, &hair->pdata, players, hair->totpoint, CD_MASK_ALL, &hair->id);
+    CustomData_blend_write(writer, &hair->cdata, clayers, hair->totcurve, CD_MASK_ALL, &hair->id);
+
+    BLO_write_pointer_array(writer, hair->totcol, hair->mat);
+    if (hair->adt) {
+      BKE_animdata_blend_write(writer, hair->adt);
+    }
+
+    /* Remove temporary data. */
+    if (players && players != players_buff) {
+      MEM_freeN(players);
+    }
+    if (clayers && clayers != clayers_buff) {
+      MEM_freeN(clayers);
+    }
+  }
+}
+
+static void hair_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  Hair *hair = (Hair *)id;
+  BLO_read_data_address(reader, &hair->adt);
+  BKE_animdata_blend_read_data(reader, hair->adt);
+
+  /* Geometry */
+  CustomData_blend_read(reader, &hair->pdata, hair->totpoint);
+  CustomData_blend_read(reader, &hair->cdata, hair->totcurve);
+  BKE_hair_update_customdata_pointers(hair);
+
+  /* Materials */
+  BLO_read_pointer_array(reader, (void **)&hair->mat);
+}
+
+static void hair_blend_read_lib(BlendLibReader *reader, ID *id)
+{
+  Hair *hair = (Hair *)id;
+  for (int a = 0; a < hair->totcol; a++) {
+    BLO_read_id_address(reader, hair->id.lib, &hair->mat[a]);
+  }
+}
+
+static void hair_blend_read_expand(BlendExpander *expander, ID *id)
+{
+  Hair *hair = (Hair *)id;
+  for (int a = 0; a < hair->totcol; a++) {
+    BLO_expand(expander, hair->mat[a]);
+  }
+}
+
 IDTypeInfo IDType_ID_HA = {
     .id_code = ID_HA,
     .id_filter = FILTER_ID_HA,
@@ -126,10 +191,10 @@ IDTypeInfo IDType_ID_HA = {
     .foreach_id = hair_foreach_id,
     .foreach_cache = NULL,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
-    .blend_read_lib = NULL,
-    .blend_read_expand = NULL,
+    .blend_write = hair_blend_write,
+    .blend_read_data = hair_blend_read_data,
+    .blend_read_lib = hair_blend_read_lib,
+    .blend_read_expand = hair_blend_read_expand,
 };
 
 static void hair_random(Hair *hair)
