@@ -2538,28 +2538,6 @@ static void lib_link_constraint_channels(BlendLibReader *reader, ID *id, ListBas
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: CacheFiles
- * \{ */
-
-static void lib_link_cachefiles(BlendLibReader *UNUSED(reader), CacheFile *UNUSED(cache_file))
-{
-}
-
-static void direct_link_cachefile(BlendDataReader *reader, CacheFile *cache_file)
-{
-  BLI_listbase_clear(&cache_file->object_paths);
-  cache_file->handle = NULL;
-  cache_file->handle_filepath[0] = '\0';
-  cache_file->handle_readers = NULL;
-
-  /* relink animdata */
-  BLO_read_data_address(reader, &cache_file->adt);
-  BKE_animdata_blend_read_data(reader, cache_file->adt);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: WorkSpace
  * \{ */
 
@@ -6371,9 +6349,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_PA:
       direct_link_particlesettings(&reader, (ParticleSettings *)id);
       break;
-    case ID_CF:
-      direct_link_cachefile(&reader, (CacheFile *)id);
-      break;
     case ID_WS:
       direct_link_workspace(&reader, (WorkSpace *)id, main);
       break;
@@ -6407,6 +6382,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_VO:
     case ID_SIM:
     case ID_SO:
+    case ID_CF:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -7036,9 +7012,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_GR:
         lib_link_collection(&reader, (Collection *)id);
         break;
-      case ID_CF:
-        lib_link_cachefiles(&reader, (CacheFile *)id);
-        break;
       case ID_IP:
         /* XXX deprecated... still needs to be maintained for version patches still. */
         lib_link_ipo(&reader, (Ipo *)id);
@@ -7076,6 +7049,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_VO:
       case ID_SIM:
       case ID_SO:
+      case ID_CF:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -8003,10 +7977,6 @@ static void expand_scene(BlendExpander *expander, Scene *sce)
   }
 }
 
-static void expand_cachefile(BlendExpander *UNUSED(expander), CacheFile *UNUSED(cache_file))
-{
-}
-
 static void expand_workspace(BlendExpander *expander, WorkSpace *workspace)
 {
   LISTBASE_FOREACH (WorkSpaceLayout *, layout, &workspace->layouts) {
@@ -8071,9 +8041,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_PA:
               expand_particlesettings(&expander, (ParticleSettings *)id);
-              break;
-            case ID_CF:
-              expand_cachefile(&expander, (CacheFile *)id);
               break;
             case ID_WS:
               expand_workspace(&expander, (WorkSpace *)id);

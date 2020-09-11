@@ -39,6 +39,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_anim_data.h"
 #include "BKE_cachefile.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
@@ -47,6 +48,8 @@
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph_query.h"
+
+#include "BLO_read_write.h"
 
 #ifdef WITH_ALEMBIC
 #  include "ABC_alembic.h"
@@ -85,6 +88,37 @@ static void cache_file_free_data(ID *id)
   BLI_freelistN(&cache_file->object_paths);
 }
 
+static void cache_file_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  CacheFile *cache_file = (CacheFile *)id;
+  if (cache_file->id.us > 0 || BLO_write_is_undo(writer)) {
+    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+    BLI_listbase_clear(&cache_file->object_paths);
+    cache_file->handle = NULL;
+    memset(cache_file->handle_filepath, 0, sizeof(cache_file->handle_filepath));
+    cache_file->handle_readers = NULL;
+
+    BLO_write_id_struct(writer, CacheFile, id_address, &cache_file->id);
+
+    if (cache_file->adt) {
+      BKE_animdata_blend_write(writer, cache_file->adt);
+    }
+  }
+}
+
+static void cache_file_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  CacheFile *cache_file = (CacheFile *)id;
+  BLI_listbase_clear(&cache_file->object_paths);
+  cache_file->handle = NULL;
+  cache_file->handle_filepath[0] = '\0';
+  cache_file->handle_readers = NULL;
+
+  /* relink animdata */
+  BLO_read_data_address(reader, &cache_file->adt);
+  BKE_animdata_blend_read_data(reader, cache_file->adt);
+}
+
 IDTypeInfo IDType_ID_CF = {
     .id_code = ID_CF,
     .id_filter = FILTER_ID_CF,
@@ -102,8 +136,8 @@ IDTypeInfo IDType_ID_CF = {
     .foreach_id = NULL,
     .foreach_cache = NULL,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
+    .blend_write = cache_file_blend_write,
+    .blend_read_data = cache_file_blend_read_data,
     .blend_read_lib = NULL,
     .blend_read_expand = NULL,
 };

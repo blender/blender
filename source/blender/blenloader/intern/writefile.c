@@ -2055,23 +2055,6 @@ static void write_screen(BlendWriter *writer, bScreen *screen, const void *id_ad
   }
 }
 
-static void write_cachefile(BlendWriter *writer, CacheFile *cache_file, const void *id_address)
-{
-  if (cache_file->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-    BLI_listbase_clear(&cache_file->object_paths);
-    cache_file->handle = NULL;
-    memset(cache_file->handle_filepath, 0, sizeof(cache_file->handle_filepath));
-    cache_file->handle_readers = NULL;
-
-    BLO_write_id_struct(writer, CacheFile, id_address, &cache_file->id);
-
-    if (cache_file->adt) {
-      BKE_animdata_blend_write(writer, cache_file->adt);
-    }
-  }
-}
-
 static void write_workspace(BlendWriter *writer, WorkSpace *workspace, const void *id_address)
 {
   BLO_write_id_struct(writer, WorkSpace, id_address, &workspace->id);
@@ -2366,9 +2349,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_PA:
             write_particlesettings(&writer, (ParticleSettings *)id_buffer, id);
             break;
-          case ID_CF:
-            write_cachefile(&writer, (CacheFile *)id_buffer, id);
-            break;
           case ID_ME:
           case ID_LT:
           case ID_AC:
@@ -2399,6 +2379,7 @@ static bool write_file_handle(Main *mainvar,
           case ID_VO:
           case ID_SIM:
           case ID_SO:
+          case ID_CF:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:
