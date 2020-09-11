@@ -1765,47 +1765,6 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
   BLI_assert(sce->layer_properties == NULL);
 }
 
-static void write_gpencil(BlendWriter *writer, bGPdata *gpd, const void *id_address)
-{
-  if (gpd->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
-    /* XXX not sure why the whole run-time data is not cleared in reading code,
-     * for now mimicking it here. */
-    gpd->runtime.sbuffer = NULL;
-    gpd->runtime.sbuffer_used = 0;
-    gpd->runtime.sbuffer_size = 0;
-    gpd->runtime.tot_cp_points = 0;
-
-    /* write gpd data block to file */
-    BLO_write_id_struct(writer, bGPdata, id_address, &gpd->id);
-    BKE_id_blend_write(writer, &gpd->id);
-
-    if (gpd->adt) {
-      BKE_animdata_blend_write(writer, gpd->adt);
-    }
-
-    BLO_write_pointer_array(writer, gpd->totcol, gpd->mat);
-
-    /* write grease-pencil layers to file */
-    BLO_write_struct_list(writer, bGPDlayer, &gpd->layers);
-    LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-      /* Write mask list. */
-      BLO_write_struct_list(writer, bGPDlayer_Mask, &gpl->mask_layers);
-      /* write this layer's frames to file */
-      BLO_write_struct_list(writer, bGPDframe, &gpl->frames);
-      LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-        /* write strokes */
-        BLO_write_struct_list(writer, bGPDstroke, &gpf->strokes);
-        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-          BLO_write_struct_array(writer, bGPDspoint, gps->totpoints, gps->points);
-          BLO_write_struct_array(writer, bGPDtriangle, gps->tot_triangles, gps->triangles);
-          BKE_defvert_blend_write(writer, gps->totpoints, gps->dvert);
-        }
-      }
-    }
-  }
-}
-
 static void write_wm_xr_data(BlendWriter *writer, wmXrData *xr_data)
 {
   write_view3dshading(writer, &xr_data->session_settings.shading);
@@ -2557,9 +2516,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_PA:
             write_particlesettings(&writer, (ParticleSettings *)id_buffer, id);
             break;
-          case ID_GD:
-            write_gpencil(&writer, (bGPdata *)id_buffer, id);
-            break;
           case ID_CF:
             write_cachefile(&writer, (CacheFile *)id_buffer, id);
             break;
@@ -2599,6 +2555,7 @@ static bool write_file_handle(Main *mainvar,
           case ID_LP:
           case ID_KE:
           case ID_TE:
+          case ID_GD:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:

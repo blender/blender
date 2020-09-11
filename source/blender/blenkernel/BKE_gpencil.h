@@ -48,6 +48,7 @@ struct bGPDlayer_Mask;
 struct bGPDspoint;
 struct bGPDstroke;
 struct bGPdata;
+struct BlendDataReader;
 
 #define GPENCIL_SIMPLIFY(scene) ((scene->r.simplify_gpencil & SIMPLIFY_GPENCIL_ENABLE))
 #define GPENCIL_SIMPLIFY_ONPLAY(playing) \
@@ -280,6 +281,8 @@ void BKE_gpencil_parent_matrix_get(const struct Depsgraph *depsgraph,
                                    float diff_mat[4][4]);
 
 void BKE_gpencil_update_layer_parent(const struct Depsgraph *depsgraph, struct Object *ob);
+
+void BKE_gpencil_blend_read_data(struct BlendDataReader *reader, struct bGPdata *gpd);
 
 #ifdef __cplusplus
 }

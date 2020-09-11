@@ -127,6 +127,7 @@
 #include "BKE_fcurve_driver.h"
 #include "BKE_fluid.h"
 #include "BKE_global.h"  // for G
+#include "BKE_gpencil.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_hair.h"
 #include "BKE_icons.h"
@@ -4921,100 +4922,6 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Grease Pencil
- * \{ */
-
-/* relink's grease pencil data's refs */
-static void lib_link_gpencil(BlendLibReader *reader, bGPdata *gpd)
-{
-  /* Relink all data-lock linked by GP data-lock */
-  /* Layers */
-  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    /* Layer -> Parent References */
-    BLO_read_id_address(reader, gpd->id.lib, &gpl->parent);
-  }
-
-  /* materials */
-  for (int a = 0; a < gpd->totcol; a++) {
-    BLO_read_id_address(reader, gpd->id.lib, &gpd->mat[a]);
-  }
-}
-
-/* relinks grease-pencil data - used for direct_link and old file linkage */
-static void direct_link_gpencil(BlendDataReader *reader, bGPdata *gpd)
-{
-  /* we must firstly have some grease-pencil data to link! */
-  if (gpd == NULL) {
-    return;
-  }
-
-  /* relink animdata */
-  BLO_read_data_address(reader, &gpd->adt);
-  BKE_animdata_blend_read_data(reader, gpd->adt);
-
-  /* Ensure full objectmode for linked grease pencil. */
-  if (gpd->id.lib != NULL) {
-    gpd->flag &= ~GP_DATA_STROKE_PAINTMODE;
-    gpd->flag &= ~GP_DATA_STROKE_EDITMODE;
-    gpd->flag &= ~GP_DATA_STROKE_SCULPTMODE;
-    gpd->flag &= ~GP_DATA_STROKE_WEIGHTMODE;
-    gpd->flag &= ~GP_DATA_STROKE_VERTEXMODE;
-  }
-
-  /* init stroke buffer */
-  gpd->runtime.sbuffer = NULL;
-  gpd->runtime.sbuffer_used = 0;
-  gpd->runtime.sbuffer_size = 0;
-  gpd->runtime.tot_cp_points = 0;
-
-  /* relink palettes (old palettes deprecated, only to convert old files) */
-  BLO_read_list(reader, &gpd->palettes);
-  if (gpd->palettes.first != NULL) {
-    LISTBASE_FOREACH (Palette *, palette, &gpd->palettes) {
-      BLO_read_list(reader, &palette->colors);
-    }
-  }
-
-  /* materials */
-  BLO_read_pointer_array(reader, (void **)&gpd->mat);
-
-  /* relink layers */
-  BLO_read_list(reader, &gpd->layers);
-
-  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    /* relink frames */
-    BLO_read_list(reader, &gpl->frames);
-
-    BLO_read_data_address(reader, &gpl->actframe);
-
-    gpl->runtime.icon_id = 0;
-
-    /* Relink masks. */
-    BLO_read_list(reader, &gpl->mask_layers);
-
-    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
-      /* relink strokes (and their points) */
-      BLO_read_list(reader, &gpf->strokes);
-
-      LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-        /* relink stroke points array */
-        BLO_read_data_address(reader, &gps->points);
-        /* Relink geometry*/
-        BLO_read_data_address(reader, &gps->triangles);
-
-        /* relink weight data */
-        if (gps->dvert) {
-          BLO_read_data_address(reader, &gps->dvert);
-          BKE_defvert_blend_read(reader, gps->totpoints, gps->dvert);
-        }
-      }
-    }
-  }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read Screen Area/Region (Screen Data)
  * \{ */
 
@@ -5156,7 +5063,7 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
 
       if (v3d->gpd) {
         BLO_read_data_address(reader, &v3d->gpd);
-        direct_link_gpencil(reader, v3d->gpd);
+        BKE_gpencil_blend_read_data(reader, v3d->gpd);
       }
       BLO_read_data_address(reader, &v3d->localvd);
 
@@ -5228,7 +5135,7 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
 #if 0
       sima->gpd = newdataadr(fd, sima->gpd);
       if (sima->gpd) {
-        direct_link_gpencil(fd, sima->gpd);
+        BKE_gpencil_blend_read_data(fd, sima->gpd);
       }
 #endif
     }
@@ -5237,7 +5144,7 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
 
       if (snode->gpd) {
         BLO_read_data_address(reader, &snode->gpd);
-        direct_link_gpencil(reader, snode->gpd);
+        BKE_gpencil_blend_read_data(reader, snode->gpd);
       }
 
       BLO_read_list(reader, &snode->treepath);
@@ -5262,7 +5169,7 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
 #if 0
       if (sseq->gpd) {
         sseq->gpd = newdataadr(fd, sseq->gpd);
-        direct_link_gpencil(fd, sseq->gpd);
+        BKE_gpencil_blend_read_data(fd, sseq->gpd);
       }
 #endif
       sseq->scopes.reference_ibuf = NULL;
@@ -6619,9 +6526,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_PA:
       direct_link_particlesettings(&reader, (ParticleSettings *)id);
       break;
-    case ID_GD:
-      direct_link_gpencil(&reader, (bGPdata *)id);
-      break;
     case ID_CF:
       direct_link_cachefile(&reader, (CacheFile *)id);
       break;
@@ -6664,6 +6568,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_LP:
     case ID_KE:
     case ID_TE:
+    case ID_GD:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -7308,9 +7213,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_VO:
         lib_link_volume(&reader, (Volume *)id);
         break;
-      case ID_GD:
-        lib_link_gpencil(&reader, (bGPdata *)id);
-        break;
       case ID_SIM:
         lib_link_simulation(&reader, (Simulation *)id);
         break;
@@ -7345,6 +7247,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_LP:
       case ID_KE:
       case ID_TE:
+      case ID_GD:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -8281,17 +8184,6 @@ static void expand_sound(BlendExpander *expander, bSound *snd)
   BLO_expand(expander, snd->ipo);  // XXX deprecated - old animation system
 }
 
-static void expand_gpencil(BlendExpander *expander, bGPdata *gpd)
-{
-  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    BLO_expand(expander, gpl->parent);
-  }
-
-  for (int a = 0; a < gpd->totcol; a++) {
-    BLO_expand(expander, gpd->mat[a]);
-  }
-}
-
 static void expand_workspace(BlendExpander *expander, WorkSpace *workspace)
 {
   LISTBASE_FOREACH (WorkSpaceLayout *, layout, &workspace->layouts) {
@@ -8387,9 +8279,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_PA:
               expand_particlesettings(&expander, (ParticleSettings *)id);
-              break;
-            case ID_GD:
-              expand_gpencil(&expander, (bGPdata *)id);
               break;
             case ID_CF:
               expand_cachefile(&expander, (CacheFile *)id);
