@@ -2264,17 +2264,16 @@ static int gpencil_material_find_index_by_name(Object *ob, const char *name)
   return -1;
 }
 
-/* Create the name with the object name and a subfix. */
-static void make_element_name(char *obname, char *name, const int maxlen, char *r_name)
+/**
+ * Create the name with the object name and a suffix.
+ */
+static void make_element_name(const char *obname, const char *name, const int maxlen, char *r_name)
 {
   char str[256];
-  sprintf(str, "%s_%s", obname, name);
+  SNPRINTF(str, "%s_%s", obname, name);
+
   /* Replace any point by underscore. */
-  char *current_pos = strchr(str, '.');
-  while (current_pos) {
-    *current_pos = '_';
-    current_pos = strchr(current_pos, '.');
-  }
+  BLI_str_replace_char(str, '.', '_');
 
   BLI_strncpy_utf8(r_name, str, maxlen);
 }
