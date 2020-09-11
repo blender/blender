@@ -6676,7 +6676,7 @@ static void operator_enum_search_update_fn(const struct bContext *C,
       }
     }
 
-    MEM_freeN(filtered_items);
+    MEM_freeN((void *)filtered_items);
     BLI_string_search_free(search);
 
     if (do_free) {
