@@ -1296,6 +1296,9 @@ void mesh_customdatacorrect_init(TransInfo *t)
       use_merge_group = (t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT_KEEP_CONNECTED) != 0;
     }
   }
+  else {
+    return;
+  }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     mesh_customdatacorrect_init_container(tc, use_merge_group);
