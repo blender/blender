@@ -47,6 +47,8 @@
 
 #include "DEG_depsgraph_query.h"
 
+#include "BLO_read_write.h"
+
 /* PointCloud datablock */
 
 static void pointcloud_random(PointCloud *pointcloud);
@@ -111,6 +113,64 @@ static void pointcloud_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+static void pointcloud_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  PointCloud *pointcloud = (PointCloud *)id;
+  if (pointcloud->id.us > 0 || BLO_write_is_undo(writer)) {
+    CustomDataLayer *players = NULL, players_buff[CD_TEMP_CHUNK_SIZE];
+    CustomData_blend_write_prepare(
+        &pointcloud->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
+
+    /* Write LibData */
+    BLO_write_id_struct(writer, PointCloud, id_address, &pointcloud->id);
+    BKE_id_blend_write(writer, &pointcloud->id);
+
+    /* Direct data */
+    CustomData_blend_write(
+        writer, &pointcloud->pdata, players, pointcloud->totpoint, CD_MASK_ALL, &pointcloud->id);
+
+    BLO_write_pointer_array(writer, pointcloud->totcol, pointcloud->mat);
+    if (pointcloud->adt) {
+      BKE_animdata_blend_write(writer, pointcloud->adt);
+    }
+
+    /* Remove temporary data. */
+    if (players && players != players_buff) {
+      MEM_freeN(players);
+    }
+  }
+}
+
+static void pointcloud_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  PointCloud *pointcloud = (PointCloud *)id;
+  BLO_read_data_address(reader, &pointcloud->adt);
+  BKE_animdata_blend_read_data(reader, pointcloud->adt);
+
+  /* Geometry */
+  CustomData_blend_read(reader, &pointcloud->pdata, pointcloud->totpoint);
+  BKE_pointcloud_update_customdata_pointers(pointcloud);
+
+  /* Materials */
+  BLO_read_pointer_array(reader, (void **)&pointcloud->mat);
+}
+
+static void pointcloud_blend_read_lib(BlendLibReader *reader, ID *id)
+{
+  PointCloud *pointcloud = (PointCloud *)id;
+  for (int a = 0; a < pointcloud->totcol; a++) {
+    BLO_read_id_address(reader, pointcloud->id.lib, &pointcloud->mat[a]);
+  }
+}
+
+static void pointcloud_blend_read_expand(BlendExpander *expander, ID *id)
+{
+  PointCloud *pointcloud = (PointCloud *)id;
+  for (int a = 0; a < pointcloud->totcol; a++) {
+    BLO_expand(expander, pointcloud->mat[a]);
+  }
+}
+
 IDTypeInfo IDType_ID_PT = {
     .id_code = ID_PT,
     .id_filter = FILTER_ID_PT,
@@ -128,10 +188,10 @@ IDTypeInfo IDType_ID_PT = {
     .foreach_id = pointcloud_foreach_id,
     .foreach_cache = NULL,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
-    .blend_read_lib = NULL,
-    .blend_read_expand = NULL,
+    .blend_write = pointcloud_blend_write,
+    .blend_read_data = pointcloud_blend_read_data,
+    .blend_read_lib = pointcloud_blend_read_lib,
+    .blend_read_expand = pointcloud_blend_read_expand,
 };
 
 static void pointcloud_random(PointCloud *pointcloud)

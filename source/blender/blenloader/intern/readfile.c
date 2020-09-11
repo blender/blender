@@ -6239,32 +6239,6 @@ static void lib_link_sound(BlendLibReader *reader, bSound *sound)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Point Cloud
- * \{ */
-
-static void lib_link_pointcloud(BlendLibReader *reader, PointCloud *pointcloud)
-{
-  for (int a = 0; a < pointcloud->totcol; a++) {
-    BLO_read_id_address(reader, pointcloud->id.lib, &pointcloud->mat[a]);
-  }
-}
-
-static void direct_link_pointcloud(BlendDataReader *reader, PointCloud *pointcloud)
-{
-  BLO_read_data_address(reader, &pointcloud->adt);
-  BKE_animdata_blend_read_data(reader, pointcloud->adt);
-
-  /* Geometry */
-  CustomData_blend_read(reader, &pointcloud->pdata, pointcloud->totpoint);
-  BKE_pointcloud_update_customdata_pointers(pointcloud);
-
-  /* Materials */
-  BLO_read_pointer_array(reader, (void **)&pointcloud->mat);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: Volume
  * \{ */
 
@@ -6505,9 +6479,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_WS:
       direct_link_workspace(&reader, (WorkSpace *)id, main);
       break;
-    case ID_PT:
-      direct_link_pointcloud(&reader, (PointCloud *)id);
-      break;
     case ID_VO:
       direct_link_volume(&reader, (Volume *)id);
       break;
@@ -6540,6 +6511,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_TE:
     case ID_GD:
     case ID_HA:
+    case ID_PT:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -7175,9 +7147,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_CF:
         lib_link_cachefiles(&reader, (CacheFile *)id);
         break;
-      case ID_PT:
-        lib_link_pointcloud(&reader, (PointCloud *)id);
-        break;
       case ID_VO:
         lib_link_volume(&reader, (Volume *)id);
         break;
@@ -7217,6 +7186,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_TE:
       case ID_GD:
       case ID_HA:
+      case ID_PT:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -8160,13 +8130,6 @@ static void expand_workspace(BlendExpander *expander, WorkSpace *workspace)
   }
 }
 
-static void expand_pointcloud(BlendExpander *expander, PointCloud *pointcloud)
-{
-  for (int a = 0; a < pointcloud->totcol; a++) {
-    BLO_expand(expander, pointcloud->mat[a]);
-  }
-}
-
 static void expand_volume(BlendExpander *expander, Volume *volume)
 {
   for (int a = 0; a < volume->totcol; a++) {
@@ -8247,9 +8210,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_WS:
               expand_workspace(&expander, (WorkSpace *)id);
-              break;
-            case ID_PT:
-              expand_pointcloud(&expander, (PointCloud *)id);
               break;
             case ID_VO:
               expand_volume(&expander, (Volume *)id);

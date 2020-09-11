@@ -2104,33 +2104,6 @@ static void write_workspace(BlendWriter *writer, WorkSpace *workspace, const voi
   }
 }
 
-static void write_pointcloud(BlendWriter *writer, PointCloud *pointcloud, const void *id_address)
-{
-  if (pointcloud->id.us > 0 || BLO_write_is_undo(writer)) {
-    CustomDataLayer *players = NULL, players_buff[CD_TEMP_CHUNK_SIZE];
-    CustomData_blend_write_prepare(
-        &pointcloud->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
-
-    /* Write LibData */
-    BLO_write_id_struct(writer, PointCloud, id_address, &pointcloud->id);
-    BKE_id_blend_write(writer, &pointcloud->id);
-
-    /* Direct data */
-    CustomData_blend_write(
-        writer, &pointcloud->pdata, players, pointcloud->totpoint, CD_MASK_ALL, &pointcloud->id);
-
-    BLO_write_pointer_array(writer, pointcloud->totcol, pointcloud->mat);
-    if (pointcloud->adt) {
-      BKE_animdata_blend_write(writer, pointcloud->adt);
-    }
-
-    /* Remove temporary data. */
-    if (players && players != players_buff) {
-      MEM_freeN(players);
-    }
-  }
-}
-
 static void write_volume(BlendWriter *writer, Volume *volume, const void *id_address)
 {
   if (volume->id.us > 0 || BLO_write_is_undo(writer)) {
@@ -2488,9 +2461,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_CF:
             write_cachefile(&writer, (CacheFile *)id_buffer, id);
             break;
-          case ID_PT:
-            write_pointcloud(&writer, (PointCloud *)id_buffer, id);
-            break;
           case ID_VO:
             write_volume(&writer, (Volume *)id_buffer, id);
             break;
@@ -2523,6 +2493,7 @@ static bool write_file_handle(Main *mainvar,
           case ID_TE:
           case ID_GD:
           case ID_HA:
+          case ID_PT:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:
