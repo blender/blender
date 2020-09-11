@@ -190,8 +190,6 @@ void WM_init_opengl(void)
 
   GPU_pass_cache_init();
 
-  BKE_subdiv_init();
-
   opengl_is_init = true;
 }
 
@@ -322,6 +320,8 @@ void WM_init(bContext *C, int argc, const char **argv)
 
     UI_init();
   }
+
+  BKE_subdiv_init();
 
   ED_spacemacros_init();
 
