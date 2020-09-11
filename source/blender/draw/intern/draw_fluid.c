@@ -183,6 +183,10 @@ static GPUTexture *create_volume_texture(const int dim[3],
   GPUTexture *tex = NULL;
   int final_dim[3] = {UNPACK3(dim)};
 
+  if (data == NULL) {
+    return NULL;
+  }
+
   while (1) {
     tex = GPU_texture_create_3d("volume", UNPACK3(final_dim), 1, format, NULL);
 
@@ -290,6 +294,10 @@ static GPUTexture *create_density_texture(FluidDomainSettings *fds, int highres)
   }
   else {
     data = manta_smoke_get_density(fds->fluid);
+  }
+
+  if (data == NULL) {
+    return NULL;
   }
 
   GPUTexture *tex = create_volume_texture(dim, GPU_R8, data);
