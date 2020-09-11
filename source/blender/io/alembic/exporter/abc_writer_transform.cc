@@ -53,6 +53,17 @@ void ABCTransformWriter::create_alembic_objects(const HierarchyContext * /*conte
   abc_xform_schema_ = abc_xform_.getSchema();
 }
 
+Alembic::Abc::OCompoundProperty ABCTransformWriter::abc_prop_for_custom_props()
+{
+  return abc_schema_prop_for_custom_props<OXformSchema>(abc_xform_schema_);
+}
+
+const IDProperty *ABCTransformWriter::get_id_properties(const HierarchyContext &context) const
+{
+  const Object *object = context.object;
+  return object->id.properties;
+}
+
 void ABCTransformWriter::do_write(HierarchyContext &context)
 {
   float parent_relative_matrix[4][4];  // The object matrix relative to the parent.

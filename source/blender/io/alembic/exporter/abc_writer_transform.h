@@ -21,6 +21,8 @@
 
 #include "abc_writer_abstract.h"
 
+#include <memory>
+
 #include <Alembic/AbcGeom/OXform.h>
 
 namespace blender::io::alembic {
@@ -38,6 +40,8 @@ class ABCTransformWriter : public ABCAbstractWriter {
   virtual void do_write(HierarchyContext &context) override;
   virtual bool check_is_animated(const HierarchyContext &context) const override;
   virtual Alembic::Abc::OObject get_alembic_object() const override;
+  const IDProperty *get_id_properties(const HierarchyContext &context) const override;
+  Alembic::Abc::OCompoundProperty abc_prop_for_custom_props() override;
 };
 
 }  // namespace blender::io::alembic

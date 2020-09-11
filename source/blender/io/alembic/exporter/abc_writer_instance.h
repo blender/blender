@@ -39,6 +39,8 @@ class ABCInstanceWriter : public ABCAbstractWriter {
  protected:
   virtual bool is_supported(const HierarchyContext *context) const override;
   virtual void do_write(HierarchyContext &context) override;
+  void ensure_custom_properties_exporter(const HierarchyContext &context) override;
+  Alembic::Abc::OCompoundProperty abc_prop_for_custom_props() override;
 };
 
 }  // namespace blender::io::alembic

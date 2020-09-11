@@ -66,6 +66,11 @@ Alembic::Abc::OObject ABCCurveWriter::get_alembic_object() const
   return abc_curve_;
 }
 
+Alembic::Abc::OCompoundProperty ABCCurveWriter::abc_prop_for_custom_props()
+{
+  return abc_schema_prop_for_custom_props(abc_curve_schema_);
+}
+
 void ABCCurveWriter::do_write(HierarchyContext &context)
 {
   Curve *curve = static_cast<Curve *>(context.object->data);

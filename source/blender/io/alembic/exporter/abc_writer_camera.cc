@@ -65,6 +65,11 @@ Alembic::Abc::OObject ABCCameraWriter::get_alembic_object() const
   return abc_camera_;
 }
 
+Alembic::Abc::OCompoundProperty ABCCameraWriter::abc_prop_for_custom_props()
+{
+  return abc_schema_prop_for_custom_props(abc_camera_schema_);
+}
+
 void ABCCameraWriter::do_write(HierarchyContext &context)
 {
   Camera *cam = static_cast<Camera *>(context.object->data);

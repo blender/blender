@@ -40,6 +40,7 @@ class ABCNurbsWriter : public ABCAbstractWriter {
   virtual bool is_supported(const HierarchyContext *context) const override;
   virtual void do_write(HierarchyContext &context) override;
   virtual bool check_is_animated(const HierarchyContext &context) const override;
+  Alembic::Abc::OCompoundProperty abc_prop_for_custom_props() override;
 };
 
 class ABCNurbsMeshWriter : public ABCGenericMeshWriter {

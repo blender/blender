@@ -58,6 +58,11 @@ Alembic::Abc::OObject ABCPointsWriter::get_alembic_object() const
   return abc_points_;
 }
 
+Alembic::Abc::OCompoundProperty ABCPointsWriter::abc_prop_for_custom_props()
+{
+  return abc_schema_prop_for_custom_props(abc_points_schema_);
+}
+
 bool ABCPointsWriter::is_supported(const HierarchyContext *context) const
 {
   return ELEM(context->particle_system->part->type,

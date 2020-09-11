@@ -125,6 +125,14 @@ Alembic::Abc::OObject ABCGenericMeshWriter::get_alembic_object() const
   return abc_poly_mesh_;
 }
 
+Alembic::Abc::OCompoundProperty ABCGenericMeshWriter::abc_prop_for_custom_props()
+{
+  if (is_subd_) {
+    return abc_schema_prop_for_custom_props(abc_subdiv_schema_);
+  }
+  return abc_schema_prop_for_custom_props(abc_poly_mesh_schema_);
+}
+
 bool ABCGenericMeshWriter::export_as_subdivision_surface(Object *ob_eval) const
 {
   ModifierData *md = static_cast<ModifierData *>(ob_eval->modifiers.last);

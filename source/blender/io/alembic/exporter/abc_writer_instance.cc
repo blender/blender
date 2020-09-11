@@ -50,6 +50,16 @@ void ABCInstanceWriter::create_alembic_objects(const HierarchyContext *context)
   CLOG_INFO(&LOG, 2, "exporting instance %s", args_.abc_path.c_str());
 }
 
+void ABCInstanceWriter::ensure_custom_properties_exporter(const HierarchyContext & /*context*/)
+{
+  /* Intentionally do nothing. Instances should not have their own custom properties. */
+}
+
+Alembic::Abc::OCompoundProperty ABCInstanceWriter::abc_prop_for_custom_props()
+{
+  return Alembic::Abc::OCompoundProperty();
+}
+
 OObject ABCInstanceWriter::get_alembic_object() const
 {
   /* There is no OObject for an instance. */

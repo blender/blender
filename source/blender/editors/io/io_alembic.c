@@ -133,6 +133,7 @@ static int wm_alembic_export_exec(bContext *C, wmOperator *op)
       .use_subdiv_schema = RNA_boolean_get(op->ptr, "subdiv_schema"),
       .export_hair = RNA_boolean_get(op->ptr, "export_hair"),
       .export_particles = RNA_boolean_get(op->ptr, "export_particles"),
+      .export_custom_properties = RNA_boolean_get(op->ptr, "export_custom_properties"),
       .use_instancing = RNA_boolean_get(op->ptr, "use_instancing"),
       .packuv = RNA_boolean_get(op->ptr, "packuv"),
       .triangulate = RNA_boolean_get(op->ptr, "triangulate"),
@@ -191,6 +192,8 @@ static void ui_alembic_export_settings(uiLayout *layout, PointerRNA *imfptr)
 
   uiItemR(col, imfptr, "flatten", 0, NULL, ICON_NONE);
   uiItemR(sub, imfptr, "use_instancing", 0, IFACE_("Use Instancing"), ICON_NONE);
+  uiItemR(sub, imfptr, "export_custom_properties", 0, IFACE_("Custom Properties"), ICON_NONE);
+
   sub = uiLayoutColumnWithHeading(col, true, IFACE_("Only"));
   uiItemR(sub, imfptr, "selected", 0, IFACE_("Selected Objects"), ICON_NONE);
   uiItemR(sub, imfptr, "renderable_only", 0, IFACE_("Renderable Objects"), ICON_NONE);
@@ -448,6 +451,12 @@ void WM_OT_alembic_export(wmOperatorType *ot)
                   "Exports hair particle systems as animated curves");
   RNA_def_boolean(
       ot->srna, "export_particles", 1, "Export Particles", "Exports non-hair particle systems");
+
+  RNA_def_boolean(ot->srna,
+                  "export_custom_properties",
+                  true,
+                  "Export Custom Properties",
+                  "Export custom properties to Alembic .userProperties");
 
   RNA_def_boolean(
       ot->srna,

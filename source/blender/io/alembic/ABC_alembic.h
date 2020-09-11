@@ -60,6 +60,7 @@ struct AlembicExportParams {
   bool triangulate;
   bool export_hair;
   bool export_particles;
+  bool export_custom_properties;
   bool use_instancing;
 
   /* See MOD_TRIANGULATE_NGON_xxx and MOD_TRIANGULATE_QUAD_xxx

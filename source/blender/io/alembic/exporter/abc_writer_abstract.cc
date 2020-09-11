@@ -59,6 +59,7 @@ void ABCAbstractWriter::write(HierarchyContext &context)
   if (!frame_has_been_written_) {
     is_animated_ = (args_.export_params->frame_start != args_.export_params->frame_end) &&
                    check_is_animated(context);
+    ensure_custom_properties_exporter(context);
   }
   else if (!is_animated_) {
     /* A frame has already been written, and without animation one frame is enough. */
@@ -67,7 +68,47 @@ void ABCAbstractWriter::write(HierarchyContext &context)
 
   do_write(context);
 
+  if (custom_props_) {
+    custom_props_->write_all(get_id_properties(context));
+  }
+
   frame_has_been_written_ = true;
+}
+
+void ABCAbstractWriter::ensure_custom_properties_exporter(const HierarchyContext &context)
+{
+  if (!args_.export_params->export_custom_properties) {
+    return;
+  }
+
+  if (custom_props_) {
+    /* Custom properties exporter already created. */
+    return;
+  }
+
+  /* Avoid creating a custom properties exporter if there are no custom properties to export. */
+  const IDProperty *id_properties = get_id_properties(context);
+  if (id_properties == nullptr || id_properties->len == 0) {
+    return;
+  }
+
+  custom_props_ = std::make_unique<CustomPropertiesExporter>(this);
+}
+
+const IDProperty *ABCAbstractWriter::get_id_properties(const HierarchyContext &context) const
+{
+  Object *object = context.object;
+  if (object->data == nullptr) {
+    return nullptr;
+  }
+
+  /* Most subclasses write object data, so default to the object data's ID properties. */
+  return static_cast<ID *>(object->data)->properties;
+}
+
+uint32_t ABCAbstractWriter::timesample_index() const
+{
+  return timesample_index_;
 }
 
 const Imath::Box3d &ABCAbstractWriter::bounding_box() const

@@ -78,6 +78,17 @@ OObject ABCNurbsWriter::get_alembic_object() const
   return abc_nurbs_[0];
 }
 
+Alembic::Abc::OCompoundProperty ABCNurbsWriter::abc_prop_for_custom_props()
+{
+  if (abc_nurbs_.empty()) {
+    return Alembic::Abc::OCompoundProperty();
+  }
+
+  /* A single NURBS object in Blender is expanded to multiple curves in Alembic.
+   * Just store the custom properties on the first one for simplicity. */
+  return abc_schema_prop_for_custom_props(abc_nurbs_schemas_[0]);
+}
+
 bool ABCNurbsWriter::check_is_animated(const HierarchyContext &context) const
 {
   /* Check if object has shape keys. */
