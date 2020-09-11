@@ -33,6 +33,9 @@
 
 #include "BLT_translation.h"
 
+/* Allow using deprecated functionality for .blend file I/O. */
+#define DNA_DEPRECATED_ALLOW
+
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_packedFile_types.h"
@@ -62,6 +65,8 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
+
+#include "BLO_read_write.h"
 
 static void sound_free_audio(bSound *sound);
 
@@ -126,6 +131,64 @@ static void sound_foreach_cache(ID *id,
   function_callback(id, &key, &sound->waveform, 0, user_data);
 }
 
+static void sound_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  bSound *sound = (bSound *)id;
+  if (sound->id.us > 0 || BLO_write_is_undo(writer)) {
+    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+    sound->tags = 0;
+    sound->handle = NULL;
+    sound->playback_handle = NULL;
+    sound->spinlock = NULL;
+
+    /* write LibData */
+    BLO_write_id_struct(writer, bSound, id_address, &sound->id);
+    BKE_id_blend_write(writer, &sound->id);
+
+    BKE_packedfile_blend_write(writer, sound->packedfile);
+  }
+}
+
+static void sound_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  bSound *sound = (bSound *)id;
+  sound->tags = 0;
+  sound->handle = NULL;
+  sound->playback_handle = NULL;
+
+  /* versioning stuff, if there was a cache, then we enable caching: */
+  if (sound->cache) {
+    sound->flags |= SOUND_FLAGS_CACHING;
+    sound->cache = NULL;
+  }
+
+  if (BLO_read_data_is_undo(reader)) {
+    sound->tags |= SOUND_TAGS_WAVEFORM_NO_RELOAD;
+  }
+
+  sound->spinlock = MEM_mallocN(sizeof(SpinLock), "sound_spinlock");
+  BLI_spin_init(sound->spinlock);
+
+  /* clear waveform loading flag */
+  sound->tags &= ~SOUND_TAGS_WAVEFORM_LOADING;
+
+  BKE_packedfile_blend_read(reader, &sound->packedfile);
+  BKE_packedfile_blend_read(reader, &sound->newpackedfile);
+}
+
+static void sound_blend_read_lib(BlendLibReader *reader, ID *id)
+{
+  bSound *sound = (bSound *)id;
+  BLO_read_id_address(
+      reader, sound->id.lib, &sound->ipo);  // XXX deprecated - old animation system
+}
+
+static void sound_blend_read_expand(BlendExpander *expander, ID *id)
+{
+  bSound *snd = (bSound *)id;
+  BLO_expand(expander, snd->ipo);  // XXX deprecated - old animation system
+}
+
 IDTypeInfo IDType_ID_SO = {
     .id_code = ID_SO,
     .id_filter = FILTER_ID_SO,
@@ -144,10 +207,10 @@ IDTypeInfo IDType_ID_SO = {
     .foreach_id = NULL,
     .foreach_cache = sound_foreach_cache,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
-    .blend_read_lib = NULL,
-    .blend_read_expand = NULL,
+    .blend_write = sound_blend_write,
+    .blend_read_data = sound_blend_read_data,
+    .blend_read_lib = sound_blend_read_lib,
+    .blend_read_expand = sound_blend_read_expand,
 };
 
 #ifdef WITH_AUDASPACE

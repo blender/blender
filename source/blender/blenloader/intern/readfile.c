@@ -6201,44 +6201,6 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Sound
- * \{ */
-
-static void direct_link_sound(BlendDataReader *reader, bSound *sound)
-{
-  sound->tags = 0;
-  sound->handle = NULL;
-  sound->playback_handle = NULL;
-
-  /* versioning stuff, if there was a cache, then we enable caching: */
-  if (sound->cache) {
-    sound->flags |= SOUND_FLAGS_CACHING;
-    sound->cache = NULL;
-  }
-
-  if (BLO_read_data_is_undo(reader)) {
-    sound->tags |= SOUND_TAGS_WAVEFORM_NO_RELOAD;
-  }
-
-  sound->spinlock = MEM_mallocN(sizeof(SpinLock), "sound_spinlock");
-  BLI_spin_init(sound->spinlock);
-
-  /* clear waveform loading flag */
-  sound->tags &= ~SOUND_TAGS_WAVEFORM_LOADING;
-
-  BKE_packedfile_blend_read(reader, &sound->packedfile);
-  BKE_packedfile_blend_read(reader, &sound->newpackedfile);
-}
-
-static void lib_link_sound(BlendLibReader *reader, bSound *sound)
-{
-  BLO_read_id_address(
-      reader, sound->id.lib, &sound->ipo);  // XXX deprecated - old animation system
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read Library Data Block
  * \{ */
 
@@ -6403,9 +6365,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_LI:
       direct_link_library(fd, (Library *)id, main);
       break;
-    case ID_SO:
-      direct_link_sound(&reader, (bSound *)id);
-      break;
     case ID_GR:
       direct_link_collection(&reader, (Collection *)id);
       break;
@@ -6447,6 +6406,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_PT:
     case ID_VO:
     case ID_SIM:
+    case ID_SO:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -7076,9 +7036,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_GR:
         lib_link_collection(&reader, (Collection *)id);
         break;
-      case ID_SO:
-        lib_link_sound(&reader, (bSound *)id);
-        break;
       case ID_CF:
         lib_link_cachefiles(&reader, (CacheFile *)id);
         break;
@@ -7118,6 +7075,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_PT:
       case ID_VO:
       case ID_SIM:
+      case ID_SO:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -8049,11 +8007,6 @@ static void expand_cachefile(BlendExpander *UNUSED(expander), CacheFile *UNUSED(
 {
 }
 
-static void expand_sound(BlendExpander *expander, bSound *snd)
-{
-  BLO_expand(expander, snd->ipo);  // XXX deprecated - old animation system
-}
-
 static void expand_workspace(BlendExpander *expander, WorkSpace *workspace)
 {
   LISTBASE_FOREACH (WorkSpaceLayout *, layout, &workspace->layouts) {
@@ -8109,9 +8062,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_SCE:
               expand_scene(&expander, (Scene *)id);
-              break;
-            case ID_SO:
-              expand_sound(&expander, (bSound *)id);
               break;
             case ID_GR:
               expand_collection(&expander, (Collection *)id);

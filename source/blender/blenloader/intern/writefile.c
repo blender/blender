@@ -2055,23 +2055,6 @@ static void write_screen(BlendWriter *writer, bScreen *screen, const void *id_ad
   }
 }
 
-static void write_sound(BlendWriter *writer, bSound *sound, const void *id_address)
-{
-  if (sound->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-    sound->tags = 0;
-    sound->handle = NULL;
-    sound->playback_handle = NULL;
-    sound->spinlock = NULL;
-
-    /* write LibData */
-    BLO_write_id_struct(writer, bSound, id_address, &sound->id);
-    BKE_id_blend_write(writer, &sound->id);
-
-    BKE_packedfile_blend_write(writer, sound->packedfile);
-  }
-}
-
 static void write_cachefile(BlendWriter *writer, CacheFile *cache_file, const void *id_address)
 {
   if (cache_file->id.us > 0 || BLO_write_is_undo(writer)) {
@@ -2374,9 +2357,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_SCE:
             write_scene(&writer, (Scene *)id_buffer, id);
             break;
-          case ID_SO:
-            write_sound(&writer, (bSound *)id_buffer, id);
-            break;
           case ID_GR:
             write_collection(&writer, (Collection *)id_buffer, id);
             break;
@@ -2418,6 +2398,7 @@ static bool write_file_handle(Main *mainvar,
           case ID_PT:
           case ID_VO:
           case ID_SIM:
+          case ID_SO:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:
