@@ -1115,27 +1115,11 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
 /************************* Drawing the Path ************************/
 
-static void pin_cb(bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))
-{
-  SpaceProperties *sbuts = CTX_wm_space_properties(C);
-
-  if (sbuts->flag & SB_PIN_CONTEXT) {
-    sbuts->pinid = buttons_context_id_path(C);
-  }
-  else {
-    sbuts->pinid = NULL;
-  }
-
-  ED_area_tag_redraw(CTX_wm_area(C));
-}
-
 void buttons_context_draw(const bContext *C, uiLayout *layout)
 {
   SpaceProperties *sbuts = CTX_wm_space_properties(C);
   ButsContextPath *path = sbuts->path;
   uiLayout *row, *sub;
-  uiBlock *block;
-  uiBut *but;
   PointerRNA *ptr;
   char namebuf[128], *name;
   int a, icon;
