@@ -21,7 +21,7 @@ void main()
 
   bool is_select = (flag & VERT_UV_SELECT) != 0;
   selectionFac = is_select ? 1.0 : 0.0;
-  /* Move selected edges to the top 
+  /* Move selected edges to the top
    * Vertices are between 0.0 and 0.2, Edges between 0.2 and 0.4
    * actual pixels are at 0.75, 1.0 is used for the background. */
   float depth = is_select ? 0.25 : 0.35;

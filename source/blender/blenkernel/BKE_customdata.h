@@ -570,9 +570,9 @@ void CustomData_data_transfer(const struct MeshPairRemap *me_remap,
 
 /* .blend file I/O */
 void CustomData_blend_write_prepare(struct CustomData *data,
-                                   struct CustomDataLayer **r_write_layers,
-                                   struct CustomDataLayer *write_layers_buff,
-                                   size_t write_layers_size);
+                                    struct CustomDataLayer **r_write_layers,
+                                    struct CustomDataLayer *write_layers_buff,
+                                    size_t write_layers_size);
 
 void CustomData_blend_write(struct BlendWriter *writer,
                             struct CustomData *data,
