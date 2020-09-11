@@ -210,7 +210,7 @@ bool BLO_read_data_is_undo(BlendDataReader *reader);
 ID *BLO_read_get_new_id_address(BlendLibReader *reader, struct Library *lib, struct ID *id);
 
 #define BLO_read_id_address(reader, lib, id_ptr_p) \
-  *(id_ptr_p) = (void *)BLO_read_get_new_id_address((reader), (lib), (ID *)*(id_ptr_p))
+  *((void **)id_ptr_p) = (void *)BLO_read_get_new_id_address((reader), (lib), (ID *)*(id_ptr_p))
 
 /* Misc. */
 bool BLO_read_lib_is_undo(BlendLibReader *reader);

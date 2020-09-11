@@ -2104,26 +2104,6 @@ static void write_workspace(BlendWriter *writer, WorkSpace *workspace, const voi
   }
 }
 
-static void write_volume(BlendWriter *writer, Volume *volume, const void *id_address)
-{
-  if (volume->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
-    volume->runtime.grids = 0;
-
-    /* write LibData */
-    BLO_write_id_struct(writer, Volume, id_address, &volume->id);
-    BKE_id_blend_write(writer, &volume->id);
-
-    /* direct data */
-    BLO_write_pointer_array(writer, volume->totcol, volume->mat);
-    if (volume->adt) {
-      BKE_animdata_blend_write(writer, volume->adt);
-    }
-
-    BKE_packedfile_blend_write(writer, volume->packedfile);
-  }
-}
-
 static void write_simulation(BlendWriter *writer, Simulation *simulation, const void *id_address)
 {
   if (simulation->id.us > 0 || BLO_write_is_undo(writer)) {
@@ -2461,9 +2441,6 @@ static bool write_file_handle(Main *mainvar,
           case ID_CF:
             write_cachefile(&writer, (CacheFile *)id_buffer, id);
             break;
-          case ID_VO:
-            write_volume(&writer, (Volume *)id_buffer, id);
-            break;
           case ID_SIM:
             write_simulation(&writer, (Simulation *)id_buffer, id);
             break;
@@ -2494,6 +2471,7 @@ static bool write_file_handle(Main *mainvar,
           case ID_GD:
           case ID_HA:
           case ID_PT:
+          case ID_VO:
             /* Do nothing, handled in IDTypeInfo callback. */
             break;
           case ID_LI:

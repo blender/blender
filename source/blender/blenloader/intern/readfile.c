@@ -6239,36 +6239,6 @@ static void lib_link_sound(BlendLibReader *reader, bSound *sound)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read ID: Volume
- * \{ */
-
-static void lib_link_volume(BlendLibReader *reader, Volume *volume)
-{
-  /* Needs to be done *after* cache pointers are restored (call to
-   * `foreach_cache`/`blo_cache_storage_entry_restore_in_new`), easier for now to do it in
-   * lib_link... */
-  BKE_volume_init_grids(volume);
-
-  for (int a = 0; a < volume->totcol; a++) {
-    BLO_read_id_address(reader, volume->id.lib, &volume->mat[a]);
-  }
-}
-
-static void direct_link_volume(BlendDataReader *reader, Volume *volume)
-{
-  BLO_read_data_address(reader, &volume->adt);
-  BKE_animdata_blend_read_data(reader, volume->adt);
-
-  BKE_packedfile_blend_read(reader, &volume->packedfile);
-  volume->runtime.frame = 0;
-
-  /* materials */
-  BLO_read_pointer_array(reader, (void **)&volume->mat);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: Simulation
  * \{ */
 
@@ -6479,9 +6449,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_WS:
       direct_link_workspace(&reader, (WorkSpace *)id, main);
       break;
-    case ID_VO:
-      direct_link_volume(&reader, (Volume *)id);
-      break;
     case ID_SIM:
       direct_link_simulation(&reader, (Simulation *)id);
       break;
@@ -6512,6 +6479,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_GD:
     case ID_HA:
     case ID_PT:
+    case ID_VO:
       /* Do nothing. Handled by IDTypeInfo callback. */
       break;
   }
@@ -7147,9 +7115,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_CF:
         lib_link_cachefiles(&reader, (CacheFile *)id);
         break;
-      case ID_VO:
-        lib_link_volume(&reader, (Volume *)id);
-        break;
       case ID_SIM:
         lib_link_simulation(&reader, (Simulation *)id);
         break;
@@ -7187,6 +7152,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_GD:
       case ID_HA:
       case ID_PT:
+      case ID_VO:
         /* Do nothing. Handled by IDTypeInfo callback. */
         break;
     }
@@ -8130,13 +8096,6 @@ static void expand_workspace(BlendExpander *expander, WorkSpace *workspace)
   }
 }
 
-static void expand_volume(BlendExpander *expander, Volume *volume)
-{
-  for (int a = 0; a < volume->totcol; a++) {
-    BLO_expand(expander, volume->mat[a]);
-  }
-}
-
 static void expand_simulation(BlendExpander *expander, Simulation *simulation)
 {
   LISTBASE_FOREACH (SimulationDependency *, dependency, &simulation->dependencies) {
@@ -8210,9 +8169,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_WS:
               expand_workspace(&expander, (WorkSpace *)id);
-              break;
-            case ID_VO:
-              expand_volume(&expander, (Volume *)id);
               break;
             case ID_SIM:
               expand_simulation(&expander, (Simulation *)id);
