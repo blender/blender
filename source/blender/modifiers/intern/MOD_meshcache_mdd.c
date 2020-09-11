@@ -65,13 +65,13 @@ static bool meshcache_read_mdd_head(FILE *fp,
     *err_str = "Invalid frame total";
     return false;
   }
-  /* intentionally dont seek back */
+  /* Intentionally don't seek back. */
 
   return true;
 }
 
 /**
- * Gets the index frange and factor
+ * Gets the index range and factor.
  */
 static bool meshcache_read_mdd_range(FILE *fp,
                                      const int verts_tot,

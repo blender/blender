@@ -3640,9 +3640,8 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
        * degree of the functions used to build the NURB. The
        * expression
        *
-       *     degree = #knots - #controlpoints + 1 (J Walter piece)
-       *     degree = #knots - #controlpoints     (Blender
-       *                                           implementation)
+       *     `degree = knots - controlpoints + 1` (J Walter piece)
+       *     `degree = knots - controlpoints` (Blender implementation)
        *       ( this is confusing.... what is true? Another concern
        *       is that the JW piece allows the curve to become
        *       explicitly 1st order derivative discontinuous, while
@@ -3651,12 +3650,12 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
        * is an invariant for a single NURB curve. Raising the degree
        * of the NURB is done elsewhere; the degree is assumed
        * constant during this operation. Degree is a property shared
-       * by all controlpoints in a curve (even though it is stored
+       * by all control-points in a curve (even though it is stored
        * per control point - this can be misleading).
        * Adding a knot is done by searching for the place in the
        * knot vector where a certain knot value must be inserted, or
        * by picking an appropriate knot value between two existing
-       * ones. The number of controlpoints that is influenced by the
+       * ones. The number of control-points that is influenced by the
        * insertion depends on the order of the curve. A certain
        * minimum number of knots is needed to form high-order
        * curves, as can be seen from the equation above. In Blender,

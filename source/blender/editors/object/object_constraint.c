@@ -80,8 +80,10 @@
 /** \name Constraint Data Accessors
  * \{ */
 
-/* If object is in posemode, return active bone constraints, else object constraints. No
- * constraints are returned for a bone on an inactive bonelayer. */
+/**
+ * If object is in pose-mode, return active bone constraints, else object constraints.
+ * No constraints are returned for a bone on an inactive bone-layer.
+ */
 ListBase *ED_object_constraint_active_list(Object *ob)
 {
   if (ob == NULL) {
@@ -103,8 +105,10 @@ ListBase *ED_object_constraint_active_list(Object *ob)
   return NULL;
 }
 
-/* Get the constraints for the active pose bone. Bone may be on an inactive bonelayer (unlike
- * ED_object_constraint_active_list, such constraints are not excluded here). */
+/**
+ * Get the constraints for the active pose bone. Bone may be on an inactive bone-layer
+ * (unlike #ED_object_constraint_active_list, such constraints are not excluded here).
+ */
 ListBase *ED_object_pose_constraint_list(const bContext *C)
 {
   bPoseChannel *pose_bone = CTX_data_pointer_get(C, "active_pose_bone").data;

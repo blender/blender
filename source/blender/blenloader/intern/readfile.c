@@ -7311,8 +7311,8 @@ static void lib_link_all(FileData *fd, Main *bmain)
         lib_link_object(&reader, (Object *)id);
         break;
       case ID_SCR:
-        /* DO NOT skip screens here,
-         * 3D viewport may contains pointers to other ID data (like bgpic)! See T41411. */
+        /* DO NOT skip screens here, 3D viewport may contains pointers
+         * to other ID data (like #View3D.ob_center)! See T41411. */
         lib_link_screen(&reader, (bScreen *)id);
         break;
       case ID_PA:

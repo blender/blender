@@ -243,7 +243,7 @@ void raise_gl_error(const char *info)
 /* -------------------------------------------------------------------- */
 /** \name Object Label
  *
- * Useful for debugging through renderdoc. Only defined if using --debug-gpu.
+ * Useful for debugging through render-doc. Only defined if using `--debug-gpu`.
  * Make sure to bind the object first so that it gets defined by the GL implementation.
  * \{ */
 

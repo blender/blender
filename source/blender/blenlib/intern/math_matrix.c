@@ -2616,9 +2616,9 @@ void print_m4(const char *str, const float m[4][4])
  *
  * Compute the Single Value Decomposition of an arbitrary matrix A
  * That is compute the 3 matrices U,W,V with U column orthogonal (m,n)
- * ,W a diagonal matrix and V an orthogonal square matrix s.t.
- * A = U.W.Vt. From this decomposition it is trivial to compute the
- * (pseudo-inverse) of A as Ainv = V.Winv.tranpose(U).
+ * ,W a diagonal matrix and V an orthogonal square matrix `s.t.A = U.W.Vt`.
+ * From this decomposition it is trivial to compute the (pseudo-inverse)
+ * of `A` as `Ainv = V.Winv.transpose(U)`.
  */
 
 void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
