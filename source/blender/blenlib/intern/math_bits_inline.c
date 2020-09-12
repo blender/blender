@@ -48,7 +48,7 @@ MINLINE unsigned int bitscan_forward_uint64(unsigned long long a)
   _BitScanForward64(&ctz, a);
   return ctz;
 #else
-  return (unsigned int)__builtin_ctz(a);
+  return (unsigned int)__builtin_ctzll(a);
 #endif
 }
 
