@@ -27,11 +27,11 @@
 #include <Python.h>
 
 #include "BLI_utildefines.h"
-
-#include "GPU_glew.h"
 #include "MEM_guardedalloc.h"
 
 #include "../generic/py_capi_utils.h"
+
+#include "glew-mx.h"
 
 #include "bgl.h"
 

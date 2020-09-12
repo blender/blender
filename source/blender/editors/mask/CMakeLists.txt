@@ -30,10 +30,6 @@ set(INC
   ../../../../intern/guardedalloc
 )
 
-set(INC_SYS
-  ${GLEW_INCLUDE_PATH}
-)
-
 set(SRC
   mask_add.c
   mask_draw.c
@@ -51,6 +47,5 @@ set(SRC
 set(LIB
 )
 
-add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_editor_mask "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

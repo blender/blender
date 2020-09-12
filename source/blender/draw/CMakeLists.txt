@@ -44,10 +44,6 @@ set(INC
   ../../../intern/guardedalloc
 )
 
-set(INC_SYS
-  ${GLEW_INCLUDE_PATH}
-)
-
 set(SRC
   intern/draw_cache.c
   intern/draw_cache_extract_mesh.c
@@ -442,7 +438,6 @@ if(WITH_GTESTS)
   endif()
 endif()
 
-add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_draw "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 

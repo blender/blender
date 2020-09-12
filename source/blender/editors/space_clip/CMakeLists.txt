@@ -33,10 +33,6 @@ set(INC
   ../../../../intern/guardedalloc
 )
 
-set(INC_SYS
-  ${GLEW_INCLUDE_PATH}
-)
-
 set(SRC
   clip_buttons.c
   clip_dopesheet_draw.c
@@ -68,7 +64,6 @@ set(LIB
   bf_blenlib
 )
 
-add_definitions(${GL_DEFINITIONS})
 
 if(WITH_INTERNATIONAL)
   add_definitions(-DWITH_INTERNATIONAL)

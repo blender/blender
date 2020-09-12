@@ -39,9 +39,6 @@ set(INC
   ../../../intern/mantaflow/extern
 )
 
-set(INC_SYS
-  ${GLEW_INCLUDE_PATH}
-)
 
 set(SRC
   intern/source/bake_api.c
@@ -108,6 +105,5 @@ if(APPLE)
   endif()
 endif()
 
-add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib_nolist(bf_render "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

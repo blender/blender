@@ -33,9 +33,6 @@ set(INC
   ../../../../intern/guardedalloc
 )
 
-set(INC_SYS
-  ${GLEW_INCLUDE_PATH}
-)
 
 set(SRC
   ed_transverts.c
@@ -106,7 +103,6 @@ set(SRC
 set(LIB
 )
 
-add_definitions(${GL_DEFINITIONS})
 
 if(WITH_INTERNATIONAL)
   add_definitions(-DWITH_INTERNATIONAL)

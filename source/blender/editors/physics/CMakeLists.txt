@@ -30,10 +30,6 @@ set(INC
   ../../../../intern/mantaflow/extern
 )
 
-set(INC_SYS
-  ${GLEW_INCLUDE_PATH}
-)
-
 set(SRC
   dynamicpaint_ops.c
   particle_boids.c
@@ -74,6 +70,5 @@ if(WITH_BULLET)
   add_definitions(-DWITH_BULLET)
 endif()
 
-add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_editor_physics "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

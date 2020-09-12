@@ -29,7 +29,6 @@
 #include "BKE_global.h"
 
 #include "GPU_debug.h"
-#include "GPU_glew.h"
 #include "intern/gpu_private.h"
 
 #include <stdio.h>

@@ -38,9 +38,6 @@ set(INC
   ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern
 )
 
-set(INC_SYS
-  ${GLEW_INCLUDE_PATH}
-)
 
 set(SRC
   drawobject.c
@@ -85,7 +82,6 @@ if(WITH_PYTHON)
   add_definitions(-DWITH_PYTHON)
 endif()
 
-add_definitions(${GL_DEFINITIONS})
 
 if(WITH_INTERNATIONAL)
   add_definitions(-DWITH_INTERNATIONAL)

@@ -35,10 +35,6 @@ set(INC
   ../../../../intern/guardedalloc
 )
 
-set(INC_SYS
-  ${GLEW_INCLUDE_PATH}
-)
-
 set(SRC
   editface.c
   editmesh_add.c
@@ -97,6 +93,5 @@ if(WITH_GMP)
   add_definitions(-DWITH_GMP)
 endif()
 
-add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_editor_mesh "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

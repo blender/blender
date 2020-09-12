@@ -51,9 +51,6 @@ if(WITH_TBB)
   list(INSERT LIB 0 bf_blenkernel)
 endif()
 
-add_definitions(${GL_DEFINITIONS})
-blender_include_dirs("${GLEW_INCLUDE_PATH}")
-
 if(WIN32)
   blender_include_dirs(../../intern/utfconv)
 endif()

@@ -178,7 +178,6 @@ if(WITH_GMP)
 endif()
 
 # So we can have special tricks in modifier system.
-add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_modifiers "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 

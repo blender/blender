@@ -32,10 +32,6 @@ set(INC
   ../../../../intern/guardedalloc
 )
 
-set(INC_SYS
-  ${GLEW_INCLUDE_PATH}
-)
-
 set(SRC
   gizmo_draw_utils.c
   gizmo_geometry.h
@@ -59,6 +55,5 @@ set(SRC
 set(LIB
 )
 
-add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_editor_gizmo_library "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

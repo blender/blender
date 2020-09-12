@@ -39,10 +39,6 @@ set(INC
   ../../../../intern/guardedalloc
 )
 
-set(INC_SYS
-  ${GLEW_INCLUDE_PATH}
-)
-
 set(SRC
   object_add.c
   object_bake.c
@@ -81,7 +77,6 @@ set(LIB
   bf_windowmanager
 )
 
-add_definitions(${GL_DEFINITIONS})
 
 if(WITH_PYTHON)
   add_definitions(-DWITH_PYTHON)

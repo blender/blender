@@ -33,7 +33,6 @@ set(INC
 )
 
 set(INC_SYS
-  ${GLEW_INCLUDE_PATH}
   ${FREETYPE_INCLUDE_DIRS}
 )
 
@@ -75,6 +74,5 @@ if(WITH_PYTHON)
   )
 endif()
 
-add_definitions(${GL_DEFINITIONS})
 
 blender_add_lib(bf_blenfont "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

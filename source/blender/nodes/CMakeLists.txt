@@ -41,9 +41,6 @@ set(INC
   ../../../intern/sky/include
 )
 
-set(INC_SYS
-  ${GLEW_INCLUDE_PATH}
-)
 
 set(SRC
   composite/nodes/node_composite_alphaOver.c
@@ -343,7 +340,6 @@ if(WITH_COMPOSITOR)
   add_definitions(-DWITH_COMPOSITOR)
 endif()
 
-add_definitions(${GL_DEFINITIONS})
 
 if(WITH_FREESTYLE)
   add_definitions(-DWITH_FREESTYLE)
