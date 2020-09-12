@@ -157,6 +157,7 @@ static PyObject *bpygpu_offscreen_bind(BPyGPUOffScreen *self, PyObject *args, Py
   }
 
   GPU_offscreen_bind(self->ofs, save);
+  GPU_apply_state();
 
   self->is_saved = save;
   Py_INCREF(self);
@@ -185,6 +186,7 @@ static PyObject *bpygpu_offscreen_unbind(BPyGPUOffScreen *self, PyObject *args, 
   }
 
   GPU_offscreen_unbind(self->ofs, restore);
+  GPU_apply_state();
   Py_RETURN_NONE;
 }
 
