@@ -30,7 +30,6 @@
 
 #include "BKE_global.h"
 
-#include "GPU_glew.h"
 #include "GPU_state.h"
 
 #include "gpu_context_private.hh"
@@ -304,6 +303,17 @@ void GPU_flush(void)
 void GPU_finish(void)
 {
   Context::get()->finish();
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Synchronisation Utils
+ * \{ */
+
+void GPU_memory_barrier(eGPUBarrier barrier)
+{
+  Context::get()->state_manager->issue_barrier(barrier);
 }
 
 /** \} */

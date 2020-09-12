@@ -210,6 +210,7 @@ static void detect_workarounds(void)
     GLContext::debug_layer_workaround = true;
     GLContext::unused_fb_slot_workaround = true;
     /* Turn off extensions. */
+    GCaps.shader_image_load_store_support = false;
     GLContext::base_instance_support = false;
     GLContext::clear_texture_support = false;
     GLContext::copy_image_support = false;
@@ -250,17 +251,20 @@ static void detect_workarounds(void)
       (strstr(version, "4.5.13399") || strstr(version, "4.5.13417") ||
        strstr(version, "4.5.13422"))) {
     GLContext::unused_fb_slot_workaround = true;
+    GCaps.shader_image_load_store_support = false;
     GCaps.broken_amd_driver = true;
   }
   /* We have issues with this specific renderer. (see T74024) */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE) &&
       strstr(renderer, "AMD VERDE")) {
     GLContext::unused_fb_slot_workaround = true;
+    GCaps.shader_image_load_store_support = false;
     GCaps.broken_amd_driver = true;
   }
   /* Fix slowdown on this particular driver. (see T77641) */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE) &&
       strstr(version, "Mesa 19.3.4")) {
+    GCaps.shader_image_load_store_support = false;
     GCaps.broken_amd_driver = true;
   }
   /* There is an issue with the #glBlitFramebuffer on MacOS with radeon pro graphics.
@@ -349,10 +353,10 @@ static void detect_workarounds(void)
 }
 
 /** Internal capabilities. */
-GLint GLContext::max_texture_3d_size;
-GLint GLContext::max_cubemap_size;
-GLint GLContext::max_ubo_size;
-GLint GLContext::max_ubo_binds;
+GLint GLContext::max_cubemap_size = 0;
+GLint GLContext::max_texture_3d_size = 0;
+GLint GLContext::max_ubo_binds = 0;
+GLint GLContext::max_ubo_size = 0;
 /** Extensions. */
 bool GLContext::base_instance_support = false;
 bool GLContext::clear_texture_support = false;
@@ -383,6 +387,7 @@ void GLBackend::capabilities_init(void)
   glGetIntegerv(GL_MAX_GEOMETRY_TEXTURE_IMAGE_UNITS, &GCaps.max_textures_geom);
   glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &GCaps.max_textures);
   GCaps.mem_stats_support = GLEW_NVX_gpu_memory_info || GLEW_ATI_meminfo;
+  GCaps.shader_image_load_store_support = GLEW_ARB_shader_image_load_store;
   /* GL specific capabilities. */
   glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &GLContext::max_texture_3d_size);
   glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &GLContext::max_cubemap_size);

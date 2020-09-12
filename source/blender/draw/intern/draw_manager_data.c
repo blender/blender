@@ -199,10 +199,12 @@ static void drw_shgroup_uniform_create_ex(DRWShadingGroup *shgroup,
     case DRW_UNIFORM_BLOCK_REF:
       uni->block_ref = (GPUUniformBuf **)value;
       break;
+    case DRW_UNIFORM_IMAGE:
     case DRW_UNIFORM_TEXTURE:
       uni->texture = (GPUTexture *)value;
       uni->sampler_state = sampler_state;
       break;
+    case DRW_UNIFORM_IMAGE_REF:
     case DRW_UNIFORM_TEXTURE_REF:
       uni->texture_ref = (GPUTexture **)value;
       uni->sampler_state = sampler_state;
@@ -259,6 +261,20 @@ void DRW_shgroup_uniform_texture_ref_ex(DRWShadingGroup *shgroup,
 void DRW_shgroup_uniform_texture_ref(DRWShadingGroup *shgroup, const char *name, GPUTexture **tex)
 {
   DRW_shgroup_uniform_texture_ref_ex(shgroup, name, tex, GPU_SAMPLER_MAX);
+}
+
+void DRW_shgroup_uniform_image(DRWShadingGroup *shgroup, const char *name, const GPUTexture *tex)
+{
+  BLI_assert(tex != NULL);
+  int loc = GPU_shader_get_texture_binding(shgroup->shader, name);
+  drw_shgroup_uniform_create_ex(shgroup, loc, DRW_UNIFORM_IMAGE, tex, 0, 0, 1);
+}
+
+void DRW_shgroup_uniform_image_ref(DRWShadingGroup *shgroup, const char *name, GPUTexture **tex)
+{
+  BLI_assert(tex != NULL);
+  int loc = GPU_shader_get_texture_binding(shgroup->shader, name);
+  drw_shgroup_uniform_create_ex(shgroup, loc, DRW_UNIFORM_IMAGE_REF, tex, 0, 0, 1);
 }
 
 void DRW_shgroup_uniform_block(DRWShadingGroup *shgroup,

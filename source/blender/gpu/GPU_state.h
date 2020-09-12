@@ -35,6 +35,14 @@ typedef enum eGPUWriteMask {
 
 ENUM_OPERATORS(eGPUWriteMask)
 
+typedef enum eGPUBarrier {
+  GPU_BARRIER_NONE = 0,
+  GPU_BARRIER_SHADER_IMAGE_ACCESS = (1 << 0),
+  GPU_BARRIER_TEXTURE_FETCH = (1 << 1),
+} eGPUBarrier;
+
+ENUM_OPERATORS(eGPUBarrier)
+
 /**
  * Defines the fixed pipeline blending equation.
  * SRC is the output color from the shader.
@@ -151,6 +159,8 @@ eGPUStencilTest GPU_stencil_test_get(void);
 
 void GPU_flush(void);
 void GPU_finish(void);
+
+void GPU_memory_barrier(eGPUBarrier barrier);
 
 #ifdef __cplusplus
 }

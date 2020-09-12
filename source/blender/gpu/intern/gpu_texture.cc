@@ -418,6 +418,21 @@ void GPU_texture_unbind_all(void)
   Context::get()->state_manager->texture_unbind_all();
 }
 
+void GPU_texture_image_bind(GPUTexture *tex, int unit)
+{
+  Context::get()->state_manager->image_bind(unwrap(tex), unit);
+}
+
+void GPU_texture_image_unbind(GPUTexture *tex)
+{
+  Context::get()->state_manager->image_unbind(unwrap(tex));
+}
+
+void GPU_texture_image_unbind_all(void)
+{
+  Context::get()->state_manager->image_unbind_all();
+}
+
 void GPU_texture_generate_mipmap(GPUTexture *tex)
 {
   reinterpret_cast<Texture *>(tex)->generate_mipmap();

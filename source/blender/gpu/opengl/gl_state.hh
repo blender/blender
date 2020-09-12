@@ -64,19 +64,30 @@ class GLStateManager : public GPUStateManager {
   GLuint samplers_[64] = {0};
   uint64_t dirty_texture_binds_ = 0;
 
+  GLuint images_[8] = {0};
+  GLenum formats_[8] = {0};
+  uint8_t dirty_image_binds_ = 0;
+
  public:
   GLStateManager();
 
   void apply_state(void) override;
+
+  void issue_barrier(eGPUBarrier barrier_bits) override;
 
   void texture_bind(Texture *tex, eGPUSamplerState sampler, int unit) override;
   void texture_bind_temp(GLTexture *tex);
   void texture_unbind(Texture *tex) override;
   void texture_unbind_all(void) override;
 
+  void image_bind(Texture *tex, int unit) override;
+  void image_unbind(Texture *tex) override;
+  void image_unbind_all(void) override;
+
   void texture_unpack_row_length_set(uint len) override;
 
   uint64_t bound_texture_slots(void);
+  uint8_t bound_image_slots(void);
 
  private:
   static void set_write_mask(const eGPUWriteMask value);
@@ -95,9 +106,22 @@ class GLStateManager : public GPUStateManager {
   void set_mutable_state(const GPUStateMutable &state);
 
   void texture_bind_apply(void);
+  void image_bind_apply(void);
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLStateManager")
 };
+
+static inline GLbitfield to_gl(eGPUBarrier barrier_bits)
+{
+  GLbitfield barrier = 0;
+  if (barrier_bits & GPU_BARRIER_SHADER_IMAGE_ACCESS) {
+    barrier |= GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
+  }
+  if (barrier_bits & GPU_BARRIER_TEXTURE_FETCH) {
+    barrier |= GL_TEXTURE_FETCH_BARRIER_BIT;
+  }
+  return barrier;
+}
 
 }  // namespace gpu
 }  // namespace blender

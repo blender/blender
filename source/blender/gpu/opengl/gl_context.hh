@@ -56,8 +56,8 @@ class GLSharedOrphanLists {
 class GLContext : public Context {
  public:
   /** Capabilities. */
-  static GLint max_texture_3d_size;
   static GLint max_cubemap_size;
+  static GLint max_texture_3d_size;
   static GLint max_ubo_size;
   static GLint max_ubo_binds;
   /** Extensions. */

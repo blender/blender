@@ -100,6 +100,31 @@ static inline int sampler_binding(int32_t program,
       return -1;
   }
 }
+
+static inline int image_binding(int32_t program,
+                                uint32_t uniform_index,
+                                int32_t uniform_location,
+                                int *image_len)
+{
+  /* Identify image uniforms and asign image units to them. */
+  GLint type;
+  glGetActiveUniformsiv(program, 1, &uniform_index, GL_UNIFORM_TYPE, &type);
+
+  switch (type) {
+    case GL_IMAGE_1D:
+    case GL_IMAGE_2D:
+    case GL_IMAGE_3D: {
+      /* For now just assign a consecutive index. In the future, we should set it in
+       * the shader using layout(binding = i) and query its value. */
+      int binding = *image_len;
+      glUniform1i(uniform_location, binding);
+      (*image_len)++;
+      return binding;
+    }
+    default:
+      return -1;
+  }
+}
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -207,8 +232,8 @@ GLShaderInterface::GLShaderInterface(GLuint program)
     enabled_ubo_mask_ |= (1 << input->binding);
   }
 
-  /* Uniforms */
-  for (int i = 0, sampler = 0; i < active_uniform_len; i++) {
+  /* Uniforms & samplers & images */
+  for (int i = 0, sampler = 0, image = 0; i < active_uniform_len; i++) {
     if (BLI_BITMAP_TEST(uniforms_from_blocks, i)) {
       continue;
     }
@@ -224,6 +249,12 @@ GLShaderInterface::GLShaderInterface(GLuint program)
 
     name_buffer_offset += this->set_input_name(input, name, name_len);
     enabled_tex_mask_ |= (input->binding != -1) ? (1lu << input->binding) : 0lu;
+
+    if (input->binding == -1) {
+      input->binding = image_binding(program, i, input->location, &image);
+
+      enabled_ima_mask_ |= (input->binding != -1) ? (1lu << input->binding) : 0lu;
+    }
   }
 
   /* Builtin Uniforms */

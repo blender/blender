@@ -63,6 +63,7 @@ class ShaderInterface {
   /** Enabled bindpoints that needs to be fed with data. */
   uint16_t enabled_attr_mask_ = 0;
   uint16_t enabled_ubo_mask_ = 0;
+  uint8_t enabled_ima_mask_ = 0;
   uint64_t enabled_tex_mask_ = 0;
   /** Location of builtin uniforms. Fast access, no lookup needed. */
   int32_t builtins_[GPU_NUM_UNIFORMS];

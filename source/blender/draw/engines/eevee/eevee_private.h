@@ -84,9 +84,7 @@ extern struct DrawEngineType draw_engine_eevee_type;
 
 #define EEVEE_PROBE_MAX min_ii(MAX_PROBE, GPU_max_texture_layers() / 6)
 #define EEVEE_VELOCITY_TILE_SIZE 32
-#define USE_VOLUME_OPTI \
-  (GLEW_ARB_shader_image_load_store && GLEW_ARB_shading_language_420pack && \
-   !GPU_crappy_amd_driver())
+#define USE_VOLUME_OPTI (GPU_shader_image_load_store_support())
 
 #define SWAP_DOUBLE_BUFFERS() \
   { \

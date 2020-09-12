@@ -243,6 +243,10 @@ void GPU_texture_bind_ex(GPUTexture *tex, eGPUSamplerState state, int unit, cons
 void GPU_texture_unbind(GPUTexture *tex);
 void GPU_texture_unbind_all(void);
 
+void GPU_texture_image_bind(GPUTexture *tex, int unit);
+void GPU_texture_image_unbind(GPUTexture *tex);
+void GPU_texture_image_unbind_all(void);
+
 void GPU_texture_copy(GPUTexture *dst, GPUTexture *src);
 
 void GPU_texture_generate_mipmap(GPUTexture *tex);

@@ -45,6 +45,8 @@ bool GPU_depth_blitting_workaround(void);
 bool GPU_use_main_context_workaround(void);
 bool GPU_crappy_amd_driver(void);
 
+bool GPU_shader_image_load_store_support(void);
+
 bool GPU_mem_stats_supported(void);
 void GPU_mem_stats_get(int *totalmem, int *freemem);
 

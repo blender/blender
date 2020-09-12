@@ -601,6 +601,10 @@ void EEVEE_volumes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
     DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
     DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
+    if (USE_VOLUME_OPTI) {
+      DRW_shgroup_uniform_image_ref(grp, "finalScattering_img", &txl->volume_scatter_history);
+      DRW_shgroup_uniform_image_ref(grp, "finalTransmittance_img", &txl->volume_transmit_history);
+    }
 
     DRW_shgroup_call_procedural_triangles(
         grp, NULL, USE_VOLUME_OPTI ? 1 : common_data->vol_tex_size[2]);
@@ -610,6 +614,7 @@ void EEVEE_volumes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_shgroup_uniform_texture_ref(grp, "inScattering", &txl->volume_scatter);
     DRW_shgroup_uniform_texture_ref(grp, "inTransmittance", &txl->volume_transmit);
     DRW_shgroup_uniform_texture_ref(grp, "inSceneDepth", &e_data.depth_src);
+    DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
     DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
     DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
@@ -714,15 +719,7 @@ void EEVEE_volumes_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_draw_pass(psl->volumetric_scatter_ps);
 
     if (USE_VOLUME_OPTI) {
-      int tex_scatter = GPU_texture_opengl_bindcode(txl->volume_scatter_history);
-      int tex_transmit = GPU_texture_opengl_bindcode(txl->volume_transmit_history);
-      /* TODO(fclem) Encapsulate these GL calls into DRWManager. */
-      glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-      /* Subtlety here! we need to tell the GL that the texture is layered (GL_TRUE)
-       * in order to bind the full 3D texture and not just a 2D slice. */
-      glBindImageTexture(0, tex_scatter, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R11F_G11F_B10F);
-      glBindImageTexture(1, tex_transmit, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R11F_G11F_B10F);
-
+      /* Avoid feedback loop assert. */
       GPU_framebuffer_bind(fbl->volumetric_fb);
     }
     else {
@@ -730,13 +727,6 @@ void EEVEE_volumes_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     }
 
     DRW_draw_pass(psl->volumetric_integration_ps);
-
-    if (USE_VOLUME_OPTI) {
-      glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-
-      glBindImageTexture(0, 0, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R11F_G11F_B10F);
-      glBindImageTexture(1, 0, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_R11F_G11F_B10F);
-    }
 
     SWAP(struct GPUFrameBuffer *, fbl->volumetric_scat_fb, fbl->volumetric_integ_fb);
     SWAP(GPUTexture *, txl->volume_scatter, txl->volume_scatter_history);
@@ -762,6 +752,10 @@ void EEVEE_volumes_resolve(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *veda
   if ((effects->enabled_effects & EFFECT_VOLUMETRIC) != 0) {
     DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
     e_data.depth_src = dtxl->depth;
+
+    if (USE_VOLUME_OPTI) {
+      GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH);
+    }
 
     /* Apply for opaque geometry. */
     GPU_framebuffer_bind(fbl->main_color_fb);

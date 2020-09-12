@@ -102,6 +102,11 @@ bool GPU_crappy_amd_driver(void)
   return GCaps.broken_amd_driver;
 }
 
+bool GPU_shader_image_load_store_support(void)
+{
+  return GCaps.shader_image_load_store_support;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
