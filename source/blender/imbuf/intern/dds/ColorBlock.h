@@ -32,7 +32,7 @@
 #include <Color.h>
 #include <Image.h>
 
-/// Uncompressed 4x4 color block.
+/** Uncompressed 4x4 color block. */
 struct ColorBlock {
   ColorBlock();
   ColorBlock(const uint *linearImage);
@@ -61,31 +61,31 @@ struct ColorBlock {
   Color32 m_color[4 * 4];
 };
 
-/// Get pointer to block colors.
+/** Get pointer to block colors. */
 inline const Color32 *ColorBlock::colors() const
 {
   return m_color;
 }
 
-/// Get block color.
+/** Get block color. */
 inline Color32 ColorBlock::color(uint i) const
 {
   return m_color[i];
 }
 
-/// Get block color.
+/** Get block color. */
 inline Color32 &ColorBlock::color(uint i)
 {
   return m_color[i];
 }
 
-/// Get block color.
+/** Get block color. */
 inline Color32 ColorBlock::color(uint x, uint y) const
 {
   return m_color[y * 4 + x];
 }
 
-/// Get block color.
+/** Get block color. */
 inline Color32 &ColorBlock::color(uint x, uint y)
 {
   return m_color[y * 4 + x];

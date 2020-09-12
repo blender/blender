@@ -583,8 +583,8 @@ static void free_posetree(PoseTree *tree)
   MEM_freeN(tree);
 }
 
-///----------------------------------------
-/// Plugin API for legacy iksolver
+/* ------------------------------
+ * Plugin API for legacy iksolver */
 
 void iksolver_initialize_tree(struct Depsgraph *UNUSED(depsgraph),
                               struct Scene *UNUSED(scene),

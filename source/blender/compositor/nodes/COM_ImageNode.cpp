@@ -72,7 +72,7 @@ NodeOperation *ImageNode::doMultilayerCheck(NodeConverter &converter,
 void ImageNode::convertToOperations(NodeConverter &converter,
                                     const CompositorContext &context) const
 {
-  /// Image output
+  /** Image output */
   NodeOutput *outputImage = this->getOutputSocket(0);
   bNode *editorNode = this->getbNode();
   Image *image = (Image *)editorNode->id;

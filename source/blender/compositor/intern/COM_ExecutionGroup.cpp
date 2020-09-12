@@ -198,13 +198,13 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
   const bNodeTree *bTree = context.getbNodeTree();
   if (this->m_width == 0 || this->m_height == 0) {
     return;
-  }  /// \note Break out... no pixels to calculate.
+  } /** \note Break out... no pixels to calculate. */
   if (bTree->test_break && bTree->test_break(bTree->tbh)) {
     return;
-  }  /// \note Early break out for blur and preview nodes.
+  } /** \note Early break out for blur and preview nodes. */
   if (this->m_numberOfChunks == 0) {
     return;
-  }  /// \note Early break out.
+  } /** \note Early break out. */
   unsigned int chunkNumber;
 
   this->m_executionStartTime = PIL_check_seconds_timer();

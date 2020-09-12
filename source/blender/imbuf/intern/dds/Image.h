@@ -32,7 +32,7 @@
 #include "Color.h"
 #include "Common.h"
 
-/// 32 bit RGBA image.
+/** 32 bit RGBA image. */
 class Image {
  public:
   enum Format {

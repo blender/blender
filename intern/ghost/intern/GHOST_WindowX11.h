@@ -225,7 +225,7 @@ class GHOST_WindowX11 : public GHOST_Window {
                                             bool canInvertColor);
 
  private:
-  /// Force use of public constructor.
+  /* Force use of public constructor. */
 
   GHOST_WindowX11();
 

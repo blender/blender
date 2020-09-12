@@ -76,7 +76,7 @@ class MEM_RefCounted {
   }
 
  protected:
-  /// The reference count.
+  /** The reference count. */
   int m_refCount;
 };
 

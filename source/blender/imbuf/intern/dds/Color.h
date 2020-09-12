@@ -29,7 +29,7 @@
 
 #pragma once
 
-/// 32 bit color stored as BGRA.
+/** 32 bit color stored as BGRA. */
 class Color32 {
  public:
   Color32()
@@ -93,7 +93,7 @@ class Color32 {
   };
 };
 
-/// 16 bit 565 BGR color.
+/** 16 bit 565 BGR color. */
 class Color16 {
  public:
   Color16()
