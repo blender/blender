@@ -40,7 +40,7 @@ class GLTexture;
  * State manager keeping track of the draw state and applying it before drawing.
  * Opengl Implementation.
  **/
-class GLStateManager : public GPUStateManager {
+class GLStateManager : public StateManager {
  public:
   /** Anothter reference to the active framebuffer. */
   GLFrameBuffer *active_fb = nullptr;

@@ -46,7 +46,7 @@ class Context {
   Shader *shader = NULL;
   FrameBuffer *active_fb = NULL;
   GPUMatrixState *matrix_state = NULL;
-  GPUStateManager *state_manager = NULL;
+  StateManager *state_manager = NULL;
   Immediate *imm = NULL;
 
   /**

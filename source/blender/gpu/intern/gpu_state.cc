@@ -40,7 +40,7 @@ using namespace blender::gpu;
 
 #define SET_STATE(_prefix, _state, _value) \
   do { \
-    GPUStateManager *stack = Context::get()->state_manager; \
+    StateManager *stack = Context::get()->state_manager; \
     auto &state_object = stack->_prefix##state; \
     state_object._state = (_value); \
   } while (0)
@@ -104,7 +104,7 @@ void GPU_write_mask(eGPUWriteMask mask)
 
 void GPU_color_mask(bool r, bool g, bool b, bool a)
 {
-  GPUStateManager *stack = Context::get()->state_manager;
+  StateManager *stack = Context::get()->state_manager;
   auto &state = stack->state;
   uint32_t write_mask = state.write_mask;
   SET_FLAG_FROM_TEST(write_mask, r, (uint32_t)GPU_WRITE_RED);
@@ -116,7 +116,7 @@ void GPU_color_mask(bool r, bool g, bool b, bool a)
 
 void GPU_depth_mask(bool depth)
 {
-  GPUStateManager *stack = Context::get()->state_manager;
+  StateManager *stack = Context::get()->state_manager;
   auto &state = stack->state;
   uint32_t write_mask = state.write_mask;
   SET_FLAG_FROM_TEST(write_mask, depth, (uint32_t)GPU_WRITE_DEPTH);
@@ -141,7 +141,7 @@ void GPU_state_set(eGPUWriteMask write_mask,
                    eGPUStencilOp stencil_op,
                    eGPUProvokingVertex provoking_vert)
 {
-  GPUStateManager *stack = Context::get()->state_manager;
+  StateManager *stack = Context::get()->state_manager;
   auto &state = stack->state;
   state.write_mask = (uint32_t)write_mask;
   state.blend = (uint32_t)blend;
@@ -160,7 +160,7 @@ void GPU_state_set(eGPUWriteMask write_mask,
 
 void GPU_depth_range(float near, float far)
 {
-  GPUStateManager *stack = Context::get()->state_manager;
+  StateManager *stack = Context::get()->state_manager;
   auto &state = stack->mutable_state;
   copy_v2_fl2(state.depth_range, near, far);
 }
@@ -172,7 +172,7 @@ void GPU_line_width(float width)
 
 void GPU_point_size(float size)
 {
-  GPUStateManager *stack = Context::get()->state_manager;
+  StateManager *stack = Context::get()->state_manager;
   auto &state = stack->mutable_state;
   /* Keep the sign of point_size since it represents the enable state. */
   state.point_size = size * ((state.point_size > 0.0) ? 1.0f : -1.0f);
@@ -184,7 +184,7 @@ void GPU_point_size(float size)
 /* TODO remove and use program point size everywhere */
 void GPU_program_point_size(bool enable)
 {
-  GPUStateManager *stack = Context::get()->state_manager;
+  StateManager *stack = Context::get()->state_manager;
   auto &state = stack->mutable_state;
   /* Set point size sign negative to disable. */
   state.point_size = fabsf(state.point_size) * (enable ? 1 : -1);
@@ -327,7 +327,7 @@ void GPU_memory_barrier(eGPUBarrier barrier)
  * exceptions that we should try to get rid of.
  * \{ */
 
-GPUStateManager::GPUStateManager(void)
+StateManager::StateManager(void)
 {
   /* Set default state. */
   state.write_mask = GPU_WRITE_COLOR;

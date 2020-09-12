@@ -42,7 +42,7 @@ namespace blender::gpu {
 /** \name GLStateManager
  * \{ */
 
-GLStateManager::GLStateManager(void) : GPUStateManager()
+GLStateManager::GLStateManager(void) : StateManager()
 {
   /* Set other states that never change. */
   glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
