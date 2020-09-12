@@ -360,42 +360,49 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
   if (t->flag & T_INPUT_IS_VALUES_FINAL) {
     mul_v3_m3v3(global_dir, t->spacemtx, t->values);
   }
+  else if (applyNumInput(&t->num, global_dir)) {
+    if (t->con.mode & CON_APPLY) {
+      if (t->con.mode & CON_AXIS0) {
+        /* Do nothing. */
+      }
+      else if (t->con.mode & CON_AXIS1) {
+        mul_v3_v3fl(global_dir, t->spacemtx[1], global_dir[0]);
+      }
+      else if (t->con.mode & CON_AXIS2) {
+        mul_v3_v3fl(global_dir, t->spacemtx[2], global_dir[0]);
+      }
+    }
+  }
   else {
     copy_v3_v3(global_dir, t->values);
-    if (applyNumInput(&t->num, global_dir)) {
-      removeAspectRatio(t, global_dir);
+
+    t->tsnap.snapElem = 0;
+    applySnapping(t, global_dir);
+    transform_snap_grid(t, global_dir);
+
+    if (t->con.mode & CON_APPLY) {
+      float in[3];
+      copy_v3_v3(in, global_dir);
+      t->con.applyVec(t, NULL, NULL, in, global_dir);
     }
-    else {
-      applySnapping(t, global_dir);
 
-      if (!validSnap(t) && !(t->con.mode & CON_APPLY)) {
-        float dist_sq = FLT_MAX;
-        if (transform_snap_grid(t, global_dir)) {
-          dist_sq = len_squared_v3v3(t->values, global_dir);
-        }
+    float incr_dir[3];
+    mul_v3_m3v3(incr_dir, t->spacemtx_inv, global_dir);
+    if (transform_snap_increment(t, incr_dir)) {
+      mul_v3_m3v3(incr_dir, t->spacemtx, incr_dir);
 
-        /* Check the snap distance to the initial value to work with mixed snap. */
-        float increment_loc[3];
-        copy_v3_v3(increment_loc, t->values);
-        if (transform_snap_increment(t, increment_loc)) {
-          if ((dist_sq == FLT_MAX) || (len_squared_v3v3(t->values, increment_loc) < dist_sq)) {
-            copy_v3_v3(global_dir, increment_loc);
-          }
-        }
+      /* Test for mixed snap with grid. */
+      float snap_dist_sq = FLT_MAX;
+      if (t->tsnap.snapElem != 0) {
+        snap_dist_sq = len_squared_v3v3(t->values, global_dir);
+      }
+      if ((snap_dist_sq == FLT_MAX) || (len_squared_v3v3(global_dir, incr_dir) < snap_dist_sq)) {
+        copy_v3_v3(global_dir, incr_dir);
       }
     }
   }
 
-  if (t->con.mode & CON_APPLY) {
-    float in[3];
-    copy_v3_v3(in, global_dir);
-    t->con.applyVec(t, NULL, NULL, in, global_dir);
-    headerTranslation(t, global_dir, str);
-  }
-  else {
-    headerTranslation(t, global_dir, str);
-  }
-
+  headerTranslation(t, global_dir, str);
   applyTranslationValue(t, global_dir);
 
   /* evil hack - redo translation if clipping needed */

@@ -464,6 +464,7 @@ void applySnapping(TransInfo *t, float *vec)
 void resetSnapping(TransInfo *t)
 {
   t->tsnap.status = 0;
+  t->tsnap.snapElem = 0;
   t->tsnap.align = false;
   t->tsnap.project = 0;
   t->tsnap.mode = 0;
@@ -1412,12 +1413,12 @@ void snapSequenceBounds(TransInfo *t, const int mval[2])
   t->values[0] = frame_near - frame_snap;
 }
 
-static void snap_grid_apply_ex(
+static void snap_grid_apply(
     TransInfo *t, const int max_index, const float grid_dist, const float loc[3], float r_out[3])
 {
+  BLI_assert(max_index <= 2);
   const float *center_global = t->center_global;
   const float *asp = t->aspect;
-  bool use_local_axis = false;
 
   /* use a fallback for cursor selection,
    * this isn't useful as a global center for absolute grid snapping
@@ -1427,74 +1428,27 @@ static void snap_grid_apply_ex(
     center_global = cd->global;
   }
 
-  if (t->con.mode & (CON_AXIS0 | CON_AXIS1 | CON_AXIS2)) {
-    use_local_axis = true;
+  float in[3];
+  if (t->con.mode & CON_APPLY) {
+    BLI_assert(t->tsnap.snapElem == 0);
+    t->con.applyVec(t, NULL, NULL, loc, in);
+  }
+  else {
+    copy_v3_v3(in, loc);
   }
 
   for (int i = 0; i <= max_index; i++) {
-    /* do not let unconstrained axis jump to absolute grid increments */
-    if (!(t->con.mode & CON_APPLY) || t->con.mode & (CON_AXIS0 << i)) {
-      const float iter_fac = grid_dist * asp[i];
-
-      if (use_local_axis) {
-        float local_axis[3];
-        float pos_on_axis[3];
-
-        copy_v3_v3(local_axis, t->spacemtx[i]);
-        copy_v3_v3(pos_on_axis, t->spacemtx[i]);
-
-        /* amount of movement on axis from initial pos */
-        mul_v3_fl(pos_on_axis, loc[i]);
-
-        /* actual global position on axis */
-        add_v3_v3(pos_on_axis, center_global);
-
-        float min_dist = INFINITY;
-        for (int j = 0; j < 3; j++) {
-          if (fabs(local_axis[j]) < 0.01f) {
-            /* Ignore very small (normalized) axis changes */
-            continue;
-          }
-
-          /* closest point on grid */
-          float grid_p = iter_fac * roundf(pos_on_axis[j] / iter_fac);
-          float dist_p = fabs((grid_p - pos_on_axis[j]) / local_axis[j]);
-
-          /* The amount of distance needed to travel along the
-           * local axis to snap to the closest grid point */
-          /* in the global j axis direction */
-          float move_dist = (grid_p - center_global[j]) / local_axis[j];
-
-          if (dist_p < min_dist) {
-            min_dist = dist_p;
-            r_out[i] = move_dist;
-          }
-        }
-      }
-      else {
-        r_out[i] = iter_fac * roundf((loc[i] + center_global[i]) / iter_fac) - center_global[i];
-      }
-    }
+    const float iter_fac = grid_dist * asp[i];
+    r_out[i] = iter_fac * roundf((in[i] + center_global[i]) / iter_fac) - center_global[i];
   }
-}
-
-static void snap_grid_apply(TransInfo *t, int max_index, const float grid_dist, float *r_val)
-{
-  BLI_assert(t->tsnap.mode & SCE_SNAP_MODE_GRID);
-  BLI_assert(max_index <= 2);
-
-  /* Early bailing out if no need to snap */
-  if (grid_dist == 0.0f) {
-    return;
-  }
-
-  /* absolute snapping on grid based on global center.
-   * for now only 3d view (others can be added if we want) */
-  snap_grid_apply_ex(t, max_index, grid_dist, r_val, r_val);
 }
 
 bool transform_snap_grid(TransInfo *t, float *val)
 {
+  if (!activeSnap(t)) {
+    return false;
+  }
+
   if ((!(t->tsnap.mode & SCE_SNAP_MODE_GRID)) || validSnap(t)) {
     /* Don't do grid snapping if there is a valid snap point. */
     return false;
@@ -1508,10 +1462,15 @@ bool transform_snap_grid(TransInfo *t, float *val)
     return false;
   }
 
-  float grid_dist = activeSnap(t) ? (t->modifiers & MOD_PRECISION) ? t->snap[2] : t->snap[1] :
-                                    t->snap[0];
+  float grid_dist = (t->modifiers & MOD_PRECISION) ? t->snap[2] : t->snap[1];
 
-  snap_grid_apply(t, t->idx_max, grid_dist, val);
+  /* Early bailing out if no need to snap */
+  if (grid_dist == 0.0f) {
+    return;
+  }
+
+  snap_grid_apply(t, t->idx_max, grid_dist, val, val);
+  t->tsnap.snapElem = SCE_SNAP_MODE_GRID;
   return true;
 }
 
