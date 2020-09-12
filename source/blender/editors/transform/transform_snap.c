@@ -1466,7 +1466,7 @@ bool transform_snap_grid(TransInfo *t, float *val)
 
   /* Early bailing out if no need to snap */
   if (grid_dist == 0.0f) {
-    return;
+    return false;
   }
 
   snap_grid_apply(t, t->idx_max, grid_dist, val, val);
