@@ -72,6 +72,7 @@ class GLStateManager : public StateManager {
   GLStateManager();
 
   void apply_state(void) override;
+  void force_state(void) override;
 
   void issue_barrier(eGPUBarrier barrier_bits) override;
 

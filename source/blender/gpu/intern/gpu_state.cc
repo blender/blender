@@ -305,6 +305,17 @@ void GPU_finish(void)
   Context::get()->finish();
 }
 
+void GPU_apply_state(void)
+{
+  Context::get()->state_manager->apply_state();
+}
+
+/* Will set all the states regardless of the current ones. */
+void GPU_force_state(void)
+{
+  Context::get()->state_manager->force_state();
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -319,12 +330,7 @@ void GPU_memory_barrier(eGPUBarrier barrier)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Default OpenGL State
- *
- * This is called on startup, for opengl offscreen render.
- * Generally we should always return to this state when
- * temporarily modifying the state for drawing, though that are (undocumented)
- * exceptions that we should try to get rid of.
+/** \name Default State
  * \{ */
 
 StateManager::StateManager(void)

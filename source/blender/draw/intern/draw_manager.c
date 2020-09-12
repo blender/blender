@@ -1365,6 +1365,8 @@ void DRW_draw_callbacks_pre_scene(void)
 
   if (DST.draw_ctx.evil_C) {
     ED_region_draw_cb_draw(DST.draw_ctx.evil_C, DST.draw_ctx.region, REGION_DRAW_PRE_VIEW);
+    /* Callback can be nasty and do whatever they want with the state.
+     * Don't trust them! */
     DRW_state_reset();
   }
 }
@@ -1400,6 +1402,9 @@ void DRW_draw_callbacks_post_scene(void)
     drw_debug_draw();
 
     GPU_depth_test(GPU_DEPTH_NONE);
+    /* Apply state for callbacks. */
+    GPU_apply_state();
+
     ED_region_draw_cb_draw(DST.draw_ctx.evil_C, DST.draw_ctx.region, REGION_DRAW_POST_VIEW);
 
     /* Callback can be nasty and do whatever they want with the state.

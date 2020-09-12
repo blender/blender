@@ -33,6 +33,8 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
+#include "GPU_state.h"
+
 #include "UI_interface.h"
 #include "UI_view2d.h"
 
@@ -269,11 +271,17 @@ void ED_region_draw_cb_exit(ARegionType *art, void *handle)
 void ED_region_draw_cb_draw(const bContext *C, ARegion *region, int type)
 {
   RegionDrawCB *rdc;
+  bool has_drawn_something = false;
 
   for (rdc = region->type->drawcalls.first; rdc; rdc = rdc->next) {
     if (rdc->type == type) {
       rdc->draw(C, region, rdc->customdata);
+      has_drawn_something = true;
     }
+  }
+  if (has_drawn_something) {
+    /* This is needed until we get rid of BGL which can change the states we are tracking. */
+    GPU_force_state();
   }
 }
 

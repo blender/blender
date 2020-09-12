@@ -159,6 +159,7 @@ class StateManager {
   virtual ~StateManager(){};
 
   virtual void apply_state(void) = 0;
+  virtual void force_state(void) = 0;
 
   virtual void issue_barrier(eGPUBarrier barrier_bits) = 0;
 

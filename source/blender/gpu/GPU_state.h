@@ -159,6 +159,8 @@ eGPUStencilTest GPU_stencil_test_get(void);
 
 void GPU_flush(void);
 void GPU_finish(void);
+void GPU_apply_state(void);
+void GPU_force_state(void);
 
 void GPU_memory_barrier(eGPUBarrier barrier);
 

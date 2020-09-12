@@ -80,6 +80,17 @@ void GLStateManager::apply_state(void)
   active_fb->apply_state();
 };
 
+void GLStateManager::force_state(void)
+{
+  /* Little exception for clip distances since they need to keep the old count correct. */
+  uint32_t clip_distances = current_.clip_distances;
+  current_ = ~this->state;
+  current_.clip_distances = clip_distances;
+  current_mutable_ = ~this->mutable_state;
+  this->set_state(this->state);
+  this->set_mutable_state(this->mutable_state);
+};
+
 void GLStateManager::set_state(const GPUState &state)
 {
   GPUState changed = state ^ current_;
