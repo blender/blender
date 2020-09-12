@@ -29,6 +29,7 @@
 #include "UI_interface.h"
 
 #include "bpy_rna.h"
+#include "bpy_rna_ui.h"
 
 PyDoc_STRVAR(bpy_rna_uilayout_introspect_doc,
              ".. method:: introspect()\n"

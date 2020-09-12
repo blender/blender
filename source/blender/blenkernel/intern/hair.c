@@ -49,8 +49,8 @@
 
 #include "BLO_read_write.h"
 
-const char *HAIR_ATTR_POSITION = "Position";
-const char *HAIR_ATTR_RADIUS = "Radius";
+static const char *HAIR_ATTR_POSITION = "Position";
+static const char *HAIR_ATTR_RADIUS = "Radius";
 
 /* Hair datablock */
 

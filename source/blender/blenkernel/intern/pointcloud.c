@@ -53,8 +53,8 @@
 
 static void pointcloud_random(PointCloud *pointcloud);
 
-const char *POINTCLOUD_ATTR_POSITION = "Position";
-const char *POINTCLOUD_ATTR_RADIUS = "Radius";
+static const char *POINTCLOUD_ATTR_POSITION = "Position";
+static const char *POINTCLOUD_ATTR_RADIUS = "Radius";
 
 static void pointcloud_init_data(ID *id)
 {
