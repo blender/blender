@@ -352,16 +352,15 @@ class _GenericBone:
     @property
     def _other_bones(self):
         id_data = self.id_data
-        id_data_type = type(id_data)
 
-        if id_data_type == bpy_types.Object:
-            bones = id_data.pose.bones
-        elif id_data_type == bpy_types.Armature:
-            bones = id_data.edit_bones
-            if not bones:  # not in edit mode
-                bones = id_data.bones
-
-        return bones
+        # `id_data` is an 'Object' for `PosePone`, otherwise it's an `Armature`.
+        if isinstance(self, PoseBone):
+            return id_data.pose.bones
+        if isinstance(self, EditBone):
+            return id_data.edit_bones
+        if isinstance(self, Bone):
+            return id_data.bones
+        raise RuntimeError("Invalid type %r" % self)
 
 
 class PoseBone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
