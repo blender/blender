@@ -55,6 +55,7 @@
 
 #include "BIF_glutil.h"
 
+#include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
@@ -570,7 +571,8 @@ static void draw_image_buffer(const bContext *C,
                               float zoomy)
 {
   /* Image are still drawn in display space. */
-  glDisable(GL_FRAMEBUFFER_SRGB);
+  GPUFrameBuffer *fb = GPU_framebuffer_active_get();
+  GPU_framebuffer_bind_no_srgb(fb);
 
   int x, y;
   int sima_flag = sima->flag & ED_space_image_get_display_channel_mask(ibuf);
@@ -660,7 +662,7 @@ static void draw_image_buffer(const bContext *C,
     }
   }
 
-  glEnable(GL_FRAMEBUFFER_SRGB);
+  GPU_framebuffer_bind(fb);
 }
 
 static void draw_image_buffer_repeated(const bContext *C,

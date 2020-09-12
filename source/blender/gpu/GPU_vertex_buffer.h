@@ -139,6 +139,9 @@ GPUVertBufStatus GPU_vertbuf_get_status(const GPUVertBuf *verts);
 
 void GPU_vertbuf_use(GPUVertBuf *);
 
+/* XXX do not use. */
+void GPU_vertbuf_update_sub(GPUVertBuf *verts, uint start, uint len, void *data);
+
 /* Metrics */
 uint GPU_vertbuf_get_memory_usage(void);
 

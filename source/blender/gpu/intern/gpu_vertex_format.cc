@@ -70,7 +70,7 @@ static uint comp_sz(GPUVertCompType type)
 #if TRUST_NO_ONE
   assert(type <= GPU_COMP_F32); /* other types have irregular sizes (not bytes) */
 #endif
-  const GLubyte sizes[] = {1, 1, 2, 2, 4, 4, 4};
+  const uint sizes[] = {1, 1, 2, 2, 4, 4, 4};
   return sizes[type];
 }
 

@@ -256,7 +256,7 @@ static void def_internal_vicon(int icon_id, VectorDrawFunc drawFunc)
 
 /* Utilities */
 
-static void viconutil_set_point(GLint pt[2], int x, int y)
+static void viconutil_set_point(int pt[2], int x, int y)
 {
   pt[0] = x;
   pt[1] = y;
@@ -264,7 +264,7 @@ static void viconutil_set_point(GLint pt[2], int x, int y)
 
 static void vicon_small_tri_right_draw(int x, int y, int w, int UNUSED(h), float alpha)
 {
-  GLint pts[3][2];
+  int pts[3][2];
   const int cx = x + w / 2 - 4;
   const int cy = y + w / 2;
   const int d = w / 5, d2 = w / 7;

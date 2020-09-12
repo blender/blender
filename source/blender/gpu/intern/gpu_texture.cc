@@ -513,12 +513,6 @@ void GPU_texture_ref(GPUTexture *tex)
   reinterpret_cast<Texture *>(tex)->refcount++;
 }
 
-/* TODO(fclem) Remove! This is broken as it is! */
-int GPU_texture_target(const GPUTexture *UNUSED(tex))
-{
-  return GL_TEXTURE_2D;
-}
-
 int GPU_texture_width(const GPUTexture *tex)
 {
   return reinterpret_cast<const Texture *>(tex)->width_get();

@@ -45,6 +45,8 @@ class GLVertBuf : public VertBuf {
  public:
   void bind(void);
 
+  void update_sub(uint start, uint len, void *data) override;
+
  protected:
   void acquire_data(void) override;
   void resize_data(void) override;

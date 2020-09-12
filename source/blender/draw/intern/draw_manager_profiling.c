@@ -44,8 +44,8 @@
 #define GPU_TIMER_FALLOFF 0.1
 
 typedef struct DRWTimer {
-  GLuint query[2];
-  GLuint64 time_average;
+  uint32_t query[2];
+  uint64_t time_average;
   char name[MAX_TIMER_NAME];
   int lvl;       /* Hierarchy level for nested timer. */
   bool is_query; /* Does this timer actually perform queries or is it just a group. */
@@ -64,10 +64,10 @@ static struct DRWTimerPool {
 void DRW_stats_free(void)
 {
   if (DTP.timers != NULL) {
-    for (int i = 0; i < DTP.timer_count; i++) {
-      DRWTimer *timer = &DTP.timers[i];
-      glDeleteQueries(2, timer->query);
-    }
+    // for (int i = 0; i < DTP.timer_count; i++) {
+    // DRWTimer *timer = &DTP.timers[i];
+    // glDeleteQueries(2, timer->query);
+    // }
     MEM_freeN(DTP.timers);
     DTP.timers = NULL;
   }
@@ -117,12 +117,12 @@ static void drw_stats_timer_start_ex(const char *name, const bool is_query)
     BLI_assert(!DTP.is_querying);
     if (timer->is_query) {
       if (timer->query[0] == 0) {
-        glGenQueries(1, timer->query);
+        // glGenQueries(1, timer->query);
       }
 
-      glFinish();
+      // glFinish();
       /* Issue query for the next frame */
-      glBeginQuery(GL_TIME_ELAPSED, timer->query[0]);
+      // glBeginQuery(GL_TIME_ELAPSED, timer->query[0]);
       DTP.is_querying = true;
     }
   }
@@ -154,7 +154,7 @@ void DRW_stats_query_end(void)
   if (DTP.is_recording) {
     DTP.end_increment++;
     BLI_assert(DTP.is_querying);
-    glEndQuery(GL_TIME_ELAPSED);
+    // glEndQuery(GL_TIME_ELAPSED);
     DTP.is_querying = false;
   }
 }
@@ -167,19 +167,19 @@ void DRW_stats_reset(void)
              "You forgot a DRW_stats_group/query_start somewhere!");
 
   if (DTP.is_recording) {
-    GLuint64 lvl_time[MAX_NESTED_TIMER] = {0};
+    uint64_t lvl_time[MAX_NESTED_TIMER] = {0};
 
     /* Swap queries for the next frame and sum up each lvl time. */
     for (int i = DTP.timer_increment - 1; i >= 0; i--) {
       DRWTimer *timer = &DTP.timers[i];
-      SWAP(GLuint, timer->query[0], timer->query[1]);
+      SWAP(uint32_t, timer->query[0], timer->query[1]);
 
       BLI_assert(timer->lvl < MAX_NESTED_TIMER);
 
       if (timer->is_query) {
-        GLuint64 time;
+        uint64_t time = 0;
         if (timer->query[0] != 0) {
-          glGetQueryObjectui64v(timer->query[0], GL_QUERY_RESULT, &time);
+          // glGetQueryObjectui64v(timer->query[0], GL_QUERY_RESULT, &time);
         }
         else {
           time = 1000000000; /* 1ms default */

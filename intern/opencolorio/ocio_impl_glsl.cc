@@ -95,11 +95,11 @@ struct OCIO_GLSLShader {
 
   struct GPUShader *shader;
   /** Uniform locations. */
-  GLint dither_loc;
-  GLint overlay_loc;
-  GLint predivide_loc;
-  GLint curve_mapping_loc;
-  GLint ubo_bind;
+  int dither_loc;
+  int overlay_loc;
+  int predivide_loc;
+  int curve_mapping_loc;
+  int ubo_bind;
   /** Error checking. */
   bool valid;
 };

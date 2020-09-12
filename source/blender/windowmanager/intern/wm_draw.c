@@ -396,9 +396,6 @@ static void wm_draw_offscreen_texture_parameters(GPUOffScreen *offscreen)
   /* Setup offscreen color texture for drawing. */
   GPUTexture *texture = GPU_offscreen_color_texture(offscreen);
 
-  /* We don't support multisample textures here. */
-  BLI_assert(GPU_texture_target(texture) == GL_TEXTURE_2D);
-
   /* No mipmaps or filtering. */
   GPU_texture_mipmap_mode(texture, false, false);
 }

@@ -32,10 +32,6 @@
 #  define TRUST_NO_ONE 1
 #endif
 
-#if defined(WITH_OPENGL)
-#  include <GL/glew.h>
-#endif
-
 #include "BLI_sys_types.h"
 #include <stdbool.h>
 #include <stdint.h>

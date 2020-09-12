@@ -106,4 +106,9 @@ void GLVertBuf::bind(void)
   }
 }
 
+void GLVertBuf::update_sub(uint start, uint len, void *data)
+{
+  glBufferSubData(GL_ARRAY_BUFFER, start, len, data);
+}
+
 }  // namespace blender::gpu
