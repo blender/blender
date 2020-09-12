@@ -828,13 +828,23 @@ FileLayout *ED_fileselect_get_layout(struct SpaceFile *sfile, ARegion *region)
   return sfile->layout;
 }
 
-void ED_file_change_dir(bContext *C)
+/**
+ * Support updating the directory even when this isn't the active space
+ * needed so RNA properties update function isn't context sensitive, see T70255.
+ */
+void ED_file_change_dir_ex(bContext *C, bScreen *screen, ScrArea *area)
 {
-  wmWindowManager *wm = CTX_wm_manager(C);
-  SpaceFile *sfile = CTX_wm_space_file(C);
-
+  /* May happen when manipulating non-active spaces. */
+  if (UNLIKELY(area->spacetype != SPACE_FILE)) {
+    return;
+  }
+  SpaceFile *sfile = area->spacedata.first;
   if (sfile->params) {
-    ED_fileselect_clear(wm, CTX_data_scene(C), sfile);
+    wmWindowManager *wm = CTX_wm_manager(C);
+    Scene *scene = WM_windows_scene_get_from_screen(wm, screen);
+    if (LIKELY(scene != NULL)) {
+      ED_fileselect_clear(wm, scene, sfile);
+    }
 
     /* Clear search string, it is very rare to want to keep that filter while changing dir,
      * and usually very annoying to keep it actually! */
@@ -853,8 +863,15 @@ void ED_file_change_dir(bContext *C)
 
     folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
 
-    file_draw_check(C);
+    file_draw_check_ex(C, area);
   }
+}
+
+void ED_file_change_dir(bContext *C)
+{
+  bScreen *screen = CTX_wm_screen(C);
+  ScrArea *area = CTX_wm_area(C);
+  ED_file_change_dir_ex(C, screen, area);
 }
 
 int file_select_match(struct SpaceFile *sfile, const char *pattern, char *matched_file)

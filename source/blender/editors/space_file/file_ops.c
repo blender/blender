@@ -1432,9 +1432,8 @@ void FILE_OT_cancel(struct wmOperatorType *ot)
 /** \name Operator Utilities
  * \{ */
 
-void file_sfile_to_operator_ex(bContext *C, wmOperator *op, SpaceFile *sfile, char *filepath)
+void file_sfile_to_operator_ex(Main *bmain, wmOperator *op, SpaceFile *sfile, char *filepath)
 {
-  Main *bmain = CTX_data_main(C);
   PropertyRNA *prop;
 
   /* XXX, not real length */
@@ -1507,16 +1506,15 @@ void file_sfile_to_operator_ex(bContext *C, wmOperator *op, SpaceFile *sfile, ch
     }
   }
 }
-void file_sfile_to_operator(bContext *C, wmOperator *op, SpaceFile *sfile)
+void file_sfile_to_operator(Main *bmain, wmOperator *op, SpaceFile *sfile)
 {
-  char filepath[FILE_MAX];
+  char filepath_dummy[FILE_MAX];
 
-  file_sfile_to_operator_ex(C, op, sfile, filepath);
+  file_sfile_to_operator_ex(bmain, op, sfile, filepath_dummy);
 }
 
-void file_operator_to_sfile(bContext *C, SpaceFile *sfile, wmOperator *op)
+void file_operator_to_sfile(Main *bmain, SpaceFile *sfile, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
   PropertyRNA *prop;
 
   /* If neither of the above are set, split the filepath back */
@@ -1569,23 +1567,35 @@ void file_sfile_filepath_set(SpaceFile *sfile, const char *filepath)
   }
 }
 
-void file_draw_check(bContext *C)
+void file_draw_check_ex(bContext *C, ScrArea *area)
 {
-  SpaceFile *sfile = CTX_wm_space_file(C);
+  /* May happen when manipulating non-active spaces. */
+  if (UNLIKELY(area->spacetype != SPACE_FILE)) {
+    return;
+  }
+  SpaceFile *sfile = area->spacedata.first;
   wmOperator *op = sfile->op;
   if (op) { /* fail on reload */
     if (op->type->check) {
-      file_sfile_to_operator(C, op, sfile);
+      Main *bmain = CTX_data_main(C);
+      file_sfile_to_operator(bmain, op, sfile);
 
       /* redraw */
       if (op->type->check(C, op)) {
-        file_operator_to_sfile(C, sfile, op);
+        file_operator_to_sfile(bmain, sfile, op);
 
         /* redraw, else the changed settings wont get updated */
-        ED_area_tag_redraw(CTX_wm_area(C));
+        ED_area_tag_redraw(area);
       }
     }
   }
+}
+
+void file_draw_check(bContext *C)
+{
+  SpaceFile *sfile = CTX_wm_space_file(C);
+  ScrArea *area = CTX_wm_area(C);
+  file_draw_check_ex(C, area);
 }
 
 /* for use with; UI_block_func_set */
@@ -1675,7 +1685,7 @@ static int file_exec(bContext *C, wmOperator *exec_op)
 
     sfile->op = NULL;
 
-    file_sfile_to_operator_ex(C, op, sfile, filepath);
+    file_sfile_to_operator_ex(bmain, op, sfile, filepath);
 
     if (BLI_exists(sfile->params->dir)) {
       fsmenu_insert_entry(ED_fsmenu_get(),
@@ -2091,6 +2101,7 @@ void FILE_OT_smoothscroll(wmOperatorType *ot)
 
 static int filepath_drop_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
 
   if (sfile) {
@@ -2105,7 +2116,7 @@ static int filepath_drop_exec(bContext *C, wmOperator *op)
     file_sfile_filepath_set(sfile, filepath);
 
     if (sfile->op) {
-      file_sfile_to_operator(C, sfile->op, sfile);
+      file_sfile_to_operator(bmain, sfile->op, sfile);
       file_draw_check(C);
     }
 

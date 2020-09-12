@@ -150,6 +150,7 @@ int ED_file_extension_icon(const char *path);
 
 void ED_file_read_bookmarks(void);
 
+void ED_file_change_dir_ex(struct bContext *C, struct bScreen *screen, struct ScrArea *area);
 void ED_file_change_dir(struct bContext *C);
 
 void ED_file_path_button(struct bScreen *screen,
