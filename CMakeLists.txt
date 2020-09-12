@@ -546,14 +546,14 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
         [HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\LLVM\\LLVM;]/lib/clang/6.0.0/lib/windows
       )
     elseif(APPLE)
-      execute_process(COMMAND ${CMAKE_CXX_COMPILER} 
-        -print-file-name=lib 
+      execute_process(COMMAND ${CMAKE_CXX_COMPILER}
+        -print-file-name=lib
         OUTPUT_VARIABLE CLANG_LIB_DIR
       )
       string(STRIP "${CLANG_LIB_DIR}" CLANG_LIB_DIR)
       find_library(
         COMPILER_ASAN_LIBRARY NAMES libclang_rt.asan_osx_dynamic.dylib
-        PATHS 
+        PATHS
         "${CLANG_LIB_DIR}/darwin/"
       )
       unset(CLANG_LIB_DIR)
@@ -1610,7 +1610,7 @@ if(MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
   # Make MSVC properly report the value of the __cplusplus preprocessor macro
   # Available MSVC 15.7 (1914) and up, without this it reports 199711L regardless
-  # of the C++ standard chosen above 
+  # of the C++ standard chosen above
   if(MSVC_VERSION GREATER 1913)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus")
   endif()
