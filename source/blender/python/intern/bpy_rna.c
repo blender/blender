@@ -890,22 +890,36 @@ static PyObject *pyrna_struct_str(BPy_StructRNA *self)
 {
   PyObject *ret;
   const char *name;
+  const char *extra_info = "";
 
   if (!PYRNA_STRUCT_IS_VALID(self)) {
     return PyUnicode_FromFormat("<bpy_struct, %.200s invalid>", Py_TYPE(self)->tp_name);
   }
 
-  /* Print name if available. */
+  ID *id = self->ptr.owner_id;
+  if (id && id != DEG_get_original_id(id)) {
+    extra_info = ", evaluated";
+  }
+
+  /* Print name if available.
+   *
+   * Always include the pointer address since it can help identify unique data,
+   * or when data is re-allocated internally. */
   name = RNA_struct_name_get_alloc(&self->ptr, NULL, 0, NULL);
   if (name) {
-    ret = PyUnicode_FromFormat(
-        "<bpy_struct, %.200s(\"%.200s\")>", RNA_struct_identifier(self->ptr.type), name);
+    ret = PyUnicode_FromFormat("<bpy_struct, %.200s(\"%.200s\") at %p%s>",
+                               RNA_struct_identifier(self->ptr.type),
+                               name,
+                               self->ptr.data,
+                               extra_info);
     MEM_freeN((void *)name);
     return ret;
   }
 
-  return PyUnicode_FromFormat(
-      "<bpy_struct, %.200s at %p>", RNA_struct_identifier(self->ptr.type), self->ptr.data);
+  return PyUnicode_FromFormat("<bpy_struct, %.200s at %p%s>",
+                              RNA_struct_identifier(self->ptr.type),
+                              self->ptr.data,
+                              extra_info);
 }
 
 static PyObject *pyrna_struct_repr(BPy_StructRNA *self)
@@ -914,18 +928,14 @@ static PyObject *pyrna_struct_repr(BPy_StructRNA *self)
   PyObject *tmp_str;
   PyObject *ret;
 
-  if (id == NULL || !PYRNA_STRUCT_IS_VALID(self)) {
+  if (id == NULL || !PYRNA_STRUCT_IS_VALID(self) || (DEG_get_original_id(id) != id)) {
     /* fallback */
     return pyrna_struct_str(self);
   }
 
   tmp_str = PyUnicode_FromString(id->name + 2);
 
-  if (DEG_get_original_id(id) != id) {
-    ret = PyUnicode_FromFormat(
-        "Evaluated %s %R", BKE_idtype_idcode_to_name(GS(id->name)), tmp_str);
-  }
-  else if (RNA_struct_is_ID(self->ptr.type) && (id->flag & LIB_EMBEDDED_DATA) == 0) {
+  if (RNA_struct_is_ID(self->ptr.type) && (id->flag & LIB_EMBEDDED_DATA) == 0) {
     ret = PyUnicode_FromFormat(
         "bpy.data.%s[%R]", BKE_idtype_idcode_to_name_plural(GS(id->name)), tmp_str);
   }
