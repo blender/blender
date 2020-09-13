@@ -139,7 +139,8 @@ static float cloth_brush_simulation_falloff_get(const Brush *brush,
 #define CLOTH_SIMULATION_ITERATIONS 5
 #define CLOTH_MAX_CONSTRAINTS_PER_VERTEX 1024
 #define CLOTH_SIMULATION_TIME_STEP 0.01f
-#define CLOTH_DEFORMATION_TARGET_STRENGTH 0.35f
+#define CLOTH_DEFORMATION_SNAKEHOOK_STRENGTH 0.35f
+#define CLOTH_DEFORMATION_TARGET_STRENGTH 0.01f
 
 static bool cloth_brush_sim_has_length_constraint(SculptClothSimulation *cloth_sim,
                                                   const int v1,
@@ -322,7 +323,7 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
         /* Cloth Snake Hook creates deformation constraint with fixed strength because the strength
          * is controlled per iteration using cloth_sim->deformation_strength. */
         cloth_brush_add_deformation_constraint(
-            data->cloth_sim, vd.index, CLOTH_DEFORMATION_TARGET_STRENGTH);
+            data->cloth_sim, vd.index, CLOTH_DEFORMATION_SNAKEHOOK_STRENGTH);
       }
     }
     else if (data->cloth_sim->deformation_pos) {
