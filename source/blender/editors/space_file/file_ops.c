@@ -1593,7 +1593,6 @@ void file_draw_check_ex(bContext *C, ScrArea *area)
 
 void file_draw_check(bContext *C)
 {
-  SpaceFile *sfile = CTX_wm_space_file(C);
   ScrArea *area = CTX_wm_area(C);
   file_draw_check_ex(C, area);
 }
