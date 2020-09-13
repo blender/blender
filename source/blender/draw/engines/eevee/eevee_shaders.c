@@ -647,7 +647,8 @@ GPUShader *EEVEE_shaders_effect_motion_blur_velocity_tiles_expand_sh_get(void)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Ambient Occlusion */
+/** \name Ambient Occlusion
+ * \{ */
 
 GPUShader *EEVEE_shaders_effect_ambient_occlusion_sh_get(void)
 {
@@ -679,7 +680,8 @@ GPUShader *EEVEE_shaders_effect_ambient_occlusion_debug_sh_get(void)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Render Passes */
+/** \name Render Passes
+ * \{ */
 
 GPUShader *EEVEE_shaders_renderpasses_post_process_sh_get(void)
 {
@@ -693,7 +695,8 @@ GPUShader *EEVEE_shaders_renderpasses_post_process_sh_get(void)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Screen Raytrace */
+/** \name Screen Raytrace
+ * \{ */
 
 struct GPUShader *EEVEE_shaders_effect_screen_raytrace_sh_get(EEVEE_SSRShaderOptions options)
 {
@@ -730,7 +733,8 @@ struct GPUShader *EEVEE_shaders_effect_screen_raytrace_sh_get(EEVEE_SSRShaderOpt
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Shadows */
+/** \name Shadows
+ * \{ */
 
 struct GPUShader *EEVEE_shaders_shadow_sh_get()
 {
@@ -753,7 +757,8 @@ struct GPUShader *EEVEE_shaders_shadow_accum_sh_get()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Subsurface */
+/** \name Subsurface
+ * \{ */
 
 struct GPUShader *EEVEE_shaders_subsurface_first_pass_sh_get()
 {
@@ -786,7 +791,8 @@ struct GPUShader *EEVEE_shaders_subsurface_translucency_sh_get()
 
 /** \} */
 /* -------------------------------------------------------------------- */
-/** \name Volumes */
+/** \name Volumes
+ * \{ */
 
 struct GPUShader *EEVEE_shaders_volumes_clear_sh_get()
 {
