@@ -131,6 +131,9 @@ typedef struct WORKBENCH_PassList {
   struct DRWPass *transp_accum_ps;
   struct DRWPass *transp_accum_infront_ps;
 
+  struct DRWPass *transp_depth_infront_ps;
+  struct DRWPass *transp_depth_ps;
+
   struct DRWPass *shadow_ps[2];
 
   struct DRWPass *merge_infront_ps;

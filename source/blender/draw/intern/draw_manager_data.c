@@ -1962,6 +1962,8 @@ DRWPass *DRW_pass_create(const char *name, DRWState state)
   return pass;
 }
 
+/* Create an instance of the original pass that will execute the same drawcalls but with its own
+ * DRWState. */
 DRWPass *DRW_pass_create_instance(const char *name, DRWPass *original, DRWState state)
 {
   DRWPass *pass = DRW_pass_create(name, state);
@@ -1980,6 +1982,10 @@ void DRW_pass_link(DRWPass *first, DRWPass *second)
 
 bool DRW_pass_is_empty(DRWPass *pass)
 {
+  if (pass->original) {
+    return DRW_pass_is_empty(pass->original);
+  }
+
   LISTBASE_FOREACH (DRWShadingGroup *, shgroup, &pass->shgroups) {
     if (!DRW_shgroup_is_empty(shgroup)) {
       return false;
