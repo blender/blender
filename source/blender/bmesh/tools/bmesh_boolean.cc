@@ -194,6 +194,7 @@ static bool apply_mesh_output_to_bmesh(BMesh *bm, IMesh &m_out)
   /* Initially mark all existing faces as "don't keep", except hidden faces.
    * Also, save current #BMFace pointers as creating faces will disturb the table. */
   Array<BMFace *> old_bmfs(bm->totface);
+  BM_mesh_elem_index_ensure(bm, BM_FACE);
   for (int f = 0; f < bm->totface; ++f) {
     BMFace *bmf = BM_face_at_index(bm, f);
     old_bmfs[f] = bmf;
@@ -331,6 +332,7 @@ static bool bmesh_boolean(BMesh *bm,
                           const int looptris_tot,
                           int (*test_fn)(BMFace *f, void *user_data),
                           void *user_data,
+                          int nshapes,
                           const bool use_self,
                           const bool use_separate_all,
                           const BoolOpType boolean_mode)
@@ -339,10 +341,9 @@ static bool bmesh_boolean(BMesh *bm,
   IMesh m_triangulated;
   IMesh m_in = mesh_from_bm(bm, looptris, looptris_tot, &m_triangulated, &arena);
   std::function<int(int)> shape_fn;
-  int nshapes;
   if (use_self && boolean_mode == BoolOpType::None) {
     /* Unary knife operation. Want every face where test_fn doesn't return -1. */
-    nshapes = 1;
+    BLI_assert(nshapes == 1);
     shape_fn = [bm, test_fn, user_data](int f) {
       BMFace *bmf = BM_face_at_index(bm, f);
       if (test_fn(bmf, user_data) != -1) {
@@ -352,15 +353,11 @@ static bool bmesh_boolean(BMesh *bm,
     };
   }
   else {
-    nshapes = 2;
     shape_fn = [bm, test_fn, user_data](int f) {
       BMFace *bmf = BM_face_at_index(bm, f);
       int test_val = test_fn(bmf, user_data);
-      if (test_val == 0) {
-        return 0;
-      }
-      if (test_val == 1) {
-        return 1;
+      if (test_val >= 0) {
+        return test_val;
       }
       return -1;
     };
@@ -403,6 +400,7 @@ bool BM_mesh_boolean(BMesh *bm,
                      const int looptris_tot,
                      int (*test_fn)(BMFace *f, void *user_data),
                      void *user_data,
+                     const int nshapes,
                      const bool use_self,
                      const int boolean_mode)
 {
@@ -412,6 +410,7 @@ bool BM_mesh_boolean(BMesh *bm,
       looptris_tot,
       test_fn,
       user_data,
+      nshapes,
       use_self,
       false,
       static_cast<blender::meshintersect::BoolOpType>(boolean_mode));
@@ -430,6 +429,7 @@ bool BM_mesh_boolean_knife(BMesh *bm,
                            const int looptris_tot,
                            int (*test_fn)(BMFace *f, void *user_data),
                            void *user_data,
+                           const int nshapes,
                            const bool use_self,
                            const bool use_separate_all)
 {
@@ -438,6 +438,7 @@ bool BM_mesh_boolean_knife(BMesh *bm,
                                                looptris_tot,
                                                test_fn,
                                                user_data,
+                                               nshapes,
                                                use_self,
                                                use_separate_all,
                                                blender::meshintersect::BoolOpType::None);
@@ -448,6 +449,7 @@ bool BM_mesh_boolean(BMesh *UNUSED(bm),
                      const int UNUSED(looptris_tot),
                      int (*test_fn)(BMFace *, void *),
                      void *UNUSED(user_data),
+                     const int UNUSED(nshapes),
                      const bool UNUSED(use_self),
                      const int UNUSED(boolean_mode))
 {
@@ -468,6 +470,7 @@ bool BM_mesh_boolean_knife(BMesh *UNUSED(bm),
                            const int UNUSED(looptris_tot),
                            int (*test_fn)(BMFace *, void *),
                            void *UNUSED(user_data),
+                           const int UNUSED(nshapes),
                            const bool UNUSED(use_self),
                            const bool UNUSED(use_separate_all))
 {

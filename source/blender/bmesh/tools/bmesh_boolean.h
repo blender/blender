@@ -29,6 +29,7 @@ bool BM_mesh_boolean(BMesh *bm,
                      const int looptris_tot,
                      int (*test_fn)(BMFace *f, void *user_data),
                      void *user_data,
+                     const int nshapes,
                      const bool use_self,
                      const int boolean_mode);
 
@@ -37,6 +38,7 @@ bool BM_mesh_boolean_knife(BMesh *bm,
                            const int looptris_tot,
                            int (*test_fn)(BMFace *f, void *user_data),
                            void *user_data,
+                           const int nshapes,
                            const bool use_self,
                            const bool use_separate_all);
 

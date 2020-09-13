@@ -2068,11 +2068,11 @@ static bool apply_bool_op(BoolOpType bool_optype, const Array<int> &winding)
         return true;
       }
       for (int i = 1; i < nw; ++i) {
-        if (winding[i] == 0) {
-          return true;
+        if (winding[i] == 1) {
+          return false;
         }
       }
-      return false;
+      return true;
     }
     default:
       return false;
@@ -2398,8 +2398,7 @@ static IMesh gwn_boolean(const IMesh &tm,
   IMesh ans;
   Vector<Face *> out_faces;
   out_faces.reserve(tm.face_size());
-  BLI_assert(nshapes == 2); /* TODO: generalize. */
-  UNUSED_VARS_NDEBUG(nshapes);
+  Array<int> winding(nshapes, 0);
   for (int p : pinfo.index_range()) {
     const Patch &patch = pinfo.patch(p);
     /* For test triangle, choose one in the middle of patch list
@@ -2421,40 +2420,41 @@ static IMesh gwn_boolean(const IMesh &tm,
     if (dbg_level > 0) {
       std::cout << "test point = " << test_point_db << "\n";
     }
-    int other_shape = 1 - shape;
-    /* The point_is_inside_shape function has to approximate if the other
-     * shape is not PWN. For most operations, even a hint of being inside
-     * gives good results, but when shape is the cutter in a Difference
-     * operation, we want to be pretty sure that the point is inside other_shape.
-     * E.g., T75827.
+    for (int other_shape = 0; other_shape < nshapes; ++other_shape) {
+      if (other_shape == shape) {
+        continue;
+      }
+      /* The point_is_inside_shape function has to approximate if the other
+       * shape is not PWN. For most operations, even a hint of being inside
+       * gives good results, but when shape is a cutter in a Difference
+       * operation, we want to be pretty sure that the point is inside other_shape.
+       * E.g., T75827.
+       */
+      bool need_high_confidence = (op == BoolOpType::Difference) && (shape != 0);
+      bool inside = point_is_inside_shape(
+          tm, shape_fn, test_point_db, other_shape, need_high_confidence);
+      if (dbg_level > 0) {
+        std::cout << "test point is " << (inside ? "inside" : "outside") << " other_shape "
+                  << other_shape << "\n";
+      }
+      winding[other_shape] = inside;
+    }
+    /* Find out the "in the output volume" flag for each of the cases of winding[shape] == 0
+     * and winding[shape] == 1. If the flags are different, this patch should be in the output.
+     * Also, if this is a Difference and the shape isn't the first one, need to flip the normals.
      */
-    bool need_high_confidence = (op == BoolOpType::Difference) && (shape == 1);
-    bool inside = point_is_inside_shape(
-        tm, shape_fn, test_point_db, other_shape, need_high_confidence);
+    winding[shape] = 0;
+    bool in_output_volume_0 = apply_bool_op(op, winding);
+    winding[shape] = 1;
+    bool in_output_volume_1 = apply_bool_op(op, winding);
+    bool do_remove = in_output_volume_0 == in_output_volume_1;
+    bool do_flip = !do_remove && op == BoolOpType::Difference && shape != 0;
     if (dbg_level > 0) {
-      std::cout << "test point is " << (inside ? "inside\n" : "outside\n");
-    }
-    bool do_remove;
-    bool do_flip;
-    switch (op) {
-      case BoolOpType::Intersect:
-        do_remove = !inside;
-        do_flip = false;
-        break;
-      case BoolOpType::Union:
-        do_remove = inside;
-        do_flip = false;
-        break;
-      case BoolOpType::Difference:
-        do_remove = (shape == 0) ? inside : !inside;
-        do_flip = (shape == 1);
-        break;
-      default:
-        do_remove = false;
-        do_flip = false;
-        BLI_assert(false);
-    }
-    if (dbg_level > 0) {
+      std::cout << "winding = ";
+      for (int i = 0; i < nshapes; ++i) {
+        std::cout << winding[i] << " ";
+      }
+      std::cout << "\niv0=" << in_output_volume_0 << ", iv1=" << in_output_volume_1 << "\n";
       std::cout << "result for patch " << p << ": remove=" << do_remove << ", flip=" << do_flip
                 << "\n";
     }
@@ -3270,13 +3270,7 @@ IMesh boolean_trimesh(IMesh &tm_in,
   if (tm_in.face_size() == 0) {
     return IMesh(tm_in);
   }
-  IMesh tm_si;
-  if (use_self) {
-    tm_si = trimesh_self_intersect(tm_in, arena);
-  }
-  else {
-    tm_si = trimesh_nary_intersect(tm_in, nshapes, shape_fn, use_self, arena);
-  }
+  IMesh tm_si = trimesh_nary_intersect(tm_in, nshapes, shape_fn, use_self, arena);
   if (dbg_level > 1) {
     write_obj_mesh(tm_si, "boolean_tm_si");
     std::cout << "\nboolean_tm_input after intersection:\n" << tm_si;

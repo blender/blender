@@ -28,16 +28,20 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_alloca.h"
+#include "BLI_array.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 
 #include "BLT_translation.h"
 
+#include "DNA_collection_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_global.h" /* only to check G.debug */
 #include "BKE_lib_id.h"
@@ -65,6 +69,7 @@
 #include "tools/bmesh_boolean.h"
 #include "tools/bmesh_intersect.h"
 
+// #define DEBUG_TIME
 #ifdef DEBUG_TIME
 #  include "PIL_time.h"
 #  include "PIL_time_utildefines.h"
@@ -77,7 +82,7 @@ static void initData(ModifierData *md)
   bmd->double_threshold = 1e-6f;
   bmd->operation = eBooleanModifierOp_Difference;
   bmd->solver = eBooleanModifierSolver_Exact;
-  bmd->flag = 0;
+  bmd->flag = eBooleanModifierFlag_Object;
 }
 
 static bool isDisabled(const struct Scene *UNUSED(scene),
@@ -85,13 +90,15 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
                        bool UNUSED(useRenderParams))
 {
   BooleanModifierData *bmd = (BooleanModifierData *)md;
+  Collection *col = bmd->collection;
 
-  /* The object type check is only needed here in case we have a placeholder
-   * object assigned (because the library containing the mesh is missing).
-   *
-   * In other cases it should be impossible to have a type mismatch.
-   */
-  return !bmd->object || bmd->object->type != OB_MESH;
+  if (bmd->flag & eBooleanModifierFlag_Object) {
+    return !bmd->object || bmd->object->type != OB_MESH;
+  }
+  if (bmd->flag & eBooleanModifierFlag_Collection) {
+    return !col;
+  }
+  return false;
 }
 
 static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
@@ -101,23 +108,45 @@ static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk,
   walk(userData, ob, &bmd->object, IDWALK_CB_NOP);
 }
 
+static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
+{
+  BooleanModifierData *bmd = (BooleanModifierData *)md;
+
+  walk(userData, ob, (ID **)&bmd->collection, IDWALK_CB_NOP);
+
+  /* Needed for the object operand to work. */
+  foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
+}
+
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   BooleanModifierData *bmd = (BooleanModifierData *)md;
-  if (bmd->object != NULL) {
+  if ((bmd->flag & eBooleanModifierFlag_Object) && bmd->object != NULL) {
     DEG_add_object_relation(ctx->node, bmd->object, DEG_OB_COMP_TRANSFORM, "Boolean Modifier");
     DEG_add_object_relation(ctx->node, bmd->object, DEG_OB_COMP_GEOMETRY, "Boolean Modifier");
+  }
+
+  Collection *col = bmd->collection;
+
+  if ((bmd->flag & eBooleanModifierFlag_Collection) && col != NULL) {
+    FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (col, operand_ob) {
+      if (operand_ob->type == OB_MESH && operand_ob != ctx->object) {
+        DEG_add_object_relation(ctx->node, operand_ob, DEG_OB_COMP_TRANSFORM, "Boolean Modifier");
+        DEG_add_object_relation(ctx->node, operand_ob, DEG_OB_COMP_GEOMETRY, "Boolean Modifier");
+      }
+    }
+    FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
   }
   /* We need own transformation as well. */
   DEG_add_modifier_to_transform_relation(ctx->node, "Boolean Modifier");
 }
 
 static Mesh *get_quick_mesh(
-    Object *ob_self, Mesh *mesh_self, Object *ob_other, Mesh *mesh_other, int operation)
+    Object *ob_self, Mesh *mesh_self, Object *ob_operand_ob, Mesh *mesh_operand_ob, int operation)
 {
   Mesh *result = NULL;
 
-  if (mesh_self->totpoly == 0 || mesh_other->totpoly == 0) {
+  if (mesh_self->totpoly == 0 || mesh_operand_ob->totpoly == 0) {
     switch (operation) {
       case eBooleanModifierOp_Intersect:
         result = BKE_mesh_new_nomain(0, 0, 0, 0, 0);
@@ -128,13 +157,13 @@ static Mesh *get_quick_mesh(
           result = mesh_self;
         }
         else {
-          BKE_id_copy_ex(NULL, &mesh_other->id, (ID **)&result, LIB_ID_COPY_LOCALIZE);
+          BKE_id_copy_ex(NULL, &mesh_operand_ob->id, (ID **)&result, LIB_ID_COPY_LOCALIZE);
 
           float imat[4][4];
           float omat[4][4];
 
           invert_m4_m4(imat, ob_self->obmat);
-          mul_m4_m4m4(omat, imat, ob_other->obmat);
+          mul_m4_m4m4(omat, imat, ob_operand_ob->obmat);
 
           const int mverts_len = result->totvert;
           MVert *mv = result->mvert;
@@ -168,207 +197,495 @@ static int bm_face_isect_pair(BMFace *f, void *UNUSED(user_data))
   return BM_elem_flag_test(f, BM_FACE_TAG) ? 1 : 0;
 }
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
+static bool BMD_error_messages(ModifierData *md, Collection *col)
 {
   BooleanModifierData *bmd = (BooleanModifierData *)md;
-  Mesh *result = mesh;
 
-  Mesh *mesh_other;
+  bool error_returns_result = false;
 
-  if (bmd->object == NULL) {
-    return result;
+  const bool operand_collection = (bmd->flag & eBooleanModifierFlag_Collection) != 0;
+  const bool use_exact = bmd->solver == eBooleanModifierSolver_Exact;
+  const bool operation_intersect = bmd->operation == eBooleanModifierOp_Intersect;
+
+#ifndef WITH_GMP
+  /* If compiled without GMP, return a error. */
+  if (use_exact) {
+    BKE_modifier_set_error(md, "Compiled without GMP, using fast solver");
+    error_returns_result = false;
+  }
+#endif
+
+  /* If intersect is selected using fast solver, return a error. */
+  if (operand_collection && operation_intersect && !use_exact) {
+    BKE_modifier_set_error(md, "Cannot execute, intersect only available using exact solver");
+    error_returns_result = true;
   }
 
-  Object *other = bmd->object;
-  mesh_other = BKE_modifier_get_evaluated_mesh_from_evaluated_object(other, false);
-  if (mesh_other) {
-    Object *object = ctx->object;
+  /* If the selected collection is empty and using fast solver, return a error. */
+  if (operand_collection) {
+    if (!use_exact && BKE_collection_is_empty(col)) {
+      BKE_modifier_set_error(md, "Cannot execute, fast solver and empty collection");
+      error_returns_result = true;
+    }
 
-    /* XXX This is utterly non-optimal, we may go from a bmesh to a mesh back to a bmesh!
-     * But for 2.90 better not try to be smart here. */
-    BKE_mesh_wrapper_ensure_mdata(mesh_other);
+    /* If the selected collection contain non mesh objects, return a error. */
+    if (col) {
+      FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (col, operand_ob) {
+        if (operand_ob->type != OB_MESH) {
+          BKE_modifier_set_error(
+              md, "Cannot execute, the selected collection contains non mesh objects");
+          error_returns_result = true;
+        }
+      }
+      FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+    }
+  }
 
-    /* when one of objects is empty (has got no faces) we could speed up
-     * calculation a bit returning one of objects' derived meshes (or empty one)
-     * Returning mesh is depended on modifiers operation (sergey) */
-    result = get_quick_mesh(object, mesh, other, mesh_other, bmd->operation);
+  return error_returns_result;
+}
 
-    if (result == NULL) {
-      const bool is_flip = (is_negative_m4(object->obmat) != is_negative_m4(other->obmat));
+static BMesh *BMD_mesh_bm_create(
+    Mesh *mesh, Object *object, Mesh *mesh_operand_ob, Object *operand_ob, bool *r_is_flip)
+{
+  BMesh *bm;
 
-      BMesh *bm;
-      const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh, mesh_other);
+  *r_is_flip = (is_negative_m4(object->obmat) != is_negative_m4(operand_ob->obmat));
 
-#ifdef DEBUG_TIME
-      TIMEIT_START(boolean_bmesh);
+  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh, mesh_operand_ob);
+
+  bm = BM_mesh_create(&allocsize,
+                      &((struct BMeshCreateParams){
+                          .use_toolflags = false,
+                      }));
+
+  BM_mesh_bm_from_me(bm,
+                     mesh_operand_ob,
+                     &((struct BMeshFromMeshParams){
+                         .calc_face_normal = true,
+                     }));
+
+  if (UNLIKELY(*r_is_flip)) {
+    const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
+    BMIter iter;
+    BMFace *efa;
+    BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+      BM_face_normal_flip_ex(bm, efa, cd_loop_mdisp_offset, true);
+    }
+  }
+
+  BM_mesh_bm_from_me(bm,
+                     mesh,
+                     &((struct BMeshFromMeshParams){
+                         .calc_face_normal = true,
+                     }));
+
+  return bm;
+}
+
+static void BMD_mesh_intersection(BMesh *bm,
+                                  ModifierData *md,
+                                  const ModifierEvalContext *ctx,
+                                  Mesh *mesh_operand_ob,
+                                  Object *object,
+                                  Object *operand_ob,
+                                  bool is_flip)
+{
+  BooleanModifierData *bmd = (BooleanModifierData *)md;
+
+  /* main bmesh intersection setup */
+  /* create tessface & intersect */
+  const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
+  int tottri;
+  BMLoop *(*looptris)[3];
+
+  looptris = MEM_malloc_arrayN(looptris_tot, sizeof(*looptris), __func__);
+
+  BM_mesh_calc_tessellation_beauty(bm, looptris, &tottri);
+
+  /* postpone this until after tessellating
+   * so we can use the original normals before the vertex are moved */
+  {
+    BMIter iter;
+    int i;
+    const int i_verts_end = mesh_operand_ob->totvert;
+    const int i_faces_end = mesh_operand_ob->totpoly;
+
+    float imat[4][4];
+    float omat[4][4];
+
+    invert_m4_m4(imat, object->obmat);
+    mul_m4_m4m4(omat, imat, operand_ob->obmat);
+
+    BMVert *eve;
+    i = 0;
+    BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
+      mul_m4_v3(omat, eve->co);
+      if (++i == i_verts_end) {
+        break;
+      }
+    }
+
+    /* we need face normals because of 'BM_face_split_edgenet'
+     * we could calculate on the fly too (before calling split). */
+    {
+      float nmat[3][3];
+      copy_m3_m4(nmat, omat);
+      invert_m3(nmat);
+
+      if (UNLIKELY(is_flip)) {
+        negate_m3(nmat);
+      }
+
+      const short ob_src_totcol = operand_ob->totcol;
+      short *material_remap = BLI_array_alloca(material_remap, ob_src_totcol ? ob_src_totcol : 1);
+
+      /* Using original (not evaluated) object here since we are writing to it. */
+      /* XXX Pretty sure comment above is fully wrong now with CoW & co ? */
+      BKE_object_material_remap_calc(ctx->object, operand_ob, material_remap);
+
+      BMFace *efa;
+      i = 0;
+      BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+        mul_transposed_m3_v3(nmat, efa->no);
+        normalize_v3(efa->no);
+
+        /* Temp tag to test which side split faces are from. */
+        BM_elem_flag_enable(efa, BM_FACE_TAG);
+
+        /* remap material */
+        if (LIKELY(efa->mat_nr < ob_src_totcol)) {
+          efa->mat_nr = material_remap[efa->mat_nr];
+        }
+
+        if (++i == i_faces_end) {
+          break;
+        }
+      }
+    }
+  }
+
+  /* not needed, but normals for 'dm' will be invalid,
+   * currently this is ok for 'BM_mesh_intersect' */
+  // BM_mesh_normals_update(bm);
+
+  bool use_separate = false;
+  bool use_dissolve = true;
+  bool use_island_connect = true;
+
+  /* change for testing */
+  if (G.debug & G_DEBUG) {
+    use_separate = (bmd->bm_flag & eBooleanModifierBMeshFlag_BMesh_Separate) != 0;
+    use_dissolve = (bmd->bm_flag & eBooleanModifierBMeshFlag_BMesh_NoDissolve) == 0;
+    use_island_connect = (bmd->bm_flag & eBooleanModifierBMeshFlag_BMesh_NoConnectRegions) == 0;
+  }
+
+#ifdef WITH_GMP
+  const bool use_exact = bmd->solver == eBooleanModifierSolver_Exact;
+  const bool use_self = (bmd->flag & eBooleanModifierFlag_Self) != 0;
+#else
+  const bool use_exact = false;
+  const bool use_self = false;
 #endif
-      bm = BM_mesh_create(&allocsize,
-                          &((struct BMeshCreateParams){
-                              .use_toolflags = false,
-                          }));
 
-      BM_mesh_bm_from_me(bm,
-                         mesh_other,
-                         &((struct BMeshFromMeshParams){
-                             .calc_face_normal = true,
-                         }));
+  if (use_exact) {
+    BM_mesh_boolean(bm, looptris, tottri, bm_face_isect_pair, NULL, 2, use_self, bmd->operation);
+  }
+  else {
+    BM_mesh_intersect(bm,
+                      looptris,
+                      tottri,
+                      bm_face_isect_pair,
+                      NULL,
+                      false,
+                      use_separate,
+                      use_dissolve,
+                      use_island_connect,
+                      false,
+                      false,
+                      bmd->operation,
+                      bmd->double_threshold);
+  }
+  MEM_freeN(looptris);
+}
 
+static int bm_face_isect_nary(BMFace *f, void *user_data)
+{
+  int *shape = (int *)user_data;
+  return shape[BM_elem_index_get(f)];
+}
+
+/* The Exact solver can do all operands of a collection at once. */
+static Mesh *collection_boolean_exact(BooleanModifierData *bmd,
+                                      const ModifierEvalContext *ctx,
+                                      Mesh *mesh)
+{
+  int i;
+  Mesh *result = mesh;
+  Collection *col = bmd->collection;
+  int num_shapes = 1;
+  Mesh **meshes = NULL;
+  Object **objects = NULL;
+  BLI_array_declare(meshes);
+  BLI_array_declare(objects);
+  BMAllocTemplate bat;
+  bat.totvert = mesh->totvert;
+  bat.totedge = mesh->totedge;
+  bat.totloop = mesh->totloop;
+  bat.totface = mesh->totpoly;
+  BLI_array_append(meshes, mesh);
+  BLI_array_append(objects, ctx->object);
+  Mesh *col_mesh;
+  FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (col, ob) {
+    if (ob->type == OB_MESH && ob != ctx->object) {
+      col_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob, false);
+      /* XXX This is utterly non-optimal, we may go from a bmesh to a mesh back to a bmesh!
+       * But for 2.90 better not try to be smart here. */
+      BKE_mesh_wrapper_ensure_mdata(col_mesh);
+      BLI_array_append(meshes, col_mesh);
+      BLI_array_append(objects, ob);
+      bat.totvert += col_mesh->totvert;
+      bat.totedge += col_mesh->totedge;
+      bat.totloop += col_mesh->totloop;
+      bat.totface += col_mesh->totpoly;
+      ++num_shapes;
+    }
+  }
+  FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+  int *shape_face_end = MEM_mallocN(num_shapes * sizeof(int), __func__);
+  int *shape_vert_end = MEM_mallocN(num_shapes * sizeof(int), __func__);
+  bool is_neg_mat0 = is_negative_m4(ctx->object->obmat);
+  BMesh *bm = BM_mesh_create(&bat,
+                             &((struct BMeshCreateParams){
+                                 .use_toolflags = false,
+                             }));
+  for (i = 0; i < num_shapes; i++) {
+    Mesh *me = meshes[i];
+    Object *ob = objects[i];
+    /* Need normals for triangulation. */
+    BM_mesh_bm_from_me(bm,
+                       me,
+                       &((struct BMeshFromMeshParams){
+                           .calc_face_normal = true,
+                       }));
+    shape_face_end[i] = me->totpoly + (i == 0 ? 0 : shape_face_end[i - 1]);
+    shape_vert_end[i] = me->totvert + (i == 0 ? 0 : shape_vert_end[i - 1]);
+    if (i > 0) {
+      bool is_flip = (is_neg_mat0 != is_negative_m4(ob->obmat));
       if (UNLIKELY(is_flip)) {
         const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
         BMIter iter;
         BMFace *efa;
+        BM_mesh_elem_index_ensure(bm, BM_FACE);
         BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-          BM_face_normal_flip_ex(bm, efa, cd_loop_mdisp_offset, true);
-        }
-      }
-
-      BM_mesh_bm_from_me(bm,
-                         mesh,
-                         &((struct BMeshFromMeshParams){
-                             .calc_face_normal = true,
-                         }));
-
-      /* main bmesh intersection setup */
-      {
-        /* create tessface & intersect */
-        const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
-        int tottri;
-        BMLoop *(*looptris)[3];
-
-        looptris = MEM_malloc_arrayN(looptris_tot, sizeof(*looptris), __func__);
-
-        BM_mesh_calc_tessellation_beauty(bm, looptris, &tottri);
-
-        /* postpone this until after tessellating
-         * so we can use the original normals before the vertex are moved */
-        {
-          BMIter iter;
-          int i;
-          const int i_verts_end = mesh_other->totvert;
-          const int i_faces_end = mesh_other->totpoly;
-
-          float imat[4][4];
-          float omat[4][4];
-
-          invert_m4_m4(imat, object->obmat);
-          mul_m4_m4m4(omat, imat, other->obmat);
-
-          BMVert *eve;
-          i = 0;
-          BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-            mul_m4_v3(omat, eve->co);
-            if (++i == i_verts_end) {
-              break;
-            }
-          }
-
-          /* we need face normals because of 'BM_face_split_edgenet'
-           * we could calculate on the fly too (before calling split). */
-          {
-            float nmat[3][3];
-            copy_m3_m4(nmat, omat);
-            invert_m3(nmat);
-
-            if (UNLIKELY(is_flip)) {
-              negate_m3(nmat);
-            }
-
-            const short ob_src_totcol = other->totcol;
-            short *material_remap = BLI_array_alloca(material_remap,
-                                                     ob_src_totcol ? ob_src_totcol : 1);
-
-            /* Using original (not evaluated) object here since we are writing to it. */
-            /* XXX Pretty sure comment above is fully wrong now with CoW & co ? */
-            BKE_object_material_remap_calc(ctx->object, other, material_remap);
-
-            BMFace *efa;
-            i = 0;
-            BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-              mul_transposed_m3_v3(nmat, efa->no);
-              normalize_v3(efa->no);
-
-              /* Temp tag to test which side split faces are from. */
-              BM_elem_flag_enable(efa, BM_FACE_TAG);
-
-              /* remap material */
-              if (LIKELY(efa->mat_nr < ob_src_totcol)) {
-                efa->mat_nr = material_remap[efa->mat_nr];
-              }
-
-              if (++i == i_faces_end) {
-                break;
-              }
-            }
+          if (BM_elem_index_get(efa) >= shape_face_end[i - 1]) {
+            BM_face_normal_flip_ex(bm, efa, cd_loop_mdisp_offset, true);
           }
         }
-
-        /* not needed, but normals for 'dm' will be invalid,
-         * currently this is ok for 'BM_mesh_intersect' */
-        // BM_mesh_normals_update(bm);
-
-        bool use_separate = false;
-        bool use_dissolve = true;
-        bool use_island_connect = true;
-
-        /* change for testing */
-        if (G.debug & G_DEBUG) {
-          use_separate = (bmd->bm_flag & eBooleanModifierBMeshFlag_BMesh_Separate) != 0;
-          use_dissolve = (bmd->bm_flag & eBooleanModifierBMeshFlag_BMesh_NoDissolve) == 0;
-          use_island_connect = (bmd->bm_flag & eBooleanModifierBMeshFlag_BMesh_NoConnectRegions) ==
-                               0;
-        }
-
-#ifdef WITH_GMP
-        const bool use_exact = bmd->solver == eBooleanModifierSolver_Exact;
-        const bool use_self = (bmd->flag & eBooleanModifierFlag_Self) != 0;
-#else
-        if (bmd->solver == eBooleanModifierSolver_Exact) {
-          BKE_modifier_set_error(md, "Compiled without GMP, using fast solver");
-        }
-        const bool use_exact = false;
-        const bool use_self = false;
-#endif
-
-        if (use_exact) {
-          BM_mesh_boolean(
-              bm, looptris, tottri, bm_face_isect_pair, NULL, use_self, bmd->operation);
-        }
-        else {
-          BM_mesh_intersect(bm,
-                            looptris,
-                            tottri,
-                            bm_face_isect_pair,
-                            NULL,
-                            false,
-                            use_separate,
-                            use_dissolve,
-                            use_island_connect,
-                            false,
-                            false,
-                            bmd->operation,
-                            bmd->double_threshold);
-        }
-
-        MEM_freeN(looptris);
       }
-
-      result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
-
-      BM_mesh_free(bm);
-
-      result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
-
-#ifdef DEBUG_TIME
-      TIMEIT_END(boolean_bmesh);
-#endif
-    }
-
-    /* if new mesh returned, return it; otherwise there was
-     * an error, so delete the modifier object */
-    if (result == NULL) {
-      BKE_modifier_set_error(md, "Cannot execute boolean operation");
     }
   }
+
+  /* Triangulate the mesh. */
+  const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
+  int tottri;
+  BMLoop *(*looptris)[3];
+  looptris = MEM_malloc_arrayN(looptris_tot, sizeof(*looptris), __func__);
+  BM_mesh_calc_tessellation_beauty(bm, looptris, &tottri);
+
+  /* Move the vertices of all but the first shape into transformation space of first mesh.
+   * Do this after tesselation so don't need to recalculate normals.
+   * The Exact solver doesn't need normals on the input faces. */
+  float imat[4][4];
+  float omat[4][4];
+  invert_m4_m4(imat, ctx->object->obmat);
+  int curshape = 0;
+  int curshape_vert_end = shape_vert_end[0];
+  BMVert *eve;
+  BMIter iter;
+  i = 0;
+  BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
+    if (i == curshape_vert_end) {
+      curshape++;
+      curshape_vert_end = shape_vert_end[curshape];
+      mul_m4_m4m4(omat, imat, objects[curshape]->obmat);
+    }
+    if (curshape > 0) {
+      mul_m4_v3(omat, eve->co);
+    }
+    i++;
+  }
+
+  /* Remap the materials. Fill a shape array for test function. Calculate normals. */
+  int *shape = MEM_mallocN(bm->totface * sizeof(int), __func__);
+  curshape = 0;
+  int curshape_face_end = shape_face_end[0];
+  int curshape_ncol = ctx->object->totcol;
+  short *material_remap = NULL;
+  BMFace *efa;
+  i = 0;
+  BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+    if (i == curshape_face_end) {
+      curshape++;
+      curshape_face_end = shape_face_end[curshape];
+      if (material_remap != NULL) {
+        MEM_freeN(material_remap);
+      }
+      curshape_ncol = objects[curshape]->totcol;
+      material_remap = MEM_mallocN(curshape_ncol ? curshape_ncol : 1, __func__);
+      BKE_object_material_remap_calc(ctx->object, objects[curshape], material_remap);
+    }
+    shape[i] = curshape;
+    if (curshape > 0) {
+      /* Normals for other shapes changed because vertex positions changed.
+       * Boolean doesn't need these, but post-boolean code (interpolation) does. */
+      BM_face_normal_update(efa);
+      if (LIKELY(efa->mat_nr < curshape_ncol)) {
+        efa->mat_nr = material_remap[efa->mat_nr];
+      }
+    }
+    i++;
+  }
+
+  BM_mesh_elem_index_ensure(bm, BM_FACE);
+  BM_mesh_boolean(
+      bm, looptris, tottri, bm_face_isect_nary, shape, num_shapes, true, bmd->operation);
+
+  result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
+  BM_mesh_free(bm);
+  result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+
+  MEM_freeN(shape);
+  MEM_freeN(shape_face_end);
+  MEM_freeN(shape_vert_end);
+  MEM_freeN(looptris);
+  if (material_remap != NULL) {
+    MEM_freeN(material_remap);
+  }
+  BLI_array_free(meshes);
+  BLI_array_free(objects);
+  return result;
+}
+
+static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
+{
+  BooleanModifierData *bmd = (BooleanModifierData *)md;
+  Object *object = ctx->object;
+  Mesh *result = mesh;
+  Mesh *mesh_operand_ob;
+  BMesh *bm;
+  Collection *col = bmd->collection;
+
+  bool is_flip = false;
+  const bool confirm_return = true;
+#ifdef WITH_GMP
+  const bool use_exact = bmd->solver == eBooleanModifierSolver_Exact;
+#else
+  const bool use_exact = false;
+#endif
+
+#ifdef DEBUG_TIME
+  TIMEIT_START(boolean_bmesh);
+#endif
+
+  if (bmd->flag & eBooleanModifierFlag_Object) {
+    if (bmd->object == NULL) {
+      return result;
+    }
+
+    BMD_error_messages(md, NULL);
+
+    Object *operand_ob = bmd->object;
+
+    mesh_operand_ob = BKE_modifier_get_evaluated_mesh_from_evaluated_object(operand_ob, false);
+
+    if (mesh_operand_ob) {
+      /* XXX This is utterly non-optimal, we may go from a bmesh to a mesh back to a bmesh!
+       * But for 2.90 better not try to be smart here. */
+      BKE_mesh_wrapper_ensure_mdata(mesh_operand_ob);
+      /* when one of objects is empty (has got no faces) we could speed up
+       * calculation a bit returning one of objects' derived meshes (or empty one)
+       * Returning mesh is depended on modifiers operation (sergey) */
+      result = get_quick_mesh(object, mesh, operand_ob, mesh_operand_ob, bmd->operation);
+
+      if (result == NULL) {
+        bm = BMD_mesh_bm_create(mesh, object, mesh_operand_ob, operand_ob, &is_flip);
+
+        BMD_mesh_intersection(bm, md, ctx, mesh_operand_ob, object, operand_ob, is_flip);
+
+        result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
+        BM_mesh_free(bm);
+        result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+      }
+
+      /* if new mesh returned, return it; otherwise there was
+       * an error, so delete the modifier object */
+      if (result == NULL) {
+        BKE_modifier_set_error(md, "Cannot execute boolean operation");
+      }
+    }
+  }
+
+  else {
+    if (col == NULL && !use_exact) {
+      return result;
+    }
+
+    /* Return result for certain errors. */
+    if (BMD_error_messages(md, col) == confirm_return) {
+      return result;
+    }
+
+    if (use_exact) {
+      result = collection_boolean_exact(bmd, ctx, mesh);
+    }
+    else {
+      FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (col, operand_ob) {
+        if (operand_ob->type == OB_MESH && operand_ob != ctx->object) {
+
+          mesh_operand_ob = BKE_modifier_get_evaluated_mesh_from_evaluated_object(operand_ob,
+                                                                                  false);
+
+          if (mesh_operand_ob) {
+            /* XXX This is utterly non-optimal, we may go from a bmesh to a mesh back to a bmesh!
+             * But for 2.90 better not try to be smart here. */
+            BKE_mesh_wrapper_ensure_mdata(mesh_operand_ob);
+            /* when one of objects is empty (has got no faces) we could speed up
+             * calculation a bit returning one of objects' derived meshes (or empty one)
+             * Returning mesh is depended on modifiers operation (sergey) */
+            result = get_quick_mesh(object, mesh, operand_ob, mesh_operand_ob, bmd->operation);
+
+            if (result == NULL) {
+              bm = BMD_mesh_bm_create(mesh, object, mesh_operand_ob, operand_ob, &is_flip);
+
+              BMD_mesh_intersection(bm, md, ctx, mesh_operand_ob, object, operand_ob, is_flip);
+
+              /* Needed for multiple objects to work. */
+              BM_mesh_bm_to_me(NULL,
+                               bm,
+                               mesh,
+                               (&(struct BMeshToMeshParams){
+                                   .calc_object_remap = false,
+                               }));
+
+              result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
+              BM_mesh_free(bm);
+              result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+            }
+            /* if new mesh returned, return it; otherwise there was
+             * an error, so delete the modifier object */
+            if (result == NULL) {
+              BKE_modifier_set_error(md, "Cannot execute boolean operation");
+            }
+          }
+        }
+      }
+      FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+    }
+  }
+
+#ifdef DEBUG_TIME
+  TIMEIT_END(boolean_bmesh);
+#endif
 
   return result;
 }
@@ -392,13 +709,26 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
+  uiItemR(layout, ptr, "operand_type", 0, NULL, ICON_NONE);
+
+  const bool operand_object = RNA_enum_get(ptr, "operand_type") == eBooleanModifierFlag_Object;
+
+  if (operand_object) {
+    uiItemR(layout, ptr, "object", 0, NULL, ICON_NONE);
+  }
+  else {
+    uiItemR(layout, ptr, "collection", 0, NULL, ICON_NONE);
+  }
+
   const bool use_exact = RNA_enum_get(ptr, "solver") == eBooleanModifierSolver_Exact;
 
-  uiItemR(layout, ptr, "object", 0, NULL, ICON_NONE);
   uiItemR(layout, ptr, "solver", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 
   if (use_exact) {
-    uiItemR(layout, ptr, "use_self", 0, NULL, ICON_NONE);
+    /* When operand is collection, we always use_self. */
+    if (operand_object) {
+      uiItemR(layout, ptr, "use_self", 0, NULL, ICON_NONE);
+    }
   }
   else {
     uiItemR(layout, ptr, "double_threshold", 0, NULL, ICON_NONE);
@@ -443,7 +773,7 @@ ModifierTypeInfo modifierType_Boolean = {
     /* dependsOnTime */ NULL,
     /* dependsOnNormals */ NULL,
     /* foreachObjectLink */ foreachObjectLink,
-    /* foreachIDLink */ NULL,
+    /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,

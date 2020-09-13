@@ -2804,18 +2804,32 @@ static void rna_def_modifier_boolean(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
+  static const EnumPropertyItem prop_operand_items[] = {
+      {eBooleanModifierFlag_Object,
+       "OBJECT",
+       0,
+       "Object",
+       "Use a mesh object as the operand for the Boolean operation"},
+      {eBooleanModifierFlag_Collection,
+       "COLLECTION",
+       0,
+       "Collection",
+       "Use a collection of mesh objects as the operand for the Boolean operation"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   static const EnumPropertyItem prop_operation_items[] = {
       {eBooleanModifierOp_Intersect,
        "INTERSECT",
        0,
        "Intersect",
-       "Keep the part of the mesh that intersects with the other selected object"},
-      {eBooleanModifierOp_Union, "UNION", 0, "Union", "Combine two meshes in an additive way"},
+       "Keep the part of the mesh that is common between all operands"},
+      {eBooleanModifierOp_Union, "UNION", 0, "Union", "Combine meshes in an additive way"},
       {eBooleanModifierOp_Difference,
        "DIFFERENCE",
        0,
        "Difference",
-       "Combine two meshes in a subtractive way"},
+       "Combine meshes in a subtractive way"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -2843,10 +2857,24 @@ static void rna_def_modifier_boolean(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
   RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
+  prop = RNA_def_property(srna, "collection", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, NULL, "collection");
+  RNA_def_property_struct_type(prop, "Collection");
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
+  RNA_def_property_ui_text(
+      prop, "Collection", "Use mesh objects in this collection for Boolean operation");
+  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
   prop = RNA_def_property(srna, "operation", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, prop_operation_items);
   RNA_def_property_enum_default(prop, eBooleanModifierOp_Difference);
   RNA_def_property_ui_text(prop, "Operation", "");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "operand_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+  RNA_def_property_enum_items(prop, prop_operand_items);
+  RNA_def_property_ui_text(prop, "Operand Type", "");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "double_threshold", PROP_FLOAT, PROP_DISTANCE);
