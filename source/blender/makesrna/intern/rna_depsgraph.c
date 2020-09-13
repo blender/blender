@@ -43,6 +43,8 @@
 #  include "BLI_iterator.h"
 #  include "BLI_math.h"
 
+#  include "RNA_access.h"
+
 #  include "BKE_duplilist.h"
 #  include "BKE_object.h"
 #  include "BKE_scene.h"
@@ -461,14 +463,19 @@ static PointerRNA rna_Depsgraph_scene_get(PointerRNA *ptr)
 {
   Depsgraph *depsgraph = (Depsgraph *)ptr->data;
   Scene *scene = DEG_get_input_scene(depsgraph);
-  return rna_pointer_inherit_refine(ptr, &RNA_Scene, scene);
+  PointerRNA newptr;
+  RNA_pointer_create(&scene->id, &RNA_Scene, scene, &newptr);
+  return newptr;
 }
 
 static PointerRNA rna_Depsgraph_view_layer_get(PointerRNA *ptr)
 {
   Depsgraph *depsgraph = (Depsgraph *)ptr->data;
+  Scene *scene = DEG_get_input_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
-  return rna_pointer_inherit_refine(ptr, &RNA_ViewLayer, view_layer);
+  PointerRNA newptr;
+  RNA_pointer_create(&scene->id, &RNA_ViewLayer, view_layer, &newptr);
+  return newptr;
 }
 
 static PointerRNA rna_Depsgraph_scene_eval_get(PointerRNA *ptr)
@@ -476,13 +483,19 @@ static PointerRNA rna_Depsgraph_scene_eval_get(PointerRNA *ptr)
   Depsgraph *depsgraph = (Depsgraph *)ptr->data;
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   return rna_pointer_inherit_refine(ptr, &RNA_Scene, scene_eval);
+  PointerRNA newptr;
+  RNA_pointer_create(&scene_eval->id, &RNA_Scene, scene_eval, &newptr);
+  return newptr;
 }
 
 static PointerRNA rna_Depsgraph_view_layer_eval_get(PointerRNA *ptr)
 {
   Depsgraph *depsgraph = (Depsgraph *)ptr->data;
+  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
-  return rna_pointer_inherit_refine(ptr, &RNA_ViewLayer, view_layer_eval);
+  PointerRNA newptr;
+  RNA_pointer_create(&scene_eval->id, &RNA_ViewLayer, view_layer_eval, &newptr);
+  return newptr;
 }
 
 #else
