@@ -1947,7 +1947,7 @@ DRWPass *DRW_pass_create(const char *name, DRWState state)
 {
   DRWPass *pass = BLI_memblock_alloc(DST.vmempool->passes);
   pass->state = state | DRW_STATE_PROGRAM_POINT_SIZE;
-  if (((G.debug_value > 20) && (G.debug_value < 30)) || (G.debug & G_DEBUG)) {
+  if (G.debug & G_DEBUG_GPU) {
     BLI_strncpy(pass->name, name, MAX_PASS_NAME);
   }
 
@@ -1992,21 +1992,6 @@ bool DRW_pass_is_empty(DRWPass *pass)
     }
   }
   return true;
-}
-
-void DRW_pass_state_set(DRWPass *pass, DRWState state)
-{
-  pass->state = state | DRW_STATE_PROGRAM_POINT_SIZE;
-}
-
-void DRW_pass_state_add(DRWPass *pass, DRWState state)
-{
-  pass->state |= state;
-}
-
-void DRW_pass_state_remove(DRWPass *pass, DRWState state)
-{
-  pass->state &= ~state;
 }
 
 void DRW_pass_foreach_shgroup(DRWPass *pass,
