@@ -893,19 +893,14 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
     }
 
     for (currkey = me->key->block.first; currkey; currkey = currkey->next) {
-      const bool apply_offset = (ofs && (currkey != actkey) &&
-                                 (bm->shapenr - 1 == currkey->relative));
-      int cd_shape_offset;
       int keyi;
       const float(*ofs_pt)[3] = ofs;
       float *newkey, (*oldkey)[3], *fp;
 
       j = bm_to_mesh_shape_layer_index_from_kb(bm, currkey);
-      cd_shape_offset = CustomData_get_n_offset(&bm->vdata, CD_SHAPEKEY, j);
-      if (cd_shape_offset < 0) {
-        /* The target Mesh has more shapekeys than the BMesh. */
-        continue;
-      }
+      const int cd_shape_offset = CustomData_get_n_offset(&bm->vdata, CD_SHAPEKEY, j);
+      const bool apply_offset = (cd_shape_offset != -1) && (ofs != NULL) && (currkey != actkey) &&
+                                (bm->shapenr - 1 == currkey->relative);
 
       fp = newkey = MEM_callocN(me->key->elemsize * bm->totvert, "currkey->data");
       oldkey = currkey->data;
@@ -927,7 +922,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
             }
           }
         }
-        else if (j != -1) {
+        else if (cd_shape_offset != -1) {
           /* In most cases this runs. */
           copy_v3_v3(fp, BM_ELEM_CD_GET_VOID_P(eve, cd_shape_offset));
         }
