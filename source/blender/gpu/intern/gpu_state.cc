@@ -319,7 +319,7 @@ void GPU_force_state(void)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Synchronisation Utils
+/** \name Synchronization Utils
  * \{ */
 
 void GPU_memory_barrier(eGPUBarrier barrier)

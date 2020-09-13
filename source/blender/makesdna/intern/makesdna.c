@@ -420,10 +420,10 @@ static int add_name(const char *str)
   }
 
   if (str[0] == '(' && str[1] == '*') {
-    /* we handle function pointer and special array cases here, e.g.
-     * void (*function)(...) and float (*array)[..]. the array case
+    /* We handle function pointer and special array cases here, e.g.
+     * `void (*function)(...)` and `float (*array)[..]`. the array case
      * name is still converted to (array *)() though because it is that
-     * way in old dna too, and works correct with elementsize() */
+     * way in old DNA too, and works correct with #DNA_elem_size_nr. */
     int isfuncptr = (strchr(str + 1, '(')) != NULL;
 
     DEBUG_PRINTF(3, "\t\t\t\t*** Function pointer or multidim array pointer found\n");

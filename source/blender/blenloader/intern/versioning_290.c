@@ -482,7 +482,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
-    /* Initialise additional velocity parameter for CacheFiles. */
+    /* Initialize additional velocity parameter for #CacheFile's. */
     if (!DNA_struct_elem_find(
             fd->filesdna, "MeshSeqCacheModifierData", "float", "velocity_scale")) {
       for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {

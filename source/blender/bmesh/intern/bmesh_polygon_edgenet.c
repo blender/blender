@@ -494,7 +494,7 @@ bool BM_face_split_edgenet(BMesh *bm,
   }
 
   /* These arrays used to be stack memory, however they can be
-   * large for single faces with complex edgenets, see: T65980. */
+   * large for single faces with complex edge-nets, see: T65980. */
 
   /* over-alloc (probably 2-4 is only used in most cases), for the biggest-fan */
   edge_order = MEM_mallocN(sizeof(*edge_order) * edge_order_len, __func__);
@@ -1650,8 +1650,8 @@ finally:
     {
       struct TempVertPair *tvp = temp_vert_pairs.list;
       do {
-        /* we must _never_ create connections here
-         * (inface the islands can't have a connection at all) */
+        /* We must _never_ create connections here
+         * (in case the islands can't have a connection at all). */
         BLI_assert(BM_edge_exists(tvp->v_orig, tvp->v_temp) == NULL);
       } while ((tvp = tvp->next));
     }

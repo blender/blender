@@ -34,7 +34,7 @@ struct GPUTexture;
 /* *********** LISTS *********** */
 
 /* GPUViewport.storage
- * Is freed everytime the viewport engine changes */
+ * Is freed every time the viewport engine changes. */
 typedef struct IMAGE_PassList {
   DRWPass *image_pass;
 } IMAGE_PassList;
