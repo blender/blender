@@ -456,9 +456,11 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         Recursively get strings, needed in case we have "Blah" + "Blah", passed as an argument in that case it won't
         evaluate to a string. However, break on some kind of stopper nodes, like e.g. Subscript.
         """
-        if type(node) == ast.Str:
+        # New in py 3.8: all constants are of type 'ast.Constant'.
+        # 'ast.Str' will have to be removed when we officially switch to this version.
+        if type(node) in {ast.Str, getattr(ast, "Constant", None)}:
             eval_str = ast.literal_eval(node)
-            if eval_str:
+            if eval_str and type(eval_str) == str:
                 yield (is_split, eval_str, (node,))
         else:
             is_split = (type(node) in separate_nodes)
@@ -624,6 +626,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         }
 
     for fp in files:
+        # ~ print("Checking File ", fp)
         with open(fp, 'r', encoding="utf8") as filedata:
             root_node = ast.parse(filedata.read(), fp, 'exec')
 
@@ -631,8 +634,8 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
 
         for node in ast.walk(root_node):
             if type(node) == ast.Call:
-                # print("found function at")
-                # print("%s:%d" % (fp, node.lineno))
+                # ~ print("found function at")
+                # ~ print("%s:%d" % (fp, node.lineno))
 
                 # We can't skip such situations! from blah import foo\nfoo("bar") would also be an ast.Name func!
                 if type(node.func) == ast.Name:
@@ -657,31 +660,31 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
                                 if kw.arg == arg_kw:
                                     context_elements[arg_kw] = kw.value
                                     break
-                    # print(context_elements)
+                    # ~ print(context_elements)
                     for kws, proc in translate_kw[msgid]:
                         if set(kws) <= context_elements.keys():
                             args = tuple(context_elements[k] for k in kws)
-                            #print("running ", proc, " with ", args)
+                            # ~ print("running ", proc, " with ", args)
                             ctxt = proc(*args)
                             if ctxt:
                                 msgctxts[msgid] = ctxt
                                 break
 
-                # print(translate_args)
+                # ~ print(func_args)
                 # do nothing if not found
                 for arg_kw, (arg_pos, _) in func_args.items():
                     msgctxt = msgctxts[arg_kw]
                     estr_lst = [(None, ())]
                     if arg_pos < len(node.args):
                         estr_lst = extract_strings_split(node.args[arg_pos])
-                        #print(estr, nds)
                     else:
                         for kw in node.keywords:
                             if kw.arg == arg_kw:
+                                # ~ print(kw.arg, kw.value)
                                 estr_lst = extract_strings_split(kw.value)
                                 break
-                        #print(estr, nds)
                     for estr, nds in estr_lst:
+                        # ~ print(estr, nds)
                         if estr:
                             if nds:
                                 msgsrc = "{}:{}".format(fp_rel, sorted({nd.lineno for nd in nds})[0])
