@@ -1354,14 +1354,12 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
             part->instance_collection, object, mode) {
           copy_m4_m4(tmat, oblist[b]->obmat);
 
+          /* Apply collection instance offset. */
+          sub_v3_v3(tmat[3], part->instance_collection->instance_offset);
+
           /* Apply particle scale. */
           mul_mat3_m4_fl(tmat, size * scale);
           mul_v3_fl(tmat[3], size * scale);
-
-          /* Collection dupli-offset, should apply after everything else. */
-          if (!is_zero_v3(part->instance_collection->instance_offset)) {
-            sub_v3_v3(tmat[3], part->instance_collection->instance_offset);
-          }
 
           /* Individual particle transform. */
           mul_m4_m4m4(mat, pamat, tmat);
