@@ -185,7 +185,7 @@ bool GLShader::finalize(void)
   if (!status) {
     char log[5000];
     glGetProgramInfoLog(shader_program_, sizeof(log), NULL, log);
-    Vector<const char *> sources(0);
+    Span<const char *> sources;
     this->print_errors(sources, log, "Linking");
     return false;
   }
