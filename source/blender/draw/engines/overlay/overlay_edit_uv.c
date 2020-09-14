@@ -96,16 +96,19 @@ void OVERLAY_edit_uv_init(OVERLAY_Data *vedata)
                                 (ts->uv_selectmode == UV_SELECT_FACE);
   const bool do_uvstretching_overlay = is_image_type && is_uv_editor && is_edit_mode &&
                                        ((sima->flag & SI_DRAW_STRETCH) != 0);
+  const bool do_tex_paint_shadows = (sima->flag & SI_NO_DRAW_TEXPAINT) == 0;
+
   pd->edit_uv.do_faces = do_faces && !do_uvstretching_overlay;
   pd->edit_uv.do_face_dots = do_faces && do_face_dots;
 
   pd->edit_uv.do_uv_overlay = do_uv_overlay;
-  pd->edit_uv.do_uv_shadow_overlay =
-      is_image_type &&
-      ((is_paint_mode &&
-        ((draw_ctx->object_mode & (OB_MODE_TEXTURE_PAINT | OB_MODE_EDIT)) != 0)) ||
-       (is_view_mode && ((draw_ctx->object_mode & (OB_MODE_TEXTURE_PAINT)) != 0)) ||
-       (do_uv_overlay && (show_modified_uvs)));
+  pd->edit_uv.do_uv_shadow_overlay = is_image_type &&
+                                     ((is_paint_mode && do_tex_paint_shadows &&
+                                       ((draw_ctx->object_mode &
+                                         (OB_MODE_TEXTURE_PAINT | OB_MODE_EDIT)) != 0)) ||
+                                      (is_view_mode && do_tex_paint_shadows &&
+                                       ((draw_ctx->object_mode & (OB_MODE_TEXTURE_PAINT)) != 0)) ||
+                                      (do_uv_overlay && (show_modified_uvs)));
   pd->edit_uv.do_uv_stretching_overlay = do_uvstretching_overlay;
   pd->edit_uv.uv_opacity = sima->uv_opacity;
   pd->edit_uv.do_tiled_image_overlay = is_image_type && is_tiled_image;
