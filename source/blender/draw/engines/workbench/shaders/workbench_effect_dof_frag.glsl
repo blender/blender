@@ -108,8 +108,8 @@ layout(location = 1) out vec2 outCocs;
 
 void main()
 {
-  vec4 texel = vec4(gl_FragCoord.xyxy) * 2 + vec4(0, 0, 1, 1);
-  texel = (texel + 0.5) / vec4(textureSize(sceneColorTex, 0).xyxy);
+  vec4 texel = vec4(gl_FragCoord.xyxy) * 2.0 + vec4(0.0, 0.0, 1.0, 1.0);
+  texel = (texel - 0.5) / vec4(textureSize(sceneColorTex, 0).xyxy);
 
   /* Using texelFetch can bypass the mip range setting on some platform.
    * Using texture Lod fix this issue. Note that we need to disable filtering to get the right
