@@ -677,7 +677,8 @@ Here are some general hints to avoid running into these problems:
 Undo/Redo
 ---------
 
-Undo invalidates all :class:`bpy.types.ID` instances (Object, Scene, Mesh, Light, etc.).
+For safety, you should assume that undo and redo always invalidates all :class:`bpy.types.ID` 
+instances (Object, Scene, Mesh, Light, etc.), as weel obviously as all of their sub-data.
 
 This example shows how you can tell undo changes the memory locations:
 
@@ -686,13 +687,23 @@ This example shows how you can tell undo changes the memory locations:
    >>> hash(bpy.context.object)
    -9223372036849950810
 
-Move the active object, then undo:
+Delete the active object, then undo:
 
    >>> hash(bpy.context.object)
    -9223372036849951740
 
 As suggested above, simply not holding references to data when Blender is used
 interactively by the user is the only way to make sure that the script doesn't become unstable.
+
+
+.. note::
+
+   Modern undo/redo system does not systematically invalidate all pointers anymore.
+   Some data (in fact, most data, in typical cases), which were detected as unchanged for a
+   particular history step, may remain unchanged and hence their pointers may remain valid.
+   
+   Be aware that if you want to take advantage of this behavior for some reason, there is no
+   guarantee of any kind that it will be safe and consistent. Use it at your own risk.
 
 
 Undo & Library Data
@@ -710,6 +721,17 @@ but leave the library referencing it and likely crash.
 
 So it's best to consider modifying library data an advanced usage of the API
 and only to use it when you know what you're doing.
+
+
+Abusing RNA property callbacks
+------------------------------
+
+Python-defined RNA properties can have custom callbacks. Trying to perform complex operations
+from there, like calling an operator, may work, but is not officialy recommended nor supported.
+
+Main reason is that those callback should be very fast, but additionally, it may for example
+create issues with undo/redo system (most operators store an history step, and editing an RNA
+property does so as well), trigger infinite update loops, and so on.
 
 
 Edit-Mode / Memory Access
