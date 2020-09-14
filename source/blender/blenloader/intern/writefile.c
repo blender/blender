@@ -1902,9 +1902,16 @@ static void write_shaderfxs(WriteData *wd, ListBase *fxbase)
 
 static void write_object(WriteData *wd, Object *ob, const void *id_address)
 {
-  if (ob->id.us > 0 || wd->use_memfile) {
+  const bool is_undo = wd->use_memfile;
+  if (ob->id.us > 0 || is_undo) {
     /* Clean up, important in undo case to reduce false detection of changed datablocks. */
     BKE_object_runtime_reset(ob);
+
+    if (is_undo) {
+      /* For undo we stay in object mode during undo presses, so keep editmode disabled on save as
+       * well, can help reducing false detection of changed datablocks. */
+      ob->mode &= ~OB_MODE_EDIT;
+    }
 
     /* write LibData */
     writestruct_at_address(wd, ID_OB, Object, 1, id_address, ob);
