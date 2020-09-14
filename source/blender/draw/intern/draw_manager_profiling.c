@@ -32,6 +32,7 @@
 
 #include "draw_manager.h"
 
+#include "GPU_debug.h"
 #include "GPU_texture.h"
 
 #include "UI_resources.h"
@@ -133,10 +134,13 @@ static void drw_stats_timer_start_ex(const char *name, const bool is_query)
 void DRW_stats_group_start(const char *name)
 {
   drw_stats_timer_start_ex(name, false);
+
+  GPU_debug_group_begin(name);
 }
 
 void DRW_stats_group_end(void)
 {
+  GPU_debug_group_end();
   if (DTP.is_recording) {
     BLI_assert(!DTP.is_querying);
     DTP.end_increment++;
@@ -146,11 +150,14 @@ void DRW_stats_group_end(void)
 /* NOTE: Only call this when no sub timer will be called. */
 void DRW_stats_query_start(const char *name)
 {
+  GPU_debug_group_begin(name);
+  drw_stats_timer_start_ex(name, false);
   drw_stats_timer_start_ex(name, true);
 }
 
 void DRW_stats_query_end(void)
 {
+  GPU_debug_group_end();
   if (DTP.is_recording) {
     DTP.end_increment++;
     BLI_assert(DTP.is_querying);

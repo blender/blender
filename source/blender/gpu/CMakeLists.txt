@@ -62,6 +62,7 @@ set(SRC
   intern/gpu_capabilities.cc
   intern/gpu_codegen.c
   intern/gpu_context.cc
+  intern/gpu_debug.cc
   intern/gpu_drawlist.cc
   intern/gpu_framebuffer.cc
   intern/gpu_immediate.cc
@@ -112,6 +113,7 @@ set(SRC
   GPU_capabilities.h
   GPU_common.h
   GPU_context.h
+  GPU_debug.h
   GPU_drawlist.h
   GPU_framebuffer.h
   GPU_immediate.h
