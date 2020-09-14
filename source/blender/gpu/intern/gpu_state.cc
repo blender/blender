@@ -351,7 +351,7 @@ StateManager::StateManager(void)
 
   mutable_state.depth_range[0] = 0.0f;
   mutable_state.depth_range[1] = 1.0f;
-  mutable_state.point_size = 1.0f;
+  mutable_state.point_size = -1.0f; /* Negative is not using point size. */
   mutable_state.line_width = 1.0f;
   mutable_state.stencil_write_mask = 0x00;
   mutable_state.stencil_compare_mask = 0x00;

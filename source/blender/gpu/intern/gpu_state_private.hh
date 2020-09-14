@@ -98,7 +98,7 @@ union GPUStateMutable {
     /* Viewport State */
     /** TODO remove */
     float depth_range[2];
-    /** Negative if using program point size. */
+    /** Positive if using program point size. */
     /* TODO(fclem) should be passed as uniform to all shaders. */
     float point_size;
     /** Not supported on every platform. Prefer using wideline shader. */
