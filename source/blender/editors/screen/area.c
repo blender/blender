@@ -2684,6 +2684,81 @@ static void ed_panel_draw(const bContext *C,
 }
 
 /**
+ * Check whether a panel should be added to the region's panel layout.
+ */
+static bool panel_add_check(const bContext *C,
+                            const WorkSpace *workspace,
+                            const char *contexts[],
+                            const char *category_override,
+                            PanelType *panel_type)
+{
+  /* Only add top level panels. */
+  if (panel_type->parent) {
+    return false;
+  }
+  /* Check the category override first. */
+  if (category_override) {
+    if (!STREQ(panel_type->category, category_override)) {
+      return false;
+    }
+  }
+
+  /* Verify context. */
+  if (contexts != NULL && panel_type->context[0]) {
+    if (!streq_array_any(panel_type->context, contexts)) {
+      return false;
+    }
+  }
+
+  /* If we're tagged, only use compatible. */
+  if (panel_type->owner_id[0]) {
+    if (!BKE_workspace_owner_id_check(workspace, panel_type->owner_id)) {
+      return false;
+    }
+  }
+
+  if (LIKELY(panel_type->draw)) {
+    if (panel_type->poll && !panel_type->poll(C, panel_type)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+static bool region_uses_category_tabs(const ScrArea *area, const ARegion *region)
+{
+  /* XXX, should use some better check? */
+  /* For now also has hardcoded check for clip editor until it supports actual toolbar. */
+  return ((1 << region->regiontype) & RGN_TYPE_HAS_CATEGORY_MASK) ||
+         (region->regiontype == RGN_TYPE_TOOLS && area->spacetype == SPACE_CLIP);
+}
+
+static const char *region_panels_collect_categories(ARegion *region,
+                                                    LinkNode *panel_types_stack,
+                                                    bool *use_category_tabs)
+{
+  UI_panel_category_clear_all(region);
+
+  /* gather unique categories */
+  for (LinkNode *pt_link = panel_types_stack; pt_link; pt_link = pt_link->next) {
+    PanelType *pt = pt_link->link;
+    if (pt->category[0]) {
+      if (!UI_panel_category_find(region, pt->category)) {
+        UI_panel_category_add(region, pt->category);
+      }
+    }
+  }
+
+  if (UI_panel_category_is_visible(region)) {
+    return UI_panel_category_active_get(region, true);
+  }
+
+  *use_category_tabs = false;
+  return NULL;
+}
+
+/**
  * \param contexts: A NULL terminated array of context strings to match against.
  * Matching against any of these strings will draw the panel.
  * Can be NULL to skip context checks.
@@ -2698,29 +2773,7 @@ void ED_region_panels_layout_ex(const bContext *C,
   WorkSpace *workspace = CTX_wm_workspace(C);
   LinkNode *panel_types_stack = NULL;
   LISTBASE_FOREACH_BACKWARD (PanelType *, pt, paneltypes) {
-    /* Only draw top level panels. */
-    if (pt->parent) {
-      continue;
-    }
-
-    if (category_override) {
-      if (!STREQ(pt->category, category_override)) {
-        continue;
-      }
-    }
-
-    /* verify context */
-    if (contexts && pt->context[0] && !streq_array_any(pt->context, contexts)) {
-      continue;
-    }
-
-    /* If we're tagged, only use compatible. */
-    if (pt->owner_id[0] && BKE_workspace_owner_id_check(workspace, pt->owner_id) == false) {
-      continue;
-    }
-
-    /* draw panel */
-    if (pt->draw && (!pt->poll || pt->poll(C, pt))) {
+    if (panel_add_check(C, workspace, contexts, category_override, pt)) {
       BLI_linklist_prepend_alloca(&panel_types_stack, pt);
     }
   }
@@ -2731,12 +2784,7 @@ void ED_region_panels_layout_ex(const bContext *C,
   View2D *v2d = &region->v2d;
   int x, y, w, em;
 
-  /* XXX, should use some better check? */
-  /* For now also has hardcoded check for clip editor until it supports actual toolbar. */
-  bool use_category_tabs = (category_override == NULL) &&
-                           ((((1 << region->regiontype) & RGN_TYPE_HAS_CATEGORY_MASK) ||
-                             (region->regiontype == RGN_TYPE_TOOLS &&
-                              area->spacetype == SPACE_CLIP)));
+  bool use_category_tabs = (category_override == NULL) && region_uses_category_tabs(area, region);
   /* offset panels for small vertical tab area */
   const char *category = NULL;
   const int category_tabs_width = UI_PANEL_CATEGORY_MARGIN_WIDTH;
@@ -2752,25 +2800,10 @@ void ED_region_panels_layout_ex(const bContext *C,
 
   /* collect categories */
   if (use_category_tabs) {
-    UI_panel_category_clear_all(region);
-
-    /* gather unique categories */
-    for (LinkNode *pt_link = panel_types_stack; pt_link; pt_link = pt_link->next) {
-      PanelType *pt = pt_link->link;
-      if (pt->category[0]) {
-        if (!UI_panel_category_find(region, pt->category)) {
-          UI_panel_category_add(region, pt->category);
-        }
-      }
-    }
-
-    if (!UI_panel_category_is_visible(region)) {
-      use_category_tabs = false;
-    }
-    else {
-      category = UI_panel_category_active_get(region, true);
-      margin_x = category_tabs_width;
-    }
+    category = region_panels_collect_categories(region, panel_types_stack, &use_category_tabs);
+  }
+  if (use_category_tabs) {
+    margin_x = category_tabs_width;
   }
 
   w = BLI_rctf_size_x(&v2d->cur);
