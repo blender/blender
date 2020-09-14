@@ -886,6 +886,8 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
   }
   RNA_def_property_update(prop, 0, "rna_Bone_update_renamed");
 
+  RNA_define_lib_overridable(true);
+
   /* flags */
   prop = RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
   RNA_def_property_boolean_sdna(prop, NULL, "layer", 1);
@@ -1116,6 +1118,8 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_PTR_NO_OWNERSHIP);
   RNA_def_property_ui_text(
       prop, "B-Bone End Handle", "Bone that serves as the end handle for the B-Bone curve");
+
+  RNA_define_lib_overridable(false);
 }
 
 /* err... bones should not be directly edited (only editbones should be...) */
@@ -1148,6 +1152,8 @@ static void rna_def_bone(BlenderRNA *brna)
 
   rna_def_bone_common(srna, 0);
   rna_def_bone_curved_common(srna, false, false);
+
+  RNA_define_lib_overridable(true);
 
   /* XXX should we define this in PoseChannel wrapping code instead?
    *     But PoseChannels directly get some of their flags from here... */
@@ -1230,6 +1236,8 @@ static void rna_def_bone(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "length");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Length", "Length of the bone");
+
+  RNA_define_lib_overridable(false);
 
   RNA_api_bone(srna);
 }
@@ -1461,6 +1469,8 @@ static void rna_def_armature(BlenderRNA *brna)
   /* Animation Data */
   rna_def_animdata_common(srna);
 
+  RNA_define_lib_overridable(true);
+
   /* Collections */
   prop = RNA_def_property(srna, "bones", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, NULL, "bonebase", NULL);
@@ -1554,6 +1564,8 @@ static void rna_def_armature(BlenderRNA *brna)
   RNA_def_property_boolean_funcs(prop, "rna_Armature_is_editmode_get", NULL);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Is Editmode", "True when used in editmode");
+
+  RNA_define_lib_overridable(false);
 }
 
 void RNA_def_armature(BlenderRNA *brna)
