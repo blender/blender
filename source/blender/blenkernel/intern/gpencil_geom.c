@@ -185,6 +185,19 @@ BoundBox *BKE_gpencil_boundbox_get(Object *ob)
 
   boundbox_gpencil(ob);
 
+  Object *ob_orig = (Object *)DEG_get_original_id(&ob->id);
+  /* Update orig object's boundbox with re-computed evaluated values. This function can be
+   * called with the evaluated object and need update the original object bound box data
+   * to keep both values synchronized. */
+  if ((ob_orig != NULL) && (ob != ob_orig)) {
+    if (ob_orig->runtime.bb == NULL) {
+      ob_orig->runtime.bb = MEM_callocN(sizeof(BoundBox), "GPencil boundbox");
+    }
+    for (int i = 0; i < 8; i++) {
+      copy_v3_v3(ob_orig->runtime.bb->vec[i], ob->runtime.bb->vec[i]);
+    }
+  }
+
   return ob->runtime.bb;
 }
 
