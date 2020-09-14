@@ -30,6 +30,7 @@
 
 #include "BKE_global.h"
 
+#include "GPU_debug.h"
 #include "GPU_platform.h"
 
 #include "glew-mx.h"
@@ -70,7 +71,11 @@ static void APIENTRY debug_callback(GLenum UNUSED(source),
                                     const GLchar *message,
                                     const GLvoid *UNUSED(userParm))
 {
-  const char format[] = "GPUDebug: %s%s\033[0m\n";
+  if (ELEM(type, GL_DEBUG_TYPE_PUSH_GROUP, GL_DEBUG_TYPE_POP_GROUP)) {
+    /* The debug layer will emit a message each time a debug group is pushed or popped.
+     * We use that for easy command grouping inside frame analyser tools. */
+    return;
+  }
 
   if (TRIM_NVIDIA_BUFFER_INFO &&
       GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_OFFICIAL) &&
@@ -79,24 +84,29 @@ static void APIENTRY debug_callback(GLenum UNUSED(source),
     return;
   }
 
+  const char format[] = "GPUDebug: %s%s%s\033[0m\n";
+
   if (ELEM(severity, GL_DEBUG_SEVERITY_LOW, GL_DEBUG_SEVERITY_NOTIFICATION)) {
     if (VERBOSE) {
-      fprintf(stderr, format, "\033[2m", message);
+      fprintf(stderr, format, "\033[2m", "", message);
     }
   }
   else {
+    char debug_groups[512] = "";
+    GPU_debug_get_groups_names(sizeof(debug_groups), debug_groups);
+
     switch (type) {
       case GL_DEBUG_TYPE_ERROR:
       case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
       case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-        fprintf(stderr, format, "\033[31;1mError\033[39m: ", message);
+        fprintf(stderr, format, "\033[31;1mError\033[39m: ", debug_groups, message);
         break;
       case GL_DEBUG_TYPE_PORTABILITY:
       case GL_DEBUG_TYPE_PERFORMANCE:
       case GL_DEBUG_TYPE_OTHER:
       case GL_DEBUG_TYPE_MARKER: /* KHR has this, ARB does not */
       default:
-        fprintf(stderr, format, "\033[33;1mWarning\033[39m: ", message);
+        fprintf(stderr, format, "\033[33;1mWarning\033[39m: ", debug_groups, message);
         break;
     }
 
@@ -321,3 +331,31 @@ void object_label(GLenum type, GLuint object, const char *name)
 /** \} */
 
 }  // namespace blender::gpu::debug
+
+namespace blender::gpu {
+
+/* -------------------------------------------------------------------- */
+/** \name Debug Groups
+ *
+ * Useful for debugging through render-doc. This makes all the API calls grouped into "passes".
+ * \{ */
+
+void GLContext::debug_group_begin(const char *name, int index)
+{
+  if ((G.debug & G_DEBUG_GPU) && (GLEW_VERSION_4_3 || GLEW_KHR_debug)) {
+    /* Add 10 to avoid conlision with other indices from other possible callback layers. */
+    index += 10;
+    glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, index, -1, name);
+  }
+}
+
+void GLContext::debug_group_end(void)
+{
+  if ((G.debug & G_DEBUG_GPU) && (GLEW_VERSION_4_3 || GLEW_KHR_debug)) {
+    glPopDebugGroup();
+  }
+}
+
+/** \} */
+
+}  // namespace blender::gpu
