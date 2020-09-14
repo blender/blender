@@ -721,6 +721,8 @@ enum {
 #define ORIENTATION_USE_PLANE(ty) ELEM(ty, ORIENTATION_NORMAL, ORIENTATION_EDGE, ORIENTATION_FACE)
 
 int getTransformOrientation_ex(const struct bContext *C,
+                               struct Object *ob,
+                               struct Object *obedit,
                                float normal[3],
                                float plane[3],
                                const short around);
