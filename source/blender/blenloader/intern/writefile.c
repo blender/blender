@@ -1303,9 +1303,16 @@ static void write_shaderfxs(BlendWriter *writer, ListBase *fxbase)
 
 static void write_object(BlendWriter *writer, Object *ob, const void *id_address)
 {
-  if (ob->id.us > 0 || BLO_write_is_undo(writer)) {
+  const bool is_undo = BLO_write_is_undo(writer);
+  if (ob->id.us > 0 || is_undo) {
     /* Clean up, important in undo case to reduce false detection of changed datablocks. */
     BKE_object_runtime_reset(ob);
+
+    if (is_undo) {
+      /* For undo we stay in object mode during undo presses, so keep editmode disabled on save as
+       * well, can help reducing false detection of changed datablocks. */
+      ob->mode &= ~OB_MODE_EDIT;
+    }
 
     /* write LibData */
     BLO_write_id_struct(writer, Object, id_address, &ob->id);

@@ -6553,6 +6553,9 @@ static void read_libblock_undo_restore_identical(
     if (ob->proxy != NULL) {
       ob->proxy->proxy_from = ob;
     }
+    /* For undo we stay in object mode during undo presses, so keep editmode disabled for re-used
+     * data-blocks too. */
+    ob->mode &= ~OB_MODE_EDIT;
   }
 }
 
