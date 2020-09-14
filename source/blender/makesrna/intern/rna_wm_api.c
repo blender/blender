@@ -558,6 +558,12 @@ static void rna_WindowManager_print_undo_steps(wmWindowManager *wm)
   BKE_undosys_print(wm->undo_stack);
 }
 
+static void rna_WindowManager_tag_script_reload(void)
+{
+  WM_script_tag_reload();
+  WM_main_add_notifier(NC_WINDOW, NULL);
+}
+
 static PointerRNA rna_WindoManager_operator_properties_last(const char *idname)
 {
   wmOperatorType *ot = WM_operatortype_find(idname, true);
@@ -912,6 +918,12 @@ void RNA_api_wm(StructRNA *srna)
   RNA_def_function_return(func, parm);
 
   RNA_def_function(srna, "print_undo_steps", "rna_WindowManager_print_undo_steps");
+
+  /* Used by (#SCRIPT_OT_reload). */
+  func = RNA_def_function(srna, "tag_script_reload", "rna_WindowManager_tag_script_reload");
+  RNA_def_function_ui_description(
+      func, "Tag for refreshing the interface after scripts have been reloaded");
+  RNA_def_function_flag(func, FUNC_NO_SELF);
 
   parm = RNA_def_property(srna, "is_interface_locked", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(

@@ -283,6 +283,8 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     del _initialize
 
     if reload_scripts:
+        _bpy.context.window_manager.tag_script_reload()
+
         import gc
         print("gc.collect() -> %d" % gc.collect())
 
