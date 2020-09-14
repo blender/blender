@@ -2582,7 +2582,7 @@ static void rna_def_fluid_flow_settings(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_flow_reset");
 
   prop = RNA_def_property(srna, "particle_size", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_range(prop, 0.1, 20.0);
+  RNA_def_property_range(prop, 0.1, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.5, 5.0, 0.05, 5);
   RNA_def_property_ui_text(prop, "Size", "Particle size in simulation cells");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_flow_reset");
