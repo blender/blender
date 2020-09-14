@@ -1188,9 +1188,12 @@ static bool rna_property_override_diff_propptr_validate_diffing(PointerRNA *prop
    * This helps a lot in library override case, especially to detect inserted items in collections.
    */
   if (!no_prop_name && (is_valid_for_diffing || do_force_name)) {
-    PropertyRNA *nameprop_a = RNA_struct_name_property(propptr_a->type);
-    PropertyRNA *nameprop_b = (propptr_b != NULL) ? RNA_struct_name_property(propptr_b->type) :
-                                                    NULL;
+    PropertyRNA *nameprop_a = (propptr_a->type != NULL) ?
+                                  RNA_struct_name_property(propptr_a->type) :
+                                  NULL;
+    PropertyRNA *nameprop_b = (propptr_b != NULL && propptr_b->type != NULL) ?
+                                  RNA_struct_name_property(propptr_b->type) :
+                                  NULL;
 
     int propname_a_len = 0, propname_b_len = 0;
     char *propname_a = NULL;
