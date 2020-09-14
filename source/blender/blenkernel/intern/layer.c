@@ -1111,8 +1111,8 @@ bool BKE_object_is_visible_in_viewport(const View3D *v3d, const struct Object *o
     return false;
   }
 
-  /* If not using local view or local collection the object may still be in a hidden collection. */
-  if (((v3d->localvd) == NULL) && ((v3d->flag & V3D_LOCAL_COLLECTIONS) == 0)) {
+  /* If not using local collection the object may still be in a hidden collection. */
+  if ((v3d->flag & V3D_LOCAL_COLLECTIONS) == 0) {
     return (ob->base_flag & BASE_VISIBLE_VIEWLAYER) != 0;
   }
 
