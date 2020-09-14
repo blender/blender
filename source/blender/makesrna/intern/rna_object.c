@@ -1828,8 +1828,19 @@ static void rna_Object_boundbox_get(PointerRNA *ptr, float *values)
   }
 }
 
-static bDeformGroup *rna_Object_vgroup_new(Object *ob, Main *bmain, const char *name)
+static bDeformGroup *rna_Object_vgroup_new(Object *ob,
+                                           Main *bmain,
+                                           ReportList *reports,
+                                           const char *name)
 {
+  if (!OB_TYPE_SUPPORT_VGROUP(ob->type)) {
+    const char *ob_type_name = "Unknown";
+    RNA_enum_name_from_value(rna_enum_object_type_items, ob->type, &ob_type_name);
+    BKE_reportf(
+        reports, RPT_ERROR, "VertexGroups.new(): is not supported for '%s' objects", ob_type_name);
+    return NULL;
+  }
+
   bDeformGroup *defgroup = BKE_object_defgroup_add_name(ob, name);
 
   DEG_relations_tag_update(bmain);
@@ -2489,7 +2500,7 @@ static void rna_def_object_vertex_groups(BlenderRNA *brna, PropertyRNA *cprop)
 
   /* vertex groups */ /* add_vertex_group */
   func = RNA_def_function(srna, "new", "rna_Object_vgroup_new");
-  RNA_def_function_flag(func, FUNC_USE_MAIN);
+  RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
   RNA_def_function_ui_description(func, "Add vertex group to object");
   RNA_def_string(func, "name", "Group", 0, "", "Vertex group name"); /* optional */
   parm = RNA_def_pointer(func, "group", "VertexGroup", "", "New vertex group");
