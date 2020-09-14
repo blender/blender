@@ -42,8 +42,7 @@
 #define SIMA_DRAW_FLAG_APPLY_ALPHA (1 << 1)
 #define SIMA_DRAW_FLAG_SHUFFLING (1 << 2)
 #define SIMA_DRAW_FLAG_DEPTH (1 << 3)
-#define SIMA_DRAW_FLAG_TILED (1 << 4)
-#define SIMA_DRAW_FLAG_DO_REPEAT (1 << 5)
+#define SIMA_DRAW_FLAG_DO_REPEAT (1 << 4)
 
 static void image_cache_image_add(DRWShadingGroup *grp, Image *image)
 {
@@ -179,10 +178,9 @@ static void image_cache_image(IMAGE_Data *vedata, Image *image, ImageUser *iuser
       draw_flags |= SIMA_DRAW_FLAG_APPLY_ALPHA;
     }
 
-    GPUShader *shader = IMAGE_shader_image_get();
+    GPUShader *shader = IMAGE_shader_image_get(is_tiled_texture);
     DRWShadingGroup *shgrp = DRW_shgroup_create(shader, psl->image_pass);
-    if (tex_tile_data != NULL) {
-      draw_flags |= SIMA_DRAW_FLAG_TILED;
+    if (is_tiled_texture) {
       DRW_shgroup_uniform_texture_ex(shgrp, "imageTileArray", pd->texture, state);
       DRW_shgroup_uniform_texture(shgrp, "imageTileData", tex_tile_data);
     }

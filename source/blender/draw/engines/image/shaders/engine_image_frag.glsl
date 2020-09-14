@@ -5,12 +5,14 @@
 #define SIMA_DRAW_FLAG_APPLY_ALPHA (1 << 1)
 #define SIMA_DRAW_FLAG_SHUFFLING (1 << 2)
 #define SIMA_DRAW_FLAG_DEPTH (1 << 3)
-#define SIMA_DRAW_FLAG_TILED (1 << 4)
-#define SIMA_DRAW_FLAG_DO_REPEAT (1 << 5)
+#define SIMA_DRAW_FLAG_DO_REPEAT (1 << 4)
 
+#ifdef TILED_IMAGE
 uniform sampler2DArray imageTileArray;
 uniform sampler1DArray imageTileData;
+#else
 uniform sampler2D imageTexture;
+#endif
 
 uniform bool imgPremultiplied;
 uniform int drawFlags;
@@ -25,6 +27,7 @@ in vec2 uvs;
 
 out vec4 fragColor;
 
+#ifdef TILED_IMAGE
 /* TODO(fclem) deduplicate code.  */
 bool node_tex_tile_lookup(inout vec3 co, sampler2DArray ima, sampler1DArray map)
 {
@@ -50,26 +53,26 @@ bool node_tex_tile_lookup(inout vec3 co, sampler2DArray ima, sampler1DArray map)
   co = vec3(((co.xy - tile_pos) * tile_info.zw) + tile_info.xy, tile_layer);
   return true;
 }
+#endif
 
 void main()
 {
   vec4 tex_color;
   /* Read texture */
-  if ((drawFlags & SIMA_DRAW_FLAG_TILED) != 0) {
-    vec3 co = vec3(uvs, 0.0);
-    if (node_tex_tile_lookup(co, imageTileArray, imageTileData)) {
-      tex_color = texture(imageTileArray, co);
-    }
-    else {
-      tex_color = vec4(1.0, 0.0, 1.0, 1.0);
-    }
+#ifdef TILED_IMAGE
+  vec3 co = vec3(uvs, 0.0);
+  if (node_tex_tile_lookup(co, imageTileArray, imageTileData)) {
+    tex_color = texture(imageTileArray, co);
   }
   else {
-    vec2 uvs_clamped = ((drawFlags & SIMA_DRAW_FLAG_DO_REPEAT) != 0) ?
-                           fract(uvs) :
-                           clamp(uvs, vec2(0.0), vec2(1.0));
-    tex_color = texture(imageTexture, uvs_clamped);
+    tex_color = vec4(1.0, 0.0, 1.0, 1.0);
   }
+#else
+  vec2 uvs_clamped = ((drawFlags & SIMA_DRAW_FLAG_DO_REPEAT) != 0) ?
+                         fract(uvs) :
+                         clamp(uvs, vec2(0.0), vec2(1.0));
+  tex_color = texture(imageTexture, uvs_clamped);
+#endif
 
   if ((drawFlags & SIMA_DRAW_FLAG_APPLY_ALPHA) != 0) {
     if (!imgPremultiplied && tex_color.a != 0.0 && tex_color.a != 1.0) {

@@ -156,7 +156,8 @@ TEST_F(DrawTest, image_glsl_shaders)
 {
   IMAGE_shader_library_ensure();
 
-  EXPECT_NE(IMAGE_shader_image_get(), nullptr);
+  EXPECT_NE(IMAGE_shader_image_get(false), nullptr);
+  EXPECT_NE(IMAGE_shader_image_get(true), nullptr);
 
   IMAGE_shader_free();
 }

@@ -37,7 +37,7 @@ extern char datatoc_engine_image_frag_glsl[];
 extern char datatoc_engine_image_vert_glsl[];
 
 typedef struct IMAGE_Shaders {
-  GPUShader *image_sh;
+  GPUShader *image_sh[2];
 } IMAGE_Shaders;
 
 static struct {
@@ -56,14 +56,19 @@ void IMAGE_shader_library_ensure(void)
   }
 }
 
-GPUShader *IMAGE_shader_image_get(void)
+GPUShader *IMAGE_shader_image_get(bool is_tiled_image)
 {
+  const int index = is_tiled_image ? 1 : 0;
   IMAGE_Shaders *sh_data = &e_data.shaders;
-  if (!sh_data->image_sh) {
-    sh_data->image_sh = DRW_shader_create_with_shaderlib(
-        datatoc_engine_image_vert_glsl, NULL, datatoc_engine_image_frag_glsl, e_data.lib, NULL);
+  if (!sh_data->image_sh[index]) {
+    sh_data->image_sh[index] = DRW_shader_create_with_shaderlib(
+        datatoc_engine_image_vert_glsl,
+        NULL,
+        datatoc_engine_image_frag_glsl,
+        e_data.lib,
+        is_tiled_image ? "#define TILED_IMAGE\n" : NULL);
   }
-  return sh_data->image_sh;
+  return sh_data->image_sh[index];
 }
 
 void IMAGE_shader_free(void)
