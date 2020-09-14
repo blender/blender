@@ -24,6 +24,7 @@
 #include "BKE_global.h"
 
 #include "BLI_string.h"
+#include "BLI_vector.hh"
 
 #include "GPU_platform.h"
 
@@ -184,7 +185,8 @@ bool GLShader::finalize(void)
   if (!status) {
     char log[5000];
     glGetProgramInfoLog(shader_program_, sizeof(log), NULL, log);
-    fprintf(stderr, "\nLinking Error:\n\n%s", log);
+    Vector<const char *> sources(0);
+    this->print_errors(sources, log, "Linking");
     return false;
   }
 
