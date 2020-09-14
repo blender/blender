@@ -272,10 +272,14 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
    * context and might as well ensure we have as much space free as possible. */
   gpu_free_unused_buffers();
 
-  /* Free GPU textures when requesting a different render pass/layer. */
-  if (ima->gpu_pass != iuser->pass || ima->gpu_layer != iuser->layer) {
-    ima->gpu_pass = iuser->pass;
-    ima->gpu_layer = iuser->layer;
+  /* Free GPU textures when requesting a different render pass/layer.
+   * When `iuser` isn't set (texture painting single image mode) we assume that
+   * the current `pass` and `layer` should be 0. */
+  short requested_pass = iuser ? iuser->pass : 0;
+  short requested_layer = iuser ? iuser->layer : 0;
+  if (ima->gpu_pass != requested_pass || ima->gpu_layer != requested_layer) {
+    ima->gpu_pass = requested_pass;
+    ima->gpu_layer = requested_layer;
     ima->gpuflag |= IMA_GPU_REFRESH;
   }
 
