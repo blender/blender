@@ -100,24 +100,6 @@ static void constraint_plane_calc(TransInfo *t, float r_plane[4])
   r_plane[3] = -dot_v3v3(r_plane, t->center_global);
 }
 
-static void constraintValuesFinal(TransInfo *t, float vec[3])
-{
-  int mode = t->con.mode;
-  if (mode & CON_APPLY) {
-    float nval = (t->flag & T_NULL_ONE) ? 1.0f : 0.0f;
-
-    if ((mode & CON_AXIS0) == 0) {
-      vec[0] = nval;
-    }
-    if ((mode & CON_AXIS1) == 0) {
-      vec[1] = nval;
-    }
-    if ((mode & CON_AXIS2) == 0) {
-      vec[2] = nval;
-    }
-  }
-}
-
 void constraintNumInput(TransInfo *t, float vec[3])
 {
   int mode = t->con.mode;
