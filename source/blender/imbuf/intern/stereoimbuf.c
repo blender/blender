@@ -58,6 +58,10 @@ typedef struct Stereo3DData {
   bool is_float;
 } Stereo3DData;
 
+/* -------------------------------------------------------------------- */
+/** \name Local Functions
+ * \{ */
+
 static void imb_stereo3d_write_anaglyph(Stereo3DData *s3d, enum eStereo3dAnaglyphType mode)
 {
   int x, y;
@@ -508,7 +512,11 @@ static void imb_stereo3d_write_topbottom(Stereo3DData *s3d)
   }
 }
 
-/**************************** dimension utils ****************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Dimension Utils
+ * \{ */
 
 void IMB_stereo3d_write_dimensions(const char mode,
                                    const bool is_squeezed,
@@ -566,7 +574,11 @@ void IMB_stereo3d_read_dimensions(const char mode,
   }
 }
 
-/**************************** un/squeeze frame ****************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Un/Squeeze Frame
+ * \{ */
 
 static void imb_stereo3d_squeeze_ImBuf(ImBuf *ibuf,
                                        Stereo3dFormat *s3d,
@@ -667,7 +679,11 @@ static void imb_stereo3d_squeeze_rect(
   IMB_freeImBuf(ibuf);
 }
 
-/*************************** preparing to call the write functions **************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Preparing To Call The Write Functions
+ * \{ */
 
 static void imb_stereo3d_data_init(Stereo3DData *s3d_data,
                                    const bool is_float,
@@ -798,7 +814,11 @@ static void imb_stereo3d_write_doit(Stereo3DData *s3d_data, Stereo3dFormat *s3d)
   }
 }
 
-/******************************** reading stereo imbufs **********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Reading Stereo ImBuf's
+ * \{ */
 
 static void imb_stereo3d_read_anaglyph(Stereo3DData *s3d, enum eStereo3dAnaglyphType mode)
 {
@@ -1249,7 +1269,11 @@ static void imb_stereo3d_read_topbottom(Stereo3DData *s3d)
   }
 }
 
-/*************************** preparing to call the read functions **************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Preparing To Call The Read Functions
+ * \{ */
 
 /* reading a stereo encoded ibuf (*left) and generating two ibufs from it (*left and *right) */
 void IMB_ImBufFromStereo3d(Stereo3dFormat *s3d,
@@ -1351,3 +1375,5 @@ static void imb_stereo3d_read_doit(Stereo3DData *s3d_data, Stereo3dFormat *s3d)
       break;
   }
 }
+
+/** \} */

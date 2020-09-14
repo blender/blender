@@ -76,6 +76,7 @@ void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf)
     }
   }
 }
+
 static void pixel_from_buffer(struct ImBuf *ibuf, unsigned char **outI, float **outF, int x, int y)
 
 {
@@ -90,7 +91,9 @@ static void pixel_from_buffer(struct ImBuf *ibuf, unsigned char **outI, float **
   }
 }
 
-/* BICUBIC Interpolation */
+/* -------------------------------------------------------------------- */
+/** \name Bi-Cubic Interpolation
+ * \{ */
 
 void bicubic_interpolation_color(
     struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
@@ -118,7 +121,12 @@ void bicubic_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, in
   bicubic_interpolation_color(in, outI, outF, u, v);
 }
 
-/* BILINEAR INTERPOLATION */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Bi-Linear Interpolation
+ * \{ */
+
 void bilinear_interpolation_color(
     struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
 {
@@ -224,8 +232,13 @@ void bilinear_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, i
   bilinear_interpolation_color(in, outI, outF, u, v);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Nearest Interpolation
+ * \{ */
+
 /* function assumes out to be zero'ed, only does RGBA */
-/* NEAREST INTERPOLATION */
 void nearest_interpolation_color(
     struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
 {
@@ -336,7 +349,9 @@ void nearest_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, in
   nearest_interpolation_color(in, outI, outF, u, v);
 }
 
-/*********************** Threaded image processing *************************/
+/* -------------------------------------------------------------------- */
+/** \name Threaded Image Processing
+ * \{ */
 
 static void processor_apply_func(TaskPool *__restrict pool, void *taskdata)
 {
@@ -431,7 +446,11 @@ void IMB_processor_apply_threaded_scanlines(int total_scanlines,
   BLI_task_pool_free(task_pool);
 }
 
-/* Alpha-under */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Alpha-under
+ * \{ */
 
 void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[3])
 {
@@ -485,6 +504,12 @@ void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, const float b
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sample Pixel
+ * \{ */
+
 /* Sample pixel of image using NEAREST method. */
 void IMB_sampleImageAtLocation(ImBuf *ibuf, float x, float y, bool make_linear_rgb, float color[4])
 {
@@ -500,3 +525,5 @@ void IMB_sampleImageAtLocation(ImBuf *ibuf, float x, float y, bool make_linear_r
     }
   }
 }
+
+/** \} */
