@@ -108,18 +108,22 @@ layout(location = 1) out vec2 outCocs;
 
 void main()
 {
-  ivec4 texel = ivec4(gl_FragCoord.xyxy) * 2 + ivec4(0, 0, 1, 1);
+  vec4 texel = vec4(gl_FragCoord.xyxy) * 2 + vec4(0, 0, 1, 1);
+  texel = (texel + 0.5) / vec4(textureSize(sceneColorTex, 0).xyxy);
 
-  vec4 color1 = texelFetch(sceneColorTex, texel.xy, 0);
-  vec4 color2 = texelFetch(sceneColorTex, texel.zw, 0);
-  vec4 color3 = texelFetch(sceneColorTex, texel.zy, 0);
-  vec4 color4 = texelFetch(sceneColorTex, texel.xw, 0);
+  /* Using texelFetch can bypass the mip range setting on some platform.
+   * Using texture Lod fix this issue. Note that we need to disable filtering to get the right
+   * texel values. */
+  vec4 color1 = textureLod(sceneColorTex, texel.xy, 0.0);
+  vec4 color2 = textureLod(sceneColorTex, texel.zw, 0.0);
+  vec4 color3 = textureLod(sceneColorTex, texel.zy, 0.0);
+  vec4 color4 = textureLod(sceneColorTex, texel.xw, 0.0);
 
   vec4 depths;
-  vec2 cocs1 = texelFetch(inputCocTex, texel.xy, 0).rg;
-  vec2 cocs2 = texelFetch(inputCocTex, texel.zw, 0).rg;
-  vec2 cocs3 = texelFetch(inputCocTex, texel.zy, 0).rg;
-  vec2 cocs4 = texelFetch(inputCocTex, texel.xw, 0).rg;
+  vec2 cocs1 = textureLod(inputCocTex, texel.xy, 0.0).rg;
+  vec2 cocs2 = textureLod(inputCocTex, texel.zw, 0.0).rg;
+  vec2 cocs3 = textureLod(inputCocTex, texel.zy, 0.0).rg;
+  vec2 cocs4 = textureLod(inputCocTex, texel.xw, 0.0).rg;
 
   vec4 cocs_near = vec4(cocs1.r, cocs2.r, cocs3.r, cocs4.r) * MAX_COC_SIZE;
   vec4 cocs_far = vec4(cocs1.g, cocs2.g, cocs3.g, cocs4.g) * MAX_COC_SIZE;

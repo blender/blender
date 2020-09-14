@@ -286,7 +286,7 @@ void workbench_dof_cache_init(WORKBENCH_Data *vedata)
     psl->dof_down2_ps = DRW_pass_create("DoF DownSample", DRW_STATE_WRITE_COLOR);
 
     DRWShadingGroup *grp = DRW_shgroup_create(downsample_sh, psl->dof_down2_ps);
-    DRW_shgroup_uniform_texture(grp, "sceneColorTex", txl->dof_source_tx);
+    DRW_shgroup_uniform_texture_ex(grp, "sceneColorTex", txl->dof_source_tx, GPU_SAMPLER_DEFAULT);
     DRW_shgroup_uniform_texture(grp, "inputCocTex", txl->coc_halfres_tx);
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
   }
