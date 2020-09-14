@@ -162,12 +162,15 @@ void workbench_transparent_draw_depth_pass(WORKBENCH_Data *data)
 
   if (do_transparent_depth_pass) {
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
+    DRWState state_oit = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_OIT;
 
     if (!DRW_pass_is_empty(psl->transp_accum_ps)) {
       GPU_framebuffer_bind(fbl->opaque_fb);
       /* TODO(fclem) Disable writting to first two buffers. Unecessary waste of bandwidth. */
       DRW_pass_state_set(psl->transp_accum_ps, state | wpd->cull_state | wpd->clip_state);
       DRW_draw_pass(psl->transp_accum_ps);
+      /* Set the state back to original. */
+      DRW_pass_state_set(psl->transp_accum_ps, state_oit | wpd->cull_state | wpd->clip_state);
     }
 
     if (!DRW_pass_is_empty(psl->transp_accum_infront_ps)) {
@@ -175,6 +178,9 @@ void workbench_transparent_draw_depth_pass(WORKBENCH_Data *data)
       /* TODO(fclem) Disable writting to first two buffers. Unecessary waste of bandwidth. */
       DRW_pass_state_set(psl->transp_accum_infront_ps, state | wpd->cull_state | wpd->clip_state);
       DRW_draw_pass(psl->transp_accum_infront_ps);
+      /* Set the state back to original. */
+      DRW_pass_state_set(psl->transp_accum_infront_ps,
+                         state_oit | wpd->cull_state | wpd->clip_state);
     }
   }
 }
