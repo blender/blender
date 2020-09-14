@@ -115,15 +115,32 @@ static int script_reload_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  WM_script_tag_reload();
+  /* TODO(campbell): this crashes on netrender and keying sets, need to look into why
+   * disable for now unless running in debug mode. */
 
-  /* TODO, this crashes on netrender and keying sets, need to look into why
-   * disable for now unless running in debug mode */
-  WM_cursor_wait(1);
-  BPY_run_string_eval(
-      C, (const char *[]){"bpy", NULL}, "bpy.utils.load_scripts(reload_scripts=True)");
-  WM_cursor_wait(0);
-  WM_event_add_notifier(C, NC_WINDOW, NULL);
+  /* It would be nice if we could detect when this is called from the Python
+   * only postponing in that case, for now always do it. */
+  if (true) {
+    /* Postpone when called from Python so this can be called from an operator
+     * that might be re-registered, crashing Blender when we try to read from the
+     * freed operator type which, see T80694. */
+    BPY_run_string_exec(C,
+                        (const char *[]){"bpy", NULL},
+                        "def fn():\n"
+                        "    bpy.utils.load_scripts(reload_scripts=True)\n"
+                        "    return None\n"
+                        "bpy.app.timers.register(fn)");
+  }
+  else {
+    WM_cursor_wait(true);
+    BPY_run_string_eval(
+        C, (const char *[]){"bpy", NULL}, "bpy.utils.load_scripts(reload_scripts=True)");
+    WM_cursor_wait(false);
+  }
+
+  /* Note that #WM_script_tag_reload is called from `bpy.utils.load_scripts`,
+   * any additional updates required by this operator should go there. */
+
   return OPERATOR_FINISHED;
 #else
   UNUSED_VARS(C, op);
