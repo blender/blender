@@ -618,8 +618,9 @@ int WM_gesture_lines_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static void gesture_lasso_apply(bContext *C, wmOperator *op)
+static int gesture_lasso_apply(bContext *C, wmOperator *op)
 {
+  int retval = OPERATOR_FINISHED;
   wmGesture *gesture = op->customdata;
   PointerRNA itemptr;
   float loc[2];
@@ -639,9 +640,11 @@ static void gesture_lasso_apply(bContext *C, wmOperator *op)
   gesture_modal_end(C, op);
 
   if (op->type->exec) {
-    int retval = op->type->exec(C, op);
+    retval = op->type->exec(C, op);
     OPERATOR_RETVAL_CHECK(retval);
   }
+
+  return retval;
 }
 
 int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -683,8 +686,7 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
     case MIDDLEMOUSE:
     case RIGHTMOUSE:
       if (event->val == KM_RELEASE) { /* key release */
-        gesture_lasso_apply(C, op);
-        return OPERATOR_FINISHED;
+        return gesture_lasso_apply(C, op);
       }
       break;
     case EVT_ESCKEY:
