@@ -3950,7 +3950,7 @@ static int view_axis_exec(bContext *C, wmOperator *op)
     if (obact != NULL) {
       float twmat[3][3];
       /* same as transform gizmo when normal is set */
-      ED_getTransformOrientationMatrix(C, twmat, V3D_AROUND_ACTIVE);
+      ED_getTransformOrientationMatrix(C, V3D_AROUND_ACTIVE, twmat);
       align_quat = align_quat_buf;
       mat3_to_quat(align_quat, twmat);
       invert_qt_normalized(align_quat);

@@ -475,7 +475,7 @@ short ED_transform_calc_orientation_from_type_ex(const bContext *C,
     }
     case V3D_ORIENT_NORMAL: {
       if (obedit || (ob && ob->mode & OB_MODE_POSE)) {
-        ED_getTransformOrientationMatrix(C, r_mat, pivot_point);
+        ED_getTransformOrientationMatrix(C, pivot_point, r_mat);
         return V3D_ORIENT_NORMAL;
       }
       /* no break we define 'normal' as 'local' in Object mode */
@@ -488,7 +488,7 @@ short ED_transform_calc_orientation_from_type_ex(const bContext *C,
            * use the active pones axis for display [#33575], this works as expected on a single
            * bone and users who select many bones will understand what's going on and what local
            * means when they start transforming */
-          ED_getTransformOrientationMatrix(C, r_mat, pivot_point);
+          ED_getTransformOrientationMatrix(C, pivot_point, r_mat);
         }
         else {
           copy_m3_m4(r_mat, ob->obmat);
@@ -1225,8 +1225,8 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3])
 }
 
 void ED_getTransformOrientationMatrix(const bContext *C,
-                                      float orientation_mat[3][3],
-                                      const short around)
+                                      const short around,
+                                      float r_orientation_mat[3][3])
 {
   float normal[3] = {0.0, 0.0, 0.0};
   float plane[3] = {0.0, 0.0, 0.0};
@@ -1242,22 +1242,22 @@ void ED_getTransformOrientationMatrix(const bContext *C,
 
   switch (type) {
     case ORIENTATION_NORMAL:
-      if (createSpaceNormalTangent(orientation_mat, normal, plane) == 0) {
+      if (createSpaceNormalTangent(r_orientation_mat, normal, plane) == 0) {
         type = ORIENTATION_NONE;
       }
       break;
     case ORIENTATION_VERT:
-      if (createSpaceNormal(orientation_mat, normal) == 0) {
+      if (createSpaceNormal(r_orientation_mat, normal) == 0) {
         type = ORIENTATION_NONE;
       }
       break;
     case ORIENTATION_EDGE:
-      if (createSpaceNormalTangent(orientation_mat, normal, plane) == 0) {
+      if (createSpaceNormalTangent(r_orientation_mat, normal, plane) == 0) {
         type = ORIENTATION_NONE;
       }
       break;
     case ORIENTATION_FACE:
-      if (createSpaceNormalTangent(orientation_mat, normal, plane) == 0) {
+      if (createSpaceNormalTangent(r_orientation_mat, normal, plane) == 0) {
         type = ORIENTATION_NONE;
       }
       break;
@@ -1267,6 +1267,6 @@ void ED_getTransformOrientationMatrix(const bContext *C,
   }
 
   if (type == ORIENTATION_NONE) {
-    unit_m3(orientation_mat);
+    unit_m3(r_orientation_mat);
   }
 }
