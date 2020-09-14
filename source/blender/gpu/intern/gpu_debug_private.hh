@@ -25,14 +25,11 @@
 
 #pragma once
 
+#include "BLI_string_ref.hh"
+#include "BLI_vector.hh"
+
 namespace blender::gpu {
 
-#define DEBUG_STACK_LEN 64
-#define DEBUG_STACK_NAME_LEN 128
-
-struct DebugStack {
-  char names[DEBUG_STACK_LEN][DEBUG_STACK_NAME_LEN];
-  int index = 0;
-};
+typedef Vector<StringRef> DebugStack;
 
 }  // namespace blender::gpu

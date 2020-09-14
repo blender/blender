@@ -31,6 +31,7 @@
 
 #include "GPU_debug.h"
 
+using namespace blender;
 using namespace blender::gpu;
 
 void GPU_debug_group_begin(const char *name)
@@ -38,17 +39,10 @@ void GPU_debug_group_begin(const char *name)
   if (!(G.debug & G_DEBUG_GPU)) {
     return;
   }
-
-  DebugStack &stack = Context::get()->debug_stack;
-
-  if (stack.index >= DEBUG_STACK_LEN) {
-    stack.index = DEBUG_STACK_LEN - 1;
-    BLI_assert(!"GPUDebug: Debug group stack overflow!");
-  }
-
-  BLI_strncpy(stack.names[stack.index++], name, sizeof(stack.names[stack.index++]));
-
-  Context::get()->debug_group_begin(name, stack.index);
+  Context *ctx = Context::get();
+  DebugStack &stack = ctx->debug_stack;
+  stack.append(StringRef(name));
+  ctx->debug_group_begin(name, stack.size());
 }
 
 void GPU_debug_group_end(void)
@@ -56,17 +50,9 @@ void GPU_debug_group_end(void)
   if (!(G.debug & G_DEBUG_GPU)) {
     return;
   }
-
-  DebugStack &stack = Context::get()->debug_stack;
-
-  if (stack.index < 0) {
-    stack.index = 0;
-    BLI_assert(!"GPUDebug: Debug group stack underflow!");
-  }
-
-  stack.index--;
-
-  Context::get()->debug_group_end();
+  Context *ctx = Context::get();
+  ctx->debug_stack.pop_last();
+  ctx->debug_group_end();
 }
 
 /* Return a formated string showing the current group hierarchy in this format:
@@ -77,15 +63,14 @@ void GPU_debug_get_groups_names(int name_buf_len, char *r_name_buf)
   if (ctx == nullptr) {
     return;
   }
-
   DebugStack &stack = ctx->debug_stack;
-  if (stack.index == 0) {
+  if (stack.size() == 0) {
     r_name_buf[0] = '\0';
     return;
   }
   size_t sz = 0;
-  for (int i = 0; i < stack.index; i++) {
-    sz += BLI_snprintf_rlen(r_name_buf + sz, name_buf_len - sz, "%s > ", stack.names[0]);
+  for (StringRef &name : stack) {
+    sz += BLI_snprintf_rlen(r_name_buf + sz, name_buf_len - sz, "%s > ", name.data());
   }
   r_name_buf[sz - 2] = ':';
 }
