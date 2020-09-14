@@ -230,67 +230,57 @@ int ED_buttons_tabs_list(SpaceProperties *sbuts, int *context_tabs_array)
   return length;
 }
 
+static const char *buttons_main_region_context_string(const short mainb)
+{
+  switch (mainb) {
+    case BCONTEXT_SCENE:
+      return "scene";
+    case BCONTEXT_RENDER:
+      return "render";
+    case BCONTEXT_OUTPUT:
+      return "output";
+    case BCONTEXT_VIEW_LAYER:
+      return "view_layer";
+    case BCONTEXT_WORLD:
+      return "world";
+    case BCONTEXT_OBJECT:
+      return "object";
+    case BCONTEXT_DATA:
+      return "data";
+    case BCONTEXT_MATERIAL:
+      return "material";
+    case BCONTEXT_TEXTURE:
+      return "texture";
+    case BCONTEXT_PARTICLE:
+      return "particle";
+    case BCONTEXT_PHYSICS:
+      return "physics";
+    case BCONTEXT_BONE:
+      return "bone";
+    case BCONTEXT_MODIFIER:
+      return "modifier";
+    case BCONTEXT_SHADERFX:
+      return "shaderfx";
+    case BCONTEXT_CONSTRAINT:
+      return "constraint";
+    case BCONTEXT_BONE_CONSTRAINT:
+      return "bone_constraint";
+    case BCONTEXT_TOOL:
+      return "tool";
+  }
+
+  /* All the cases should be handled. */
+  BLI_assert(false);
+  return "";
+}
+
 static void buttons_main_region_layout_properties(const bContext *C,
                                                   SpaceProperties *sbuts,
                                                   ARegion *region)
 {
   buttons_context_compute(C, sbuts);
 
-  const char *contexts[2] = {NULL, NULL};
-
-  switch (sbuts->mainb) {
-    case BCONTEXT_SCENE:
-      contexts[0] = "scene";
-      break;
-    case BCONTEXT_RENDER:
-      contexts[0] = "render";
-      break;
-    case BCONTEXT_OUTPUT:
-      contexts[0] = "output";
-      break;
-    case BCONTEXT_VIEW_LAYER:
-      contexts[0] = "view_layer";
-      break;
-    case BCONTEXT_WORLD:
-      contexts[0] = "world";
-      break;
-    case BCONTEXT_OBJECT:
-      contexts[0] = "object";
-      break;
-    case BCONTEXT_DATA:
-      contexts[0] = "data";
-      break;
-    case BCONTEXT_MATERIAL:
-      contexts[0] = "material";
-      break;
-    case BCONTEXT_TEXTURE:
-      contexts[0] = "texture";
-      break;
-    case BCONTEXT_PARTICLE:
-      contexts[0] = "particle";
-      break;
-    case BCONTEXT_PHYSICS:
-      contexts[0] = "physics";
-      break;
-    case BCONTEXT_BONE:
-      contexts[0] = "bone";
-      break;
-    case BCONTEXT_MODIFIER:
-      contexts[0] = "modifier";
-      break;
-    case BCONTEXT_SHADERFX:
-      contexts[0] = "shaderfx";
-      break;
-    case BCONTEXT_CONSTRAINT:
-      contexts[0] = "constraint";
-      break;
-    case BCONTEXT_BONE_CONSTRAINT:
-      contexts[0] = "bone_constraint";
-      break;
-    case BCONTEXT_TOOL:
-      contexts[0] = "tool";
-      break;
-  }
+  const char *contexts[2] = {buttons_main_region_context_string(sbuts->mainb), NULL};
 
   ED_region_panels_layout_ex(C, region, &region->type->paneltypes, contexts, NULL);
 }
