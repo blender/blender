@@ -117,6 +117,8 @@ void outliner_operatortypes(void)
   WM_operatortype_append(OUTLINER_OT_collection_show_inside);
   WM_operatortype_append(OUTLINER_OT_hide);
   WM_operatortype_append(OUTLINER_OT_unhide_all);
+
+  WM_operatortype_append(OUTLINER_OT_collection_color_tag_set);
 }
 
 void outliner_keymap(wmKeyConfig *keyconf)

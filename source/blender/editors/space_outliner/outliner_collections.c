@@ -1529,3 +1529,66 @@ void OUTLINER_OT_unhide_all(wmOperatorType *ot)
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Collection Color Tags
+ * \{ */
+
+static int outliner_color_tag_set_exec(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_scene(C);
+  SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
+  const short color_tag = RNA_enum_get(op->ptr, "color");
+
+  struct IDsSelectedData selected = {
+      .selected_array = {NULL, NULL},
+  };
+
+  outliner_tree_traverse(space_outliner,
+                         &space_outliner->tree,
+                         0,
+                         TSE_SELECTED,
+                         outliner_find_selected_collections,
+                         &selected);
+
+  LISTBASE_FOREACH (LinkData *, link, &selected.selected_array) {
+    TreeElement *te_selected = (TreeElement *)link->data;
+
+    Collection *collection = outliner_collection_from_tree_element(te_selected);
+    if (collection == scene->master_collection) {
+      continue;
+    }
+    if (ID_IS_LINKED(collection)) {
+      BKE_report(op->reports, RPT_WARNING, "Can't add a color tag to a linked collection");
+      continue;
+    }
+
+    collection->color_tag = color_tag;
+  };
+
+  BLI_freelistN(&selected.selected_array);
+
+  WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_collection_color_tag_set(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Set Color Tag";
+  ot->idname = "OUTLINER_OT_collection_color_tag_set";
+  ot->description = "Set a color tag for the selected collections";
+
+  /* api callbacks */
+  ot->exec = outliner_color_tag_set_exec;
+  ot->poll = ED_outliner_collections_editor_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_enum(
+      ot->srna, "color", rna_enum_collection_color_items, COLLECTION_COLOR_NONE, "Color Tag", "");
+}
+
+/** \} */

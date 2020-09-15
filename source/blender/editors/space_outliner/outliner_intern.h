@@ -485,6 +485,8 @@ void OUTLINER_OT_collection_disable_render(struct wmOperatorType *ot);
 void OUTLINER_OT_hide(struct wmOperatorType *ot);
 void OUTLINER_OT_unhide_all(struct wmOperatorType *ot);
 
+void OUTLINER_OT_collection_color_tag_set(struct wmOperatorType *ot);
+
 /* outliner_utils.c ---------------------------------------------- */
 
 void outliner_viewcontext_init(const struct bContext *C, TreeViewContext *tvc);
