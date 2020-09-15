@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "GPU_debug.h"
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
 #include "GPU_select.h"
@@ -300,6 +301,8 @@ void gpu_select_pick_begin(uint (*buffer)[4], uint bufsize, const rcti *input, c
   printf("%s: mode=%d, use_cache=%d, is_cache=%d\n", __func__, mode, ps->use_cache, ps->is_cached);
 #endif
 
+  GPU_debug_group_begin("Selection Pick");
+
   ps->bufsize = bufsize;
   ps->buffer = buffer;
   ps->mode = mode;
@@ -543,6 +546,8 @@ uint gpu_select_pick_end(void)
     GPU_depth_test(ps->depth_test);
     GPU_viewport(UNPACK4(ps->viewport));
   }
+
+  GPU_debug_group_end();
 
   /* assign but never free directly since it may be in cache */
   DepthBufCache *rect_depth_final;
