@@ -3334,6 +3334,17 @@ static void outliner_draw_tree_element(bContext *C,
   }
 }
 
+static bool subtree_contains_object(ListBase *lb)
+{
+  LISTBASE_FOREACH (TreeElement *, te, lb) {
+    TreeStoreElem *tselem = TREESTORE(te);
+    if (tselem->type == 0 && te->idcode == ID_OB) {
+      return true;
+    }
+  }
+  return false;
+}
+
 static void outliner_draw_hierarchy_lines_recursive(uint pos,
                                                     SpaceOutliner *space_outliner,
                                                     ListBase *lb,
@@ -3342,100 +3353,50 @@ static void outliner_draw_hierarchy_lines_recursive(uint pos,
                                                     bool draw_grayed_out,
                                                     int *starty)
 {
-  TreeElement *te, *te_vertical_line_last = NULL, *te_vertical_line_last_dashed = NULL;
-  int y1, y2, y1_dashed, y2_dashed;
+  bTheme *btheme = UI_GetTheme();
+  int y = *starty;
+  short color_tag = COLLECTION_COLOR_NONE;
 
-  if (BLI_listbase_is_empty(lb)) {
-    return;
-  }
+  /* Small vertical padding */
+  const short line_padding = UI_UNIT_Y / 4.0f;
 
-  struct {
-    int steps_num;
-    int step_len;
-    int gap_len;
-  } dash = {
-      .steps_num = 4,
-  };
-
-  dash.step_len = UI_UNIT_X / dash.steps_num;
-  dash.gap_len = dash.step_len / 2;
-
-  const uchar grayed_alpha = col[3] / 2;
-
-  /* For vertical lines between objects. */
-  y1 = y2 = y1_dashed = y2_dashed = *starty;
-  for (te = lb->first; te; te = te->next) {
-    bool draw_children_grayed_out = draw_grayed_out || (te->flag & TE_DRAGGING);
+  /* Draw vertical lines between collections */
+  bool draw_hierarchy_line;
+  LISTBASE_FOREACH (TreeElement *, te, lb) {
     TreeStoreElem *tselem = TREESTORE(te);
-
-    if (draw_children_grayed_out) {
-      immUniformColor3ubvAlpha(col, grayed_alpha);
-    }
-    else {
-      immUniformColor4ubv(col);
-    }
-
-    if ((te->flag & TE_CHILD_NOT_IN_COLLECTION) == 0) {
-      /* Horizontal Line? */
-      if (tselem->type == 0 && (te->idcode == ID_OB || te->idcode == ID_SCE)) {
-        immRecti(pos, startx, *starty, startx + UI_UNIT_X, *starty - U.pixelsize);
-
-        /* Vertical Line? */
-        if (te->idcode == ID_OB) {
-          te_vertical_line_last = te;
-          y2 = *starty;
-        }
-        y1_dashed = *starty - UI_UNIT_Y;
-      }
-    }
-    else {
-      BLI_assert(te->idcode == ID_OB);
-      /* Horizontal line - dashed. */
-      int start = startx;
-      for (int i = 0; i < dash.steps_num; i++) {
-        immRecti(pos, start, *starty, start + dash.step_len - dash.gap_len, *starty - U.pixelsize);
-        start += dash.step_len;
-      }
-
-      te_vertical_line_last_dashed = te;
-      y2_dashed = *starty;
-    }
-
+    draw_hierarchy_line = false;
     *starty -= UI_UNIT_Y;
 
-    if (TSELEM_OPEN(tselem, space_outliner)) {
-      outliner_draw_hierarchy_lines_recursive(pos,
-                                              space_outliner,
-                                              &te->subtree,
-                                              startx + UI_UNIT_X,
-                                              col,
-                                              draw_children_grayed_out,
-                                              starty);
+    /* Only draw hierarchy lines for open collections. */
+    if (TSELEM_OPEN(tselem, space_outliner) && !BLI_listbase_is_empty(&te->subtree)) {
+      if (tselem->type == TSE_LAYER_COLLECTION) {
+        draw_hierarchy_line = true;
+
+        Collection *collection = outliner_collection_from_tree_element(te);
+        color_tag = collection->color_tag;
+
+        y = *starty;
+      }
+      else if (tselem->type == 0 && te->idcode == ID_OB) {
+        if (subtree_contains_object(&te->subtree)) {
+          draw_hierarchy_line = true;
+          y = *starty;
+        }
+      }
+
+      outliner_draw_hierarchy_lines_recursive(
+          pos, space_outliner, &te->subtree, startx + UI_UNIT_X, col, draw_grayed_out, starty);
     }
-  }
 
-  if (draw_grayed_out) {
-    immUniformColor3ubvAlpha(col, grayed_alpha);
-  }
-  else {
-    immUniformColor4ubv(col);
-  }
+    if (draw_hierarchy_line) {
+      if (color_tag != COLLECTION_COLOR_NONE) {
+        immUniformColor4ubv(btheme->collection_color[color_tag].color);
+      }
+      else {
+        immUniformColor4ubv(col);
+      }
 
-  /* Vertical line. */
-  te = te_vertical_line_last;
-  if ((te != NULL) && (te->parent || lb->first != lb->last)) {
-    immRecti(pos, startx, y1 + UI_UNIT_Y, startx + U.pixelsize, y2);
-  }
-
-  /* Children that are not in the collection are always in the end of the subtree.
-   * This way we can draw their own dashed vertical lines. */
-  te = te_vertical_line_last_dashed;
-  if ((te != NULL) && (te->parent || lb->first != lb->last)) {
-    const int steps_num = ((y1_dashed + UI_UNIT_Y) - y2_dashed) / dash.step_len;
-    int start = y1_dashed + UI_UNIT_Y;
-    for (int i = 0; i < steps_num; i++) {
-      immRecti(pos, startx, start, startx + U.pixelsize, start - dash.step_len + dash.gap_len);
-      start -= dash.step_len;
+      immRecti(pos, startx, y - line_padding, startx + (U.pixelsize * 1), *starty + line_padding);
     }
   }
 }
@@ -3663,8 +3624,8 @@ static void outliner_draw_tree(bContext *C,
     GPU_scissor(0, 0, mask_x, region->winy);
   }
 
-  /* Gray hierarchy lines. */
-  starty = (int)region->v2d.tot.ymax - UI_UNIT_Y / 2 - OL_Y_OFFSET;
+  /* Draw hierarhcy lines for collections and object children. */
+  starty = (int)region->v2d.tot.ymax - OL_Y_OFFSET;
   startx = mode_column_offset + UI_UNIT_X / 2 - (U.pixelsize + 1) / 2;
   outliner_draw_hierarchy_lines(space_outliner, &space_outliner->tree, startx, &starty);
 
