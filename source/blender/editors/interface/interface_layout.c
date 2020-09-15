@@ -3826,18 +3826,18 @@ static void ui_litem_estimate_column(uiLayout *litem, bool is_box)
   }
 }
 
-static void ui_litem_layout_column(uiLayout *litem, bool is_box)
+static void ui_litem_layout_column(uiLayout *litem, bool is_box, bool is_menu)
 {
-  int itemh, x, y;
+  int itemw, itemh, x, y;
 
   x = litem->x;
   y = litem->y;
 
   LISTBASE_FOREACH (uiItem *, item, &litem->items) {
-    ui_item_size(item, NULL, &itemh);
+    ui_item_size(item, &itemw, &itemh);
 
     y -= itemh;
-    ui_item_position(item, x, y, litem->w, itemh);
+    ui_item_position(item, x, y, is_menu ? itemw : litem->w, itemh);
 
     if (item->next && (!is_box || item != litem->items.first)) {
       y -= litem->space;
@@ -3998,8 +3998,11 @@ static void ui_litem_layout_root(uiLayout *litem)
   else if (litem->root->type == UI_LAYOUT_PIEMENU) {
     ui_litem_layout_root_radial(litem);
   }
+  else if (litem->root->type == UI_LAYOUT_MENU) {
+    ui_litem_layout_column(litem, false, true);
+  }
   else {
-    ui_litem_layout_column(litem, false);
+    ui_litem_layout_column(litem, false, false);
   }
 }
 
@@ -4043,7 +4046,7 @@ static void ui_litem_layout_box(uiLayout *litem)
     litem->h -= 2 * boxspace;
   }
 
-  ui_litem_layout_column(litem, true);
+  ui_litem_layout_column(litem, true, false);
 
   litem->x -= boxspace;
   litem->y -= boxspace;
@@ -5506,7 +5509,7 @@ static void ui_item_layout(uiItem *item)
 
     switch (litem->item.type) {
       case ITEM_LAYOUT_COLUMN:
-        ui_litem_layout_column(litem, false);
+        ui_litem_layout_column(litem, false, false);
         break;
       case ITEM_LAYOUT_COLUMN_FLOW:
         ui_litem_layout_column_flow(litem);
