@@ -2788,6 +2788,25 @@ static bool view3d_object_skip_minmax(const View3D *v3d,
   return false;
 }
 
+static void view3d_object_calc_minmax(Depsgraph *depsgraph,
+                                      Scene *scene,
+                                      Object *ob_eval,
+                                      const bool only_center,
+                                      float min[3],
+                                      float max[3])
+{
+  /* Account for duplis. */
+  if (BKE_object_minmax_dupli(depsgraph, scene, ob_eval, min, max, false) == 0) {
+    /* Use if duplis aren't found. */
+    if (only_center) {
+      minmax_v3v3_v3(min, max, ob_eval->obmat[3]);
+    }
+    else {
+      BKE_object_minmax(ob_eval, min, max, false);
+    }
+  }
+}
+
 static void view3d_from_minmax(bContext *C,
                                View3D *v3d,
                                ARegion *region,
@@ -2901,7 +2920,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
   View3D *v3d = CTX_wm_view3d(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   Scene *scene = CTX_data_scene(C);
-  const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
   Base *base_eval;
   const bool use_all_regions = RNA_boolean_get(op->ptr, "use_all_regions");
@@ -2935,13 +2954,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
       if (view3d_object_skip_minmax(v3d, rv3d, ob, skip_camera, &only_center)) {
         continue;
       }
-
-      if (only_center) {
-        minmax_v3v3_v3(min, max, base_eval->object->obmat[3]);
-      }
-      else {
-        BKE_object_minmax(base_eval->object, min, max, false);
-      }
+      view3d_object_calc_minmax(depsgraph, scene, base_eval->object, only_center, min, max);
       changed = true;
     }
   }
@@ -3102,18 +3115,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
         if (view3d_object_skip_minmax(v3d, rv3d, ob, skip_camera, &only_center)) {
           continue;
         }
-
-        /* account for duplis */
-        if (BKE_object_minmax_dupli(depsgraph, scene, base_eval->object, min, max, false) == 0) {
-          /* use if duplis not found */
-          if (only_center) {
-            minmax_v3v3_v3(min, max, base_eval->object->obmat[3]);
-          }
-          else {
-            BKE_object_minmax(base_eval->object, min, max, false);
-          }
-        }
-
+        view3d_object_calc_minmax(depsgraph, scene, base_eval->object, only_center, min, max);
         ok = 1;
       }
     }
