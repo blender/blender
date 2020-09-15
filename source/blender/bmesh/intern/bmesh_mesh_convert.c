@@ -895,7 +895,10 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
       float *newkey, (*oldkey)[3], *fp;
 
       const int currkey_uuid = bm_to_mesh_shape_layer_index_from_kb(bm, currkey);
-      const int cd_shape_offset = CustomData_get_n_offset(&bm->vdata, CD_SHAPEKEY, currkey_uuid);
+      const int cd_shape_offset = (currkey_uuid == -1) ? -1 :
+                                                         CustomData_get_n_offset(&bm->vdata,
+                                                                                 CD_SHAPEKEY,
+                                                                                 currkey_uuid);
       const bool apply_offset = (cd_shape_offset != -1) && (ofs != NULL) && (currkey != actkey) &&
                                 (bm->shapenr - 1 == currkey->relative);
 
