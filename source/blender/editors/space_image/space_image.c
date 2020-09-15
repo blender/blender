@@ -670,6 +670,27 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
     DRW_draw_view(C);
     draw_image_main_helpers(C, region);
 
+    /* Draw Meta data of the image isn't added to the DrawManager as it is
+     * used in other areas as well. */
+    if (sima->flag & SI_DRAW_METADATA) {
+      Image *ima = ED_space_image(sima);
+      if (ima != NULL) {
+        int x, y;
+        rctf frame;
+        float zoomx, zoomy;
+        void *lock;
+
+        ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
+        ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock, 0);
+
+        BLI_rctf_init(&frame, 0.0f, ibuf->x, 0.0f, ibuf->y);
+        UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
+
+        ED_region_image_metadata_draw(x, y, ibuf, &frame, zoomx, zoomy);
+        ED_space_image_release_buffer(sima, ibuf, lock);
+      }
+    }
+
     /* sample line */
     UI_view2d_view_ortho(v2d);
     draw_image_sample_line(sima);
