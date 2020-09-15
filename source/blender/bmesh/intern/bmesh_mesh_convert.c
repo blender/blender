@@ -829,7 +829,6 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
 
     /* Go through and find any shape-key custom-data layers
      * that might not have corresponding KeyBlocks, and add them if necessary. */
-    j = 0;
     for (i = 0; i < bm->vdata.totlayer; i++) {
       if (bm->vdata.layers[i].type != CD_SHAPEKEY) {
         continue;
@@ -845,8 +844,6 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
         currkey = BKE_keyblock_add(me->key, bm->vdata.layers[i].name);
         currkey->uid = bm->vdata.layers[i].uid;
       }
-
-      j++;
     }
 
     /* Editing the base key should update others. */
@@ -897,8 +894,8 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
       const float(*ofs_pt)[3] = ofs;
       float *newkey, (*oldkey)[3], *fp;
 
-      j = bm_to_mesh_shape_layer_index_from_kb(bm, currkey);
-      const int cd_shape_offset = CustomData_get_n_offset(&bm->vdata, CD_SHAPEKEY, j);
+      const int currkey_uuid = bm_to_mesh_shape_layer_index_from_kb(bm, currkey);
+      const int cd_shape_offset = CustomData_get_n_offset(&bm->vdata, CD_SHAPEKEY, currkey_uuid);
       const bool apply_offset = (cd_shape_offset != -1) && (ofs != NULL) && (currkey != actkey) &&
                                 (bm->shapenr - 1 == currkey->relative);
 
