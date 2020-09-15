@@ -89,6 +89,8 @@ extern const char *buttons_context_dir[]; /* doc access */
 void buttons_texture_context_compute(const struct bContext *C, struct SpaceProperties *sbuts);
 
 /* buttons_ops.c */
+void BUTTONS_OT_start_filter(struct wmOperatorType *ot);
+void BUTTONS_OT_clear_filter(struct wmOperatorType *ot);
 void BUTTONS_OT_toggle_pin(struct wmOperatorType *ot);
 void BUTTONS_OT_file_browse(struct wmOperatorType *ot);
 void BUTTONS_OT_directory_browse(struct wmOperatorType *ot);
