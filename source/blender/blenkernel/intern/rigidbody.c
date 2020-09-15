@@ -708,6 +708,8 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
 
         if (totvert > 0 && tottri > 0) {
           BKE_mesh_calc_volume(mvert, totvert, lt, tottri, mloop, &volume, NULL);
+          const float volume_scale = mat4_to_volume_scale(ob->obmat);
+          volume *= fabsf(volume_scale);
         }
       }
       else {
