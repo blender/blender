@@ -845,7 +845,9 @@
       </ThemeSequenceEditor>
     </sequence_editor>
     <properties>
-      <ThemeProperties>
+      <ThemeProperties
+        match="#5680c2"
+        >
         <space>
           <ThemeSpaceGeneric
             back="#b3b3b3"

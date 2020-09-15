@@ -2952,7 +2952,7 @@ static void rna_def_userdef_theme_space_node(BlenderRNA *brna)
 static void rna_def_userdef_theme_space_buts(BlenderRNA *brna)
 {
   StructRNA *srna;
-  //  PropertyRNA *prop;
+  PropertyRNA *prop;
 
   /* space_buts */
 
@@ -2960,6 +2960,11 @@ static void rna_def_userdef_theme_space_buts(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "ThemeSpace");
   RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
   RNA_def_struct_ui_text(srna, "Theme Properties", "Theme settings for the Properties");
+
+  prop = RNA_def_property(srna, "match", PROP_FLOAT, PROP_COLOR_GAMMA);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_ui_text(prop, "Search Match", "");
+  RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   rna_def_userdef_theme_spaces_main(srna);
 }

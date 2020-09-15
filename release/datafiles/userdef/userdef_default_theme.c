@@ -262,6 +262,7 @@ const bTheme U_theme_default = {
     .icon_folder = RGBA(0xe3c16eff),
   },
   .space_properties = {
+    .match = RGBA(0x5680c2ff),
     .back = RGBA(0x42424200),
     .title = RGBA(0xd4d4d4ff),
     .text = RGBA(0xe6e6e6ff),
