@@ -518,11 +518,7 @@ int main(int argc,
   (void)argv;
 #endif
 
-#ifdef WITH_PYTHON_MODULE
-  /* Keep blender in background-mode running. */
-  return 0;
-#endif
-
+#ifndef WITH_PYTHON_MODULE
   if (G.background) {
     /* Using window-manager API in background-mode is a bit odd, but works fine. */
     WM_exit(C);
@@ -531,9 +527,9 @@ int main(int argc,
     if (!G.file_loaded) {
       WM_init_splash(C);
     }
+    WM_main(C);
   }
-
-  WM_main(C);
+#endif /* WITH_PYTHON_MODULE */
 
   return 0;
 } /* End of int main(...) function. */
