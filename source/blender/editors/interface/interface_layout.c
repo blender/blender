@@ -1434,6 +1434,26 @@ void uiItemsFullEnumO_items(uiLayout *layout,
   if (radial) {
     target = uiLayoutRadial(layout);
   }
+  else if ((uiLayoutGetLocalDir(layout) == UI_LAYOUT_HORIZONTAL) && (flag & UI_ITEM_R_ICON_ONLY)) {
+    target = layout;
+    UI_block_layout_set_current(block, target);
+
+    /* Add a blank button to the beginning of the row. */
+    uiDefIconBut(block,
+                 UI_BTYPE_LABEL,
+                 0,
+                 ICON_BLANK1,
+                 0,
+                 0,
+                 1.25f * UI_UNIT_X,
+                 UI_UNIT_Y,
+                 NULL,
+                 0,
+                 0,
+                 0,
+                 0,
+                 NULL);
+  }
   else {
     split = uiLayoutSplit(layout, 0.0f, false);
     target = uiLayoutColumn(split, layout->align);
@@ -1489,7 +1509,7 @@ void uiItemsFullEnumO_items(uiLayout *layout,
       if (item->name) {
         uiBut *but;
 
-        if (item != item_array && !radial) {
+        if (item != item_array && !radial && split) {
           target = uiLayoutColumn(split, layout->align);
 
           /* inconsistent, but menus with labels do not look good flipped */

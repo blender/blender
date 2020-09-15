@@ -2378,7 +2378,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
         rect->xmin += 0.3f * U.widget_unit;
       }
     }
-    else if (ui_block_is_menu(but->block)) {
+    else if (ui_block_is_menu(but->block) && but->alignnr == 0) {
       rect->xmin += 0.2f * U.widget_unit;
     }
 

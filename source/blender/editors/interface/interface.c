@@ -367,6 +367,12 @@ void UI_block_translate(uiBlock *block, int x, int y)
   BLI_rctf_translate(&block->rect, x, y);
 }
 
+static bool ui_but_is_row_alignment_group(const uiBut *left, const uiBut *right)
+{
+  const bool is_same_align_group = (left->alignnr && (left->alignnr == right->alignnr));
+  return is_same_align_group && (left->rect.xmin < right->rect.xmin);
+}
+
 static void ui_block_bounds_calc_text(uiBlock *block, float offset)
 {
   const uiStyle *style = UI_style_get();
@@ -385,7 +391,26 @@ static void ui_block_bounds_calc_text(uiBlock *block, float offset)
       }
     }
 
-    if (bt->next && bt->rect.xmin < bt->next->rect.xmin) {
+    /* Skip all buttons that are in a horizontal alignment group.
+     * We don't want to split them appart (but still check the row's width and apply current
+     * offsets). */
+    if (bt->next && ui_but_is_row_alignment_group(bt, bt->next)) {
+      int width = 0;
+      int alignnr = bt->alignnr;
+      for (col_bt = bt; col_bt && col_bt->alignnr == alignnr; col_bt = col_bt->next) {
+        width += BLI_rctf_size_x(&col_bt->rect);
+        col_bt->rect.xmin += x1addval;
+        col_bt->rect.xmax += x1addval;
+      }
+      if (width > i) {
+        i = width;
+      }
+      /* Give the following code the last button in the alignment group, there might have to be a
+       * split immediately after. */
+      bt = col_bt ? col_bt->prev : NULL;
+    }
+
+    if (bt && bt->next && bt->rect.xmin < bt->next->rect.xmin) {
       /* End of this column, and it's not the last one. */
       for (col_bt = init_col_bt; col_bt->prev != bt; col_bt = col_bt->next) {
         col_bt->rect.xmin = x1addval;
@@ -403,6 +428,17 @@ static void ui_block_bounds_calc_text(uiBlock *block, float offset)
 
   /* Last column. */
   for (col_bt = init_col_bt; col_bt; col_bt = col_bt->next) {
+    /* Recognize a horizontally arranged alignment group and skip its items. */
+    if (col_bt->next && ui_but_is_row_alignment_group(col_bt, col_bt->next)) {
+      int alignnr = col_bt->alignnr;
+      for (; col_bt && col_bt->alignnr == alignnr; col_bt = col_bt->next) {
+        /* pass */
+      }
+    }
+    if (!col_bt) {
+      break;
+    }
+
     col_bt->rect.xmin = x1addval;
     col_bt->rect.xmax = max_ff(x1addval + i + block->bounds, offset + block->minbounds);
 
