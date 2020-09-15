@@ -225,17 +225,7 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_image.grid);
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - #BLO_version_defaults_userpref_blend in this file.
-   * - "versioning_{BLENDER_VERSION}.c"
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
+  if (!USER_VERSION_ATLEAST(291, 3)) {
     for (int i = 0; i < COLLECTION_COLOR_TOT; ++i) {
       FROM_DEFAULT_V4_UCHAR(collection_color[i].color);
     }
@@ -248,6 +238,19 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     btheme->space_clip.grid[3] = 255.0f;
 
     copy_v3_v3_uchar(btheme->space_node.grid, btheme->space_node.back);
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - #BLO_version_defaults_userpref_blend in this file.
+   * - "versioning_{BLENDER_VERSION}.c"
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 
 #undef FROM_DEFAULT_V4_UCHAR
