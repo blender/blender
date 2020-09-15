@@ -236,6 +236,8 @@ extern const EnumPropertyItem rna_enum_attribute_type_items[];
 extern const EnumPropertyItem rna_enum_attribute_domain_items[];
 extern const EnumPropertyItem *rna_enum_attribute_domain_itemf(struct ID *id, bool *r_free);
 
+extern const EnumPropertyItem rna_enum_collection_color_items[];
+
 /* API calls */
 int rna_node_tree_type_to_enum(struct bNodeTreeType *typeinfo);
 int rna_node_tree_idname_to_enum(const char *idname);

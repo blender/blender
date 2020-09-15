@@ -32,6 +32,7 @@ struct PointerRNA;
 struct PreviewImage;
 struct Scene;
 struct bContext;
+struct Collection;
 
 enum eIconSizes;
 
@@ -107,6 +108,7 @@ int UI_rnaptr_icon_get(struct bContext *C, struct PointerRNA *ptr, int rnaicon, 
 int UI_idcode_icon_get(const int idcode);
 int UI_library_icon_get(const struct ID *id);
 int UI_mode_icon_get(const int mode);
+int UI_collection_color_icon_get(const struct Collection *collection);
 
 #ifdef __cplusplus
 }

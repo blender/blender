@@ -645,6 +645,7 @@ extern StructRNA RNA_TextureNodeViewer;
 extern StructRNA RNA_TextureSlot;
 extern StructRNA RNA_Theme;
 extern StructRNA RNA_ThemeBoneColorSet;
+extern StructRNA RNA_ThemeCollectionColor;
 extern StructRNA RNA_ThemeConsole;
 extern StructRNA RNA_ThemeDopeSheet;
 extern StructRNA RNA_ThemeFileBrowser;
