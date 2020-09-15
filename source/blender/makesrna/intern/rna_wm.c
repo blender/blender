@@ -1485,9 +1485,7 @@ static StructRNA *rna_Operator_register(Main *bmain,
 
   /* clear in case they are left unset */
   temp_buffers.idname[0] = temp_buffers.name[0] = temp_buffers.description[0] =
-      temp_buffers.undo_group[0] = '\0';
-  /* We have to set default op context! */
-  strcpy(temp_buffers.translation_context, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
+      temp_buffers.undo_group[0] = temp_buffers.translation_context[0] = '\0';
 
   /* validate the python class */
   if (validate(&dummyotr, data, have_function) != 0) {
@@ -1511,6 +1509,11 @@ static StructRNA *rna_Operator_register(Main *bmain,
 
   if (!RNA_struct_available_or_report(reports, idname_conv)) {
     return NULL;
+  }
+
+  /* We have to set default context if the class doesn't define it. */
+  if (temp_buffers.translation_context[0] == '\0') {
+    STRNCPY(temp_buffers.translation_context, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
   }
 
   /* Convert foo.bar to FOO_OT_bar
@@ -1636,9 +1639,7 @@ static StructRNA *rna_MacroOperator_register(Main *bmain,
 
   /* clear in case they are left unset */
   temp_buffers.idname[0] = temp_buffers.name[0] = temp_buffers.description[0] =
-      temp_buffers.undo_group[0] = '\0';
-  /* We have to set default op context! */
-  strcpy(temp_buffers.translation_context, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
+      temp_buffers.undo_group[0] = temp_buffers.translation_context[0] = '\0';
 
   /* validate the python class */
   if (validate(&dummyotr, data, have_function) != 0) {
@@ -1671,6 +1672,11 @@ static StructRNA *rna_MacroOperator_register(Main *bmain,
 
   if (!RNA_struct_available_or_report(reports, idname_conv)) {
     return NULL;
+  }
+
+  /* We have to set default context if the class doesn't define it. */
+  if (temp_buffers.translation_context[0] == '\0') {
+    STRNCPY(temp_buffers.translation_context, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
   }
 
   /* Convert foo.bar to FOO_OT_bar
