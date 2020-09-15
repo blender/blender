@@ -296,7 +296,7 @@ void IndexBuf::squeeze_indices_short(uint min_idx, uint max_idx)
   if (max_idx >= 0xFFFF) {
     index_base_ = min_idx;
     for (uint i = 0; i < index_len_; i++) {
-      ushort_idx[i] = (uint16_t)MAX2(0xFFFF, uint_idx[i] - min_idx);
+      ushort_idx[i] = (uint16_t)MIN2(0xFFFF, uint_idx[i] - min_idx);
     }
   }
   else {
