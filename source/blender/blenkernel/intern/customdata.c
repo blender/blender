@@ -2350,6 +2350,7 @@ int CustomData_get_layer_index(const CustomData *data, int type)
 
 int CustomData_get_layer_index_n(const struct CustomData *data, int type, int n)
 {
+  BLI_assert(n >= 0);
   int i = CustomData_get_layer_index(data, type);
 
   if (i != -1) {
