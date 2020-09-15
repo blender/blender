@@ -522,6 +522,19 @@ void UI_panel_set_expand_from_list_data(const bContext *C, Panel *panel)
 }
 
 /**
+ * Set expansion based on the data for instanced panels.
+ */
+static void region_panels_set_expansion_from_list_data(const bContext *C, ARegion *region)
+{
+  LISTBASE_FOREACH (Panel *, panel, &region->panels) {
+    PanelType *panel_type = panel->type;
+    if (panel_type != NULL && panel->type->flag & PNL_INSTANCED) {
+      UI_panel_set_expand_from_list_data(C, panel);
+    }
+  }
+}
+
+/**
  * Recursive implementation for #set_panels_list_data_expand_flag.
  */
 static void get_panel_expand_flag(Panel *panel, short *flag, short *flag_index)
@@ -1897,6 +1910,8 @@ void UI_panels_begin(const bContext *UNUSED(C), ARegion *region)
 void UI_panels_end(const bContext *C, ARegion *region, int *r_x, int *r_y)
 {
   ScrArea *area = CTX_wm_area(C);
+
+  region_panels_set_expansion_from_list_data(C, region);
 
   /* offset contents */
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
