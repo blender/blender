@@ -276,6 +276,8 @@ eOLDrawState tree_element_active(struct bContext *C,
                                  const eOLSetState set,
                                  const bool handle_all_types);
 
+struct bPoseChannel *outliner_find_parent_bone(TreeElement *te, TreeElement **r_bone_te);
+
 void outliner_item_select(struct bContext *C,
                           struct SpaceOutliner *space_outliner,
                           struct TreeElement *te,
@@ -387,6 +389,7 @@ void OUTLINER_OT_parent_drop(struct wmOperatorType *ot);
 void OUTLINER_OT_parent_clear(struct wmOperatorType *ot);
 void OUTLINER_OT_scene_drop(struct wmOperatorType *ot);
 void OUTLINER_OT_material_drop(struct wmOperatorType *ot);
+void OUTLINER_OT_datastack_drop(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_drop(struct wmOperatorType *ot);
 
 /* ...................................................... */

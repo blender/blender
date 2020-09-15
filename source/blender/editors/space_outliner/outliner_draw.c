@@ -2024,9 +2024,11 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         break;
       case TSE_CONSTRAINT_BASE:
         data.icon = ICON_CONSTRAINT;
+        data.drag_id = tselem->id;
         break;
       case TSE_CONSTRAINT: {
         bConstraint *con = te->directdata;
+        data.drag_id = tselem->id;
         switch ((eBConstraint_Types)con->type) {
           case CONSTRAINT_TYPE_CAMERASOLVER:
             data.icon = ICON_CON_CAMERASOLVER;
@@ -2121,6 +2123,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
       }
       case TSE_MODIFIER_BASE:
         data.icon = ICON_MODIFIER_DATA;
+        data.drag_id = tselem->id;
         break;
       case TSE_LINKED_OB:
         data.icon = ICON_OBJECT_DATA;
@@ -2130,6 +2133,8 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         break;
       case TSE_MODIFIER: {
         Object *ob = (Object *)tselem->id;
+        data.drag_id = tselem->id;
+
         if (ob->type != OB_GPENCIL) {
           ModifierData *md = BLI_findlink(&ob->modifiers, tselem->nr);
           switch ((ModifierType)md->type) {

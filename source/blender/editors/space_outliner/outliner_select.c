@@ -1032,6 +1032,23 @@ eOLDrawState tree_element_type_active(bContext *C,
   return OL_DRAWSEL_NONE;
 }
 
+bPoseChannel *outliner_find_parent_bone(TreeElement *te, TreeElement **r_bone_te)
+{
+  TreeStoreElem *tselem;
+
+  te = te->parent;
+  while (te) {
+    tselem = TREESTORE(te);
+    if (tselem->type == TSE_POSE_CHANNEL) {
+      *r_bone_te = te;
+      return (bPoseChannel *)te->directdata;
+    }
+    te = te->parent;
+  }
+
+  return NULL;
+}
+
 /* ================================================ */
 
 /**
