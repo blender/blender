@@ -429,6 +429,10 @@ int ED_object_modifier_copy(struct ReportList *reports,
                             struct Scene *scene,
                             struct Object *ob,
                             struct ModifierData *md);
+void ED_object_modifier_link(struct bContext *C, struct Object *ob_dst, struct Object *ob_src);
+void ED_object_modifier_copy_to_object(struct Object *ob_dst,
+                                       struct Object *ob_src,
+                                       struct ModifierData *md);
 
 bool ED_object_iter_other(struct Main *bmain,
                           struct Object *orig_ob,
@@ -469,6 +473,8 @@ int ED_object_gpencil_modifier_apply(struct Main *bmain,
 int ED_object_gpencil_modifier_copy(struct ReportList *reports,
                                     struct Object *ob,
                                     struct GpencilModifierData *md);
+void ED_object_gpencil_modifier_copy_to_object(struct Object *ob_dst,
+                                               struct GpencilModifierData *md);
 
 /* object_shader_fx.c */
 struct ShaderFxData *ED_object_shaderfx_add(struct ReportList *reports,

@@ -322,6 +322,13 @@ int ED_object_gpencil_modifier_copy(ReportList *reports, Object *ob, GpencilModi
   return 1;
 }
 
+void ED_object_gpencil_modifier_copy_to_object(Object *ob_dst, GpencilModifierData *md)
+{
+  BKE_object_copy_gpencil_modifier(ob_dst, md);
+  WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob_dst);
+  DEG_id_tag_update(&ob_dst->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
+}
+
 /************************ add modifier operator *********************/
 
 static int gpencil_modifier_add_exec(bContext *C, wmOperator *op)

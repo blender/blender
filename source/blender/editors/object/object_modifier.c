@@ -516,6 +516,20 @@ bool ED_object_modifier_move_to_index(ReportList *reports,
   return true;
 }
 
+void ED_object_modifier_link(bContext *C, Object *ob_dst, Object *ob_src)
+{
+  BKE_object_link_modifiers(ob_dst, ob_src);
+  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob_dst);
+  DEG_id_tag_update(&ob_dst->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
+}
+
+void ED_object_modifier_copy_to_object(Object *ob_dst, Object *ob_src, ModifierData *md)
+{
+  BKE_object_copy_modifier(ob_dst, ob_src, md);
+  WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob_dst);
+  DEG_id_tag_update(&ob_dst->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
+}
+
 bool ED_object_modifier_convert(ReportList *UNUSED(reports),
                                 Main *bmain,
                                 Depsgraph *depsgraph,
