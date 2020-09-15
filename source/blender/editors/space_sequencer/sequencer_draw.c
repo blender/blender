@@ -1524,6 +1524,8 @@ static void *sequencer_OCIO_transform_ibuf(const bContext *C,
    * properly, in this case we fallback to CPU-based display transform. */
   if ((ibuf->rect || ibuf->rect_float) && !*r_glsl_used) {
     display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
+    *r_format = GPU_RGBA8;
+    *r_data = GPU_DATA_UNSIGNED_BYTE;
   }
   if (cache_handle) {
     IMB_display_buffer_release(cache_handle);
