@@ -60,6 +60,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_kdtree.h"
 #include "BLI_linklist.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -3867,17 +3868,31 @@ KeyBlock *BKE_object_shapekey_insert(Main *bmain,
                                      const char *name,
                                      const bool from_mix)
 {
+  KeyBlock *key = NULL;
+
   switch (ob->type) {
     case OB_MESH:
-      return insert_meshkey(bmain, ob, name, from_mix);
+      key = insert_meshkey(bmain, ob, name, from_mix);
+      break;
     case OB_CURVE:
     case OB_SURF:
-      return insert_curvekey(bmain, ob, name, from_mix);
+      key = insert_curvekey(bmain, ob, name, from_mix);
+      break;
     case OB_LATTICE:
-      return insert_lattkey(bmain, ob, name, from_mix);
+      key = insert_lattkey(bmain, ob, name, from_mix);
+      break;
     default:
-      return NULL;
+      break;
   }
+
+  /* Set the first active when none is set when called from RNA. */
+  if (key != NULL) {
+    if (ob->shapenr <= 0) {
+      ob->shapenr = 1;
+    }
+  }
+
+  return key;
 }
 
 bool BKE_object_shapekey_free(Main *bmain, Object *ob)
@@ -3948,7 +3963,11 @@ bool BKE_object_shapekey_remove(Main *bmain, Object *ob, KeyBlock *kb)
   }
   MEM_freeN(kb);
 
-  if (ob->shapenr > 1) {
+  /* Unset active when all are freed. */
+  if (BLI_listbase_is_empty(&key->block)) {
+    ob->shapenr = 0;
+  }
+  else if (ob->shapenr > 1) {
     ob->shapenr--;
   }
 
