@@ -1968,7 +1968,7 @@ static int insert_key_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UN
     /* call the menu, which will call this operator again, hence the canceled */
     pup = UI_popup_menu_begin(C, WM_operatortype_name(op->type, op->ptr), ICON_NONE);
     layout = UI_popup_menu_layout(pup);
-    uiItemsEnumO(layout, "ANIM_OT_keyframe_insert_menu", "type", false);
+    uiItemsEnumO(layout, "ANIM_OT_keyframe_insert_menu", "type");
     UI_popup_menu_end(C, pup);
 
     return OPERATOR_INTERFACE;

@@ -256,7 +256,7 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
   layout = UI_popup_menu_layout(pup);
 
   uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-  uiItemsEnumO(layout, "FILE_OT_unpack_all", "method", false);
+  uiItemsEnumO(layout, "FILE_OT_unpack_all", "method");
 
   UI_popup_menu_end(C, pup);
 

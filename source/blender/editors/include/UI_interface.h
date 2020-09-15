@@ -2212,7 +2212,7 @@ void uiItemEnumO_string(uiLayout *layout,
                         const char *opname,
                         const char *propname,
                         const char *value);
-void uiItemsEnumO(uiLayout *layout, const char *opname, const char *propname, int flag);
+void uiItemsEnumO(uiLayout *layout, const char *opname, const char *propname);
 void uiItemBooleanO(uiLayout *layout,
                     const char *name,
                     int icon,

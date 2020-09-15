@@ -2658,7 +2658,7 @@ static int outliner_operator_menu(bContext *C, const char *opname)
 
   /* set this so the default execution context is the same as submenus */
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
-  uiItemsEnumO(layout, ot->idname, RNA_property_identifier(ot->prop), false);
+  uiItemsEnumO(layout, ot->idname, RNA_property_identifier(ot->prop));
 
   uiItemS(layout);
 

@@ -261,7 +261,7 @@ int UI_pie_menu_invoke_from_operator_enum(struct bContext *C,
   layout = UI_pie_menu_layout(pie);
 
   layout = uiLayoutRadial(layout);
-  uiItemsEnumO(layout, opname, propname, false);
+  uiItemsEnumO(layout, opname, propname);
 
   UI_pie_menu_end(C, pie);
 

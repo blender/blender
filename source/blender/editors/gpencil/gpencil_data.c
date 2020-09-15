@@ -1403,7 +1403,7 @@ static int gpencil_layer_change_invoke(bContext *C, wmOperator *op, const wmEven
   /* call the menu, which will call this operator again, hence the canceled */
   pup = UI_popup_menu_begin(C, op->type->name, ICON_NONE);
   layout = UI_popup_menu_layout(pup);
-  uiItemsEnumO(layout, "GPENCIL_OT_layer_change", "layer", false);
+  uiItemsEnumO(layout, "GPENCIL_OT_layer_change", "layer");
   UI_popup_menu_end(C, pup);
 
   return OPERATOR_INTERFACE;

@@ -1636,9 +1636,9 @@ void uiItemsFullEnumO(uiLayout *layout,
   }
 }
 
-void uiItemsEnumO(uiLayout *layout, const char *opname, const char *propname, int flag)
+void uiItemsEnumO(uiLayout *layout, const char *opname, const char *propname)
 {
-  uiItemsFullEnumO(layout, opname, propname, NULL, layout->root->opcontext, flag);
+  uiItemsFullEnumO(layout, opname, propname, NULL, layout->root->opcontext, 0);
 }
 
 /* for use in cases where we have */
@@ -3410,7 +3410,7 @@ static void menu_item_enum_opname_menu(bContext *UNUSED(C), uiLayout *layout, vo
   MenuItemLevel *lvl = (MenuItemLevel *)(((uiBut *)arg)->func_argN);
 
   uiLayoutSetOperatorContext(layout, lvl->opcontext);
-  uiItemsEnumO(layout, lvl->opname, lvl->propname, false);
+  uiItemsEnumO(layout, lvl->opname, lvl->propname);
 
   layout->root->block->flag |= UI_BLOCK_IS_FLIP;
 
