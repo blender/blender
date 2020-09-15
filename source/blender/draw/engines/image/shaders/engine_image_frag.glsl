@@ -82,7 +82,7 @@ void main()
   }
 
   if ((drawFlags & SIMA_DRAW_FLAG_APPLY_ALPHA) != 0) {
-    if (!imgPremultiplied && tex_color.a != 0.0 && tex_color.a != 1.0) {
+    if (!imgPremultiplied) {
       tex_color.rgb *= tex_color.a;
     }
   }
