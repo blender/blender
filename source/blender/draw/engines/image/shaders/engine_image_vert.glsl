@@ -1,6 +1,6 @@
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-#define SIMA_DRAW_FLAG_DO_REPEAT (1 << 5)
+#define SIMA_DRAW_FLAG_DO_REPEAT (1 << 4)
 
 uniform int drawFlags;
 
