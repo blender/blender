@@ -346,6 +346,18 @@ void ED_object_constraint_dependency_tag_update(struct Main *bmain,
 bool ED_object_constraint_move_to_index(struct Object *ob,
                                         struct bConstraint *con,
                                         const int index);
+void ED_object_constraint_link(struct Main *bmain,
+                               struct Object *ob_dst,
+                               struct ListBase *dst,
+                               struct ListBase *src);
+void ED_object_constraint_copy_for_object(struct Main *bmain,
+                                          struct Object *ob_dst,
+                                          struct bConstraint *con);
+void ED_object_constraint_copy_for_pose(struct Main *bmain,
+                                        struct Object *ob_dst,
+                                        struct bPoseChannel *pchan,
+                                        struct bConstraint *con);
+
 /* object_modes.c */
 bool ED_object_mode_compat_test(const struct Object *ob, eObjectMode mode);
 bool ED_object_mode_compat_set(struct bContext *C,
