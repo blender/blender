@@ -845,6 +845,9 @@ bool UI_panel_matches_search_filter(const Panel *panel)
   return search_filter_matches;
 }
 
+/**
+ * Expands a panel if it was tagged as having a result by property search, otherwise collapses it.
+ */
 static void panel_set_expansion_from_seach_filter_recursive(const bContext *C, Panel *panel)
 {
   short start_flag = panel->flag;
@@ -1912,6 +1915,15 @@ void UI_panels_end(const bContext *C, ARegion *region, int *r_x, int *r_y)
   ScrArea *area = CTX_wm_area(C);
 
   region_panels_set_expansion_from_list_data(C, region);
+
+  /* Update panel expansion based on property search results. */
+  if (region->flag & RGN_FLAG_SEARCH_FILTER_UPDATE) {
+    /* Don't use the last update from the deactivation, or all the panels will be left closed. */
+    if (region->flag & RGN_FLAG_SEARCH_FILTER_ACTIVE) {
+      UI_panels_set_expansion_from_seach_filter(C, region);
+      set_panels_list_data_expand_flag(C, region);
+    }
+  }
 
   /* offset contents */
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {

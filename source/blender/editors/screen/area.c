@@ -2945,14 +2945,6 @@ void ED_region_panels_layout_ex(const bContext *C,
     }
   }
 
-  /* Update panel expansion based on property search results. */
-  if (region->flag & RGN_FLAG_SEARCH_FILTER_UPDATE) {
-    /* Don't use the last update from the deactivation, or all the panels will be left closed. */
-    if (region->flag & RGN_FLAG_SEARCH_FILTER_ACTIVE) {
-      UI_panels_set_expansion_from_seach_filter(C, region);
-    }
-  }
-
   /* align panels and return size */
   UI_panels_end(C, region, &x, &y);
 
