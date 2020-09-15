@@ -87,12 +87,14 @@ typedef enum FLUID_DisplayInterpolationMethod {
   FLUID_DISPLAY_INTERP_CLOSEST = 2,
 } FLUID_DisplayInterpolationMethod;
 
+/* FluidDomainSettings.vector_draw_type */
 enum {
   VECTOR_DRAW_NEEDLE = 0,
   VECTOR_DRAW_STREAMLINE = 1,
   VECTOR_DRAW_MAC = 2,
 };
 
+/* FluidDomainSettings.vector_draw_mac_components */
 enum {
   VECTOR_DRAW_MAC_X = (1 << 0),
   VECTOR_DRAW_MAC_Y = (1 << 1),
@@ -106,11 +108,13 @@ typedef enum FLUID_DisplayVectorField {
   FLUID_DOMAIN_VECTOR_FIELD_FORCE = 2,
 } FLUID_DisplayVectorField;
 
+/* FluidDomainSettings.sndparticle_boundary */
 enum {
   SNDPARTICLE_BOUNDARY_DELETE = 0,
   SNDPARTICLE_BOUNDARY_PUSHOUT = 1,
 };
 
+/* FluidDomainSettings.sndparticle_combined_export */
 enum {
   SNDPARTICLE_COMBINED_EXPORT_OFF = 0,
   SNDPARTICLE_COMBINED_EXPORT_SPRAY_FOAM = 1,
@@ -119,6 +123,7 @@ enum {
   SNDPARTICLE_COMBINED_EXPORT_SPRAY_FOAM_BUBBLE = 4,
 };
 
+/* FluidDomainSettings.coba_field */
 enum {
   FLUID_DOMAIN_FIELD_DENSITY = 0,
   FLUID_DOMAIN_FIELD_HEAT = 1,
