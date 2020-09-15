@@ -92,5 +92,5 @@ if(WITH_GTESTS)
     bf_blenlib
   )
   include(GTestTesting)
-  blender_add_test_lib(bf_intern_guardedalloc_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
+  blender_add_test_executable(guardedalloc "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
 endif()

@@ -19,12 +19,6 @@ if(WITH_GTESTS)
   remove_strict_flags()
 endif()
 
-macro(CYCLES_TEST SRC EXTRA_LIBS)
-  if(WITH_GTESTS)
-    BLENDER_SRC_GTEST("cycles_${SRC}" "${SRC}_test.cpp" "${EXTRA_LIBS}")
-  endif()
-endmacro()
-
 set(INC
   .
   ..
@@ -50,15 +44,22 @@ include_directories(${INC})
 
 cycles_link_directories()
 
-CYCLES_TEST(render_graph_finalize "${ALL_CYCLES_LIBRARIES};bf_intern_numaapi")
-cycles_target_link_libraries(cycles_render_graph_finalize_test)
-CYCLES_TEST(util_aligned_malloc "cycles_util")
-CYCLES_TEST(util_path "cycles_util;${OPENIMAGEIO_LIBRARIES};${BOOST_LIBRARIES}")
-CYCLES_TEST(util_string "cycles_util;${OPENIMAGEIO_LIBRARIES};${BOOST_LIBRARIES}")
-CYCLES_TEST(util_task "cycles_util;${OPENIMAGEIO_LIBRARIES};${BOOST_LIBRARIES};bf_intern_numaapi")
-CYCLES_TEST(util_time "cycles_util;${OPENIMAGEIO_LIBRARIES};${BOOST_LIBRARIES}")
+set(SRC
+  render_graph_finalize_test.cpp
+  util_aligned_malloc_test.cpp
+  util_path_test.cpp
+  util_string_test.cpp
+  util_task_test.cpp
+  util_time_test.cpp
+  util_avxf_avx_test.cpp
+  util_avxf_avx2_test.cpp
+  util_transform_test.cpp
+)
+
 set_source_files_properties(util_avxf_avx_test.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
-CYCLES_TEST(util_avxf_avx "cycles_util;bf_intern_numaapi;${OPENIMAGEIO_LIBRARIES};${BOOST_LIBRARIES}")
 set_source_files_properties(util_avxf_avx2_test.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
-CYCLES_TEST(util_avxf_avx2 "cycles_util;bf_intern_numaapi;${OPENIMAGEIO_LIBRARIES};${BOOST_LIBRARIES}")
-CYCLES_TEST(util_transform "cycles_util;${OPENIMAGEIO_LIBRARIES};${BOOST_LIBRARIES}")
+
+if(WITH_GTESTS)
+  BLENDER_SRC_GTEST(cycles "${SRC}" "${ALL_CYCLES_LIBRARIES}")
+  cycles_target_link_libraries(cycles_test)
+endif()

@@ -375,9 +375,8 @@ function(blender_add_lib
   set_property(GLOBAL APPEND PROPERTY BLENDER_LINK_LIBS ${name})
 endfunction()
 
-# blender_add_test_lib() is used to define a test library. It is intended to be
-# called in tandem with blender_add_lib(). The test library will be linked into
-# the bf_gtest_runner_test executable (see tests/gtests/CMakeLists.txt).
+# Add tests for a Blender library, to be called in tandem with blender_add_lib().
+# The tests will be part of the blender_test executable (see tests/gtests/runner).
 function(blender_add_test_lib
   name
   sources
@@ -409,6 +408,48 @@ function(blender_add_test_lib
   blender_add_lib__impl(${name} "${sources}" "${includes}" "${includes_sys}" "${library_deps}")
 
   set_property(GLOBAL APPEND PROPERTY BLENDER_TEST_LIBS ${name})
+endfunction()
+
+
+# Add tests for a Blender library, to be called in tandem with blender_add_lib().
+# Test will be compiled into a ${name}_test executable.
+#
+# To be used for smaller isolated libraries, that do not have many dependencies.
+# For libraries that do drag in many other Blender libraries and would create a
+# very large executable, blender_add_test_lib() should be used instead.
+function(blender_add_test_executable
+  name
+  sources
+  includes
+  includes_sys
+  library_deps
+  )
+
+  add_cc_flags_custom_test(${name} PARENT_SCOPE)
+
+  ## Otherwise external projects will produce warnings that we cannot fix.
+  remove_strict_flags()
+
+  include_directories(${includes})
+  include_directories(${includes_sys})
+  setup_libdirs()
+
+  BLENDER_SRC_GTEST_EX(
+    NAME ${name}
+    SRC "${sources}"
+    EXTRA_LIBS "${library_deps}"
+    SKIP_ADD_TEST
+  )
+
+  include(GTest)
+  set(_GOOGLETEST_DISCOVER_TESTS_SCRIPT
+    ${CMAKE_SOURCE_DIR}/build_files/cmake/Modules/GTestAddTests.cmake
+  )
+
+  gtest_discover_tests(${name}_test
+    DISCOVERY_MODE PRE_TEST
+    WORKING_DIRECTORY "${TEST_INSTALL_DIR}"
+  )
 endfunction()
 
 # Ninja only: assign 'heavy pool' to some targets that are especially RAM-consuming to build.

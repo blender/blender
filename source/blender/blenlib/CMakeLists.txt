@@ -304,6 +304,7 @@ set(LIB
   extern_wcwidth
 
   ${FREETYPE_LIBRARY}
+  ${ZLIB_LIBRARIES}
 )
 
 if(WITH_MEM_VALGRIND)
@@ -431,7 +432,7 @@ if(WITH_GTESTS)
     bf_blenlib
   )
   include(GTestTesting)
-  blender_add_test_lib(bf_blenlib_tests "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
+  blender_add_test_executable(blenlib "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
 
   add_subdirectory(tests/performance)
 endif()

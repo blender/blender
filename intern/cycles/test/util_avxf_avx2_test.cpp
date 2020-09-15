@@ -16,6 +16,8 @@
 #define __KERNEL_AVX2__
 #define __KERNEL_CPU__
 
+#define TEST_CATEGORY_NAME util_avx2
+
 #if defined(i386) || defined(_M_IX86) || defined(__x86_64__) || defined(_M_X64)
 #  include "util_avxf_test.h"
 #endif
