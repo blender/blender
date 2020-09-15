@@ -294,6 +294,38 @@ static void drw_state_validate(void)
 void DRW_state_lock(DRWState state)
 {
   DST.state_lock = state;
+
+  /* We must get the current state to avoid overriding it. */
+  /* Not complete, but that just what we need for now. */
+  if (state & DRW_STATE_WRITE_DEPTH) {
+    SET_FLAG_FROM_TEST(DST.state, GPU_depth_mask_get(), DRW_STATE_WRITE_DEPTH);
+  }
+  if (state & DRW_STATE_DEPTH_TEST_ENABLED) {
+    DST.state &= ~DRW_STATE_DEPTH_TEST_ENABLED;
+
+    switch (GPU_depth_test_get()) {
+      case GPU_DEPTH_ALWAYS:
+        DST.state |= DRW_STATE_DEPTH_ALWAYS;
+        break;
+      case GPU_DEPTH_LESS:
+        DST.state |= DRW_STATE_DEPTH_LESS;
+        break;
+      case GPU_DEPTH_LESS_EQUAL:
+        DST.state |= DRW_STATE_DEPTH_LESS_EQUAL;
+        break;
+      case GPU_DEPTH_EQUAL:
+        DST.state |= DRW_STATE_DEPTH_EQUAL;
+        break;
+      case GPU_DEPTH_GREATER:
+        DST.state |= DRW_STATE_DEPTH_GREATER;
+        break;
+      case GPU_DEPTH_GREATER_EQUAL:
+        DST.state |= DRW_STATE_DEPTH_GREATER_EQUAL;
+        break;
+      default:
+        break;
+    }
+  }
 }
 
 void DRW_state_reset(void)
