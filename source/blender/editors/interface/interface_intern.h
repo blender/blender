@@ -81,6 +81,11 @@ enum {
   UI_HAS_ICON = (1 << 3),
   UI_HIDDEN = (1 << 4),
   UI_SELECT_DRAW = (1 << 5), /* Display selected, doesn't impact interaction. */
+  /**
+   * The button matches the search filter. When property search is active, this
+   * is used to determine which items to keep enabled and which to disable.
+   */
+  UI_SEARCH_FILTER_MATCHES = (1 << 12),
   /* warn: rest of uiBut->flag in UI_interface.h */
 };
 
@@ -517,6 +522,12 @@ struct uiBlock {
    */
   char display_device[64];
 
+  /**
+   * Pointer to the space's property search string.
+   * The block doesn't allocate this or change it.
+   */
+  const char *search_filter;
+
   struct PieMenuData pie_data;
 };
 
@@ -805,7 +816,9 @@ extern void ui_draw_aligned_panel(const struct uiStyle *style,
                                   const uiBlock *block,
                                   const rcti *rect,
                                   const bool show_pin,
-                                  const bool show_background);
+                                  const bool show_background,
+                                  const bool region_search_filter_active);
+void ui_panel_set_search_filter_match(struct Panel *panel, const bool value);
 
 /* interface_draw.c */
 extern void ui_draw_dropshadow(

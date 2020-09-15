@@ -1995,8 +1995,12 @@ void UI_block_draw(const bContext *C, uiBlock *block)
         }
       }
     }
-    ui_draw_aligned_panel(
-        &style, block, &rect, UI_panel_category_is_visible(region), show_background);
+    ui_draw_aligned_panel(&style,
+                          block,
+                          &rect,
+                          UI_panel_category_is_visible(region),
+                          show_background,
+                          region->flag & RGN_FLAG_SEARCH_FILTER_ACTIVE);
   }
 
   BLF_batch_draw_begin();
@@ -3539,6 +3543,25 @@ void UI_block_emboss_set(uiBlock *block, char emboss)
 void UI_block_theme_style_set(uiBlock *block, char theme_style)
 {
   block->theme_style = theme_style;
+}
+
+bool UI_block_is_search_only(const uiBlock *block)
+{
+  return block->flag & UI_BLOCK_SEARCH_ONLY;
+}
+
+/**
+ * Use when a block must be searched to give accurate results
+ * for the whole region but shouldn't be displayed.
+ */
+void UI_block_set_search_only(uiBlock *block, bool search_only)
+{
+  SET_FLAG_FROM_TEST(block->flag, search_only, UI_BLOCK_SEARCH_ONLY);
+}
+
+void UI_block_set_search_filter(uiBlock *block, const char *search_filter)
+{
+  block->search_filter = search_filter;
 }
 
 static void ui_but_build_drawstr_float(uiBut *but, double value)

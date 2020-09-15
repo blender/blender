@@ -31,6 +31,10 @@ class PROPERTIES_HT_header(Header):
 
         layout.separator_spacer()
 
+        layout.prop(view, "search_filter", icon='VIEWZOOM', text="")
+
+        layout.separator_spacer()
+
         row = layout.row()
         row.emboss = 'NONE'
         row.operator("buttons.toggle_pin", icon=('PINNED' if view.use_pin_id else 'UNPINNED'), text="")
