@@ -235,6 +235,9 @@ bool ED_object_shaderfx_move_to_index(ReportList *reports,
     }
   }
 
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_OBJECT | ND_SHADERFX, ob);
+
   return true;
 }
 
@@ -606,9 +609,6 @@ static int shaderfx_move_to_index_exec(bContext *C, wmOperator *op)
   if (!fx || !ED_object_shaderfx_move_to_index(op->reports, ob, fx, index)) {
     return OPERATOR_CANCELLED;
   }
-
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_OBJECT | ND_SHADERFX, ob);
 
   return OPERATOR_FINISHED;
 }

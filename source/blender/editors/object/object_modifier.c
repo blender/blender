@@ -510,6 +510,9 @@ bool ED_object_modifier_move_to_index(ReportList *reports,
     }
   }
 
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
+
   return true;
 }
 
@@ -1299,9 +1302,6 @@ static int modifier_move_to_index_exec(bContext *C, wmOperator *op)
   if (!ED_object_modifier_move_to_index(op->reports, ob, md, index)) {
     return OPERATOR_CANCELLED;
   }
-
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-  WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
   return OPERATOR_FINISHED;
 }
