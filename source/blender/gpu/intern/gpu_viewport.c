@@ -879,7 +879,7 @@ void GPU_viewport_unbind_from_offscreen(GPUViewport *viewport,
     return;
   }
 
-  GPU_depth_test(false);
+  GPU_depth_test(GPU_DEPTH_NONE);
   GPU_offscreen_bind(ofs, false);
 
   rctf pos_rect = {

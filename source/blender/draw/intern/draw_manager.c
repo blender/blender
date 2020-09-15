@@ -2097,31 +2097,26 @@ void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
     GPU_framebuffer_bind(dfbl->overlay_fb);
 
     if (do_annotations) {
-      GPU_depth_test(false);
+      GPU_depth_test(GPU_DEPTH_NONE);
       GPU_matrix_push_projection();
       wmOrtho2(
           region->v2d.cur.xmin, region->v2d.cur.xmax, region->v2d.cur.ymin, region->v2d.cur.ymax);
       ED_annotation_draw_view2d(DST.draw_ctx.evil_C, true);
       GPU_matrix_pop_projection();
-
-      GPU_depth_test(true);
     }
 
-    GPU_depth_test(false);
+    GPU_depth_test(GPU_DEPTH_NONE);
     ED_region_draw_cb_draw(DST.draw_ctx.evil_C, DST.draw_ctx.region, REGION_DRAW_POST_VIEW);
-    GPU_depth_test(true);
     /* Callback can be nasty and do whatever they want with the state.
      * Don't trust them! */
     DRW_state_reset();
 
-    GPU_depth_test(false);
+    GPU_depth_test(GPU_DEPTH_NONE);
     drw_engines_draw_text();
-    GPU_depth_test(true);
 
     if (do_annotations) {
-      GPU_depth_test(false);
+      GPU_depth_test(GPU_DEPTH_NONE);
       ED_annotation_draw_view2d(DST.draw_ctx.evil_C, false);
-      GPU_depth_test(true);
     }
   }
 
@@ -2129,20 +2124,20 @@ void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
   ED_region_pixelspace(DST.draw_ctx.region);
 
   {
-    GPU_depth_test(false);
+    GPU_depth_test(GPU_DEPTH_NONE);
     DRW_draw_gizmo_2d();
-    GPU_depth_test(true);
   }
 
   DRW_stats_reset();
 
   if (G.debug_value > 20 && G.debug_value < 30) {
-    GPU_depth_test(false);
+    GPU_depth_test(GPU_DEPTH_NONE);
     /* local coordinate visible rect inside region, to accommodate overlapping ui */
     const rcti *rect = ED_region_visible_rect(DST.draw_ctx.region);
     DRW_stats_draw(rect);
-    GPU_depth_test(true);
   }
+
+  GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
 
   if (WM_draw_region_get_bound_viewport(region)) {
     /* Don't unbind the framebuffer yet in this case and let
