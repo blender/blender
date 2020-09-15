@@ -237,6 +237,13 @@ class MultiDevice : public Device {
     return true;
   }
 
+  virtual void *bvh_device() const
+  {
+    /* CPU devices will always be at the back, so simply choose the last one.
+       There should only ever be one CPU device anyway and we need the Embree device for it. */
+    return devices.back().device->bvh_device();
+  }
+
   virtual void *osl_memory()
   {
     if (devices.size() > 1) {
