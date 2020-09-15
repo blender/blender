@@ -374,6 +374,8 @@ void WM_cursor_time(wmWindow *win, int nr)
   }
 
   window_set_custom_cursor(win, mask, bitmap, 7, 7);
+  /* Unset current cursor value so it's properly reset to wmWindow.lastcursor. */
+  win->cursor = 0;
 }
 
 /**
