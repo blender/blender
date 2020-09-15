@@ -4571,11 +4571,6 @@ static void rna_def_space_image(BlenderRNA *brna)
   RNA_def_property_update(
       prop, NC_SPACE | ND_SPACE_IMAGE, "rna_SpaceImageEditor_show_stereo_update");
 
-  prop = RNA_def_property(srna, "show_pure_emissive_colors", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_SHOW_PURE_EMISSIVE);
-  RNA_def_property_ui_text(prop, "Show Pure Emissive", "Display the image with pure emissive colors");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
-
   /* uv */
   prop = RNA_def_property(srna, "uv_editor", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);

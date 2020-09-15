@@ -43,7 +43,6 @@
 #define SIMA_DRAW_FLAG_SHUFFLING (1 << 2)
 #define SIMA_DRAW_FLAG_DEPTH (1 << 3)
 #define SIMA_DRAW_FLAG_DO_REPEAT (1 << 4)
-#define SIMA_DRAW_FLAG_PURE_EMISSIVE (1 << 5)
 
 static void image_cache_image_add(DRWShadingGroup *grp, Image *image)
 {
@@ -143,7 +142,6 @@ static void image_cache_image(IMAGE_Data *vedata, Image *image, ImageUser *iuser
     const bool is_tiled_texture = tex_tile_data != NULL;
     const bool do_repeat = (!is_tiled_texture) && ((sima->flag & SI_DRAW_TILE) != 0);
     const bool is_zoom_out = sima->zoom < 1.0f;
-    const bool show_pure_emissive_colors = (sima->flag & SI_SHOW_PURE_EMISSIVE) != 0;
 
     /* use interpolation filtering when zooming out */
     eGPUSamplerState state = 0;
@@ -151,7 +149,6 @@ static void image_cache_image(IMAGE_Data *vedata, Image *image, ImageUser *iuser
 
     int draw_flags = 0;
     SET_FLAG_FROM_TEST(draw_flags, do_repeat, SIMA_DRAW_FLAG_DO_REPEAT);
-    SET_FLAG_FROM_TEST(draw_flags, show_pure_emissive_colors, SIMA_DRAW_FLAG_PURE_EMISSIVE);
 
     if ((sima->flag & SI_USE_ALPHA) != 0) {
       /* Show RGBA */

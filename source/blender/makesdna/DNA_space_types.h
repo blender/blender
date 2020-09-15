@@ -1131,7 +1131,7 @@ typedef enum eSpaceImage_Flag {
   SI_FLAG_UNUSED_0 = (1 << 0), /* cleared */
   SI_FLAG_UNUSED_1 = (1 << 1), /* cleared */
   SI_CLIP_UV = (1 << 2),
-  SI_SHOW_PURE_EMISSIVE = (1 << 3),
+  SI_FLAG_UNUSED_3 = (1 << 3), /* cleared */
   SI_NO_DRAWFACES = (1 << 4),
   SI_DRAWSHADOW = (1 << 5),
   SI_FLAG_UNUSED_6 = (1 << 6), /* cleared */
