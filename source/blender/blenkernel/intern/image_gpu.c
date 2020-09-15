@@ -277,9 +277,12 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
    * the current `pass` and `layer` should be 0. */
   short requested_pass = iuser ? iuser->pass : 0;
   short requested_layer = iuser ? iuser->layer : 0;
-  if (ima->gpu_pass != requested_pass || ima->gpu_layer != requested_layer) {
+  short requested_slot = ima->render_slot;
+  if (ima->gpu_pass != requested_pass || ima->gpu_layer != requested_layer ||
+      ima->gpu_slot != requested_slot) {
     ima->gpu_pass = requested_pass;
     ima->gpu_layer = requested_layer;
+    ima->gpu_slot = requested_slot;
     ima->gpuflag |= IMA_GPU_REFRESH;
   }
 
