@@ -1710,6 +1710,9 @@ void BKE_view_layer_bases_in_mode_iterator_begin(BLI_Iterator *iter, void *data_
   struct ObjectsInModeIteratorData *data = data_in;
   Base *base = data->base_active;
 
+  /* In this case the result will always be empty, the caller must check for no mode. */
+  BLI_assert(data->object_mode != 0);
+
   /* when there are no objects */
   if (base == NULL) {
     iter->valid = false;
