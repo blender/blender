@@ -297,6 +297,7 @@ int main(int argc,
         break;
       }
     }
+    MEM_init_memleak_detection();
   }
 
 #ifdef BUILD_DATE
@@ -399,6 +400,10 @@ int main(int argc,
 
   main_args_setup(C, ba);
 
+  /* Begin argument parsing, ignore leaks so arguments that call #exit
+   * (such as '--version' & '--help') don't report leaks. */
+  MEM_use_memleak_detection(false);
+
   BLI_argsParse(ba, 1, NULL, NULL);
 
   main_signal_setup();
@@ -499,9 +504,8 @@ int main(int argc,
   callback_main_atexit(&app_init_data);
   BKE_blender_atexit_unregister(callback_main_atexit, &app_init_data);
 
-  /* Initialize memory leak detection after parsing command line arguments
-   * so arguments that call #exit (such as '--version' & '--help') don't report leaks. */
-  MEM_init_memleak_detection();
+  /* End argument parsing, allow memory leaks to be printed. */
+  MEM_use_memleak_detection(true);
 
   /* Paranoid, avoid accidental re-use. */
 #ifndef WITH_PYTHON_MODULE
