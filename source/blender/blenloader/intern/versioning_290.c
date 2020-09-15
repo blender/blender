@@ -25,6 +25,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_cachefile_types.h"
 #include "DNA_constraint_types.h"
@@ -269,6 +270,54 @@ static void do_versions_point_attributes(CustomData *pdata)
       STRNCPY(layer->name, "Radius");
       layer->type = CD_PROP_FLOAT;
     }
+  }
+}
+
+/* Move FCurve handles towards the control point in such a way that the curve itself doesn't
+ * change. Since 2.91 FCurves are computed slightly differently, which requires this update to keep
+ * the same animation result. Previous versions scaled down overlapping handles during evaluation.
+ * This function applies the old correction to the actual animation data instead. */
+static void do_versions_291_fcurve_handles_limit(FCurve *fcu)
+{
+  uint i = 1;
+  for (BezTriple *bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
+    /* Only adjust bezier keyframes. */
+    if (bezt->ipo != BEZT_IPO_BEZ) {
+      continue;
+    }
+
+    BezTriple *nextbezt = bezt + 1;
+    const float v1[2] = {bezt->vec[1][0], bezt->vec[1][1]};
+    const float v2[2] = {bezt->vec[2][0], bezt->vec[2][1]};
+    const float v3[2] = {nextbezt->vec[0][0], nextbezt->vec[0][1]};
+    const float v4[2] = {nextbezt->vec[1][0], nextbezt->vec[1][1]};
+
+    /* If the handles have no length, no need to do any corrections. */
+    if (v1[0] == v2[0] && v3[0] == v4[0]) {
+      continue;
+    }
+
+    /* Calculate handle deltas. */
+    float delta1[2], delta2[2];
+    sub_v2_v2v2(delta1, v1, v2);
+    sub_v2_v2v2(delta2, v4, v3);
+
+    const float len1 = fabsf(delta1[0]); /* Length of handle of first key. */
+    const float len2 = fabsf(delta2[0]); /* Length of handle of second key. */
+
+    /* Overlapping handles used to be internally scaled down in previous versions.
+     * We bake the handles onto these previously virtual values. */
+    const float time_delta = v4[0] - v1[0];
+    const float total_len = len1 + len2;
+    if (total_len <= time_delta) {
+      continue;
+    }
+
+    const float factor = time_delta / total_len;
+    /* Current keyframe's right handle: */
+    madd_v2_v2v2fl(bezt->vec[2], v1, delta1, -factor); /* vec[2] = v1 - factor * delta1 */
+    /* Next keyframe's left handle: */
+    madd_v2_v2v2fl(nextbezt->vec[0], v4, delta2, -factor); /* vec[0] = v4 - factor * delta2 */
   }
 }
 
@@ -528,16 +577,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #BLO_version_defaults_userpref_blend
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
+  if (!MAIN_VERSION_ATLEAST(bmain, 291, 2)) {
     for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
       RigidBodyWorld *rbw = scene->rigidbody_world;
 
@@ -598,6 +638,28 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
 
+    /* Fix fcurves to allow for new bezier handles behaviour (T75881 and D8752). */
+    for (bAction *act = bmain->actions.first; act; act = act->id.next) {
+      for (FCurve *fcu = act->curves.first; fcu; fcu = fcu->next) {
+        /* Only need to fix Bezier curves with at least 2 keyframes. */
+        if (fcu->totvert < 2 || fcu->bezt == NULL) {
+          return;
+        }
+        do_versions_291_fcurve_handles_limit(fcu);
+      }
+    }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #BLO_version_defaults_userpref_blend
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
     /* Keep this block, even when empty. */
   }
 }

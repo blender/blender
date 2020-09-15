@@ -1308,7 +1308,7 @@ bool test_time_fcurve(FCurve *fcu)
 /** \name F-Curve Calculations
  * \{ */
 
-/* The total length of the handles is not allowed to be more
+/* The length of each handle is not allowed to be more
  * than the horizontal distance between (v1-v4).
  * This is to prevent curve loops.
  */
@@ -1337,15 +1337,17 @@ void correct_bezpart(const float v1[2], float v2[2], float v3[2], const float v4
     return;
   }
 
-  /* the two handles cross over each other, so force them
-   * apart using the proportion they overlap
+  /* To prevent looping or rewinding, handles cannot
+   * exceed the adjacent's keyframe time position.
    */
-  if ((len1 + len2) > len) {
-    fac = len / (len1 + len2);
-
+  if (len1 > len) {
+    fac = len / len1;
     v2[0] = (v1[0] - fac * h1[0]);
     v2[1] = (v1[1] - fac * h1[1]);
+  }
 
+  if (len2 > len) {
+    fac = len / len2;
     v3[0] = (v4[0] - fac * h2[0]);
     v3[1] = (v4[1] - fac * h2[1]);
   }
