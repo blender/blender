@@ -459,6 +459,7 @@ GPUNodeLink *GPU_volume_grid(GPUMaterial *mat,
   GPUNodeLink *transform_link = gpu_node_link_create();
   transform_link->link_type = GPU_NODE_LINK_VOLUME_GRID_TRANSFORM;
   transform_link->volume_grid = link->volume_grid;
+  transform_link->volume_grid->users++;
 
   /* Two special cases, where we adjust the output values of smoke grids to
    * bring the into standard range without having to modify the grid values. */
