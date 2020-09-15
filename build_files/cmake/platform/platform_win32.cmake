@@ -760,3 +760,10 @@ if(WITH_GMP)
   set(GMP_ROOT_DIR ${LIBDIR}/gmp)
   set(GMP_FOUND On)
 endif()
+
+if(WITH_POTRACE)
+  set(POTRACE_INCLUDE_DIRS ${LIBDIR}/potrace/include)
+  set(POTRACE_LIBRARIES ${LIBDIR}/potrace/lib/potrace.lib)
+  set(POTRACE_FOUND On)
+endif()
+

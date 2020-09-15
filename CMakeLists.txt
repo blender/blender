@@ -198,6 +198,7 @@ option(WITH_OPENIMAGEDENOISE   "Enable the OpenImageDenoise compositing node" ON
 
 option(WITH_OPENSUBDIV    "Enable OpenSubdiv for surface subdivision" ON)
 
+option(WITH_POTRACE       "Enable features relying on potrace" OFF)
 option(WITH_OPENVDB       "Enable features relying on OpenVDB" ON)
 option(WITH_OPENVDB_BLOSC "Enable blosc compression for OpenVDB, only enable if OpenVDB was built with blosc support" ON)
 option(WITH_OPENVDB_3_ABI_COMPATIBLE "Assume OpenVDB library has been compiled with version 3 ABI compatibility" OFF)

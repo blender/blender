@@ -1,0 +1,54 @@
+project(potrace)
+cmake_minimum_required(VERSION 2.8)
+
+include_directories(src/include)
+
+set(SOURCES
+  src/backend_dxf.c
+  src/backend_eps.c
+  src/backend_geojson.c
+  src/backend_pdf.c
+  src/backend_pgm.c
+  src/backend_svg.c
+  src/backend_xfig.c
+  src/bbox.c
+  src/bitmap_io.c
+  src/curve.c
+  src/decompose.c
+  src/flate.c
+  src/greymap.c
+  src/lzw.c
+  src/potracelib.c
+  src/progress_bar.c
+  src/render.c
+  src/trace.c
+  src/trans.c
+)
+
+set(HEADERS
+    src/potracelib.h
+)
+
+if(WIN32)
+  add_definitions(/D_USE_MATH_DEFINES)
+endif()
+
+add_definitions(/DPOTRACE="POTrace")
+add_definitions(/DVERSION="Blender")
+add_definitions(/DHAVE_INTTYPES_H)
+
+
+add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+	LIBRARY_OUTPUT_NAME "${PROJECT_NAME}"
+	PUBLIC_HEADER 		"${HEADERS}"
+)
+
+install(TARGETS 		${PROJECT_NAME}
+		RUNTIME         DESTINATION		bin
+        LIBRARY         DESTINATION     lib
+        ARCHIVE         DESTINATION     lib
+        PUBLIC_HEADER	DESTINATION     include
+)
+
