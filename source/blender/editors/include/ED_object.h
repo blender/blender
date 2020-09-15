@@ -477,6 +477,8 @@ bool ED_object_shaderfx_move_to_index(struct ReportList *reports,
                                       struct Object *ob,
                                       struct ShaderFxData *fx,
                                       const int index);
+void ED_object_shaderfx_link(struct Object *dst, struct Object *src);
+void ED_object_shaderfx_copy(struct Object *dst, struct ShaderFxData *fx);
 
 /* object_select.c */
 void ED_object_select_linked_by_id(struct bContext *C, struct ID *id);

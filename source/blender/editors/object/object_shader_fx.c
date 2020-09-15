@@ -34,6 +34,7 @@
 #include "DNA_shader_fx_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
@@ -235,6 +236,26 @@ bool ED_object_shaderfx_move_to_index(ReportList *reports,
   }
 
   return true;
+}
+
+void ED_object_shaderfx_link(Object *dst, Object *src)
+{
+  BLI_freelistN(&dst->shader_fx);
+  BKE_shaderfx_copy(&dst->shader_fx, &src->shader_fx);
+
+  DEG_id_tag_update(&dst->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_OBJECT | ND_SHADERFX, dst);
+}
+
+void ED_object_shaderfx_copy(Object *dst, ShaderFxData *fx)
+{
+  ShaderFxData *nfx = BKE_shaderfx_new(fx->type);
+  BLI_strncpy(nfx->name, fx->name, sizeof(nfx->name));
+  BKE_shaderfx_copydata(fx, nfx);
+  BLI_addtail(&dst->shader_fx, nfx);
+
+  DEG_id_tag_update(&dst->id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_OBJECT | ND_SHADERFX, dst);
 }
 
 /************************ add effect operator *********************/

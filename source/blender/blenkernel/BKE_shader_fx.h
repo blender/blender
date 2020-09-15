@@ -181,6 +181,7 @@ void BKE_shaderfx_copydata(struct ShaderFxData *fx, struct ShaderFxData *target)
 void BKE_shaderfx_copydata_ex(struct ShaderFxData *fx,
                               struct ShaderFxData *target,
                               const int flag);
+void BKE_shaderfx_copy(struct ListBase *dst, const struct ListBase *src);
 void BKE_shaderfx_foreach_ID_link(struct Object *ob, ShaderFxIDWalkFunc walk, void *userData);
 
 bool BKE_shaderfx_has_gpencil(struct Object *ob);

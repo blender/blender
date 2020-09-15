@@ -234,6 +234,19 @@ void BKE_shaderfx_copydata(ShaderFxData *fx, ShaderFxData *target)
   BKE_shaderfx_copydata_ex(fx, target, 0);
 }
 
+void BKE_shaderfx_copy(ListBase *dst, const ListBase *src)
+{
+  ShaderFxData *fx;
+  ShaderFxData *srcfx;
+
+  BLI_listbase_clear(dst);
+  BLI_duplicatelist(dst, src);
+
+  for (srcfx = src->first, fx = dst->first; srcfx && fx; srcfx = srcfx->next, fx = fx->next) {
+    BKE_shaderfx_copydata(srcfx, fx);
+  }
+}
+
 ShaderFxData *BKE_shaderfx_findby_type(Object *ob, ShaderFxType type)
 {
   ShaderFxData *fx = ob->shader_fx.first;
