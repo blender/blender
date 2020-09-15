@@ -346,6 +346,15 @@ static PointerRNA rna_uiItemOMenuHold(uiLayout *layout,
   return opptr;
 }
 
+static void rna_uiItemsEnumO(uiLayout *layout,
+                             const char *opname,
+                             const char *propname,
+                             const bool icon_only)
+{
+  int flag = icon_only ? UI_ITEM_R_ICON_ONLY : 0;
+  uiItemsFullEnumO(layout, opname, propname, NULL, uiLayoutGetOperatorContext(layout), flag);
+}
+
 static void rna_uiItemMenuEnumO(uiLayout *layout,
                                 bContext *C,
                                 const char *opname,
@@ -972,11 +981,12 @@ void RNA_api_ui_layout(StructRNA *srna)
                                     "Item. Places a button into the layout to call an Operator");
   }
 
-  func = RNA_def_function(srna, "operator_enum", "uiItemsEnumO");
+  func = RNA_def_function(srna, "operator_enum", "rna_uiItemsEnumO");
   parm = RNA_def_string(func, "operator", NULL, 0, "", "Identifier of the operator");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_string(func, "property", NULL, 0, "", "Identifier of property in operator");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_boolean(func, "icon_only", false, "", "Draw only icons in buttons, no text");
 
   func = RNA_def_function(srna, "operator_menu_enum", "rna_uiItemMenuEnumO");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);

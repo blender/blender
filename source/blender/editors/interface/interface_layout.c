@@ -1214,6 +1214,10 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
     but->flag |= UI_SELECT_DRAW;
   }
 
+  if (flag & UI_ITEM_R_ICON_ONLY) {
+    UI_but_drawflag_disable(but, UI_BUT_ICON_LEFT);
+  }
+
   if (layout->redalert) {
     UI_but_flag_enable(but, UI_BUT_REDALERT);
   }
@@ -1501,7 +1505,14 @@ void uiItemsFullEnumO_items(uiLayout *layout,
       }
       RNA_property_enum_set(&tptr, prop, item->value);
 
-      uiItemFullO_ptr(target, ot, item->name, item->icon, tptr.data, context, flag, NULL);
+      uiItemFullO_ptr(target,
+                      ot,
+                      (flag & UI_ITEM_R_ICON_ONLY) ? NULL : item->name,
+                      item->icon,
+                      tptr.data,
+                      context,
+                      flag,
+                      NULL);
 
       ui_but_tip_from_enum_item(block->buttons.last, item);
     }
@@ -1509,7 +1520,7 @@ void uiItemsFullEnumO_items(uiLayout *layout,
       if (item->name) {
         uiBut *but;
 
-        if (item != item_array && !radial && split) {
+        if (item != item_array && !radial && split != NULL) {
           target = uiLayoutColumn(split, layout->align);
 
           /* inconsistent, but menus with labels do not look good flipped */
@@ -1625,9 +1636,9 @@ void uiItemsFullEnumO(uiLayout *layout,
   }
 }
 
-void uiItemsEnumO(uiLayout *layout, const char *opname, const char *propname)
+void uiItemsEnumO(uiLayout *layout, const char *opname, const char *propname, int flag)
 {
-  uiItemsFullEnumO(layout, opname, propname, NULL, layout->root->opcontext, 0);
+  uiItemsFullEnumO(layout, opname, propname, NULL, layout->root->opcontext, flag);
 }
 
 /* for use in cases where we have */
@@ -3399,7 +3410,7 @@ static void menu_item_enum_opname_menu(bContext *UNUSED(C), uiLayout *layout, vo
   MenuItemLevel *lvl = (MenuItemLevel *)(((uiBut *)arg)->func_argN);
 
   uiLayoutSetOperatorContext(layout, lvl->opcontext);
-  uiItemsEnumO(layout, lvl->opname, lvl->propname);
+  uiItemsEnumO(layout, lvl->opname, lvl->propname, false);
 
   layout->root->block->flag |= UI_BLOCK_IS_FLIP;
 

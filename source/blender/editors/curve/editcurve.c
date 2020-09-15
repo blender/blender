@@ -5940,7 +5940,7 @@ static int toggle_cyclic_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
         if (nu->type == CU_NURBS) {
           pup = UI_popup_menu_begin(C, IFACE_("Direction"), ICON_NONE);
           layout = UI_popup_menu_layout(pup);
-          uiItemsEnumO(layout, op->type->idname, "direction");
+          uiItemsEnumO(layout, op->type->idname, "direction", false);
           UI_popup_menu_end(C, pup);
           return OPERATOR_INTERFACE;
         }

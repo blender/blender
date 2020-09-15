@@ -479,7 +479,7 @@ static int keyingset_active_menu_invoke(bContext *C, wmOperator *op, const wmEve
   /* call the menu, which will call this operator again, hence the canceled */
   pup = UI_popup_menu_begin(C, op->type->name, ICON_NONE);
   layout = UI_popup_menu_layout(pup);
-  uiItemsEnumO(layout, "ANIM_OT_keying_set_active_set", "type");
+  uiItemsEnumO(layout, "ANIM_OT_keying_set_active_set", "type", false);
   UI_popup_menu_end(C, pup);
 
   return OPERATOR_INTERFACE;
