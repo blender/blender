@@ -1115,11 +1115,18 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
 /************************* Drawing the Path ************************/
 
-void buttons_context_draw(const bContext *C, uiLayout *layout)
+static bool buttons_panel_context_poll(const bContext *C, PanelType *UNUSED(pt))
 {
   SpaceProperties *sbuts = CTX_wm_space_properties(C);
+  return sbuts->mainb != BCONTEXT_TOOL;
+}
+
+static void buttons_panel_context_draw(const bContext *C, Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+  SpaceProperties *sbuts = CTX_wm_space_properties(C);
   ButsContextPath *path = sbuts->path;
-  uiLayout *row, *sub;
+  uiLayout *row;
   PointerRNA *ptr;
   char namebuf[128], *name;
   int a, icon;
@@ -1180,52 +1187,11 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
       }
     }
   }
-
-  uiItemSpacer(row);
-
-  sub = uiLayoutRow(row, false);
-  uiLayoutSetEmboss(sub, UI_EMBOSS_NONE);
-  uiItemO(sub,
-          "",
-          (sbuts->flag & SB_PIN_CONTEXT) ? ICON_PINNED : ICON_UNPINNED,
-          "BUTTONS_OT_toggle_pin");
-}
-
-#ifdef USE_HEADER_CONTEXT_PATH
-static bool buttons_header_context_poll(const bContext *C, HeaderType *UNUSED(ht))
-#else
-static bool buttons_panel_context_poll(const bContext *C, PanelType *UNUSED(pt))
-#endif
-{
-  SpaceProperties *sbuts = CTX_wm_space_properties(C);
-  return (sbuts->mainb != BCONTEXT_TOOL);
-}
-
-#ifdef USE_HEADER_CONTEXT_PATH
-static void buttons_header_context_draw(const bContext *C, Header *ptr)
-#else
-static void buttons_panel_context_draw(const bContext *C, Panel *ptr)
-#endif
-{
-  buttons_context_draw(C, ptr->layout);
 }
 
 void buttons_context_register(ARegionType *art)
 {
-#ifdef USE_HEADER_CONTEXT_PATH
-  HeaderType *ht;
-
-  ht = MEM_callocN(sizeof(HeaderType), "spacetype buttons context header");
-  strcpy(ht->idname, "BUTTONS_HT_context");
-  ht->space_type = SPACE_PROPERTIES;
-  ht->region_type = art->regionid;
-  ht->poll = buttons_header_context_poll;
-  ht->draw = buttons_header_context_draw;
-  BLI_addtail(&art->headertypes, ht);
-#else
-  PanelType *pt;
-
-  pt = MEM_callocN(sizeof(PanelType), "spacetype buttons panel context");
+  PanelType *pt = MEM_callocN(sizeof(PanelType), "spacetype buttons panel context");
   strcpy(pt->idname, "BUTTONS_PT_context");
   strcpy(pt->label, N_("Context")); /* XXX C panels unavailable through RNA bpy.types! */
   strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
@@ -1233,7 +1199,6 @@ void buttons_context_register(ARegionType *art)
   pt->draw = buttons_panel_context_draw;
   pt->flag = PNL_NO_HEADER;
   BLI_addtail(&art->paneltypes, pt);
-#endif
 }
 
 ID *buttons_context_id_path(const bContext *C)
