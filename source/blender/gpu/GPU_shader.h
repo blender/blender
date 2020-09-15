@@ -72,6 +72,10 @@ struct GPUShader *GPU_shader_create_from_arrays_impl(
   GPU_shader_create_from_arrays_impl( \
       &(const struct GPU_ShaderCreateFromArray_Params)__VA_ARGS__, __func__, __LINE__)
 
+#define GPU_shader_create_from_arrays_named(name, ...) \
+  GPU_shader_create_from_arrays_impl( \
+      &(const struct GPU_ShaderCreateFromArray_Params)__VA_ARGS__, name, 0)
+
 void GPU_shader_free(GPUShader *shader);
 
 void GPU_shader_bind(GPUShader *shader);
