@@ -149,18 +149,18 @@ void WM_cursor_set(wmWindow *win, int curs)
     curs = win->modalcursor;
   }
 
-  if (win->cursor == curs) {
-    return; /* Cursor is already set */
-  }
-
-  win->cursor = curs;
-
   if (curs == WM_CURSOR_NONE) {
     GHOST_SetCursorVisibility(win->ghostwin, 0);
     return;
   }
 
   GHOST_SetCursorVisibility(win->ghostwin, 1);
+
+  if (win->cursor == curs) {
+    return; /* Cursor is already set */
+  }
+
+  win->cursor = curs;
 
   if (curs < 0 || curs >= WM_CURSOR_NUM) {
     BLI_assert(!"Invalid cursor number");
