@@ -686,6 +686,60 @@ bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
   return false;
 }
 
+bool BKE_object_copy_modifier(struct Object *ob_dst, const struct Object *ob_src, ModifierData *md)
+{
+  ModifierData *nmd = NULL;
+
+  if (ELEM(md->type, eModifierType_Hook, eModifierType_Collision)) {
+    return false;
+  }
+
+  if (!BKE_object_support_modifier_type_check(ob_dst, md->type)) {
+    return false;
+  }
+
+  switch (md->type) {
+    case eModifierType_Softbody:
+      BKE_object_copy_softbody(ob_dst, ob_src, 0);
+      break;
+    case eModifierType_Skin:
+      /* ensure skin-node customdata exists */
+      BKE_mesh_ensure_skin_customdata(ob_dst->data);
+      break;
+  }
+
+  nmd = BKE_modifier_new(md->type);
+  BLI_strncpy(nmd->name, md->name, sizeof(nmd->name));
+
+  if (md->type == eModifierType_Multires) {
+    /* Has to be done after mod creation, but *before* we actually copy its settings! */
+    multiresModifier_sync_levels_ex(
+        ob_dst, (MultiresModifierData *)md, (MultiresModifierData *)nmd);
+  }
+
+  BKE_modifier_copydata(md, nmd);
+  BLI_addtail(&ob_dst->modifiers, nmd);
+  BKE_modifier_unique_name(&ob_dst->modifiers, nmd);
+
+  return true;
+}
+
+bool BKE_object_copy_gpencil_modifier(struct Object *ob_dst, GpencilModifierData *md)
+{
+  GpencilModifierData *nmd = NULL;
+
+  nmd = BKE_gpencil_modifier_new(md->type);
+  BLI_strncpy(nmd->name, md->name, sizeof(nmd->name));
+
+  const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(md->type);
+  mti->copyData(md, nmd);
+
+  BLI_addtail(&ob_dst->greasepencil_modifiers, nmd);
+  BKE_gpencil_modifier_unique_name(&ob_dst->greasepencil_modifiers, nmd);
+
+  return true;
+}
+
 void BKE_object_link_modifiers(struct Object *ob_dst, const struct Object *ob_src)
 {
   BKE_object_free_modifiers(ob_dst, 0);
@@ -699,54 +753,14 @@ void BKE_object_link_modifiers(struct Object *ob_dst, const struct Object *ob_sr
   /* No grease pencil modifiers. */
   if ((ob_src->type != OB_GPENCIL) && (ob_dst->type != OB_GPENCIL)) {
     LISTBASE_FOREACH (ModifierData *, md, &ob_src->modifiers) {
-      ModifierData *nmd = NULL;
-
-      if (ELEM(md->type, eModifierType_Hook, eModifierType_Collision)) {
-        continue;
-      }
-
-      if (!BKE_object_support_modifier_type_check(ob_dst, md->type)) {
-        continue;
-      }
-
-      switch (md->type) {
-        case eModifierType_Softbody:
-          BKE_object_copy_softbody(ob_dst, ob_src, 0);
-          break;
-        case eModifierType_Skin:
-          /* ensure skin-node customdata exists */
-          BKE_mesh_ensure_skin_customdata(ob_dst->data);
-          break;
-      }
-
-      nmd = BKE_modifier_new(md->type);
-      BLI_strncpy(nmd->name, md->name, sizeof(nmd->name));
-
-      if (md->type == eModifierType_Multires) {
-        /* Has to be done after mod creation, but *before* we actually copy its settings! */
-        multiresModifier_sync_levels_ex(
-            ob_dst, (MultiresModifierData *)md, (MultiresModifierData *)nmd);
-      }
-
-      BKE_modifier_copydata(md, nmd);
-      BLI_addtail(&ob_dst->modifiers, nmd);
-      BKE_modifier_unique_name(&ob_dst->modifiers, nmd);
+      BKE_object_copy_modifier(ob_dst, ob_src, md);
     }
   }
 
   /* Copy grease pencil modifiers. */
   if ((ob_src->type == OB_GPENCIL) && (ob_dst->type == OB_GPENCIL)) {
     LISTBASE_FOREACH (GpencilModifierData *, md, &ob_src->greasepencil_modifiers) {
-      GpencilModifierData *nmd = NULL;
-
-      nmd = BKE_gpencil_modifier_new(md->type);
-      BLI_strncpy(nmd->name, md->name, sizeof(nmd->name));
-
-      const GpencilModifierTypeInfo *mti = BKE_gpencil_modifier_get_info(md->type);
-      mti->copyData(md, nmd);
-
-      BLI_addtail(&ob_dst->greasepencil_modifiers, nmd);
-      BKE_gpencil_modifier_unique_name(&ob_dst->greasepencil_modifiers, nmd);
+      BKE_object_copy_gpencil_modifier(ob_dst, md);
     }
   }
 
