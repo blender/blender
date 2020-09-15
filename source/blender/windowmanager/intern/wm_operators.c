@@ -3991,6 +3991,12 @@ static const EnumPropertyItem *rna_id_itemf(bContext *UNUSED(C),
     if (local == false || !ID_IS_LINKED(id)) {
       item_tmp.identifier = item_tmp.name = id->name + 2;
       item_tmp.value = i++;
+
+      /* Show collection color tag icons in menus. */
+      if (GS(id->name) == ID_GR) {
+        item_tmp.icon = UI_collection_color_icon_get((Collection *)id);
+      }
+
       RNA_enum_item_add(&item, &totitem, &item_tmp);
     }
   }

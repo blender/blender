@@ -50,6 +50,8 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
+#include "UI_interface_icons.h"
+
 #include "object_intern.h"
 
 /********************* 3d view operators ***********************/
@@ -94,7 +96,7 @@ static const EnumPropertyItem *collection_object_active_itemf(bContext *C,
     collection = NULL;
     while ((collection = BKE_collection_object_find(bmain, scene, collection, ob))) {
       item_tmp.identifier = item_tmp.name = collection->id.name + 2;
-      /* item_tmp.icon = ICON_ARMATURE_DATA; */
+      item_tmp.icon = UI_collection_color_icon_get(collection);
       item_tmp.value = i;
       RNA_enum_item_add(&item, &totitem, &item_tmp);
       i++;
