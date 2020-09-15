@@ -172,6 +172,8 @@ set(SRC
   engines/eevee/eevee_lut.h
   engines/eevee/eevee_private.h
   engines/external/external_engine.h
+  engines/image/image_engine.h
+  engines/image/image_private.h
   engines/workbench/workbench_engine.h
   engines/workbench/workbench_private.h
   engines/select/select_engine.h

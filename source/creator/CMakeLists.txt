@@ -1156,7 +1156,7 @@ if(WIN32)
   set_target_properties(blender PROPERTIES
     PDB_NAME "blender_private"
     PDB_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>")
-    if (WITH_WINDOWS_PDB AND WITH_WINDOWS_STRIPPED_PDB)
+    if(WITH_WINDOWS_PDB AND WITH_WINDOWS_STRIPPED_PDB)
       # This is slightly messy, but single target generators like ninja will not have the
       # CMAKE_CFG_INTDIR variable and multitarget generators like msbuild will not have
       # CMAKE_BUILD_TYPE. This can be simplified by target_link_options and the $<CONFIG>

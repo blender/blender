@@ -68,7 +68,7 @@ if(WITH_GTESTS)
     tests/FN_multi_function_test.cc
     tests/FN_spans_test.cc
   )
-  set (TEST_LIB
+  set(TEST_LIB
     bf_functions
   )
   include(GTestTesting)

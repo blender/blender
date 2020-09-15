@@ -116,6 +116,7 @@ set(SRC
   GPU_debug.h
   GPU_drawlist.h
   GPU_framebuffer.h
+  GPU_glew.h
   GPU_immediate.h
   GPU_immediate_util.h
   GPU_index_buffer.h
@@ -139,6 +140,7 @@ set(SRC
   intern/gpu_capabilities_private.hh
   intern/gpu_codegen.h
   intern/gpu_context_private.hh
+  intern/gpu_debug_private.hh
   intern/gpu_drawlist_private.hh
   intern/gpu_framebuffer_private.hh
   intern/gpu_immediate_private.hh
@@ -384,6 +386,8 @@ if(WITH_GTESTS)
   if(WITH_OPENGL_DRAW_TESTS)
     set(TEST_SRC
       tests/gpu_testing.cc
+
+      tests/gpu_testing.hh
     )
     set(TEST_INC
       "../../../intern/ghost/"

@@ -39,5 +39,5 @@ if(WIN32)
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/pugixml/lib/pugixml.lib ${HARVEST_TARGET}/osl/lib/pugixml_d.lib
       DEPENDEES install
     )
-  endif() 
+  endif()
 endif()
