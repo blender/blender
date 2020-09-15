@@ -260,7 +260,7 @@ static DRWVolumeGrid *volume_grid_cache_get(Volume *volume,
     /* Create GPU texture. */
     eGPUTextureFormat format = (channels == 3) ? GPU_RGB16F : GPU_R16F;
     cache_grid->texture = GPU_texture_create_3d(
-        "volume_grid", UNPACK3(resolution), 1, format, voxels);
+        "volume_grid", UNPACK3(resolution), 1, format, GPU_DATA_FLOAT, voxels);
 
     GPU_texture_swizzle_set(cache_grid->texture, (channels == 3) ? "rgb1" : "rrr1");
     GPU_texture_wrap_mode(cache_grid->texture, false, false);

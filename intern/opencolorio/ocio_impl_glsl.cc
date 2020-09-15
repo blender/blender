@@ -284,12 +284,13 @@ static void ensureGLSLLut3d(OCIO_GLSLLut3d **lut3d_ptr,
 
   int extent[3] = {LUT3D_EDGE_SIZE, LUT3D_EDGE_SIZE, LUT3D_EDGE_SIZE};
 
-  lut3d->texture = GPU_texture_create_3d("OCIOLut", UNPACK3(extent), 1, GPU_RGB16F, NULL);
+  lut3d->texture = GPU_texture_create_3d(
+      "OCIOLut", UNPACK3(extent), 1, GPU_RGB16F, GPU_DATA_FLOAT, NULL);
   GPU_texture_filter_mode(lut3d->texture, true);
   GPU_texture_wrap_mode(lut3d->texture, false, true);
 
   lut3d->texture_display = GPU_texture_create_3d(
-      "OCIOLutDisplay", UNPACK3(extent), 1, GPU_RGB16F, NULL);
+      "OCIOLutDisplay", UNPACK3(extent), 1, GPU_RGB16F, GPU_DATA_FLOAT, NULL);
   GPU_texture_filter_mode(lut3d->texture_display, true);
   GPU_texture_wrap_mode(lut3d->texture_display, false, true);
 

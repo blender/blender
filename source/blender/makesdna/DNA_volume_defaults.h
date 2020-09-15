@@ -32,6 +32,7 @@
     .density = 1.0f, \
     .wireframe_type = VOLUME_WIREFRAME_BOXES, \
     .wireframe_detail = VOLUME_WIREFRAME_COARSE, \
+    .slice_depth = 0.5f, \
   }
 
 #define _DNA_DEFAULT_VolumeRender \

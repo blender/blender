@@ -199,8 +199,14 @@ GPUTexture *GPU_texture_create_2d(
     const char *name, int w, int h, int mips, eGPUTextureFormat format, const float *data);
 GPUTexture *GPU_texture_create_2d_array(
     const char *name, int w, int h, int d, int mips, eGPUTextureFormat format, const float *data);
-GPUTexture *GPU_texture_create_3d(
-    const char *name, int w, int h, int d, int mips, eGPUTextureFormat format, const float *data);
+GPUTexture *GPU_texture_create_3d(const char *name,
+                                  int w,
+                                  int h,
+                                  int d,
+                                  int mips,
+                                  eGPUTextureFormat texture_format,
+                                  eGPUDataFormat data_format,
+                                  const void *data);
 GPUTexture *GPU_texture_create_cube(
     const char *name, int w, int mips, eGPUTextureFormat format, const float *data);
 GPUTexture *GPU_texture_create_cube_array(

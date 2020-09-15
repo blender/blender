@@ -4682,6 +4682,30 @@ void BKE_fluid_effector_type_set(Object *UNUSED(object), FluidEffectorSettings *
   settings->type = type;
 }
 
+void BKE_fluid_coba_field_sanitize(FluidDomainSettings *settings)
+{
+  /* Based on the domain type, the coba field is defaulted accordingly if the selected field
+   * is unsupported. */
+  const char field = settings->coba_field;
+
+  if (settings->type == FLUID_DOMAIN_TYPE_GAS) {
+    if (field == FLUID_DOMAIN_FIELD_PHI || field == FLUID_DOMAIN_FIELD_PHI_IN ||
+        field == FLUID_DOMAIN_FIELD_PHI_OUT || field == FLUID_DOMAIN_FIELD_PHI_OBSTACLE) {
+      /* Defaulted to density for gas domain. */
+      settings->coba_field = FLUID_DOMAIN_FIELD_DENSITY;
+    }
+  }
+  else if (settings->type == FLUID_DOMAIN_TYPE_LIQUID) {
+    if (field == FLUID_DOMAIN_FIELD_COLOR_R || field == FLUID_DOMAIN_FIELD_COLOR_G ||
+        field == FLUID_DOMAIN_FIELD_COLOR_B || field == FLUID_DOMAIN_FIELD_DENSITY ||
+        field == FLUID_DOMAIN_FIELD_FLAME || field == FLUID_DOMAIN_FIELD_FUEL ||
+        field == FLUID_DOMAIN_FIELD_HEAT) {
+      /* Defaulted to phi for liquid domain. */
+      settings->coba_field = FLUID_DOMAIN_FIELD_PHI;
+    }
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -4980,19 +5004,32 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *fmd)
     fmd->domain->timesteps_maximum = 4;
 
     /* display options */
-    fmd->domain->slice_method = FLUID_DOMAIN_SLICE_VIEW_ALIGNED;
     fmd->domain->axis_slice_method = AXIS_SLICE_FULL;
     fmd->domain->slice_axis = 0;
-    fmd->domain->interp_method = 0;
+    fmd->domain->interp_method = FLUID_DISPLAY_INTERP_LINEAR;
     fmd->domain->draw_velocity = false;
     fmd->domain->slice_per_voxel = 5.0f;
     fmd->domain->slice_depth = 0.5f;
     fmd->domain->display_thickness = 1.0f;
+    fmd->domain->show_gridlines = false;
     fmd->domain->coba = NULL;
+    fmd->domain->grid_scale = 1.0f;
     fmd->domain->vector_scale = 1.0f;
     fmd->domain->vector_draw_type = VECTOR_DRAW_NEEDLE;
+    fmd->domain->vector_field = FLUID_DOMAIN_VECTOR_FIELD_VELOCITY;
+    fmd->domain->vector_scale_with_magnitude = true;
+    fmd->domain->vector_draw_mac_components = VECTOR_DRAW_MAC_X | VECTOR_DRAW_MAC_Y |
+                                              VECTOR_DRAW_MAC_Z;
     fmd->domain->use_coba = false;
     fmd->domain->coba_field = FLUID_DOMAIN_FIELD_DENSITY;
+    fmd->domain->gridlines_color_field = 0;
+    fmd->domain->gridlines_lower_bound = 0.0f;
+    fmd->domain->gridlines_upper_bound = 1.0f;
+    fmd->domain->gridlines_range_color[0] = 1.0f;
+    fmd->domain->gridlines_range_color[1] = 0.0f;
+    fmd->domain->gridlines_range_color[2] = 0.0f;
+    fmd->domain->gridlines_range_color[3] = 1.0f;
+    fmd->domain->gridlines_cell_filter = FLUID_CELL_TYPE_NONE;
 
     /* -- Deprecated / unsed options (below)-- */
 
@@ -5219,7 +5256,6 @@ void BKE_fluid_modifier_copy(const struct FluidModifierData *fmd,
     tfds->timesteps_maximum = fds->timesteps_maximum;
 
     /* display options */
-    tfds->slice_method = fds->slice_method;
     tfds->axis_slice_method = fds->axis_slice_method;
     tfds->slice_axis = fds->slice_axis;
     tfds->interp_method = fds->interp_method;
@@ -5227,13 +5263,23 @@ void BKE_fluid_modifier_copy(const struct FluidModifierData *fmd,
     tfds->slice_per_voxel = fds->slice_per_voxel;
     tfds->slice_depth = fds->slice_depth;
     tfds->display_thickness = fds->display_thickness;
+    tfds->show_gridlines = fds->show_gridlines;
     if (fds->coba) {
       tfds->coba = MEM_dupallocN(fds->coba);
     }
     tfds->vector_scale = fds->vector_scale;
     tfds->vector_draw_type = fds->vector_draw_type;
+    tfds->vector_field = fds->vector_field;
+    tfds->vector_scale_with_magnitude = fds->vector_scale_with_magnitude;
+    tfds->vector_draw_mac_components = fds->vector_draw_mac_components;
     tfds->use_coba = fds->use_coba;
     tfds->coba_field = fds->coba_field;
+    tfds->grid_scale = fds->grid_scale;
+    tfds->gridlines_color_field = fds->gridlines_color_field;
+    tfds->gridlines_lower_bound = fds->gridlines_lower_bound;
+    tfds->gridlines_upper_bound = fds->gridlines_upper_bound;
+    copy_v4_v4(tfds->gridlines_range_color, fds->gridlines_range_color);
+    tfds->gridlines_cell_filter = fds->gridlines_cell_filter;
 
     /* -- Deprecated / unsed options (below)-- */
 

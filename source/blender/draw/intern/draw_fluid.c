@@ -177,8 +177,9 @@ static float *rescale_3d(const int dim[3],
 
 /* Will resize input to fit GL system limits. */
 static GPUTexture *create_volume_texture(const int dim[3],
-                                         eGPUTextureFormat format,
-                                         const float *data)
+                                         eGPUTextureFormat texture_format,
+                                         eGPUDataFormat data_format,
+                                         const void *data)
 {
   GPUTexture *tex = NULL;
   int final_dim[3] = {UNPACK3(dim)};
@@ -188,7 +189,8 @@ static GPUTexture *create_volume_texture(const int dim[3],
   }
 
   while (1) {
-    tex = GPU_texture_create_3d("volume", UNPACK3(final_dim), 1, format, NULL);
+    tex = GPU_texture_create_3d(
+        "volume", UNPACK3(final_dim), 1, texture_format, data_format, NULL);
 
     if (tex != NULL) {
       break;
@@ -209,11 +211,15 @@ static GPUTexture *create_volume_texture(const int dim[3],
   }
   else if (equals_v3v3_int(dim, final_dim)) {
     /* No need to resize, just upload the data. */
-    GPU_texture_update_sub(tex, GPU_DATA_FLOAT, data, 0, 0, 0, UNPACK3(final_dim));
+    GPU_texture_update_sub(tex, data_format, data, 0, 0, 0, UNPACK3(final_dim));
+  }
+  else if (data_format != GPU_DATA_FLOAT) {
+    printf("Error: Could not allocate 3D texture and not attempting to rescale non-float data.\n");
+    tex = GPU_texture_create_error(3, false);
   }
   else {
     /* We need to resize the input. */
-    int channels = (format == GPU_R8) ? 1 : 4;
+    int channels = (ELEM(texture_format, GPU_R8, GPU_R16F, GPU_R32F)) ? 1 : 4;
     float *rescaled_data = rescale_3d(dim, final_dim, channels, data);
     if (rescaled_data) {
       GPU_texture_update_sub(tex, GPU_DATA_FLOAT, rescaled_data, 0, 0, 0, UNPACK3(final_dim));
@@ -228,9 +234,15 @@ static GPUTexture *create_volume_texture(const int dim[3],
   return tex;
 }
 
-static GPUTexture *create_field_texture(FluidDomainSettings *fds)
+static GPUTexture *create_field_texture(FluidDomainSettings *fds, bool single_precision)
 {
-  float *field = NULL;
+  void *field = NULL;
+  eGPUDataFormat data_format = GPU_DATA_FLOAT;
+  eGPUTextureFormat texture_format = GPU_R8;
+
+  if (single_precision) {
+    texture_format = GPU_R32F;
+  }
 
   switch (fds->coba_field) {
     case FLUID_DOMAIN_FIELD_DENSITY:
@@ -275,11 +287,36 @@ static GPUTexture *create_field_texture(FluidDomainSettings *fds)
     case FLUID_DOMAIN_FIELD_FORCE_Z:
       field = manta_get_force_z(fds->fluid);
       break;
+    case FLUID_DOMAIN_FIELD_PHI:
+      field = manta_get_phi(fds->fluid);
+      texture_format = GPU_R16F;
+      break;
+    case FLUID_DOMAIN_FIELD_PHI_IN:
+      field = manta_get_phi_in(fds->fluid);
+      texture_format = GPU_R16F;
+      break;
+    case FLUID_DOMAIN_FIELD_PHI_OUT:
+      field = manta_get_phiout_in(fds->fluid);
+      texture_format = GPU_R16F;
+      break;
+    case FLUID_DOMAIN_FIELD_PHI_OBSTACLE:
+      field = manta_get_phiobs_in(fds->fluid);
+      texture_format = GPU_R16F;
+      break;
+    case FLUID_DOMAIN_FIELD_FLAGS:
+      field = manta_smoke_get_flags(fds->fluid);
+      data_format = GPU_DATA_INT;
+      texture_format = GPU_R8UI;
+      break;
+    case FLUID_DOMAIN_FIELD_PRESSURE:
+      field = manta_get_pressure(fds->fluid);
+      texture_format = GPU_R16F;
+      break;
     default:
       return NULL;
   }
 
-  GPUTexture *tex = create_volume_texture(fds->res, GPU_R8, field);
+  GPUTexture *tex = create_volume_texture(fds->res, texture_format, data_format, field);
   swizzle_texture_channel_single(tex);
   return tex;
 }
@@ -300,7 +337,7 @@ static GPUTexture *create_density_texture(FluidDomainSettings *fds, int highres)
     return NULL;
   }
 
-  GPUTexture *tex = create_volume_texture(dim, GPU_R8, data);
+  GPUTexture *tex = create_volume_texture(dim, GPU_R8, GPU_DATA_FLOAT, data);
   swizzle_texture_channel_single(tex);
   return tex;
 }
@@ -329,7 +366,7 @@ static GPUTexture *create_color_texture(FluidDomainSettings *fds, int highres)
     manta_smoke_get_rgba(fds->fluid, data, 0);
   }
 
-  GPUTexture *tex = create_volume_texture(dim, GPU_RGBA8, data);
+  GPUTexture *tex = create_volume_texture(dim, GPU_RGBA8, GPU_DATA_FLOAT, data);
 
   MEM_freeN(data);
 
@@ -354,9 +391,36 @@ static GPUTexture *create_flame_texture(FluidDomainSettings *fds, int highres)
     source = manta_smoke_get_flame(fds->fluid);
   }
 
-  GPUTexture *tex = create_volume_texture(dim, GPU_R8, source);
+  GPUTexture *tex = create_volume_texture(dim, GPU_R8, GPU_DATA_FLOAT, source);
   swizzle_texture_channel_single(tex);
   return tex;
+}
+
+static bool get_smoke_velocity_field(FluidDomainSettings *fds,
+                                     float **r_velocity_x,
+                                     float **r_velocity_y,
+                                     float **r_velocity_z)
+{
+  const char vector_field = fds->vector_field;
+  switch ((FLUID_DisplayVectorField)vector_field) {
+    case FLUID_DOMAIN_VECTOR_FIELD_VELOCITY:
+      *r_velocity_x = manta_get_velocity_x(fds->fluid);
+      *r_velocity_y = manta_get_velocity_y(fds->fluid);
+      *r_velocity_z = manta_get_velocity_z(fds->fluid);
+      break;
+    case FLUID_DOMAIN_VECTOR_FIELD_GUIDE_VELOCITY:
+      *r_velocity_x = manta_get_guide_velocity_x(fds->fluid);
+      *r_velocity_y = manta_get_guide_velocity_y(fds->fluid);
+      *r_velocity_z = manta_get_guide_velocity_z(fds->fluid);
+      break;
+    case FLUID_DOMAIN_VECTOR_FIELD_FORCE:
+      *r_velocity_x = manta_get_force_x(fds->fluid);
+      *r_velocity_y = manta_get_force_y(fds->fluid);
+      *r_velocity_z = manta_get_force_z(fds->fluid);
+      break;
+  }
+
+  return *r_velocity_x && *r_velocity_y && *r_velocity_z;
 }
 
 #endif /* WITH_FLUID */
@@ -416,9 +480,15 @@ void DRW_smoke_ensure_coba_field(FluidModifierData *fmd)
     FluidDomainSettings *fds = fmd->domain;
 
     if (!fds->tex_field) {
-      fds->tex_field = create_field_texture(fds);
+      fds->tex_field = create_field_texture(fds, false);
     }
-    if (!fds->tex_coba) {
+    if (!fds->tex_coba && !ELEM(fds->coba_field,
+                                FLUID_DOMAIN_FIELD_PHI,
+                                FLUID_DOMAIN_FIELD_PHI_IN,
+                                FLUID_DOMAIN_FIELD_PHI_OUT,
+                                FLUID_DOMAIN_FIELD_PHI_OBSTACLE,
+                                FLUID_DOMAIN_FIELD_FLAGS,
+                                FLUID_DOMAIN_FIELD_PRESSURE)) {
       fds->tex_coba = create_transfer_function(TFUNC_COLOR_RAMP, fds->coba);
     }
   }
@@ -447,7 +517,7 @@ void DRW_smoke_ensure(FluidModifierData *fmd, int highres)
     }
     if (!fds->tex_shadow) {
       fds->tex_shadow = create_volume_texture(
-          fds->res, GPU_R8, manta_smoke_get_shadow(fds->fluid));
+          fds->res, GPU_R8, GPU_DATA_FLOAT, manta_smoke_get_shadow(fds->fluid));
     }
   }
 #endif /* WITH_FLUID */
@@ -460,25 +530,62 @@ void DRW_smoke_ensure_velocity(FluidModifierData *fmd)
 #else
   if (fmd->type & MOD_FLUID_TYPE_DOMAIN) {
     FluidDomainSettings *fds = fmd->domain;
+    float *vel_x = NULL, *vel_y = NULL, *vel_z = NULL;
 
-    const float *vel_x = manta_get_velocity_x(fds->fluid);
-    const float *vel_y = manta_get_velocity_y(fds->fluid);
-    const float *vel_z = manta_get_velocity_z(fds->fluid);
+    if (!get_smoke_velocity_field(fds, &vel_x, &vel_y, &vel_z)) {
+      fds->vector_field = FLUID_DOMAIN_VECTOR_FIELD_VELOCITY;
+      get_smoke_velocity_field(fds, &vel_x, &vel_y, &vel_z);
+    }
 
     if (ELEM(NULL, vel_x, vel_y, vel_z)) {
       return;
     }
 
     if (!fds->tex_velocity_x) {
-      fds->tex_velocity_x = GPU_texture_create_3d("velx", UNPACK3(fds->res), 1, GPU_R16F, vel_x);
-      fds->tex_velocity_y = GPU_texture_create_3d("vely", UNPACK3(fds->res), 1, GPU_R16F, vel_y);
-      fds->tex_velocity_z = GPU_texture_create_3d("velz", UNPACK3(fds->res), 1, GPU_R16F, vel_z);
+      fds->tex_velocity_x = GPU_texture_create_3d(
+          "velx", UNPACK3(fds->res), 1, GPU_R16F, GPU_DATA_FLOAT, vel_x);
+      fds->tex_velocity_y = GPU_texture_create_3d(
+          "vely", UNPACK3(fds->res), 1, GPU_R16F, GPU_DATA_FLOAT, vel_y);
+      fds->tex_velocity_z = GPU_texture_create_3d(
+          "velz", UNPACK3(fds->res), 1, GPU_R16F, GPU_DATA_FLOAT, vel_z);
     }
   }
 #endif /* WITH_FLUID */
 }
 
-/* TODO Unify with the other DRW_smoke_free. */
+void DRW_fluid_ensure_flags(FluidModifierData *fmd)
+{
+#ifndef WITH_FLUID
+  UNUSED_VARS(fmd);
+#else
+  if (fmd->type & MOD_FLUID_TYPE_DOMAIN) {
+    FluidDomainSettings *fds = fmd->domain;
+    if (!fds->tex_flags) {
+      fds->tex_flags = create_volume_texture(
+          fds->res, GPU_R8UI, GPU_DATA_INT, manta_smoke_get_flags(fds->fluid));
+
+      swizzle_texture_channel_single(fds->tex_flags);
+    }
+  }
+#endif /* WITH_FLUID */
+}
+
+void DRW_fluid_ensure_range_field(FluidModifierData *fmd)
+{
+#ifndef WITH_FLUID
+  UNUSED_VARS(fmd);
+#else
+  if (fmd->type & MOD_FLUID_TYPE_DOMAIN) {
+    FluidDomainSettings *fds = fmd->domain;
+
+    if (!fds->tex_range_field) {
+      fds->tex_range_field = create_field_texture(fds, true);
+    }
+  }
+#endif /* WITH_FLUID */
+}
+
+/* TODO Unify with the other GPU_free_smoke. */
 void DRW_smoke_free_velocity(FluidModifierData *fmd)
 {
   if (fmd->type & MOD_FLUID_TYPE_DOMAIN && fmd->domain) {
@@ -494,9 +601,19 @@ void DRW_smoke_free_velocity(FluidModifierData *fmd)
       GPU_texture_free(fmd->domain->tex_velocity_z);
     }
 
+    if (fmd->domain->tex_flags) {
+      GPU_texture_free(fmd->domain->tex_flags);
+    }
+
+    if (fmd->domain->tex_range_field) {
+      GPU_texture_free(fmd->domain->tex_range_field);
+    }
+
     fmd->domain->tex_velocity_x = NULL;
     fmd->domain->tex_velocity_y = NULL;
     fmd->domain->tex_velocity_z = NULL;
+    fmd->domain->tex_flags = NULL;
+    fmd->domain->tex_range_field = NULL;
   }
 }
 

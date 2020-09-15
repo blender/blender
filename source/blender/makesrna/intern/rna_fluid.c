@@ -670,6 +670,7 @@ static void rna_Fluid_domaintype_set(struct PointerRNA *ptr, int value)
   FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
   Object *ob = (Object *)ptr->owner_id;
   BKE_fluid_domain_type_set(ob, settings, value);
+  BKE_fluid_coba_field_sanitize(settings);
 }
 
 static char *rna_FluidDomainSettings_path(PointerRNA *ptr)
@@ -1041,6 +1042,159 @@ static void rna_Fluid_flowtype_set(struct PointerRNA *ptr, int value)
   }
 }
 
+static const EnumPropertyItem *rna_Fluid_cobafield_itemf(bContext *UNUSED(C),
+                                                         PointerRNA *ptr,
+                                                         PropertyRNA *UNUSED(prop),
+                                                         bool *r_free)
+{
+  FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
+
+  EnumPropertyItem *item = NULL;
+  EnumPropertyItem tmp = {0, "", 0, "", ""};
+  int totitem = 0;
+
+  tmp.value = FLUID_DOMAIN_FIELD_FLAGS;
+  tmp.identifier = "FLAGS";
+  tmp.icon = 0;
+  tmp.name = "Flags";
+  tmp.description = "Flag grid of the fluid domain";
+  RNA_enum_item_add(&item, &totitem, &tmp);
+
+  tmp.value = FLUID_DOMAIN_FIELD_PRESSURE;
+  tmp.identifier = "PRESSURE";
+  tmp.icon = 0;
+  tmp.name = "Pressure";
+  tmp.description = "Pressure field of the fluid domain";
+  RNA_enum_item_add(&item, &totitem, &tmp);
+
+  tmp.value = FLUID_DOMAIN_FIELD_VELOCITY_X;
+  tmp.identifier = "VELOCITY_X";
+  tmp.icon = 0;
+  tmp.name = "X Velocity";
+  tmp.description = "X component of the velocity field";
+  RNA_enum_item_add(&item, &totitem, &tmp);
+
+  tmp.value = FLUID_DOMAIN_FIELD_VELOCITY_Y;
+  tmp.identifier = "VELOCITY_Y";
+  tmp.icon = 0;
+  tmp.name = "Y Velocity";
+  tmp.description = "Y component of the velocity field";
+  RNA_enum_item_add(&item, &totitem, &tmp);
+
+  tmp.value = FLUID_DOMAIN_FIELD_VELOCITY_Z;
+  tmp.identifier = "VELOCITY_Z";
+  tmp.icon = 0;
+  tmp.name = "Z Velocity";
+  tmp.description = "Z component of the velocity field";
+  RNA_enum_item_add(&item, &totitem, &tmp);
+
+  tmp.value = FLUID_DOMAIN_FIELD_FORCE_X;
+  tmp.identifier = "FORCE_X";
+  tmp.icon = 0;
+  tmp.name = "X Force";
+  tmp.description = "X component of the force field";
+  RNA_enum_item_add(&item, &totitem, &tmp);
+
+  tmp.value = FLUID_DOMAIN_FIELD_FORCE_Y;
+  tmp.identifier = "FORCE_Y";
+  tmp.icon = 0;
+  tmp.name = "Y Force";
+  tmp.description = "Y component of the force field";
+  RNA_enum_item_add(&item, &totitem, &tmp);
+
+  tmp.value = FLUID_DOMAIN_FIELD_FORCE_Z;
+  tmp.identifier = "FORCE_Z";
+  tmp.icon = 0;
+  tmp.name = "Z Force";
+  tmp.description = "Z component of the force field";
+  RNA_enum_item_add(&item, &totitem, &tmp);
+
+  if (settings->type == FLUID_DOMAIN_TYPE_GAS) {
+    tmp.value = FLUID_DOMAIN_FIELD_COLOR_R;
+    tmp.identifier = "COLOR_R";
+    tmp.icon = 0;
+    tmp.name = "Red";
+    tmp.description = "Red component of the color field";
+    RNA_enum_item_add(&item, &totitem, &tmp);
+
+    tmp.value = FLUID_DOMAIN_FIELD_COLOR_G;
+    tmp.identifier = "COLOR_G";
+    tmp.icon = 0;
+    tmp.name = "Green";
+    tmp.description = "Green component of the color field";
+    RNA_enum_item_add(&item, &totitem, &tmp);
+
+    tmp.value = FLUID_DOMAIN_FIELD_COLOR_B;
+    tmp.identifier = "COLOR_B";
+    tmp.icon = 0;
+    tmp.name = "Blue";
+    tmp.description = "Blue component of the color field";
+    RNA_enum_item_add(&item, &totitem, &tmp);
+
+    tmp.value = FLUID_DOMAIN_FIELD_DENSITY;
+    tmp.identifier = "DENSITY";
+    tmp.icon = 0;
+    tmp.name = "Density";
+    tmp.description = "Quantity of soot in the fluid";
+    RNA_enum_item_add(&item, &totitem, &tmp);
+
+    tmp.value = FLUID_DOMAIN_FIELD_FLAME;
+    tmp.identifier = "FLAME";
+    tmp.icon = 0;
+    tmp.name = "Flame";
+    tmp.description = "Flame field";
+    RNA_enum_item_add(&item, &totitem, &tmp);
+
+    tmp.value = FLUID_DOMAIN_FIELD_FUEL;
+    tmp.identifier = "FUEL";
+    tmp.icon = 0;
+    tmp.name = "Fuel";
+    tmp.description = "Fuel field";
+    RNA_enum_item_add(&item, &totitem, &tmp);
+
+    tmp.value = FLUID_DOMAIN_FIELD_HEAT;
+    tmp.identifier = "HEAT";
+    tmp.icon = 0;
+    tmp.name = "Heat";
+    tmp.description = "Temperature of the fluid";
+    RNA_enum_item_add(&item, &totitem, &tmp);
+  }
+  else if (settings->type == FLUID_DOMAIN_TYPE_LIQUID) {
+    tmp.value = FLUID_DOMAIN_FIELD_PHI;
+    tmp.identifier = "PHI";
+    tmp.icon = 0;
+    tmp.name = "Fluid Levelset";
+    tmp.description = "Levelset representation of the fluid";
+    RNA_enum_item_add(&item, &totitem, &tmp);
+
+    tmp.value = FLUID_DOMAIN_FIELD_PHI_IN;
+    tmp.identifier = "PHI_IN";
+    tmp.icon = 0;
+    tmp.name = "Inflow Levelset";
+    tmp.description = "Levelset representation of the inflow";
+    RNA_enum_item_add(&item, &totitem, &tmp);
+
+    tmp.value = FLUID_DOMAIN_FIELD_PHI_OUT;
+    tmp.identifier = "PHI_OUT";
+    tmp.icon = 0;
+    tmp.name = "Outflow Levelset";
+    tmp.description = "Levelset representation of the outflow";
+    RNA_enum_item_add(&item, &totitem, &tmp);
+
+    tmp.value = FLUID_DOMAIN_FIELD_PHI_OBSTACLE;
+    tmp.identifier = "PHI_OBSTACLE";
+    tmp.icon = 0;
+    tmp.name = "Obstacle Levelset";
+    tmp.description = "Levelset representation of the obstacles";
+    RNA_enum_item_add(&item, &totitem, &tmp);
+  }
+
+  RNA_enum_item_end(&item, &totitem);
+  *r_free = true;
+
+  return item;
+}
+
 #else
 
 static void rna_def_fluid_mesh_vertices(BlenderRNA *brna)
@@ -1152,20 +1306,6 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
-  static const EnumPropertyItem view_items[] = {
-      {FLUID_DOMAIN_SLICE_VIEW_ALIGNED,
-       "VIEW_ALIGNED",
-       0,
-       "View",
-       "Slice volume parallel to the view plane"},
-      {FLUID_DOMAIN_SLICE_AXIS_ALIGNED,
-       "AXIS_ALIGNED",
-       0,
-       "Axis",
-       "Slice volume parallel to the major axis"},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   static const EnumPropertyItem axis_slice_method_items[] = {
       {AXIS_SLICE_FULL, "FULL", 0, "Full", "Slice the whole domain object"},
       {AXIS_SLICE_SINGLE, "SINGLE", 0, "Single", "Perform a single slice of the domain object"},
@@ -1173,12 +1313,13 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem interp_method_item[] = {
-      {VOLUME_INTERP_LINEAR, "LINEAR", 0, "Linear", "Good smoothness and speed"},
-      {VOLUME_INTERP_CUBIC,
+      {FLUID_DISPLAY_INTERP_LINEAR, "LINEAR", 0, "Linear", "Good smoothness and speed"},
+      {FLUID_DISPLAY_INTERP_CUBIC,
        "CUBIC",
        0,
        "Cubic",
        "Smoothed high quality interpolation, but slower"},
+      {FLUID_DISPLAY_INTERP_CLOSEST, "CLOSEST", 0, "Closest", "No interpolation"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -1197,6 +1338,51 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   static const EnumPropertyItem vector_draw_items[] = {
       {VECTOR_DRAW_NEEDLE, "NEEDLE", 0, "Needle", "Display vectors as needles"},
       {VECTOR_DRAW_STREAMLINE, "STREAMLINE", 0, "Streamlines", "Display vectors as streamlines"},
+      {VECTOR_DRAW_MAC, "MAC", 0, "MAC Grid", "Display vector field as MAC grid"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem vector_field_items[] = {
+      {FLUID_DOMAIN_VECTOR_FIELD_VELOCITY,
+       "FLUID_VELOCITY",
+       0,
+       "Fluid Velocity",
+       "Velocity field of the fluid domain"},
+      {FLUID_DOMAIN_VECTOR_FIELD_GUIDE_VELOCITY,
+       "GUIDE_VELOCITY",
+       0,
+       "Guide Velocity",
+       "Guide velocity field of the fluid domain"},
+      {FLUID_DOMAIN_VECTOR_FIELD_FORCE, "FORCE", 0, "Force", "Force field of the fluid domain"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem gridlines_color_field_items[] = {
+      {0, "NONE", 0, "None", "None"},
+      {FLUID_GRIDLINE_COLOR_TYPE_FLAGS, "FLAGS", 0, "Flags", "Flag grid of the fluid domain"},
+      {FLUID_GRIDLINE_COLOR_TYPE_RANGE,
+       "RANGE",
+       0,
+       "Highlight Range",
+       "Highlight the voxels with values of the color mapped field within the range"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  static const EnumPropertyItem gridlines_cell_filter_items[] = {
+      {FLUID_CELL_TYPE_NONE, "NONE", 0, "None", "Highlight the cells regardless of their type"},
+      {FLUID_CELL_TYPE_FLUID, "FLUID", 0, "Fluid", "Highlight only the cells of type Fluid"},
+      {FLUID_CELL_TYPE_OBSTACLE,
+       "OBSTACLE",
+       0,
+       "Obstacle",
+       "Highlight only the cells of type Obstacle"},
+      {FLUID_CELL_TYPE_EMPTY, "EMPTY", 0, "Empty", "Highlight only the cells of type Empty"},
+      {FLUID_CELL_TYPE_INFLOW, "INFLOW", 0, "Inflow", "Highlight only the cells of type Inflow"},
+      {FLUID_CELL_TYPE_OUTFLOW,
+       "OUTFLOW",
+       0,
+       "Outflow",
+       "Highlight only the cells of type Outflow"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -2253,12 +2439,6 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
 
   /* display settings */
 
-  prop = RNA_def_property(srna, "slice_method", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "slice_method");
-  RNA_def_property_enum_items(prop, view_items);
-  RNA_def_property_ui_text(prop, "View Method", "How to slice the volume for viewport rendering");
-  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
-
   prop = RNA_def_property(srna, "axis_slice_method", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "axis_slice_method");
   RNA_def_property_enum_items(prop, axis_slice_method_items);
@@ -2300,16 +2480,46 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
       prop, "Interpolation", "Interpolation method to use for smoke/fire volumes in solid mode");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
+  prop = RNA_def_property(srna, "show_gridlines", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "show_gridlines", 0);
+  RNA_def_property_ui_text(prop, "Gridlines", "Show gridlines");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
   prop = RNA_def_property(srna, "show_velocity", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "draw_velocity", 0);
-  RNA_def_property_ui_text(
-      prop, "Display Velocity", "Toggle visualization of the velocity field as needles");
+  RNA_def_property_ui_text(prop, "Vector Display", "Visualize vector fields");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
   prop = RNA_def_property(srna, "vector_display_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "vector_draw_type");
   RNA_def_property_enum_items(prop, vector_draw_items);
   RNA_def_property_ui_text(prop, "Display Type", "");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
+  prop = RNA_def_property(srna, "vector_field", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "vector_field");
+  RNA_def_property_enum_items(prop, vector_field_items);
+  RNA_def_property_ui_text(prop, "Field", "Vector field to be represented by the display vectors");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
+  prop = RNA_def_property(srna, "vector_scale_with_magnitude", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "vector_scale_with_magnitude", 0);
+  RNA_def_property_ui_text(prop, "Magnitude", "Scale vectors with their magnitudes");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
+  prop = RNA_def_property(srna, "vector_show_mac_x", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "vector_draw_mac_components", VECTOR_DRAW_MAC_X);
+  RNA_def_property_ui_text(prop, "X", "Show X-component of MAC Grid");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
+  prop = RNA_def_property(srna, "vector_show_mac_y", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "vector_draw_mac_components", VECTOR_DRAW_MAC_Y);
+  RNA_def_property_ui_text(prop, "Y", "Show Y-component of MAC Grid");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
+  prop = RNA_def_property(srna, "vector_show_mac_z", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "vector_draw_mac_components", VECTOR_DRAW_MAC_Z);
+  RNA_def_property_ui_text(prop, "Z", "Show Z-component of MAC Grid");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
   prop = RNA_def_property(srna, "vector_scale", PROP_FLOAT, PROP_NONE);
@@ -2324,43 +2534,32 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_color_ramp", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_coba", 0);
   RNA_def_property_boolean_funcs(prop, NULL, "rna_Fluid_use_color_ramp_set");
-  RNA_def_property_ui_text(
-      prop,
-      "Use Color Ramp",
-      "Render a simulation field while mapping its voxels values to the colors of a ramp");
+  RNA_def_property_ui_text(prop,
+                           "Grid Display",
+                           "Render a simulation field while mapping its voxels values to the "
+                           "colors of a ramp or using a predefined color code");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
+  /* Coba field items - generated dynamically based on domain type */
   static const EnumPropertyItem coba_field_items[] = {
-      {FLUID_DOMAIN_FIELD_COLOR_R, "COLOR_R", 0, "Red", "Red component of the color field"},
-      {FLUID_DOMAIN_FIELD_COLOR_G, "COLOR_G", 0, "Green", "Green component of the color field"},
-      {FLUID_DOMAIN_FIELD_COLOR_B, "COLOR_B", 0, "Blue", "Blue component of the color field"},
-      {FLUID_DOMAIN_FIELD_DENSITY, "DENSITY", 0, "Density", "Quantity of soot in the fluid"},
-      {FLUID_DOMAIN_FIELD_FLAME, "FLAME", 0, "Flame", "Flame field"},
-      {FLUID_DOMAIN_FIELD_FUEL, "FUEL", 0, "Fuel", "Fuel field"},
-      {FLUID_DOMAIN_FIELD_HEAT, "HEAT", 0, "Heat", "Temperature of the fluid"},
-      {FLUID_DOMAIN_FIELD_VELOCITY_X,
-       "VELOCITY_X",
-       0,
-       "X Velocity",
-       "X component of the velocity field"},
-      {FLUID_DOMAIN_FIELD_VELOCITY_Y,
-       "VELOCITY_Y",
-       0,
-       "Y Velocity",
-       "Y component of the velocity field"},
-      {FLUID_DOMAIN_FIELD_VELOCITY_Z,
-       "VELOCITY_Z",
-       0,
-       "Z Velocity",
-       "Z component of the velocity field"},
+      {0, "NONE", 0, "", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
-  prop = RNA_def_property(srna, "coba_field", PROP_ENUM, PROP_NONE);
+  prop = RNA_def_property(srna, "color_ramp_field", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "coba_field");
   RNA_def_property_enum_items(prop, coba_field_items);
+  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Fluid_cobafield_itemf");
   RNA_def_property_ui_text(prop, "Field", "Simulation field to color map");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
+  prop = RNA_def_property(srna, "color_ramp_field_scale", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "grid_scale");
+  RNA_def_property_range(prop, 0.001, 100000.0);
+  RNA_def_property_ui_range(prop, 0.001, 1000.0, 0.1, 3);
+  RNA_def_property_ui_text(
+      prop, "Scale", "Multiplier for scaling the selected field to color map");
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
 
   prop = RNA_def_property(srna, "color_ramp", PROP_POINTER, PROP_NEVER_NULL);
   RNA_def_property_pointer_sdna(prop, NULL, "coba");
@@ -2377,6 +2576,39 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
       "Clipping",
       "Value under which voxels are considered empty space to optimize rendering");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
+
+  prop = RNA_def_property(srna, "gridlines_color_field", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "gridlines_color_field");
+  RNA_def_property_enum_items(prop, gridlines_color_field_items);
+  RNA_def_property_ui_text(
+      prop, "Color Gridlines", "Simulation field to color map onto gridlines");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
+  prop = RNA_def_property(srna, "gridlines_lower_bound", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "gridlines_lower_bound");
+  RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 0.1, 6);
+  RNA_def_property_ui_text(prop, "Lower Bound", "Lower bound of the highlighting range");
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
+
+  prop = RNA_def_property(srna, "gridlines_upper_bound", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "gridlines_upper_bound");
+  RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 0.1, 6);
+  RNA_def_property_ui_text(prop, "Upper Bound", "Upper bound of the highlighting range");
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
+
+  prop = RNA_def_property(srna, "gridlines_range_color", PROP_FLOAT, PROP_COLOR);
+  RNA_def_property_float_sdna(prop, NULL, "gridlines_range_color");
+  RNA_def_property_array(prop, 4);
+  RNA_def_property_ui_text(prop, "Color", "Color used to highlight the range");
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
+
+  prop = RNA_def_property(srna, "gridlines_cell_filter", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "gridlines_cell_filter");
+  RNA_def_property_enum_items(prop, gridlines_cell_filter_items);
+  RNA_def_property_ui_text(prop, "Cell Type", "Cell type to be highlighted");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
   /* -- Deprecated / unsed options (below)-- */
 

@@ -112,7 +112,8 @@ GPUTexture *DRW_texture_create_3d(
     int w, int h, int d, eGPUTextureFormat format, DRWTextureFlag flags, const float *fpixels)
 {
   int mips = (flags & DRW_TEX_MIPMAP) ? 9999 : 1;
-  GPUTexture *tex = GPU_texture_create_3d(__func__, w, h, d, mips, format, fpixels);
+  GPUTexture *tex = GPU_texture_create_3d(
+      __func__, w, h, d, mips, format, GPU_DATA_FLOAT, fpixels);
   drw_texture_set_parameters(tex, flags);
 
   return tex;

@@ -196,6 +196,8 @@ void DRW_hair_free(void);
 void DRW_smoke_ensure(struct FluidModifierData *fmd, int highres);
 void DRW_smoke_ensure_coba_field(struct FluidModifierData *fmd);
 void DRW_smoke_ensure_velocity(struct FluidModifierData *fmd);
+void DRW_fluid_ensure_flags(struct FluidModifierData *fmd);
+void DRW_fluid_ensure_range_field(struct FluidModifierData *fmd);
 
 void DRW_smoke_free(struct FluidModifierData *fmd);
 void DRW_smoke_free_velocity(struct FluidModifierData *fmd);

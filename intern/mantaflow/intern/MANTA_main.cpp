@@ -118,6 +118,7 @@ MANTA::MANTA(int *res, FluidModifierData *fmd) : mCurrentID(++solverID)
   mFuelIn = nullptr;
   mReactIn = nullptr;
   mEmissionIn = nullptr;
+  mPressure = nullptr;
 
   /* Smoke high res grids. */
   mDensityHigh = nullptr;
@@ -2020,6 +2021,7 @@ void MANTA::updatePointers(FluidModifierData *fmd, bool flush)
   mForceX = (smoke || liquid) ? getPointer<float>("x_force" + s_ext, func) : nullptr;
   mForceY = (smoke || liquid) ? getPointer<float>("y_force" + s_ext, func) : nullptr;
   mForceZ = (smoke || liquid) ? getPointer<float>("z_force" + s_ext, func) : nullptr;
+  mPressure = (smoke || liquid) ? getPointer<float>("pressure" + s_ext, func) : nullptr;
 
   /* Outflow. */
   mPhiOutIn = (outflow) ? getPointer<float>("phiOutIn" + s_ext, func) : nullptr;

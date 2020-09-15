@@ -10,6 +10,7 @@ uniform sampler2D depthBuffer;
 uniform sampler3D densityTexture;
 uniform sampler3D shadowTexture;
 uniform sampler3D flameTexture;
+uniform usampler3D flagTexture;
 uniform sampler1D flameColorTexture;
 uniform sampler1D transferTexture;
 uniform mat4 volumeObjectToTexture;
@@ -18,10 +19,15 @@ uniform int samplesLen = 256;
 uniform float noiseOfs = 0.0;
 uniform float stepLength;   /* Step length in local space. */
 uniform float densityScale; /* Simple Opacity multiplicator. */
+uniform float gridScale;    /* Multiplicator for grid scaling. */
 uniform vec3 activeColor;
 
 uniform float slicePosition;
 uniform int sliceAxis; /* -1 is no slice, 0 is X, 1 is Y, 2 is Z. */
+
+uniform bool showPhi = false;
+uniform bool showFlags = false;
+uniform bool showPressure = false;
 
 #ifdef VOLUME_SLICE
 in vec3 localPos;
@@ -91,18 +97,89 @@ vec4 sample_tricubic(sampler3D ima, vec3 co)
   return color;
 }
 
+/* Nearest-neighbor interpolation */
+vec4 sample_closest(sampler3D ima, vec3 co)
+{
+  /* Unnormalize coordinates */
+  ivec3 cell_co = ivec3(co * vec3(textureSize(ima, 0).xyz));
+
+  return texelFetch(ima, cell_co, 0);
+}
+
+vec4 flag_to_color(uint flag)
+{
+  /* Color mapping for flags */
+  vec4 color = vec4(0.0, 0.0, 0.0, 0.06);
+  /* Cell types: 1 is Fluid, 2 is Obstacle, 4 is Empty, 8 is Inflow, 16 is Outflow */
+  if (bool(flag & uint(1))) {
+    color.rgb += vec3(0.0, 0.0, 0.75); /* blue */
+  }
+  if (bool(flag & uint(2))) {
+    color.rgb += vec3(0.2, 0.2, 0.2); /* dark gray */
+  }
+  if (bool(flag & uint(4))) {
+    color.rgb += vec3(0.25, 0.0, 0.2); /* dark purple */
+  }
+  if (bool(flag & uint(8))) {
+    color.rgb += vec3(0.0, 0.5, 0.0); /* dark green */
+  }
+  if (bool(flag & uint(16))) {
+    color.rgb += vec3(0.9, 0.3, 0.0); /* orange */
+  }
+  if (color.rgb == vec3(0.0)) {
+    color.rgb += vec3(0.5, 0.0, 0.0); /* medium red */
+  }
+  return color;
+}
+
 #ifdef USE_TRICUBIC
 #  define sample_volume_texture sample_tricubic
-#else
+#elif defined(USE_TRILINEAR)
 #  define sample_volume_texture sample_trilinear
+#elif defined(USE_CLOSEST)
+#  define sample_volume_texture sample_closest
 #endif
 
 void volume_properties(vec3 ls_pos, out vec3 scattering, out float extinction)
 {
   vec3 co = ls_pos * 0.5 + 0.5;
 #ifdef USE_COBA
-  float val = sample_volume_texture(densityTexture, co).r;
-  vec4 tval = texture(transferTexture, val) * densityScale;
+  vec4 tval;
+  if (showPhi) {
+    /* Color mapping for level-set representation */
+    float val = sample_volume_texture(densityTexture, co).r * gridScale;
+
+    val = max(min(val * 0.2, 1.0), -1.0);
+
+    if (val >= 0.0) {
+      tval = vec4(val, 0.0, 0.5, 0.06);
+    }
+    else {
+      tval = vec4(0.5, 1.0 + val, 0.0, 0.06);
+    }
+  }
+  else if (showFlags) {
+    /* Color mapping for flags */
+    uint flag = texture(flagTexture, co).r;
+    tval = flag_to_color(flag);
+  }
+  else if (showPressure) {
+    /* Color mapping for pressure */
+    float val = sample_volume_texture(densityTexture, co).r * gridScale;
+
+    if (val > 0) {
+      tval = vec4(val, val, val, 0.06);
+    }
+    else {
+      tval = vec4(-val, 0.0, 0.0, 0.06);
+    }
+  }
+  else {
+    float val = sample_volume_texture(densityTexture, co).r * gridScale;
+    tval = texture(transferTexture, val);
+  }
+  tval *= densityScale;
+  tval.rgb = pow(tval.rgb, vec3(2.2));
   scattering = tval.rgb * 1500.0;
   extinction = max(1e-4, tval.a * 50.0);
 #else

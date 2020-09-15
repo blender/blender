@@ -1290,7 +1290,7 @@ class PHYSICS_PT_viewport_display(PhysicButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return (PhysicButtonsPanel.poll_gas_domain(context))
+        return (PhysicButtonsPanel.poll_fluid_domain(context))
 
     def draw(self, context):
         layout = self.layout
@@ -1298,41 +1298,40 @@ class PHYSICS_PT_viewport_display(PhysicButtonsPanel, Panel):
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
 
         domain = context.fluid.domain_settings
-        slice_method = domain.slice_method
         axis_slice_method = domain.axis_slice_method
 
-        do_axis_slicing = (slice_method == 'AXIS_ALIGNED')
         do_full_slicing = (axis_slice_method == 'FULL')
 
         col = flow.column(align=False)
         col.prop(domain, "display_thickness")
-        col.prop(domain, "display_interpolation")
-        col.separator()
 
-        col = flow.column()
-        col.prop(domain, "slice_method", text="Slicing")
+        sub = col.column()
+        sub.prop(domain, "display_interpolation")
 
-        col = col.column()
-        col.active = do_axis_slicing
+        if domain.use_color_ramp and domain.color_ramp_field == 'FLAGS':
+            sub.enabled = False
+
         col.prop(domain, "axis_slice_method")
 
-        if not do_full_slicing and do_axis_slicing:
+        if not do_full_slicing:
             col.prop(domain, "slice_axis")
             col.prop(domain, "slice_depth")
+            if domain.display_interpolation == 'CLOSEST' or domain.color_ramp_field == 'FLAGS':
+                col.prop(domain, "show_gridlines")
 
         col = col.column()
-        col.active = do_full_slicing or not do_axis_slicing
+        col.active = do_full_slicing
         col.prop(domain, "slice_per_voxel")
 
 
 class PHYSICS_PT_viewport_display_color(PhysicButtonsPanel, Panel):
-    bl_label = "Color Mapping"
+    bl_label = "Grid Display"
     bl_parent_id = 'PHYSICS_PT_viewport_display'
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
-        return (PhysicButtonsPanel.poll_gas_domain(context))
+        return (PhysicButtonsPanel.poll_fluid_domain(context))
 
     def draw_header(self, context):
         md = context.fluid.domain_settings
@@ -1346,22 +1345,26 @@ class PHYSICS_PT_viewport_display_color(PhysicButtonsPanel, Panel):
         domain = context.fluid.domain_settings
         col = layout.column()
         col.active = domain.use_color_ramp
-        col.prop(domain, "coba_field")
+        col.prop(domain, "color_ramp_field")
+
+        if not domain.color_ramp_field == 'FLAGS':
+            col.prop(domain, "color_ramp_field_scale")
 
         col.use_property_split = False
 
-        col = col.column()
-        col.template_color_ramp(domain, "color_ramp", expand=True)
+        if domain.color_ramp_field[:3] != 'PHI' and domain.color_ramp_field not in {'FLAGS', 'PRESSURE'}:
+            col = col.column()
+            col.template_color_ramp(domain, "color_ramp", expand=True)
 
 
 class PHYSICS_PT_viewport_display_debug(PhysicButtonsPanel, Panel):
-    bl_label = "Debug Velocity"
+    bl_label = "Vector Display"
     bl_parent_id = 'PHYSICS_PT_viewport_display'
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
-        return (PhysicButtonsPanel.poll_gas_domain(context))
+        return (PhysicButtonsPanel.poll_fluid_domain(context))
 
     def draw_header(self, context):
         md = context.fluid.domain_settings
@@ -1378,8 +1381,52 @@ class PHYSICS_PT_viewport_display_debug(PhysicButtonsPanel, Panel):
         col = flow.column()
         col.active = domain.show_velocity
         col.prop(domain, "vector_display_type", text="Display As")
+
+        if not domain.use_guide and domain.vector_field == 'GUIDE_VELOCITY':
+            note = layout.split()
+            note.label(icon='INFO', text="Enable Guides first! Defaulting to Fluid Velocity.")
+        
+        if domain.vector_display_type == 'MAC':
+            sub = col.column(heading="MAC Grid")
+            sub.prop(domain, "vector_show_mac_x")
+            sub.prop(domain, "vector_show_mac_y")
+            sub.prop(domain, "vector_show_mac_z")
+        else:
+            col.prop(domain, "vector_scale_with_magnitude")
+        
+        col.prop(domain, "vector_field")
         col.prop(domain, "vector_scale")
 
+class PHYSICS_PT_viewport_display_advanced(PhysicButtonsPanel, Panel):
+    bl_label = "Advanced"
+    bl_parent_id = 'PHYSICS_PT_viewport_display'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return PhysicButtonsPanel.poll_fluid_domain(context) and context.fluid.domain_settings.show_gridlines
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        domain = context.fluid.domain_settings
+
+        col = layout.column()
+        col.prop(domain, "gridlines_color_field", text="Color Gridlines")
+
+        if domain.gridlines_color_field == 'RANGE':
+            if domain.use_color_ramp and domain.color_ramp_field != 'FLAGS':
+                col.prop(domain, "gridlines_lower_bound")
+                col.prop(domain, "gridlines_upper_bound")
+                col.prop(domain, "gridlines_range_color")
+                col.prop(domain, "gridlines_cell_filter")
+            else:
+                note = layout.split()
+                if not domain.use_color_ramp:
+                    note.label(icon='INFO', text="Enable Grid Display to use range highlighting!")
+                else:
+                    note.label(icon='INFO', text="Range highlighting for flags is not available!")
 
 classes = (
     FLUID_PT_presets,
@@ -1406,6 +1453,7 @@ classes = (
     PHYSICS_PT_viewport_display,
     PHYSICS_PT_viewport_display_color,
     PHYSICS_PT_viewport_display_debug,
+    PHYSICS_PT_viewport_display_advanced,
 )
 
 

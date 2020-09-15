@@ -97,22 +97,53 @@ TEST_F(DrawTest, workbench_glsl_shaders)
   EXPECT_NE(workbench_shader_antialiasing_get(1), nullptr);
   EXPECT_NE(workbench_shader_antialiasing_get(2), nullptr);
 
-  EXPECT_NE(workbench_shader_volume_get(false, false, false, false), nullptr);
-  EXPECT_NE(workbench_shader_volume_get(false, false, false, true), nullptr);
-  EXPECT_NE(workbench_shader_volume_get(false, false, true, false), nullptr);
-  EXPECT_NE(workbench_shader_volume_get(false, false, true, true), nullptr);
-  EXPECT_NE(workbench_shader_volume_get(false, true, false, false), nullptr);
-  EXPECT_NE(workbench_shader_volume_get(false, true, false, true), nullptr);
-  EXPECT_NE(workbench_shader_volume_get(false, true, true, false), nullptr);
-  EXPECT_NE(workbench_shader_volume_get(false, true, true, true), nullptr);
-  EXPECT_NE(workbench_shader_volume_get(true, false, false, false), nullptr);
-  EXPECT_NE(workbench_shader_volume_get(true, false, false, true), nullptr);
-  EXPECT_NE(workbench_shader_volume_get(true, false, true, false), nullptr);
-  EXPECT_NE(workbench_shader_volume_get(true, false, true, true), nullptr);
-  EXPECT_NE(workbench_shader_volume_get(true, true, false, false), nullptr);
-  EXPECT_NE(workbench_shader_volume_get(true, true, false, true), nullptr);
-  EXPECT_NE(workbench_shader_volume_get(true, true, true, false), nullptr);
-  EXPECT_NE(workbench_shader_volume_get(true, true, true, true), nullptr);
+  EXPECT_NE(workbench_shader_volume_get(false, false, WORKBENCH_VOLUME_INTERP_LINEAR, false),
+            nullptr);
+  EXPECT_NE(workbench_shader_volume_get(false, false, WORKBENCH_VOLUME_INTERP_LINEAR, true),
+            nullptr);
+  EXPECT_NE(workbench_shader_volume_get(false, false, WORKBENCH_VOLUME_INTERP_CUBIC, false),
+            nullptr);
+  EXPECT_NE(workbench_shader_volume_get(false, false, WORKBENCH_VOLUME_INTERP_CUBIC, true),
+            nullptr);
+  EXPECT_NE(workbench_shader_volume_get(false, false, WORKBENCH_VOLUME_INTERP_CLOSEST, false),
+            nullptr);
+  EXPECT_NE(workbench_shader_volume_get(false, false, WORKBENCH_VOLUME_INTERP_CLOSEST, true),
+            nullptr);
+  EXPECT_NE(workbench_shader_volume_get(false, true, WORKBENCH_VOLUME_INTERP_LINEAR, false),
+            nullptr);
+  EXPECT_NE(workbench_shader_volume_get(false, true, WORKBENCH_VOLUME_INTERP_LINEAR, true),
+            nullptr);
+  EXPECT_NE(workbench_shader_volume_get(false, true, WORKBENCH_VOLUME_INTERP_CUBIC, false),
+            nullptr);
+  EXPECT_NE(workbench_shader_volume_get(false, true, WORKBENCH_VOLUME_INTERP_CUBIC, true),
+            nullptr);
+  EXPECT_NE(workbench_shader_volume_get(false, true, WORKBENCH_VOLUME_INTERP_CLOSEST, false),
+            nullptr);
+  EXPECT_NE(workbench_shader_volume_get(false, true, WORKBENCH_VOLUME_INTERP_CLOSEST, true),
+            nullptr);
+  EXPECT_NE(workbench_shader_volume_get(true, false, WORKBENCH_VOLUME_INTERP_LINEAR, false),
+            nullptr);
+  EXPECT_NE(workbench_shader_volume_get(true, false, WORKBENCH_VOLUME_INTERP_LINEAR, true),
+            nullptr);
+  EXPECT_NE(workbench_shader_volume_get(true, false, WORKBENCH_VOLUME_INTERP_CUBIC, false),
+            nullptr);
+  EXPECT_NE(workbench_shader_volume_get(true, false, WORKBENCH_VOLUME_INTERP_CUBIC, true),
+            nullptr);
+  EXPECT_NE(workbench_shader_volume_get(true, false, WORKBENCH_VOLUME_INTERP_CLOSEST, false),
+            nullptr);
+  EXPECT_NE(workbench_shader_volume_get(true, false, WORKBENCH_VOLUME_INTERP_CLOSEST, true),
+            nullptr);
+  EXPECT_NE(workbench_shader_volume_get(true, true, WORKBENCH_VOLUME_INTERP_LINEAR, false),
+            nullptr);
+  EXPECT_NE(workbench_shader_volume_get(true, true, WORKBENCH_VOLUME_INTERP_LINEAR, true),
+            nullptr);
+  EXPECT_NE(workbench_shader_volume_get(true, true, WORKBENCH_VOLUME_INTERP_CUBIC, false),
+            nullptr);
+  EXPECT_NE(workbench_shader_volume_get(true, true, WORKBENCH_VOLUME_INTERP_CUBIC, true), nullptr);
+  EXPECT_NE(workbench_shader_volume_get(true, true, WORKBENCH_VOLUME_INTERP_CLOSEST, false),
+            nullptr);
+  EXPECT_NE(workbench_shader_volume_get(true, true, WORKBENCH_VOLUME_INTERP_CLOSEST, true),
+            nullptr);
 
   GPUShader *dof_prepare_sh;
   GPUShader *dof_downsample_sh;

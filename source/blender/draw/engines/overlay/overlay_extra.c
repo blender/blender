@@ -1383,6 +1383,17 @@ static void OVERLAY_volume_extra(OVERLAY_ExtraCallBuffers *cb,
   const bool draw_velocity = (fds->draw_velocity && fds->fluid &&
                               CFRA >= fds->point_cache[0]->startframe);
 
+  /* Show gridlines only for slices with no interpolation. */
+  const bool show_gridlines = (fds->show_gridlines && fds->fluid &&
+                               fds->axis_slice_method == AXIS_SLICE_SINGLE &&
+                               (fds->interp_method == FLUID_DISPLAY_INTERP_CLOSEST ||
+                                fds->coba_field == FLUID_DOMAIN_FIELD_FLAGS));
+
+  const bool color_with_flags = (fds->gridlines_color_field == FLUID_GRIDLINE_COLOR_TYPE_FLAGS);
+
+  const bool color_range = (fds->gridlines_color_field == FLUID_GRIDLINE_COLOR_TYPE_RANGE &&
+                            fds->use_coba && fds->coba_field != FLUID_DOMAIN_FIELD_FLAGS);
+
   /* Small cube showing voxel size. */
   {
     float min[3];
@@ -1402,26 +1413,40 @@ static void OVERLAY_volume_extra(OVERLAY_ExtraCallBuffers *cb,
     DRW_buffer_add_entry(cb->empty_cube, color, voxel_cubemat);
   }
 
+  int slice_axis = -1;
+
+  if (fds->axis_slice_method == AXIS_SLICE_SINGLE) {
+    float viewinv[4][4];
+    DRW_view_viewmat_get(NULL, viewinv, true);
+
+    const int axis = (fds->slice_axis == SLICE_AXIS_AUTO) ? axis_dominant_v3_single(viewinv[2]) :
+                                                            fds->slice_axis - 1;
+    slice_axis = axis;
+  }
+
   if (draw_velocity) {
     const bool use_needle = (fds->vector_draw_type == VECTOR_DRAW_NEEDLE);
-    int line_count = (use_needle) ? 6 : 1;
-    int slice_axis = -1;
+    const bool use_mac = (fds->vector_draw_type == VECTOR_DRAW_MAC);
+    const bool draw_mac_x = (fds->vector_draw_mac_components & VECTOR_DRAW_MAC_X);
+    const bool draw_mac_y = (fds->vector_draw_mac_components & VECTOR_DRAW_MAC_Y);
+    const bool draw_mac_z = (fds->vector_draw_mac_components & VECTOR_DRAW_MAC_Z);
+    const bool cell_centered = (fds->vector_field == FLUID_DOMAIN_VECTOR_FIELD_FORCE);
+    int line_count = 1;
+    if (use_needle) {
+      line_count = 6;
+    }
+    else if (use_mac) {
+      line_count = 3;
+    }
     line_count *= fds->res[0] * fds->res[1] * fds->res[2];
 
-    if (fds->slice_method == FLUID_DOMAIN_SLICE_AXIS_ALIGNED &&
-        fds->axis_slice_method == AXIS_SLICE_SINGLE) {
-      float viewinv[4][4];
-      DRW_view_viewmat_get(NULL, viewinv, true);
-
-      const int axis = (fds->slice_axis == SLICE_AXIS_AUTO) ? axis_dominant_v3_single(viewinv[2]) :
-                                                              fds->slice_axis - 1;
-      slice_axis = axis;
-      line_count /= fds->res[axis];
+    if (fds->axis_slice_method == AXIS_SLICE_SINGLE) {
+      line_count /= fds->res[slice_axis];
     }
 
     DRW_smoke_ensure_velocity(fmd);
 
-    GPUShader *sh = OVERLAY_shader_volume_velocity(use_needle);
+    GPUShader *sh = OVERLAY_shader_volume_velocity(use_needle, use_mac);
     DRWShadingGroup *grp = DRW_shgroup_create(sh, data->psl->extra_ps[0]);
     DRW_shgroup_uniform_texture(grp, "velocityX", fds->tex_velocity_x);
     DRW_shgroup_uniform_texture(grp, "velocityY", fds->tex_velocity_y);
@@ -1432,8 +1457,47 @@ static void OVERLAY_volume_extra(OVERLAY_ExtraCallBuffers *cb,
     DRW_shgroup_uniform_vec3_copy(grp, "domainOriginOffset", fds->p0);
     DRW_shgroup_uniform_ivec3_copy(grp, "adaptiveCellOffset", fds->res_min);
     DRW_shgroup_uniform_int_copy(grp, "sliceAxis", slice_axis);
-    DRW_shgroup_call_procedural_lines(grp, ob, line_count);
+    DRW_shgroup_uniform_bool_copy(grp, "scaleWithMagnitude", fds->vector_scale_with_magnitude);
+    DRW_shgroup_uniform_bool_copy(grp, "isCellCentered", cell_centered);
 
+    if (use_mac) {
+      DRW_shgroup_uniform_bool_copy(grp, "drawMACX", draw_mac_x);
+      DRW_shgroup_uniform_bool_copy(grp, "drawMACY", draw_mac_y);
+      DRW_shgroup_uniform_bool_copy(grp, "drawMACZ", draw_mac_z);
+    }
+
+    DRW_shgroup_call_procedural_lines(grp, ob, line_count);
+  }
+
+  if (show_gridlines) {
+    GPUShader *sh = OVERLAY_shader_volume_gridlines(color_with_flags, color_range);
+    DRWShadingGroup *grp = DRW_shgroup_create(sh, data->psl->extra_ps[0]);
+    DRW_shgroup_uniform_ivec3_copy(grp, "volumeSize", fds->res);
+    DRW_shgroup_uniform_float_copy(grp, "slicePosition", fds->slice_depth);
+    DRW_shgroup_uniform_vec3_copy(grp, "cellSize", fds->cell_size);
+    DRW_shgroup_uniform_vec3_copy(grp, "domainOriginOffset", fds->p0);
+    DRW_shgroup_uniform_ivec3_copy(grp, "adaptiveCellOffset", fds->res_min);
+    DRW_shgroup_uniform_int_copy(grp, "sliceAxis", slice_axis);
+
+    if (color_with_flags || color_range) {
+      DRW_fluid_ensure_flags(fmd);
+      DRW_shgroup_uniform_texture(grp, "flagTexture", fds->tex_flags);
+    }
+
+    if (color_range) {
+      DRW_fluid_ensure_range_field(fmd);
+      DRW_shgroup_uniform_texture(grp, "fieldTexture", fds->tex_range_field);
+      DRW_shgroup_uniform_float_copy(grp, "lowerBound", fds->gridlines_lower_bound);
+      DRW_shgroup_uniform_float_copy(grp, "upperBound", fds->gridlines_upper_bound);
+      DRW_shgroup_uniform_vec4_copy(grp, "rangeColor", fds->gridlines_range_color);
+      DRW_shgroup_uniform_int_copy(grp, "cellFilter", fds->gridlines_cell_filter);
+    }
+
+    const int line_count = 4 * fds->res[0] * fds->res[1] * fds->res[2] / fds->res[slice_axis];
+    DRW_shgroup_call_procedural_lines(grp, ob, line_count);
+  }
+
+  if (draw_velocity || show_gridlines) {
     BLI_addtail(&data->stl->pd->smoke_domains, BLI_genericNodeN(fmd));
   }
 }

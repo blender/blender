@@ -367,9 +367,11 @@ void workbench_cache_populate(void *ved, Object *ob)
     ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Fluid);
     if (md && BKE_modifier_is_enabled(wpd->scene, md, eModifierMode_Realtime)) {
       FluidModifierData *fmd = (FluidModifierData *)md;
-      if (fmd->domain && fmd->domain->type == FLUID_DOMAIN_TYPE_GAS) {
+      if (fmd->domain) {
         workbench_volume_cache_populate(vedata, wpd->scene, ob, md, V3D_SHADING_SINGLE_COLOR);
-        return; /* Do not draw solid in this case. */
+        if (fmd->domain->type == FLUID_DOMAIN_TYPE_GAS) {
+          return; /* Do not draw solid in this case. */
+        }
       }
     }
   }
