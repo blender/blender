@@ -141,15 +141,9 @@ static void image_cache_image(IMAGE_Data *vedata, Image *image, ImageUser *iuser
     const bool use_premul_alpha = image->alpha_mode == IMA_ALPHA_PREMUL;
     const bool is_tiled_texture = tex_tile_data != NULL;
     const bool do_repeat = (!is_tiled_texture) && ((sima->flag & SI_DRAW_TILE) != 0);
-    const bool is_zoom_out = sima->zoom < 1.0f;
-
-    /* use interpolation filtering when zooming out */
-    eGPUSamplerState state = 0;
-    SET_FLAG_FROM_TEST(state, is_zoom_out, GPU_SAMPLER_FILTER);
 
     int draw_flags = 0;
     SET_FLAG_FROM_TEST(draw_flags, do_repeat, SIMA_DRAW_FLAG_DO_REPEAT);
-
     if ((sima->flag & SI_USE_ALPHA) != 0) {
       /* Show RGBA */
       draw_flags |= SIMA_DRAW_FLAG_SHOW_ALPHA | SIMA_DRAW_FLAG_APPLY_ALPHA;
@@ -181,11 +175,11 @@ static void image_cache_image(IMAGE_Data *vedata, Image *image, ImageUser *iuser
     GPUShader *shader = IMAGE_shader_image_get(is_tiled_texture);
     DRWShadingGroup *shgrp = DRW_shgroup_create(shader, psl->image_pass);
     if (is_tiled_texture) {
-      DRW_shgroup_uniform_texture_ex(shgrp, "imageTileArray", pd->texture, state);
+      DRW_shgroup_uniform_texture_ex(shgrp, "imageTileArray", pd->texture, 0);
       DRW_shgroup_uniform_texture(shgrp, "imageTileData", tex_tile_data);
     }
     else {
-      DRW_shgroup_uniform_texture_ex(shgrp, "imageTexture", pd->texture, state);
+      DRW_shgroup_uniform_texture_ex(shgrp, "imageTexture", pd->texture, 0);
     }
     DRW_shgroup_uniform_vec2_copy(shgrp, "farNearDistances", far_near);
     DRW_shgroup_uniform_vec4_copy(shgrp, "color", color);
