@@ -1316,14 +1316,14 @@ void correct_bezpart(const float v1[2], float v2[2], float v3[2], const float v4
 {
   float h1[2], h2[2], len1, len2, len, fac;
 
-  /* calculate handle deltas */
+  /* Calculate handle deltas. */
   h1[0] = v1[0] - v2[0];
   h1[1] = v1[1] - v2[1];
 
   h2[0] = v4[0] - v3[0];
   h2[1] = v4[1] - v3[1];
 
-  /* calculate distances:
+  /* Calculate distances:
    * - len  = span of time between keyframes
    * - len1 = length of handle of start key
    * - len2 = length of handle of end key
@@ -1332,7 +1332,7 @@ void correct_bezpart(const float v1[2], float v2[2], float v3[2], const float v4
   len1 = fabsf(h1[0]);
   len2 = fabsf(h2[0]);
 
-  /* if the handles have no length, no need to do any corrections */
+  /* If the handles have no length, no need to do any corrections. */
   if ((len1 + len2) == 0.0f) {
     return;
   }
