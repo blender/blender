@@ -1074,7 +1074,7 @@ static void write_pose(BlendWriter *writer, bPose *pose, bArmature *arm)
     write_motionpath(writer, chan->mpath);
 
     /* Prevent crashes with autosave,
-     * when a bone duplicated in editmode has not yet been assigned to its posechannel.
+     * when a bone duplicated in edit-mode has not yet been assigned to its pose-channel.
      * Also needed with memundo, in some cases we can store a step before pose has been
      * properly rebuilt from previous undo step. */
     Bone *bone = (pose->flag & POSE_RECALC) ? BKE_armature_find_bone_name(arm, chan->name) :
@@ -1305,12 +1305,12 @@ static void write_object(BlendWriter *writer, Object *ob, const void *id_address
 {
   const bool is_undo = BLO_write_is_undo(writer);
   if (ob->id.us > 0 || is_undo) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+    /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
     BKE_object_runtime_reset(ob);
 
     if (is_undo) {
-      /* For undo we stay in object mode during undo presses, so keep editmode disabled on save as
-       * well, can help reducing false detection of changed datablocks. */
+      /* For undo we stay in object mode during undo presses, so keep edit-mode disabled on save as
+       * well, can help reducing false detection of changed data-blocks. */
       ob->mode &= ~OB_MODE_EDIT;
     }
 
@@ -1392,7 +1392,7 @@ static void write_collection_nolib(BlendWriter *writer, Collection *collection)
 static void write_collection(BlendWriter *writer, Collection *collection, const void *id_address)
 {
   if (collection->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+    /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
     collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
     collection->tag = 0;
     BLI_listbase_clear(&collection->object_cache);
@@ -1519,7 +1519,7 @@ static void write_lightcache(BlendWriter *writer, LightCache *cache)
 static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
 {
   if (BLO_write_is_undo(writer)) {
-    /* Clean up, important in undo case to reduce false detection of changed datablocks. */
+    /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
     /* XXX This UI data should not be stored in Scene at all... */
     memset(&sce->cursor, 0, sizeof(sce->cursor));
   }

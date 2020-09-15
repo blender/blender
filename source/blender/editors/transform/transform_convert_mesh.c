@@ -1565,9 +1565,9 @@ static void transform_apply_to_mirror(TransInfo *t)
 
 void recalcData_mesh(TransInfo *t)
 {
-  bool is_cancelling = t->state == TRANS_CANCEL;
+  bool is_canceling = t->state == TRANS_CANCEL;
   /* mirror modifier clipping? */
-  if (!is_cancelling) {
+  if (!is_canceling) {
     /* apply clipping after so we never project past the clip plane [#25423] */
     applyProject(t);
     clipMirrorModifier(t);
@@ -1597,13 +1597,12 @@ void recalcData_mesh(TransInfo *t)
 
 void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
 {
-  const bool is_cancelling = (t->state == TRANS_CANCEL);
-  const bool use_automerge = !is_cancelling && (t->flag & (T_AUTOMERGE | T_AUTOSPLIT)) != 0;
+  const bool is_canceling = (t->state == TRANS_CANCEL);
+  const bool use_automerge = !is_canceling && (t->flag & (T_AUTOMERGE | T_AUTOSPLIT)) != 0;
 
-  if (!is_cancelling && ELEM(t->mode, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
-    /* Handle multires re-projection, done
-     * on transform completion since it's
-     * really slow -joeedh. */
+  if (!is_canceling && ELEM(t->mode, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
+    /* NOTE(joeedh): Handle multi-res re-projection,
+     * done on transform completion since it's really slow. */
     mesh_customdatacorrect_apply(t, true);
   }
 

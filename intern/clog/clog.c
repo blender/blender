@@ -188,7 +188,7 @@ static void clg_str_vappendf(CLogStringBuf *cstr, const char *fmt, va_list args)
     va_end(args_cpy);
 
     if (retval < 0) {
-      /* Some encoding error happened, not much we can do here, besides skipping/cancelling this
+      /* Some encoding error happened, not much we can do here, besides skipping/canceling this
        * message. */
       break;
     }
@@ -199,7 +199,7 @@ static void clg_str_vappendf(CLogStringBuf *cstr, const char *fmt, va_list args)
     }
     else {
       /* vsnprintf was not successful, due to lack of allocated space, retval contains expected
-       * length of the formated string, use it to allocate required amount of memory. */
+       * length of the formatted string, use it to allocate required amount of memory. */
       uint len_alloc = cstr->len + (uint)retval;
       if (len_alloc >= len_max) {
         /* Safe upper-limit, just in case... */
@@ -291,7 +291,7 @@ static enum eCLogColor clg_severity_to_color(enum CLG_Severity severity)
  * \{ */
 
 /**
- * Filter the indentifier based on very basic globbing.
+ * Filter the identifier based on very basic globbing.
  * - `foo` exact match of `foo`.
  * - `foo.bar` exact match for `foo.bar`
  * - `foo.*` match for `foo` & `foo.bar` & `foo.bar.baz`
@@ -367,7 +367,7 @@ static void clg_ctx_fatal_action(CLogContext *ctx)
 
 static void clg_ctx_backtrace(CLogContext *ctx)
 {
-  /* Note: we avoid writing fo 'FILE', for backtrace we make an exception,
+  /* Note: we avoid writing to 'FILE', for back-trace we make an exception,
    * if necessary we could have a version of the callback that writes to file
    * descriptor all at once. */
   ctx->callbacks.backtrace_fn(ctx->output_file);
@@ -549,11 +549,11 @@ static void CLG_ctx_output_set(CLogContext *ctx, void *file_handle)
   ctx->use_color = isatty(ctx->output);
 #elif defined(WIN32)
   /* Windows Terminal supports color like the Linux terminals do while the standard console does
-   * not, the way to tell the two apart is to look at the WT_SESSION environment variable which
+   * not, the way to tell the two apart is to look at the `WT_SESSION` environment variable which
    * will only be defined for Windows Terminal. */
 
-  /* getenv is used here rather than BLI_getenv since there are no benefits for using it in this
-   * context. */
+  /* #getenv is used here rather than #BLI_getenv since it would be a bad level call
+   * and there are no benefits for using it in this context. */
   ctx->use_color = isatty(ctx->output) && getenv("WT_SESSION");
 #endif
 }
@@ -729,7 +729,8 @@ void CLG_level_set(int level)
 
 /* -------------------------------------------------------------------- */
 /** \name Logging Reference API
- * Use to avoid lookups each time.
+ *
+ * Use to avoid look-ups each time.
  * \{ */
 
 void CLG_logref_init(CLG_LogRef *clg_ref)

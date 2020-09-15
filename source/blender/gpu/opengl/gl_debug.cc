@@ -73,7 +73,7 @@ static void APIENTRY debug_callback(GLenum UNUSED(source),
 {
   if (ELEM(type, GL_DEBUG_TYPE_PUSH_GROUP, GL_DEBUG_TYPE_POP_GROUP)) {
     /* The debug layer will emit a message each time a debug group is pushed or popped.
-     * We use that for easy command grouping inside frame analyser tools. */
+     * We use that for easy command grouping inside frame analyzer tools. */
     return;
   }
 
