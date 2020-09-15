@@ -522,7 +522,8 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
       set(_asan_defaults "${_asan_defaults}")
     elseif(APPLE)
       # AppleClang doesn't support all sanitizers, but leak gives error.
-      if(CMAKE_BUILD_TYPE MATCHES "Debug")
+      # Build type is not known for multi-config generator, so don't add object-size sanitizer.
+      if(CMAKE_BUILD_TYPE MATCHES "Debug" OR GENERATOR_IS_MULTI_CONFIG)
         # Silence the warning that object-size is not effective in -O0.
         set(_asan_defaults "${_asan_defaults}")
       else()
@@ -553,9 +554,11 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
       )
       string(STRIP "${CLANG_LIB_DIR}" CLANG_LIB_DIR)
       find_library(
-        COMPILER_ASAN_LIBRARY NAMES libclang_rt.asan_osx_dynamic.dylib
+        COMPILER_ASAN_LIBRARY
+        NAMES
+          libclang_rt.asan_osx_dynamic.dylib
         PATHS
-        "${CLANG_LIB_DIR}/darwin/"
+          "${CLANG_LIB_DIR}/darwin/"
       )
       unset(CLANG_LIB_DIR)
     else()
@@ -858,6 +861,9 @@ if(NOT CMAKE_BUILD_TYPE MATCHES "Release")
       set(COMPILER_ASAN_LINKER_FLAGS "/FUNCTIONPADMIN:6")
     endif()
     if(APPLE)
+      # COMPILER_ASAN_CFLAGS and COMPILER_ASAN_CXXFLAGS are the same as of
+      # now, so use either for PLATFORM_CFLAGS.
+      set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} ${COMPILER_ASAN_CFLAGS}")
       set(COMPILER_ASAN_LINKER_FLAGS "-fno-omit-frame-pointer -fsanitize=address")
     endif(APPLE)
     if(COMPILER_ASAN_LIBRARY)
