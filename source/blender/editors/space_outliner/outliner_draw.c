@@ -2464,7 +2464,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
           data.drag_parent = (data.drag_id && te->parent) ? TREESTORE(te->parent)->id : NULL;
         }
 
-        data.icon = ICON_GROUP;
+        data.icon = ICON_OUTLINER_COLLECTION;
         break;
       }
       case TSE_GP_LAYER: {
@@ -2769,8 +2769,30 @@ static void tselem_draw_icon(uiBlock *block,
     return;
   }
 
+  if (outliner_is_collection_tree_element(te)) {
+    Collection *collection = outliner_collection_from_tree_element(te);
+
+    /* placement of icons, copied from interface_widgets.c */
+    float aspect = (0.8f * UI_UNIT_Y) / ICON_DEFAULT_HEIGHT;
+    x += 2.0f * aspect;
+    y += 2.0f * aspect;
+    if (collection->color_tag != COLLECTION_COLOR_NONE) {
+      bTheme *btheme = UI_GetTheme();
+      UI_icon_draw_ex(x,
+                      y,
+                      data.icon,
+                      U.inv_dpi_fac,
+                      alpha,
+                      0.0f,
+                      btheme->collection_color[collection->color_tag].color,
+                      true);
+    }
+    else {
+      UI_icon_draw_ex(x, y, data.icon, U.inv_dpi_fac, alpha, 0.0f, NULL, true);
+    }
+  }
   /* Icon is covered by restrict buttons */
-  if (!is_clickable || x >= xmax) {
+  else if (!is_clickable || x >= xmax) {
     /* Reduce alpha to match icon buttons */
     alpha *= 0.8f;
 
