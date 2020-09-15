@@ -50,9 +50,6 @@ include_directories(${INC})
 
 cycles_link_directories()
 
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${PLATFORM_LINKFLAGS}")
-set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${PLATFORM_LINKFLAGS_DEBUG}")
-
 CYCLES_TEST(render_graph_finalize "${ALL_CYCLES_LIBRARIES};bf_intern_numaapi")
 cycles_target_link_libraries(cycles_render_graph_finalize_test)
 CYCLES_TEST(util_aligned_malloc "cycles_util")

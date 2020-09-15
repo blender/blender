@@ -256,13 +256,7 @@ if(WITH_PYTHON_MODULE)
   )
 
   if(APPLE)
-    set_target_properties(
-      blender
-      PROPERTIES
-        MACOSX_BUNDLE TRUE
-        LINK_FLAGS_RELEASE "${PLATFORM_LINKFLAGS}"
-        LINK_FLAGS_DEBUG "${PLATFORM_LINKFLAGS_DEBUG}"
-    )
+    set_target_properties(blender PROPERTIES MACOSX_BUNDLE TRUE)
   endif()
 
   if(WIN32)
@@ -1127,7 +1121,8 @@ add_dependencies(blender makesdna)
 target_link_libraries(blender ${LIB})
 unset(LIB)
 
-setup_liblinks(blender)
+setup_platform_linker_flags(blender)
+setup_platform_linker_libs(blender)
 
 if(APPLE)
   set_target_properties(blender PROPERTIES LINK_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/osx_locals.map)
@@ -1162,9 +1157,9 @@ if(WIN32)
       # CMAKE_BUILD_TYPE. This can be simplified by target_link_options and the $<CONFIG>
       # generator expression in newer cmake (2.13+) but until that time this fill have suffice.
       if(CMAKE_BUILD_TYPE)
-        set_property(TARGET blender APPEND PROPERTY LINK_FLAGS  " /PDBSTRIPPED:${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/blender_public.pdb")
+        set_property(TARGET blender APPEND_STRING PROPERTY LINK_FLAGS  " /PDBSTRIPPED:${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/blender_public.pdb")
       else()
-        set_property(TARGET blender APPEND PROPERTY LINK_FLAGS  " /PDBSTRIPPED:${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/blender_public.pdb")
+        set_property(TARGET blender APPEND_STRING PROPERTY LINK_FLAGS  " /PDBSTRIPPED:${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/blender_public.pdb")
       endif()
   endif()
 endif()

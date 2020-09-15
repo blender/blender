@@ -51,7 +51,7 @@ BLENDER_SRC_GTEST_EX(
   EXTRA_LIBS "${TEST_LIBS}"
   SKIP_ADD_TEST
 )
-setup_liblinks(blender_test)
+setup_platform_linker_libs(blender_test)
 
 if(WIN32)
   foreach(_lib ${_test_libs})

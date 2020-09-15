@@ -39,6 +39,7 @@ macro(BLENDER_SRC_GTEST_EX)
     add_definitions(${GLOG_DEFINES})
 
     add_executable(${TARGET_NAME} ${ARG_SRC} ${MANIFEST})
+    setup_platform_linker_flags(${TARGET_NAME})
     target_include_directories(${TARGET_NAME} PUBLIC "${TEST_INC}")
     target_include_directories(${TARGET_NAME} SYSTEM PUBLIC "${TEST_INC_SYS}")
     target_link_libraries(${TARGET_NAME} ${ARG_EXTRA_LIBS} ${PLATFORM_LINKLIBS})

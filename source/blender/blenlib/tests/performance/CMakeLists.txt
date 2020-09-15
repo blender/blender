@@ -26,8 +26,5 @@ set(INC
 setup_libdirs()
 include_directories(${INC})
 
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${PLATFORM_LINKFLAGS}")
-set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${PLATFORM_LINKFLAGS_DEBUG}")
-
 BLENDER_TEST_PERFORMANCE(BLI_ghash_performance "bf_blenlib")
 BLENDER_TEST_PERFORMANCE(BLI_task_performance "bf_blenlib")

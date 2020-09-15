@@ -386,9 +386,9 @@ blender_include_dirs(
 )
 
 add_cc_flags_custom_test(makesrna)
-setup_platform_linker_flags()
 
 add_executable(makesrna ${SRC} ${SRC_RNA_INC} ${SRC_DNA_INC})
+setup_platform_linker_flags(makesrna)
 
 target_link_libraries(makesrna bf_dna)
 target_link_libraries(makesrna bf_dna_blenlib)

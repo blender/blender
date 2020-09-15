@@ -840,11 +840,10 @@ set(CXX_WARNINGS)
 set(C_REMOVE_STRICT_FLAGS)
 set(CXX_REMOVE_STRICT_FLAGS)
 
-# libraries to link the binary with passed to target_link_libraries()
-# known as LLIBS to scons
+# Libraries to link to targets in setup_platform_linker_libs
 set(PLATFORM_LINKLIBS "")
 
-# Added to linker flags in setup_liblinks
+# Added to target linker flags in setup_platform_linker_flags
 # - CMAKE_EXE_LINKER_FLAGS
 # - CMAKE_EXE_LINKER_FLAGS_DEBUG
 set(PLATFORM_LINKFLAGS "")

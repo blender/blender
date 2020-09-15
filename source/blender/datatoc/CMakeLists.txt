@@ -34,7 +34,7 @@ if(NOT WITH_HEADLESS)
   set(SRC
     datatoc_icon.c
   )
-  setup_platform_linker_flags()
+  setup_platform_linker_flags(datatoc)
   if(WIN32)
     include_directories(
       ../blenlib
