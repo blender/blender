@@ -987,6 +987,7 @@ class IMAGE_PT_view_display(Panel):
         if ima:
             col.prop(ima, "display_aspect", text="Aspect Ratio")
             col.prop(sima, "show_repeat", text="Repeat Image")
+            col.prop(sima, "show_pure_emissive_colors")
 
         if show_uvedit:
             col.prop(uvedit, "show_pixel_coords", text="Pixel Coordinates")
