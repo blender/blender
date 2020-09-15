@@ -343,6 +343,9 @@ void ED_object_constraint_dependency_tag_update(struct Main *bmain,
                                                 struct Object *ob,
                                                 struct bConstraint *con);
 
+bool ED_object_constraint_move_to_index(struct Object *ob,
+                                        struct bConstraint *con,
+                                        const int index);
 /* object_modes.c */
 bool ED_object_mode_compat_test(const struct Object *ob, eObjectMode mode);
 bool ED_object_mode_compat_set(struct bContext *C,

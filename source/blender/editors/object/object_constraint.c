@@ -1421,6 +1421,21 @@ void ED_object_constraint_dependency_tag_update(Main *bmain, Object *ob, bConstr
   DEG_relations_tag_update(bmain);
 }
 
+bool ED_object_constraint_move_to_index(Object *ob, bConstraint *con, const int index)
+{
+  BLI_assert(con != NULL);
+  BLI_assert(index >= 0);
+
+  ListBase *conlist = ED_object_constraint_list_from_constraint(ob, con, NULL);
+  int current_index = BLI_findindex(conlist, con);
+  BLI_assert(current_index >= 0);
+
+  BLI_listbase_link_move(conlist, con, index - current_index);
+
+  WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT, ob);
+
+  return true;
+}
 /** \} */
 
 /* ------------------------------------------------------------------- */
@@ -1613,13 +1628,7 @@ static int constraint_move_to_index_exec(bContext *C, wmOperator *op)
   }
 
   if (con) {
-    ListBase *conlist = ED_object_constraint_list_from_constraint(ob, con, NULL);
-    int current_index = BLI_findindex(conlist, con);
-    BLI_assert(current_index >= 0);
-
-    BLI_listbase_link_move(conlist, con, new_index - current_index);
-
-    WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
+    ED_object_constraint_move_to_index(ob, con, new_index);
 
     return OPERATOR_FINISHED;
   }
