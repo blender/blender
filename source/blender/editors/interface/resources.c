@@ -1246,9 +1246,9 @@ void UI_GetThemeColorBlendShade3ubv(
   CLAMP(fac, 0.0f, 1.0f);
 
   float blend[3];
-  blend[0] = offset + floorf((1.0f - fac) * cp1[0] + fac * cp2[0]);
-  blend[1] = offset + floorf((1.0f - fac) * cp1[1] + fac * cp2[1]);
-  blend[2] = offset + floorf((1.0f - fac) * cp1[2] + fac * cp2[2]);
+  blend[0] = (offset + floorf((1.0f - fac) * cp1[0] + fac * cp2[0])) / 255.0f;
+  blend[1] = (offset + floorf((1.0f - fac) * cp1[1] + fac * cp2[1])) / 255.0f;
+  blend[2] = (offset + floorf((1.0f - fac) * cp1[2] + fac * cp2[2])) / 255.0f;
 
   unit_float_to_uchar_clamp_v3(col, blend);
 }

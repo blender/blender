@@ -1341,7 +1341,9 @@ void UI_view2d_multi_grid_draw(
   immBeginAtMost(GPU_PRIM_LINES, vertex_count);
 
   for (int level = 0; level < totlevels; level++) {
-    UI_GetThemeColorShade3ubv(colorid, offset, grid_line_color);
+    /* Blend the background color (colorid) with the grid color, to avoid either too low contrast
+     * or high contrast grid lines. This only has an effect if colorid != TH_GRID. */
+    UI_GetThemeColorBlendShade3ubv(colorid, TH_GRID, 0.25f, offset, grid_line_color);
 
     int i = (int)(v2d->cur.xmin / lstep);
     if (v2d->cur.xmin > 0.0f) {
@@ -1382,7 +1384,8 @@ void UI_view2d_multi_grid_draw(
   }
 
   /* X and Y axis */
-  UI_GetThemeColorShade3ubv(colorid, -18 + ((totlevels - 1) * -6), grid_line_color);
+  UI_GetThemeColorBlendShade3ubv(
+      colorid, TH_GRID, 0.5f, -18 + ((totlevels - 1) * -6), grid_line_color);
 
   immAttrSkip(color);
   immVertex2f(pos, 0.0f, v2d->cur.ymin);

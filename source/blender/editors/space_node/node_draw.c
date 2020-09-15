@@ -1803,7 +1803,7 @@ void drawnodespace(const bContext *C, ARegion *region)
 
       /* grid, uses theme color based on node path depth */
       UI_view2d_multi_grid_draw(v2d,
-                                (depth > 0 ? TH_NODE_GROUP : TH_BACK),
+                                (depth > 0 ? TH_NODE_GROUP : TH_GRID),
                                 ED_node_grid_size(),
                                 NODE_GRID_STEPS,
                                 grid_levels);
@@ -1847,7 +1847,7 @@ void drawnodespace(const bContext *C, ARegion *region)
   }
   else {
     /* default grid */
-    UI_view2d_multi_grid_draw(v2d, TH_BACK, ED_node_grid_size(), NODE_GRID_STEPS, grid_levels);
+    UI_view2d_multi_grid_draw(v2d, TH_GRID, ED_node_grid_size(), NODE_GRID_STEPS, grid_levels);
 
     /* backdrop */
     draw_nodespace_back_pix(C, region, snode, NODE_INSTANCE_KEY_NONE);

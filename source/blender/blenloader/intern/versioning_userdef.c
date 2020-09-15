@@ -241,6 +241,13 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     }
 
     FROM_DEFAULT_V4_UCHAR(space_properties.match);
+
+    /* New grid theme color defaults are the same as the existing background colors,
+     * so they are copied to limit disruption. */
+    copy_v3_v3_uchar(btheme->space_clip.grid, btheme->space_clip.back);
+    btheme->space_clip.grid[3] = 255.0f;
+
+    copy_v3_v3_uchar(btheme->space_node.grid, btheme->space_node.back);
   }
 
 #undef FROM_DEFAULT_V4_UCHAR

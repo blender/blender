@@ -826,7 +826,7 @@ static void draw_udim_tile_grids(ARegion *region, SpaceImage *sima, Image *ima)
   immBegin(GPU_PRIM_LINES, 8 * num_tiles);
 
   float theme_color[3], selected_color[3];
-  UI_GetThemeColorShade3fv(TH_BACK, 60.0f, theme_color);
+  UI_GetThemeColorShade3fv(TH_GRID, 60.0f, theme_color);
   UI_GetThemeColor3fv(TH_FACE_SELECT, selected_color);
 
   if (ima != NULL) {

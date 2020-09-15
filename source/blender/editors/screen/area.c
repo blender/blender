@@ -3660,8 +3660,12 @@ void ED_region_grid_draw(ARegion *region, float zoomx, float zoomy, float x0, fl
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
+  float gridcolor[4];
+  UI_GetThemeColor4fv(TH_GRID, gridcolor);
+
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-  immUniformThemeColorShade(TH_BACK, 20);
+  /* To fake alpha-blending, color shading is reduced when alpha is nearing 0. */
+  immUniformThemeColorBlendShade(TH_BACK, TH_GRID, gridcolor[3], 20 * gridcolor[3]);
   immRectf(pos, x1, y1, x2, y2);
   immUnbindProgram();
 
@@ -3699,7 +3703,7 @@ void ED_region_grid_draw(ARegion *region, float zoomx, float zoomy, float x0, fl
     immBegin(GPU_PRIM_LINES, 4 * count_fine + 4 * count_large);
 
     float theme_color[3];
-    UI_GetThemeColorShade3fv(TH_BACK, (int)(20.0f * (1.0f - blendfac)), theme_color);
+    UI_GetThemeColorShade3fv(TH_GRID, (int)(20.0f * (1.0f - blendfac)), theme_color);
     fac = 0.0f;
 
     /* the fine resolution level */
@@ -3716,7 +3720,7 @@ void ED_region_grid_draw(ARegion *region, float zoomx, float zoomy, float x0, fl
     }
 
     if (count_large > 0) {
-      UI_GetThemeColor3fv(TH_BACK, theme_color);
+      UI_GetThemeColor3fv(TH_GRID, theme_color);
       fac = 0.0f;
 
       /* the large resolution level */

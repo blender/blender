@@ -713,6 +713,7 @@
     </dopesheet_editor>
     <image_editor>
       <ThemeImageEditor
+        grid="#353535ff"
         vertex="#000000"
         vertex_select="#ff8500"
         vertex_size="3"
@@ -929,6 +930,7 @@
     </text_editor>
     <node_editor>
       <ThemeNodeEditor
+        grid="#353535"
         node_selected="#f15800"
         node_active="#f15800"
         wire="#a7a7a7"
@@ -1164,6 +1166,7 @@
     </console>
     <clip_editor>
       <ThemeClipEditor
+        grid="#393939ff"
         marker_outline="#000000"
         marker="#7f7f00"
         active_marker="#ffffff"
