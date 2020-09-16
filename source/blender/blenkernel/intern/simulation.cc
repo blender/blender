@@ -172,13 +172,14 @@ static void simulation_blend_write(BlendWriter *writer, ID *id, const void *id_a
         ParticleSimulationState *particle_state = (ParticleSimulationState *)state;
 
         CustomDataLayer *players = NULL, players_buff[CD_TEMP_CHUNK_SIZE];
+        CustomData attributes_shallow_copy = particle_state->attributes;
         CustomData_blend_write_prepare(
-            &particle_state->attributes, &players, players_buff, ARRAY_SIZE(players_buff));
+            &attributes_shallow_copy, &players, players_buff, ARRAY_SIZE(players_buff));
 
         BLO_write_struct(writer, ParticleSimulationState, particle_state);
 
         CustomData_blend_write(writer,
-                               &particle_state->attributes,
+                               &attributes_shallow_copy,
                                players,
                                particle_state->tot_particles,
                                CD_MASK_ALL,
