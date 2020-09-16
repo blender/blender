@@ -186,10 +186,10 @@ static void curve_blend_write(BlendWriter *writer, ID *id, const void *id_addres
           }
         }
       }
+    }
 
-      if (cu->bevel_profile != NULL) {
-        BKE_curveprofile_blend_write(writer, cu->bevel_profile);
-      }
+    if (cu->bevel_profile != NULL) {
+      BKE_curveprofile_blend_write(writer, cu->bevel_profile);
     }
   }
 }
