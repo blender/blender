@@ -1839,22 +1839,28 @@ static void paint_cursor_update_anchored_location(PaintCursorContext *pcontext)
 
 static void paint_cursor_setup_2D_drawing(PaintCursorContext *pcontext)
 {
-  GPU_line_width(2.0f);
   GPU_blend(GPU_BLEND_ALPHA);
-  GPU_line_smooth(true);
   pcontext->pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+  float viewport[4];
+  GPU_viewport_size_get_f(viewport);
+  immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
+  immUniform2fv("viewportSize", &viewport[2]);
+  immUniform1f("lineWidth", 2.0f * U.pixelsize);
 }
 
 static void paint_cursor_setup_3D_drawing(PaintCursorContext *pcontext)
 {
-  GPU_line_width(2.0f);
   GPU_blend(GPU_BLEND_ALPHA);
-  GPU_line_smooth(true);
   pcontext->pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+
+  float viewport[4];
+  GPU_viewport_size_get_f(viewport);
+  immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
+  immUniform2fv("viewportSize", &viewport[2]);
+  immUniform1f("lineWidth", 2.0f * U.pixelsize);
 }
 
 static void paint_cursor_restore_drawing_state(void)
