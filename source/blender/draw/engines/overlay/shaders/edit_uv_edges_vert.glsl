@@ -2,7 +2,7 @@
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 in vec3 pos;
-in vec2 u;
+in vec2 au;
 in int flag;
 
 out float selectionFac;
@@ -11,7 +11,7 @@ flat out vec2 stippleStart;
 
 void main()
 {
-  vec3 world_pos = point_object_to_world(vec3(u, 0.0));
+  vec3 world_pos = point_object_to_world(vec3(au, 0.0));
   gl_Position = point_world_to_ndc(world_pos);
   /* Snap vertices to the pixel grid to reduce artifacts. */
   vec2 half_viewport_res = sizeViewport.xy * 0.5;
