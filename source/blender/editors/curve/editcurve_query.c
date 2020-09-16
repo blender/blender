@@ -62,7 +62,7 @@ static void ED_curve_pick_vert__do_closest(void *userData,
     bool is_changed;
   } *data = userData;
 
-  short flag;
+  uint8_t flag;
   float dist_test;
 
   if (bp) {

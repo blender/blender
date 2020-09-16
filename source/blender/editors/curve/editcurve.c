@@ -78,7 +78,7 @@
 
 void selectend_nurb(Object *obedit, enum eEndPoint_Types selfirst, bool doswap, bool selstatus);
 static void adduplicateflagNurb(
-    Object *obedit, View3D *v3d, ListBase *newnurb, const short flag, const bool split);
+    Object *obedit, View3D *v3d, ListBase *newnurb, const uint8_t flag, const bool split);
 static bool curve_delete_segments(Object *obedit, View3D *v3d, const bool split);
 static bool curve_delete_vertices(Object *obedit, View3D *v3d);
 
@@ -1600,7 +1600,7 @@ void CURVE_OT_split(wmOperatorType *ot)
 /** \name Flag Utility Functions
  * \{ */
 
-static bool isNurbselUV(const Nurb *nu, int flag, int *r_u, int *r_v)
+static bool isNurbselUV(const Nurb *nu, uint8_t flag, int *r_u, int *r_v)
 {
   /* return (u != -1): 1 row in u-direction selected. U has value between 0-pntsv
    * return (v != -1): 1 column in v-direction selected. V has value between 0-pntsu
@@ -1743,7 +1743,7 @@ static void rotateflagNurb(ListBase *editnurb,
   }
 }
 
-void ed_editnurb_translate_flag(ListBase *editnurb, short flag, const float vec[3])
+void ed_editnurb_translate_flag(ListBase *editnurb, uint8_t flag, const float vec[3])
 {
   /* all verts with ('flag' & flag) translate */
   Nurb *nu;
@@ -2052,7 +2052,7 @@ static void ed_curve_delete_selected(Object *obedit, View3D *v3d)
 }
 
 /* only for OB_SURF */
-bool ed_editnurb_extrude_flag(EditNurb *editnurb, const short flag)
+bool ed_editnurb_extrude_flag(EditNurb *editnurb, const uint8_t flag)
 {
   Nurb *nu;
   BPoint *bp, *bpn, *newbp;
@@ -2194,7 +2194,7 @@ static bool calc_duplicate_actvert(
 }
 
 static void adduplicateflagNurb(
-    Object *obedit, View3D *v3d, ListBase *newnurb, const short flag, const bool split)
+    Object *obedit, View3D *v3d, ListBase *newnurb, const uint8_t flag, const bool split)
 {
   ListBase *editnurb = object_editcurve_get(obedit);
   Nurb *nu, *newnu;

@@ -171,11 +171,11 @@ void BKE_nurbList_duplicate(struct ListBase *lb1, const struct ListBase *lb2);
 void BKE_nurbList_handles_set(struct ListBase *editnurb, const char code);
 void BKE_nurbList_handles_recalculate(struct ListBase *editnurb,
                                       const bool calc_length,
-                                      const char flag);
+                                      const uint8_t flag);
 
-void BKE_nurbList_handles_autocalc(ListBase *editnurb, int flag);
-void BKE_nurbList_flag_set(ListBase *editnurb, short flag, bool set);
-bool BKE_nurbList_flag_set_from_flag(ListBase *editnurb, short from_flag, short flag);
+void BKE_nurbList_handles_autocalc(ListBase *editnurb, uint8_t flag);
+void BKE_nurbList_flag_set(ListBase *editnurb, uint8_t flag, bool set);
+bool BKE_nurbList_flag_set_from_flag(ListBase *editnurb, uint8_t from_flag, uint8_t flag);
 
 void BKE_nurb_free(struct Nurb *nu);
 struct Nurb *BKE_nurb_duplicate(const struct Nurb *nu);
@@ -260,7 +260,7 @@ void BKE_nurb_handle_calc_simple_auto(struct Nurb *nu, struct BezTriple *bezt);
 void BKE_nurb_handle_smooth_fcurve(struct BezTriple *bezt, int total, bool cyclic);
 
 void BKE_nurb_handles_calc(struct Nurb *nu);
-void BKE_nurb_handles_autocalc(struct Nurb *nu, int flag);
+void BKE_nurb_handles_autocalc(struct Nurb *nu, uint8_t flag);
 void BKE_nurb_bezt_handle_test(struct BezTriple *bezt,
                                const eBezTriple_Flag__Alias sel_flag,
                                const bool use_handle,

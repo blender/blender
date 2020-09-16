@@ -523,8 +523,8 @@ void BKE_mask_point_direction_switch(MaskSplinePoint *point)
   copy_v2_v2(point->bezt.vec[0], point->bezt.vec[2]);
   copy_v2_v2(point->bezt.vec[2], co_tmp);
   /* in this case the flags are unlikely to be different but swap anyway */
-  SWAP(char, point->bezt.f1, point->bezt.f3);
-  SWAP(char, point->bezt.h1, point->bezt.h2);
+  SWAP(uint8_t, point->bezt.f1, point->bezt.f3);
+  SWAP(uint8_t, point->bezt.h1, point->bezt.h2);
 
   /* swap UW's */
   if (tot_uw > 1) {

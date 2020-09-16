@@ -77,7 +77,7 @@ int BKE_lattice_index_flip(
     struct Lattice *lt, const int index, const bool flip_u, const bool flip_v, const bool flip_w);
 void BKE_lattice_bitmap_from_flag(struct Lattice *lt,
                                   unsigned int *bitmap,
-                                  const short flag,
+                                  const uint8_t flag,
                                   const bool clear,
                                   const bool respecthide);
 

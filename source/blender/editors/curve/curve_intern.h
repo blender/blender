@@ -71,8 +71,8 @@ typedef enum eCurveElem_Types {
 } eCurveElem_Types;
 
 /* internal select utils */
-bool select_beztriple(BezTriple *bezt, bool selstatus, short flag, eVisible_Types hidden);
-bool select_bpoint(BPoint *bp, bool selstatus, short flag, bool hidden);
+bool select_beztriple(BezTriple *bezt, bool selstatus, uint8_t flag, eVisible_Types hidden);
+bool select_bpoint(BPoint *bp, bool selstatus, uint8_t flag, bool hidden);
 
 void FONT_OT_text_insert(struct wmOperatorType *ot);
 void FONT_OT_line_break(struct wmOperatorType *ot);
@@ -142,8 +142,8 @@ struct GHash *ED_curve_keyindex_hash_duplicate(struct GHash *keyindex);
 void ED_curve_keyindex_update_nurb(struct EditNurb *editnurb, struct Nurb *nu, struct Nurb *newnu);
 
 /* helper functions */
-void ed_editnurb_translate_flag(struct ListBase *editnurb, short flag, const float vec[3]);
-bool ed_editnurb_extrude_flag(struct EditNurb *editnurb, const short flag);
+void ed_editnurb_translate_flag(struct ListBase *editnurb, uint8_t flag, const float vec[3]);
+bool ed_editnurb_extrude_flag(struct EditNurb *editnurb, const uint8_t flag);
 bool ed_editnurb_spin(float viewmat[4][4],
                       struct View3D *v3d,
                       struct Object *obedit,

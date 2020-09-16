@@ -686,15 +686,15 @@ static void curve_create_edit_curves_nor(CurveRenderData *rdata, GPUVertBuf *vbo
   BLI_assert(vbo_len_used == verts_len_capacity);
 }
 
-static char beztriple_vflag_get(CurveRenderData *rdata,
-                                char flag,
-                                char col_id,
-                                int v_idx,
-                                int nu_id,
-                                bool handle_point,
-                                const bool handle_selected)
+static uint8_t beztriple_vflag_get(CurveRenderData *rdata,
+                                   uint8_t flag,
+                                   uint8_t col_id,
+                                   int v_idx,
+                                   int nu_id,
+                                   bool handle_point,
+                                   const bool handle_selected)
 {
-  char vflag = 0;
+  uint8_t vflag = 0;
   SET_FLAG_FROM_TEST(vflag, (flag & SELECT), VFLAG_VERT_SELECTED);
   SET_FLAG_FROM_TEST(vflag, (v_idx == rdata->actvert && nu_id == rdata->actnu), VFLAG_VERT_ACTIVE);
   SET_FLAG_FROM_TEST(vflag, (nu_id == rdata->actnu), ACTIVE_NURB);
@@ -707,9 +707,9 @@ static char beztriple_vflag_get(CurveRenderData *rdata,
   return vflag;
 }
 
-static char bpoint_vflag_get(CurveRenderData *rdata, char flag, int v_idx, int nu_id, int u)
+static uint8_t bpoint_vflag_get(CurveRenderData *rdata, uint8_t flag, int v_idx, int nu_id, int u)
 {
-  char vflag = 0;
+  uint8_t vflag = 0;
   SET_FLAG_FROM_TEST(vflag, (flag & SELECT), VFLAG_VERT_SELECTED);
   SET_FLAG_FROM_TEST(vflag, (v_idx == rdata->actvert && nu_id == rdata->actnu), VFLAG_VERT_ACTIVE);
   SET_FLAG_FROM_TEST(vflag, (nu_id == rdata->actnu), ACTIVE_NURB);
@@ -783,7 +783,7 @@ static void curve_create_edit_data_and_handles(CurveRenderData *rdata,
           GPU_indexbuf_add_line_verts(elbp_lines, vbo_len_used + 1, vbo_len_used + 2);
         }
         if (vbo_data) {
-          const char vflag[3] = {
+          const uint8_t vflag[3] = {
               beztriple_vflag_get(rdata, bezt->f1, bezt->h1, a, nu_id, true, handle_selected),
               beztriple_vflag_get(rdata, bezt->f2, bezt->h1, a, nu_id, false, handle_selected),
               beztriple_vflag_get(rdata, bezt->f3, bezt->h2, a, nu_id, true, handle_selected),
@@ -824,7 +824,7 @@ static void curve_create_edit_data_and_handles(CurveRenderData *rdata,
           }
         }
         if (vbo_data) {
-          char vflag = bpoint_vflag_get(rdata, bp->f1, a, nu_id, u);
+          uint8_t vflag = bpoint_vflag_get(rdata, bp->f1, a, nu_id, u);
           GPU_vertbuf_attr_set(vbo_data, attr_id.data, vbo_len_used, &vflag);
         }
         if (vbo_pos) {
