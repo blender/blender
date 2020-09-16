@@ -486,6 +486,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
         return ShaderImageTextureWrapper(
             self, self.node_principled_bsdf,
             self.node_principled_bsdf.inputs["Alpha"],
+            use_alpha=True,
             grid_row_diff=-1,
             colorspace_name='Non-Color',
         )
