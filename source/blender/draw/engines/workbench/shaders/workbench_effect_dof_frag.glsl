@@ -390,8 +390,8 @@ void main()
  */
 #ifdef RESOLVE
 
-layout(location = 0) out vec4 finalColorAdd;
-layout(location = 1) out vec4 finalColorMul;
+layout(location = 0, index = 0) out vec4 finalColorAdd;
+layout(location = 0, index = 1) out vec4 finalColorMul;
 
 void main()
 {
