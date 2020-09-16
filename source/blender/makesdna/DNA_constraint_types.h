@@ -337,7 +337,8 @@ typedef struct bActionConstraint {
   float max;
   int flag;
   char mix_mode;
-  char _pad[7];
+  char _pad[3];
+  float eval_time; /* Only used when flag ACTCON_USE_EVAL_TIME is set. */
   struct bAction *act;
   /** MAX_ID_NAME-2. */
   char subtarget[64];
@@ -860,6 +861,8 @@ typedef enum eSameVolume_Mode {
 typedef enum eActionConstraint_Flags {
   /* Bones use "object" part of target action, instead of "same bone name" part */
   ACTCON_BONE_USE_OBJECT_ACTION = (1 << 0),
+  /* Ignore the transform of 'tar' and use 'eval_time' instead: */
+  ACTCON_USE_EVAL_TIME = (1 << 1),
 } eActionConstraint_Flags;
 
 /* bActionConstraint.mix_mode */

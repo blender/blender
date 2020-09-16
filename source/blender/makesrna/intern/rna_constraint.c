@@ -1790,6 +1790,21 @@ static void rna_def_constraint_action(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
   RNA_def_property_float_funcs(prop, NULL, NULL, "rna_ActionConstraint_minmax_range");
 
+  prop = RNA_def_property(srna, "eval_time", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "eval_time");
+  RNA_def_property_range(prop, 0.f, 1.f);
+  RNA_def_property_ui_text(
+      prop, "Evaluation Time", "Interpolates between Action Start and End frames");
+  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
+
+  prop = RNA_def_property(srna, "use_eval_time", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", ACTCON_USE_EVAL_TIME);
+  RNA_def_property_ui_text(prop,
+                           "Use Evaluation Time",
+                           "Interpolate between Action Start and End frames, with the Evaluation "
+                           "Time slider instead of the Target object/bone");
+  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
+
   RNA_define_lib_overridable(false);
 }
 

@@ -508,7 +508,18 @@ class ConstraintButtonsPanel(Panel):
         layout.use_property_split = True
         layout.use_property_decorate = True
 
-        self.target_template(layout, con)
+        target_row = layout.row(align=True)
+        target_row.active = not con.use_eval_time
+        self.target_template(target_row, con)
+
+        row = layout.row(align=True, heading="Evaluation Time")
+        row.use_property_decorate = False
+        sub = row.row(align=True)
+        sub.prop(con, "use_eval_time", text="")
+        subsub = sub.row(align=True)
+        subsub.active = con.use_eval_time
+        subsub.prop(con, "eval_time", text="")
+        row.prop_decorator(con, "eval_time")
 
         layout.prop(con, "mix_mode", text="Mix")
 
@@ -1105,13 +1116,14 @@ class ConstraintButtonsSubPanel(Panel):
         layout.use_property_split = True
         layout.use_property_decorate = True
 
-        layout.prop(con, "transform_channel", text="Channel")
-        layout.prop(con, "target_space")
+        col = layout.column()
+        col.active = not con.use_eval_time
+        col.prop(con, "transform_channel", text="Channel")
+        col.prop(con, "target_space")
 
-        col = layout.column(align=True)
-        col.prop(con, "min", text="Range Min")
-        col.prop(con, "max", text="Max")
-
+        sub = col.column(align=True)
+        sub.prop(con, "min", text="Range Min")
+        sub.prop(con, "max", text="Max")
 
     def draw_action_action(self, context):
         layout = self.layout

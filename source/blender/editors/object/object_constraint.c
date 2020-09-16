@@ -387,6 +387,11 @@ static void test_constraint(
       data->act = NULL;
       con->flag |= CONSTRAINT_DISABLE;
     }
+
+    /* Skip target checking if we're not using it */
+    if (data->flag & ACTCON_USE_EVAL_TIME) {
+      check_targets = false;
+    }
   }
   else if (con->type == CONSTRAINT_TYPE_FOLLOWPATH) {
     bFollowPathConstraint *data = con->data;
