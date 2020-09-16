@@ -650,6 +650,7 @@ Collection *BKE_collection_master_add()
   STRNCPY(master_collection->id.name, "GRMaster Collection");
   master_collection->id.flag |= LIB_EMBEDDED_DATA;
   master_collection->flag |= COLLECTION_IS_MASTER;
+  master_collection->color_tag = COLLECTION_COLOR_NONE;
   return master_collection;
 }
 

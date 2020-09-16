@@ -658,7 +658,11 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       collection->color_tag = COLLECTION_COLOR_NONE;
     }
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      scene->master_collection->color_tag = COLLECTION_COLOR_NONE;
+      /* Old files do not have a master collection, but it will be created by
+       * `BKE_collection_master_add()`. */
+      if (scene->master_collection) {
+        scene->master_collection->color_tag = COLLECTION_COLOR_NONE;
+      }
     }
   }
 
