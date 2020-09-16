@@ -23,15 +23,18 @@
 
 #include <string.h>
 
+#include "BLI_alloca.h"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_curve_types.h"
+#include "DNA_curveprofile_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_curve.h"
+#include "BKE_curveprofile.h"
 #include "BKE_displist.h"
 
 typedef enum CurveBevelFillType {
@@ -53,6 +56,33 @@ static CurveBevelFillType curve_bevel_get_fill_type(const Curve *curve)
   return (curve->flag & CU_FRONT) ? FRONT : BACK;
 }
 
+static void bevel_quarter_fill(Curve *curve, float *quarter_coords_x, float *quarter_coords_y)
+{
+  if (curve->bevel_mode == CU_BEV_MODE_ROUND) {
+    float angle = 0.0f;
+    const float dangle = (float)M_PI_2 / (curve->bevresol + 1);
+    for (int i = 0; i < curve->bevresol + 1; i++) {
+      quarter_coords_x[i] = (float)(cosf(angle) * (curve->ext2));
+      quarter_coords_y[i] = (float)(sinf(angle) * (curve->ext2));
+      angle += dangle;
+    }
+  }
+  else {
+    /* The curve profile evaluation should be done when the resolution is set. */
+    BLI_assert(curve->bevel_profile->segments != NULL);
+    BLI_assert(curve->bevel_profile->segments_len == curve->bevresol + 1);
+
+    /* If there aren't enough samples, the curveprofile won't
+     * sample the start vertex, so set it manually instead. */
+    quarter_coords_x[0] = curve->ext2;
+    quarter_coords_y[0] = 0.0f;
+    for (int i = 1; i < curve->bevresol + 1; i++) {
+      quarter_coords_x[i] = (float)(curve->bevel_profile->segments[i].x * (curve->ext2));
+      quarter_coords_y[i] = (float)(curve->bevel_profile->segments[i].y * (curve->ext2));
+    }
+  }
+}
+
 static void curve_bevel_make_extrude_and_fill(Curve *cu,
                                               ListBase *disp,
                                               const bool use_extrude,
@@ -60,10 +90,20 @@ static void curve_bevel_make_extrude_and_fill(Curve *cu,
 {
   DispList *dl = MEM_callocN(sizeof(DispList), __func__);
 
+  /* Calculate the profile of the bevel once to reuse it for each quarter. We will need
+   * to flip around the indices for every other section in order to build around the circle
+   * in a consistent direction.
+   *
+   * These should be small enough for stack allocations because the current limit
+   * for #Curve.bevresol is 32.  */
+  float *quarter_coords_x = alloca(sizeof(float) * (cu->bevresol + 1));
+  float *quarter_coords_y = alloca(sizeof(float) * (cu->bevresol + 1));
+  bevel_quarter_fill(cu, quarter_coords_x, quarter_coords_y);
+
   int nr;
   if (fill_type == FULL) {
     /* The full loop. */
-    nr = 4 * cu->bevresol + 6;
+    nr = 4 * cu->bevresol + (use_extrude ? 6 : 4);
     dl->flag = DL_FRONT_CURVE | DL_BACK_CURVE;
   }
   else if (fill_type == HALF) {
@@ -85,65 +125,69 @@ static void curve_bevel_make_extrude_and_fill(Curve *cu,
   dl->nr = nr;
 
   float *fp = dl->verts;
-  const float dangle = (float)M_PI_2 / (cu->bevresol + 1);
-  float angle = 0.0f;
 
   /* Build the back section. */
   if (ELEM(fill_type, BACK, HALF, FULL)) {
-    angle = (float)M_PI_2 * 3.0f;
-    for (int i = 0; i < cu->bevresol + 2; i++) {
+    /* Add the bottom vertex. */
+    fp[0] = 0.0f;
+    fp[1] = 0.0f;
+    fp[2] = -cu->ext1 - cu->ext2;
+    fp += 3;
+
+    for (int i = cu->bevresol; i >= 0; i--) {
       fp[0] = 0.0f;
-      fp[1] = (float)(cosf(angle) * (cu->ext2));
-      fp[2] = (float)(sinf(angle) * (cu->ext2)) - cu->ext1;
-      angle += dangle;
+      fp[1] = quarter_coords_x[i];
+      fp[2] = -quarter_coords_y[i] - cu->ext1;
       fp += 3;
     }
-    if (use_extrude && fill_type == BACK) {
-      /* Add the extrusion if we're only building the back. */
-      fp[0] = 0.0f;
-      fp[1] = cu->ext2;
-      fp[2] = cu->ext1;
-    }
+  }
+
+  /* Add the extrusion if we're only building either the back or the front. */
+  if (use_extrude && ELEM(fill_type, FRONT, BACK)) {
+    fp[0] = 0.0f;
+    fp[1] = cu->ext2;
+    fp[2] = (fill_type == FRONT) ? -cu->ext1 : cu->ext1;
+    fp += 3;
   }
 
   /* Build the front section. */
   if (ELEM(fill_type, FRONT, HALF, FULL)) {
-    if (use_extrude && fill_type == FRONT) {
-      /* Add the extrusion if we're only building the front. */
-      fp[0] = 0.0f;
-      fp[1] = cu->ext2;
-      fp[2] = -cu->ext1;
-      fp += 3;
-    }
     /* Don't duplicate the last back vertex. */
-    angle = (!use_extrude && ELEM(fill_type, HALF, FULL)) ? dangle : 0;
-    int front_len = (!use_extrude && ELEM(fill_type, HALF, FULL)) ? cu->bevresol + 1 :
-                                                                    cu->bevresol + 2;
-    for (int i = 0; i < front_len; i++) {
+    const int front_start = (!use_extrude && ELEM(fill_type, HALF, FULL)) ? 1 : 0;
+    for (int i = front_start; i < cu->bevresol + 1; i++) {
       fp[0] = 0.0f;
-      fp[1] = (float)(cosf(angle) * (cu->ext2));
-      fp[2] = (float)(sinf(angle) * (cu->ext2)) + cu->ext1;
-      angle += dangle;
+      fp[1] = quarter_coords_x[i];
+      fp[2] = quarter_coords_y[i] + cu->ext1;
       fp += 3;
     }
+    /* Add the top vertex. */
+    fp[0] = 0.0f;
+    fp[1] = 0.0f;
+    fp[2] = cu->ext1 + cu->ext2;
+    fp += 3;
   }
 
   /* Build the other half only if we're building the full loop. */
   if (fill_type == FULL) {
-    for (int i = 0; i < cu->bevresol + 1; i++) {
+    for (int i = cu->bevresol; i > 0; i--) {
       fp[0] = 0.0f;
-      fp[1] = (float)(cosf(angle) * (cu->ext2));
-      fp[2] = (float)(sinf(angle) * (cu->ext2)) + cu->ext1;
-      angle += dangle;
+      fp[1] = -quarter_coords_x[i];
+      fp[2] = quarter_coords_y[i] + cu->ext1;
       fp += 3;
     }
 
-    angle = (float)M_PI;
+    if (use_extrude) {
+      /* Add the extrusion. */
+      fp[0] = 0.0f;
+      fp[1] = -cu->ext2;
+      fp[2] = cu->ext1;
+      fp += 3;
+    }
+
     for (int i = 0; i < cu->bevresol + 1; i++) {
       fp[0] = 0.0f;
-      fp[1] = (float)(cosf(angle) * (cu->ext2));
-      fp[2] = (float)(sinf(angle) * (cu->ext2)) - cu->ext1;
-      angle += dangle;
+      fp[1] = -quarter_coords_x[i];
+      fp[2] = -quarter_coords_y[i] - cu->ext1;
       fp += 3;
     }
   }
@@ -193,6 +237,9 @@ static void curve_bevel_make_only_extrude(Curve *cu, ListBase *disp)
 
 static void curve_bevel_make_from_object(Curve *cu, ListBase *disp)
 {
+  if (cu->bevobj == NULL) {
+    return;
+  }
   if (cu->bevobj->type != OB_CURVE) {
     return;
   }
@@ -244,29 +291,30 @@ void BKE_curve_bevel_make(Object *ob, ListBase *disp)
 {
   Curve *curve = ob->data;
 
-  const bool use_extrude = curve->ext1 != 0.0f;
-  const bool use_bevel = curve->ext2 != 0.0f;
-
   BLI_listbase_clear(disp);
 
-  if (curve->bevobj) {
-    curve_bevel_make_from_object(curve, disp);
-  }
-  else if (!(use_extrude || use_bevel)) {
-    /* Pass. */
-  }
-  else if (use_extrude && !use_bevel) {
-    curve_bevel_make_only_extrude(curve, disp);
+  if (curve->bevel_mode == CU_BEV_MODE_OBJECT) {
+    if (curve->bevobj != NULL) {
+      curve_bevel_make_from_object(curve, disp);
+    }
   }
   else {
-    CurveBevelFillType fill_type = curve_bevel_get_fill_type(curve);
-
-    if (!use_extrude && fill_type == FULL) {
-      curve_bevel_make_full_circle(curve, disp);
+    const bool use_extrude = curve->ext1 != 0.0f;
+    const bool use_bevel = curve->ext2 != 0.0f;
+    /* Pass. */
+    if (use_extrude && !use_bevel) {
+      curve_bevel_make_only_extrude(curve, disp);
     }
-    else {
-      /* The general case for nonzero extrusion or an incomplete loop. */
-      curve_bevel_make_extrude_and_fill(curve, disp, use_extrude, fill_type);
+    else if (use_extrude || use_bevel) {
+      CurveBevelFillType fill_type = curve_bevel_get_fill_type(curve);
+
+      if (!use_extrude && fill_type == FULL && curve->bevel_mode == CU_BEV_MODE_ROUND) {
+        curve_bevel_make_full_circle(curve, disp);
+      }
+      else {
+        /* The general case for nonzero extrusion or an incomplete loop. */
+        curve_bevel_make_extrude_and_fill(curve, disp, use_extrude, fill_type);
+      }
     }
   }
 }

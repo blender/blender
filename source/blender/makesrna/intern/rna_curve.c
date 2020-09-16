@@ -167,6 +167,7 @@ static const EnumPropertyItem curve2d_fill_mode_items[] = {
 #  include "DNA_object_types.h"
 
 #  include "BKE_curve.h"
+#  include "BKE_curveprofile.h"
 #  include "BKE_main.h"
 
 #  include "DEG_depsgraph.h"
@@ -461,6 +462,35 @@ static void rna_Curve_bevelObject_set(PointerRNA *ptr,
   else {
     cu->bevobj = NULL;
   }
+}
+
+/**
+ * Special update function for setting the number of segments of the curve
+ * that also resamples the segments in the custom profile.
+ */
+static void rna_Curve_bevel_resolution_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  Curve *cu = (Curve *)ptr->data;
+
+  if (cu->bevel_mode == CU_BEV_MODE_CURVE_PROFILE) {
+    BKE_curveprofile_init(cu->bevel_profile, cu->bevresol + 1);
+  }
+
+  rna_Curve_update_data(bmain, scene, ptr);
+}
+
+static void rna_Curve_bevel_mode_set(PointerRNA *ptr, int value)
+{
+  Curve *cu = (Curve *)ptr->owner_id;
+
+  if (value == CU_BEV_MODE_CURVE_PROFILE) {
+    if (cu->bevel_profile == NULL) {
+      cu->bevel_profile = BKE_curveprofile_add(PROF_PRESET_LINE);
+      BKE_curveprofile_init(cu->bevel_profile, cu->bevresol + 1);
+    }
+  }
+
+  cu->bevel_mode = value;
 }
 
 static bool rna_Curve_otherObject_poll(PointerRNA *ptr, PointerRNA value)
@@ -1527,6 +1557,25 @@ static void rna_def_curve(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem bevel_mode_items[] = {
+      {CU_BEV_MODE_ROUND,
+       "ROUND",
+       0,
+       "Round",
+       "Use circle for the section of the curve's bevel geometry"},
+      {CU_BEV_MODE_OBJECT,
+       "OBJECT",
+       0,
+       "Object",
+       "Use an object for the section of the curve's bevel goemetry segment"},
+      {CU_BEV_MODE_CURVE_PROFILE,
+       "PROFILE",
+       0,
+       "Profile",
+       "Use a custom profile for each quarter of curve's bevel geometry"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "Curve", "ID");
   RNA_def_struct_ui_text(srna, "Curve", "Curve data-block storing curves, splines and NURBS");
   RNA_def_struct_ui_icon(srna, ICON_CURVE_DATA);
@@ -1559,6 +1608,20 @@ static void rna_def_curve(BlenderRNA *brna)
 
   rna_def_path(brna, srna);
 
+  prop = RNA_def_property(srna, "bevel_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "bevel_mode");
+  RNA_def_property_enum_items(prop, bevel_mode_items);
+  RNA_def_property_ui_text(
+      prop, "Bevel Mode", "Determine how to build the curve's bevel geometry");
+  RNA_def_property_enum_funcs(prop, NULL, "rna_Curve_bevel_mode_set", NULL);
+  RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
+  prop = RNA_def_property(srna, "bevel_profile", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "CurveProfile");
+  RNA_def_property_pointer_sdna(prop, NULL, "bevel_profile");
+  RNA_def_property_ui_text(prop, "Custom Profile Path", "The path for the curve's custom profile");
+  RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
   /* Number values */
   prop = RNA_def_property(srna, "bevel_resolution", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "bevresol");
@@ -1568,7 +1631,7 @@ static void rna_def_curve(BlenderRNA *brna)
       prop,
       "Bevel Resolution",
       "Bevel resolution when depth is non-zero and no specific bevel object has been defined");
-  RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+  RNA_def_property_update(prop, 0, "rna_Curve_bevel_resolution_update");
 
   prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE | PROP_UNIT_LENGTH);
   RNA_def_property_float_sdna(prop, NULL, "width");

@@ -50,6 +50,7 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_curve.h"
+#include "BKE_curveprofile.h"
 #include "BKE_displist.h"
 #include "BKE_font.h"
 #include "BKE_idtype.h"
@@ -95,6 +96,8 @@ static void curve_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
   curve_dst->tb = MEM_dupallocN(curve_src->tb);
   curve_dst->batch_cache = NULL;
 
+  curve_dst->bevel_profile = BKE_curveprofile_copy(curve_src->bevel_profile);
+
   if (curve_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
     BKE_id_copy_ex(bmain, &curve_src->key->id, (ID **)&curve_dst->key, flag);
     /* XXX This is not nice, we need to make BKE_id_copy_ex fully re-entrant... */
@@ -115,6 +118,8 @@ static void curve_free_data(ID *id)
   BKE_curve_editfont_free(curve);
 
   BKE_curve_editNurb_free(curve);
+
+  BKE_curveprofile_free(curve->bevel_profile);
 
   MEM_SAFE_FREE(curve->mat);
   MEM_SAFE_FREE(curve->str);
@@ -180,6 +185,10 @@ static void curve_blend_write(BlendWriter *writer, ID *id, const void *id_addres
             BLO_write_float_array(writer, KNOTSV(nu), nu->knotsv);
           }
         }
+      }
+
+      if (cu->bevel_profile != NULL) {
+        BKE_curveprofile_blend_write(writer, cu->bevel_profile);
       }
     }
   }
@@ -251,6 +260,11 @@ static void curve_blend_read_data(BlendDataReader *reader, ID *id)
     }
   }
   cu->texflag &= ~CU_AUTOSPACE_EVALUATED;
+
+  BLO_read_data_address(reader, &cu->bevel_profile);
+  if (cu->bevel_profile != NULL) {
+    BKE_curveprofile_blend_read(reader, cu->bevel_profile);
+  }
 }
 
 static void curve_blend_read_lib(BlendLibReader *reader, ID *id)
@@ -397,6 +411,7 @@ void BKE_curve_init(Curve *cu, const short curve_type)
   else if (cu->type == OB_SURF) {
     cu->resolv = 4;
   }
+  cu->bevel_profile = NULL;
 }
 
 Curve *BKE_curve_add(Main *bmain, const char *name, int type)

@@ -31,6 +31,7 @@
 #define MAXTEXTBOX 256 /* used in readfile.c and editfont.c */
 
 struct AnimData;
+struct CurveProfile;
 struct EditFont;
 struct GHash;
 struct Ipo;
@@ -232,6 +233,8 @@ typedef struct Curve {
   struct Key *key;
   struct Material **mat;
 
+  struct CurveProfile *bevel_profile;
+
   /* texture space, copied as one block in editobject.c */
   float loc[3];
   float size[3];
@@ -261,7 +264,8 @@ typedef struct Curve {
 
   char overflow;
   char spacemode, align_y;
-  char _pad[3];
+  char bevel_mode;
+  char _pad[2];
 
   /* font part */
   short lines;
@@ -383,6 +387,13 @@ enum {
   CU_ALIGN_Y_CENTER = 2,
   CU_ALIGN_Y_BOTTOM_BASELINE = 3,
   CU_ALIGN_Y_BOTTOM = 4,
+};
+
+/* Curve.bevel_mode */
+enum {
+  CU_BEV_MODE_ROUND = 0,
+  CU_BEV_MODE_OBJECT = 1,
+  CU_BEV_MODE_CURVE_PROFILE = 2,
 };
 
 /* Curve.overflow. */

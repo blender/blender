@@ -694,5 +694,17 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    /* Add custom profile and bevel mode to curve bevels. */
+    if (!DNA_struct_elem_find(fd->filesdna, "Curve", "char", "bevel_mode")) {
+      LISTBASE_FOREACH (Curve *, curve, &bmain->curves) {
+        if (curve->bevobj != NULL) {
+          curve->bevel_mode = CU_BEV_MODE_OBJECT;
+        }
+        else {
+          curve->bevel_mode = CU_BEV_MODE_ROUND;
+        }
+      }
+    }
   }
 }

@@ -171,7 +171,7 @@ class DATA_PT_geometry_curve(CurveButtonsPanelCurve, Panel):
         col.prop(curve, "offset")
 
         sub = col.column()
-        sub.active = (curve.bevel_object is None)
+        sub.active = (curve.bevel_mode != 'OBJECT')
         sub.prop(curve, "extrude")
 
         col.prop(curve, "taper_object")
@@ -193,21 +193,19 @@ class DATA_PT_geometry_curve_bevel(CurveButtonsPanelCurve, Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.use_property_split = True
 
         curve = context.curve
+        layout.prop(curve, "bevel_mode", expand=True)
+
+        layout.use_property_split = True
 
         col = layout.column()
-        sub = col.column()
-        sub.active = (curve.bevel_object is None)
-        sub.prop(curve, "bevel_depth", text="Depth")
-        sub.prop(curve, "bevel_resolution", text="Resolution")
-
-        col.prop(curve, "bevel_object", text="Object")
-
-        sub = col.column()
-        sub.active = curve.bevel_object is not None
-        sub.prop(curve, "use_fill_caps")
+        if curve.bevel_mode == 'OBJECT':
+            col.prop(curve, "bevel_object", text="Object")
+        else:
+            col.prop(curve, "bevel_depth", text="Depth")
+            col.prop(curve, "bevel_resolution", text="Resolution")
+        col.prop(curve, "use_fill_caps")
 
         if type(curve) is not TextCurve:
 
@@ -218,12 +216,16 @@ class DATA_PT_geometry_curve_bevel(CurveButtonsPanelCurve, Panel):
                 (curve.bevel_object is not None)
             )
             sub = col.column(align=True)
-            sub.prop(curve, "bevel_factor_start", text="Bevel Start")
+            sub.prop(curve, "bevel_factor_start", text="Start")
             sub.prop(curve, "bevel_factor_end", text="End")
 
             sub = col.column(align=True)
-            sub.prop(curve, "bevel_factor_mapping_start", text="Bevel Mapping Start")
+            sub.prop(curve, "bevel_factor_mapping_start", text="Mapping Start")
             sub.prop(curve, "bevel_factor_mapping_end", text="End")
+
+        # Put the large template at the end so it doesn't displace the other properties
+        if curve.bevel_mode == 'PROFILE':
+            col.template_curveprofile(curve, "bevel_profile")
 
 
 class DATA_PT_pathanim(CurveButtonsPanelCurve, Panel):

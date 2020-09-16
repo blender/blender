@@ -1122,4 +1122,6 @@ void BKE_curveprofile_blend_read(struct BlendDataReader *reader, struct CurvePro
   for (int i = 0; i < profile->path_len; i++) {
     profile->path[i].profile = profile;
   }
+
+  BKE_curveprofile_init(profile, profile->segments_len);
 }

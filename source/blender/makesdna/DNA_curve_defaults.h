@@ -49,6 +49,7 @@
     .bevfac1_mapping = CU_BEVFAC_MAP_RESOLU, \
     .bevfac2_mapping = CU_BEVFAC_MAP_RESOLU, \
     .bevresol = 4, \
+    .bevel_mode = CU_BEV_MODE_ROUND, \
   }
 
 /** \} */
