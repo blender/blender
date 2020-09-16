@@ -34,6 +34,12 @@ else()
   set(X264_CONFIGURE_ENV echo .)
 endif()
 
+if(UNIX AND NOT APPLE)
+  set(X264_CONFIGURE_ENV
+    export AS=${LIBDIR}/nasm/bin/nasm
+  )
+endif()
+
 ExternalProject_Add(external_x264
   URL ${X264_URI}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
@@ -54,7 +60,7 @@ if(MSVC)
   set_target_properties(external_x264 PROPERTIES FOLDER Mingw)
 endif()
 
-if(APPLE)
+if(UNIX)
   add_dependencies(
     external_x264
     external_nasm

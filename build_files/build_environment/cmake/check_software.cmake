@@ -54,7 +54,7 @@ if(UNIX)
       "  ${_software_missing}\n"
       "\n"
       "On Debian and Ubuntu:\n"
-      "  apt install autoconf automake libtool yasm nasm tcl\n"
+      "  apt install autoconf automake libtool yasm tcl\n"
       "\n"
       "On macOS (with homebrew):\n"
       "  brew install autoconf automake bison libtool pkg-config yasm\n"

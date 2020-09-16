@@ -34,7 +34,7 @@
 #   Run "make deps" from main Blender directory
 #
 # LINUX USAGE:
-#   Install compiler cmake autoconf automake libtool yasm nasm tcl
+#   Install compiler cmake autoconf automake libtool yasm tcl
 #   Run "make deps" from main Blender directory
 #
 ####################################################################################################
@@ -75,6 +75,8 @@ include(cmake/llvm.cmake)
 include(cmake/clang.cmake)
 if(APPLE)
   include(cmake/openmp.cmake)
+endif()
+if(UNIX)
   include(cmake/nasm.cmake)
 endif()
 include(cmake/openimageio.cmake)
