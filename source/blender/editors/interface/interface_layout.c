@@ -3001,7 +3001,7 @@ static uiBut *ui_item_menu(uiLayout *layout,
   }
 
   if (ELEM(layout->root->type, UI_LAYOUT_PANEL, UI_LAYOUT_TOOLBAR) ||
-      /* We never want a dropdown in menu! */
+      /* We never want a drop-down in menu! */
       (force_menu && layout->root->type != UI_LAYOUT_MENU)) {
     UI_but_type_set_menu_from_pulldown(but);
   }
@@ -5172,7 +5172,7 @@ static bool block_search_panel_label_matches(const uiBlock *block)
 }
 
 /**
- * Buttons for search only layouts (closed panel subpanels) have still been added from the
+ * Buttons for search only layouts (closed panel sub-panels) have still been added from the
  * layout functions, but they need to be hidden. Theoretically they could be removed too.
  */
 static void layout_free_and_hide_buttons(uiLayout *layout)
@@ -5236,7 +5236,7 @@ static bool button_matches_search_filter(uiBut *but, const char *search_filter)
     }
 #endif
 
-    /* Search through labels of enum property items if they are in a dropdown menu.
+    /* Search through labels of enum property items if they are in a drop-down menu.
      * Unfortunately we have no #bContext here so we cannot search through RNA enums
      * with dynamic entries (or "itemf" functions) which require context. */
     if (but->type == UI_BTYPE_MENU) {
@@ -5785,7 +5785,7 @@ void UI_block_layout_resolve(uiBlock *block, int *r_x, int *r_y)
   block->curlayout = NULL;
 
   LISTBASE_FOREACH_MUTABLE (uiLayoutRoot *, root, &block->layouts) {
-    /* Seach only roots should be removed by #UI_block_apply_search_filter. */
+    /* Search only roots should be removed by #UI_block_apply_search_filter. */
     BLI_assert(!root->search_only);
 
     ui_layout_add_padding_button(root);

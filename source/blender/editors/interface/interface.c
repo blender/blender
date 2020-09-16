@@ -392,7 +392,7 @@ static void ui_block_bounds_calc_text(uiBlock *block, float offset)
     }
 
     /* Skip all buttons that are in a horizontal alignment group.
-     * We don't want to split them appart (but still check the row's width and apply current
+     * We don't want to split them apart (but still check the row's width and apply current
      * offsets). */
     if (bt->next && ui_but_is_row_alignment_group(bt, bt->next)) {
       int width = 0;

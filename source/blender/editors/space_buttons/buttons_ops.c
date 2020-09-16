@@ -54,7 +54,7 @@
 #include "buttons_intern.h" /* own include */
 
 /* -------------------------------------------------------------------- */
-/** \name Start / Clear Seach Filter Operators
+/** \name Start / Clear Search Filter Operators
  *
  *  \note Almost a duplicate of the file browser operator #FILE_OT_start_filter.
  * \{ */

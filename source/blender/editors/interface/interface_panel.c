@@ -835,7 +835,7 @@ static void panel_matches_search_filter_recursive(const Panel *panel, bool *filt
 }
 
 /**
- * Find whether a panel or any of its subpanels contain a property that matches the search filter,
+ * Find whether a panel or any of its sub-panels contain a property that matches the search filter,
  * depending on the search process running in #UI_block_apply_search_filter earlier.
  */
 bool UI_panel_matches_search_filter(const Panel *panel)

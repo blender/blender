@@ -155,10 +155,10 @@ enum {
   UI_BLOCK_RADIAL = 1 << 20,
   UI_BLOCK_POPOVER = 1 << 21,
   UI_BLOCK_POPOVER_ONCE = 1 << 22,
-  /** Always show keymaps, even for non-menus. */
+  /** Always show key-maps, even for non-menus. */
   UI_BLOCK_SHOW_SHORTCUT_ALWAYS = 1 << 23,
   /** The block is only used during the search process and will not be drawn.
-   * Currently just for the case of a closed panel's subpanel (and its subpanels). */
+   * Currently just for the case of a closed panel's sub-panel (and its sub-panels). */
   UI_BLOCK_SEARCH_ONLY = 1 << 25,
 };
 
@@ -320,7 +320,7 @@ typedef enum {
   UI_BTYPE_BUT = 1 << 9,
   UI_BTYPE_ROW = 2 << 9,
   UI_BTYPE_TEXT = 3 << 9,
-  /** dropdown list */
+  /** Drop-down list. */
   UI_BTYPE_MENU = 4 << 9,
   UI_BTYPE_BUT_MENU = 5 << 9,
   /** number button */

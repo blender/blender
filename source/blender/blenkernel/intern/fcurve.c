@@ -1338,8 +1338,7 @@ void correct_bezpart(const float v1[2], float v2[2], float v3[2], const float v4
   }
 
   /* To prevent looping or rewinding, handles cannot
-   * exceed the adjacent's keyframe time position.
-   */
+   * exceed the adjacent key-frames time position. */
   if (len1 > len) {
     fac = len / len1;
     v2[0] = (v1[0] - fac * h1[0]);

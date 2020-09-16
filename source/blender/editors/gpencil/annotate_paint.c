@@ -2089,7 +2089,7 @@ static void annotation_draw_apply_event(
   }
   else {
     p->straight[0] = 0;
-    /* We were using shift while having permanent stabilization actived,
+    /* We were using shift while having permanent stabilization active,
        so activate the temp flag back again. */
     if (p->flags & GP_PAINTFLAG_USE_STABILIZER) {
       if ((p->flags & GP_PAINTFLAG_USE_STABILIZER_TEMP) == 0) {

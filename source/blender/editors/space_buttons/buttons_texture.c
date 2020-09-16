@@ -464,8 +464,8 @@ static void template_texture_user_menu(bContext *C, uiLayout *layout, void *UNUS
 
 void uiTemplateTextureUser(uiLayout *layout, bContext *C)
 {
-  /* texture user selection dropdown menu. the available users have been
-   * gathered before drawing in ButsContextTexture, we merely need to
+  /* Texture user selection drop-down menu. the available users have been
+   * gathered before drawing in #ButsContextTexture, we merely need to
    * display the current item. */
   SpaceProperties *sbuts = CTX_wm_space_properties(C);
   ButsContextTexture *ct = (sbuts) ? sbuts->texuser : NULL;

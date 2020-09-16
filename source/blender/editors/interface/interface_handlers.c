@@ -2053,8 +2053,8 @@ static void ui_apply_but(
     /* postpone clearing origdata */
   }
   else {
-    /* we avoid applying interactive edits a second time
-     * at the end with the appliedinteractive flag */
+    /* We avoid applying interactive edits a second time
+     * at the end with the #uiHandleButtonData.applied_interactive flag. */
     if (interactive) {
       data->applied_interactive = true;
     }
