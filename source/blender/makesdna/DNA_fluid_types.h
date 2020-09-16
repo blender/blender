@@ -25,7 +25,10 @@
 
 #include "DNA_listBase.h"
 
-/* Domain flags. */
+/**
+ * #FluidDomainSettings.flags
+ * Domain flags.
+ */
 enum {
   FLUID_DOMAIN_USE_NOISE = (1 << 1),        /* Use noise. */
   FLUID_DOMAIN_USE_DISSOLVE = (1 << 2),     /* Let smoke dissolve. */
@@ -47,7 +50,10 @@ enum {
   FLUID_DOMAIN_USE_RESUMABLE_CACHE = (1 << 16), /* Determine if cache should be resumable. */
 };
 
-/* Border collisions. */
+/**
+ * #FluidDomainSettings.border_collisions
+ * Border collisions.
+ */
 enum {
   FLUID_DOMAIN_BORDER_FRONT = (1 << 1),
   FLUID_DOMAIN_BORDER_BACK = (1 << 2),
@@ -66,13 +72,19 @@ enum {
   FLUID_DOMAIN_FILE_BIN_OBJECT = (1 << 4),
 };
 
-/* Axis aligned method. */
+/**
+ * #FluidDomainSettings.axis_slice_method
+ * Axis aligned method.
+ */
 enum {
   AXIS_SLICE_FULL = 0,
   AXIS_SLICE_SINGLE = 1,
 };
 
-/* Single slice direction. */
+/**
+ * #FluidDomainSettings.slice_axis
+ * Single slice direction.
+ */
 enum {
   SLICE_AXIS_AUTO = 0,
   SLICE_AXIS_X = 1,
@@ -80,41 +92,47 @@ enum {
   SLICE_AXIS_Z = 3,
 };
 
-/* Display interpolation method. */
+/**
+ * #FluidDomainSettings.interp_method
+ * Display interpolation method.
+ */
 typedef enum FLUID_DisplayInterpolationMethod {
   FLUID_DISPLAY_INTERP_LINEAR = 0,
   FLUID_DISPLAY_INTERP_CUBIC = 1,
   FLUID_DISPLAY_INTERP_CLOSEST = 2,
 } FLUID_DisplayInterpolationMethod;
 
-/* FluidDomainSettings.vector_draw_type */
+/** #FluidDomainSettings.vector_draw_type */
 enum {
   VECTOR_DRAW_NEEDLE = 0,
   VECTOR_DRAW_STREAMLINE = 1,
   VECTOR_DRAW_MAC = 2,
 };
 
-/* FluidDomainSettings.vector_draw_mac_components */
+/** #FluidDomainSettings.vector_draw_mac_components */
 enum {
   VECTOR_DRAW_MAC_X = (1 << 0),
   VECTOR_DRAW_MAC_Y = (1 << 1),
   VECTOR_DRAW_MAC_Z = (1 << 2),
 };
 
-/* Fluid domain vector fields. */
+/**
+ * #FluidDomainSettings.vector_field
+ * Fluid domain vector fields.
+ */
 typedef enum FLUID_DisplayVectorField {
   FLUID_DOMAIN_VECTOR_FIELD_VELOCITY = 0,
   FLUID_DOMAIN_VECTOR_FIELD_GUIDE_VELOCITY = 1,
   FLUID_DOMAIN_VECTOR_FIELD_FORCE = 2,
 } FLUID_DisplayVectorField;
 
-/* FluidDomainSettings.sndparticle_boundary */
+/** #FluidDomainSettings.sndparticle_boundary */
 enum {
   SNDPARTICLE_BOUNDARY_DELETE = 0,
   SNDPARTICLE_BOUNDARY_PUSHOUT = 1,
 };
 
-/* FluidDomainSettings.sndparticle_combined_export */
+/** #FluidDomainSettings.sndparticle_combined_export */
 enum {
   SNDPARTICLE_COMBINED_EXPORT_OFF = 0,
   SNDPARTICLE_COMBINED_EXPORT_SPRAY_FOAM = 1,
@@ -123,7 +141,7 @@ enum {
   SNDPARTICLE_COMBINED_EXPORT_SPRAY_FOAM_BUBBLE = 4,
 };
 
-/* FluidDomainSettings.coba_field */
+/** #FluidDomainSettings.coba_field */
 enum {
   FLUID_DOMAIN_FIELD_DENSITY = 0,
   FLUID_DOMAIN_FIELD_HEAT = 1,
@@ -147,13 +165,19 @@ enum {
   FLUID_DOMAIN_FIELD_PRESSURE = 19,
 };
 
-/* Fluid gridline display color field types. */
+/**
+ * #FluidDomainSettings.gridlines_color_field
+ * Fluid grid-line display color field types.
+ */
 enum {
   FLUID_GRIDLINE_COLOR_TYPE_FLAGS = 1,
   FLUID_GRIDLINE_COLOR_TYPE_RANGE = 2,
 };
 
-/* Fluid cell types.  */
+/**
+ * #FluidDomainSettings.gridlines_cell_filter
+ * Fluid cell types.
+ */
 enum {
   FLUID_CELL_TYPE_NONE = 0,
   FLUID_CELL_TYPE_FLUID = (1 << 0),
