@@ -646,7 +646,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       for (FCurve *fcu = act->curves.first; fcu; fcu = fcu->next) {
         /* Only need to fix Bezier curves with at least 2 keyframes. */
         if (fcu->totvert < 2 || fcu->bezt == NULL) {
-          return;
+          continue;
         }
         do_versions_291_fcurve_handles_limit(fcu);
       }
