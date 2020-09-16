@@ -166,7 +166,7 @@ static void __cpuid(int data[4], int selector)
 
 string system_cpu_brand_string()
 {
-  char buf[48] = {0};
+  char buf[49] = {0};
   int result[4] = {0};
 
   __cpuid(result, 0x80000000);
