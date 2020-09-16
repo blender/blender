@@ -1555,17 +1555,6 @@ static size_t animfilter_nla(bAnimContext *UNUSED(ac),
       next = nlt->next;
     }
 
-    /* If we're in NLA-tweak-mode, don't show this track if it was disabled
-     * (due to tweaking) for now:
-     * - active track should still get shown though (even though it has disabled flag set)
-     */
-    // FIXME: the channels after should still get drawn, just 'differently',
-    // and after an active-action channel.
-    if ((adt->flag & ADT_NLA_EDIT_ON) && (nlt->flag & NLATRACK_DISABLED) &&
-        (adt->act_track != nlt)) {
-      continue;
-    }
-
     /* only work with this channel and its subchannels if it is editable */
     if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_NLT(nlt)) {
       /* only include this track if selected in a way consistent with the filtering requirements */

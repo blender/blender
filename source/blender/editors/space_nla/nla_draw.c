@@ -408,6 +408,24 @@ static uint nla_draw_use_dashed_outlines(const float color[4], bool muted)
   return shdr_pos;
 }
 
+/** This check only accounts for the track's disabled flag and whether the strip is being tweaked.
+ * It does not account for muting or soloing. */
+static bool is_nlastrip_enabled(AnimData *adt, NlaTrack *nlt, NlaStrip *strip)
+{
+  /** This shouldn't happen. If passed NULL, then just treat strip as enabled. */
+  BLI_assert(adt);
+  if (!adt) {
+    return true;
+  }
+
+  if ((nlt->flag & NLATRACK_DISABLED) == 0) {
+    return true;
+  }
+
+  /** For disabled tracks, only the tweaked strip is enabled. */
+  return adt->actstrip == strip;
+}
+
 /* main call for drawing a single NLA-strip */
 static void nla_draw_strip(SpaceNla *snla,
                            AnimData *adt,
@@ -470,7 +488,7 @@ static void nla_draw_strip(SpaceNla *snla,
   }
 
   /* draw 'inside' of strip itself */
-  if (non_solo == 0) {
+  if (non_solo == 0 && is_nlastrip_enabled(adt, nlt, strip)) {
     immUnbindProgram();
 
     /* strip is in normal track */
