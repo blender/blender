@@ -2694,14 +2694,6 @@ void uiTemplateConstraintHeader(uiLayout *layout, PointerRNA *ptr)
 
   UI_block_lock_set(uiLayoutGetBlock(layout), (ob && ID_IS_LINKED(ob)), ERROR_LIBDATA_MESSAGE);
 
-  /* hrms, the temporal constraint should not draw! */
-  if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
-    bKinematicConstraint *data = con->data;
-    if (data->flag & CONSTRAINT_IK_TEMP) {
-      return;
-    }
-  }
-
   draw_constraint_header(layout, ob, con);
 }
 
