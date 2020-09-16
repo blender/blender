@@ -10,7 +10,7 @@ out vec4 FragColor;
 
 uniform vec3 planeAxes;
 uniform float gridDistance;
-uniform float meshSize;
+uniform vec3 gridSize;
 uniform float lineKernel = 0.0;
 uniform sampler2D depthBuffer;
 
@@ -73,7 +73,7 @@ vec3 get_axes(vec3 co, vec3 fwidthCos, float line_size)
 
 void main()
 {
-  vec3 wPos = local_pos * meshSize;
+  vec3 wPos = local_pos * gridSize;
   vec3 dFdxPos = dFdx(wPos);
   vec3 dFdyPos = dFdy(wPos);
   vec3 fwidthPos = abs(dFdxPos) + abs(dFdyPos);

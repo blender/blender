@@ -3,7 +3,7 @@
  * Clément Foucault */
 
 uniform vec3 planeAxes;
-uniform float meshSize;
+uniform vec3 gridSize;
 
 uniform int gridFlag;
 
@@ -37,7 +37,7 @@ void main()
 
   local_pos = vert_pos;
 
-  vec3 real_pos = cameraPos * planeAxes + vert_pos * meshSize;
+  vec3 real_pos = cameraPos * planeAxes + vert_pos * gridSize;
 
   /* Used for additional Z axis */
   if ((gridFlag & CLIP_Z_POS) != 0) {

@@ -127,7 +127,7 @@ typedef struct OVERLAY_PassList {
 typedef struct OVERLAY_ShadingData {
   /** Grid */
   float grid_axes[3], grid_distance;
-  float zplane_axes[3], grid_mesh_size;
+  float zplane_axes[3], grid_size[3];
   float grid_steps[8];
   float inv_viewport_size[2];
   float grid_line_size;
