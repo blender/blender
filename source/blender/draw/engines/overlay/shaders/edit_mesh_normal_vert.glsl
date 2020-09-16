@@ -20,11 +20,14 @@ void main()
 {
   GPU_INTEL_VERTEX_SHADER_WORKAROUND
 
+  /* Avoid undefined behavior after return. */
+  finalColor = vec4(0.0);
+  gl_Position = vec4(0.0);
+
   vec3 nor;
   /* Select the right normal by checking if the generic attribute is used. */
   if (!all(equal(lnor.xyz, vec3(0)))) {
     if (lnor.w < 0.0) {
-      finalColor = vec4(0.0);
       return;
     }
     nor = lnor.xyz;
@@ -32,7 +35,6 @@ void main()
   }
   else if (!all(equal(vnor.xyz, vec3(0)))) {
     if (vnor.w < 0.0) {
-      finalColor = vec4(0.0);
       return;
     }
     nor = vnor.xyz;
@@ -41,7 +43,6 @@ void main()
   else {
     nor = norAndFlag.xyz;
     if (all(equal(nor, vec3(0)))) {
-      finalColor = vec4(0.0);
       return;
     }
     finalColor = colorNormal;
