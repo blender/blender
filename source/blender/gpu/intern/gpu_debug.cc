@@ -88,7 +88,7 @@ bool GPU_debug_group_match(const char *ref)
   }
   DebugStack &stack = ctx->debug_stack;
   for (StringRef &name : stack) {
-    if (STREQ(name.data(), ref)) {
+    if (name == ref) {
       return true;
     }
   }
