@@ -5253,6 +5253,10 @@ static bool button_matches_search_filter(uiBut *but, const char *search_filter)
       }
 
       for (int i = 0; i < items_len; i++) {
+        /* Check for NULL name field which enums use for separators. */
+        if (items_array[i].name == NULL) {
+          continue;
+        }
         if (BLI_strcasestr(items_array[i].name, search_filter)) {
           return true;
         }
