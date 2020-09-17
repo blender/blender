@@ -51,6 +51,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu);
+
 /* *************************** */
 /* Utility Drawing Defines */
 
@@ -867,6 +869,164 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
   GPU_matrix_pop();
 }
 
+static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAnimListElem *ale)
+{
+  FCurve *fcu = (FCurve *)ale->key_data;
+  FModifier *fcm = find_active_fmodifier(&fcu->modifiers);
+  AnimData *adt = ANIM_nla_mapping_get(ac, ale);
+
+  /* map keyframes for drawing if scaled F-Curve */
+  if (adt) {
+    ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 0);
+  }
+
+  /* draw curve:
+   * - curve line may be result of one or more destructive modifiers or just the raw data,
+   *   so we need to check which method should be used
+   * - controls from active modifier take precedence over keyframes
+   *   (XXX! editing tools need to take this into account!)
+   */
+
+  /* 1) draw curve line */
+  if (((fcu->modifiers.first) || (fcu->flag & FCURVE_INT_VALUES)) ||
+      (((fcu->bezt) || (fcu->fpt)) && (fcu->totvert))) {
+    /* set color/drawing style for curve itself */
+    /* draw active F-Curve thicker than the rest to make it stand out */
+    if (fcu->flag & FCURVE_ACTIVE) {
+      GPU_line_width(2.5);
+    }
+    else {
+      GPU_line_width(1.0);
+    }
+
+    /* anti-aliased lines for less jagged appearance */
+    if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) {
+      GPU_line_smooth(true);
+    }
+    GPU_blend(GPU_BLEND_ALPHA);
+
+    const uint shdr_pos = GPU_vertformat_attr_add(
+        immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+
+    immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
+
+    float viewport_size[4];
+    GPU_viewport_size_get_f(viewport_size);
+    immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+
+    immUniform1i("colors_len", 0); /* Simple dashes. */
+
+    if (BKE_fcurve_is_protected(fcu)) {
+      /* protected curves (non editable) are drawn with dotted lines */
+      immUniform1f("dash_width", 4.0f);
+      immUniform1f("dash_factor", 0.5f);
+    }
+    else {
+      immUniform1f("dash_factor", 2.0f); /* solid line */
+    }
+
+    if (((fcu->grp) && (fcu->grp->flag & AGRP_MUTED)) || (fcu->flag & FCURVE_MUTED)) {
+      /* muted curves are drawn in a grayish hue */
+      /* XXX should we have some variations? */
+      immUniformThemeColorShade(TH_HEADER, 50);
+    }
+    else {
+      /* set whatever color the curve has set
+       * - unselected curves draw less opaque to help distinguish the selected ones
+       */
+      immUniformColor3fvAlpha(fcu->color, fcurve_display_alpha(fcu));
+    }
+
+    /* draw F-Curve */
+    if ((fcu->modifiers.first) || (fcu->flag & FCURVE_INT_VALUES)) {
+      /* draw a curve affected by modifiers or only allowed to have integer values
+       * by sampling it at various small-intervals over the visible region
+       */
+      draw_fcurve_curve(ac, ale->id, fcu, &region->v2d, shdr_pos);
+    }
+    else if (((fcu->bezt) || (fcu->fpt)) && (fcu->totvert)) {
+      /* just draw curve based on defined data (i.e. no modifiers) */
+      if (fcu->bezt) {
+        if (fcurve_can_use_simple_bezt_drawing(fcu)) {
+          draw_fcurve_curve_bezts(ac, ale->id, fcu, &region->v2d, shdr_pos);
+        }
+        else {
+          draw_fcurve_curve(ac, ale->id, fcu, &region->v2d, shdr_pos);
+        }
+      }
+      else if (fcu->fpt) {
+        draw_fcurve_curve_samples(ac, ale->id, fcu, &region->v2d, shdr_pos);
+      }
+    }
+
+    immUnbindProgram();
+
+    if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) {
+      GPU_line_smooth(false);
+    }
+    GPU_blend(GPU_BLEND_NONE);
+  }
+
+  /* 2) draw handles and vertices as appropriate based on active
+   * - If the option to only show controls if the F-Curve is selected is enabled,
+   *   we must obey this.
+   */
+  if (!(sipo->flag & SIPO_SELCUVERTSONLY) || (fcu->flag & FCURVE_SELECTED)) {
+    if (!BKE_fcurve_are_keyframes_usable(fcu) && !(fcu->fpt && fcu->totvert)) {
+      /* only draw controls if this is the active modifier */
+      if ((fcu->flag & FCURVE_ACTIVE) && (fcm)) {
+        switch (fcm->type) {
+          case FMODIFIER_TYPE_ENVELOPE: /* envelope */
+            draw_fcurve_modifier_controls_envelope(fcm, &region->v2d);
+            break;
+        }
+      }
+    }
+    else if (((fcu->bezt) || (fcu->fpt)) && (fcu->totvert)) {
+      short mapping_flag = ANIM_get_normalization_flags(ac);
+      float offset;
+      float unit_scale = ANIM_unit_mapping_get_factor(
+          ac->scene, ale->id, fcu, mapping_flag, &offset);
+
+      /* apply unit-scaling to all values via OpenGL */
+      GPU_matrix_push();
+      GPU_matrix_scale_2f(1.0f, unit_scale);
+      GPU_matrix_translate_2f(0.0f, offset);
+
+      /* Set this once and for all -
+       * all handles and handle-verts should use the same thickness. */
+      GPU_line_width(1.0);
+
+      if (fcu->bezt) {
+        bool do_handles = draw_fcurve_handles_check(sipo, fcu);
+
+        if (do_handles) {
+          /* only draw handles/vertices on keyframes */
+          draw_fcurve_handles(sipo, fcu);
+        }
+
+        draw_fcurve_vertices(region, fcu, do_handles, (sipo->flag & SIPO_SELVHANDLESONLY));
+      }
+      else {
+        /* samples: only draw two indicators at either end as indicators */
+        draw_fcurve_samples(sipo, region, fcu);
+      }
+
+      GPU_matrix_pop();
+    }
+  }
+
+  /* 3) draw driver debugging stuff */
+  if ((ac->datatype == ANIMCONT_DRIVERS) && (fcu->flag & FCURVE_ACTIVE)) {
+    graph_draw_driver_debug(ac, ale->id, fcu);
+  }
+
+  /* undo mapping of keyframes for drawing if scaled F-Curve */
+  if (adt) {
+    ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 0);
+  }
+}
+
 /* Debugging -------------------------------- */
 
 /* Draw indicators which show the value calculated from the driver,
@@ -1055,160 +1215,7 @@ void graph_draw_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, shor
    * the data will be layered correctly
    */
   for (ale = anim_data.first; ale; ale = ale->next) {
-    FCurve *fcu = (FCurve *)ale->key_data;
-    FModifier *fcm = find_active_fmodifier(&fcu->modifiers);
-    AnimData *adt = ANIM_nla_mapping_get(ac, ale);
-
-    /* map keyframes for drawing if scaled F-Curve */
-    if (adt) {
-      ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 0);
-    }
-
-    /* draw curve:
-     * - curve line may be result of one or more destructive modifiers or just the raw data,
-     *   so we need to check which method should be used
-     * - controls from active modifier take precedence over keyframes
-     *   (XXX! editing tools need to take this into account!)
-     */
-
-    /* 1) draw curve line */
-    if (((fcu->modifiers.first) || (fcu->flag & FCURVE_INT_VALUES)) ||
-        (((fcu->bezt) || (fcu->fpt)) && (fcu->totvert))) {
-      /* set color/drawing style for curve itself */
-      /* draw active F-Curve thicker than the rest to make it stand out */
-      if (fcu->flag & FCURVE_ACTIVE) {
-        GPU_line_width(2.5);
-      }
-      else {
-        GPU_line_width(1.0);
-      }
-
-      /* anti-aliased lines for less jagged appearance */
-      if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) {
-        GPU_line_smooth(true);
-      }
-      GPU_blend(GPU_BLEND_ALPHA);
-
-      const uint shdr_pos = GPU_vertformat_attr_add(
-          immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-
-      immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
-
-      float viewport_size[4];
-      GPU_viewport_size_get_f(viewport_size);
-      immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
-
-      immUniform1i("colors_len", 0); /* Simple dashes. */
-
-      if (BKE_fcurve_is_protected(fcu)) {
-        /* protected curves (non editable) are drawn with dotted lines */
-        immUniform1f("dash_width", 4.0f);
-        immUniform1f("dash_factor", 0.5f);
-      }
-      else {
-        immUniform1f("dash_factor", 2.0f); /* solid line */
-      }
-
-      if (((fcu->grp) && (fcu->grp->flag & AGRP_MUTED)) || (fcu->flag & FCURVE_MUTED)) {
-        /* muted curves are drawn in a grayish hue */
-        /* XXX should we have some variations? */
-        immUniformThemeColorShade(TH_HEADER, 50);
-      }
-      else {
-        /* set whatever color the curve has set
-         * - unselected curves draw less opaque to help distinguish the selected ones
-         */
-        immUniformColor3fvAlpha(fcu->color, fcurve_display_alpha(fcu));
-      }
-
-      /* draw F-Curve */
-      if ((fcu->modifiers.first) || (fcu->flag & FCURVE_INT_VALUES)) {
-        /* draw a curve affected by modifiers or only allowed to have integer values
-         * by sampling it at various small-intervals over the visible region
-         */
-        draw_fcurve_curve(ac, ale->id, fcu, &region->v2d, shdr_pos);
-      }
-      else if (((fcu->bezt) || (fcu->fpt)) && (fcu->totvert)) {
-        /* just draw curve based on defined data (i.e. no modifiers) */
-        if (fcu->bezt) {
-          if (fcurve_can_use_simple_bezt_drawing(fcu)) {
-            draw_fcurve_curve_bezts(ac, ale->id, fcu, &region->v2d, shdr_pos);
-          }
-          else {
-            draw_fcurve_curve(ac, ale->id, fcu, &region->v2d, shdr_pos);
-          }
-        }
-        else if (fcu->fpt) {
-          draw_fcurve_curve_samples(ac, ale->id, fcu, &region->v2d, shdr_pos);
-        }
-      }
-
-      immUnbindProgram();
-
-      if ((sipo->flag & SIPO_BEAUTYDRAW_OFF) == 0) {
-        GPU_line_smooth(false);
-      }
-      GPU_blend(GPU_BLEND_NONE);
-    }
-
-    /* 2) draw handles and vertices as appropriate based on active
-     * - If the option to only show controls if the F-Curve is selected is enabled,
-     *   we must obey this.
-     */
-    if (!(sipo->flag & SIPO_SELCUVERTSONLY) || (fcu->flag & FCURVE_SELECTED)) {
-      if (!BKE_fcurve_are_keyframes_usable(fcu) && !(fcu->fpt && fcu->totvert)) {
-        /* only draw controls if this is the active modifier */
-        if ((fcu->flag & FCURVE_ACTIVE) && (fcm)) {
-          switch (fcm->type) {
-            case FMODIFIER_TYPE_ENVELOPE: /* envelope */
-              draw_fcurve_modifier_controls_envelope(fcm, &region->v2d);
-              break;
-          }
-        }
-      }
-      else if (((fcu->bezt) || (fcu->fpt)) && (fcu->totvert)) {
-        short mapping_flag = ANIM_get_normalization_flags(ac);
-        float offset;
-        float unit_scale = ANIM_unit_mapping_get_factor(
-            ac->scene, ale->id, fcu, mapping_flag, &offset);
-
-        /* apply unit-scaling to all values via OpenGL */
-        GPU_matrix_push();
-        GPU_matrix_scale_2f(1.0f, unit_scale);
-        GPU_matrix_translate_2f(0.0f, offset);
-
-        /* Set this once and for all -
-         * all handles and handle-verts should use the same thickness. */
-        GPU_line_width(1.0);
-
-        if (fcu->bezt) {
-          bool do_handles = draw_fcurve_handles_check(sipo, fcu);
-
-          if (do_handles) {
-            /* only draw handles/vertices on keyframes */
-            draw_fcurve_handles(sipo, fcu);
-          }
-
-          draw_fcurve_vertices(region, fcu, do_handles, (sipo->flag & SIPO_SELVHANDLESONLY));
-        }
-        else {
-          /* samples: only draw two indicators at either end as indicators */
-          draw_fcurve_samples(sipo, region, fcu);
-        }
-
-        GPU_matrix_pop();
-      }
-    }
-
-    /* 3) draw driver debugging stuff */
-    if ((ac->datatype == ANIMCONT_DRIVERS) && (fcu->flag & FCURVE_ACTIVE)) {
-      graph_draw_driver_debug(ac, ale->id, fcu);
-    }
-
-    /* undo mapping of keyframes for drawing if scaled F-Curve */
-    if (adt) {
-      ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 0);
-    }
+    draw_fcurve(ac, sipo, region, ale);
   }
 
   /* free list of curves */
