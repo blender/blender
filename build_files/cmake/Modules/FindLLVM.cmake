@@ -34,6 +34,10 @@ else()
   endif()
 endif()
 
+execute_process(COMMAND ${LLVM_CONFIG} --includedir
+      OUTPUT_VARIABLE LLVM_INCLUDE_DIRS
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+
 if(NOT DEFINED LLVM_VERSION)
   execute_process(COMMAND ${LLVM_CONFIG} --version
           OUTPUT_VARIABLE LLVM_VERSION
@@ -80,7 +84,7 @@ if(LLVM_LIBRARY AND LLVM_ROOT_DIR AND LLVM_LIBPATH)
 endif()
 
 
-# handle the QUIETLY and REQUIRED arguments and set SDL2_FOUND to TRUE if
+# handle the QUIETLY and REQUIRED arguments and set LLVM_FOUND to TRUE if
 # all listed variables are TRUE
 INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(LLVM DEFAULT_MSG
