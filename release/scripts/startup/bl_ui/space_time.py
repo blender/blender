@@ -18,17 +18,11 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Header, Menu, Panel
+from bpy.types import Menu, Panel
 
 
 # Header buttons for timeline header (play, etc.)
-class TIME_HT_editor_buttons(Header):
-    bl_idname = "TIME_HT_editor_buttons"
-    bl_space_type = 'DOPESHEET_EDITOR'
-    bl_label = ""
-
-    def draw(self, context):
-        pass
+class TIME_HT_editor_buttons:
 
     @staticmethod
     def draw_header(context, layout):
@@ -311,7 +305,6 @@ class TIME_PT_keyframing_settings(TimelinePanelButtons, Panel):
 ###################################
 
 classes = (
-    TIME_HT_editor_buttons,
     TIME_MT_editor_menus,
     TIME_MT_marker,
     TIME_MT_view,
