@@ -712,7 +712,7 @@ static void sculpt_gesture_mask_end(bContext *C, SculptGestureContext *sgcontext
 
 static void sculpt_gesture_init_mask_properties(SculptGestureContext *sgcontext, wmOperator *op)
 {
-  sgcontext->operation = MEM_callocN(sizeof(SculptGestureFaceSetOperation), "Mask Operation");
+  sgcontext->operation = MEM_callocN(sizeof(SculptGestureMaskOperation), "Mask Operation");
 
   SculptGestureMaskOperation *mask_operation = (SculptGestureMaskOperation *)sgcontext->operation;
 
