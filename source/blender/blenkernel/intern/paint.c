@@ -1885,18 +1885,31 @@ static void sculpt_sync_face_sets_visibility_to_base_mesh(Mesh *mesh)
     return;
   }
 
-  for (int i = 0; i < mesh->totvert; i++) {
-    mesh->mvert[i].flag |= ME_HIDE;
-  }
+  /* Enabled if the vertex should be visible according to the Face Sets. */
+  BLI_bitmap *visibile_vertex = BLI_BITMAP_NEW(mesh->totvert, "visible vertices");
+  /* Enabled if the visibility of this vertex can be affected by the Face Sets to avoid modifying
+   * disconnected geometry. */
+  BLI_bitmap *modified_vertex = BLI_BITMAP_NEW(mesh->totvert, "modified vertices");
 
   for (int i = 0; i < mesh->totpoly; i++) {
-    if (face_sets[i] >= 0) {
-      for (int l = 0; l < mesh->mpoly[i].totloop; l++) {
-        MLoop *loop = &mesh->mloop[mesh->mpoly[i].loopstart + l];
-        mesh->mvert[loop->v].flag &= ~ME_HIDE;
+    const bool is_face_set_visible = face_sets[i] >= 0;
+    for (int l = 0; l < mesh->mpoly[i].totloop; l++) {
+      MLoop *loop = &mesh->mloop[mesh->mpoly[i].loopstart + l];
+      if (is_face_set_visible) {
+        BLI_BITMAP_ENABLE(visibile_vertex, loop->v);
       }
+      BLI_BITMAP_ENABLE(modified_vertex, loop->v);
     }
   }
+
+  for (int i = 0; i < mesh->totvert; i++) {
+    if (BLI_BITMAP_TEST(modified_vertex, i) && !BLI_BITMAP_TEST(visibile_vertex, i)) {
+      mesh->mvert[i].flag |= ME_HIDE;
+    }
+  }
+
+  MEM_SAFE_FREE(visibile_vertex);
+  MEM_SAFE_FREE(modified_vertex);
 }
 
 static void sculpt_sync_face_sets_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
