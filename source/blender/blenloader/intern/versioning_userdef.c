@@ -48,8 +48,8 @@
 
 #include "wm_event_types.h"
 
-/* Disallow access to global userdef. */
-#define U (_error_)
+/* For versioning we only ever want to manipulate preferences passed in. */
+#define U BLI_STATIC_ASSERT(false, "Global 'U' not allowed, only use arguments passed in!")
 
 static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
 {
