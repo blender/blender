@@ -876,7 +876,8 @@ SculptClothSimulation *SCULPT_cloth_brush_simulation_create(SculptSession *ss,
                                                             Brush *brush,
                                                             const float cloth_mass,
                                                             const float cloth_damping,
-                                                            const bool use_collisions)
+                                                            const bool use_collisions,
+                                                            const bool needs_deform_coords)
 {
   const int totverts = SCULPT_vertex_count_get(ss);
   SculptClothSimulation *cloth_sim;
@@ -898,9 +899,7 @@ SculptClothSimulation *SCULPT_cloth_brush_simulation_create(SculptSession *ss,
   cloth_sim->length_constraint_tweak = MEM_calloc_arrayN(
       totverts, sizeof(float), "cloth sim length tweak");
 
-  /* Brush can be NULL for tools that need the solver but don't rely on constraint to deformation
-   * positions. */
-  if (brush && SCULPT_is_cloth_deform_brush(brush)) {
+  if (needs_deform_coords) {
     cloth_sim->deformation_pos = MEM_calloc_arrayN(
         totverts, sizeof(float[3]), "cloth sim deformation positions");
     cloth_sim->deformation_strength = MEM_calloc_arrayN(
@@ -997,7 +996,8 @@ void SCULPT_do_cloth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
           brush,
           brush->cloth_mass,
           brush->cloth_damping,
-          (brush->flag2 & BRUSH_CLOTH_USE_COLLISION));
+          (brush->flag2 & BRUSH_CLOTH_USE_COLLISION),
+          SCULPT_is_cloth_deform_brush(brush));
       SCULPT_cloth_brush_simulation_init(ss, ss->cache->cloth_sim);
     }
 
@@ -1106,6 +1106,7 @@ typedef enum eSculpClothFilterType {
   CLOTH_FILTER_INFLATE,
   CLOTH_FILTER_EXPAND,
   CLOTH_FILTER_PINCH,
+  CLOTH_FILTER_SCALE,
 } eSculptClothFilterType;
 
 static EnumPropertyItem prop_cloth_filter_type[] = {
@@ -1113,6 +1114,11 @@ static EnumPropertyItem prop_cloth_filter_type[] = {
     {CLOTH_FILTER_INFLATE, "INFLATE", 0, "Inflate", "Inflates the cloth"},
     {CLOTH_FILTER_EXPAND, "EXPAND", 0, "Expand", "Expands the cloth's dimensions"},
     {CLOTH_FILTER_PINCH, "PINCH", 0, "Pinch", "Pulls the cloth to the cursor's start position"},
+    {CLOTH_FILTER_SCALE,
+     "SCALE",
+     0,
+     "Scale",
+     "Scales the mesh as a softbody using the origin of the object as scale"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -1148,6 +1154,35 @@ static EnumPropertyItem prop_cloth_filter_force_axis_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+static bool cloth_filter_is_deformation_filter(eSculptClothFilterType filter_type)
+{
+  return ELEM(filter_type, CLOTH_FILTER_SCALE);
+}
+
+static void cloth_filter_apply_displacement_to_deform_co(const int v_index,
+                                                         const float disp[3],
+                                                         FilterCache *filter_cache)
+{
+  float final_disp[3];
+  copy_v3_v3(final_disp, disp);
+  SCULPT_filter_zero_disabled_axis_components(final_disp, filter_cache);
+  add_v3_v3v3(filter_cache->cloth_sim->deformation_pos[v_index],
+              filter_cache->cloth_sim->init_pos[v_index],
+              final_disp);
+}
+
+static void cloth_filter_apply_forces_to_vertices(const int v_index,
+                                                  const float force[3],
+                                                  const float gravity[3],
+                                                  FilterCache *filter_cache)
+{
+  float final_force[3];
+  copy_v3_v3(final_force, force);
+  SCULPT_filter_zero_disabled_axis_components(final_force, filter_cache);
+  add_v3_v3(final_force, gravity);
+  cloth_brush_apply_force_to_vertex(NULL, filter_cache->cloth_sim, final_force, v_index);
+}
+
 static void cloth_filter_apply_forces_task_cb(void *__restrict userdata,
                                               const int i,
                                               const TaskParallelTLS *__restrict UNUSED(tls))
@@ -1158,7 +1193,9 @@ static void cloth_filter_apply_forces_task_cb(void *__restrict userdata,
   PBVHNode *node = data->nodes[i];
 
   SculptClothSimulation *cloth_sim = ss->filter_cache->cloth_sim;
-  const int filter_type = data->filter_type;
+
+  const eSculptClothFilterType filter_type = data->filter_type;
+  const bool is_deformation_filter = cloth_filter_is_deformation_filter(filter_type);
 
   float sculpt_gravity[3] = {0.0f};
   if (sd->gravity_object) {
@@ -1175,6 +1212,7 @@ static void cloth_filter_apply_forces_task_cb(void *__restrict userdata,
     float fade = vd.mask ? *vd.mask : 0.0f;
     fade = 1.0f - fade;
     float force[3] = {0.0f, 0.0f, 0.0f};
+    float disp[3], temp[3], transform[3][3];
 
     if (ss->filter_cache->active_face_set != SCULPT_FACE_SET_NONE) {
       if (!SCULPT_vertex_has_face_set(ss, vd.index, ss->filter_cache->active_face_set)) {
@@ -1208,19 +1246,23 @@ static void cloth_filter_apply_forces_task_cb(void *__restrict userdata,
         normalize_v3(force);
         mul_v3_fl(force, fade * data->filter_strength);
         break;
+      case CLOTH_FILTER_SCALE:
+        unit_m3(transform);
+        scale_m3_fl(transform, 1.0f + (fade * data->filter_strength));
+        copy_v3_v3(temp, cloth_sim->init_pos[vd.index]);
+        mul_m3_v3(transform, temp);
+        sub_v3_v3v3(disp, temp, cloth_sim->init_pos[vd.index]);
+        zero_v3(force);
+
+        break;
     }
 
-    SCULPT_filter_to_orientation_space(force, ss->filter_cache);
-    for (int axis = 0; axis < 3; axis++) {
-      if (!ss->filter_cache->enabled_force_axis[axis]) {
-        force[axis] = 0.0f;
-      }
+    if (is_deformation_filter) {
+      cloth_filter_apply_displacement_to_deform_co(vd.index, disp, ss->filter_cache);
     }
-    SCULPT_filter_to_object_space(force, ss->filter_cache);
-
-    add_v3_v3(force, sculpt_gravity);
-
-    cloth_brush_apply_force_to_vertex(ss, cloth_sim, force, vd.index);
+    else {
+      cloth_filter_apply_forces_to_vertices(vd.index, force, sculpt_gravity, ss->filter_cache);
+    }
   }
   BKE_pbvh_vertex_iter_end;
 
@@ -1291,6 +1333,8 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
 
+  const eSculptClothFilterType filter_type = RNA_enum_get(op->ptr, "type");
+
   /* Update the active vertex */
   float mouse[2];
   SculptCursorGeometryInfo sgi;
@@ -1310,7 +1354,12 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   const float cloth_damping = RNA_float_get(op->ptr, "cloth_damping");
   const bool use_collisions = RNA_boolean_get(op->ptr, "use_collisions");
   ss->filter_cache->cloth_sim = SCULPT_cloth_brush_simulation_create(
-      ss, NULL, cloth_mass, cloth_damping, use_collisions);
+      ss,
+      NULL,
+      cloth_mass,
+      cloth_damping,
+      use_collisions,
+      cloth_filter_is_deformation_filter(filter_type));
 
   copy_v3_v3(ss->filter_cache->cloth_sim_pinch_point, SCULPT_active_vertex_co_get(ss));
 
