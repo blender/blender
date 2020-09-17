@@ -43,7 +43,7 @@ typedef struct IMAGE_Shaders {
 static struct {
   IMAGE_Shaders shaders;
   DRWShaderLibrary *lib;
-} e_data = {{0}}; /* Engine data */
+} e_data = {{{0}}}; /* Engine data */
 
 void IMAGE_shader_library_ensure(void)
 {
