@@ -235,13 +235,15 @@ static void graph_panel_properties(const bContext *C, Panel *panel)
 /* ******************* active Keyframe ************** */
 
 /* get 'active' keyframe for panel editing */
-static bool get_active_fcurve_keyframe_edit(FCurve *fcu, BezTriple **bezt, BezTriple **prevbezt)
+static bool get_active_fcurve_keyframe_edit(FCurve *fcu,
+                                            BezTriple **r_bezt,
+                                            BezTriple **r_prevbezt)
 {
   BezTriple *b;
   int i;
 
   /* zero the pointers */
-  *bezt = *prevbezt = NULL;
+  *r_bezt = *r_prevbezt = NULL;
 
   /* sanity checks */
   if ((fcu->bezt == NULL) || (fcu->totvert == 0)) {
@@ -258,8 +260,8 @@ static bool get_active_fcurve_keyframe_edit(FCurve *fcu, BezTriple **bezt, BezTr
        * - 'previous' is either the one before, of the keyframe itself (which is still fine)
        *   XXX: we can just make this null instead if needed
        */
-      *prevbezt = (i > 0) ? b - 1 : b;
-      *bezt = b;
+      *r_prevbezt = (i > 0) ? b - 1 : b;
+      *r_bezt = b;
 
       return true;
     }
