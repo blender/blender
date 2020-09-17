@@ -329,6 +329,7 @@ void BPY_python_start(int argc, const char **argv)
   Py_IgnoreEnvironmentFlag = !py_use_system_env;
   Py_NoUserSiteDirectory = !py_use_system_env;
 
+  /* Initialize Python (also acquires lock). */
   Py_Initialize();
 
   // PySys_SetArgv(argc, argv);  /* broken in py3, not a huge deal */
@@ -345,9 +346,6 @@ void BPY_python_start(int argc, const char **argv)
     PySys_SetObject("argv", py_argv);
     Py_DECREF(py_argv);
   }
-
-  /* Initialize thread support (also acquires lock) */
-  PyEval_InitThreads();
 
 #  ifdef WITH_FLUID
   /* Required to prevent assertion error, see:
