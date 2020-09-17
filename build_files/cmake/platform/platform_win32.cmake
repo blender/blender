@@ -565,7 +565,7 @@ if(WITH_IMAGE_OPENJPEG)
 endif()
 
 if(WITH_OPENSUBDIV)
-  set(OPENSUBDIV_INCLUDE_DIR ${LIBDIR}/opensubdiv/include)
+  set(OPENSUBDIV_INCLUDE_DIRS ${LIBDIR}/opensubdiv/include)
   set(OPENSUBDIV_LIBPATH ${LIBDIR}/opensubdiv/lib)
   set(OPENSUBDIV_LIBRARIES
     optimized ${OPENSUBDIV_LIBPATH}/osdCPU.lib

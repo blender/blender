@@ -274,7 +274,7 @@ if(WITH_OPENSUBDIV)
   add_definitions(-DWITH_OPENSUBDIV)
   include_directories(
     SYSTEM
-    ${OPENSUBDIV_INCLUDE_DIR}
+    ${OPENSUBDIV_INCLUDE_DIRS}
   )
 endif()
 
