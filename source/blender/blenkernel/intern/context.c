@@ -92,6 +92,11 @@ struct bContext {
     /** True if python is initialized. */
     bool py_init;
     void *py_context;
+    /**
+     * If we need to remove members, do so in a copy
+     * (keep this to check if the copy needs freeing).
+     */
+    void *py_context_orig;
   } data;
 };
 
@@ -226,9 +231,23 @@ void *CTX_py_dict_get(const bContext *C)
 {
   return C->data.py_context;
 }
-void CTX_py_dict_set(bContext *C, void *value)
+void *CTX_py_dict_get_orig(const bContext *C)
 {
+  return C->data.py_context_orig;
+}
+
+void CTX_py_state_push(bContext *C, struct bContext_PyState *pystate, void *value)
+{
+  pystate->py_context = C->data.py_context;
+  pystate->py_context_orig = C->data.py_context_orig;
+
   C->data.py_context = value;
+  C->data.py_context_orig = value;
+}
+void CTX_py_state_pop(bContext *C, struct bContext_PyState *pystate)
+{
+  C->data.py_context = pystate->py_context;
+  C->data.py_context_orig = pystate->py_context_orig;
 }
 
 /* data context utility functions */
@@ -918,6 +937,13 @@ void CTX_wm_manager_set(bContext *C, wmWindowManager *wm)
   C->wm.region = NULL;
 }
 
+#ifdef WITH_PYTHON
+#  define PYCTX_REGION_MEMBERS "region", "region_data"
+#  define PYCTX_AREA_MEMBERS "area", "space_data", PYCTX_REGION_MEMBERS
+#  define PYCTX_SCREEN_MEMBERS "screen", PYCTX_AREA_MEMBERS
+#  define PYCTX_WINDOW_MEMBERS "window", "scene", "workspace", PYCTX_SCREEN_MEMBERS
+#endif
+
 void CTX_wm_window_set(bContext *C, wmWindow *win)
 {
   C->wm.window = win;
@@ -928,6 +954,12 @@ void CTX_wm_window_set(bContext *C, wmWindow *win)
   C->wm.screen = (win) ? BKE_workspace_active_screen_get(win->workspace_hook) : NULL;
   C->wm.area = NULL;
   C->wm.region = NULL;
+
+#ifdef WITH_PYTHON
+  if (C->data.py_context != NULL) {
+    BPY_context_dict_clear_members(C, PYCTX_WINDOW_MEMBERS);
+  }
+#endif
 }
 
 void CTX_wm_screen_set(bContext *C, bScreen *screen)
@@ -935,17 +967,35 @@ void CTX_wm_screen_set(bContext *C, bScreen *screen)
   C->wm.screen = screen;
   C->wm.area = NULL;
   C->wm.region = NULL;
+
+#ifdef WITH_PYTHON
+  if (C->data.py_context != NULL) {
+    BPY_context_dict_clear_members(C, PYCTX_SCREEN_MEMBERS);
+  }
+#endif
 }
 
 void CTX_wm_area_set(bContext *C, ScrArea *area)
 {
   C->wm.area = area;
   C->wm.region = NULL;
+
+#ifdef WITH_PYTHON
+  if (C->data.py_context != NULL) {
+    BPY_context_dict_clear_members(C, PYCTX_AREA_MEMBERS);
+  }
+#endif
 }
 
 void CTX_wm_region_set(bContext *C, ARegion *region)
 {
   C->wm.region = region;
+
+#ifdef WITH_PYTHON
+  if (C->data.py_context != NULL) {
+    BPY_context_dict_clear_members(C, PYCTX_REGION_MEMBERS);
+  }
+#endif
 }
 
 void CTX_wm_menu_set(bContext *C, ARegion *menu)
@@ -1154,6 +1204,12 @@ const char *CTX_data_mode_string(const bContext *C)
 void CTX_data_scene_set(bContext *C, Scene *scene)
 {
   C->data.scene = scene;
+
+#ifdef WITH_PYTHON
+  if (C->data.py_context != NULL) {
+    BPY_context_dict_clear_members(C, "scene");
+  }
+#endif
 }
 
 ToolSettings *CTX_data_tool_settings(const bContext *C)

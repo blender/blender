@@ -165,6 +165,44 @@ void bpy_context_clear(bContext *UNUSED(C), const PyGILState_STATE *gilstate)
   }
 }
 
+/**
+ * Use for `CTX_*_set(..)` funcitons need to set values which are later read back as expected.
+ * In this case we don't want the Python context to override the values as it causes problems
+ * see T66256.
+ *
+ * \param dict_p: A pointer to #bContext.data.py_context so we can assign a new value.
+ * \param dict_orig: The value of #bContext.data.py_context_orig to check if we need to copy.
+ *
+ * \note Typically accessed via #BPY_context_dict_clear_members macro.
+ */
+void BPY_context_dict_clear_members_array(void **dict_p,
+                                          void *dict_orig,
+                                          const char *context_members[],
+                                          uint context_members_len)
+{
+  PyGILState_STATE gilstate;
+  const bool use_gil = !PyC_IsInterpreterActive();
+
+  if (use_gil) {
+    gilstate = PyGILState_Ensure();
+  }
+
+  /* Copy on write. */
+  if (*dict_p == dict_orig) {
+    *dict_p = PyDict_Copy(dict_orig);
+  }
+
+  PyObject *dict = *dict_p;
+  BLI_assert(PyDict_Check(dict));
+  for (uint i = 0; i < context_members_len; i++) {
+    PyDict_DelItemString(dict, context_members[i]);
+  }
+
+  if (use_gil) {
+    PyGILState_Release(gilstate);
+  }
+}
+
 void BPY_text_free_code(Text *text)
 {
   if (text->compiled) {

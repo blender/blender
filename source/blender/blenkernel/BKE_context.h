@@ -138,7 +138,14 @@ bool CTX_py_init_get(bContext *C);
 void CTX_py_init_set(bContext *C, bool value);
 
 void *CTX_py_dict_get(const bContext *C);
-void CTX_py_dict_set(bContext *C, void *value);
+void *CTX_py_dict_get_orig(const bContext *C);
+
+struct bContext_PyState {
+  void *py_context;
+  void *py_context_orig;
+};
+void CTX_py_state_push(bContext *C, struct bContext_PyState *pystate, void *value);
+void CTX_py_state_pop(bContext *C, struct bContext_PyState *pystate);
 
 /* Window Manager Context */
 

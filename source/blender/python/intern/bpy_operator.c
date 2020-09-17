@@ -77,7 +77,6 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
   wmOperatorType *ot;
   const char *opname;
   PyObject *context_dict = NULL; /* optional args */
-  PyObject *context_dict_back;
   const char *context_str = NULL;
   PyObject *ret;
 
@@ -131,16 +130,25 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
     return NULL;
   }
 
-  context_dict_back = CTX_py_dict_get(C);
-  CTX_py_dict_set(C, (void *)context_dict);
-  Py_XINCREF(context_dict); /* so we done loose it */
+  struct bContext_PyState context_py_state;
+  if (context_dict != NULL) {
+    CTX_py_state_push(C, &context_py_state, (void *)context_dict);
+    Py_INCREF(context_dict); /* so we done loose it */
+  }
 
   /* main purpose of this function */
   ret = WM_operator_poll_context((bContext *)C, ot, context) ? Py_True : Py_False;
 
-  /* restore with original context dict, probably NULL but need this for nested operator calls */
-  Py_XDECREF(context_dict);
-  CTX_py_dict_set(C, (void *)context_dict_back);
+  if (context_dict != NULL) {
+    PyObject *context_dict_test = CTX_py_dict_get(C);
+    if (context_dict_test != context_dict) {
+      Py_DECREF(context_dict_test);
+    }
+    /* Restore with original context dict,
+     * probably NULL but need this for nested operator calls. */
+    Py_DECREF(context_dict);
+    CTX_py_state_pop(C, &context_py_state);
+  }
 
   return Py_INCREF_RET(ret);
 }
@@ -156,7 +164,6 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
   const char *context_str = NULL;
   PyObject *kw = NULL;           /* optional args */
   PyObject *context_dict = NULL; /* optional args */
-  PyObject *context_dict_back;
 
   /* note that context is an int, python does the conversion in this case */
   int context = WM_OP_EXEC_DEFAULT;
@@ -225,17 +232,16 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
     return NULL;
   }
 
-  context_dict_back = CTX_py_dict_get(C);
-
   /**
    * It might be that there is already a Python context override. We don't want to remove that
    * except when this operator call sets a new override explicitly. This is necessary so that
    * called operator runs in the same context as the calling code by default.
    */
+  struct bContext_PyState context_py_state;
   if (context_dict != NULL) {
-    CTX_py_dict_set(C, (void *)context_dict);
+    CTX_py_state_push(C, &context_py_state, (void *)context_dict);
+    Py_INCREF(context_dict); /* so we done loose it */
   }
-  Py_XINCREF(context_dict); /* so we done loose it */
 
   if (WM_operator_poll_context((bContext *)C, ot, context) == false) {
     const char *msg = CTX_wm_operator_poll_msg_get(C);
@@ -314,9 +320,16 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 #endif
   }
 
-  /* restore with original context dict, probably NULL but need this for nested operator calls */
-  Py_XDECREF(context_dict);
-  CTX_py_dict_set(C, (void *)context_dict_back);
+  if (context_dict != NULL) {
+    PyObject *context_dict_test = CTX_py_dict_get(C);
+    if (context_dict_test != context_dict) {
+      Py_DECREF(context_dict_test);
+    }
+    /* Restore with original context dict,
+     * probably NULL but need this for nested operator calls. */
+    Py_DECREF(context_dict);
+    CTX_py_state_pop(C, &context_py_state);
+  }
 
   if (error_val == -1) {
     return NULL;

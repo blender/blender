@@ -88,6 +88,16 @@ int BPY_context_member_get(struct bContext *C,
 void BPY_context_set(struct bContext *C);
 void BPY_context_update(struct bContext *C);
 
+#define BPY_context_dict_clear_members(C, ...) \
+  BPY_context_dict_clear_members_array(&((C)->data.py_context), \
+                                       (C)->data.py_context_orig, \
+                                       ((const char *[]){__VA_ARGS__}), \
+                                       VA_NARGS_COUNT(__VA_ARGS__))
+void BPY_context_dict_clear_members_array(void **dict_p,
+                                          void *dict_orig,
+                                          const char *context_members[],
+                                          uint context_members_len);
+
 void BPY_id_release(struct ID *id);
 
 bool BPY_string_is_keyword(const char *str);
