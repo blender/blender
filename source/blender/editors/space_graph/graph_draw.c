@@ -53,8 +53,10 @@
 
 static void graph_draw_driver_debug(bAnimContext *ac, ID *id, FCurve *fcu);
 
-/* *************************** */
-/* Utility Drawing Defines */
+/* -------------------------------------------------------------------- */
+/** \name Utility Drawing Defines
+ *
+ * \{ */
 
 /* determine the alpha value that should be used when
  * drawing components for some F-Curve (fcu)
@@ -65,8 +67,12 @@ static float fcurve_display_alpha(FCurve *fcu)
   return (fcu->flag & FCURVE_SELECTED) ? 1.0f : U.fcu_inactive_alpha;
 }
 
-/* *************************** */
-/* F-Curve Modifier Drawing */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name FCurve Modifier Drawing
+ *
+ * \{ */
 
 /* Envelope -------------- */
 
@@ -133,8 +139,12 @@ static void draw_fcurve_modifier_controls_envelope(FModifier *fcm, View2D *v2d)
   }
 }
 
-/* *************************** */
-/* F-Curve Drawing */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name FCurve Modifier Drawing
+ *
+ * \{ */
 
 /* Points ---------------- */
 
@@ -1222,8 +1232,12 @@ void graph_draw_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, shor
   ANIM_animdata_freelist(&anim_data);
 }
 
-/* ************************************************************************* */
-/* Channel List */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Channel List
+ *
+ * \{ */
 
 /* left hand part */
 void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
@@ -1292,3 +1306,5 @@ void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
   /* free tempolary channels */
   ANIM_animdata_freelist(&anim_data);
 }
+
+/** \} */
