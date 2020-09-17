@@ -1101,7 +1101,7 @@ void createTransData(bContext *C, TransInfo *t)
     initTransDataContainers_FromObjectData(t, ob, NULL, 0);
     convert_type = TC_POSE;
   }
-  else if (ob && (ob->mode & OB_MODE_WEIGHT_PAINT) && !(t->options & CTX_PAINT_CURVE)) {
+  else if (ob && (ob->mode & OB_MODE_ALL_WEIGHT_PAINT) && !(t->options & CTX_PAINT_CURVE)) {
     /* important that ob_armature can be set even when its not selected [#23412]
      * lines below just check is also visible */
     Object *ob_armature = BKE_modifiers_is_deformed_by_armature(ob);
