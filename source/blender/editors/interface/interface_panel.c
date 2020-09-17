@@ -71,15 +71,16 @@
 #define ANIMATION_TIME 0.30
 #define ANIMATION_INTERVAL 0.02
 
-#define PNL_LAST_ADDED 1
-#define PNL_ACTIVE 2
-#define PNL_WAS_ACTIVE 4
-#define PNL_ANIM_ALIGN 8
-#define PNL_NEW_ADDED 16
-#define PNL_FIRST 32
-#define PNL_SEARCH_FILTER_MATCHES 64
+typedef enum uiPanelRuntimeFlag {
+  PANEL_LAST_ADDED = (1 << 0),
+  PANEL_ACTIVE = (1 << 2),
+  PANEL_WAS_ACTIVE = (1 << 3),
+  PANEL_ANIM_ALIGN = (1 << 4),
+  PANEL_NEW_ADDED = (1 << 5),
+  PANEL_SEARCH_FILTER_MATCH = (1 << 7),
+} uiPanelRuntimeFlag;
 
-/* the state of the mouse position relative to the panel */
+/* The state of the mouse position relative to the panel. */
 typedef enum uiPanelMouseState {
   PANEL_MOUSE_OUTSIDE,        /** Mouse is not in the panel. */
   PANEL_MOUSE_INSIDE_CONTENT, /** Mouse is in the actual panel content. */
@@ -97,11 +98,11 @@ typedef enum uiHandlePanelState {
 typedef struct uiHandlePanelData {
   uiHandlePanelState state;
 
-  /* animation */
+  /* Animation. */
   wmTimer *animtimer;
   double starttime;
 
-  /* dragging */
+  /* Dragging. */
   bool is_drag_drop;
   int startx, starty;
   int startofsx, startofsy;
@@ -162,15 +163,15 @@ static bool panel_active_animation_changed(ListBase *lb,
   LISTBASE_FOREACH (Panel *, panel, lb) {
     /* Detect panel active flag changes. */
     if (!(panel->type && panel->type->parent)) {
-      if ((panel->runtime_flag & PNL_WAS_ACTIVE) && !(panel->runtime_flag & PNL_ACTIVE)) {
+      if ((panel->runtime_flag & PANEL_WAS_ACTIVE) && !(panel->runtime_flag & PANEL_ACTIVE)) {
         return true;
       }
-      if (!(panel->runtime_flag & PNL_WAS_ACTIVE) && (panel->runtime_flag & PNL_ACTIVE)) {
+      if (!(panel->runtime_flag & PANEL_WAS_ACTIVE) && (panel->runtime_flag & PANEL_ACTIVE)) {
         return true;
       }
     }
 
-    if ((panel->runtime_flag & PNL_ACTIVE) && !(panel->flag & PNL_CLOSED)) {
+    if ((panel->runtime_flag & PANEL_ACTIVE) && !(panel->flag & PNL_CLOSED)) {
       if (panel_active_animation_changed(&panel->children, r_panel_animation, r_no_animation)) {
         return true;
       }
@@ -187,7 +188,7 @@ static bool panel_active_animation_changed(ListBase *lb,
         *r_no_animation = true;
       }
     }
-    if ((panel->runtime_flag & PNL_ANIM_ALIGN) && !(*r_panel_animation)) {
+    if ((panel->runtime_flag & PANEL_ANIM_ALIGN) && !(*r_panel_animation)) {
       *r_panel_animation = panel;
     }
   }
@@ -247,7 +248,7 @@ static Panel *UI_panel_add_instanced_ex(ARegion *region,
   BLI_strncpy(panel->panelname, panel_type->idname, sizeof(panel->panelname));
 
   panel->runtime.custom_data_ptr = custom_data;
-  panel->runtime_flag |= PNL_NEW_ADDED;
+  panel->runtime_flag |= PANEL_NEW_ADDED;
 
   /* Add the panel's children too. Although they aren't instanced panels, we can still use this
    * function to create them, as UI_panel_begin does other things we don't need to do. */
@@ -564,8 +565,8 @@ static void set_panels_list_data_expand_flag(const bContext *C, const ARegion *r
       continue;
     }
 
-    /* Check for #PNL_ACTIVE so we only set the expand flag for active panels. */
-    if (panel_type->flag & PNL_INSTANCED && panel->runtime_flag & PNL_ACTIVE) {
+    /* Check for #PANEL_ACTIVE so we only set the expand flag for active panels. */
+    if (panel_type->flag & PNL_INSTANCED && panel->runtime_flag & PANEL_ACTIVE) {
       short expand_flag;
       short flag_index = 0;
       get_panel_expand_flag(panel, &expand_flag, &flag_index);
@@ -676,7 +677,7 @@ Panel *UI_panel_begin(
     panel->sizey = 0;
     panel->blocksizex = 0;
     panel->blocksizey = 0;
-    panel->runtime_flag |= PNL_NEW_ADDED;
+    panel->runtime_flag |= PANEL_NEW_ADDED;
 
     BLI_addtail(lb, panel);
   }
@@ -698,9 +699,9 @@ Panel *UI_panel_begin(
   BLI_strncpy(panel->drawname, drawname, sizeof(panel->drawname));
 
   /* If a new panel is added, we insert it right after the panel that was last added.
-   * This way new panels are inserted in the right place between versions */
+   * This way new panels are inserted in the right place between versions. */
   for (panel_last = lb->first; panel_last; panel_last = panel_last->next) {
-    if (panel_last->runtime_flag & PNL_LAST_ADDED) {
+    if (panel_last->runtime_flag & PANEL_LAST_ADDED) {
       BLI_remlink(lb, panel);
       BLI_insertlinkafter(lb, panel_last, panel);
       break;
@@ -718,12 +719,12 @@ Panel *UI_panel_begin(
   }
 
   if (panel_last) {
-    panel_last->runtime_flag &= ~PNL_LAST_ADDED;
+    panel_last->runtime_flag &= ~PANEL_LAST_ADDED;
   }
 
   /* Assign the new panel to the block. */
   block->panel = panel;
-  panel->runtime_flag |= PNL_ACTIVE | PNL_LAST_ADDED;
+  panel->runtime_flag |= PANEL_ACTIVE | PANEL_LAST_ADDED;
   if (region->alignment == RGN_ALIGN_FLOAT) {
     UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
   }
@@ -760,15 +761,15 @@ void UI_panel_end(const ARegion *region, uiBlock *block, int width, int height, 
 
   /* Compute total panel size including children. */
   LISTBASE_FOREACH (Panel *, pachild, &panel->children) {
-    if (pachild->runtime_flag & PNL_ACTIVE) {
+    if (pachild->runtime_flag & PANEL_ACTIVE) {
       width = max_ii(width, pachild->sizex);
       height += get_panel_real_size_y(pachild);
     }
   }
 
   /* Update total panel size. */
-  if (panel->runtime_flag & PNL_NEW_ADDED) {
-    panel->runtime_flag &= ~PNL_NEW_ADDED;
+  if (panel->runtime_flag & PANEL_NEW_ADDED) {
+    panel->runtime_flag &= ~PANEL_NEW_ADDED;
     panel->sizex = width;
     panel->sizey = height;
   }
@@ -786,13 +787,13 @@ void UI_panel_end(const ARegion *region, uiBlock *block, int width, int height, 
 
     /* Check if we need to do an animation. */
     if (panel->sizex != old_sizex || panel->sizey != old_sizey) {
-      panel->runtime_flag |= PNL_ANIM_ALIGN;
+      panel->runtime_flag |= PANEL_ANIM_ALIGN;
       panel->ofsy += old_sizey - panel->sizey;
     }
 
     panel->runtime.region_ofsx = panel_region_offset_x_get(region);
     if (old_region_ofsx != panel->runtime.region_ofsx) {
-      panel->runtime_flag |= PNL_ANIM_ALIGN;
+      panel->runtime_flag |= PANEL_ANIM_ALIGN;
     }
   }
 }
@@ -818,12 +819,12 @@ static void ui_offset_panel_block(uiBlock *block)
 
 void ui_panel_set_search_filter_match(struct Panel *panel, const bool value)
 {
-  SET_FLAG_FROM_TEST(panel->runtime_flag, value, PNL_SEARCH_FILTER_MATCHES);
+  SET_FLAG_FROM_TEST(panel->runtime_flag, value, PANEL_SEARCH_FILTER_MATCH);
 }
 
 static void panel_matches_search_filter_recursive(const Panel *panel, bool *filter_matches)
 {
-  *filter_matches |= panel->runtime_flag & PNL_SEARCH_FILTER_MATCHES;
+  *filter_matches |= panel->runtime_flag & PANEL_SEARCH_FILTER_MATCH;
 
   /* If the panel has no match we need to make sure that its children are too. */
   if (!*filter_matches) {
@@ -884,7 +885,7 @@ void UI_panels_set_expansion_from_seach_filter(const bContext *C, ARegion *regio
 /** \name Drawing
  * \{ */
 
-/* triangle 'icon' for panel header */
+/* Triangle 'icon' for panel header. */
 void UI_draw_icon_tri(float x, float y, char dir, const float color[4])
 {
   const float f3 = 0.05 * U.widget_unit;
@@ -931,7 +932,7 @@ static void ui_draw_aligned_panel_header(const uiStyle *style,
   /* + 0.001f to avoid flirting with float inaccuracy .*/
   const int pnl_icons = (panel->labelofs + (1.1f * PNL_ICON)) / block->aspect + 0.001f;
 
-  /* Draw text label.s */
+  /* Draw text labels. */
   uchar col_title[4];
   panel_title_color_get(
       panel, show_background, is_subpanel, region_search_filter_active, col_title);
@@ -950,7 +951,7 @@ static void ui_draw_aligned_panel_header(const uiStyle *style,
 }
 
 /**
- * Draw a panel integrated in buttons-window, tool/property lists etc
+ * Draw a panel integrated in buttons-window, tool/property lists etc.
  */
 void ui_draw_aligned_panel(const uiStyle *style,
                            const uiBlock *block,
@@ -1713,7 +1714,7 @@ static void align_sub_panels(Panel *panel)
   int ofsy = panel->ofsy + panel->sizey - panel->blocksizey;
 
   LISTBASE_FOREACH (Panel *, pachild, &panel->children) {
-    if (pachild->runtime_flag & PNL_ACTIVE) {
+    if (pachild->runtime_flag & PANEL_ACTIVE) {
       pachild->ofsx = panel->ofsx;
       pachild->ofsy = ofsy - get_panel_size_y(pachild);
       ofsy -= get_panel_real_size_y(pachild);
@@ -1733,7 +1734,7 @@ static bool uiAlignPanelStep(ARegion *region, const float fac, const bool drag)
   /* Count active panels. */
   int tot = 0;
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
-    if (panel->runtime_flag & PNL_ACTIVE) {
+    if (panel->runtime_flag & PANEL_ACTIVE) {
       tot++;
     }
   }
@@ -1747,7 +1748,7 @@ static bool uiAlignPanelStep(ARegion *region, const float fac, const bool drag)
 
   PanelSort *ps = panelsort;
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
-    if (panel->runtime_flag & PNL_ACTIVE) {
+    if (panel->runtime_flag & PANEL_ACTIVE) {
       ps->panel = MEM_dupallocN(panel);
       ps->orig = panel;
       ps++;
@@ -1811,7 +1812,7 @@ static bool uiAlignPanelStep(ARegion *region, const float fac, const bool drag)
 
   /* Set locations for tabbed and sub panels. */
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
-    if (panel->runtime_flag & PNL_ACTIVE) {
+    if (panel->runtime_flag & PANEL_ACTIVE) {
       if (panel->children.first) {
         align_sub_panels(panel);
       }
@@ -1835,7 +1836,7 @@ static void ui_panels_size(ARegion *region, int *r_x, int *r_y)
 
   /* Compute size taken up by panels, for setting in view2d. */
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
-    if (panel->runtime_flag & PNL_ACTIVE) {
+    if (panel->runtime_flag & PANEL_ACTIVE) {
       const int pa_sizex = panel->ofsx + panel->sizex;
       const int pa_sizey = get_panel_real_ofsy(panel);
 
@@ -1888,8 +1889,8 @@ static void ui_do_animate(bContext *C, Panel *panel)
 static void panel_list_clear_active(ListBase *lb)
 {
   LISTBASE_FOREACH (Panel *, panel, lb) {
-    if (panel->runtime_flag & PNL_ACTIVE) {
-      panel->runtime_flag = PNL_WAS_ACTIVE;
+    if (panel->runtime_flag & PANEL_ACTIVE) {
+      panel->runtime_flag = PANEL_WAS_ACTIVE;
     }
     else {
       panel->runtime_flag = 0;
@@ -1920,7 +1921,7 @@ void UI_panels_end(const bContext *C, ARegion *region, int *r_x, int *r_y)
     }
   }
 
-  /* Offset contents */
+  /* Offset contents. */
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     if (block->active && block->panel) {
       ui_offset_panel_block(block);
@@ -1938,21 +1939,7 @@ void UI_panels_end(const bContext *C, ARegion *region, int *r_x, int *r_y)
     }
   }
 
-  /* Tag first panel. */
-  Panel *panel_first = NULL;
-  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
-    if (block->active && block->panel) {
-      if (!panel_first || block->panel->sortorder < panel_first->sortorder) {
-        panel_first = block->panel;
-      }
-    }
-  }
-
-  if (panel_first) {
-    panel_first->runtime_flag |= PNL_FIRST;
-  }
-
-  /* Compute size taken up by panel. */
+  /* Compute size taken up by panels. */
   ui_panels_size(region, r_x, r_y);
 }
 
