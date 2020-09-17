@@ -276,8 +276,8 @@ static Panel *UI_panel_add_instanced_ex(ARegion *region,
 }
 
 /**
- * Called in situations where panels need to be added dynamically rather than having only one panel
- * corresponding to each #PanelType.
+ * Called in situations where panels need to be added dynamically rather than
+ * having only one panel corresponding to each #PanelType.
  */
 Panel *UI_panel_add_instanced(ARegion *region,
                               ListBase *panels,
@@ -501,7 +501,7 @@ static bool panel_set_expand_from_list_data_recursive(Panel *panel, short flag, 
 
 /**
  * Set the expansion of the panel and its sub-panels from the flag stored by the list data
- * corresponding to each panel. The flag has expansion stored in each bit in depth first
+ * corresponding to this panel. The flag has expansion stored in each bit in depth first
  * order.
  */
 void UI_panel_set_expand_from_list_data(const bContext *C, Panel *panel)
@@ -551,7 +551,7 @@ static void get_panel_expand_flag(Panel *panel, short *flag, short *flag_index)
 
 /**
  * Call the callback to store the panel and sub-panel expansion settings in the list item that
- * corresponds to this panel.
+ * corresponds to each instanced panel.
  *
  * \note This needs to iterate through all of the regions panels because the panel with changed
  * expansion could have been the sub-panel of a instanced panel, meaning it might not know
