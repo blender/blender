@@ -195,7 +195,9 @@ void BPY_context_dict_clear_members_array(void **dict_p,
   PyObject *dict = *dict_p;
   BLI_assert(PyDict_Check(dict));
   for (uint i = 0; i < context_members_len; i++) {
-    PyDict_DelItemString(dict, context_members[i]);
+    if (PyDict_DelItemString(dict, context_members[i])) {
+      PyErr_Clear();
+    }
   }
 
   if (use_gil) {
