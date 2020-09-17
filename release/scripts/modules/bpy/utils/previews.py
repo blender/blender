@@ -65,6 +65,10 @@ class ImagePreviewCollection(dict):
 
     # Internal notes:
     # - Blender's internal 'PreviewImage' struct uses 'self._uuid' prefix.
+    # - Blender's preview.new/load return the data if it exists,
+    #   don't do this for the Python API as it allows accidental re-use of names,
+    #   anyone who wants to reuse names can use dict.get() to check if it exists.
+    #   We could use this for the C API too (would need some investigation).
 
     def __init__(self):
         super().__init__()

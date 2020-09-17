@@ -49,15 +49,20 @@
 
 #define STR_SOURCE_TYPES "'IMAGE', 'MOVIE', 'BLEND', 'FONT'"
 
-PyDoc_STRVAR(bpy_utils_previews_new_doc,
-             ".. method:: new(name)\n"
-             "\n"
-             "   Generate a new empty preview, or return existing one matching ``name``.\n"
-             "\n"
-             "   :arg name: The name (unique id) identifying the preview.\n"
-             "   :type name: string\n"
-             "   :return: The Preview matching given name, or a new empty one.\n"
-             "   :rtype: :class:`bpy.types.ImagePreview`\n");
+PyDoc_STRVAR(
+    bpy_utils_previews_new_doc,
+    ".. method:: new(name)\n"
+    "\n"
+    "   Generate a new empty preview.\n"
+    "\n"
+    /* This is only true when accessed via 'bpy.utils.previews.ImagePreviewCollection.new',
+     * however this is the public API, allow this minor difference to the internal version here. */
+    "   If ``name`` already exists a KeyError exception is raised.\n"
+    "\n"
+    "   :arg name: The name (unique id) identifying the preview.\n"
+    "   :type name: string\n"
+    "   :return: The Preview matching given name, or a new empty one.\n"
+    "   :rtype: :class:`bpy.types.ImagePreview`\n");
 static PyObject *bpy_utils_previews_new(PyObject *UNUSED(self), PyObject *args)
 {
   char *name;
@@ -78,7 +83,11 @@ PyDoc_STRVAR(
     bpy_utils_previews_load_doc,
     ".. method:: load(name, filepath, filetype, force_reload=False)\n"
     "\n"
-    "   Generate a new preview from given file path, or return existing one matching ``name``.\n"
+    "   Generate a new preview from given file path.\n"
+    "\n"
+    /* This is only true when accessed via 'bpy.utils.previews.ImagePreviewCollection.load',
+     * however this is the public API, allow this minor difference to the internal version here. */
+    "   If ``name`` already exists a KeyError exception is raised.\n"
     "\n"
     "   :arg name: The name (unique id) identifying the preview.\n"
     "   :type name: string\n"
