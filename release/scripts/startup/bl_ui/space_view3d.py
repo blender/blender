@@ -5720,7 +5720,13 @@ class VIEW3D_PT_shading_lighting(Panel):
 
                 split = layout.split(factor=0.9)
                 col = split.column()
-                col.prop(shading, "studiolight_rotate_z", text="Rotation")
+
+                row = col.row()
+                row.prop(shading, "use_studiolight_view_rotation", text="", icon='WORLD', toggle=True)
+                row = row.row()
+                row.active = shading.use_world_space_lighting
+                row.prop(shading, "studiolight_rotate_z", text="Rotation")
+
                 col.prop(shading, "studiolight_intensity")
                 col.prop(shading, "studiolight_background_alpha")
                 col.prop(shading, "studiolight_background_blur")
