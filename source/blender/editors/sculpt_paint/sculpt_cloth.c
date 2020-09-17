@@ -108,6 +108,11 @@ static float cloth_brush_simulation_falloff_get(const Brush *brush,
                                                 const float location[3],
                                                 const float co[3])
 {
+  if (brush->sculpt_tool != SCULPT_TOOL_CLOTH) {
+    /* All brushes that are not the cloth brush do not use simulation areas. */
+    return 1.0f;
+  }
+
   /* Global simulation does not have any falloff as the entire mesh is being simulated. */
   if (brush->cloth_simulation_area_type == BRUSH_CLOTH_SIMULATION_AREA_GLOBAL) {
     return 1.0f;
