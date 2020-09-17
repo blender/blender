@@ -65,7 +65,7 @@ void MemoryManager::DeviceBuffer::update_device_memory(OpenCLDevice *device)
   }
 
   /* Always allocate non-empty buffer, NULL pointers cause problems with some drivers. */
-  total_size = max(total_size, 16);
+  total_size = std::max(total_size, (size_t)16);
 
   if (need_realloc) {
     cl_ulong max_buffer_size;
