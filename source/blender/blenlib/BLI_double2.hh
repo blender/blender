@@ -51,7 +51,7 @@ struct double2 {
     return &x;
   }
 
-  float length() const
+  double length() const
   {
     return len_v2_db(*this);
   }
