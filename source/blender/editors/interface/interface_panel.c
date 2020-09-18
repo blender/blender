@@ -111,7 +111,9 @@ typedef struct uiHandlePanelData {
 } uiHandlePanelData;
 
 typedef struct PanelSort {
-  Panel *panel, *orig;
+  Panel *panel;
+  int new_offset_x;
+  int new_offset_y;
 } PanelSort;
 
 static int get_panel_real_size_y(const Panel *panel);
@@ -450,8 +452,7 @@ static void reorder_instanced_panel_list(bContext *C, ARegion *region, Panel *dr
     if (panel->type) {
       if (panel->type->flag & PNL_INSTANCED) {
         if (panel_type_context_poll(region, panel->type, context)) {
-          sort_index->panel = MEM_dupallocN(panel);
-          sort_index->orig = panel;
+          sort_index->panel = panel;
           sort_index++;
         }
       }
@@ -462,16 +463,11 @@ static void reorder_instanced_panel_list(bContext *C, ARegion *region, Panel *dr
   /* Find how many of those panels are above this panel. */
   int move_to_index = 0;
   for (; move_to_index < list_panels_len; move_to_index++) {
-    if (panel_sort[move_to_index].orig == drag_panel) {
+    if (panel_sort[move_to_index].panel == drag_panel) {
       break;
     }
   }
 
-  /* Free panel sort array. */
-  int i = 0;
-  for (sort_index = panel_sort; i < list_panels_len; i++, sort_index++) {
-    MEM_freeN(sort_index->panel);
-  }
   MEM_freeN(panel_sort);
 
   /* Set the bit to tell the interface to instanced the list. */
@@ -1735,33 +1731,32 @@ static bool uiAlignPanelStep(ARegion *region, const float factor, const bool dra
   int active_panels_len = 0;
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
     if (panel->runtime_flag & PANEL_ACTIVE) {
+      /* These panels should have types since they are currently displayed to the user. */
+      BLI_assert(panel->type != NULL);
       active_panels_len++;
     }
   }
-
   if (active_panels_len == 0) {
     return false;
   }
 
   /* Sort panels. */
-  PanelSort *panel_sort = MEM_callocN(active_panels_len * sizeof(PanelSort), "panelsort");
-
-  PanelSort *ps = panel_sort;
-  LISTBASE_FOREACH (Panel *, panel, &region->panels) {
-    if (panel->runtime_flag & PANEL_ACTIVE) {
-      ps->panel = MEM_dupallocN(panel);
-      ps->orig = panel;
-      ps++;
+  PanelSort *panel_sort = MEM_mallocN(sizeof(PanelSort) * active_panels_len, __func__);
+  {
+    PanelSort *ps = panel_sort;
+    LISTBASE_FOREACH (Panel *, panel, &region->panels) {
+      if (panel->runtime_flag & PANEL_ACTIVE) {
+        ps->panel = panel;
+        ps++;
+      }
     }
   }
 
   if (drag) {
     /* While dragging, sort based on location and update #Panel.sortorder. */
     qsort(panel_sort, active_panels_len, sizeof(PanelSort), find_highest_panel);
-
-    int i;
-    for (ps = panel_sort, i = 0; i < active_panels_len; i++, ps++) {
-      ps->orig->sortorder = i;
+    for (int i = 0; i < active_panels_len; i++) {
+      panel_sort[i].panel->sortorder = i;
     }
   }
   else {
@@ -1769,45 +1764,48 @@ static bool uiAlignPanelStep(ARegion *region, const float factor, const bool dra
     qsort(panel_sort, active_panels_len, sizeof(PanelSort), compare_panel);
   }
 
-  /* No smart other default start location! This keeps switching f5/f6/etc compatible. */
-  ps = panel_sort;
-  ps->panel->runtime.region_ofsx = panel_region_offset_x_get(region);
-  ps->panel->ofsx = 0;
-  ps->panel->ofsy = -get_panel_size_y(ps->panel);
-  ps->panel->ofsx += ps->panel->runtime.region_ofsx;
-
-  for (int i = 0; i < active_panels_len - 1; i++, ps++) {
-    PanelSort *psnext = ps + 1;
-
-    const bool use_box = ps->panel->type && ps->panel->type->flag & PNL_DRAW_BOX;
-    const bool use_box_next = psnext->panel->type && psnext->panel->type->flag & PNL_DRAW_BOX;
-    psnext->panel->ofsx = ps->panel->ofsx;
-    psnext->panel->ofsy = get_panel_real_ofsy(ps->panel) - get_panel_size_y(psnext->panel);
-
-    /* Extra margin for box style panels. */
-    ps->panel->ofsx += (use_box) ? UI_PANEL_BOX_STYLE_MARGIN : 0.0f;
-    if (use_box || use_box_next) {
-      psnext->panel->ofsy -= UI_PANEL_BOX_STYLE_MARGIN;
-    }
+  /* X offset. */
+  const int region_offset_x = panel_region_offset_x_get(region);
+  for (int i = 0; i < active_panels_len; i++) {
+    PanelSort *ps = &panel_sort[i];
+    const bool use_box = ps->panel->type->flag & PNL_DRAW_BOX;
+    ps->panel->runtime.region_ofsx = region_offset_x;
+    ps->new_offset_x = region_offset_x + ((use_box) ? UI_PANEL_BOX_STYLE_MARGIN : 0);
   }
-  /* Extra margin for the last panel if it's a box-style panel. */
-  if (panel_sort[active_panels_len - 1].panel->type &&
-      panel_sort[active_panels_len - 1].panel->type->flag & PNL_DRAW_BOX) {
-    panel_sort[active_panels_len - 1].panel->ofsx += UI_PANEL_BOX_STYLE_MARGIN;
+
+  /* Y offset. */
+  for (int i = 0, y = 0; i < active_panels_len; i++) {
+    PanelSort *ps = &panel_sort[i];
+    y -= get_panel_real_size_y(ps->panel);
+
+    const bool use_box = ps->panel->type->flag & PNL_DRAW_BOX;
+    if (use_box) {
+      y -= UI_PANEL_BOX_STYLE_MARGIN;
+    }
+    ps->new_offset_y = y;
+    /* The header still draws offset by the size of closed panels, so apply the offset here. */
+    if (ps->panel->flag & PNL_CLOSED) {
+      panel_sort[i].new_offset_y -= ps->panel->sizey;
+    }
   }
 
   /* Interpolate based on the input factor. */
   bool changed = false;
-  ps = panel_sort;
-  for (int i = 0; i < active_panels_len; i++, ps++) {
-    if ((ps->panel->flag & PNL_SELECT) == 0) {
-      if ((ps->orig->ofsx != ps->panel->ofsx) || (ps->orig->ofsy != ps->panel->ofsy)) {
-        ps->orig->ofsx = round_fl_to_int(factor * (float)ps->panel->ofsx +
-                                         (1.0f - factor) * (float)ps->orig->ofsx);
-        ps->orig->ofsy = round_fl_to_int(factor * (float)ps->panel->ofsy +
-                                         (1.0f - factor) * (float)ps->orig->ofsy);
-        changed = true;
-      }
+  for (int i = 0; i < active_panels_len; i++) {
+    PanelSort *ps = &panel_sort[i];
+    if (ps->panel->flag & PNL_SELECT) {
+      continue;
+    }
+
+    if (ps->new_offset_x != ps->panel->ofsx) {
+      const float x = interpf((float)ps->new_offset_x, (float)ps->panel->ofsx, factor);
+      ps->panel->ofsx = round_fl_to_int(x);
+      changed = true;
+    }
+    if (ps->new_offset_y != ps->panel->ofsy) {
+      const float y = interpf((float)ps->new_offset_y, (float)ps->panel->ofsy, factor);
+      ps->panel->ofsy = round_fl_to_int(y);
+      changed = true;
     }
   }
 
@@ -1820,10 +1818,6 @@ static bool uiAlignPanelStep(ARegion *region, const float factor, const bool dra
     }
   }
 
-  int i;
-  for (ps = panel_sort, i = 0; i < active_panels_len; i++, ps++) {
-    MEM_freeN(ps->panel);
-  }
   MEM_freeN(panel_sort);
 
   return changed;
