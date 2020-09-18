@@ -1,6 +1,11 @@
 #ifndef VOLUMETRICS
-void node_bsdf_glass(
-    vec4 color, float roughness, float ior, vec3 N, float ssr_id, out Closure result)
+void node_bsdf_glass(vec4 color,
+                     float roughness,
+                     float ior,
+                     vec3 N,
+                     float use_multiscatter,
+                     float ssr_id,
+                     out Closure result)
 {
   N = normalize(N);
   vec3 out_spec, out_refr, ssr_spec;
@@ -8,7 +13,9 @@ void node_bsdf_glass(
                                               color.rgb; /* Simulate 2 transmission event */
   eevee_closure_glass(N,
                       vec3(1.0),
-                      vec3(1.0),
+                      /* HACK: Pass the multiscatter flag as the sign to not add closure
+                       * variations or increase register usage. */
+                      (use_multiscatter != 0.0) ? vec3(1.0) : -vec3(1.0),
                       int(ssr_id),
                       roughness,
                       1.0,
@@ -28,5 +35,5 @@ void node_bsdf_glass(
 }
 #else
 /* Stub glass because it is not compatible with volumetrics. */
-#  define node_bsdf_glass(a, b, c, d, e, f) (f = CLOSURE_DEFAULT)
+#  define node_bsdf_glass(a, b, c, d, e, f, result) (result = CLOSURE_DEFAULT)
 #endif
