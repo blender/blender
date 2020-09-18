@@ -891,6 +891,17 @@ int DRW_mesh_material_count_get(Mesh *me)
   return mesh_render_mat_len_get(me);
 }
 
+GPUBatch *DRW_mesh_batch_cache_get_sculpt_overlays(Mesh *me)
+{
+  MeshBatchCache *cache = mesh_batch_cache_get(me);
+
+  cache->cd_needed.sculpt_overlays = 1;
+  mesh_batch_cache_add_request(cache, MBC_SCULPT_OVERLAYS);
+  DRW_batch_request(&cache->batch.sculpt_overlays);
+
+  return cache->batch.sculpt_overlays;
+}
+
 /** \} */
 
 /* ---------------------------------------------------------------------- */
@@ -1242,6 +1253,9 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
         if (cache->cd_used.orco != cache->cd_needed.orco) {
           GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.orco);
         }
+        if (cache->cd_used.sculpt_overlays != cache->cd_needed.sculpt_overlays) {
+          GPU_VERTBUF_DISCARD_SAFE(mbuffercache->vbo.sculpt_data);
+        }
         if (((cache->cd_used.vcol & cache->cd_needed.vcol) != cache->cd_needed.vcol) ||
             ((cache->cd_used.sculpt_vcol & cache->cd_needed.sculpt_vcol) !=
              cache->cd_needed.sculpt_vcol)) {
@@ -1332,6 +1346,11 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
   }
   if (DRW_batch_requested(cache->batch.all_verts, GPU_PRIM_POINTS)) {
     DRW_vbo_request(cache->batch.all_verts, &mbufcache->vbo.pos_nor);
+  }
+  if (DRW_batch_requested(cache->batch.sculpt_overlays, GPU_PRIM_TRIS)) {
+    DRW_ibo_request(cache->batch.sculpt_overlays, &mbufcache->ibo.tris);
+    DRW_vbo_request(cache->batch.sculpt_overlays, &mbufcache->vbo.pos_nor);
+    DRW_vbo_request(cache->batch.sculpt_overlays, &mbufcache->vbo.sculpt_data);
   }
   if (DRW_batch_requested(cache->batch.all_edges, GPU_PRIM_LINES)) {
     DRW_ibo_request(cache->batch.all_edges, &mbufcache->ibo.lines);

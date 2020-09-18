@@ -38,6 +38,7 @@
 #include "DNA_workspace_types.h"
 
 #include "BLI_bitmap.h"
+#include "BLI_hash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
@@ -2100,4 +2101,22 @@ bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const View3D *v3d)
 
   /* Multires and dyntopo always draw directly from the PBVH. */
   return true;
+}
+
+/* Returns the Face Set random color for rendering in the overlay given its ID and a color seed. */
+#define GOLDEN_RATIO_CONJUGATE 0.618033988749895f
+void BKE_paint_face_set_overlay_color_get(const int face_set, const int seed, uchar r_color[4])
+{
+  float rgba[4];
+  float random_mod_hue = GOLDEN_RATIO_CONJUGATE * (abs(face_set) + (seed % 10));
+  random_mod_hue = random_mod_hue - floorf(random_mod_hue);
+  const float random_mod_sat = BLI_hash_int_01(abs(face_set) + seed + 1);
+  const float random_mod_val = BLI_hash_int_01(abs(face_set) + seed + 2);
+  hsv_to_rgb(random_mod_hue,
+             0.6f + (random_mod_sat * 0.25f),
+             1.0f - (random_mod_val * 0.35f),
+             &rgba[0],
+             &rgba[1],
+             &rgba[2]);
+  rgba_float_to_uchar(r_color, rgba);
 }

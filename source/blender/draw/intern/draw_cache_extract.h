@@ -55,6 +55,7 @@ typedef struct DRW_MeshCDMask {
   uint32_t sculpt_vcol : 8;
   uint32_t orco : 1;
   uint32_t tan_orco : 1;
+  uint32_t sculpt_overlays : 1;
   /** Edit uv layer is from the base edit mesh as
    *  modifiers could remove it. (see T68857) */
   uint32_t edit_uv : 1;
@@ -103,6 +104,7 @@ typedef struct MeshBufferCache {
     GPUVertBuf *uv;
     GPUVertBuf *tan;
     GPUVertBuf *vcol;
+    GPUVertBuf *sculpt_data;
     GPUVertBuf *orco;
     /* Only for edit mode. */
     GPUVertBuf *edit_data; /* extend */
@@ -170,6 +172,7 @@ typedef enum DRWBatchFlag {
   MBC_WIRE_LOOPS = (1 << 24),
   MBC_WIRE_LOOPS_UVS = (1 << 25),
   MBC_SKIN_ROOTS = (1 << 26),
+  MBC_SCULPT_OVERLAYS = (1 << 27),
 } DRWBatchFlag;
 
 #define MBC_EDITUV \
@@ -219,6 +222,7 @@ typedef struct MeshBatchCache {
     GPUBatch *wire_edges;     /* Individual edges with face normals. */
     GPUBatch *wire_loops;     /* Loops around faces. no edges between selected faces */
     GPUBatch *wire_loops_uvs; /* Same as wire_loops but only has uvs. */
+    GPUBatch *sculpt_overlays;
   } batch;
 
   GPUBatch **surface_per_mat;

@@ -2360,6 +2360,10 @@ void ED_view3d_datamask(const bContext *C,
       (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_WEIGHT)) {
     r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
   }
+  if ((CTX_data_mode_enum(C) == CTX_MODE_SCULPT)) {
+    r_cddata_masks->vmask |= CD_MASK_PAINT_MASK;
+    r_cddata_masks->pmask |= CD_MASK_SCULPT_FACE_SETS;
+  }
 }
 
 /* Goes over all modes and view3d settings. */

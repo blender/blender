@@ -175,6 +175,7 @@ struct GPUBatch *DRW_mesh_batch_cache_get_surface_texpaint_single(struct Mesh *m
 struct GPUBatch *DRW_mesh_batch_cache_get_surface_vertpaint(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_surface_sculpt(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_surface_weights(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_sculpt_overlays(struct Mesh *me);
 /* edit-mesh drawing */
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_triangles(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edit_vertices(struct Mesh *me);

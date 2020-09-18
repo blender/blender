@@ -204,6 +204,8 @@ bool paint_is_bmesh_face_hidden(struct BMFace *f);
 /* paint masks */
 float paint_grid_paint_mask(const struct GridPaintMask *gpm, uint level, uint x, uint y);
 
+void BKE_paint_face_set_overlay_color_get(const int face_set, const int seed, uchar r_color[4]);
+
 /* stroke related */
 bool paint_calculate_rake_rotation(struct UnifiedPaintSettings *ups,
                                    struct Brush *brush,

@@ -195,24 +195,6 @@ static void gpu_pbvh_batch_init(GPU_PBVH_Buffers *buffers, GPUPrimType prim)
 /** \name Mesh PBVH
  * \{ */
 
-/* Returns the Face Set random color for rendering in the overlay given its ID and a color seed. */
-#define GOLDEN_RATIO_CONJUGATE 0.618033988749895f
-static void face_set_overlay_color_get(const int face_set, const int seed, uchar *r_color)
-{
-  float rgba[4];
-  float random_mod_hue = GOLDEN_RATIO_CONJUGATE * (abs(face_set) + (seed % 10));
-  random_mod_hue = random_mod_hue - floorf(random_mod_hue);
-  const float random_mod_sat = BLI_hash_int_01(abs(face_set) + seed + 1);
-  const float random_mod_val = BLI_hash_int_01(abs(face_set) + seed + 2);
-  hsv_to_rgb(random_mod_hue,
-             0.6f + (random_mod_sat * 0.25f),
-             1.0f - (random_mod_val * 0.35f),
-             &rgba[0],
-             &rgba[1],
-             &rgba[2]);
-  rgba_float_to_uchar(r_color, rgba);
-}
-
 static bool gpu_pbvh_is_looptri_visible(const MLoopTri *lt,
                                         const MVert *mvert,
                                         const MLoop *mloop,
@@ -290,7 +272,7 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
           const int fset = abs(sculpt_face_sets[lt->poly]);
           /* Skip for the default color Face Set to render it white. */
           if (fset != face_sets_color_default) {
-            face_set_overlay_color_get(fset, face_sets_color_seed, face_set_color);
+            BKE_paint_face_set_overlay_color_get(fset, face_sets_color_seed, face_set_color);
             default_face_set = false;
           }
         }
@@ -672,7 +654,7 @@ void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
         const int fset = abs(sculpt_face_sets[face_index]);
         /* Skip for the default color Face Set to render it white. */
         if (fset != face_sets_color_default) {
-          face_set_overlay_color_get(fset, face_sets_color_seed, face_set_color);
+          BKE_paint_face_set_overlay_color_get(fset, face_sets_color_seed, face_set_color);
           default_face_set = false;
         }
       }

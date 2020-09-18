@@ -1054,7 +1054,6 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
         }
         continue;
       }
-      BKE_modifier_set_error(md, "Sculpt: Hide, Mask and optimized display disabled");
     }
 
     if (need_mapping && !BKE_modifier_supports_mapping(md)) {
