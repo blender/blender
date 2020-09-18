@@ -26,7 +26,8 @@ void do_vertex(const int i, vec2 ofs)
   finalColor = color;
 
 #elif defined(FLAT)
-  finalColor = finalColor_g[0];
+  /* WATCH: Assuming last provoking vertex. */
+  finalColor = finalColor_g[1];
 
 #elif defined(SMOOTH)
   finalColor = finalColor_g[i];
