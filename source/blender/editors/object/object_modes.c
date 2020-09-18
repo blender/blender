@@ -57,6 +57,7 @@
 #include "WM_toolsystem.h"
 
 #include "ED_object.h" /* own include */
+#include "object_intern.h"
 
 /* -------------------------------------------------------------------- */
 /** \name High Level Mode Operations
@@ -406,7 +407,7 @@ bool ED_object_mode_generic_has_data(struct Depsgraph *depsgraph, struct Object 
  *
  * \{ */
 
-bool OBJECT_switch_object_poll(bContext *C)
+static bool object_switch_object_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   if (!CTX_wm_region_view3d(C)) {
@@ -415,7 +416,7 @@ bool OBJECT_switch_object_poll(bContext *C)
   return ob && ELEM(ob->mode, OB_MODE_EDIT, OB_MODE_SCULPT);
 }
 
-static int object_switch_object_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int object_switch_object_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -502,7 +503,7 @@ void OBJECT_OT_switch_object(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = object_switch_object_invoke;
-  ot->poll = OBJECT_switch_object_poll;
+  ot->poll = object_switch_object_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }

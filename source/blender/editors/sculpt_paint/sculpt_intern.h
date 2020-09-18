@@ -366,7 +366,6 @@ void SCULPT_do_cloth_brush(struct Sculpt *sd,
 void SCULPT_cloth_simulation_free(struct SculptClothSimulation *cloth_sim);
 
 struct SculptClothSimulation *SCULPT_cloth_brush_simulation_create(struct SculptSession *ss,
-                                                                   struct Brush *brush,
                                                                    const float cloth_mass,
                                                                    const float cloth_damping,
                                                                    const bool use_collisions,

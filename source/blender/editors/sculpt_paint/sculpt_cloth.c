@@ -873,7 +873,6 @@ static void cloth_brush_apply_brush_foces(Sculpt *sd, Object *ob, PBVHNode **nod
 
 /* Public functions. */
 SculptClothSimulation *SCULPT_cloth_brush_simulation_create(SculptSession *ss,
-                                                            Brush *brush,
                                                             const float cloth_mass,
                                                             const float cloth_damping,
                                                             const bool use_collisions,
@@ -993,7 +992,6 @@ void SCULPT_do_cloth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     if (SCULPT_stroke_is_first_brush_step(ss->cache) || !ss->cache->cloth_sim) {
       ss->cache->cloth_sim = SCULPT_cloth_brush_simulation_create(
           ss,
-          brush,
           brush->cloth_mass,
           brush->cloth_damping,
           (brush->flag2 & BRUSH_CLOTH_USE_COLLISION),
@@ -1355,7 +1353,6 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   const bool use_collisions = RNA_boolean_get(op->ptr, "use_collisions");
   ss->filter_cache->cloth_sim = SCULPT_cloth_brush_simulation_create(
       ss,
-      NULL,
       cloth_mass,
       cloth_damping,
       use_collisions,
