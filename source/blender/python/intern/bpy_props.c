@@ -112,6 +112,11 @@ static const EnumPropertyItem property_flag_override_collection_items[] = {
      0,
      "No Name",
      "Do not use the names of the items, only their indices in the collection"},
+    {PROPOVERRIDE_LIBRARY_INSERTION,
+     "USE_INSERTION",
+     0,
+     "Use Insertion",
+     "Allow users to add new items in that collection in library overrides"},
     {0, NULL, 0, NULL, NULL},
 };
 
