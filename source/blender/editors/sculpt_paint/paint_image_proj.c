@@ -6140,8 +6140,6 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 
   scene->toolsettings->imapaint.flag |= IMAGEPAINT_DRAWING;
 
-  ED_image_undo_push_begin(op->type->name, PAINT_MODE_TEXTURE_3D);
-
   /* allocate and initialize spatial data structures */
   project_paint_begin(C, &ps, false, 0);
 
@@ -6150,22 +6148,25 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "Could not get valid evaluated mesh");
     return OPERATOR_CANCELLED;
   }
-  else {
-    float pos[2] = {0.0, 0.0};
-    float lastpos[2] = {0.0, 0.0};
-    int a;
 
-    project_paint_op(&ps, lastpos, pos);
+  ED_image_undo_push_begin(op->type->name, PAINT_MODE_TEXTURE_3D);
 
-    project_image_refresh_tagged(&ps);
+  const float pos[2] = {0.0, 0.0};
+  const float lastpos[2] = {0.0, 0.0};
+  int a;
 
-    for (a = 0; a < ps.image_tot; a++) {
-      GPU_free_image(ps.projImages[a].ima);
-      WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ps.projImages[a].ima);
-    }
+  project_paint_op(&ps, lastpos, pos);
+
+  project_image_refresh_tagged(&ps);
+
+  for (a = 0; a < ps.image_tot; a++) {
+    GPU_free_image(ps.projImages[a].ima);
+    WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ps.projImages[a].ima);
   }
 
   project_paint_end(&ps);
+
+  ED_image_undo_push_end();
 
   scene->toolsettings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
   BKE_brush_size_set(scene, ps.brush, orig_brush_size);
