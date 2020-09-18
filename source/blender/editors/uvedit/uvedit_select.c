@@ -2248,7 +2248,15 @@ static int uv_select_loop_exec(bContext *C, wmOperator *op)
   RNA_float_get_array(op->ptr, "location", co);
   const bool extend = RNA_boolean_get(op->ptr, "extend");
 
-  return uv_mouse_select_loop_generic(C, co, extend, UV_LOOP_SELECT);
+  Scene *scene = CTX_data_scene(C);
+  enum eUVLoopGenericType type = UV_LOOP_SELECT;
+  if (ED_uvedit_select_mode_get(scene) == UV_SELECT_FACE) {
+    /* For now ring-select and face-loop is the same thing,
+     * if we support real edge selection this will no longer be the case. */
+    type = UV_RING_SELECT;
+  }
+
+  return uv_mouse_select_loop_generic(C, co, extend, type);
 }
 
 static int uv_select_loop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
