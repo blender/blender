@@ -737,7 +737,8 @@ static void rna_Window_scene_update(bContext *C, PointerRNA *ptr)
     BPy_END_ALLOW_THREADS;
 #  endif
 
-    WM_event_add_notifier(C, NC_SCENE | ND_SCENEBROWSE, win->new_scene);
+    wmWindowManager *wm = CTX_wm_manager(C);
+    WM_event_add_notifier_ex(wm, win, NC_SCENE | ND_SCENEBROWSE, win->new_scene);
 
     if (G.debug & G_DEBUG) {
       printf("scene set %p\n", win->new_scene);
@@ -780,7 +781,8 @@ static void rna_Window_workspace_update(bContext *C, PointerRNA *ptr)
   /* exception: can't set screens inside of area/region handlers,
    * and must use context so notifier gets to the right window */
   if (new_workspace) {
-    WM_event_add_notifier(C, NC_SCREEN | ND_WORKSPACE_SET, new_workspace);
+    wmWindowManager *wm = CTX_wm_manager(C);
+    WM_event_add_notifier_ex(wm, win, NC_SCREEN | ND_WORKSPACE_SET, new_workspace);
     win->workspace_hook->temp_workspace_store = NULL;
   }
 }
@@ -828,7 +830,8 @@ static void rna_workspace_screen_update(bContext *C, PointerRNA *ptr)
   /* exception: can't set screens inside of area/region handlers,
    * and must use context so notifier gets to the right window */
   if (layout_new) {
-    WM_event_add_notifier(C, NC_SCREEN | ND_LAYOUTBROWSE, layout_new);
+    wmWindowManager *wm = CTX_wm_manager(C);
+    WM_event_add_notifier_ex(wm, win, NC_SCREEN | ND_LAYOUTBROWSE, layout_new);
     win->workspace_hook->temp_layout_store = NULL;
   }
 }
