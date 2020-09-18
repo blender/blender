@@ -74,33 +74,35 @@ vec3 F_color_blend(float eta, float fresnel, vec3 f0_color)
   return mix(f0_color, vec3(1.0), fac);
 }
 
-/* Fresnel */
-vec3 F_schlick(vec3 f0, float cos_theta)
-{
-  float fac = 1.0 - cos_theta;
-  float fac2 = fac * fac;
-  fac = fac2 * fac2 * fac;
-
-  /* Unreal specular matching : if specular color is below 2% intensity,
-   * (using green channel for intensity) treat as shadowning */
-  return saturate(50.0 * dot(f0, vec3(0.3, 0.6, 0.1))) * fac + (1.0 - fac) * f0;
-}
-
-/* Fresnel approximation for LTC area lights (not MRP) */
-vec3 F_area(vec3 f0, vec3 f90, vec2 lut)
+/* Fresnel split-sum approximation. */
+vec3 F_brdf_single_scatter(vec3 f0, vec3 f90, vec2 lut)
 {
   /* Unreal specular matching : if specular color is below 2% intensity,
    * treat as shadowning */
-  return saturate(50.0 * dot(f0, vec3(0.3, 0.6, 0.1))) * lut.y * f90 + lut.x * f0;
+  return saturate(50.0 * dot(f0, vec3(0.3, 0.6, 0.1))) * lut.y * abs(f90) + lut.x * f0;
 }
 
-/* Fresnel approximation for IBL */
-vec3 F_ibl(vec3 f0, vec3 f90, vec2 lut)
+/* Multi-scattering brdf approximation from :
+ * "A Multiple-Scattering Microfacet Model for Real-Time Image-based Lighting"
+ * by Carmelo J. Fdez-Agüera. */
+vec3 F_brdf_multi_scatter(vec3 f0, vec3 f90, vec2 lut)
 {
-  /* Unreal specular matching : if specular color is below 2% intensity,
-   * treat as shadowning */
-  return saturate(50.0 * dot(f0, vec3(0.3, 0.6, 0.1))) * lut.y * f90 + lut.x * f0;
+  vec3 FssEss = F_brdf_single_scatter(f0, f90, lut);
+  /* Hack to avoid many more shader variations. */
+  if (f90.g < 0.0) {
+    return FssEss;
+  }
+
+  float Ess = lut.x + lut.y;
+  float Ems = 1.0 - Ess;
+  vec3 Favg = f0 + (1.0 - f0) / 21.0;
+  vec3 Fms = FssEss * Favg / (1.0 - (1.0 - Ess) * Favg);
+  /* We don't do anything special for diffuse surfaces because the principle bsdf
+   * does not care about energy conservation of the specular layer for dielectrics. */
+  return FssEss + Fms * Ems;
 }
+
+#define F_brdf(f0, f90, lut) F_brdf_multi_scatter(f0, f90, lut)
 
 /* GGX */
 float D_ggx_opti(float NH, float a2)

@@ -60,6 +60,7 @@ void node_bsdf_principled(vec4 base_color,
                           vec3 CN,
                           vec3 T,
                           vec3 I,
+                          float use_multiscatter,
                           float ssr_id,
                           float sss_id,
                           vec3 sss_scale,
@@ -107,7 +108,9 @@ void node_bsdf_principled(vec4 base_color,
   eevee_closure_principled(N,
                            mixed_ss_base_color,
                            f0,
-                           f90,
+                           /* HACK: Pass the multiscatter flag as the sign to not add closure
+                            * variations or increase register usage. */
+                           (use_multiscatter != 0.0) ? f90 : -f90,
                            int(ssr_id),
                            roughness,
                            CN,
@@ -168,6 +171,7 @@ void node_bsdf_principled_dielectric(vec4 base_color,
                                      vec3 CN,
                                      vec3 T,
                                      vec3 I,
+                                     float use_multiscatter,
                                      float ssr_id,
                                      float sss_id,
                                      vec3 sss_scale,
@@ -188,8 +192,19 @@ void node_bsdf_principled_dielectric(vec4 base_color,
   float NV = dot(N, cameraVec);
   principled_sheen(NV, ctint, sheen, sheen_tint, out_sheen, sheen_color);
 
-  eevee_closure_default(
-      N, diffuse, f0, f90, int(ssr_id), roughness, 1.0, true, out_diff, out_spec, ssr_spec);
+  eevee_closure_default(N,
+                        diffuse,
+                        f0,
+                        /* HACK: Pass the multiscatter flag as the sign to not add closure
+                         * variations or increase register usage. */
+                        (use_multiscatter != 0.0) ? f90 : -f90,
+                        int(ssr_id),
+                        roughness,
+                        1.0,
+                        true,
+                        out_diff,
+                        out_spec,
+                        ssr_spec);
 
   result = CLOSURE_DEFAULT;
   result.radiance = render_pass_glossy_mask(vec3(1.0), out_spec);
@@ -226,6 +241,7 @@ void node_bsdf_principled_metallic(vec4 base_color,
                                    vec3 CN,
                                    vec3 T,
                                    vec3 I,
+                                   float use_multiscatter,
                                    float ssr_id,
                                    float sss_id,
                                    vec3 sss_scale,
@@ -236,8 +252,17 @@ void node_bsdf_principled_metallic(vec4 base_color,
 
   vec3 f90 = mix(vec3(1.0), base_color.rgb, (1.0 - specular) * metallic);
 
-  eevee_closure_glossy(
-      N, base_color.rgb, f90, int(ssr_id), roughness, 1.0, true, out_spec, ssr_spec);
+  eevee_closure_glossy(N,
+                       base_color.rgb,
+                       /* HACK: Pass the multiscatter flag as the sign to not add closure
+                        * variations or increase register usage. */
+                       (use_multiscatter != 0.0) ? f90 : -f90,
+                       int(ssr_id),
+                       roughness,
+                       1.0,
+                       true,
+                       out_spec,
+                       ssr_spec);
 
   result = CLOSURE_DEFAULT;
   result.radiance = render_pass_glossy_mask(vec3(1.0), out_spec);
@@ -272,6 +297,7 @@ void node_bsdf_principled_clearcoat(vec4 base_color,
                                     vec3 CN,
                                     vec3 T,
                                     vec3 I,
+                                    float use_multiscatter,
                                     float ssr_id,
                                     float sss_id,
                                     vec3 sss_scale,
@@ -284,7 +310,9 @@ void node_bsdf_principled_clearcoat(vec4 base_color,
 
   eevee_closure_clearcoat(N,
                           base_color.rgb,
-                          f90,
+                          /* HACK: Pass the multiscatter flag as the sign to not add closure
+                           * variations or increase register usage. */
+                          (use_multiscatter != 0.0) ? f90 : -f90,
                           int(ssr_id),
                           roughness,
                           CN,
@@ -331,6 +359,7 @@ void node_bsdf_principled_subsurface(vec4 base_color,
                                      vec3 CN,
                                      vec3 T,
                                      vec3 I,
+                                     float use_multiscatter,
                                      float ssr_id,
                                      float sss_id,
                                      vec3 sss_scale,
@@ -357,7 +386,9 @@ void node_bsdf_principled_subsurface(vec4 base_color,
   eevee_closure_skin(N,
                      mixed_ss_base_color,
                      f0,
-                     f90,
+                     /* HACK: Pass the multiscatter flag as the sign to not add closure variations
+                        or increase register usage. */
+                     (use_multiscatter != 0.0) ? f90 : -f90,
                      int(ssr_id),
                      roughness,
                      1.0,
@@ -405,6 +436,7 @@ void node_bsdf_principled_glass(vec4 base_color,
                                 vec3 CN,
                                 vec3 T,
                                 vec3 I,
+                                float use_multiscatter,
                                 float ssr_id,
                                 float sss_id,
                                 vec3 sss_scale,
@@ -450,11 +482,11 @@ void node_bsdf_principled_glass(vec4 base_color,
 #else
 /* clang-format off */
 /* Stub principled because it is not compatible with volumetrics. */
-#  define node_bsdf_principled(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, result) (result = CLOSURE_DEFAULT)
-#  define node_bsdf_principled_dielectric(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, result) (result = CLOSURE_DEFAULT)
-#  define node_bsdf_principled_metallic(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, result) (result = CLOSURE_DEFAULT)
-#  define node_bsdf_principled_clearcoat(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, result) (result = CLOSURE_DEFAULT)
-#  define node_bsdf_principled_subsurface(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, result) (result = CLOSURE_DEFAULT)
-#  define node_bsdf_principled_glass(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, result) (result = CLOSURE_DEFAULT)
+#  define node_bsdf_principled(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, bb, result) (result = CLOSURE_DEFAULT)
+#  define node_bsdf_principled_dielectric(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, bb, result) (result = CLOSURE_DEFAULT)
+#  define node_bsdf_principled_metallic(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, bb, result) (result = CLOSURE_DEFAULT)
+#  define node_bsdf_principled_clearcoat(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, bb, result) (result = CLOSURE_DEFAULT)
+#  define node_bsdf_principled_subsurface(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, bb, result) (result = CLOSURE_DEFAULT)
+#  define node_bsdf_principled_glass(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, aa, bb, result) (result = CLOSURE_DEFAULT)
 /* clang-format on */
 #endif

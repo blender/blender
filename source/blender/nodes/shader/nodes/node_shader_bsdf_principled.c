@@ -172,6 +172,8 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
     flag |= GPU_MATFLAG_SSS;
   }
 
+  float use_multi_scatter = (node->custom1 == SHD_GLOSSY_MULTI_GGX) ? 1.0f : 0.0f;
+
   GPU_material_flag_set(mat, flag);
 
   return GPU_stack_link(mat,
@@ -180,6 +182,7 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat,
                         in,
                         out,
                         GPU_builtin(GPU_VIEW_POSITION),
+                        GPU_constant(&use_multi_scatter),
                         GPU_constant(&node->ssr_id),
                         GPU_constant(&node->sss_id),
                         sss_scale);
