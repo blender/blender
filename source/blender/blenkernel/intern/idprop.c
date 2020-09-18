@@ -787,6 +787,19 @@ IDProperty *IDP_CopyProperty(const IDProperty *prop)
   return IDP_CopyProperty_ex(prop, 0);
 }
 
+/**
+ * Copy content from source IDProperty into destination one, freeing destination property's content
+ * first.
+ */
+void IDP_CopyPropertyContent(IDProperty *dst, IDProperty *src)
+{
+  IDProperty *idprop_tmp = IDP_CopyProperty(src);
+  idprop_tmp->prev = dst->prev;
+  idprop_tmp->next = dst->next;
+  SWAP(IDProperty, *dst, *idprop_tmp);
+  IDP_FreeProperty(idprop_tmp);
+}
+
 /* Updates ID pointers after an object has been copied */
 /* TODO Nuke this once its only user has been correctly converted
  * to use generic ID management from BKE_library! */
