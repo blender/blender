@@ -403,7 +403,7 @@ void PE_hide_keys_time(Scene *scene, PTCacheEdit *edit, float cfra)
 static int pe_x_mirror(Object *ob)
 {
   if (ob->type == OB_MESH) {
-    return (((Mesh *)ob->data)->editflag & ME_EDIT_MIRROR_X);
+    return (((Mesh *)ob->data)->symmetry & ME_SYMMETRY_X);
   }
 
   return 0;

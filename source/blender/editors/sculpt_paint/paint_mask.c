@@ -312,8 +312,6 @@ static void sculpt_gesture_context_init_common(bContext *C,
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ED_view3d_viewcontext_init(C, &sgcontext->vc, depsgraph);
-
-  Sculpt *sd = sgcontext->vc.scene->toolsettings->sculpt;
   Object *ob = sgcontext->vc.obact;
 
   /* Operator properties. */
@@ -323,7 +321,7 @@ static void sculpt_gesture_context_init_common(bContext *C,
   sgcontext->ss = ob->sculpt;
 
   /* Symmetry. */
-  sgcontext->symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
+  sgcontext->symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
   /* View Normal. */
   float mat[3][3];

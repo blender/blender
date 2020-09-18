@@ -123,16 +123,16 @@ class View3DPanel:
 # **************** standard tool clusters ******************
 
 # Used by vertex & weight paint
-def draw_vpaint_symmetry(layout, vpaint):
+def draw_vpaint_symmetry(layout, vpaint, mesh):
 
     col = layout.column()
     col.use_property_split = True
     col.use_property_decorate = False
 
     row = col.row(heading="Mirror", align=True)
-    row.prop(vpaint, "use_symmetry_x", text="X", toggle=True)
-    row.prop(vpaint, "use_symmetry_y", text="Y", toggle=True)
-    row.prop(vpaint, "use_symmetry_z", text="Z", toggle=True)
+    row.prop(mesh, "use_mirror_x", text="X", toggle=True)
+    row.prop(mesh, "use_mirror_y", text="Y", toggle=True)
+    row.prop(mesh, "use_mirror_z", text="Z", toggle=True)
 
     col.prop(vpaint, "radial_symmetry", text="Radial")
 
@@ -396,6 +396,7 @@ class VIEW3D_PT_tools_brush_settings_advanced(Panel, View3DPaintBrushPanel):
     bl_label = "Advanced"
     bl_options = {'DEFAULT_CLOSED'}
     bl_ui_units_x = 14
+
 
     def draw(self, context):
         layout = self.layout
@@ -907,9 +908,10 @@ class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
         sculpt = context.tool_settings.sculpt
 
         row = layout.row(align=True, heading="Mirror")
-        row.prop(sculpt, "use_symmetry_x", text="X", toggle=True)
-        row.prop(sculpt, "use_symmetry_y", text="Y", toggle=True)
-        row.prop(sculpt, "use_symmetry_z", text="Z", toggle=True)
+        mesh = context.object.data
+        row.prop(mesh, "use_mirror_x", text="X", toggle=True)
+        row.prop(mesh, "use_mirror_y", text="Y", toggle=True)
+        row.prop(mesh, "use_mirror_z", text="Z", toggle=True)
 
         row = layout.row(align=True, heading="Lock")
         row.prop(sculpt, "lock_x", text="X", toggle=True)
@@ -957,7 +959,12 @@ class VIEW3D_PT_tools_weightpaint_symmetry(Panel, View3DPaintPanel):
         layout = self.layout
         tool_settings = context.tool_settings
         wpaint = tool_settings.weight_paint
-        draw_vpaint_symmetry(layout, wpaint)
+        draw_vpaint_symmetry(layout, wpaint, context.object.data)
+
+        col = layout.column()
+        row = col.row(align=True)
+        row.prop(context.object.data, 'use_mirror_vertex_group_x')
+        
 
 
 class VIEW3D_PT_tools_weightpaint_symmetry_for_topbar(Panel):
@@ -1035,7 +1042,7 @@ class VIEW3D_PT_tools_vertexpaint_symmetry(Panel, View3DPaintPanel):
         layout = self.layout
         tool_settings = context.tool_settings
         vpaint = tool_settings.vertex_paint
-        draw_vpaint_symmetry(layout, vpaint)
+        draw_vpaint_symmetry(layout, vpaint, context.object.data)
 
 
 class VIEW3D_PT_tools_vertexpaint_symmetry_for_topbar(Panel):
@@ -1091,9 +1098,6 @@ class VIEW3D_PT_tools_imagepaint_symmetry(Panel, View3DPaintPanel):
     def draw(self, context):
         layout = self.layout
 
-        tool_settings = context.tool_settings
-        ipaint = tool_settings.image_paint
-
         split = layout.split()
 
         col = split.column()
@@ -1103,9 +1107,10 @@ class VIEW3D_PT_tools_imagepaint_symmetry(Panel, View3DPaintPanel):
         col = split.column()
 
         row = col.row(align=True)
-        row.prop(ipaint, "use_symmetry_x", text="X", toggle=True)
-        row.prop(ipaint, "use_symmetry_y", text="Y", toggle=True)
-        row.prop(ipaint, "use_symmetry_z", text="Z", toggle=True)
+        mesh = context.object.data
+        row.prop(mesh, "use_mirror_x", text="X", toggle=True)
+        row.prop(mesh, "use_mirror_y", text="Y", toggle=True)
+        row.prop(mesh, "use_mirror_z", text="Z", toggle=True)
 
 
 # TODO, move to space_view3d.py

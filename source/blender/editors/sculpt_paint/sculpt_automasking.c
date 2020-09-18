@@ -213,7 +213,7 @@ static float *SCULPT_topology_automasking_init(Sculpt *sd, Object *ob, float *au
       .automask_factor = automask_factor,
       .radius = ss->cache->radius,
       .use_radius = sculpt_automasking_is_constrained_by_radius(brush),
-      .symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL,
+      .symm = SCULPT_mesh_symmetry_xyz_get(ob),
   };
   copy_v3_v3(fdata.location, SCULPT_active_vertex_co_get(ss));
   SCULPT_floodfill_execute(ss, &flood, automask_floodfill_cb, &fdata);

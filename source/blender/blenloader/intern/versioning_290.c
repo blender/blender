@@ -750,5 +750,14 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+
+    /* Unify symmetry as a mesh property. */
+    if (!DNA_struct_elem_find(fd->filesdna, "Mesh", "char", "symmetry")) {
+      LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
+        /* The previous flags used to store mesh symmery in edit mode match the new ones that are
+         * used in mesh->symmery. */
+        mesh->symmetry = mesh->editflag & (ME_SYMMETRY_X | ME_SYMMETRY_Y | ME_SYMMETRY_Z);
+      }
+    }
   }
 }

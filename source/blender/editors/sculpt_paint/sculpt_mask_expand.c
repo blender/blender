@@ -213,7 +213,7 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
 
     /* Pivot position. */
     if (RNA_boolean_get(op->ptr, "update_pivot")) {
-      const char symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
+      const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
       const float threshold = 0.2f;
       float avg[3];
       int total = 0;

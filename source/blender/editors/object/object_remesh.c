@@ -952,9 +952,10 @@ static int quadriflow_remesh_exec(bContext *C, wmOperator *op)
   job->smooth_normals = RNA_boolean_get(op->ptr, "smooth_normals");
 
   /* Update the target face count if symmetry is enabled */
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-  if (sd && job->use_paint_symmetry) {
-    job->symmetry_axes = (eSymmetryAxes)(sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL);
+  Object *ob = CTX_data_active_object(C);
+  if (ob && job->use_paint_symmetry) {
+    Mesh *mesh = BKE_mesh_from_object(ob);
+    job->symmetry_axes = (eSymmetryAxes)mesh->symmetry;
     for (char i = 0; i < 3; i++) {
       eSymmetryAxes symm_it = (eSymmetryAxes)(1 << i);
       if (job->symmetry_axes & symm_it) {

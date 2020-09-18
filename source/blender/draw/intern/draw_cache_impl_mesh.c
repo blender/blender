@@ -395,7 +395,7 @@ static void drw_mesh_weight_state_extract(Object *ob,
       wstate->flags |= DRW_MESH_WEIGHT_STATE_MULTIPAINT |
                        (ts->auto_normalize ? DRW_MESH_WEIGHT_STATE_AUTO_NORMALIZE : 0);
 
-      if (me->editflag & ME_EDIT_MIRROR_X) {
+      if (me->symmetry & ME_SYMMETRY_X) {
         BKE_object_defgroup_mirror_selection(ob,
                                              wstate->defgroup_len,
                                              wstate->defgroup_sel,

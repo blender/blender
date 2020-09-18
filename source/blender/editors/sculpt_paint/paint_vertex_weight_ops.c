@@ -120,8 +120,13 @@ static int weight_from_bones_exec(bContext *C, wmOperator *op)
   Mesh *me = ob->data;
   int type = RNA_enum_get(op->ptr, "type");
 
-  ED_object_vgroup_calc_from_armature(
-      op->reports, depsgraph, scene, ob, armob, type, (me->editflag & ME_EDIT_MIRROR_X));
+  ED_object_vgroup_calc_from_armature(op->reports,
+                                      depsgraph,
+                                      scene,
+                                      ob,
+                                      armob,
+                                      type,
+                                      (me->editflag & ME_EDIT_VERTEX_GROUPS_X_SYMMETRY));
 
   DEG_id_tag_update(&me->id, 0);
   DEG_relations_tag_update(CTX_data_main(C));
@@ -232,7 +237,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
             vc.obact, defbase_tot, &defbase_tot_sel);
 
         if (defbase_tot_sel > 1) {
-          if (me->editflag & ME_EDIT_MIRROR_X) {
+          if (me->editflag & ME_EDIT_VERTEX_GROUPS_X_SYMMETRY) {
             BKE_object_defgroup_mirror_selection(
                 vc.obact, defbase_tot, defbase_sel, defbase_sel, &defbase_tot_sel);
           }
@@ -458,7 +463,7 @@ static bool weight_paint_set(Object *ob, float paintweight)
   vgroup_active = ob->actdef - 1;
 
   /* if mirror painting, find the other group */
-  if (me->editflag & ME_EDIT_MIRROR_X) {
+  if (me->editflag & ME_EDIT_VERTEX_GROUPS_X_SYMMETRY) {
     vgroup_mirror = ED_wpaint_mirror_vgroup_ensure(ob, vgroup_active);
   }
 
@@ -486,7 +491,7 @@ static bool weight_paint_set(Object *ob, float paintweight)
           dw_prev->weight = dw->weight; /* set the undo weight */
           dw->weight = paintweight;
 
-          if (me->editflag & ME_EDIT_MIRROR_X) { /* x mirror painting */
+          if (me->editflag & ME_EDIT_VERTEX_GROUPS_X_SYMMETRY) { /* x mirror painting */
             int j = mesh_get_x_mirror_vert(ob, NULL, vidx, topology);
             if (j >= 0) {
               /* copy, not paint again */

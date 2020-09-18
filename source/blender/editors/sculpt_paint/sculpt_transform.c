@@ -124,7 +124,7 @@ void ED_sculpt_update_modal_transform(struct bContext *C)
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  const char symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
+  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
   SCULPT_vertex_random_access_ensure(ss);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
@@ -243,12 +243,11 @@ static EnumPropertyItem prop_sculpt_pivot_position_types[] = {
 
 static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
 {
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   ARegion *region = CTX_wm_region(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  const char symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
+  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
   int mode = RNA_enum_get(op->ptr, "mode");
 

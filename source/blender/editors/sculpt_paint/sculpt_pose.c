@@ -230,7 +230,7 @@ static void pose_brush_grow_factor_task_cb_ex(void *__restrict userdata,
   SculptThreadedTaskData *data = userdata;
   PoseGrowFactorTLSData *gftd = tls->userdata_chunk;
   SculptSession *ss = data->ob->sculpt;
-  const char symm = data->sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
+  const char symm = SCULPT_mesh_symmetry_xyz_get(data->ob);
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
@@ -561,7 +561,7 @@ void SCULPT_pose_calc_pose_data(Sculpt *sd,
 
   PoseFloodFillData fdata = {
       .radius = radius,
-      .symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL,
+      .symm = SCULPT_mesh_symmetry_xyz_get(ob),
       .pose_factor = r_pose_factor,
       .tot_co = 0,
   };
@@ -777,7 +777,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(
 
     PoseFloodFillData fdata = {
         .radius = radius,
-        .symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL,
+        .symm = SCULPT_mesh_symmetry_xyz_get(ob),
         .pose_factor = ik_chain->segments[s].weights,
         .tot_co = 0,
         .fallback_count = 0,
@@ -1134,7 +1134,7 @@ void SCULPT_do_pose_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
-  const ePaintSymmetryFlags symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
+  const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
   /* The pose brush applies all enabled symmetry axis in a single iteration, so the rest can be
    * ignored. */

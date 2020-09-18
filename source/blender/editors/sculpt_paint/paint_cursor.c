@@ -1090,7 +1090,7 @@ static void cursor_draw_point_with_symmetry(const uint gpuattr,
                                             Object *ob,
                                             const float radius)
 {
-  const char symm = sd->paint.symmetry_flags & PAINT_SYMM_AXIS_ALL;
+  const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
   float location[3], symm_rot_mat[4][4];
 
   for (int i = 0; i <= symm; i++) {

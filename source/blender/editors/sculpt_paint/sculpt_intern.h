@@ -88,6 +88,9 @@ float SCULPT_raycast_init(struct ViewContext *vc,
                           float ray_normal[3],
                           bool original);
 
+/* Symmetry */
+char SCULPT_mesh_symmetry_xyz_get(Object *object);
+
 /* Sculpt PBVH abstraction API */
 void SCULPT_vertex_random_access_ensure(struct SculptSession *ss);
 
