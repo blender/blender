@@ -863,7 +863,9 @@ static void ed_marker_move_exit(bContext *C, wmOperator *op)
 
 static int ed_marker_move_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  bool tweak = RNA_boolean_get(op->ptr, "tweak");
+  const bool tweak = RNA_struct_find_property(op->ptr, "tweak") &&
+                     RNA_boolean_get(op->ptr, "tweak");
+
   if (tweak) {
     ARegion *region = CTX_wm_region(C);
     View2D *v2d = &region->v2d;
