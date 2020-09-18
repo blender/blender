@@ -62,6 +62,13 @@ endif()
 
 add_dependencies(
   external_clang
-  external_xml2
   ll
 )
+
+# We currently do not build libxml2 on Windows.
+if(NOT WIN32)
+  add_dependencies(
+    external_clang
+    external_xml2
+  )
+endif()
