@@ -4194,6 +4194,31 @@ static bool ui_do_but_extra_operator_icon(bContext *C,
   return false;
 }
 
+static void ui_do_but_extra_operator_icons_mousemove(uiBut *but,
+                                                     uiHandleButtonData *data,
+                                                     const wmEvent *event)
+{
+  uiButExtraOpIcon *old_highlighted = NULL;
+
+  /* Unset highlighting of all first. */
+  LISTBASE_FOREACH (uiButExtraOpIcon *, op_icon, &but->extra_op_icons) {
+    if (op_icon->highlighted) {
+      old_highlighted = op_icon;
+    }
+    op_icon->highlighted = false;
+  }
+
+  uiButExtraOpIcon *hovered = ui_but_extra_operator_icon_mouse_over_get(but, data, event);
+
+  if (hovered) {
+    hovered->highlighted = true;
+  }
+
+  if (old_highlighted != hovered) {
+    ED_region_tag_redraw_no_rebuild(data->region);
+  }
+}
+
 #ifdef USE_DRAG_TOGGLE
 /* Shared by any button that supports drag-toggle. */
 static bool ui_do_but_ANY_drag_toggle(
@@ -8708,6 +8733,9 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
           ui_blocks_set_tooltips(region, true);
           button_tooltip_timer_reset(C, but);
         }
+
+        /* Update extra icons states. */
+        ui_do_but_extra_operator_icons_mousemove(but, data, event);
 
         break;
       }

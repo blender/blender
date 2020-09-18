@@ -375,6 +375,8 @@ typedef struct uiButExtraOpIcon {
 
   BIFIconID icon;
   struct wmOperatorCallParams *optype_params;
+
+  bool highlighted;
 } uiButExtraOpIcon;
 
 typedef struct ColorPicker {

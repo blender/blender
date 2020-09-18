@@ -2248,10 +2248,15 @@ static void widget_draw_extra_icons(const uiWidgetColors *wcol,
   /* inverse order, from right to left. */
   LISTBASE_FOREACH_BACKWARD (uiButExtraOpIcon *, op_icon, &but->extra_op_icons) {
     rcti temp = *rect;
+    float alpha_this = alpha;
 
     temp.xmin = temp.xmax - (BLI_rcti_size_y(rect) * 1.08f);
 
-    widget_draw_icon(but, op_icon->icon, alpha, &temp, wcol->text);
+    if (!op_icon->highlighted) {
+      alpha_this *= 0.75f;
+    }
+
+    widget_draw_icon(but, op_icon->icon, alpha_this, &temp, wcol->text);
 
     rect->xmax -= ICON_SIZE_FROM_BUTRECT(rect);
   }
