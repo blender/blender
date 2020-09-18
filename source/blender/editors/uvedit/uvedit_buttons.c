@@ -137,7 +137,6 @@ static void uvedit_vertex_buttons(const bContext *C, uiBlock *block)
   Scene *scene = CTX_data_scene(C);
   float center[2];
   int imx, imy, step, digits;
-  float width = 8 * UI_UNIT_X;
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       CTX_data_view_layer(C), CTX_wm_view3d(C), &objects_len);
@@ -177,14 +176,15 @@ static void uvedit_vertex_buttons(const bContext *C, uiBlock *block)
 
     uiBut *but;
 
+    int y = 0;
     UI_block_align_begin(block);
     but = uiDefButF(block,
                     UI_BTYPE_NUM,
                     B_UVEDIT_VERTEX,
                     IFACE_("X:"),
                     0,
-                    0,
-                    width,
+                    y -= UI_UNIT_Y,
+                    200,
                     UI_UNIT_Y,
                     &uvedit_old_center[0],
                     UNPACK2(range_xy[0]),
@@ -197,9 +197,9 @@ static void uvedit_vertex_buttons(const bContext *C, uiBlock *block)
                     UI_BTYPE_NUM,
                     B_UVEDIT_VERTEX,
                     IFACE_("Y:"),
-                    width,
                     0,
-                    width,
+                    y -= UI_UNIT_Y,
+                    200,
                     UI_UNIT_Y,
                     &uvedit_old_center[1],
                     UNPACK2(range_xy[1]),
