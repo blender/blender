@@ -237,6 +237,14 @@ GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd, Obje
       mat_data->flag |= GP_STROKE_OVERLAP;
     }
 
+    /* Material with holdout. */
+    if (gp_style->flag & GP_MATERIAL_IS_STROKE_HOLDOUT) {
+      mat_data->flag |= GP_STROKE_HOLDOUT;
+    }
+    if (gp_style->flag & GP_MATERIAL_IS_FILL_HOLDOUT) {
+      mat_data->flag |= GP_FILL_HOLDOUT;
+    }
+
     gp_style = gpencil_viewport_material_overrides(pd, ob, color_type, gp_style);
 
     /* Stroke Style */

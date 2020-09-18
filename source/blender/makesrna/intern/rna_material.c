@@ -564,6 +564,18 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
       prop, "Self Overlap", "Disable stencil and overlap self intersections with alpha materials");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 
+  prop = RNA_def_property(srna, "use_stroke_holdout", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_MATERIAL_IS_STROKE_HOLDOUT);
+  RNA_def_property_ui_text(
+      prop, "Holdout", "Remove the color from underneath strokes using current stroke as mask");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
+
+  prop = RNA_def_property(srna, "use_fill_holdout", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_MATERIAL_IS_FILL_HOLDOUT);
+  RNA_def_property_ui_text(
+      prop, "Holdout", "Remove the color from underneath strokes using current stroke as mask");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
+
   prop = RNA_def_property(srna, "show_stroke", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_MATERIAL_STROKE_SHOW);
   RNA_def_property_ui_text(prop, "Show Stroke", "Show stroke lines of this material");

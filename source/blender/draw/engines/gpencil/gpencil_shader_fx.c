@@ -585,10 +585,6 @@ void gpencil_vfx_cache_populate(GPENCIL_Data *vedata, Object *ob, GPENCIL_tObjec
   bGPdata *gpd = (bGPdata *)ob->data;
   GPENCIL_FramebufferList *fbl = vedata->fbl;
   GPENCIL_PrivateData *pd = vedata->stl->pd;
-  /* If simplify enabled, nothing more to do. */
-  if (pd->simplify_fx) {
-    return;
-  }
 
   /* These may not be allocated yet, use adress of future pointer. */
   gpIterVfxData iter = {
@@ -601,44 +597,46 @@ void gpencil_vfx_cache_populate(GPENCIL_Data *vedata, Object *ob, GPENCIL_tObjec
       .target_reveal_tx = &pd->reveal_layer_tx,
       .source_reveal_tx = &pd->reveal_object_tx,
   };
-
-  LISTBASE_FOREACH (ShaderFxData *, fx, &ob->shader_fx) {
-    if (effect_is_active(gpd, fx, pd->is_viewport)) {
-      switch (fx->type) {
-        case eShaderFxType_Blur:
-          gpencil_vfx_blur((BlurShaderFxData *)fx, ob, &iter);
-          break;
-        case eShaderFxType_Colorize:
-          gpencil_vfx_colorize((ColorizeShaderFxData *)fx, ob, &iter);
-          break;
-        case eShaderFxType_Flip:
-          gpencil_vfx_flip((FlipShaderFxData *)fx, ob, &iter);
-          break;
-        case eShaderFxType_Pixel:
-          gpencil_vfx_pixelize((PixelShaderFxData *)fx, ob, &iter);
-          break;
-        case eShaderFxType_Rim:
-          gpencil_vfx_rim((RimShaderFxData *)fx, ob, &iter);
-          break;
-        case eShaderFxType_Shadow:
-          gpencil_vfx_shadow((ShadowShaderFxData *)fx, ob, &iter);
-          break;
-        case eShaderFxType_Glow:
-          gpencil_vfx_glow((GlowShaderFxData *)fx, ob, &iter);
-          break;
-        case eShaderFxType_Swirl:
-          gpencil_vfx_swirl((SwirlShaderFxData *)fx, ob, &iter);
-          break;
-        case eShaderFxType_Wave:
-          gpencil_vfx_wave((WaveShaderFxData *)fx, ob, &iter);
-          break;
-        default:
-          break;
+  /* If simplify enabled, nothing more to do. */
+  if (!pd->simplify_fx) {
+    LISTBASE_FOREACH (ShaderFxData *, fx, &ob->shader_fx) {
+      if (effect_is_active(gpd, fx, pd->is_viewport)) {
+        switch (fx->type) {
+          case eShaderFxType_Blur:
+            gpencil_vfx_blur((BlurShaderFxData *)fx, ob, &iter);
+            break;
+          case eShaderFxType_Colorize:
+            gpencil_vfx_colorize((ColorizeShaderFxData *)fx, ob, &iter);
+            break;
+          case eShaderFxType_Flip:
+            gpencil_vfx_flip((FlipShaderFxData *)fx, ob, &iter);
+            break;
+          case eShaderFxType_Pixel:
+            gpencil_vfx_pixelize((PixelShaderFxData *)fx, ob, &iter);
+            break;
+          case eShaderFxType_Rim:
+            gpencil_vfx_rim((RimShaderFxData *)fx, ob, &iter);
+            break;
+          case eShaderFxType_Shadow:
+            gpencil_vfx_shadow((ShadowShaderFxData *)fx, ob, &iter);
+            break;
+          case eShaderFxType_Glow:
+            gpencil_vfx_glow((GlowShaderFxData *)fx, ob, &iter);
+            break;
+          case eShaderFxType_Swirl:
+            gpencil_vfx_swirl((SwirlShaderFxData *)fx, ob, &iter);
+            break;
+          case eShaderFxType_Wave:
+            gpencil_vfx_wave((WaveShaderFxData *)fx, ob, &iter);
+            break;
+          default:
+            break;
+        }
       }
     }
   }
 
-  if (tgp_ob->vfx.first != NULL) {
+  if ((!pd->simplify_fx && tgp_ob->vfx.first != NULL) || tgp_ob->do_mat_holdout) {
     /* We need an extra pass to combine result to main buffer. */
     iter.target_fb = &fbl->gpencil_fb;
 

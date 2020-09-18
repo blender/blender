@@ -34,6 +34,8 @@ struct gpMaterial {
 #define GP_STROKE_TEXTURE_STENCIL (1 << 4)
 #define GP_STROKE_TEXTURE_PREMUL (1 << 5)
 #define GP_STROKE_DOTS (1 << 6)
+#define GP_STROKE_HOLDOUT (1 << 7)
+#define GP_FILL_HOLDOUT (1 << 8)
 #define GP_FILL_TEXTURE_USE (1 << 10)
 #define GP_FILL_TEXTURE_PREMUL (1 << 11)
 #define GP_FILL_TEXTURE_CLIP (1 << 12)
@@ -44,7 +46,7 @@ struct gpMaterial {
 
 /* Multiline defines can crash blender with certain GPU drivers. */
 /* clang-format off */
-#define GP_FILL_FLAGS (GP_FILL_TEXTURE_USE | GP_FILL_TEXTURE_PREMUL | GP_FILL_TEXTURE_CLIP | GP_FILL_GRADIENT_USE | GP_FILL_GRADIENT_RADIAL)
+#define GP_FILL_FLAGS (GP_FILL_TEXTURE_USE | GP_FILL_TEXTURE_PREMUL | GP_FILL_TEXTURE_CLIP | GP_FILL_GRADIENT_USE | GP_FILL_GRADIENT_RADIAL | GP_FILL_HOLDOUT)
 /* clang-format on */
 
 #define GP_FLAG_TEST(flag, val) (((flag) & (val)) != 0)

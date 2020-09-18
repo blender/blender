@@ -58,6 +58,17 @@ GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd, Object *ob)
   tgp_ob->is_drawmode3d = (gpd->draw_mode == GP_DRAWMODE_3D) || pd->draw_depth_only;
   tgp_ob->object_scale = mat4_to_scale(ob->obmat);
 
+  /* Check if any material with holdout flag enabled. */
+  tgp_ob->do_mat_holdout = false;
+  for (int i = 0; i < ob->totcol; i++) {
+    MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, i + 1);
+    if ((gp_style->flag & GP_MATERIAL_IS_STROKE_HOLDOUT) ||
+        ((gp_style->flag & GP_MATERIAL_IS_FILL_HOLDOUT))) {
+      tgp_ob->do_mat_holdout = true;
+      break;
+    }
+  }
+
   /* Find the normal most likely to represent the gpObject. */
   /* TODO: This does not work quite well if you use
    * strokes not aligned with the object axes. Maybe we could try to
