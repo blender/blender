@@ -854,10 +854,11 @@ static void panel_set_expansion_from_seach_filter_recursive(const bContext *C, P
 
   /* If the panel is filtered (removed) we need to check that its children are too. */
   LISTBASE_FOREACH (Panel *, child_panel, &panel->children) {
-    if (panel->type == NULL || (panel->type->flag & PNL_NO_HEADER)) {
-      continue;
+    if (panel->runtime_flag & PANEL_ACTIVE) {
+      if (!(panel->type->flag & PNL_NO_HEADER)) {
+        panel_set_expansion_from_seach_filter_recursive(C, child_panel);
+      }
     }
-    panel_set_expansion_from_seach_filter_recursive(C, child_panel);
   }
 }
 
@@ -868,10 +869,11 @@ static void panel_set_expansion_from_seach_filter_recursive(const bContext *C, P
 void UI_panels_set_expansion_from_seach_filter(const bContext *C, ARegion *region)
 {
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
-    if (panel->type == NULL || (panel->type->flag & PNL_NO_HEADER)) {
-      continue;
+    if (panel->runtime_flag & PANEL_ACTIVE) {
+      if (!(panel->type->flag & PNL_NO_HEADER)) {
+        panel_set_expansion_from_seach_filter_recursive(C, panel);
+      }
     }
-    panel_set_expansion_from_seach_filter_recursive(C, panel);
   }
 }
 
