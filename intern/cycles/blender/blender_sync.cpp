@@ -37,6 +37,7 @@
 #include "util/util_debug.h"
 #include "util/util_foreach.h"
 #include "util/util_hash.h"
+#include "util/util_logging.h"
 #include "util/util_opengl.h"
 #include "util/util_openimagedenoise.h"
 
@@ -219,6 +220,8 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
                             int height,
                             void **python_thread_state)
 {
+  scoped_timer timer;
+
   BL::ViewLayer b_view_layer = b_depsgraph.view_layer_eval();
 
   sync_view_layer(b_v3d, b_view_layer);
@@ -242,6 +245,8 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
   shader_map.post_sync(scene, false);
 
   free_data_after_sync(b_depsgraph);
+
+  VLOG(1) << "Total time spent synchronizing data: " << timer.get_time();
 }
 
 /* Integrator */
