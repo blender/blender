@@ -4156,7 +4156,7 @@ static uiButExtraOpIcon *ui_but_extra_operator_icon_mouse_over_get(uiBut *but,
                                                                    const wmEvent *event)
 {
   float xmax = but->rect.xmax;
-  const float icon_size = BLI_rctf_size_y(&but->rect);
+  const float icon_size = 0.8f * BLI_rctf_size_y(&but->rect); /* ICON_SIZE_FROM_BUTRECT */
   int x = event->x, y = event->y;
 
   ui_window_to_block(data->region, but->block, &x, &y);
