@@ -55,6 +55,15 @@ class Immediate {
   /** Batch in construction when using immBeginBatch. */
   GPUBatch *batch = NULL;
 
+  /** Wide Line workaround. */
+
+  /** Previously bound shader to restore after drawing. */
+  GPUShader *prev_shader = NULL;
+  /** Builtin shader index. Used to test if the workaround can be done. */
+  eGPUBuiltinShader builtin_shader_bound = GPU_SHADER_TEXT;
+  /** Uniform color: Kept here to update the wideline shader just before immBegin. */
+  float uniform_color[4];
+
  public:
   Immediate(){};
   virtual ~Immediate(){};

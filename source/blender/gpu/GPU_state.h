@@ -156,6 +156,7 @@ eGPUDepthTest GPU_depth_test_get(void);
 eGPUWriteMask GPU_write_mask_get(void);
 uint GPU_stencil_mask_get(void);
 eGPUStencilTest GPU_stencil_test_get(void);
+float GPU_line_width_get(void);
 
 void GPU_flush(void);
 void GPU_finish(void);
