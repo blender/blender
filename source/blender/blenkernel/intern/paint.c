@@ -415,10 +415,12 @@ const char *BKE_paint_get_tool_prop_id_from_paintmode(ePaintMode mode)
       return "gpencil_sculpt_tool";
     case PAINT_MODE_WEIGHT_GPENCIL:
       return "gpencil_weight_tool";
-    default:
-      /* invalid paint mode */
-      return NULL;
+    case PAINT_MODE_INVALID:
+      break;
   }
+
+  /* Invalid paint mode. */
+  return NULL;
 }
 
 Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer)

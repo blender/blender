@@ -6221,7 +6221,7 @@ static void placeholders_ensure_valid(Main *bmain)
 
 static const char *dataname(short id_code)
 {
-  switch (id_code) {
+  switch ((ID_Type)id_code) {
     case ID_OB:
       return "Data from OB";
     case ID_ME:

@@ -2257,7 +2257,7 @@ int UI_icon_from_rnaptr(bContext *C, PointerRNA *ptr, int rnaicon, const bool bi
 
 int UI_icon_from_idcode(const int idcode)
 {
-  switch (idcode) {
+  switch ((ID_Type)idcode) {
     case ID_AC:
       return ICON_ACTION;
     case ID_AR:
@@ -2329,14 +2329,21 @@ int UI_icon_from_idcode(const int idcode)
     case ID_SIM:
       /* TODO: Use correct icon. */
       return ICON_PHYSICS;
-    default:
-      return ICON_NONE;
+
+    /* No icons for these ID-types. */
+    case ID_LI:
+    case ID_IP:
+    case ID_KE:
+    case ID_SCR:
+    case ID_WM:
+      break;
   }
+  return ICON_NONE;
 }
 
 int UI_icon_from_object_mode(const int mode)
 {
-  switch (mode) {
+  switch ((eObjectMode)mode) {
     case OB_MODE_OBJECT:
       return ICON_OBJECT_DATAMODE;
     case OB_MODE_EDIT:
@@ -2359,9 +2366,8 @@ int UI_icon_from_object_mode(const int mode)
       return ICON_POSE_HLT;
     case OB_MODE_PAINT_GPENCIL:
       return ICON_GREASEPENCIL;
-    default:
-      return ICON_NONE;
   }
+  return ICON_NONE;
 }
 
 int UI_icon_color_from_collection(const Collection *collection)

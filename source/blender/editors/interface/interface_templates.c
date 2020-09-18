@@ -675,7 +675,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 static const char *template_id_browse_tip(const StructRNA *type)
 {
   if (type) {
-    switch (RNA_type_to_ID_code(type)) {
+    switch ((ID_Type)RNA_type_to_ID_code(type)) {
       case ID_SCE:
         return N_("Browse Scene to be linked");
       case ID_OB:
@@ -744,6 +744,15 @@ static const char *template_id_browse_tip(const StructRNA *type)
         return N_("Browse Volume Data to be linked");
       case ID_SIM:
         return N_("Browse Simulation to be linked");
+
+      /* Use generic text. */
+      case ID_LI:
+      case ID_IP:
+      case ID_KE:
+      case ID_VF:
+      case ID_GR:
+      case ID_WM:
+        break;
     }
   }
   return N_("Browse ID data to be linked");
