@@ -1928,7 +1928,7 @@ static void outliner_draw_mode_column_toggle(uiBlock *block,
       const char *tip;
 
       if (draw_active_icon && ob->mode == tvc->obact->mode) {
-        icon = UI_mode_icon_get(active_mode);
+        icon = UI_icon_from_object_mode(active_mode);
         tip = TIP_("Remove from the current mode");
       }
       else {
@@ -3252,7 +3252,7 @@ static void outliner_draw_tree_element(bContext *C,
 
     if (ELEM(tselem->type, 0, TSE_LAYER_COLLECTION) ||
         ((tselem->type == TSE_RNA_STRUCT) && RNA_struct_is_ID(te->rnaptr.type))) {
-      const BIFIconID lib_icon = UI_library_icon_get(tselem->id);
+      const BIFIconID lib_icon = UI_icon_from_library(tselem->id);
       if (lib_icon != ICON_NONE) {
         UI_icon_draw_alpha(
             (float)startx + offsx + 2 * ufac, (float)*starty + 2 * ufac, lib_icon, alpha_fac);

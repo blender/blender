@@ -383,7 +383,7 @@ PyDoc_STRVAR(bpy_app_preview_render_size_doc,
              "Reference size for icon/preview renders (read-only)");
 static PyObject *bpy_app_preview_render_size_get(PyObject *UNUSED(self), void *closure)
 {
-  return PyLong_FromLong((long)UI_preview_render_size(POINTER_AS_INT(closure)));
+  return PyLong_FromLong((long)UI_icon_preview_to_render_size(POINTER_AS_INT(closure)));
 }
 
 static PyObject *bpy_app_autoexec_fail_message_get(PyObject *UNUSED(self), void *UNUSED(closure))

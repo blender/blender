@@ -374,7 +374,7 @@ static bool id_search_add(const bContext *C, TemplateID *template_ui, uiSearchIt
   int name_prefix_offset;
   BKE_id_full_name_ui_prefix_get(name_ui, id, use_lib_prefix, UI_SEP_CHAR, &name_prefix_offset);
   if (!use_lib_prefix) {
-    iconid = UI_library_icon_get(id);
+    iconid = UI_icon_from_library(id);
   }
 
   if (!UI_search_item_add(items,
@@ -6252,7 +6252,7 @@ void uiTemplateList(uiLayout *layout,
 
           sub = uiLayoutRow(overlap, false);
 
-          icon = UI_rnaptr_icon_get(C, itemptr, rnaicon, false);
+          icon = UI_icon_from_rnaptr(C, itemptr, rnaicon, false);
           if (icon == ICON_DOT) {
             icon = ICON_NONE;
           }
@@ -6308,7 +6308,7 @@ void uiTemplateList(uiLayout *layout,
         PointerRNA *itemptr = &items_ptr[activei].item;
         const int org_i = items_ptr[activei].org_idx;
 
-        icon = UI_rnaptr_icon_get(C, itemptr, rnaicon, false);
+        icon = UI_icon_from_rnaptr(C, itemptr, rnaicon, false);
         if (icon == ICON_DOT) {
           icon = ICON_NONE;
         }
@@ -6392,7 +6392,7 @@ void uiTemplateList(uiLayout *layout,
 
           sub = uiLayoutRow(overlap, false);
 
-          icon = UI_rnaptr_icon_get(C, itemptr, rnaicon, false);
+          icon = UI_icon_from_rnaptr(C, itemptr, rnaicon, false);
           draw_item(ui_list,
                     C,
                     sub,

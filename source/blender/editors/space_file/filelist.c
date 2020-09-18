@@ -1104,7 +1104,7 @@ static int filelist_geticon_ex(FileDirEntry *file,
     return ICON_FILE_ARCHIVE;
   }
   if (typeflag & FILE_TYPE_BLENDERLIB) {
-    const int ret = UI_idcode_icon_get(file->blentype);
+    const int ret = UI_icon_from_idcode(file->blentype);
     if (ret != ICON_NONE) {
       return ret;
     }

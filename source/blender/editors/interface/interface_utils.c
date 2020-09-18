@@ -486,7 +486,7 @@ void ui_rna_collection_search_update_fn(const struct bContext *C,
      * name prefix for showing the library status. */
     int name_prefix_offset = cis->name_prefix_offset;
     if (!has_id_icon && cis->is_id && !requires_exact_data_name) {
-      cis->iconid = UI_library_icon_get(cis->data);
+      cis->iconid = UI_icon_from_library(cis->data);
       /* No need to re-allocate, string should be shorter than before (lib status prefix is
        * removed). */
       BKE_id_full_name_ui_prefix_get(name_buf, cis->data, false, UI_SEP_CHAR, &name_prefix_offset);

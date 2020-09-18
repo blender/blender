@@ -557,7 +557,7 @@ static uiLayout *rna_uiLayoutColumnWithHeading(
 
 static int rna_ui_get_rnaptr_icon(bContext *C, PointerRNA *ptr_icon)
 {
-  return UI_rnaptr_icon_get(C, ptr_icon, RNA_struct_ui_icon(ptr_icon->type), false);
+  return UI_icon_from_rnaptr(C, ptr_icon, RNA_struct_ui_icon(ptr_icon->type), false);
 }
 
 static const char *rna_ui_get_enum_name(bContext *C,

@@ -1250,7 +1250,7 @@ void UI_icons_init()
 
 /* Render size for preview images and icons
  */
-int UI_preview_render_size(enum eIconSizes size)
+int UI_icon_preview_to_render_size(enum eIconSizes size)
 {
   switch (size) {
     case ICON_SIZE_ICON:
@@ -1266,7 +1266,7 @@ int UI_preview_render_size(enum eIconSizes size)
  */
 static void icon_create_rect(struct PreviewImage *prv_img, enum eIconSizes size)
 {
-  const uint render_size = UI_preview_render_size(size);
+  const uint render_size = UI_icon_preview_to_render_size(size);
 
   if (!prv_img) {
     if (G.debug & G_DEBUG) {
@@ -1946,7 +1946,7 @@ static void ui_id_preview_image_render_size(
   }
 }
 
-void UI_id_icon_render(const bContext *C, Scene *scene, ID *id, const bool big, const bool use_job)
+void UI_icon_render_id(const bContext *C, Scene *scene, ID *id, const bool big, const bool use_job)
 {
   PreviewImage *pi = BKE_previewimg_id_ensure(id);
 
@@ -2165,13 +2165,13 @@ int ui_id_icon_get(const bContext *C, ID *id, const bool big)
     case ID_LA: /* fall through */
       iconid = BKE_icon_id_ensure(id);
       /* checks if not exists, or changed */
-      UI_id_icon_render(C, NULL, id, big, true);
+      UI_icon_render_id(C, NULL, id, big, true);
       break;
     case ID_SCR:
       iconid = ui_id_screen_get_icon(C, id);
       break;
     case ID_GR:
-      iconid = UI_collection_color_icon_get((Collection *)id);
+      iconid = UI_icon_color_from_collection((Collection *)id);
       break;
     default:
       break;
@@ -2180,7 +2180,7 @@ int ui_id_icon_get(const bContext *C, ID *id, const bool big)
   return iconid;
 }
 
-int UI_library_icon_get(const ID *id)
+int UI_icon_from_library(const ID *id)
 {
   if (ID_IS_LINKED(id)) {
     if (id->tag & LIB_TAG_MISSING) {
@@ -2198,7 +2198,7 @@ int UI_library_icon_get(const ID *id)
   return ICON_NONE;
 }
 
-int UI_rnaptr_icon_get(bContext *C, PointerRNA *ptr, int rnaicon, const bool big)
+int UI_icon_from_rnaptr(bContext *C, PointerRNA *ptr, int rnaicon, const bool big)
 {
   ID *id = NULL;
 
@@ -2255,7 +2255,7 @@ int UI_rnaptr_icon_get(bContext *C, PointerRNA *ptr, int rnaicon, const bool big
   return rnaicon;
 }
 
-int UI_idcode_icon_get(const int idcode)
+int UI_icon_from_idcode(const int idcode)
 {
   switch (idcode) {
     case ID_AC:
@@ -2334,7 +2334,7 @@ int UI_idcode_icon_get(const int idcode)
   }
 }
 
-int UI_mode_icon_get(const int mode)
+int UI_icon_from_object_mode(const int mode)
 {
   switch (mode) {
     case OB_MODE_OBJECT:
@@ -2364,7 +2364,7 @@ int UI_mode_icon_get(const int mode)
   }
 }
 
-int UI_collection_color_icon_get(const Collection *collection)
+int UI_icon_color_from_collection(const Collection *collection)
 {
   int icon = ICON_OUTLINER_COLLECTION;
 
@@ -2415,7 +2415,7 @@ void UI_icon_draw_ex(float x,
 
 /* ********** Alert Icons ********** */
 
-ImBuf *UI_alert_image(eAlertIcon icon)
+ImBuf *UI_icon_alert_imbuf_get(eAlertIcon icon)
 {
 #ifdef WITH_HEADLESS
   return NULL;

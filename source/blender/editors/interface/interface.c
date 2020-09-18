@@ -4734,7 +4734,7 @@ uiBut *uiDefButImage(
 
 uiBut *uiDefButAlert(uiBlock *block, int icon, int x, int y, short width, short height)
 {
-  struct ImBuf *ibuf = UI_alert_image(icon);
+  struct ImBuf *ibuf = UI_icon_alert_imbuf_get(icon);
 
   if (icon == ALERT_ICON_BLENDER) {
     return uiDefButImage(block, ibuf, x, y, width, height, NULL);
