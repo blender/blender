@@ -196,6 +196,7 @@ static void OVERLAY_cache_init(void *vedata)
   OVERLAY_antialiasing_cache_init(vedata);
   OVERLAY_armature_cache_init(vedata);
   OVERLAY_background_cache_init(vedata);
+  OVERLAY_fade_cache_init(vedata);
   OVERLAY_extra_cache_init(vedata);
   OVERLAY_facing_cache_init(vedata);
   OVERLAY_gpencil_cache_init(vedata);
@@ -259,6 +260,27 @@ static bool overlay_object_is_edit_mode(const OVERLAY_PrivateData *pd, const Obj
   return false;
 }
 
+static bool overlay_should_fade_object(Object *ob, Object *active_object)
+{
+  if (!active_object || !ob) {
+    return false;
+  }
+
+  if (ELEM(active_object->mode, OB_MODE_OBJECT, OB_MODE_POSE)) {
+    return false;
+  }
+
+  if ((active_object->mode & ob->mode) != 0) {
+    return false;
+  }
+
+  if (ob->base_flag & BASE_FROM_DUPLI) {
+    return false;
+  }
+
+  return true;
+}
+
 static void OVERLAY_cache_populate(void *vedata, Object *ob)
 {
   OVERLAY_Data *data = vedata;
@@ -295,6 +317,8 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
   const bool draw_surface = (ob->dt >= OB_WIRE) && (renderable || (ob->dt == OB_WIRE));
   const bool draw_facing = draw_surface && (pd->overlay.flag & V3D_OVERLAY_FACE_ORIENTATION) &&
                            !is_select;
+  const bool draw_fade = draw_surface && (pd->overlay.flag & V3D_OVERLAY_FADE_INACTIVE) &&
+                         overlay_should_fade_object(ob, draw_ctx->obact);
   const bool draw_bones = (pd->overlay.flag & V3D_OVERLAY_HIDE_BONES) == 0;
   const bool draw_wires = draw_surface && has_surface &&
                           (pd->wireframe_mode || !pd->hide_overlays);
@@ -315,6 +339,9 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
   bool do_init;
   OVERLAY_DupliData *dupli = OVERLAY_duplidata_get(ob, vedata, &do_init);
 
+  if (draw_fade) {
+    OVERLAY_fade_cache_populate(vedata, ob);
+  }
   if (draw_facing) {
     OVERLAY_facing_cache_populate(vedata, ob);
   }
@@ -511,6 +538,7 @@ static void OVERLAY_draw_scene(void *vedata)
   }
 
   OVERLAY_image_draw(vedata);
+  OVERLAY_fade_draw(vedata);
   OVERLAY_facing_draw(vedata);
   OVERLAY_extra_blend_draw(vedata);
 
@@ -538,6 +566,7 @@ static void OVERLAY_draw_scene(void *vedata)
     GPU_framebuffer_bind(fbl->overlay_in_front_fb);
   }
 
+  OVERLAY_fade_infront_draw(vedata);
   OVERLAY_facing_infront_draw(vedata);
 
   if (DRW_state_is_fbo()) {

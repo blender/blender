@@ -100,6 +100,7 @@ typedef struct OVERLAY_PassList {
   DRWPass *extra_grid_ps;
   DRWPass *gpencil_canvas_ps;
   DRWPass *facing_ps[2];
+  DRWPass *fade_ps[2];
   DRWPass *grid_ps;
   DRWPass *image_background_ps;
   DRWPass *image_empties_ps;
@@ -268,6 +269,7 @@ typedef struct OVERLAY_PrivateData {
   DRWShadingGroup *edit_uv_stretching_grp;
   DRWShadingGroup *extra_grid_grp;
   DRWShadingGroup *facing_grp[2];
+  DRWShadingGroup *fade_grp[2];
   DRWShadingGroup *motion_path_lines_grp;
   DRWShadingGroup *motion_path_points_grp;
   DRWShadingGroup *outlines_grp;
@@ -565,6 +567,12 @@ void OVERLAY_facing_cache_init(OVERLAY_Data *vedata);
 void OVERLAY_facing_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_facing_draw(OVERLAY_Data *vedata);
 void OVERLAY_facing_infront_draw(OVERLAY_Data *vedata);
+
+void OVERLAY_fade_init(OVERLAY_Data *vedata);
+void OVERLAY_fade_cache_init(OVERLAY_Data *vedata);
+void OVERLAY_fade_cache_populate(OVERLAY_Data *vedata, Object *ob);
+void OVERLAY_fade_draw(OVERLAY_Data *vedata);
+void OVERLAY_fade_infront_draw(OVERLAY_Data *vedata);
 
 void OVERLAY_grid_init(OVERLAY_Data *vedata);
 void OVERLAY_grid_cache_init(OVERLAY_Data *vedata);
