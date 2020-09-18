@@ -4216,10 +4216,8 @@ int RNA_property_collection_lookup_int(PointerRNA *ptr,
   }
 }
 
-int RNA_property_collection_lookup_string(PointerRNA *ptr,
-                                          PropertyRNA *prop,
-                                          const char *key,
-                                          PointerRNA *r_ptr)
+int RNA_property_collection_lookup_string_index(
+    PointerRNA *ptr, PropertyRNA *prop, const char *key, PointerRNA *r_ptr, int *r_index)
 {
   CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)rna_ensure_property(prop);
 
@@ -4237,9 +4235,10 @@ int RNA_property_collection_lookup_string(PointerRNA *ptr,
     int found = 0;
     int keylen = strlen(key);
     int namelen;
+    int index = 0;
 
     RNA_property_collection_begin(ptr, prop, &iter);
-    for (; iter.valid; RNA_property_collection_next(&iter)) {
+    for (; iter.valid; RNA_property_collection_next(&iter), index++) {
       if (iter.ptr.data && iter.ptr.type->nameproperty) {
         nameprop = iter.ptr.type->nameproperty;
 
@@ -4263,10 +4262,23 @@ int RNA_property_collection_lookup_string(PointerRNA *ptr,
 
     if (!iter.valid) {
       memset(r_ptr, 0, sizeof(*r_ptr));
+      *r_index = -1;
+    }
+    else {
+      *r_index = index;
     }
 
     return iter.valid;
   }
+}
+
+int RNA_property_collection_lookup_string(PointerRNA *ptr,
+                                          PropertyRNA *prop,
+                                          const char *key,
+                                          PointerRNA *r_ptr)
+{
+  int index;
+  return RNA_property_collection_lookup_string_index(ptr, prop, key, r_ptr, &index);
 }
 
 /* zero return is an assignment error */
