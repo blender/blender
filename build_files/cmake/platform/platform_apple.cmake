@@ -392,6 +392,16 @@ endif()
 if(WITH_CYCLES_EMBREE)
   find_package(Embree 3.8.0 REQUIRED)
   set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -Xlinker -stack_size -Xlinker 0x100000")
+
+  # Embree static library linking can mix up SSE and AVX symbols, causing
+  # crashes on macOS systems with older CPUs that don't have AVX. Using
+  # force load avoids that. The Embree shared library does not suffer from
+  # this problem, precisely because linking a shared library uses force load.
+  set(_embree_libraries_force_load)
+  foreach(_embree_library ${EMBREE_LIBRARIES})
+    list(APPEND _embree_libraries_force_load "-Wl,-force_load,${_embree_library}")
+  endforeach()
+  set(EMBREE_LIBRARIES ${_embree_libraries_force_load})
 endif()
 
 if(WITH_OPENIMAGEDENOISE)
