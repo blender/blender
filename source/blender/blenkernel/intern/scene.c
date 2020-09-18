@@ -223,6 +223,16 @@ static void scene_init_data(ID *id)
   BKE_view_layer_add(scene, "View Layer", NULL, VIEWLAYER_ADD_NEW);
 }
 
+static void scene_copy_markers(Scene *scene_dst, const Scene *scene_src, const int flag)
+{
+  BLI_duplicatelist(&scene_dst->markers, &scene_src->markers);
+  LISTBASE_FOREACH (TimeMarker *, marker, &scene_dst->markers) {
+    if (marker->prop != NULL) {
+      marker->prop = IDP_CopyProperty_ex(marker->prop, flag);
+    }
+  }
+}
+
 static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
 {
   Scene *scene_dst = (Scene *)id_dst;
@@ -253,7 +263,8 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
     BKE_view_layer_copy_data(scene_dst, scene_src, view_layer_dst, view_layer_src, flag_subdata);
   }
 
-  BLI_duplicatelist(&(scene_dst->markers), &(scene_src->markers));
+  scene_copy_markers(scene_dst, scene_src, flag);
+
   BLI_duplicatelist(&(scene_dst->transform_spaces), &(scene_src->transform_spaces));
   BLI_duplicatelist(&(scene_dst->r.views), &(scene_src->r.views));
   BKE_keyingsets_copy(&(scene_dst->keyingsets), &(scene_src->keyingsets));
@@ -336,6 +347,17 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
   BKE_scene_copy_data_eevee(scene_dst, scene_src);
 }
 
+static void scene_free_markers(Scene *scene, bool do_id_user)
+{
+  LISTBASE_FOREACH_MUTABLE (TimeMarker *, marker, &scene->markers) {
+    if (marker->prop != NULL) {
+      IDP_FreePropertyContent_ex(marker->prop, do_id_user);
+      MEM_freeN(marker->prop);
+    }
+    MEM_freeN(marker);
+  }
+}
+
 static void scene_free_data(ID *id)
 {
 
@@ -372,7 +394,7 @@ static void scene_free_data(ID *id)
     scene->r.ffcodecdata.properties = NULL;
   }
 
-  BLI_freelistN(&scene->markers);
+  scene_free_markers(scene, do_id_user);
   BLI_freelistN(&scene->transform_spaces);
   BLI_freelistN(&scene->r.views);
 
@@ -524,6 +546,8 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
 
   LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
     BKE_LIB_FOREACHID_PROCESS(data, marker->camera, IDWALK_CB_NOP);
+    IDP_foreach_property(
+        marker->prop, IDP_TYPE_FILTER_ID, BKE_lib_query_idpropertiesForeachIDLink_callback, data);
   }
 
   ToolSettings *toolsett = scene->toolsettings;

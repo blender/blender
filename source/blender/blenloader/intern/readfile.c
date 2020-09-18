@@ -4450,6 +4450,8 @@ static void lib_link_scene(BlendLibReader *reader, Scene *sce)
   SEQ_ALL_END;
 
   LISTBASE_FOREACH (TimeMarker *, marker, &sce->markers) {
+    IDP_BlendReadLib(reader, marker->prop);
+
     if (marker->camera) {
       BLO_read_id_address(reader, sce->id.lib, &marker->camera);
     }
@@ -4809,6 +4811,11 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
   }
 
   BLO_read_list(reader, &(sce->markers));
+  LISTBASE_FOREACH (TimeMarker *, marker, &sce->markers) {
+    BLO_read_data_address(reader, &marker->prop);
+    IDP_BlendDataRead(reader, &marker->prop);
+  }
+
   BLO_read_list(reader, &(sce->transform_spaces));
   BLO_read_list(reader, &(sce->r.layers));
   BLO_read_list(reader, &(sce->r.views));
@@ -7969,6 +7976,8 @@ static void expand_scene(BlendExpander *expander, Scene *sce)
   }
 
   LISTBASE_FOREACH (TimeMarker *, marker, &sce->markers) {
+    IDP_BlendReadExpand(expander, marker->prop);
+
     if (marker->camera) {
       BLO_expand(expander, marker->camera);
     }

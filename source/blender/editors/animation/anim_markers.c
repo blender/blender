@@ -36,6 +36,7 @@
 
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
+#include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
@@ -1104,6 +1105,10 @@ static void ed_marker_duplicate_apply(bContext *C)
       newmarker->camera = marker->camera;
 #endif
 
+      if (marker->prop != NULL) {
+        newmarker->prop = IDP_CopyProperty(marker->prop);
+      }
+
       /* new marker is added to the beginning of list */
       // FIXME: bad ordering!
       BLI_addhead(markers, newmarker);
@@ -1458,6 +1463,10 @@ static int ed_marker_delete_exec(bContext *C, wmOperator *UNUSED(op))
   for (marker = markers->first; marker; marker = nmarker) {
     nmarker = marker->next;
     if (marker->flag & SELECT) {
+      if (marker->prop != NULL) {
+        IDP_FreePropertyContent(marker->prop);
+        MEM_freeN(marker->prop);
+      }
       BLI_freelinkN(markers, marker);
       changed = true;
     }

@@ -30,7 +30,20 @@
 
 #ifdef RNA_RUNTIME
 
+#  include "BKE_idprop.h"
 #  include "WM_api.h"
+
+static IDProperty *rna_TimelineMarker_idprops(PointerRNA *ptr, bool create)
+{
+  TimeMarker *marker = ptr->data;
+
+  if (create && marker->prop == NULL) {
+    IDPropertyTemplate val = {0};
+    marker->prop = IDP_New(IDP_GROUP, &val, "Marker ID properties");
+  }
+
+  return marker->prop;
+}
 
 static void rna_TimelineMarker_update(Main *UNUSED(bmain),
                                       Scene *UNUSED(scene),
@@ -50,6 +63,7 @@ static void rna_def_timeline_marker(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "TimelineMarker", NULL);
   RNA_def_struct_sdna(srna, "TimeMarker");
   RNA_def_struct_ui_text(srna, "Marker", "Marker for noting points in the timeline");
+  RNA_def_struct_idprops_func(srna, "rna_TimelineMarker_idprops");
 
   /* String values */
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);

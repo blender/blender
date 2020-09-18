@@ -71,6 +71,10 @@ void DepsgraphNodeBuilder::build_scene_parameters(Scene *scene)
    * in when building scene from view layer, so this particular case does not make things
    * marginally worse.  */
   build_scene_compositor(scene);
+
+  LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
+    build_idproperties(marker->prop);
+  }
 }
 
 void DepsgraphNodeBuilder::build_scene_compositor(Scene *scene)

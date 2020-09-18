@@ -59,6 +59,10 @@ void DepsgraphRelationBuilder::build_scene_parameters(Scene *scene)
       &scene->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EXIT);
   OperationKey scene_eval_key(&scene->id, NodeType::PARAMETERS, OperationCode::SCENE_EVAL);
   add_relation(parameters_eval_key, scene_eval_key, "Parameters -> Scene Eval");
+
+  LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {
+    build_idproperties(marker->prop);
+  }
 }
 
 void DepsgraphRelationBuilder::build_scene_compositor(Scene *scene)

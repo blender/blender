@@ -1702,6 +1702,10 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
   /* writing dynamic list of TimeMarkers to the blend file */
   LISTBASE_FOREACH (TimeMarker *, marker, &sce->markers) {
     BLO_write_struct(writer, TimeMarker, marker);
+
+    if (marker->prop != NULL) {
+      IDP_BlendWrite(writer, marker->prop);
+    }
   }
 
   /* writing dynamic list of TransformOrientations to the blend file */
