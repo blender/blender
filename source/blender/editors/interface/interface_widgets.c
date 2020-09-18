@@ -2383,7 +2383,8 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
         rect->xmin += 0.3f * U.widget_unit;
       }
     }
-    else if (ui_block_is_menu(but->block) && but->alignnr == 0) {
+    /* Menu items, but only if they are not icon-only (rare). */
+    else if (ui_block_is_menu(but->block) && but->drawstr[0]) {
       rect->xmin += 0.2f * U.widget_unit;
     }
 
