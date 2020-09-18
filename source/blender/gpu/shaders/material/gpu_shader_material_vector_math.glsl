@@ -64,7 +64,12 @@ void vector_math_scale(vec3 a, vec3 b, vec3 c, float scale, out vec3 outVector, 
 void vector_math_normalize(
     vec3 a, vec3 b, vec3 c, float scale, out vec3 outVector, out float outValue)
 {
-  outVector = normalize(a);
+  outVector = a;
+  /* Safe version of normalize(a). */
+  float lenSquared = dot(a, a);
+  if (lenSquared > 0.0) {
+    outVector *= inversesqrt(lenSquared);
+  }
 }
 
 void vector_math_snap(vec3 a, vec3 b, vec3 c, float scale, out vec3 outVector, out float outValue)
