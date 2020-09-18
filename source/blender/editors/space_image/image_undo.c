@@ -1004,6 +1004,14 @@ void ED_image_undosys_type(UndoType *ut)
 
 /* -------------------------------------------------------------------- */
 /** \name Utilities
+ *
+ * \note image undo exposes #ED_image_undo_push_begin, #ED_image_undo_push_end
+ * which must be called by the operator directly.
+ *
+ * Unlike most other undo stacks this is needed:
+ * - So we can always access the state before the image was painted onto,
+ *   which is needed if previous undo states aren't image-type.
+ * - So operators can access the pixel-data before the stroke was applied, at run-time.
  * \{ */
 
 ListBase *ED_image_paint_tile_list_get(void)
@@ -1041,6 +1049,10 @@ static ImageUndoStep *image_undo_push_begin(const char *name, int paint_mode)
   return us;
 }
 
+/**
+ * The caller is responsible for running #ED_image_undo_push_end,
+ * failure to do so causes an invalid state for the undo system.
+ */
 void ED_image_undo_push_begin(const char *name, int paint_mode)
 {
   image_undo_push_begin(name, paint_mode);
