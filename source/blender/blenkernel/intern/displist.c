@@ -1753,7 +1753,7 @@ static void do_makeDispListCurveTypes(Depsgraph *depsgraph,
                   rotateBevelPiece(cu, bevp, NULL, dlb, 0.0f, widfac, fac, &data);
                 }
 
-                if (cu->bevobj && (cu->flag & CU_FILL_CAPS) && !(nu->flagu & CU_NURB_CYCLIC)) {
+                if ((cu->flag & CU_FILL_CAPS) && !(nu->flagu & CU_NURB_CYCLIC)) {
                   if (a == 1) {
                     fillBevelCap(nu, dlb, cur_data - 3 * dlb->nr, &bottom_capbase);
                     copy_v3_v3(bottom_no, bevp->dir);
