@@ -119,8 +119,6 @@ static pthread_mutex_t _image_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _image_draw_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _viewer_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _custom1_lock = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t _rcache_lock = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t _opengl_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _nodes_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _movieclip_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _colormanage_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -368,10 +366,6 @@ static ThreadMutex *global_mutex_from_type(const int type)
       return &_viewer_lock;
     case LOCK_CUSTOM1:
       return &_custom1_lock;
-    case LOCK_RCACHE:
-      return &_rcache_lock;
-    case LOCK_OPENGL:
-      return &_opengl_lock;
     case LOCK_NODES:
       return &_nodes_lock;
     case LOCK_MOVIECLIP:

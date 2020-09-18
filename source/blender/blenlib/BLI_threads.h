@@ -59,21 +59,22 @@ int BLI_system_thread_count(void); /* gets the number of threads the system can 
 void BLI_system_num_threads_override_set(int num);
 int BLI_system_num_threads_override_get(void);
 
-/* Global Mutex Locks
+/**
+ * Global Mutex Locks
  *
- * One custom lock available now. can be extended. */
-
-#define LOCK_IMAGE 0
-#define LOCK_DRAW_IMAGE 1
-#define LOCK_VIEWER 2
-#define LOCK_CUSTOM1 3
-#define LOCK_RCACHE 4
-#define LOCK_OPENGL 5
-#define LOCK_NODES 6
-#define LOCK_MOVIECLIP 7
-#define LOCK_COLORMANAGE 8
-#define LOCK_FFTW 9
-#define LOCK_VIEW3D 10
+ * One custom lock available now. can be extended.
+ */
+enum {
+  LOCK_IMAGE = 0,
+  LOCK_DRAW_IMAGE,
+  LOCK_VIEWER,
+  LOCK_CUSTOM1,
+  LOCK_NODES,
+  LOCK_MOVIECLIP,
+  LOCK_COLORMANAGE,
+  LOCK_FFTW,
+  LOCK_VIEW3D,
+};
 
 void BLI_thread_lock(int type);
 void BLI_thread_unlock(int type);
