@@ -19,16 +19,16 @@ diff -Naur orig/CMakeLists.txt external_ispc/CMakeLists.txt
  target_include_directories(${PROJECT_NAME} PRIVATE
 -                           ${LLVM_INCLUDE_DIRS}
 +                           ${LLVM_INCLUDE_DIRS} ${CLANG_INCLUDE_DIRS}
+                            ${GENX_DEPS_DIR}/include
                             ${CMAKE_CURRENT_SOURCE_DIR}/src
                             ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR})
- # Compile options
 diff -Naur orig/cmake/GenerateBuiltins.cmake.txt external_ispc/cmake/GenerateBuiltins.cmake.txt
 +++ orig/cmake/GenerateBuiltins.cmake	2020-05-25 13:32:40.830803821 +0200
 +++ external_ispc/cmake/GenerateBuiltins.cmake	2020-05-25 13:32:40.830803821 +0200
 @@ -97,6 +97,8 @@
  
      if ("${bit}" STREQUAL "32" AND ${arch} STREQUAL "x86")
-         set(target_arch "i386")
+         set(target_arch "i686")
 +        # Blender: disable 32bit due to build issues on Linux and being unnecessary.
 +        set(SKIP ON)
      elseif ("${bit}" STREQUAL "64" AND ${arch} STREQUAL "x86")

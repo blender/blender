@@ -293,9 +293,9 @@ set(USD_VERSION 20.05)
 set(USD_URI https://github.com/PixarAnimationStudios/USD/archive/v${USD_VERSION}.tar.gz)
 set(USD_HASH 6d679e739e7f65725d9c029e37dda9fc)
 
-set(OIDN_VERSION 1.2.1)
+set(OIDN_VERSION 1.2.3)
 set(OIDN_URI https://github.com/OpenImageDenoise/oidn/releases/download/v${OIDN_VERSION}/oidn-${OIDN_VERSION}.src.tar.gz)
-set(OIDN_HASH cbebc1a25eb6de62af3a59e943063608)
+set(OIDN_HASH 1f11466c2c3efc27faba5ec7078d12b2)
 
 set(LIBGLU_VERSION 9.0.1)
 set(LIBGLU_URI ftp://ftp.freedesktop.org/pub/mesa/glu/glu-${LIBGLU_VERSION}.tar.xz)
@@ -313,9 +313,9 @@ set(XR_OPENXR_SDK_VERSION 1.0.8)
 set(XR_OPENXR_SDK_URI https://github.com/KhronosGroup/OpenXR-SDK/archive/release-${XR_OPENXR_SDK_VERSION}.tar.gz)
 set(XR_OPENXR_SDK_HASH c6de63d2e0f9029aa58dfa97cad8ce07)
 
-set(ISPC_VERSION v1.13.0)
+set(ISPC_VERSION v1.14.1)
 set(ISPC_URI https://github.com/ispc/ispc/archive/${ISPC_VERSION}.tar.gz)
-set(ISPC_HASH 4bf5e8d0020c4b9980faa702c1a6f25f)
+set(ISPC_HASH 968fbc8dfd16a60ba4e32d2e0e03ea7a)
 
 set(GMP_VERSION 6.2.0)
 set(GMP_URI https://gmplib.org/download/gmp/gmp-${GMP_VERSION}.tar.xz)

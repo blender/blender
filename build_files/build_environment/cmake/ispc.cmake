@@ -43,6 +43,7 @@ set(ISPC_EXTRA_ARGS
     -DLLVM_ROOT=${LIBDIR}/llvm/lib/cmake/llvm
     -DLLVM_LIBRARY_DIR=${LIBDIR}/llvm/lib
     -DCLANG_EXECUTABLE=${LIBDIR}/clang/bin/clang
+    -DCLANGPP_EXECUTABLE=${LIBDIR}/clang/bin/clang++
     -DISPC_INCLUDE_TESTS=Off
     -DCLANG_LIBRARY_DIR=${LIBDIR}/clang/lib
     -DCLANG_INCLUDE_DIRS=${LIBDIR}/clang/include
