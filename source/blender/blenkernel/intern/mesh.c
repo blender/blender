@@ -927,6 +927,7 @@ void BKE_mesh_copy_settings(Mesh *me_dst, const Mesh *me_src)
   me_dst->remesh_mode = me_src->remesh_mode;
 
   me_dst->face_sets_color_seed = me_src->face_sets_color_seed;
+  me_dst->face_sets_color_default = me_src->face_sets_color_default;
 
   /* Copy texture space. */
   me_dst->texflag = me_src->texflag;
