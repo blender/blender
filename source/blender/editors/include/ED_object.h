@@ -430,7 +430,8 @@ int ED_object_modifier_copy(struct ReportList *reports,
                             struct Object *ob,
                             struct ModifierData *md);
 void ED_object_modifier_link(struct bContext *C, struct Object *ob_dst, struct Object *ob_src);
-void ED_object_modifier_copy_to_object(struct Object *ob_dst,
+void ED_object_modifier_copy_to_object(struct bContext *C,
+                                       struct Object *ob_dst,
                                        struct Object *ob_src,
                                        struct ModifierData *md);
 

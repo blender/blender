@@ -964,7 +964,7 @@ static void datastack_drop_copy(bContext *C, StackDropData *drop_data)
       }
       else if (drop_data->ob_parent->type != OB_GPENCIL && ob_dst->type != OB_GPENCIL) {
         ED_object_modifier_copy_to_object(
-            ob_dst, drop_data->ob_parent, drop_data->drag_directdata);
+            C, ob_dst, drop_data->ob_parent, drop_data->drag_directdata);
       }
       break;
     case TSE_CONSTRAINT:
