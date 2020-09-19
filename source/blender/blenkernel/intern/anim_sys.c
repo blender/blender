@@ -1402,7 +1402,7 @@ static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr, NlaEvalData *nlaeval,
 /* accumulate the old and new values of a channel according to mode and influence */
 static float nla_blend_value(int blendmode, float old_value, float value, float inf)
 {
-  /* optimisation: no need to try applying if there is no influence */
+  /* Optimization: no need to try applying if there is no influence. */
   if (IS_EQF(inf, 0.0f)) {
     return old_value;
   }
@@ -1443,7 +1443,7 @@ static float nla_blend_value(int blendmode, float old_value, float value, float 
 static float nla_combine_value(
     int mix_mode, float base_value, float old_value, float value, float inf)
 {
-  /* optimisation: no need to try applying if there is no influence */
+  /* Optimization: no need to try applying if there is no influence. */
   if (IS_EQF(inf, 0.0f)) {
     return old_value;
   }

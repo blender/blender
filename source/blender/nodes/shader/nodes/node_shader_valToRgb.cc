@@ -74,7 +74,7 @@ static int gpu_shader_valtorgb(GPUMaterial *mat,
   float *array, layer;
   int size;
 
-  /* Common / easy case optimisation. */
+  /* Common / easy case optimization. */
   if ((coba->tot <= 2) && (coba->color_mode == COLBAND_BLEND_RGB)) {
     float mul_bias[2];
     switch (coba->ipotype) {

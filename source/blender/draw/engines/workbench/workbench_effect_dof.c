@@ -156,7 +156,7 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata)
 
   const float *full_size = DRW_viewport_size_get();
   const int size[2] = {max_ii(1, (int)full_size[0] / 2), max_ii(1, (int)full_size[1] / 2)};
-#if 0 /* TODO(fclem) finish COC min_max optimisation */
+#if 0 /* TODO(fclem) finish COC min_max optimization */
   /* NOTE: We Ceil here in order to not miss any edge texel if using a NPO2 texture.  */
   int shrink_h_size[2] = {ceilf(size[0] / 8.0f), size[1]};
   int shrink_w_size[2] = {shrink_h_size[0], ceilf(size[1] / 8.0f)};
@@ -168,7 +168,7 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata)
       &txl->coc_halfres_tx, size[0], size[1], GPU_RG8, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
   wpd->dof_blur_tx = DRW_texture_pool_query_2d(
       size[0], size[1], GPU_RGBA16F, &draw_engine_workbench);
-#if 0 /* TODO(fclem) finish COC min_max optimisation */
+#if 0 /* TODO(fclem) finish COC min_max optimization. */
   wpd->coc_temp_tx = DRW_texture_pool_query_2d(
       shrink_h_size[0], shrink_h_size[1], GPU_RG8, &draw_engine_workbench);
   wpd->coc_tiles_tx[0] = DRW_texture_pool_query_2d(
@@ -183,7 +183,7 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata)
                                     GPU_ATTACHMENT_TEXTURE(txl->dof_source_tx),
                                     GPU_ATTACHMENT_TEXTURE(txl->coc_halfres_tx),
                                 });
-#if 0 /* TODO(fclem) finish COC min_max optimisation */
+#if 0 /* TODO(fclem) finish COC min_max optimization. */
   GPU_framebuffer_ensure_config(&fbl->dof_coc_tile_h_fb,
                                 {
                                     GPU_ATTACHMENT_NONE,

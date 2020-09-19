@@ -166,7 +166,7 @@ void bpy_context_clear(bContext *UNUSED(C), const PyGILState_STATE *gilstate)
 }
 
 /**
- * Use for `CTX_*_set(..)` funcitons need to set values which are later read back as expected.
+ * Use for `CTX_*_set(..)` functions need to set values which are later read back as expected.
  * In this case we don't want the Python context to override the values as it causes problems
  * see T66256.
  *

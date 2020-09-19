@@ -113,7 +113,7 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
 {
   EEVEE_TextureList *txl = vedata->txl;
 
-  /* XXX TODO OPTIMISATION : This is a complete waist of texture memory.
+  /* XXX TODO OPTIMIZATION: This is a complete waist of texture memory.
    * Instead of allocating each planar probe for each viewport,
    * only alloc them once using the biggest viewport resolution. */
   const float *viewport_size = DRW_viewport_size_get();

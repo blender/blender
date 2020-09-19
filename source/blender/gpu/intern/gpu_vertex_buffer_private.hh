@@ -48,11 +48,11 @@ class VertBuf {
   uchar *data = NULL;
 
  protected:
-  /** Usage hint for GL optimisation. */
+  /** Usage hint for GL optimization. */
   GPUUsageType usage_ = GPU_USAGE_STATIC;
 
  private:
-  /** This counter will only avoid freeing the GPUVertBuf, not the data. */
+  /** This counter will only avoid freeing the #GPUVertBuf, not the data. */
   int handle_refcount_ = 1;
 
  public:
