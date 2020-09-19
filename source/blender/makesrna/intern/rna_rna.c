@@ -2583,7 +2583,8 @@ bool rna_property_override_apply_default(Main *UNUSED(bmain),
           BLI_assert(item_index_added >= 0);
 
           /* This is the section of code that makes it specific to IDProperties (the rest could be
-           * used with some regular RNA/DNA data too).
+           * used with some regular RNA/DNA data too, if `RNA_property_collection_add` where
+           * actually implemented for those).
            * Currently it is close to impossible to copy arbitrary 'real' RNA data between
            * Collection items. */
           IDProperty *item_idprop_src = item_ptr_src.data;
