@@ -3360,7 +3360,6 @@ static void outliner_draw_hierarchy_lines_recursive(uint pos,
 {
   bTheme *btheme = UI_GetTheme();
   int y = *starty;
-  short color_tag = COLLECTION_COLOR_NONE;
 
   /* Small vertical padding */
   const short line_padding = UI_UNIT_Y / 4.0f;
@@ -3371,8 +3370,9 @@ static void outliner_draw_hierarchy_lines_recursive(uint pos,
     TreeStoreElem *tselem = TREESTORE(te);
     draw_hierarchy_line = false;
     *starty -= UI_UNIT_Y;
+    short color_tag = COLLECTION_COLOR_NONE;
 
-    /* Only draw hierarchy lines for open collections. */
+    /* Only draw hierarchy lines for expanded collections and objects with children. */
     if (TSELEM_OPEN(tselem, space_outliner) && !BLI_listbase_is_empty(&te->subtree)) {
       if (tselem->type == TSE_LAYER_COLLECTION) {
         draw_hierarchy_line = true;
