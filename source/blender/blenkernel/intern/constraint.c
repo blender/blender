@@ -788,9 +788,9 @@ static void default_get_tarmat_full_bbone(struct Depsgraph *UNUSED(depsgraph),
     ct->space = con->tarspace; \
     ct->flag = CONSTRAINT_TAR_TEMP; \
 \
-    if (ct->tar) \
+    if (ct->tar) { \
       ct->type = CONSTRAINT_OBTYPE_OBJECT; \
-\
+    } \
     BLI_addtail(list, ct); \
   } \
   (void)0
@@ -2645,7 +2645,8 @@ static void actcon_get_tarmat(struct Depsgraph *depsgraph,
     /* Skip targets if we're using local float property to set action time */
     if (data->flag & ACTCON_USE_EVAL_TIME) {
       s = data->eval_time;
-    } else {
+    }
+    else {
       /* get the transform matrix of the target */
       constraint_target_to_mat4(ct->tar,
                                 ct->subtarget,

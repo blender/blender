@@ -198,8 +198,10 @@ static int search_polyloop_cmp(const void *v1, const void *v2)
  * \{ */
 
 #define PRINT_MSG(...) \
-  if (do_verbose) \
-  CLOG_INFO(&LOG, 1, __VA_ARGS__)
+  if (do_verbose) { \
+    CLOG_INFO(&LOG, 1, __VA_ARGS__); \
+  } \
+  ((void)0)
 
 #define PRINT_ERR(...) \
   do { \

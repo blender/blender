@@ -3997,8 +3997,9 @@ static int get_particle_uv(Mesh *mesh,
 
 #define CLAMP_WARP_PARTICLE_TEXTURE_POS(type, pvalue) \
   if (event & type) { \
-    if (pvalue < 0.0f) \
+    if (pvalue < 0.0f) { \
       pvalue = 1.0f + pvalue; \
+    } \
     CLAMP(pvalue, 0.0f, 1.0f); \
   } \
   (void)0

@@ -219,14 +219,18 @@ intersection_test intersect2dSeg2dSegParametric(const Vec2r &p1,
 #define FINDMINMAX(x0, x1, x2, min, max) \
   { \
     min = max = x0; \
-    if (x1 < min) \
+    if (x1 < min) { \
       min = x1; \
-    if (x1 > max) \
+    } \
+    if (x1 > max) { \
       max = x1; \
-    if (x2 < min) \
+    } \
+    if (x2 < min) { \
       min = x2; \
-    if (x2 > max) \
+    } \
+    if (x2 > max) { \
       max = x2; \
+    } \
   } \
   (void)0
 
@@ -244,8 +248,9 @@ intersection_test intersect2dSeg2dSegParametric(const Vec2r &p1,
       max = p0; \
     } \
     rad = fa * boxhalfsize[Y] + fb * boxhalfsize[Z]; \
-    if (min > rad || max < -rad) \
+    if (min > rad || max < -rad) { \
       return 0; \
+    } \
   } \
   (void)0
 
@@ -262,8 +267,9 @@ intersection_test intersect2dSeg2dSegParametric(const Vec2r &p1,
       max = p0; \
     } \
     rad = fa * boxhalfsize[Y] + fb * boxhalfsize[Z]; \
-    if (min > rad || max < -rad) \
+    if (min > rad || max < -rad) { \
       return 0; \
+    } \
   } \
   (void)0
 
@@ -281,8 +287,9 @@ intersection_test intersect2dSeg2dSegParametric(const Vec2r &p1,
       max = p0; \
     } \
     rad = fa * boxhalfsize[X] + fb * boxhalfsize[Z]; \
-    if (min > rad || max < -rad) \
+    if (min > rad || max < -rad) { \
       return 0; \
+    } \
   } \
   (void)0
 
@@ -299,8 +306,9 @@ intersection_test intersect2dSeg2dSegParametric(const Vec2r &p1,
       max = p0; \
     } \
     rad = fa * boxhalfsize[X] + fb * boxhalfsize[Z]; \
-    if (min > rad || max < -rad) \
+    if (min > rad || max < -rad) { \
       return 0; \
+    } \
   } \
   (void)0
 
@@ -318,8 +326,9 @@ intersection_test intersect2dSeg2dSegParametric(const Vec2r &p1,
       max = p2; \
     } \
     rad = fa * boxhalfsize[X] + fb * boxhalfsize[Y]; \
-    if (min > rad || max < -rad) \
+    if (min > rad || max < -rad) { \
       return 0; \
+    } \
   } \
   (void)0
 
@@ -336,8 +345,9 @@ intersection_test intersect2dSeg2dSegParametric(const Vec2r &p1,
       max = p0; \
     } \
     rad = fa * boxhalfsize[X] + fb * boxhalfsize[Y]; \
-    if (min > rad || max < -rad) \
+    if (min > rad || max < -rad) { \
       return 0; \
+    } \
   } \
   (void)0
 

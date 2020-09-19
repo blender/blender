@@ -511,8 +511,10 @@ typedef enum ID_Type {
    ((ID *)(_id))->newid->tag |= LIB_TAG_NEW, \
    (void *)((ID *)(_id))->newid)
 #define ID_NEW_REMAP(a) \
-  if ((a) && (a)->id.newid) \
-  (a) = (void *)(a)->id.newid
+  if ((a) && (a)->id.newid) { \
+    (a) = (void *)(a)->id.newid; \
+  } \
+  ((void)0)
 
 /** id->flag (persitent). */
 enum {

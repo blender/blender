@@ -579,8 +579,10 @@ static int passtype_from_name(const char *name)
   int len = BLI_str_partition(name, delim, &sep, &suf);
 
 #define CHECK_PASS(NAME) \
-  if (STREQLEN(name, RE_PASSNAME_##NAME, len)) \
-  return SCE_PASS_##NAME
+  if (STREQLEN(name, RE_PASSNAME_##NAME, len)) { \
+    return SCE_PASS_##NAME; \
+  } \
+  ((void)0)
 
   CHECK_PASS(COMBINED);
   CHECK_PASS(Z);

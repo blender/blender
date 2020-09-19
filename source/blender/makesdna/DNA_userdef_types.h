@@ -985,8 +985,9 @@ typedef enum ePathCompare_Flag {
 /* Helper macro for checking frame clamping */
 #define FRAMENUMBER_MIN_CLAMP(cfra) \
   { \
-    if ((U.flag & USER_NONEGFRAMES) && (cfra < 0)) \
+    if ((U.flag & USER_NONEGFRAMES) && (cfra < 0)) { \
       cfra = 0; \
+    } \
   } \
   (void)0
 

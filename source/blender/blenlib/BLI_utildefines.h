@@ -136,50 +136,66 @@ extern "C" {
   (void)0
 #define DO_MIN(vec, min) \
   { \
-    if ((min)[0] > (vec)[0]) \
+    if ((min)[0] > (vec)[0]) { \
       (min)[0] = (vec)[0]; \
-    if ((min)[1] > (vec)[1]) \
+    } \
+    if ((min)[1] > (vec)[1]) { \
       (min)[1] = (vec)[1]; \
-    if ((min)[2] > (vec)[2]) \
+    } \
+    if ((min)[2] > (vec)[2]) { \
       (min)[2] = (vec)[2]; \
+    } \
   } \
   (void)0
 #define DO_MAX(vec, max) \
   { \
-    if ((max)[0] < (vec)[0]) \
+    if ((max)[0] < (vec)[0]) { \
       (max)[0] = (vec)[0]; \
-    if ((max)[1] < (vec)[1]) \
+    } \
+    if ((max)[1] < (vec)[1]) { \
       (max)[1] = (vec)[1]; \
-    if ((max)[2] < (vec)[2]) \
+    } \
+    if ((max)[2] < (vec)[2]) { \
       (max)[2] = (vec)[2]; \
+    } \
   } \
   (void)0
 #define DO_MINMAX(vec, min, max) \
   { \
-    if ((min)[0] > (vec)[0]) \
+    if ((min)[0] > (vec)[0]) { \
       (min)[0] = (vec)[0]; \
-    if ((min)[1] > (vec)[1]) \
+    } \
+    if ((min)[1] > (vec)[1]) { \
       (min)[1] = (vec)[1]; \
-    if ((min)[2] > (vec)[2]) \
+    } \
+    if ((min)[2] > (vec)[2]) { \
       (min)[2] = (vec)[2]; \
-    if ((max)[0] < (vec)[0]) \
+    } \
+    if ((max)[0] < (vec)[0]) { \
       (max)[0] = (vec)[0]; \
-    if ((max)[1] < (vec)[1]) \
+    } \
+    if ((max)[1] < (vec)[1]) { \
       (max)[1] = (vec)[1]; \
-    if ((max)[2] < (vec)[2]) \
+    } \
+    if ((max)[2] < (vec)[2]) { \
       (max)[2] = (vec)[2]; \
+    } \
   } \
   (void)0
 #define DO_MINMAX2(vec, min, max) \
   { \
-    if ((min)[0] > (vec)[0]) \
+    if ((min)[0] > (vec)[0]) { \
       (min)[0] = (vec)[0]; \
-    if ((min)[1] > (vec)[1]) \
+    } \
+    if ((min)[1] > (vec)[1]) { \
       (min)[1] = (vec)[1]; \
-    if ((max)[0] < (vec)[0]) \
+    } \
+    if ((max)[0] < (vec)[0]) { \
       (max)[0] = (vec)[0]; \
-    if ((max)[1] < (vec)[1]) \
+    } \
+    if ((max)[1] < (vec)[1]) { \
       (max)[1] = (vec)[1]; \
+    } \
   } \
   (void)0
 
@@ -330,24 +346,28 @@ extern "C" {
 
 #define CLAMP(a, b, c) \
   { \
-    if ((a) < (b)) \
+    if ((a) < (b)) { \
       (a) = (b); \
-    else if ((a) > (c)) \
+    } \
+    else if ((a) > (c)) { \
       (a) = (c); \
+    } \
   } \
   (void)0
 
 #define CLAMP_MAX(a, c) \
   { \
-    if ((a) > (c)) \
+    if ((a) > (c)) { \
       (a) = (c); \
+    } \
   } \
   (void)0
 
 #define CLAMP_MIN(a, b) \
   { \
-    if ((a) < (b)) \
+    if ((a) < (b)) { \
       (a) = (b); \
+    } \
   } \
   (void)0
 

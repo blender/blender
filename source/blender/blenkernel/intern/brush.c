@@ -1545,20 +1545,28 @@ void BKE_brush_debug_print_state(Brush *br)
   brush_defaults(&def);
 
 #define BR_TEST(field, t) \
-  if (br->field != def.field) \
-  printf("br->" #field " = %" #t ";\n", br->field)
+  if (br->field != def.field) { \
+    printf("br->" #field " = %" #t ";\n", br->field); \
+  } \
+  ((void)0)
 
 #define BR_TEST_FLAG(_f) \
-  if ((br->flag & _f) && !(def.flag & _f)) \
+  if ((br->flag & _f) && !(def.flag & _f)) { \
     printf("br->flag |= " #_f ";\n"); \
-  else if (!(br->flag & _f) && (def.flag & _f)) \
-  printf("br->flag &= ~" #_f ";\n")
+  } \
+  else if (!(br->flag & _f) && (def.flag & _f)) { \
+    printf("br->flag &= ~" #_f ";\n"); \
+  } \
+  ((void)0)
 
 #define BR_TEST_FLAG_OVERLAY(_f) \
-  if ((br->overlay_flags & _f) && !(def.overlay_flags & _f)) \
+  if ((br->overlay_flags & _f) && !(def.overlay_flags & _f)) { \
     printf("br->overlay_flags |= " #_f ";\n"); \
-  else if (!(br->overlay_flags & _f) && (def.overlay_flags & _f)) \
-  printf("br->overlay_flags &= ~" #_f ";\n")
+  } \
+  else if (!(br->overlay_flags & _f) && (def.overlay_flags & _f)) { \
+    printf("br->overlay_flags &= ~" #_f ";\n"); \
+  } \
+  ((void)0)
 
   /* print out any non-default brush state */
   BR_TEST(normal_weight, f);

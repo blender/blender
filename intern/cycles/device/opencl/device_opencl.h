@@ -230,8 +230,9 @@ class OpenCLCache {
       if (err != CL_SUCCESS) { \
         string message = string_printf( \
             "OpenCL error: %s in %s (%s:%d)", clewErrorString(err), #stmt, __FILE__, __LINE__); \
-        if ((device)->error_message() == "") \
+        if ((device)->error_message() == "") { \
           (device)->set_error(message); \
+        } \
         fprintf(stderr, "%s\n", message.c_str()); \
       } \
     } \
@@ -244,8 +245,9 @@ class OpenCLCache {
       if (err != CL_SUCCESS) { \
         string message = string_printf( \
             "OpenCL error: %s in %s (%s:%d)", clewErrorString(err), #stmt, __FILE__, __LINE__); \
-        if (error_msg == "") \
+        if (error_msg == "") { \
           error_msg = message; \
+        } \
         fprintf(stderr, "%s\n", message.c_str()); \
       } \
     } \

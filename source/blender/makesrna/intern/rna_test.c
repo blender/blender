@@ -73,9 +73,9 @@
 \
       static int rna_Test_##arr##_set_length(PointerRNA *ptr, int length) \
       { \
-        if (length > max) \
+        if (length > max) { \
           return 0; \
-\
+        } \
         arr##_len = length; \
 \
         return 1; \

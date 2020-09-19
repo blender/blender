@@ -10486,8 +10486,9 @@ static int ui_pie_handler(bContext *C, const wmEvent *event, uiPopupBlockHandle 
 #define CASE_NUM_TO_DIR(n, d) \
   case (EVT_ZEROKEY + n): \
   case (EVT_PAD0 + n): { \
-    if (num_dir == UI_RADIAL_NONE) \
+    if (num_dir == UI_RADIAL_NONE) { \
       num_dir = d; \
+    } \
   } \
     (void)0
 

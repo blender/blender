@@ -1287,8 +1287,9 @@ void BKE_animdata_main_cb(Main *bmain, ID_AnimData_Edit_Callback func, void *use
 #define ANIMDATA_IDS_CB(first) \
   for (id = first; id; id = id->next) { \
     AnimData *adt = BKE_animdata_from_id(id); \
-    if (adt) \
+    if (adt) { \
       func(id, adt, user_data); \
+    } \
   } \
   (void)0
 
@@ -1299,11 +1300,13 @@ void BKE_animdata_main_cb(Main *bmain, ID_AnimData_Edit_Callback func, void *use
     NtId_Type *ntp = (NtId_Type *)id; \
     if (ntp->nodetree) { \
       AnimData *adt2 = BKE_animdata_from_id((ID *)ntp->nodetree); \
-      if (adt2) \
+      if (adt2) { \
         func(id, adt2, user_data); \
+      } \
     } \
-    if (adt) \
+    if (adt) { \
       func(id, adt, user_data); \
+    } \
   } \
   (void)0
 

@@ -243,8 +243,9 @@ void MEM_use_guarded_allocator(void);
     } \
     void operator delete(void *mem) \
     { \
-      if (mem) \
+      if (mem) { \
         MEM_freeN(mem); \
+      } \
     } \
     void *operator new[](size_t num_bytes) \
     { \
@@ -252,8 +253,9 @@ void MEM_use_guarded_allocator(void);
     } \
     void operator delete[](void *mem) \
     { \
-      if (mem) \
+      if (mem) { \
         MEM_freeN(mem); \
+      } \
     } \
     void *operator new(size_t /*count*/, void *ptr) \
     { \

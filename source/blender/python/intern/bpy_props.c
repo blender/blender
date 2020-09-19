@@ -1986,8 +1986,9 @@ static void bpy_prop_callback_assign_enum(struct PropertyRNA *prop,
   } \
   srna = srna_from_self(self, #_func "(...):"); \
   if (srna == NULL) { \
-    if (PyErr_Occurred()) \
+    if (PyErr_Occurred()) { \
       return NULL; \
+    } \
     return bpy_prop_deferred_return(pymeth_##_func, kw); \
   } \
   (void)0

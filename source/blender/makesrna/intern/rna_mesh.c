@@ -157,8 +157,10 @@ static CustomData *rna_cd_from_layer(PointerRNA *ptr, CustomDataLayer *cdl)
 
   /* rely on negative values wrapping */
 #  define TEST_CDL(cmd) \
-    if ((void)(cd = cmd(me)), ARRAY_HAS_ITEM(cdl, cd->layers, cd->totlayer)) \
-    return cd
+    if ((void)(cd = cmd(me)), ARRAY_HAS_ITEM(cdl, cd->layers, cd->totlayer)) { \
+      return cd; \
+    } \
+    ((void)0)
 
   TEST_CDL(rna_mesh_vdata_helper);
   TEST_CDL(rna_mesh_edata_helper);

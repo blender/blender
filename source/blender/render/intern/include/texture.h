@@ -44,12 +44,15 @@ extern "C" {
   texres->tg = tex->gfac * ((texres->tg - 0.5f) * tex->contrast + tex->bright - 0.5f); \
   texres->tb = tex->bfac * ((texres->tb - 0.5f) * tex->contrast + tex->bright - 0.5f); \
   if (!(tex->flag & TEX_NO_CLAMP)) { \
-    if (texres->tr < 0.0f) \
+    if (texres->tr < 0.0f) { \
       texres->tr = 0.0f; \
-    if (texres->tg < 0.0f) \
+    } \
+    if (texres->tg < 0.0f) { \
       texres->tg = 0.0f; \
-    if (texres->tb < 0.0f) \
+    } \
+    if (texres->tb < 0.0f) { \
       texres->tb = 0.0f; \
+    } \
   } \
   if (tex->saturation != 1.0f) { \
     float _hsv[3]; \
@@ -57,12 +60,15 @@ extern "C" {
     _hsv[1] *= tex->saturation; \
     hsv_to_rgb(_hsv[0], _hsv[1], _hsv[2], &texres->tr, &texres->tg, &texres->tb); \
     if ((tex->saturation > 1.0f) && !(tex->flag & TEX_NO_CLAMP)) { \
-      if (texres->tr < 0.0f) \
+      if (texres->tr < 0.0f) { \
         texres->tr = 0.0f; \
-      if (texres->tg < 0.0f) \
+      } \
+      if (texres->tg < 0.0f) { \
         texres->tg = 0.0f; \
-      if (texres->tb < 0.0f) \
+      } \
+      if (texres->tb < 0.0f) { \
         texres->tb = 0.0f; \
+      } \
     } \
   } \
   ((void)0)

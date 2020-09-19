@@ -670,11 +670,13 @@ struct GP_EditableStrokes_Iter {
           for (bGPDstroke *gps = gpf_->strokes.first; gps; gps = gpsn_) { \
             gpsn_ = gps->next; \
             /* skip strokes that are invalid for current view */ \
-            if (ED_gpencil_stroke_can_use(C, gps) == false) \
+            if (ED_gpencil_stroke_can_use(C, gps) == false) { \
               continue; \
+            } \
             /* check if the color is editable */ \
-            if (ED_gpencil_stroke_color_use(obact_, gpl, gps) == false) \
+            if (ED_gpencil_stroke_color_use(obact_, gpl, gps) == false) { \
               continue; \
+            } \
     /* ... Do Stuff With Strokes ...  */
 
 #define GP_EDITABLE_STROKES_END(gpstroke_iter) \
@@ -717,11 +719,13 @@ struct GP_EditableStrokes_Iter {
             /* loop over strokes */ \
             LISTBASE_FOREACH (bGPDstroke *, gps, &gpf_->strokes) { \
               /* skip strokes that are invalid for current view */ \
-              if (ED_gpencil_stroke_can_use(C, gps) == false) \
+              if (ED_gpencil_stroke_can_use(C, gps) == false) { \
                 continue; \
+              } \
               /* check if the color is editable */ \
-              if (ED_gpencil_stroke_color_use(obact_, gpl, gps) == false) \
+              if (ED_gpencil_stroke_color_use(obact_, gpl, gps) == false) { \
                 continue; \
+              } \
     /* ... Do Stuff With Strokes ...  */
 
 #define GP_EVALUATED_STROKES_END(gpstroke_iter) \

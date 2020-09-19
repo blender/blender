@@ -570,8 +570,9 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 // XXX: ale_statement stuff is really a hack for one special case. It shouldn't really be needed...
 #define ANIMCHANNEL_NEW_CHANNEL_FULL( \
     channel_data, channel_type, owner_id, fcurve_owner_id, ale_statement) \
-  if (filter_mode & ANIMFILTER_TMP_PEEK) \
+  if (filter_mode & ANIMFILTER_TMP_PEEK) { \
     return 1; \
+  } \
   { \
     bAnimListElem *ale = make_new_animlistelem( \
         channel_data, channel_type, (ID *)owner_id, fcurve_owner_id); \

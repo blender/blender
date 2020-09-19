@@ -4254,20 +4254,26 @@ short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, eAnimChanne
 #define ACF_SETTING_SET(sval, sflag, smode) \
   { \
     if (negflag) { \
-      if (smode == ACHANNEL_SETFLAG_INVERT) \
+      if (smode == ACHANNEL_SETFLAG_INVERT) { \
         (sval) ^= (sflag); \
-      else if (smode == ACHANNEL_SETFLAG_ADD) \
+      } \
+      else if (smode == ACHANNEL_SETFLAG_ADD) { \
         (sval) &= ~(sflag); \
-      else \
+      } \
+      else { \
         (sval) |= (sflag); \
+      } \
     } \
     else { \
-      if (smode == ACHANNEL_SETFLAG_INVERT) \
+      if (smode == ACHANNEL_SETFLAG_INVERT) { \
         (sval) ^= (sflag); \
-      else if (smode == ACHANNEL_SETFLAG_ADD) \
+      } \
+      else if (smode == ACHANNEL_SETFLAG_ADD) { \
         (sval) |= (sflag); \
-      else \
+      } \
+      else { \
         (sval) &= ~(sflag); \
+      } \
     } \
   } \
   (void)0

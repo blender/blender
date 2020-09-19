@@ -390,8 +390,9 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
       vi.height = vi.gridsize; \
       vi.index = vi.grid_indices[vi.g] * vi.key.grid_area - 1; \
       vi.grid = vi.grids[vi.grid_indices[vi.g]]; \
-      if (mode == PBVH_ITER_UNIQUE) \
+      if (mode == PBVH_ITER_UNIQUE) { \
         vi.gh = vi.grid_hidden[vi.grid_indices[vi.g]]; \
+      } \
     } \
     else { \
       vi.width = vi.totvert; \
@@ -408,8 +409,9 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
           vi.index++; \
           vi.visible = true; \
           if (vi.gh) { \
-            if (BLI_BITMAP_TEST(vi.gh, vi.gy * vi.gridsize + vi.gx)) \
+            if (BLI_BITMAP_TEST(vi.gh, vi.gy * vi.gridsize + vi.gx)) { \
               continue; \
+            } \
           } \
         } \
         else if (vi.mverts) { \
@@ -426,10 +428,12 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
           vi.co = vi.mvert->co; \
           vi.no = vi.mvert->no; \
           vi.index = vi.vert_indices[vi.i]; \
-          if (vi.vmask) \
+          if (vi.vmask) { \
             vi.mask = &vi.vmask[vi.index]; \
-          if (vi.vcol) \
+          } \
+          if (vi.vcol) { \
             vi.col = vi.vcol[vi.index].color; \
+          } \
         } \
         else { \
           if (!BLI_gsetIterator_done(&vi.bm_unique_verts)) { \
@@ -441,8 +445,9 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
             BLI_gsetIterator_step(&vi.bm_other_verts); \
           } \
           vi.visible = !BM_elem_flag_test_bool(vi.bm_vert, BM_ELEM_HIDDEN); \
-          if (mode == PBVH_ITER_UNIQUE && !vi.visible) \
+          if (mode == PBVH_ITER_UNIQUE && !vi.visible) { \
             continue; \
+          } \
           vi.co = vi.bm_vert->co; \
           vi.fno = vi.bm_vert->no; \
           vi.index = BM_elem_index_get(vi.bm_vert); \
