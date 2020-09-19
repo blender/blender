@@ -270,7 +270,7 @@ static void external_draw_scene(void *vedata)
   if (draw_ctx->evil_C) {
     const float clear_col[4] = {0, 0, 0, 0};
     /* This is to keep compatibility with external engine. */
-    /* TODO(fclem) remove it eventually. */
+    /* TODO(fclem): remove it eventually. */
     GPU_framebuffer_bind(dfbl->default_fb);
     GPU_framebuffer_clear_color(dfbl->default_fb, clear_col);
 

@@ -1018,7 +1018,7 @@ static void obstacles_from_mesh(Object *coll_ob,
     looptri = BKE_mesh_runtime_looptri_ensure(me);
     numverts = me->totvert;
 
-    /* TODO (sebbas): Make initialization of vertex velocities optional? */
+    /* TODO(sebbas): Make initialization of vertex velocities optional? */
     {
       vert_vel = MEM_callocN(sizeof(float[3]) * numverts, "manta_obs_velocity");
 
@@ -1269,7 +1269,7 @@ static void compute_obstaclesemission(Scene *scene,
 #  endif
         /* Update frame time, this is considering current subframe fraction
          * BLI_mutex_lock() called in manta_step(), so safe to update subframe here
-         * TODO (sebbas): Using BKE_scene_frame_get(scene) instead of new DEG_get_ctime(depsgraph)
+         * TODO(sebbas): Using BKE_scene_frame_get(scene) instead of new DEG_get_ctime(depsgraph)
          * as subframes don't work with the latter yet. */
         BKE_object_modifier_update_subframe(
             depsgraph, scene, effecobj, true, 5, BKE_scene_frame_get(scene), eModifierType_Fluid);
@@ -2729,7 +2729,7 @@ static bool escape_flowsobject(Object *flowobj,
     return true;
   }
   /* Optimization: Static liquid flow objects don't need emission after first frame.
-   * TODO (sebbas): Also do not use static mode if initial velocities are enabled. */
+   * TODO(sebbas): Also do not use static mode if initial velocities are enabled. */
   if (liquid_flow && is_static && !is_first_frame && !is_resume && !use_velocity) {
     return true;
   }
@@ -2811,7 +2811,7 @@ static void compute_flowsemission(Scene *scene,
 #  endif
         /* Update frame time, this is considering current subframe fraction
          * BLI_mutex_lock() called in manta_step(), so safe to update subframe here
-         * TODO (sebbas): Using BKE_scene_frame_get(scene) instead of new DEG_get_ctime(depsgraph)
+         * TODO(sebbas): Using BKE_scene_frame_get(scene) instead of new DEG_get_ctime(depsgraph)
          * as subframes don't work with the latter yet. */
         BKE_object_modifier_update_subframe(
             depsgraph, scene, flowobj, true, 5, BKE_scene_frame_get(scene), eModifierType_Fluid);
@@ -3788,7 +3788,7 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
     MEM_freeN(objs);
   }
 
-  /* TODO (sebbas): Cache reset for when flow / effector object need update flag is set. */
+  /* TODO(sebbas): Cache reset for when flow / effector object need update flag is set. */
 #  if 0
   /* If the just updated flags now carry the 'outdated' flag, reset the cache here!
    * Plus sanity check: Do not clear cache on file load. */

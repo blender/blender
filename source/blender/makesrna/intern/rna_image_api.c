@@ -224,7 +224,7 @@ static int rna_Image_gl_load(Image *image, ReportList *reports, int frame)
 
   if (tex == NULL) {
     BKE_reportf(reports, RPT_ERROR, "Failed to load image texture '%s'", image->id.name + 2);
-    /* TODO(fclem) this error code makes no sense for vulkan. */
+    /* TODO(fclem): this error code makes no sense for vulkan. */
     return 0x0502; /* GL_INVALID_OPERATION */
   }
 

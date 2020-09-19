@@ -288,7 +288,7 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
     if (grp) {
       DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-      /* TODO (fclem): remove those (need to clean the GLSL files). */
+      /* TODO(fclem): remove those (need to clean the GLSL files). */
       DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
       DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
       DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
@@ -530,7 +530,7 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
 
   DRWShadingGroup *grp = DRW_shgroup_material_create(mat, vedata->psl->volumetric_objects_ps);
 
-  /* TODO(fclem) remove those "unnecessary" UBOs */
+  /* TODO(fclem): remove those "unnecessary" UBOs */
   DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
   DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
   DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
@@ -707,7 +707,7 @@ void EEVEE_volumes_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     DRW_stats_group_start("Volumetrics");
 
     /* We sample the shadow-maps using shadow sampler. We need to enable Comparison mode.
-     * TODO(fclem) avoid this by using sampler objects.*/
+     * TODO(fclem): avoid this by using sampler objects.*/
     GPU_texture_compare_mode(sldata->shadow_cube_pool, true);
     GPU_texture_compare_mode(sldata->shadow_cascade_pool, true);
 

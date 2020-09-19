@@ -413,7 +413,7 @@ void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
     switch (mb_geom->type) {
       case EEVEE_MOTION_DATA_HAIR:
         if (mb_step == MB_CURR) {
-          /* TODO(fclem) Check if vertex count mismatch. */
+          /* TODO(fclem): Check if vertex count mismatch. */
           mb_hair->use_deform = true;
         }
         else {

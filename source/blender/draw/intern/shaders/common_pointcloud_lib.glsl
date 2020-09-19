@@ -25,7 +25,7 @@ void pointcloud_get_pos_and_nor(out vec3 outpos, out vec3 outnor)
   mat3 facing_mat = pointcloud_get_facing_matrix(p);
 
   float radius = dot(abs(mat3(ModelMatrix) * pos.www), vec3(1.0 / 3.0));
-  /* TODO(fclem) remove multiplication here. Here only for keeping the size correct for now. */
+  /* TODO(fclem): remove multiplication here. Here only for keeping the size correct for now. */
   radius *= 0.01;
   outpos = p + (facing_mat * pos_inst) * radius;
   outnor = facing_mat * nor;

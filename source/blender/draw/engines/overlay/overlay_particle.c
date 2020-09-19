@@ -183,7 +183,7 @@ void OVERLAY_particle_cache_populate(OVERLAY_Data *vedata, Object *ob)
       struct GPUBatch *shape = NULL;
       DRWShadingGroup *grp;
 
-      /* TODO(fclem) Here would be a good place for preemptive culling. */
+      /* TODO(fclem): Here would be a good place for preemptive culling. */
 
       /* fclem: Is color even usefull in our modern context? */
       Material *ma = BKE_object_material_get(ob, part->omat);

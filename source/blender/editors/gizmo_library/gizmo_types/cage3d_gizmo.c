@@ -516,7 +516,7 @@ static int gizmo_cage3d_modal(bContext *C,
                               (point_local[2] - data->orig_mouse[2]);
   }
   else if (gz->highlight_part == ED_GIZMO_CAGE3D_PART_ROTATE) {
-    /* TODO (if needed) */
+    /* Add this (if we need it). */
   }
   else {
     /* scale */

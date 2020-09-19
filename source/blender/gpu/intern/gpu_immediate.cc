@@ -170,7 +170,7 @@ static void wide_line_workaround_start(GPUPrimType prim_type)
 
   immUnbindProgram();
 
-  /* TODO(fclem) Don't use geometry shader and use quad instancing with double load. */
+  /* TODO(fclem): Don't use geometry shader and use quad instancing with double load. */
   // GPU_vertformat_multiload_enable(imm->vertex_format, 2);
 
   immBindBuiltinProgram(polyline_sh);

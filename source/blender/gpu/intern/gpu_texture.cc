@@ -186,7 +186,7 @@ using namespace blender::gpu;
 
 uint GPU_texture_memory_usage_get(void)
 {
-  /* TODO(fclem) Do that inside the new Texture class. */
+  /* TODO(fclem): Do that inside the new Texture class. */
   return 0;
 }
 

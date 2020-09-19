@@ -112,7 +112,7 @@ void FrameBuffer::attachment_set(GPUAttachmentType type, const GPUAttachment &ne
     return; /* Exact same texture already bound here. */
   }
   /* Unbind previous and bind new. */
-  /* TODO(fclem) cleanup the casts. */
+  /* TODO(fclem): cleanup the casts. */
   if (attachment.tex) {
     reinterpret_cast<Texture *>(attachment.tex)->detach_from(this);
   }
@@ -411,7 +411,7 @@ void GPU_framebuffer_read_color(GPUFrameBuffer *gpu_fb,
   unwrap(gpu_fb)->read(GPU_COLOR_BIT, format, rect, channels, slot, data);
 }
 
-/* TODO(fclem) rename to read_color. */
+/* TODO(fclem): rename to read_color. */
 void GPU_frontbuffer_read_pixels(
     int x, int y, int w, int h, int channels, eGPUDataFormat format, void *data)
 {
@@ -420,7 +420,7 @@ void GPU_frontbuffer_read_pixels(
 }
 
 /* read_slot and write_slot are only used for color buffers. */
-/* TODO(fclem) port as texture operation. */
+/* TODO(fclem): port as texture operation. */
 void GPU_framebuffer_blit(GPUFrameBuffer *gpufb_read,
                           int read_slot,
                           GPUFrameBuffer *gpufb_write,

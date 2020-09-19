@@ -216,7 +216,7 @@ int GPU_batch_vertbuf_add_ex(GPUBatch *batch, GPUVertBuf *verts, bool own_vbo)
 /* -------------------------------------------------------------------- */
 /** \name Uniform setters
  *
- * TODO(fclem) port this to GPUShader.
+ * TODO(fclem): port this to GPUShader.
  * \{ */
 
 void GPU_batch_set_shader(GPUBatch *batch, GPUShader *shader)

@@ -209,7 +209,7 @@ void EEVEE_shadows_draw_cubemap(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata,
     if (evli->light_type != LA_LOCAL && j == 4) {
       continue;
     }
-    /* TODO(fclem) some cube sides can be invisible in the main views. Cull them. */
+    /* TODO(fclem): some cube sides can be invisible in the main views. Cull them. */
     // if (frustum_intersect(g_data->cube_views[j], main_view))
     //   continue;
 

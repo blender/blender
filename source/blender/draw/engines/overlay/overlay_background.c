@@ -61,7 +61,7 @@ void OVERLAY_background_cache_init(OVERLAY_Data *vedata)
     }
     else if (v3d->shading.background_type == V3D_SHADING_BACKGROUND_WORLD && scene->world) {
       background_type = BG_SOLID;
-      /* TODO(fclem) this is a scene referred linear color. we should convert
+      /* TODO(fclem): this is a scene referred linear color. we should convert
        * it to display linear here. */
       copy_v3_v3(color_override, &scene->world->horr);
       color_override[3] = 1.0f;

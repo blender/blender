@@ -931,7 +931,7 @@ static void view3d_main_region_listener(
       switch (wmn->data) {
         case ND_SHADING:
         case ND_NODES:
-          /* TODO(sergey) This is a bit too much updates, but needed to
+          /* TODO(sergey): This is a bit too much updates, but needed to
            * have proper material drivers update in the viewport.
            *
            * How to solve?

@@ -205,7 +205,7 @@ def liquid_adaptive_step_$ID$(framenr):\n\
     setObstacleFlags(flags=flags_s$ID$, phiObs=phiObs_s$ID$, phiOut=phiOut_s$ID$, fractions=fractions_s$ID$, phiIn=phiIn_s$ID$)\n\
     \n\
     if using_obstacle_s$ID$:\n\
-        # TODO (sebbas): Enable flags check again, currently produces unstable particle behavior\n\
+        # TODO(sebbas): Enable flags check again, currently produces unstable particle behavior\n\
         phi_s$ID$.subtract(o=phiObsIn_s$ID$) #, flags=flags_s$ID$, subtractType=FlagObstacle)\n\
     \n\
     # add initial velocity: set invel as source grid to ensure const vels in inflow region, sampling makes use of this\n\

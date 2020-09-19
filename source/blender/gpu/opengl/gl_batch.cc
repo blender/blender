@@ -46,8 +46,8 @@ using namespace blender::gpu;
 /* -------------------------------------------------------------------- */
 /** \name Vao cache
  *
- * Each GLBatch has a small cache of VAO objects that are used to avoid VAO reconfiguration.
- * TODO(fclem) Could be revisited to avoid so much cross references.
+ * Each #GLBatch has a small cache of VAO objects that are used to avoid VAO reconfiguration.
+ * TODO(fclem): Could be revisited to avoid so much cross references.
  * \{ */
 
 GLVaoCache::GLVaoCache(void)
@@ -166,7 +166,7 @@ void GLVaoCache::clear(void)
     glDeleteVertexArrays(1, &vao_base_instance_);
   }
   else {
-    /* TODO(fclem) Slow way. Could avoid multiple mutex lock here */
+    /* TODO(fclem): Slow way. Could avoid multiple mutex lock here */
     for (int i = 0; i < count; i++) {
       context_->vao_free(vaos[i]);
     }

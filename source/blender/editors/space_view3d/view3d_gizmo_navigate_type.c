@@ -241,7 +241,7 @@ static void axis_geom_draw(const wmGizmo *gz,
 
   const float axis_depth_bias = 0.01f;
   const float sphere_scale = 1.15f;
-  /* TODO(fclem) Is there a way to get the widget radius? */
+  /* TODO(fclem): Is there a way to get the widget radius? */
   const float widget_pix_size = 40.0f * U.dpi_fac;
 
 #ifdef USE_AXIS_FONT

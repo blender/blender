@@ -50,7 +50,7 @@ typedef struct ShaderInput {
  * Base class which is then specialized for each implementation (GL, VK, ...).
  **/
 class ShaderInterface {
-  /* TODO(fclem) should be protected. */
+  /* TODO(fclem): should be protected. */
  public:
   /** Flat array. In this order: Attributes, Ubos, Uniforms. */
   ShaderInput *inputs_ = NULL;

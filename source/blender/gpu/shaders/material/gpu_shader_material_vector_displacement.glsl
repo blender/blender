@@ -7,7 +7,7 @@ void node_vector_displacement_tangent(vec4 vector,
                                       mat4 viewmat,
                                       out vec3 result)
 {
-  /* TODO(fclem) this is broken. revisit latter. */
+  /* TODO(fclem): this is broken. revisit latter. */
   vec3 N_object = normalize(((vec4(normal, 0.0) * viewmat) * obmat).xyz);
   vec3 T_object = normalize(((vec4(tangent.xyz, 0.0) * viewmat) * obmat).xyz);
   vec3 B_object = tangent.w * normalize(cross(N_object, T_object));

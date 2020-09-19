@@ -1983,7 +1983,7 @@ static bool foreach_object_modifier_ptcache(Object *object,
       }
     }
     else if (md->type == eModifierType_Simulation) {
-      /* TODO(jacques) */
+      /* TODO(jacques): */
     }
   }
   return true;

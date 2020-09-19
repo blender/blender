@@ -421,7 +421,7 @@ static void codegen_call_functions(DynStr *ds, GPUNodeGraph *graph, GPUOutput *f
             ds, input->link->output->type, input->type, "tmp", input->link->output->id);
       }
       else if (input->source == GPU_SOURCE_BUILTIN) {
-        /* TODO(fclem) get rid of that. */
+        /* TODO(fclem): get rid of that. */
         if (input->builtin == GPU_INVERSE_VIEW_MATRIX) {
           BLI_dynstr_append(ds, "viewinv");
         }
@@ -527,7 +527,7 @@ static char *code_generate_fragment(GPUMaterial *material,
   if (builtins & GPU_BARYCENTRIC_TEXCO) {
     BLI_dynstr_append(ds, "  vec2 barytexco = barycentric_resolve(barycentricTexCo);\n");
   }
-  /* TODO(fclem) get rid of that. */
+  /* TODO(fclem): get rid of that. */
   if (builtins & GPU_VIEW_MATRIX) {
     BLI_dynstr_append(ds, "  #define viewmat ViewMatrix\n");
   }

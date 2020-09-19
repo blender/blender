@@ -495,7 +495,7 @@ typedef struct DRWManager {
   struct Object *dupli_origin;
   /** Ghash containing original objects. */
   struct GHash *dupli_ghash;
-  /** TODO(fclem) try to remove usage of this. */
+  /** TODO(fclem): try to remove usage of this. */
   DRWInstanceData *object_instance_data[MAX_INSTANCE_DATA_SIZE];
   /* Array of dupli_data (one for each enabled engine) to handle duplis. */
   void **dupli_datas;
@@ -542,7 +542,7 @@ typedef struct DRWManager {
   DRWView *view_active;
   DRWView *view_previous;
   uint primary_view_ct;
-  /** TODO(fclem) Remove this. Only here to support
+  /** TODO(fclem): Remove this. Only here to support
    * shaders without common_view_lib.glsl */
   DRWViewUboStorage view_storage_cpy;
 
@@ -567,7 +567,7 @@ typedef struct DRWManager {
   GPUDrawList *draw_list;
 
   struct {
-    /* TODO(fclem) optimize: use chunks. */
+    /* TODO(fclem): optimize: use chunks. */
     DRWDebugLine *lines;
     DRWDebugSphere *spheres;
   } debug;

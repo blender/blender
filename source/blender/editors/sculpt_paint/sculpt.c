@@ -5671,7 +5671,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
       SCULPT_stroke_is_first_brush_step(ss->cache) && !ss->cache->alt_smooth) {
 
     /* Dynamic-topology does not support Face Sets data, so it can't store/restore it from undo. */
-    /* TODO (pablodp606): This check should be done in the undo code and not here, but the rest of
+    /* TODO(pablodp606): This check should be done in the undo code and not here, but the rest of
      * the sculpt code is not checking for unsupported undo types that may return a null node. */
     if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
       SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_FACE_SETS);

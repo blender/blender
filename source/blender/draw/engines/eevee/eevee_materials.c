@@ -909,7 +909,7 @@ static void material_renderpass_init(EEVEE_FramebufferList *fbl,
   /* Clear texture. */
   if (do_clear) {
     const float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    /* TODO(fclem) replace by GPU_texture_clear once it is fast. */
+    /* TODO(fclem): replace by GPU_texture_clear once it is fast. */
     GPU_framebuffer_texture_attach(fbl->material_accum_fb, *output_tx, 0, 0);
     GPU_framebuffer_bind(fbl->material_accum_fb);
     GPU_framebuffer_clear_color(fbl->material_accum_fb, clear);

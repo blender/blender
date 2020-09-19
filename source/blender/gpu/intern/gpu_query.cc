@@ -25,4 +25,4 @@
 
 using namespace blender::gpu;
 
-/* TODO(fclem) Make the associated C-API to use inside DRW profiler. */
+/* TODO(fclem): Make the associated C-API to use inside DRW profiler. */

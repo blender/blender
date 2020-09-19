@@ -487,7 +487,7 @@ void GPU_shader_unbind(void)
 /* -------------------------------------------------------------------- */
 /** \name Transform feedback
  *
- * TODO(fclem) Should be replaced by compute shaders.
+ * TODO(fclem): Should be replaced by compute shaders.
  * \{ */
 
 bool GPU_shader_transform_feedback_enable(GPUShader *shader, GPUVertBuf *vertbuf)

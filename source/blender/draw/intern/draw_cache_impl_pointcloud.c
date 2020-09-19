@@ -179,7 +179,8 @@ static void pointcloud_batch_cache_ensure_pos(Object *ob, PointCloudBatchCache *
     float(*vbo_data)[4] = (float(*)[4])GPU_vertbuf_get_data(cache->pos);
     for (int i = 0; i < pointcloud->totpoint; i++) {
       copy_v3_v3(vbo_data[i], pointcloud->co[i]);
-      /* TODO(fclem) remove multiplication here. Here only for keeping the size correct for now. */
+      /* TODO(fclem): remove multiplication here.
+       * Here only for keeping the size correct for now. */
       vbo_data[i][3] = pointcloud->radius[i] * 100.0f;
     }
   }

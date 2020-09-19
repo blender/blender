@@ -123,7 +123,7 @@ enum class NodeType {
   /* TODO(sergey); Verify that we really need this. */
   CACHE,
   /* Batch Cache Component.
-   * TODO (dfelinto/sergey): rename to make it more generic. */
+   * TODO(dfelinto/sergey): rename to make it more generic. */
   BATCH_CACHE,
   /* Duplication system. Used to force duplicated objects visible when
    * when duplicator is visible. */

@@ -534,7 +534,7 @@ static void drw_shgroup_bone_custom_solid(ArmatureDrawContext *ctx,
                                           const float outline_color[4],
                                           Object *custom)
 {
-  /* TODO(fclem) arg... less than ideal but we never iter on this object
+  /* TODO(fclem): arg... less than ideal but we never iter on this object
    * to assure batch cache is valid. */
   drw_batch_cache_validate(custom);
 
@@ -568,7 +568,7 @@ static void drw_shgroup_bone_custom_solid(ArmatureDrawContext *ctx,
     DRW_buffer_add_entry_struct(buf, inst_data.mat);
   }
 
-  /* TODO(fclem) needs to be moved elsewhere. */
+  /* TODO(fclem): needs to be moved elsewhere. */
   drw_batch_cache_generate_requested_delayed(custom);
 }
 
@@ -577,7 +577,7 @@ static void drw_shgroup_bone_custom_wire(ArmatureDrawContext *ctx,
                                          const float color[4],
                                          Object *custom)
 {
-  /* TODO(fclem) arg... less than ideal but we never iter on this object
+  /* TODO(fclem): arg... less than ideal but we never iter on this object
    * to assure batch cache is valid. */
   drw_batch_cache_validate(custom);
 
@@ -592,7 +592,7 @@ static void drw_shgroup_bone_custom_wire(ArmatureDrawContext *ctx,
     DRW_buffer_add_entry_struct(buf, inst_data.mat);
   }
 
-  /* TODO(fclem) needs to be moved elsewhere. */
+  /* TODO(fclem): needs to be moved elsewhere. */
   drw_batch_cache_generate_requested_delayed(custom);
 }
 

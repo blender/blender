@@ -3873,7 +3873,7 @@ static ImBuf *seq_render_preprocess_ibuf(const SeqRenderData *context,
   if (use_preprocess) {
     float cost = seq_estimate_render_cost_end(context->scene, begin);
 
-    /* TODO (Richard): It should be possible to store in cache if image is proxy,
+    /* TODO(Richard): It should be possible to store in cache if image is proxy,
      * but it adds quite a bit of complexity. Since proxies are fast to read, I would
      * rather simplify existing code a bit. */
     if (!is_proxy_image) {

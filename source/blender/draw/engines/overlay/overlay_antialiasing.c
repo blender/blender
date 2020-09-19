@@ -209,7 +209,7 @@ void OVERLAY_antialiasing_start(OVERLAY_Data *vedata)
 
   /* If we are not in solid shading mode, we clear the depth. */
   if (DRW_state_is_fbo() && pd->clear_in_front) {
-    /* TODO(fclem) This clear should be done in a global place. */
+    /* TODO(fclem): This clear should be done in a global place. */
     GPU_framebuffer_bind(fbl->overlay_in_front_fb);
     GPU_framebuffer_clear_depth(fbl->overlay_in_front_fb, 1.0f);
   }

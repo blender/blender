@@ -5855,7 +5855,7 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
 
     /* Resolve the array from a new pytype. */
 
-    /* TODO(Kazanbas) make multi-dimensional sequences here. */
+    /* TODO(Kazanbas): make multi-dimensional sequences here. */
 
     switch (type) {
       case PROP_BOOLEAN:

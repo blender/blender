@@ -510,7 +510,7 @@ static void drw_call_obinfos_init(DRWObjectInfos *ob_infos, Object *ob)
   /* Random float value. */
   uint random = (DST.dupli_source) ?
                     DST.dupli_source->random_id :
-                    /* TODO(fclem) this is rather costly to do at runtime. Maybe we can
+                    /* TODO(fclem): this is rather costly to do at runtime. Maybe we can
                      * put it in ob->runtime and make depsgraph ensure it is up to date. */
                     BLI_hash_int_2d(BLI_hash_string(ob->id.name + 2), 0);
   ob_infos->ob_random = random * (1.0f / (float)0xFFFFFFFF);

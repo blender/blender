@@ -1754,7 +1754,7 @@ static bool outliner_id_operation_item_poll(bContext *C,
       if (!space_outliner || ELEM(space_outliner->outlinevis, SO_SCENES, SO_VIEW_LAYER)) {
         return true;
       }
-      /* TODO (dalai): enable in the few cases where this can be supported
+      /* TODO(dalai): enable in the few cases where this can be supported
       (i.e., when we have a valid parent for the tselem). */
       return false;
   }

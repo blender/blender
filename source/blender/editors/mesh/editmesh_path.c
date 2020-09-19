@@ -698,10 +698,9 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
 
   /* If nothing is selected, let's select the picked vertex/edge/face. */
   if ((vc.em->bm->totvertsel == 0) && (eve || eed || efa)) {
-    /* TODO (dfelinto) right now we try to find the closest element twice.
+    /* TODO(dfelinto): right now we try to find the closest element twice.
      * The ideal is to refactor EDBM_select_pick so it doesn't
-     * have to pick the nearest vert/edge/face again.
-     */
+     * have to pick the nearest vert/edge/face again. */
     EDBM_select_pick(C, event->mval, true, false, false);
     return OPERATOR_FINISHED;
   }

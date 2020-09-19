@@ -1492,7 +1492,7 @@ void BKE_tracking_stabilization_data_to_mat4(int buffer_width,
    * applied after rotation/scale anyway. Thus effectively the image gets
    * rotated around the desired pivot point
    */
-  /* TODO(sergey) pivot shouldn't be calculated here, rather received
+  /* TODO(sergey): pivot shouldn't be calculated here, rather received
    * as a parameter.
    */
   float pivot[2];

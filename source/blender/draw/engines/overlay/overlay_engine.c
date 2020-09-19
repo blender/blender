@@ -478,7 +478,7 @@ static void OVERLAY_cache_finish(void *vedata)
     return;
   }
 
-  /* TODO(fclem) Only do this when really needed. */
+  /* TODO(fclem): Only do this when really needed. */
   {
     /* HACK we allocate the in front depth here to avoid the overhead when if is not needed. */
     DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();

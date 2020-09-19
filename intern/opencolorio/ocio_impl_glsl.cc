@@ -558,7 +558,7 @@ bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r,
     /* Bind UBO. */
     GPU_uniformbuf_bind(shader_curvemap->buffer, shader->ubo_bind);
 
-    /* TODO(fclem) remove remains of IMM. */
+    /* TODO(fclem): remove remains of IMM. */
     immBindShader(shader->shader);
 
     /* Bind Shader and set uniforms. */

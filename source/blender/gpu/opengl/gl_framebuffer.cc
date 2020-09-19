@@ -405,7 +405,7 @@ void GLFrameBuffer::clear_multi(const float (*clear_cols)[4])
 {
   /* WATCH: This can easily access clear_cols out of bounds it clear_cols is not big enough for
    * all attachments.
-   * TODO(fclem) fix this insecurity? */
+   * TODO(fclem): fix this insecurity? */
   int type = GPU_FB_COLOR_ATTACHMENT0;
   for (int i = 0; type < GPU_FB_MAX_ATTACHMENT; i++, type++) {
     if (attachments_[type].tex != NULL) {

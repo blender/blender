@@ -219,7 +219,7 @@ void GLShader::unbind(void)
 /* -------------------------------------------------------------------- */
 /** \name Transform feedback
  *
- * TODO(fclem) Should be replaced by compute shaders.
+ * TODO(fclem): Should be replaced by compute shaders.
  * \{ */
 
 /* Should be called before linking. */

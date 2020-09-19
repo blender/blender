@@ -483,8 +483,8 @@ static void draw_compute_culling(DRWView *view)
 {
   view = view->parent ? view->parent : view;
 
-  /* TODO(fclem) multithread this. */
-  /* TODO(fclem) compute all dirty views at once. */
+  /* TODO(fclem): multi-thread this. */
+  /* TODO(fclem): compute all dirty views at once. */
   if (!view->is_dirty) {
     return;
   }
@@ -1042,7 +1042,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 
 static void drw_update_view(void)
 {
-  /* TODO(fclem) update a big UBO and only bind ranges here. */
+  /* TODO(fclem): update a big UBO and only bind ranges here. */
   GPU_uniformbuf_update(G_draw.view_ubo, &DST.view_active->storage);
 
   /* TODO get rid of this. */

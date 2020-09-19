@@ -286,7 +286,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
       }
 
       if (ob->type == OB_GPENCIL) {
-        /* TODO (fclem) Make GPencil objects have correct boundbox. */
+        /* TODO(fclem): Make GPencil objects have correct bound-box. */
         DRW_shgroup_call_no_cull(shgrp, geom, ob);
       }
       else if (use_sculpt_pbvh) {

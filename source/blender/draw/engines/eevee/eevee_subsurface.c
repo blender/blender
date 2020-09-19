@@ -313,7 +313,7 @@ void EEVEE_subsurface_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
     if (!DRW_pass_is_empty(psl->sss_translucency_ps)) {
       /* We sample the shadow-maps using normal sampler. We need to disable Comparison mode.
-       * TODO(fclem) avoid this by using sampler objects.*/
+       * TODO(fclem): avoid this by using sampler objects.*/
       GPU_texture_compare_mode(sldata->shadow_cube_pool, false);
       GPU_texture_compare_mode(sldata->shadow_cascade_pool, false);
 

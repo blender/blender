@@ -292,7 +292,7 @@ bool GPU_depth_mask_get(void)
 
 bool GPU_mipmap_enabled(void)
 {
-  /* TODO(fclem) this used to be a userdef option. */
+  /* TODO(fclem): this used to be a userdef option. */
   return true;
 }
 

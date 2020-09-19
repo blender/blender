@@ -59,7 +59,7 @@ class GLTexture : public Texture {
   /** Legacy workaround for texture copy. Created when using framebuffer_get(). */
   struct GPUFrameBuffer *framebuffer_ = NULL;
   /** True if this texture is bound to at least one texture unit. */
-  /* TODO(fclem) How do we ensure thread safety here? */
+  /* TODO(fclem): How do we ensure thread safety here? */
   bool is_bound_ = false;
 
  public:
@@ -78,7 +78,7 @@ class GLTexture : public Texture {
 
   void check_feedback_loop(void);
 
-  /* TODO(fclem) Legacy. Should be removed at some point. */
+  /* TODO(fclem): Legacy. Should be removed at some point. */
   uint gl_bindcode_get(void) const override;
 
   static void samplers_init(void);

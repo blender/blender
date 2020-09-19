@@ -59,7 +59,7 @@ class GLQueryPool : public QueryPool {
 static inline GLenum to_gl(GPUQueryType type)
 {
   if (type == GPU_QUERY_OCCLUSION) {
-    /* TODO(fclem) try with GL_ANY_SAMPLES_PASSED​. */
+    /* TODO(fclem): try with GL_ANY_SAMPLES_PASSED​. */
     return GL_SAMPLES_PASSED;
   }
   BLI_assert(0);

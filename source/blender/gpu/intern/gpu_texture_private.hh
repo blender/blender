@@ -93,7 +93,7 @@ class Texture {
   eGPUTextureType type_;
 
   /** Number of mipmaps this texture has (Max miplvl). */
-  /* TODO(fclem) Should become immutable and the need for mipmaps should be specified upfront. */
+  /* TODO(fclem): Should become immutable and the need for mipmaps should be specified upfront. */
   int mipmaps_ = -1;
   /** For error checking */
   int mip_min_ = 0, mip_max_ = 0;
@@ -130,7 +130,7 @@ class Texture {
   virtual void update_sub(
       int mip, int offset[3], int extent[3], eGPUDataFormat format, const void *data) = 0;
 
-  /* TODO(fclem) Legacy. Should be removed at some point. */
+  /* TODO(fclem): Legacy. Should be removed at some point. */
   virtual uint gl_bindcode_get(void) const = 0;
 
   int width_get(void) const

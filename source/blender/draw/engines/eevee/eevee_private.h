@@ -709,7 +709,7 @@ typedef struct EEVEE_EffectsInfo {
   int motion_blur_max;           /* Maximum distance in pixels a motion blured pixel can cover. */
   float motion_blur_near_far[2]; /* Camera near/far clip distances (positive). */
   bool cam_params_init;
-  /* TODO(fclem) Only used in render mode for now.
+  /* TODO(fclem): Only used in render mode for now.
    * This is because we are missing a per scene persistent place to hold this. */
   struct EEVEE_MotionBlurData motion_blur;
   /* Velocity Pass */

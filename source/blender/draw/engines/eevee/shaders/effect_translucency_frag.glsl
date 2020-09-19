@@ -89,7 +89,7 @@ vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, vec2 rand, f
 
   /* We use the full l_vector.xyz so that the spread is minimize
    * if the shading point is further away from the light source */
-  /* TODO(fclem) do something better than this. */
+  /* TODO(fclem): do something better than this. */
   vec3 T, B;
   make_orthonormal_basis(L.xyz / L.w, T, B);
 

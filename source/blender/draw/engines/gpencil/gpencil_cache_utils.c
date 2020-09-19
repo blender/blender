@@ -299,7 +299,7 @@ GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
   if (is_masked) {
     bool valid_mask = false;
     /* Warning: only GP_MAX_MASKBITS amount of bits.
-     * TODO(fclem) Find a better system without any limitation. */
+     * TODO(fclem): Find a better system without any limitation. */
     tgp_layer->mask_bits = BLI_memblock_alloc(pd->gp_maskbit_pool);
     tgp_layer->mask_invert_bits = BLI_memblock_alloc(pd->gp_maskbit_pool);
     BLI_bitmap_set_all(tgp_layer->mask_bits, false, GP_MAX_MASKBITS);

@@ -428,7 +428,7 @@ GPENCIL_LightPool *gpencil_light_pool_create(GPENCIL_PrivateData *pd, Object *UN
   if (lightpool == NULL) {
     lightpool = gpencil_light_pool_add(pd);
   }
-  /* TODO(fclem) Light linking. */
+  /* TODO(fclem): Light linking. */
   // gpencil_light_pool_populate(lightpool, ob);
 
   return lightpool;

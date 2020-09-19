@@ -56,9 +56,9 @@ union GPUState {
     uint32_t invert_facing : 1;
     uint32_t shadow_bias : 1;
     /** Number of clip distances enabled. */
-    /* TODO(fclem) This should be a shader property. */
+    /* TODO(fclem): This should be a shader property. */
     uint32_t clip_distances : 3;
-    /* TODO(fclem) remove, old opengl features. */
+    /* TODO(fclem): remove, old opengl features. */
     uint32_t polygon_smooth : 1;
     uint32_t line_smooth : 1;
   };
@@ -99,7 +99,7 @@ union GPUStateMutable {
     /** TODO remove */
     float depth_range[2];
     /** Positive if using program point size. */
-    /* TODO(fclem) should be passed as uniform to all shaders. */
+    /* TODO(fclem): should be passed as uniform to all shaders. */
     float point_size;
     /** Not supported on every platform. Prefer using wideline shader. */
     float line_width;

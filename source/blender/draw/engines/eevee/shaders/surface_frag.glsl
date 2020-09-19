@@ -61,7 +61,7 @@ void main()
 #ifdef USE_SSS
   float fac = float(!sssToggle);
 
-  /* TODO(fclem) we shouldn't need this.
+  /* TODO(fclem): we shouldn't need this.
    * Just disable USE_SSS when USE_REFRACTION is enabled. */
 #  ifdef USE_REFRACTION
   /* SSRefraction pass is done after the SSS pass.

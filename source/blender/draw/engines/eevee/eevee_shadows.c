@@ -145,7 +145,7 @@ void EEVEE_shadows_caster_register(EEVEE_ViewLayerData *sldata, Object *ob)
 
   if (ob->base_flag & BASE_FROM_DUPLI) {
     /* Duplis will always refresh the shadowmaps as if they were deleted each frame. */
-    /* TODO(fclem) fix this. */
+    /* TODO(fclem): fix this. */
     update = true;
   }
   else {
@@ -257,7 +257,7 @@ void EEVEE_shadows_update(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     }
   }
 
-  /* TODO(fclem) This part can be slow, optimize it. */
+  /* TODO(fclem): This part can be slow, optimize it. */
   EEVEE_BoundBox *bbox = backbuffer->bbox;
   BoundSphere *bsphere = linfo->shadow_bounds;
   /* Search for deleted shadow casters or if shcaster WAS in shadow radius. */

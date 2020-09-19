@@ -446,7 +446,7 @@ struct GPUFrameBuffer *GLTexture::framebuffer_get(void)
     return framebuffer_;
   }
   BLI_assert(!(type_ & (GPU_TEXTURE_ARRAY | GPU_TEXTURE_CUBE | GPU_TEXTURE_1D | GPU_TEXTURE_3D)));
-  /* TODO(fclem) cleanup this. Don't use GPU object but blender::gpu ones. */
+  /* TODO(fclem): cleanup this. Don't use GPU object but blender::gpu ones. */
   GPUTexture *gputex = reinterpret_cast<GPUTexture *>(static_cast<Texture *>(this));
   framebuffer_ = GPU_framebuffer_create(name_);
   GPU_framebuffer_texture_attach(framebuffer_, gputex, 0, 0);
@@ -550,7 +550,7 @@ void GLTexture::samplers_free(void)
  * \{ */
 
 /* NOTE: This only checks if this mipmap is valid / supported.
- * TODO(fclem) make the check cover the whole mipmap chain. */
+ * TODO(fclem): make the check cover the whole mipmap chain. */
 bool GLTexture::proxy_check(int mip)
 {
   /* Manual validation first, since some implementation have issues with proxy creation. */
@@ -678,7 +678,7 @@ void GLTexture::check_feedback_loop(void)
   }
 }
 
-/* TODO(fclem) Legacy. Should be removed at some point. */
+/* TODO(fclem): Legacy. Should be removed at some point. */
 uint GLTexture::gl_bindcode_get(void) const
 {
   return tex_id_;

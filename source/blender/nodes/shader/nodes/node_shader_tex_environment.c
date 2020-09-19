@@ -57,7 +57,7 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat,
   NodeTexImage *tex_original = node_original->storage;
   ImageUser *iuser = &tex_original->iuser;
   eGPUSamplerState sampler = GPU_SAMPLER_REPEAT | GPU_SAMPLER_ANISO | GPU_SAMPLER_FILTER;
-  /* TODO(fclem) For now assume mipmap is always enabled. */
+  /* TODO(fclem): For now assume mipmap is always enabled. */
   if (true) {
     sampler |= GPU_SAMPLER_MIPMAP;
   }

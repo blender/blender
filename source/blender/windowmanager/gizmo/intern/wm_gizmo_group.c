@@ -633,7 +633,7 @@ void GIZMOGROUP_OT_gizmo_tweak(wmOperatorType *ot)
   ot->invoke = gizmo_tweak_invoke;
   ot->modal = gizmo_tweak_modal;
 
-  /* TODO(campbell) This causes problems tweaking settings for operators,
+  /* TODO(campbell): This causes problems tweaking settings for operators,
    * need to find a way to support this. */
 #if 0
   ot->flag = OPTYPE_UNDO;

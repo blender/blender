@@ -164,13 +164,13 @@ void workbench_transparent_draw_depth_pass(WORKBENCH_Data *data)
 
     if (!DRW_pass_is_empty(psl->transp_depth_ps)) {
       GPU_framebuffer_bind(fbl->opaque_fb);
-      /* TODO(fclem) Disable writing to first two buffers. Unnecessary waste of bandwidth. */
+      /* TODO(fclem): Disable writing to first two buffers. Unnecessary waste of bandwidth. */
       DRW_draw_pass(psl->transp_depth_ps);
     }
 
     if (!DRW_pass_is_empty(psl->transp_depth_infront_ps)) {
       GPU_framebuffer_bind(fbl->opaque_infront_fb);
-      /* TODO(fclem) Disable writing to first two buffers. Unnecessary waste of bandwidth. */
+      /* TODO(fclem): Disable writing to first two buffers. Unnecessary waste of bandwidth. */
       DRW_draw_pass(psl->transp_depth_infront_ps);
     }
   }

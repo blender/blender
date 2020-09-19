@@ -384,7 +384,7 @@ void workbench_shader_depth_of_field_get(GPUShader **prepare_sh,
         datatoc_workbench_effect_dof_frag_glsl, e_data.lib, "#define PREPARE\n");
     e_data.dof_downsample_sh = DRW_shader_create_fullscreen_with_shaderlib(
         datatoc_workbench_effect_dof_frag_glsl, e_data.lib, "#define DOWNSAMPLE\n");
-#if 0 /* TODO(fclem) finish COC min_max optimization */
+#if 0 /* TODO(fclem): finish COC min_max optimization */
     e_data.dof_flatten_v_sh = DRW_shader_create_fullscreen_with_shaderlib(
         datatoc_workbench_effect_dof_frag_glsl, e_data.lib, "#define FLATTEN_VERTICAL\n");
     e_data.dof_flatten_h_sh = DRW_shader_create_fullscreen_with_shaderlib(

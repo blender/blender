@@ -35,7 +35,7 @@ import os.path, shutil, math, sys, gc, multiprocessing, platform, time\n\
 withMPBake = False # Bake files asynchronously\n\
 withMPSave = False # Save files asynchronously\n\
 isWindows = platform.system() != 'Darwin' and platform.system() != 'Linux'\n\
-# TODO (sebbas): Use this to simulate Windows multiprocessing (has default mode spawn)\n\
+# TODO(sebbas): Use this to simulate Windows multiprocessing (has default mode spawn)\n\
 #try:\n\
 #    multiprocessing.set_start_method('spawn')\n\
 #except:\n\
@@ -583,7 +583,7 @@ def bake_mesh_process_$ID$(framenr, format_data, format_mesh, path_mesh):\n\
     sm$ID$.timestep = frameLength_s$ID$ # no adaptive timestep for mesh\n\
     \n\
     #if using_smoke_s$ID$:\n\
-        # TODO (sebbas): Future update could include smoke mesh (vortex sheets)\n\
+        # TODO(sebbas): Future update could include smoke mesh (vortex sheets)\n\
     if using_liquid_s$ID$:\n\
         liquid_step_mesh_$ID$()\n\
         liquid_save_mesh_$ID$(path_mesh, framenr, format_mesh)\n\
@@ -607,7 +607,7 @@ def bake_particles_process_$ID$(framenr, format_particles, path_particles, resum
     sp$ID$.timestep = frameLength_s$ID$ # no adaptive timestep for particles\n\
     \n\
     #if using_smoke_s$ID$:\n\
-        # TODO (sebbas): Future update could include smoke particles (e.g. fire sparks)\n\
+        # TODO(sebbas): Future update could include smoke particles (e.g. fire sparks)\n\
     if using_liquid_s$ID$:\n\
         liquid_step_particles_$ID$()\n\
         liquid_save_particles_$ID$(path_particles, framenr, format_particles, resumable)\n\
