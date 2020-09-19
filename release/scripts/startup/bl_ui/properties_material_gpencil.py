@@ -148,8 +148,8 @@ class MATERIAL_PT_gpencil_strokecolor(GPMaterialButtonsPanel, Panel):
 
             col.prop(gpcolor, "stroke_style", text="Style")
 
-            row = col.row()
-            row.prop(gpcolor, "color", text="Base Color")
+            col.prop(gpcolor, "color", text="Base Color")
+            col.prop(gpcolor, "use_stroke_holdout")
 
             if gpcolor.stroke_style == 'TEXTURE':
                 row = col.row()
@@ -168,8 +168,6 @@ class MATERIAL_PT_gpencil_strokecolor(GPMaterialButtonsPanel, Panel):
 
             if gpcolor.mode == 'LINE':
                 col.prop(gpcolor, "use_overlap_strokes")
-
-            col.prop(gpcolor, "use_stroke_holdout")
 
 
 class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
@@ -196,11 +194,13 @@ class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
 
         if gpcolor.fill_style == 'SOLID':
             col.prop(gpcolor, "fill_color", text="Base Color")
+            col.prop(gpcolor, "use_fill_holdout")
 
         elif gpcolor.fill_style == 'GRADIENT':
             col.prop(gpcolor, "gradient_type")
 
             col.prop(gpcolor, "fill_color", text="Base Color")
+            col.prop(gpcolor, "use_fill_holdout")
             col.prop(gpcolor, "mix_color", text="Secondary Color")
             col.prop(gpcolor, "mix_factor", text="Blend", slider=True)
             col.prop(gpcolor, "flip", text="Flip Colors")
@@ -215,6 +215,7 @@ class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
 
         elif gpcolor.fill_style == 'TEXTURE':
             col.prop(gpcolor, "fill_color", text="Base Color")
+            col.prop(gpcolor, "use_fill_holdout")
 
             col.template_ID(gpcolor, "fill_image", open="image.open")
 
@@ -224,8 +225,6 @@ class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
             col.prop(gpcolor, "texture_angle", text="Rotation")
             col.prop(gpcolor, "texture_scale", text="Scale")
             col.prop(gpcolor, "texture_clamp", text="Clip Image")
-
-        col.prop(gpcolor, "use_fill_holdout")
 
 
 class MATERIAL_PT_gpencil_preview(GPMaterialButtonsPanel, Panel):
