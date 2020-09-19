@@ -3988,18 +3988,67 @@ int RNA_property_collection_length(PointerRNA *ptr, PropertyRNA *prop)
   }
 }
 
+/* This helper checks whether given collection property itself is editable (we only currently
+ * support a limited set of operations, insertion of new items, and re-ordering of those new items
+ * exclusively). */
+static bool property_collection_liboverride_editable(PointerRNA *ptr,
+                                                     PropertyRNA *prop,
+                                                     bool *r_is_liboverride)
+{
+  ID *id = ptr->owner_id;
+  if (id == NULL) {
+    *r_is_liboverride = false;
+    return true;
+  }
+
+  const bool is_liboverride = *r_is_liboverride = ID_IS_OVERRIDE_LIBRARY(id);
+
+  if (!is_liboverride) {
+    /* We return True also for linked data, as it allows tricks like py scripts 'overriding' data
+     * of those.*/
+    return true;
+  }
+
+  if (!RNA_property_overridable_get(ptr, prop)) {
+    return false;
+  }
+
+  if (prop->magic != RNA_MAGIC || (prop->flag & PROP_IDPROPERTY) == 0) {
+    /* Insertion and such not supported for pure IDProperties for now, nor for pure RNA/DNA ones.
+     */
+    return false;
+  }
+  if ((prop->flag_override & PROPOVERRIDE_LIBRARY_INSERTION) == 0) {
+    return false;
+  }
+
+  /* No more checks to do, this collections is overridable. */
+  return true;
+}
+
 void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr)
 {
   IDProperty *idprop;
-  /*  CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)prop; */
+  /* CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)prop; */
 
   BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
+
+  bool is_liboverride;
+  if (!property_collection_liboverride_editable(ptr, prop, &is_liboverride)) {
+    if (r_ptr) {
+      memset(r_ptr, 0, sizeof(*r_ptr));
+    }
+    return;
+  }
 
   if ((idprop = rna_idproperty_check(&prop, ptr))) {
     IDPropertyTemplate val = {0};
     IDProperty *item;
 
     item = IDP_New(IDP_GROUP, &val, "");
+    if (is_liboverride) {
+      item->flag |= IDP_FLAG_OVERRIDELIBRARY_LOCAL;
+    }
     IDP_AppendArray(idprop, item);
     /* IDP_AppendArray does a shallow copy (memcpy), only free memory  */
     /* IDP_FreePropertyContent(item); */
@@ -4016,6 +4065,9 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
       IDP_AddToGroup(group, idprop);
 
       item = IDP_New(IDP_GROUP, &val, "");
+      if (is_liboverride) {
+        item->flag |= IDP_FLAG_OVERRIDELIBRARY_LOCAL;
+      }
       IDP_AppendArray(idprop, item);
       /* IDP_AppendArray does a shallow copy (memcpy), only free memory */
       /* IDP_FreePropertyContent(item); */
@@ -4064,6 +4116,11 @@ bool RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key)
 
   BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
 
+  bool is_liboverride;
+  if (!property_collection_liboverride_editable(ptr, prop, &is_liboverride)) {
+    return false;
+  }
+
   if ((idprop = rna_idproperty_check(&prop, ptr))) {
     IDProperty tmp, *array;
     int len;
@@ -4072,6 +4129,11 @@ bool RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key)
     array = IDP_IDPArray(idprop);
 
     if (key >= 0 && key < len) {
+      if (is_liboverride && (array[key].flag & IDP_FLAG_OVERRIDELIBRARY_LOCAL) == 0) {
+        /* We can only remove items that we actually inserted in the local override. */
+        return false;
+      }
+
       if (key + 1 < len) {
         /* move element to be removed to the back */
         memcpy(&tmp, &array[key], sizeof(IDProperty));
@@ -4118,6 +4180,11 @@ bool RNA_property_collection_move(PointerRNA *ptr, PropertyRNA *prop, int key, i
 
   BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
 
+  bool is_liboverride;
+  if (!property_collection_liboverride_editable(ptr, prop, &is_liboverride)) {
+    return false;
+  }
+
   if ((idprop = rna_idproperty_check(&prop, ptr))) {
     IDProperty tmp, *array;
     int len;
@@ -4126,6 +4193,11 @@ bool RNA_property_collection_move(PointerRNA *ptr, PropertyRNA *prop, int key, i
     array = IDP_IDPArray(idprop);
 
     if (key >= 0 && key < len && pos >= 0 && pos < len && key != pos) {
+      if (is_liboverride && (array[key].flag & IDP_FLAG_OVERRIDELIBRARY_LOCAL) == 0) {
+        /* We can only move items that we actually inserted in the local override. */
+        return false;
+      }
+
       memcpy(&tmp, &array[key], sizeof(IDProperty));
       if (pos < key) {
         memmove(array + pos + 1, array + pos, sizeof(IDProperty) * (key - pos));
@@ -4151,8 +4223,29 @@ void RNA_property_collection_clear(PointerRNA *ptr, PropertyRNA *prop)
 
   BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
 
+  bool is_liboverride;
+  if (!property_collection_liboverride_editable(ptr, prop, &is_liboverride)) {
+    return;
+  }
+
   if ((idprop = rna_idproperty_check(&prop, ptr))) {
-    IDP_ResizeIDPArray(idprop, 0);
+    if (is_liboverride) {
+      /* We can only move items that we actually inserted in the local override. */
+      int len = idprop->len;
+      IDProperty tmp, *array = IDP_IDPArray(idprop);
+      for (int i = 0; i < len; i++) {
+        if ((array[i].flag & IDP_FLAG_OVERRIDELIBRARY_LOCAL) != 0) {
+          memcpy(&tmp, &array[i], sizeof(IDProperty));
+          memmove(array + i, array + i + 1, sizeof(IDProperty) * (len - (i + 1)));
+          memcpy(&array[len - 1], &tmp, sizeof(IDProperty));
+          IDP_ResizeIDPArray(idprop, --len);
+          i--;
+        }
+      }
+    }
+    else {
+      IDP_ResizeIDPArray(idprop, 0);
+    }
     rna_idproperty_touch(idprop);
   }
 }
