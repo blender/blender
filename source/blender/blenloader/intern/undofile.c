@@ -252,7 +252,11 @@ bool BLO_memfile_write_file(struct MemFile *memfile, const char *filename)
   }
 
   for (chunk = memfile->chunks.first; chunk; chunk = chunk->next) {
+#ifdef _WIN32
+    if ((size_t)write(file, chunk->buf, (uint)chunk->size) != chunk->size) {
+#else
     if ((size_t)write(file, chunk->buf, chunk->size) != chunk->size) {
+#endif
       break;
     }
   }
