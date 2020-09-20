@@ -1186,7 +1186,7 @@ static void IDP_WriteArray(const IDProperty *prop, BlendWriter *writer)
 {
   /*REMEMBER to set totalen to len in the linking code!!*/
   if (prop->data.pointer) {
-    BLO_write_raw(writer, (int)MEM_allocN_len(prop->data.pointer), prop->data.pointer);
+    BLO_write_raw(writer, MEM_allocN_len(prop->data.pointer), prop->data.pointer);
 
     if (prop->subtype == IDP_GROUP) {
       IDProperty **array = prop->data.pointer;
@@ -1217,7 +1217,7 @@ static void IDP_WriteIDPArray(const IDProperty *prop, BlendWriter *writer)
 static void IDP_WriteString(const IDProperty *prop, BlendWriter *writer)
 {
   /*REMEMBER to set totalen to len in the linking code!!*/
-  BLO_write_raw(writer, prop->len, prop->data.pointer);
+  BLO_write_raw(writer, (size_t)prop->len, prop->data.pointer);
 }
 
 static void IDP_WriteGroup(const IDProperty *prop, BlendWriter *writer)

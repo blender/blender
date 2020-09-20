@@ -154,7 +154,7 @@ void BLO_memfile_write_finalize(MemFileWriteData *mem_data)
   }
 }
 
-void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, uint size)
+void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, size_t size)
 {
   MemFile *memfile = mem_data->written_memfile;
   MemFileChunk **compchunk_step = &mem_data->reference_current_chunk;

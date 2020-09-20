@@ -823,7 +823,7 @@ static void blendWrite(BlendWriter *writer, const ModifierData *md)
   const CorrectiveSmoothModifierData *csmd = (const CorrectiveSmoothModifierData *)md;
 
   if (csmd->bind_coords) {
-    BLO_write_float3_array(writer, (int)csmd->bind_coords_num, (float *)csmd->bind_coords);
+    BLO_write_float3_array(writer, csmd->bind_coords_num, (float *)csmd->bind_coords);
   }
 }
 
