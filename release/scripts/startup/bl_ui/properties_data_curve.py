@@ -118,7 +118,7 @@ class DATA_PT_shape_curve(CurveButtonsPanel, Panel):
             col.separator()
 
             sub = col.column()
-            sub.active = (curve.dimensions == '2D' or (curve.bevel_object is None and curve.dimensions == '3D'))
+            sub.active = (curve.dimensions == '2D' or (curve.bevel_mode != 'OBJECT' and curve.dimensions == '3D'))
             sub.prop(curve, "fill_mode")
             col.prop(curve, "use_fill_deform")
 
