@@ -260,7 +260,13 @@ class NLA_OT_bake(Operator):
 
     def execute(self, context):
         from bpy_extras import anim_utils
+        do_pose = 'POSE' in self.bake_types
+        do_object = 'OBJECT' in self.bake_types
+
         objects = context.selected_editable_objects
+        if do_pose and not do_object:
+            objects = [obj for obj in objects if obj.pose is not None]
+
         object_action_pairs = (
             [(obj, getattr(obj.animation_data, "action", None)) for obj in objects]
             if self.use_current_action else
@@ -271,8 +277,8 @@ class NLA_OT_bake(Operator):
             object_action_pairs,
             frames=range(self.frame_start, self.frame_end + 1, self.step),
             only_selected=self.only_selected,
-            do_pose='POSE' in self.bake_types,
-            do_object='OBJECT' in self.bake_types,
+            do_pose=do_pose,
+            do_object=do_object,
             do_visual_keying=self.visual_keying,
             do_constraint_clear=self.clear_constraints,
             do_parents_clear=self.clear_parents,
