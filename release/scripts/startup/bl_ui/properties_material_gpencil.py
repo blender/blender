@@ -200,8 +200,8 @@ class MATERIAL_PT_gpencil_fillcolor(GPMaterialButtonsPanel, Panel):
             col.prop(gpcolor, "gradient_type")
 
             col.prop(gpcolor, "fill_color", text="Base Color")
-            col.prop(gpcolor, "use_fill_holdout")
             col.prop(gpcolor, "mix_color", text="Secondary Color")
+            col.prop(gpcolor, "use_fill_holdout")
             col.prop(gpcolor, "mix_factor", text="Blend", slider=True)
             col.prop(gpcolor, "flip", text="Flip Colors")
 
