@@ -84,7 +84,7 @@ typedef unsigned int mode_t;
 /* python uses HAVE_SSIZE_T */
 #  ifndef HAVE_SSIZE_T
 #    define HAVE_SSIZE_T 1
-typedef long ssize_t;
+typedef SSIZE_T ssize_t;
 #  endif
 #endif
 
