@@ -132,8 +132,10 @@ static SpaceLink *buttons_duplicate(SpaceLink *sl)
   /* clear or remove stuff from old */
   sbutsn->path = NULL;
   sbutsn->texuser = NULL;
-  sbutsn->runtime = MEM_dupallocN(sfile_old->runtime);
-  sbutsn->runtime->search_string[0] = '\0';
+  if (sfile_old->runtime != NULL) {
+    sbutsn->runtime = MEM_dupallocN(sfile_old->runtime);
+    sbutsn->runtime->search_string[0] = '\0';
+  }
 
   return (SpaceLink *)sbutsn;
 }
