@@ -55,6 +55,7 @@ if(NOT WITH_HEADLESS)
   link_directories(${PNG_LIBPATH} ${ZLIB_LIBPATH})
 
   add_executable(datatoc_icon ${SRC})
+  setup_platform_linker_flags(datatoc_icon)
 
   target_link_libraries(datatoc_icon ${PNG_LIBRARIES} ${ZLIB_LIBRARIES})
   # PNG library uses pow() and floow(), so seems -lm is required for proper
