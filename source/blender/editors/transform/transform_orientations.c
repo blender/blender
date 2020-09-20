@@ -533,11 +533,8 @@ short ED_transform_calc_orientation_from_type_ex(const bContext *C,
 /* Sets the matrix of the specified space orientation.
  * If the matrix cannot be obtained, an orientation different from the one
  * informed is returned */
-short transform_orientation_matrix_get(bContext *C,
-                                       TransInfo *t,
-                                       const short orientation,
-                                       const float custom[3][3],
-                                       float r_spacemtx[3][3])
+short transform_orientation_matrix_get(
+    bContext *C, TransInfo *t, short orientation, const float custom[3][3], float r_spacemtx[3][3])
 {
   Object *ob = NULL;
   Object *obedit = NULL;
@@ -552,6 +549,7 @@ short transform_orientation_matrix_get(bContext *C,
 
   if (orientation >= V3D_ORIENT_CUSTOM) {
     orientation_index_custom = orientation - V3D_ORIENT_CUSTOM;
+    orientation = V3D_ORIENT_CUSTOM;
   }
   switch (orientation) {
     case V3D_ORIENT_GIMBAL:

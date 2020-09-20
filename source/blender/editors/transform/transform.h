@@ -693,7 +693,7 @@ void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot);
 /*********************** Transform Orientations ******************************/
 short transform_orientation_matrix_get(struct bContext *C,
                                        TransInfo *t,
-                                       const short orientation,
+                                       short orientation,
                                        const float custom[3][3],
                                        float r_spacemtx[3][3]);
 const char *transform_orientations_spacename_get(TransInfo *t, const short orient_type);
