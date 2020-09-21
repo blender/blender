@@ -5651,7 +5651,7 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, co
       button_activate_state(C, but, BUTTON_STATE_MENU_OPEN);
       return WM_UI_HANDLER_BREAK;
     }
-    if (but->type == UI_BTYPE_MENU) {
+    if (ui_but_supports_cycling(but)) {
       if (ELEM(event->type, WHEELDOWNMOUSE, WHEELUPMOUSE) && event->ctrl) {
         const int direction = (event->type == WHEELDOWNMOUSE) ? 1 : -1;
 
