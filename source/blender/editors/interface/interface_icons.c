@@ -179,16 +179,12 @@ static const IconType icontypes[] = {
 static DrawInfo *def_internal_icon(
     ImBuf *bbuf, int icon_id, int xofs, int yofs, int size, int type, int theme_color)
 {
-  Icon *new_icon = NULL;
-  IconImage *iimg = NULL;
-  DrawInfo *di;
-
-  new_icon = MEM_callocN(sizeof(Icon), "texicon");
+  Icon *new_icon = MEM_callocN(sizeof(Icon), "texicon");
 
   new_icon->obj = NULL; /* icon is not for library object */
   new_icon->id_type = 0;
 
-  di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
+  DrawInfo *di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
   di->type = type;
 
   if (ELEM(type, ICON_TYPE_COLOR_TEXTURE, ICON_TYPE_MONO_TEXTURE)) {
@@ -199,7 +195,7 @@ static DrawInfo *def_internal_icon(
     di->data.texture.h = size;
   }
   else if (type == ICON_TYPE_BUFFER) {
-    iimg = MEM_callocN(sizeof(IconImage), "icon_img");
+    IconImage *iimg = MEM_callocN(sizeof(IconImage), "icon_img");
     iimg->w = size;
     iimg->h = size;
 
@@ -235,15 +231,12 @@ static DrawInfo *def_internal_icon(
 
 static void def_internal_vicon(int icon_id, VectorDrawFunc drawFunc)
 {
-  Icon *new_icon = NULL;
-  DrawInfo *di;
-
-  new_icon = MEM_callocN(sizeof(Icon), "texicon");
+  Icon *new_icon = MEM_callocN(sizeof(Icon), "texicon");
 
   new_icon->obj = NULL; /* icon is not for library object */
   new_icon->id_type = 0;
 
-  di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
+  DrawInfo *di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
   di->type = ICON_TYPE_VECTOR;
   di->data.vector.func = drawFunc;
 
@@ -915,8 +908,6 @@ void UI_icons_reload_internal_textures(void)
 
 static void init_internal_icons(void)
 {
-  int x, y;
-
 #  if 0  // temp disabled
   if ((btheme != NULL) && btheme->tui.iconfile[0]) {
     char *icondir = BKE_appdir_folder_id(BLENDER_DATAFILES, "icons");
@@ -945,9 +936,9 @@ static void init_internal_icons(void)
 #  endif
 
   /* Define icons. */
-  for (y = 0; y < ICON_GRID_ROWS; y++) {
+  for (int y = 0; y < ICON_GRID_ROWS; y++) {
     /* Row W has monochrome icons. */
-    for (x = 0; x < ICON_GRID_COLS; x++) {
+    for (int x = 0; x < ICON_GRID_COLS; x++) {
       const IconType icontype = icontypes[y * ICON_GRID_COLS + x];
       if (!ELEM(icontype.type, ICON_TYPE_COLOR_TEXTURE, ICON_TYPE_MONO_TEXTURE)) {
         continue;
@@ -1010,20 +1001,17 @@ static void init_internal_icons(void)
 
 static void init_iconfile_list(struct ListBase *list)
 {
-  IconFile *ifile;
-  struct direntry *dir;
-  int index = 1;
-  const char *icondir;
-
   BLI_listbase_clear(list);
-  icondir = BKE_appdir_folder_id(BLENDER_DATAFILES, "icons");
+  const char *icondir = BKE_appdir_folder_id(BLENDER_DATAFILES, "icons");
 
   if (icondir == NULL) {
     return;
   }
 
+  struct direntry *dir;
   int totfile = BLI_filelist_dir_contents(icondir, &dir);
 
+  int index = 1;
   for (int i = 0; i < totfile; i++) {
     if ((dir[i].type & S_IFREG)) {
       const char *filename = dir[i].relname;
@@ -1058,7 +1046,7 @@ static void init_iconfile_list(struct ListBase *list)
 #  endif /* removed */
 
         /* found a potential icon file, so make an entry for it in the cache list */
-        ifile = MEM_callocN(sizeof(IconFile), "IconFile");
+        IconFile *ifile = MEM_callocN(sizeof(IconFile), "IconFile");
 
         BLI_strncpy(ifile->filename, filename, sizeof(ifile->filename));
         ifile->index = index;
@@ -1151,9 +1139,8 @@ void UI_icons_free_drawinfo(void *drawinfo)
 static DrawInfo *icon_create_drawinfo(Icon *icon)
 {
   const int icon_data_type = icon->obj_type;
-  DrawInfo *di = NULL;
 
-  di = MEM_callocN(sizeof(DrawInfo), "di_icon");
+  DrawInfo *di = MEM_callocN(sizeof(DrawInfo), "di_icon");
 
   if (ELEM(icon_data_type, ICON_DATA_ID, ICON_DATA_PREVIEW)) {
     di->type = ICON_TYPE_PREVIEW;
@@ -1188,10 +1175,7 @@ static DrawInfo *icon_ensure_drawinfo(Icon *icon)
 /* note!, returns unscaled by DPI */
 int UI_icon_get_width(int icon_id)
 {
-  Icon *icon = NULL;
-  DrawInfo *di = NULL;
-
-  icon = BKE_icon_get(icon_id);
+  Icon *icon = BKE_icon_get(icon_id);
 
   if (icon == NULL) {
     if (G.debug & G_DEBUG) {
@@ -1200,7 +1184,7 @@ int UI_icon_get_width(int icon_id)
     return 0;
   }
 
-  di = icon_ensure_drawinfo(icon);
+  DrawInfo *di = icon_ensure_drawinfo(icon);
   if (di) {
     return ICON_DEFAULT_WIDTH;
   }
@@ -1712,12 +1696,10 @@ static void icon_draw_texture(float x,
 
   GPU_blend(GPU_BLEND_ALPHA_PREMULT);
 
-  float x1, x2, y1, y2;
-
-  x1 = ix * icongltex.invw;
-  x2 = (ix + ih) * icongltex.invw;
-  y1 = iy * icongltex.invh;
-  y2 = (iy + ih) * icongltex.invh;
+  float x1 = ix * icongltex.invw;
+  float x2 = (ix + ih) * icongltex.invw;
+  float y1 = iy * icongltex.invh;
+  float y2 = (iy + ih) * icongltex.invh;
 
   GPUTexture *texture = with_border ? icongltex.tex[1] : icongltex.tex[0];
 
@@ -1775,12 +1757,9 @@ static void icon_draw_size(float x,
                            const bool mono_border)
 {
   bTheme *btheme = UI_GetTheme();
-  Icon *icon = NULL;
-  IconImage *iimg;
   const float fdraw_size = (float)draw_size;
-  int w, h;
 
-  icon = BKE_icon_get(icon_id);
+  Icon *icon = BKE_icon_get(icon_id);
   alpha *= btheme->tui.icon_alpha;
 
   if (icon == NULL) {
@@ -1791,8 +1770,8 @@ static void icon_draw_size(float x,
   }
 
   /* scale width and height according to aspect */
-  w = (int)(fdraw_size / aspect + 0.5f);
-  h = (int)(fdraw_size / aspect + 0.5f);
+  int w = (int)(fdraw_size / aspect + 0.5f);
+  int h = (int)(fdraw_size / aspect + 0.5f);
 
   DrawInfo *di = icon_ensure_drawinfo(icon);
 
@@ -1895,7 +1874,7 @@ static void icon_draw_size(float x,
 
   else if (di->type == ICON_TYPE_BUFFER) {
     /* it is a builtin icon */
-    iimg = di->data.buffer.image;
+    IconImage *iimg = di->data.buffer.image;
 #ifndef WITH_HEADLESS
     icon_verify_datatoc(iimg);
 #endif
@@ -1965,13 +1944,12 @@ void UI_icon_render_id(const bContext *C, Scene *scene, ID *id, const bool big, 
 static void ui_id_icon_render(const bContext *C, ID *id, bool use_jobs)
 {
   PreviewImage *pi = BKE_previewimg_id_ensure(id);
-  enum eIconSizes i;
 
   if (!pi) {
     return;
   }
 
-  for (i = 0; i < NUM_ICON_SIZES; i++) {
+  for (enum eIconSizes i = 0; i < NUM_ICON_SIZES; i++) {
     /* check if rect needs to be created; changed
      * only set by dynamic icons */
     if (((pi->flag[i] & PRV_CHANGED) || !pi->rect[i])) {
