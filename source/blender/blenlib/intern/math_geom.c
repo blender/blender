@@ -3290,10 +3290,16 @@ float closest_to_line_v3(float r_close[3], const float p[3], const float l1[3], 
 
 float closest_to_line_v2(float r_close[2], const float p[2], const float l1[2], const float l2[2])
 {
-  float h[2], u[2], lambda;
+  float h[2], u[2], lambda, denom;
   sub_v2_v2v2(u, l2, l1);
   sub_v2_v2v2(h, p, l1);
-  lambda = dot_v2v2(u, h) / dot_v2v2(u, u);
+  denom = dot_v2v2(u, u);
+  if (denom == 0.0f) {
+    r_close[0] = l1[0];
+    r_close[1] = l1[1];
+    return 0.0f;
+  }
+  lambda = dot_v2v2(u, h) / denom;
   r_close[0] = l1[0] + u[0] * lambda;
   r_close[1] = l1[1] + u[1] * lambda;
   return lambda;
@@ -3308,12 +3314,12 @@ double closest_to_line_v2_db(double r_close[2],
   sub_v2_v2v2_db(u, l2, l1);
   sub_v2_v2v2_db(h, p, l1);
   denom = dot_v2v2_db(u, u);
-  if (denom < DBL_EPSILON) {
+  if (denom == 0.0) {
     r_close[0] = l1[0];
     r_close[1] = l1[1];
     return 0.0;
   }
-  lambda = dot_v2v2_db(u, h) / dot_v2v2_db(u, u);
+  lambda = dot_v2v2_db(u, h) / denom;
   r_close[0] = l1[0] + u[0] * lambda;
   r_close[1] = l1[1] + u[1] * lambda;
   return lambda;
