@@ -390,10 +390,7 @@ static void weld_vert_ctx_alloc_and_setup(const uint mvert_len,
                                           uint *r_wvert_len,
                                           uint *r_vert_kill_len)
 {
-  uint *v_dest_iter = &r_vert_dest_map[0];
-  for (uint i = mvert_len; i--; v_dest_iter++) {
-    *v_dest_iter = OUT_OF_CONTEXT;
-  }
+  range_vn_u(r_vert_dest_map, mvert_len, 0);
 
   uint vert_kill_len = 0;
   const BVHTreeOverlap *overlap_iter = &overlap[0];
@@ -404,46 +401,36 @@ static void weld_vert_ctx_alloc_and_setup(const uint mvert_len,
     BLI_assert(indexA < indexB);
 
     uint va_dst = r_vert_dest_map[indexA];
+    while (va_dst != r_vert_dest_map[va_dst]) {
+      va_dst = r_vert_dest_map[va_dst];
+    }
     uint vb_dst = r_vert_dest_map[indexB];
-    if (va_dst == OUT_OF_CONTEXT) {
-      if (vb_dst == OUT_OF_CONTEXT) {
-        vb_dst = indexA;
-        r_vert_dest_map[indexB] = vb_dst;
-      }
-      r_vert_dest_map[indexA] = vb_dst;
-      vert_kill_len++;
+    while (vb_dst != r_vert_dest_map[vb_dst]) {
+      vb_dst = r_vert_dest_map[vb_dst];
     }
-    else if (vb_dst == OUT_OF_CONTEXT) {
-      r_vert_dest_map[indexB] = va_dst;
-      vert_kill_len++;
+    if (va_dst == vb_dst) {
+      continue;
     }
-    else if (va_dst != vb_dst) {
-      uint v_new, v_old;
-      if (va_dst < vb_dst) {
-        v_new = va_dst;
-        v_old = vb_dst;
-      }
-      else {
-        v_new = vb_dst;
-        v_old = va_dst;
-      }
-      BLI_assert(r_vert_dest_map[v_old] == v_old);
-      BLI_assert(r_vert_dest_map[v_new] == v_new);
-      vert_kill_len++;
+    if (va_dst > vb_dst) {
+      SWAP(uint, va_dst, vb_dst);
+    }
+    vert_kill_len++;
+    r_vert_dest_map[vb_dst] = va_dst;
+  }
 
-      const BVHTreeOverlap *overlap_iter_b = &overlap[0];
-      for (uint j = i + 1; j--; overlap_iter_b++) {
-        indexA = overlap_iter_b->indexA;
-        indexB = overlap_iter_b->indexB;
-        va_dst = r_vert_dest_map[indexA];
-        vb_dst = r_vert_dest_map[indexB];
-        if (ELEM(v_old, vb_dst, va_dst)) {
-          r_vert_dest_map[indexA] = v_new;
-          r_vert_dest_map[indexB] = v_new;
-        }
-      }
-      BLI_assert(r_vert_dest_map[v_old] == v_new);
+  /* Fix #r_vert_dest_map for next step. */
+  for (uint i = 0; i < mvert_len; i++) {
+    if (i == r_vert_dest_map[i]) {
+      r_vert_dest_map[i] = OUT_OF_CONTEXT;
+      continue;
     }
+
+    uint v = i;
+    while (v != r_vert_dest_map[v] && r_vert_dest_map[v] != OUT_OF_CONTEXT) {
+      v = r_vert_dest_map[v];
+    }
+    r_vert_dest_map[v] = v;
+    r_vert_dest_map[i] = v;
   }
 
   /* Vert Context. */
@@ -453,7 +440,7 @@ static void weld_vert_ctx_alloc_and_setup(const uint mvert_len,
   wvert = MEM_mallocN(sizeof(*wvert) * mvert_len, __func__);
   wv = &wvert[0];
 
-  v_dest_iter = &r_vert_dest_map[0];
+  uint *v_dest_iter = &r_vert_dest_map[0];
   for (uint i = 0; i < mvert_len; i++, v_dest_iter++) {
     if (*v_dest_iter != OUT_OF_CONTEXT) {
       wv->vert_dest = *v_dest_iter;
