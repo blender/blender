@@ -6333,19 +6333,15 @@ bool BKE_paint_proj_mesh_data_check(
       for (int i = 1; i < ob->totcol + 1; i++) {
         Material *ma = BKE_object_material_get(ob, i);
 
-        if (ma) {
+        if (ma && !ID_IS_LINKED(ma)) {
           hasmat = true;
-          if (!ma->texpaintslot) {
+          if (ma->texpaintslot == NULL) {
             /* refresh here just in case */
             BKE_texpaint_slot_refresh_cache(scene, ma);
-
-            /* if still no slots, we have to add */
-            if (ma->texpaintslot) {
-              hastex = true;
-              break;
-            }
           }
-          else {
+          if (ma->texpaintslot != NULL &&
+              (ma->texpaintslot[ma->paint_active_slot].ima == NULL ||
+               !ID_IS_LINKED(ma->texpaintslot[ma->paint_active_slot].ima))) {
             hastex = true;
             break;
           }
@@ -6354,7 +6350,7 @@ bool BKE_paint_proj_mesh_data_check(
     }
   }
   else if (imapaint->mode == IMAGEPAINT_MODE_IMAGE) {
-    if (imapaint->canvas == NULL) {
+    if (imapaint->canvas == NULL || ID_IS_LINKED(imapaint->canvas)) {
       hastex = false;
     }
   }
