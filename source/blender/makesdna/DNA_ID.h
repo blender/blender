@@ -132,7 +132,7 @@ enum {
 
   /** This collection item IDProp has been inserted in a local override.
    * This is used by internal code to distinguish between library-originated items and
-   * local-insterted ones, as many operations are not allowed on the former. */
+   * local-inserted ones, as many operations are not allowed on the former. */
   IDP_FLAG_OVERRIDELIBRARY_LOCAL = 1 << 1,
 
   /** This means the property is set but RNA will return false when checking
