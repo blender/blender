@@ -3988,11 +3988,15 @@ uiBut *ui_but_change_type(uiBut *but, eButType new_type)
       const void *old_but_ptr = but;
       /* Button may have pointer to a member within itself, this will have to be updated. */
       const bool has_str_ptr_to_self = but->str == but->strdata;
+      const bool has_poin_ptr_to_self = but->poin == (char *)but;
 
       but = MEM_recallocN_id(but, alloc_size, alloc_str);
       but->type = new_type;
       if (has_str_ptr_to_self) {
         but->str = but->strdata;
+      }
+      if (has_poin_ptr_to_self) {
+        but->poin = (char *)but;
       }
 
       BLI_insertlinkafter(&but->block->buttons, insert_after_but, but);
