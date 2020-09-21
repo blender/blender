@@ -1188,6 +1188,14 @@ static bool vfont_to_curve(Object *ob,
         ct_last = chartransdata + (is_last_filled_textbox ? slen : i_textbox_next - 1);
         lines = ct_last->linenr - ct_first->linenr + 1;
 
+        if (cu->overflow == CU_OVERFLOW_TRUNCATE) {
+          /* Ensure overflow doesn't truncate text, before centering vertically
+           * giving odd/buggy results, see: T66614. */
+          if ((tb_index == cu->totbox - 1) && (last_line != -1)) {
+            lines = last_line - ct_first->linenr;
+          }
+        }
+
         textbox_scale(&tb_scale, &cu->tb[tb_index], 1.0f / font_size);
         /* The initial Y origin of the textbox is hardcoded to 1.0f * text scale. */
         const float textbox_y_origin = 1.0f;
