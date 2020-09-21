@@ -3972,41 +3972,44 @@ static uiBut *ui_but_alloc(const eButType type)
  */
 uiBut *ui_but_change_type(uiBut *but, eButType new_type)
 {
-  if (but->type != new_type) {
-    size_t alloc_size;
-    const char *alloc_str;
-    uiBut *insert_after_but = but->prev;
-    bool new_has_custom_type, old_has_custom_type;
+  if (but->type == new_type) {
+    /* Nothing to do. */
+    return but;
+  }
 
-    /* Remove old button address */
-    BLI_remlink(&but->block->buttons, but);
+  size_t alloc_size;
+  const char *alloc_str;
+  uiBut *insert_after_but = but->prev;
+  bool new_has_custom_type, old_has_custom_type;
 
-    ui_but_alloc_info(but->type, NULL, NULL, &old_has_custom_type);
-    ui_but_alloc_info(new_type, &alloc_size, &alloc_str, &new_has_custom_type);
+  /* Remove old button address */
+  BLI_remlink(&but->block->buttons, but);
 
-    if (new_has_custom_type || old_has_custom_type) {
-      const void *old_but_ptr = but;
-      /* Button may have pointer to a member within itself, this will have to be updated. */
-      const bool has_str_ptr_to_self = but->str == but->strdata;
-      const bool has_poin_ptr_to_self = but->poin == (char *)but;
+  ui_but_alloc_info(but->type, NULL, NULL, &old_has_custom_type);
+  ui_but_alloc_info(new_type, &alloc_size, &alloc_str, &new_has_custom_type);
 
-      but = MEM_recallocN_id(but, alloc_size, alloc_str);
-      but->type = new_type;
-      if (has_str_ptr_to_self) {
-        but->str = but->strdata;
-      }
-      if (has_poin_ptr_to_self) {
-        but->poin = (char *)but;
-      }
+  if (new_has_custom_type || old_has_custom_type) {
+    const void *old_but_ptr = but;
+    /* Button may have pointer to a member within itself, this will have to be updated. */
+    const bool has_str_ptr_to_self = but->str == but->strdata;
+    const bool has_poin_ptr_to_self = but->poin == (char *)but;
 
-      BLI_insertlinkafter(&but->block->buttons, insert_after_but, but);
+    but = MEM_recallocN_id(but, alloc_size, alloc_str);
+    but->type = new_type;
+    if (has_str_ptr_to_self) {
+      but->str = but->strdata;
+    }
+    if (has_poin_ptr_to_self) {
+      but->poin = (char *)but;
+    }
 
-      if (but->layout) {
-        const bool found_layout = ui_layout_replace_but_ptr(but->layout, old_but_ptr, but);
-        BLI_assert(found_layout);
-        UNUSED_VARS_NDEBUG(found_layout);
-        ui_button_group_replace_but_ptr(but->layout, old_but_ptr, but);
-      }
+    BLI_insertlinkafter(&but->block->buttons, insert_after_but, but);
+
+    if (but->layout) {
+      const bool found_layout = ui_layout_replace_but_ptr(but->layout, old_but_ptr, but);
+      BLI_assert(found_layout);
+      UNUSED_VARS_NDEBUG(found_layout);
+      ui_button_group_replace_but_ptr(but->layout, old_but_ptr, but);
     }
   }
 
