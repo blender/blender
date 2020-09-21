@@ -288,6 +288,9 @@ static bool image_paint_poll_ex(bContext *C, bool check_tool)
     SpaceImage *sima = CTX_wm_space_image(C);
 
     if (sima) {
+      if (sima->image != NULL && ID_IS_LINKED(sima->image)) {
+        return false;
+      }
       ARegion *region = CTX_wm_region(C);
 
       if ((sima->mode == SI_MODE_PAINT) && region->regiontype == RGN_TYPE_WINDOW) {
