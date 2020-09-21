@@ -121,7 +121,8 @@ static const EnumPropertyItem property_flag_override_collection_items[] = {
 };
 
 #define BPY_PROPDEF_OPTIONS_OVERRIDE_COLLECTION_DOC \
-  "   :arg override: Enumerator in ['LIBRARY_OVERRIDABLE', 'NO_PROPERTY_NAME'].\n" \
+  "   :arg override: Enumerator in ['LIBRARY_OVERRIDABLE', 'NO_PROPERTY_NAME', " \
+  "'USE_INSERTION'].\n" \
   "   :type override: set\n"
 
 /* subtypes */
