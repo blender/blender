@@ -2096,17 +2096,16 @@ void DRW_draw_render_loop_2d_ex(struct Depsgraph *depsgraph,
 
     GPU_framebuffer_bind(dfbl->overlay_fb);
 
+    GPU_depth_test(GPU_DEPTH_NONE);
+    GPU_matrix_push_projection();
+    wmOrtho2(
+        region->v2d.cur.xmin, region->v2d.cur.xmax, region->v2d.cur.ymin, region->v2d.cur.ymax);
     if (do_annotations) {
-      GPU_depth_test(GPU_DEPTH_NONE);
-      GPU_matrix_push_projection();
-      wmOrtho2(
-          region->v2d.cur.xmin, region->v2d.cur.xmax, region->v2d.cur.ymin, region->v2d.cur.ymax);
       ED_annotation_draw_view2d(DST.draw_ctx.evil_C, true);
-      GPU_matrix_pop_projection();
     }
-
     GPU_depth_test(GPU_DEPTH_NONE);
     ED_region_draw_cb_draw(DST.draw_ctx.evil_C, DST.draw_ctx.region, REGION_DRAW_POST_VIEW);
+    GPU_matrix_pop_projection();
     /* Callback can be nasty and do whatever they want with the state.
      * Don't trust them! */
     DRW_state_reset();
