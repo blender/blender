@@ -106,7 +106,7 @@ void OVERLAY_paint_cache_init(OVERLAY_Data *vedata)
 
         if (pd->painting.alpha_blending) {
           state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
-          DRW_PASS_CREATE(psl->paint_depth_ps, state);
+          DRW_PASS_CREATE(psl->paint_depth_ps, state | pd->clipping_state);
           sh = OVERLAY_shader_depth_only();
           pd->paint_depth_grp = DRW_shgroup_create(sh, psl->paint_depth_ps);
         }
