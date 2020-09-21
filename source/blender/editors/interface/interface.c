@@ -3342,9 +3342,6 @@ void ui_but_range_set_soft(uiBut *but)
       but->softmax = max_ff(but->softmax, value);
     }
   }
-  else {
-    BLI_assert(0);
-  }
 }
 
 /* ******************* Free ********************/
