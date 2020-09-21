@@ -1384,7 +1384,7 @@ class PHYSICS_PT_viewport_display_debug(PhysicButtonsPanel, Panel):
 
         if not domain.use_guide and domain.vector_field == 'GUIDE_VELOCITY':
             note = layout.split()
-            note.label(icon='INFO', text="Enable Guides first! Defaulting to Fluid Velocity.")
+            note.label(icon='INFO', text="Enable Guides first! Defaulting to Fluid Velocity")
         
         if domain.vector_display_type == 'MAC':
             sub = col.column(heading="MAC Grid")

@@ -203,8 +203,8 @@ static float brush_influence_calc(tGP_BrushWeightpaintData *gso, const int radiu
   influence *= 1.0f - (distance / max_ff(radius, 1e-8));
 
   /* Apply Brush curve. */
-  float brush_fallof = BKE_brush_curve_strength(brush, distance, (float)radius);
-  influence *= brush_fallof;
+  float brush_falloff = BKE_brush_curve_strength(brush, distance, (float)radius);
+  influence *= brush_falloff;
 
   /* apply multi-frame falloff */
   influence *= gso->mf_falloff;

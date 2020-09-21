@@ -2036,7 +2036,7 @@ static void rna_def_brush(BlenderRNA *brna)
        "RADIUS",
        0,
        "Brush Radius",
-       "Applies the deformation in a localiced area limited by the brush radius"},
+       "Applies the deformation in a localized area limited by the brush radius"},
       {BRUSH_BOUNDARY_FALLOFF_LOOP,
        "LOOP",
        0,
@@ -2046,8 +2046,8 @@ static void rna_def_brush(BlenderRNA *brna)
        "LOOP_INVERT",
        0,
        "Loop and Invert",
-       "Applies the fallof radius in a loop pattern, inverting the displacement direction in each "
-       "pattern repetition"},
+       "Applies the falloff radius in a loop pattern, inverting the displacement direction in "
+       "each pattern repetition"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -2056,7 +2056,7 @@ static void rna_def_brush(BlenderRNA *brna)
        "LOCAL",
        0,
        "Local",
-       "Simulates only a specific area arround the brush limited by a fixed radius"},
+       "Simulates only a specific area around the brush limited by a fixed radius"},
       {BRUSH_CLOTH_SIMULATION_AREA_GLOBAL, "GLOBAL", 0, "Global", "Simulates the entire mesh"},
       {0, NULL, 0, NULL, NULL},
   };
@@ -2941,7 +2941,7 @@ static void rna_def_brush(BlenderRNA *brna)
       prop,
       "Pin Simulation Boundary",
       "Lock the position of the vertices in the simulation falloff area to avoid artifacts and "
-      "create a softer transitionwith with unnafected areas");
+      "create a softer transition with unaffected areas");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_cloth_collision", PROP_BOOLEAN, PROP_NONE);

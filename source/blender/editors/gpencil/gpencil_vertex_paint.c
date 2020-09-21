@@ -231,8 +231,8 @@ static float brush_influence_calc(tGP_BrushVertexpaintData *gso, const int radiu
   float distance = (float)len_v2v2_int(mval_i, co);
 
   /* Apply Brush curve. */
-  float brush_fallof = BKE_brush_curve_strength(brush, distance, (float)radius);
-  influence *= brush_fallof;
+  float brush_falloff = BKE_brush_curve_strength(brush, distance, (float)radius);
+  influence *= brush_falloff;
 
   /* apply multiframe falloff */
   influence *= gso->mf_falloff;
@@ -646,7 +646,7 @@ static bool brush_smear_apply(tGP_BrushVertexpaintData *gso,
     inf *= gso->pressure;
   }
 
-  /* Calc distance from initial sample location and add a fallof effect. */
+  /* Calc distance from initial sample location and add a falloff effect. */
   int mval_i[2];
   round_v2i_v2fl(mval_i, gso->mval);
   float distance = (float)len_v2v2_int(mval_i, gso->grid_sample);

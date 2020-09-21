@@ -1567,7 +1567,7 @@ static void rna_def_curve(BlenderRNA *brna)
        "OBJECT",
        0,
        "Object",
-       "Use an object for the section of the curve's bevel goemetry segment"},
+       "Use an object for the section of the curve's bevel geometry segment"},
       {CU_BEV_MODE_CURVE_PROFILE,
        "PROFILE",
        0,

@@ -250,7 +250,7 @@ static void brush_blend_read_data(BlendDataReader *reader, ID *id)
 {
   Brush *brush = (Brush *)id;
 
-  /* fallof curve */
+  /* Falloff curve. */
   BLO_read_data_address(reader, &brush->curve);
 
   BLO_read_data_address(reader, &brush->gradient);

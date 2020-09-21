@@ -113,7 +113,7 @@ static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
   tgmd->curfalloff = BKE_curvemapping_copy(gmd->curfalloff);
 }
 
-/* calculate factor of fallof */
+/* Calculate the factor of falloff. */
 static float gpencil_hook_falloff(const struct GPHookData_cb *tData, const float len_sq)
 {
   BLI_assert(tData->falloff_sq);
