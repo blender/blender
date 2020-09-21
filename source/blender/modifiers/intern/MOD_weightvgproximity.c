@@ -45,6 +45,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
 #include "BKE_texture.h" /* Texture masking. */
@@ -552,6 +553,11 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
       /* We must check that we do have a valid target_mesh! */
       if (target_mesh != NULL) {
+
+        /* TODO: edit-mode versions of the BVH lookup functions are available so it could be
+         * avoided. */
+        BKE_mesh_wrapper_ensure_mdata(target_mesh);
+
         SpaceTransform loc2trgt;
         float *dists_v = use_trgt_verts ? MEM_malloc_arrayN(numIdx, sizeof(float), "dists_v") :
                                           NULL;
