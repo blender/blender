@@ -1114,23 +1114,25 @@ void UI_icons_free_drawinfo(void *drawinfo)
 {
   DrawInfo *di = drawinfo;
 
-  if (di) {
-    if (di->type == ICON_TYPE_BUFFER) {
-      if (di->data.buffer.image) {
-        if (di->data.buffer.image->rect) {
-          MEM_freeN(di->data.buffer.image->rect);
-        }
-        MEM_freeN(di->data.buffer.image);
-      }
-    }
-    else if (di->type == ICON_TYPE_GEOM) {
-      if (di->data.geom.image_cache) {
-        IMB_freeImBuf(di->data.geom.image_cache);
-      }
-    }
-
-    MEM_freeN(di);
+  if (di == NULL) {
+    return;
   }
+
+  if (di->type == ICON_TYPE_BUFFER) {
+    if (di->data.buffer.image) {
+      if (di->data.buffer.image->rect) {
+        MEM_freeN(di->data.buffer.image->rect);
+      }
+      MEM_freeN(di->data.buffer.image);
+    }
+  }
+  else if (di->type == ICON_TYPE_GEOM) {
+    if (di->data.geom.image_cache) {
+      IMB_freeImBuf(di->data.geom.image_cache);
+    }
+  }
+
+  MEM_freeN(di);
 }
 
 /**
@@ -1324,56 +1326,60 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
 {
   Icon *icon = BKE_icon_get(icon_id);
 
-  if (icon) {
-    DrawInfo *di = icon_ensure_drawinfo(icon);
+  if (icon == NULL) {
+    return;
+  }
 
-    if (di) {
-      switch (di->type) {
-        case ICON_TYPE_PREVIEW: {
-          ID *id = (icon->id_type != 0) ? icon->obj : NULL;
-          PreviewImage *prv = id ? BKE_previewimg_id_ensure(id) : icon->obj;
-          /* Using jobs for screen previews crashes due to offscreen rendering.
-           * XXX would be nicer if PreviewImage could store if it supports jobs */
-          const bool use_jobs = !id || (GS(id->name) != ID_SCR);
+  DrawInfo *di = icon_ensure_drawinfo(icon);
 
-          if (prv) {
-            const int size = big ? ICON_SIZE_PREVIEW : ICON_SIZE_ICON;
+  if (di == NULL) {
+    return;
+  }
 
-            if (id || (prv->tag & PRV_TAG_DEFFERED) != 0) {
-              ui_id_preview_image_render_size(C, NULL, id, prv, size, use_jobs);
-            }
-          }
-          break;
-        }
-        case ICON_TYPE_BUFFER: {
-          if (icon->obj_type == ICON_DATA_STUDIOLIGHT) {
-            if (di->data.buffer.image == NULL) {
-              wmWindowManager *wm = CTX_wm_manager(C);
-              StudioLight *sl = icon->obj;
-              BKE_studiolight_set_free_function(sl, &ui_studiolight_free_function, wm);
-              IconImage *img = MEM_mallocN(sizeof(IconImage), __func__);
+  switch (di->type) {
+    case ICON_TYPE_PREVIEW: {
+      ID *id = (icon->id_type != 0) ? icon->obj : NULL;
+      PreviewImage *prv = id ? BKE_previewimg_id_ensure(id) : icon->obj;
+      /* Using jobs for screen previews crashes due to offscreen rendering.
+       * XXX would be nicer if PreviewImage could store if it supports jobs */
+      const bool use_jobs = !id || (GS(id->name) != ID_SCR);
 
-              img->w = STUDIOLIGHT_ICON_SIZE;
-              img->h = STUDIOLIGHT_ICON_SIZE;
-              const size_t size = STUDIOLIGHT_ICON_SIZE * STUDIOLIGHT_ICON_SIZE * sizeof(uint);
-              img->rect = MEM_mallocN(size, __func__);
-              memset(img->rect, 0, size);
-              di->data.buffer.image = img;
+      if (prv) {
+        const int size = big ? ICON_SIZE_PREVIEW : ICON_SIZE_ICON;
 
-              wmJob *wm_job = WM_jobs_get(
-                  wm, CTX_wm_window(C), icon, "StudioLight Icon", 0, WM_JOB_TYPE_STUDIOLIGHT);
-              Icon **tmp = MEM_callocN(sizeof(Icon *), __func__);
-              *tmp = icon;
-              WM_jobs_customdata_set(wm_job, tmp, MEM_freeN);
-              WM_jobs_timer(wm_job, 0.01, 0, NC_WINDOW);
-              WM_jobs_callbacks(
-                  wm_job, ui_studiolight_icon_job_exec, NULL, NULL, ui_studiolight_icon_job_end);
-              WM_jobs_start(CTX_wm_manager(C), wm_job);
-            }
-          }
-          break;
+        if (id || (prv->tag & PRV_TAG_DEFFERED) != 0) {
+          ui_id_preview_image_render_size(C, NULL, id, prv, size, use_jobs);
         }
       }
+      break;
+    }
+    case ICON_TYPE_BUFFER: {
+      if (icon->obj_type == ICON_DATA_STUDIOLIGHT) {
+        if (di->data.buffer.image == NULL) {
+          wmWindowManager *wm = CTX_wm_manager(C);
+          StudioLight *sl = icon->obj;
+          BKE_studiolight_set_free_function(sl, &ui_studiolight_free_function, wm);
+          IconImage *img = MEM_mallocN(sizeof(IconImage), __func__);
+
+          img->w = STUDIOLIGHT_ICON_SIZE;
+          img->h = STUDIOLIGHT_ICON_SIZE;
+          const size_t size = STUDIOLIGHT_ICON_SIZE * STUDIOLIGHT_ICON_SIZE * sizeof(uint);
+          img->rect = MEM_mallocN(size, __func__);
+          memset(img->rect, 0, size);
+          di->data.buffer.image = img;
+
+          wmJob *wm_job = WM_jobs_get(
+              wm, CTX_wm_window(C), icon, "StudioLight Icon", 0, WM_JOB_TYPE_STUDIOLIGHT);
+          Icon **tmp = MEM_callocN(sizeof(Icon *), __func__);
+          *tmp = icon;
+          WM_jobs_customdata_set(wm_job, tmp, MEM_freeN);
+          WM_jobs_timer(wm_job, 0.01, 0, NC_WINDOW);
+          WM_jobs_callbacks(
+              wm_job, ui_studiolight_icon_job_exec, NULL, NULL, ui_studiolight_icon_job_end);
+          WM_jobs_start(CTX_wm_manager(C), wm_job);
+        }
+      }
+      break;
     }
   }
 }
@@ -1421,41 +1427,47 @@ PreviewImage *UI_icon_to_preview(int icon_id)
 {
   Icon *icon = BKE_icon_get(icon_id);
 
-  if (icon) {
-    DrawInfo *di = (DrawInfo *)icon->drawinfo;
-    if (di) {
-      if (di->type == ICON_TYPE_PREVIEW) {
-        PreviewImage *prv = (icon->id_type != 0) ? BKE_previewimg_id_ensure((ID *)icon->obj) :
-                                                   icon->obj;
+  if (icon == NULL) {
+    return NULL;
+  }
 
-        if (prv) {
-          return BKE_previewimg_copy(prv);
-        }
-      }
-      else if (di->data.buffer.image) {
-        ImBuf *bbuf;
+  DrawInfo *di = (DrawInfo *)icon->drawinfo;
 
-        bbuf = IMB_ibImageFromMemory(di->data.buffer.image->datatoc_rect,
-                                     di->data.buffer.image->datatoc_size,
-                                     IB_rect,
-                                     NULL,
-                                     __func__);
-        if (bbuf) {
-          PreviewImage *prv = BKE_previewimg_create();
+  if (di == NULL) {
+    return NULL;
+  }
 
-          prv->rect[0] = bbuf->rect;
+  if (di->type == ICON_TYPE_PREVIEW) {
+    PreviewImage *prv = (icon->id_type != 0) ? BKE_previewimg_id_ensure((ID *)icon->obj) :
+                                               icon->obj;
 
-          prv->w[0] = bbuf->x;
-          prv->h[0] = bbuf->y;
-
-          bbuf->rect = NULL;
-          IMB_freeImBuf(bbuf);
-
-          return prv;
-        }
-      }
+    if (prv) {
+      return BKE_previewimg_copy(prv);
     }
   }
+  else if (di->data.buffer.image) {
+    ImBuf *bbuf;
+
+    bbuf = IMB_ibImageFromMemory(di->data.buffer.image->datatoc_rect,
+                                 di->data.buffer.image->datatoc_size,
+                                 IB_rect,
+                                 NULL,
+                                 __func__);
+    if (bbuf) {
+      PreviewImage *prv = BKE_previewimg_create();
+
+      prv->rect[0] = bbuf->rect;
+
+      prv->w[0] = bbuf->x;
+      prv->h[0] = bbuf->y;
+
+      bbuf->rect = NULL;
+      IMB_freeImBuf(bbuf);
+
+      return prv;
+    }
+  }
+
   return NULL;
 }
 
@@ -1929,15 +1941,17 @@ void UI_icon_render_id(const bContext *C, Scene *scene, ID *id, const bool big, 
 {
   PreviewImage *pi = BKE_previewimg_id_ensure(id);
 
-  if (pi) {
-    if (big) {
-      /* bigger preview size */
-      ui_id_preview_image_render_size(C, scene, id, pi, ICON_SIZE_PREVIEW, use_job);
-    }
-    else {
-      /* icon size */
-      ui_id_preview_image_render_size(C, scene, id, pi, ICON_SIZE_ICON, use_job);
-    }
+  if (pi == NULL) {
+    return;
+  }
+
+  if (big) {
+    /* bigger preview size */
+    ui_id_preview_image_render_size(C, scene, id, pi, ICON_SIZE_PREVIEW, use_job);
+  }
+  else {
+    /* icon size */
+    ui_id_preview_image_render_size(C, scene, id, pi, ICON_SIZE_ICON, use_job);
   }
 }
 
