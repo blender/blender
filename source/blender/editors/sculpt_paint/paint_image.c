@@ -275,13 +275,13 @@ static bool image_paint_poll_ex(bContext *C, bool check_tool)
   Object *obact;
 
   if (!image_paint_brush(C)) {
-    return 0;
+    return false;
   }
 
   obact = CTX_data_active_object(C);
   if ((obact && obact->mode & OB_MODE_TEXTURE_PAINT) && CTX_wm_region_view3d(C)) {
     if (!check_tool || WM_toolsystem_active_tool_is_brush(C)) {
-      return 1;
+      return true;
     }
   }
   else {
@@ -291,12 +291,12 @@ static bool image_paint_poll_ex(bContext *C, bool check_tool)
       ARegion *region = CTX_wm_region(C);
 
       if ((sima->mode == SI_MODE_PAINT) && region->regiontype == RGN_TYPE_WINDOW) {
-        return 1;
+        return true;
       }
     }
   }
 
-  return 0;
+  return false;
 }
 
 static bool image_paint_poll(bContext *C)
@@ -316,12 +316,12 @@ static bool image_paint_2d_clone_poll(bContext *C)
   if (!CTX_wm_region_view3d(C) && image_paint_poll(C)) {
     if (brush && (brush->imagepaint_tool == PAINT_TOOL_CLONE)) {
       if (brush->clone.image) {
-        return 1;
+        return true;
       }
     }
   }
 
-  return 0;
+  return false;
 }
 
 /************************ paint operator ************************/
@@ -769,13 +769,13 @@ bool get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy)
     if (sima->mode == SI_MODE_PAINT) {
       ARegion *region = CTX_wm_region(C);
       ED_space_image_get_zoom(sima, region, zoomx, zoomy);
-      return 1;
+      return true;
     }
   }
 
   *zoomx = *zoomy = 1;
 
-  return 0;
+  return false;
 }
 
 /************************ cursor drawing *******************************/
@@ -1211,13 +1211,13 @@ static bool texture_paint_toggle_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   if (ob == NULL || ob->type != OB_MESH) {
-    return 0;
+    return false;
   }
   if (!ob->data || ID_IS_LINKED(ob->data)) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
@@ -1346,11 +1346,11 @@ static bool texture_paint_poll(bContext *C)
 {
   if (texture_paint_toggle_poll(C)) {
     if (CTX_data_active_object(C)->mode & OB_MODE_TEXTURE_PAINT) {
-      return 1;
+      return true;
     }
   }
 
-  return 0;
+  return false;
 }
 
 bool image_texture_paint_poll(bContext *C)

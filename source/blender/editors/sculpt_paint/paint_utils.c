@@ -96,7 +96,7 @@ bool paint_convert_bb_to_rect(rcti *rect,
 
   /* return zero if the bounding box has non-positive volume */
   if (bb_min[0] > bb_max[0] || bb_min[1] > bb_max[1] || bb_min[2] > bb_max[2]) {
-    return 0;
+    return false;
   }
 
   ED_view3d_ob_project_mat_get(rv3d, ob, projection_mat);

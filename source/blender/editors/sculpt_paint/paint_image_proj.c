@@ -774,7 +774,7 @@ static bool project_paint_PickColor(
   else {
     // xi = (int)((uv[0]*ibuf->x) + 0.5f);
     // yi = (int)((uv[1]*ibuf->y) + 0.5f);
-    // if (xi < 0 || xi >= ibuf->x  ||  yi < 0 || yi >= ibuf->y) return 0;
+    // if (xi < 0 || xi >= ibuf->x  ||  yi < 0 || yi >= ibuf->y) return false;
 
     /* wrap */
     xi = mod_i((int)(uv[0] * ibuf->x), ibuf->x);
@@ -899,7 +899,7 @@ static bool project_bucket_point_occluded(const ProjPaintState *ps,
   int isect_ret;
   const bool do_clip = RV3D_CLIPPING_ENABLED(ps->v3d, ps->rv3d);
 
-  /* we could return 0 for 1 face buckets, as long as this function assumes
+  /* we could return false for 1 face buckets, as long as this function assumes
    * that the point its testing is only every originated from an existing face */
 
   for (; bucketFace; bucketFace = bucketFace->next) {
@@ -2080,12 +2080,12 @@ static bool line_clip_rect2f(const rctf *cliprect,
   if (fabsf(l1[0] - l2[0]) < PROJ_PIXEL_TOLERANCE) {
     /* is the line out of range on its X axis? */
     if (l1[0] < rect->xmin || l1[0] > rect->xmax) {
-      return 0;
+      return false;
     }
 
     /* line is out of range on its Y axis */
     if ((l1[1] < rect->ymin && l2[1] < rect->ymin) || (l1[1] > rect->ymax && l2[1] > rect->ymax)) {
-      return 0;
+      return false;
     }
 
     /* this is a single point  (or close to)*/
@@ -2124,7 +2124,7 @@ static bool line_clip_rect2f(const rctf *cliprect,
 
   /* line inside rect */
   if (ok1 && ok2) {
-    return 1;
+    return true;
   }
 
   /* top/bottom */

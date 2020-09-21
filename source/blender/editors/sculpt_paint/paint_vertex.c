@@ -217,12 +217,12 @@ static bool vertex_paint_poll_ex(bContext *C, bool check_tool)
       ARegion *region = CTX_wm_region(C);
       if (region->regiontype == RGN_TYPE_WINDOW) {
         if (!check_tool || WM_toolsystem_active_tool_is_brush(C)) {
-          return 1;
+          return true;
         }
       }
     }
   }
-  return 0;
+  return false;
 }
 
 bool vertex_paint_poll(bContext *C)
@@ -253,11 +253,11 @@ static bool weight_paint_poll_ex(bContext *C, bool check_tool)
     ARegion *region = CTX_wm_region(C);
     if (ELEM(region->regiontype, RGN_TYPE_WINDOW, RGN_TYPE_HUD)) {
       if (!check_tool || WM_toolsystem_active_tool_is_brush(C)) {
-        return 1;
+        return true;
       }
     }
   }
-  return 0;
+  return false;
 }
 
 bool weight_paint_poll(bContext *C)
@@ -1399,12 +1399,12 @@ static bool paint_mode_toggle_poll_test(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   if (ob == NULL || ob->type != OB_MESH) {
-    return 0;
+    return false;
   }
   if (!ob->data || ID_IS_LINKED(ob->data)) {
-    return 0;
+    return false;
   }
-  return 1;
+  return true;
 }
 
 void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
@@ -2757,7 +2757,7 @@ static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const f
     memset(ob->sculpt->mode.vpaint.previous_color, 0, sizeof(uint) * me->totloop);
   }
 
-  return 1;
+  return true;
 }
 
 static void do_vpaint_brush_calc_average_color_cb_ex(void *__restrict userdata,

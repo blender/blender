@@ -1037,7 +1037,7 @@ static float paint_2d_ibuf_add_if(
     paint_2d_ibuf_rgb_get(ibuf, x, y, inrgb);
   }
   else {
-    return 0;
+    return 0.0f;
   }
 
   mul_v4_fl(inrgb, w);
@@ -1690,7 +1690,7 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op, int mode)
   if (BKE_image_has_packedfile(s->image) && s->image->rr != NULL) {
     BKE_report(op->reports, RPT_WARNING, "Packed MultiLayer files cannot be painted");
     MEM_freeN(s);
-    return 0;
+    return NULL;
   }
 
   s->num_tiles = BLI_listbase_count(&s->image->tiles);
