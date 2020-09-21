@@ -301,6 +301,9 @@ void createTransUVs(bContext *C, TransInfo *t)
 
       BM_elem_flag_enable(efa, BM_ELEM_TAG);
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+        /* Make sure that the loop element flag is cleared for when we use it in
+         * uv_set_connectivity_distance later. */
+        BM_elem_flag_disable(l, BM_ELEM_TAG);
         if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
           countsel++;
 
