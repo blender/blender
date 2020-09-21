@@ -37,6 +37,11 @@ if(APPLE)
       --with-pic
     )
   endif()
+elseif(UNIX)
+  set(GMP_OPTIONS
+    ${GMP_OPTIONS}
+    --with-pic
+  )
 endif()
 
 ExternalProject_Add(external_gmp
