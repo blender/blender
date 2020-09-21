@@ -29,6 +29,7 @@ set(INC
   ../../windowmanager
   ../../../../intern/glew-mx
   ../../../../intern/guardedalloc
+  ../../../../extern/potrace/src
 )
 
 set(SRC
@@ -60,12 +61,27 @@ set(SRC
   gpencil_weight_paint.c
 
   gpencil_intern.h
+  gpencil_trace.h
 )
 
 set(LIB
   bf_blenkernel
   bf_blenlib
 )
+
+if(WITH_POTRACE)
+  list(APPEND SRC
+    gpencil_trace_ops.c
+    gpencil_trace_utils.c
+  )
+  list(APPEND INC
+    ${POTRACE_INCLUDE_DIRS}
+  )
+  list(APPEND LIB
+    ${POTRACE_LIBRARIES}
+  )
+  add_definitions(-DWITH_POTRACE)
+endif()
 
 if(WITH_INTERNATIONAL)
   add_definitions(-DWITH_INTERNATIONAL)

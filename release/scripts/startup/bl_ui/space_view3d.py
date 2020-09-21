@@ -2260,6 +2260,11 @@ class VIEW3D_MT_object(Menu):
         else:
             layout.operator_menu_enum("object.convert", "target")
 
+        # Potrace lib dependency
+        if bpy.app.build_options.potrace:
+            layout.separator()
+            layout.operator("gpencil.trace_image")
+
         layout.separator()
 
         layout.menu("VIEW3D_MT_object_showhide")

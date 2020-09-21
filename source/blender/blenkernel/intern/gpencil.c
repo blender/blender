@@ -2745,4 +2745,25 @@ void BKE_gpencil_update_layer_parent(const Depsgraph *depsgraph, Object *ob)
     }
   }
 }
+
+/**
+ * Find material by name prefix.
+ * \param ob: Object pointer
+ * \param name_prefix: Prefix name of the material
+ * \return  Index
+ */
+int BKE_gpencil_material_find_index_by_name_prefix(Object *ob, const char *name_prefix)
+{
+  const int name_prefix_len = strlen(name_prefix);
+  for (int i = 0; i < ob->totcol; i++) {
+    Material *ma = BKE_object_material_get(ob, i + 1);
+    if ((ma != NULL) && (ma->gp_style != NULL) &&
+        (STREQLEN(ma->id.name + 2, name_prefix, name_prefix_len))) {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
 /** \} */

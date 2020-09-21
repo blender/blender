@@ -341,5 +341,8 @@ if(WITH_XR_OPENXR)
   add_definitions(-DWITH_XR_OPENXR)
 endif()
 
+if(WITH_POTRACE)
+  add_definitions(-DWITH_POTRACE)
+endif()
 
 blender_add_lib(bf_python "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
