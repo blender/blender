@@ -56,6 +56,7 @@
 #include "RE_pipeline.h"
 
 #include "ED_node.h"
+#include "ED_paint.h"
 #include "ED_render.h"
 #include "ED_view3d.h"
 
@@ -282,7 +283,7 @@ static void scene_changed(Main *bmain, Scene *scene)
   for (ob = bmain->objects.first; ob; ob = ob->id.next) {
     if (ob->mode & OB_MODE_TEXTURE_PAINT) {
       BKE_texpaint_slots_refresh_object(scene, ob);
-      BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
+      ED_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
     }
   }
 }

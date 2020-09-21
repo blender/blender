@@ -124,6 +124,7 @@ const EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 #  include "DEG_depsgraph.h"
 
 #  include "ED_gpencil.h"
+#  include "ED_paint.h"
 #  include "ED_particle.h"
 
 static void rna_GPencil_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
@@ -483,7 +484,7 @@ static void rna_ImaPaint_mode_update(bContext *C, PointerRNA *UNUSED(ptr))
 
     /* We assume that changing the current mode will invalidate the uv layers
      * so we need to refresh display. */
-    BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
+    ED_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
     WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
   }
 }
@@ -495,7 +496,7 @@ static void rna_ImaPaint_stencil_update(bContext *C, PointerRNA *UNUSED(ptr))
   Object *ob = OBACT(view_layer);
 
   if (ob && ob->type == OB_MESH) {
-    BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
+    ED_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
     WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
   }
 }
@@ -527,7 +528,7 @@ static void rna_ImaPaint_canvas_update(bContext *C, PointerRNA *UNUSED(ptr))
   }
 
   if (ob && ob->type == OB_MESH) {
-    BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
+    ED_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
     WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
   }
 }

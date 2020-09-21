@@ -493,8 +493,8 @@ static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const flo
     ViewLayer *view_layer = CTX_data_view_layer(C);
     Object *ob = OBACT(view_layer);
     bool uvs, mat, tex, stencil;
-    if (!BKE_paint_proj_mesh_data_check(scene, ob, &uvs, &mat, &tex, &stencil)) {
-      BKE_paint_data_warning(op->reports, uvs, mat, tex, stencil);
+    if (!ED_paint_proj_mesh_data_check(scene, ob, &uvs, &mat, &tex, &stencil)) {
+      ED_paint_data_warning(op->reports, uvs, mat, tex, stencil);
       MEM_freeN(pop);
       WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
       return NULL;
@@ -1127,7 +1127,7 @@ void ED_object_texture_paint_mode_enter_ex(Main *bmain, Scene *scene, Object *ob
    * cache in case we are loading a file */
   BKE_texpaint_slots_refresh_object(scene, ob);
 
-  BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
+  ED_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
 
   /* entering paint mode also sets image to editors */
   if (imapaint->mode == IMAGEPAINT_MODE_MATERIAL) {

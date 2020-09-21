@@ -91,7 +91,7 @@ void ED_editors_init_for_undo(Main *bmain)
         Scene *scene = WM_window_get_active_scene(win);
 
         BKE_texpaint_slots_refresh_object(scene, ob);
-        BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
+        ED_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
       }
     }
   }

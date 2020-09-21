@@ -36,7 +36,6 @@
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h"
-#include "BKE_paint.h"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
@@ -49,6 +48,7 @@
 
 #include "ED_mesh.h"
 #include "ED_object.h"
+#include "ED_paint.h"
 #include "ED_screen.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
@@ -609,7 +609,7 @@ static int mesh_uv_texture_add_exec(bContext *C, wmOperator *UNUSED(op))
 
   if (ob->mode & OB_MODE_TEXTURE_PAINT) {
     Scene *scene = CTX_data_scene(C);
-    BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
+    ED_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
     WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
   }
 
@@ -642,7 +642,7 @@ static int mesh_uv_texture_remove_exec(bContext *C, wmOperator *UNUSED(op))
 
   if (ob->mode & OB_MODE_TEXTURE_PAINT) {
     Scene *scene = CTX_data_scene(C);
-    BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
+    ED_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
     WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
   }
 

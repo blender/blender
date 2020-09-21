@@ -6032,8 +6032,8 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (!BKE_paint_proj_mesh_data_check(scene, ob, &uvs, &mat, &tex, NULL)) {
-    BKE_paint_data_warning(op->reports, uvs, mat, tex, true);
+  if (!ED_paint_proj_mesh_data_check(scene, ob, &uvs, &mat, &tex, NULL)) {
+    ED_paint_data_warning(op->reports, uvs, mat, tex, true);
     WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
     return OPERATOR_CANCELLED;
   }
@@ -6290,7 +6290,7 @@ void PAINT_OT_image_from_view(wmOperatorType *ot)
  * Data generation for projective texturing  *
  * *******************************************/
 
-void BKE_paint_data_warning(struct ReportList *reports, bool uvs, bool mat, bool tex, bool stencil)
+void ED_paint_data_warning(struct ReportList *reports, bool uvs, bool mat, bool tex, bool stencil)
 {
   BKE_reportf(reports,
               RPT_WARNING,
@@ -6303,7 +6303,7 @@ void BKE_paint_data_warning(struct ReportList *reports, bool uvs, bool mat, bool
 
 /* Make sure that active object has a material,
  * and assign UVs and image layers if they do not exist */
-bool BKE_paint_proj_mesh_data_check(
+bool ED_paint_proj_mesh_data_check(
     Scene *scene, Object *ob, bool *uvs, bool *mat, bool *tex, bool *stencil)
 {
   Mesh *me;
@@ -6614,7 +6614,7 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
     DEG_id_tag_update(&ma->id, ID_RECALC_SHADING);
     ED_area_tag_redraw(CTX_wm_area(C));
 
-    BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
+    ED_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
 
     return true;
   }
@@ -6735,7 +6735,7 @@ static int add_simple_uvs_exec(bContext *C, wmOperator *UNUSED(op))
 
   ED_uvedit_add_simple_uvs(bmain, scene, ob);
 
-  BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
+  ED_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
 
   DEG_id_tag_update(ob->data, 0);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);

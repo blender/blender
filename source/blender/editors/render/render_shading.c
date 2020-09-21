@@ -57,7 +57,6 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_object.h"
-#include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
@@ -82,6 +81,7 @@
 #include "ED_mesh.h"
 #include "ED_node.h"
 #include "ED_object.h"
+#include "ED_paint.h"
 #include "ED_render.h"
 #include "ED_scene.h"
 #include "ED_screen.h"
@@ -178,7 +178,7 @@ static int material_slot_add_exec(bContext *C, wmOperator *UNUSED(op))
 
   if (ob->mode & OB_MODE_TEXTURE_PAINT) {
     Scene *scene = CTX_data_scene(C);
-    BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
+    ED_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
     WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
   }
 
@@ -228,7 +228,7 @@ static int material_slot_remove_exec(bContext *C, wmOperator *op)
 
   if (ob->mode & OB_MODE_TEXTURE_PAINT) {
     Scene *scene = CTX_data_scene(C);
-    BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
+    ED_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
     WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
   }
 
@@ -705,7 +705,7 @@ static int material_slot_remove_unused_exec(bContext *C, wmOperator *op)
 
   if (ob_active->mode & OB_MODE_TEXTURE_PAINT) {
     Scene *scene = CTX_data_scene(C);
-    BKE_paint_proj_mesh_data_check(scene, ob_active, NULL, NULL, NULL, NULL);
+    ED_paint_proj_mesh_data_check(scene, ob_active, NULL, NULL, NULL, NULL);
     WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
   }
 
