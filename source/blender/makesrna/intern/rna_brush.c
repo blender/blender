@@ -980,7 +980,7 @@ static bool rna_GPencilBrush_pin_mode_get(PointerRNA *ptr)
   return false;
 }
 
-static void rna_GPencilBrush_pin_mode_set(PointerRNA *ptr, bool value)
+static void rna_GPencilBrush_pin_mode_set(PointerRNA *UNUSED(ptr), bool UNUSED(value))
 {
   /* All data is set in update. Keep this function only to avoid RNA compilation errors. */
   return;
