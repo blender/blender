@@ -287,11 +287,14 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain)
   /* Override the IDs. */
   for (todo_id_iter = todo_ids.first; todo_id_iter != NULL; todo_id_iter = todo_id_iter->next) {
     reference_id = todo_id_iter->data;
-    if ((reference_id->newid = lib_override_library_create_from(bmain, reference_id)) == NULL) {
-      success = false;
-      break;
-    }
-    /* We also tag the new IDs so that in next step we can remap their pointers too. */
+    if (reference_id->newid == NULL) {
+      /* If newid is already set, assume it has been handled by calling code.
+       * Only current usecase: re-using proxy ID when converting to liboverride. */
+      if ((reference_id->newid = lib_override_library_create_from(bmain, reference_id)) == NULL) {
+        success = false;
+        break;
+      }
+    } /* We also tag the new IDs so that in next step we can remap their pointers too. */
     reference_id->newid->tag |= LIB_TAG_DOIT;
 
     Key *reference_key;
