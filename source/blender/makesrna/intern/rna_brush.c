@@ -971,6 +971,38 @@ static bool rna_BrushGpencilSettings_material_poll(PointerRNA *UNUSED(ptr), Poin
   return (ma->gp_style != NULL);
 }
 
+static bool rna_GPencilBrush_pin_mode_get(PointerRNA *ptr)
+{
+  Brush *brush = (Brush *)ptr->owner_id;
+  if ((brush != NULL) && (brush->gpencil_settings != NULL)) {
+    return (brush->gpencil_settings->brush_draw_mode != GP_BRUSH_MODE_ACTIVE);
+  }
+  return false;
+}
+
+static void rna_GPencilBrush_pin_mode_set(PointerRNA *ptr, bool value)
+{
+  /* All data is set in update. Keep this function only to avoid RNA compilation errors. */
+  return;
+}
+
+static void rna_GPencilBrush_pin_mode_update(bContext *C, PointerRNA *ptr)
+{
+  Brush *brush = (Brush *)ptr->owner_id;
+  if ((brush != NULL) && (brush->gpencil_settings != NULL)) {
+    if (brush->gpencil_settings->brush_draw_mode != GP_BRUSH_MODE_ACTIVE) {
+      /* If not active, means that must be set to off. */
+      brush->gpencil_settings->brush_draw_mode = GP_BRUSH_MODE_ACTIVE;
+    }
+    else {
+      ToolSettings *ts = CTX_data_tool_settings(C);
+      brush->gpencil_settings->brush_draw_mode = GPENCIL_USE_VERTEX_COLOR(ts) ?
+                                                     GP_BRUSH_MODE_VERTEXCOLOR :
+                                                     GP_BRUSH_MODE_MATERIAL;
+    }
+  }
+}
+
 #else
 
 static void rna_def_brush_texture_slot(BlenderRNA *brna)
@@ -1688,6 +1720,15 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_gpencil_fill_direction_items);
   RNA_def_property_ui_text(prop, "Direction", "Direction of the fill");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
+  prop = RNA_def_property(srna, "pin_draw_mode", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(
+      prop, "rna_GPencilBrush_pin_mode_get", "rna_GPencilBrush_pin_mode_set");
+  RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencilBrush_pin_mode_update");
+  RNA_def_property_ui_text(prop, "Pin Mode", "Pin the mode to the brush");
 
   prop = RNA_def_property(srna, "brush_draw_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "brush_draw_mode");
