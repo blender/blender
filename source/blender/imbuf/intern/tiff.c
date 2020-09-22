@@ -120,7 +120,7 @@ static int imb_tiff_DummyMapProc(
  * \param data: Buffer to contain data (treat as (void *)).
  * \param n: Number of bytes to read.
  *
- * \return: Number of bytes actually read.
+ * \return Number of bytes actually read.
  *   0 = EOF.
  */
 static tsize_t imb_tiff_ReadProc(thandle_t handle, tdata_t data, tsize_t n)
@@ -188,8 +188,8 @@ static tsize_t imb_tiff_WriteProc(thandle_t handle, tdata_t data, tsize_t n)
  * SEEK_END - (This is unsupported and will return -1, indicating an
  *             error).
  *
- * \return: Resulting offset location within the file, measured in bytes from
- *          the beginning of the file.  (-1) indicates an error.
+ * \return Resulting offset location within the file, measured in bytes from
+ * the beginning of the file.  (-1) indicates an error.
  */
 static toff_t imb_tiff_SeekProc(thandle_t handle, toff_t ofs, int whence)
 {
@@ -234,7 +234,7 @@ static toff_t imb_tiff_SeekProc(thandle_t handle, toff_t ofs, int whence)
  *
  * \param handle: Handle of the TIFF file (pointer to #ImbTIFFMemFile).
  *
- * \return: 0
+ * \return 0
  */
 static int imb_tiff_CloseProc(thandle_t handle)
 {
@@ -258,7 +258,7 @@ static int imb_tiff_CloseProc(thandle_t handle)
 /**
  * Returns the size of an in-memory TIFF file in bytes.
  *
- * \return: Size of file (in bytes).
+ * \return Size of file (in bytes).
  */
 static toff_t imb_tiff_SizeProc(thandle_t handle)
 {
@@ -556,7 +556,7 @@ void imb_inittiff(void)
  * \param flags: If flags has IB_test set then the file is not actually loaded,
  * but all other operations take place.
  *
- * \return: A newly allocated ImBuf structure if successful, otherwise NULL.
+ * \return A newly allocated #ImBuf structure if successful, otherwise NULL.
  */
 ImBuf *imb_loadtiff(const unsigned char *mem,
                     size_t size,
@@ -757,7 +757,7 @@ void imb_loadtiletiff(
  * \param name: Name of the TIFF file to create.
  * \param flags: Currently largely ignored.
  *
- * \return: 1 if the function is successful, 0 on failure.
+ * \return 1 if the function is successful, 0 on failure.
  */
 
 int imb_savetiff(ImBuf *ibuf, const char *filepath, int flags)

@@ -47,8 +47,8 @@
 #include "gpencil_trace.h"
 
 /**
- * Print trace bitmap for debuging
- * \param f: Output handle. Use stderr for printing
+ * Print trace bitmap for debugging.
+ * \param f: Output handle. Use `stderr` for printing
  * \param bm: Trace bitmap
  */
 void ED_gpencil_trace_bitmap_print(FILE *f, const potrace_bitmap_t *bm)
@@ -81,7 +81,7 @@ void ED_gpencil_trace_bitmap_print(FILE *f, const potrace_bitmap_t *bm)
  * Return new un-initialized trace bitmap
  * \param w: Width in pixels
  * \param h: Height in pixels
- * \return: Trace bitmap
+ * \return Trace bitmap
  */
 potrace_bitmap_t *ED_gpencil_trace_bitmap_new(int32_t w, int32_t h)
 {
@@ -143,7 +143,7 @@ void ED_gpencil_trace_bitmap_invert(const potrace_bitmap_t *bm)
  * Return pixel data (rgba) at index
  * \param ibuf: ImBuf of the image
  * \param idx: Index of the pixel
- * \return: RGBA value
+ * \return RGBA value
  */
 static void pixel_at_index(const ImBuf *ibuf, const int32_t idx, float r_col[4])
 {
