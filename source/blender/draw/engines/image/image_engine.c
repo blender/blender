@@ -138,7 +138,7 @@ static void image_cache_image(IMAGE_Data *vedata, Image *image, ImageUser *iuser
       far_near[0] = ((Camera *)scene->camera->data)->clip_end;
     }
 
-    const bool use_premul_alpha = image->alpha_mode == IMA_ALPHA_PREMUL;
+    const bool use_premul_alpha = BKE_image_has_gpu_texture_premultiplied_alpha(image, ibuf);
     const bool is_tiled_texture = tex_tile_data != NULL;
     const bool do_repeat = (!is_tiled_texture) && ((sima->flag & SI_DRAW_TILE) != 0);
 

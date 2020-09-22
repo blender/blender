@@ -49,6 +49,21 @@
 static void gpu_free_unused_buffers(void);
 static void image_free_gpu(Image *ima, const bool immediate);
 
+/* Is the alpha of the `GPUTexture` for a given image/ibuf premultiplied. */
+bool BKE_image_has_gpu_texture_premultiplied_alpha(Image *image, ImBuf *ibuf)
+{
+  const bool type_is_premultiplied = (image == NULL) || ELEM(image->type,
+                                                             IMA_TYPE_R_RESULT,
+                                                             IMA_TYPE_COMPOSITE,
+                                                             IMA_TYPE_UV_TEST);
+  const bool store_premultiplied =
+      type_is_premultiplied ||
+      ((ibuf != NULL) &&
+       (ibuf->rect_float ? (image ? (image->alpha_mode != IMA_ALPHA_STRAIGHT) : false) :
+                           (image ? (image->alpha_mode == IMA_ALPHA_PREMUL) : true)));
+  return store_premultiplied;
+}
+
 /* -------------------------------------------------------------------- */
 /** \name UDIM gpu texture
  * \{ */
@@ -198,8 +213,7 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
     ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
 
     if (ibuf) {
-      const bool store_premultiplied = ibuf->rect_float ? (ima->alpha_mode != IMA_ALPHA_STRAIGHT) :
-                                                          (ima->alpha_mode == IMA_ALPHA_PREMUL);
+      const bool store_premultiplied = BKE_image_has_gpu_texture_premultiplied_alpha(ima, ibuf);
       IMB_update_gpu_texture_sub(tex,
                                  ibuf,
                                  UNPACK2(tileoffset),
@@ -330,9 +344,8 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
   }
   else {
     const bool use_high_bitdepth = (ima->flag & IMA_HIGH_BITDEPTH);
-    const bool store_premultiplied = ibuf_intern->rect_float ?
-                                         (ima ? (ima->alpha_mode != IMA_ALPHA_STRAIGHT) : false) :
-                                         (ima ? (ima->alpha_mode == IMA_ALPHA_PREMUL) : true);
+    const bool store_premultiplied = BKE_image_has_gpu_texture_premultiplied_alpha(ima,
+                                                                                   ibuf_intern);
 
     *tex = IMB_create_gpu_texture(
         ima->id.name + 2, ibuf_intern, use_high_bitdepth, store_premultiplied);
@@ -642,6 +655,7 @@ static void gpu_texture_update_from_ibuf(
   int tex_stride = ibuf->x;
   int tex_offset = ibuf->channels * (y * ibuf->x + x);
 
+  const bool store_premultiplied = BKE_image_has_gpu_texture_premultiplied_alpha(ima, ibuf);
   if (rect_float == NULL) {
     /* Byte pixels. */
     if (!IMB_colormanagement_space_is_data(ibuf->rect_colorspace)) {
@@ -658,15 +672,12 @@ static void gpu_texture_update_from_ibuf(
 
       /* Convert to scene linear with sRGB compression, and premultiplied for
        * correct texture interpolation. */
-      const bool store_premultiplied = (ima->alpha_mode == IMA_ALPHA_PREMUL);
       IMB_colormanagement_imbuf_to_byte_texture(
           rect, x, y, w, h, ibuf, compress_as_srgb, store_premultiplied);
     }
   }
   else {
     /* Float pixels. */
-    const bool store_premultiplied = (ima->alpha_mode != IMA_ALPHA_STRAIGHT);
-
     if (ibuf->channels != 4 || scaled || !store_premultiplied) {
       rect_float = (float *)MEM_mallocN(sizeof(float[4]) * w * h, __func__);
       if (rect_float == NULL) {

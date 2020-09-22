@@ -382,7 +382,7 @@ struct GPUTexture *BKE_image_get_gpu_tiles(struct Image *image,
 struct GPUTexture *BKE_image_get_gpu_tilemap(struct Image *image,
                                              struct ImageUser *iuser,
                                              struct ImBuf *ibuf);
-
+bool BKE_image_has_gpu_texture_premultiplied_alpha(struct Image *image, struct ImBuf *ibuf);
 void BKE_image_update_gputexture(
     struct Image *ima, struct ImageUser *iuser, int x, int y, int w, int h);
 void BKE_image_paint_set_mipmap(struct Main *bmain, bool mipmap);
