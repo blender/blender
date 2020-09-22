@@ -520,6 +520,7 @@ static void screen_opengl_render_apply(const bContext *C, OGLRender *oglrender)
     ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
   }
   BKE_image_release_ibuf(oglrender->ima, ibuf, lock);
+  oglrender->ima->gpuflag |= IMA_GPU_REFRESH;
 
   if (oglrender->write_still) {
     screen_opengl_render_write(oglrender);
