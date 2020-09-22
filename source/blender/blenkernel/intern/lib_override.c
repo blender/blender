@@ -37,6 +37,7 @@
 
 #include "BKE_armature.h"
 #include "BKE_collection.h"
+#include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"
@@ -1724,12 +1725,20 @@ void BKE_lib_override_library_main_update(Main *bmain)
 {
   ID *id;
 
+  /* This temporary swap of G_MAIN is rather ugly, but neessary to avoid asserts checks in some RNA
+   * assignement functions, since those always use on G_MAIN when they need acces to a Main
+   * database. */
+  Main *orig_gmain = G_MAIN;
+  G_MAIN = bmain;
+
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if (id->override_library != NULL && id->lib == NULL) {
       BKE_lib_override_library_update(bmain, id);
     }
   }
   FOREACH_MAIN_ID_END;
+
+  G_MAIN = orig_gmain;
 }
 
 /**
