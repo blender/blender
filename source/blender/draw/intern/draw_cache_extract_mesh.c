@@ -4268,7 +4268,7 @@ static void statvis_calc_intersect(const MeshRenderData *mr, float *r_intersect)
     BM_mesh_elem_index_ensure(bm, BM_FACE);
 
     struct BMBVHTree *bmtree = BKE_bmbvh_new_from_editmesh(em, 0, NULL, false);
-    BVHTreeOverlap *overlap = BKE_bmbvh_overlap(bmtree, bmtree, &overlap_len);
+    BVHTreeOverlap *overlap = BKE_bmbvh_overlap_self(bmtree, &overlap_len);
 
     if (overlap) {
       for (int i = 0; i < overlap_len; i++) {

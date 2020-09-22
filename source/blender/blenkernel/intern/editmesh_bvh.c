@@ -582,3 +582,26 @@ BVHTreeOverlap *BKE_bmbvh_overlap(const BMBVHTree *bmtree_a,
   return BLI_bvhtree_overlap(
       bmtree_a->tree, bmtree_b->tree, r_overlap_tot, bmbvh_overlap_cb, &data);
 }
+
+static bool bmbvh_overlap_self_cb(void *userdata, int index_a, int index_b, int thread)
+{
+  if (index_a < index_b) {
+    return bmbvh_overlap_cb(userdata, index_a, index_b, thread);
+  }
+  return false;
+}
+
+/**
+ * Overlap indices reference the looptri's
+ */
+BVHTreeOverlap *BKE_bmbvh_overlap_self(const BMBVHTree *bmtree, unsigned int *r_overlap_tot)
+{
+  struct BMBVHTree_OverlapData data;
+
+  data.tree_pair[0] = bmtree;
+  data.tree_pair[1] = bmtree;
+  data.epsilon = BLI_bvhtree_get_epsilon(bmtree->tree);
+
+  return BLI_bvhtree_overlap(
+      bmtree->tree, bmtree->tree, r_overlap_tot, bmbvh_overlap_self_cb, &data);
+}
