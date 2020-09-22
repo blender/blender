@@ -167,6 +167,8 @@ void NodeType::register_input(ustring name,
   socket.enum_values = enum_values;
   socket.node_type = node_type;
   socket.flags = flags | extra_flags;
+  assert(inputs.size() < std::numeric_limits<SocketModifiedFlags>::digits);
+  socket.modified_flag_bit = (1ul << inputs.size());
   inputs.push_back(socket);
 }
 

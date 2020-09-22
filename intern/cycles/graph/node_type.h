@@ -28,6 +28,8 @@ CCL_NAMESPACE_BEGIN
 struct Node;
 struct NodeType;
 
+typedef uint64_t SocketModifiedFlags;
+
 /* Socket Type */
 
 struct SocketType {
@@ -88,6 +90,7 @@ struct SocketType {
   const NodeType **node_type;
   int flags;
   ustring ui_name;
+  SocketModifiedFlags modified_flag_bit;
 
   size_t size() const;
   bool is_array() const;

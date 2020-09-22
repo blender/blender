@@ -101,6 +101,15 @@ struct Node {
   /* Type testing, taking into account base classes. */
   bool is_a(const NodeType *type);
 
+  bool socket_is_modified(const SocketType &input) const;
+
+  bool is_modified();
+
+  void tag_modified();
+  void clear_modified();
+
+  void print_modified_sockets() const;
+
   ustring name;
   const NodeType *type;
 
@@ -109,6 +118,12 @@ struct Node {
 
  protected:
   const NodeOwner *owner;
+
+  SocketModifiedFlags socket_modified;
+
+  template<typename T> void set_if_different(const SocketType &input, T value);
+
+  template<typename T> void set_if_different(const SocketType &input, array<T> &value);
 };
 
 CCL_NAMESPACE_END
