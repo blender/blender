@@ -769,7 +769,7 @@ while current_frame_s$ID$ <= end_frame_s$ID$:\n\
     \n\
     # Load already simulated data from cache:\n\
     if loop_cnt < from_cache_cnt:\n\
-        load(current_frame_s$ID$, cache_resumable)\n\
+        load_data(current_frame_s$ID$, cache_resumable)\n\
     \n\
     # Otherwise simulate new data\n\
     else:\n\

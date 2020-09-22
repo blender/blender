@@ -476,7 +476,7 @@ def liquid_save_particles_$ID$(path, framenr, file_format, resumable):\n\
 const std::string liquid_standalone =
     "\n\
 # Helper function to call cache load functions\n\
-def load(frame, cache_resumable):\n\
+def load_data(frame, cache_resumable):\n\
     liquid_load_data_$ID$(os.path.join(cache_dir, 'data'), frame, file_format_data, cache_resumable)\n\
     if using_sndparts_s$ID$:\n\
         liquid_load_particles_$ID$(os.path.join(cache_dir, 'particles'), frame, file_format_data, cache_resumable)\n\

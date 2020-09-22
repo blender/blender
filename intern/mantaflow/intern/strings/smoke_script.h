@@ -598,7 +598,7 @@ def smoke_save_noise_$ID$(path, framenr, file_format, resumable):\n\
 const std::string smoke_standalone =
     "\n\
 # Helper function to call cache load functions\n\
-def load(frame, cache_resumable):\n\
+def load_data(frame, cache_resumable):\n\
     smoke_load_data_$ID$(os.path.join(cache_dir, 'data'), frame, file_format_data, cache_resumable)\n\
     if using_noise_s$ID$:\n\
         smoke_load_noise_$ID$(os.path.join(cache_dir, 'noise'), frame, file_format_data, cache_resumable)\n\
