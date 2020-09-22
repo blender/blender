@@ -816,44 +816,43 @@ static void bb_combineMaps(FluidObjectBB *output,
 
 BLI_INLINE void apply_effector_fields(FluidEffectorSettings *UNUSED(fes),
                                       int index,
-                                      float distance_value,
-                                      float *phi_in,
-                                      float numobjs_value,
-                                      float *numobjs,
-                                      float vel_x_value,
-                                      float *vel_x,
-                                      float vel_y_value,
-                                      float *vel_y,
-                                      float vel_z_value,
-                                      float *vel_z)
+                                      float src_distance_value,
+                                      float *dest_phi_in,
+                                      float src_numobjs_value,
+                                      float *dest_numobjs,
+                                      float src_vel_value[3],
+                                      float *dest_vel_x,
+                                      float *dest_vel_y,
+                                      float *dest_vel_z)
 {
   /* Ensure that distance value is "joined" into the levelset. */
-  if (phi_in) {
-    phi_in[index] = MIN2(distance_value, phi_in[index]);
+  if (dest_phi_in) {
+    dest_phi_in[index] = MIN2(src_distance_value, dest_phi_in[index]);
   }
 
   /* Accumulate effector object count (important once effector object overlap). */
-  if (numobjs && numobjs_value > 0) {
-    numobjs[index] += 1;
+  if (dest_numobjs && src_numobjs_value > 0) {
+    dest_numobjs[index] += 1;
   }
 
-  if (vel_x) {
-    vel_x[index] = vel_x_value;
-    vel_y[index] = vel_y_value;
-    vel_z[index] = vel_z_value;
+  /* Accumulate effector velocities for each cell. */
+  if (dest_vel_x && src_numobjs_value > 0) {
+    dest_vel_x[index] += src_vel_value[0];
+    dest_vel_y[index] += src_vel_value[1];
+    dest_vel_z[index] += src_vel_value[2];
   }
 }
 
-static void sample_effector(FluidEffectorSettings *fes,
-                            const MVert *mvert,
-                            const MLoop *mloop,
-                            const MLoopTri *mlooptri,
-                            float *velocity_map,
-                            int index,
-                            BVHTreeFromMesh *tree_data,
-                            const float ray_start[3],
-                            const float *vert_vel,
-                            bool has_velocity)
+static void update_velocities(FluidEffectorSettings *fes,
+                              const MVert *mvert,
+                              const MLoop *mloop,
+                              const MLoopTri *mlooptri,
+                              float *velocity_map,
+                              int index,
+                              BVHTreeFromMesh *tree_data,
+                              const float ray_start[3],
+                              const float *vert_vel,
+                              bool has_velocity)
 {
   BVHTreeNearest nearest = {0};
   nearest.index = -1;
@@ -865,7 +864,8 @@ static void sample_effector(FluidEffectorSettings *fes,
   nearest.dist_sq = surface_distance * surface_distance; /* find_nearest uses squared distance */
 
   /* Find the nearest point on the mesh. */
-  if (BLI_bvhtree_find_nearest(
+  if (has_velocity &&
+      BLI_bvhtree_find_nearest(
           tree_data->tree, ray_start, &nearest, tree_data->nearest_callback, tree_data) != -1) {
     float weights[3];
     int v1, v2, v3, f_index = nearest.index;
@@ -876,55 +876,65 @@ static void sample_effector(FluidEffectorSettings *fes,
     v3 = mloop[mlooptri[f_index].tri[2]].v;
     interp_weights_tri_v3(weights, mvert[v1].co, mvert[v2].co, mvert[v3].co, nearest.co);
 
-    if (has_velocity) {
+    /* Apply object velocity. */
+    float hit_vel[3];
+    interp_v3_v3v3v3(hit_vel, &vert_vel[v1 * 3], &vert_vel[v2 * 3], &vert_vel[v3 * 3], weights);
 
-      /* Apply object velocity. */
-      float hit_vel[3];
-      interp_v3_v3v3v3(hit_vel, &vert_vel[v1 * 3], &vert_vel[v2 * 3], &vert_vel[v3 * 3], weights);
+    /* Guiding has additional velocity multiplier */
+    if (fes->type == FLUID_EFFECTOR_TYPE_GUIDE) {
+      mul_v3_fl(hit_vel, fes->vel_multi);
 
-      /* Guiding has additional velocity multiplier */
-      if (fes->type == FLUID_EFFECTOR_TYPE_GUIDE) {
-        mul_v3_fl(hit_vel, fes->vel_multi);
+      /* Absolute representation of new object velocity. */
+      float abs_hit_vel[3];
+      copy_v3_v3(abs_hit_vel, hit_vel);
+      abs_v3(abs_hit_vel);
 
-        switch (fes->guide_mode) {
-          case FLUID_EFFECTOR_GUIDE_AVERAGED:
-            velocity_map[index * 3] = (velocity_map[index * 3] + hit_vel[0]) * 0.5f;
-            velocity_map[index * 3 + 1] = (velocity_map[index * 3 + 1] + hit_vel[1]) * 0.5f;
-            velocity_map[index * 3 + 2] = (velocity_map[index * 3 + 2] + hit_vel[2]) * 0.5f;
-            break;
-          case FLUID_EFFECTOR_GUIDE_OVERRIDE:
-            velocity_map[index * 3] = hit_vel[0];
-            velocity_map[index * 3 + 1] = hit_vel[1];
-            velocity_map[index * 3 + 2] = hit_vel[2];
-            break;
-          case FLUID_EFFECTOR_GUIDE_MIN:
-            velocity_map[index * 3] = MIN2(fabsf(hit_vel[0]), fabsf(velocity_map[index * 3]));
-            velocity_map[index * 3 + 1] = MIN2(fabsf(hit_vel[1]),
-                                               fabsf(velocity_map[index * 3 + 1]));
-            velocity_map[index * 3 + 2] = MIN2(fabsf(hit_vel[2]),
-                                               fabsf(velocity_map[index * 3 + 2]));
-            break;
-          case FLUID_EFFECTOR_GUIDE_MAX:
-          default:
-            velocity_map[index * 3] = MAX2(fabsf(hit_vel[0]), fabsf(velocity_map[index * 3]));
-            velocity_map[index * 3 + 1] = MAX2(fabsf(hit_vel[1]),
-                                               fabsf(velocity_map[index * 3 + 1]));
-            velocity_map[index * 3 + 2] = MAX2(fabsf(hit_vel[2]),
-                                               fabsf(velocity_map[index * 3 + 2]));
-            break;
-        }
-      }
-      else {
-        /* Apply (i.e. add) effector object velocity */
-        velocity_map[index * 3] += hit_vel[0];
-        velocity_map[index * 3 + 1] += hit_vel[1];
-        velocity_map[index * 3 + 2] += hit_vel[2];
-#  ifdef DEBUG_PRINT
-        /* Debugging: Print object velocities. */
-        printf("adding effector object vel: [%f, %f, %f]\n", hit_vel[0], hit_vel[1], hit_vel[2]);
-#  endif
+      /* Absolute representation of current object velocity. */
+      float abs_vel[3];
+      copy_v3_v3(abs_vel, &velocity_map[index * 3]);
+      abs_v3(abs_vel);
+
+      switch (fes->guide_mode) {
+        case FLUID_EFFECTOR_GUIDE_AVERAGED:
+          velocity_map[index * 3] = (velocity_map[index * 3] + hit_vel[0]) * 0.5f;
+          velocity_map[index * 3 + 1] = (velocity_map[index * 3 + 1] + hit_vel[1]) * 0.5f;
+          velocity_map[index * 3 + 2] = (velocity_map[index * 3 + 2] + hit_vel[2]) * 0.5f;
+          break;
+        case FLUID_EFFECTOR_GUIDE_OVERRIDE:
+          velocity_map[index * 3] = hit_vel[0];
+          velocity_map[index * 3 + 1] = hit_vel[1];
+          velocity_map[index * 3 + 2] = hit_vel[2];
+          break;
+        case FLUID_EFFECTOR_GUIDE_MIN:
+          velocity_map[index * 3] = MIN2(abs_hit_vel[0], abs_vel[0]);
+          velocity_map[index * 3 + 1] = MIN2(abs_hit_vel[1], abs_vel[1]);
+          velocity_map[index * 3 + 2] = MIN2(abs_hit_vel[2], abs_vel[2]);
+          break;
+        case FLUID_EFFECTOR_GUIDE_MAX:
+        default:
+          velocity_map[index * 3] = MAX2(abs_hit_vel[0], abs_vel[0]);
+          velocity_map[index * 3 + 1] = MAX2(abs_hit_vel[1], abs_vel[1]);
+          velocity_map[index * 3 + 2] = MAX2(abs_hit_vel[2], abs_vel[2]);
+          break;
       }
     }
+    else if (fes->type == FLUID_EFFECTOR_TYPE_COLLISION) {
+      velocity_map[index * 3] = hit_vel[0];
+      velocity_map[index * 3 + 1] = hit_vel[1];
+      velocity_map[index * 3 + 2] = hit_vel[2];
+#  ifdef DEBUG_PRINT
+      /* Debugging: Print object velocities. */
+      printf("adding effector object vel: [%f, %f, %f]\n", hit_vel[0], hit_vel[1], hit_vel[2]);
+#  endif
+    }
+    else {
+      /* Should never reach this block. */
+      BLI_assert(false);
+    }
+  }
+  else {
+    /* Clear velocities at cells that are not moving. */
+    copy_v3_fl(velocity_map, 0.0);
   }
 }
 
@@ -956,18 +966,6 @@ static void obstacles_from_mesh_task_cb(void *__restrict userdata,
           x - bb->min[0], bb->res[0], y - bb->min[1], bb->res[1], z - bb->min[2]);
       const float ray_start[3] = {(float)x + 0.5f, (float)y + 0.5f, (float)z + 0.5f};
 
-      /* Calculate object velocities. Result in bb->velocity. */
-      sample_effector(data->fes,
-                      data->mvert,
-                      data->mloop,
-                      data->mlooptri,
-                      bb->velocity,
-                      index,
-                      data->tree,
-                      ray_start,
-                      data->vert_vel,
-                      data->has_velocity);
-
       /* Calculate levelset values from meshes. Result in bb->distances. */
       update_distances(index,
                        bb->distances,
@@ -976,8 +974,19 @@ static void obstacles_from_mesh_task_cb(void *__restrict userdata,
                        data->fes->surface_distance,
                        data->fes->flags & FLUID_EFFECTOR_USE_PLANE_INIT);
 
-      /* Ensure that num objects are also counted inside object.
-       * But don't count twice (see object inc for nearest point). */
+      /* Calculate object velocities. Result in bb->velocity. */
+      update_velocities(data->fes,
+                        data->mvert,
+                        data->mloop,
+                        data->mlooptri,
+                        bb->velocity,
+                        index,
+                        data->tree,
+                        ray_start,
+                        data->vert_vel,
+                        data->has_velocity);
+
+      /* Increase obstacle count inside of moving obstacles. */
       if (bb->distances[index] < 0) {
         bb->numobjs[index]++;
       }
@@ -1441,11 +1450,9 @@ static void update_obstacles(Depsgraph *depsgraph,
                                     levelset,
                                     numobjs_map[e_index],
                                     num_obstacles,
-                                    velocity_map[e_index * 3],
+                                    &velocity_map[e_index * 3],
                                     vel_x,
-                                    velocity_map[e_index * 3 + 1],
                                     vel_y,
-                                    velocity_map[e_index * 3 + 2],
                                     vel_z);
             }
             if (fes->type == FLUID_EFFECTOR_TYPE_GUIDE) {
@@ -1455,11 +1462,9 @@ static void update_obstacles(Depsgraph *depsgraph,
                                     phi_guide_in,
                                     numobjs_map[e_index],
                                     num_guides,
-                                    velocity_map[e_index * 3],
+                                    &velocity_map[e_index * 3],
                                     vel_x_guide,
-                                    velocity_map[e_index * 3 + 1],
                                     vel_y_guide,
-                                    velocity_map[e_index * 3 + 2],
                                     vel_z_guide);
             }
           }
