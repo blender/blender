@@ -20,6 +20,8 @@
 
 #include <Python.h>
 
+#include <string.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
@@ -368,6 +370,11 @@ static const char *idp_try_read_name(PyObject *name_obj)
     if (name_size > MAX_IDPROP_NAME) {
       PyErr_SetString(PyExc_KeyError,
                       "the length of IDProperty names is limited to 63 characters");
+      return NULL;
+    }
+
+    if (strchr(name, '\"') || strchr(name, '\\') || strchr(name, '\'')) {
+      PyErr_SetString(PyExc_KeyError, "IDProperty names cannot include \", \\, or \'");
       return NULL;
     }
   }
