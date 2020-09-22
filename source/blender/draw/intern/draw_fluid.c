@@ -316,6 +316,10 @@ static GPUTexture *create_field_texture(FluidDomainSettings *fds, bool single_pr
       return NULL;
   }
 
+  if (field == NULL) {
+    return NULL;
+  }
+
   GPUTexture *tex = create_volume_texture(fds->res, texture_format, data_format, field);
   swizzle_texture_channel_single(tex);
   return tex;
