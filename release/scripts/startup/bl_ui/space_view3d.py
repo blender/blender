@@ -6111,11 +6111,12 @@ class VIEW3D_PT_overlay_geometry(Panel):
 
         col.prop(overlay, "show_face_orientation")
         row = col.row(align=True)
-
-        row.prop(overlay, "show_fade_inactive", text="")
-        sub = row.row()
-        sub.active = overlay.show_fade_inactive
-        sub.prop(overlay, "fade_inactive_alpha", text="Fade Inactive Geometry")
+        if context.mode not in {'EDIT_ARMATURE', 'POSE', 'OBJECT', 'PAINT_GPENCIL',\
+                                'VERTEX_GPENCIL', 'WEIGHT_GPENCIL', 'SCULPT_GPENCIL', 'EDIT_GPENCIL'}:
+            row.prop(overlay, "show_fade_inactive", text="")
+            sub = row.row()
+            sub.active = overlay.show_fade_inactive
+            sub.prop(overlay, "fade_inactive_alpha", text="Fade Inactive Geometry")
 
         # sub.prop(overlay, "show_onion_skins")
 
