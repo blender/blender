@@ -1340,13 +1340,18 @@ COLLADASW::ColorOrTexture bc_get_emission(Material *ma)
 
   COLLADASW::ColorOrTexture cot = bc_get_cot_from_shader(shader, "Emission", default_color);
 
-  /* Multiply in emission strength. If using texture, emission strength is not
-   * supported. */
+  /* If using texture, emission strength is not supported. */
   COLLADASW::Color col = cot.getColor();
-  cot.getColor().set(emission_strength * col.getRed(),
-                     emission_strength * col.getGreen(),
-                     emission_strength * col.getBlue(),
-                     col.getAlpha());
+  double final_color[3] = {col.getRed(), col.getGreen(), col.getBlue()};
+  mul_v3db_db(final_color, emission_strength);
+
+  /* Collada does not support HDR colors, so clamp to 1 keeping channels proportional. */
+  double max_color = fmax(fmax(final_color[0], final_color[1]), final_color[2]);
+  if (max_color > 1.0) {
+    mul_v3db_db(final_color, 1.0 / max_color);
+  }
+
+  cot.getColor().set(final_color[0], final_color[1], final_color[2], col.getAlpha());
 
   return cot;
 }

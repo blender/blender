@@ -317,6 +317,7 @@ void MaterialNode::set_emission(COLLADAFW::ColorOrTexture &cot)
     fcol[2] = col.getBlue();
     fcol[3] = col.getAlpha();
   }
+  // texture
   else if (cot.isTexture()) {
     bNode *texture_node = add_texture_node(cot, -300, locy, "Emission");
     if (texture_node != NULL) {
