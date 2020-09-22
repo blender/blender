@@ -343,7 +343,6 @@ const std::string fluid_alloc_invel =
     "\n\
 mantaMsg('Allocating initial velocity data')\n\
 invelC_s$ID$  = s$ID$.create(VecGrid, name='$NAME_INVELC$')\n\
-invel_s$ID$   = s$ID$.create(MACGrid, name='$NAME_INVEL$')\n\
 x_invel_s$ID$ = s$ID$.create(RealGrid, name='$NAME_INVEL_X$')\n\
 y_invel_s$ID$ = s$ID$.create(RealGrid, name='$NAME_INVEL_Y$')\n\
 z_invel_s$ID$ = s$ID$.create(RealGrid, name='$NAME_INVEL_Z$')\n";

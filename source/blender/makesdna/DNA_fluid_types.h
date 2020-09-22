@@ -311,7 +311,6 @@ enum {
 #define FLUID_NAME_OBVEL_Z "z_obvel"
 #define FLUID_NAME_FRACTIONS "fractions"
 #define FLUID_NAME_INVELC "invelC"
-#define FLUID_NAME_INVEL "invel"
 #define FLUID_NAME_INVEL_X "x_invel"
 #define FLUID_NAME_INVEL_Y "y_invel"
 #define FLUID_NAME_INVEL_Z "z_invel"

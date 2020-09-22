@@ -177,6 +177,13 @@ def liquid_adaptive_step_$ID$(framenr):\n\
     flags_s$ID$.initDomain(boundaryWidth=1 if using_fractions_s$ID$ else 0, phiWalls=phiObs_s$ID$, outflow=boundConditions_s$ID$)\n\
     \n\
     if using_obstacle_s$ID$:\n\
+        mantaMsg('Extrapolating object velocity')\n\
+        # ensure velocities inside of obs object, slightly add obvels outside of obs object\n\
+        # extrapolate with phiObsIn before joining (static) phiObsSIn grid to prevent flows into static obs\n\
+        extrapolateVec3Simple(vel=obvelC_s$ID$, phi=phiObsIn_s$ID$, distance=6, inside=True)\n\
+        extrapolateVec3Simple(vel=obvelC_s$ID$, phi=phiObsIn_s$ID$, distance=3, inside=False)\n\
+        resampleVec3ToMac(source=obvelC_s$ID$, target=obvel_s$ID$)\n\
+        \n\
         mantaMsg('Initializing obstacle levelset')\n\
         phiObsIn_s$ID$.join(phiObsSIn_s$ID$) # Join static obstacle map\n\
         phiObsIn_s$ID$.fillHoles(maxDepth=int(res_s$ID$), boundaryWidth=1)\n\
@@ -211,8 +218,8 @@ def liquid_adaptive_step_$ID$(framenr):\n\
     # add initial velocity: set invel as source grid to ensure const vels in inflow region, sampling makes use of this\n\
     if using_invel_s$ID$:\n\
         extrapolateVec3Simple(vel=invelC_s$ID$, phi=phiIn_s$ID$, distance=6, inside=True)\n\
-        resampleVec3ToMac(source=invelC_s$ID$, target=invel_s$ID$)\n\
-        pVel_pp$ID$.setSource(grid=invel_s$ID$, isMAC=True)\n\
+        # Using cell centered invels, a false isMAC flag ensures correct interpolation\n\
+        pVel_pp$ID$.setSource(grid=invelC_s$ID$, isMAC=False)\n\
     # reset pvel grid source before sampling new particles - ensures that new particles are initialized with 0 velocity\n\
     else:\n\
         pVel_pp$ID$.setSource(grid=None, isMAC=False)\n\
@@ -274,13 +281,6 @@ def liquid_step_$ID$():\n\
     \n\
     mantaMsg('Adding external forces')\n\
     addForceField(flags=flags_s$ID$, vel=vel_s$ID$, force=forces_s$ID$)\n\
-    \n\
-    if using_obstacle_s$ID$:\n\
-        mantaMsg('Extrapolating object velocity')\n\
-        # ensure velocities inside of obs object, slightly add obvels outside of obs object\n\
-        extrapolateVec3Simple(vel=obvelC_s$ID$, phi=phiObsIn_s$ID$, distance=6, inside=True)\n\
-        extrapolateVec3Simple(vel=obvelC_s$ID$, phi=phiObsIn_s$ID$, distance=3, inside=False)\n\
-        resampleVec3ToMac(source=obvelC_s$ID$, target=obvel_s$ID$)\n\
     \n\
     extrapolateMACSimple(flags=flags_s$ID$, vel=vel_s$ID$, distance=2, intoObs=True if using_fractions_s$ID$ else False)\n\
     \n\
