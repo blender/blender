@@ -195,7 +195,7 @@ ccl_device_inline void path_radiance_init(KernelGlobals *kg, PathRadiance *L)
     L->emission = make_float3(0.0f, 0.0f, 0.0f);
     L->background = make_float3(0.0f, 0.0f, 0.0f);
     L->ao = make_float3(0.0f, 0.0f, 0.0f);
-    L->shadow = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    L->shadow = make_float3(0.0f, 0.0f, 0.0f);
     L->mist = 0.0f;
 
     L->state.diffuse = make_float3(0.0f, 0.0f, 0.0f);
@@ -439,9 +439,7 @@ ccl_device_inline void path_radiance_accum_light(KernelGlobals *kg,
       L->direct_volume += shaded_throughput * bsdf_eval->volume;
 
       if (is_lamp) {
-        L->shadow.x += shadow.x * shadow_fac;
-        L->shadow.y += shadow.y * shadow_fac;
-        L->shadow.z += shadow.z * shadow_fac;
+        L->shadow += shadow * shadow_fac;
       }
     }
     else {

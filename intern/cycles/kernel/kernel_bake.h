@@ -383,7 +383,7 @@ ccl_device void kernel_bake_evaluate(
       break;
     }
     case SHADER_EVAL_SHADOW: {
-      out = make_float3(L.shadow.x, L.shadow.y, L.shadow.z);
+      out = L.shadow;
       break;
     }
     case SHADER_EVAL_DIFFUSE: {

@@ -522,7 +522,7 @@ typedef ccl_addr_space struct PathRadiance {
   float3 indirect_transmission;
   float3 indirect_volume;
 
-  float4 shadow;
+  float3 shadow;
   float mist;
 #endif
 
