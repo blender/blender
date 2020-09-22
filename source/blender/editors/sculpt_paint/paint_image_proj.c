@@ -5305,10 +5305,7 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool), void *ph_v
         }
         else {
           if (is_floatbuf) {
-            if (UNLIKELY(ps->reproject_ibuf->rect_float == NULL)) {
-              IMB_float_from_rect(ps->reproject_ibuf);
-              ps->reproject_ibuf_free_float = true;
-            }
+            BLI_assert(ps->reproject_ibuf->rect_float != NULL);
 
             bicubic_interpolation_color(ps->reproject_ibuf,
                                         NULL,
@@ -5325,10 +5322,7 @@ static void do_projectpaint_thread(TaskPool *__restrict UNUSED(pool), void *ph_v
             }
           }
           else {
-            if (UNLIKELY(ps->reproject_ibuf->rect == NULL)) {
-              IMB_rect_from_float(ps->reproject_ibuf);
-              ps->reproject_ibuf_free_uchar = true;
-            }
+            BLI_assert(ps->reproject_ibuf->rect != NULL);
 
             bicubic_interpolation_color(ps->reproject_ibuf,
                                         projPixel->newColor.ch,
@@ -5576,6 +5570,37 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
   }
 
   image_pool = BKE_image_pool_new();
+
+  if (!ELEM(ps->source, PROJ_SRC_VIEW, PROJ_SRC_VIEW_FILL)) {
+    /*This means we are reprojecting an image,
+      make sure the image has the needed data available.*/
+    bool float_dest = false;
+    bool uchar_dest = false;
+    /* check if the destination images are float or uchar */
+    for (i = 0; i < ps->image_tot; i++) {
+      if (ps->projImages[i].ibuf->rect != NULL) {
+        uchar_dest = true;
+      }
+      if (ps->projImages[i].ibuf->rect_float) {
+        float_dest = true;
+      }
+    }
+
+    /* generate missing data if needed */
+    if (float_dest && ps->reproject_ibuf->rect_float == NULL)
+    {
+      IMB_float_from_rect(ps->reproject_ibuf);
+      ps->reproject_ibuf_free_float = true;
+    }
+    if (uchar_dest && ps->reproject_ibuf->rect == NULL)
+    {
+      IMB_rect_from_float(ps->reproject_ibuf);
+      ps->reproject_ibuf_free_uchar = true;
+    }
+
+  }
+
+
 
   /* get the threads running */
   for (a = 0; a < ps->thread_tot; a++) {
