@@ -207,25 +207,39 @@ class DATA_PT_geometry_curve_bevel(CurveButtonsPanelCurve, Panel):
             col.prop(curve, "bevel_resolution", text="Resolution")
         col.prop(curve, "use_fill_caps")
 
-        if type(curve) is not TextCurve:
-
-            col = layout.column()
-            col.active = (
-                (curve.bevel_depth > 0.0) or
-                (curve.extrude > 0.0) or
-                (curve.bevel_object is not None)
-            )
-            sub = col.column(align=True)
-            sub.prop(curve, "bevel_factor_start", text="Start")
-            sub.prop(curve, "bevel_factor_end", text="End")
-
-            sub = col.column(align=True)
-            sub.prop(curve, "bevel_factor_mapping_start", text="Mapping Start")
-            sub.prop(curve, "bevel_factor_mapping_end", text="End")
-
-        # Put the large template at the end so it doesn't displace the other properties
         if curve.bevel_mode == 'PROFILE':
             col.template_curveprofile(curve, "bevel_profile")
+
+
+class DATA_PT_geometry_curve_start_end(CurveButtonsPanelCurve, Panel):
+    bl_label = "Start & End Mapping"
+    bl_parent_id = "DATA_PT_geometry_curve"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        # Text objects don't support these properties
+        return (type(context.curve) in {Curve})
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        curve = context.curve
+
+        col = layout.column()
+
+        col.active = (
+            ((curve.bevel_depth > 0.0) or (curve.extrude > 0.0)) and
+            (curve.bevel_mode != 'OBJECT')
+        )
+        sub = col.column(align=True)
+        sub.prop(curve, "bevel_factor_start", text="Factor Start")
+        sub.prop(curve, "bevel_factor_end", text="End")
+
+        sub = col.column(align=True)
+        sub.prop(curve, "bevel_factor_mapping_start", text="Mapping Start")
+        sub.prop(curve, "bevel_factor_mapping_end", text="End")
 
 
 class DATA_PT_pathanim(CurveButtonsPanelCurve, Panel):
@@ -480,6 +494,7 @@ classes = (
     DATA_PT_curve_texture_space,
     DATA_PT_geometry_curve,
     DATA_PT_geometry_curve_bevel,
+    DATA_PT_geometry_curve_start_end,
     DATA_PT_pathanim,
     DATA_PT_active_spline,
     DATA_PT_font,
