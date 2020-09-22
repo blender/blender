@@ -161,16 +161,16 @@ static int int_cmp(const void *v1, const void *v2)
 
 static int search_poly_cmp(const void *v1, const void *v2)
 {
-  const SortPoly *sp1 = v1, *sp2 = v2;
-  const int max_idx = sp1->numverts > sp2->numverts ? sp2->numverts : sp1->numverts;
-  int idx;
+  const SortPoly *sp1 = v1;
+  const SortPoly *sp2 = v2;
 
   /* Reject all invalid polys at end of list! */
   if (sp1->invalid || sp2->invalid) {
     return sp1->invalid ? (sp2->invalid ? 0 : 1) : -1;
   }
   /* Else, sort on first non-equal verts (remember verts of valid polys are sorted). */
-  for (idx = 0; idx < max_idx; idx++) {
+  const int max_idx = sp1->numverts > sp2->numverts ? sp2->numverts : sp1->numverts;
+  for (int idx = 0; idx < max_idx; idx++) {
     const int v1_i = sp1->verts[idx];
     const int v2_i = sp2->verts[idx];
     if (v1_i != v2_i) {
@@ -182,7 +182,8 @@ static int search_poly_cmp(const void *v1, const void *v2)
 
 static int search_polyloop_cmp(const void *v1, const void *v2)
 {
-  const SortPoly *sp1 = v1, *sp2 = v2;
+  const SortPoly *sp1 = v1;
+  const SortPoly *sp2 = v2;
 
   /* Reject all invalid polys at end of list! */
   if (sp1->invalid || sp2->invalid) {
@@ -991,7 +992,6 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata,
 {
   bool is_valid = true;
   bool is_change_v, is_change_e, is_change_l, is_change_p;
-  int tot_uvloop, tot_vcolloop;
   CustomData_MeshMasks mask = {0};
   if (check_meshmask) {
     mask = CD_MASK_MESH;
@@ -1006,8 +1006,8 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata,
   is_valid &= mesh_validate_customdata(
       pdata, mask.pmask, totpoly, do_verbose, do_fixes, &is_change_p);
 
-  tot_uvloop = CustomData_number_of_layers(ldata, CD_MLOOPUV);
-  tot_vcolloop = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
+  const int tot_uvloop = CustomData_number_of_layers(ldata, CD_MLOOPUV);
+  const int tot_vcolloop = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
   if (tot_uvloop > MAX_MTFACE) {
     PRINT_ERR(
         "\tMore UV layers than %d allowed, %d last ones won't be available for render, shaders, "
@@ -1533,14 +1533,8 @@ void BKE_mesh_calc_edges_legacy(Mesh *me, const bool use_old)
  */
 void BKE_mesh_calc_edges(Mesh *mesh, bool update, const bool select)
 {
-  CustomData edata;
-  EdgeHashIterator *ehi;
-  MPoly *mp;
-  MEdge *med, *med_orig;
-  EdgeHash *eh;
-  unsigned int eh_reserve;
-  int i, totedge, totpoly = mesh->totpoly;
-  int med_index;
+  MEdge *med;
+  int i, totpoly = mesh->totpoly;
   /* select for newly created meshes which are selected [#25595] */
   const short ed_flag = (ME_EDGEDRAW | ME_EDGERENDER) | (select ? SELECT : 0);
 
@@ -1548,8 +1542,9 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool update, const bool select)
     update = false;
   }
 
-  eh_reserve = max_ii(update ? mesh->totedge : 0, BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(totpoly));
-  eh = BLI_edgehash_new_ex(__func__, eh_reserve);
+  const unsigned int eh_reserve = max_ii(update ? mesh->totedge : 0,
+                                         BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(totpoly));
+  EdgeHash *eh = BLI_edgehash_new_ex(__func__, eh_reserve);
 
   if (update) {
     /* assume existing edges are valid
@@ -1561,6 +1556,7 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool update, const bool select)
   }
 
   /* mesh loops (bmesh only) */
+  MPoly *mp;
   for (mp = mesh->mpoly, i = 0; i < totpoly; mp++, i++) {
     MLoop *l = &mesh->mloop[mp->loopstart];
     int j, v_prev = (l + (mp->totloop - 1))->v;
@@ -1575,15 +1571,18 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool update, const bool select)
     }
   }
 
-  totedge = BLI_edgehash_len(eh);
+  const int totedge = BLI_edgehash_len(eh);
 
   /* write new edges into a temporary CustomData */
+  CustomData edata;
   CustomData_reset(&edata);
   CustomData_add_layer(&edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
 
   med = CustomData_get_layer(&edata, CD_MEDGE);
+  EdgeHashIterator *ehi;
   for (ehi = BLI_edgehashIterator_new(eh), i = 0; BLI_edgehashIterator_isDone(ehi) == false;
        BLI_edgehashIterator_step(ehi), ++i, ++med) {
+    MEdge *med_orig;
     if (update && (med_orig = BLI_edgehashIterator_getValue(ehi))) {
       *med = *med_orig; /* copy from the original */
     }
@@ -1606,6 +1605,7 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool update, const bool select)
       int j;
       for (j = 0; j < mp->totloop; j++, l++) {
         /* Lookup hashed edge index, if it's valid. */
+        int med_index;
         if (l_prev->v != l->v) {
           med_index = POINTER_AS_INT(BLI_edgehash_lookup(eh, l_prev->v, l->v));
         }
@@ -1656,16 +1656,11 @@ void BKE_mesh_calc_edges_loose(Mesh *mesh)
 
 void BKE_mesh_calc_edges_tessface(Mesh *mesh)
 {
-  CustomData edgeData;
-  EdgeSetIterator *ehi;
+  const int numFaces = mesh->totface;
+  EdgeSet *eh = BLI_edgeset_new_ex(__func__, BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(numFaces));
+
   MFace *mf = mesh->mface;
-  MEdge *med;
-  EdgeSet *eh;
-  int i, *index, numEdges, numFaces = mesh->totface;
-
-  eh = BLI_edgeset_new_ex(__func__, BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(numFaces));
-
-  for (i = 0; i < numFaces; i++, mf++) {
+  for (int i = 0; i < numFaces; i++, mf++) {
     BLI_edgeset_add(eh, mf->v1, mf->v2);
     BLI_edgeset_add(eh, mf->v2, mf->v3);
 
@@ -1678,17 +1673,19 @@ void BKE_mesh_calc_edges_tessface(Mesh *mesh)
     }
   }
 
-  numEdges = BLI_edgeset_len(eh);
+  const int numEdges = BLI_edgeset_len(eh);
 
   /* write new edges into a temporary CustomData */
+  CustomData edgeData;
   CustomData_reset(&edgeData);
   CustomData_add_layer(&edgeData, CD_MEDGE, CD_CALLOC, NULL, numEdges);
   CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, numEdges);
 
-  med = CustomData_get_layer(&edgeData, CD_MEDGE);
-  index = CustomData_get_layer(&edgeData, CD_ORIGINDEX);
+  MEdge *med = CustomData_get_layer(&edgeData, CD_MEDGE);
+  int *index = CustomData_get_layer(&edgeData, CD_ORIGINDEX);
 
-  for (ehi = BLI_edgesetIterator_new(eh), i = 0; BLI_edgesetIterator_isDone(ehi) == false;
+  EdgeSetIterator *ehi = BLI_edgesetIterator_new(eh);
+  for (int i = 0; BLI_edgesetIterator_isDone(ehi) == false;
        BLI_edgesetIterator_step(ehi), i++, med++, index++) {
     BLI_edgesetIterator_getKey(ehi, &med->v1, &med->v2);
 
