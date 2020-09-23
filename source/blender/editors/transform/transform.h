@@ -497,6 +497,7 @@ enum {
   MOD_PRECISION = 1 << 1,
   MOD_SNAP = 1 << 2,
   MOD_SNAP_INVERT = 1 << 3,
+  MOD_CONSTRAINT_PLANE = 1 << 4,
 };
 
 /* use node center for transform instead of upper-left corner.
@@ -576,6 +577,7 @@ enum {
   TFM_MODAL_INSERTOFS_TOGGLE_DIR = 27,
 
   TFM_MODAL_AUTOCONSTRAINT = 28,
+  TFM_MODAL_AUTOCONSTRAINTPLANE = 29,
 };
 
 bool initTransform(struct bContext *C,

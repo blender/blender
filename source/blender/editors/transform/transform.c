@@ -683,6 +683,7 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
       {TFM_MODAL_ROTATE, "ROTATE", 0, "Rotate", ""},
       {TFM_MODAL_RESIZE, "RESIZE", 0, "Resize", ""},
       {TFM_MODAL_AUTOCONSTRAINT, "AUTOCONSTRAIN", 0, "Automatic Constraint", ""},
+      {TFM_MODAL_AUTOCONSTRAINTPLANE, "AUTOCONSTRAINPLANE", 0, "Automatic Constraint", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -703,6 +704,8 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
    * WM_modalkeymap_add_item(keymap, EVT_RKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_ROTATE);
    * WM_modalkeymap_add_item(keymap, EVT_SKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_RESIZE);
    * WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_PRESS, KM_ANY, 0, TFM_MODAL_AUTOCONSTRAINT);
+   * WM_modalkeymap_add_item(
+   *     keymap, MIDDLEMOUSE, KM_PRESS, KM_SHIFT, 0, TFM_MODAL_AUTOCONSTRAINTPLANE);
    * \endcode
    */
 
@@ -794,7 +797,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
     handled = true;
   }
   else if (event->type == MOUSEMOVE) {
-    if (t->modifiers & MOD_CONSTRAINT_SELECT) {
+    if (t->modifiers & (MOD_CONSTRAINT_SELECT | MOD_CONSTRAINT_PLANE)) {
       t->con.mode |= CON_SELECT;
     }
 
@@ -1077,6 +1080,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         }
         break;
       case TFM_MODAL_AUTOCONSTRAINT:
+      case TFM_MODAL_AUTOCONSTRAINTPLANE:
         if ((t->flag & T_NO_CONSTRAINT) == 0) {
           /* exception for switching to dolly, or trackball, in camera view */
           if (t->flag & T_CAMERA) {
@@ -1089,7 +1093,8 @@ int transformEvent(TransInfo *t, const wmEvent *event)
             }
           }
           else {
-            t->modifiers |= MOD_CONSTRAINT_SELECT;
+            t->modifiers |= (event->val == TFM_MODAL_AUTOCONSTRAINT) ? MOD_CONSTRAINT_SELECT :
+                                                                       MOD_CONSTRAINT_PLANE;
             if (t->con.mode & CON_APPLY) {
               stopConstraint(t);
             }
@@ -1201,6 +1206,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         /* Disable modifiers. */
         int modifiers = t->modifiers;
         modifiers &= ~MOD_CONSTRAINT_SELECT;
+        modifiers &= ~MOD_CONSTRAINT_PLANE;
         if (modifiers != t->modifiers) {
           if (t->modifiers & MOD_CONSTRAINT_SELECT) {
             postSelectConstraint(t);
