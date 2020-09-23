@@ -1104,7 +1104,11 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
       bool check_for_needs_mapping = false;
       /* apply vertex coordinates or build a Mesh as necessary */
       if (mesh_final != NULL) {
-        /* pass */
+        if (have_non_onlydeform_modifiers_appled == false) {
+          /* If we only deformed, we won't have initialized #CD_ORIGINDEX.
+           * as this is the only part of the function that initializes mapping. */
+          check_for_needs_mapping = true;
+        }
       }
       else {
         mesh_final = BKE_mesh_copy_for_eval(mesh_input, true);
