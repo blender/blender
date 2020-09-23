@@ -686,7 +686,6 @@ class AddPresetGpencilMaterial(AddPresetBase, Operator):
         "gpcolor.texture_offset",
         "gpcolor.texture_scale",
         "gpcolor.texture_angle",
-        "gpcolor.texture_opacity",
         "gpcolor.texture_clamp",
         "gpcolor.mix_factor",
         "gpcolor.show_stroke",

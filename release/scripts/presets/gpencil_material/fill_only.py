@@ -19,7 +19,6 @@ gpcolor.flip = False
 gpcolor.texture_offset = (0.0, 0.0)
 gpcolor.texture_scale = (1.0, 1.0)
 gpcolor.texture_angle = 0.0
-gpcolor.texture_opacity = 1.0
 gpcolor.texture_clamp = False
 gpcolor.mix_factor = 0.0
 gpcolor.show_stroke = False
