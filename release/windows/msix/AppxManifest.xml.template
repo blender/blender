@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:uap2="http://schemas.microsoft.com/appx/manifest/uap/windows10/2" xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3" xmlns:uap4="http://schemas.microsoft.com/appx/manifest/uap/windows10/4" xmlns:uap6="http://schemas.microsoft.com/appx/manifest/uap/windows10/6" xmlns:uap7="http://schemas.microsoft.com/appx/manifest/uap/windows10/7" xmlns:uap8="http://schemas.microsoft.com/appx/manifest/uap/windows10/8" xmlns:uap10="http://schemas.microsoft.com/appx/manifest/uap/windows10/10" xmlns:mobile="http://schemas.microsoft.com/appx/manifest/mobile/windows10" xmlns:iot="http://schemas.microsoft.com/appx/manifest/iot/windows10" xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10" xmlns:desktop2="http://schemas.microsoft.com/appx/manifest/desktop/windows10/2" xmlns:desktop6="http://schemas.microsoft.com/appx/manifest/desktop/windows10/6" xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities" xmlns:rescap3="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities/3" xmlns:rescap6="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities/6" xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10" xmlns:com2="http://schemas.microsoft.com/appx/manifest/com/windows10/2" xmlns:com3="http://schemas.microsoft.com/appx/manifest/com/windows10/3" IgnorableNamespaces="uap uap2 uap3 uap4 uap6 uap7 uap8 uap10 mobile iot desktop desktop2 desktop6 rescap rescap3 rescap6 com com2 com3">
+  <Identity Name="BlenderFoundation.Blender[PACKAGETYPE]" Publisher="[PUBLISHER]" Version="[VERSION]" ProcessorArchitecture="x64" />
+  <Properties>
+    <DisplayName>Blender[LTSORNOT]</DisplayName>
+    <PublisherDisplayName>Blender Foundation</PublisherDisplayName>
+    <Description>Blender [VERSION] is the Free and Open Source 3D creation suite</Description>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+  <Resources>
+    <Resource Language="en-us" />
+  </Resources>
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.18335.0" />
+  </Dependencies>
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+  <Applications>
+    <Application Id="BLENDER" Executable="Blender\blender.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements
+          BackgroundColor="transparent"
+          DisplayName="Blender [VERSION]"
+          Square150x150Logo="Assets\Square150x150Logo.png"
+          Square44x44Logo="Assets\Square44x44Logo.png"
+          Description="Blender is the Free and Open Source 3D creation suite"
+      >
+        <uap:DefaultTile
+            Wide310x150Logo="Assets\Wide310x150Logo.png"
+            Square310x310Logo="Assets\Square310x310Logo.png"
+            Square71x71Logo="Assets\Square71x71Logo.png"
+            ShortName="Blender [VERSION]"
+        >
+          <uap:ShowNameOnTiles>
+              <uap:ShowOn Tile="square150x150Logo"/> <!-- Show app name on the 150x150 tile -->
+              <uap:ShowOn Tile="wide310x150Logo"/> <!-- …and also on the 310x150 tile -->
+              <uap:ShowOn Tile="square310x310Logo"/> <!-- …and also on the 310x150 tile -->
+          </uap:ShowNameOnTiles>
+        </uap:DefaultTile>
+      </uap:VisualElements>
+      <Extensions>
+        <uap3:Extension Category="windows.fileTypeAssociation">
+          <uap3:FileTypeAssociation Name="blend">
+            <uap:SupportedFileTypes>
+              <uap:FileType>.blend</uap:FileType>
+            </uap:SupportedFileTypes>
+            <uap2:SupportedVerbs>
+              <uap3:Verb Id="open" Parameters="&quot;%1&quot;">open</uap3:Verb>
+            </uap2:SupportedVerbs>
+          </uap3:FileTypeAssociation>
+        </uap3:Extension>
+        <uap3:Extension Category="windows.appExecutionAlias" Executable="Blender\blender.exe" EntryPoint="Windows.FullTrustApplication">
+          <uap3:AppExecutionAlias>
+            <desktop:ExecutionAlias Alias="blender.exe" />
+          </uap3:AppExecutionAlias>
+        </uap3:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+</Package>
