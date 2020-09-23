@@ -382,6 +382,63 @@ bool Session::draw_cpu(BufferParams &buffer_params, DeviceDrawParams &draw_param
   return false;
 }
 
+bool Session::steal_tile(RenderTile &rtile, Device *tile_device, thread_scoped_lock &tile_lock)
+{
+  /* Devices that can get their tiles stolen don't steal tiles themselves.
+   * Additionally, if there are no stealable tiles in flight, give up here. */
+  if (tile_device->info.type == DEVICE_CPU || stealable_tiles == 0) {
+    return false;
+  }
+
+  /* Wait until no other thread is trying to steal a tile. */
+  while (tile_stealing_state != NOT_STEALING && stealable_tiles > 0) {
+    /* Someone else is currently trying to get a tile.
+     * Wait on the condition variable and try later. */
+    tile_steal_cond.wait(tile_lock);
+  }
+  /* If another thread stole the last stealable tile in the meantime, give up. */
+  if (stealable_tiles == 0) {
+    return false;
+  }
+
+  /* There are stealable tiles in flight, so signal that one should be released. */
+  tile_stealing_state = WAITING_FOR_TILE;
+  assert(success == 0);
+
+  /* Wait until a device notices the signal and releases its tile. */
+  while (tile_stealing_state != GOT_TILE && stealable_tiles > 0) {
+    tile_steal_cond.wait(tile_lock);
+  }
+  /* If the last stealable tile finished on its own, give up. */
+  if (tile_stealing_state != GOT_TILE) {
+    tile_stealing_state = NOT_STEALING;
+    return false;
+  }
+
+  /* Successfully stole a tile, now move it to the new device. */
+  rtile = stolen_tile;
+  rtile.buffers->buffer.move_device(tile_device);
+  rtile.buffer = rtile.buffers->buffer.device_pointer;
+  rtile.stealing_state = RenderTile::NO_STEALING;
+  rtile.num_samples -= (rtile.sample - rtile.start_sample);
+  rtile.start_sample = rtile.sample;
+
+  tile_stealing_state = NOT_STEALING;
+
+  /* Poke any threads which might be waiting for NOT_STEALING above. */
+  tile_steal_cond.notify_one();
+
+  return true;
+}
+
+bool Session::get_tile_stolen()
+{
+  /* If tile_stealing_state is WAITING_FOR_TILE, atomically set it to RELEASING_TILE
+   * and return true. */
+  TileStealingState expected = WAITING_FOR_TILE;
+  return tile_stealing_state.compare_exchange_weak(expected, RELEASING_TILE);
+}
+
 bool Session::acquire_tile(RenderTile &rtile, Device *tile_device, uint tile_types)
 {
   if (progress.get_cancel()) {
@@ -403,7 +460,8 @@ bool Session::acquire_tile(RenderTile &rtile, Device *tile_device, uint tile_typ
       denoising_cond.wait(tile_lock);
       continue;
     }
-    return false;
+
+    return steal_tile(rtile, tile_device, tile_lock);
   }
 
   /* fill render tile */
@@ -419,11 +477,18 @@ bool Session::acquire_tile(RenderTile &rtile, Device *tile_device, uint tile_typ
   if (tile->state == Tile::DENOISE) {
     rtile.task = RenderTile::DENOISE;
   }
-  else if (read_bake_tile_cb) {
-    rtile.task = RenderTile::BAKE;
-  }
   else {
-    rtile.task = RenderTile::PATH_TRACE;
+    if (tile_device->info.type == DEVICE_CPU) {
+      stealable_tiles++;
+      rtile.stealing_state = RenderTile::CAN_BE_STOLEN;
+    }
+
+    if (read_bake_tile_cb) {
+      rtile.task = RenderTile::BAKE;
+    }
+    else {
+      rtile.task = RenderTile::PATH_TRACE;
+    }
   }
 
   tile_lock.unlock();
@@ -507,6 +572,26 @@ void Session::update_tile_sample(RenderTile &rtile)
 void Session::release_tile(RenderTile &rtile, const bool need_denoise)
 {
   thread_scoped_lock tile_lock(tile_mutex);
+
+  if (rtile.stealing_state != RenderTile::NO_STEALING) {
+    stealable_tiles--;
+    if (rtile.stealing_state == RenderTile::WAS_STOLEN) {
+      /* If the tile is being stolen, don't release it here - the new device will pick up where
+       * the old one left off. */
+
+      assert(tile_stealing_state == RELEASING_TILE);
+      assert(rtile.sample < rtile.start_sample + rtile.num_samples);
+
+      tile_stealing_state = GOT_TILE;
+      stolen_tile = rtile;
+      tile_steal_cond.notify_all();
+      return;
+    }
+    else if (stealable_tiles == 0) {
+      /* If this was the last stealable tile, wake up any threads still waiting for one. */
+      tile_steal_cond.notify_all();
+    }
+  }
 
   progress.add_finished_tile(rtile.task == RenderTile::DENOISE);
 
@@ -815,6 +900,8 @@ void Session::reset_(BufferParams &buffer_params, int samples)
   }
 
   tile_manager.reset(buffer_params, samples);
+  stealable_tiles = 0;
+  tile_stealing_state = NOT_STEALING;
   progress.reset_sample();
 
   bool show_progress = params.background || tile_manager.get_num_effective_samples() != INT_MAX;
@@ -1075,6 +1162,7 @@ void Session::render(bool need_denoise)
   task.get_cancel = function_bind(&Progress::get_cancel, &this->progress);
   task.update_tile_sample = function_bind(&Session::update_tile_sample, this, _1);
   task.update_progress_sample = function_bind(&Progress::add_samples, &this->progress, _1, _2);
+  task.get_tile_stolen = function_bind(&Session::get_tile_stolen, this);
   task.need_finish_queue = params.progressive_refine;
   task.integrator_branched = scene->integrator->method == Integrator::BRANCHED_PATH;
 

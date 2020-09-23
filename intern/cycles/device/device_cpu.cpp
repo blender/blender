@@ -932,6 +932,11 @@ class CPUDevice : public Device {
           break;
       }
 
+      if (tile.stealing_state == RenderTile::CAN_BE_STOLEN && task.get_tile_stolen()) {
+        tile.stealing_state = RenderTile::WAS_STOLEN;
+        break;
+      }
+
       if (tile.task == RenderTile::PATH_TRACE) {
         for (int y = tile.y; y < tile.y + tile.h; y++) {
           for (int x = tile.x; x < tile.x + tile.w; x++) {

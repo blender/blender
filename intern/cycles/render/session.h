@@ -193,6 +193,8 @@ class Session {
 
   bool render_need_denoise(bool &delayed);
 
+  bool steal_tile(RenderTile &tile, Device *tile_device, thread_scoped_lock &tile_lock);
+  bool get_tile_stolen();
   bool acquire_tile(RenderTile &tile, Device *tile_device, uint tile_types);
   void update_tile_sample(RenderTile &tile);
   void release_tile(RenderTile &tile, const bool need_denoise);
@@ -217,10 +219,21 @@ class Session {
   thread_mutex buffers_mutex;
   thread_mutex display_mutex;
   thread_condition_variable denoising_cond;
+  thread_condition_variable tile_steal_cond;
 
   double reset_time;
   double last_update_time;
   double last_display_time;
+
+  RenderTile stolen_tile;
+  typedef enum {
+    NOT_STEALING,     /* There currently is no tile stealing in progress. */
+    WAITING_FOR_TILE, /* A device is waiting for another device to release a tile. */
+    RELEASING_TILE,   /* A device has releasing a stealable tile. */
+    GOT_TILE /* A device has released a stealable tile, which is now stored in stolen_tile. */
+  } TileStealingState;
+  std::atomic<TileStealingState> tile_stealing_state;
+  int stealable_tiles;
 
   /* progressive refine */
   bool update_progressive_refine(bool cancel);

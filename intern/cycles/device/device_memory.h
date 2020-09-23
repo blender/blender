@@ -450,6 +450,14 @@ template<typename T> class device_vector : public device_memory {
     device_zero();
   }
 
+  void move_device(Device *new_device)
+  {
+    copy_from_device();
+    device_free();
+    device = new_device;
+    copy_to_device();
+  }
+
  protected:
   size_t size(size_t width, size_t height, size_t depth)
   {

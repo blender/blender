@@ -146,6 +146,9 @@ class RenderTile {
   device_ptr buffer;
   int device_size;
 
+  typedef enum { NO_STEALING = 0, CAN_BE_STOLEN = 1, WAS_STOLEN = 2 } StealingState;
+  StealingState stealing_state;
+
   RenderBuffers *buffers;
 
   RenderTile();
