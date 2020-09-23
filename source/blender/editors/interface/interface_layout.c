@@ -5338,7 +5338,9 @@ bool UI_block_apply_search_filter(uiBlock *block)
   block_search_remove_search_only_roots(block);
 
   if (block->panel != NULL) {
-    ui_panel_set_search_filter_match(block->panel, has_result);
+    if (has_result) {
+      ui_panel_tag_search_filter_match(block->panel);
+    }
   }
 
   if (!panel_label_matches) {
