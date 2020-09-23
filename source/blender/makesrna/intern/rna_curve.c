@@ -1542,18 +1542,18 @@ static void rna_def_curve(BlenderRNA *brna)
        "RESOLUTION",
        0,
        "Resolution",
-       "Map the bevel factor to the number of subdivisions of a spline (U resolution)"},
+       "Map the geometry factor to the number of subdivisions of a spline (U resolution)"},
       {CU_BEVFAC_MAP_SEGMENT,
        "SEGMENTS",
        0,
        "Segments",
-       "Map the bevel factor to the length of a segment and to the number of subdivisions of a "
+       "Map the geometry factor to the length of a segment and to the number of subdivisions of a "
        "segment"},
       {CU_BEVFAC_MAP_SPLINE,
        "SPLINE",
        0,
        "Spline",
-       "Map the bevel factor to the length of a spline"},
+       "Map the geometry factor to the length of a spline"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -1753,14 +1753,14 @@ static void rna_def_curve(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "bevfac1_mapping");
   RNA_def_property_enum_items(prop, bevfac_mapping_items);
   RNA_def_property_ui_text(
-      prop, "Start Mapping Type", "Determines how the start bevel factor is mapped to a spline");
+      prop, "Start Mapping Type", "Determine how the geometry start factor is mapped to a spline");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   prop = RNA_def_property(srna, "bevel_factor_mapping_end", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "bevfac2_mapping");
   RNA_def_property_enum_items(prop, bevfac_mapping_items);
   RNA_def_property_ui_text(
-      prop, "End Mapping Type", "Determines how the end bevel factor is mapped to a spline");
+      prop, "End Mapping Type", "Determine how the geometry end factor is mapped to a spline");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   /* XXX - would be nice to have a better way to do this, only add for testing. */
@@ -1827,18 +1827,18 @@ static void rna_def_curve(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "bevfac1");
   RNA_def_property_range(prop, 0, 1.0);
   RNA_def_property_ui_text(prop,
-                           "Start Bevel Factor",
-                           "Factor that defines from where beveling of spline happens (0=from the "
-                           "very beginning, 1=from the very end)");
+                           "Geometry Start Factor",
+                           "Define where along the spline the curve geometry starts (0 for the "
+                           "beginning, 1 for the end)");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   prop = RNA_def_property(srna, "bevel_factor_end", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "bevfac2");
   RNA_def_property_range(prop, 0, 1.0);
   RNA_def_property_ui_text(prop,
-                           "End Bevel Factor",
-                           "Factor that defines to where beveling of spline happens (0=to the "
-                           "very beginning, 1=to the very end)");
+                           "Geometry End Factor",
+                           "Define where along the spline the curve geometry ends (0 for the "
+                           "beginning, 1 for the end)");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   prop = RNA_def_property(srna, "is_editmode", PROP_BOOLEAN, PROP_NONE);
