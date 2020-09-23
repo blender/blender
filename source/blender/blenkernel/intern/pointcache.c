@@ -73,10 +73,6 @@
 #  include "RBI_api.h"
 #endif
 
-#ifdef WITH_OPENVDB
-#  include "openvdb_capi.h"
-#endif
-
 #ifdef WITH_LZO
 #  ifdef WITH_SYSTEM_LZO
 #    include <lzo/lzo1x.h>
@@ -883,9 +879,6 @@ void BKE_ptcache_id_from_softbody(PTCacheID *pid, Object *ob, SoftBody *sb)
   pid->write_stream = NULL;
   pid->read_stream = NULL;
 
-  pid->write_openvdb_stream = NULL;
-  pid->read_openvdb_stream = NULL;
-
   pid->write_extra_data = NULL;
   pid->read_extra_data = NULL;
   pid->interpolate_extra_data = NULL;
@@ -928,9 +921,6 @@ void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *p
 
   pid->write_stream = NULL;
   pid->read_stream = NULL;
-
-  pid->write_openvdb_stream = NULL;
-  pid->read_openvdb_stream = NULL;
 
   pid->write_extra_data = NULL;
   pid->read_extra_data = NULL;
@@ -984,9 +974,6 @@ void BKE_ptcache_id_from_cloth(PTCacheID *pid, Object *ob, ClothModifierData *cl
   pid->write_point = ptcache_cloth_write;
   pid->read_point = ptcache_cloth_read;
   pid->interpolate_point = ptcache_cloth_interpolate;
-
-  pid->write_openvdb_stream = NULL;
-  pid->read_openvdb_stream = NULL;
 
   pid->write_stream = NULL;
   pid->read_stream = NULL;
@@ -1047,9 +1034,6 @@ void BKE_ptcache_id_from_dynamicpaint(PTCacheID *pid, Object *ob, DynamicPaintSu
   pid->write_stream = ptcache_dynamicpaint_write;
   pid->read_stream = ptcache_dynamicpaint_read;
 
-  pid->write_openvdb_stream = NULL;
-  pid->read_openvdb_stream = NULL;
-
   pid->write_extra_data = NULL;
   pid->read_extra_data = NULL;
   pid->interpolate_extra_data = NULL;
@@ -1087,9 +1071,6 @@ void BKE_ptcache_id_from_rigidbody(PTCacheID *pid, Object *ob, RigidBodyWorld *r
 
   pid->write_stream = NULL;
   pid->read_stream = NULL;
-
-  pid->write_openvdb_stream = NULL;
-  pid->read_openvdb_stream = NULL;
 
   pid->write_extra_data = NULL;
   pid->read_extra_data = NULL;
@@ -1299,8 +1280,6 @@ static const char *ptcache_file_extension(const PTCacheID *pid)
     default:
     case PTCACHE_FILE_PTCACHE:
       return PTCACHE_EXT;
-    case PTCACHE_FILE_OPENVDB:
-      return ".vdb";
   }
 }
 
@@ -2150,36 +2129,6 @@ static int ptcache_read_stream(PTCacheID *pid, int cfra)
   return error == 0;
 }
 
-static int ptcache_read_openvdb_stream(PTCacheID *pid, int cfra)
-{
-#ifdef WITH_OPENVDB
-  char filename[FILE_MAX * 2];
-
-  /* save blend file before using disk pointcache */
-  if (!G.relbase_valid && (pid->cache->flag & PTCACHE_EXTERNAL) == 0) {
-    return 0;
-  }
-
-  ptcache_filename(pid, filename, cfra, 1, 1);
-
-  if (!BLI_exists(filename)) {
-    return 0;
-  }
-
-  struct OpenVDBReader *reader = OpenVDBReader_create();
-  OpenVDBReader_open(reader, filename);
-
-  if (!pid->read_openvdb_stream(reader, pid->calldata)) {
-    return 0;
-  }
-
-  return 1;
-#else
-  UNUSED_VARS(pid, cfra);
-  return 0;
-#endif
-}
-
 static int ptcache_read(PTCacheID *pid, int cfra)
 {
   PTCacheMem *pm = NULL;
@@ -2340,12 +2289,7 @@ int BKE_ptcache_read(PTCacheID *pid, float cfra, bool no_extrapolate_old)
   }
 
   if (cfra1) {
-    if (pid->file_type == PTCACHE_FILE_OPENVDB && pid->read_openvdb_stream) {
-      if (!ptcache_read_openvdb_stream(pid, cfra1)) {
-        return 0;
-      }
-    }
-    else if (pid->read_stream) {
+    if (pid->read_stream) {
       if (!ptcache_read_stream(pid, cfra1)) {
         return 0;
       }
@@ -2356,12 +2300,7 @@ int BKE_ptcache_read(PTCacheID *pid, float cfra, bool no_extrapolate_old)
   }
 
   if (cfra2) {
-    if (pid->file_type == PTCACHE_FILE_OPENVDB && pid->read_openvdb_stream) {
-      if (!ptcache_read_openvdb_stream(pid, cfra2)) {
-        return 0;
-      }
-    }
-    else if (pid->read_stream) {
+    if (pid->read_stream) {
       if (!ptcache_read_stream(pid, cfra2)) {
         return 0;
       }
@@ -2436,28 +2375,7 @@ static int ptcache_write_stream(PTCacheID *pid, int cfra, int totpoint)
 
   return error == 0;
 }
-static int ptcache_write_openvdb_stream(PTCacheID *pid, int cfra)
-{
-#ifdef WITH_OPENVDB
-  struct OpenVDBWriter *writer = OpenVDBWriter_create();
-  char filename[FILE_MAX * 2];
 
-  BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_FRAME, cfra);
-
-  ptcache_filename(pid, filename, cfra, 1, 1);
-  BLI_make_existing_file(filename);
-
-  int error = pid->write_openvdb_stream(writer, pid->calldata);
-
-  OpenVDBWriter_write(writer, filename);
-  OpenVDBWriter_free(writer);
-
-  return error == 0;
-#else
-  UNUSED_VARS(pid, cfra);
-  return 0;
-#endif
-}
 static int ptcache_write(PTCacheID *pid, int cfra, int overwrite)
 {
   PointCache *cache = pid->cache;
@@ -2598,10 +2516,7 @@ int BKE_ptcache_write(PTCacheID *pid, unsigned int cfra)
     return 0;
   }
 
-  if (pid->file_type == PTCACHE_FILE_OPENVDB && pid->write_openvdb_stream) {
-    ptcache_write_openvdb_stream(pid, cfra);
-  }
-  else if (pid->write_stream) {
+  if (pid->write_stream) {
     ptcache_write_stream(pid, cfra, totpoint);
   }
   else if (pid->write_point) {
