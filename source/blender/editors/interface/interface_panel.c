@@ -1673,7 +1673,7 @@ static int find_highest_panel(const void *a, const void *b)
   if (panel_a->type->flag & PNL_NO_HEADER) {
     return -1;
   }
-  if (panel_a->type->flag & PNL_NO_HEADER) {
+  if (panel_b->type->flag & PNL_NO_HEADER) {
     return 1;
   }
 
