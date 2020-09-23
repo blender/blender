@@ -669,6 +669,42 @@ bool BKE_lib_override_library_create(
 }
 
 /**
+ * Converts a given proxy object into a library override.
+ *
+ * \note This is actually a thin wrapper around \a BKE_lib_override_library_create, only extra work
+ * is to actually convert the proxy itself into an override first.
+ *
+ * \return true if override was successfully created.
+ */
+bool BKE_lib_override_library_proxy_convert(Main *bmain,
+                                            Scene *scene,
+                                            ViewLayer *view_layer,
+                                            Object *ob_proxy)
+{
+  /* proxy_group, if defined, is the empty instanciating the collection from which the proxy is
+   * coming. */
+  Object *ob_proxy_group = ob_proxy->proxy_group;
+  const bool is_override_instancing_object = ob_proxy_group != NULL;
+  ID *id_root = is_override_instancing_object ? &ob_proxy_group->instance_collection->id :
+                                                &ob_proxy->proxy->id;
+  ID *id_reference = is_override_instancing_object ? &ob_proxy_group->id : &ob_proxy->id;
+
+  /* We manually convert the proxy object into a library override, further override handling will
+   * then be handled by BKE_lib_override_library_create() just as for a regular override creation.
+   */
+  ob_proxy->proxy->id.tag |= LIB_TAG_DOIT;
+  ob_proxy->proxy->id.newid = &ob_proxy->id;
+  BKE_lib_override_library_init(&ob_proxy->id, &ob_proxy->proxy->id);
+
+  ob_proxy->proxy->proxy_from = NULL;
+  ob_proxy->proxy = ob_proxy->proxy_group = NULL;
+
+  DEG_id_tag_update(&ob_proxy->id, ID_RECALC_COPY_ON_WRITE);
+
+  return BKE_lib_override_library_create(bmain, scene, view_layer, id_root, id_reference);
+}
+
+/**
  * Advanced 'smart' function to resync, re-create fully functional overrides up-to-date with linked
  * data, from an existing override hierarchy.
  *

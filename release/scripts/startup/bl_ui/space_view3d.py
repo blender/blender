@@ -2191,6 +2191,8 @@ class VIEW3D_MT_object_relations(Menu):
 
         layout.operator("object.make_override_library", text="Make Library Override...")
 
+        layout.operator("object.convert_proxy_to_override")
+
         layout.operator("object.make_dupli_face")
 
         layout.separator()

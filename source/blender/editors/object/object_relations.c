@@ -2490,6 +2490,54 @@ void OBJECT_OT_make_override_library(wmOperatorType *ot)
   ot->prop = prop;
 }
 
+static bool convert_proxy_to_override_poll(bContext *C)
+{
+  Object *obact = CTX_data_active_object(C);
+
+  return obact != NULL && obact->proxy != NULL;
+}
+
+static int convert_proxy_to_override_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+
+  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+
+  Object *ob_proxy = CTX_data_active_object(C);
+  Object *ob_proxy_group = ob_proxy->proxy_group;
+  const bool is_override_instancing_object = ob_proxy_group != NULL;
+
+  const bool success = BKE_lib_override_library_proxy_convert(bmain, scene, view_layer, ob_proxy);
+
+  /* Remove the instance empty from this scene, the items now have an overridden collection
+   * instead. */
+  if (success && is_override_instancing_object) {
+    ED_object_base_free_and_unlink(bmain, scene, ob_proxy_group);
+  }
+
+  DEG_id_tag_update(&CTX_data_scene(C)->id, ID_RECALC_BASE_FLAGS | ID_RECALC_COPY_ON_WRITE);
+  WM_event_add_notifier(C, NC_WINDOW, NULL);
+
+  return success ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+}
+
+void OBJECT_OT_convert_proxy_to_override(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Convert Proxy To Override";
+  ot->description = "Convert a proxy to a local library override";
+  ot->idname = "OBJECT_OT_convert_proxy_to_override";
+
+  /* api callbacks */
+  ot->exec = convert_proxy_to_override_exec;
+  ot->poll = convert_proxy_to_override_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /** \} */
 
 /* ------------------------------------------------------------------- */
