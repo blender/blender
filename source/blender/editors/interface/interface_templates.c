@@ -2051,8 +2051,8 @@ void uiTemplateConstraints(uiLayout *UNUSED(layout), bContext *C, bool use_bone_
   if (use_bone_constraints) {
     constraints = ED_object_pose_constraint_list(C);
   }
-  else {
-    constraints = ED_object_constraint_active_list(ob);
+  else if (ob != NULL) {
+    constraints = &ob->constraints;
   }
 
   /* Switch between the bone panel ID function and the object panel ID function. */
