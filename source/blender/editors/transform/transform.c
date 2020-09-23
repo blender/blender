@@ -1208,7 +1208,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         modifiers &= ~MOD_CONSTRAINT_SELECT;
         modifiers &= ~MOD_CONSTRAINT_PLANE;
         if (modifiers != t->modifiers) {
-          if (t->modifiers & MOD_CONSTRAINT_SELECT) {
+          if (t->modifiers & (MOD_CONSTRAINT_SELECT | MOD_CONSTRAINT_PLANE)) {
             postSelectConstraint(t);
           }
           t->modifiers = modifiers;
