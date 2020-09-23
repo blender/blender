@@ -820,7 +820,7 @@ BLI_INLINE void apply_effector_fields(FluidEffectorSettings *UNUSED(fes),
                                       float *dest_phi_in,
                                       float src_numobjs_value,
                                       float *dest_numobjs,
-                                      float src_vel_value[3],
+                                      float const src_vel_value[3],
                                       float *dest_vel_x,
                                       float *dest_vel_y,
                                       float *dest_vel_z)
