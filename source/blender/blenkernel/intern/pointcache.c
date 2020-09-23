@@ -73,11 +73,6 @@
 #  include "RBI_api.h"
 #endif
 
-/* both in intern */
-#ifdef WITH_SMOKE
-#  include "smoke_API.h"
-#endif
-
 #ifdef WITH_OPENVDB
 #  include "openvdb_capi.h"
 #endif
@@ -656,23 +651,6 @@ static void ptcache_cloth_error(void *cloth_v, const char *message)
   ClothModifierData *clmd = cloth_v;
   BKE_modifier_set_error(&clmd->modifier, "%s", message);
 }
-
-#ifdef WITH_SMOKE
-/* Smoke functions */
-static int ptcache_smoke_totpoint(void *smoke_v, int UNUSED(cfra))
-{
-  FluidModifierData *fmd = (FluidModifierData *)smoke_v;
-  FluidDomainSettings *fds = fmd->domain;
-
-  if (fds->fluid) {
-    return fds->base_res[0] * fds->base_res[1] * fds->base_res[2];
-  }
-  else {
-    return 0;
-  }
-}
-
-#endif
 
 static int ptcache_dynamicpaint_totpoint(void *sd, int UNUSED(cfra))
 {
