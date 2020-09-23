@@ -1085,7 +1085,9 @@ static void obstacles_from_mesh(Object *coll_ob,
       res[i] = bb->res[i];
     }
 
-    if (BKE_bvhtree_from_mesh_get(&tree_data, me, BVHTREE_FROM_LOOPTRI, 4)) {
+    /* Skip effector sampling loop if object has disabled effector. */
+    bool use_effector = fes->flags & FLUID_EFFECTOR_USE_EFFEC;
+    if (use_effector && BKE_bvhtree_from_mesh_get(&tree_data, me, BVHTREE_FROM_LOOPTRI, 4)) {
 
       ObstaclesFromDMData data = {
           .fes = fes,
@@ -1174,12 +1176,10 @@ static void update_obstacleflags(FluidDomainSettings *fds,
 
 static bool escape_effectorobject(Object *flowobj,
                                   FluidDomainSettings *fds,
-                                  FluidEffectorSettings *fes,
+                                  FluidEffectorSettings *UNUSED(fes),
                                   int frame)
 {
   bool is_static = is_static_object(flowobj);
-
-  bool use_effector = (fes->flags & FLUID_EFFECTOR_USE_EFFEC);
 
   bool is_resume = (fds->cache_frame_pause_data == frame);
   bool is_adaptive = (fds->flags & FLUID_DOMAIN_USE_ADAPTIVE_DOMAIN);
@@ -1189,10 +1189,6 @@ static bool escape_effectorobject(Object *flowobj,
    * The adaptive domain might expand and only later discover the static object. */
   if (is_adaptive) {
     is_static = false;
-  }
-  /* Skip flow objects with disabled inflow flag. */
-  if (!use_effector) {
-    return true;
   }
   /* Skip static effector objects after initial frame. */
   if (is_static && !is_first_frame && !is_resume) {
@@ -2163,7 +2159,9 @@ static void emit_from_mesh(
       res[i] = bb->res[i];
     }
 
-    if (BKE_bvhtree_from_mesh_get(&tree_data, me, BVHTREE_FROM_LOOPTRI, 4)) {
+    /* Skip flow sampling loop if object has disabled flow. */
+    bool use_flow = ffs->flags & FLUID_FLOW_USE_INFLOW;
+    if (use_flow && BKE_bvhtree_from_mesh_get(&tree_data, me, BVHTREE_FROM_LOOPTRI, 4)) {
 
       EmitFromDMData data = {
           .fds = fds,
@@ -2706,9 +2704,6 @@ static bool escape_flowsobject(Object *flowobj,
   bool gas_flow = (ffs->type == FLUID_FLOW_TYPE_SMOKE || ffs->type == FLUID_FLOW_TYPE_FIRE ||
                    ffs->type == FLUID_FLOW_TYPE_SMOKEFIRE);
   bool is_geometry = (ffs->behavior == FLUID_FLOW_BEHAVIOR_GEOMETRY);
-  bool is_inflow = (ffs->behavior == FLUID_FLOW_BEHAVIOR_INFLOW);
-  bool is_outflow = (ffs->behavior == FLUID_FLOW_BEHAVIOR_OUTFLOW);
-  bool use_flow = (ffs->flags & FLUID_FLOW_USE_INFLOW);
 
   bool liquid_domain = fds->type == FLUID_DOMAIN_TYPE_LIQUID;
   bool gas_domain = fds->type == FLUID_DOMAIN_TYPE_GAS;
@@ -2720,10 +2715,6 @@ static bool escape_flowsobject(Object *flowobj,
    * The adaptive domain might expand and only later discover the static object. */
   if (is_adaptive) {
     is_static = false;
-  }
-  /* Skip flow objects with disabled inflow flag. */
-  if ((is_inflow || is_outflow) && !use_flow) {
-    return true;
   }
   /* No need to compute emission value if it won't be applied. */
   if (liquid_flow && is_geometry && !is_first_frame) {
