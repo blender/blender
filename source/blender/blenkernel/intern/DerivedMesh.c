@@ -1101,31 +1101,27 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
       BKE_modifier_deform_verts(md, &mectx, mesh_final, deformed_verts, num_deformed_verts);
     }
     else {
-      have_non_onlydeform_modifiers_appled = true;
-
-      /* determine which data layers are needed by following modifiers */
-      CustomData_MeshMasks nextmask;
-      if (md_datamask->next) {
-        nextmask = md_datamask->next->mask;
-      }
-      else {
-        nextmask = final_datamask;
-      }
-
+      bool check_for_needs_mapping = false;
       /* apply vertex coordinates or build a Mesh as necessary */
-      if (mesh_final) {
-        if (deformed_verts) {
-          BKE_mesh_vert_coords_apply(mesh_final, deformed_verts);
-        }
+      if (mesh_final != NULL) {
+        /* pass */
       }
       else {
         mesh_final = BKE_mesh_copy_for_eval(mesh_input, true);
         ASSERT_IS_VALID_MESH(mesh_final);
+        check_for_needs_mapping = true;
+      }
 
-        if (deformed_verts) {
-          BKE_mesh_vert_coords_apply(mesh_final, deformed_verts);
-        }
+      if (deformed_verts) {
+        BKE_mesh_vert_coords_apply(mesh_final, deformed_verts);
+      }
 
+      have_non_onlydeform_modifiers_appled = true;
+
+      /* determine which data layers are needed by following modifiers */
+      CustomData_MeshMasks nextmask = md_datamask->next ? md_datamask->next->mask : final_datamask;
+
+      if (check_for_needs_mapping) {
         /* Initialize original indices the first time we evaluate a
          * constructive modifier. Modifiers will then do mapping mostly
          * automatic by copying them through CustomData_copy_data along
