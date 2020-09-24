@@ -1978,12 +1978,11 @@ typedef struct WeldModifierData {
 
   /* The limit below which to merge vertices. */
   float merge_dist;
-  unsigned int max_interactions;
   /* Name of vertex group to use to mask, MAX_VGROUP_NAME. */
   char defgrp_name[64];
 
   short flag;
-  char _pad[6];
+  char _pad[2];
 } WeldModifierData;
 
 /* WeldModifierData->flag */
