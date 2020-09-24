@@ -1004,23 +1004,23 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
           &result->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, result->totvert);
     }
     /* Ultimate security check. */
-    if (!dvert) {
-      return result;
-    }
-    result->dvert = dvert;
+    if (dvert != NULL) {
+      result->dvert = dvert;
 
-    if (rim_defgrp_index != -1) {
-      for (uint i = 0; i < rimVerts; i++) {
-        BKE_defvert_ensure_index(&result->dvert[new_vert_arr[i]], rim_defgrp_index)->weight = 1.0f;
-        BKE_defvert_ensure_index(&result->dvert[(do_shell ? new_vert_arr[i] : i) + numVerts],
-                                 rim_defgrp_index)
-            ->weight = 1.0f;
+      if (rim_defgrp_index != -1) {
+        for (uint i = 0; i < rimVerts; i++) {
+          BKE_defvert_ensure_index(&result->dvert[new_vert_arr[i]], rim_defgrp_index)->weight =
+              1.0f;
+          BKE_defvert_ensure_index(&result->dvert[(do_shell ? new_vert_arr[i] : i) + numVerts],
+                                   rim_defgrp_index)
+              ->weight = 1.0f;
+        }
       }
-    }
 
-    if (shell_defgrp_index != -1) {
-      for (uint i = numVerts; i < result->totvert; i++) {
-        BKE_defvert_ensure_index(&result->dvert[i], shell_defgrp_index)->weight = 1.0f;
+      if (shell_defgrp_index != -1) {
+        for (uint i = numVerts; i < result->totvert; i++) {
+          BKE_defvert_ensure_index(&result->dvert[i], shell_defgrp_index)->weight = 1.0f;
+        }
       }
     }
   }
