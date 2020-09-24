@@ -222,7 +222,8 @@ bool graphop_editable_keyframes_poll(bContext *C)
      * - F-Curve modifiers do not interfere with the result too much
      *   (i.e. the modifier-control drawing check returns false)
      */
-    if (fcu->bezt == NULL) {
+    if (fcu->bezt == NULL && fcu->fpt != NULL) {
+      /* This is a baked curve, it is never editable. */
       continue;
     }
     if (BKE_fcurve_is_keyframable(fcu)) {
