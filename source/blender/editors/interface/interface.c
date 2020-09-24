@@ -3594,11 +3594,6 @@ void UI_block_set_search_only(uiBlock *block, bool search_only)
   SET_FLAG_FROM_TEST(block->flag, search_only, UI_BLOCK_SEARCH_ONLY);
 }
 
-void UI_block_set_search_filter(uiBlock *block, const char *search_filter)
-{
-  block->search_filter = search_filter;
-}
-
 static void ui_but_build_drawstr_float(uiBut *but, double value)
 {
   size_t slen = 0;

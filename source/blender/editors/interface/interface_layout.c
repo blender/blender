@@ -5161,10 +5161,10 @@ void uiLayoutRootSetSearchOnly(uiLayout *layout, bool search_only)
 /* Disabled for performance reasons, but this could be turned on in the future. */
 // #define PROPERTY_SEARCH_USE_TOOLTIPS
 
-static bool block_search_panel_label_matches(const uiBlock *block)
+static bool block_search_panel_label_matches(const uiBlock *block, const char *search_string)
 {
   if ((block->panel != NULL) && (block->panel->type != NULL)) {
-    if (BLI_strcasestr(block->panel->type->label, block->search_filter)) {
+    if (BLI_strcasestr(block->panel->type->label, search_string)) {
       return true;
     }
   }
@@ -5294,12 +5294,12 @@ static bool button_group_has_search_match(uiButtonGroup *button_group, const cha
  *
  * \return True if the block has any search results.
  */
-static bool block_search_filter_tag_buttons(uiBlock *block)
+static bool block_search_filter_tag_buttons(uiBlock *block, const char *search_filter)
 {
   bool has_result = false;
   LISTBASE_FOREACH (uiLayoutRoot *, root, &block->layouts) {
     LISTBASE_FOREACH (uiButtonGroup *, button_group, &root->button_groups) {
-      if (button_group_has_search_match(button_group, block->search_filter)) {
+      if (button_group_has_search_match(button_group, search_filter)) {
         LISTBASE_FOREACH (LinkData *, link, &button_group->buttons) {
           uiBut *but = link->data;
           but->flag |= UI_SEARCH_FILTER_MATCHES;
@@ -5325,15 +5325,17 @@ static void block_search_deactivate_buttons(uiBlock *block)
  *
  * \note Must not be run after #UI_block_layout_resolve.
  */
-bool UI_block_apply_search_filter(uiBlock *block)
+bool UI_block_apply_search_filter(uiBlock *block, const char *search_filter)
 {
-  if (!(block->search_filter && block->search_filter[0])) {
+  if (search_filter == NULL || search_filter[0] == '\0') {
     return false;
   }
 
-  const bool panel_label_matches = block_search_panel_label_matches(block);
+  const bool panel_label_matches = block_search_panel_label_matches(block, search_filter);
 
-  const bool has_result = panel_label_matches ? true : block_search_filter_tag_buttons(block);
+  const bool has_result = (panel_label_matches) ?
+                              true :
+                              block_search_filter_tag_buttons(block, search_filter);
 
   block_search_remove_search_only_roots(block);
 
