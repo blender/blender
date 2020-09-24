@@ -70,7 +70,7 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::resizeComponentTopology
   // not see any edges, which will indicate to it that winding and edges are to
   // be reconstructed).
   //
-  // NOTE: it is a possible usecase when user code does not need crease at all
+  // NOTE: it is a possible use case when user code does not need crease at all
   // (which is the only real reason why converter would want to provide edges in
   // the case of partial topology specification). So it might be so getNumEdges
   // callback is nullptr.

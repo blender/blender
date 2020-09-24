@@ -290,7 +290,7 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain)
     reference_id = todo_id_iter->data;
     if (reference_id->newid == NULL) {
       /* If newid is already set, assume it has been handled by calling code.
-       * Only current usecase: re-using proxy ID when converting to liboverride. */
+       * Only current use case: re-using proxy ID when converting to liboverride. */
       if ((reference_id->newid = lib_override_library_create_from(bmain, reference_id)) == NULL) {
         success = false;
         break;
@@ -426,9 +426,9 @@ void BKE_lib_override_library_dependencies_tag(Main *bmain,
     BKE_main_relations_create(bmain, 0);
   }
 
-  /* We tag all intermediary data-blocks in-between two overridden ones (e.g. if a shapekey
-   * has a driver using an armature object's bone, we need to override the shapekey/obdata, the
-   * objects using them, etc.) */
+  /* We tag all intermediary data-blocks in-between two overridden ones (e.g. if a shape-key
+   * has a driver using an armature object's bone, we need to override the shape-key/obdata,
+   * the objects using them, etc.) */
   lib_override_hierarchy_recursive_tag(bmain, id_root, tag, NULL);
 
   BKE_main_relations_free(bmain);
@@ -681,7 +681,7 @@ bool BKE_lib_override_library_proxy_convert(Main *bmain,
                                             ViewLayer *view_layer,
                                             Object *ob_proxy)
 {
-  /* proxy_group, if defined, is the empty instanciating the collection from which the proxy is
+  /* proxy_group, if defined, is the empty instantiating the collection from which the proxy is
    * coming. */
   Object *ob_proxy_group = ob_proxy->proxy_group;
   const bool is_override_instancing_object = ob_proxy_group != NULL;
@@ -1761,9 +1761,9 @@ void BKE_lib_override_library_main_update(Main *bmain)
 {
   ID *id;
 
-  /* This temporary swap of G_MAIN is rather ugly, but neessary to avoid asserts checks in some RNA
-   * assignement functions, since those always use on G_MAIN when they need acces to a Main
-   * database. */
+  /* This temporary swap of G_MAIN is rather ugly,
+   * but necessary to avoid asserts checks in some RNA assignment functions,
+   * since those always use on G_MAIN when they need access to a Main database. */
   Main *orig_gmain = G_MAIN;
   G_MAIN = bmain;
 

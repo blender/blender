@@ -73,11 +73,11 @@ typedef struct IDRemap {
 
   /* 'Output' data. */
   short status;
-  /** Number of direct usecases that could not be remapped (e.g.: obdata when in edit mode). */
+  /** Number of direct use cases that could not be remapped (e.g.: obdata when in edit mode). */
   int skipped_direct;
-  /** Number of indirect usecases that could not be remapped. */
+  /** Number of indirect use cases that could not be remapped. */
   int skipped_indirect;
-  /** Number of skipped usecases that refcount the datablock. */
+  /** Number of skipped use cases that refcount the data-block. */
   int skipped_refcounted;
 } IDRemap;
 

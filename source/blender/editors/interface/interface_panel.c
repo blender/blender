@@ -1903,7 +1903,7 @@ static void panels_layout_begin_clear_flags(ListBase *lb)
 void UI_panels_begin(const bContext *UNUSED(C), ARegion *region)
 {
   /* Set all panels as inactive, so that at the end we know which ones were used. Also
-   * clear other flags so we know later that their values were set for th current redraw. */
+   * clear other flags so we know later that their values were set for the current redraw. */
   panels_layout_begin_clear_flags(&region->panels);
 }
 
