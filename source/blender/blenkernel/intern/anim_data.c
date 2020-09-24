@@ -180,17 +180,14 @@ bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
 {
   AnimData *adt = BKE_animdata_from_id(id);
 
-  /* animdata validity check */
+  /* Animdata validity check. */
   if (adt == NULL) {
     BKE_report(reports, RPT_WARNING, "No AnimData to set action on");
     return false;
   }
 
-  /* active action is only editable when it is not a tweaking strip
-   * see rna_AnimData_action_editable() in rna_animation.c
-   */
-  if ((adt->flag & ADT_NLA_EDIT_ON) || (adt->actstrip) || (adt->tmpact)) {
-    /* cannot remove, otherwise things turn to custard */
+  if (!BKE_animdata_action_editable(adt)) {
+    /* Cannot remove, otherwise things turn to custard. */
     BKE_report(reports, RPT_ERROR, "Cannot change action, as it is still being edited in NLA");
     return false;
   }
@@ -199,8 +196,6 @@ bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
   if (adt->action) {
     id_us_min((ID *)adt->action);
   }
-
-  /* Assume that AnimData's action can in fact be edited. */
 
   if (act == NULL) {
     /* Just clearing the action. */
@@ -225,6 +220,14 @@ bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
   id_us_plus((ID *)adt->action);
 
   return true;
+}
+
+bool BKE_animdata_action_editable(const AnimData *adt)
+{
+  /* Active action is only editable when it is not a tweaking strip. */
+  const bool is_tweaking_strip = (adt->flag & ADT_NLA_EDIT_ON) || adt->actstrip != NULL ||
+                                 adt->tmpact != NULL;
+  return !is_tweaking_strip;
 }
 
 /* Freeing -------------------------------------------- */

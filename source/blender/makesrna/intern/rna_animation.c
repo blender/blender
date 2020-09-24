@@ -144,14 +144,7 @@ static void rna_AnimData_dependency_update(Main *bmain, Scene *scene, PointerRNA
 static int rna_AnimData_action_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 {
   AnimData *adt = (AnimData *)ptr->data;
-
-  /* active action is only editable when it is not a tweaking strip */
-  if ((adt->flag & ADT_NLA_EDIT_ON) || (adt->actstrip) || (adt->tmpact)) {
-    return 0;
-  }
-  else {
-    return PROP_EDITABLE;
-  }
+  return BKE_animdata_action_editable(adt) ? PROP_EDITABLE : 0;
 }
 
 static void rna_AnimData_action_set(PointerRNA *ptr,

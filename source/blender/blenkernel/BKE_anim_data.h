@@ -56,6 +56,8 @@ struct AnimData *BKE_animdata_add_id(struct ID *id);
 /* Set active action used by AnimData from the given ID-block */
 bool BKE_animdata_set_action(struct ReportList *reports, struct ID *id, struct bAction *act);
 
+bool BKE_animdata_action_editable(const struct AnimData *adt);
+
 /* Free AnimData */
 void BKE_animdata_free(struct ID *id, const bool do_id_user);
 
