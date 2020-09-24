@@ -975,9 +975,9 @@ static void rna_property_override_apply_ex(Main *bmain,
                                                ptr_item_src,
                                                ptr_item_storage,
                                                opop)) {
-      /* TODO No assert here, would be much much better to just report as warning,
-       * failing override applications will probably be fairly common! */
-      BLI_assert(0);
+      printf("Failed to apply '%s' override operation on %s\n",
+             op->rna_path,
+             ptr_src->owner_id->name);
     }
   }
 }
