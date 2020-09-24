@@ -1583,4 +1583,7 @@ void BKE_animdata_blend_read_expand(struct BlendExpander *expander, AnimData *ad
 
   /* drivers - assume that these F-Curves have driver data to be in this list... */
   BKE_fcurve_blend_read_expand(expander, &adt->drivers);
+
+  /* NLA data - referenced actions. */
+  BKE_nla_blend_read_expand(expander, &adt->nla_tracks);
 }
