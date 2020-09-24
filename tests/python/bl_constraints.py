@@ -44,7 +44,7 @@ class AbstractConstraintTests(unittest.TestCase):
             collection = top_collection.children[self.layer_collection]
             collection.exclude = False
 
-    def assert_matrix(self, actual_matrix, expect_matrix, object_name: str, places=6, delta=None):
+    def assert_matrix(self, actual_matrix, expect_matrix, object_name: str, places=None, delta=1e-6):
         """Asserts that the matrices almost equal."""
         self.assertEqual(len(actual_matrix), 4, 'Expected a 4x4 matrix')
 
