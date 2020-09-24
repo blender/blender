@@ -86,7 +86,11 @@ set(_GOOGLETEST_DISCOVER_TESTS_SCRIPT
 if(APPLE)
   set(_test_release_dir ${TEST_INSTALL_DIR}/Blender.app/Contents/Resources/${BLENDER_VERSION})
 else()
-  set(_test_release_dir ${TEST_INSTALL_DIR}/${BLENDER_VERSION})
+  if(WIN32 OR WITH_INSTALL_PORTABLE)
+    set(_test_release_dir ${TEST_INSTALL_DIR}/${BLENDER_VERSION})
+  else()
+    set(_test_release_dir ${TEST_INSTALL_DIR}/share/blender/${BLENDER_VERSION})
+  endif()
 endif()
 
 gtest_discover_tests(blender_test
