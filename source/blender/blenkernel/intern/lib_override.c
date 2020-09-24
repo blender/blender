@@ -1825,6 +1825,14 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
   TIMEIT_START_AVERAGED(BKE_lib_override_library_operations_store_start);
 #endif
 
+  /* This is fully disabled for now, as it generated very hard to solve issues with Collections and
+   * how they reference each-other in their parents/children relations.
+   * Core of the issue is creating and storing those copies in a separate BMain, while collection
+   * copy code re-assign blindly parents/children, even if they do not belong to the same BMain.
+   * One solution could be to implement special flag as discussed below, and prevent any
+   * other-ID-reference creation/update in that case (since no differential operation is expected
+   * to involve those anyway). */
+#if 0
   /* XXX TODO We may also want a specialized handling of things here too, to avoid copying heavy
    * never-overridable data (like Mesh geometry etc.)? And also maybe avoid lib
    * reference-counting completely (shallow copy...). */
@@ -1846,6 +1854,9 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
       storage_id = NULL;
     }
   }
+#else
+  storage_id = NULL;
+#endif
 
   local->override_library->storage = storage_id;
 
