@@ -1966,21 +1966,6 @@ void UI_panels_draw(const bContext *C, ARegion *region)
   }
 }
 
-void UI_panels_scale(ARegion *region, float new_width)
-{
-  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
-    if (block->panel) {
-      const float fac = new_width / (float)block->panel->sizex;
-      block->panel->sizex = new_width;
-
-      LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
-        but->rect.xmin *= fac;
-        but->rect.xmax *= fac;
-      }
-    }
-  }
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
