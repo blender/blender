@@ -322,6 +322,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
 
       if (mv->no[j] != 0) {
         fix_normal = false;
+        break;
       }
     }
 
