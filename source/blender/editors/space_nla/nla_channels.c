@@ -518,7 +518,7 @@ static int nlachannels_pushdown_exec(bContext *C, wmOperator *op)
   /* 'push-down' action - only usable when not in TweakMode */
   BKE_nla_action_pushdown(adt);
 
-  DEG_id_tag_update_ex(CTX_data_main(C), id, ID_RECALC_ANIMATION | ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update_ex(CTX_data_main(C), id, ID_RECALC_ANIMATION);
 
   /* set notifier that things have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, NULL);
