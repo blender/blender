@@ -169,16 +169,21 @@ AnimData *BKE_animdata_add_id(ID *id)
 /**
  * Called when user tries to change the active action of an AnimData block
  * (via RNA, Outliner, etc.)
+ *
+ * \param reports can be NULL.
+ * \param id the owner of the animation data
+ * \param act the Action to set, or NULL to clear.
+ *
+ * Return true when the action was succesfully updated, false otherwise.
  */
 bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
 {
   AnimData *adt = BKE_animdata_from_id(id);
-  bool ok = false;
 
   /* animdata validity check */
   if (adt == NULL) {
     BKE_report(reports, RPT_WARNING, "No AnimData to set action on");
-    return ok;
+    return false;
   }
 
   /* active action is only editable when it is not a tweaking strip
@@ -187,42 +192,39 @@ bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
   if ((adt->flag & ADT_NLA_EDIT_ON) || (adt->actstrip) || (adt->tmpact)) {
     /* cannot remove, otherwise things turn to custard */
     BKE_report(reports, RPT_ERROR, "Cannot change action, as it is still being edited in NLA");
-    return ok;
+    return false;
   }
 
-  /* manage usercount for current action */
+  /* Reduce usercount for current action. */
   if (adt->action) {
     id_us_min((ID *)adt->action);
   }
 
-  /* assume that AnimData's action can in fact be edited... */
-  if (act) {
-    /* action must have same type as owner */
-    if (ELEM(act->idroot, 0, GS(id->name))) {
-      /* can set */
-      adt->action = act;
-      id_us_plus((ID *)adt->action);
-      ok = true;
-    }
-    else {
-      /* cannot set */
-      BKE_reportf(
-          reports,
-          RPT_ERROR,
-          "Could not set action '%s' onto ID '%s', as it does not have suitably rooted paths "
-          "for this purpose",
-          act->id.name + 2,
-          id->name);
-      /* ok = false; */
-    }
-  }
-  else {
-    /* just clearing the action... */
+  /* Assume that AnimData's action can in fact be edited. */
+
+  if (act == NULL) {
+    /* Just clearing the action. */
     adt->action = NULL;
-    ok = true;
+    return true;
   }
 
-  return ok;
+  /* Action must have same type as owner. */
+  if (!ELEM(act->idroot, 0, GS(id->name))) {
+    /* Cannot set to this type. */
+    BKE_reportf(
+        reports,
+        RPT_ERROR,
+        "Could not set action '%s' onto ID '%s', as it does not have suitably rooted paths "
+        "for this purpose",
+        act->id.name + 2,
+        id->name);
+    return false;
+  }
+
+  adt->action = act;
+  id_us_plus((ID *)adt->action);
+
+  return true;
 }
 
 /* Freeing -------------------------------------------- */
