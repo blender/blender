@@ -883,6 +883,28 @@ void UI_panels_set_expansion_from_seach_filter(const bContext *C, ARegion *regio
 /** \name Drawing
  * \{ */
 
+/**
+ * Draw panels, selected (panels currently being dragged) on top.
+ */
+void UI_panels_draw(const bContext *C, ARegion *region)
+{
+  /* Draw in reverse order, because #uiBlocks are added in reverse order
+   * and we need child panels to draw on top. */
+  LISTBASE_FOREACH_BACKWARD (uiBlock *, block, &region->uiblocks) {
+    if (block->active && block->panel && !(block->panel->flag & PNL_SELECT) &&
+        !UI_block_is_search_only(block)) {
+      UI_block_draw(C, block);
+    }
+  }
+
+  LISTBASE_FOREACH_BACKWARD (uiBlock *, block, &region->uiblocks) {
+    if (block->active && block->panel && (block->panel->flag & PNL_SELECT) &&
+        !UI_block_is_search_only(block)) {
+      UI_block_draw(C, block);
+    }
+  }
+}
+
 /* Triangle 'icon' for panel header. */
 void UI_draw_icon_tri(float x, float y, char dir, const float color[4])
 {
@@ -1942,28 +1964,6 @@ void UI_panels_end(const bContext *C, ARegion *region, int *r_x, int *r_y)
 
   /* Compute size taken up by panels. */
   ui_panels_size(region, r_x, r_y);
-}
-
-/**
- * Draw panels, selected (panels currently being dragged) on top.
- */
-void UI_panels_draw(const bContext *C, ARegion *region)
-{
-  /* Draw in reverse order, because #uiBlocks are added in reverse order
-   * and we need child panels to draw on top. */
-  LISTBASE_FOREACH_BACKWARD (uiBlock *, block, &region->uiblocks) {
-    if (block->active && block->panel && !(block->panel->flag & PNL_SELECT) &&
-        !UI_block_is_search_only(block)) {
-      UI_block_draw(C, block);
-    }
-  }
-
-  LISTBASE_FOREACH_BACKWARD (uiBlock *, block, &region->uiblocks) {
-    if (block->active && block->panel && (block->panel->flag & PNL_SELECT) &&
-        !UI_block_is_search_only(block)) {
-      UI_block_draw(C, block);
-    }
-  }
 }
 
 /** \} */
