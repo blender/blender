@@ -755,27 +755,22 @@ static void transform_event_xyz_constraint(TransInfo *t, short key_type, bool is
         stopConstraint(t);
       }
       else {
-        setUserConstraint(t, V3D_ORIENT_GLOBAL, constraint_axis, msg1);
+        setUserConstraint(t, constraint_axis, msg1);
       }
     }
     else if (!edit_2d) {
+      short orient_index = 1;
       if (t->orient_curr == 0 || ELEM(cmode, '\0', axis)) {
         /* Successive presses on existing axis, cycle orientation modes. */
-        t->orient_curr = (short)((t->orient_curr + 1) % (int)ARRAY_SIZE(t->orient));
-        transform_orientations_current_set(t, t->orient_curr);
+        orient_index = (short)((t->orient_curr + 1) % (int)ARRAY_SIZE(t->orient));
       }
 
-      if (t->orient_curr == 0) {
+      transform_orientations_current_set(t, orient_index);
+      if (orient_index == 0) {
         stopConstraint(t);
       }
       else {
-        const short orientation = t->orient[t->orient_curr].type;
-        if (is_plane == false) {
-          setUserConstraint(t, orientation, constraint_axis, msg2);
-        }
-        else {
-          setUserConstraint(t, orientation, constraint_plane, msg3);
-        }
+        setUserConstraint(t, constraint_axis, is_plane ? msg3 : msg2);
       }
     }
     t->redraw |= TREDRAW_HARD;
@@ -1717,10 +1712,6 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   initTransInfo(C, t, op, event);
 
-  /* Use the custom orientation when it is set. */
-  short orient_index = t->orient[0].type == V3D_ORIENT_CUSTOM_MATRIX ? 0 : t->orient_curr;
-  transform_orientations_current_set(t, orient_index);
-
   if (t->spacetype == SPACE_VIEW3D) {
     t->draw_handle_apply = ED_region_draw_cb_activate(
         t->region->type, drawTransformApply, t, REGION_DRAW_PRE_VIEW);
@@ -1868,7 +1859,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
   /* Constraint init from operator */
   if (t->con.mode & CON_APPLY) {
-    setUserConstraint(t, t->orient[t->orient_curr].type, t->con.mode, "%s");
+    setUserConstraint(t, t->con.mode, "%s");
   }
 
   /* Don't write into the values when non-modal because they are already set from operator redo

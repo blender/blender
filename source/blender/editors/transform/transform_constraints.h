@@ -35,7 +35,7 @@ void transform_constraint_snap_axis_to_face(const TransInfo *t,
 void setConstraint(TransInfo *t, int mode, const char text[]);
 void setAxisMatrixConstraint(TransInfo *t, int mode, const char text[]);
 void setLocalConstraint(TransInfo *t, int mode, const char text[]);
-void setUserConstraint(TransInfo *t, short orientation, int mode, const char text[]);
+void setUserConstraint(TransInfo *t, int mode, const char text[]);
 void drawConstraint(TransInfo *t);
 void drawPropCircle(const struct bContext *C, TransInfo *t);
 void startConstraint(TransInfo *t);

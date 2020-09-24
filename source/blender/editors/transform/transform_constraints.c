@@ -686,9 +686,15 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[])
  * ftext is a format string passed to BLI_snprintf. It will add the name of
  * the orientation where %s is (logically).
  */
-void setUserConstraint(TransInfo *t, short orientation, int mode, const char ftext[])
+void setUserConstraint(TransInfo *t, int mode, const char ftext[])
 {
   char text[256];
+  short orientation = t->orient[t->orient_curr].type;
+  if (orientation == V3D_ORIENT_CUSTOM_MATRIX) {
+    /* Use the real value of the "orient_type". */
+    orientation = t->orient[0].type;
+  }
+
   const char *spacename = transform_orientations_spacename_get(t, orientation);
   BLI_snprintf(text, sizeof(text), ftext, spacename);
 
@@ -943,12 +949,10 @@ void stopConstraint(TransInfo *t)
 void initSelectConstraint(TransInfo *t)
 {
   if (t->orient_curr == 0) {
-    t->orient_curr = 1;
-    transform_orientations_current_set(t, t->orient_curr);
+    transform_orientations_current_set(t, 1);
   }
 
-  short orientation = t->orient[t->orient_curr].type;
-  setUserConstraint(t, orientation, CON_APPLY | CON_SELECT, "%s");
+  setUserConstraint(t, CON_APPLY | CON_SELECT, "%s");
   setNearestAxis(t);
 }
 

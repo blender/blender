@@ -616,12 +616,17 @@ const char *transform_orientations_spacename_get(TransInfo *t, const short orien
 
 void transform_orientations_current_set(TransInfo *t, const short orient_index)
 {
+  if (t->orient_curr == orient_index) {
+    return;
+  }
+
   const short orientation = t->orient[orient_index].type;
   const char *spacename = transform_orientations_spacename_get(t, orientation);
 
   BLI_strncpy(t->spacename, spacename, sizeof(t->spacename));
   copy_m3_m3(t->spacemtx, t->orient[orient_index].matrix);
   invert_m3_m3(t->spacemtx_inv, t->spacemtx);
+  t->orient_curr = orient_index;
 }
 
 /**

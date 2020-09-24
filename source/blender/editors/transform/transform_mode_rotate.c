@@ -195,27 +195,29 @@ static void applyRotationValue(TransInfo *t,
 static void applyRotation(TransInfo *t, const int UNUSED(mval[2]))
 {
   char str[UI_MAX_DRAW_STR];
-
-  float final;
-
-  final = t->values[0];
-
-  transform_snap_increment(t, &final);
-
   float axis_final[3];
-  /* Use the negative axis to match the default Z axis of the view matrix. */
-  negate_v3_v3(axis_final, t->spacemtx[t->orient_axis]);
+  float final = t->values[0];
 
   if ((t->con.mode & CON_APPLY) && t->con.applyRot) {
     t->con.applyRot(t, NULL, NULL, axis_final, NULL);
   }
-
-  applySnapping(t, &final);
+  else {
+    copy_v3_v3(axis_final, t->spacemtx[t->orient_axis]);
+    if (!(t->flag & T_INPUT_IS_VALUES_FINAL) && (dot_v3v3(axis_final, t->viewinv[2]) > 0.0f)) {
+      /* The input is obtained according to the position of the mouse.
+       * Flip to better match the movement. */
+      final *= -1;
+    }
+  }
 
   if (applyNumInput(&t->num, &final)) {
     /* We have to limit the amount of turns to a reasonable number here,
      * to avoid things getting *very* slow, see how applyRotationValue() handles those... */
     final = large_rotation_limit(final);
+  }
+  else {
+    transform_snap_increment(t, &final);
+    applySnapping(t, &final);
   }
 
   t->values_final[0] = final;
