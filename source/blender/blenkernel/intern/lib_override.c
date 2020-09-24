@@ -800,17 +800,31 @@ bool BKE_lib_override_library_resync(Main *bmain, Scene *scene, ViewLayer *view_
   }
   FOREACH_MAIN_LISTBASE_END;
 
-  /* Delete old override IDs. */
+  /* Delete old override IDs.
+   * Note that we have to use tagged group deletion here, since ID deletion also uses LIB_TAG_DOIT.
+   * This improves performances anyway, so everything is fine. */
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if (id->tag & LIB_TAG_DOIT && id->newid != NULL && ID_IS_LINKED(id)) {
-      ID *id_override_old = BLI_ghash_lookup(linkedref_to_old_override, id);
+    if (id->tag & LIB_TAG_DOIT) {
+      /* Note that this work because linked IDs are always after local ones (including overrides),
+       * so we will only ever tag an old override ID after we have already checked it in this loop,
+       * hence we cannot untag it later. */
+      if (id->newid != NULL && ID_IS_LINKED(id)) {
+        ID *id_override_old = BLI_ghash_lookup(linkedref_to_old_override, id);
 
-      if (id_override_old != NULL) {
-        BKE_id_delete(bmain, id_override_old);
+        if (id_override_old != NULL) {
+          id->newid->tag &= ~LIB_TAG_DOIT;
+          id_override_old->tag |= LIB_TAG_DOIT;
+        }
       }
+      id->tag &= ~LIB_TAG_DOIT;
     }
   }
   FOREACH_MAIN_ID_END;
+  BKE_id_multi_tagged_delete(bmain);
+
+  /* At this point, id_root has very likely been deleted, we need to update it to its new version.
+   */
+  id_root = id_root_reference->newid;
 
   /* Essentially ensures that potentially new overrides of new objects will be instantiated. */
   lib_override_library_create_post_process(bmain, scene, view_layer, id_root_reference, id_root);
@@ -819,7 +833,7 @@ bool BKE_lib_override_library_resync(Main *bmain, Scene *scene, ViewLayer *view_
   BLI_ghash_free(linkedref_to_old_override, NULL, NULL);
 
   BKE_main_id_clear_newpoins(bmain);
-  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false); /* That one should not be needed in fact. */
 
   return success;
 }
