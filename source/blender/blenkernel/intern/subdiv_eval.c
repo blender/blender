@@ -184,8 +184,9 @@ void BKE_subdiv_eval_limit_point_and_derivatives(Subdiv *subdiv,
 {
   subdiv->evaluator->evaluateLimit(subdiv->evaluator, ptex_face_index, u, v, r_P, r_dPdu, r_dPdv);
 
-  /* NOTE: In a very rare occasions derivatives are evaluated to zeros. This happens, for example,
-   * in single vertex on Suzannne's nose (where two quads have 2 common edges).
+  /* NOTE: In a very rare occasions derivatives are evaluated to zeros or are exactly equal.
+   * This happens, for example, in single vertex on Suzannne's nose (where two quads have 2 common
+   * edges).
    *
    * This makes tangent space displacement (such as multires) impossible to be used in those
    * vertices, so those needs to be addressed in one way or another.
@@ -195,7 +196,7 @@ void BKE_subdiv_eval_limit_point_and_derivatives(Subdiv *subdiv,
    * that giving totally unusable derivatives. */
 
   if (r_dPdu != NULL && r_dPdv != NULL) {
-    if (is_zero_v3(r_dPdu) || is_zero_v3(r_dPdv)) {
+    if ((is_zero_v3(r_dPdu) || is_zero_v3(r_dPdv)) || equals_v3v3(r_dPdu, r_dPdv)) {
       subdiv->evaluator->evaluateLimit(subdiv->evaluator,
                                        ptex_face_index,
                                        u * 0.999f + 0.0005f,
