@@ -93,13 +93,13 @@ static void applySeqSlideValue(TransInfo *t, const float val[2])
 static void applySeqSlide(TransInfo *t, const int mval[2])
 {
   char str[UI_MAX_DRAW_STR];
-  float values_final[3];
+  float values_final[2] = {0.0f};
 
   snapSequenceBounds(t, mval);
   if (applyNumInput(&t->num, values_final)) {
     if (t->con.mode & CON_APPLY) {
       if (t->con.mode & CON_AXIS0) {
-        /* Do nothing. */
+        mul_v2_v2fl(values_final, t->spacemtx[0], values_final[0]);
       }
       else {
         mul_v2_v2fl(values_final, t->spacemtx[1], values_final[0]);

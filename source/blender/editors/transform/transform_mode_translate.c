@@ -355,7 +355,7 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
 static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
 {
   char str[UI_MAX_DRAW_STR];
-  float global_dir[3];
+  float global_dir[3] = {0.0f};
 
   if (t->flag & T_INPUT_IS_VALUES_FINAL) {
     mul_v3_m3v3(global_dir, t->spacemtx, t->values);
@@ -363,7 +363,7 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
   else if (applyNumInput(&t->num, global_dir)) {
     if (t->con.mode & CON_APPLY) {
       if (t->con.mode & CON_AXIS0) {
-        /* Do nothing. */
+        mul_v3_v3fl(global_dir, t->spacemtx[0], global_dir[0]);
       }
       else if (t->con.mode & CON_AXIS1) {
         mul_v3_v3fl(global_dir, t->spacemtx[1], global_dir[0]);
@@ -371,6 +371,9 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
       else if (t->con.mode & CON_AXIS2) {
         mul_v3_v3fl(global_dir, t->spacemtx[2], global_dir[0]);
       }
+    }
+    else {
+      mul_v3_m3v3(global_dir, t->spacemtx, global_dir);
     }
   }
   else {
