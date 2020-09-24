@@ -518,7 +518,12 @@ static int nlachannels_pushdown_exec(bContext *C, wmOperator *op)
   /* 'push-down' action - only usable when not in TweakMode */
   BKE_nla_action_pushdown(adt);
 
-  DEG_id_tag_update_ex(CTX_data_main(C), id, ID_RECALC_ANIMATION);
+  struct Main *bmain = CTX_data_main(C);
+  DEG_id_tag_update_ex(bmain, id, ID_RECALC_ANIMATION);
+
+  /* The action needs updating too, as FCurve modifiers are to be reevaluated. They won't extend
+   * beyond the NLA strip after pushing down to the NLA. */
+  DEG_id_tag_update_ex(bmain, &adt->action->id, ID_RECALC_ANIMATION);
 
   /* set notifier that things have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, NULL);
