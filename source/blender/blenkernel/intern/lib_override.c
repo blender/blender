@@ -783,22 +783,35 @@ bool BKE_lib_override_library_resync(Main *bmain, Scene *scene, ViewLayer *view_
                op_new = op_new->next, op_old = op_old->next) {
             lib_override_library_property_copy(op_new, op_old);
           }
-
-          /* Apply rules on new override ID using old one as 'source' data. */
-          /* Note that since we already remapped ID pointers in old override IDs to new ones, we
-           * can also apply ID pointer override rules safely here. */
-          PointerRNA rnaptr_src, rnaptr_dst;
-          RNA_id_pointer_create(id_override_old, &rnaptr_src);
-          RNA_id_pointer_create(id_override_new, &rnaptr_dst);
-
-          RNA_struct_override_apply(
-              bmain, &rnaptr_dst, &rnaptr_src, NULL, id_override_new->override_library);
         }
       }
     }
     FOREACH_MAIN_LISTBASE_ID_END;
   }
   FOREACH_MAIN_LISTBASE_END;
+
+  /* We need to apply override rules in a separate loop, after all ID pointers have been properly
+   * remapped, and all new local override IDs have gotten their proper original names, otherwise
+   * override operations based on those ID names would fail. */
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    if (id->tag & LIB_TAG_DOIT && id->newid != NULL && ID_IS_LINKED(id)) {
+      ID *id_override_new = id->newid;
+      ID *id_override_old = BLI_ghash_lookup(linkedref_to_old_override, id);
+
+      if (id_override_old != NULL) {
+        /* Apply rules on new override ID using old one as 'source' data. */
+        /* Note that since we already remapped ID pointers in old override IDs to new ones, we
+         * can also apply ID pointer override rules safely here. */
+        PointerRNA rnaptr_src, rnaptr_dst;
+        RNA_id_pointer_create(id_override_old, &rnaptr_src);
+        RNA_id_pointer_create(id_override_new, &rnaptr_dst);
+
+        RNA_struct_override_apply(
+            bmain, &rnaptr_dst, &rnaptr_src, NULL, id_override_new->override_library);
+      }
+    }
+  }
+  FOREACH_MAIN_ID_END;
 
   /* Delete old override IDs.
    * Note that we have to use tagged group deletion here, since ID deletion also uses LIB_TAG_DOIT.
