@@ -3468,24 +3468,24 @@ void UI_block_region_set(uiBlock *block, ARegion *region)
 uiBlock *UI_block_begin(const bContext *C, ARegion *region, const char *name, char emboss)
 {
   wmWindow *window = CTX_wm_window(C);
-  Scene *scn = CTX_data_scene(C);
+  Scene *scene = CTX_data_scene(C);
 
   uiBlock *block = MEM_callocN(sizeof(uiBlock), "uiBlock");
   block->active = 1;
   block->emboss = emboss;
   block->evil_C = (void *)C; /* XXX */
 
-  if (scn) {
+  if (scene) {
     /* store display device name, don't lookup for transformations yet
      * block could be used for non-color displays where looking up for transformation
      * would slow down redraw, so only lookup for actual transform when it's indeed
      * needed
      */
-    STRNCPY(block->display_device, scn->display_settings.display_device);
+    STRNCPY(block->display_device, scene->display_settings.display_device);
 
     /* copy to avoid crash when scene gets deleted with ui still open */
-    block->unit = MEM_mallocN(sizeof(scn->unit), "UI UnitSettings");
-    memcpy(block->unit, &scn->unit, sizeof(scn->unit));
+    block->unit = MEM_mallocN(sizeof(scene->unit), "UI UnitSettings");
+    memcpy(block->unit, &scene->unit, sizeof(scene->unit));
   }
   else {
     STRNCPY(block->display_device, IMB_colormanagement_display_get_default_name());
