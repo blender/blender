@@ -461,6 +461,109 @@ void ANIM_deselect_anim_channels(
 
 /* ---------------------------- Graph Editor ------------------------------------- */
 
+/* Copy a certain channel setting to parents of the modified channel. */
+static void anim_flush_channel_setting_up(bAnimContext *ac,
+                                          const eAnimChannel_Settings setting,
+                                          const eAnimChannels_SetFlag mode,
+                                          bAnimListElem *const match,
+                                          const int matchLevel)
+{
+  int prevLevel = matchLevel;
+
+  /* flush up?
+   *
+   * For Visibility:
+   * - only flush up if the current state is now enabled (positive 'on' state is default)
+   *   (otherwise, it's too much work to force the parents to be inactive too)
+   *
+   * For everything else:
+   * - only flush up if the current state is now disabled (negative 'off' state is default)
+   *   (otherwise, it's too much work to force the parents to be active too)
+   */
+  if (((setting == ACHANNEL_SETTING_VISIBLE) && (mode != ACHANNEL_SETFLAG_CLEAR)) ||
+      ((setting != ACHANNEL_SETTING_VISIBLE) && (mode == ACHANNEL_SETFLAG_CLEAR))) {
+    /* Go backwards in the list, until the highest-ranking element
+     * (by indention has been covered). */
+    for (bAnimListElem *ale = match->prev; ale; ale = ale->prev) {
+      const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+
+      /* if no channel info was found, skip, since this type might not have any useful info */
+      if (acf == NULL) {
+        continue;
+      }
+
+      /* get the level of the current channel traversed
+       *   - we define the level as simply being the offset for the start of the channel
+       */
+      const int level = (acf->get_offset) ? acf->get_offset(ac, ale) : 0;
+
+      /* if the level is 'less than' (i.e. more important) the level we're matching
+       * but also 'less than' the level just tried (i.e. only the 1st group above grouped F-Curves,
+       * when toggling visibility of F-Curves, gets flushed, which should happen if we don't let
+       * prevLevel get updated below once the first 1st group is found).
+       */
+      if (level < prevLevel) {
+        /* flush the new status... */
+        ANIM_channel_setting_set(ac, ale, setting, mode);
+
+        /* store this level as the 'old' level now */
+        prevLevel = level;
+      }
+      /* if the level is 'greater than' (i.e. less important) than the previous level... */
+      else if (level > prevLevel) {
+        /* if previous level was a base-level (i.e. 0 offset / root of one hierarchy),
+         * stop here
+         */
+        if (prevLevel == 0) {
+          break;
+          /* otherwise, this level weaves into another sibling hierarchy to the previous one just
+           * finished, so skip until we get to the parent of this level
+           */
+        }
+        continue;
+      }
+    }
+  }
+}
+
+/* Copy a certain channel setting to children of the modified channel. */
+static void anim_flush_channel_setting_down(bAnimContext *ac,
+                                            const eAnimChannel_Settings setting,
+                                            const eAnimChannels_SetFlag mode,
+                                            bAnimListElem *const match,
+                                            const int matchLevel)
+{
+  /* go forwards in the list, until the lowest-ranking element (by indention has been covered) */
+  for (bAnimListElem *ale = match->next; ale; ale = ale->next) {
+    const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+
+    /* if no channel info was found, skip, since this type might not have any useful info */
+    if (acf == NULL) {
+      continue;
+    }
+
+    /* get the level of the current channel traversed
+     *   - we define the level as simply being the offset for the start of the channel
+     */
+    const int level = (acf->get_offset) ? acf->get_offset(ac, ale) : 0;
+
+    /* if the level is 'greater than' (i.e. less important) the channel that was changed,
+     * flush the new status...
+     */
+    if (level > matchLevel) {
+      ANIM_channel_setting_set(ac, ale, setting, mode);
+      /* however, if the level is 'less than or equal to' the channel that was changed,
+       * (i.e. the current channel is as important if not more important than the changed
+       * channel) then we should stop, since we've found the last one of the children we should
+       * flush
+       */
+    }
+    else {
+      break;
+    }
+  }
+}
+
 /* Flush visibility (for Graph Editor) changes up/down hierarchy for changes in the given setting
  * - anim_data: list of the all the anim channels that can be chosen
  *   -> filtered using ANIMFILTER_CHANNELS only, since if we took VISIBLE too,
@@ -477,7 +580,7 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac,
                                       eAnimChannels_SetFlag mode)
 {
   bAnimListElem *ale, *match = NULL;
-  int prevLevel = 0, matchLevel = 0;
+  int matchLevel = 0;
 
   /* sanity check */
   if (ELEM(NULL, anim_data, anim_data->first)) {
@@ -517,101 +620,10 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac,
      *   - we define the level as simply being the offset for the start of the channel
      */
     matchLevel = (acf->get_offset) ? acf->get_offset(ac, ale_setting) : 0;
-    prevLevel = matchLevel;
   }
 
-  /* flush up?
-   *
-   * For Visibility:
-   * - only flush up if the current state is now enabled (positive 'on' state is default)
-   *   (otherwise, it's too much work to force the parents to be inactive too)
-   *
-   * For everything else:
-   * - only flush up if the current state is now disabled (negative 'off' state is default)
-   *   (otherwise, it's too much work to force the parents to be active too)
-   */
-  if (((setting == ACHANNEL_SETTING_VISIBLE) && (mode != ACHANNEL_SETFLAG_CLEAR)) ||
-      ((setting != ACHANNEL_SETTING_VISIBLE) && (mode == ACHANNEL_SETFLAG_CLEAR))) {
-    /* Go backwards in the list, until the highest-ranking element
-     * (by indention has been covered). */
-    for (ale = match->prev; ale; ale = ale->prev) {
-      const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
-      int level;
-
-      /* if no channel info was found, skip, since this type might not have any useful info */
-      if (acf == NULL) {
-        continue;
-      }
-
-      /* get the level of the current channel traversed
-       *   - we define the level as simply being the offset for the start of the channel
-       */
-      level = (acf->get_offset) ? acf->get_offset(ac, ale) : 0;
-
-      /* if the level is 'less than' (i.e. more important) the level we're matching
-       * but also 'less than' the level just tried (i.e. only the 1st group above grouped F-Curves,
-       * when toggling visibility of F-Curves, gets flushed, which should happen if we don't let
-       * prevLevel get updated below once the first 1st group is found).
-       */
-      if (level < prevLevel) {
-        /* flush the new status... */
-        ANIM_channel_setting_set(ac, ale, setting, mode);
-
-        /* store this level as the 'old' level now */
-        prevLevel = level;
-      }
-      /* if the level is 'greater than' (i.e. less important) than the previous level... */
-      else if (level > prevLevel) {
-        /* if previous level was a base-level (i.e. 0 offset / root of one hierarchy),
-         * stop here
-         */
-        if (prevLevel == 0) {
-          break;
-          /* otherwise, this level weaves into another sibling hierarchy to the previous one just
-           * finished, so skip until we get to the parent of this level
-           */
-        }
-        continue;
-      }
-    }
-  }
-
-  /* flush down (always) */
-  {
-    /* go forwards in the list, until the lowest-ranking element (by indention has been covered) */
-    for (ale = match->next; ale; ale = ale->next) {
-      const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
-      int level;
-
-      /* if no channel info was found, skip, since this type might not have any useful info */
-      if (acf == NULL) {
-        continue;
-      }
-
-      /* get the level of the current channel traversed
-       *   - we define the level as simply being the offset for the start of the channel
-       */
-      level = (acf->get_offset) ? acf->get_offset(ac, ale) : 0;
-
-      /* if the level is 'greater than' (i.e. less important) the channel that was changed,
-       * flush the new status...
-       */
-      if (level > matchLevel) {
-        ANIM_channel_setting_set(ac, ale, setting, mode);
-        /* however, if the level is 'less than or equal to' the channel that was changed,
-         * (i.e. the current channel is as important if not more important than the changed
-         * channel) then we should stop, since we've found the last one of the children we should
-         * flush
-         */
-      }
-      else {
-        break;
-      }
-
-      /* store this level as the 'old' level now */
-      // prevLevel = level; // XXX: prevLevel is unused
-    }
-  }
+  anim_flush_channel_setting_up(ac, setting, mode, match, matchLevel);
+  anim_flush_channel_setting_down(ac, setting, mode, match, matchLevel);
 }
 
 /* -------------------------- F-Curves ------------------------------------- */
