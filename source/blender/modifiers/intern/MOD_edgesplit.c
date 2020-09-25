@@ -167,6 +167,7 @@ ModifierTypeInfo modifierType_EdgeSplit = {
     /* name */ "EdgeSplit",
     /* structName */ "EdgeSplitModifierData",
     /* structSize */ sizeof(EdgeSplitModifierData),
+    /* srna */ &RNA_EdgeSplitModifier,
     /* type */ eModifierTypeType_Constructive,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
         eModifierTypeFlag_SupportsMapping | eModifierTypeFlag_SupportsEditmode |

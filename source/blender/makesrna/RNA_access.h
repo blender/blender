@@ -491,6 +491,7 @@ extern StructRNA RNA_PropertyGroup;
 extern StructRNA RNA_PropertyGroupItem;
 extern StructRNA RNA_PythonConstraint;
 extern StructRNA RNA_Region;
+extern StructRNA RNA_RemeshModifier;
 extern StructRNA RNA_RenderEngine;
 extern StructRNA RNA_RenderLayer;
 extern StructRNA RNA_RenderPass;
@@ -563,6 +564,9 @@ extern StructRNA RNA_ShrinkwrapModifier;
 extern StructRNA RNA_SimpleDeformModifier;
 extern StructRNA RNA_SimplifyGpencilModifier;
 extern StructRNA RNA_Simulation;
+#ifdef WITH_PARTICLE_NODES
+extern StructRNA RNA_SimulationModifier;
+#endif
 extern StructRNA RNA_SimulationNode;
 extern StructRNA RNA_SimulationNodeTree;
 extern StructRNA RNA_SkinModifier;
@@ -678,6 +682,7 @@ extern StructRNA RNA_TrackToConstraint;
 extern StructRNA RNA_TransformConstraint;
 extern StructRNA RNA_TransformOrientationSlot;
 extern StructRNA RNA_TransformSequence;
+extern StructRNA RNA_TriangulateModifier;
 extern StructRNA RNA_UILayout;
 extern StructRNA RNA_UIList;
 extern StructRNA RNA_UIPieMenu;

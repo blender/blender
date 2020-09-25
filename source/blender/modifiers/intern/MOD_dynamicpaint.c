@@ -203,6 +203,7 @@ ModifierTypeInfo modifierType_DynamicPaint = {
     /* name */ "Dynamic Paint",
     /* structName */ "DynamicPaintModifierData",
     /* structSize */ sizeof(DynamicPaintModifierData),
+    /* srna */ &RNA_DynamicPaintModifier,
     /* type */ eModifierTypeType_Constructive,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_UsesPointCache | eModifierTypeFlag_Single |

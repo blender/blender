@@ -177,6 +177,11 @@ if(WITH_GMP)
   add_definitions(-DWITH_GMP)
 endif()
 
+if(WITH_EXPERIMENTAL_FEATURES)
+  add_definitions(-DWITH_PARTICLE_NODES)
+  add_definitions(-DWITH_HAIR_NODES)
+endif()
+
 # So we can have special tricks in modifier system.
 
 blender_add_lib(bf_modifiers "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

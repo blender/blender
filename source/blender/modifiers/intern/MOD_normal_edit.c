@@ -782,6 +782,7 @@ ModifierTypeInfo modifierType_NormalEdit = {
     /* name */ "NormalEdit",
     /* structName */ "NormalEditModifierData",
     /* structSize */ sizeof(NormalEditModifierData),
+    /* srna */ &RNA_NormalEditModifier,
     /* type */ eModifierTypeType_Constructive,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode,

@@ -844,6 +844,7 @@ ModifierTypeInfo modifierType_CorrectiveSmooth = {
     /* name */ "CorrectiveSmooth",
     /* structName */ "CorrectiveSmoothModifierData",
     /* structSize */ sizeof(CorrectiveSmoothModifierData),
+    /* srna */ &RNA_CorrectiveSmoothModifier,
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
     /* icon */ ICON_MOD_SMOOTH,

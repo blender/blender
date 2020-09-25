@@ -751,6 +751,7 @@ ModifierTypeInfo modifierType_Boolean = {
     /* name */ "Boolean",
     /* structName */ "BooleanModifierData",
     /* structSize */ sizeof(BooleanModifierData),
+    /* srna */ &RNA_BooleanModifier,
     /* type */ eModifierTypeType_Nonconstructive,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
     /* icon */ ICON_MOD_BOOLEAN,

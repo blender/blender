@@ -1010,6 +1010,7 @@ ModifierTypeInfo modifierType_Array = {
     /* name */ "Array",
     /* structName */ "ArrayModifierData",
     /* structSize */ sizeof(ArrayModifierData),
+    /* srna */ &RNA_ArrayModifier,
     /* type */ eModifierTypeType_Constructive,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode |

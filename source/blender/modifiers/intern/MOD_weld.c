@@ -1955,6 +1955,7 @@ ModifierTypeInfo modifierType_Weld = {
     /* name */ "Weld",
     /* structName */ "WeldModifierData",
     /* structSize */ sizeof(WeldModifierData),
+    /* srna */ &RNA_WeldModifier,
     /* type */ eModifierTypeType_Constructive,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode |

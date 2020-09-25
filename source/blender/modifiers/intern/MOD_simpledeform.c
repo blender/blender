@@ -540,6 +540,7 @@ ModifierTypeInfo modifierType_SimpleDeform = {
     /* name */ "SimpleDeform",
     /* structName */ "SimpleDeformModifierData",
     /* structSize */ sizeof(SimpleDeformModifierData),
+    /* srna */ &RNA_SimpleDeformModifier,
     /* type */ eModifierTypeType_OnlyDeform,
 
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |

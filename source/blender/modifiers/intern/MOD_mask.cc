@@ -437,6 +437,7 @@ ModifierTypeInfo modifierType_Mask = {
     /* name */ "Mask",
     /* structName */ "MaskModifierData",
     /* structSize */ sizeof(MaskModifierData),
+    /* srna */ &RNA_MaskModifier,
     /* type */ eModifierTypeType_Nonconstructive,
     /* flags */
     (ModifierTypeFlag)(eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |

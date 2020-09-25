@@ -278,6 +278,7 @@ ModifierTypeInfo modifierType_Shrinkwrap = {
     /* name */ "Shrinkwrap",
     /* structName */ "ShrinkwrapModifierData",
     /* structSize */ sizeof(ShrinkwrapModifierData),
+    /* srna */ &RNA_ShrinkwrapModifier,
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
         eModifierTypeFlag_AcceptsVertexCosOnly | eModifierTypeFlag_SupportsEditmode |

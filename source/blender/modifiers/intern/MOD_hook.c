@@ -558,6 +558,7 @@ ModifierTypeInfo modifierType_Hook = {
     /* name */ "Hook",
     /* structName */ "HookModifierData",
     /* structSize */ sizeof(HookModifierData),
+    /* srna */ &RNA_HookModifier,
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,

@@ -181,6 +181,11 @@ ModifierTypeInfo modifierType_Simulation = {
     /* name */ "Simulation",
     /* structName */ "SimulationModifierData",
     /* structSize */ sizeof(SimulationModifierData),
+#ifdef WITH_PARTICLE_NODES
+    /* srna */ &RNA_SimulationModifier,
+#else
+    /* srna */ &RNA_Modifier,
+#endif
     /* type */ eModifierTypeType_None,
     /* flags */ (ModifierTypeFlag)0,
     /* icon */ ICON_PHYSICS, /* TODO: Use correct icon. */

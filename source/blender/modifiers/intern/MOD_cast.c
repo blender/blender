@@ -579,6 +579,7 @@ ModifierTypeInfo modifierType_Cast = {
     /* name */ "Cast",
     /* structName */ "CastModifierData",
     /* structSize */ sizeof(CastModifierData),
+    /* srna */ &RNA_CastModifier,
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,

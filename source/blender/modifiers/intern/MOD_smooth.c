@@ -272,6 +272,7 @@ ModifierTypeInfo modifierType_Smooth = {
     /* name */ "Smooth",
     /* structName */ "SmoothModifierData",
     /* structSize */ sizeof(SmoothModifierData),
+    /* srna */ &RNA_SmoothModifier,
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
         eModifierTypeFlag_SupportsEditmode,
