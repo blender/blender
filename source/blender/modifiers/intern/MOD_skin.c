@@ -2013,6 +2013,7 @@ ModifierTypeInfo modifierType_Skin = {
     /* structSize */ sizeof(SkinModifierData),
     /* type */ eModifierTypeType_Constructive,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
+    /* icon */ ICON_MOD_SKIN,
 
     /* copyData */ BKE_modifier_copydata_generic,
 

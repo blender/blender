@@ -304,6 +304,7 @@ ModifierTypeInfo modifierType_Collision = {
     /* structSize */ sizeof(CollisionModifierData),
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_Single,
+    /* icon */ ICON_MOD_PHYSICS,
 
     /* copyData */ NULL,
 

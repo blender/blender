@@ -1502,6 +1502,7 @@ ModifierTypeInfo modifierType_SurfaceDeform = {
     /* structSize */ sizeof(SurfaceDeformModifierData),
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
+    /* icon */ ICON_MOD_MESHDEFORM,
 
     /* copyData */ copyData,
 

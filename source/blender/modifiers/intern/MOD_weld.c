@@ -1959,6 +1959,7 @@ ModifierTypeInfo modifierType_Weld = {
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode |
         eModifierTypeFlag_AcceptsCVs,
+    /* icon */ ICON_AUTOMERGE_OFF, /* TODO: Use correct icon. */
 
     /* copyData */ BKE_modifier_copydata_generic,
 

@@ -318,6 +318,7 @@ ModifierTypeInfo modifierType_ParticleSystem = {
                           eModifierTypeFlag_SupportsEditmode |
                           eModifierTypeFlag_EnableInEditmode */
     ,
+    /* icon */ ICON_MOD_PARTICLES,
 
     /* copyData */ copyData,
 

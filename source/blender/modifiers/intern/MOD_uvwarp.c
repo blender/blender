@@ -329,6 +329,7 @@ ModifierTypeInfo modifierType_UVWarp = {
     /* type */ eModifierTypeType_NonGeometrical,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode |
         eModifierTypeFlag_EnableInEditmode,
+    /* icon */ ICON_MOD_UVPROJECT, /* TODO: Use correct icon. */
 
     /* copyData */ BKE_modifier_copydata_generic,
 

@@ -207,6 +207,7 @@ ModifierTypeInfo modifierType_DynamicPaint = {
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_UsesPointCache | eModifierTypeFlag_Single |
         eModifierTypeFlag_UsesPreview,
+    /* icon */ ICON_MOD_DYNAMICPAINT,
 
     /* copyData */ copyData,
 

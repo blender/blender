@@ -229,6 +229,7 @@ ModifierTypeInfo modifierType_Surface = {
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
         eModifierTypeFlag_NoUserAdd,
+    /* icon */ ICON_MOD_PHYSICS,
 
     /* copyData */ copyData,
 

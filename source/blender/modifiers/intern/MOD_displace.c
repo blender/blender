@@ -504,6 +504,7 @@ ModifierTypeInfo modifierType_Displace = {
     /* structSize */ sizeof(DisplaceModifierData),
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
+    /* icon */ ICON_MOD_DISPLACE,
 
     /* copyData */ BKE_modifier_copydata_generic,
 

@@ -282,6 +282,7 @@ ModifierTypeInfo modifierType_Shrinkwrap = {
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
         eModifierTypeFlag_AcceptsVertexCosOnly | eModifierTypeFlag_SupportsEditmode |
         eModifierTypeFlag_EnableInEditmode,
+    /* icon */ ICON_MOD_SHRINKWRAP,
 
     /* copyData */ BKE_modifier_copydata_generic,
 

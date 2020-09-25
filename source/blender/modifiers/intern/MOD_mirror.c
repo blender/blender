@@ -222,6 +222,7 @@ ModifierTypeInfo modifierType_Mirror = {
         eModifierTypeFlag_AcceptsCVs |
         /* this is only the case when 'MOD_MIR_VGROUP' is used */
         eModifierTypeFlag_UsesPreview,
+    /* icon */ ICON_MOD_MIRROR,
 
     /* copyData */ BKE_modifier_copydata_generic,
 

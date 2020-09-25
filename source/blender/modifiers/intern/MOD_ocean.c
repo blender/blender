@@ -761,6 +761,7 @@ ModifierTypeInfo modifierType_Ocean = {
     /* type */ eModifierTypeType_Constructive,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode |
         eModifierTypeFlag_EnableInEditmode,
+    /* icon */ ICON_MOD_OCEAN,
 
     /* copyData */ copyData,
     /* deformMatrices_DM */ NULL,

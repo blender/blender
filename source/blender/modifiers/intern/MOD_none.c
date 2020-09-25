@@ -27,6 +27,8 @@
 
 #include "MOD_modifiertypes.h"
 
+#include "UI_resources.h"
+
 /* We only need to define isDisabled; because it always returns 1,
  * no other functions will be called
  */
@@ -44,6 +46,7 @@ ModifierTypeInfo modifierType_None = {
     /* structSize */ sizeof(ModifierData),
     /* type */ eModifierTypeType_None,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs,
+    /* icon */ ICON_NONE,
 
     /* copyData */ NULL,
 

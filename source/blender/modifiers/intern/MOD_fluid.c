@@ -227,6 +227,7 @@ ModifierTypeInfo modifierType_Fluid = {
     /* structSize */ sizeof(FluidModifierData),
     /* type */ eModifierTypeType_Constructive,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_Single,
+    /* icon */ ICON_MOD_FLUIDSIM,
 
     /* copyData */ copyData,
 

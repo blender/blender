@@ -108,6 +108,7 @@ ModifierTypeInfo modifierType_Softbody = {
     /* flags */ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_RequiresOriginalData | eModifierTypeFlag_Single |
         eModifierTypeFlag_UsesPointCache,
+    /* icon */ ICON_MOD_SOFT,
 
     /* copyData */ NULL,
 

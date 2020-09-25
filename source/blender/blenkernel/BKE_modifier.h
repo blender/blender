@@ -173,6 +173,9 @@ typedef struct ModifierTypeInfo {
   ModifierTypeType type;
   ModifierTypeFlag flags;
 
+  /* Icon of the modifier. Usually something like ICON_MOD_*. */
+  int icon;
+
   /********************* Non-optional functions *********************/
 
   /**

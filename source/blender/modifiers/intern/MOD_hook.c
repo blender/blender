@@ -561,6 +561,7 @@ ModifierTypeInfo modifierType_Hook = {
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
+    /* icon */ ICON_HOOK,
     /* copyData */ copyData,
 
     /* deformVerts */ deformVerts,

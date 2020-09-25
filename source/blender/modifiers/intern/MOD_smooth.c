@@ -275,6 +275,7 @@ ModifierTypeInfo modifierType_Smooth = {
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
         eModifierTypeFlag_SupportsEditmode,
+    /* icon */ ICON_MOD_SMOOTH,
 
     /* copyData */ BKE_modifier_copydata_generic,
 

@@ -877,6 +877,7 @@ ModifierTypeInfo modifierType_LaplacianDeform = {
     /* structSize */ sizeof(LaplacianDeformModifierData),
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
+    /* icon */ ICON_MOD_MESHDEFORM,
     /* copyData */ copyData,
 
     /* deformVerts */ deformVerts,

@@ -513,6 +513,7 @@ ModifierTypeInfo modifierType_Multires = {
     /* type */ eModifierTypeType_Constructive,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_RequiresOriginalData,
+    /* icon */ ICON_MOD_MULTIRES,
 
     /* copyData */ copyData,
 

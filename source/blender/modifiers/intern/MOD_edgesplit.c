@@ -171,6 +171,7 @@ ModifierTypeInfo modifierType_EdgeSplit = {
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
         eModifierTypeFlag_SupportsMapping | eModifierTypeFlag_SupportsEditmode |
         eModifierTypeFlag_EnableInEditmode,
+    /* icon */ ICON_MOD_EDGESPLIT,
 
     /* copyData */ BKE_modifier_copydata_generic,
 

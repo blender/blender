@@ -286,6 +286,7 @@ ModifierTypeInfo modifierType_Decimate = {
     /* structSize */ sizeof(DecimateModifierData),
     /* type */ eModifierTypeType_Nonconstructive,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs,
+    /* icon */ ICON_MOD_DECIM,
 
     /* copyData */ BKE_modifier_copydata_generic,
 

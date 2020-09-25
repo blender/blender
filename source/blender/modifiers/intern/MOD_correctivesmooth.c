@@ -846,6 +846,7 @@ ModifierTypeInfo modifierType_CorrectiveSmooth = {
     /* structSize */ sizeof(CorrectiveSmoothModifierData),
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
+    /* icon */ ICON_MOD_SMOOTH,
 
     /* copyData */ copyData,
 

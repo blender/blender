@@ -480,6 +480,7 @@ ModifierTypeInfo modifierType_Subsurf = {
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode |
         eModifierTypeFlag_AcceptsCVs,
+    /* icon */ ICON_MOD_SUBSURF,
 
     /* copyData */ copyData,
 

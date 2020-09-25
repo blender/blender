@@ -582,6 +582,7 @@ ModifierTypeInfo modifierType_Cast = {
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
+    /* icon */ ICON_MOD_CAST,
 
     /* copyData */ BKE_modifier_copydata_generic,
 

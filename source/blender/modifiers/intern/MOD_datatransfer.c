@@ -473,6 +473,7 @@ ModifierTypeInfo modifierType_DataTransfer = {
     /* type */ eModifierTypeType_NonGeometrical,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_UsesPreview,
+    /* icon */ ICON_MOD_DATA_TRANSFER,
 
     /* copyData */ BKE_modifier_copydata_generic,
 

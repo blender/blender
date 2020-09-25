@@ -369,6 +369,7 @@ ModifierTypeInfo modifierType_UVProject = {
     /* type */ eModifierTypeType_NonGeometrical,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode,
+    /* icon */ ICON_MOD_UVPROJECT,
 
     /* copyData */ BKE_modifier_copydata_generic,
 

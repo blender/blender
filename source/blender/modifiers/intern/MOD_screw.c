@@ -1251,6 +1251,7 @@ ModifierTypeInfo modifierType_Screw = {
 
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode,
+    /* icon */ ICON_MOD_SCREW,
 
     /* copyData */ BKE_modifier_copydata_generic,
 

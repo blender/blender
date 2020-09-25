@@ -183,6 +183,7 @@ ModifierTypeInfo modifierType_Simulation = {
     /* structSize */ sizeof(SimulationModifierData),
     /* type */ eModifierTypeType_None,
     /* flags */ (ModifierTypeFlag)0,
+    /* icon */ ICON_PHYSICS, /* TODO: Use correct icon. */
 
     /* copyData */ copyData,
 

@@ -287,6 +287,7 @@ ModifierTypeInfo modifierType_Cloth = {
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_UsesPointCache |
         eModifierTypeFlag_Single,
+    /* icon */ ICON_MOD_CLOTH,
 
     /* copyData */ copyData,
 

@@ -674,6 +674,7 @@ ModifierTypeInfo modifierType_ParticleInstance = {
     /* type */ eModifierTypeType_Constructive,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
         eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode,
+    /* icon */ ICON_MOD_PARTICLE_INSTANCE,
 
     /* copyData */ BKE_modifier_copydata_generic,
 

@@ -221,6 +221,7 @@ ModifierTypeInfo modifierType_Curve = {
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
+    /* icon */ ICON_MOD_CURVE,
 
     /* copyData */ BKE_modifier_copydata_generic,
 

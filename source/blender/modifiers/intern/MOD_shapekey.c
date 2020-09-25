@@ -33,6 +33,8 @@
 
 #include "MOD_modifiertypes.h"
 
+#include "UI_resources.h"
+
 static void deformVerts(ModifierData *UNUSED(md),
                         const ModifierEvalContext *ctx,
                         Mesh *UNUSED(mesh),
@@ -124,6 +126,7 @@ ModifierTypeInfo modifierType_ShapeKey = {
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
+    /* icon */ ICON_DOT,
 
     /* copyData */ NULL,
 

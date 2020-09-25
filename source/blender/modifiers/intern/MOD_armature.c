@@ -281,6 +281,7 @@ ModifierTypeInfo modifierType_Armature = {
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */ eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_AcceptsVertexCosOnly |
         eModifierTypeFlag_SupportsEditmode,
+    /* icon */ ICON_MOD_ARMATURE,
 
     /* copyData */ copyData,
 

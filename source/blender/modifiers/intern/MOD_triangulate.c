@@ -156,6 +156,7 @@ ModifierTypeInfo modifierType_Triangulate = {
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode |
         eModifierTypeFlag_SupportsMapping | eModifierTypeFlag_EnableInEditmode |
         eModifierTypeFlag_AcceptsCVs,
+    /* icon */ ICON_MOD_TRIANGULATE,
 
     /* copyData */ BKE_modifier_copydata_generic,
 
