@@ -349,6 +349,18 @@ inline GLenum to_gl_data_format(eGPUTextureFormat format)
     case GPU_DEPTH_COMPONENT24:
     case GPU_DEPTH_COMPONENT32F:
       return GL_DEPTH_COMPONENT;
+    case GPU_SRGB8_A8_DXT1:
+      return GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT;
+    case GPU_SRGB8_A8_DXT3:
+      return GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT;
+    case GPU_SRGB8_A8_DXT5:
+      return GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT;
+    case GPU_RGBA8_DXT1:
+      return GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+    case GPU_RGBA8_DXT3:
+      return GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+    case GPU_RGBA8_DXT5:
+      return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
     default:
       BLI_assert(!"Texture format incorrect or unsupported\n");
       return 0;
