@@ -29,7 +29,7 @@
 
 //#define USE_WELD_DEBUG
 //#define USE_WELD_NORMALS
-//#define USE_BVHTREEKDOP
+#define USE_BVHTREEKDOP
 
 #include "MEM_guardedalloc.h"
 
@@ -1687,7 +1687,6 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
   }
 #else
   {
-    vert_dest_map = MEM_malloc_arrayN(totvert, sizeof(*vert_dest_map), __func__);
     KDTree_3d *tree = BLI_kdtree_3d_new(totvert);
     for (i = 0; i < totvert; i++) {
       if (!(v_mask && !BLI_BITMAP_TEST(v_mask, i))) {
