@@ -5644,11 +5644,13 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "invert_spray", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_OCEAN_INVERT_SPRAY);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Invert Spray", "Invert the spray direction map");
   RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
 
   prop = RNA_def_property(srna, "spray_layer_name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "spraylayername");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
       prop, "Spray Map", "Name of the vertex color layer used for the spray direction map");
   RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
@@ -5683,6 +5685,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "wind_velocity", PROP_FLOAT, PROP_VELOCITY);
   RNA_def_property_float_sdna(prop, NULL, "wind_velocity");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Wind Velocity", "Wind speed");
   RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
 
@@ -5702,6 +5705,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "wave_alignment", PROP_FLOAT, PROP_UNSIGNED);
   RNA_def_property_float_sdna(prop, NULL, "wave_alignment");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, 0.0, 1.0);
   RNA_def_property_ui_text(prop, "Wave Alignment", "How much the waves are aligned to each other");
   RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
@@ -5762,12 +5766,14 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "spectrum", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "spectrum");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_enum_items(prop, spectrum_items);
   RNA_def_property_ui_text(prop, "Spectrum", "Spectrum to use");
   RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
 
   prop = RNA_def_property(srna, "fetch_jonswap", PROP_FLOAT, PROP_UNSIGNED);
   RNA_def_property_float_sdna(prop, NULL, "fetch_jonswap");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, 0.0, FLT_MAX);
   RNA_def_property_ui_text(
       prop,
@@ -5779,6 +5785,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "sharpen_peak_jonswap", PROP_FLOAT, PROP_UNSIGNED);
   RNA_def_property_float_sdna(prop, NULL, "sharpen_peak_jonswap");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, 0.0, 1.0);
   RNA_def_property_ui_text(prop, "Sharpen peak", "Peak sharpening for 'JONSWAP' and 'TMA' models");
   RNA_def_property_update(prop, 0, "rna_OceanModifier_init_update");
