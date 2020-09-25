@@ -121,14 +121,16 @@ class Prefs(bpy.types.KeyConfigPreferences):
         name="MMB Action",
         items=(
             ('ORBIT', "Orbit",
-             "Orbit",
+             "",
              0),
             ('PAN', "Pan",
-             "Set the view axis where each mouse direction always maps to the same axis",
+             "",
              1),
         ),
         description=(
-            "The action when Middle-Mouse dragging in the viewport. Shift-Middle-Mouse is used for the other action"
+            "The action when Middle-Mouse dragging in the viewport. "
+            "Shift-Middle-Mouse is used for the other action. "
+            "This applies to Track-Pad as well"
         ),
         update=update_fn,
     )
