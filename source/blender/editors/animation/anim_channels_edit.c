@@ -468,8 +468,6 @@ static void anim_flush_channel_setting_up(bAnimContext *ac,
                                           bAnimListElem *const match,
                                           const int matchLevel)
 {
-  int prevLevel = matchLevel;
-
   /* flush up?
    *
    * For Visibility:
@@ -480,49 +478,57 @@ static void anim_flush_channel_setting_up(bAnimContext *ac,
    * - only flush up if the current state is now disabled (negative 'off' state is default)
    *   (otherwise, it's too much work to force the parents to be active too)
    */
-  if (((setting == ACHANNEL_SETTING_VISIBLE) && (mode != ACHANNEL_SETFLAG_CLEAR)) ||
-      ((setting != ACHANNEL_SETTING_VISIBLE) && (mode == ACHANNEL_SETFLAG_CLEAR))) {
-    /* Go backwards in the list, until the highest-ranking element
-     * (by indention has been covered). */
-    for (bAnimListElem *ale = match->prev; ale; ale = ale->prev) {
-      const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
-
-      /* if no channel info was found, skip, since this type might not have any useful info */
-      if (acf == NULL) {
-        continue;
-      }
-
-      /* get the level of the current channel traversed
-       *   - we define the level as simply being the offset for the start of the channel
-       */
-      const int level = (acf->get_offset) ? acf->get_offset(ac, ale) : 0;
-
-      /* if the level is 'less than' (i.e. more important) the level we're matching
-       * but also 'less than' the level just tried (i.e. only the 1st group above grouped F-Curves,
-       * when toggling visibility of F-Curves, gets flushed, which should happen if we don't let
-       * prevLevel get updated below once the first 1st group is found).
-       */
-      if (level < prevLevel) {
-        /* flush the new status... */
-        ANIM_channel_setting_set(ac, ale, setting, mode);
-
-        /* store this level as the 'old' level now */
-        prevLevel = level;
-      }
-      /* if the level is 'greater than' (i.e. less important) than the previous level... */
-      else if (level > prevLevel) {
-        /* if previous level was a base-level (i.e. 0 offset / root of one hierarchy),
-         * stop here
-         */
-        if (prevLevel == 0) {
-          break;
-          /* otherwise, this level weaves into another sibling hierarchy to the previous one just
-           * finished, so skip until we get to the parent of this level
-           */
-        }
-        continue;
-      }
+  if (setting == ACHANNEL_SETTING_VISIBLE) {
+    if (mode == ACHANNEL_SETFLAG_CLEAR) {
+      return;
     }
+  }
+  else {
+    if (mode != ACHANNEL_SETFLAG_CLEAR) {
+      return;
+    }
+  }
+
+  /* Go backwards in the list, until the highest-ranking element
+   * (by indention has been covered). */
+  int prevLevel = matchLevel;
+  for (bAnimListElem *ale = match->prev; ale; ale = ale->prev) {
+    const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+
+    /* if no channel info was found, skip, since this type might not have any useful info */
+    if (acf == NULL) {
+      continue;
+    }
+
+    /* Get the level of the current channel traversed
+     *   - we define the level as simply being the offset for the start of the channel
+     */
+    const int level = (acf->get_offset) ? acf->get_offset(ac, ale) : 0;
+
+    if (level == prevLevel) {
+      /* Don't influence siblings. */
+      continue;
+    }
+
+    if (level > prevLevel) {
+      /* If previous level was a base-level (i.e. 0 offset / root of one hierarchy), stop here. */
+      if (prevLevel == 0) {
+        return;
+      }
+
+      /* Otherwise, this level weaves into another sibling hierarchy to the previous one just
+       * finished, so skip until we get to the parent of this level. */
+      continue;
+    }
+
+    /* The level is 'less than' (i.e. more important) the level we're matching but also 'less
+     * than' the level just tried (i.e. only the 1st group above grouped F-Curves, when toggling
+     * visibility of F-Curves, gets flushed, which should happen if we don't let prevLevel get
+     * updated below once the first 1st group is found). */
+    ANIM_channel_setting_set(ac, ale, setting, mode);
+
+    /* store this level as the 'old' level now */
+    prevLevel = level;
   }
 }
 
