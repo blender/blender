@@ -721,25 +721,22 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
 
 uiBut *ui_but_find_old(uiBlock *block_old, const uiBut *but_new)
 {
-  uiBut *but_old = NULL;
   LISTBASE_FOREACH (uiBut *, but, &block_old->buttons) {
     if (ui_but_equals_old(but_new, but)) {
-      but_old = but;
-      break;
+      return but;
     }
   }
-  return but_old;
+  return NULL;
 }
+
 uiBut *ui_but_find_new(uiBlock *block_new, const uiBut *but_old)
 {
-  uiBut *but_new = NULL;
   LISTBASE_FOREACH (uiBut *, but, &block_new->buttons) {
     if (ui_but_equals_old(but, but_old)) {
-      but_new = but;
-      break;
+      return but;
     }
   }
-  return but_new;
+  return NULL;
 }
 
 static bool ui_but_extra_icons_equals_old(const uiButExtraOpIcon *new_extra_icon,
@@ -1063,48 +1060,53 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
                 /* For PIE-menus. */
                 UI_BTYPE_ROW) ||
           (but->flag & UI_HIDDEN)) {
-        /* pass */
+        continue;
       }
-      else if (but->menu_key == '\0') {
-        if (but->str && but->str[0]) {
-          const char *str_pt = but->str;
-          uchar menu_key;
-          do {
-            menu_key = tolower(*str_pt);
-            if ((menu_key >= 'a' && menu_key <= 'z') && !(menu_key_mask & 1 << (menu_key - 'a'))) {
-              menu_key_mask |= 1 << (menu_key - 'a');
-              break;
-            }
 
-            if (pass == 0) {
-              /* Skip to next delimiter on first pass (be picky) */
-              while (isalpha(*str_pt)) {
-                str_pt++;
-              }
+      if (but->menu_key != '\0') {
+        continue;
+      }
 
-              if (*str_pt) {
-                str_pt++;
-              }
-            }
-            else {
-              /* just step over every char second pass and find first usable key */
-              str_pt++;
-            }
-          } while (*str_pt);
+      if (but->str == NULL || but->str[0] == '\0') {
+        continue;
+      }
+
+      const char *str_pt = but->str;
+      uchar menu_key;
+      do {
+        menu_key = tolower(*str_pt);
+        if ((menu_key >= 'a' && menu_key <= 'z') && !(menu_key_mask & 1 << (menu_key - 'a'))) {
+          menu_key_mask |= 1 << (menu_key - 'a');
+          break;
+        }
+
+        if (pass == 0) {
+          /* Skip to next delimiter on first pass (be picky) */
+          while (isalpha(*str_pt)) {
+            str_pt++;
+          }
 
           if (*str_pt) {
-            but->menu_key = menu_key;
-          }
-          else {
-            /* run second pass */
-            tot_missing++;
-          }
-
-          /* if all keys have been used just exit, unlikely */
-          if (menu_key_mask == (1 << 26) - 1) {
-            return;
+            str_pt++;
           }
         }
+        else {
+          /* just step over every char second pass and find first usable key */
+          str_pt++;
+        }
+      } while (*str_pt);
+
+      if (*str_pt) {
+        but->menu_key = menu_key;
+      }
+      else {
+        /* run second pass */
+        tot_missing++;
+      }
+
+      /* if all keys have been used just exit, unlikely */
+      if (menu_key_mask == (1 << 26) - 1) {
+        return;
       }
     }
 
@@ -1129,23 +1131,24 @@ void ui_but_add_shortcut(uiBut *but, const char *shortcut_str, const bool do_str
   }
 
   /* without this, just allow stripping of the shortcut */
-  if (shortcut_str) {
-    char *butstr_orig;
-
-    if (but->str != but->strdata) {
-      butstr_orig = but->str; /* free after using as source buffer */
-    }
-    else {
-      butstr_orig = BLI_strdup(but->str);
-    }
-    BLI_snprintf(
-        but->strdata, sizeof(but->strdata), "%s" UI_SEP_CHAR_S "%s", butstr_orig, shortcut_str);
-    MEM_freeN(butstr_orig);
-    but->str = but->strdata;
-    but->flag |= UI_BUT_HAS_SEP_CHAR;
-    but->drawflag |= UI_BUT_HAS_SHORTCUT;
-    ui_but_update(but);
+  if (shortcut_str == NULL) {
+    return;
   }
+
+  char *butstr_orig;
+  if (but->str != but->strdata) {
+    butstr_orig = but->str; /* free after using as source buffer */
+  }
+  else {
+    butstr_orig = BLI_strdup(but->str);
+  }
+  BLI_snprintf(
+      but->strdata, sizeof(but->strdata), "%s" UI_SEP_CHAR_S "%s", butstr_orig, shortcut_str);
+  MEM_freeN(butstr_orig);
+  but->str = but->strdata;
+  but->flag |= UI_BUT_HAS_SEP_CHAR;
+  but->drawflag |= UI_BUT_HAS_SHORTCUT;
+  ui_but_update(but);
 }
 
 /* -------------------------------------------------------------------- */
@@ -1325,72 +1328,75 @@ static bool ui_but_event_property_operator_string(const bContext *C,
   /* Don't use the button again. */
   but = NULL;
 
+  if (prop == NULL) {
+    return NULL;
+  }
+
   /* this version is only for finding hotkeys for properties
    * (which get set via context using operators) */
-  if (prop) {
-    /* to avoid massive slowdowns on property panels, for now, we only check the
-     * hotkeys for Editor / Scene settings...
-     *
-     * TODO: userpref settings?
-     */
-    char *data_path = NULL;
+  /* to avoid massive slowdowns on property panels, for now, we only check the
+   * hotkeys for Editor / Scene settings...
+   *
+   * TODO: userpref settings?
+   */
+  char *data_path = NULL;
 
-    if (ptr->owner_id) {
-      ID *id = ptr->owner_id;
+  if (ptr->owner_id) {
+    ID *id = ptr->owner_id;
 
-      if (GS(id->name) == ID_SCR) {
-        /* screen/editor property
-         * NOTE: in most cases, there is actually no info for backwards tracing
-         * how to get back to ID from the editor data we may be dealing with
-         */
-        if (RNA_struct_is_a(ptr->type, &RNA_Space)) {
-          /* data should be directly on here... */
-          data_path = BLI_sprintfN("space_data.%s", RNA_property_identifier(prop));
-        }
-        else if (RNA_struct_is_a(ptr->type, &RNA_Area)) {
-          /* data should be directly on here... */
-          const char *prop_id = RNA_property_identifier(prop);
-          /* Hack since keys access 'type', UI shows 'ui_type'. */
-          if (STREQ(prop_id, "ui_type")) {
-            prop_id = "type";
-            prop_enum_value >>= 16;
-            prop = RNA_struct_find_property(ptr, prop_id);
+    if (GS(id->name) == ID_SCR) {
+      /* screen/editor property
+       * NOTE: in most cases, there is actually no info for backwards tracing
+       * how to get back to ID from the editor data we may be dealing with
+       */
+      if (RNA_struct_is_a(ptr->type, &RNA_Space)) {
+        /* data should be directly on here... */
+        data_path = BLI_sprintfN("space_data.%s", RNA_property_identifier(prop));
+      }
+      else if (RNA_struct_is_a(ptr->type, &RNA_Area)) {
+        /* data should be directly on here... */
+        const char *prop_id = RNA_property_identifier(prop);
+        /* Hack since keys access 'type', UI shows 'ui_type'. */
+        if (STREQ(prop_id, "ui_type")) {
+          prop_id = "type";
+          prop_enum_value >>= 16;
+          prop = RNA_struct_find_property(ptr, prop_id);
 
-            opnames = ctx_enum_opnames_for_Area_ui_type;
-            opnames_len = ARRAY_SIZE(ctx_enum_opnames_for_Area_ui_type);
-            prop_enum_value_id = "space_type";
-            prop_enum_value_is_int = true;
-          }
-          else {
-            data_path = BLI_sprintfN("area.%s", prop_id);
-          }
+          opnames = ctx_enum_opnames_for_Area_ui_type;
+          opnames_len = ARRAY_SIZE(ctx_enum_opnames_for_Area_ui_type);
+          prop_enum_value_id = "space_type";
+          prop_enum_value_is_int = true;
         }
         else {
-          /* special exceptions for common nested data in editors... */
-          if (RNA_struct_is_a(ptr->type, &RNA_DopeSheet)) {
-            /* dopesheet filtering options... */
-            data_path = BLI_sprintfN("space_data.dopesheet.%s", RNA_property_identifier(prop));
-          }
-          else if (RNA_struct_is_a(ptr->type, &RNA_FileSelectParams)) {
-            /* Filebrowser options... */
-            data_path = BLI_sprintfN("space_data.params.%s", RNA_property_identifier(prop));
-          }
+          data_path = BLI_sprintfN("area.%s", prop_id);
         }
       }
-      else if (GS(id->name) == ID_SCE) {
-        if (RNA_struct_is_a(ptr->type, &RNA_ToolSettings)) {
-          /* Tool-settings property:
-           * NOTE: tool-settings is usually accessed directly (i.e. not through scene). */
-          data_path = RNA_path_from_ID_to_property(ptr, prop);
+      else {
+        /* special exceptions for common nested data in editors... */
+        if (RNA_struct_is_a(ptr->type, &RNA_DopeSheet)) {
+          /* dopesheet filtering options... */
+          data_path = BLI_sprintfN("space_data.dopesheet.%s", RNA_property_identifier(prop));
         }
-        else {
-          /* scene property */
-          char *path = RNA_path_from_ID_to_property(ptr, prop);
+        else if (RNA_struct_is_a(ptr->type, &RNA_FileSelectParams)) {
+          /* Filebrowser options... */
+          data_path = BLI_sprintfN("space_data.params.%s", RNA_property_identifier(prop));
+        }
+      }
+    }
+    else if (GS(id->name) == ID_SCE) {
+      if (RNA_struct_is_a(ptr->type, &RNA_ToolSettings)) {
+        /* Tool-settings property:
+         * NOTE: tool-settings is usually accessed directly (i.e. not through scene). */
+        data_path = RNA_path_from_ID_to_property(ptr, prop);
+      }
+      else {
+        /* scene property */
+        char *path = RNA_path_from_ID_to_property(ptr, prop);
 
-          if (path) {
-            data_path = BLI_sprintfN("scene.%s", path);
-            MEM_freeN(path);
-          }
+        if (path) {
+          data_path = BLI_sprintfN("scene.%s", path);
+          MEM_freeN(path);
+        }
 #if 0
           else {
             printf("ERROR in %s(): Couldn't get path for scene property - %s\n",
@@ -1398,69 +1404,68 @@ static bool ui_but_event_property_operator_string(const bContext *C,
                    RNA_property_identifier(prop));
           }
 #endif
-        }
       }
-      else {
-        // puts("other id");
-      }
-
-      // printf("prop shortcut: '%s' (%s)\n", RNA_property_identifier(prop), data_path);
+    }
+    else {
+      // puts("other id");
     }
 
-    /* we have a datapath! */
-    if (data_path || (prop_enum_value_ok && prop_enum_value_id)) {
-      /* create a property to host the "datapath" property we're sending to the operators */
-      IDProperty *prop_path;
+    // printf("prop shortcut: '%s' (%s)\n", RNA_property_identifier(prop), data_path);
+  }
 
-      const IDPropertyTemplate val = {0};
-      prop_path = IDP_New(IDP_GROUP, &val, __func__);
-      if (data_path) {
-        IDP_AddToGroup(prop_path, IDP_NewString(data_path, "data_path", strlen(data_path) + 1));
-      }
-      if (prop_enum_value_ok) {
-        const EnumPropertyItem *item;
-        bool free;
-        RNA_property_enum_items((bContext *)C, ptr, prop, &item, NULL, &free);
-        const int index = RNA_enum_from_value(item, prop_enum_value);
-        if (index != -1) {
-          IDProperty *prop_value;
-          if (prop_enum_value_is_int) {
-            const int value = item[index].value;
-            prop_value = IDP_New(IDP_INT,
-                                 &(IDPropertyTemplate){
-                                     .i = value,
-                                 },
-                                 prop_enum_value_id);
-          }
-          else {
-            const char *id = item[index].identifier;
-            prop_value = IDP_NewString(id, prop_enum_value_id, strlen(id) + 1);
-          }
-          IDP_AddToGroup(prop_path, prop_value);
+  /* we have a datapath! */
+  if (data_path || (prop_enum_value_ok && prop_enum_value_id)) {
+    /* create a property to host the "datapath" property we're sending to the operators */
+    IDProperty *prop_path;
+
+    const IDPropertyTemplate val = {0};
+    prop_path = IDP_New(IDP_GROUP, &val, __func__);
+    if (data_path) {
+      IDP_AddToGroup(prop_path, IDP_NewString(data_path, "data_path", strlen(data_path) + 1));
+    }
+    if (prop_enum_value_ok) {
+      const EnumPropertyItem *item;
+      bool free;
+      RNA_property_enum_items((bContext *)C, ptr, prop, &item, NULL, &free);
+      const int index = RNA_enum_from_value(item, prop_enum_value);
+      if (index != -1) {
+        IDProperty *prop_value;
+        if (prop_enum_value_is_int) {
+          const int value = item[index].value;
+          prop_value = IDP_New(IDP_INT,
+                               &(IDPropertyTemplate){
+                                   .i = value,
+                               },
+                               prop_enum_value_id);
         }
         else {
-          opnames_len = 0; /* Do nothing. */
+          const char *id = item[index].identifier;
+          prop_value = IDP_NewString(id, prop_enum_value_id, strlen(id) + 1);
         }
-        if (free) {
-          MEM_freeN((void *)item);
-        }
+        IDP_AddToGroup(prop_path, prop_value);
       }
-
-      /* check each until one works... */
-
-      for (int i = 0; (i < opnames_len) && (opnames[i]); i++) {
-        if (WM_key_event_operator_string(
-                C, opnames[i], WM_OP_INVOKE_REGION_WIN, prop_path, false, buf, buf_len)) {
-          found = true;
-          break;
-        }
+      else {
+        opnames_len = 0; /* Do nothing. */
       }
-
-      /* cleanup */
-      IDP_FreeProperty(prop_path);
-      if (data_path) {
-        MEM_freeN(data_path);
+      if (free) {
+        MEM_freeN((void *)item);
       }
+    }
+
+    /* check each until one works... */
+
+    for (int i = 0; (i < opnames_len) && (opnames[i]); i++) {
+      if (WM_key_event_operator_string(
+              C, opnames[i], WM_OP_INVOKE_REGION_WIN, prop_path, false, buf, buf_len)) {
+        found = true;
+        break;
+      }
+    }
+
+    /* cleanup */
+    IDP_FreeProperty(prop_path);
+    if (data_path) {
+      MEM_freeN(data_path);
     }
   }
 
@@ -2199,15 +2204,12 @@ void UI_block_lock_clear(uiBlock *block)
 /* for buttons pointing to color for example */
 void ui_but_v3_get(uiBut *but, float vec[3])
 {
-  PropertyRNA *prop;
-  int a;
-
   if (but->editvec) {
     copy_v3_v3(vec, but->editvec);
   }
 
   if (but->rnaprop) {
-    prop = but->rnaprop;
+    PropertyRNA *prop = but->rnaprop;
 
     zero_v3(vec);
 
@@ -2219,7 +2221,7 @@ void ui_but_v3_get(uiBut *but, float vec[3])
       }
       else {
         tot = min_ii(tot, 3);
-        for (a = 0; a < tot; a++) {
+        for (int a = 0; a < tot; a++) {
           vec[a] = RNA_property_float_get_index(&but->rnapoin, prop, a);
         }
       }
@@ -2602,17 +2604,19 @@ static double ui_get_but_scale_unit(uiBut *but, double value)
 /* str will be overwritten */
 void ui_but_convert_to_unit_alt_name(uiBut *but, char *str, size_t maxlen)
 {
-  if (ui_but_is_unit(but)) {
-    UnitSettings *unit = but->block->unit;
-    const int unit_type = UI_but_unit_type_get(but);
-    char *orig_str;
-
-    orig_str = BLI_strdup(str);
-
-    BKE_unit_name_to_alt(str, maxlen, orig_str, unit->system, RNA_SUBTYPE_UNIT_VALUE(unit_type));
-
-    MEM_freeN(orig_str);
+  if (!ui_but_is_unit(but)) {
+    return;
   }
+
+  UnitSettings *unit = but->block->unit;
+  const int unit_type = UI_but_unit_type_get(but);
+  char *orig_str;
+
+  orig_str = BLI_strdup(str);
+
+  BKE_unit_name_to_alt(str, maxlen, orig_str, unit->system, RNA_SUBTYPE_UNIT_VALUE(unit_type));
+
+  MEM_freeN(orig_str);
 }
 
 /**
@@ -2663,29 +2667,30 @@ static float ui_get_but_step_unit(uiBut *but, float step_default)
   const double step = BKE_unit_closest_scalar(scale_step, but->block->unit->system, unit_type);
 
   /* -1 is an error value */
-  if (step != -1.0) {
-    const double scale_unit = ui_get_but_scale_unit(but, 1.0);
-    const double step_unit = BKE_unit_closest_scalar(
-        scale_unit, but->block->unit->system, unit_type);
-    double step_final;
-
-    BLI_assert(step > 0.0);
-
-    step_final = (step / scale_unit) / (double)UI_PRECISION_FLOAT_SCALE;
-
-    if (step == step_unit) {
-      /* Logic here is to scale by the original 'step_orig'
-       * only when the unit step matches the scaled step.
-       *
-       * This is needed for units that don't have a wide range of scales (degrees for eg.).
-       * Without this we can't select between a single degree, or a 10th of a degree.
-       */
-      step_final *= step_orig;
-    }
-
-    return (float)step_final;
+  if (step == -1.0f) {
+    return step_default;
   }
-  return step_default;
+
+  const double scale_unit = ui_get_but_scale_unit(but, 1.0);
+  const double step_unit = BKE_unit_closest_scalar(
+      scale_unit, but->block->unit->system, unit_type);
+  double step_final;
+
+  BLI_assert(step > 0.0);
+
+  step_final = (step / scale_unit) / (double)UI_PRECISION_FLOAT_SCALE;
+
+  if (step == step_unit) {
+    /* Logic here is to scale by the original 'step_orig'
+     * only when the unit step matches the scaled step.
+     *
+     * This is needed for units that don't have a wide range of scales (degrees for eg.).
+     * Without this we can't select between a single degree, or a 10th of a degree.
+     */
+    step_final *= step_orig;
+  }
+
+  return (float)step_final;
 }
 
 /**
@@ -3169,31 +3174,25 @@ static double soft_range_round_down(double value, double max)
 
 void ui_but_range_set_hard(uiBut *but)
 {
-  if (but->rnaprop) {
-    const PropertyType type = RNA_property_type(but->rnaprop);
-    double hardmin, hardmax;
+  if (but->rnaprop == NULL) {
+    return;
+  }
 
-    /* clamp button range to something reasonable in case
-     * we get -inf/inf from RNA properties */
-    if (type == PROP_INT) {
-      int imin, imax;
+  const PropertyType type = RNA_property_type(but->rnaprop);
 
-      RNA_property_int_range(&but->rnapoin, but->rnaprop, &imin, &imax);
-      hardmin = (imin == INT_MIN) ? -1e4 : imin;
-      hardmax = (imin == INT_MAX) ? 1e4 : imax;
-    }
-    else if (type == PROP_FLOAT) {
-      float fmin, fmax;
-
-      RNA_property_float_range(&but->rnapoin, but->rnaprop, &fmin, &fmax);
-      hardmin = (fmin == -FLT_MAX) ? (float)-1e4 : fmin;
-      hardmax = (fmax == FLT_MAX) ? (float)1e4 : fmax;
-    }
-    else {
-      return;
-    }
-    but->hardmin = hardmin;
-    but->hardmax = hardmax;
+  /* clamp button range to something reasonable in case
+   * we get -inf/inf from RNA properties */
+  if (type == PROP_INT) {
+    int imin, imax;
+    RNA_property_int_range(&but->rnapoin, but->rnaprop, &imin, &imax);
+    but->hardmin = (imin == INT_MIN) ? -1e4 : imin;
+    but->hardmax = (imin == INT_MAX) ? 1e4 : imax;
+  }
+  else if (type == PROP_FLOAT) {
+    float fmin, fmax;
+    RNA_property_float_range(&but->rnapoin, but->rnaprop, &fmin, &fmax);
+    but->hardmin = (fmin == -FLT_MAX) ? (float)-1e4 : fmin;
+    but->hardmax = (fmax == FLT_MAX) ? (float)1e4 : fmax;
   }
 }
 
