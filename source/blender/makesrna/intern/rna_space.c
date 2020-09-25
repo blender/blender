@@ -1922,78 +1922,86 @@ static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
   SpaceAction *saction = (SpaceAction *)(ptr->data);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Main *bmain = CTX_data_main(C);
+
   Object *obact = OBACT(view_layer);
-
-  /* We must set this action to be the one used by active object. */
-  if (obact) {
-    AnimData *adt = NULL;
-
-    if (saction->mode == SACTCONT_ACTION) {
-      /* TODO: context selector could help decide this with more control? */
-      adt = BKE_animdata_add_id(&obact->id); /* this only adds if non-existent */
-    }
-    else if (saction->mode == SACTCONT_SHAPEKEY) {
-      Key *key = BKE_key_from_object(obact);
-      if (key) {
-        adt = BKE_animdata_add_id(&key->id); /* this only adds if non-existent */
-      }
-    }
-
-    /* set action */
-    // FIXME: this overlaps a lot with the BKE_animdata_set_action() API method
-    if (adt) {
-      /* Don't do anything if old and new actions are the same... */
-      if (adt->action != saction->action) {
-        /* NLA Tweak Mode needs special handling... */
-        if (adt->flag & ADT_NLA_EDIT_ON) {
-          /* Exit editmode first - we cannot change actions while in tweakmode
-           * NOTE: This will clear the action ref properly
-           */
-          BKE_nla_tweakmode_exit(adt);
-
-          /* Assign new action, and adjust the usercounts accordingly */
-          adt->action = saction->action;
-          id_us_plus((ID *)adt->action);
-        }
-        else {
-          /* Handle old action... */
-          if (adt->action) {
-            /* Fix id-count of action we're replacing */
-            id_us_min(&adt->action->id);
-
-            /* To prevent data loss (i.e. if users flip between actions using the Browse menu),
-             * stash this action if nothing else uses it.
-             *
-             * EXCEPTION:
-             * This callback runs when unlinking actions. In that case, we don't want to
-             * stash the action, as the user is signaling that they want to detach it.
-             * This can be reviewed again later,
-             * but it could get annoying if we keep these instead.
-             */
-            if ((adt->action->id.us <= 0) && (saction->action != NULL)) {
-              /* XXX: Things here get dodgy if this action is only partially completed,
-               *      and the user then uses the browse menu to get back to this action,
-               *      assigning it as the active action (i.e. the stash strip gets out of sync)
-               */
-              BKE_nla_action_stash(adt);
-            }
-          }
-
-          /* Assign new action, and adjust the usercounts accordingly */
-          adt->action = saction->action;
-          id_us_plus((ID *)adt->action);
-        }
-      }
-
-      /* Force update of animdata */
-      DEG_id_tag_update(&obact->id, ID_RECALC_ANIMATION);
-    }
-
-    /* force depsgraph flush too */
-    DEG_id_tag_update(&obact->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-    /* Update relations as well, so new time source dependency is added. */
-    DEG_relations_tag_update(bmain);
+  if (obact == NULL) {
+    return;
   }
+
+  AnimData *adt = NULL;
+  switch (saction->mode) {
+    case SACTCONT_ACTION:
+      /* TODO: context selector could help decide this with more control? */
+      adt = BKE_animdata_add_id(&obact->id);
+      break;
+    case SACTCONT_SHAPEKEY: {
+      Key *key = BKE_key_from_object(obact);
+      if (key == NULL) {
+        return;
+      }
+      adt = BKE_animdata_add_id(&key->id);
+      break;
+    }
+    case SACTCONT_GPENCIL:
+    case SACTCONT_DOPESHEET:
+    case SACTCONT_MASK:
+    case SACTCONT_CACHEFILE:
+    case SACTCONT_TIMELINE:
+      return;
+  }
+
+  if (adt == NULL) {
+    /* No animdata was added, so the depsgraph also doesn't need tagging. */
+    return;
+  }
+
+  /* Don't do anything if old and new actions are the same... */
+  if (adt->action == saction->action) {
+    return;
+  }
+
+  /* Exit editmode first - we cannot change actions while in tweakmode. */
+  BKE_nla_tweakmode_exit(adt);
+
+  /* NLA Tweak Mode needs special handling... */
+  if (adt->flag & ADT_NLA_EDIT_ON) {
+    /* Assign new action, and adjust the usercounts accordingly */
+    adt->action = saction->action;
+    id_us_plus((ID *)adt->action);
+  }
+  else {
+    /* Handle old action... */
+    if (adt->action) {
+      /* Fix id-count of action we're replacing */
+      id_us_min(&adt->action->id);
+
+      /* To prevent data loss (i.e. if users flip between actions using the Browse menu),
+       * stash this action if nothing else uses it.
+       *
+       * EXCEPTION:
+       * This callback runs when unlinking actions. In that case, we don't want to
+       * stash the action, as the user is signaling that they want to detach it.
+       * This can be reviewed again later,
+       * but it could get annoying if we keep these instead.
+       */
+      if ((adt->action->id.us <= 0) && (saction->action != NULL)) {
+        /* XXX: Things here get dodgy if this action is only partially completed,
+         *      and the user then uses the browse menu to get back to this action,
+         *      assigning it as the active action (i.e. the stash strip gets out of sync)
+         */
+        BKE_nla_action_stash(adt);
+      }
+    }
+
+    /* Assign new action, and adjust the usercounts accordingly */
+    adt->action = saction->action;
+    id_us_plus((ID *)adt->action);
+  }
+
+  DEG_id_tag_update(&obact->id, ID_RECALC_ANIMATION | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+
+  /* Update relations as well, so new time source dependency is added. */
+  DEG_relations_tag_update(bmain);
 }
 
 static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
