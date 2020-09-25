@@ -1924,8 +1924,8 @@ static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
   Main *bmain = CTX_data_main(C);
   Object *obact = OBACT(view_layer);
 
-  /* we must set this action to be the one used by active object (if not pinned) */
-  if (obact /* && saction->pin == 0*/) {
+  /* We must set this action to be the one used by active object. */
+  if (obact) {
     AnimData *adt = NULL;
 
     if (saction->mode == SACTCONT_ACTION) {
