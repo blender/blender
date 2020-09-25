@@ -931,17 +931,17 @@ static void rna_def_beztriple(BlenderRNA *brna)
 
   /* Boolean values */
   prop = RNA_def_property(srna, "select_left_handle", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "f1", 0);
+  RNA_def_property_boolean_sdna(prop, NULL, "f1", SELECT);
   RNA_def_property_ui_text(prop, "Handle 1 selected", "Handle 1 selection status");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   prop = RNA_def_property(srna, "select_right_handle", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "f3", 0);
+  RNA_def_property_boolean_sdna(prop, NULL, "f3", SELECT);
   RNA_def_property_ui_text(prop, "Handle 2 selected", "Handle 2 selection status");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   prop = RNA_def_property(srna, "select_control_point", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "f2", 0);
+  RNA_def_property_boolean_sdna(prop, NULL, "f2", SELECT);
   RNA_def_property_ui_text(prop, "Control Point selected", "Control point selection status");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
