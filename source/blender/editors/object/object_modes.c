@@ -408,6 +408,11 @@ bool ED_object_mode_generic_has_data(struct Depsgraph *depsgraph, struct Object 
 
 static bool object_switch_object_poll(bContext *C)
 {
+
+  if (!U.experimental.use_switch_object_operator) {
+    return false;
+  }
+
   if (!CTX_wm_region_view3d(C)) {
     return false;
   }
