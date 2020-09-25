@@ -1763,7 +1763,6 @@ int rna_property_override_diff_default(Main *bmain,
     case PROP_COLLECTION: {
       bool equals = true;
       bool abort = false;
-      bool is_first_insert = true;
       int idx_a = 0;
       int idx_b = 0;
 
@@ -1777,6 +1776,22 @@ int rna_property_override_diff_default(Main *bmain,
       char *propname_a = NULL;
       char *prev_propname_a = buff_prev_a;
       char *propname_b = NULL;
+
+      if (use_collection_insertion) {
+        /* We need to clean up all possible existing insertion operations, and then re-generate
+         * them, otherwise we'd end up with a mess of opops every time something changes. */
+        op = BKE_lib_override_library_property_find(override, rna_path);
+        if (op != NULL) {
+          LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+            if (ELEM(opop->operation,
+                     IDOVERRIDE_LIBRARY_OP_INSERT_AFTER,
+                     IDOVERRIDE_LIBRARY_OP_INSERT_BEFORE)) {
+              BKE_lib_override_library_property_operation_delete(op, opop);
+            }
+          }
+          op = NULL;
+        }
+      }
 
       for (; iter_a.valid && !abort;) {
         bool is_valid_for_diffing;
@@ -1859,22 +1874,6 @@ int rna_property_override_diff_default(Main *bmain,
            * also assume then that _a data is the one where things are inserted. */
           if (is_valid_for_insertion && use_collection_insertion) {
             op = BKE_lib_override_library_property_get(override, rna_path, &created);
-
-            if (is_first_insert) {
-              /* We need to clean up all possible existing insertion operations,
-               * otherwise we'd end up with a mess of ops every time something changes. */
-              for (IDOverrideLibraryPropertyOperation *opop = op->operations.first;
-                   opop != NULL;) {
-                IDOverrideLibraryPropertyOperation *opop_next = opop->next;
-                if (ELEM(opop->operation,
-                         IDOVERRIDE_LIBRARY_OP_INSERT_AFTER,
-                         IDOVERRIDE_LIBRARY_OP_INSERT_BEFORE)) {
-                  BKE_lib_override_library_property_operation_delete(op, opop);
-                }
-                opop = opop_next;
-              }
-              is_first_insert = false;
-            }
 
             BKE_lib_override_library_property_operation_get(op,
                                                             IDOVERRIDE_LIBRARY_OP_INSERT_AFTER,
