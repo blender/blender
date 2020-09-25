@@ -973,13 +973,15 @@ static void rna_property_override_apply_ex(Main *bmain,
       ptr_item_storage = &private_ptr_item_storage;
 
       if (ptr_item_dst->type == NULL) {
-        printf("Failed to find destination sub-item '%s' in new override data '%s'\n",
+        printf("Failed to find destination sub-item '%s' of '%s' in new override data '%s'\n",
                opop->subitem_reference_name,
+               op->rna_path,
                ptr_dst->owner_id->name);
       }
       if (ptr_item_src->type == NULL) {
-        printf("Failed to find source sub-item '%s' in old override data '%s'\n",
+        printf("Failed to find source sub-item '%s' of '%s' in old override data '%s'\n",
                opop->subitem_local_name,
+               op->rna_path,
                ptr_src->owner_id->name);
       }
     }
