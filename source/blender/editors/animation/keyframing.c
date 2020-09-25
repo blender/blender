@@ -162,7 +162,7 @@ bAction *ED_id_action_ensure(Main *bmain, ID *id)
      * so that users can't accidentally break actions by assigning them
      * to the wrong places
      */
-    adt->action->idroot = GS(id->name);
+    BKE_animdata_action_ensure_idroot(id, adt->action);
 
     /* Tag depsgraph to be rebuilt to include time dependency. */
     DEG_relations_tag_update(bmain);

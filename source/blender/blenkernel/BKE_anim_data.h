@@ -58,6 +58,10 @@ bool BKE_animdata_set_action(struct ReportList *reports, struct ID *id, struct b
 
 bool BKE_animdata_action_editable(const struct AnimData *adt);
 
+/* Ensure that the action's idroot is set correctly given the ID type of the owner.
+ * Return true if it is, false if it was already set to an incompatible type. */
+bool BKE_animdata_action_ensure_idroot(const struct ID *owner, struct bAction *action);
+
 /* Free AnimData */
 void BKE_animdata_free(struct ID *id, const bool do_id_user);
 

@@ -186,6 +186,11 @@ bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
     return false;
   }
 
+  if (adt->action == act) {
+    /* Don't bother reducing and increasing the user count when there is nothing changing. */
+    return true;
+  }
+
   if (!BKE_animdata_action_editable(adt)) {
     /* Cannot remove, otherwise things turn to custard. */
     BKE_report(reports, RPT_ERROR, "Cannot change action, as it is still being edited in NLA");
@@ -204,7 +209,7 @@ bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
   }
 
   /* Action must have same type as owner. */
-  if (!ELEM(act->idroot, 0, GS(id->name))) {
+  if (!BKE_animdata_action_ensure_idroot(id, act)) {
     /* Cannot set to this type. */
     BKE_reportf(
         reports,
@@ -228,6 +233,19 @@ bool BKE_animdata_action_editable(const AnimData *adt)
   const bool is_tweaking_strip = (adt->flag & ADT_NLA_EDIT_ON) || adt->actstrip != NULL ||
                                  adt->tmpact != NULL;
   return !is_tweaking_strip;
+}
+
+bool BKE_animdata_action_ensure_idroot(const ID *owner, bAction *action)
+{
+  const int idcode = GS(owner->name);
+
+  if (action->idroot == 0) {
+    /* First time this Action is assigned, lock it to this ID type. */
+    action->idroot = idcode;
+    return true;
+  }
+
+  return (action->idroot == idcode);
 }
 
 /* Freeing -------------------------------------------- */
@@ -673,6 +691,7 @@ void BKE_animdata_transfer_by_basepath(Main *bmain, ID *srcID, ID *dstID, ListBa
      * and name it in a similar way so that it can be easily found again. */
     if (dstAdt->action == NULL) {
       dstAdt->action = BKE_action_add(bmain, srcAdt->action->id.name + 2);
+      BKE_animdata_action_ensure_idroot(dstID, dstAdt->action);
     }
     else if (dstAdt->action == srcAdt->action) {
       CLOG_WARN(&LOG,
@@ -685,6 +704,7 @@ void BKE_animdata_transfer_by_basepath(Main *bmain, ID *srcID, ID *dstID, ListBa
       /* TODO: review this... */
       id_us_min(&dstAdt->action->id);
       dstAdt->action = BKE_action_add(bmain, dstAdt->action->id.name + 2);
+      BKE_animdata_action_ensure_idroot(dstID, dstAdt->action);
     }
 
     /* loop over base paths, trying to fix for each one... */
