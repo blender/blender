@@ -886,9 +886,11 @@ static void rna_property_override_apply_ex(Main *bmain,
     if (!do_insert != !ELEM(opop->operation,
                             IDOVERRIDE_LIBRARY_OP_INSERT_AFTER,
                             IDOVERRIDE_LIBRARY_OP_INSERT_BEFORE)) {
+#ifndef NDEBUG
       if (!do_insert) {
         printf("Skipping insert override operations in first pass (%s)!\n", op->rna_path);
       }
+#endif
       continue;
     }
 
@@ -972,6 +974,7 @@ static void rna_property_override_apply_ex(Main *bmain,
       ptr_item_src = &private_ptr_item_src;
       ptr_item_storage = &private_ptr_item_storage;
 
+#ifndef NDEBUG
       if (ptr_item_dst->type == NULL) {
         printf("Failed to find destination sub-item '%s' (%d) of '%s' in new override data '%s'\n",
                opop->subitem_reference_name,
@@ -986,6 +989,7 @@ static void rna_property_override_apply_ex(Main *bmain,
                op->rna_path,
                ptr_src->owner_id->name);
       }
+#endif
     }
 
     if (!rna_property_override_operation_apply(bmain,
