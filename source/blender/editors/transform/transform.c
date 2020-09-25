@@ -770,7 +770,12 @@ static void transform_event_xyz_constraint(TransInfo *t, short key_type, bool is
         stopConstraint(t);
       }
       else {
-        setUserConstraint(t, constraint_axis, is_plane ? msg3 : msg2);
+        if (is_plane == false) {
+          setUserConstraint(t, constraint_axis, msg2);
+        }
+        else {
+          setUserConstraint(t, constraint_plane, msg3);
+        }
       }
     }
     t->redraw |= TREDRAW_HARD;
