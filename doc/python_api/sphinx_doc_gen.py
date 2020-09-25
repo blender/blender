@@ -1312,7 +1312,7 @@ def pyrna2sphinx(basepath):
 
         fw(title_string(title, "="))
 
-        fw(".. module:: %s.%s\n\n" % (struct_module_name, struct_id))
+        fw(".. module:: %s\n\n" % struct_module_name)
 
         # docs first?, ok
         write_example_ref("", fw, "%s.%s" % (struct_module_name, struct_id))
@@ -1543,7 +1543,7 @@ def pyrna2sphinx(basepath):
 
             fw(title_string(class_name, "="))
 
-            fw(".. module:: %s.%s\n" % (class_module_name, class_name))
+            fw(".. module:: %s\n" % class_module_name)
             fw("\n")
 
             if use_subclasses:
