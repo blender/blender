@@ -31,6 +31,17 @@ if(MSVC_CLANG AND WITH_OPENMP AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0.1
   remove_cc_flag("-fopenmp")
 endif()
 
+# Exporting functions from the blender binary gives linker warnings on Apple arm64 systems.
+# For now and until Apple arm64 is officially supported, these will just be silenced here.
+# TODO (sebbas): Check if official arm64 devices give linker warnings without this block.
+
+if(APPLE AND ("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64"))
+  if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
+  endif()
+endif()
+
 set(MANTAVERSION "0.13")
 
 add_definitions(-DWITH_FLUID=1)
