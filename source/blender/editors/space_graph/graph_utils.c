@@ -138,17 +138,17 @@ bool graphop_visible_keyframes_poll(bContext *C)
   ScrArea *area = CTX_wm_area(C);
   size_t items;
   int filter;
-  short found = 0;
+  bool found = false;
 
   /* firstly, check if in Graph Editor */
   // TODO: also check for region?
   if ((area == NULL) || (area->spacetype != SPACE_GRAPH)) {
-    return 0;
+    return found;
   }
 
   /* try to init Anim-Context stuff ourselves and check */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
-    return 0;
+    return found;
   }
 
   /* loop over the visible (selection doesn't matter) F-Curves, and see if they're suitable
@@ -157,7 +157,7 @@ bool graphop_visible_keyframes_poll(bContext *C)
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE);
   items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
   if (items == 0) {
-    return 0;
+    return found;
   }
 
   for (ale = anim_data.first; ale; ale = ale->next) {
@@ -172,7 +172,7 @@ bool graphop_visible_keyframes_poll(bContext *C)
       continue;
     }
     if (BKE_fcurve_are_keyframes_usable(fcu)) {
-      found = 1;
+      found = true;
       break;
     }
   }
@@ -191,17 +191,17 @@ bool graphop_editable_keyframes_poll(bContext *C)
   ScrArea *area = CTX_wm_area(C);
   size_t items;
   int filter;
-  short found = 0;
+  bool found = false;
 
   /* firstly, check if in Graph Editor */
   // TODO: also check for region?
   if ((area == NULL) || (area->spacetype != SPACE_GRAPH)) {
-    return 0;
+    return found;
   }
 
   /* try to init Anim-Context stuff ourselves and check */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
-    return 0;
+    return found;
   }
 
   /* loop over the editable F-Curves, and see if they're suitable
@@ -210,7 +210,7 @@ bool graphop_editable_keyframes_poll(bContext *C)
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE);
   items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
   if (items == 0) {
-    return 0;
+    return found;
   }
 
   for (ale = anim_data.first; ale; ale = ale->next) {
@@ -227,7 +227,7 @@ bool graphop_editable_keyframes_poll(bContext *C)
       continue;
     }
     if (BKE_fcurve_is_keyframable(fcu)) {
-      found = 1;
+      found = true;
       break;
     }
   }
@@ -243,23 +243,23 @@ bool graphop_active_fcurve_poll(bContext *C)
   bAnimContext ac;
   bAnimListElem *ale;
   ScrArea *area = CTX_wm_area(C);
-  bool has_fcurve = 0;
+  bool has_fcurve = false;
 
   /* firstly, check if in Graph Editor */
   // TODO: also check for region?
   if ((area == NULL) || (area->spacetype != SPACE_GRAPH)) {
-    return 0;
+    return has_fcurve;
   }
 
   /* try to init Anim-Context stuff ourselves and check */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
-    return 0;
+    return has_fcurve;
   }
 
   /* try to get the Active F-Curve */
   ale = get_active_fcurve_channel(&ac);
   if (ale == NULL) {
-    return 0;
+    return has_fcurve;
   }
 
   /* Do we have a suitable F-Curves?
@@ -301,12 +301,12 @@ bool graphop_selected_fcurve_poll(bContext *C)
   /* firstly, check if in Graph Editor */
   // TODO: also check for region?
   if ((area == NULL) || (area->spacetype != SPACE_GRAPH)) {
-    return 0;
+    return false;
   }
 
   /* try to init Anim-Context stuff ourselves and check */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
-    return 0;
+    return false;
   }
 
   /* Get the editable + selected F-Curves, and as long as we got some, we can return.
@@ -315,12 +315,12 @@ bool graphop_selected_fcurve_poll(bContext *C)
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT);
   items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
   if (items == 0) {
-    return 0;
+    return false;
   }
 
   /* cleanup and return findings */
   ANIM_animdata_freelist(&anim_data);
-  return 1;
+  return true;
 }
 
 /* ************************************************************** */

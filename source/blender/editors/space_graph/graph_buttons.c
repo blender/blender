@@ -735,7 +735,7 @@ static bool graph_panel_drivers_poll(const bContext *C, PanelType *UNUSED(pt))
   SpaceGraph *sipo = CTX_wm_space_graph(C);
 
   if (sipo->mode != SIPO_MODE_DRIVERS) {
-    return 0;
+    return false;
   }
 
   return graph_panel_context(C, NULL, NULL);

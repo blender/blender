@@ -66,7 +66,7 @@ static bool graphview_cursor_poll(bContext *C)
 {
   /* prevent changes during render */
   if (G.is_rendering) {
-    return 0;
+    return false;
   }
 
   return ED_operator_graphedit_active(C);
