@@ -288,7 +288,6 @@ class ToolSelectPanelHelper:
                 else:
                     yield item
 
-
     @classmethod
     def _tool_get_active(cls, context, space_type, mode, with_icon=False):
         """
@@ -326,7 +325,7 @@ class ToolSelectPanelHelper:
             if item is not None:
                 if type(item) is tuple:
                     if item[0].idname == idname:
-                        index = cls._tool_group_active.get(item[0].idname, 0)
+                        index = cls._tool_group_active_get_from_item(item)
                         return (item[index], index)
                 else:
                     if item.idname == idname:
@@ -342,7 +341,7 @@ class ToolSelectPanelHelper:
             if item is not None:
                 if type(item) is tuple:
                     if item[0].idname == idname:
-                        index = cls._tool_group_active.get(item[0].idname, 0)
+                        index = cls._tool_group_active_get_from_item(item)
                         return (item[index], index, item)
                 else:
                     if item.idname == idname:
@@ -395,13 +394,26 @@ class ToolSelectPanelHelper:
             if item is not None:
                 if i == tool_index:
                     if type(item) is tuple:
-                        index = cls._tool_group_active.get(item[0].idname, 0)
+                        index = cls._tool_group_active_get_from_item(item)
                         item = item[index]
                     else:
                         index = -1
                     return (item, index)
                 i += 1
         return None, -1
+
+    @classmethod
+    def _tool_group_active_get_from_item(cls, item):
+        index = cls._tool_group_active.get(item[0].idname, 0)
+        # Can happen in the case a group is dynamic.
+        #
+        # NOTE(Campbell): that in this case it's possible the order could change too,
+        # So if we want to support this properly we will need to switch away from using
+        # an index and instead use an ID.
+        # Currently this is such a rare case occurrence that a range check is OK for now.
+        if index >= len(item):
+            index = 0
+        return index
 
     @classmethod
     def _tool_group_active_set_by_id(cls, context, idname_group, idname):
@@ -664,7 +676,7 @@ class ToolSelectPanelHelper:
                     # not ideal, write this every time :S
                     cls._tool_group_active[item[0].idname] = index
                 else:
-                    index = cls._tool_group_active.get(item[0].idname, 0)
+                    index = cls._tool_group_active_get_from_item(item)
 
                 item = item[index]
                 use_menu = True
@@ -821,7 +833,8 @@ class ToolSelectPanelHelper:
         if is_active_tool:
             index_current = -1
         else:
-            index_current = cls._tool_group_active.get(item_group[0].idname, 0)
+            index_current = cls._tool_group_active_get_from_item(item_group)
+
         for i, sub_item in enumerate(item_group):
             is_active = (i == index_current)
 
@@ -871,7 +884,7 @@ class ToolSelectPanelHelper:
         if is_active_tool:
             index_current = -1
         else:
-            index_current = cls._tool_group_active.get(item_group[0].idname, 0)
+            index_current = cls._tool_group_active_get_from_item(item_group)
         for i, sub_item in enumerate(item_group):
             is_active = (i == index_current)
             props = pie.operator(
@@ -1023,7 +1036,7 @@ def activate_by_id_or_cycle(context, space_type, idname, *, offset=1, as_fallbac
     id_current = ""
     for item_group in cls.tools_from_context(context):
         if type(item_group) is tuple:
-            index_current = cls._tool_group_active.get(item_group[0].idname, 0)
+            index_current = cls._tool_group_active_get_from_item(item_group)
             for sub_item in item_group:
                 if sub_item.idname == idname:
                     id_current = item_group[index_current].idname
