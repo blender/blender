@@ -1578,7 +1578,6 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
   const MLoop *mloop;
   const MPoly *mpoly, *mp;
   uint totvert, totedge, totloop, totpoly;
-  uint i;
 
   mvert = mesh->mvert;
   totvert = mesh->totvert;
@@ -1592,7 +1591,7 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
       const bool invert_vgroup = (wmd->flag & MOD_WELD_INVERT_VGROUP) != 0;
       dv = &dvert[0];
       v_mask = BLI_BITMAP_NEW(totvert, __func__);
-      for (i = 0; i < totvert; i++, dv++) {
+      for (uint i = 0; i < totvert; i++, dv++) {
         const bool found = BKE_defvert_find_weight(dv, defgrp_index) > 0.0f;
         if (found != invert_vgroup) {
           BLI_BITMAP_ENABLE(v_mask, i);
@@ -1688,7 +1687,7 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
 #else
   {
     KDTree_3d *tree = BLI_kdtree_3d_new(totvert);
-    for (i = 0; i < totvert; i++) {
+    for (uint i = 0; i < totvert; i++) {
       if (!(v_mask && !BLI_BITMAP_TEST(v_mask, i))) {
         BLI_kdtree_3d_insert(tree, i, mvert[i].co);
       }
@@ -1730,7 +1729,7 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
     uint *vert_final = vert_dest_map;
     uint *index_iter = &vert_final[0];
     int dest_index = 0;
-    for (i = 0; i < totvert; i++, index_iter++) {
+    for (uint i = 0; i < totvert; i++, index_iter++) {
       int source_index = i;
       int count = 0;
       while (i < totvert && *index_iter == OUT_OF_CONTEXT) {
@@ -1765,7 +1764,7 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
     uint *edge_final = weld_mesh.edge_groups_map;
     index_iter = &edge_final[0];
     dest_index = 0;
-    for (i = 0; i < totedge; i++, index_iter++) {
+    for (uint i = 0; i < totedge; i++, index_iter++) {
       int source_index = i;
       int count = 0;
       while (i < totedge && *index_iter == OUT_OF_CONTEXT) {
@@ -1813,7 +1812,7 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
     uint r_i = 0;
     int loop_cur = 0;
     uint *group_buffer = BLI_array_alloca(group_buffer, weld_mesh.max_poly_len);
-    for (i = 0; i < totpoly; i++, mp++) {
+    for (uint i = 0; i < totpoly; i++, mp++) {
       int loop_start = loop_cur;
       uint poly_ctx = weld_mesh.poly_map[i];
       if (poly_ctx == OUT_OF_CONTEXT) {
@@ -1859,7 +1858,7 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
     }
 
     WeldPoly *wp = &weld_mesh.wpoly_new[0];
-    for (i = 0; i < weld_mesh.wpoly_new_len; i++, wp++) {
+    for (uint i = 0; i < weld_mesh.wpoly_new_len; i++, wp++) {
       int loop_start = loop_cur;
       WeldLoopOfPolyIter iter;
       if (!weld_iter_loop_of_poly_begin(
