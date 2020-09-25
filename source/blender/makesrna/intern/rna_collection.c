@@ -167,12 +167,16 @@ static bool rna_Collection_objects_override_apply(Main *bmain,
   Collection *coll_dst = (Collection *)ptr_dst->owner_id;
 
   if (ptr_item_dst->type == NULL || ptr_item_src->type == NULL) {
-    BLI_assert(0 && "invalid source or destination object.");
+    //    BLI_assert(0 && "invalid source or destination object.");
     return false;
   }
 
   Object *ob_dst = ptr_item_dst->data;
   Object *ob_src = ptr_item_src->data;
+
+  if (ob_src == ob_dst) {
+    return true;
+  }
 
   CollectionObject *cob_dst = BLI_findptr(
       &coll_dst->gobject, ob_dst, offsetof(CollectionObject, ob));
