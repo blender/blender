@@ -186,7 +186,7 @@ def main():
         ["testMergedWeld", "expectedMergedWeld",
          [ModifierSpec("weld", 'WELD', {"merge_threshold": 0.021})]],
         ["testMergedAllWeld", "expectedMergedAllWeld",
-         [ModifierSpec("weld", 'WELD', {"merge_threshold": 1.1})]],
+         [ModifierSpec("weld", 'WELD', {"merge_threshold": 1.8})]],
         ["testMergedNoneWeld", "expectedMergedNoneWeld",
          [ModifierSpec("weld", 'WELD', {"merge_threshold": 0.019})]],
 

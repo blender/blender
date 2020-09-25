@@ -29,7 +29,7 @@
 
 //#define USE_WELD_DEBUG
 //#define USE_WELD_NORMALS
-#define USE_BVHTREEKDOP
+//#define USE_BVHTREEKDOP
 
 #include "MEM_guardedalloc.h"
 
@@ -1696,7 +1696,7 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
 
     BLI_kdtree_3d_balance(tree);
     vert_kill_len = BLI_kdtree_3d_calc_duplicates_fast(
-        tree, wmd->merge_dist, false, (int *)vert_dest_map);
+        tree, wmd->merge_dist, true, (int *)vert_dest_map);
     BLI_kdtree_3d_free(tree);
   }
 #endif
