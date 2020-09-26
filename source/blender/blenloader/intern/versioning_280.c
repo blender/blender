@@ -1242,7 +1242,12 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
               break;
             }
           }
-          BLI_assert(collection_hidden != NULL);
+          if (collection_hidden == NULL) {
+            /* This should never happen (objects are always supposed to be instantiated in a
+             * scene), but it does sometimes, see e.g. T81168.
+             * Just put them in first hidden collection in those cases. */
+            collection_hidden = &hidden_collection_array[0];
+          }
 
           if (*collection_hidden == NULL) {
             char name[MAX_ID_NAME];
