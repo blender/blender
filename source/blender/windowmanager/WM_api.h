@@ -632,12 +632,16 @@ void WM_gesture_lasso_cancel(struct bContext *C, struct wmOperator *op);
 const int (*WM_gesture_lasso_path_to_array(struct bContext *C,
                                            struct wmOperator *op,
                                            int *mcoords_len))[2];
+
 int WM_gesture_straightline_invoke(struct bContext *C,
                                    struct wmOperator *op,
                                    const struct wmEvent *event);
 int WM_gesture_straightline_modal(struct bContext *C,
                                   struct wmOperator *op,
                                   const struct wmEvent *event);
+int WM_gesture_straightline_oneshot_modal(struct bContext *C,
+                                          struct wmOperator *op,
+                                          const struct wmEvent *event);
 void WM_gesture_straightline_cancel(struct bContext *C, struct wmOperator *op);
 
 /* Gesture manager API */

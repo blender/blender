@@ -6388,6 +6388,17 @@ def km_3d_view_tool_sculpt_lasso_trim(params):
         ]},
     )
 
+def km_3d_view_tool_sculpt_line_mask(params):
+    return (
+        "3D View Tool: Sculpt, Line Mask",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("paint.mask_line_gesture", {"type": params.tool_tweak, "value": 'ANY'},
+             {"properties": [("value", 1.0)]}),
+            ("paint.mask_line_gesture", {"type": params.tool_tweak, "value": 'ANY', "ctrl": True},
+             {"properties": [("value", 0.0)]}),
+        ]},
+    )
 
 def km_3d_view_tool_sculpt_mesh_filter(params):
     return (
@@ -6993,6 +7004,7 @@ def generate_keymaps(params=None):
         km_3d_view_tool_sculpt_lasso_face_set(params),
         km_3d_view_tool_sculpt_box_trim(params),
         km_3d_view_tool_sculpt_lasso_trim(params),
+        km_3d_view_tool_sculpt_line_mask(params),
         km_3d_view_tool_sculpt_mesh_filter(params),
         km_3d_view_tool_sculpt_cloth_filter(params),
         km_3d_view_tool_sculpt_color_filter(params),

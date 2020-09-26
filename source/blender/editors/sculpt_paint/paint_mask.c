@@ -234,6 +234,7 @@ void PAINT_OT_mask_flood_fill(struct wmOperatorType *ot)
 typedef enum eSculptGestureShapeType {
   SCULPT_GESTURE_SHAPE_BOX,
   SCULPT_GESTURE_SHAPE_LASSO,
+  SCULPT_GESTURE_SHAPE_LINE,
 } eMaskGesturesShapeType;
 
 typedef struct LassoGestureData {
@@ -245,6 +246,11 @@ typedef struct LassoGestureData {
   /* 2D bitmap to test if a vertex is affected by the lasso shape. */
   BLI_bitmap *mask_px;
 } LassoGestureData;
+
+typedef struct LineGestureData {
+  float true_plane[4];
+  float plane[4];
+} LineGestureData;
 
 struct SculptGestureOperation;
 
@@ -279,6 +285,9 @@ typedef struct SculptGestureContext {
 
   /* Lasso Gesture. */
   LassoGestureData lasso;
+
+  /* Line Gesture. */
+  LineGestureData line;
 
   /* Task Callback Data. */
   PBVHNode **nodes;
@@ -430,6 +439,44 @@ static SculptGestureContext *sculpt_gesture_init_from_box(bContext *C, wmOperato
   return sgcontext;
 }
 
+static SculptGestureContext *sculpt_gesture_init_from_line(bContext *C, wmOperator *op)
+{
+  SculptGestureContext *sgcontext = MEM_callocN(sizeof(SculptGestureContext),
+                                                "sculpt gesture context line");
+  sgcontext->shape_type = SCULPT_GESTURE_SHAPE_LINE;
+
+  sculpt_gesture_context_init_common(C, op, sgcontext);
+
+  float line_points[2][2];
+  line_points[0][0] = RNA_int_get(op->ptr, "xstart");
+  line_points[0][1] = RNA_int_get(op->ptr, "ystart");
+  line_points[1][0] = RNA_int_get(op->ptr, "xend");
+  line_points[1][1] = RNA_int_get(op->ptr, "yend");
+
+  float depth_point[3];
+  float plane_points[3][3];
+
+  /* Calculate a triangle in the line's plane. */
+  add_v3_v3v3(depth_point, sgcontext->true_view_origin, sgcontext->true_view_normal);
+  ED_view3d_win_to_3d(
+      sgcontext->vc.v3d, sgcontext->vc.region, depth_point, line_points[0], plane_points[0]);
+
+  madd_v3_v3v3fl(depth_point, sgcontext->true_view_origin, sgcontext->true_view_normal, 10.0f);
+  ED_view3d_win_to_3d(
+      sgcontext->vc.v3d, sgcontext->vc.region, depth_point, line_points[0], plane_points[1]);
+  ED_view3d_win_to_3d(
+      sgcontext->vc.v3d, sgcontext->vc.region, depth_point, line_points[1], plane_points[2]);
+
+  /* Calculate final line plane and normal using the triangle. */
+  float normal[3];
+  normal_tri_v3(normal, plane_points[0], plane_points[1], plane_points[2]);
+  if (!sgcontext->vc.rv3d->is_persp) {
+    mul_v3_fl(normal, -1.0f);
+  }
+  plane_from_point_normal_v3(sgcontext->line.true_plane, plane_points[0], normal);
+  return sgcontext;
+}
+
 static void sculpt_gesture_context_free(SculptGestureContext *sgcontext)
 {
   MEM_SAFE_FREE(sgcontext->lasso.mask_px);
@@ -470,12 +517,28 @@ static void sculpt_gesture_flip_for_symmetry_pass(SculptGestureContext *sgcontex
   for (int j = 0; j < 4; j++) {
     flip_plane(sgcontext->clip_planes[j], sgcontext->true_clip_planes[j], symmpass);
   }
+
   negate_m4(sgcontext->clip_planes);
+
   flip_v3_v3(sgcontext->view_normal, sgcontext->true_view_normal, symmpass);
   flip_v3_v3(sgcontext->view_origin, sgcontext->true_view_origin, symmpass);
+  flip_plane(sgcontext->line.plane, sgcontext->line.true_plane, symmpass);
 }
 
-static void sculpt_gesture_update_effected_nodes(SculptGestureContext *sgcontext)
+static void sculpt_gesture_update_effected_nodes_by_line_plane(SculptGestureContext *sgcontext)
+{
+  SculptSession *ss = sgcontext->ss;
+  float clip_planes[1][4];
+  copy_v4_v4(clip_planes[0], sgcontext->line.plane);
+  PBVHFrustumPlanes frustum = {.planes = clip_planes, .num_planes = 1};
+  BKE_pbvh_search_gather(ss->pbvh,
+                         BKE_pbvh_node_frustum_contain_AABB,
+                         &frustum,
+                         &sgcontext->nodes,
+                         &sgcontext->totnode);
+}
+
+static void sculpt_gesture_update_effected_nodes_by_clip_planes(SculptGestureContext *sgcontext)
 {
   SculptSession *ss = sgcontext->ss;
   float clip_planes[4][4];
@@ -487,6 +550,19 @@ static void sculpt_gesture_update_effected_nodes(SculptGestureContext *sgcontext
                          &frustum,
                          &sgcontext->nodes,
                          &sgcontext->totnode);
+}
+
+static void sculpt_gesture_update_effected_nodes(SculptGestureContext *sgcontext)
+{
+  switch (sgcontext->shape_type) {
+    case SCULPT_GESTURE_SHAPE_BOX:
+    case SCULPT_GESTURE_SHAPE_LASSO:
+      sculpt_gesture_update_effected_nodes_by_clip_planes(sgcontext);
+      break;
+    case SCULPT_GESTURE_SHAPE_LINE:
+      sculpt_gesture_update_effected_nodes_by_line_plane(sgcontext);
+      break;
+  }
 }
 
 static bool sculpt_gesture_is_effected_lasso(SculptGestureContext *sgcontext, const float co[3])
@@ -532,6 +608,8 @@ static bool sculpt_gesture_is_vertex_effected(SculptGestureContext *sgcontext, P
       return isect_point_planes_v3(sgcontext->clip_planes, 4, vd->co);
     case SCULPT_GESTURE_SHAPE_LASSO:
       return sculpt_gesture_is_effected_lasso(sgcontext, vd->co);
+    case SCULPT_GESTURE_SHAPE_LINE:
+      return plane_point_side_v3(sgcontext->line.plane, vd->co) > 0.0f;
   }
   return false;
 }
@@ -1117,6 +1195,18 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int paint_mask_gesture_line_exec(bContext *C, wmOperator *op)
+{
+  SculptGestureContext *sgcontext = sculpt_gesture_init_from_line(C, op);
+  if (!sgcontext) {
+    return OPERATOR_CANCELLED;
+  }
+  sculpt_gesture_init_mask_properties(sgcontext, op);
+  sculpt_gesture_apply(C, sgcontext);
+  sculpt_gesture_context_free(sgcontext);
+  return OPERATOR_FINISHED;
+}
+
 static int face_set_gesture_box_exec(bContext *C, wmOperator *op)
 {
   SculptGestureContext *sgcontext = sculpt_gesture_init_from_box(C, op);
@@ -1222,6 +1312,27 @@ void PAINT_OT_mask_box_gesture(wmOperatorType *ot)
   paint_mask_gesture_operator_properties(ot);
 }
 
+void PAINT_OT_mask_line_gesture(wmOperatorType *ot)
+{
+  ot->name = "Mask Line Gesture";
+  ot->idname = "PAINT_OT_mask_line_gesture";
+  ot->description = "Add mask to the right of a line as you move the brush";
+
+  ot->invoke = WM_gesture_straightline_invoke;
+  ot->modal = WM_gesture_straightline_oneshot_modal;
+  ot->exec = paint_mask_gesture_line_exec;
+
+  ot->poll = SCULPT_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER;
+
+  /* Properties. */
+  WM_operator_properties_gesture_straightline(ot, WM_CURSOR_EDIT);
+  sculpt_gesture_operator_properties(ot);
+
+  paint_mask_gesture_operator_properties(ot);
+}
+
 void SCULPT_OT_face_set_lasso_gesture(wmOperatorType *ot)
 {
   ot->name = "Face Set Lasso Gesture";
@@ -1231,10 +1342,6 @@ void SCULPT_OT_face_set_lasso_gesture(wmOperatorType *ot)
   ot->invoke = WM_gesture_lasso_invoke;
   ot->modal = WM_gesture_lasso_modal;
   ot->exec = face_set_gesture_lasso_exec;
-
-  ot->poll = SCULPT_mode_poll;
-
-  ot->flag = OPTYPE_REGISTER;
 
   /* Properties. */
   WM_operator_properties_gesture_lasso(ot);
