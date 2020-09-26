@@ -4434,6 +4434,19 @@ static int gpencil_stroke_separate_exec(bContext *C, wmOperator *op)
     }
   }
 
+  /* Remove unused slots. */
+  int actcol = ob_dst->actcol;
+  for (int slot = 1; slot <= ob_dst->totcol; slot++) {
+    while (slot <= ob_dst->totcol && !BKE_object_material_slot_used(ob_dst->data, slot)) {
+      ob_dst->actcol = slot;
+      BKE_object_material_slot_remove(bmain, ob_dst);
+      if (actcol >= slot) {
+        actcol--;
+      }
+    }
+  }
+  ob_dst->actcol = actcol;
+
   DEG_id_tag_update(&gpd_src->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
   DEG_id_tag_update(&gpd_dst->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
