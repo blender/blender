@@ -173,7 +173,7 @@ def handle_args():
                         dest="log",
                         default=False,
                         action='store_true',
-                        help="Log the output of the api dump and sphinx|latex "
+                        help="Log the output of the API dump and sphinx|latex "
                              "warnings and errors (default=False).\n"
                              "If given, save logs in:\n"
                              "* OUTPUT_DIR/.bpy.log\n"
@@ -350,9 +350,9 @@ RST_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "rst"))
 # stored in ./rst/info_*
 INFO_DOCS = (
     ("info_quickstart.rst",
-     "Quickstart: new to Blender or scripting and want to get your feet wet?"),
+     "Quickstart: New to Blender or scripting and want to get your feet wet?"),
     ("info_overview.rst",
-     "API Overview: a more complete explanation of Python integration"),
+     "API Overview: A more complete explanation of Python integration"),
     ("info_api_reference.rst",
      "API Reference Usage: examples of how to use the API reference docs"),
     ("info_best_practice.rst",
@@ -360,8 +360,8 @@ INFO_DOCS = (
     ("info_tips_and_tricks.rst",
      "Tips and Tricks: Hints to help you while writing scripts for Blender"),
     ("info_gotcha.rst",
-     "Gotcha's: some of the problems you may encounter when writing scripts"),
-    ("change_log.rst", "List of changes since last Blender release"),
+     "Gotcha's: Some of the problems you may encounter when writing scripts"),
+    ("change_log.rst", "Change Log: List of changes since last Blender release"),
 )
 
 # only support for properties atm.
@@ -1095,7 +1095,7 @@ def pycontext2sphinx(basepath):
     fw("The context members available depend on the area of Blender which is currently being accessed.\n")
     fw("\n")
     fw("Note that all context values are readonly,\n")
-    fw("but may be modified through the data api or by running operators\n\n")
+    fw("but may be modified through the data API or by running operators\n\n")
 
     def write_contex_cls():
 
