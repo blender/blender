@@ -892,7 +892,7 @@ Mesh *BKE_mesh_new_nomain(
     int verts_len, int edges_len, int tessface_len, int loops_len, int polys_len)
 {
   Mesh *mesh = BKE_libblock_alloc(
-      NULL, ID_ME, BKE_idtype_idcode_to_name(ID_ME), LIB_ID_COPY_LOCALIZE);
+      NULL, ID_ME, BKE_idtype_idcode_to_name(ID_ME), LIB_ID_CREATE_LOCALIZE);
   BKE_libblock_init_empty(&mesh->id);
 
   /* don't use CustomData_reset(...); because we dont want to touch customdata */
