@@ -255,7 +255,7 @@ NukeCameraIntrinsics::NukeCameraIntrinsics()
 NukeCameraIntrinsics::NukeCameraIntrinsics(
     const NukeCameraIntrinsics &from)
     : CameraIntrinsics(from) {
-  SetDistortion(from.k1(), from.k1());
+  SetDistortion(from.k1(), from.k2());
 }
 
 void NukeCameraIntrinsics::SetDistortion(double k1, double k2) {
