@@ -271,10 +271,19 @@ static void process_loop_normals(CDStreamConfig &config, const N3fArraySamplePtr
     return;
   }
 
+  Mesh *mesh = config.mesh;
+  if (loop_count != mesh->totloop) {
+    /* This happens in certain Houdini exports. When a mesh is animated and then replaced by a
+     * fluid simulation, Houdini will still write the original mesh's loop normals, but the mesh
+     * verts/loops/polys are from the simulation. In such cases the normals cannot be mapped to the
+     * mesh, so it's better to ignore them. */
+    process_no_normals(config);
+    return;
+  }
+
   float(*lnors)[3] = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(loop_count, sizeof(float[3]), "ABC::FaceNormals"));
 
-  Mesh *mesh = config.mesh;
   MPoly *mpoly = mesh->mpoly;
   const N3fArraySample &loop_normals = *loop_normals_ptr;
   int abc_index = 0;
