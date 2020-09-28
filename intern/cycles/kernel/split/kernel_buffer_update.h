@@ -59,23 +59,7 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
                             kernel_split_params.queue_size,
                             1);
 
-#ifdef __COMPUTE_DEVICE_GPU__
-  /* If we are executing on a GPU device, we exit all threads that are not
-   * required.
-   *
-   * If we are executing on a CPU device, then we need to keep all threads
-   * active since we have barrier() calls later in the kernel. CPU devices,
-   * expect all threads to execute barrier statement.
-   */
-  if (ray_index == QUEUE_EMPTY_SLOT) {
-    return;
-  }
-#endif
-
-#ifndef __COMPUTE_DEVICE_GPU__
   if (ray_index != QUEUE_EMPTY_SLOT) {
-#endif
-
     ccl_global char *ray_state = kernel_split_state.ray_state;
     ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
     PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
@@ -153,10 +137,7 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
         }
       }
     }
-
-#ifndef __COMPUTE_DEVICE_GPU__
   }
-#endif
 
   /* Enqueue RAY_REGENERATED rays into QUEUE_ACTIVE_AND_REGENERATED_RAYS;
    * These rays will be made active during next SceneIntersectkernel.
