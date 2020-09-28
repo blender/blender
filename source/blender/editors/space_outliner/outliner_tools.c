@@ -1448,7 +1448,7 @@ static const EnumPropertyItem prop_object_op_types[] = {
      "OBJECT_PROXY_TO_OVERRIDE",
      0,
      "Convert Proxy to Override",
-     "Convert a Proxy object to a full library override, inclduing all its dependencies"},
+     "Convert a Proxy object to a full library override, including all its dependencies"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -1739,7 +1739,7 @@ static const EnumPropertyItem prop_id_op_types[] = {
      "OVERRIDE_LIBRARY_PROXY_CONVERT",
      0,
      "Convert Proxy to Override",
-     "Convert a Proxy object to a full library override, inclduing all its dependencies"},
+     "Convert a Proxy object to a full library override, including all its dependencies"},
     {OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET,
      "OVERRIDE_LIBRARY_RESET",
      0,
