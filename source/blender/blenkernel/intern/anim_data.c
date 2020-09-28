@@ -239,6 +239,11 @@ bool BKE_animdata_action_ensure_idroot(const ID *owner, bAction *action)
 {
   const int idcode = GS(owner->name);
 
+  if (action == NULL) {
+    /* A NULL action is usable by any ID type. */
+    return true;
+  }
+
   if (action->idroot == 0) {
     /* First time this Action is assigned, lock it to this ID type. */
     action->idroot = idcode;
