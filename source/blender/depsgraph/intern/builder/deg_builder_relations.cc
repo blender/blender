@@ -1252,6 +1252,7 @@ void DepsgraphRelationBuilder::build_animdata(ID *id)
     ComponentKey animation_key(id, NodeType::ANIMATION);
     ComponentKey parameters_key(id, NodeType::PARAMETERS);
     add_relation(animation_key, parameters_key, "Animation -> Parameters");
+    build_animdata_force(id);
   }
 }
 
@@ -1394,6 +1395,24 @@ void DepsgraphRelationBuilder::build_animation_images(ID *id)
     TimeSourceKey time_src_key;
     add_relation(time_src_key, image_animation_key, "TimeSrc -> Image Animation");
   }
+}
+
+void DepsgraphRelationBuilder::build_animdata_force(ID *id)
+{
+  if (GS(id->name) != ID_OB) {
+    return;
+  }
+
+  const Object *object = (Object *)id;
+  if (object->pd == nullptr || object->pd->forcefield == PFIELD_NULL) {
+    return;
+  }
+
+  /* Updates to animation data (in the UI, for example by altering FCurve Modifier parameters
+   * animating force field strength) may need to rebuild the rigid body world. */
+  ComponentKey animation_key(id, NodeType::ANIMATION);
+  OperationKey rigidbody_key(&scene_->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_REBUILD);
+  add_relation(animation_key, rigidbody_key, "Animation -> Rigid Body");
 }
 
 void DepsgraphRelationBuilder::build_action(bAction *action)

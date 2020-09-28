@@ -241,6 +241,7 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
                                                OperationNode *operation_from,
                                                ListBase *strips);
   virtual void build_animdata_drivers(ID *id);
+  virtual void build_animdata_force(ID *id);
   virtual void build_animation_images(ID *id);
   virtual void build_action(bAction *action);
   virtual void build_driver(ID *id, FCurve *fcurve);
