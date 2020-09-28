@@ -1,6 +1,6 @@
 # - Find FFmpeg library and includes.
 # Set FFMPEG_FIND_COMPONENTS to the canonical names of the libraries
-# before using the package.
+# before using the module.
 # This module defines
 #  FFMPEG_INCLUDE_DIRS, where to find libavcodec/ac3_parser.h.
 #  FFMPEG_LIBRARIES, libraries to link against to use FFmpeg.
@@ -57,7 +57,7 @@ foreach(_component ${FFMPEG_FIND_COMPONENTS})
       lib64 lib
   )
   if(NOT FFMPEG_${_upper_COMPONENT}_LIBRARY)
-    message(WARNING "Could not find FFpeg ${_upper_COMPONENT}.")
+    message(WARNING "Could NOT find FFmpeg ${_upper_COMPONENT}.")
   endif()
   list(APPEND _ffmpeg_LIBRARIES ${FFMPEG_${_upper_COMPONENT}_LIBRARY})
   mark_as_advanced(FFMPEG_${_upper_COMPONENT}_LIBRARY)
