@@ -590,12 +590,11 @@ static bool rna_FCurve_is_empty_get(PointerRNA *ptr)
 
 static void rna_tag_animation_update(Main *bmain, ID *id)
 {
-  /* Actually recalculate object properties, or just update COW. */
   const int tags = ID_RECALC_ANIMATION;
   AnimData *adt = BKE_animdata_from_id(id);
 
   if (adt && adt->action) {
-    /* action is separate datablock, needs separate tag */
+    /* Action is separate datablock, needs separate tag. */
     DEG_id_tag_update_ex(bmain, &adt->action->id, tags);
   }
 
