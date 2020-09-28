@@ -5586,6 +5586,9 @@ static void ui_layout_free(uiLayout *layout)
 {
   LISTBASE_FOREACH_MUTABLE (uiItem *, item, &layout->items) {
     if (item->type == ITEM_BUTTON) {
+      uiButtonItem *bitem = (uiButtonItem *)item;
+
+      bitem->but->layout = NULL;
       MEM_freeN(item);
     }
     else {
