@@ -877,6 +877,11 @@ void UI_panels_set_expansion_from_seach_filter(const bContext *C, ARegion *regio
   }
 }
 
+bool UI_panel_is_active(const Panel *panel)
+{
+  return panel->runtime_flag & PANEL_ACTIVE;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

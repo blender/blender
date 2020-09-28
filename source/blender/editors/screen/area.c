@@ -450,8 +450,25 @@ void ED_area_do_mgs_subscribe_for_tool_ui(
     struct wmMsgBus *mbus)
 {
   BLI_assert(region->regiontype == RGN_TYPE_UI);
+  const char *panel_category_tool = "Tool";
   const char *category = UI_panel_category_active_get(region, false);
-  if (category && STREQ(category, "Tool")) {
+
+  bool update_region = false;
+  if (category && STREQ(category, panel_category_tool)) {
+    update_region = true;
+  }
+  else {
+    /* Check if a tool category panel is pinned and visible in another category. */
+    LISTBASE_FOREACH (Panel *, panel, &region->panels) {
+      if (UI_panel_is_active(panel) && panel->flag & PNL_PIN &&
+          STREQ(panel->type->category, panel_category_tool)) {
+        update_region = true;
+        break;
+      }
+    }
+  }
+
+  if (update_region) {
     wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
         .owner = region,
         .user_data = region,
