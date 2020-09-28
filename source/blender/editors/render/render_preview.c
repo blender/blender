@@ -1334,6 +1334,9 @@ void ED_preview_icon_render(Main *bmain, Scene *scene, ID *id, uint *rect, int s
   icon_preview_endjob(&ip);
 
   BLI_freelistN(&ip.sizes);
+  if (ip.id_copy != NULL) {
+    preview_id_copy_free(ip.id_copy);
+  }
 }
 
 void ED_preview_icon_job(
