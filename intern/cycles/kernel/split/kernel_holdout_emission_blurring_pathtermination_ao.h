@@ -73,23 +73,7 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
                             kernel_split_params.queue_size,
                             0);
 
-#ifdef __COMPUTE_DEVICE_GPU__
-  /* If we are executing on a GPU device, we exit all threads that are not
-   * required.
-   *
-   * If we are executing on a CPU device, then we need to keep all threads
-   * active since we have barrier() calls later in the kernel. CPU devices,
-   * expect all threads to execute barrier statement.
-   */
-  if (ray_index == QUEUE_EMPTY_SLOT) {
-    return;
-  }
-#endif /* __COMPUTE_DEVICE_GPU__ */
-
-#ifndef __COMPUTE_DEVICE_GPU__
   if (ray_index != QUEUE_EMPTY_SLOT) {
-#endif
-
     ccl_global PathState *state = 0x0;
     float3 throughput;
 
@@ -148,10 +132,7 @@ ccl_device void kernel_holdout_emission_blurring_pathtermination_ao(
       }
     }
 #endif /* __AO__ */
-
-#ifndef __COMPUTE_DEVICE_GPU__
   }
-#endif
 
 #ifdef __AO__
   /* Enqueue to-shadow-ray-cast rays. */
