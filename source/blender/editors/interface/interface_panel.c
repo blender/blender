@@ -116,6 +116,7 @@ typedef struct PanelSort {
   int new_offset_y;
 } PanelSort;
 
+static void panel_set_expansion_from_list_data(const bContext *C, Panel *panel);
 static int get_panel_real_size_y(const Panel *panel);
 static void panel_activate_state(const bContext *C, Panel *panel, uiHandlePanelState state);
 static int compare_panel(const void *a, const void *b);
@@ -240,10 +241,10 @@ static bool panels_need_realign(ScrArea *area, ARegion *region, Panel **r_panel_
 /** \name Functions for Instanced Panels
  * \{ */
 
-static Panel *UI_panel_add_instanced_ex(ARegion *region,
-                                        ListBase *panels,
-                                        PanelType *panel_type,
-                                        PointerRNA *custom_data)
+static Panel *panel_add_instanced(ARegion *region,
+                                  ListBase *panels,
+                                  PanelType *panel_type,
+                                  PointerRNA *custom_data)
 {
   Panel *panel = MEM_callocN(sizeof(Panel), "instanced panel");
   panel->type = panel_type;
@@ -256,7 +257,7 @@ static Panel *UI_panel_add_instanced_ex(ARegion *region,
    * function to create them, as UI_panel_begin does other things we don't need to do. */
   LISTBASE_FOREACH (LinkData *, child, &panel_type->children) {
     PanelType *child_type = child->data;
-    UI_panel_add_instanced_ex(region, &panel->children, child_type, custom_data);
+    panel_add_instanced(region, &panel->children, child_type, custom_data);
   }
 
   /* Make sure the panel is added to the end of the display-order as well. This is needed for
@@ -281,7 +282,8 @@ static Panel *UI_panel_add_instanced_ex(ARegion *region,
  * Called in situations where panels need to be added dynamically rather than
  * having only one panel corresponding to each #PanelType.
  */
-Panel *UI_panel_add_instanced(ARegion *region,
+Panel *UI_panel_add_instanced(const bContext *C,
+                              ARegion *region,
                               ListBase *panels,
                               char *panel_idname,
                               PointerRNA *custom_data)
@@ -296,7 +298,12 @@ Panel *UI_panel_add_instanced(ARegion *region,
     return NULL;
   }
 
-  return UI_panel_add_instanced_ex(region, panels, panel_type, custom_data);
+  Panel *new_panel = panel_add_instanced(region, panels, panel_type, custom_data);
+
+  /* Do this after #panel_add_instatnced so all subpanels are added. */
+  panel_set_expansion_from_list_data(C, new_panel);
+
+  return new_panel;
 }
 
 /**
@@ -478,7 +485,7 @@ static void reorder_instanced_panel_list(bContext *C, ARegion *region, Panel *dr
 }
 
 /**
- * Recursive implementation for #UI_panel_set_expand_from_list_data.
+ * Recursive implementation for #panel_set_expansion_from_list_data.
  *
  * \return Whether the closed flag for the panel or any sub-panels changed.
  */
@@ -496,11 +503,10 @@ static bool panel_set_expand_from_list_data_recursive(Panel *panel, short flag, 
 }
 
 /**
- * Set the expansion of the panel and its sub-panels from the flag stored by the list data
- * corresponding to this panel. The flag has expansion stored in each bit in depth first
- * order.
+ * Set the expansion of the panel and its sub-panels from the flag stored in the
+ * corresponding list data. The flag has expansion stored in each bit in depth first order.
  */
-void UI_panel_set_expand_from_list_data(const bContext *C, Panel *panel)
+static void panel_set_expansion_from_list_data(const bContext *C, Panel *panel)
 {
   BLI_assert(panel->type != NULL);
   BLI_assert(panel->type->flag & PNL_INSTANCED);
@@ -527,7 +533,7 @@ static void region_panels_set_expansion_from_list_data(const bContext *C, ARegio
     if (panel->runtime_flag & PANEL_ACTIVE) {
       PanelType *panel_type = panel->type;
       if (panel_type != NULL && panel->type->flag & PNL_INSTANCED) {
-        UI_panel_set_expand_from_list_data(C, panel);
+        panel_set_expansion_from_list_data(C, panel);
       }
     }
   }
