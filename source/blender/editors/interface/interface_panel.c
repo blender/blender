@@ -524,9 +524,11 @@ void UI_panel_set_expand_from_list_data(const bContext *C, Panel *panel)
 static void region_panels_set_expansion_from_list_data(const bContext *C, ARegion *region)
 {
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
-    PanelType *panel_type = panel->type;
-    if (panel_type != NULL && panel->type->flag & PNL_INSTANCED) {
-      UI_panel_set_expand_from_list_data(C, panel);
+    if (panel->runtime_flag & PANEL_ACTIVE) {
+      PanelType *panel_type = panel->type;
+      if (panel_type != NULL && panel->type->flag & PNL_INSTANCED) {
+        UI_panel_set_expand_from_list_data(C, panel);
+      }
     }
   }
 }
