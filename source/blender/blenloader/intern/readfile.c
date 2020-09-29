@@ -779,7 +779,7 @@ static void bh4_from_bh8(BHead *bhead, BHead8 *bhead8, int do_endian_swap)
      * 0x0000000000000000000012345678 would become 0x12345678000000000000000000000000
      */
     if (do_endian_swap) {
-      BLI_endian_switch_int64(&bhead8->old);
+      BLI_endian_switch_uint64(&bhead8->old);
     }
 
     /* this patch is to avoid a long long being read from not-eight aligned positions
@@ -1114,6 +1114,8 @@ static bool read_file_dna(FileData *fd, const char **r_error_message)
       if (fd->filesdna) {
         blo_do_versions_dna(fd->filesdna, fd->fileversion, subversion);
         fd->compflags = DNA_struct_get_compareflags(fd->filesdna, fd->memsdna);
+        fd->reconstruct_info = DNA_reconstruct_info_create(
+            fd->filesdna, fd->memsdna, fd->compflags);
         /* used to retrieve ID names from (bhead+1) */
         fd->id_name_offs = DNA_elem_offset(fd->filesdna, "ID", "char", "name[]");
 
@@ -1609,6 +1611,9 @@ void blo_filedata_free(FileData *fd)
     }
     if (fd->compflags) {
       MEM_freeN((void *)fd->compflags);
+    }
+    if (fd->reconstruct_info) {
+      DNA_reconstruct_info_free(fd->reconstruct_info);
     }
 
     if (fd->datamap) {
@@ -2177,8 +2182,7 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname)
           }
         }
 #endif
-        temp = DNA_struct_reconstruct(
-            fd->memsdna, fd->filesdna, fd->compflags, bh->SDNAnr, bh->nr, (bh + 1));
+        temp = DNA_struct_reconstruct(fd->reconstruct_info, bh->SDNAnr, bh->nr, (bh + 1));
       }
       else {
         /* SDNA_CMP_EQUAL */
@@ -9135,7 +9139,7 @@ static void convert_pointer_array_32_to_64(BlendDataReader *UNUSED(reader),
                                            const uint32_t *src,
                                            uint64_t *dst)
 {
-  /* Match pointer conversion rules from bh8_from_bh4 and cast_pointer. */
+  /* Match pointer conversion rules from bh8_from_bh4 and cast_pointer_32_to_64. */
   for (int i = 0; i < array_size; i++) {
     dst[i] = src[i];
   }

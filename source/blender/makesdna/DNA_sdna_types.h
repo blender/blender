@@ -108,13 +108,13 @@ typedef struct BHead {
 #
 typedef struct BHead4 {
   int code, len;
-  int old;
+  uint old;
   int SDNAnr, nr;
 } BHead4;
 #
 #
 typedef struct BHead8 {
   int code, len;
-  int64_t old;
+  uint64_t old;
   int SDNAnr, nr;
 } BHead8;

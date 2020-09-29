@@ -78,6 +78,8 @@ enum eSDNA_StructCompare {
   /* Struct is different in some way
    * (needs to be copied/converted field by field) */
   SDNA_CMP_NOT_EQUAL = 2,
+  /* This is only used temporarily by #DNA_struct_get_compareflags. */
+  SDNA_CMP_UNKNOWN = 3,
 };
 
 struct SDNA *DNA_sdna_from_data(const void *data,
@@ -93,13 +95,17 @@ void DNA_sdna_current_init(void);
 const struct SDNA *DNA_sdna_current_get(void);
 void DNA_sdna_current_free(void);
 
+struct DNA_ReconstructInfo;
+struct DNA_ReconstructInfo *DNA_reconstruct_info_create(const struct SDNA *oldsdna,
+                                                        const struct SDNA *newsdna,
+                                                        const char *compare_flags);
+void DNA_reconstruct_info_free(struct DNA_ReconstructInfo *reconstruct_info);
+
 int DNA_struct_find_nr_ex(const struct SDNA *sdna, const char *str, unsigned int *index_last);
 int DNA_struct_find_nr(const struct SDNA *sdna, const char *str);
 void DNA_struct_switch_endian(const struct SDNA *oldsdna, int oldSDNAnr, char *data);
 const char *DNA_struct_get_compareflags(const struct SDNA *sdna, const struct SDNA *newsdna);
-void *DNA_struct_reconstruct(const struct SDNA *newsdna,
-                             const struct SDNA *oldsdna,
-                             const char *compflags,
+void *DNA_struct_reconstruct(const struct DNA_ReconstructInfo *reconstruct_info,
                              int oldSDNAnr,
                              int blocks,
                              const void *data);
