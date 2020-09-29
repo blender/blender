@@ -41,7 +41,7 @@
  * \{ */
 
 PyDoc_STRVAR(bpygpu_select_load_id_doc,
-             "load_id(id)\n"
+             ".. function:: load_id(id)\n"
              "\n"
              "   Set the selection ID.\n"
              "\n"
