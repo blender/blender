@@ -1779,7 +1779,7 @@ int rna_property_override_diff_default(Main *bmain,
 
       if (use_collection_insertion) {
         /* We need to clean up all possible existing insertion operations, and then re-generate
-         * them, otherwise we'd end up with a mess of opops every time something changes. */
+         * them, otherwise we'd end up with a mess of opop's every time something changes. */
         op = BKE_lib_override_library_property_find(override, rna_path);
         if (op != NULL) {
           LISTBASE_FOREACH_MUTABLE (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {

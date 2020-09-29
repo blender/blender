@@ -146,7 +146,7 @@ bool RNA_property_copy(
   PropertyRNA *prop_src = prop;
 
   /* Ensure we get real property data,
-   * be it an actual RNA property, or an IDProperty in disguise. */
+   * be it an actual RNA property, or an #IDProperty in disguise. */
   prop_dst = rna_ensure_property_realdata(&prop_dst, ptr);
   prop_src = rna_ensure_property_realdata(&prop_src, fromptr);
 
@@ -916,10 +916,10 @@ static void rna_property_override_apply_ex(Main *bmain,
           /* This is rather fragile, but the fact that local override IDs may have a different name
            * than their linked reference makes it necessary.
            * Basically, here we are considering that if we cannot find the original linked ID in
-           * the local override we are (re-)applying the operations, then it may be because soe of
+           * the local override we are (re-)applying the operations, then it may be because of
            * those operations have already been applied, and we may already have the local ID
            * pointer we want to set.
-           * This happens e.g. during resync of an override, since we have already remapped all ID
+           * This happens e.g. during re-sync of an override, since we have already remapped all ID
            * pointers to their expected values.
            * In that case we simply try to get the property from the local expected name. */
         }

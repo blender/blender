@@ -793,15 +793,14 @@ void WM_OT_lasso_gesture(wmOperatorType *ot)
 /* -------------------------------------------------------------------- */
 /** \name Straight Line Gesture
  *
- * Gesture defined by the start and end points of a line that is created between the posistion of
+ * Gesture defined by the start and end points of a line that is created between the position of
  * the initial event and the position of the current event.
  *
  * Straight Line Gesture has two modal callbacks depending on the tool that is being implemented: a
  * regular modal callback intended to update the data during the execution of the gesture and a
- * oneshot callback that only updates the data once when the gesture finishes.
+ * one-shot callback that only updates the data once when the gesture finishes.
  *
- * It stores 4 values (xstart, ystart, xend, yend).
- *
+ * It stores 4 values: `xstart, ystart, xend, yend`.
  * \{ */
 
 static bool gesture_straightline_apply(bContext *C, wmOperator *op)
@@ -902,7 +901,7 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
 }
 
 /**
- * This modal oneshot callback only calls exec once after the gesture finishes without any updates
+ * This modal one-shot callback only calls exec once after the gesture finishes without any updates
  * during the gesture execution. Should be used for operations that are intended to be applied once
  * without real time preview (like a trimming tool that only applies the bisect operation once
  * after finishing the gesture as the bisect operation is too heavy to be computed in real time for
