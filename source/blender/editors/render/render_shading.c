@@ -873,7 +873,9 @@ static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* add or copy world */
   if (wo) {
-    wo = BKE_world_copy(bmain, wo);
+    World *new_wo = NULL;
+    BKE_id_copy_ex(bmain, &wo->id, (ID **)&new_wo, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS);
+    wo = new_wo;
   }
   else {
     wo = BKE_world_add(bmain, DATA_("World"));

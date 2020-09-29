@@ -210,13 +210,6 @@ World *BKE_world_add(Main *bmain, const char *name)
   return wrld;
 }
 
-World *BKE_world_copy(Main *bmain, const World *wrld)
-{
-  World *wrld_copy;
-  BKE_id_copy(bmain, &wrld->id, (ID **)&wrld_copy);
-  return wrld_copy;
-}
-
 World *BKE_world_localize(World *wrld)
 {
   /* TODO(bastien): Replace with something like:
