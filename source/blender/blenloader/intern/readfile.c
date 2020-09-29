@@ -2572,7 +2572,7 @@ static void lib_link_workspaces(BlendLibReader *reader, WorkSpace *workspace)
   }
 }
 
-static void direct_link_workspace(BlendDataReader *reader, WorkSpace *workspace, const Main *main)
+static void direct_link_workspace(BlendDataReader *reader, WorkSpace *workspace)
 {
   BLO_read_list(reader, &workspace->layouts);
   BLO_read_list(reader, &workspace->hook_layout_relations);
@@ -2581,16 +2581,12 @@ static void direct_link_workspace(BlendDataReader *reader, WorkSpace *workspace,
 
   LISTBASE_FOREACH (WorkSpaceDataRelation *, relation, &workspace->hook_layout_relations) {
     /* data from window - need to access through global oldnew-map */
+    /* XXX This is absolutely not acceptable. There is no acceptable reasons to mess with other
+     * ID's data in read code, and certainly never, ever in `direct_link_` functions.
+     * Kept for now because it seems to work, but it should be refactored. Probably store and use
+     * window's `winid`, just like it was already done for screens? */
     relation->parent = newglobadr(reader->fd, relation->parent);
     BLO_read_data_address(reader, &relation->value);
-  }
-
-  /* Same issue/fix as in direct_link_workspace_link_scene_data: Can't read workspace data
-   * when reading windows, so have to update windows after/when reading workspaces. */
-  LISTBASE_FOREACH (wmWindowManager *, wm, &main->wm) {
-    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-      BLO_read_data_address(reader, &win->workspace_hook->act_layout);
-    }
   }
 
   LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
@@ -6368,7 +6364,7 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
       direct_link_particlesettings(&reader, (ParticleSettings *)id);
       break;
     case ID_WS:
-      direct_link_workspace(&reader, (WorkSpace *)id, main);
+      direct_link_workspace(&reader, (WorkSpace *)id);
       break;
     case ID_ME:
     case ID_LT:
