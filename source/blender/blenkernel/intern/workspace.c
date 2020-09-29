@@ -429,9 +429,13 @@ WorkSpace *BKE_workspace_active_get(WorkSpaceInstanceHook *hook)
 }
 void BKE_workspace_active_set(WorkSpaceInstanceHook *hook, WorkSpace *workspace)
 {
-  if (hook->active == workspace) {
-    return;
-  }
+  /* DO NOT check for `hook->active == workspace` here. Caller code is supposed to do it if
+   * that optimization is possible and needed.
+   * This code can be called from places where we might have this equality, but still want to
+   * ensure/update the active layout below.
+   * Known case where this is buggy and will crash later due to NULL active layout: reading
+   * a blend file, when the new read workspace ID happens to have the exact same memory address
+   * as when it was saved in the blend file (extremely unlikely, but possible). */
 
   hook->active = workspace;
   if (workspace) {
