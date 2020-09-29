@@ -1609,14 +1609,10 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   /* Sculpt Face Sets. */
   if (use_face_sets) {
     if (!CustomData_has_layer(&me->pdata, CD_SCULPT_FACE_SETS)) {
-      ss->face_sets = CustomData_add_layer(
-          &me->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, NULL, me->totpoly);
-      for (int i = 0; i < me->totpoly; i++) {
-        ss->face_sets[i] = 1;
-      }
-
-      /* Set the default face set color if the datalayer did not exist. */
-      me->face_sets_color_default = 1;
+      /* By checking here if the datalayer already exist this avoids copying the visibility from
+       * the mesh and looping over all vertices on every sculpt editing operation, using this
+       * function only the first time the Face Sets datalayer needs to be created. */
+      BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(me);
     }
     ss->face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
   }
@@ -1881,6 +1877,57 @@ static bool check_sculpt_object_deformed(Object *object, const bool for_construc
   return deformed;
 }
 
+void BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(Mesh *mesh)
+{
+  const int face_sets_default_visible_id = 1;
+  const int face_sets_default_hidden_id = -(face_sets_default_visible_id + 1);
+
+  bool initialize_new_face_sets = false;
+
+  if (CustomData_has_layer(&mesh->pdata, CD_SCULPT_FACE_SETS)) {
+    /* Make everything visible. */
+    int *current_face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
+    for (int i = 0; i < mesh->totpoly; i++) {
+      current_face_sets[i] = abs(current_face_sets[i]);
+    }
+  }
+  else {
+    initialize_new_face_sets = true;
+    int *new_face_sets = CustomData_add_layer(
+        &mesh->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, NULL, mesh->totpoly);
+
+    /* Initialize the new Face Set datalayer with a default valid visible ID and set the default
+     * color to render it white. */
+    for (int i = 0; i < mesh->totpoly; i++) {
+      new_face_sets[i] = face_sets_default_visible_id;
+    }
+    mesh->face_sets_color_default = face_sets_default_visible_id;
+  }
+
+  int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
+
+  /* Show the only the face sets that have all visibile vertices. */
+  for (int i = 0; i < mesh->totpoly; i++) {
+    for (int l = 0; l < mesh->mpoly[i].totloop; l++) {
+      MLoop *loop = &mesh->mloop[mesh->mpoly[i].loopstart + l];
+      if (mesh->mvert[loop->v].flag & ME_HIDE) {
+        if (initialize_new_face_sets) {
+          /* When initializing a new Face Set datalayer, assing a new hidden Face Set ID to hidden
+           * vertices. This way, we get at initial split in two Face Sets between hidden and
+           * visible vertices based on the previous mesh visibily from other mode that can be
+           * useful in some cases. */
+          face_sets[i] = face_sets_default_hidden_id;
+        }
+        else {
+          /* Otherwise, set the already existing Face Set ID to hidden. */
+          face_sets[i] = -abs(face_sets[i]);
+        }
+        break;
+      }
+    }
+  }
+}
+
 static void sculpt_sync_face_sets_visibility_to_base_mesh(Mesh *mesh)
 {
   int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
@@ -1948,6 +1995,7 @@ static void sculpt_sync_face_sets_visibility_to_grids(Mesh *mesh, SubdivCCG *sub
 
 void BKE_sculpt_sync_face_set_visibility(struct Mesh *mesh, struct SubdivCCG *subdiv_ccg)
 {
+  BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(mesh);
   sculpt_sync_face_sets_visibility_to_base_mesh(mesh);
   sculpt_sync_face_sets_visibility_to_grids(mesh, subdiv_ccg);
 }

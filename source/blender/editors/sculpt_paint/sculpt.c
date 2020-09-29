@@ -8077,7 +8077,8 @@ static void sculpt_init_session(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
   /* Update the Face Sets visibility with the vertex visibility changes that may have been done
    * outside Sculpt Mode */
-  SCULPT_visibility_sync_all_vertex_to_face_sets(ob->sculpt);
+  Mesh *mesh = ob->data;
+  BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(mesh);
 }
 
 static int ed_object_sculptmode_flush_recalc_flag(Scene *scene,
