@@ -8700,16 +8700,21 @@ void pyrna_free_types(void)
 PyDoc_STRVAR(pyrna_register_class_doc,
              ".. method:: register_class(cls)\n"
              "\n"
-             "   Register a subclass of a blender type in (:class:`bpy.types.Panel`,\n"
-             "   :class:`bpy.types.UIList`, :class:`bpy.types.Menu`, :class:`bpy.types.Header`,\n"
-             "   :class:`bpy.types.Operator`, :class:`bpy.types.KeyingSetInfo`,\n"
-             "   :class:`bpy.types.RenderEngine`).\n"
+             "   Register a subclass of a Blender type class.\n"
              "\n"
-             "   If the class has a *register* class method it will be called\n"
-             "   before registration.\n"
-             "\n"
+             "   :arg cls: Blender type class in:\n"
+             "      :class:`bpy.types.Panel`, :class:`bpy.types.UIList`,\n"
+             "      :class:`bpy.types.Menu`, :class:`bpy.types.Header`,\n"
+             "      :class:`bpy.types.Operator`, :class:`bpy.types.KeyingSetInfo`,\n"
+             "      :class:`bpy.types.RenderEngine`\n"
+             "   :type cls: class\n"
              "   :raises ValueError:\n"
-             "      if the class is not a subclass of a registerable blender class.\n");
+             "      if the class is not a subclass of a registerable blender class.\n"
+             "\n"
+             "   .. note::\n"
+             "\n"
+             "      If the class has a *register* class method it will be called\n"
+             "      before registration.\n");
 PyMethodDef meth_bpy_register_class = {
     "register_class", pyrna_register_class, METH_O, pyrna_register_class_doc};
 static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class)
