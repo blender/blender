@@ -1,6 +1,6 @@
 """
-Intro
------
+Introduction
+------------
 
 .. warning::
 
@@ -9,9 +9,8 @@ Intro
    and the :func:`register`/:func:`unregister` functions! The :func:`pgettext` family of functions
    should only be used in rare, specific cases (like e.g. complex "composited" UI strings...).
 
-| To add translations to your python script, you must define a dictionary formatted like that:
-|    ``{locale: {msg_key: msg_translation, ...}, ...}``
-| where:
+To add translations to your python script, you must define a dictionary formatted like that:
+``{locale: {msg_key: msg_translation, ...}, ...}`` where:
 
 - locale is either a lang iso code (e.g. ``fr``), a lang+country code (e.g. ``pt_BR``),
   a lang+variant code (e.g. ``sr@latin``), or a full code (e.g. ``uz_UZ@cyrilic``).
