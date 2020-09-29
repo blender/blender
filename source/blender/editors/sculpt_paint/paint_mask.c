@@ -1171,6 +1171,95 @@ static void sculpt_trim_gesture_operator_properties(wmOperatorType *ot)
                NULL);
 }
 
+/* Project Gesture Operation. */
+
+typedef struct SculptGestureProjectOperation {
+  SculptGestureOperation operation;
+} SculptGestureProjectOperation;
+
+static void sculpt_gesture_project_begin(bContext *C, SculptGestureContext *sgcontext)
+{
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, false, false, false);
+}
+
+static void project_line_gesture_apply_task_cb(void *__restrict userdata,
+                                               const int i,
+                                               const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  SculptGestureContext *sgcontext = userdata;
+
+  PBVHNode *node = sgcontext->nodes[i];
+  PBVHVertexIter vd;
+  bool any_updated = false;
+
+  SCULPT_undo_push_node(sgcontext->vc.obact, node, SCULPT_UNDO_COORDS);
+
+  BKE_pbvh_vertex_iter_begin(sgcontext->ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
+  {
+    if (!sculpt_gesture_is_vertex_effected(sgcontext, &vd)) {
+      continue;
+    }
+
+    float projected_pos[3];
+    closest_to_plane_v3(projected_pos, sgcontext->line.plane, vd.co);
+
+    float disp[3];
+    sub_v3_v3v3(disp, projected_pos, vd.co);
+    const float mask = vd.mask ? *vd.mask : 0.0f;
+    mul_v3_fl(disp, 1.0f - mask);
+    if (is_zero_v3(disp)) {
+      continue;
+    }
+    add_v3_v3(vd.co, disp);
+    any_updated = true;
+  }
+  BKE_pbvh_vertex_iter_end;
+
+  if (any_updated) {
+    BKE_pbvh_node_mark_update(node);
+  }
+}
+
+static void sculpt_gesture_project_apply_for_symmetry_pass(bContext *UNUSED(C),
+                                                           SculptGestureContext *sgcontext)
+{
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, sgcontext->totnode);
+
+  switch (sgcontext->shape_type) {
+    case SCULPT_GESTURE_SHAPE_LINE:
+      BLI_task_parallel_range(
+          0, sgcontext->totnode, sgcontext, project_line_gesture_apply_task_cb, &settings);
+      break;
+    case SCULPT_GESTURE_SHAPE_LASSO:
+    case SCULPT_GESTURE_SHAPE_BOX:
+      /* Gesture shape projection not implemented yet. */
+      BLI_assert(false);
+      break;
+  }
+}
+
+static void sculpt_gesture_project_end(bContext *C, SculptGestureContext *sgcontext)
+{
+  SCULPT_flush_update_step(C, SCULPT_UPDATE_COORDS);
+  SCULPT_flush_update_done(C, sgcontext->vc.obact, SCULPT_UPDATE_COORDS);
+}
+
+static void sculpt_gesture_init_project_properties(SculptGestureContext *sgcontext,
+                                                   wmOperator *UNUSED(op))
+{
+  sgcontext->operation = MEM_callocN(sizeof(SculptGestureFaceSetOperation), "Project Operation");
+
+  SculptGestureProjectOperation *project_operation = (SculptGestureProjectOperation *)
+                                                         sgcontext->operation;
+
+  project_operation->operation.sculpt_gesture_begin = sculpt_gesture_project_begin;
+  project_operation->operation.sculpt_gesture_apply_for_symmetry_pass =
+      sculpt_gesture_project_apply_for_symmetry_pass;
+  project_operation->operation.sculpt_gesture_end = sculpt_gesture_project_end;
+}
+
 static int paint_mask_gesture_box_exec(bContext *C, wmOperator *op)
 {
   SculptGestureContext *sgcontext = sculpt_gesture_init_from_box(C, op);
@@ -1265,6 +1354,18 @@ static int sculpt_trim_gesture_lasso_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   sculpt_gesture_init_trim_properties(sgcontext, op);
+  sculpt_gesture_apply(C, sgcontext);
+  sculpt_gesture_context_free(sgcontext);
+  return OPERATOR_FINISHED;
+}
+
+static int project_gesture_line_exec(bContext *C, wmOperator *op)
+{
+  SculptGestureContext *sgcontext = sculpt_gesture_init_from_line(C, op);
+  if (!sgcontext) {
+    return OPERATOR_CANCELLED;
+  }
+  sculpt_gesture_init_project_properties(sgcontext, op);
   sculpt_gesture_apply(C, sgcontext);
   sculpt_gesture_context_free(sgcontext);
   return OPERATOR_FINISHED;
@@ -1407,4 +1508,23 @@ void SCULPT_OT_trim_box_gesture(wmOperatorType *ot)
   sculpt_gesture_operator_properties(ot);
 
   sculpt_trim_gesture_operator_properties(ot);
+}
+
+void SCULPT_OT_project_line_gesture(wmOperatorType *ot)
+{
+  ot->name = "Project Line Gesture";
+  ot->idname = "SCULPT_OT_project_line_gesture";
+  ot->description = "Project the geometry onto a plane defined by a line";
+
+  ot->invoke = WM_gesture_straightline_invoke;
+  ot->modal = WM_gesture_straightline_oneshot_modal;
+  ot->exec = project_gesture_line_exec;
+
+  ot->poll = SCULPT_mode_poll;
+
+  ot->flag = OPTYPE_REGISTER;
+
+  /* Properties. */
+  WM_operator_properties_gesture_straightline(ot, WM_CURSOR_EDIT);
+  sculpt_gesture_operator_properties(ot);
 }

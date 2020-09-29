@@ -1325,6 +1325,16 @@ class _defs_sculpt:
         )
 
     @ToolDef.from_fn
+    def project_line():
+        return dict(
+            idname="builtin.line_project",
+            label="Line Project",
+            icon="ops.sculpt.line_project",
+            widget=None,
+            keymap=(),
+        )
+
+    @ToolDef.from_fn
     def mesh_filter():
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("sculpt.mesh_filter")
@@ -2697,6 +2707,13 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             ),
             lambda context: (
                 (_defs_sculpt.trim_lasso,)
+                if context is None or (
+                        context.preferences.view.show_developer_ui and
+                        context.preferences.experimental.use_tools_missing_icons)
+                else ()
+            ),
+            lambda context: (
+                (_defs_sculpt.project_line,)
                 if context is None or (
                         context.preferences.view.show_developer_ui and
                         context.preferences.experimental.use_tools_missing_icons)

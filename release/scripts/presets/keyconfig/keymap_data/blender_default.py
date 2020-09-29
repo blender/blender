@@ -6400,6 +6400,16 @@ def km_3d_view_tool_sculpt_line_mask(params):
         ]},
     )
 
+def km_3d_view_tool_sculpt_line_project(params):
+    return (
+        "3D View Tool: Sculpt, Line Project",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("sculpt.project_line_gesture", {"type": params.tool_tweak, "value": 'ANY'},
+             None),
+        ]},
+    )
+
 def km_3d_view_tool_sculpt_mesh_filter(params):
     return (
         "3D View Tool: Sculpt, Mesh Filter",
@@ -7005,6 +7015,7 @@ def generate_keymaps(params=None):
         km_3d_view_tool_sculpt_box_trim(params),
         km_3d_view_tool_sculpt_lasso_trim(params),
         km_3d_view_tool_sculpt_line_mask(params),
+        km_3d_view_tool_sculpt_line_project(params),
         km_3d_view_tool_sculpt_mesh_filter(params),
         km_3d_view_tool_sculpt_cloth_filter(params),
         km_3d_view_tool_sculpt_color_filter(params),
