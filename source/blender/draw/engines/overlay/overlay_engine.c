@@ -207,6 +207,7 @@ static void OVERLAY_cache_init(void *vedata)
   OVERLAY_outline_cache_init(vedata);
   OVERLAY_particle_cache_init(vedata);
   OVERLAY_wireframe_cache_init(vedata);
+  OVERLAY_volume_cache_init(vedata);
 }
 
 BLI_INLINE OVERLAY_DupliData *OVERLAY_duplidata_get(Object *ob, void *vedata, bool *do_init)
@@ -353,6 +354,10 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
   }
   if (draw_bone_selection) {
     OVERLAY_pose_cache_populate(vedata, ob);
+  }
+
+  if (ob->type == OB_VOLUME) {
+    OVERLAY_volume_cache_populate(vedata, ob);
   }
 
   if (in_edit_mode && !pd->hide_overlays) {
@@ -551,6 +556,7 @@ static void OVERLAY_draw_scene(void *vedata)
   OVERLAY_particle_draw(vedata);
   OVERLAY_metaball_draw(vedata);
   OVERLAY_gpencil_draw(vedata);
+  OVERLAY_volume_draw(vedata);
   OVERLAY_extra_draw(vedata);
 
   if (DRW_state_is_fbo()) {

@@ -3279,6 +3279,12 @@ GPUBatch *DRW_cache_volume_face_wireframe_get(Object *ob)
   return DRW_volume_batch_cache_get_wireframes_face(ob->data);
 }
 
+GPUBatch *DRW_cache_volume_selection_surface_get(Object *ob)
+{
+  BLI_assert(ob->type == OB_VOLUME);
+  return DRW_volume_batch_cache_get_selection_surface(ob->data);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

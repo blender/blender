@@ -58,6 +58,16 @@ void BKE_volume_grid_wireframe(const struct Volume *volume,
                                BKE_volume_wireframe_cb cb,
                                void *cb_userdata);
 
+/* Selection Surface */
+
+typedef void (*BKE_volume_selection_surface_cb)(
+    void *userdata, float (*verts)[3], int (*tris)[3], int totvert, int tottris);
+
+void BKE_volume_grid_selection_surface(const struct Volume *volume,
+                                       struct VolumeGrid *volume_grid,
+                                       BKE_volume_selection_surface_cb cb,
+                                       void *cb_userdata);
+
 /* Render */
 
 float BKE_volume_density_scale(const struct Volume *volume, const float matrix[4][4]);

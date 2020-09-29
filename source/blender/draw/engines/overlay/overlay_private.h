@@ -119,6 +119,7 @@ typedef struct OVERLAY_PassList {
   DRWPass *particle_ps;
   DRWPass *pointcloud_ps;
   DRWPass *sculpt_mask_ps;
+  DRWPass *volume_ps;
   DRWPass *wireframe_ps;
   DRWPass *wireframe_xray_ps;
   DRWPass *xray_fade_ps;
@@ -285,6 +286,7 @@ typedef struct OVERLAY_PrivateData {
   DRWShadingGroup *particle_shapes_grp;
   DRWShadingGroup *pointcloud_dots_grp;
   DRWShadingGroup *sculpt_mask_grp;
+  DRWShadingGroup *volume_selection_surface_grp;
   DRWShadingGroup *wires_grp[2][2];      /* With and without coloring. */
   DRWShadingGroup *wires_all_grp[2][2];  /* With and without coloring. */
   DRWShadingGroup *wires_hair_grp[2][2]; /* With and without coloring. */
@@ -510,6 +512,10 @@ void OVERLAY_edit_lattice_draw(OVERLAY_Data *vedata);
 void OVERLAY_edit_text_cache_init(OVERLAY_Data *vedata);
 void OVERLAY_edit_text_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_edit_text_draw(OVERLAY_Data *vedata);
+
+void OVERLAY_volume_cache_init(OVERLAY_Data *vedata);
+void OVERLAY_volume_cache_populate(OVERLAY_Data *vedata, Object *ob);
+void OVERLAY_volume_draw(OVERLAY_Data *vedata);
 
 void OVERLAY_edit_mesh_init(OVERLAY_Data *vedata);
 void OVERLAY_edit_mesh_cache_init(OVERLAY_Data *vedata);

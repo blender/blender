@@ -272,6 +272,17 @@ static void OVERLAY_outline_gpencil(OVERLAY_PrivateData *pd, Object *ob)
                                   pd->cfra);
 }
 
+static void OVERLAY_outline_volume(OVERLAY_PrivateData *pd, Object *ob)
+{
+  struct GPUBatch *geom = DRW_cache_volume_selection_surface_get(ob);
+  if (geom == NULL) {
+    return;
+  }
+
+  DRWShadingGroup *shgroup = pd->outlines_grp;
+  DRW_shgroup_call(shgroup, geom, ob);
+}
+
 void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
                                     Object *ob,
                                     OVERLAY_DupliData *dupli,
@@ -290,6 +301,11 @@ void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
 
   if (ob->type == OB_GPENCIL) {
     OVERLAY_outline_gpencil(pd, ob);
+    return;
+  }
+
+  if (ob->type == OB_VOLUME) {
+    OVERLAY_outline_volume(pd, ob);
     return;
   }
 

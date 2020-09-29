@@ -62,6 +62,9 @@ typedef struct VolumeBatchCache {
     GPUBatch *batch;
   } face_wire;
 
+  /* Surface for selection */
+  GPUBatch *selection_surface;
+
   /* settings to determine if cache is invalid */
   bool is_dirty;
 } VolumeBatchCache;
@@ -132,6 +135,7 @@ static void volume_batch_cache_clear(Volume *volume)
 
   GPU_VERTBUF_DISCARD_SAFE(cache->face_wire.pos_nor_in_order);
   GPU_BATCH_DISCARD_SAFE(cache->face_wire.batch);
+  GPU_BATCH_DISCARD_SAFE(cache->selection_surface);
 }
 
 void DRW_volume_batch_cache_free(Volume *volume)
@@ -207,6 +211,49 @@ GPUBatch *DRW_volume_batch_cache_get_wireframes_face(Volume *volume)
   }
 
   return cache->face_wire.batch;
+}
+
+static void drw_volume_selection_surface_cb(
+    void *userdata, float (*verts)[3], int (*tris)[3], int totvert, int tottris)
+{
+  Volume *volume = userdata;
+  VolumeBatchCache *cache = volume->batch_cache;
+
+  static GPUVertFormat format = {0};
+  static uint pos_id;
+  if (format.attr_len == 0) {
+    pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  }
+
+  /* Create vertex buffer. */
+  GPUVertBuf *vbo_surface = GPU_vertbuf_create_with_format(&format);
+  GPU_vertbuf_data_alloc(vbo_surface, totvert);
+  GPU_vertbuf_attr_fill(vbo_surface, pos_id, verts);
+
+  /* Create index buffer. */
+  GPUIndexBufBuilder elb;
+  GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, tottris, totvert);
+  for (int i = 0; i < tottris; i++) {
+    GPU_indexbuf_add_tri_verts(&elb, UNPACK3(tris[i]));
+  }
+  GPUIndexBuf *ibo_surface = GPU_indexbuf_build(&elb);
+
+  cache->selection_surface = GPU_batch_create_ex(
+      GPU_PRIM_TRIS, vbo_surface, ibo_surface, GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX);
+}
+
+GPUBatch *DRW_volume_batch_cache_get_selection_surface(Volume *volume)
+{
+  VolumeBatchCache *cache = volume_batch_cache_get(volume);
+  if (cache->selection_surface == NULL) {
+    VolumeGrid *volume_grid = BKE_volume_grid_active_get(volume);
+    if (volume_grid == NULL) {
+      return NULL;
+    }
+    BKE_volume_grid_selection_surface(
+        volume, volume_grid, drw_volume_selection_surface_cb, volume);
+  }
+  return cache->selection_surface;
 }
 
 static DRWVolumeGrid *volume_grid_cache_get(Volume *volume,
