@@ -257,6 +257,10 @@ static bool paint_stroke_use_scene_spacing(Brush *brush, ePaintMode mode)
 
 static bool paint_tool_require_inbetween_mouse_events(Brush *brush, ePaintMode mode)
 {
+  if (brush->flag & BRUSH_ANCHORED) {
+    return false;
+  }
+
   switch (mode) {
     case PAINT_MODE_SCULPT:
       if (ELEM(brush->sculpt_tool,
