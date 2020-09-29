@@ -55,14 +55,14 @@ PyDoc_STRVAR(
     "\n"
     "   Generate a new empty preview.\n"
     "\n"
-    /* This is only true when accessed via 'bpy.utils.previews.ImagePreviewCollection.new',
-     * however this is the public API, allow this minor difference to the internal version here. */
-    "   If ``name`` already exists a KeyError exception is raised.\n"
-    "\n"
     "   :arg name: The name (unique id) identifying the preview.\n"
     "   :type name: string\n"
     "   :return: The Preview matching given name, or a new empty one.\n"
-    "   :rtype: :class:`bpy.types.ImagePreview`\n");
+    "   :rtype: :class:`bpy.types.ImagePreview`\n"
+    "   :rtype: :class:`bpy.types.ImagePreview`\n"
+    /* This is only true when accessed via 'bpy.utils.previews.ImagePreviewCollection.load',
+     * however this is the public API, allow this minor difference to the internal version here. */
+    "   :raises KeyError: if ``name`` already exists.");
 static PyObject *bpy_utils_previews_new(PyObject *UNUSED(self), PyObject *args)
 {
   char *name;
@@ -85,10 +85,6 @@ PyDoc_STRVAR(
     "\n"
     "   Generate a new preview from given file path.\n"
     "\n"
-    /* This is only true when accessed via 'bpy.utils.previews.ImagePreviewCollection.load',
-     * however this is the public API, allow this minor difference to the internal version here. */
-    "   If ``name`` already exists a KeyError exception is raised.\n"
-    "\n"
     "   :arg name: The name (unique id) identifying the preview.\n"
     "   :type name: string\n"
     "   :arg filepath: The file path to generate the preview from.\n"
@@ -100,7 +96,10 @@ PyDoc_STRVAR(
     "exists in cache.\n"
     "   :type force_reload: bool\n"
     "   :return: The Preview matching given name, or a new empty one.\n"
-    "   :rtype: :class:`bpy.types.ImagePreview`\n");
+    "   :rtype: :class:`bpy.types.ImagePreview`\n"
+    /* This is only true when accessed via 'bpy.utils.previews.ImagePreviewCollection.load',
+     * however this is the public API, allow this minor difference to the internal version here. */
+    "   :raises KeyError: if ``name`` already exists.");
 static PyObject *bpy_utils_previews_load(PyObject *UNUSED(self), PyObject *args)
 {
   char *name, *path, *path_type_s;
