@@ -1843,6 +1843,7 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
 
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(local));
   BLI_assert(override_storage != NULL);
+  UNUSED_VARS_NDEBUG(override_storage);
 
   /* Forcefully ensure we know about all needed override operations. */
   BKE_lib_override_library_operations_create(bmain, local);
