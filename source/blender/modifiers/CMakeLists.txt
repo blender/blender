@@ -67,6 +67,7 @@ set(SRC
   intern/MOD_laplaciansmooth.c
   intern/MOD_lattice.c
   intern/MOD_mask.cc
+  intern/MOD_mesh_to_volume.cc
   intern/MOD_meshcache.c
   intern/MOD_meshcache_mdd.c
   intern/MOD_meshcache_pc2.c
@@ -175,6 +176,20 @@ endif()
 
 if(WITH_GMP)
   add_definitions(-DWITH_GMP)
+endif()
+
+if(WITH_OPENVDB)
+  list(APPEND INC
+     ../../../intern/openvdb
+  )
+  list(APPEND INC_SYS
+    ${OPENVDB_INCLUDE_DIRS}
+  )
+  list(APPEND LIB
+    bf_intern_openvdb
+    ${OPENVDB_LIBRARIES}
+  )
+  add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
 endif()
 
 if(WITH_EXPERIMENTAL_FEATURES)

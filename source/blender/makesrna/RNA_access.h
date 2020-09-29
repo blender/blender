@@ -389,6 +389,7 @@ extern StructRNA RNA_MaterialSlot;
 extern StructRNA RNA_Menu;
 extern StructRNA RNA_Mesh;
 extern StructRNA RNA_MeshCacheModifier;
+extern StructRNA RNA_MeshToVolumeModifier;
 extern StructRNA RNA_MeshColor;
 extern StructRNA RNA_MeshDeformModifier;
 extern StructRNA RNA_MeshEdge;
