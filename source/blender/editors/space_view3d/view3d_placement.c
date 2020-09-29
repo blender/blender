@@ -35,6 +35,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_main.h"
 
 #include "RNA_access.h"
@@ -57,11 +58,15 @@
 
 #include "GPU_batch.h"
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 #include "GPU_state.h"
 
 #include "view3d_intern.h"
 
 static const char *view3d_gzgt_placement_id = "VIEW3D_GGT_placement";
+
+static void preview_plane_cursor_setup(wmGizmoGroup *gzgroup);
+static void preview_plane_cursor_visible_set(wmGizmoGroup *gzgroup, bool do_draw);
 
 /* -------------------------------------------------------------------- */
 /** \name Local Types
@@ -238,6 +243,12 @@ static bool idp_poject_surface_normal(SnapObjectContext *snap_context,
   }
 
   return success;
+}
+
+static wmGizmoGroup *idp_gizmogroup_from_region(ARegion *region)
+{
+  wmGizmoMap *gzmap = region->gizmo_map;
+  return gzmap ? WM_gizmomap_group_find(gzmap, view3d_gzgt_placement_id) : NULL;
 }
 
 /** \} */
@@ -746,10 +757,13 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
 
   /* Assign snap gizmo which is may be used as part of the tool. */
   {
-    wmGizmoMap *gzmap = ipd->region->gizmo_map;
-    wmGizmoGroup *gzgroup = gzmap ? WM_gizmomap_group_find(gzmap, view3d_gzgt_placement_id) : NULL;
-    if ((gzgroup != NULL) && gzgroup->gizmos.first) {
-      ipd->snap_gizmo = gzgroup->gizmos.first;
+    wmGizmoGroup *gzgroup = idp_gizmogroup_from_region(ipd->region);
+    if (gzgroup != NULL) {
+      if (gzgroup->gizmos.first) {
+        ipd->snap_gizmo = gzgroup->gizmos.first;
+      }
+
+      preview_plane_cursor_visible_set(gzgroup, false);
     }
   }
 
@@ -863,6 +877,13 @@ static void view3d_interactive_add_exit(bContext *C, wmOperator *op)
   ED_region_draw_cb_exit(ipd->region->type, ipd->draw_handle_view);
 
   ED_region_tag_redraw(ipd->region);
+
+  {
+    wmGizmoGroup *gzgroup = idp_gizmogroup_from_region(ipd->region);
+    if (gzgroup != NULL) {
+      preview_plane_cursor_visible_set(gzgroup, true);
+    }
+  }
 
   MEM_freeN(ipd);
 }
@@ -1285,6 +1306,9 @@ static void WIDGETGROUP_placement_setup(const bContext *UNUSED(C), wmGizmoGroup 
     /* Don't handle any events, this is for display only. */
     gizmo->flag |= WM_GIZMO_HIDDEN_KEYMAP;
   }
+
+  /* Sets the gizmos custom-data which has it's own free callback. */
+  preview_plane_cursor_setup(gzgroup);
 }
 
 void VIEW3D_GGT_placement(wmGizmoGroupType *gzgt)
@@ -1299,6 +1323,312 @@ void VIEW3D_GGT_placement(wmGizmoGroupType *gzgt)
 
   gzgt->poll = ED_gizmo_poll_or_unlink_delayed_from_tool;
   gzgt->setup = WIDGETGROUP_placement_setup;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Placement Preview Plane
+ *
+ * Preview the plane that will be used for placement.
+ *
+ * Note that we might want to split this into its own file,
+ * for now this is coupled with the 3D view placement gizmo.
+ * \{ */
+
+static void gizmo_plane_update_cursor(const bContext *C,
+                                      ARegion *region,
+                                      const int mval[2],
+                                      float r_co[3],
+                                      float r_matrix_orient[3][3],
+                                      int *r_plane_axis)
+{
+  wmOperatorType *ot = WM_operatortype_find("VIEW3D_OT_interactive_add", true);
+  BLI_assert(ot != NULL);
+  PointerRNA ptr;
+
+  ScrArea *area = CTX_wm_area(C);
+  BLI_assert(region == CTX_wm_region(C));
+  bToolRef *tref = area->runtime.tool;
+  WM_toolsystem_ref_properties_ensure_from_operator(tref, ot, &ptr);
+
+  const int plane_axis = RNA_enum_get(&ptr, "plane_axis");
+  const enum ePlace_Depth plane_depth = RNA_enum_get(&ptr, "plane_depth");
+  const enum ePlace_Orient plane_orient = RNA_enum_get(&ptr, "plane_orientation");
+
+  const float mval_fl[2] = {UNPACK2(mval)};
+
+  Scene *scene = CTX_data_scene(C);
+  View3D *v3d = CTX_wm_view3d(C);
+
+  /* Assign snap gizmo which is may be used as part of the tool. */
+  wmGizmo *snap_gizmo = NULL;
+  {
+    wmGizmoGroup *gzgroup = idp_gizmogroup_from_region(region);
+    if ((gzgroup != NULL) && gzgroup->gizmos.first) {
+      snap_gizmo = gzgroup->gizmos.first;
+    }
+  }
+
+  view3d_interactive_add_calc_plane((bContext *)C,
+                                    scene,
+                                    v3d,
+                                    region,
+                                    snap_gizmo,
+                                    mval_fl,
+                                    plane_depth,
+                                    plane_orient,
+                                    plane_axis,
+                                    r_co,
+                                    r_matrix_orient);
+  *r_plane_axis = plane_axis;
+}
+
+static void gizmo_plane_draw_grid(const int resolution,
+                                  const float scale,
+                                  const float scale_fade,
+                                  const float matrix[4][4],
+                                  const int plane_axis,
+                                  const float color[4])
+{
+  BLI_assert(scale_fade <= scale);
+  const int resolution_min = resolution - 1;
+  float color_fade[4] = {UNPACK4(color)};
+  const float *center = matrix[3];
+
+  GPU_blend(GPU_BLEND_ADDITIVE);
+  GPU_line_smooth(true);
+  GPU_line_width(1.0f);
+
+  GPUVertFormat *format = immVertexFormat();
+  const uint pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  const uint col_id = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+
+  immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
+
+  const size_t coords_len = resolution * resolution;
+  float(*coords)[3] = MEM_mallocN(sizeof(*coords) * coords_len, __func__);
+
+  const int axis_x = (plane_axis + 0) % 3;
+  const int axis_y = (plane_axis + 1) % 3;
+  const int axis_z = (plane_axis + 2) % 3;
+
+  int i;
+  const float resolution_div = (float)1.0f / (float)resolution;
+  i = 0;
+  for (int x = 0; x < resolution; x++) {
+    const float x_fl = (x * resolution_div) - 0.5f;
+    for (int y = 0; y < resolution; y++) {
+      const float y_fl = (y * resolution_div) - 0.5f;
+      coords[i][axis_x] = 0.0f;
+      coords[i][axis_y] = x_fl * scale;
+      coords[i][axis_z] = y_fl * scale;
+      mul_m4_v3(matrix, coords[i]);
+      i += 1;
+    }
+  }
+  BLI_assert(i == coords_len);
+  immBeginAtMost(GPU_PRIM_LINES, coords_len * 4);
+  i = 0;
+  for (int x = 0; x < resolution_min; x++) {
+    for (int y = 0; y < resolution_min; y++) {
+
+      /* Add #resolution_div to ensure we fade-out entirely. */
+#define FADE(v) \
+  max_ff(0.0f, (1.0f - square_f(((len_v3v3(v, center) / scale_fade) + resolution_div) * 2.0f)))
+
+      const float *v0 = coords[(resolution * x) + y];
+      const float *v1 = coords[(resolution * (x + 1)) + y];
+      const float *v2 = coords[(resolution * x) + (y + 1)];
+
+      const float f0 = FADE(v0);
+      const float f1 = FADE(v1);
+      const float f2 = FADE(v2);
+
+      if (f0 > 0.0f || f1 > 0.0f) {
+        color_fade[3] = color[3] * f0;
+        immAttr4fv(col_id, color_fade);
+        immVertex3fv(pos_id, v0);
+        color_fade[3] = color[3] * f1;
+        immAttr4fv(col_id, color_fade);
+        immVertex3fv(pos_id, v1);
+      }
+      if (f0 > 0.0f || f2 > 0.0f) {
+        color_fade[3] = color[3] * f0;
+        immAttr4fv(col_id, color_fade);
+        immVertex3fv(pos_id, v0);
+
+        color_fade[3] = color[3] * f2;
+        immAttr4fv(col_id, color_fade);
+        immVertex3fv(pos_id, v2);
+      }
+
+#undef FADE
+
+      i++;
+    }
+  }
+
+  MEM_freeN(coords);
+
+  immEnd();
+
+  immUnbindProgram();
+
+  GPU_line_smooth(false);
+  GPU_blend(GPU_BLEND_NONE);
+}
+
+/* -------------------------------------------------------------------- */
+/** \name Preview Plane Cursor
+ * \{ */
+
+struct PlacementCursor {
+  /**
+   * Back-pointer to the gizmo-group that uses this cursor.
+   * Needed so we know that the cursor belongs to the region.
+   */
+  wmGizmoGroup *gzgroup;
+
+  /**
+   * Enable this while the modal operator is running,
+   * so the preview-plane doesn't show at the same time time as add-object preview shape
+   * since it's distracting & not helpful.
+   */
+  bool do_draw;
+
+  void *paintcursor;
+
+  int plane_axis;
+  float matrix[4][4];
+
+  /* Check if we need to re-calculate the plane matrix. */
+  int mval_prev[2];
+  float viewmat_prev[4][4];
+};
+
+static void cursor_plane_draw(bContext *C, int x, int y, void *customdata)
+{
+  struct PlacementCursor *plc = (struct PlacementCursor *)customdata;
+  ARegion *region = CTX_wm_region(C);
+  const RegionView3D *rv3d = region->regiondata;
+
+  /* Early exit.
+   * Note that we can't do most of these checks in the poll function (besides global checks)
+   * so test them here instead.
+   *
+   * This cursor is only active while the gizmo is being used
+   * so it's not so important to have a poll function. */
+  if (plc->do_draw == false) {
+    return;
+  }
+  if (G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)) {
+    return;
+  }
+  if (rv3d->rflag & RV3D_NAVIGATING) {
+    return;
+  }
+
+  /* Check this gizmo group is in the region. */
+  {
+    wmGizmoMap *gzmap = region->gizmo_map;
+    wmGizmoGroup *gzgroup_test = WM_gizmomap_group_find_ptr(gzmap, plc->gzgroup->type);
+    if (gzgroup_test != plc->gzgroup) {
+      /* Wrong viewport. */
+      return;
+    }
+  }
+
+  const int mval[2] = {x - region->winrct.xmin, y - region->winrct.ymin};
+
+  /* Update matrix? */
+  if ((plc->mval_prev[0] != mval[0]) || (plc->mval_prev[1] != mval[1]) ||
+      !equals_m4m4(plc->viewmat_prev, rv3d->viewmat)) {
+    plc->mval_prev[0] = mval[0];
+    plc->mval_prev[1] = mval[1];
+
+    float orient_matrix[3][3];
+    float co[3];
+    gizmo_plane_update_cursor(C, region, mval, co, orient_matrix, &plc->plane_axis);
+    copy_m4_m3(plc->matrix, orient_matrix);
+    copy_v3_v3(plc->matrix[3], co);
+
+    copy_m4_m4(plc->viewmat_prev, rv3d->viewmat);
+  }
+
+  /* Draw */
+  const float pixel_size = ED_view3d_pixel_size(rv3d, plc->matrix[3]);
+  if (pixel_size > FLT_EPSILON) {
+
+    /* Setup viewport & matrix. */
+    wmViewport(&region->winrct);
+    GPU_matrix_push_projection();
+    GPU_matrix_push();
+    GPU_matrix_projection_set(rv3d->winmat);
+    GPU_matrix_set(rv3d->viewmat);
+
+    const float scale_mod = U.gizmo_size * U.dpi_fac;
+
+    float final_scale = (scale_mod * pixel_size);
+
+    const int lines_subdiv = 10;
+    int lines = lines_subdiv;
+
+    float final_scale_fade = final_scale;
+    final_scale = ceil_power_of_10(final_scale);
+
+    float fac = final_scale_fade / final_scale;
+
+    float color[4] = {1, 1, 1, 1};
+    color[3] = square_f(1.0f - fac);
+    gizmo_plane_draw_grid(
+        lines * lines_subdiv, final_scale, final_scale_fade, plc->matrix, plc->plane_axis, color);
+
+    /* Arbitrary, 1.0 is a little too strong though. */
+    color[3] = 0.75f;
+    /* When the grid is large, we only need the 2x lines in the middle. */
+    if (fac < 0.2f) {
+      lines = 1;
+      final_scale = final_scale_fade;
+    }
+    gizmo_plane_draw_grid(
+        lines, final_scale, final_scale_fade, plc->matrix, plc->plane_axis, color);
+
+    /* Restore matrix. */
+    GPU_matrix_pop();
+    GPU_matrix_pop_projection();
+  }
+}
+
+static void preview_plane_cursor_free(void *customdata)
+{
+  struct PlacementCursor *plc = customdata;
+
+  /* The window manager is freed first on exit. */
+  wmWindowManager *wm = G_MAIN->wm.first;
+  if (UNLIKELY(wm != NULL)) {
+    WM_paint_cursor_end(plc->paintcursor);
+  }
+  MEM_freeN(plc);
+}
+
+static void preview_plane_cursor_setup(wmGizmoGroup *gzgroup)
+{
+  BLI_assert(gzgroup->customdata == NULL);
+  struct PlacementCursor *plc = MEM_callocN(sizeof(*plc), __func__);
+  plc->gzgroup = gzgroup;
+  plc->paintcursor = WM_paint_cursor_activate(
+      SPACE_VIEW3D, RGN_TYPE_WINDOW, NULL, cursor_plane_draw, plc);
+  gzgroup->customdata = plc;
+  gzgroup->customdata_free = preview_plane_cursor_free;
+
+  preview_plane_cursor_visible_set(gzgroup, true);
+}
+
+static void preview_plane_cursor_visible_set(wmGizmoGroup *gzgroup, bool do_draw)
+{
+  struct PlacementCursor *plc = gzgroup->customdata;
+  plc->do_draw = do_draw;
 }
 
 /** \} */
