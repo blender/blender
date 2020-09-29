@@ -195,7 +195,7 @@ class AddPresetBase:
 
             # Do not remove bundled presets
             if is_path_builtin(filepath):
-                self.report({'WARNING'}, "You can't remove the default presets")
+                self.report({'WARNING'}, "Unable to remove default presets")
                 return {'CANCELLED'}
 
             try:
