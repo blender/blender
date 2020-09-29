@@ -85,8 +85,8 @@ static TreeElement *outliner_dropzone_element(TreeElement *te,
   }
   /* Not it.  Let's look at its children. */
   if (children && (TREESTORE(te)->flag & TSE_CLOSED) == 0 && (te->subtree.first)) {
-    for (te = te->subtree.first; te; te = te->next) {
-      TreeElement *te_valid = outliner_dropzone_element(te, fmval, children);
+    LISTBASE_FOREACH (TreeElement *, te_sub, &te->subtree) {
+      TreeElement *te_valid = outliner_dropzone_element(te_sub, fmval, children);
       if (te_valid) {
         return te_valid;
       }
@@ -100,9 +100,7 @@ static TreeElement *outliner_dropzone_find(const SpaceOutliner *space_outliner,
                                            const float fmval[2],
                                            const bool children)
 {
-  TreeElement *te;
-
-  for (te = space_outliner->tree.first; te; te = te->next) {
+  LISTBASE_FOREACH (TreeElement *, te, &space_outliner->tree) {
     TreeElement *te_valid = outliner_dropzone_element(te, fmval, children);
     if (te_valid) {
       return te_valid;

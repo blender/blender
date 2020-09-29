@@ -1419,8 +1419,8 @@ static void outliner_item_box_select(bContext *C,
 
   /* Look at its children. */
   if (TSELEM_OPEN(tselem, space_outliner)) {
-    for (te = te->subtree.first; te; te = te->next) {
-      outliner_item_box_select(C, space_outliner, scene, rectf, te, select);
+    LISTBASE_FOREACH (TreeElement *, te_sub, &te->subtree) {
+      outliner_item_box_select(C, space_outliner, scene, rectf, te_sub, select);
     }
   }
 }

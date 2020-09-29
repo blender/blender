@@ -1957,8 +1957,8 @@ static void outliner_sort(ListBase *lb)
     }
   }
 
-  for (te = lb->first; te; te = te->next) {
-    outliner_sort(&te->subtree);
+  LISTBASE_FOREACH (TreeElement *, te_iter, lb) {
+    outliner_sort(&te_iter->subtree);
   }
 }
 
@@ -2001,8 +2001,8 @@ static void outliner_collections_children_sort(ListBase *lb)
     }
   }
 
-  for (te = lb->first; te; te = te->next) {
-    outliner_collections_children_sort(&te->subtree);
+  LISTBASE_FOREACH (TreeElement *, te_iter, lb) {
+    outliner_collections_children_sort(&te_iter->subtree);
   }
 }
 
