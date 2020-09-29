@@ -2121,6 +2121,11 @@ enum {
   MOD_MESHSEQ_READ_POLY = (1 << 1),
   MOD_MESHSEQ_READ_UV = (1 << 2),
   MOD_MESHSEQ_READ_COLOR = (1 << 3),
+
+  /* Allow interpolation of mesh vertex positions. There is a heuristic to avoid interpolation when
+   * the mesh topology changes, but this heuristic sometimes fails. In these cases, users can
+   * disable interpolation with this flag. */
+  MOD_MESHSEQ_INTERPOLATE_VERTICES = (1 << 4),
 };
 
 typedef struct SDefBind {

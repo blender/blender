@@ -724,18 +724,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #BLO_version_defaults_userpref_blend
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
-
+  if (!MAIN_VERSION_ATLEAST(bmain, 291, 6)) {
     /* Darken Inactive Overlay. */
     if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "fade_alpha")) {
       for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
@@ -759,5 +748,30 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         mesh->symmetry = mesh->editflag & (ME_SYMMETRY_X | ME_SYMMETRY_Y | ME_SYMMETRY_Z);
       }
     }
+
+    /* Alembic importer: allow vertex interpolation by default. */
+    for (Object *object = bmain->objects.first; object != NULL; object = object->id.next) {
+      LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+        if (md->type != eModifierType_MeshSequenceCache) {
+          continue;
+        }
+
+        MeshSeqCacheModifierData *data = (MeshSeqCacheModifierData *)md;
+        data->read_flag |= MOD_MESHSEQ_INTERPOLATE_VERTICES;
+      }
+    }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #BLO_version_defaults_userpref_blend
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }

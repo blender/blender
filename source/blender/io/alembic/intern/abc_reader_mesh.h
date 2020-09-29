@@ -81,6 +81,6 @@ void read_mverts(MVert *mverts,
                  const Alembic::AbcGeom::P3fArraySamplePtr positions,
                  const Alembic::AbcGeom::N3fArraySamplePtr normals);
 
-CDStreamConfig get_config(struct Mesh *mesh);
+CDStreamConfig get_config(struct Mesh *mesh, bool use_vertex_interpolation);
 
 }  // namespace blender::io::alembic

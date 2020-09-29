@@ -27,6 +27,7 @@
 #include "abc_util.h"
 
 #include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_customdata.h"
@@ -125,7 +126,7 @@ void read_points_sample(const IPointsSchema &schema,
 
 struct Mesh *AbcPointsReader::read_mesh(struct Mesh *existing_mesh,
                                         const ISampleSelector &sample_sel,
-                                        int /*read_flag*/,
+                                        int read_flag,
                                         const char **err_str)
 {
   IPointsSchema::Sample sample;
@@ -150,10 +151,12 @@ struct Mesh *AbcPointsReader::read_mesh(struct Mesh *existing_mesh,
     new_mesh = BKE_mesh_new_nomain(positions->size(), 0, 0, 0, 0);
   }
 
-  CDStreamConfig config = get_config(new_mesh ? new_mesh : existing_mesh);
+  Mesh *mesh_to_export = new_mesh ? new_mesh : existing_mesh;
+  const bool use_vertex_interpolation = read_flag & MOD_MESHSEQ_INTERPOLATE_VERTICES;
+  CDStreamConfig config = get_config(mesh_to_export, use_vertex_interpolation);
   read_points_sample(m_schema, sample_sel, config);
 
-  return new_mesh ? new_mesh : existing_mesh;
+  return mesh_to_export;
 }
 
 }  // namespace blender::io::alembic

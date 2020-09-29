@@ -66,7 +66,7 @@ static void initData(ModifierData *md)
 
   mcmd->cache_file = NULL;
   mcmd->object_path[0] = '\0';
-  mcmd->read_flag = MOD_MESHSEQ_READ_ALL;
+  mcmd->read_flag = MOD_MESHSEQ_READ_ALL | MOD_MESHSEQ_INTERPOLATE_VERTICES;
   mcmd->velocity_scale = 1.0f;
   mcmd->vertex_velocities = NULL;
   mcmd->num_vertices = 0;
@@ -238,6 +238,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   if (RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
     uiItemR(layout, ptr, "read_data", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "use_vertex_interpolation", 0, NULL, ICON_NONE);
   }
 
   uiItemR(layout, ptr, "velocity_scale", 0, NULL, ICON_NONE);

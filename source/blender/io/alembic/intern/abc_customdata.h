@@ -66,6 +66,7 @@ struct CDStreamConfig {
 
   float weight;
   float time;
+  bool use_vertex_interpolation;
   Alembic::AbcGeom::index_t index;
   Alembic::AbcGeom::index_t ceil_index;
 
