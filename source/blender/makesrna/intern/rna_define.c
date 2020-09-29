@@ -457,8 +457,7 @@ static int rna_find_sdna_member(SDNA *sdna,
                                 int *offset)
 {
   const char *dnaname;
-  const short *sp;
-  int a, b, structnr, totmember, cmp;
+  int b, structnr, cmp;
 
   if (!DefRNA.preprocess) {
     CLOG_ERROR(&LOG, "only during preprocessing.");
@@ -474,17 +473,15 @@ static int rna_find_sdna_member(SDNA *sdna,
     return 0;
   }
 
-  sp = sdna->structs[structnr];
-  totmember = sp[1];
-  sp += 2;
-
-  for (a = 0; a < totmember; a++, sp += 2) {
-    const int size = DNA_elem_size_nr(sdna, sp[0], sp[1]);
-    dnaname = sdna->alias.names[sp[1]];
+  const SDNA_Struct *struct_info = sdna->structs[structnr];
+  for (int a = 0; a < struct_info->members_len; a++) {
+    const SDNA_StructMember *member = &struct_info->members[a];
+    const int size = DNA_elem_size_nr(sdna, member->type, member->name);
+    dnaname = sdna->alias.names[member->name];
     cmp = rna_member_cmp(dnaname, membername);
 
     if (cmp == 1) {
-      smember->type = sdna->alias.types[sp[0]];
+      smember->type = sdna->alias.types[member->type];
       smember->name = dnaname;
       smember->offset = *offset;
       smember->size = size;
@@ -512,7 +509,7 @@ static int rna_find_sdna_member(SDNA *sdna,
       smember->arraylength = 0;
 
       membername = strstr(membername, ".") + strlen(".");
-      rna_find_sdna_member(sdna, sdna->alias.types[sp[0]], membername, smember, offset);
+      rna_find_sdna_member(sdna, sdna->alias.types[member->type], membername, smember, offset);
 
       return 1;
     }
@@ -528,7 +525,7 @@ static int rna_find_sdna_member(SDNA *sdna,
         *offset = -1;
       }
       membername = strstr(membername, "->") + strlen("->");
-      rna_find_sdna_member(sdna, sdna->alias.types[sp[0]], membername, smember, offset);
+      rna_find_sdna_member(sdna, sdna->alias.types[member->type], membername, smember, offset);
 
       return 1;
     }

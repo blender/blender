@@ -2133,7 +2133,7 @@ static void switch_endian_structs(const struct SDNA *filesdna, BHead *bhead)
   char *data;
 
   data = (char *)(bhead + 1);
-  blocksize = filesdna->types_size[filesdna->structs[bhead->SDNAnr][0]];
+  blocksize = filesdna->types_size[filesdna->structs[bhead->SDNAnr]->type];
 
   nblocks = bhead->nr;
   while (nblocks--) {

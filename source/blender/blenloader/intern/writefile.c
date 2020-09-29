@@ -539,7 +539,6 @@ static void writestruct_at_address_nr(
     WriteData *wd, int filecode, const int struct_nr, int nr, const void *adr, const void *data)
 {
   BHead bh;
-  const short *sp;
 
   BLI_assert(struct_nr > 0 && struct_nr < SDNA_TYPE_MAX);
 
@@ -553,9 +552,9 @@ static void writestruct_at_address_nr(
   bh.nr = nr;
 
   bh.SDNAnr = struct_nr;
-  sp = wd->sdna->structs[bh.SDNAnr];
+  const SDNA_Struct *struct_info = wd->sdna->structs[bh.SDNAnr];
 
-  bh.len = nr * wd->sdna->types_size[sp[0]];
+  bh.len = nr * wd->sdna->types_size[struct_info->type];
 
   if (bh.len == 0) {
     return;

@@ -103,8 +103,8 @@ void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp)
       break;
     }
 
-    const short *sp = fd->filesdna->structs[bhead->SDNAnr];
-    const char *name = fd->filesdna->types[sp[0]];
+    const SDNA_Struct *struct_info = fd->filesdna->structs[bhead->SDNAnr];
+    const char *name = fd->filesdna->types[struct_info->type];
     char buf[4];
 
     buf[0] = (bhead->code >> 24) & 0xFF;
