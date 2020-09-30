@@ -1247,7 +1247,7 @@ static void rna_def_trackingCamera(BlenderRNA *brna)
   prop = RNA_def_property(srna, "division_k2", PROP_FLOAT, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_range(prop, -10, 10, 0.1, 3);
-  RNA_def_property_ui_text(prop, "K2", "First coefficient of second order division distortion");
+  RNA_def_property_ui_text(prop, "K2", "Second coefficient of second order division distortion");
   RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_tracking_flushUpdate");
 
   /* Nuke distortion parameters */
