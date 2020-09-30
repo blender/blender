@@ -246,9 +246,9 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Axis"));
-  uiItemR(row, ptr, "x_axis", toggles_flag, NULL, ICON_NONE);
-  uiItemR(row, ptr, "y_axis", toggles_flag, NULL, ICON_NONE);
-  uiItemR(row, ptr, "z_axis", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, ptr, "use_axis_x", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, ptr, "use_axis_y", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, ptr, "use_axis_z", toggles_flag, NULL, ICON_NONE);
 
   uiItemR(layout, ptr, "object", 0, NULL, ICON_NONE);
 

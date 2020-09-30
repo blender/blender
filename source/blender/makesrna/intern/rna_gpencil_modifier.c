@@ -1876,19 +1876,19 @@ static void rna_def_modifier_gpencilmirror(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Clip", "Clip points");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-  prop = RNA_def_property(srna, "x_axis", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_axis_x", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_MIRROR_AXIS_X);
-  RNA_def_property_ui_text(prop, "X", "Mirror this axis");
+  RNA_def_property_ui_text(prop, "X", "Mirror the X axis");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-  prop = RNA_def_property(srna, "y_axis", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_axis_y", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_MIRROR_AXIS_Y);
-  RNA_def_property_ui_text(prop, "Y", "Mirror this axis");
+  RNA_def_property_ui_text(prop, "Y", "Mirror the Y axis");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-  prop = RNA_def_property(srna, "z_axis", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_axis_z", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_MIRROR_AXIS_Z);
-  RNA_def_property_ui_text(prop, "Z", "Mirror this axis");
+  RNA_def_property_ui_text(prop, "Z", "Mirror the Z axis");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 }
 

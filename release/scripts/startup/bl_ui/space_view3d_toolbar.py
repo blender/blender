@@ -964,7 +964,7 @@ class VIEW3D_PT_tools_weightpaint_symmetry(Panel, View3DPaintPanel):
         col = layout.column()
         row = col.row(align=True)
         row.prop(context.object.data, 'use_mirror_vertex_group_x')
-        
+
 
 
 class VIEW3D_PT_tools_weightpaint_symmetry_for_topbar(Panel):
@@ -1555,7 +1555,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_post_processing(View3DPanel, Panel):
         col1.prop(gp_settings, "simplify_factor")
 
         col1 = col.column(align=True)
-        col1.prop(gp_settings, "trim")
+        col1.prop(gp_settings, "use_trim")
 
 
 class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):

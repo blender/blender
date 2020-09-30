@@ -731,7 +731,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   col = uiLayoutColumn(layout, false);
   uiItemR(col, ptr, "keep_sharp", 0, NULL, ICON_NONE);
-  uiItemR(col, ptr, "face_influence", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "use_face_influence", 0, NULL, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
 
