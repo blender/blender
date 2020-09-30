@@ -109,7 +109,7 @@
  *
  * IMPORTANT:
  *  - Do not use #defines in structs for array lengths, this cannot be read by the dna functions.
- *  - Do not use uint, but unsigned int instead, ushort and ulong are allowed.
+ *  - Do not use `uint`, but unsigned int instead, `ushort` and `ulong` are allowed.
  *  - Only use a long in Blender if you want this to be the size of a pointer. so it is
  *    32 bits or 64 bits, dependent at the cpu architecture.
  *  - Chars are always unsigned
@@ -731,7 +731,8 @@ const char *DNA_struct_get_compareflags(const SDNA *oldsdna, const SDNA *newsdna
 
 /**
  * Converts a value of one primitive type to another.
- * Note there is no optimization for the case where otype and ctype are the same:
+ *
+ * \note there is no optimization for the case where \a otype and \a ctype are the same:
  * assumption is that caller will handle this case.
  *
  * \param old_type: Type to convert from.
@@ -1546,8 +1547,8 @@ static int compress_reconstruct_steps(ReconstructStep *steps, const int old_step
 }
 
 /**
- * Preprocess information about how structs in newsdna can be reconstructed from structs in
- * oldsdna. This information is then used to speedup #DNA_struct_reconstruct.
+ * Pre-process information about how structs in \a newsdna can be reconstructed from structs in
+ * \a oldsdna. This information is then used to speedup #DNA_struct_reconstruct.
  */
 DNA_ReconstructInfo *DNA_reconstruct_info_create(const SDNA *oldsdna,
                                                  const SDNA *newsdna,

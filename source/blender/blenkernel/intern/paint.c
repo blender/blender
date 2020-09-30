@@ -1312,7 +1312,9 @@ void BKE_sculptsession_free_vwpaint_data(struct SculptSession *ss)
   MEM_SAFE_FREE(gmap->poly_map_mem);
 }
 
-/* Write out the sculpt dynamic-topology BMesh to the Mesh */
+/**
+ * Write out the sculpt dynamic-topology #BMesh to the #Mesh.
+ */
 static void sculptsession_bm_to_me_update_data_only(Object *ob, bool reorder)
 {
   SculptSession *ss = ob->sculpt;
@@ -1609,9 +1611,9 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   /* Sculpt Face Sets. */
   if (use_face_sets) {
     if (!CustomData_has_layer(&me->pdata, CD_SCULPT_FACE_SETS)) {
-      /* By checking here if the datalayer already exist this avoids copying the visibility from
+      /* By checking here if the data-layer already exist this avoids copying the visibility from
        * the mesh and looping over all vertices on every sculpt editing operation, using this
-       * function only the first time the Face Sets datalayer needs to be created. */
+       * function only the first time the Face Sets data-layer needs to be created. */
       BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(me);
     }
     ss->face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
@@ -1896,7 +1898,7 @@ void BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(Mesh *mesh)
     int *new_face_sets = CustomData_add_layer(
         &mesh->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, NULL, mesh->totpoly);
 
-    /* Initialize the new Face Set datalayer with a default valid visible ID and set the default
+    /* Initialize the new Face Set data-layer with a default valid visible ID and set the default
      * color to render it white. */
     for (int i = 0; i < mesh->totpoly; i++) {
       new_face_sets[i] = face_sets_default_visible_id;
@@ -1906,15 +1908,15 @@ void BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(Mesh *mesh)
 
   int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
 
-  /* Show the only the face sets that have all visibile vertices. */
+  /* Show the only the face sets that have all visible vertices. */
   for (int i = 0; i < mesh->totpoly; i++) {
     for (int l = 0; l < mesh->mpoly[i].totloop; l++) {
       MLoop *loop = &mesh->mloop[mesh->mpoly[i].loopstart + l];
       if (mesh->mvert[loop->v].flag & ME_HIDE) {
         if (initialize_new_face_sets) {
-          /* When initializing a new Face Set datalayer, assing a new hidden Face Set ID to hidden
+          /* When initializing a new Face Set data-layer, assign a new hidden Face Set ID to hidden
            * vertices. This way, we get at initial split in two Face Sets between hidden and
-           * visible vertices based on the previous mesh visibily from other mode that can be
+           * visible vertices based on the previous mesh visibly from other mode that can be
            * useful in some cases. */
           face_sets[i] = face_sets_default_hidden_id;
         }
@@ -1936,7 +1938,7 @@ static void sculpt_sync_face_sets_visibility_to_base_mesh(Mesh *mesh)
   }
 
   /* Enabled if the vertex should be visible according to the Face Sets. */
-  BLI_bitmap *visibile_vertex = BLI_BITMAP_NEW(mesh->totvert, "visible vertices");
+  BLI_bitmap *visible_vertex = BLI_BITMAP_NEW(mesh->totvert, "visible vertices");
   /* Enabled if the visibility of this vertex can be affected by the Face Sets to avoid modifying
    * disconnected geometry. */
   BLI_bitmap *modified_vertex = BLI_BITMAP_NEW(mesh->totvert, "modified vertices");
@@ -1946,19 +1948,19 @@ static void sculpt_sync_face_sets_visibility_to_base_mesh(Mesh *mesh)
     for (int l = 0; l < mesh->mpoly[i].totloop; l++) {
       MLoop *loop = &mesh->mloop[mesh->mpoly[i].loopstart + l];
       if (is_face_set_visible) {
-        BLI_BITMAP_ENABLE(visibile_vertex, loop->v);
+        BLI_BITMAP_ENABLE(visible_vertex, loop->v);
       }
       BLI_BITMAP_ENABLE(modified_vertex, loop->v);
     }
   }
 
   for (int i = 0; i < mesh->totvert; i++) {
-    if (BLI_BITMAP_TEST(modified_vertex, i) && !BLI_BITMAP_TEST(visibile_vertex, i)) {
+    if (BLI_BITMAP_TEST(modified_vertex, i) && !BLI_BITMAP_TEST(visible_vertex, i)) {
       mesh->mvert[i].flag |= ME_HIDE;
     }
   }
 
-  MEM_SAFE_FREE(visibile_vertex);
+  MEM_SAFE_FREE(visible_vertex);
   MEM_SAFE_FREE(modified_vertex);
 }
 

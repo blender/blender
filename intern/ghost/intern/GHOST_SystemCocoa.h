@@ -251,10 +251,10 @@ class GHOST_SystemCocoa : public GHOST_System {
 
   /**
    * Handles a tablet event.
-   * \param eventPtr  An NSEvent pointer (casted to void* to enable compilation in standard C++)
-   * \param eventType The type of the event.
+   * \param eventPtr: An #NSEvent pointer (cast to void* to enable compilation in standard C++).
+   * \param eventType: The type of the event.
    * It needs to be passed separately as it can be either directly in the event type,
-   * or as a subtype if combined with a mouse button event.
+   * or as a sub-type if combined with a mouse button event.
    * \return Indication whether the event was handled.
    */
   GHOST_TSuccess handleTabletEvent(void *eventPtr, short eventType);
@@ -262,14 +262,14 @@ class GHOST_SystemCocoa : public GHOST_System {
 
   /**
    * Handles a mouse event.
-   * \param eventPtr  An NSEvent pointer (casted to void* to enable compilation in standard C++)
+   * \param eventPtr: An #NSEvent pointer (cast to `void *` to enable compilation in standard C++).
    * \return Indication whether the event was handled.
    */
   GHOST_TSuccess handleMouseEvent(void *eventPtr);
 
   /**
    * Handles a key event.
-   * \param eventPtr  An NSEvent pointer (casted to void* to enable compilation in standard C++)
+   * \param eventPtr: An #NSEvent pointer (cast to `void *` to enable compilation in standard C++).
    * \return Indication whether the event was handled.
    */
   GHOST_TSuccess handleKeyEvent(void *eventPtr);
