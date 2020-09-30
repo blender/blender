@@ -1322,14 +1322,11 @@ static bool ui_but_event_property_operator_string(const bContext *C,
       opnames_len = ARRAY_SIZE(ctx_enum_opnames);
     }
   }
-
-  bool found = false;
-
   /* Don't use the button again. */
   but = NULL;
 
   if (prop == NULL) {
-    return NULL;
+    return false;
   }
 
   /* this version is only for finding hotkeys for properties
@@ -1414,6 +1411,7 @@ static bool ui_but_event_property_operator_string(const bContext *C,
   }
 
   /* we have a datapath! */
+  bool found = false;
   if (data_path || (prop_enum_value_ok && prop_enum_value_id)) {
     /* create a property to host the "datapath" property we're sending to the operators */
     IDProperty *prop_path;
