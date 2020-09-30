@@ -43,7 +43,10 @@
 
 using Alembic::Abc::Int32ArraySamplePtr;
 using Alembic::Abc::P3fArraySamplePtr;
+using Alembic::Abc::PropertyHeader;
 
+using Alembic::AbcGeom::IC3fGeomParam;
+using Alembic::AbcGeom::IC4fGeomParam;
 using Alembic::AbcGeom::IFaceSet;
 using Alembic::AbcGeom::IFaceSetSchema;
 using Alembic::AbcGeom::IN3fGeomParam;
@@ -494,6 +497,39 @@ bool AbcMeshReader::valid() const
   return m_schema.valid();
 }
 
+template<class typedGeomParam>
+bool is_valid_animated(const ICompoundProperty arbGeomParams, const PropertyHeader &prop_header)
+{
+  if (!typedGeomParam::matches(prop_header)) {
+    return false;
+  }
+
+  typedGeomParam geom_param(arbGeomParams, prop_header.getName());
+  return geom_param.valid() && !geom_param.isConstant();
+}
+
+bool has_animated_geom_params(const ICompoundProperty arbGeomParams)
+{
+  if (!arbGeomParams.valid()) {
+    return false;
+  }
+
+  const int num_props = arbGeomParams.getNumProperties();
+  for (int i = 0; i < num_props; i++) {
+    const PropertyHeader &prop_header = arbGeomParams.getPropertyHeader(i);
+
+    /* These are interpreted as vertex colors later (see 'read_custom_data'). */
+    if (is_valid_animated<IC3fGeomParam>(arbGeomParams, prop_header)) {
+      return true;
+    }
+    if (is_valid_animated<IC4fGeomParam>(arbGeomParams, prop_header)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 /* Specialisation of has_animations() as defined in abc_reader_object.h. */
 template<> bool has_animations(Alembic::AbcGeom::IPolyMeshSchema &schema, ImportSettings *settings)
 {
@@ -502,9 +538,21 @@ template<> bool has_animations(Alembic::AbcGeom::IPolyMeshSchema &schema, Import
   }
 
   IV2fGeomParam uvsParam = schema.getUVsParam();
+  if (uvsParam.valid() && !uvsParam.isConstant()) {
+    return true;
+  }
+
   IN3fGeomParam normalsParam = schema.getNormalsParam();
-  return (uvsParam.valid() && !uvsParam.isConstant()) ||
-         (normalsParam.valid() && !normalsParam.isConstant());
+  if (normalsParam.valid() && !normalsParam.isConstant()) {
+    return true;
+  }
+
+  ICompoundProperty arbGeomParams = schema.getArbGeomParams();
+  if (has_animated_geom_params(arbGeomParams)) {
+    return true;
+  }
+
+  return false;
 }
 
 void AbcMeshReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel)
