@@ -203,3 +203,7 @@ void do_versions_after_linking_270(struct Main *bmain);
 void do_versions_after_linking_280(struct Main *bmain, struct ReportList *reports);
 void do_versions_after_linking_290(struct Main *bmain, struct ReportList *reports);
 void do_versions_after_linking_cycles(struct Main *bmain);
+
+/* This is rather unfortunate to have to expose this here, but better use that nasty hack in
+ * do_version than readfile itself. */
+void *blo_read_get_new_globaldata_address(struct FileData *fd, const void *adr);

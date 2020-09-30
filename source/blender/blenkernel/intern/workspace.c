@@ -125,10 +125,14 @@ static WorkSpaceLayout *workspace_layout_find_exec(const WorkSpace *workspace,
   return BLI_findptr(&workspace->layouts, screen, offsetof(WorkSpaceLayout, screen));
 }
 
-static void workspace_relation_add(ListBase *relation_list, void *parent, void *data)
+static void workspace_relation_add(ListBase *relation_list,
+                                   void *parent,
+                                   const int parentid,
+                                   void *data)
 {
   WorkSpaceDataRelation *relation = MEM_callocN(sizeof(*relation), __func__);
   relation->parent = parent;
+  relation->parentid = parentid;
   relation->value = data;
   /* add to head, if we switch back to it soon we find it faster. */
   BLI_addhead(relation_list, relation);
@@ -139,11 +143,15 @@ static void workspace_relation_remove(ListBase *relation_list, WorkSpaceDataRela
   MEM_freeN(relation);
 }
 
-static void workspace_relation_ensure_updated(ListBase *relation_list, void *parent, void *data)
+static void workspace_relation_ensure_updated(ListBase *relation_list,
+                                              void *parent,
+                                              const int parentid,
+                                              void *data)
 {
-  WorkSpaceDataRelation *relation = BLI_findptr(
-      relation_list, parent, offsetof(WorkSpaceDataRelation, parent));
+  WorkSpaceDataRelation *relation = BLI_listbase_bytes_find(
+      relation_list, &parentid, sizeof(parentid), offsetof(WorkSpaceDataRelation, parentid));
   if (relation != NULL) {
+    relation->parent = parent;
     relation->value = data;
     /* reinsert at the head of the list, so that more commonly used relations are found faster. */
     BLI_remlink(relation_list, relation);
@@ -151,7 +159,7 @@ static void workspace_relation_ensure_updated(ListBase *relation_list, void *par
   }
   else {
     /* no matching relation found, add new one */
-    workspace_relation_add(relation_list, parent, data);
+    workspace_relation_add(relation_list, parent, parentid, data);
   }
 }
 
@@ -219,13 +227,13 @@ void BKE_workspace_remove(Main *bmain, WorkSpace *workspace)
   BKE_id_free(bmain, workspace);
 }
 
-WorkSpaceInstanceHook *BKE_workspace_instance_hook_create(const Main *bmain)
+WorkSpaceInstanceHook *BKE_workspace_instance_hook_create(const Main *bmain, const int winid)
 {
   WorkSpaceInstanceHook *hook = MEM_callocN(sizeof(WorkSpaceInstanceHook), __func__);
 
   /* set an active screen-layout for each possible window/workspace combination */
   for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
-    BKE_workspace_active_layout_set(hook, workspace, workspace->layouts.first);
+    BKE_workspace_active_layout_set(hook, winid, workspace, workspace->layouts.first);
   }
 
   return hook;
@@ -483,11 +491,12 @@ WorkSpaceLayout *BKE_workspace_active_layout_for_workspace_get(const WorkSpaceIn
  * WorkSpaceInstanceHook.act_layout should only be modified directly to update the layout pointer.
  */
 void BKE_workspace_active_layout_set(WorkSpaceInstanceHook *hook,
+                                     const int winid,
                                      WorkSpace *workspace,
                                      WorkSpaceLayout *layout)
 {
   hook->act_layout = layout;
-  workspace_relation_ensure_updated(&workspace->hook_layout_relations, hook, layout);
+  workspace_relation_ensure_updated(&workspace->hook_layout_relations, hook, winid, layout);
 }
 
 bScreen *BKE_workspace_active_screen_get(const WorkSpaceInstanceHook *hook)
@@ -495,12 +504,13 @@ bScreen *BKE_workspace_active_screen_get(const WorkSpaceInstanceHook *hook)
   return hook->act_layout->screen;
 }
 void BKE_workspace_active_screen_set(WorkSpaceInstanceHook *hook,
+                                     const int winid,
                                      WorkSpace *workspace,
                                      bScreen *screen)
 {
   /* we need to find the WorkspaceLayout that wraps this screen */
   WorkSpaceLayout *layout = BKE_workspace_layout_find(hook->active, screen);
-  BKE_workspace_active_layout_set(hook, workspace, layout);
+  BKE_workspace_active_layout_set(hook, winid, workspace, layout);
 }
 
 const char *BKE_workspace_layout_name_get(const WorkSpaceLayout *layout)

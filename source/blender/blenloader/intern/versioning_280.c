@@ -241,7 +241,7 @@ static void do_version_workspaces_after_lib_link(Main *bmain)
       if (screen->temp) {
         /* We do not generate a new workspace for those screens...
          * still need to set some data in win. */
-        win->workspace_hook = BKE_workspace_instance_hook_create(bmain);
+        win->workspace_hook = BKE_workspace_instance_hook_create(bmain, win->winid);
         win->scene = screen->scene;
         /* Deprecated from now on! */
         win->screen = NULL;
@@ -254,10 +254,10 @@ static void do_version_workspaces_after_lib_link(Main *bmain)
       WorkSpaceLayout *layout = BKE_workspace_layout_find(workspace, win->screen);
       BLI_assert(layout != NULL);
 
-      win->workspace_hook = BKE_workspace_instance_hook_create(bmain);
+      win->workspace_hook = BKE_workspace_instance_hook_create(bmain, win->winid);
 
       BKE_workspace_active_set(win->workspace_hook, workspace);
-      BKE_workspace_active_layout_set(win->workspace_hook, workspace, layout);
+      BKE_workspace_active_layout_set(win->workspace_hook, win->winid, workspace, layout);
 
       /* Move scene and view layer to window. */
       Scene *scene = screen->scene;

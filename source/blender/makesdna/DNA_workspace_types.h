@@ -160,10 +160,15 @@ typedef struct WorkSpaceDataRelation {
   struct WorkSpaceDataRelation *next, *prev;
 
   /** The data used to identify the relation
-   * (e.g. to find screen-layout (= value) from/for a hook). */
+   * (e.g. to find screen-layout (= value) from/for a hook).
+   * Note: Now runtime only. */
   void *parent;
   /** The value for this parent-data/workspace relation. */
   void *value;
+
+  /** Reference to the actual parent window, wmWindow->winid. Used in read/write code. */
+  int parentid;
+  char _pad_0[4];
 } WorkSpaceDataRelation;
 
 /**

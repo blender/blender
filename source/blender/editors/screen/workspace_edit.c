@@ -141,7 +141,7 @@ bool ED_workspace_change(WorkSpace *workspace_new, bContext *C, wmWindowManager 
     return false;
   }
 
-  BKE_workspace_active_layout_set(win->workspace_hook, workspace_new, layout_new);
+  BKE_workspace_active_layout_set(win->workspace_hook, win->winid, workspace_new, layout_new);
   BKE_workspace_active_set(win->workspace_hook, workspace_new);
 
   /* update screen *after* changing workspace - which also causes the

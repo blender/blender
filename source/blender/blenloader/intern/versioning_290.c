@@ -41,6 +41,7 @@
 #include "DNA_rigidbody_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_shader_fx_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
@@ -779,5 +780,31 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+    if (!DNA_struct_elem_find(fd->filesdna, "WorkSpaceDataRelation", "int", "parentid")) {
+      LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
+        LISTBASE_FOREACH_MUTABLE (
+            WorkSpaceDataRelation *, relation, &workspace->hook_layout_relations) {
+          relation->parent = blo_read_get_new_globaldata_address(fd, relation->parent);
+          BLI_assert(relation->parentid == 0);
+          if (relation->parent != NULL) {
+            LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
+              wmWindow *win = BLI_findptr(
+                  &wm->windows, relation->parent, offsetof(wmWindow, workspace_hook));
+              if (win != NULL) {
+                relation->parentid = win->winid;
+                break;
+              }
+            }
+            if (relation->parentid == 0) {
+              BLI_assert(
+                  !"Found a valid parent for workspace data relation, but no valid parent id.");
+            }
+          }
+          if (relation->parentid == 0) {
+            BLI_freelinkN(&workspace->hook_layout_relations, relation);
+          }
+        }
+      }
+    }
   }
 }

@@ -297,7 +297,7 @@ wmWindow *wm_window_new(const Main *bmain, wmWindowManager *wm, wmWindow *parent
   /* Dialogs may have a child window as parent. Otherwise, a child must not be a parent too. */
   win->parent = (!dialog && parent && parent->parent) ? parent->parent : parent;
   win->stereo3d_format = MEM_callocN(sizeof(Stereo3dFormat), "Stereo 3D Format (window)");
-  win->workspace_hook = BKE_workspace_instance_hook_create(bmain);
+  win->workspace_hook = BKE_workspace_instance_hook_create(bmain, win->winid);
 
   return win;
 }
@@ -327,7 +327,7 @@ wmWindow *wm_window_copy(Main *bmain,
   layout_new = duplicate_layout ?
                    ED_workspace_layout_duplicate(bmain, workspace, layout_old, win_dst) :
                    layout_old;
-  BKE_workspace_active_layout_set(win_dst->workspace_hook, workspace, layout_new);
+  BKE_workspace_active_layout_set(win_dst->workspace_hook, win_dst->winid, workspace, layout_new);
 
   *win_dst->stereo3d_format = *win_src->stereo3d_format;
 
@@ -2420,7 +2420,7 @@ WorkSpaceLayout *WM_window_get_active_layout(const wmWindow *win)
 }
 void WM_window_set_active_layout(wmWindow *win, WorkSpace *workspace, WorkSpaceLayout *layout)
 {
-  BKE_workspace_active_layout_set(win->workspace_hook, workspace, layout);
+  BKE_workspace_active_layout_set(win->workspace_hook, win->winid, workspace, layout);
 }
 
 /**
@@ -2434,7 +2434,7 @@ bScreen *WM_window_get_active_screen(const wmWindow *win)
 }
 void WM_window_set_active_screen(wmWindow *win, WorkSpace *workspace, bScreen *screen)
 {
-  BKE_workspace_active_screen_set(win->workspace_hook, workspace, screen);
+  BKE_workspace_active_screen_set(win->workspace_hook, win->winid, workspace, screen);
 }
 
 bool WM_window_is_temp_screen(const wmWindow *win)
