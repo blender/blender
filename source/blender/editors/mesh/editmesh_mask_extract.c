@@ -222,6 +222,9 @@ static int geometry_extract_apply(bContext *C,
   Mesh *new_ob_mesh = new_ob->data;
   CustomData_free_layers(&new_ob_mesh->pdata, CD_SCULPT_FACE_SETS, new_ob_mesh->totpoly);
 
+  /* Remove the mask from the new object so it can be sculpted directly after extracting. */
+  CustomData_free_layers(&new_ob_mesh->vdata, CD_PAINT_MASK, new_ob_mesh->totvert);
+
   if (params->apply_shrinkwrap) {
     BKE_shrinkwrap_mesh_nearest_surface_deform(C, new_ob, ob);
   }
