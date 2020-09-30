@@ -5074,6 +5074,14 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 283, 20)) {
+    for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
+      /* Don't rotate light with the viewer by default, make it fixed. Shading settings can't be
+       * edited and this flag should always be set. So we can always execute this. */
+      wm->xr.session_settings.shading.flag |= V3D_SHADING_WORLD_ORIENTATION;
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -5085,12 +5093,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
    * \note Keep this message at the bottom of the function.
    */
   {
-    for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
-      /* Don't rotate light with the viewer by default, make it fixed. Shading settings can't be
-       * edited and this flag should always be set. So we can always execute this. */
-      wm->xr.session_settings.shading.flag |= V3D_SHADING_WORLD_ORIENTATION;
-    }
-
     /* Keep this block, even when empty. */
   }
 }
