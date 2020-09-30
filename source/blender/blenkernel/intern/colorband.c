@@ -485,7 +485,7 @@ bool BKE_colorband_evaluate(const ColorBand *coba, float in, float out[4])
       }
       else {
         /* was setting to 0.0 in 2.56 & previous, but this
-         * is incorrect for the last element, see [#26732] */
+         * is incorrect for the last element, see T26732. */
         fac = (a != coba->tot) ? 0.0f : 1.0f;
       }
 

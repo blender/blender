@@ -2880,7 +2880,7 @@ void OBJECT_OT_vertex_group_remove(wmOperatorType *ot)
   /* flags */
   /* redo operator will fail in this case because vertex groups aren't stored
    * in local edit mode stack and toggling "all" property will lead to
-   * all groups deleted without way to restore them (see [#29527], sergey) */
+   * all groups deleted without way to restore them (see T29527, sergey) */
   ot->flag = /*OPTYPE_REGISTER|*/ OPTYPE_UNDO;
 
   /* properties */
@@ -2923,7 +2923,7 @@ void OBJECT_OT_vertex_group_assign(wmOperatorType *ot)
   /* flags */
   /* redo operator will fail in this case because vertex group assignment
    * isn't stored in local edit mode stack and toggling "new" property will
-   * lead to creating plenty of new vertex groups (see [#29527], sergey) */
+   * lead to creating plenty of new vertex groups (see T29527, sergey) */
   ot->flag = /*OPTYPE_REGISTER|*/ OPTYPE_UNDO;
 }
 
@@ -2958,7 +2958,7 @@ void OBJECT_OT_vertex_group_assign_new(wmOperatorType *ot)
   /* flags */
   /* redo operator will fail in this case because vertex group assignment
    * isn't stored in local edit mode stack and toggling "new" property will
-   * lead to creating plenty of new vertex groups (see [#29527], sergey) */
+   * lead to creating plenty of new vertex groups (see T29527, sergey) */
   ot->flag = /*OPTYPE_REGISTER|*/ OPTYPE_UNDO;
 }
 
@@ -3009,7 +3009,7 @@ void OBJECT_OT_vertex_group_remove_from(wmOperatorType *ot)
   /* flags */
   /* redo operator will fail in this case because vertex groups assignment
    * isn't stored in local edit mode stack and toggling "all" property will lead to
-   * removing vertices from all groups (see [#29527], sergey) */
+   * removing vertices from all groups (see T29527, sergey) */
   ot->flag = /*OPTYPE_REGISTER|*/ OPTYPE_UNDO;
 
   /* properties */

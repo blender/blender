@@ -232,7 +232,7 @@ PyObject *BPY_app_handlers_struct(void)
   BlenderAppCbType.tp_init = NULL;
   BlenderAppCbType.tp_new = NULL;
   BlenderAppCbType.tp_hash = (hashfunc)
-      _Py_HashPointer; /* without this we can't do set(sys.modules) [#29635] */
+      _Py_HashPointer; /* without this we can't do set(sys.modules) T29635. */
 
   /* assign the C callbacks */
   if (ret) {

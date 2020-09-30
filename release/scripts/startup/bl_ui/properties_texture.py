@@ -104,7 +104,7 @@ class TEXTURE_PT_preview(TextureButtonsPanel, Panel):
         else:
             layout.template_preview(tex, slot=slot)
 
-        # Show Alpha Button for Brush Textures, see #29502
+        # Show Alpha Button for Brush Textures, see T29502.
         idblock = context_tex_datablock(context)
         if isinstance(idblock, Brush):
             layout.prop(tex, "use_preview_alpha")

@@ -84,7 +84,7 @@ extern const char bm_iter_itype_htype_map[BM_ITYPE_MAX];
        BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BM_iter_step(iter), (indexvar)++)
 
 /* a version of BM_ITER_MESH which keeps the next item in storage
- * so we can delete the current item, see bug [#36923] */
+ * so we can delete the current item, see bug T36923. */
 #ifdef DEBUG
 #  define BM_ITER_MESH_MUTABLE(ele, ele_next, iter, bm, itype) \
     for (BM_CHECK_TYPE_ELEM_ASSIGN(ele) = BM_iter_new(iter, bm, itype, NULL); \

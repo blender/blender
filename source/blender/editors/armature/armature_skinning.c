@@ -490,7 +490,7 @@ void ED_object_vgroup_calc_from_armature(ReportList *reports,
 
     if (defbase_add) {
       /* its possible there are DWeight's outside the range of the current
-       * objects deform groups, in this case the new groups wont be empty [#33889] */
+       * objects deform groups, in this case the new groups wont be empty T33889. */
       ED_vgroup_data_clamp_range(ob->data, defbase_tot);
     }
   }

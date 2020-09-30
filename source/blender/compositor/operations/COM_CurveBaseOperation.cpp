@@ -47,7 +47,7 @@ void CurveBaseOperation::deinitExecution()
 
 void CurveBaseOperation::setCurveMapping(CurveMapping *mapping)
 {
-  /* duplicate the curve to avoid glitches while drawing, see bug [#32374] */
+  /* duplicate the curve to avoid glitches while drawing, see bug T32374. */
   if (this->m_curveMapping) {
     BKE_curvemapping_free(this->m_curveMapping);
   }

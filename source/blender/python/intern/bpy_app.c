@@ -170,7 +170,7 @@ static PyObject *make_app_info(void)
   SetObjItem(PyBool_FromLong(G.factory_startup));
 
   /* build info, use bytes since we can't assume _any_ encoding:
-   * see patch [#30154] for issue */
+   * see patch T30154 for issue */
 #ifdef BUILD_DATE
   SetBytesItem(build_date);
   SetBytesItem(build_time);
@@ -532,7 +532,7 @@ PyObject *BPY_app_struct(void)
   BlenderAppType.tp_init = NULL;
   BlenderAppType.tp_new = NULL;
   BlenderAppType.tp_hash = (hashfunc)
-      _Py_HashPointer; /* without this we can't do set(sys.modules) [#29635] */
+      _Py_HashPointer; /* without this we can't do set(sys.modules) T29635. */
 
   /* kindof a hack ontop of PyStructSequence */
   py_struct_seq_getset_init();

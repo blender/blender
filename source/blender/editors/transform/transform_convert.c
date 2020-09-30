@@ -831,8 +831,7 @@ bool constraints_list_needinv(TransInfo *t, ListBase *list)
         }
         else if (con->type == CONSTRAINT_TYPE_TRANSFORM) {
           /* Transform constraint needs it for rotation at least (r.57309),
-           * but doing so when translating may also mess things up [#36203]
-           */
+           * but doing so when translating may also mess things up, see: T36203. */
           bTransformConstraint *data = (bTransformConstraint *)con->data;
 
           if (data->to == TRANS_ROTATION) {
@@ -1102,8 +1101,8 @@ void createTransData(bContext *C, TransInfo *t)
     convert_type = TC_POSE;
   }
   else if (ob && (ob->mode & OB_MODE_ALL_WEIGHT_PAINT) && !(t->options & CTX_PAINT_CURVE)) {
-    /* important that ob_armature can be set even when its not selected [#23412]
-     * lines below just check is also visible */
+    /* Important that ob_armature can be set even when its not selected T23412.
+     * Lines below just check is also visible. */
     Object *ob_armature = BKE_modifiers_is_deformed_by_armature(ob);
     if (ob_armature && ob_armature->mode & OB_MODE_POSE) {
       Base *base_arm = BKE_view_layer_base_find(t->view_layer, ob_armature);
@@ -1161,7 +1160,7 @@ void createTransData(bContext *C, TransInfo *t)
       break;
     case TC_POSE:
       createTransPose(t);
-      /* Disable PET, its not usable in pose mode yet [#32444] */
+      /* Disable PET, its not usable in pose mode yet T32444. */
       init_prop_edit = false;
       break;
     case TC_ARMATURE_VERTS:

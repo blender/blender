@@ -232,7 +232,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
                                       const UnitSettings *unit)
 {
   /* Do not use ascii when using non-default unit system, some unit chars are utf8 (micro, square,
-   * etc.). See bug #36090.
+   * etc.). See bug T36090.
    */
   struct DRWTextStore *dt = DRW_text_cache_ensure();
   const short txt_flag = DRW_TEXT_CACHE_GLOBALSPACE | (unit->system ? 0 : DRW_TEXT_CACHE_ASCII);

@@ -582,8 +582,8 @@ static void rna_UserDef_weight_color_update(Main *bmain, Scene *scene, PointerRN
 
 static void rna_UserDef_viewport_lights_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  /* if all lights are off gpu_draw resets them all, [#27627]
-   * so disallow them all to be disabled */
+  /* If all lights are off gpu_draw resets them all, see: T27627,
+   * so disallow them all to be disabled. */
   if (U.light_param[0].flag == 0 && U.light_param[1].flag == 0 && U.light_param[2].flag == 0 &&
       U.light_param[3].flag == 0) {
     SolidLight *light = ptr->data;

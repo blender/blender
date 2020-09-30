@@ -261,7 +261,7 @@ static wmKeyMapItem *rna_KeyMap_item_new(wmKeyMap *km,
     kmi->flag |= KMI_REPEAT_IGNORE;
   }
 
-  /* [#32437] allow scripts to define hotkeys that get added to start of keymap
+  /* T32437 allow scripts to define hotkeys that get added to start of keymap
    *          so that they stand a chance against catch-all defines later on
    */
   if (head) {

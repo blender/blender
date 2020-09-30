@@ -1048,8 +1048,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
   /* store actual owner of job, so modal operator could check for it,
    * the reason of this is that active scene could change when rendering
-   * several layers from compositor [#31800]
-   */
+   * several layers from compositor T31800. */
   op->customdata = scene;
 
   WM_jobs_start(CTX_wm_manager(C), wm_job);

@@ -1812,7 +1812,7 @@ void BKE_nla_validate_state(AnimData *adt)
          * - blendmode = REPLACE
          * - all channels the same (this is fiddly to test, so is currently assumed)
          *
-         * Should fix problems such as [#29869]
+         * Should fix problems such as T29869.
          */
         if (strip == fstrip) {
           strip->extendmode = NLASTRIP_EXTEND_HOLD;
@@ -2139,7 +2139,7 @@ void BKE_nla_tweakmode_exit(AnimData *adt)
 
   /* sync the length of the user-strip with the new state of the action
    * but only if the user has explicitly asked for this to happen
-   * (see [#34645] for things to be careful about)
+   * (see T34645 for things to be careful about)
    */
   if ((adt->actstrip) && (adt->actstrip->flag & NLASTRIP_FLAG_SYNC_LENGTH)) {
     strip = adt->actstrip;

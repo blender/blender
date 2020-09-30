@@ -3752,7 +3752,7 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
         /* blend between the current and straight position */
         sub_v3_v3v3(dco, kco, co);
         madd_v3_v3fl(co, dco, fac);
-        /* keep the same distance from the root or we get glitches [#35406] */
+        /* keep the same distance from the root or we get glitches T35406. */
         dist_ensure_v3_v3fl(co, co_root, length_accum);
 
         /* re-use dco to compare before and after translation and add to the offset  */

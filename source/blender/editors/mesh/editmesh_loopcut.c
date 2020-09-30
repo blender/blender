@@ -181,7 +181,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 
       /* Enable gridfill, so that intersecting loopcut works as one would expect.
        * Note though that it will break edgeslide in this specific case.
-       * See [#31939]. */
+       * See T31939. */
       BM_mesh_esubdivide(em->bm,
                          BM_ELEM_SELECT,
                          smoothness,

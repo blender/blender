@@ -111,7 +111,7 @@ typedef struct SubDPattern {
 #define ELE_INNER 8
 #define ELE_SPLIT 16
 
-/* see bug [#32665], 0.00005 means a we get face splits at a little under 1.0 degrees */
+/* see bug T32665, 0.00005 means a we get face splits at a little under 1.0 degrees */
 #define FLT_FACE_SPLIT_EPSILON 0.00005f
 
 /*
@@ -1214,7 +1214,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
       for (j = 0; j < numcuts; j++) {
         bool ok = true;
 
-        /* Check for special case: [#32500]
+        /* Check for special case, see: T32500.
          * This edge pair could be used by more than one face,
          * in this case it used to (2.63), split both faces along the same verts
          * while it could be calculated which face should do the split,

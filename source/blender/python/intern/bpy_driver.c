@@ -494,7 +494,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
   }
 
   /* needed since drivers are updated directly after undo where 'main' is
-   * re-allocated [#28807] */
+   * re-allocated T28807. */
   BPY_update_rna_module();
 
   /* init global dictionary for py-driver evaluation settings */

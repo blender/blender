@@ -86,7 +86,7 @@
 #  define USE_XINPUT_HOTPLUG
 #endif
 
-/* see [#34039] Fix Alt key glitch on Unity desktop */
+/* see T34039 Fix Alt key glitch on Unity desktop */
 #define USE_UNITY_WORKAROUND
 
 /* Fix 'shortcut' part of keyboard reading code only ever using first defined keymap

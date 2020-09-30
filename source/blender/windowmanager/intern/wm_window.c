@@ -196,8 +196,8 @@ static void wm_window_check_position(rcti *rect)
 static void wm_ghostwindow_destroy(wmWindowManager *wm, wmWindow *win)
 {
   if (win->ghostwin) {
-    /* Prevents non-drawable state of main windows (bugs #22967,
-     * #25071 and possibly #22477 too). Always clear it even if
+    /* Prevents non-drawable state of main windows (bugs T22967,
+     * T25071 and possibly T22477 too). Always clear it even if
      * this window was not the drawable one, because we mess with
      * drawing context to discard the GW context. */
     wm_window_clear_drawable(wm);
@@ -1239,7 +1239,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
         /* bad ghost support for modifier keys... so on activate we set the modifiers again */
 
         /* TODO: This is not correct since a modifier may be held when a window is activated...
-         * better solve this at ghost level. attempted fix r54450 but it caused bug [#34255]
+         * better solve this at ghost level. attempted fix r54450 but it caused bug T34255.
          *
          * For now don't send GHOST_kEventKeyDown events, just set the 'eventstate'.
          */

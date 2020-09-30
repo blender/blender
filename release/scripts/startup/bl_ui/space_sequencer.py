@@ -262,7 +262,7 @@ class SEQUENCER_MT_view(Menu):
         if st.view_type == 'PREVIEW':
             # Specifying the REGION_PREVIEW context is needed in preview-only
             # mode, else the lookup for the shortcut will fail in
-            # wm_keymap_item_find_props() (see #32595).
+            # wm_keymap_item_find_props() (see T32595).
             layout.operator_context = 'INVOKE_REGION_PREVIEW'
         layout.prop(st, "show_region_ui")
         layout.prop(st, "show_region_toolbar")

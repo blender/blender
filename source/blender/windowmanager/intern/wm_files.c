@@ -394,7 +394,7 @@ static void wm_init_userdef(Main *bmain)
   /* versioning is here */
   UI_init_userdef(bmain);
 
-  /* needed so loading a file from the command line respects user-pref [#26156] */
+  /* needed so loading a file from the command line respects user-pref T26156. */
   SET_FLAG_FROM_TEST(G.fileflags, U.flag & USER_FILENOUI, G_FILE_NO_UI);
 
   /* set the python auto-execute setting from user prefs */

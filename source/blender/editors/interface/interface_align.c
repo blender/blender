@@ -559,7 +559,7 @@ static bool buts_are_horiz(uiBut *but1, uiBut *but2)
   float dx, dy;
 
   /* simple case which can fail if buttons shift apart
-   * with proportional layouts, see: [#38602] */
+   * with proportional layouts, see: T38602. */
   if ((but1->rect.ymin == but2->rect.ymin) && (but1->rect.xmin != but2->rect.xmin)) {
     return true;
   }

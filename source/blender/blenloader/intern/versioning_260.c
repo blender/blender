@@ -1575,7 +1575,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
   /* correction for files saved in blender version when BKE_pose_copy_data
    * didn't copy animation visualization, which lead to deadlocks on motion
-   * path calculation for proxied armatures, see [#32742]
+   * path calculation for proxied armatures, see T32742.
    */
   if (bmain->versionfile < 264) {
     Object *ob;
@@ -1696,7 +1696,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (bmain->versionfile < 264 || (bmain->versionfile == 264 && bmain->subversionfile < 6)) {
-    /* Fix for bug #32982, internal_links list could get corrupted from r51630 onward.
+    /* Fix for bug T32982, internal_links list could get corrupted from r51630 onward.
      * Simply remove bad internal_links lists to avoid NULL pointers.
      */
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {

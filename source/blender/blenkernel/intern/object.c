@@ -660,7 +660,7 @@ bool BKE_object_support_modifier_type_check(const Object *ob, int modifier_type)
 
   mti = BKE_modifier_get_info(modifier_type);
 
-  /* Only geometry objects should be able to get modifiers [#25291] */
+  /* Only geometry objects should be able to get modifiers T25291. */
   if (ob->type == OB_HAIR) {
     return (mti->modifyHair != NULL) || (mti->flags & eModifierTypeFlag_AcceptsVertexCosOnly);
   }
@@ -4563,8 +4563,8 @@ bool BKE_object_modifier_use_time(Object *ob, ModifierData *md)
 
     /* This here allows modifier properties to get driven and still update properly
      *
-     * Workaround to get [#26764] (e.g. subsurf levels not updating when animated/driven)
-     * working, without the updating problems ([#28525] [#28690] [#28774] [#28777]) caused
+     * Workaround to get T26764 (e.g. subsurf levels not updating when animated/driven)
+     * working, without the updating problems (T28525 T28690 T28774 T28777) caused
      * by the RNA updates cache introduced in r.38649
      */
     for (fcu = (FCurve *)adt->drivers.first; fcu != NULL; fcu = (FCurve *)fcu->next) {

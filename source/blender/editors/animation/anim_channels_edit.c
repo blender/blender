@@ -666,7 +666,7 @@ void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, AnimData *adt, FCurve *f
       action_groups_remove_channel(act, fcu);
 
       /* if group has no more channels, remove it too,
-       * otherwise can have many dangling groups [#33541]
+       * otherwise can have many dangling groups T33541.
        */
       if (BLI_listbase_is_empty(&agrp->channels)) {
         BLI_freelinkN(&act->groups, agrp);
@@ -1980,7 +1980,7 @@ static void setflag_anim_channels(bAnimContext *ac,
    *   since we only want to apply this to channels we can "see",
    *   and have these affect their relatives
    * - but for Graph Editor, this gets used also from main region
-   *   where hierarchy doesn't apply [#21276]
+   *   where hierarchy doesn't apply T21276.
    */
   if ((ac->spacetype == SPACE_GRAPH) && (ac->regiontype != RGN_TYPE_CHANNELS)) {
     /* graph editor (case 2) */

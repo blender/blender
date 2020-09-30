@@ -1536,7 +1536,7 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool update, const bool select)
 {
   MEdge *med;
   int i, totpoly = mesh->totpoly;
-  /* select for newly created meshes which are selected [#25595] */
+  /* Select for newly created meshes which are selected T25595. */
   const short ed_flag = (ME_EDGEDRAW | ME_EDGERENDER) | (select ? SELECT : 0);
 
   if (mesh->totedge == 0) {

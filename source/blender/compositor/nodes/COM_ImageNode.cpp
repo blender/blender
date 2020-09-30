@@ -204,7 +204,7 @@ void ImageNode::convertToOperations(NodeConverter &converter,
     }
     BKE_image_release_ibuf(image, ibuf, NULL);
 
-    /* without this, multilayer that fail to load will crash blender [#32490] */
+    /* without this, multilayer that fail to load will crash blender T32490. */
     if (is_multilayer_ok == false) {
       for (int i = 0; i < getNumberOfOutputSockets(); i++) {
         converter.setInvalidOutput(getOutputSocket(i));

@@ -2097,7 +2097,7 @@ class VIEW3D_MT_add(Menu):
         # note, don't use 'EXEC_SCREEN' or operators won't get the 'v3d' context.
 
         # Note: was EXEC_AREA, but this context does not have the 'rv3d', which prevents
-        #       "align_view" to work on first call (see [#32719]).
+        #       "align_view" to work on first call (see T32719).
         layout.operator_context = 'EXEC_REGION_WIN'
 
         # layout.operator_menu_enum("object.mesh_add", "type", text="Mesh", icon='OUTLINER_OB_MESH')

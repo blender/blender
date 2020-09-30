@@ -713,7 +713,7 @@ class PREFERENCES_OT_addon_install(Operator):
         addons_new.discard("modules")
 
         # disable any addons we may have enabled previously and removed.
-        # this is unlikely but do just in case. bug [#23978]
+        # this is unlikely but do just in case. bug T23978.
         for new_addon in addons_new:
             addon_utils.disable(new_addon, default_set=True)
 

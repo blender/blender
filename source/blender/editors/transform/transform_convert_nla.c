@@ -445,7 +445,7 @@ void recalcData_nla(TransInfo *t)
      * (e.g. for transition strips, the values are taken from the neighbors)
      *
      * NOTE: we write these twice to avoid truncation errors which can arise when
-     * moving the strips a large distance using numeric input [#33852]
+     * moving the strips a large distance using numeric input T33852.
      */
     RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &strip_ptr);
 

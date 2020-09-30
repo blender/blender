@@ -168,7 +168,7 @@ void ED_view3d_update_viewmat(Depsgraph *depsgraph,
   /* calculate pixelsize factor once, is used for lights and obcenters */
   {
     /* note:  '1.0f / len_v3(v1)'  replaced  'len_v3(rv3d->viewmat[0])'
-     * because of float point precision problems at large values [#23908] */
+     * because of float point precision problems at large values T23908. */
     float v1[3], v2[3];
     float len_px, len_sc;
 
@@ -2258,7 +2258,7 @@ void view3d_update_depths_rect(ARegion *region, ViewDepths *d, rcti *rect)
   }
 }
 
-/* Note, with nouveau drivers the glReadPixels() is very slow. [#24339]. */
+/* Note, with nouveau drivers the glReadPixels() is very slow. T24339. */
 void ED_view3d_depth_update(ARegion *region)
 {
   RegionView3D *rv3d = region->regiondata;

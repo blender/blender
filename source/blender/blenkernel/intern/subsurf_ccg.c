@@ -2354,7 +2354,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(struct DerivedMesh *dm,
   CCGDerivedMesh *result;
 
   /* note: editmode calculation can only run once per
-   * modifier stack evaluation (uses freed cache) [#36299] */
+   * modifier stack evaluation (uses freed cache) T36299. */
   if (flags & SUBSURF_FOR_EDIT_MODE) {
     int levels = (scene != NULL && !ignore_simplify) ?
                      get_render_subsurf_level(&scene->r, smd->levels, false) :

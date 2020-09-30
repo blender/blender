@@ -802,7 +802,7 @@ static int calc_edge_subdivisions(const MVert *mvert,
                                   const MEdge *e,
                                   const int *degree)
 {
-  /* prevent memory errors [#38003] */
+  /* prevent memory errors T38003. */
 #define NUM_SUBDIVISIONS_MAX 128
 
   const MVertSkin *evs[2] = {&nodes[e->v1], &nodes[e->v2]};

@@ -2668,7 +2668,7 @@ static void psys_thread_create_path(ParticleTask *task,
     cpa_num = (ELEM(pa->num_dmcache, DMCACHE_ISCHILD, DMCACHE_NOTFOUND)) ? pa->num :
                                                                            pa->num_dmcache;
 
-    /* XXX hack to avoid messed up particle num and subsequent crash (#40733) */
+    /* XXX hack to avoid messed up particle num and subsequent crash (T40733) */
     if (cpa_num > ctx->sim.psmd->mesh_final->totface) {
       cpa_num = 0;
     }

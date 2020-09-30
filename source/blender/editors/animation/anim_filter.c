@@ -1384,7 +1384,7 @@ static size_t animfilter_act_group(bAnimContext *ac,
    * but the group isn't expanded (1)...
    * (1) this only matters if we actually care about the hierarchy though.
    *     - Hierarchy matters: this hack should be applied
-   *     - Hierarchy ignored: cases like [#21276] won't work properly, unless we skip this hack
+   *     - Hierarchy ignored: cases like T21276 won't work properly, unless we skip this hack
    */
   if (
       /* Care about hierarchy but group isn't expanded. */
@@ -3440,7 +3440,7 @@ size_t ANIM_animdata_filter(bAnimContext *ac,
         SpaceAction *saction = (SpaceAction *)ac->sl;
         bDopeSheet *ads = (saction) ? &saction->ads : NULL;
 
-        /* specially check for AnimData filter... [#36687] */
+        /* specially check for AnimData filter, see T36687. */
         if (UNLIKELY(filter_mode & ANIMFILTER_ANIMDATA)) {
           /* all channels here are within the same AnimData block, hence this special case */
           if (LIKELY(obact->adt)) {
@@ -3461,7 +3461,7 @@ size_t ANIM_animdata_filter(bAnimContext *ac,
       {
         Key *key = (Key *)data;
 
-        /* specially check for AnimData filter... [#36687] */
+        /* specially check for AnimData filter, see T36687. */
         if (UNLIKELY(filter_mode & ANIMFILTER_ANIMDATA)) {
           /* all channels here are within the same AnimData block, hence this special case */
           if (LIKELY(key->adt)) {

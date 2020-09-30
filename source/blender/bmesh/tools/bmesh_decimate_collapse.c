@@ -286,7 +286,7 @@ static void bm_decim_build_edge_cost_single(BMEdge *e,
   }
 
   /* note, 'cost' shouldn't be negative but happens sometimes with small values.
-   * this can cause faces that make up a flat surface to over-collapse, see [#37121] */
+   * this can cause faces that make up a flat surface to over-collapse, see T37121. */
   cost = fabsf(cost);
 
 #ifdef USE_TOPOLOGY_FALLBACK

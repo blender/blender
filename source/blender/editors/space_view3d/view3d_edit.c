@@ -2973,7 +2973,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
      * object, but in this case there is no change in the scene,
      * only the cursor so I choice a ED_region_tag like
      * view3d_smooth_view do for the center_cursor.
-     * See bug #22640
+     * See bug T22640.
      */
     return OPERATOR_FINISHED;
   }

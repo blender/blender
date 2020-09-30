@@ -409,7 +409,7 @@ int BM_iter_mesh_count_flag(const char itype, BMesh *bm, const char hflag, const
  * VERT OF MESH CALLBACKS
  */
 
-/* see bug [#36923] for why we need this,
+/* see bug T36923 for why we need this,
  * allow adding but not removing, this isnt _totally_ safe since
  * you could add/remove within the same loop, but catches common cases
  */

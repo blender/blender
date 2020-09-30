@@ -585,7 +585,7 @@ int ED_undo_operator_repeat(bContext *C, wmOperator *op)
     if ((WM_operator_repeat_check(C, op)) && (WM_operator_poll(C, op->type)) &&
         /* note, undo/redo cant run if there are jobs active,
          * check for screen jobs only so jobs like material/texture/world preview
-         * (which copy their data), wont stop redo, see [#29579]],
+         * (which copy their data), wont stop redo, see T29579],
          *
          * note, - WM_operator_check_ui_enabled() jobs test _must_ stay in sync with this */
         (WM_jobs_test(wm, scene, WM_JOB_TYPE_ANY) == 0)) {

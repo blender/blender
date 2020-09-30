@@ -629,7 +629,7 @@ void createTransSeqData(TransInfo *t)
  * \{ */
 
 /* commented _only_ because the meta may have animation data which
- * needs moving too [#28158] */
+ * needs moving too T28158. */
 
 #define SEQ_TX_NESTED_METAS
 
@@ -739,7 +739,7 @@ static void flushTransSeq(TransInfo *t)
   if (ELEM(t->mode, TFM_SEQ_SLIDE, TFM_TIME_TRANSLATE)) {
     /* Special annoying case here, need to calc metas with TFM_TIME_EXTEND only */
 
-    /* calc all meta's then effects [#27953] */
+    /* calc all meta's then effects T27953. */
     for (seq = seqbasep->first; seq; seq = seq->next) {
       if (seq->type == SEQ_TYPE_META && seq->flag & SELECT) {
         BKE_sequence_calc(t->scene, seq);

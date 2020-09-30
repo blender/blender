@@ -1098,7 +1098,7 @@ bool outliner_flag_flip(ListBase *lb, short flag)
 int common_restrict_check(bContext *C, Object *ob)
 {
   /* Don't allow hide an object in edit mode,
-   * check the bug #22153 and #21609, #23977
+   * check the bugs (T22153 and T21609, T23977).
    */
   Object *obedit = CTX_data_edit_object(C);
   if (obedit && obedit == ob) {

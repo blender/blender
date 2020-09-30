@@ -315,7 +315,7 @@ void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene 
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  /* to fix bug: [#32272] */
+  /* to fix bug: T32272. */
   if (G.is_rendering) {
     return;
   }

@@ -220,7 +220,7 @@ void view3d_region_operator_needs_opengl(wmWindow *UNUSED(win), ARegion *region)
 }
 
 /**
- * Use instead of: ``GPU_polygon_offset(rv3d->dist, ...)`` see bug [#37727]
+ * Use instead of: `GPU_polygon_offset(rv3d->dist, ...)` see bug T37727.
  */
 void ED_view3d_polygon_offset(const RegionView3D *rv3d, const float dist)
 {

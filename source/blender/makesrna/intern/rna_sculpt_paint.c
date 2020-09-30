@@ -229,7 +229,7 @@ static const EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C,
 #  else
   /* use this rather than PE_get_current() - because the editing cache is
    * dependent on the cache being updated which can happen after this UI
-   * draws causing a glitch [#28883] */
+   * draws causing a glitch T28883. */
   ParticleSystem *psys = psys_get_current(ob);
 #  endif
 

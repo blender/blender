@@ -1938,7 +1938,7 @@ float evaluate_fcurve_driver(PathResolvedRNA *anim_rna,
        * XXX: additive is a bit more dicey; it really depends then if things are in range or not...
        */
       for (fcm = fcu->modifiers.first; fcm; fcm = fcm->next) {
-        /* if there are range-restrictions, we must definitely block [#36950] */
+        /* if there are range-restrictions, we must definitely block T36950. */
         if ((fcm->flag & FMODIFIER_FLAG_RANGERESTRICT) == 0 ||
             ((fcm->sfra <= evaltime) && (fcm->efra >= evaltime))) {
           /* Within range: here it probably doesn't matter,
@@ -2162,7 +2162,7 @@ void BKE_fcurve_blend_read_data(BlendDataReader *reader, ListBase *fcurves)
     /* group */
     BLO_read_data_address(reader, &fcu->grp);
 
-    /* clear disabled flag - allows disabled drivers to be tried again ([#32155]),
+    /* clear disabled flag - allows disabled drivers to be tried again (T32155),
      * but also means that another method for "reviving disabled F-Curves" exists
      */
     fcu->flag &= ~FCURVE_DISABLED;
@@ -2177,9 +2177,8 @@ void BKE_fcurve_blend_read_data(BlendDataReader *reader, ListBase *fcurves)
       driver->expr_comp = NULL;
       driver->expr_simple = NULL;
 
-      /* give the driver a fresh chance - the operating environment may be different now
-       * (addons, etc. may be different) so the driver namespace may be sane now [#32155]
-       */
+      /* Give the driver a fresh chance - the operating environment may be different now
+       * (addons, etc. may be different) so the driver namespace may be sane now T32155. */
       driver->flag &= ~DRIVER_FLAG_INVALID;
 
       /* relink variables, targets and their paths */

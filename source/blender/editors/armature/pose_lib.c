@@ -113,7 +113,7 @@ static int poselib_get_free_index(bAction *act)
 
   /* As poses are not stored in chronological order, we must iterate over this list
    * a few times until we don't make any new discoveries (mostly about the lower bound).
-   * Prevents problems with deleting then trying to add new poses [#27412]
+   * Prevents problems with deleting then trying to add new poses T27412.
    */
   do {
     changed = false;

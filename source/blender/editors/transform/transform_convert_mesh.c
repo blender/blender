@@ -1568,7 +1568,7 @@ void recalcData_mesh(TransInfo *t)
   bool is_canceling = t->state == TRANS_CANCEL;
   /* mirror modifier clipping? */
   if (!is_canceling) {
-    /* apply clipping after so we never project past the clip plane [#25423] */
+    /* apply clipping after so we never project past the clip plane T25423. */
     applyProject(t);
     clipMirrorModifier(t);
 

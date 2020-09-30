@@ -401,7 +401,7 @@ static int wm_macro_modal(bContext *C, wmOperator *op, const wmEvent *event)
     retval = opm->type->modal(C, opm, event);
     OPERATOR_RETVAL_CHECK(retval);
 
-    /* if we're halfway through using a tool and cancel it, clear the options [#37149] */
+    /* if we're halfway through using a tool and cancel it, clear the options T37149. */
     if (retval & OPERATOR_CANCELLED) {
       WM_operator_properties_clear(opm->ptr);
     }

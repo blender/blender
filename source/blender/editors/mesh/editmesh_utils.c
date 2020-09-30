@@ -1458,7 +1458,7 @@ void EDBM_update_generic(Mesh *mesh, const bool do_tessellation, const bool is_d
     BM_lnorspace_invalidate(em->bm, false);
     em->bm->spacearr_dirty &= ~BM_SPACEARR_BMO_SET;
   }
-  /* don't keep stale derivedMesh data around, see: [#38872] */
+  /* don't keep stale derivedMesh data around, see: T38872. */
   BKE_editmesh_free_derivedmesh(em);
 
 #ifdef DEBUG

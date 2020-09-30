@@ -707,7 +707,7 @@ static void rna_FModifier_start_frame_range(PointerRNA *UNUSED(ptr),
   // FModifier *fcm = (FModifier *)ptr->data;
 
   /* Technically, "sfra <= efra" must hold; however, we can't strictly enforce that,
-   * or else it becomes tricky to adjust the range...  [#36844]
+   * or else it becomes tricky to adjust the range, see: T36844.
    *
    * NOTE: we do not set soft-limits on lower bounds, as it's too confusing when you
    *       can't easily use the slider to set things here
@@ -722,8 +722,7 @@ static void rna_FModifier_end_frame_range(
   FModifier *fcm = (FModifier *)ptr->data;
 
   /* Technically, "sfra <= efra" must hold; however, we can't strictly enforce that,
-   * or else it becomes tricky to adjust the range...  [#36844]
-   */
+   * or else it becomes tricky to adjust the range, see: T36844. */
   *min = MINAFRAMEF;
   *softmin = (fcm->flag & FMODIFIER_FLAG_RANGERESTRICT) ? fcm->sfra : MINAFRAMEF;
 

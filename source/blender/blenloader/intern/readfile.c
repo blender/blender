@@ -3266,7 +3266,7 @@ static void lib_link_object(BlendLibReader *reader, Object *ob)
   }
 
   /* When the object is local and the data is library its possible
-   * the material list size gets out of sync. [#22663] */
+   * the material list size gets out of sync. T22663. */
   if (ob->data && ob->id.lib != ((ID *)ob->data)->lib) {
     const short *totcol_data = BKE_object_material_len_p(ob);
     /* Only expand so as not to loose any object materials that might be set. */
@@ -3820,7 +3820,7 @@ static void direct_link_object(BlendDataReader *reader, Object *ob)
    * to stay in object mode during undo presses so keep editmode disabled.
    *
    * Also when linking in a file don't allow edit and pose modes.
-   * See [#34776, #42780] for more information.
+   * See [T34776, T42780] for more information.
    */
   const bool is_undo = BLO_read_data_is_undo(reader);
   if (is_undo || (ob->id.tag & (LIB_TAG_EXTERN | LIB_TAG_INDIRECT))) {
@@ -5835,7 +5835,7 @@ static void lib_link_workspace_layout_restore(struct IDNameLib_Map *id_map,
           }
 
           /* force recalc of list of channels, potentially updating the active action
-           * while we're at it (as it can only be updated that way) [#28962]
+           * while we're at it (as it can only be updated that way) T28962.
            */
           saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
         }
@@ -6170,7 +6170,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
       /* when loading a linked lib into a file which has not been saved,
        * there is nothing we can be relative to, so instead we need to make
        * it absolute. This can happen when appending an object with a relative
-       * link into an unsaved blend file. See [#27405].
+       * link into an unsaved blend file. See T27405.
        * The remap relative option will make it relative again on save - campbell */
       if (BLI_path_is_rel(lib->filepath)) {
         BLI_strncpy(lib->filepath, lib->filepath_abs, sizeof(lib->filepath));

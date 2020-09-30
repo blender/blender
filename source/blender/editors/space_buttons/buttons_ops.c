@@ -246,7 +246,7 @@ static int file_browse_exec(bContext *C, wmOperator *op)
     ED_undo_push(C, undostr);
   }
 
-  /* Special annoying exception, filesel on redo panel [#26618]. */
+  /* Special annoying exception, filesel on redo panel T26618. */
   {
     wmOperator *redo_op = WM_operator_last_redo(C);
     if (redo_op) {

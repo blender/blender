@@ -508,7 +508,7 @@ void ui_pan_to_scroll(const wmEvent *event, int *type, int *val)
   int dy = event->prevy - event->y;
 
   /* This event should be originally from event->type,
-   * converting wrong event into wheel is bad, see [#33803] */
+   * converting wrong event into wheel is bad, see T33803. */
   BLI_assert(*type == MOUSEPAN);
 
   /* sign differs, reset */
@@ -712,7 +712,7 @@ static uiAfterFunc *ui_afterfunc_new(void)
 
 /**
  * For executing operators after the button is pressed.
- * (some non operator buttons need to trigger operators), see: [#37795]
+ * (some non operator buttons need to trigger operators), see: T37795.
  *
  * \note Can only call while handling buttons.
  */
@@ -6154,7 +6154,7 @@ static bool ui_numedit_but_HSVCUBE(uiBut *but,
   ui_color_picker_to_rgb_HSVCUBE_v(hsv_but, hsv, rgb);
   ui_color_picker_to_scene_linear_space(but, rgb);
 
-  /* clamp because with color conversion we can exceed range [#34295] */
+  /* clamp because with color conversion we can exceed range T34295. */
   if (hsv_but->gradient_type == UI_GRAD_V_ALT) {
     clamp_axis_max_v3(rgb, but->softmax);
   }
@@ -8956,7 +8956,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
        *
        * This is needed to make sure if a button was active,
        * it stays active while the mouse is over it.
-       * This avoids adding mousemoves, see: [#33466] */
+       * This avoids adding mousemoves, see: T33466. */
       if (ELEM(state_orig, BUTTON_STATE_INIT, BUTTON_STATE_HIGHLIGHT, BUTTON_STATE_WAIT_DRAG)) {
         if (ui_but_find_mouse_over(region, event) == but) {
           button_activate_init(C, region, but, BUTTON_ACTIVATE_OVER);
@@ -9205,7 +9205,7 @@ static bool ui_mouse_motion_towards_check(uiBlock *block,
 {
   BLI_assert(block->flag & (UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_POPOVER));
 
-  /* annoying fix for [#36269], this is a bit odd but in fact works quite well
+  /* annoying fix for T36269, this is a bit odd but in fact works quite well
    * don't mouse-out of a menu if another menu has been created after it.
    * if this causes problems we could remove it and check on a different fix - campbell */
   if (menu->region->next) {
@@ -10584,7 +10584,7 @@ static int ui_handle_menus_recursive(bContext *C,
 
       if (block->flag & (UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_POPOVER)) {
         /* when there is a active search button and we close it,
-         * we need to reinit the mouse coords [#35346] */
+         * we need to reinit the mouse coords T35346. */
         if (ui_region_find_active_but(menu->region) != but) {
           do_towards_reinit = true;
         }

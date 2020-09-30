@@ -3919,7 +3919,7 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
 
       /* run ED_view3d_lock() so the correct 'rv3d->viewquat' is set,
        * otherwise when restoring rv3d->localvd the 'viewquat' won't
-       * match the 'view', set on entering localview See: [#26315],
+       * match the 'view', set on entering localview See: T26315,
        *
        * We could avoid manipulating rv3d->localvd here if exiting
        * localview with a 4-split would assign these view locks */

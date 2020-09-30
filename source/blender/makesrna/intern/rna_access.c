@@ -7404,7 +7404,7 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms,
         case PROP_STRING: {
           const char *defvalue = ((StringPropertyRNA *)parm)->defaultvalue;
           if (defvalue && defvalue[0]) {
-            /* causes bug [#29988], possibly this is only correct for thick wrapped
+            /* causes bug T29988, possibly this is only correct for thick wrapped
              * need to look further into it - campbell */
 #if 0
             BLI_strncpy(data, defvalue, size);

@@ -222,7 +222,7 @@ bool WM_event_is_modal_tweak_exit(const wmEvent *event, int tweak_event)
     }
     else {
       /* if the initial event wasn't a tweak event then
-       * ignore USER_RELEASECONFIRM setting: see [#26756] */
+       * ignore USER_RELEASECONFIRM setting: see T26756. */
       if (ELEM(tweak_event, EVT_TWEAK_L, EVT_TWEAK_M, EVT_TWEAK_R) == 0) {
         return 1;
       }

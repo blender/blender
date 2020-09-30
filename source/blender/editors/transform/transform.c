@@ -349,7 +349,7 @@ void projectFloatViewEx(TransInfo *t, const float vec[3], float adr[2], const eV
         adr[1] = vec[1];
       }
       else if (t->region->regiontype == RGN_TYPE_WINDOW) {
-        /* allow points behind the view [#33643] */
+        /* allow points behind the view T33643. */
         if (ED_view3d_project_float_global(t->region, vec, adr, flag) != V3D_PROJ_RET_OK) {
           /* XXX, 2.64 and prior did this, weak! */
           adr[0] = t->region->winx / 2.0f;
@@ -1233,7 +1233,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 
   /* Per transform event, if present */
   if (t->handleEvent && (!handled ||
-                         /* Needed for vertex slide, see [#38756] */
+                         /* Needed for vertex slide, see T38756. */
                          (event->type == MOUSEMOVE))) {
     t->redraw |= t->handleEvent(t, event);
   }
@@ -1794,7 +1794,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
      *
      * Do this only for translation/rotation/resize because only these
      * modes are available from gizmo and doing such check could
-     * lead to keymap conflicts for other modes (see #31584)
+     * lead to keymap conflicts for other modes (see T31584)
      */
     if (ELEM(mode, TFM_TRANSLATION, TFM_ROTATION, TFM_RESIZE)) {
       wmKeyMapItem *kmi;

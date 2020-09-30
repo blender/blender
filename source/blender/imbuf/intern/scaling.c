@@ -879,7 +879,7 @@ static void q_scale_float(
  * Should be comparable in speed to the ImBuf ..._fast functions at least
  * for byte-buffers.
  *
- * NOTE: disabled, due to unacceptable inaccuracy and quality loss, see bug #18609 (ton)
+ * NOTE: disabled, due to unacceptable inaccuracy and quality loss, see bug T18609 (ton)
  */
 static bool q_scale_linear_interpolation(struct ImBuf *ibuf, int newx, int newy)
 {
@@ -1031,14 +1031,14 @@ static ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
 
   if (do_rect) {
     // printf("%ld %ld\n", (uchar *)rect - ((uchar *)ibuf->rect), rect_size);
-    BLI_assert((uchar *)rect - ((uchar *)ibuf->rect) == rect_size); /* see bug [#26502] */
+    BLI_assert((uchar *)rect - ((uchar *)ibuf->rect) == rect_size); /* see bug T26502. */
     imb_freerectImBuf(ibuf);
     ibuf->mall |= IB_rect;
     ibuf->rect = (unsigned int *)_newrect;
   }
   if (do_float) {
     // printf("%ld %ld\n", rectf - ibuf->rect_float, rect_size);
-    BLI_assert((rectf - ibuf->rect_float) == rect_size); /* see bug [#26502] */
+    BLI_assert((rectf - ibuf->rect_float) == rect_size); /* see bug T26502. */
     imb_freerectfloatImBuf(ibuf);
     ibuf->mall |= IB_rectfloat;
     ibuf->rect_float = _newrectf;
@@ -1173,14 +1173,14 @@ static ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
 
   if (do_rect) {
     // printf("%ld %ld\n", (uchar *)rect - ((uchar *)ibuf->rect), rect_size);
-    BLI_assert((uchar *)rect - ((uchar *)ibuf->rect) == rect_size); /* see bug [#26502] */
+    BLI_assert((uchar *)rect - ((uchar *)ibuf->rect) == rect_size); /* see bug T26502. */
     imb_freerectImBuf(ibuf);
     ibuf->mall |= IB_rect;
     ibuf->rect = (unsigned int *)_newrect;
   }
   if (do_float) {
     // printf("%ld %ld\n", rectf - ibuf->rect_float, rect_size);
-    BLI_assert((rectf - ibuf->rect_float) == rect_size); /* see bug [#26502] */
+    BLI_assert((rectf - ibuf->rect_float) == rect_size); /* see bug T26502. */
     imb_freerectfloatImBuf(ibuf);
     ibuf->mall |= IB_rectfloat;
     ibuf->rect_float = (float *)_newrectf;
@@ -1636,7 +1636,7 @@ bool IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy)
   scalefast_Z_ImBuf(ibuf, newx, newy);
 
   /* try to scale common cases in a fast way */
-  /* disabled, quality loss is unacceptable, see report #18609  (ton) */
+  /* disabled, quality loss is unacceptable, see report T18609  (ton) */
   if (0 && q_scale_linear_interpolation(ibuf, newx, newy)) {
     return true;
   }

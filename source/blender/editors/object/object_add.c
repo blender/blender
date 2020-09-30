@@ -2561,7 +2561,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       /* obdata already modified */
       if (!IS_TAGGED(ob->data)) {
         /* When 2 objects with linked data are selected, converting both
-         * would keep modifiers on all but the converted object [#26003] */
+         * would keep modifiers on all but the converted object T26003. */
         if (ob->type == OB_MESH) {
           BKE_object_free_modifiers(ob, 0); /* after derivedmesh calls! */
         }
@@ -3128,7 +3128,7 @@ Base *ED_object_add_duplicate(
 
   ob = basen->object;
 
-  /* link own references to the newly duplicated data [#26816] */
+  /* link own references to the newly duplicated data T26816. */
   BKE_libblock_relink_to_newid(&ob->id);
 
   /* DAG_relations_tag_update(bmain); */ /* caller must do */

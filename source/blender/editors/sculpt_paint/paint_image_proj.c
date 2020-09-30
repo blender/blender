@@ -3924,7 +3924,7 @@ static void proj_paint_state_thread_init(ProjPaintState *ps, const bool reset_th
 
   ps->thread_tot = BKE_scene_num_threads(ps->scene);
 
-  /* workaround for #35057, disable threading if diameter is less than is possible for
+  /* workaround for T35057, disable threading if diameter is less than is possible for
    * optimum bucket number generation */
   if (reset_threads) {
     ps->thread_tot = 1;

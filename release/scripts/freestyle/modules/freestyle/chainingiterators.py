@@ -300,7 +300,7 @@ class pySketchyChainingIterator(ChainingIterator):
 
         if not found:
             # This is a fatal error condition: self.current_edge must be found
-            # among the edges seen by the AdjacencyIterator [bug #35695].
+            # among the edges seen by the AdjacencyIterator [bug T35695].
             if bpy.app.debug_freestyle:
                 print('pySketchyChainingIterator: current edge not found')
             return None

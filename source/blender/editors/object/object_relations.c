@@ -756,8 +756,8 @@ bool ED_object_parent_set(ReportList *reports,
 
   /* Apply transformation of previous parenting. */
   if (keep_transform) {
-    /* was removed because of bug [#23577],
-     * but this can be handy in some cases too [#32616], so make optional */
+    /* Was removed because of bug T23577,
+     * but this can be handy in some cases too T32616, so make optional. */
     BKE_object_apply_mat4(ob, ob->obmat, false, false);
   }
 

@@ -65,7 +65,7 @@ NodeGroup *BlenderFileLoader::Load()
     // Adjust clipping start/end and set up a Z offset when the viewport preview
     // is used with the orthographic view.  In this case, _re->clip_start is negative,
     // while Freestyle assumes that imported mesh data are in the camera coordinate
-    // system with the view point located at origin [bug #36009].
+    // system with the view point located at origin [bug T36009].
     _z_near = -0.001f;
     _z_offset = _re->clip_start + _z_near;
     _z_far = -_re->clip_end + _z_offset;

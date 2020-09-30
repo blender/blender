@@ -544,11 +544,11 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
       BLI_remlink(&sf_ctx->filledgebase, eed);
       /* This code is for handling zero-length edges that get
        * collapsed in step 0. It was removed for some time to
-       * fix trunk bug #4544, so if that comes back, this code
+       * fix trunk bug T4544, so if that comes back, this code
        * may need some work, or there will have to be a better
-       * fix to #4544.
+       * fix to T4544.
        *
-       * warning, this can hang on un-ordered edges, see: [#33281]
+       * warning, this can hang on un-ordered edges, see: T33281.
        * for now disable 'BLI_SCANFILL_CALC_REMOVE_DOUBLES' for ngons.
        */
       if (eed->v1->f == SF_VERT_ZERO_LEN) {
@@ -680,7 +680,7 @@ static unsigned int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int fl
                    * (concave holes) we continue searching and pick the
                    * one with sharpest corner. */
                   if (best_sc == NULL) {
-                    /* even without holes we need to keep checking [#35861] */
+                    /* even without holes we need to keep checking T35861. */
                     best_sc = sc1;
                   }
                   else {

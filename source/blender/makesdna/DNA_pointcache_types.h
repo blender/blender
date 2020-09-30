@@ -140,7 +140,7 @@ typedef struct PointCache {
 //#define PTCACHE_BAKE_EDIT         (1 << 4)
 //#define PTCACHE_BAKE_EDIT_ACTIVE  (1 << 5)
 #define PTCACHE_DISK_CACHE (1 << 6)
-///* removed since 2.64 - [#30974], could be added back in a more useful way */
+///* removed since 2.64 - T30974, could be added back in a more useful way */
 //#define PTCACHE_QUICK_CACHE       (1 << 7)
 #define PTCACHE_FRAMES_SKIPPED (1 << 8)
 #define PTCACHE_EXTERNAL (1 << 9)

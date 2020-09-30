@@ -249,7 +249,7 @@ static void update_output_file(bNodeTree *ntree, bNode *node)
   bNodeSocket *sock, *sock_next;
   PointerRNA ptr;
 
-  /* XXX fix for #36706: remove invalid sockets added with bpy API.
+  /* XXX fix for T36706: remove invalid sockets added with bpy API.
    * This is not ideal, but prevents crashes from missing storage.
    * FileOutput node needs a redesign to support this properly.
    */

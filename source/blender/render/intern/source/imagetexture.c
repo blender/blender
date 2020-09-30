@@ -239,7 +239,7 @@ int imagewrap(Tex *tex,
     }
   }
 
-  /* keep this before interpolation [#29761] */
+  /* Keep this before interpolation T29761. */
   if (ima) {
     if ((tex->imaflag & TEX_USEALPHA) && (ima->alpha_mode != IMA_ALPHA_IGNORE)) {
       if ((tex->imaflag & TEX_CALCALPHA) == 0) {
@@ -254,7 +254,7 @@ int imagewrap(Tex *tex,
     filterx = (0.5f * tex->filtersize) / ibuf->x;
     filtery = (0.5f * tex->filtersize) / ibuf->y;
 
-    /* important that this value is wrapped [#27782]
+    /* Important that this value is wrapped T27782.
      * this applies the modifications made by the checks above,
      * back to the floating point values */
     fx -= (float)(xi - x) / (float)ibuf->x;

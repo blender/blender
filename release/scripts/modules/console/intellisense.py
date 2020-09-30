@@ -131,7 +131,7 @@ def expand(line, cursor, namespace, private=True):
         if len(matches) == 1:
             scrollback = ''
         else:
-            # causes blender bug [#27495] since string keys may contain '.'
+            # causes blender bug T27495 since string keys may contain '.'
             # scrollback = '  '.join([m.split('.')[-1] for m in matches])
 
             # add white space to align with the cursor

@@ -709,9 +709,12 @@ GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw,
   return key;
 }
 
-//! note: this function can be extended to include other exotic cases as they arise.
-// This function was added in response to bug [#25715]
-// This is going to be a long list [T42426]
+/**
+ * \note this function can be extended to include other exotic cases as they arise.
+ *
+ * This function was added in response to bug T25715.
+ * This is going to be a long list T42426.
+ */
 GHOST_TKey GHOST_SystemWin32::processSpecialKey(short vKey, short scanCode) const
 {
   GHOST_TKey key = GHOST_kKeyUnknown;

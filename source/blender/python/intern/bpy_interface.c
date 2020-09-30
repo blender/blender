@@ -340,7 +340,7 @@ void BPY_python_start(int argc, const char **argv)
     int i;
     PyObject *py_argv = PyList_New(argc);
     for (i = 0; i < argc; i++) {
-      /* should fix bug #20021 - utf path name problems, by replacing
+      /* should fix bug T20021 - utf path name problems, by replacing
        * PyUnicode_FromString, with this one */
       PyList_SET_ITEM(py_argv, i, PyC_UnicodeFromByte(argv[i]));
     }

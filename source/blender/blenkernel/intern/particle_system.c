@@ -3540,12 +3540,12 @@ static void hair_step(ParticleSimulationData *sim, float cfra, const bool use_re
     }
   }
 
-  /* dynamics with cloth simulation, psys->particles can be NULL with 0 particles [#25519] */
+  /* dynamics with cloth simulation, psys->particles can be NULL with 0 particles T25519. */
   if (psys->part->type == PART_HAIR && psys->flag & PSYS_HAIR_DYNAMICS && psys->particles) {
     do_hair_dynamics(sim);
   }
 
-  /* following lines were removed r29079 but cause bug [#22811], see report for details */
+  /* following lines were removed r29079 but cause bug T22811, see report for details */
   psys_update_effectors(sim);
   psys_update_path_cache(sim, cfra, use_render_params);
 

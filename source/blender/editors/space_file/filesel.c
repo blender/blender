@@ -318,7 +318,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 
   folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
 
-  /* switching thumbnails needs to recalc layout [#28809] */
+  /* Switching thumbnails needs to recalc layout T28809. */
   if (sfile->layout) {
     sfile->layout->dirty = true;
   }
@@ -969,7 +969,7 @@ int autocomplete_file(struct bContext *C, char *str, void *UNUSED(arg_v))
 
 void ED_fileselect_clear(wmWindowManager *wm, Scene *owner_scene, SpaceFile *sfile)
 {
-  /* only NULL in rare cases - [#29734] */
+  /* only NULL in rare cases - T29734. */
   if (sfile->files) {
     filelist_readjob_stop(wm, owner_scene);
     filelist_freelib(sfile->files);

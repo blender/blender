@@ -600,7 +600,7 @@ class LightMapPack(Operator):
     # Proper solution would be to make undo stack aware of such things,
     # but for now just disable redo. Keep undo here so unwanted changes to uv
     # coords might be undone.
-    # This fixes infinite image creation reported there [#30968] (sergey)
+    # This fixes infinite image creation reported there T30968 (sergey)
     bl_options = {'UNDO'}
 
     PREF_CONTEXT: bpy.props.EnumProperty(

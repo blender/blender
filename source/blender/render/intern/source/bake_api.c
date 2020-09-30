@@ -746,7 +746,7 @@ void RE_bake_pixels_populate(Mesh *me,
       /* Note, workaround for pixel aligned UVs which are common and can screw up our
        * intersection tests where a pixel gets in between 2 faces or the middle of a quad,
        * camera aligned quads also have this problem but they are less common.
-       * Add a small offset to the UVs, fixes bug #18685 - Campbell */
+       * Add a small offset to the UVs, fixes bug T18685 - Campbell */
       vec[a][0] = uv[0] * (float)bd.bk_image->width - (0.5f + 0.001f);
       vec[a][1] = uv[1] * (float)bd.bk_image->height - (0.5f + 0.002f);
     }

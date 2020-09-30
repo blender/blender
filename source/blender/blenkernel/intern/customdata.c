@@ -137,7 +137,7 @@ typedef struct LayerTypeInfo {
    * \note in some cases \a dest pointer is in \a sources
    *       so all functions have to take this into account and delay
    *       applying changes while reading from sources.
-   *       See bug [#32395] - Campbell.
+   *       See bug T32395 - Campbell.
    */
   cd_interp interp;
 
@@ -5164,8 +5164,8 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, int count)
 {
   BLO_read_data_address(reader, &data->layers);
 
-  /* annoying workaround for bug [#31079] loading legacy files with
-   * no polygons _but_ have stale customdata */
+  /* Annoying workaround for bug T31079 loading legacy files with
+   * no polygons _but_ have stale custom-data. */
   if (UNLIKELY(count == 0 && data->layers == NULL && data->totlayer != 0)) {
     CustomData_reset(data);
     return;

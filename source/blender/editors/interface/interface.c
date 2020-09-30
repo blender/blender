@@ -869,7 +869,7 @@ static bool ui_but_update_from_old_block(const bContext *C,
     }
 
     /* copy hardmin for list rows to prevent 'sticking' highlight to mouse position
-     * when scrolling without moving mouse (see [#28432]) */
+     * when scrolling without moving mouse (see T28432) */
     if (ELEM(oldbut->type, UI_BTYPE_ROW, UI_BTYPE_LISTROW)) {
       oldbut->hardmax = but->hardmax;
     }
@@ -2021,7 +2021,7 @@ void UI_block_draw(const bContext *C, uiBlock *block)
       ui_but_to_pixelrect(&rect, region, block, but);
 
       /* XXX: figure out why invalid coordinates happen when closing render window */
-      /* and material preview is redrawn in main window (temp fix for bug #23848) */
+      /* and material preview is redrawn in main window (temp fix for bug T23848) */
       if (rect.xmin < rect.xmax && rect.ymin < rect.ymax) {
         ui_draw_but(C, region, &style, but, &rect);
       }

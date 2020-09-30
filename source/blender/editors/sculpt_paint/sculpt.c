@@ -7466,7 +7466,7 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
       BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB);
       /* Update the object's bounding box too so that the object
        * doesn't get incorrectly clipped during drawing in
-       * draw_mesh_object(). [#33790] */
+       * draw_mesh_object(). T33790. */
       SCULPT_update_object_bounding_box(ob);
     }
 

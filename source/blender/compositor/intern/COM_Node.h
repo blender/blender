@@ -215,7 +215,7 @@ class Node {
   /**
    * when a node has no valid data (missing image or a group nodes ID pointer is NULL)
    * call this function from #convertToOperations, this way the node sockets are converted
-   * into valid outputs, without this the compositor system gets confused and crashes, see [#32490]
+   * into valid outputs, without this the compositor system gets confused and crashes, see T32490.
    */
   void convertToOperations_invalid(NodeConverter *compiler) const;
 
