@@ -1188,9 +1188,7 @@ static void ui_multibut_add(uiHandleButtonData *data, uiBut *but)
 static uiButMultiState *ui_multibut_lookup(uiHandleButtonData *data, const uiBut *but)
 {
   for (LinkNode *l = data->multi_data.mbuts; l; l = l->next) {
-    uiButMultiState *mbut_state;
-
-    mbut_state = l->link;
+    uiButMultiState *mbut_state = l->link;
 
     if (mbut_state->but == but) {
       return mbut_state;
@@ -1342,59 +1340,58 @@ static void ui_multibut_states_apply(bContext *C, uiHandleButtonData *data, uiBl
   BLI_assert(data->multi_data.skip == false);
 
   LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
-    if (but->flag & UI_BUT_DRAG_MULTI) {
-      /* mbut_states for delta */
-      uiButMultiState *mbut_state = ui_multibut_lookup(data, but);
+    if (!(but->flag & UI_BUT_DRAG_MULTI)) {
+      continue;
+    }
 
-      if (mbut_state) {
-        void *active_back;
+    uiButMultiState *mbut_state = ui_multibut_lookup(data, but);
 
-        ui_but_execute_begin(C, region, but, &active_back);
+    if (mbut_state == NULL) {
+      /* Highly unlikely. */
+      printf("%s: Can't find button\n", __func__);
+    }
+
+    void *active_back;
+    ui_but_execute_begin(C, region, but, &active_back);
 
 #  ifdef USE_ALLSELECT
-        if (data->select_others.is_enabled) {
-          /* init once! */
-          if (mbut_state->select_others.elems_len == 0) {
-            ui_selectcontext_begin(C, but, &mbut_state->select_others);
-          }
-          if (mbut_state->select_others.elems_len == 0) {
-            mbut_state->select_others.elems_len = -1;
-          }
-        }
+    if (data->select_others.is_enabled) {
+      /* init once! */
+      if (mbut_state->select_others.elems_len == 0) {
+        ui_selectcontext_begin(C, but, &mbut_state->select_others);
+      }
+      if (mbut_state->select_others.elems_len == 0) {
+        mbut_state->select_others.elems_len = -1;
+      }
+    }
 
-        /* needed so we apply the right deltas */
-        but->active->origvalue = mbut_state->origvalue;
-        but->active->select_others = mbut_state->select_others;
-        but->active->select_others.do_free = false;
+    /* Needed so we apply the right deltas. */
+    but->active->origvalue = mbut_state->origvalue;
+    but->active->select_others = mbut_state->select_others;
+    but->active->select_others.do_free = false;
 #  endif
 
-        BLI_assert(active_back == NULL);
-        /* no need to check 'data->state' here */
-        if (data->str) {
-          /* entering text (set all) */
-          but->active->value = data->value;
-          ui_but_string_set(C, but, data->str);
-        }
-        else {
-          /* dragging (use delta) */
-          if (data->multi_data.is_proportional) {
-            but->active->value = mbut_state->origvalue * value_scale;
-          }
-          else {
-            but->active->value = mbut_state->origvalue + value_delta;
-          }
-
-          /* clamp based on soft limits, see: T40154 */
-          CLAMP(but->active->value, (double)but->softmin, (double)but->softmax);
-        }
-        ui_but_execute_end(C, region, but, active_back);
+    BLI_assert(active_back == NULL);
+    /* No need to check 'data->state' here. */
+    if (data->str) {
+      /* Entering text (set all). */
+      but->active->value = data->value;
+      ui_but_string_set(C, but, data->str);
+    }
+    else {
+      /* Dragging (use delta). */
+      if (data->multi_data.is_proportional) {
+        but->active->value = mbut_state->origvalue * value_scale;
       }
       else {
-        /* highly unlikely */
-        printf("%s: cant find button\n", __func__);
+        but->active->value = mbut_state->origvalue + value_delta;
       }
-      /* end */
+
+      /* Clamp based on soft limits, see T40154. */
+      CLAMP(but->active->value, (double)but->softmin, (double)but->softmax);
     }
+
+    ui_but_execute_end(C, region, but, active_back);
   }
 }
 
