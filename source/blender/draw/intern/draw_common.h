@@ -24,9 +24,9 @@
 
 struct DRWPass;
 struct DRWShadingGroup;
+struct FluidModifierData;
 struct GPUMaterial;
 struct ModifierData;
-struct FluidModifierData;
 struct Object;
 struct ParticleSystem;
 struct RegionView3D;

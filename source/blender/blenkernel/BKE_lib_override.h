@@ -47,9 +47,9 @@ struct IDOverrideLibrary;
 struct IDOverrideLibraryProperty;
 struct IDOverrideLibraryPropertyOperation;
 struct Main;
+struct Object;
 struct PointerRNA;
 struct PropertyRNA;
-struct Object;
 struct Scene;
 struct ViewLayer;
 

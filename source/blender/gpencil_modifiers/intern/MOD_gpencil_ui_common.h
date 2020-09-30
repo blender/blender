@@ -27,8 +27,8 @@ extern "C" {
 #include "MOD_gpencil_modifiertypes.h"
 
 struct ARegionType;
-struct bContext;
 struct PanelType;
+struct bContext;
 struct uiLayout;
 typedef void (*PanelDrawFn)(const bContext *, Panel *);
 

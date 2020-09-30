@@ -23,8 +23,8 @@
 
 #pragma once
 
-struct bConstraint;
 struct Object;
+struct bConstraint;
 
 #define TRANSDATABASIC \
   /** Extra data (mirrored element pointer, in editmode mesh to BMVert) \

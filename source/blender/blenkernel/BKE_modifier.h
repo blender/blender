@@ -29,6 +29,8 @@ extern "C" {
 
 struct ARegionType;
 struct BMEditMesh;
+struct BlendDataReader;
+struct BlendWriter;
 struct CustomData_MeshMasks;
 struct DepsNodeHandle;
 struct Depsgraph;
@@ -40,8 +42,6 @@ struct ModifierData;
 struct Object;
 struct Scene;
 struct bArmature;
-struct BlendWriter;
-struct BlendDataReader;
 
 typedef enum {
   /* Should not be used, only for None modifier type */

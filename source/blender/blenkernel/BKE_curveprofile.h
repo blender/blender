@@ -29,8 +29,8 @@
 extern "C" {
 #endif
 
-struct BlendWriter;
 struct BlendDataReader;
+struct BlendWriter;
 struct CurveProfile;
 struct CurveProfilePoint;
 

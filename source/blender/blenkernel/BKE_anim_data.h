@@ -30,15 +30,15 @@ extern "C" {
 #endif
 
 struct AnimData;
+struct BlendDataReader;
+struct BlendExpander;
+struct BlendLibReader;
+struct BlendWriter;
 struct ID;
 struct LibraryForeachIDData;
 struct Main;
 struct ReportList;
 struct bAction;
-struct BlendWriter;
-struct BlendDataReader;
-struct BlendLibReader;
-struct BlendExpander;
 
 /* ************************************* */
 /* AnimData API */

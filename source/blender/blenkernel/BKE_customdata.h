@@ -34,11 +34,11 @@ extern "C" {
 #endif
 
 struct BMesh;
+struct BlendDataReader;
+struct BlendWriter;
 struct CustomData;
 struct CustomData_MeshMasks;
 struct ID;
-struct BlendWriter;
-struct BlendDataReader;
 typedef uint64_t CustomDataMask;
 
 /*a data type large enough to hold 1 element from any customdata layer type*/

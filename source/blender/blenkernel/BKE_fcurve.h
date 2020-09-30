@@ -37,6 +37,10 @@ struct FModifier;
 struct AnimData;
 struct AnimationEvalContext;
 struct BezTriple;
+struct BlendDataReader;
+struct BlendExpander;
+struct BlendLibReader;
+struct BlendWriter;
 struct LibraryForeachIDData;
 struct PathResolvedRNA;
 struct PointerRNA;
@@ -44,10 +48,6 @@ struct PropertyRNA;
 struct StructRNA;
 struct bAction;
 struct bContext;
-struct BlendWriter;
-struct BlendDataReader;
-struct BlendLibReader;
-struct BlendExpander;
 
 /* ************** Keyframe Tools ***************** */
 

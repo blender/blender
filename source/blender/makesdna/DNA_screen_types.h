@@ -33,6 +33,7 @@
 struct ARegion;
 struct ARegionType;
 struct PanelType;
+struct PointerRNA;
 struct Scene;
 struct SpaceLink;
 struct SpaceType;
@@ -40,7 +41,6 @@ struct uiLayout;
 struct wmDrawBuffer;
 struct wmTimer;
 struct wmTooltipState;
-struct PointerRNA;
 
 /* TODO Doing this is quite ugly :)
  * Once the top-bar is merged bScreen should be refactored to use ScrAreaMap. */

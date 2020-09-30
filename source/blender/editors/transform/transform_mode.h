@@ -25,11 +25,11 @@
 #pragma once
 
 struct AnimData;
-struct bContext;
 struct LinkNode;
 struct TransData;
 struct TransDataContainer;
 struct TransInfo;
+struct bContext;
 struct wmOperator;
 
 /* header of TransDataEdgeSlideVert, TransDataEdgeSlideEdge */

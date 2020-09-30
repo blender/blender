@@ -47,10 +47,10 @@
 extern "C" {
 #endif
 
-typedef struct BlendWriter BlendWriter;
 typedef struct BlendDataReader BlendDataReader;
-typedef struct BlendLibReader BlendLibReader;
 typedef struct BlendExpander BlendExpander;
+typedef struct BlendLibReader BlendLibReader;
+typedef struct BlendWriter BlendWriter;
 
 /* Blend Write API
  * ===============

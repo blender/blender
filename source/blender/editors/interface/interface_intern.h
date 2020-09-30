@@ -31,8 +31,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-struct AnimationEvalContext;
 struct ARegion;
+struct AnimationEvalContext;
 struct CurveMapping;
 struct CurveProfile;
 struct ID;

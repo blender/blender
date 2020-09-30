@@ -28,6 +28,8 @@ extern "C" {
  * \brief support for deformation groups and hooks.
  */
 
+struct BlendDataReader;
+struct BlendWriter;
 struct ListBase;
 struct MDeformVert;
 struct MEdge;
@@ -35,8 +37,6 @@ struct MLoop;
 struct MPoly;
 struct Object;
 struct bDeformGroup;
-struct BlendWriter;
-struct BlendDataReader;
 
 struct bDeformGroup *BKE_object_defgroup_new(struct Object *ob, const char *name);
 void BKE_defgroup_copy_list(struct ListBase *outbase, const struct ListBase *inbase);

@@ -24,8 +24,8 @@
  * \ingroup blenloader
  */
 
-struct Scene;
 struct GHash;
+struct Scene;
 
 typedef struct {
   void *next, *prev;

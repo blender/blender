@@ -36,12 +36,12 @@ struct Scene;
 struct Speaker;
 struct bAction;
 
+struct BlendDataReader;
+struct BlendExpander;
+struct BlendLibReader;
+struct BlendWriter;
 struct PointerRNA;
 struct PropertyRNA;
-struct BlendWriter;
-struct BlendDataReader;
-struct BlendLibReader;
-struct BlendExpander;
 
 /* ----------------------------- */
 /* Data Management */

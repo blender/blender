@@ -41,10 +41,10 @@ using fn::GMutableSpan;
 using fn::GSpan;
 using fn::MutableAttributesRef;
 
-struct ParticleEmitterContext;
-struct ParticleForceContext;
 struct ParticleActionContext;
+struct ParticleEmitterContext;
 struct ParticleEventFilterContext;
+struct ParticleForceContext;
 
 class ParticleEmitter {
  public:

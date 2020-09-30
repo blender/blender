@@ -27,12 +27,12 @@
 extern "C" {
 #endif
 
+struct Collection;
 struct ID;
 struct PointerRNA;
 struct PreviewImage;
 struct Scene;
 struct bContext;
-struct Collection;
 
 enum eIconSizes;
 

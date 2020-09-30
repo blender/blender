@@ -31,7 +31,6 @@
 
 #include "DEG_depsgraph.h"
 
-struct bNodeSocket;
 struct CacheFile;
 struct Camera;
 struct Collection;
@@ -61,6 +60,7 @@ struct bAction;
 struct bArmature;
 struct bConstraint;
 struct bGPdata;
+struct bNodeSocket;
 struct bNodeTree;
 struct bPoseChannel;
 struct bSound;

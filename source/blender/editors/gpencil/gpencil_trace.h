@@ -25,11 +25,11 @@
 #define __GPENCIL_TRACE_H__
 
 /* internal exports only */
-struct bGPDframe;
 struct FILE;
 struct ImBuf;
 struct Main;
 struct Object;
+struct bGPDframe;
 
 #include "potracelib.h"
 

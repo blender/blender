@@ -27,10 +27,10 @@
 
 #include "intern/depsgraph_type.h"
 
+struct Depsgraph;
 struct Main;
 struct Scene;
 struct ViewLayer;
-struct Depsgraph;
 
 namespace blender {
 namespace deg {

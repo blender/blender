@@ -29,6 +29,8 @@ extern "C" {
 #define RET_OK 0
 #define RET_ERROR 1
 
+struct BlendDataReader;
+struct BlendWriter;
 struct ID;
 struct Image;
 struct Main;
@@ -37,8 +39,6 @@ struct ReportList;
 struct VFont;
 struct Volume;
 struct bSound;
-struct BlendWriter;
-struct BlendDataReader;
 
 enum ePF_FileCompare {
   PF_CMP_EQUAL = 0,

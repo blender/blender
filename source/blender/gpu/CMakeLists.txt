@@ -91,9 +91,9 @@ set(SRC
   opengl/gl_backend.cc
   opengl/gl_batch.cc
   opengl/gl_context.cc
-  opengl/gl_drawlist.cc
   opengl/gl_debug.cc
   opengl/gl_debug_layer.cc
+  opengl/gl_drawlist.cc
   opengl/gl_framebuffer.cc
   opengl/gl_immediate.cc
   opengl/gl_index_buffer.cc
@@ -148,12 +148,12 @@ set(SRC
   intern/gpu_material_library.h
   intern/gpu_matrix_private.h
   intern/gpu_node_graph.h
-  intern/gpu_private.h
   intern/gpu_platform_private.hh
+  intern/gpu_private.h
   intern/gpu_query.hh
   intern/gpu_select_private.h
-  intern/gpu_shader_private.hh
   intern/gpu_shader_interface.hh
+  intern/gpu_shader_private.hh
   intern/gpu_state_private.hh
   intern/gpu_texture_private.hh
   intern/gpu_uniform_buffer_private.hh

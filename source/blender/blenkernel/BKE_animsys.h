@@ -30,6 +30,10 @@ extern "C" {
 #endif
 
 struct AnimData;
+struct BlendDataReader;
+struct BlendExpander;
+struct BlendLibReader;
+struct BlendWriter;
 struct Depsgraph;
 struct FCurve;
 struct ID;
@@ -46,10 +50,6 @@ struct Scene;
 struct bAction;
 struct bActionGroup;
 struct bContext;
-struct BlendWriter;
-struct BlendDataReader;
-struct BlendLibReader;
-struct BlendExpander;
 
 /* Container for data required to do FCurve and Driver evaluation. */
 typedef struct AnimationEvalContext {
