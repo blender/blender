@@ -6139,7 +6139,7 @@ static void rna_def_modifier_meshseqcache(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_vertex_interpolation", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "read_flag", MOD_MESHSEQ_INTERPOLATE_VERTICES);
   RNA_def_property_ui_text(
-      prop, "Vertex Interpolation", "Allow interpolation of vertex positions.");
+      prop, "Vertex Interpolation", "Allow interpolation of vertex positions");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "velocity_scale", PROP_FLOAT, PROP_NONE);
