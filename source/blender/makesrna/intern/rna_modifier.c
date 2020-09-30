@@ -1649,15 +1649,11 @@ static PropertyRNA *rna_def_property_subdivision_common(StructRNA *srna, const c
   };
 
   static const EnumPropertyItem prop_uv_smooth_items[] = {
-    {SUBSURF_UV_SMOOTH_NONE,
-     "NONE",
-     0,
-     "Sharp",
-     "UVs are not smoothed, boundaries are kept sharp"},
+    {SUBSURF_UV_SMOOTH_NONE, "NONE", 0, "None", "UVs are not smoothed, boundaries are kept sharp"},
     {SUBSURF_UV_SMOOTH_PRESERVE_CORNERS,
      "PRESERVE_CORNERS",
      0,
-     "Smooth, keep corners",
+     "Keep Corners",
      "UVs are smoothed, corners on discontinuous boundary are kept sharp"},
 #  if 0
     {SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_AND_JUNCTIONS,
@@ -1677,12 +1673,8 @@ static PropertyRNA *rna_def_property_subdivision_common(StructRNA *srna, const c
      0,
      "Smooth, keep corners",
      "UVs are smoothed, boundaries are kept sharp"},
-    {SUBSURF_UV_SMOOTH_ALL,
-     "PRESERVE_BOUNDARIES",
-     0,
-     "Smooth all",
-     "UVs and boundaries are smoothed"},
 #  endif
+    {SUBSURF_UV_SMOOTH_ALL, "PRESERVE_BOUNDARIES", 0, "All", "UVs and boundaries are smoothed"},
     {0, NULL, 0, NULL, NULL},
   };
 
