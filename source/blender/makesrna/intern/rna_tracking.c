@@ -1148,6 +1148,7 @@ static void rna_def_trackingCamera(BlenderRNA *brna)
        "Division distortion model which "
        "better represents wide-angle cameras"},
       {TRACKING_DISTORTION_MODEL_NUKE, "NUKE", 0, "Nuke", "Nuke distortion model"},
+      {TRACKING_DISTORTION_MODEL_BROWN, "BROWN", 0, "Brown", "Brown-Conrady distortion model"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -1262,6 +1263,50 @@ static void rna_def_trackingCamera(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, -10, 10, 0.1, 3);
   RNA_def_property_ui_text(prop, "K2", "Second coefficient of second order Nuke distortion");
   RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_tracking_flushUpdate");
+
+  /* Brown-Conrady distortion parameters */
+  prop = RNA_def_property(srna, "brown_k1", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_range(prop, -10, 10, 0.1, 3);
+  RNA_def_property_ui_text(
+      prop, "K1", "First coefficient of fourth order Brown-Conrady radial distortion");
+  RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_tracking_flushUpdate");
+
+  prop = RNA_def_property(srna, "brown_k2", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_range(prop, -10, 10, 0.1, 3);
+  RNA_def_property_ui_text(
+      prop, "K2", "Second coefficient of fourth order Brown-Conrady radial distortion");
+  RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_tracking_flushUpdate");
+
+  prop = RNA_def_property(srna, "brown_k3", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_range(prop, -10, 10, 0.1, 3);
+  RNA_def_property_ui_text(
+      prop, "K3", "Third coefficient of fourth order Brown-Conrady radial distortion");
+  RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_tracking_flushUpdate");
+
+  prop = RNA_def_property(srna, "brown_k4", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_range(prop, -10, 10, 0.1, 3);
+  RNA_def_property_ui_text(
+      prop, "K4", "Fourth coefficient of fourth order Brown-Conrady radial distortion");
+  RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_tracking_flushUpdate");
+
+  prop = RNA_def_property(srna, "brown_p1", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_range(prop, -10, 10, 0.1, 3);
+  RNA_def_property_ui_text(
+      prop, "P1", "First coefficient of second order Brown-Conrady tangential distortion");
+  RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_tracking_flushUpdate");
+
+  prop = RNA_def_property(srna, "brown_p2", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_range(prop, -10, 10, 0.1, 3);
+  RNA_def_property_ui_text(
+      prop, "P2", "Second coefficient of second order Brown-Conrady tangential distortion");
+  RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_tracking_flushUpdate");
+
 
   /* pixel aspect */
   prop = RNA_def_property(srna, "pixel_aspect", PROP_FLOAT, PROP_XYZ);

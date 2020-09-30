@@ -447,6 +447,71 @@ class NukeCameraIntrinsics : public CameraIntrinsics {
   double parameters_[NUM_PARAMETERS];
 };
 
+class BrownCameraIntrinsics : public CameraIntrinsics {
+ public:
+  // This constants defines an offset of corresponding coefficients
+  // in the parameters_ array.
+  enum {
+    OFFSET_K1,
+    OFFSET_K2,
+    OFFSET_K3,
+    OFFSET_K4,
+    OFFSET_P1,
+    OFFSET_P2,
+
+    // This defines the size of array which we need to have in order
+    // to store all the coefficients.
+    NUM_PARAMETERS,
+  };
+
+  BrownCameraIntrinsics();
+  BrownCameraIntrinsics(const BrownCameraIntrinsics &from);
+
+  DistortionModelType GetDistortionModelType() const {
+    return DISTORTION_MODEL_BROWN;
+  }
+
+  int num_distortion_parameters() const { return NUM_PARAMETERS; }
+  double *distortion_parameters() { return parameters_; };
+  const double *distortion_parameters() const { return parameters_; };
+
+  double k1() const { return parameters_[OFFSET_K1]; }
+  double k2() const { return parameters_[OFFSET_K2]; }
+  double k3() const { return parameters_[OFFSET_K3]; }
+  double k4() const { return parameters_[OFFSET_K4]; }
+  double p1() const { return parameters_[OFFSET_P1]; }
+  double p2() const { return parameters_[OFFSET_P2]; }
+
+  // Set radial distortion coeffcients.
+  void SetRadialDistortion(double k1, double k2, double k3, double k4);
+
+  // Set tangential distortion coeffcients.
+  void SetTangentialDistortion(double p1, double p2);
+
+  // Apply camera intrinsics to the normalized point to get image coordinates.
+  //
+  // This applies the lens distortion to a point which is in normalized
+  // camera coordinates (i.e. the principal point is at (0, 0)) to get image
+  // coordinates in pixels.
+  void ApplyIntrinsics(double normalized_x,
+                       double normalized_y,
+                       double *image_x,
+                       double *image_y) const;
+
+  // Invert camera intrinsics on the image point to get normalized coordinates.
+  //
+  // This reverses the effect of lens distortion on a point which is in image
+  // coordinates to get normalized camera coordinates.
+  void InvertIntrinsics(double image_x,
+                        double image_y,
+                        double *normalized_x,
+                        double *normalized_y) const;
+
+ private:
+  double parameters_[NUM_PARAMETERS];
+};
+
+
 /// A human-readable representation of the camera intrinsic parameters.
 std::ostream& operator <<(std::ostream &os,
                           const CameraIntrinsics &intrinsics);

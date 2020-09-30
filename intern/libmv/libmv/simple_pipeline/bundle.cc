@@ -50,6 +50,7 @@ enum {
   OFFSET_K1,
   OFFSET_K2,
   OFFSET_K3,
+  OFFSET_K4,
   OFFSET_P1,
   OFFSET_P2,
 
@@ -135,6 +136,26 @@ void ApplyDistortionModelUsingIntrinsicsBlock(
         LOG(FATAL) << "Unsupported distortion model.";
         return;
       }
+
+    case DISTORTION_MODEL_BROWN:
+      {
+        const T& k1 = intrinsics_block[OFFSET_K1];
+        const T& k2 = intrinsics_block[OFFSET_K2];
+        const T& k3 = intrinsics_block[OFFSET_K3];
+        const T& k4 = intrinsics_block[OFFSET_K4];
+        const T& p1 = intrinsics_block[OFFSET_P1];
+        const T& p2 = intrinsics_block[OFFSET_P2];
+
+        ApplyBrownDistortionModel(focal_length,
+                                  focal_length,
+                                  principal_point_x,
+                                  principal_point_y,
+                                  k1, k2, k3, k4,
+                                  p1, p2,
+                                  normalized_x, normalized_y,
+                                  distorted_x, distorted_y);
+        return;
+      }
   }
 
   LOG(FATAL) << "Unknown distortion model.";
@@ -168,6 +189,7 @@ void InvertDistortionModelUsingIntrinsicsBlock(
   switch (invariant_intrinsics->GetDistortionModelType()) {
     case DISTORTION_MODEL_POLYNOMIAL:
     case DISTORTION_MODEL_DIVISION:
+    case DISTORTION_MODEL_BROWN:
       LOG(FATAL) << "Unsupported distortion model.";
       return;
 
@@ -783,8 +805,9 @@ void EuclideanBundleCommonIntrinsics(
     MAYBE_SET_CONSTANT(BUNDLE_TANGENTIAL_P2,   OFFSET_P2);
 #undef MAYBE_SET_CONSTANT
 
-    // Always set K3 constant, it's not used at the moment.
+    // Always set K3 and K4 constant, it's not used at the moment.
     constant_intrinsics.push_back(OFFSET_K3);
+    constant_intrinsics.push_back(OFFSET_K4);
 
     ceres::SubsetParameterization *subset_parameterization =
       new ceres::SubsetParameterization(OFFSET_MAX, constant_intrinsics);

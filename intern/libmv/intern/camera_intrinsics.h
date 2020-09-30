@@ -30,6 +30,7 @@ enum {
   LIBMV_DISTORTION_MODEL_POLYNOMIAL = 0,
   LIBMV_DISTORTION_MODEL_DIVISION = 1,
   LIBMV_DISTORTION_MODEL_NUKE = 2,
+  LIBMV_DISTORTION_MODEL_BROWN = 3,
 };
 
 typedef struct libmv_CameraIntrinsicsOptions {
@@ -49,6 +50,10 @@ typedef struct libmv_CameraIntrinsicsOptions {
 
   // Nuke distortion model.
   double nuke_k1, nuke_k2;
+
+  // Brown-Conrady distortion model.
+  double brown_k1, brown_k2, brown_k3, brown_k4;
+  double brown_p1, brown_p2;
 } libmv_CameraIntrinsicsOptions;
 
 libmv_CameraIntrinsics *libmv_cameraIntrinsicsNew(

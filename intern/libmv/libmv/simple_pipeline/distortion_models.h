@@ -29,6 +29,7 @@ enum DistortionModelType {
   DISTORTION_MODEL_POLYNOMIAL,
   DISTORTION_MODEL_DIVISION,
   DISTORTION_MODEL_NUKE,
+  DISTORTION_MODEL_BROWN,
 };
 
 // Invert camera intrinsics on the image point to get normalized coordinates.
@@ -202,6 +203,58 @@ void ApplyNukeDistortionModel(const double focal_length_x,
                               double *image_x,
                               double *image_y);
 
-}  // namespace libmv
+// Invert camera intrinsics on the image point to get normalized coordinates.
+// This inverts the radial lens distortion to a point which is in image pixel
+// coordinates to get normalized coordinates.
+void InvertBrownDistortionModel(const double focal_length_x,
+                                const double focal_length_y,
+                                const double principal_point_x,
+                                const double principal_point_y,
+                                const double k1,
+                                const double k2,
+                                const double k3,
+                                const double k4,
+                                const double p1,
+                                const double p2,
+                                const double image_x,
+                                const double image_y,
+                                double *normalized_x,
+                                double *normalized_y);
+
+template <typename T>
+inline void ApplyBrownDistortionModel(const T &focal_length_x,
+                                      const T &focal_length_y,
+                                      const T &principal_point_x,
+                                      const T &principal_point_y,
+                                      const T &k1,
+                                      const T &k2,
+                                      const T &k3,
+                                      const T &k4,
+                                      const T &p1,
+                                      const T &p2,
+                                      const T &normalized_x,
+                                      const T &normalized_y,
+                                      T *image_x,
+                                      T *image_y) {
+  T x = normalized_x;
+  T y = normalized_y;
+
+  // Apply distortion to the normalized points to get (xd, yd).
+  T x2 = x * x;
+  T y2 = y * y;
+  T xy2 = T(2) * x * y;
+  T r2 = x2 + y2;
+  T r_coeff = T(1) + (((k4 * r2 + k3) * r2 + k2) * r2 + k1) * r2;
+  T tx = p1 * (r2 + T(2) * x2) + p2 * xy2;
+  T ty = p2 * (r2 + T(2) * y2) + p1 * xy2;
+  T xd = x * r_coeff + tx;
+  T yd = y * r_coeff + ty;
+
+  // Apply focal length and principal point to get the final image coordinates.
+  *image_x = focal_length_x * xd + principal_point_x;
+  *image_y = focal_length_y * yd + principal_point_y;
+} // namespace libmv
+
+}
 
 #endif  // LIBMV_SIMPLE_PIPELINE_DISTORTION_MODELS_H_

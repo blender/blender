@@ -117,6 +117,56 @@ struct InvertDivisionIntrinsicsCostFunction {
   double x_, y_;
 };
 
+struct InvertBrownIntrinsicsCostFunction {
+ public:
+  typedef Vec2 FMatrixType;
+  typedef Vec2 XMatrixType;
+
+  InvertBrownIntrinsicsCostFunction(const double focal_length_x,
+                                    const double focal_length_y,
+                                    const double principal_point_x,
+                                    const double principal_point_y,
+                                    const double k1,
+                                    const double k2,
+                                    const double k3,
+                                    const double k4,
+                                    const double p1,
+                                    const double p2,
+                                    const double image_x,
+                                    const double image_y)
+    : focal_length_x_(focal_length_x),
+      focal_length_y_(focal_length_y),
+      principal_point_x_(principal_point_x),
+      principal_point_y_(principal_point_y),
+      k1_(k1), k2_(k2), k3_(k3), k4_(k4),
+      p1_(p1), p2_(p2),
+      x_(image_x), y_(image_y) {}
+
+  Vec2 operator()(const Vec2 &u) const {
+    double xx, yy;
+
+    ApplyBrownDistortionModel(focal_length_x_,
+                              focal_length_y_,
+                              principal_point_x_,
+                              principal_point_y_,
+                              k1_, k2_, k3_, k4_,
+                              p1_, p2_,
+                              u(0), u(1),
+                              &xx, &yy);
+
+    Vec2 fx;
+    fx << (xx - x_), (yy - y_);
+    return fx;
+  }
+  double focal_length_x_;
+  double focal_length_y_;
+  double principal_point_x_;
+  double principal_point_y_;
+  double k1_, k2_, k3_, k4_;
+  double p1_, p2_;
+  double x_, y_;
+};
+
 }  // namespace
 
 void InvertPolynomialDistortionModel(const double focal_length_x,
@@ -183,6 +233,46 @@ void InvertDivisionDistortionModel(const double focal_length_x,
                                                        principal_point_y,
                                                        k1, k2,
                                                        image_x, image_y);
+  Solver::SolverParameters params;
+  Solver solver(intrinsics_cost);
+
+  /*Solver::Results results =*/ solver.minimize(params, &normalized);
+
+  // TODO(keir): Better error handling.
+
+  *normalized_x = normalized(0);
+  *normalized_y = normalized(1);
+}
+
+void InvertBrownDistortionModel(const double focal_length_x,
+                                const double focal_length_y,
+                                const double principal_point_x,
+                                const double principal_point_y,
+                                const double k1,
+                                const double k2,
+                                const double k3,
+                                const double k4,
+                                const double p1,
+                                const double p2,
+                                const double image_x,
+                                const double image_y,
+                                double *normalized_x,
+                                double *normalized_y) {
+  // Compute the initial guess. For a camera with no distortion, this will also
+  // be the final answer; the LM iteration will terminate immediately.
+  Vec2 normalized;
+  normalized(0) = (image_x - principal_point_x) / focal_length_x;
+  normalized(1) = (image_y - principal_point_y) / focal_length_y;
+
+  typedef LevenbergMarquardt<InvertBrownIntrinsicsCostFunction> Solver;
+
+  InvertBrownIntrinsicsCostFunction intrinsics_cost(focal_length_x,
+                                                    focal_length_y,
+                                                    principal_point_x,
+                                                    principal_point_y,
+                                                    k1, k2, k3, k4,
+                                                    p1, p2,
+                                                    image_x, image_y);
   Solver::SolverParameters params;
   Solver solver(intrinsics_cost);
 
