@@ -26,7 +26,7 @@
 
 /* An implementation of the Scale3X edge-extrapolation algorithm.
  *
- * Code from GIMP plugin, based on code from Adam D. Moss (adam@gimp.org)
+ * Code from GIMP plugin, based on code from Adam D. Moss <adam@gimp.org>
  * licensed by the MIT license.
  */
 static int extrapolate9(float *E0,

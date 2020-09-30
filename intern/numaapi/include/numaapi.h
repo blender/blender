@@ -18,7 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 //
-// Author: Sergey Sharybin (sergey.vfx@gmail.com)
+// Author: Sergey Sharybin <sergey.vfx@gmail.com>
 
 #ifndef __LIBNUMAAPI_H__
 #define __LIBNUMAAPI_H__

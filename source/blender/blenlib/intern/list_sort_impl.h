@@ -111,7 +111,7 @@ typedef int (*CompareFn)(
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * Author:
- *   Raja R Harinath (rharinath@novell.com)
+ *   Raja R Harinath <rharinath@novell.com>
  */
 
 /**

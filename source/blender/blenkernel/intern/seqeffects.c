@@ -2531,7 +2531,7 @@ static void RVBlurBitmap2_float(float *map, int width, int height, float blur, i
 
   /* Apparently we're calculating a bell curve based on the standard deviation (or radius)
    * This code is based on an example posted to comp.graphics.algorithms by
-   * Blancmange (bmange@airdmhor.gen.nz)
+   * Blancmange <bmange@airdmhor.gen.nz>
    */
 
   k = -1.0f / (2.0f * (float)M_PI * blur * blur);

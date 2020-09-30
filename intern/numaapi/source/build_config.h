@@ -18,7 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 //
-// Author: Sergey Sharybin (sergey.vfx@gmail.com)
+// Author: Sergey Sharybin <sergey.vfx@gmail.com>
 
 #ifndef __BUILD_CONFIG_H__
 #define __BUILD_CONFIG_H__
