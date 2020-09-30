@@ -1686,6 +1686,16 @@ static PropertyRNA *rna_def_property_subdivision_common(StructRNA *srna, const c
     {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem prop_boundary_smooth_items[] = {
+      {SUBSURF_BOUNDARY_SMOOTH_PRESERVE_CORNERS,
+       "PRESERVE_CORNERS",
+       0,
+       "Keep Corners",
+       "Smooth boundaries, but corners are kept sharp"},
+      {SUBSURF_BOUNDARY_SMOOTH_ALL, "ALL", 0, "All", "Smooth boundaries, including corners"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   PropertyRNA *prop;
 
   RNA_define_lib_overridable(true);
@@ -1702,6 +1712,12 @@ static PropertyRNA *rna_def_property_subdivision_common(StructRNA *srna, const c
   RNA_def_property_ui_range(prop, 1, 6, 1, -1);
   RNA_def_property_ui_text(
       prop, "Quality", "Accuracy of vertex positions, lower value is faster but less precise");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "boundary_smooth", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "boundary_smooth");
+  RNA_def_property_enum_items(prop, prop_boundary_smooth_items);
+  RNA_def_property_ui_text(prop, "Boundary Smooth", "Controls how open boundaries are smoothed");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "subdivision_type", PROP_ENUM, PROP_NONE);

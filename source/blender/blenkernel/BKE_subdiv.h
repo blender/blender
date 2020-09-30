@@ -204,6 +204,9 @@ void BKE_subdiv_exit(void);
 /* NOTE: uv_smooth is eSubsurfUVSmooth. */
 eSubdivFVarLinearInterpolation BKE_subdiv_fvar_interpolation_from_uv_smooth(int uv_smooth);
 
+eSubdivVtxBoundaryInterpolation BKE_subdiv_vtx_boundary_interpolation_from_subsurf(
+    int boundary_smooth);
+
 /* =============================== STATISTICS =============================== */
 
 void BKE_subdiv_stats_init(SubdivStats *stats);

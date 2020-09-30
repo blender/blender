@@ -73,6 +73,7 @@ static void initData(ModifierData *md)
   mmd->renderlvl = 0;
   mmd->totlvl = 0;
   mmd->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS;
+  mmd->boundary_smooth = SUBSURF_BOUNDARY_SMOOTH_ALL;
   mmd->quality = 4;
   mmd->flags |= (eMultiresModifierFlag_UseCrease | eMultiresModifierFlag_ControlEdges);
 
@@ -489,6 +490,7 @@ static void advanced_panel_draw(const bContext *UNUSED(C), Panel *panel)
   col = uiLayoutColumn(layout, false);
   uiLayoutSetEnabled(col, true);
   uiItemR(col, ptr, "uv_smooth", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "boundary_smooth", 0, NULL, ICON_NONE);
 
   uiItemR(layout, ptr, "use_creases", 0, NULL, ICON_NONE);
   uiItemR(layout, ptr, "use_custom_normals", 0, NULL, ICON_NONE);

@@ -74,6 +74,7 @@ static void initData(ModifierData *md)
   smd->levels = 1;
   smd->renderLevels = 2;
   smd->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS;
+  smd->boundary_smooth = SUBSURF_BOUNDARY_SMOOTH_ALL;
   smd->quality = 3;
   smd->flags |= (eSubsurfModifierFlag_UseCrease | eSubsurfModifierFlag_ControlEdges);
 }
@@ -167,7 +168,8 @@ static void subdiv_settings_init(SubdivSettings *settings,
                         1 :
                         (settings->is_adaptive ? smd->quality : requested_levels);
   settings->use_creases = (smd->flags & eSubsurfModifierFlag_UseCrease);
-  settings->vtx_boundary_interpolation = SUBDIV_VTX_BOUNDARY_EDGE_ONLY;
+  settings->vtx_boundary_interpolation = BKE_subdiv_vtx_boundary_interpolation_from_subsurf(
+      smd->boundary_smooth);
   settings->fvar_linear_interpolation = BKE_subdiv_fvar_interpolation_from_uv_smooth(
       smd->uv_smooth);
 }
@@ -471,6 +473,7 @@ static void advanced_panel_draw(const bContext *C, Panel *panel)
   uiItemR(col, ptr, "quality", 0, NULL, ICON_NONE);
 
   uiItemR(layout, ptr, "uv_smooth", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "boundary_smooth", 0, NULL, ICON_NONE);
   uiItemR(layout, ptr, "use_creases", 0, NULL, ICON_NONE);
   uiItemR(layout, ptr, "use_custom_normals", 0, NULL, ICON_NONE);
 }

@@ -72,6 +72,19 @@ eSubdivFVarLinearInterpolation BKE_subdiv_fvar_interpolation_from_uv_smooth(int 
   return SUBDIV_FVAR_LINEAR_INTERPOLATION_ALL;
 }
 
+eSubdivVtxBoundaryInterpolation BKE_subdiv_vtx_boundary_interpolation_from_subsurf(
+    int boundary_smooth)
+{
+  switch (boundary_smooth) {
+    case SUBSURF_BOUNDARY_SMOOTH_PRESERVE_CORNERS:
+      return SUBDIV_VTX_BOUNDARY_EDGE_AND_CORNER;
+    case SUBSURF_BOUNDARY_SMOOTH_ALL:
+      return SUBDIV_VTX_BOUNDARY_EDGE_ONLY;
+  }
+  BLI_assert(!"Unknown boundary smooth flag");
+  return SUBDIV_VTX_BOUNDARY_EDGE_ONLY;
+}
+
 /* ================================ SETTINGS ================================ */
 
 static bool check_mesh_has_non_quad(const Mesh *mesh)

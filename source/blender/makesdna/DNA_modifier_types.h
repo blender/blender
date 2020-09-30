@@ -179,13 +179,19 @@ typedef enum {
   SUBSURF_UV_SMOOTH_ALL = 5,
 } eSubsurfUVSmooth;
 
+typedef enum {
+  SUBSURF_BOUNDARY_SMOOTH_ALL = 0,
+  SUBSURF_BOUNDARY_SMOOTH_PRESERVE_CORNERS = 1,
+} eSubsurfBoundarySmooth;
+
 typedef struct SubsurfModifierData {
   ModifierData modifier;
 
   short subdivType, levels, renderLevels, flags;
   short uv_smooth;
   short quality;
-  char _pad[4];
+  short boundary_smooth;
+  char _pad[2];
 
   /* TODO(sergey): Get rid of those with the old CCG subdivision code. */
   void *emCache, *mCache;
@@ -1042,7 +1048,8 @@ typedef struct MultiresModifierData {
   char simple, flags, _pad[2];
   short quality;
   short uv_smooth;
-  char _pad2[4];
+  short boundary_smooth;
+  char _pad2[2];
 } MultiresModifierData;
 
 typedef enum {
