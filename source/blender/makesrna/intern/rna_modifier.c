@@ -1762,6 +1762,15 @@ static void rna_def_modifier_subsurf(BlenderRNA *brna)
       prop, "Use Custom Normals", "Interpolates existing custom normals to resulting mesh");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+  prop = RNA_def_property(srna, "use_limit_surface", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(
+      prop, NULL, "flags", eSubsurfModifierFlag_UseRecursiveSubdivision);
+  RNA_def_property_ui_text(prop,
+                           "Use Limit Surface",
+                           "Place vertices at the surface that would be produced with infinite "
+                           "levels of subdivision (smoothest possible shape)");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
   RNA_define_lib_overridable(false);
 }
 

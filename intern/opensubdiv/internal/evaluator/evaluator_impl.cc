@@ -232,6 +232,8 @@ class FaceVaryingVolatileEval {
                                     src_face_varying_desc_.stride;
     const EVALUATOR *eval_instance = OpenSubdiv::Osd::GetEvaluator<EVALUATOR>(
         evaluator_cache_, src_face_varying_desc_, dst_face_varying_desc, device_context_);
+    // in and out points to same buffer so output is put directly after coarse vertices, needed in
+    // adaptive mode
     EVALUATOR::EvalStencils(src_face_varying_data_,
                             src_face_varying_desc_,
                             src_face_varying_data_,
@@ -249,8 +251,21 @@ class FaceVaryingVolatileEval {
     ConstPatchCoordWrapperBuffer patch_coord_buffer(patch_coord, num_patch_coords);
     const EVALUATOR *eval_instance = OpenSubdiv::Osd::GetEvaluator<EVALUATOR>(
         evaluator_cache_, src_face_varying_desc_, face_varying_desc, device_context_);
+
+    // src_face_varying_data_ always contains coarse vertices at the beginning.
+    // In adaptive mode they are followed by number of blocks for intermediate
+    // subdivision levels, and this is what OSD expects in this mode.
+    // In non-adaptive mode (generateIntermediateLevels == false),
+    // they are followed by max subdivision level, but they break interpolation as OSD
+    // expects only one subd level in this buffer.
+    // So in non-adaptive mode we put offset into buffer descriptor to skip over coarse vertices.
+    BufferDescriptor src_desc = src_face_varying_desc_;
+    if (!patch_table_->GetPatchArrayBuffer()[0].GetDescriptor().IsAdaptive()) {
+      src_desc.offset += num_coarse_face_varying_vertices_ * src_face_varying_desc_.stride;
+    }
+
     EVALUATOR::EvalPatchesFaceVarying(src_face_varying_data_,
-                                      src_face_varying_desc_,
+                                      src_desc,
                                       &face_varying_data,
                                       face_varying_desc,
                                       patch_coord_buffer.GetNumVertices(),

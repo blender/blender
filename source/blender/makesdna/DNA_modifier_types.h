@@ -162,6 +162,7 @@ typedef enum {
   eSubsurfModifierFlag_SubsurfUv_DEPRECATED = (1 << 3),
   eSubsurfModifierFlag_UseCrease = (1 << 4),
   eSubsurfModifierFlag_UseCustomNormals = (1 << 5),
+  eSubsurfModifierFlag_UseRecursiveSubdivision = (1 << 6),
 } SubsurfModifierFlag;
 
 typedef enum {
