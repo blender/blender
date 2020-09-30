@@ -131,9 +131,6 @@ void UI_view2d_totRect_set_resize(struct View2D *v2d, int width, int height, boo
 
 void UI_view2d_mask_from_win(const struct View2D *v2d, struct rcti *r_mask);
 
-/* per tab offsets, returns 1 if tab changed */
-bool UI_view2d_tab_set(struct View2D *v2d, int tab);
-
 void UI_view2d_zoom_cache_reset(void);
 
 /* view matrix operations */

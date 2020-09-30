@@ -4974,9 +4974,6 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
     }
   }
 
-  region->v2d.tab_offset = NULL;
-  region->v2d.tab_num = 0;
-  region->v2d.tab_cur = 0;
   region->v2d.sms = NULL;
   region->v2d.alpha_hor = region->v2d.alpha_vert = 255; /* visible by default */
   BLI_listbase_clear(&region->panels_category);

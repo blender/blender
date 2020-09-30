@@ -1046,53 +1046,6 @@ void UI_view2d_totRect_set(View2D *v2d, int width, int height)
   UI_view2d_totRect_set_resize(v2d, width, height, false);
 }
 
-bool UI_view2d_tab_set(View2D *v2d, int tab)
-{
-  float default_offset[2] = {0.0f, 0.0f};
-  float *offset, *new_offset;
-  bool changed = false;
-
-  /* if tab changed, change offset */
-  if (tab != v2d->tab_cur && v2d->tab_offset) {
-    if (tab < v2d->tab_num) {
-      offset = &v2d->tab_offset[tab * 2];
-    }
-    else {
-      offset = default_offset;
-    }
-
-    v2d->cur.xmax += offset[0] - v2d->cur.xmin;
-    v2d->cur.xmin = offset[0];
-
-    v2d->cur.ymin += offset[1] - v2d->cur.ymax;
-    v2d->cur.ymax = offset[1];
-
-    /* validation should happen in subsequent totRect_set */
-
-    changed = true;
-  }
-
-  /* resize array if needed */
-  if (tab >= v2d->tab_num) {
-    new_offset = MEM_callocN(sizeof(float) * (tab + 1) * 2, "view2d tab offset");
-
-    if (v2d->tab_offset) {
-      memcpy(new_offset, v2d->tab_offset, sizeof(float) * v2d->tab_num * 2);
-      MEM_freeN(v2d->tab_offset);
-    }
-
-    v2d->tab_offset = new_offset;
-    v2d->tab_num = tab + 1;
-  }
-
-  /* set current tab and offset */
-  v2d->tab_cur = tab;
-  v2d->tab_offset[2 * tab + 0] = v2d->cur.xmin;
-  v2d->tab_offset[2 * tab + 1] = v2d->cur.ymax;
-
-  return changed;
-}
-
 void UI_view2d_zoom_cache_reset(void)
 {
   /* TODO(sergey): This way we avoid threading conflict with sequencer rendering

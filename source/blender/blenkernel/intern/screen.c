@@ -435,10 +435,6 @@ ARegion *BKE_area_region_copy(SpaceType *st, ARegion *region)
     }
   }
 
-  if (region->v2d.tab_offset) {
-    newar->v2d.tab_offset = MEM_dupallocN(region->v2d.tab_offset);
-  }
-
   panel_list_copy(&newar->panels, &region->panels);
 
   BLI_listbase_clear(&newar->ui_previews);
@@ -621,11 +617,6 @@ void BKE_area_region_free(SpaceType *st, ARegion *region)
   }
   else if (region->type && region->type->free) {
     region->type->free(region);
-  }
-
-  if (region->v2d.tab_offset) {
-    MEM_freeN(region->v2d.tab_offset);
-    region->v2d.tab_offset = NULL;
   }
 
   BKE_area_region_panels_free(&region->panels);
