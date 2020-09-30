@@ -228,8 +228,8 @@ set(SRC
   BLI_math_geom.h
   BLI_math_inline.h
   BLI_math_interp.h
-  BLI_math_mpq.hh
   BLI_math_matrix.h
+  BLI_math_mpq.hh
   BLI_math_rotation.h
   BLI_math_solvers.h
   BLI_math_statistics.h
@@ -268,8 +268,8 @@ set(SRC
   BLI_strict_flags.h
   BLI_string.h
   BLI_string_cursor_utf8.h
-  BLI_string_search.h
   BLI_string_ref.hh
+  BLI_string_search.h
   BLI_string_utf8.h
   BLI_string_utils.h
   BLI_sys_types.h
@@ -414,8 +414,8 @@ if(WITH_GTESTS)
     tests/BLI_span_test.cc
     tests/BLI_stack_cxx_test.cc
     tests/BLI_stack_test.cc
-    tests/BLI_string_search_test.cc
     tests/BLI_string_ref_test.cc
+    tests/BLI_string_search_test.cc
     tests/BLI_string_test.cc
     tests/BLI_string_utf8_test.cc
     tests/BLI_task_graph_test.cc

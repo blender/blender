@@ -101,9 +101,9 @@ if(WITH_EXPERIMENTAL_FEATURES)
   add_definitions(-DWITH_PARTICLE_NODES)
   add_definitions(-DWITH_HAIR_NODES)
   list(APPEND DEFSRC
+    rna_hair.c
     rna_pointcloud.c
     rna_simulation.c
-    rna_hair.c
   )
 endif()
 
