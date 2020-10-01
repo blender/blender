@@ -1150,7 +1150,7 @@ static void do_2d_mapping(
 /* ************************************** */
 
 static int multitex(Tex *tex,
-                    float texvec[3],
+                    const float texvec[3],
                     float dxt[3],
                     float dyt[3],
                     int osatex,
@@ -1280,7 +1280,7 @@ static int multitex(Tex *tex,
 }
 
 static int multitex_nodes_intern(Tex *tex,
-                                 float texvec[3],
+                                 const float texvec[3],
                                  float dxt[3],
                                  float dyt[3],
                                  int osatex,
@@ -1307,10 +1307,12 @@ static int multitex_nodes_intern(Tex *tex,
     int rgbnor;
 
     if (mtex) {
+      float texvec_l[3];
+      copy_v3_v3(texvec_l, texvec);
       /* we have mtex, use it for 2d mapping images only */
-      do_2d_mapping(mtex, texvec, NULL, dxt, dyt);
+      do_2d_mapping(mtex, texvec_l, NULL, dxt, dyt);
       rgbnor = multitex(tex,
-                        texvec,
+                        texvec_l,
                         dxt,
                         dyt,
                         osatex,
@@ -1400,7 +1402,7 @@ static int multitex_nodes_intern(Tex *tex,
  * Use it from render pipeline only!
  */
 int multitex_nodes(Tex *tex,
-                   float texvec[3],
+                   const float texvec[3],
                    float dxt[3],
                    float dyt[3],
                    int osatex,
@@ -1465,7 +1467,7 @@ int multitex_ext(Tex *tex,
  * Use it for stuff which is out of render pipeline.
  */
 int multitex_ext_safe(Tex *tex,
-                      float texvec[3],
+                      const float texvec[3],
                       TexResult *texres,
                       struct ImagePool *pool,
                       bool scene_color_manage,

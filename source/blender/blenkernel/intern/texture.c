@@ -747,7 +747,7 @@ bool BKE_texture_dependsOnTime(const struct Tex *texture)
 
 void BKE_texture_get_value_ex(const Scene *scene,
                               Tex *texture,
-                              float *tex_co,
+                              const float *tex_co,
                               TexResult *texres,
                               struct ImagePool *pool,
                               bool use_color_management)
@@ -774,8 +774,11 @@ void BKE_texture_get_value_ex(const Scene *scene,
   }
 }
 
-void BKE_texture_get_value(
-    const Scene *scene, Tex *texture, float *tex_co, TexResult *texres, bool use_color_management)
+void BKE_texture_get_value(const Scene *scene,
+                           Tex *texture,
+                           const float *tex_co,
+                           TexResult *texres,
+                           bool use_color_management)
 {
   BKE_texture_get_value_ex(scene, texture, tex_co, texres, NULL, use_color_management);
 }

@@ -1311,7 +1311,7 @@ struct bNodeTreeExec *ntreeTexBeginExecTree(struct bNodeTree *ntree);
 void ntreeTexEndExecTree(struct bNodeTreeExec *exec);
 int ntreeTexExecTree(struct bNodeTree *ntree,
                      struct TexResult *target,
-                     float co[3],
+                     const float co[3],
                      float dxt[3],
                      float dyt[3],
                      int osatex,

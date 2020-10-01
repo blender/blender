@@ -277,7 +277,7 @@ void ntreeTexEndExecTree(bNodeTreeExec *exec)
 
 int ntreeTexExecTree(bNodeTree *ntree,
                      TexResult *target,
-                     float co[3],
+                     const float co[3],
                      float dxt[3],
                      float dyt[3],
                      int osatex,
