@@ -101,7 +101,102 @@
     .type = MOD_CAST_TYPE_SPHERE, \
   }
 
-/* Cloth modifier skipped for now. */
+#define _DNA_DEFAULT_ClothSimSettings \
+  { \
+    .cache = NULL, \
+    .mingoal = 0.0f, \
+    .Cvi = 1.0f, \
+    .gravity = {0.0f, 0.0f, -9.81f}, \
+    .dt = 0.0f, \
+    .mass = 0.3f, \
+    .shear = 5.0f, \
+    .bending = 0.5f, \
+    .max_bend = 0.5f, \
+    .max_shear = 5.0f, \
+    .max_sewing = 0.0f, \
+    .avg_spring_len = 0.0f, \
+    .timescale = 1.0f, \
+    .time_scale = 1.0f, \
+    .maxgoal = 1.0f, \
+    .eff_force_scale = 1000.0f, \
+    .eff_wind_scale = 250.0f, \
+    .sim_time_old = 0.0f, \
+    .defgoal = 0.0f, \
+    .goalspring = 1.0f, \
+    .goalfrict = 0.0f, \
+    .velocity_smooth = 0.0f, \
+    .density_target = 0.0f, \
+    .density_strength = 0.0f, \
+    .collider_friction = 0.0f, \
+    .shrink_min = 0.0f, \
+    .shrink_max = 0.0f, \
+    .uniform_pressure_force = 0.0f, \
+    .target_volume = 0.0f, \
+    .pressure_factor = 1.0f, \
+    .fluid_density = 0.0f, \
+    .vgroup_pressure = 0, \
+    .bending_damping = 0.5f, \
+    .voxel_cell_size = 0.1f, \
+    .stepsPerFrame = 5, \
+    .flags = CLOTH_SIMSETTINGS_FLAG_INTERNAL_SPRINGS_NORMAL, \
+    .maxspringlen = 10, \
+    .solver_type = 0, \
+    .vgroup_bend = 0, \
+    .vgroup_mass = 0, \
+    .vgroup_struct = 0, \
+    .vgroup_shrink = 0, \
+    .shapekey_rest = 0, \
+    .presets = 2, \
+    .reset = 0, \
+    .effector_weights = NULL, \
+    .bending_model = CLOTH_BENDING_ANGULAR, \
+    .vgroup_shear = 0, \
+    .tension = 15.0f , \
+    .compression = 15.0f, \
+    .max_tension =  15.0f, \
+    .max_compression = 15.0f, \
+    .tension_damp = 5.0f, \
+    .compression_damp = 5.0f, \
+    .shear_damp = 5.0f, \
+    .internal_spring_max_length = 0.0f, \
+    .internal_spring_max_diversion = M_PI / 4.0f, \
+    .vgroup_intern = 0, \
+    .internal_tension = 15.0f, \
+    .internal_compression = 15.0f, \
+    .max_internal_tension = 15.0f, \
+    .max_internal_compression = 15.0f, \
+  }
+
+#define _DNA_DEFAULT_ClothCollSettings \
+  { \
+    .collision_list = NULL, \
+    .epsilon = 0.015f, \
+    .self_friction = 5.0f, \
+    .friction = 5.0f, \
+    .damping = 0.0f, \
+    .selfepsilon = 0.015f, \
+    .flags = CLOTH_COLLSETTINGS_FLAG_ENABLED, \
+    .loop_count = 2, \
+    .group = NULL, \
+    .vgroup_selfcol = 0, \
+    .clamp = 0.0f, \
+    .self_clamp = 0.0f, \
+  }
+
+#define _DNA_DEFAULT_ClothModifierData \
+  { \
+    .clothObject = NULL, \
+    .sim_parms = NULL, \
+    .coll_parms = NULL, \
+    .point_cache = NULL, \
+    .ptcaches = {NULL, NULL}, \
+    .hairdata = NULL, \
+    .hair_grid_min = {0.0f, 0.0f, 0.0f}, \
+    .hair_grid_max = {0.0f, 0.0f, 0.0f}, \
+    .hair_grid_res = {0, 0, 0}, \
+    .hair_grid_cellsize = 0.0f, \
+    .solver_result = NULL, \
+  }
 
 #define _DNA_DEFAULT_CollisionModifierData \
   { \

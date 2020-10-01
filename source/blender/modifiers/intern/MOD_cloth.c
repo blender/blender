@@ -30,6 +30,7 @@
 #include "BLT_translation.h"
 
 #include "DNA_cloth_types.h"
+#include "DNA_defaults.h"
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
@@ -65,8 +66,12 @@ static void initData(ModifierData *md)
 {
   ClothModifierData *clmd = (ClothModifierData *)md;
 
-  clmd->sim_parms = MEM_callocN(sizeof(ClothSimSettings), "cloth sim parms");
-  clmd->coll_parms = MEM_callocN(sizeof(ClothCollSettings), "cloth coll parms");
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(clmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(clmd, DNA_struct_default_get(ClothModifierData), modifier);
+  clmd->sim_parms = DNA_struct_default_alloc(ClothSimSettings);
+  clmd->coll_parms = DNA_struct_default_alloc(ClothCollSettings);
+
   clmd->point_cache = BKE_ptcache_add(&clmd->ptcaches);
 
   /* check for alloc failing */
@@ -74,7 +79,13 @@ static void initData(ModifierData *md)
     return;
   }
 
-  cloth_init(clmd);
+  if (!clmd->sim_parms->effector_weights) {
+    clmd->sim_parms->effector_weights = BKE_effector_add_weights(NULL);
+  }
+
+  if (clmd->point_cache) {
+    clmd->point_cache->step = 1;
+  }
 }
 
 static void deformVerts(ModifierData *md,

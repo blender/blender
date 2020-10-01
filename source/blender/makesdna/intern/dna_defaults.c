@@ -86,6 +86,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_cachefile_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_cloth_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_hair_types.h"
 #include "DNA_image_types.h"
@@ -208,7 +209,9 @@ SDNA_DEFAULT_DECL_STRUCT(BevelModifierData);
 SDNA_DEFAULT_DECL_STRUCT(BooleanModifierData);
 SDNA_DEFAULT_DECL_STRUCT(BuildModifierData);
 SDNA_DEFAULT_DECL_STRUCT(CastModifierData);
-/* Cloth modifier skipped for now. */
+SDNA_DEFAULT_DECL_STRUCT(ClothSimSettings);
+SDNA_DEFAULT_DECL_STRUCT(ClothCollSettings);
+SDNA_DEFAULT_DECL_STRUCT(ClothModifierData);
 SDNA_DEFAULT_DECL_STRUCT(CollisionModifierData);
 SDNA_DEFAULT_DECL_STRUCT(CorrectiveSmoothModifierData);
 SDNA_DEFAULT_DECL_STRUCT(CurveModifierData);
@@ -389,7 +392,9 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     SDNA_DEFAULT_DECL(BooleanModifierData),
     SDNA_DEFAULT_DECL(BuildModifierData),
     SDNA_DEFAULT_DECL(CastModifierData),
-    /* Cloth modifier skipped for now. */
+    SDNA_DEFAULT_DECL(ClothSimSettings),
+    SDNA_DEFAULT_DECL(ClothCollSettings),
+    SDNA_DEFAULT_DECL(ClothModifierData),
     SDNA_DEFAULT_DECL(CollisionModifierData),
     SDNA_DEFAULT_DECL(CorrectiveSmoothModifierData),
     SDNA_DEFAULT_DECL(CurveModifierData),

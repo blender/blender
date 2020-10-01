@@ -177,6 +177,41 @@ typedef struct ClothSimSettings {
 
 } ClothSimSettings;
 
+/* SIMULATION FLAGS: goal flags,.. */
+/* These are the bits used in SimSettings.flags. */
+typedef enum {
+  /** Object is only collision object, no cloth simulation is done. */
+  CLOTH_SIMSETTINGS_FLAG_COLLOBJ = (1 << 2),
+  /** DEPRECATED, for versioning only. */
+  CLOTH_SIMSETTINGS_FLAG_GOAL = (1 << 3),
+  /** True if tearing is enabled. */
+  CLOTH_SIMSETTINGS_FLAG_TEARING = (1 << 4),
+  /** True if pressure sim is enabled. */
+  CLOTH_SIMSETTINGS_FLAG_PRESSURE = (1 << 5),
+  /** Use the user defined target volume. */
+  CLOTH_SIMSETTINGS_FLAG_PRESSURE_VOL = (1 << 6),
+  /** True if internal spring generation is enabled. */
+  CLOTH_SIMSETTINGS_FLAG_INTERNAL_SPRINGS = (1 << 7),
+  /** DEPRECATED, for versioning only. */
+  CLOTH_SIMSETTINGS_FLAG_SCALING = (1 << 8),
+  /** Require internal springs to be created between points with opposite normals. */
+  CLOTH_SIMSETTINGS_FLAG_INTERNAL_SPRINGS_NORMAL = (1 << 9),
+  /** Edit cache in edit-mode. */
+  /* CLOTH_SIMSETTINGS_FLAG_CCACHE_EDIT = (1 << 12), */ /* UNUSED */
+  /** Don't allow spring compression. */
+  CLOTH_SIMSETTINGS_FLAG_RESIST_SPRING_COMPRESS = (1 << 13),
+  /** Pull ends of loose edges together. */
+  CLOTH_SIMSETTINGS_FLAG_SEW = (1 << 14),
+  /** Make simulation respect deformations in the base object. */
+  CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH = (1 << 15),
+} CLOTH_SIMSETTINGS_FLAGS;
+
+/* ClothSimSettings.bending_model. */
+typedef enum {
+  CLOTH_BENDING_LINEAR = 0,
+  CLOTH_BENDING_ANGULAR = 1,
+} CLOTH_BENDING_MODEL;
+
 typedef struct ClothCollSettings {
   /** E.g. pointer to temp memory for collisions. */
   struct LinkNode *collision_list;
@@ -209,3 +244,9 @@ typedef struct ClothCollSettings {
   /** Impulse clamp for self collisions. */
   float self_clamp;
 } ClothCollSettings;
+
+/* COLLISION FLAGS */
+typedef enum {
+  CLOTH_COLLSETTINGS_FLAG_ENABLED = (1 << 1), /* enables cloth - object collisions */
+  CLOTH_COLLSETTINGS_FLAG_SELF = (1 << 2),    /* enables selfcollisions */
+} CLOTH_COLLISIONSETTINGS_FLAGS;

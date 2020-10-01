@@ -711,7 +711,6 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "voxel_cell_size", PROP_FLOAT, PROP_UNSIGNED);
   RNA_def_property_float_sdna(prop, NULL, "voxel_cell_size");
   RNA_def_property_range(prop, 0.0001f, 10000.0f);
-  RNA_def_property_float_default(prop, 0.1f);
   RNA_def_property_ui_text(
       prop, "Voxel Grid Cell Size", "Size of the voxel grid cells for interaction effects");
   RNA_def_property_update(prop, 0, "rna_cloth_update");
@@ -1005,7 +1004,6 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "pressure_factor", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "pressure_factor");
   RNA_def_property_range(prop, 0.0f, 10000.0f);
-  RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_ui_text(prop,
                            "Pressure Scale",
                            "Ambient pressure (kPa) that balances out between the inside and "
