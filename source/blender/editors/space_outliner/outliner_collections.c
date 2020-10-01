@@ -177,6 +177,18 @@ static bool outliner_view_layer_collections_editor_poll(bContext *C)
   return (space_outliner != NULL) && (space_outliner->outlinevis == SO_VIEW_LAYER);
 }
 
+static bool collection_edit_in_active_scene_poll(bContext *C)
+{
+  if (!ED_outliner_collections_editor_poll(C)) {
+    return false;
+  }
+  Scene *scene = CTX_data_scene(C);
+  if (ID_IS_LINKED(scene) || ID_IS_OVERRIDE_LIBRARY(scene)) {
+    return false;
+  }
+  return true;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -235,12 +247,13 @@ static int collection_new_exec(bContext *C, wmOperator *op)
     }
   }
 
-  if (data.collection == NULL || ID_IS_LINKED(data.collection)) {
+  if (data.collection == NULL || ID_IS_LINKED(data.collection) ||
+      ID_IS_OVERRIDE_LIBRARY(data.collection)) {
     data.collection = scene->master_collection;
   }
 
-  if (ID_IS_LINKED(scene)) {
-    BKE_report(op->reports, RPT_ERROR, "Can't add a new collection to linked scene/collection");
+  if (ID_IS_LINKED(scene) || ID_IS_OVERRIDE_LIBRARY(scene)) {
+    BKE_report(op->reports, RPT_ERROR, "Can't add a new collection to linked/override scene");
     return OPERATOR_CANCELLED;
   }
 
@@ -263,7 +276,7 @@ void OUTLINER_OT_collection_new(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = collection_new_exec;
-  ot->poll = ED_outliner_collections_editor_poll;
+  ot->poll = collection_edit_in_active_scene_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -407,7 +420,7 @@ void OUTLINER_OT_collection_hierarchy_delete(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = collection_hierarchy_delete_exec;
-  ot->poll = ED_outliner_collections_editor_poll;
+  ot->poll = collection_edit_in_active_scene_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -573,14 +586,15 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
   /* We are allowed to duplicated linked collections (they will become local IDs then),
    * but we should not allow its parent to be a linked ID, ever.
    * This can happen when a whole scene is linked e.g. */
-  if (parent != NULL && ID_IS_LINKED(parent)) {
+  if (parent != NULL && (ID_IS_LINKED(parent) || ID_IS_OVERRIDE_LIBRARY(parent))) {
     Scene *scene = CTX_data_scene(C);
-    parent = ID_IS_LINKED(scene) ? NULL : scene->master_collection;
+    parent = (ID_IS_LINKED(scene) || ID_IS_OVERRIDE_LIBRARY(scene)) ? NULL :
+                                                                      scene->master_collection;
   }
   else if (parent != NULL && (parent->flag & COLLECTION_IS_MASTER) != 0) {
     Scene *scene = BKE_collection_master_scene_search(bmain, parent);
     BLI_assert(scene != NULL);
-    if (ID_IS_LINKED(scene)) {
+    if (ID_IS_LINKED(scene) || ID_IS_OVERRIDE_LIBRARY(scene)) {
       scene = CTX_data_scene(C);
       parent = ID_IS_LINKED(scene) ? NULL : scene->master_collection;
     }
@@ -658,9 +672,11 @@ static int collection_link_exec(bContext *C, wmOperator *op)
       .space_outliner = space_outliner,
   };
 
-  if (ID_IS_LINKED(active_collection) ||
-      ((active_collection->flag & COLLECTION_IS_MASTER) && ID_IS_LINKED(scene))) {
-    BKE_report(op->reports, RPT_ERROR, "Cannot add a collection to a linked collection/scene");
+  if ((ID_IS_LINKED(active_collection) || ID_IS_OVERRIDE_LIBRARY(active_collection)) ||
+      ((active_collection->flag & COLLECTION_IS_MASTER) &&
+       (ID_IS_LINKED(scene) || ID_IS_OVERRIDE_LIBRARY(scene)))) {
+    BKE_report(
+        op->reports, RPT_ERROR, "Cannot add a collection to a linked/override collection/scene");
     return OPERATOR_CANCELLED;
   }
 
@@ -697,7 +713,7 @@ void OUTLINER_OT_collection_link(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = collection_link_exec;
-  ot->poll = ED_outliner_collections_editor_poll;
+  ot->poll = collection_edit_in_active_scene_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -768,7 +784,7 @@ void OUTLINER_OT_collection_instance(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = collection_instance_exec;
-  ot->poll = ED_outliner_collections_editor_poll;
+  ot->poll = collection_edit_in_active_scene_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1307,6 +1323,9 @@ static int collection_flag_exec(bContext *C, wmOperator *op)
     GSetIterator collections_to_edit_iter;
     GSET_ITER (collections_to_edit_iter, data.collections_to_edit) {
       Collection *collection = BLI_gsetIterator_getKey(&collections_to_edit_iter);
+      if (ID_IS_LINKED(collection)) {
+        continue;
+      }
 
       if (clear) {
         collection->flag &= ~flag;
