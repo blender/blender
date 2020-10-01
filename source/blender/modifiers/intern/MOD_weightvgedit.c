@@ -21,6 +21,8 @@
  * \ingroup modifiers
  */
 
+#include <string.h>
+
 #include "BLI_utildefines.h"
 
 #include "BLI_ghash.h"
@@ -30,6 +32,7 @@
 #include "BLT_translation.h"
 
 #include "DNA_color_types.h" /* CurveMapping. */
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -67,19 +70,13 @@
 static void initData(ModifierData *md)
 {
   WeightVGEditModifierData *wmd = (WeightVGEditModifierData *)md;
-  wmd->edit_flags = 0;
-  wmd->falloff_type = MOD_WVG_MAPPING_NONE;
-  wmd->default_weight = 0.0f;
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(wmd, DNA_struct_default_get(WeightVGEditModifierData), modifier);
 
   wmd->cmap_curve = BKE_curvemapping_add(1, 0.0, 0.0, 1.0, 1.0);
   BKE_curvemapping_init(wmd->cmap_curve);
-
-  wmd->rem_threshold = 0.01f;
-  wmd->add_threshold = 0.01f;
-
-  wmd->mask_constant = 1.0f;
-  wmd->mask_tex_use_channel = MOD_WVG_MASK_TEX_USE_INT; /* Use intensity by default. */
-  wmd->mask_tex_mapping = MOD_DISP_MAP_LOCAL;
 }
 
 static void freeData(ModifierData *md)

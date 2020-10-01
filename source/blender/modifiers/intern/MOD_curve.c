@@ -27,6 +27,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -60,7 +61,9 @@ static void initData(ModifierData *md)
 {
   CurveModifierData *cmd = (CurveModifierData *)md;
 
-  cmd->defaxis = MOD_CURVE_POSX;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(cmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(cmd, DNA_struct_default_get(CurveModifierData), modifier);
 }
 
 static void requiredDataMask(Object *UNUSED(ob),

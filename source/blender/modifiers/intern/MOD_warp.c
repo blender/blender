@@ -28,6 +28,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -65,12 +66,11 @@ static void initData(ModifierData *md)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
 
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(wmd, DNA_struct_default_get(WarpModifierData), modifier);
+
   wmd->curfalloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-  wmd->texture = NULL;
-  wmd->strength = 1.0f;
-  wmd->falloff_radius = 1.0f;
-  wmd->falloff_type = eWarp_Falloff_Smooth;
-  wmd->flag = 0;
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)

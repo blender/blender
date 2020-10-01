@@ -3742,7 +3742,6 @@ static void rna_def_modifier_particleinstance(BlenderRNA *brna)
   prop = RNA_def_property(srna, "particle_amount", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_range(prop, 0.0, 1.0);
   RNA_def_property_ui_text(prop, "Particle Amount", "Amount of particles to use for instancing");
-  RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "particle_offset", PROP_FLOAT, PROP_FACTOR);
@@ -3751,7 +3750,6 @@ static void rna_def_modifier_particleinstance(BlenderRNA *brna)
                            "Particle Offset",
                            "Relative offset of particles to use for instancing, to avoid overlap "
                            "of multiple instances");
-  RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "index_layer_name", PROP_STRING, PROP_NONE);
@@ -4515,7 +4513,6 @@ static void rna_def_modifier_simpledeform(BlenderRNA *brna)
   prop = RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, NULL, "factor");
   RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
-  RNA_def_property_float_default(prop, DEG2RADF(45.0f));
   RNA_def_property_ui_range(prop, DEG2RAD(-360.0), DEG2RAD(360.0), 10.0, 3);
   RNA_def_property_ui_text(prop, "Angle", "Angle of deformation");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
@@ -6685,7 +6682,7 @@ static void rna_def_modifier_datatransfer(BlenderRNA *brna)
   prop = RNA_def_float_factor(
       srna,
       "mix_factor",
-      1.0f,
+      0.0f,
       0.0f,
       1.0f,
       "Mix Factor",
@@ -6775,27 +6772,15 @@ static void rna_def_modifier_normaledit(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Mix Mode", "How to mix generated normals with existing ones");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-  prop = RNA_def_float(srna,
-                       "mix_factor",
-                       1.0f,
-                       0.0f,
-                       1.0f,
-                       "Mix Factor",
-                       "How much of generated normals to mix with exiting ones",
-                       0.0f,
-                       1.0f);
+  prop = RNA_def_property(srna, "mix_factor", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_range(prop, 0.0, 1.0);
+  RNA_def_property_ui_text(
+      prop, "Mix Factor", "How much of generated normals to mix with exiting ones");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-  prop = RNA_def_float(srna,
-                       "mix_limit",
-                       1.0f,
-                       0.0f,
-                       DEG2RADF(180.0f),
-                       "Max Angle",
-                       "Maximum angle between old and new normals",
-                       0.0f,
-                       DEG2RADF(180.0f));
-  RNA_def_property_subtype(prop, PROP_ANGLE);
+  prop = RNA_def_property(srna, "mix_limit", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_range(prop, 0.0, DEG2RADF(180.0f));
+  RNA_def_property_ui_text(prop, "Max Angle", "Maximum angle between old and new normals");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "no_polynors_fix", PROP_BOOLEAN, PROP_NONE);

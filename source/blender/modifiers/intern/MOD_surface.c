@@ -27,6 +27,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -59,10 +60,9 @@ static void initData(ModifierData *md)
 {
   SurfaceModifierData *surmd = (SurfaceModifierData *)md;
 
-  surmd->bvhtree = NULL;
-  surmd->mesh = NULL;
-  surmd->x = NULL;
-  surmd->v = NULL;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(surmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(surmd, DNA_struct_default_get(SurfaceModifierData), modifier);
 }
 
 static void copyData(const ModifierData *md_src, ModifierData *md_dst, const int flag)

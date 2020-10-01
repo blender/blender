@@ -29,6 +29,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -68,14 +69,9 @@ static void initData(ModifierData *md)
 {
   MultiresModifierData *mmd = (MultiresModifierData *)md;
 
-  mmd->lvl = 0;
-  mmd->sculptlvl = 0;
-  mmd->renderlvl = 0;
-  mmd->totlvl = 0;
-  mmd->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS;
-  mmd->boundary_smooth = SUBSURF_BOUNDARY_SMOOTH_ALL;
-  mmd->quality = 4;
-  mmd->flags |= (eMultiresModifierFlag_UseCrease | eMultiresModifierFlag_ControlEdges);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(mmd, DNA_struct_default_get(MultiresModifierData), modifier);
 
   /* Open subdivision panels by default. */
   md->ui_expand_flag = (1 << 0) | (1 << 1);

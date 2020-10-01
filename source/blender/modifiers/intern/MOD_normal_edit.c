@@ -29,6 +29,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -646,11 +647,9 @@ static void initData(ModifierData *md)
 {
   NormalEditModifierData *enmd = (NormalEditModifierData *)md;
 
-  enmd->mode = MOD_NORMALEDIT_MODE_RADIAL;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(enmd, modifier));
 
-  enmd->mix_mode = MOD_NORMALEDIT_MIX_COPY;
-  enmd->mix_factor = 1.0f;
-  enmd->mix_limit = M_PI;
+  MEMCPY_STRUCT_AFTER(enmd, DNA_struct_default_get(NormalEditModifierData), modifier);
 }
 
 static void requiredDataMask(Object *UNUSED(ob),

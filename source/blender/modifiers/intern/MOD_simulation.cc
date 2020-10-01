@@ -32,6 +32,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -63,6 +64,15 @@
 #include "MOD_ui_common.h"
 
 using blender::float3;
+
+static void initData(ModifierData *md)
+{
+  SimulationModifierData *smd = (SimulationModifierData *)md;
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(smd, modifier));
+
+  MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(SimulationModifierData), modifier);
+}
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
@@ -201,7 +211,7 @@ ModifierTypeInfo modifierType_Simulation = {
     /* modifyPointCloud */ modifyPointCloud,
     /* modifyVolume */ NULL,
 
-    /* initData */ NULL,
+    /* initData */ initData,
     /* requiredDataMask */ NULL,
     /* freeData */ freeData,
     /* isDisabled */ isDisabled,

@@ -27,6 +27,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -56,13 +57,9 @@ static void initData(ModifierData *md)
 {
   CastModifierData *cmd = (CastModifierData *)md;
 
-  cmd->fac = 0.5f;
-  cmd->radius = 0.0f;
-  cmd->size = 0.0f;
-  cmd->flag = MOD_CAST_X | MOD_CAST_Y | MOD_CAST_Z | MOD_CAST_SIZE_FROM_RADIUS;
-  cmd->type = MOD_CAST_TYPE_SPHERE;
-  cmd->defgrp_name[0] = '\0';
-  cmd->object = NULL;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(cmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(cmd, DNA_struct_default_get(CastModifierData), modifier);
 }
 
 static bool isDisabled(const struct Scene *UNUSED(scene),

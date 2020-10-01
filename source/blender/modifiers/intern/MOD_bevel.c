@@ -30,6 +30,7 @@
 #include "BLT_translation.h"
 
 #include "DNA_curveprofile_types.h"
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -63,22 +64,10 @@ static void initData(ModifierData *md)
 {
   BevelModifierData *bmd = (BevelModifierData *)md;
 
-  bmd->value = 0.1f;
-  bmd->res = 1;
-  bmd->flags = 0;
-  bmd->val_flags = MOD_BEVEL_AMT_OFFSET;
-  bmd->lim_flags = 0;
-  bmd->e_flags = 0;
-  bmd->edge_flags = 0;
-  bmd->face_str_mode = MOD_BEVEL_FACE_STRENGTH_NONE;
-  bmd->miter_inner = MOD_BEVEL_MITER_SHARP;
-  bmd->miter_outer = MOD_BEVEL_MITER_SHARP;
-  bmd->affect_type = MOD_BEVEL_AFFECT_EDGES;
-  bmd->spread = 0.1f;
-  bmd->mat = -1;
-  bmd->profile = 0.5f;
-  bmd->bevel_angle = DEG2RADF(30.0f);
-  bmd->defgrp_name[0] = '\0';
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(bmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(bmd, DNA_struct_default_get(BevelModifierData), modifier);
+
   bmd->custom_profile = BKE_curveprofile_add(PROF_PRESET_LINE);
 }
 

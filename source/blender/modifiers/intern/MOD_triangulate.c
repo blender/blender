@@ -18,12 +18,15 @@
  * \ingroup modifiers
  */
 
+#include <string.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -107,11 +110,12 @@ static void initData(ModifierData *md)
 {
   TriangulateModifierData *tmd = (TriangulateModifierData *)md;
 
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(tmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(tmd, DNA_struct_default_get(TriangulateModifierData), modifier);
+
   /* Enable in editmode by default */
   md->mode |= eModifierMode_Editmode;
-  tmd->quad_method = MOD_TRIANGULATE_QUAD_SHORTEDGE;
-  tmd->ngon_method = MOD_TRIANGULATE_NGON_BEAUTY;
-  tmd->min_vertices = 4;
 }
 
 static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx), Mesh *mesh)

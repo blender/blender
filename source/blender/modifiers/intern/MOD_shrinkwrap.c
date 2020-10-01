@@ -27,6 +27,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -56,12 +57,10 @@ static bool dependsOnNormals(ModifierData *md);
 static void initData(ModifierData *md)
 {
   ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
-  smd->shrinkType = MOD_SHRINKWRAP_NEAREST_SURFACE;
-  smd->shrinkOpts = MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR;
-  smd->keepDist = 0.0f;
 
-  smd->target = NULL;
-  smd->auxTarget = NULL;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(smd, modifier));
+
+  MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(ShrinkwrapModifierData), modifier);
 }
 
 static void requiredDataMask(Object *UNUSED(ob),

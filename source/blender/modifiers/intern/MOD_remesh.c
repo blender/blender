@@ -29,6 +29,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -63,14 +64,9 @@ static void initData(ModifierData *md)
 {
   RemeshModifierData *rmd = (RemeshModifierData *)md;
 
-  rmd->scale = 0.9;
-  rmd->depth = 4;
-  rmd->hermite_num = 1;
-  rmd->flag = MOD_REMESH_FLOOD_FILL;
-  rmd->mode = MOD_REMESH_VOXEL;
-  rmd->threshold = 1;
-  rmd->voxel_size = 0.1f;
-  rmd->adaptivity = 0.0f;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(rmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(rmd, DNA_struct_default_get(RemeshModifierData), modifier);
 }
 
 #ifdef WITH_MOD_REMESH

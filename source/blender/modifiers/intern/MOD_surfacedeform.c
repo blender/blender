@@ -26,6 +26,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -150,11 +151,10 @@ enum {
 static void initData(ModifierData *md)
 {
   SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
-  smd->target = NULL;
-  smd->verts = NULL;
-  smd->flags = 0;
-  smd->falloff = 4.0f;
-  smd->strength = 1.0f;
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(smd, modifier));
+
+  MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(SurfaceDeformModifierData), modifier);
 }
 
 static void requiredDataMask(Object *UNUSED(ob),

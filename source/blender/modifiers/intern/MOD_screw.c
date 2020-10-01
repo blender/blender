@@ -31,6 +31,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -53,6 +54,15 @@
 
 #include "MOD_modifiertypes.h"
 #include "MOD_ui_common.h"
+
+static void initData(ModifierData *md)
+{
+  ScrewModifierData *ltmd = (ScrewModifierData *)md;
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(ltmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(ltmd, DNA_struct_default_get(ScrewModifierData), modifier);
+}
 
 #include "BLI_strict_flags.h"
 
@@ -175,19 +185,6 @@ static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
     MEM_freeN(full_doubles_map);
   }
   return result;
-}
-
-static void initData(ModifierData *md)
-{
-  ScrewModifierData *ltmd = (ScrewModifierData *)md;
-  ltmd->ob_axis = NULL;
-  ltmd->angle = (float)(M_PI * 2.0);
-  ltmd->axis = 2;
-  ltmd->flag = MOD_SCREW_SMOOTH_SHADING;
-  ltmd->steps = 16;
-  ltmd->render_steps = 16;
-  ltmd->iter = 1;
-  ltmd->merge_dist = 0.01f;
 }
 
 static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *meshData)

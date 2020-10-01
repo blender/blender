@@ -31,6 +31,7 @@
 #include "BLT_translation.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -67,6 +68,15 @@ using blender::ListBaseWrapper;
 using blender::MutableSpan;
 using blender::Span;
 using blender::Vector;
+
+static void initData(ModifierData *md)
+{
+  MaskModifierData *mmd = (MaskModifierData *)md;
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(mmd, DNA_struct_default_get(MaskModifierData), modifier);
+}
 
 static void requiredDataMask(Object *UNUSED(ob),
                              ModifierData *UNUSED(md),
@@ -455,7 +465,7 @@ ModifierTypeInfo modifierType_Mask = {
     /* modifyPointCloud */ NULL,
     /* modifyVolume */ NULL,
 
-    /* initData */ NULL,
+    /* initData */ initData,
     /* requiredDataMask */ requiredDataMask,
     /* freeData */ NULL,
     /* isDisabled */ isDisabled,

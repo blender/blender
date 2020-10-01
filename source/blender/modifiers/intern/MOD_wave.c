@@ -27,6 +27,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -63,21 +64,9 @@ static void initData(ModifierData *md)
 {
   WaveModifierData *wmd = (WaveModifierData *)md;  // whadya know, moved here from Iraq
 
-  wmd->flag |= (MOD_WAVE_X | MOD_WAVE_Y | MOD_WAVE_CYCL | MOD_WAVE_NORM_X | MOD_WAVE_NORM_Y |
-                MOD_WAVE_NORM_Z);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wmd, modifier));
 
-  wmd->objectcenter = NULL;
-  wmd->texture = NULL;
-  wmd->map_object = NULL;
-  wmd->height = 0.5f;
-  wmd->width = 1.5f;
-  wmd->speed = 0.25f;
-  wmd->narrow = 1.5f;
-  wmd->lifetime = 0.0f;
-  wmd->damp = 10.0f;
-  wmd->falloff = 0.0f;
-  wmd->texmapping = MOD_DISP_MAP_LOCAL;
-  wmd->defgrp_name[0] = 0;
+  MEMCPY_STRUCT_AFTER(wmd, DNA_struct_default_get(WaveModifierData), modifier);
 }
 
 static bool dependsOnTime(ModifierData *UNUSED(md))

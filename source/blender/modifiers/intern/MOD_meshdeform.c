@@ -28,6 +28,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -68,7 +69,9 @@ static void initData(ModifierData *md)
 {
   MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
 
-  mmd->gridsize = 5;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(mmd, DNA_struct_default_get(MeshDeformModifierData), modifier);
 }
 
 static void freeData(ModifierData *md)

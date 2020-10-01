@@ -82,6 +82,7 @@
 
 #include "DNA_defaults.h"
 
+#include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_cachefile_types.h"
 #include "DNA_camera_types.h"
@@ -96,6 +97,7 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
@@ -119,6 +121,7 @@
 #include "DNA_material_defaults.h"
 #include "DNA_mesh_defaults.h"
 #include "DNA_meta_defaults.h"
+#include "DNA_modifier_defaults.h"
 #include "DNA_object_defaults.h"
 #include "DNA_pointcloud_defaults.h"
 #include "DNA_scene_defaults.h"
@@ -197,6 +200,63 @@ SDNA_DEFAULT_DECL_STRUCT(Volume);
 
 /* DNA_world_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(World);
+
+/* DNA_modifier_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(ArmatureModifierData);
+SDNA_DEFAULT_DECL_STRUCT(ArrayModifierData);
+SDNA_DEFAULT_DECL_STRUCT(BevelModifierData);
+SDNA_DEFAULT_DECL_STRUCT(BooleanModifierData);
+SDNA_DEFAULT_DECL_STRUCT(BuildModifierData);
+SDNA_DEFAULT_DECL_STRUCT(CastModifierData);
+/* Cloth modifier skipped for now. */
+SDNA_DEFAULT_DECL_STRUCT(CollisionModifierData);
+SDNA_DEFAULT_DECL_STRUCT(CorrectiveSmoothModifierData);
+SDNA_DEFAULT_DECL_STRUCT(CurveModifierData);
+// SDNA_DEFAULT_DECL_STRUCT(DataTransferModifierData);
+SDNA_DEFAULT_DECL_STRUCT(DecimateModifierData);
+SDNA_DEFAULT_DECL_STRUCT(DisplaceModifierData);
+SDNA_DEFAULT_DECL_STRUCT(DynamicPaintModifierData);
+SDNA_DEFAULT_DECL_STRUCT(EdgeSplitModifierData);
+SDNA_DEFAULT_DECL_STRUCT(ExplodeModifierData);
+/* Fluid modifier skipped for now. */
+SDNA_DEFAULT_DECL_STRUCT(HookModifierData);
+SDNA_DEFAULT_DECL_STRUCT(LaplacianDeformModifierData);
+SDNA_DEFAULT_DECL_STRUCT(LaplacianSmoothModifierData);
+SDNA_DEFAULT_DECL_STRUCT(LatticeModifierData);
+SDNA_DEFAULT_DECL_STRUCT(MaskModifierData);
+SDNA_DEFAULT_DECL_STRUCT(MeshCacheModifierData);
+SDNA_DEFAULT_DECL_STRUCT(MeshDeformModifierData);
+SDNA_DEFAULT_DECL_STRUCT(MeshSeqCacheModifierData);
+SDNA_DEFAULT_DECL_STRUCT(MirrorModifierData);
+SDNA_DEFAULT_DECL_STRUCT(MultiresModifierData);
+SDNA_DEFAULT_DECL_STRUCT(NormalEditModifierData);
+SDNA_DEFAULT_DECL_STRUCT(OceanModifierData);
+SDNA_DEFAULT_DECL_STRUCT(ParticleInstanceModifierData);
+SDNA_DEFAULT_DECL_STRUCT(ParticleSystemModifierData);
+SDNA_DEFAULT_DECL_STRUCT(RemeshModifierData);
+SDNA_DEFAULT_DECL_STRUCT(ScrewModifierData);
+/* Shape key modifier has no items. */
+SDNA_DEFAULT_DECL_STRUCT(ShrinkwrapModifierData);
+SDNA_DEFAULT_DECL_STRUCT(SimpleDeformModifierData);
+SDNA_DEFAULT_DECL_STRUCT(SimulationModifierData);
+SDNA_DEFAULT_DECL_STRUCT(SkinModifierData);
+SDNA_DEFAULT_DECL_STRUCT(SmoothModifierData);
+/* Softbody modifier skipped for now. */
+SDNA_DEFAULT_DECL_STRUCT(SolidifyModifierData);
+SDNA_DEFAULT_DECL_STRUCT(SubsurfModifierData);
+SDNA_DEFAULT_DECL_STRUCT(SurfaceModifierData);
+SDNA_DEFAULT_DECL_STRUCT(SurfaceDeformModifierData);
+SDNA_DEFAULT_DECL_STRUCT(TriangulateModifierData);
+SDNA_DEFAULT_DECL_STRUCT(UVProjectModifierData);
+SDNA_DEFAULT_DECL_STRUCT(UVWarpModifierData);
+SDNA_DEFAULT_DECL_STRUCT(WarpModifierData);
+SDNA_DEFAULT_DECL_STRUCT(WaveModifierData);
+SDNA_DEFAULT_DECL_STRUCT(WeightedNormalModifierData);
+SDNA_DEFAULT_DECL_STRUCT(WeightVGEditModifierData);
+SDNA_DEFAULT_DECL_STRUCT(WeightVGMixModifierData);
+SDNA_DEFAULT_DECL_STRUCT(WeightVGProximityModifierData);
+SDNA_DEFAULT_DECL_STRUCT(WeldModifierData);
+SDNA_DEFAULT_DECL_STRUCT(WireframeModifierData);
 
 #undef SDNA_DEFAULT_DECL_STRUCT
 
@@ -321,6 +381,63 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
 
     /* DNA_world_defaults.h */
     SDNA_DEFAULT_DECL(World),
+
+    /* DNA_modifier_defaults.h */
+    SDNA_DEFAULT_DECL(ArmatureModifierData),
+    SDNA_DEFAULT_DECL(ArrayModifierData),
+    SDNA_DEFAULT_DECL(BevelModifierData),
+    SDNA_DEFAULT_DECL(BooleanModifierData),
+    SDNA_DEFAULT_DECL(BuildModifierData),
+    SDNA_DEFAULT_DECL(CastModifierData),
+    /* Cloth modifier skipped for now. */
+    SDNA_DEFAULT_DECL(CollisionModifierData),
+    SDNA_DEFAULT_DECL(CorrectiveSmoothModifierData),
+    SDNA_DEFAULT_DECL(CurveModifierData),
+    // SDNA_DEFAULT_DECL(DataTransferModifierData),
+    SDNA_DEFAULT_DECL(DecimateModifierData),
+    SDNA_DEFAULT_DECL(DisplaceModifierData),
+    SDNA_DEFAULT_DECL(DynamicPaintModifierData),
+    SDNA_DEFAULT_DECL(EdgeSplitModifierData),
+    SDNA_DEFAULT_DECL(ExplodeModifierData),
+    /* Fluid modifier skipped for now. */
+    SDNA_DEFAULT_DECL(HookModifierData),
+    SDNA_DEFAULT_DECL(LaplacianDeformModifierData),
+    SDNA_DEFAULT_DECL(LaplacianSmoothModifierData),
+    SDNA_DEFAULT_DECL(LatticeModifierData),
+    SDNA_DEFAULT_DECL(MaskModifierData),
+    SDNA_DEFAULT_DECL(MeshCacheModifierData),
+    SDNA_DEFAULT_DECL(MeshDeformModifierData),
+    SDNA_DEFAULT_DECL(MeshSeqCacheModifierData),
+    SDNA_DEFAULT_DECL(MirrorModifierData),
+    SDNA_DEFAULT_DECL(MultiresModifierData),
+    SDNA_DEFAULT_DECL(NormalEditModifierData),
+    SDNA_DEFAULT_DECL(OceanModifierData),
+    SDNA_DEFAULT_DECL(ParticleInstanceModifierData),
+    SDNA_DEFAULT_DECL(ParticleSystemModifierData),
+    SDNA_DEFAULT_DECL(RemeshModifierData),
+    SDNA_DEFAULT_DECL(ScrewModifierData),
+    /* Shape key modifier has no items. */
+    SDNA_DEFAULT_DECL(ShrinkwrapModifierData),
+    SDNA_DEFAULT_DECL(SimpleDeformModifierData),
+    SDNA_DEFAULT_DECL(SimulationModifierData),
+    SDNA_DEFAULT_DECL(SkinModifierData),
+    SDNA_DEFAULT_DECL(SmoothModifierData),
+    /* Softbody modifier skipped for now. */
+    SDNA_DEFAULT_DECL(SolidifyModifierData),
+    SDNA_DEFAULT_DECL(SubsurfModifierData),
+    SDNA_DEFAULT_DECL(SurfaceModifierData),
+    SDNA_DEFAULT_DECL(SurfaceDeformModifierData),
+    SDNA_DEFAULT_DECL(TriangulateModifierData),
+    SDNA_DEFAULT_DECL(UVProjectModifierData),
+    SDNA_DEFAULT_DECL(UVWarpModifierData),
+    SDNA_DEFAULT_DECL(WarpModifierData),
+    SDNA_DEFAULT_DECL(WaveModifierData),
+    SDNA_DEFAULT_DECL(WeightedNormalModifierData),
+    SDNA_DEFAULT_DECL(WeightVGEditModifierData),
+    SDNA_DEFAULT_DECL(WeightVGMixModifierData),
+    SDNA_DEFAULT_DECL(WeightVGProximityModifierData),
+    SDNA_DEFAULT_DECL(WeldModifierData),
+    SDNA_DEFAULT_DECL(WireframeModifierData),
 };
 #undef SDNA_DEFAULT_DECL
 #undef SDNA_DEFAULT_DECL_EX

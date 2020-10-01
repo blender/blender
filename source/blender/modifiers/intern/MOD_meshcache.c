@@ -28,6 +28,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -57,16 +58,9 @@ static void initData(ModifierData *md)
 {
   MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
 
-  mcmd->flag = 0;
-  mcmd->type = MOD_MESHCACHE_TYPE_MDD;
-  mcmd->interp = MOD_MESHCACHE_INTERP_LINEAR;
-  mcmd->frame_scale = 1.0f;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mcmd, modifier));
 
-  mcmd->factor = 1.0f;
-
-  /* (Y, Z). Blender default */
-  mcmd->forward_axis = 1;
-  mcmd->up_axis = 2;
+  MEMCPY_STRUCT_AFTER(mcmd, DNA_struct_default_get(MeshCacheModifierData), modifier);
 }
 
 static bool dependsOnTime(ModifierData *md)

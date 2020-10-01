@@ -63,6 +63,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -1925,12 +1926,12 @@ static void initData(ModifierData *md)
 {
   SkinModifierData *smd = (SkinModifierData *)md;
 
-  /* Enable in editmode by default */
-  md->mode |= eModifierMode_Editmode;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(smd, modifier));
 
-  smd->branch_smoothing = 0;
-  smd->flag = 0;
-  smd->symmetry_axes = MOD_SKIN_SYMM_X;
+  MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(SkinModifierData), modifier);
+
+  /* Enable in editmode by default. */
+  md->mode |= eModifierMode_Editmode;
 }
 
 static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx), Mesh *mesh)

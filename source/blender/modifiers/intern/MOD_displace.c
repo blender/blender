@@ -28,6 +28,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -68,11 +69,9 @@ static void initData(ModifierData *md)
 {
   DisplaceModifierData *dmd = (DisplaceModifierData *)md;
 
-  dmd->texture = NULL;
-  dmd->strength = 1;
-  dmd->direction = MOD_DISP_DIR_NOR;
-  dmd->midlevel = 0.5;
-  dmd->space = MOD_DISP_SPACE_LOCAL;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(dmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(dmd, DNA_struct_default_get(DisplaceModifierData), modifier);
 }
 
 static void requiredDataMask(Object *UNUSED(ob),

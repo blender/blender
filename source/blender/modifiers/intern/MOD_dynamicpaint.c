@@ -19,12 +19,14 @@
  */
 
 #include <stddef.h>
+#include <string.h>
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_force_types.h"
@@ -57,9 +59,9 @@ static void initData(ModifierData *md)
 {
   DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 
-  pmd->canvas = NULL;
-  pmd->brush = NULL;
-  pmd->type = MOD_DYNAMICPAINT_TYPE_CANVAS;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(pmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(pmd, DNA_struct_default_get(DynamicPaintModifierData), modifier);
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)

@@ -29,6 +29,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_rand.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -55,8 +56,9 @@ static void initData(ModifierData *md)
 {
   BuildModifierData *bmd = (BuildModifierData *)md;
 
-  bmd->start = 1.0;
-  bmd->length = 100.0;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(bmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(bmd, DNA_struct_default_get(BuildModifierData), modifier);
 }
 
 static bool dependsOnTime(ModifierData *UNUSED(md))

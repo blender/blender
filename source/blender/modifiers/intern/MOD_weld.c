@@ -42,6 +42,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -1913,8 +1914,9 @@ static void initData(ModifierData *md)
 {
   WeldModifierData *wmd = (WeldModifierData *)md;
 
-  wmd->merge_dist = 0.001f;
-  wmd->defgrp_name[0] = '\0';
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(wmd, DNA_struct_default_get(WeldModifierData), modifier);
 }
 
 static void requiredDataMask(Object *UNUSED(ob),

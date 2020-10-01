@@ -32,6 +32,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -119,9 +120,9 @@ static void initData(ModifierData *md)
 {
   EdgeSplitModifierData *emd = (EdgeSplitModifierData *)md;
 
-  /* default to 30-degree split angle, sharpness from both angle & flag */
-  emd->split_angle = DEG2RADF(30.0f);
-  emd->flags = MOD_EDGESPLIT_FROMANGLE | MOD_EDGESPLIT_FROMFLAG;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(emd, modifier));
+
+  MEMCPY_STRUCT_AFTER(emd, DNA_struct_default_get(EdgeSplitModifierData), modifier);
 }
 
 static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx), Mesh *mesh)

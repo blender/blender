@@ -22,11 +22,13 @@
  */
 
 #include <stddef.h>
+#include <string.h>
 
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_screen_types.h"
@@ -54,10 +56,10 @@
 static void initData(ModifierData *md)
 {
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
-  psmd->psys = NULL;
-  psmd->mesh_final = NULL;
-  psmd->mesh_original = NULL;
-  psmd->totdmvert = psmd->totdmedge = psmd->totdmface = 0;
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(psmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(psmd, DNA_struct_default_get(ParticleSystemModifierData), modifier);
 }
 static void freeData(ModifierData *md)
 {

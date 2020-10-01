@@ -30,6 +30,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -64,8 +65,9 @@ static void initData(ModifierData *md)
 {
   ExplodeModifierData *emd = (ExplodeModifierData *)md;
 
-  emd->facepa = NULL;
-  emd->flag |= eExplodeFlag_Unborn + eExplodeFlag_Alive + eExplodeFlag_Dead;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(emd, modifier));
+
+  MEMCPY_STRUCT_AFTER(emd, DNA_struct_default_get(ExplodeModifierData), modifier);
 }
 static void freeData(ModifierData *md)
 {

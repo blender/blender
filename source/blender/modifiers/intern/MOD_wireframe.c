@@ -24,6 +24,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -47,9 +48,10 @@
 static void initData(ModifierData *md)
 {
   WireframeModifierData *wmd = (WireframeModifierData *)md;
-  wmd->offset = 0.02f;
-  wmd->flag = MOD_WIREFRAME_REPLACE | MOD_WIREFRAME_OFS_EVEN;
-  wmd->crease_weight = 1.0f;
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(wmd, DNA_struct_default_get(WireframeModifierData), modifier);
 }
 
 static void requiredDataMask(Object *UNUSED(ob),

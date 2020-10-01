@@ -31,6 +31,7 @@
 #include "BLT_translation.h"
 
 #include "DNA_camera_types.h"
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -61,9 +62,9 @@ static void initData(ModifierData *md)
 {
   UVProjectModifierData *umd = (UVProjectModifierData *)md;
 
-  umd->num_projectors = 1;
-  umd->aspectx = umd->aspecty = 1.0f;
-  umd->scalex = umd->scaley = 1.0f;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(umd, modifier));
+
+  MEMCPY_STRUCT_AFTER(umd, DNA_struct_default_get(UVProjectModifierData), modifier);
 }
 
 static void requiredDataMask(Object *UNUSED(ob),

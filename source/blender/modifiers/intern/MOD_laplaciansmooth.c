@@ -27,6 +27,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -497,12 +498,10 @@ static void laplaciansmoothModifier_do(
 static void init_data(ModifierData *md)
 {
   LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *)md;
-  smd->lambda = 0.01f;
-  smd->lambda_border = 0.01f;
-  smd->repeat = 1;
-  smd->flag = MOD_LAPLACIANSMOOTH_X | MOD_LAPLACIANSMOOTH_Y | MOD_LAPLACIANSMOOTH_Z |
-              MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME | MOD_LAPLACIANSMOOTH_NORMALIZED;
-  smd->defgrp_name[0] = '\0';
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(smd, modifier));
+
+  MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(LaplacianSmoothModifierData), modifier);
 }
 
 static bool is_disabled(const struct Scene *UNUSED(scene),

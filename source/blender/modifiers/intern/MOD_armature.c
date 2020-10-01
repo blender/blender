@@ -29,6 +29,7 @@
 #include "BLT_translation.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -65,7 +66,9 @@ static void initData(ModifierData *md)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
 
-  amd->deformflag = ARM_DEF_VGROUP;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(amd, modifier));
+
+  MEMCPY_STRUCT_AFTER(amd, DNA_struct_default_get(ArmatureModifierData), modifier);
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)

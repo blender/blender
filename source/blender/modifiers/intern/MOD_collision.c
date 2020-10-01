@@ -27,6 +27,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -62,16 +63,9 @@ static void initData(ModifierData *md)
 {
   CollisionModifierData *collmd = (CollisionModifierData *)md;
 
-  collmd->x = NULL;
-  collmd->xnew = NULL;
-  collmd->current_x = NULL;
-  collmd->current_xnew = NULL;
-  collmd->current_v = NULL;
-  collmd->time_x = collmd->time_xnew = -1000;
-  collmd->mvert_num = 0;
-  collmd->tri_num = 0;
-  collmd->is_static = false;
-  collmd->bvhtree = NULL;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(collmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(collmd, DNA_struct_default_get(CollisionModifierData), modifier);
 }
 
 static void freeData(ModifierData *md)

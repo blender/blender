@@ -27,6 +27,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
@@ -55,7 +56,10 @@
 static void initData(ModifierData *md)
 {
   LatticeModifierData *lmd = (LatticeModifierData *)md;
-  lmd->strength = 1.0f;
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(lmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(lmd, DNA_struct_default_get(LatticeModifierData), modifier);
 }
 
 static void requiredDataMask(Object *UNUSED(ob),

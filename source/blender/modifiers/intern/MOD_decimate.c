@@ -27,6 +27,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -63,9 +64,9 @@ static void initData(ModifierData *md)
 {
   DecimateModifierData *dmd = (DecimateModifierData *)md;
 
-  dmd->percent = 1.0;
-  dmd->angle = DEG2RADF(5.0f);
-  dmd->defgrp_factor = 1.0;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(dmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(dmd, DNA_struct_default_get(DecimateModifierData), modifier);
 }
 
 static void requiredDataMask(Object *UNUSED(ob),

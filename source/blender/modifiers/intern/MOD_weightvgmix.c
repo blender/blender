@@ -28,6 +28,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -131,14 +132,9 @@ static void initData(ModifierData *md)
 {
   WeightVGMixModifierData *wmd = (WeightVGMixModifierData *)md;
 
-  wmd->default_weight_a = 0.0f;
-  wmd->default_weight_b = 0.0f;
-  wmd->mix_mode = MOD_WVG_MIX_SET;
-  wmd->mix_set = MOD_WVG_SET_AND;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wmd, modifier));
 
-  wmd->mask_constant = 1.0f;
-  wmd->mask_tex_use_channel = MOD_WVG_MASK_TEX_USE_INT; /* Use intensity by default. */
-  wmd->mask_tex_mapping = MOD_DISP_MAP_LOCAL;
+  MEMCPY_STRUCT_AFTER(wmd, DNA_struct_default_get(WeightVGMixModifierData), modifier);
 }
 
 static void requiredDataMask(Object *UNUSED(ob),

@@ -28,6 +28,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -63,10 +64,11 @@ static void initData(ModifierData *md)
 {
   HookModifierData *hmd = (HookModifierData *)md;
 
-  hmd->force = 1.0;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(hmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(hmd, DNA_struct_default_get(HookModifierData), modifier);
+
   hmd->curfalloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-  hmd->falloff_type = eHook_Falloff_Smooth;
-  hmd->flag = 0;
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)

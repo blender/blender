@@ -25,6 +25,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -59,9 +60,9 @@ static void initData(ModifierData *md)
 {
   MirrorModifierData *mmd = (MirrorModifierData *)md;
 
-  mmd->flag |= (MOD_MIR_AXIS_X | MOD_MIR_VGROUP);
-  mmd->tolerance = 0.001;
-  mmd->mirror_ob = NULL;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(mmd, DNA_struct_default_get(MirrorModifierData), modifier);
 }
 
 static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)

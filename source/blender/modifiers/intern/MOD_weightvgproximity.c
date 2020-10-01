@@ -31,6 +31,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -316,15 +317,9 @@ static void initData(ModifierData *md)
 {
   WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
 
-  wmd->proximity_mode = MOD_WVG_PROXIMITY_OBJECT;
-  wmd->proximity_flags = MOD_WVG_PROXIMITY_GEOM_VERTS;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wmd, modifier));
 
-  wmd->falloff_type = MOD_WVG_MAPPING_NONE;
-
-  wmd->mask_constant = 1.0f;
-  wmd->mask_tex_use_channel = MOD_WVG_MASK_TEX_USE_INT; /* Use intensity by default. */
-  wmd->mask_tex_mapping = MOD_DISP_MAP_LOCAL;
-  wmd->max_dist = 1.0f; /* vert arbitrary distance, but don't use 0 */
+  MEMCPY_STRUCT_AFTER(wmd, DNA_struct_default_get(WeightVGProximityModifierData), modifier);
 }
 
 static void requiredDataMask(Object *UNUSED(ob),

@@ -26,6 +26,7 @@
 #include "BLT_translation.h"
 
 #include "DNA_cachefile_types.h"
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -64,15 +65,9 @@ static void initData(ModifierData *md)
 {
   MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *)md;
 
-  mcmd->cache_file = NULL;
-  mcmd->object_path[0] = '\0';
-  mcmd->read_flag = MOD_MESHSEQ_READ_ALL | MOD_MESHSEQ_INTERPOLATE_VERTICES;
-  mcmd->velocity_scale = 1.0f;
-  mcmd->vertex_velocities = NULL;
-  mcmd->num_vertices = 0;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mcmd, modifier));
 
-  mcmd->reader = NULL;
-  mcmd->reader_object_path[0] = '\0';
+  MEMCPY_STRUCT_AFTER(mcmd, DNA_struct_default_get(MeshSeqCacheModifierData), modifier);
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)

@@ -29,6 +29,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -56,8 +57,6 @@
 
 #include "BLO_read_write.h"
 
-#include "BLI_strict_flags.h"
-
 #include "DEG_depsgraph_query.h"
 
 // #define DEBUG_TIME
@@ -74,19 +73,14 @@ static void initData(ModifierData *md)
 {
   CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
 
-  csmd->bind_coords = NULL;
-  csmd->bind_coords_num = 0;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(csmd, modifier));
 
-  csmd->lambda = 0.5f;
-  csmd->scale = 1.0f;
-  csmd->repeat = 5;
-  csmd->flag = 0;
-  csmd->smooth_type = MOD_CORRECTIVESMOOTH_SMOOTH_SIMPLE;
-
-  csmd->defgrp_name[0] = '\0';
+  MEMCPY_STRUCT_AFTER(csmd, DNA_struct_default_get(CorrectiveSmoothModifierData), modifier);
 
   csmd->delta_cache.deltas = NULL;
 }
+
+#include "BLI_strict_flags.h"
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
 {

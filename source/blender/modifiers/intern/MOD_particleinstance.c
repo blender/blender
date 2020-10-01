@@ -32,6 +32,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_screen_types.h"
@@ -61,17 +62,9 @@ static void initData(ModifierData *md)
 {
   ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
 
-  pimd->flag = eParticleInstanceFlag_Parents | eParticleInstanceFlag_Unborn |
-               eParticleInstanceFlag_Alive | eParticleInstanceFlag_Dead;
-  pimd->psys = 1;
-  pimd->position = 1.0f;
-  pimd->axis = 2;
-  pimd->space = eParticleInstanceSpace_World;
-  pimd->particle_amount = 1.0f;
-  pimd->particle_offset = 0.0f;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(pimd, modifier));
 
-  STRNCPY(pimd->index_layer_name, "");
-  STRNCPY(pimd->value_layer_name, "");
+  MEMCPY_STRUCT_AFTER(pimd, DNA_struct_default_get(ParticleInstanceModifierData), modifier);
 }
 
 static void requiredDataMask(Object *UNUSED(ob),

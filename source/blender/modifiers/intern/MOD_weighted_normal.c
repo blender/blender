@@ -26,6 +26,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -686,10 +687,10 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 static void initData(ModifierData *md)
 {
   WeightedNormalModifierData *wnmd = (WeightedNormalModifierData *)md;
-  wnmd->mode = MOD_WEIGHTEDNORMAL_MODE_FACE;
-  wnmd->weight = 50;
-  wnmd->thresh = 1e-2f;
-  wnmd->flag = 0;
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wnmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(wnmd, DNA_struct_default_get(WeightedNormalModifierData), modifier);
 }
 
 static void requiredDataMask(Object *UNUSED(ob),
