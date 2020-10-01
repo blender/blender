@@ -1327,6 +1327,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
             scalar_vgroup = min_ff(BKE_defvert_find_weight(dv, defgrp_index), scalar_vgroup);
           }
         }
+        scalar_vgroup = offset_fac_vg + (scalar_vgroup * offset_fac_vg_inv);
         face_weight[i] = scalar_vgroup;
       }
     }
