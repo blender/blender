@@ -715,7 +715,7 @@ static void do_cloth_brush_solve_simulation_task_cb_ex(
 
       float pos_diff[3];
       sub_v3_v3v3(pos_diff, cloth_sim->pos[i], cloth_sim->prev_pos[i]);
-      mul_v3_fl(pos_diff, (1.0f - cloth_sim->damping));
+      mul_v3_fl(pos_diff, (1.0f - cloth_sim->damping) * sim_factor);
 
       const float mask_v = (1.0f - (vd.mask ? *vd.mask : 0.0f)) *
                            SCULPT_automasking_factor_get(ss, vd.index);
