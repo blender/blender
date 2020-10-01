@@ -2190,8 +2190,10 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
 
         NewEdgeRef *edge1 = new_edges[0];
         NewEdgeRef *edge2 = new_edges[1];
-        const bool v1_singularity = edge1->link_edge_groups[0]->is_singularity;
-        const bool v2_singularity = edge1->link_edge_groups[1]->is_singularity;
+        const bool v1_singularity = edge1->link_edge_groups[0]->is_singularity &&
+                                    edge2->link_edge_groups[0]->is_singularity;
+        const bool v2_singularity = edge1->link_edge_groups[1]->is_singularity &&
+                                    edge2->link_edge_groups[1]->is_singularity;
         if (v1_singularity && v2_singularity) {
           continue;
         }
