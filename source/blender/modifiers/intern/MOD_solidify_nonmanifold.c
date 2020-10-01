@@ -2391,7 +2391,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
           CustomData_copy_data(&mesh->pdata, &result->pdata, (int)(i / 2), (int)poly_index, 1);
           mpoly[poly_index].loopstart = (int)loop_index;
           mpoly[poly_index].totloop = (int)k;
-          mpoly[poly_index].mat_nr = fr->face->mat_nr + (fr->reversed ? mat_ofs : 0);
+          mpoly[poly_index].mat_nr = fr->face->mat_nr + (fr->reversed != do_flip ? mat_ofs : 0);
           CLAMP(mpoly[poly_index].mat_nr, 0, mat_nr_max);
           mpoly[poly_index].flag = fr->face->flag;
           if (fr->reversed != do_flip) {
