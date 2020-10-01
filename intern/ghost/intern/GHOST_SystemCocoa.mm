@@ -1838,7 +1838,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
                                      keyCode,
                                      ascii,
                                      utf8_buf,
-                                     false));
+                                     [event isARepeat]));
 #if 0
         printf("Key down rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c utf8=%s\n",
                [event keyCode],
