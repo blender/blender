@@ -1307,7 +1307,6 @@ static void rna_def_trackingCamera(BlenderRNA *brna)
       prop, "P2", "Second coefficient of second order Brown-Conrady tangential distortion");
   RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_tracking_flushUpdate");
 
-
   /* pixel aspect */
   prop = RNA_def_property(srna, "pixel_aspect", PROP_FLOAT, PROP_XYZ);
   RNA_def_property_float_sdna(prop, NULL, "pixel_aspect");

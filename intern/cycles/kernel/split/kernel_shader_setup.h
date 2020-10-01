@@ -40,7 +40,8 @@ ccl_device void kernel_shader_setup(KernelGlobals *kg,
                               kernel_split_state.queue_data,
                               kernel_split_params.queue_size,
                               0);
-  } else {
+  }
+  else {
     ray_index = QUEUE_EMPTY_SLOT;
   }
 
