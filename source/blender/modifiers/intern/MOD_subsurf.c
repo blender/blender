@@ -263,7 +263,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   if (subdiv_settings.level == 0) {
     return result;
   }
-  BKE_subdiv_settings_validate_for_mesh(&subdiv_settings, mesh);
   SubsurfRuntimeData *runtime_data = subsurf_ensure_runtime(smd);
   Subdiv *subdiv = subdiv_descriptor_ensure(smd, &subdiv_settings, mesh);
   if (subdiv == NULL) {
@@ -323,7 +322,6 @@ static void deformMatrices(ModifierData *md,
   if (subdiv_settings.level == 0) {
     return;
   }
-  BKE_subdiv_settings_validate_for_mesh(&subdiv_settings, mesh);
   SubsurfRuntimeData *runtime_data = subsurf_ensure_runtime(smd);
   Subdiv *subdiv = subdiv_descriptor_ensure(smd, &subdiv_settings, mesh);
   if (subdiv == NULL) {

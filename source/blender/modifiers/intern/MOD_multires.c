@@ -225,7 +225,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   if (subdiv_settings.level == 0) {
     return result;
   }
-  BKE_subdiv_settings_validate_for_mesh(&subdiv_settings, mesh);
   MultiresRuntimeData *runtime_data = multires_ensure_runtime(mmd);
   Subdiv *subdiv = subdiv_descriptor_ensure(mmd, &subdiv_settings, mesh);
   if (subdiv == NULL) {
@@ -322,7 +321,6 @@ static void deformMatrices(ModifierData *md,
     return;
   }
 
-  BKE_subdiv_settings_validate_for_mesh(&subdiv_settings, mesh);
   MultiresRuntimeData *runtime_data = multires_ensure_runtime(mmd);
   Subdiv *subdiv = subdiv_descriptor_ensure(mmd, &subdiv_settings, mesh);
   if (subdiv == NULL) {
