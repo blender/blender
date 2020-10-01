@@ -299,7 +299,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
 
   // Initialize Wintab
   m_wintab.handle = ::LoadLibrary("Wintab32.dll");
-  if (m_wintab.handle) {
+  if (m_wintab.handle && m_system->getTabletAPI() != GHOST_kTabletNative) {
     // Get API functions
     m_wintab.info = (GHOST_WIN32_WTInfo)::GetProcAddress(m_wintab.handle, "WTInfoA");
     m_wintab.open = (GHOST_WIN32_WTOpen)::GetProcAddress(m_wintab.handle, "WTOpenA");
