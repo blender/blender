@@ -1118,6 +1118,7 @@ static bool read_file_dna(FileData *fd, const char **r_error_message)
             fd->filesdna, fd->memsdna, fd->compflags);
         /* used to retrieve ID names from (bhead+1) */
         fd->id_name_offs = DNA_elem_offset(fd->filesdna, "ID", "char", "name[]");
+        BLI_assert(fd->id_name_offs != -1);
 
         return true;
       }

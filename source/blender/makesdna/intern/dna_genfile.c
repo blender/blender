@@ -943,54 +943,41 @@ static bool elem_exists_alias(const SDNA *sdna,
 }
 
 /**
- * Returns the address of the data for the specified field within olddata
- * according to the struct format pointed to by old, or NULL if no such
- * field can be found.
+ * Return the offset in bytes or -1 on failure to find the struct member with it's expected type.
  *
- * Passing olddata=NULL doesn't work reliably for existence checks; it will
- * return NULL both when the field is found at offset 0 and when it is not
- * found at all. For field existence checks, use #elem_exists() instead.
+ * \param sdna: Old #SDNA.
+ * \param type: Current field type name.
+ * \param name: Current field name.
+ * \param old: Pointer to struct information in #SDNA.
+ * \return The offset or -1 on failure.
  *
- * \param sdna: Old SDNA
- * \param type: Current field type name
- * \param name: Current field name
- * \param old: Pointer to struct information in sdna
- * \param olddata: Struct data
- * \param sppo: Optional place to return pointer to field info in sdna
- * \return Data address.
+ * \note Use #elem_exists if additional information provided by this function is not needed.
+ *
+ * \note We could have a version of this function that
+ * returns the #SDNA_StructMember currently it's not needed.
  */
-static const char *find_elem(const SDNA *sdna,
-                             const char *type,
-                             const char *name,
-                             const SDNA_Struct *old,
-                             const char *olddata,
-                             const SDNA_StructMember **sppo)
+static int elem_offset(const SDNA *sdna,
+                       const char *type,
+                       const char *name,
+                       const SDNA_Struct *old)
 {
   /* without arraypart, so names can differ: return old namenr and type */
 
   /* in old is the old struct */
+  int offset = 0;
   for (int a = 0; a < old->members_len; a++) {
     const SDNA_StructMember *member = &old->members[a];
-
     const char *otype = sdna->types[member->type];
     const char *oname = sdna->names[member->name];
-
-    const int len = DNA_elem_size_nr(sdna, member->type, member->name);
-
     if (elem_streq(name, oname)) { /* name equal */
       if (STREQ(type, otype)) {    /* type equal */
-        if (sppo) {
-          *sppo = member;
-        }
-        return olddata;
+        return offset;
       }
-
-      return NULL;
+      break; /* Fail below. */
     }
-
-    olddata += len;
+    offset += DNA_elem_size_nr(sdna, member->type, member->name);
   }
-  return NULL;
+  return -1;
 }
 
 /**
@@ -1024,8 +1011,10 @@ void DNA_struct_switch_endian(const SDNA *oldsdna, int oldSDNAnr, char *data)
     if (member->type >= firststructtypenr && !ispointer(name)) {
       /* struct field type */
       /* where does the old data start (is there one?) */
-      char *cpo = (char *)find_elem(oldsdna, type, name, struct_info, data, NULL);
-      if (cpo) {
+
+      const int data_offset = elem_offset(oldsdna, type, name, struct_info);
+      if (data_offset != -1) {
+        char *cpo = data + data_offset;
         unsigned int oldsdna_index_last = UINT_MAX;
         oldSDNAnr = DNA_struct_find_nr_ex(oldsdna, type, &oldsdna_index_last);
 
@@ -1612,15 +1601,14 @@ void DNA_reconstruct_info_free(DNA_ReconstructInfo *reconstruct_info)
 
 /**
  * Returns the offset of the field with the specified name and type within the specified
- * struct type in sdna.
+ * struct type in #SDNA, -1 on failure.
  */
 int DNA_elem_offset(SDNA *sdna, const char *stype, const char *vartype, const char *name)
 {
   const int SDNAnr = DNA_struct_find_nr(sdna, stype);
-  const SDNA_Struct *const spo = sdna->structs[SDNAnr];
-  const char *const cp = find_elem(sdna, vartype, name, spo, NULL, NULL);
   BLI_assert(SDNAnr != -1);
-  return (int)((intptr_t)cp);
+  const SDNA_Struct *const spo = sdna->structs[SDNAnr];
+  return elem_offset(sdna, vartype, name, spo);
 }
 
 bool DNA_struct_find(const SDNA *sdna, const char *stype)
