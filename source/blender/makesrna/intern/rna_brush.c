@@ -2099,6 +2099,11 @@ static void rna_def_brush(BlenderRNA *brna)
        "Local",
        "Simulates only a specific area around the brush limited by a fixed radius"},
       {BRUSH_CLOTH_SIMULATION_AREA_GLOBAL, "GLOBAL", 0, "Global", "Simulates the entire mesh"},
+      {BRUSH_CLOTH_SIMULATION_AREA_DYNAMIC,
+       "DYNAMIC",
+       0,
+       "Dynamic",
+       "The active simulation area moves with the brush"},
       {0, NULL, 0, NULL, NULL},
   };
 

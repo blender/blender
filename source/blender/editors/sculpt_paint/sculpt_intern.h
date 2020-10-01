@@ -372,6 +372,11 @@ struct SculptClothSimulation *SCULPT_cloth_brush_simulation_create(struct Sculpt
                                                                    const bool needs_deform_coords);
 void SCULPT_cloth_brush_simulation_init(struct SculptSession *ss,
                                         struct SculptClothSimulation *cloth_sim);
+
+void SCULPT_cloth_sim_activate_nodes(struct SculptClothSimulation *cloth_sim,
+                                     PBVHNode **nodes,
+                                     int totnode);
+
 void SCULPT_cloth_brush_store_simulation_state(struct SculptSession *ss,
                                                struct SculptClothSimulation *cloth_sim);
 
@@ -381,13 +386,13 @@ void SCULPT_cloth_brush_do_simulation_step(struct Sculpt *sd,
                                            struct PBVHNode **nodes,
                                            int totnode);
 
-void SCULPT_cloth_brush_build_nodes_constraints(struct Sculpt *sd,
-                                                struct Object *ob,
-                                                struct PBVHNode **nodes,
-                                                int totnode,
-                                                struct SculptClothSimulation *cloth_sim,
-                                                float initial_location[3],
-                                                const float radius);
+void SCULPT_cloth_brush_ensure_nodes_constraints(struct Sculpt *sd,
+                                                 struct Object *ob,
+                                                 struct PBVHNode **nodes,
+                                                 int totnode,
+                                                 struct SculptClothSimulation *cloth_sim,
+                                                 float initial_location[3],
+                                                 const float radius);
 
 void SCULPT_cloth_simulation_limits_draw(const uint gpuattr,
                                          const struct Brush *brush,

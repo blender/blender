@@ -359,6 +359,7 @@ typedef enum eBrushClothForceFalloffType {
 typedef enum eBrushClothSimulationAreaType {
   BRUSH_CLOTH_SIMULATION_AREA_LOCAL = 0,
   BRUSH_CLOTH_SIMULATION_AREA_GLOBAL = 1,
+  BRUSH_CLOTH_SIMULATION_AREA_DYNAMIC = 2,
 } eBrushClothSimulationAreaType;
 
 typedef enum eBrushPoseDeformType {

@@ -256,6 +256,18 @@ typedef struct SculptPoseIKChain {
 
 /* Cloth Brush */
 
+/* Cloth Simulation. */
+typedef enum eSculptClothNodeSimState {
+  /* Constraints were not built for this node, so it can't be simulated. */
+  SCULPT_CLOTH_NODE_UNINITIALIZED,
+
+  /* There are constraints for the geometry in this node, but it should not be simulated. */
+  SCULPT_CLOTH_NODE_INACTIVE,
+
+  /* There are constraints for this node and they should be used by the solver. */
+  SCULPT_CLOTH_NODE_ACTIVE,
+} eSculptClothNodeSimState;
+
 typedef enum eSculptClothConstraintType {
   /* Constraint that creates the structure of the cloth. */
   SCULPT_CLOTH_CONSTRAINT_STRUCTURAL = 0,
@@ -281,6 +293,10 @@ typedef struct SculptClothLengthConstraint {
 
   float length;
   float strength;
+
+  /* Index in SculptClothSimulation.node_state of the node from where this constraint was created.
+   * This constraints will only be used by the solver if the state is active. */
+  int node;
 
   eSculptClothConstraintType type;
 } SculptClothLengthConstraint;
@@ -308,6 +324,11 @@ typedef struct SculptClothSimulation {
   float (*last_iteration_pos)[3];
 
   struct ListBase *collider_list;
+
+  int totnode;
+  /* PBVHNode pointer as a key, index in SculptClothSimulation.node_state as value. */
+  struct GHash *node_state_index;
+  eSculptClothNodeSimState *node_state;
 } SculptClothSimulation;
 
 typedef struct SculptPersistentBase {

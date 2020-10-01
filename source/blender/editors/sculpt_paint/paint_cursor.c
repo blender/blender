@@ -1663,7 +1663,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
 
   /* Cloth brush local simulation areas. */
   if (brush->sculpt_tool == SCULPT_TOOL_CLOTH &&
-      brush->cloth_simulation_area_type == BRUSH_CLOTH_SIMULATION_AREA_LOCAL) {
+      brush->cloth_simulation_area_type != BRUSH_CLOTH_SIMULATION_AREA_GLOBAL) {
     const float white[3] = {1.0f, 1.0f, 1.0f};
     const float zero_v[3] = {0.0f};
     /* This functions sets its own drawing space in order to draw the simulation limits when the
