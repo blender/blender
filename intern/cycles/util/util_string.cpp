@@ -117,14 +117,14 @@ bool string_startswith(const string &s, const char *start)
     return strncmp(s.c_str(), start, len) == 0;
 }
 
-bool string_endswith(const string &s, const char *end)
+bool string_endswith(const string &s, const string &end)
 {
-  size_t len = strlen(end);
+  size_t len = end.length();
 
   if (len > s.size())
     return 0;
   else
-    return strncmp(s.c_str() + s.size() - len, end, len) == 0;
+    return s.compare(s.length() - len, len, end) == 0;
 }
 
 string string_strip(const string &s)

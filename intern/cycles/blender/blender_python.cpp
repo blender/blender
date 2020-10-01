@@ -968,6 +968,44 @@ static PyObject *get_device_types_func(PyObject * /*self*/, PyObject * /*args*/)
   return list;
 }
 
+static PyObject *set_device_override_func(PyObject * /*self*/, PyObject *arg)
+{
+  PyObject *override_string = PyObject_Str(arg);
+  string override = PyUnicode_AsUTF8(override_string);
+  Py_DECREF(override_string);
+
+  bool include_cpu = false;
+  const string cpu_suffix = "+CPU";
+  if (string_endswith(override, cpu_suffix)) {
+    include_cpu = true;
+    override = override.substr(0, override.length() - cpu_suffix.length());
+  }
+
+  if (override == "CPU") {
+    BlenderSession::device_override = DEVICE_MASK_CPU;
+  }
+  else if (override == "OPENCL") {
+    BlenderSession::device_override = DEVICE_MASK_OPENCL;
+  }
+  else if (override == "CUDA") {
+    BlenderSession::device_override = DEVICE_MASK_CUDA;
+  }
+  else if (override == "OPTIX") {
+    BlenderSession::device_override = DEVICE_MASK_OPTIX;
+  }
+  else {
+    printf("\nError: %s is not a valid Cycles device.\n", override.c_str());
+    Py_RETURN_FALSE;
+  }
+
+  if (include_cpu) {
+    BlenderSession::device_override = (DeviceTypeMask)(BlenderSession::device_override |
+                                                       DEVICE_MASK_CPU);
+  }
+
+  Py_RETURN_TRUE;
+}
+
 static PyMethodDef methods[] = {
     {"init", init_func, METH_VARARGS, ""},
     {"exit", exit_func, METH_VARARGS, ""},
@@ -1007,6 +1045,7 @@ static PyMethodDef methods[] = {
 
     /* Compute Device selection */
     {"get_device_types", get_device_types_func, METH_VARARGS, ""},
+    {"set_device_override", set_device_override_func, METH_O, ""},
 
     {NULL, NULL, 0, NULL},
 };

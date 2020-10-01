@@ -70,6 +70,11 @@ def _configure_argument_parser():
     parser.add_argument("--cycles-print-stats",
                         help="Print rendering statistics to stderr",
                         action='store_true')
+    parser.add_argument("--cycles-device",
+                        help="Set the device to use for Cycles, overriding user preferences and the scene setting."
+                             "Valid options are 'CPU', 'CUDA', 'OPTIX' or 'OPENCL'."
+                             "Additionally, you can append '+CPU' to any GPU type for hybrid rendering.",
+                        default=None)
     return parser
 
 
@@ -101,6 +106,10 @@ def _parse_command_line():
     if args.cycles_print_stats:
         import _cycles
         _cycles.enable_print_stats()
+
+    if args.cycles_device:
+        import _cycles
+        _cycles.set_device_override(args.cycles_device)
 
 
 def init():

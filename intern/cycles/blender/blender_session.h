@@ -126,6 +126,7 @@ class BlenderSession {
   /* Global state which is common for all render sessions created from Blender.
    * Usually denotes command line arguments.
    */
+  static DeviceTypeMask device_override;
 
   /* Blender is running from the command line, no windows are shown and some
    * extra render optimization is possible (possible to free draw-only data and

@@ -47,6 +47,7 @@
 
 CCL_NAMESPACE_BEGIN
 
+DeviceTypeMask BlenderSession::device_override = DEVICE_MASK_ALL;
 bool BlenderSession::headless = false;
 int BlenderSession::num_resumable_chunks = 0;
 int BlenderSession::current_resumable_chunk = 0;
