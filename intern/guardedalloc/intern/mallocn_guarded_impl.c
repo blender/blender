@@ -24,6 +24,7 @@
  */
 
 #include <stdarg.h>
+#include <stddef.h> /* offsetof */
 #include <stdlib.h>
 #include <string.h> /* memcpy */
 #include <sys/types.h>
@@ -153,7 +154,7 @@ static const char *check_memlist(MemHead *memh);
 #define MEMTAG3 MAKE_ID('O', 'C', 'K', '!')
 #define MEMFREE MAKE_ID('F', 'R', 'E', 'E')
 
-#define MEMNEXT(x) ((MemHead *)(((char *)x) - ((char *)&(((MemHead *)0)->next))))
+#define MEMNEXT(x) ((MemHead *)(((char *)x) - offsetof(MemHead, next)))
 
 /* --------------------------------------------------------------------- */
 /* vars                                                                  */
