@@ -357,10 +357,23 @@ AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const int flag)
 
   /* make a copy of action - at worst, user has to delete copies... */
   if (do_action) {
+    /* Recursive copy of 'real' IDs is a bit hairy. Even if do not want to deal with usercount
+     *  when copying ID's data itself, we still need to do so with sub-IDs, since those will not be
+     * handled by later 'update usercounts of used IDs' code as used e.g. at end of
+     * BKE_id_copy_ex().
+     * So in case we do copy the ID and its sub-IDs in bmain, silence the 'no usercount' flag for
+     * the sub-IDs copying.
+     * Note: This is a bit weak, as usually when it comes to recursive ID copy. Should work for
+     * now, but we may have to revisit this at some point and add a proper extra flag to deal with
+     * that situation. Or refactor completely the way we handle such recursion, by flattening it
+     * e.g. */
+    const int id_copy_flag = (flag & LIB_ID_CREATE_NO_MAIN) == 0 ?
+                                 flag & ~LIB_ID_CREATE_NO_USER_REFCOUNT :
+                                 flag;
     BLI_assert(bmain != NULL);
     BLI_assert(dadt->action == NULL || dadt->action != dadt->tmpact);
-    BKE_id_copy_ex(bmain, (ID *)dadt->action, (ID **)&dadt->action, flag);
-    BKE_id_copy_ex(bmain, (ID *)dadt->tmpact, (ID **)&dadt->tmpact, flag);
+    BKE_id_copy_ex(bmain, (ID *)dadt->action, (ID **)&dadt->action, id_copy_flag);
+    BKE_id_copy_ex(bmain, (ID *)dadt->tmpact, (ID **)&dadt->tmpact, id_copy_flag);
   }
   else if (do_id_user) {
     id_us_plus((ID *)dadt->action);
