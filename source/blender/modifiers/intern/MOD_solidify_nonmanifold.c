@@ -619,7 +619,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
                       uint *e_adj_faces_faces = e_adj_faces->faces;
                       bool *e_adj_faces_reversed = e_adj_faces->faces_reversed;
                       const uint faces_len = e_adj_faces->faces_len;
-                      if (e != i) {
+                      if (e_adj_faces_faces != adj_faces->faces) {
                         /* Find index of e in #adj_faces. */
                         for (face_index = 0;
                              face_index < faces_len && e_adj_faces_faces[face_index] != face;
