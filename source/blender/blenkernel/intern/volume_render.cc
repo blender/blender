@@ -140,7 +140,6 @@ static void extract_dense_float_voxels(const VolumeGridType grid_type,
       /* Zero channels to copy. */
       break;
   }
-  return;
 }
 
 static void create_texture_to_object_matrix(const openvdb::Mat4d &grid_transform,

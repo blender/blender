@@ -106,9 +106,9 @@ int DNA_struct_find_nr(const struct SDNA *sdna, const char *str);
 void DNA_struct_switch_endian(const struct SDNA *oldsdna, int oldSDNAnr, char *data);
 const char *DNA_struct_get_compareflags(const struct SDNA *sdna, const struct SDNA *newsdna);
 void *DNA_struct_reconstruct(const struct DNA_ReconstructInfo *reconstruct_info,
-                             int oldSDNAnr,
+                             int old_struct_nr,
                              int blocks,
-                             const void *data);
+                             const void *old_blocks);
 
 int DNA_elem_offset(struct SDNA *sdna, const char *stype, const char *vartype, const char *name);
 
