@@ -1212,6 +1212,9 @@ static void project_line_gesture_apply_task_cb(void *__restrict userdata,
       continue;
     }
     add_v3_v3(vd.co, disp);
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
     any_updated = true;
   }
   BKE_pbvh_vertex_iter_end;
