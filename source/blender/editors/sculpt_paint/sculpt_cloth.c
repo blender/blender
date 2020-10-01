@@ -277,7 +277,7 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
   const Brush *brush = data->brush;
   PBVHNode *node = data->nodes[n];
 
-  const int node_index = (int)(BLI_ghash_lookup(data->cloth_sim->node_state_index, node));
+  const int node_index = POINTER_AS_INT(BLI_ghash_lookup(data->cloth_sim->node_state_index, node));
   if (data->cloth_sim->node_state[node_index] != SCULPT_CLOTH_NODE_UNINITIALIZED) {
     /* The simulation already contains constraints for this node. */
     return;
@@ -693,7 +693,7 @@ static void do_cloth_brush_solve_simulation_task_cb_ex(
   SculptClothSimulation *cloth_sim = data->cloth_sim;
   const float time_step = data->cloth_time_step;
 
-  const int node_index = (int)(BLI_ghash_lookup(data->cloth_sim->node_state_index, node));
+  const int node_index = POINTER_AS_INT(BLI_ghash_lookup(data->cloth_sim->node_state_index, node));
   if (data->cloth_sim->node_state[node_index] != SCULPT_CLOTH_NODE_ACTIVE) {
     return;
   }
@@ -1062,7 +1062,7 @@ void SCULPT_cloth_sim_activate_nodes(SculptClothSimulation *cloth_sim,
 {
   /* Activate the nodes inside the simulation area. */
   for (int n = 0; n < totnode; n++) {
-    const int node_index = (int)(BLI_ghash_lookup(cloth_sim->node_state_index, nodes[n]));
+    const int node_index = POINTER_AS_INT(BLI_ghash_lookup(cloth_sim->node_state_index, nodes[n]));
     cloth_sim->node_state[node_index] = SCULPT_CLOTH_NODE_ACTIVE;
   }
 }
