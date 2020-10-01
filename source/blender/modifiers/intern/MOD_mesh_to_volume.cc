@@ -154,7 +154,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
     uiItemR(col, ptr, "exterior_band_width", 0, NULL, ICON_NONE);
 
     uiLayout *subcol = uiLayoutColumn(col, false);
-    uiLayoutSetEnabled(subcol, !mvmd->fill_volume);
+    uiLayoutSetActive(subcol, !mvmd->fill_volume);
     uiItemR(subcol, ptr, "interior_band_width", 0, NULL, ICON_NONE);
   }
   {

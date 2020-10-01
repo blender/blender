@@ -469,7 +469,7 @@ static void advanced_panel_draw(const bContext *C, Panel *panel)
   uiItemR(layout, ptr, "use_limit_surface", 0, NULL, ICON_NONE);
 
   uiLayout *col = uiLayoutColumn(layout, true);
-  uiLayoutSetEnabled(col, RNA_boolean_get(ptr, "use_limit_surface"));
+  uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_limit_surface"));
   uiItemR(col, ptr, "quality", 0, NULL, ICON_NONE);
 
   uiItemR(layout, ptr, "uv_smooth", 0, NULL, ICON_NONE);

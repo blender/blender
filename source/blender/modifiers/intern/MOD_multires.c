@@ -482,13 +482,13 @@ static void advanced_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiLayoutSetEnabled(layout, !has_displacement);
+  uiLayoutSetActive(layout, !has_displacement);
 
   uiItemR(layout, ptr, "subdivision_type", 0, NULL, ICON_NONE);
   uiItemR(layout, ptr, "quality", 0, NULL, ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
-  uiLayoutSetEnabled(col, true);
+  uiLayoutSetActive(col, true);
   uiItemR(col, ptr, "uv_smooth", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "boundary_smooth", 0, NULL, ICON_NONE);
 
