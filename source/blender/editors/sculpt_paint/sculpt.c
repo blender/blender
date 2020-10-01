@@ -206,9 +206,18 @@ const float *SCULPT_vertex_persistent_co_get(SculptSession *ss, int index)
 
 const float *SCULPT_vertex_co_for_grab_active_get(SculptSession *ss, int index)
 {
+  /* Always grab active shape key if the sculpt happens on shapekey. */
+  if (ss->shapekey_active) {
+    const MVert *mverts = BKE_pbvh_get_verts(ss->pbvh);
+    return mverts[index].co;
+  }
+
+  /* Sculpting on the base mesh. */
   if (ss->mvert) {
     return ss->mvert[index].co;
   }
+
+  /* Everything else, such as sculpting on multires. */
   return SCULPT_vertex_co_get(ss, index);
 }
 
