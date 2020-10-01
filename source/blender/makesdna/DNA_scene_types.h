@@ -731,7 +731,7 @@ typedef struct RenderData {
   char seq_rend_type;
   /** Flag use for sequence render/draw. */
   char seq_flag;
-  char _pad5[7];
+  char _pad5[3];
 
   /* render simplify */
   short simplify_subsurf;
@@ -739,6 +739,7 @@ typedef struct RenderData {
   short simplify_gpencil;
   float simplify_particles;
   float simplify_particles_render;
+  float simplify_volumes;
 
   /* Freestyle line thickness options */
   int line_thickness_mode;

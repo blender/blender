@@ -34,136 +34,181 @@
 #ifdef WITH_OPENVDB
 #  include <openvdb/openvdb.h>
 #  include <openvdb/tools/Dense.h>
+#  include <openvdb/tools/GridTransformer.h>
 #endif
 
 /* Dense Voxels */
 
-bool BKE_volume_grid_dense_bounds(const Volume *volume,
-                                  VolumeGrid *volume_grid,
-                                  int64_t min[3],
-                                  int64_t max[3])
-{
 #ifdef WITH_OPENVDB
-  openvdb::GridBase::ConstPtr grid = BKE_volume_grid_openvdb_for_read(volume, volume_grid);
 
-  openvdb::CoordBBox bbox = grid->evalActiveVoxelBoundingBox();
-  if (!bbox.empty()) {
-    /* OpenVDB bbox is inclusive, so add 1 to convert. */
-    min[0] = bbox.min().x();
-    min[1] = bbox.min().y();
-    min[2] = bbox.min().z();
-    max[0] = bbox.max().x() + 1;
-    max[1] = bbox.max().y() + 1;
-    max[2] = bbox.max().z() + 1;
-    return true;
+/**
+ * Returns a grid of the same type as the input, but with more/less resolution. If
+ * resolution_factor is 1/2, the resolution on each axis is halved. The transform of the returned
+ * grid is adjusted to match the original grid. */
+template<typename GridType>
+static typename GridType::Ptr create_grid_with_changed_resolution(
+    const openvdb::GridBase &old_grid, const float resolution_factor)
+{
+  BLI_assert(resolution_factor > 0.0f);
+  BLI_assert(old_grid.isType<GridType>());
+
+  openvdb::Mat4R xform;
+  xform.setToScale(openvdb::Vec3d(resolution_factor));
+  openvdb::tools::GridTransformer transformer{xform};
+
+  typename GridType::Ptr new_grid = GridType::create();
+  transformer.transformGrid<openvdb::tools::BoxSampler>(static_cast<const GridType &>(old_grid),
+                                                        *new_grid);
+  new_grid->transform() = old_grid.transform();
+  new_grid->transform().preScale(1.0f / resolution_factor);
+  return new_grid;
+}
+
+static openvdb::GridBase::Ptr create_grid_with_changed_resolution(
+    const VolumeGridType grid_type,
+    const openvdb::GridBase &old_grid,
+    const float resolution_factor)
+{
+  switch (grid_type) {
+    case VOLUME_GRID_BOOLEAN:
+      return create_grid_with_changed_resolution<openvdb::BoolGrid>(old_grid, resolution_factor);
+    case VOLUME_GRID_FLOAT:
+      return create_grid_with_changed_resolution<openvdb::FloatGrid>(old_grid, resolution_factor);
+    case VOLUME_GRID_DOUBLE:
+      return create_grid_with_changed_resolution<openvdb::DoubleGrid>(old_grid, resolution_factor);
+    case VOLUME_GRID_INT:
+      return create_grid_with_changed_resolution<openvdb::Int32Grid>(old_grid, resolution_factor);
+    case VOLUME_GRID_INT64:
+      return create_grid_with_changed_resolution<openvdb::Int64Grid>(old_grid, resolution_factor);
+    case VOLUME_GRID_MASK:
+      return create_grid_with_changed_resolution<openvdb::MaskGrid>(old_grid, resolution_factor);
+    case VOLUME_GRID_VECTOR_FLOAT:
+      return create_grid_with_changed_resolution<openvdb::Vec3fGrid>(old_grid, resolution_factor);
+    case VOLUME_GRID_VECTOR_DOUBLE:
+      return create_grid_with_changed_resolution<openvdb::Vec3dGrid>(old_grid, resolution_factor);
+    case VOLUME_GRID_VECTOR_INT:
+      return create_grid_with_changed_resolution<openvdb::Vec3IGrid>(old_grid, resolution_factor);
+    case VOLUME_GRID_STRING:
+    case VOLUME_GRID_POINTS:
+    case VOLUME_GRID_UNKNOWN:
+      /* Can't do this. */
+      break;
   }
-#else
-  UNUSED_VARS(volume, volume_grid);
+  return {};
+}
+
+template<typename GridType, typename VoxelType>
+static void extract_dense_voxels(const openvdb::GridBase &grid,
+                                 const openvdb::CoordBBox bbox,
+                                 VoxelType *r_voxels)
+{
+  BLI_assert(grid.isType<GridType>());
+  openvdb::tools::Dense<VoxelType, openvdb::tools::LayoutXYZ> dense(bbox, r_voxels);
+  openvdb::tools::copyToDense(static_cast<const GridType &>(grid), dense);
+}
+
+static void extract_dense_float_voxels(const VolumeGridType grid_type,
+                                       const openvdb::GridBase &grid,
+                                       const openvdb::CoordBBox &bbox,
+                                       float *r_voxels)
+{
+  switch (grid_type) {
+    case VOLUME_GRID_BOOLEAN:
+      return extract_dense_voxels<openvdb::BoolGrid, float>(grid, bbox, r_voxels);
+    case VOLUME_GRID_FLOAT:
+      return extract_dense_voxels<openvdb::FloatGrid, float>(grid, bbox, r_voxels);
+    case VOLUME_GRID_DOUBLE:
+      return extract_dense_voxels<openvdb::DoubleGrid, float>(grid, bbox, r_voxels);
+    case VOLUME_GRID_INT:
+      return extract_dense_voxels<openvdb::Int32Grid, float>(grid, bbox, r_voxels);
+    case VOLUME_GRID_INT64:
+      return extract_dense_voxels<openvdb::Int64Grid, float>(grid, bbox, r_voxels);
+    case VOLUME_GRID_MASK:
+      return extract_dense_voxels<openvdb::MaskGrid, float>(grid, bbox, r_voxels);
+    case VOLUME_GRID_VECTOR_FLOAT:
+      return extract_dense_voxels<openvdb::Vec3fGrid, openvdb::Vec3f>(
+          grid, bbox, reinterpret_cast<openvdb::Vec3f *>(r_voxels));
+    case VOLUME_GRID_VECTOR_DOUBLE:
+      return extract_dense_voxels<openvdb::Vec3dGrid, openvdb::Vec3f>(
+          grid, bbox, reinterpret_cast<openvdb::Vec3f *>(r_voxels));
+    case VOLUME_GRID_VECTOR_INT:
+      return extract_dense_voxels<openvdb::Vec3IGrid, openvdb::Vec3f>(
+          grid, bbox, reinterpret_cast<openvdb::Vec3f *>(r_voxels));
+    case VOLUME_GRID_STRING:
+    case VOLUME_GRID_POINTS:
+    case VOLUME_GRID_UNKNOWN:
+      /* Zero channels to copy. */
+      break;
+  }
+  return;
+}
+
+static void create_texture_to_object_matrix(const openvdb::Mat4d &grid_transform,
+                                            const openvdb::CoordBBox &bbox,
+                                            float r_texture_to_object[4][4])
+{
+  float index_to_object[4][4];
+  memcpy(index_to_object, openvdb::Mat4s(grid_transform).asPointer(), sizeof(index_to_object));
+
+  float texture_to_index[4][4];
+  const openvdb::Vec3f loc = bbox.min().asVec3s();
+  const openvdb::Vec3f size = bbox.dim().asVec3s();
+  size_to_mat4(texture_to_index, size.asV());
+  copy_v3_v3(texture_to_index[3], loc.asV());
+
+  mul_m4_m4m4(r_texture_to_object, index_to_object, texture_to_index);
+}
+
 #endif
 
-  min[0] = 0;
-  min[1] = 0;
-  min[2] = 0;
-  max[0] = 0;
-  max[1] = 0;
-  max[2] = 0;
+bool BKE_volume_grid_dense_floats(const Volume *volume,
+                                  VolumeGrid *volume_grid,
+                                  const float resolution_factor,
+                                  DenseFloatVolumeGrid *r_dense_grid)
+{
+#ifdef WITH_OPENVDB
+  const VolumeGridType grid_type = BKE_volume_grid_type(volume_grid);
+
+  openvdb::GridBase::ConstPtr grid = BKE_volume_grid_openvdb_for_read(volume, volume_grid);
+  if (resolution_factor != 1.0f) {
+    grid = create_grid_with_changed_resolution(grid_type, *grid, resolution_factor);
+  }
+
+  const openvdb::CoordBBox bbox = grid->evalActiveVoxelBoundingBox();
+  if (bbox.empty()) {
+    return false;
+  }
+
+  const openvdb::Vec3i resolution = bbox.dim().asVec3i();
+  const int64_t num_voxels = static_cast<int64_t>(resolution[0]) *
+                             static_cast<int64_t>(resolution[1]) *
+                             static_cast<int64_t>(resolution[2]);
+  const int channels = BKE_volume_grid_channels(volume_grid);
+  const int elem_size = sizeof(float) * channels;
+  float *voxels = static_cast<float *>(MEM_malloc_arrayN(num_voxels, elem_size, __func__));
+  if (voxels == NULL) {
+    return false;
+  }
+
+  extract_dense_float_voxels(grid_type, *grid, bbox, voxels);
+  create_texture_to_object_matrix(grid->transform().baseMap()->getAffineMap()->getMat4(),
+                                  bbox,
+                                  r_dense_grid->texture_to_object);
+
+  r_dense_grid->voxels = voxels;
+  r_dense_grid->channels = channels;
+  copy_v3_v3_int(r_dense_grid->resolution, resolution.asV());
+  return true;
+#endif
+  UNUSED_VARS(volume, volume_grid, resolution_factor, r_dense_grid);
   return false;
 }
 
-/* Transform matrix from unit cube to object space, for 3D texture sampling. */
-void BKE_volume_grid_dense_transform_matrix(const VolumeGrid *volume_grid,
-                                            const int64_t min[3],
-                                            const int64_t max[3],
-                                            float mat[4][4])
+void BKE_volume_dense_float_grid_clear(DenseFloatVolumeGrid *dense_grid)
 {
-#ifdef WITH_OPENVDB
-  float index_to_world[4][4];
-  BKE_volume_grid_transform_matrix(volume_grid, index_to_world);
-
-  float texture_to_index[4][4];
-  float loc[3] = {(float)min[0], (float)min[1], (float)min[2]};
-  float size[3] = {(float)(max[0] - min[0]), (float)(max[1] - min[1]), (float)(max[2] - min[2])};
-  size_to_mat4(texture_to_index, size);
-  copy_v3_v3(texture_to_index[3], loc);
-
-  mul_m4_m4m4(mat, index_to_world, texture_to_index);
-#else
-  UNUSED_VARS(volume_grid, min, max);
-  unit_m4(mat);
-#endif
-}
-
-void BKE_volume_grid_dense_voxels(const Volume *volume,
-                                  VolumeGrid *volume_grid,
-                                  const int64_t min[3],
-                                  const int64_t max[3],
-                                  float *voxels)
-{
-#ifdef WITH_OPENVDB
-  openvdb::GridBase::ConstPtr grid = BKE_volume_grid_openvdb_for_read(volume, volume_grid);
-
-  /* Convert to OpenVDB inclusive bbox with -1. */
-  openvdb::CoordBBox bbox(min[0], min[1], min[2], max[0] - 1, max[1] - 1, max[2] - 1);
-
-  switch (BKE_volume_grid_type(volume_grid)) {
-    case VOLUME_GRID_BOOLEAN: {
-      openvdb::tools::Dense<float, openvdb::tools::LayoutXYZ> dense(bbox, voxels);
-      openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::BoolGrid>(grid), dense);
-      break;
-    }
-    case VOLUME_GRID_FLOAT: {
-      openvdb::tools::Dense<float, openvdb::tools::LayoutXYZ> dense(bbox, voxels);
-      openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::FloatGrid>(grid), dense);
-      break;
-    }
-    case VOLUME_GRID_DOUBLE: {
-      openvdb::tools::Dense<float, openvdb::tools::LayoutXYZ> dense(bbox, voxels);
-      openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::DoubleGrid>(grid), dense);
-      break;
-    }
-    case VOLUME_GRID_INT: {
-      openvdb::tools::Dense<float, openvdb::tools::LayoutXYZ> dense(bbox, voxels);
-      openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::Int32Grid>(grid), dense);
-      break;
-    }
-    case VOLUME_GRID_INT64: {
-      openvdb::tools::Dense<float, openvdb::tools::LayoutXYZ> dense(bbox, voxels);
-      openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::Int64Grid>(grid), dense);
-      break;
-    }
-    case VOLUME_GRID_MASK: {
-      openvdb::tools::Dense<float, openvdb::tools::LayoutXYZ> dense(bbox, voxels);
-      openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::MaskGrid>(grid), dense);
-      break;
-    }
-    case VOLUME_GRID_VECTOR_FLOAT: {
-      openvdb::tools::Dense<openvdb::Vec3f, openvdb::tools::LayoutXYZ> dense(
-          bbox, (openvdb::Vec3f *)voxels);
-      openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::Vec3fGrid>(grid), dense);
-      break;
-    }
-    case VOLUME_GRID_VECTOR_DOUBLE: {
-      openvdb::tools::Dense<openvdb::Vec3f, openvdb::tools::LayoutXYZ> dense(
-          bbox, (openvdb::Vec3f *)voxels);
-      openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::Vec3dGrid>(grid), dense);
-      break;
-    }
-    case VOLUME_GRID_VECTOR_INT: {
-      openvdb::tools::Dense<openvdb::Vec3f, openvdb::tools::LayoutXYZ> dense(
-          bbox, (openvdb::Vec3f *)voxels);
-      openvdb::tools::copyToDense(*openvdb::gridConstPtrCast<openvdb::Vec3IGrid>(grid), dense);
-      break;
-    }
-    case VOLUME_GRID_STRING:
-    case VOLUME_GRID_POINTS:
-    case VOLUME_GRID_UNKNOWN: {
-      /* Zero channels to copy. */
-      break;
-    }
+  if (dense_grid->voxels != NULL) {
+    MEM_freeN(dense_grid->voxels);
   }
-#else
-  UNUSED_VARS(volume, volume_grid, min, max, voxels);
-#endif
 }
 
 /* Wireframe */

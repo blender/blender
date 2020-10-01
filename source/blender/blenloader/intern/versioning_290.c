@@ -762,6 +762,12 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 291, 7)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      scene->r.simplify_volumes = 1.0f;
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

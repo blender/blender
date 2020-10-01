@@ -128,6 +128,7 @@
  \
     .simplify_subsurf = 6, \
     .simplify_particles = 1.0f, \
+    .simplify_volumes = 1.0f, \
  \
     .border.xmin = 0.0f, \
     .border.ymin = 0.0f, \

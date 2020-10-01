@@ -44,6 +44,7 @@
 #include "BKE_armature.h"
 #include "BKE_editmesh.h"
 #include "BKE_paint.h"
+#include "BKE_volume.h"
 
 #include "ED_gpencil.h"
 #include "ED_object.h"
@@ -1887,6 +1888,10 @@ static void object_simplify_update(Object *ob)
       object_simplify_update(ob_collection);
     }
     FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+  }
+
+  if (ob->type == OB_VOLUME) {
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
 }
 
@@ -6471,6 +6476,12 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "simplify_particles_render");
   RNA_def_property_ui_text(
       prop, "Simplify Child Particles", "Global child particles percentage during rendering");
+  RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
+
+  prop = RNA_def_property(srna, "simplify_volumes", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_range(prop, 0.0, 1.0f);
+  RNA_def_property_ui_text(
+      prop, "Simplify Volumes", "Resolution percentage of volume objects in viewport");
   RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
 
   /* Grease Pencil - Simplify Options */

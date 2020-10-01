@@ -656,6 +656,9 @@ class RENDER_PT_simplify_viewport(RenderButtonsPanel, Panel):
         col = flow.column()
         col.prop(rd, "simplify_child_particles", text="Max Child Particles")
 
+        col = flow.column()
+        col.prop(rd, "simplify_volumes", text="Volume Resolution")
+
 
 class RENDER_PT_simplify_render(RenderButtonsPanel, Panel):
     bl_label = "Render"
