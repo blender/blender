@@ -366,41 +366,73 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
         if (edge_adj_faces_len[i] > 0) {
           uint v1 = vm[ed->v1];
           uint v2 = vm[ed->v2];
-          if (v1 != v2) {
-            if (v2 < v1) {
-              SWAP(uint, v1, v2);
-            }
-            sub_v3_v3v3(edgedir, orig_mvert_co[v2], orig_mvert_co[v1]);
-            orig_edge_lengths[i] = len_squared_v3(edgedir);
-            if (orig_edge_lengths[i] <= merge_tolerance_sqr) {
-              mul_v3_fl(edgedir,
-                        (combined_verts[v2] + 1) /
-                            (float)(combined_verts[v1] + combined_verts[v2] + 2));
-              add_v3_v3(orig_mvert_co[v1], edgedir);
-              for (uint j = v2; j < numVerts; j++) {
-                if (vm[j] == v2) {
-                  vm[j] = v1;
+          if (v1 == v2) {
+            continue;
+          }
+
+          if (v2 < v1) {
+            SWAP(uint, v1, v2);
+          }
+          sub_v3_v3v3(edgedir, orig_mvert_co[v2], orig_mvert_co[v1]);
+          orig_edge_lengths[i] = len_squared_v3(edgedir);
+
+          if (orig_edge_lengths[i] <= merge_tolerance_sqr) {
+            /* Merge verts. But first check if that would create a higher poly count. */
+            /* This check is very slow. It would need the vertex edge links to get
+             * accelerated that are not yet available at this point. */
+            bool can_merge = true;
+            for (uint k = 0; k < numEdges && can_merge; k++) {
+              if (k != i && edge_adj_faces_len[k] > 0 &&
+                  (ELEM(vm[orig_medge[k].v1], v1, v2) != ELEM(vm[orig_medge[k].v2], v1, v2))) {
+                for (uint j = 0; j < edge_adj_faces[k]->faces_len && can_merge; j++) {
+                  mp = orig_mpoly + edge_adj_faces[k]->faces[j];
+                  uint changes = 0;
+                  int cur = mp->totloop - 1;
+                  for (int next = 0; next < mp->totloop && changes <= 2; next++) {
+                    uint cur_v = vm[orig_mloop[mp->loopstart + cur].v];
+                    uint next_v = vm[orig_mloop[mp->loopstart + next].v];
+                    changes += (ELEM(cur_v, v1, v2) != ELEM(next_v, v1, v2));
+                    cur = next;
+                  }
+                  can_merge = can_merge && changes <= 2;
                 }
               }
-              vert_adj_edges_len[v1] += vert_adj_edges_len[v2];
-              vert_adj_edges_len[v2] = 0;
-              combined_verts[v1] += combined_verts[v2] + 1;
-
-              if (do_shell) {
-                numNewLoops -= edge_adj_faces_len[i] * 2;
-              }
-
-              edge_adj_faces_len[i] = 0;
-              MEM_freeN(edge_adj_faces[i]->faces);
-              MEM_freeN(edge_adj_faces[i]->faces_reversed);
-              MEM_freeN(edge_adj_faces[i]);
-              edge_adj_faces[i] = NULL;
             }
-            else {
-              orig_edge_lengths[i] = sqrtf(orig_edge_lengths[i]);
+
+            if (!can_merge) {
+              orig_edge_lengths[i] = 0.0f;
               vert_adj_edges_len[v1]++;
               vert_adj_edges_len[v2]++;
+              continue;
             }
+
+            mul_v3_fl(edgedir,
+                      (combined_verts[v2] + 1) /
+                          (float)(combined_verts[v1] + combined_verts[v2] + 2));
+            add_v3_v3(orig_mvert_co[v1], edgedir);
+            for (uint j = v2; j < numVerts; j++) {
+              if (vm[j] == v2) {
+                vm[j] = v1;
+              }
+            }
+            vert_adj_edges_len[v1] += vert_adj_edges_len[v2];
+            vert_adj_edges_len[v2] = 0;
+            combined_verts[v1] += combined_verts[v2] + 1;
+
+            if (do_shell) {
+              numNewLoops -= edge_adj_faces_len[i] * 2;
+            }
+
+            edge_adj_faces_len[i] = 0;
+            MEM_freeN(edge_adj_faces[i]->faces);
+            MEM_freeN(edge_adj_faces[i]->faces_reversed);
+            MEM_freeN(edge_adj_faces[i]);
+            edge_adj_faces[i] = NULL;
+          }
+          else {
+            orig_edge_lengths[i] = sqrtf(orig_edge_lengths[i]);
+            vert_adj_edges_len[v1]++;
+            vert_adj_edges_len[v2]++;
           }
         }
       }
@@ -684,8 +716,49 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
         const uint v1 = vm[ed->v1];
         const uint v2 = vm[ed->v2];
         if (edge_adj_faces_len[i] > 0) {
-          sub_v3_v3v3(edgedir, orig_mvert_co[v2], orig_mvert_co[v1]);
-          mul_v3_fl(edgedir, 1.0f / orig_edge_lengths[i]);
+          if (LIKELY(orig_edge_lengths[i] > FLT_EPSILON)) {
+            sub_v3_v3v3(edgedir, orig_mvert_co[v2], orig_mvert_co[v1]);
+            mul_v3_fl(edgedir, 1.0f / orig_edge_lengths[i]);
+          }
+          else {
+            /* Smart fallback. */
+            /* This makes merging non essential, but correct
+             * merging will still give way better results. */
+            float pos[3];
+            copy_v3_v3(pos, orig_mvert_co[v2]);
+
+            OldVertEdgeRef *link1 = vert_adj_edges[v1];
+            float v1_dir[3];
+            zero_v3(v1_dir);
+            for (int j = 0; j < link1->edges_len; j++) {
+              uint e = link1->edges[j];
+              if (edge_adj_faces_len[e] > 0 && e != i) {
+                uint other_v =
+                    vm[vm[orig_medge[e].v1] == v1 ? orig_medge[e].v2 : orig_medge[e].v1];
+                sub_v3_v3v3(edgedir, orig_mvert_co[other_v], pos);
+                add_v3_v3(v1_dir, edgedir);
+              }
+            }
+            OldVertEdgeRef *link2 = vert_adj_edges[v2];
+            float v2_dir[3];
+            zero_v3(v2_dir);
+            for (int j = 0; j < link2->edges_len; j++) {
+              uint e = link2->edges[j];
+              if (edge_adj_faces_len[e] > 0 && e != i) {
+                uint other_v =
+                    vm[vm[orig_medge[e].v1] == v2 ? orig_medge[e].v2 : orig_medge[e].v1];
+                sub_v3_v3v3(edgedir, orig_mvert_co[other_v], pos);
+                add_v3_v3(v2_dir, edgedir);
+              }
+            }
+            sub_v3_v3v3(edgedir, v2_dir, v1_dir);
+            float len = normalize_v3(edgedir);
+            if (len == 0.0f) {
+              edgedir[0] = 0.0f;
+              edgedir[1] = 0.0f;
+              edgedir[2] = 1.0f;
+            }
+          }
 
           OldEdgeFaceRef *adj_faces = edge_adj_faces[i];
           const uint adj_len = adj_faces->faces_len;
