@@ -34,6 +34,12 @@ bool namedSizeEntryComparator(const NamedSizeEntry &a, const NamedSizeEntry &b)
   return a.size > b.size;
 }
 
+bool namedTimeEntryComparator(const NamedTimeEntry &a, const NamedTimeEntry &b)
+{
+  /* We sort in descending order. */
+  return a.time > b.time;
+}
+
 bool namedTimeSampleEntryComparator(const NamedNestedSampleStats &a,
                                     const NamedNestedSampleStats &b)
 {
@@ -52,6 +58,14 @@ NamedSizeEntry::NamedSizeEntry() : name(""), size(0)
 }
 
 NamedSizeEntry::NamedSizeEntry(const string &name, size_t size) : name(name), size(size)
+{
+}
+
+NamedTimeEntry::NamedTimeEntry() : name(""), time(0)
+{
+}
+
+NamedTimeEntry::NamedTimeEntry(const string &name, double time) : name(name), time(time)
 {
 }
 
@@ -83,6 +97,20 @@ string NamedSizeStats::full_report(int indent_level)
                             entry.name.c_str(),
                             string_human_readable_size(entry.size).c_str(),
                             string_human_readable_number(entry.size).c_str());
+  }
+  return result;
+}
+
+string NamedTimeStats::full_report(int indent_level)
+{
+  const string indent(indent_level * kIndentNumSpaces, ' ');
+  const string double_indent = indent + indent;
+  string result = "";
+  result += string_printf("%sTotal time: %fs\n", indent.c_str(), total_time);
+  sort(entries.begin(), entries.end(), namedTimeEntryComparator);
+  foreach (const NamedTimeEntry &entry, entries) {
+    result += string_printf(
+        "%s%-40s %fs\n", double_indent.c_str(), entry.name.c_str(), entry.time);
   }
   return result;
 }
@@ -315,6 +343,57 @@ string RenderStats::full_report()
     result += "Profiling information not available (only works with CPU rendering)";
   }
   return result;
+}
+
+NamedTimeStats::NamedTimeStats() : total_time(0.0)
+{
+}
+
+string UpdateTimeStats::full_report(int indent_level)
+{
+  return times.full_report(indent_level + 1);
+}
+
+SceneUpdateStats::SceneUpdateStats()
+{
+}
+
+string SceneUpdateStats::full_report()
+{
+  string result = "";
+  result += "Scene:\n" + scene.full_report(1);
+  result += "Geometry:\n" + geometry.full_report(1);
+  result += "Light:\n" + light.full_report(1);
+  result += "Object:\n" + object.full_report(1);
+  result += "Image:\n" + image.full_report(1);
+  result += "Background:\n" + background.full_report(1);
+  result += "Bake:\n" + bake.full_report(1);
+  result += "Camera:\n" + camera.full_report(1);
+  result += "Film:\n" + film.full_report(1);
+  result += "Integrator:\n" + integrator.full_report(1);
+  result += "OSL:\n" + osl.full_report(1);
+  result += "Particles:\n" + particles.full_report(1);
+  result += "SVM:\n" + svm.full_report(1);
+  result += "Tables:\n" + tables.full_report(1);
+  return result;
+}
+
+void SceneUpdateStats::clear()
+{
+  geometry.times.entries.clear();
+  image.times.entries.clear();
+  light.times.entries.clear();
+  object.times.entries.clear();
+  background.times.entries.clear();
+  bake.times.entries.clear();
+  camera.times.entries.clear();
+  film.times.entries.clear();
+  integrator.times.entries.clear();
+  osl.times.entries.clear();
+  particles.times.entries.clear();
+  scene.times.entries.clear();
+  svm.times.entries.clear();
+  tables.times.entries.clear();
 }
 
 CCL_NAMESPACE_END

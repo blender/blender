@@ -18,6 +18,7 @@
 #include "render/mesh.h"
 #include "render/object.h"
 #include "render/scene.h"
+#include "render/stats.h"
 #include "render/tables.h"
 
 #include "device/device.h"
@@ -27,6 +28,7 @@
 #include "util/util_logging.h"
 #include "util/util_math_cdf.h"
 #include "util/util_task.h"
+#include "util/util_time.h"
 #include "util/util_vector.h"
 
 /* needed for calculating differentials */
@@ -230,6 +232,12 @@ void Camera::update(Scene *scene)
 
   if (!need_update)
     return;
+
+  scoped_callback_timer timer([scene](double time) {
+    if (scene->update_stats) {
+      scene->update_stats->camera.times.add_entry({"update", time});
+    }
+  });
 
   /* Full viewport to camera border in the viewport. */
   Transform fulltoborder = transform_from_viewplane(viewport_camera_border);
@@ -465,6 +473,12 @@ void Camera::device_update(Device * /* device */, DeviceScene *dscene, Scene *sc
 
   if (!need_device_update)
     return;
+
+  scoped_callback_timer timer([scene](double time) {
+    if (scene->update_stats) {
+      scene->update_stats->camera.times.add_entry({"device_update", time});
+    }
+  });
 
   scene->lookup_tables->remove_table(&shutter_table_offset);
   if (kernel_camera.shuttertime != -1.0f) {

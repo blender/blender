@@ -17,6 +17,7 @@
 #ifndef __UTIL_TIME_H__
 #define __UTIL_TIME_H__
 
+#include "util/util_function.h"
 #include "util/util_string.h"
 
 CCL_NAMESPACE_BEGIN
@@ -58,6 +59,26 @@ class scoped_timer {
  protected:
   double *value_;
   double time_start_;
+};
+
+class scoped_callback_timer {
+ public:
+  using callback_type = function<void(double)>;
+
+  explicit scoped_callback_timer(callback_type cb) : cb(cb)
+  {
+  }
+
+  ~scoped_callback_timer()
+  {
+    if (cb) {
+      cb(timer.get_time());
+    }
+  }
+
+ protected:
+  scoped_timer timer;
+  callback_type cb;
 };
 
 /* Make human readable string from time, compatible with Blender metadata. */

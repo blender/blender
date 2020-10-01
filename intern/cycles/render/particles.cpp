@@ -17,6 +17,7 @@
 #include "render/particles.h"
 #include "device/device.h"
 #include "render/scene.h"
+#include "render/stats.h"
 
 #include "util/util_foreach.h"
 #include "util/util_hash.h"
@@ -110,6 +111,12 @@ void ParticleSystemManager::device_update(Device *device,
 {
   if (!need_update)
     return;
+
+  scoped_callback_timer timer([scene](double time) {
+    if (scene->update_stats) {
+      scene->update_stats->particles.times.add_entry({"device_update", time});
+    }
+  });
 
   VLOG(1) << "Total " << scene->particle_systems.size() << " particle systems.";
 

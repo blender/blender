@@ -17,8 +17,10 @@
 #include "render/tables.h"
 #include "device/device.h"
 #include "render/scene.h"
+#include "render/stats.h"
 
 #include "util/util_logging.h"
+#include "util/util_time.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -34,10 +36,16 @@ LookupTables::~LookupTables()
   assert(lookup_tables.size() == 0);
 }
 
-void LookupTables::device_update(Device *, DeviceScene *dscene)
+void LookupTables::device_update(Device *, DeviceScene *dscene, Scene *scene)
 {
   if (!need_update)
     return;
+
+  scoped_callback_timer timer([scene](double time) {
+    if (scene->update_stats) {
+      scene->update_stats->tables.times.add_entry({"device_update", time});
+    }
+  });
 
   VLOG(1) << "Total " << lookup_tables.size() << " lookup tables.";
 

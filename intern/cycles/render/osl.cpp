@@ -24,6 +24,7 @@
 #include "render/osl.h"
 #include "render/scene.h"
 #include "render/shader.h"
+#include "render/stats.h"
 
 #ifdef WITH_OSL
 
@@ -97,6 +98,12 @@ void OSLShaderManager::device_update(Device *device,
 {
   if (!need_update)
     return;
+
+  scoped_callback_timer timer([scene](double time) {
+    if (scene->update_stats) {
+      scene->update_stats->osl.times.add_entry({"device_update", time});
+    }
+  });
 
   VLOG(1) << "Total " << scene->shaders.size() << " shaders.";
 

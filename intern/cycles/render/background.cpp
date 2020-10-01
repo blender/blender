@@ -21,9 +21,11 @@
 #include "render/nodes.h"
 #include "render/scene.h"
 #include "render/shader.h"
+#include "render/stats.h"
 
 #include "util/util_foreach.h"
 #include "util/util_math.h"
+#include "util/util_time.h"
 #include "util/util_types.h"
 
 CCL_NAMESPACE_BEGIN
@@ -64,6 +66,12 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 {
   if (!need_update)
     return;
+
+  scoped_callback_timer timer([scene](double time) {
+    if (scene->update_stats) {
+      scene->update_stats->background.times.add_entry({"device_update", time});
+    }
+  });
 
   device_free(device, dscene);
 

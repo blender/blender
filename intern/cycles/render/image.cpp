@@ -799,6 +799,12 @@ void ImageManager::device_update(Device *device, Scene *scene, Progress &progres
     return;
   }
 
+  scoped_callback_timer timer([scene](double time) {
+    if (scene->update_stats) {
+      scene->update_stats->image.times.add_entry({"device_update", time});
+    }
+  });
+
   TaskPool pool;
   for (size_t slot = 0; slot < images.size(); slot++) {
     Image *img = images[slot];

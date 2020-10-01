@@ -24,6 +24,7 @@
 #include "render/mesh.h"
 #include "render/particles.h"
 #include "render/scene.h"
+#include "render/stats.h"
 #include "render/volume.h"
 
 #include "util/util_foreach.h"
@@ -643,15 +644,32 @@ void ObjectManager::device_update(Device *device,
   if (scene->objects.size() == 0)
     return;
 
-  /* Assign object IDs. */
-  int index = 0;
-  foreach (Object *object, scene->objects) {
-    object->index = index++;
+  {
+    /* Assign object IDs. */
+    scoped_callback_timer timer([scene](double time) {
+      if (scene->update_stats) {
+        scene->update_stats->object.times.add_entry({"device_update (assign index)", time});
+      }
+    });
+
+    int index = 0;
+    foreach (Object *object, scene->objects) {
+      object->index = index++;
+    }
   }
 
-  /* set object transform matrices, before applying static transforms */
-  progress.set_status("Updating Objects", "Copying Transformations to device");
-  device_update_transforms(dscene, scene, progress);
+  {
+    /* set object transform matrices, before applying static transforms */
+    scoped_callback_timer timer([scene](double time) {
+      if (scene->update_stats) {
+        scene->update_stats->object.times.add_entry(
+            {"device_update (copy objects to device)", time});
+      }
+    });
+
+    progress.set_status("Updating Objects", "Copying Transformations to device");
+    device_update_transforms(dscene, scene, progress);
+  }
 
   if (progress.get_cancel())
     return;
@@ -659,6 +677,13 @@ void ObjectManager::device_update(Device *device,
   /* prepare for static BVH building */
   /* todo: do before to support getting object level coords? */
   if (scene->params.bvh_type == SceneParams::BVH_STATIC) {
+    scoped_callback_timer timer([scene](double time) {
+      if (scene->update_stats) {
+        scene->update_stats->object.times.add_entry(
+            {"device_update (apply static transforms)", time});
+      }
+    });
+
     progress.set_status("Updating Objects", "Applying Static Transformations");
     apply_static_transforms(dscene, scene, progress);
   }
@@ -669,6 +694,12 @@ void ObjectManager::device_update_flags(
 {
   if (!need_update && !need_flags_update)
     return;
+
+  scoped_callback_timer timer([scene](double time) {
+    if (scene->update_stats) {
+      scene->update_stats->object.times.add_entry({"device_update_flags", time});
+    }
+  });
 
   need_update = false;
   need_flags_update = false;

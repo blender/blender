@@ -42,7 +42,7 @@ class LookupTables {
   LookupTables();
   ~LookupTables();
 
-  void device_update(Device *device, DeviceScene *dscene);
+  void device_update(Device *device, DeviceScene *dscene, Scene *scene);
   void device_free(Device *device, DeviceScene *dscene);
 
   size_t add_table(DeviceScene *dscene, vector<float> &data);

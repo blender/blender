@@ -1106,6 +1106,12 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
     return;
   }
 
+  scoped_callback_timer timer([scene](double time) {
+    if (scene->update_stats) {
+      scene->update_stats->geometry.times.add_entry({"device_update_preprocess", time});
+    }
+  });
+
   progress.set_status("Updating Meshes Flags");
 
   /* Update flags. */
@@ -1231,41 +1237,56 @@ void GeometryManager::device_update(Device *device,
   bool true_displacement_used = false;
   size_t total_tess_needed = 0;
 
-  foreach (Geometry *geom, scene->geometry) {
-    foreach (Shader *shader, geom->used_shaders) {
-      if (shader->need_update_geometry)
-        geom->need_update = true;
-    }
+  {
+    scoped_callback_timer timer([scene](double time) {
+      if (scene->update_stats) {
+        scene->update_stats->geometry.times.add_entry({"device_update (normals)", time});
+      }
+    });
 
-    if (geom->need_update && (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME)) {
-      Mesh *mesh = static_cast<Mesh *>(geom);
-
-      /* Update normals. */
-      mesh->add_face_normals();
-      mesh->add_vertex_normals();
-
-      if (mesh->need_attribute(scene, ATTR_STD_POSITION_UNDISPLACED)) {
-        mesh->add_undisplaced();
+    foreach (Geometry *geom, scene->geometry) {
+      foreach (Shader *shader, geom->used_shaders) {
+        if (shader->need_update_geometry)
+          geom->need_update = true;
       }
 
-      /* Test if we need tessellation. */
-      if (mesh->subdivision_type != Mesh::SUBDIVISION_NONE && mesh->num_subd_verts == 0 &&
-          mesh->subd_params) {
-        total_tess_needed++;
-      }
+      if (geom->need_update && (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME)) {
+        Mesh *mesh = static_cast<Mesh *>(geom);
 
-      /* Test if we need displacement. */
-      if (mesh->has_true_displacement()) {
-        true_displacement_used = true;
-      }
+        /* Update normals. */
+        mesh->add_face_normals();
+        mesh->add_vertex_normals();
 
-      if (progress.get_cancel())
-        return;
+        if (mesh->need_attribute(scene, ATTR_STD_POSITION_UNDISPLACED)) {
+          mesh->add_undisplaced();
+        }
+
+        /* Test if we need tessellation. */
+        if (mesh->subdivision_type != Mesh::SUBDIVISION_NONE && mesh->num_subd_verts == 0 &&
+            mesh->subd_params) {
+          total_tess_needed++;
+        }
+
+        /* Test if we need displacement. */
+        if (mesh->has_true_displacement()) {
+          true_displacement_used = true;
+        }
+
+        if (progress.get_cancel())
+          return;
+      }
     }
   }
 
   /* Tessellate meshes that are using subdivision */
   if (total_tess_needed) {
+    scoped_callback_timer timer([scene](double time) {
+      if (scene->update_stats) {
+        scene->update_stats->geometry.times.add_entry(
+            {"device_update (adaptive subdivision)", time});
+      }
+    });
+
     Camera *dicing_camera = scene->dicing_camera;
     dicing_camera->update(scene);
 
@@ -1302,7 +1323,12 @@ void GeometryManager::device_update(Device *device,
   /* Update images needed for true displacement. */
   bool old_need_object_flags_update = false;
   if (true_displacement_used) {
-    VLOG(1) << "Updating images used for true displacement.";
+    scoped_callback_timer timer([scene](double time) {
+      if (scene->update_stats) {
+        scene->update_stats->geometry.times.add_entry(
+            {"device_update (displacement: load images)", time});
+      }
+    });
     device_update_displacement_images(device, scene, progress);
     old_need_object_flags_update = scene->object_manager->need_flags_update;
     scene->object_manager->device_update_flags(device, dscene, scene, progress, false);
@@ -1313,41 +1339,68 @@ void GeometryManager::device_update(Device *device,
 
   mesh_calc_offset(scene);
   if (true_displacement_used) {
+    scoped_callback_timer timer([scene](double time) {
+      if (scene->update_stats) {
+        scene->update_stats->geometry.times.add_entry(
+            {"device_update (displacement: copy meshes to device)", time});
+      }
+    });
     device_update_mesh(device, dscene, scene, true, progress);
   }
   if (progress.get_cancel())
     return;
 
-  device_update_attributes(device, dscene, scene, progress);
-  if (progress.get_cancel())
-    return;
-
-  /* Update displacement. */
-  bool displacement_done = false;
-  size_t num_bvh = 0;
-  BVHLayout bvh_layout = BVHParams::best_bvh_layout(scene->params.bvh_layout,
-                                                    device->get_bvh_layout_mask());
-
-  foreach (Geometry *geom, scene->geometry) {
-    if (geom->need_update) {
-      if (geom->type == Geometry::MESH) {
-        Mesh *mesh = static_cast<Mesh *>(geom);
-        if (displace(device, dscene, scene, mesh, progress)) {
-          displacement_done = true;
-        }
+  {
+    scoped_callback_timer timer([scene](double time) {
+      if (scene->update_stats) {
+        scene->update_stats->geometry.times.add_entry({"device_update (attributes)", time});
       }
-
-      if (geom->need_build_bvh(bvh_layout)) {
-        num_bvh++;
-      }
-    }
-
+    });
+    device_update_attributes(device, dscene, scene, progress);
     if (progress.get_cancel())
       return;
   }
 
+  /* Update displacement. */
+  BVHLayout bvh_layout = BVHParams::best_bvh_layout(scene->params.bvh_layout,
+                                                    device->get_bvh_layout_mask());
+  bool displacement_done = false;
+  size_t num_bvh = 0;
+
+  {
+    scoped_callback_timer timer([scene](double time) {
+      if (scene->update_stats) {
+        scene->update_stats->geometry.times.add_entry({"device_update (displacement)", time});
+      }
+    });
+
+    foreach (Geometry *geom, scene->geometry) {
+      if (geom->need_update) {
+        if (geom->type == Geometry::MESH) {
+          Mesh *mesh = static_cast<Mesh *>(geom);
+          if (displace(device, dscene, scene, mesh, progress)) {
+            displacement_done = true;
+          }
+        }
+
+        if (geom->need_build_bvh(bvh_layout)) {
+          num_bvh++;
+        }
+      }
+
+      if (progress.get_cancel())
+        return;
+    }
+  }
+
   /* Device re-update after displacement. */
   if (displacement_done) {
+    scoped_callback_timer timer([scene](double time) {
+      if (scene->update_stats) {
+        scene->update_stats->geometry.times.add_entry(
+            {"device_update (displacement: attributes)", time});
+      }
+    });
     device_free(device, dscene);
 
     device_update_attributes(device, dscene, scene, progress);
@@ -1355,22 +1408,29 @@ void GeometryManager::device_update(Device *device,
       return;
   }
 
-  TaskPool pool;
+  {
+    scoped_callback_timer timer([scene](double time) {
+      if (scene->update_stats) {
+        scene->update_stats->geometry.times.add_entry({"device_update (build object BVHs)", time});
+      }
+    });
+    TaskPool pool;
 
-  size_t i = 0;
-  foreach (Geometry *geom, scene->geometry) {
-    if (geom->need_update) {
-      pool.push(function_bind(
-          &Geometry::compute_bvh, geom, device, dscene, &scene->params, &progress, i, num_bvh));
-      if (geom->need_build_bvh(bvh_layout)) {
-        i++;
+    size_t i = 0;
+    foreach (Geometry *geom, scene->geometry) {
+      if (geom->need_update) {
+        pool.push(function_bind(
+            &Geometry::compute_bvh, geom, device, dscene, &scene->params, &progress, i, num_bvh));
+        if (geom->need_build_bvh(bvh_layout)) {
+          i++;
+        }
       }
     }
-  }
 
-  TaskPool::Summary summary;
-  pool.wait_work(&summary);
-  VLOG(2) << "Objects BVH build pool statistics:\n" << summary.full_report();
+    TaskPool::Summary summary;
+    pool.wait_work(&summary);
+    VLOG(2) << "Objects BVH build pool statistics:\n" << summary.full_report();
+  }
 
   foreach (Shader *shader, scene->shaders) {
     shader->need_update_geometry = false;
@@ -1380,21 +1440,43 @@ void GeometryManager::device_update(Device *device,
   bool motion_blur = need_motion == Scene::MOTION_BLUR;
 
   /* Update objects. */
-  vector<Object *> volume_objects;
-  foreach (Object *object, scene->objects) {
-    object->compute_bounds(motion_blur);
+  {
+    scoped_callback_timer timer([scene](double time) {
+      if (scene->update_stats) {
+        scene->update_stats->geometry.times.add_entry({"device_update (compute bounds)", time});
+      }
+    });
+    vector<Object *> volume_objects;
+    foreach (Object *object, scene->objects) {
+      object->compute_bounds(motion_blur);
+    }
   }
 
   if (progress.get_cancel())
     return;
 
-  device_update_bvh(device, dscene, scene, progress);
-  if (progress.get_cancel())
-    return;
+  {
+    scoped_callback_timer timer([scene](double time) {
+      if (scene->update_stats) {
+        scene->update_stats->geometry.times.add_entry({"device_update (build scene BVH)", time});
+      }
+    });
+    device_update_bvh(device, dscene, scene, progress);
+    if (progress.get_cancel())
+      return;
+  }
 
-  device_update_mesh(device, dscene, scene, false, progress);
-  if (progress.get_cancel())
-    return;
+  {
+    scoped_callback_timer timer([scene](double time) {
+      if (scene->update_stats) {
+        scene->update_stats->geometry.times.add_entry(
+            {"device_update (copy meshes to device)", time});
+      }
+    });
+    device_update_mesh(device, dscene, scene, false, progress);
+    if (progress.get_cancel())
+      return;
+  }
 
   need_update = false;
 

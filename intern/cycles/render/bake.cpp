@@ -20,6 +20,7 @@
 #include "render/mesh.h"
 #include "render/object.h"
 #include "render/shader.h"
+#include "render/stats.h"
 
 #include "util/util_foreach.h"
 
@@ -124,6 +125,12 @@ void BakeManager::device_update(Device * /*device*/,
 {
   if (!need_update)
     return;
+
+  scoped_callback_timer timer([scene](double time) {
+    if (scene->update_stats) {
+      scene->update_stats->bake.times.add_entry({"device_update", time});
+    }
+  });
 
   KernelIntegrator *kintegrator = &dscene->data.integrator;
   KernelBake *kbake = &dscene->data.bake;
