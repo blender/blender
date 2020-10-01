@@ -277,8 +277,8 @@ static void id_delete(Main *bmain, const bool do_tagged_deletion)
             BLI_remlink(lb, id);
             BLI_addtail(&tagged_deleted_ids, id);
             /* Do not tag as no_main now, we want to unlink it first (lower-level ID management
-             * code has some specific handling of 'nom main'
-             * IDs that would be a problem in that case). */
+             * code has some specific handling of 'no main' IDs that would be a problem in that
+             * case). */
             id->tag |= tag;
             keep_looping = true;
           }
