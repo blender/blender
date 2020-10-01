@@ -62,7 +62,7 @@ typedef enum eGPUSamplerState {
   GPU_SAMPLER_MAX = (GPU_SAMPLER_ICON + 1),
 } eGPUSamplerState;
 
-ENUM_OPERATORS(eGPUSamplerState)
+ENUM_OPERATORS(eGPUSamplerState, GPU_SAMPLER_REPEAT)
 
 #ifdef __cplusplus
 extern "C" {

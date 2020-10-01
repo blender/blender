@@ -42,7 +42,7 @@ typedef enum eGPUTextureFormatFlag {
   GPU_FORMAT_DEPTH_STENCIL = (GPU_FORMAT_DEPTH | GPU_FORMAT_STENCIL),
 } eGPUTextureFormatFlag;
 
-ENUM_OPERATORS(eGPUTextureFormatFlag)
+ENUM_OPERATORS(eGPUTextureFormatFlag, GPU_FORMAT_DEPTH_STENCIL)
 
 typedef enum eGPUTextureType {
   GPU_TEXTURE_1D = (1 << 0),
@@ -57,7 +57,7 @@ typedef enum eGPUTextureType {
   GPU_TEXTURE_CUBE_ARRAY = (GPU_TEXTURE_CUBE | GPU_TEXTURE_ARRAY),
 } eGPUTextureType;
 
-ENUM_OPERATORS(eGPUTextureType)
+ENUM_OPERATORS(eGPUTextureType, GPU_TEXTURE_CUBE_ARRAY)
 
 #ifdef DEBUG
 #  define DEBUG_NAME_LEN 64

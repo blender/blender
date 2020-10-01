@@ -39,7 +39,7 @@ typedef enum eGPUDeviceType {
   GPU_DEVICE_ANY = (0xff),
 } eGPUDeviceType;
 
-ENUM_OPERATORS(eGPUDeviceType)
+ENUM_OPERATORS(eGPUDeviceType, GPU_DEVICE_ANY)
 
 typedef enum eGPUOSType {
   GPU_OS_WIN = (1 << 8),

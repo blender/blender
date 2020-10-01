@@ -40,7 +40,7 @@ typedef enum {
   GPU_VERTBUF_DATA_UPLOADED = (1 << 2),
 } GPUVertBufStatus;
 
-ENUM_OPERATORS(GPUVertBufStatus)
+ENUM_OPERATORS(GPUVertBufStatus, GPU_VERTBUF_DATA_UPLOADED)
 
 #ifdef __cplusplus
 extern "C" {

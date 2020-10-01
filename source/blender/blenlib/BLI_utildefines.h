@@ -782,7 +782,8 @@ extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
 
 /* Useful to port C code using enums to C++ where enums are strongly typed.
  * To use after the enum declaration. */
-#  define ENUM_OPERATORS(_enum_type) \
+/* If any enumerator `C` is set to say `A|B`, then `C` would be the max enum value. */
+#  define ENUM_OPERATORS(_enum_type, _max_enum_value) \
     inline constexpr _enum_type operator|(_enum_type a, _enum_type b) \
     { \
       return static_cast<_enum_type>(static_cast<int>(a) | b); \
@@ -793,7 +794,7 @@ extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
     } \
     inline constexpr _enum_type operator~(_enum_type a) \
     { \
-      return static_cast<_enum_type>(~static_cast<int>(a)); \
+      return static_cast<_enum_type>(~static_cast<int>(a) & (2 * _max_enum_value - 1)); \
     } \
     inline _enum_type &operator|=(_enum_type &a, _enum_type b) \
     { \
@@ -806,7 +807,7 @@ extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
 
 #else
 /* Output nothing. */
-#  define ENUM_OPERATORS(_type)
+#  define ENUM_OPERATORS(_type, _max)
 #endif
 
 /** \} */

@@ -33,7 +33,7 @@ typedef enum eGPUWriteMask {
   GPU_WRITE_COLOR = (GPU_WRITE_RED | GPU_WRITE_GREEN | GPU_WRITE_BLUE | GPU_WRITE_ALPHA),
 } eGPUWriteMask;
 
-ENUM_OPERATORS(eGPUWriteMask)
+ENUM_OPERATORS(eGPUWriteMask, GPU_WRITE_COLOR)
 
 typedef enum eGPUBarrier {
   GPU_BARRIER_NONE = 0,
@@ -41,7 +41,7 @@ typedef enum eGPUBarrier {
   GPU_BARRIER_TEXTURE_FETCH = (1 << 1),
 } eGPUBarrier;
 
-ENUM_OPERATORS(eGPUBarrier)
+ENUM_OPERATORS(eGPUBarrier, GPU_BARRIER_TEXTURE_FETCH)
 
 /**
  * Defines the fixed pipeline blending equation.

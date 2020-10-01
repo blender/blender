@@ -38,7 +38,7 @@ typedef enum eGPUFrameBufferBits {
   GPU_STENCIL_BIT = (1 << 2),
 } eGPUFrameBufferBits;
 
-ENUM_OPERATORS(eGPUFrameBufferBits)
+ENUM_OPERATORS(eGPUFrameBufferBits, GPU_STENCIL_BIT)
 
 #ifdef __cplusplus
 extern "C" {
