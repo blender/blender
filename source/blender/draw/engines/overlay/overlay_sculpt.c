@@ -54,15 +54,26 @@ void OVERLAY_sculpt_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
   const bool use_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->v3d);
 
-  if (pbvh_has_mask(pbvh) || pbvh_has_face_sets(pbvh)) {
-    if (use_pbvh) {
-      DRW_shgroup_call_sculpt(pd->sculpt_mask_grp, ob, false, true);
-    }
-    else {
-      sculpt_overlays = DRW_mesh_batch_cache_get_sculpt_overlays(ob->data);
-      if (sculpt_overlays) {
-        DRW_shgroup_call(pd->sculpt_mask_grp, sculpt_overlays, ob);
-      }
+  if (!pbvh) {
+    /* It is possible to have SculptSession without PBVH. This happens, for example, when toggling
+     * object mode to sculpt then to edit mode. */
+    return;
+  }
+
+  if (!pbvh_has_mask(pbvh) && !pbvh_has_face_sets(pbvh)) {
+    /* The SculptSession and the PBVH can be created without a Mask datalayer or Face Set
+     * datalayer. (masks datalayers are created after using a mask tool), so in these cases there
+     * is nothing to draw. */
+    return;
+  }
+
+  if (use_pbvh) {
+    DRW_shgroup_call_sculpt(pd->sculpt_mask_grp, ob, false, true);
+  }
+  else {
+    sculpt_overlays = DRW_mesh_batch_cache_get_sculpt_overlays(ob->data);
+    if (sculpt_overlays) {
+      DRW_shgroup_call(pd->sculpt_mask_grp, sculpt_overlays, ob);
     }
   }
 }
