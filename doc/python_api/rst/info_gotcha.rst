@@ -677,7 +677,7 @@ Here are some general hints to avoid running into these problems:
 Undo/Redo
 ---------
 
-For safety, you should assume that undo and redo always invalidates all :class:`bpy.types.ID` 
+For safety, you should assume that undo and redo always invalidates all :class:`bpy.types.ID`
 instances (Object, Scene, Mesh, Light, etc.), as weel obviously as all of their sub-data.
 
 This example shows how you can tell undo changes the memory locations:
@@ -701,7 +701,7 @@ interactively by the user is the only way to make sure that the script doesn't b
    Modern undo/redo system does not systematically invalidate all pointers anymore.
    Some data (in fact, most data, in typical cases), which were detected as unchanged for a
    particular history step, may remain unchanged and hence their pointers may remain valid.
-   
+
    Be aware that if you want to take advantage of this behavior for some reason, there is no
    guarantee of any kind that it will be safe and consistent. Use it at your own risk.
 

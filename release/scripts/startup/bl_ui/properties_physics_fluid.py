@@ -1385,7 +1385,7 @@ class PHYSICS_PT_viewport_display_debug(PhysicButtonsPanel, Panel):
         if not domain.use_guide and domain.vector_field == 'GUIDE_VELOCITY':
             note = layout.split()
             note.label(icon='INFO', text="Enable Guides first! Defaulting to Fluid Velocity")
-        
+
         if domain.vector_display_type == 'MAC':
             sub = col.column(heading="MAC Grid")
             sub.prop(domain, "vector_show_mac_x")
@@ -1393,7 +1393,7 @@ class PHYSICS_PT_viewport_display_debug(PhysicButtonsPanel, Panel):
             sub.prop(domain, "vector_show_mac_z")
         else:
             col.prop(domain, "vector_scale_with_magnitude")
-        
+
         col.prop(domain, "vector_field")
         col.prop(domain, "vector_scale")
 

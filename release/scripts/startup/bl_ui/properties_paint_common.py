@@ -663,7 +663,7 @@ def brush_settings(layout, context, brush, popover=False):
             if brush.cloth_simulation_area_type != 'GLOBAL':
                 layout.prop(brush, "cloth_sim_limit")
                 layout.prop(brush, "cloth_sim_falloff")
-                
+
             if brush.cloth_simulation_area_type == 'LOCAL':
                 layout.prop(brush, "use_cloth_pin_simulation_boundary")
 

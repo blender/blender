@@ -32,7 +32,7 @@ class FCurveEvaluationTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.testdir = args.testdir
-      
+
     def setUp(self):
         self.assertTrue(self.testdir.exists(),
                         'Test dir %s should exist' % self.testdir)
