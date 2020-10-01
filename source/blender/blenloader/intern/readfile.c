@@ -284,7 +284,7 @@ typedef struct BHeadN {
   struct BHead bhead;
 } BHeadN;
 
-#define BHEADN_FROM_BHEAD(bh) ((BHeadN *)POINTER_OFFSET(bh, -offsetof(BHeadN, bhead)))
+#define BHEADN_FROM_BHEAD(bh) ((BHeadN *)POINTER_OFFSET(bh, -(int)offsetof(BHeadN, bhead)))
 
 /* We could change this in the future, for now it's simplest if only data is delayed
  * because ID names are used in lookup tables. */
