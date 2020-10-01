@@ -422,11 +422,13 @@ void BlenderSync::sync_film(BL::SpaceView3D &b_v3d)
 
 void BlenderSync::sync_view_layer(BL::SpaceView3D & /*b_v3d*/, BL::ViewLayer &b_view_layer)
 {
-  /* render layer */
   view_layer.name = b_view_layer.name();
+
+  /* Filter. */
   view_layer.use_background_shader = b_view_layer.use_sky();
   view_layer.use_background_ao = b_view_layer.use_ao();
-  view_layer.use_surfaces = b_view_layer.use_solid();
+  /* Always enable surfaces for baking, otherwise there is nothing to bake to. */
+  view_layer.use_surfaces = b_view_layer.use_solid() || scene->bake_manager->get_baking();
   view_layer.use_hair = b_view_layer.use_strand();
   view_layer.use_volumes = b_view_layer.use_volumes();
 
