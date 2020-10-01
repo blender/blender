@@ -671,11 +671,11 @@ static bool dependsOnNormals(ModifierData *UNUSED(md))
   return true;
 }
 
-static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
+static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
   NormalEditModifierData *enmd = (NormalEditModifierData *)md;
 
-  walk(userData, ob, &enmd->target, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&enmd->target, IDWALK_CB_NOP);
 }
 
 static bool isDisabled(const struct Scene *UNUSED(scene),
@@ -805,8 +805,7 @@ ModifierTypeInfo modifierType_NormalEdit = {
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ NULL,
     /* dependsOnNormals */ dependsOnNormals,
-    /* foreachObjectLink */ foreachObjectLink,
-    /* foreachIDLink */ NULL,
+    /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,

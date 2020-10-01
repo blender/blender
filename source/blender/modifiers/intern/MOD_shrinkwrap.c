@@ -101,12 +101,12 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
   return false;
 }
 
-static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
+static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
   ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
 
-  walk(userData, ob, &smd->target, IDWALK_CB_NOP);
-  walk(userData, ob, &smd->auxTarget, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&smd->target, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&smd->auxTarget, IDWALK_CB_NOP);
 }
 
 static void deformVerts(ModifierData *md,
@@ -302,8 +302,7 @@ ModifierTypeInfo modifierType_Shrinkwrap = {
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ NULL,
     /* dependsOnNormals */ dependsOnNormals,
-    /* foreachObjectLink */ foreachObjectLink,
-    /* foreachIDLink */ NULL,
+    /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,

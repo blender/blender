@@ -74,21 +74,13 @@ static bool dependsOnTime(ModifierData *UNUSED(md))
   return true;
 }
 
-static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
-{
-  WaveModifierData *wmd = (WaveModifierData *)md;
-
-  walk(userData, ob, &wmd->objectcenter, IDWALK_CB_NOP);
-  walk(userData, ob, &wmd->map_object, IDWALK_CB_NOP);
-}
-
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
   WaveModifierData *wmd = (WaveModifierData *)md;
 
   walk(userData, ob, (ID **)&wmd->texture, IDWALK_CB_USER);
-
-  foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
+  walk(userData, ob, (ID **)&wmd->objectcenter, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&wmd->map_object, IDWALK_CB_NOP);
 }
 
 static void foreachTexLink(ModifierData *md, Object *ob, TexWalkFunc walk, void *userData)
@@ -508,7 +500,6 @@ ModifierTypeInfo modifierType_Wave = {
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ dependsOnTime,
     /* dependsOnNormals */ dependsOnNormals,
-    /* foreachObjectLink */ foreachObjectLink,
     /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ foreachTexLink,
     /* freeRuntimeData */ NULL,

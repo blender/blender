@@ -115,11 +115,6 @@ typedef enum {
   eModifierTypeFlag_AcceptsBMesh = (1 << 11),
 } ModifierTypeFlag;
 
-/* IMPORTANT! Keep ObjectWalkFunc and IDWalkFunc signatures compatible. */
-typedef void (*ObjectWalkFunc)(void *userData,
-                               struct Object *ob,
-                               struct Object **obpoin,
-                               int cb_flag);
 typedef void (*IDWalkFunc)(void *userData, struct Object *ob, struct ID **idpoin, int cb_flag);
 typedef void (*TexWalkFunc)(void *userData,
                             struct Object *ob,
@@ -332,25 +327,12 @@ typedef struct ModifierTypeInfo {
   bool (*dependsOnNormals)(struct ModifierData *md);
 
   /**
-   * Should call the given walk function on with a pointer to each Object
-   * pointer that the modifier data stores. This is used for linking on file
-   * load and for unlinking objects or forwarding object references.
-   *
-   * This function is optional.
-   */
-  void (*foreachObjectLink)(struct ModifierData *md,
-                            struct Object *ob,
-                            ObjectWalkFunc walk,
-                            void *userData);
-
-  /**
    * Should call the given walk function with a pointer to each ID
    * pointer (i.e. each data-block pointer) that the modifier data
    * stores. This is used for linking on file load and for
    * unlinking data-blocks or forwarding data-block references.
    *
-   * This function is optional. If it is not present, foreachObjectLink
-   * will be used.
+   * This function is optional.
    */
   void (*foreachIDLink)(struct ModifierData *md,
                         struct Object *ob,
@@ -449,7 +431,6 @@ void BKE_modifier_set_error(struct ModifierData *md, const char *format, ...)
     ATTR_PRINTF_FORMAT(2, 3);
 bool BKE_modifier_is_preview(struct ModifierData *md);
 
-void BKE_modifiers_foreach_object_link(struct Object *ob, ObjectWalkFunc walk, void *userData);
 void BKE_modifiers_foreach_ID_link(struct Object *ob, IDWalkFunc walk, void *userData);
 void BKE_modifiers_foreach_tex_link(struct Object *ob, TexWalkFunc walk, void *userData);
 

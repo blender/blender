@@ -101,21 +101,12 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
   return false;
 }
 
-static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
-{
-  BooleanModifierData *bmd = (BooleanModifierData *)md;
-
-  walk(userData, ob, &bmd->object, IDWALK_CB_NOP);
-}
-
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
   BooleanModifierData *bmd = (BooleanModifierData *)md;
 
   walk(userData, ob, (ID **)&bmd->collection, IDWALK_CB_NOP);
-
-  /* Needed for the object operand to work. */
-  foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
+  walk(userData, ob, (ID **)&bmd->object, IDWALK_CB_NOP);
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
@@ -774,7 +765,6 @@ ModifierTypeInfo modifierType_Boolean = {
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ NULL,
     /* dependsOnNormals */ NULL,
-    /* foreachObjectLink */ foreachObjectLink,
     /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,

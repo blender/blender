@@ -104,11 +104,11 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
   return !amd->object || amd->object->type != OB_ARMATURE;
 }
 
-static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
+static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
 
-  walk(userData, ob, &amd->object, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&amd->object, IDWALK_CB_NOP);
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
@@ -305,8 +305,7 @@ ModifierTypeInfo modifierType_Armature = {
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ NULL,
     /* dependsOnNormals */ NULL,
-    /* foreachObjectLink */ foreachObjectLink,
-    /* foreachIDLink */ NULL,
+    /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,

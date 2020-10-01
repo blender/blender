@@ -76,14 +76,11 @@ static bool isDisabled(ShaderFxData *fx, int UNUSED(userRenderParams))
   return !fxd->object;
 }
 
-static void foreachObjectLink(ShaderFxData *fx,
-                              Object *ob,
-                              ShaderFxObjectWalkFunc walk,
-                              void *userData)
+static void foreachIDLink(ShaderFxData *fx, Object *ob, IDWalkFunc walk, void *userData)
 {
   SwirlShaderFxData *fxd = (SwirlShaderFxData *)fx;
 
-  walk(userData, ob, &fxd->object, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&fxd->object, IDWALK_CB_NOP);
 }
 
 static void panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -120,7 +117,6 @@ ShaderFxTypeInfo shaderfx_Type_Swirl = {
     /* isDisabled */ isDisabled,
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ NULL,
-    /* foreachObjectLink */ foreachObjectLink,
-    /* foreachIDLink */ NULL,
+    /* foreachIDLink */ foreachIDLink,
     /* panelRegister */ panelRegister,
 };

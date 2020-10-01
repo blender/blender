@@ -93,7 +93,6 @@ ShaderFxTypeInfo shaderfx_Type_Blur = {
     /* isDisabled */ NULL,
     /* updateDepsgraph */ NULL,
     /* dependsOnTime */ NULL,
-    /* foreachObjectLink */ NULL,
     /* foreachIDLink */ NULL,
     /* panelRegister */ panelRegister,
 };

@@ -75,23 +75,12 @@ static void requiredDataMask(Object *UNUSED(ob),
   r_cddata_masks->lmask |= CD_MLOOPUV;
 }
 
-static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
-{
-  UVProjectModifierData *umd = (UVProjectModifierData *)md;
-  int i;
-
-  for (i = 0; i < MOD_UVPROJECT_MAXPROJECTORS; i++) {
-    walk(userData, ob, &umd->projectors[i], IDWALK_CB_NOP);
-  }
-}
-
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
-#if 0
   UVProjectModifierData *umd = (UVProjectModifierData *)md;
-#endif
-
-  foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
+  for (int i = 0; i < MOD_UVPROJECT_MAXPROJECTORS; i++) {
+    walk(userData, ob, (ID **)&umd->projectors[i], IDWALK_CB_NOP);
+  }
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
@@ -391,7 +380,6 @@ ModifierTypeInfo modifierType_UVProject = {
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ NULL,
     /* dependsOnNormals */ NULL,
-    /* foreachObjectLink */ foreachObjectLink,
     /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,

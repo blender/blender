@@ -82,11 +82,6 @@ typedef enum {
   eGpencilModifierTypeFlag_NoApply = (1 << 6),
 } GpencilModifierTypeFlag;
 
-/* IMPORTANT! Keep ObjectWalkFunc and IDWalkFunc signatures compatible. */
-typedef void (*GreasePencilObjectWalkFunc)(void *userData,
-                                           struct Object *ob,
-                                           struct Object **obpoin,
-                                           int cb_flag);
 typedef void (*GreasePencilIDWalkFunc)(void *userData,
                                        struct Object *ob,
                                        struct ID **idpoin,
@@ -219,25 +214,12 @@ typedef struct GpencilModifierTypeInfo {
   bool (*dependsOnTime)(struct GpencilModifierData *md);
 
   /**
-   * Should call the given walk function on with a pointer to each Object
-   * pointer that the modifier data stores. This is used for linking on file
-   * load and for unlinking objects or forwarding object references.
-   *
-   * This function is optional.
-   */
-  void (*foreachObjectLink)(struct GpencilModifierData *md,
-                            struct Object *ob,
-                            GreasePencilObjectWalkFunc walk,
-                            void *userData);
-
-  /**
    * Should call the given walk function with a pointer to each ID
    * pointer (i.e. each data-block pointer) that the modifier data
    * stores. This is used for linking on file load and for
    * unlinking data-blocks or forwarding data-block references.
    *
-   * This function is optional. If it is not present, foreachObjectLink
-   * will be used.
+   * This function is optional.
    */
   void (*foreachIDLink)(struct GpencilModifierData *md,
                         struct Object *ob,

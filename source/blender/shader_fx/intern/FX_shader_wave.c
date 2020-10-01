@@ -90,7 +90,6 @@ ShaderFxTypeInfo shaderfx_Type_Wave = {
     /* isDisabled */ NULL,
     /* updateDepsgraph */ NULL,
     /* dependsOnTime */ NULL,
-    /* foreachObjectLink */ NULL,
     /* foreachIDLink */ NULL,
     /* panelRegister */ panelRegister,
 };

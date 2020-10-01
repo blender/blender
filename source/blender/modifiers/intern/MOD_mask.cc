@@ -85,10 +85,10 @@ static void requiredDataMask(Object *UNUSED(ob),
   r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
 }
 
-static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
+static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
   MaskModifierData *mmd = reinterpret_cast<MaskModifierData *>(md);
-  walk(userData, ob, &mmd->ob_arm, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&mmd->ob_arm, IDWALK_CB_NOP);
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
@@ -472,8 +472,7 @@ ModifierTypeInfo modifierType_Mask = {
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ NULL,
     /* dependsOnNormals */ NULL,
-    /* foreachObjectLink */ foreachObjectLink,
-    /* foreachIDLink */ NULL,
+    /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,

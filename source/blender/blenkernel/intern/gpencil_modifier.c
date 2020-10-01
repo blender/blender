@@ -333,10 +333,6 @@ void BKE_gpencil_modifier_free_ex(GpencilModifierData *md, const int flag)
     if (mti->foreachIDLink) {
       mti->foreachIDLink(md, NULL, modifier_free_data_id_us_cb, NULL);
     }
-    else if (mti->foreachObjectLink) {
-      mti->foreachObjectLink(
-          md, NULL, (GreasePencilObjectWalkFunc)modifier_free_data_id_us_cb, NULL);
-    }
   }
 
   if (mti->freeData) {
@@ -473,10 +469,6 @@ void BKE_gpencil_modifier_copydata_ex(GpencilModifierData *md,
     if (mti->foreachIDLink) {
       mti->foreachIDLink(target, NULL, gpencil_modifier_copy_data_id_us_cb, NULL);
     }
-    else if (mti->foreachObjectLink) {
-      mti->foreachObjectLink(
-          target, NULL, (GreasePencilObjectWalkFunc)gpencil_modifier_copy_data_id_us_cb, NULL);
-    }
   }
 }
 
@@ -543,11 +535,6 @@ void BKE_gpencil_modifiers_foreach_ID_link(Object *ob, GreasePencilIDWalkFunc wa
 
     if (mti->foreachIDLink) {
       mti->foreachIDLink(md, ob, walk, userData);
-    }
-    else if (mti->foreachObjectLink) {
-      /* each Object can masquerade as an ID, so this should be OK */
-      GreasePencilObjectWalkFunc fp = (GreasePencilObjectWalkFunc)walk;
-      mti->foreachObjectLink(md, ob, fp, userData);
     }
   }
 }

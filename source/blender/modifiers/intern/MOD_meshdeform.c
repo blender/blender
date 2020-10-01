@@ -163,11 +163,11 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
   return !mmd->object || mmd->object->type != OB_MESH;
 }
 
-static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
+static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
   MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
 
-  walk(userData, ob, &mmd->object, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&mmd->object, IDWALK_CB_NOP);
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
@@ -656,8 +656,7 @@ ModifierTypeInfo modifierType_MeshDeform = {
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ NULL,
     /* dependsOnNormals */ NULL,
-    /* foreachObjectLink */ foreachObjectLink,
-    /* foreachIDLink */ NULL,
+    /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,

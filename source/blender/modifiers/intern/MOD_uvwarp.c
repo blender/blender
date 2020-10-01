@@ -241,12 +241,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   return mesh;
 }
 
-static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
+static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
   UVWarpModifierData *umd = (UVWarpModifierData *)md;
 
-  walk(userData, ob, &umd->object_dst, IDWALK_CB_NOP);
-  walk(userData, ob, &umd->object_src, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&umd->object_dst, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&umd->object_src, IDWALK_CB_NOP);
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
@@ -351,8 +351,7 @@ ModifierTypeInfo modifierType_UVWarp = {
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ NULL,
     /* dependsOnNormals */ NULL,
-    /* foreachObjectLink */ foreachObjectLink,
-    /* foreachIDLink */ NULL,
+    /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,

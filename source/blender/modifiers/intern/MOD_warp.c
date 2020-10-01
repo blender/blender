@@ -142,22 +142,14 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
   return !(wmd->object_from && wmd->object_to);
 }
 
-static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
-{
-  WarpModifierData *wmd = (WarpModifierData *)md;
-
-  walk(userData, ob, &wmd->object_from, IDWALK_CB_NOP);
-  walk(userData, ob, &wmd->object_to, IDWALK_CB_NOP);
-  walk(userData, ob, &wmd->map_object, IDWALK_CB_NOP);
-}
-
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
 
   walk(userData, ob, (ID **)&wmd->texture, IDWALK_CB_USER);
-
-  foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
+  walk(userData, ob, (ID **)&wmd->object_from, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&wmd->object_to, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&wmd->map_object, IDWALK_CB_NOP);
 }
 
 static void foreachTexLink(ModifierData *md, Object *ob, TexWalkFunc walk, void *userData)
@@ -556,7 +548,6 @@ ModifierTypeInfo modifierType_Warp = {
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ dependsOnTime,
     /* dependsOnNormals */ NULL,
-    /* foreachObjectLink */ foreachObjectLink,
     /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ foreachTexLink,
     /* freeRuntimeData */ NULL,

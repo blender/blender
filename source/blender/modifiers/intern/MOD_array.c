@@ -72,14 +72,14 @@ static void initData(ModifierData *md)
   md->ui_expand_flag = (1 << 0) | (1 << 1);
 }
 
-static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
+static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
   ArrayModifierData *amd = (ArrayModifierData *)md;
 
-  walk(userData, ob, &amd->start_cap, IDWALK_CB_NOP);
-  walk(userData, ob, &amd->end_cap, IDWALK_CB_NOP);
-  walk(userData, ob, &amd->curve_ob, IDWALK_CB_NOP);
-  walk(userData, ob, &amd->offset_ob, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&amd->start_cap, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&amd->end_cap, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&amd->curve_ob, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&amd->offset_ob, IDWALK_CB_NOP);
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
@@ -1026,8 +1026,7 @@ ModifierTypeInfo modifierType_Array = {
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ NULL,
     /* dependsOnNormals */ NULL,
-    /* foreachObjectLink */ foreachObjectLink,
-    /* foreachIDLink */ NULL,
+    /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,

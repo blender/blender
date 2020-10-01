@@ -100,7 +100,6 @@ ShaderFxTypeInfo shaderfx_Type_Colorize = {
     /* isDisabled */ NULL,
     /* updateDepsgraph */ NULL,
     /* dependsOnTime */ NULL,
-    /* foreachObjectLink */ NULL,
     /* foreachIDLink */ NULL,
     /* panelRegister */ panelRegister,
 };

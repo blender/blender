@@ -88,11 +88,11 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
   return !lmd->object || lmd->object->type != OB_LATTICE;
 }
 
-static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
+static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
   LatticeModifierData *lmd = (LatticeModifierData *)md;
 
-  walk(userData, ob, &lmd->object, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&lmd->object, IDWALK_CB_NOP);
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
@@ -202,8 +202,7 @@ ModifierTypeInfo modifierType_Lattice = {
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ NULL,
     /* dependsOnNormals */ NULL,
-    /* foreachObjectLink */ foreachObjectLink,
-    /* foreachIDLink */ NULL,
+    /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,

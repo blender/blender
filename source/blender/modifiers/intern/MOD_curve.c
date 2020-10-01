@@ -90,11 +90,11 @@ static bool isDisabled(const Scene *UNUSED(scene), ModifierData *md, bool UNUSED
   return !cmd->object || cmd->object->type != OB_CURVE;
 }
 
-static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
+static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
   CurveModifierData *cmd = (CurveModifierData *)md;
 
-  walk(userData, ob, &cmd->object, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&cmd->object, IDWALK_CB_NOP);
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
@@ -245,8 +245,7 @@ ModifierTypeInfo modifierType_Curve = {
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ NULL,
     /* dependsOnNormals */ NULL,
-    /* foreachObjectLink */ foreachObjectLink,
-    /* foreachIDLink */ NULL,
+    /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,

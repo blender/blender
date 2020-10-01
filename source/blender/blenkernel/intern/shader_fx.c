@@ -116,9 +116,6 @@ void BKE_shaderfx_free_ex(ShaderFxData *fx, const int flag)
     if (fxi->foreachIDLink) {
       fxi->foreachIDLink(fx, NULL, shaderfx_free_data_id_us_cb, NULL);
     }
-    else if (fxi->foreachObjectLink) {
-      fxi->foreachObjectLink(fx, NULL, (ShaderFxObjectWalkFunc)shaderfx_free_data_id_us_cb, NULL);
-    }
   }
 
   if (fxi->freeData) {
@@ -222,10 +219,6 @@ void BKE_shaderfx_copydata_ex(ShaderFxData *fx, ShaderFxData *target, const int 
     if (fxi->foreachIDLink) {
       fxi->foreachIDLink(target, NULL, shaderfx_copy_data_id_us_cb, NULL);
     }
-    else if (fxi->foreachObjectLink) {
-      fxi->foreachObjectLink(
-          target, NULL, (ShaderFxObjectWalkFunc)shaderfx_copy_data_id_us_cb, NULL);
-    }
   }
 }
 
@@ -269,11 +262,6 @@ void BKE_shaderfx_foreach_ID_link(Object *ob, ShaderFxIDWalkFunc walk, void *use
 
     if (fxi->foreachIDLink) {
       fxi->foreachIDLink(fx, ob, walk, userData);
-    }
-    else if (fxi->foreachObjectLink) {
-      /* each Object can masquerade as an ID, so this should be OK */
-      ShaderFxObjectWalkFunc fp = (ShaderFxObjectWalkFunc)walk;
-      fxi->foreachObjectLink(fx, ob, fp, userData);
     }
   }
 }

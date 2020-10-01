@@ -119,11 +119,11 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
   return !hmd->object;
 }
 
-static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
+static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
   HookModifierData *hmd = (HookModifierData *)md;
 
-  walk(userData, ob, &hmd->object, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&hmd->object, IDWALK_CB_NOP);
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
@@ -583,8 +583,7 @@ ModifierTypeInfo modifierType_Hook = {
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ NULL,
     /* dependsOnNormals */ NULL,
-    /* foreachObjectLink */ foreachObjectLink,
-    /* foreachIDLink */ NULL,
+    /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,

@@ -91,7 +91,6 @@ ShaderFxTypeInfo shaderfx_Type_Pixel = {
     /* isDisabled */ NULL,
     /* updateDepsgraph */ NULL,
     /* dependsOnTime */ NULL,
-    /* foreachObjectLink */ NULL,
     /* foreachIDLink */ NULL,
     /* panelRegister */ panelRegister,
 };

@@ -396,10 +396,10 @@ static void requiredDataMask(Object *UNUSED(ob),
   }
 }
 
-static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
+static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
   SimpleDeformModifierData *smd = (SimpleDeformModifierData *)md;
-  walk(userData, ob, &smd->origin, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&smd->origin, IDWALK_CB_NOP);
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
@@ -562,8 +562,7 @@ ModifierTypeInfo modifierType_SimpleDeform = {
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ NULL,
     /* dependsOnNormals */ NULL,
-    /* foreachObjectLink */ foreachObjectLink,
-    /* foreachIDLink */ NULL,
+    /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,

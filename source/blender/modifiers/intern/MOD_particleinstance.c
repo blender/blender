@@ -137,11 +137,11 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 }
 
-static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk, void *userData)
+static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
 {
   ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
 
-  walk(userData, ob, &pimd->ob, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&pimd->ob, IDWALK_CB_NOP);
 }
 
 static bool particle_skip(ParticleInstanceModifierData *pimd, ParticleSystem *psys, int p)
@@ -688,8 +688,7 @@ ModifierTypeInfo modifierType_ParticleInstance = {
     /* updateDepsgraph */ updateDepsgraph,
     /* dependsOnTime */ NULL,
     /* dependsOnNormals */ NULL,
-    /* foreachObjectLink */ foreachObjectLink,
-    /* foreachIDLink */ NULL,
+    /* foreachIDLink */ foreachIDLink,
     /* foreachTexLink */ NULL,
     /* freeRuntimeData */ NULL,
     /* panelRegister */ panelRegister,

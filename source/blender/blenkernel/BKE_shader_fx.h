@@ -62,11 +62,6 @@ typedef enum {
   eShaderFxTypeFlag_NoUserAdd = (1 << 5),
 } ShaderFxTypeFlag;
 
-/* IMPORTANT! Keep ObjectWalkFunc and IDWalkFunc signatures compatible. */
-typedef void (*ShaderFxObjectWalkFunc)(void *userData,
-                                       struct Object *ob,
-                                       struct Object **obpoin,
-                                       int cb_flag);
 typedef void (*ShaderFxIDWalkFunc)(void *userData,
                                    struct Object *ob,
                                    struct ID **idpoin,
@@ -134,24 +129,12 @@ typedef struct ShaderFxTypeInfo {
    */
   bool (*dependsOnTime)(struct ShaderFxData *fx);
 
-  /* Should call the given walk function on with a pointer to each Object
-   * pointer that the effect data stores. This is used for linking on file
-   * load and for unlinking objects or forwarding object references.
-   *
-   * This function is optional.
-   */
-  void (*foreachObjectLink)(struct ShaderFxData *fx,
-                            struct Object *ob,
-                            ShaderFxObjectWalkFunc walk,
-                            void *userData);
-
   /* Should call the given walk function with a pointer to each ID
    * pointer (i.e. each data-block pointer) that the effect data
    * stores. This is used for linking on file load and for
    * unlinking data-blocks or forwarding data-block references.
    *
-   * This function is optional. If it is not present, foreachObjectLink
-   * will be used.
+   * This function is optional.
    */
   void (*foreachIDLink)(struct ShaderFxData *fx,
                         struct Object *ob,

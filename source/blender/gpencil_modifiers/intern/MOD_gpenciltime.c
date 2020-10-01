@@ -276,7 +276,6 @@ GpencilModifierTypeInfo modifierType_Gpencil_Time = {
     /* isDisabled */ NULL,
     /* updateDepsgraph */ NULL,
     /* dependsOnTime */ NULL,
-    /* foreachObjectLink */ NULL,
     /* foreachIDLink */ NULL,
     /* foreachTexLink */ NULL,
     /* panelRegister */ panelRegister,
