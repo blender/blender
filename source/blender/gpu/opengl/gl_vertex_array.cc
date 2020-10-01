@@ -62,7 +62,8 @@ static uint16_t vbo_bind(const ShaderInterface *interface,
       offset = a->offset;
     }
 
-    const GLvoid *pointer = (const GLubyte *)0 + offset + v_first * stride;
+    /* This is in fact an offset in memory. */
+    const GLvoid *pointer = (const GLubyte *)(intptr_t)(offset + v_first * stride);
     const GLenum type = to_gl(static_cast<GPUVertCompType>(a->comp_type));
 
     for (uint n_idx = 0; n_idx < a->name_len; n_idx++) {
