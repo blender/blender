@@ -41,6 +41,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_anim_data.h"
+#include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
@@ -49,8 +50,6 @@
 #include "RNA_access.h"
 
 #include "UI_interface.h"
-
-#include "ED_armature.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

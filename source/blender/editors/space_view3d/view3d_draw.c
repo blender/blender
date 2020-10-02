@@ -31,6 +31,7 @@
 #include "BLI_string_utils.h"
 #include "BLI_threads.h"
 
+#include "BKE_armature.h"
 #include "BKE_camera.h"
 #include "BKE_collection.h"
 #include "BKE_context.h"
@@ -62,7 +63,6 @@
 #include "DRW_engine.h"
 #include "DRW_select_buffer.h"
 
-#include "ED_armature.h"
 #include "ED_gpencil.h"
 #include "ED_info.h"
 #include "ED_keyframing.h"

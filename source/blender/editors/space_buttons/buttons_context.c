@@ -43,6 +43,7 @@
 #include "DNA_world_types.h"
 
 #include "BKE_action.h"
+#include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_layer.h"
 #include "BKE_linestyle.h"
@@ -55,7 +56,6 @@
 
 #include "RNA_access.h"
 
-#include "ED_armature.h"
 #include "ED_physics.h"
 #include "ED_screen.h"
 

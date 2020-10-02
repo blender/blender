@@ -223,7 +223,9 @@ void POSE_OT_propagate(struct wmOperatorType *ot);
  * but some tools still have a bit of overlap which makes things messy -- Feb 2013
  */
 
-EditBone *make_boneList(struct ListBase *edbo, struct ListBase *bones, struct Bone *actBone);
+struct EditBone *make_boneList(struct ListBase *edbo,
+                               struct ListBase *bones,
+                               struct Bone *actBone);
 
 /* duplicate method */
 void preEditBoneDuplicate(struct ListBase *editbones);
@@ -241,7 +243,7 @@ struct EditBone *duplicateEditBoneObjects(struct EditBone *cur_bone,
                                           struct Object *src_ob,
                                           struct Object *dst_ob);
 
-EditBone *add_points_bone(struct Object *obedit, float head[3], float tail[3]);
+struct EditBone *add_points_bone(struct Object *obedit, float head[3], float tail[3]);
 void bone_free(struct bArmature *arm, struct EditBone *bone);
 
 void armature_tag_select_mirrored(struct bArmature *arm);
@@ -249,10 +251,10 @@ void armature_select_mirrored_ex(struct bArmature *arm, const int flag);
 void armature_select_mirrored(struct bArmature *arm);
 void armature_tag_unselect(struct bArmature *arm);
 
-EditBone *ED_armature_pick_ebone(struct bContext *C,
-                                 const int xy[2],
-                                 bool findunsel,
-                                 struct Base **r_base);
+struct EditBone *ED_armature_pick_ebone(struct bContext *C,
+                                        const int xy[2],
+                                        bool findunsel,
+                                        struct Base **r_base);
 struct bPoseChannel *ED_armature_pick_pchan(struct bContext *C,
                                             const int xy[2],
                                             bool findunsel,

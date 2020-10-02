@@ -33,6 +33,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
+#include "BKE_armature.h"
 #include "BKE_editmesh.h"
 #include "BKE_lattice.h"
 #include "BKE_scene.h"
@@ -41,7 +42,6 @@
 
 #include "WM_types.h"
 
-#include "ED_armature.h"
 #include "ED_curve.h"
 #include "ED_object.h" /* own include */
 

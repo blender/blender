@@ -30,6 +30,7 @@ extern "C" {
 struct BMEditMesh;
 struct Bone;
 struct Depsgraph;
+struct IDProperty;
 struct ListBase;
 struct Main;
 struct Mesh;
@@ -41,6 +42,77 @@ struct bConstraint;
 struct bGPDstroke;
 struct bPose;
 struct bPoseChannel;
+
+typedef struct EditBone {
+  struct EditBone *next, *prev;
+  /** User-Defined Properties on this Bone */
+  struct IDProperty *prop;
+  /** Editbones have a one-way link  (i.e. children refer
+   * to parents.  This is converted to a two-way link for
+   * normal bones when leaving editmode. */
+  struct EditBone *parent;
+  /** (64 == MAXBONENAME) */
+  char name[64];
+  /** Roll along axis.  We'll ultimately use the axis/angle method
+   * for determining the transformation matrix of the bone.  The axis
+   * is tail-head while roll provides the angle. Refer to Graphics
+   * Gems 1 p. 466 (section IX.6) if it's not already in here somewhere*/
+  float roll;
+
+  /** Orientation and length is implicit during editing */
+  float head[3];
+  float tail[3];
+  /** All joints are considered to have zero rotation with respect to
+   * their parents. Therefore any rotations specified during the
+   * animation are automatically relative to the bones' rest positions*/
+  int flag;
+  int layer;
+  char inherit_scale_mode;
+
+  /* Envelope distance & weight */
+  float dist, weight;
+  /** put them in order! transform uses this as scale */
+  float xwidth, length, zwidth;
+  float rad_head, rad_tail;
+
+  /* Bendy-Bone parameters */
+  short segments;
+  float roll1, roll2;
+  float curve_in_x, curve_in_y;
+  float curve_out_x, curve_out_y;
+  float ease1, ease2;
+  float scale_in_x, scale_in_y;
+  float scale_out_x, scale_out_y;
+
+  /** for envelope scaling */
+  float oldlength;
+
+  /** Type of next/prev bone handles */
+  char bbone_prev_type;
+  char bbone_next_type;
+  /** Next/prev bones to use as handle references when calculating bbones (optional) */
+  struct EditBone *bbone_prev;
+  struct EditBone *bbone_next;
+
+  /* Used for display */
+  /** in Armature space, rest pos matrix */
+  float disp_mat[4][4];
+  /** in Armature space, rest pos matrix */
+  float disp_tail_mat[4][4];
+  /** in Armature space, rest pos matrix (32 == MAX_BBONE_SUBDIV) */
+  float disp_bbone_mat[32][4][4];
+
+  /** connected child temporary during drawing */
+  struct EditBone *bbone_child;
+
+  /* Used to store temporary data */
+  union {
+    struct EditBone *ebone;
+    struct Bone *bone;
+    void *p;
+    int i;
+  } temp;
+} EditBone;
 
 typedef struct PoseTarget {
   struct PoseTarget *next, *prev;

@@ -41,6 +41,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_appdir.h"
+#include "BKE_armature.h"
 #include "BKE_blender_copybuffer.h"
 #include "BKE_collection.h"
 #include "BKE_context.h"
@@ -61,7 +62,6 @@
 
 #include "../blenloader/BLO_readfile.h"
 
-#include "ED_armature.h"
 #include "ED_keyframing.h"
 #include "ED_object.h"
 #include "ED_outliner.h"

@@ -23,7 +23,8 @@
 #include "collada_utils.h"
 
 #include "BLI_linklist.h"
-#include "ED_armature.h"
+
+#include "BKE_armature.h"
 
 UnitConverter::UnitConverter() : unit(), up_axis(COLLADAFW::FileInfo::Z_UP)
 {
