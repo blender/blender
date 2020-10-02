@@ -489,6 +489,7 @@ void BKE_volume_grid_wireframe(const Volume *volume,
 #endif
 }
 
+#ifdef WITH_OPENVDB
 static void grow_triangles(blender::MutableSpan<blender::float3> verts,
                            blender::Span<std::array<int, 3>> tris,
                            const float factor)
@@ -506,6 +507,7 @@ static void grow_triangles(blender::MutableSpan<blender::float3> verts,
     verts[i] += offsets[i];
   }
 }
+#endif /* WITH_OPENVDB */
 
 void BKE_volume_grid_selection_surface(const Volume *volume,
                                        VolumeGrid *volume_grid,

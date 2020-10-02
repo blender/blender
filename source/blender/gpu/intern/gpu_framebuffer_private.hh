@@ -54,8 +54,9 @@ typedef enum GPUAttachmentType : int {
    * the maximum number of COLOR attachments specified by glDrawBuffers. */
   GPU_FB_MAX_ATTACHMENT,
 
-  GPU_FB_MAX_COLOR_ATTACHMENT = (GPU_FB_MAX_ATTACHMENT - GPU_FB_COLOR_ATTACHMENT0),
 } GPUAttachmentType;
+
+#define GPU_FB_MAX_COLOR_ATTACHMENT (GPU_FB_MAX_ATTACHMENT - GPU_FB_COLOR_ATTACHMENT0)
 
 inline constexpr GPUAttachmentType operator-(GPUAttachmentType a, int b)
 {
