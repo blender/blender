@@ -361,7 +361,7 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
         /* Cloth Snake Hook creates deformation constraint with fixed strength because the strength
          * is controlled per iteration using cloth_sim->deformation_strength. */
         cloth_brush_add_deformation_constraint(
-            data->cloth_sim,node_index, vd.index, CLOTH_DEFORMATION_SNAKEHOOK_STRENGTH);
+            data->cloth_sim, node_index, vd.index, CLOTH_DEFORMATION_SNAKEHOOK_STRENGTH);
       }
     }
     else if (data->cloth_sim->deformation_pos) {
