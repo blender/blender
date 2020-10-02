@@ -25,19 +25,19 @@ import re
 
 
 # regular expression constants
-DEF_DOC = '%s\s*(\(.*?\))'
-DEF_SOURCE = 'def\s+%s\s*(\(.*?\)):'
-RE_EMPTY_LINE = re.compile('^\s*\n')
+DEF_DOC = r'%s\s*(\(.*?\))'
+DEF_SOURCE = r'def\s+%s\s*(\(.*?\)):'
+RE_EMPTY_LINE = re.compile(r'^\s*\n')
 RE_FLAG = re.MULTILINE | re.DOTALL
 RE_NEWLINE = re.compile('\n+')
-RE_SPACE = re.compile('\s+')
+RE_SPACE = re.compile(r'\s+')
 RE_DEF_COMPLETE = re.compile(
     # don't start with a quote
     '''(?:^|[^"'a-zA-Z0-9_])'''
     # start with a \w = [a-zA-Z0-9_]
-    '''((\w+'''
+    r'''((\w+'''
     # allow also dots and closed bracket pairs []
-    '''(?:\w|[.]|\[.+?\])*'''
+    r'''(?:\w|[.]|\[.+?\])*'''
     # allow empty string
     '''|)'''
     # allow opening bracket(s)
