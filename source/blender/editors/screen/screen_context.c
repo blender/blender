@@ -43,6 +43,7 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
+#include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_gpencil.h"
 #include "BKE_layer.h"
@@ -976,6 +977,81 @@ static int screen_ctx_active_editable_fcurve(const bContext *C, bContextDataResu
   return -1; /* found but not available */
 }
 
+/* Registry of context callback functions. */
+
+typedef int (*context_callback)(const bContext *C, bContextDataResult *result);
+static GHash *ed_screen_context_functions = NULL;
+
+static void free_context_function_ghash(void *UNUSED(user_data))
+{
+  BLI_ghash_free(ed_screen_context_functions, NULL, NULL);
+}
+static inline void register_context_function(const char *member, context_callback function)
+{
+  BLI_ghash_insert(ed_screen_context_functions, (void *)member, function);
+}
+
+static void ensure_ed_screen_context_functions(void)
+{
+  if (ed_screen_context_functions != NULL) {
+    return;
+  }
+
+  /* Murmur hash is faster for smaller strings (according to BLI_hash_mm2). */
+  ed_screen_context_functions = BLI_ghash_new(
+      BLI_ghashutil_strhash_p_murmur, BLI_ghashutil_strcmp, __func__);
+
+  BKE_blender_atexit_register(free_context_function_ghash, NULL);
+
+  register_context_function("scene", screen_ctx_scene);
+  register_context_function("visible_objects", screen_ctx_visible_objects);
+  register_context_function("selectable_objects", screen_ctx_selectable_objects);
+  register_context_function("selected_objects", screen_ctx_selected_objects);
+  register_context_function("selected_editable_objects", screen_ctx_selected_editable_objects);
+  register_context_function("editable_objects", screen_ctx_editable_objects);
+  register_context_function("objects_in_mode", screen_ctx_objects_in_mode);
+  register_context_function("objects_in_mode_unique_data", screen_ctx_objects_in_mode_unique_data);
+  register_context_function("visible_bones", screen_ctx_visible_bones);
+  register_context_function("editable_bones", screen_ctx_editable_bones);
+  register_context_function("selected_bones", screen_ctx_selected_bones);
+  register_context_function("selected_editable_bones", screen_ctx_selected_editable_bones);
+  register_context_function("visible_pose_bones", screen_ctx_visible_pose_bones);
+  register_context_function("selected_pose_bones", screen_ctx_selected_pose_bones);
+  register_context_function("selected_pose_bones_from_active_object",
+                            screen_ctx_selected_pose_bones_from_active_object);
+  register_context_function("active_bone", screen_ctx_active_bone);
+  register_context_function("active_pose_bone", screen_ctx_active_pose_bone);
+  register_context_function("active_object", screen_ctx_active_object);
+  register_context_function("object", screen_ctx_object);
+  register_context_function("edit_object", screen_ctx_edit_object);
+  register_context_function("sculpt_object", screen_ctx_sculpt_object);
+  register_context_function("vertex_paint_object", screen_ctx_vertex_paint_object);
+  register_context_function("weight_paint_object", screen_ctx_weight_paint_object);
+  register_context_function("image_paint_object", screen_ctx_image_paint_object);
+  register_context_function("particle_edit_object", screen_ctx_particle_edit_object);
+  register_context_function("pose_object", screen_ctx_pose_object);
+  register_context_function("sequences", screen_ctx_sequences);
+  register_context_function("selected_sequences", screen_ctx_selected_sequences);
+  register_context_function("selected_editable_sequences", screen_ctx_selected_editable_sequences);
+  register_context_function("selected_nla_strips", screen_ctx_selected_nla_strips);
+  register_context_function("gpencil_data", screen_ctx_gpencil_data);
+  register_context_function("gpencil_data_owner", screen_ctx_gpencil_data_owner);
+  register_context_function("annotation_data", screen_ctx_annotation_data);
+  register_context_function("annotation_data_owner", screen_ctx_annotation_data_owner);
+  register_context_function("active_gpencil_layer", screen_ctx_active_gpencil_layer);
+  register_context_function("active_annotation_layer", screen_ctx_active_annotation_layer);
+  register_context_function("active_gpencil_frame", screen_ctx_active_gpencil_frame);
+  register_context_function("visible_gpencil_layers", screen_ctx_visible_gpencil_layers);
+  register_context_function("editable_gpencil_layers", screen_ctx_editable_gpencil_layers);
+  register_context_function("editable_gpencil_strokes", screen_ctx_editable_gpencil_strokes);
+  register_context_function("active_operator", screen_ctx_active_operator);
+  register_context_function("editable_fcurves", screen_ctx_editable_fcurves);
+  register_context_function("visible_fcurves", screen_ctx_visible_fcurves);
+  register_context_function("selected_editable_fcurves", screen_ctx_selected_editable_fcurves);
+  register_context_function("selected_visible_fcurves", screen_ctx_selected_visible_fcurves);
+  register_context_function("active_editable_fcurve", screen_ctx_active_editable_fcurve);
+}
+
 /* Entry point for the screen context. */
 int ed_screen_context(const bContext *C, const char *member, bContextDataResult *result)
 {
@@ -984,144 +1060,11 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
     return 1;
   }
 
-  if (CTX_data_equals(member, "scene")) {
-    return screen_ctx_scene(C, result);
-  }
-  if (CTX_data_equals(member, "visible_objects")) {
-    return screen_ctx_visible_objects(C, result);
-  }
-  if (CTX_data_equals(member, "selectable_objects")) {
-    return screen_ctx_selectable_objects(C, result);
-  }
-  if (CTX_data_equals(member, "selected_objects")) {
-    return screen_ctx_selected_objects(C, result);
-  }
-  if (CTX_data_equals(member, "selected_editable_objects")) {
-    return screen_ctx_selected_editable_objects(C, result);
-  }
-  if (CTX_data_equals(member, "editable_objects")) {
-    return screen_ctx_editable_objects(C, result);
-  }
-  if (CTX_data_equals(member, "objects_in_mode")) {
-    return screen_ctx_objects_in_mode(C, result);
-  }
-  if (CTX_data_equals(member, "objects_in_mode_unique_data")) {
-    return screen_ctx_objects_in_mode_unique_data(C, result);
-  }
-  if (CTX_data_equals(member, "visible_bones")) {
-    return screen_ctx_visible_bones(C, result);
-  }
-  if (CTX_data_equals(member, "editable_bones")) {
-    return screen_ctx_editable_bones(C, result);
-  }
-  if (CTX_data_equals(member, "selected_bones")) {
-    return screen_ctx_selected_bones(C, result);
-  }
-  if (CTX_data_equals(member, "selected_editable_bones")) {
-    return screen_ctx_selected_editable_bones(C, result);
-  }
-  if (CTX_data_equals(member, "visible_pose_bones")) {
-    return screen_ctx_visible_pose_bones(C, result);
-  }
-  if (CTX_data_equals(member, "selected_pose_bones")) {
-    return screen_ctx_selected_pose_bones(C, result);
-  }
-  if (CTX_data_equals(member, "selected_pose_bones_from_active_object")) {
-    return screen_ctx_selected_pose_bones_from_active_object(C, result);
-  }
-  if (CTX_data_equals(member, "active_bone")) {
-    return screen_ctx_active_bone(C, result);
-  }
-  if (CTX_data_equals(member, "active_pose_bone")) {
-    return screen_ctx_active_pose_bone(C, result);
-  }
-  if (CTX_data_equals(member, "active_object")) {
-    return screen_ctx_active_object(C, result);
-  }
-  if (CTX_data_equals(member, "object")) {
-    return screen_ctx_object(C, result);
-  }
-  if (CTX_data_equals(member, "edit_object")) {
-    return screen_ctx_edit_object(C, result);
-  }
-  if (CTX_data_equals(member, "sculpt_object")) {
-    return screen_ctx_sculpt_object(C, result);
-  }
-  if (CTX_data_equals(member, "vertex_paint_object")) {
-    return screen_ctx_vertex_paint_object(C, result);
-  }
-  if (CTX_data_equals(member, "weight_paint_object")) {
-    return screen_ctx_weight_paint_object(C, result);
-  }
-  if (CTX_data_equals(member, "image_paint_object")) {
-    return screen_ctx_image_paint_object(C, result);
-  }
-  if (CTX_data_equals(member, "particle_edit_object")) {
-    return screen_ctx_particle_edit_object(C, result);
-  }
-  if (CTX_data_equals(member, "pose_object")) {
-    return screen_ctx_pose_object(C, result);
-  }
-  if (CTX_data_equals(member, "sequences")) {
-    return screen_ctx_sequences(C, result);
-  }
-  if (CTX_data_equals(member, "selected_sequences")) {
-    return screen_ctx_selected_sequences(C, result);
-  }
-  if (CTX_data_equals(member, "selected_editable_sequences")) {
-    return screen_ctx_selected_editable_sequences(C, result);
-  }
-  if (CTX_data_equals(member, "selected_nla_strips")) {
-    return screen_ctx_selected_nla_strips(C, result);
-  }
-  if (CTX_data_equals(member, "gpencil_data")) {
-    return screen_ctx_gpencil_data(C, result);
-  }
-  if (CTX_data_equals(member, "gpencil_data_owner")) {
-    return screen_ctx_gpencil_data_owner(C, result);
-  }
-  if (CTX_data_equals(member, "annotation_data")) {
-    return screen_ctx_annotation_data(C, result);
-  }
-  if (CTX_data_equals(member, "annotation_data_owner")) {
-    return screen_ctx_annotation_data_owner(C, result);
-  }
-  if (CTX_data_equals(member, "active_gpencil_layer")) {
-    return screen_ctx_active_gpencil_layer(C, result);
-  }
-  if (CTX_data_equals(member, "active_annotation_layer")) {
-    return screen_ctx_active_annotation_layer(C, result);
-  }
-  if (CTX_data_equals(member, "active_gpencil_frame")) {
-    return screen_ctx_active_gpencil_frame(C, result);
-  }
-  if (CTX_data_equals(member, "visible_gpencil_layers")) {
-    return screen_ctx_visible_gpencil_layers(C, result);
-  }
-  if (CTX_data_equals(member, "editable_gpencil_layers")) {
-    return screen_ctx_editable_gpencil_layers(C, result);
-  }
-  if (CTX_data_equals(member, "editable_gpencil_strokes")) {
-    return screen_ctx_editable_gpencil_strokes(C, result);
-  }
-  if (CTX_data_equals(member, "active_operator")) {
-    return screen_ctx_active_operator(C, result);
-  }
-  if (CTX_data_equals(member, "editable_fcurves")) {
-    return screen_ctx_editable_fcurves(C, result);
-  }
-  if (CTX_data_equals(member, "visible_fcurves")) {
-    return screen_ctx_visible_fcurves(C, result);
-  }
-  if (CTX_data_equals(member, "selected_editable_fcurves")) {
-    return screen_ctx_selected_editable_fcurves(C, result);
-  }
-  if (CTX_data_equals(member, "selected_visible_fcurves")) {
-    return screen_ctx_selected_visible_fcurves(C, result);
-  }
-  if (CTX_data_equals(member, "active_editable_fcurve")) {
-    return screen_ctx_active_editable_fcurve(C, result);
+  ensure_ed_screen_context_functions();
+  context_callback callback = BLI_ghash_lookup(ed_screen_context_functions, member);
+  if (callback == NULL) {
+    return 0; /* not found */
   }
 
-  return 0; /* not found */
+  return callback(C, result);
 }
