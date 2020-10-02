@@ -528,9 +528,14 @@ void BLO_version_defaults_userpref_blend(UserDef *userdef)
     }
   }
 
-  /* NOTE!! from now on use userdef->versionfile and userdef->subversionfile */
-#undef USER_VERSION_ATLEAST
-#define USER_VERSION_ATLEAST(ver, subver) MAIN_VERSION_ATLEAST(userdef, ver, subver)
+  if (!USER_VERSION_ATLEAST(269, 4)) {
+    userdef->walk_navigation.mouse_speed = 1.0f;
+    userdef->walk_navigation.walk_speed = 2.5f; /* m/s */
+    userdef->walk_navigation.walk_speed_factor = 5.0f;
+    userdef->walk_navigation.view_height = 1.6f;   /* m */
+    userdef->walk_navigation.jump_height = 0.4f;   /* m */
+    userdef->walk_navigation.teleport_time = 0.2f; /* s */
+  }
 
   if (!USER_VERSION_ATLEAST(271, 5)) {
     userdef->pie_menu_radius = 100;
@@ -599,6 +604,8 @@ void BLO_version_defaults_userpref_blend(UserDef *userdef)
   if (!USER_VERSION_ATLEAST(280, 33)) {
     /* Enable GLTF addon by default. */
     BKE_addon_ensure(&userdef->addons, "io_scene_gltf2");
+
+    userdef->pressure_threshold_max = 1.0f;
   }
 
   if (!USER_VERSION_ATLEAST(280, 35)) {

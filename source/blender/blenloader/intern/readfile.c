@@ -6892,20 +6892,6 @@ static void do_versions_userdef(FileData *fd, BlendFileData *bfd)
   if (user == NULL) {
     return;
   }
-
-  if (!DNA_struct_elem_find(fd->filesdna, "UserDef", "WalkNavigation", "walk_navigation")) {
-    user->walk_navigation.mouse_speed = 1.0f;
-    user->walk_navigation.walk_speed = 2.5f; /* m/s */
-    user->walk_navigation.walk_speed_factor = 5.0f;
-    user->walk_navigation.view_height = 1.6f;   /* m */
-    user->walk_navigation.jump_height = 0.4f;   /* m */
-    user->walk_navigation.teleport_time = 0.2f; /* s */
-  }
-
-  /* tablet pressure threshold */
-  if (!DNA_struct_elem_find(fd->filesdna, "UserDef", "float", "pressure_threshold_max")) {
-    user->pressure_threshold_max = 1.0f;
-  }
 }
 
 static void do_versions(FileData *fd, Library *lib, Main *main)
