@@ -128,7 +128,14 @@ class MeshTest:
     the public method run_test().
     """
 
-    def __init__(self, test_object_name: str, expected_object_name: str, operations_stack=None, apply_modifiers=False, threshold=None):
+    def __init__(
+            self,
+            test_object_name: str,
+            expected_object_name: str,
+            operations_stack=None,
+            apply_modifiers=False,
+            threshold=None,
+    ):
         """
         Constructs a MeshTest object. Raises a KeyError if objects with names expected_object_name
         or test_object_name don't exist.
@@ -259,7 +266,6 @@ class MeshTest:
         if self.apply_modifier:
             bpy.ops.object.modifier_apply(modifier=modifier_spec.modifier_name)
 
-
     def _bake_current_simulation(self, obj, test_mod_type, test_mod_name, frame_end):
         for scene in bpy.data.scenes:
             for modifier in obj.modifiers:
@@ -296,10 +302,14 @@ class MeshTest:
 
         scene.frame_set(physics_spec.frame_end + 1)
 
-        self._bake_current_simulation(test_object, physics_spec.modifier_type, physics_spec.modifier_name, physics_spec.frame_end)
+        self._bake_current_simulation(
+            test_object,
+            physics_spec.modifier_type,
+            physics_spec.modifier_name,
+            physics_spec.frame_end,
+        )
         if self.apply_modifier:
             bpy.ops.object.modifier_apply(modifier=physics_spec.modifier_name)
-
 
     def _apply_operator(self, test_object, operator: OperatorSpec):
         """

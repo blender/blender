@@ -143,7 +143,7 @@ enum_texture_limit = (
     ('8192', "8192", "Limit texture size to 8192 pixels", 7),
 )
 
-enum_view3d_shading_render_pass= (
+enum_view3d_shading_render_pass = (
     ('', "General", ""),
 
     ('COMBINED', "Combined", "Show the Combined Render pass", 1),
@@ -417,18 +417,18 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     )
 
     min_light_bounces: IntProperty(
-            name="Min Light Bounces",
-            description="Minimum number of light bounces. Setting this higher reduces noise in the first bounces, "
-                        "but can also be less efficient for more complex geometry like hair and volumes",
-            min=0, max=1024,
-            default=0,
+        name="Min Light Bounces",
+        description="Minimum number of light bounces. Setting this higher reduces noise in the first bounces, "
+        "but can also be less efficient for more complex geometry like hair and volumes",
+        min=0, max=1024,
+        default=0,
     )
     min_transparent_bounces: IntProperty(
-            name="Min Transparent Bounces",
-            description="Minimum number of transparent bounces. Setting this higher reduces noise in the first bounces, "
-                        "but can also be less efficient for more complex geometry like hair and volumes",
-            min=0, max=1024,
-            default=0,
+        name="Min Transparent Bounces",
+        description="Minimum number of transparent bounces. Setting this higher reduces noise in the first bounces, "
+        "but can also be less efficient for more complex geometry like hair and volumes",
+        min=0, max=1024,
+        default=0,
     )
 
     caustics_reflective: BoolProperty(
@@ -1473,31 +1473,31 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
         description="Render cryptomatte object pass, for isolating objects in compositing",
         default=False,
         update=update_render_passes,
-        )
+    )
     use_pass_crypto_material: BoolProperty(
         name="Cryptomatte Material",
         description="Render cryptomatte material pass, for isolating materials in compositing",
         default=False,
         update=update_render_passes,
-        )
+    )
     use_pass_crypto_asset: BoolProperty(
         name="Cryptomatte Asset",
         description="Render cryptomatte asset pass, for isolating groups of objects with the same parent",
         default=False,
         update=update_render_passes,
-        )
+    )
     pass_crypto_depth: IntProperty(
         name="Cryptomatte Levels",
         description="Sets how many unique objects can be distinguished per pixel",
         default=6, min=2, max=16, step=2,
         update=update_render_passes,
-        )
+    )
     pass_crypto_accurate: BoolProperty(
         name="Cryptomatte Accurate",
         description="Generate a more accurate Cryptomatte pass. CPU only, may render slower and use more memory",
         default=True,
         update=update_render_passes,
-        )
+    )
 
     aovs: CollectionProperty(
         type=CyclesAOVPass,

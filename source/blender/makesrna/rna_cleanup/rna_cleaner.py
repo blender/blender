@@ -277,7 +277,8 @@ def write_files(basename, props_list, props_length_max):
             indent = '#   '
         else:
             indent = '    '
-        rna += indent + '("%s", "%s", "%s", "%s", "%s"),\n' % tuple(props[2:5] + props[6:])  # description is already string formatted
+        # Description is already string formatted.
+        rna += indent + '("%s", "%s", "%s", "%s", "%s"),\n' % tuple(props[2:5] + props[6:])
         # py
         blanks = [' ' * (x[0] - x[1]) for x in zip(props_length_max, list(map(len, props)))]
         props = [('"%s"%s' if props[-1] != x[0] else "%s%s") % (x[0], x[1]) for x in zip(props, blanks)]

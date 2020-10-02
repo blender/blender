@@ -103,7 +103,7 @@ class GPENCIL_OT_mesh_bake(Operator):
         name="Target Object",
         description="Grease Pencil Object",
         items=my_objlist_callback
-        )
+    )
     frame_target: IntProperty(
         name="Target Frame",
         description="Destination frame for the baked animation",

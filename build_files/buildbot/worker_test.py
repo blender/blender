@@ -33,7 +33,7 @@ def get_ctest_arguments(builder):
 def test(builder):
     os.chdir(builder.build_dir)
 
-    command = builder.command_prefix  + ['ctest'] + get_ctest_arguments(builder)
+    command = builder.command_prefix + ['ctest'] + get_ctest_arguments(builder)
     buildbot_utils.call(command)
 
 

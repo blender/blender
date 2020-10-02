@@ -46,7 +46,7 @@ class TestBlendFileSaveLoadBasic(TestHelper):
 
 TESTS = (
     TestBlendFileSaveLoadBasic,
-    )
+)
 
 
 def argparse_create():

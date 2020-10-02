@@ -46,8 +46,8 @@ class CYCLES_OT_use_shading_nodes(Operator):
 
 class CYCLES_OT_add_aov(bpy.types.Operator):
     """Add an AOV pass"""
-    bl_idname="cycles.add_aov"
-    bl_label="Add AOV"
+    bl_idname = "cycles.add_aov"
+    bl_label = "Add AOV"
 
     def execute(self, context):
         view_layer = context.view_layer
@@ -61,8 +61,8 @@ class CYCLES_OT_add_aov(bpy.types.Operator):
 
 class CYCLES_OT_remove_aov(bpy.types.Operator):
     """Remove an AOV pass"""
-    bl_idname="cycles.remove_aov"
-    bl_label="Remove AOV"
+    bl_idname = "cycles.remove_aov"
+    bl_label = "Remove AOV"
 
     def execute(self, context):
         view_layer = context.view_layer

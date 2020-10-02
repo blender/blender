@@ -56,7 +56,7 @@ class POINTCLOUD_MT_add_attribute(Menu):
 
     @staticmethod
     def add_standard_attribute(layout, pointcloud, name, data_type, domain):
-        exists = pointcloud.attributes.get(name) != None
+        exists = pointcloud.attributes.get(name) is not None
 
         col = layout.column()
         col.enabled = not exists
@@ -105,12 +105,19 @@ class DATA_PT_pointcloud_attributes(DataButtonsPanel, Panel):
         row = layout.row()
 
         col = row.column()
-        col.template_list("POINTCLOUD_UL_attributes", "attributes", pointcloud, "attributes", pointcloud.attributes, "active_index", rows=3)
+        col.template_list(
+            "POINTCLOUD_UL_attributes",
+            "attributes",
+            pointcloud,
+            "attributes",
+            pointcloud.attributes,
+            "active_index",
+            rows=3,
+        )
 
         col = row.column(align=True)
         col.menu("POINTCLOUD_MT_add_attribute", icon='ADD', text="")
         col.operator("geometry.attribute_remove", icon='REMOVE', text="")
-
 
 
 class DATA_PT_custom_props_pointcloud(DataButtonsPanel, PropertyPanel, Panel):

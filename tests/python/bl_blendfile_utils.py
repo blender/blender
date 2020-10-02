@@ -15,7 +15,7 @@ class TestHelper:
     @classmethod
     def blender_data_to_tuple(cls, bdata, pprint_name=None):
         ret = sorted(tuple((cls.id_to_uid(k), sorted(tuple(cls.id_to_uid(vv) for vv in v)))
-                                for k, v in bdata.user_map().items()))
+                           for k, v in bdata.user_map().items()))
         if pprint_name is not None:
             print("\n%s:" % pprint_name)
             pprint.pprint(ret)

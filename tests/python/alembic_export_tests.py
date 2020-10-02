@@ -592,7 +592,10 @@ class CustomPropertiesExportTest(AbstractAlembicTest):
 
     def _run_export(self, tempdir: pathlib.Path) -> pathlib.Path:
         abc = tempdir / 'custom-properties.abc'
-        script = "import bpy; bpy.context.scene.frame_set(1); bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1)" % abc.as_posix()
+        script = (
+            "import bpy; bpy.context.scene.frame_set(1); "
+            "bpy.ops.wm.alembic_export(filepath='%s', start=1, end=1)" % abc.as_posix()
+        )
         self.run_blender('custom-properties.blend', script)
         return abc
 

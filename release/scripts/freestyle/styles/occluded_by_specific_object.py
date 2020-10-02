@@ -28,18 +28,18 @@ from freestyle.predicates import (
     QuantitativeInvisibilityUP1D,
     TrueUP1D,
     pyIsInOccludersListUP1D,
-    )
+)
 from freestyle.shaders import (
     ConstantColorShader,
     ConstantThicknessShader,
     SamplingShader,
-    )
+)
 from freestyle.types import Id, Operators
 
 
-## the id of the occluder (use SHIFT+click on the ViewMap to
-## retrieve ids)
-id = Id(3,0)
+# the id of the occluder (use SHIFT+click on the ViewMap to
+# retrieve ids)
+id = Id(3, 0)
 upred = AndUP1D(NotUP1D(QuantitativeInvisibilityUP1D(0)), pyIsInOccludersListUP1D(id))
 Operators.select(upred)
 Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(upred))
@@ -47,5 +47,5 @@ shaders_list = [
     SamplingShader(5),
     ConstantThicknessShader(3),
     ConstantColorShader(0.3, 0.3, 0.3, 1),
-    ]
+]
 Operators.create(TrueUP1D(), shaders_list)

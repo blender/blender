@@ -1232,7 +1232,10 @@ class PHYSICS_PT_export(PhysicButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         domain = context.fluid.domain_settings
-        if not PhysicButtonsPanel.poll_fluid_domain(context) or (domain.cache_data_format != 'OPENVDB' and bpy.app.debug_value != 3001):
+        if (
+                not PhysicButtonsPanel.poll_fluid_domain(context) or
+                (domain.cache_data_format != 'OPENVDB' and bpy.app.debug_value != 3001)
+        ):
             return False
 
         return (context.engine in cls.COMPAT_ENGINES)

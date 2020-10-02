@@ -78,9 +78,10 @@ def draw_texture_2d(texture_id, position, width, height):
     coords = ((0, 0), (1, 0), (1, 1), (0, 1))
 
     shader = gpu.shader.from_builtin('2D_IMAGE')
-    batch = batch_for_shader(shader, 'TRI_FAN',
-        {"pos" : coords,
-         "texCoord" : coords})
+    batch = batch_for_shader(
+        shader, 'TRI_FAN',
+        {"pos": coords, "texCoord": coords},
+    )
 
     bgl.glActiveTexture(bgl.GL_TEXTURE0)
     bgl.glBindTexture(bgl.GL_TEXTURE_2D, texture_id)

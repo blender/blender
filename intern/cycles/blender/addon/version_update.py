@@ -137,9 +137,11 @@ def do_versions(self):
             # Caustics Reflective/Refractive separation in 272
             if version <= (2, 72, 0):
                 cscene = scene.cycles
-                if (cscene.get("no_caustics", False) and
-                    not cscene.is_property_set("caustics_reflective") and
-                    not cscene.is_property_set("caustics_refractive")):
+                if (
+                        cscene.get("no_caustics", False) and
+                        not cscene.is_property_set("caustics_reflective") and
+                        not cscene.is_property_set("caustics_refractive")
+                ):
                     cscene.caustics_reflective = False
                     cscene.caustics_refractive = False
 

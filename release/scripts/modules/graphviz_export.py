@@ -80,7 +80,13 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
 
             label.append("%s = %s" % (key, value))
 
-        opts = ["shape=box", "regular=1", "style=filled", "fixedsize=false", 'label="%s"' % compat_str('\n'.join(label))]
+        opts = [
+            "shape=box",
+            "regular=1",
+            "style=filled",
+            "fixedsize=false",
+            'label="%s"' % compat_str('\n'.join(label)),
+        ]
 
         if bone.name.startswith('ORG'):
             opts.append("fillcolor=yellow")
@@ -125,7 +131,15 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
                 subtarget = getattr(constraint, "subtarget", "")
                 if subtarget:
                     # TODO, not internal links
-                    opts = ['dir=forward', "weight=1", "arrowhead=normal", "arrowtail=none", "constraint=false", 'color="red"', 'labelfontsize=4']
+                    opts = [
+                        'dir=forward',
+                        "weight=1",
+                        "arrowhead=normal",
+                        "arrowtail=none",
+                        "constraint=false",
+                        'color="red"',
+                        'labelfontsize=4',
+                    ]
                     if XTRA_INFO:
                         label = "%s\n%s" % (constraint.type, constraint.name)
                         opts.append('label="%s"' % compat_str(label))
@@ -160,7 +174,15 @@ def graph_armature(obj, filepath, FAKE_PARENT=True, CONSTRAINTS=True, DRIVERS=Tr
                             pbone_target = rna_path_as_pbone(target.data_path)
                             rna_path_target = target.data_path
                             if pbone_target:
-                                opts = ['dir=forward', "weight=1", "arrowhead=normal", "arrowtail=none", "constraint=false", 'color="blue"', "labelfontsize=4"]
+                                opts = [
+                                    'dir=forward',
+                                    "weight=1",
+                                    "arrowhead=normal",
+                                    "arrowtail=none",
+                                    "constraint=false",
+                                    'color="blue"',
+                                    "labelfontsize=4",
+                                ]
                                 display_source = rna_path.replace("pose.bones", "")
                                 display_target = rna_path_target.replace("pose.bones", "")
                                 if XTRA_INFO:

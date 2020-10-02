@@ -29,14 +29,14 @@ from freestyle.predicates import (
     NotUP1D,
     QuantitativeInvisibilityUP1D,
     TrueUP1D,
-    )
+)
 from freestyle.shaders import (
     BackboneStretcherShader,
     IncreasingColorShader,
     IncreasingThicknessShader,
     SamplingShader,
     SpatialNoiseShader,
-    )
+)
 from freestyle.types import Operators
 
 
@@ -49,5 +49,5 @@ shaders_list = [
     IncreasingThicknessShader(2, 5),
     BackboneStretcherShader(20),
     IncreasingColorShader(1, 0, 0, 1, 0, 1, 0, 1),
-    ]
+]
 Operators.create(TrueUP1D(), shaders_list)

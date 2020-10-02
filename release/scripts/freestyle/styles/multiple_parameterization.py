@@ -31,26 +31,26 @@ from freestyle.chainingiterators import ChainSilhouetteIterator
 from freestyle.predicates import (
     QuantitativeInvisibilityUP1D,
     TrueUP1D,
-    )
+)
 from freestyle.shaders import (
     ConstantColorShader,
     IncreasingColorShader,
     IncreasingThicknessShader,
     SamplingShader,
     pyHLRShader,
-    )
+)
 from freestyle.types import Operators
 
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
-## Chain following the same nature, but without the restriction
-## of staying inside the selection (False).
+# Chain following the same nature, but without the restriction
+# of staying inside the selection (False).
 Operators.bidirectional_chain(ChainSilhouetteIterator(False))
 shaders_list = [
     SamplingShader(20),
     IncreasingThicknessShader(1.5, 30),
     ConstantColorShader(0.0, 0.0, 0.0),
     IncreasingColorShader(1, 0, 0, 1, 0, 1, 0, 1),
-    pyHLRShader(),  ## this shader draws only visible portions
-    ]
+    pyHLRShader(),  # this shader draws only visible portions
+]
 Operators.create(TrueUP1D(), shaders_list)

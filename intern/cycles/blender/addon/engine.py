@@ -150,8 +150,7 @@ def create(engine, data, region=None, v3d=None, rv3d=None, preview_osl=False):
         screen = screen or rv3d.id_data.as_pointer()
         rv3d = rv3d.as_pointer()
 
-    engine.session = _cycles.create(
-            engine.as_pointer(), prefs, data, screen, region, v3d, rv3d, preview_osl)
+    engine.session = _cycles.create(engine.as_pointer(), prefs, data, screen, region, v3d, rv3d, preview_osl)
 
 
 def free(engine):

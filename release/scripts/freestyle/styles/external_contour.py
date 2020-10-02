@@ -29,11 +29,11 @@ from freestyle.predicates import (
     QuantitativeInvisibilityUP1D,
     TrueBP1D,
     TrueUP1D,
-    )
+)
 from freestyle.shaders import (
     ConstantColorShader,
     ConstantThicknessShader,
-    )
+)
 from freestyle.types import Operators
 
 
@@ -44,5 +44,5 @@ Operators.bidirectional_chain(ChainPredicateIterator(upred, bpred), NotUP1D(upre
 shaders_list = [
     ConstantThicknessShader(3),
     ConstantColorShader(0.0, 0.0, 0.0, 1),
-    ]
+]
 Operators.create(TrueUP1D(), shaders_list)

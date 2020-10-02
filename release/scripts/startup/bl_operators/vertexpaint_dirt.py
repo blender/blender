@@ -74,7 +74,7 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
         tot_con = len(con[i])
 
         if tot_con == 0:
-            ang = pi / 2.0 # assume 90°, i. e. flat
+            ang = pi / 2.0  # assume 90°, i. e. flat
         else:
             vec /= tot_con
 

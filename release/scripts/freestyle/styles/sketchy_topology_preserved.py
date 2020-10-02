@@ -27,14 +27,14 @@ from freestyle.chainingiterators import pySketchyChainSilhouetteIterator
 from freestyle.predicates import (
     QuantitativeInvisibilityUP1D,
     TrueUP1D,
-    )
+)
 from freestyle.shaders import (
     ConstantColorShader,
     IncreasingThicknessShader,
     SamplingShader,
     SmoothingShader,
     SpatialNoiseShader,
-    )
+)
 from freestyle.types import Operators
 
 
@@ -47,5 +47,5 @@ shaders_list = [
     IncreasingThicknessShader(4, 8),
     SmoothingShader(300, 0.05, 0, 0.2, 0, 0, 0, 0.5),
     ConstantColorShader(0.6, 0.2, 0.0),
-    ]
+]
 Operators.create(TrueUP1D(), shaders_list)

@@ -150,10 +150,20 @@ def main():
 
     # Example background utility, add some text and renders or saves it (with options)
     # Possible types are: string, int, long, choice, float and complex.
-    parser.add_option("-o", "--operator", dest="operator", help="This text will be used to render an image", type="string")
+    parser.add_option(
+        "-o",
+        "--operator",
+        dest="operator",
+        help="This text will be used to render an image",
+        type="string")
     parser.add_option("-p", "--path", dest="path", help="Path to use for searching for files", type='string')
     parser.add_option("-m", "--match", dest="match", help="Wildcard to match filename", type="string")
-    parser.add_option("-s", "--save_path", dest="save_path", help="Save the input file to a blend file in a new location", metavar='string')
+    parser.add_option(
+        "-s",
+        "--save_path",
+        dest="save_path",
+        help="Save the input file to a blend file in a new location",
+        metavar='string')
     parser.add_option("-S", "--start", dest="start", help="From collected files, start with this index", metavar='int')
     parser.add_option("-E", "--end", dest="end", help="From collected files, end with this index", metavar='int')
 

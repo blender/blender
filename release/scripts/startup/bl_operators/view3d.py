@@ -73,10 +73,10 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
     bl_idname = "view3d.edit_mesh_extrude_move_normal"
 
     dissolve_and_intersect: BoolProperty(
-            name="dissolve_and_intersect",
-            default=False,
-            description="Dissolves adjacent faces and intersects new geometry"
-            )
+        name="dissolve_and_intersect",
+        default=False,
+        description="Dissolves adjacent faces and intersects new geometry"
+    )
 
     @classmethod
     def poll(cls, context):

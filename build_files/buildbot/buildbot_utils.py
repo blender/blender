@@ -50,21 +50,22 @@ class Builder:
         # Detect platform
         if name.startswith('mac'):
             self.platform = 'mac'
-            self.command_prefix =  []
+            self.command_prefix = []
         elif name.startswith('linux'):
             self.platform = 'linux'
             if is_tool('scl'):
-                self.command_prefix =  ['scl', 'enable', 'devtoolset-9', '--']
+                self.command_prefix = ['scl', 'enable', 'devtoolset-9', '--']
             else:
-                self.command_prefix =  []
+                self.command_prefix = []
         elif name.startswith('win'):
             self.platform = 'win'
-            self.command_prefix =  []
+            self.command_prefix = []
         else:
             raise ValueError('Unkonw platform for builder ' + self.platform)
 
         # Always 64 bit now
         self.bits = 64
+
 
 def create_builder_from_arguments():
     parser = argparse.ArgumentParser()
@@ -106,7 +107,7 @@ class VersionInfo:
 
     def _parse_header_file(self, filename, define):
         import re
-        regex = re.compile("^#\s*define\s+%s\s+(.*)" % define)
+        regex = re.compile(r"^#\s*define\s+%s\s+(.*)" % define)
         with open(filename, "r") as file:
             for l in file:
                 match = regex.match(l)

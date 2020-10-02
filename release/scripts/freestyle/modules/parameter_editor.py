@@ -34,20 +34,20 @@ from freestyle.types import (
     TVertex,
     Material,
     ViewEdge,
-    )
+)
 from freestyle.chainingiterators import (
     ChainPredicateIterator,
     ChainSilhouetteIterator,
     pySketchyChainSilhouetteIterator,
     pySketchyChainingIterator,
-    )
+)
 from freestyle.functions import (
     Curvature2DAngleF0D,
     Normal2DF0D,
     QuantitativeInvisibilityF1D,
     VertexOrientation2DF0D,
     CurveMaterialF0D,
-    )
+)
 from freestyle.predicates import (
     AndUP1D,
     ContourUP1D,
@@ -67,7 +67,7 @@ from freestyle.predicates import (
     pyProjectedXBP1D,
     pyProjectedYBP1D,
     pyZBP1D,
-    )
+)
 from freestyle.shaders import (
     BackboneStretcherShader,
     BezierCurveShader,
@@ -86,7 +86,7 @@ from freestyle.shaders import (
     StrokeTextureStepShader,
     ThicknessNoiseShader as thickness_noise,
     TipRemoverShader,
-    )
+)
 from freestyle.utils import (
     angle_x_normal,
     bound,
@@ -103,12 +103,12 @@ from freestyle.utils import (
     pairwise,
     simplify,
     stroke_normal,
-    )
+)
 from _freestyle import (
     blendRamp,
     evaluateColorRamp,
     evaluateCurveMappingF,
-    )
+)
 
 import time
 import bpy
@@ -608,7 +608,9 @@ class NoiseShader:
 
 class ThicknessNoiseShader(ThicknessBlenderMixIn, ScalarBlendModifier, NoiseShader):
     """Thickness based on pseudo-noise"""
-    def __init__(self, thickness_position, thickness_ratio, blend_type, influence, amplitude, period, seed=512, asymmetric=True):
+
+    def __init__(self, thickness_position, thickness_ratio, blend_type,
+                 influence, amplitude, period, seed=512, asymmetric=True):
         ScalarBlendModifier.__init__(self, blend_type, influence)
         ThicknessBlenderMixIn.__init__(self, thickness_position, thickness_ratio)
         NoiseShader.__init__(self, amplitude, period, seed)

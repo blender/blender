@@ -313,13 +313,13 @@ class CameraExportImportTest(unittest.TestCase):
         self.loc_rot_scale('CAM_Unit_Transform', (0, 0, 0), (0, 0, 0))
 
         self.loc_rot_scale('CAM_Look_+Y', (2, 0, 0), (90, 0, 0))
-        self.loc_rot_scale('CAM_Static_Child_Left', (2-0.15, 0, 0), (90, 0, 0))
-        self.loc_rot_scale('CAM_Static_Child_Right', (2+0.15, 0, 0), (90, 0, 0))
+        self.loc_rot_scale('CAM_Static_Child_Left', (2 - 0.15, 0, 0), (90, 0, 0))
+        self.loc_rot_scale('CAM_Static_Child_Right', (2 + 0.15, 0, 0), (90, 0, 0))
         self.loc_rot_scale('Static_Child', (2, 0, 1), (90, 0, 0))
 
         self.loc_rot_scale('CAM_Animated', (4, 0, 0), (90, 0, 0))
-        self.loc_rot_scale('CAM_Animated_Child_Left', (4-0.15, 0, 0), (90, 0, 0))
-        self.loc_rot_scale('CAM_Animated_Child_Right', (4+0.15, 0, 0), (90, 0, 0))
+        self.loc_rot_scale('CAM_Animated_Child_Left', (4 - 0.15, 0, 0), (90, 0, 0))
+        self.loc_rot_scale('CAM_Animated_Child_Right', (4 + 0.15, 0, 0), (90, 0, 0))
         self.loc_rot_scale('Animated_Child', (4, 0, 1), (90, 0, 0))
 
         bpy.context.scene.frame_set(10)

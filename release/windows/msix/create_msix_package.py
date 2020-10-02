@@ -9,18 +9,64 @@ import subprocess
 import zipfile
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--version", required=True, help="Version string in the form of 2.83.3.0")
-parser.add_argument("--url", required=True, help="Location of the release ZIP archive to download")
-parser.add_argument("--publisher", required=True, help="A string in the form of 'CN=PUBLISHER'")
-parser.add_argument("--pfx", required=False, help="Absolute path to the PFX file used for signing the resulting MSIX package")
-parser.add_argument("--password", required=False, default="blender", help="Password for the PFX file")
-parser.add_argument("--lts", required=False, help="If set this MSIX is for an LTS release", action='store_const', const=1)
-parser.add_argument("--skipdl", required=False, help="If set skip downloading of the specified URL as blender.zip. The tool assumes blender.zip exists", action='store_const', const=1)
-parser.add_argument("--leavezip", required=False, help="If set don't clean up the downloaded blender.zip", action='store_const', const=1)
-parser.add_argument("--overwrite", required=False, help="If set remove Content folder if it already exists", action='store_const', const=1)
+parser.add_argument(
+    "--version",
+    required=True,
+    help="Version string in the form of 2.83.3.0",
+)
+parser.add_argument(
+    "--url",
+    required=True,
+    help="Location of the release ZIP archive to download",
+)
+parser.add_argument(
+    "--publisher",
+    required=True,
+    help="A string in the form of 'CN=PUBLISHER'",
+)
+parser.add_argument(
+    "--pfx",
+    required=False,
+    help="Absolute path to the PFX file used for signing the resulting MSIX package",
+)
+parser.add_argument(
+    "--password",
+    required=False,
+    default="blender",
+    help="Password for the PFX file",
+)
+parser.add_argument(
+    "--lts",
+    required=False,
+    help="If set this MSIX is for an LTS release",
+    action='store_const',
+    const=1,
+)
+parser.add_argument(
+    "--skipdl",
+    required=False,
+    help="If set skip downloading of the specified URL as blender.zip. The tool assumes blender.zip exists",
+    action='store_const',
+    const=1,
+)
+parser.add_argument(
+    "--leavezip",
+    required=False,
+    help="If set don't clean up the downloaded blender.zip",
+    action='store_const',
+    const=1,
+)
+parser.add_argument(
+    "--overwrite",
+    required=False,
+    help="If set remove Content folder if it already exists",
+    action='store_const',
+    const=1,
+)
 args = parser.parse_args()
 
-def execute_command(cmd : list, name : str, errcode : int):
+
+def execute_command(cmd: list, name: str, errcode: int):
     """
     Execute given command in cmd. Output is captured. If an error
     occurs name is used to print ERROR message, along with stderr and
@@ -29,8 +75,10 @@ def execute_command(cmd : list, name : str, errcode : int):
     cmd_process = subprocess.run(cmd, capture_output=True, encoding="UTF-8")
     if cmd_process.returncode != 0:
         print(f"ERROR: {name} failed.")
-        if cmd_process.stdout: print(cmd_process.stdout)
-        if cmd_process.stderr: print(cmd_process.stderr)
+        if cmd_process.stdout:
+            print(cmd_process.stdout)
+        if cmd_process.stderr:
+            print(cmd_process.stderr)
         exit(errcode)
 
 
@@ -106,7 +154,8 @@ print(f"Extracting files from ZIP to {content_blender_folder}...")
 # ./Content/Blender/blender-2.83.3-windows64/blender.exe
 with zipfile.ZipFile(local_blender_zip, "r") as blender_zip:
     for entry in blender_zip.infolist():
-        if entry.is_dir(): continue
+        if entry.is_dir():
+            continue
         entry_location = pathlib.Path(entry.filename)
         target_location = content_blender_folder.joinpath(*entry_location.parts[1:])
         pathlib.Path(target_location.parent).mkdir(parents=True, exist_ok=True)

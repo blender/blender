@@ -92,30 +92,32 @@ def svn_update(args, release_version):
     print_stage("Updating Precompiled Libraries and Tests")
 
     if os.path.isdir(lib_dirpath):
-      for dirname in os.listdir(lib_dirpath):
-        dirpath = os.path.join(lib_dirpath, dirname)
+        for dirname in os.listdir(lib_dirpath):
+            dirpath = os.path.join(lib_dirpath, dirname)
 
-        if dirname == ".svn":
-            # Cleanup must be run from svn root directory if it exists.
-            if not make_utils.command_missing(args.svn_command):
-                call(svn_non_interactive + ["cleanup", lib_dirpath])
-            continue
+            if dirname == ".svn":
+                # Cleanup must be run from svn root directory if it exists.
+                if not make_utils.command_missing(args.svn_command):
+                    call(svn_non_interactive + ["cleanup", lib_dirpath])
+                continue
 
-        svn_dirpath = os.path.join(dirpath, ".svn")
-        svn_root_dirpath = os.path.join(lib_dirpath, ".svn")
+            svn_dirpath = os.path.join(dirpath, ".svn")
+            svn_root_dirpath = os.path.join(lib_dirpath, ".svn")
 
-        if os.path.isdir(dirpath) and \
-           (os.path.exists(svn_dirpath) or os.path.exists(svn_root_dirpath)):
-            if make_utils.command_missing(args.svn_command):
-                sys.stderr.write("svn not found, can't update libraries\n")
-                sys.exit(1)
+            if (
+                    os.path.isdir(dirpath) and
+                    (os.path.exists(svn_dirpath) or os.path.exists(svn_root_dirpath))
+            ):
+                if make_utils.command_missing(args.svn_command):
+                    sys.stderr.write("svn not found, can't update libraries\n")
+                    sys.exit(1)
 
-            # Cleanup to continue with interrupted downloads.
-            if os.path.exists(svn_dirpath):
-                call(svn_non_interactive + ["cleanup", dirpath])
-            # Switch to appropriate branch and update.
-            call(svn_non_interactive + ["switch", svn_url + dirname, dirpath], exit_on_error=False)
-            call(svn_non_interactive + ["update", dirpath])
+                # Cleanup to continue with interrupted downloads.
+                if os.path.exists(svn_dirpath):
+                    call(svn_non_interactive + ["cleanup", dirpath])
+                # Switch to appropriate branch and update.
+                call(svn_non_interactive + ["switch", svn_url + dirname, dirpath], exit_on_error=False)
+                call(svn_non_interactive + ["update", dirpath])
 
 # Test if git repo can be updated.
 def git_update_skip(args, check_remote_exists=True):
@@ -127,9 +129,11 @@ def git_update_skip(args, check_remote_exists=True):
     rebase_merge = check_output([args.git_command, 'rev-parse', '--git-path', 'rebase-merge'], exit_on_error=False)
     rebase_apply = check_output([args.git_command, 'rev-parse', '--git-path', 'rebase-apply'], exit_on_error=False)
     merge_head = check_output([args.git_command, 'rev-parse', '--git-path', 'MERGE_HEAD'], exit_on_error=False)
-    if os.path.exists(rebase_merge) or \
-       os.path.exists(rebase_apply) or \
-       os.path.exists(merge_head):
+    if (
+            os.path.exists(rebase_merge) or
+            os.path.exists(rebase_apply) or
+            os.path.exists(merge_head)
+    ):
         return "rebase or merge in progress, complete it first"
 
     # Abort if uncommitted changes.
@@ -139,12 +143,13 @@ def git_update_skip(args, check_remote_exists=True):
 
     # Test if there is an upstream branch configured
     if check_remote_exists:
-      branch = check_output([args.git_command, "rev-parse", "--abbrev-ref", "HEAD"])
-      remote = check_output([args.git_command, "config", "branch." + branch + ".remote"], exit_on_error=False)
-      if len(remote) == 0:
-          return "no remote branch to pull from"
+        branch = check_output([args.git_command, "rev-parse", "--abbrev-ref", "HEAD"])
+        remote = check_output([args.git_command, "config", "branch." + branch + ".remote"], exit_on_error=False)
+        if len(remote) == 0:
+            return "no remote branch to pull from"
 
     return ""
+
 
 # Update blender repository.
 def blender_update(args):
@@ -184,7 +189,7 @@ def submodules_update(args, release_version, branch):
             os.chdir(submodule_path)
             msg = git_update_skip(args, check_remote_exists=False)
             if msg:
-                skip_msg += submodule_path + " skipped: "  + msg + "\n"
+                skip_msg += submodule_path + " skipped: " + msg + "\n"
             else:
                 if make_utils.git_branch(args.git_command) != submodule_branch:
                     call([args.git_command, "fetch", "origin"])

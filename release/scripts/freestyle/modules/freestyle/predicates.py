@@ -95,7 +95,7 @@ __all__ = (
     "pyZBP1D",
     "pyZDiscontinuityBP1D",
     "pyZSmallerUP1D",
-    )
+)
 
 
 # module members
@@ -117,7 +117,7 @@ from _freestyle import (
     TrueUP1D,
     ViewMapGradientNormBP1D,
     WithinImageBoundaryUP1D,
-    )
+)
 
 # constructs for predicate definition in Python
 from freestyle.types import (
@@ -129,7 +129,7 @@ from freestyle.types import (
     TVertex,
     UnaryPredicate0D,
     UnaryPredicate1D,
-    )
+)
 from freestyle.functions import (
     Curvature2DAngleF0D,
     CurveNatureF1D,
@@ -149,7 +149,7 @@ from freestyle.functions import (
     pyCurvilinearLengthF0D,
     pyDensityAnisotropyF1D,
     pyViewMapGradientNormF1D,
-    )
+)
 
 from freestyle.utils import material_from_fedge
 
@@ -194,6 +194,7 @@ class pyBackTVertexUP0D(UnaryPredicate0D):
     Check whether an Interface0DIterator references a TVertex and is
     the one that is hidden (inferred from the context).
     """
+
     def __init__(self):
         UnaryPredicate0D.__init__(self)
         self._getQI = QuantitativeInvisibilityF0D()
@@ -239,7 +240,7 @@ class AndUP1D(UnaryPredicate1D):
         correct_types = all(isinstance(p, UnaryPredicate1D) for p in self.predicates)
         if not (correct_types and predicates):
             raise TypeError("%s: Expected one or more UnaryPredicate1D, got %r" %
-                    (self.__class__.__name__, self.predicates))
+                            (self.__class__.__name__, self.predicates))
 
     def __call__(self, inter):
         return all(pred(inter) for pred in self.predicates)
@@ -252,7 +253,7 @@ class OrUP1D(UnaryPredicate1D):
         correct_types = all(isinstance(p, UnaryPredicate1D) for p in self.predicates)
         if not (correct_types and predicates):
             raise TypeError("%s: Expected one or more UnaryPredicate1D, got %r" %
-                    (self.__class__.__name__, self.predicates))
+                            (self.__class__.__name__, self.predicates))
 
     def __call__(self, inter):
         return any(pred(inter) for pred in self.predicates)
@@ -533,7 +534,8 @@ class pyHighViewMapGradientNormUP1D(UnaryPredicate1D):
 
 
 class pyDensityVariableSigmaUP1D(UnaryPredicate1D):
-    def __init__(self, functor, sigmaMin, sigmaMax, lmin, lmax, tmin, tmax, integration=IntegrationType.MEAN, sampling=2.0):
+    def __init__(self, functor, sigmaMin, sigmaMax, lmin, lmax, tmin,
+                 tmax, integration=IntegrationType.MEAN, sampling=2.0):
         UnaryPredicate1D.__init__(self)
         self._functor = functor
         self._sigmaMin = float(sigmaMin)
@@ -571,7 +573,7 @@ class AndBP1D(BinaryPredicate1D):
         correct_types = all(isinstance(p, BinaryPredicate1D) for p in self.predicates)
         if not (correct_types and predicates):
             raise TypeError("%s: Expected one or more BinaryPredicate1D, got %r" %
-                    (self.__class__.__name__, self.predicates))
+                            (self.__class__.__name__, self.predicates))
 
     def __call__(self, i1, i2):
         return all(pred(i1, i2) for pred in self.predicates)
@@ -584,7 +586,7 @@ class OrBP1D(BinaryPredicate1D):
         correct_types = all(isinstance(p, BinaryPredicate1D) for p in self.predicates)
         if not (correct_types and predicates):
             raise TypeError("%s: Expected one or more BinaryPredicate1D, got %r" %
-                    (self.__class__.__name__, self.predicates))
+                            (self.__class__.__name__, self.predicates))
 
     def __call__(self, i1, i2):
         return any(pred(i1, i2) for pred in self.predicates)
@@ -672,8 +674,10 @@ class pyShuffleBP1D(BinaryPredicate1D):
     def __call__(self, inter1, inter2):
         return (random.uniform(0, 1) < random.uniform(0, 1))
 
+
 class MaterialBP1D(BinaryPredicate1D):
     """Checks whether the two supplied ViewEdges have the same material."""
+
     def __call__(self, i1, i2):
         fedges = (fe for ve in (i1, i2) for fe in (ve.first_fedge, ve.last_fedge))
         materials = {material_from_fedge(fe) for fe in fedges}

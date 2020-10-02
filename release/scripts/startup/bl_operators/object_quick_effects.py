@@ -447,10 +447,10 @@ class QuickLiquid(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     show_flows: BoolProperty(
-            name="Render Liquid Objects",
-            description="Keep the liquid objects visible during rendering",
-            default=False,
-            )
+        name="Render Liquid Objects",
+        description="Keep the liquid objects visible during rendering",
+        default=False,
+    )
 
     def execute(self, context):
         if not bpy.app.build_options.fluid:
@@ -624,6 +624,7 @@ class QuickParticles(Operator):
         context.view_layer.objects.active = pointcloud_object
         pointcloud_object.show_bounds = True
         return {'FINISHED'}
+
 
 classes = (
     QuickExplode,

@@ -50,7 +50,7 @@ def generate_from_enum_ex(
         attr,
         cursor='DEFAULT',
         tooldef_keywords={},
-        exclude_filter = {}
+        exclude_filter={}
 ):
     tool_defs = []
     for enum in type.bl_rna.properties[attr].enum_items_static:
@@ -787,7 +787,6 @@ class _defs_edit_mesh:
                 col.prop(props, "mark_seam", text="Seam")
                 col.prop(props, "mark_sharp", text="Sharp")
 
-
                 col = layout.column()
                 col.active = edge_bevel
                 col.prop(props, "miter_outer", text="Miter Outer")
@@ -1215,7 +1214,7 @@ class _defs_sculpt:
             icon_prefix="brush.sculpt.",
             type=bpy.types.Brush,
             attr="sculpt_tool",
-            exclude_filter = exclude_filter,
+            exclude_filter=exclude_filter,
         )
 
     @ToolDef.from_fn
@@ -2079,10 +2078,10 @@ class _defs_gpencil_edit:
     @ToolDef.from_fn
     def transform_fill():
         def draw_settings(context, layout, tool):
-                props = tool.operator_properties("gpencil.transform_fill")
-                row = layout.row()
-                row.use_property_split = False
-                row.prop(props, "mode", expand=True)
+            props = tool.operator_properties("gpencil.transform_fill")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "mode", expand=True)
 
         return dict(
             idname="builtin.transform_fill",
@@ -2093,6 +2092,7 @@ class _defs_gpencil_edit:
             keymap=(),
             draw_settings=draw_settings,
         )
+
 
 class _defs_gpencil_sculpt:
 
@@ -2291,6 +2291,7 @@ class _defs_sequencer_select:
             widget=None,
             keymap="Sequencer Tool: Select",
         )
+
     @ToolDef.from_fn
     def box():
         def draw_settings(_context, layout, tool):
@@ -2858,6 +2859,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             ),
         ],
     }
+
+
 class SEQUENCER_PT_tools_active(ToolSelectPanelHelper, Panel):
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'TOOLS'

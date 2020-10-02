@@ -26,13 +26,13 @@ from freestyle.predicates import (
     NotUP1D,
     QuantitativeInvisibilityUP1D,
     TrueUP1D,
-    )
+)
 from freestyle.shaders import (
     ConstantColorShader,
     ConstantThicknessShader,
     SamplingShader,
     TipRemoverShader,
-    )
+)
 from freestyle.types import Operators
 
 
@@ -43,5 +43,5 @@ shaders_list = [
     ConstantThicknessShader(3),
     ConstantColorShader(0, 0, 0),
     TipRemoverShader(20),
-    ]
+]
 Operators.create(TrueUP1D(), shaders_list)

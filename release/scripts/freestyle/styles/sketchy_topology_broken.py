@@ -27,7 +27,7 @@ from freestyle.chainingiterators import pySketchyChainingIterator
 from freestyle.predicates import (
     QuantitativeInvisibilityUP1D,
     TrueUP1D,
-    )
+)
 from freestyle.shaders import (
     IncreasingColorShader,
     IncreasingThicknessShader,
@@ -35,13 +35,13 @@ from freestyle.shaders import (
     SmoothingShader,
     SpatialNoiseShader,
     pyBackboneStretcherNoCuspShader,
-    )
+)
 from freestyle.types import Operators
 
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
-## Chain 3 times each ViewEdge independently from the
-## initial objects topology
+# Chain 3 times each ViewEdge independently from the
+# initial objects topology
 Operators.bidirectional_chain(pySketchyChainingIterator(3))
 shaders_list = [
     SamplingShader(4),
@@ -50,5 +50,5 @@ shaders_list = [
     SmoothingShader(100, 0.1, 0, 0.2, 0, 0, 0, 1),
     pyBackboneStretcherNoCuspShader(20),
     IncreasingColorShader(0.2, 0.2, 0.2, 1, 0.5, 0.5, 0.5, 1),
-    ]
+]
 Operators.create(TrueUP1D(), shaders_list)

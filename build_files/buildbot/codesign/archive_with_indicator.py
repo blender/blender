@@ -102,7 +102,7 @@ class ArchiveWithIndicator:
 
         # Wait for until archive is fully stored.
         actual_archive_size = self.archive_filepath.stat().st_size
-        if  actual_archive_size != expected_archive_size:
+        if actual_archive_size != expected_archive_size:
             print('Partial/invalid archive size (expected '
                   f'{expected_archive_size} got {actual_archive_size})')
             return False

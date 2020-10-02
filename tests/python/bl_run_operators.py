@@ -503,7 +503,7 @@ def main():
 
 
 if __name__ == "__main__":
-    # ~ for i in range(200):
-        # ~ RANDOM_SEED[0] += 1
-        #~ main()
+    # for i in range(200):
+    #     RANDOM_SEED[0] += 1
+    #     main()
     main()

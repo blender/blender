@@ -146,7 +146,7 @@ def main():
          "expectedCubeInsetDepth", "inset", {"thickness": 0.2, "depth": 0.2}],
         ["FACE", {35, 36, 37, 45, 46, 47, 55, 56, 57}, "testGridInsetRelativeOffset", "expectedGridInsetRelativeOffset",
          "inset", {"thickness": 0.4, "use_relative_offset": True}],
-         ]
+    ]
 
     operators_test = OperatorTest(tests)
 

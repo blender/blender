@@ -51,14 +51,14 @@ __all__ = (
     "stroke_normal",
     "StrokeCollector",
     "tripplewise",
-    )
+)
 
 # module members
 from _freestyle import (
     ContextFunctions,
     getCurrentScene,
     integrate,
-    )
+)
 
 # constructs for helper functions in Python
 from freestyle.types import (
@@ -66,7 +66,7 @@ from freestyle.types import (
     Stroke,
     StrokeShader,
     StrokeVertexIterator,
-    )
+)
 
 from mathutils import Vector
 from functools import lru_cache, namedtuple
@@ -288,7 +288,7 @@ class BoundingBox:
         "maximum",
         "size",
         "corners",
-        )
+    )
 
     def __init__(self, minimum: Vector, maximum: Vector):
         self.minimum = minimum
@@ -319,6 +319,7 @@ class BoundingBox:
 
 class StrokeCollector(StrokeShader):
     """Collects and Stores stroke objects"""
+
     def __init__(self):
         StrokeShader.__init__(self)
         self.strokes = []

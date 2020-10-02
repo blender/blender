@@ -22,7 +22,7 @@ def _write_html(output_dir):
             filepath = os.path.join(output_dir, filename)
             combined_reports += pathlib.Path(filepath).read_text()
 
-        combined_reports += "<br/>\n";
+        combined_reports += "<br/>\n"
 
     html = """
 <html>
@@ -67,7 +67,7 @@ def add(output_dir, category, name, filepath, failed=None):
                      name=name,
                      filepath=filepath)
 
-    dirpath = os.path.join(output_dir, "report", category);
+    dirpath = os.path.join(output_dir, "report", category)
     os.makedirs(dirpath, exist_ok=True)
     filepath = os.path.join(dirpath, name + ".data")
     pathlib.Path(filepath).write_text(html)

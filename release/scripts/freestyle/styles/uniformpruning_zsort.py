@@ -25,12 +25,12 @@ from freestyle.predicates import (
     QuantitativeInvisibilityUP1D,
     pyDensityUP1D,
     pyZBP1D,
-    )
+)
 from freestyle.shaders import (
     ConstantColorShader,
     ConstantThicknessShader,
     SamplingShader,
-    )
+)
 from freestyle.types import IntegrationType, Operators, Stroke
 
 
@@ -42,5 +42,5 @@ shaders_list = [
     ConstantThicknessShader(3),
     SamplingShader(5.0),
     ConstantColorShader(0, 0, 0, 1),
-    ]
+]
 Operators.create(pyDensityUP1D(2, 0.05, IntegrationType.MEAN, 4), shaders_list)

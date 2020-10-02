@@ -80,7 +80,10 @@ class DataPathBuilder:
                 base_new = Ellipsis
                 # find the new name
                 if item.startswith("."):
-                    for class_name, item_new, options in rna_update_from_map.get(item[1:], []) + [(None, item[1:], None)]:
+                    for class_name, item_new, options in (
+                            rna_update_from_map.get(item[1:], []) +
+                            [(None, item[1:], None)]
+                    ):
                         if callable(item_new):
                             # No type check here, callback is assumed to know what it's doing.
                             base_new, item_new = item_new(base, class_name, item[1:], fcurve, options)

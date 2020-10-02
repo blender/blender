@@ -177,7 +177,7 @@ class TEXT_PT_find(Panel):
 
         row = col.row(align=True)
         row.operator("text.replace")
-        row.operator("text.replace", text = "Replace all").all = True
+        row.operator("text.replace", text="Replace all").all = True
 
         layout.separator()
 

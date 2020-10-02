@@ -559,7 +559,7 @@ def lightmap_uvpack(
 
 
 def unwrap(operator, context, **kwargs):
-     # switch to object mode
+    # switch to object mode
     is_editmode = context.object and context.object.mode == 'EDIT'
     if is_editmode:
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)

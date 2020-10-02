@@ -276,9 +276,8 @@ class _draw_tool_settings_context_mode:
             layout.row().prop(brush, "direction", expand=True, text="")
 
         if capabilities.has_color:
-            UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text = "")
-            layout.prop(brush, "blend", text="", expand = False)
-
+            UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
+            layout.prop(brush, "blend", text="", expand=False)
 
         return True
 
@@ -1135,7 +1134,7 @@ class VIEW3D_MT_view(Menu):
         props = layout.operator("render.opengl",
                                 text="Viewport Render Keyframes",
                                 icon='RENDER_ANIMATION',
-        )
+                                )
         props.animation = True
         props.render_keyed_only = True
 
@@ -3131,6 +3130,7 @@ class VIEW3D_MT_sculpt_set_pivot(Menu):
 
         props = layout.operator("sculpt.set_pivot_position", text="Pivot to Surface Under Cursor")
         props.mode = 'SURFACE'
+
 
 class VIEW3D_MT_face_sets_init(Menu):
     bl_label = "Face Sets Init"
@@ -5383,7 +5383,6 @@ class VIEW3D_PT_view3d_properties(Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
-
         col = layout.column()
 
         subcol = col.column()
@@ -6592,7 +6591,7 @@ class VIEW3D_PT_proportional_edit(Panel):
         tool_settings = context.tool_settings
         col = layout.column()
         col.active = (tool_settings.use_proportional_edit_objects if context.mode == 'OBJECT'
-            else tool_settings.use_proportional_edit)
+                      else tool_settings.use_proportional_edit)
 
         if context.mode != 'OBJECT':
             col.prop(tool_settings, "use_proportional_connected")
@@ -6772,7 +6771,7 @@ class VIEW3D_PT_overlay_gpencil_options(Panel):
                 col = split.column()
                 col.prop(overlay, "use_gpencil_show_directions")
                 col = split.column()
-                col.prop(overlay, "use_gpencil_show_material_name",  text="Material Name")
+                col.prop(overlay, "use_gpencil_show_material_name", text="Material Name")
 
             layout.prop(overlay, "vertex_opacity", text="Vertex Opacity", slider=True)
 
@@ -7059,26 +7058,26 @@ class VIEW3D_MT_gpencil_edit_context_menu(Menu):
 
 
 def draw_gpencil_layer_active(context, layout):
-        gpl = context.active_gpencil_layer
-        if gpl:
-            layout.label(text="Active Layer")
-            row = layout.row(align=True)
-            row.operator_context = 'EXEC_REGION_WIN'
-            row.operator_menu_enum("gpencil.layer_change", "layer", text="", icon='GREASEPENCIL')
-            row.prop(gpl, "info", text="")
-            row.operator("gpencil.layer_remove", text="", icon='X')
+    gpl = context.active_gpencil_layer
+    if gpl:
+        layout.label(text="Active Layer")
+        row = layout.row(align=True)
+        row.operator_context = 'EXEC_REGION_WIN'
+        row.operator_menu_enum("gpencil.layer_change", "layer", text="", icon='GREASEPENCIL')
+        row.prop(gpl, "info", text="")
+        row.operator("gpencil.layer_remove", text="", icon='X')
 
 
 def draw_gpencil_material_active(context, layout):
-        ob = context.active_object
-        if ob and len(ob.material_slots) > 0 and ob.active_material_index >= 0:
-            ma = ob.material_slots[ob.active_material_index].material
-            if ma:
-                layout.label(text="Active Material")
-                row = layout.row(align=True)
-                row.operator_context = 'EXEC_REGION_WIN'
-                row.operator_menu_enum("gpencil.material_set", "slot", text="", icon='MATERIAL')
-                row.prop(ma, "name", text="")
+    ob = context.active_object
+    if ob and len(ob.material_slots) > 0 and ob.active_material_index >= 0:
+        ma = ob.material_slots[ob.active_material_index].material
+        if ma:
+            layout.label(text="Active Material")
+            row = layout.row(align=True)
+            row.operator_context = 'EXEC_REGION_WIN'
+            row.operator_menu_enum("gpencil.material_set", "slot", text="", icon='MATERIAL')
+            row.prop(ma, "name", text="")
 
 
 class VIEW3D_PT_gpencil_sculpt_context_menu(Panel):
@@ -7395,6 +7394,7 @@ class TOPBAR_PT_gpencil_vertexcolor(GreasePencilVertexcolorPanel, Panel):
     def poll(cls, context):
         ob = context.object
         return ob and ob.type == 'GPENCIL'
+
 
 classes = (
     VIEW3D_HT_header,

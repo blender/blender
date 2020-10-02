@@ -37,16 +37,16 @@ from freestyle.predicates import (
     pyHighDensityAnisotropyUP1D,
     pyHigherLengthUP1D,
     pyLengthBP1D,
-    )
+)
 from freestyle.shaders import (
     ConstantColorShader,
     ConstantThicknessShader,
     SamplingShader,
-    )
+)
 from freestyle.types import IntegrationType, Operators
 
 
-## custom density predicate
+# custom density predicate
 class pyDensityUP1D(UnaryPredicate1D):
     def __init__(self, wsize, threshold, integration=IntegrationType.MEAN, sampling=2.0):
         UnaryPredicate1D.__init__(self)
@@ -61,21 +61,22 @@ class pyDensityUP1D(UnaryPredicate1D):
         m = self._func2(inter)
         if c < self._threshold:
             return 1
-        if m > 4*c:
-            if c < 1.5*self._threshold:
+        if m > 4 * c:
+            if c < 1.5 * self._threshold:
                 return 1
         return 0
 
+
 Operators.select(QuantitativeInvisibilityUP1D(0))
-Operators.bidirectional_chain(ChainSilhouetteIterator(),NotUP1D(QuantitativeInvisibilityUP1D(0)))
+Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))
 Operators.select(pyHigherLengthUP1D(40))
-## selects lines having a high anisotropic a priori density
-Operators.select(pyHighDensityAnisotropyUP1D(0.3,4))
+# selects lines having a high anisotropic a priori density
+Operators.select(pyHighDensityAnisotropyUP1D(0.3, 4))
 Operators.sort(pyLengthBP1D())
 shaders_list = [
     SamplingShader(2.0),
     ConstantThicknessShader(2),
-    ConstantColorShader(0.2,0.2,0.25,1),
-    ]
-## uniform culling
-Operators.create(pyDensityUP1D(3.0,2.0e-2, IntegrationType.MEAN, 0.1), shaders_list)
+    ConstantColorShader(0.2, 0.2, 0.25, 1),
+]
+# uniform culling
+Operators.create(pyDensityUP1D(3.0, 2.0e-2, IntegrationType.MEAN, 0.1), shaders_list)

@@ -478,7 +478,15 @@ class DATA_PT_sculpt_vertex_colors(MeshButtonsPanel, Panel):
         row = layout.row()
         col = row.column()
 
-        col.template_list("MESH_UL_vcols", "svcols", me, "sculpt_vertex_colors", me.sculpt_vertex_colors, "active_index", rows=2)
+        col.template_list(
+            "MESH_UL_vcols",
+            "svcols",
+            me,
+            "sculpt_vertex_colors",
+            me.sculpt_vertex_colors,
+            "active_index",
+            rows=2,
+        )
 
         col = row.column(align=True)
         col.operator("mesh.sculpt_vertex_color_add", icon='ADD', text="")

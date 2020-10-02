@@ -43,7 +43,7 @@ class FILEBROWSER_HT_header(Header):
 class FILEBROWSER_PT_display(Panel):
     bl_space_type = 'FILE_BROWSER'
     bl_region_type = 'HEADER'
-    bl_label = "Display Settings" # Shows as tooltip in popover
+    bl_label = "Display Settings"  # Shows as tooltip in popover
     bl_ui_units_x = 10
 
     @classmethod
@@ -76,7 +76,7 @@ class FILEBROWSER_PT_display(Panel):
 class FILEBROWSER_PT_filter(Panel):
     bl_space_type = 'FILE_BROWSER'
     bl_region_type = 'HEADER'
-    bl_label = "Filter Settings" # Shows as tooltip in popover
+    bl_label = "Filter Settings"  # Shows as tooltip in popover
     bl_ui_units_x = 8
 
     @classmethod

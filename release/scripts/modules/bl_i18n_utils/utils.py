@@ -185,7 +185,7 @@ def enable_addons(addons=None, support=None, disable=False, check_only=False):
     ret = [
         mod for mod in addon_utils.modules()
         if (((addons and mod.__name__ in addons) or
-            (not addons and addon_utils.module_bl_info(mod)["support"] in support)) and
+             (not addons and addon_utils.module_bl_info(mod)["support"] in support)) and
             (mod.__name__ not in black_list))
     ]
 

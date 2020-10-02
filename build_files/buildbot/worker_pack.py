@@ -35,7 +35,7 @@ def get_package_name(builder, platform=None):
 
     package_name = 'blender-' + info.full_version
     if platform:
-      package_name += '-' + platform
+        package_name += '-' + platform
     if not (builder.branch == 'master' or builder.is_release_branch):
         if info.is_development_build:
             package_name = builder.branch + "-" + package_name
@@ -175,7 +175,11 @@ def pack_linux(builder):
 
     print("Stripping python...")
     py_target = os.path.join(builder.install_dir, info.short_version)
-    buildbot_utils.call(builder.command_prefix + ['find', py_target, '-iname', '*.so', '-exec', 'strip', '-s', '{}', ';'])
+    buildbot_utils.call(
+        builder.command_prefix + [
+            'find', py_target, '-iname', '*.so', '-exec', 'strip', '-s', '{}', ';',
+        ],
+    )
 
     # Construct package name
     platform_name = 'linux64'

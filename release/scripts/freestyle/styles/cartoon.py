@@ -28,12 +28,12 @@ from freestyle.predicates import (
     NotUP1D,
     QuantitativeInvisibilityUP1D,
     TrueUP1D,
-    )
+)
 from freestyle.shaders import (
     BezierCurveShader,
     ConstantThicknessShader,
     pyMaterialColorShader,
-    )
+)
 from freestyle.types import Operators
 
 
@@ -43,5 +43,5 @@ shaders_list = [
     BezierCurveShader(3),
     ConstantThicknessShader(4),
     pyMaterialColorShader(0.8),
-    ]
+]
 Operators.create(TrueUP1D(), shaders_list)

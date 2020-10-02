@@ -56,7 +56,10 @@ def main():
     if mod_from_dict:
         file_path = sys.argv[-2][:-3] + "_lost.py"
         write_work_file(file_path, list(mod_from_dict.values()))
-        print("Warning '%s' contains lost %d items from module %s.py" % (file_path, len(mod_from_dict), mod_from.__name__))
+        print(
+            "Warning '%s' contains lost %d items from module %s.py" %
+            (file_path, len(mod_from_dict), mod_from.__name__)
+        )
 
 
 if __name__ == "__main__":

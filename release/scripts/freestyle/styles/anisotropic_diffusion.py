@@ -29,13 +29,13 @@ from freestyle.predicates import (
     QuantitativeInvisibilityUP1D,
     TrueBP1D,
     TrueUP1D,
-    )
+)
 from freestyle.shaders import (
     ConstantThicknessShader,
     IncreasingColorShader,
     SamplingShader,
     pyDiffusion2Shader,
-    )
+)
 from freestyle.types import Operators, Stroke
 
 
@@ -52,5 +52,5 @@ shaders_list = [
     SamplingShader(2),
     pyDiffusion2Shader(offset, nbIter),
     IncreasingColorShader(1, 0, 0, 1, 0, 1, 0, 1),
-    ]
+]
 Operators.create(TrueUP1D(), shaders_list)

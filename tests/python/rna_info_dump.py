@@ -81,7 +81,10 @@ def api_dump(use_properties=True, use_functions=True):
 
             for prop in v.properties:
                 if prop.collection_type:
-                    funcs = [(prop.identifier + "." + func.identifier, func) for func in prop.collection_type.functions]
+                    funcs = [
+                        (prop.identifier + "." + func.identifier, func)
+                        for func in prop.collection_type.functions
+                    ]
                     for func_id, func in funcs:
                         data.append(func_to_str(struct_id_str, func_id, func))
         data.sort()
@@ -100,7 +103,10 @@ def api_dump(use_properties=True, use_functions=True):
 
             for prop in v.properties:
                 if prop.collection_type:
-                    props = [(prop.identifier + "." + prop_sub.identifier, prop_sub) for prop_sub in prop.collection_type.properties]
+                    props = [
+                        (prop.identifier + "." + prop_sub.identifier, prop_sub)
+                        for prop_sub in prop.collection_type.properties
+                    ]
                     for prop_sub_id, prop_sub in props:
                         data.append(prop_to_str(struct_id_str, prop_sub_id, prop_sub))
         data.sort()

@@ -711,9 +711,9 @@ class CYCLES_RENDER_PT_performance_acceleration_structure(CyclesButtonsPanel, Pa
         if use_cpu(context):
             use_embree = _cycles.with_embree
             if not use_embree:
-              sub = col.column(align=True)
-              sub.label(text="Cycles built without Embree support")
-              sub.label(text="CPU raytracing performance will be poor")
+                sub = col.column(align=True)
+                sub.label(text="Cycles built without Embree support")
+                sub.label(text="CPU raytracing performance will be poor")
 
         col.prop(cscene, "debug_use_spatial_splits")
         sub = col.column()
@@ -843,8 +843,6 @@ class CYCLES_RENDER_PT_passes_data(CyclesButtonsPanel, Panel):
         col.prop(cycles_view_layer, "pass_debug_render_time", text="Render Time")
         col.prop(cycles_view_layer, "pass_debug_sample_count", text="Sample Count")
 
-
-
         layout.prop(view_layer, "pass_alpha_threshold")
 
 
@@ -959,7 +957,15 @@ class CYCLES_RENDER_PT_passes_aov(CyclesButtonsPanel, Panel):
 
         row = layout.row()
         col = row.column()
-        col.template_list("CYCLES_RENDER_UL_aov", "aovs", cycles_view_layer, "aovs", cycles_view_layer, "active_aov", rows=2)
+        col.template_list(
+            "CYCLES_RENDER_UL_aov",
+            "aovs",
+            cycles_view_layer,
+            "aovs",
+            cycles_view_layer,
+            "active_aov",
+            rows=2,
+        )
 
         col = row.column()
         sub = col.column(align=True)
@@ -967,9 +973,9 @@ class CYCLES_RENDER_PT_passes_aov(CyclesButtonsPanel, Panel):
         sub.operator("cycles.remove_aov", icon='REMOVE', text="")
 
         if cycles_view_layer.active_aov < len(cycles_view_layer.aovs):
-          active_aov = cycles_view_layer.aovs[cycles_view_layer.active_aov]
-          if active_aov.conflict:
-            layout.label(text=active_aov.conflict, icon='ERROR')
+            active_aov = cycles_view_layer.aovs[cycles_view_layer.active_aov]
+            if active_aov.conflict:
+                layout.label(text=active_aov.conflict, icon='ERROR')
 
 
 class CYCLES_RENDER_PT_denoising(CyclesButtonsPanel, Panel):
@@ -1222,7 +1228,7 @@ class CYCLES_OBJECT_PT_motion_blur(CyclesButtonsPanel, Panel):
 
 def has_geometry_visibility(ob):
     return ob and ((ob.type in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META', 'LIGHT'}) or
-                    (ob.instance_type == 'COLLECTION' and ob.instance_collection))
+                   (ob.instance_type == 'COLLECTION' and ob.instance_collection))
 
 
 class CYCLES_OBJECT_PT_shading(CyclesButtonsPanel, Panel):
@@ -1232,7 +1238,7 @@ class CYCLES_OBJECT_PT_shading(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return  CyclesButtonsPanel.poll(context) and (context.object)
+        return CyclesButtonsPanel.poll(context) and (context.object)
 
     def draw(self, context):
         layout = self.layout
@@ -1255,7 +1261,7 @@ class CYCLES_OBJECT_PT_visibility(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return  CyclesButtonsPanel.poll(context) and (context.object)
+        return CyclesButtonsPanel.poll(context) and (context.object)
 
     def draw(self, context):
         layout = self.layout
@@ -1865,6 +1871,7 @@ class CYCLES_RENDER_PT_bake_influence(CyclesButtonsPanel, Panel):
     bl_context = "render"
     bl_parent_id = "CYCLES_RENDER_PT_bake"
     COMPAT_ENGINES = {'CYCLES'}
+
     @classmethod
     def poll(cls, context):
         scene = context.scene
@@ -2150,8 +2157,10 @@ class CYCLES_VIEW3D_PT_shading_render_pass(Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.engine in cls.COMPAT_ENGINES
-            and context.space_data.shading.type == 'RENDERED')
+        return (
+            context.engine in cls.COMPAT_ENGINES and
+            context.space_data.shading.type == 'RENDERED'
+        )
 
     def draw(self, context):
         shading = context.space_data.shading
@@ -2169,8 +2178,10 @@ class CYCLES_VIEW3D_PT_shading_lighting(Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.engine in cls.COMPAT_ENGINES
-            and context.space_data.shading.type == 'RENDERED')
+        return (
+            context.engine in cls.COMPAT_ENGINES and
+            context.space_data.shading.type == 'RENDERED'
+        )
 
     def draw(self, context):
         layout = self.layout
@@ -2199,11 +2210,13 @@ class CYCLES_VIEW3D_PT_shading_lighting(Panel):
             col.prop(shading, "studiolight_intensity")
             col.prop(shading, "studiolight_background_alpha")
 
+
 class CYCLES_VIEW3D_PT_simplify_greasepencil(CyclesButtonsPanel, Panel, GreasePencilSimplifyPanel):
     bl_label = "Grease Pencil"
     bl_parent_id = "CYCLES_RENDER_PT_simplify"
     COMPAT_ENGINES = {'CYCLES'}
     bl_options = {'DEFAULT_CLOSED'}
+
 
 def draw_device(self, context):
     scene = context.scene

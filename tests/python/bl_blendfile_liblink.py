@@ -44,7 +44,7 @@ class TestBlendLibLinkSaveLoadBasic(TestHelper):
 
 TESTS = (
     TestBlendLibLinkSaveLoadBasic,
-    )
+)
 
 
 def argparse_create():

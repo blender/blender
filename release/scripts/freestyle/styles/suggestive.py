@@ -30,11 +30,11 @@ from freestyle.predicates import (
     QuantitativeInvisibilityUP1D,
     TrueUP1D,
     pyNatureUP1D,
-    )
+)
 from freestyle.shaders import (
     ConstantColorShader,
     IncreasingThicknessShader,
-    )
+)
 from freestyle.types import Nature, Operators
 
 
@@ -44,5 +44,5 @@ Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(upred))
 shaders_list = [
     IncreasingThicknessShader(1, 3),
     ConstantColorShader(0.2, 0.2, 0.2, 1),
-    ]
+]
 Operators.create(TrueUP1D(), shaders_list)

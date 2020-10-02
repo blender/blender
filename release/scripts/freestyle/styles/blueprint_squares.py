@@ -30,13 +30,13 @@ from freestyle.predicates import (
     SameShapeIdBP1D,
     TrueUP1D,
     pyHigherLengthUP1D,
-    )
+)
 from freestyle.shaders import (
     ConstantThicknessShader,
     IncreasingColorShader,
     pyBluePrintSquaresShader,
     pyPerlinNoise1DShader,
-    )
+)
 from freestyle.types import Operators
 
 
@@ -51,5 +51,5 @@ shaders_list = [
     pyPerlinNoise1DShader(0.07, 10, 8),
     IncreasingColorShader(0.6, 0.3, 0.3, 0.7, 0.6, 0.3, 0.3, 0.3),
     ConstantThicknessShader(4),
-    ]
+]
 Operators.create(TrueUP1D(), shaders_list)

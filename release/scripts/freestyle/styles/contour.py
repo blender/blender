@@ -29,11 +29,11 @@ from freestyle.predicates import (
     QuantitativeInvisibilityUP1D,
     SameShapeIdBP1D,
     TrueUP1D,
-    )
+)
 from freestyle.shaders import (
     ConstantThicknessShader,
     IncreasingColorShader,
-    )
+)
 from freestyle.types import Operators
 
 
@@ -43,6 +43,6 @@ upred = AndUP1D(QuantitativeInvisibilityUP1D(0), ContourUP1D())
 Operators.bidirectional_chain(ChainPredicateIterator(upred, bpred), NotUP1D(QuantitativeInvisibilityUP1D(0)))
 shaders_list = [
     ConstantThicknessShader(5.0),
-    IncreasingColorShader(0.8,0,0,1,0.1,0,0,1),
-    ]
+    IncreasingColorShader(0.8, 0, 0, 1, 0.1, 0, 0, 1),
+]
 Operators.create(TrueUP1D(), shaders_list)

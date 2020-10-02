@@ -170,4 +170,4 @@ from _freestyle import (
     ViewShape,
     ViewVertex,
     orientedViewEdgeIterator,
-    )
+)

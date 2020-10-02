@@ -31,7 +31,7 @@ COLORS = COLORS_DUMMY
 
 # NOTE: Keep everything lowercase.
 BLACKLIST = (
-  # 'file_to_blacklist.blend',
+    # 'file_to_blacklist.blend',
 )
 
 

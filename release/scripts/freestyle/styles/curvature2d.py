@@ -27,11 +27,11 @@ from freestyle.predicates import (
     NotUP1D,
     QuantitativeInvisibilityUP1D,
     TrueUP1D,
-    )
+)
 from freestyle.shaders import (
     ConstantThicknessShader,
     py2DCurvatureColorShader,
-    )
+)
 from freestyle.types import Operators, Stroke
 
 
@@ -40,5 +40,5 @@ Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInv
 shaders_list = [
     ConstantThicknessShader(5),
     py2DCurvatureColorShader()
-    ]
+]
 Operators.create(TrueUP1D(), shaders_list)
