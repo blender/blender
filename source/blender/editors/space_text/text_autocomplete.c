@@ -49,13 +49,13 @@
 /** \name Public API
  * \{ */
 
-int text_do_suggest_select(SpaceText *st, ARegion *region)
+bool text_do_suggest_select(SpaceText *st, ARegion *region, const int mval[2])
 {
+  const int lheight = TXT_LINE_HEIGHT(st);
   SuggItem *item, *first, *last /* , *sel */ /* UNUSED */;
   TextLine *tmp;
   int l, x, y, w, h, i;
   int tgti, *top;
-  const int mval[2] = {0, 0};
 
   if (!st || !st->text) {
     return 0;
@@ -84,12 +84,10 @@ int text_do_suggest_select(SpaceText *st, ARegion *region)
   text_update_character_width(st);
 
   x = TXT_BODY_LEFT(st) + (st->runtime.cwidth_px * (st->text->curc - st->left));
-  y = region->winy - st->runtime.lheight_px * l - 2;
+  y = region->winy - lheight * l - 2;
 
   w = SUGG_LIST_WIDTH * st->runtime.cwidth_px + U.widget_unit;
-  h = SUGG_LIST_SIZE * st->runtime.lheight_px + 0.4f * U.widget_unit;
-
-  // XXX getmouseco_areawin(mval);
+  h = SUGG_LIST_SIZE * lheight + 0.4f * U.widget_unit;
 
   if (mval[0] < x || x + w < mval[0] || mval[1] < y - h || y < mval[1]) {
     return 0;
@@ -101,7 +99,7 @@ int text_do_suggest_select(SpaceText *st, ARegion *region)
   }
 
   /* Work out the target item index in the visible list */
-  tgti = (y - mval[1] - 4) / st->runtime.lheight_px;
+  tgti = (y - mval[1] - 4) / lheight;
   if (tgti < 0 || tgti > SUGG_LIST_SIZE) {
     return 1;
   }
@@ -296,7 +294,6 @@ static void confirm_suggestion(Text *text)
 
 /* -------------------------------------------------------------------- */
 /** \name Auto Complete Operator
- *
  * \{ */
 
 static int text_autocomplete_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
@@ -336,10 +333,7 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
   ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
 
   int draw = 0, tools = 0, swallow = 0, scroll = 1;
-  Text *text = CTX_data_edit_text(C);
   int retval = OPERATOR_RUNNING_MODAL;
-
-  (void)text;
 
   if (st->doplugins && texttool_text_is_active(st->text)) {
     if (texttool_suggest_first()) {
@@ -351,32 +345,30 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
   }
 
   switch (event->type) {
-    case LEFTMOUSE:
-      if (event->val == KM_PRESS) {
-        if (text_do_suggest_select(st, region)) {
-          swallow = 1;
-        }
-        else {
-          if (tools & TOOL_SUGG_LIST) {
-            texttool_suggest_clear();
-          }
-          if (tools & TOOL_DOCUMENT) {
-            texttool_docs_clear();
-            doc_scroll = 0;
-          }
-          retval = OPERATOR_FINISHED;
-        }
+    case MOUSEMOVE: {
+      if (text_do_suggest_select(st, region, event->mval)) {
         draw = 1;
       }
+      swallow = 1;
       break;
-    case MIDDLEMOUSE:
+    }
+    case LEFTMOUSE:
       if (event->val == KM_PRESS) {
-        if (text_do_suggest_select(st, region)) {
-          ED_text_undo_push_init(C);
-          confirm_suggestion(st->text);
-          text_update_line_edited(st->text->curl);
-          ED_undo_push(C, op->type->name);
-          swallow = 1;
+        if (text_do_suggest_select(st, region, event->mval)) {
+          if (tools & TOOL_SUGG_LIST) {
+            ED_text_undo_push_init(C);
+            confirm_suggestion(st->text);
+            text_update_line_edited(st->text->curl);
+            ED_undo_push(C, op->type->name);
+            swallow = 1;
+            draw = 1;
+          }
+          if (tools & TOOL_DOCUMENT) {
+            texttool_docs_clear();
+            doc_scroll = 0;
+            draw = 1;
+          }
+          retval = OPERATOR_FINISHED;
         }
         else {
           if (tools & TOOL_SUGG_LIST) {
@@ -386,7 +378,7 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
             texttool_docs_clear();
             doc_scroll = 0;
           }
-          retval = OPERATOR_FINISHED;
+          retval = OPERATOR_CANCELLED;
         }
         draw = 1;
       }

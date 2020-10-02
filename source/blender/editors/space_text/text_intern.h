@@ -91,7 +91,7 @@ int text_get_char_pos(const struct SpaceText *st, const char *line, int cur);
 void text_drawcache_tag_update(struct SpaceText *st, int full);
 void text_free_caches(struct SpaceText *st);
 
-int text_do_suggest_select(struct SpaceText *st, struct ARegion *region);
+bool text_do_suggest_select(struct SpaceText *st, struct ARegion *region, const int mval[2]);
 void text_pop_suggest_list(void);
 
 int text_get_visible_lines(const struct SpaceText *st, struct ARegion *region, const char *str);
