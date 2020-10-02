@@ -143,8 +143,7 @@ static void armature_free_data(struct ID *id)
 
   /* free editmode data */
   if (armature->edbo) {
-    BLI_freelistN(armature->edbo);
-
+    BKE_armature_editbonelist_free(armature->edbo, false);
     MEM_freeN(armature->edbo);
     armature->edbo = NULL;
   }
@@ -369,6 +368,17 @@ void BKE_armature_bonelist_free(ListBase *lb, const bool do_id_user)
   }
 
   BLI_freelistN(lb);
+}
+
+void BKE_armature_editbonelist_free(ListBase *lb, const bool do_id_user)
+{
+  LISTBASE_FOREACH_MUTABLE (EditBone *, edit_bone, lb) {
+    if (edit_bone->prop) {
+      IDP_FreeProperty_ex(edit_bone->prop, do_id_user);
+    }
+    BLI_remlink_safe(lb, edit_bone);
+    MEM_freeN(edit_bone);
+  }
 }
 
 static void copy_bonechildren(Bone *bone_dst,

@@ -142,6 +142,7 @@ struct bArmature *BKE_armature_add(struct Main *bmain, const char *name);
 struct bArmature *BKE_armature_from_object(struct Object *ob);
 int BKE_armature_bonelist_count(struct ListBase *lb);
 void BKE_armature_bonelist_free(struct ListBase *lb, const bool do_id_user);
+void BKE_armature_editbonelist_free(struct ListBase *lb, const bool do_id_user);
 struct bArmature *BKE_armature_copy(struct Main *bmain, const struct bArmature *arm);
 
 void BKE_armature_copy_bone_transforms(struct bArmature *armature_dst,
