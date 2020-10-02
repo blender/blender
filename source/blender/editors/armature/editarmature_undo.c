@@ -64,8 +64,8 @@ static void undoarm_to_editarm(UndoArmature *uarm, bArmature *arm)
 {
   EditBone *ebone;
 
-  ED_armature_ebone_listbase_free(arm->edbo);
-  ED_armature_ebone_listbase_copy(arm->edbo, &uarm->lb);
+  ED_armature_ebone_listbase_free(arm->edbo, true);
+  ED_armature_ebone_listbase_copy(arm->edbo, &uarm->lb, true);
 
   /* active bone */
   if (uarm->act_edbone) {
@@ -86,7 +86,7 @@ static void *undoarm_from_editarm(UndoArmature *uarm, bArmature *arm)
   /* TODO: include size of ID-properties. */
   uarm->undo_size = 0;
 
-  ED_armature_ebone_listbase_copy(&uarm->lb, arm->edbo);
+  ED_armature_ebone_listbase_copy(&uarm->lb, arm->edbo, false);
 
   /* active bone */
   if (arm->act_edbone) {
@@ -105,7 +105,7 @@ static void *undoarm_from_editarm(UndoArmature *uarm, bArmature *arm)
 
 static void undoarm_free_data(UndoArmature *uarm)
 {
-  ED_armature_ebone_listbase_free(&uarm->lb);
+  ED_armature_ebone_listbase_free(&uarm->lb, false);
 }
 
 static Object *editarm_object_from_context(bContext *C)

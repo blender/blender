@@ -35,6 +35,7 @@
 #include "BKE_deform.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 
 #include "DEG_depsgraph.h"
@@ -847,7 +848,7 @@ void ED_armature_to_edit(bArmature *arm)
 
 /* free's bones and their properties */
 
-void ED_armature_ebone_listbase_free(ListBase *lb)
+void ED_armature_ebone_listbase_free(ListBase *lb, const bool do_id_user)
 {
   EditBone *ebone, *ebone_next;
 
@@ -855,7 +856,7 @@ void ED_armature_ebone_listbase_free(ListBase *lb)
     ebone_next = ebone->next;
 
     if (ebone->prop) {
-      IDP_FreeProperty(ebone->prop);
+      IDP_FreeProperty_ex(ebone->prop, do_id_user);
     }
 
     MEM_freeN(ebone);
@@ -864,7 +865,7 @@ void ED_armature_ebone_listbase_free(ListBase *lb)
   BLI_listbase_clear(lb);
 }
 
-void ED_armature_ebone_listbase_copy(ListBase *lb_dst, ListBase *lb_src)
+void ED_armature_ebone_listbase_copy(ListBase *lb_dst, ListBase *lb_src, const bool do_id_user)
 {
   EditBone *ebone_src;
   EditBone *ebone_dst;
@@ -874,7 +875,8 @@ void ED_armature_ebone_listbase_copy(ListBase *lb_dst, ListBase *lb_src)
   for (ebone_src = lb_src->first; ebone_src; ebone_src = ebone_src->next) {
     ebone_dst = MEM_dupallocN(ebone_src);
     if (ebone_dst->prop) {
-      ebone_dst->prop = IDP_CopyProperty(ebone_dst->prop);
+      ebone_dst->prop = IDP_CopyProperty_ex(ebone_dst->prop,
+                                            do_id_user ? 0 : LIB_ID_CREATE_NO_USER_REFCOUNT);
     }
     ebone_src->temp.ebone = ebone_dst;
     BLI_addtail(lb_dst, ebone_dst);

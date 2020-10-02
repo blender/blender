@@ -171,8 +171,10 @@ void ED_armature_from_edit(struct Main *bmain, struct bArmature *arm);
 void ED_armature_to_edit(struct bArmature *arm);
 void ED_armature_edit_free(struct bArmature *arm);
 void ED_armature_ebone_listbase_temp_clear(struct ListBase *lb);
-void ED_armature_ebone_listbase_free(struct ListBase *lb);
-void ED_armature_ebone_listbase_copy(struct ListBase *lb_dst, struct ListBase *lb_src);
+void ED_armature_ebone_listbase_free(struct ListBase *lb, const bool do_id_user);
+void ED_armature_ebone_listbase_copy(struct ListBase *lb_dst,
+                                     struct ListBase *lb_src,
+                                     const bool do_id_user);
 
 /* low level selection functions which handle */
 int ED_armature_ebone_selectflag_get(const struct EditBone *ebone);
