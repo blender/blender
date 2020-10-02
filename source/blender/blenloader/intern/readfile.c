@@ -6883,15 +6883,15 @@ static void link_global(FileData *fd, BlendFileData *bfd)
 /** \name Versioning
  * \{ */
 
-/* initialize userdef with non-UI dependency stuff */
-/* other initializers (such as theme color defaults) go to resources.c */
-static void do_versions_userdef(FileData *fd, BlendFileData *bfd)
+static void do_versions_userdef(FileData *UNUSED(fd), BlendFileData *bfd)
 {
   UserDef *user = bfd->user;
 
   if (user == NULL) {
     return;
   }
+
+  BLO_version_defaults_userpref_blend(user);
 }
 
 static void do_versions(FileData *fd, Library *lib, Main *main)

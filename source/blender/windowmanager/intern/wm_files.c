@@ -69,6 +69,7 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
 
+#include "BKE_addon.h"
 #include "BKE_appdir.h"
 #include "BKE_autoexec.h"
 #include "BKE_blender.h"
@@ -388,10 +389,18 @@ static void wm_window_match_do(bContext *C,
 /** \name Preferences Initialization & Versioning
  * \{ */
 
-/* in case UserDef was read, we re-initialize all, and do versioning */
+/**
+ * In case #UserDef was read, re-initialize values that depend on it.
+ */
 static void wm_init_userdef(Main *bmain)
 {
-  /* versioning is here */
+  /* Not versioning, just avoid errors. */
+#ifndef WITH_CYCLES
+  BKE_addon_remove_safe(&U.addons, "cycles");
+#else
+  UNUSED_VARS(BKE_addon_remove_safe);
+#endif
+
   UI_init_userdef();
 
   /* needed so loading a file from the command line respects user-pref T26156. */
@@ -406,11 +415,16 @@ static void wm_init_userdef(Main *bmain)
   MEM_CacheLimiter_set_maximum(((size_t)U.memcachelimit) * 1024 * 1024);
   BKE_sound_init(bmain);
 
-  /* update tempdir from user preferences */
+  if (STREQ(U.tempdir, "/")) {
+    BKE_tempdir_system_init(U.tempdir);
+  }
+  /* Update `U.tempdir` from user preferences. */
   BKE_tempdir_init(U.tempdir);
 
   /* Update tablet API preference. */
   WM_init_tablet_api();
+
+  BLO_sanitize_experimental_features_userpref_blend(&U);
 }
 
 /* return codes */

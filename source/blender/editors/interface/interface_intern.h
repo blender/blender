@@ -993,7 +993,6 @@ void icon_draw_rect_input(
     float x, float y, int w, int h, float alpha, short event_type, short event_value);
 
 /* resources.c */
-void init_userdef_do_versions(void);
 void ui_resources_init(void);
 void ui_resources_free(void);
 
