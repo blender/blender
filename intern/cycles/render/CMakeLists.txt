@@ -144,6 +144,12 @@ if(WITH_OPENVDB)
   )
 endif()
 
+if(WITH_NANOVDB)
+  list(APPEND INC_SYS
+    ${NANOVDB_INCLUDE_DIRS}
+  )
+endif()
+
 include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
 

@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+#ifdef WITH_NANOVDB
+#  include "nanovdb/NanoVDB.h"
+#  include "nanovdb/util/SampleFromVoxels.h"
+#endif
+
 /* w0, w1, w2, and w3 are the four cubic B-spline basis functions. */
 ccl_device float cubic_w0(float a)
 {
@@ -60,9 +65,10 @@ ccl_device float cubic_h1(float a)
 
 /* Fast bicubic texture lookup using 4 bilinear lookups, adapted from CUDA samples. */
 template<typename T>
-ccl_device T
-kernel_tex_image_interp_bicubic(const TextureInfo &info, CUtexObject tex, float x, float y)
+ccl_device T kernel_tex_image_interp_bicubic(const TextureInfo &info, float x, float y)
 {
+  CUtexObject tex = (CUtexObject)info.data;
+
   x = (x * info.width) - 0.5f;
   y = (y * info.height) - 0.5f;
 
@@ -84,9 +90,10 @@ kernel_tex_image_interp_bicubic(const TextureInfo &info, CUtexObject tex, float 
 
 /* Fast tricubic texture lookup using 8 trilinear lookups. */
 template<typename T>
-ccl_device T kernel_tex_image_interp_bicubic_3d(
-    const TextureInfo &info, CUtexObject tex, float x, float y, float z)
+ccl_device T kernel_tex_image_interp_bicubic_3d(const TextureInfo &info, float x, float y, float z)
 {
+  CUtexObject tex = (CUtexObject)info.data;
+
   x = (x * info.width) - 0.5f;
   y = (y * info.height) - 0.5f;
   z = (z * info.depth) - 0.5f;
@@ -118,19 +125,44 @@ ccl_device T kernel_tex_image_interp_bicubic_3d(
                 g1y * (g0x * tex3D<T>(tex, x0, y1, z1) + g1x * tex3D<T>(tex, x1, y1, z1)));
 }
 
+#ifdef WITH_NANOVDB
+template<typename T>
+ccl_device_inline T kernel_tex_image_interp_nanovdb(
+    const TextureInfo &info, float x, float y, float z, uint interpolation)
+{
+  nanovdb::NanoGrid<T> *const grid = (nanovdb::NanoGrid<T> *)info.data;
+  const nanovdb::NanoRoot<T> &root = grid->tree().root();
+
+  const nanovdb::Coord off(root.bbox().min());
+  const nanovdb::Coord dim(root.bbox().dim());
+  const nanovdb::Vec3f xyz(off[0] + x * dim[0], off[1] + y * dim[1], off[2] + z * dim[2]);
+
+  typedef nanovdb::ReadAccessor<nanovdb::NanoRoot<T>> ReadAccessorT;
+  switch (interpolation) {
+    default:
+    case INTERPOLATION_LINEAR:
+      return nanovdb::SampleFromVoxels<ReadAccessorT, 1, false>(root)(xyz);
+    case INTERPOLATION_CLOSEST:
+      return nanovdb::SampleFromVoxels<ReadAccessorT, 0, false>(root)(xyz);
+    case INTERPOLATION_CUBIC:
+      return nanovdb::SampleFromVoxels<ReadAccessorT, 3, false>(root)(xyz);
+  }
+}
+#endif
+
 ccl_device float4 kernel_tex_image_interp(KernelGlobals *kg, int id, float x, float y)
 {
   const TextureInfo &info = kernel_tex_fetch(__texture_info, id);
-  CUtexObject tex = (CUtexObject)info.data;
 
   /* float4, byte4, ushort4 and half4 */
   const int texture_type = info.data_type;
   if (texture_type == IMAGE_DATA_TYPE_FLOAT4 || texture_type == IMAGE_DATA_TYPE_BYTE4 ||
       texture_type == IMAGE_DATA_TYPE_HALF4 || texture_type == IMAGE_DATA_TYPE_USHORT4) {
     if (info.interpolation == INTERPOLATION_CUBIC) {
-      return kernel_tex_image_interp_bicubic<float4>(info, tex, x, y);
+      return kernel_tex_image_interp_bicubic<float4>(info, x, y);
     }
     else {
+      CUtexObject tex = (CUtexObject)info.data;
       return tex2D<float4>(tex, x, y);
     }
   }
@@ -139,9 +171,10 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals *kg, int id, float x, fl
     float f;
 
     if (info.interpolation == INTERPOLATION_CUBIC) {
-      f = kernel_tex_image_interp_bicubic<float>(info, tex, x, y);
+      f = kernel_tex_image_interp_bicubic<float>(info, x, y);
     }
     else {
+      CUtexObject tex = (CUtexObject)info.data;
       f = tex2D<float>(tex, x, y);
     }
 
@@ -164,16 +197,27 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg,
   const float y = P.y;
   const float z = P.z;
 
-  CUtexObject tex = (CUtexObject)info.data;
   uint interpolation = (interp == INTERPOLATION_NONE) ? info.interpolation : interp;
-
   const int texture_type = info.data_type;
+
+#ifdef WITH_NANOVDB
+  if (texture_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT) {
+    float f = kernel_tex_image_interp_nanovdb<float>(info, x, y, z, interpolation);
+    return make_float4(f, f, f, 1.0f);
+  }
+  if (texture_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT3) {
+    nanovdb::Vec3f f = kernel_tex_image_interp_nanovdb<nanovdb::Vec3f>(
+        info, x, y, z, interpolation);
+    return make_float4(f[0], f[1], f[2], 1.0f);
+  }
+#endif
   if (texture_type == IMAGE_DATA_TYPE_FLOAT4 || texture_type == IMAGE_DATA_TYPE_BYTE4 ||
       texture_type == IMAGE_DATA_TYPE_HALF4 || texture_type == IMAGE_DATA_TYPE_USHORT4) {
     if (interpolation == INTERPOLATION_CUBIC) {
-      return kernel_tex_image_interp_bicubic_3d<float4>(info, tex, x, y, z);
+      return kernel_tex_image_interp_bicubic_3d<float4>(info, x, y, z);
     }
     else {
+      CUtexObject tex = (CUtexObject)info.data;
       return tex3D<float4>(tex, x, y, z);
     }
   }
@@ -181,9 +225,10 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg,
     float f;
 
     if (interpolation == INTERPOLATION_CUBIC) {
-      f = kernel_tex_image_interp_bicubic_3d<float>(info, tex, x, y, z);
+      f = kernel_tex_image_interp_bicubic_3d<float>(info, x, y, z);
     }
     else {
+      CUtexObject tex = (CUtexObject)info.data;
       f = tex3D<float>(tex, x, y, z);
     }
 

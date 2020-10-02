@@ -209,6 +209,8 @@ bool OIIOImageLoader::load_pixels(const ImageMetaData &metadata,
     case IMAGE_DATA_TYPE_FLOAT4:
       oiio_load_pixels<TypeDesc::FLOAT, float>(metadata, in, (float *)pixels);
       break;
+    case IMAGE_DATA_TYPE_NANOVDB_FLOAT:
+    case IMAGE_DATA_TYPE_NANOVDB_FLOAT3:
     case IMAGE_DATA_NUM_TYPES:
       break;
   }

@@ -57,6 +57,8 @@ typedef enum ImageDataType {
   IMAGE_DATA_TYPE_HALF = 5,
   IMAGE_DATA_TYPE_USHORT4 = 6,
   IMAGE_DATA_TYPE_USHORT = 7,
+  IMAGE_DATA_TYPE_NANOVDB_FLOAT = 8,
+  IMAGE_DATA_TYPE_NANOVDB_FLOAT3 = 9,
 
   IMAGE_DATA_NUM_TYPES
 } ImageDataType;
@@ -73,8 +75,8 @@ typedef enum ImageAlphaType {
   IMAGE_ALPHA_NUM_TYPES,
 } ImageAlphaType;
 
-#define IMAGE_DATA_TYPE_SHIFT 3
-#define IMAGE_DATA_TYPE_MASK 0x7
+#define IMAGE_DATA_TYPE_SHIFT 4
+#define IMAGE_DATA_TYPE_MASK 0xF
 
 /* Extension types for textures.
  *

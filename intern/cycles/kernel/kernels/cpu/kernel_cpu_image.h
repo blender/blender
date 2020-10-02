@@ -17,6 +17,11 @@
 #ifndef __KERNEL_CPU_IMAGE_H__
 #define __KERNEL_CPU_IMAGE_H__
 
+#ifdef WITH_NANOVDB
+#  include <nanovdb/NanoVDB.h>
+#  include <nanovdb/util/SampleFromVoxels.h>
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 /* Make template functions private so symbols don't conflict between kernels with different
@@ -470,6 +475,42 @@ template<typename T> struct TextureInterpolator {
 #undef SET_CUBIC_SPLINE_WEIGHTS
 };
 
+#ifdef WITH_NANOVDB
+template<typename T> struct NanoVDBInterpolator {
+  static ccl_always_inline float4 read(float r)
+  {
+    return make_float4(r, r, r, 1.0f);
+  }
+
+  static ccl_always_inline float4 read(nanovdb::Vec3f r)
+  {
+    return make_float4(r[0], r[1], r[2], 1.0f);
+  }
+
+  static ccl_always_inline float4
+  interp_3d(const TextureInfo &info, float x, float y, float z, InterpolationType interp)
+  {
+    nanovdb::NanoGrid<T> *const grid = (nanovdb::NanoGrid<T> *)info.data;
+    const nanovdb::NanoRoot<T> &root = grid->tree().root();
+
+    const nanovdb::Coord off(root.bbox().min());
+    const nanovdb::Coord dim(root.bbox().dim());
+    const nanovdb::Vec3f xyz(off[0] + x * dim[0], off[1] + y * dim[1], off[2] + z * dim[2]);
+
+    typedef nanovdb::ReadAccessor<nanovdb::NanoRoot<T>> ReadAccessorT;
+    switch ((interp == INTERPOLATION_NONE) ? info.interpolation : interp) {
+      default:
+      case INTERPOLATION_LINEAR:
+        return read(nanovdb::SampleFromVoxels<ReadAccessorT, 1, false>(root)(xyz));
+      case INTERPOLATION_CLOSEST:
+        return read(nanovdb::SampleFromVoxels<ReadAccessorT, 0, false>(root)(xyz));
+      case INTERPOLATION_CUBIC:
+        return read(nanovdb::SampleFromVoxels<ReadAccessorT, 3, false>(root)(xyz));
+    }
+  }
+};
+#endif
+
 ccl_device float4 kernel_tex_image_interp(KernelGlobals *kg, int id, float x, float y)
 {
   const TextureInfo &info = kernel_tex_fetch(__texture_info, id);
@@ -526,6 +567,12 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg,
       return TextureInterpolator<ushort4>::interp_3d(info, P.x, P.y, P.z, interp);
     case IMAGE_DATA_TYPE_FLOAT4:
       return TextureInterpolator<float4>::interp_3d(info, P.x, P.y, P.z, interp);
+#ifdef WITH_NANOVDB
+    case IMAGE_DATA_TYPE_NANOVDB_FLOAT:
+      return NanoVDBInterpolator<float>::interp_3d(info, P.x, P.y, P.z, interp);
+    case IMAGE_DATA_TYPE_NANOVDB_FLOAT3:
+      return NanoVDBInterpolator<nanovdb::Vec3f>::interp_3d(info, P.x, P.y, P.z, interp);
+#endif
     default:
       assert(0);
       return make_float4(

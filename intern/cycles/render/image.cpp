@@ -73,6 +73,10 @@ const char *name_from_type(ImageDataType type)
       return "ushort4";
     case IMAGE_DATA_TYPE_USHORT:
       return "ushort";
+    case IMAGE_DATA_TYPE_NANOVDB_FLOAT:
+      return "nanovdb_float";
+    case IMAGE_DATA_TYPE_NANOVDB_FLOAT3:
+      return "nanovdb_float3";
     case IMAGE_DATA_NUM_TYPES:
       assert(!"System enumerator type, should never be used");
       return "";
@@ -210,6 +214,7 @@ ImageMetaData::ImageMetaData()
       width(0),
       height(0),
       depth(0),
+      byte_size(0),
       type(IMAGE_DATA_NUM_TYPES),
       colorspace(u_colorspace_raw),
       colorspace_file_format(""),
@@ -756,6 +761,16 @@ void ImageManager::device_load_image(Device *device, Scene *scene, int slot, Pro
       pixels[0] = TEX_IMAGE_MISSING_R;
     }
   }
+#ifdef WITH_NANOVDB
+  else if (type == IMAGE_DATA_TYPE_NANOVDB_FLOAT || type == IMAGE_DATA_TYPE_NANOVDB_FLOAT3) {
+    thread_scoped_lock device_lock(device_mutex);
+    void *pixels = img->mem->alloc(img->metadata.byte_size, 0);
+
+    if (pixels != NULL) {
+      img->loader->load_pixels(img->metadata, pixels, img->metadata.byte_size, false);
+    }
+  }
+#endif
 
   {
     thread_scoped_lock device_lock(device_mutex);

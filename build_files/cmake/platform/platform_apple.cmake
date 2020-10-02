@@ -323,6 +323,11 @@ if(WITH_OPENVDB)
   set(OPENVDB_DEFINITIONS)
 endif()
 
+if(WITH_NANOVDB)
+  set(NANOVDB ${LIBDIR}/nanovdb)
+  set(NANOVDB_INCLUDE_DIR ${NANOVDB}/include)
+endif()
+
 if(WITH_LLVM)
   set(LLVM_ROOT_DIR ${LIBDIR}/llvm)
   if(EXISTS "${LLVM_ROOT_DIR}/bin/llvm-config")

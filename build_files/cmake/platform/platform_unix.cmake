@@ -264,6 +264,7 @@ endif()
 if(WITH_OPENVDB)
   find_package_wrapper(OpenVDB)
   find_package_wrapper(Blosc)
+
   if(NOT OPENVDB_FOUND)
     set(WITH_OPENVDB OFF)
     set(WITH_OPENVDB_BLOSC OFF)
@@ -271,6 +272,15 @@ if(WITH_OPENVDB)
   elseif(NOT BLOSC_FOUND)
     set(WITH_OPENVDB_BLOSC OFF)
     message(STATUS "Blosc not found, disabling it for OpenVBD")
+  endif()
+endif()
+
+if(WITH_NANOVDB)
+  find_package_wrapper(NanoVDB)
+
+  if(NOT NANOVDB_FOUND)
+    set(WITH_NANOVDB OFF)
+    message(STATUS "NanoVDB not found, disabling it")
   endif()
 endif()
 

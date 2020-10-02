@@ -21,6 +21,7 @@ if(WIN32)
 endif()
 option(WITH_WEBP "Enable building of oiio with webp support" OFF)
 option(WITH_BOOST_PYTHON "Enable building of boost with python support" OFF)
+option(WITH_NANOVDB "Enable building of OpenVDB with NanoVDB included" OFF)
 set(MAKE_THREADS 1 CACHE STRING "Number of threads to run make with")
 
 if(NOT BUILD_MODE)

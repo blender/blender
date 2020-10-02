@@ -35,6 +35,7 @@ typedef unsigned int uint32_t;
 typedef unsigned long long uint64_t;
 typedef unsigned short half;
 typedef unsigned long long CUtexObject;
+
 #ifdef CYCLES_CUBIN_CC
 #  define FLT_MIN 1.175494350822287507969e-38f
 #  define FLT_MAX 340282346638528859811704183484516925440.0f
