@@ -160,11 +160,23 @@ static void armature_foreach_id_bone(Bone *bone, LibraryForeachIDData *data)
   }
 }
 
+static void armature_foreach_id_editbone(EditBone *edit_bone, LibraryForeachIDData *data)
+{
+  IDP_foreach_property(
+      edit_bone->prop, IDP_TYPE_FILTER_ID, BKE_lib_query_idpropertiesForeachIDLink_callback, data);
+}
+
 static void armature_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   bArmature *arm = (bArmature *)id;
   LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
     armature_foreach_id_bone(bone, data);
+  }
+
+  if (arm->edbo != NULL) {
+    LISTBASE_FOREACH (EditBone *, edit_bone, arm->edbo) {
+      armature_foreach_id_editbone(edit_bone, data);
+    }
   }
 }
 
