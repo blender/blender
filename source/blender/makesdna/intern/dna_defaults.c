@@ -65,7 +65,7 @@
  * - When loading old files that don't contain newly added struct members (these will be zeroed)
  *   to set their values use `versioning_{BLENDER_VERSION}.c` source files.
  * - For startup file data, to update these defaults use
- *   #BLO_update_defaults_startup_blend & #BLO_version_defaults_userpref_blend.
+ *   #BLO_update_defaults_startup_blend & #blo_do_versions_userdef.
  */
 
 #include <limits.h>

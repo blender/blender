@@ -44,7 +44,9 @@
 #include "BKE_keyconfig.h"
 #include "BKE_main.h"
 
-#include "BLO_readfile.h" /* Own include. */
+#include "BLO_readfile.h"
+
+#include "readfile.h" /* Own include. */
 
 #include "wm_event_types.h"
 
@@ -244,7 +246,7 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
    * Versioning code until next subversion bump goes here.
    *
    * \note Be sure to check when bumping the version:
-   * - #BLO_version_defaults_userpref_blend in this file.
+   * - #blo_do_versions_userdef in this file.
    * - "versioning_{BLENDER_VERSION}.c"
    *
    * \note Keep this message at the bottom of the function.
@@ -303,7 +305,7 @@ static bool keymap_item_has_invalid_wm_context_data_path(wmKeyMapItem *kmi,
 }
 
 /* patching UserDef struct and Themes */
-void BLO_version_defaults_userpref_blend(UserDef *userdef)
+void blo_do_versions_userdef(UserDef *userdef)
 {
   /* #UserDef & #Main happen to have the same struct member. */
 #define USER_VERSION_ATLEAST(ver, subver) MAIN_VERSION_ATLEAST(userdef, ver, subver)

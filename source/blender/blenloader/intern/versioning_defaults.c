@@ -16,6 +16,13 @@
 
 /** \file
  * \ingroup blenloader
+ *
+ * This file handles updating the `startup.blend`, this is used when reading old files.
+ *
+ * Unlike regular versioning this makes changes that ensure the startup file
+ * has brushes and other presets setup to take advantage of newer features.
+ *
+ * To update preference defaults see `userdef_default.c`.
  */
 
 #include "MEM_guardedalloc.h"

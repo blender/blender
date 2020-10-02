@@ -223,12 +223,12 @@ typedef void (*BLOExpandDoitCallback)(void *fdhandle, struct Main *mainvar, void
 void BLO_main_expander(BLOExpandDoitCallback expand_doit_func);
 void BLO_expand_main(void *fdhandle, struct Main *mainvar);
 
-/* Update defaults in startup.blend & userprefs.blend, without having to save and embed it */
+/**
+ * Update defaults in startup.blend, without having to save and embed it.
+ * \note defaults for preferences are stored in `userdef_default.c` and can be updated there.
+ */
 void BLO_update_defaults_startup_blend(struct Main *bmain, const char *app_template);
 void BLO_update_defaults_workspace(struct WorkSpace *workspace, const char *app_template);
-
-/* Version patch user preferences. */
-void BLO_version_defaults_userpref_blend(struct UserDef *userdef);
 
 /* Disable unwanted experimental feature settings on startup. */
 void BLO_sanitize_experimental_features_userpref_blend(struct UserDef *userdef);

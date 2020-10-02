@@ -6891,7 +6891,7 @@ static void do_versions_userdef(FileData *UNUSED(fd), BlendFileData *bfd)
     return;
   }
 
-  BLO_version_defaults_userpref_blend(user);
+  blo_do_versions_userdef(user);
 }
 
 static void do_versions(FileData *fd, Library *lib, Main *main)

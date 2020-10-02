@@ -42,6 +42,7 @@ struct Object;
 struct OldNewMap;
 struct PartEff;
 struct ReportList;
+struct UserDef;
 struct View3D;
 
 typedef struct IDNameLib_Map IDNameLib_Map;
@@ -188,6 +189,8 @@ struct PartEff *blo_do_version_give_parteff_245(struct Object *ob);
 void blo_do_version_old_trackto_to_constraints(struct Object *ob);
 void blo_do_versions_view3d_split_250(struct View3D *v3d, struct ListBase *regions);
 void blo_do_versions_key_uidgen(struct Key *key);
+
+void blo_do_versions_userdef(struct UserDef *userdef);
 
 void blo_do_versions_pre250(struct FileData *fd, struct Library *lib, struct Main *bmain);
 void blo_do_versions_250(struct FileData *fd, struct Library *lib, struct Main *bmain);

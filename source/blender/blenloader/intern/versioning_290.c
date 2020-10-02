@@ -234,7 +234,7 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
    *
    * \note Be sure to check when bumping the version:
    * - #blo_do_versions_290 in this file.
-   * - "versioning_userdef.c", #BLO_version_defaults_userpref_blend
+   * - "versioning_userdef.c", #blo_do_versions_userdef
    * - "versioning_userdef.c", #do_versions_theme
    *
    * \note Keep this message at the bottom of the function.
@@ -773,7 +773,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
    * Versioning code until next subversion bump goes here.
    *
    * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #BLO_version_defaults_userpref_blend
+   * - "versioning_userdef.c", #blo_do_versions_userdef
    * - "versioning_userdef.c", #do_versions_theme
    *
    * \note Keep this message at the bottom of the function.
