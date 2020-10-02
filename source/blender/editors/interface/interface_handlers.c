@@ -7580,7 +7580,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
   }
 
   if (but->flag & UI_BUT_DISABLED) {
-    return WM_UI_HANDLER_CONTINUE;
+    return WM_UI_HANDLER_BREAK;
   }
 
   switch (but->type) {
