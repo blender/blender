@@ -132,7 +132,6 @@ static bool panel_type_context_poll(ARegion *region,
 
 static void panel_title_color_get(const Panel *panel,
                                   const bool show_background,
-                                  const bool use_search_color,
                                   const bool region_search_filter_active,
                                   uchar r_color[4])
 {
@@ -146,16 +145,11 @@ static void panel_title_color_get(const Panel *panel,
 
   const bool search_match = UI_panel_matches_search_filter(panel);
 
-  if (region_search_filter_active && use_search_color && search_match) {
-    UI_GetThemeColor4ubv(TH_MATCH, r_color);
-  }
-  else {
-    UI_GetThemeColor4ubv(TH_TITLE, r_color);
-    if (region_search_filter_active && !search_match) {
-      r_color[0] *= 0.5;
-      r_color[1] *= 0.5;
-      r_color[2] *= 0.5;
-    }
+  UI_GetThemeColor4ubv(TH_TITLE, r_color);
+  if (region_search_filter_active && !search_match) {
+    r_color[0] *= 0.5;
+    r_color[1] *= 0.5;
+    r_color[2] *= 0.5;
   }
 }
 
@@ -965,8 +959,7 @@ static void ui_draw_aligned_panel_header(const uiStyle *style,
 
   /* Draw text labels. */
   uchar col_title[4];
-  panel_title_color_get(
-      panel, show_background, is_subpanel, region_search_filter_active, col_title);
+  panel_title_color_get(panel, show_background, region_search_filter_active, col_title);
   col_title[3] = 255;
 
   rcti hrect = *rect;
@@ -1084,7 +1077,7 @@ void ui_draw_aligned_panel(const uiStyle *style,
   /* draw optional pin icon */
   if (show_pin && (block->panel->flag & PNL_PIN)) {
     uchar col_title[4];
-    panel_title_color_get(panel, show_background, false, region_search_filter_active, col_title);
+    panel_title_color_get(panel, show_background, region_search_filter_active, col_title);
 
     GPU_blend(GPU_BLEND_ALPHA);
     UI_icon_draw_ex(headrect.xmax - ((PNL_ICON * 2.2f) / block->aspect),
@@ -1199,7 +1192,7 @@ void ui_draw_aligned_panel(const uiStyle *style,
     BLI_rctf_scale(&itemrect, 0.25f);
 
     uchar col_title[4];
-    panel_title_color_get(panel, show_background, false, region_search_filter_active, col_title);
+    panel_title_color_get(panel, show_background, region_search_filter_active, col_title);
     float tria_color[4];
     rgb_uchar_to_float(tria_color, col_title);
     tria_color[3] = 1.0f;
