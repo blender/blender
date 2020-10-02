@@ -56,7 +56,7 @@ typedef struct bNodeLinkDrag {
 /* space_node.c */
 
 /* transform between View2Ds in the tree path */
-void snode_group_offset(struct SpaceNode *snode, float *x, float *y);
+void space_node_group_offset(struct SpaceNode *snode, float *x, float *y);
 
 /* node_draw.c */
 int node_get_colorid(struct bNode *node);

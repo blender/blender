@@ -578,7 +578,7 @@ static int node_group_separate_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   /* get node tree offset */
-  snode_group_offset(snode, &offx, &offy);
+  space_node_group_offset(snode, &offx, &offy);
 
   switch (type) {
     case NODE_GS_COPY:
