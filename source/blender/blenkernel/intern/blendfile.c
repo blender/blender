@@ -413,7 +413,7 @@ static void setup_app_blend_file_data(bContext *C,
   }
 }
 
-static bool handle_subversion_warning(Main *main, ReportList *reports)
+static void handle_subversion_warning(Main *main, ReportList *reports)
 {
   if (main->minversionfile > BLENDER_FILE_VERSION ||
       (main->minversionfile == BLENDER_FILE_VERSION &&
@@ -424,8 +424,6 @@ static bool handle_subversion_warning(Main *main, ReportList *reports)
                 main->minversionfile,
                 main->minsubversionfile);
   }
-
-  return true;
 }
 
 bool BKE_blendfile_read_ex(bContext *C,
@@ -436,37 +434,27 @@ bool BKE_blendfile_read_ex(bContext *C,
                            const bool startup_update_defaults,
                            const char *startup_app_template)
 {
-  BlendFileData *bfd;
-  bool success = false;
 
   /* Don't print startup file loading. */
   if (params->is_startup == false) {
     printf("Read blend: %s\n", filepath);
   }
 
-  bfd = BLO_read_from_file(filepath, params->skip_flags, reports);
+  BlendFileData *bfd = BLO_read_from_file(filepath, params->skip_flags, reports);
   if (bfd) {
-    if (!handle_subversion_warning(bfd->main, reports)) {
-      BKE_main_free(bfd->main);
-      MEM_freeN(bfd);
-      bfd = NULL;
-    }
-    else {
-      if (startup_update_defaults) {
-        if ((params->skip_flags & BLO_READ_SKIP_DATA) == 0) {
-          BLO_update_defaults_startup_blend(bfd->main, startup_app_template);
-        }
+    handle_subversion_warning(bfd->main, reports);
+    if (startup_update_defaults) {
+      if ((params->skip_flags & BLO_READ_SKIP_DATA) == 0) {
+        BLO_update_defaults_startup_blend(bfd->main, startup_app_template);
       }
-      setup_app_blend_file_data(C, bfd, filepath, params, reports);
-      BLO_blendfiledata_free(bfd);
-      success = true;
     }
+    setup_app_blend_file_data(C, bfd, filepath, params, reports);
+    BLO_blendfiledata_free(bfd);
   }
   else {
     BKE_reports_prependf(reports, "Loading '%s' failed: ", filepath);
   }
-
-  return success;
+  return (bfd != NULL);
 }
 
 bool BKE_blendfile_read(bContext *C,
@@ -486,9 +474,7 @@ bool BKE_blendfile_read_from_memory_ex(bContext *C,
                                        const bool startup_update_defaults,
                                        const char *startup_app_template)
 {
-  BlendFileData *bfd;
-
-  bfd = BLO_read_from_memory(filebuf, filelength, params->skip_flags, reports);
+  BlendFileData *bfd = BLO_read_from_memory(filebuf, filelength, params->skip_flags, reports);
   if (bfd) {
     if (startup_update_defaults) {
       if ((params->skip_flags & BLO_READ_SKIP_DATA) == 0) {
@@ -501,7 +487,6 @@ bool BKE_blendfile_read_from_memory_ex(bContext *C,
   else {
     BKE_reports_prepend(reports, "Loading failed: ");
   }
-
   return (bfd != NULL);
 }
 
@@ -521,9 +506,8 @@ bool BKE_blendfile_read_from_memfile(bContext *C,
                                      ReportList *reports)
 {
   Main *bmain = CTX_data_main(C);
-  BlendFileData *bfd;
-
-  bfd = BLO_read_from_memfile(bmain, BKE_main_blendfile_path(bmain), memfile, params, reports);
+  BlendFileData *bfd = BLO_read_from_memfile(
+      bmain, BKE_main_blendfile_path(bmain), memfile, params, reports);
   if (bfd) {
     /* Removing the unused workspaces, screens and wm is useless here, setup_app_data will switch
      * those lists with the ones from old bmain, which freeing is much more efficient than
@@ -539,7 +523,6 @@ bool BKE_blendfile_read_from_memfile(bContext *C,
   else {
     BKE_reports_prepend(reports, "Loading failed: ");
   }
-
   return (bfd != NULL);
 }
 
