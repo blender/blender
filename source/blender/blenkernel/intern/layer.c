@@ -358,14 +358,16 @@ static void view_layer_bases_hash_create(ViewLayer *view_layer)
     BLI_mutex_lock(&hash_lock);
 
     if (view_layer->object_bases_hash == NULL) {
-      view_layer->object_bases_hash = BLI_ghash_new(
-          BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
+      GHash *hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
 
       LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
         if (base->object) {
-          BLI_ghash_insert(view_layer->object_bases_hash, base->object, base);
+          BLI_ghash_insert(hash, base->object, base);
         }
       }
+
+      /* Assign pointer only after hash is complete. */
+      view_layer->object_bases_hash = hash;
     }
 
     BLI_mutex_unlock(&hash_lock);
