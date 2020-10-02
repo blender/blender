@@ -41,10 +41,11 @@ void ui_block_new_button_group(uiBlock *block)
 
 void ui_button_group_add_but(uiBlock *block, uiBut *but)
 {
-  BLI_assert(block != NULL);
+  if (BLI_listbase_is_empty(&block->button_groups)) {
+    ui_block_new_button_group(block);
+  }
 
   uiButtonGroup *current_button_group = block->button_groups.last;
-  BLI_assert(current_button_group != NULL);
 
   /* We can't use the button directly because adding it to
    * this list would mess with its prev and next pointers. */

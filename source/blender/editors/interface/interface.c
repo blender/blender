@@ -3476,7 +3476,6 @@ uiBlock *UI_block_begin(const bContext *C, ARegion *region, const char *name, ch
   block->evil_C = (void *)C; /* XXX */
 
   BLI_listbase_clear(&block->button_groups);
-  ui_block_new_button_group(block);
 
   if (scene) {
     /* store display device name, don't lookup for transformations yet
