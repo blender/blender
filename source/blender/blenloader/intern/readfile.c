@@ -5487,7 +5487,7 @@ static void direct_link_windowmanager(BlendDataReader *reader, wmWindowManager *
     if (win->workspace_hook != NULL) {
       /* We need to restore a pointer to this later when reading workspaces,
        * so store in global oldnew-map.
-       * Note that this is only needed for versionning of older .blend files now.. */
+       * Note that this is only needed for versioning of older .blend files now.. */
       oldnewmap_insert(reader->fd->globmap, hook, win->workspace_hook, 0);
       /* Cleanup pointers to data outside of this data-block scope. */
       win->workspace_hook->act_layout = NULL;

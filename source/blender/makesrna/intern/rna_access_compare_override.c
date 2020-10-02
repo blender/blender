@@ -916,7 +916,7 @@ static void rna_property_override_apply_ex(Main *bmain,
           /* This is rather fragile, but the fact that local override IDs may have a different name
            * than their linked reference makes it necessary.
            * Basically, here we are considering that if we cannot find the original linked ID in
-           * the local override we are (re-)applying the operations, then it may be because of
+           * the local override we are (re-)applying the operations, then it may be because some of
            * those operations have already been applied, and we may already have the local ID
            * pointer we want to set.
            * This happens e.g. during re-sync of an override, since we have already remapped all ID
