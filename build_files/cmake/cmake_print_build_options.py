@@ -8,6 +8,7 @@ import sys
 
 cmakelists_file = sys.argv[-1]
 
+
 def main():
     options = []
     for l in open(cmakelists_file, 'r').readlines():

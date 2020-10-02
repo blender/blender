@@ -847,7 +847,6 @@ def register_tool(tool_cls, *, after=None, separator=False, group=False):
         # Create a new group
         tool_converted = (tool_converted,)
 
-
     tool_def_insert = (
         (None, tool_converted) if separator else
         (tool_converted,)

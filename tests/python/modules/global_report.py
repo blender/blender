@@ -6,6 +6,7 @@ import glob
 import os
 import pathlib
 
+
 def _write_html(output_dir):
     combined_reports = ""
 

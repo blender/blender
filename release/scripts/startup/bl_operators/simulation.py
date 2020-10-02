@@ -18,6 +18,7 @@
 
 import bpy
 
+
 class NewSimulation(bpy.types.Operator):
     """Create a new simulation data block and edit it in the opened simulation editor"""
 
@@ -33,6 +34,7 @@ class NewSimulation(bpy.types.Operator):
         simulation = bpy.data.simulations.new("Simulation")
         context.space_data.simulation = simulation
         return {'FINISHED'}
+
 
 classes = (
     NewSimulation,

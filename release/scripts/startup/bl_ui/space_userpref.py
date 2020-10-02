@@ -1019,6 +1019,7 @@ class USERPREF_PT_theme_bone_color_sets(ThemePanel, CenterAlignMixIn, Panel):
             flow.prop(ui, "active")
             flow.prop(ui, "show_colored_constraints")
 
+
 class USERPREF_PT_theme_collection_colors(ThemePanel, CenterAlignMixIn, Panel):
     bl_label = "Collection Colors"
     bl_options = {'DEFAULT_CLOSED'}
@@ -1671,6 +1672,7 @@ class USERPREF_PT_ndof_settings(Panel):
 # -----------------------------------------------------------------------------
 # Key-Map Editor Panels
 
+
 class KeymapPanel:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
@@ -2156,6 +2158,7 @@ class ExperimentalPanel:
             if task:
                 col = split.split()
                 col.operator("wm.url_open", text=task, icon='URL').url = self.url_prefix + task
+
 
 """
 # Example panel, leave it here so we always have a template to follow even

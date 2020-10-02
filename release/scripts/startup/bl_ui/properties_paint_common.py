@@ -1120,6 +1120,7 @@ def brush_basic_texpaint_settings(layout, context, brush, *, compact=False):
         header=True
     )
 
+
 def brush_basic__draw_color_selector(context, layout, brush, gp_settings, props):
     tool_settings = context.scene.tool_settings
     settings = tool_settings.gpencil_paint
@@ -1167,6 +1168,7 @@ def brush_basic__draw_color_selector(context, layout, brush, gp_settings, props)
     if props:
         row = layout.row(align=True)
         row.prop(props, "subdivision")
+
 
 def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False):
     tool_settings = context.tool_settings

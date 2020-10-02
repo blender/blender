@@ -5,9 +5,11 @@ import os
 import subprocess
 import sys
 
+
 def run(cmd):
     print("   ", " ".join(cmd))
     subprocess.check_call(cmd)
+
 
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
 

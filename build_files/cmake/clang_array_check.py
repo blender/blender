@@ -355,6 +355,8 @@ def recursive_arg_sizes(node, ):
         # print("adding", node.spelling)
     for c in node.get_children():
         recursive_arg_sizes(c)
+
+
 # cache function sizes
 recursive_arg_sizes(tu.cursor)
 _defs.update(defs_precalc)

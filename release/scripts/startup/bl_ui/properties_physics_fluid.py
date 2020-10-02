@@ -1397,6 +1397,7 @@ class PHYSICS_PT_viewport_display_debug(PhysicButtonsPanel, Panel):
         col.prop(domain, "vector_field")
         col.prop(domain, "vector_scale")
 
+
 class PHYSICS_PT_viewport_display_advanced(PhysicButtonsPanel, Panel):
     bl_label = "Advanced"
     bl_parent_id = 'PHYSICS_PT_viewport_display'
@@ -1427,6 +1428,7 @@ class PHYSICS_PT_viewport_display_advanced(PhysicButtonsPanel, Panel):
                     note.label(icon='INFO', text="Enable Grid Display to use range highlighting!")
                 else:
                     note.label(icon='INFO', text="Range highlighting for flags is not available!")
+
 
 classes = (
     FLUID_PT_presets,

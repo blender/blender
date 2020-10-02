@@ -99,6 +99,7 @@ SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 # See: D6261 for reference.
 USE_ONLY_BUILTIN_RNA_TYPES = True
 
+
 def handle_args():
     '''
     Parse the args passed to Blender after "--", ignored by Blender

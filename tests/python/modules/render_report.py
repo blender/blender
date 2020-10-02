@@ -34,6 +34,7 @@ BLACKLIST = (
   # 'file_to_blacklist.blend',
 )
 
+
 def print_message(message, type=None, status=''):
     if type == 'SUCCESS':
         print(COLORS.GREEN, end="")

@@ -14,12 +14,15 @@ import sys
 import make_utils
 from make_utils import call, check_output
 
+
 def print_stage(text):
     print("")
     print(text)
     print("")
 
 # Parse arguments
+
+
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-libraries", action="store_true")
@@ -31,10 +34,13 @@ def parse_arguments():
     parser.add_argument("--use-centos-libraries", action="store_true")
     return parser.parse_args()
 
+
 def get_blender_git_root():
     return check_output([args.git_command, "rev-parse", "--show-toplevel"])
 
 # Setup for precompiled libraries and tests from svn.
+
+
 def svn_update(args, release_version):
     svn_non_interactive = [args.svn_command, '--non-interactive']
 

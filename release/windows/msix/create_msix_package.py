@@ -33,6 +33,7 @@ def execute_command(cmd : list, name : str, errcode : int):
         if cmd_process.stderr: print(cmd_process.stderr)
         exit(errcode)
 
+
 LTSORNOT = ""
 PACKAGETYPE = ""
 if args.lts:
@@ -113,7 +114,6 @@ with zipfile.ZipFile(local_blender_zip, "r") as blender_zip:
         target_location.write_bytes(extracted_entry)
 
 print("... extraction complete.")
-
 
 
 print(f"Creating MSIX package using command: {' '.join(msix_command)}")

@@ -22,6 +22,7 @@ __all__ = (
     "generate",
 )
 
+
 def _km_expand_from_toolsystem(space_type, context_mode):
     def _fn():
         from bl_ui.space_toolsystem_common import ToolSelectPanelHelper

@@ -88,6 +88,7 @@ class pyChainSilhouetteIterator(ChainingIterator):
     silhouettes, then borders, then suggestive contours, then all other edge
     types.  A ViewEdge is only chained once.
     """
+
     def __init__(self, stayInSelection=True):
         ChainingIterator.__init__(self, stayInSelection, True, None, True)
 
@@ -279,6 +280,7 @@ class pySketchyChainingIterator(ChainingIterator):
     ViewEdge several times in order to produce multiple strokes per
     ViewEdge.
     """
+
     def __init__(self, nRounds=3, stayInSelection=True):
         ChainingIterator.__init__(self, stayInSelection, False, None, True)
         self._timeStamp = CF.get_time_stamp() + nRounds
@@ -396,6 +398,7 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
        :arg length: The maximum length of the occluded part in pixels.
        :type length: int
     """
+
     def __init__(self, length):
         ChainingIterator.__init__(self, False, True, None, True)
         self._length = float(length)
@@ -530,6 +533,7 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
        :arg l: Absolute length.
        :type l: float
     """
+
     def __init__(self, percent, l):
         ChainingIterator.__init__(self, False, True, None, True)
         self._length = 0.0

@@ -63,6 +63,7 @@ def load_handler(dummy):
                 gpd = ob.data
                 gpd.onion_keyframe_type = 'ALL'
 
+
 def register():
     bpy.app.handlers.load_factory_startup_post.append(load_handler)
 

@@ -27,6 +27,7 @@ StructMetaPropGroup = bpy_types.bpy_struct_meta_idprop
 
 # Note that methods extended in C are defined in: 'bpy_rna_types_capi.c'
 
+
 class Context(StructRNA):
     __slots__ = ()
 

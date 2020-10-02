@@ -1381,7 +1381,6 @@ class WM_OT_properties_edit(Operator):
         is_overridable = item.is_property_overridable_library('["%s"]' % self.property)
         self.is_overridable_library = bool(is_overridable)
 
-
         # default default value
         prop_type, is_array = rna_idprop_value_item_type(self.get_value_eval())
         if prop_type in {int, float}:

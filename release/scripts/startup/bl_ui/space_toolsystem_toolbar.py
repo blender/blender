@@ -1288,7 +1288,6 @@ class _defs_sculpt:
             draw_settings=draw_settings,
         )
 
-
     @ToolDef.from_fn
     def face_set_lasso():
         def draw_settings(_context, layout, tool):

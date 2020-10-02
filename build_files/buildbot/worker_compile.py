@@ -23,6 +23,7 @@ import shutil
 
 import buildbot_utils
 
+
 def get_cmake_options(builder):
     codesign_script = os.path.join(
         builder.blender_dir, 'build_files', 'buildbot', 'worker_codesign.cmake')
@@ -49,6 +50,7 @@ def get_cmake_options(builder):
 
     return options
 
+
 def update_git(builder):
     # Do extra git fetch because not all platform/git/buildbot combinations
     # update the origin remote, causing buildinfo to detect local changes.
@@ -57,6 +59,7 @@ def update_git(builder):
     print("Fetching remotes")
     command = ['git', 'fetch', '--all']
     buildbot_utils.call(builder.command_prefix + command)
+
 
 def clean_directories(builder):
     # Make sure no garbage remained from the previous run
@@ -73,6 +76,7 @@ def clean_directories(builder):
             print("Removing {}" . format(buildinfo))
             os.remove(full_path)
 
+
 def cmake_configure(builder):
     # CMake configuration
     os.chdir(builder.build_dir)
@@ -86,6 +90,7 @@ def cmake_configure(builder):
     cmake_options = get_cmake_options(builder)
     command = ['cmake', builder.blender_dir] + cmake_options
     buildbot_utils.call(builder.command_prefix + command)
+
 
 def cmake_build(builder):
     # CMake build
@@ -108,6 +113,7 @@ def cmake_build(builder):
 
     print("CMake build:")
     buildbot_utils.call(builder.command_prefix + command)
+
 
 if __name__ == "__main__":
     builder = buildbot_utils.create_builder_from_arguments()

@@ -20,7 +20,6 @@
 from bpy.types import Header, Panel, Menu, UIList
 
 
-
 class FILEBROWSER_HT_header(Header):
     bl_space_type = 'FILE_BROWSER'
 

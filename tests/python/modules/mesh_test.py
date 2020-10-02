@@ -95,6 +95,7 @@ class PhysicsSpec:
         return "Physics Modifier: " + self.modifier_name + " of type " + self.modifier_type + \
                " with parameters: " + str(self.modifier_parameters) + " with frame end: " + str(self.frame_end)
 
+
 class OperatorSpec:
     """
     Holds one operator and its parameters.
@@ -280,7 +281,6 @@ class MeshTest:
         if self.verbose:
             print("Created modifier '{}' of type '{}'.".
                   format(physics_spec.modifier_name, physics_spec.modifier_type))
-
 
         for param_name in physics_spec.modifier_parameters:
             try:

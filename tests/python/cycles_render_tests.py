@@ -43,6 +43,7 @@ def get_arguments(filepath, output_filepath):
 
     return args
 
+
 def create_argparse():
     parser = argparse.ArgumentParser()
     parser.add_argument("-blender", nargs="+")

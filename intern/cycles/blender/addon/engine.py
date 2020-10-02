@@ -224,6 +224,7 @@ def system_info():
     import _cycles
     return _cycles.system_info()
 
+
 def list_render_passes(scene, srl):
     # Builtin Blender passes.
     yield ("Combined", "RGBA", 'COLOR')
@@ -298,6 +299,7 @@ def list_render_passes(scene, srl):
         else:
             yield (aov.name, "RGBA", 'COLOR')
 
+
 def register_passes(engine, scene, view_layer):
     # Detect duplicate render pass names, first one wins.
     listed = set()
@@ -305,6 +307,7 @@ def register_passes(engine, scene, view_layer):
         if name not in listed:
             engine.register_pass(scene, view_layer, name, len(channelids), channelids, channeltype)
             listed.add(name)
+
 
 def detect_conflicting_passes(scene, view_layer):
     # Detect conflicting render pass names for UI.

@@ -24,6 +24,7 @@ import re
 import subprocess
 import sys
 
+
 def is_tool(name):
     """Check whether `name` is on PATH and marked as executable."""
 
@@ -31,6 +32,7 @@ def is_tool(name):
     from shutil import which
 
     return which(name) is not None
+
 
 class Builder:
     def __init__(self, name, branch, codesign):

@@ -203,6 +203,7 @@ classes = (
     CYCLES_OT_merge_images
 )
 
+
 def register():
     from bpy.utils import register_class
     for cls in classes:

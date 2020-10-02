@@ -208,7 +208,6 @@ class SelectHierarchy(Operator):
                 select_new.sort(key=lambda obj_iter: obj_iter.name)
                 act_new = select_new[0]
 
-
         # don't edit any object settings above this
         if select_new:
             if not self.extend:

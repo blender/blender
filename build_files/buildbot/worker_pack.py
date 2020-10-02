@@ -29,6 +29,7 @@ from pathlib import Path
 
 import buildbot_utils
 
+
 def get_package_name(builder, platform=None):
     info = buildbot_utils.VersionInfo(builder)
 
@@ -40,6 +41,7 @@ def get_package_name(builder, platform=None):
             package_name = builder.branch + "-" + package_name
 
     return package_name
+
 
 def sign_file_or_directory(path):
     from codesign.simple_code_signer import SimpleCodeSigner
@@ -63,6 +65,7 @@ def create_buildbot_upload_zip(builder, package_files):
     except Exception as ex:
         sys.stderr.write('Create buildbot_upload.zip failed: ' + str(ex) + '\n')
         sys.exit(1)
+
 
 def create_tar_xz(src, dest, package_name):
     # One extra to remove leading os.sep when cleaning root for package_root
@@ -90,6 +93,7 @@ def create_tar_xz(src, dest, package_name):
     for entry in flist:
         package.add(entry[0], entry[1], recursive=False, filter=_fakeroot)
     package.close()
+
 
 def cleanup_files(dirpath, extension):
     for f in os.listdir(dirpath):

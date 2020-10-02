@@ -28,6 +28,7 @@ import unittest
 
 import bpy
 
+
 class FCurveEvaluationTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

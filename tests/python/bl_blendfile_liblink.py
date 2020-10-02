@@ -42,7 +42,6 @@ class TestBlendLibLinkSaveLoadBasic(TestHelper):
         assert(orig_data == read_data)
 
 
-
 TESTS = (
     TestBlendLibLinkSaveLoadBasic,
     )

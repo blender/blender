@@ -44,7 +44,6 @@ class TestBlendFileSaveLoadBasic(TestHelper):
         assert(orig_data == read_data)
 
 
-
 TESTS = (
     TestBlendFileSaveLoadBasic,
     )

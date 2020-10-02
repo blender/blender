@@ -395,6 +395,7 @@ class DATA_PT_camera_display(CameraButtonsPanel, Panel):
         sub.prop(cam, "passepartout_alpha", text="")
         row.prop_decorator(cam, "passepartout_alpha")
 
+
 class DATA_PT_camera_display_composition_guides(CameraButtonsPanel, Panel):
     bl_label = "Composition Guides"
     bl_parent_id = "DATA_PT_camera_display"

@@ -12,6 +12,7 @@ from make_utils import call
 
 # Parse arguments
 
+
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("--ctest-command", default="ctest")
@@ -21,6 +22,7 @@ def parse_arguments():
     parser.add_argument("--config", default="")
     parser.add_argument("build_directory")
     return parser.parse_args()
+
 
 args = parse_arguments()
 git_command = args.git_command

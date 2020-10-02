@@ -3066,12 +3066,12 @@ class VIEW3D_MT_mask(Menu):
 
         props = layout.operator("sculpt.dirty_mask", text='Dirty Mask')
 
+
 class VIEW3D_MT_face_sets(Menu):
     bl_label = "Face Sets"
 
     def draw(self, _context):
         layout = self.layout
-
 
         op = layout.operator("sculpt.face_sets_create", text='Face Set From Masked')
         op.mode = 'MASKED'
@@ -3247,6 +3247,7 @@ class VIEW3D_MT_particle_context_menu(Menu):
             layout.separator()
 
             layout.operator("particle.select_linked", text="Select Linked")
+
 
 class VIEW3D_MT_particle_showhide(ShowHideMenu, Menu):
     _operator_name = "particle"
@@ -5283,6 +5284,7 @@ class VIEW3D_MT_sculpt_mask_edit_pie(Menu):
         op.filter_type = 'CONTRAST_DECREASE'
         op.auto_iteration_count = False
 
+
 class VIEW3D_MT_sculpt_face_sets_edit_pie(Menu):
 
     bl_label = "Face Sets Edit"
@@ -5302,6 +5304,7 @@ class VIEW3D_MT_sculpt_face_sets_edit_pie(Menu):
 
         op = pie.operator("sculpt.face_set_change_visibility", text='Show All')
         op.mode = 'SHOW_ALL'
+
 
 class VIEW3D_MT_wpaint_vgroup_lock_pie(Menu):
     bl_label = "Vertex Group Locks"

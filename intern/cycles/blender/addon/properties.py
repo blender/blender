@@ -188,10 +188,12 @@ def enum_openimagedenoise_denoiser(self, context):
         return [('OPENIMAGEDENOISE', "OpenImageDenoise", "Use Intel OpenImageDenoise AI denoiser running on the CPU", 4)]
     return []
 
+
 def enum_optix_denoiser(self, context):
     if not context or bool(context.preferences.addons[__package__].preferences.get_devices_for_type('OPTIX')):
         return [('OPTIX', "OptiX", "Use the OptiX AI denoiser with GPU acceleration, only available on NVIDIA GPUs", 2)]
     return []
+
 
 def enum_preview_denoiser(self, context):
     optix_items = enum_optix_denoiser(self, context)
@@ -206,11 +208,13 @@ def enum_preview_denoiser(self, context):
     items += oidn_items
     return items
 
+
 def enum_denoiser(self, context):
     items = [('NLM', "NLM", "Cycles native non-local means denoiser, running on any compute device", 1)]
     items += enum_optix_denoiser(self, context)
     items += enum_openimagedenoise_denoiser(self, context)
     return items
+
 
 enum_denoising_input_passes = (
     ('RGB', "Color", "Use only color as input", 1),
@@ -1325,6 +1329,7 @@ class CyclesAOVPass(bpy.types.PropertyGroup):
         default=""
     )
 
+
 class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
 
     pass_debug_bvh_traversed_nodes: BoolProperty(
@@ -1643,7 +1648,6 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             col = box.column(align=True)
             col.label(text="OptiX support is experimental", icon='INFO')
             col.label(text="Not all Cycles features are supported yet", icon='BLANK1')
-
 
     def draw_impl(self, layout, context):
         row = layout.row()

@@ -363,6 +363,7 @@ def basic_force_field_falloff_ui(self, field):
     sub.prop(field, "distance_max", text="")
     row.prop_decorator(field, "distance_max")
 
+
 classes = (
     PHYSICS_PT_add,
 )

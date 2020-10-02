@@ -51,6 +51,7 @@ def addon_keymap_register(keymap_data):
             kmap = kconf.keymaps.new(km_name, **km_args)
         keymap_init_from_data(kmap, km_content["items"], is_modal=km_modal)
 
+
 def addon_keymap_unregister(keymap_data):
     """
     Unregister a set of keymaps for addons.

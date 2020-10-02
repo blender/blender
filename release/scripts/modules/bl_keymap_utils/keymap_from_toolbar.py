@@ -25,6 +25,7 @@ __all__ = (
     "generate",
 )
 
+
 def generate(context, space_type, use_fallback_keys=True, use_reset=True):
     """
     Keymap for popup toolbar, currently generated each time.
@@ -110,14 +111,12 @@ def generate(context, space_type, use_fallback_keys=True, use_reset=True):
     del keymap_src
     del items_all_id
 
-
     kmi_unique_args = set()
 
     def kmi_unique_or_pass(kmi_args):
         kmi_unique_len = len(kmi_unique_args)
         kmi_unique_args.add(dict_as_tuple(kmi_args))
         return kmi_unique_len != len(kmi_unique_args)
-
 
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
 
@@ -404,7 +403,6 @@ def generate(context, space_type, use_fallback_keys=True, use_reset=True):
                         kmi = keymap.keymap_items.new(idname="wm.tool_set_by_id", value='PRESS', **kmi_args)
                         kmi.properties.name = item.idname
                         kmi_unique_args.add(kmi_tuple)
-
 
     # ---------------------
     # End Keymap Generation

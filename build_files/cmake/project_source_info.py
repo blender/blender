@@ -242,5 +242,6 @@ def main():
     for s in build_info():
         print(s)
 
+
 if __name__ == "__main__":
     main()
