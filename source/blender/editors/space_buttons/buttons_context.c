@@ -780,17 +780,19 @@ const char *buttons_context_dir[] = {
     NULL,
 };
 
-int buttons_context(const bContext *C, const char *member, bContextDataResult *result)
+int /*eContextResult*/ buttons_context(const bContext *C,
+                                       const char *member,
+                                       bContextDataResult *result)
 {
   SpaceProperties *sbuts = CTX_wm_space_properties(C);
   ButsContextPath *path = sbuts ? sbuts->path : NULL;
 
   if (!path) {
-    return 0;
+    return CTX_RESULT_MEMBER_NOT_FOUND;
   }
 
   if (sbuts->mainb == BCONTEXT_TOOL) {
-    return 0;
+    return CTX_RESULT_MEMBER_NOT_FOUND;
   }
 
   /* here we handle context, getting data from precomputed path */
@@ -803,7 +805,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
     else {
       CTX_data_dir_set(result, buttons_context_dir);
     }
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "scene")) {
     /* Do not return one here if scene not found in path,
@@ -812,67 +814,67 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
   }
   if (CTX_data_equals(member, "world")) {
     set_pointer_type(path, result, &RNA_World);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "object")) {
     set_pointer_type(path, result, &RNA_Object);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "mesh")) {
     set_pointer_type(path, result, &RNA_Mesh);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "armature")) {
     set_pointer_type(path, result, &RNA_Armature);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "lattice")) {
     set_pointer_type(path, result, &RNA_Lattice);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "curve")) {
     set_pointer_type(path, result, &RNA_Curve);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "meta_ball")) {
     set_pointer_type(path, result, &RNA_MetaBall);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "light")) {
     set_pointer_type(path, result, &RNA_Light);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "camera")) {
     set_pointer_type(path, result, &RNA_Camera);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "speaker")) {
     set_pointer_type(path, result, &RNA_Speaker);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "lightprobe")) {
     set_pointer_type(path, result, &RNA_LightProbe);
-    return 1;
+    return CTX_RESULT_OK;
   }
 #ifdef WITH_HAIR_NODES
   if (CTX_data_equals(member, "hair")) {
     set_pointer_type(path, result, &RNA_Hair);
-    return 1;
+    return CTX_RESULT_OK;
   }
 #endif
 #ifdef WITH_PARTICLE_NODES
   if (CTX_data_equals(member, "pointcloud")) {
     set_pointer_type(path, result, &RNA_PointCloud);
-    return 1;
+    return CTX_RESULT_OK;
   }
 #endif
   if (CTX_data_equals(member, "volume")) {
     set_pointer_type(path, result, &RNA_Volume);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "material")) {
     set_pointer_type(path, result, &RNA_Material);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "texture")) {
     ButsContextTexture *ct = sbuts->texuser;
@@ -881,7 +883,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
       CTX_data_pointer_set(result, &ct->texture->id, &RNA_Texture, ct->texture);
     }
 
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "material_slot")) {
     PointerRNA *ptr = get_pointer_type(path, &RNA_Object);
@@ -899,7 +901,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
       }
     }
 
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "texture_user")) {
     ButsContextTexture *ct = sbuts->texuser;
@@ -913,7 +915,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
       CTX_data_pointer_set(result, user->ptr.owner_id, user->ptr.type, user->ptr.data);
     }
 
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "texture_user_property")) {
     ButsContextTexture *ct = sbuts->texuser;
@@ -927,7 +929,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
       CTX_data_pointer_set(result, NULL, &RNA_Property, user->prop);
     }
 
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "texture_node")) {
     ButsContextTexture *ct = sbuts->texuser;
@@ -938,9 +940,9 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
         CTX_data_pointer_set(result, &ct->user->ntree->id, &RNA_Node, ct->user->node);
       }
 
-      return 1;
+      return CTX_RESULT_OK;
     }
-    return -1; /* found but not available */
+    return CTX_RESULT_NO_DATA;
   }
   if (CTX_data_equals(member, "texture_slot")) {
     ButsContextTexture *ct = sbuts->texuser;
@@ -967,23 +969,23 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
       }
     }
 
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "bone")) {
     set_pointer_type(path, result, &RNA_Bone);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "edit_bone")) {
     set_pointer_type(path, result, &RNA_EditBone);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "pose_bone")) {
     set_pointer_type(path, result, &RNA_PoseBone);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "particle_system")) {
     set_pointer_type(path, result, &RNA_ParticleSystem);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "particle_system_editable")) {
     if (PE_poll((bContext *)C)) {
@@ -992,7 +994,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
     else {
       CTX_data_pointer_set(result, NULL, &RNA_ParticleSystem, NULL);
     }
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "particle_settings")) {
     /* only available when pinned */
@@ -1000,7 +1002,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
     if (ptr && ptr->data) {
       CTX_data_pointer_set(result, ptr->owner_id, &RNA_ParticleSettings, ptr->data);
-      return 1;
+      return CTX_RESULT_OK;
     }
 
     /* get settings from active particle system instead */
@@ -1009,11 +1011,11 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
     if (ptr && ptr->data) {
       ParticleSettings *part = ((ParticleSystem *)ptr->data)->part;
       CTX_data_pointer_set(result, ptr->owner_id, &RNA_ParticleSettings, part);
-      return 1;
+      return CTX_RESULT_OK;
     }
 
     set_pointer_type(path, result, &RNA_ParticleSettings);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "cloth")) {
     PointerRNA *ptr = get_pointer_type(path, &RNA_Object);
@@ -1022,9 +1024,9 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
       Object *ob = ptr->data;
       ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Cloth);
       CTX_data_pointer_set(result, &ob->id, &RNA_ClothModifier, md);
-      return 1;
+      return CTX_RESULT_OK;
     }
-    return -1; /* found but not available */
+    return CTX_RESULT_NO_DATA;
   }
   if (CTX_data_equals(member, "soft_body")) {
     PointerRNA *ptr = get_pointer_type(path, &RNA_Object);
@@ -1033,9 +1035,9 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
       Object *ob = ptr->data;
       ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Softbody);
       CTX_data_pointer_set(result, &ob->id, &RNA_SoftBodyModifier, md);
-      return 1;
+      return CTX_RESULT_OK;
     }
-    return -1; /* found but not available */
+    return CTX_RESULT_NO_DATA;
   }
 
   if (CTX_data_equals(member, "fluid")) {
@@ -1045,9 +1047,9 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
       Object *ob = ptr->data;
       ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Fluid);
       CTX_data_pointer_set(result, &ob->id, &RNA_FluidModifier, md);
-      return 1;
+      return CTX_RESULT_OK;
     }
-    return -1; /* found but not available */
+    return CTX_RESULT_NO_DATA;
   }
   if (CTX_data_equals(member, "collision")) {
     PointerRNA *ptr = get_pointer_type(path, &RNA_Object);
@@ -1056,13 +1058,13 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
       Object *ob = ptr->data;
       ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Collision);
       CTX_data_pointer_set(result, &ob->id, &RNA_CollisionModifier, md);
-      return 1;
+      return CTX_RESULT_OK;
     }
-    return -1; /* found but not available */
+    return CTX_RESULT_NO_DATA;
   }
   if (CTX_data_equals(member, "brush")) {
     set_pointer_type(path, result, &RNA_Brush);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "dynamic_paint")) {
     PointerRNA *ptr = get_pointer_type(path, &RNA_Object);
@@ -1071,19 +1073,19 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
       Object *ob = ptr->data;
       ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_DynamicPaint);
       CTX_data_pointer_set(result, &ob->id, &RNA_DynamicPaintModifier, md);
-      return 1;
+      return CTX_RESULT_OK;
     }
-    return -1; /* found but not available */
+    return CTX_RESULT_NO_DATA;
   }
   if (CTX_data_equals(member, "line_style")) {
     set_pointer_type(path, result, &RNA_FreestyleLineStyle);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "gpencil")) {
     set_pointer_type(path, result, &RNA_GreasePencil);
-    return 1;
+    return CTX_RESULT_OK;
   }
-  return 0; /* not found */
+  return CTX_RESULT_MEMBER_NOT_FOUND;
 }
 
 /************************* Drawing the Path ************************/

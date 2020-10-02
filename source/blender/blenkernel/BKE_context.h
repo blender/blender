@@ -74,9 +74,26 @@ typedef struct bContext bContext;
 struct bContextDataResult;
 typedef struct bContextDataResult bContextDataResult;
 
-typedef int (*bContextDataCallback)(const bContext *C,
-                                    const char *member,
-                                    bContextDataResult *result);
+/* Result of context lookups.
+ * The specific values are important, and used implicitly in ctx_data_get(). Some functions also
+ * still accept/return `int` instead, to ensure that the compiler uses the correct storage size
+ * when mixing C/C++ code. */
+typedef enum eContextResult {
+  /* The context member was found, and its data is available. */
+  CTX_RESULT_OK = 1,
+
+  /* The context member was not found. */
+  CTX_RESULT_MEMBER_NOT_FOUND = 0,
+
+  /* The context member was found, but its data is not available.
+   * For example, "active_bone" is a valid context member, but has not data in Object mode. */
+  CTX_RESULT_NO_DATA = -1,
+} eContextResult;
+
+/* Function mapping a context member name to its value. */
+typedef int /*eContextResult*/ (*bContextDataCallback)(const bContext *C,
+                                                       const char *member,
+                                                       bContextDataResult *result);
 
 typedef struct bContextStoreEntry {
   struct bContextStoreEntry *next, *prev;
@@ -213,7 +230,7 @@ ListBase CTX_data_dir_get_ex(const bContext *C,
                              const bool use_rna,
                              const bool use_all);
 ListBase CTX_data_dir_get(const bContext *C);
-int CTX_data_get(
+int /*eContextResult*/ CTX_data_get(
     const bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb, short *r_type);
 
 void CTX_data_id_pointer_set(bContextDataResult *result, struct ID *id);

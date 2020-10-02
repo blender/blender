@@ -294,7 +294,7 @@ static void *ctx_wm_python_context_get(const bContext *C,
   return fall_through;
 }
 
-static int ctx_data_get(bContext *C, const char *member, bContextDataResult *result)
+static eContextResult ctx_data_get(bContext *C, const char *member, bContextDataResult *result)
 {
   bScreen *screen;
   ScrArea *area;
@@ -374,7 +374,7 @@ static void *ctx_data_pointer_get(const bContext *C, const char *member)
 {
   bContextDataResult result;
 
-  if (C && ctx_data_get((bContext *)C, member, &result) == 1) {
+  if (C && ctx_data_get((bContext *)C, member, &result) == CTX_RESULT_OK) {
     BLI_assert(result.type == CTX_DATA_TYPE_POINTER);
     return result.ptr.data;
   }
@@ -391,7 +391,7 @@ static int ctx_data_pointer_verify(const bContext *C, const char *member, void *
     *pointer = NULL;
     return 1;
   }
-  if (ctx_data_get((bContext *)C, member, &result) == 1) {
+  if (ctx_data_get((bContext *)C, member, &result) == CTX_RESULT_OK) {
     BLI_assert(result.type == CTX_DATA_TYPE_POINTER);
     *pointer = result.ptr.data;
     return 1;
@@ -405,7 +405,7 @@ static int ctx_data_collection_get(const bContext *C, const char *member, ListBa
 {
   bContextDataResult result;
 
-  if (ctx_data_get((bContext *)C, member, &result) == 1) {
+  if (ctx_data_get((bContext *)C, member, &result) == CTX_RESULT_OK) {
     BLI_assert(result.type == CTX_DATA_TYPE_COLLECTION);
     *list = result.list;
     return 1;
@@ -453,7 +453,7 @@ PointerRNA CTX_data_pointer_get(const bContext *C, const char *member)
 {
   bContextDataResult result;
 
-  if (ctx_data_get((bContext *)C, member, &result) == 1) {
+  if (ctx_data_get((bContext *)C, member, &result) == CTX_RESULT_OK) {
     BLI_assert(result.type == CTX_DATA_TYPE_POINTER);
     return result.ptr;
   }
@@ -495,7 +495,7 @@ ListBase CTX_data_collection_get(const bContext *C, const char *member)
 {
   bContextDataResult result;
 
-  if (ctx_data_get((bContext *)C, member, &result) == 1) {
+  if (ctx_data_get((bContext *)C, member, &result) == CTX_RESULT_OK) {
     BLI_assert(result.type == CTX_DATA_TYPE_COLLECTION);
     return result.list;
   }
@@ -504,14 +504,13 @@ ListBase CTX_data_collection_get(const bContext *C, const char *member)
   return list;
 }
 
-/* 1:found,  -1:found but not set,  0:not found */
-int CTX_data_get(
+int /*eContextResult*/ CTX_data_get(
     const bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb, short *r_type)
 {
   bContextDataResult result;
-  int ret = ctx_data_get((bContext *)C, member, &result);
+  eContextResult ret = ctx_data_get((bContext *)C, member, &result);
 
-  if (ret == 1) {
+  if (ret == CTX_RESULT_OK) {
     *r_ptr = result.ptr;
     *r_lb = result.list;
     *r_type = result.type;

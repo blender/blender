@@ -248,22 +248,24 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 
 const char *text_context_dir[] = {"edit_text", NULL};
 
-static int text_context(const bContext *C, const char *member, bContextDataResult *result)
+static int /*eContextResult*/ text_context(const bContext *C,
+                                           const char *member,
+                                           bContextDataResult *result)
 {
   SpaceText *st = CTX_wm_space_text(C);
 
   if (CTX_data_dir(member)) {
     CTX_data_dir_set(result, text_context_dir);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "edit_text")) {
     if (st->text != NULL) {
       CTX_data_id_pointer_set(result, &st->text->id);
     }
-    return 1;
+    return CTX_RESULT_OK;
   }
 
-  return 0;
+  return CTX_RESULT_MEMBER_NOT_FOUND;
 }
 
 /********************* main region ********************/

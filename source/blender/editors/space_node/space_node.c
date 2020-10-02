@@ -776,14 +776,15 @@ static void node_region_listener(wmWindow *UNUSED(win),
 
 const char *node_context_dir[] = {
     "selected_nodes", "active_node", "light", "material", "world", NULL};
-
-static int node_context(const bContext *C, const char *member, bContextDataResult *result)
+static int /*eContextResult*/ node_context(const bContext *C,
+                                           const char *member,
+                                           bContextDataResult *result)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
 
   if (CTX_data_dir(member)) {
     CTX_data_dir_set(result, node_context_dir);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "selected_nodes")) {
     bNode *node;
@@ -796,7 +797,7 @@ static int node_context(const bContext *C, const char *member, bContextDataResul
       }
     }
     CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "active_node")) {
     if (snode->edittree) {
@@ -805,7 +806,7 @@ static int node_context(const bContext *C, const char *member, bContextDataResul
     }
 
     CTX_data_type_set(result, CTX_DATA_TYPE_POINTER);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "node_previews")) {
     if (snode->nodetree) {
@@ -814,28 +815,28 @@ static int node_context(const bContext *C, const char *member, bContextDataResul
     }
 
     CTX_data_type_set(result, CTX_DATA_TYPE_POINTER);
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "material")) {
     if (snode->id && GS(snode->id->name) == ID_MA) {
       CTX_data_id_pointer_set(result, snode->id);
     }
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "light")) {
     if (snode->id && GS(snode->id->name) == ID_LA) {
       CTX_data_id_pointer_set(result, snode->id);
     }
-    return 1;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "world")) {
     if (snode->id && GS(snode->id->name) == ID_WO) {
       CTX_data_id_pointer_set(result, snode->id);
     }
-    return 1;
+    return CTX_RESULT_OK;
   }
 
-  return 0;
+  return CTX_RESULT_MEMBER_NOT_FOUND;
 }
 
 static void node_widgets(void)

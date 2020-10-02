@@ -457,24 +457,26 @@ static void sequencer_dropboxes(void)
 extern const char *sequencer_context_dir[]; /* Quiet warning. */
 const char *sequencer_context_dir[] = {"edit_mask", NULL};
 
-static int sequencer_context(const bContext *C, const char *member, bContextDataResult *result)
+static int /*eContextResult*/ sequencer_context(const bContext *C,
+                                                const char *member,
+                                                bContextDataResult *result)
 {
   Scene *scene = CTX_data_scene(C);
 
   if (CTX_data_dir(member)) {
     CTX_data_dir_set(result, sequencer_context_dir);
 
-    return true;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "edit_mask")) {
     Mask *mask = BKE_sequencer_mask_get(scene);
     if (mask) {
       CTX_data_id_pointer_set(result, &mask->id);
     }
-    return true;
+    return CTX_RESULT_OK;
   }
 
-  return false;
+  return CTX_RESULT_MEMBER_NOT_FOUND;
 }
 
 static void SEQUENCER_GGT_navigate(wmGizmoGroupType *gzgt)

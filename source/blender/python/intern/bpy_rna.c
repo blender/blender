@@ -4260,9 +4260,9 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
       ListBase newlb;
       short newtype;
 
-      const int done = CTX_data_get(C, name, &newptr, &newlb, &newtype);
+      const eContextResult done = CTX_data_get(C, name, &newptr, &newlb, &newtype);
 
-      if (done == 1) { /* Found. */
+      if (done == CTX_RESULT_OK) {
         switch (newtype) {
           case CTX_DATA_TYPE_POINTER:
             if (newptr.data == NULL) {
@@ -4295,7 +4295,7 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
             break;
         }
       }
-      else if (done == -1) { /* Found, but not set. */
+      else if (done == CTX_RESULT_NO_DATA) {
         ret = Py_None;
         Py_INCREF(ret);
       }
@@ -4482,9 +4482,9 @@ static int pyrna_struct_setattro(BPy_StructRNA *self, PyObject *pyname, PyObject
     ListBase newlb;
     short newtype;
 
-    const int done = CTX_data_get(C, name, &newptr, &newlb, &newtype);
+    const eContextResult done = CTX_data_get(C, name, &newptr, &newlb, &newtype);
 
-    if (done == 1) {
+    if (done == CTX_RESULT_OK) {
       PyErr_Format(
           PyExc_AttributeError, "bpy_struct: Context property \"%.200s\" is read-only", name);
       BLI_freelistN(&newlb);

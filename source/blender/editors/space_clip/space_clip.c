@@ -575,29 +575,31 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 extern const char *clip_context_dir[]; /* quiet warning. */
 const char *clip_context_dir[] = {"edit_movieclip", "edit_mask", NULL};
 
-static int clip_context(const bContext *C, const char *member, bContextDataResult *result)
+static int /*eContextResult*/ clip_context(const bContext *C,
+                                           const char *member,
+                                           bContextDataResult *result)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
 
   if (CTX_data_dir(member)) {
     CTX_data_dir_set(result, clip_context_dir);
 
-    return true;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "edit_movieclip")) {
     if (sc->clip) {
       CTX_data_id_pointer_set(result, &sc->clip->id);
     }
-    return true;
+    return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "edit_mask")) {
     if (sc->mask_info.mask) {
       CTX_data_id_pointer_set(result, &sc->mask_info.mask->id);
     }
-    return true;
+    return CTX_RESULT_OK;
   }
 
-  return false;
+  return CTX_RESULT_MEMBER_NOT_FOUND;
 }
 
 /* dropboxes */

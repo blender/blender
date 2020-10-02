@@ -114,23 +114,16 @@ const char *screen_context_dir[] = {
 
 /* Each function `screen_ctx_XXX()` will be called when the screen context "XXX" is requested.
  * ensure_ed_screen_context_functions() is responsible for creating the hash map from context
- * member name to function.
- *
- * Each function returns:
- *    1 for "the member name was found and returned data is valid"
- *    0 for "the member name was not found"
- *   -1 for "the member name was found but data is not available"
- *
- * */
+ * member name to function. */
 
-static int screen_ctx_scene(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_scene(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   Scene *scene = WM_window_get_active_scene(win);
   CTX_data_id_pointer_set(result, &scene->id);
-  return 1;
+  return CTX_RESULT_OK;
 }
-static int screen_ctx_visible_objects(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_visible_objects(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   View3D *v3d = CTX_wm_view3d(C); /* This may be NULL in a lot of cases. */
@@ -142,9 +135,9 @@ static int screen_ctx_visible_objects(const bContext *C, bContextDataResult *res
     }
   }
   CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-  return 1;
+  return CTX_RESULT_OK;
 }
-static int screen_ctx_selectable_objects(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_selectable_objects(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   View3D *v3d = CTX_wm_view3d(C); /* This may be NULL in a lot of cases. */
@@ -156,9 +149,9 @@ static int screen_ctx_selectable_objects(const bContext *C, bContextDataResult *
     }
   }
   CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-  return 1;
+  return CTX_RESULT_OK;
 }
-static int screen_ctx_selected_objects(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_selected_objects(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   View3D *v3d = CTX_wm_view3d(C); /* This may be NULL in a lot of cases. */
@@ -170,9 +163,10 @@ static int screen_ctx_selected_objects(const bContext *C, bContextDataResult *re
     }
   }
   CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-  return 1;
+  return CTX_RESULT_OK;
 }
-static int screen_ctx_selected_editable_objects(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_selected_editable_objects(const bContext *C,
+                                                           bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   View3D *v3d = CTX_wm_view3d(C); /* This may be NULL in a lot of cases. */
@@ -184,9 +178,9 @@ static int screen_ctx_selected_editable_objects(const bContext *C, bContextDataR
     }
   }
   CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-  return 1;
+  return CTX_RESULT_OK;
 }
-static int screen_ctx_editable_objects(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_editable_objects(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   View3D *v3d = CTX_wm_view3d(C); /* This may be NULL in a lot of cases. */
@@ -199,9 +193,9 @@ static int screen_ctx_editable_objects(const bContext *C, bContextDataResult *re
     }
   }
   CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-  return 1;
+  return CTX_RESULT_OK;
 }
-static int screen_ctx_objects_in_mode(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_objects_in_mode(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   View3D *v3d = CTX_wm_view3d(C); /* This may be NULL in a lot of cases. */
@@ -215,9 +209,10 @@ static int screen_ctx_objects_in_mode(const bContext *C, bContextDataResult *res
     FOREACH_OBJECT_IN_MODE_END;
   }
   CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-  return 1;
+  return CTX_RESULT_OK;
 }
-static int screen_ctx_objects_in_mode_unique_data(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_objects_in_mode_unique_data(const bContext *C,
+                                                             bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   View3D *v3d = CTX_wm_view3d(C); /* This may be NULL in a lot of cases. */
@@ -238,11 +233,11 @@ static int screen_ctx_objects_in_mode_unique_data(const bContext *C, bContextDat
     FOREACH_OBJECT_IN_MODE_END;
   }
   CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-  return 1;
+  return CTX_RESULT_OK;
 }
-static int screen_ctx_visible_or_editable_bones_(const bContext *C,
-                                                 bContextDataResult *result,
-                                                 const bool editable_bones)
+static eContextResult screen_ctx_visible_or_editable_bones_(const bContext *C,
+                                                            bContextDataResult *result,
+                                                            const bool editable_bones)
 {
   wmWindow *win = CTX_wm_window(C);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
@@ -299,21 +294,21 @@ static int screen_ctx_visible_or_editable_bones_(const bContext *C,
     MEM_freeN(objects);
 
     CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-    return 1;
+    return CTX_RESULT_OK;
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
-static int screen_ctx_visible_bones(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_visible_bones(const bContext *C, bContextDataResult *result)
 {
   return screen_ctx_visible_or_editable_bones_(C, result, false);
 }
-static int screen_ctx_editable_bones(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_editable_bones(const bContext *C, bContextDataResult *result)
 {
   return screen_ctx_visible_or_editable_bones_(C, result, true);
 }
-static int screen_ctx_selected_bones_(const bContext *C,
-                                      bContextDataResult *result,
-                                      const bool selected_editable_bones)
+static eContextResult screen_ctx_selected_bones_(const bContext *C,
+                                                 bContextDataResult *result,
+                                                 const bool selected_editable_bones)
 {
   wmWindow *win = CTX_wm_window(C);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
@@ -369,19 +364,20 @@ static int screen_ctx_selected_bones_(const bContext *C,
     MEM_freeN(objects);
 
     CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-    return 1;
+    return CTX_RESULT_OK;
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
-static int screen_ctx_selected_bones(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_selected_bones(const bContext *C, bContextDataResult *result)
 {
   return screen_ctx_selected_bones_(C, result, false);
 }
-static int screen_ctx_selected_editable_bones(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_selected_editable_bones(const bContext *C,
+                                                         bContextDataResult *result)
 {
   return screen_ctx_selected_bones_(C, result, true);
 }
-static int screen_ctx_visible_pose_bones(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_visible_pose_bones(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   View3D *v3d = CTX_wm_view3d(C); /* This may be NULL in a lot of cases. */
@@ -405,11 +401,11 @@ static int screen_ctx_visible_pose_bones(const bContext *C, bContextDataResult *
       FOREACH_OBJECT_IN_MODE_END;
     }
     CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-    return 1;
+    return CTX_RESULT_OK;
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
-static int screen_ctx_selected_pose_bones(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_selected_pose_bones(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   View3D *v3d = CTX_wm_view3d(C); /* This may be NULL in a lot of cases. */
@@ -433,12 +429,12 @@ static int screen_ctx_selected_pose_bones(const bContext *C, bContextDataResult 
       FOREACH_OBJECT_IN_MODE_END;
     }
     CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-    return 1;
+    return CTX_RESULT_OK;
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
-static int screen_ctx_selected_pose_bones_from_active_object(const bContext *C,
-                                                             bContextDataResult *result)
+static eContextResult screen_ctx_selected_pose_bones_from_active_object(const bContext *C,
+                                                                        bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
@@ -458,11 +454,11 @@ static int screen_ctx_selected_pose_bones_from_active_object(const bContext *C,
       FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
     }
     CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-    return 1;
+    return CTX_RESULT_OK;
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
-static int screen_ctx_active_bone(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_active_bone(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
@@ -472,19 +468,19 @@ static int screen_ctx_active_bone(const bContext *C, bContextDataResult *result)
     if (arm->edbo) {
       if (arm->act_edbone) {
         CTX_data_pointer_set(result, &arm->id, &RNA_EditBone, arm->act_edbone);
-        return 1;
+        return CTX_RESULT_OK;
       }
     }
     else {
       if (arm->act_bone) {
         CTX_data_pointer_set(result, &arm->id, &RNA_Bone, arm->act_bone);
-        return 1;
+        return CTX_RESULT_OK;
       }
     }
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
-static int screen_ctx_active_pose_bone(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_active_pose_bone(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
@@ -495,11 +491,11 @@ static int screen_ctx_active_pose_bone(const bContext *C, bContextDataResult *re
   pchan = BKE_pose_channel_active(obpose);
   if (pchan) {
     CTX_data_pointer_set(result, &obpose->id, &RNA_PoseBone, pchan);
-    return 1;
+    return CTX_RESULT_OK;
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
-static int screen_ctx_active_object(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_active_object(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
@@ -509,9 +505,9 @@ static int screen_ctx_active_object(const bContext *C, bContextDataResult *resul
     CTX_data_id_pointer_set(result, &obact->id);
   }
 
-  return 1;
+  return CTX_RESULT_OK;
 }
-static int screen_ctx_object(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_object(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
@@ -521,9 +517,9 @@ static int screen_ctx_object(const bContext *C, bContextDataResult *result)
     CTX_data_id_pointer_set(result, &obact->id);
   }
 
-  return 1;
+  return CTX_RESULT_OK;
 }
-static int screen_ctx_edit_object(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_edit_object(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
@@ -533,9 +529,9 @@ static int screen_ctx_edit_object(const bContext *C, bContextDataResult *result)
     CTX_data_id_pointer_set(result, &obedit->id);
   }
 
-  return 1;
+  return CTX_RESULT_OK;
 }
-static int screen_ctx_sculpt_object(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_sculpt_object(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
@@ -545,9 +541,9 @@ static int screen_ctx_sculpt_object(const bContext *C, bContextDataResult *resul
     CTX_data_id_pointer_set(result, &obact->id);
   }
 
-  return 1;
+  return CTX_RESULT_OK;
 }
-static int screen_ctx_vertex_paint_object(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_vertex_paint_object(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
@@ -556,9 +552,9 @@ static int screen_ctx_vertex_paint_object(const bContext *C, bContextDataResult 
     CTX_data_id_pointer_set(result, &obact->id);
   }
 
-  return 1;
+  return CTX_RESULT_OK;
 }
-static int screen_ctx_weight_paint_object(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_weight_paint_object(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
@@ -567,9 +563,9 @@ static int screen_ctx_weight_paint_object(const bContext *C, bContextDataResult 
     CTX_data_id_pointer_set(result, &obact->id);
   }
 
-  return 1;
+  return CTX_RESULT_OK;
 }
-static int screen_ctx_image_paint_object(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_image_paint_object(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
@@ -578,9 +574,10 @@ static int screen_ctx_image_paint_object(const bContext *C, bContextDataResult *
     CTX_data_id_pointer_set(result, &obact->id);
   }
 
-  return 1;
+  return CTX_RESULT_OK;
 }
-static int screen_ctx_particle_edit_object(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_particle_edit_object(const bContext *C,
+                                                      bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
@@ -589,9 +586,9 @@ static int screen_ctx_particle_edit_object(const bContext *C, bContextDataResult
     CTX_data_id_pointer_set(result, &obact->id);
   }
 
-  return 1;
+  return CTX_RESULT_OK;
 }
-static int screen_ctx_pose_object(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_pose_object(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
@@ -600,9 +597,9 @@ static int screen_ctx_pose_object(const bContext *C, bContextDataResult *result)
   if (obpose) {
     CTX_data_id_pointer_set(result, &obpose->id);
   }
-  return 1;
+  return CTX_RESULT_OK;
 }
-static int screen_ctx_sequences(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_sequences(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   Scene *scene = WM_window_get_active_scene(win);
@@ -612,11 +609,11 @@ static int screen_ctx_sequences(const bContext *C, bContextDataResult *result)
       CTX_data_list_add(result, &scene->id, &RNA_Sequence, seq);
     }
     CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-    return 1;
+    return CTX_RESULT_OK;
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
-static int screen_ctx_selected_sequences(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_selected_sequences(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   Scene *scene = WM_window_get_active_scene(win);
@@ -628,11 +625,12 @@ static int screen_ctx_selected_sequences(const bContext *C, bContextDataResult *
       }
     }
     CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-    return 1;
+    return CTX_RESULT_OK;
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
-static int screen_ctx_selected_editable_sequences(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_selected_editable_sequences(const bContext *C,
+                                                             bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   Scene *scene = WM_window_get_active_scene(win);
@@ -644,11 +642,11 @@ static int screen_ctx_selected_editable_sequences(const bContext *C, bContextDat
       }
     }
     CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-    return 1;
+    return CTX_RESULT_OK;
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
-static int screen_ctx_selected_nla_strips(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_selected_nla_strips(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   Scene *scene = WM_window_get_active_scene(win);
@@ -671,11 +669,11 @@ static int screen_ctx_selected_nla_strips(const bContext *C, bContextDataResult 
     ANIM_animdata_freelist(&anim_data);
 
     CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-    return 1;
+    return CTX_RESULT_OK;
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
-static int screen_ctx_gpencil_data(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_gpencil_data(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   ScrArea *area = CTX_wm_area(C);
@@ -690,11 +688,11 @@ static int screen_ctx_gpencil_data(const bContext *C, bContextDataResult *result
 
   if (gpd) {
     CTX_data_id_pointer_set(result, &gpd->id);
-    return 1;
+    return CTX_RESULT_OK;
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
-static int screen_ctx_gpencil_data_owner(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_gpencil_data_owner(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   ScrArea *area = CTX_wm_area(C);
@@ -710,11 +708,11 @@ static int screen_ctx_gpencil_data_owner(const bContext *C, bContextDataResult *
 
   if (gpd_ptr) {
     CTX_data_pointer_set(result, ptr.owner_id, ptr.type, ptr.data);
-    return 1;
+    return CTX_RESULT_OK;
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
-static int screen_ctx_annotation_data(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_annotation_data(const bContext *C, bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   bScreen *screen = CTX_wm_screen(C);
@@ -724,11 +722,12 @@ static int screen_ctx_annotation_data(const bContext *C, bContextDataResult *res
 
   if (gpd) {
     CTX_data_id_pointer_set(result, &gpd->id);
-    return 1;
+    return CTX_RESULT_OK;
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
-static int screen_ctx_annotation_data_owner(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_annotation_data_owner(const bContext *C,
+                                                       bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   bScreen *screen = CTX_wm_screen(C);
@@ -743,11 +742,12 @@ static int screen_ctx_annotation_data_owner(const bContext *C, bContextDataResul
 
   if (gpd_ptr) {
     CTX_data_pointer_set(result, ptr.owner_id, ptr.type, ptr.data);
-    return 1;
+    return CTX_RESULT_OK;
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
-static int screen_ctx_active_gpencil_layer(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_active_gpencil_layer(const bContext *C,
+                                                      bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   ScrArea *area = CTX_wm_area(C);
@@ -760,12 +760,13 @@ static int screen_ctx_active_gpencil_layer(const bContext *C, bContextDataResult
 
     if (gpl) {
       CTX_data_pointer_set(result, &gpd->id, &RNA_GPencilLayer, gpl);
-      return 1;
+      return CTX_RESULT_OK;
     }
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
-static int screen_ctx_active_annotation_layer(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_active_annotation_layer(const bContext *C,
+                                                         bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   bScreen *screen = CTX_wm_screen(C);
@@ -778,12 +779,13 @@ static int screen_ctx_active_annotation_layer(const bContext *C, bContextDataRes
 
     if (gpl) {
       CTX_data_pointer_set(result, &gpd->id, &RNA_GPencilLayer, gpl);
-      return 1;
+      return CTX_RESULT_OK;
     }
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
-static int screen_ctx_active_gpencil_frame(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_active_gpencil_frame(const bContext *C,
+                                                      bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   ScrArea *area = CTX_wm_area(C);
@@ -796,12 +798,13 @@ static int screen_ctx_active_gpencil_frame(const bContext *C, bContextDataResult
 
     if (gpl) {
       CTX_data_pointer_set(result, &gpd->id, &RNA_GPencilLayer, gpl->actframe);
-      return 1;
+      return CTX_RESULT_OK;
     }
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
-static int screen_ctx_visible_gpencil_layers(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_visible_gpencil_layers(const bContext *C,
+                                                        bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   ScrArea *area = CTX_wm_area(C);
@@ -816,11 +819,12 @@ static int screen_ctx_visible_gpencil_layers(const bContext *C, bContextDataResu
       }
     }
     CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-    return 1;
+    return CTX_RESULT_OK;
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
-static int screen_ctx_editable_gpencil_layers(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_editable_gpencil_layers(const bContext *C,
+                                                         bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   ScrArea *area = CTX_wm_area(C);
@@ -835,11 +839,12 @@ static int screen_ctx_editable_gpencil_layers(const bContext *C, bContextDataRes
       }
     }
     CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-    return 1;
+    return CTX_RESULT_OK;
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
-static int screen_ctx_editable_gpencil_strokes(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_editable_gpencil_strokes(const bContext *C,
+                                                          bContextDataResult *result)
 {
   wmWindow *win = CTX_wm_window(C);
   ScrArea *area = CTX_wm_area(C);
@@ -879,11 +884,11 @@ static int screen_ctx_editable_gpencil_strokes(const bContext *C, bContextDataRe
       }
     }
     CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-    return 1;
+    return CTX_RESULT_OK;
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
-static int screen_ctx_active_operator(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_active_operator(const bContext *C, bContextDataResult *result)
 {
   wmOperator *op = NULL;
 
@@ -903,13 +908,13 @@ static int screen_ctx_active_operator(const bContext *C, bContextDataResult *res
 
   if (op && op->ptr) {
     CTX_data_pointer_set(result, NULL, &RNA_Operator, op);
-    return 1;
+    return CTX_RESULT_OK;
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
-static int screen_ctx_sel_edit_fcurves_(const bContext *C,
-                                        bContextDataResult *result,
-                                        const int extra_filter)
+static eContextResult screen_ctx_sel_edit_fcurves_(const bContext *C,
+                                                   bContextDataResult *result,
+                                                   const int extra_filter)
 {
   bAnimContext ac;
 
@@ -932,27 +937,30 @@ static int screen_ctx_sel_edit_fcurves_(const bContext *C,
     ANIM_animdata_freelist(&anim_data);
 
     CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-    return 1;
+    return CTX_RESULT_OK;
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
-static int screen_ctx_editable_fcurves(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_editable_fcurves(const bContext *C, bContextDataResult *result)
 {
   return screen_ctx_sel_edit_fcurves_(C, result, ANIMFILTER_FOREDIT);
 }
-static int screen_ctx_visible_fcurves(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_visible_fcurves(const bContext *C, bContextDataResult *result)
 {
   return screen_ctx_sel_edit_fcurves_(C, result, 0);
 }
-static int screen_ctx_selected_editable_fcurves(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_selected_editable_fcurves(const bContext *C,
+                                                           bContextDataResult *result)
 {
   return screen_ctx_sel_edit_fcurves_(C, result, ANIMFILTER_SEL | ANIMFILTER_FOREDIT);
 }
-static int screen_ctx_selected_visible_fcurves(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_selected_visible_fcurves(const bContext *C,
+                                                          bContextDataResult *result)
 {
   return screen_ctx_sel_edit_fcurves_(C, result, ANIMFILTER_SEL);
 }
-static int screen_ctx_active_editable_fcurve(const bContext *C, bContextDataResult *result)
+static eContextResult screen_ctx_active_editable_fcurve(const bContext *C,
+                                                        bContextDataResult *result)
 {
   bAnimContext ac;
 
@@ -972,9 +980,9 @@ static int screen_ctx_active_editable_fcurve(const bContext *C, bContextDataResu
     }
 
     ANIM_animdata_freelist(&anim_data);
-    return 1;
+    return CTX_RESULT_OK;
   }
-  return -1; /* found but not available */
+  return CTX_RESULT_NO_DATA;
 }
 
 /* Registry of context callback functions. */
@@ -1057,13 +1065,13 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 {
   if (CTX_data_dir(member)) {
     CTX_data_dir_set(result, screen_context_dir);
-    return 1;
+    return CTX_RESULT_OK;
   }
 
   ensure_ed_screen_context_functions();
   context_callback callback = BLI_ghash_lookup(ed_screen_context_functions, member);
   if (callback == NULL) {
-    return 0; /* not found */
+    return CTX_RESULT_MEMBER_NOT_FOUND;
   }
 
   return callback(C, result);

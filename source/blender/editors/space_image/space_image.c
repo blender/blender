@@ -442,25 +442,28 @@ static void image_listener(wmWindow *win, ScrArea *area, wmNotifier *wmn, Scene 
 
 const char *image_context_dir[] = {"edit_image", "edit_mask", NULL};
 
-static int image_context(const bContext *C, const char *member, bContextDataResult *result)
+static int /*eContextResult*/ image_context(const bContext *C,
+                                            const char *member,
+                                            bContextDataResult *result)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
 
   if (CTX_data_dir(member)) {
     CTX_data_dir_set(result, image_context_dir);
+    /* TODO(sybren): return CTX_RESULT_OK; */
   }
   else if (CTX_data_equals(member, "edit_image")) {
     CTX_data_id_pointer_set(result, (ID *)ED_space_image(sima));
-    return 1;
+    return CTX_RESULT_OK;
   }
   else if (CTX_data_equals(member, "edit_mask")) {
     Mask *mask = ED_space_image_get_mask(sima);
     if (mask) {
       CTX_data_id_pointer_set(result, &mask->id);
     }
-    return true;
+    return CTX_RESULT_OK;
   }
-  return 0;
+  return CTX_RESULT_MEMBER_NOT_FOUND;
 }
 
 static void IMAGE_GGT_gizmo2d(wmGizmoGroupType *gzgt)

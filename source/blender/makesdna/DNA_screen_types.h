@@ -94,7 +94,7 @@ typedef struct bScreen {
   /** If set, screen has timer handler added in window. */
   struct wmTimer *animtimer;
   /** Context callback. */
-  void *context;
+  void /*bContextDataCallback*/ *context;
 
   /** Runtime. */
   struct wmTooltipState *tool_tip;
