@@ -139,7 +139,7 @@ static void armature_free_data(struct ID *id)
   bArmature *armature = (bArmature *)id;
 
   BKE_armature_bone_hash_free(armature);
-  BKE_armature_bonelist_free(&armature->bonebase);
+  BKE_armature_bonelist_free(&armature->bonebase, false);
 
   /* free editmode data */
   if (armature->edbo) {
@@ -357,15 +357,15 @@ int BKE_armature_bonelist_count(ListBase *lb)
   return i;
 }
 
-void BKE_armature_bonelist_free(ListBase *lb)
+void BKE_armature_bonelist_free(ListBase *lb, const bool do_id_user)
 {
   Bone *bone;
 
   for (bone = lb->first; bone; bone = bone->next) {
     if (bone->prop) {
-      IDP_FreeProperty(bone->prop);
+      IDP_FreeProperty_ex(bone->prop, do_id_user);
     }
-    BKE_armature_bonelist_free(&bone->childbase);
+    BKE_armature_bonelist_free(&bone->childbase, do_id_user);
   }
 
   BLI_freelistN(lb);

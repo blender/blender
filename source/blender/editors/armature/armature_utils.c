@@ -695,7 +695,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
 
   /* armature bones */
   BKE_armature_bone_hash_free(arm);
-  BKE_armature_bonelist_free(&arm->bonebase);
+  BKE_armature_bonelist_free(&arm->bonebase, true);
   arm->act_bone = NULL;
 
   /* remove zero sized bones, this gives unstable restposes */
