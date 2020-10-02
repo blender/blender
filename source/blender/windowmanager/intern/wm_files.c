@@ -1034,20 +1034,17 @@ void wm_homefile_read(bContext *C,
 
   if (!use_factory_settings || (filepath_startup[0] != '\0')) {
     if (BLI_access(filepath_startup, R_OK) == 0) {
-      success = BKE_blendfile_read(C,
-                                   filepath_startup,
-                                   &(const struct BlendFileReadParams){
-                                       .is_startup = true,
-                                       .skip_flags = skip_flags | BLO_READ_SKIP_USERDEF,
-                                   },
-                                   NULL);
+      success = BKE_blendfile_read_ex(C,
+                                      filepath_startup,
+                                      &(const struct BlendFileReadParams){
+                                          .is_startup = true,
+                                          .skip_flags = skip_flags | BLO_READ_SKIP_USERDEF,
+                                      },
+                                      NULL,
+                                      update_defaults && use_data,
+                                      app_template);
     }
     if (success) {
-      if (update_defaults) {
-        if (use_data) {
-          BLO_update_defaults_startup_blend(CTX_data_main(C), app_template);
-        }
-      }
       is_factory_startup = filepath_startup_is_factory;
     }
   }
@@ -1066,15 +1063,16 @@ void wm_homefile_read(bContext *C,
   }
 
   if (success == false) {
-    success = BKE_blendfile_read_from_memory(C,
-                                             datatoc_startup_blend,
-                                             datatoc_startup_blend_size,
-                                             true,
-                                             &(const struct BlendFileReadParams){
-                                                 .is_startup = true,
-                                                 .skip_flags = skip_flags,
-                                             },
-                                             NULL);
+    success = BKE_blendfile_read_from_memory_ex(C,
+                                                datatoc_startup_blend,
+                                                datatoc_startup_blend_size,
+                                                &(const struct BlendFileReadParams){
+                                                    .is_startup = true,
+                                                    .skip_flags = skip_flags,
+                                                },
+                                                NULL,
+                                                true,
+                                                NULL);
 
     if (use_data && BLI_listbase_is_empty(&wmbase)) {
       wm_clear_default_size(C);

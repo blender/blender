@@ -428,10 +428,13 @@ static bool handle_subversion_warning(Main *main, ReportList *reports)
   return true;
 }
 
-int BKE_blendfile_read(bContext *C,
-                       const char *filepath,
-                       const struct BlendFileReadParams *params,
-                       ReportList *reports)
+bool BKE_blendfile_read_ex(bContext *C,
+                           const char *filepath,
+                           const struct BlendFileReadParams *params,
+                           ReportList *reports,
+                           /* Extra args. */
+                           const bool startup_update_defaults,
+                           const char *startup_app_template)
 {
   BlendFileData *bfd;
   bool success = false;
@@ -449,6 +452,11 @@ int BKE_blendfile_read(bContext *C,
       bfd = NULL;
     }
     else {
+      if (startup_update_defaults) {
+        if ((params->skip_flags & BLO_READ_SKIP_DATA) == 0) {
+          BLO_update_defaults_startup_blend(bfd->main, startup_app_template);
+        }
+      }
       setup_app_blend_file_data(C, bfd, filepath, params, reports);
       BLO_blendfiledata_free(bfd);
       success = true;
@@ -461,23 +469,32 @@ int BKE_blendfile_read(bContext *C,
   return success;
 }
 
-bool BKE_blendfile_read_from_memory(bContext *C,
-                                    const void *filebuf,
-                                    int filelength,
-                                    bool update_defaults,
-                                    const struct BlendFileReadParams *params,
-                                    ReportList *reports)
+bool BKE_blendfile_read(bContext *C,
+                        const char *filepath,
+                        const struct BlendFileReadParams *params,
+                        ReportList *reports)
+{
+  return BKE_blendfile_read_ex(C, filepath, params, reports, false, NULL);
+}
+
+bool BKE_blendfile_read_from_memory_ex(bContext *C,
+                                       const void *filebuf,
+                                       int filelength,
+                                       const struct BlendFileReadParams *params,
+                                       ReportList *reports,
+                                       /* Extra args. */
+                                       const bool startup_update_defaults,
+                                       const char *startup_app_template)
 {
   BlendFileData *bfd;
 
   bfd = BLO_read_from_memory(filebuf, filelength, params->skip_flags, reports);
   if (bfd) {
-    if (update_defaults) {
+    if (startup_update_defaults) {
       if ((params->skip_flags & BLO_READ_SKIP_DATA) == 0) {
-        BLO_update_defaults_startup_blend(bfd->main, NULL);
+        BLO_update_defaults_startup_blend(bfd->main, startup_app_template);
       }
     }
-
     setup_app_blend_file_data(C, bfd, "<memory2>", params, reports);
     BLO_blendfiledata_free(bfd);
   }
@@ -486,6 +503,15 @@ bool BKE_blendfile_read_from_memory(bContext *C,
   }
 
   return (bfd != NULL);
+}
+
+bool BKE_blendfile_read_from_memory(bContext *C,
+                                    const void *filebuf,
+                                    int filelength,
+                                    const struct BlendFileReadParams *params,
+                                    ReportList *reports)
+{
+  return BKE_blendfile_read_from_memory_ex(C, filebuf, filelength, params, reports, false, NULL);
 }
 
 /* memfile is the undo buffer */

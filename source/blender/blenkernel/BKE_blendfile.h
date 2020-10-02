@@ -31,16 +31,32 @@ struct ReportList;
 struct UserDef;
 struct bContext;
 
-int BKE_blendfile_read(struct bContext *C,
-                       const char *filepath,
-                       const struct BlendFileReadParams *params,
-                       struct ReportList *reports);
+bool BKE_blendfile_read_ex(struct bContext *C,
+                           const char *filepath,
+                           const struct BlendFileReadParams *params,
+                           struct ReportList *reports,
+                           /* Extra args. */
+                           const bool startup_update_defaults,
+                           const char *startup_app_template);
+bool BKE_blendfile_read(struct bContext *C,
+                        const char *filepath,
+                        const struct BlendFileReadParams *params,
+                        struct ReportList *reports);
+
+bool BKE_blendfile_read_from_memory_ex(struct bContext *C,
+                                       const void *filebuf,
+                                       int filelength,
+                                       const struct BlendFileReadParams *params,
+                                       struct ReportList *reports,
+                                       /* Extra args. */
+                                       const bool startup_update_defaults,
+                                       const char *startup_app_template);
 bool BKE_blendfile_read_from_memory(struct bContext *C,
                                     const void *filebuf,
                                     int filelength,
-                                    bool update_defaults,
                                     const struct BlendFileReadParams *params,
                                     struct ReportList *reports);
+
 bool BKE_blendfile_read_from_memfile(struct bContext *C,
                                      struct MemFile *memfile,
                                      const struct BlendFileReadParams *params,
