@@ -1501,9 +1501,9 @@ void UI_make_axis_color(const uchar src_col[3], uchar dst_col[3], const char axi
 }
 
 /* patching UserDef struct and Themes */
-void init_userdef_do_versions(Main *bmain)
+void init_userdef_do_versions(void)
 {
-  BLO_version_defaults_userpref_blend(bmain, &U);
+  BLO_version_defaults_userpref_blend(&U);
 
   if (STREQ(U.tempdir, "/")) {
     BKE_tempdir_system_init(U.tempdir);

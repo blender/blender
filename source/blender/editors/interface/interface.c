@@ -7059,10 +7059,10 @@ void UI_init(void)
 }
 
 /* after reading userdef file */
-void UI_init_userdef(Main *bmain)
+void UI_init_userdef(void)
 {
   /* fix saved themes */
-  init_userdef_do_versions(bmain);
+  init_userdef_do_versions();
   uiStyleInit();
 
   BLO_sanitize_experimental_features_userpref_blend(&U);

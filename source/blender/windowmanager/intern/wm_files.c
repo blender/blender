@@ -392,7 +392,7 @@ static void wm_window_match_do(bContext *C,
 static void wm_init_userdef(Main *bmain)
 {
   /* versioning is here */
-  UI_init_userdef(bmain);
+  UI_init_userdef();
 
   /* needed so loading a file from the command line respects user-pref T26156. */
   SET_FLAG_FROM_TEST(G.fileflags, U.flag & USER_FILENOUI, G_FILE_NO_UI);

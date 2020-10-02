@@ -228,7 +228,7 @@ void BLO_update_defaults_startup_blend(struct Main *bmain, const char *app_templ
 void BLO_update_defaults_workspace(struct WorkSpace *workspace, const char *app_template);
 
 /* Version patch user preferences. */
-void BLO_version_defaults_userpref_blend(struct Main *bmain, struct UserDef *userdef);
+void BLO_version_defaults_userpref_blend(struct UserDef *userdef);
 
 /* Disable unwanted experimental feature settings on startup. */
 void BLO_sanitize_experimental_features_userpref_blend(struct UserDef *userdef);

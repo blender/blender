@@ -303,10 +303,10 @@ static bool keymap_item_has_invalid_wm_context_data_path(wmKeyMapItem *kmi,
 }
 
 /* patching UserDef struct and Themes */
-void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
+void BLO_version_defaults_userpref_blend(UserDef *userdef)
 {
-
-#define USER_VERSION_ATLEAST(ver, subver) MAIN_VERSION_ATLEAST(bmain, ver, subver)
+  /* #UserDef & #Main happen to have the same struct member. */
+#define USER_VERSION_ATLEAST(ver, subver) MAIN_VERSION_ATLEAST(userdef, ver, subver)
 
   /* the UserDef struct is not corrected with do_versions() .... ugh! */
   if (userdef->wheellinescroll == 0) {
