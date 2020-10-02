@@ -827,6 +827,8 @@ void BLO_sanitize_experimental_features_userpref_blend(UserDef *userdef)
   userdef->experimental.use_new_particle_system = false;
   userdef->experimental.use_new_hair_type = false;
   userdef->experimental.use_sculpt_vertex_colors = false;
+  userdef->experimental.use_tools_missing_icons = false;
+  userdef->experimental.use_switch_object_operator = false;
 }
 
 #undef USER_LMOUSESELECT

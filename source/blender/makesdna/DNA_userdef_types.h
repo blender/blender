@@ -622,12 +622,15 @@ typedef struct UserDef_FileSpaceData {
 } UserDef_FileSpaceData;
 
 typedef struct UserDef_Experimental {
+  /* Debug options, always available. */
   char use_undo_legacy;
+  char use_cycles_debug;
+  char use_image_editor_legacy_drawing;
+  /* Other options - remember to turn them off on
+   * BLO_sanitize_experimental_features_userpref_blend. */
   char use_new_particle_system;
   char use_new_hair_type;
-  char use_cycles_debug;
   char use_sculpt_vertex_colors;
-  char use_image_editor_legacy_drawing;
   char use_tools_missing_icons;
   char use_switch_object_operator;
 } UserDef_Experimental;
