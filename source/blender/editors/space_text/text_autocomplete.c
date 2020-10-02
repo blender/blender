@@ -328,6 +328,7 @@ static int doc_scroll = 0;
 
 static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  /* NOTE(campbell): this code could be refactored or rewritten. */
   SpaceText *st = CTX_wm_space_text(C);
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
@@ -425,6 +426,7 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
           if (event->ctrl) {
             texttool_suggest_clear();
             retval = OPERATOR_CANCELLED;
+            draw = 1;
           }
           else {
             /* Work out which char we are about to delete/pass */
@@ -433,15 +435,19 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
               if ((ch == '_' || !ispunct(ch)) && !text_check_whitespace(ch)) {
                 get_suggest_prefix(st->text, -1);
                 text_pop_suggest_list();
+                txt_move_left(st->text, false);
+                draw = 1;
               }
               else {
                 texttool_suggest_clear();
                 retval = OPERATOR_CANCELLED;
+                draw = 1;
               }
             }
             else {
               texttool_suggest_clear();
               retval = OPERATOR_CANCELLED;
+              draw = 1;
             }
           }
         }
@@ -457,23 +463,28 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
           if (event->ctrl) {
             texttool_suggest_clear();
             retval = OPERATOR_CANCELLED;
+            draw = 1;
           }
           else {
             /* Work out which char we are about to pass */
             if (st->text->curl && st->text->curc < st->text->curl->len) {
-              char ch = st->text->curl->line[st->text->curc + 1];
+              char ch = st->text->curl->line[st->text->curc];
               if ((ch == '_' || !ispunct(ch)) && !text_check_whitespace(ch)) {
                 get_suggest_prefix(st->text, 1);
                 text_pop_suggest_list();
+                txt_move_right(st->text, false);
+                draw = 1;
               }
               else {
                 texttool_suggest_clear();
                 retval = OPERATOR_CANCELLED;
+                draw = 1;
               }
             }
             else {
               texttool_suggest_clear();
               retval = OPERATOR_CANCELLED;
+              draw = 1;
             }
           }
         }
