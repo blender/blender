@@ -1713,7 +1713,7 @@ static void draw_group_overlay(const bContext *C, ARegion *region)
   UI_block_end(C, block);
 }
 
-void drawnodespace(const bContext *C, ARegion *region)
+void node_draw_space(const bContext *C, ARegion *region)
 {
   wmWindow *win = CTX_wm_window(C);
   SpaceNode *snode = CTX_wm_space_node(C);

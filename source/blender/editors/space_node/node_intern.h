@@ -88,7 +88,7 @@ void node_draw_nodetree(const struct bContext *C,
                         struct SpaceNode *snode,
                         struct bNodeTree *ntree,
                         bNodeInstanceKey parent_key);
-void drawnodespace(const bContext *C, ARegion *region);
+void node_draw_space(const bContext *C, ARegion *region);
 
 void node_set_cursor(struct wmWindow *win, struct SpaceNode *snode, float cursor[2]);
 /* DPI scaled coords */
