@@ -5239,24 +5239,17 @@ static bool block_search_filter_tag_buttons(uiBlock *block, const char *search_f
   LISTBASE_FOREACH (uiLayoutRoot *, root, &block->layouts) {
     LISTBASE_FOREACH (uiButtonGroup *, button_group, &root->button_groups) {
       if (button_group_has_search_match(button_group, search_filter)) {
+        has_result = true;
+      }
+      else {
         LISTBASE_FOREACH (LinkData *, link, &button_group->buttons) {
           uiBut *but = link->data;
-          but->flag |= UI_SEARCH_FILTER_MATCHES;
+          but->flag |= UI_SEARCH_FILTER_NO_MATCH;
         }
-        has_result = true;
       }
     }
   }
   return has_result;
-}
-
-static void block_search_deactivate_buttons(uiBlock *block)
-{
-  LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
-    if (!(but->flag & UI_SEARCH_FILTER_MATCHES)) {
-      but->flag |= UI_BUT_INACTIVE;
-    }
-  }
 }
 
 /**
@@ -5282,10 +5275,6 @@ bool UI_block_apply_search_filter(uiBlock *block, const char *search_filter)
     if (has_result) {
       ui_panel_tag_search_filter_match(block->panel);
     }
-  }
-
-  if (!panel_label_matches) {
-    block_search_deactivate_buttons(block);
   }
 
   return has_result;
