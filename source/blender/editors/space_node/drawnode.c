@@ -4128,7 +4128,6 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
   }
 
   node_draw_link_bezier(v2d, snode, link, th_col1, th_col2, th_col3);
-  //  node_draw_link_straight(v2d, snode, link, th_col1, do_shaded, th_col2, do_triple, th_col3);
 }
 
 void ED_node_draw_snap(View2D *v2d, const float cent[2], float size, NodeBorder border, uint pos)
