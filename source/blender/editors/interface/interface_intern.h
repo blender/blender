@@ -417,6 +417,17 @@ enum eBlockContentHints {
   UI_BLOCK_CONTAINS_SUBMENU_BUT = (1 << 0),
 };
 
+/**
+ * A group of button references, used by property search to keep track of sets of buttons that
+ * should be searched together. For example, in property split layouts number buttons and their
+ * labels (and even their decorators) are separate buttons, but they must be searched and
+ * highlighted together.
+ */
+typedef struct uiButtonGroup {
+  void *next, *prev;
+  ListBase buttons; /* #LinkData with #uiBut data field. */
+} uiButtonGroup;
+
 struct uiBlock {
   uiBlock *next, *prev;
 
@@ -425,6 +436,8 @@ struct uiBlock {
   uiBlock *oldblock;
 
   ListBase butstore; /* UI_butstore_* runtime function */
+
+  ListBase button_groups; /* #uiButtonGroup. */
 
   ListBase layouts;
   struct uiLayout *curlayout;
@@ -999,7 +1012,6 @@ void ui_resources_free(void);
 /* interface_layout.c */
 void ui_layout_add_but(uiLayout *layout, uiBut *but);
 bool ui_layout_replace_but_ptr(uiLayout *layout, const void *old_but_ptr, uiBut *new_but);
-void ui_button_group_replace_but_ptr(uiLayout *layout, const void *old_but_ptr, uiBut *new_but);
 uiBut *ui_but_add_search(uiBut *but,
                          PointerRNA *ptr,
                          PropertyRNA *prop,
@@ -1009,6 +1021,12 @@ void ui_layout_list_set_labels_active(uiLayout *layout);
 /* menu callback */
 void ui_item_menutype_func(struct bContext *C, struct uiLayout *layout, void *arg_mt);
 void ui_item_paneltype_func(struct bContext *C, struct uiLayout *layout, void *arg_pt);
+
+/* interface_button_group.c */
+void ui_block_new_button_group(uiBlock *block);
+void ui_button_group_add_but(uiBlock *block, uiBut *but);
+void ui_button_group_replace_but_ptr(uiBlock *block, const void *old_but_ptr, uiBut *new_but);
+void ui_block_free_button_groups(uiBlock *block);
 
 /* interface_align.c */
 bool ui_but_can_align(const uiBut *but) ATTR_WARN_UNUSED_RESULT;

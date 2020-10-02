@@ -79,17 +79,6 @@
 
 /* uiLayoutRoot */
 
-/**
- * A group of button references, used by property search to keep track of sets of buttons that
- * should be searched together. For example, in property split layouts number buttons and their
- * labels (and even their decorators) are separate buttons, but they must be searched and
- * highlighted together.
- */
-typedef struct uiButtonGroup {
-  void *next, *prev;
-  ListBase buttons; /* #LinkData with #uiBut data field. */
-} uiButtonGroup;
-
 typedef struct uiLayoutRoot {
   struct uiLayoutRoot *next, *prev;
 
@@ -102,8 +91,6 @@ typedef struct uiLayoutRoot {
    * block-level tag isn't enough, as there might be visible buttons in the header.
    */
   bool search_only;
-
-  ListBase button_groups; /* #uiButtonGroup. */
 
   int emw, emh;
   int padding;
@@ -426,58 +413,6 @@ static void ui_item_move(uiItem *item, int delta_xmin, int delta_xmax)
       litem->w += delta_xmax;
     }
   }
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Button Groups
- * \{ */
-
-/**
- * Every function that adds a set of buttons must create another group,
- * then #ui_def_but adds buttons to the current group (the last).
- */
-static void layout_root_new_button_group(uiLayoutRoot *root)
-{
-  uiButtonGroup *new_group = MEM_mallocN(sizeof(uiButtonGroup), __func__);
-  BLI_listbase_clear(&new_group->buttons);
-  BLI_addtail(&root->button_groups, new_group);
-}
-
-static void button_group_add_but(uiLayoutRoot *root, uiBut *but)
-{
-  BLI_assert(root != NULL);
-
-  uiButtonGroup *current_button_group = root->button_groups.last;
-  BLI_assert(current_button_group != NULL);
-
-  /* We can't use the button directly because adding it to
-   * this list would mess with its prev and next pointers. */
-  LinkData *button_link = BLI_genericNodeN(but);
-  BLI_addtail(&current_button_group->buttons, button_link);
-}
-
-static void button_group_free(uiButtonGroup *button_group)
-{
-  BLI_freelistN(&button_group->buttons);
-  MEM_freeN(button_group);
-}
-
-/* This function should be removed whenever #ui_layout_replace_but_ptr is removed. */
-void ui_button_group_replace_but_ptr(uiLayout *layout, const void *old_but_ptr, uiBut *new_but)
-{
-  LISTBASE_FOREACH (uiButtonGroup *, button_group, &layout->root->button_groups) {
-    LISTBASE_FOREACH (LinkData *, link, &button_group->buttons) {
-      if (link->data == old_but_ptr) {
-        link->data = new_but;
-        return;
-      }
-    }
-  }
-
-  /* The button should be in a group. */
-  BLI_assert(false);
 }
 
 /** \} */
@@ -2051,7 +1986,7 @@ void uiItemFullR(uiLayout *layout,
 #endif /* UI_PROP_DECORATE */
 
   UI_block_layout_set_current(block, layout);
-  layout_root_new_button_group(layout->root);
+  ui_block_new_button_group(block);
 
   /* retrieve info */
   const PropertyType type = RNA_property_type(prop);
@@ -2789,7 +2724,7 @@ void uiItemPointerR_prop(uiLayout *layout,
 {
   const bool use_prop_sep = ((layout->item.flag & UI_ITEM_PROP_SEP) != 0);
 
-  layout_root_new_button_group(layout->root);
+  ui_block_new_button_group(uiLayoutGetBlock(layout));
 
   const PropertyType type = RNA_property_type(prop);
   if (!ELEM(type, PROP_POINTER, PROP_STRING, PROP_ENUM)) {
@@ -2895,7 +2830,7 @@ static uiBut *ui_item_menu(uiLayout *layout,
   uiLayout *heading_layout = ui_layout_heading_find(layout);
 
   UI_block_layout_set_current(block, layout);
-  layout_root_new_button_group(layout->root);
+  ui_block_new_button_group(block);
 
   if (!name) {
     name = "";
@@ -3161,7 +3096,7 @@ static uiBut *uiItemL_(uiLayout *layout, const char *name, int icon)
   uiBlock *block = layout->root->block;
 
   UI_block_layout_set_current(block, layout);
-  layout_root_new_button_group(layout->root);
+  ui_block_new_button_group(block);
 
   if (!name) {
     name = "";
@@ -5131,9 +5066,6 @@ static void layout_free_and_hide_buttons(uiLayout *layout)
   MEM_freeN(layout);
 }
 
-/* Prototype of function below. */
-static void layout_root_free(uiLayoutRoot *root);
-
 /**
  * Remove layouts used only for search and hide their buttons.
  * (See comment for #uiLayoutRootSetSearchOnly and in #uiLayoutRoot).
@@ -5144,7 +5076,7 @@ static void block_search_remove_search_only_roots(uiBlock *block)
     if (root->search_only) {
       layout_free_and_hide_buttons(root->layout);
       BLI_remlink(&block->layouts, root);
-      layout_root_free(root);
+      MEM_freeN(root);
     }
   }
 }
@@ -5236,16 +5168,14 @@ static bool button_group_has_search_match(uiButtonGroup *button_group, const cha
 static bool block_search_filter_tag_buttons(uiBlock *block, const char *search_filter)
 {
   bool has_result = false;
-  LISTBASE_FOREACH (uiLayoutRoot *, root, &block->layouts) {
-    LISTBASE_FOREACH (uiButtonGroup *, button_group, &root->button_groups) {
-      if (button_group_has_search_match(button_group, search_filter)) {
-        has_result = true;
-      }
-      else {
-        LISTBASE_FOREACH (LinkData *, link, &button_group->buttons) {
-          uiBut *but = link->data;
-          but->flag |= UI_SEARCH_FILTER_NO_MATCH;
-        }
+  LISTBASE_FOREACH (uiButtonGroup *, button_group, &block->button_groups) {
+    if (button_group_has_search_match(button_group, search_filter)) {
+      has_result = true;
+    }
+    else {
+      LISTBASE_FOREACH (LinkData *, link, &button_group->buttons) {
+        uiBut *but = link->data;
+        but->flag |= UI_SEARCH_FILTER_NO_MATCH;
       }
     }
   }
@@ -5527,14 +5457,6 @@ static void ui_layout_free(uiLayout *layout)
   MEM_freeN(layout);
 }
 
-static void layout_root_free(uiLayoutRoot *root)
-{
-  LISTBASE_FOREACH_MUTABLE (uiButtonGroup *, button_group, &root->button_groups) {
-    button_group_free(button_group);
-  }
-  MEM_freeN(root);
-}
-
 static void ui_layout_add_padding_button(uiLayoutRoot *root)
 {
   if (root->padding) {
@@ -5568,9 +5490,6 @@ uiLayout *UI_block_layout(uiBlock *block,
   root->block = block;
   root->padding = padding;
   root->opcontext = WM_OP_INVOKE_REGION_WIN;
-
-  BLI_listbase_clear(&root->button_groups);
-  layout_root_new_button_group(root);
 
   layout = MEM_callocN(sizeof(uiLayout), "uiLayout");
   layout->item.type = (type == UI_LAYOUT_VERT_BAR) ? ITEM_LAYOUT_COLUMN : ITEM_LAYOUT_ROOT;
@@ -5657,7 +5576,7 @@ void ui_layout_add_but(uiLayout *layout, uiBut *but)
     but->emboss = layout->emboss;
   }
 
-  button_group_add_but(layout->root, but);
+  ui_button_group_add_but(uiLayoutGetBlock(layout), but);
 }
 
 bool ui_layout_replace_but_ptr(uiLayout *layout, const void *old_but_ptr, uiBut *new_but)
@@ -5732,7 +5651,7 @@ void UI_block_layout_resolve(uiBlock *block, int *r_x, int *r_y)
     /* NULL in advance so we don't interfere when adding button */
     ui_layout_end(block, root->layout, r_x, r_y);
     ui_layout_free(root->layout);
-    layout_root_free(root);
+    MEM_freeN(root);
   }
 
   BLI_listbase_clear(&block->layouts);
