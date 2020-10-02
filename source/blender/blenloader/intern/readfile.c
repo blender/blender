@@ -6887,20 +6887,10 @@ static void link_global(FileData *fd, BlendFileData *bfd)
 /* other initializers (such as theme color defaults) go to resources.c */
 static void do_versions_userdef(FileData *fd, BlendFileData *bfd)
 {
-  Main *bmain = bfd->main;
   UserDef *user = bfd->user;
 
   if (user == NULL) {
     return;
-  }
-
-  if (MAIN_VERSION_OLDER(bmain, 266, 4)) {
-    /* Themes for Node and Sequence editor were not using grid color,
-     * but back. we copy this over then. */
-    LISTBASE_FOREACH (bTheme *, btheme, &user->themes) {
-      copy_v4_v4_uchar(btheme->space_node.grid, btheme->space_node.back);
-      copy_v4_v4_uchar(btheme->space_sequencer.grid, btheme->space_sequencer.back);
-    }
   }
 
   if (!DNA_struct_elem_find(fd->filesdna, "UserDef", "WalkNavigation", "walk_navigation")) {
