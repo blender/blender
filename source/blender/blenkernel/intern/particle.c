@@ -4804,7 +4804,6 @@ void psys_get_dupli_texture(ParticleSystem *psys,
                             float orco[3])
 {
   MFace *mface;
-  MTFace *mtface;
   float loc[3];
   int num;
 
@@ -4816,21 +4815,25 @@ void psys_get_dupli_texture(ParticleSystem *psys,
    * For now just include this workaround as an alternative to crashing,
    * but longer term meta-balls should behave in a more manageable way, see: T46622. */
 
-  uv[0] = uv[1] = 0.f;
+  uv[0] = uv[1] = 0.0f;
 
   /* Grid distribution doesn't support UV or emit from vertex mode */
   bool is_grid = (part->distr == PART_DISTR_GRID && part->from != PART_FROM_VERT);
 
   if (cpa) {
     if ((part->childtype == PART_CHILD_FACES) && (psmd->mesh_final != NULL)) {
-      CustomData *mtf_data = &psmd->mesh_final->fdata;
-      const int uv_idx = CustomData_get_render_layer(mtf_data, CD_MTFACE);
-      mtface = CustomData_get_layer_n(mtf_data, CD_MTFACE, uv_idx);
+      if (!is_grid) {
+        CustomData *mtf_data = &psmd->mesh_final->fdata;
+        const int uv_idx = CustomData_get_render_layer(mtf_data, CD_MTFACE);
 
-      if (mtface && !is_grid) {
-        mface = CustomData_get(&psmd->mesh_final->fdata, cpa->num, CD_MFACE);
-        mtface += cpa->num;
-        psys_interpolate_uvs(mtface, mface->v4, cpa->fuv, uv);
+        if (uv_idx >= 0) {
+          MTFace *mtface = CustomData_get_layer_n(mtf_data, CD_MTFACE, uv_idx);
+          if (mtface != NULL) {
+            mface = CustomData_get(&psmd->mesh_final->fdata, cpa->num, CD_MFACE);
+            mtface += cpa->num;
+            psys_interpolate_uvs(mtface, mface->v4, cpa->fuv, uv);
+          }
+        }
       }
 
       psys_particle_on_emitter(psmd,
@@ -4851,10 +4854,6 @@ void psys_get_dupli_texture(ParticleSystem *psys,
   }
 
   if ((part->from == PART_FROM_FACE) && (psmd->mesh_final != NULL) && !is_grid) {
-    CustomData *mtf_data = &psmd->mesh_final->fdata;
-    const int uv_idx = CustomData_get_render_layer(mtf_data, CD_MTFACE);
-    mtface = CustomData_get_layer_n(mtf_data, CD_MTFACE, uv_idx);
-
     num = pa->num_dmcache;
 
     if (num == DMCACHE_NOTFOUND) {
@@ -4867,10 +4866,16 @@ void psys_get_dupli_texture(ParticleSystem *psys,
       num = DMCACHE_NOTFOUND;
     }
 
-    if (mtface && !ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
-      mface = CustomData_get(&psmd->mesh_final->fdata, num, CD_MFACE);
-      mtface += num;
-      psys_interpolate_uvs(mtface, mface->v4, pa->fuv, uv);
+    if (!ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
+      CustomData *mtf_data = &psmd->mesh_final->fdata;
+      const int uv_idx = CustomData_get_render_layer(mtf_data, CD_MTFACE);
+
+      if (uv_idx >= 0) {
+        MTFace *mtface = CustomData_get_layer_n(mtf_data, CD_MTFACE, uv_idx);
+        mface = CustomData_get(&psmd->mesh_final->fdata, num, CD_MFACE);
+        mtface += num;
+        psys_interpolate_uvs(mtface, mface->v4, pa->fuv, uv);
+      }
     }
   }
 
