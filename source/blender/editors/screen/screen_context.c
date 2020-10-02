@@ -987,7 +987,7 @@ static eContextResult screen_ctx_active_editable_fcurve(const bContext *C,
 
 /* Registry of context callback functions. */
 
-typedef int (*context_callback)(const bContext *C, bContextDataResult *result);
+typedef eContextResult (*context_callback)(const bContext *C, bContextDataResult *result);
 static GHash *ed_screen_context_functions = NULL;
 
 static void free_context_function_ghash(void *UNUSED(user_data))
