@@ -245,8 +245,10 @@ class NODE_MT_view(Menu):
 
         layout.separator()
 
-        layout.operator("view2d.zoom_in")
-        layout.operator("view2d.zoom_out")
+        sub = layout.column()
+        sub.operator_context = 'EXEC_REGION_WIN'
+        sub.operator("view2d.zoom_in")
+        sub.operator("view2d.zoom_out")
 
         layout.separator()
 
