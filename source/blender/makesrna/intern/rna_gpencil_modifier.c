@@ -310,6 +310,7 @@ RNA_GP_MOD_VGROUP_NAME_SET(Hook, vgname);
 RNA_GP_MOD_VGROUP_NAME_SET(Offset, vgname);
 RNA_GP_MOD_VGROUP_NAME_SET(Armature, vgname);
 RNA_GP_MOD_VGROUP_NAME_SET(Texture, vgname);
+RNA_GP_MOD_VGROUP_NAME_SET(Tint, vgname);
 
 #  undef RNA_GP_MOD_VGROUP_NAME_SET
 
@@ -1066,7 +1067,7 @@ static void rna_def_modifier_gpenciltint(BlenderRNA *brna)
   prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "vgname");
   RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name for modulating the deform");
-  RNA_def_property_string_funcs(prop, NULL, NULL, "rna_HookGpencilModifier_vgname_set");
+  RNA_def_property_string_funcs(prop, NULL, NULL, "rna_TintGpencilModifier_vgname_set");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "pass_index", PROP_INT, PROP_NONE);
