@@ -32,6 +32,7 @@
 #include "util/util_foreach.h"
 #include "util/util_hash.h"
 #include "util/util_logging.h"
+#include "util/util_task.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -103,7 +104,8 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
                                  bool use_particle_hair,
                                  bool show_lights,
                                  BlenderObjectCulling &culling,
-                                 bool *use_portal)
+                                 bool *use_portal,
+                                 TaskPool &task_pool)
 {
   const bool is_instance = b_instance.is_instance();
   BL::Object b_ob = b_instance.object();
@@ -181,6 +183,14 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
     return NULL;
   }
 
+  BL::Object b_permanent_ob(PointerRNA_NULL);
+  if (b_instance.is_instance()) {
+    b_permanent_ob = b_instance.instance_object();
+  }
+  else {
+    b_permanent_ob = b_instance.object();
+  }
+
   /* key to lookup object */
   ObjectKey key(b_parent, persistent_id, b_ob_instance, use_particle_hair);
   Object *object;
@@ -198,7 +208,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
 
       /* mesh deformation */
       if (object->geometry)
-        sync_geometry_motion(b_depsgraph, b_ob, object, motion_time, use_particle_hair);
+        sync_geometry_motion(b_depsgraph, b_permanent_ob, object, motion_time, use_particle_hair, task_pool);
     }
 
     return object;
@@ -212,7 +222,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
 
   /* mesh sync */
   object->geometry = sync_geometry(
-      b_depsgraph, b_ob, b_ob_instance, object_updated, use_particle_hair);
+      b_depsgraph, b_permanent_ob, b_ob_instance, object_updated, use_particle_hair, task_pool);
 
   /* special case not tracked by object update flags */
 
@@ -331,6 +341,9 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
                                BL::SpaceView3D &b_v3d,
                                float motion_time)
 {
+  /* Threads. */
+  TaskPool task_pool;
+
   /* layer data */
   bool motion = motion_time != 0.0f;
 
@@ -381,7 +394,8 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
                   false,
                   show_lights,
                   culling,
-                  &use_portal);
+                  &use_portal,
+                  task_pool);
     }
 
     /* Particle hair as separate object. */
@@ -393,11 +407,14 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
                   true,
                   show_lights,
                   culling,
-                  &use_portal);
+                  &use_portal,
+                  task_pool);
     }
 
     cancel = progress.get_cancel();
   }
+
+  task_pool.wait_work();
 
   progress.set_sync_status("");
 

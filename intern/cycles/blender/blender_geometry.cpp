@@ -25,6 +25,7 @@
 #include "blender/blender_util.h"
 
 #include "util/util_foreach.h"
+#include "util/util_task.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -45,7 +46,8 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
                                      BL::Object &b_ob,
                                      BL::Object &b_ob_instance,
                                      bool object_updated,
-                                     bool use_particle_hair)
+                                     bool use_particle_hair,
+                                     TaskPool& task_pool)
 {
   /* Test if we can instance or if the object is modified. */
   BL::ID b_ob_data = b_ob.data();
@@ -137,16 +139,16 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
   geom->name = ustring(b_ob_data.name().c_str());
 
   if (geom_type == Geometry::HAIR) {
-    Hair *hair = static_cast<Hair *>(geom);
-    sync_hair(b_depsgraph, b_ob, hair, used_shaders);
+    Hair* hair = static_cast<Hair*>(geom);
+    task_pool.push([=] { sync_hair(b_depsgraph, b_ob, hair, used_shaders); });
   }
   else if (geom_type == Geometry::VOLUME) {
-    Volume *volume = static_cast<Volume *>(geom);
+    Volume* volume = static_cast<Volume*>(geom);
     sync_volume(b_ob, volume, used_shaders);
   }
   else {
-    Mesh *mesh = static_cast<Mesh *>(geom);
-    sync_mesh(b_depsgraph, b_ob, mesh, used_shaders);
+    Mesh* mesh = static_cast<Mesh*>(geom);
+    task_pool.push([=] { sync_mesh(b_depsgraph, b_ob, mesh, used_shaders); });
   }
 
   return geom;
@@ -156,7 +158,8 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
                                        BL::Object &b_ob,
                                        Object *object,
                                        float motion_time,
-                                       bool use_particle_hair)
+                                       bool use_particle_hair,
+                                       TaskPool &task_pool)
 {
   /* Ensure we only sync instanced geometry once. */
   Geometry *geom = object->geometry;
@@ -179,14 +182,14 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
 
   if (b_ob.type() == BL::Object::type_HAIR || use_particle_hair) {
     Hair *hair = static_cast<Hair *>(geom);
-    sync_hair_motion(b_depsgraph, b_ob, hair, motion_step);
+    task_pool.push([=] { sync_hair_motion(b_depsgraph, b_ob, hair, motion_step); });
   }
   else if (b_ob.type() == BL::Object::type_VOLUME || object_fluid_gas_domain_find(b_ob)) {
     /* No volume motion blur support yet. */
   }
   else {
     Mesh *mesh = static_cast<Mesh *>(geom);
-    sync_mesh_motion(b_depsgraph, b_ob, mesh, motion_step);
+    task_pool.push([=] { sync_mesh_motion(b_depsgraph, b_ob, mesh, motion_step); });
   }
 }
 
