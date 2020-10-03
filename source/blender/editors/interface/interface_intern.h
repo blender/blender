@@ -426,7 +426,16 @@ enum eBlockContentHints {
 typedef struct uiButtonGroup {
   void *next, *prev;
   ListBase buttons; /* #LinkData with #uiBut data field. */
+  short flag;
 } uiButtonGroup;
+
+/* #uiButtonGroup.flag. */
+typedef enum uiButtonGroupFlag {
+  /** While this flag is set, don't create new button groups for layout item calls. */
+  UI_BUTTON_GROUP_LOCK = (1 << 0),
+  /** The buttons in this group are inside a panel header. */
+  UI_BUTTON_GROUP_PANEL_HEADER = (1 << 1),
+} uiButtonGroupFlag;
 
 struct uiBlock {
   uiBlock *next, *prev;
@@ -1023,7 +1032,7 @@ void ui_item_menutype_func(struct bContext *C, struct uiLayout *layout, void *ar
 void ui_item_paneltype_func(struct bContext *C, struct uiLayout *layout, void *arg_pt);
 
 /* interface_button_group.c */
-void ui_block_new_button_group(uiBlock *block);
+void ui_block_new_button_group(uiBlock *block, short flag);
 void ui_button_group_add_but(uiBlock *block, uiBut *but);
 void ui_button_group_replace_but_ptr(uiBlock *block, const void *old_but_ptr, uiBut *new_but);
 void ui_block_free_button_groups(uiBlock *block);

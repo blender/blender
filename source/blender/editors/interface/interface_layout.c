@@ -84,13 +84,6 @@ typedef struct uiLayoutRoot {
   int type;
   int opcontext;
 
-  /**
-   * If true, the root will be removed as part of the property search process.
-   * Necessary for cases like searching the contents of closed panels, where the
-   * block-level tag isn't enough, as there might be visible buttons in the header.
-   */
-  bool search_only;
-
   int emw, emh;
   int padding;
 
@@ -1985,7 +1978,7 @@ void uiItemFullR(uiLayout *layout,
 #endif /* UI_PROP_DECORATE */
 
   UI_block_layout_set_current(block, layout);
-  ui_block_new_button_group(block);
+  ui_block_new_button_group(block, 0);
 
   /* retrieve info */
   const PropertyType type = RNA_property_type(prop);
@@ -2723,7 +2716,7 @@ void uiItemPointerR_prop(uiLayout *layout,
 {
   const bool use_prop_sep = ((layout->item.flag & UI_ITEM_PROP_SEP) != 0);
 
-  ui_block_new_button_group(uiLayoutGetBlock(layout));
+  ui_block_new_button_group(uiLayoutGetBlock(layout), 0);
 
   const PropertyType type = RNA_property_type(prop);
   if (!ELEM(type, PROP_POINTER, PROP_STRING, PROP_ENUM)) {
@@ -2829,7 +2822,7 @@ static uiBut *ui_item_menu(uiLayout *layout,
   uiLayout *heading_layout = ui_layout_heading_find(layout);
 
   UI_block_layout_set_current(block, layout);
-  ui_block_new_button_group(block);
+  ui_block_new_button_group(block, 0);
 
   if (!name) {
     name = "";
@@ -3095,7 +3088,7 @@ static uiBut *uiItemL_(uiLayout *layout, const char *name, int icon)
   uiBlock *block = layout->root->block;
 
   UI_block_layout_set_current(block, layout);
-  ui_block_new_button_group(block);
+  ui_block_new_button_group(block, 0);
 
   if (!name) {
     name = "";
@@ -5015,16 +5008,6 @@ int uiLayoutGetEmboss(uiLayout *layout)
   return layout->emboss;
 }
 
-/**
- * Tags the layout root as search only, meaning the search process will run, but not the rest of
- * the layout process. Use in situations where part of the block's contents normally wouldn't be
- * drawn, but must be searched anyway, like the contents of closed panels with headers.
- */
-void uiLayoutRootSetSearchOnly(uiLayout *layout, bool search_only)
-{
-  layout->root->search_only = search_only;
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -5042,42 +5025,6 @@ static bool block_search_panel_label_matches(const uiBlock *block, const char *s
     }
   }
   return false;
-}
-
-/**
- * Buttons for search only layouts (closed panel sub-panels) have still been added from the
- * layout functions, but they need to be hidden. Theoretically they could be removed too.
- */
-static void layout_free_and_hide_buttons(uiLayout *layout)
-{
-  LISTBASE_FOREACH_MUTABLE (uiItem *, item, &layout->items) {
-    if (item->type == ITEM_BUTTON) {
-      uiButtonItem *button_item = (uiButtonItem *)item;
-      BLI_assert(button_item->but != NULL);
-      button_item->but->flag |= UI_HIDDEN;
-      MEM_freeN(item);
-    }
-    else {
-      layout_free_and_hide_buttons((uiLayout *)item);
-    }
-  }
-
-  MEM_freeN(layout);
-}
-
-/**
- * Remove layouts used only for search and hide their buttons.
- * (See comment for #uiLayoutRootSetSearchOnly and in #uiLayoutRoot).
- */
-static void block_search_remove_search_only_roots(uiBlock *block)
-{
-  LISTBASE_FOREACH_MUTABLE (uiLayoutRoot *, root, &block->layouts) {
-    if (root->search_only) {
-      layout_free_and_hide_buttons(root->layout);
-      BLI_remlink(&block->layouts, root);
-      MEM_freeN(root);
-    }
-  }
 }
 
 /**
@@ -5197,8 +5144,6 @@ bool UI_block_apply_search_filter(uiBlock *block, const char *search_filter)
   const bool has_result = (panel_label_matches) ?
                               true :
                               block_search_filter_tag_buttons(block, search_filter);
-
-  block_search_remove_search_only_roots(block);
 
   if (block->panel != NULL) {
     if (has_result) {
@@ -5642,9 +5587,6 @@ void UI_block_layout_resolve(uiBlock *block, int *r_x, int *r_y)
   block->curlayout = NULL;
 
   LISTBASE_FOREACH_MUTABLE (uiLayoutRoot *, root, &block->layouts) {
-    /* Search only roots should be removed by #UI_block_apply_search_filter. */
-    BLI_assert(!root->search_only);
-
     ui_layout_add_padding_button(root);
 
     /* NULL in advance so we don't interfere when adding button */

@@ -1683,14 +1683,15 @@ struct Panel *UI_panel_begin(struct ARegion *region,
                              struct PanelType *pt,
                              struct Panel *panel,
                              bool *r_open);
-void UI_panel_end(const struct ARegion *region, uiBlock *block, int width, int height, bool open);
+void UI_panel_header_buttons_begin(struct Panel *panel);
+void UI_panel_header_buttons_end(struct Panel *panel);
+void UI_panel_end(struct Panel *panel, int width, int height);
 
 bool UI_panel_is_active(const struct Panel *panel);
 void UI_panel_label_offset(struct uiBlock *block, int *r_x, int *r_y);
 int UI_panel_size_y(const struct Panel *panel);
 bool UI_panel_is_dragging(const struct Panel *panel);
 bool UI_panel_matches_search_filter(const struct Panel *panel);
-void UI_panels_set_expansion_from_seach_filter(const struct bContext *C, struct ARegion *region);
 
 bool UI_panel_category_is_visible(const struct ARegion *region);
 void UI_panel_category_add(struct ARegion *region, const char *name);
@@ -1922,7 +1923,6 @@ float uiLayoutGetUnitsY(uiLayout *layout);
 int uiLayoutGetEmboss(uiLayout *layout);
 bool uiLayoutGetPropSep(uiLayout *layout);
 bool uiLayoutGetPropDecorate(uiLayout *layout);
-void uiLayoutRootSetSearchOnly(uiLayout *layout, bool search_only);
 
 /* layout specifiers */
 uiLayout *uiLayoutRow(uiLayout *layout, bool align);

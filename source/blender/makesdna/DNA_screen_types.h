@@ -38,6 +38,7 @@ struct Scene;
 struct SpaceLink;
 struct SpaceType;
 struct uiLayout;
+struct uiBlock;
 struct wmDrawBuffer;
 struct wmTimer;
 struct wmTooltipState;
@@ -143,6 +144,10 @@ typedef struct Panel_Runtime {
    * This avoids freeing the same pointer twice when panels are removed.
    */
   struct PointerRNA *custom_data_ptr;
+
+  /* Pointer to the panel's block. Useful when changes to panel #uiBlocks
+   * need some context from traversal of the panel "tree". */
+  struct uiBlock *block;
 } Panel_Runtime;
 
 /** The part from uiBlock that needs saved in file. */
