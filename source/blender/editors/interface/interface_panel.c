@@ -204,12 +204,6 @@ static bool panels_need_realign(ScrArea *area, ARegion *region, Panel **r_panel_
       return true;
     }
   }
-  else if (area->spacetype == SPACE_IMAGE && region->regiontype == RGN_TYPE_PREVIEW) {
-    return true;
-  }
-  else if (area->spacetype == SPACE_FILE && region->regiontype == RGN_TYPE_CHANNELS) {
-    return true;
-  }
 
   /* Detect if a panel was added or removed. */
   Panel *panel_animation = NULL;
