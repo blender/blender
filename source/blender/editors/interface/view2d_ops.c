@@ -1635,25 +1635,23 @@ static int view2d_ndof_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   if (has_zoom) {
-    if (view_zoomdrag_init(C, op)) {
-      v2dViewZoomData *vzd;
-      float zoom_factor = zoom_sensitivity * ndof->dt * -ndof->tvec[2];
+    float zoom_factor = zoom_sensitivity * ndof->dt * -ndof->tvec[2];
 
-      bool do_zoom_xy[2];
+    bool do_zoom_xy[2];
 
-      if (U.ndof_flag & NDOF_ZOOM_INVERT) {
-        zoom_factor = -zoom_factor;
-      }
-
-      view_zoom_axis_lock_defaults(C, do_zoom_xy);
-
-      vzd = op->customdata;
-
-      view_zoomstep_apply_ex(
-          C, vzd, false, do_zoom_xy[0] ? zoom_factor : 0.0f, do_zoom_xy[1] ? zoom_factor : 0.0f);
-
-      view_zoomstep_exit(op);
+    if (U.ndof_flag & NDOF_ZOOM_INVERT) {
+      zoom_factor = -zoom_factor;
     }
+
+    view_zoom_axis_lock_defaults(C, do_zoom_xy);
+
+    view_zoomdrag_init(C, op);
+
+    v2dViewZoomData *vzd = op->customdata;
+    view_zoomstep_apply_ex(
+        C, vzd, do_zoom_xy[0] ? zoom_factor : 0.0f, do_zoom_xy[1] ? zoom_factor : 0.0f);
+
+    view_zoomstep_exit(op);
   }
 
   return OPERATOR_FINISHED;
@@ -1668,7 +1666,7 @@ static void VIEW2D_OT_ndof(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = view2d_ndof_invoke;
-  ot->poll = view2d_poll;
+  ot->poll = view_zoom_poll;
 
   /* flags */
   ot->flag = OPTYPE_LOCK_BYPASS;
