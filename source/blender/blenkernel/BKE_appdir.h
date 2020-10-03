@@ -59,7 +59,7 @@ bool BKE_appdir_program_python_search(char *fullpath,
                                       const int version_minor);
 
 /* Initialize path to temporary directory. */
-void BKE_tempdir_init(char *userdir);
+void BKE_tempdir_init(const char *userdir);
 
 const char *BKE_tempdir_base(void);
 const char *BKE_tempdir_session(void);

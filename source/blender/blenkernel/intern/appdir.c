@@ -881,12 +881,13 @@ void BKE_appdir_app_templates(ListBase *templates)
  *
  * Also make sure the temp dir has a trailing slash
  *
- * \param fullname: The full path to the temporary temp directory
- * \param basename: The full path to the persistent temp directory (may be NULL)
- * \param maxlen: The size of the fullname buffer
- * \param userdir: Directory specified in user preferences
+ * \param fullname: The full path to the temporary temp directory.
+ * \param basename: The full path to the persistent temp directory (may be NULL).
+ * \param maxlen: The size of the \a fullname buffer.
+ * \param userdir: Directory specified in user preferences (may be NULL).
+ * note that by default this is an empty string, only use when non-empty.
  */
-static void where_is_temp(char *fullname, char *basename, const size_t maxlen, char *userdir)
+static void where_is_temp(char *fullname, char *basename, const size_t maxlen, const char *userdir)
 {
   /* Clear existing temp dir, if needed. */
   BKE_tempdir_session_purge();
@@ -930,12 +931,6 @@ static void where_is_temp(char *fullname, char *basename, const size_t maxlen, c
   else {
     /* add a trailing slash if needed */
     BLI_path_slash_ensure(fullname);
-#ifdef WIN32
-    if (userdir && userdir != fullname) {
-      /* also set user pref to show %TEMP%. /tmp/ is just plain confusing for Windows users. */
-      BLI_strncpy(userdir, fullname, maxlen);
-    }
-#endif
   }
 
   /* Now that we have a valid temp dir, add system-generated unique sub-dir. */
@@ -974,10 +969,8 @@ static void where_is_temp(char *fullname, char *basename, const size_t maxlen, c
  * Sets btempdir_base to userdir if specified and is a valid directory, otherwise
  * chooses a suitable OS-specific temporary directory.
  * Sets btempdir_session to a #mkdtemp generated sub-dir of btempdir_base.
- *
- * \note On Window userdir will be set to the temporary directory!
  */
-void BKE_tempdir_init(char *userdir)
+void BKE_tempdir_init(const char *userdir)
 {
   where_is_temp(btempdir_session, btempdir_base, FILE_MAX, userdir);
 }
