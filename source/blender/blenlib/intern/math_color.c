@@ -24,8 +24,6 @@
  * \ingroup bli
  */
 
-#include <assert.h>
-
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 

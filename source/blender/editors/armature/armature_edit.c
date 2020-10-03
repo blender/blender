@@ -22,8 +22,6 @@
  * \ingroup edarmature
  */
 
-#include <assert.h>
-
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_object_types.h"
@@ -415,7 +413,7 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
         copy_v3_v3(vec, mat[2]);
       }
       else { /* Axis */
-        assert(type <= 5);
+        BLI_assert(type <= 5);
         if (type < 3) {
           vec[type] = 1.0f;
         }

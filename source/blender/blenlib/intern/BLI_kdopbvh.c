@@ -38,8 +38,6 @@
  *   #BLI_bvhtree_range_query
  */
 
-#include <assert.h>
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"

@@ -38,7 +38,6 @@
  */
 
 #include "node_texture_util.h"
-#include <assert.h>
 
 bool tex_node_poll_default(bNodeType *UNUSED(ntype), bNodeTree *ntree)
 {

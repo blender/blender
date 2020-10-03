@@ -30,8 +30,8 @@
  * BLI_buffer_declare_static(int, my_int_array, BLI_BUFFER_NOP, 32);
  *
  * BLI_buffer_append(my_int_array, int, 42);
- * assert(my_int_array.count == 1);
- * assert(BLI_buffer_at(my_int_array, int, 0) == 42);
+ * BLI_assert(my_int_array.count == 1);
+ * BLI_assert(BLI_buffer_at(my_int_array, int, 0) == 42);
  *
  * BLI_buffer_free(&my_int_array);
  * \endcode

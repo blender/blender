@@ -546,7 +546,7 @@ int EXPP_FloatsAreEqual(float af, float bf, int maxDiff)
   const int test = SIGNMASK(ai ^ bi);
   int diff, v1, v2;
 
-  assert((0 == test) || (0xFFFFFFFF == test));
+  BLI_assert((0 == test) || (0xFFFFFFFF == test));
   diff = (ai ^ (test & 0x7fffffff)) - bi;
   v1 = maxDiff + diff;
   v2 = maxDiff - diff;

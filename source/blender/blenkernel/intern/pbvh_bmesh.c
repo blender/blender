@@ -36,8 +36,6 @@
 #include "bmesh.h"
 #include "pbvh_intern.h"
 
-#include <assert.h>
-
 /* Avoid skinny faces */
 #define USE_EDGEQUEUE_EVEN_SUBDIV
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV

@@ -65,8 +65,6 @@ const EnumPropertyItem rna_enum_uilist_layout_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include <assert.h>
-
 #  include "MEM_guardedalloc.h"
 
 #  include "RNA_access.h"
@@ -993,7 +991,7 @@ static void rna_Menu_bl_description_set(PointerRNA *ptr, const char *value)
     BLI_strncpy(str, value, RNA_DYN_DESCR_MAX); /* utf8 already ensured */
   }
   else {
-    assert(!"setting the bl_description on a non-builtin menu");
+    BLI_assert(!"setting the bl_description on a non-builtin menu");
   }
 }
 

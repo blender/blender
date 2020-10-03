@@ -18,7 +18,6 @@
  * \ingroup bke
  */
 
-#include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -395,7 +394,8 @@ static const struct bUnitCollection *bUnitSystems[][B_UNIT_TYPE_TOT] = {
 
 static const bUnitCollection *unit_get_system(int system, int type)
 {
-  assert((system > -1) && (system < UNIT_SYSTEM_TOT) && (type > -1) && (type < B_UNIT_TYPE_TOT));
+  BLI_assert((system > -1) && (system < UNIT_SYSTEM_TOT) && (type > -1) &&
+             (type < B_UNIT_TYPE_TOT));
   return bUnitSystems[system][type]; /* Select system to use: metric/imperial/other? */
 }
 

@@ -59,8 +59,6 @@
 /* For undo push. */
 #include "sculpt_intern.h"
 
-#include <assert.h>
-
 /* Return true if the element should be hidden/shown. */
 static bool is_effected(PartialVisArea area,
                         float planes[4][4],

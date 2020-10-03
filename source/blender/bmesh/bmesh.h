@@ -190,7 +190,6 @@
 #include "DNA_customdata_types.h" /* BMesh struct in bmesh_class.h uses */
 #include "DNA_listBase.h"         /* selection history uses */
 
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 

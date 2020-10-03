@@ -18,7 +18,6 @@
  * \ingroup edinterface
  */
 
-#include <assert.h>
 #include <limits.h>
 #include <math.h>
 #include <stdlib.h>
@@ -1192,7 +1191,7 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
     but = uiDefButO_ptr(block, UI_BTYPE_BUT, ot, context, name, 0, 0, w, UI_UNIT_Y, NULL);
   }
 
-  assert(but->optype != NULL);
+  BLI_assert(but->optype != NULL);
 
   if (flag & UI_ITEM_R_NO_BG) {
     layout->emboss = prev_emboss;

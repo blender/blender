@@ -24,7 +24,6 @@
  * allocate and free of all library data
  */
 
-#include <assert.h>
 #include <ctype.h>
 #include <stddef.h>
 #include <stdio.h>

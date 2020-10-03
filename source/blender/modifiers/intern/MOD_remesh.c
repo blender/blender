@@ -50,7 +50,6 @@
 #include "MOD_modifiertypes.h"
 #include "MOD_ui_common.h"
 
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 

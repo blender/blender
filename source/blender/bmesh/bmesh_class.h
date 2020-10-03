@@ -395,17 +395,17 @@ typedef bool (*BMLoopFilterFunc)(const BMLoop *, void *user_data);
 #define BM_ELEM_CD_SET_INT(ele, offset, f) \
   { \
     CHECK_TYPE_NONCONST(ele); \
-    assert(offset != -1); \
+    BLI_assert(offset != -1); \
     *((int *)((char *)(ele)->head.data + (offset))) = (f); \
   } \
   (void)0
 
 #define BM_ELEM_CD_GET_INT(ele, offset) \
-  (assert(offset != -1), *((int *)((char *)(ele)->head.data + (offset))))
+  (BLI_assert(offset != -1), *((int *)((char *)(ele)->head.data + (offset))))
 
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
 #  define BM_ELEM_CD_GET_VOID_P(ele, offset) \
-    (assert(offset != -1), \
+    (BLI_assert(offset != -1), \
      _Generic(ele, \
               GENERIC_TYPE_ANY(POINTER_OFFSET((ele)->head.data, offset), \
                                _BM_GENERIC_TYPE_ELEM_NONCONST), \
@@ -413,22 +413,22 @@ typedef bool (*BMLoopFilterFunc)(const BMLoop *, void *user_data);
                                _BM_GENERIC_TYPE_ELEM_CONST)))
 #else
 #  define BM_ELEM_CD_GET_VOID_P(ele, offset) \
-    (assert(offset != -1), (void *)((char *)(ele)->head.data + (offset)))
+    (BLI_assert(offset != -1), (void *)((char *)(ele)->head.data + (offset)))
 #endif
 
 #define BM_ELEM_CD_SET_FLOAT(ele, offset, f) \
   { \
     CHECK_TYPE_NONCONST(ele); \
-    assert(offset != -1); \
+    BLI_assert(offset != -1); \
     *((float *)((char *)(ele)->head.data + (offset))) = (f); \
   } \
   (void)0
 
 #define BM_ELEM_CD_GET_FLOAT(ele, offset) \
-  (assert(offset != -1), *((float *)((char *)(ele)->head.data + (offset))))
+  (BLI_assert(offset != -1), *((float *)((char *)(ele)->head.data + (offset))))
 
 #define BM_ELEM_CD_GET_FLOAT_AS_UCHAR(ele, offset) \
-  (assert(offset != -1), (uchar)(BM_ELEM_CD_GET_FLOAT(ele, offset) * 255.0f))
+  (BLI_assert(offset != -1), (uchar)(BM_ELEM_CD_GET_FLOAT(ele, offset) * 255.0f))
 
 /*forward declarations*/
 

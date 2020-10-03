@@ -18,7 +18,6 @@
  * \ingroup RNA
  */
 
-#include <assert.h>
 #include <stdlib.h>
 
 #include "DNA_brush_types.h"

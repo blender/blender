@@ -24,7 +24,6 @@
  * as well as some generic operators and shared operator properties.
  */
 
-#include <assert.h>
 #include <ctype.h>
 #include <errno.h>
 #include <float.h>

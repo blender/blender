@@ -154,7 +154,7 @@ static struct VolumeFileCache {
 
   ~VolumeFileCache()
   {
-    assert(cache.empty());
+    BLI_assert(cache.empty());
   }
 
   Entry *add_metadata_user(const Entry &template_entry)

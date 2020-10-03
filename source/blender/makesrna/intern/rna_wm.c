@@ -512,8 +512,6 @@ const EnumPropertyItem rna_enum_wm_report_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include <assert.h>
-
 #  include "BLI_string_utils.h"
 
 #  include "WM_api.h"
@@ -1747,7 +1745,7 @@ static void rna_Operator_bl_idname_set(PointerRNA *ptr, const char *value)
     BLI_strncpy(str, value, OP_MAX_TYPENAME); /* utf8 already ensured */
   }
   else {
-    assert(!"setting the bl_idname on a non-builtin operator");
+    BLI_assert(!"setting the bl_idname on a non-builtin operator");
   }
 }
 
@@ -1759,7 +1757,7 @@ static void rna_Operator_bl_label_set(PointerRNA *ptr, const char *value)
     BLI_strncpy(str, value, OP_MAX_TYPENAME); /* utf8 already ensured */
   }
   else {
-    assert(!"setting the bl_label on a non-builtin operator");
+    BLI_assert(!"setting the bl_label on a non-builtin operator");
   }
 }
 
@@ -1771,7 +1769,7 @@ static void rna_Operator_bl_translation_context_set(PointerRNA *ptr, const char 
     BLI_strncpy(str, value, RNA_DYN_DESCR_MAX); /* utf8 already ensured */
   }
   else {
-    assert(!"setting the bl_translation_context on a non-builtin operator");
+    BLI_assert(!"setting the bl_translation_context on a non-builtin operator");
   }
 }
 
@@ -1783,7 +1781,7 @@ static void rna_Operator_bl_description_set(PointerRNA *ptr, const char *value)
     BLI_strncpy(str, value, RNA_DYN_DESCR_MAX); /* utf8 already ensured */
   }
   else {
-    assert(!"setting the bl_description on a non-builtin operator");
+    BLI_assert(!"setting the bl_description on a non-builtin operator");
   }
 }
 
@@ -1795,7 +1793,7 @@ static void rna_Operator_bl_undo_group_set(PointerRNA *ptr, const char *value)
     BLI_strncpy(str, value, OP_MAX_TYPENAME); /* utf8 already ensured */
   }
   else {
-    assert(!"setting the bl_undo_group on a non-builtin operator");
+    BLI_assert(!"setting the bl_undo_group on a non-builtin operator");
   }
 }
 

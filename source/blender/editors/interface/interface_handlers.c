@@ -21,7 +21,6 @@
  * \ingroup edinterface
  */
 
-#include <assert.h>
 #include <ctype.h>
 #include <float.h>
 #include <limits.h>
@@ -6213,7 +6212,7 @@ static void ui_ndofedit_but_HSVCUBE(uiButHSVCube *hsv_but,
       CLAMP(hsv[2], hsv_but->but.softmin, hsv_but->but.softmax);
       break;
     default:
-      assert(!"invalid hsv type");
+      BLI_assert(!"invalid hsv type");
       break;
   }
 

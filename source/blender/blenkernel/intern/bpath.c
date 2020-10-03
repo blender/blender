@@ -27,7 +27,6 @@
 
 #include <sys/stat.h>
 
-#include <assert.h>
 #include <string.h>
 
 /* path/file handling stuff */

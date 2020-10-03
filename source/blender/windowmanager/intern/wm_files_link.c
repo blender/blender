@@ -23,7 +23,6 @@
  * Functions for dealing with append/link operators and helpers.
  */
 
-#include <assert.h>
 #include <ctype.h>
 #include <errno.h>
 #include <float.h>
