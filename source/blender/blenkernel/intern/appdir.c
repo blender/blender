@@ -183,15 +183,17 @@ bool BKE_appdir_font_folder_default(
  * \param path_base: Path base, never NULL.
  * \param folder_name: First sub-directory (optional).
  * \param subfolder_name: Second sub-directory (optional).
+ * \param check_is_dir: When false, return true even if the path doesn't exist.
  *
  * \note The names for optional paths only follow other usage in this function,
- * as far as this function is concerned the names don't matter.
+ * the names don't matter for this function.
  *
  * \note If it's useful we could take an arbitrary number of paths.
  * For now usage is limited and we don't need this.
  */
 static bool test_path(char *targetpath,
                       size_t targetpath_len,
+                      const bool check_is_dir,
                       const char *path_base,
                       const char *folder_name,
                       const char *subfolder_name)
@@ -199,6 +201,12 @@ static bool test_path(char *targetpath,
   /* Only the last argument should be NULL. */
   BLI_assert(!(folder_name == NULL && (subfolder_name != NULL)));
   BLI_path_join(targetpath, targetpath_len, path_base, folder_name, subfolder_name, NULL);
+  if (check_is_dir == false) {
+#ifdef PATH_DEBUG
+    printf("\t%s using without test: %s\n", __func__, targetpath);
+#endif
+    return true;
+  }
 
   if (BLI_is_dir(targetpath)) {
 #ifdef PATH_DEBUG
@@ -210,7 +218,10 @@ static bool test_path(char *targetpath,
 #ifdef PATH_DEBUG
   printf("\t%s missing: %s\n", __func__, targetpath);
 #endif
-  // targetpath[0] = '\0';
+
+  /* Path not found, don't accidentally use it,
+   * otherwise call this function with `check_is_dir` set to false. */
+  targetpath[0] = '\0';
   return false;
 }
 
@@ -218,11 +229,18 @@ static bool test_path(char *targetpath,
  * Puts the value of the specified environment variable into *path if it exists
  * and points at a directory. Returns true if this was done.
  */
-static bool test_env_path(char *path, const char *envvar)
+static bool test_env_path(char *path, const char *envvar, const bool check_is_dir)
 {
   const char *env = envvar ? BLI_getenv(envvar) : NULL;
   if (!env) {
     return false;
+  }
+
+  if (check_is_dir == false) {
+#ifdef PATH_DEBUG
+    printf("\t%s using without test: %s\n", __func__, targetpath);
+#endif
+    return true;
   }
 
   if (BLI_is_dir(env)) {
@@ -233,10 +251,13 @@ static bool test_env_path(char *path, const char *envvar)
     return true;
   }
 
-  path[0] = '\0';
 #ifdef PATH_DEBUG
   printf("\t%s env %s missing: %s\n", __func__, envvar, env);
 #endif
+
+  /* Path not found, don't accidentally use it,
+   * otherwise call this function with `check_is_dir` set to false. */
+  path[0] = '\0';
   return false;
 }
 
@@ -247,14 +268,17 @@ static bool test_env_path(char *path, const char *envvar)
  * \param targetpath: String to return path.
  * \param folder_name: Optional folder name within version-specific directory.
  * \param subfolder_name: Optional sub-folder name within folder_name.
+ *
  * \param ver: To construct name of version-specific directory within #bprogdir.
+ * \param check_is_dir: When false, return true even if the path doesn't exist.
  * \return true if such a directory exists.
  */
-static bool get_path_local(char *targetpath,
-                           size_t targetpath_len,
-                           const char *folder_name,
-                           const char *subfolder_name,
-                           const int ver)
+static bool get_path_local_ex(char *targetpath,
+                              size_t targetpath_len,
+                              const char *folder_name,
+                              const char *subfolder_name,
+                              const int ver,
+                              const bool check_is_dir)
 {
   char relfolder[FILE_MAX];
 
@@ -281,7 +305,22 @@ static bool get_path_local(char *targetpath,
   BLI_path_normalize(NULL, osx_resourses);
   path_base = osx_resourses;
 #endif
-  return test_path(targetpath, targetpath_len, path_base, blender_version_decimal(ver), relfolder);
+  return test_path(targetpath,
+                   targetpath_len,
+                   check_is_dir,
+                   path_base,
+                   blender_version_decimal(ver),
+                   relfolder);
+}
+static bool get_path_local(char *targetpath,
+                           size_t targetpath_len,
+                           const char *folder_name,
+                           const char *subfolder_name)
+{
+  const int ver = BLENDER_VERSION;
+  const bool check_is_dir = true;
+  return get_path_local_ex(
+      targetpath, targetpath_len, folder_name, subfolder_name, ver, check_is_dir);
 }
 
 /**
@@ -291,10 +330,8 @@ static bool get_path_local(char *targetpath,
 bool BKE_appdir_app_is_portable_install(void)
 {
   /* Detect portable install by the existence of `config` folder. */
-  const int ver = BLENDER_VERSION;
   char path[FILE_MAX];
-
-  return get_path_local(path, sizeof(path), "config", NULL, ver);
+  return get_path_local(path, sizeof(path), "config", NULL);
 }
 
 /**
@@ -303,43 +340,30 @@ bool BKE_appdir_app_is_portable_install(void)
  * \param targetpath: String to return path.
  * \param subfolder_name: optional name of sub-folder within folder.
  * \param envvar: name of environment variable to check folder_name.
+ * \param check_is_dir: When false, return true even if the path doesn't exist.
  * \return true if it was able to construct such a path and the path exists.
  */
+static bool get_path_environment_ex(char *targetpath,
+                                    size_t targetpath_len,
+                                    const char *subfolder_name,
+                                    const char *envvar,
+                                    const bool check_is_dir)
+{
+  char user_path[FILE_MAX];
+
+  if (test_env_path(user_path, envvar, check_is_dir)) {
+    /* Note that `subfolder_name` may be NULL, in this case we use `user_path` as-is. */
+    return test_path(targetpath, targetpath_len, check_is_dir, user_path, subfolder_name, NULL);
+  }
+  return false;
+}
 static bool get_path_environment(char *targetpath,
                                  size_t targetpath_len,
                                  const char *subfolder_name,
                                  const char *envvar)
 {
-  char user_path[FILE_MAX];
-
-  if (test_env_path(user_path, envvar)) {
-    /* Note that `subfolder_name` may be NULL, in this case we use `user_path` as-is. */
-    return test_path(targetpath, targetpath_len, user_path, subfolder_name, NULL);
-  }
-  return false;
-}
-
-/**
- * Returns the path of a folder from environment variables.
- *
- * \param targetpath: String to return path.
- * \param subfolder_name: optional name of sub-folder within folder.
- * \param envvar: name of environment variable to check folder_name.
- * \return true if it was able to construct such a path.
- */
-static bool get_path_environment_notest(char *targetpath,
-                                        size_t targetpath_len,
-                                        const char *subfolder_name,
-                                        const char *envvar)
-{
-  char user_path[FILE_MAX];
-
-  if (test_env_path(user_path, envvar)) {
-    /* Note that `subfolder_name` may be NULL, in this case we use `user_path` as-is. */
-    BLI_path_join(targetpath, targetpath_len, user_path, subfolder_name, NULL);
-    return true;
-  }
-  return false;
+  const bool check_is_dir = true;
+  return get_path_environment_ex(targetpath, targetpath_len, subfolder_name, envvar, check_is_dir);
 }
 
 /**
@@ -349,20 +373,23 @@ static bool get_path_environment_notest(char *targetpath,
  * \param folder_name: default name of folder within user area.
  * \param subfolder_name: optional name of sub-folder within folder.
  * \param ver: Blender version, used to construct a sub-directory name.
+ * \param check_is_dir: When false, return true even if the path doesn't exist.
  * \return true if it was able to construct such a path.
  */
-static bool get_path_user(char *targetpath,
-                          size_t targetpath_len,
-                          const char *folder_name,
-                          const char *subfolder_name,
-                          const int ver)
+static bool get_path_user_ex(char *targetpath,
+                             size_t targetpath_len,
+                             const char *folder_name,
+                             const char *subfolder_name,
+                             const int ver,
+                             const bool check_is_dir)
 {
   char user_path[FILE_MAX];
   const char *user_base_path;
 
   /* for portable install, user path is always local */
   if (BKE_appdir_app_is_portable_install()) {
-    return get_path_local(targetpath, targetpath_len, folder_name, subfolder_name, ver);
+    return get_path_local_ex(
+        targetpath, targetpath_len, folder_name, subfolder_name, ver, check_is_dir);
   }
   user_path[0] = '\0';
 
@@ -380,7 +407,18 @@ static bool get_path_user(char *targetpath,
 #endif
 
   /* `subfolder_name` may be NULL. */
-  return test_path(targetpath, targetpath_len, user_path, folder_name, subfolder_name);
+  return test_path(
+      targetpath, targetpath_len, check_is_dir, user_path, folder_name, subfolder_name);
+}
+static bool get_path_user(char *targetpath,
+                          size_t targetpath_len,
+                          const char *folder_name,
+                          const char *subfolder_name)
+{
+  const int ver = BLENDER_VERSION;
+  const bool check_is_dir = true;
+  return get_path_user_ex(
+      targetpath, targetpath_len, folder_name, subfolder_name, ver, check_is_dir);
 }
 
 /**
@@ -390,13 +428,15 @@ static bool get_path_user(char *targetpath,
  * \param folder_name: default name of folder within installation area.
  * \param subfolder_name: optional name of sub-folder within folder.
  * \param ver: Blender version, used to construct a sub-directory name.
+ * \param check_is_dir: When false, return true even if the path doesn't exist.
  * \return true if it was able to construct such a path.
  */
-static bool get_path_system(char *targetpath,
-                            size_t targetpath_len,
-                            const char *folder_name,
-                            const char *subfolder_name,
-                            const int ver)
+static bool get_path_system_ex(char *targetpath,
+                               size_t targetpath_len,
+                               const char *folder_name,
+                               const char *subfolder_name,
+                               const int ver,
+                               const bool check_is_dir)
 {
   char system_path[FILE_MAX];
   const char *system_base_path;
@@ -424,7 +464,19 @@ static bool get_path_system(char *targetpath,
 #endif
 
   /* Try `$BLENDERPATH/folder_name/subfolder_name`, `subfolder_name` may be NULL. */
-  return test_path(targetpath, targetpath_len, system_path, folder_name, subfolder_name);
+  return test_path(
+      targetpath, targetpath_len, check_is_dir, system_path, folder_name, subfolder_name);
+}
+
+static bool get_path_system(char *targetpath,
+                            size_t targetpath_len,
+                            const char *folder_name,
+                            const char *subfolder_name)
+{
+  const int ver = BLENDER_VERSION;
+  const bool check_is_dir = true;
+  return get_path_system_ex(
+      targetpath, targetpath_len, folder_name, subfolder_name, ver, check_is_dir);
 }
 
 /** \} */
@@ -440,116 +492,117 @@ static bool get_path_system(char *targetpath,
  * this may contain path separators but must resolve to a directory, checked with #BLI_is_dir.
  * \return The path if found, NULL string if not.
  */
-const char *BKE_appdir_folder_id_ex(const int folder_id,
-                                    const char *subfolder,
-                                    char *path,
-                                    size_t path_len)
+bool BKE_appdir_folder_id_ex(const int folder_id,
+                             const char *subfolder,
+                             char *path,
+                             size_t path_len)
 {
-  const int ver = BLENDER_VERSION;
-
   switch (folder_id) {
     case BLENDER_DATAFILES: /* general case */
       if (get_path_environment(path, path_len, subfolder, "BLENDER_USER_DATAFILES")) {
         break;
       }
-      if (get_path_user(path, path_len, "datafiles", subfolder, ver)) {
+      if (get_path_user(path, path_len, "datafiles", subfolder)) {
         break;
       }
       if (get_path_environment(path, path_len, subfolder, "BLENDER_SYSTEM_DATAFILES")) {
         break;
       }
-      if (get_path_local(path, path_len, "datafiles", subfolder, ver)) {
+      if (get_path_local(path, path_len, "datafiles", subfolder)) {
         break;
       }
-      if (get_path_system(path, path_len, "datafiles", subfolder, ver)) {
+      if (get_path_system(path, path_len, "datafiles", subfolder)) {
         break;
       }
-      return NULL;
+      return false;
 
     case BLENDER_USER_DATAFILES:
       if (get_path_environment(path, path_len, subfolder, "BLENDER_USER_DATAFILES")) {
         break;
       }
-      if (get_path_user(path, path_len, "datafiles", subfolder, ver)) {
+      if (get_path_user(path, path_len, "datafiles", subfolder)) {
         break;
       }
-      return NULL;
+      return false;
 
     case BLENDER_SYSTEM_DATAFILES:
       if (get_path_environment(path, path_len, subfolder, "BLENDER_SYSTEM_DATAFILES")) {
         break;
       }
-      if (get_path_system(path, path_len, "datafiles", subfolder, ver)) {
+      if (get_path_system(path, path_len, "datafiles", subfolder)) {
         break;
       }
-      if (get_path_local(path, path_len, "datafiles", subfolder, ver)) {
+      if (get_path_local(path, path_len, "datafiles", subfolder)) {
         break;
       }
-      return NULL;
+      return false;
 
     case BLENDER_USER_AUTOSAVE:
       if (get_path_environment(path, path_len, subfolder, "BLENDER_USER_DATAFILES")) {
         break;
       }
-      if (get_path_user(path, path_len, "autosave", subfolder, ver)) {
+      if (get_path_user(path, path_len, "autosave", subfolder)) {
         break;
       }
-      return NULL;
+      return false;
 
     case BLENDER_USER_CONFIG:
       if (get_path_environment(path, path_len, subfolder, "BLENDER_USER_CONFIG")) {
         break;
       }
-      if (get_path_user(path, path_len, "config", subfolder, ver)) {
+      if (get_path_user(path, path_len, "config", subfolder)) {
         break;
       }
-      return NULL;
+      return false;
 
     case BLENDER_USER_SCRIPTS:
       if (get_path_environment(path, path_len, subfolder, "BLENDER_USER_SCRIPTS")) {
         break;
       }
-      if (get_path_user(path, path_len, "scripts", subfolder, ver)) {
+      if (get_path_user(path, path_len, "scripts", subfolder)) {
         break;
       }
-      return NULL;
+      return false;
 
     case BLENDER_SYSTEM_SCRIPTS:
       if (get_path_environment(path, path_len, subfolder, "BLENDER_SYSTEM_SCRIPTS")) {
         break;
       }
-      if (get_path_system(path, path_len, "scripts", subfolder, ver)) {
+      if (get_path_system(path, path_len, "scripts", subfolder)) {
         break;
       }
-      if (get_path_local(path, path_len, "scripts", subfolder, ver)) {
+      if (get_path_local(path, path_len, "scripts", subfolder)) {
         break;
       }
-      return NULL;
+      return false;
 
     case BLENDER_SYSTEM_PYTHON:
       if (get_path_environment(path, path_len, subfolder, "BLENDER_SYSTEM_PYTHON")) {
         break;
       }
-      if (get_path_system(path, path_len, "python", subfolder, ver)) {
+      if (get_path_system(path, path_len, "python", subfolder)) {
         break;
       }
-      if (get_path_local(path, path_len, "python", subfolder, ver)) {
+      if (get_path_local(path, path_len, "python", subfolder)) {
         break;
       }
-      return NULL;
+      return false;
 
     default:
       BLI_assert(0);
       break;
   }
 
-  return path;
+  return true;
 }
 
 const char *BKE_appdir_folder_id(const int folder_id, const char *subfolder)
 {
   static char path[FILE_MAX] = "";
-  return BKE_appdir_folder_id_ex(folder_id, subfolder, path, sizeof(path));
+  if (BKE_appdir_folder_id_ex(folder_id, subfolder, path, sizeof(path))) {
+    return path;
+  }
+  return NULL;
 }
 
 /**
@@ -559,31 +612,36 @@ const char *BKE_appdir_folder_id_user_notest(const int folder_id, const char *su
 {
   const int ver = BLENDER_VERSION;
   static char path[FILE_MAX] = "";
+  const bool check_is_dir = false;
 
   switch (folder_id) {
     case BLENDER_USER_DATAFILES:
-      if (get_path_environment_notest(path, sizeof(path), subfolder, "BLENDER_USER_DATAFILES")) {
+      if (get_path_environment_ex(
+              path, sizeof(path), subfolder, "BLENDER_USER_DATAFILES", check_is_dir)) {
         break;
       }
-      get_path_user(path, sizeof(path), "datafiles", subfolder, ver);
+      get_path_user_ex(path, sizeof(path), "datafiles", subfolder, ver, check_is_dir);
       break;
     case BLENDER_USER_CONFIG:
-      if (get_path_environment_notest(path, sizeof(path), subfolder, "BLENDER_USER_CONFIG")) {
+      if (get_path_environment_ex(
+              path, sizeof(path), subfolder, "BLENDER_USER_CONFIG", check_is_dir)) {
         break;
       }
-      get_path_user(path, sizeof(path), "config", subfolder, ver);
+      get_path_user_ex(path, sizeof(path), "config", subfolder, ver, check_is_dir);
       break;
     case BLENDER_USER_AUTOSAVE:
-      if (get_path_environment_notest(path, sizeof(path), subfolder, "BLENDER_USER_AUTOSAVE")) {
+      if (get_path_environment_ex(
+              path, sizeof(path), subfolder, "BLENDER_USER_AUTOSAVE", check_is_dir)) {
         break;
       }
-      get_path_user(path, sizeof(path), "autosave", subfolder, ver);
+      get_path_user_ex(path, sizeof(path), "autosave", subfolder, ver, check_is_dir);
       break;
     case BLENDER_USER_SCRIPTS:
-      if (get_path_environment_notest(path, sizeof(path), subfolder, "BLENDER_USER_SCRIPTS")) {
+      if (get_path_environment_ex(
+              path, sizeof(path), subfolder, "BLENDER_USER_SCRIPTS", check_is_dir)) {
         break;
       }
-      get_path_user(path, sizeof(path), "scripts", subfolder, ver);
+      get_path_user_ex(path, sizeof(path), "scripts", subfolder, ver, check_is_dir);
       break;
     default:
       BLI_assert(0);
@@ -626,34 +684,31 @@ const char *BKE_appdir_folder_id_create(const int folder_id, const char *subfold
 
 /**
  * Returns the path of the top-level version-specific local, user or system directory.
- * If do_check, then the result will be NULL if the directory doesn't exist.
+ * If check_is_dir, then the result will be NULL if the directory doesn't exist.
  */
-const char *BKE_appdir_folder_id_version(const int folder_id, const int ver, const bool do_check)
+const char *BKE_appdir_folder_id_version(const int folder_id,
+                                         const int ver,
+                                         const bool check_is_dir)
 {
   static char path[FILE_MAX] = "";
   bool ok;
   switch (folder_id) {
     case BLENDER_RESOURCE_PATH_USER:
-      ok = get_path_user(path, sizeof(path), NULL, NULL, ver);
+      ok = get_path_user_ex(path, sizeof(path), NULL, NULL, ver, check_is_dir);
       break;
     case BLENDER_RESOURCE_PATH_LOCAL:
-      ok = get_path_local(path, sizeof(path), NULL, NULL, ver);
+      ok = get_path_local_ex(path, sizeof(path), NULL, NULL, ver, check_is_dir);
       break;
     case BLENDER_RESOURCE_PATH_SYSTEM:
-      ok = get_path_system(path, sizeof(path), NULL, NULL, ver);
+      ok = get_path_system_ex(path, sizeof(path), NULL, NULL, ver, check_is_dir);
       break;
     default:
-      path[0] = '\0'; /* in case do_check is false */
+      path[0] = '\0'; /* in case check_is_dir is false */
       ok = false;
       BLI_assert(!"incorrect ID");
       break;
   }
-
-  if (!ok && do_check) {
-    return NULL;
-  }
-
-  return path;
+  return ok ? path : NULL;
 }
 
 #ifdef PATH_DEBUG
