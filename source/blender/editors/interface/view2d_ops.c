@@ -807,35 +807,6 @@ static void view_zoom_axis_lock_defaults(bContext *C, bool r_do_zoom_xy[2])
   }
 }
 
-/* initialize panning customdata */
-static bool view_zoomdrag_init(bContext *C, wmOperator *op)
-{
-  ARegion *region = CTX_wm_region(C);
-  v2dViewZoomData *vzd;
-  View2D *v2d;
-
-  /* regions now have v2d-data by default, so check for region */
-  if (region == NULL) {
-    return false;
-  }
-  v2d = &region->v2d;
-
-  /* check that 2d-view is zoomable */
-  if ((v2d->keepzoom & V2D_LOCKZOOM_X) && (v2d->keepzoom & V2D_LOCKZOOM_Y)) {
-    return false;
-  }
-
-  /* set custom-data for operator */
-  vzd = MEM_callocN(sizeof(v2dViewZoomData), "v2dViewZoomData");
-  op->customdata = vzd;
-
-  /* set pointers to owners */
-  vzd->v2d = v2d;
-  vzd->region = region;
-
-  return true;
-}
-
 /* check if step-zoom can be applied */
 static bool view_zoom_poll(bContext *C)
 {
@@ -861,6 +832,21 @@ static bool view_zoom_poll(bContext *C)
 
   /* view is zoomable */
   return true;
+}
+
+/* initialize panning customdata */
+static void view_zoomdrag_init(bContext *C, wmOperator *op)
+{
+  /* Should've been checked before. */
+  BLI_assert(view_zoom_poll(C));
+
+  /* set custom-data for operator */
+  v2dViewZoomData *vzd = MEM_callocN(sizeof(v2dViewZoomData), "v2dViewZoomData");
+  op->customdata = vzd;
+
+  /* set pointers to owners */
+  vzd->region = CTX_wm_region(C);
+  vzd->v2d = &vzd->region->v2d;
 }
 
 /* apply transform to view (i.e. adjust 'cur' rect) */
@@ -1024,9 +1010,7 @@ static int view_zoomin_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   v2dViewZoomData *vzd;
 
-  if (!view_zoomdrag_init(C, op)) {
-    return OPERATOR_PASS_THROUGH;
-  }
+  view_zoomdrag_init(C, op);
 
   vzd = op->customdata;
 
@@ -1092,9 +1076,7 @@ static int view_zoomout_invoke(bContext *C, wmOperator *op, const wmEvent *event
 {
   v2dViewZoomData *vzd;
 
-  if (!view_zoomdrag_init(C, op)) {
-    return OPERATOR_PASS_THROUGH;
-  }
+  view_zoomdrag_init(C, op);
 
   vzd = op->customdata;
 
@@ -1255,10 +1237,7 @@ static void view_zoomdrag_cancel(bContext *C, wmOperator *op)
 /* for 'redo' only, with no user input */
 static int view_zoomdrag_exec(bContext *C, wmOperator *op)
 {
-  if (!view_zoomdrag_init(C, op)) {
-    return OPERATOR_PASS_THROUGH;
-  }
-
+  view_zoomdrag_init(C, op);
   view_zoomdrag_apply(C, op);
   view_zoomdrag_exit(C, op);
   return OPERATOR_FINISHED;
@@ -1272,9 +1251,7 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, const wmEvent *even
   View2D *v2d;
 
   /* set up customdata */
-  if (!view_zoomdrag_init(C, op)) {
-    return OPERATOR_PASS_THROUGH;
-  }
+  view_zoomdrag_init(C, op);
 
   vzd = op->customdata;
   v2d = vzd->v2d;
