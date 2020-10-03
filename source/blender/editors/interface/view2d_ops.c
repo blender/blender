@@ -106,45 +106,6 @@ typedef struct v2dViewPanData {
   double edge_pan_start_time_x, edge_pan_start_time_y;
 } v2dViewPanData;
 
-/* initialize panning customdata */
-static bool view_pan_init(bContext *C, wmOperator *op)
-{
-  ARegion *region = CTX_wm_region(C);
-  v2dViewPanData *vpd;
-  View2D *v2d;
-  float winx, winy;
-
-  /* regions now have v2d-data by default, so check for region */
-  if (region == NULL) {
-    return false;
-  }
-
-  /* check if panning is allowed at all */
-  v2d = &region->v2d;
-  if ((v2d->keepofs & V2D_LOCKOFS_X) && (v2d->keepofs & V2D_LOCKOFS_Y)) {
-    return false;
-  }
-
-  /* set custom-data for operator */
-  vpd = MEM_callocN(sizeof(v2dViewPanData), "v2dViewPanData");
-  op->customdata = vpd;
-
-  /* set pointers to owners */
-  vpd->screen = CTX_wm_screen(C);
-  vpd->area = CTX_wm_area(C);
-  vpd->v2d = v2d;
-  vpd->region = region;
-
-  /* calculate translation factor - based on size of view */
-  winx = (float)(BLI_rcti_size_x(&region->winrct) + 1);
-  winy = (float)(BLI_rcti_size_y(&region->winrct) + 1);
-  vpd->facx = (BLI_rctf_size_x(&v2d->cur)) / winx;
-  vpd->facy = (BLI_rctf_size_y(&v2d->cur)) / winy;
-
-  return true;
-}
-
-#ifdef WITH_INPUT_NDOF
 static bool view_pan_poll(bContext *C)
 {
   ARegion *region = CTX_wm_region(C);
@@ -154,6 +115,7 @@ static bool view_pan_poll(bContext *C)
   if (region == NULL) {
     return false;
   }
+
   v2d = &region->v2d;
 
   /* check that 2d-view can pan */
@@ -164,7 +126,29 @@ static bool view_pan_poll(bContext *C)
   /* view can pan */
   return true;
 }
-#endif
+
+/* initialize panning customdata */
+static void view_pan_init(bContext *C, wmOperator *op)
+{
+  /* Should've been checked before. */
+  BLI_assert(view_pan_poll(C));
+
+  /* set custom-data for operator */
+  v2dViewPanData *vpd = MEM_callocN(sizeof(v2dViewPanData), "v2dViewPanData");
+  op->customdata = vpd;
+
+  /* set pointers to owners */
+  vpd->screen = CTX_wm_screen(C);
+  vpd->area = CTX_wm_area(C);
+  vpd->region = CTX_wm_region(C);
+  vpd->v2d = &vpd->region->v2d;
+
+  /* calculate translation factor - based on size of view */
+  float winx = (float)(BLI_rcti_size_x(&vpd->region->winrct) + 1);
+  float winy = (float)(BLI_rcti_size_y(&vpd->region->winrct) + 1);
+  vpd->facx = (BLI_rctf_size_x(&vpd->v2d->cur)) / winx;
+  vpd->facy = (BLI_rctf_size_y(&vpd->v2d->cur)) / winy;
+}
 
 /* apply transform to view (i.e. adjust 'cur' rect) */
 static void view_pan_apply_ex(bContext *C, v2dViewPanData *vpd, float dx, float dy)
@@ -222,10 +206,7 @@ static void view_pan_exit(wmOperator *op)
 /* for 'redo' only, with no user input */
 static int view_pan_exec(bContext *C, wmOperator *op)
 {
-  if (!view_pan_init(C, op)) {
-    return OPERATOR_CANCELLED;
-  }
-
+  view_pan_init(C, op);
   view_pan_apply(C, op);
   view_pan_exit(op);
   return OPERATOR_FINISHED;
@@ -239,9 +220,7 @@ static int view_pan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   View2D *v2d;
 
   /* set up customdata */
-  if (!view_pan_init(C, op)) {
-    return OPERATOR_PASS_THROUGH;
-  }
+  view_pan_init(C, op);
 
   vpd = op->customdata;
   v2d = vpd->v2d;
@@ -349,6 +328,7 @@ static void VIEW2D_OT_pan(wmOperatorType *ot)
   ot->invoke = view_pan_invoke;
   ot->modal = view_pan_modal;
   ot->cancel = view_pan_cancel;
+  ot->poll = view_pan_poll;
 
   /* operator is modal */
   ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY;
@@ -378,9 +358,7 @@ static void VIEW2D_OT_pan(wmOperatorType *ot)
 static int view_edge_pan_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   /* Set up customdata. */
-  if (!view_pan_init(C, op)) {
-    return OPERATOR_PASS_THROUGH;
-  }
+  view_pan_init(C, op);
 
   v2dViewPanData *vpd = op->customdata;
 
@@ -538,6 +516,7 @@ static void VIEW2D_OT_edge_pan(wmOperatorType *ot)
   ot->invoke = view_edge_pan_invoke;
   ot->modal = view_edge_pan_modal;
   ot->cancel = view_edge_pan_cancel;
+  ot->poll = view_pan_poll;
 
   /* operator is modal */
   ot->flag = OPTYPE_INTERNAL;
@@ -569,9 +548,7 @@ static int view_scrollright_exec(bContext *C, wmOperator *op)
   v2dViewPanData *vpd;
 
   /* initialize default settings (and validate if ok to run) */
-  if (!view_pan_init(C, op)) {
-    return OPERATOR_PASS_THROUGH;
-  }
+  view_pan_init(C, op);
 
   /* also, check if can pan in horizontal axis */
   vpd = op->customdata;
@@ -600,6 +577,7 @@ static void VIEW2D_OT_scroll_right(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = view_scrollright_exec;
+  ot->poll = view_pan_poll;
 
   /* rna - must keep these in sync with the other operators */
   RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
@@ -612,9 +590,7 @@ static int view_scrollleft_exec(bContext *C, wmOperator *op)
   v2dViewPanData *vpd;
 
   /* initialize default settings (and validate if ok to run) */
-  if (!view_pan_init(C, op)) {
-    return OPERATOR_PASS_THROUGH;
-  }
+  view_pan_init(C, op);
 
   /* also, check if can pan in horizontal axis */
   vpd = op->customdata;
@@ -643,6 +619,7 @@ static void VIEW2D_OT_scroll_left(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = view_scrollleft_exec;
+  ot->poll = view_pan_poll;
 
   /* rna - must keep these in sync with the other operators */
   RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
@@ -655,9 +632,7 @@ static int view_scrolldown_exec(bContext *C, wmOperator *op)
   v2dViewPanData *vpd;
 
   /* initialize default settings (and validate if ok to run) */
-  if (!view_pan_init(C, op)) {
-    return OPERATOR_PASS_THROUGH;
-  }
+  view_pan_init(C, op);
 
   /* also, check if can pan in vertical axis */
   vpd = op->customdata;
@@ -692,6 +667,7 @@ static void VIEW2D_OT_scroll_down(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = view_scrolldown_exec;
+  ot->poll = view_pan_poll;
 
   /* rna - must keep these in sync with the other operators */
   RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
@@ -705,9 +681,7 @@ static int view_scrollup_exec(bContext *C, wmOperator *op)
   v2dViewPanData *vpd;
 
   /* initialize default settings (and validate if ok to run) */
-  if (!view_pan_init(C, op)) {
-    return OPERATOR_PASS_THROUGH;
-  }
+  view_pan_init(C, op);
 
   /* also, check if can pan in vertical axis */
   vpd = op->customdata;
@@ -742,6 +716,7 @@ static void VIEW2D_OT_scroll_up(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = view_scrollup_exec;
+  ot->poll = view_pan_poll;
 
   /* rna - must keep these in sync with the other operators */
   RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
@@ -1617,21 +1592,19 @@ static int view2d_ndof_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   const bool has_zoom = (ndof->tvec[2] != 0.0f) && view_zoom_poll(C);
 
   if (has_translate) {
-    if (view_pan_init(C, op)) {
-      v2dViewPanData *vpd;
-      float pan_vec[3];
+    float pan_vec[3];
 
-      WM_event_ndof_pan_get(ndof, pan_vec, false);
+    WM_event_ndof_pan_get(ndof, pan_vec, false);
 
-      pan_vec[0] *= speed;
-      pan_vec[1] *= speed;
+    pan_vec[0] *= speed;
+    pan_vec[1] *= speed;
 
-      vpd = op->customdata;
+    view_pan_init(C, op);
 
-      view_pan_apply_ex(C, vpd, pan_vec[0], pan_vec[1]);
+    v2dViewPanData *vpd = op->customdata;
+    view_pan_apply_ex(C, vpd, pan_vec[0], pan_vec[1]);
 
-      view_pan_exit(op);
-    }
+    view_pan_exit(op);
   }
 
   if (has_zoom) {
