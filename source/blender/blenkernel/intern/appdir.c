@@ -60,6 +60,16 @@
 #  include <unistd.h>
 #endif /* WIN32 */
 
+/**
+ * Print paths being tested,
+ * useful for debugging on systems without `strace` or similar utilities.
+ */
+// #define PATH_DEBUG
+
+/* -------------------------------------------------------------------- */
+/** \name Local Variables
+ * \{ */
+
 /* local */
 static CLG_LogRef LOG = {"bke.appdir"};
 /** Full path to program executable. */
@@ -70,6 +80,29 @@ static char bprogdir[FILE_MAX];
 static char btempdir_base[FILE_MAX];
 /** Volatile temporary directory (owned by Blender, removed on exit). */
 static char btempdir_session[FILE_MAX] = "";
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Internal Utilities
+ * \{ */
+
+/**
+ * \returns a formatted representation of the specified version number. Non-re-entrant!
+ */
+static char *blender_version_decimal(const int ver)
+{
+  static char version_str[5];
+  BLI_assert(ver < 1000);
+  BLI_snprintf(version_str, sizeof(version_str), "%d.%02d", ver / 100, ver % 100);
+  return version_str;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Default Directories
+ * \{ */
 
 /**
  * This is now only used to really get the user's default document folder.
@@ -115,18 +148,33 @@ const char *BKE_appdir_folder_default(void)
 #endif /* WIN32 */
 }
 
-// #define PATH_DEBUG
-
 /**
- * \returns a formatted representation of the specified version number. Non-re-entrant!
+ * Gets a good default directory for fonts.
  */
-static char *blender_version_decimal(const int ver)
+bool BKE_appdir_font_folder_default(
+    /* This parameter can only be `const` on non-windows platforms.
+     * NOLINTNEXTLINE: readability-non-const-parameter. */
+    char *dir)
 {
-  static char version_str[5];
-  BLI_assert(ver < 1000);
-  BLI_snprintf(version_str, sizeof(version_str), "%d.%02d", ver / 100, ver % 100);
-  return version_str;
+  bool success = false;
+#ifdef WIN32
+  wchar_t wpath[FILE_MAXDIR];
+  success = SHGetSpecialFolderPathW(0, wpath, CSIDL_FONTS, 0);
+  if (success) {
+    wcscat(wpath, L"\\");
+    BLI_strncpy_wchar_as_utf8(dir, wpath, FILE_MAXDIR);
+  }
+#endif
+  /* TODO: Values for other platforms. */
+  UNUSED_VARS(dir);
+  return success;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Path Presets (Internal Helpers)
+ * \{ */
 
 /**
  * Concatenates path_base, (optional) path_sep and (optional) folder_name into \a targetpath,
@@ -409,6 +457,12 @@ static bool get_path_system(char *targetpath,
   return test_path(targetpath, targetpath_len, system_path, NULL, folder_name);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Path Presets API
+ * \{ */
+
 /**
  * Get a folder out of the \a folder_id presets for paths.
  *
@@ -636,8 +690,13 @@ const char *BKE_appdir_folder_id_version(const int folder_id, const int ver, con
 #  undef PATH_DEBUG
 #endif
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/* Preset paths */
+/** \name Program Path Queries
+ *
+ * Access locations of Blender & Python.
+ * \{ */
 
 /**
  * Checks if name is a fully qualified filename to an executable.
@@ -797,6 +856,12 @@ bool BKE_appdir_program_python_search(char *fullpath,
   return is_found;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Application Templates
+ * \{ */
+
 /** Keep in sync with `bpy.utils.app_template_paths()` */
 static const char *app_template_directory_search[2] = {
     "startup" SEP_STR "bl_app_templates_user",
@@ -884,6 +949,12 @@ void BKE_appdir_app_templates(ListBase *templates)
     BLI_filelist_free(dir, totfile);
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Temporary Directories
+ * \{ */
 
 /**
  * Gets the temp directory when blender first runs.
@@ -1006,24 +1077,4 @@ void BKE_tempdir_session_purge(void)
   }
 }
 
-/**
- * Gets a good default directory for fonts.
- */
-bool BKE_appdir_font_folder_default(
-    /* This parameter can only be `const` on non-windows platforms.
-     * NOLINTNEXTLINE: readability-non-const-parameter. */
-    char *dir)
-{
-  bool success = false;
-#ifdef WIN32
-  wchar_t wpath[FILE_MAXDIR];
-  success = SHGetSpecialFolderPathW(0, wpath, CSIDL_FONTS, 0);
-  if (success) {
-    wcscat(wpath, L"\\");
-    BLI_strncpy_wchar_as_utf8(dir, wpath, FILE_MAXDIR);
-  }
-#endif
-  /* TODO: Values for other platforms. */
-  UNUSED_VARS(dir);
-  return success;
-}
+/** \} */
