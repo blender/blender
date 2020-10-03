@@ -136,6 +136,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
 
   geom->name = ustring(b_ob_data.name().c_str());
 
+  /* Defer the actual geometry sync to the task_pool for multithreading */
   task_pool.push([=]() mutable {
 
     if (progress.get_cancel())
@@ -187,6 +188,7 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
     return;
   }
 
+  /* Defer the actual geometry sync to the task_pool for multithreading */
   task_pool.push([=]() mutable {
 
     if (progress.get_cancel())
