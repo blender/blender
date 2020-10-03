@@ -999,14 +999,6 @@ const char *BKE_tempdir_base(void)
 }
 
 /**
- * Path to the system temporary directory (with trailing slash)
- */
-void BKE_tempdir_system_init(char *dir)
-{
-  where_is_temp(dir, NULL, FILE_MAX, NULL);
-}
-
-/**
  * Delete content of this instance's temp dir.
  */
 void BKE_tempdir_session_purge(void)

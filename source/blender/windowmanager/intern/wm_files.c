@@ -415,9 +415,6 @@ static void wm_init_userdef(Main *bmain)
   MEM_CacheLimiter_set_maximum(((size_t)U.memcachelimit) * 1024 * 1024);
   BKE_sound_init(bmain);
 
-  if (STREQ(U.tempdir, "/")) {
-    BKE_tempdir_system_init(U.tempdir);
-  }
   /* Update `U.tempdir` from user preferences. */
   BKE_tempdir_init(U.tempdir);
 
