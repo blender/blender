@@ -130,6 +130,9 @@ if(WITH_AUDASPACE)
   )
 endif()
 
+if(WITH_CYCLES)
+  add_definitions(-DWITH_CYCLES)
+endif()
 
 if(WITH_INTERNATIONAL)
   add_definitions(-DWITH_INTERNATIONAL)
