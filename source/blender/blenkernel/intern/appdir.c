@@ -177,33 +177,28 @@ bool BKE_appdir_font_folder_default(
  * \{ */
 
 /**
- * Concatenates path_base, (optional) path_sep and (optional) folder_name into \a targetpath,
+ * Concatenates paths into \a targetpath,
  * returning true if result points to a directory.
+ *
+ * \param path_base: Path base, never NULL.
+ * \param folder_name: First sub-directory (optional).
+ * \param subfolder_name: Second sub-directory (optional).
+ *
+ * \note The names for optional paths only follow other usage in this function,
+ * as far as this function is concerned the names don't matter.
+ *
+ * \note If it's useful we could take an arbitrary number of paths.
+ * For now usage is limited and we don't need this.
  */
 static bool test_path(char *targetpath,
                       size_t targetpath_len,
                       const char *path_base,
-                      const char *path_sep,
-                      const char *folder_name)
+                      const char *folder_name,
+                      const char *subfolder_name)
 {
-  char tmppath[FILE_MAX];
-
-  if (path_sep) {
-    BLI_join_dirfile(tmppath, sizeof(tmppath), path_base, path_sep);
-  }
-  else {
-    BLI_strncpy(tmppath, path_base, sizeof(tmppath));
-  }
-
-  /* Rare cases folder_name is omitted (when looking for `~/.config/blender/2.xx` dir only). */
-  if (folder_name) {
-    BLI_join_dirfile(targetpath, targetpath_len, tmppath, folder_name);
-  }
-  else {
-    BLI_strncpy(targetpath, tmppath, targetpath_len);
-  }
-  /* FIXME: why is "//" on front of \a tmppath expanded to "/" (by #BLI_join_dirfile)
-   * if folder_name is specified but not otherwise? */
+  /* Only the last argument should be NULL. */
+  BLI_assert(!(folder_name == NULL && (subfolder_name != NULL)));
+  BLI_path_join(targetpath, targetpath_len, path_base, folder_name, subfolder_name, NULL);
 
   if (BLI_is_dir(targetpath)) {
 #ifdef PATH_DEBUG
@@ -267,13 +262,8 @@ static bool get_path_local(char *targetpath,
   printf("%s...\n", __func__);
 #endif
 
-  if (folder_name) {
-    if (subfolder_name) {
-      BLI_join_dirfile(relfolder, sizeof(relfolder), folder_name, subfolder_name);
-    }
-    else {
-      BLI_strncpy(relfolder, folder_name, sizeof(relfolder));
-    }
+  if (folder_name) { /* `subfolder_name` may be NULL. */
+    BLI_path_join(relfolder, sizeof(relfolder), folder_name, subfolder_name, NULL);
   }
   else {
     relfolder[0] = '\0';
@@ -281,6 +271,7 @@ static bool get_path_local(char *targetpath,
 
   /* Try `{bprogdir}/2.xx/{folder_name}` the default directory
    * for a portable distribution. See `WITH_INSTALL_PORTABLE` build-option. */
+  const char *path_base = bprogdir;
 #ifdef __APPLE__
   /* Due new code-sign situation in OSX > 10.9.5
    * we must move the blender_version dir with contents to Resources. */
@@ -288,11 +279,9 @@ static bool get_path_local(char *targetpath,
   BLI_snprintf(osx_resourses, sizeof(osx_resourses), "%s../Resources", bprogdir);
   /* Remove the '/../' added above. */
   BLI_path_normalize(NULL, osx_resourses);
-  return test_path(
-      targetpath, targetpath_len, osx_resourses, blender_version_decimal(ver), relfolder);
-#else
-  return test_path(targetpath, targetpath_len, bprogdir, blender_version_decimal(ver), relfolder);
+  path_base = osx_resourses;
 #endif
+  return test_path(targetpath, targetpath_len, path_base, blender_version_decimal(ver), relfolder);
 }
 
 /**
@@ -324,11 +313,8 @@ static bool get_path_environment(char *targetpath,
   char user_path[FILE_MAX];
 
   if (test_env_path(user_path, envvar)) {
-    if (subfolder_name) {
-      return test_path(targetpath, targetpath_len, user_path, NULL, subfolder_name);
-    }
-    BLI_strncpy(targetpath, user_path, FILE_MAX);
-    return true;
+    /* Note that `subfolder_name` may be NULL, in this case we use `user_path` as-is. */
+    return test_path(targetpath, targetpath_len, user_path, subfolder_name, NULL);
   }
   return false;
 }
@@ -349,11 +335,8 @@ static bool get_path_environment_notest(char *targetpath,
   char user_path[FILE_MAX];
 
   if (test_env_path(user_path, envvar)) {
-    if (subfolder_name) {
-      BLI_join_dirfile(targetpath, targetpath_len, user_path, subfolder_name);
-      return true;
-    }
-    BLI_strncpy(targetpath, user_path, FILE_MAX);
+    /* Note that `subfolder_name` may be NULL, in this case we use `user_path` as-is. */
+    BLI_path_join(targetpath, targetpath_len, user_path, subfolder_name, NULL);
     return true;
   }
   return false;
@@ -396,11 +379,8 @@ static bool get_path_user(char *targetpath,
   printf("%s: %s\n", __func__, user_path);
 #endif
 
-  if (subfolder_name) {
-    return test_path(targetpath, targetpath_len, user_path, folder_name, subfolder_name);
-  }
-
-  return test_path(targetpath, targetpath_len, user_path, NULL, folder_name);
+  /* `subfolder_name` may be NULL. */
+  return test_path(targetpath, targetpath_len, user_path, folder_name, subfolder_name);
 }
 
 /**
@@ -422,13 +402,8 @@ static bool get_path_system(char *targetpath,
   const char *system_base_path;
   char relfolder[FILE_MAX];
 
-  if (folder_name) {
-    if (subfolder_name) {
-      BLI_join_dirfile(relfolder, sizeof(relfolder), folder_name, subfolder_name);
-    }
-    else {
-      BLI_strncpy(relfolder, folder_name, sizeof(relfolder));
-    }
+  if (folder_name) { /* `subfolder_name` may be NULL. */
+    BLI_path_join(relfolder, sizeof(relfolder), folder_name, subfolder_name, NULL);
   }
   else {
     relfolder[0] = '\0';
@@ -448,13 +423,8 @@ static bool get_path_system(char *targetpath,
   printf("%s: %s\n", __func__, system_path);
 #endif
 
-  if (subfolder_name) {
-    /* Try `$BLENDERPATH/folder_name/subfolder_name`. */
-    return test_path(targetpath, targetpath_len, system_path, folder_name, subfolder_name);
-  }
-
-  /* Try `$BLENDERPATH/folder_name`. */
-  return test_path(targetpath, targetpath_len, system_path, NULL, folder_name);
+  /* Try `$BLENDERPATH/folder_name/subfolder_name`, `subfolder_name` may be NULL. */
+  return test_path(targetpath, targetpath_len, system_path, folder_name, subfolder_name);
 }
 
 /** \} */
