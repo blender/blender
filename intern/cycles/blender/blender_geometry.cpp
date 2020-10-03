@@ -144,7 +144,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
   }
   else if (geom_type == Geometry::VOLUME) {
     Volume* volume = static_cast<Volume*>(geom);
-    sync_volume(b_ob, volume, used_shaders);
+    task_pool.push([=]() mutable { sync_volume(b_ob, volume, used_shaders); });
   }
   else {
     Mesh* mesh = static_cast<Mesh*>(geom);
