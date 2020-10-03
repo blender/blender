@@ -62,14 +62,21 @@
 
 /* local */
 static CLG_LogRef LOG = {"bke.appdir"};
-static char bprogname[FILE_MAX];     /* full path to program executable */
-static char bprogdir[FILE_MAX];      /* full path to directory in which executable is located */
-static char btempdir_base[FILE_MAX]; /* persistent temporary directory */
-static char btempdir_session[FILE_MAX] = ""; /* volatile temporary directory */
+/** Full path to program executable. */
+static char bprogname[FILE_MAX];
+/** Full path to directory in which executable is located. */
+static char bprogdir[FILE_MAX];
+/** Persistent temporary directory. */
+static char btempdir_base[FILE_MAX];
+/** Volatile temporary directory (owned by Blender, removed on exit). */
+static char btempdir_session[FILE_MAX] = "";
 
-/* This is now only used to really get the user's default document folder */
-/* On Windows I chose the 'Users/<MyUserName>/Documents' since it's used
- * as default location to save documents */
+/**
+ * This is now only used to really get the user's default document folder.
+ *
+ * \note On Windows `Users/{MyUserName}/Documents` is used
+ * as it's the default location to save documents.
+ */
 const char *BKE_appdir_folder_default(void)
 {
 #ifndef WIN32
@@ -84,17 +91,17 @@ const char *BKE_appdir_folder_default(void)
   static char documentfolder[MAXPATHLEN];
   HRESULT hResult;
 
-  /* Check for %HOME% env var */
+  /* Check for `%HOME%` environment variable. */
   if (uput_getenv("HOME", documentfolder, MAXPATHLEN)) {
     if (BLI_is_dir(documentfolder)) {
       return documentfolder;
     }
   }
 
-  /* add user profile support for WIN 2K / NT.
-   * This is %APPDATA%, which translates to either
-   * %USERPROFILE%\Application Data or since Vista
-   * to %USERPROFILE%\AppData\Roaming
+  /* Add user profile support for WIN 2K / NT.
+   * This is `%APPDATA%`, which translates to either:
+   * - `%USERPROFILE%\Application Data` or...
+   * - `%USERPROFILE%\AppData\Roaming` (since Vista).
    */
   hResult = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, documentfolder);
 
@@ -110,7 +117,9 @@ const char *BKE_appdir_folder_default(void)
 
 // #define PATH_DEBUG
 
-/* returns a formatted representation of the specified version number. Non-re-entrant! */
+/**
+ * \returns a formatted representation of the specified version number. Non-re-entrant!
+ */
 static char *blender_version_decimal(const int ver)
 {
   static char version_str[5];
@@ -145,7 +154,7 @@ static bool test_path(char *targetpath,
   else {
     BLI_strncpy(targetpath, tmppath, targetpath_len);
   }
-  /* FIXME: why is "//" on front of \a tmppath expanded to "/" (by BLI_join_dirfile)
+  /* FIXME: why is "//" on front of \a tmppath expanded to "/" (by #BLI_join_dirfile)
    * if folder_name is specified but not otherwise? */
 
   if (BLI_is_dir(targetpath)) {
@@ -192,10 +201,10 @@ static bool test_env_path(char *path, const char *envvar)
  * Constructs in \a targetpath the name of a directory relative to a version-specific
  * sub-directory in the parent directory of the Blender executable.
  *
- * \param targetpath: String to return path
- * \param folder_name: Optional folder name within version-specific directory
- * \param subfolder_name: Optional subfolder name within folder_name
- * \param ver: To construct name of version-specific directory within bprogdir
+ * \param targetpath: String to return path.
+ * \param folder_name: Optional folder name within version-specific directory.
+ * \param subfolder_name: Optional sub-folder name within folder_name.
+ * \param ver: To construct name of version-specific directory within #bprogdir.
  * \return true if such a directory exists.
  */
 static bool get_path_local(char *targetpath,
@@ -222,10 +231,10 @@ static bool get_path_local(char *targetpath,
     relfolder[0] = '\0';
   }
 
-  /* Try EXECUTABLE_DIR/2.5x/folder_name -
-   * new default directory for local blender installed files. */
+  /* Try `{bprogdir}/2.xx/{folder_name}` the default directory
+   * for a portable distribution. See `WITH_INSTALL_PORTABLE` build-option. */
 #ifdef __APPLE__
-  /* Due new codesign situation in OSX > 10.9.5
+  /* Due new code-sign situation in OSX > 10.9.5
    * we must move the blender_version dir with contents to Resources. */
   char osx_resourses[FILE_MAX];
   BLI_snprintf(osx_resourses, sizeof(osx_resourses), "%s../Resources", bprogdir);
@@ -239,12 +248,12 @@ static bool get_path_local(char *targetpath,
 }
 
 /**
- * Is this an install with user files kept together with the Blender executable and its
- * installation files.
+ * Check if this is an install with user files kept together
+ * with the Blender executable and its installation files.
  */
 bool BKE_appdir_app_is_portable_install(void)
 {
-  /* detect portable install by the existence of config folder */
+  /* Detect portable install by the existence of `config` folder. */
   const int ver = BLENDER_VERSION;
   char path[FILE_MAX];
 
@@ -252,10 +261,10 @@ bool BKE_appdir_app_is_portable_install(void)
 }
 
 /**
- * Returns the path of a folder from environment variables
+ * Returns the path of a folder from environment variables.
  *
  * \param targetpath: String to return path.
- * \param subfolder_name: optional name of subfolder within folder.
+ * \param subfolder_name: optional name of sub-folder within folder.
  * \param envvar: name of environment variable to check folder_name.
  * \return true if it was able to construct such a path and the path exists.
  */
@@ -277,10 +286,10 @@ static bool get_path_environment(char *targetpath,
 }
 
 /**
- * Returns the path of a folder from environment variables
+ * Returns the path of a folder from environment variables.
  *
  * \param targetpath: String to return path.
- * \param subfolder_name: optional name of subfolder within folder.
+ * \param subfolder_name: optional name of sub-folder within folder.
  * \param envvar: name of environment variable to check folder_name.
  * \return true if it was able to construct such a path.
  */
@@ -304,10 +313,11 @@ static bool get_path_environment_notest(char *targetpath,
 
 /**
  * Returns the path of a folder within the user-files area.
- * \param targetpath: String to return path
- * \param folder_name: default name of folder within user area
- * \param subfolder_name: optional name of subfolder within folder
- * \param ver: Blender version, used to construct a sub-directory name
+ *
+ * \param targetpath: String to return path.
+ * \param folder_name: default name of folder within user area.
+ * \param subfolder_name: optional name of sub-folder within folder.
+ * \param ver: Blender version, used to construct a sub-directory name.
  * \return true if it was able to construct such a path.
  */
 static bool get_path_user(char *targetpath,
@@ -348,10 +358,10 @@ static bool get_path_user(char *targetpath,
 /**
  * Returns the path of a folder within the Blender installation directory.
  *
- * \param targetpath: String to return path
- * \param folder_name: default name of folder within installation area
- * \param subfolder_name: optional name of sub-folder within folder
- * \param ver: Blender version, used to construct a sub-directory name
+ * \param targetpath: String to return path.
+ * \param folder_name: default name of folder within installation area.
+ * \param subfolder_name: optional name of sub-folder within folder.
+ * \param ver: Blender version, used to construct a sub-directory name.
  * \return true if it was able to construct such a path.
  */
 static bool get_path_system(char *targetpath,
@@ -391,20 +401,20 @@ static bool get_path_system(char *targetpath,
 #endif
 
   if (subfolder_name) {
-    /* try $BLENDERPATH/folder_name/subfolder_name */
+    /* Try `$BLENDERPATH/folder_name/subfolder_name`. */
     return test_path(targetpath, targetpath_len, system_path, folder_name, subfolder_name);
   }
 
-  /* try $BLENDERPATH/folder_name */
+  /* Try `$BLENDERPATH/folder_name`. */
   return test_path(targetpath, targetpath_len, system_path, NULL, folder_name);
 }
 
 /**
- * Get a folder out of the 'folder_id' presets for paths.
- * returns the path if found, NULL string if not
+ * Get a folder out of the \a folder_id presets for paths.
  *
  * \param subfolder: The name of a directory to check for,
  * this may contain path separators but must resolve to a directory, checked with #BLI_is_dir.
+ * \return The path if found, NULL string if not.
  */
 const char *BKE_appdir_folder_id_ex(const int folder_id,
                                     const char *subfolder,
@@ -569,7 +579,7 @@ const char *BKE_appdir_folder_id_create(const int folder_id, const char *subfold
 {
   const char *path;
 
-  /* only for user folders */
+  /* Only for user folders. */
   if (!ELEM(folder_id,
             BLENDER_USER_DATAFILES,
             BLENDER_USER_CONFIG,
@@ -631,20 +641,20 @@ const char *BKE_appdir_folder_id_version(const int folder_id, const int ver, con
 
 /**
  * Checks if name is a fully qualified filename to an executable.
- * If not it searches $PATH for the file. On Windows it also
- * adds the correct extension (.com .exe etc) from
- * $PATHEXT if necessary. Also on Windows it translates
+ * If not it searches `$PATH` for the file. On Windows it also
+ * adds the correct extension (`.com` `.exe` etc) from
+ * `$PATHEXT` if necessary. Also on Windows it translates
  * the name to its 8.3 version to prevent problems with
  * spaces and stuff. Final result is returned in \a fullname.
  *
  * \param fullname: The full path and full name of the executable
- * (must be FILE_MAX minimum)
- * \param name: The name of the executable (usually argv[0]) to be checked
+ * (must be #FILE_MAX minimum)
+ * \param name: The name of the executable (usually `argv[0]`) to be checked
  */
 static void where_am_i(char *fullname, const size_t maxlen, const char *name)
 {
 #ifdef WITH_BINRELOC
-  /* linux uses binreloc since argv[0] is not reliable, call br_init( NULL ) first */
+  /* Linux uses `binreloc` since `argv[0]` is not reliable, call `br_init(NULL)` first. */
   {
     const char *path = NULL;
     path = br_find_exe(NULL);
@@ -674,7 +684,7 @@ static void where_am_i(char *fullname, const size_t maxlen, const char *name)
   }
 #endif
 
-  /* unix and non linux */
+  /* Unix and non Linux. */
   if (name && name[0]) {
 
     BLI_strncpy(fullname, name, maxlen);
@@ -685,7 +695,7 @@ static void where_am_i(char *fullname, const size_t maxlen, const char *name)
 #endif
     }
     else if (BLI_path_slash_rfind(name)) {
-      // full path
+      /* Full path. */
       BLI_strncpy(fullname, name, maxlen);
 #ifdef _WIN32
       BLI_path_program_extensions_add_win32(fullname, maxlen);
@@ -733,12 +743,12 @@ bool BKE_appdir_program_python_search(char *fullpath,
                                       const int version_minor)
 {
 #ifdef PYTHON_EXECUTABLE_NAME
-  /* passed in from the build-systems 'PYTHON_EXECUTABLE' */
+  /* Passed in from the build-systems 'PYTHON_EXECUTABLE'. */
   const char *python_build_def = STRINGIFY(PYTHON_EXECUTABLE_NAME);
 #endif
   const char *basename = "python";
   char python_ver[16];
-  /* check both possible names */
+  /* Check both possible names. */
   const char *python_names[] = {
 #ifdef PYTHON_EXECUTABLE_NAME
       python_build_def,
@@ -831,7 +841,7 @@ bool BKE_appdir_app_template_id_search(const char *app_template, char *path, siz
 
 bool BKE_appdir_app_template_has_userpref(const char *app_template)
 {
-  /* Test if app template provides a userpref.blend.
+  /* Test if app template provides a `userpref.blend`.
    * If not, we will share user preferences with the rest of Blender. */
   if (!app_template && app_template[0]) {
     return false;
@@ -913,7 +923,7 @@ static void where_is_temp(char *fullname, char *basename, const size_t maxlen, c
 #endif
     };
     for (int i = 0; i < ARRAY_SIZE(env_vars); i++) {
-      const char *tmp = BLI_getenv(env_vars[i]); /* Windows */
+      const char *tmp = BLI_getenv(env_vars[i]);
       if (tmp && (tmp[0] != '\0') && BLI_is_dir(tmp)) {
         BLI_strncpy(fullname, tmp, maxlen);
         break;
@@ -931,7 +941,7 @@ static void where_is_temp(char *fullname, char *basename, const size_t maxlen, c
 
   /* Now that we have a valid temp dir, add system-generated unique sub-dir. */
   if (basename) {
-    /* 'XXXXXX' is kind of tag to be replaced by mktemp-familly by an uuid. */
+    /* 'XXXXXX' is kind of tag to be replaced by `mktemp-family` by an UUID. */
     char *tmp_name = BLI_strdupcat(fullname, "blender_XXXXXX");
     const size_t ln = strlen(tmp_name) + 1;
     if (ln <= maxlen) {
@@ -961,9 +971,9 @@ static void where_is_temp(char *fullname, char *basename, const size_t maxlen, c
 }
 
 /**
- * Sets btempdir_base to userdir if specified and is a valid directory, otherwise
- * chooses a suitable OS-specific temporary directory.
- * Sets btempdir_session to a #mkdtemp generated sub-dir of btempdir_base.
+ * Sets #btempdir_base to \a userdir if specified and is a valid directory,
+ * otherwise chooses a suitable OS-specific temporary directory.
+ * Sets #btempdir_session to a #mkdtemp generated sub-dir of #btempdir_base.
  */
 void BKE_tempdir_init(const char *userdir)
 {
@@ -996,8 +1006,9 @@ void BKE_tempdir_session_purge(void)
   }
 }
 
-/* Gets a good default directory for fonts */
-
+/**
+ * Gets a good default directory for fonts.
+ */
 bool BKE_appdir_font_folder_default(
     /* This parameter can only be `const` on non-windows platforms.
      * NOLINTNEXTLINE: readability-non-const-parameter. */
