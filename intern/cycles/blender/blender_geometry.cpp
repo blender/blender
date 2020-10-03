@@ -132,24 +132,31 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
     return geom;
   }
 
-  progress.set_sync_status("Synchronizing object", b_ob.name());
-
   geometry_synced.insert(geom);
 
   geom->name = ustring(b_ob_data.name().c_str());
 
-  if (geom_type == Geometry::HAIR) {
-    Hair* hair = static_cast<Hair*>(geom);
-    task_pool.push([=] { sync_hair(b_depsgraph, b_ob, hair, used_shaders); });
-  }
-  else if (geom_type == Geometry::VOLUME) {
-    Volume* volume = static_cast<Volume*>(geom);
-    task_pool.push([=]() mutable { sync_volume(b_ob, volume, used_shaders); });
-  }
-  else {
-    Mesh* mesh = static_cast<Mesh*>(geom);
-    task_pool.push([=] { sync_mesh(b_depsgraph, b_ob, mesh, used_shaders); });
-  }
+  task_pool.push([=]() mutable {
+
+    if (progress.get_cancel())
+      return;
+
+    progress.set_sync_status("Synchronizing object", b_ob.name());
+
+    if (geom_type == Geometry::HAIR) {
+      Hair* hair = static_cast<Hair*>(geom);
+      sync_hair(b_depsgraph, b_ob, hair, used_shaders);
+    }
+    else if (geom_type == Geometry::VOLUME) {
+      Volume* volume = static_cast<Volume*>(geom);
+      sync_volume(b_ob, volume, used_shaders);
+    }
+    else {
+      Mesh* mesh = static_cast<Mesh*>(geom);
+      sync_mesh(b_depsgraph, b_ob, mesh, used_shaders);
+    }
+
+  });
 
   return geom;
 }
@@ -180,17 +187,23 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
     return;
   }
 
-  if (b_ob.type() == BL::Object::type_HAIR || use_particle_hair) {
-    Hair *hair = static_cast<Hair *>(geom);
-    task_pool.push([=] { sync_hair_motion(b_depsgraph, b_ob, hair, motion_step); });
-  }
-  else if (b_ob.type() == BL::Object::type_VOLUME || object_fluid_gas_domain_find(b_ob)) {
-    /* No volume motion blur support yet. */
-  }
-  else {
-    Mesh *mesh = static_cast<Mesh *>(geom);
-    task_pool.push([=] { sync_mesh_motion(b_depsgraph, b_ob, mesh, motion_step); });
-  }
+  task_pool.push([=]() mutable {
+
+    if (progress.get_cancel())
+      return;
+
+    if (b_ob.type() == BL::Object::type_HAIR || use_particle_hair) {
+      Hair* hair = static_cast<Hair*>(geom);
+      sync_hair_motion(b_depsgraph, b_ob, hair, motion_step);
+    }
+    else if (b_ob.type() == BL::Object::type_VOLUME || object_fluid_gas_domain_find(b_ob)) {
+      /* No volume motion blur support yet. */
+    }
+    else {
+      Mesh* mesh = static_cast<Mesh*>(geom);
+      sync_mesh_motion(b_depsgraph, b_ob, mesh, motion_step);
+    }
+  });
 }
 
 CCL_NAMESPACE_END
