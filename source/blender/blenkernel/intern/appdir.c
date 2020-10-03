@@ -901,29 +901,25 @@ static void where_is_temp(char *fullname, char *basename, const size_t maxlen, c
     BLI_strncpy(fullname, userdir, maxlen);
   }
 
+  if (fullname[0] == '\0') {
+    const char *env_vars[] = {
 #ifdef WIN32
-  if (fullname[0] == '\0') {
-    const char *tmp = BLI_getenv("TEMP"); /* Windows */
-    if (tmp && BLI_is_dir(tmp)) {
-      BLI_strncpy(fullname, tmp, maxlen);
-    }
-  }
+        "TEMP",
 #else
-  /* Other OS's - Try TMP and TMPDIR */
-  if (fullname[0] == '\0') {
-    const char *tmp = BLI_getenv("TMP");
-    if (tmp && BLI_is_dir(tmp)) {
-      BLI_strncpy(fullname, tmp, maxlen);
-    }
-  }
-
-  if (fullname[0] == '\0') {
-    const char *tmp = BLI_getenv("TMPDIR");
-    if (tmp && BLI_is_dir(tmp)) {
-      BLI_strncpy(fullname, tmp, maxlen);
-    }
-  }
+        /* Non standard (could be removed). */
+        "TMP",
+        /* Posix standard. */
+        "TMPDIR",
 #endif
+    };
+    for (int i = 0; i < ARRAY_SIZE(env_vars); i++) {
+      const char *tmp = BLI_getenv(env_vars[i]); /* Windows */
+      if (tmp && (tmp[0] != '\0') && BLI_is_dir(tmp)) {
+        BLI_strncpy(fullname, tmp, maxlen);
+        break;
+      }
+    }
+  }
 
   if (fullname[0] == '\0') {
     BLI_strncpy(fullname, "/tmp/", maxlen);
@@ -940,14 +936,13 @@ static void where_is_temp(char *fullname, char *basename, const size_t maxlen, c
     const size_t ln = strlen(tmp_name) + 1;
     if (ln <= maxlen) {
 #ifdef WIN32
-      if (_mktemp_s(tmp_name, ln) == 0) {
-        BLI_dir_create_recursive(tmp_name);
-      }
+      const bool ok = (_mktemp_s(tmp_name, ln) == 0);
 #else
-      if (mkdtemp(tmp_name) == NULL) {
+      const bool ok = (mkdtemp(tmp_name) == NULL);
+#endif
+      if (ok) {
         BLI_dir_create_recursive(tmp_name);
       }
-#endif
     }
     if (BLI_is_dir(tmp_name)) {
       BLI_strncpy(basename, fullname, maxlen);
