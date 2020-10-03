@@ -2658,10 +2658,10 @@ uiBut *ui_but_add_search(
     uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *searchptr, PropertyRNA *searchprop)
 {
   /* for ID's we do automatic lookup */
+  PointerRNA sptr;
   if (!searchprop) {
     if (RNA_property_type(prop) == PROP_POINTER) {
       StructRNA *ptype = RNA_property_pointer_type(ptr, prop);
-      PointerRNA sptr;
       search_id_collection(ptype, &sptr, &searchprop);
       searchptr = &sptr;
     }
