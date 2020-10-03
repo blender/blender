@@ -156,8 +156,7 @@ class ProjectEdit(Operator):
         if bpy.data.is_saved:
             filepath = "//" + filepath
         else:
-            tmpdir = context.preferences.filepaths.temporary_directory
-            filepath = os.path.join(tmpdir, "project_edit")
+            filepath = os.path.join(bpy.app.tempdir, "project_edit")
 
         obj = context.object
 
