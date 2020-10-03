@@ -1666,7 +1666,7 @@ static void VIEW2D_OT_ndof(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = view2d_ndof_invoke;
-  ot->poll = view_zoom_poll;
+  ot->poll = view2d_poll;
 
   /* flags */
   ot->flag = OPTYPE_LOCK_BYPASS;
