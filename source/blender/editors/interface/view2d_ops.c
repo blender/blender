@@ -987,11 +987,6 @@ static int view_zoomin_exec(bContext *C, wmOperator *op)
 {
   bool do_zoom_xy[2];
 
-  /* check that there's an active region, as View2D data resides there */
-  if (!view_zoom_poll(C)) {
-    return OPERATOR_PASS_THROUGH;
-  }
-
   view_zoom_axis_lock_defaults(C, do_zoom_xy);
 
   /* set RNA-Props - zooming in by uniform factor */
@@ -1052,11 +1047,6 @@ static void VIEW2D_OT_zoom_in(wmOperatorType *ot)
 static int view_zoomout_exec(bContext *C, wmOperator *op)
 {
   bool do_zoom_xy[2];
-
-  /* check that there's an active region, as View2D data resides there */
-  if (!view_zoom_poll(C)) {
-    return OPERATOR_PASS_THROUGH;
-  }
 
   view_zoom_axis_lock_defaults(C, do_zoom_xy);
 
