@@ -938,6 +938,12 @@ static uiBut *ui_item_with_label(uiLayout *layout,
                                  (layout->item.flag & UI_ITEM_PROP_DECORATE_NO_PAD) == 0;
 #endif
 
+  const bool is_keymapitem_ptr = RNA_struct_is_a(ptr->type, &RNA_KeyMapItem);
+  if ((flag & flag & UI_ITEM_R_FULL_EVENT) && is_keymapitem_ptr) {
+    RNA_warning("Data is not a keymap item struct: %s. Ignoring 'full_event' option.",
+                RNA_struct_identifier(ptr->type));
+  }
+
   UI_block_layout_set_current(block, layout);
 
   /* Only add new row if more than 1 item will be added. */
@@ -1010,32 +1016,30 @@ static uiBut *ui_item_with_label(uiLayout *layout,
                          -1,
                          NULL);
   }
-  else if (flag & UI_ITEM_R_FULL_EVENT) {
-    if (RNA_struct_is_a(ptr->type, &RNA_KeyMapItem)) {
-      char buf[128];
+  else if ((flag & UI_ITEM_R_FULL_EVENT) && is_keymapitem_ptr) {
+    char buf[128];
 
-      WM_keymap_item_to_string(ptr->data, false, buf, sizeof(buf));
+    WM_keymap_item_to_string(ptr->data, false, buf, sizeof(buf));
 
-      but = uiDefButR_prop(block,
-                           UI_BTYPE_HOTKEY_EVENT,
-                           0,
-                           buf,
-                           x,
-                           y,
-                           prop_but_width,
-                           h,
-                           ptr,
-                           prop,
-                           0,
-                           0,
-                           0,
-                           -1,
-                           -1,
-                           NULL);
-      UI_but_func_set(but, ui_keymap_but_cb, but, NULL);
-      if (flag & UI_ITEM_R_IMMEDIATE) {
-        UI_but_flag_enable(but, UI_BUT_IMMEDIATE);
-      }
+    but = uiDefButR_prop(block,
+                         UI_BTYPE_HOTKEY_EVENT,
+                         0,
+                         buf,
+                         x,
+                         y,
+                         prop_but_width,
+                         h,
+                         ptr,
+                         prop,
+                         0,
+                         0,
+                         0,
+                         -1,
+                         -1,
+                         NULL);
+    UI_but_func_set(but, ui_keymap_but_cb, but, NULL);
+    if (flag & UI_ITEM_R_IMMEDIATE) {
+      UI_but_flag_enable(but, UI_BUT_IMMEDIATE);
     }
   }
   else {
