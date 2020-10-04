@@ -188,8 +188,14 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
     float mouse[2];
     mouse[0] = event->mval[0];
     mouse[1] = event->mval[1];
-    SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
-    mask_expand_update_it = ss->filter_cache->mask_update_it[(int)SCULPT_active_vertex_get(ss)];
+    if (SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false)) {
+      /* The cursor is over the mesh, get the update iteration from the updated active vertex. */
+      mask_expand_update_it = ss->filter_cache->mask_update_it[(int)SCULPT_active_vertex_get(ss)];
+    }
+    else {
+      /* When the cursor is outside the mesh, affect the entire connected component. */
+      mask_expand_update_it = ss->filter_cache->mask_update_last_it - 1;
+    }
   }
 
   if ((event->type == EVT_ESCKEY && event->val == KM_PRESS) ||
