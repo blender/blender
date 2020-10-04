@@ -1018,27 +1018,21 @@ void BKE_appdir_app_templates(ListBase *templates)
  *
  * Also make sure the temp dir has a trailing slash
  *
- * \param fullname: The full path to the temporary temp directory.
- * \param basename: The full path to the persistent temp directory (may be NULL).
- * \param maxlen: The size of the \a fullname buffer.
+ * \param tempdir: The full path to the temporary temp directory.
+ * \param tempdir_len: The size of the \a tempdir buffer.
  * \param userdir: Directory specified in user preferences (may be NULL).
  * note that by default this is an empty string, only use when non-empty.
  */
-static void where_is_temp(char *fullname, char *basename, const size_t maxlen, const char *userdir)
+static void where_is_temp(char *tempdir, const size_t tempdir_len, const char *userdir)
 {
-  /* Clear existing temp dir, if needed. */
-  BKE_tempdir_session_purge();
 
-  fullname[0] = '\0';
-  if (basename) {
-    basename[0] = '\0';
-  }
+  tempdir[0] = '\0';
 
   if (userdir && BLI_is_dir(userdir)) {
-    BLI_strncpy(fullname, userdir, maxlen);
+    BLI_strncpy(tempdir, userdir, tempdir_len);
   }
 
-  if (fullname[0] == '\0') {
+  if (tempdir[0] == '\0') {
     const char *env_vars[] = {
 #ifdef WIN32
         "TEMP",
@@ -1052,60 +1046,68 @@ static void where_is_temp(char *fullname, char *basename, const size_t maxlen, c
     for (int i = 0; i < ARRAY_SIZE(env_vars); i++) {
       const char *tmp = BLI_getenv(env_vars[i]);
       if (tmp && (tmp[0] != '\0') && BLI_is_dir(tmp)) {
-        BLI_strncpy(fullname, tmp, maxlen);
+        BLI_strncpy(tempdir, tmp, tempdir_len);
         break;
       }
     }
   }
 
-  if (fullname[0] == '\0') {
-    BLI_strncpy(fullname, "/tmp/", maxlen);
+  if (tempdir[0] == '\0') {
+    BLI_strncpy(tempdir, "/tmp/", tempdir_len);
   }
   else {
     /* add a trailing slash if needed */
-    BLI_path_slash_ensure(fullname);
-  }
-
-  /* Now that we have a valid temp dir, add system-generated unique sub-dir. */
-  if (basename) {
-    /* 'XXXXXX' is kind of tag to be replaced by `mktemp-family` by an UUID. */
-    char *tmp_name = BLI_strdupcat(fullname, "blender_XXXXXX");
-    const size_t ln = strlen(tmp_name) + 1;
-    if (ln <= maxlen) {
-#ifdef WIN32
-      const bool ok = (_mktemp_s(tmp_name, ln) == 0);
-#else
-      const bool ok = (mkdtemp(tmp_name) == NULL);
-#endif
-      if (ok) {
-        BLI_dir_create_recursive(tmp_name);
-      }
-    }
-    if (BLI_is_dir(tmp_name)) {
-      BLI_strncpy(basename, fullname, maxlen);
-      BLI_strncpy(fullname, tmp_name, maxlen);
-      BLI_path_slash_ensure(fullname);
-    }
-    else {
-      CLOG_WARN(&LOG,
-                "Could not generate a temp file name for '%s', falling back to '%s'",
-                tmp_name,
-                fullname);
-    }
-
-    MEM_freeN(tmp_name);
+    BLI_path_slash_ensure(tempdir);
   }
 }
 
+static void tempdir_session_create(char *tempdir_session,
+                                   const size_t tempdir_session_len,
+                                   const char *tempdir)
+{
+  tempdir_session[0] = '\0';
+  /* 'XXXXXX' is kind of tag to be replaced by `mktemp-family` by an UUID. */
+  char *tmp_name = BLI_strdupcat(tempdir, "blender_XXXXXX");
+  const size_t ln = strlen(tmp_name) + 1;
+  if (ln <= tempdir_session_len) {
+#ifdef WIN32
+    const bool needs_create = (_mktemp_s(tmp_name, ln) == 0);
+#else
+    const bool needs_create = (mkdtemp(tmp_name) == NULL);
+#endif
+    if (needs_create) {
+      BLI_dir_create_recursive(tmp_name);
+    }
+  }
+  if (BLI_is_dir(tmp_name)) {
+    BLI_strncpy(tempdir_session, tmp_name, tempdir_session_len);
+    BLI_path_slash_ensure(tempdir_session);
+  }
+  else {
+    CLOG_WARN(&LOG,
+              "Could not generate a temp file name for '%s', falling back to '%s'",
+              tmp_name,
+              tempdir_session);
+  }
+
+  MEM_freeN(tmp_name);
+}
+
 /**
- * Sets #g_pahts.temp_dirname_base to \a userdir if specified and is a valid directory,
+ * Sets #g_app.temp_dirname_base to \a userdir if specified and is a valid directory,
  * otherwise chooses a suitable OS-specific temporary directory.
  * Sets #g_app.temp_dirname_session to a #mkdtemp
- * generated sub-dir of #g_pahts.temp_dirname_base.
+ * generated sub-dir of #g_app.temp_dirname_base.
  */
 void BKE_tempdir_init(const char *userdir)
 {
-  where_is_temp(g_app.temp_dirname_session, g_app.temp_dirname_base, FILE_MAX, userdir);
+  where_is_temp(g_app.temp_dirname_base, sizeof(g_app.temp_dirname_base), userdir);
+
+  /* Clear existing temp dir, if needed. */
+  BKE_tempdir_session_purge();
+  /* Now that we have a valid temp dir, add system-generated unique sub-dir. */
+  tempdir_session_create(
+      g_app.temp_dirname_session, sizeof(g_app.temp_dirname_session), g_app.temp_dirname_base);
 }
 
 /**
