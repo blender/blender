@@ -466,16 +466,7 @@ int main(int argc,
 
     WM_init(C, argc, (const char **)argv);
   }
-#ifdef WITH_PYTHON
-  /**
-   * \note the #U.pythondir string is NULL until #WM_init() is executed,
-   * so we provide the BPY_ function below to append the user defined
-   * python-dir to Python's `sys.path` at this point.  Simply putting
-   * #WM_init() before #BPY_python_start() crashes Blender at startup.
-   */
-
-  /* TODO: #U.pythondir */
-#else
+#ifndef WITH_PYTHON
   printf(
       "\n* WARNING * - Blender compiled without Python!\n"
       "this is not intended for typical usage\n\n");
