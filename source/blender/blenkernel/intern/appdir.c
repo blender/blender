@@ -84,6 +84,35 @@ static char btempdir_session[FILE_MAX] = "";
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Initialization
+ * \{ */
+
+#ifndef NDEBUG
+static bool is_appdir_init = false;
+#  define ASSERT_IS_INIT() BLI_assert(is_appdir_init)
+#else
+#  define ASSERT_IS_INIT() ((void)0)
+#endif
+
+/**
+ * Sanity check to ensure correct API use in debug mode.
+ *
+ * Run this once the first level of arguments has been passed so we can be sure
+ * `--env-system-datafiles`, and other `--env-*` arguments has been passed.
+ *
+ * Without this any callers to this module that run early on,
+ * will miss out on changes from parsing arguments.
+ */
+void BKE_appdir_init(void)
+{
+#ifndef NDEBUG
+  is_appdir_init = true;
+#endif
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Internal Utilities
  * \{ */
 
@@ -198,6 +227,8 @@ static bool test_path(char *targetpath,
                       const char *folder_name,
                       const char *subfolder_name)
 {
+  ASSERT_IS_INIT();
+
   /* Only the last argument should be NULL. */
   BLI_assert(!(folder_name == NULL && (subfolder_name != NULL)));
   BLI_path_join(targetpath, targetpath_len, path_base, folder_name, subfolder_name, NULL);
@@ -231,6 +262,8 @@ static bool test_path(char *targetpath,
  */
 static bool test_env_path(char *path, const char *envvar, const bool check_is_dir)
 {
+  ASSERT_IS_INIT();
+
   const char *env_path = envvar ? BLI_getenv(envvar) : NULL;
   if (!env_path) {
     return false;
@@ -810,6 +843,7 @@ void BKE_appdir_program_path_init(const char *argv0)
  */
 const char *BKE_appdir_program_path(void)
 {
+  BLI_assert(bprogname[0]);
   return bprogname;
 }
 
@@ -818,6 +852,7 @@ const char *BKE_appdir_program_path(void)
  */
 const char *BKE_appdir_program_dir(void)
 {
+  BLI_assert(bprogdir[0]);
   return bprogdir;
 }
 
@@ -826,6 +861,8 @@ bool BKE_appdir_program_python_search(char *fullpath,
                                       const int version_major,
                                       const int version_minor)
 {
+  ASSERT_IS_INIT();
+
 #ifdef PYTHON_EXECUTABLE_NAME
   /* Passed in from the build-systems 'PYTHON_EXECUTABLE'. */
   const char *python_build_def = STRINGIFY(PYTHON_EXECUTABLE_NAME);

@@ -377,7 +377,6 @@ int main(int argc,
   BKE_blender_globals_init(); /* blender.c */
 
   BKE_idtype_init();
-  IMB_init();
   BKE_cachefiles_init();
   BKE_images_init();
   BKE_modifier_init();
@@ -413,8 +412,15 @@ int main(int argc,
   G.factory_startup = true;
 #endif
 
+  /* After parsing the first level of arguments as `--env-*` impact BKE_appdir behavior. */
+  BKE_appdir_init();
+
   /* After parsing number of threads argument. */
   BLI_task_scheduler_init();
+
+  /* After parsing `--env-system-datafiles` which control where paths are searched
+   * (color-management) uses BKE_appdir to initialize. */
+  IMB_init();
 
 #ifdef WITH_FFMPEG
   IMB_ffmpeg_init();
