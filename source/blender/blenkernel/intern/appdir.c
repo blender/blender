@@ -30,6 +30,7 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_appdir.h" /* own include */
@@ -1066,32 +1067,39 @@ static void tempdir_session_create(char *tempdir_session,
                                    const char *tempdir)
 {
   tempdir_session[0] = '\0';
+
+  const int tempdir_len = strlen(tempdir);
   /* 'XXXXXX' is kind of tag to be replaced by `mktemp-family` by an UUID. */
-  char *tmp_name = BLI_strdupcat(tempdir, "blender_XXXXXX");
-  const size_t ln = strlen(tmp_name) + 1;
-  if (ln <= tempdir_session_len) {
+  const char *session_name = "blender_XXXXXX";
+  const int session_name_len = strlen(session_name);
+
+  /* +1 as a slash is added,
+   * #_mktemp_s also requires the last null character is included. */
+  const int tempdir_session_len_required = tempdir_len + session_name_len + 1;
+
+  if (tempdir_session_len_required <= tempdir_session_len) {
+    /* No need to use path joining utility as we know the last character of #tempdir is a slash. */
+    BLI_string_join(tempdir_session, tempdir_session_len, tempdir, session_name);
 #ifdef WIN32
-    const bool needs_create = (_mktemp_s(tmp_name, ln) == 0);
+    const bool needs_create = (_mktemp_s(tempdir_session, tempdir_session_len_required) == 0);
 #else
-    const bool needs_create = (mkdtemp(tmp_name) == NULL);
+    const bool needs_create = (mkdtemp(tempdir_session) == NULL);
 #endif
     if (needs_create) {
-      BLI_dir_create_recursive(tmp_name);
+      BLI_dir_create_recursive(tempdir_session);
+    }
+    if (BLI_is_dir(tempdir_session)) {
+      BLI_path_slash_ensure(tempdir_session);
+      /* Success. */
+      return;
     }
   }
-  if (BLI_is_dir(tmp_name)) {
-    BLI_strncpy(tempdir_session, tmp_name, tempdir_session_len);
-    BLI_path_slash_ensure(tempdir_session);
-  }
-  else {
-    CLOG_WARN(&LOG,
-              "Could not generate a temp file name for '%s', falling back to '%s'",
-              tmp_name,
-              tempdir);
-    BLI_strncpy(tempdir_session, tmp_name, tempdir_session_len);
-  }
 
-  MEM_freeN(tmp_name);
+  CLOG_WARN(&LOG,
+            "Could not generate a temp file name for '%s', falling back to '%s'",
+            tempdir_session,
+            tempdir);
+  BLI_strncpy(tempdir_session, tempdir, tempdir_session_len);
 }
 
 /**
