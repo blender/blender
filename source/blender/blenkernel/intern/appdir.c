@@ -1087,7 +1087,8 @@ static void tempdir_session_create(char *tempdir_session,
     CLOG_WARN(&LOG,
               "Could not generate a temp file name for '%s', falling back to '%s'",
               tmp_name,
-              tempdir_session);
+              tempdir);
+    BLI_strncpy(tempdir_session, tmp_name, tempdir_session_len);
   }
 
   MEM_freeN(tmp_name);
