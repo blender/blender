@@ -60,12 +60,6 @@
 #  include <unistd.h>
 #endif /* WIN32 */
 
-/**
- * Print paths being tested,
- * useful for debugging on systems without `strace` or similar utilities.
- */
-// #define PATH_DEBUG
-
 /* -------------------------------------------------------------------- */
 /** \name Local Variables
  * \{ */
@@ -233,22 +227,16 @@ static bool test_path(char *targetpath,
   BLI_assert(!(folder_name == NULL && (subfolder_name != NULL)));
   BLI_path_join(targetpath, targetpath_len, path_base, folder_name, subfolder_name, NULL);
   if (check_is_dir == false) {
-#ifdef PATH_DEBUG
-    printf("\t%s using without test: %s\n", __func__, targetpath);
-#endif
+    CLOG_INFO(&LOG, 3, "using without test: '%s'", targetpath);
     return true;
   }
 
   if (BLI_is_dir(targetpath)) {
-#ifdef PATH_DEBUG
-    printf("\t%s found: %s\n", __func__, targetpath);
-#endif
+    CLOG_INFO(&LOG, 3, "found '%s'", targetpath);
     return true;
   }
 
-#ifdef PATH_DEBUG
-  printf("\t%s missing: %s\n", __func__, targetpath);
-#endif
+  CLOG_INFO(&LOG, 3, "missing '%s'", targetpath);
 
   /* Path not found, don't accidentally use it,
    * otherwise call this function with `check_is_dir` set to false. */
@@ -270,23 +258,17 @@ static bool test_env_path(char *path, const char *envvar, const bool check_is_di
   }
 
   if (check_is_dir == false) {
-#ifdef PATH_DEBUG
-    printf("\t%s using without test: %s\n", __func__, env_path);
-#endif
+    CLOG_INFO(&LOG, 3, "using env '%s' without test: '%s'", envvar, env_path);
     return true;
   }
 
   if (BLI_is_dir(env_path)) {
     BLI_strncpy(path, env_path, FILE_MAX);
-#ifdef PATH_DEBUG
-    printf("\t%s env %s found: %s\n", __func__, envvar, env_path);
-#endif
+    CLOG_INFO(&LOG, 3, "env '%s' found: %s", envvar, env_path);
     return true;
   }
 
-#ifdef PATH_DEBUG
-  printf("\t%s env %s missing: %s\n", __func__, envvar, env_path);
-#endif
+  CLOG_INFO(&LOG, 3, "env '%s' missing: %s", envvar, env_path);
 
   /* Path not found, don't accidentally use it,
    * otherwise call this function with `check_is_dir` set to false. */
@@ -315,9 +297,7 @@ static bool get_path_local_ex(char *targetpath,
 {
   char relfolder[FILE_MAX];
 
-#ifdef PATH_DEBUG
-  printf("%s...\n", __func__);
-#endif
+  CLOG_INFO(&LOG, 3, "folder='%s', subfolder='%s'", folder_name, subfolder_name);
 
   if (folder_name) { /* `subfolder_name` may be NULL. */
     BLI_path_join(relfolder, sizeof(relfolder), folder_name, subfolder_name, NULL);
@@ -435,9 +415,7 @@ static bool get_path_user_ex(char *targetpath,
     return false;
   }
 
-#ifdef PATH_DEBUG
-  printf("%s: %s\n", __func__, user_path);
-#endif
+  CLOG_INFO(&LOG, 3, "'%s', folder='%s', subfolder='%s'", user_path, folder_name, subfolder_name);
 
   /* `subfolder_name` may be NULL. */
   return test_path(
@@ -492,9 +470,8 @@ static bool get_path_system_ex(char *targetpath,
     return false;
   }
 
-#ifdef PATH_DEBUG
-  printf("%s: %s\n", __func__, system_path);
-#endif
+  CLOG_INFO(
+      &LOG, 3, "'%s', folder='%s', subfolder='%s'", system_path, folder_name, subfolder_name);
 
   /* Try `$BLENDERPATH/folder_name/subfolder_name`, `subfolder_name` may be NULL. */
   return test_path(
@@ -743,10 +720,6 @@ const char *BKE_appdir_folder_id_version(const int folder_id,
   }
   return ok ? path : NULL;
 }
-
-#ifdef PATH_DEBUG
-#  undef PATH_DEBUG
-#endif
 
 /** \} */
 
