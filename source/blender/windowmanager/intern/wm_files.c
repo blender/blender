@@ -415,7 +415,7 @@ static void wm_init_userdef(Main *bmain)
   MEM_CacheLimiter_set_maximum(((size_t)U.memcachelimit) * 1024 * 1024);
   BKE_sound_init(bmain);
 
-  /* Update `U.tempdir` from user preferences. */
+  /* Update the temporary directory from the preferences or fallback to the system default. */
   BKE_tempdir_init(U.tempdir);
 
   /* Update tablet API preference. */

@@ -458,11 +458,6 @@ int main(int argc,
     BLI_argsParse(ba, 3, NULL, NULL);
 #endif
     WM_init(C, argc, (const char **)argv);
-
-    /* This is properly initialized with user-preferences,
-     * but this is default.
-     * Call after loading the #BLENDER_STARTUP_FILE so we can read #U.tempdir */
-    BKE_tempdir_init(U.tempdir);
   }
   else {
 #ifndef WITH_PYTHON_MODULE
@@ -470,9 +465,6 @@ int main(int argc,
 #endif
 
     WM_init(C, argc, (const char **)argv);
-
-    /* Don't use user preferences #U.tempdir */
-    BKE_tempdir_init(NULL);
   }
 #ifdef WITH_PYTHON
   /**
