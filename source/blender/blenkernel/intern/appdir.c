@@ -69,14 +69,19 @@ static const char _str_null[] = "(null)";
 
 /* local */
 static CLG_LogRef LOG = {"bke.appdir"};
-/** Full path to program executable. */
-static char bprogname[FILE_MAX];
-/** Full path to directory in which executable is located. */
-static char bprogdir[FILE_MAX];
-/** Persistent temporary directory. */
-static char btempdir_base[FILE_MAX];
-/** Volatile temporary directory (owned by Blender, removed on exit). */
-static char btempdir_session[FILE_MAX] = "";
+
+static struct {
+  /** Full path to program executable. */
+  char program_filename[FILE_MAX];
+  /** Full path to directory in which executable is located. */
+  char program_dirname[FILE_MAX];
+  /** Persistent temporary directory (defined by the preferences or OS). */
+  char temp_dirname_base[FILE_MAX];
+  /** Volatile temporary directory (owned by Blender, removed on exit). */
+  char temp_dirname_session[FILE_MAX];
+} g_app = {
+    .temp_dirname_session = "",
+};
 
 /** \} */
 
@@ -287,7 +292,7 @@ static bool test_env_path(char *path, const char *envvar, const bool check_is_di
  * \param folder_name: Optional folder name within version-specific directory.
  * \param subfolder_name: Optional sub-folder name within folder_name.
  *
- * \param version: To construct name of version-specific directory within #bprogdir.
+ * \param version: To construct name of version-specific directory within #g_app.program_dirname.
  * \param check_is_dir: When false, return true even if the path doesn't exist.
  * \return true if such a directory exists.
  */
@@ -313,14 +318,14 @@ static bool get_path_local_ex(char *targetpath,
     relfolder[0] = '\0';
   }
 
-  /* Try `{bprogdir}/2.xx/{folder_name}` the default directory
+  /* Try `{g_app.program_dirname}/2.xx/{folder_name}` the default directory
    * for a portable distribution. See `WITH_INSTALL_PORTABLE` build-option. */
-  const char *path_base = bprogdir;
+  const char *path_base = g_app.program_dirname;
 #ifdef __APPLE__
   /* Due new code-sign situation in OSX > 10.9.5
    * we must move the blender_version dir with contents to Resources. */
   char osx_resourses[FILE_MAX];
-  BLI_snprintf(osx_resourses, sizeof(osx_resourses), "%s../Resources", bprogdir);
+  BLI_snprintf(osx_resourses, sizeof(osx_resourses), "%s../Resources", g_app.program_dirname);
   /* Remove the '/../' added above. */
   BLI_path_normalize(NULL, osx_resourses);
   path_base = osx_resourses;
@@ -823,8 +828,8 @@ static void where_am_i(char *fullname, const size_t maxlen, const char *name)
 
 void BKE_appdir_program_path_init(const char *argv0)
 {
-  where_am_i(bprogname, sizeof(bprogname), argv0);
-  BLI_split_dir_part(bprogname, bprogdir, sizeof(bprogdir));
+  where_am_i(g_app.program_filename, sizeof(g_app.program_filename), argv0);
+  BLI_split_dir_part(g_app.program_filename, g_app.program_dirname, sizeof(g_app.program_dirname));
 }
 
 /**
@@ -832,8 +837,8 @@ void BKE_appdir_program_path_init(const char *argv0)
  */
 const char *BKE_appdir_program_path(void)
 {
-  BLI_assert(bprogname[0]);
-  return bprogname;
+  BLI_assert(g_app.program_filename[0]);
+  return g_app.program_filename;
 }
 
 /**
@@ -841,8 +846,8 @@ const char *BKE_appdir_program_path(void)
  */
 const char *BKE_appdir_program_dir(void)
 {
-  BLI_assert(bprogdir[0]);
-  return bprogdir;
+  BLI_assert(g_app.program_dirname[0]);
+  return g_app.program_dirname;
 }
 
 bool BKE_appdir_program_python_search(char *fullpath,
@@ -1093,13 +1098,14 @@ static void where_is_temp(char *fullname, char *basename, const size_t maxlen, c
 }
 
 /**
- * Sets #btempdir_base to \a userdir if specified and is a valid directory,
+ * Sets #g_pahts.temp_dirname_base to \a userdir if specified and is a valid directory,
  * otherwise chooses a suitable OS-specific temporary directory.
- * Sets #btempdir_session to a #mkdtemp generated sub-dir of #btempdir_base.
+ * Sets #g_app.temp_dirname_session to a #mkdtemp
+ * generated sub-dir of #g_pahts.temp_dirname_base.
  */
 void BKE_tempdir_init(const char *userdir)
 {
-  where_is_temp(btempdir_session, btempdir_base, FILE_MAX, userdir);
+  where_is_temp(g_app.temp_dirname_session, g_app.temp_dirname_base, FILE_MAX, userdir);
 }
 
 /**
@@ -1107,7 +1113,7 @@ void BKE_tempdir_init(const char *userdir)
  */
 const char *BKE_tempdir_session(void)
 {
-  return btempdir_session[0] ? btempdir_session : BKE_tempdir_base();
+  return g_app.temp_dirname_session[0] ? g_app.temp_dirname_session : BKE_tempdir_base();
 }
 
 /**
@@ -1115,7 +1121,7 @@ const char *BKE_tempdir_session(void)
  */
 const char *BKE_tempdir_base(void)
 {
-  return btempdir_base;
+  return g_app.temp_dirname_base;
 }
 
 /**
@@ -1123,8 +1129,8 @@ const char *BKE_tempdir_base(void)
  */
 void BKE_tempdir_session_purge(void)
 {
-  if (btempdir_session[0] && BLI_is_dir(btempdir_session)) {
-    BLI_delete(btempdir_session, true, true);
+  if (g_app.temp_dirname_session[0] && BLI_is_dir(g_app.temp_dirname_session)) {
+    BLI_delete(g_app.temp_dirname_session, true, true);
   }
 }
 
