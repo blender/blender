@@ -60,6 +60,9 @@
 #  include <unistd.h>
 #endif /* WIN32 */
 
+static const char _str_null[] = "(null)";
+#define STR_OR_FALLBACK(a) ((a) ? (a) : _str_null)
+
 /* -------------------------------------------------------------------- */
 /** \name Local Variables
  * \{ */
@@ -297,7 +300,11 @@ static bool get_path_local_ex(char *targetpath,
 {
   char relfolder[FILE_MAX];
 
-  CLOG_INFO(&LOG, 3, "folder='%s', subfolder='%s'", folder_name, subfolder_name);
+  CLOG_INFO(&LOG,
+            3,
+            "folder='%s', subfolder='%s'",
+            STR_OR_FALLBACK(folder_name),
+            STR_OR_FALLBACK(subfolder_name));
 
   if (folder_name) { /* `subfolder_name` may be NULL. */
     BLI_path_join(relfolder, sizeof(relfolder), folder_name, subfolder_name, NULL);
@@ -415,7 +422,12 @@ static bool get_path_user_ex(char *targetpath,
     return false;
   }
 
-  CLOG_INFO(&LOG, 3, "'%s', folder='%s', subfolder='%s'", user_path, folder_name, subfolder_name);
+  CLOG_INFO(&LOG,
+            3,
+            "'%s', folder='%s', subfolder='%s'",
+            user_path,
+            STR_OR_FALLBACK(folder_name),
+            STR_OR_FALLBACK(subfolder_name));
 
   /* `subfolder_name` may be NULL. */
   return test_path(
@@ -470,8 +482,12 @@ static bool get_path_system_ex(char *targetpath,
     return false;
   }
 
-  CLOG_INFO(
-      &LOG, 3, "'%s', folder='%s', subfolder='%s'", system_path, folder_name, subfolder_name);
+  CLOG_INFO(&LOG,
+            3,
+            "'%s', folder='%s', subfolder='%s'",
+            system_path,
+            STR_OR_FALLBACK(folder_name),
+            STR_OR_FALLBACK(subfolder_name));
 
   /* Try `$BLENDERPATH/folder_name/subfolder_name`, `subfolder_name` may be NULL. */
   return test_path(
