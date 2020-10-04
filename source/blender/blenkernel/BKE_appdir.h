@@ -36,7 +36,7 @@ const char *BKE_appdir_folder_id(const int folder_id, const char *subfolder);
 const char *BKE_appdir_folder_id_create(const int folder_id, const char *subfolder);
 const char *BKE_appdir_folder_id_user_notest(const int folder_id, const char *subfolder);
 const char *BKE_appdir_folder_id_version(const int folder_id,
-                                         const int ver,
+                                         const int version,
                                          const bool check_is_dir);
 
 bool BKE_appdir_app_is_portable_install(void);
