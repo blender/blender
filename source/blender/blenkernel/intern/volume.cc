@@ -1291,47 +1291,28 @@ Volume *BKE_volume_copy_for_eval(Volume *volume_src, bool reference)
   return result;
 }
 
+struct CreateGridOp {
+  template<typename GridType> typename openvdb::GridBase::Ptr operator()()
+  {
+    if constexpr (std::is_same_v<GridType, openvdb::points::PointDataGrid>) {
+      return {};
+    }
+    else {
+      return GridType::create();
+    }
+  }
+};
+
 VolumeGrid *BKE_volume_grid_add(Volume *volume, const char *name, VolumeGridType type)
 {
 #ifdef WITH_OPENVDB
   VolumeGridVector &grids = *volume->runtime.grids;
   BLI_assert(BKE_volume_grid_find(volume, name) == NULL);
+  BLI_assert(type != VOLUME_GRID_UNKNOWN);
 
-  openvdb::GridBase::Ptr vdb_grid;
-  switch (type) {
-    case VOLUME_GRID_FLOAT:
-      vdb_grid = openvdb::FloatGrid::create();
-      break;
-    case VOLUME_GRID_VECTOR_FLOAT:
-      vdb_grid = openvdb::Vec3fGrid::create();
-      break;
-    case VOLUME_GRID_BOOLEAN:
-      vdb_grid = openvdb::BoolGrid::create();
-      break;
-    case VOLUME_GRID_DOUBLE:
-      vdb_grid = openvdb::DoubleGrid::create();
-      break;
-    case VOLUME_GRID_INT:
-      vdb_grid = openvdb::Int32Grid::create();
-      break;
-    case VOLUME_GRID_INT64:
-      vdb_grid = openvdb::Int64Grid::create();
-      break;
-    case VOLUME_GRID_VECTOR_INT:
-      vdb_grid = openvdb::Vec3IGrid::create();
-      break;
-    case VOLUME_GRID_VECTOR_DOUBLE:
-      vdb_grid = openvdb::Vec3dGrid::create();
-      break;
-    case VOLUME_GRID_STRING:
-      vdb_grid = openvdb::StringGrid::create();
-      break;
-    case VOLUME_GRID_MASK:
-      vdb_grid = openvdb::MaskGrid::create();
-      break;
-    case VOLUME_GRID_POINTS:
-    case VOLUME_GRID_UNKNOWN:
-      return NULL;
+  openvdb::GridBase::Ptr vdb_grid = BKE_volume_grid_type_operation(type, CreateGridOp{});
+  if (!vdb_grid) {
+    return NULL;
   }
 
   vdb_grid->setName(name);

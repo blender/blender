@@ -46,55 +46,45 @@
  * resolution_factor is 1/2, the resolution on each axis is halved. The transform of the returned
  * grid is adjusted to match the original grid. */
 template<typename GridType>
-static typename GridType::Ptr create_grid_with_changed_resolution(
-    const openvdb::GridBase &old_grid, const float resolution_factor)
+static typename GridType::Ptr create_grid_with_changed_resolution(const GridType &old_grid,
+                                                                  const float resolution_factor)
 {
   BLI_assert(resolution_factor > 0.0f);
-  BLI_assert(old_grid.isType<GridType>());
 
   openvdb::Mat4R xform;
   xform.setToScale(openvdb::Vec3d(resolution_factor));
   openvdb::tools::GridTransformer transformer{xform};
 
   typename GridType::Ptr new_grid = GridType::create();
-  transformer.transformGrid<openvdb::tools::BoxSampler>(static_cast<const GridType &>(old_grid),
-                                                        *new_grid);
+  transformer.transformGrid<openvdb::tools::BoxSampler>(old_grid, *new_grid);
   new_grid->transform() = old_grid.transform();
   new_grid->transform().preScale(1.0f / resolution_factor);
   return new_grid;
 }
+
+struct CreateGridWithChangedResolutionOp {
+  const openvdb::GridBase &grid;
+  const float resolution_factor;
+
+  template<typename GridType> typename openvdb::GridBase::Ptr operator()()
+  {
+    if constexpr (std::is_same_v<GridType, openvdb::StringGrid>) {
+      return {};
+    }
+    else {
+      return create_grid_with_changed_resolution(static_cast<const GridType &>(grid),
+                                                 resolution_factor);
+    }
+  }
+};
 
 static openvdb::GridBase::Ptr create_grid_with_changed_resolution(
     const VolumeGridType grid_type,
     const openvdb::GridBase &old_grid,
     const float resolution_factor)
 {
-  switch (grid_type) {
-    case VOLUME_GRID_BOOLEAN:
-      return create_grid_with_changed_resolution<openvdb::BoolGrid>(old_grid, resolution_factor);
-    case VOLUME_GRID_FLOAT:
-      return create_grid_with_changed_resolution<openvdb::FloatGrid>(old_grid, resolution_factor);
-    case VOLUME_GRID_DOUBLE:
-      return create_grid_with_changed_resolution<openvdb::DoubleGrid>(old_grid, resolution_factor);
-    case VOLUME_GRID_INT:
-      return create_grid_with_changed_resolution<openvdb::Int32Grid>(old_grid, resolution_factor);
-    case VOLUME_GRID_INT64:
-      return create_grid_with_changed_resolution<openvdb::Int64Grid>(old_grid, resolution_factor);
-    case VOLUME_GRID_MASK:
-      return create_grid_with_changed_resolution<openvdb::MaskGrid>(old_grid, resolution_factor);
-    case VOLUME_GRID_VECTOR_FLOAT:
-      return create_grid_with_changed_resolution<openvdb::Vec3fGrid>(old_grid, resolution_factor);
-    case VOLUME_GRID_VECTOR_DOUBLE:
-      return create_grid_with_changed_resolution<openvdb::Vec3dGrid>(old_grid, resolution_factor);
-    case VOLUME_GRID_VECTOR_INT:
-      return create_grid_with_changed_resolution<openvdb::Vec3IGrid>(old_grid, resolution_factor);
-    case VOLUME_GRID_STRING:
-    case VOLUME_GRID_POINTS:
-    case VOLUME_GRID_UNKNOWN:
-      /* Can't do this. */
-      break;
-  }
-  return {};
+  CreateGridWithChangedResolutionOp op{old_grid, resolution_factor};
+  return BKE_volume_grid_type_operation(grid_type, op);
 }
 
 template<typename GridType, typename VoxelType>
@@ -216,19 +206,17 @@ void BKE_volume_dense_float_grid_clear(DenseFloatVolumeGrid *dense_grid)
 
 /** Returns bounding boxes that approximate the shape of the volume stored in the grid. */
 template<typename GridType>
-static blender::Vector<openvdb::CoordBBox> get_bounding_boxes(openvdb::GridBase::ConstPtr gridbase,
+static blender::Vector<openvdb::CoordBBox> get_bounding_boxes(const GridType &grid,
                                                               const bool coarse)
 {
   using TreeType = typename GridType::TreeType;
   using Depth2Type = typename TreeType::RootNodeType::ChildNodeType::ChildNodeType;
   using NodeCIter = typename TreeType::NodeCIter;
-  using GridConstPtr = typename GridType::ConstPtr;
 
-  GridConstPtr grid = openvdb::gridConstPtrCast<GridType>(gridbase);
   blender::Vector<openvdb::CoordBBox> boxes;
   const int depth = coarse ? 2 : 3;
 
-  NodeCIter iter = grid->tree().cbeginNode();
+  NodeCIter iter = grid.tree().cbeginNode();
   iter.setMaxDepth(depth);
 
   for (; iter; ++iter) {
@@ -264,57 +252,22 @@ static blender::Vector<openvdb::CoordBBox> get_bounding_boxes(openvdb::GridBase:
   return boxes;
 }
 
+struct GetBoundingBoxesOp {
+  const openvdb::GridBase &grid;
+  const bool coarse;
+
+  template<typename GridType> blender::Vector<openvdb::CoordBBox> operator()()
+  {
+    return get_bounding_boxes(static_cast<const GridType &>(grid), coarse);
+  }
+};
+
 static blender::Vector<openvdb::CoordBBox> get_bounding_boxes(VolumeGridType grid_type,
-                                                              openvdb::GridBase::ConstPtr grid,
+                                                              const openvdb::GridBase &grid,
                                                               const bool coarse)
 {
-  switch (grid_type) {
-    case VOLUME_GRID_BOOLEAN: {
-      return get_bounding_boxes<openvdb::BoolGrid>(grid, coarse);
-      break;
-    }
-    case VOLUME_GRID_FLOAT: {
-      return get_bounding_boxes<openvdb::FloatGrid>(grid, coarse);
-      break;
-    }
-    case VOLUME_GRID_DOUBLE: {
-      return get_bounding_boxes<openvdb::DoubleGrid>(grid, coarse);
-      break;
-    }
-    case VOLUME_GRID_INT: {
-      return get_bounding_boxes<openvdb::Int32Grid>(grid, coarse);
-      break;
-    }
-    case VOLUME_GRID_INT64: {
-      return get_bounding_boxes<openvdb::Int64Grid>(grid, coarse);
-      break;
-    }
-    case VOLUME_GRID_MASK: {
-      return get_bounding_boxes<openvdb::MaskGrid>(grid, coarse);
-      break;
-    }
-    case VOLUME_GRID_VECTOR_FLOAT: {
-      return get_bounding_boxes<openvdb::Vec3fGrid>(grid, coarse);
-      break;
-    }
-    case VOLUME_GRID_VECTOR_DOUBLE: {
-      return get_bounding_boxes<openvdb::Vec3dGrid>(grid, coarse);
-      break;
-    }
-    case VOLUME_GRID_VECTOR_INT: {
-      return get_bounding_boxes<openvdb::Vec3IGrid>(grid, coarse);
-      break;
-    }
-    case VOLUME_GRID_STRING: {
-      return get_bounding_boxes<openvdb::StringGrid>(grid, coarse);
-      break;
-    }
-    case VOLUME_GRID_POINTS:
-    case VOLUME_GRID_UNKNOWN: {
-      break;
-    }
-  }
-  return {};
+  GetBoundingBoxesOp op{grid, coarse};
+  return BKE_volume_grid_type_operation(grid_type, op);
 }
 
 static void boxes_to_center_points(blender::Span<openvdb::CoordBBox> boxes,
@@ -462,7 +415,7 @@ void BKE_volume_grid_wireframe(const Volume *volume,
   else {
     blender::Vector<openvdb::CoordBBox> boxes = get_bounding_boxes(
         BKE_volume_grid_type(volume_grid),
-        grid,
+        *grid,
         volume->display.wireframe_detail == VOLUME_WIREFRAME_COARSE);
 
     blender::Vector<blender::float3> verts;
@@ -517,7 +470,7 @@ void BKE_volume_grid_selection_surface(const Volume *volume,
 #ifdef WITH_OPENVDB
   openvdb::GridBase::ConstPtr grid = BKE_volume_grid_openvdb_for_read(volume, volume_grid);
   blender::Vector<openvdb::CoordBBox> boxes = get_bounding_boxes(
-      BKE_volume_grid_type(volume_grid), grid, true);
+      BKE_volume_grid_type(volume_grid), *grid, true);
 
   blender::Vector<blender::float3> verts;
   blender::Vector<std::array<int, 3>> tris;
