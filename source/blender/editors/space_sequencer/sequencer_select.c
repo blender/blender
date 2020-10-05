@@ -979,10 +979,10 @@ static int sequencer_select_side_of_frame_exec(bContext *C, wmOperator *op)
     bool test = false;
     switch (side) {
       case -1:
-        test = (cfra >= seq->startdisp);
+        test = (cfra >= seq->enddisp);
         break;
       case 1:
-        test = (cfra <= seq->enddisp);
+        test = (cfra <= seq->startdisp);
         break;
       case 0:
         test = (cfra <= seq->enddisp) && (cfra >= seq->startdisp);
