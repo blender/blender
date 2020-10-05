@@ -59,4 +59,4 @@ else(WIN32)
   )
 
   set(JPEG_LIBRARY libjpeg${LIBEXT})
-endif(WIN32)
+endif()

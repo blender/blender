@@ -72,7 +72,7 @@ find_package_handle_standard_args(FFmpeg DEFAULT_MSG
 IF(FFMPEG_FOUND)
   set(FFMPEG_LIBRARIES ${_ffmpeg_LIBRARIES})
   set(FFMPEG_INCLUDE_DIRS ${_ffmpeg_INCLUDE_DIR})
-ENDIF(FFMPEG_FOUND)
+ENDIF()
 
 mark_as_advanced(
   FFMPEG_INCLUDE_DIR
