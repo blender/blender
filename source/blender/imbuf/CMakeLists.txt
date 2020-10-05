@@ -26,6 +26,7 @@ set(INC
   ../gpu
   ../makesdna
   ../makesrna
+  ../sequencer
   ../../../intern/guardedalloc
   ../../../intern/memutil
 )

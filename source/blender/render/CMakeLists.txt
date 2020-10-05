@@ -32,6 +32,7 @@ set(INC
   ../makesdna
   ../makesrna
   ../nodes
+  ../sequencer
   ../simulation
   ../../../intern/atomic
   ../../../intern/guardedalloc

@@ -29,6 +29,7 @@ set(INC
   ../../makesdna
   ../../makesrna
   ../../render/extern/include
+  ../../sequencer
   ../../windowmanager
   ../../../../intern/glew-mx
   ../../../../intern/guardedalloc

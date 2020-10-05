@@ -24,6 +24,7 @@ set(INC
   ../../gpu
   ../../makesdna
   ../../makesrna
+  ../../sequencer
   ../../windowmanager
   ../../../../intern/clog
   ../../../../intern/glew-mx

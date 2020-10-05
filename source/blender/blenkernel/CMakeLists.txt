@@ -36,6 +36,7 @@ set(INC
   ../makesrna
   ../modifiers
   ../nodes
+  ../sequencer
   ../shader_fx
   ../simulation
   ../render/extern/include
@@ -212,11 +213,6 @@ set(SRC
   intern/rigidbody.c
   intern/scene.c
   intern/screen.c
-  intern/seqcache.c
-  intern/seqeffects.c
-  intern/seqmodifier.c
-  intern/seqprefetch.c
-  intern/sequencer.c
   intern/shader_fx.c
   intern/shrinkwrap.c
   intern/simulation.cc
@@ -374,7 +370,6 @@ set(SRC
   BKE_rigidbody.h
   BKE_scene.h
   BKE_screen.h
-  BKE_sequencer.h
   BKE_sequencer_offscreen.h
   BKE_shader_fx.h
   BKE_shrinkwrap.h

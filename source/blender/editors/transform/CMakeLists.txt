@@ -28,6 +28,7 @@ set(INC
   ../../makesrna
   ../../render/extern/include
   ../../depsgraph
+  ../../sequencer
   ../../windowmanager
   ../../../../intern/glew-mx
   ../../../../intern/guardedalloc

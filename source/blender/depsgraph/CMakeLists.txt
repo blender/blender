@@ -27,6 +27,7 @@ set(INC
   ../makesdna
   ../makesrna
   ../modifiers
+  ../sequencer
   ../windowmanager
   ../../../intern/atomic
   ../../../intern/guardedalloc

@@ -31,6 +31,7 @@ set(INC
   ../makesrna
   ../nodes
   ../render/extern/include
+  ../sequencer
   ../windowmanager
   ../../../intern/guardedalloc
 

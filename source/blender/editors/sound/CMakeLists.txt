@@ -22,6 +22,7 @@ set(INC
   ../../depsgraph
   ../../makesdna
   ../../makesrna
+  ../../sequencer
   ../../windowmanager
   ../../../../intern/guardedalloc
 )

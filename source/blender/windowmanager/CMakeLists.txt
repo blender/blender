@@ -37,6 +37,7 @@ set(INC
   ../makesrna
   ../nodes
   ../render/extern/include
+  ../sequencer
   ../../../intern/clog
   ../../../intern/ghost
   ../../../intern/glew-mx
@@ -116,6 +117,7 @@ set(SRC
 
 set(LIB
   bf_editor_screen
+  bf_sequencer
 )
 
 if(WITH_AUDASPACE)
