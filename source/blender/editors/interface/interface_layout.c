@@ -1163,8 +1163,8 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
     icon = ICON_BLANK1;
   }
 
-  /* create button */
   UI_block_layout_set_current(block, layout);
+  ui_block_new_button_group(block, 0);
 
   const int w = ui_text_icon_width(layout, name, icon, 0);
 

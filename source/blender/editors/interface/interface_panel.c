@@ -770,6 +770,8 @@ void UI_panel_header_buttons_end(Panel *panel)
 
   uiButtonGroup *button_group = block->button_groups.last;
 
+  button_group->flag &= ~UI_BUTTON_GROUP_LOCK;
+
   /* Repurpose the first "header" button group if it is empty, in case the first button added to
    * the panel doesn't add a new group (if the button is created directly rather than through an
    * interface layout call). */
@@ -777,8 +779,12 @@ void UI_panel_header_buttons_end(Panel *panel)
       BLI_listbase_is_empty(&button_group->buttons)) {
     button_group->flag &= ~UI_BUTTON_GROUP_PANEL_HEADER;
   }
-
-  button_group->flag &= ~UI_BUTTON_GROUP_LOCK;
+  else {
+    /* We should still always add a new button group. Although this results in many empty groups,
+     * without it, new buttons not protected with a #ui_block_new_button_group call would end up
+     * in the panel header group. */
+    ui_block_new_button_group(block, 0);
+  }
 }
 
 static float panel_region_offset_x_get(const ARegion *region)
