@@ -1631,13 +1631,13 @@ typedef struct SeqIndexBuildContext {
 static IMB_Proxy_Size seq_rendersize_to_proxysize(int render_size)
 {
   switch (render_size) {
-    case SEQ_PROXY_RENDER_SIZE_25:
+    case SEQ_RENDER_SIZE_PROXY_25:
       return IMB_PROXY_25;
-    case SEQ_PROXY_RENDER_SIZE_50:
+    case SEQ_RENDER_SIZE_PROXY_50:
       return IMB_PROXY_50;
-    case SEQ_PROXY_RENDER_SIZE_75:
+    case SEQ_RENDER_SIZE_PROXY_75:
       return IMB_PROXY_75;
-    case SEQ_PROXY_RENDER_SIZE_100:
+    case SEQ_RENDER_SIZE_PROXY_100:
       return IMB_PROXY_100;
   }
   return IMB_PROXY_NONE;
@@ -1646,11 +1646,11 @@ static IMB_Proxy_Size seq_rendersize_to_proxysize(int render_size)
 double BKE_sequencer_rendersize_to_scale_factor(int render_size)
 {
   switch (render_size) {
-    case SEQ_PROXY_RENDER_SIZE_25:
+    case SEQ_RENDER_SIZE_PROXY_25:
       return 0.25;
-    case SEQ_PROXY_RENDER_SIZE_50:
+    case SEQ_RENDER_SIZE_PROXY_50:
       return 0.50;
-    case SEQ_PROXY_RENDER_SIZE_75:
+    case SEQ_RENDER_SIZE_PROXY_75:
       return 0.75;
   }
   return 1.0;
@@ -2714,7 +2714,7 @@ static ImBuf *input_preprocess(const SeqRenderData *context,
 
     /* Calculate scale factor for current image if needed. */
     double scale_factor, image_scale_factor = 1.0;
-    if (context->preview_render_size == SEQ_PROXY_RENDER_SIZE_SCENE) {
+    if (context->preview_render_size == SEQ_RENDER_SIZE_SCENE) {
       scale_factor = image_scale_factor = (double)scene->r.size / 100;
     }
     else {

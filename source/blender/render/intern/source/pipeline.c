@@ -1508,7 +1508,7 @@ static void do_render_seq(Render *re)
                                 re->scene,
                                 re_x,
                                 re_y,
-                                SEQ_PROXY_RENDER_SIZE_SCENE,
+                                SEQ_RENDER_SIZE_SCENE,
                                 true,
                                 &context);
 
