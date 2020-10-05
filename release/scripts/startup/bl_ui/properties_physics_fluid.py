@@ -1301,9 +1301,6 @@ class PHYSICS_PT_viewport_display(PhysicButtonsPanel, Panel):
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
 
         domain = context.fluid.domain_settings
-        axis_slice_method = domain.axis_slice_method
-
-        do_full_slicing = (axis_slice_method == 'FULL')
 
         col = flow.column(align=False)
         col.prop(domain, "display_thickness")
@@ -1314,17 +1311,41 @@ class PHYSICS_PT_viewport_display(PhysicButtonsPanel, Panel):
         if domain.use_color_ramp and domain.color_ramp_field == 'FLAGS':
             sub.enabled = False
 
-        col.prop(domain, "axis_slice_method")
-
-        if not do_full_slicing:
-            col.prop(domain, "slice_axis")
-            col.prop(domain, "slice_depth")
-            if domain.display_interpolation == 'CLOSEST' or domain.color_ramp_field == 'FLAGS':
-                col.prop(domain, "show_gridlines")
-
         col = col.column()
-        col.active = do_full_slicing
+        col.active = not domain.use_slice
         col.prop(domain, "slice_per_voxel")
+
+
+class PHYSICS_PT_viewport_display_slicing(PhysicButtonsPanel, Panel):
+    bl_label = "Slice"
+    bl_parent_id = 'PHYSICS_PT_viewport_display'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return (PhysicButtonsPanel.poll_fluid_domain(context))
+
+    def draw_header(self, context):
+        md = context.fluid.domain_settings
+
+        self.layout.prop(md, "use_slice", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        domain = context.fluid.domain_settings
+
+        layout.active = domain.use_slice
+
+        col = layout.column()
+        col.prop(domain, "slice_axis")
+        col.prop(domain, "slice_depth")
+
+        sub = col.column()
+        sub.prop(domain, "show_gridlines")
+
+        sub.active = domain.display_interpolation == 'CLOSEST' or domain.color_ramp_field == 'FLAGS'
 
 
 class PHYSICS_PT_viewport_display_color(PhysicButtonsPanel, Panel):
@@ -1408,13 +1429,16 @@ class PHYSICS_PT_viewport_display_advanced(PhysicButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return PhysicButtonsPanel.poll_fluid_domain(context) and context.fluid.domain_settings.show_gridlines
+        domain = context.fluid.domain_settings
+        return PhysicButtonsPanel.poll_fluid_domain(context) and domain.use_slice and domain.show_gridlines
 
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
 
         domain = context.fluid.domain_settings
+
+        layout.active = domain.display_interpolation == 'CLOSEST' or domain.color_ramp_field == 'FLAGS'
 
         col = layout.column()
         col.prop(domain, "gridlines_color_field", text="Color Gridlines")
@@ -1456,6 +1480,7 @@ classes = (
     PHYSICS_PT_flow_initial_velocity,
     PHYSICS_PT_flow_texture,
     PHYSICS_PT_viewport_display,
+    PHYSICS_PT_viewport_display_slicing,
     PHYSICS_PT_viewport_display_color,
     PHYSICS_PT_viewport_display_debug,
     PHYSICS_PT_viewport_display_advanced,
