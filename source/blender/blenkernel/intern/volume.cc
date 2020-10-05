@@ -1291,6 +1291,7 @@ Volume *BKE_volume_copy_for_eval(Volume *volume_src, bool reference)
   return result;
 }
 
+#ifdef WITH_OPENVDB
 struct CreateGridOp {
   template<typename GridType> typename openvdb::GridBase::Ptr operator()()
   {
@@ -1302,6 +1303,7 @@ struct CreateGridOp {
     }
   }
 };
+#endif
 
 VolumeGrid *BKE_volume_grid_add(Volume *volume, const char *name, VolumeGridType type)
 {
