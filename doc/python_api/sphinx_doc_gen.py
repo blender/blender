@@ -2228,7 +2228,7 @@ def main():
                 shutil.rmtree(REFERENCE_PATH, True)
 
             # copy SPHINX_OUT to the REFERENCE_PATH
-            ignores = ('.doctrees', 'objects.inv', '.buildinfo')
+            ignores = ('.doctrees', '.buildinfo')
             shutil.copytree(SPHINX_OUT,
                             REFERENCE_PATH,
                             ignore=shutil.ignore_patterns(*ignores))
