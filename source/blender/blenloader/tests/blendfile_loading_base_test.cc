@@ -48,6 +48,8 @@
 #include "WM_api.h"
 #include "wm.h"
 
+#include "CLG_log.h"
+
 BlendfileLoadingBaseTest::~BlendfileLoadingBaseTest()
 {
 }
@@ -58,12 +60,14 @@ void BlendfileLoadingBaseTest::SetUpTestCase()
 
   /* Minimal code to make loading a blendfile and constructing a depsgraph not crash, copied from
    * main() in creator.c. */
+  CLG_init();
   BLI_threadapi_init();
 
   DNA_sdna_current_init();
   BKE_blender_globals_init();
 
   BKE_idtype_init();
+  BKE_appdir_init();
   IMB_init();
   BKE_images_init();
   BKE_modifier_init();
@@ -99,6 +103,8 @@ void BlendfileLoadingBaseTest::TearDownTestCase()
   BKE_blender_atexit();
 
   BKE_tempdir_session_purge();
+
+  CLG_exit();
 
   testing::Test::TearDownTestCase();
 }
