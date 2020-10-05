@@ -636,6 +636,9 @@ const int (*WM_gesture_lasso_path_to_array(struct bContext *C,
 int WM_gesture_straightline_invoke(struct bContext *C,
                                    struct wmOperator *op,
                                    const struct wmEvent *event);
+int WM_gesture_straightline_active_side_invoke(struct bContext *C,
+                                               struct wmOperator *op,
+                                               const struct wmEvent *event);
 int WM_gesture_straightline_modal(struct bContext *C,
                                   struct wmOperator *op,
                                   const struct wmEvent *event);

@@ -849,6 +849,17 @@ int WM_gesture_straightline_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
   return OPERATOR_RUNNING_MODAL;
 }
+/**
+ * This invoke callback starts the straightline gesture with a viewport preview to the right side
+ * of the line.
+ */
+int WM_gesture_straightline_active_side_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  WM_gesture_straightline_invoke(C, op, event);
+  wmGesture *gesture = op->customdata;
+  gesture->draw_active_side = true;
+  return OPERATOR_RUNNING_MODAL;
+}
 
 /**
  * This modal callback calls exec once per mouse move event while the gesture is active with the
