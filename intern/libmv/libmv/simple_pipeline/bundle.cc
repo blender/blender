@@ -47,6 +47,10 @@ enum {
   OFFSET_PRINCIPAL_POINT_Y,
 
   // Distortion model coefficients.
+  // WARNING: camera intrinsics are not required to define/use all of those,
+  // but they have to define all of them up to the last one they need, in that
+  // exact same order. See e.g. how `PolynomialCameraIntrinsics` needs to define
+  // `OFFSET_K4`, even though it does not use it.
   OFFSET_K1,
   OFFSET_K2,
   OFFSET_K3,
