@@ -3806,6 +3806,7 @@ static void gesture_straightline_modal_keymap(wmKeyConfig *keyconf)
       {GESTURE_MODAL_SELECT, "SELECT", 0, "Select", ""},
       {GESTURE_MODAL_BEGIN, "BEGIN", 0, "Begin", ""},
       {GESTURE_MODAL_MOVE, "MOVE", 0, "Move", ""},
+      {GESTURE_MODAL_SNAP, "SNAP", 0, "Snap", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -3822,6 +3823,8 @@ static void gesture_straightline_modal_keymap(wmKeyConfig *keyconf)
   WM_modalkeymap_assign(keymap, "IMAGE_OT_sample_line");
   WM_modalkeymap_assign(keymap, "PAINT_OT_weight_gradient");
   WM_modalkeymap_assign(keymap, "MESH_OT_bisect");
+  WM_modalkeymap_assign(keymap, "PAINT_OT_mask_line_gesture");
+  WM_modalkeymap_assign(keymap, "SCULPT_OT_project_line_gesture");
 }
 
 /* box_select-like modal operators */
@@ -3870,8 +3873,6 @@ static void gesture_box_modal_keymap(wmKeyConfig *keyconf)
   WM_modalkeymap_assign(keymap, "PAINT_OT_mask_box_gesture");
   WM_modalkeymap_assign(keymap, "SCULPT_OT_face_set_box_gesture");
   WM_modalkeymap_assign(keymap, "SCULPT_OT_trim_box_gesture");
-  WM_modalkeymap_assign(keymap, "PAINT_OT_mask_line_gesture");
-  WM_modalkeymap_assign(keymap, "SCULPT_OT_project_line_gesture");
   WM_modalkeymap_assign(keymap, "VIEW2D_OT_zoom_border");
   WM_modalkeymap_assign(keymap, "VIEW3D_OT_clip_border");
   WM_modalkeymap_assign(keymap, "VIEW3D_OT_render_border");

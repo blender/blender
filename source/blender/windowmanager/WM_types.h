@@ -500,6 +500,9 @@ typedef struct wmGesture {
   uint wait_for_input : 1;
   /** Use for gestures that can be moved, like box selection */
   uint move : 1;
+  /** For gestures that support snapping, stores if snapping is enabled using the modal keymap
+   * toggle. */
+  uint use_snap : 1;
 
   /**
    * customdata

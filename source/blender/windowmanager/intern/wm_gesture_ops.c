@@ -884,6 +884,32 @@ int WM_gesture_straightline_active_side_invoke(bContext *C, wmOperator *op, cons
   return OPERATOR_RUNNING_MODAL;
 }
 
+#define STRAIGHTLINE_SNAP_DEG 15.0f
+static void wm_gesture_straightline_do_angle_snap(rcti *rect)
+{
+  const float line_start[2] = {rect->xmin, rect->ymin};
+  const float line_end[2] = {rect->xmax, rect->ymax};
+  const float x_axis[2] = {1.0f, 0.0f};
+
+  float line_direction[2];
+  sub_v2_v2v2(line_direction, line_end, line_start);
+  const float line_length = normalize_v2(line_direction);
+
+  const float angle = angle_signed_v2v2(x_axis, line_direction);
+  const float angle_deg = RAD2DEG(angle) + (STRAIGHTLINE_SNAP_DEG / 2.0f);
+  const float angle_snapped_deg = -floorf(angle_deg / STRAIGHTLINE_SNAP_DEG) *
+                                  STRAIGHTLINE_SNAP_DEG;
+  const float angle_snapped = DEG2RAD(angle_snapped_deg);
+
+  float line_snapped_end[2];
+  rotate_v2_v2fl(line_snapped_end, x_axis, angle_snapped);
+  mul_v2_fl(line_snapped_end, line_length);
+  add_v2_v2(line_snapped_end, line_start);
+
+  rect->xmax = (int)line_snapped_end[0];
+  rect->ymax = (int)line_snapped_end[1];
+}
+
 /**
  * This modal callback calls exec once per mouse move event while the gesture is active with the
  * updated line start and end values, so it can be used for tools that have a real time preview
@@ -912,6 +938,10 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
       gesture_straightline_apply(C, op);
     }
 
+    if (gesture->use_snap) {
+      wm_gesture_straightline_do_angle_snap(rect);
+    }
+
     wm_gesture_tag_redraw(win);
   }
   else if (event->type == EVT_MODAL_MAP) {
@@ -924,6 +954,10 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
           gesture->is_active = true;
           wm_gesture_tag_redraw(win);
         }
+        break;
+      case GESTURE_MODAL_SNAP:
+        /* Toggle snapping on/off. */
+        gesture->use_snap = !gesture->use_snap;
         break;
       case GESTURE_MODAL_SELECT:
         if (gesture_straightline_apply(C, op)) {
@@ -971,6 +1005,10 @@ int WM_gesture_straightline_oneshot_modal(bContext *C, wmOperator *op, const wmE
       rect->ymax = event->y - gesture->winrct.ymin;
     }
 
+    if (gesture->use_snap) {
+      wm_gesture_straightline_do_angle_snap(rect);
+    }
+
     wm_gesture_tag_redraw(win);
   }
   else if (event->type == EVT_MODAL_MAP) {
@@ -983,6 +1021,10 @@ int WM_gesture_straightline_oneshot_modal(bContext *C, wmOperator *op, const wmE
           gesture->is_active = true;
           wm_gesture_tag_redraw(win);
         }
+        break;
+      case GESTURE_MODAL_SNAP:
+        /* Toggle snapping on/off. */
+        gesture->use_snap = !gesture->use_snap;
         break;
       case GESTURE_MODAL_SELECT:
       case GESTURE_MODAL_DESELECT:

@@ -5134,6 +5134,7 @@ def km_gesture_straight_line(_params):
         ("BEGIN", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
         ("SELECT", {"type": 'LEFTMOUSE', "value": 'RELEASE', "any": True}, None),
         ("MOVE", {"type": 'SPACE', "value": 'ANY', "repeat": False, "any": True}, None),
+        ("SNAP", {"type": 'LEFT_CTRL', "value": 'ANY', "any": True, "repeat": False}, None),
     ])
 
     return keymap
