@@ -499,7 +499,9 @@ static void subdiv_accumulate_vertex_normal_and_displacement(SubdivMeshContext *
     BKE_subdiv_eval_displacement(subdiv, ptex_face_index, u, v, dPdu, dPdv, D);
     add_v3_v3(subdiv_vert->co, D);
   }
-  ++ctx->accumulated_counters[subdiv_vertex_index];
+  if (ctx->accumulated_counters) {
+    ++ctx->accumulated_counters[subdiv_vertex_index];
+  }
 }
 
 /** \} */
@@ -573,11 +575,11 @@ static void evaluate_vertex_and_apply_displacement_copy(const SubdivMeshContext 
                                                         MVert *subdiv_vert)
 {
   const int subdiv_vertex_index = subdiv_vert - ctx->subdiv_mesh->mvert;
-  const float inv_num_accumulated = 1.0f / ctx->accumulated_counters[subdiv_vertex_index];
   /* Displacement is accumulated in subdiv vertex position.
    * Needs to be backed up before copying data from original vertex. */
   float D[3] = {0.0f, 0.0f, 0.0f};
   if (ctx->have_displacement) {
+    const float inv_num_accumulated = 1.0f / ctx->accumulated_counters[subdiv_vertex_index];
     copy_v3_v3(D, subdiv_vert->co);
     mul_v3_fl(D, inv_num_accumulated);
   }
@@ -606,11 +608,11 @@ static void evaluate_vertex_and_apply_displacement_interpolate(
     MVert *subdiv_vert)
 {
   const int subdiv_vertex_index = subdiv_vert - ctx->subdiv_mesh->mvert;
-  const float inv_num_accumulated = 1.0f / ctx->accumulated_counters[subdiv_vertex_index];
   /* Displacement is accumulated in subdiv vertex position.
    * Needs to be backed up before copying data from original vertex. */
   float D[3] = {0.0f, 0.0f, 0.0f};
   if (ctx->have_displacement) {
+    const float inv_num_accumulated = 1.0f / ctx->accumulated_counters[subdiv_vertex_index];
     copy_v3_v3(D, subdiv_vert->co);
     mul_v3_fl(D, inv_num_accumulated);
   }
@@ -621,6 +623,7 @@ static void evaluate_vertex_and_apply_displacement_interpolate(
   add_v3_v3(subdiv_vert->co, D);
   /* Copy normal from accumulated storage. */
   if (ctx->can_evaluate_normals) {
+    const float inv_num_accumulated = 1.0f / ctx->accumulated_counters[subdiv_vertex_index];
     float N[3];
     copy_v3_v3(N, ctx->accumulated_normals[subdiv_vertex_index]);
     mul_v3_fl(N, inv_num_accumulated);
@@ -1213,7 +1216,7 @@ Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
   subdiv_context.coarse_mesh = coarse_mesh;
   subdiv_context.subdiv = subdiv;
   subdiv_context.have_displacement = (subdiv->displacement_evaluator != NULL);
-  subdiv_context.can_evaluate_normals = !subdiv_context.have_displacement;
+  subdiv_context.can_evaluate_normals = !subdiv_context.have_displacement && subdiv_context.subdiv->settings.is_adaptive;
   /* Multi-threaded traversal/evaluation. */
   BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY);
   SubdivForeachContext foreach_context;
