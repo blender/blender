@@ -850,8 +850,8 @@ typedef struct RestrictProperties {
   PropertyRNA *object_hide_viewport, *object_hide_select, *object_hide_render;
   PropertyRNA *base_hide_viewport;
   PropertyRNA *collection_hide_viewport, *collection_hide_select, *collection_hide_render;
-  PropertyRNA *layer_collection_holdout, *layer_collection_indirect_only,
-      *layer_collection_hide_viewport;
+  PropertyRNA *layer_collection_exclude, *layer_collection_holdout,
+      *layer_collection_indirect_only, *layer_collection_hide_viewport;
   PropertyRNA *modifier_show_viewport, *modifier_show_render;
   PropertyRNA *constraint_enable;
   PropertyRNA *bone_hide_viewport;
@@ -867,6 +867,7 @@ typedef struct RestrictPropertiesActive {
   bool collection_hide_viewport;
   bool collection_hide_select;
   bool collection_hide_render;
+  bool layer_collection_exclude;
   bool layer_collection_holdout;
   bool layer_collection_indirect_only;
   bool layer_collection_hide_viewport;
@@ -942,6 +943,20 @@ static void outliner_restrict_properties_enable_layer_collection_set(
       props_active->object_hide_select = false;
     }
   }
+
+  if (props_active->layer_collection_exclude) {
+    props_active->layer_collection_exclude = !RNA_property_boolean_get(
+        layer_collection_ptr, props->layer_collection_exclude);
+
+    if (!props_active->layer_collection_exclude) {
+      props_active->collection_hide_viewport = false;
+      props_active->collection_hide_select = false;
+      props_active->collection_hide_render = false;
+      props_active->layer_collection_hide_viewport = false;
+      props_active->layer_collection_holdout = false;
+      props_active->layer_collection_indirect_only = false;
+    }
+  }
 }
 
 static bool outliner_restrict_properties_collection_set(Scene *scene,
@@ -956,8 +971,7 @@ static bool outliner_restrict_properties_collection_set(Scene *scene,
                                                                                NULL;
   Collection *collection = outliner_collection_from_tree_element(te);
 
-  if ((collection->flag & COLLECTION_IS_MASTER) ||
-      (layer_collection && ((layer_collection->flag & LAYER_COLLECTION_EXCLUDE) != 0))) {
+  if (collection->flag & COLLECTION_IS_MASTER) {
     return false;
   }
 
@@ -997,6 +1011,8 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                                                    "hide_viewport");
     props.collection_hide_select = RNA_struct_type_find_property(&RNA_Collection, "hide_select");
     props.collection_hide_render = RNA_struct_type_find_property(&RNA_Collection, "hide_render");
+    props.layer_collection_exclude = RNA_struct_type_find_property(&RNA_LayerCollection,
+                                                                   "exclude");
     props.layer_collection_holdout = RNA_struct_type_find_property(&RNA_LayerCollection,
                                                                    "holdout");
     props.layer_collection_indirect_only = RNA_struct_type_find_property(&RNA_LayerCollection,
@@ -1014,6 +1030,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
   }
 
   struct {
+    int enable;
     int select;
     int hide;
     int viewport;
@@ -1044,6 +1061,11 @@ static void outliner_draw_restrictbuts(uiBlock *block,
   if (space_outliner->show_restrict_flags & SO_RESTRICT_SELECT) {
     restrict_offsets.select = (++restrict_column_offset) * UI_UNIT_X + V2D_SCROLL_WIDTH;
   }
+  if (space_outliner->outlinevis == SO_VIEW_LAYER &&
+      space_outliner->show_restrict_flags & SO_RESTRICT_ENABLE) {
+    restrict_offsets.enable = (++restrict_column_offset) * UI_UNIT_X + V2D_SCROLL_WIDTH;
+  }
+
   BLI_assert((restrict_column_offset * UI_UNIT_X + V2D_SCROLL_WIDTH) ==
              outliner_restrict_columns_width(space_outliner));
 
@@ -1436,6 +1458,26 @@ static void outliner_draw_restrictbuts(uiBlock *block,
           Collection *collection = outliner_collection_from_tree_element(te);
 
           if (layer_collection != NULL) {
+            if (space_outliner->show_restrict_flags & SO_RESTRICT_ENABLE) {
+              bt = uiDefIconButR_prop(block,
+                                      UI_BTYPE_ICON_TOGGLE,
+                                      0,
+                                      0,
+                                      (int)(region->v2d.cur.xmax) - restrict_offsets.enable,
+                                      te->ys,
+                                      UI_UNIT_X,
+                                      UI_UNIT_Y,
+                                      &layer_collection_ptr,
+                                      props.layer_collection_exclude,
+                                      -1,
+                                      0,
+                                      0,
+                                      0,
+                                      0,
+                                      NULL);
+              UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+            }
+
             if (space_outliner->show_restrict_flags & SO_RESTRICT_HIDE) {
               bt = uiDefIconButR_prop(block,
                                       UI_BTYPE_ICON_TOGGLE,
@@ -1829,7 +1871,6 @@ static void outliner_buttons(const bContext *C,
                              const float restrict_column_width,
                              TreeElement *te)
 {
-  SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   uiBut *bt;
   TreeStoreElem *tselem;
   int spx, dx, len;
@@ -1855,10 +1896,6 @@ static void outliner_buttons(const bContext *C,
   }
 
   spx = te->xs + 1.8f * UI_UNIT_X;
-  if ((tselem->type == TSE_LAYER_COLLECTION) &&
-      (space_outliner->show_restrict_flags & SO_RESTRICT_ENABLE)) {
-    spx += UI_UNIT_X;
-  }
   dx = region->v2d.cur.xmax - (spx + restrict_column_width + 0.2f * UI_UNIT_X);
 
   bt = uiDefBut(block,
@@ -2555,60 +2592,6 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
   return data;
 }
 
-static void tselem_draw_layer_collection_enable_icon(
-    Scene *scene, uiBlock *block, int xmax, float x, float y, TreeElement *te, float alpha)
-{
-  /* Get RNA property (once for speed). */
-  static PropertyRNA *exclude_prop = NULL;
-  if (exclude_prop == NULL) {
-    exclude_prop = RNA_struct_type_find_property(&RNA_LayerCollection, "exclude");
-  }
-
-  if (x >= xmax) {
-    /* Placement of icons, copied from interface_widgets.c. */
-    float aspect = (0.8f * UI_UNIT_Y) / ICON_DEFAULT_HEIGHT;
-    x += 2.0f * aspect;
-    y += 2.0f * aspect;
-
-    /* restrict column clip... it has been coded by simply overdrawing,
-     * doesn't work for buttons */
-    uchar color[4];
-    int icon = RNA_property_ui_icon(exclude_prop);
-    if (UI_icon_get_theme_color(icon, color)) {
-      UI_icon_draw_ex(x, y, icon, U.inv_dpi_fac, alpha, 0.0f, color, true);
-    }
-    else {
-      UI_icon_draw_ex(x, y, icon, U.inv_dpi_fac, alpha, 0.0f, NULL, false);
-    }
-  }
-  else {
-    LayerCollection *layer_collection = te->directdata;
-    PointerRNA layer_collection_ptr;
-    RNA_pointer_create(&scene->id, &RNA_LayerCollection, layer_collection, &layer_collection_ptr);
-
-    char emboss = UI_block_emboss_get(block);
-    UI_block_emboss_set(block, UI_EMBOSS_NONE);
-    uiBut *bt = uiDefIconButR_prop(block,
-                                   UI_BTYPE_ICON_TOGGLE,
-                                   0,
-                                   0,
-                                   x,
-                                   y,
-                                   UI_UNIT_X,
-                                   UI_UNIT_Y,
-                                   &layer_collection_ptr,
-                                   exclude_prop,
-                                   -1,
-                                   0,
-                                   0,
-                                   0,
-                                   0,
-                                   NULL);
-    UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
-    UI_block_emboss_set(block, emboss);
-  }
-}
-
 static void tselem_draw_icon(uiBlock *block,
                              int xmax,
                              float x,
@@ -3038,15 +3021,6 @@ static void outliner_draw_tree_element(bContext *C,
     else {
       active = tree_element_type_active(C, tvc, space_outliner, te, tselem, OL_SETSEL_NONE, false);
       /* active collection*/
-      icon_bgcolor[3] = 0.2f;
-    }
-
-    /* Checkbox to enable collections. */
-    if ((tselem->type == TSE_LAYER_COLLECTION) &&
-        (space_outliner->show_restrict_flags & SO_RESTRICT_ENABLE)) {
-      tselem_draw_layer_collection_enable_icon(
-          tvc->scene, block, xmax, (float)startx + offsx + UI_UNIT_X, (float)*starty, te, 0.8f);
-      offsx += UI_UNIT_X;
     }
 
     /* active circle */
