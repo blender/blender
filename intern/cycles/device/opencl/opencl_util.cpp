@@ -1172,9 +1172,20 @@ bool OpenCLInfo::get_device_extensions(cl_device_id device_id,
                                        string *device_extensions,
                                        cl_int *error)
 {
-  char buffer[1024];
+  size_t extension_length = 0;
   cl_int err;
-  if ((err = clGetDeviceInfo(device_id, CL_DEVICE_EXTENSIONS, sizeof(buffer), &buffer, NULL)) !=
+  /* Determine the size of the extension string*/
+  if ((err = clGetDeviceInfo(device_id, CL_DEVICE_EXTENSIONS, 0, 0, &extension_length)) !=
+      CL_SUCCESS) {
+    if (error != NULL) {
+      *error = err;
+    }
+    *device_extensions = "";
+    return false;
+  }
+  vector<char> buffer(extension_length);
+  if ((err = clGetDeviceInfo(
+           device_id, CL_DEVICE_EXTENSIONS, extension_length, buffer.data(), NULL)) !=
       CL_SUCCESS) {
     if (error != NULL) {
       *error = err;
@@ -1185,7 +1196,7 @@ bool OpenCLInfo::get_device_extensions(cl_device_id device_id,
   if (error != NULL) {
     *error = CL_SUCCESS;
   }
-  *device_extensions = buffer;
+  *device_extensions = string(buffer.data());
   return true;
 }
 
