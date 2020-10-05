@@ -483,6 +483,57 @@ int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, eInsertKeyFlags flag)
   return i;
 }
 
+/** Update the FCurve to allow insertion of `bezt` without modifying the curve shape.
+ *
+ * Checks whether it is necessary to apply Bezier subdivision due to involvement of non-auto
+ * handles. If necessary, changes `bezt` handles from Auto to Aligned.
+ *
+ * \param bezt: key being inserted
+ * \param prev: keyframe before that key
+ * \param next: keyframe after that key
+ */
+static void subdivide_nonauto_handles(const FCurve *fcu,
+                                      BezTriple *bezt,
+                                      BezTriple *prev,
+                                      BezTriple *next)
+{
+  if (prev->ipo != BEZT_IPO_BEZ || bezt->ipo != BEZT_IPO_BEZ) {
+    return;
+  }
+
+  /* Don't change Vector handles, or completely auto regions. */
+  const bool bezt_auto = BEZT_IS_AUTOH(bezt) || (bezt->h1 == HD_VECT && bezt->h2 == HD_VECT);
+  const bool prev_auto = BEZT_IS_AUTOH(prev) || (prev->h2 == HD_VECT);
+  const bool next_auto = BEZT_IS_AUTOH(next) || (next->h1 == HD_VECT);
+  if (bezt_auto && prev_auto && next_auto) {
+    return;
+  }
+
+  /* Subdivide the curve. */
+  float delta;
+  if (!BKE_bezt_subdivide_handles(bezt, prev, next, &delta)) {
+    return;
+  }
+
+  /* Decide when to force auto to manual. */
+  if (!BEZT_IS_AUTOH(bezt) || fabsf(delta) >= 0.001f) {
+    return;
+  }
+  if ((prev_auto || next_auto) && fcu->auto_smoothing == FCURVE_SMOOTH_CONT_ACCEL) {
+    const float hx = bezt->vec[1][0] - bezt->vec[0][0];
+    const float dx = bezt->vec[1][0] - prev->vec[1][0];
+
+    /* This mode always uses 1/3 of key distance for handle x size. */
+    const bool auto_works_well = fabsf(hx - dx / 3.0f) < 0.001f;
+    if (auto_works_well) {
+      return;
+    }
+  }
+
+  /* Turn off auto mode. */
+  bezt->h1 = bezt->h2 = HD_ALIGN;
+}
+
 /**
  * This function is a wrapper for #insert_bezt_fcurve(), and should be used when
  * adding a new keyframe to a curve, when the keyframe doesn't exist anywhere else yet.
@@ -562,14 +613,6 @@ int insert_vert_fcurve(
     return -1;
   }
 
-  /* don't recalculate handles if fast is set
-   * - this is a hack to make importers faster
-   * - we may calculate twice (due to autohandle needing to be calculated twice)
-   */
-  if ((flag & INSERTKEY_FAST) == 0) {
-    calchandles_fcurve(fcu);
-  }
-
   /* set handletype and interpolation */
   if ((fcu->totvert > 2) && (flag & INSERTKEY_REPLACE) == 0) {
     BezTriple *bezt = (fcu->bezt + a);
@@ -586,15 +629,19 @@ int insert_vert_fcurve(
       else if (a < fcu->totvert - 1) {
         bezt->ipo = (bezt + 1)->ipo;
       }
-    }
 
-    /* don't recalculate handles if fast is set
-     * - this is a hack to make importers faster
-     * - we may calculate twice (due to autohandle needing to be calculated twice)
-     */
-    if ((flag & INSERTKEY_FAST) == 0) {
-      calchandles_fcurve(fcu);
+      if (0 < a && a < (fcu->totvert - 1) && (flag & INSERTKEY_OVERWRITE_FULL) == 0) {
+        subdivide_nonauto_handles(fcu, bezt, bezt - 1, bezt + 1);
+      }
     }
+  }
+
+  /* don't recalculate handles if fast is set
+   * - this is a hack to make importers faster
+   * - we may calculate twice (due to autohandle needing to be calculated twice)
+   */
+  if ((flag & INSERTKEY_FAST) == 0) {
+    calchandles_fcurve(fcu);
   }
 
   /* return the index at which the keyframe was added */

@@ -1352,16 +1352,13 @@ void correct_bezpart(const float v1[2], float v2[2], float v3[2], const float v4
   }
 }
 
-/* find root ('zero') */
-static int findzero(float x, float q0, float q1, float q2, float q3, float *o)
+/** Find roots of cubic equation (c0 x³ + c1 x² + c2 x + c3)
+ * \return number of roots in `o`.
+ * NOTE: it is up to the caller to allocate enough memory for `o`. */
+static int solve_cubic(double c0, double c1, double c2, double c3, float *o)
 {
-  double c0, c1, c2, c3, a, b, c, p, q, d, t, phi;
+  double a, b, c, p, q, d, t, phi;
   int nr = 0;
-
-  c0 = q0 - x;
-  c1 = 3.0f * (q1 - q0);
-  c2 = 3.0f * (q0 - 2.0f * q1 + q2);
-  c3 = q3 - q0 + 3.0f * (q1 - q2);
 
   if (c3 != 0.0) {
     a = c2 / c3;
@@ -1469,6 +1466,17 @@ static int findzero(float x, float q0, float q1, float q2, float q3, float *o)
   return 0;
 }
 
+/* Find root(s) ('zero') of a Bezier curve. */
+static int findzero(float x, float q0, float q1, float q2, float q3, float *o)
+{
+  const double c0 = q0 - x;
+  const double c1 = 3.0f * (q1 - q0);
+  const double c2 = 3.0f * (q0 - 2.0f * q1 + q2);
+  const double c3 = q3 - q0 + 3.0f * (q1 - q2);
+
+  return solve_cubic(c0, c1, c2, c3, o);
+}
+
 static void berekeny(float f1, float f2, float f3, float f4, float *o, int b)
 {
   float t, c0, c1, c2, c3;
@@ -1483,6 +1491,68 @@ static void berekeny(float f1, float f2, float f3, float f4, float *o, int b)
     t = o[a];
     o[a] = c0 + t * c1 + t * t * c2 + t * t * t * c3;
   }
+}
+
+/* Recompute handles to neatly subdivide the prev-next range at bezt. */
+bool BKE_bezt_subdivide_handles(struct BezTriple *bezt,
+                                struct BezTriple *prev,
+                                struct BezTriple *next,
+                                float *r_pdelta)
+{
+  /* The four points that make up this section of the Bezier curve. */
+  const float *prev_coords = prev->vec[1];
+  float *prev_handle_right = prev->vec[2];
+  float *next_handle_left = next->vec[0];
+  const float *next_coords = next->vec[1];
+
+  float *new_handle_left = bezt->vec[0];
+  const float *new_coords = bezt->vec[1];
+  float *new_handle_right = bezt->vec[2];
+
+  if (new_coords[0] <= prev_coords[0] || new_coords[0] >= next_coords[0]) {
+    /* The new keyframe is outside the (prev_coords, next_coords) range. */
+    return false;
+  }
+
+  /* Apply evaluation-time limits and compute the effective curve. */
+  correct_bezpart(prev_coords, prev_handle_right, next_handle_left, next_coords);
+  float roots[4];
+  if (!findzero(new_coords[0],
+                prev_coords[0],
+                prev_handle_right[0],
+                next_handle_left[0],
+                next_coords[0],
+                roots)) {
+    return false;
+  }
+
+  const float t = roots[0]; /* Percentage of the curve at which the split should occur. */
+  if (t <= 0.0f || t >= 1.0f) {
+    /* The split would occur outside the curve, which isn't possible. */
+    return false;
+  }
+
+  /* De Casteljau split, requires three iterations of splitting.
+   * See https://pomax.github.io/bezierinfo/#decasteljau */
+  float split1[3][2], split2[2][2], split3[2];
+  interp_v2_v2v2(split1[0], prev_coords, prev_handle_right, t);
+  interp_v2_v2v2(split1[1], prev_handle_right, next_handle_left, t);
+  interp_v2_v2v2(split1[2], next_handle_left, next_coords, t);
+  interp_v2_v2v2(split2[0], split1[0], split1[1], t);
+  interp_v2_v2v2(split2[1], split1[1], split1[2], t);
+  interp_v2_v2v2(split3, split2[0], split2[1], t);
+
+  /* Update the existing handles. */
+  copy_v2_v2(prev_handle_right, split1[0]);
+  copy_v2_v2(next_handle_left, split1[2]);
+
+  float diff_coords[2];
+  sub_v2_v2v2(diff_coords, new_coords, split3);
+  add_v2_v2v2(new_handle_left, split2[0], diff_coords);
+  add_v2_v2v2(new_handle_right, split2[1], diff_coords);
+
+  *r_pdelta = diff_coords[1];
+  return true;
 }
 
 /** \} */
