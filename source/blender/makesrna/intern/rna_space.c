@@ -1777,11 +1777,9 @@ static const EnumPropertyItem *rna_SpaceProperties_context_itemf(bContext *UNUSE
   SpaceProperties *sbuts = (SpaceProperties *)(ptr->data);
   EnumPropertyItem *item = NULL;
 
-  /* We use 32 tabs maximum here so a flag for each can fit into a 32 bit integer flag.
-   * A theoretical maximum would be BCONTEXT_TOT * 2, with every tab displayed and a spacer
-   * in every other item. But this size is currently limited by the size of integer
-   * supported by RNA enums. */
-  int context_tabs_array[32];
+  /* Although it would never reach this amount, a theoretical maximum number of tabs
+   * is BCONTEXT_TOT * 2, with every tab displayed and a spacer in every other item. */
+  short context_tabs_array[BCONTEXT_TOT * 2];
   int totitem = ED_buttons_tabs_list(sbuts, context_tabs_array);
   BLI_assert(totitem <= ARRAY_SIZE(context_tabs_array));
 

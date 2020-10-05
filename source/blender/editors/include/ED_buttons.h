@@ -28,7 +28,7 @@ extern "C" {
 
 struct SpaceProperties;
 
-int ED_buttons_tabs_list(struct SpaceProperties *sbuts, int *context_tabs_array);
+int ED_buttons_tabs_list(struct SpaceProperties *sbuts, short *context_tabs_array);
 
 #ifdef __cplusplus
 }

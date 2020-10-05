@@ -156,7 +156,7 @@ static void buttons_main_region_init(wmWindowManager *wm, ARegion *region)
  *
  * \return The total number of items in the array returned.
  */
-int ED_buttons_tabs_list(SpaceProperties *sbuts, int *context_tabs_array)
+int ED_buttons_tabs_list(SpaceProperties *sbuts, short *context_tabs_array)
 {
   int length = 0;
   if (sbuts->pathflag & (1 << BCONTEXT_TOOL)) {
