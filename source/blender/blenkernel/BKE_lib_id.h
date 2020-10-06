@@ -99,6 +99,12 @@ enum {
   /** Do not tag new ID for update in depsgraph. */
   LIB_ID_CREATE_NO_DEG_TAG = 1 << 8,
 
+  /** Very similar to #LIB_ID_CREATE_NO_MAIN, and should never be used with it (typically combined
+   * with #LIB_ID_CREATE_LOCALIZE or #LIB_ID_COPY_LOCALIZE in fact).
+   * It ensures that IDs created with it will get the #LIB_TAG_LOCALIZED tag, and uses some
+   * specific code in some copy cases (mostly for node trees). */
+  LIB_ID_CREATE_LOCAL = 1 << 9,
+
   /* *** Specific options to some ID types or usages. *** */
   /* *** May be ignored by unrelated ID copying functions. *** */
   /** Object only, needed by make_local code. */

@@ -81,13 +81,21 @@ static void light_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
 {
   Light *la_dst = (Light *)id_dst;
   const Light *la_src = (const Light *)id_src;
+
+  const bool is_localized = (flag & LIB_ID_CREATE_LOCAL) != 0;
   /* We always need allocation of our private ID data. */
   const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
 
   la_dst->curfalloff = BKE_curvemapping_copy(la_src->curfalloff);
 
   if (la_src->nodetree) {
-    BKE_id_copy_ex(bmain, (ID *)la_src->nodetree, (ID **)&la_dst->nodetree, flag_private_id_data);
+    if (is_localized) {
+      la_dst->nodetree = ntreeLocalize(la_src->nodetree);
+    }
+    else {
+      BKE_id_copy_ex(
+          bmain, (ID *)la_src->nodetree, (ID **)&la_dst->nodetree, flag_private_id_data);
+    }
   }
 
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
@@ -217,33 +225,6 @@ Light *BKE_light_copy(Main *bmain, const Light *la)
   Light *la_copy;
   BKE_id_copy(bmain, &la->id, (ID **)&la_copy);
   return la_copy;
-}
-
-Light *BKE_light_localize(Light *la)
-{
-  /* TODO(bastien): Replace with something like:
-   *
-   *   Light *la_copy;
-   *   BKE_id_copy_ex(bmain, &la->id, (ID **)&la_copy,
-   *                  LIB_ID_COPY_NO_MAIN | LIB_ID_COPY_NO_PREVIEW | LIB_ID_COPY_NO_USER_REFCOUNT,
-   *                  false);
-   *   return la_copy;
-   *
-   * NOTE: Only possible once nested node trees are fully converted to that too. */
-
-  Light *lan = BKE_libblock_copy_for_localize(&la->id);
-
-  lan->curfalloff = BKE_curvemapping_copy(la->curfalloff);
-
-  if (la->nodetree) {
-    lan->nodetree = ntreeLocalize(la->nodetree);
-  }
-
-  lan->preview = NULL;
-
-  lan->id.tag |= LIB_TAG_LOCALIZED;
-
-  return lan;
 }
 
 void BKE_light_eval(struct Depsgraph *depsgraph, Light *la)

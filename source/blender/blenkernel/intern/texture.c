@@ -87,6 +87,7 @@ static void texture_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const i
   Tex *texture_dst = (Tex *)id_dst;
   const Tex *texture_src = (const Tex *)id_src;
 
+  const bool is_localized = (flag & LIB_ID_CREATE_LOCAL) != 0;
   /* We always need allocation of our private ID data. */
   const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
 
@@ -101,8 +102,14 @@ static void texture_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const i
     if (texture_src->nodetree->execdata) {
       ntreeTexEndExecTree(texture_src->nodetree->execdata);
     }
-    BKE_id_copy_ex(
-        bmain, (ID *)texture_src->nodetree, (ID **)&texture_dst->nodetree, flag_private_id_data);
+
+    if (is_localized) {
+      texture_dst->nodetree = ntreeLocalize(texture_src->nodetree);
+    }
+    else {
+      BKE_id_copy_ex(
+          bmain, (ID *)texture_src->nodetree, (ID **)&texture_dst->nodetree, flag_private_id_data);
+    }
   }
 
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
@@ -453,40 +460,6 @@ Tex *BKE_texture_copy(Main *bmain, const Tex *tex)
   Tex *tex_copy;
   BKE_id_copy(bmain, &tex->id, (ID **)&tex_copy);
   return tex_copy;
-}
-
-/* texture copy without adding to main dbase */
-Tex *BKE_texture_localize(Tex *tex)
-{
-  /* TODO(bastien): Replace with something like:
-   *
-   *   Tex *tex_copy;
-   *   BKE_id_copy_ex(bmain, &tex->id, (ID **)&tex_copy,
-   *                  LIB_ID_COPY_NO_MAIN | LIB_ID_COPY_NO_PREVIEW | LIB_ID_COPY_NO_USER_REFCOUNT,
-   *                  false);
-   *   return tex_copy;
-   *
-   * NOTE: Only possible once nested node trees are fully converted to that too. */
-
-  Tex *texn;
-
-  texn = BKE_libblock_copy_for_localize(&tex->id);
-
-  /* image texture: texture_free_data also doesn't decrease */
-
-  if (texn->coba) {
-    texn->coba = MEM_dupallocN(texn->coba);
-  }
-
-  texn->preview = NULL;
-
-  if (tex->nodetree) {
-    texn->nodetree = ntreeLocalize(tex->nodetree);
-  }
-
-  texn->id.tag |= LIB_TAG_LOCALIZED;
-
-  return texn;
 }
 
 /* ------------------------------------------------------------------------- */
