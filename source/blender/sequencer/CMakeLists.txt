@@ -53,4 +53,16 @@ set(LIB
   bf_blenlib
 )
 
+if(WITH_AUDASPACE)
+  add_definitions(-DWITH_AUDASPACE)
+
+  list(APPEND INC_SYS
+    ${AUDASPACE_C_INCLUDE_DIRS}
+  )
+  list(APPEND LIB
+    ${AUDASPACE_C_LIBRARIES}
+    ${AUDASPACE_PY_LIBRARIES}
+  )
+endif()
+
 blender_add_lib(bf_sequencer "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
