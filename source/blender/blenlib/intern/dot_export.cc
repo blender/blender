@@ -225,7 +225,15 @@ void Attributes::export__as_bracket_list(std::stringstream &ss) const
       ss << key << "=" << value << ", ";
     }
     else {
-      ss << key << "=\"" << value << "\", ";
+      ss << key << "=\"";
+      for (char c : value) {
+        if (c == '\"') {
+          /* Escape double quotes. */
+          ss << '\\';
+        }
+        ss << c;
+      }
+      ss << "\", ";
     }
   });
   ss << "]";
