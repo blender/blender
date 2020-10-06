@@ -608,6 +608,7 @@ class SpellChecker:
         "catmull",
         "catrom",
         "chebychev",
+        "conrady",  # Brown-Conrady
         "courant",
         "cryptomatte", "crypto",
         "embree",
