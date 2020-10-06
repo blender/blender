@@ -355,7 +355,6 @@ class GridBase : public PbClass {
     return isInBounds(Vec3i(i, j, k), bnd);
   }
 
-#ifdef BLENDER
   //! expose name field to Python for Blender
   void setName(const std::string &name)
   {
@@ -386,7 +385,6 @@ class GridBase : public PbClass {
     }
   }
 
-#endif
  protected:
   GridType mType;
   Vec3i mSize;

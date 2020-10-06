@@ -234,6 +234,35 @@ class LevelsetGrid : public Grid<Real> {
     }
   }
 
+  //! flood-fill the levelset to ensure that closed obstacles are filled inside
+  void floodFill(const Real value = -0.5, const bool outside = true, const int boundaryWidth = 1);
+  static PyObject *_W_7(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
+  {
+    try {
+      PbArgs _args(_linargs, _kwds);
+      LevelsetGrid *pbo = dynamic_cast<LevelsetGrid *>(Pb::objFromPy(_self));
+      bool noTiming = _args.getOpt<bool>("notiming", -1, 0);
+      pbPreparePlugin(pbo->getParent(), "LevelsetGrid::floodFill", !noTiming);
+      PyObject *_retval = 0;
+      {
+        ArgLocker _lock;
+        const Real value = _args.getOpt<Real>("value", 0, -0.5, &_lock);
+        const bool outside = _args.getOpt<bool>("outside", 1, true, &_lock);
+        const int boundaryWidth = _args.getOpt<int>("boundaryWidth", 2, 1, &_lock);
+        pbo->_args.copy(_args);
+        _retval = getPyNone();
+        pbo->floodFill(value, outside, boundaryWidth);
+        pbo->_args.check();
+      }
+      pbFinalizePlugin(pbo->getParent(), "LevelsetGrid::floodFill", !noTiming);
+      return _retval;
+    }
+    catch (std::exception &e) {
+      pbSetError("LevelsetGrid::floodFill", e.what());
+      return 0;
+    }
+  }
+
   static Real invalidTimeValue();
  public:
   PbArgs _args;

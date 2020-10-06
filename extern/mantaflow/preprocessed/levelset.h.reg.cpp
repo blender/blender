@@ -15,6 +15,7 @@ static const Pb::Register _R_15("LevelsetGrid", "join", LevelsetGrid::_W_3);
 static const Pb::Register _R_16("LevelsetGrid", "subtract", LevelsetGrid::_W_4);
 static const Pb::Register _R_17("LevelsetGrid", "initFromFlags", LevelsetGrid::_W_5);
 static const Pb::Register _R_18("LevelsetGrid", "fillHoles", LevelsetGrid::_W_6);
+static const Pb::Register _R_19("LevelsetGrid", "floodFill", LevelsetGrid::_W_7);
 #endif
 extern "C" {
 void PbRegister_file_11()
@@ -27,6 +28,7 @@ void PbRegister_file_11()
   KEEP_UNUSED(_R_16);
   KEEP_UNUSED(_R_17);
   KEEP_UNUSED(_R_18);
+  KEEP_UNUSED(_R_19);
 }
 }
 }  // namespace Manta

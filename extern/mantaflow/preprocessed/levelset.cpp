@@ -639,8 +639,207 @@ void LevelsetGrid::initFromFlags(const FlagGrid &flags, bool ignoreWalls)
   }
 }
 
+/* Helper variables that are used in flood-fill functions. */
+static const int ID_UNKNOWN = 0;
+static const int ID_VISITED = 1;
+
+/* Fills all cells in the target grid that have not been marked during a flood-fill. */
+
+struct KnFillApply : public KernelBase {
+  KnFillApply(Grid<Real> &target,
+              Grid<int> &visited,
+              const Real value,
+              const int boundaryWidth,
+              const bool outside)
+      : KernelBase(&target, boundaryWidth),
+        target(target),
+        visited(visited),
+        value(value),
+        boundaryWidth(boundaryWidth),
+        outside(outside)
+  {
+    runMessage();
+    run();
+  }
+  inline void op(int i,
+                 int j,
+                 int k,
+                 Grid<Real> &target,
+                 Grid<int> &visited,
+                 const Real value,
+                 const int boundaryWidth,
+                 const bool outside) const
+  {
+
+    if (visited(i, j, k) == ID_VISITED)
+      return;
+    if (outside && target(i, j, k) < 0)
+      return;
+    if (!outside && target(i, j, k) >= 0)
+      return;
+
+    /* Actual flood-fill override. */
+    target(i, j, k) = value;
+  }
+  inline Grid<Real> &getArg0()
+  {
+    return target;
+  }
+  typedef Grid<Real> type0;
+  inline Grid<int> &getArg1()
+  {
+    return visited;
+  }
+  typedef Grid<int> type1;
+  inline const Real &getArg2()
+  {
+    return value;
+  }
+  typedef Real type2;
+  inline const int &getArg3()
+  {
+    return boundaryWidth;
+  }
+  typedef int type3;
+  inline const bool &getArg4()
+  {
+    return outside;
+  }
+  typedef bool type4;
+  void runMessage()
+  {
+    debMsg("Executing kernel KnFillApply ", 3);
+    debMsg("Kernel range"
+               << " x " << maxX << " y " << maxY << " z " << minZ << " - " << maxZ << " ",
+           4);
+  };
+  void operator()(const tbb::blocked_range<IndexInt> &__r) const
+  {
+    const int _maxX = maxX;
+    const int _maxY = maxY;
+    if (maxZ > 1) {
+      for (int k = __r.begin(); k != (int)__r.end(); k++)
+        for (int j = boundaryWidth; j < _maxY; j++)
+          for (int i = boundaryWidth; i < _maxX; i++)
+            op(i, j, k, target, visited, value, boundaryWidth, outside);
+    }
+    else {
+      const int k = 0;
+      for (int j = __r.begin(); j != (int)__r.end(); j++)
+        for (int i = boundaryWidth; i < _maxX; i++)
+          op(i, j, k, target, visited, value, boundaryWidth, outside);
+    }
+  }
+  void run()
+  {
+    if (maxZ > 1)
+      tbb::parallel_for(tbb::blocked_range<IndexInt>(minZ, maxZ), *this);
+    else
+      tbb::parallel_for(tbb::blocked_range<IndexInt>(boundaryWidth, maxY), *this);
+  }
+  Grid<Real> &target;
+  Grid<int> &visited;
+  const Real value;
+  const int boundaryWidth;
+  const bool outside;
+};
+
+/* Basic flood fill implementation used to fill inside / outside areas of levelset.
+ * Calling this function will ensure that there are no fluid cells inside obstacles.
+ * I.e. starting from walls, cells will be tagged in flood-fill fashion, stopping at 0 borders.
+ * All remaining cells will be filled with the fill value. Outside mode inverts search behavior. */
+void LevelsetGrid::floodFill(const Real value, const bool outside, const int boundaryWidth)
+{
+
+  /* Sanity check: Filling mode and filling value need to "match". */
+  if (outside) {
+    assertMsg(value < 0, "Cannot fill outside with (positive) value " << value);
+  }
+  else {
+    assertMsg(value >= 0, "Cannot fill inside with (negative) value " << value);
+  }
+
+  Grid<Real> levelsetCopy(this->getParent());
+  Grid<int> visited(this->getParent());
+  std::stack<Vec3i> todoPos;
+
+  const int maxNeighbors = this->is3D() ? 6 : 4;
+  const Vec3i maxSize(this->getSize() - 1);
+
+  Vec3i bnd(2 * boundaryWidth);
+  if (!this->is3D())
+    bnd.z = 0;
+  const int cellCntNoBnd = (this->getSizeX() - bnd.x) * (this->getSizeY() - bnd.y) *
+                           (this->getSizeZ() - bnd.z);
+
+  /* Initialize temporary helper grids. */
+  levelsetCopy.copyFrom(*this);
+  visited.setConst(ID_UNKNOWN);
+
+  FOR_IJK_BND(visited, boundaryWidth)
+  {
+
+    /* Skip inside / outside cells depending on search mode. */
+    if (outside && levelsetCopy(i, j, k) < 0)
+      continue;
+    if (!outside && levelsetCopy(i, j, k) >= 0)
+      continue;
+    /* Skip cell if it already has been visited. */
+    if (visited(i, j, k) == ID_VISITED)
+      continue;
+
+    Vec3i c(i, j, k);
+
+    bool isWallCell = (c.x - boundaryWidth == 0 || c.x == maxSize.x - boundaryWidth);
+    isWallCell |= (c.y - boundaryWidth == 0 || c.y == maxSize.y - boundaryWidth);
+    if (this->is3D())
+      isWallCell |= (c.z - boundaryWidth == 0 || c.z == maxSize.z - boundaryWidth);
+
+    /* Only start searching from borders. */
+    if (!isWallCell)
+      continue;
+
+    /* Start flood-fill loop by initializing todo stack with current cell. */
+    todoPos.push(c);
+    visited(c) = ID_VISITED;
+
+    while (!todoPos.empty()) {
+      c = todoPos.top();
+      todoPos.pop();
+
+      /* Add all neighbor cells to search stack. */
+      for (int nb = 0; nb < maxNeighbors; nb++) {
+        const Vec3i neigh(c + neighbors[nb]);
+
+        if (!visited.isInBounds(neigh, boundaryWidth))
+          continue;
+        /* Skip inside / outside area depening on what we search for. */
+        if (outside && levelsetCopy(neigh) < 0)
+          continue;
+        if (!outside && levelsetCopy(neigh) >= 0)
+          continue;
+        /* Skip neighbor if it already has been visited. */
+        if (visited(neigh) == ID_VISITED)
+          continue;
+
+        assertMsg(visited(neigh) == ID_UNKNOWN,
+                  "Cell must be of type 'unknown' at this point in the loop");
+        todoPos.push(neigh);
+        visited(neigh) = ID_VISITED;
+      }
+      assertMsg(todoPos.size() <= cellCntNoBnd,
+                "Flood-fill todo stack cannot be greater than domain cell count - "
+                    << todoPos.size() << " vs " << cellCntNoBnd);
+    }
+  }
+  KnFillApply(*this, visited, value, boundaryWidth, outside);
+}
+
+/* Deprecated: Use floodFill() function instead. */
 void LevelsetGrid::fillHoles(int maxDepth, int boundaryWidth)
 {
+  debMsg("Deprecated - do not use fillHoles() ... use floodFill() instead", 1);
+
   Real curVal, i1, i2, j1, j2, k1, k2;
   Vec3i c, cTmp;
   std::stack<Vec3i> undoPos;

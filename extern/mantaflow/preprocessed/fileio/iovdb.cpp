@@ -405,6 +405,7 @@ int writeObjectsVDB(const string &filename,
         vdb_flags = openvdb::io::COMPRESS_NONE;
         break;
       }
+      default:
       case COMPRESSION_ZIP: {
         vdb_flags |= openvdb::io::COMPRESS_ZIP;
         break;
@@ -445,6 +446,7 @@ int readObjectsVDB(const string &filename, std::vector<PbClass *> *objects, floa
     (void)metadata;  // Unused for now
   }
   catch (const openvdb::IoError &e) {
+    (void)e;  // Unused for now
     debMsg("readObjectsVDB: Could not open vdb file " << filename, 1);
     file.close();
     return 0;
