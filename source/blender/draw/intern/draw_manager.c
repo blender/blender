@@ -2885,6 +2885,7 @@ void DRW_engines_register(void)
   DRW_engine_register(&draw_engine_basic_type);
 
   DRW_engine_register(&draw_engine_image_type);
+  DRW_engine_register(DRW_engine_viewport_external_type.draw_engine);
 
   /* setup callbacks */
   {
