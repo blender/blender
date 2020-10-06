@@ -1304,22 +1304,30 @@ class _defs_sculpt:
 
     @ToolDef.from_fn
     def trim_box():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("sculpt.trim_box_gesture")
+            layout.prop(props, "trim_mode", expand=False)
         return dict(
             idname="builtin.box_trim",
             label="Box Trim",
             icon="ops.sculpt.box_trim",
             widget=None,
             keymap=(),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
     def trim_lasso():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("sculpt.trim_lasso_gesture")
+            layout.prop(props, "trim_mode", expand=False)
         return dict(
             idname="builtin.lasso_trim",
             label="Lasso Trim",
             icon="ops.sculpt.lasso_trim",
             widget=None,
             keymap=(),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
