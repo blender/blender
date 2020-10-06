@@ -735,6 +735,9 @@ typedef struct SculptBrushTest {
   float dist;
   int mirror_symmetry_pass;
 
+  int radial_symmetry_pass;
+  float symm_rot_mat_inv[4][4];
+
   /* For circle (not sphere) projection. */
   float plane_view[4];
 
