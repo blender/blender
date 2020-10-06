@@ -32,7 +32,14 @@ class TIME_HT_editor_buttons:
 
         layout.separator_spacer()
 
-        layout.prop(tool_settings, "use_keyframe_insert_auto", text="", toggle=True)
+        row = layout.row(align=True)
+        row.prop(tool_settings, "use_keyframe_insert_auto", text="", toggle=True)
+        sub = row.row(align=True)
+        sub.active = tool_settings.use_keyframe_insert_auto
+        sub.popover(
+            panel="TIME_PT_auto_keyframing",
+            text="",
+        )
 
         row = layout.row(align=True)
         row.operator("screen.frame_jump", text="", icon='REW').end = False
@@ -278,28 +285,45 @@ class TIME_PT_keyframing_settings(TimelinePanelButtons, Panel):
 
         scene = context.scene
         tool_settings = context.tool_settings
-        prefs = context.preferences
 
         col = layout.column(align=True)
-        col.label(text="Active Keying Set:")
+        col.label(text="Active Keying Set")
         row = col.row(align=True)
         row.prop_search(scene.keying_sets_all, "active", scene, "keying_sets_all", text="")
         row.operator("anim.keyframe_insert", text="", icon='KEY_HLT')
         row.operator("anim.keyframe_delete", text="", icon='KEY_DEHLT')
 
         col = layout.column(align=True)
-        col.label(text="New Keyframe Type:")
+        col.label(text="New Keyframe Type")
         col.prop(tool_settings, "keyframe_type", text="")
 
+class TIME_PT_auto_keyframing(TimelinePanelButtons, Panel):
+    bl_label = "Auto Keyframing"
+    bl_options = {'HIDE_HEADER'}
+    bl_region_type = 'HEADER'
+    bl_ui_units_x = 9
+
+    @classmethod
+    def poll(cls, context):
+        # Only for timeline editor.
+        return cls.has_timeline(context)
+
+    def draw(self, context):
+        layout = self.layout
+
+        tool_settings = context.tool_settings
+        prefs = context.preferences
+
+        layout.active = tool_settings.use_keyframe_insert_auto
+
+        layout.prop(tool_settings, "auto_keying_mode", expand=True)
+
         col = layout.column(align=True)
-        col.label(text="Auto Keyframing:")
-        row = col.row()
-        row.prop(tool_settings, "auto_keying_mode", text="")
-        row.prop(tool_settings, "use_keyframe_insert_keyingset", text="")
+        col.prop(tool_settings, "use_keyframe_insert_keyingset", text="Only Active Keying Set", toggle=False)
         if not prefs.edit.use_keyframe_insert_available:
             col.prop(tool_settings, "use_record_with_nla", text="Layered Recording")
 
-        layout.prop(tool_settings, "use_keyframe_cycle_aware")
+        col.prop(tool_settings, "use_keyframe_cycle_aware")
 
 
 ###################################
@@ -311,6 +335,7 @@ classes = (
     TIME_MT_cache,
     TIME_PT_playback,
     TIME_PT_keyframing_settings,
+    TIME_PT_auto_keyframing,
 )
 
 if __name__ == "__main__":  # only for live edit.
