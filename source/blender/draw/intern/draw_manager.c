@@ -2648,6 +2648,8 @@ void DRW_engines_register(void)
   DRW_engine_register(&draw_engine_select_type);
   DRW_engine_register(&draw_engine_basic_type);
 
+  DRW_engine_register(DRW_engine_viewport_external_type.draw_engine);
+
   /* setup callbacks */
   {
     BKE_mball_batch_cache_dirty_tag_cb = DRW_mball_batch_cache_dirty_tag;
