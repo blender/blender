@@ -1489,6 +1489,9 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
       return;
     }
 
+    const char *prop_identifier = RNA_property_identifier(property_entry_key.prop);
+    const bool driver_targets_bbone = STRPREFIX(prop_identifier, "bbone_");
+
     /* Find objects which use this, and make their eval callbacks depend on this. */
     for (IDNode *to_node : graph_->id_nodes) {
       if (GS(to_node->id_orig->name) != ID_OB) {
@@ -1506,7 +1509,9 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
         continue;
       }
 
-      OperationKey bone_key(&object->id, NodeType::BONE, pchan->name, OperationCode::BONE_LOCAL);
+      OperationCode target_op = driver_targets_bbone ? OperationCode::BONE_SEGMENTS :
+                                                       OperationCode::BONE_LOCAL;
+      OperationKey bone_key(&object->id, NodeType::BONE, pchan->name, target_op);
       add_relation(driver_key, bone_key, "Arm Bone -> Driver -> Bone");
     }
     /* Make the driver depend on COW, similar to the generic case below. */
