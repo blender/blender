@@ -818,7 +818,7 @@ static bConstraint *edit_constraint_property_get(bContext *C, wmOperator *op, Ob
     list = ED_object_pose_constraint_list(C);
   }
   else {
-    list = ED_object_constraint_active_list(ob);
+    list = &ob->constraints;
   }
 
   con = BKE_constraints_find_name(list, constraint_name);
