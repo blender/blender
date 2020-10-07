@@ -173,6 +173,8 @@ typedef struct IDTypeInfo {
    */
   IDTypeForeachCacheFunction foreach_cache;
 
+  /* ********** Callbacks for reading and writing .blend files. ********** */
+
   /**
    * Write all structs that should be saved in a .blend file.
    */
