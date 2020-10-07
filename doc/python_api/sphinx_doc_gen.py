@@ -1557,7 +1557,7 @@ def pyrna2sphinx(basepath):
             fw(".. class:: %s\n\n" % class_name)
             fw("   %s\n\n" % descr_str)
             fw("   .. note::\n\n")
-            fw("      Note that %s.%s is not actually available from within Blender,\n"
+            fw("      Note that :class:`%s.%s` is not actually available from within Blender,\n"
                "      it only exists for the purpose of documentation.\n\n" % (class_module_name, class_name))
 
             descr_items = [
