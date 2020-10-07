@@ -1071,8 +1071,8 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
 
       if (modified) {
         if (vertCos) {
-          Mesh *temp_mesh;
-          BKE_id_copy_ex(NULL, &modified->id, (ID **)&temp_mesh, LIB_ID_COPY_LOCALIZE);
+          Mesh *temp_mesh = (Mesh *)BKE_id_copy_ex(
+              NULL, &modified->id, NULL, LIB_ID_COPY_LOCALIZE);
           BKE_id_free(NULL, modified);
           modified = temp_mesh;
 
@@ -1115,8 +1115,7 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
 
   if (vertCos) {
     if (modified) {
-      Mesh *temp_mesh;
-      BKE_id_copy_ex(NULL, &modified->id, (ID **)&temp_mesh, LIB_ID_COPY_LOCALIZE);
+      Mesh *temp_mesh = (Mesh *)BKE_id_copy_ex(NULL, &modified->id, NULL, LIB_ID_COPY_LOCALIZE);
       BKE_id_free(NULL, modified);
       modified = temp_mesh;
 

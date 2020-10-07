@@ -326,11 +326,11 @@ static World *preview_get_localized_world(ShaderPreview *sp, World *world)
     return sp->worldcopy;
   }
 
-  ID *id_copy;
-  BKE_id_copy_ex(NULL,
-                 &world->id,
-                 &id_copy,
-                 LIB_ID_CREATE_LOCAL | LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_NO_ANIMDATA);
+  ID *id_copy = BKE_id_copy_ex(NULL,
+                               &world->id,
+                               NULL,
+                               LIB_ID_CREATE_LOCAL | LIB_ID_COPY_LOCALIZE |
+                                   LIB_ID_COPY_NO_ANIMDATA);
   sp->worldcopy = (World *)id_copy;
   BLI_addtail(&sp->pr_main->worlds, sp->worldcopy);
   return sp->worldcopy;
@@ -348,11 +348,8 @@ static ID *duplicate_ids(ID *id)
     case ID_TE:
     case ID_LA:
     case ID_WO: {
-      ID *id_copy;
-      BKE_id_copy_ex(NULL,
-                     id,
-                     &id_copy,
-                     LIB_ID_CREATE_LOCAL | LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_NO_ANIMDATA);
+      ID *id_copy = BKE_id_copy_ex(
+          NULL, id, NULL, LIB_ID_CREATE_LOCAL | LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_NO_ANIMDATA);
       return id_copy;
     }
     case ID_IM:

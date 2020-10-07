@@ -148,7 +148,7 @@ static Mesh *get_quick_mesh(
           result = mesh_self;
         }
         else {
-          BKE_id_copy_ex(NULL, &mesh_operand_ob->id, (ID **)&result, LIB_ID_COPY_LOCALIZE);
+          result = (Mesh *)BKE_id_copy_ex(NULL, &mesh_operand_ob->id, NULL, LIB_ID_COPY_LOCALIZE);
 
           float imat[4][4];
           float omat[4][4];

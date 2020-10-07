@@ -2328,9 +2328,9 @@ bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname)
 
 bNodeTree *ntreeCopyTree_ex(const bNodeTree *ntree, Main *bmain, const bool do_id_user)
 {
-  bNodeTree *ntree_copy;
   const int flag = do_id_user ? 0 : LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_CREATE_NO_MAIN;
-  BKE_id_copy_ex(bmain, (ID *)ntree, (ID **)&ntree_copy, flag);
+
+  bNodeTree *ntree_copy = (bNodeTree *)BKE_id_copy_ex(bmain, (ID *)ntree, NULL, flag);
   return ntree_copy;
 }
 bNodeTree *ntreeCopyTree(Main *bmain, const bNodeTree *ntree)
@@ -2981,9 +2981,8 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
     /* Make full copy outside of Main database.
      * Note: previews are not copied here.
      */
-    bNodeTree *ltree;
-    BKE_id_copy_ex(
-        NULL, &ntree->id, (ID **)&ltree, (LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_NO_ANIMDATA));
+    bNodeTree *ltree = (bNodeTree *)BKE_id_copy_ex(
+        NULL, &ntree->id, NULL, (LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_NO_ANIMDATA));
 
     ltree->id.tag |= LIB_TAG_LOCALIZED;
 

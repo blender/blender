@@ -309,8 +309,7 @@ PointCloud *BKE_pointcloud_copy_for_eval(struct PointCloud *pointcloud_src, bool
     flags |= LIB_ID_COPY_CD_REFERENCE;
   }
 
-  PointCloud *result;
-  BKE_id_copy_ex(NULL, &pointcloud_src->id, (ID **)&result, flags);
+  PointCloud *result = (PointCloud *)BKE_id_copy_ex(NULL, &pointcloud_src->id, NULL, flags);
   return result;
 }
 

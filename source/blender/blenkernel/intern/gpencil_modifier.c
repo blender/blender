@@ -660,10 +660,9 @@ static void gpencil_copy_activeframe_to_eval(
 
 static bGPdata *gpencil_copy_for_eval(bGPdata *gpd)
 {
-  int flags = LIB_ID_COPY_LOCALIZE;
+  const int flags = LIB_ID_COPY_LOCALIZE;
 
-  bGPdata *result;
-  BKE_id_copy_ex(NULL, &gpd->id, (ID **)&result, flags);
+  bGPdata *result = (bGPdata *)BKE_id_copy_ex(NULL, &gpd->id, NULL, flags);
   return result;
 }
 

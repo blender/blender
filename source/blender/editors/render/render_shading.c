@@ -751,8 +751,8 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* add or copy material */
   if (ma) {
-    Material *new_ma = NULL;
-    BKE_id_copy_ex(bmain, &ma->id, (ID **)&new_ma, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS);
+    Material *new_ma = (Material *)BKE_id_copy_ex(
+        bmain, &ma->id, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS);
     ma = new_ma;
   }
   else {
@@ -873,8 +873,8 @@ static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* add or copy world */
   if (wo) {
-    World *new_wo = NULL;
-    BKE_id_copy_ex(bmain, &wo->id, (ID **)&new_wo, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS);
+    World *new_wo = (World *)BKE_id_copy_ex(
+        bmain, &wo->id, NULL, LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS);
     wo = new_wo;
   }
   else {

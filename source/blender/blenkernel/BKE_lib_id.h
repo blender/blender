@@ -238,7 +238,10 @@ bool id_single_user(struct bContext *C,
                     struct PropertyRNA *prop);
 bool BKE_id_copy_is_allowed(const struct ID *id);
 bool BKE_id_copy(struct Main *bmain, const struct ID *id, struct ID **newid);
-bool BKE_id_copy_ex(struct Main *bmain, const struct ID *id, struct ID **r_newid, const int flag);
+struct ID *BKE_id_copy_ex(struct Main *bmain,
+                          const struct ID *id,
+                          struct ID **r_newid,
+                          const int flag);
 struct ID *BKE_id_copy_for_duplicate(struct Main *bmain,
                                      struct ID *id,
                                      const uint duplicate_flags);

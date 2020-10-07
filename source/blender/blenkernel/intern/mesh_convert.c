@@ -1010,8 +1010,7 @@ static Object *object_for_curve_to_mesh_create(Object *object)
   Curve *curve = (Curve *)object->data;
 
   /* Create object itself. */
-  Object *temp_object;
-  BKE_id_copy_ex(NULL, &object->id, (ID **)&temp_object, LIB_ID_COPY_LOCALIZE);
+  Object *temp_object = (Object *)BKE_id_copy_ex(NULL, &object->id, NULL, LIB_ID_COPY_LOCALIZE);
 
   /* Remove all modifiers, since we don't want them to be applied. */
   BKE_object_free_modifiers(temp_object, LIB_ID_CREATE_NO_USER_REFCOUNT);
@@ -1177,11 +1176,8 @@ static Mesh *mesh_new_from_mesh(Object *object, Mesh *mesh)
    * add the data to 'mesh' so future calls to this function don't need to re-convert the data. */
   BKE_mesh_wrapper_ensure_mdata(mesh);
 
-  Mesh *mesh_result = NULL;
-  BKE_id_copy_ex(NULL,
-                 &mesh->id,
-                 (ID **)&mesh_result,
-                 LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT);
+  Mesh *mesh_result = (Mesh *)BKE_id_copy_ex(
+      NULL, &mesh->id, NULL, LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT);
   /* NOTE: Materials should already be copied. */
   /* Copy original mesh name. This is because edit meshes might not have one properly set name. */
   BLI_strncpy(mesh_result->id.name, ((ID *)object->data)->name, sizeof(mesh_result->id.name));
@@ -1407,16 +1403,16 @@ Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
 {
   Mesh *me = ob_eval->runtime.data_orig ? ob_eval->runtime.data_orig : ob_eval->data;
   const ModifierTypeInfo *mti = BKE_modifier_get_info(md_eval->type);
-  Mesh *result;
+  Mesh *result = NULL;
   KeyBlock *kb;
   ModifierEvalContext mectx = {depsgraph, ob_eval, MOD_APPLY_TO_BASE_MESH};
 
   if (!(md_eval->mode & eModifierMode_Realtime)) {
-    return NULL;
+    return result;
   }
 
   if (mti->isDisabled && mti->isDisabled(scene, md_eval, 0)) {
-    return NULL;
+    return result;
   }
 
   if (build_shapekey_layers && me->key &&
@@ -1428,7 +1424,7 @@ Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
     int numVerts;
     float(*deformedVerts)[3] = BKE_mesh_vert_coords_alloc(me, &numVerts);
 
-    BKE_id_copy_ex(NULL, &me->id, (ID **)&result, LIB_ID_COPY_LOCALIZE);
+    result = (Mesh *)BKE_id_copy_ex(NULL, &me->id, NULL, LIB_ID_COPY_LOCALIZE);
     mti->deformVerts(md_eval, &mectx, result, deformedVerts, numVerts);
     BKE_mesh_vert_coords_apply(result, deformedVerts);
 
@@ -1439,8 +1435,7 @@ Mesh *BKE_mesh_create_derived_for_modifier(struct Depsgraph *depsgraph,
     MEM_freeN(deformedVerts);
   }
   else {
-    Mesh *mesh_temp;
-    BKE_id_copy_ex(NULL, &me->id, (ID **)&mesh_temp, LIB_ID_COPY_LOCALIZE);
+    Mesh *mesh_temp = (Mesh *)BKE_id_copy_ex(NULL, &me->id, NULL, LIB_ID_COPY_LOCALIZE);
 
     if (build_shapekey_layers) {
       add_shapekey_layers(mesh_temp, me);

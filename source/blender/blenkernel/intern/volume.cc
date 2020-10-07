@@ -1319,8 +1319,7 @@ Volume *BKE_volume_copy_for_eval(Volume *volume_src, bool reference)
     flags |= LIB_ID_COPY_CD_REFERENCE;
   }
 
-  Volume *result;
-  BKE_id_copy_ex(NULL, &volume_src->id, (ID **)&result, flags);
+  Volume *result = (Volume *)BKE_id_copy_ex(NULL, &volume_src->id, NULL, flags);
   result->filepath[0] = '\0';
 
   return result;

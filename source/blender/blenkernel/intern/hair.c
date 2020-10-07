@@ -330,8 +330,7 @@ Hair *BKE_hair_copy_for_eval(Hair *hair_src, bool reference)
     flags |= LIB_ID_COPY_CD_REFERENCE;
   }
 
-  Hair *result;
-  BKE_id_copy_ex(NULL, &hair_src->id, (ID **)&result, flags);
+  Hair *result = (Hair *)BKE_id_copy_ex(NULL, &hair_src->id, NULL, flags);
   return result;
 }
 

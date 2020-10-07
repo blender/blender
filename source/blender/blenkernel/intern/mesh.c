@@ -1013,8 +1013,7 @@ Mesh *BKE_mesh_copy_for_eval(struct Mesh *source, bool reference)
     flags |= LIB_ID_COPY_CD_REFERENCE;
   }
 
-  Mesh *result;
-  BKE_id_copy_ex(NULL, &source->id, (ID **)&result, flags);
+  Mesh *result = (Mesh *)BKE_id_copy_ex(NULL, &source->id, NULL, flags);
   return result;
 }
 
