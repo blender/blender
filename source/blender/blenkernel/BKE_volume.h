@@ -147,7 +147,7 @@ void BKE_volume_grid_remove(struct Volume *volume, struct VolumeGrid *grid);
 bool BKE_volume_save(struct Volume *volume,
                      struct Main *bmain,
                      struct ReportList *reports,
-                     const char *filename);
+                     const char *filepath);
 
 #ifdef __cplusplus
 }
