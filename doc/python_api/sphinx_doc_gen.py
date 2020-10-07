@@ -744,10 +744,9 @@ def pyprop2sphinx(ident, fw, identifier, py_prop):
     else:
         fw(ident + ".. attribute:: %s\n\n" % identifier)
     write_indented_lines(ident + "   ", fw, py_prop.__doc__)
+    fw("\n")
     if py_prop.fset is None:
         fw(ident + "   (readonly)\n\n")
-    else:
-        fw("\n")
 
 
 def pymodule2sphinx(basepath, module_name, module, title):
