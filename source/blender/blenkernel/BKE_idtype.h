@@ -47,6 +47,8 @@ enum {
   IDTYPE_FLAGS_NO_LIBLINKING = 1 << 1,
   /** Indicates that the given IDType does not support making a library-linked ID local. */
   IDTYPE_FLAGS_NO_MAKELOCAL = 1 << 2,
+  /** Indicates that the given IDType does not have animation data. */
+  IDTYPE_FLAGS_NO_ANIMDATA = 1 << 3,
 };
 
 typedef struct IDCacheKey {

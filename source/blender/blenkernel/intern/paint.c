@@ -133,7 +133,7 @@ IDTypeInfo IDType_ID_PAL = {
     .name = "Palette",
     .name_plural = "palettes",
     .translation_context = BLT_I18NCONTEXT_ID_PALETTE,
-    .flags = 0,
+    .flags = IDTYPE_FLAGS_NO_ANIMDATA,
 
     .init_data = palette_init_data,
     .copy_data = palette_copy_data,
@@ -194,7 +194,7 @@ IDTypeInfo IDType_ID_PC = {
     .name = "PaintCurve",
     .name_plural = "paint_curves",
     .translation_context = BLT_I18NCONTEXT_ID_PAINTCURVE,
-    .flags = 0,
+    .flags = IDTYPE_FLAGS_NO_ANIMDATA,
 
     .init_data = NULL,
     .copy_data = paint_curve_copy_data,

@@ -31,6 +31,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.h"
+#include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
@@ -70,42 +71,11 @@ static CLG_LogRef LOG = {"bke.anim_sys"};
 /* Check if ID can have AnimData */
 bool id_type_can_have_animdata(const short id_type)
 {
-  /* Only some ID-blocks have this info for now */
-  /* TODO: finish adding this for the other blocktypes */
-  switch (id_type) {
-    /* has AnimData */
-    case ID_OB:
-    case ID_ME:
-    case ID_MB:
-    case ID_CU:
-    case ID_AR:
-    case ID_LT:
-    case ID_KE:
-    case ID_PA:
-    case ID_MA:
-    case ID_TE:
-    case ID_NT:
-    case ID_LA:
-    case ID_CA:
-    case ID_WO:
-    case ID_LS:
-    case ID_LP:
-    case ID_SPK:
-    case ID_SCE:
-    case ID_MC:
-    case ID_MSK:
-    case ID_GD:
-    case ID_CF:
-    case ID_HA:
-    case ID_PT:
-    case ID_VO:
-    case ID_SIM:
-      return true;
-
-    /* no AnimData */
-    default:
-      return false;
+  const IDTypeInfo *typeinfo = BKE_idtype_get_info_from_idcode(id_type);
+  if (typeinfo != NULL) {
+    return (typeinfo->flags & IDTYPE_FLAGS_NO_ANIMDATA) == 0;
   }
+  return false;
 }
 
 bool id_can_have_animdata(const ID *id)

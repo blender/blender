@@ -282,7 +282,7 @@ IDTypeInfo IDType_ID_AC = {
     .name = "Action",
     .name_plural = "actions",
     .translation_context = BLT_I18NCONTEXT_ID_ACTION,
-    .flags = 0,
+    .flags = IDTYPE_FLAGS_NO_ANIMDATA,
 
     .init_data = NULL,
     .copy_data = action_copy_data,
