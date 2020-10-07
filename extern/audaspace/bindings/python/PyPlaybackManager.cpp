@@ -60,7 +60,7 @@ PlaybackManager_dealloc(PlaybackManagerP* self)
 }
 
 PyDoc_STRVAR(M_aud_PlaybackManager_play_doc,
-	".. classmethod:: setVolume(sound, catKey)\n\n"
+	".. classmethod:: play(sound, catKey)\n\n"
 	"   Plays a sound through the playback manager and assigns it to a category.\n\n"
 	"   :arg sound: The sound to play.\n"
 	"   :type sound: :class:`Sound`\n"
