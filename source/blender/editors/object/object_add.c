@@ -2328,15 +2328,27 @@ void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
  * \{ */
 
 static const EnumPropertyItem convert_target_items[] = {
-    {OB_CURVE, "CURVE", ICON_OUTLINER_OB_CURVE, "Curve from Mesh/Text", ""},
+    {OB_CURVE, "CURVE", ICON_OUTLINER_OB_CURVE, "Curve", "Curve from Mesh or Text objects"},
+    {OB_MESH,
+     "MESH",
+     ICON_OUTLINER_OB_MESH,
+     "Mesh",
 #ifdef WITH_PARTICLE_NODES
-    {OB_MESH, "MESH", ICON_OUTLINER_OB_MESH, "Mesh from Curve/Meta/Surf/Text/Pointcloud", ""},
+     "Mesh from Curve, Surface, Metaball, Text, or Pointcloud objects"},
 #else
-    {OB_MESH, "MESH", ICON_OUTLINER_OB_MESH, "Mesh from Curve/Meta/Surf/Text", ""},
+     "Mesh from Curve, Surface, Metaball, or Text objects"},
 #endif
-    {OB_GPENCIL, "GPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil from Curve/Mesh", ""},
+    {OB_GPENCIL,
+     "GPENCIL",
+     ICON_OUTLINER_OB_GREASEPENCIL,
+     "Grease Pencil",
+     "Grease Pencil from Curve or Mesh objects"},
 #ifdef WITH_PARTICLE_NODES
-    {OB_POINTCLOUD, "POINTCLOUD", ICON_OUTLINER_OB_POINTCLOUD, "Pointcloud from Mesh", ""},
+    {OB_POINTCLOUD,
+     "POINTCLOUD",
+     ICON_OUTLINER_OB_POINTCLOUD,
+     "Pointcloud",
+     "Pointcloud from Mesh objects"},
 #endif
     {0, NULL, 0, NULL, NULL},
 };
