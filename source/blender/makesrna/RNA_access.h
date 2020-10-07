@@ -585,6 +585,7 @@ extern StructRNA RNA_SpaceDopeSheetEditor;
 extern StructRNA RNA_SpaceFileBrowser;
 extern StructRNA RNA_SpaceGraphEditor;
 extern StructRNA RNA_SpaceImageEditor;
+extern StructRNA RNA_SpaceImageOverlay;
 extern StructRNA RNA_SpaceInfo;
 extern StructRNA RNA_SpaceNLA;
 extern StructRNA RNA_SpaceNodeEditor;

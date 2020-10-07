@@ -356,6 +356,7 @@ typedef struct OVERLAY_PrivateData {
     bool do_uv_shadow_overlay;
     bool do_uv_stretching_overlay;
     bool do_tiled_image_overlay;
+    bool do_tiled_image_border_overlay;
 
     bool do_faces;
     bool do_face_dots;

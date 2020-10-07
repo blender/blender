@@ -78,6 +78,7 @@ void OVERLAY_edit_uv_init(OVERLAY_Data *vedata)
   SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
   const Scene *scene = draw_ctx->scene;
   const ToolSettings *ts = scene->toolsettings;
+  const bool show_overlays = !pd->hide_overlays;
 
   Image *image = sima->image;
   /* By design no image is an image type. This so editor shows UV's by default. */
@@ -99,21 +100,20 @@ void OVERLAY_edit_uv_init(OVERLAY_Data *vedata)
                                        ((sima->flag & SI_DRAW_STRETCH) != 0);
   const bool do_tex_paint_shadows = (sima->flag & SI_NO_DRAW_TEXPAINT) == 0;
 
-  pd->edit_uv.do_faces = do_faces && !do_uvstretching_overlay;
-  pd->edit_uv.do_face_dots = do_faces && do_face_dots;
-
-  pd->edit_uv.do_uv_overlay = do_uv_overlay;
-  pd->edit_uv.do_uv_shadow_overlay = is_image_type &&
+  pd->edit_uv.do_faces = show_overlays && do_faces && !do_uvstretching_overlay;
+  pd->edit_uv.do_face_dots = show_overlays && do_faces && do_face_dots;
+  pd->edit_uv.do_uv_overlay = show_overlays && do_uv_overlay;
+  pd->edit_uv.do_uv_shadow_overlay = show_overlays && is_image_type &&
                                      ((is_paint_mode && do_tex_paint_shadows &&
                                        ((draw_ctx->object_mode &
                                          (OB_MODE_TEXTURE_PAINT | OB_MODE_EDIT)) != 0)) ||
                                       (is_view_mode && do_tex_paint_shadows &&
                                        ((draw_ctx->object_mode & (OB_MODE_TEXTURE_PAINT)) != 0)) ||
                                       (do_uv_overlay && (show_modified_uvs)));
-  pd->edit_uv.do_uv_stretching_overlay = do_uvstretching_overlay;
+  pd->edit_uv.do_uv_stretching_overlay = show_overlays && do_uvstretching_overlay;
   pd->edit_uv.uv_opacity = sima->uv_opacity;
-  pd->edit_uv.do_tiled_image_overlay = is_image_type && is_tiled_image;
-
+  pd->edit_uv.do_tiled_image_overlay = show_overlays && is_image_type && is_tiled_image;
+  pd->edit_uv.do_tiled_image_border_overlay = is_image_type && is_tiled_image;
   pd->edit_uv.dash_length = 4.0f * UI_DPI_FAC;
   pd->edit_uv.line_style = edit_uv_line_style_from_space_image(sima);
   pd->edit_uv.do_smooth_wire = ((U.gpu_flag & USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE) > 0);
@@ -223,7 +223,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
     }
   }
 
-  if (pd->edit_uv.do_tiled_image_overlay) {
+  if (pd->edit_uv.do_tiled_image_border_overlay) {
     const DRWContextState *draw_ctx = DRW_context_state_get();
     SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
     Image *image = sima->image;
@@ -252,14 +252,22 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
       obmat[3][0] = (float)tile_x;
       DRW_shgroup_call_obmat(grp, geom, obmat);
     }
+    /* Only mark active border when overlays are enabled. */
+    if (pd->edit_uv.do_tiled_image_overlay) {
+      /* Active tile border */
+      ImageTile *active_tile = BLI_findlink(&image->tiles, image->active_tile_index);
+      obmat[3][0] = (float)((active_tile->tile_number - 1001) % 10);
+      obmat[3][1] = (float)((active_tile->tile_number - 1001) / 10);
+      grp = DRW_shgroup_create(sh, psl->edit_uv_tiled_image_borders_ps);
+      DRW_shgroup_uniform_vec4_copy(grp, "color", selected_color);
+      DRW_shgroup_call_obmat(grp, geom, obmat);
+    }
+  }
 
-    /* Active tile border */
-    ImageTile *active_tile = BLI_findlink(&image->tiles, image->active_tile_index);
-    obmat[3][0] = (float)((active_tile->tile_number - 1001) % 10);
-    obmat[3][1] = (float)((active_tile->tile_number - 1001) / 10);
-    grp = DRW_shgroup_create(sh, psl->edit_uv_tiled_image_borders_ps);
-    DRW_shgroup_uniform_vec4_copy(grp, "color", selected_color);
-    DRW_shgroup_call_obmat(grp, geom, obmat);
+  if (pd->edit_uv.do_tiled_image_overlay) {
+    const DRWContextState *draw_ctx = DRW_context_state_get();
+    SpaceImage *sima = (SpaceImage *)draw_ctx->space_data;
+    Image *image = sima->image;
 
     struct DRWTextStore *dt = DRW_text_cache_ensure();
     uchar color[4];
@@ -377,7 +385,7 @@ void OVERLAY_edit_uv_draw(OVERLAY_Data *vedata)
   OVERLAY_StorageList *stl = vedata->stl;
   OVERLAY_PrivateData *pd = stl->pd;
 
-  if (pd->edit_uv.do_tiled_image_overlay) {
+  if (pd->edit_uv.do_tiled_image_border_overlay) {
     DRW_draw_pass(psl->edit_uv_tiled_image_borders_ps);
   }
 

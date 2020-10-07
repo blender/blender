@@ -66,6 +66,7 @@ static void OVERLAY_engine_init(void *vedata)
   pd->is_image_editor = sima != NULL;
 
   if (pd->is_image_editor) {
+    pd->hide_overlays = (sima->overlay.flag & SI_OVERLAY_SHOW_OVERLAYS) == 0;
     pd->clipping_state = 0;
     OVERLAY_grid_init(data);
     OVERLAY_edit_uv_init(data);
