@@ -30,6 +30,7 @@ struct BoundBox;
 struct Depsgraph;
 struct Main;
 struct Object;
+struct ReportList;
 struct Scene;
 struct Volume;
 struct VolumeGridVector;
@@ -142,6 +143,12 @@ struct VolumeGrid *BKE_volume_grid_add(struct Volume *volume,
                                        const char *name,
                                        VolumeGridType type);
 void BKE_volume_grid_remove(struct Volume *volume, struct VolumeGrid *grid);
+
+/* File Save */
+bool BKE_volume_save(struct Volume *volume,
+                     struct Main *bmain,
+                     struct ReportList *reports,
+                     const char *filename);
 
 #ifdef __cplusplus
 }

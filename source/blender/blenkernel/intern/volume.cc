@@ -44,6 +44,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_packedFile.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_volume.h"
 
@@ -401,7 +402,7 @@ struct VolumeGrid {
  * the actual grids are always saved in a VDB file. */
 
 struct VolumeGridVector : public std::list<VolumeGrid> {
-  VolumeGridVector()
+  VolumeGridVector() : metadata(new openvdb::MetaMap())
   {
     filepath[0] = '\0';
   }
@@ -800,6 +801,40 @@ void BKE_volume_unload(Volume *volume)
   }
 #else
   UNUSED_VARS(volume);
+#endif
+}
+
+/* File Save */
+
+bool BKE_volume_save(Volume *volume, Main *bmain, ReportList *reports, const char *filepath)
+{
+#ifdef WITH_OPENVDB
+  if (!BKE_volume_load(volume, bmain)) {
+    BKE_reportf(reports, RPT_ERROR, "Could not load volume for writing");
+    return false;
+  }
+
+  VolumeGridVector &grids = *volume->runtime.grids;
+  openvdb::GridCPtrVec vdb_grids;
+
+  for (VolumeGrid &grid : grids) {
+    vdb_grids.push_back(BKE_volume_grid_openvdb_for_read(volume, &grid));
+  }
+
+  try {
+    openvdb::io::File file(filepath);
+    file.write(vdb_grids, *grids.metadata);
+    file.close();
+  }
+  catch (const openvdb::IoError &e) {
+    BKE_reportf(reports, RPT_ERROR, "Could not write volume: %s", e.what());
+    return false;
+  }
+
+  return true;
+#else
+  UNUSED_VARS(volume, bmain, reports, filepath);
+  return false;
 #endif
 }
 

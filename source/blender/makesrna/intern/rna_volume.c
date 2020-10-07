@@ -343,6 +343,14 @@ static void rna_def_volume_grids(BlenderRNA *brna, PropertyRNA *cprop)
 
   func = RNA_def_function(srna, "unload", "BKE_volume_unload");
   RNA_def_function_ui_description(func, "Unload all grid and voxel data from memory");
+
+  func = RNA_def_function(srna, "save", "BKE_volume_save");
+  RNA_def_function_ui_description(func, "Save grids and metadata to file");
+  RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
+  parm = RNA_def_string_file_path(func, "filepath", NULL, 0, "", "File path to save to");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_boolean(func, "success", 0, "", "True if grid list was successfully loaded");
+  RNA_def_function_return(func, parm);
 }
 
 static void rna_def_volume_display(BlenderRNA *brna)
