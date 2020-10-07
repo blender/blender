@@ -9,3 +9,7 @@
 /* Hide home icon in search area */
 .wy-side-nav-search > a:hover {background: none; opacity: 0.9}
 .wy-side-nav-search > a.icon::before {content: none}
+
+.wy-nav-content {
+    max-width: 1000px !important;
+}
