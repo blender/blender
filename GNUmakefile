@@ -517,7 +517,7 @@ doc_py: .FORCE
 	ASAN_OPTIONS=halt_on_error=0 \
 	$(BLENDER_BIN) --background -noaudio --factory-startup \
 		--python doc/python_api/sphinx_doc_gen.py
-	sphinx-build -b html doc/python_api/sphinx-in doc/python_api/sphinx-out
+	sphinx-build -b html -j $(NPROCS) doc/python_api/sphinx-in doc/python_api/sphinx-out
 	@echo "docs written into: '$(BLENDER_DIR)/doc/python_api/sphinx-out/index.html'"
 
 doc_doxy: .FORCE

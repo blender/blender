@@ -27,6 +27,22 @@ else
 fi
 
 
+# -----------------------------------------------------------------------------
+# Get the number of cores for threaded build
+ifndef NPROCS
+	NPROCS:=1
+	ifeq ($(OS), Linux)
+		NPROCS:=$(shell nproc)
+	endif
+	ifeq ($(OS), NetBSD)
+		NPROCS:=$(shell getconf NPROCESSORS_ONLN)
+	endif
+	ifneq (,$(filter $(OS),Darwin FreeBSD))
+		NPROCS:=$(shell sysctl -n hw.ncpu)
+	endif
+endif
+
+
 # ----------------------------------------------------------------------------
 # Blender Version & Info
 
@@ -76,7 +92,7 @@ fi
 # Generate HTML (sphinx)
 
 if $DO_OUT_HTML ; then
-  sphinx-build -b html $SPHINX_WORKDIR/sphinx-in $SPHINX_WORKDIR/sphinx-out
+  sphinx-build -b html -j $(NPROCS) $SPHINX_WORKDIR/sphinx-in $SPHINX_WORKDIR/sphinx-out
 
   # XXX, saves space on upload and zip, should move HTML outside
   # and zip up there, for now this is OK
@@ -103,7 +119,7 @@ fi
 # Generate PDF (sphinx/laytex)
 
 if $DO_OUT_PDF ; then
-  sphinx-build -n -b latex $SPHINX_WORKDIR/sphinx-in $SPHINX_WORKDIR/sphinx-out
+  sphinx-build -n -b latex -j $(NPROCS) $SPHINX_WORKDIR/sphinx-in $SPHINX_WORKDIR/sphinx-out
   make -C $SPHINX_WORKDIR/sphinx-out
   mv $SPHINX_WORKDIR/sphinx-out/contents.pdf \
      $SPHINX_WORKDIR/sphinx-out/blender_python_reference_$BLENDER_VERSION.pdf
