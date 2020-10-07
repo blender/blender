@@ -1030,8 +1030,12 @@ void DNA_struct_switch_endian(const SDNA *oldsdna, int oldSDNAnr, char *data)
     else {
       /* non-struct field type */
       if (ispointer(name)) {
-        if (oldsdna->pointer_size == 8) {
-          BLI_endian_switch_int64_array((int64_t *)cur, old_name_array_len);
+        /* See readfile.c (#bh4_from_bh8 swap endian argument),
+         * this is only done when reducing the size of a pointer from 4 to 8. */
+        if (sizeof(void *) < 8) {
+          if (oldsdna->pointer_size == 8) {
+            BLI_endian_switch_int64_array((int64_t *)cur, old_name_array_len);
+          }
         }
       }
       else {
