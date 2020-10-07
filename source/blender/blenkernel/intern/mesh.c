@@ -1017,11 +1017,6 @@ Mesh *BKE_mesh_copy_for_eval(struct Mesh *source, bool reference)
   return result;
 }
 
-Mesh *BKE_mesh_copy(Main *bmain, const Mesh *me)
-{
-  return (Mesh *)BKE_id_copy(bmain, &me->id);
-}
-
 BMesh *BKE_mesh_to_bmesh_ex(const Mesh *me,
                             const struct BMeshCreateParams *create_params,
                             const struct BMeshFromMeshParams *convert_params)

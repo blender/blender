@@ -426,11 +426,6 @@ static void copy_bonechildren_custom_handles(Bone *bone_dst, bArmature *arm_dst)
   }
 }
 
-bArmature *BKE_armature_copy(Main *bmain, const bArmature *arm)
-{
-  return (bArmature *)BKE_id_copy(bmain, &arm->id);
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */

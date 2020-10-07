@@ -2099,7 +2099,8 @@ static void make_object_duplilist_real(bContext *C,
 
   for (dob = lb_duplis->first; dob; dob = dob->next) {
     Object *ob_src = DEG_get_original_object(dob->ob);
-    Object *ob_dst = ID_NEW_SET(ob_src, BKE_object_copy(bmain, ob_src));
+    Object *ob_dst = ID_NEW_SET(ob_src, BKE_id_copy(bmain, &ob_src->id));
+    id_us_min(&ob_dst->id);
     Base *base_dst;
 
     /* font duplis can have a totcol without material, we get them from parent
@@ -2431,7 +2432,8 @@ static Base *duplibase_for_convert(
     ob = base->object;
   }
 
-  obn = BKE_object_copy(bmain, ob);
+  obn = (Object *)BKE_id_copy(bmain, &ob->id);
+  id_us_min(&obn->id);
   DEG_id_tag_update(&obn->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
   BKE_collection_object_add_from(bmain, scene, ob, obn);
 
@@ -2595,7 +2597,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         id_us_min(&me->id);
 
         /* make a new copy of the mesh */
-        newob->data = BKE_mesh_copy(bmain, me);
+        newob->data = BKE_id_copy(bmain, &me->id);
       }
       else {
         newob = ob;
@@ -2669,7 +2671,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         id_us_min(&me->id);
 
         /* make a new copy of the mesh */
-        newob->data = BKE_mesh_copy(bmain, me);
+        newob->data = BKE_id_copy(bmain, &me->id);
       }
       else {
         newob = ob;
@@ -2694,7 +2696,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         id_us_min(&me->id);
 
         /* make a new copy of the mesh */
-        newob->data = BKE_mesh_copy(bmain, me);
+        newob->data = BKE_id_copy(bmain, &me->id);
       }
       else {
         newob = ob;
@@ -2723,7 +2725,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         id_us_min(&((Curve *)newob->data)->id);
 
         /* make a new copy of the curve */
-        newob->data = BKE_curve_copy(bmain, ob->data);
+        newob->data = BKE_id_copy(bmain, ob->data);
       }
       else {
         newob = ob;
@@ -2794,7 +2796,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
           id_us_min(&((Curve *)newob->data)->id);
 
           /* make a new copy of the curve */
-          newob->data = BKE_curve_copy(bmain, ob->data);
+          newob->data = BKE_id_copy(bmain, ob->data);
         }
         else {
           newob = ob;
@@ -2879,7 +2881,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         id_us_min(&pointcloud->id);
 
         /* make a new copy of the pointcloud */
-        newob->data = BKE_pointcloud_copy(bmain, pointcloud);
+        newob->data = BKE_id_copy(bmain, &pointcloud->id);
       }
       else {
         newob = ob;

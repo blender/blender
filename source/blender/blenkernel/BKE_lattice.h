@@ -43,7 +43,6 @@ struct bGPDstroke;
 
 void BKE_lattice_resize(struct Lattice *lt, int u, int v, int w, struct Object *ltOb);
 struct Lattice *BKE_lattice_add(struct Main *bmain, const char *name);
-struct Lattice *BKE_lattice_copy(struct Main *bmain, const struct Lattice *lt);
 void calc_lat_fudu(int flag, int res, float *r_fu, float *r_du);
 
 bool object_deform_mball(struct Object *ob, struct ListBase *dispbase);

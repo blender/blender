@@ -107,7 +107,7 @@ static int geometry_extract_apply(bContext *C,
   BKE_sculpt_mask_layers_ensure(ob, NULL);
 
   Mesh *mesh = ob->data;
-  Mesh *new_mesh = BKE_mesh_copy(bmain, mesh);
+  Mesh *new_mesh = (Mesh *)BKE_id_copy(bmain, &mesh->id);
 
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(new_mesh);
   BMesh *bm;
@@ -494,7 +494,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
   BKE_sculpt_mask_layers_ensure(ob, NULL);
 
   Mesh *mesh = ob->data;
-  Mesh *new_mesh = BKE_mesh_copy(bmain, mesh);
+  Mesh *new_mesh = (Mesh *)BKE_id_copy(bmain, &mesh->id);
 
   if (ob->mode == OB_MODE_SCULPT) {
     ED_sculpt_undo_geometry_begin(ob, "mask slice");
@@ -530,7 +530,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
     }
     Object *new_ob = ED_object_add_type(
         C, OB_MESH, NULL, ob->loc, ob->rot, false, local_view_bits);
-    Mesh *new_ob_mesh = BKE_mesh_copy(bmain, mesh);
+    Mesh *new_ob_mesh = (Mesh *)BKE_id_copy(bmain, &mesh->id);
 
     const BMAllocTemplate allocsize_new_ob = BMALLOC_TEMPLATE_FROM_ME(new_ob_mesh);
     bm = BM_mesh_create(&allocsize_new_ob,

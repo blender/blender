@@ -35,8 +35,6 @@ struct MovieClipScopes;
 struct MovieClipUser;
 struct MovieDistortion;
 
-struct MovieClip *BKE_movieclip_copy(struct Main *bmain, const struct MovieClip *clip);
-
 struct MovieClip *BKE_movieclip_file_add(struct Main *bmain, const char *name);
 struct MovieClip *BKE_movieclip_file_add_exists_ex(struct Main *bmain,
                                                    const char *filepath,

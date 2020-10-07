@@ -810,11 +810,6 @@ FreestyleLineStyle *BKE_linestyle_new(struct Main *bmain, const char *name)
   return linestyle;
 }
 
-FreestyleLineStyle *BKE_linestyle_copy(struct Main *bmain, const FreestyleLineStyle *linestyle)
-{
-  return (FreestyleLineStyle *)BKE_id_copy(bmain, &linestyle->id);
-}
-
 FreestyleLineStyle *BKE_linestyle_active_from_view_layer(ViewLayer *view_layer)
 {
   FreestyleConfig *config = &view_layer->freestyle_config;

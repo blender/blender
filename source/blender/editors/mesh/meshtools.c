@@ -445,7 +445,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
    */
   if (key) {
     /* make a duplicate copy that will only be used here... (must remember to free it!) */
-    nkey = BKE_key_copy(bmain, key);
+    nkey = (Key *)BKE_id_copy(bmain, &key->id);
 
     /* for all keys in old block, clear data-arrays */
     for (kb = key->block.first; kb; kb = kb->next) {

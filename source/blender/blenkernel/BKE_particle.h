@@ -371,8 +371,6 @@ struct ModifierData *object_copy_particle_system(struct Main *bmain,
                                                  const struct ParticleSystem *psys_orig);
 void object_remove_particle_system(struct Main *bmain, struct Scene *scene, struct Object *ob);
 struct ParticleSettings *BKE_particlesettings_add(struct Main *bmain, const char *name);
-struct ParticleSettings *BKE_particlesettings_copy(struct Main *bmain,
-                                                   const struct ParticleSettings *part);
 void psys_reset(struct ParticleSystem *psys, int mode);
 
 void psys_find_parents(struct ParticleSimulationData *sim, const bool use_render_params);

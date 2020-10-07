@@ -1928,7 +1928,7 @@ static int nlaedit_make_single_user_exec(bContext *C, wmOperator *UNUSED(op))
         /* multi-user? */
         if (ID_REAL_USERS(strip->act) > 1) {
           /* make a new copy of the action for us to use (it will have 1 user already) */
-          bAction *new_action = BKE_action_copy(bmain, strip->act);
+          bAction *new_action = (bAction *)BKE_id_copy(bmain, &strip->act->id);
 
           /* decrement user count of our existing action */
           id_us_min(&strip->act->id);
@@ -2029,7 +2029,7 @@ static int nlaedit_apply_scale_exec(bContext *C, wmOperator *UNUSED(op))
         }
         if (strip->act->id.us > 1) {
           /* make a copy of the Action to work on */
-          bAction *act = BKE_action_copy(bmain, strip->act);
+          bAction *act = (bAction *)BKE_id_copy(bmain, &strip->act->id);
 
           /* set this as the new referenced action,
            * decrementing the users of the old one */

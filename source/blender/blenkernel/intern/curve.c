@@ -425,11 +425,6 @@ Curve *BKE_curve_add(Main *bmain, const char *name, int type)
   return cu;
 }
 
-Curve *BKE_curve_copy(Main *bmain, const Curve *cu)
-{
-  return (Curve *)BKE_id_copy(bmain, &cu->id);
-}
-
 /* Get list of nurbs from editnurbs structure */
 ListBase *BKE_curve_editNurbs_get(Curve *cu)
 {

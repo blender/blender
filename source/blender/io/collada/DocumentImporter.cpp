@@ -415,7 +415,8 @@ Object *DocumentImporter::create_instance_node(Object *source_ob,
   // source_node->getOriginalId().c_str() : NULL);
 
   Main *bmain = CTX_data_main(mContext);
-  Object *obn = BKE_object_copy(bmain, source_ob);
+  Object *obn = (Object *)BKE_id_copy(bmain, &source_ob->id);
+  id_us_min(&obn->id);
   DEG_id_tag_update(&obn->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
   BKE_collection_object_add_from(bmain, sce, source_ob, obn);
 

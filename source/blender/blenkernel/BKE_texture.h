@@ -45,7 +45,6 @@ struct TexResult;
 void BKE_texture_mtex_foreach_id(struct LibraryForeachIDData *data, struct MTex *mtex);
 
 void BKE_texture_default(struct Tex *tex);
-struct Tex *BKE_texture_copy(struct Main *bmain, const struct Tex *tex);
 struct Tex *BKE_texture_add(struct Main *bmain, const char *name);
 void BKE_texture_type_set(struct Tex *tex, int type);
 

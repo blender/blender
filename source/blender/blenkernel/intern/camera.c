@@ -220,11 +220,6 @@ void *BKE_camera_add(Main *bmain, const char *name)
   return cam;
 }
 
-Camera *BKE_camera_copy(Main *bmain, const Camera *cam)
-{
-  return (Camera *)BKE_id_copy(bmain, &cam->id);
-}
-
 /* get the camera's dof value, takes the dof object into account */
 float BKE_camera_object_dof_distance(Object *ob)
 {

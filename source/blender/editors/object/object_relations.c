@@ -1830,7 +1830,8 @@ static Collection *single_object_users_collection(Main *bmain,
     /* an object may be in more than one collection */
     if ((ob->id.newid == NULL) && ((ob->flag & flag) == flag)) {
       if (!ID_IS_LINKED(ob) && BKE_object_scenes_users_get(bmain, ob) > 1) {
-        ID_NEW_SET(ob, BKE_object_copy(bmain, ob));
+        ID_NEW_SET(ob, BKE_id_copy(bmain, &ob->id));
+        id_us_min(ob->id.newid);
       }
     }
   }
@@ -1922,26 +1923,26 @@ static void single_obdata_users(
 
         switch (ob->type) {
           case OB_LAMP:
-            ob->data = la = ID_NEW_SET(ob->data, BKE_light_copy(bmain, ob->data));
+            ob->data = la = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
             break;
           case OB_CAMERA:
-            cam = ob->data = ID_NEW_SET(ob->data, BKE_camera_copy(bmain, ob->data));
+            cam = ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
             ID_NEW_REMAP(cam->dof.focus_object);
             break;
           case OB_MESH:
             /* Needed to remap texcomesh below. */
-            me = ob->data = ID_NEW_SET(ob->data, BKE_mesh_copy(bmain, ob->data));
+            me = ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
             if (me->key) { /* We do not need to set me->key->id.newid here... */
               BKE_animdata_copy_id_action(bmain, (ID *)me->key);
             }
             break;
           case OB_MBALL:
-            ob->data = ID_NEW_SET(ob->data, BKE_mball_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
             break;
           case OB_CURVE:
           case OB_SURF:
           case OB_FONT:
-            ob->data = cu = ID_NEW_SET(ob->data, BKE_curve_copy(bmain, ob->data));
+            ob->data = cu = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
             ID_NEW_REMAP(cu->bevobj);
             ID_NEW_REMAP(cu->taperobj);
             if (cu->key) { /* We do not need to set cu->key->id.newid here... */
@@ -1949,33 +1950,33 @@ static void single_obdata_users(
             }
             break;
           case OB_LATTICE:
-            ob->data = lat = ID_NEW_SET(ob->data, BKE_lattice_copy(bmain, ob->data));
+            ob->data = lat = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
             if (lat->key) { /* We do not need to set lat->key->id.newid here... */
               BKE_animdata_copy_id_action(bmain, (ID *)lat->key);
             }
             break;
           case OB_ARMATURE:
             DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-            ob->data = ID_NEW_SET(ob->data, BKE_armature_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
             BKE_pose_rebuild(bmain, ob, ob->data, true);
             break;
           case OB_SPEAKER:
-            ob->data = ID_NEW_SET(ob->data, BKE_speaker_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
             break;
           case OB_LIGHTPROBE:
-            ob->data = ID_NEW_SET(ob->data, BKE_lightprobe_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
             break;
           case OB_GPENCIL:
-            ob->data = ID_NEW_SET(ob->data, BKE_gpencil_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
             break;
           case OB_HAIR:
-            ob->data = ID_NEW_SET(ob->data, BKE_hair_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
             break;
           case OB_POINTCLOUD:
-            ob->data = ID_NEW_SET(ob->data, BKE_pointcloud_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
             break;
           case OB_VOLUME:
-            ob->data = ID_NEW_SET(ob->data, BKE_volume_copy(bmain, ob->data));
+            ob->data = ID_NEW_SET(ob->data, BKE_id_copy(bmain, ob->data));
             break;
           default:
             printf("ERROR %s: can't copy %s\n", __func__, id->name);
@@ -2033,7 +2034,7 @@ static void single_mat_users(
            * this functions guaranteed delivers single_users! */
 
           if (ma->id.us > 1) {
-            man = BKE_material_copy(bmain, ma);
+            man = (Material *)BKE_id_copy(bmain, &ma->id);
             BKE_animdata_copy_id_action(bmain, &man->id);
 
             man->id.us = 0;

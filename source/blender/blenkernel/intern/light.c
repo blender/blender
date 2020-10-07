@@ -220,11 +220,6 @@ Light *BKE_light_add(Main *bmain, const char *name)
   return la;
 }
 
-Light *BKE_light_copy(Main *bmain, const Light *la)
-{
-  return (Light *)BKE_id_copy(bmain, &la->id);
-}
-
 void BKE_light_eval(struct Depsgraph *depsgraph, Light *la)
 {
   DEG_debug_print_eval(depsgraph, __func__, la->id.name, la);

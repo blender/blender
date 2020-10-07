@@ -47,9 +47,6 @@ struct bPoseChannel_Runtime;
 /* Allocate a new bAction with the given name */
 struct bAction *BKE_action_add(struct Main *bmain, const char name[]);
 
-/* Allocate a copy of the given Action and all its data */
-struct bAction *BKE_action_copy(struct Main *bmain, const struct bAction *act_src);
-
 /* Action API ----------------- */
 
 /* types of transforms applied to the given item

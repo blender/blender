@@ -43,7 +43,6 @@ void BKE_volumes_init(void);
 
 void BKE_volume_init_grids(struct Volume *volume);
 void *BKE_volume_add(struct Main *bmain, const char *name);
-struct Volume *BKE_volume_copy(struct Main *bmain, const struct Volume *volume);
 
 struct BoundBox *BKE_volume_boundbox_get(struct Object *ob);
 

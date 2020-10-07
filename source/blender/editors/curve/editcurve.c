@@ -1438,7 +1438,7 @@ static int separate_exec(bContext *C, wmOperator *op)
     DEG_relations_tag_update(bmain);
 
     newob = newbase->object;
-    newcu = newob->data = BKE_curve_copy(bmain, oldcu);
+    newcu = newob->data = BKE_id_copy(bmain, &oldcu->id);
     newcu->editnurb = NULL;
     id_us_min(&oldcu->id); /* Because new curve is a copy: reduce user count. */
 

@@ -170,7 +170,7 @@ static void brush_make_local(Main *bmain, ID *id, const int flags)
       id_fake_user_set(&brush->id);
     }
     else {
-      Brush *brush_new = BKE_brush_copy(bmain, brush); /* Ensures FAKE_USER is set */
+      Brush *brush_new = (Brush *)BKE_id_copy(bmain, &brush->id); /* Ensures FAKE_USER is set */
 
       brush_new->id.us = 0;
 
@@ -1529,11 +1529,6 @@ struct Brush *BKE_brush_first_search(struct Main *bmain, const eObjectMode ob_mo
     }
   }
   return NULL;
-}
-
-Brush *BKE_brush_copy(Main *bmain, const Brush *brush)
-{
-  return (Brush *)BKE_id_copy(bmain, &brush->id);
 }
 
 void BKE_brush_debug_print_state(Brush *br)

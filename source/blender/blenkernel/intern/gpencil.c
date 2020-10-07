@@ -972,18 +972,6 @@ bGPDlayer *BKE_gpencil_layer_duplicate(const bGPDlayer *gpl_src)
 }
 
 /**
- * Standard API to make a copy of GP data-block, separate from copying its data.
- *
- * \param bmain: Main pointer
- * \param gpd: Grease pencil data-block
- * \return Pointer to new data-block
- */
-bGPdata *BKE_gpencil_copy(Main *bmain, const bGPdata *gpd)
-{
-  return (bGPdata *)BKE_id_copy(bmain, &gpd->id);
-}
-
-/**
  * Make a copy of a given gpencil data-block.
  *
  * XXX: Should this be deprecated?

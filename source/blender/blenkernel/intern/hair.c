@@ -251,11 +251,6 @@ void *BKE_hair_add(Main *bmain, const char *name)
   return hair;
 }
 
-Hair *BKE_hair_copy(Main *bmain, const Hair *hair)
-{
-  return (Hair *)BKE_id_copy(bmain, &hair->id);
-}
-
 BoundBox *BKE_hair_boundbox_get(Object *ob)
 {
   BLI_assert(ob->type == OB_HAIR);

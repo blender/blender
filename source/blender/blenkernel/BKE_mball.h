@@ -38,7 +38,6 @@ struct Object;
 struct Scene;
 
 struct MetaBall *BKE_mball_add(struct Main *bmain, const char *name);
-struct MetaBall *BKE_mball_copy(struct Main *bmain, const struct MetaBall *mb);
 
 bool BKE_mball_is_any_selected(const struct MetaBall *mb);
 bool BKE_mball_is_any_selected_multi(struct Base **bases, int bases_len);

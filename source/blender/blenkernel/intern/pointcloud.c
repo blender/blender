@@ -230,11 +230,6 @@ void *BKE_pointcloud_add_default(Main *bmain, const char *name)
   return pointcloud;
 }
 
-PointCloud *BKE_pointcloud_copy(Main *bmain, const PointCloud *pointcloud)
-{
-  return (PointCloud *)BKE_id_copy(bmain, &pointcloud->id);
-}
-
 BoundBox *BKE_pointcloud_boundbox_get(Object *ob)
 {
   BLI_assert(ob->type == OB_POINTCLOUD);

@@ -217,11 +217,6 @@ MetaBall *BKE_mball_add(Main *bmain, const char *name)
   return mb;
 }
 
-MetaBall *BKE_mball_copy(Main *bmain, const MetaBall *mb)
-{
-  return (MetaBall *)BKE_id_copy(bmain, &mb->id);
-}
-
 /* most simple meta-element adding function
  * don't do context manipulation here (rna uses) */
 MetaElem *BKE_mball_element_add(MetaBall *mb, const int type)

@@ -40,7 +40,8 @@ class BCAnimation {
   BCAnimation(bContext *C, Object *ob) : mContext(C)
   {
     Main *bmain = CTX_data_main(mContext);
-    reference = BKE_object_copy(bmain, ob);
+    reference = (Object *)BKE_id_copy(bmain, &ob->id);
+    id_us_min(&reference->id);
   }
 
   ~BCAnimation()

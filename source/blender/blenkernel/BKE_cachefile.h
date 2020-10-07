@@ -38,8 +38,6 @@ void BKE_cachefiles_exit(void);
 
 void *BKE_cachefile_add(struct Main *bmain, const char *name);
 
-struct CacheFile *BKE_cachefile_copy(struct Main *bmain, const struct CacheFile *cache_file);
-
 void BKE_cachefile_reload(struct Depsgraph *depsgraph, struct CacheFile *cache_file);
 
 void BKE_cachefile_eval(struct Main *bmain,

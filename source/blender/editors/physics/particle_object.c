@@ -180,7 +180,7 @@ static int new_particle_settings_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* add or copy particle setting */
   if (psys->part) {
-    part = BKE_particlesettings_copy(bmain, psys->part);
+    part = (ParticleSettings *)BKE_id_copy(bmain, &psys->part->id);
   }
   else {
     part = BKE_particlesettings_add(bmain, "ParticleSettings");
@@ -1155,7 +1155,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
 
     if (duplicate_settings) {
       id_us_min(&psys->part->id);
-      psys->part = BKE_particlesettings_copy(bmain, psys->part);
+      psys->part = (ParticleSettings *)BKE_id_copy(bmain, &psys->part->id);
     }
   }
   MEM_freeN(tmp_psys);

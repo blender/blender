@@ -1918,11 +1918,6 @@ void BKE_movieclip_build_proxy_frame_for_ibuf(MovieClip *clip,
   }
 }
 
-MovieClip *BKE_movieclip_copy(Main *bmain, const MovieClip *clip)
-{
-  return (MovieClip *)BKE_id_copy(bmain, &clip->id);
-}
-
 float BKE_movieclip_remap_scene_to_clip_frame(const MovieClip *clip, float framenr)
 {
   return framenr - (float)clip->start_frame + 1.0f;

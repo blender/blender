@@ -820,7 +820,7 @@ static int new_texture_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* add or copy texture */
   if (tex) {
-    tex = BKE_texture_copy(bmain, tex);
+    tex = (Tex *)BKE_id_copy(bmain, &tex->id);
   }
   else {
     tex = BKE_texture_add(bmain, DATA_("Texture"));
@@ -1662,7 +1662,7 @@ static int freestyle_linestyle_new_exec(bContext *C, wmOperator *op)
   }
   if (lineset->linestyle) {
     id_us_min(&lineset->linestyle->id);
-    lineset->linestyle = BKE_linestyle_copy(bmain, lineset->linestyle);
+    lineset->linestyle = (FreestyleLineStyle *)BKE_id_copy(bmain, &lineset->linestyle->id);
   }
   else {
     lineset->linestyle = BKE_linestyle_new(bmain, "LineStyle");

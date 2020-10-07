@@ -52,7 +52,6 @@ struct Brush *BKE_brush_add_gpencil(struct Main *bmain,
 bool BKE_brush_delete(struct Main *bmain, struct Brush *brush);
 void BKE_brush_init_gpencil_settings(struct Brush *brush);
 struct Brush *BKE_brush_first_search(struct Main *bmain, const eObjectMode ob_mode);
-struct Brush *BKE_brush_copy(struct Main *bmain, const struct Brush *brush);
 
 void BKE_brush_sculpt_reset(struct Brush *brush);
 

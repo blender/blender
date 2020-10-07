@@ -455,13 +455,6 @@ MTex *BKE_texture_mtex_add_id(ID *id, int slot)
 
 /* ------------------------------------------------------------------------- */
 
-Tex *BKE_texture_copy(Main *bmain, const Tex *tex)
-{
-  return (Tex *)BKE_id_copy(bmain, &tex->id);
-}
-
-/* ------------------------------------------------------------------------- */
-
 Tex *give_current_linestyle_texture(FreestyleLineStyle *linestyle)
 {
   MTex *mtex = NULL;

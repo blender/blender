@@ -360,9 +360,9 @@ static void object_make_local(Main *bmain, ID *id, const int flags)
       }
     }
     else {
-      Object *ob_new = BKE_object_copy(bmain, ob);
+      Object *ob_new = (Object *)BKE_id_copy(bmain, &ob->id);
+      id_us_min(&ob_new->id);
 
-      ob_new->id.us = 0;
       ob_new->proxy = ob_new->proxy_from = ob_new->proxy_group = NULL;
 
       /* setting newid is mandatory for complex make_lib_local logic... */
@@ -1783,19 +1783,6 @@ void BKE_object_transform_copy(Object *ob_tar, const Object *ob_src)
   ob_tar->rotAngle = ob_src->rotAngle;
   ob_tar->rotmode = ob_src->rotmode;
   copy_v3_v3(ob_tar->scale, ob_src->scale);
-}
-
-/**
- * Copy objects, will re-initialize cached simulation data.
- */
-Object *BKE_object_copy(Main *bmain, const Object *ob)
-{
-  Object *ob_copy = (Object *)BKE_id_copy(bmain, &ob->id);
-
-  /* We increase object user count when linking to Collections. */
-  id_us_min(&ob_copy->id);
-
-  return ob_copy;
 }
 
 /**

@@ -1074,11 +1074,6 @@ Mask *BKE_mask_copy_nolib(Mask *mask)
   return mask_new;
 }
 
-Mask *BKE_mask_copy(Main *bmain, const Mask *mask)
-{
-  return (Mask *)BKE_id_copy(bmain, &mask->id);
-}
-
 void BKE_mask_point_free(MaskSplinePoint *point)
 {
   if (point->uw) {

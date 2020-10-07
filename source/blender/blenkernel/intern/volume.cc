@@ -610,11 +610,6 @@ void *BKE_volume_add(Main *bmain, const char *name)
   return volume;
 }
 
-Volume *BKE_volume_copy(Main *bmain, const Volume *volume)
-{
-  return (Volume *)BKE_id_copy(bmain, &volume->id);
-}
-
 /* Sequence */
 
 static int volume_sequence_frame(const Depsgraph *depsgraph, const Volume *volume)

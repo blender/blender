@@ -3907,11 +3907,6 @@ void BKE_particlesettings_twist_curve_init(ParticleSettings *part)
   part->twistcurve = cumap;
 }
 
-ParticleSettings *BKE_particlesettings_copy(Main *bmain, const ParticleSettings *part)
-{
-  return (ParticleSettings *)BKE_id_copy(bmain, &part->id);
-}
-
 /************************************************/
 /*          Textures                            */
 /************************************************/
