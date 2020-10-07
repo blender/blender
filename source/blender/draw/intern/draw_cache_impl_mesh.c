@@ -536,20 +536,16 @@ static void mesh_batch_cache_request_surface_batches(MeshBatchCache *cache)
 {
   mesh_batch_cache_add_request(cache, MBC_SURFACE);
   DRW_batch_request(&cache->batch.surface);
-  if (cache->surface_per_mat) {
-    for (int i = 0; i < cache->mat_len; i++) {
-      DRW_batch_request(&cache->surface_per_mat[i]);
-    }
+  for (int i = 0; i < cache->mat_len; i++) {
+    DRW_batch_request(&cache->surface_per_mat[i]);
   }
 }
 
 static void mesh_batch_cache_discard_surface_batches(MeshBatchCache *cache)
 {
   GPU_BATCH_DISCARD_SAFE(cache->batch.surface);
-  if (cache->surface_per_mat) {
-    for (int i = 0; i < cache->mat_len; i++) {
-      GPU_BATCH_DISCARD_SAFE(cache->surface_per_mat[i]);
-    }
+  for (int i = 0; i < cache->mat_len; i++) {
+    GPU_BATCH_DISCARD_SAFE(cache->surface_per_mat[i]);
   }
   cache->batch_ready &= ~MBC_SURFACE;
 }
@@ -565,10 +561,6 @@ static void mesh_batch_cache_discard_shaded_tri(MeshBatchCache *cache)
   }
   mesh_batch_cache_discard_surface_batches(cache);
   mesh_cd_layers_type_clear(&cache->cd_used);
-
-  MEM_SAFE_FREE(cache->surface_per_mat);
-
-  cache->mat_len = 0;
 }
 
 static void mesh_batch_cache_discard_uvedit(MeshBatchCache *cache)
@@ -718,11 +710,11 @@ static void mesh_batch_cache_clear(Mesh *me)
   }
 
   mesh_batch_cache_discard_shaded_tri(cache);
-
   mesh_batch_cache_discard_uvedit(cache);
+  MEM_SAFE_FREE(cache->surface_per_mat);
+  cache->mat_len = 0;
 
   cache->batch_ready = 0;
-
   drw_mesh_weight_state_clear(&cache->weight_state);
 }
 
