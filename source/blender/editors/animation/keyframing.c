@@ -516,7 +516,7 @@ static void subdivide_nonauto_handles(const FCurve *fcu,
   }
 
   /* Decide when to force auto to manual. */
-  if (!BEZT_IS_AUTOH(bezt) || fabsf(delta) >= 0.001f) {
+  if (!BEZT_IS_AUTOH(bezt)) {
     return;
   }
   if ((prev_auto || next_auto) && fcu->auto_smoothing == FCURVE_SMOOTH_CONT_ACCEL) {
