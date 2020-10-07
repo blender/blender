@@ -5330,9 +5330,12 @@ void ANIM_channel_draw_widgets(const bContext *C,
      *   and wouldn't be able to auto-keyframe.
      * - Slider should start before the toggles (if they're visible)
      *   to keep a clean line down the side.
+     * - Sliders are always drawn in Shapekey mode now. Prior to this
+     *   the SACTION_SLIDERS flag would be set when changing into Shapekey mode.
      */
-    if ((draw_sliders) &&
-        ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE, ANIMTYPE_SHAPEKEY, ANIMTYPE_GPLAYER)) {
+    if (((draw_sliders)
+        && ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE, ANIMTYPE_SHAPEKEY, ANIMTYPE_GPLAYER))
+        || ale->type == ANIMTYPE_SHAPEKEY) {
       /* adjust offset */
       /* TODO: make slider width dynamic,
        * so that they can be easier to use when the view is wide enough. */

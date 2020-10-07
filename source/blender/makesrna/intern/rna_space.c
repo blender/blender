@@ -2007,12 +2007,6 @@ static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
     else {
       saction->action = NULL;
     }
-
-    /* 2) enable 'show sliders' by default, since one of the main
-     *    points of the ShapeKey Editor is to provide a one-stop shop
-     *    for controlling the shapekeys, whose main control is the value
-     */
-    saction->flag |= SACTION_SLIDERS;
   }
   /* make sure action stored is valid */
   else if (saction->mode == SACTCONT_ACTION) {
