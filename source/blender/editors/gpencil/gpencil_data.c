@@ -1316,59 +1316,59 @@ void GPENCIL_OT_layer_isolate(wmOperatorType *ot)
 static int gpencil_merge_layer_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
-  bGPDlayer *gpl_next = BKE_gpencil_layer_active_get(gpd);
-  bGPDlayer *gpl_current = gpl_next->prev;
+  bGPDlayer *gpl_src = BKE_gpencil_layer_active_get(gpd);
+  bGPDlayer *gpl_dst = gpl_src->prev;
 
-  if (ELEM(NULL, gpd, gpl_current, gpl_next)) {
+  if (ELEM(NULL, gpd, gpl_dst, gpl_src)) {
     BKE_report(op->reports, RPT_ERROR, "No layers to merge");
     return OPERATOR_CANCELLED;
   }
 
-  /* Collect frames of gpl_current in hash table to avoid O(n^2) lookups */
-  GHash *gh_frames_cur = BLI_ghash_int_new_ex(__func__, 64);
-  LISTBASE_FOREACH (bGPDframe *, gpf, &gpl_current->frames) {
-    BLI_ghash_insert(gh_frames_cur, POINTER_FROM_INT(gpf->framenum), gpf);
+  /* Collect frames of gpl_dst in hash table to avoid O(n^2) lookups. */
+  GHash *gh_frames_dst = BLI_ghash_int_new_ex(__func__, 64);
+  LISTBASE_FOREACH (bGPDframe *, gpf_dst, &gpl_dst->frames) {
+    BLI_ghash_insert(gh_frames_dst, POINTER_FROM_INT(gpf_dst->framenum), gpf_dst);
   }
 
-  /* read all frames from next layer and add any missing in current layer */
-  LISTBASE_FOREACH (bGPDframe *, gpf, &gpl_next->frames) {
-    /* try to find frame in current layer */
-    bGPDframe *frame = BLI_ghash_lookup(gh_frames_cur, POINTER_FROM_INT(gpf->framenum));
-    if (!frame) {
-      bGPDframe *actframe = BKE_gpencil_layer_frame_get(
-          gpl_current, gpf->framenum, GP_GETFRAME_USE_PREV);
-      frame = BKE_gpencil_frame_addnew(gpl_current, gpf->framenum);
-      /* duplicate strokes of current active frame */
-      if (actframe) {
-        BKE_gpencil_frame_copy_strokes(actframe, frame);
+  /* Read all frames from merge layer and add any missing in destination layer. */
+  LISTBASE_FOREACH (bGPDframe *, gpf_src, &gpl_src->frames) {
+    /* Try to find frame in destination layer hash table. */
+    bGPDframe *gpf_dst = BLI_ghash_lookup(gh_frames_dst, POINTER_FROM_INT(gpf_src->framenum));
+    if (!gpf_dst) {
+      gpf_dst = BKE_gpencil_frame_addnew(gpl_dst, gpf_src->framenum);
+      /* Duplicate strokes into destination frame. */
+      if (gpf_dst) {
+        BKE_gpencil_frame_copy_strokes(gpf_src, gpf_dst);
       }
     }
-    /* add to tail all strokes */
-    BLI_movelisttolist(&frame->strokes, &gpf->strokes);
+    else {
+      /* Add to tail all strokes. */
+      BLI_movelisttolist(&gpf_dst->strokes, &gpf_src->strokes);
+    }
   }
 
   /* Add Masks to destination layer. */
-  LISTBASE_FOREACH (bGPDlayer_Mask *, mask, &gpl_next->mask_layers) {
+  LISTBASE_FOREACH (bGPDlayer_Mask *, mask, &gpl_src->mask_layers) {
     /* Don't add merged layers or missing layer names. */
-    if (!BKE_gpencil_layer_named_get(gpd, mask->name) || STREQ(mask->name, gpl_next->info) ||
-        STREQ(mask->name, gpl_current->info)) {
+    if (!BKE_gpencil_layer_named_get(gpd, mask->name) || STREQ(mask->name, gpl_src->info) ||
+        STREQ(mask->name, gpl_dst->info)) {
       continue;
     }
-    if (!BKE_gpencil_layer_mask_named_get(gpl_current, mask->name)) {
+    if (!BKE_gpencil_layer_mask_named_get(gpl_dst, mask->name)) {
       bGPDlayer_Mask *mask_new = MEM_dupallocN(mask);
-      BLI_addtail(&gpl_current->mask_layers, mask_new);
-      gpl_current->act_mask++;
+      BLI_addtail(&gpl_dst->mask_layers, mask_new);
+      gpl_dst->act_mask++;
     }
   }
   /* Set destination layer as active. */
-  BKE_gpencil_layer_active_set(gpd, gpl_current);
+  BKE_gpencil_layer_active_set(gpd, gpl_dst);
 
   /* Now delete next layer */
-  BKE_gpencil_layer_delete(gpd, gpl_next);
-  BLI_ghash_free(gh_frames_cur, NULL, NULL);
+  BKE_gpencil_layer_delete(gpd, gpl_src);
+  BLI_ghash_free(gh_frames_dst, NULL, NULL);
 
   /* Reorder masking. */
-  BKE_gpencil_layer_mask_sort(gpd, gpl_current);
+  BKE_gpencil_layer_mask_sort(gpd, gpl_dst);
 
   /* notifiers */
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
