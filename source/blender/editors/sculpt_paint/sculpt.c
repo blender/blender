@@ -7162,7 +7162,7 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
       mat[3][3];
   float viewDir[3] = {0.0f, 0.0f, 1.0f};
   int totnode;
-  bool original = false, hit = false;
+  bool original = false;
 
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
 
@@ -7227,7 +7227,7 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   /* Option to return the face normal directly for performance o accuracy reasons. */
   if (!use_sampled_normal) {
     copy_v3_v3(out->normal, srd.face_normal);
-    return hit;
+    return srd.hit;
   }
 
   /* Sampled normal calculation. */
