@@ -272,6 +272,11 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      ICON_MOD_WAVE,
      "Wave",
      "Adds a ripple-like motion to an object’s geometry"},
+    {eModifierType_VolumeDisplace,
+     "VOLUME_DISPLACE",
+     ICON_VOLUME_DATA,
+     "Volume Displace",
+     "Deform volume based on noise or other vector fields"}, /* TODO: Use correct icon. */
     {0, "", 0, N_("Physics"), ""},
     {eModifierType_Cloth, "CLOTH", ICON_MOD_CLOTH, "Cloth", ""},
     {eModifierType_Collision, "COLLISION", ICON_MOD_PHYSICS, "Collision", ""},
@@ -7057,6 +7062,75 @@ static void rna_def_modifier_mesh_to_volume(BlenderRNA *brna)
   RNA_define_lib_overridable(false);
 }
 
+static void rna_def_modifier_volume_displace(BlenderRNA *brna)
+{
+  static const EnumPropertyItem prop_texture_map_mode_items[] = {
+      {MOD_VOLUME_DISPLACE_MAP_LOCAL,
+       "LOCAL",
+       0,
+       "Local",
+       "Use the local coordinate system for the texture coordinates"},
+      {MOD_VOLUME_DISPLACE_MAP_GLOBAL,
+       "GLOBAL",
+       0,
+       "Global",
+       "Use the global coordinate system for the texture coordinates"},
+      {MOD_VOLUME_DISPLACE_MAP_OBJECT,
+       "OBJECT",
+       0,
+       "Object",
+       "Use the linked object's local coordinate system for the texture coordinates"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "VolumeDisplaceModifier", "Modifier");
+  RNA_def_struct_ui_text(srna, "Volume Displace Modifier", "");
+  RNA_def_struct_sdna(srna, "VolumeDisplaceModifierData");
+  RNA_def_struct_ui_icon(srna, ICON_VOLUME_DATA); /* TODO: Use correct icon. */
+
+  RNA_define_lib_overridable(true);
+
+  prop = RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Strength", "Strength of the displacement");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "texture", PROP_POINTER, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Texture", "");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+  prop = RNA_def_property(srna, "texture_map_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, prop_texture_map_mode_items);
+  RNA_def_property_ui_text(prop, "Texture Mapping Mode", "");
+  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+  prop = RNA_def_property(srna, "texture_map_object", PROP_POINTER, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Object", "Object to use for texture mapping");
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+  prop = RNA_def_property(srna, "texture_mid_level", PROP_FLOAT, PROP_XYZ);
+  RNA_def_property_ui_text(
+      prop, "Texture Mid Level", "Subtracted from the texture color to get a displacement vector");
+  RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1f, 5);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "texture_sample_radius", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_ui_text(
+      prop,
+      "Texture Sample Radius",
+      "Smaller values result in better performance but might cut off the volume");
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1f, 5);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  RNA_define_lib_overridable(false);
+}
+
 void RNA_def_modifier(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -7189,6 +7263,7 @@ void RNA_def_modifier(BlenderRNA *brna)
   rna_def_modifier_simulation(brna);
 #  endif
   rna_def_modifier_mesh_to_volume(brna);
+  rna_def_modifier_volume_displace(brna);
 }
 
 #endif

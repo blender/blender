@@ -344,5 +344,6 @@ void modifier_type_init(ModifierTypeInfo *types[])
   INIT_TYPE(WeightedNormal);
   INIT_TYPE(Simulation);
   INIT_TYPE(MeshToVolume);
+  INIT_TYPE(VolumeDisplace);
 #undef INIT_TYPE
 }

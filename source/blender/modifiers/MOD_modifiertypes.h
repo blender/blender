@@ -87,6 +87,7 @@ extern ModifierTypeInfo modifierType_SurfaceDeform;
 extern ModifierTypeInfo modifierType_WeightedNormal;
 extern ModifierTypeInfo modifierType_Simulation;
 extern ModifierTypeInfo modifierType_MeshToVolume;
+extern ModifierTypeInfo modifierType_VolumeDisplace;
 
 /* MOD_util.c */
 void modifier_type_init(ModifierTypeInfo *types[]);

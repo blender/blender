@@ -96,6 +96,7 @@ typedef enum ModifierType {
   eModifierType_Fluid = 56,
   eModifierType_Simulation = 57,
   eModifierType_MeshToVolume = 58,
+  eModifierType_VolumeDisplace = 59,
   NUM_MODIFIER_TYPES,
 } ModifierType;
 
@@ -2254,6 +2255,25 @@ typedef enum MeshToVolumeModifierResolutionMode {
   MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_AMOUNT = 0,
   MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_SIZE = 1,
 } MeshToVolumeModifierResolutionMode;
+
+typedef struct VolumeDisplaceModifierData {
+  ModifierData modifier;
+
+  struct Tex *texture;
+  struct Object *texture_map_object;
+  int texture_map_mode;
+
+  float strength;
+  float texture_mid_level[3];
+  float texture_sample_radius;
+} VolumeDisplaceModifierData;
+
+/* VolumeDisplaceModifierData->texture_map_mode */
+enum {
+  MOD_VOLUME_DISPLACE_MAP_LOCAL = 0,
+  MOD_VOLUME_DISPLACE_MAP_GLOBAL = 1,
+  MOD_VOLUME_DISPLACE_MAP_OBJECT = 2,
+};
 
 #ifdef __cplusplus
 }

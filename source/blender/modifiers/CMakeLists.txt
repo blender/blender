@@ -101,6 +101,7 @@ set(SRC
   intern/MOD_util.c
   intern/MOD_uvproject.c
   intern/MOD_uvwarp.c
+  intern/MOD_volume_displace.cc
   intern/MOD_warp.c
   intern/MOD_wave.c
   intern/MOD_weighted_normal.c
