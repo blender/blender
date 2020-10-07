@@ -423,7 +423,7 @@ class CLIP_PT_tracking_settings(CLIP_PT_tracking_panel, Panel):
 
         col.separator()
         col.operator("clip.track_settings_as_default",
-                     text="Copy From Active Track")
+                     text="Copy from Active Track")
 
 
 class CLIP_PT_tracking_settings_extras(CLIP_PT_tracking_panel, Panel):

@@ -3814,12 +3814,12 @@ void VIEW3D_OT_zoom_camera_1_to_1(wmOperatorType *ot)
  * \{ */
 
 static const EnumPropertyItem prop_view_items[] = {
-    {RV3D_VIEW_LEFT, "LEFT", ICON_TRIA_LEFT, "Left", "View From the Left"},
-    {RV3D_VIEW_RIGHT, "RIGHT", ICON_TRIA_RIGHT, "Right", "View From the Right"},
-    {RV3D_VIEW_BOTTOM, "BOTTOM", ICON_TRIA_DOWN, "Bottom", "View From the Bottom"},
-    {RV3D_VIEW_TOP, "TOP", ICON_TRIA_UP, "Top", "View From the Top"},
-    {RV3D_VIEW_FRONT, "FRONT", 0, "Front", "View From the Front"},
-    {RV3D_VIEW_BACK, "BACK", 0, "Back", "View From the Back"},
+    {RV3D_VIEW_LEFT, "LEFT", ICON_TRIA_LEFT, "Left", "View from the Left"},
+    {RV3D_VIEW_RIGHT, "RIGHT", ICON_TRIA_RIGHT, "Right", "View from the Right"},
+    {RV3D_VIEW_BOTTOM, "BOTTOM", ICON_TRIA_DOWN, "Bottom", "View from the Bottom"},
+    {RV3D_VIEW_TOP, "TOP", ICON_TRIA_UP, "Top", "View from the Top"},
+    {RV3D_VIEW_FRONT, "FRONT", 0, "Front", "View from the Front"},
+    {RV3D_VIEW_BACK, "BACK", 0, "Back", "View from the Back"},
     {0, NULL, 0, NULL, NULL},
 };
 

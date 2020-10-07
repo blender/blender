@@ -1301,7 +1301,7 @@ static int transform_from_gizmo_invoke(bContext *C,
 static void TRANSFORM_OT_from_gizmo(struct wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Transform From Gizmo";
+  ot->name = "Transform from Gizmo";
   ot->description = "Transform selected items by mode type";
   ot->idname = "TRANSFORM_OT_from_gizmo";
   ot->flag = 0;

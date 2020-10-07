@@ -539,7 +539,7 @@ class BUILTIN_KSI_WholeCharacterSelected(KeyingSetInfo):
     """Insert a keyframe for all properties that are likely to get animated in a character rig """ \
     """(only selected bones)"""
     bl_idname = ANIM_KS_WHOLE_CHARACTER_SELECTED_ID
-    bl_label = "Whole Character (Selected bones only)"
+    bl_label = "Whole Character (Selected Bones Only)"
 
     # iterator - all bones regardless of selection
     def iterator(ksi, context, ks):

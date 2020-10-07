@@ -319,7 +319,7 @@ static int face_map_remove_from_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_face_map_remove_from(struct wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Remove From Face Map";
+  ot->name = "Remove from Face Map";
   ot->idname = "OBJECT_OT_face_map_remove_from";
   ot->description = "Remove faces from a face map";
 

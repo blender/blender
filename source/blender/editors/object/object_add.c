@@ -2998,7 +2998,7 @@ void OBJECT_OT_convert(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "Convert to";
+  ot->name = "Convert To";
   ot->description = "Convert selected objects to another type";
   ot->idname = "OBJECT_OT_convert";
 

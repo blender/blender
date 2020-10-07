@@ -2916,8 +2916,8 @@ class VIEW3D_MT_paint_weight(Menu):
 
         if not is_editmode:
 
-            layout.operator("paint.weight_from_bones", text="Assign Automatic From Bones").type = 'AUTOMATIC'
-            layout.operator("paint.weight_from_bones", text="Assign From Bone Envelopes").type = 'ENVELOPES'
+            layout.operator("paint.weight_from_bones", text="Assign Automatic from Bones").type = 'AUTOMATIC'
+            layout.operator("paint.weight_from_bones", text="Assign from Bone Envelopes").type = 'ENVELOPES'
 
             layout.separator()
 
@@ -3072,13 +3072,13 @@ class VIEW3D_MT_face_sets(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        op = layout.operator("sculpt.face_sets_create", text='Face Set From Masked')
+        op = layout.operator("sculpt.face_sets_create", text='Face Set from Masked')
         op.mode = 'MASKED'
 
-        op = layout.operator("sculpt.face_sets_create", text='Face Set From Visible')
+        op = layout.operator("sculpt.face_sets_create", text='Face Set from Visible')
         op.mode = 'VISIBLE'
 
-        op = layout.operator("sculpt.face_sets_create", text='Face Set From Edit Mode Selection')
+        op = layout.operator("sculpt.face_sets_create", text='Face Set from Edit Mode Selection')
         op.mode = 'SELECTION'
 
         layout.separator()
@@ -4150,7 +4150,7 @@ class VIEW3D_MT_edit_mesh_normals(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.set_normals_from_faces", text="Set From Faces")
+        layout.operator("mesh.set_normals_from_faces", text="Set from Faces")
 
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("transform.rotate_normal", text="Rotate...")
@@ -5293,10 +5293,10 @@ class VIEW3D_MT_sculpt_face_sets_edit_pie(Menu):
         layout = self.layout
         pie = layout.menu_pie()
 
-        op = pie.operator("sculpt.face_sets_create", text='Face Set From Masked')
+        op = pie.operator("sculpt.face_sets_create", text='Face Set from Masked')
         op.mode = 'MASKED'
 
-        op = pie.operator("sculpt.face_sets_create", text='Face Set From Visible')
+        op = pie.operator("sculpt.face_sets_create", text='Face Set from Visible')
         op.mode = 'VISIBLE'
 
         op = pie.operator("sculpt.face_set_change_visibility", text='Invert Visible')

@@ -861,7 +861,7 @@ class TransformsToDeltasAnim(Operator):
 class DupliOffsetFromCursor(Operator):
     """Set offset used for collection instances based on cursor position"""
     bl_idname = "object.instance_offset_from_cursor"
-    bl_label = "Set Offset From Cursor"
+    bl_label = "Set Offset from Cursor"
     bl_options = {'INTERNAL', 'UNDO'}
 
     @classmethod

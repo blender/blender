@@ -356,7 +356,7 @@ void PTCACHE_OT_free_bake(wmOperatorType *ot)
 void PTCACHE_OT_bake_from_cache(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Bake From Cache";
+  ot->name = "Bake from Cache";
   ot->description = "Bake from cache";
   ot->idname = "PTCACHE_OT_bake_from_cache";
 

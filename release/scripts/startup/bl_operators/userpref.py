@@ -228,7 +228,7 @@ class PREFERENCES_OT_keyconfig_import(Operator):
         options={'HIDDEN'},
     )
     keep_original: BoolProperty(
-        name="Keep original",
+        name="Keep Original",
         description="Keep original file after copying to configuration folder",
         default=True,
     )

@@ -362,7 +362,7 @@ class TEXT_MT_format(Menu):
 
 
 class TEXT_MT_edit_to3d(Menu):
-    bl_label = "Text To 3D Object"
+    bl_label = "Text to 3D Object"
 
     def draw(self, _context):
         layout = self.layout

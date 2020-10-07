@@ -193,9 +193,11 @@ class VIEW3D_OT_transform_gizmo_set(Operator):
     bl_idname = "view3d.transform_gizmo_set"
 
     extend: BoolProperty(
+        name="Extend",
         default=False,
     )
     type: EnumProperty(
+        name="Type",
         items=(
             ('TRANSLATE', "Move", ""),
             ('ROTATE', "Rotate", ""),

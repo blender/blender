@@ -1902,7 +1902,7 @@ static int uv_seams_from_islands_exec(bContext *C, wmOperator *op)
 static void UV_OT_seams_from_islands(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Seams From Islands";
+  ot->name = "Seams from Islands";
   ot->description = "Set mesh seams according to island setup in the UV editor";
   ot->idname = "UV_OT_seams_from_islands";
 

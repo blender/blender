@@ -2384,7 +2384,7 @@ static bool uv_from_view_poll(bContext *C)
 void UV_OT_project_from_view(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Project From View";
+  ot->name = "Project from View";
   ot->idname = "UV_OT_project_from_view";
   ot->description = "Project the UV vertices of the mesh as seen in current 3D view";
 

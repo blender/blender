@@ -188,7 +188,7 @@ class SequencerFadesAdd(Operator):
         min=0.01)
     type: EnumProperty(
         items=(
-            ('IN_OUT', 'Fade In And Out', 'Fade selected strips in and out'),
+            ('IN_OUT', 'Fade In and Out', 'Fade selected strips in and out'),
             ('IN', 'Fade In', 'Fade in selected strips'),
             ('OUT', 'Fade Out', 'Fade out selected strips'),
             ('CURSOR_FROM', 'From Current Frame',
@@ -196,7 +196,7 @@ class SequencerFadesAdd(Operator):
             ('CURSOR_TO', 'To Current Frame',
              'Fade from the start of sequences under the time cursor to the current frame'),
         ),
-        name="Fade type",
+        name="Fade Type",
         description="Fade in, out, both in and out, to, or from the current frame. Default is both in and out",
         default='IN_OUT')
 

@@ -3700,7 +3700,7 @@ void MESH_OT_blend_from_shape(wmOperatorType *ot)
   PropertyRNA *prop;
 
   /* identifiers */
-  ot->name = "Blend From Shape";
+  ot->name = "Blend from Shape";
   ot->description = "Blend in shape from a shape key";
   ot->idname = "MESH_OT_blend_from_shape";
 
@@ -7254,7 +7254,7 @@ void MESH_OT_wireframe(wmOperatorType *ot)
                   "Crease",
                   "Crease hub edges for an improved subdivision surface");
   prop = RNA_def_float(
-      ot->srna, "crease_weight", 0.01f, 0.0f, 1e3f, "Crease weight", "", 0.0f, 1.0f);
+      ot->srna, "crease_weight", 0.01f, 0.0f, 1e3f, "Crease Weight", "", 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 2);
 }
 
@@ -9276,7 +9276,7 @@ static int edbm_set_normals_from_faces_exec(bContext *C, wmOperator *op)
 void MESH_OT_set_normals_from_faces(struct wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Set Normals From Faces";
+  ot->name = "Set Normals from Faces";
   ot->description = "Set the custom normals from the selected faces ones";
   ot->idname = "MESH_OT_set_normals_from_faces";
 
@@ -9491,7 +9491,7 @@ void MESH_OT_mod_weighted_strength(struct wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  ot->prop = RNA_def_boolean(ot->srna, "set", 0, "Set value", "Set Value of faces");
+  ot->prop = RNA_def_boolean(ot->srna, "set", 0, "Set Value", "Set value of faces");
 
   ot->prop = RNA_def_enum(
       ot->srna,
