@@ -31,7 +31,12 @@ class STATUSBAR_HT_header(Header):
 
         layout.separator_spacer()
 
-        # Nothing in the center.
+        # Messages
+        layout.template_reports_banner()
+
+        # Progress Bar
+        layout.template_running_jobs()
+
         layout.separator_spacer()
 
         row = layout.row()
@@ -39,12 +44,6 @@ class STATUSBAR_HT_header(Header):
 
         # Stats & Info
         row.label(text=context.screen.statusbar_info(), translate=False)
-
-        # Messages
-        row.template_reports_banner()
-
-        # Progress Bar
-        row.template_running_jobs()
 
 
 classes = (
