@@ -489,6 +489,8 @@ void GLFrameBuffer::blit_to(
     /* Restore the draw buffers. */
     glDrawBuffers(ARRAY_SIZE(dst->gl_attachments_), dst->gl_attachments_);
   }
+  /* Ensure previous buffer is restored. */
+  context_->active_fb = dst;
 }
 
 /** \} */
