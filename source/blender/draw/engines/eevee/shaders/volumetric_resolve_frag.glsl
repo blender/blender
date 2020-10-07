@@ -9,8 +9,13 @@
 uniform sampler2D inSceneDepth;
 
 /* Blend equation is : FragColor0 + FragColor1 * DstColor */
+#ifdef VOLUMETRICS_ACCUM
+layout(location = 0) out vec4 FragColor0;
+layout(location = 1) out vec4 FragColor1;
+#else
 layout(location = 0, index = 0) out vec4 FragColor0;
 layout(location = 0, index = 1) out vec4 FragColor1;
+#endif
 
 void main()
 {

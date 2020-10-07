@@ -610,7 +610,7 @@ void EEVEE_volumes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
         grp, NULL, USE_VOLUME_OPTI ? 1 : common_data->vol_tex_size[2]);
 
     DRW_PASS_CREATE(psl->volumetric_resolve_ps, DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM);
-    grp = DRW_shgroup_create(EEVEE_shaders_volumes_resolve_sh_get(), psl->volumetric_resolve_ps);
+    grp = DRW_shgroup_create(EEVEE_shaders_volumes_resolve_sh_get(false), psl->volumetric_resolve_ps);
     DRW_shgroup_uniform_texture_ref(grp, "inScattering", &txl->volume_scatter);
     DRW_shgroup_uniform_texture_ref(grp, "inTransmittance", &txl->volume_transmit);
     DRW_shgroup_uniform_texture_ref(grp, "inSceneDepth", &e_data.depth_src);
@@ -823,7 +823,7 @@ void EEVEE_volumes_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, 
   DRW_PASS_CREATE(psl->volumetric_accum_ps, DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD_FULL);
   DRWShadingGroup *grp = NULL;
   if ((effects->enabled_effects & EFFECT_VOLUMETRIC) != 0) {
-    grp = DRW_shgroup_create(EEVEE_shaders_volumes_resolve_sh_get(), psl->volumetric_accum_ps);
+    grp = DRW_shgroup_create(EEVEE_shaders_volumes_resolve_sh_get(true), psl->volumetric_accum_ps);
     DRW_shgroup_uniform_texture_ref(grp, "inScattering", &txl->volume_scatter);
     DRW_shgroup_uniform_texture_ref(grp, "inTransmittance", &txl->volume_transmit);
     DRW_shgroup_uniform_texture_ref(grp, "inSceneDepth", &e_data.depth_src);

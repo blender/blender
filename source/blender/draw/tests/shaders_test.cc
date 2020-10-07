@@ -340,7 +340,8 @@ TEST_F(DrawTest, eevee_glsl_shaders_static)
   EXPECT_NE(EEVEE_shaders_volumes_scatter_sh_get(), nullptr);
   EXPECT_NE(EEVEE_shaders_volumes_scatter_with_lights_sh_get(), nullptr);
   EXPECT_NE(EEVEE_shaders_volumes_integration_sh_get(), nullptr);
-  EXPECT_NE(EEVEE_shaders_volumes_resolve_sh_get(), nullptr);
+  EXPECT_NE(EEVEE_shaders_volumes_resolve_sh_get(false), nullptr);
+  EXPECT_NE(EEVEE_shaders_volumes_resolve_sh_get(true), nullptr);
   EXPECT_NE(EEVEE_shaders_volumes_accum_sh_get(), nullptr);
   EXPECT_NE(EEVEE_shaders_studiolight_probe_sh_get(), nullptr);
   EXPECT_NE(EEVEE_shaders_studiolight_background_sh_get(), nullptr);
