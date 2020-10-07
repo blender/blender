@@ -39,10 +39,10 @@
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
+#include "BKE_mesh_types.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_pointcloud.h"
-
 #include "BLT_translation.h"
 
 #include "DEG_depsgraph_query.h"
@@ -392,10 +392,11 @@ void BKE_pointcloud_data_update(struct Depsgraph *depsgraph, struct Scene *scene
 }
 
 /* Draw Cache */
-void (*BKE_pointcloud_batch_cache_dirty_tag_cb)(PointCloud *pointcloud, int mode) = NULL;
+void (*BKE_pointcloud_batch_cache_dirty_tag_cb)(PointCloud *pointcloud,
+                                                eMeshBatchDirtyMode mode) = NULL;
 void (*BKE_pointcloud_batch_cache_free_cb)(PointCloud *pointcloud) = NULL;
 
-void BKE_pointcloud_batch_cache_dirty_tag(PointCloud *pointcloud, int mode)
+void BKE_pointcloud_batch_cache_dirty_tag(PointCloud *pointcloud, eMeshBatchDirtyMode mode)
 {
   if (pointcloud->batch_cache) {
     BKE_pointcloud_batch_cache_dirty_tag_cb(pointcloud, mode);

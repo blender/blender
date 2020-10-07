@@ -746,10 +746,10 @@ bool BKE_mball_select_swap_multi_ex(Base **bases, int bases_len)
 
 /* Draw Engine */
 
-void (*BKE_mball_batch_cache_dirty_tag_cb)(MetaBall *mb, int mode) = NULL;
+void (*BKE_mball_batch_cache_dirty_tag_cb)(MetaBall *mb, eMeshBatchDirtyMode mode) = NULL;
 void (*BKE_mball_batch_cache_free_cb)(MetaBall *mb) = NULL;
 
-void BKE_mball_batch_cache_dirty_tag(MetaBall *mb, int mode)
+void BKE_mball_batch_cache_dirty_tag(MetaBall *mb, eMeshBatchDirtyMode mode)
 {
   if (mb->batch_cache) {
     BKE_mball_batch_cache_dirty_tag_cb(mb, mode);

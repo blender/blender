@@ -20,6 +20,9 @@
  * \ingroup bke
  * \brief General operations for point-clouds.
  */
+
+#include "BKE_mesh_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -62,10 +65,11 @@ enum {
   BKE_POINTCLOUD_BATCH_DIRTY_ALL = 0,
 };
 
-void BKE_pointcloud_batch_cache_dirty_tag(struct PointCloud *pointcloud, int mode);
+void BKE_pointcloud_batch_cache_dirty_tag(struct PointCloud *pointcloud, eMeshBatchDirtyMode mode);
 void BKE_pointcloud_batch_cache_free(struct PointCloud *pointcloud);
 
-extern void (*BKE_pointcloud_batch_cache_dirty_tag_cb)(struct PointCloud *pointcloud, int mode);
+extern void (*BKE_pointcloud_batch_cache_dirty_tag_cb)(struct PointCloud *pointcloud,
+                                                       eMeshBatchDirtyMode mode);
 extern void (*BKE_pointcloud_batch_cache_free_cb)(struct PointCloud *pointcloud);
 
 #ifdef __cplusplus

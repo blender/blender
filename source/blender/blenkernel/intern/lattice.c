@@ -808,10 +808,10 @@ void BKE_lattice_eval_geometry(struct Depsgraph *UNUSED(depsgraph), Lattice *UNU
 }
 
 /* Draw Engine */
-void (*BKE_lattice_batch_cache_dirty_tag_cb)(Lattice *lt, int mode) = NULL;
+void (*BKE_lattice_batch_cache_dirty_tag_cb)(Lattice *lt, eMeshBatchDirtyMode mode) = NULL;
 void (*BKE_lattice_batch_cache_free_cb)(Lattice *lt) = NULL;
 
-void BKE_lattice_batch_cache_dirty_tag(Lattice *lt, int mode)
+void BKE_lattice_batch_cache_dirty_tag(Lattice *lt, eMeshBatchDirtyMode mode)
 {
   if (lt->batch_cache) {
     BKE_lattice_batch_cache_dirty_tag_cb(lt, mode);
