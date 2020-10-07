@@ -1485,7 +1485,6 @@ static int mouse_graph_keys(bAnimContext *ac,
     /* only if there's keyframe */
     if (nvi->bezt) {
       bezt = nvi->bezt; /* Used to check `bezt` selection is set. */
-      /* depends on selection mode */
       if (select_mode == SELECT_INVERT) {
         if (nvi->hpoint == NEAREST_HANDLE_KEY) {
           bezt->f2 ^= SELECT;
@@ -1509,6 +1508,10 @@ static int mouse_graph_keys(bAnimContext *ac,
         else {
           bezt->f3 |= SELECT;
         }
+      }
+
+      if (!run_modal && BEZT_ISSEL_ANY(bezt) && !already_selected) {
+        BKE_fcurve_active_keyframe_set(nvi->fcu, bezt);
       }
     }
     else if (nvi->fpt) {
@@ -1555,10 +1558,11 @@ static int mouse_graph_keys(bAnimContext *ac,
     }
   }
 
-  /* set active F-Curve (NOTE: sync the filter flags with findnearest_fcurve_vert) */
-  /* needs to be called with (sipo->flag & SIPO_SELCUVERTSONLY)
+  /* Set active F-Curve, except when dragging the selected keys.
+   * needs to be called with (sipo->flag & SIPO_SELCUVERTSONLY)
    * otherwise the active flag won't be set T26452. */
-  if (nvi->fcu->flag & FCURVE_SELECTED) {
+  if (!run_modal && nvi->fcu->flag & FCURVE_SELECTED) {
+    /* NOTE: Sync the filter flags with findnearest_fcurve_vert. */
     int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_NODUPLIS);
     ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, nvi->fcu, nvi->ctype);
   }

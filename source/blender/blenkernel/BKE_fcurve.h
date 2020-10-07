@@ -244,6 +244,9 @@ bool BKE_fcurve_calc_bounds(struct FCurve *fcu,
                             const bool do_sel_only,
                             const bool include_handles);
 
+void BKE_fcurve_active_keyframe_set(struct FCurve *fcu, const struct BezTriple *active_bezt);
+int BKE_fcurve_active_keyframe_index(const struct FCurve *fcu);
+
 /* .............. */
 
 /* Are keyframes on F-Curve of any use (to final result, and to show in editors)? */

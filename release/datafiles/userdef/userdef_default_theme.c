@@ -439,6 +439,7 @@ const bTheme U_theme_default = {
     .group_active = RGBA(0x368024ff),
     .vertex = RGBA(0x000000ff),
     .vertex_select = RGBA(0xff8500ff),
+    .vertex_active = RGBA(0xffffffff),
     .cframe = RGBA(0x5680c2ff),
     .time_scrub_background = RGBA(0x292929e6),
     .time_marker_line = RGBA(0x00000060),

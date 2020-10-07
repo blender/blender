@@ -362,6 +362,9 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_VERTEX_SELECT:
           cp = ts->vertex_select;
           break;
+        case TH_VERTEX_ACTIVE:
+          cp = ts->vertex_active;
+          break;
         case TH_VERTEX_BEVEL:
           cp = ts->vertex_bevel;
           break;

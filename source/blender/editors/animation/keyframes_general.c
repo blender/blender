@@ -117,6 +117,9 @@ bool delete_fcurve_keys(FCurve *fcu)
   /* Delete selected BezTriples */
   for (int i = 0; i < fcu->totvert; i++) {
     if (fcu->bezt[i].f2 & SELECT) {
+      if (i == fcu->active_keyframe_index) {
+        BKE_fcurve_active_keyframe_set(fcu, NULL);
+      }
       memmove(&fcu->bezt[i], &fcu->bezt[i + 1], sizeof(BezTriple) * (fcu->totvert - i - 1));
       fcu->totvert--;
       i--;

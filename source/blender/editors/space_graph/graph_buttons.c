@@ -235,40 +235,27 @@ static void graph_panel_properties(const bContext *C, Panel *panel)
 /* ******************* active Keyframe ************** */
 
 /* get 'active' keyframe for panel editing */
-static bool get_active_fcurve_keyframe_edit(FCurve *fcu,
+static bool get_active_fcurve_keyframe_edit(const FCurve *fcu,
                                             BezTriple **r_bezt,
                                             BezTriple **r_prevbezt)
 {
-  BezTriple *b;
-  int i;
-
   /* zero the pointers */
   *r_bezt = *r_prevbezt = NULL;
 
-  /* sanity checks */
-  if ((fcu->bezt == NULL) || (fcu->totvert == 0)) {
+  const int active_keyframe_index = BKE_fcurve_active_keyframe_index(fcu);
+  if (active_keyframe_index == FCURVE_ACTIVE_KEYFRAME_NONE) {
     return false;
   }
 
-  /* find first selected keyframe for now, and call it the active one
-   * - this is a reasonable assumption, given that whenever anyone
-   *   wants to edit numerically, there is likely to only be 1 vert selected
-   */
-  for (i = 0, b = fcu->bezt; i < fcu->totvert; i++, b++) {
-    if (BEZT_ISSEL_ANY(b)) {
-      /* found
-       * - 'previous' is either the one before, of the keyframe itself (which is still fine)
-       *   XXX: we can just make this null instead if needed
-       */
-      *r_prevbezt = (i > 0) ? b - 1 : b;
-      *r_bezt = b;
+  /* The active keyframe should be selected. */
+  BLI_assert(BEZT_ISSEL_ANY(&fcu->bezt[active_keyframe_index]));
 
-      return true;
-    }
-  }
+  *r_bezt = &fcu->bezt[active_keyframe_index];
+  /* Previous is either one before the active, or the point itself if it's the first. */
+  const int prev_index = max_ii(active_keyframe_index - 1, 0);
+  *r_prevbezt = &fcu->bezt[prev_index];
 
-  /* not found */
-  return false;
+  return true;
 }
 
 /* update callback for active keyframe properties - base updates stuff */

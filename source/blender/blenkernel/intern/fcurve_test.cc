@@ -273,4 +273,39 @@ TEST(fcurve_subdivide, BKE_bezt_subdivide_handles)
   BKE_fcurve_free(fcu);
 }
 
+TEST(fcurve_active_keyframe, ActiveKeyframe)
+{
+  FCurve *fcu = BKE_fcurve_create();
+
+  /* There should be no active keyframe with no points. */
+  EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), FCURVE_ACTIVE_KEYFRAME_NONE);
+
+  /* Check that adding new points sets the active index. */
+  EXPECT_EQ(insert_vert_fcurve(fcu, 1.0f, 7.5f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 0);
+  EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), 0);
+  EXPECT_EQ(insert_vert_fcurve(fcu, 8.0f, 15.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 1);
+  EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), 1);
+  EXPECT_EQ(insert_vert_fcurve(fcu, 14.0f, 8.2f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 2);
+  EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), 2);
+
+  /* Check clearing the index. */
+  BKE_fcurve_active_keyframe_set(fcu, NULL);
+  EXPECT_EQ(fcu->active_keyframe_index, FCURVE_ACTIVE_KEYFRAME_NONE);
+  EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), FCURVE_ACTIVE_KEYFRAME_NONE);
+
+  /* Check a "normal" action. */
+  BKE_fcurve_active_keyframe_set(fcu, &fcu->bezt[2]);
+  EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), 2);
+
+  /* Check out of bounds. */
+  BKE_fcurve_active_keyframe_set(fcu, fcu->bezt - 20);
+  EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), FCURVE_ACTIVE_KEYFRAME_NONE);
+
+  /* Check out of bounds again. */
+  BKE_fcurve_active_keyframe_set(fcu, fcu->bezt + 4);
+  EXPECT_EQ(BKE_fcurve_active_keyframe_index(fcu), FCURVE_ACTIVE_KEYFRAME_NONE);
+
+  BKE_fcurve_free(fcu);
+}
+
 }  // namespace blender::bke::tests

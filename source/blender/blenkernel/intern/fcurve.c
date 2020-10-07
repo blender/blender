@@ -830,6 +830,38 @@ bool BKE_fcurve_calc_range(
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Active Keyframe
+ * \{ */
+
+/**
+ * Set the index that stores the FCurve's active keyframe, assuming that \a active_bezt
+ * is already part of `fcu->bezt`. If NULL, set active keyframe index to "none."
+ */
+void BKE_fcurve_active_keyframe_set(FCurve *fcu, const BezTriple *active_bezt)
+{
+  fcu->active_keyframe_index = (active_bezt == NULL) ? FCURVE_ACTIVE_KEYFRAME_NONE :
+                                                       active_bezt - fcu->bezt;
+}
+
+/**
+ * Get the active keyframe index, with sanity checks for point bounds.
+ */
+int BKE_fcurve_active_keyframe_index(const FCurve *fcu)
+{
+  const int active_keyframe_index = fcu->active_keyframe_index;
+
+  /* Sanity checks. */
+  if ((fcu->bezt == NULL) || (active_keyframe_index >= fcu->totvert) ||
+      (active_keyframe_index < 0)) {
+    return FCURVE_ACTIVE_KEYFRAME_NONE;
+  }
+
+  return active_keyframe_index;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Status Checks
  * \{ */
 

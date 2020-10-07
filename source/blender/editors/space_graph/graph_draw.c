@@ -211,6 +211,32 @@ static void draw_fcurve_selected_keyframe_vertices(
   immEnd();
 }
 
+/**
+ * Draw the extra indicator for the active point.
+ */
+static void draw_fcurve_active_vertex(const FCurve *fcu, const View2D *v2d, const uint pos)
+{
+  const int active_keyframe_index = BKE_fcurve_active_keyframe_index(fcu);
+  if (!(fcu->flag & FCURVE_ACTIVE) || active_keyframe_index == FCURVE_ACTIVE_KEYFRAME_NONE) {
+    return;
+  }
+
+  const float fac = 0.05f * BLI_rctf_size_x(&v2d->cur);
+  const BezTriple *bezt = &fcu->bezt[active_keyframe_index];
+
+  if (!IN_RANGE(bezt->vec[1][0], (v2d->cur.xmin - fac), (v2d->cur.xmax + fac))) {
+    return;
+  }
+  if (!(bezt->f2 & SELECT)) {
+    return;
+  }
+
+  immBegin(GPU_PRIM_POINTS, 1);
+  immUniformThemeColor(TH_VERTEX_ACTIVE);
+  immVertex2fv(pos, bezt->vec[1]);
+  immEnd();
+}
+
 /* helper func - draw keyframe vertices only for an F-Curve */
 static void draw_fcurve_keyframe_vertices(FCurve *fcu, View2D *v2d, bool edit, uint pos)
 {
@@ -220,6 +246,7 @@ static void draw_fcurve_keyframe_vertices(FCurve *fcu, View2D *v2d, bool edit, u
 
   draw_fcurve_selected_keyframe_vertices(fcu, v2d, edit, false, pos);
   draw_fcurve_selected_keyframe_vertices(fcu, v2d, edit, true, pos);
+  draw_fcurve_active_vertex(fcu, v2d, pos);
 
   immUnbindProgram();
 }
@@ -270,6 +297,39 @@ static void draw_fcurve_selected_handle_vertices(
   immEnd();
 }
 
+/**
+ * Draw the extra handles for the active point.
+ */
+static void draw_fcurve_active_handle_vertices(const FCurve *fcu,
+                                               const bool sel_handle_only,
+                                               const uint pos)
+{
+  const int active_keyframe_index = BKE_fcurve_active_keyframe_index(fcu);
+  if (!(fcu->flag & FCURVE_ACTIVE) || active_keyframe_index == FCURVE_ACTIVE_KEYFRAME_NONE) {
+    return;
+  }
+
+  const BezTriple *bezt = &fcu->bezt[active_keyframe_index];
+
+  if (sel_handle_only && !BEZT_ISSEL_ANY(bezt)) {
+    return;
+  }
+
+  float active_col[4];
+  UI_GetThemeColor4fv(TH_VERTEX_ACTIVE, active_col);
+  immUniform4fv("outlineColor", active_col);
+  immUniformColor3fvAlpha(active_col, 0.01f); /* Almost invisible - only keep for smoothness. */
+  immBeginAtMost(GPU_PRIM_POINTS, 2);
+
+  if ((bezt->f1 & SELECT)) {
+    immVertex2fv(pos, bezt->vec[0]);
+  }
+  if ((bezt->f3 & SELECT)) {
+    immVertex2fv(pos, bezt->vec[2]);
+  }
+  immEnd();
+}
+
 /* helper func - draw handle vertices only for an F-Curve (if it is not protected) */
 static void draw_fcurve_handle_vertices(FCurve *fcu, View2D *v2d, bool sel_handle_only, uint pos)
 {
@@ -282,6 +342,7 @@ static void draw_fcurve_handle_vertices(FCurve *fcu, View2D *v2d, bool sel_handl
 
   draw_fcurve_selected_handle_vertices(fcu, v2d, false, sel_handle_only, pos);
   draw_fcurve_selected_handle_vertices(fcu, v2d, true, sel_handle_only, pos);
+  draw_fcurve_active_handle_vertices(fcu, sel_handle_only, pos);
 
   immUnbindProgram();
 }
@@ -1224,8 +1285,20 @@ void graph_draw_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, shor
    * draw curve, then handle-lines, and finally vertices in this order so that
    * the data will be layered correctly
    */
+  bAnimListElem *ale_active_fcurve = NULL;
   for (ale = anim_data.first; ale; ale = ale->next) {
+    const FCurve *fcu = (FCurve *)ale->key_data;
+    if (fcu->flag & FCURVE_ACTIVE) {
+      ale_active_fcurve = ale;
+      continue;
+    }
     draw_fcurve(ac, sipo, region, ale);
+  }
+
+  /* Draw the active FCurve last so that it (especially the active keyframe)
+   * shows on top of the other curves. */
+  if (ale_active_fcurve != NULL) {
+    draw_fcurve(ac, sipo, region, ale_active_fcurve);
   }
 
   /* free list of curves */

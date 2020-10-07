@@ -550,6 +550,9 @@ typedef enum eDriver_Flags {
 
 /* F-Curves -------------------------------------- */
 
+/** When #active_keyframe_index is set to this, the FCurve does not have an active keyframe. */
+#define FCURVE_ACTIVE_KEYFRAME_NONE -1
+
 /**
  * FPoint (fpt)
  *
@@ -587,10 +590,15 @@ typedef struct FCurve {
   /** Total number of points which define the curve (i.e. size of arrays in FPoints). */
   unsigned int totvert;
 
+  /**
+   * Index of active keyframe in #bezt for numerical editing in the interface. A value of
+   * #FCURVE_ACTIVE_KEYFRAME_NONE indicates that the FCurve has no active keyframe.
+   */
+  int active_keyframe_index;
+
   /* value cache + settings */
   /** Value stored from last time curve was evaluated (not threadsafe, debug display only!). */
   float curval;
-  char _pad2[4];
   /** User-editable settings for this curve. */
   short flag;
   /** Value-extending mode for this curve (does not cover). */
