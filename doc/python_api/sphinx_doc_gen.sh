@@ -76,11 +76,7 @@ fi
 # Generate HTML (sphinx)
 
 if $DO_OUT_HTML ; then
-  # sphinx-build -n -b html $SPHINX_WORKDIR/sphinx-in $SPHINX_WORKDIR/sphinx-out
-
-  # annoying bug in sphinx makes it very slow unless we do this. should report.
-  cd $SPHINX_WORKDIR
-  sphinx-build -b html sphinx-in sphinx-out
+  sphinx-build -b html $SPHINX_WORKDIR/sphinx-in $SPHINX_WORKDIR/sphinx-out
 
   # XXX, saves space on upload and zip, should move HTML outside
   # and zip up there, for now this is OK
@@ -107,7 +103,6 @@ fi
 # Generate PDF (sphinx/laytex)
 
 if $DO_OUT_PDF ; then
-  cd $SPHINX_WORKDIR
   sphinx-build -n -b latex $SPHINX_WORKDIR/sphinx-in $SPHINX_WORKDIR/sphinx-out
   make -C $SPHINX_WORKDIR/sphinx-out
   mv $SPHINX_WORKDIR/sphinx-out/contents.pdf \

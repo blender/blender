@@ -41,8 +41,7 @@ Sphinx: HTML generation
   After you have built doc/python_api/sphinx-in (see above),
   generate html docs by running:
 
-    cd doc/python_api
-    sphinx-build sphinx-in sphinx-out
+    sphinx-build doc/python_api/sphinx-in doc/python_api/sphinx-out
 
 
 Sphinx: PDF generation
