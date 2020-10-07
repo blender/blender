@@ -508,7 +508,7 @@ bool is_valid_animated(const ICompoundProperty arbGeomParams, const PropertyHead
   return geom_param.valid() && !geom_param.isConstant();
 }
 
-bool has_animated_geom_params(const ICompoundProperty arbGeomParams)
+static bool has_animated_geom_params(const ICompoundProperty arbGeomParams)
 {
   if (!arbGeomParams.valid()) {
     return false;
