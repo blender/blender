@@ -656,6 +656,7 @@ class LightMapPack(Operator):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         is_editmode = context.active_object.mode == 'EDIT'
         if is_editmode:

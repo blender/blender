@@ -1623,7 +1623,7 @@ static int wm_debug_menu_exec(bContext *C, wmOperator *op)
 static int wm_debug_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   RNA_int_set(op->ptr, "debug_value", G.debug_value);
-  return WM_operator_props_dialog_popup(C, op, 180);
+  return WM_operator_props_dialog_popup(C, op, 250);
 }
 
 static void WM_OT_debug_menu(wmOperatorType *ot)

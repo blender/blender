@@ -206,6 +206,7 @@ static void screenshot_draw(bContext *UNUSED(C), wmOperator *op)
   PointerRNA ptr;
 
   uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
 
   /* image template */
   RNA_pointer_create(NULL, &RNA_ImageFormatSettings, &scd->im_format, &ptr);

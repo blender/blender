@@ -3689,29 +3689,16 @@ static bool do_fill_tile(PointerRNA *ptr, Image *ima, ImageTile *tile)
 
 static void draw_fill_tile(PointerRNA *ptr, uiLayout *layout)
 {
-  uiLayout *split, *col[2];
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
 
-  split = uiLayoutSplit(layout, 0.5f, false);
-  col[0] = uiLayoutColumn(split, false);
-  col[1] = uiLayoutColumn(split, false);
-
-  uiItemL(col[0], IFACE_("Color"), ICON_NONE);
-  uiItemR(col[1], ptr, "color", 0, "", ICON_NONE);
-
-  uiItemL(col[0], IFACE_("Width"), ICON_NONE);
-  uiItemR(col[1], ptr, "width", 0, "", ICON_NONE);
-
-  uiItemL(col[0], IFACE_("Height"), ICON_NONE);
-  uiItemR(col[1], ptr, "height", 0, "", ICON_NONE);
-
-  uiItemL(col[0], "", ICON_NONE);
-  uiItemR(col[1], ptr, "alpha", 0, NULL, ICON_NONE);
-
-  uiItemL(col[0], IFACE_("Generated Type"), ICON_NONE);
-  uiItemR(col[1], ptr, "generated_type", 0, "", ICON_NONE);
-
-  uiItemL(col[0], "", ICON_NONE);
-  uiItemR(col[1], ptr, "float", 0, NULL, ICON_NONE);
+  uiLayout *col = uiLayoutColumn(layout, false);
+  uiItemR(col, ptr, "color", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "width", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "height", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "alpha", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "generated_type", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "float", 0, NULL, ICON_NONE);
 }
 
 static void tile_fill_init(PointerRNA *ptr, Image *ima, ImageTile *tile)
@@ -3833,30 +3820,24 @@ static int tile_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(ev
   RNA_int_set(op->ptr, "count", 1);
   RNA_string_set(op->ptr, "label", "");
 
-  return WM_operator_props_dialog_popup(C, op, 10 * UI_UNIT_X);
+  return WM_operator_props_dialog_popup(C, op, 300);
 }
 
 static void tile_add_draw(bContext *UNUSED(C), wmOperator *op)
 {
-  uiLayout *split, *col[2];
+  uiLayout *col;
   uiLayout *layout = op->layout;
   PointerRNA ptr;
 
   RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
 
-  split = uiLayoutSplit(layout, 0.5f, false);
-  col[0] = uiLayoutColumn(split, false);
-  col[1] = uiLayoutColumn(split, false);
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
 
-  uiItemL(col[0], IFACE_("Number"), ICON_NONE);
-  uiItemR(col[1], &ptr, "number", 0, "", ICON_NONE);
-
-  uiItemL(col[0], IFACE_("Count"), ICON_NONE);
-  uiItemR(col[1], &ptr, "count", 0, "", ICON_NONE);
-
-  uiItemL(col[0], IFACE_("Label"), ICON_NONE);
-  uiItemR(col[1], &ptr, "label", 0, "", ICON_NONE);
-
+  col = uiLayoutColumn(layout, false);
+  uiItemR(col, &ptr, "number", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "count", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "label", 0, NULL, ICON_NONE);
   uiItemR(layout, &ptr, "fill", 0, NULL, ICON_NONE);
 
   if (RNA_boolean_get(&ptr, "fill")) {
@@ -3867,7 +3848,7 @@ static void tile_add_draw(bContext *UNUSED(C), wmOperator *op)
 void IMAGE_OT_tile_add(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Add tile";
+  ot->name = "Add Tile";
   ot->description = "Adds a tile to the image";
   ot->idname = "IMAGE_OT_tile_add";
 
@@ -3928,7 +3909,7 @@ static int tile_remove_exec(bContext *C, wmOperator *UNUSED(op))
 void IMAGE_OT_tile_remove(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Remove tile";
+  ot->name = "Remove Tile";
   ot->description = "Removes a tile from the image";
   ot->idname = "IMAGE_OT_tile_remove";
 
@@ -3975,7 +3956,7 @@ static int tile_fill_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e
 {
   tile_fill_init(op->ptr, CTX_data_edit_image(C), NULL);
 
-  return WM_operator_props_dialog_popup(C, op, 15 * UI_UNIT_X);
+  return WM_operator_props_dialog_popup(C, op, 300);
 }
 
 static void tile_fill_draw(bContext *UNUSED(C), wmOperator *op)
