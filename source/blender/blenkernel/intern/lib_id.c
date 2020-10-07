@@ -281,15 +281,15 @@ void id_us_min(ID *id)
     const int limit = ID_FAKE_USERS(id);
 
     if (id->us <= limit) {
-      CLOG_ERROR(&LOG,
-                 "ID user decrement error: %s (from '%s'): %d <= %d",
-                 id->name,
-                 id->lib ? id->lib->filepath_abs : "[Main]",
-                 id->us,
-                 limit);
       if (GS(id->name) != ID_IP) {
         /* Do not assert on deprecated ID types, we cannot really ensure that their ID refcounting
          * is valid... */
+        CLOG_ERROR(&LOG,
+                   "ID user decrement error: %s (from '%s'): %d <= %d",
+                   id->name,
+                   id->lib ? id->lib->filepath_abs : "[Main]",
+                   id->us,
+                   limit);
         BLI_assert(0);
       }
       id->us = limit;
