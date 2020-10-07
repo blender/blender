@@ -523,16 +523,12 @@ static ID *rna_ID_evaluated_get(ID *id, struct Depsgraph *depsgraph)
 
 static ID *rna_ID_copy(ID *id, Main *bmain)
 {
-  ID *newid;
+  ID *newid = BKE_id_copy(bmain, id);
 
-  if (BKE_id_copy(bmain, id, &newid)) {
-    if (newid != NULL) {
-      id_us_min(newid);
-    }
-    return newid;
+  if (newid != NULL) {
+    id_us_min(newid);
   }
-
-  return NULL;
+  return newid;
 }
 
 static ID *rna_ID_override_create(ID *id, Main *bmain, bool remap_local_usages)

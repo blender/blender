@@ -414,11 +414,11 @@ void BKE_lib_id_make_local_generic(Main *bmain, ID *id, const int flags)
       BKE_lib_id_expand_local(bmain, id);
     }
     else {
-      ID *id_new;
+      ID *id_new = BKE_id_copy(bmain, id);
 
       /* Should not fail in expected use cases,
        * but a few ID types cannot be copied (LIB, WM, SCR...). */
-      if (BKE_id_copy(bmain, id, &id_new)) {
+      if (id_new != NULL) {
         id_new->us = 0;
 
         /* setting newid is mandatory for complex make_lib_local logic... */
@@ -614,9 +614,9 @@ ID *BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag)
  * Invokes the appropriate copy method for the block and returns the result in
  * newid, unless test. Returns true if the block can be copied.
  */
-bool BKE_id_copy(Main *bmain, const ID *id, ID **newid)
+ID *BKE_id_copy(Main *bmain, const ID *id)
 {
-  return (BKE_id_copy_ex(bmain, id, newid, LIB_ID_COPY_DEFAULT) != NULL);
+  return BKE_id_copy_ex(bmain, id, NULL, LIB_ID_COPY_DEFAULT);
 }
 
 /**
@@ -634,8 +634,7 @@ ID *BKE_id_copy_for_duplicate(Main *bmain, ID *id, const eDupli_ID_Flags duplica
       return id;
     }
 
-    ID *id_new;
-    BKE_id_copy(bmain, id, &id_new);
+    ID *id_new = BKE_id_copy(bmain, id);
     /* Copying add one user by default, need to get rid of that one. */
     id_us_min(id_new);
     ID_NEW_SET(id, id_new);

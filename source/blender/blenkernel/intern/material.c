@@ -319,9 +319,7 @@ Material *BKE_gpencil_material_add(Main *bmain, const char *name)
 
 Material *BKE_material_copy(Main *bmain, const Material *ma)
 {
-  Material *ma_copy;
-  BKE_id_copy(bmain, &ma->id, (ID **)&ma_copy);
-  return ma_copy;
+  return (Material *)BKE_id_copy(bmain, &ma->id);
 }
 
 Material ***BKE_object_material_array_p(Object *ob)

@@ -427,9 +427,7 @@ Curve *BKE_curve_add(Main *bmain, const char *name, int type)
 
 Curve *BKE_curve_copy(Main *bmain, const Curve *cu)
 {
-  Curve *cu_copy;
-  BKE_id_copy(bmain, &cu->id, (ID **)&cu_copy);
-  return cu_copy;
+  return (Curve *)BKE_id_copy(bmain, &cu->id);
 }
 
 /* Get list of nurbs from editnurbs structure */

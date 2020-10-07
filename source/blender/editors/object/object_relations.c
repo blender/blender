@@ -1819,8 +1819,7 @@ static Collection *single_object_users_collection(Main *bmain,
   /* Generate new copies for objects in given collection and all its children,
    * and optionally also copy collections themselves. */
   if (copy_collections && !is_master_collection) {
-    Collection *collection_new;
-    BKE_id_copy(bmain, &collection->id, (ID **)&collection_new);
+    Collection *collection_new = (Collection *)BKE_id_copy(bmain, &collection->id);
     id_us_min(&collection_new->id);
     collection = ID_NEW_SET(collection, collection_new);
   }

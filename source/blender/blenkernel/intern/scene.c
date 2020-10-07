@@ -873,7 +873,7 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
 
   eDupli_ID_Flags duplicate_flags = U.dupflag | USER_DUP_OBJECT;
 
-  BKE_id_copy(bmain, (ID *)sce, (ID **)&sce_copy);
+  sce_copy = (Scene *)BKE_id_copy(bmain, (ID *)sce);
   id_us_min(&sce_copy->id);
   id_us_ensure_real(&sce_copy->id);
 

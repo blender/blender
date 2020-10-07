@@ -518,9 +518,7 @@ Text *BKE_text_load(Main *bmain, const char *file, const char *relpath)
 
 Text *BKE_text_copy(Main *bmain, const Text *ta)
 {
-  Text *ta_copy;
-  BKE_id_copy(bmain, &ta->id, (ID **)&ta_copy);
-  return ta_copy;
+  return (Text *)BKE_id_copy(bmain, &ta->id);
 }
 
 void BKE_text_clear(Text *text) /* called directly from rna */

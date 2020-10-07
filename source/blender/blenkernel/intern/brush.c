@@ -1533,9 +1533,7 @@ struct Brush *BKE_brush_first_search(struct Main *bmain, const eObjectMode ob_mo
 
 Brush *BKE_brush_copy(Main *bmain, const Brush *brush)
 {
-  Brush *brush_copy;
-  BKE_id_copy(bmain, &brush->id, (ID **)&brush_copy);
-  return brush_copy;
+  return (Brush *)BKE_id_copy(bmain, &brush->id);
 }
 
 void BKE_brush_debug_print_state(Brush *br)

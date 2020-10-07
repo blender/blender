@@ -1790,8 +1790,7 @@ void BKE_object_transform_copy(Object *ob_tar, const Object *ob_src)
  */
 Object *BKE_object_copy(Main *bmain, const Object *ob)
 {
-  Object *ob_copy;
-  BKE_id_copy(bmain, &ob->id, (ID **)&ob_copy);
+  Object *ob_copy = (Object *)BKE_id_copy(bmain, &ob->id);
 
   /* We increase object user count when linking to Collections. */
   id_us_min(&ob_copy->id);
@@ -1829,8 +1828,7 @@ Object *BKE_object_duplicate(Main *bmain,
 
   Material ***matarar;
 
-  Object *obn;
-  BKE_id_copy(bmain, &ob->id, (ID **)&obn);
+  Object *obn = (Object *)BKE_id_copy(bmain, &ob->id);
   id_us_min(&obn->id);
   if (is_subprocess) {
     ID_NEW_SET(ob, obn);

@@ -403,9 +403,7 @@ Lattice *BKE_lattice_add(Main *bmain, const char *name)
 
 Lattice *BKE_lattice_copy(Main *bmain, const Lattice *lt)
 {
-  Lattice *lt_copy;
-  BKE_id_copy(bmain, &lt->id, (ID **)&lt_copy);
-  return lt_copy;
+  return (Lattice *)BKE_id_copy(bmain, &lt->id);
 }
 
 bool object_deform_mball(Object *ob, ListBase *dispbase)

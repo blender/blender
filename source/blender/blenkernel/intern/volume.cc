@@ -612,9 +612,7 @@ void *BKE_volume_add(Main *bmain, const char *name)
 
 Volume *BKE_volume_copy(Main *bmain, const Volume *volume)
 {
-  Volume *volume_copy;
-  BKE_id_copy(bmain, &volume->id, (ID **)&volume_copy);
-  return volume_copy;
+  return (Volume *)BKE_id_copy(bmain, &volume->id);
 }
 
 /* Sequence */

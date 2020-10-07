@@ -127,7 +127,5 @@ void *BKE_speaker_add(Main *bmain, const char *name)
 
 Speaker *BKE_speaker_copy(Main *bmain, const Speaker *spk)
 {
-  Speaker *spk_copy;
-  BKE_id_copy(bmain, &spk->id, (ID **)&spk_copy);
-  return spk_copy;
+  return (Speaker *)BKE_id_copy(bmain, &spk->id);
 }

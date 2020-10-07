@@ -189,9 +189,9 @@ void BKE_lib_override_library_free(struct IDOverrideLibrary **override, const bo
 
 static ID *lib_override_library_create_from(Main *bmain, ID *reference_id)
 {
-  ID *local_id;
+  ID *local_id = BKE_id_copy(bmain, reference_id);
 
-  if (!BKE_id_copy(bmain, reference_id, (ID **)&local_id)) {
+  if (local_id == NULL) {
     return NULL;
   }
   id_us_min(local_id);
@@ -1699,8 +1699,7 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
    * Not impossible to do, but would rather see first if extra useless usual user handling
    * is actually a (performances) issue here. */
 
-  ID *tmp_id;
-  BKE_id_copy(bmain, local->override_library->reference, &tmp_id);
+  ID *tmp_id = BKE_id_copy(bmain, local->override_library->reference);
 
   if (tmp_id == NULL) {
     return;
@@ -1868,7 +1867,7 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
    * (and possibly all over Blender code).
    * Not impossible to do, but would rather see first is extra useless usual user handling is
    * actually a (performances) issue here, before doing it. */
-  BKE_id_copy((Main *)override_storage, local, &storage_id);
+  storage_id = BKE_id_copy((Main *)override_storage, local);
 
   if (storage_id != NULL) {
     PointerRNA rnaptr_reference, rnaptr_final, rnaptr_storage;

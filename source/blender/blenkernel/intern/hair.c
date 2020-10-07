@@ -253,9 +253,7 @@ void *BKE_hair_add(Main *bmain, const char *name)
 
 Hair *BKE_hair_copy(Main *bmain, const Hair *hair)
 {
-  Hair *hair_copy;
-  BKE_id_copy(bmain, &hair->id, (ID **)&hair_copy);
-  return hair_copy;
+  return (Hair *)BKE_id_copy(bmain, &hair->id);
 }
 
 BoundBox *BKE_hair_boundbox_get(Object *ob)

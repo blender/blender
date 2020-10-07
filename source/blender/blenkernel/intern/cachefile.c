@@ -256,9 +256,7 @@ void *BKE_cachefile_add(Main *bmain, const char *name)
 
 CacheFile *BKE_cachefile_copy(Main *bmain, const CacheFile *cache_file)
 {
-  CacheFile *cache_file_copy;
-  BKE_id_copy(bmain, &cache_file->id, (ID **)&cache_file_copy);
-  return cache_file_copy;
+  return (CacheFile *)BKE_id_copy(bmain, &cache_file->id);
 }
 
 void BKE_cachefile_reload(Depsgraph *depsgraph, CacheFile *cache_file)

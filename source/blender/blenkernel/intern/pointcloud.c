@@ -232,9 +232,7 @@ void *BKE_pointcloud_add_default(Main *bmain, const char *name)
 
 PointCloud *BKE_pointcloud_copy(Main *bmain, const PointCloud *pointcloud)
 {
-  PointCloud *pointcloud_copy;
-  BKE_id_copy(bmain, &pointcloud->id, (ID **)&pointcloud_copy);
-  return pointcloud_copy;
+  return (PointCloud *)BKE_id_copy(bmain, &pointcloud->id);
 }
 
 BoundBox *BKE_pointcloud_boundbox_get(Object *ob)

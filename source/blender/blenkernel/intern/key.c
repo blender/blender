@@ -298,9 +298,7 @@ Key *BKE_key_add(Main *bmain, ID *id) /* common function */
 
 Key *BKE_key_copy(Main *bmain, const Key *key)
 {
-  Key *key_copy;
-  BKE_id_copy(bmain, &key->id, (ID **)&key_copy);
-  return key_copy;
+  return (Key *)BKE_id_copy(bmain, &key->id);
 }
 
 /* XXX TODO get rid of this! */

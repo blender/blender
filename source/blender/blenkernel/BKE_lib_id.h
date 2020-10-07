@@ -237,7 +237,7 @@ bool id_single_user(struct bContext *C,
                     struct PointerRNA *ptr,
                     struct PropertyRNA *prop);
 bool BKE_id_copy_is_allowed(const struct ID *id);
-bool BKE_id_copy(struct Main *bmain, const struct ID *id, struct ID **newid);
+struct ID *BKE_id_copy(struct Main *bmain, const struct ID *id);
 struct ID *BKE_id_copy_ex(struct Main *bmain,
                           const struct ID *id,
                           struct ID **r_newid,

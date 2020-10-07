@@ -603,9 +603,7 @@ static void copy_image_packedfiles(ListBase *lb_dst, const ListBase *lb_src)
 /* empty image block, of similar type and filename */
 Image *BKE_image_copy(Main *bmain, const Image *ima)
 {
-  Image *ima_copy;
-  BKE_id_copy(bmain, &ima->id, (ID **)&ima_copy);
-  return ima_copy;
+  return (Image *)BKE_id_copy(bmain, &ima->id);
 }
 
 void BKE_image_merge(Main *bmain, Image *dest, Image *source)
