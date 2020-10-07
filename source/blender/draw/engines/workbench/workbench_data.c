@@ -123,6 +123,7 @@ static void workbench_studiolight_data_update(WORKBENCH_PrivateData *wpd, WORKBE
       copy_v3_fl3(light->light_direction, 1.0f, 0.0f, 0.0f);
       copy_v3_fl(light->specular_color, 0.0f);
       copy_v3_fl(light->diffuse_color, 0.0f);
+      light->wrapped = 0.0f;
     }
   }
 
