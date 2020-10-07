@@ -283,6 +283,14 @@ typedef struct SculptGestureContext {
   float true_clip_planes[4][4];
   float clip_planes[4][4];
 
+  /* These store the view origin and normal in world space, which is used in some gestures to
+   * generate geometry aligned from the view directly in world space. */
+  /* World space view origin and normal are not affected by object symmetry when doing symmetry
+   * passes, so there is no separate variables with the true_ prefix to store their original values
+   * without symmetry modifications. */
+  float world_space_view_origin[3];
+  float world_space_view_normal[3];
+
   /* Lasso Gesture. */
   LassoGestureData lasso;
 
@@ -337,11 +345,13 @@ static void sculpt_gesture_context_init_common(bContext *C,
   float view_dir[3] = {0.0f, 0.0f, 1.0f};
   copy_m3_m4(mat, sgcontext->vc.rv3d->viewinv);
   mul_m3_v3(mat, view_dir);
+  normalize_v3_v3(sgcontext->world_space_view_normal, view_dir);
   copy_m3_m4(mat, ob->imat);
   mul_m3_v3(mat, view_dir);
   normalize_v3_v3(sgcontext->true_view_normal, view_dir);
 
   /* View Origin. */
+  copy_v3_v3(sgcontext->world_space_view_origin, sgcontext->vc.rv3d->viewinv[3]);
   copy_v3_v3(sgcontext->true_view_origin, sgcontext->vc.rv3d->viewinv[3]);
 }
 
@@ -893,17 +903,27 @@ static void sculpt_gesture_trim_calculate_depth(SculptGestureContext *sgcontext)
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
 
   SculptSession *ss = sgcontext->ss;
+  ViewContext *vc = &sgcontext->vc;
+
   const int totvert = SCULPT_vertex_count_get(ss);
 
   float view_plane[4];
-  plane_from_point_normal_v3(view_plane, sgcontext->true_view_origin, sgcontext->true_view_normal);
+  const float *view_origin = sgcontext->world_space_view_origin;
+  const float *view_normal = sgcontext->world_space_view_normal;
+
+  plane_from_point_normal_v3(view_plane, view_origin, view_normal);
 
   trim_operation->depth_front = FLT_MAX;
   trim_operation->depth_back = -FLT_MAX;
 
   for (int i = 0; i < totvert; i++) {
     const float *vco = SCULPT_vertex_co_get(ss, i);
-    const float dist = dist_signed_to_plane_v3(vco, view_plane);
+    /* Convert the coordinates to world space to calculate the depth. When generating the trimming
+     * mesh, coordinates are first calculated in world space, then converted to object space to
+     * store them. */
+    float world_space_vco[3];
+    mul_v3_m4v3(world_space_vco, vc->obact->obmat, vco);
+    const float dist = dist_signed_to_plane_v3(world_space_vco, view_plane);
     trim_operation->depth_front = min_ff(dist, trim_operation->depth_front);
     trim_operation->depth_back = max_ff(dist, trim_operation->depth_back);
   }
@@ -927,18 +947,23 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   const float depth_front = trim_operation->depth_front - 0.1f;
   const float depth_back = trim_operation->depth_back + 0.1f;
 
-  float *view_origin = sgcontext->true_view_origin;
-  float *view_normal = sgcontext->true_view_normal;
+  /* Use the view origin and normal in world space. The trimming mesh coordinates are calculated in
+   * world space, aligned to the view, and then converted to object space to store them in the
+   * final trimming mesh which is going to be used in the boolean operation.
+   */
+  const float *view_origin = sgcontext->world_space_view_origin;
+  const float *view_normal = sgcontext->world_space_view_normal;
+
+  const float(*ob_imat)[4] = vc->obact->imat;
 
   /* Write vertices coordinates for the front face. */
-
   float depth_point[3];
   madd_v3_v3v3fl(depth_point, view_origin, view_normal, depth_front);
   for (int i = 0; i < tot_screen_points; i++) {
     float new_point[3];
     ED_view3d_win_to_3d(vc->v3d, region, depth_point, screen_points[i], new_point);
-    copy_v3_v3(trim_operation->mesh->mvert[i].co, new_point);
-    copy_v3_v3(trim_operation->true_mesh_co[i], new_point);
+    mul_v3_m4v3(trim_operation->mesh->mvert[i].co, ob_imat, new_point);
+    mul_v3_m4v3(trim_operation->true_mesh_co[i], ob_imat, new_point);
   }
 
   /* Write vertices coordinates for the back face. */
@@ -946,8 +971,8 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   for (int i = 0; i < tot_screen_points; i++) {
     float new_point[3];
     ED_view3d_win_to_3d(vc->v3d, region, depth_point, screen_points[i], new_point);
-    copy_v3_v3(trim_operation->mesh->mvert[i + tot_screen_points].co, new_point);
-    copy_v3_v3(trim_operation->true_mesh_co[i + tot_screen_points], new_point);
+    mul_v3_m4v3(trim_operation->mesh->mvert[i + tot_screen_points].co, ob_imat, new_point);
+    mul_v3_m4v3(trim_operation->true_mesh_co[i + tot_screen_points], ob_imat, new_point);
   }
 
   /* Get the triangulation for the front/back poly. */
@@ -1055,29 +1080,10 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
 
   BMIter iter;
   int i;
-  const int i_verts_end = trim_mesh->totvert;
   const int i_faces_end = trim_mesh->totpoly;
-
-  float imat[4][4];
-  float omat[4][4];
-
-  invert_m4_m4(imat, object->obmat);
-  mul_m4_m4m4(omat, imat, object->obmat);
-
-  BMVert *eve;
-  i = 0;
-  BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-    mul_m4_v3(omat, eve->co);
-    if (++i == i_verts_end) {
-      break;
-    }
-  }
 
   /* We need face normals because of 'BM_face_split_edgenet'
    * we could calculate on the fly too (before calling split). */
-  float nmat[3][3];
-  copy_m3_m4(nmat, omat);
-  invert_m3(nmat);
 
   const short ob_src_totcol = trim_mesh->totcol;
   short *material_remap = BLI_array_alloca(material_remap, ob_src_totcol ? ob_src_totcol : 1);
@@ -1085,7 +1091,6 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
   BMFace *efa;
   i = 0;
   BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-    mul_transposed_m3_v3(nmat, efa->no);
     normalize_v3(efa->no);
 
     /* Temp tag to test which side split faces are from. */
