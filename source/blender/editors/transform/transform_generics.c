@@ -529,10 +529,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     if (op && ((prop = RNA_struct_find_property(op->ptr, "orient_type")) &&
                RNA_property_is_set(op->ptr, prop))) {
       orient_type_set = RNA_property_enum_get(op->ptr, prop);
-      if (orient_type_set >= V3D_ORIENT_CUSTOM) {
-        if (orient_type_set >= V3D_ORIENT_CUSTOM + BIF_countTransformOrientation(C)) {
-          orient_type_set = V3D_ORIENT_GLOBAL;
-        }
+      if (orient_type_set >= V3D_ORIENT_CUSTOM + BIF_countTransformOrientation(C)) {
+        orient_type_set = V3D_ORIENT_GLOBAL;
       }
 
       /* Change the default orientation to be used when redoing. */
