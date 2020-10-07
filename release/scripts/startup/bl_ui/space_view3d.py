@@ -6955,7 +6955,7 @@ class VIEW3D_MT_gpencil_edit_context_menu(Menu):
         row = layout.row()
 
         if is_point_mode or is_segment_mode:
-            col = row.column()
+            col = row.column(align=True)
 
             col.label(text="Point Context Menu", icon='GP_SELECT_POINTS')
             col.separator()
@@ -7006,7 +7006,7 @@ class VIEW3D_MT_gpencil_edit_context_menu(Menu):
 
         if is_stroke_mode:
 
-            col = row.column()
+            col = row.column(align=True)
             col.label(text="Stroke Context Menu", icon='GP_SELECT_STROKES')
             col.separator()
 
