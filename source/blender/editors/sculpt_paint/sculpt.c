@@ -2784,6 +2784,20 @@ static void calc_brush_local_mat(const Brush *brush, Object *ob, float local_mat
   invert_m4_m4(local_mat, tmat);
 }
 
+#define SCULPT_TILT_SENSITIVITY 0.7f
+void SCULPT_tilt_apply_to_normal(float r_normal[3], StrokeCache *cache, const float tilt_strength)
+{
+  if (!U.experimental.use_sculpt_tools_tilt) {
+    return;
+  }
+  const float rot_max = M_PI_2 * tilt_strength * SCULPT_TILT_SENSITIVITY;
+  mul_v3_mat3_m4v3(r_normal, cache->vc->obact->obmat, r_normal);
+  rotate_v3_v3v3fl(r_normal, r_normal, cache->vc->rv3d->viewinv[0], cache->y_tilt * rot_max);
+  rotate_v3_v3v3fl(r_normal, r_normal, cache->vc->rv3d->viewinv[1], cache->x_tilt * rot_max);
+  mul_v3_mat3_m4v3(r_normal, cache->vc->obact->imat, r_normal);
+  normalize_v3(r_normal);
+}
+
 static void update_brush_local_mat(Sculpt *sd, Object *ob)
 {
   StrokeCache *cache = ob->sculpt->cache;
@@ -3094,6 +3108,7 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
   /* Offset with as much as possible factored in already. */
   mul_v3_v3fl(offset, ss->cache->sculpt_normal_symm, ss->cache->radius);
+  SCULPT_tilt_apply_to_normal(offset, ss->cache, brush->tilt_strength_factor);
   mul_v3_v3(offset, ss->cache->scale);
   mul_v3_fl(offset, bstrength);
 
@@ -3171,6 +3186,7 @@ static void do_draw_sharp_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 
   /* Offset with as much as possible factored in already. */
   mul_v3_v3fl(offset, ss->cache->sculpt_normal_symm, ss->cache->radius);
+  SCULPT_tilt_apply_to_normal(offset, ss->cache, brush->tilt_strength_factor);
   mul_v3_v3(offset, ss->cache->scale);
   mul_v3_fl(offset, bstrength);
 
@@ -4693,6 +4709,8 @@ static void do_flatten_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 
   SCULPT_calc_brush_plane(sd, ob, nodes, totnode, area_no, area_co);
 
+  SCULPT_tilt_apply_to_normal(area_no, ss->cache, brush->tilt_strength_factor);
+
   displace = radius * offset;
 
   mul_v3_v3v3(temp, area_no, ss->cache->scale);
@@ -4977,6 +4995,7 @@ static void do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
   float tmat[4][4];
 
   SCULPT_calc_brush_plane(sd, ob, nodes, totnode, area_no_sp, area_co);
+  SCULPT_tilt_apply_to_normal(area_no_sp, ss->cache, brush->tilt_strength_factor);
 
   if (brush->sculpt_plane != SCULPT_DISP_DIR_AREA || (brush->flag & BRUSH_ORIGINAL_NORMAL)) {
     SCULPT_calc_area_normal(sd, ob, nodes, totnode, area_no);
@@ -5120,6 +5139,8 @@ static void do_fill_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
   SCULPT_calc_brush_plane(sd, ob, nodes, totnode, area_no, area_co);
 
+  SCULPT_tilt_apply_to_normal(area_no, ss->cache, brush->tilt_strength_factor);
+
   displace = radius * offset;
 
   mul_v3_v3v3(temp, area_no, ss->cache->scale);
@@ -5212,6 +5233,8 @@ static void do_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
   float temp[3];
 
   SCULPT_calc_brush_plane(sd, ob, nodes, totnode, area_no, area_co);
+
+  SCULPT_tilt_apply_to_normal(area_no, ss->cache, brush->tilt_strength_factor);
 
   displace = -radius * offset;
 
@@ -6934,6 +6957,9 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
   if (paint_supports_dynamic_size(brush, PAINT_MODE_SCULPT) || cache->first_time) {
     cache->pressure = RNA_float_get(ptr, "pressure");
   }
+
+  cache->x_tilt = RNA_float_get(ptr, "x_tilt");
+  cache->y_tilt = RNA_float_get(ptr, "y_tilt");
 
   /* Truly temporary data that isn't stored in properties. */
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {

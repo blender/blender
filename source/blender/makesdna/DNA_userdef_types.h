@@ -635,7 +635,9 @@ typedef struct UserDef_Experimental {
   char use_sculpt_vertex_colors;
   char use_tools_missing_icons;
   char use_switch_object_operator;
-  char _pad[7];
+  char use_sculpt_tools_tilt;
+  char _pad[6];
+  /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
 #define USER_EXPERIMENTAL_TEST(userdef, member) \

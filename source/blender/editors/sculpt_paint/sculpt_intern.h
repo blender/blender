@@ -799,6 +799,11 @@ float SCULPT_brush_strength_factor(struct SculptSession *ss,
                                    const int vertex_index,
                                    const int thread_id);
 
+/* Tilts a normal by the x and y tilt values using the view axis. */
+void SCULPT_tilt_apply_to_normal(float r_normal[3],
+                                 struct StrokeCache *cache,
+                                 const float tilt_strength);
+
 /* just for vertex paint. */
 bool SCULPT_pbvh_calc_area_normal(const struct Brush *brush,
                                   Object *ob,
@@ -852,6 +857,8 @@ typedef struct StrokeCache {
   float mouse[2];
   float bstrength;
   float normal_weight; /* from brush (with optional override) */
+  float x_tilt;
+  float y_tilt;
 
   float (*prev_colors)[4];
 

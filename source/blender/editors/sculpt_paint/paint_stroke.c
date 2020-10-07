@@ -123,6 +123,10 @@ typedef struct PaintStroke {
   float zoom_2d;
   int pen_flip;
 
+  /* Tilt, as read from the event. */
+  float x_tilt;
+  float y_tilt;
+
   /* line constraint */
   bool constrain_line;
   float constrained_pos[2];
@@ -620,6 +624,8 @@ static void paint_brush_stroke_add_step(bContext *C,
     RNA_float_set_array(&itemptr, "mouse", mouse_out);
     RNA_boolean_set(&itemptr, "pen_flip", stroke->pen_flip);
     RNA_float_set(&itemptr, "pressure", pressure);
+    RNA_float_set(&itemptr, "x_tilt", stroke->x_tilt);
+    RNA_float_set(&itemptr, "y_tilt", stroke->y_tilt);
 
     stroke->update_step(C, stroke, &itemptr);
 
@@ -1382,6 +1388,12 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   paint_stroke_add_sample(p, stroke, event->mval[0], event->mval[1], pressure);
   paint_stroke_sample_average(stroke, &sample_average);
+
+  /* Tilt. */
+  if (WM_event_is_tablet(event)) {
+    stroke->x_tilt = event->tablet.x_tilt;
+    stroke->y_tilt = event->tablet.y_tilt;
+  }
 
 #ifdef WITH_INPUT_NDOF
   /* let NDOF motion pass through to the 3D view so we can paint and rotate simultaneously!

@@ -547,6 +547,10 @@ def brush_settings(layout, context, brush, popover=False):
         # normal_radius_factor
         layout.prop(brush, "normal_radius_factor", slider=True)
 
+        if context.preferences.experimental.use_sculpt_tools_tilt and capabilities.has_tilt:
+            layout.prop(brush, "tilt_strength_factor", slider=True)
+
+
         row = layout.row(align=True)
         row.prop(brush, "hardness", slider=True)
         row.prop(brush, "invert_hardness_pressure", text="")
