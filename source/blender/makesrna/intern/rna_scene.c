@@ -49,8 +49,6 @@
 #include "ED_gpencil.h"
 #include "ED_object.h"
 
-#include "DRW_engine.h"
-
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
