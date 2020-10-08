@@ -1280,7 +1280,7 @@ void drawDial3d(const TransInfo *t)
     float mat_basis[4][4];
     float mat_final[4][4];
     float color[4];
-    float increment;
+    float increment = 0.0f;
     float line_with = GIZMO_AXIS_LINE_WIDTH + 1.0f;
     float scale = UI_DPI_FAC * U.gizmo_size;
 
@@ -1335,10 +1335,7 @@ void drawDial3d(const TransInfo *t)
 
     if (activeSnap(t) && (!transformModeUseSnap(t) ||
                           (t->tsnap.mode & (SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)))) {
-      increment = (t->modifiers & MOD_PRECISION) ? t->snap[2] : t->snap[1];
-    }
-    else {
-      increment = t->snap[0];
+      increment = (t->modifiers & MOD_PRECISION) ? t->snap[1] : t->snap[0];
     }
 
     BLI_assert(axis_idx >= MAN_AXIS_RANGE_ROT_START && axis_idx < MAN_AXIS_RANGE_ROT_END);

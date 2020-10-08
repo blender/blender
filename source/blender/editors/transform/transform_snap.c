@@ -384,7 +384,7 @@ void applyGridAbsolute(TransInfo *t)
     return;
   }
 
-  float grid_size = (t->modifiers & MOD_PRECISION) ? t->snap_spatial[2] : t->snap_spatial[1];
+  float grid_size = (t->modifiers & MOD_PRECISION) ? t->snap_spatial[1] : t->snap_spatial[0];
 
   /* early exit on unusable grid size */
   if (grid_size == 0.0f) {
@@ -1462,7 +1462,7 @@ bool transform_snap_grid(TransInfo *t, float *val)
     return false;
   }
 
-  float grid_dist = (t->modifiers & MOD_PRECISION) ? t->snap[2] : t->snap[1];
+  float grid_dist = (t->modifiers & MOD_PRECISION) ? t->snap[1] : t->snap[0];
 
   /* Early bailing out if no need to snap */
   if (grid_dist == 0.0f) {
@@ -1523,6 +1523,10 @@ static void snap_increment_apply(TransInfo *t,
 
 bool transform_snap_increment(TransInfo *t, float *val)
 {
+  if (!activeSnap(t)) {
+    return false;
+  }
+
   if (!(t->tsnap.mode & SCE_SNAP_MODE_INCREMENT) && !doForceIncrementSnap(t)) {
     return false;
   }
@@ -1533,8 +1537,7 @@ bool transform_snap_increment(TransInfo *t, float *val)
     return false;
   }
 
-  float increment_dist = activeSnap(t) ? (t->modifiers & MOD_PRECISION) ? t->snap[2] : t->snap[1] :
-                                         t->snap[0];
+  float increment_dist = (t->modifiers & MOD_PRECISION) ? t->snap[1] : t->snap[0];
 
   snap_increment_apply(t, t->idx_max, increment_dist, val);
   return true;

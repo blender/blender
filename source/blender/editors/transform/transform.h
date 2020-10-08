@@ -316,9 +316,9 @@ typedef struct TransInfo {
   /** maximum index on the input vector. */
   short idx_max;
   /** Snapping Gears. */
-  float snap[3];
+  float snap[2];
   /** Spatial snapping gears(even when rotating, scaling... etc). */
-  float snap_spatial[3];
+  float snap_spatial[2];
   /** Mouse side of the current frame, 'L', 'R' or 'B' */
   char frame_side;
 

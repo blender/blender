@@ -449,9 +449,9 @@ void initTranslation(TransInfo *t)
   t->num.flag = 0;
   t->num.idx_max = t->idx_max;
 
-  copy_v3_v3(t->snap, t->snap_spatial);
+  copy_v2_v2(t->snap, t->snap_spatial);
 
-  copy_v3_fl(t->num.val_inc, t->snap[1]);
+  copy_v3_fl(t->num.val_inc, t->snap[0]);
   t->num.unit_sys = t->scene->unit.system;
   if (t->spacetype == SPACE_VIEW3D) {
     /* Handling units makes only sense in 3Dview... See T38877. */

@@ -1622,40 +1622,34 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
   }
 }
 
-static void initSnapSpatial(TransInfo *t, float r_snap[3])
+static void initSnapSpatial(TransInfo *t, float r_snap[2])
 {
   if (t->spacetype == SPACE_VIEW3D) {
     RegionView3D *rv3d = t->region->regiondata;
 
     if (rv3d) {
       View3D *v3d = t->area->spacedata.first;
-      r_snap[0] = 0.0f;
-      r_snap[1] = ED_view3d_grid_view_scale(t->scene, v3d, rv3d, NULL) * 1.0f;
-      r_snap[2] = r_snap[1] * 0.1f;
+      r_snap[0] = ED_view3d_grid_view_scale(t->scene, v3d, rv3d, NULL) * 1.0f;
+      r_snap[1] = r_snap[0] * 0.1f;
     }
   }
   else if (t->spacetype == SPACE_IMAGE) {
-    r_snap[0] = 0.0f;
-    r_snap[1] = 0.0625f;
-    r_snap[2] = 0.03125f;
+    r_snap[0] = 0.0625f;
+    r_snap[1] = 0.03125f;
   }
   else if (t->spacetype == SPACE_CLIP) {
-    r_snap[0] = 0.0f;
-    r_snap[1] = 0.125f;
-    r_snap[2] = 0.0625f;
+    r_snap[0] = 0.125f;
+    r_snap[1] = 0.0625f;
   }
   else if (t->spacetype == SPACE_NODE) {
-    r_snap[0] = 0.0f;
-    r_snap[1] = r_snap[2] = ED_node_grid_size();
+    r_snap[0] = r_snap[1] = ED_node_grid_size();
   }
   else if (t->spacetype == SPACE_GRAPH) {
-    r_snap[0] = 0.0f;
-    r_snap[1] = 1.0;
-    r_snap[2] = 0.1f;
+    r_snap[0] = 1.0;
+    r_snap[1] = 0.1f;
   }
   else {
-    r_snap[0] = 0.0f;
-    r_snap[1] = r_snap[2] = 1.0f;
+    r_snap[0] = r_snap[1] = 1.0f;
   }
 }
 
