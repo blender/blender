@@ -50,6 +50,7 @@
 
 /* Own include. */
 #include "transform_convert.h"
+#include "transform_orientations.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Object Mode Custom Data
@@ -183,8 +184,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
   }
 
   /* axismtx has the real orientation */
-  copy_m3_m4(td->axismtx, ob->obmat);
-  normalize_m3(td->axismtx);
+  transform_orientations_create_from_axis(td->axismtx, UNPACK3(ob->obmat));
 
   td->con = ob->constraints.first;
 
