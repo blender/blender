@@ -46,12 +46,10 @@ from _bpy import (
 
 # python modules
 from . import (
+    ops,
     path,
     utils,
 )
-
-# fake operator module
-from .ops import ops_fake_module as ops
 
 
 def main():

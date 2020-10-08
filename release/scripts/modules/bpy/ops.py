@@ -29,81 +29,11 @@ op_as_string = ops_module.as_string
 op_get_rna_type = ops_module.get_rna_type
 op_get_bl_options = ops_module.get_bl_options
 
-
-class BPyOps:
-    """
-    Fake module like class.
-
-     bpy.ops
-    """
-    __slots__ = ()
-
-    def __getattr__(self, module):
-        """
-        gets a bpy.ops submodule
-        """
-        if module.startswith('__'):
-            raise AttributeError(module)
-        return BPyOpsSubMod(module)
-
-    def __dir__(self):
-
-        submodules = set()
-
-        # add this classes functions
-        for id_name in dir(self.__class__):
-            if not id_name.startswith('__'):
-                submodules.add(id_name)
-
-        for id_name in op_dir():
-            id_split = id_name.split('_OT_', 1)
-
-            if len(id_split) == 2:
-                submodules.add(id_split[0].lower())
-            else:
-                submodules.add(id_split[0])
-
-        return list(submodules)
-
-    def __repr__(self):
-        return "<module like class 'bpy.ops'>"
+_ModuleType = type(ops_module)
 
 
-class BPyOpsSubMod:
-    """
-    Utility class to fake submodules.
-
-    eg. bpy.ops.object
-    """
-    __slots__ = ("_module",)
-
-    def __init__(self, module):
-        self._module = module
-
-    def __getattr__(self, func):
-        """
-        gets a bpy.ops.submodule function
-        """
-        if func.startswith('__'):
-            raise AttributeError(func)
-        return BPyOpsSubModOp(self._module, func)
-
-    def __dir__(self):
-
-        functions = set()
-
-        module_upper = self._module.upper()
-
-        for id_name in op_dir():
-            id_split = id_name.split('_OT_', 1)
-            if len(id_split) == 2 and module_upper == id_split[0]:
-                functions.add(id_split[1])
-
-        return list(functions)
-
-    def __repr__(self):
-        return "<module like class 'bpy.ops.%s'>" % self._module
-
+# -----------------------------------------------------------------------------
+# Callable Operator Wrapper
 
 class BPyOpsSubModOp:
     """
@@ -223,4 +153,53 @@ class BPyOpsSubModOp:
                 (self._module, self._func, id(self)))
 
 
-ops_fake_module = BPyOps()
+# -----------------------------------------------------------------------------
+# Sub-Module Access
+
+def _bpy_ops_submodule__getattr__(module, func):
+    # Return a value from `bpy.ops.{module}.{func}`
+    if func.startswith("__"):
+        raise AttributeError(func)
+    return BPyOpsSubModOp(module, func)
+
+
+def _bpy_ops_submodule__dir__(module):
+    functions = set()
+    module_upper = module.upper()
+
+    for id_name in op_dir():
+        id_split = id_name.split("_OT_", 1)
+        if len(id_split) == 2 and module_upper == id_split[0]:
+            functions.add(id_split[1])
+
+    return list(functions)
+
+
+def _bpy_ops_submodule(module):
+    result = _ModuleType("bpy.ops." + module)
+    result.__getattr__ = lambda func: _bpy_ops_submodule__getattr__(module, func)
+    result.__dir__ = lambda: _bpy_ops_submodule__dir__(module)
+    return result
+
+
+# -----------------------------------------------------------------------------
+# Module Access
+
+def __getattr__(module):
+    # Return a value from `bpy.ops.{module}`.
+    if module.startswith("__"):
+        raise AttributeError(module)
+    return _bpy_ops_submodule(module)
+
+
+def __dir__():
+    submodules = set()
+    for id_name in op_dir():
+        id_split = id_name.split("_OT_", 1)
+
+        if len(id_split) == 2:
+            submodules.add(id_split[0].lower())
+        else:
+            submodules.add(id_split[0])
+
+    return list(submodules)
