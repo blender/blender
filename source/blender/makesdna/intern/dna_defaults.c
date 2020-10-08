@@ -87,6 +87,7 @@
 #include "DNA_cachefile_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_cloth_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_hair_types.h"
 #include "DNA_image_types.h"
@@ -113,6 +114,7 @@
 #include "DNA_brush_defaults.h"
 #include "DNA_cachefile_defaults.h"
 #include "DNA_camera_defaults.h"
+#include "DNA_collection_defaults.h"
 #include "DNA_curve_defaults.h"
 #include "DNA_hair_defaults.h"
 #include "DNA_image_defaults.h"
@@ -147,6 +149,9 @@ SDNA_DEFAULT_DECL_STRUCT(CacheFile);
 
 /* DNA_camera_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Camera);
+
+/* DNA_collection_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(Collection);
 
 /* DNA_curve_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Curve);
@@ -305,6 +310,9 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     SDNA_DEFAULT_DECL(Camera),
     SDNA_DEFAULT_DECL_EX(CameraDOFSettings, Camera.dof),
     SDNA_DEFAULT_DECL_EX(CameraStereoSettings, Camera.stereo),
+
+    /* DNA_collection_defaults.h */
+    SDNA_DEFAULT_DECL(Collection),
 
     /* DNA_curve_defaults.h */
     SDNA_DEFAULT_DECL(Curve),
