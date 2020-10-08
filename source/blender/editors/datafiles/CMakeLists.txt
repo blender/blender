@@ -745,10 +745,12 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.sculpt.border_face_set
   ops.sculpt.border_hide
   ops.sculpt.border_mask
+  ops.sculpt.box_trim
   ops.sculpt.cloth_filter
   ops.sculpt.face_set_edit
   ops.sculpt.lasso_face_set
   ops.sculpt.lasso_mask
+  ops.sculpt.lasso_trim
   ops.sculpt.mesh_filter
   ops.sequencer.blade
   ops.transform.bone_envelope
