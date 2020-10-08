@@ -2932,8 +2932,7 @@ static int click_select_channel_dummy(bAnimContext *ac,
                                       const short /* eEditKeyframes_Select or -1 */ selectmode)
 {
   if (ale->adt == NULL) {
-    /* TODO(Sybren): this should return 0, as nothing changed. */
-    return (ND_ANIMCHAN | NA_SELECTED);
+    return 0;
   }
 
   /* select/deselect */
