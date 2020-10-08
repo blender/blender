@@ -281,7 +281,7 @@ void ED_region_draw_cb_draw(const bContext *C, ARegion *region, int type)
   }
   if (has_drawn_something) {
     /* This is needed until we get rid of BGL which can change the states we are tracking. */
-    GPU_bgl_end();
+    GPU_force_state();
   }
 }
 
