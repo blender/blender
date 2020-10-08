@@ -38,6 +38,8 @@
 #include "BLI_utildefines.h"
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
+
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_listBase.h"
@@ -86,6 +88,14 @@ static void copy_bonechildren_custom_handles(Bone *bone_dst, bArmature *arm_dst)
 /* -------------------------------------------------------------------- */
 /** \name Armature Data-block
  * \{ */
+
+static void armature_init_data(ID *id)
+{
+  bArmature *armature = (bArmature *)id;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(armature, id));
+
+  MEMCPY_STRUCT_AFTER(armature, DNA_struct_default_get(bArmature), id);
+}
 
 /**
  * Only copy internal data of Armature ID from source
@@ -308,7 +318,7 @@ IDTypeInfo IDType_ID_AR = {
     .translation_context = BLT_I18NCONTEXT_ID_ARMATURE,
     .flags = 0,
 
-    .init_data = NULL,
+    .init_data = armature_init_data,
     .copy_data = armature_copy_data,
     .free_data = armature_free_data,
     .make_local = NULL,
@@ -332,9 +342,6 @@ bArmature *BKE_armature_add(Main *bmain, const char *name)
   bArmature *arm;
 
   arm = BKE_id_new(bmain, ID_AR, name);
-  arm->deformflag = ARM_DEF_VGROUP | ARM_DEF_ENVELOPE;
-  arm->flag = ARM_COL_CUSTOM; /* custom bone-group colors */
-  arm->layer = 1;
   return arm;
 }
 
