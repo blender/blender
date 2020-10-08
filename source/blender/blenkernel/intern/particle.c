@@ -27,6 +27,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_defaults.h"
+
 #include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_dynamicpaint_types.h"
@@ -81,6 +83,16 @@
 #include "particle_private.h"
 
 static void fluid_free_settings(SPHFluidSettings *fluid);
+
+static void particle_settings_init(ID *id)
+{
+  ParticleSettings *particle_settings = (ParticleSettings *)id;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(particle_settings, id));
+
+  MEMCPY_STRUCT_AFTER(particle_settings, DNA_struct_default_get(ParticleSettings), id);
+
+  particle_settings->effector_weights = BKE_effector_add_weights(NULL);
+}
 
 static void particle_settings_copy_data(Main *UNUSED(bmain),
                                         ID *id_dst,
@@ -204,7 +216,7 @@ IDTypeInfo IDType_ID_PA = {
     .translation_context = BLT_I18NCONTEXT_ID_PARTICLESETTINGS,
     .flags = 0,
 
-    .init_data = NULL,
+    .init_data = particle_settings_init,
     .copy_data = particle_settings_copy_data,
     .free_data = particle_settings_free_data,
     .make_local = NULL,
@@ -3769,98 +3781,11 @@ void object_remove_particle_system(Main *bmain, Scene *UNUSED(scene), Object *ob
   DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
 }
 
-static void default_particle_settings(ParticleSettings *part)
-{
-  part->type = PART_EMITTER;
-  part->distr = PART_DISTR_JIT;
-  part->draw_as = PART_DRAW_REND;
-  part->ren_as = PART_DRAW_HALO;
-  part->bb_uv_split = 1;
-  part->flag = PART_EDISTR | PART_TRAND | PART_HIDE_ADVANCED_HAIR;
-
-  part->sta = 1.0;
-  part->end = 200.0;
-  part->lifetime = 50.0;
-  part->jitfac = 1.0;
-  part->totpart = 1000;
-  part->grid_res = 10;
-  part->timetweak = 1.0;
-  part->courant_target = 0.2;
-
-  part->integrator = PART_INT_MIDPOINT;
-  part->phystype = PART_PHYS_NEWTON;
-  part->hair_step = 5;
-  part->keys_step = 5;
-  part->draw_step = 2;
-  part->ren_step = 3;
-  part->adapt_angle = 5;
-  part->adapt_pix = 3;
-  part->kink_axis = 2;
-  part->kink_amp_clump = 1.f;
-  part->kink_extra_steps = 4;
-  part->clump_noise_size = 1.0f;
-  part->reactevent = PART_EVENT_DEATH;
-  part->disp = 100;
-  part->from = PART_FROM_FACE;
-
-  part->normfac = 1.0f;
-
-  part->mass = 1.0;
-  part->size = 0.05;
-  part->childsize = 1.0;
-
-  part->rotmode = PART_ROT_VEL;
-  part->avemode = PART_AVE_VELOCITY;
-
-  part->child_nbr = 10;
-  part->ren_child_nbr = 100;
-  part->childrad = 0.2f;
-  part->childflat = 0.0f;
-  part->clumppow = 0.0f;
-  part->kink_amp = 0.2f;
-  part->kink_freq = 2.0;
-
-  part->rough1_size = 1.0;
-  part->rough2_size = 1.0;
-  part->rough_end_shape = 1.0;
-
-  part->clength = 1.0f;
-  part->clength_thres = 0.0f;
-
-  part->draw = 0;
-  part->draw_line[0] = 0.5;
-  part->path_start = 0.0f;
-  part->path_end = 1.0f;
-
-  part->bb_size[0] = part->bb_size[1] = 1.0f;
-
-  part->keyed_loops = 1;
-
-  part->color_vec_max = 1.f;
-  part->draw_col = PART_DRAW_COL_MAT;
-
-  if (!part->effector_weights) {
-    part->effector_weights = BKE_effector_add_weights(NULL);
-  }
-
-  part->omat = 1;
-  part->use_modifier_stack = false;
-  part->draw_size = 0.1f;
-
-  part->shape_flag = PART_SHAPE_CLOSE_TIP;
-  part->shape = 0.0f;
-  part->rad_root = 1.0f;
-  part->rad_tip = 0.0f;
-  part->rad_scale = 0.01f;
-}
-
 ParticleSettings *BKE_particlesettings_add(Main *bmain, const char *name)
 {
   ParticleSettings *part;
 
   part = BKE_id_new(bmain, ID_PA, name);
-
-  default_particle_settings(part);
 
   return part;
 }
