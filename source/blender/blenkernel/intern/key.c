@@ -296,36 +296,6 @@ Key *BKE_key_add(Main *bmain, ID *id) /* common function */
   return key;
 }
 
-/* XXX TODO get rid of this! */
-Key *BKE_key_copy_nolib(Key *key)
-{
-  Key *keyn;
-  KeyBlock *kbn, *kb;
-
-  keyn = MEM_dupallocN(key);
-
-  keyn->adt = NULL;
-
-  BLI_duplicatelist(&keyn->block, &key->block);
-
-  kb = key->block.first;
-  kbn = keyn->block.first;
-  while (kbn) {
-
-    if (kbn->data) {
-      kbn->data = MEM_dupallocN(kbn->data);
-    }
-    if (kb == key->refkey) {
-      keyn->refkey = kbn;
-    }
-
-    kbn = kbn->next;
-    kb = kb->next;
-  }
-
-  return keyn;
-}
-
 /* Sort shape keys and Ipo curves after a change.  This assumes that at most
  * one key was moved, which is a valid assumption for the places it's
  * currently being called.

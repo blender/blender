@@ -39,7 +39,6 @@ extern "C" {
 void BKE_key_free(struct Key *key);
 void BKE_key_free_nolib(struct Key *key);
 struct Key *BKE_key_add(struct Main *bmain, struct ID *id);
-struct Key *BKE_key_copy_nolib(struct Key *key);
 void BKE_key_sort(struct Key *key);
 
 void key_curve_position_weights(float t, float data[4], int type);

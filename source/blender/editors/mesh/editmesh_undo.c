@@ -35,6 +35,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_undo_system.h"
@@ -508,7 +509,13 @@ static void *undomesh_from_editmesh(UndoMesh *um, BMEditMesh *em, Key *key)
   }
 #endif
   /* make sure shape keys work */
-  um->me.key = key ? BKE_key_copy_nolib(key) : NULL;
+  if (key != NULL) {
+    um->me.key = (Key *)BKE_id_copy_ex(
+        NULL, &key->id, NULL, LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_NO_ANIMDATA);
+  }
+  else {
+    um->me.key = NULL;
+  }
 
   /* BM_mesh_validate(em->bm); */ /* for troubleshooting */
 
