@@ -94,6 +94,12 @@ class NamedTimeStats {
    * makes sure all accumulating  values are properly updated.
    */
   vector<NamedTimeEntry> entries;
+
+  void clear()
+  {
+    total_time = 0.0;
+    entries.clear();
+  }
 };
 
 class NamedNestedSampleStats {

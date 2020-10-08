@@ -380,20 +380,20 @@ string SceneUpdateStats::full_report()
 
 void SceneUpdateStats::clear()
 {
-  geometry.times.entries.clear();
-  image.times.entries.clear();
-  light.times.entries.clear();
-  object.times.entries.clear();
-  background.times.entries.clear();
-  bake.times.entries.clear();
-  camera.times.entries.clear();
-  film.times.entries.clear();
-  integrator.times.entries.clear();
-  osl.times.entries.clear();
-  particles.times.entries.clear();
-  scene.times.entries.clear();
-  svm.times.entries.clear();
-  tables.times.entries.clear();
+  geometry.times.clear();
+  image.times.clear();
+  light.times.clear();
+  object.times.clear();
+  background.times.clear();
+  bake.times.clear();
+  camera.times.clear();
+  film.times.clear();
+  integrator.times.clear();
+  osl.times.clear();
+  particles.times.clear();
+  scene.times.clear();
+  svm.times.clear();
+  tables.times.clear();
 }
 
 CCL_NAMESPACE_END
