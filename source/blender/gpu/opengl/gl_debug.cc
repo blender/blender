@@ -200,7 +200,7 @@ void check_gl_error(const char *info)
 
 void check_gl_resources(const char *info)
 {
-  if (!(G.debug & G_DEBUG_GPU)) {
+  if (!(G.debug & G_DEBUG_GPU) || GPU_bgl_get()) {
     return;
   }
 
