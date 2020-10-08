@@ -6,9 +6,12 @@
         menu_shadow_width="4"
         icon_alpha="1"
         icon_saturation="0.5"
-        widget_emboss="#00000005"
+        widget_emboss="#00000026"
         editor_outline="#1f1f1f"
         widget_text_cursor="#3399e6"
+        transparent_checker_primary="#333333"
+        transparent_checker_secondary="#262626"
+        transparent_checker_size="8"
         axis_x="#ff3352"
         axis_y="#8bdc00"
         axis_z="#2890ff"
@@ -62,7 +65,7 @@
             outline="#363636"
             inner="#434343ff"
             inner_sel="#5680c2ff"
-            item="#ffffff8f"
+            item="#e6e6e6cc"
             text="#e6e6e6"
             text_sel="#ffffff"
             show_shaded="FALSE"
@@ -74,7 +77,7 @@
         </wcol_toolbar_item>
         <wcol_radio>
           <ThemeWidgetColors
-            outline="#3b3b3b"
+            outline="#434343"
             inner="#3b3b3bff"
             inner_sel="#5680c2e6"
             item="#ffffffff"
@@ -182,7 +185,7 @@
             outline="#3b3b3b"
             inner="#3b3b3bff"
             inner_sel="#767676ff"
-            item="#e6e6e6ff"
+            item="#808080ff"
             text="#d9d9d9"
             text_sel="#ffffff"
             show_shaded="FALSE"
@@ -330,7 +333,7 @@
         </wcol_state>
         <wcol_tab>
           <ThemeWidgetColors
-            outline="#808080"
+            outline="#656565"
             inner="#818181ff"
             inner_sel="#b3b3b3ff"
             item="#28292dff"
@@ -364,6 +367,7 @@
         speaker="#000000"
         vertex="#000000"
         vertex_select="#ff8500"
+        vertex_active="#000000"
         vertex_size="3"
         vertex_bevel="#00a5ff"
         vertex_unreferenced="#000000"
@@ -473,6 +477,7 @@
         preview_range="#a14d0066"
         vertex="#000000"
         vertex_select="#ff8500"
+        vertex_active="#ffffff"
         vertex_size="6"
         vertex_bevel="#000000"
         vertex_unreferenced="#000000"
@@ -534,8 +539,8 @@
     </graph_editor>
     <file_browser>
       <ThemeFileBrowser
-        row_alternate="#ffffff0f"
         selected_file="#5680c2"
+        row_alternate="#ffffff0f"
         >
         <space>
           <ThemeSpaceGeneric
@@ -716,6 +721,7 @@
         grid="#353535ff"
         vertex="#000000"
         vertex_select="#ff8500"
+        vertex_active="#000000"
         vertex_size="3"
         vertex_bevel="#000000"
         vertex_unreferenced="#000000"
