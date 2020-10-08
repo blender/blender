@@ -38,6 +38,8 @@
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
 
+#include "DNA_defaults.h"
+
 #include "DNA_constraint_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_movieclip_types.h"
@@ -85,6 +87,17 @@
 #endif
 
 static void free_buffers(MovieClip *clip);
+
+static void movie_clip_init_data(ID *id)
+{
+  MovieClip *movie_clip = (MovieClip *)id;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(movie_clip, id));
+
+  MEMCPY_STRUCT_AFTER(movie_clip, DNA_struct_default_get(MovieClip), id);
+
+  BKE_tracking_settings_init(&movie_clip->tracking);
+  BKE_color_managed_colorspace_settings_init(&movie_clip->colorspace_settings);
+}
 
 static void movie_clip_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, const int flag)
 {
@@ -335,7 +348,7 @@ IDTypeInfo IDType_ID_MC = {
     .translation_context = BLT_I18NCONTEXT_ID_MOVIECLIP,
     .flags = 0,
 
-    .init_data = NULL,
+    .init_data = movie_clip_init_data,
     .copy_data = movie_clip_copy_data,
     .free_data = movie_clip_free_data,
     .make_local = NULL,
@@ -922,19 +935,6 @@ static MovieClip *movieclip_alloc(Main *bmain, const char *name)
   MovieClip *clip;
 
   clip = BKE_id_new(bmain, ID_MC, name);
-
-  clip->aspx = clip->aspy = 1.0f;
-
-  BKE_tracking_settings_init(&clip->tracking);
-  BKE_color_managed_colorspace_settings_init(&clip->colorspace_settings);
-
-  clip->proxy.build_size_flag = IMB_PROXY_25;
-  clip->proxy.build_tc_flag = IMB_TC_RECORD_RUN | IMB_TC_FREE_RUN |
-                              IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN | IMB_TC_RECORD_RUN_NO_GAPS;
-  clip->proxy.quality = 90;
-
-  clip->start_frame = 1;
-  clip->frame_offset = 0;
 
   return clip;
 }

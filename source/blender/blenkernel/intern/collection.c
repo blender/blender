@@ -89,8 +89,6 @@ static void collection_init_data(ID *id)
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(collection, id));
 
   MEMCPY_STRUCT_AFTER(collection, DNA_struct_default_get(Collection), id);
-
-  collection->color_tag = COLLECTION_COLOR_NONE;
 }
 
 /**
