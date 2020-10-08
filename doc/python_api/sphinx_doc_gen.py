@@ -1672,15 +1672,26 @@ def write_sphinx_conf_py(basepath):
     fw("]\n\n")
 
     fw("html_title = 'Blender Python API'\n")
-    fw("html_theme = 'sphinx_rtd_theme'\n")
-    fw("html_theme_options = {\n")
-    fw("    'canonical_url': 'https://docs.blender.org/api/current/',\n")
-    # fw("    'analytics_id': '',\n")
-    # fw("    'collapse_navigation': True,\n")
-    fw("    'sticky_navigation': False,\n")
-    fw("    'navigation_depth': 1,\n")
-    # fw("    'includehidden': True,\n")
-    # fw("    'titles_only': False\n")
+
+    fw("html_theme = 'default'\n")
+    # The theme 'sphinx_rtd_theme' is no longer distributed with sphinx by default, only use when available.
+    fw(r"""
+try:
+    __import__('sphinx_rtd_theme')
+    html_theme = 'sphinx_rtd_theme'
+except ModuleNotFoundError:
+    pass
+""")
+
+    fw("if html_theme == 'sphinx_rtd_theme':\n")
+    fw("    html_theme_options = {\n")
+    fw("        'canonical_url': 'https://docs.blender.org/api/current/',\n")
+    # fw("        'analytics_id': '',\n")
+    # fw("        'collapse_navigation': True,\n")
+    fw("        'sticky_navigation': False,\n")
+    fw("        'navigation_depth': 1,\n")
+    # fw("        'includehidden': True,\n")
+    # fw("        'titles_only': False\n")
     fw("    }\n\n")
 
     # not helpful since the source is generated, adds to upload size.
