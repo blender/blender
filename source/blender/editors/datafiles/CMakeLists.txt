@@ -742,9 +742,12 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.pose.breakdowner
   ops.pose.push
   ops.pose.relax
+  ops.sculpt.border_face_set
   ops.sculpt.border_hide
   ops.sculpt.border_mask
   ops.sculpt.cloth_filter
+  ops.sculpt.face_set_edit
+  ops.sculpt.lasso_face_set
   ops.sculpt.lasso_mask
   ops.sculpt.mesh_filter
   ops.sequencer.blade
