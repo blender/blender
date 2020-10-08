@@ -246,8 +246,10 @@ def liquid_step_$ID$():\n\
     pushOutofObs(parts=pp_s$ID$, flags=flags_s$ID$, phiObs=phiObs_s$ID$)\n\
     \n\
     # save original states for later (used during mesh / secondary particle creation)\n\
-    phiTmp_s$ID$.copyFrom(phi_s$ID$)\n\
-    velTmp_s$ID$.copyFrom(vel_s$ID$)\n\
+    # but only save the state at the beginning of an adaptive frame\n\
+    if not s$ID$.timePerFrame:\n\
+        phiTmp_s$ID$.copyFrom(phi_s$ID$)\n\
+        velTmp_s$ID$.copyFrom(vel_s$ID$)\n\
     \n\
     mantaMsg('Advecting phi')\n\
     advectSemiLagrange(flags=flags_s$ID$, vel=vel_s$ID$, grid=phi_s$ID$, order=1) # first order is usually enough\n\
