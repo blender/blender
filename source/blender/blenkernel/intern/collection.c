@@ -42,6 +42,8 @@
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 
+#include "DNA_defaults.h"
+
 #include "DNA_ID.h"
 #include "DNA_collection_types.h"
 #include "DNA_layer_types.h"
@@ -80,6 +82,16 @@ static bool collection_find_child_recursive(Collection *parent, Collection *coll
 /* -------------------------------------------------------------------- */
 /** \name Collection Data-Block
  * \{ */
+
+static void collection_init_data(ID *id)
+{
+  Collection *collection = (Collection *)id;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(collection, id));
+
+  MEMCPY_STRUCT_AFTER(collection, DNA_struct_default_get(Collection), id);
+
+  collection->color_tag = COLLECTION_COLOR_NONE;
+}
 
 /**
  * Only copy internal data of Collection ID from source
@@ -168,7 +180,7 @@ IDTypeInfo IDType_ID_GR = {
     .translation_context = BLT_I18NCONTEXT_ID_COLLECTION,
     .flags = IDTYPE_FLAGS_NO_ANIMDATA,
 
-    .init_data = NULL,
+    .init_data = collection_init_data,
     .copy_data = collection_copy_data,
     .free_data = collection_free_data,
     .make_local = NULL,
@@ -204,7 +216,6 @@ static Collection *collection_add(Main *bmain,
 
   /* Create new collection. */
   Collection *collection = BKE_id_new(bmain, ID_GR, name);
-  collection->color_tag = COLLECTION_COLOR_NONE;
 
   /* We increase collection user count when linking to Collections. */
   id_us_min(&collection->id);
