@@ -80,6 +80,8 @@
 #include "BLI_memarena.h"
 #include "BLI_utildefines.h"
 
+#include "IMB_imbuf.h"
+
 #include "DNA_defaults.h"
 
 #include "DNA_armature_types.h"
@@ -100,6 +102,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_movieclip_types.h"
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
@@ -126,6 +129,7 @@
 #include "DNA_mesh_defaults.h"
 #include "DNA_meta_defaults.h"
 #include "DNA_modifier_defaults.h"
+#include "DNA_movieclip_defaults.h"
 #include "DNA_object_defaults.h"
 #include "DNA_pointcloud_defaults.h"
 #include "DNA_scene_defaults.h"
@@ -182,6 +186,9 @@ SDNA_DEFAULT_DECL_STRUCT(Mesh);
 
 /* DNA_meta_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(MetaBall);
+
+/* DNA_movieclip_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(MovieClip);
 
 /* DNA_object_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Object);
@@ -343,6 +350,9 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
 
     /* DNA_meta_defaults.h */
     SDNA_DEFAULT_DECL(MetaBall),
+
+    /* DNA_movieclip_defaults.h */
+    SDNA_DEFAULT_DECL(MovieClip),
 
     /* DNA_object_defaults.h */
     SDNA_DEFAULT_DECL(Object),

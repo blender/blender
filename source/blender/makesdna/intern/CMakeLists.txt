@@ -26,6 +26,7 @@ blender_include_dirs(
   ../../../../intern/atomic
   ../../../../intern/guardedalloc
   ../../blenlib
+  ../../imbuf
   ..
 )
 
