@@ -980,92 +980,110 @@ static int elem_offset(const SDNA *sdna,
   return -1;
 }
 
+/* Each struct member belongs to one of the categories below. */
+typedef enum eStructMemberCategory {
+  STRUCT_MEMBER_CATEGORY_STRUCT,
+  STRUCT_MEMBER_CATEGORY_PRIMITIVE,
+  STRUCT_MEMBER_CATEGORY_POINTER,
+} eStructMemberCategory;
+
+static eStructMemberCategory get_struct_member_category(const SDNA *sdna,
+                                                        const SDNA_StructMember *member)
+{
+  const char *member_name = sdna->names[member->name];
+  if (ispointer(member_name)) {
+    return STRUCT_MEMBER_CATEGORY_POINTER;
+  }
+  const char *member_type_name = sdna->types[member->type];
+  if (DNA_struct_find(sdna, member_type_name)) {
+    return STRUCT_MEMBER_CATEGORY_STRUCT;
+  }
+  return STRUCT_MEMBER_CATEGORY_PRIMITIVE;
+}
+
+static int get_member_size_in_bytes(const SDNA *sdna, const SDNA_StructMember *member)
+{
+  const char *name = sdna->names[member->name];
+  const int array_length = sdna->names_array_len[member->name];
+  if (ispointer(name)) {
+    return sdna->pointer_size * array_length;
+  }
+  const int type_size = sdna->types_size[member->type];
+  return type_size * array_length;
+}
+
 /**
  * Does endian swapping on the fields of a struct value.
  *
- * \param oldsdna: SDNA of Blender that saved file
- * \param oldSDNAnr: Index of struct info within oldsdna
- * \param data: Struct data
+ * \param sdna: SDNA of the struct_nr belongs to
+ * \param struct_nr: Index of struct info within sdna
+ * \param data: Struct data that is to be converted
  */
-void DNA_struct_switch_endian(const SDNA *oldsdna, int oldSDNAnr, char *data)
+void DNA_struct_switch_endian(const SDNA *sdna, int struct_nr, char *data)
 {
-  /* Recursive!
-   * If element is a struct, call recursive.
-   */
-  if (oldSDNAnr == -1) {
+  if (struct_nr == -1) {
     return;
   }
-  const int firststructtypenr = oldsdna->structs[0]->type;
-  const SDNA_Struct *struct_info = oldsdna->structs[oldSDNAnr];
-  char *cur = data;
-  for (int a = 0; a < struct_info->members_len; a++) {
-    const SDNA_StructMember *member = &struct_info->members[a];
-    const char *type = oldsdna->types[member->type];
-    const char *name = oldsdna->names[member->name];
-    const int old_name_array_len = oldsdna->names_array_len[member->name];
 
-    /* DNA_elem_size_nr = including arraysize */
-    const int elen = DNA_elem_size_nr(oldsdna, member->type, member->name);
+  const SDNA_Struct *struct_info = sdna->structs[struct_nr];
 
-    /* test: is type a struct? */
-    if (member->type >= firststructtypenr && !ispointer(name)) {
-      /* struct field type */
-      /* where does the old data start (is there one?) */
+  int offset_in_bytes = 0;
+  for (int member_index = 0; member_index < struct_info->members_len; member_index++) {
+    const SDNA_StructMember *member = &struct_info->members[member_index];
+    const eStructMemberCategory member_category = get_struct_member_category(sdna, member);
+    char *member_data = data + offset_in_bytes;
+    const char *member_type_name = sdna->types[member->type];
+    const int member_array_length = sdna->names_array_len[member->name];
 
-      const int data_offset = elem_offset(oldsdna, type, name, struct_info);
-      if (data_offset != -1) {
-        char *cpo = data + data_offset;
-        unsigned int oldsdna_index_last = UINT_MAX;
-        oldSDNAnr = DNA_struct_find_nr_ex(oldsdna, type, &oldsdna_index_last);
-
-        int mul = old_name_array_len;
-        const int elena = elen / mul;
-
-        while (mul--) {
-          DNA_struct_switch_endian(oldsdna, oldSDNAnr, cpo);
-          cpo += elena;
+    switch (member_category) {
+      case STRUCT_MEMBER_CATEGORY_STRUCT: {
+        const int substruct_size = sdna->types_size[member->type];
+        const int substruct_nr = DNA_struct_find_nr(sdna, member_type_name);
+        BLI_assert(substruct_nr != -1);
+        for (int a = 0; a < member_array_length; a++) {
+          DNA_struct_switch_endian(sdna, substruct_nr, member_data + a * substruct_size);
         }
+        break;
       }
-    }
-    else {
-      /* non-struct field type */
-      if (ispointer(name)) {
+      case STRUCT_MEMBER_CATEGORY_PRIMITIVE: {
+        switch (member->type) {
+          case SDNA_TYPE_SHORT:
+          case SDNA_TYPE_USHORT: {
+            BLI_endian_switch_int16_array((int16_t *)member_data, member_array_length);
+            break;
+          }
+          case SDNA_TYPE_INT:
+          case SDNA_TYPE_FLOAT: {
+            /* Note, intentionally ignore long/ulong, because these could be 4 or 8 bytes.
+             * Fortunately, we only use these types for runtime variables and only once for a
+             * struct type that is no longer used. */
+            BLI_endian_switch_int32_array((int32_t *)member_data, member_array_length);
+            break;
+          }
+          case SDNA_TYPE_INT64:
+          case SDNA_TYPE_UINT64:
+          case SDNA_TYPE_DOUBLE: {
+            BLI_endian_switch_int64_array((int64_t *)member_data, member_array_length);
+            break;
+          }
+          default: {
+            break;
+          }
+        }
+        break;
+      }
+      case STRUCT_MEMBER_CATEGORY_POINTER: {
         /* See readfile.c (#bh4_from_bh8 swap endian argument),
          * this is only done when reducing the size of a pointer from 4 to 8. */
         if (sizeof(void *) < 8) {
-          if (oldsdna->pointer_size == 8) {
-            BLI_endian_switch_int64_array((int64_t *)cur, old_name_array_len);
+          if (sdna->pointer_size == 8) {
+            BLI_endian_switch_uint64_array((uint64_t *)member_data, member_array_length);
           }
         }
-      }
-      else {
-        if (ELEM(member->type, SDNA_TYPE_SHORT, SDNA_TYPE_USHORT)) {
-
-          /* exception: variable called blocktype: derived from ID_  */
-          bool skip = false;
-          if (name[0] == 'b' && name[1] == 'l') {
-            if (STREQ(name, "blocktype")) {
-              skip = true;
-            }
-          }
-
-          if (skip == false) {
-            BLI_endian_switch_int16_array((int16_t *)cur, old_name_array_len);
-          }
-        }
-        else if (ELEM(member->type, SDNA_TYPE_INT, SDNA_TYPE_FLOAT)) {
-          /* note, intentionally ignore long/ulong here these could be 4 or 8 bits,
-           * but turns out we only used for runtime vars and
-           * only once for a struct type that's no longer used. */
-
-          BLI_endian_switch_int32_array((int32_t *)cur, old_name_array_len);
-        }
-        else if (ELEM(member->type, SDNA_TYPE_INT64, SDNA_TYPE_UINT64, SDNA_TYPE_DOUBLE)) {
-          BLI_endian_switch_int64_array((int64_t *)cur, old_name_array_len);
-        }
+        break;
       }
     }
-    cur += elen;
+    offset_in_bytes += get_member_size_in_bytes(sdna, member);
   }
 }
 
@@ -1233,38 +1251,6 @@ void *DNA_struct_reconstruct(const DNA_ReconstructInfo *reconstruct_info,
   reconstruct_structs(
       reconstruct_info, blocks, old_struct_nr, new_struct_nr, old_blocks, new_blocks);
   return new_blocks;
-}
-
-/* Each struct member belongs to one of the categories below. */
-typedef enum eStructMemberCategory {
-  STRUCT_MEMBER_CATEGORY_STRUCT,
-  STRUCT_MEMBER_CATEGORY_PRIMITIVE,
-  STRUCT_MEMBER_CATEGORY_POINTER,
-} eStructMemberCategory;
-
-static eStructMemberCategory get_struct_member_category(const SDNA *sdna,
-                                                        const SDNA_StructMember *member)
-{
-  const char *member_name = sdna->names[member->name];
-  if (ispointer(member_name)) {
-    return STRUCT_MEMBER_CATEGORY_POINTER;
-  }
-  const char *member_type_name = sdna->types[member->type];
-  if (DNA_struct_find(sdna, member_type_name)) {
-    return STRUCT_MEMBER_CATEGORY_STRUCT;
-  }
-  return STRUCT_MEMBER_CATEGORY_PRIMITIVE;
-}
-
-static int get_member_size_in_bytes(const SDNA *sdna, const SDNA_StructMember *member)
-{
-  const char *name = sdna->names[member->name];
-  const int array_length = sdna->names_array_len[member->name];
-  if (ispointer(name)) {
-    return sdna->pointer_size * array_length;
-  }
-  const int type_size = sdna->types_size[member->type];
-  return type_size * array_length;
 }
 
 /** Finds a member in the given struct with the given name. */

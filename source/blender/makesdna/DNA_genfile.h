@@ -103,7 +103,7 @@ void DNA_reconstruct_info_free(struct DNA_ReconstructInfo *reconstruct_info);
 
 int DNA_struct_find_nr_ex(const struct SDNA *sdna, const char *str, unsigned int *index_last);
 int DNA_struct_find_nr(const struct SDNA *sdna, const char *str);
-void DNA_struct_switch_endian(const struct SDNA *oldsdna, int oldSDNAnr, char *data);
+void DNA_struct_switch_endian(const struct SDNA *sdna, int struct_nr, char *data);
 const char *DNA_struct_get_compareflags(const struct SDNA *sdna, const struct SDNA *newsdna);
 void *DNA_struct_reconstruct(const struct DNA_ReconstructInfo *reconstruct_info,
                              int old_struct_nr,
