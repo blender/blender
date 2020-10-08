@@ -50,6 +50,7 @@
 #include "UI_resources.h"
 
 #include "transform.h"
+#include "transform_orientations.h"
 #include "transform_snap.h"
 
 /* Own include. */

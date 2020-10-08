@@ -36,6 +36,7 @@
 
 /* Own include. */
 #include "transform_convert.h"
+#include "transform_orientations.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Curve/Surfaces Transform Creation

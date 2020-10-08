@@ -50,6 +50,7 @@
 
 /* Own include. */
 #include "transform_convert.h"
+#include "transform_orientations.h"
 
 #define USE_FACE_SUBSTITUTE
 

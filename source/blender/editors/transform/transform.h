@@ -692,44 +692,6 @@ void getViewVector(const TransInfo *t, const float coord[3], float vec[3]);
 
 void transform_data_ext_rotate(TransData *td, float mat[3][3], bool use_drot);
 
-/*********************** Transform Orientations ******************************/
-short transform_orientation_matrix_get(struct bContext *C,
-                                       TransInfo *t,
-                                       short orientation,
-                                       const float custom[3][3],
-                                       float r_spacemtx[3][3]);
-const char *transform_orientations_spacename_get(TransInfo *t, const short orient_type);
-void transform_orientations_current_set(struct TransInfo *t, const short orient_index);
-
-/* Those two fill in mat and return non-zero on success */
-bool createSpaceNormal(float mat[3][3], const float normal[3]);
-bool createSpaceNormalTangent(float mat[3][3], const float normal[3], const float tangent[3]);
-
-struct TransformOrientation *addMatrixSpace(struct bContext *C,
-                                            float mat[3][3],
-                                            const char *name,
-                                            const bool overwrite);
-void applyTransformOrientation(const struct TransformOrientation *ts,
-                               float r_mat[3][3],
-                               char r_name[64]);
-
-enum {
-  ORIENTATION_NONE = 0,
-  ORIENTATION_NORMAL = 1,
-  ORIENTATION_VERT = 2,
-  ORIENTATION_EDGE = 3,
-  ORIENTATION_FACE = 4,
-};
-#define ORIENTATION_USE_PLANE(ty) ELEM(ty, ORIENTATION_NORMAL, ORIENTATION_EDGE, ORIENTATION_FACE)
-
-int getTransformOrientation_ex(const struct bContext *C,
-                               struct Object *ob,
-                               struct Object *obedit,
-                               float normal[3],
-                               float plane[3],
-                               const short around);
-int getTransformOrientation(const struct bContext *C, float normal[3], float plane[3]);
-
 void freeCustomNormalArray(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data);
 
 /* TODO. transform_query.c */

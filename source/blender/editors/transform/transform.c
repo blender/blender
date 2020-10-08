@@ -65,6 +65,7 @@
 #include "transform_convert.h"
 #include "transform_draw_cursors.h"
 #include "transform_mode.h"
+#include "transform_orientations.h"
 #include "transform_snap.h"
 
 /* Disabling, since when you type you know what you are doing,

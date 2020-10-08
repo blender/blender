@@ -53,6 +53,7 @@
 #include "ED_armature.h"
 
 #include "transform.h"
+#include "transform_orientations.h"
 
 /* *********************** TransSpace ************************** */
 
