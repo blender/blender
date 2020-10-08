@@ -4956,7 +4956,7 @@ static void ui_draw_popover_back_impl(const uiWidgetColors *wcol,
 
     GPU_blend(GPU_BLEND_ALPHA);
     immBegin(GPU_PRIM_TRIS, 3);
-    immUniformColor4ub(UNPACK3(wcol->outline), 166);
+    immUniformColor4ubv(wcol->outline);
     immVertex2f(pos, cent_x - unit_half, y);
     immVertex2f(pos, cent_x + unit_half, y);
     immVertex2f(pos, cent_x, y + sign * unit_half);
