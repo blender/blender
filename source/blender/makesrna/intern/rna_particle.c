@@ -2944,7 +2944,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "courant_target", PROP_FLOAT, PROP_NONE);
   RNA_def_property_range(prop, 0.0001, 10);
-  RNA_def_property_float_default(prop, 0.1);
   RNA_def_property_ui_text(
       prop,
       "Adaptive Subframe Threshold",
