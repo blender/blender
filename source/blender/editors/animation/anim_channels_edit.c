@@ -2881,74 +2881,77 @@ static int click_select_channel_object(bContext *C,
   Object *ob = base->object;
   AnimData *adt = ob->adt;
 
-  /* set selection status */
-  if (base->flag & BASE_SELECTABLE) {
-    if (selectmode == SELECT_INVERT) {
-      /* swap select */
-      ED_object_base_select(base, BA_INVERT);
-
-      if (adt) {
-        adt->flag ^= ADT_UI_SELECTED;
-      }
-    }
-    else {
-      Base *b;
-
-      /* deselect all */
-      /* TODO: should this deselect all other types of channels too? */
-      for (b = view_layer->object_bases.first; b; b = b->next) {
-        ED_object_base_select(b, BA_DESELECT);
-        if (b->object->adt) {
-          b->object->adt->flag &= ~(ADT_UI_SELECTED | ADT_UI_ACTIVE);
-        }
-      }
-
-      /* select object now */
-      ED_object_base_select(base, BA_SELECT);
-      if (adt) {
-        adt->flag |= ADT_UI_SELECTED;
-      }
-    }
-
-    /* change active object - regardless of whether it is now selected [T37883] */
-    ED_object_base_activate(C, base); /* adds notifier */
-
-    if ((adt) && (adt->flag & ADT_UI_SELECTED)) {
-      adt->flag |= ADT_UI_ACTIVE;
-    }
-
-    /* Ensure we exit editmode on whatever object was active before
-     * to avoid getting stuck there - T48747. */
-    if (ob != CTX_data_edit_object(C)) {
-      ED_object_editmode_exit(C, EM_FREEDATA);
-    }
-    return (ND_ANIMCHAN | NA_SELECTED);
+  if ((base->flag & BASE_SELECTABLE) == 0) {
+    return 0;
   }
-  return 0;
+
+  if (selectmode == SELECT_INVERT) {
+    /* swap select */
+    ED_object_base_select(base, BA_INVERT);
+
+    if (adt) {
+      adt->flag ^= ADT_UI_SELECTED;
+    }
+  }
+  else {
+    Base *b;
+
+    /* deselect all */
+    /* TODO: should this deselect all other types of channels too? */
+    for (b = view_layer->object_bases.first; b; b = b->next) {
+      ED_object_base_select(b, BA_DESELECT);
+      if (b->object->adt) {
+        b->object->adt->flag &= ~(ADT_UI_SELECTED | ADT_UI_ACTIVE);
+      }
+    }
+
+    /* select object now */
+    ED_object_base_select(base, BA_SELECT);
+    if (adt) {
+      adt->flag |= ADT_UI_SELECTED;
+    }
+  }
+
+  /* change active object - regardless of whether it is now selected [T37883] */
+  ED_object_base_activate(C, base); /* adds notifier */
+
+  if ((adt) && (adt->flag & ADT_UI_SELECTED)) {
+    adt->flag |= ADT_UI_ACTIVE;
+  }
+
+  /* Ensure we exit editmode on whatever object was active before
+   * to avoid getting stuck there - T48747. */
+  if (ob != CTX_data_edit_object(C)) {
+    ED_object_editmode_exit(C, EM_FREEDATA);
+  }
+  return (ND_ANIMCHAN | NA_SELECTED);
 }
 
 static int click_select_channel_dummy(bAnimContext *ac,
                                       bAnimListElem *ale,
                                       const short /* eEditKeyframes_Select or -1 */ selectmode)
 {
-  /* sanity checking... */
-  if (ale->adt) {
-    /* select/deselect */
-    if (selectmode == SELECT_INVERT) {
-      /* inverse selection status of this AnimData block only */
-      ale->adt->flag ^= ADT_UI_SELECTED;
-    }
-    else {
-      /* select AnimData block by itself */
-      ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, false, ACHANNEL_SETFLAG_CLEAR);
-      ale->adt->flag |= ADT_UI_SELECTED;
-    }
-
-    /* set active? */
-    if ((ale->adt) && (ale->adt->flag & ADT_UI_SELECTED)) {
-      ale->adt->flag |= ADT_UI_ACTIVE;
-    }
+  if (ale->adt == NULL) {
+    /* TODO(Sybren): this should return 0, as nothing changed. */
+    return (ND_ANIMCHAN | NA_SELECTED);
   }
+
+  /* select/deselect */
+  if (selectmode == SELECT_INVERT) {
+    /* inverse selection status of this AnimData block only */
+    ale->adt->flag ^= ADT_UI_SELECTED;
+  }
+  else {
+    /* select AnimData block by itself */
+    ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, false, ACHANNEL_SETFLAG_CLEAR);
+    ale->adt->flag |= ADT_UI_SELECTED;
+  }
+
+  /* set active? */
+  if (ale->adt->flag & ADT_UI_SELECTED) {
+    ale->adt->flag |= ADT_UI_ACTIVE;
+  }
+
   return (ND_ANIMCHAN | NA_SELECTED);
 }
 
@@ -2958,7 +2961,6 @@ static int click_select_channel_group(bAnimContext *ac,
                                       const int filter)
 {
   bActionGroup *agrp = (bActionGroup *)ale->data;
-
   Object *ob = NULL;
   bPoseChannel *pchan = NULL;
 
