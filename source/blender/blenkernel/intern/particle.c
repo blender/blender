@@ -3858,7 +3858,7 @@ ParticleSettings *BKE_particlesettings_add(Main *bmain, const char *name)
 {
   ParticleSettings *part;
 
-  part = BKE_libblock_alloc(bmain, ID_PA, name, 0);
+  part = BKE_id_new(bmain, ID_PA, name);
 
   default_particle_settings(part);
 
@@ -5009,7 +5009,8 @@ void psys_apply_hair_lattice(Depsgraph *depsgraph, Scene *scene, Object *ob, Par
 }
 
 /* Draw Engine */
-void (*BKE_particle_batch_cache_dirty_tag_cb)(ParticleSystem *psys, eMeshBatchDirtyMode mode) = NULL;
+void (*BKE_particle_batch_cache_dirty_tag_cb)(ParticleSystem *psys,
+                                              eMeshBatchDirtyMode mode) = NULL;
 void (*BKE_particle_batch_cache_free_cb)(ParticleSystem *psys) = NULL;
 
 void BKE_particle_batch_cache_dirty_tag(ParticleSystem *psys, eMeshBatchDirtyMode mode)

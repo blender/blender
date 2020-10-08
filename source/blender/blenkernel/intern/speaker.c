@@ -118,9 +118,7 @@ void *BKE_speaker_add(Main *bmain, const char *name)
 {
   Speaker *spk;
 
-  spk = BKE_libblock_alloc(bmain, ID_SPK, name, 0);
-
-  speaker_init_data(&spk->id);
+  spk = BKE_id_new(bmain, ID_SPK, name);
 
   return spk;
 }

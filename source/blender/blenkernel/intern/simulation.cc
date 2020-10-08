@@ -261,9 +261,7 @@ IDTypeInfo IDType_ID_SIM = {
 
 void *BKE_simulation_add(Main *bmain, const char *name)
 {
-  Simulation *simulation = (Simulation *)BKE_libblock_alloc(bmain, ID_SIM, name, 0);
-
-  simulation_init_data(&simulation->id);
+  Simulation *simulation = (Simulation *)BKE_id_new(bmain, ID_SIM, name);
 
   return simulation;
 }

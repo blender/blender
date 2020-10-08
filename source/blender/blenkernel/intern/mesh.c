@@ -860,9 +860,7 @@ Mesh *BKE_mesh_add(Main *bmain, const char *name)
 {
   Mesh *me;
 
-  me = BKE_libblock_alloc(bmain, ID_ME, name, 0);
-
-  mesh_init_data(&me->id);
+  me = BKE_id_new(bmain, ID_ME, name);
 
   return me;
 }

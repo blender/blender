@@ -206,9 +206,7 @@ static void pointcloud_random(PointCloud *pointcloud)
 
 void *BKE_pointcloud_add(Main *bmain, const char *name)
 {
-  PointCloud *pointcloud = BKE_libblock_alloc(bmain, ID_PT, name, 0);
-
-  pointcloud_init_data(&pointcloud->id);
+  PointCloud *pointcloud = BKE_id_new(bmain, ID_PT, name);
 
   return pointcloud;
 }

@@ -394,9 +394,7 @@ Lattice *BKE_lattice_add(Main *bmain, const char *name)
 {
   Lattice *lt;
 
-  lt = BKE_libblock_alloc(bmain, ID_LT, name, 0);
-
-  lattice_init_data(&lt->id);
+  lt = BKE_id_new(bmain, ID_LT, name);
 
   return lt;
 }

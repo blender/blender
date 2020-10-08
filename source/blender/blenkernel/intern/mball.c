@@ -210,9 +210,7 @@ MetaBall *BKE_mball_add(Main *bmain, const char *name)
 {
   MetaBall *mb;
 
-  mb = BKE_libblock_alloc(bmain, ID_MB, name, 0);
-
-  metaball_init_data(&mb->id);
+  mb = BKE_id_new(bmain, ID_MB, name);
 
   return mb;
 }

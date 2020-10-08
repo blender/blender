@@ -303,7 +303,7 @@ bAction *BKE_action_add(Main *bmain, const char name[])
 {
   bAction *act;
 
-  act = BKE_libblock_alloc(bmain, ID_AC, name, 0);
+  act = BKE_id_new(bmain, ID_AC, name);
 
   return act;
 }

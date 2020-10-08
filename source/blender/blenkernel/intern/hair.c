@@ -244,9 +244,7 @@ static void hair_random(Hair *hair)
 
 void *BKE_hair_add(Main *bmain, const char *name)
 {
-  Hair *hair = BKE_libblock_alloc(bmain, ID_HA, name, 0);
-
-  hair_init_data(&hair->id);
+  Hair *hair = BKE_id_new(bmain, ID_HA, name);
 
   return hair;
 }

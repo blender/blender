@@ -955,11 +955,9 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 {
   Scene *sce;
 
-  sce = BKE_libblock_alloc(bmain, ID_SCE, name, 0);
+  sce = BKE_id_new(bmain, ID_SCE, name);
   id_us_min(&sce->id);
   id_us_ensure_real(&sce->id);
-
-  scene_init_data(&sce->id);
 
   return sce;
 }

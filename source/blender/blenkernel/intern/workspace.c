@@ -205,7 +205,7 @@ static bool UNUSED_FUNCTION(workspaces_is_screen_used)
 
 WorkSpace *BKE_workspace_add(Main *bmain, const char *name)
 {
-  WorkSpace *new_workspace = BKE_libblock_alloc(bmain, ID_WS, name, 0);
+  WorkSpace *new_workspace = BKE_id_new(bmain, ID_WS, name);
   id_us_ensure_real(&new_workspace->id);
   return new_workspace;
 }

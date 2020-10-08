@@ -213,9 +213,7 @@ void *BKE_camera_add(Main *bmain, const char *name)
 {
   Camera *cam;
 
-  cam = BKE_libblock_alloc(bmain, ID_CA, name, 0);
-
-  camera_init_data(&cam->id);
+  cam = BKE_id_new(bmain, ID_CA, name);
 
   return cam;
 }

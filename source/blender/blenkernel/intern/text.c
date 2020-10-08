@@ -287,11 +287,9 @@ Text *BKE_text_add(Main *bmain, const char *name)
 {
   Text *ta;
 
-  ta = BKE_libblock_alloc(bmain, ID_TXT, name, 0);
+  ta = BKE_id_new(bmain, ID_TXT, name);
   /* Texts always have 'real' user (see also read code). */
   id_us_ensure_real(&ta->id);
-
-  text_init_data(&ta->id);
 
   return ta;
 }

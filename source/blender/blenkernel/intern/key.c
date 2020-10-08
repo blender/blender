@@ -249,7 +249,7 @@ Key *BKE_key_add(Main *bmain, ID *id) /* common function */
   Key *key;
   char *el;
 
-  key = BKE_libblock_alloc(bmain, ID_KE, "Key", 0);
+  key = BKE_id_new(bmain, ID_KE, "Key");
 
   key->type = KEY_NORMAL;
   key->from = id;

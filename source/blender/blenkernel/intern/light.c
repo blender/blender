@@ -213,9 +213,7 @@ Light *BKE_light_add(Main *bmain, const char *name)
 {
   Light *la;
 
-  la = BKE_libblock_alloc(bmain, ID_LA, name, 0);
-
-  light_init_data(&la->id);
+  la = BKE_id_new(bmain, ID_LA, name);
 
   return la;
 }

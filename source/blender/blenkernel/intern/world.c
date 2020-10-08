@@ -210,9 +210,7 @@ World *BKE_world_add(Main *bmain, const char *name)
 {
   World *wrld;
 
-  wrld = BKE_libblock_alloc(bmain, ID_WO, name, 0);
-
-  world_init_data(&wrld->id);
+  wrld = BKE_id_new(bmain, ID_WO, name);
 
   return wrld;
 }

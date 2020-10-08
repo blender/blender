@@ -1346,6 +1346,7 @@ Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
     name = get_obdata_defname(type);
   }
 
+  /* We cannot use #BKE_id_new here as we need some custom initialization code. */
   ob = BKE_libblock_alloc(bmain, ID_OB, name, 0);
 
   /* We increase object user count when linking to Collections. */

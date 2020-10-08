@@ -203,7 +203,7 @@ static Collection *collection_add(Main *bmain,
   }
 
   /* Create new collection. */
-  Collection *collection = BKE_libblock_alloc(bmain, ID_GR, name, 0);
+  Collection *collection = BKE_id_new(bmain, ID_GR, name);
   collection->color_tag = COLLECTION_COLOR_NONE;
 
   /* We increase collection user count when linking to Collections. */

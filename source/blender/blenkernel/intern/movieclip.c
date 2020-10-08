@@ -921,7 +921,7 @@ static MovieClip *movieclip_alloc(Main *bmain, const char *name)
 {
   MovieClip *clip;
 
-  clip = BKE_libblock_alloc(bmain, ID_MC, name, 0);
+  clip = BKE_id_new(bmain, ID_MC, name);
 
   clip->aspx = clip->aspy = 1.0f;
 

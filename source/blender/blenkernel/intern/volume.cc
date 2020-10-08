@@ -603,9 +603,7 @@ void BKE_volume_init_grids(Volume *volume)
 
 void *BKE_volume_add(Main *bmain, const char *name)
 {
-  Volume *volume = (Volume *)BKE_libblock_alloc(bmain, ID_VO, name, 0);
-
-  volume_init_data(&volume->id);
+  Volume *volume = (Volume *)BKE_id_new(bmain, ID_VO, name);
 
   return volume;
 }

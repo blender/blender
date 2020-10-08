@@ -418,6 +418,7 @@ Curve *BKE_curve_add(Main *bmain, const char *name, int type)
 {
   Curve *cu;
 
+  /* We cannot use #BKE_id_new here as we need some custom initialization code. */
   cu = BKE_libblock_alloc(bmain, ID_CU, name, 0);
 
   BKE_curve_init(cu, type);

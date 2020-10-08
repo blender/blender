@@ -672,7 +672,7 @@ PaintCurve *BKE_paint_curve_add(Main *bmain, const char *name)
 {
   PaintCurve *pc;
 
-  pc = BKE_libblock_alloc(bmain, ID_PC, name, 0);
+  pc = BKE_id_new(bmain, ID_PC, name);
 
   return pc;
 }

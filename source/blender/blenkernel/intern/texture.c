@@ -383,9 +383,7 @@ Tex *BKE_texture_add(Main *bmain, const char *name)
 {
   Tex *tex;
 
-  tex = BKE_libblock_alloc(bmain, ID_TE, name, 0);
-
-  texture_init_data(&tex->id);
+  tex = BKE_id_new(bmain, ID_TE, name);
 
   return tex;
 }
