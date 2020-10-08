@@ -5554,6 +5554,7 @@ class VIEW3D_PT_object_type_visibility(Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         view = context.space_data
 
