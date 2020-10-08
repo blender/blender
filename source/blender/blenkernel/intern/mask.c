@@ -1053,27 +1053,6 @@ Mask *BKE_mask_new(Main *bmain, const char *name)
   return mask;
 }
 
-/* TODO(sergey): Use generic BKE_libblock_copy_nolib() instead. */
-/* TODO(bastien): Use new super cool & generic BKE_id_copy_ex() instead! */
-Mask *BKE_mask_copy_nolib(Mask *mask)
-{
-  Mask *mask_new;
-
-  mask_new = MEM_dupallocN(mask);
-
-  /*take care here! - we may want to copy anim data  */
-  mask_new->adt = NULL;
-
-  BLI_listbase_clear(&mask_new->masklayers);
-
-  BKE_mask_layer_copy_list(&mask_new->masklayers, &mask->masklayers);
-
-  /* enable fake user by default */
-  id_fake_user_set(&mask->id);
-
-  return mask_new;
-}
-
 void BKE_mask_point_free(MaskSplinePoint *point)
 {
   if (point->uw) {
@@ -1214,12 +1193,6 @@ void BKE_mask_layer_free_list(ListBase *masklayers)
 
     masklay = masklay_next;
   }
-}
-
-/** Free (or release) any data used by this mask (does not free the mask itself). */
-void BKE_mask_free(Mask *mask)
-{
-  mask_free_data(&mask->id);
 }
 
 void BKE_mask_coord_from_frame(float r_co[2], const float co[2], const float frame_size[2])

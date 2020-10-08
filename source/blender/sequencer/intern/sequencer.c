@@ -3387,7 +3387,8 @@ static ImBuf *seq_render_mask(const SeqRenderData *context, Mask *mask, float nr
   Mask *mask_temp;
   MaskRasterHandle *mr_handle;
 
-  mask_temp = BKE_mask_copy_nolib(mask);
+  mask_temp = (Mask *)BKE_id_copy_ex(
+      NULL, &mask->id, NULL, LIB_ID_COPY_LOCALIZE | LIB_ID_COPY_NO_ANIMDATA);
 
   BKE_mask_evaluate(mask_temp, mask->sfra + nr, true);
 
@@ -3404,8 +3405,7 @@ static ImBuf *seq_render_mask(const SeqRenderData *context, Mask *mask, float nr
   BKE_maskrasterize_handle_init(
       mr_handle, mask_temp, context->rectx, context->recty, true, true, true);
 
-  BKE_mask_free(mask_temp);
-  MEM_freeN(mask_temp);
+  BKE_id_free(NULL, &mask_temp->id);
 
   BKE_maskrasterize_buffer(mr_handle, context->rectx, context->recty, maskbuf);
 
