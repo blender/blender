@@ -267,8 +267,8 @@ struct NodeType {
                 ##__VA_ARGS__)
 #define SOCKET_NODE_ARRAY(name, ui_name, node_type, ...) \
   { \
-    static Node *defval = NULL; \
-    assert(SOCKET_SIZEOF(T, name) == sizeof(Node *)); \
+    static array<Node *> defval = {}; \
+    assert(SOCKET_SIZEOF(T, name) == sizeof(array<Node *>)); \
     type->register_input(ustring(#name), \
                          ustring(ui_name), \
                          SocketType::NODE_ARRAY, \
