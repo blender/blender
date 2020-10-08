@@ -1311,7 +1311,7 @@ def pyrna2sphinx(basepath):
 
         fw(title_string(title, "="))
 
-        fw(".. module:: %s\n\n" % struct_module_name)
+        fw(".. currentmodule:: %s\n\n" % struct_module_name)
 
         # docs first?, ok
         write_example_ref("", fw, "%s.%s" % (struct_module_name, struct_id))
@@ -1542,8 +1542,7 @@ def pyrna2sphinx(basepath):
 
             fw(title_string(class_name, "="))
 
-            fw(".. module:: %s\n" % class_module_name)
-            fw("\n")
+            fw(".. currentmodule:: %s\n\n" % class_module_name)
 
             if use_subclasses:
                 subclass_ids = [
@@ -1853,6 +1852,7 @@ def write_rst_types_index(basepath):
         file = open(filepath, "w", encoding="utf-8")
         fw = file.write
         fw(title_string("Types (bpy.types)", "="))
+        fw(".. module:: bpy.types\n\n")
         fw(".. toctree::\n")
         fw("   :glob:\n\n")
         fw("   bpy.types.*\n\n")
@@ -1868,6 +1868,7 @@ def write_rst_ops_index(basepath):
         file = open(filepath, "w", encoding="utf-8")
         fw = file.write
         fw(title_string("Operators (bpy.ops)", "="))
+        fw(".. module:: bpy.ops\n\n")
         write_example_ref("", fw, "bpy.ops")
         fw(".. toctree::\n")
         fw("   :glob:\n\n")
@@ -1909,7 +1910,7 @@ def write_rst_data(basepath):
         file = open(filepath, "w", encoding="utf-8")
         fw = file.write
         fw(title_string("Data Access (bpy.data)", "="))
-        fw(".. module:: bpy\n")
+        fw(".. module:: bpy.data\n")
         fw("\n")
         fw("This module is used for all Blender/Python access.\n")
         fw("\n")
