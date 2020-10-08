@@ -86,7 +86,12 @@ endmacro()
 
 # Cycles library dependencies common to all executables
 
-macro(cycles_link_directories)
+function(cycles_link_directories)
+  if(APPLE)
+    # APPLE plaform uses full paths for linking libraries, and avoids link_directories.
+    return()
+  endif(APPLE)
+
   if(WITH_OPENCOLORIO)
     link_directories(${OPENCOLORIO_LIBPATH})
   endif()
@@ -110,7 +115,7 @@ macro(cycles_link_directories)
     ${OPENEXR_LIBPATH}
     ${OPENJPEG_LIBPATH}
   )
-endmacro()
+endfunction()
 
 macro(cycles_target_link_libraries target)
   if(WITH_CYCLES_LOGGING)

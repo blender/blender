@@ -30,6 +30,20 @@ macro(find_package_wrapper)
 # do nothing, just satisfy the macro
 endmacro()
 
+function(print_found_status
+  lib_name
+  lib_path
+  )
+
+  if(FIRST_RUN)
+    if(lib_path)
+      message(STATUS "Found ${lib_name}: ${lib_path}")
+    else()
+      message(WARNING "Could NOT find ${lib_name}")
+    endif()
+  endif()
+endfunction()
+
 if(NOT DEFINED LIBDIR)
   set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin)
   # Prefer lib directory paths
@@ -42,6 +56,23 @@ if(NOT EXISTS "${LIBDIR}/")
   message(FATAL_ERROR "Mac OSX requires pre-compiled libs at: '${LIBDIR}'")
 endif()
 
+
+# ------------------------------------------------------------------------
+# Find system provided libraries.
+
+# Find system ZLIB, not the pre-compiled one supplied with OpenCollada.
+set(ZLIB_ROOT /usr)
+find_package(ZLIB REQUIRED)
+find_package(BZip2 REQUIRED)
+list(APPEND ZLIB_LIBRARIES ${BZIP2_LIBRARIES})
+
+# -------------------------------------------------------------------------
+# Find precompiled libraries, and avoid system or user-installed ones.
+
+if(EXISTS ${LIBDIR})
+  without_system_libs_begin()
+endif()
+
 if(WITH_OPENAL)
   find_package(OpenAL)
   if(OPENAL_FOUND)
@@ -52,12 +83,7 @@ if(WITH_OPENAL)
 endif()
 
 if(WITH_ALEMBIC)
-  set(ALEMBIC ${LIBDIR}/alembic)
-  set(ALEMBIC_INCLUDE_DIR ${ALEMBIC}/include)
-  set(ALEMBIC_INCLUDE_DIRS ${ALEMBIC_INCLUDE_DIR})
-  set(ALEMBIC_LIBPATH ${ALEMBIC}/lib)
-  set(ALEMBIC_LIBRARIES Alembic)
-  set(ALEMBIC_FOUND ON)
+  find_package(Alembic)
 endif()
 
 if(WITH_USD)
@@ -68,30 +94,38 @@ if(WITH_USD)
 endif()
 
 if(WITH_OPENSUBDIV)
-  set(OPENSUBDIV ${LIBDIR}/opensubdiv)
-  set(OPENSUBDIV_LIBPATH ${OPENSUBDIV}/lib)
-  find_library(OSD_LIB_CPU NAMES osdCPU PATHS ${OPENSUBDIV_LIBPATH})
-  find_library(OSD_LIB_GPU NAMES osdGPU PATHS ${OPENSUBDIV_LIBPATH})
-  set(OPENSUBDIV_INCLUDE_DIR ${OPENSUBDIV}/include)
-  set(OPENSUBDIV_INCLUDE_DIRS ${OPENSUBDIV_INCLUDE_DIR})
-  list(APPEND OPENSUBDIV_LIBRARIES ${OSD_LIB_CPU} ${OSD_LIB_GPU})
+  find_package(OpenSubdiv)
 endif()
 
 if(WITH_JACK)
   find_library(JACK_FRAMEWORK
     NAMES jackmp
   )
-  set(JACK_INCLUDE_DIRS ${JACK_FRAMEWORK}/headers)
   if(NOT JACK_FRAMEWORK)
     set(WITH_JACK OFF)
+  else()
+    set(JACK_INCLUDE_DIRS ${JACK_FRAMEWORK}/headers)
   endif()
 endif()
 
 if(WITH_CODEC_SNDFILE)
-  set(LIBSNDFILE ${LIBDIR}/sndfile)
-  set(LIBSNDFILE_INCLUDE_DIRS ${LIBSNDFILE}/include)
-  set(LIBSNDFILE_LIBRARIES sndfile FLAC ogg vorbis vorbisenc)
-  set(LIBSNDFILE_LIBPATH ${LIBSNDFILE}/lib ${LIBDIR}/ffmpeg/lib)  # TODO, deprecate
+  find_package(SndFile)
+  find_library(_sndfile_FLAC_LIBRARY NAMES flac HINTS ${LIBDIR}/sndfile/lib)
+  find_library(_sndfile_OGG_LIBRARY NAMES ogg HINTS ${LIBDIR}/ffmpeg/lib)
+  find_library(_sndfile_VORBIS_LIBRARY NAMES vorbis HINTS ${LIBDIR}/ffmpeg/lib)
+  find_library(_sndfile_VORBISENC_LIBRARY NAMES vorbisenc HINTS ${LIBDIR}/ffmpeg/lib)
+  list(APPEND LIBSNDFILE_LIBRARIES
+    ${_sndfile_FLAC_LIBRARY}
+    ${_sndfile_OGG_LIBRARY}
+    ${_sndfile_VORBIS_LIBRARY}
+    ${_sndfile_VORBISENC_LIBRARY}
+  )
+
+  print_found_status("SndFile libraries" "${LIBSNDFILE_LIBRARIES}")
+  unset(_sndfile_FLAC_LIBRARY)
+  unset(_sndfile_OGG_LIBRARY)
+  unset(_sndfile_VORBIS_LIBRARY)
+  unset(_sndfile_VORBISENC_LIBRARY)
 endif()
 
 if(WITH_PYTHON)
@@ -130,54 +164,27 @@ if(WITH_PYTHON)
 endif()
 
 if(WITH_FFTW3)
-  set(FFTW3 ${LIBDIR}/fftw3)
-  set(FFTW3_INCLUDE_DIRS ${FFTW3}/include)
-  set(FFTW3_LIBRARIES fftw3)
-  set(FFTW3_LIBPATH ${FFTW3}/lib)
+  find_package(Fftw3)
 endif()
 
-set(ZLIB /usr)
-set(ZLIB_INCLUDE_DIRS "${ZLIB}/include")
-set(ZLIB_LIBRARIES z bz2)
-
-set(PNG_LIBRARIES png ${ZLIB_LIBRARIES})
-set(JPEG_LIBRARIES jpeg)
-
-set(FREETYPE ${LIBDIR}/freetype)
-set(FREETYPE_INCLUDE_DIRS ${FREETYPE}/include ${FREETYPE}/include/freetype2)
-set(FREETYPE_LIBPATH ${FREETYPE}/lib)
-set(FREETYPE_LIBRARY freetype)
+find_package(Freetype REQUIRED)
 
 if(WITH_IMAGE_OPENEXR)
-  set(OPENEXR ${LIBDIR}/openexr)
-  set(OPENEXR_INCLUDE_DIR ${OPENEXR}/include)
-  set(OPENEXR_INCLUDE_DIRS ${OPENEXR_INCLUDE_DIR} ${OPENEXR}/include/OpenEXR)
-  set(OPENEXR_LIBRARIES
-    Iex
-    Half
-    IlmImf
-    Imath
-    IlmThread)
-  set(OPENEXR_LIBPATH ${OPENEXR}/lib)
+  find_package(OpenEXR)
 endif()
 
 if(WITH_CODEC_FFMPEG)
-  set(FFMPEG ${LIBDIR}/ffmpeg)
-  set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include)
-  set(FFMPEG_LIBRARIES
+  set(FFMPEG_FIND_COMPONENTS
     avcodec avdevice avformat avutil
-    mp3lame swscale x264 xvidcore
-    theora theoradec theoraenc
-    vorbis vorbisenc vorbisfile ogg opus
-    vpx swresample)
-  set(FFMPEG_LIBPATH ${FFMPEG}/lib)
+    mp3lame ogg opus swresample swscale
+    theora theoradec theoraenc vorbis vorbisenc
+    vorbisfile vpx x264 xvidcore)
+  find_package(FFmpeg)
 endif()
 
 if(WITH_IMAGE_OPENJPEG OR WITH_CODEC_FFMPEG)
   # use openjpeg from libdir that is linked into ffmpeg
-  set(OPENJPEG ${LIBDIR}/openjpeg)
-  set(OPENJPEG_INCLUDE_DIRS ${OPENJPEG}/include)
-  set(OPENJPEG_LIBRARIES ${OPENJPEG}/lib/libopenjp2.a)
+  find_package(OpenJPEG)
 endif()
 
 find_library(SYSTEMSTUBS_LIBRARY
@@ -207,77 +214,49 @@ if(WITH_PYTHON_MODULE OR WITH_PYTHON_FRAMEWORK)
 endif()
 
 if(WITH_OPENCOLLADA)
-  set(OPENCOLLADA ${LIBDIR}/opencollada)
-
-  set(OPENCOLLADA_INCLUDE_DIRS
-    ${LIBDIR}/opencollada/include/COLLADAStreamWriter
-    ${LIBDIR}/opencollada/include/COLLADABaseUtils
-    ${LIBDIR}/opencollada/include/COLLADAFramework
-    ${LIBDIR}/opencollada/include/COLLADASaxFrameworkLoader
-    ${LIBDIR}/opencollada/include/GeneratedSaxParser
-  )
-
-  set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
-  set(OPENCOLLADA_LIBRARIES
-    OpenCOLLADASaxFrameworkLoader
-    -lOpenCOLLADAFramework
-    -lOpenCOLLADABaseUtils
-    -lOpenCOLLADAStreamWriter
-    -lMathMLSolver
-    -lGeneratedSaxParser
-    -lbuffer -lftoa -lUTF
-  )
-  # PCRE and XML2 are bundled with OpenCollada.
-  set(PCRE_LIBRARIES pcre)
-  set(XML2_LIBRARIES xml2)
+  find_package(OpenCOLLADA)
+  find_library(PCRE_LIBRARIES NAMES pcre HINTS ${LIBDIR}/opencollada/lib)
+  find_library(XML2_LIBRARIES NAMES xml2 HINTS ${LIBDIR}/opencollada/lib)
+  print_found_status("PCRE" "${PCRE_LIBRARIES}")
+  print_found_status("XML2" "${XML2_LIBRARIES}")
 endif()
 
 if(WITH_SDL)
-  set(SDL ${LIBDIR}/sdl)
-  set(SDL_INCLUDE_DIR ${SDL}/include)
-  set(SDL_LIBRARY SDL2)
-  set(SDL_LIBPATH ${SDL}/lib)
+  find_package(SDL2)
+  set(SDL_INCLUDE_DIR ${SDL2_INCLUDE_DIRS})
+  set(SDL_LIBRARY ${SDL2_LIBRARIES})
   set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework ForceFeedback")
 endif()
 
-set(PNG "${LIBDIR}/png")
-set(PNG_INCLUDE_DIRS "${PNG}/include")
-set(PNG_LIBPATH ${PNG}/lib)
+find_package(PNG REQUIRED)
 
-set(JPEG "${LIBDIR}/jpeg")
-set(JPEG_INCLUDE_DIR "${JPEG}/include")
-set(JPEG_LIBPATH ${JPEG}/lib)
+find_package(JPEG REQUIRED)
 
-if(WITH_IMAGE_TIFF)
-  set(TIFF ${LIBDIR}/tiff)
-  set(TIFF_INCLUDE_DIR ${TIFF}/include)
-  set(TIFF_LIBRARY tiff)
-  set(TIFF_LIBPATH ${TIFF}/lib)
-endif()
+find_package(TIFF REQUIRED)
 
 if(WITH_BOOST)
-  set(BOOST ${LIBDIR}/boost)
-  set(BOOST_INCLUDE_DIR ${BOOST}/include)
-  set(BOOST_POSTFIX)
-  set(BOOST_LIBRARIES
-    boost_date_time${BOOST_POSTFIX}
-    boost_filesystem${BOOST_POSTFIX}
-    boost_regex${BOOST_POSTFIX}
-    boost_system${BOOST_POSTFIX}
-    boost_thread${BOOST_POSTFIX}
-    boost_wave${BOOST_POSTFIX}
-  )
+  set(Boost_NO_BOOST_CMAKE ON)
+  set(BOOST_ROOT ${LIBDIR}/boost)
+  set(Boost_NO_SYSTEM_PATHS ON)
+  set(_boost_FIND_COMPONENTS date_time filesystem regex system thread wave)
   if(WITH_INTERNATIONAL)
-    list(APPEND BOOST_LIBRARIES boost_locale${BOOST_POSTFIX})
+    list(APPEND _boost_FIND_COMPONENTS locale)
   endif()
   if(WITH_CYCLES_NETWORK)
-    list(APPEND BOOST_LIBRARIES boost_serialization${BOOST_POSTFIX})
+    list(APPEND _boost_FIND_COMPONENTS serialization)
   endif()
   if(WITH_OPENVDB)
-    list(APPEND BOOST_LIBRARIES boost_iostreams${BOOST_POSTFIX})
+    list(APPEND _boost_FIND_COMPONENTS iostreams)
   endif()
-  set(BOOST_LIBPATH ${BOOST}/lib)
+  find_package(Boost COMPONENTS ${_boost_FIND_COMPONENTS})
+
+  set(BOOST_LIBRARIES ${Boost_LIBRARIES})
+  set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
   set(BOOST_DEFINITIONS)
+
+  mark_as_advanced(Boost_LIBRARIES)
+  mark_as_advanced(Boost_INCLUDE_DIRS)
+  unset(_boost_FIND_COMPONENTS)
 endif()
 
 if(WITH_INTERNATIONAL OR WITH_CODEC_FFMPEG)
@@ -285,10 +264,9 @@ if(WITH_INTERNATIONAL OR WITH_CODEC_FFMPEG)
 endif()
 
 if(WITH_OPENIMAGEIO)
-  set(OPENIMAGEIO ${LIBDIR}/openimageio)
-  set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO}/include)
-  set(OPENIMAGEIO_LIBRARIES
-    ${OPENIMAGEIO}/lib/libOpenImageIO.a
+  find_package(OpenImageIO)
+  list(APPEND OPENIMAGEIO_LIBRARIES
+    ${BOOST_LIBRARIES}
     ${PNG_LIBRARIES}
     ${JPEG_LIBRARIES}
     ${TIFF_LIBRARY}
@@ -296,30 +274,19 @@ if(WITH_OPENIMAGEIO)
     ${OPENJPEG_LIBRARIES}
     ${ZLIB_LIBRARIES}
   )
-  set(OPENIMAGEIO_LIBPATH
-    ${OPENIMAGEIO}/lib
-    ${JPEG_LIBPATH}
-    ${PNG_LIBPATH}
-    ${TIFF_LIBPATH}
-    ${OPENEXR_LIBPATH}
-    ${ZLIB_LIBPATH}
-  )
   set(OPENIMAGEIO_DEFINITIONS "-DOIIO_STATIC_BUILD")
   set(OPENIMAGEIO_IDIFF "${LIBDIR}/openimageio/bin/idiff")
 endif()
 
 if(WITH_OPENCOLORIO)
-  set(OPENCOLORIO ${LIBDIR}/opencolorio)
-  set(OPENCOLORIO_INCLUDE_DIRS ${OPENCOLORIO}/include)
-  set(OPENCOLORIO_LIBRARIES OpenColorIO tinyxml yaml-cpp)
-  set(OPENCOLORIO_LIBPATH ${OPENCOLORIO}/lib)
+  find_package(OpenColorIO)
 endif()
 
 if(WITH_OPENVDB)
-  set(OPENVDB ${LIBDIR}/openvdb)
-  set(OPENVDB_INCLUDE_DIRS ${OPENVDB}/include)
-  set(OPENVDB_LIBRARIES openvdb blosc)
-  set(OPENVDB_LIBPATH ${LIBDIR}/openvdb/lib)
+  find_package(OpenVDB)
+  find_library(BLOSC_LIBRARIES NAMES blosc HINTS ${LIBDIR}/openvdb/lib)
+  print_found_status("Blosc" "${BLOSC_LIBRARIES}")
+  list(APPEND OPENVDB_LIBRARIES ${BLOSC_LIBRARIES})
   set(OPENVDB_DEFINITIONS)
 endif()
 
@@ -329,41 +296,8 @@ if(WITH_NANOVDB)
 endif()
 
 if(WITH_LLVM)
-  set(LLVM_ROOT_DIR ${LIBDIR}/llvm)
-  if(EXISTS "${LLVM_ROOT_DIR}/bin/llvm-config")
-    set(LLVM_CONFIG "${LLVM_ROOT_DIR}/bin/llvm-config")
-  else()
-    set(LLVM_CONFIG llvm-config)
-  endif()
-  execute_process(COMMAND ${LLVM_CONFIG} --version
-      OUTPUT_VARIABLE LLVM_VERSION
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-  execute_process(COMMAND ${LLVM_CONFIG} --prefix
-      OUTPUT_VARIABLE LLVM_ROOT_DIR
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-  execute_process(COMMAND ${LLVM_CONFIG} --includedir
-      OUTPUT_VARIABLE LLVM_INCLUDE_DIRS
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-  execute_process(COMMAND ${LLVM_CONFIG} --libdir
-      OUTPUT_VARIABLE LLVM_LIBPATH
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-  find_library(LLVM_LIBRARY
-          NAMES LLVMAnalysis # first of a whole bunch of libs to get
-          PATHS ${LLVM_LIBPATH})
-
-  if(LLVM_LIBRARY AND LLVM_ROOT_DIR AND LLVM_LIBPATH)
-    if(LLVM_STATIC)
-      # if static LLVM libraries were requested, use llvm-config to generate
-      # the list of what libraries we need, and substitute that in the right
-      # way for LLVM_LIBRARY.
-      execute_process(COMMAND ${LLVM_CONFIG} --libfiles
-          OUTPUT_VARIABLE LLVM_LIBRARY
-          OUTPUT_STRIP_TRAILING_WHITESPACE)
-      string(REPLACE ".a /" ".a;/" LLVM_LIBRARY ${LLVM_LIBRARY})
-    else()
-      set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -lLLVM-3.4")
-    endif()
-  else()
+  find_package(LLVM)
+  if(NOT LLVM_FOUND)
     message(FATAL_ERROR "LLVM not found.")
   endif()
 endif()
@@ -468,6 +402,13 @@ if(WITH_GMP)
     set(WITH_GMP OFF)
   endif()
 endif()
+
+if(EXISTS ${LIBDIR})
+  without_system_libs_end()
+endif()
+
+# ---------------------------------------------------------------------
+# Set compiler and linker flags.
 
 set(EXETYPE MACOSX_BUNDLE)
 
