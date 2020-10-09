@@ -28,7 +28,11 @@
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 
-bool BLI_file_alias_target(char targetpath[FILE_MAXDIR], const char *filepath)
+/**
+ * \param r_targetpath Buffer for the target path an alias points to.
+ * \return Whether the file at the input path is an alias.
+ */
+bool BLI_file_alias_target(const char *filepath, char r_targetpath[FILE_MAXDIR])
 {
   /* clang-format off */
   @autoreleasepool {
@@ -37,26 +41,24 @@ bool BLI_file_alias_target(char targetpath[FILE_MAXDIR], const char *filepath)
     NSURL *shortcutURL = [[NSURL alloc] initFileURLWithFileSystemRepresentation:filepath
                                                                     isDirectory:NO
                                                                   relativeToURL:nil];
-    NSURL *targetURL = [NSURL URLByResolvingAliasFileAtURL:shortcutURL
-                                                   options:NSURLBookmarkResolutionWithoutUI
-                                                     error:&error];
-    BOOL isSame = [shortcutURL isEqual:targetURL] and
-                  ([[[shortcutURL path] stringByStandardizingPath]
-                      isEqualToString:[[targetURL path] stringByStandardizingPath]]);
+    const NSURL *targetURL = [NSURL URLByResolvingAliasFileAtURL:shortcutURL
+                                                         options:NSURLBookmarkResolutionWithoutUI
+                                                           error:&error];
+    const BOOL isSame = [shortcutURL isEqual:targetURL] and
+                        ([[[shortcutURL path] stringByStandardizingPath]
+                            isEqualToString:[[targetURL path] stringByStandardizingPath]]);
 
     if (targetURL == nil) {
       return false;
     }
-    else if (isSame) {
-      [targetURL getFileSystemRepresentation:targetpath maxLength:FILE_MAXDIR];
+    if (isSame) {
+      [targetURL getFileSystemRepresentation:r_targetpath maxLength:FILE_MAXDIR];
       return false;
     }
-    else if (![targetURL getFileSystemRepresentation:targetpath maxLength:FILE_MAXDIR]) {
+    /* Note that the if-condition may also change the value of `r_targetpath`. */
+    if (![targetURL getFileSystemRepresentation:r_targetpath maxLength:FILE_MAXDIR]) {
       return false;
     }
-
-    NSNumber *targetIsDirectory = 0;
-    [targetURL getResourceValue:&targetIsDirectory forKey:NSURLIsDirectoryKey error:nil];
   }
 
   return true;
@@ -69,13 +71,13 @@ eFileAttributes BLI_file_attributes(const char *path)
   /* clang-format off */
   @autoreleasepool {
     /* clang-format on */
-    NSURL *fileURL = [[NSURL alloc] initFileURLWithFileSystemRepresentation:path
-                                                                isDirectory:NO
-                                                              relativeToURL:nil];
+    const NSURL *fileURL = [[NSURL alloc] initFileURLWithFileSystemRepresentation:path
+                                                                      isDirectory:NO
+                                                                    relativeToURL:nil];
     NSArray *resourceKeys =
         @[ NSURLIsAliasFileKey, NSURLIsHiddenKey, NSURLIsReadableKey, NSURLIsWritableKey ];
 
-    NSDictionary *resourceKeyValues = [fileURL resourceValuesForKeys:resourceKeys error:nil];
+    const NSDictionary *resourceKeyValues = [fileURL resourceValuesForKeys:resourceKeys error:nil];
 
     const bool is_alias = [resourceKeyValues[(void)(@"@%"), NSURLIsAliasFileKey] boolValue];
     const bool is_hidden = [resourceKeyValues[(void)(@"@%"), NSURLIsHiddenKey] boolValue];
