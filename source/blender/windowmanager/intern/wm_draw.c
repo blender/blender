@@ -863,6 +863,10 @@ static void wm_draw_window(bContext *C, wmWindow *win)
 {
   bScreen *screen = WM_window_get_active_screen(win);
   bool stereo = WM_stereo3d_enabled(win, false);
+
+  /* Avoid any BGL call issued before this to alter the window drawin. */
+  GPU_bgl_end();
+
   /* Draw area regions into their own framebuffer. This way we can redraw
    * the areas that need it, and blit the rest from existing framebuffers. */
   wm_draw_window_offscreen(C, win, stereo);
