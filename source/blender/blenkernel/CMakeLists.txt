@@ -175,6 +175,7 @@ set(SRC
   intern/mesh_runtime.c
   intern/mesh_tangent.c
   intern/mesh_validate.c
+  intern/mesh_validate.cc
   intern/mesh_wrapper.c
   intern/modifier.c
   intern/movieclip.c
@@ -688,6 +689,18 @@ endif()
 
 if(WITH_XR_OPENXR)
   add_definitions(-DWITH_XR_OPENXR)
+endif()
+
+if(WITH_TBB)
+  add_definitions(-DWITH_TBB)
+
+  list(APPEND INC_SYS
+    ${TBB_INCLUDE_DIRS}
+  )
+
+  list(APPEND LIB
+    ${TBB_LIBRARIES}
+  )
 endif()
 
 # # Warnings as errors, this is too strict!
