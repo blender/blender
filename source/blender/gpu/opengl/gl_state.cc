@@ -73,13 +73,17 @@ GLStateManager::GLStateManager(void) : StateManager()
 
 void GLStateManager::apply_state(void)
 {
-  this->set_state(this->state);
-  this->set_mutable_state(this->mutable_state);
-  this->texture_bind_apply();
-  this->image_bind_apply();
+  if (!this->use_bgl) {
+    this->set_state(this->state);
+    this->set_mutable_state(this->mutable_state);
+    this->texture_bind_apply();
+    this->image_bind_apply();
+  }
+  /* This is needed by gpu_py_offscreen. */
   active_fb->apply_state();
 };
 
+/* Will set all the states regardless of the current ones. */
 void GLStateManager::force_state(void)
 {
   /* Little exception for clip distances since they need to keep the old count correct. */

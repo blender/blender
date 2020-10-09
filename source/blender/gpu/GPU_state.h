@@ -161,7 +161,10 @@ float GPU_line_width_get(void);
 void GPU_flush(void);
 void GPU_finish(void);
 void GPU_apply_state(void);
-void GPU_force_state(void);
+
+void GPU_bgl_start(void);
+void GPU_bgl_end(void);
+bool GPU_bgl_get(void);
 
 void GPU_memory_barrier(eGPUBarrier barrier);
 
