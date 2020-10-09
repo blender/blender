@@ -240,10 +240,10 @@ static PyTypeObject bmesh_op_Type = {
     NULL,
 };
 
-/* bmesh fake module 'bmesh.ops'
- * ***************************** */
+/* bmesh module 'bmesh.ops'
+ * ************************ */
 
-static PyObject *bpy_bmesh_ops_fakemod_getattro(PyObject *UNUSED(self), PyObject *pyname)
+static PyObject *bpy_bmesh_ops_module_getattro(PyObject *UNUSED(self), PyObject *pyname)
 {
   const char *opname = _PyUnicode_AsString(pyname);
 
@@ -255,7 +255,7 @@ static PyObject *bpy_bmesh_ops_fakemod_getattro(PyObject *UNUSED(self), PyObject
   return NULL;
 }
 
-static PyObject *bpy_bmesh_ops_fakemod_dir(PyObject *UNUSED(self))
+static PyObject *bpy_bmesh_ops_module_dir(PyObject *UNUSED(self))
 {
   const uint tot = bmo_opdefines_total;
   uint i;
@@ -270,107 +270,32 @@ static PyObject *bpy_bmesh_ops_fakemod_dir(PyObject *UNUSED(self))
   return ret;
 }
 
-static struct PyMethodDef bpy_bmesh_ops_fakemod_methods[] = {
-    {"__dir__", (PyCFunction)bpy_bmesh_ops_fakemod_dir, METH_NOARGS, NULL},
+static struct PyMethodDef BPy_BM_ops_methods[] = {
+    {"__getattr__", (PyCFunction)bpy_bmesh_ops_module_getattro, METH_O, NULL},
+    {"__dir__", (PyCFunction)bpy_bmesh_ops_module_dir, METH_NOARGS, NULL},
     {NULL, NULL, 0, NULL},
 };
 
-static PyTypeObject bmesh_ops_fakemod_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0) "BMeshOpsModule", /* tp_name */
-    0,                                               /* tp_basicsize */
-    0,                                               /* tp_itemsize */
-    /* methods */
-    NULL,            /* tp_dealloc */
-    (printfunc)NULL, /* printfunc tp_print; */
-    NULL,            /* getattrfunc tp_getattr; */
-    NULL,            /* setattrfunc tp_setattr; */
-    NULL,
-    /* tp_compare */ /* DEPRECATED in python 3.0! */
-    NULL,            /* tp_repr */
-
-    /* Method suites for standard classes */
-
-    NULL, /* PyNumberMethods *tp_as_number; */
-    NULL, /* PySequenceMethods *tp_as_sequence; */
-    NULL, /* PyMappingMethods *tp_as_mapping; */
-
-    /* More standard operations (here for binary compatibility) */
-
-    NULL, /* hashfunc tp_hash; */
-    NULL, /* ternaryfunc tp_call; */
-    NULL, /* reprfunc tp_str; */
-
-    /* will only use these if this is a subtype of a py class */
-    bpy_bmesh_ops_fakemod_getattro, /* getattrofunc tp_getattro; */
-    NULL,                           /* setattrofunc tp_setattro; */
-
-    /* Functions to access object as input/output buffer */
-    NULL, /* PyBufferProcs *tp_as_buffer; */
-
-    /*** Flags to define presence of optional/expanded features ***/
-    Py_TPFLAGS_DEFAULT, /* long tp_flags; */
-
-    NULL, /*  char *tp_doc;  Documentation string */
-    /*** Assigned meaning in release 2.0 ***/
-    /* call function for all accessible objects */
-    NULL, /* traverseproc tp_traverse; */
-
-    /* delete references to contained objects */
-    NULL, /* inquiry tp_clear; */
-
-    /***  Assigned meaning in release 2.1 ***/
-    /*** rich comparisons (subclassed) ***/
-    NULL, /* richcmpfunc tp_richcompare; */
-
-    /***  weak reference enabler ***/
-    0,
-    /*** Added in release 2.2 ***/
-    /*   Iterators */
-    NULL, /* getiterfunc tp_iter; */
-    NULL, /* iternextfunc tp_iternext; */
-
-    /*** Attribute descriptor and subclassing stuff ***/
-    bpy_bmesh_ops_fakemod_methods, /* struct PyMethodDef *tp_methods; */
-    NULL,                          /* struct PyMemberDef *tp_members; */
-    NULL,                          /* struct PyGetSetDef *tp_getset; */
-    NULL,                          /* struct _typeobject *tp_base; */
-    NULL,                          /* PyObject *tp_dict; */
-    NULL,                          /* descrgetfunc tp_descr_get; */
-    NULL,                          /* descrsetfunc tp_descr_set; */
-    0,                             /* long tp_dictoffset; */
-    NULL,                          /* initproc tp_init; */
-    NULL,                          /* allocfunc tp_alloc; */
-    NULL,                          /* newfunc tp_new; */
-    /*  Low-level free-memory routine */
-    NULL, /* freefunc tp_free;  */
-    /* For PyObject_IS_GC */
-    NULL, /* inquiry tp_is_gc;  */
-    NULL, /* PyObject *tp_bases; */
-    /* method resolution order */
-    NULL, /* PyObject *tp_mro;  */
-    NULL, /* PyObject *tp_cache; */
-    NULL, /* PyObject *tp_subclasses; */
-    NULL, /* PyObject *tp_weaklist; */
-    NULL,
+PyDoc_STRVAR(BPy_BM_ops_doc, "Access to BMesh operators");
+static struct PyModuleDef BPy_BM_ops_module_def = {
+    PyModuleDef_HEAD_INIT,
+    "bmesh.ops",        /* m_name */
+    BPy_BM_ops_doc,     /* m_doc */
+    0,                  /* m_size */
+    BPy_BM_ops_methods, /* m_methods */
+    NULL,               /* m_reload */
+    NULL,               /* m_traverse */
+    NULL,               /* m_clear */
+    NULL,               /* m_free */
 };
 
 PyObject *BPyInit_bmesh_ops(void)
 {
-  PyObject *submodule;
-
-  if (PyType_Ready(&bmesh_ops_fakemod_Type) < 0) {
-    return NULL;
-  }
+  PyObject *submodule = PyModule_Create(&BPy_BM_ops_module_def);
 
   if (PyType_Ready(&bmesh_op_Type) < 0) {
     return NULL;
   }
-
-  submodule = PyObject_New(PyObject, &bmesh_ops_fakemod_Type);
-
-  /* prevent further creation of instances */
-  bmesh_ops_fakemod_Type.tp_init = NULL;
-  bmesh_ops_fakemod_Type.tp_new = NULL;
 
   return submodule;
 }
