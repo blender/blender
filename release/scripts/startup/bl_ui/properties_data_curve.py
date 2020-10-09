@@ -230,8 +230,8 @@ class DATA_PT_geometry_curve_start_end(CurveButtonsPanelCurve, Panel):
         col = layout.column()
 
         col.active = (
-            ((curve.bevel_depth > 0.0) or (curve.extrude > 0.0)) and
-            (curve.bevel_mode != 'OBJECT')
+            ((curve.bevel_depth > 0.0) or (curve.extrude > 0.0)) or
+            ((curve.bevel_mode == 'OBJECT') and curve.bevel_object is not None)
         )
         sub = col.column(align=True)
         sub.prop(curve, "bevel_factor_start", text="Factor Start")
