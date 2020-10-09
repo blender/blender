@@ -3113,16 +3113,8 @@ static Array<bool> find_dissolve_verts(IMesh &imesh_out, int *r_count_dissolve)
       const std::pair<const Vert *, const Vert *> &nbrs = neighbors[v_out];
       if (nbrs.first != nullptr) {
         BLI_assert(nbrs.second != nullptr);
-        const mpq3 &co1 = nbrs.first->co_exact;
-        const mpq3 &co2 = nbrs.second->co_exact;
-        const mpq3 &co = imesh_out.vert(v_out)->co_exact;
-        mpq3 dir1 = co - co1;
-        mpq3 dir2 = co2 - co;
-        mpq3 cross = mpq3::cross(dir1, dir2);
-        if (cross[0] == 0 && cross[1] == 0 && cross[2] == 0) {
-          dissolve[v_out] = true;
-          ++count;
-        }
+        dissolve[v_out] = true;
+        ++count;
       }
     }
   }
