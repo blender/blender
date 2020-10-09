@@ -5583,10 +5583,10 @@ void BKE_curve_eval_geometry(Depsgraph *depsgraph, Curve *curve)
 }
 
 /* Draw Engine */
-void (*BKE_curve_batch_cache_dirty_tag_cb)(Curve *cu, eMeshBatchDirtyMode mode) = NULL;
+void (*BKE_curve_batch_cache_dirty_tag_cb)(Curve *cu, int mode) = NULL;
 void (*BKE_curve_batch_cache_free_cb)(Curve *cu) = NULL;
 
-void BKE_curve_batch_cache_dirty_tag(Curve *cu, eMeshBatchDirtyMode mode)
+void BKE_curve_batch_cache_dirty_tag(Curve *cu, int mode)
 {
   if (cu->batch_cache) {
     BKE_curve_batch_cache_dirty_tag_cb(cu, mode);

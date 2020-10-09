@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include "BKE_mesh_types.h"
-
 /** \file
  * \ingroup bke
  * \brief Volume datablock.
@@ -66,11 +64,10 @@ enum {
   BKE_VOLUME_BATCH_DIRTY_ALL = 0,
 };
 
-void BKE_volume_batch_cache_dirty_tag(struct Volume *volume, eMeshBatchDirtyMode mode);
+void BKE_volume_batch_cache_dirty_tag(struct Volume *volume, int mode);
 void BKE_volume_batch_cache_free(struct Volume *volume);
 
-extern void (*BKE_volume_batch_cache_dirty_tag_cb)(struct Volume *volume,
-                                                   eMeshBatchDirtyMode mode);
+extern void (*BKE_volume_batch_cache_dirty_tag_cb)(struct Volume *volume, int mode);
 extern void (*BKE_volume_batch_cache_free_cb)(struct Volume *volume);
 
 /* Grids

@@ -106,7 +106,7 @@ static PointCloudBatchCache *pointcloud_batch_cache_get(PointCloud *pointcloud)
   return pointcloud->batch_cache;
 }
 
-void DRW_pointcloud_batch_cache_dirty_tag(PointCloud *pointcloud, eMeshBatchDirtyMode mode)
+void DRW_pointcloud_batch_cache_dirty_tag(PointCloud *pointcloud, int mode)
 {
   PointCloudBatchCache *cache = pointcloud->batch_cache;
   if (cache == NULL) {

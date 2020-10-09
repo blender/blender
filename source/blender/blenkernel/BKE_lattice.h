@@ -22,7 +22,6 @@
 /** \file
  * \ingroup bke
  */
-#include "BKE_mesh_types.h"
 
 #include "BLI_compiler_attrs.h"
 
@@ -92,10 +91,10 @@ enum {
   BKE_LATTICE_BATCH_DIRTY_ALL = 0,
   BKE_LATTICE_BATCH_DIRTY_SELECT,
 };
-void BKE_lattice_batch_cache_dirty_tag(struct Lattice *lt, eMeshBatchDirtyMode mode);
+void BKE_lattice_batch_cache_dirty_tag(struct Lattice *lt, int mode);
 void BKE_lattice_batch_cache_free(struct Lattice *lt);
 
-extern void (*BKE_lattice_batch_cache_dirty_tag_cb)(struct Lattice *lt, eMeshBatchDirtyMode mode);
+extern void (*BKE_lattice_batch_cache_dirty_tag_cb)(struct Lattice *lt, int mode);
 extern void (*BKE_lattice_batch_cache_free_cb)(struct Lattice *lt);
 
 /* -------------------------------------------------------------------- */

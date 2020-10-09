@@ -90,7 +90,7 @@ static HairBatchCache *hair_batch_cache_get(Hair *hair)
   return hair->batch_cache;
 }
 
-void DRW_hair_batch_cache_dirty_tag(Hair *hair, eMeshBatchDirtyMode mode)
+void DRW_hair_batch_cache_dirty_tag(Hair *hair, int mode)
 {
   HairBatchCache *cache = hair->batch_cache;
   if (cache == NULL) {

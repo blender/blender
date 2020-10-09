@@ -618,7 +618,7 @@ static void mesh_batch_cache_discard_uvedit_select(MeshBatchCache *cache)
   cache->batch_ready &= ~MBC_EDITUV;
 }
 
-void DRW_mesh_batch_cache_dirty_tag(Mesh *me, eMeshBatchDirtyMode mode)
+void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
 {
   MeshBatchCache *cache = me->runtime.batch_cache;
   if (cache == NULL) {

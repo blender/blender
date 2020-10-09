@@ -41,40 +41,38 @@ struct PointCloud;
 struct Volume;
 struct bGPdata;
 
-#include "BKE_mesh_types.h"
-
 /* Expose via BKE callbacks */
-void DRW_mball_batch_cache_dirty_tag(struct MetaBall *mb, eMeshBatchDirtyMode mode);
+void DRW_mball_batch_cache_dirty_tag(struct MetaBall *mb, int mode);
 void DRW_mball_batch_cache_validate(struct MetaBall *mb);
 void DRW_mball_batch_cache_free(struct MetaBall *mb);
 
-void DRW_curve_batch_cache_dirty_tag(struct Curve *cu, eMeshBatchDirtyMode mode);
+void DRW_curve_batch_cache_dirty_tag(struct Curve *cu, int mode);
 void DRW_curve_batch_cache_validate(struct Curve *cu);
 void DRW_curve_batch_cache_free(struct Curve *cu);
 
-void DRW_mesh_batch_cache_dirty_tag(struct Mesh *me, eMeshBatchDirtyMode mode);
+void DRW_mesh_batch_cache_dirty_tag(struct Mesh *me, int mode);
 void DRW_mesh_batch_cache_validate(struct Mesh *me);
 void DRW_mesh_batch_cache_free(struct Mesh *me);
 
-void DRW_lattice_batch_cache_dirty_tag(struct Lattice *lt, eMeshBatchDirtyMode mode);
+void DRW_lattice_batch_cache_dirty_tag(struct Lattice *lt, int mode);
 void DRW_lattice_batch_cache_validate(struct Lattice *lt);
 void DRW_lattice_batch_cache_free(struct Lattice *lt);
 
-void DRW_particle_batch_cache_dirty_tag(struct ParticleSystem *psys, eMeshBatchDirtyMode mode);
+void DRW_particle_batch_cache_dirty_tag(struct ParticleSystem *psys, int mode);
 void DRW_particle_batch_cache_free(struct ParticleSystem *psys);
 
 void DRW_gpencil_batch_cache_dirty_tag(struct bGPdata *gpd);
 void DRW_gpencil_batch_cache_free(struct bGPdata *gpd);
 
-void DRW_hair_batch_cache_dirty_tag(struct Hair *hair, eMeshBatchDirtyMode mode);
+void DRW_hair_batch_cache_dirty_tag(struct Hair *hair, int mode);
 void DRW_hair_batch_cache_validate(struct Hair *hair);
 void DRW_hair_batch_cache_free(struct Hair *hair);
 
-void DRW_pointcloud_batch_cache_dirty_tag(struct PointCloud *pointcloud, eMeshBatchDirtyMode mode);
+void DRW_pointcloud_batch_cache_dirty_tag(struct PointCloud *pointcloud, int mode);
 void DRW_pointcloud_batch_cache_validate(struct PointCloud *pointcloud);
 void DRW_pointcloud_batch_cache_free(struct PointCloud *pointcloud);
 
-void DRW_volume_batch_cache_dirty_tag(struct Volume *volume, eMeshBatchDirtyMode mode);
+void DRW_volume_batch_cache_dirty_tag(struct Volume *volume, int mode);
 void DRW_volume_batch_cache_validate(struct Volume *volume);
 void DRW_volume_batch_cache_free(struct Volume *volume);
 

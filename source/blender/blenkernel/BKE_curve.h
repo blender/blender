@@ -22,8 +22,6 @@
  * \ingroup bke
  */
 
-#include "BKE_mesh_types.h"
-
 #include "DNA_scene_types.h"
 
 #ifdef __cplusplus
@@ -277,10 +275,10 @@ enum {
   BKE_CURVE_BATCH_DIRTY_ALL = 0,
   BKE_CURVE_BATCH_DIRTY_SELECT,
 };
-void BKE_curve_batch_cache_dirty_tag(struct Curve *cu, eMeshBatchDirtyMode mode);
+void BKE_curve_batch_cache_dirty_tag(struct Curve *cu, int mode);
 void BKE_curve_batch_cache_free(struct Curve *cu);
 
-extern void (*BKE_curve_batch_cache_dirty_tag_cb)(struct Curve *cu, eMeshBatchDirtyMode mode);
+extern void (*BKE_curve_batch_cache_dirty_tag_cb)(struct Curve *cu, int mode);
 extern void (*BKE_curve_batch_cache_free_cb)(struct Curve *cu);
 
 /* -------------------------------------------------------------------- */

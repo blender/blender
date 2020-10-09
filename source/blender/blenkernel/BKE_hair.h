@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include "BKE_mesh_types.h"
-
 /** \file
  * \ingroup bke
  * \brief General operations for hairs.
@@ -54,10 +52,10 @@ enum {
   BKE_HAIR_BATCH_DIRTY_ALL = 0,
 };
 
-void BKE_hair_batch_cache_dirty_tag(struct Hair *hair, eMeshBatchDirtyMode mode);
+void BKE_hair_batch_cache_dirty_tag(struct Hair *hair, int mode);
 void BKE_hair_batch_cache_free(struct Hair *hair);
 
-extern void (*BKE_hair_batch_cache_dirty_tag_cb)(struct Hair *hair, eMeshBatchDirtyMode mode);
+extern void (*BKE_hair_batch_cache_dirty_tag_cb)(struct Hair *hair, int mode);
 extern void (*BKE_hair_batch_cache_free_cb)(struct Hair *hair);
 
 #ifdef __cplusplus

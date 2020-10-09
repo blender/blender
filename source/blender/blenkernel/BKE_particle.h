@@ -33,7 +33,6 @@
 #include "DNA_particle_types.h"
 
 #include "BKE_customdata.h"
-#include "BKE_mesh_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -620,11 +619,10 @@ void BKE_particle_system_eval_init(struct Depsgraph *depsgraph, struct Object *o
 enum {
   BKE_PARTICLE_BATCH_DIRTY_ALL = 0,
 };
-void BKE_particle_batch_cache_dirty_tag(struct ParticleSystem *psys, eMeshBatchDirtyMode mode);
+void BKE_particle_batch_cache_dirty_tag(struct ParticleSystem *psys, int mode);
 void BKE_particle_batch_cache_free(struct ParticleSystem *psys);
 
-extern void (*BKE_particle_batch_cache_dirty_tag_cb)(struct ParticleSystem *psys,
-                                                     eMeshBatchDirtyMode mode);
+extern void (*BKE_particle_batch_cache_dirty_tag_cb)(struct ParticleSystem *psys, int mode);
 extern void (*BKE_particle_batch_cache_free_cb)(struct ParticleSystem *psys);
 
 #ifdef __cplusplus

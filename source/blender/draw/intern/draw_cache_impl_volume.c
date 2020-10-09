@@ -107,7 +107,7 @@ static VolumeBatchCache *volume_batch_cache_get(Volume *volume)
   return volume->batch_cache;
 }
 
-void DRW_volume_batch_cache_dirty_tag(Volume *volume, eMeshBatchDirtyMode mode)
+void DRW_volume_batch_cache_dirty_tag(Volume *volume, int mode)
 {
   VolumeBatchCache *cache = volume->batch_cache;
   if (cache == NULL) {

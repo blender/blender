@@ -294,7 +294,7 @@ static LatticeBatchCache *lattice_batch_cache_get(Lattice *lt)
   return lt->batch_cache;
 }
 
-void DRW_lattice_batch_cache_dirty_tag(Lattice *lt, eMeshBatchDirtyMode mode)
+void DRW_lattice_batch_cache_dirty_tag(Lattice *lt, int mode)
 {
   LatticeBatchCache *cache = lt->batch_cache;
   if (cache == NULL) {
