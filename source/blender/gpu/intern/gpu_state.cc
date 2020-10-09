@@ -329,22 +329,28 @@ void GPU_apply_state(void)
 
 void GPU_bgl_start(void)
 {
-  StateManager &state_manager = *(Context::get()->state_manager);
-  if (state_manager.use_bgl == false) {
-    /* Expected by many addons (see T80169, T81289).
-     * This will reset the blend function. */
-    GPU_blend(GPU_BLEND_NONE);
-    state_manager.apply_state();
-    state_manager.use_bgl = true;
+  Context *ctx = Context::get();
+  if (ctx && ctx->state_manager) {
+    StateManager &state_manager = *(Context::get()->state_manager);
+    if (state_manager.use_bgl == false) {
+      /* Expected by many addons (see T80169, T81289).
+       * This will reset the blend function. */
+      GPU_blend(GPU_BLEND_NONE);
+      state_manager.apply_state();
+      state_manager.use_bgl = true;
+    }
   }
 }
 
 void GPU_bgl_end(void)
 {
-  StateManager &state_manager = *(Context::get()->state_manager);
-  state_manager.use_bgl = false;
-  /* Resync state tracking. */
-  state_manager.force_state();
+  Context *ctx = Context::get();
+  if (ctx && ctx->state_manager) {
+    StateManager &state_manager = *ctx->state_manager;
+    state_manager.use_bgl = false;
+    /* Resync state tracking. */
+    state_manager.force_state();
+  }
 }
 
 bool GPU_bgl_get(void)

@@ -35,6 +35,8 @@
 #include "RNA_access.h"
 #include "RNA_types.h"
 
+#include "GPU_state.h"
+
 #include "bpy.h"
 #include "bpy_app.h"
 #include "bpy_capi_utils.h"
@@ -330,6 +332,9 @@ static PyMethodDef meth_bpy_escape_identifier = {
 static PyObject *bpy_import_test(const char *modname)
 {
   PyObject *mod = PyImport_ImportModuleLevel(modname, NULL, NULL, NULL, 0);
+
+  GPU_bgl_end();
+
   if (mod) {
     Py_DECREF(mod);
   }
