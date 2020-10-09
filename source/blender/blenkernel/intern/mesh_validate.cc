@@ -82,6 +82,15 @@ typedef union OrigEdgeOrIndex {
 } OrigEdgeOrIndex;
 using EdgeMap = Map<OrderedEdge, OrigEdgeOrIndex>;
 
+static void reserve_hash_maps(const Mesh *mesh,
+                              const bool keep_existing_edges,
+                              MutableSpan<EdgeMap> edge_maps)
+{
+  const int totedge_guess = std::max(keep_existing_edges ? mesh->totedge : 0, mesh->totpoly * 2);
+  parallel_for_each(
+      edge_maps, [&](EdgeMap &edge_map) { edge_map.reserve(totedge_guess / edge_maps.size()); });
+}
+
 static void add_existing_edges_to_hash_maps(Mesh *mesh,
                                             MutableSpan<EdgeMap> edge_maps,
                                             uint32_t parallel_mask)
@@ -204,6 +213,11 @@ static int get_parallel_maps_count(const Mesh *mesh)
   return power_of_2_min_i(std::min(8, system_thread_count));
 }
 
+static void clear_hash_tables(MutableSpan<EdgeMap> edge_maps)
+{
+  parallel_for_each(edge_maps, [](EdgeMap &edge_map) { edge_map.clear(); });
+}
+
 }  // namespace blender::bke::calc_edges
 
 /**
@@ -221,11 +235,7 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool keep_existing_edges, const bool select
   BLI_assert(is_power_of_2_i(parallel_maps));
   const uint32_t parallel_mask = static_cast<uint32_t>(parallel_maps) - 1;
   Array<EdgeMap> edge_maps(parallel_maps);
-
-  /* Reserve memory in hash tables. */
-  const int totedge_guess = std::max(keep_existing_edges ? mesh->totedge : 0, mesh->totpoly * 2);
-  parallel_for_each(edge_maps,
-                    [&](EdgeMap &edge_map) { edge_map.reserve(totedge_guess / parallel_maps); });
+  reserve_hash_maps(mesh, keep_existing_edges, edge_maps);
 
   /* Add all edges. */
   if (keep_existing_edges) {
@@ -252,4 +262,7 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool keep_existing_edges, const bool select
   CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_ASSIGN, new_edges.data(), new_totedge);
   mesh->totedge = new_totedge;
   mesh->medge = new_edges.data();
+
+  /* Explicitely clear edge maps, because that way it can be parallelized. */
+  clear_hash_tables(edge_maps);
 }
