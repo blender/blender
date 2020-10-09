@@ -2060,8 +2060,8 @@ void BKE_object_make_proxy(Main *bmain, Object *ob, Object *target, Object *cob)
   }
 
   ob->proxy = target;
+  id_us_plus(&target->id);
   ob->proxy_group = cob;
-  id_lib_extern(&target->id);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
   DEG_id_tag_update(&target->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
