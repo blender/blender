@@ -266,7 +266,6 @@ endif()
 if(WITH_OPENIMAGEIO)
   find_package(OpenImageIO)
   list(APPEND OPENIMAGEIO_LIBRARIES
-    ${BOOST_LIBRARIES}
     ${PNG_LIBRARIES}
     ${JPEG_LIBRARIES}
     ${TIFF_LIBRARY}
