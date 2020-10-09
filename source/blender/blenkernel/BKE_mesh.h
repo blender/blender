@@ -23,6 +23,7 @@
  */
 
 /* defines BLI_INLINE */
+#include "BKE_mesh_types.h"
 #include "BLI_compiler_compat.h"
 
 struct BLI_Stack;
@@ -684,18 +685,10 @@ void BKE_mesh_wrapper_deferred_finalize(struct Mesh *me_eval,
 void BKE_mesh_eval_geometry(struct Depsgraph *depsgraph, struct Mesh *mesh);
 
 /* Draw Cache */
-enum {
-  BKE_MESH_BATCH_DIRTY_ALL = 0,
-  BKE_MESH_BATCH_DIRTY_SELECT,
-  BKE_MESH_BATCH_DIRTY_SELECT_PAINT,
-  BKE_MESH_BATCH_DIRTY_SHADING,
-  BKE_MESH_BATCH_DIRTY_UVEDIT_ALL,
-  BKE_MESH_BATCH_DIRTY_UVEDIT_SELECT,
-};
-void BKE_mesh_batch_cache_dirty_tag(struct Mesh *me, int mode);
+void BKE_mesh_batch_cache_dirty_tag(struct Mesh *me, eMeshBatchDirtyMode mode);
 void BKE_mesh_batch_cache_free(struct Mesh *me);
 
-extern void (*BKE_mesh_batch_cache_dirty_tag_cb)(struct Mesh *me, int mode);
+extern void (*BKE_mesh_batch_cache_dirty_tag_cb)(struct Mesh *me, eMeshBatchDirtyMode mode);
 extern void (*BKE_mesh_batch_cache_free_cb)(struct Mesh *me);
 
 /* Inlines */

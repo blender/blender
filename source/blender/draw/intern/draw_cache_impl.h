@@ -41,6 +41,8 @@ struct PointCloud;
 struct Volume;
 struct bGPdata;
 
+#include "BKE_mesh_types.h"
+
 /* Expose via BKE callbacks */
 void DRW_mball_batch_cache_dirty_tag(struct MetaBall *mb, int mode);
 void DRW_mball_batch_cache_validate(struct MetaBall *mb);
@@ -50,7 +52,7 @@ void DRW_curve_batch_cache_dirty_tag(struct Curve *cu, int mode);
 void DRW_curve_batch_cache_validate(struct Curve *cu);
 void DRW_curve_batch_cache_free(struct Curve *cu);
 
-void DRW_mesh_batch_cache_dirty_tag(struct Mesh *me, int mode);
+void DRW_mesh_batch_cache_dirty_tag(struct Mesh *me, eMeshBatchDirtyMode mode);
 void DRW_mesh_batch_cache_validate(struct Mesh *me);
 void DRW_mesh_batch_cache_free(struct Mesh *me);
 
