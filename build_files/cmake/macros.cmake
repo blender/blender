@@ -302,14 +302,14 @@ function(blender_add_lib__impl
   #
   # What this code does it traverses library_deps and extracts information about whether
   # library is to provided as general, debug or optimized. This is a little state machine which
-  # keeps track of whiuch build type library is to provided for:
+  # keeps track of which build type library is to provided for:
   #
   # - If "debug" or "optimized" word is found, the next element in the list is expected to be
   #   a library which will be passed to target_link_libraries() under corresponding build type.
   #
   # - If there is no "debug" or "optimized" used library is specified for all build types.
   #
-  # NOTE: If separated libraries for debug and release ar eneeded every library is the list are
+  # NOTE: If separated libraries for debug and release are needed every library is the list are
   # to be prefixed explicitly.
   #
   #  Use: "optimized libfoo optimized libbar debug libfoo_d debug libbar_d"
