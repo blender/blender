@@ -5,17 +5,6 @@
                  --partial bmesh* ; cd doc/python_api ; sphinx-build sphinx-in sphinx-out ; cd ../../
 
 
-Submodules:
-
-.. toctree::
-   :maxdepth: 1
-
-   bmesh.ops.rst
-   bmesh.types.rst
-   bmesh.utils.rst
-   bmesh.geometry.rst
-
-
 Introduction
 ------------
 

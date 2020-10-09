@@ -126,17 +126,7 @@ static PyStructSequence_Field app_info_fields[] = {
 };
 
 PyDoc_STRVAR(bpy_app_doc,
-             "This module contains application values that remain unchanged during runtime.\n"
-             "\n"
-             "Submodules:\n"
-             "\n"
-             ".. toctree::\n"
-             "   :maxdepth: 1\n"
-             "\n"
-             "   bpy.app.handlers.rst\n"
-             "   bpy.app.icons.rst\n"
-             "   bpy.app.timers.rst\n"
-             "   bpy.app.translations.rst\n");
+             "This module contains application values that remain unchanged during runtime.");
 
 static PyStructSequence_Desc app_info_desc = {
     "bpy.app",       /* name */
