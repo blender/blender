@@ -486,14 +486,12 @@ class RENDER_PT_eevee_film(RenderButtonsPanel, Panel):
         col.prop(rd, "film_transparent", text="Transparent")
 
         col = layout.column(align=False, heading="Overscan")
-        col.use_property_decorate = False
         row = col.row(align=True)
         sub = row.row(align=True)
         sub.prop(props, "use_overscan", text="")
         sub = sub.row(align=True)
         sub.active = props.use_overscan
         sub.prop(props, "overscan_size", text="")
-        row.prop_decorator(props, "overscan_size")
 
 
 class RENDER_PT_eevee_hair(RenderButtonsPanel, Panel):
