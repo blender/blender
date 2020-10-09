@@ -58,11 +58,13 @@ typedef enum eGPUSamplerState {
   GPU_SAMPLER_ICON = (1 << 8),
 
   GPU_SAMPLER_REPEAT = (GPU_SAMPLER_REPEAT_S | GPU_SAMPLER_REPEAT_T | GPU_SAMPLER_REPEAT_R),
-  /* Don't use that. */
-  GPU_SAMPLER_MAX = (GPU_SAMPLER_ICON + 1),
 } eGPUSamplerState;
 
-ENUM_OPERATORS(eGPUSamplerState, GPU_SAMPLER_REPEAT)
+/* `GPU_SAMPLER_MAX` is not a valid enum value, but only a limit.
+ * It also creates a bad mask for the `NOT` operator in `ENUM_OPERATORS`.
+ */
+static const int GPU_SAMPLER_MAX = (GPU_SAMPLER_ICON + 1);
+ENUM_OPERATORS(eGPUSamplerState, GPU_SAMPLER_ICON)
 
 #ifdef __cplusplus
 extern "C" {
