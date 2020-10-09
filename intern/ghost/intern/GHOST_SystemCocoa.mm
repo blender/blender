@@ -1599,7 +1599,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
             window->getClientBounds(bounds);
 
           /* Switch back to Cocoa coordinates orientation
-           * (y=0 at bottom, the same as blender internal btw!), and to client coordinates. */
+           * (y=0 at bottom, the same as blender internal BTW!), and to client coordinates. */
           window->getClientBounds(windowBounds);
           window->screenToClient(bounds.m_l, bounds.m_b, correctedBounds.m_l, correctedBounds.m_t);
           window->screenToClient(bounds.m_r, bounds.m_t, correctedBounds.m_r, correctedBounds.m_b);

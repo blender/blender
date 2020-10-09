@@ -3000,9 +3000,9 @@ void CustomData_free_elem(CustomData *data, int index, int count)
  * \param weights: The weight to apply to each source value individually. If NULL, they will be
  * averaged.
  * \param sub_weights: The weights of sub-items, only used to affect each corners of a
- * tesselated face data (should alwasy be and array of four values).
+ * tessellated face data (should always be and array of four values).
  * \param count: The number of source items to interpolate.
- * \param dest_index: Index of the destination item, in ahich to put the result of the
+ * \param dest_index: Index of the destination item, in which to put the result of the
  * interpolation.
  */
 void CustomData_interp(const CustomData *source,

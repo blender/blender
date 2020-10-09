@@ -255,8 +255,8 @@ static GHOST_TKey convertSDLKey(SDL_Scancode key)
 
       /* keypad events */
 
-      /* note, sdl defines a bunch of kp defines I never saw before like
-       * SDL_SCANCODE_KP_PERCENT, SDL_SCANCODE_KP_XOR - campbell */
+      /* NOTE: SDL defines a bunch of key-pad identifiers that aren't supported by GHOST,
+       * such as #SDL_SCANCODE_KP_PERCENT, #SDL_SCANCODE_KP_XOR. */
       GXMAP(type, SDL_SCANCODE_KP_0, GHOST_kKeyNumpad0);
       GXMAP(type, SDL_SCANCODE_KP_1, GHOST_kKeyNumpad1);
       GXMAP(type, SDL_SCANCODE_KP_2, GHOST_kKeyNumpad2);
