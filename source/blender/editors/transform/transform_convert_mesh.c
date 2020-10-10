@@ -1176,8 +1176,9 @@ static void mesh_customdatacorrect_init_container_generic(TransDataContainer *UN
                                                   .use_toolflags = false,
                                               }));
 
-  /* We need to have matching custom-data. */
-  BM_mesh_copy_init_customdata(bm_origfaces, bm, NULL);
+  /* We need to have matching loop custom-data. */
+  BM_mesh_copy_init_customdata_all_layers(bm_origfaces, bm, BM_LOOP, NULL);
+
   tcld->origfaces = origfaces;
   tcld->bm_origfaces = bm_origfaces;
 
@@ -1359,9 +1360,6 @@ static void mesh_customdatacorrect_apply_vert(struct TransCustomDataLayer *tcld,
      * and we do not want to mess up other shape keys */
     BM_loop_interp_from_face(bm, l, f_copy, false, false);
 
-    /* make sure face-attributes are correct (e.g. #MLoopUV, #MLoopCol) */
-    BM_elem_attrs_copy_ex(tcld->bm_origfaces, bm, f_copy, l->f, BM_ELEM_SELECT, CD_MASK_NORMAL);
-
     /* weight the loop */
     if (do_loop_weight) {
       const float eps = 1.0e-8f;
@@ -1514,8 +1512,6 @@ static void mesh_customdatacorrect_restore(struct TransInfo *t)
         BM_elem_attrs_copy(bm_copy, bm, l_copy, l_iter);
         l_copy = l_copy->next;
       } while ((l_iter = l_iter->next) != l_first);
-
-      BM_elem_attrs_copy_ex(bm_copy, bm, f_copy, f, BM_ELEM_SELECT, CD_MASK_NORMAL);
     }
   }
 }

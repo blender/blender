@@ -69,6 +69,10 @@ void BM_elem_select_copy(BMesh *bm_dst, void *ele_dst_v, const void *ele_src_v);
 void BM_mesh_copy_init_customdata(BMesh *bm_dst,
                                   BMesh *bm_src,
                                   const struct BMAllocTemplate *allocsize);
+void BM_mesh_copy_init_customdata_all_layers(BMesh *bm_dst,
+                                             BMesh *bm_src,
+                                             const char htype,
+                                             const struct BMAllocTemplate *allocsize);
 BMesh *BM_mesh_copy(BMesh *bm_old);
 
 char BM_face_flag_from_mflag(const char mflag);
