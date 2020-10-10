@@ -82,7 +82,7 @@
 #  include <libswscale/swscale.h>
 
 #  include "ffmpeg_compat.h"
-#endif  // WITH_FFMPEG
+#endif /* WITH_FFMPEG */
 
 int ismovie(const char *UNUSED(filepath))
 {
@@ -467,7 +467,7 @@ static ImBuf *avi_fetchibuf(struct anim *anim, int position)
       if (lpbi) {
         ibuf = IMB_ibImageFromMemory(
             (const unsigned char *)lpbi, 100, IB_rect, anim->colorspace, "<avi_fetchibuf>");
-        // Oh brother...
+        /* Oh brother... */
       }
     }
   }

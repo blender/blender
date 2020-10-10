@@ -51,7 +51,7 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "nla_intern.h"  // own include
+#include "nla_intern.h" /* own include */
 
 /* ******************* nla editor space & buttons ************** */
 
@@ -91,7 +91,7 @@ bool nla_panel_context(const bContext *C,
   /* extract list of active channel(s), of which we should only take the first one
    * - we need the channels flag to get the active AnimData block when there are no NLA Tracks
    */
-  // XXX: double-check active!
+  /* XXX: double-check active! */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_ACTIVE |
             ANIMFILTER_LIST_CHANNELS);
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
@@ -404,7 +404,7 @@ static void nla_panel_properties(const bContext *C, Panel *panel)
 
     row = uiLayoutRow(column, true);
     uiLayoutSetActive(row, RNA_boolean_get(&strip_ptr, "use_animated_influence") == false);
-    uiItemR(row, &strip_ptr, "use_auto_blend", 0, NULL, ICON_NONE);  // XXX as toggle?
+    uiItemR(row, &strip_ptr, "use_auto_blend", 0, NULL, ICON_NONE); /* XXX as toggle? */
 
     /* settings */
     column = uiLayoutColumnWithHeading(layout, true, IFACE_("Playback"));
@@ -558,8 +558,8 @@ static void nla_panel_modifiers(const bContext *C, Panel *panel)
     row = uiLayoutRow(panel->layout, false);
     block = uiLayoutGetBlock(row);
 
-    // FIXME: we need to set the only-active property so that this
-    // will only add modifiers for the active strip (not all selected).
+    /* FIXME: we need to set the only-active property so that this
+     * will only add modifiers for the active strip (not all selected). */
     uiItemMenuEnumO(
         row, (bContext *)C, "NLA_OT_fmodifier_add", "type", IFACE_("Add Modifier"), ICON_NONE);
 

@@ -757,7 +757,7 @@ static void action_layer_switch_strip(
       adt->flag |= ADT_NLA_SOLO_TRACK;
       nlt->flag |= NLATRACK_SOLO;
 
-      // TODO: Needs rest-pose flushing (when we get reference track)
+      /* TODO: Needs rest-pose flushing (when we get reference track) */
     }
   }
 
@@ -851,7 +851,7 @@ static int action_layer_next_exec(bContext *C, wmOperator *op)
       /* turn on NLA muting (to keep same effect) */
       adt->flag |= ADT_NLA_EVAL_OFF;
 
-      // TODO: Needs rest-pose flushing (when we get reference track)
+      /* TODO: Needs rest-pose flushing (when we get reference track) */
     }
   }
 

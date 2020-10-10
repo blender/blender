@@ -99,7 +99,7 @@ static void autokeyframe_pose(
   bPoseChannel *pchan;
   FCurve *fcu;
 
-  // TODO: this should probably be done per channel instead...
+  /* TODO: this should probably be done per channel instead. */
   if (!autokeyframe_cfra_can_key(scene, id)) {
     /* tag channels that should have unkeyed data */
     for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
@@ -337,7 +337,7 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
           if (data->rootbone == 0) {
             for (bPoseChannel *pchan_iter = pchan; pchan_iter; pchan_iter = pchan_iter->parent) {
               /* here, we set ik-settings for bone from pchan->protectflag */
-              // XXX: careful with quats/axis-angle rotations where we're locking 4d components
+              /* XXX: careful with quats/axis-angle rotations where we're locking 4d components. */
               if (pchan_iter->protectflag & OB_LOCK_ROTX) {
                 pchan_iter->ikflag |= BONE_IK_NO_XDOF_TEMP;
               }
@@ -373,7 +373,7 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
   /* we only include bones that are part of a continual connected chain */
   do {
     /* here, we set ik-settings for bone from pchan->protectflag */
-    // XXX: careful with quats/axis-angle rotations where we're locking 4d components
+    /* XXX: careful with quats/axis-angle rotations where we're locking 4d components. */
     if (pchan->protectflag & OB_LOCK_ROTX) {
       pchan->ikflag |= BONE_IK_NO_XDOF_TEMP;
     }
@@ -683,7 +683,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
     td->ival = bone->dist;
   }
   else if (t->mode == TFM_BONESIZE) {
-    // abusive storage of scale in the loc pointer :)
+    /* Abusive storage of scale in the loc pointer :) */
     td->loc = &bone->xwidth;
     copy_v3_v3(td->iloc, td->loc);
     td->val = NULL;
@@ -957,8 +957,9 @@ void createTransArmatureVerts(TransInfo *t)
 
     for (ebo = edbo->first; ebo; ebo = ebo->next) {
       td_old = td;
-      ebo->oldlength =
-          ebo->length;  // length==0.0 on extrude, used for scaling radius of bone points
+
+      /* (length == 0.0) on extrude, used for scaling radius of bone points. */
+      ebo->oldlength = ebo->length;
 
       if (EBONE_VISIBLE(arm, ebo) && !(ebo->flag & BONE_EDITMODE_LOCKED)) {
         if (t->mode == TFM_BONE_ENVELOPE) {
@@ -1002,7 +1003,7 @@ void createTransArmatureVerts(TransInfo *t)
               td->ival = ebo->dist;
             }
             else {
-              // abusive storage of scale in the loc pointer :)
+              /* Abusive storage of scale in the loc pointer :). */
               td->loc = &ebo->xwidth;
               copy_v3_v3(td->iloc, td->loc);
               td->val = NULL;
@@ -1330,8 +1331,8 @@ static void pose_transform_mirror_update(TransInfo *t, TransDataContainer *tc, O
     /* We assume X-axis flipping for now. */
     pchan->curve_in_x = pchan_orig->curve_in_x * -1;
     pchan->curve_out_x = pchan_orig->curve_out_x * -1;
-    pchan->roll1 = pchan_orig->roll1 * -1;  // XXX?
-    pchan->roll2 = pchan_orig->roll2 * -1;  // XXX?
+    pchan->roll1 = pchan_orig->roll1 * -1; /* XXX? */
+    pchan->roll2 = pchan_orig->roll2 * -1; /* XXX? */
 
     float pchan_mtx_final[4][4];
     BKE_pchan_to_mat4(pchan_orig, pchan_mtx_final);
@@ -1465,7 +1466,8 @@ void recalcData_pose(TransInfo *t)
        * (FPoints) instead of keyframes? */
       if ((t->animtimer) && (t->context) && IS_AUTOKEY_ON(t->scene)) {
         int targetless_ik =
-            (t->flag & T_AUTOIK);  // XXX this currently doesn't work, since flags aren't set yet!
+            (t->flag &
+             T_AUTOIK); /* XXX this currently doesn't work, since flags aren't set yet! */
 
         animrecord_check_state(t, ob);
         autokeyframe_pose(t->context, t->scene, ob, t->mode, targetless_ik);
@@ -1617,7 +1619,7 @@ static short apply_targetless_ik(Object *ob)
         segcount++;
 
         if (segcount == data->rootbone || segcount > 255) {
-          break;  // 255 is weak
+          break; /* 255 is weak */
         }
       }
       for (; segcount; segcount--) {

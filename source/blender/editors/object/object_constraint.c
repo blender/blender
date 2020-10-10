@@ -242,7 +242,7 @@ static char *buildmenu_pyconstraints(Main *bmain, Text *con_text, int *pyconinde
 }
 #endif /* WITH_PYTHON */
 
-#if 0  // UNUSED, until pyconstraints are added back.
+#if 0 /* UNUSED, until pyconstraints are added back. */
 /* this callback gets called when the 'refresh' button of a pyconstraint gets pressed */
 static void update_pyconstraint_cb(void *arg1, void *arg2)
 {
@@ -257,7 +257,7 @@ static void update_pyconstraint_cb(void *arg1, void *arg2)
   }
 #  endif
 }
-#endif  // UNUSED
+#endif /* UNUSED */
 
 /** \} */
 
@@ -1747,8 +1747,8 @@ void POSE_OT_constraints_clear(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = pose_constraints_clear_exec;
-  ot->poll = ED_operator_posemode_exclusive;  // XXX - do we want to ensure there are selected
-                                              // bones too?
+  ot->poll = ED_operator_posemode_exclusive; /* XXX - do we want to ensure there are selected
+                                              * bones too? */
 }
 
 static int object_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
@@ -2333,7 +2333,7 @@ void POSE_OT_constraint_add_with_targets(wmOperatorType *ot)
  * \note Only for pose-channels.
  * \{ */
 
-// TODO: should these be here, or back in editors/armature/poseobject.c again?
+/* TODO: should these be here, or back in editors/armature/poseobject.c again? */
 
 /* present menu with options + validation for targets to use */
 static int pose_ik_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))

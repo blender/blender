@@ -94,7 +94,7 @@
 
 #include "engines/eevee/eevee_lightcache.h"
 
-#include "render_intern.h"  // own include
+#include "render_intern.h" /* own include */
 
 static bool object_materials_supported_poll_ex(bContext *C, const Object *ob);
 
@@ -1092,7 +1092,7 @@ static int light_cache_bake_exec(bContext *C, wmOperator *op)
   EEVEE_lightbake_job(rj, &stop, &do_update, &progress);
   EEVEE_lightbake_job_data_free(rj);
 
-  // no redraw needed, we leave state as we entered it
+  /* No redraw needed, we leave state as we entered it. */
   ED_update_for_newframe(bmain, CTX_data_depsgraph_pointer(C));
 
   WM_event_add_notifier(C, NC_SCENE | NA_EDITED, scene);

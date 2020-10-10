@@ -39,7 +39,7 @@
 #include "BLI_utildefines.h"
 
 #include "BIK_api.h"
-#include "BKE_action.h"  // pose functions
+#include "BKE_action.h" /* pose functions */
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_fcurve.h"
@@ -69,7 +69,7 @@
 
 #include "IK_solver.h"
 
-#include <algorithm>  // std::find
+#include <algorithm> /* std::find */
 #include <map>
 #include <vector>
 
@@ -100,7 +100,7 @@ class AnimationExporter : COLLADASW::LibraryAnimations {
 
   bool exportAnimations();
 
-  // called for each exported object
+  /* called for each exported object */
   void operator()(Object *ob);
 
  protected:
@@ -129,8 +129,8 @@ class AnimationExporter : COLLADASW::LibraryAnimations {
                         Object *ob_arm,
                         bPoseChannel *pChan);
 
-  // dae_bone_animation -> add_bone_animation
-  // (blend this into dae_bone_animation)
+  /* dae_bone_animation -> add_bone_animation
+   * (blend this into dae_bone_animation) */
   void dae_bone_animation(std::vector<float> &fra,
                           float *v,
                           int tm_type,

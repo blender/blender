@@ -131,7 +131,7 @@ static bool console_line_cursor_set(ConsoleLine *cl, int cursor)
   return true;
 }
 
-#if 0  // XXX unused
+#if 0 /* XXX unused */
 static void console_lb_debug__internal(ListBase *lb)
 {
   ConsoleLine *cl;
@@ -415,7 +415,8 @@ static int console_insert_exec(bContext *C, wmOperator *op)
 
 static int console_insert_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  // if (!RNA_struct_property_is_set(op->ptr, "text")) { /* always set from keymap XXX */
+  /* Note, the "text" property is always set from key-map,
+   * so we can't use #RNA_struct_property_is_set, check the length instead. */
   if (!RNA_string_length(op->ptr, "text")) {
     /* if alt/ctrl/super are pressed pass through except for utf8 character event
      * (when input method are used for utf8 inputs, the user may assign key event
@@ -1108,7 +1109,7 @@ typedef struct SetConsoleCursor {
   int sel_init;
 } SetConsoleCursor;
 
-// TODO, cursor placement without selection
+/* TODO, cursor placement without selection */
 static void console_cursor_set_to_pos(
     SpaceConsole *sc, ARegion *region, SetConsoleCursor *scu, const int mval[2], int UNUSED(sel))
 {

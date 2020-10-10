@@ -1527,14 +1527,14 @@ void BKE_animdata_blend_write(BlendWriter *writer, struct AnimData *adt)
   BKE_fcurve_blend_write(writer, &adt->drivers);
 
   /* write overrides */
-  // FIXME: are these needed?
+  /* FIXME: are these needed? */
   LISTBASE_FOREACH (AnimOverride *, aor, &adt->overrides) {
     /* overrides consist of base data + rna_path */
     BLO_write_struct(writer, AnimOverride, aor);
     BLO_write_string(writer, aor->rna_path);
   }
 
-  // TODO write the remaps (if they are needed)
+  /* TODO write the remaps (if they are needed) */
 
   /* write NLA data */
   BKE_nla_blend_write(writer, &adt->nla_tracks);
@@ -1553,7 +1553,7 @@ void BKE_animdata_blend_read_data(BlendDataReader *reader, AnimData *adt)
   adt->driver_array = NULL;
 
   /* link overrides */
-  // TODO...
+  /* TODO... */
 
   /* link NLA-data */
   BLO_read_list(reader, &adt->nla_tracks);
@@ -1563,8 +1563,8 @@ void BKE_animdata_blend_read_data(BlendDataReader *reader, AnimData *adt)
    * if we're in 'tweaking mode', we need to be able to have this loaded back for
    * undo, but also since users may not exit tweakmode before saving (T24535)
    */
-  // TODO: it's not really nice that anyone should be able to save the file in this
-  //      state, but it's going to be too hard to enforce this single case...
+  /* TODO: it's not really nice that anyone should be able to save the file in this
+   *       state, but it's going to be too hard to enforce this single case... */
   BLO_read_data_address(reader, &adt->act_track);
   BLO_read_data_address(reader, &adt->actstrip);
 }

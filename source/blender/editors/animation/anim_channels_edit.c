@@ -59,7 +59,7 @@
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
-#include "ED_keyframes_edit.h"  // XXX move the select modes out of there!
+#include "ED_keyframes_edit.h" /* XXX move the select modes out of there! */
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
@@ -73,7 +73,7 @@
 /* -------------------------- Selection ------------------------------------- */
 
 /* Set the given animation-channel as the active one for the active context */
-// TODO: extend for animdata types...
+/* TODO: extend for animdata types... */
 void ANIM_set_active_channel(bAnimContext *ac,
                              void *data,
                              eAnimCont_Types datatype,
@@ -1470,8 +1470,8 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
           rearrange_driver_channels(&ac, adt, mode);
           break;
 
-        case ANIMCONT_ACTION:    /* Single Action only... */
-        case ANIMCONT_SHAPEKEY:  // DOUBLE CHECK ME...
+        case ANIMCONT_ACTION:   /* Single Action only... */
+        case ANIMCONT_SHAPEKEY: /* DOUBLE CHECK ME... */
         {
           if (adt->action) {
             rearrange_action_channels(&ac, adt->action, mode);
@@ -1939,7 +1939,7 @@ static const EnumPropertyItem prop_animchannel_setflag_types[] = {
 };
 
 /* defines for set animation-channel settings */
-// TODO: could add some more types, but those are really quite dependent on the mode...
+/* TODO: could add some more types, but those are really quite dependent on the mode... */
 static const EnumPropertyItem prop_animchannel_settings_types[] = {
     {ACHANNEL_SETTING_PROTECT, "PROTECT", 0, "Protect", ""},
     {ACHANNEL_SETTING_MUTE, "MUTE", 0, "Mute", ""},
@@ -1948,12 +1948,14 @@ static const EnumPropertyItem prop_animchannel_settings_types[] = {
 
 /* ------------------- */
 
-/* Set/clear a particular flag (setting) for all selected + visible channels
- * setting: the setting to modify
- * mode: eAnimChannels_SetFlag
- * onlysel: only selected channels get the flag set
+/**
+ * Set/clear a particular flag (setting) for all selected + visible channels
+ * \param setting: the setting to modify.
+ * \param mode: eAnimChannels_SetFlag.
+ * \param onlysel: only selected channels get the flag set.
+ *
+ * TODO: enable a setting which turns flushing on/off?.
  */
-// TODO: enable a setting which turns flushing on/off?
 static void setflag_anim_channels(bAnimContext *ac,
                                   eAnimChannel_Settings setting,
                                   eAnimChannels_SetFlag mode,
@@ -3295,11 +3297,11 @@ static void ANIM_OT_channels_click(wmOperatorType *ot)
 
   /* properties */
   /* NOTE: don't save settings, otherwise, can end up with some weird behavior (sticky extend) */
-  prop = RNA_def_boolean(ot->srna, "extend", false, "Extend Select", "");  // SHIFTKEY
+  prop = RNA_def_boolean(ot->srna, "extend", false, "Extend Select", ""); /* SHIFTKEY */
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(
-      ot->srna, "children_only", false, "Select Children Only", "");  // CTRLKEY|SHIFTKEY
+      ot->srna, "children_only", false, "Select Children Only", ""); /* CTRLKEY|SHIFTKEY */
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
@@ -3443,7 +3445,7 @@ void ED_operatortypes_animchannels(void)
   WM_operatortype_append(ANIM_OT_channels_ungroup);
 }
 
-// TODO: check on a poll callback for this, to get hotkeys into menus
+/* TODO: check on a poll callback for this, to get hotkeys into menus */
 void ED_keymap_animchannels(wmKeyConfig *keyconf)
 {
   WM_keymap_ensure(keyconf, "Animation Channels", 0, 0);

@@ -117,7 +117,7 @@ void createTransNlaData(bContext *C, TransInfo *t)
 
     /* only consider selected strips */
     for (strip = nlt->strips.first; strip; strip = strip->next) {
-      // TODO: we can make strips have handles later on...
+      /* TODO: we can make strips have handles later on. */
       /* transition strips can't get directly transformed */
       if (strip->type != NLASTRIP_TYPE_TRANSITION) {
         if (strip->flag & NLASTRIP_FLAG_SELECT) {
@@ -166,7 +166,7 @@ void createTransNlaData(bContext *C, TransInfo *t)
 
       /* only consider selected strips */
       for (strip = nlt->strips.first; strip; strip = strip->next) {
-        // TODO: we can make strips have handles later on...
+        /* TODO: we can make strips have handles later on. */
         /* transition strips can't get directly transformed */
         if (strip->type != NLASTRIP_TYPE_TRANSITION) {
           if (strip->flag & NLASTRIP_FLAG_SELECT) {

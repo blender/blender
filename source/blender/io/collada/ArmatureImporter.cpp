@@ -153,7 +153,7 @@ int ArmatureImporter::create_bone(SkinInfo *skin,
   if (layer) {
     bone->layer = layer;
   }
-  arm->layer |= layer;  // ensure that all populated bone layers are visible after import
+  arm->layer |= layer; /* ensure that all populated bone layers are visible after import */
 
   float *tail = be.get_tail();
   int use_connect = be.get_use_connect();
@@ -504,7 +504,7 @@ void ArmatureImporter::create_armature_bones(Main *bmain, std::vector<Object *> 
     }
 
     ED_armature_to_edit(armature);
-    armature->layer = 0;  // layer is set according to imported bone set in create_bone()
+    armature->layer = 0; /* layer is set according to imported bone set in create_bone() */
 
     create_bone(NULL, node, NULL, node->getChildNodes().getCount(), NULL, armature, layer_labels);
     if (this->import_settings->find_chains) {
@@ -623,7 +623,7 @@ Object *ArmatureImporter::create_armature_bones(Main *bmain, SkinInfo &skin)
     ob_arm = skin.set_armature(shared);
   }
   else {
-    ob_arm = skin.create_armature(m_bmain, scene, view_layer);  // once for every armature
+    ob_arm = skin.create_armature(m_bmain, scene, view_layer); /* once for every armature */
   }
 
   /* enter armature edit mode */
@@ -631,7 +631,7 @@ Object *ArmatureImporter::create_armature_bones(Main *bmain, SkinInfo &skin)
   ED_armature_to_edit(armature);
 
   totbone = 0;
-  // bone_direction_row = 1; // TODO: don't default to Y but use asset and based on it decide on
+  // bone_direction_row = 1; /* TODO: don't default to Y but use asset and based on it decide on */
   /* default row */
 
   /* create bones */

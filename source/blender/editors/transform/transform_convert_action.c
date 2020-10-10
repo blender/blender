@@ -796,9 +796,9 @@ void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
     /* free temp memory */
     ANIM_animdata_freelist(&anim_data);
   }
-  else if (ac.datatype == ANIMCONT_ACTION) {  // TODO: just integrate into the above...
+  else if (ac.datatype == ANIMCONT_ACTION) { /* TODO: just integrate into the above. */
     /* Depending on the lock status, draw necessary views */
-    // fixme... some of this stuff is not good
+    /* FIXME: some of this stuff is not good. */
     if (ob) {
       if (ob->pose || BKE_key_from_object(ob)) {
         DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);

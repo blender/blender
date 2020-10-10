@@ -69,10 +69,10 @@ void main(void)
   vec4 P3 = gl_in[3].gl_Position;
 
   /* get the four vertices passed to the shader */
-  vec2 sp0 = toScreenSpace(P0);  // start of previous segment
-  vec2 sp1 = toScreenSpace(P1);  // end of previous segment, start of current segment
-  vec2 sp2 = toScreenSpace(P2);  // end of current segment, start of next segment
-  vec2 sp3 = toScreenSpace(P3);  // end of next segment
+  vec2 sp0 = toScreenSpace(P0); /* start of previous segment */
+  vec2 sp1 = toScreenSpace(P1); /* end of previous segment, start of current segment */
+  vec2 sp2 = toScreenSpace(P2); /* end of current segment, start of next segment */
+  vec2 sp3 = toScreenSpace(P3); /* end of next segment */
 
   /* culling outside viewport */
   vec2 area = Viewport * 4.0;
@@ -100,8 +100,8 @@ void main(void)
   vec2 n2 = vec2(-v2.y, v2.x);
 
   /* determine miter lines by averaging the normals of the 2 segments */
-  vec2 miter_a = normalize(n0 + n1);  // miter at start of current segment
-  vec2 miter_b = normalize(n1 + n2);  // miter at end of current segment
+  vec2 miter_a = normalize(n0 + n1); /* miter at start of current segment */
+  vec2 miter_b = normalize(n1 + n2); /* miter at end of current segment */
 
   /* determine the length of the miter by projecting it onto normal and then inverse it */
   float an1 = dot(miter_a, n1);

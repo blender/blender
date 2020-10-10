@@ -842,7 +842,7 @@ void SIM_mass_spring_force_face_wind(
   float win[3], nor[3], area;
   float factor;
 
-  // calculate face normal and area
+  /* calculate face normal and area */
   area = calc_nor_area_tri(nor, data->X.v3(v1), data->X.v3(v2), data->X.v3(v3));
   factor = effector_scale * area / 3.0f;
 
@@ -894,7 +894,7 @@ BLI_INLINE void dfdx_damp(float to[3][3],
                           float rest,
                           float damping)
 {
-  // inner spring damping   vel is the relative velocity  of the endpoints.
+  /* inner spring damping   vel is the relative velocity  of the endpoints. */
   //  return (I-outerprod(dir, dir)) * (-damping * -(dot(dir, vel)/Max(length, rest)));
   mul_fvectorT_fvector(to, dir, dir);
   sub_fmatrix_fmatrix(to, I, to);
@@ -904,7 +904,7 @@ BLI_INLINE void dfdx_damp(float to[3][3],
 
 BLI_INLINE void dfdv_damp(float to[3][3], const float dir[3], float damping)
 {
-  // derivative of force wrt velocity
+  /* derivative of force wrt velocity */
   outerproduct(to, dir, dir);
   mul_m3_fl(to, -damping);
 }
@@ -936,7 +936,7 @@ BLI_INLINE float fbstar(float length, float L, float kb, float cb)
   }
 }
 
-// function to calculae bending spring force (taken from Choi & Co)
+/* function to calculae bending spring force (taken from Choi & Co) */
 BLI_INLINE float fbstar_jacobi(float length, float L, float kb, float cb)
 {
   float tempfb_fl = kb * fb(length, L);
@@ -968,7 +968,7 @@ BLI_INLINE bool spring_length(Implicit_Data *data,
     if (length > L) {
       if ((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) &&
           (((length - L) * 100.0f / L) > clmd->sim_parms->maxspringlen)) {
-        // cut spring!
+        /* cut spring! */
         s->flags |= CSPRING_FLAG_DEACTIVATE;
         return false;
       }
@@ -1014,7 +1014,7 @@ bool SIM_mass_spring_force_spring_linear(Implicit_Data *data,
 {
   float extent[3], length, dir[3], vel[3];
 
-  // calculate elonglation
+  /* calculate elonglation */
   spring_length(data, i, j, extent, dir, &length, vel);
 
   if (length > restlen || no_compress) {
@@ -1026,8 +1026,8 @@ bool SIM_mass_spring_force_spring_linear(Implicit_Data *data,
     }
     mul_v3_v3fl(f, dir, stretch_force);
 
-    // Ascher & Boxman, p.21: Damping only during elonglation
-    // something wrong with it...
+    /* Ascher & Boxman, p.21: Damping only during elonglation
+     * something wrong with it... */
     madd_v3_v3fl(f, dir, damping * dot_v3v3(vel, dir));
 
     dfdx_spring(dfdx, dir, length, restlen, stiffness);
@@ -1075,7 +1075,7 @@ bool SIM_mass_spring_force_spring_bending(Implicit_Data *data,
 {
   float extent[3], length, dir[3], vel[3];
 
-  // calculate elonglation
+  /* calculate elonglation */
   spring_length(data, i, j, extent, dir, &length, vel);
 
   if (length < restlen) {
@@ -1223,7 +1223,7 @@ BLI_INLINE void spring_angbend_estimate_dfdx(Implicit_Data *data,
                                              int q,
                                              float dfdx[3][3])
 {
-  const float delta = 0.00001f;  // TODO find a good heuristic for this
+  const float delta = 0.00001f; /* TODO find a good heuristic for this */
   float dvec_null[3][3], dvec_pos[3][3], dvec_neg[3][3];
   float f[3];
   int a, b;
@@ -1262,7 +1262,7 @@ BLI_INLINE void spring_angbend_estimate_dfdv(Implicit_Data *data,
                                              int q,
                                              float dfdv[3][3])
 {
-  const float delta = 0.00001f;  // TODO find a good heuristic for this
+  const float delta = 0.00001f; /* TODO find a good heuristic for this */
   float dvec_null[3][3], dvec_pos[3][3], dvec_neg[3][3];
   float f[3];
   int a, b;
@@ -1368,7 +1368,7 @@ bool SIM_mass_spring_force_spring_bending_angular(Implicit_Data *data,
   float dfi_dxi[3][3], dfj_dxi[3][3], dfj_dxj[3][3], dfk_dxi[3][3], dfk_dxj[3][3], dfk_dxk[3][3];
   float dfdvi[3][3];
 
-  // TESTING
+  /* TESTING */
   damping = 0.0f;
 
   zero_v3(fi);
@@ -1468,8 +1468,8 @@ bool SIM_mass_spring_force_spring_goal(Implicit_Data *data,
   if (length > ALMOST_ZERO) {
     mul_v3_v3fl(f, dir, stiffness * length);
 
-    // Ascher & Boxman, p.21: Damping only during elonglation
-    // something wrong with it...
+    /* Ascher & Boxman, p.21: Damping only during elonglation
+     * something wrong with it... */
     madd_v3_v3fl(f, dir, damping * dot_v3v3(vel, dir));
 
     dfdx_spring(dfdx, dir, length, 0.0f, stiffness);

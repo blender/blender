@@ -91,7 +91,7 @@ static int py_call_level = 0;
 /* Set by command line arguments before Python starts. */
 static bool py_use_system_env = false;
 
-// #define TIME_PY_RUN // simple python tests. prints on exit.
+// #define TIME_PY_RUN /* simple python tests. prints on exit. */
 
 #ifdef TIME_PY_RUN
 #  include "PIL_time.h"

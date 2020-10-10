@@ -256,9 +256,9 @@ void NODE_OT_cryptomatte_layer_remove(struct wmOperatorType *ot);
 
 extern const char *node_context_dir[];
 
-// XXXXXX
+/* XXXXXX */
 
-// nodes draw without dpi - the view zoom is flexible
+/* Nodes draw without dpi - the view zoom is flexible. */
 #define HIDDEN_RAD (0.75f * U.widget_unit)
 #define BASIS_RAD (0.2f * U.widget_unit)
 #define NODE_DYS (U.widget_unit / 2)
@@ -271,7 +271,7 @@ extern const char *node_context_dir[];
 #define NODE_RESIZE_MARGIN (0.20f * U.widget_unit)
 #define NODE_LINK_RESOL 12
 
-// XXX button events (butspace)
+/* Button events (butspace) */
 enum eNodeSpace_ButEvents {
   B_NOP = 0,
   B_REDR = 1,

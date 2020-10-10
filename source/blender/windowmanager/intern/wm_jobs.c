@@ -443,7 +443,11 @@ static void wm_jobs_test_suspend_stop(wmWindowManager *wm, wmJob *test)
 
   /* Possible suspend ourselves, waiting for other jobs, or de-suspend. */
   test->suspended = suspend;
-  // if (suspend) printf("job suspended: %s\n", test->name);
+#if 0
+  if (suspend) {
+    printf("job suspended: %s\n", test->name);
+  }
+#endif
 }
 
 /**
@@ -679,8 +683,14 @@ void wm_jobs_timer(wmWindowManager *wm, wmTimer *wt)
           wm_job->run_customdata = NULL;
           wm_job->run_free = NULL;
 
-          // if (wm_job->stop) printf("job ready but stopped %s\n", wm_job->name);
-          // else printf("job finished %s\n", wm_job->name);
+#if 0
+          if (wm_job->stop) {
+            printf("job ready but stopped %s\n", wm_job->name);
+          }
+          else {
+            printf("job finished %s\n", wm_job->name);
+          }
+#endif
 
           if (G.debug & G_DEBUG_JOBS) {
             printf("Job '%s' finished in %f seconds\n",

@@ -100,7 +100,7 @@ void BKE_object_eval_parent(Depsgraph *depsgraph, Object *ob)
   DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
 
   /* get local matrix (but don't calculate it, as that was done already!) */
-  // XXX: redundant?
+  /* XXX: redundant? */
   copy_m4_m4(locmat, ob->obmat);
 
   /* get parent effect matrix */

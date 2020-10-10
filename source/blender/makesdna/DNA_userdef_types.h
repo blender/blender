@@ -322,10 +322,10 @@ typedef struct ThemeSpace {
   unsigned char grid_levels;
 
   /* syntax for textwindow and nodes */
-  unsigned char syntaxl[4], syntaxs[4];  // in nodespace used for backdrop matte
-  unsigned char syntaxb[4], syntaxn[4];  // in nodespace used for color input
-  unsigned char syntaxv[4], syntaxc[4];  // in nodespace used for converter group
-  unsigned char syntaxd[4], syntaxr[4];  // in nodespace used for distort
+  unsigned char syntaxl[4], syntaxs[4]; /* in nodespace used for backdrop matte */
+  unsigned char syntaxb[4], syntaxn[4]; /* in nodespace used for color input */
+  unsigned char syntaxv[4], syntaxc[4]; /* in nodespace used for converter group */
+  unsigned char syntaxd[4], syntaxr[4]; /* in nodespace used for distort */
 
   unsigned char line_numbers[4];
   char _pad6[3];

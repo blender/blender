@@ -62,7 +62,7 @@
 
 #include "BLF_api.h"
 
-#include "clip_intern.h"  // own include
+#include "clip_intern.h" /* own include */
 
 /*********************** main area drawing *************************/
 

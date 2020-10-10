@@ -32,7 +32,7 @@
 #include "ED_physics.h"
 #include "ED_select_utils.h"
 
-#include "physics_intern.h"  // own include
+#include "physics_intern.h" /* own include */
 
 /***************************** particles ***********************************/
 

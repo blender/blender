@@ -120,7 +120,7 @@ static void bm_init_types_bmloopuv(void)
 
   BPy_BMLoopUV_Type.tp_name = "BMLoopUV";
 
-  BPy_BMLoopUV_Type.tp_doc = NULL;  // todo
+  BPy_BMLoopUV_Type.tp_doc = NULL; /* todo */
 
   BPy_BMLoopUV_Type.tp_getset = bpy_bmloopuv_getseters;
 
@@ -233,7 +233,7 @@ static void bm_init_types_bmvertskin(void)
 
   BPy_BMVertSkin_Type.tp_name = "BMVertSkin";
 
-  BPy_BMVertSkin_Type.tp_doc = NULL;  // todo
+  BPy_BMVertSkin_Type.tp_doc = NULL; /* todo */
 
   BPy_BMVertSkin_Type.tp_getset = bpy_bmvertskin_getseters;
 
@@ -645,7 +645,7 @@ static void bm_init_types_bmdvert(void)
 
   BPy_BMDeformVert_Type.tp_name = "BMDeformVert";
 
-  BPy_BMDeformVert_Type.tp_doc = NULL;  // todo
+  BPy_BMDeformVert_Type.tp_doc = NULL; /* todo */
 
   BPy_BMDeformVert_Type.tp_as_sequence = &bpy_bmdeformvert_as_sequence;
   BPy_BMDeformVert_Type.tp_as_mapping = &bpy_bmdeformvert_as_mapping;

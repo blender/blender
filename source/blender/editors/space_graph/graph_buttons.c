@@ -64,7 +64,7 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "graph_intern.h"  // own include
+#include "graph_intern.h" /* own include */
 
 /* ******************* graph editor space & buttons ************** */
 
@@ -644,7 +644,7 @@ static void do_graph_region_driver_buttons(bContext *C, void *id_v, int event)
   }
 
   /* default for now */
-  WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);  // XXX could use better notifier
+  WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene); /* XXX could use better notifier */
 }
 
 /* callback to add a target variable to the active driver */
@@ -1120,7 +1120,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
                          0.0,
                          0.0,
                          TIP_("Invalid variable name, click here for details"));
-      UI_but_func_set(but, driver_dvar_invalid_name_query_cb, dvar, NULL);  // XXX: reports?
+      UI_but_func_set(but, driver_dvar_invalid_name_query_cb, dvar, NULL); /* XXX: reports? */
     }
 
     /* 1.3) remove button */
@@ -1316,9 +1316,9 @@ static void graph_panel_drivers_popover(const bContext *C, Panel *panel)
 static void do_graph_region_modifier_buttons(bContext *C, void *UNUSED(arg), int event)
 {
   switch (event) {
-    case B_FMODIFIER_REDRAW:  // XXX this should send depsgraph updates too
+    case B_FMODIFIER_REDRAW: /* XXX this should send depsgraph updates too */
       WM_event_add_notifier(
-          C, NC_ANIMATION, NULL);  // XXX need a notifier specially for F-Modifiers
+          C, NC_ANIMATION, NULL); /* XXX need a notifier specially for F-Modifiers */
       break;
   }
 }

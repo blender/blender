@@ -744,8 +744,8 @@ static void annotation_draw_data(
   annotation_draw_data_layers(gpd, offsx, offsy, winx, winy, cfra, dflag);
 
   /* turn off alpha blending, then smooth lines */
-  GPU_blend(GPU_BLEND_NONE);  // alpha blending
-  GPU_line_smooth(false);     // smooth lines
+  GPU_blend(GPU_BLEND_NONE); /* alpha blending */
+  GPU_line_smooth(false);    /* smooth lines */
 
   GPU_depth_mask(prev_depth_mask);
 }

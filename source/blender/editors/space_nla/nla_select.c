@@ -49,7 +49,7 @@
 #include "UI_interface.h"
 #include "UI_view2d.h"
 
-#include "nla_intern.h"  // own include
+#include "nla_intern.h" /* own include */
 
 /* ******************** Utilities ***************************************** */
 
@@ -100,7 +100,7 @@ static void deselect_nla_strips(bAnimContext *ac, short test, short sel)
   short smode;
 
   /* determine type-based settings */
-  // FIXME: double check whether ANIMFILTER_LIST_VISIBLE is needed!
+  /* FIXME: double check whether ANIMFILTER_LIST_VISIBLE is needed! */
   filter = (ANIMFILTER_DATA_VISIBLE);
 
   /* filter data */
@@ -728,7 +728,7 @@ void NLA_OT_click_select(wmOperatorType *ot)
 
   /* properties */
   WM_operator_properties_generic_select(ot);
-  prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");  // SHIFTKEY
+  prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); /* SHIFTKEY */
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(ot->srna,

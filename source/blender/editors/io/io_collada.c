@@ -222,12 +222,12 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
   export_settings.keep_smooth_curves = keep_smooth_curves != 0;
 
   if (export_animation_type != BC_ANIMATION_EXPORT_SAMPLES) {
-    // When curves are exported then we can not export as matrix
+    /* When curves are exported then we can not export as matrix. */
     export_settings.animation_transformation_type = BC_TRANSFORMATION_TYPE_DECOMPOSED;
   }
 
   if (export_settings.animation_transformation_type != BC_TRANSFORMATION_TYPE_DECOMPOSED) {
-    // Can not export smooth curves when Matrix export is enabled.
+    /* Can not export smooth curves when Matrix export is enabled. */
     export_settings.keep_smooth_curves = false;
   }
 

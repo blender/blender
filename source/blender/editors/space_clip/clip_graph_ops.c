@@ -44,7 +44,7 @@
 
 #include "UI_view2d.h"
 
-#include "clip_intern.h"  // own include
+#include "clip_intern.h" /* own include */
 
 /******************** common graph-editing utilities ********************/
 

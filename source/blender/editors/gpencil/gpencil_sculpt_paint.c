@@ -760,7 +760,7 @@ static bool gpencil_brush_twist_apply(tGP_BrushEditData *gso,
     float rmat[3][3];
 
     /* Express position of point relative to cursor, ready to rotate */
-    // XXX: There is still some offset here, but it's close to working as expected...
+    /* XXX: There is still some offset here, but it's close to working as expected. */
     vec[0] = (float)(co[0] - gso->mval[0]);
     vec[1] = (float)(co[1] - gso->mval[1]);
 
@@ -778,7 +778,7 @@ static bool gpencil_brush_twist_apply(tGP_BrushEditData *gso,
       UI_view2d_region_to_view(v2d, vec[0], vec[1], &pt->x, &pt->y);
     }
     else {
-      // XXX
+      /* XXX */
       copy_v2_v2(&pt->x, vec);
     }
   }
@@ -2125,7 +2125,7 @@ void GPENCIL_OT_sculpt_paint(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Stroke Sculpt";
   ot->idname = "GPENCIL_OT_sculpt_paint";
-  ot->description = "Apply tweaks to strokes by painting over the strokes";  // XXX
+  ot->description = "Apply tweaks to strokes by painting over the strokes"; /* XXX */
 
   /* api callbacks */
   ot->exec = gpencil_sculpt_brush_exec;

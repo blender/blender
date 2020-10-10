@@ -363,7 +363,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 
   RE_SetReports(re, NULL);
 
-  // no redraw needed, we leave state as we entered it
+  /* No redraw needed, we leave state as we entered it. */
   ED_update_for_newframe(mainp, CTX_data_depsgraph_pointer(C));
 
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_RESULT, scene);
@@ -386,7 +386,7 @@ static void make_renderinfo_string(const RenderStats *rs,
                                    const char *error,
                                    char *str)
 {
-  char info_time_str[32];  // used to be extern to header_info.c
+  char info_time_str[32]; /* used to be extern to header_info.c */
   uintptr_t mem_in_use, peak_memory;
   float megs_used_memory, megs_peak_memory;
   char *spos = str;
@@ -526,7 +526,7 @@ static void render_image_update_pass_and_layer(RenderJob *rj, RenderResult *rr, 
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         if (area->spacetype == SPACE_IMAGE) {
           SpaceImage *sima = area->spacedata.first;
-          // area->spacedata might be empty when toggling fullscreen mode.
+          /* area->spacedata might be empty when toggling full-screen mode. */
           if (sima != NULL && sima->image == rj->image) {
             if (first_area == NULL) {
               first_area = area;
@@ -944,9 +944,9 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
    * since sequence rendering can call that recursively... (peter) */
   BKE_sequencer_cache_cleanup(scene);
 
-  // store spare
-  // get view3d layer, local layer, make this nice api call to render
-  // store spare
+  /* store spare
+   * get view3d layer, local layer, make this nice api call to render
+   * store spare */
 
   /* ensure at least 1 area shows result */
   area = render_view_open(C, event->x, event->y, op->reports);

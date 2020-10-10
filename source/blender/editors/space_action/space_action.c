@@ -801,7 +801,7 @@ static void action_refresh(const bContext *C, ScrArea *area)
   }
 
   /* region updates? */
-  // XXX re-sizing y-extents of tot should go here?
+  /* XXX re-sizing y-extents of tot should go here? */
 }
 
 static void action_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id, ID *new_id)

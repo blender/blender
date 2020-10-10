@@ -1631,18 +1631,19 @@ void BKE_view_layer_selected_editable_objects_iterator_begin(BLI_Iterator *iter,
   objects_iterator_begin(iter, data_in, BASE_VISIBLE_DEPSGRAPH | BASE_SELECTED);
   if (iter->valid) {
     if (BKE_object_is_libdata((Object *)iter->current) == false) {
-      // First object is valid (selectable and not libdata) -> all good.
+      /* First object is valid (selectable and not libdata) -> all good. */
       return;
     }
 
-    // Object is selectable but not editable -> search for another one.
+    /* Object is selectable but not editable -> search for another one. */
     BKE_view_layer_selected_editable_objects_iterator_next(iter);
   }
 }
 
 void BKE_view_layer_selected_editable_objects_iterator_next(BLI_Iterator *iter)
 {
-  // Search while there are objects and the one we have is not editable (editable = not libdata).
+  /* Search while there are objects and the one we have is not editable (editable = not libdata).
+   */
   do {
     objects_iterator_next(iter, BASE_VISIBLE_DEPSGRAPH | BASE_SELECTED);
   } while (iter->valid && BKE_object_is_libdata((Object *)iter->current) != false);

@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include <algorithm>  // sort()
+#include <algorithm> /* sort() */
 #include <map>
 #include <string>
 #include <vector>

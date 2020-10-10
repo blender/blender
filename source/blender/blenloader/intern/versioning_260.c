@@ -54,15 +54,15 @@
 
 #include "BKE_anim_visualization.h"
 #include "BKE_image.h"
-#include "BKE_main.h"  // for Main
-#include "BKE_mesh.h"  // for ME_ defines (patching)
+#include "BKE_main.h" /* for Main */
+#include "BKE_mesh.h" /* for ME_ defines (patching) */
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
-#include "BKE_text.h"  // for txt_extended_ascii_as_utf8
+#include "BKE_text.h" /* for txt_extended_ascii_as_utf8 */
 #include "BKE_texture.h"
 #include "BKE_tracking.h"
 
@@ -70,7 +70,7 @@
 #  include "BKE_writeffmpeg.h"
 #endif
 
-#include "IMB_imbuf.h"  // for proxy / timecode versioning stuff
+#include "IMB_imbuf.h" /* for proxy / timecode versioning stuff */
 
 #include "NOD_common.h"
 #include "NOD_texture.h"
@@ -1343,7 +1343,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
   if (bmain->versionfile < 263 || (bmain->versionfile == 263 && bmain->subversionfile < 10)) {
     {
       Scene *scene;
-      // composite redesign
+      /* composite redesign */
       for (scene = bmain->scenes.first; scene; scene = scene->id.next) {
         if (scene->nodetree) {
           if (scene->nodetree->chunksize == 0) {
@@ -1921,7 +1921,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  // add storage for compositor translate nodes when not existing
+  /* add storage for compositor translate nodes when not existing */
   if (MAIN_VERSION_OLDER(bmain, 265, 11)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_COMPOSIT) {

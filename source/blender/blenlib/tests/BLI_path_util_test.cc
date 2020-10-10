@@ -284,9 +284,9 @@ TEST(path_util, JoinTruncateLong)
   JOIN("//longer/p", 11, "//", "//longer", "path");
   JOIN("//longer/pa", 12, "//", "//longer", "path");
   JOIN("//longer/pat", 13, "//", "//longer", "path");
-  JOIN("//longer/path", 14, "//", "//longer", "path");  // not truncated
+  JOIN("//longer/path", 14, "//", "//longer", "path"); /* not truncated. */
   JOIN("//longer/path", 14, "//", "//longer", "path/");
-  JOIN("//longer/path/", 15, "//", "//longer", "path/");  // not truncated
+  JOIN("//longer/path/", 15, "//", "//longer", "path/"); /* not truncated. */
   JOIN("//longer/path/", 15, "//", "//longer", "path/", "trunc");
   JOIN("//longer/path/t", 16, "//", "//longer", "path/", "trunc");
 }

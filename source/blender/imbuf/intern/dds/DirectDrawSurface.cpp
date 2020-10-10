@@ -25,36 +25,36 @@
  * Original license from NVIDIA follows.
  */
 
-// Copyright NVIDIA Corporation 2007 -- Ignacio Castano <icastano@nvidia.com>
-//
-// Permission is hereby granted, free of charge, to any person
-// obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without
-// restriction, including without limitation the rights to use,
-// copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following
-// conditions:
-//
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-// OTHER DEALINGS IN THE SOFTWARE.
+/* Copyright NVIDIA Corporation 2007 -- Ignacio Castano <icastano@nvidia.com>
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE. */
 
 #include <BlockDXT.h>
 #include <DirectDrawSurface.h>
 #include <PixelFormat.h>
 
-#include <math.h>    // sqrt
-#include <stdio.h>   // printf
-#include <stdlib.h>  // malloc
+#include <math.h>   /* sqrt */
+#include <stdio.h>  /* printf */
+#include <stdlib.h> /* malloc */
 #include <sys/types.h>
 
 /*** declarations ***/
@@ -76,13 +76,15 @@ static const uint FOURCC_RXGB = DDS_MAKEFOURCC('R', 'X', 'G', 'B');
 static const uint FOURCC_ATI1 = DDS_MAKEFOURCC('A', 'T', 'I', '1');
 static const uint FOURCC_ATI2 = DDS_MAKEFOURCC('A', 'T', 'I', '2');
 
-// static const uint FOURCC_A2XY = DDS_MAKEFOURCC('A', '2', 'X', 'Y');
+#if 0 /* Valid but currently unused. */
+static const uint FOURCC_A2XY = DDS_MAKEFOURCC('A', '2', 'X', 'Y');
+#endif
 
 static const uint FOURCC_DX10 = DDS_MAKEFOURCC('D', 'X', '1', '0');
 
 static const uint FOURCC_UVER = DDS_MAKEFOURCC('U', 'V', 'E', 'R');
 
-// 32 bit RGB formats.
+/* 32 bit RGB formats. */
 static const uint D3DFMT_R8G8B8 = 20;
 static const uint D3DFMT_A8R8G8B8 = 21;
 static const uint D3DFMT_X8R8G8B8 = 22;
@@ -100,25 +102,33 @@ static const uint D3DFMT_X8B8G8R8 = 33;
 static const uint D3DFMT_G16R16 = 34;
 static const uint D3DFMT_A2R10G10B10 = 35;
 
-// static const uint D3DFMT_A16B16G16R16 = 36;
+#if 0 /* Valid but currently unused. */
+static const uint D3DFMT_A16B16G16R16 = 36;
+#endif
 
-// Palette formats.
-// static const uint D3DFMT_A8P8 = 40;
-// static const uint D3DFMT_P8 = 41;
+/* Palette formats. */
+#if 0 /* Valid but currently unused. */
+static const uint D3DFMT_A8P8 = 40;
+static const uint D3DFMT_P8 = 41;
+#endif
 
-// Luminance formats.
+/* Luminance formats. */
 static const uint D3DFMT_L8 = 50;
-// static const uint D3DFMT_A8L8 = 51;
-// static const uint D3DFMT_A4L4 = 52;
+#if 0 /* Valid but currently unused. */
+static const uint D3DFMT_A8L8 = 51;
+static const uint D3DFMT_A4L4 = 52;
+#endif
 static const uint D3DFMT_L16 = 81;
 
-// Floating point formats
-// static const uint D3DFMT_R16F = 111;
-// static const uint D3DFMT_G16R16F = 112;
-// static const uint D3DFMT_A16B16G16R16F = 113;
-// static const uint D3DFMT_R32F = 114;
-// static const uint D3DFMT_G32R32F = 115;
-// static const uint D3DFMT_A32B32G32R32F = 116;
+/* Floating point formats */
+#if 0 /* Valid but currently unused. */
+static const uint D3DFMT_R16F = 111;
+static const uint D3DFMT_G16R16F = 112;
+static const uint D3DFMT_A16B16G16R16F = 113;
+static const uint D3DFMT_R32F = 114;
+static const uint D3DFMT_G32R32F = 115;
+static const uint D3DFMT_A32B32G32R32F = 116;
+#endif
 
 static const uint DDSD_CAPS = 0x00000001U;
 static const uint DDSD_PIXELFORMAT = 0x00001000U;
@@ -154,11 +164,11 @@ static const uint DDPF_PALETTEINDEXED8 = 0x00000020U;
 static const uint DDPF_LUMINANCE = 0x00020000U;
 static const uint DDPF_ALPHAPREMULT = 0x00008000U;
 
-// Custom NVTT flags.
+/* Custom NVTT flags. */
 static const uint DDPF_NORMAL = 0x80000000U;
 static const uint DDPF_SRGB = 0x40000000U;
 
-// DX10 formats.
+/* DX10 formats. */
 enum DXGI_FORMAT {
   DXGI_FORMAT_UNKNOWN = 0,
 
@@ -526,7 +536,7 @@ const FormatDescriptor s_d3dFormats[] = {
 
 const uint s_d3dFormatCount = sizeof(s_d3dFormats) / sizeof(s_d3dFormats[0]);
 
-}  // namespace
+} /* namespace */
 
 static uint findD3D9Format(uint bitcount, uint rmask, uint gmask, uint bmask, uint amask)
 {
@@ -555,9 +565,9 @@ DDSHeader::DDSHeader()
     this->reserved[i] = 0;
   }
 
-  // Store version information on the reserved header attributes.
+  /* Store version information on the reserved header attributes. */
   this->reserved[9] = FOURCC_NVTT;
-  this->reserved[10] = (2 << 16) | (1 << 8) | (0);  // major.minor.revision
+  this->reserved[10] = (2 << 16) | (1 << 8) | (0); /* major.minor.revision */
 
   this->pf.size = 32;
   this->pf.flags = 0;
@@ -658,7 +668,7 @@ void DDSHeader::setPitch(uint pitch)
 
 void DDSHeader::setFourCC(uint8 c0, uint8 c1, uint8 c2, uint8 c3)
 {
-  // set fourcc pixel format.
+  /* set fourcc pixel format. */
   this->pf.flags = DDPF_FOURCC;
   this->pf.fourcc = DDS_MAKEFOURCC(c0, c1, c2, c3);
 
@@ -671,7 +681,7 @@ void DDSHeader::setFourCC(uint8 c0, uint8 c1, uint8 c2, uint8 c3)
 
 void DDSHeader::setFormatCode(uint32 code)
 {
-  // set fourcc pixel format.
+  /* set fourcc pixel format. */
   this->pf.flags = DDPF_FOURCC;
   this->pf.fourcc = code;
 
@@ -689,7 +699,7 @@ void DDSHeader::setSwizzleCode(uint8 c0, uint8 c1, uint8 c2, uint8 c3)
 
 void DDSHeader::setPixelFormat(uint bitcount, uint rmask, uint gmask, uint bmask, uint amask)
 {
-  // Make sure the masks are correct.
+  /* Make sure the masks are correct. */
   if ((rmask & gmask) || (rmask & bmask) || (rmask & amask) || (gmask & bmask) ||
       (gmask & amask) || (bmask & amask)) {
     printf("DDS: bad RGBA masks, pixel format not set\n");
@@ -713,7 +723,7 @@ void DDSHeader::setPixelFormat(uint bitcount, uint rmask, uint gmask, uint bmask
   }
 
   if (bitcount == 0) {
-    // Compute bit count from the masks.
+    /* Compute bit count from the masks. */
     uint total = rmask | gmask | bmask | amask;
     while (total != 0) {
       bitcount++;
@@ -721,7 +731,7 @@ void DDSHeader::setPixelFormat(uint bitcount, uint rmask, uint gmask, uint bmask
     }
   }
 
-  // D3DX functions do not like this:
+  /* D3DX functions do not like this: */
   this->pf.fourcc = 0;  // findD3D9Format(bitcount, rmask, gmask, bmask, amask);
 #if 0
   if (this->pf.fourcc) {
@@ -872,9 +882,9 @@ DirectDrawSurface::DirectDrawSurface(unsigned char *mem, uint size) : stream(mem
 {
   mem_read(stream, header);
 
-  // some ATI2 compressed normal maps do not have their
-  // normal flag set, so force it here (the original nvtt don't do
-  // this, but the decompressor has a -forcenormal flag)
+  /* Some ATI2 compressed normal maps do not have their
+   * normal flag set, so force it here (the original nvtt don't do
+   * this, but the decompressor has a -forcenormal flag). */
   if (header.pf.fourcc == FOURCC_ATI2) {
     header.setNormalFlag(true);
   }
@@ -928,12 +938,12 @@ bool DirectDrawSurface::isSupported() const
         header.pf.fourcc != FOURCC_DXT3 && header.pf.fourcc != FOURCC_DXT4 &&
         header.pf.fourcc != FOURCC_DXT5 && header.pf.fourcc != FOURCC_RXGB &&
         header.pf.fourcc != FOURCC_ATI1 && header.pf.fourcc != FOURCC_ATI2) {
-      // Unknown fourcc code.
+      /* Unknown fourcc code. */
       return false;
     }
   }
   else if ((header.pf.flags & DDPF_RGB) || (header.pf.flags & DDPF_LUMINANCE)) {
-    // All RGB and luminance formats are supported now.
+    /* All RGB and luminance formats are supported now. */
   }
   else {
     return false;
@@ -941,12 +951,12 @@ bool DirectDrawSurface::isSupported() const
 
   if (isTextureCube() &&
       (header.caps.caps2 & DDSCAPS2_CUBEMAP_ALL_FACES) != DDSCAPS2_CUBEMAP_ALL_FACES) {
-    // Cubemaps must contain all faces.
+    /* Cubemaps must contain all faces. */
     return false;
   }
 
   if (isTexture3D()) {
-    // @@ 3D textures not supported yet.
+    /* @@ 3D textures not supported yet. */
     return false;
   }
 
@@ -971,7 +981,7 @@ bool DirectDrawSurface::hasAlpha() const
       return false;
     }
 
-    // @@ Here we could check the ALPHA_PIXELS flag, but nobody sets it. (except us?)
+    /* @@ Here we could check the ALPHA_PIXELS flag, but nobody sets it. (except us?) */
     return true;
   }
 
@@ -1072,7 +1082,7 @@ void DirectDrawSurface::mipmap(Image *img, uint face, uint mipmap)
   uint w = width();
   uint h = height();
 
-  // Compute width and height.
+  /* Compute width and height. */
   for (uint m = 0; m < mipmap; m++) {
     w = MAX(1U, w / 2);
     h = MAX(1U, h / 2);
@@ -1088,7 +1098,7 @@ void DirectDrawSurface::mipmap(Image *img, uint face, uint mipmap)
   }
 
   if (header.hasDX10Header()) {
-    // So far only block formats supported.
+    /* So far only block formats supported. */
     readBlockImage(img);
   }
   else {
@@ -1101,8 +1111,8 @@ void DirectDrawSurface::mipmap(Image *img, uint face, uint mipmap)
   }
 }
 
-// It was easier to copy this function from upstream than to resync.
-// This should be removed if a resync ever occurs.
+/* It was easier to copy this function from upstream than to resync.
+ * This should be removed if a resync ever occurs. */
 void *DirectDrawSurface::readData(uint &rsize)
 {
   uint header_size = 128;  // sizeof(DDSHeader);
@@ -1124,7 +1134,7 @@ void *DirectDrawSurface::readData(uint &rsize)
     rsize = 0;
   }
 
-  // Maybe check if size == rsize? assert() isn't in this scope...
+  /* Maybe check if size == rsize? assert() isn't in this scope. */
 
   return data;
 }
@@ -1155,7 +1165,7 @@ void DirectDrawSurface::readLinearImage(Image *img)
     return;
   }
 
-  // Read linear RGB images.
+  /* Read linear RGB images. */
   for (uint y = 0; y < h; y++) {
     for (uint x = 0; x < w; x++) {
       uint c = 0;
@@ -1185,10 +1195,10 @@ void DirectDrawSurface::readBlockImage(Image *img)
     for (uint bx = 0; bx < bw; bx++) {
       ColorBlock block;
 
-      // Read color block.
+      /* Read color block. */
       readBlock(&block);
 
-      // Write color block.
+      /* Write color block. */
       for (uint y = 0; y < MIN(4U, h - 4 * by); y++) {
         for (uint x = 0; x < MIN(4U, w - 4 * bx); x++) {
           img->pixel(4 * bx + x, 4 * by + y) = block.color(x, y);
@@ -1215,7 +1225,7 @@ void DirectDrawSurface::readBlock(ColorBlock *rgba)
 {
   uint fourcc = header.pf.fourcc;
 
-  // Map DX10 block formats to fourcc codes.
+  /* Map DX10 block formats to fourcc codes. */
   if (header.hasDX10Header()) {
     if (header.header10.dxgiFormat == DXGI_FORMAT_BC1_UNORM) {
       fourcc = FOURCC_DXT1;
@@ -1251,7 +1261,7 @@ void DirectDrawSurface::readBlock(ColorBlock *rgba)
     block.decodeBlock(rgba);
 
     if (fourcc == FOURCC_RXGB) {
-      // Swap R & A.
+      /* Swap R & A. */
       for (int i = 0; i < 16; i++) {
         Color32 &c = rgba->color(i);
         uint tmp = c.r;
@@ -1271,7 +1281,7 @@ void DirectDrawSurface::readBlock(ColorBlock *rgba)
     block.decodeBlock(rgba);
   }
 
-  // If normal flag set, convert to normal.
+  /* If normal flag set, convert to normal. */
   if (header.pf.flags & DDPF_NORMAL) {
     if (fourcc == FOURCC_ATI2) {
       for (int i = 0; i < 16; i++) {
@@ -1323,7 +1333,7 @@ uint DirectDrawSurface::blockSize() const
       }
   }
 
-  // Not a block image.
+  /* Not a block image. */
   return 0;
 }
 
@@ -1340,14 +1350,14 @@ uint DirectDrawSurface::mipmapSize(uint mipmap) const
   }
 
   if (header.pf.flags & DDPF_FOURCC) {
-    // @@ How are 3D textures aligned?
+    /* @@ How are 3D textures aligned? */
     w = (w + 3) / 4;
     h = (h + 3) / 4;
     return blockSize() * w * h;
   }
   if (header.pf.flags & DDPF_RGB || (header.pf.flags & DDPF_LUMINANCE)) {
-    uint pitch = computePitch(
-        w, header.pf.bitcount, 8);  // Assuming 8 bit alignment, which is the same D3DX expects.
+    /* Assuming 8 bit alignment, which is the same D3DX expects. */
+    uint pitch = computePitch(w, header.pf.bitcount, 8);
 
     return pitch * h * d;
   }
@@ -1463,7 +1473,7 @@ void DirectDrawSurface::printInfo() const
   }
 
   if (header.pf.fourcc != 0) {
-    // Display fourcc code even when DDPF_FOURCC flag not set.
+    /* Display fourcc code even when DDPF_FOURCC flag not set. */
     printf("\tFourCC: '%c%c%c%c' (0x%.8X)\n",
            (int)((header.pf.fourcc >> 0) & 0xFF),
            (int)((header.pf.fourcc >> 8) & 0xFF),

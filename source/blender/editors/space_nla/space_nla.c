@@ -551,7 +551,7 @@ static void nla_listener(wmWindow *UNUSED(win),
   /* context changes */
   switch (wmn->category) {
     case NC_ANIMATION:
-      // TODO: filter specific types of changes?
+      /* TODO: filter specific types of changes? */
       ED_area_tag_refresh(area);
       break;
     case NC_SCENE:

@@ -22,7 +22,7 @@
  * * name imported objects
  * * import object rotation as euler */
 
-#include <algorithm>  // sort()
+#include <algorithm> /* sort() */
 #include <map>
 #include <string>
 
@@ -90,7 +90,7 @@
  */
 
 // #define COLLADA_DEBUG
-// creates empties for each imported bone on layer 2, for debugging
+/* creates empties for each imported bone on layer 2, for debugging */
 // #define ARMATURE_TEST
 
 DocumentImporter::DocumentImporter(bContext *C, const ImportSettings *import_settings)
@@ -429,7 +429,7 @@ Object *DocumentImporter::create_instance_node(Object *source_ob,
     if (source_node) {
       COLLADABU::Math::Matrix4 mat4 = source_node->getTransformationMatrix();
       COLLADABU::Math::Matrix4 bmat4 =
-          mat4.transpose();  // transpose to get blender row-major order
+          mat4.transpose(); /* transpose to get blender row-major order */
       float mat[4][4];
       for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
@@ -457,7 +457,7 @@ Object *DocumentImporter::create_instance_node(Object *source_ob,
       }
       COLLADAFW::InstanceNodePointerArray &inodes = child_node->getInstanceNodes();
       Object *new_child = NULL;
-      if (inodes.getCount()) {  // \todo loop through instance nodes
+      if (inodes.getCount()) { /* \todo loop through instance nodes */
         const COLLADAFW::UniqueId &id = inodes[0]->getInstanciatedObjectId();
         fprintf(stderr, "Doing %d child nodes\n", (int)node_map.count(id));
         new_child = create_instance_node(
@@ -678,7 +678,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
       }
     }
 
-    // create_constraints(et,ob);
+    /* create_constraints(et,ob); */
   }
 
   for (std::vector<Object *>::iterator it = objects_done->begin(); it != objects_done->end();
@@ -686,7 +686,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
     ob = *it;
 
     if (read_transform) {
-      anim_importer.read_node_transform(node, ob);  // overwrites location set earlier
+      anim_importer.read_node_transform(node, ob); /* overwrites location set earlier */
     }
 
     if (!is_joint) {
@@ -815,7 +815,7 @@ void DocumentImporter::write_profile_COMMON(COLLADAFW::EffectCommon *ef, Materia
 
   /* following mapping still needs to be verified */
 #if 0
-  // needs rework to be done for 2.81
+  /* needs rework to be done for 2.81 */
   matNode.set_shininess(ef->getShininess());
 #endif
   matNode.set_reflectivity(ef->getReflectivity());
@@ -1127,7 +1127,7 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
 
     switch (light->getLightType()) {
       case COLLADAFW::Light::AMBIENT_LIGHT: {
-        lamp->type = LA_SUN;  // TODO needs more thoughts
+        lamp->type = LA_SUN; /* TODO needs more thoughts */
       } break;
       case COLLADAFW::Light::SPOT_LIGHT: {
         lamp->type = LA_SPOT;

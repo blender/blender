@@ -121,7 +121,7 @@ static void applyResize(TransInfo *t, const int UNUSED(mval[2]))
     headerResize(t, t->values_final, str);
   }
 
-  copy_m3_m3(t->mat, mat);  // used in gizmo
+  copy_m3_m3(t->mat, mat); /* used in gizmo */
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;

@@ -25,7 +25,7 @@
 
 /* TfToken objects are not cheap to construct, so we do it once. */
 namespace usdtokens {
-// Materials
+/* Materials */
 static const pxr::TfToken diffuse_color("diffuseColor", pxr::TfToken::Immortal);
 static const pxr::TfToken metallic("metallic", pxr::TfToken::Immortal);
 static const pxr::TfToken preview_shader("previewShader", pxr::TfToken::Immortal);
@@ -58,8 +58,8 @@ pxr::UsdTimeCode USDAbstractWriter::get_export_time_code() const
   if (is_animated_) {
     return usd_export_context_.hierarchy_iterator->get_export_time_code();
   }
-  // By using the default timecode USD won't even write a single `timeSample` for non-animated
-  // data. Instead, it writes it as non-timesampled.
+  /* By using the default timecode USD won't even write a single `timeSample` for non-animated
+   * data. Instead, it writes it as non-timesampled. */
   static pxr::UsdTimeCode default_timecode = pxr::UsdTimeCode::Default();
   return default_timecode;
 }
@@ -90,7 +90,7 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(Material *material)
   static pxr::SdfPath material_library_path("/_materials");
   pxr::UsdStageRefPtr stage = usd_export_context_.stage;
 
-  // Construct the material.
+  /* Construct the material. */
   pxr::TfToken material_name(usd_export_context_.hierarchy_iterator->get_id_name(&material->id));
   pxr::SdfPath usd_path = material_library_path.AppendChild(material_name);
   pxr::UsdShadeMaterial usd_material = pxr::UsdShadeMaterial::Get(stage, usd_path);
@@ -99,7 +99,7 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(Material *material)
   }
   usd_material = pxr::UsdShadeMaterial::Define(stage, usd_path);
 
-  // Construct the shader.
+  /* Construct the shader. */
   pxr::SdfPath shader_path = usd_path.AppendChild(usdtokens::preview_shader);
   pxr::UsdShadeShader shader = pxr::UsdShadeShader::Define(stage, shader_path);
   shader.CreateIdAttr(pxr::VtValue(usdtokens::preview_surface));
@@ -108,7 +108,7 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(Material *material)
   shader.CreateInput(usdtokens::roughness, pxr::SdfValueTypeNames->Float).Set(material->roughness);
   shader.CreateInput(usdtokens::metallic, pxr::SdfValueTypeNames->Float).Set(material->metallic);
 
-  // Connect the shader and the material together.
+  /* Connect the shader and the material together. */
   usd_material.CreateSurfaceOutput().ConnectToSource(shader, usdtokens::surface);
 
   return usd_material;

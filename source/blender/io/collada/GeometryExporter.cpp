@@ -386,7 +386,7 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
       COLLADASW::Input texcoord_input(
           COLLADASW::InputSemantic::TEXCOORD,
           makeUrl(makeTexcoordSourceId(geom_id, i, this->export_settings.get_active_uv_only())),
-          2,  // this is only until we have optimized UV sets
+          2, /* this is only until we have optimized UV sets */
           (this->export_settings.get_active_uv_only()) ? 0 : layer_index - 1 /* set (0,1,2,...) */
       );
       til.push_back(texcoord_input);
@@ -401,8 +401,8 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
       char *layer_name = bc_CustomData_get_layer_name(&me->ldata, CD_MLOOPCOL, a);
       COLLADASW::Input input4(COLLADASW::InputSemantic::COLOR,
                               makeUrl(makeVertexColorSourceId(geom_id, layer_name)),
-                              (has_uvs) ? 3 : 2,  // all color layers have same index order
-                              map_index           // set number equals color map index
+                              (has_uvs) ? 3 : 2, /* all color layers have same index order */
+                              map_index          /* set number equals color map index */
       );
       til.push_back(input4);
       map_index++;

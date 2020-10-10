@@ -177,7 +177,7 @@ static AdrBit2Path *adrcode_bitmaps_to_paths(int blocktype, int adrcode, int *to
   if ((blocktype == ID_OB) && (adrcode == OB_LAY)) {
     RET_ABP(ob_layer_bits);
   }
-  // XXX TODO: add other types...
+  /* XXX TODO: add other types... */
 
   /* Normal curve */
   return NULL;
@@ -473,7 +473,7 @@ static const char *mtex_adrcodes_to_paths(int adrcode, int *UNUSED(array_index))
   /* property identifier for path */
   adrcode = (adrcode & (MA_MAP1 - 1));
   switch (adrcode) {
-#if 0  // XXX these are not wrapped in RNA yet!
+#if 0 /* XXX these are not wrapped in RNA yet! */
     case MAP_OFS_X:
       poin = &(mtex->ofs[0]);
       break;
@@ -541,17 +541,17 @@ static const char *texture_adrcodes_to_paths(int adrcode, int *array_index)
     case TE_TURB:
       return "turbulence";
 
-    case TE_NDEPTH:  // XXX texture RNA undefined
+    case TE_NDEPTH: /* XXX texture RNA undefined */
       // poin= &(tex->noisedepth); *type= IPO_SHORT; break;
       break;
-    case TE_NTYPE:  // XXX texture RNA undefined
+    case TE_NTYPE: /* XXX texture RNA undefined */
       // poin= &(tex->noisetype); *type= IPO_SHORT; break;
       break;
 
     case TE_N_BAS1:
       return "noise_basis";
     case TE_N_BAS2:
-      return "noise_basis";  // XXX this is not yet defined in RNA...
+      return "noise_basis"; /* XXX this is not yet defined in RNA... */
 
     /* voronoi */
     case TE_VNW1:
@@ -582,7 +582,7 @@ static const char *texture_adrcodes_to_paths(int adrcode, int *array_index)
       return "distortion_amount";
 
     /* musgrave */
-    case TE_MG_TYP:  // XXX texture RNA undefined
+    case TE_MG_TYP: /* XXX texture RNA undefined */
       //  poin= &(tex->stype); *type= IPO_SHORT; break;
       break;
     case TE_MGH:
@@ -717,31 +717,31 @@ static const char *camera_adrcodes_to_paths(int adrcode, int *array_index)
   /* result depends on adrcode */
   switch (adrcode) {
     case CAM_LENS:
-#if 0   /* XXX this cannot be resolved easily... \
-         * perhaps we assume camera is perspective (works for most cases... */
+#if 0  /* XXX this cannot be resolved easily... \
+        * perhaps we assume camera is perspective (works for most cases... */
       if (ca->type == CAM_ORTHO) {
         return "ortho_scale";
       }
       else {
         return "lens";
       }
-#else   // XXX lazy hack for now...
+#else  /* XXX lazy hack for now... */
       return "lens";
-#endif  // XXX this cannot be resolved easily
+#endif /* XXX this cannot be resolved easily */
 
     case CAM_STA:
       return "clip_start";
     case CAM_END:
       return "clip_end";
 
-#if 0   // XXX these are not defined in RNA
+#if 0  /* XXX these are not defined in RNA */
     case CAM_YF_APERT:
       poin = &(ca->YF_aperture);
       break;
     case CAM_YF_FDIST:
       poin = &(ca->dof_distance);
       break;
-#endif  // XXX these are not defined in RNA
+#endif /* XXX these are not defined in RNA */
 
     case CAM_SHIFT_X:
       return "shift_x";
@@ -1040,7 +1040,7 @@ static char *get_rna_access(ID *id,
 
     /* XXX problematic blocktypes */
     case ID_SEQ: /* sequencer strip */
-      // SEQ_FAC1:
+      /* SEQ_FAC1: */
       switch (adrcode) {
         case SEQ_FAC1:
           propname = "effect_fader";
@@ -1052,7 +1052,8 @@ static char *get_rna_access(ID *id,
           propname = "blend_opacity";
           break;
       }
-      //  poin= &(seq->facf0); // XXX this doesn't seem to be included anywhere in sequencer RNA...
+      /* XXX this doesn't seem to be included anywhere in sequencer RNA... */
+      // poin= &(seq->facf0);
       break;
 
     /* special hacks */
@@ -1187,7 +1188,7 @@ static ChannelDriver *idriver_to_cdriver(IpoDriver *idriver)
   /* if 'pydriver', just copy data across */
   if (idriver->type == IPO_DRIVER_TYPE_PYTHON) {
     /* PyDriver only requires the expression to be copied */
-    // FIXME: expression will be useless due to API changes, but at least not totally lost
+    /* FIXME: expression will be useless due to API changes, but at least not totally lost */
     cdriver->type = DRIVER_TYPE_PYTHON;
     if (idriver->name[0]) {
       BLI_strncpy(cdriver->expression, idriver->name, sizeof(cdriver->expression));
@@ -1219,7 +1220,7 @@ static ChannelDriver *idriver_to_cdriver(IpoDriver *idriver)
         dtar = &dvar->targets[1];
         dtar->id = (ID *)idriver->ob;
         dtar->idtype = ID_OB;
-        if (idriver->name[0]) {  // xxx... for safety
+        if (idriver->name[0]) { /* xxx... for safety */
           BLI_strncpy(
               dtar->pchan_name, idriver->name + DRIVER_NAME_OFFS, sizeof(dtar->pchan_name));
         }
@@ -1272,7 +1273,7 @@ static void fcurve_add_to_list(
     bActionGroup *agrp = NULL;
 
     /* init the temp action */
-    memset(&tmp_act, 0, sizeof(bAction));  // XXX only enable this line if we get errors
+    memset(&tmp_act, 0, sizeof(bAction)); /* XXX only enable this line if we get errors */
     tmp_act.groups.first = groups->first;
     tmp_act.groups.last = groups->last;
     tmp_act.curves.first = list->first;
@@ -1544,7 +1545,7 @@ static void icu_to_fcurves(ID *id,
          */
         if (((icu->blocktype == ID_OB) && ELEM(icu->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) ||
             ((icu->blocktype == ID_PO) && ELEM(icu->adrcode, AC_EUL_X, AC_EUL_Y, AC_EUL_Z))) {
-          const float fac = (float)M_PI / 18.0f;  // 10.0f * M_PI/180.0f;
+          const float fac = (float)M_PI / 18.0f; /* 10.0f * M_PI/180.0f; */
 
           dst->vec[0][1] *= fac;
           dst->vec[1][1] *= fac;
@@ -1719,7 +1720,7 @@ static void action_to_animato(
   }
 
   /* get rid of all Action Groups */
-  // XXX this is risky if there's some old + some new data in the Action...
+  /* XXX this is risky if there's some old + some new data in the Action... */
   if (act->groups.first) {
     BLI_freelistN(&act->groups);
   }
@@ -1793,7 +1794,7 @@ static void ipo_to_animdata(
   /* Convert curves to animato system
    * (separated into separate lists of F-Curves for animation and drivers),
    * and the try to put these lists in the right places, but do not free the lists here. */
-  // XXX there shouldn't be any need for the groups, so don't supply pointer for that now...
+  /* XXX there shouldn't be any need for the groups, so don't supply pointer for that now... */
   ipo_to_animato(id, ipo, actname, constname, seq, NULL, &anim, &drivers);
 
   /* deal with animation first */
@@ -1942,7 +1943,7 @@ static void nlastrips_to_animdata(ID *id, ListBase *strips)
     }
 
     /* modifiers */
-    // FIXME: for now, we just free them...
+    /* FIXME: for now, we just free them... */
     if (as->modifiers.first) {
       BLI_freelistN(&as->modifiers);
     }
@@ -1965,7 +1966,7 @@ static void nlastrips_to_animdata(ID *id, ListBase *strips)
  * Data that has been converted should be freed immediately, which means that it is immediately
  * clear which data-blocks have yet to be converted, and also prevent freeing errors when we exit.
  */
-// XXX currently done after all file reading...
+/* XXX currently done after all file reading... */
 void do_versions_ipos_to_animato(Main *bmain)
 {
   ListBase drivers = {NULL, NULL};
@@ -2084,7 +2085,7 @@ void do_versions_ipos_to_animato(Main *bmain)
       }
 
       /* check for Action Constraint */
-      // XXX do we really want to do this here?
+      /* XXX do we really want to do this here? */
     }
 
     /* check constraint channels - we need to remove them anyway... */

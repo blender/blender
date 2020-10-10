@@ -266,7 +266,7 @@ static void pydriver_error(ChannelDriver *driver)
           "\nError in Driver: The following Python expression failed:\n\t'%s'\n\n",
           driver->expression);
 
-  // BPy_errors_to_report(NULL); // TODO - reports
+  // BPy_errors_to_report(NULL); /* TODO - reports */
   PyErr_Print();
   PyErr_Clear();
 }
@@ -613,7 +613,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
 
       fprintf(
           stderr, "\tBPY_driver_eval() - couldn't add variable '%s' to namespace\n", dvar->name);
-      // BPy_errors_to_report(NULL); // TODO - reports
+      // BPy_errors_to_report(NULL); /* TODO - reports */
       PyErr_Print();
       PyErr_Clear();
     }

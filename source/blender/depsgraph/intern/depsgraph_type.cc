@@ -23,7 +23,7 @@
  * Defines and code for core node types.
  */
 
-#include <cstdlib>  // for BLI_assert()
+#include <cstdlib> /* for BLI_assert() */
 
 #include "BLI_utildefines.h"
 

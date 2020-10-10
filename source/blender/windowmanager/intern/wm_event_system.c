@@ -453,7 +453,8 @@ void wm_event_do_notifiers(bContext *C)
           else if (note->data == ND_WORKSPACE_DELETE) {
             WorkSpace *workspace = note->reference;
 
-            ED_workspace_delete(workspace, CTX_data_main(C), C, wm);  // XXX hrms, think this over!
+            ED_workspace_delete(
+                workspace, CTX_data_main(C), C, wm); /* XXX hrms, think this over! */
             if (G.debug & G_DEBUG_EVENTS) {
               printf("%s: Workspace delete %p\n", __func__, workspace);
             }
@@ -473,7 +474,7 @@ void wm_event_do_notifiers(bContext *C)
             WorkSpace *workspace = WM_window_get_active_workspace(win);
             WorkSpaceLayout *layout = note->reference;
 
-            ED_workspace_layout_delete(workspace, layout, C);  // XXX hrms, think this over!
+            ED_workspace_layout_delete(workspace, layout, C); /* XXX hrms, think this over! */
             if (G.debug & G_DEBUG_EVENTS) {
               printf("%s: screen delete %p\n", __func__, note->reference);
             }
@@ -2262,7 +2263,7 @@ static int wm_handler_fileselect_do(bContext *C,
 
               wm_window_close(C, wm, temp_win);
 
-              CTX_wm_window_set(C, ctx_win);  // wm_window_close() NULLs.
+              CTX_wm_window_set(C, ctx_win); /* #wm_window_close() NULLs. */
               /* Some operators expect a drawable context (for EVT_FILESELECT_EXEC) */
               wm_window_make_drawable(wm, ctx_win);
               /* Ensure correct cursor position, otherwise, popups may close immediately after
@@ -3458,7 +3459,7 @@ void WM_event_fileselect_event(wmWindowManager *wm, void *ophandle, int eventval
 
     event.type = EVT_FILESELECT;
     event.val = eventval;
-    event.customdata = ophandle;  // only as void pointer type check
+    event.customdata = ophandle; /* Only as void pointer type check. */
 
     wm_event_add(win, &event);
   }

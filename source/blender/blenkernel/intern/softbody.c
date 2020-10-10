@@ -1506,7 +1506,7 @@ static void _scan_for_ext_spring_forces(
             madd_v3_v3fl(bs->ext_force, vel, f * (1.0f - fabsf(dot_v3v3(vel, sp))));
           }
           else {
-            madd_v3_v3fl(bs->ext_force, vel, f);  // to keep compatible with 2.45 release files
+            madd_v3_v3fl(bs->ext_force, vel, f); /* to keep compatible with 2.45 release files */
           }
         }
         /* --- springs seeing wind */
@@ -1554,7 +1554,7 @@ static void sb_sfesf_threads_run(struct Depsgraph *depsgraph,
   for (i = 0; i < totthread; i++) {
     sb_threads[i].scene = scene;
     sb_threads[i].ob = ob;
-    sb_threads[i].forcetime = 0.0;  // not used here
+    sb_threads[i].forcetime = 0.0; /* not used here */
     sb_threads[i].timenow = timenow;
     sb_threads[i].ilast = left;
     left = left - dec;
@@ -1565,9 +1565,9 @@ static void sb_sfesf_threads_run(struct Depsgraph *depsgraph,
       sb_threads[i].ifirst = 0;
     }
     sb_threads[i].effectors = effectors;
-    sb_threads[i].do_deflector = false;  // not used here
-    sb_threads[i].fieldfactor = 0.0f;    // not used here
-    sb_threads[i].windfactor = 0.0f;     // not used here
+    sb_threads[i].do_deflector = false; /* not used here */
+    sb_threads[i].fieldfactor = 0.0f;   /* not used here */
+    sb_threads[i].windfactor = 0.0f;    /* not used here */
     sb_threads[i].nr = i;
     sb_threads[i].tot = totthread;
   }
@@ -1741,8 +1741,7 @@ static int sb_detect_vertex_collisionCached(float opco[3],
           cross_v3_v3v3(d_nvect, edge2, edge1);
           /* n_mag = */ /* UNUSED */ normalize_v3(d_nvect);
           facedist = dot_v3v3(dv1, d_nvect);
-          // so rules are
-          //
+          /* so rules are */
 
           if ((facedist > innerfacethickness) && (facedist < outerfacethickness)) {
             if (isect_point_tri_prism_v3(opco, nv1, nv2, nv3)) {
@@ -1781,7 +1780,7 @@ static int sb_detect_vertex_collisionCached(float opco[3],
     }
   } /* while () */
 
-  if (deflected == 1) {  // no face but 'outer' edge cylinder sees vert
+  if (deflected == 1) { /* no face but 'outer' edge cylinder sees vert */
     force_mag_norm = (float)exp(-ee * mindistedge);
     if (mindistedge > outerfacethickness * ff) {
       force_mag_norm = (float)force_mag_norm * fa * (mindistedge - outerfacethickness) *
@@ -1793,10 +1792,10 @@ static int sb_detect_vertex_collisionCached(float opco[3],
       *damp *= (1.0f - mindistedge / outerfacethickness);
     }
   }
-  if (deflected == 2) {  //  face inner detected
+  if (deflected == 2) { /* face inner detected */
     add_v3_v3(force, innerforceaccu);
   }
-  if (deflected == 3) {  //  face outer detected
+  if (deflected == 3) { /* face outer detected */
     add_v3_v3(force, outerforceaccu);
   }
 
@@ -3496,14 +3495,14 @@ static void softbody_step(
   }
   else if (sb->solver_ID == 2) {
     /* do semi "fake" implicit euler */
-    // removed
+    /* removed */
   } /*SOLVER SELECT*/
   else if (sb->solver_ID == 4) {
     /* do semi "fake" implicit euler */
   } /*SOLVER SELECT*/
   else if (sb->solver_ID == 3) {
     /* do "stupid" semi "fake" implicit euler */
-    // removed
+    /* removed */
 
   } /*SOLVER SELECT*/
   else {

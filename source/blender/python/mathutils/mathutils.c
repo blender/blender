@@ -727,7 +727,7 @@ void BaseMathObject_dealloc(BaseMathObject *self)
     BaseMathObject_clear(self);
   }
 
-  Py_TYPE(self)->tp_free(self);  // PyObject_DEL(self); // breaks subtypes
+  Py_TYPE(self)->tp_free(self);  // PyObject_DEL(self); /* breaks subtypes. */
 }
 
 /*----------------------------MODULE INIT-------------------------*/

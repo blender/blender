@@ -53,10 +53,12 @@ typedef struct TransDataMirror {
 typedef struct TransDataExtension {
   /** Initial object drot. */
   float drot[3];
-  // /* Initial object drotAngle,    TODO: not yet implemented */
-  // float drotAngle;
-  // /* Initial object drotAxis, TODO: not yet implemented */
-  // float drotAxis[3];
+#if 0 /* TODO: not yet implemented */
+  /* Initial object drotAngle */
+  float drotAngle;
+  /* Initial object drotAxis */
+  float drotAxis[3];
+#endif
   /** Initial object delta quat. */
   float dquat[4];
   /** Initial object delta scale. */

@@ -32,9 +32,9 @@
 #  include <windows.h>
 #  include <windowsx.h>
 
-#  undef AVIIF_KEYFRAME  // redefined in AVI_avi.h
-#  undef AVIIF_LIST      // redefined in AVI_avi.h
-#endif                   /* _WIN32 */
+#  undef AVIIF_KEYFRAME /* redefined in AVI_avi.h */
+#  undef AVIIF_LIST     /* redefined in AVI_avi.h */
+#endif                  /* _WIN32 */
 
 #include <ctype.h>
 #include <stdio.h>
@@ -117,7 +117,7 @@ struct anim {
   int firstvideo;
   int pfileopen;
   PAVIFILE pfile;
-  PAVISTREAM pavi[MAXNUMSTREAMS];  // the current streams
+  PAVISTREAM pavi[MAXNUMSTREAMS]; /* the current streams */
   PGETFRAME pgf;
 #endif
 

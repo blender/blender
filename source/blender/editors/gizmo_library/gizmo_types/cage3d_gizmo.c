@@ -92,7 +92,7 @@ static void gizmo_calc_rect_view_scale(const wmGizmo *gz, const float dims[3], f
 static void gizmo_calc_rect_view_margin(const wmGizmo *gz, const float dims[3], float margin[3])
 {
   const float handle_size = 0.15f;
-  // XXX, the scale isn't taking offset into account, we need to calculate scale per handle!
+  /* XXX, the scale isn't taking offset into account, we need to calculate scale per handle! */
   // handle_size *= gz->scale_final;
 
   float scale_xyz[3];

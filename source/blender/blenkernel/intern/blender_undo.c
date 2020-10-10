@@ -22,9 +22,9 @@
  */
 
 #ifndef _WIN32
-#  include <unistd.h>  // for read close
+#  include <unistd.h> /* for read close */
 #else
-#  include <io.h>  // for open close read
+#  include <io.h> /* for open close read */
 #endif
 
 #include <errno.h>

@@ -180,13 +180,13 @@ static void sound_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   bSound *sound = (bSound *)id;
   BLO_read_id_address(
-      reader, sound->id.lib, &sound->ipo);  // XXX deprecated - old animation system
+      reader, sound->id.lib, &sound->ipo); /* XXX deprecated - old animation system */
 }
 
 static void sound_blend_read_expand(BlendExpander *expander, ID *id)
 {
   bSound *snd = (bSound *)id;
-  BLO_expand(expander, snd->ipo);  // XXX deprecated - old animation system
+  BLO_expand(expander, snd->ipo); /* XXX deprecated - old animation system */
 }
 
 IDTypeInfo IDType_ID_SO = {
@@ -957,7 +957,7 @@ double BKE_sound_sync_scene(Scene *scene)
 {
   sound_verify_evaluated_id(&scene->id);
 
-  // Ugly: Blender doesn't like it when the animation is played back during rendering
+  /* Ugly: Blender doesn't like it when the animation is played back during rendering */
   if (G.is_rendering) {
     return NAN_FLT;
   }
@@ -976,12 +976,12 @@ int BKE_sound_scene_playing(Scene *scene)
 {
   sound_verify_evaluated_id(&scene->id);
 
-  // Ugly: Blender doesn't like it when the animation is played back during rendering
+  /* Ugly: Blender doesn't like it when the animation is played back during rendering */
   if (G.is_rendering) {
     return -1;
   }
 
-  // in case of a "Null" audio device, we have no playback information
+  /* In case of a "Null" audio device, we have no playback information. */
   if (AUD_Device_getRate(sound_device) == AUD_RATE_INVALID) {
     return -1;
   }

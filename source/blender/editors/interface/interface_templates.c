@@ -98,7 +98,8 @@
 
 #include "PIL_time.h"
 
-// #define USE_OP_RESET_BUT  // we may want to make this optional, disable for now.
+/* we may want to make this optional, disable for now. */
+// #define USE_OP_RESET_BUT
 
 /* defines for templateID/TemplateSearch */
 #define TEMPLATE_SEARCH_TEXTBUT_WIDTH (UI_UNIT_X * 6)

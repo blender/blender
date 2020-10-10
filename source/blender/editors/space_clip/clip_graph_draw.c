@@ -45,7 +45,7 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "clip_intern.h"  // own include
+#include "clip_intern.h" /* own include */
 
 typedef struct TrackMotionCurveUserData {
   SpaceClip *sc;

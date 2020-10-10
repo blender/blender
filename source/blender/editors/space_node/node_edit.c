@@ -773,12 +773,12 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node, bool *r_acti
       }
     }
     else if (ntree->type == NTREE_TEXTURE) {
-      // XXX
+      /* XXX */
 #if 0
       if (node->id) {
-        // XXX BIF_preview_changed(-1);
-        // allqueue(REDRAWBUTSSHADING, 1);
-        // allqueue(REDRAWIPO, 0);
+        BIF_preview_changed(-1);
+        allqueue(REDRAWBUTSSHADING, 1);
+        allqueue(REDRAWIPO, 0);
       }
 #endif
     }
@@ -1378,7 +1378,7 @@ void ED_node_select_all(ListBase *lb, int action)
 }
 
 /* ******************************** */
-// XXX some code needing updating to operators...
+/* XXX some code needing updating to operators. */
 
 /* goes over all scenes, reads render layers */
 static int node_read_viewlayers_exec(bContext *C, wmOperator *UNUSED(op))

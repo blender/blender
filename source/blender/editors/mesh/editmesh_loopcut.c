@@ -544,7 +544,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
     switch (event->type) {
       case EVT_RETKEY:
       case EVT_PADENTER:
-      case LEFTMOUSE: /* confirm */  // XXX hardcoded
+      case LEFTMOUSE: /* confirm */ /* XXX hardcoded */
         if (event->val == KM_PRESS) {
           return loopcut_finish(lcd, C, op);
         }
@@ -552,7 +552,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
         ED_region_tag_redraw(lcd->region);
         handled = true;
         break;
-      case RIGHTMOUSE: /* abort */  // XXX hardcoded
+      case RIGHTMOUSE: /* abort */ /* XXX hardcoded */
         ED_region_tag_redraw(lcd->region);
         ringsel_exit(C, op);
         ED_workspace_status_text(C, NULL);

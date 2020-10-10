@@ -24,11 +24,11 @@
 #include <limits.h>
 
 #ifndef WIN32
-#  include <unistd.h>  // for read close
+#  include <unistd.h> /* for read close */
 #else
 #  include "BLI_winstuff.h"
 #  include "winsock2.h"
-#  include <io.h>   // for open close read
+#  include <io.h>   /* for open close read */
 #  include <zlib.h> /* odd include order-issue */
 #endif
 
@@ -72,8 +72,8 @@
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
 #include "BKE_lattice.h"
-#include "BKE_main.h"  // for Main
-#include "BKE_mesh.h"  // for ME_ defines (patching)
+#include "BKE_main.h" /* for Main */
+#include "BKE_mesh.h" /* for ME_ defines (patching) */
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -886,7 +886,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     }
 
     for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
-      sce->r.stereomode = 1;  // no stereo
+      sce->r.stereomode = 1; /* no stereo */
     }
 
     /* some oldfile patch, moved from set_func_space */

@@ -46,7 +46,7 @@
 
 #include "DEG_depsgraph.h"
 
-#include "clip_intern.h"  // own include
+#include "clip_intern.h" /* own include */
 #include "tracking_ops_intern.h"
 
 /********************** Track operator *********************/
@@ -281,7 +281,7 @@ static void track_markers_endjob(void *tmv)
   tmj->clip->tracking_context = NULL;
   tmj->scene->r.cfra = BKE_movieclip_remap_clip_to_scene_frame(tmj->clip, tmj->lastfra);
   if (wm != NULL) {
-    // XXX: ...
+    /* XXX */
     // ED_update_for_newframe(tmj->main, tmj->scene);
   }
 

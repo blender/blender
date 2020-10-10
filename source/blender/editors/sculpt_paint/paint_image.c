@@ -882,7 +882,7 @@ static int grab_clone_modal(bContext *C, wmOperator *op, const wmEvent *event)
   switch (event->type) {
     case LEFTMOUSE:
     case MIDDLEMOUSE:
-    case RIGHTMOUSE:  // XXX hardcoded
+    case RIGHTMOUSE: /* XXX hardcoded */
       MEM_freeN(op->customdata);
       return OPERATOR_FINISHED;
     case MOUSEMOVE:

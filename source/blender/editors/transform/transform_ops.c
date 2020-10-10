@@ -414,9 +414,9 @@ static int transform_modal(bContext *C, wmOperator *op, const wmEvent *event)
   const enum TfmMode mode_prev = t->mode;
 
 #if defined(WITH_INPUT_NDOF) && 0
-  // stable 2D mouse coords map to different 3D coords while the 3D mouse is active
-  // in other words, 2D deltas are no longer good enough!
-  // disable until individual 'transformers' behave better
+  /* Stable 2D mouse coords map to different 3D coords while the 3D mouse is active
+   * in other words, 2D deltas are no longer good enough!
+   * disable until individual 'transformers' behave better. */
 
   if (event->type == NDOF_MOTION) {
     return OPERATOR_PASS_THROUGH;
@@ -520,7 +520,7 @@ static int transform_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   /* add temp handler */
   WM_event_add_modal_handler(C, op);
 
-  op->flag |= OP_IS_MODAL_GRAB_CURSOR;  // XXX maybe we want this with the gizmo only?
+  op->flag |= OP_IS_MODAL_GRAB_CURSOR; /* XXX maybe we want this with the gizmo only? */
 
   /* Use when modal input has some transformation to begin with. */
   TransInfo *t = op->customdata;
@@ -888,7 +888,7 @@ static void TRANSFORM_OT_bend(struct wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = transform_invoke;
-  // ot->exec   = transform_exec;  // unsupported
+  // ot->exec = transform_exec; /* unsupported */
   ot->modal = transform_modal;
   ot->cancel = transform_cancel;
   ot->poll = ED_operator_region_view3d_active;

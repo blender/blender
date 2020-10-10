@@ -687,7 +687,7 @@ static int ed_marker_add_exec(bContext *C, wmOperator *UNUSED(op))
   marker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
   marker->flag = SELECT;
   marker->frame = frame;
-  BLI_snprintf(marker->name, sizeof(marker->name), "F_%02d", frame);  // XXX - temp code only
+  BLI_snprintf(marker->name, sizeof(marker->name), "F_%02d", frame); /* XXX - temp code only */
   BLI_addtail(markers, marker);
 
   WM_event_add_notifier(C, NC_SCENE | ND_MARKERS, NULL);
@@ -1110,7 +1110,7 @@ static void ed_marker_duplicate_apply(bContext *C)
       }
 
       /* new marker is added to the beginning of list */
-      // FIXME: bad ordering!
+      /* FIXME: bad ordering! */
       BLI_addhead(markers, newmarker);
     }
   }

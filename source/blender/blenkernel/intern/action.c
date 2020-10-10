@@ -199,17 +199,17 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
   bAction *act = (bAction *)id;
 
   BLO_read_list(reader, &act->curves);
-  BLO_read_list(reader, &act->chanbase);  // XXX deprecated - old animation system
+  BLO_read_list(reader, &act->chanbase); /* XXX deprecated - old animation system */
   BLO_read_list(reader, &act->groups);
   BLO_read_list(reader, &act->markers);
 
-  // XXX deprecated - old animation system <<<
+  /* XXX deprecated - old animation system <<< */
   LISTBASE_FOREACH (bActionChannel *, achan, &act->chanbase) {
     BLO_read_data_address(reader, &achan->grp);
 
     BLO_read_list(reader, &achan->constraintChannels);
   }
-  // >>> XXX deprecated - old animation system
+  /* >>> XXX deprecated - old animation system */
 
   BKE_fcurve_blend_read_data(reader, &act->curves);
 
@@ -230,12 +230,12 @@ static void action_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   bAction *act = (bAction *)id;
 
-  // XXX deprecated - old animation system <<<
+  /* XXX deprecated - old animation system <<< */
   LISTBASE_FOREACH (bActionChannel *, chan, &act->chanbase) {
     BLO_read_id_address(reader, act->id.lib, &chan->ipo);
     blend_read_lib_constraint_channels(reader, &act->id, &chan->constraintChannels);
   }
-  // >>> XXX deprecated - old animation system
+  /* >>> XXX deprecated - old animation system */
 
   BKE_fcurve_blend_read_lib(reader, &act->id, &act->curves);
 
@@ -257,12 +257,12 @@ static void action_blend_read_expand(BlendExpander *expander, ID *id)
 {
   bAction *act = (bAction *)id;
 
-  // XXX deprecated - old animation system --------------
+  /* XXX deprecated - old animation system -------------- */
   LISTBASE_FOREACH (bActionChannel *, chan, &act->chanbase) {
     BLO_expand(expander, chan->ipo);
     blend_read_expand_constraint_channels(expander, &chan->constraintChannels);
   }
-  // ---------------------------------------------------
+  /* --------------------------------------------------- */
 
   /* F-Curves in Action */
   BKE_fcurve_blend_read_expand(expander, &act->curves);
@@ -827,7 +827,7 @@ void BKE_pose_copy_data_ex(bPose **dst,
 
     if (copy_constraints) {
       BKE_constraints_copy_ex(
-          &listb, &pchan->constraints, flag, true);  // BKE_constraints_copy NULLs listb
+          &listb, &pchan->constraints, flag, true); /* BKE_constraints_copy NULLs listb */
       pchan->constraints = listb;
 
       /* XXX: This is needed for motionpath drawing to work.

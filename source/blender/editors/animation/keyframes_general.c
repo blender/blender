@@ -485,7 +485,7 @@ typedef struct tSmooth_Bezt {
 } tSmooth_Bezt;
 
 /* Use a weighted moving-means method to reduce intensity of fluctuations */
-// TODO: introduce scaling factor for weighting falloff
+/* TODO: introduce scaling factor for weighting falloff */
 void smooth_fcurve(FCurve *fcu)
 {
   int totSel = 0;

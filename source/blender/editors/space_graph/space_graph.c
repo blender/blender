@@ -60,7 +60,7 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "graph_intern.h"  // own include
+#include "graph_intern.h" /* own include */
 
 /* ******************** default callbacks for ipo space ***************** */
 
@@ -317,7 +317,7 @@ static void graph_main_region_draw_overlay(const bContext *C, ARegion *region)
   ED_time_scrub_draw_current_frame(region, scene, sipo->flag & SIPO_DRAWTIME, draw_vert_line);
 
   /* scrollers */
-  // FIXME: args for scrollers depend on the type of data being shown...
+  /* FIXME: args for scrollers depend on the type of data being shown. */
   UI_view2d_scrollers_draw(v2d, NULL);
 
   /* scale numbers */
@@ -615,10 +615,13 @@ static void graph_listener(wmWindow *UNUSED(win),
       }
       break;
 
-      // XXX: restore the case below if not enough updates occur...
-      // default:
-      //  if (wmn->data == ND_KEYS)
-      //      ED_area_tag_redraw(area);
+#if 0 /* XXX: restore the case below if not enough updates occur... */
+    default: {
+      if (wmn->data == ND_KEYS) {
+        ED_area_tag_redraw(area);
+      }
+    }
+#endif
   }
 }
 
@@ -763,7 +766,7 @@ static void graph_refresh(const bContext *C, ScrArea *area)
   }
 
   /* region updates? */
-  // XXX re-sizing y-extents of tot should go here?
+  /* XXX re-sizing y-extents of tot should go here? */
 
   /* Update the state of the animchannels in response to changes from the data they represent
    * NOTE: the temp flag is used to indicate when this needs to be done,

@@ -142,7 +142,7 @@ static Key *actedit_get_shapekeys(bAnimContext *ac)
   }
 
   /* XXX pinning is not available in 'ShapeKey' mode... */
-  // if (saction->pin) return NULL;
+  // if (saction->pin) { return NULL; }
 
   /* shapekey data is stored with geometry data */
   key = BKE_key_from_object(ob);
@@ -223,9 +223,11 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
     case SACTCONT_MASK: /* Mask */ /* XXX review how this mode is handled... */
     {
       /* TODO, other methods to get the mask */
-      // Sequence *seq = BKE_sequencer_active_get(ac->scene);
-      // MovieClip *clip = ac->scene->clip;
-      //          struct Mask *mask = seq ? seq->mask : NULL;
+#if 0
+      Sequence *seq = BKE_sequencer_active_get(ac->scene);
+      MovieClip *clip = ac->scene->clip;
+      struct Mask *mask = seq ? seq->mask : NULL;
+#endif
 
       /* update scene-pointer (no need to check for pinning yet, as not implemented) */
       saction->ads.source = (ID *)ac->scene;
@@ -562,12 +564,14 @@ bool ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 
 /* ............................... */
 
-/* Add a new animation channel, taking into account the "peek" flag, which is used to just check
+/**
+ * Add a new animation channel, taking into account the "peek" flag, which is used to just check
  * whether any channels will be added (but without needing them to actually get created).
  *
- * ! This causes the calling function to return early if we're only "peeking" for channels
+ * \warning This causes the calling function to return early if we're only "peeking" for channels.
+ *
+ * XXX: ale_statement stuff is really a hack for one special case. It shouldn't really be needed.
  */
-// XXX: ale_statement stuff is really a hack for one special case. It shouldn't really be needed...
 #define ANIMCHANNEL_NEW_CHANNEL_FULL( \
     channel_data, channel_type, owner_id, fcurve_owner_id, ale_statement) \
   if (filter_mode & ANIMFILTER_TMP_PEEK) { \
@@ -681,7 +685,7 @@ static bAnimListElem *make_new_animlistelem(void *data,
 
         ale->flag = adt->flag;
 
-        // XXX... drivers don't show summary for now
+        /* XXX drivers don't show summary for now. */
         ale->key_data = NULL;
         ale->datatype = ALE_NONE;
         break;
@@ -921,7 +925,7 @@ static bAnimListElem *make_new_animlistelem(void *data,
         /* NOTE: we just reuse the same expand filter for this case */
         ale->flag = EXPANDED_GPD(gpd);
 
-        // XXX: currently, this is only used for access to its animation data
+        /* XXX: currently, this is only used for access to its animation data */
         ale->key_data = (adt) ? adt->action : NULL;
         ale->datatype = ALE_ACT;
 
@@ -1234,7 +1238,7 @@ static bool fcurve_has_errors(FCurve *fcu)
     }
 
     /* check variables for other things that need linting... */
-    // TODO: maybe it would be more efficient just to have a quick flag for this?
+    /* TODO: maybe it would be more efficient just to have a quick flag for this? */
     for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
       DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
         if (dtar->flag & DTAR_FLAG_INVALID) {
@@ -1476,7 +1480,7 @@ static size_t animfilter_action(bAnimContext *ac,
   }
 
   /* do groups */
-  // TODO: do nested groups?
+  /* TODO: do nested groups? */
   for (agrp = act->groups.first; agrp; agrp = agrp->next) {
     /* store reference to last channel of group */
     if (agrp->channels.last) {
@@ -1725,7 +1729,7 @@ static size_t animdata_filter_shapekey(bAnimContext *ac,
         /* Only include this track if selected in a way consistent
          * with the filtering requirements. */
         if (ANIMCHANNEL_SELOK(SEL_SHAPEKEY(kb))) {
-          // TODO: consider 'active' too?
+          /* TODO: consider 'active' too? */
 
           /* owner-id here must be key so that the F-Curve can be resolved... */
           ANIMCHANNEL_NEW_CHANNEL(kb, ANIMTYPE_SHAPEKEY, key, NULL);
@@ -1735,7 +1739,7 @@ static size_t animdata_filter_shapekey(bAnimContext *ac,
   }
   else {
     /* just use the action associated with the shapekey */
-    // TODO: somehow manage to pass dopesheet info down here too?
+    /* TODO: somehow manage to pass dopesheet info down here too? */
     if (key->adt) {
       if (filter_mode & ANIMFILTER_ANIMDATA) {
         if (ANIMCHANNEL_SELOK(SEL_ANIMDATA(key->adt))) {
@@ -1840,8 +1844,11 @@ static size_t animdata_filter_gpencil_data(ListBase *anim_data,
   return items;
 }
 
-/* Grab all Grease Pencil data-blocks in file. */
-// TODO: should this be amalgamated with the dopesheet filtering code?
+/**
+ * Grab all Grease Pencil data-blocks in file.
+ *
+ * TODO: should this be amalgamated with the dope-sheet filtering code?
+ */
 static size_t animdata_filter_gpencil(bAnimContext *ac,
                                       ListBase *anim_data,
                                       void *UNUSED(data),
@@ -1930,8 +1937,9 @@ static size_t animdata_filter_ds_gpencil(
     tmp_items += animfilter_block_data(ac, &tmp_data, ads, &gpd->id, filter_mode);
 
     /* add Grease Pencil layers */
-    // TODO: do these need a separate expander?
-    // XXX:  what order should these go in?
+
+    /* TODO: do these need a separate expander?
+     * XXX:  what order should these go in? */
   }
   END_ANIMFILTER_SUBCHANNELS;
 
@@ -1940,7 +1948,7 @@ static size_t animdata_filter_ds_gpencil(
     /* include data-expand widget first */
     if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
       /* check if filtering by active status */
-      // XXX: active check here needs checking
+      /* XXX: active check here needs checking */
       if (ANIMCHANNEL_ACTIVEOK(gpd)) {
         ANIMCHANNEL_NEW_CHANNEL(gpd, ANIMTYPE_DSGPENCIL, gpd, NULL);
       }
@@ -1976,7 +1984,7 @@ static size_t animdata_filter_ds_cachefile(
     /* include data-expand widget first */
     if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
       /* check if filtering by active status */
-      // XXX: active check here needs checking
+      /* XXX: active check here needs checking */
       if (ANIMCHANNEL_ACTIVEOK(cache_file)) {
         ANIMCHANNEL_NEW_CHANNEL(cache_file, ANIMTYPE_DSCACHEFILE, cache_file, NULL);
       }
@@ -2027,7 +2035,7 @@ static size_t animdata_filter_mask(Main *bmain,
   size_t items = 0;
 
   /* For now, grab mask data-blocks directly from main. */
-  // XXX: this is not good...
+  /* XXX: this is not good... */
   for (mask = bmain->masks.first; mask; mask = mask->id.next) {
     ListBase tmp_data = {NULL, NULL};
     size_t tmp_items = 0;
@@ -2215,8 +2223,10 @@ static size_t animdata_filter_ds_texture(bAnimContext *ac,
     if ((tex->nodetree) && !(ads->filterflag & ADS_FILTER_NONTREE)) {
       /* owner_id as id instead of texture,
        * since it'll otherwise be impossible to track the depth. */
-      // FIXME: perhaps as a result, textures should NOT be included under materials,
-      // but under their own section instead so that free-floating textures can also be animated.
+
+      /* FIXME: perhaps as a result, textures should NOT be included under materials,
+       * but under their own section instead so that free-floating textures can also be animated.
+       */
       tmp_items += animdata_filter_ds_nodetree(
           ac, &tmp_data, ads, (ID *)tex, tex->nodetree, filter_mode);
     }
@@ -2406,7 +2416,7 @@ static void animfilter_modifier_idpoin_cb(void *afm_ptr,
  *       which would be nice to animate (i.e. texture parameters) but which are not actually
  *       attached to any other objects/materials/etc. in the scene
  */
-// TODO: do we want an expander for this?
+/* TODO: do we want an expander for this? */
 static size_t animdata_filter_ds_modifiers(
     bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Object *ob, int filter_mode)
 {
@@ -2900,7 +2910,7 @@ static size_t animdata_filter_ds_scene(
   void *cdata = NULL;
 
   /* determine the type of expander channels to use */
-  // this is the best way to do this for now...
+  /* this is the best way to do this for now... */
   ANIMDATA_FILTER_CASES(
       sce, /* Some useless long comment to prevent wrapping by old clang-format versions... */
       {/* AnimData - no channel, but consider data */},
@@ -3168,9 +3178,9 @@ static Base **animdata_filter_ds_sorted_bases(bDopeSheet *ads,
   return sorted_bases;
 }
 
-// TODO: implement pinning...
-// (if and when pinning is done, what we need to do is to provide freeing mechanisms -
-// to protect against data that was deleted).
+/* TODO: implement pinning...
+ * (if and when pinning is done, what we need to do is to provide freeing mechanisms -
+ * to protect against data that was deleted). */
 static size_t animdata_filter_dopesheet(bAnimContext *ac,
                                         ListBase *anim_data,
                                         bDopeSheet *ads,
@@ -3227,7 +3237,7 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac,
   if ((filter_mode & ANIMFILTER_LIST_CHANNELS) && !(ads->flag & ADS_FLAG_NO_DB_SORT) &&
       (view_layer->object_bases.first != view_layer->object_bases.last)) {
     /* Filter list of bases (i.e. objects), sort them, then add their contents normally... */
-    // TODO: Cache the old sorted order - if the set of bases hasn't changed, don't re-sort...
+    /* TODO: Cache the old sorted order - if the set of bases hasn't changed, don't re-sort... */
     Base **sorted_bases;
     size_t num_bases;
 
@@ -3238,7 +3248,7 @@ static size_t animdata_filter_dopesheet(bAnimContext *ac,
         items += animdata_filter_dopesheet_ob(ac, anim_data, ads, sorted_bases[i], filter_mode);
       }
 
-      // TODO: store something to validate whether any changes are needed?
+      /* TODO: store something to validate whether any changes are needed? */
 
       /* free temporary data */
       MEM_freeN(sorted_bases);

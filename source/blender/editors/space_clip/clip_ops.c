@@ -76,7 +76,7 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
-#include "clip_intern.h"  // own include
+#include "clip_intern.h" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name View Navigation Utilities

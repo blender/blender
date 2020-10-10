@@ -1495,15 +1495,15 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
         break;
       }
       case GHOST_kEventNativeResolutionChange: {
-        // only update if the actual pixel size changes
+        /* Only update if the actual pixel size changes. */
         float prev_pixelsize = U.pixelsize;
         WM_window_set_dpi(win);
 
         if (U.pixelsize != prev_pixelsize) {
           BKE_icon_changed(WM_window_get_active_screen(win)->id.icon_id);
 
-          // close all popups since they are positioned with the pixel
-          // size baked in and it's difficult to correct them
+          /* Close all popups since they are positioned with the pixel
+           * size baked in and it's difficult to correct them. */
           CTX_wm_window_set(C, win);
           UI_popup_handlers_remove_all(C, &win->modalhandlers);
           CTX_wm_window_set(C, NULL);

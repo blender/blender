@@ -646,10 +646,12 @@ PyObject *PyC_ExceptionBuffer(void)
     goto error_cleanup;
   }
 
-  Py_INCREF(stdout_backup);  // since these were borrowed we don't want them freed when replaced.
+  /* Since these were borrowed we don't want them freed when replaced. */
+  Py_INCREF(stdout_backup);
   Py_INCREF(stderr_backup);
 
-  PySys_SetObject("stdout", string_io);  // both of these are freed when restoring
+  /* Both of these are freed when restoring. */
+  PySys_SetObject("stdout", string_io);
   PySys_SetObject("stderr", string_io);
 
   PyErr_Restore(error_type, error_value, error_traceback);

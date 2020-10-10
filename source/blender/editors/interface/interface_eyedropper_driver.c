@@ -58,7 +58,7 @@ typedef struct DriverDropper {
   int index;
   bool is_undo;
 
-  // TODO: new target?
+  /* TODO: new target? */
 } DriverDropper;
 
 static bool driverdropper_init(bContext *C, wmOperator *op)
@@ -130,7 +130,7 @@ static void driverdropper_sample(bContext *C, wmOperator *op, const wmEvent *eve
       UI_context_update_anim_flag(C);
       DEG_relations_tag_update(CTX_data_main(C));
       DEG_id_tag_update(ddr->ptr.owner_id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-      WM_event_add_notifier(C, NC_ANIMATION | ND_FCURVES_ORDER, NULL);  // XXX
+      WM_event_add_notifier(C, NC_ANIMATION | ND_FCURVES_ORDER, NULL); /* XXX */
     }
   }
 

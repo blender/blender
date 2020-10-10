@@ -193,7 +193,7 @@ static TseGroup *BKE_outliner_treehash_lookup_group(GHash *th, short type, short
 {
   TreeStoreElem tse_template;
   tse_template.type = type;
-  tse_template.nr = type ? nr : 0;  // we're picky! :)
+  tse_template.nr = type ? nr : 0; /* we're picky! :) */
   tse_template.id = id;
 
   BLI_assert(th);

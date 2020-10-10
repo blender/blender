@@ -59,7 +59,7 @@
 
 #include "UI_view2d.h"
 
-#include "nla_intern.h"  // own include
+#include "nla_intern.h" /* own include */
 
 /* *********************************************** */
 /* Operators for NLA channels-list which need to be different
@@ -103,7 +103,7 @@ static int mouse_nla_channels(
   }
 
   /* action to take depends on what channel we've got */
-  // WARNING: must keep this in sync with the equivalent function in anim_channels_edit.c
+  /* WARNING: must keep this in sync with the equivalent function in anim_channels_edit.c */
   switch (ale->type) {
     case ANIMTYPE_SCENE: {
       Scene *sce = (Scene *)ale->data;
@@ -427,7 +427,7 @@ void NLA_OT_channels_click(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO;
 
   /* props */
-  prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");  // SHIFTKEY
+  prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); /* SHIFTKEY */
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

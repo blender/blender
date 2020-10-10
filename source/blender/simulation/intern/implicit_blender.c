@@ -79,14 +79,14 @@ typedef float lfVector[3];
 typedef struct fmatrix3x3 {
   float m[3][3];     /* 3x3 matrix */
   unsigned int c, r; /* column and row number */
-  /* int pinned; // is this vertex allowed to move? */
+  // int pinned; /* is this vertex allowed to move? */
   float n1, n2, n3;    /* three normal vectors for collision constrains */
   unsigned int vcount; /* vertex count */
   unsigned int scount; /* spring count */
 } fmatrix3x3;
 
 ///////////////////////////
-// float[3] vector
+/* float[3] vector */
 ///////////////////////////
 /* simple vector code */
 /* STATUS: verified */
@@ -123,7 +123,7 @@ static void print_fvector(float m3[3])
 }
 
 ///////////////////////////
-// long float vector float (*)[3]
+/* long float vector float (*)[3] */
 ///////////////////////////
 /* print long vector on console: for debug output */
 DO_INLINE void print_lfvector(float (*fLongVector)[3], unsigned int verts)
@@ -199,10 +199,10 @@ DO_INLINE float dot_lfvector(float (*fLongVectorA)[3],
 {
   long i = 0;
   float temp = 0.0;
-  // XXX brecht, disabled this for now (first schedule line was already disabled),
-  // due to non-commutative nature of floating point ops this makes the sim give
-  // different results each time you run it!
-  // schedule(guided, 2)
+  /* XXX brecht, disabled this for now (first schedule line was already disabled),
+   * due to non-commutative nature of floating point ops this makes the sim give
+   * different results each time you run it!
+   * schedule(guided, 2) */
   //#pragma omp parallel for reduction(+: temp) if (verts > CLOTH_OPENMP_LIMIT)
   for (i = 0; i < (long)verts; i++) {
     temp += dot_v3v3(fLongVectorA[i], fLongVectorB[i]);
@@ -326,9 +326,11 @@ static void print_bfmatrix(fmatrix3x3 *m)
 
     for (j = 0; j < 3; j++) {
       for (i = 0; i < 3; i++) {
-        //              if (t[k + i + (l + j) * size] != 0.0f) {
-        //                  printf("warning: overwriting value at %d, %d\n", m[q].r, m[q].c);
-        //              }
+#    if 0
+        if (t[k + i + (l + j) * size] != 0.0f) {
+          printf("warning: overwriting value at %d, %d\n", m[q].r, m[q].c);
+        }
+#    endif
         if (k == l) {
           t[k + i + (k + j) * size] += m[q].m[i][j];
         }
@@ -471,7 +473,7 @@ DO_INLINE void sub_fmatrix_fmatrix(float to[3][3],
   sub_v3_v3v3(to[2], matrixA[2], matrixB[2]);
 }
 /////////////////////////////////////////////////////////////////
-// special functions
+/* special functions */
 /////////////////////////////////////////////////////////////////
 /* 3x3 matrix multiplied+added by a vector */
 /* STATUS: verified */
@@ -532,7 +534,7 @@ BLI_INLINE void madd_m3_m3fl(float r[3][3], const float m[3][3], float f)
 /////////////////////////////////////////////////////////////////
 
 ///////////////////////////
-// SPARSE SYMMETRIC big matrix with 3x3 matrix entries
+/* SPARSE SYMMETRIC big matrix with 3x3 matrix entries */
 ///////////////////////////
 /* printf a big matrix on console: for debug output */
 #  if 0
@@ -555,7 +557,7 @@ BLI_INLINE void init_fmatrix(fmatrix3x3 *matrix, int r, int c)
 /* create big matrix */
 DO_INLINE fmatrix3x3 *create_bfmatrix(unsigned int verts, unsigned int springs)
 {
-  // TODO: check if memory allocation was successful */
+  /* TODO: check if memory allocation was successful */
   fmatrix3x3 *temp = (fmatrix3x3 *)MEM_callocN(sizeof(fmatrix3x3) * (verts + springs),
                                                "cloth_implicit_alloc_matrix");
   int i;
@@ -581,12 +583,12 @@ DO_INLINE void del_bfmatrix(fmatrix3x3 *matrix)
 /* copy big matrix */
 DO_INLINE void cp_bfmatrix(fmatrix3x3 *to, fmatrix3x3 *from)
 {
-  // TODO bounds checking
+  /* TODO bounds checking */
   memcpy(to, from, sizeof(fmatrix3x3) * (from[0].vcount + from[0].scount));
 }
 
 /* init big matrix */
-// slow in parallel
+/* slow in parallel */
 DO_INLINE void init_bfmatrix(fmatrix3x3 *matrix, float m3[3][3])
 {
   unsigned int i;
@@ -597,7 +599,7 @@ DO_INLINE void init_bfmatrix(fmatrix3x3 *matrix, float m3[3][3])
 }
 
 /* init the diagonal of big matrix */
-// slow in parallel
+/* slow in parallel */
 DO_INLINE void initdiag_bfmatrix(fmatrix3x3 *matrix, float m3[3][3])
 {
   unsigned int i, j;
@@ -657,7 +659,7 @@ DO_INLINE void subadd_bfmatrixS_bfmatrixS(
 }
 
 ///////////////////////////////////////////////////////////////////
-// simulator start
+/* simulator start */
 ///////////////////////////////////////////////////////////////////
 
 typedef struct Implicit_Data {
@@ -695,7 +697,7 @@ Implicit_Data *SIM_mass_spring_solver_create(int numverts, int numsprings)
   id->S = create_bfmatrix(numverts, 0);
   id->Pinv = create_bfmatrix(numverts, numsprings);
   id->P = create_bfmatrix(numverts, numsprings);
-  id->bigI = create_bfmatrix(numverts, numsprings);  // TODO 0 springs
+  id->bigI = create_bfmatrix(numverts, numsprings); /* TODO 0 springs */
   id->M = create_bfmatrix(numverts, numsprings);
   id->X = create_lfvector(numverts);
   id->Xnew = create_lfvector(numverts);
@@ -783,7 +785,7 @@ DO_INLINE void filter(lfVector *V, fmatrix3x3 *S)
 #  if 0
 static int cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S)
 {
-  // Solves for unknown X in equation AX=B
+  /* Solves for unknown X in equation AX=B */
   unsigned int conjgrad_loopcount = 0, conjgrad_looplimit = 100;
   float conjgrad_epsilon = 0.0001f /* , conjgrad_lasterror=0 */ /* UNUSED */;
   lfVector *q, *d, *tmp, *r;
@@ -799,7 +801,7 @@ static int cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z,
 
   add_lfvector_lfvector(ldV, ldV, z, numverts);
 
-  // r = B - Mul(tmp, A, X);    // just use B if X known to be zero
+  // r = B - Mul(tmp, A, X);    /* just use B if X known to be zero. */
   cp_lfvector(r, lB, numverts);
   mul_bfmatrix_lfvector(tmp, lA, ldV);
   sub_lfvector_lfvector(r, r, tmp, numverts);
@@ -812,23 +814,23 @@ static int cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z,
   starget = s * sqrtf(conjgrad_epsilon);
 
   while (s > starget && conjgrad_loopcount < conjgrad_looplimit) {
-    // Mul(q, A, d); // q = A*d;
+    // Mul(q, A, d); /* q = A*d; */
     mul_bfmatrix_lfvector(q, lA, d);
 
     filter(q, S);
 
     a = s / dot_lfvector(d, q, numverts);
 
-    // X = X + d*a;
+    /* X = X + d*a; */
     add_lfvector_lfvectorS(ldV, ldV, d, a, numverts);
 
-    // r = r - q*a;
+    /* r = r - q*a; */
     sub_lfvector_lfvectorS(r, r, q, a, numverts);
 
     s_prev = s;
     s = dot_lfvector(r, r, numverts);
 
-    //d = r+d*(s/s_prev);
+    /* d = r+d*(s/s_prev); */
     add_lfvector_lfvectorS(d, r, d, (s / s_prev), numverts);
 
     filter(d, S);
@@ -844,7 +846,7 @@ static int cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z,
   // printf("W/O conjgrad_loopcount: %d\n", conjgrad_loopcount);
 
   return conjgrad_loopcount <
-         conjgrad_looplimit;  // true means we reached desired accuracy in given time - ie stable
+         conjgrad_looplimit;  /* true means we reached desired accuracy in given time - ie stable */
 }
 #  endif
 
@@ -855,7 +857,7 @@ static int cg_filtered(lfVector *ldV,
                        fmatrix3x3 *S,
                        ImplicitSolverResult *result)
 {
-  // Solves for unknown X in equation AX=B
+  /* Solves for unknown X in equation AX=B */
   unsigned int conjgrad_loopcount = 0, conjgrad_looplimit = 100;
   float conjgrad_epsilon = 0.01f;
 
@@ -940,26 +942,26 @@ static int cg_filtered(lfVector *ldV,
   result->error = bnorm2 > 0.0f ? sqrtf(delta_new / bnorm2) : 0.0f;
 
   return conjgrad_loopcount <
-         conjgrad_looplimit;  // true means we reached desired accuracy in given time - ie stable
+         conjgrad_looplimit; /* true means we reached desired accuracy in given time - ie stable */
 }
 
 #  if 0
-// block diagonalizer
+/* block diagonalizer */
 DO_INLINE void BuildPPinv(fmatrix3x3 *lA, fmatrix3x3 *P, fmatrix3x3 *Pinv)
 {
   unsigned int i = 0;
 
-  // Take only the diagonal blocks of A
+  /* Take only the diagonal blocks of A */
   // #pragma omp parallel for private(i) if (lA[0].vcount > CLOTH_OPENMP_LIMIT)
   for (i = 0; i < lA[0].vcount; i++) {
-    // block diagonalizer
+    /* block diagonalizer */
     cp_fmatrix(P[i].m, lA[i].m);
     inverse_fmatrix(Pinv[i].m, P[i].m);
   }
 }
 
 #    if 0
-// version 1.3
+/* version 1.3 */
 static int cg_filtered_pre(lfVector *dv,
                            fmatrix3x3 *lA,
                            lfVector *lB,
@@ -970,7 +972,7 @@ static int cg_filtered_pre(lfVector *dv,
 {
   unsigned int numverts = lA[0].vcount, iterations = 0, conjgrad_looplimit = 100;
   float delta0 = 0, deltaNew = 0, deltaOld = 0, alpha = 0;
-  float conjgrad_epsilon = 0.0001;  // 0.2 is dt for steps=5
+  float conjgrad_epsilon = 0.0001;  /* 0.2 is dt for steps=5 */
   lfVector *r = create_lfvector(numverts);
   lfVector *p = create_lfvector(numverts);
   lfVector *s = create_lfvector(numverts);
@@ -1036,7 +1038,7 @@ static int cg_filtered_pre(lfVector *dv,
 }
 #    endif
 
-// version 1.4
+/* version 1.4 */
 static int cg_filtered_pre(lfVector *dv,
                            fmatrix3x3 *lA,
                            lfVector *lB,
@@ -1060,29 +1062,29 @@ static int cg_filtered_pre(lfVector *dv,
   initdiag_bfmatrix(bigI, I);
   sub_bfmatrix_Smatrix(bigI, bigI, S);
 
-  // x = Sx_0+(I-S)z
+  /* x = Sx_0+(I-S)z */
   filter(dv, S);
   add_lfvector_lfvector(dv, dv, z, numverts);
 
-  // b_hat = S(b-A(I-S)z)
+  /* b_hat = S(b-A(I-S)z) */
   mul_bfmatrix_lfvector(r, lA, z);
   mul_bfmatrix_lfvector(bhat, bigI, r);
   sub_lfvector_lfvector(bhat, lB, bhat, numverts);
 
-  // r = S(b-Ax)
+  /* r = S(b-Ax) */
   mul_bfmatrix_lfvector(r, lA, dv);
   sub_lfvector_lfvector(r, lB, r, numverts);
   filter(r, S);
 
-  // p = SP^-1r
+  /* p = SP^-1r */
   mul_prevfmatrix_lfvector(p, Pinv, r);
   filter(p, S);
 
-  // delta0 = bhat^TP^-1bhat
+  /* delta0 = bhat^TP^-1bhat */
   mul_prevfmatrix_lfvector(btemp, Pinv, bhat);
   delta0 = dot_lfvector(bhat, btemp, numverts);
 
-  // deltaNew = r^TP
+  /* deltaNew = r^TP */
   deltaNew = dot_lfvector(r, p, numverts);
 
 #    if 0
@@ -1178,7 +1180,7 @@ bool SIM_mass_spring_solve_velocities(Implicit_Data *data, float dt, ImplicitSol
   printf("cg_filtered calc time: %f\n", (float)(end - start));
 #  endif
 
-  // advance velocities
+  /* advance velocities */
   add_lfvector_lfvector(data->Vnew, data->V, data->dV, numverts);
 
   del_lfvector(dFdXmV);
@@ -1190,7 +1192,7 @@ bool SIM_mass_spring_solve_positions(Implicit_Data *data, float dt)
 {
   int numverts = data->M[0].vcount;
 
-  // advance positions
+  /* advance positions */
   add_lfvector_lfvectorS(data->Xnew, data->X, data->Vnew, dt, numverts);
 
   return true;
@@ -1662,7 +1664,7 @@ void SIM_mass_spring_force_vertex_wind(Implicit_Data *data,
 
 BLI_INLINE void dfdx_spring(float to[3][3], const float dir[3], float length, float L, float k)
 {
-  // dir is unit length direction, rest is spring's restlength, k is spring constant.
+  /* dir is unit length direction, rest is spring's restlength, k is spring constant. */
   // return  ( (I-outerprod(dir, dir))*Min(1.0f, rest/length) - I) * -k;
   outerproduct(to, dir, dir);
   sub_m3_m3m3(to, I, to);
@@ -1681,7 +1683,7 @@ BLI_INLINE void dfdx_damp(float to[3][3],
                           float rest,
                           float damping)
 {
-  // inner spring damping   vel is the relative velocity  of the endpoints.
+  /* inner spring damping   vel is the relative velocity  of the endpoints. */
   //  return (I-outerprod(dir, dir)) * (-damping * -(dot(dir, vel)/Max(length, rest)));
   mul_fvectorT_fvector(to, dir, dir);
   sub_fmatrix_fmatrix(to, I, to);
@@ -1691,7 +1693,7 @@ BLI_INLINE void dfdx_damp(float to[3][3],
 
 BLI_INLINE void dfdv_damp(float to[3][3], const float dir[3], float damping)
 {
-  // derivative of force wrt velocity
+  /* derivative of force wrt velocity */
   outerproduct(to, dir, dir);
   mul_m3_fl(to, -damping);
 }
@@ -1725,7 +1727,7 @@ BLI_INLINE float fbstar(float length, float L, float kb, float cb)
   return tempfb_fl;
 }
 
-// function to calculae bending spring force (taken from Choi & Co)
+/* function to calculae bending spring force (taken from Choi & Co) */
 BLI_INLINE float fbstar_jacobi(float length, float L, float kb, float cb)
 {
   float tempfb_fl = kb * fb(length, L);
@@ -1756,7 +1758,7 @@ BLI_INLINE bool spring_length(Implicit_Data *data,
     if (length > L) {
       if ((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) &&
           (((length - L) * 100.0f / L) > clmd->sim_parms->maxspringlen)) {
-        // cut spring!
+        /* cut spring! */
         s->flags |= CSPRING_FLAG_DEACTIVATE;
         return false;
       }
@@ -1808,7 +1810,7 @@ bool SIM_mass_spring_force_spring_linear(Implicit_Data *data,
   float f[3], dfdx[3][3], dfdv[3][3];
   float damping = 0;
 
-  // calculate elonglation
+  /* calculate elonglation */
   spring_length(data, i, j, extent, dir, &length, vel);
 
   /* This code computes not only the force, but also its derivative.
@@ -1858,7 +1860,7 @@ bool SIM_mass_spring_force_spring_bending(
 {
   float extent[3], length, dir[3], vel[3];
 
-  // calculate elonglation
+  /* calculate elonglation */
   spring_length(data, i, j, extent, dir, &length, vel);
 
   if (length < restlen) {
@@ -2110,7 +2112,7 @@ BLI_INLINE void spring_hairbend_estimate_dfdx(Implicit_Data *data,
                                               int q,
                                               float dfdx[3][3])
 {
-  const float delta = 0.00001f;  // TODO find a good heuristic for this
+  const float delta = 0.00001f; /* TODO find a good heuristic for this */
   float dvec_null[3][3], dvec_pos[3][3], dvec_neg[3][3];
   float f[3];
   int a, b;
@@ -2149,7 +2151,7 @@ BLI_INLINE void spring_hairbend_estimate_dfdv(Implicit_Data *data,
                                               int q,
                                               float dfdv[3][3])
 {
-  const float delta = 0.00001f;  // TODO find a good heuristic for this
+  const float delta = 0.00001f; /* TODO find a good heuristic for this */
   float dvec_null[3][3], dvec_pos[3][3], dvec_neg[3][3];
   float f[3];
   int a, b;
@@ -2253,7 +2255,7 @@ bool SIM_mass_spring_force_spring_bending_hair(Implicit_Data *data,
   float dfi_dxi[3][3], dfj_dxi[3][3], dfj_dxj[3][3], dfk_dxi[3][3], dfk_dxj[3][3], dfk_dxk[3][3];
   float dfdvi[3][3];
 
-  // TESTING
+  /* TESTING */
   damping = 0.0f;
 
   zero_v3(fi);
@@ -2350,8 +2352,8 @@ bool SIM_mass_spring_force_spring_goal(Implicit_Data *data,
   if (length > ALMOST_ZERO) {
     mul_v3_v3fl(f, dir, stiffness * length);
 
-    // Ascher & Boxman, p.21: Damping only during elonglation
-    // something wrong with it...
+    /* Ascher & Boxman, p.21: Damping only during elonglation
+     * something wrong with it... */
     madd_v3_v3fl(f, dir, damping * dot_v3v3(vel, dir));
 
     dfdx_spring(dfdx, dir, length, 0.0f, stiffness);

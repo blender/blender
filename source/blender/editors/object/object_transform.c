@@ -242,7 +242,7 @@ static void object_clear_rot(Object *ob, const bool clear_delta)
         copy_v3_v3(ob->rot, eul);
       }
     }
-  }  // Duplicated in source/blender/editors/armature/editarmature.c
+  } /* Duplicated in source/blender/editors/armature/editarmature.c */
   else {
     if (ob->rotmode == ROT_MODE_QUAT) {
       unit_qt(ob->quat);

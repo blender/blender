@@ -2385,7 +2385,7 @@ static void ui_but_paste_numeric_array(bContext *C,
 {
   const int array_length = get_but_property_array_length(but);
   if (array_length > 4) {
-    // not supported for now
+    /* not supported for now */
     return;
   }
 
@@ -5747,7 +5747,7 @@ static bool ui_numedit_but_UNITVEC(
   }
   else { /* outer circle */
 
-    mrad = rad / sqrtf(mrad);  // veclen
+    mrad = rad / sqrtf(mrad); /* veclen */
 
     dx *= (2.0f * mrad - 1.0f);
     dy *= (2.0f * mrad - 1.0f);
@@ -6371,7 +6371,7 @@ static bool ui_numedit_but_HSVCIRCLE(uiBut *but,
   /* exception, when using color wheel in 'locked' value state:
    * allow choosing a hue for black values, by giving a tiny increment */
   if (cpicker->use_color_lock) {
-    if (U.color_picker_type == USER_CP_CIRCLE_HSV) {  // lock
+    if (U.color_picker_type == USER_CP_CIRCLE_HSV) { /* lock */
       if (hsv[2] == 0.f) {
         hsv[2] = 0.0001f;
       }
@@ -6474,7 +6474,7 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but,
   /* exception, when using color wheel in 'locked' value state:
    * allow choosing a hue for black values, by giving a tiny increment */
   if (cpicker->use_color_lock) {
-    if (U.color_picker_type == USER_CP_CIRCLE_HSV) {  // lock
+    if (U.color_picker_type == USER_CP_CIRCLE_HSV) { /* lock */
       if (hsv[2] == 0.f) {
         hsv[2] = 0.0001f;
       }

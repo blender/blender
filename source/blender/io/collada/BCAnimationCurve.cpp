@@ -230,7 +230,7 @@ int BCAnimationCurve::closest_index_above(const float sample_frame, const int st
     return -1;
   }
 
-  const int cframe = fcurve->bezt[start_at].vec[1][0];  // inaccurate!
+  const int cframe = fcurve->bezt[start_at].vec[1][0]; /* inaccurate! */
 
   if (fabs(cframe - sample_frame) < 0.00001) {
     return start_at;
@@ -252,7 +252,7 @@ int BCAnimationCurve::closest_index_below(const float sample_frame) const
   for (int fcu_index = 0; fcu_index < fcurve->totvert; fcu_index++) {
     upper_index = fcu_index;
 
-    const int cframe = fcurve->bezt[fcu_index].vec[1][0];  // inaccurate!
+    const int cframe = fcurve->bezt[fcu_index].vec[1][0]; /* inaccurate! */
     if (cframe <= sample_frame) {
       lower_frame = cframe;
       lower_index = fcu_index;
@@ -347,7 +347,7 @@ float BCAnimationCurve::get_value(const float frame)
   if (fcurve) {
     return evaluate_fcurve(fcurve, frame);
   }
-  return 0;  // TODO: handle case where neither sample nor fcu exist
+  return 0; /* TODO: handle case where neither sample nor fcu exist */
 }
 
 void BCAnimationCurve::update_range(float val)

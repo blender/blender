@@ -967,7 +967,7 @@ bool IDP_EqualsProperties(IDProperty *prop1, IDProperty *prop2)
  * \code{.c}
  * IDPropertyTemplate val;
  * IDProperty *group, *idgroup, *color;
- * group = IDP_New(IDP_GROUP, val, "group1"); //groups don't need a template.
+ * group = IDP_New(IDP_GROUP, val, "group1"); // groups don't need a template.
  *
  * val.array.len = 4
  * val.array.type = IDP_FLOAT;

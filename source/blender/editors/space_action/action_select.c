@@ -132,17 +132,17 @@ static void actkeys_list_element_to_keylist(bAnimContext *ac,
     summary_to_keylist(ac, anim_keys, 0);
   }
   else if (ale->type == ANIMTYPE_GROUP) {
-    // TODO: why don't we just give groups key_data too?
+    /* TODO: why don't we just give groups key_data too? */
     bActionGroup *agrp = (bActionGroup *)ale->data;
     agroup_to_keylist(adt, agrp, anim_keys, 0);
   }
   else if (ale->type == ANIMTYPE_GPLAYER) {
-    // TODO: why don't we just give gplayers key_data too?
+    /* TODO: why don't we just give gplayers key_data too? */
     bGPDlayer *gpl = (bGPDlayer *)ale->data;
     gpl_to_keylist(ads, gpl, anim_keys);
   }
   else if (ale->type == ANIMTYPE_MASKLAYER) {
-    // TODO: why don't we just give masklayers key_data too?
+    /* TODO: why don't we just give masklayers key_data too? */
     MaskLayer *masklay = (MaskLayer *)ale->data;
     mask_to_keylist(ads, masklay, anim_keys);
   }
@@ -1877,7 +1877,7 @@ void ACTION_OT_clickselect(wmOperatorType *ot)
       "extend",
       0,
       "Extend Select",
-      "Toggle keyframe selection instead of leaving newly selected keyframes only");  // SHIFTKEY
+      "Toggle keyframe selection instead of leaving newly selected keyframes only"); /* SHIFTKEY */
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(ot->srna,
@@ -1892,7 +1892,7 @@ void ACTION_OT_clickselect(wmOperatorType *ot)
       "column",
       0,
       "Column Select",
-      "Select all keyframes that occur on the same frame as the one under the mouse");  // ALTKEY
+      "Select all keyframes that occur on the same frame as the one under the mouse"); /* ALTKEY */
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   prop = RNA_def_boolean(
@@ -1900,7 +1900,7 @@ void ACTION_OT_clickselect(wmOperatorType *ot)
       "channel",
       0,
       "Only Channel",
-      "Select all the keyframes in the channel under the mouse");  // CTRLKEY + ALTKEY
+      "Select all the keyframes in the channel under the mouse"); /* CTRLKEY + ALTKEY */
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

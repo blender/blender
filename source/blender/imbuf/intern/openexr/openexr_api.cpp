@@ -699,7 +699,7 @@ void *IMB_exr_get_handle_name(const char *name)
 }
 
 /* multiview functions */
-}  // extern "C"
+} /* extern "C" */
 
 extern "C" {
 
@@ -1918,7 +1918,7 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
     // printf("OpenEXR-load: image data window %d %d %d %d\n",
     //     dw.min.x, dw.min.y, dw.max.x, dw.max.y);
 
-    if (0) {  // debug
+    if (0) { /* debug */
       exr_print_filecontents(*file);
     }
 
@@ -2022,17 +2022,18 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
           in.setFrameBuffer(frameBuffer);
           in.readPixels(dw.min.y, dw.max.y);
 
-          // XXX, ImBuf has no nice way to deal with this.
-          // ideally IM_rect would be used when the caller wants a rect BUT
-          // at the moment all functions use IM_rect.
-          // Disabling this is ok because all functions should check
-          // if a rect exists and create one on demand.
-          //
-          // Disabling this because the sequencer frees immediate.
-          //
-          // if (flag & IM_rect) {
-          //     IMB_rect_from_float(ibuf);
-          // }
+          /* XXX, ImBuf has no nice way to deal with this.
+           * ideally IM_rect would be used when the caller wants a rect BUT
+           * at the moment all functions use IM_rect.
+           * Disabling this is ok because all functions should check
+           * if a rect exists and create one on demand.
+           *
+           * Disabling this because the sequencer frees immediate. */
+#if 0
+          if (flag & IM_rect) {
+            IMB_rect_from_float(ibuf);
+          }
+#endif
 
           if (num_rgb_channels == 0 && has_luma && exr_has_chroma(*file)) {
             for (size_t a = 0; a < (size_t)ibuf->x * ibuf->y; a++) {
@@ -2102,4 +2103,4 @@ void imb_exitopenexr(void)
   setGlobalThreadCount(0);
 }
 
-}  // export "C"
+} /* export "C" */

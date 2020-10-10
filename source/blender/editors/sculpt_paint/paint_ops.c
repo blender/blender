@@ -57,7 +57,7 @@
 #include "sculpt_intern.h"
 
 #include <string.h>
-//#include <stdio.h>
+// #include <stdio.h>
 #include <stddef.h>
 
 /* Brush operators */
@@ -144,7 +144,7 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
   float scalar = RNA_float_get(op->ptr, "scalar");
 
   if (brush) {
-    // pixel radius
+    /* pixel radius */
     {
       const int old_size = BKE_brush_size_get(scene, brush);
       int size = (int)(scalar * old_size);
@@ -161,11 +161,11 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
       BKE_brush_size_set(scene, brush, size);
     }
 
-    // unprojected radius
+    /* unprojected radius */
     {
       float unprojected_radius = scalar * BKE_brush_unprojected_radius_get(scene, brush);
 
-      if (unprojected_radius < 0.001f) {  // XXX magic number
+      if (unprojected_radius < 0.001f) { /* XXX magic number */
         unprojected_radius = 0.001f;
       }
 

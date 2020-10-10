@@ -182,7 +182,7 @@ static void select_linked_time(ListBase *seqbase, Sequence *seq_link)
   }
 }
 
-#if 0  // BRING BACK
+#if 0 /* BRING BACK */
 void select_surround_from_last(Scene *scene)
 {
   Sequence *seq = get_last_seq(scene);

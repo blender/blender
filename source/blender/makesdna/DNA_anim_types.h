@@ -506,7 +506,7 @@ typedef struct ChannelDriver {
 
   /** Result of previous evaluation. */
   float curval;
-  // XXX to be implemented... this is like the constraint influence setting
+  /* XXX to be implemented... this is like the constraint influence setting. */
   /** Influence of driver on result. */
   float influence;
 
@@ -537,7 +537,7 @@ typedef enum eDriver_Flags {
   DRIVER_FLAG_INVALID = (1 << 0),
   DRIVER_FLAG_DEPRECATED = (1 << 1),
   /** Driver does replace value, but overrides (for layering of animation over driver) */
-  // TODO: this needs to be implemented at some stage or left out...
+  /* TODO: this needs to be implemented at some stage or left out... */
   // DRIVER_FLAG_LAYERING  = (1 << 2),
   /** Use when the expression needs to be recompiled. */
   DRIVER_FLAG_RECOMPILE = (1 << 3),
@@ -707,7 +707,7 @@ typedef struct NlaStrip {
   /** Action that is referenced by this strip (strip is 'user' of the action). */
   bAction *act;
 
-  /** F-Curves for controlling this strip's influence and timing */  // TODO: move o.ut?
+  /** F-Curves for controlling this strip's influence and timing */ /* TODO: move out? */
   ListBase fcurves;
   /** F-Curve modifiers to be applied to the entire strip's referenced F-Curves. */
   ListBase modifiers;
@@ -782,8 +782,8 @@ typedef enum eNlaStrip_Flag {
   NLASTRIP_FLAG_ACTIVE = (1 << 0),
   /* NLA strip is selected for editing */
   NLASTRIP_FLAG_SELECT = (1 << 1),
-  //  NLASTRIP_FLAG_SELECT_L      = (1 << 2),   // left handle selected
-  //  NLASTRIP_FLAG_SELECT_R      = (1 << 3),   // right handle selected
+  // NLASTRIP_FLAG_SELECT_L      = (1 << 2),   /* left handle selected. */
+  // NLASTRIP_FLAG_SELECT_R      = (1 << 3),   /* right handle selected. */
 
   /** NLA strip uses the same action that the action being tweaked uses
    * (not set for the tweaking one though). */

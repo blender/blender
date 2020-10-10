@@ -29,7 +29,7 @@
 
 #include "WM_api.h"
 
-#include "render_intern.h"  // own include
+#include "render_intern.h" /* own include */
 
 /***************************** render ***********************************/
 

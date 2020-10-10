@@ -22,7 +22,7 @@
 
 #include <list>
 #include <string>
-//#include <vector>
+// #include <vector>
 
 #include "COLLADASWInputList.h"
 #include "COLLADASWLibraryControllers.h"
@@ -43,16 +43,16 @@
 
 class SceneExporter;
 
-// XXX exporter writes wrong data for shared armatures.  A separate
-// controller should be written for each armature-mesh binding how do
-// we make controller ids then?
+/* XXX exporter writes wrong data for shared armatures.  A separate
+ * controller should be written for each armature-mesh binding how do
+ * we make controller ids then? */
 class ArmatureExporter : public COLLADASW::LibraryControllers,
                          protected TransformWriter,
                          protected InstanceWriter {
  public:
-  // XXX exporter writes wrong data for shared armatures.  A separate
-  // controller should be written for each armature-mesh binding how do
-  // we make controller ids then?
+  /* XXX exporter writes wrong data for shared armatures.  A separate
+   * controller should be written for each armature-mesh binding how do
+   * we make controller ids then? */
   ArmatureExporter(BlenderContext &blender_context,
                    COLLADASW::StreamWriter *sw,
                    BCExportSettings &export_settings)
@@ -83,8 +83,8 @@ class ArmatureExporter : public COLLADASW::LibraryControllers,
   void find_objects_using_armature(Object *ob_arm, std::vector<Object *> &objects, Scene *sce);
 #endif
 
-  // Scene, SceneExporter and the list of child_objects
-  // are required for writing bone parented objects
+  /* Scene, SceneExporter and the list of child_objects
+   * are required for writing bone parented objects */
   void add_bone_node(Bone *bone,
                      Object *ob_arm,
                      SceneExporter *se,

@@ -76,24 +76,24 @@ typedef struct StripColorBalance {
   float gain[3];
   int flag;
   char _pad[4];
-  // float exposure;
-  // float saturation;
+  /* float exposure; */
+  /* float saturation; */
 } StripColorBalance;
 
 typedef struct StripProxy {
-  char dir[768];  // custom directory for index and proxy files
-                  // (defaults to BL_proxy)
+  char dir[768]; /* custom directory for index and proxy files */
+                 /* (defaults to BL_proxy) */
 
-  char file[256];     // custom file
-  struct anim *anim;  // custom proxy anim file
+  char file[256];    /* custom file */
+  struct anim *anim; /* custom proxy anim file */
 
-  short tc;  // time code in use
+  short tc; /* time code in use */
 
-  short quality;           // proxy build quality
-  short build_size_flags;  // size flags (see below) of all proxies
-                           // to build
-  short build_tc_flags;    // time code flags (see below) of all tc indices
-                           // to build
+  short quality;          /* proxy build quality */
+  short build_size_flags; /* size flags (see below) of all proxies */
+                          /* to build */
+  short build_tc_flags;   /* time code flags (see below) of all tc indices */
+                          /* to build */
   short build_flags;
   char storage;
   char _pad[5];

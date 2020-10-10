@@ -318,7 +318,7 @@ short screen_geom_find_area_split_point(const ScrArea *area,
   const short area_min_y = ED_area_headersize();
   int area_min;
 
-  // area big enough?
+  /* area big enough? */
   if ((dir == 'v') && (cur_area_width <= 2 * area_min_x)) {
     return 0;
   }
@@ -326,7 +326,7 @@ short screen_geom_find_area_split_point(const ScrArea *area,
     return 0;
   }
 
-  // to be sure
+  /* to be sure */
   CLAMP(fac, 0.0f, 1.0f);
 
   if (dir == 'h') {

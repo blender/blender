@@ -44,7 +44,7 @@ void USDHairWriter::do_write(HierarchyContext &context)
   pxr::UsdGeomBasisCurves curves = pxr::UsdGeomBasisCurves::Define(usd_export_context_.stage,
                                                                    usd_export_context_.usd_path);
 
-  // TODO(Sybren): deal with (psys->part->flag & PART_HAIR_BSPLINE)
+  /* TODO(Sybren): deal with (psys->part->flag & PART_HAIR_BSPLINE) */
   curves.CreateBasisAttr(pxr::VtValue(pxr::UsdGeomTokens->bspline));
   curves.CreateTypeAttr(pxr::VtValue(pxr::UsdGeomTokens->cubic));
 

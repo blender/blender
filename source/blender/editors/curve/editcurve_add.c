@@ -127,7 +127,7 @@ Nurb *ED_curve_add_nurbs_primitive(
   float fac;
   int a, b;
   const float grid = 1.0f;
-  const int cutype = (type & CU_TYPE);  // poly, bezier, nurbs, etc
+  const int cutype = (type & CU_TYPE); /* poly, bezier, nurbs, etc */
   const int stype = (type & CU_PRIMITIVE);
 
   unit_m4(umat);

@@ -46,7 +46,7 @@
 
 #include "RNA_access.h"
 
-#include "graph_intern.h"  // own include
+#include "graph_intern.h" /* own include */
 
 /* ************************************************************** */
 /* Set Up Drivers Editor */
@@ -141,7 +141,7 @@ bool graphop_visible_keyframes_poll(bContext *C)
   bool found = false;
 
   /* firstly, check if in Graph Editor */
-  // TODO: also check for region?
+  /* TODO: also check for region? */
   if ((area == NULL) || (area->spacetype != SPACE_GRAPH)) {
     return found;
   }
@@ -194,7 +194,7 @@ bool graphop_editable_keyframes_poll(bContext *C)
   bool found = false;
 
   /* firstly, check if in Graph Editor */
-  // TODO: also check for region?
+  /* TODO: also check for region? */
   if ((area == NULL) || (area->spacetype != SPACE_GRAPH)) {
     return found;
   }
@@ -246,7 +246,7 @@ bool graphop_active_fcurve_poll(bContext *C)
   bool has_fcurve = false;
 
   /* firstly, check if in Graph Editor */
-  // TODO: also check for region?
+  /* TODO: also check for region? */
   if ((area == NULL) || (area->spacetype != SPACE_GRAPH)) {
     return has_fcurve;
   }
@@ -299,7 +299,7 @@ bool graphop_selected_fcurve_poll(bContext *C)
   int filter;
 
   /* firstly, check if in Graph Editor */
-  // TODO: also check for region?
+  /* TODO: also check for region? */
   if ((area == NULL) || (area->spacetype != SPACE_GRAPH)) {
     return false;
   }

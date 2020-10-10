@@ -25,12 +25,12 @@
  * Original license from NVIDIA follows.
  */
 
-// This code is in the public domain -- castanyo@yahoo.es
+/* This code is in the public domain -- <castanyo@yahoo.es>. */
 
 #include <Color.h>
 #include <Image.h>
 
-#include <stdio.h>  // printf
+#include <stdio.h> /* printf */
 
 Image::Image() : m_width(0), m_height(0), m_format(Format_RGB), m_data(NULL)
 {

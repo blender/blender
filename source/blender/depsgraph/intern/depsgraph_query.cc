@@ -25,12 +25,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include <string.h>  // XXX: memcpy
+#include <string.h> /* XXX: memcpy */
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_action.h"  // XXX: BKE_pose_channel_find_name
+#include "BKE_action.h" /* XXX: BKE_pose_channel_find_name */
 #include "BKE_customdata.h"
 #include "BKE_idtype.h"
 #include "BKE_main.h"

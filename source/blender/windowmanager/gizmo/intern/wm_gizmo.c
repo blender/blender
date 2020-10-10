@@ -374,7 +374,7 @@ void WM_gizmo_set_color_highlight(wmGizmo *gz, const float color_hi[4])
   copy_v4_v4(gz->color_hi, color_hi);
 }
 
-/** \} */  // Gizmo Creation API
+/** \} */ /* Gizmo Creation API. */
 
 /* -------------------------------------------------------------------- */
 /** \name Gizmo Callback Assignment

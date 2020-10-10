@@ -64,7 +64,7 @@
 
 #include "WM_api.h"
 
-#include "buttons_intern.h"  // own include
+#include "buttons_intern.h" /* own include */
 
 static int set_pointer_type(ButsContextPath *path, bContextDataResult *result, StructRNA *type)
 {

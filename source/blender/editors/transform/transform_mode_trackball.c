@@ -131,8 +131,8 @@ static void applyTrackball(TransInfo *t, const int UNUSED(mval[2]))
 
   mul_m3_m3m3(mat, smat, totmat);
 
-  // TRANSFORM_FIX_ME
-  //copy_m3_m3(t->mat, mat);  // used in gizmo
+  /* TRANSFORM_FIX_ME */
+  // copy_m3_m3(t->mat, mat);  /* used in gizmo. */
 #endif
 
   applyTrackballValue(t, axis1, axis2, phi);

@@ -75,7 +75,7 @@ static PyObject *make_ffmpeg_info(void)
     return NULL;
   }
 
-#if 0  // UNUSED
+#if 0 /* UNUSED */
 #  define SetIntItem(flag) PyStructSequence_SET_ITEM(ffmpeg_info, pos++, PyLong_FromLong(flag))
 #endif
 #ifndef WITH_FFMPEG

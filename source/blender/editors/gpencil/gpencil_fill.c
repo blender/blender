@@ -1269,7 +1269,7 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
     for (int i = 0; i < gps->totpoints; i++) {
       BKE_gpencil_stroke_smooth(gps, i, smoothfac - reduce);
     }
-    reduce += 0.25f;  // reduce the factor
+    reduce += 0.25f; /* reduce the factor */
   }
 
   /* if axis locked, reproject to plane locked */

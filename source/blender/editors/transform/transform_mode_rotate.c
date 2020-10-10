@@ -49,7 +49,7 @@ static float RotationBetween(TransInfo *t, const float p1[3], const float p2[3])
   sub_v3_v3v3(start, p1, t->center_global);
   sub_v3_v3v3(end, p2, t->center_global);
 
-  // Angle around a constraint axis (error prone, will need debug)
+  /* Angle around a constraint axis (error prone, will need debug). */
   if (t->con.applyRot != NULL && (t->con.mode & CON_APPLY)) {
     float axis[3], tmp[3];
 

@@ -433,7 +433,7 @@ bool paintface_mouse_select(
   /* image window redraw */
 
   paintface_flush_flags(C, ob, SELECT);
-  ED_region_tag_redraw(CTX_wm_region(C));  // XXX - should redraw all 3D views
+  ED_region_tag_redraw(CTX_wm_region(C)); /* XXX - should redraw all 3D views */
   return true;
 }
 

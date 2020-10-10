@@ -147,7 +147,7 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
   return list;
 }
 
-// PyDoc_STRVAR(bpy_user_resource_doc[] = // now in bpy/utils.py
+// PyDoc_STRVAR(bpy_user_resource_doc[] = /* now in bpy/utils.py */
 static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
   const struct PyC_StringEnumItems type_items[] = {

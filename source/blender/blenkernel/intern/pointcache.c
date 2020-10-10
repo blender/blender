@@ -116,14 +116,14 @@
 static CLG_LogRef LOG = {"bke.pointcache"};
 
 static int ptcache_data_size[] = {
-    sizeof(unsigned int),  // BPHYS_DATA_INDEX
-    sizeof(float[3]),      // BPHYS_DATA_LOCATION
-    sizeof(float[3]),      // BPHYS_DATA_VELOCITY
-    sizeof(float[4]),      // BPHYS_DATA_ROTATION
-    sizeof(float[3]),      // BPHYS_DATA_AVELOCITY / BPHYS_DATA_XCONST
-    sizeof(float),         // BPHYS_DATA_SIZE
-    sizeof(float[3]),      // BPHYS_DATA_TIMES
-    sizeof(BoidData),      // case BPHYS_DATA_BOIDS
+    sizeof(unsigned int), /* BPHYS_DATA_INDEX */
+    sizeof(float[3]),     /* BPHYS_DATA_LOCATION */
+    sizeof(float[3]),     /* BPHYS_DATA_VELOCITY */
+    sizeof(float[4]),     /* BPHYS_DATA_ROTATION */
+    sizeof(float[3]),     /* BPHYS_DATA_AVELOCITY / BPHYS_DATA_XCONST */
+    sizeof(float),        /* BPHYS_DATA_SIZE */
+    sizeof(float[3]),     /* BPHYS_DATA_TIMES */
+    sizeof(BoidData),     /* case BPHYS_DATA_BOIDS */
 };
 
 static int ptcache_extra_datasize[] = {
@@ -1550,7 +1550,7 @@ static int ptcache_file_compressed_write(
     r = LzmaCompress(out,
                      &out_len,
                      in,
-                     in_len,  // assume sizeof(char)==1....
+                     in_len, /* assume sizeof(char)==1.... */
                      props,
                      &sizeOfIt,
                      5,
@@ -2117,7 +2117,7 @@ static int ptcache_read_stream(PTCacheID *pid, int cfra)
   if (!error) {
     ptcache_file_pointers_init(pf);
 
-    // we have stream reading here
+    /* We have stream reading here. */
     if (!pid->read_stream(pf, pid->calldata)) {
       pid->error(pid->calldata, "Failed to read point cache file data");
       error = 1;
@@ -3245,7 +3245,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
                 scene, pid->calldata, &cache->startframe, &cache->endframe);
           }
 
-          // XXX workaround for regression inroduced in ee3fadd, needs looking into
+          /* XXX workaround for regression inroduced in ee3fadd, needs looking into */
           if (pid->type == PTCACHE_TYPE_RIGIDBODY) {
             if ((cache->flag & PTCACHE_REDO_NEEDED ||
                  (cache->flag & PTCACHE_SIMULATION_VALID) == 0) &&

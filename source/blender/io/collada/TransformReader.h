@@ -44,7 +44,7 @@ class TransformReader {
   struct Animation {
     Object *ob;
     COLLADAFW::Node *node;
-    COLLADAFW::Transformation *tm;  // which transform is animated by an AnimationList->id
+    COLLADAFW::Transformation *tm; /* which transform is animated by an AnimationList->id */
   };
 
   TransformReader(UnitConverter *conv);

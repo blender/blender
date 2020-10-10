@@ -180,7 +180,7 @@ static int rigidbody_world_export_invoke(bContext *C, wmOperator *op, const wmEv
     return rigidbody_world_export_exec(C, op);
   }
 
-  // TODO: use the actual rigidbody world's name + .bullet instead of this temp crap
+  /* TODO: use the actual rigidbody world's name + .bullet instead of this temp crap */
   RNA_string_set(op->ptr, "filepath", "rigidbodyworld_export.bullet");
   WM_event_add_fileselect(C, op);
 

@@ -98,7 +98,7 @@ PyDoc_STRVAR(bpy_bmlayeraccess_collection__string_doc,
              ":class:`BMLayerCollection`");
 PyDoc_STRVAR(bpy_bmlayeraccess_collection__deform_doc,
              "Vertex deform weight :class:`BMDeformVert` (TODO).\n\ntype: "
-             ":class:`BMLayerCollection`"  // TYPE DOESN'T EXIST YET
+             ":class:`BMLayerCollection`" /* TYPE DOESN'T EXIST YET */
 );
 PyDoc_STRVAR(
     bpy_bmlayeraccess_collection__shape_doc,

@@ -67,7 +67,8 @@ BCMatrix::BCMatrix(BC_global_forward_axis global_forward_axis, BC_global_up_axis
   mat3_from_axis_conversion(
       BC_DEFAULT_FORWARD, BC_DEFAULT_UP, global_forward_axis, global_up_axis, mrot);
 
-  transpose_m3(mrot);  // TODO: Verify that mat3_from_axis_conversion() returns a transposed matrix
+  transpose_m3(
+      mrot); /* TODO: Verify that mat3_from_axis_conversion() returns a transposed matrix */
   copy_m4_m3(mat, mrot);
   set_transform(mat);
 }

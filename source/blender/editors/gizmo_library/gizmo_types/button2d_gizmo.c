@@ -386,4 +386,4 @@ void ED_gizmotypes_button_2d(void)
   WM_gizmotype_append(GIZMO_GT_button_2d);
 }
 
-/** \} */  // Button Gizmo API
+/** \} */ /* Button Gizmo API */

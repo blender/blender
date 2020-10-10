@@ -942,7 +942,7 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
     Object *ob = objects[ob_index];
     bArmature *arm = ob->data;
 
-    ED_armature_edit_sync_selection(arm->edbo);  // XXX why is this needed?
+    ED_armature_edit_sync_selection(arm->edbo); /* XXX why is this needed? */
 
     preEditBoneDuplicate(arm->edbo);
 
@@ -1117,7 +1117,7 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
     /* The beginning of the duplicated mirrored bones in the edbo list */
     EditBone *ebone_first_dupe = NULL;
 
-    ED_armature_edit_sync_selection(arm->edbo);  // XXX why is this needed?
+    ED_armature_edit_sync_selection(arm->edbo); /* XXX why is this needed? */
 
     preEditBoneDuplicate(arm->edbo);
 
@@ -1399,7 +1399,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
           if (arm->flag & ARM_MIRROR_EDIT) {
             flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
             if (flipbone) {
-              forked_iter = 0;  // we extrude 2 different bones
+              forked_iter = 0; /* we extrude 2 different bones */
               if (flipbone->flag & (BONE_TIPSEL | BONE_ROOTSEL | BONE_SELECTED)) {
                 /* don't want this bone to be selected... */
                 flipbone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
@@ -1449,7 +1449,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
             newbone->dist = ebone->dist;
             newbone->xwidth = ebone->xwidth;
             newbone->zwidth = ebone->zwidth;
-            newbone->rad_head = ebone->rad_tail;  // don't copy entire bone...
+            newbone->rad_head = ebone->rad_tail; /* don't copy entire bone. */
             newbone->rad_tail = ebone->rad_tail;
             newbone->segments = 1;
             newbone->layer = ebone->layer;
@@ -1470,7 +1470,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 
             BLI_strncpy(newbone->name, ebone->name, sizeof(newbone->name));
 
-            if (flipbone && forked_iter) {  // only set if mirror edit
+            if (flipbone && forked_iter) { /* only set if mirror edit */
               if (strlen(newbone->name) < (MAXBONENAME - 2)) {
                 if (a == 0) {
                   strcat(newbone->name, "_L");
@@ -1587,10 +1587,10 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
   copy_v3_v3(bone->head, curs);
 
   if (rv3d && (U.flag & USER_ADD_VIEWALIGNED)) {
-    add_v3_v3v3(bone->tail, bone->head, imat[1]);  // bone with unit length 1
+    add_v3_v3v3(bone->tail, bone->head, imat[1]); /* bone with unit length 1 */
   }
   else {
-    add_v3_v3v3(bone->tail, bone->head, imat[2]);  // bone with unit length 1, pointing up Z
+    add_v3_v3v3(bone->tail, bone->head, imat[2]); /* bone with unit length 1, pointing up Z */
   }
 
   ED_armature_edit_refresh_layer_used(obedit->data);
@@ -1638,7 +1638,7 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
   cuts = RNA_int_get(op->ptr, "number_cuts");
 
   /* loop over all editable bones */
-  // XXX the old code did this in reverse order though!
+  /* XXX the old code did this in reverse order though! */
   CTX_DATA_BEGIN_WITH_ID (C, EditBone *, ebone, selected_editable_bones, bArmature *, arm) {
     for (i = cuts + 1; i > 1; i--) {
       /* compute cut ratio first */

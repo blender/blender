@@ -147,7 +147,7 @@ static void applyTimeSlide(TransInfo *t, const int mval[2])
   UI_view2d_region_to_view(v2d, t->mouse.imval[0], t->mouse.imval[1], &sval[0], &sval[1]);
 
   /* t->values_final[0] stores cval[0], which is the current mouse-pointer location (in frames) */
-  // XXX Need to be able to repeat this
+  /* XXX Need to be able to repeat this. */
   /* t->values_final[0] = cval[0]; */ /* UNUSED (reset again later). */
 
   /* handle numeric-input stuff */

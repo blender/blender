@@ -2640,7 +2640,7 @@ static void filelist_readjob_main_recursive(Main *bmain, FileList *filelist)
   ListBase *lb;
   int a, fake, idcode, ok, totlib, totbl;
 
-  // filelist->type = FILE_MAIN; // XXX TODO: add modes to filebrowser
+  // filelist->type = FILE_MAIN; /* XXX TODO: add modes to filebrowser */
 
   BLI_assert(filelist->filelist.entries == NULL);
 

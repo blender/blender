@@ -65,8 +65,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "nla_intern.h"   // own include
-#include "nla_private.h"  // FIXME... maybe this shouldn't be included?
+#include "nla_intern.h"  /* own include */
+#include "nla_private.h" /* FIXME... maybe this shouldn't be included? */
 
 /* *********************************************** */
 /* Utilities exported to other places... */
@@ -381,7 +381,7 @@ static int nlaedit_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
   scene->r.pefra = round_fl_to_int(max);
 
   /* set notifier that things have changed */
-  // XXX err... there's nothing for frame ranges yet, but this should do fine too
+  /* XXX err... there's nothing for frame ranges yet, but this should do fine too */
   WM_event_add_notifier(C, NC_SCENE | ND_FRAME, ac.scene);
 
   return OPERATOR_FINISHED;
@@ -717,7 +717,7 @@ void NLA_OT_actionclip_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* props */
-  // TODO: this would be nicer as an ID-pointer...
+  /* TODO: this would be nicer as an ID-pointer. */
   prop = RNA_def_enum(ot->srna, "action", DummyRNA_NULL_items, 0, "Action", "");
   RNA_def_enum_funcs(prop, RNA_action_itemf);
   RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
@@ -878,7 +878,8 @@ static int nlaedit_add_sound_exec(bContext *C, wmOperator *UNUSED(op))
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   /* for each track, add sound clips if it belongs to a speaker */
-  // TODO: what happens if there aren't any tracks... well that's a more general problem for later
+  /* TODO: what happens if there aren't any tracks,
+   * well that's a more general problem for later. */
   for (ale = anim_data.first; ale; ale = ale->next) {
     Object *ob = (Object *)ale->id; /* may not be object until we actually check! */
 
@@ -1260,9 +1261,9 @@ void NLA_OT_delete(wmOperatorType *ot)
 
 /* ******************** Split Strips Operator ***************************** */
 /* Splits the selected NLA-Strips into two strips at the midpoint of the strip */
-// TODO's?
-//  - multiple splits
-//  - variable-length splits?
+/* TODO's?
+ *  - multiple splits
+ *  - variable-length splits? */
 
 /* split a given Action-Clip strip */
 static void nlaedit_split_strip_actclip(
@@ -1440,7 +1441,7 @@ static int nlaedit_toggle_mute_exec(bContext *C, wmOperator *UNUSED(op))
     for (strip = nlt->strips.first; strip; strip = strip->next) {
       if (strip->flag & NLASTRIP_FLAG_SELECT) {
         /* just flip the mute flag for now */
-        // TODO: have a pre-pass to check if mute all or unmute all?
+        /* TODO: have a pre-pass to check if mute all or unmute all? */
         strip->flag ^= NLASTRIP_FLAG_MUTED;
 
         /* tag AnimData to get recalculated */
@@ -2158,8 +2159,9 @@ void NLA_OT_clear_scale(wmOperatorType *ot)
 /* defines for snap keyframes tool */
 static const EnumPropertyItem prop_nlaedit_snap_types[] = {
     {NLAEDIT_SNAP_CFRA, "CFRA", 0, "Current Frame", ""},
-    {NLAEDIT_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", ""},  // XXX as single entry?
-    // XXX as single entry?
+    /* XXX as single entry? */
+    {NLAEDIT_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", ""},
+    /* XXX as single entry? */
     {NLAEDIT_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second", ""},
     {NLAEDIT_SNAP_NEAREST_MARKER, "NEAREST_MARKER", 0, "Nearest Marker", ""},
     {0, NULL, 0, NULL, NULL},
@@ -2481,7 +2483,7 @@ static int nla_fmodifier_copy_exec(bContext *C, wmOperator *op)
         continue;
       }
 
-      // TODO: when 'active' vs 'all' boolean is added, change last param!
+      /* TODO: when 'active' vs 'all' boolean is added, change last param! */
       ok |= ANIM_fmodifiers_copy_to_buf(&strip->modifiers, 0);
     }
   }

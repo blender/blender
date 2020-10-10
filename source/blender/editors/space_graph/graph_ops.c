@@ -54,7 +54,7 @@
 #include "WM_types.h"
 
 /* ************************** view-based operators **********************************/
-// XXX should these really be here?
+/* XXX should these really be here? */
 
 /* Set Cursor --------------------------------------------------------------------- */
 /* The 'cursor' in the Graph Editor consists of two parts:

@@ -58,7 +58,7 @@ static void rna_Sequence_update_rnafunc(ID *id, Sequence *self, bool do_data)
 {
   if (do_data) {
     BKE_sequencer_update_changed_seq_and_deps((Scene *)id, self, true, true);
-    // new_tstripdata(self); // need 2.6x version of this.
+    // new_tstripdata(self); /* need 2.6x version of this. */
   }
   BKE_sequence_calc((Scene *)id, self);
   BKE_sequence_calc_disp((Scene *)id, self);

@@ -86,7 +86,7 @@
 
 #include "BLF_api.h"
 
-#include "object_intern.h"  // own include
+#include "object_intern.h" /* own include */
 
 /* TODO(sebpa): unstable, can lead to unrecoverable errors. */
 // #define USE_MESH_CURVATURE

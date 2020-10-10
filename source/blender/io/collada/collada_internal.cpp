@@ -71,12 +71,12 @@ void UnitConverter::convertVector3(COLLADABU::Math::Vector3 &vec, float *v)
   v[2] = vec.z;
 }
 
-// TODO need also for angle conversion, time conversion...
+/* TODO need also for angle conversion, time conversion... */
 
 void UnitConverter::dae_matrix_to_mat4_(float out[4][4], const COLLADABU::Math::Matrix4 &in)
 {
-  // in DAE, matrices use columns vectors, (see comments in COLLADABUMathMatrix4.h)
-  // so here, to make a blender matrix, we swap columns and rows
+  /* in DAE, matrices use columns vectors, (see comments in COLLADABUMathMatrix4.h)
+   * so here, to make a blender matrix, we swap columns and rows. */
   for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 4; j++) {
       out[i][j] = in[j][i];
@@ -138,7 +138,7 @@ void UnitConverter::calculate_scale(Scene &sce)
 
   switch (type) {
     case USER_UNIT_NONE:
-      bl_scale = 1.0;  // map 1 Blender unit to 1 Meter
+      bl_scale = 1.0; /* map 1 Blender unit to 1 Meter. */
       break;
 
     case USER_UNIT_METRIC:
@@ -147,8 +147,8 @@ void UnitConverter::calculate_scale(Scene &sce)
 
     default:
       bl_scale = RNA_property_float_get(&unit_settings, scale_ptr);
-      // it looks like the conversion to Imperial is done implicitly.
-      // So nothing to do here.
+      /* It looks like the conversion to Imperial is done implicitly.
+       * So nothing to do here. */
       break;
   }
 
@@ -231,9 +231,9 @@ std::string translate_id(const std::string &id)
   for (unsigned int i = 1; i < id_translated.size(); i++) {
     id_translated[i] = translate_name_map[(unsigned int)id_translated[i]];
   }
-  // It's so much workload now, the if () should speed up things.
+  /* It's so much workload now, the if () should speed up things. */
   if (id_translated != id) {
-    // Search duplicates
+    /* Search duplicates. */
     map_string_list::iterator iter = global_id_map.find(id_translated);
     if (iter != global_id_map.end()) {
       unsigned int i = 0;

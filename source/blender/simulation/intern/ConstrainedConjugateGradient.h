@@ -60,7 +60,7 @@ EIGEN_DONT_INLINE void constrained_conjugate_gradient(const MatrixType &mat,
 
   int n = mat.cols();
 
-  VectorType residual = filter * (rhs - mat * x);  // initial residual
+  VectorType residual = filter * (rhs - mat * x); /* initial residual */
 
   RealScalar rhsNorm2 = (filter * rhs).squaredNorm();
   if (rhsNorm2 == 0) {
@@ -79,32 +79,32 @@ EIGEN_DONT_INLINE void constrained_conjugate_gradient(const MatrixType &mat,
   }
 
   VectorType p(n);
-  p = filter * precond.solve(residual);  // initial search direction
+  p = filter * precond.solve(residual); /* initial search direction */
 
   VectorType z(n), tmp(n);
   RealScalar absNew = numext::real(
-      residual.dot(p));  // the square of the absolute value of r scaled by invM
+      residual.dot(p)); /* the square of the absolute value of r scaled by invM */
   int i = 0;
   while (i < maxIters) {
-    tmp.noalias() = filter * (mat * p);  // the bottleneck of the algorithm
+    tmp.noalias() = filter * (mat * p); /* the bottleneck of the algorithm */
 
-    Scalar alpha = absNew / p.dot(tmp);  // the amount we travel on dir
-    x += alpha * p;                      // update solution
-    residual -= alpha * tmp;             // update residue
+    Scalar alpha = absNew / p.dot(tmp); /* the amount we travel on dir */
+    x += alpha * p;                     /* update solution */
+    residual -= alpha * tmp;            /* update residue */
 
     residualNorm2 = residual.squaredNorm();
     if (residualNorm2 < threshold) {
       break;
     }
 
-    z = precond.solve(residual);  // approximately solve for "A z = residual"
+    z = precond.solve(residual); /* approximately solve for "A z = residual" */
 
     RealScalar absOld = absNew;
-    absNew = numext::real(residual.dot(z));  // update the absolute value of r
+    absNew = numext::real(residual.dot(z)); /* update the absolute value of r */
     RealScalar beta =
         absNew /
-        absOld;  // calculate the Gram-Schmidt value used to create the new search direction
-    p = filter * (z + beta * p);  // update search direction
+        absOld; /* calculate the Gram-Schmidt value used to create the new search direction */
+    p = filter * (z + beta * p); /* update search direction */
     i++;
   }
   tol_error = sqrt(residualNorm2 / rhsNorm2);

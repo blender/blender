@@ -260,7 +260,7 @@ void createTransGraphEditData(bContext *C, TransInfo *t)
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   /* which side of the current frame should be allowed */
-  // XXX we still want this mode, but how to get this using standard transform too?
+  /* XXX we still want this mode, but how to get this using standard transform too? */
   if (t->mode == TFM_TIME_EXTEND) {
     t->frame_side = transform_convert_frame_side_dir_get(t, (float)CFRA);
   }

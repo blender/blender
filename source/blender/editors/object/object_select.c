@@ -661,7 +661,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
   }
 
   if (nr == OBJECT_SELECT_LINKED_IPO) {
-    // XXX old animation system
+    /* XXX old animation system */
     // if (ob->ipo == 0) return OPERATOR_CANCELLED;
     // object_select_all_by_ipo(C, ob->ipo)
     return OPERATOR_CANCELLED;

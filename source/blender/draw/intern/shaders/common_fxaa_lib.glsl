@@ -1,36 +1,36 @@
-//----------------------------------------------------------------------------------
-// File:        es3-kepler\FXAA/FXAA3_11.h
-// SDK Version: v3.00
-// Email:       gameworks@nvidia.com
-// Site:        http://developer.nvidia.com/
-//
-// Copyright (c) 2014-2015, NVIDIA CORPORATION. All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions
-// are met:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of NVIDIA CORPORATION nor the names of its
-//    contributors may be used to endorse or promote products derived
-//    from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS'' AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
-// OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-//----------------------------------------------------------------------------------
+/* ---------------------------------------------------------------------------------
+ * File:        es3-kepler\FXAA/FXAA3_11.h
+ * SDK Version: v3.00
+ * Email:       gameworks@nvidia.com
+ * Site:        http://developer.nvidia.com/
+ *
+ * Copyright (c) 2014-2015, NVIDIA CORPORATION. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *  * Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *  * Neither the name of NVIDIA CORPORATION nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * --------------------------------------------------------------------------------- */
 
 /* BLENDER MODIFICATIONS:
  *
@@ -54,26 +54,26 @@
 NOTE the other tuning knobs are now in the shader function inputs!
 ============================================================================*/
 #ifndef FXAA_QUALITY__PRESET
-//
-// Choose the quality preset.
-// This needs to be compiled into the shader as it effects code.
-// Best option to include multiple presets is to
-// in each shader define the preset, then include this file.
-//
-// OPTIONS
-// -----------------------------------------------------------------------
-// 10 to 15 - default medium dither (10=fastest, 15=highest quality)
-// 20 to 29 - less dither, more expensive (20=fastest, 29=highest quality)
-// 39       - no dither, very expensive
-//
-// NOTES
-// -----------------------------------------------------------------------
-// 12 = slightly faster then FXAA 3.9 and higher edge quality (default)
-// 13 = about same speed as FXAA 3.9 and better than 12
-// 23 = closest to FXAA 3.9 visually and performance wise
-//  _ = the lowest digit is directly related to performance
-// _  = the highest digit is directly related to style
-//
+/*
+ * Choose the quality preset.
+ * This needs to be compiled into the shader as it effects code.
+ * Best option to include multiple presets is to
+ * in each shader define the preset, then include this file.
+ *
+ * OPTIONS
+ * -----------------------------------------------------------------------
+ * 10 to 15 - default medium dither (10=fastest, 15=highest quality)
+ * 20 to 29 - less dither, more expensive (20=fastest, 29=highest quality)
+ * 39       - no dither, very expensive
+ *
+ * NOTES
+ * -----------------------------------------------------------------------
+ * 12 = slightly faster then FXAA 3.9 and higher edge quality (default)
+ * 13 = about same speed as FXAA 3.9 and better than 12
+ * 23 = closest to FXAA 3.9 visually and performance wise
+ *  _ = the lowest digit is directly related to performance
+ * _  = the highest digit is directly related to style
+ */
 #  define FXAA_QUALITY__PRESET 12
 #endif
 
@@ -296,9 +296,9 @@ NOTE the other tuning knobs are now in the shader function inputs!
 /* (#B1#) */
 float FxaaLuma(vec4 rgba)
 {
-  // note: sqrt because the sampled colors are in a linear colorspace!
-  // this approximates a perceptual conversion, which is good enough for the
-  // algorithm
+  /* note: sqrt because the sampled colors are in a linear colorspace!
+   * this approximates a perceptual conversion, which is good enough for the
+   * algorithm */
   return sqrt(dot(rgba.rgb, vec3(0.2126, 0.7152, 0.0722)));
 }
 
@@ -311,51 +311,51 @@ float FxaaLuma(vec4 rgba)
 ============================================================================*/
 /*--------------------------------------------------------------------------*/
 vec4 FxaaPixelShader(
-    //
-    // Use noperspective interpolation here (turn off perspective interpolation).
-    // {xy} = center of pixel
+    /*
+     * Use noperspective interpolation here (turn off perspective interpolation).
+     * {xy} = center of pixel */
     vec2 pos,
-    //
-    // Input color texture.
-    // {rgb_} = color in linear or perceptual color space
+    /*
+     * Input color texture.
+     * {rgb_} = color in linear or perceptual color space */
     sampler2D tex,
-    //
-    // Only used on FXAA Quality.
-    // This must be from a constant/uniform.
-    // {x_} = 1.0/screenWidthInPixels
-    // {_y} = 1.0/screenHeightInPixels
+    /*
+     * Only used on FXAA Quality.
+     * This must be from a constant/uniform.
+     * {x_} = 1.0/screenWidthInPixels
+     * {_y} = 1.0/screenHeightInPixels */
     vec2 fxaaQualityRcpFrame,
-    //
-    // Only used on FXAA Quality.
-    // This used to be the FXAA_QUALITY__SUBPIX define.
-    // It is here now to allow easier tuning.
-    // Choose the amount of sub-pixel aliasing removal.
-    // This can effect sharpness.
-    //   1.00 - upper limit (softer)
-    //   0.75 - default amount of filtering
-    //   0.50 - lower limit (sharper, less sub-pixel aliasing removal)
-    //   0.25 - almost off
-    //   0.00 - completely off
+    /*
+     * Only used on FXAA Quality.
+     * This used to be the FXAA_QUALITY__SUBPIX define.
+     * It is here now to allow easier tuning.
+     * Choose the amount of sub-pixel aliasing removal.
+     * This can effect sharpness.
+     *   1.00 - upper limit (softer)
+     *   0.75 - default amount of filtering
+     *   0.50 - lower limit (sharper, less sub-pixel aliasing removal)
+     *   0.25 - almost off
+     *   0.00 - completely off */
     float fxaaQualitySubpix,
-    //
-    // Only used on FXAA Quality.
-    // This used to be the FXAA_QUALITY__EDGE_THRESHOLD define.
-    // It is here now to allow easier tuning.
-    // The minimum amount of local contrast required to apply algorithm.
-    //   0.333 - too little (faster)
-    //   0.250 - low quality
-    //   0.166 - default
-    //   0.125 - high quality
-    //   0.063 - overkill (slower)
+    /*
+     * Only used on FXAA Quality.
+     * This used to be the FXAA_QUALITY__EDGE_THRESHOLD define.
+     * It is here now to allow easier tuning.
+     * The minimum amount of local contrast required to apply algorithm.
+     *   0.333 - too little (faster)
+     *   0.250 - low quality
+     *   0.166 - default
+     *   0.125 - high quality
+     *   0.063 - overkill (slower) */
     float fxaaQualityEdgeThreshold,
-    //
-    // Only used on FXAA Quality.
-    // This used to be the FXAA_QUALITY__EDGE_THRESHOLD_MIN define.
-    // It is here now to allow easier tuning.
-    // Trims the algorithm from processing darks.
-    //   0.0833 - upper limit (default, the start of visible unfiltered edges)
-    //   0.0625 - high quality (faster)
-    //   0.0312 - visible limit (slower)
+    /*
+     * Only used on FXAA Quality.
+     * This used to be the FXAA_QUALITY__EDGE_THRESHOLD_MIN define.
+     * It is here now to allow easier tuning.
+     * Trims the algorithm from processing darks.
+     *   0.0833 - upper limit (default, the start of visible unfiltered edges)
+     *   0.0625 - high quality (faster)
+     *   0.0312 - visible limit (slower) */
     float fxaaQualityEdgeThresholdMin)
 {
   /*--------------------------------------------------------------------------*/
@@ -363,7 +363,7 @@ vec4 FxaaPixelShader(
   posM.x = pos.x;
   posM.y = pos.y;
   vec4 rgbyM = FxaaTexTop(tex, posM);
-  float lumaM = FxaaLuma(rgbyM);  // (#B4#)
+  float lumaM = FxaaLuma(rgbyM); /* (#B4#) */
   float lumaS = FxaaLuma(FxaaTexOff(tex, posM, ivec2(0, 1), fxaaQualityRcpFrame.xy));
   float lumaE = FxaaLuma(FxaaTexOff(tex, posM, ivec2(1, 0), fxaaQualityRcpFrame.xy));
   float lumaN = FxaaLuma(FxaaTexOff(tex, posM, ivec2(0, -1), fxaaQualityRcpFrame.xy));

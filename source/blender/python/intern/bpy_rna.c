@@ -722,7 +722,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
           }
           else {
             /* Order will be updated from callback on use. */
-            // TODO, get order from RNA
+            /* TODO, get order from RNA. */
             PyObject *eul_cb = Euler_CreatePyObject_cb(
                 ret, EULER_ORDER_XYZ, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_EUL);
             Py_DECREF(ret); /* The euler owns 'ret' now. */
@@ -6048,7 +6048,7 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 
   /* enable this so all strings are copied and freed after calling.
    * this exposes bugs where the pointer to the string is held and re-used */
-  // #define DEBUG_STRING_FREE
+  /* #define DEBUG_STRING_FREE */
 
 #ifdef DEBUG_STRING_FREE
   PyObject *string_free_ls = PyList_New(0);
@@ -8820,7 +8820,10 @@ static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class
   /* Old srna still references us, keep the check in case registering somehow can free it. */
   if (RNA_struct_py_type_get(srna)) {
     RNA_struct_py_type_set(srna, NULL);
-    // Py_DECREF(py_class); /* Should be able to do this XXX since the old RNA adds a new ref. */
+#if 0
+    /* Should be able to do this XXX since the old RNA adds a new ref. */
+    Py_DECREF(py_class);
+#endif
   }
 
   /* Can't use this because it returns a dict proxy

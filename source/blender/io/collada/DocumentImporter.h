@@ -46,7 +46,7 @@ struct bContext;
 /** Importer class. */
 class DocumentImporter : COLLADAFW::IWriter {
  public:
-  //! Enumeration to denote the stage of import
+  /** Enumeration to denote the stage of import */
   enum ImportStage {
     Fetching_Scene_data,      /* First pass to collect all data except controller */
     Fetching_Controller_data, /* Second pass to collect controller data */
@@ -98,7 +98,8 @@ class DocumentImporter : COLLADAFW::IWriter {
   bool writeAnimationList(const COLLADAFW::AnimationList *);
 
 #if WITH_OPENCOLLADA_ANIMATION_CLIP
-  // Please enable this when building with Collada 1.6.65 or newer (also in DocumentImporter.cpp)
+  /* Please enable this when building with Collada 1.6.65 or newer (also in DocumentImporter.cpp)
+   */
   bool writeAnimationClip(const COLLADAFW::AnimationClip *animationClip);
 #endif
 
@@ -160,7 +161,8 @@ class DocumentImporter : COLLADAFW::IWriter {
   std::vector<Object *> libnode_ob;
 
   std::map<COLLADAFW::UniqueId, COLLADAFW::Node *>
-      root_map;  // find root joint by child joint uid, for bone tree evaluation during resampling
+      root_map; /* find root joint by child joint uid, for bone tree evaluation during resampling
+                 */
   std::map<COLLADAFW::UniqueId, const COLLADAFW::Object *> FW_object_map;
 
   std::string import_from_version;

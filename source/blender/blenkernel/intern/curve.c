@@ -21,7 +21,7 @@
  * \ingroup bke
  */
 
-#include <math.h>  // floor
+#include <math.h> /* floor */
 #include <stdlib.h>
 #include <string.h>
 
@@ -282,7 +282,7 @@ static void curve_blend_read_lib(BlendLibReader *reader, ID *id)
   BLO_read_id_address(reader, cu->id.lib, &cu->vfonti);
   BLO_read_id_address(reader, cu->id.lib, &cu->vfontbi);
 
-  BLO_read_id_address(reader, cu->id.lib, &cu->ipo);  // XXX deprecated - old animation system
+  BLO_read_id_address(reader, cu->id.lib, &cu->ipo); /* XXX deprecated - old animation system */
   BLO_read_id_address(reader, cu->id.lib, &cu->key);
 }
 
@@ -298,7 +298,7 @@ static void curve_blend_read_expand(BlendExpander *expander, ID *id)
   BLO_expand(expander, cu->vfonti);
   BLO_expand(expander, cu->vfontbi);
   BLO_expand(expander, cu->key);
-  BLO_expand(expander, cu->ipo);  // XXX deprecated - old animation system
+  BLO_expand(expander, cu->ipo); /* XXX deprecated - old animation system */
   BLO_expand(expander, cu->bevobj);
   BLO_expand(expander, cu->taperobj);
   BLO_expand(expander, cu->textoncurve);
@@ -3639,7 +3639,7 @@ static bool tridiagonal_solve_with_limits(float *a,
      * see if it may be a good idea to unlock some handles. */
     if (!locked) {
       for (int i = 0; i < solve_count; i++) {
-        // to definitely avoid infinite loops limit this to 2 times
+        /* to definitely avoid infinite loops limit this to 2 times */
         if (!is_locked[i] || num_unlocks[i] >= 2) {
           continue;
         }

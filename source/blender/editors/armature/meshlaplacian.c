@@ -451,7 +451,7 @@ static void heat_ray_tree_create(LaplacianSystem *sys)
 
     BLI_bvhtree_insert(sys->heat.bvhtree, a, bb, 2);
 
-    // Setup inverse pointers to use on isect.orig
+    /* Setup inverse pointers to use on isect.orig */
     sys->heat.vltree[vtri[0]] = lt;
     sys->heat.vltree[vtri[1]] = lt;
     sys->heat.vltree[vtri[2]] = lt;

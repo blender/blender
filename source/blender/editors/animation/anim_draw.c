@@ -126,8 +126,11 @@ void ANIM_draw_previewrange(const bContext *C, View2D *v2d, int end_frame_width)
 /* *************************************************** */
 /* SCENE FRAME RANGE */
 
-/* Draw frame range guides (for scene frame range) in background */
-// TODO: Should we still show these when preview range is enabled?
+/**
+ * Draw frame range guides (for scene frame range) in background.
+ *
+ * TODO: Should we still show these when preview range is enabled?
+ */
 void ANIM_draw_framerange(Scene *scene, View2D *v2d)
 {
   /* draw darkened area outside of active timeline frame range */
@@ -167,8 +170,11 @@ void ANIM_draw_framerange(Scene *scene, View2D *v2d)
 /* *************************************************** */
 /* NLA-MAPPING UTILITIES (required for drawing and also editing keyframes)  */
 
-/* Obtain the AnimData block providing NLA-mapping for the given channel (if applicable) */
-// TODO: do not supply return this if the animdata tells us that there is no mapping to perform
+/**
+ * Obtain the AnimData block providing NLA-mapping for the given channel (if applicable).
+ *
+ * TODO: do not supply return this if the animdata tells us that there is no mapping to perform.
+ */
 AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
 {
   /* sanity checks */
@@ -182,7 +188,7 @@ AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
   }
 
   /* apart from strictly keyframe-related contexts, this shouldn't even happen */
-  // XXX: nla and channel here may not be necessary...
+  /* XXX: nla and channel here may not be necessary... */
   if (ELEM(ac->datatype,
            ANIMCONT_ACTION,
            ANIMCONT_SHAPEKEY,

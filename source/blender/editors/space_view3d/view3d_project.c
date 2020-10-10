@@ -776,7 +776,7 @@ void ED_view3d_ob_project_mat_get_from_obmat(const RegionView3D *rv3d,
  * a point in world space. */
 void ED_view3d_project(const struct ARegion *region, const float world[3], float r_region_co[3])
 {
-  // viewport is set up to make coordinates relative to the region, not window
+  /* Viewport is set up to make coordinates relative to the region, not window. */
   RegionView3D *rv3d = region->regiondata;
   const int viewport[4] = {0, 0, region->winx, region->winy};
 

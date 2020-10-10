@@ -133,8 +133,8 @@ static void fcm_generator_new_data(void *mdata)
   data->poly_order = 1;
   data->arraysize = 2;
   cp = data->coefficients = MEM_callocN(sizeof(float) * 2, "FMod_Generator_Coefs");
-  cp[0] = 0;  // y-offset
-  cp[1] = 1;  // gradient
+  cp[0] = 0; /* y-offset */
+  cp[1] = 1; /* gradient */
 }
 
 static void fcm_generator_verify(FModifier *fcm)
@@ -1057,7 +1057,8 @@ static void fmods_init_typeinfo(void)
   fmodifiersTypeInfo[3] = &FMI_ENVELOPE;     /* Envelope F-Curve Modifier */
   fmodifiersTypeInfo[4] = &FMI_CYCLES;       /* Cycles F-Curve Modifier */
   fmodifiersTypeInfo[5] = &FMI_NOISE;        /* Apply-Noise F-Curve Modifier */
-  fmodifiersTypeInfo[6] = NULL /*&FMI_FILTER*/; /* Filter F-Curve Modifier */  // XXX unimplemented
+  fmodifiersTypeInfo[6] = NULL /*&FMI_FILTER*/;
+  /* Filter F-Curve Modifier */         /* XXX unimplemented. */
   fmodifiersTypeInfo[7] = &FMI_PYTHON;  /* Custom Python F-Curve Modifier */
   fmodifiersTypeInfo[8] = &FMI_LIMITS;  /* Limits F-Curve Modifier */
   fmodifiersTypeInfo[9] = &FMI_STEPPED; /* Stepped F-Curve Modifier */

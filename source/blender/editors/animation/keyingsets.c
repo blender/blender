@@ -214,7 +214,7 @@ static int add_empty_ks_path_exec(bContext *C, wmOperator *op)
   BLI_addtail(&ks->paths, ksp);
   ks->active_path = BLI_listbase_count(&ks->paths);
 
-  ksp->groupmode = KSP_GROUP_KSNAME;  // XXX?
+  ksp->groupmode = KSP_GROUP_KSNAME; /* XXX? */
   ksp->idtype = ID_OB;
   ksp->flag = KSP_FLAG_WHOLE_ARRAY;
 
@@ -968,14 +968,15 @@ eModifyKey_Returns ANIM_validate_keyingset(bContext *C, ListBase *dsources, Keyi
       }
 
       /* if we don't have any paths now, then this still qualifies as invalid context */
-      // FIXME: we need some error conditions (to be retrieved from the iterator why this failed!)
+      /* FIXME: we need some error conditions (to be retrieved from the iterator why this failed!)
+       */
       if (BLI_listbase_is_empty(&ks->paths)) {
         return MODIFYKEY_INVALID_CONTEXT;
       }
     }
     else {
       /* poll callback tells us that KeyingSet is useless in current context */
-      // FIXME: the poll callback needs to give us more info why
+      /* FIXME: the poll callback needs to give us more info why */
       return MODIFYKEY_INVALID_CONTEXT;
     }
   }
@@ -1149,7 +1150,7 @@ int ANIM_apply_keyingset(
       {
         Object *ob = (Object *)ksp->id;
 
-        // XXX: only object transforms?
+        /* XXX: only object transforms? */
         DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
         break;
       }

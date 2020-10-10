@@ -111,7 +111,7 @@ ImBuf *get_brush_icon(Brush *brush)
     if (brush->flag & BRUSH_CUSTOM_ICON) {
 
       if (brush->icon_filepath[0]) {
-        // first use the path directly to try and load the file
+        /* First use the path directly to try and load the file. */
 
         BLI_strncpy(path, brush->icon_filepath, sizeof(brush->icon_filepath));
         BLI_path_abs(path, ID_BLEND_PATH_FROM_GLOBAL(&brush->id));
@@ -119,7 +119,7 @@ ImBuf *get_brush_icon(Brush *brush)
         /* use default colorspaces for brushes */
         brush->icon_imbuf = IMB_loadiffname(path, flags, NULL);
 
-        // otherwise lets try to find it in other directories
+        /* otherwise lets try to find it in other directories */
         if (!(brush->icon_imbuf)) {
           folder = BKE_appdir_folder_id(BLENDER_DATAFILES, "brushicons");
 
@@ -881,7 +881,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
     sce->display.render_aa = SCE_DISPLAY_AA_SAMPLES_8;
   }
 
-  /* callbacs are cleared on GetRender() */
+  /* Callbacks are cleared on GetRender(). */
   if (ELEM(sp->pr_method, PR_BUTS_RENDER, PR_NODE_RENDER)) {
     RE_display_update_cb(re, sp, shader_preview_update);
   }
@@ -907,7 +907,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 
   /* handle results */
   if (sp->pr_method == PR_ICON_RENDER) {
-    // char *rct= (char *)(sp->pr_rect + 32*16 + 16);
+    // char *rct = (char *)(sp->pr_rect + 32 * 16 + 16);
 
     if (sp->pr_rect) {
       RE_ResultGet32(re, sp->pr_rect);
@@ -917,12 +917,14 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
   /* unassign the pointers, reset vars */
   preview_prepare_scene(sp->bmain, sp->scene, NULL, GS(id->name), sp);
 
-  /* XXX bad exception, end-exec is not being called in render, because it uses local main */
-  //  if (idtype == ID_TE) {
-  //      Tex *tex= (Tex *)id;
-  //      if (tex->use_nodes && tex->nodetree)
-  //          ntreeEndExecTree(tex->nodetree);
-  //  }
+  /* XXX bad exception, end-exec is not being called in render, because it uses local main. */
+#if 0
+  if (idtype == ID_TE) {
+    Tex *tex = (Tex *)id;
+    if (tex->use_nodes && tex->nodetree)
+      ntreeEndExecTree(tex->nodetree);
+  }
+#endif
 }
 
 /* runs inside thread for material and icons */
@@ -1083,7 +1085,7 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
     int source = deferred_data[0];
     char *path = &deferred_data[1];
 
-    //      printf("generating deferred %d×%d preview for %s\n", sp->sizex, sp->sizey, path);
+    // printf("generating deferred %d×%d preview for %s\n", sp->sizex, sp->sizey, path);
 
     thumb = IMB_thumb_manage(path, THB_LARGE, source);
 

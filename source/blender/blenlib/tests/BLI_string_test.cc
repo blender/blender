@@ -4,7 +4,7 @@
 
 #include <array>
 #include <initializer_list>
-#include <ostream>  // NOLINT
+#include <ostream> /* NOLINT */
 #include <string>
 #include <utility>
 #include <vector>

@@ -317,7 +317,7 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob,
   *r_allvert = mvert = MEM_calloc_arrayN(totvert, sizeof(MVert), "nurbs_init mvert");
   *r_alledge = medge = MEM_calloc_arrayN(totedge, sizeof(MEdge), "nurbs_init medge");
   *r_allloop = mloop = MEM_calloc_arrayN(
-      totpoly, sizeof(MLoop[4]), "nurbs_init mloop");  // totloop
+      totpoly, sizeof(MLoop[4]), "nurbs_init mloop"); /* totloop */
   *r_allpoly = mpoly = MEM_calloc_arrayN(totpoly, sizeof(MPoly), "nurbs_init mloop");
 
   if (r_alluv) {

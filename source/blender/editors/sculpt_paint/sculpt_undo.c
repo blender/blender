@@ -55,7 +55,7 @@
 #include "BKE_subsurf.h"
 #include "BKE_undo_system.h"
 
-// XXX: Ideally should be no direct call to such low level things.
+/* XXX: Ideally should be no direct call to such low level things. */
 #include "BKE_subdiv_eval.h"
 
 #include "DEG_depsgraph.h"

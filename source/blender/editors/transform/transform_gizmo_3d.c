@@ -915,7 +915,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
     /* selection center */
     if (totsel) {
-      mul_v3_fl(tbounds->center, 1.0f / (float)totsel);  // centroid!
+      mul_v3_fl(tbounds->center, 1.0f / (float)totsel); /* centroid! */
       mul_m4_v3(obedit->obmat, tbounds->center);
       mul_m4_v3(obedit->obmat, tbounds->min);
       mul_m4_v3(obedit->obmat, tbounds->max);
@@ -958,7 +958,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
     MEM_freeN(objects);
 
     if (totsel) {
-      mul_v3_fl(tbounds->center, 1.0f / (float)totsel);  // centroid!
+      mul_v3_fl(tbounds->center, 1.0f / (float)totsel); /* centroid! */
       mul_m4_v3(ob->obmat, tbounds->center);
       mul_m4_v3(ob->obmat, tbounds->min);
       mul_m4_v3(ob->obmat, tbounds->max);
@@ -996,7 +996,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
       /* selection center */
       if (totsel) {
-        mul_v3_fl(tbounds->center, 1.0f / (float)totsel);  // centroid!
+        mul_v3_fl(tbounds->center, 1.0f / (float)totsel); /* centroid! */
       }
     }
   }
@@ -1044,7 +1044,7 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
     /* selection center */
     if (totsel) {
-      mul_v3_fl(tbounds->center, 1.0f / (float)totsel);  // centroid!
+      mul_v3_fl(tbounds->center, 1.0f / (float)totsel); /* centroid! */
     }
   }
 

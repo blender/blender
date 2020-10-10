@@ -1856,7 +1856,7 @@ void POSELIB_OT_browse_interactive(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 
   /* properties */
-  // TODO: make the pose_index into a proper enum instead of a cryptic int...
+  /* TODO: make the pose_index into a proper enum instead of a cryptic int. */
   ot->prop = RNA_def_int(
       ot->srna,
       "pose_index",
@@ -1868,7 +1868,7 @@ void POSELIB_OT_browse_interactive(wmOperatorType *ot)
       0,
       INT_MAX);
 
-  // XXX: percentage vs factor?
+  /* XXX: percentage vs factor? */
   /* not used yet */
 #if 0
   RNA_def_float_factor(ot->srna,

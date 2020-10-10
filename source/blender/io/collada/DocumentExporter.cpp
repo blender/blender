@@ -18,7 +18,7 @@
  * \ingroup collada
  */
 
-#include <algorithm>  // std::find
+#include <algorithm> /* std::find */
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -79,7 +79,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_action.h"  // pose functions
+#include "BKE_action.h" /* pose functions */
 #include "BKE_animsys.h"
 #include "BKE_appdir.h"
 #include "BKE_armature.h"
@@ -106,7 +106,7 @@ extern "C" char build_hash[];
 #include "collada_internal.h"
 #include "collada_utils.h"
 
-// can probably go after refactor is complete
+/* can probably go after refactor is complete */
 #include "InstanceWriter.h"
 #include "TransformWriter.h"
 
@@ -170,9 +170,9 @@ static COLLADABU::NativeString make_temp_filepath(const char *name, const char *
   return native_filename;
 }
 
-// TODO: it would be better to instantiate animations rather than create a new one per object
-// COLLADA allows this through multiple <channel>s in <animation>.
-// For this to work, we need to know objects that use a certain action.
+/* TODO: it would be better to instantiate animations rather than create a new one per object
+ * COLLADA allows this through multiple <channel>s in <animation>.
+ * For this to work, we need to know objects that use a certain action. */
 
 int DocumentExporter::exportCurrentScene()
 {
@@ -187,10 +187,10 @@ int DocumentExporter::exportCurrentScene()
   COLLADABU::NativeString native_filename = make_temp_filepath(NULL, ".dae");
   COLLADASW::StreamWriter *writer = new COLLADASW::StreamWriter(native_filename);
 
-  // open <collada>
+  /* open <collada> */
   writer->startDocument();
 
-  // <asset>
+  /* <asset> */
   COLLADASW::Asset asset(writer);
 
   RNA_id_pointer_create(&(sce->id), &sceneptr);
@@ -254,37 +254,37 @@ int DocumentExporter::exportCurrentScene()
   asset.add();
 
   LinkNode *export_set = this->export_settings.get_export_set();
-  // <library_cameras>
+  /* <library_cameras> */
   if (bc_has_object_type(export_set, OB_CAMERA)) {
     CamerasExporter ce(writer, this->export_settings);
     ce.exportCameras(sce);
   }
 
-  // <library_lights>
+  /* <library_lights> */
   if (bc_has_object_type(export_set, OB_LAMP)) {
     LightsExporter le(writer, this->export_settings);
     le.exportLights(sce);
   }
 
-  // <library_effects>
+  /* <library_effects> */
   EffectsExporter ee(writer, this->export_settings, key_image_map);
   ee.exportEffects(C, sce);
 
-  // <library_images>
+  /* <library_images> */
   ImagesExporter ie(writer, this->export_settings, key_image_map);
   ie.exportImages(sce);
 
-  // <library_materials>
+  /* <library_materials> */
   MaterialsExporter me(writer, this->export_settings);
   me.exportMaterials(sce);
 
-  // <library_geometries>
+  /* <library_geometries> */
   if (bc_has_object_type(export_set, OB_MESH)) {
     GeometryExporter ge(blender_context, writer, this->export_settings);
     ge.exportGeom();
   }
 
-  // <library_controllers>
+  /* <library_controllers> */
   ArmatureExporter arm_exporter(blender_context, writer, this->export_settings);
   ControllerExporter controller_exporter(blender_context, writer, this->export_settings);
   if (bc_has_object_type(export_set, OB_ARMATURE) ||
@@ -292,28 +292,28 @@ int DocumentExporter::exportCurrentScene()
     controller_exporter.export_controllers();
   }
 
-  // <library_visual_scenes>
+  /* <library_visual_scenes> */
 
   SceneExporter se(blender_context, writer, &arm_exporter, this->export_settings);
 
   if (this->export_settings.get_include_animations()) {
-    // <library_animations>
+    /* <library_animations> */
     AnimationExporter ae(writer, this->export_settings);
     ae.exportAnimations();
   }
 
   se.exportScene();
 
-  // <scene>
+  /* <scene> */
   std::string scene_name(translate_id(id_name(sce)));
   COLLADASW::Scene scene(writer, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, scene_name));
   scene.add();
 
-  // close <Collada>
+  /* close <Collada> */
   writer->endDocument();
   delete writer;
 
-  // Finally move the created document into place
+  /* Finally move the created document into place */
   fprintf(stdout, "Collada export to: %s\n", this->export_settings.get_filepath());
   int status = BLI_rename(native_filename.c_str(), this->export_settings.get_filepath());
   if (status != 0) {

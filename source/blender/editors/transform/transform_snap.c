@@ -280,7 +280,7 @@ eRedrawFlag handleSnapping(TransInfo *t, const wmEvent *event)
 {
   eRedrawFlag status = TREDRAW_NOTHING;
 
-#if 0  // XXX need a proper selector for all snap mode
+#if 0 /* XXX need a proper selector for all snap mode */
   if (BIF_snappingSupported(t->obedit) && event->type == TABKEY && event->shift) {
     /* toggle snap and reinit */
     t->settings->snap_flag ^= SCE_SNAP;
@@ -370,7 +370,9 @@ void applyProject(TransInfo *t)
           }
         }
 
-        // XXX constraintTransLim(t, td);
+#if 0 /* TODO: sipport this? */
+         constraintTransLim(t, td);
+#endif
       }
     }
   }
@@ -447,8 +449,8 @@ void applySnapping(TransInfo *t, float *vec)
            activeSnap(t)) {
     double current = PIL_check_seconds_timer();
 
-    // Time base quirky code to go around findnearest slowness
-    /* !TODO! add exception for object mode, no need to slow it down then */
+    /* Time base quirky code to go around findnearest slowness */
+    /* TODO: add exception for object mode, no need to slow it down then. */
     if (current - t->tsnap.last >= 0.01) {
       t->tsnap.calcSnap(t, vec);
       t->tsnap.targetSnap(t);
@@ -831,7 +833,7 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
     float mval[2];
     bool found = false;
     short snap_elem = 0;
-    float dist_px = SNAP_MIN_DISTANCE;  // Use a user defined value here
+    float dist_px = SNAP_MIN_DISTANCE; /* Use a user defined value here. */
 
     mval[0] = t->mval[0];
     mval[1] = t->mval[1];
@@ -890,7 +892,7 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
   else if (t->spacetype == SPACE_NODE) {
     if (t->tsnap.mode & (SCE_SNAP_MODE_NODE_X | SCE_SNAP_MODE_NODE_Y)) {
       float loc[2];
-      float dist_px = SNAP_MIN_DISTANCE;  // Use a user defined value here
+      float dist_px = SNAP_MIN_DISTANCE; /* Use a user defined value here. */
       char node_border;
 
       if (snapNodesTransform(t, t->mval, loc, &dist_px, &node_border)) {
@@ -981,7 +983,7 @@ static void TargetSnapActive(TransInfo *t)
 
 static void TargetSnapMedian(TransInfo *t)
 {
-  // Only need to calculate once
+  /* Only need to calculate once. */
   if ((t->tsnap.status & TARGET_INIT) == 0) {
     int i_accum = 0;
 
@@ -1024,7 +1026,7 @@ static void TargetSnapMedian(TransInfo *t)
 
 static void TargetSnapClosest(TransInfo *t)
 {
-  // Only valid if a snap point has been selected
+  /* Only valid if a snap point has been selected. */
   if (t->tsnap.status & POINT_INIT) {
     float dist_closest = 0.0f;
     TransData *closest = NULL;
@@ -1370,7 +1372,7 @@ void snapFrameTransform(TransInfo *t,
       break;
     case SACTSNAP_MARKER:
       /* snap to nearest marker */
-      // TODO: need some more careful checks for where data comes from
+      /* TODO: need some more careful checks for where data comes from. */
       val = ED_markers_find_nearest_marker_time(&t->scene->markers, (float)val);
       break;
     case SACTSNAP_SECOND:

@@ -51,7 +51,7 @@ bool MaterialsExporter::hasMaterials(Scene *sce)
     for (a = 0; a < ob->totcol; a++) {
       Material *ma = BKE_object_material_get(ob, a + 1);
 
-      // no material, but check all of the slots
+      /* no material, but check all of the slots */
       if (!ma) {
         continue;
       }

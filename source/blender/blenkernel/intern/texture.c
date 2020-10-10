@@ -193,14 +193,14 @@ static void texture_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   Tex *tex = (Tex *)id;
   BLO_read_id_address(reader, tex->id.lib, &tex->ima);
-  BLO_read_id_address(reader, tex->id.lib, &tex->ipo);  // XXX deprecated - old animation system
+  BLO_read_id_address(reader, tex->id.lib, &tex->ipo); /* XXX deprecated - old animation system */
 }
 
 static void texture_blend_read_expand(BlendExpander *expander, ID *id)
 {
   Tex *tex = (Tex *)id;
   BLO_expand(expander, tex->ima);
-  BLO_expand(expander, tex->ipo);  // XXX deprecated - old animation system
+  BLO_expand(expander, tex->ipo); /* XXX deprecated - old animation system */
 }
 
 IDTypeInfo IDType_ID_TE = {

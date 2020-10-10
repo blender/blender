@@ -1,6 +1,6 @@
 #include "testing/testing.h"
 
-// Keep first since utildefines defines AT which conflicts with STL
+/* Keep first since utildefines defines AT which conflicts with STL */
 #include "exporter/abc_archive.h"
 #include "intern/abc_util.h"
 
@@ -49,7 +49,7 @@ class AlembicExportTest : public testing::Test {
     deleteArchive();
   }
 
-  // Call after setting up the parameters.
+  /* Call after setting up the parameters. */
   void createArchive()
   {
     if (abc_archive != nullptr) {
@@ -108,28 +108,28 @@ TEST_F(AlembicExportTest, TimeSamplesFullShutterDifferent)
   createArchive();
   std::vector<double> frames(abc_archive->frames_begin(), abc_archive->frames_end());
   EXPECT_EQ(8, frames.size());
-  EXPECT_NEAR(31.0, frames[0], 1e-5);  // transform + shape
+  EXPECT_NEAR(31.0, frames[0], 1e-5); /* transform + shape */
   EXPECT_TRUE(abc_archive->is_xform_frame(frames[0]));
   EXPECT_TRUE(abc_archive->is_shape_frame(frames[0]));
-  EXPECT_NEAR(31.33333, frames[1], 1e-5);  // transform
+  EXPECT_NEAR(31.33333, frames[1], 1e-5); /* transform */
   EXPECT_TRUE(abc_archive->is_xform_frame(frames[1]));
   EXPECT_FALSE(abc_archive->is_shape_frame(frames[1]));
-  EXPECT_NEAR(31.5, frames[2], 1e-5);  // shape
+  EXPECT_NEAR(31.5, frames[2], 1e-5); /* shape */
   EXPECT_FALSE(abc_archive->is_xform_frame(frames[2]));
   EXPECT_TRUE(abc_archive->is_shape_frame(frames[2]));
-  EXPECT_NEAR(31.66666, frames[3], 1e-5);  // transform
+  EXPECT_NEAR(31.66666, frames[3], 1e-5); /* transform */
   EXPECT_TRUE(abc_archive->is_xform_frame(frames[3]));
   EXPECT_FALSE(abc_archive->is_shape_frame(frames[3]));
-  EXPECT_NEAR(32.0, frames[4], 1e-5);  // transform + shape
+  EXPECT_NEAR(32.0, frames[4], 1e-5); /* transform + shape */
   EXPECT_TRUE(abc_archive->is_xform_frame(frames[4]));
   EXPECT_TRUE(abc_archive->is_shape_frame(frames[4]));
-  EXPECT_NEAR(32.33333, frames[5], 1e-5);  // transform
+  EXPECT_NEAR(32.33333, frames[5], 1e-5); /* transform */
   EXPECT_TRUE(abc_archive->is_xform_frame(frames[5]));
   EXPECT_FALSE(abc_archive->is_shape_frame(frames[5]));
-  EXPECT_NEAR(32.5, frames[6], 1e-5);  // shape
+  EXPECT_NEAR(32.5, frames[6], 1e-5); /* shape */
   EXPECT_FALSE(abc_archive->is_xform_frame(frames[6]));
   EXPECT_TRUE(abc_archive->is_shape_frame(frames[6]));
-  EXPECT_NEAR(32.66666, frames[7], 1e-5);  // transform
+  EXPECT_NEAR(32.66666, frames[7], 1e-5); /* transform */
   EXPECT_TRUE(abc_archive->is_xform_frame(frames[7]));
   EXPECT_FALSE(abc_archive->is_shape_frame(frames[7]));
 }

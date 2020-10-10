@@ -381,7 +381,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
 
     if (!(t->state == TRANS_CANCEL)) {
 
-#if 0  // default 2.4 behavior
+#if 0 /* Default 2.4 behavior. */
 
       /* flush to 2d vector from internally used 3d vector */
       for (a = 0; a < t->total; a++, td++) {
@@ -393,7 +393,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
         seq_prev = seq;
       }
 
-#else  // durian hack
+#else /* durian hack */
       {
         int overlap = 0;
 

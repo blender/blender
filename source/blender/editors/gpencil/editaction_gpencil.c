@@ -443,7 +443,7 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
   }
 
   /* filter data */
-  // TODO: try doing it with selection, then without selection imits
+  /* TODO: try doing it with selection, then without selection limits. */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL |
             ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
@@ -649,7 +649,7 @@ static bool gpencil_frame_mirror_marker(bGPDframe *gpf, Scene *scene)
 }
 
 /* mirror selected gp-frames on... */
-// TODO: mirror over a specific time
+/* TODO: mirror over a specific time */
 void ED_gpencil_layer_mirror_frames(bGPDlayer *gpl, Scene *scene, short mode)
 {
   switch (mode) {

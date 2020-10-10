@@ -51,7 +51,7 @@ class MaterialsExporter : COLLADASW::LibraryMaterials {
 // used in forEachMaterialInScene
 template<class Functor> class ForEachMaterialFunctor {
   std::vector<std::string>
-      mMat;  // contains list of material names, to avoid duplicate calling of f
+      mMat; /* contains list of material names, to avoid duplicate calling of f */
   Functor *f;
 
  public:
@@ -81,8 +81,8 @@ template<class Functor> class ForEachMaterialFunctor {
 };
 
 struct MaterialFunctor {
-  // calls f for each unique material linked to each object in sce
-  // f should have
+  /* calls f for each unique material linked to each object in sce
+   * f should have */
   // void operator()(Material *ma)
   template<class Functor>
   void forEachMaterialInExportSet(Scene *sce, Functor &f, LinkNode *export_set)

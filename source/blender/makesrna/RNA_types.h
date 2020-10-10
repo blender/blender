@@ -414,7 +414,7 @@ typedef struct CollectionListBase {
 
 typedef enum RawPropertyType {
   PROP_RAW_UNSET = -1,
-  PROP_RAW_INT,  // XXX - abused for types that are not set, eg. MFace.verts, needs fixing.
+  PROP_RAW_INT, /* XXX - abused for types that are not set, eg. MFace.verts, needs fixing. */
   PROP_RAW_SHORT,
   PROP_RAW_CHAR,
   PROP_RAW_BOOLEAN,

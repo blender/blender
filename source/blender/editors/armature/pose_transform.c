@@ -385,7 +385,7 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
-  // must be active object, not edit-object
+  /* must be active object, not edit-object */
   Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
   const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
   bArmature *arm = BKE_armature_from_object(ob);
@@ -688,8 +688,8 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
 
     pchan->curve_in_x *= -1;
     pchan->curve_out_x *= -1;
-    pchan->roll1 *= -1;  // XXX?
-    pchan->roll2 *= -1;  // XXX?
+    pchan->roll1 *= -1; /* XXX? */
+    pchan->roll2 *= -1; /* XXX? */
 
     /* has to be done as eulers... */
     if (pchan->rotmode > 0) {
@@ -1108,7 +1108,7 @@ static int pose_clear_transform_generic_exec(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
   FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob_iter) {
-    // XXX: UGLY HACK (for autokey + clear transforms)
+    /* XXX: UGLY HACK (for autokey + clear transforms) */
     Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_iter);
     ListBase dsources = {NULL, NULL};
     bool changed = false;

@@ -1877,7 +1877,7 @@ static int file_next_exec(bContext *C, wmOperator *UNUSED(unused))
     folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
     folderlist_popdir(sfile->folders_next, sfile->params->dir);
 
-    // update folders_prev so we can check for it in folderlist_clear_next()
+    /* update folders_prev so we can check for it in #folderlist_clear_next() */
     folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
 
     ED_file_change_dir(C);

@@ -112,7 +112,7 @@ BlenderContext::BlenderContext(bContext *C)
   main = CTX_data_main(C);
   scene = CTX_data_scene(C);
   view_layer = CTX_data_view_layer(C);
-  depsgraph = nullptr;  // create only when needed
+  depsgraph = nullptr; /* create only when needed */
 }
 
 bContext *BlenderContext::get_context()

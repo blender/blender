@@ -52,7 +52,7 @@ class ArmatureImporter;
 
 class AnimationImporterBase {
  public:
-  // virtual void change_eul_to_quat(Object *ob, bAction *act) = 0;
+  /* virtual void change_eul_to_quat(Object *ob, bAction *act) = 0; */
 };
 
 class AnimationImporter : private TransformReader, public AnimationImporterBase {
@@ -75,7 +75,7 @@ class AnimationImporter : private TransformReader, public AnimationImporterBase 
                 float value,
                 eBezTriple_Interpolation ipo = BEZT_IPO_LIN);
 
-  // create one or several fcurves depending on the number of parameters being animated
+  /* create one or several fcurves depending on the number of parameters being animated */
   void animation_to_fcurves(COLLADAFW::AnimationCurve *curve);
 
   void fcurve_deg_to_rad(FCurve *cu);
@@ -143,7 +143,7 @@ class AnimationImporter : private TransformReader, public AnimationImporterBase 
   void set_import_from_version(std::string import_from_version);
   bool write_animation(const COLLADAFW::Animation *anim);
 
-  // called on post-process stage after writeVisualScenes
+  /* called on post-process stage after writeVisualScenes */
   bool write_animation_list(const COLLADAFW::AnimationList *animlist);
 
   void read_node_transform(COLLADAFW::Node *node, Object *ob);
@@ -199,9 +199,9 @@ class AnimationImporter : private TransformReader, public AnimationImporterBase 
                      int array_index,
                      int scale = 1);
   void unused_fcurve(std::vector<FCurve *> *curves);
-  // prerequisites:
-  // animlist_map - map animlist id -> animlist
-  // curve_map - map anim id -> curve(s)
+  /* prerequisites:
+   * animlist_map - map animlist id -> animlist
+   * curve_map - map anim id -> curve(s) */
   Object *translate_animation_OLD(COLLADAFW::Node *node,
                                   std::map<COLLADAFW::UniqueId, Object *> &object_map,
                                   std::map<COLLADAFW::UniqueId, COLLADAFW::Node *> &root_map,
@@ -212,21 +212,21 @@ class AnimationImporter : private TransformReader, public AnimationImporterBase 
   void find_frames_old(std::vector<float> *frames,
                        COLLADAFW::Node *node,
                        COLLADAFW::Transformation::TransformationType tm_type);
-  // internal, better make it private
-  // warning: evaluates only rotation
-  // prerequisites: animlist_map, curve_map
+  /* internal, better make it private
+   * warning: evaluates only rotation
+   * prerequisites: animlist_map, curve_map */
   void evaluate_transform_at_frame(float mat[4][4], COLLADAFW::Node *node, float fra);
 
-  // return true to indicate that mat contains a sane value
+  /* return true to indicate that mat contains a sane value */
   bool evaluate_animation(COLLADAFW::Transformation *tm,
                           float mat[4][4],
                           float fra,
                           const char *node_id);
 
-  // gives a world-space mat of joint at rest position
+  /* gives a world-space mat of joint at rest position */
   void get_joint_rest_mat(float mat[4][4], COLLADAFW::Node *root, COLLADAFW::Node *node);
 
-  // gives a world-space mat, end's mat not included
+  /* gives a world-space mat, end's mat not included */
   bool calc_joint_parent_mat_rest(float mat[4][4],
                                   float par[4][4],
                                   COLLADAFW::Node *node,
@@ -239,8 +239,8 @@ class AnimationImporter : private TransformReader, public AnimationImporterBase 
 #endif
 
 #if 0
-  // recursively evaluates joint tree until end is found, mat then is world-space matrix of end
-  // mat must be identity on enter, node must be root
+  /* recursively evaluates joint tree until end is found, mat then is world-space matrix of end
+   * mat must be identity on enter, node must be root */
   bool evaluate_joint_world_transform_at_frame(
       float mat[4][4], float par[4][4], COLLADAFW::Node *node, COLLADAFW::Node *end, float fra);
 #endif

@@ -1356,7 +1356,7 @@ enum {
 /* subsurface */
 enum {
 #ifdef DNA_DEPRECATED_ALLOW
-  SHD_SUBSURFACE_COMPATIBLE = 0,  // Deprecated
+  SHD_SUBSURFACE_COMPATIBLE = 0, /* Deprecated */
 #endif
   SHD_SUBSURFACE_CUBIC = 1,
   SHD_SUBSURFACE_GAUSSIAN = 2,

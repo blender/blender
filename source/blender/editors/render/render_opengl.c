@@ -90,8 +90,8 @@
 #  include "PIL_time.h"
 #endif
 
-// TODO(sergey): Find better approximation of the scheduled frames.
-// For really highres renders it might fail still.
+/* TODO(sergey): Find better approximation of the scheduled frames.
+ * For really highres renders it might fail still. */
 #define MAX_SCHEDULED_FRAMES 8
 
 typedef struct OGLRender {

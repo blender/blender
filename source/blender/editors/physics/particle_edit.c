@@ -202,9 +202,10 @@ ParticleEditSettings *PE_settings(Scene *scene)
 
 static float pe_brush_size_get(const Scene *UNUSED(scene), ParticleBrushData *brush)
 {
-  // here we can enable unified brush size, needs more work...
-  // UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
-  // float size = (ups->flag & UNIFIED_PAINT_SIZE) ? ups->size : brush->size;
+#if 0 /* TODO: Here we can enable unified brush size, needs more work. */
+  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+  float size = (ups->flag & UNIFIED_PAINT_SIZE) ? ups->size : brush->size;
+#endif
 
   return brush->size;
 }
@@ -4560,7 +4561,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
            (dx != 0 || dy != 0)) ||
       bedit->first) {
     PEData data = bedit->data;
-    data.context = C;  // TODO(mai): why isnt this set in bedit->data?
+    data.context = C; /* TODO(mai): why isnt this set in bedit->data? */
 
     view3d_operator_needs_opengl(C);
     selected = (short)count_selected_keys(scene, edit);
@@ -4783,7 +4784,7 @@ static void brush_edit_apply_event(bContext *C, wmOperator *op, const wmEvent *e
   RNA_collection_add(op->ptr, "stroke", &itemptr);
 
   RNA_float_set_array(&itemptr, "mouse", mouse);
-  RNA_boolean_set(&itemptr, "pen_flip", event->shift != false);  // XXX hardcoded
+  RNA_boolean_set(&itemptr, "pen_flip", event->shift != false); /* XXX hardcoded */
 
   /* apply */
   brush_edit_apply(C, op, &itemptr);
@@ -4807,7 +4808,7 @@ static int brush_edit_modal(bContext *C, wmOperator *op, const wmEvent *event)
   switch (event->type) {
     case LEFTMOUSE:
     case MIDDLEMOUSE:
-    case RIGHTMOUSE:  // XXX hardcoded
+    case RIGHTMOUSE: /* XXX hardcoded */
       if (event->val == KM_RELEASE) {
         brush_edit_exit(op);
         return OPERATOR_FINISHED;

@@ -45,7 +45,7 @@
 #endif
 
 #include "GPU_framebuffer.h"
-#include "script_intern.h"  // own include
+#include "script_intern.h" /* own include */
 
 // static script_run_python(char *funcname, )
 
@@ -85,8 +85,6 @@ static void script_free(SpaceLink *sl)
 #ifdef WITH_PYTHON
   /*free buttons references*/
   if (sscript->but_refs) {
-    // XXX      BPy_Set_DrawButtonsList(sscript->but_refs);
-    //      BPy_Free_DrawButtonsList();
     sscript->but_refs = NULL;
   }
 #endif
@@ -164,9 +162,11 @@ static void script_main_region_listener(wmWindow *UNUSED(win),
                                         wmNotifier *UNUSED(wmn),
                                         const Scene *UNUSED(scene))
 {
-  /* context changes */
-  // XXX - Todo, need the ScriptSpace accessible to get the python script to run.
-  // BPY_run_script_space_listener()
+/* context changes */
+/* XXX - Todo, need the ScriptSpace accessible to get the python script to run. */
+#if 0
+  BPY_run_script_space_listener()
+#endif
 }
 
 /* only called once, from space/spacetypes.c */

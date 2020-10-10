@@ -55,7 +55,7 @@ class BCSample {
 
   bool get_value(std::string channel_target, const int array_index, float *val) const;
   const BCMatrix &get_matrix() const;
-  const BCMatrix *get_matrix(Bone *bone) const;  // returns NULL if bone is not animated
+  const BCMatrix *get_matrix(Bone *bone) const; /* returns NULL if bone is not animated */
 };
 
 typedef std::map<Object *, BCSample *> BCSampleMap;

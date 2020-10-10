@@ -290,4 +290,4 @@ int OIIO_getVersionHex(void)
   return openimageio_version();
 }
 
-}  // export "C"
+} /* export "C" */

@@ -31,8 +31,8 @@
  * All rights reserved.
  */
 
-// This file comes from the chromium project, adapted to Blender to add DDS
-// flipping to OpenGL convention for Blender
+/* This file comes from the chromium project, adapted to Blender to add DDS
+ * flipping to OpenGL convention for Blender */
 
 #include "IMB_imbuf_types.h"
 
@@ -44,18 +44,18 @@
 #include <FlipDXT.h>
 #include <Stream.h>
 
-// A function that flips a DXTC block.
+/* A function that flips a DXTC block. */
 typedef void (*FlipBlockFunction)(uint8_t *block);
 
-// Flips a full DXT1 block in the y direction.
+/* Flips a full DXT1 block in the y direction. */
 static void FlipDXT1BlockFull(uint8_t *block)
 {
-  // A DXT1 block layout is:
-  // [0-1] color0.
-  // [2-3] color1.
-  // [4-7] color bitmap, 2 bits per pixel.
-  // So each of the 4-7 bytes represents one line, flipping a block is just
-  // flipping those bytes.
+  /* A DXT1 block layout is:
+   * [0-1] color0.
+   * [2-3] color1.
+   * [4-7] color bitmap, 2 bits per pixel.
+   * So each of the 4-7 bytes represents one line, flipping a block is just
+   * flipping those bytes. */
   uint8_t tmp = block[4];
   block[4] = block[7];
   block[7] = tmp;
@@ -64,23 +64,23 @@ static void FlipDXT1BlockFull(uint8_t *block)
   block[6] = tmp;
 }
 
-// Flips the first 2 lines of a DXT1 block in the y direction.
+/* Flips the first 2 lines of a DXT1 block in the y direction. */
 static void FlipDXT1BlockHalf(uint8_t *block)
 {
-  // See layout above.
+  /* See layout above. */
   uint8_t tmp = block[4];
   block[4] = block[5];
   block[5] = tmp;
 }
 
-// Flips a full DXT3 block in the y direction.
+/* Flips a full DXT3 block in the y direction. */
 static void FlipDXT3BlockFull(uint8_t *block)
 {
-  // A DXT3 block layout is:
-  // [0-7]    alpha bitmap, 4 bits per pixel.
-  // [8-15] a DXT1 block.
+  /* A DXT3 block layout is:
+   * [0-7]    alpha bitmap, 4 bits per pixel.
+   * [8-15] a DXT1 block. */
 
-  // We can flip the alpha bits at the byte level (2 bytes per line).
+  /* We can flip the alpha bits at the byte level (2 bytes per line). */
   uint8_t tmp = block[0];
 
   block[0] = block[6];
@@ -95,14 +95,14 @@ static void FlipDXT3BlockFull(uint8_t *block)
   block[3] = block[5];
   block[5] = tmp;
 
-  // And flip the DXT1 block using the above function.
+  /* And flip the DXT1 block using the above function. */
   FlipDXT1BlockFull(block + 8);
 }
 
-// Flips the first 2 lines of a DXT3 block in the y direction.
+/* Flips the first 2 lines of a DXT3 block in the y direction. */
 static void FlipDXT3BlockHalf(uint8_t *block)
 {
-  // See layout above.
+  /* See layout above. */
   uint8_t tmp = block[0];
 
   block[0] = block[2];
@@ -113,36 +113,36 @@ static void FlipDXT3BlockHalf(uint8_t *block)
   FlipDXT1BlockHalf(block + 8);
 }
 
-// Flips a full DXT5 block in the y direction.
+/* Flips a full DXT5 block in the y direction. */
 static void FlipDXT5BlockFull(uint8_t *block)
 {
-  // A DXT5 block layout is:
-  // [0]      alpha0.
-  // [1]      alpha1.
-  // [2-7]    alpha bitmap, 3 bits per pixel.
-  // [8-15] a DXT1 block.
+  /* A DXT5 block layout is:
+   * [0]      alpha0.
+   * [1]      alpha1.
+   * [2-7]    alpha bitmap, 3 bits per pixel.
+   * [8-15] a DXT1 block. */
 
-  // The alpha bitmap doesn't easily map lines to bytes, so we have to
-  // interpret it correctly.  Extracted from
-  // http://www.opengl.org/registry/specs/EXT/texture_compression_s3tc.txt :
-  //
-  //   The 6 "bits" bytes of the block are decoded into one 48-bit integer:
-  //
-  //       bits = bits_0 + 256 * (bits_1 + 256 * (bits_2 + 256 * (bits_3 +
-  //                                   256 * (bits_4 + 256 * bits_5))))
-  //
-  //   bits is a 48-bit unsigned integer, from which a three-bit control code
-  //   is extracted for a texel at location (x,y) in the block using:
-  //
-  //           code(x,y) = bits[3*(4*y+x)+1..3*(4*y+x)+0]
-  //
-  //   where bit 47 is the most significant and bit 0 is the least
-  //   significant bit.
+  /* The alpha bitmap doesn't easily map lines to bytes, so we have to
+   * interpret it correctly.  Extracted from
+   * http://www.opengl.org/registry/specs/EXT/texture_compression_s3tc.txt :
+   *
+   *   The 6 "bits" bytes of the block are decoded into one 48-bit integer:
+   *
+   *       bits = bits_0 + 256 * (bits_1 + 256 * (bits_2 + 256 * (bits_3 +
+   *                                   256 * (bits_4 + 256 * bits_5))))
+   *
+   *   bits is a 48-bit unsigned integer, from which a three-bit control code
+   *   is extracted for a texel at location (x,y) in the block using:
+   *
+   *           code(x,y) = bits[3*(4*y+x)+1..3*(4*y+x)+0]
+   *
+   *   where bit 47 is the most significant and bit 0 is the least
+   *   significant bit. */
   unsigned int line_0_1 = block[2] + 256 * (block[3] + 256 * block[4]);
   unsigned int line_2_3 = block[5] + 256 * (block[6] + 256 * block[7]);
-  // swap lines 0 and 1 in line_0_1.
+  /* swap lines 0 and 1 in line_0_1. */
   unsigned int line_1_0 = ((line_0_1 & 0x000fff) << 12) | ((line_0_1 & 0xfff000) >> 12);
-  // swap lines 2 and 3 in line_2_3.
+  /* swap lines 2 and 3 in line_2_3. */
   unsigned int line_3_2 = ((line_2_3 & 0x000fff) << 12) | ((line_2_3 & 0xfff000) >> 12);
 
   block[2] = line_3_2 & 0xff;
@@ -152,14 +152,14 @@ static void FlipDXT5BlockFull(uint8_t *block)
   block[6] = (line_1_0 & 0xff00) >> 8;
   block[7] = (line_1_0 & 0xff0000) >> 16;
 
-  // And flip the DXT1 block using the above function.
+  /* And flip the DXT1 block using the above function. */
   FlipDXT1BlockFull(block + 8);
 }
 
-// Flips the first 2 lines of a DXT5 block in the y direction.
+/* Flips the first 2 lines of a DXT5 block in the y direction. */
 static void FlipDXT5BlockHalf(uint8_t *block)
 {
-  // See layout above.
+  /* See layout above. */
   unsigned int line_0_1 = block[2] + 256 * (block[3] + 256 * block[4]);
   unsigned int line_1_0 = ((line_0_1 & 0x000fff) << 12) | ((line_0_1 & 0xfff000) >> 12);
   block[2] = line_1_0 & 0xff;
@@ -168,15 +168,15 @@ static void FlipDXT5BlockHalf(uint8_t *block)
   FlipDXT1BlockHalf(block + 8);
 }
 
-// Flips a DXTC image, by flipping and swapping DXTC blocks as appropriate.
+/* Flips a DXTC image, by flipping and swapping DXTC blocks as appropriate. */
 int FlipDXTCImage(
     unsigned int width, unsigned int height, unsigned int levels, int fourcc, uint8_t *data)
 {
-  // must have valid dimensions
+  /* Must have valid dimensions. */
   if (width == 0 || height == 0) {
     return 0;
   }
-  // height must be a power-of-two
+  /* Height must be a power-of-two. */
   if ((height & (height - 1)) != 0) {
     return 0;
   }
@@ -214,24 +214,24 @@ int FlipDXTCImage(
     unsigned int blocks = blocks_per_row * blocks_per_col;
 
     if (mip_height == 1) {
-      // no flip to do, and we're done.
+      /* no flip to do, and we're done. */
       break;
     }
     if (mip_height == 2) {
-      // flip the first 2 lines in each block.
+      /* flip the first 2 lines in each block. */
       for (unsigned int i = 0; i < blocks_per_row; i++) {
         half_block_function(data + i * block_bytes);
       }
     }
     else {
-      // flip each block.
+      /* flip each block. */
       for (unsigned int i = 0; i < blocks; i++) {
         full_block_function(data + i * block_bytes);
       }
 
-      // swap each block line in the first half of the image with the
-      // corresponding one in the second half.
-      // note that this is a no-op if mip_height is 4.
+      /* Swap each block line in the first half of the image with the
+       * corresponding one in the second half.
+       * note that this is a no-op if mip_height is 4. */
       unsigned int row_bytes = block_bytes * blocks_per_row;
       uint8_t *temp_line = new uint8_t[row_bytes];
 
@@ -247,7 +247,7 @@ int FlipDXTCImage(
       delete[] temp_line;
     }
 
-    // mip levels are contiguous.
+    /* mip levels are contiguous. */
     data += block_bytes * blocks;
     mip_width = MAX(1U, mip_width >> 1);
     mip_height = MAX(1U, mip_height >> 1);

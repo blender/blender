@@ -10,15 +10,15 @@ namespace blender::io::alembic {
 
 TEST(abc_matrix, CreateRotationMatrixY_YfromZ)
 {
-  // Input variables
+  /* Input variables */
   float rot_x_mat[3][3];
   float rot_y_mat[3][3];
   float rot_z_mat[3][3];
   float euler[3] = {0.f, M_PI_4, 0.f};
 
-  // Construct expected matrices
+  /* Construct expected matrices */
   float unit[3][3];
-  float rot_z_min_quart_pi[3][3];  // rotation of -pi/4 radians over z-axis
+  float rot_z_min_quart_pi[3][3]; /* rotation of -pi/4 radians over z-axis */
 
   unit_m3(unit);
   unit_m3(rot_z_min_quart_pi);
@@ -27,7 +27,7 @@ TEST(abc_matrix, CreateRotationMatrixY_YfromZ)
   rot_z_min_quart_pi[1][0] = M_SQRT1_2;
   rot_z_min_quart_pi[1][1] = M_SQRT1_2;
 
-  // Run tests
+  /* Run tests */
   create_swapped_rotation_matrix(rot_x_mat, rot_y_mat, rot_z_mat, euler, ABC_YUP_FROM_ZUP);
 
   EXPECT_M3_NEAR(rot_x_mat, unit, 1e-5f);
@@ -37,15 +37,15 @@ TEST(abc_matrix, CreateRotationMatrixY_YfromZ)
 
 TEST(abc_matrix, CreateRotationMatrixZ_YfromZ)
 {
-  // Input variables
+  /* Input variables */
   float rot_x_mat[3][3];
   float rot_y_mat[3][3];
   float rot_z_mat[3][3];
   float euler[3] = {0.f, 0.f, M_PI_4};
 
-  // Construct expected matrices
+  /* Construct expected matrices */
   float unit[3][3];
-  float rot_y_quart_pi[3][3];  // rotation of pi/4 radians over y-axis
+  float rot_y_quart_pi[3][3]; /* rotation of pi/4 radians over y-axis */
 
   unit_m3(unit);
   unit_m3(rot_y_quart_pi);
@@ -54,7 +54,7 @@ TEST(abc_matrix, CreateRotationMatrixZ_YfromZ)
   rot_y_quart_pi[2][0] = M_SQRT1_2;
   rot_y_quart_pi[2][2] = M_SQRT1_2;
 
-  // Run tests
+  /* Run tests */
   create_swapped_rotation_matrix(rot_x_mat, rot_y_mat, rot_z_mat, euler, ABC_YUP_FROM_ZUP);
 
   EXPECT_M3_NEAR(rot_x_mat, unit, 1e-5f);
@@ -64,17 +64,17 @@ TEST(abc_matrix, CreateRotationMatrixZ_YfromZ)
 
 TEST(abc_matrix, CreateRotationMatrixXYZ_YfromZ)
 {
-  // Input variables
+  /* Input variables */
   float rot_x_mat[3][3];
   float rot_y_mat[3][3];
   float rot_z_mat[3][3];
-  // in degrees: X=10, Y=20, Z=30
+  /* in degrees: X=10, Y=20, Z=30 */
   float euler[3] = {0.17453292012214f, 0.34906581044197f, 0.52359879016876f};
 
-  // Construct expected matrices
-  float rot_x_p10[3][3];  // rotation of +10 degrees over x-axis
-  float rot_y_p30[3][3];  // rotation of +30 degrees over y-axis
-  float rot_z_m20[3][3];  // rotation of -20 degrees over z-axis
+  /* Construct expected matrices */
+  float rot_x_p10[3][3]; /* rotation of +10 degrees over x-axis */
+  float rot_y_p30[3][3]; /* rotation of +30 degrees over y-axis */
+  float rot_z_m20[3][3]; /* rotation of -20 degrees over z-axis */
 
   unit_m3(rot_x_p10);
   rot_x_p10[1][1] = 0.9848077297210693f;
@@ -94,7 +94,7 @@ TEST(abc_matrix, CreateRotationMatrixXYZ_YfromZ)
   rot_z_m20[1][0] = 0.3420201241970062f;
   rot_z_m20[1][1] = 0.9396926164627075f;
 
-  // Run tests
+  /* Run tests */
   create_swapped_rotation_matrix(rot_x_mat, rot_y_mat, rot_z_mat, euler, ABC_YUP_FROM_ZUP);
 
   EXPECT_M3_NEAR(rot_x_mat, rot_x_p10, 1e-5f);
@@ -104,17 +104,17 @@ TEST(abc_matrix, CreateRotationMatrixXYZ_YfromZ)
 
 TEST(abc_matrix, CreateRotationMatrixXYZ_ZfromY)
 {
-  // Input variables
+  /* Input variables */
   float rot_x_mat[3][3];
   float rot_y_mat[3][3];
   float rot_z_mat[3][3];
-  // in degrees: X=10, Y=20, Z=30
+  /* in degrees: X=10, Y=20, Z=30 */
   float euler[3] = {0.1745329201221466f, 0.3490658104419708f, 0.5235987901687622f};
 
-  // Construct expected matrices
-  float rot_x_p10[3][3];  // rotation of +10 degrees over x-axis
-  float rot_y_m30[3][3];  // rotation of -30 degrees over y-axis
-  float rot_z_p20[3][3];  // rotation of +20 degrees over z-axis
+  /* Construct expected matrices */
+  float rot_x_p10[3][3]; /* rotation of +10 degrees over x-axis */
+  float rot_y_m30[3][3]; /* rotation of -30 degrees over y-axis */
+  float rot_z_p20[3][3]; /* rotation of +20 degrees over z-axis */
 
   unit_m3(rot_x_p10);
   rot_x_p10[1][1] = 0.9848077297210693f;
@@ -134,7 +134,7 @@ TEST(abc_matrix, CreateRotationMatrixXYZ_ZfromY)
   rot_z_p20[1][0] = -0.3420201241970062f;
   rot_z_p20[1][1] = 0.9396926164627075f;
 
-  // Run tests
+  /* Run tests */
   create_swapped_rotation_matrix(rot_x_mat, rot_y_mat, rot_z_mat, euler, ABC_ZUP_FROM_YUP);
 
   EXPECT_M3_NEAR(rot_x_mat, rot_x_p10, 1e-5f);

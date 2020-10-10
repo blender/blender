@@ -1026,7 +1026,7 @@ bool BLI_path_abs(char *path, const char *basepath)
   if (!wasrelative && !BLI_path_is_abs(path)) {
     char *p = path;
     BLI_windows_get_default_root_dir(tmp);
-    // get rid of the slashes at the beginning of the path
+    /* Get rid of the slashes at the beginning of the path. */
     while (ELEM(*p, '\\', '/')) {
       p++;
     }

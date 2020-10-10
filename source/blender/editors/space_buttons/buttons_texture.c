@@ -70,7 +70,7 @@
 
 #include "../interface/interface_intern.h"
 
-#include "buttons_intern.h"  // own include
+#include "buttons_intern.h" /* own include */
 
 /************************* Texture User **************************/
 

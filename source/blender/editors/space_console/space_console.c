@@ -42,7 +42,7 @@
 #include "UI_view2d.h"
 
 #include "GPU_framebuffer.h"
-#include "console_intern.h"  // own include
+#include "console_intern.h" /* own include */
 
 /* ******************** default callbacks for console space ***************** */
 

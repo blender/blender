@@ -175,7 +175,7 @@ TEST_F(ObjectIdentifierOrderTest, map_copy_and_update)
   AbstractHierarchyIterator::ExportGraph graph_copy = graph;
   EXPECT_EQ(5, graph_copy.size());
 
-  // Updating a value in a copy should not update the original.
+  /* Updating a value in a copy should not update the original. */
   HierarchyContext ctx1;
   HierarchyContext ctx2;
   ctx1.object = fake_pointer(1);
@@ -184,7 +184,7 @@ TEST_F(ObjectIdentifierOrderTest, map_copy_and_update)
   graph_copy[id_root].insert(&ctx1);
   EXPECT_EQ(0, graph[id_root].size());
 
-  // Deleting a key in the copy should not update the original.
+  /* Deleting a key in the copy should not update the original. */
   graph_copy.erase(id_dupli_c);
   EXPECT_EQ(4, graph_copy.size());
   EXPECT_EQ(5, graph.size());

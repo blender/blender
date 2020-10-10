@@ -125,7 +125,7 @@
 #include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
 #include "BLI_mempool.h"
-#include "MEM_guardedalloc.h"  // MEM_freeN
+#include "MEM_guardedalloc.h" /* MEM_freeN */
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
@@ -140,7 +140,7 @@
 #include "BKE_deform.h"
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
-#include "BKE_global.h"  // for G
+#include "BKE_global.h" /* for G */
 #include "BKE_gpencil_modifier.h"
 #include "BKE_icons.h"
 #include "BKE_idprop.h"

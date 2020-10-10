@@ -30,15 +30,15 @@ void main()
   fillColor = (is_selected) ? selectColor : deselect_col;
   outlineColor = (is_pinned) ? pinnedColor : vec4(fillColor.rgb, 0.0);
 
-  // calculate concentric radii in pixels
+  /* Calculate concentric radii in pixels. */
   float radius = 0.5 * pointSize;
 
-  // start at the outside and progress toward the center
+  /* Start at the outside and progress toward the center. */
   radii[0] = radius;
   radii[1] = radius - 1.0;
   radii[2] = radius - outlineWidth;
   radii[3] = radius - outlineWidth - 1.0;
 
-  // convert to PointCoord units
+  /* Convert to PointCoord units. */
   radii /= pointSize;
 }

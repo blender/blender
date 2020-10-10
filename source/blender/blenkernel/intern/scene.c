@@ -421,10 +421,10 @@ static void scene_free_data(ID *id)
   }
 
   /* Master Collection */
-  // TODO: what to do with do_id_user? it's also true when just
-  // closing the file which seems wrong? should decrement users
-  // for objects directly in the master collection? then other
-  // collections in the scene need to do it too?
+  /* TODO: what to do with do_id_user? it's also true when just
+   * closing the file which seems wrong? should decrement users
+   * for objects directly in the master collection? then other
+   * collections in the scene need to do it too? */
   if (scene->master_collection) {
     BKE_collection_free(scene->master_collection);
     MEM_freeN(scene->master_collection);

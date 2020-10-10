@@ -390,7 +390,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
   else if (t->spacetype == SPACE_IMAGE) {
     SpaceImage *sima = area->spacedata.first;
-    // XXX for now, get View2D from the active region
+    /* XXX for now, get View2D from the active region. */
     t->view = &region->v2d;
     t->around = sima->around;
 
@@ -409,7 +409,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     /* image not in uv edit, nor in mask mode, can happen for some tools */
   }
   else if (t->spacetype == SPACE_NODE) {
-    // XXX for now, get View2D from the active region
+    /* XXX for now, get View2D from the active region. */
     t->view = &region->v2d;
     t->around = V3D_AROUND_CENTER_BOUNDS;
   }
@@ -432,9 +432,9 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
   else {
     if (region) {
-      // XXX for now, get View2D  from the active region
+      /* XXX for now, get View2D  from the active region */
       t->view = &region->v2d;
-      // XXX for now, the center point is the midpoint of the data
+      /* XXX for now, the center point is the midpoint of the data */
     }
     else {
       t->view = NULL;
@@ -715,7 +715,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     }
   }
 
-  // Mirror is not supported with PET, turn it off.
+  /* Mirror is not supported with PET, turn it off. */
 #if 0
   if (t->flag & T_PROP_EDIT) {
     t->flag &= ~T_MIRROR;

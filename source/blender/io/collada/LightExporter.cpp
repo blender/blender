@@ -76,7 +76,7 @@ void LightsExporter::operator()(Object *ob)
     quadatt = 1.0f / (d * d);
   }
 
-  // sun
+  /* sun */
   if (la->type == LA_SUN) {
     COLLADASW::DirectionalLight cla(mSW, la_id, la_name);
     cla.setColor(col, false, "color");
@@ -85,7 +85,7 @@ void LightsExporter::operator()(Object *ob)
     addLight(cla);
   }
 
-  // spot
+  /* spot */
   else if (la->type == LA_SPOT) {
     COLLADASW::SpotLight cla(mSW, la_id, la_name);
     cla.setColor(col, false, "color");
@@ -97,7 +97,7 @@ void LightsExporter::operator()(Object *ob)
     exportBlenderProfile(cla, la);
     addLight(cla);
   }
-  // lamp
+  /* lamp */
   else if (la->type == LA_LOCAL) {
     COLLADASW::PointLight cla(mSW, la_id, la_name);
     cla.setColor(col, false, "color");
@@ -107,8 +107,8 @@ void LightsExporter::operator()(Object *ob)
     exportBlenderProfile(cla, la);
     addLight(cla);
   }
-  // area light is not supported
-  // it will be exported as a local lamp
+  /* area light is not supported
+   * it will be exported as a local lamp */
   else {
     COLLADASW::PointLight cla(mSW, la_id, la_name);
     cla.setColor(col, false, "color");
@@ -138,7 +138,7 @@ bool LightsExporter::exportBlenderProfile(COLLADASW::Light &cla, Light *la)
   cla.addExtraTechniqueParameter("blender", "spotblend", la->spotblend);
   cla.addExtraTechniqueParameter("blender", "att1", la->att1);
   cla.addExtraTechniqueParameter("blender", "att2", la->att2);
-  // \todo figure out how we can have falloff curve supported here
+  /* \todo figure out how we can have falloff curve supported here */
   cla.addExtraTechniqueParameter("blender", "falloff_type", la->falloff_type);
   cla.addExtraTechniqueParameter("blender", "clipsta", la->clipsta);
   cla.addExtraTechniqueParameter("blender", "clipend", la->clipend);

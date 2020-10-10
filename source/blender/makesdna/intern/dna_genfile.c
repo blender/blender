@@ -32,7 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "MEM_guardedalloc.h"  // for MEM_freeN MEM_mallocN MEM_callocN
+#include "MEM_guardedalloc.h" /* for MEM_freeN MEM_mallocN MEM_callocN */
 
 #include "BLI_endian_switch.h"
 #include "BLI_memarena.h"
@@ -42,7 +42,7 @@
 #include "BLI_ghash.h"
 
 #include "DNA_genfile.h"
-#include "DNA_sdna_types.h"  // for SDNA ;-)
+#include "DNA_sdna_types.h" /* for SDNA ;-) */
 
 /**
  * \section dna_genfile Overview

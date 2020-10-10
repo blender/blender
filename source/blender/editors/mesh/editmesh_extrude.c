@@ -814,7 +814,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
 
       mul_m4_v3(vc.obedit->obmat, ofs); /* view space */
       ED_view3d_win_to_3d_int(vc.v3d, vc.region, ofs, event->mval, ofs);
-      mul_m4_v3(vc.obedit->imat, ofs);  // back in object space
+      mul_m4_v3(vc.obedit->imat, ofs); /* back in object space */
 
       sub_v3_v3(ofs, local_center);
 
@@ -865,7 +865,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
       copy_v3_v3(local_center, cursor);
       ED_view3d_win_to_3d_int(vc.v3d, vc.region, local_center, event->mval, local_center);
 
-      mul_m4_v3(vc.obedit->imat, local_center);  // back in object space
+      mul_m4_v3(vc.obedit->imat, local_center); /* back in object space */
 
       EDBM_op_init(vc.em, &bmop, op, "create_vert co=%v", local_center);
       BMO_op_exec(vc.em->bm, &bmop);

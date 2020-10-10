@@ -481,4 +481,4 @@ void ED_gizmotypes_move_3d(void)
   WM_gizmotype_append(GIZMO_GT_move_3d);
 }
 
-/** \} */  // Move Gizmo API
+/** \} */ /* Move Gizmo API */

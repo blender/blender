@@ -1077,14 +1077,14 @@ static void rna_def_rigidbody_object(BlenderRNA *brna)
   /* Physics Parameters */
   prop = RNA_def_property(srna, "mass", PROP_FLOAT, PROP_UNIT_MASS);
   RNA_def_property_float_sdna(prop, NULL, "mass");
-  RNA_def_property_range(prop, 0.001f, FLT_MAX);  // range must always be positive (and non-zero)
+  RNA_def_property_range(prop, 0.001f, FLT_MAX); /* range must always be positive (and non-zero) */
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_float_funcs(prop, NULL, "rna_RigidBodyOb_mass_set", NULL);
   RNA_def_property_ui_text(prop, "Mass", "How much the object 'weighs' irrespective of gravity");
   RNA_def_property_update(prop, NC_OBJECT | ND_POINTCACHE, "rna_RigidBodyOb_reset");
 
   /* Dynamics Parameters - Activation */
-  // TODO: define and figure out how to implement these
+  /* TODO: define and figure out how to implement these. */
 
   /* Dynamics Parameters - Deactivation */
   prop = RNA_def_property(srna, "use_deactivation", PROP_BOOLEAN, PROP_NONE);
@@ -1107,7 +1107,8 @@ static void rna_def_rigidbody_object(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "deactivate_linear_velocity", PROP_FLOAT, PROP_UNIT_VELOCITY);
   RNA_def_property_float_sdna(prop, NULL, "lin_sleep_thresh");
-  RNA_def_property_range(prop, FLT_MIN, FLT_MAX);  // range must always be positive (and non-zero)
+  RNA_def_property_range(
+      prop, FLT_MIN, FLT_MAX); /* range must always be positive (and non-zero) */
   RNA_def_property_float_default(prop, 0.4f);
   RNA_def_property_float_funcs(prop, NULL, "rna_RigidBodyOb_linear_sleepThresh_set", NULL);
   RNA_def_property_ui_text(prop,
@@ -1117,7 +1118,8 @@ static void rna_def_rigidbody_object(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "deactivate_angular_velocity", PROP_FLOAT, PROP_UNIT_VELOCITY);
   RNA_def_property_float_sdna(prop, NULL, "ang_sleep_thresh");
-  RNA_def_property_range(prop, FLT_MIN, FLT_MAX);  // range must always be positive (and non-zero)
+  RNA_def_property_range(
+      prop, FLT_MIN, FLT_MAX); /* range must always be positive (and non-zero) */
   RNA_def_property_float_default(prop, 0.5f);
   RNA_def_property_float_funcs(prop, NULL, "rna_RigidBodyOb_angular_sleepThresh_set", NULL);
   RNA_def_property_ui_text(prop,

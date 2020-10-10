@@ -51,7 +51,7 @@
 #include "UI_view2d.h"
 
 #include "GPU_framebuffer.h"
-#include "file_intern.h"  // own include
+#include "file_intern.h" /* own include */
 #include "filelist.h"
 #include "fsmenu.h"
 
@@ -142,7 +142,7 @@ static void file_free(SpaceLink *sl)
   BLI_assert(sfile->previews_timer == NULL);
 
   if (sfile->files) {
-    // XXXXX would need to do thumbnails_stop here, but no context available
+    /* XXX would need to do thumbnails_stop here, but no context available */
     filelist_freelib(sfile->files);
     filelist_free(sfile->files);
     MEM_freeN(sfile->files);

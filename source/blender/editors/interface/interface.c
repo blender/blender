@@ -2628,7 +2628,7 @@ static void ui_get_but_string_unit(
   int precision;
 
   if (unit->scale_length < 0.0001f) {
-    unit->scale_length = 1.0f;  // XXX do_versions
+    unit->scale_length = 1.0f; /* XXX do_versions */
   }
 
   /* Use precision override? */
@@ -3663,7 +3663,7 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
   }
 
   /* safety is 4 to enable small number buttons (like 'users') */
-  // okwidth = -4 + (BLI_rcti_size_x(&but->rect)); // UNUSED
+  // okwidth = -4 + (BLI_rcti_size_x(&but->rect)); /* UNUSED */
 
   /* name: */
   switch (but->type) {
@@ -3805,7 +3805,7 @@ void UI_block_align_begin(uiBlock *block)
   block->flag |= UI_BUT_ALIGN_DOWN;
   block->alignnr++;
 
-  /* buttons declared after this call will get this align nr */  // XXX flag?
+  /* buttons declared after this call will get this align nr */ /* XXX flag? */
 }
 
 void UI_block_align_end(uiBlock *block)

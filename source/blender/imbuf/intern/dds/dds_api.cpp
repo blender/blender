@@ -26,7 +26,7 @@
 #include <dds_api.h>
 #include <fstream>
 #include <stddef.h>
-#include <stdio.h>  // printf
+#include <stdio.h> /* printf */
 
 #if defined(WIN32)
 #  include "utfconv.h"
@@ -72,7 +72,7 @@ int imb_save_dds(struct ImBuf *ibuf, const char *name, int /*flags*/)
   return 1;
 }
 
-int imb_is_a_dds(const unsigned char *mem)  // note: use at most first 32 bytes
+int imb_is_a_dds(const unsigned char *mem) /* note: use at most first 32 bytes */
 {
   /* heuristic check to see if mem contains a DDS file */
   /* header.fourcc == FOURCC_DDS */
@@ -199,4 +199,4 @@ struct ImBuf *imb_load_dds(const unsigned char *mem,
   return ibuf;
 }
 
-}  // extern "C"
+} /* extern "C" */

@@ -685,7 +685,7 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
     separate_armature_bones(bmain, ob_old, true);
     separate_armature_bones(bmain, ob_new, false);
 
-    /* 4) fix links before depsgraph flushes */  // err... or after?
+    /* 4) fix links before depsgraph flushes, err... or after? */
     separated_armature_fix_links(bmain, ob_old, ob_new);
 
     DEG_id_tag_update(&ob_old->id, ID_RECALC_GEOMETRY); /* this is the original one */

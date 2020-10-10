@@ -113,7 +113,7 @@ void TEXT_OT_start_find(wmOperatorType *ot)
 
 #if 0
 {
-  // RMB
+  /* RMB */
 
   uiPopupMenu *pup;
 
@@ -140,7 +140,7 @@ void TEXT_OT_start_find(wmOperatorType *ot)
 }
 
 {
-  // Alt+Shift+E
+  /* Alt+Shift+E */
 
   uiPopupMenu *pup;
 
@@ -152,7 +152,7 @@ void TEXT_OT_start_find(wmOperatorType *ot)
 }
 
 {
-  // Alt+Shift+F
+  /* Alt+Shift+F */
 
   uiPopupMenu *pup;
 
@@ -174,7 +174,7 @@ void TEXT_OT_start_find(wmOperatorType *ot)
 }
 
 {
-  // Alt+Shift+V
+  /* Alt+Shift+V */
 
   uiPopupMenu *pup;
 

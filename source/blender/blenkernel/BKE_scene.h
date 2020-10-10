@@ -115,7 +115,7 @@ struct Scene *BKE_scene_find_from_collection(const struct Main *bmain,
                                              const struct Collection *collection);
 
 #ifdef DURIAN_CAMERA_SWITCH
-struct Object *BKE_scene_camera_switch_find(struct Scene *scene);  // DURIAN_CAMERA_SWITCH
+struct Object *BKE_scene_camera_switch_find(struct Scene *scene); /* DURIAN_CAMERA_SWITCH */
 #endif
 bool BKE_scene_camera_switch_update(struct Scene *scene);
 

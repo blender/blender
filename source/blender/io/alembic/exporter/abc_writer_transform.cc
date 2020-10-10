@@ -66,10 +66,10 @@ const IDProperty *ABCTransformWriter::get_id_properties(const HierarchyContext &
 
 void ABCTransformWriter::do_write(HierarchyContext &context)
 {
-  float parent_relative_matrix[4][4];  // The object matrix relative to the parent.
+  float parent_relative_matrix[4][4]; /* The object matrix relative to the parent. */
   mul_m4_m4m4(parent_relative_matrix, context.parent_matrix_inv_world, context.matrix_world);
 
-  // After this, parent_relative_matrix uses Y=up.
+  /* After this, parent_relative_matrix uses Y=up. */
   copy_m44_axis_swap(parent_relative_matrix, parent_relative_matrix, ABC_YUP_FROM_ZUP);
 
   /* If the parent is a camera, undo its to-Maya rotation (see below). */

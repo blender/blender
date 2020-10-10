@@ -1122,7 +1122,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
   }
 
   /* continuous zoom shouldn't move that fast... */
-  if (U.viewzoom == USER_ZOOM_CONT) {  // XXX store this setting as RNA prop?
+  if (U.viewzoom == USER_ZOOM_CONT) { /* XXX store this setting as RNA prop? */
     const double time = PIL_check_seconds_timer();
     const float time_step = (float)(time - vzd->timer_lastdraw);
 
@@ -1406,7 +1406,7 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, const wmEvent *event
      * - Continuous zoom only depends on distance of mouse
      *   to starting point to determine rate of change.
      */
-    if (U.viewzoom != USER_ZOOM_CONT) {  // XXX store this setting as RNA prop?
+    if (U.viewzoom != USER_ZOOM_CONT) { /* XXX store this setting as RNA prop? */
       vzd->lastx = event->x;
       vzd->lasty = event->y;
     }

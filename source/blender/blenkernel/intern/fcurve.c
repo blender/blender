@@ -444,8 +444,8 @@ FCurve *BKE_fcurve_find_by_rna_context_ui(bContext *C,
         continue;
       }
 
-      // XXX: the logic here is duplicated with a function up above
-      /* animation takes priority over drivers */
+      /* XXX: the logic here is duplicated with a function up above
+       * animation takes priority over drivers. */
       if (adt->action && adt->action->curves.first) {
         fcu = BKE_fcurve_find(&adt->action->curves, path, rnaindex);
 

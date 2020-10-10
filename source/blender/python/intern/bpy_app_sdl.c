@@ -89,7 +89,7 @@ static PyObject *make_sdl_info(void)
     SDL_GetVersion(&version);
     sdl_available = true;
   }
-#  else  // WITH_SDL_DYNLOAD=OFF
+#  else /* WITH_SDL_DYNLOAD=OFF */
   sdl_available = true;
 #    if SDL_MAJOR_VERSION >= 2
   SDL_GetVersion(&version);
@@ -107,7 +107,7 @@ static PyObject *make_sdl_info(void)
   }
   SetObjItem(PyBool_FromLong(sdl_available));
 
-#else  // WITH_SDL=OFF
+#else /* WITH_SDL=OFF */
   SetObjItem(PyBool_FromLong(0));
   SetObjItem(PyC_Tuple_Pack_I32(0, 0, 0));
   SetStrItem("Unknown");

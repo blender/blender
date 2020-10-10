@@ -43,7 +43,7 @@
 
 #include "UI_view2d.h"
 
-#include "clip_intern.h"  // own include
+#include "clip_intern.h" /* own include */
 
 static bool space_clip_dopesheet_poll(bContext *C)
 {

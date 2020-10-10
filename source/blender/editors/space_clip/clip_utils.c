@@ -50,7 +50,7 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "clip_intern.h"  // own include
+#include "clip_intern.h" /* own include */
 
 bool clip_graph_value_visible(SpaceClip *sc, eClipCurveValueSource value_source)
 {

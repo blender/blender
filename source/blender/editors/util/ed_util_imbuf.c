@@ -273,7 +273,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
       }
     }
 
-    // XXX node curve integration ..
+    /* XXX node curve integration. */
 #if 0
     {
       ScrArea *sa, *cur = curarea;
@@ -512,7 +512,7 @@ int ED_imbuf_sample_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   switch (event->type) {
     case LEFTMOUSE:
-    case RIGHTMOUSE:  // XXX hardcoded
+    case RIGHTMOUSE: /* XXX hardcoded */
       if (event->val == KM_RELEASE) {
         ED_imbuf_sample_exit(C, op);
         return OPERATOR_CANCELLED;

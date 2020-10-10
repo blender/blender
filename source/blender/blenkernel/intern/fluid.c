@@ -3208,7 +3208,7 @@ static void update_effectors(
   effectors = BKE_effectors_create(depsgraph, ob, NULL, fds->effector_weights);
 
   if (effectors) {
-    // precalculate wind forces
+    /* Precalculate wind forces. */
     UpdateEffectorsData data;
     data.scene = scene;
     data.fds = fds;

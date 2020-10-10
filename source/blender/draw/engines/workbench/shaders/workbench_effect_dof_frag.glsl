@@ -342,23 +342,23 @@ void main()
 
 #  define mnmx3(a, b, c) \
     mx3(a, b, c); \
-    s2(a, b);  // 3 exchanges
+    s2(a, b); /* 3 exchanges */
 #  define mnmx4(a, b, c, d) \
     s2(a, b); \
     s2(c, d); \
     s2(a, c); \
-    s2(b, d);  // 4 exchanges
+    s2(b, d); /* 4 exchanges */
 #  define mnmx5(a, b, c, d, e) \
     s2(a, b); \
     s2(c, d); \
     mn3(a, c, e); \
-    mx3(b, d, e);  // 6 exchanges
+    mx3(b, d, e); /* 6 exchanges */
 #  define mnmx6(a, b, c, d, e, f) \
     s2(a, d); \
     s2(b, e); \
     s2(c, f); \
     mn3(a, b, c); \
-    mx3(d, e, f);  // 7 exchanges
+    mx3(d, e, f); /* 7 exchanges */
 
   vec v[9];
 

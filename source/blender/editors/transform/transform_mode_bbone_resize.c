@@ -142,7 +142,7 @@ static void applyBoneSize(TransInfo *t, const int UNUSED(mval[2]))
     }
   }
 
-  copy_m3_m3(t->mat, mat);  // used in gizmo
+  copy_m3_m3(t->mat, mat); /* used in gizmo */
 
   headerBoneSize(t, t->values_final, str);
 

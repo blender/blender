@@ -3054,9 +3054,9 @@ static void project_paint_face_init(const ProjPaintState *ps,
   lt_uv_pxoffset[2][1] = lt_tri_uv[2][1] - yhalfpx;
 
   {
-    uv1co = lt_uv_pxoffset[0];  // was lt_tri_uv[i1];
-    uv2co = lt_uv_pxoffset[1];  // was lt_tri_uv[i2];
-    uv3co = lt_uv_pxoffset[2];  // was lt_tri_uv[i3];
+    uv1co = lt_uv_pxoffset[0]; /* was lt_tri_uv[i1]; */
+    uv2co = lt_uv_pxoffset[1]; /* was lt_tri_uv[i2]; */
+    uv3co = lt_uv_pxoffset[2]; /* was lt_tri_uv[i3]; */
 
     v1coSS = ps->screenCoords[lt_vtri[0]];
     v2coSS = ps->screenCoords[lt_vtri[1]];
@@ -3414,7 +3414,7 @@ static void project_paint_face_init(const ProjPaintState *ps,
   }
 #else
   UNUSED_VARS(vCo, threaded);
-#endif  // PROJ_DEBUG_NOSEAMBLEED
+#endif /* PROJ_DEBUG_NOSEAMBLEED */
 }
 
 /**
@@ -4221,7 +4221,7 @@ static bool project_paint_winclip(const ProjPaintState *ps, const ProjPaintFaceC
            (coSS->v1[1] > ps->screenMax[1] && coSS->v2[1] > ps->screenMax[1] &&
             coSS->v3[1] > ps->screenMax[1])));
 }
-#endif  // PROJ_DEBUG_WINCLIP
+#endif /* PROJ_DEBUG_WINCLIP */
 
 typedef struct PrepareImageEntry {
   struct PrepareImageEntry *next, *prev;
@@ -4719,7 +4719,12 @@ static bool project_bucket_iter_init(ProjPaintState *ps, const float mval_f[2])
     const float radius = ps->brush_size;
 
     /* so we don't have a bucket bounds that is way too small to paint into */
-    // if (radius < 1.0f) radius = 1.0f; // this doesn't work yet :/
+#if 0
+    /* This doesn't work yet. */
+    if (radius < 1.0f) {
+      radius = 1.0f;
+    }
+#endif
 
     min_brush[0] = mval_f[0] - radius;
     min_brush[1] = mval_f[1] - radius;

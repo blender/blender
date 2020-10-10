@@ -100,15 +100,15 @@ int info_report_mask(const SpaceInfo *UNUSED(sinfo))
          RPT_ERROR_ALL;
 }
 
-// TODO, get this working again!
 static int report_replay_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  //  SpaceInfo *sc = CTX_wm_space_info(C);
-  //  ReportList *reports = CTX_wm_reports(C);
-  //  int report_mask = info_report_mask(sc);
-  //  Report *report;
-
+  /* TODO, get this working again! */
 #if 0
+  SpaceInfo *sc = CTX_wm_space_info(C);
+  ReportList *reports = CTX_wm_reports(C);
+  int report_mask = info_report_mask(sc);
+  Report *report;
+
   sc->type = CONSOLE_TYPE_PYTHON;
 
   for (report = reports->list.last; report; report = report->prev) {

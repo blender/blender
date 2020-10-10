@@ -23,7 +23,7 @@
 #else
 #  include "BLI_winstuff.h"
 #  include "winsock2.h"
-#  include <io.h>   // for open close read
+#  include <io.h>   /* for open close read */
 #  include <zlib.h> /* odd include order-issue */
 #endif
 
@@ -65,7 +65,7 @@
 #include "BKE_anim_visualization.h"
 #include "BKE_armature.h"
 #include "BKE_colortools.h"
-#include "BKE_global.h"  // for G
+#include "BKE_global.h" /* for G */
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
@@ -113,7 +113,7 @@ static void area_add_header_region(ScrArea *area, ListBase *lb)
 
 static void sequencer_init_preview_region(ARegion *region)
 {
-  // XXX a bit ugly still, copied from space_sequencer
+  /* XXX a bit ugly still, copied from space_sequencer */
   /* NOTE: if you change values here, also change them in space_sequencer.c, sequencer_new */
   region->regiontype = RGN_TYPE_PREVIEW;
   region->alignment = RGN_ALIGN_TOP;

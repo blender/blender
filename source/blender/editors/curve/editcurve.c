@@ -1349,7 +1349,7 @@ void ED_curve_editnurb_make(Object *obedit)
     nu = cu->nurb.first;
     while (nu) {
       newnu = BKE_nurb_duplicate(nu);
-      BKE_nurb_test_2d(newnu);  // after join, or any other creation of curve
+      BKE_nurb_test_2d(newnu); /* after join, or any other creation of curve */
       BLI_addtail(&editnurb->nurbs, newnu);
       nu = nu->next;
     }
@@ -7001,7 +7001,7 @@ int ED_curve_join_objects_exec(bContext *C, wmOperator *op)
     BKE_curve_curve_dimension_update(cu);
   }
 
-  DEG_relations_tag_update(bmain);  // because we removed object(s), call before editmode!
+  DEG_relations_tag_update(bmain); /* because we removed object(s), call before editmode! */
 
   DEG_id_tag_update(&ob_active->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);

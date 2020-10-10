@@ -24,7 +24,7 @@
 #include "COM_MixOperation.h"
 
 #include "COM_SetValueOperation.h"
-#include "DNA_material_types.h"  // the ramp types
+#include "DNA_material_types.h" /* the ramp types */
 
 void AlphaOverNode::convertToOperations(NodeConverter &converter,
                                         const CompositorContext & /*context*/) const

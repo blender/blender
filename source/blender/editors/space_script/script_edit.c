@@ -39,7 +39,7 @@
 
 #include "ED_screen.h"
 
-#include "script_intern.h"  // own include
+#include "script_intern.h" /* own include */
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern_run.h"

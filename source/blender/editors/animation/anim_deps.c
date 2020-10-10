@@ -108,7 +108,7 @@ void ANIM_list_elem_update(Main *bmain, Scene *scene, bAnimListElem *ale)
      * we'd be calling property update functions here too ... */
     DEG_id_tag_update(id,
                       ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY |
-                          ID_RECALC_ANIMATION);  // XXX or do we want something more restrictive?
+                          ID_RECALC_ANIMATION); /* XXX or do we want something more restrictive? */
   }
 }
 
@@ -121,7 +121,7 @@ void ANIM_id_update(Main *bmain, ID *id)
         bmain,
         id,
         ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY |
-            ID_RECALC_ANIMATION);  // XXX or do we want something more restrictive?
+            ID_RECALC_ANIMATION); /* XXX or do we want something more restrictive? */
   }
 }
 

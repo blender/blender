@@ -54,9 +54,9 @@ void TransformReader::get_node_mat(float mat[4][4],
 
     switch (type) {
       case COLLADAFW::Transformation::MATRIX:
-        // When matrix AND Trans/Rot/Scale are defined for a node,
-        // then this is considered as redundant information.
-        // So if we find a Matrix we use that and return.
+        /* When matrix AND Trans/Rot/Scale are defined for a node,
+         * then this is considered as redundant information.
+         * So if we find a Matrix we use that and return. */
         dae_matrix_to_mat4(tm, mat);
         if (parent_mat) {
           mul_m4_m4m4(mat, parent_mat, mat);
@@ -83,10 +83,10 @@ void TransformReader::get_node_mat(float mat[4][4],
     mul_m4_m4m4(mat, copy, cur);
 
     if (animation_map) {
-      // AnimationList that drives this Transformation
+      /* AnimationList that drives this Transformation */
       const COLLADAFW::UniqueId &anim_list_id = tm->getAnimationList();
 
-      // store this so later we can link animation data with ob
+      /* store this so later we can link animation data with ob */
       Animation anim = {ob, node, tm};
       (*animation_map)[anim_list_id] = anim;
     }

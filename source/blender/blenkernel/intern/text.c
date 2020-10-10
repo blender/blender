@@ -906,7 +906,7 @@ void txt_move_left(Text *text, const bool sel)
   }
   else {
     /* do nice left only if there are only spaces */
-    // TXT_TABSIZE hardcoded in DNA_text_types.h
+    /* #TXT_TABSIZE hard-coded in DNA_text_types.h */
     if (text->flags & TXT_TABSTOSPACES) {
       tabsize = txt_calc_tab_left(*linep, *charp);
     }

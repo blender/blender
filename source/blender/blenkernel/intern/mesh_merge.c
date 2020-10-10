@@ -20,7 +20,7 @@
 /** \file
  * \ingroup bke
  */
-#include <string.h>  // for memcpy
+#include <string.h> /* for memcpy */
 
 #include "MEM_guardedalloc.h"
 

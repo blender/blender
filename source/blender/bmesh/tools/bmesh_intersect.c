@@ -681,7 +681,7 @@ static void bm_isect_tri_tri(
     copy_v3_v3(t_scale[2], fv_b[2]->co);
     tri_v3_scale(UNPACK3(t_scale), 1.0f - s->epsilon.eps2x);
 
-    // second check for verts intersecting the triangle
+    /* second check for verts intersecting the triangle */
     for (i_a = 0; i_a < 3; i_a++) {
       if (BM_ELEM_API_FLAG_TEST(fv_a[i_a], VERT_VISIT_A)) {
         continue;

@@ -213,7 +213,7 @@ void view3d_region_operator_needs_opengl(wmWindow *UNUSED(win), ARegion *region)
   else {
     RegionView3D *rv3d = region->regiondata;
 
-    wmViewport(&region->winrct);  // TODO: bad
+    wmViewport(&region->winrct); /* TODO: bad */
     GPU_matrix_projection_set(rv3d->winmat);
     GPU_matrix_set(rv3d->viewmat);
   }

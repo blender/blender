@@ -24,7 +24,7 @@
 #include <ctype.h>
 #include <float.h>
 #include <math.h>
-#include <stddef.h>  //for offsetof
+#include <stddef.h> /* for offsetof */
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -114,7 +114,7 @@
 #include "WM_toolsystem.h"
 #include "WM_types.h"
 
-#include "object_intern.h"  // own include
+#include "object_intern.h" /* own include */
 
 static CLG_LogRef LOG = {"ed.object.edit"};
 

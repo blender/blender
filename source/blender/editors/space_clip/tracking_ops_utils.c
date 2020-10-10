@@ -33,7 +33,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "tracking_ops_intern.h"  // own include
+#include "tracking_ops_intern.h" /* own include */
 
 void clip_tracking_clear_invisible_track_selection(SpaceClip *sc, MovieClip *clip)
 {

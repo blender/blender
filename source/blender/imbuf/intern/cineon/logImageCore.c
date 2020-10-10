@@ -1689,7 +1689,7 @@ static int convertLogElementToRGBA(
   if (dstIsLinearRGB) {
     /* convert data from sRGB to Linear RGB via lut */
     float *lut = getSrgbToLinLut(logElement);
-    src_ptr = dst;  // no error here
+    src_ptr = dst; /* no error here */
     dst_ptr = dst;
     for (i = 0; i < logImage->width * logImage->height; i++) {
       *(dst_ptr++) = lut[float_uint(*(src_ptr++), logElement.maxValue)];

@@ -183,14 +183,14 @@ static void shapekey_blend_read_lib(BlendLibReader *reader, ID *id)
   Key *key = (Key *)id;
   BLI_assert((key->id.tag & LIB_TAG_EXTERN) == 0);
 
-  BLO_read_id_address(reader, key->id.lib, &key->ipo);  // XXX deprecated - old animation system
+  BLO_read_id_address(reader, key->id.lib, &key->ipo); /* XXX deprecated - old animation system */
   BLO_read_id_address(reader, key->id.lib, &key->from);
 }
 
 static void shapekey_blend_read_expand(BlendExpander *expander, ID *id)
 {
   Key *key = (Key *)id;
-  BLO_expand(expander, key->ipo);  // XXX deprecated - old animation system
+  BLO_expand(expander, key->ipo); /* XXX deprecated - old animation system */
 }
 
 IDTypeInfo IDType_ID_KE = {
@@ -922,7 +922,7 @@ static void key_evaluate_relative(const int start,
         reffrom = refb->data;
 
         poin += start * poinsize;
-        reffrom += key->elemsize * start;  // key elemsize yes!
+        reffrom += key->elemsize * start; /* key elemsize yes! */
         from += key->elemsize * start;
 
         for (b = start; b < end; b += step) {

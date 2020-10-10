@@ -783,7 +783,7 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(region),
   GPU_blend(GPU_BLEND_NONE);
 
 #  if 0
-  // restore scissortest
+  /* restore scissortest */
   GPU_scissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 #  endif
 

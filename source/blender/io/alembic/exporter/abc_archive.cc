@@ -177,10 +177,10 @@ ABCArchive::ABCArchive(const Main *bmain,
   double scene_fps = FPS;
   MetaData abc_metadata = create_abc_metadata(bmain, scene_fps);
 
-  // Create the Archive.
+  /* Create the Archive. */
   archive = create_archive(&abc_ostream_, filename, abc_metadata);
 
-  // Create time samples for transforms and shapes.
+  /* Create time samples for transforms and shapes. */
   TimeSamplingPtr ts_xform;
   TimeSamplingPtr ts_shapes;
 
@@ -197,11 +197,11 @@ ABCArchive::ABCArchive(const Main *bmain,
     time_sampling_index_shapes_ = archive->addTimeSampling(*ts_shapes);
   }
 
-  // Construct the frames to export.
+  /* Construct the frames to export. */
   get_frames(scene_fps, params, params.frame_samples_xform, xform_frames_);
   get_frames(scene_fps, params, params.frame_samples_shape, shape_frames_);
 
-  // Merge all frames to get the final set of frames to export.
+  /* Merge all frames to get the final set of frames to export. */
   export_frames_.insert(xform_frames_.begin(), xform_frames_.end());
   export_frames_.insert(shape_frames_.begin(), shape_frames_.end());
 

@@ -29,7 +29,7 @@ struct bAddon;
 #ifdef __RNA_TYPES_H__
 typedef struct bAddonPrefType {
   /* type info */
-  char idname[64];  // best keep the same size as BKE_ST_MAXNAME
+  char idname[64]; /* best keep the same size as #BKE_ST_MAXNAME */
 
   /* RNA integration */
   ExtensionRNA rna_ext;

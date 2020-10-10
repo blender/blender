@@ -60,7 +60,7 @@
 #include "WM_types.h"
 
 #include "manta_fluid_API.h"
-#include "physics_intern.h"  // own include
+#include "physics_intern.h" /* own include */
 
 #include "DNA_fluid_types.h"
 #include "DNA_mesh_types.h"

@@ -65,7 +65,7 @@ bool EffectsExporter::hasEffects(Scene *sce)
     for (a = 0; a < ob->totcol; a++) {
       Material *ma = BKE_object_material_get(ob, a + 1);
 
-      // no material, but check all of the slots
+      /* no material, but check all of the slots */
       if (!ma) {
         continue;
       }
@@ -101,7 +101,7 @@ void EffectsExporter::set_transparency(COLLADASW::EffectProfile &ep, Material *m
 {
   double alpha = bc_get_alpha(ma);
   if (alpha < 1) {
-    // workaround use <transparent> to avoid wrong handling of <transparency> by other tools
+    /* workaround use <transparent> to avoid wrong handling of <transparency> by other tools */
     COLLADASW::ColorOrTexture cot = bc_get_cot(0, 0, 0, alpha);
     ep.setTransparent(cot, false, "alpha");
     ep.setOpaque(COLLADASW::EffectProfile::A_ONE);
@@ -209,7 +209,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
   COLLADASW::EffectProfile ep(mSW);
   ep.setProfileType(COLLADASW::EffectProfile::COMMON);
   ep.openProfile();
-  set_shader_type(ep, ma);  // creates a Lambert Shader for now
+  set_shader_type(ep, ma); /* creates a Lambert Shader for now */
 
   COLLADASW::ColorOrTexture cot;
 
@@ -234,7 +234,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
     MTex *t = ma->mtex[tex_indices[a]];
     Image *ima = t->tex->ima;
 
-    // Image not set for texture
+    /* Image not set for texture */
     if (!ima) {
       continue;
     }
@@ -242,17 +242,17 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
     std::string key(id_name(ima));
     key = translate_id(key);
 
-    // create only one <sampler>/<surface> pair for each unique image
+    /* create only one <sampler>/<surface> pair for each unique image */
     if (im_samp_map.find(key) == im_samp_map.end()) {
-      //<newparam> <sampler> <source>
+      /* <newparam> <sampler> <source> */
       COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D,
                                  key + COLLADASW::Sampler::SAMPLER_SID_SUFFIX,
                                  key + COLLADASW::Sampler::SURFACE_SID_SUFFIX);
       sampler.setImageId(key);
-      // copy values to arrays since they will live longer
+      /* copy values to arrays since they will live longer */
       samplers[a] = sampler;
 
-      // store pointers so they can be used later when we create <texture>s
+      /* store pointers so they can be used later when we create <texture>s */
       samp_surf[b] = &samplers[a];
       //samp_surf[b][1] = &surfaces[a];
 
@@ -274,12 +274,12 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
     int i = im_samp_map[key];
     std::string uvname = strlen(t->uvname) ? t->uvname : active_uv;
     COLLADASW::Sampler *sampler = (COLLADASW::Sampler *)
-        samp_surf[i];  // possibly uninitialized memory ...
+        samp_surf[i];  /* possibly uninitialized memory ... */
     writeTextures(ep, key, sampler, t, ima, uvname);
   }
 #endif
 
-  // performs the actual writing
+  /* performs the actual writing */
   ep.addProfileElements();
   ep.addExtraTechniques(mSW);
 

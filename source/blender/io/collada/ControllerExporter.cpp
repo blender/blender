@@ -305,7 +305,7 @@ void ControllerExporter::export_morph_controller(Object *ob, Key *key)
   COLLADASW::InputList &input = targets.getInputList();
 
   input.push_back(COLLADASW::Input(
-      COLLADASW::InputSemantic::MORPH_TARGET,  // constant declared in COLLADASWInputList.h
+      COLLADASW::InputSemantic::MORPH_TARGET, /* constant declared in COLLADASWInputList.h */
       COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, targets_id)));
   input.push_back(
       COLLADASW::Input(COLLADASW::InputSemantic::MORPH_WEIGHT,
@@ -400,7 +400,7 @@ void ControllerExporter::add_joints_element(ListBase *defbase,
   COLLADASW::InputList &input = joints.getInputList();
 
   input.push_back(COLLADASW::Input(
-      COLLADASW::InputSemantic::JOINT,  // constant declared in COLLADASWInputList.h
+      COLLADASW::InputSemantic::JOINT, /* constant declared in COLLADASWInputList.h */
       COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, joints_source_id)));
   input.push_back(
       COLLADASW::Input(COLLADASW::InputSemantic::BINDMATRIX,
@@ -415,7 +415,7 @@ void ControllerExporter::add_bind_shape_mat(Object *ob)
   BKE_object_matrix_local_get(ob, f_obmat);
 
   if (export_settings.get_apply_global_orientation()) {
-    // do nothing, rotation is going to be applied to the Data
+    /* do nothing, rotation is going to be applied to the Data */
   }
   else {
     bc_add_global_transform(f_obmat, export_settings.get_global_transform());
@@ -615,7 +615,7 @@ void ControllerExporter::add_vertex_weights_element(const std::string &weights_s
 
   int offset = 0;
   input.push_back(COLLADASW::Input(
-      COLLADASW::InputSemantic::JOINT,  // constant declared in COLLADASWInputList.h
+      COLLADASW::InputSemantic::JOINT, /* constant declared in COLLADASWInputList.h */
       COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, joints_source_id),
       offset++));
   input.push_back(

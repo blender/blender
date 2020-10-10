@@ -40,9 +40,9 @@ static void node_composit_init_tonemap(bNodeTree *UNUSED(ntree), bNode *node)
   ntm->offset = 1;
   ntm->gamma = 1;
   ntm->f = 0;
-  ntm->m = 0;  // actual value is set according to input
-  // default a of 1 works well with natural HDR images, but not always so for cgi.
-  // Maybe should use 0 or at least lower initial value instead
+  ntm->m = 0; /* Actual value is set according to input. */
+  /* Default a of 1 works well with natural HDR images, but not always so for CGI.
+   * Maybe should use 0 or at least lower initial value instead. */
   ntm->a = 1;
   ntm->c = 0;
   node->storage = ntm;

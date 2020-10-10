@@ -285,7 +285,7 @@ float ED_object_new_primitive_matrix(
     return dia;
   }
 
-  // return 1.0f;
+  /* return 1.0f; */
 }
 
 /** \} */
@@ -3085,7 +3085,7 @@ static Base *object_add_duplicate_internal(Main *bmain,
     /* 1) duplis should end up in same collection as the original
      * 2) Rigid Body sim participants MUST always be part of a collection...
      */
-    // XXX: is 2) really a good measure here?
+    /* XXX: is 2) really a good measure here? */
     if (ob->rigidbody_object || ob->rigidbody_constraint) {
       Collection *collection;
       for (collection = bmain->collections.first; collection; collection = collection->id.next) {

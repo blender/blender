@@ -2369,7 +2369,7 @@ static void node_composit_buts_bokehimage(uiLayout *layout, bContext *UNUSED(C),
 static void node_composit_buts_bokehblur(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "use_variable_size", DEFAULT_FLAGS, NULL, ICON_NONE);
-  // uiItemR(layout, ptr, "f_stop", DEFAULT_FLAGS, NULL, ICON_NONE);  // UNUSED
+  // uiItemR(layout, ptr, "f_stop", DEFAULT_FLAGS, NULL, ICON_NONE); /* UNUSED */
   uiItemR(layout, ptr, "blur_max", DEFAULT_FLAGS, NULL, ICON_NONE);
   uiItemR(layout, ptr, "use_extended_bounds", DEFAULT_FLAGS, NULL, ICON_NONE);
 }

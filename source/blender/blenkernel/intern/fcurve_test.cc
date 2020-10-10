@@ -27,7 +27,7 @@
 
 namespace blender::bke::tests {
 
-// Epsilon for floating point comparisons.
+/* Epsilon for floating point comparisons. */
 static const float EPSILON = 1e-7f;
 
 TEST(evaluate_fcurve, EmptyFCurve)
@@ -45,9 +45,9 @@ TEST(evaluate_fcurve, OnKeys)
   insert_vert_fcurve(fcu, 2.0f, 13.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
   insert_vert_fcurve(fcu, 3.0f, 19.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF);
 
-  EXPECT_NEAR(evaluate_fcurve(fcu, 1.0f), 7.0f, EPSILON);   // hits 'on or before first' function
-  EXPECT_NEAR(evaluate_fcurve(fcu, 2.0f), 13.0f, EPSILON);  // hits 'between' function
-  EXPECT_NEAR(evaluate_fcurve(fcu, 3.0f), 19.0f, EPSILON);  // hits 'on or after last' function
+  EXPECT_NEAR(evaluate_fcurve(fcu, 1.0f), 7.0f, EPSILON);  /* hits 'on or before first' function */
+  EXPECT_NEAR(evaluate_fcurve(fcu, 2.0f), 13.0f, EPSILON); /* hits 'between' function */
+  EXPECT_NEAR(evaluate_fcurve(fcu, 3.0f), 19.0f, EPSILON); /* hits 'on or after last' function */
 
   /* Also test within a specific time epsilon of the keys, as this was an issue in T39207.
    * This epsilon is just slightly smaller than the epsilon given to binarysearch_bezt_index_ex()
@@ -102,21 +102,21 @@ TEST(evaluate_fcurve, InterpolationBezier)
   EXPECT_EQ(fcu->bezt[0].ipo, BEZT_IPO_BEZ);
   EXPECT_EQ(fcu->bezt[1].ipo, BEZT_IPO_BEZ);
 
-  // Test with default handles.
+  /* Test with default handles. */
   EXPECT_NEAR(evaluate_fcurve(fcu, 1.25f), 7.8297067f, EPSILON);
   EXPECT_NEAR(evaluate_fcurve(fcu, 1.50f), 10.0f, EPSILON);
   EXPECT_NEAR(evaluate_fcurve(fcu, 1.75f), 12.170294f, EPSILON);
 
-  // Test with modified handles.
-  fcu->bezt[0].vec[0][0] = 0.71855f;  // left handle X
-  fcu->bezt[0].vec[0][1] = 6.22482f;  // left handle Y
-  fcu->bezt[0].vec[2][0] = 1.35148f;  // right handle X
-  fcu->bezt[0].vec[2][1] = 7.96806f;  // right handle Y
+  /* Test with modified handles. */
+  fcu->bezt[0].vec[0][0] = 0.71855f; /* left handle X */
+  fcu->bezt[0].vec[0][1] = 6.22482f; /* left handle Y */
+  fcu->bezt[0].vec[2][0] = 1.35148f; /* right handle X */
+  fcu->bezt[0].vec[2][1] = 7.96806f; /* right handle Y */
 
-  fcu->bezt[1].vec[0][0] = 1.66667f;  // left handle X
-  fcu->bezt[1].vec[0][1] = 10.4136f;  // left handle Y
-  fcu->bezt[1].vec[2][0] = 2.33333f;  // right handle X
-  fcu->bezt[1].vec[2][1] = 15.5864f;  // right handle Y
+  fcu->bezt[1].vec[0][0] = 1.66667f; /* left handle X */
+  fcu->bezt[1].vec[0][1] = 10.4136f; /* left handle Y */
+  fcu->bezt[1].vec[2][0] = 2.33333f; /* right handle X */
+  fcu->bezt[1].vec[2][1] = 15.5864f; /* right handle Y */
 
   EXPECT_NEAR(evaluate_fcurve(fcu, 1.25f), 7.945497f, EPSILON);
   EXPECT_NEAR(evaluate_fcurve(fcu, 1.50f), 9.3495407f, EPSILON);
@@ -155,19 +155,19 @@ TEST(evaluate_fcurve, ExtrapolationLinearKeys)
   fcu->bezt[1].ipo = BEZT_IPO_LIN;
 
   fcu->extend = FCURVE_EXTRAPOLATE_LINEAR;
-  // Before first keyframe.
+  /* Before first keyframe. */
   EXPECT_NEAR(evaluate_fcurve(fcu, 0.75f), 5.5f, EPSILON);
   EXPECT_NEAR(evaluate_fcurve(fcu, 0.50f), 4.0f, EPSILON);
   EXPECT_NEAR(evaluate_fcurve(fcu, -1.50f), -8.0f, EPSILON);
-  // After last keyframe.
+  /* After last keyframe. */
   EXPECT_NEAR(evaluate_fcurve(fcu, 2.75f), 17.5f, EPSILON);
   EXPECT_NEAR(evaluate_fcurve(fcu, 3.50f), 22.0f, EPSILON);
 
   fcu->extend = FCURVE_EXTRAPOLATE_CONSTANT;
-  // Before first keyframe.
+  /* Before first keyframe. */
   EXPECT_NEAR(evaluate_fcurve(fcu, 0.75f), 7.0f, EPSILON);
   EXPECT_NEAR(evaluate_fcurve(fcu, -1.50f), 7.0f, EPSILON);
-  // After last keyframe.
+  /* After last keyframe. */
   EXPECT_NEAR(evaluate_fcurve(fcu, 2.75f), 13.0f, EPSILON);
   EXPECT_NEAR(evaluate_fcurve(fcu, 3.50f), 13.0f, EPSILON);
 
@@ -181,29 +181,29 @@ TEST(evaluate_fcurve, ExtrapolationBezierKeys)
   EXPECT_EQ(insert_vert_fcurve(fcu, 1.0f, 7.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 0);
   EXPECT_EQ(insert_vert_fcurve(fcu, 2.0f, 13.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_NO_USERPREF), 1);
 
-  fcu->bezt[0].vec[0][0] = 0.71855f;  // left handle X
-  fcu->bezt[0].vec[0][1] = 6.22482f;  // left handle Y
-  fcu->bezt[0].vec[2][0] = 1.35148f;  // right handle X
-  fcu->bezt[0].vec[2][1] = 7.96806f;  // right handle Y
+  fcu->bezt[0].vec[0][0] = 0.71855f; /* left handle X */
+  fcu->bezt[0].vec[0][1] = 6.22482f; /* left handle Y */
+  fcu->bezt[0].vec[2][0] = 1.35148f; /* right handle X */
+  fcu->bezt[0].vec[2][1] = 7.96806f; /* right handle Y */
 
-  fcu->bezt[1].vec[0][0] = 1.66667f;  // left handle X
-  fcu->bezt[1].vec[0][1] = 10.4136f;  // left handle Y
-  fcu->bezt[1].vec[2][0] = 2.33333f;  // right handle X
-  fcu->bezt[1].vec[2][1] = 15.5864f;  // right handle Y
+  fcu->bezt[1].vec[0][0] = 1.66667f; /* left handle X */
+  fcu->bezt[1].vec[0][1] = 10.4136f; /* left handle Y */
+  fcu->bezt[1].vec[2][0] = 2.33333f; /* right handle X */
+  fcu->bezt[1].vec[2][1] = 15.5864f; /* right handle Y */
 
   fcu->extend = FCURVE_EXTRAPOLATE_LINEAR;
-  // Before first keyframe.
+  /* Before first keyframe. */
   EXPECT_NEAR(evaluate_fcurve(fcu, 0.75f), 6.3114409f, EPSILON);
   EXPECT_NEAR(evaluate_fcurve(fcu, -0.50f), 2.8686447f, EPSILON);
-  // After last keyframe.
+  /* After last keyframe. */
   EXPECT_NEAR(evaluate_fcurve(fcu, 2.75f), 18.81946f, EPSILON);
   EXPECT_NEAR(evaluate_fcurve(fcu, 3.50f), 24.63892f, EPSILON);
 
   fcu->extend = FCURVE_EXTRAPOLATE_CONSTANT;
-  // Before first keyframe.
+  /* Before first keyframe. */
   EXPECT_NEAR(evaluate_fcurve(fcu, 0.75f), 7.0f, EPSILON);
   EXPECT_NEAR(evaluate_fcurve(fcu, -1.50f), 7.0f, EPSILON);
-  // After last keyframe.
+  /* After last keyframe. */
   EXPECT_NEAR(evaluate_fcurve(fcu, 2.75f), 13.0f, EPSILON);
   EXPECT_NEAR(evaluate_fcurve(fcu, 3.50f), 13.0f, EPSILON);
 
@@ -232,7 +232,7 @@ TEST(fcurve_subdivide, BKE_bezt_subdivide_handles)
 
   /* Create new keyframe point with defaults from insert_vert_fcurve(). */
   BezTriple beztr;
-  const float x = 7.375f;  // at this X-coord, the FCurve should evaluate to 1.000f.
+  const float x = 7.375f; /* at this X-coord, the FCurve should evaluate to 1.000f. */
   const float y = 1.000f;
   beztr.vec[0][0] = x - 1.0f;
   beztr.vec[0][1] = y;
@@ -249,25 +249,25 @@ TEST(fcurve_subdivide, BKE_bezt_subdivide_handles)
 
   EXPECT_FLOAT_EQ(y_delta, 0.0f);
 
-  EXPECT_FLOAT_EQ(fcu->bezt[0].vec[0][0], -5.0f);  // Left handle should not be touched.
+  EXPECT_FLOAT_EQ(fcu->bezt[0].vec[0][0], -5.0f); /* Left handle should not be touched. */
   EXPECT_FLOAT_EQ(fcu->bezt[0].vec[0][1], 0.0f);
-  EXPECT_FLOAT_EQ(fcu->bezt[0].vec[1][0], 1.0f);  // Coordinates should not be touched.
+  EXPECT_FLOAT_EQ(fcu->bezt[0].vec[1][0], 1.0f); /* Coordinates should not be touched. */
   EXPECT_FLOAT_EQ(fcu->bezt[0].vec[1][1], 0.0f);
-  EXPECT_FLOAT_EQ(fcu->bezt[0].vec[2][0], 1.5f);  // Right handle should be updated.
+  EXPECT_FLOAT_EQ(fcu->bezt[0].vec[2][0], 1.5f); /* Right handle should be updated. */
   EXPECT_FLOAT_EQ(fcu->bezt[0].vec[2][1], 2.0f);
 
-  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[0][0], 13.0f);  // Left handle should be updated.
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[0][0], 13.0f); /* Left handle should be updated. */
   EXPECT_FLOAT_EQ(fcu->bezt[1].vec[0][1], 0.0f);
-  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[1][0], 13.0f);  // Coordinates should not be touched.
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[1][0], 13.0f); /* Coordinates should not be touched. */
   EXPECT_FLOAT_EQ(fcu->bezt[1].vec[1][1], 2.0f);
-  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[2][0], 16.0f);  // Right handle should not be touched
+  EXPECT_FLOAT_EQ(fcu->bezt[1].vec[2][0], 16.0f); /* Right handle should not be touched */
   EXPECT_FLOAT_EQ(fcu->bezt[1].vec[2][1], -3.0f);
 
-  EXPECT_FLOAT_EQ(beztr.vec[0][0], 4.5f);  // Left handle should be updated.
+  EXPECT_FLOAT_EQ(beztr.vec[0][0], 4.5f); /* Left handle should be updated. */
   EXPECT_FLOAT_EQ(beztr.vec[0][1], 1.5f);
-  EXPECT_FLOAT_EQ(beztr.vec[1][0], 7.375f);  // Coordinates should not be touched.
+  EXPECT_FLOAT_EQ(beztr.vec[1][0], 7.375f); /* Coordinates should not be touched. */
   EXPECT_FLOAT_EQ(beztr.vec[1][1], 1.0f);
-  EXPECT_FLOAT_EQ(beztr.vec[2][0], 10.250);  // Right handle should be updated.
+  EXPECT_FLOAT_EQ(beztr.vec[2][0], 10.250); /* Right handle should be updated. */
   EXPECT_FLOAT_EQ(beztr.vec[2][1], 0.5);
 
   BKE_fcurve_free(fcu);

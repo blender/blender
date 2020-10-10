@@ -978,7 +978,7 @@ static void do_version_curvemapping_walker(Main *bmain, void (*callback)(CurveMa
       }
     }
 
-    // toolsettings
+    /* toolsettings */
     ToolSettings *ts = scene->toolsettings;
     if (ts->vpaint) {
       callback(ts->vpaint->paint.cavity_curve);
@@ -2988,9 +2988,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
     /* gpencil grid settings */
     for (bGPdata *gpd = bmain->gpencils.first; gpd; gpd = gpd->id.next) {
-      ARRAY_SET_ITEMS(gpd->grid.color, 0.5f, 0.5f, 0.5f);  // Color
-      ARRAY_SET_ITEMS(gpd->grid.scale, 1.0f, 1.0f);        // Scale
-      gpd->grid.lines = GP_DEFAULT_GRID_LINES;             // Number of lines
+      ARRAY_SET_ITEMS(gpd->grid.color, 0.5f, 0.5f, 0.5f); /* Color */
+      ARRAY_SET_ITEMS(gpd->grid.scale, 1.0f, 1.0f);       /* Scale */
+      gpd->grid.lines = GP_DEFAULT_GRID_LINES;            /* Number of lines */
     }
   }
 

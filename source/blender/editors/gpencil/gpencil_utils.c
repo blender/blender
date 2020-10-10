@@ -335,7 +335,7 @@ bool ED_gpencil_has_keyframe_v3d(Scene *UNUSED(scene), Object *ob, int cfra)
     bGPDlayer *gpl = BKE_gpencil_layer_active_get(ob->data);
     if (gpl) {
       if (gpl->actframe) {
-        // XXX: assumes that frame has been fetched already
+        /* XXX: assumes that frame has been fetched already */
         return (gpl->actframe->framenum == cfra);
       }
       /* XXX: disabled as could be too much of a penalty */
@@ -2531,7 +2531,7 @@ void ED_gpencil_select_toggle_all(bContext *C, int action)
     CTX_DATA_BEGIN (C, bGPDstroke *, gps, editable_gpencil_strokes) {
       if (gps->flag & GP_STROKE_SELECT) {
         action = SEL_DESELECT;
-        break;  // XXX: this only gets out of the inner loop...
+        break; /* XXX: this only gets out of the inner loop. */
       }
     }
     CTX_DATA_END;
@@ -2584,9 +2584,11 @@ void ED_gpencil_select_toggle_all(bContext *C, int action)
           case SEL_SELECT:
             pt->flag |= GP_SPOINT_SELECT;
             break;
-          // case SEL_DESELECT:
-          //  pt->flag &= ~GP_SPOINT_SELECT;
-          //  break;
+#if 0
+          case SEL_DESELECT:
+           pt->flag &= ~GP_SPOINT_SELECT;
+           break;
+#endif
           case SEL_INVERT:
             pt->flag ^= GP_SPOINT_SELECT;
             break;

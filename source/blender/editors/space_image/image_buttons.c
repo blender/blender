@@ -725,9 +725,6 @@ static void uiblock_layer_pass_buttons(uiLayout *layout,
   }
 }
 
-// XXX HACK!
-// static int packdummy=0;
-
 typedef struct RNAUpdateCb {
   PointerRNA ptr;
   PropertyRNA *prop;

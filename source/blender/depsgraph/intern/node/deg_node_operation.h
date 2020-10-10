@@ -35,7 +35,7 @@ namespace deg {
 struct ComponentNode;
 
 /* Evaluation Operation for atomic operation */
-// XXX: move this to another header that can be exposed?
+/* XXX: move this to another header that can be exposed? */
 typedef function<void(struct ::Depsgraph *)> DepsEvalOperationCb;
 
 /* Identifiers for common operations (as an enum). */
@@ -143,7 +143,7 @@ enum class OperationCode {
    *
    * - "DONE"   This noop is used to signal that the bone's final pose
    *            transform can be read by others. */
-  // TODO: deform mats could get calculated in the final_transform ops...
+  /* TODO: deform mats could get calculated in the final_transform ops... */
   BONE_READY,
   BONE_DONE,
   /* B-Bone segment shape computation (after DONE) */

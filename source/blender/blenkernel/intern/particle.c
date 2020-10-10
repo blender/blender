@@ -4195,7 +4195,7 @@ float psys_get_child_size(ParticleSystem *psys,
                           float *UNUSED(pa_time))
 {
   ParticleSettings *part = psys->part;
-  float size;  // time XXX
+  float size; /* time XXX */
 
   if (part->childtype == PART_CHILD_FACES) {
     int w = 0;

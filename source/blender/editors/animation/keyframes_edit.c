@@ -70,7 +70,7 @@
 /* This function is used to loop over BezTriples in the given F-Curve, applying a given
  * operation on them, and optionally applies an F-Curve validation function afterwards.
  */
-// TODO: make this function work on samples too...
+/* TODO: make this function work on samples too. */
 short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked,
                                  FCurve *fcu,
                                  KeyframeEditFunc key_ok,
@@ -237,7 +237,7 @@ static short ob_keyframes_loop(KeyframeEditData *ked,
   ac.datatype = ANIMCONT_CHANNEL;
 
   /* get F-Curves to take keyframes from */
-  filter = ANIMFILTER_DATA_VISIBLE;  // curves only
+  filter = ANIMFILTER_DATA_VISIBLE; /* curves only */
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   /* Loop through each F-Curve, applying the operation as required,
@@ -286,7 +286,7 @@ static short scene_keyframes_loop(KeyframeEditData *ked,
   ac.datatype = ANIMCONT_CHANNEL;
 
   /* get F-Curves to take keyframes from */
-  filter = ANIMFILTER_DATA_VISIBLE;  // curves only
+  filter = ANIMFILTER_DATA_VISIBLE; /* curves only */
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   /* Loop through each F-Curve, applying the operation as required,
@@ -478,7 +478,7 @@ void ANIM_animdata_keyframe_callback(bAnimContext *ac,
 /* Keyframe Integrity Tools */
 
 /* Rearrange keyframes if some are out of order */
-// used to be recalc_*_ipos() where * was object or action
+/* used to be recalc_*_ipos() where * was object or action */
 void ANIM_editkeyframes_refresh(bAnimContext *ac)
 {
   ListBase anim_data = {NULL, NULL};
@@ -834,7 +834,7 @@ void bezt_remap_times(KeyframeEditData *ked, BezTriple *bezt)
   const float scale = (rmap->newMax - rmap->newMin) / (rmap->oldMax - rmap->oldMin);
 
   /* perform transform on all three handles unless indicated otherwise */
-  // TODO: need to include some checks for that
+  /* TODO: need to include some checks for that */
 
   bezt->vec[0][0] = scale * (bezt->vec[0][0] - rmap->oldMin) + rmap->newMin;
   bezt->vec[1][0] = scale * (bezt->vec[1][0] - rmap->oldMin) + rmap->newMin;
@@ -1025,7 +1025,7 @@ static short mirror_bezier_value(KeyframeEditData *ked, BezTriple *bezt)
 }
 
 /* Note: for markers and 'value', the values to use must be supplied as the first float value */
-// calchandles_fcurve
+/* calchandles_fcurve */
 KeyframeEditFunc ANIM_editkeyframes_mirror(short mode)
 {
   switch (mode) {
@@ -1128,9 +1128,12 @@ static short set_bezier_vector(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
   return 0;
 }
 
-/* Queries if the handle should be set to 'free' or 'align' */
-// NOTE: this was used for the 'toggle free/align' option
-//      currently this isn't used, but may be restored later
+/**
+ * Queries if the handle should be set to 'free' or 'align'.
+ *
+ * \note This was used for the 'toggle free/align' option
+ * currently this isn't used, but may be restored later.
+ */
 static short bezier_isfree(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
 {
   if ((bezt->f1 & SELECT) && (bezt->h1)) {
@@ -1181,7 +1184,7 @@ static short set_bezier_free(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
 }
 
 /* Set all selected Bezier Handles to a single type */
-// calchandles_fcurve
+/* calchandles_fcurve */
 KeyframeEditFunc ANIM_editkeyframes_handles(short mode)
 {
   switch (mode) {
@@ -1309,7 +1312,7 @@ static short set_bezt_sine(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
 }
 
 /* Set the interpolation type of the selected BezTriples in each F-Curve to the specified one */
-// ANIM_editkeyframes_ipocurve_ipotype() !
+/* ANIM_editkeyframes_ipocurve_ipotype() ! */
 KeyframeEditFunc ANIM_editkeyframes_ipo(short mode)
 {
   switch (mode) {

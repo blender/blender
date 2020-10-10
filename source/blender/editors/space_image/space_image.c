@@ -603,7 +603,7 @@ static void image_main_region_init(wmWindowManager *wm, ARegion *region)
 {
   wmKeyMap *keymap;
 
-  // image space manages own v2d
+  /* Image space manages own v2d. */
   // UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_STANDARD, region->winx, region->winy);
 
   /* mask polls mode */

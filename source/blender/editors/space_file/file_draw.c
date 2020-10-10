@@ -69,7 +69,7 @@
 
 #include "filelist.h"
 
-#include "file_intern.h"  // own include
+#include "file_intern.h" /* own include */
 
 void ED_file_path_button(bScreen *screen,
                          const SpaceFile *sfile,

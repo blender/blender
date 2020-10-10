@@ -1094,7 +1094,7 @@ static void draw_documentation(const SpaceText *st, ARegion *region)
 
   i = 0;
   br = DOC_WIDTH;
-  lines = 0;  // XXX -doc_scroll;
+  lines = 0;  /* XXX -doc_scroll; */
   for (p = docs; *p; p++) {
     if (*p == '\r' && *(++p) != '\n') {
       *(--p) = '\n'; /* Fix line endings */
@@ -1400,7 +1400,7 @@ static void draw_brackets(const SpaceText *st, const TextDrawContext *tdc, ARegi
 
   char ch;
 
-  // syntax_highlight must be on or else the format string will be null
+  /* syntax_highlight must be on or else the format string will be null */
   if (!text->curl || !tdc->syntax_highlight) {
     return;
   }

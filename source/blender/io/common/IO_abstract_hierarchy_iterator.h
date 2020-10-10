@@ -86,9 +86,9 @@ struct HierarchyContext {
   bool animation_check_include_parent;
 
   /*********** Determined during writer creation: ***************/
-  float parent_matrix_inv_world[4][4];  // Inverse of the parent's world matrix.
-  std::string export_path;          // Hierarchical path, such as "/grandparent/parent/objectname".
-  ParticleSystem *particle_system;  // Only set for particle/hair writers.
+  float parent_matrix_inv_world[4][4]; /* Inverse of the parent's world matrix. */
+  std::string export_path; /* Hierarchical path, such as "/grandparent/parent/objectname". */
+  ParticleSystem *particle_system; /* Only set for particle/hair writers. */
 
   /* Hierarchical path of the object this object is duplicating; only set when this object should
    * be stored as a reference to its original. It can happen that the original is not part of the
@@ -127,9 +127,9 @@ class AbstractHierarchyWriter {
  public:
   virtual ~AbstractHierarchyWriter();
   virtual void write(HierarchyContext &context) = 0;
-  // TODO(Sybren): add function like absent() that's called when a writer was previously created,
-  // but wasn't used while exporting the current frame (for example, a particle-instanced mesh of
-  // which the particle is no longer alive).
+  /* TODO(Sybren): add function like absent() that's called when a writer was previously created,
+   * but wasn't used while exporting the current frame (for example, a particle-instanced mesh of
+   * which the particle is no longer alive). */
  protected:
   /* Return true if the data written by this writer changes over time.
    * Note that this function assumes this is an object data writer. Transform writers should not

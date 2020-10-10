@@ -25,20 +25,20 @@
  * Original license from NVIDIA follows.
  */
 
-// This code is in the public domain -- castanyo@yahoo.es
+/* This code is in the public domain - <castanyo@yahoo.es> */
 
 #include <ColorBlock.h>
 #include <Common.h>
 #include <Image.h>
 
 #if 0
-// Get approximate luminance.
+/* Get approximate luminance. */
 inline static uint colorLuminance(Color32 c)
 {
   return c.r + c.g + c.b;
 }
 
-// Get the euclidean distance between the given colors.
+/* Get the euclidean distance between the given colors. */
 inline static uint colorDistance(Color32 c0, Color32 c1)
 {
   return (c0.r - c1.r) * (c0.r - c1.r) + (c0.g - c1.g) * (c0.g - c1.g) +
@@ -83,9 +83,9 @@ void ColorBlock::init(uint w, uint h, const uint *data, uint x, uint y)
   const uint bw = MIN(w - x, 4U);
   const uint bh = MIN(h - y, 4U);
 
-  // Blocks that are smaller than 4x4 are handled by repeating the pixels.
-  // @@ That's only correct when block size is 1, 2 or 4, but not with 3. :(
-  // @@ Ideally we should zero the weights of the pixels out of range.
+  /* Blocks that are smaller than 4x4 are handled by repeating the pixels.
+   * @@ That's only correct when block size is 1, 2 or 4, but not with 3. :(
+   * @@ Ideally we should zero the weights of the pixels out of range. */
 
   for (uint i = 0; i < 4; i++) {
     const int by = i % bh;
@@ -104,9 +104,9 @@ void ColorBlock::init(uint w, uint h, const float *data, uint x, uint y)
   const uint bw = MIN(w - x, 4U);
   const uint bh = MIN(h - y, 4U);
 
-  // Blocks that are smaller than 4x4 are handled by repeating the pixels.
-  // @@ That's only correct when block size is 1, 2 or 4, but not with 3. :(
-  // @@ Ideally we should zero the weights of the pixels out of range.
+  /* Blocks that are smaller than 4x4 are handled by repeating the pixels.
+   * @@ That's only correct when block size is 1, 2 or 4, but not with 3. :(
+   * @@ Ideally we should zero the weights of the pixels out of range. */
 
   uint srcPlane = w * h;
 
@@ -120,7 +120,7 @@ void ColorBlock::init(uint w, uint h, const float *data, uint x, uint y)
       Color32 &c = color(e, i);
       c.r = uint8(255 * CLAMP(data[idx + 0 * srcPlane],
                               0.0f,
-                              1.0f));  // @@ Is this the right way to quantize floats to bytes?
+                              1.0f)); /* @@ Is this the right way to quantize floats to bytes? */
       c.g = uint8(255 * CLAMP(data[idx + 1 * srcPlane], 0.0f, 1.0f));
       c.b = uint8(255 * CLAMP(data[idx + 2 * srcPlane], 0.0f, 1.0f));
       c.a = uint8(255 * CLAMP(data[idx + 3 * srcPlane], 0.0f, 1.0f));
@@ -204,7 +204,7 @@ uint ColorBlock::countUniqueColors() const
 {
   uint count = 0;
 
-  // @@ This does not have to be o(n^2)
+  /* @@ This does not have to be o(n^2) */
   for (int i = 0; i < 16; i++) {
     bool unique = true;
     for (int j = 0; j < i; j++) {
@@ -326,7 +326,7 @@ void ColorBlock::boundsRange(Color32 *start, Color32 *end) const
     }
   }
 
-  // Offset range by 1/16 of the extents
+  /* Offset range by 1/16 of the extents */
   Color32 inset;
   inset.r = (maxColor.r - minColor.r) >> 4;
   inset.g = (maxColor.g - minColor.g) >> 4;
@@ -377,7 +377,7 @@ void ColorBlock::boundsRangeAlpha(Color32 *start, Color32 *end) const
     }
   }
 
-  // Offset range by 1/16 of the extents
+  /* Offset range by 1/16 of the extents */
   Color32 inset;
   inset.r = (maxColor.r - minColor.r) >> 4;
   inset.g = (maxColor.g - minColor.g) >> 4;
@@ -403,7 +403,7 @@ void ColorBlock::boundsRangeAlpha(Color32 *start, Color32 *end) const
 /** Sort colors by abosolute value in their 16 bit representation. */
 void ColorBlock::sortColorsByAbsoluteValue()
 {
-  // Dummy selection sort.
+  /* Dummy selection sort. */
   for (uint a = 0; a < 16; a++) {
     uint max = a;
     Color16 cmax(m_color[a]);
@@ -462,7 +462,7 @@ void ColorBlock::sortColors(const Vector3 &axis)
     luma_array[i] = dot(vec, axis);
   }
 
-  // Dummy selection sort.
+  /* Dummy selection sort. */
   for (uint a = 0; a < 16; a++) {
     uint min = a;
     for (uint b = a + 1; b < 16; b++) {

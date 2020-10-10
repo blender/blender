@@ -116,7 +116,7 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 
 void initShrinkFatten(TransInfo *t)
 {
-  // If not in mesh edit mode, fallback to Resize
+  /* If not in mesh edit mode, fallback to Resize. */
   if ((t->flag & T_EDIT) == 0 || (t->obedit_type != OB_MESH)) {
     initResize(t);
   }
