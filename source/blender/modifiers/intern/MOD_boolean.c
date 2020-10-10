@@ -96,7 +96,8 @@ static bool isDisabled(const struct Scene *UNUSED(scene),
     return !bmd->object || bmd->object->type != OB_MESH;
   }
   if (bmd->flag & eBooleanModifierFlag_Collection) {
-    return !col;
+    /* The Exact solver tolerates an empty collection. */
+    return !col && bmd->solver != eBooleanModifierSolver_Exact;
   }
   return false;
 }
@@ -426,22 +427,25 @@ static Mesh *collection_boolean_exact(BooleanModifierData *bmd,
   BLI_array_append(meshes, mesh);
   BLI_array_append(objects, ctx->object);
   Mesh *col_mesh;
-  FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (col, ob) {
-    if (ob->type == OB_MESH && ob != ctx->object) {
-      col_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob, false);
-      /* XXX This is utterly non-optimal, we may go from a bmesh to a mesh back to a bmesh!
-       * But for 2.90 better not try to be smart here. */
-      BKE_mesh_wrapper_ensure_mdata(col_mesh);
-      BLI_array_append(meshes, col_mesh);
-      BLI_array_append(objects, ob);
-      bat.totvert += col_mesh->totvert;
-      bat.totedge += col_mesh->totedge;
-      bat.totloop += col_mesh->totloop;
-      bat.totface += col_mesh->totpoly;
-      ++num_shapes;
+  /* Allow col to be empty: then target mesh will just remove self-intersections. */
+  if (col) {
+    FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (col, ob) {
+      if (ob->type == OB_MESH && ob != ctx->object) {
+        col_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob, false);
+        /* XXX This is utterly non-optimal, we may go from a bmesh to a mesh back to a bmesh!
+         * But for 2.90 better not try to be smart here. */
+        BKE_mesh_wrapper_ensure_mdata(col_mesh);
+        BLI_array_append(meshes, col_mesh);
+        BLI_array_append(objects, ob);
+        bat.totvert += col_mesh->totvert;
+        bat.totedge += col_mesh->totedge;
+        bat.totloop += col_mesh->totloop;
+        bat.totface += col_mesh->totpoly;
+        ++num_shapes;
+      }
     }
+    FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
   }
-  FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
   int *shape_face_end = MEM_mallocN(num_shapes * sizeof(int), __func__);
   int *shape_vert_end = MEM_mallocN(num_shapes * sizeof(int), __func__);
   bool is_neg_mat0 = is_negative_m4(ctx->object->obmat);
