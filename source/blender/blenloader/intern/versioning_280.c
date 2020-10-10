@@ -1665,7 +1665,7 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
       BKE_mesh_tessface_clear(me);
 
       /* Moved from do_versions because we need updated polygons for calculating normals. */
-      if (MAIN_VERSION_OLDER(bmain, 256, 6)) {
+      if (!MAIN_VERSION_ATLEAST(bmain, 256, 6)) {
         BKE_mesh_calc_normals(me);
       }
     }
