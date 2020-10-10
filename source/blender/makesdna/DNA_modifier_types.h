@@ -116,7 +116,7 @@ typedef struct ModifierData {
   struct ModifierData *next, *prev;
 
   int type, mode;
-  int stackindex;
+  char _pad0[4];
   short flag;
   /* An "expand" bit for each of the modifier's (sub)panels. */
   short ui_expand_flag;

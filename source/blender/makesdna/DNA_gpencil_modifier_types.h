@@ -70,7 +70,7 @@ typedef struct GpencilModifierData {
   struct GpencilModifierData *next, *prev;
 
   int type, mode;
-  int stackindex;
+  char _pad0[4];
   short flag;
   short ui_expand_flag;
   /** MAX_NAME. */
