@@ -365,7 +365,7 @@ endif()
 
 # CMake FindOpenMP doesn't know about AppleClang before 3.12, so provide custom flags.
 if(WITH_OPENMP)
-  if(CMAKE_C_COMPILER_ID MATCHES "AppleClang" AND CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL "7.0")
+  if(CMAKE_C_COMPILER_ID MATCHES "Clang" AND CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL "7.0")
     # Use OpenMP from our precompiled libraries.
     message(STATUS "Using ${LIBDIR}/openmp for OpenMP")
     set(OPENMP_CUSTOM ON)
