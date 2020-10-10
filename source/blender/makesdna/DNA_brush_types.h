@@ -27,10 +27,6 @@
 #include "DNA_curve_types.h"
 #include "DNA_texture_types.h" /* for MTex */
 
-//#ifndef MAX_MTEX // XXX Not used?
-//#define MAX_MTEX  18
-//#endif
-
 struct CurveMapping;
 struct Image;
 struct MTex;

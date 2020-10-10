@@ -2344,7 +2344,6 @@ BLI_INLINE int _axis_signed(const int axis)
 bool mat3_from_axis_conversion(
     int src_forward, int src_up, int dst_forward, int dst_up, float r_mat[3][3])
 {
-  // from functools import reduce
   int value;
 
   if (src_forward == dst_forward && src_up == dst_up) {

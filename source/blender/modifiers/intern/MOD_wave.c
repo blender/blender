@@ -62,7 +62,7 @@
 
 static void initData(ModifierData *md)
 {
-  WaveModifierData *wmd = (WaveModifierData *)md;  // whadya know, moved here from Iraq
+  WaveModifierData *wmd = (WaveModifierData *)md;
 
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wmd, modifier));
 
