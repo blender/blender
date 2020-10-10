@@ -29,7 +29,7 @@ const char *utf8_invalid_tests[][3] = {
 
 /*    2  Boundary condition test cases
  *    Note that those will pass for us, those are not erronéous unicode code points
- *    (asside from \x00, which is only valid as string terminator).
+ *    (aside from \x00, which is only valid as string terminator).
  *    2.1  First possible sequence of a certain length */
     {"2.1.1  1 byte  (U-00000000):        \"\x00\"                                       |",
      "2.1.1  1 byte  (U-00000000):        \"\"                                       |", "\x01"},
@@ -241,8 +241,8 @@ const char *utf8_invalid_tests[][3] = {
      "5.2.7  U+DBFF U+DC00 = ed af bf ed b0 80 = \"\"                           |", "\x06"},
     {"5.2.8  U+DBFF U+DFFF = ed af bf ed bf bf = \"\xed\xaf\xbf\xed\xbf\xbf\"                           |",
      "5.2.8  U+DBFF U+DFFF = ed af bf ed bf bf = \"\"                           |", "\x06"},
-/*    5.3 Noncharacter code positions
- *        The following "noncharacters" are "reserved for internal use" by applications, and according to older versions
+/*    5.3 Non-character code positions
+ *        The following "non-characters" are "reserved for internal use" by applications, and according to older versions
  *        of the Unicode Standard "should never be interchanged". Unicode Corrigendum #9 dropped the latter restriction.
  *        Nevertheless, their presence in incoming UTF-8 data can remain a potential security risk, depending
  *        on what use is made of these codes subsequently. Examples of such internal use:
@@ -250,11 +250,11 @@ const char *utf8_invalid_tests[][3] = {
  *            an end-of-file (EOF) or error condition.
  *          - In some UTF-16 receivers, code point U+FFFE might trigger a byte-swap operation
  *            (to convert between UTF-16LE and UTF-16BE).
- *        With such internal use of noncharacters, it may be desirable and safer to block those code points in
+ *        With such internal use of non-characters, it may be desirable and safer to block those code points in
  *        UTF-8 decoders, as they should never occur legitimately in incoming UTF-8 data, and could trigger
  *        unsafe behavior in subsequent processing.
  *
- *        Particularly problematic noncharacters in 16-bit applications: */
+ *        Particularly problematic non-characters in 16-bit applications: */
     {"5.3.1  U+FFFE = ef bf be = \"\xef\xbf\xbe\"                                              |",
      "5.3.1  U+FFFE = ef bf be = \"\"                                              |", "\x03"},
     {"5.3.2  U+FFFF = ef bf bf = \"\xef\xbf\xbf\"                                              |",

@@ -2352,8 +2352,8 @@ bool SIM_mass_spring_force_spring_goal(Implicit_Data *data,
   if (length > ALMOST_ZERO) {
     mul_v3_v3fl(f, dir, stiffness * length);
 
-    /* Ascher & Boxman, p.21: Damping only during elonglation
-     * something wrong with it... */
+    /* Ascher & Boxman, p.21: Damping only during elongation
+     * something wrong with it. */
     madd_v3_v3fl(f, dir, damping * dot_v3v3(vel, dir));
 
     dfdx_spring(dfdx, dir, length, 0.0f, stiffness);
