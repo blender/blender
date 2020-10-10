@@ -375,13 +375,21 @@ if(WITH_OPENMP)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L'${LIBDIR}/openmp/lib' -lomp")
 
     # Copy libomp.dylib to allow executables like datatoc and tests to work.
+    # `@executable_path/../Resources/lib/` is a default dylib search path.
+    # For single config generator datatoc, tests etc.
     execute_process(
       COMMAND mkdir -p ${CMAKE_BINARY_DIR}/Resources/lib
       COMMAND cp -p ${LIBDIR}/openmp/lib/libomp.dylib ${CMAKE_BINARY_DIR}/Resources/lib/libomp.dylib
     )
+    # For multi-config generator datatoc, etc.
     execute_process(
       COMMAND mkdir -p ${CMAKE_BINARY_DIR}/bin/Resources/lib
       COMMAND cp -p ${LIBDIR}/openmp/lib/libomp.dylib ${CMAKE_BINARY_DIR}/bin/Resources/lib/libomp.dylib
+    )
+    # For multi-config generator tests.
+    execute_process(
+      COMMAND mkdir -p ${CMAKE_BINARY_DIR}/bin/tests/Resources/lib
+      COMMAND cp -p ${LIBDIR}/openmp/lib/libomp.dylib ${CMAKE_BINARY_DIR}/bin/tests/Resources/lib/libomp.dylib
     )
   endif()
 endif()
