@@ -612,6 +612,11 @@ void BKE_sculpt_bvh_update_from_ccg(struct PBVH *pbvh, struct SubdivCCG *subdiv_
  * updated according to the face sets. */
 void BKE_sculpt_sync_face_set_visibility(struct Mesh *mesh, struct SubdivCCG *subdiv_ccg);
 
+/* Individual function to sync the Face Set visibility to mesh and grids. */
+void BKE_sculpt_sync_face_sets_visibility_to_base_mesh(struct Mesh *mesh);
+void BKE_sculpt_sync_face_sets_visibility_to_grids(struct Mesh *mesh,
+                                                   struct SubdivCCG *subdiv_ccg);
+
 /* Ensures that a Face Set data-layers exists. If it does not, it creates one respecting the
  * visibility stored in the vertices of the mesh. If it does, it copies the visibility from the
  * mesh to the Face Sets. */

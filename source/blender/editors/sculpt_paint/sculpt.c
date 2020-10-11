@@ -544,22 +544,19 @@ bool SCULPT_vertex_has_face_set(SculptSession *ss, int index, int face_set)
   return true;
 }
 
-static void sculpt_visibility_sync_face_sets_to_vertex(SculptSession *ss, int index)
+void SCULPT_visibility_sync_all_face_sets_to_vertices(Object *ob)
 {
-  SCULPT_vertex_visible_set(ss, index, SCULPT_vertex_any_face_set_visible_get(ss, index));
-}
-
-void SCULPT_visibility_sync_all_face_sets_to_vertices(SculptSession *ss)
-{
+  SculptSession *ss = ob->sculpt;
+  Mesh *mesh = BKE_object_get_original_mesh(ob);
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
-      for (int i = 0; i < ss->totvert; i++) {
-        sculpt_visibility_sync_face_sets_to_vertex(ss, i);
-      }
+      BKE_sculpt_sync_face_sets_visibility_to_base_mesh(mesh);
       break;
     }
     case PBVH_GRIDS: {
-      BKE_pbvh_sync_face_sets_to_grids(ss->pbvh);
+      BKE_sculpt_sync_face_sets_visibility_to_base_mesh(mesh);
+      BKE_sculpt_sync_face_sets_visibility_to_grids(mesh, ss->subdiv_ccg);
+      break;
     }
     case PBVH_BMESH:
       break;
@@ -8175,6 +8172,9 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
   /* Make sure derived final from original object does not reference possibly
    * freed memory. */
   BKE_object_free_derived_caches(ob);
+
+  /* Copy the current mesh visibility to the Face Sets. */
+  BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(me);
 
   sculpt_init_session(depsgraph, scene, ob);
 

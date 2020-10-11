@@ -720,7 +720,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
   SCULPT_undo_push_end();
 
   /* Sync face sets visibility and vertex visibility as now all Face Sets are visible. */
-  SCULPT_visibility_sync_all_face_sets_to_vertices(ss);
+  SCULPT_visibility_sync_all_face_sets_to_vertices(ob);
 
   for (int i = 0; i < totnode; i++) {
     BKE_pbvh_node_mark_update_visibility(nodes[i]);
@@ -889,12 +889,6 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
   if (mode == SCULPT_FACE_SET_VISIBILITY_SHOW_ACTIVE) {
     SCULPT_face_sets_visibility_all_set(ss, false);
     SCULPT_face_set_visibility_set(ss, active_face_set, true);
-    for (int i = 0; i < tot_vert; i++) {
-      SCULPT_vertex_visible_set(ss,
-                                i,
-                                SCULPT_vertex_visible_get(ss, i) &&
-                                    SCULPT_vertex_has_face_set(ss, i, active_face_set));
-    }
   }
 
   if (mode == SCULPT_FACE_SET_VISIBILITY_HIDE_ACTIVE) {
@@ -918,7 +912,7 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
   }
 
   /* Sync face sets visibility and vertex visibility. */
-  SCULPT_visibility_sync_all_face_sets_to_vertices(ss);
+  SCULPT_visibility_sync_all_face_sets_to_vertices(ob);
 
   SCULPT_undo_push_end();
 
@@ -929,10 +923,6 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
   BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateVisibility);
 
   MEM_SAFE_FREE(nodes);
-
-  if (BKE_pbvh_type(pbvh) == PBVH_FACES) {
-    BKE_mesh_flush_hidden_from_verts(ob->data);
-  }
 
   ED_region_tag_redraw(region);
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
@@ -1194,7 +1184,7 @@ static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEven
   SCULPT_undo_push_end();
 
   /* Sync face sets visibility and vertex visibility as now all Face Sets are visible. */
-  SCULPT_visibility_sync_all_face_sets_to_vertices(ss);
+  SCULPT_visibility_sync_all_face_sets_to_vertices(ob);
 
   for (int i = 0; i < totnode; i++) {
     BKE_pbvh_node_mark_update_visibility(nodes[i]);

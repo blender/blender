@@ -186,7 +186,7 @@ bool SCULPT_vertex_is_boundary(const SculptSession *ss, const int index);
 void SCULPT_vertex_visible_set(SculptSession *ss, int index, bool visible);
 bool SCULPT_vertex_visible_get(SculptSession *ss, int index);
 
-void SCULPT_visibility_sync_all_face_sets_to_vertices(struct SculptSession *ss);
+void SCULPT_visibility_sync_all_face_sets_to_vertices(struct Object *ob);
 void SCULPT_visibility_sync_all_vertex_to_face_sets(struct SculptSession *ss);
 
 /* Face Sets API */

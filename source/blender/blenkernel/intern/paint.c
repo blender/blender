@@ -1894,63 +1894,41 @@ void BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(Mesh *mesh)
 
   int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
 
-  /* Show the only the face sets that have all visible vertices. */
   for (int i = 0; i < mesh->totpoly; i++) {
-    for (int l = 0; l < mesh->mpoly[i].totloop; l++) {
-      MLoop *loop = &mesh->mloop[mesh->mpoly[i].loopstart + l];
-      if (mesh->mvert[loop->v].flag & ME_HIDE) {
-        if (initialize_new_face_sets) {
-          /* When initializing a new Face Set data-layer, assign a new hidden Face Set ID to hidden
-           * vertices. This way, we get at initial split in two Face Sets between hidden and
-           * visible vertices based on the previous mesh visibly from other mode that can be
-           * useful in some cases. */
-          face_sets[i] = face_sets_default_hidden_id;
-        }
-        else {
-          /* Otherwise, set the already existing Face Set ID to hidden. */
-          face_sets[i] = -abs(face_sets[i]);
-        }
-        break;
-      }
+    if (!(mesh->mpoly[i].flag & ME_HIDE)) {
+      continue;
+    }
+
+    if (initialize_new_face_sets) {
+      /* When initializing a new Face Set data-layer, assign a new hidden Face Set ID to hidden
+       * vertices. This way, we get at initial split in two Face Sets between hidden and
+       * visible vertices based on the previous mesh visibly from other mode that can be
+       * useful in some cases. */
+      face_sets[i] = face_sets_default_hidden_id;
+    }
+    else {
+      /* Otherwise, set the already existing Face Set ID to hidden. */
+      face_sets[i] = -abs(face_sets[i]);
     }
   }
 }
 
-static void sculpt_sync_face_sets_visibility_to_base_mesh(Mesh *mesh)
+void BKE_sculpt_sync_face_sets_visibility_to_base_mesh(Mesh *mesh)
 {
   int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
   if (!face_sets) {
     return;
   }
 
-  /* Enabled if the vertex should be visible according to the Face Sets. */
-  BLI_bitmap *visible_vertex = BLI_BITMAP_NEW(mesh->totvert, "visible vertices");
-  /* Enabled if the visibility of this vertex can be affected by the Face Sets to avoid modifying
-   * disconnected geometry. */
-  BLI_bitmap *modified_vertex = BLI_BITMAP_NEW(mesh->totvert, "modified vertices");
-
   for (int i = 0; i < mesh->totpoly; i++) {
     const bool is_face_set_visible = face_sets[i] >= 0;
-    for (int l = 0; l < mesh->mpoly[i].totloop; l++) {
-      MLoop *loop = &mesh->mloop[mesh->mpoly[i].loopstart + l];
-      if (is_face_set_visible) {
-        BLI_BITMAP_ENABLE(visible_vertex, loop->v);
-      }
-      BLI_BITMAP_ENABLE(modified_vertex, loop->v);
-    }
+    SET_FLAG_FROM_TEST(mesh->mpoly[i].flag, !is_face_set_visible, ME_HIDE);
   }
 
-  for (int i = 0; i < mesh->totvert; i++) {
-    if (BLI_BITMAP_TEST(modified_vertex, i) && !BLI_BITMAP_TEST(visible_vertex, i)) {
-      mesh->mvert[i].flag |= ME_HIDE;
-    }
-  }
-
-  MEM_SAFE_FREE(visible_vertex);
-  MEM_SAFE_FREE(modified_vertex);
+  BKE_mesh_flush_hidden_from_polys(mesh);
 }
 
-static void sculpt_sync_face_sets_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
+void BKE_sculpt_sync_face_sets_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
 {
   int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
   if (!face_sets) {
@@ -1984,8 +1962,8 @@ static void sculpt_sync_face_sets_visibility_to_grids(Mesh *mesh, SubdivCCG *sub
 void BKE_sculpt_sync_face_set_visibility(struct Mesh *mesh, struct SubdivCCG *subdiv_ccg)
 {
   BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(mesh);
-  sculpt_sync_face_sets_visibility_to_base_mesh(mesh);
-  sculpt_sync_face_sets_visibility_to_grids(mesh, subdiv_ccg);
+  BKE_sculpt_sync_face_sets_visibility_to_base_mesh(mesh);
+  BKE_sculpt_sync_face_sets_visibility_to_grids(mesh, subdiv_ccg);
 }
 
 static PBVH *build_pbvh_for_dynamic_topology(Object *ob)
