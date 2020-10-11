@@ -1838,6 +1838,10 @@ def write_rst_contents(basepath):
             fw("   %s\n" % mod)
     fw("\n")
 
+    fw(title_string("Indices", "="))
+    fw("* :ref:`genindex`\n")
+    fw("* :ref:`modindex`\n\n")
+
     # special case, this 'bmesh.ops.rst' is extracted from C source
     if "bmesh.ops" not in EXCLUDE_MODULES:
         execfile(os.path.join(SCRIPT_DIR, "rst_from_bmesh_opdefines.py"))
