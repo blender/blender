@@ -49,10 +49,6 @@ This module gives access to low level bmesh operations.
 Most operators take input and return output, they can be chained together
 to perform useful operations.
 
-.. note::
-
-   This API us new in 2.65 and not yet well tested.
-
 
 Operator Example
 ++++++++++++++++
