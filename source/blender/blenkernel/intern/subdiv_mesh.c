@@ -1216,7 +1216,8 @@ Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
   subdiv_context.coarse_mesh = coarse_mesh;
   subdiv_context.subdiv = subdiv;
   subdiv_context.have_displacement = (subdiv->displacement_evaluator != NULL);
-  subdiv_context.can_evaluate_normals = !subdiv_context.have_displacement && subdiv_context.subdiv->settings.is_adaptive;
+  subdiv_context.can_evaluate_normals = !subdiv_context.have_displacement &&
+                                        subdiv_context.subdiv->settings.is_adaptive;
   /* Multi-threaded traversal/evaluation. */
   BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY);
   SubdivForeachContext foreach_context;
