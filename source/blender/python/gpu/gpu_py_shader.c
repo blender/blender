@@ -748,7 +748,34 @@ static struct PyMethodDef bpygpu_shader_module_methods[] = {
 };
 
 PyDoc_STRVAR(bpygpu_shader_module_doc,
-             "This module provides access to GPUShader internal functions.");
+             "This module provides access to GPUShader internal functions.\n"
+             "\n"
+             ".. rubric:: Built-in shaders\n"
+             "\n"
+             "All built-in shaders have the ``mat4 ModelViewProjectionMatrix`` uniform.\n"
+             "The value of it can only be modified using the :class:`gpu.matrix` module.\n"
+             "\n"
+             "2D_UNIFORM_COLOR\n"
+             "   :Attributes: vec3 pos\n"
+             "   :Uniforms: vec4 color\n"
+             "2D_FLAT_COLOR\n"
+             "   :Attributes: vec3 pos, vec4 color\n"
+             "   :Uniforms: none\n"
+             "2D_SMOOTH_COLOR\n"
+             "   :Attributes: vec3 pos, vec4 color\n"
+             "   :Uniforms: none\n"
+             "2D_IMAGE\n"
+             "   :Attributes: vec3 pos, vec2 texCoord\n"
+             "   :Uniforms: sampler2D image\n"
+             "3D_UNIFORM_COLOR\n"
+             "   :Attributes: vec3 pos\n"
+             "   :Uniforms: vec4 color\n"
+             "3D_FLAT_COLOR\n"
+             "   :Attributes: vec3 pos, vec4 color\n"
+             "   :Uniforms: none\n"
+             "3D_SMOOTH_COLOR\n"
+             "   :Attributes: vec3 pos, vec4 color\n"
+             "   :Uniforms: none\n");
 static PyModuleDef BPyGPU_shader_module_def = {
     PyModuleDef_HEAD_INIT,
     .m_name = "gpu.shader",
