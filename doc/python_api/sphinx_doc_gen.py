@@ -827,7 +827,8 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
 
         if submod_ls:
             fw(".. toctree::\n")
-            fw("   :maxdepth: 1\n\n")
+            fw("   :maxdepth: 1\n")
+            fw("   :caption: Submodules\n\n")
 
             for submod_name, submod in submod_ls:
                 submod_name_full = "%s.%s" % (module_name, submod_name)
@@ -1891,6 +1892,7 @@ def write_rst_ops_index(basepath):
         fw(".. module:: bpy.ops\n\n")
         write_example_ref("", fw, "bpy.ops")
         fw(".. toctree::\n")
+        fw("   :caption: Submodules\n")
         fw("   :glob:\n\n")
         fw("   bpy.ops.*\n\n")
         file.close()
