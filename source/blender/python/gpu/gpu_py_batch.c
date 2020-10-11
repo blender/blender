@@ -172,8 +172,8 @@ PyDoc_STRVAR(
     "\n"
     "   Assign a shader to this batch that will be used for drawing when not overwritten later.\n"
     "   Note: This method has to be called in the draw context that the batch will be drawn in.\n"
-    "   This function does not need to be called when you always set the shader when calling "
-    "`batch.draw`.\n"
+    "   This function does not need to be called when you always\n"
+    "   set the shader when calling :meth:`gpu.types.GPUBatch.draw`.\n"
     "\n"
     "   :param program: The program/shader the batch will use in future draw calls.\n"
     "   :type program: :class:`gpu.types.GPUShader`\n");

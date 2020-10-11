@@ -140,8 +140,8 @@ PyDoc_STRVAR(
     ".. method:: bind(save=True)\n"
     "\n"
     "   Bind the offscreen object.\n"
-    "   To make sure that the offscreen gets unbind whether an exception occurs or not, pack it "
-    "into a `with` statement.\n"
+    "   To make sure that the offscreen gets unbind whether an exception occurs or not,\n"
+    "   pack it into a `with` statement.\n"
     "\n"
     "   :arg save: Save the current OpenGL state, so that it can be restored when unbinding.\n"
     "   :type save: `bool`\n");
