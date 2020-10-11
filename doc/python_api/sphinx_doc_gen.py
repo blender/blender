@@ -92,7 +92,7 @@ SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 # For now, ignore add-ons and internal subclasses of 'bpy.types.PropertyGroup'.
 #
 # Besides disabling this line, the main change will be to add a
-# 'toctree' to 'write_rst_contents' which contains the generated rst files.
+# 'toctree' to 'write_rst_index' which contains the generated rst files.
 # This 'toctree' can be generated automatically.
 #
 # See: D6261 for reference.
@@ -1760,7 +1760,7 @@ def execfile(filepath):
     file_handle.close()
 
 
-def write_rst_contents(basepath):
+def write_rst_index(basepath):
     '''
     Write the rst file of the main page, needed for sphinx (index.html)
     '''
@@ -2089,7 +2089,7 @@ def rna2sphinx(basepath):
     write_sphinx_conf_py(basepath)
 
     # main page
-    write_rst_contents(basepath)
+    write_rst_index(basepath)
 
     # context
     if "bpy.context" not in EXCLUDE_MODULES:
