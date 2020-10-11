@@ -244,6 +244,7 @@ else:
         "bpy.types",  # supports filtering
         "bpy.utils",
         "bpy.utils.previews",
+        "bpy.utils.units",
         "bpy_extras",
         "gpu",
         "gpu.types",
@@ -1800,7 +1801,6 @@ def write_rst_index(basepath):
 
         # py modules
         "bpy.utils",
-        "bpy.utils.previews",
         "bpy.path",
         "bpy.app",
 
