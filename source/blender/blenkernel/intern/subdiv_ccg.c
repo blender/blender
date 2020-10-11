@@ -1878,12 +1878,14 @@ static void adjacet_vertices_index_from_adjacent_edge(const SubdivCCG *subdiv_cc
   const int poly_index = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, coord->grid_index);
   const MPoly *p = &mpoly[poly_index];
   *r_v1 = mloop[coord->grid_index].v;
+
+  const int corner = poly_find_loop_from_vert(p, &mloop[p->loopstart], *r_v1);
   if (coord->x == grid_size_1) {
-    const MLoop *next = ME_POLY_LOOP_NEXT(mloop, p, coord->grid_index);
+    const MLoop *next = ME_POLY_LOOP_NEXT(mloop, p, corner);
     *r_v2 = next->v;
   }
   if (coord->y == grid_size_1) {
-    const MLoop *prev = ME_POLY_LOOP_PREV(mloop, p, coord->grid_index);
+    const MLoop *prev = ME_POLY_LOOP_PREV(mloop, p, corner);
     *r_v2 = prev->v;
   }
 }
