@@ -146,10 +146,6 @@ class CameraIntrinsics {
   double principal_point_x() const { return K_(0, 2); }
   double principal_point_y() const { return K_(1, 2); }
 
-  virtual int num_distortion_parameters() const = 0;
-  virtual double *distortion_parameters() = 0;
-  virtual const double *distortion_parameters() const = 0;
-
   // Set the image size in pixels.
   // Image is the size of image camera intrinsics were calibrated with.
   void SetImageSize(int width, int height);
@@ -296,10 +292,6 @@ class PolynomialCameraIntrinsics : public CameraIntrinsics {
     return DISTORTION_MODEL_POLYNOMIAL;
   }
 
-  int num_distortion_parameters() const { return NUM_PARAMETERS; }
-  double *distortion_parameters() { return parameters_; };
-  const double *distortion_parameters() const { return parameters_; };
-
   double k1() const { return parameters_[OFFSET_K1]; }
   double k2() const { return parameters_[OFFSET_K2]; }
   double k3() const { return parameters_[OFFSET_K3]; }
@@ -359,10 +351,6 @@ class DivisionCameraIntrinsics : public CameraIntrinsics {
     return DISTORTION_MODEL_DIVISION;
   }
 
-  int num_distortion_parameters() const { return NUM_PARAMETERS; }
-  double *distortion_parameters() { return parameters_; };
-  const double *distortion_parameters() const { return parameters_; };
-
   double k1() const { return parameters_[OFFSET_K1]; }
   double k2() const { return parameters_[OFFSET_K2]; }
 
@@ -412,10 +400,6 @@ class NukeCameraIntrinsics : public CameraIntrinsics {
   DistortionModelType GetDistortionModelType() const {
     return DISTORTION_MODEL_NUKE;
   }
-
-  int num_distortion_parameters() const { return NUM_PARAMETERS; }
-  double *distortion_parameters() { return parameters_; };
-  const double *distortion_parameters() const { return parameters_; };
 
   double k1() const { return parameters_[OFFSET_K1]; }
   double k2() const { return parameters_[OFFSET_K2]; }
@@ -470,10 +454,6 @@ class BrownCameraIntrinsics : public CameraIntrinsics {
   DistortionModelType GetDistortionModelType() const {
     return DISTORTION_MODEL_BROWN;
   }
-
-  int num_distortion_parameters() const { return NUM_PARAMETERS; }
-  double *distortion_parameters() { return parameters_; };
-  const double *distortion_parameters() const { return parameters_; };
 
   double k1() const { return parameters_[OFFSET_K1]; }
   double k2() const { return parameters_[OFFSET_K2]; }
