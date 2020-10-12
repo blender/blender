@@ -102,18 +102,25 @@ static void outliner_main_region_free(ARegion *UNUSED(region))
 }
 
 static void outliner_main_region_listener(wmWindow *UNUSED(win),
-                                          ScrArea *UNUSED(area),
+                                          ScrArea *area,
                                           ARegion *region,
                                           wmNotifier *wmn,
                                           const Scene *UNUSED(scene))
 {
+  SpaceOutliner *space_outliner = area->spacedata.first;
+
   /* context changes */
   switch (wmn->category) {
     case NC_SCENE:
       switch (wmn->data) {
         case ND_OB_ACTIVE:
         case ND_OB_SELECT:
-          ED_region_tag_redraw_no_rebuild(region);
+          if (outliner_requires_rebuild_on_select_or_active_change(space_outliner)) {
+            ED_region_tag_redraw(region);
+          }
+          else {
+            ED_region_tag_redraw_no_rebuild(region);
+          }
           break;
         case ND_OB_VISIBLE:
         case ND_OB_RENDER:

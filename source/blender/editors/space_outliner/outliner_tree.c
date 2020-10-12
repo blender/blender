@@ -94,6 +94,7 @@ static TreeElement *outliner_add_collection_recursive(SpaceOutliner *space_outli
                                                       Collection *collection,
                                                       TreeElement *ten);
 static void outliner_make_object_parent_hierarchy(ListBase *lb);
+static int outliner_exclude_filter_get(const SpaceOutliner *space_outliner);
 
 /* ********************************************************* */
 /* Persistent Data */
@@ -244,6 +245,14 @@ static TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                                          short index);
 
 /* -------------------------------------------------------- */
+
+bool outliner_requires_rebuild_on_select_or_active_change(const SpaceOutliner *space_outliner)
+{
+  int exclude_flags = outliner_exclude_filter_get(space_outliner);
+  /* Need to rebuild tree to re-apply filter if select/active changed while filtering based on
+   * select/active. */
+  return exclude_flags & (SO_FILTER_OB_STATE_SELECTED | SO_FILTER_OB_STATE_ACTIVE);
+}
 
 /**
  * Check if a display mode needs a full rebuild if the open/collapsed state changes.
@@ -2164,7 +2173,7 @@ static void outliner_store_scrolling_position(SpaceOutliner *space_outliner,
   }
 }
 
-static int outliner_exclude_filter_get(SpaceOutliner *space_outliner)
+static int outliner_exclude_filter_get(const SpaceOutliner *space_outliner)
 {
   int exclude_filter = space_outliner->filter & ~SO_FILTER_OB_STATE;
 
