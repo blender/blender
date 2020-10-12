@@ -136,18 +136,17 @@ static void panelRegister(ARegionType *region_type)
 
 static openvdb::Mat4s matrix_to_openvdb(const float m[4][4])
 {
-  /* This constructor expects floats in row-major form. Therefore the matrix is transposed
-   * afterwards. */
+  /* Openvdb matrices are transposed Blender matrices, i.e. the translation is in the last row
+   * instead of in the last column. However, the layout in memory is the same, because openvdb
+   * matrices are row major (compared to Blender's column major matrices). */
   openvdb::Mat4s new_matrix{reinterpret_cast<const float *>(m)};
-  new_matrix = new_matrix.transpose();
   return new_matrix;
 }
 
 template<typename GridType> struct DisplaceOp {
   /* Has to be copied for each thread. */
   typename GridType::ConstAccessor accessor;
-  /* This is the transform of the grid that is being displaced. */
-  openvdb::Mat4s index_to_texture;
+  const openvdb::Mat4s index_to_texture;
 
   Tex *texture;
   const double strength;
@@ -167,9 +166,11 @@ template<typename GridType> struct DisplaceOp {
   openvdb::Vec3d compute_displace_vector(const openvdb::Coord &coord) const
   {
     if (this->texture != NULL) {
-      const openvdb::Vec3f texture_pos = this->index_to_texture * coord.asVec3s();
-      openvdb::Vec3d displace_vector = this->evaluate_texture(texture_pos);
-      return (displace_vector - this->texture_mid_level) * this->strength;
+      const openvdb::Vec3f texture_pos = coord.asVec3s() * this->index_to_texture;
+      const openvdb::Vec3d texture_value = this->evaluate_texture(texture_pos);
+      const openvdb::Vec3d displacement = (texture_value - this->texture_mid_level) *
+                                          this->strength;
+      return displacement;
     }
     return openvdb::Vec3d{0, 0, 0};
   }
@@ -185,9 +186,8 @@ template<typename GridType> struct DisplaceOp {
 
 static float get_max_voxel_side_length(const openvdb::GridBase &grid)
 {
-  const openvdb::Mat3d matrix = grid.transform().baseMap()->getAffineMap()->getMat4().getMat3();
-  const float max_voxel_side_length = std::max(
-      {matrix.col(0).length(), matrix.col(1).length(), matrix.col(2).length()});
+  const openvdb::Vec3d voxel_size = grid.voxelSize();
+  const float max_voxel_side_length = std::max({voxel_size[0], voxel_size[1], voxel_size[2]});
   return max_voxel_side_length;
 }
 
@@ -266,7 +266,7 @@ struct DisplaceGridOp {
       }
       case MOD_VOLUME_DISPLACE_MAP_GLOBAL: {
         const openvdb::Mat4s object_to_world = matrix_to_openvdb(ctx.object->obmat);
-        return object_to_world * index_to_object;
+        return index_to_object * object_to_world;
       }
       case MOD_VOLUME_DISPLACE_MAP_OBJECT: {
         if (vdmd.texture_map_object == NULL) {
@@ -274,9 +274,10 @@ struct DisplaceGridOp {
         }
         const openvdb::Mat4s object_to_world = matrix_to_openvdb(ctx.object->obmat);
         const openvdb::Mat4s world_to_texture = matrix_to_openvdb(vdmd.texture_map_object->imat);
-        return world_to_texture * object_to_world * index_to_object;
+        return index_to_object * object_to_world * world_to_texture;
       }
     }
+    BLI_assert(false);
     return {};
   }
 };
