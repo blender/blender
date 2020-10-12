@@ -547,6 +547,7 @@ static void OVERLAY_draw_scene(void *vedata)
   OVERLAY_fade_draw(vedata);
   OVERLAY_facing_draw(vedata);
   OVERLAY_extra_blend_draw(vedata);
+  OVERLAY_volume_draw(vedata);
 
   if (DRW_state_is_fbo()) {
     GPU_framebuffer_bind(fbl->overlay_line_fb);
@@ -557,7 +558,6 @@ static void OVERLAY_draw_scene(void *vedata)
   OVERLAY_particle_draw(vedata);
   OVERLAY_metaball_draw(vedata);
   OVERLAY_gpencil_draw(vedata);
-  OVERLAY_volume_draw(vedata);
   OVERLAY_extra_draw(vedata);
 
   if (DRW_state_is_fbo()) {

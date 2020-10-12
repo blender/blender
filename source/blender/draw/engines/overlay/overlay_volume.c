@@ -39,6 +39,10 @@ void OVERLAY_volume_cache_init(OVERLAY_Data *vedata)
     pd->volume_selection_surface_grp = grp;
     DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
   }
+  else {
+    psl->volume_ps = NULL;
+    pd->volume_selection_surface_grp = NULL;
+  }
 }
 
 void OVERLAY_volume_cache_populate(OVERLAY_Data *vedata, Object *ob)
@@ -57,11 +61,8 @@ void OVERLAY_volume_cache_populate(OVERLAY_Data *vedata, Object *ob)
 void OVERLAY_volume_draw(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;
-  OVERLAY_FramebufferList *fbl = vedata->fbl;
 
-  if (DRW_state_is_fbo()) {
-    GPU_framebuffer_bind(fbl->overlay_default_fb);
+  if (psl->volume_ps) {
+    DRW_draw_pass(psl->volume_ps);
   }
-
-  DRW_draw_pass(psl->volume_ps);
 }
