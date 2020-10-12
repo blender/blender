@@ -466,7 +466,7 @@ void outliner_tag_redraw_avoid_rebuild_on_open_change(const SpaceOutliner *space
                                                       ARegion *region)
 {
   /* Avoid rebuild if possible. */
-  if (outliner_mode_requires_always_rebuild(space_outliner)) {
+  if (outliner_requires_rebuild_on_open_change(space_outliner)) {
     ED_region_tag_redraw(region);
   }
   else {

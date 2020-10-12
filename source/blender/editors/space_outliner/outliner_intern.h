@@ -238,7 +238,7 @@ void outliner_build_tree(struct Main *mainvar,
 
 bool outliner_requires_rebuild_on_select_or_active_change(
     const struct SpaceOutliner *space_outliner);
-bool outliner_mode_requires_always_rebuild(const struct SpaceOutliner *space_outliner);
+bool outliner_requires_rebuild_on_open_change(const struct SpaceOutliner *space_outliner);
 
 typedef struct IDsSelectedData {
   struct ListBase selected_array;

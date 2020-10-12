@@ -258,7 +258,7 @@ bool outliner_requires_rebuild_on_select_or_active_change(const SpaceOutliner *s
  * Check if a display mode needs a full rebuild if the open/collapsed state changes.
  * Element types in these modes don't actually add children if collapsed, so the rebuild is needed.
  */
-bool outliner_mode_requires_always_rebuild(const SpaceOutliner *space_outliner)
+bool outliner_requires_rebuild_on_open_change(const SpaceOutliner *space_outliner)
 {
   return ELEM(space_outliner->outlinevis, SO_DATA_API);
 }
