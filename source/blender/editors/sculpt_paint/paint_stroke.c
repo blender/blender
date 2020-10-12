@@ -621,7 +621,10 @@ static void paint_brush_stroke_add_step(bContext *C,
     RNA_collection_add(op->ptr, "stroke", &itemptr);
     RNA_float_set(&itemptr, "size", ups->pixel_radius);
     RNA_float_set_array(&itemptr, "location", location);
+    /* Mouse coordinates modified by the stroke type options. */
     RNA_float_set_array(&itemptr, "mouse", mouse_out);
+    /* Original mouse coordinates. */
+    RNA_float_set_array(&itemptr, "mouse_event", mouse_in);
     RNA_boolean_set(&itemptr, "pen_flip", stroke->pen_flip);
     RNA_float_set(&itemptr, "pressure", pressure);
     RNA_float_set(&itemptr, "x_tilt", stroke->x_tilt);

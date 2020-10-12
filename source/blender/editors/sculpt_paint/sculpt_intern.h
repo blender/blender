@@ -868,11 +868,16 @@ typedef struct StrokeCache {
   bool pen_flip;
   bool invert;
   float pressure;
-  float mouse[2];
   float bstrength;
   float normal_weight; /* from brush (with optional override) */
   float x_tilt;
   float y_tilt;
+
+  /* Position of the mouse corresponding to the stroke location, modified by the paint_stroke
+   * operator acording to the stroke type. */
+  float mouse[2];
+  /* Position of the mouse event in screen space, not modified by the stroke type. */
+  float mouse_event[2];
 
   float (*prev_colors)[4];
 
