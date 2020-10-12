@@ -600,6 +600,9 @@ void BLF_draw(int fontid, const char *str, size_t len)
     return;
   }
 
+  /* Avoid bgl usage to corrupt BLF drawing. */
+  GPU_bgl_end();
+
   BLF_draw_ex(fontid, str, len, NULL);
 }
 
