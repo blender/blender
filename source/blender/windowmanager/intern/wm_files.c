@@ -3172,7 +3172,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
 
   /* Alert Icon. */
   uiLayout *layout = uiLayoutColumn(split_block, false);
-  uiDefButAlert(block, ALERT_ICON_WARNING, 0, 0, 0, icon_size);
+  uiDefButAlert(block, ALERT_ICON_QUESTION, 0, 0, 0, icon_size);
 
   /* The rest of the content on the right. */
   layout = uiLayoutColumn(split_block, false);
