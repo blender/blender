@@ -840,7 +840,7 @@ bool BKE_fcurve_calc_range(
 void BKE_fcurve_active_keyframe_set(FCurve *fcu, const BezTriple *active_bezt)
 {
   /* The active keyframe should always be selected. */
-  BLI_assert(active_bezt->f2 & SELECT);
+  BLI_assert(active_bezt == NULL || (active_bezt->f2 & SELECT));
   fcu->active_keyframe_index = (active_bezt == NULL) ? FCURVE_ACTIVE_KEYFRAME_NONE :
                                                        active_bezt - fcu->bezt;
 }
