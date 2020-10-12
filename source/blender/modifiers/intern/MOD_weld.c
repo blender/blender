@@ -1687,9 +1687,9 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
   }
 #else
   {
-    KDTree_3d *tree = BLI_kdtree_3d_new(totvert);
+    KDTree_3d *tree = BLI_kdtree_3d_new(v_mask ? v_mask_act : totvert);
     for (uint i = 0; i < totvert; i++) {
-      if (!(v_mask && !BLI_BITMAP_TEST(v_mask, i))) {
+      if (!v_mask || BLI_BITMAP_TEST(v_mask, i)) {
         BLI_kdtree_3d_insert(tree, i, mvert[i].co);
       }
       vert_dest_map[i] = OUT_OF_CONTEXT;
@@ -1697,7 +1697,7 @@ static Mesh *weldModifier_doWeld(WeldModifierData *wmd, const ModifierEvalContex
 
     BLI_kdtree_3d_balance(tree);
     vert_kill_len = BLI_kdtree_3d_calc_duplicates_fast(
-        tree, wmd->merge_dist, true, (int *)vert_dest_map);
+        tree, wmd->merge_dist, false, (int *)vert_dest_map);
     BLI_kdtree_3d_free(tree);
   }
 #endif
