@@ -189,13 +189,9 @@ static float compute_voxel_size(const MeshToVolumeModifierData *mvmd,
   /* Compute the voxel size based on the desired number of voxels and the approximated bounding box
    * of the volume. */
   const BoundBox *bb = BKE_object_boundbox_get(mvmd->object);
-  const float3 x_axis = float3(bb->vec[4]) - float3(bb->vec[0]);
-  const float3 y_axis = float3(bb->vec[3]) - float3(bb->vec[0]);
-  const float3 z_axis = float3(bb->vec[1]) - float3(bb->vec[0]);
-  const float max_dimension = std::max({(transform.ref_3x3() * x_axis).length(),
-                                        (transform.ref_3x3() * y_axis).length(),
-                                        (transform.ref_3x3() * z_axis).length()});
-  const float approximate_volume_side_length = max_dimension + mvmd->exterior_band_width * 2.0f;
+  const float diagonal = float3::distance(transform * float3(bb->vec[6]),
+                                          transform * float3(bb->vec[0]));
+  const float approximate_volume_side_length = diagonal + mvmd->exterior_band_width * 2.0f;
   const float voxel_size = approximate_volume_side_length / mvmd->voxel_amount;
   return voxel_size;
 }
