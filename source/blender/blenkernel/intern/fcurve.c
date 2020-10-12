@@ -839,6 +839,8 @@ bool BKE_fcurve_calc_range(
  */
 void BKE_fcurve_active_keyframe_set(FCurve *fcu, const BezTriple *active_bezt)
 {
+  /* The active keyframe should always be selected. */
+  BLI_assert(active_bezt->f2 & SELECT);
   fcu->active_keyframe_index = (active_bezt == NULL) ? FCURVE_ACTIVE_KEYFRAME_NONE :
                                                        active_bezt - fcu->bezt;
 }
@@ -850,9 +852,15 @@ int BKE_fcurve_active_keyframe_index(const FCurve *fcu)
 {
   const int active_keyframe_index = fcu->active_keyframe_index;
 
-  /* Sanity checks. */
+  /* Array access boundary checks. */
   if ((fcu->bezt == NULL) || (active_keyframe_index >= fcu->totvert) ||
       (active_keyframe_index < 0)) {
+    return FCURVE_ACTIVE_KEYFRAME_NONE;
+  }
+
+  const BezTriple *active_bezt = &fcu->bezt[active_keyframe_index];
+  if ((active_bezt->f2 & SELECT) == 0) {
+    /* The active keyframe should always be selected. If it's not selected, it can't be active. */
     return FCURVE_ACTIVE_KEYFRAME_NONE;
   }
 

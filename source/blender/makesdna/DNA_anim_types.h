@@ -593,6 +593,9 @@ typedef struct FCurve {
   /**
    * Index of active keyframe in #bezt for numerical editing in the interface. A value of
    * #FCURVE_ACTIVE_KEYFRAME_NONE indicates that the FCurve has no active keyframe.
+   *
+   * Do not access directly, use #BKE_fcurve_active_keyframe_index() and
+   * #BKE_fcurve_active_keyframe_set() instead.
    */
   int active_keyframe_index;
 
