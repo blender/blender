@@ -13,10 +13,9 @@ than enough material to teach OpenGL programming, from books to many
 collections of tutorials.
 
 Here is a comprehensive `list of books <https://www.khronos.org/developers/books/>`__ (non free).
-The `arcsynthesis tutorials <https://web.archive.org/web/20150225192611/http://www.arcsynthesis.org/gltut/index.html>`__
-is one of the best resources to learn modern OpenGL and
-`g-truc <http://www.g-truc.net/post-opengl-samples.html#menu>`__
-offers a set of extensive examples, including advanced features.
+`Learn OpenGL <https://learnopengl.com/>`__ is one of the best resources to learn modern OpenGL and
+`opengl-tutorial.org <http://www.opengl-tutorial.org/>`__ offers a set of extensive examples,
+including advanced features.
 
 
 .. note::
@@ -30,7 +29,7 @@ offers a set of extensive examples, including advanced features.
 
    Bind a named texture to a texturing target
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glBindTexture.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glBindTexture.xhtml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies the target to which the texture is bound.
@@ -42,7 +41,7 @@ offers a set of extensive examples, including advanced features.
 
    Specify pixel arithmetic
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glBlendFunc.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glBlendFunc.xhtml>`__
 
    :type sfactor: Enumerated constant
    :arg sfactor: Specifies how the red, green, blue, and alpha source blending factors are
@@ -56,7 +55,7 @@ offers a set of extensive examples, including advanced features.
 
    Clear buffers to preset values
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glClear.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glClear.xhtml>`__
 
    :type mask: Enumerated constant(s)
    :arg mask: Bitwise OR of masks that indicate the buffers to be cleared.
@@ -66,7 +65,7 @@ offers a set of extensive examples, including advanced features.
 
    Specify clear values for the color buffers
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glClearColor.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glClearColor.xhtml>`__
 
    :type red, green, blue, alpha: float
    :arg red, green, blue, alpha: Specify the red, green, blue, and alpha values used when the
@@ -77,7 +76,7 @@ offers a set of extensive examples, including advanced features.
 
    Specify the clear value for the depth buffer
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glClearDepth.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glClearDepth.xhtml>`__
 
    :type depth: int
    :arg depth: Specifies the depth value used when the depth buffer is cleared.
@@ -88,7 +87,7 @@ offers a set of extensive examples, including advanced features.
 
    Specify the clear value for the stencil buffer
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glClearStencil.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glClearStencil.xhtml>`__
 
    :type s: int
    :arg s: Specifies the index used when the stencil buffer is cleared. The initial value is 0.
@@ -98,7 +97,7 @@ offers a set of extensive examples, including advanced features.
 
    Specify a plane against which all geometry is clipped
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glClipPlane.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glClipPlane.xhtml>`__
 
    :type plane: Enumerated constant
    :arg plane: Specifies which clipping plane is being positioned.
@@ -117,7 +116,7 @@ offers a set of extensive examples, including advanced features.
 
    Set a new color.
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glColor.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glColor.xhtml>`__
 
    :type red, green, blue, alpha: Depends on function prototype.
    :arg red, green, blue: Specify new red, green, and blue values for the current color.
@@ -129,7 +128,7 @@ offers a set of extensive examples, including advanced features.
 
    Enable and disable writing of frame buffer color components
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glColorMask.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glColorMask.xhtml>`__
 
    :type red, green, blue, alpha: int (boolean)
    :arg red, green, blue, alpha: Specify whether red, green, blue, and alpha can or cannot be
@@ -141,7 +140,7 @@ offers a set of extensive examples, including advanced features.
 
    Copy pixels into a 2D texture image
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glCopyTexImage2D.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glCopyTexImage2D.xhtml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies the target texture.
@@ -170,7 +169,7 @@ offers a set of extensive examples, including advanced features.
 
    Specify whether front- or back-facing facets can be culled
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glCullFace.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glCullFace.xhtml>`__
 
    :type mode: Enumerated constant
    :arg mode: Specifies whether front- or back-facing facets are candidates for culling.
@@ -180,7 +179,7 @@ offers a set of extensive examples, including advanced features.
 
    Delete named textures
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glDeleteTextures.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glDeleteTextures.xhtml>`__
 
    :type n: int
    :arg n: Specifies the number of textures to be deleted
@@ -192,7 +191,7 @@ offers a set of extensive examples, including advanced features.
 
    Specify the value used for depth buffer comparisons
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glDepthFunc.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glDepthFunc.xhtml>`__
 
    :type func: Enumerated constant
    :arg func: Specifies the depth comparison function.
@@ -202,7 +201,7 @@ offers a set of extensive examples, including advanced features.
 
    Enable or disable writing into the depth buffer
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glDepthMask.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glDepthMask.xhtml>`__
 
    :type flag: int (boolean)
    :arg flag: Specifies whether the depth buffer is enabled for writing. If flag is GL_FALSE,
@@ -214,7 +213,7 @@ offers a set of extensive examples, including advanced features.
 
    Specify mapping of depth values from normalized device coordinates to window coordinates
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glDepthRange.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glDepthRange.xhtml>`__
 
    :type zNear: int
    :arg zNear: Specifies the mapping of the near clipping plane to window coordinates.
@@ -228,7 +227,7 @@ offers a set of extensive examples, including advanced features.
 
    Disable server-side GL capabilities
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glEnable.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glEnable.xhtml>`__
 
    :type cap: Enumerated constant
    :arg cap: Specifies a symbolic constant indicating a GL capability.
@@ -238,7 +237,7 @@ offers a set of extensive examples, including advanced features.
 
    Specify which color buffers are to be drawn into
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glDrawBuffer.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glDrawBuffer.xhtml>`__
 
    :type mode: Enumerated constant
    :arg mode: Specifies up to four color buffers to be drawn into.
@@ -250,7 +249,7 @@ offers a set of extensive examples, including advanced features.
 
    Flag edges as either boundary or non-boundary
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glEdgeFlag.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glEdgeFlag.xhtml>`__
 
    :type flag: Depends of function prototype
    :arg flag: Specifies the current edge flag value.The initial value is GL_TRUE.
@@ -260,7 +259,7 @@ offers a set of extensive examples, including advanced features.
 
    Enable server-side GL capabilities
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glEnable.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glEnable.xhtml>`__
 
    :type cap: Enumerated constant
    :arg cap: Specifies a symbolic constant indicating a GL capability.
@@ -273,7 +272,7 @@ offers a set of extensive examples, including advanced features.
 
    Evaluate enabled one- and two-dimensional maps
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glEvalCoord.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glEvalCoord.xhtml>`__
 
    :type u: Depends on function prototype.
    :arg u: Specifies a value that is the domain coordinate u to the basis function defined
@@ -291,7 +290,7 @@ offers a set of extensive examples, including advanced features.
 
    Compute a one- or two-dimensional grid of points or lines
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glEvalMesh.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glEvalMesh.xhtml>`__
 
    :type mode: Enumerated constant
    :arg mode: In glEvalMesh1, specifies whether to compute a one-dimensional
@@ -306,7 +305,7 @@ offers a set of extensive examples, including advanced features.
 
    Generate and evaluate a single point in a mesh
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glEvalPoint.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glEvalPoint.xhtml>`__
 
    :type i: int
    :arg i: Specifies the integer value for grid domain variable i.
@@ -318,7 +317,7 @@ offers a set of extensive examples, including advanced features.
 
    Controls feedback mode
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glFeedbackBuffer.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glFeedbackBuffer.xhtml>`__
 
    :type size: int
    :arg size: Specifies the maximum number of values that can be written into buffer.
@@ -333,14 +332,14 @@ offers a set of extensive examples, including advanced features.
 
    Block until all GL execution is complete
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glFinish.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glFinish.xhtml>`__
 
 
 .. function:: glFlush():
 
    Force Execution of GL commands in finite time
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glFlush.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glFlush.xhtml>`__
 
 
 .. function:: glFog (pname, param):
@@ -349,7 +348,7 @@ offers a set of extensive examples, including advanced features.
 
    Specify fog parameters
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glFog.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glFog.xhtml>`__
 
    :type pname: Enumerated constant
    :arg pname: Specifies a single-valued fog parameter. If the function prototype
@@ -364,7 +363,7 @@ offers a set of extensive examples, including advanced features.
 
    Define front- and back-facing polygons
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glFrontFace.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glFrontFace.xhtml>`__
 
    :type mode: Enumerated constant
    :arg mode: Specifies the orientation of front-facing polygons.
@@ -374,7 +373,7 @@ offers a set of extensive examples, including advanced features.
 
    Generate texture names
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glGenTextures.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glGenTextures.xhtml>`__
 
    :type n: int
    :arg n: Specifies the number of textures name to be generated.
@@ -388,7 +387,7 @@ offers a set of extensive examples, including advanced features.
 
    Return the value or values of a selected parameter
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glGet.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glGet.xhtml>`__
 
    :type pname: Enumerated constant
    :arg pname: Specifies the parameter value to be returned.
@@ -400,7 +399,7 @@ offers a set of extensive examples, including advanced features.
 
    Return error information
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glGetError.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glGetError.xhtml>`__
 
 
 .. function:: glGetLight (light, pname, params):
@@ -409,7 +408,7 @@ offers a set of extensive examples, including advanced features.
 
    Return light source parameter values
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glGetLight.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glGetLight.xhtml>`__
 
    :type light: Enumerated constant
    :arg light: Specifies a light source. The number of possible lights depends on the
@@ -427,7 +426,7 @@ offers a set of extensive examples, including advanced features.
 
    Return evaluator parameters
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glGetMap.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glGetMap.xhtml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies the symbolic name of a map.
@@ -443,7 +442,7 @@ offers a set of extensive examples, including advanced features.
 
    Return material parameters
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glGetMaterial.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glGetMaterial.xhtml>`__
 
    :type face: Enumerated constant
    :arg face: Specifies which of the two materials is being queried.
@@ -460,7 +459,7 @@ offers a set of extensive examples, including advanced features.
 
    Return the specified pixel map
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glGetPixelMap.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glGetPixelMap.xhtml>`__
 
    :type map:  Enumerated constant
    :arg map: Specifies the name of the pixel map to return.
@@ -472,7 +471,7 @@ offers a set of extensive examples, including advanced features.
 
    Return a string describing the current GL connection
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glGetString.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glGetString.xhtml>`__
 
    :type name: Enumerated constant
    :arg name: Specifies a symbolic constant.
@@ -485,7 +484,7 @@ offers a set of extensive examples, including advanced features.
 
    Return texture environment parameters
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glGetTexEnv.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glGetTexEnv.xhtml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies a texture environment. Must be GL_TEXTURE_ENV.
@@ -501,7 +500,7 @@ offers a set of extensive examples, including advanced features.
 
    Return texture coordinate generation parameters
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glGetTexGen.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glGetTexGen.xhtml>`__
 
    :type coord: Enumerated constant
    :arg coord: Specifies a texture coordinate.
@@ -515,7 +514,7 @@ offers a set of extensive examples, including advanced features.
 
    Return a texture image
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glGetTexImage.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glGetTexImage.xhtml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies which texture is to be obtained.
@@ -537,7 +536,7 @@ offers a set of extensive examples, including advanced features.
 
    return texture parameter values for a specific level of detail
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glGetTexLevelParameter.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glGetTexLevelParameter.xhtml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies the symbolic name of the target texture.
@@ -556,7 +555,7 @@ offers a set of extensive examples, including advanced features.
 
    Return texture parameter values
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glGetTexParameter.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glGetTexParameter.xhtml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies the symbolic name of the target texture.
@@ -570,7 +569,7 @@ offers a set of extensive examples, including advanced features.
 
    Specify implementation-specific hints
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glHint.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glHint.xhtml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies a symbolic constant indicating the behavior to be
@@ -583,7 +582,7 @@ offers a set of extensive examples, including advanced features.
 
    Test whether a capability is enabled
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glIsEnabled.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glIsEnabled.xhtml>`__
 
    :type cap: Enumerated constant
    :arg cap: Specifies a constant representing a GL capability.
@@ -593,7 +592,7 @@ offers a set of extensive examples, including advanced features.
 
    Determine if a name corresponds to a texture
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glIsTexture.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glIsTexture.xhtml>`__
 
    :type texture: unsigned int
    :arg texture: Specifies a value that may be the name of a texture.
@@ -605,7 +604,7 @@ offers a set of extensive examples, including advanced features.
 
    Set the light source parameters
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glLight.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glLight.xhtml>`__
 
    :type light: Enumerated constant
    :arg light: Specifies a light. The number of lights depends on the implementation,
@@ -625,7 +624,7 @@ offers a set of extensive examples, including advanced features.
 
    Set the lighting model parameters
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glLightModel.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glLightModel.xhtml>`__
 
    :type pname:  Enumerated constant
    :arg pname: Specifies a single-value light model parameter.
@@ -638,7 +637,7 @@ offers a set of extensive examples, including advanced features.
 
    Specify the width of rasterized lines.
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glLineWidth.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glLineWidth.xhtml>`__
 
    :type width: float
    :arg width: Specifies the width of rasterized lines. The initial value is 1.
@@ -650,7 +649,7 @@ offers a set of extensive examples, including advanced features.
 
    Replace the current matrix with the specified matrix
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glLoadMatrix.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glLoadMatrix.xhtml>`__
 
    :type m: :class:`bgl.Buffer` object. Depends on function prototype.
    :arg m: Specifies a pointer to 16 consecutive values, which are used as the elements
@@ -661,7 +660,7 @@ offers a set of extensive examples, including advanced features.
 
    Specify a logical pixel operation for color index rendering
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glLogicOp.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glLogicOp.xhtml>`__
 
    :type opcode: Enumerated constant
    :arg opcode: Specifies a symbolic constant that selects a logical operation.
@@ -673,7 +672,7 @@ offers a set of extensive examples, including advanced features.
 
    Define a one-dimensional evaluator
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glMap1.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glMap1.xhtml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies the kind of values that are generated by the evaluator.
@@ -698,7 +697,7 @@ offers a set of extensive examples, including advanced features.
 
    Define a two-dimensional evaluator
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glMap2.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glMap2.xhtml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies the kind of values that are generated by the evaluator.
@@ -739,7 +738,7 @@ offers a set of extensive examples, including advanced features.
 
    Define a one- or two-dimensional mesh
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glMapGrid.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glMapGrid.xhtml>`__
 
    :type un: int
    :arg un: Specifies the number of partitions in the grid range interval
@@ -758,7 +757,7 @@ offers a set of extensive examples, including advanced features.
 
    Specify material parameters for the lighting model.
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glMaterial.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glMaterial.xhtml>`__
 
    :type face: Enumerated constant
    :arg face: Specifies which face or faces are being updated. Must be one of:
@@ -777,7 +776,7 @@ offers a set of extensive examples, including advanced features.
 
    Multiply the current matrix with the specified matrix
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glMultMatrix.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glMultMatrix.xhtml>`__
 
    :type m: :class:`bgl.Buffer` object. Depends on function prototype.
    :arg m: Points to 16 consecutive values that are used as the elements of a 4x4 column
@@ -791,7 +790,7 @@ offers a set of extensive examples, including advanced features.
 
    Set the current normal vector
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glNormal.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glNormal.xhtml>`__
 
    :type nx, ny, nz: Depends on function prototype. (non - 'v' prototypes only)
    :arg nx, ny, nz: Specify the x, y, and z coordinates of the new current normal.
@@ -807,7 +806,7 @@ offers a set of extensive examples, including advanced features.
 
    Set up pixel transfer maps
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glPixelMap.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glPixelMap.xhtml>`__
 
    :type map: Enumerated constant
    :arg map: Specifies a symbolic map name.
@@ -823,7 +822,7 @@ offers a set of extensive examples, including advanced features.
 
    Set pixel storage modes
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glPixelStore.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glPixelStore.xhtml>`__
 
    :type pname: Enumerated constant
    :arg pname: Specifies the symbolic name of the parameter to be set.
@@ -839,7 +838,7 @@ offers a set of extensive examples, including advanced features.
 
    Set pixel transfer modes
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glPixelTransfer.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glPixelTransfer.xhtml>`__
 
    :type pname: Enumerated constant
    :arg pname: Specifies the symbolic name of the pixel transfer parameter to be set.
@@ -851,7 +850,7 @@ offers a set of extensive examples, including advanced features.
 
    Specify the diameter of rasterized points
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glPointSize.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glPointSize.xhtml>`__
 
    :type size: float
    :arg size: Specifies the diameter of rasterized points. The initial value is 1.
@@ -861,7 +860,7 @@ offers a set of extensive examples, including advanced features.
 
    Select a polygon rasterization mode
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glPolygonMode.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glPolygonMode.xhtml>`__
 
    :type face: Enumerated constant
    :arg face: Specifies the polygons that mode applies to.
@@ -876,7 +875,7 @@ offers a set of extensive examples, including advanced features.
 
    Set the scale and units used to calculate depth values
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glPolygonOffset.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glPolygonOffset.xhtml>`__
 
    :type factor: float
    :arg factor: Specifies a scale factor that is used to create a variable depth
@@ -896,7 +895,7 @@ offers a set of extensive examples, including advanced features.
 
    Specify the raster position for pixel operations
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glRasterPos.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glRasterPos.xhtml>`__
 
    :type x, y, z, w: Depends on function prototype. (z and w for '3' and '4' prototypes only)
    :arg x, y, z, w: Specify the x,y,z, and w object coordinates (if present) for the
@@ -928,7 +927,7 @@ offers a set of extensive examples, including advanced features.
 
    Select a color buffer source for pixels.
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glReadBuffer.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glReadBuffer.xhtml>`__
 
    :type mode: Enumerated constant
    :arg mode: Specifies a color buffer.
@@ -938,7 +937,7 @@ offers a set of extensive examples, including advanced features.
 
    Read a block of pixels from the frame buffer
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glReadPixels.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glReadPixels.xhtml>`__
 
    :type x, y: int
    :arg x, y: Specify the window coordinates of the first pixel that is read
@@ -961,7 +960,7 @@ offers a set of extensive examples, including advanced features.
 
    Draw a rectangle
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glRect.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glRect.xhtml>`__
 
    :type x1, y1: Depends on function prototype. (for non 'v' prototypes only)
    :arg x1, y1: Specify one vertex of a rectangle
@@ -978,7 +977,7 @@ offers a set of extensive examples, including advanced features.
 
    Multiply the current matrix by a rotation matrix
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glRotate.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glRotate.xhtml>`__
 
    :type angle:  Depends on function prototype.
    :arg angle:  Specifies the angle of rotation in degrees.
@@ -992,7 +991,7 @@ offers a set of extensive examples, including advanced features.
 
    Multiply the current matrix by a general scaling matrix
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glScale.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glScale.xhtml>`__
 
    :type x, y, z: Depends on function prototype.
    :arg x, y, z: Specify scale factors along the x, y, and z axes, respectively.
@@ -1002,7 +1001,7 @@ offers a set of extensive examples, including advanced features.
 
    Define the scissor box
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glScissor.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glScissor.xhtml>`__
 
    :type x, y: int
    :arg x, y: Specify the lower left corner of the scissor box. Initially (0, 0).
@@ -1016,7 +1015,7 @@ offers a set of extensive examples, including advanced features.
 
    Set function and reference value for stencil testing
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man/docbook4/xhtml/glStencilFunc.xml>`__
+   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man/docbook4/xhtml/glStencilFunc.xhtml>`__
 
    :type func: Enumerated constant
    :arg func: Specifies the test function.
@@ -1033,7 +1032,7 @@ offers a set of extensive examples, including advanced features.
 
    Control the writing of individual bits in the stencil planes
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glStencilMask.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glStencilMask.xhtml>`__
 
    :type mask: unsigned int
    :arg mask: Specifies a bit mask to enable and disable writing of individual bits
@@ -1044,7 +1043,7 @@ offers a set of extensive examples, including advanced features.
 
    Set stencil test actions
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glStencilOp.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glStencilOp.xhtml>`__
 
    :type fail: Enumerated constant
    :arg fail: Specifies the action to take when the stencil test fails.
@@ -1072,7 +1071,7 @@ offers a set of extensive examples, including advanced features.
 
    Set the current texture coordinates
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glTexCoord.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glTexCoord.xhtml>`__
 
    :type s, t, r, q: Depends on function prototype. (r and q for '3' and '4' prototypes only)
    :arg s, t, r, q: Specify s, t, r, and q texture coordinates. Not all parameters are
@@ -1088,7 +1087,7 @@ offers a set of extensive examples, including advanced features.
 
    Set texture environment parameters
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glTexEnv.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glTexEnv.xhtml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies a texture environment. Must be GL_TEXTURE_ENV.
@@ -1107,7 +1106,7 @@ offers a set of extensive examples, including advanced features.
 
    Control the generation of texture coordinates
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glTexGen.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glTexGen.xhtml>`__
 
    :type coord: Enumerated constant
    :arg coord: Specifies a texture coordinate.
@@ -1125,7 +1124,7 @@ offers a set of extensive examples, including advanced features.
 
    Specify a one-dimensional texture image
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glTexImage1D.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glTexImage1D.xhtml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies the target texture.
@@ -1152,7 +1151,7 @@ offers a set of extensive examples, including advanced features.
 
    Specify a two-dimensional texture image
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glTexImage2D.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glTexImage2D.xhtml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies the target texture.
@@ -1185,7 +1184,7 @@ offers a set of extensive examples, including advanced features.
 
    Set texture parameters
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glTexParameter.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glTexParameter.xhtml>`__
 
    :type target: Enumerated constant
    :arg target: Specifies the target texture.
@@ -1202,7 +1201,7 @@ offers a set of extensive examples, including advanced features.
 
    Multiply the current matrix by a translation matrix
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glTranslate.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glTranslate.xhtml>`__
 
    :type x, y, z: Depends on function prototype.
    :arg x, y, z: Specify the x, y, and z coordinates of a translation vector.
@@ -1212,7 +1211,7 @@ offers a set of extensive examples, including advanced features.
 
    Set the viewport
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glViewport.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glViewport.xhtml>`__
 
    :type x, y: int
    :arg x, y: Specify the lower left corner of the viewport rectangle,
@@ -1227,7 +1226,7 @@ offers a set of extensive examples, including advanced features.
 
    Installs a program object as part of current rendering state
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glUseProgram.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glUseProgram.xhtml>`__
 
    :type program: int
    :arg program: Specifies the handle of the program object whose executables are to be used as part of current rendering state.
@@ -1237,7 +1236,7 @@ offers a set of extensive examples, including advanced features.
 
    Validates a program object
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glValidateProgram.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glValidateProgram.xhtml>`__
 
    :type program: int
    :arg program: Specifies the handle of the program object to be validated.
@@ -1247,7 +1246,7 @@ offers a set of extensive examples, including advanced features.
 
    Links a program object.
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glLinkProgram.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glLinkProgram.xhtml>`__
 
    :type program: int
    :arg program: Specifies the handle of the program object to be linked.
@@ -1257,7 +1256,7 @@ offers a set of extensive examples, including advanced features.
 
    Select active texture unit.
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glActiveTexture.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glActiveTexture.xhtml>`__
 
    :type texture: int
    :arg texture: Constant in ``GL_TEXTURE0`` 0 - 8
@@ -1267,7 +1266,7 @@ offers a set of extensive examples, including advanced features.
 
    Attaches a shader object to a program object.
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glAttachShader.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glAttachShader.xhtml>`__
 
    :type program: int
    :arg program: Specifies the program object to which a shader object will be attached.
@@ -1279,7 +1278,7 @@ offers a set of extensive examples, including advanced features.
 
    Compiles a shader object.
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glCompileShader.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glCompileShader.xhtml>`__
 
    :type shader: int
    :arg shader: Specifies the shader object to be compiled.
@@ -1289,7 +1288,7 @@ offers a set of extensive examples, including advanced features.
 
    Creates a program object
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glCreateProgram.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glCreateProgram.xhtml>`__
 
    :rtype: int
    :return: The new program or zero if an error occurs.
@@ -1299,7 +1298,7 @@ offers a set of extensive examples, including advanced features.
 
    Creates a shader object.
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glCreateShader.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glCreateShader.xhtml>`__
 
    :type shaderType: Specifies the type of shader to be created.
       Must be one of ``GL_VERTEX_SHADER``,
@@ -1316,7 +1315,7 @@ offers a set of extensive examples, including advanced features.
 
    Deletes a program object.
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glDeleteProgram.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glDeleteProgram.xhtml>`__
 
    :type program: int
    :arg program: Specifies the program object to be deleted.
@@ -1326,7 +1325,7 @@ offers a set of extensive examples, including advanced features.
 
    Deletes a shader object.
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glDeleteShader.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glDeleteShader.xhtml>`__
 
    :type shader: int
    :arg shader: Specifies the shader object to be deleted.
@@ -1336,7 +1335,7 @@ offers a set of extensive examples, including advanced features.
 
    Detaches a shader object from a program object to which it is attached.
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glDetachShader.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glDetachShader.xhtml>`__
 
    :type program: int
    :arg program: Specifies the program object from which to detach the shader object.
@@ -1348,7 +1347,7 @@ offers a set of extensive examples, including advanced features.
 
    Returns the handles of the shader objects attached to a program object.
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glGetAttachedShaders.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glGetAttachedShaders.xhtml>`__
 
    :type program: int
    :arg program: Specifies the program object to be queried.
@@ -1364,7 +1363,7 @@ offers a set of extensive examples, including advanced features.
 
    Returns the information log for a program object.
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glGetProgramInfoLog.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glGetProgramInfoLog.xhtml>`__
 
    :type program: int
    :arg program: Specifies the program object whose information log is to be queried.
@@ -1380,7 +1379,7 @@ offers a set of extensive examples, including advanced features.
 
    Returns the information log for a shader object.
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glGetShaderInfoLog.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glGetShaderInfoLog.xhtml>`__
 
    :type shader: int
    :arg shader: Specifies the shader object whose information log is to be queried.
@@ -1396,7 +1395,7 @@ offers a set of extensive examples, including advanced features.
 
    Returns a parameter from a program object.
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glGetProgram.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glGetProgram.xhtml>`__
 
    :type program: int
    :arg program: Specifies the program object to be queried.
@@ -1410,7 +1409,7 @@ offers a set of extensive examples, including advanced features.
 
    Determines if a name corresponds to a shader object.
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glIsShader.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glIsShader.xhtml>`__
 
    :type shader: int
    :arg shader: Specifies a potential shader object.
@@ -1420,7 +1419,7 @@ offers a set of extensive examples, including advanced features.
 
    Determines if a name corresponds to a program object
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glIsProgram.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glIsProgram.xhtml>`__
 
    :type program: int
    :arg program: Specifies a potential program object.
@@ -1430,7 +1429,7 @@ offers a set of extensive examples, including advanced features.
 
    Returns the source code string from a shader object
 
-   .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glGetShaderSource.xml>`__
+   .. seealso:: `OpenGL Docs <https://khronos.org/registry/OpenGL-Refpages/gl4/html/glGetShaderSource.xhtml>`__
 
    :type shader: int
    :arg shader: Specifies the shader object to be queried.
