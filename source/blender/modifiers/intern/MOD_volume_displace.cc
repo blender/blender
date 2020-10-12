@@ -62,7 +62,7 @@ static void initData(ModifierData *md)
 {
   VolumeDisplaceModifierData *vdmd = reinterpret_cast<VolumeDisplaceModifierData *>(md);
   vdmd->texture = NULL;
-  vdmd->strength = 1.0f;
+  vdmd->strength = 0.5f;
   copy_v3_fl(vdmd->texture_mid_level, 0.5f);
   vdmd->texture_sample_radius = 1.0f;
 }

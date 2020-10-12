@@ -7096,6 +7096,7 @@ static void rna_def_modifier_volume_displace(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
   RNA_def_property_ui_text(prop, "Strength", "Strength of the displacement");
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 0.1, 4);
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "texture", PROP_POINTER, PROP_NONE);
