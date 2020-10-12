@@ -81,7 +81,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name, short uifont_id
   style->panelzoom = 1.0; /* unused */
 
   style->paneltitle.uifont_id = uifont_id;
-  style->paneltitle.points = 12;
+  style->paneltitle.points = UI_DEFAULT_TITLE_POINTS;
   style->paneltitle.kerning = 1;
   style->paneltitle.shadow = 3;
   style->paneltitle.shadx = 0;
@@ -90,7 +90,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name, short uifont_id
   style->paneltitle.shadowcolor = 0.0f;
 
   style->grouplabel.uifont_id = uifont_id;
-  style->grouplabel.points = 12;
+  style->grouplabel.points = UI_DEFAULT_TITLE_POINTS;
   style->grouplabel.kerning = 1;
   style->grouplabel.shadow = 3;
   style->grouplabel.shadx = 0;
@@ -99,7 +99,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name, short uifont_id
   style->grouplabel.shadowcolor = 0.0f;
 
   style->widgetlabel.uifont_id = uifont_id;
-  style->widgetlabel.points = 11;
+  style->widgetlabel.points = UI_DEFAULT_TEXT_POINTS;
   style->widgetlabel.kerning = 1;
   style->widgetlabel.shadow = 3;
   style->widgetlabel.shadx = 0;
@@ -108,7 +108,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name, short uifont_id
   style->widgetlabel.shadowcolor = 0.0f;
 
   style->widget.uifont_id = uifont_id;
-  style->widget.points = 11;
+  style->widget.points = UI_DEFAULT_TEXT_POINTS;
   style->widget.kerning = 1;
   style->widget.shadow = 1;
   style->widget.shady = -1;

@@ -226,6 +226,12 @@ enum {
   UI_BUT_OVERRIDEN = 1u << 31u,
 };
 
+/* Default font size for normal text. */
+#define UI_DEFAULT_TEXT_POINTS 11
+
+/* Larger size used for title text. */
+#define UI_DEFAULT_TITLE_POINTS 12
+
 #define UI_PANEL_WIDTH 340
 #define UI_COMPACT_PANEL_WIDTH 160
 #define UI_SIDEBAR_PANEL_WIDTH 220
