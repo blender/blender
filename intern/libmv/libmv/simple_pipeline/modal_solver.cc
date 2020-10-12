@@ -42,7 +42,7 @@ void ProjectMarkerOnSphere(const Marker &marker, Vec3 &X) {
   X *= 5.0 / X.norm();
 }
 
-void ModalSolverLogProress(ProgressUpdateCallback *update_callback,
+void ModalSolverLogProgress(ProgressUpdateCallback *update_callback,
                            double progress) {
   if (update_callback) {
     char message[256];
@@ -116,7 +116,7 @@ void ModalSolver(const Tracks &tracks,
   for (int image = 0; image <= max_image; ++image) {
     vector<Marker> all_markers = tracks.MarkersInImage(image);
 
-    ModalSolverLogProress(update_callback, (float) image / max_image);
+    ModalSolverLogProgress(update_callback, (float) image / max_image);
 
     // Skip empty images without doing anything.
     if (all_markers.size() == 0) {
