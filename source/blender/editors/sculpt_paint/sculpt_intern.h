@@ -365,11 +365,13 @@ void SCULPT_do_cloth_brush(struct Sculpt *sd,
 
 void SCULPT_cloth_simulation_free(struct SculptClothSimulation *cloth_sim);
 
-struct SculptClothSimulation *SCULPT_cloth_brush_simulation_create(struct SculptSession *ss,
-                                                                   const float cloth_mass,
-                                                                   const float cloth_damping,
-                                                                   const bool use_collisions,
-                                                                   const bool needs_deform_coords);
+struct SculptClothSimulation *SCULPT_cloth_brush_simulation_create(
+    struct SculptSession *ss,
+    const float cloth_mass,
+    const float cloth_damping,
+    const float cloth_softbody_strength,
+    const bool use_collisions,
+    const bool needs_deform_coords);
 void SCULPT_cloth_brush_simulation_init(struct SculptSession *ss,
                                         struct SculptClothSimulation *cloth_sim);
 

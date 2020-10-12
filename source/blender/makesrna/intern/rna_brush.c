@@ -2753,8 +2753,8 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(
       prop,
-      "Soft Body Influence",
-      "How much the simulation preserves the original shape, acting as a soft body");
+      "Soft Body Plasticity",
+      "How much the cloth preserves the original shape, acting as a soft body");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "hardness", PROP_FLOAT, PROP_FACTOR);

@@ -229,9 +229,36 @@ static void cloth_brush_add_softbody_constraint(SculptClothSimulation *cloth_sim
   length_constraint->node = node_index;
 
   length_constraint->elem_position_a = cloth_sim->pos[v];
-  length_constraint->elem_position_b = cloth_sim->init_pos[v];
+  length_constraint->elem_position_b = cloth_sim->softbody_pos[v];
 
   length_constraint->type = SCULPT_CLOTH_CONSTRAINT_SOFTBODY;
+
+  length_constraint->length = 0.0f;
+  length_constraint->strength = strength;
+
+  cloth_sim->tot_length_constraints++;
+
+  /* Reallocation if the array capacity is exceeded. */
+  cloth_brush_reallocate_constraints(cloth_sim);
+}
+
+static void cloth_brush_add_pin_constraint(SculptClothSimulation *cloth_sim,
+                                           const int node_index,
+                                           const int v,
+                                           const float strength)
+{
+  SculptClothLengthConstraint *length_constraint =
+      &cloth_sim->length_constraints[cloth_sim->tot_length_constraints];
+
+  length_constraint->elem_index_a = v;
+  length_constraint->elem_index_b = v;
+
+  length_constraint->node = node_index;
+
+  length_constraint->elem_position_a = cloth_sim->pos[v];
+  length_constraint->elem_position_b = cloth_sim->init_pos[v];
+
+  length_constraint->type = SCULPT_CLOTH_CONSTRAINT_PIN;
 
   length_constraint->length = 0.0f;
   length_constraint->strength = strength;
@@ -323,9 +350,8 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
       }
       SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
-      if (brush->cloth_constraint_softbody_strength > 0.0f) {
-        cloth_brush_add_softbody_constraint(
-            data->cloth_sim, node_index, vd.index, brush->cloth_constraint_softbody_strength);
+      if (data->cloth_sim->softbody_strength > 0.0f) {
+        cloth_brush_add_softbody_constraint(data->cloth_sim, node_index, vd.index, 1.0f);
       }
 
       /* As we don't know the order of the neighbor vertices, we create all possible combinations
@@ -379,8 +405,7 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
       if (sim_falloff < 1.0f) {
         /* Create constraints with more strength the closer the vertex is to the simulation
          * boundary. */
-        cloth_brush_add_softbody_constraint(
-            data->cloth_sim, node_index, vd.index, 1.0f - sim_falloff);
+        cloth_brush_add_pin_constraint(data->cloth_sim, node_index, vd.index, 1.0f - sim_falloff);
       }
     }
   }
@@ -809,14 +834,26 @@ static void cloth_brush_satisfy_constraints(SculptSession *ss,
                                0.5f;
       }
 
-      madd_v3_v3fl(cloth_sim->pos[v1],
-                   correction_vector_half,
-                   1.0f * mask_v1 * sim_factor_v1 * constraint->strength * deformation_strength);
-      if (v1 != v2) {
-        madd_v3_v3fl(cloth_sim->pos[v2],
+      if (constraint->type == SCULPT_CLOTH_CONSTRAINT_SOFTBODY) {
+        const float softbody_plasticity = brush ? brush->cloth_constraint_softbody_strength : 0.0f;
+        madd_v3_v3fl(cloth_sim->pos[v1],
                      correction_vector_half,
-                     -1.0f * mask_v2 * sim_factor_v2 * constraint->strength *
-                         deformation_strength);
+                     1.0f * mask_v1 * sim_factor_v1 * constraint->strength * softbody_plasticity);
+        madd_v3_v3fl(cloth_sim->softbody_pos[v1],
+                     correction_vector_half,
+                     -1.0f * mask_v1 * sim_factor_v1 * constraint->strength *
+                         (1.0f - softbody_plasticity));
+      }
+      else {
+        madd_v3_v3fl(cloth_sim->pos[v1],
+                     correction_vector_half,
+                     1.0f * mask_v1 * sim_factor_v1 * constraint->strength * deformation_strength);
+        if (v1 != v2) {
+          madd_v3_v3fl(cloth_sim->pos[v2],
+                       correction_vector_half,
+                       -1.0f * mask_v2 * sim_factor_v2 * constraint->strength *
+                           deformation_strength);
+        }
       }
     }
   }
@@ -954,6 +991,7 @@ static void cloth_sim_initialize_default_node_state(SculptSession *ss,
 SculptClothSimulation *SCULPT_cloth_brush_simulation_create(SculptSession *ss,
                                                             const float cloth_mass,
                                                             const float cloth_damping,
+                                                            const float cloth_softbody_strength,
                                                             const bool use_collisions,
                                                             const bool needs_deform_coords)
 {
@@ -984,8 +1022,14 @@ SculptClothSimulation *SCULPT_cloth_brush_simulation_create(SculptSession *ss,
         totverts, sizeof(float), "cloth sim deformation strength");
   }
 
+  if (cloth_softbody_strength > 0.0f) {
+    cloth_sim->softbody_pos = MEM_calloc_arrayN(
+        totverts, sizeof(float[3]), "cloth sim softbody pos");
+  }
+
   cloth_sim->mass = cloth_mass;
   cloth_sim->damping = cloth_damping;
+  cloth_sim->softbody_strength = cloth_softbody_strength;
 
   if (use_collisions) {
     cloth_sim->collider_list = cloth_brush_collider_cache_create(ss->depsgraph);
@@ -1037,6 +1081,7 @@ void SCULPT_cloth_brush_simulation_init(SculptSession *ss, SculptClothSimulation
 {
   const int totverts = SCULPT_vertex_count_get(ss);
   const bool has_deformation_pos = cloth_sim->deformation_pos != NULL;
+  const bool has_softbody_pos = cloth_sim->softbody_pos != NULL;
   for (int i = 0; i < totverts; i++) {
     copy_v3_v3(cloth_sim->last_iteration_pos[i], SCULPT_vertex_co_get(ss, i));
     copy_v3_v3(cloth_sim->init_pos[i], SCULPT_vertex_co_get(ss, i));
@@ -1044,6 +1089,9 @@ void SCULPT_cloth_brush_simulation_init(SculptSession *ss, SculptClothSimulation
     if (has_deformation_pos) {
       copy_v3_v3(cloth_sim->deformation_pos[i], SCULPT_vertex_co_get(ss, i));
       cloth_sim->deformation_strength[i] = 1.0f;
+    }
+    if (has_softbody_pos) {
+      copy_v3_v3(cloth_sim->softbody_pos[i], SCULPT_vertex_co_get(ss, i));
     }
   }
 }
@@ -1086,6 +1134,7 @@ void SCULPT_do_cloth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
           ss,
           brush->cloth_mass,
           brush->cloth_damping,
+          brush->cloth_constraint_softbody_strength,
           (brush->flag2 & BRUSH_CLOTH_USE_COLLISION),
           SCULPT_is_cloth_deform_brush(brush));
       SCULPT_cloth_brush_simulation_init(ss, ss->cache->cloth_sim);
@@ -1121,6 +1170,7 @@ void SCULPT_cloth_simulation_free(struct SculptClothSimulation *cloth_sim)
   MEM_SAFE_FREE(cloth_sim->length_constraints);
   MEM_SAFE_FREE(cloth_sim->length_constraint_tweak);
   MEM_SAFE_FREE(cloth_sim->deformation_pos);
+  MEM_SAFE_FREE(cloth_sim->softbody_pos);
   MEM_SAFE_FREE(cloth_sim->init_pos);
   MEM_SAFE_FREE(cloth_sim->deformation_strength);
   MEM_SAFE_FREE(cloth_sim->node_state);
@@ -1455,6 +1505,7 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
       ss,
       cloth_mass,
       cloth_damping,
+      0.0f,
       use_collisions,
       cloth_filter_is_deformation_filter(filter_type));
 

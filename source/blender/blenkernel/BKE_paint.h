@@ -272,8 +272,11 @@ typedef enum eSculptClothConstraintType {
   /* Constraint that references the position of a vertex and a position in deformation_pos which
      can be deformed by the tools. */
   SCULPT_CLOTH_CONSTRAINT_DEFORMATION = 1,
-  /* Constarint that references the vertex position and its initial position. */
+  /* Constarint that references the vertex position and a editable softbody position for
+     plasticity. */
   SCULPT_CLOTH_CONSTRAINT_SOFTBODY = 2,
+  /* Constarint that references the vertex position and its initial position. */
+  SCULPT_CLOTH_CONSTRAINT_PIN = 3,
 } eSculptClothConstraintType;
 
 typedef struct SculptClothLengthConstraint {
@@ -314,10 +317,12 @@ typedef struct SculptClothSimulation {
 
   float mass;
   float damping;
+  float softbody_strength;
 
   float (*acceleration)[3];
   float (*pos)[3];
   float (*init_pos)[3];
+  float (*softbody_pos)[3];
   float (*prev_pos)[3];
   float (*last_iteration_pos)[3];
 
