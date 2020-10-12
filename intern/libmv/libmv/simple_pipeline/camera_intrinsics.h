@@ -281,7 +281,6 @@ class PolynomialCameraIntrinsics : public CameraIntrinsics {
     OFFSET_K1,
     OFFSET_K2,
     OFFSET_K3,
-    OFFSET_K4,  // Unused, needed to map properly with all deform parameters defined in bundle.cc.
     OFFSET_P1,
     OFFSET_P2,
 
