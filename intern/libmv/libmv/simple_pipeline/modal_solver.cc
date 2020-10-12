@@ -175,8 +175,9 @@ void ModalSolver(const Tracks &tracks,
     // STEP 2: Refine rotation with Ceres.
     ceres::Problem problem;
 
-    ceres::LocalParameterization* quaternion_parameterization =
-        new ceres::QuaternionParameterization;
+    // NOTE: Parameterization is lazily initialized when it is really needed,
+    // and is re-used by all parameters block.
+    ceres::LocalParameterization* quaternion_parameterization = NULL;
 
     int num_residuals = 0;
     for (int i = 0; i < all_markers.size(); ++i) {
@@ -194,6 +195,10 @@ void ModalSolver(const Tracks &tracks,
             NULL,
             &quaternion(0));
         num_residuals++;
+
+        if (quaternion_parameterization == NULL) {
+          quaternion_parameterization = new ceres::QuaternionParameterization();
+        }
 
         problem.SetParameterization(&quaternion(0),
                                     quaternion_parameterization);
