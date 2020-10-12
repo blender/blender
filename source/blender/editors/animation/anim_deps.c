@@ -199,6 +199,89 @@ static void animchan_sync_group(bAnimContext *ac, bAnimListElem *ale, bActionGro
   }
 }
 
+static void animchan_sync_fcurve_scene(bAnimListElem *ale)
+{
+  ID *owner_id = ale->id;
+  BLI_assert(GS(owner_id->name) == ID_SCE);
+  Scene *scene = (Scene *)owner_id;
+  FCurve *fcu = (FCurve *)ale->data;
+
+  /* only affect if F-Curve involves sequence_editor.sequences */
+  if (!strstr(fcu->rna_path, "sequences_all")) {
+    return;
+  }
+
+  Editing *ed = BKE_sequencer_editing_get(scene, false);
+
+  /* get strip name, and check if this strip is selected */
+  char *seq_name = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all[");
+  Sequence *seq = BKE_sequence_get_by_name(ed->seqbasep, seq_name, false);
+  if (seq_name) {
+    MEM_freeN(seq_name);
+  }
+
+  if (seq == NULL) {
+    return;
+  }
+
+  /* update selection status */
+  if (seq->flag & SELECT) {
+    fcu->flag |= FCURVE_SELECTED;
+  }
+  else {
+    fcu->flag &= ~FCURVE_SELECTED;
+  }
+}
+
+static void animchan_sync_fcurve_nodetree(bAnimListElem *ale, FCurve **active_fcurve)
+{
+  ID *owner_id = ale->id;
+  BLI_assert(GS(owner_id->name) == ID_NT);
+  bNodeTree *ntree = (bNodeTree *)owner_id;
+  FCurve *fcu = (FCurve *)ale->data;
+
+  /* check for selected nodes */
+  if (!strstr(fcu->rna_path, "nodes")) {
+    return;
+  }
+
+  /* get strip name, and check if this strip is selected */
+  char *node_name = BLI_str_quoted_substrN(fcu->rna_path, "nodes[");
+  bNode *node = nodeFindNodebyName(ntree, node_name);
+  if (node_name) {
+    MEM_freeN(node_name);
+  }
+  if (node == NULL) {
+    return;
+  }
+
+  /* update selection status */
+  if (node->flag & NODE_SELECT) {
+    fcu->flag |= FCURVE_SELECTED;
+  }
+  else {
+    fcu->flag &= ~FCURVE_SELECTED;
+  }
+
+  /* update active status */
+  /* XXX: this may interfere with setting bones as active if both exist at once;
+   * then again, if that's the case, production setups aren't likely to be animating
+   * nodes while working with bones?
+   */
+  if (node->flag & NODE_ACTIVE) {
+    if (*active_fcurve == NULL) {
+      fcu->flag |= FCURVE_ACTIVE;
+      *active_fcurve = fcu;
+    }
+    else {
+      fcu->flag &= ~FCURVE_ACTIVE;
+    }
+  }
+  else {
+    fcu->flag &= ~FCURVE_ACTIVE;
+  }
+}
+
 /* perform syncing updates for F-Curves */
 static void animchan_sync_fcurve(bAnimContext *UNUSED(ac),
                                  bAnimListElem *ale,
@@ -214,77 +297,15 @@ static void animchan_sync_fcurve(bAnimContext *UNUSED(ac),
     return;
   }
 
-  if (GS(owner_id->name) == ID_SCE) {
-    Scene *scene = (Scene *)owner_id;
-
-    /* only affect if F-Curve involves sequence_editor.sequences */
-    if ((fcu->rna_path) && strstr(fcu->rna_path, "sequences_all")) {
-      Editing *ed = BKE_sequencer_editing_get(scene, false);
-      Sequence *seq;
-      char *seq_name;
-
-      /* get strip name, and check if this strip is selected */
-      seq_name = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all[");
-      seq = BKE_sequence_get_by_name(ed->seqbasep, seq_name, false);
-      if (seq_name) {
-        MEM_freeN(seq_name);
-      }
-
-      /* update selection status */
-      if (seq) {
-        if (seq->flag & SELECT) {
-          fcu->flag |= FCURVE_SELECTED;
-        }
-        else {
-          fcu->flag &= ~FCURVE_SELECTED;
-        }
-      }
-    }
-  }
-  else if (GS(owner_id->name) == ID_NT) {
-    bNodeTree *ntree = (bNodeTree *)owner_id;
-
-    /* check for selected nodes */
-    if ((fcu->rna_path) && strstr(fcu->rna_path, "nodes")) {
-      bNode *node;
-      char *node_name;
-
-      /* get strip name, and check if this strip is selected */
-      node_name = BLI_str_quoted_substrN(fcu->rna_path, "nodes[");
-      node = nodeFindNodebyName(ntree, node_name);
-      if (node_name) {
-        MEM_freeN(node_name);
-      }
-
-      /* update selection/active status */
-      if (node) {
-        /* update selection status */
-        if (node->flag & NODE_SELECT) {
-          fcu->flag |= FCURVE_SELECTED;
-        }
-        else {
-          fcu->flag &= ~FCURVE_SELECTED;
-        }
-
-        /* update active status */
-        /* XXX: this may interfere with setting bones as active if both exist at once;
-         * then again, if that's the case, production setups aren't likely to be animating
-         * nodes while working with bones?
-         */
-        if (node->flag & NODE_ACTIVE) {
-          if (*active_fcurve == NULL) {
-            fcu->flag |= FCURVE_ACTIVE;
-            *active_fcurve = fcu;
-          }
-          else {
-            fcu->flag &= ~FCURVE_ACTIVE;
-          }
-        }
-        else {
-          fcu->flag &= ~FCURVE_ACTIVE;
-        }
-      }
-    }
+  switch (GS(owner_id->name)) {
+    case ID_SCE:
+      animchan_sync_fcurve_scene(ale);
+      break;
+    case ID_NT:
+      animchan_sync_fcurve_nodetree(ale, active_fcurve);
+      break;
+    default:
+      break;
   }
 }
 
