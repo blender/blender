@@ -351,6 +351,23 @@ class Set {
   }
 
   /**
+   * Returns the key in the set that compares equal to the given key. If it does not exist, the key
+   * is newly added.
+   */
+  const Key &lookup_key_or_add(const Key &key)
+  {
+    return this->lookup_key_or_add_as(key);
+  }
+  const Key &lookup_key_or_add(Key &&key)
+  {
+    return this->lookup_key_or_add_as(std::move(key));
+  }
+  template<typename ForwardKey> const Key &lookup_key_or_add_as(ForwardKey &&key)
+  {
+    return this->lookup_key_or_add__impl(std::forward<ForwardKey>(key), hash_(key));
+  }
+
+  /**
    * Deletes the key from the set. Returns true when the key did exist beforehand, otherwise false.
    *
    * This is similar to std::unordered_set::erase.
@@ -729,6 +746,22 @@ class Set {
         slot.remove();
         removed_slots_++;
         return;
+      }
+    }
+    SET_SLOT_PROBING_END();
+  }
+
+  template<typename ForwardKey>
+  const Key &lookup_key_or_add__impl(ForwardKey &&key, const uint64_t hash)
+  {
+    SET_SLOT_PROBING_BEGIN (hash, slot) {
+      if (slot.contains(key, is_equal_, hash)) {
+        return *slot.key();
+      }
+      if (slot.is_empty()) {
+        slot.occupy(std::forward<ForwardKey>(key), hash);
+        occupied_and_removed_slots_++;
+        return *slot.key();
       }
     }
     SET_SLOT_PROBING_END();

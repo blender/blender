@@ -453,6 +453,20 @@ TEST(set, LookupKeyPtr)
   EXPECT_EQ(set.lookup_key_ptr({3, 50}), nullptr);
 }
 
+TEST(set, LookupKeyOrAdd)
+{
+  Set<MyKeyType> set;
+  set.add({1, 10});
+  set.add({2, 20});
+  EXPECT_EQ(set.size(), 2);
+  EXPECT_EQ(set.lookup_key_or_add({2, 40}).attached_data, 20);
+  EXPECT_EQ(set.size(), 2);
+  EXPECT_EQ(set.lookup_key_or_add({3, 40}).attached_data, 40);
+  EXPECT_EQ(set.size(), 3);
+  EXPECT_EQ(set.lookup_key_or_add({3, 60}).attached_data, 40);
+  EXPECT_EQ(set.size(), 3);
+}
+
 TEST(set, StringViewKeys)
 {
   Set<std::string_view> set;
