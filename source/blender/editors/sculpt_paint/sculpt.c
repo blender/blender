@@ -5684,7 +5684,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
       SculptSearchSphereData data = {
           .ss = ss,
           .sd = sd,
-          .radius_squared = square_f(ss->cache->initial_radius * (1.0 + brush->cloth_sim_limit)),
+          .radius_squared = square_f(ss->cache->radius * (1.0 + brush->cloth_sim_limit)),
           .original = false,
           .ignore_fully_ineffective = false,
           .center = ss->cache->location,
