@@ -90,7 +90,7 @@ function(cycles_link_directories)
   if(APPLE)
     # APPLE plaform uses full paths for linking libraries, and avoids link_directories.
     return()
-  endif(APPLE)
+  endif()
 
   if(WITH_OPENCOLORIO)
     link_directories(${OPENCOLORIO_LIBPATH})

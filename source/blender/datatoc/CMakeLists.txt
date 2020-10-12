@@ -55,7 +55,7 @@ if(NOT WITH_HEADLESS)
   if(NOT APPLE)
     # APPLE plaform uses full paths for linking libraries.
     link_directories(${PNG_LIBPATH} ${ZLIB_LIBPATH})
-  endif(NOT APPLE)
+  endif()
 
   add_executable(datatoc_icon ${SRC})
   setup_platform_linker_flags(datatoc_icon)
