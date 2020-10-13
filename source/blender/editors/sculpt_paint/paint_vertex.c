@@ -2296,6 +2296,7 @@ static void wpaint_do_symmetrical_brush_actions(
   int i = 0;
 
   /* initial stroke */
+  cache->mirror_symmetry_pass = 0;
   wpaint_do_paint(C, ob, wp, sd, wpd, wpi, me, brush, 0, 'X', 0, 0);
   wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, 0, 'X');
   wpaint_do_radial_symmetry(C, ob, wp, sd, wpd, wpi, me, brush, 0, 'Y');
@@ -3316,6 +3317,7 @@ static void vpaint_do_symmetrical_brush_actions(
   int i = 0;
 
   /* initial stroke */
+  cache->mirror_symmetry_pass = 0;
   vpaint_do_paint(C, sd, vp, vpd, ob, me, brush, i, 'X', 0, 0);
   vpaint_do_radial_symmetry(C, sd, vp, vpd, ob, me, brush, i, 'X');
   vpaint_do_radial_symmetry(C, sd, vp, vpd, ob, me, brush, i, 'Y');
