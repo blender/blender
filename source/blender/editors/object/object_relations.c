@@ -2297,7 +2297,7 @@ void OBJECT_OT_make_local(wmOperatorType *ot)
 /** \name Make Library Override Operator
  * \{ */
 
-static bool make_override_library_ovject_overridable_check(Main *bmain, Object *object)
+static bool make_override_library_object_overridable_check(Main *bmain, Object *object)
 {
   /* An object is actually overrideable only if it is in at least one local collections.
    * Unfortunately 'direct link' flag is not enough here. */
@@ -2323,7 +2323,7 @@ static int make_override_library_invoke(bContext *C, wmOperator *op, const wmEve
 
   if ((!ID_IS_LINKED(obact) && obact->instance_collection != NULL &&
        ID_IS_OVERRIDABLE_LIBRARY(obact->instance_collection)) ||
-      make_override_library_ovject_overridable_check(bmain, obact)) {
+      make_override_library_object_overridable_check(bmain, obact)) {
     uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("OK?"), ICON_QUESTION);
     uiLayout *layout = UI_popup_menu_layout(pup);
 
@@ -2374,7 +2374,7 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
     id_root = &obact->instance_collection->id;
     is_override_instancing_object = true;
   }
-  else if (!make_override_library_ovject_overridable_check(bmain, obact)) {
+  else if (!make_override_library_object_overridable_check(bmain, obact)) {
     const int i = RNA_property_enum_get(op->ptr, op->type->prop);
     const uint collection_session_uuid = *((uint *)&i);
     if (collection_session_uuid == MAIN_ID_SESSION_UUID_UNSET) {
