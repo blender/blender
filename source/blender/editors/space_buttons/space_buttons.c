@@ -54,7 +54,9 @@
 
 #include "buttons_intern.h" /* own include */
 
-/* ******************** default callbacks for buttons space ***************** */
+/* -------------------------------------------------------------------- */
+/** \name Default Callbacks for Properties Space
+ * \{ */
 
 static SpaceLink *buttons_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
@@ -157,6 +159,12 @@ static void buttons_main_region_init(wmWindowManager *wm, ARegion *region)
   keymap = WM_keymap_ensure(wm->defaultconf, "Property Editor", SPACE_PROPERTIES, 0);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Property Editor Layout
+ * \{ */
 
 /**
  * Fills an array with the tab context values for the properties editor. -1 signals a separator.
@@ -305,6 +313,12 @@ static void buttons_main_region_layout_properties(const bContext *C,
   ED_region_panels_layout_ex(C, region, &region->type->paneltypes, contexts, NULL);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Property Search Access API
+ * \{ */
+
 const char *ED_buttons_search_string_get(SpaceProperties *sbuts)
 {
   return sbuts->runtime->search_string;
@@ -324,6 +338,12 @@ bool ED_buttons_tab_has_search_result(SpaceProperties *sbuts, const int index)
 {
   return BLI_BITMAP_TEST(sbuts->runtime->tab_search_results, index);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name "Off Screen" Layout Generation for Property Search
+ * \{ */
 
 static bool property_search_for_context(const bContext *C, ARegion *region, SpaceProperties *sbuts)
 {
@@ -462,6 +482,12 @@ static void buttons_main_region_property_search(const bContext *C,
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Main Region Layout and Listener
+ * \{ */
+
 static void buttons_main_region_layout(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
@@ -512,6 +538,12 @@ static void buttons_keymap(struct wmKeyConfig *keyconf)
   WM_keymap_ensure(keyconf, "Property Editor", SPACE_PROPERTIES, 0);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Header Region Callbacks
+ * \{ */
+
 /* add handlers, stuff you only do once or on area/region changes */
 static void buttons_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
 {
@@ -555,6 +587,12 @@ static void buttons_header_region_message_subscribe(const bContext *UNUSED(C),
     WM_msg_subscribe_rna_anon_prop(mbus, WorkSpace, tools, &msg_sub_value_region_tag_redraw);
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Navigation Region Callbacks
+ * \{ */
 
 static void buttons_navigation_bar_region_init(wmWindowManager *wm, ARegion *region)
 {
@@ -604,6 +642,12 @@ static void buttons_area_redraw(ScrArea *area, short buttons)
     ED_area_tag_redraw(area);
   }
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Area-Level Code
+ * \{ */
 
 /* reused! */
 static void buttons_area_listener(wmWindow *UNUSED(win),
@@ -860,6 +904,12 @@ static void buttons_id_remap(ScrArea *UNUSED(area), SpaceLink *slink, ID *old_id
   }
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Space Type Initialization
+ * \{ */
+
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_buttons(void)
 {
@@ -938,3 +988,5 @@ void ED_spacetype_buttons(void)
 
   BKE_spacetype_register(st);
 }
+
+/** \} */
