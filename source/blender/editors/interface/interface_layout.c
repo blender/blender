@@ -886,6 +886,8 @@ static void ui_item_enum_expand_tabs(uiLayout *layout,
                                      uiBlock *block,
                                      PointerRNA *ptr,
                                      PropertyRNA *prop,
+                                     PointerRNA *ptr_highlight,
+                                     PropertyRNA *prop_highlight,
                                      const char *uiname,
                                      const int h,
                                      const bool icon_only)
@@ -894,8 +896,23 @@ static void ui_item_enum_expand_tabs(uiLayout *layout,
 
   ui_item_enum_expand_exec(layout, block, ptr, prop, uiname, h, UI_BTYPE_TAB, icon_only);
   BLI_assert(last != block->buttons.last);
+
   for (uiBut *tab = last ? last->next : block->buttons.first; tab; tab = tab->next) {
     UI_but_drawflag_enable(tab, ui_but_align_opposite_to_area_align_get(CTX_wm_region(C)));
+  }
+
+  const bool use_custom_highlight = (prop_highlight != NULL);
+
+  if (use_custom_highlight) {
+    const int highlight_array_len = RNA_property_array_length(ptr_highlight, prop_highlight);
+    bool *highlight_array = alloca(sizeof(bool) * highlight_array_len);
+    RNA_property_boolean_get_array(ptr_highlight, prop_highlight, highlight_array);
+    int i = 0;
+    for (uiBut *tab_but = last ? last->next : block->buttons.first;
+         (tab_but != NULL) && (i < highlight_array_len);
+         tab_but = tab_but->next, i++) {
+      SET_FLAG_FROM_TEST(tab_but->flag, !highlight_array[i], UI_BUT_INACTIVE);
+    }
   }
 }
 
@@ -3474,13 +3491,19 @@ void uiItemMenuEnumR(
   uiItemMenuEnumR_prop(layout, ptr, prop, name, icon);
 }
 
-void uiItemTabsEnumR_prop(
-    uiLayout *layout, bContext *C, PointerRNA *ptr, PropertyRNA *prop, bool icon_only)
+void uiItemTabsEnumR_prop(uiLayout *layout,
+                          bContext *C,
+                          PointerRNA *ptr,
+                          PropertyRNA *prop,
+                          PointerRNA *ptr_highlight,
+                          PropertyRNA *prop_highlight,
+                          bool icon_only)
 {
   uiBlock *block = layout->root->block;
 
   UI_block_layout_set_current(block, layout);
-  ui_item_enum_expand_tabs(layout, C, block, ptr, prop, NULL, UI_UNIT_Y, icon_only);
+  ui_item_enum_expand_tabs(
+      layout, C, block, ptr, prop, ptr_highlight, prop_highlight, NULL, UI_UNIT_Y, icon_only);
 }
 
 /** \} */
