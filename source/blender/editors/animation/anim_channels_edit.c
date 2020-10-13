@@ -2526,7 +2526,7 @@ static void ANIM_OT_channels_find(wmOperatorType *ot)
 
 /* ********************** Select All Operator *********************** */
 
-static int animchannels_deselectall_exec(bContext *C, wmOperator *op)
+static int animchannels_selectall_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
@@ -2569,7 +2569,7 @@ static void ANIM_OT_channels_select_all(wmOperatorType *ot)
   ot->description = "Toggle selection of all animation channels";
 
   /* api callbacks */
-  ot->exec = animchannels_deselectall_exec;
+  ot->exec = animchannels_selectall_exec;
   ot->poll = animedit_poll_channels_nla_tweakmode_off;
 
   /* flags */
