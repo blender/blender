@@ -133,7 +133,9 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
   float brush_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-  copy_v3_v3(brush_color, BKE_brush_color_get(ss->scene, brush));
+  copy_v3_v3(brush_color,
+             ss->cache->invert ? BKE_brush_secondary_color_get(ss->scene, brush) :
+                                 BKE_brush_color_get(ss->scene, brush));
   IMB_colormanagement_srgb_to_scene_linear_v3(brush_color);
 
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
