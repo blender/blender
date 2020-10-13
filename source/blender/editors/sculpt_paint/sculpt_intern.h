@@ -66,6 +66,9 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags);
 void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType update_flags);
 void SCULPT_flush_stroke_deform(struct Sculpt *sd, Object *ob, bool is_proxy_used);
 
+/* Should be used after modifying the mask or Face Sets IDs. */
+void SCULPT_tag_update_overlays(bContext *C);
+
 /* Stroke */
 
 typedef struct SculptCursorGeometryInfo {
