@@ -597,32 +597,30 @@ static void lib_override_library_create_post_process(
             case ID_GR: {
               default_instantiating_collection = BKE_collection_add(
                   bmain, (Collection *)id_root, "OVERRIDE_HIDDEN");
+              /* Hide the collection from viewport and render. */
+              default_instantiating_collection->flag |= COLLECTION_RESTRICT_VIEWPORT |
+                                                        COLLECTION_RESTRICT_RENDER;
               break;
             }
             case ID_OB: {
-              /* Add the new container collection to one of the collections instantiating the
+              /* Add the other objects to one of the collections instantiating the
                * root object, or scene's master collection if none found. */
               Object *ob_root = (Object *)id_root;
               LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
                 if (BKE_collection_has_object(collection, ob_root) &&
                     BKE_view_layer_has_collection(view_layer, collection) &&
                     !ID_IS_LINKED(collection) && !ID_IS_OVERRIDE_LIBRARY(collection)) {
-                  default_instantiating_collection = BKE_collection_add(
-                      bmain, collection, "OVERRIDE_HIDDEN");
+                  default_instantiating_collection = collection;
                 }
               }
               if (default_instantiating_collection == NULL) {
-                default_instantiating_collection = BKE_collection_add(
-                    bmain, scene->master_collection, "OVERRIDE_HIDDEN");
+                default_instantiating_collection = scene->master_collection;
               }
               break;
             }
             default:
               BLI_assert(0);
           }
-          /* Hide the collection from viewport and render. */
-          default_instantiating_collection->flag |= COLLECTION_RESTRICT_VIEWPORT |
-                                                    COLLECTION_RESTRICT_RENDER;
         }
 
         BKE_collection_object_add(bmain, default_instantiating_collection, ob_new);
