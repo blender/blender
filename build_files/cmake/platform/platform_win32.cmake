@@ -720,14 +720,24 @@ if(WINDOWS_PYTHON_DEBUG)
     string(REPLACE "/" "\\" _group_path "${_source_path}")
     source_group("${_group_path}" FILES "${_source}")
   endforeach()
-  # Include the user scripts from the profile folder in the blender_python_user_scripts project.
-  set(USER_SCRIPTS_ROOT "$ENV{appdata}/blender foundation/blender/${BLENDER_VERSION}")
+  
+  # If the user scripts env var is set, include scripts from there otherwise
+  # include user scripts in the profile folder.
+  if(DEFINED ENV{BLENDER_USER_SCRIPTS})
+    message(STATUS "Including user scripts from environment BLENDER_USER_SCRIPTS=$ENV{BLENDER_USER_SCRIPTS}")
+    set(USER_SCRIPTS_ROOT "$ENV{BLENDER_USER_SCRIPTS}")
+  else()
+    message(STATUS "Including user scripts from the profile folder")
+    # Include the user scripts from the profile folder in the blender_python_user_scripts project.
+    set(USER_SCRIPTS_ROOT "$ENV{appdata}/blender foundation/blender/${BLENDER_VERSION}/scripts")
+  endif()
+  
   file(TO_CMAKE_PATH ${USER_SCRIPTS_ROOT} USER_SCRIPTS_ROOT)
-  FILE(GLOB_RECURSE inFiles "${USER_SCRIPTS_ROOT}/scripts/*.*" )
+  FILE(GLOB_RECURSE inFiles "${USER_SCRIPTS_ROOT}/*.*" )
   ADD_CUSTOM_TARGET(blender_python_user_scripts SOURCES ${inFiles})
   foreach(_source IN ITEMS ${inFiles})
     get_filename_component(_source_path "${_source}" PATH)
-    string(REPLACE "${USER_SCRIPTS_ROOT}/scripts" "" _source_path "${_source_path}")
+    string(REPLACE "${USER_SCRIPTS_ROOT}" "" _source_path "${_source_path}")
     string(REPLACE "/" "\\" _group_path "${_source_path}")
     source_group("${_group_path}" FILES "${_source}")
   endforeach()
