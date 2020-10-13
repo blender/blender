@@ -2724,7 +2724,7 @@ void NODE_OT_viewer_border(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  WM_operator_properties_gesture_box_select(ot);
+  WM_operator_properties_gesture_box(ot);
 }
 
 static int clear_viewer_border_exec(bContext *C, wmOperator *UNUSED(op))
