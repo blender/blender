@@ -44,13 +44,17 @@ def get_cmake_options(builder):
     optix_sdk_dir = os.path.join(builder.blender_dir, '..', '..', 'NVIDIA-Optix-SDK')
     options.append('-DOPTIX_ROOT_DIR:PATH=' + optix_sdk_dir)
 
-    # Workers have multiple CUDA versions installed. Select 10.1 for Blender 2.83 releases.
+    # Workaround to build sm_30 kernels with CUDA 10, since CUDA 11 no longer supports that architecture
     if builder.platform == 'win':
-        options.append('-DCUDA_TOOLKIT_ROOT_DIR:PATH=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.1')
-        options.append('-DCUDA_NVCC_EXECUTABLE:FILEPATH=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.1/bin/nvcc.exe')
+        options.append('-DCUDA10_TOOLKIT_ROOT_DIR:PATH=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.1')
+        options.append('-DCUDA10_NVCC_EXECUTABLE:FILEPATH=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.1/bin/nvcc.exe')
+        options.append('-DCUDA11_TOOLKIT_ROOT_DIR:PATH=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.1')
+        options.append('-DCUDA11_NVCC_EXECUTABLE:FILEPATH=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.1/bin/nvcc.exe')
     elif builder.platform == 'linux':
-        options.append('-DCUDA_TOOLKIT_ROOT_DIR:PATH=/usr/local/cuda-10.1')
-        options.append('-DCUDA_NVCC_EXECUTABLE:FILEPATH=/usr/local/cuda-10.1/bin/nvcc')
+        options.append('-DCUDA10_TOOLKIT_ROOT_DIR:PATH=/usr/local/cuda-10.1')
+        options.append('-DCUDA10_NVCC_EXECUTABLE:FILEPATH=/usr/local/cuda-10.1/bin/nvcc')
+        options.append('-DCUDA11_TOOLKIT_ROOT_DIR:PATH=/usr/local/cuda-11.1')
+        options.append('-DCUDA11_NVCC_EXECUTABLE:FILEPATH=/usr/local/cuda-11.1/bin/nvcc')
 
     options.append("-C" + os.path.join(builder.blender_dir, config_file))
     options.append("-DCMAKE_INSTALL_PREFIX=%s" % (builder.install_dir))
