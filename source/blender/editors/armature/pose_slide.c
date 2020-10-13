@@ -1802,7 +1802,7 @@ static void pose_propagate_fcurve(
    * - if only doing selected keyframes, start from the first one
    */
   if (mode != POSE_PROPAGATE_SELECTED_KEYS) {
-    match = binarysearch_bezt_index(fcu->bezt, startFrame, fcu->totvert, &keyExists);
+    match = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, startFrame, fcu->totvert, &keyExists);
 
     if (fcu->bezt[match].vec[1][0] < startFrame) {
       i = match + 1;

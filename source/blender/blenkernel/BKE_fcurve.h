@@ -57,8 +57,6 @@ typedef struct CfraElem {
   int sel;
 } CfraElem;
 
-void bezt_add_to_cfra_elem(ListBase *lb, struct BezTriple *bezt);
-
 /* ************** F-Curve Modifiers *************** */
 
 /* F-Curve Modifier Type-Info (fmi):
@@ -229,7 +227,10 @@ struct FCurve *BKE_fcurve_find_by_rna_context_ui(struct bContext *C,
 /* Binary search algorithm for finding where to 'insert' BezTriple with given frame number.
  * Returns the index to insert at (data already at that index will be offset if replace is 0)
  */
-int binarysearch_bezt_index(struct BezTriple array[], float frame, int arraylen, bool *r_replace);
+int BKE_fcurve_bezt_binarysearch_index(struct BezTriple array[],
+                                       float frame,
+                                       int arraylen,
+                                       bool *r_replace);
 
 /* get the time extents for F-Curve */
 bool BKE_fcurve_calc_range(
@@ -270,17 +271,11 @@ typedef enum eFCU_Cycle_Type {
 
 eFCU_Cycle_Type BKE_fcurve_get_cycle_type(struct FCurve *fcu);
 
-/** Adjust Bezier handles of all three given BezTriples, so that `bezt` can be inserted between
- * `prev` and `next` without changing the resulting curve shape.
- *
- * \param r_pdelta: return Y difference between `bezt` and the original curve value at its X
- * position.
- * \return Whether the split was succesful.
- */
-bool BKE_bezt_subdivide_handles(struct BezTriple *bezt,
-                                struct BezTriple *prev,
-                                struct BezTriple *next,
-                                float *r_pdelta);
+/* Recompute handles to neatly subdivide the prev-next range at bezt. */
+bool BKE_fcurve_bezt_subdivide_handles(struct BezTriple *bezt,
+                                       struct BezTriple *prev,
+                                       struct BezTriple *next,
+                                       float *r_pdelta);
 
 /* -------- Curve Sanity --------  */
 

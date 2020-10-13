@@ -546,7 +546,8 @@ static void gather_frames_to_render_for_adt(const OGLRender *oglrender, const An
     }
 
     bool found = false; /* Not interesting, we just want a starting point for the for-loop.*/
-    int key_index = binarysearch_bezt_index(fcu->bezt, frame_start, fcu->totvert, &found);
+    int key_index = BKE_fcurve_bezt_binarysearch_index(
+        fcu->bezt, frame_start, fcu->totvert, &found);
     for (; key_index < fcu->totvert; key_index++) {
       BezTriple *bezt = &fcu->bezt[key_index];
       /* The frame range to render uses integer frame numbers, and the frame

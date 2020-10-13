@@ -498,7 +498,7 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
         int i;
 
         /* try to find index of beztriple to get rid of */
-        i = binarysearch_bezt_index(fcu->bezt, cfra, fcu->totvert, &found);
+        i = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, cfra, fcu->totvert, &found);
         if (found) {
           /* delete the key at the index (will sanity check + do recalc afterwards) */
           delete_fcurve_key(fcu, i, 1);

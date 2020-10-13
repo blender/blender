@@ -50,8 +50,9 @@ TEST(evaluate_fcurve, OnKeys)
   EXPECT_NEAR(evaluate_fcurve(fcu, 3.0f), 19.0f, EPSILON); /* hits 'on or after last' function */
 
   /* Also test within a specific time epsilon of the keys, as this was an issue in T39207.
-   * This epsilon is just slightly smaller than the epsilon given to binarysearch_bezt_index_ex()
-   * in fcurve_eval_between_keyframes(), so it should hit the "exact" code path. */
+   * This epsilon is just slightly smaller than the epsilon given to
+   * BKE_fcurve_bezt_binarysearch_index_ex() in fcurve_eval_between_keyframes(), so it should hit
+   * the "exact" code path. */
   float time_epsilon = 0.00008f;
   EXPECT_NEAR(evaluate_fcurve(fcu, 2.0f - time_epsilon), 13.0f, EPSILON);
   EXPECT_NEAR(evaluate_fcurve(fcu, 2.0f + time_epsilon), 13.0f, EPSILON);
@@ -210,7 +211,7 @@ TEST(evaluate_fcurve, ExtrapolationBezierKeys)
   BKE_fcurve_free(fcu);
 }
 
-TEST(fcurve_subdivide, BKE_bezt_subdivide_handles)
+TEST(fcurve_subdivide, BKE_fcurve_bezt_subdivide_handles)
 {
   FCurve *fcu = BKE_fcurve_create();
 
@@ -245,7 +246,7 @@ TEST(fcurve_subdivide, BKE_bezt_subdivide_handles)
 
   /* This should update the existing handles as well as the new BezTriple. */
   float y_delta;
-  BKE_bezt_subdivide_handles(&beztr, &fcu->bezt[0], &fcu->bezt[1], &y_delta);
+  BKE_fcurve_bezt_subdivide_handles(&beztr, &fcu->bezt[0], &fcu->bezt[1], &y_delta);
 
   EXPECT_FLOAT_EQ(y_delta, 0.0f);
 

@@ -407,7 +407,7 @@ int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, eInsertKeyFlags flag)
   /* are there already keyframes? */
   if (fcu->bezt) {
     bool replace;
-    i = binarysearch_bezt_index(fcu->bezt, bezt->vec[1][0], fcu->totvert, &replace);
+    i = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, bezt->vec[1][0], fcu->totvert, &replace);
 
     /* replace an existing keyframe? */
     if (replace) {
@@ -511,7 +511,7 @@ static void subdivide_nonauto_handles(const FCurve *fcu,
 
   /* Subdivide the curve. */
   float delta;
-  if (!BKE_bezt_subdivide_handles(bezt, prev, next, &delta)) {
+  if (!BKE_fcurve_bezt_subdivide_handles(bezt, prev, next, &delta)) {
     return;
   }
 
@@ -1605,7 +1605,7 @@ static bool delete_keyframe_fcurve(AnimData *adt, FCurve *fcu, float cfra)
   int i;
 
   /* try to find index of beztriple to get rid of */
-  i = binarysearch_bezt_index(fcu->bezt, cfra, fcu->totvert, &found);
+  i = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, cfra, fcu->totvert, &found);
   if (found) {
     /* delete the key at the index (will sanity check + do recalc afterwards) */
     delete_fcurve_key(fcu, i, 1);
@@ -2648,7 +2648,7 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
           int i;
 
           /* try to find index of beztriple to get rid of */
-          i = binarysearch_bezt_index(fcu->bezt, cfra, fcu->totvert, &found);
+          i = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, cfra, fcu->totvert, &found);
           if (found) {
             /* delete the key at the index (will sanity check + do recalc afterwards) */
             delete_fcurve_key(fcu, i, 1);
@@ -2822,9 +2822,9 @@ bool fcurve_frame_has_keyframe(FCurve *fcu, float frame, short filter)
   /* we either include all regardless of muting, or only non-muted  */
   if ((filter & ANIMFILTER_KEYS_MUTED) || (fcu->flag & FCURVE_MUTED) == 0) {
     bool replace;
-    int i = binarysearch_bezt_index(fcu->bezt, frame, fcu->totvert, &replace);
+    int i = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, frame, fcu->totvert, &replace);
 
-    /* binarysearch_bezt_index will set replace to be 0 or 1
+    /* BKE_fcurve_bezt_binarysearch_index will set replace to be 0 or 1
      * - obviously, 1 represents a match
      */
     if (replace) {
