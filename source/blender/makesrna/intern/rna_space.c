@@ -1825,6 +1825,53 @@ static void rna_SpaceProperties_context_update(Main *UNUSED(bmain),
   }
 }
 
+static int rna_SpaceProperties_tab_search_results_getlength(PointerRNA *ptr,
+                                                            int length[RNA_MAX_ARRAY_DIMENSION])
+{
+  SpaceProperties *sbuts = ptr->data;
+
+  short context_tabs_array[BCONTEXT_TOT * 2]; /* Dummy variable. */
+  const int tabs_len = ED_buttons_tabs_list(sbuts, context_tabs_array);
+
+  length[0] = tabs_len;
+
+  return length[0];
+}
+
+static void rna_SpaceProperties_tab_search_results_get(PointerRNA *ptr, bool *values)
+{
+  SpaceProperties *sbuts = ptr->data;
+
+  short context_tabs_array[BCONTEXT_TOT * 2]; /* Dummy variable. */
+  const int tabs_len = ED_buttons_tabs_list(sbuts, context_tabs_array);
+
+  for (int i = 0; i < tabs_len; i++) {
+    values[i] = ED_buttons_tab_has_search_result(sbuts, i);
+  }
+}
+
+static void rna_SpaceProperties_search_filter_get(PointerRNA *ptr, char *value)
+{
+  SpaceProperties *sbuts = ptr->data;
+  const char *search_filter = ED_buttons_search_string_get(sbuts);
+
+  strcpy(value, search_filter);
+}
+
+static int rna_SpaceProperties_search_filter_length(PointerRNA *ptr)
+{
+  SpaceProperties *sbuts = ptr->data;
+
+  return ED_buttons_search_string_length(sbuts);
+}
+
+static void rna_SpaceProperties_search_filter_set(struct PointerRNA *ptr, const char *value)
+{
+  SpaceProperties *sbuts = ptr->data;
+
+  ED_buttons_search_string_set(sbuts, value);
+}
+
 static void rna_SpaceProperties_search_filter_update(Main *UNUSED(bmain),
                                                      Scene *UNUSED(scene),
                                                      PointerRNA *ptr)
@@ -4514,8 +4561,23 @@ static void rna_def_space_properties(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Pin ID", "Use the pinned context");
 
   /* Property search. */
+
+  prop = RNA_def_property(srna, "tab_search_results", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_array(prop, 0); /* Dynamic length, see next line. */
+  RNA_def_property_flag(prop, PROP_DYNAMIC);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_boolean_funcs(prop, "rna_SpaceProperties_tab_search_results_get", NULL);
+  RNA_def_property_dynamic_array_funcs(prop, "rna_SpaceProperties_tab_search_results_getlength");
+  RNA_def_property_ui_text(
+      prop, "Tab Search Results", "Whether or not each visible tab has a search result");
+
   prop = RNA_def_property(srna, "search_filter", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, NULL, "runtime->search_string");
+  /* The search filter is stored in the property editor's runtime struct which
+   * is only defined in an internal header, so use the getter / setter here. */
+  RNA_def_property_string_funcs(prop,
+                                "rna_SpaceProperties_search_filter_get",
+                                "rna_SpaceProperties_search_filter_length",
+                                "rna_SpaceProperties_search_filter_set");
   RNA_def_property_ui_text(prop, "Display Filter", "Live search filtering string");
   RNA_def_property_flag(prop, PROP_TEXTEDIT_UPDATE);
   RNA_def_property_update(

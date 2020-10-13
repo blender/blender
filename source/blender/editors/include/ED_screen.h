@@ -92,6 +92,11 @@ void ED_region_panels_layout_ex(const struct bContext *C,
                                 struct ListBase *paneltypes,
                                 const char *contexts[],
                                 const char *category_override);
+bool ED_region_property_search(const struct bContext *C,
+                               struct ARegion *region,
+                               struct ListBase *paneltypes,
+                               const char *contexts[],
+                               const char *category_override);
 
 void ED_region_panels_layout(const struct bContext *C, struct ARegion *region);
 void ED_region_panels_draw(const struct bContext *C, struct ARegion *region);

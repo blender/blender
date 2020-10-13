@@ -56,6 +56,9 @@ struct bNodeTree;
 struct wmOperator;
 struct wmTimer;
 
+/* Defined in `buttons_intern.h`. */
+typedef struct SpaceProperties_Runtime SpaceProperties_Runtime;
+
 /* TODO 2.8: We don't write the global areas to files currently. Uncomment
  * define to enable writing (should become the default in a bit). */
 //#define WITH_GLOBAL_AREA_WRITING
@@ -129,13 +132,6 @@ typedef enum eSpaceInfo_RptMask {
 /** \name Properties Editor
  * \{ */
 
-#
-#
-typedef struct SpaceProperties_Runtime {
-  /** For filtering properties displayed in the space. Length defined as UI_MAX_NAME_STR. */
-  char search_string[128];
-} SpaceProperties_Runtime;
-
 /* Properties Editor */
 typedef struct SpaceProperties {
   SpaceLink *next, *prev;
@@ -168,7 +164,7 @@ typedef struct SpaceProperties {
   void *texuser;
 
   /* Doesn't necessarily need to be a pointer, but runtime structs are still written to files. */
-  SpaceProperties_Runtime *runtime;
+  struct SpaceProperties_Runtime *runtime;
 } SpaceProperties;
 
 /* button defines (deprecated) */

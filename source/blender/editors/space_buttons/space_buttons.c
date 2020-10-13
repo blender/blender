@@ -26,6 +26,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
@@ -48,6 +49,7 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
+#include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "buttons_intern.h" /* own include */
@@ -110,7 +112,10 @@ static void buttons_free(SpaceLink *sl)
     MEM_freeN(ct);
   }
 
-  MEM_SAFE_FREE(sbuts->runtime);
+  if (sbuts->runtime != NULL) {
+    MEM_SAFE_FREE(sbuts->runtime->tab_search_results);
+    MEM_freeN(sbuts->runtime);
+  }
 }
 
 /* spacetype; init callback */
@@ -121,6 +126,7 @@ static void buttons_init(struct wmWindowManager *UNUSED(wm), ScrArea *area)
   if (sbuts->runtime == NULL) {
     sbuts->runtime = MEM_mallocN(sizeof(SpaceProperties_Runtime), __func__);
     sbuts->runtime->search_string[0] = '\0';
+    sbuts->runtime->tab_search_results = BLI_BITMAP_NEW(BCONTEXT_TOT * 2, __func__);
   }
 }
 
@@ -135,6 +141,7 @@ static SpaceLink *buttons_duplicate(SpaceLink *sl)
   if (sfile_old->runtime != NULL) {
     sbutsn->runtime = MEM_dupallocN(sfile_old->runtime);
     sbutsn->runtime->search_string[0] = '\0';
+    sbutsn->runtime->tab_search_results = BLI_BITMAP_NEW(BCONTEXT_TOT, __func__);
   }
 
   return (SpaceLink *)sbutsn;
@@ -298,6 +305,163 @@ static void buttons_main_region_layout_properties(const bContext *C,
   ED_region_panels_layout_ex(C, region, &region->type->paneltypes, contexts, NULL);
 }
 
+const char *ED_buttons_search_string_get(SpaceProperties *sbuts)
+{
+  return sbuts->runtime->search_string;
+}
+
+int ED_buttons_search_string_length(struct SpaceProperties *sbuts)
+{
+  return BLI_strnlen(sbuts->runtime->search_string, sizeof(sbuts->runtime->search_string));
+}
+
+void ED_buttons_search_string_set(SpaceProperties *sbuts, const char *value)
+{
+  BLI_strncpy(sbuts->runtime->search_string, value, sizeof(sbuts->runtime->search_string));
+}
+
+bool ED_buttons_tab_has_search_result(SpaceProperties *sbuts, const int index)
+{
+  return BLI_BITMAP_TEST(sbuts->runtime->tab_search_results, index);
+}
+
+static bool property_search_for_context(const bContext *C, ARegion *region, SpaceProperties *sbuts)
+{
+  const char *contexts[2] = {buttons_main_region_context_string(sbuts->mainb), NULL};
+
+  if (sbuts->mainb == BCONTEXT_TOOL) {
+    return false;
+  }
+
+  buttons_context_compute(C, sbuts);
+  return ED_region_property_search(C, region, &region->type->paneltypes, contexts, NULL);
+}
+
+static void property_search_move_to_next_tab_with_results(SpaceProperties *sbuts,
+                                                          const short *context_tabs_array,
+                                                          const int tabs_len)
+{
+  /* As long as all-tab search in the tool is disabled in the tool context, don't move from it. */
+  if (sbuts->mainb == BCONTEXT_TOOL) {
+    return;
+  }
+
+  int current_tab_index = 0;
+  for (int i = 0; i < tabs_len; i++) {
+    if (sbuts->mainb == context_tabs_array[i]) {
+      current_tab_index = i;
+      break;
+    }
+  }
+
+  /* Try the tabs after the current tab. */
+  for (int i = current_tab_index; i < tabs_len; i++) {
+    if (BLI_BITMAP_TEST(sbuts->runtime->tab_search_results, i)) {
+      sbuts->mainbuser = context_tabs_array[i];
+      return;
+    }
+  }
+
+  /* Try the tabs before the current tab. */
+  for (int i = 0; i < current_tab_index; i++) {
+    if (BLI_BITMAP_TEST(sbuts->runtime->tab_search_results, i)) {
+      sbuts->mainbuser = context_tabs_array[i];
+      return;
+    }
+  }
+}
+
+static void property_search_all_tabs(const bContext *C,
+                                     SpaceProperties *sbuts,
+                                     ARegion *main_region,
+                                     const short *context_tabs_array,
+                                     const int tabs_len)
+{
+  /* Use local copies of the area and duplicate the region as a mainly-paranoid protection
+   * against changing any of the space / region data while running the search. */
+  ScrArea area_copy = *CTX_wm_area(C);
+  ARegion *region_copy = BKE_area_region_copy(area_copy.type, main_region);
+  bContext *C_copy = CTX_copy(C);
+  CTX_wm_area_set(C_copy, &area_copy);
+  CTX_wm_region_set(C_copy, region_copy);
+  SpaceProperties sbuts_copy = *sbuts;
+  sbuts_copy.path = NULL;
+  sbuts_copy.texuser = NULL;
+  sbuts_copy.runtime = MEM_dupallocN(sbuts->runtime);
+  sbuts_copy.runtime->tab_search_results = NULL;
+  area_copy.spacedata.first = &sbuts_copy;
+
+  /* Loop through the tabs added to the properties editor. */
+  for (int i = 0; i < tabs_len; i++) {
+    /* -1 corresponds to a spacer. */
+    if (context_tabs_array[i] == -1) {
+      continue;
+    }
+
+    /* Handle search for the current tab in the normal layout pass. */
+    if (context_tabs_array[i] == sbuts->mainb) {
+      continue;
+    }
+
+    sbuts_copy.mainb = sbuts_copy.mainbo = sbuts_copy.mainbuser = context_tabs_array[i];
+
+    /* Actually do the search and store the result in the bitmap. */
+    BLI_BITMAP_SET(sbuts->runtime->tab_search_results,
+                   i,
+                   property_search_for_context(C_copy, region_copy, &sbuts_copy));
+
+    UI_blocklist_free(C_copy, &region_copy->uiblocks);
+  }
+
+  BKE_area_region_free(area_copy.type, region_copy);
+  MEM_freeN(region_copy);
+  buttons_free((SpaceLink *)&sbuts_copy);
+  MEM_freeN(C_copy);
+}
+
+/**
+ * Handle property search for the layout pass, including finding which tabs have
+ * search results and switching if the current tab doesn't have a result.
+ */
+static void buttons_main_region_property_search(const bContext *C,
+                                                SpaceProperties *sbuts,
+                                                ARegion *region)
+{
+  /* Theoretical maximum of every context shown with a spacer between every tab. */
+  short context_tabs_array[BCONTEXT_TOT * 2];
+  int tabs_len = ED_buttons_tabs_list(sbuts, context_tabs_array);
+
+  property_search_all_tabs(C, sbuts, region, context_tabs_array, tabs_len);
+
+  /* Check whether the current tab has a search match. */
+  bool current_tab_has_search_match = false;
+  LISTBASE_FOREACH (Panel *, panel, &region->panels) {
+    if (UI_panel_is_active(panel) && UI_panel_matches_search_filter(panel)) {
+      current_tab_has_search_match = true;
+    }
+  }
+
+  /* Find which index in the list the current tab corresponds to. */
+  int current_tab_index = -1;
+  for (int i = 0; i < tabs_len; i++) {
+    if (context_tabs_array[i] == sbuts->mainb) {
+      current_tab_index = i;
+    }
+  }
+  BLI_assert(current_tab_index != -1);
+
+  /* Update the tab search match flag for the current tab. */
+  BLI_BITMAP_SET(
+      sbuts->runtime->tab_search_results, current_tab_index, current_tab_has_search_match);
+
+  /* Move to the next tab with a result */
+  if (!current_tab_has_search_match) {
+    if (region->flag & RGN_FLAG_SEARCH_FILTER_UPDATE) {
+      property_search_move_to_next_tab_with_results(sbuts, context_tabs_array, tabs_len);
+    }
+  }
+}
+
 static void buttons_main_region_layout(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
@@ -308,6 +472,10 @@ static void buttons_main_region_layout(const bContext *C, ARegion *region)
   }
   else {
     buttons_main_region_layout_properties(C, sbuts, region);
+  }
+
+  if (region->flag & RGN_FLAG_SEARCH_FILTER_ACTIVE) {
+    buttons_main_region_property_search(C, sbuts, region);
   }
 
   sbuts->mainbo = sbuts->mainb;
@@ -722,8 +890,8 @@ void ED_spacetype_buttons(void)
   buttons_context_register(art);
   BLI_addhead(&st->regiontypes, art);
 
-  /* Register the panel types from modifiers. The actual panels are built per modifier rather than
-   * per modifier type. */
+  /* Register the panel types from modifiers. The actual panels are built per modifier rather
+   * than per modifier type. */
   for (ModifierType i = 0; i < NUM_MODIFIER_TYPES; i++) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info(i);
     if (mti != NULL && mti->panelRegister != NULL) {

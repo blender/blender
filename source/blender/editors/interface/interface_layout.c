@@ -5600,6 +5600,19 @@ void uiLayoutSetFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv)
   layout->root->argv = argv;
 }
 
+/**
+ * Used for property search when the layout process needs to be cancelled in order to avoid
+ * computing the locations for buttons, but the layout items created while adding the buttons
+ * must still be freed.
+ */
+void UI_block_layout_free(uiBlock *block)
+{
+  LISTBASE_FOREACH_MUTABLE (uiLayoutRoot *, root, &block->layouts) {
+    ui_layout_free(root->layout);
+    MEM_freeN(root);
+  }
+}
+
 void UI_block_layout_resolve(uiBlock *block, int *r_x, int *r_y)
 {
   BLI_assert(block->active);

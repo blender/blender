@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include "BLI_bitmap.h"
 #include "DNA_listBase.h"
 #include "RNA_types.h"
 
@@ -36,6 +37,16 @@ struct bNode;
 struct bNodeTree;
 struct uiLayout;
 struct wmOperatorType;
+
+struct SpaceProperties_Runtime {
+  /** For filtering properties displayed in the space. */
+  char search_string[UI_MAX_NAME_STR];
+  /**
+   * Bitfield (in the same order as the tabs) for whether each tab has properties
+   * that match the search filter. Only valid when #search_string is set.
+   */
+  BLI_bitmap *tab_search_results;
+};
 
 /* context data */
 
