@@ -1057,6 +1057,15 @@ static int wm_lib_relocate_exec_do(bContext *C, wmOperator *op, bool do_reload)
       return OPERATOR_CANCELLED;
     }
 
+    if (BLI_path_cmp(BKE_main_blendfile_path(bmain), path) == 0) {
+      BKE_reportf(op->reports,
+                  RPT_ERROR_INVALID_INPUT,
+                  "Cannot relocate library '%s' to current blend file '%s'",
+                  lib->id.name,
+                  path);
+      return OPERATOR_CANCELLED;
+    }
+
     if (BLI_path_cmp(lib->filepath_abs, path) == 0) {
 #ifdef PRINT_DEBUG
       printf("We are supposed to reload '%s' lib (%d)...\n", lib->filepath, lib->id.us);
