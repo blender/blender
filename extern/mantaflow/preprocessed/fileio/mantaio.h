@@ -28,6 +28,11 @@
 #define COMPRESSION_ZIP 1
 #define COMPRESSION_BLOSC 2
 
+// OpenVDB precision flags
+#define PRECISION_FULL 0
+#define PRECISION_HALF 1
+#define PRECISION_MINI 2
+
 namespace Manta {
 
 // Forward declations
@@ -70,7 +75,7 @@ int writeObjectsVDB(const std::string &filename,
                     float scale = 1.0,
                     bool skipDeletedParts = false,
                     int compression = COMPRESSION_ZIP,
-                    bool precisionHalf = true);
+                    int precision = PRECISION_HALF);
 int readObjectsVDB(const std::string &filename,
                    std::vector<PbClass *> *objects,
                    float scale = 1.0);
