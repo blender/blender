@@ -463,6 +463,7 @@ enum {
 enum {
   VDB_PRECISION_HALF_FLOAT = 0,
   VDB_PRECISION_FULL_FLOAT = 1,
+  VDB_PRECISION_MINI_FLOAT = 2,
 };
 
 /* Deprecated values (i.e. all defines and enums below this line up until typedefs). */

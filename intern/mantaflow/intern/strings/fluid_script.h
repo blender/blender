@@ -165,7 +165,7 @@ gravity_s$ID$ *= scaleAcceleration_s$ID$ # scale from world acceleration to cell
 \n\
 # OpenVDB options\n\
 vdbCompression_s$ID$ = $COMPRESSION_OPENVDB$\n\
-vdbPrecisionHalf_s$ID$ = $PRECISION_OPENVDB$\n\
+vdbPrecision_s$ID$ = $PRECISION_OPENVDB$\n\
 \n\
 # Cache file names\n\
 file_data_s$ID$ = '$NAME_DATA$'\n\
@@ -718,7 +718,7 @@ def fluid_file_export_s$ID$(framenr, file_format, path, dict, file_name=None, mo
             file = os.path.join(path, file_name + '_' + framenr + file_format)\n\
             if not os.path.isfile(file) or mode_override:\n\
                 if file_format == '.vdb':\n\
-                    saveCombined = save(name=file, objects=list(dict.values()), worldSize=domainSize_s$ID$, skipDeletedParts=True, compression=vdbCompression_s$ID$, precisionHalf=vdbPrecisionHalf_s$ID$)\n\
+                    saveCombined = save(name=file, objects=list(dict.values()), worldSize=domainSize_s$ID$, skipDeletedParts=True, compression=vdbCompression_s$ID$, precision=vdbPrecision_s$ID$)\n\
                 elif file_format == '.bobj.gz' or file_format == '.obj':\n\
                     for name, object in dict.items():\n\
                         if not os.path.isfile(file) or mode_override:\n\

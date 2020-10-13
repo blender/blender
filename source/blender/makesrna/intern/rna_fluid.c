@@ -1264,8 +1264,13 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL}};
 
   static const EnumPropertyItem fluid_data_depth_items[] = {
-      {VDB_PRECISION_HALF_FLOAT, "16", 0, "Half", "Half float (16 bit data)"},
-      {VDB_PRECISION_FULL_FLOAT, "32", 0, "Full", "Full float (32 bit data)"},
+      {VDB_PRECISION_MINI_FLOAT,
+       "8",
+       0,
+       "Mini",
+       "Mini float (Use 8 bit where possible, otherwise 16 bit)"},
+      {VDB_PRECISION_HALF_FLOAT, "16", 0, "Half", "Half float (Use 16 bit for all data)"},
+      {VDB_PRECISION_FULL_FLOAT, "32", 0, "Full", "Full float (Use 32 bit for all data)"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -2628,10 +2633,10 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "openvdb_data_depth", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "openvdb_data_depth");
   RNA_def_property_enum_items(prop, fluid_data_depth_items);
-  RNA_def_property_ui_text(prop,
-                           "Data Depth",
-                           "Bit depth for writing all scalar (including vector) "
-                           "lower values reduce file size");
+  RNA_def_property_ui_text(
+      prop,
+      "Data Depth",
+      "Bit depth for fluid particles and grids (lower bit values reduce file size)");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
 }
 
