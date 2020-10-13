@@ -879,6 +879,7 @@ class CLIP_PT_tracking_lens(Panel):
     bl_region_type = 'UI'
     bl_category = "Track"
     bl_label = "Lens"
+    bl_parent_id = 'CLIP_PT_tracking_camera'
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
