@@ -1730,7 +1730,7 @@ static int mouse_action_keys(bAnimContext *ac,
       /* highlight channel clicked on */
       if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET, ANIMCONT_TIMELINE)) {
         /* deselect all other channels first */
-        ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+        ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
 
         /* Highlight Action-Group or F-Curve? */
         if (ale != NULL && ale->data) {
@@ -1750,7 +1750,7 @@ static int mouse_action_keys(bAnimContext *ac,
       }
       else if (ac->datatype == ANIMCONT_GPENCIL) {
         /* deselect all other channels first */
-        ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+        ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
 
         /* Highlight GPencil Layer */
         if (ale != NULL && ale->data != NULL && ale->type == ANIMTYPE_GPLAYER) {
@@ -1768,7 +1768,7 @@ static int mouse_action_keys(bAnimContext *ac,
       }
       else if (ac->datatype == ANIMCONT_MASK) {
         /* deselect all other channels first */
-        ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+        ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
 
         if (ale != NULL && ale->data != NULL && ale->type == ANIMTYPE_MASKLAYER) {
           MaskLayer *masklay = ale->data;

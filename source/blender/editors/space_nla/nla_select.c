@@ -638,7 +638,7 @@ static int mouse_nla_strips(bContext *C,
       deselect_nla_strips(ac, 0, SELECT_SUBTRACT);
 
       /* deselect all other channels first */
-      ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+      ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
     }
   }
 

@@ -1471,7 +1471,7 @@ static int mouse_graph_keys(bAnimContext *ac,
      * doesn't depend on this
      */
     if ((sipo->flag & SIPO_SELCUVERTSONLY) == 0) {
-      ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+      ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
     }
   }
 

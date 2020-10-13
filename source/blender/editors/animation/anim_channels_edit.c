@@ -253,109 +253,107 @@ static void select_pchan_for_action_group(bAnimContext *ac, bActionGroup *agrp, 
   }
 }
 
-/* Deselect all animation channels
- * - data: pointer to datatype, as contained in bAnimContext
- * - datatype: the type of data that 'data' represents (eAnimCont_Types)
- * - test: check if deselecting instead of selecting
- * - sel: eAnimChannels_SetFlag;
- */
-void ANIM_deselect_anim_channels(
-    bAnimContext *ac, void *data, eAnimCont_Types datatype, bool test, eAnimChannels_SetFlag sel)
+static ListBase /* bAnimListElem */ anim_channels_for_selection(bAnimContext *ac)
 {
   ListBase anim_data = {NULL, NULL};
-  bAnimListElem *ale;
-  int filter;
 
   /* filter data */
   /* NOTE: no list visible, otherwise, we get dangling */
-  filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS;
-  ANIM_animdata_filter(ac, &anim_data, filter, data, datatype);
+  const int filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS;
+  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-  /* See if we should be selecting or deselecting */
-  if (test) {
-    for (ale = anim_data.first; ale; ale = ale->next) {
-      if (sel == 0) {
+  return anim_data;
+}
+
+static eAnimChannels_SetFlag anim_channels_selection_flag_for_toggle(const ListBase anim_data)
+{
+  /* See if we should be selecting or deselecting. */
+  for (bAnimListElem *ale = anim_data.first; ale; ale = ale->next) {
+    switch (ale->type) {
+      case ANIMTYPE_SCENE:
+        if (ale->flag & SCE_DS_SELECTED) {
+          return ACHANNEL_SETFLAG_CLEAR;
+        }
         break;
-      }
-
-      switch (ale->type) {
-        case ANIMTYPE_SCENE:
-          if (ale->flag & SCE_DS_SELECTED) {
-            sel = ACHANNEL_SETFLAG_CLEAR;
-          }
-          break;
-        case ANIMTYPE_OBJECT:
+      case ANIMTYPE_OBJECT:
 #if 0 /* for now, do not take object selection into account, since it gets too annoying */
           if (ale->flag & SELECT) {
-            sel = ACHANNEL_SETFLAG_CLEAR;
+            return ACHANNEL_SETFLAG_CLEAR;
           }
 #endif
-          break;
-        case ANIMTYPE_GROUP:
-          if (ale->flag & AGRP_SELECTED) {
-            sel = ACHANNEL_SETFLAG_CLEAR;
-          }
-          break;
-        case ANIMTYPE_FCURVE:
-        case ANIMTYPE_NLACURVE:
-          if (ale->flag & FCURVE_SELECTED) {
-            sel = ACHANNEL_SETFLAG_CLEAR;
-          }
-          break;
-        case ANIMTYPE_SHAPEKEY:
-          if (ale->flag & KEYBLOCK_SEL) {
-            sel = ACHANNEL_SETFLAG_CLEAR;
-          }
-          break;
-        case ANIMTYPE_NLATRACK:
-          if (ale->flag & NLATRACK_SELECTED) {
-            sel = ACHANNEL_SETFLAG_CLEAR;
-          }
-          break;
-
-        case ANIMTYPE_FILLACTD: /* Action Expander */
-        case ANIMTYPE_DSMAT:    /* Datablock AnimData Expanders */
-        case ANIMTYPE_DSLAM:
-        case ANIMTYPE_DSCAM:
-        case ANIMTYPE_DSCACHEFILE:
-        case ANIMTYPE_DSCUR:
-        case ANIMTYPE_DSSKEY:
-        case ANIMTYPE_DSWOR:
-        case ANIMTYPE_DSPART:
-        case ANIMTYPE_DSMBALL:
-        case ANIMTYPE_DSARM:
-        case ANIMTYPE_DSMESH:
-        case ANIMTYPE_DSNTREE:
-        case ANIMTYPE_DSTEX:
-        case ANIMTYPE_DSLAT:
-        case ANIMTYPE_DSLINESTYLE:
-        case ANIMTYPE_DSSPK:
-        case ANIMTYPE_DSGPENCIL:
-        case ANIMTYPE_DSMCLIP:
-        case ANIMTYPE_DSHAIR:
-        case ANIMTYPE_DSPOINTCLOUD:
-        case ANIMTYPE_DSVOLUME:
-        case ANIMTYPE_DSSIMULATION: {
-          if ((ale->adt) && (ale->adt->flag & ADT_UI_SELECTED)) {
-            sel = ACHANNEL_SETFLAG_CLEAR;
-          }
-          break;
+        break;
+      case ANIMTYPE_GROUP:
+        if (ale->flag & AGRP_SELECTED) {
+          return ACHANNEL_SETFLAG_CLEAR;
         }
-        case ANIMTYPE_GPLAYER:
-          if (ale->flag & GP_LAYER_SELECT) {
-            sel = ACHANNEL_SETFLAG_CLEAR;
-          }
-          break;
-        case ANIMTYPE_MASKLAYER:
-          if (ale->flag & MASK_LAYERFLAG_SELECT) {
-            sel = ACHANNEL_SETFLAG_CLEAR;
-          }
-          break;
+        break;
+      case ANIMTYPE_FCURVE:
+      case ANIMTYPE_NLACURVE:
+        if (ale->flag & FCURVE_SELECTED) {
+          return ACHANNEL_SETFLAG_CLEAR;
+        }
+        break;
+      case ANIMTYPE_SHAPEKEY:
+        if (ale->flag & KEYBLOCK_SEL) {
+          return ACHANNEL_SETFLAG_CLEAR;
+        }
+        break;
+      case ANIMTYPE_NLATRACK:
+        if (ale->flag & NLATRACK_SELECTED) {
+          return ACHANNEL_SETFLAG_CLEAR;
+        }
+        break;
+
+      case ANIMTYPE_FILLACTD: /* Action Expander */
+      case ANIMTYPE_DSMAT:    /* Datablock AnimData Expanders */
+      case ANIMTYPE_DSLAM:
+      case ANIMTYPE_DSCAM:
+      case ANIMTYPE_DSCACHEFILE:
+      case ANIMTYPE_DSCUR:
+      case ANIMTYPE_DSSKEY:
+      case ANIMTYPE_DSWOR:
+      case ANIMTYPE_DSPART:
+      case ANIMTYPE_DSMBALL:
+      case ANIMTYPE_DSARM:
+      case ANIMTYPE_DSMESH:
+      case ANIMTYPE_DSNTREE:
+      case ANIMTYPE_DSTEX:
+      case ANIMTYPE_DSLAT:
+      case ANIMTYPE_DSLINESTYLE:
+      case ANIMTYPE_DSSPK:
+      case ANIMTYPE_DSGPENCIL:
+      case ANIMTYPE_DSMCLIP:
+      case ANIMTYPE_DSHAIR:
+      case ANIMTYPE_DSPOINTCLOUD:
+      case ANIMTYPE_DSVOLUME:
+      case ANIMTYPE_DSSIMULATION: {
+        if ((ale->adt) && (ale->adt->flag & ADT_UI_SELECTED)) {
+          return ACHANNEL_SETFLAG_CLEAR;
+        }
+        break;
       }
+      case ANIMTYPE_GPLAYER:
+        if (ale->flag & GP_LAYER_SELECT) {
+          return ACHANNEL_SETFLAG_CLEAR;
+        }
+        break;
+      case ANIMTYPE_MASKLAYER:
+        if (ale->flag & MASK_LAYERFLAG_SELECT) {
+          return ACHANNEL_SETFLAG_CLEAR;
+        }
+        break;
     }
   }
 
-  /* Now set the flags */
+  return ACHANNEL_SETFLAG_ADD;
+}
+
+static void anim_channels_select_set(bAnimContext *ac,
+                                     const ListBase anim_data,
+                                     eAnimChannels_SetFlag sel)
+{
+  bAnimListElem *ale;
+
   for (ale = anim_data.first; ale; ale = ale->next) {
     switch (ale->type) {
       case ANIMTYPE_SCENE: {
@@ -395,6 +393,7 @@ void ANIM_deselect_anim_channels(
 
         ACHANNEL_SET_FLAG(fcu, sel, FCURVE_SELECTED);
         fcu->flag &= ~FCURVE_ACTIVE;
+        printf("    selecting and deactivating FCurve[%s; %d]\n", fcu->rna_path, fcu->array_index);
         break;
       }
       case ANIMTYPE_SHAPEKEY: {
@@ -454,8 +453,22 @@ void ANIM_deselect_anim_channels(
       }
     }
   }
+}
 
-  /* Cleanup */
+/* Set selection state of all animation channels in the context. */
+void ANIM_anim_channels_select_set(bAnimContext *ac, eAnimChannels_SetFlag sel)
+{
+  ListBase anim_data = anim_channels_for_selection(ac);
+  anim_channels_select_set(ac, anim_data, sel);
+  ANIM_animdata_freelist(&anim_data);
+}
+
+/* Toggle selection state of all animation channels in the context. */
+void ANIM_anim_channels_select_toggle(bAnimContext *ac)
+{
+  ListBase anim_data = anim_channels_for_selection(ac);
+  const eAnimChannels_SetFlag sel = anim_channels_selection_flag_for_toggle(anim_data);
+  anim_channels_select_set(ac, anim_data, sel);
   ANIM_animdata_freelist(&anim_data);
 }
 
@@ -2539,16 +2552,16 @@ static int animchannels_selectall_exec(bContext *C, wmOperator *op)
   const int action = RNA_enum_get(op->ptr, "action");
   switch (action) {
     case SEL_TOGGLE:
-      ANIM_deselect_anim_channels(&ac, ac.data, ac.datatype, true, ACHANNEL_SETFLAG_ADD);
+      ANIM_anim_channels_select_toggle(&ac);
       break;
     case SEL_SELECT:
-      ANIM_deselect_anim_channels(&ac, ac.data, ac.datatype, false, ACHANNEL_SETFLAG_ADD);
+      ANIM_anim_channels_select_set(&ac, ACHANNEL_SETFLAG_ADD);
       break;
     case SEL_DESELECT:
-      ANIM_deselect_anim_channels(&ac, ac.data, ac.datatype, false, ACHANNEL_SETFLAG_CLEAR);
+      ANIM_anim_channels_select_set(&ac, ACHANNEL_SETFLAG_CLEAR);
       break;
     case SEL_INVERT:
-      ANIM_deselect_anim_channels(&ac, ac.data, ac.datatype, false, ACHANNEL_SETFLAG_INVERT);
+      ANIM_anim_channels_select_set(&ac, ACHANNEL_SETFLAG_INVERT);
       break;
     default:
       BLI_assert(0);
@@ -2670,7 +2683,11 @@ static int animchannels_box_select_exec(bContext *C, wmOperator *op)
   WM_operator_properties_border_to_rcti(op, &rect);
 
   if (!extend) {
-    ANIM_deselect_anim_channels(&ac, ac.data, ac.datatype, true, ACHANNEL_SETFLAG_CLEAR);
+    printf("\n\n\n\033[92mBox-selecting channels without extend!\033[0m\n");
+    ANIM_anim_channels_select_set(&ac, ACHANNEL_SETFLAG_CLEAR);
+  }
+  else {
+    printf("\n\n\n\033[91mBox-selecting channels WITH extend!\033[0m\n");
   }
 
   if (select) {
@@ -2942,7 +2959,7 @@ static int click_select_channel_dummy(bAnimContext *ac,
   }
   else {
     /* select AnimData block by itself */
-    ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, false, ACHANNEL_SETFLAG_CLEAR);
+    ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
     ale->adt->flag |= ADT_UI_SELECTED;
   }
 
@@ -2998,7 +3015,7 @@ static int click_select_channel_group(bAnimContext *ac,
     FCurve *fcu;
 
     /* deselect all other channels */
-    ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, false, ACHANNEL_SETFLAG_CLEAR);
+    ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
     if (pchan) {
       ED_pose_deselect_all(ob, SEL_DESELECT, false);
     }
@@ -3011,7 +3028,7 @@ static int click_select_channel_group(bAnimContext *ac,
   }
   else {
     /* select group by itself */
-    ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, false, ACHANNEL_SETFLAG_CLEAR);
+    ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
     if (pchan) {
       ED_pose_deselect_all(ob, SEL_DESELECT, false);
     }
@@ -3050,7 +3067,7 @@ static int click_select_channel_fcurve(bAnimContext *ac,
   }
   else {
     /* select F-Curve by itself */
-    ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, false, ACHANNEL_SETFLAG_CLEAR);
+    ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
     fcu->flag |= FCURVE_SELECTED;
   }
 
@@ -3075,7 +3092,7 @@ static int click_select_channel_shapekey(bAnimContext *ac,
   }
   else {
     /* select ShapeKey by itself */
-    ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, false, ACHANNEL_SETFLAG_CLEAR);
+    ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
     kb->flag |= KEYBLOCK_SEL;
   }
 
@@ -3125,7 +3142,7 @@ static int click_select_channel_gplayer(bContext *C,
   }
   else {
     /* select layer by itself */
-    ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, false, ACHANNEL_SETFLAG_CLEAR);
+    ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
     gpl->flag |= GP_LAYER_SELECT;
   }
 
@@ -3169,7 +3186,7 @@ static int click_select_channel_masklayer(bAnimContext *ac,
   }
   else {
     /* select layer by itself */
-    ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, false, ACHANNEL_SETFLAG_CLEAR);
+    ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
     masklay->flag |= MASK_LAYERFLAG_SELECT;
   }
 

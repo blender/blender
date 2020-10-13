@@ -4989,7 +4989,7 @@ static int drivers_editor_show_exec(bContext *C, wmOperator *op)
         bAnimContext ac;
         if (ANIM_animdata_get_context(C, &ac)) {
           int filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_NODUPLIS;
-          ANIM_deselect_anim_channels(&ac, ac.data, ac.datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+          ANIM_anim_channels_select_set(&ac, ACHANNEL_SETFLAG_CLEAR);
           ANIM_set_active_channel(&ac, ac.data, ac.datatype, filter, fcu, ANIMTYPE_FCURVE);
         }
         else {

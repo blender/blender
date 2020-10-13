@@ -620,9 +620,11 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac,
                                       eAnimChannel_Settings setting,
                                       eAnimChannels_SetFlag mode);
 
-/* Deselect all animation channels */
-void ANIM_deselect_anim_channels(
-    bAnimContext *ac, void *data, eAnimCont_Types datatype, bool test, eAnimChannels_SetFlag sel);
+/* Select or deselect animation channels */
+void ANIM_anim_channels_select_set(bAnimContext *ac, eAnimChannels_SetFlag sel);
+
+/* Toggle selection of animation channels */
+void ANIM_anim_channels_select_toggle(bAnimContext *ac);
 
 /* Set the 'active' channel of type channel_type, in the given action */
 void ANIM_set_active_channel(bAnimContext *ac,

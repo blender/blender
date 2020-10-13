@@ -204,7 +204,7 @@ static int mouse_nla_channels(
         }
         else {
           /* select AnimData block by itself */
-          ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+          ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
           ale->adt->flag |= ADT_UI_SELECTED;
         }
 
@@ -267,7 +267,7 @@ static int mouse_nla_channels(
         }
         else {
           /* select F-Curve by itself */
-          ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+          ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
           nlt->flag |= NLATRACK_SELECTED;
         }
 
@@ -329,7 +329,7 @@ static int mouse_nla_channels(
           }
           else {
             /* select AnimData block by itself */
-            ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+            ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
             adt->flag |= ADT_UI_SELECTED;
           }
 
