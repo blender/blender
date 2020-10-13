@@ -1608,8 +1608,6 @@ void SCULPT_brush_test_init(SculptSession *ss, SculptBrushTest *test)
   zero_v4(test->plane_view);
   zero_v4(test->plane_tool);
 
-  test->mirror_symmetry_pass = ss->cache ? ss->cache->mirror_symmetry_pass : 0;
-
   if (RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
     test->clip_rv3d = rv3d;
   }
