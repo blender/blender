@@ -38,6 +38,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_bvh.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
@@ -1554,6 +1555,48 @@ BMElem *EDBM_elem_from_index_any(BMEditMesh *em, int index)
     return (BMElem *)BM_face_at_index_find_or_table(bm, index);
   }
 
+  return NULL;
+}
+
+int EDBM_elem_to_index_any_multi(ViewLayer *view_layer,
+                                 BMEditMesh *em,
+                                 BMElem *ele,
+                                 int *r_object_index)
+{
+  uint bases_len;
+  int elem_index = -1;
+  *r_object_index = -1;
+  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(view_layer, NULL, &bases_len);
+  for (uint base_index = 0; base_index < bases_len; base_index++) {
+    Base *base_iter = bases[base_index];
+    if (BKE_editmesh_from_object(base_iter->object) == em) {
+      *r_object_index = base_index;
+      elem_index = EDBM_elem_to_index_any(em, ele);
+      break;
+    }
+  }
+  MEM_freeN(bases);
+  return elem_index;
+}
+
+BMElem *EDBM_elem_from_index_any_multi(ViewLayer *view_layer,
+                                       int object_index,
+                                       int elem_index,
+                                       Object **r_obedit)
+{
+  uint bases_len;
+  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(view_layer, NULL, &bases_len);
+  *r_obedit = NULL;
+  Object *obedit = ((uint)object_index < bases_len) ? bases[object_index]->object : NULL;
+  MEM_freeN(bases);
+  if (obedit != NULL) {
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    BMElem *ele = EDBM_elem_from_index_any(em, elem_index);
+    if (ele != NULL) {
+      *r_obedit = obedit;
+      return ele;
+    }
+  }
   return NULL;
 }
 
