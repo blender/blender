@@ -460,13 +460,27 @@ static void eevee_render_to_image(void *vedata,
 
   int initial_frame = CFRA;
   float initial_subframe = SUBFRA;
-  int steps = max_ii(1, scene->eevee.motion_blur_steps);
-  int time_steps_tot = (do_motion_blur) ? steps : 1;
+  float shuttertime = (do_motion_blur) ? scene->eevee.motion_blur_shutter : 0.0f;
+  int time_steps_tot = (do_motion_blur) ? max_ii(1, scene->eevee.motion_blur_steps) : 1;
   g_data->render_tot_samples = divide_ceil_u(scene->eevee.taa_render_samples, time_steps_tot);
-  /* Centered on frame for now. */
-  float time = initial_frame + initial_subframe - scene->eevee.motion_blur_shutter / 2.0f;
+  /* Compute start time. The motion blur will cover `[time ...time + shuttertime]`. */
+  float time = initial_frame + initial_subframe;
+  switch (scene->eevee.motion_blur_position) {
+    case SCE_EEVEE_MB_START:
+      /* No offset. */
+      break;
+    case SCE_EEVEE_MB_CENTER:
+      time -= shuttertime * 0.5f;
+      break;
+    case SCE_EEVEE_MB_END:
+      time -= shuttertime;
+      break;
+    default:
+      BLI_assert(!"Invalid motion blur position enum!");
+      break;
+  }
 
-  float time_step = scene->eevee.motion_blur_shutter / time_steps_tot;
+  float time_step = shuttertime / time_steps_tot;
   for (int i = 0; i < time_steps_tot && !RE_engine_test_break(engine); i++) {
     float time_prev = time;
     float time_curr = time + time_step * 0.5f;
