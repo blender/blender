@@ -1160,6 +1160,10 @@ IDOverrideLibraryProperty *RNA_property_override_property_get(Main *bmain,
   ID *id;
   char *rna_path;
 
+  if (r_created != NULL) {
+    *r_created = false;
+  }
+
   if ((rna_path = rna_property_override_property_real_id_owner(bmain, ptr, prop, &id)) != NULL) {
     IDOverrideLibraryProperty *op = BKE_lib_override_library_property_get(
         id->override_library, rna_path, r_created);
@@ -1198,6 +1202,10 @@ IDOverrideLibraryPropertyOperation *RNA_property_override_property_operation_get
     bool *r_strict,
     bool *r_created)
 {
+  if (r_created != NULL) {
+    *r_created = false;
+  }
+
   IDOverrideLibraryProperty *op = RNA_property_override_property_get(bmain, ptr, prop, NULL);
 
   if (!op) {
