@@ -32,6 +32,7 @@
 namespace libmv {
 
 class CameraIntrinsics;
+class PackedIntrinsics;
 
 namespace internal {
 
@@ -193,6 +194,9 @@ class CameraIntrinsics {
                                 double *normalized_x,
                                 double *normalized_y) const = 0;
 
+  virtual void Pack(PackedIntrinsics* packed_intrinsics) const;
+  virtual void Unpack(const PackedIntrinsics& packed_intrinsics);
+
   // Distort an image using the current camera instrinsics
   //
   // The distorted image is computed in output_buffer using samples from
@@ -323,6 +327,9 @@ class PolynomialCameraIntrinsics : public CameraIntrinsics {
                         double *normalized_x,
                         double *normalized_y) const;
 
+  virtual void Pack(PackedIntrinsics* packed_intrinsics) const override;
+  virtual void Unpack(const PackedIntrinsics& packed_intrinsics) override;
+
  private:
   // OpenCV's distortion model with third order polynomial radial distortion
   // terms and second order tangential distortion. The distortion is applied to
@@ -376,6 +383,9 @@ class DivisionCameraIntrinsics : public CameraIntrinsics {
                         double *normalized_x,
                         double *normalized_y) const;
 
+  virtual void Pack(PackedIntrinsics* packed_intrinsics) const override;
+  virtual void Unpack(const PackedIntrinsics& packed_intrinsics) override;
+
  private:
   // Double-parameter division distortion model.
   double parameters_[NUM_PARAMETERS];
@@ -425,6 +435,9 @@ class NukeCameraIntrinsics : public CameraIntrinsics {
                         double image_y,
                         double *normalized_x,
                         double *normalized_y) const;
+
+  virtual void Pack(PackedIntrinsics* packed_intrinsics) const override;
+  virtual void Unpack(const PackedIntrinsics& packed_intrinsics) override;
 
  private:
   // Double-parameter division distortion model.
@@ -486,6 +499,9 @@ class BrownCameraIntrinsics : public CameraIntrinsics {
                         double image_y,
                         double *normalized_x,
                         double *normalized_y) const;
+
+  virtual void Pack(PackedIntrinsics* packed_intrinsics) const override;
+  virtual void Unpack(const PackedIntrinsics& packed_intrinsics) override;
 
  private:
   double parameters_[NUM_PARAMETERS];
