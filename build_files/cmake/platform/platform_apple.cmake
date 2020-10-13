@@ -44,6 +44,15 @@ function(print_found_status
   endif()
 endfunction()
 
+# ------------------------------------------------------------------------
+# Find system provided libraries.
+
+# Find system ZLIB, not the pre-compiled one supplied with OpenCollada.
+set(ZLIB_ROOT /usr)
+find_package(ZLIB REQUIRED)
+find_package(BZip2 REQUIRED)
+list(APPEND ZLIB_LIBRARIES ${BZIP2_LIBRARIES})
+
 if(NOT DEFINED LIBDIR)
   set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin)
   # Prefer lib directory paths
@@ -55,16 +64,6 @@ endif()
 if(NOT EXISTS "${LIBDIR}/")
   message(FATAL_ERROR "Mac OSX requires pre-compiled libs at: '${LIBDIR}'")
 endif()
-
-
-# ------------------------------------------------------------------------
-# Find system provided libraries.
-
-# Find system ZLIB, not the pre-compiled one supplied with OpenCollada.
-set(ZLIB_ROOT /usr)
-find_package(ZLIB REQUIRED)
-find_package(BZip2 REQUIRED)
-list(APPEND ZLIB_LIBRARIES ${BZIP2_LIBRARIES})
 
 # -------------------------------------------------------------------------
 # Find precompiled libraries, and avoid system or user-installed ones.
