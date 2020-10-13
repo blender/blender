@@ -2306,6 +2306,11 @@ static bool make_override_library_object_overridable_check(Main *bmain, Object *
       return true;
     }
   }
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+    if (!ID_IS_LINKED(scene) && BKE_collection_has_object(scene->master_collection, object)) {
+      return true;
+    }
+  }
   return false;
 }
 
