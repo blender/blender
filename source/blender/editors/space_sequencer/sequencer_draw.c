@@ -2299,7 +2299,10 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   }
 
   /* Draw attached callbacks. */
+  GPU_framebuffer_bind(framebuffer_overlay);
   ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
+  GPU_framebuffer_bind_no_srgb(framebuffer_overlay);
+
   seq_draw_sfra_efra(scene, v2d);
 
   if (ed) {
@@ -2353,7 +2356,10 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   ANIM_draw_previewrange(C, v2d, 1);
 
   /* Draw registered callbacks. */
+  GPU_framebuffer_bind(framebuffer_overlay);
   ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);
+  GPU_framebuffer_bind_no_srgb(framebuffer_overlay);
+
   UI_view2d_view_restore(C);
   ED_time_scrub_draw(region, scene, !(sseq->flag & SEQ_DRAWFRAMES), true);
 
