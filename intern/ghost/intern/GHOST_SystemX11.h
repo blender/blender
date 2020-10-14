@@ -361,7 +361,8 @@ class GHOST_SystemX11 : public GHOST_System {
    * To prevent multiple warp, we store the time of the last warp event
    * and stop accumulating all events generated before that.
    */
-  Time m_last_warp;
+  Time m_last_warp_x;
+  Time m_last_warp_y;
 
   /* Detect auto-repeat glitch. */
   unsigned int m_last_release_keycode;

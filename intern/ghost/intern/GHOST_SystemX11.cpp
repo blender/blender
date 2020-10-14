@@ -175,7 +175,8 @@ GHOST_SystemX11::GHOST_SystemX11() : GHOST_System(), m_xkb_descr(NULL), m_start_
 #undef GHOST_INTERN_ATOM_IF_EXISTS
 #undef GHOST_INTERN_ATOM
 
-  m_last_warp = 0;
+  m_last_warp_x = 0;
+  m_last_warp_y = 0;
   m_last_release_keycode = 0;
   m_last_release_time = 0;
 
@@ -981,17 +982,24 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
         window->getCursorGrabAccum(x_accum, y_accum);
 
         if (x_new != xme.x_root || y_new != xme.y_root) {
-          if (xme.time > m_last_warp) {
-            /* when wrapping we don't need to add an event because the
-             * setCursorPosition call will cause a new event after */
-            setCursorPosition(x_new, y_new); /* wrap */
-            window->setCursorGrabAccum(x_accum + (xme.x_root - x_new),
-                                       y_accum + (xme.y_root - y_new));
-            m_last_warp = lastEventTime(xme.time);
+          /* Use time of last event to avoid wrapping several times on the 'same' actual wrap.
+           * Note that we need to deal with X and Y separately as those might wrap at the same time
+           * but still in two different events (corner case, see T74918).
+           * We also have to add a few extra milliseconds of 'padding', as sometimes we get two
+           * close events that will generate extra wrap on the same axis within those few
+           * milliseconds. */
+          if (x_new != xme.x_root && xme.time > m_last_warp_x) {
+            x_accum += (xme.x_root - x_new);
+            m_last_warp_x = lastEventTime(xme.time) + 25;
           }
-          else {
-            setCursorPosition(x_new, y_new); /* wrap but don't accumulate */
+          if (y_new != xme.y_root && xme.time > m_last_warp_y) {
+            y_accum += (xme.y_root - y_new);
+            m_last_warp_y = lastEventTime(xme.time) + 25;
           }
+          window->setCursorGrabAccum(x_accum, y_accum);
+          /* When wrapping we don't need to add an event because the
+           * #setCursorPosition call will cause a new event after. */
+          setCursorPosition(x_new, y_new); /* wrap */
         }
         else {
           g_event = new GHOST_EventCursor(getMilliSeconds(),
