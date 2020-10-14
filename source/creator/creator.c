@@ -47,7 +47,7 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-/* mostly init functions */
+/* Mostly init functions. */
 #include "BKE_appdir.h"
 #include "BKE_blender.h"
 #include "BKE_brush.h"
@@ -69,7 +69,7 @@
 
 #include "DEG_depsgraph.h"
 
-#include "IMB_imbuf.h" /* for IMB_init */
+#include "IMB_imbuf.h" /* For #IMB_init. */
 
 #include "RE_engine.h"
 #include "RE_render_ext.h"
@@ -107,7 +107,7 @@
 #  include "sdlew.h"
 #endif
 
-#include "creator_intern.h" /* own include */
+#include "creator_intern.h" /* Own include. */
 
 /* Local Function prototypes. */
 
@@ -244,7 +244,7 @@ int main(int argc,
 
   /* --- end declarations --- */
 
-  /* ensure we free data on early-exit */
+  /* Ensure we free data on early-exit. */
   struct CreatorAtExitData app_init_data = {NULL};
   BKE_blender_atexit_register(callback_main_atexit, &app_init_data);
 
@@ -320,7 +320,7 @@ int main(int argc,
   sdlewInit();
 #endif
 
-  /* Initialize logging */
+  /* Initialize logging. */
   CLG_init();
   CLG_fatal_fn_set(callback_clg_fatal);
 
@@ -366,7 +366,7 @@ int main(int argc,
   fpsetmask(0);
 #endif
 
-  /* initialize path to executable */
+  /* Initialize path to executable. */
   BKE_appdir_program_path_init(argv[0]);
 
   BLI_threadapi_init();
