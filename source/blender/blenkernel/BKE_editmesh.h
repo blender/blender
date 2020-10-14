@@ -99,6 +99,13 @@ float (*BKE_editmesh_vert_coords_alloc(struct Depsgraph *depsgraph,
                                        struct Object *ob,
                                        int *r_vert_len))[3];
 float (*BKE_editmesh_vert_coords_alloc_orco(BMEditMesh *em, int *r_vert_len))[3];
+const float (*BKE_editmesh_vert_coords_when_deformed(struct Depsgraph *depsgraph,
+                                                     struct BMEditMesh *em,
+                                                     struct Scene *scene,
+                                                     struct Object *obedit,
+                                                     int *r_vert_len,
+                                                     bool *r_is_alloc))[3];
+
 void BKE_editmesh_lnorspace_update(BMEditMesh *em, struct Mesh *me);
 void BKE_editmesh_ensure_autosmooth(BMEditMesh *em, struct Mesh *me);
 struct BoundBox *BKE_editmesh_cage_boundbox_get(BMEditMesh *em);

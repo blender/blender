@@ -364,16 +364,19 @@ static int gizmo_preselect_edgering_test_select(bContext *C, wmGizmo *gz, const 
   }
   else {
     if (best.eed) {
-      const float(*coords)[3] = NULL;
-      {
-        Object *ob = gz_ring->bases[gz_ring->base_index]->object;
-        Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-        Mesh *me_eval = (Mesh *)DEG_get_evaluated_id(depsgraph, ob->data);
-        if (me_eval->runtime.edit_data) {
-          coords = me_eval->runtime.edit_data->vertexCos;
-        }
-      }
+      Object *ob = gz_ring->bases[gz_ring->base_index]->object;
+      Scene *scene_eval = (Scene *)DEG_get_evaluated_id(vc.depsgraph, &vc.scene->id);
+      Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, ob);
+      BMEditMesh *em_eval = BKE_editmesh_from_object(ob_eval);
+      /* Re-allocate coords each update isn't ideal, however we can't be sure
+       * the mesh hasn't been edited since last update. */
+      bool is_alloc = false;
+      const float(*coords)[3] = BKE_editmesh_vert_coords_when_deformed(
+          vc.depsgraph, em_eval, scene_eval, ob_eval, NULL, &is_alloc);
       EDBM_preselect_edgering_update_from_edge(gz_ring->psel, bm, best.eed, 1, coords);
+      if (is_alloc) {
+        MEM_freeN((void *)coords);
+      }
     }
     else {
       EDBM_preselect_edgering_clear(gz_ring->psel);

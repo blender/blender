@@ -64,6 +64,11 @@
 
 /* ringsel operator */
 
+struct MeshCoordsCache {
+  bool is_init, is_alloc;
+  const float (*coords)[3];
+};
+
 /* struct for properties used while drawing */
 typedef struct RingSelOpData {
   ARegion *region;   /* region that ringsel was activated in */
@@ -77,6 +82,8 @@ typedef struct RingSelOpData {
 
   Base **bases;
   uint bases_len;
+
+  struct MeshCoordsCache *geom_cache;
 
   /* These values switch objects based on the object under the cursor. */
   uint base_index;
@@ -138,15 +145,18 @@ static void edgering_select(RingSelOpData *lcd)
 static void ringsel_find_edge(RingSelOpData *lcd, const int previewlines)
 {
   if (lcd->eed) {
-    const float(*coords)[3] = NULL;
-    {
-      Mesh *me_eval = (Mesh *)DEG_get_evaluated_id(lcd->depsgraph, lcd->ob->data);
-      if (me_eval->runtime.edit_data) {
-        coords = me_eval->runtime.edit_data->vertexCos;
-      }
+    struct MeshCoordsCache *gcache = &lcd->geom_cache[lcd->base_index];
+    if (gcache->is_init == false) {
+      Scene *scene_eval = (Scene *)DEG_get_evaluated_id(lcd->vc.depsgraph, &lcd->vc.scene->id);
+      Object *ob_eval = DEG_get_evaluated_object(lcd->vc.depsgraph, lcd->ob);
+      BMEditMesh *em_eval = BKE_editmesh_from_object(ob_eval);
+      gcache->coords = BKE_editmesh_vert_coords_when_deformed(
+          lcd->vc.depsgraph, em_eval, scene_eval, ob_eval, NULL, &gcache->is_alloc);
+      gcache->is_init = true;
     }
+
     EDBM_preselect_edgering_update_from_edge(
-        lcd->presel_edgering, lcd->em->bm, lcd->eed, previewlines, coords);
+        lcd->presel_edgering, lcd->em->bm, lcd->eed, previewlines, gcache->coords);
   }
   else {
     EDBM_preselect_edgering_clear(lcd->presel_edgering);
@@ -249,6 +259,14 @@ static void ringsel_exit(bContext *UNUSED(C), wmOperator *op)
   ED_region_draw_cb_exit(lcd->region->type, lcd->draw_handle);
 
   EDBM_preselect_edgering_destroy(lcd->presel_edgering);
+
+  for (uint i = 0; i < lcd->bases_len; i++) {
+    struct MeshCoordsCache *gcache = &lcd->geom_cache[i];
+    if (gcache->is_alloc) {
+      MEM_freeN((void *)gcache->coords);
+    }
+  }
+  MEM_freeN(lcd->geom_cache);
 
   MEM_freeN(lcd->bases);
 
@@ -415,6 +433,7 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
 
   lcd->bases = bases;
   lcd->bases_len = bases_len;
+  lcd->geom_cache = MEM_callocN(sizeof(*lcd->geom_cache) * bases_len, __func__);
 
   if (is_interactive) {
     copy_v2_v2_int(lcd->vc.mval, event->mval);
