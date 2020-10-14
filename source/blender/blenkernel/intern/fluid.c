@@ -33,6 +33,7 @@
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_defaults.h"
 #include "DNA_fluid_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
@@ -4858,255 +4859,48 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *fmd)
       BKE_fluid_modifier_freeDomain(fmd);
     }
 
-    /* domain object data */
-    fmd->domain = MEM_callocN(sizeof(FluidDomainSettings), "FluidDomain");
+    fmd->domain = DNA_struct_default_alloc(FluidDomainSettings);
     fmd->domain->fmd = fmd;
-    fmd->domain->effector_weights = BKE_effector_add_weights(NULL);
-    fmd->domain->fluid = NULL;
-    fmd->domain->fluid_mutex = BLI_rw_mutex_alloc();
-    fmd->domain->force_group = NULL;
-    fmd->domain->fluid_group = NULL;
-    fmd->domain->effector_group = NULL;
 
-    /* adaptive domain options */
-    fmd->domain->adapt_margin = 4;
-    fmd->domain->adapt_res = 0;
-    fmd->domain->adapt_threshold = 0.02f;
-
-    /* fluid domain options */
-    fmd->domain->maxres = 32;
-    fmd->domain->solver_res = 3;
-    fmd->domain->border_collisions = 0;  // open domain
-    fmd->domain->flags = FLUID_DOMAIN_USE_DISSOLVE_LOG | FLUID_DOMAIN_USE_ADAPTIVE_TIME;
-    fmd->domain->gravity[0] = 0.0f;
-    fmd->domain->gravity[1] = 0.0f;
-    fmd->domain->gravity[2] = -9.81f;
-    fmd->domain->active_fields = 0;
-    fmd->domain->type = FLUID_DOMAIN_TYPE_GAS;
-    fmd->domain->boundary_width = 1;
-
-    /* smoke domain options */
-    fmd->domain->alpha = 1.0f;
-    fmd->domain->beta = 1.0f;
-    fmd->domain->diss_speed = 5;
-    fmd->domain->vorticity = 0;
-    fmd->domain->active_color[0] = 0.0f;
-    fmd->domain->active_color[1] = 0.0f;
-    fmd->domain->active_color[2] = 0.0f;
-    fmd->domain->highres_sampling = SM_HRES_FULLSAMPLE;
-
-    /* flame options */
-    fmd->domain->burning_rate = 0.75f;
-    fmd->domain->flame_smoke = 1.0f;
-    fmd->domain->flame_vorticity = 0.5f;
-    fmd->domain->flame_ignition = 1.5f;
-    fmd->domain->flame_max_temp = 3.0f;
-    fmd->domain->flame_smoke_color[0] = 0.7f;
-    fmd->domain->flame_smoke_color[1] = 0.7f;
-    fmd->domain->flame_smoke_color[2] = 0.7f;
-
-    /* noise options */
-    fmd->domain->noise_strength = 1.0;
-    fmd->domain->noise_pos_scale = 2.0f;
-    fmd->domain->noise_time_anim = 0.1f;
-    fmd->domain->noise_scale = 2;
-    fmd->domain->noise_type = FLUID_NOISE_TYPE_WAVELET;
-
-    /* liquid domain options */
-    fmd->domain->simulation_method = FLUID_DOMAIN_METHOD_FLIP;
-    fmd->domain->flip_ratio = 0.97f;
-    fmd->domain->particle_randomness = 0.1f;
-    fmd->domain->particle_number = 2;
-    fmd->domain->particle_minimum = 8;
-    fmd->domain->particle_maximum = 16;
-    fmd->domain->particle_radius = 1.0f;
-    fmd->domain->particle_band_width = 3.0f;
-    fmd->domain->fractions_threshold = 0.05f;
-    fmd->domain->sys_particle_maximum = 0;
-
-    /* diffusion options*/
-    fmd->domain->surface_tension = 0.0f;
-    fmd->domain->viscosity_base = 1.0f;
-    fmd->domain->viscosity_exponent = 6.0f;
-
-    /* mesh options */
-    fmd->domain->mesh_velocities = NULL;
-    fmd->domain->mesh_concave_upper = 3.5f;
-    fmd->domain->mesh_concave_lower = 0.4f;
-    fmd->domain->mesh_particle_radius = 2.0;
-    fmd->domain->mesh_smoothen_pos = 1;
-    fmd->domain->mesh_smoothen_neg = 1;
-    fmd->domain->mesh_scale = 2;
-    fmd->domain->totvert = 0;
-    fmd->domain->mesh_generator = FLUID_DOMAIN_MESH_IMPROVED;
-
-    /* secondary particle options */
-    fmd->domain->sndparticle_tau_min_wc = 2.0;
-    fmd->domain->sndparticle_tau_max_wc = 8.0;
-    fmd->domain->sndparticle_tau_min_ta = 5.0;
-    fmd->domain->sndparticle_tau_max_ta = 20.0;
-    fmd->domain->sndparticle_tau_min_k = 1.0;
-    fmd->domain->sndparticle_tau_max_k = 5.0;
-    fmd->domain->sndparticle_k_wc = 200;
-    fmd->domain->sndparticle_k_ta = 40;
-    fmd->domain->sndparticle_k_b = 0.5;
-    fmd->domain->sndparticle_k_d = 0.6;
-    fmd->domain->sndparticle_l_min = 10.0;
-    fmd->domain->sndparticle_l_max = 25.0;
-    fmd->domain->sndparticle_boundary = SNDPARTICLE_BOUNDARY_DELETE;
-    fmd->domain->sndparticle_combined_export = SNDPARTICLE_COMBINED_EXPORT_OFF;
-    fmd->domain->sndparticle_potential_radius = 2;
-    fmd->domain->sndparticle_update_radius = 2;
-    fmd->domain->particle_type = 0;
-    fmd->domain->particle_scale = 1;
-
-    /* fluid guide options */
-    fmd->domain->guide_parent = NULL;
-    fmd->domain->guide_alpha = 2.0f;
-    fmd->domain->guide_beta = 5;
-    fmd->domain->guide_vel_factor = 2.0f;
-    fmd->domain->guide_source = FLUID_DOMAIN_GUIDE_SRC_DOMAIN;
-
-    /* cache options */
-    fmd->domain->cache_frame_start = 1;
-    fmd->domain->cache_frame_end = 250;
-    fmd->domain->cache_frame_pause_data = 0;
-    fmd->domain->cache_frame_pause_noise = 0;
-    fmd->domain->cache_frame_pause_mesh = 0;
-    fmd->domain->cache_frame_pause_particles = 0;
-    fmd->domain->cache_frame_pause_guide = 0;
-    fmd->domain->cache_frame_offset = 0;
-    fmd->domain->cache_flag = 0;
-    fmd->domain->cache_type = FLUID_DOMAIN_CACHE_REPLAY;
-    fmd->domain->cache_mesh_format = FLUID_DOMAIN_FILE_BIN_OBJECT;
-#ifdef WITH_OPENVDB
-    fmd->domain->cache_data_format = FLUID_DOMAIN_FILE_OPENVDB;
-    fmd->domain->cache_particle_format = FLUID_DOMAIN_FILE_OPENVDB;
-    fmd->domain->cache_noise_format = FLUID_DOMAIN_FILE_OPENVDB;
-#else
-    fmd->domain->cache_data_format = FLUID_DOMAIN_FILE_UNI;
-    fmd->domain->cache_particle_format = FLUID_DOMAIN_FILE_UNI;
-    fmd->domain->cache_noise_format = FLUID_DOMAIN_FILE_UNI;
+    /* Turn off incompatible options. */
+#ifndef WITH_OPENVDB
+    fmd->domain.cache_data_format = FLUID_DOMAIN_FILE_UNI;
+    fmd->domain.cache_particle_format = FLUID_DOMAIN_FILE_UNI;
+    fmd->domain.cache_noise_format = FLUID_DOMAIN_FILE_UNI;
 #endif
+#ifndef WITH_OPENVDB_BLOSC
+    fmd->domain.openvdb_compression = VDB_COMPRESSION_ZIP;
+#endif
+
+    fmd->domain->effector_weights = BKE_effector_add_weights(NULL);
+    fmd->domain->fluid_mutex = BLI_rw_mutex_alloc();
+
     char cache_name[64];
     BKE_fluid_cache_new_name_for_current_session(sizeof(cache_name), cache_name);
     BKE_modifier_path_init(
         fmd->domain->cache_directory, sizeof(fmd->domain->cache_directory), cache_name);
 
-    /* time options */
-    fmd->domain->time_scale = 1.0;
-    fmd->domain->cfl_condition = 4.0;
-    fmd->domain->timesteps_minimum = 1;
-    fmd->domain->timesteps_maximum = 4;
-
-    /* display options */
-    fmd->domain->axis_slice_method = AXIS_SLICE_FULL;
-    fmd->domain->slice_axis = 0;
-    fmd->domain->interp_method = FLUID_DISPLAY_INTERP_LINEAR;
-    fmd->domain->draw_velocity = false;
-    fmd->domain->slice_per_voxel = 5.0f;
-    fmd->domain->slice_depth = 0.5f;
-    fmd->domain->display_thickness = 1.0f;
-    fmd->domain->show_gridlines = false;
-    fmd->domain->coba = NULL;
-    fmd->domain->grid_scale = 1.0f;
-    fmd->domain->vector_scale = 1.0f;
-    fmd->domain->vector_draw_type = VECTOR_DRAW_NEEDLE;
-    fmd->domain->vector_field = FLUID_DOMAIN_VECTOR_FIELD_VELOCITY;
-    fmd->domain->vector_scale_with_magnitude = true;
-    fmd->domain->vector_draw_mac_components = VECTOR_DRAW_MAC_X | VECTOR_DRAW_MAC_Y |
-                                              VECTOR_DRAW_MAC_Z;
-    fmd->domain->use_coba = false;
-    fmd->domain->coba_field = FLUID_DOMAIN_FIELD_DENSITY;
-    fmd->domain->gridlines_color_field = 0;
-    fmd->domain->gridlines_lower_bound = 0.0f;
-    fmd->domain->gridlines_upper_bound = 1.0f;
-    fmd->domain->gridlines_range_color[0] = 1.0f;
-    fmd->domain->gridlines_range_color[1] = 0.0f;
-    fmd->domain->gridlines_range_color[2] = 0.0f;
-    fmd->domain->gridlines_range_color[3] = 1.0f;
-    fmd->domain->gridlines_cell_filter = FLUID_CELL_TYPE_NONE;
-
-    /* -- Deprecated / unsed options (below)-- */
-
     /* pointcache options */
-    BLI_listbase_clear(&fmd->domain->ptcaches[1]);
     fmd->domain->point_cache[0] = BKE_ptcache_add(&(fmd->domain->ptcaches[0]));
     fmd->domain->point_cache[0]->flag |= PTCACHE_DISK_CACHE;
     fmd->domain->point_cache[0]->step = 1;
     fmd->domain->point_cache[1] = NULL; /* Deprecated */
-    fmd->domain->cache_comp = SM_CACHE_LIGHT;
-    fmd->domain->cache_high_comp = SM_CACHE_LIGHT;
-
-    /* OpenVDB cache options */
-#ifdef WITH_OPENVDB_BLOSC
-    fmd->domain->openvdb_compression = VDB_COMPRESSION_BLOSC;
-#else
-    fmd->domain->openvdb_compression = VDB_COMPRESSION_ZIP;
-#endif
-    fmd->domain->clipping = 1e-6f;
-    fmd->domain->openvdb_data_depth = 0;
   }
   else if (fmd->type & MOD_FLUID_TYPE_FLOW) {
     if (fmd->flow) {
       BKE_fluid_modifier_freeFlow(fmd);
     }
 
-    /* flow object data */
-    fmd->flow = MEM_callocN(sizeof(FluidFlowSettings), "MantaFlow");
+    fmd->flow = DNA_struct_default_alloc(FluidFlowSettings);
     fmd->flow->fmd = fmd;
-    fmd->flow->mesh = NULL;
-    fmd->flow->psys = NULL;
-    fmd->flow->noise_texture = NULL;
-
-    /* initial velocity */
-    fmd->flow->verts_old = NULL;
-    fmd->flow->numverts = 0;
-    fmd->flow->vel_multi = 1.0f;
-    fmd->flow->vel_normal = 0.0f;
-    fmd->flow->vel_random = 0.0f;
-    fmd->flow->vel_coord[0] = 0.0f;
-    fmd->flow->vel_coord[1] = 0.0f;
-    fmd->flow->vel_coord[2] = 0.0f;
-
-    /* emission */
-    fmd->flow->density = 1.0f;
-    fmd->flow->color[0] = 0.7f;
-    fmd->flow->color[1] = 0.7f;
-    fmd->flow->color[2] = 0.7f;
-    fmd->flow->fuel_amount = 1.0f;
-    fmd->flow->temperature = 1.0f;
-    fmd->flow->volume_density = 0.0f;
-    fmd->flow->surface_distance = 1.5f;
-    fmd->flow->particle_size = 1.0f;
-    fmd->flow->subframes = 0;
-
-    /* texture control */
-    fmd->flow->source = FLUID_FLOW_SOURCE_MESH;
-    fmd->flow->texture_size = 1.0f;
-
-    fmd->flow->type = FLUID_FLOW_TYPE_SMOKE;
-    fmd->flow->behavior = FLUID_FLOW_BEHAVIOR_GEOMETRY;
-    fmd->flow->flags = FLUID_FLOW_ABSOLUTE | FLUID_FLOW_USE_PART_SIZE | FLUID_FLOW_USE_INFLOW;
   }
   else if (fmd->type & MOD_FLUID_TYPE_EFFEC) {
     if (fmd->effector) {
       BKE_fluid_modifier_freeEffector(fmd);
     }
 
-    /* effector object data */
-    fmd->effector = MEM_callocN(sizeof(FluidEffectorSettings), "MantaEffector");
+    fmd->effector = DNA_struct_default_alloc(FluidEffectorSettings);
     fmd->effector->fmd = fmd;
-    fmd->effector->mesh = NULL;
-    fmd->effector->verts_old = NULL;
-    fmd->effector->numverts = 0;
-    fmd->effector->surface_distance = 0.0f;
-    fmd->effector->type = FLUID_EFFECTOR_TYPE_COLLISION;
-    fmd->effector->flags = FLUID_EFFECTOR_USE_EFFEC;
-
-    /* guide options */
-    fmd->effector->guide_mode = FLUID_EFFECTOR_GUIDE_OVERRIDE;
-    fmd->effector->vel_multi = 1.0f;
   }
 }
 
