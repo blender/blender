@@ -3892,7 +3892,6 @@ def km_pose(params):
 
     items.extend([
         ("object.parent_set", {"type": 'P', "value": 'PRESS', "ctrl": True}, None),
-        op_menu("VIEW3D_MT_add", {"type": 'A', "value": 'PRESS', "shift": True}),
         ("pose.hide", {"type": 'H', "value": 'PRESS'},
          {"properties": [("unselected", False)]}),
         ("pose.hide", {"type": 'H', "value": 'PRESS', "shift": True},
