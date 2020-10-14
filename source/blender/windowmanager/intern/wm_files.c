@@ -2373,6 +2373,41 @@ struct FileRuntime {
   bool is_untrusted;
 };
 
+static char *wm_open_mainfile_description(struct bContext *UNUSED(C),
+                                          struct wmOperatorType *UNUSED(op),
+                                          struct PointerRNA *params)
+{
+  if (!RNA_struct_property_is_set(params, "filepath")) {
+    return NULL;
+  }
+
+  /* Filepath. */
+  char path[FILE_MAX];
+  RNA_string_get(params, "filepath", path);
+
+  BLI_stat_t stats;
+  if (BLI_stat(path, &stats) == -1) {
+    return BLI_sprintfN("%s\n\n%s", path, N_("File Not Found"));
+  }
+
+  /* Date. */
+  char date_st[16];
+  char time_st[8];
+  bool is_today, is_yesterday;
+  BLI_filelist_entry_datetime_to_string(
+      NULL, (int64_t)stats.st_mtime, false, time_st, date_st, &is_today, &is_yesterday);
+  if (is_today || is_yesterday) {
+    BLI_strncpy(date_st, is_today ? N_("Today") : N_("Yesterday"), sizeof(date_st));
+  }
+
+  /* Size. */
+  char size_str[16];
+  BLI_filelist_entry_size_to_string(NULL, (uint64_t)stats.st_size, false, size_str);
+
+  return BLI_sprintfN(
+      "%s\n\n%s: %s %s\n%s: %s", path, N_("Modified"), date_st, time_st, N_("Size"), size_str);
+}
+
 static bool wm_open_mainfile_check(bContext *UNUSED(C), wmOperator *op)
 {
   struct FileRuntime *file_info = (struct FileRuntime *)&op->customdata;
@@ -2430,6 +2465,7 @@ void WM_OT_open_mainfile(wmOperatorType *ot)
   ot->name = "Open";
   ot->idname = "WM_OT_open_mainfile";
   ot->description = "Open a Blender file";
+  ot->get_description = wm_open_mainfile_description;
 
   ot->invoke = wm_open_mainfile_invoke;
   ot->exec = wm_open_mainfile_exec;
