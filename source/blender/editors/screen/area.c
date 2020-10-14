@@ -3116,7 +3116,7 @@ static bool panel_property_search(const bContext *C,
 
   UI_block_layout_free(block);
 
-  /* We could check after each layout to increase the likelyhood of returning early,
+  /* We could check after each layout to increase the likelihood of returning early,
    * but that probably wouldn't make much of a difference anyway. */
   if (UI_block_apply_search_filter(block, search_filter)) {
     return true;

@@ -422,8 +422,8 @@ static std::string extract_vcolname(const COLLADAFW::String &collada_id)
 
 /* =================================================================
  * Return the number of faces by summing up
- * the facecounts of the parts.
- * hint: This is done because mesh->getFacesCount() does
+ * the face-counts of the parts.
+ * hint: This is done because `mesh->getFacesCount()` does
  * count loose edges as extra faces, which is not what we want here.
  * ================================================================= */
 void MeshImporter::allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me)
@@ -674,7 +674,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
     Primitive prim = {mpoly, 0};
 
     /* If MeshPrimitive is TRIANGLE_FANS we split it into triangles
-     * The first trifan vertex will be the first vertex in every triangle
+     * The first triangle-fan vertex will be the first vertex in every triangle
      * XXX The proper function of TRIANGLE_FANS is not tested!!!
      * XXX In particular the handling of the normal_indices looks very wrong to me */
     if (collada_meshtype == COLLADAFW::MeshPrimitive::TRIANGLE_FANS) {

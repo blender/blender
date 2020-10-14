@@ -345,10 +345,10 @@ void BKE_shrinkwrap_compute_boundary_data(struct Mesh *mesh)
   mesh->runtime.shrinkwrap_data = shrinkwrap_build_boundary_data(mesh);
 }
 
-/*
- * Shrinkwrap to the nearest vertex
+/**
+ * Shrink-wrap to the nearest vertex
  *
- * it builds a kdtree of vertexs we can attach to and then
+ * it builds a #BVHTree of vertices we can attach to and then
  * for each vertex performs a nearest vertex search on the tree
  */
 static void shrinkwrap_calc_nearest_vertex_cb_ex(void *__restrict userdata,

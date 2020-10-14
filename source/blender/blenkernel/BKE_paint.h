@@ -270,12 +270,12 @@ typedef enum eSculptClothConstraintType {
   /* Constraint that creates the structure of the cloth. */
   SCULPT_CLOTH_CONSTRAINT_STRUCTURAL = 0,
   /* Constraint that references the position of a vertex and a position in deformation_pos which
-     can be deformed by the tools. */
+   * can be deformed by the tools. */
   SCULPT_CLOTH_CONSTRAINT_DEFORMATION = 1,
-  /* Constarint that references the vertex position and a editable softbody position for
-     plasticity. */
+  /* Constraint that references the vertex position and a editable soft-body position for
+   * plasticity. */
   SCULPT_CLOTH_CONSTRAINT_SOFTBODY = 2,
-  /* Constarint that references the vertex position and its initial position. */
+  /* Constraint that references the vertex position and its initial position. */
   SCULPT_CLOTH_CONSTRAINT_PIN = 3,
 } eSculptClothConstraintType;
 
@@ -295,7 +295,7 @@ typedef struct SculptClothLengthConstraint {
   float length;
   float strength;
 
-  /* Index in SculptClothSimulation.node_state of the node from where this constraint was created.
+  /* Index in #SculptClothSimulation.node_state of the node from where this constraint was created.
    * This constraints will only be used by the solver if the state is active. */
   int node;
 
@@ -329,7 +329,7 @@ typedef struct SculptClothSimulation {
   struct ListBase *collider_list;
 
   int totnode;
-  /* PBVHNode pointer as a key, index in SculptClothSimulation.node_state as value. */
+  /** #PBVHNode pointer as a key, index in #SculptClothSimulation.node_state as value. */
   struct GHash *node_state_index;
   eSculptClothNodeSimState *node_state;
 } SculptClothSimulation;
@@ -341,7 +341,7 @@ typedef struct SculptPersistentBase {
 } SculptPersistentBase;
 
 typedef struct SculptVertexInfo {
-  /* Idexed by vertex, stores and ID of its topologycally connected component. */
+  /* Indexed by vertex, stores and ID of its topologically connected component. */
   int *connected_component;
 
   /* Indexed by base mesh vertex index, stores if that vertex is a boundary. */
@@ -429,7 +429,7 @@ typedef struct SculptFakeNeighbors {
   /* Max distance used to calculate neighborhood information. */
   float current_max_distance;
 
-  /* Idexed by vertex, stores the vertex index of its fake neighbor if available. */
+  /* Indexed by vertex, stores the vertex index of its fake neighbor if available. */
   int *fake_neighbor_index;
 
 } SculptFakeNeighbors;
