@@ -3471,8 +3471,7 @@ static void gpencil_add_fake_points(const wmEvent *event, tGPsdata *p)
                          (p->brush && (p->brush->gpencil_tool == GPAINT_TOOL_DRAW)));
 
   /* TODO: ensure sampling enough points when using circular guide,
-  but the arc must be around the center. (see if above to check other guides only)
-  */
+   * but the arc must be around the center. (see if above to check other guides only). */
   if (is_speed_guide && (guide->type == GP_GUIDE_CIRCULAR)) {
     input_samples = GP_MAX_INPUT_SAMPLES;
   }

@@ -314,7 +314,7 @@ void WM_gizmo_do_msg_notify_tag_refresh(bContext *UNUSED(C),
 
   ED_region_tag_redraw(
       region); /* Could possibly avoid a full redraw and only tag for editor overlays
-              redraw in some cases, see ED_region_tag_redraw_editor_overlays(). */
+                * redraw in some cases, see #ED_region_tag_redraw_editor_overlays(). */
   WM_gizmomap_tag_refresh(gzmap);
 }
 

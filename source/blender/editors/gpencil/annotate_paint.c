@@ -2090,7 +2090,7 @@ static void annotation_draw_apply_event(
   else {
     p->straight[0] = 0;
     /* We were using shift while having permanent stabilization active,
-       so activate the temp flag back again. */
+     * so activate the temp flag back again. */
     if (p->flags & GP_PAINTFLAG_USE_STABILIZER) {
       if ((p->flags & GP_PAINTFLAG_USE_STABILIZER_TEMP) == 0) {
         annotation_draw_toggle_stabilizer_cursor(p, true);
@@ -2098,8 +2098,8 @@ static void annotation_draw_apply_event(
       }
     }
     /* We are using the temporal stabilizer flag atm,
-       but shift is not pressed as well as the permanent flag is not used,
-       so we don't need the cursor anymore. */
+     * but shift is not pressed as well as the permanent flag is not used,
+     * so we don't need the cursor anymore. */
     else if (p->flags & GP_PAINTFLAG_USE_STABILIZER_TEMP) {
       /* Reset temporal stabilizer flag and remove cursor. */
       p->flags &= ~GP_PAINTFLAG_USE_STABILIZER_TEMP;

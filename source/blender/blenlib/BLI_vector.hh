@@ -186,7 +186,7 @@ class Vector {
 
   template<typename InputIt,
            /* This constructor should not be called with e.g. Vector(3, 10), because that is
-              expected to produce the vector (10, 10, 10). */
+            * expected to produce the vector (10, 10, 10). */
            typename std::enable_if_t<!std::is_convertible_v<InputIt, int>> * = nullptr>
   Vector(InputIt first, InputIt last, Allocator allocator = {})
       : Vector(NoExceptConstructor(), allocator)

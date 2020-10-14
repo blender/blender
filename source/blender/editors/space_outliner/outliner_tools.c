@@ -1791,7 +1791,7 @@ static bool outliner_id_operation_item_poll(bContext *C,
         return true;
       }
       /* TODO(dalai): enable in the few cases where this can be supported
-      (i.e., when we have a valid parent for the tselem). */
+       * (i.e., when we have a valid parent for the tselem). */
       return false;
   }
 

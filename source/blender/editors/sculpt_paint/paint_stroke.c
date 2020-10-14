@@ -698,8 +698,8 @@ static float paint_space_stroke_spacing(bContext *C,
   if (SCULPT_is_cloth_deform_brush(brush)) {
     /* The spacing in tools that use the cloth solver should not be affected by the brush radius to
      * avoid affecting the simulation update rate when changing the radius of the brush.
-     With a value of 100 and the brush default of 10 for spacing, a simulation step runs every 2
-     pixels movement of the cursor. */
+     * With a value of 100 and the brush default of 10 for spacing, a simulation step runs every 2
+     * pixels movement of the cursor. */
     size_clamp = 100.0f;
   }
 

@@ -77,7 +77,7 @@ bool bc_is_in_Export_set(LinkNode *export_set, Object *ob, ViewLayer *view_layer
 
   if (!to_export) {
     /* Mark this object as to_export even if it is not in the
-    export list, but it contains children to export */
+     * export list, but it contains children to export. */
 
     std::vector<Object *> children;
     bc_get_children(children, ob, view_layer);

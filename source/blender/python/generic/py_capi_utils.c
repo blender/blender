@@ -889,7 +889,7 @@ void PyC_MainModule_Restore(PyObject *main_mod)
  * - Must be called before #Py_Initialize.
  * - Expects output of `BKE_appdir_folder_id(BLENDER_PYTHON, NULL)`.
  * - Note that the `PYTHONPATH` environment variable isn't reliable, see T31506.
-     Use #Py_SetPythonHome instead.
+ *   Use #Py_SetPythonHome instead.
  */
 void PyC_SetHomePath(const char *py_path_bundle)
 {

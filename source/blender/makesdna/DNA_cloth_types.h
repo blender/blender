@@ -105,8 +105,8 @@ typedef struct ClothSimSettings {
   /* User set volume. This is the volume the mesh wants to expand to (the equilibrium volume). */
   float target_volume;
   /* The scaling factor to apply to the actual pressure.
-     pressure=( (current_volume/target_volume) - 1 + uniform_pressure_force) *
-     pressure_factor */
+   * pressure=( (current_volume/target_volume) - 1 + uniform_pressure_force) *
+   * pressure_factor */
   float pressure_factor;
   /* Density of the fluid inside or outside the object for use in the hydrostatic pressure
    * gradient. */

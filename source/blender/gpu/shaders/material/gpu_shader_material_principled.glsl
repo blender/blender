@@ -387,7 +387,7 @@ void node_bsdf_principled_subsurface(vec4 base_color,
                      mixed_ss_base_color,
                      f0,
                      /* HACK: Pass the multiscatter flag as the sign to not add closure variations
-                        or increase register usage. */
+                      * or increase register usage. */
                      (use_multiscatter != 0.0) ? f90 : -f90,
                      int(ssr_id),
                      roughness,

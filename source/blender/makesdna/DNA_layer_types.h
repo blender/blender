@@ -176,7 +176,7 @@ enum {
 };
 
 /* Layer Collection->runtime_flag
-   Keep it synced with base->flag based on g_base_collection_flags. */
+ * Keep it synced with base->flag based on g_base_collection_flags. */
 enum {
   LAYER_COLLECTION_HAS_OBJECTS = (1 << 0),
   /* LAYER_COLLECTION_VISIBLE_DEPSGRAPH = (1 << 1), */ /* UNUSED */

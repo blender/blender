@@ -48,14 +48,14 @@ const EnumPropertyItem rna_enum_attribute_type_items[] = {
 };
 
 const EnumPropertyItem rna_enum_attribute_domain_items[] = {
-    /* Not implement yet
-    {ATTR_DOMAIN_GEOMETRY, "GEOMETRY", 0, "Geometry", "Attribute on (whole) geometry"}, */
+    /* Not implement yet */
+    // {ATTR_DOMAIN_GEOMETRY, "GEOMETRY", 0, "Geometry", "Attribute on (whole) geometry"},
     {ATTR_DOMAIN_VERTEX, "VERTEX", 0, "Vertex", "Attribute on mesh vertex"},
     {ATTR_DOMAIN_EDGE, "EDGE", 0, "Edge", "Attribute on mesh edge"},
     {ATTR_DOMAIN_CORNER, "CORNER", 0, "Corner", "Attribute on mesh polygon corner"},
     {ATTR_DOMAIN_POLYGON, "POLYGON", 0, "Polygon", "Attribute on mesh polygons"},
-    /* Not implement yet
-    {ATTR_DOMAIN_GRIDS, "GRIDS", 0, "Grids", "Attribute on mesh multires grids"}, */
+    /* Not implement yet */
+    // {ATTR_DOMAIN_GRIDS, "GRIDS", 0, "Grids", "Attribute on mesh multires grids"},
     {ATTR_DOMAIN_POINT, "POINT", 0, "Point", "Attribute on point"},
     {ATTR_DOMAIN_CURVE, "CURVE", 0, "Curve", "Attribute on hair curve"},
     {0, NULL, 0, NULL, NULL},

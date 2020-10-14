@@ -1782,8 +1782,8 @@ bool ED_view3d_is_region_xr_mirror_active(const wmWindowManager *wm,
                                           const ARegion *region)
 {
   return (v3d->flag & V3D_XR_SESSION_MIRROR) &&
-         /* The free region (e.g. the camera region in quad-view) is always the last in the list
-            base. We don't want any other to be affected. */
+         /* The free region (e.g. the camera region in quad-view) is always
+          * the last in the list base. We don't want any other to be affected. */
          !region->next &&  //
          WM_xr_session_is_ready(&wm->xr);
 }

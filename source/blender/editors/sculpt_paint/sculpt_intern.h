@@ -415,7 +415,7 @@ BLI_INLINE bool SCULPT_is_cloth_deform_brush(const Brush *brush)
                                                           BRUSH_CLOTH_DEFORM_GRAB,
                                                           BRUSH_CLOTH_DEFORM_SNAKE_HOOK)) ||
          /* All brushes that are not the cloth brush deform the simulation using softbody
-            constriants instead of applying forces. */
+          * constraints instead of applying forces. */
          (brush->sculpt_tool != SCULPT_TOOL_CLOTH &&
           brush->deform_target == BRUSH_DEFORM_TARGET_CLOTH_SIM);
 }

@@ -390,7 +390,7 @@ static void decimate_fcurve_segment(FCurve *fcu,
   BKE_curve_decimate_bezt_array(&fcu->bezt[bezt_segment_start_idx],
                                 bezt_segment_len,
                                 12, /* The actual resolution displayed in the viewport is dynamic
-                                       so we just pick a value that preserves the curve shape. */
+                                     * so we just pick a value that preserves the curve shape. */
                                 false,
                                 SELECT,
                                 BEZT_FLAG_TEMP_TAG,

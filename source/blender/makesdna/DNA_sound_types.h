@@ -64,9 +64,9 @@ typedef struct bSound {
   short tags;
   char _pad[4];
 
-  /* unused currently
-  int type;
-  struct bSound *child_sound; */
+  /* Unused currently. */
+  // int type;
+  // struct bSound *child_sound;
 
   /**
    * The audaspace handle for cache.

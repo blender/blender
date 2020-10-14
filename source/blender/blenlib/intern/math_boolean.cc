@@ -123,7 +123,7 @@ namespace robust_pred {
  * Since this is C++, an instantiated singleton class is used to make
  * sure that #exactinit() is called once.
  * (Because it's undefined when this is called in initialization of all modules,
- other modules shouldn't use these functions in initialization.)
+ * other modules shouldn't use these functions in initialization.)
  */
 
 void exactinit();
