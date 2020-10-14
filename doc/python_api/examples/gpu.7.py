@@ -56,10 +56,11 @@ fragment_shader = '''
     uniform sampler2D image;
 
     in vec2 uvInterp;
+    out vec4 FragColor;
 
     void main()
     {
-        gl_FragColor = texture(image, uvInterp);
+        FragColor = texture(image, uvInterp);
     }
 '''
 

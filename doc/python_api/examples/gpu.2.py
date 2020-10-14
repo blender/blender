@@ -23,10 +23,11 @@ fragment_shader = '''
     uniform float brightness;
 
     in vec3 pos;
+    out vec4 FragColor;
 
     void main()
     {
-        gl_FragColor = vec4(pos * brightness, 1.0);
+        FragColor = vec4(pos * brightness, 1.0);
     }
 '''
 
