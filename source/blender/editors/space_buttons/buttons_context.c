@@ -73,11 +73,11 @@ static int set_pointer_type(ButsContextPath *path, bContextDataResult *result, S
 
     if (RNA_struct_is_a(ptr->type, type)) {
       CTX_data_pointer_set(result, ptr->owner_id, ptr->type, ptr->data);
-      return 1;
+      return CTX_RESULT_OK;
     }
   }
 
-  return 0;
+  return CTX_RESULT_MEMBER_NOT_FOUND;
 }
 
 static PointerRNA *get_pointer_type(ButsContextPath *path, StructRNA *type)
@@ -907,7 +907,7 @@ int /*eContextResult*/ buttons_context(const bContext *C,
     ButsContextTexture *ct = sbuts->texuser;
 
     if (!ct) {
-      return -1;
+      return CTX_RESULT_NO_DATA;
     }
 
     if (ct->user && ct->user->ptr.data) {
@@ -921,7 +921,7 @@ int /*eContextResult*/ buttons_context(const bContext *C,
     ButsContextTexture *ct = sbuts->texuser;
 
     if (!ct) {
-      return -1;
+      return CTX_RESULT_NO_DATA;
     }
 
     if (ct->user && ct->user->ptr.data) {
@@ -958,7 +958,7 @@ int /*eContextResult*/ buttons_context(const bContext *C,
       }
     }
     else if (ct) {
-      return 0; /* new shading system */
+      return CTX_RESULT_MEMBER_NOT_FOUND; /* new shading system */
     }
     else if ((ptr = get_pointer_type(path, &RNA_FreestyleLineStyle))) {
       FreestyleLineStyle *ls = ptr->data;
