@@ -8103,18 +8103,11 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr,
   for (link = lb->first; link; link = link->next) {
     FunctionRNA *func = (FunctionRNA *)link;
     const int flag = RNA_function_flag(func);
-    /* TODO(campbell): this is used for classmethod's too,
-     * even though class methods should have 'FUNC_USE_SELF_TYPE' set, see Operator.poll for eg.
-     * Keep this as-is since it's working, but we should be using
-     * 'FUNC_USE_SELF_TYPE' for many functions. */
-    const bool is_staticmethod = (flag & FUNC_NO_SELF) && !(flag & FUNC_USE_SELF_TYPE);
-
     if (!(flag & FUNC_REGISTER)) {
       continue;
     }
 
     item = PyObject_GetAttrString(py_class, RNA_function_identifier(func));
-
     have_function[i] = (item != NULL);
     i++;
 
@@ -8127,83 +8120,89 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr,
                      RNA_function_identifier(func));
         return -1;
       }
-
       PyErr_Clear();
+
+      continue;
+    }
+
+    /* TODO(campbell): this is used for classmethod's too,
+     * even though class methods should have 'FUNC_USE_SELF_TYPE' set, see Operator.poll for eg.
+     * Keep this as-is since it's working, but we should be using
+     * 'FUNC_USE_SELF_TYPE' for many functions. */
+    const bool is_staticmethod = (flag & FUNC_NO_SELF) && !(flag & FUNC_USE_SELF_TYPE);
+
+    /* Store original so we can decrement it's reference before returning. */
+    PyObject *item_orig = item;
+
+    if (is_staticmethod) {
+      if (PyMethod_Check(item) == 0) {
+        PyErr_Format(PyExc_TypeError,
+                     "expected %.200s, %.200s class \"%.200s\" "
+                     "attribute to be a static/class method, not a %.200s",
+                     class_type,
+                     py_class_name,
+                     RNA_function_identifier(func),
+                     Py_TYPE(item)->tp_name);
+        Py_DECREF(item_orig);
+        return -1;
+      }
+      item = ((PyMethodObject *)item)->im_func;
     }
     else {
-      /* Store original so we can decrement it's reference before returning. */
-      PyObject *item_orig = item;
-
-      if (is_staticmethod) {
-        if (PyMethod_Check(item) == 0) {
-          PyErr_Format(PyExc_TypeError,
-                       "expected %.200s, %.200s class \"%.200s\" "
-                       "attribute to be a static/class method, not a %.200s",
-                       class_type,
-                       py_class_name,
-                       RNA_function_identifier(func),
-                       Py_TYPE(item)->tp_name);
-          Py_DECREF(item_orig);
-          return -1;
-        }
-        item = ((PyMethodObject *)item)->im_func;
+      if (PyFunction_Check(item) == 0) {
+        PyErr_Format(PyExc_TypeError,
+                     "expected %.200s, %.200s class \"%.200s\" "
+                     "attribute to be a function, not a %.200s",
+                     class_type,
+                     py_class_name,
+                     RNA_function_identifier(func),
+                     Py_TYPE(item)->tp_name);
+        Py_DECREF(item_orig);
+        return -1;
       }
-      else {
-        if (PyFunction_Check(item) == 0) {
-          PyErr_Format(PyExc_TypeError,
-                       "expected %.200s, %.200s class \"%.200s\" "
-                       "attribute to be a function, not a %.200s",
-                       class_type,
-                       py_class_name,
-                       RNA_function_identifier(func),
-                       Py_TYPE(item)->tp_name);
-          Py_DECREF(item_orig);
-          return -1;
-        }
-      }
-
-      func_arg_count = rna_function_arg_count(func, &func_arg_min_count);
-
-      if (func_arg_count >= 0) { /* -1 if we don't care. */
-        arg_count = ((PyCodeObject *)PyFunction_GET_CODE(item))->co_argcount;
-
-        /* note, the number of args we check for and the number of args we give to
-         * '@staticmethods' are different (quirk of Python),
-         * this is why rna_function_arg_count() doesn't return the value -1*/
-        if (is_staticmethod) {
-          func_arg_count++;
-          func_arg_min_count++;
-        }
-
-        if (arg_count < func_arg_min_count || arg_count > func_arg_count) {
-          if (func_arg_min_count != func_arg_count) {
-            PyErr_Format(
-                PyExc_ValueError,
-                "expected %.200s, %.200s class \"%.200s\" function to have between %d and %d "
-                "args, found %d",
-                class_type,
-                py_class_name,
-                RNA_function_identifier(func),
-                func_arg_count,
-                func_arg_min_count,
-                arg_count);
-          }
-          else {
-            PyErr_Format(
-                PyExc_ValueError,
-                "expected %.200s, %.200s class \"%.200s\" function to have %d args, found %d",
-                class_type,
-                py_class_name,
-                RNA_function_identifier(func),
-                func_arg_count,
-                arg_count);
-          }
-          Py_DECREF(item_orig);
-          return -1;
-        }
-      }
-      Py_DECREF(item_orig);
     }
+
+    func_arg_count = rna_function_arg_count(func, &func_arg_min_count);
+
+    if (func_arg_count >= 0) { /* -1 if we don't care. */
+      arg_count = ((PyCodeObject *)PyFunction_GET_CODE(item))->co_argcount;
+
+      /* note, the number of args we check for and the number of args we give to
+       * '@staticmethods' are different (quirk of Python),
+       * this is why rna_function_arg_count() doesn't return the value -1*/
+      if (is_staticmethod) {
+        func_arg_count++;
+        func_arg_min_count++;
+      }
+
+      if (arg_count < func_arg_min_count || arg_count > func_arg_count) {
+        if (func_arg_min_count != func_arg_count) {
+          PyErr_Format(
+              PyExc_ValueError,
+              "expected %.200s, %.200s class \"%.200s\" function to have between %d and %d "
+              "args, found %d",
+              class_type,
+              py_class_name,
+              RNA_function_identifier(func),
+              func_arg_count,
+              func_arg_min_count,
+              arg_count);
+        }
+        else {
+          PyErr_Format(
+              PyExc_ValueError,
+              "expected %.200s, %.200s class \"%.200s\" function to have %d args, found %d",
+              class_type,
+              py_class_name,
+              RNA_function_identifier(func),
+              func_arg_count,
+              arg_count);
+        }
+        Py_DECREF(item_orig);
+        return -1;
+      }
+    }
+    Py_DECREF(item_orig);
   }
 
   /* Verify properties. */
