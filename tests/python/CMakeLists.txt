@@ -43,7 +43,9 @@ function(add_blender_test testname)
 
   # Don't fail tests on leaks since these often happen in external libraries
   # that we can't fix.
-  set_tests_properties(${testname} PROPERTIES ENVIRONMENT LSAN_OPTIONS=exitcode=0)
+  set_tests_properties(${testname} PROPERTIES ENVIRONMENT
+    LSAN_OPTIONS=exitcode=0:$ENV{LSAN_OPTIONS}
+  )
 endfunction()
 
 # Run Python script outside Blender.
@@ -56,7 +58,9 @@ function(add_python_test testname testscript)
     NAME ${testname}
     COMMAND ${TEST_PYTHON_EXE} ${testscript} ${ARGN}
   )
-  set_tests_properties(${testname} PROPERTIES ENVIRONMENT LSAN_OPTIONS=exitcode=0)
+  set_tests_properties(${testname} PROPERTIES ENVIRONMENT
+    LSAN_OPTIONS=exitcode=0:$ENV{LSAN_OPTIONS}
+  )
 endfunction()
 
 # ------------------------------------------------------------------------------
