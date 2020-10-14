@@ -4516,6 +4516,7 @@ void BKE_fluid_particle_system_create(struct Main *bmain,
   part->totpart = 0;
   part->draw_size = 0.01f; /* Make fluid particles more subtle in viewport. */
   part->draw_col = PART_DRAW_COL_VEL;
+  part->phystype = PART_PHYS_NO; /* No physics needed, part system only used to display data. */
   psys->part = part;
   psys->pointcache = BKE_ptcache_add(&psys->ptcaches);
   BLI_strncpy(psys->name, parts_name, sizeof(psys->name));
