@@ -310,6 +310,7 @@ static void randint_ghash_tests(GHash *ghash, const char *id, const unsigned int
   }
 
   BLI_ghash_free(ghash, NULL, NULL);
+  MEM_freeN(data);
 
   printf("========== ENDED %s ==========\n\n", id);
 }
@@ -506,6 +507,7 @@ static void multi_small_ghash_tests_one(GHash *ghash, RNG *rng, const unsigned i
   }
 
   BLI_ghash_clear(ghash, NULL, NULL);
+  MEM_freeN(data);
 }
 
 static void multi_small_ghash_tests(GHash *ghash, const char *id, const unsigned int nbr)
