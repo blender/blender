@@ -286,19 +286,21 @@ void GLFrameBuffer::bind(bool enabled_srgb)
     this->scissor_reset();
   }
 
-  if (context_->active_fb != this) {
-    context_->active_fb = this;
-    state_manager_->active_fb = this;
-    dirty_state_ = true;
-
+  if (context_->active_fb != this || enabled_srgb_ != enabled_srgb) {
+    enabled_srgb_ = enabled_srgb;
     if (enabled_srgb) {
       glEnable(GL_FRAMEBUFFER_SRGB);
     }
     else {
       glDisable(GL_FRAMEBUFFER_SRGB);
     }
-
     GPU_shader_set_framebuffer_srgb_target(enabled_srgb && srgb_);
+  }
+
+  if (context_->active_fb != this) {
+    context_->active_fb = this;
+    state_manager_->active_fb = this;
+    dirty_state_ = true;
   }
 }
 
