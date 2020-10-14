@@ -4864,12 +4864,12 @@ void BKE_fluid_modifier_create_type_data(struct FluidModifierData *fmd)
 
     /* Turn off incompatible options. */
 #ifndef WITH_OPENVDB
-    fmd->domain.cache_data_format = FLUID_DOMAIN_FILE_UNI;
-    fmd->domain.cache_particle_format = FLUID_DOMAIN_FILE_UNI;
-    fmd->domain.cache_noise_format = FLUID_DOMAIN_FILE_UNI;
+    fmd->domain->cache_data_format = FLUID_DOMAIN_FILE_UNI;
+    fmd->domain->cache_particle_format = FLUID_DOMAIN_FILE_UNI;
+    fmd->domain->cache_noise_format = FLUID_DOMAIN_FILE_UNI;
 #endif
 #ifndef WITH_OPENVDB_BLOSC
-    fmd->domain.openvdb_compression = VDB_COMPRESSION_ZIP;
+    fmd->domain->openvdb_compression = VDB_COMPRESSION_ZIP;
 #endif
 
     fmd->domain->effector_weights = BKE_effector_add_weights(NULL);
