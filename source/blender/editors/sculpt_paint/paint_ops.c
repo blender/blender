@@ -56,9 +56,8 @@
 #include "paint_intern.h"
 #include "sculpt_intern.h"
 
-#include <string.h>
-// #include <stdio.h>
 #include <stddef.h>
+#include <string.h>
 
 /* Brush operators */
 static int brush_add_exec(bContext *C, wmOperator *UNUSED(op))

@@ -23,9 +23,6 @@
 #include "BLI_string_utils.h"
 #include "BLI_sys_types.h" /* bool */
 
-// #include "BLI_dynstr.h"
-// #include "BLI_rand.h"
-
 #include "BKE_object.h"
 
 #include "DEG_depsgraph_query.h"
