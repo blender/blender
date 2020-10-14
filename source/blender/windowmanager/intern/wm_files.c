@@ -50,6 +50,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_fileops_types.h"
 #include "BLI_linklist.h"
 #include "BLI_system.h"
 #include "BLI_threads.h"
@@ -2368,11 +2369,6 @@ static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
   return wm_open_mainfile__open(C, op);
 }
 
-/* currently fits in a pointer */
-struct FileRuntime {
-  bool is_untrusted;
-};
-
 static char *wm_open_mainfile_description(struct bContext *UNUSED(C),
                                           struct wmOperatorType *UNUSED(op),
                                           struct PointerRNA *params)
@@ -2391,8 +2387,8 @@ static char *wm_open_mainfile_description(struct bContext *UNUSED(C),
   }
 
   /* Date. */
-  char date_st[16];
-  char time_st[8];
+  char date_st[FILELIST_DIRENTRY_DATE_LEN];
+  char time_st[FILELIST_DIRENTRY_TIME_LEN];
   bool is_today, is_yesterday;
   BLI_filelist_entry_datetime_to_string(
       NULL, (int64_t)stats.st_mtime, false, time_st, date_st, &is_today, &is_yesterday);
@@ -2401,12 +2397,19 @@ static char *wm_open_mainfile_description(struct bContext *UNUSED(C),
   }
 
   /* Size. */
-  char size_str[16];
+  char size_str[FILELIST_DIRENTRY_SIZE_LEN];
   BLI_filelist_entry_size_to_string(NULL, (uint64_t)stats.st_size, false, size_str);
 
   return BLI_sprintfN(
       "%s\n\n%s: %s %s\n%s: %s", path, N_("Modified"), date_st, time_st, N_("Size"), size_str);
 }
+
+/* currently fits in a pointer */
+struct FileRuntime {
+  bool is_untrusted;
+};
+BLI_STATIC_ASSERT(sizeof(struct FileRuntime) <= sizeof(void *),
+                  "Struct must not exceed pointer size");
 
 static bool wm_open_mainfile_check(bContext *UNUSED(C), wmOperator *op)
 {
