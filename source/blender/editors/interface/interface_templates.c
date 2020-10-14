@@ -5642,7 +5642,7 @@ static void uilist_draw_filter_default(struct uiList *ui_list,
           "use_filter_invert",
           UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY,
           "",
-          (ui_list->filter_flag & UILST_FLT_EXCLUDE) ? ICON_ZOOM_OUT : ICON_ZOOM_IN);
+          ICON_ARROW_LEFTRIGHT);
 
   if ((ui_list->filter_sort_flag & UILST_FLT_SORT_LOCK) == 0) {
     subrow = uiLayoutRow(row, true);
