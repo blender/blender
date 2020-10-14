@@ -215,14 +215,21 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
   }
 
   if (!v3d || (v3d->shading.type == OB_RENDER && BKE_scene_uses_blender_workbench(scene))) {
+    short shading_flag = scene->display.shading.flag;
+    if (XRAY_FLAG_ENABLED((&scene->display))) {
+      /* Disable shading options that aren't supported in transparency mode. */
+      shading_flag &= ~(V3D_SHADING_SHADOW | V3D_SHADING_CAVITY | V3D_SHADING_DEPTH_OF_FIELD);
+    }
+
     /* FIXME: This reproduce old behavior when workbench was separated in 2 engines.
      * But this is a workaround for a missing update tagging from operators. */
-    if ((v3d && (XRAY_ENABLED(v3d) != XRAY_ENABLED(&scene->display))) ||
-        (scene->display.shading.flag != wpd->shading.flag)) {
+    if ((XRAY_ENABLED(wpd) != XRAY_ENABLED(&scene->display)) ||
+        (shading_flag != wpd->shading.flag)) {
       wpd->view_updated = true;
     }
 
     wpd->shading = scene->display.shading;
+    wpd->shading.flag = shading_flag;
     if (XRAY_FLAG_ENABLED((&scene->display))) {
       wpd->shading.xray_alpha = XRAY_ALPHA((&scene->display));
     }
@@ -242,13 +249,20 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
     }
   }
   else {
+    short shading_flag = v3d->shading.flag;
+    if (XRAY_ENABLED(v3d)) {
+      /* Disable shading options that aren't supported in transparency mode. */
+      shading_flag &= ~(V3D_SHADING_SHADOW | V3D_SHADING_CAVITY | V3D_SHADING_DEPTH_OF_FIELD);
+    }
+
     /* FIXME: This reproduce old behavior when workbench was separated in 2 engines.
      * But this is a workaround for a missing update tagging from operators. */
-    if (XRAY_ENABLED(v3d) != XRAY_ENABLED(wpd) || v3d->shading.flag != wpd->shading.flag) {
+    if (XRAY_ENABLED(v3d) != XRAY_ENABLED(wpd) || shading_flag != wpd->shading.flag) {
       wpd->view_updated = true;
     }
 
     wpd->shading = v3d->shading;
+    wpd->shading.flag = shading_flag;
     if (wpd->shading.type < OB_SOLID) {
       wpd->shading.xray_alpha = 0.0f;
     }
