@@ -1173,10 +1173,11 @@ static bool name_matches_dopesheet_filter(bDopeSheet *ads, char *name)
     }
 
     /* if we have a match somewhere, this returns true */
-    return found;
+    return ((ads->flag & ADS_FLAG_INVERT_FILTER) == 0) ? found : !found;
   }
   /* fallback/default - just case insensitive, but starts from start of word */
-  return BLI_strcasestr(name, ads->searchstr) != NULL;
+  bool found = BLI_strcasestr(name, ads->searchstr) != NULL;
+  return ((ads->flag & ADS_FLAG_INVERT_FILTER) == 0) ? found : !found;
 }
 
 /* (Display-)Name-based F-Curve filtering

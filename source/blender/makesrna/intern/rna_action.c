@@ -365,6 +365,12 @@ static void rna_def_dopesheet(BlenderRNA *brna)
   RNA_def_property_ui_icon(prop, ICON_SORTALPHA, 0);
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 
+  prop = RNA_def_property(srna, "use_filter_invert", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", ADS_FLAG_INVERT_FILTER);
+  RNA_def_property_ui_text(prop, "Invert", "Invert filter search");
+  RNA_def_property_ui_icon(prop, ICON_ZOOM_IN, 0);
+  RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+
   /* Debug Filtering Settings */
   prop = RNA_def_property(srna, "show_only_errors", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_ONLY_ERRORS);

@@ -796,6 +796,8 @@ typedef enum eDopeSheet_Flag {
   ADS_FLAG_FUZZY_NAMES = (1 << 2),
   /** do not sort datablocks (mostly objects) by name (NOTE: potentially expensive operation) */
   ADS_FLAG_NO_DB_SORT = (1 << 3),
+  /** Invert the search filter */
+  ADS_FLAG_INVERT_FILTER = (1 << 4),
 } eDopeSheet_Flag;
 
 typedef struct SpaceAction_Runtime {

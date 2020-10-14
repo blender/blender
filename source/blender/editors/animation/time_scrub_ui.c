@@ -226,23 +226,30 @@ void ED_time_scrub_channel_search_draw(const bContext *C, ARegion *region, bDope
   immRectf(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
   immUnbindProgram();
 
-  uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
-
   PointerRNA ptr;
   RNA_pointer_create(&CTX_wm_screen(C)->id, &RNA_DopeSheet, dopesheet, &ptr);
-  PropertyRNA *prop = RNA_struct_find_property(&ptr, "filter_text");
 
-  int padding = 2 * UI_DPI_FAC;
-  uiDefAutoButR(block,
-                &ptr,
-                prop,
-                -1,
-                "",
-                ICON_NONE,
-                rect.xmin + padding,
-                rect.ymin + padding,
-                BLI_rcti_size_x(&rect) - 2 * padding,
-                BLI_rcti_size_y(&rect) - 2 * padding);
+  const uiStyle *style = UI_style_get_dpi();
+  const float padding_x = 2 * UI_DPI_FAC;
+  const float padding_y = UI_DPI_FAC;
+
+  uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
+  uiLayout *layout = UI_block_layout(block,
+                                     UI_LAYOUT_VERTICAL,
+                                     UI_LAYOUT_HEADER,
+                                     rect.xmin + padding_x,
+                                     rect.ymin + UI_UNIT_Y + padding_y,
+                                     BLI_rcti_size_x(&rect) - 2 * padding_x,
+                                     1,
+                                     0,
+                                     style);
+  uiLayoutSetScaleY(layout, (UI_UNIT_Y - padding_y) / UI_UNIT_Y);
+  UI_block_layout_set_current(block, layout);
+  UI_block_align_begin(block);
+  uiItemR(layout, &ptr, "filter_text", 0, "", ICON_NONE);
+  uiItemR(layout, &ptr, "use_filter_invert", 0, "", ICON_ARROW_LEFTRIGHT);
+  UI_block_align_end(block);
+  UI_block_layout_resolve(block, NULL, NULL);
 
   UI_block_end(C, block);
   UI_block_draw(C, block);
