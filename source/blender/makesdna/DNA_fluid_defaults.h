@@ -194,7 +194,6 @@
     .gridlines_color_field = 0, \
     .gridlines_cell_filter = FLUID_CELL_TYPE_NONE, \
     .openvdb_compression = VDB_COMPRESSION_BLOSC, \
-    .openvdb_compression = VDB_COMPRESSION_ZIP, \
     .clipping = 1e-6f, \
     .openvdb_data_depth = 0, \
     .viewsettings = 0, \
