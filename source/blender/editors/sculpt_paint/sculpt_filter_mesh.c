@@ -179,12 +179,14 @@ void SCULPT_filter_cache_free(SculptSession *ss)
   if (ss->filter_cache->cloth_sim) {
     SCULPT_cloth_simulation_free(ss->filter_cache->cloth_sim);
   }
+  if (ss->filter_cache->automasking) {
+    SCULPT_automasking_cache_free(ss->filter_cache->automasking);
+  }
   MEM_SAFE_FREE(ss->filter_cache->nodes);
   MEM_SAFE_FREE(ss->filter_cache->mask_update_it);
   MEM_SAFE_FREE(ss->filter_cache->prev_mask);
   MEM_SAFE_FREE(ss->filter_cache->normal_factor);
   MEM_SAFE_FREE(ss->filter_cache->prev_face_set);
-  MEM_SAFE_FREE(ss->filter_cache->automask);
   MEM_SAFE_FREE(ss->filter_cache->surface_smooth_laplacian_disp);
   MEM_SAFE_FREE(ss->filter_cache->sharpen_factor);
   MEM_SAFE_FREE(ss->filter_cache->detail_directions);
@@ -269,15 +271,15 @@ static EnumPropertyItem prop_mesh_filter_orientation_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-static bool sculpt_mesh_filter_needs_pmap(eSculptMeshFilterType filter_type, bool use_face_sets)
+static bool sculpt_mesh_filter_needs_pmap(eSculptMeshFilterType filter_type)
 {
-  return use_face_sets || ELEM(filter_type,
-                               MESH_FILTER_SMOOTH,
-                               MESH_FILTER_RELAX,
-                               MESH_FILTER_RELAX_FACE_SETS,
-                               MESH_FILTER_SURFACE_SMOOTH,
-                               MESH_FILTER_ENHANCE_DETAILS,
-                               MESH_FILTER_SHARPEN);
+  return ELEM(filter_type,
+              MESH_FILTER_SMOOTH,
+              MESH_FILTER_RELAX,
+              MESH_FILTER_RELAX_FACE_SETS,
+              MESH_FILTER_SURFACE_SMOOTH,
+              MESH_FILTER_ENHANCE_DETAILS,
+              MESH_FILTER_SHARPEN);
 }
 
 static void mesh_filter_task_cb(void *__restrict userdata,
@@ -307,31 +309,14 @@ static void mesh_filter_task_cb(void *__restrict userdata,
     float fade = vd.mask ? *vd.mask : 0.0f;
     fade = 1.0f - fade;
     fade *= data->filter_strength;
+    fade *= SCULPT_automasking_factor_get(ss->filter_cache->automasking, ss, vd.index);
 
-    if (fade == 0.0f) {
+    if (fade == 0.0f && filter_type != MESH_FILTER_SURFACE_SMOOTH) {
+      /* Surface Smooth can't skip the loop for this vertex as it needs to calculate its
+       * laplacian_disp. This value is accessed from the vertex neighbors when deforming the
+       * vertices, so it is needed for all vertices even if they are not going to be displaced.
+       */
       continue;
-    }
-
-    if (ss->filter_cache->active_face_set != SCULPT_FACE_SET_NONE) {
-      if (!SCULPT_vertex_has_face_set(ss, vd.index, ss->filter_cache->active_face_set)) {
-        /* Surface Smooth can't skip the loop for this vertex as it needs to calculate its
-         * laplacian_disp. This value is accessed from the vertex neighbors when deforming the
-         * vertices, so it is needed for all vertices even if they are not going to be displaced.
-         */
-        if (filter_type == MESH_FILTER_SURFACE_SMOOTH) {
-          fade = 0.0f;
-        }
-        else {
-          continue;
-        }
-      }
-      /* Skip the edges of the face set when relaxing or smoothing.
-       * There is a relax face set option to relax the boundaries independently. */
-      if (filter_type == MESH_FILTER_RELAX) {
-        if (!SCULPT_vertex_has_unique_face_set(ss, vd.index)) {
-          continue;
-        }
-      }
     }
 
     if (ELEM(filter_type, MESH_FILTER_RELAX, MESH_FILTER_RELAX_FACE_SETS)) {
@@ -606,14 +591,9 @@ static void mesh_filter_surface_smooth_displace_task_cb(
     float fade = vd.mask ? *vd.mask : 0.0f;
     fade = 1.0f - fade;
     fade *= data->filter_strength;
+    fade *= SCULPT_automasking_factor_get(ss->filter_cache->automasking, ss, vd.index);
     if (fade == 0.0f) {
       continue;
-    }
-
-    if (ss->filter_cache->active_face_set != SCULPT_FACE_SET_NONE) {
-      if (!SCULPT_vertex_has_face_set(ss, vd.index, ss->filter_cache->active_face_set)) {
-        continue;
-      }
     }
 
     SCULPT_surface_smooth_displace_step(ss,
@@ -634,7 +614,6 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   eSculptMeshFilterType filter_type = RNA_enum_get(op->ptr, "type");
   float filter_strength = RNA_float_get(op->ptr, "strength");
-  const bool use_face_sets = RNA_boolean_get(op->ptr, "use_face_sets");
 
   if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
     SCULPT_filter_cache_free(ss);
@@ -652,7 +631,7 @@ static int sculpt_mesh_filter_modal(bContext *C, wmOperator *op, const wmEvent *
 
   SCULPT_vertex_random_access_ensure(ss);
 
-  bool needs_pmap = sculpt_mesh_filter_needs_pmap(filter_type, use_face_sets);
+  bool needs_pmap = sculpt_mesh_filter_needs_pmap(filter_type);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, needs_pmap, false, false);
 
   SculptThreadedTaskData data = {
@@ -700,15 +679,15 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
 
   const eMeshFilterDeformAxis deform_axis = RNA_enum_get(op->ptr, "deform_axis");
   const eSculptMeshFilterType filter_type = RNA_enum_get(op->ptr, "type");
-  const bool use_face_sets = RNA_boolean_get(op->ptr, "use_face_sets");
-  const bool needs_topology_info = sculpt_mesh_filter_needs_pmap(filter_type, use_face_sets);
+  const bool use_automasking = SCULPT_is_automasking_enabled(sd, ss, NULL);
+  const bool needs_topology_info = sculpt_mesh_filter_needs_pmap(filter_type) || use_automasking;
 
   if (deform_axis == 0) {
     /* All axis are disabled, so the filter is not going to produce any deformation. */
     return OPERATOR_CANCELLED;
   }
 
-  if (use_face_sets) {
+  if (use_automasking) {
     /* Update the active face set manually as the paint cursor is not enabled when using the Mesh
      * Filter Tool. */
     float mouse[2];
@@ -729,8 +708,8 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
   SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COORDS);
 
   FilterCache *filter_cache = ss->filter_cache;
-  filter_cache->active_face_set = use_face_sets ? SCULPT_active_face_set_get(ss) :
-                                                  SCULPT_FACE_SET_NONE;
+  filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
+  filter_cache->automasking = SCULPT_automasking_cache_init(sd, NULL, ob);
 
   switch (filter_type) {
     case MESH_FILTER_SURFACE_SMOOTH: {
@@ -808,11 +787,6 @@ void SCULPT_OT_mesh_filter(struct wmOperatorType *ot)
                SCULPT_FILTER_ORIENTATION_LOCAL,
                "Orientation",
                "Orientation of the axis to limit the filter displacement");
-  ot->prop = RNA_def_boolean(ot->srna,
-                             "use_face_sets",
-                             false,
-                             "Use Face Sets",
-                             "Apply the filter only to the Face Mask under the cursor");
 
   /* Surface Smooth Mesh Filter properties. */
   RNA_def_float(ot->srna,

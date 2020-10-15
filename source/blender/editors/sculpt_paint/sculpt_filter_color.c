@@ -119,6 +119,10 @@ static void color_filter_task_cb(void *__restrict userdata,
     float fade = vd.mask ? *vd.mask : 0.0f;
     fade = 1.0f - fade;
     fade *= data->filter_strength;
+    fade *= SCULPT_automasking_factor_get(ss->filter_cache->automasking, ss, vd.index);
+    if (fade == 0.0f) {
+      continue;
+    }
 
     copy_v3_v3(orig_color, orig_data.col);
 
@@ -255,13 +259,24 @@ static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent 
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *ob = CTX_data_active_object(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
   int mode = RNA_enum_get(op->ptr, "type");
   PBVH *pbvh = ob->sculpt->pbvh;
+
+  const bool use_automasking = SCULPT_is_automasking_enabled(sd, ss, NULL);
+  if (use_automasking) {
+    /* Update the active face set manually as the paint cursor is not enabled when using the Mesh
+     * Filter Tool. */
+    float mouse[2];
+    SculptCursorGeometryInfo sgi;
+    mouse[0] = event->mval[0];
+    mouse[1] = event->mval[1];
+    SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
+  }
 
   /* Disable for multires and dyntopo for now */
   if (!ss->pbvh) {
@@ -282,14 +297,17 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   /* CTX_data_ensure_evaluated_depsgraph should be used at the end to include the updates of
    * earlier steps modifying the data. */
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  bool needs_pmap = mode == COLOR_FILTER_SMOOTH;
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, needs_pmap, false, true);
+  const bool needs_topology_info = mode == COLOR_FILTER_SMOOTH || use_automasking;
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, needs_topology_info, false, true);
 
-  if (BKE_pbvh_type(pbvh) == PBVH_FACES && needs_pmap && !ob->sculpt->pmap) {
+  if (BKE_pbvh_type(pbvh) == PBVH_FACES && needs_topology_info && !ob->sculpt->pmap) {
     return OPERATOR_CANCELLED;
   }
 
   SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COLOR);
+  FilterCache *filter_cache = ss->filter_cache;
+  filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
+  filter_cache->automasking = SCULPT_automasking_cache_init(sd, NULL, ob);
 
   WM_event_add_modal_handler(C, op);
   return OPERATOR_RUNNING_MODAL;

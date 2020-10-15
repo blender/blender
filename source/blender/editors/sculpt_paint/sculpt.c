@@ -2506,7 +2506,7 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
   avg *= 1.0f - mask;
 
   /* Auto-masking. */
-  avg *= SCULPT_automasking_factor_get(ss, vertex_index);
+  avg *= SCULPT_automasking_factor_get(cache->automasking, ss, vertex_index);
 
   return avg;
 }
@@ -3908,7 +3908,7 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
       mul_v3_fl(final_disp, 1.0f - *vd.mask);
     }
 
-    mul_v3_fl(final_disp, SCULPT_automasking_factor_get(ss, vd.index));
+    mul_v3_fl(final_disp, SCULPT_automasking_factor_get(ss->cache->automasking, ss, vd.index));
 
     copy_v3_v3(proxy[vd.i], final_disp);
 
@@ -5760,7 +5760,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
 
     if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
       if (SCULPT_is_automasking_enabled(sd, ss, brush)) {
-        SCULPT_automasking_init(sd, ob);
+        ss->cache->automasking = SCULPT_automasking_cache_init(sd, brush, ob);
       }
     }
 
@@ -7764,7 +7764,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
     }
 
     if (SCULPT_is_automasking_enabled(sd, ss, brush)) {
-      SCULPT_automasking_end(ob);
+      SCULPT_automasking_cache_free(ss->cache->automasking);
     }
 
     BKE_pbvh_node_color_buffer_free(ss->pbvh);

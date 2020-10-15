@@ -36,6 +36,7 @@
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 
+struct AutomaskingCache;
 struct KeyBlock;
 struct Object;
 struct SculptPoseIKChainSegment;
@@ -329,10 +330,16 @@ enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob);
 void SCULPT_pbvh_clear(Object *ob);
 
 /* Automasking. */
-float SCULPT_automasking_factor_get(SculptSession *ss, int vert);
+float SCULPT_automasking_factor_get(struct AutomaskingCache *automasking,
+                                    SculptSession *ss,
+                                    int vert);
 
-void SCULPT_automasking_init(Sculpt *sd, Object *ob);
-void SCULPT_automasking_end(Object *ob);
+/* Returns the automasking cache depending on the active tool. Used for code that can run both for
+ * brushes and filter. */
+struct AutomaskingCache *SCULPT_automasking_active_cache_get(SculptSession *ss);
+
+struct AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object *ob);
+void SCULPT_automasking_cache_free(struct AutomaskingCache *automasking);
 
 bool SCULPT_is_automasking_mode_enabled(const Sculpt *sd,
                                         const Brush *br,
@@ -826,6 +833,13 @@ typedef struct AutomaskingSettings {
   int initial_face_set;
 } AutomaskingSettings;
 
+typedef struct AutomaskingCache {
+  AutomaskingSettings settings;
+  /* Precomputed automask factor indexed by vertex, owned by the automasking system and initialized
+   * in SCULPT_automasking_cache_init when needed. */
+  float *factor;
+} AutomaskingCache;
+
 typedef struct StrokeCache {
   /* Invariants */
   float initial_radius;
@@ -966,10 +980,7 @@ typedef struct StrokeCache {
   float gravity_direction[3];
 
   /* Automasking. */
-  AutomaskingSettings automask_settings;
-  /* Precomputed automask factor indexed by vertex, owned by the automasking system and initialized
-   * in SCULPT_automasking_init when needed. */
-  float *automask_factor;
+  AutomaskingCache *automasking;
 
   float stroke_local_mat[4][4];
   float multiplane_scrape_angle;
@@ -1041,13 +1052,13 @@ typedef struct FilterCache {
   float *prev_mask;
   float mask_expand_initial_co[3];
 
-  /* Used to prevent undesired results on certain mesh filters. */
-  float *automask;
-
   int new_face_set;
   int *prev_face_set;
 
   int active_face_set;
+
+  /* Automasking. */
+  AutomaskingCache *automasking;
 } FilterCache;
 
 void SCULPT_cache_calc_brushdata_symm(StrokeCache *cache,
