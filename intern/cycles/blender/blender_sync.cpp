@@ -151,6 +151,11 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
       const bool is_geometry = object_is_geometry(b_ob);
       const bool is_light = !is_geometry && object_is_light(b_ob);
 
+      if (b_ob.is_instancer() && b_update->is_updated_shading()) {
+        /* Needed for e.g. object color updates on instancer. */
+        object_map.set_recalc(b_ob);
+      }
+
       if (is_geometry || is_light) {
         const bool updated_geometry = b_update->is_updated_geometry();
 
