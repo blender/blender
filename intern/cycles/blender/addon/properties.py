@@ -1608,8 +1608,13 @@ class CyclesPreferences(bpy.types.AddonPreferences):
     # For backwards compatibility, only returns CUDA and OpenCL but still
     # refreshes all devices.
     def get_devices(self, compute_device_type=''):
+        import _cycles
+        # Ensure `self.devices` is not re-allocated when the second call to
+        # get_devices_for_type is made, freeing items from the first list.
+        for device_type in ('CUDA', 'OPTIX', 'OPENCL'):
+            self.update_device_entries(_cycles.available_devices(device_type))
+
         cuda_devices = self.get_devices_for_type('CUDA')
-        self.get_devices_for_type('OPTIX')
         opencl_devices = self.get_devices_for_type('OPENCL')
         return cuda_devices, opencl_devices
 
