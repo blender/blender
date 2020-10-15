@@ -20,6 +20,7 @@
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
+#include "BLI_alloca.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
@@ -43,6 +44,7 @@
 #include "DNA_shader_fx_types.h"
 #include "DNA_workspace_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
 #include "BKE_gpencil.h"
@@ -226,6 +228,47 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
             "You may have to reconstruct your View Layers...\n",
             collection->id.name);
       }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 291, 8)) {
+    /**
+     * Make sure Emission Alpha fcurve and drivers is properly mapped after the Emission Strength
+     * got introduced.
+     * */
+
+    /**
+     * Effectively we are replacing the (animation of) node socket input 18 with 19.
+     * Emission Strength is the new socket input 18, pushing Emission Alpha to input 19.
+     *
+     * To play safe we move all the inputs beyond 18 to their rightful new place.
+     * In case users are doing unexpected things with not-really supported keyframeable channels.
+     *
+     * The for loop for the input ids is at the top level otherwise we loose the animation
+     * keyframe data.
+     * */
+    for (int input_id = 21; input_id >= 18; input_id--) {
+      FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+        if (ntree->type == NTREE_SHADER) {
+          LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+            if (node->type != SH_NODE_BSDF_PRINCIPLED) {
+              continue;
+            }
+
+            const size_t node_name_length = strlen(node->name);
+            const size_t node_name_escaped_max_length = (node_name_length * 2);
+            char *node_name_escaped = BLI_array_alloca(node_name_escaped,
+                                                       node_name_escaped_max_length + 1);
+            BLI_strescape(node_name_escaped, node->name, node_name_escaped_max_length);
+            char *rna_path_prefix = BLI_sprintfN("nodes[\"%s\"].inputs", node_name_escaped);
+
+            BKE_animdata_fix_paths_rename_all_ex(
+                bmain, id, rna_path_prefix, NULL, NULL, input_id, input_id + 1, false);
+            MEM_freeN(rna_path_prefix);
+          }
+        }
+      }
+      FOREACH_NODETREE_END;
     }
   }
 
@@ -769,17 +812,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
+  if (!MAIN_VERSION_ATLEAST(bmain, 291, 8)) {
     if (!DNA_struct_elem_find(fd->filesdna, "WorkSpaceDataRelation", "int", "parentid")) {
       LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
         LISTBASE_FOREACH_MUTABLE (
@@ -820,5 +853,18 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }

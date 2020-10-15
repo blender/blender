@@ -1406,13 +1406,30 @@ void BKE_animdata_main_cb(Main *bmain, ID_AnimData_Edit_Callback func, void *use
  * NOTE: it is assumed that the structure we're replacing is <prefix><["><name><"]>
  *      i.e. pose.bones["Bone"]
  */
-/* TODO: use BKE_animdata_main_cb for looping over all data  */
 void BKE_animdata_fix_paths_rename_all(ID *ref_id,
                                        const char *prefix,
                                        const char *oldName,
                                        const char *newName)
 {
   Main *bmain = G.main; /* XXX UGLY! */
+  BKE_animdata_fix_paths_rename_all_ex(bmain, ref_id, prefix, oldName, newName, 0, 0, 1);
+}
+
+/* Fix all RNA-Paths throughout the database
+ * NOTE: it is assumed that the structure we're replacing is <prefix><["><name><"]>
+ *      i.e. pose.bones["Bone"]
+ */
+/* TODO: use BKE_animdata_main_cb for looping over all data  */
+void BKE_animdata_fix_paths_rename_all_ex(Main *bmain,
+                                          ID *ref_id,
+                                          const char *prefix,
+                                          const char *oldName,
+                                          const char *newName,
+                                          const int oldSubscript,
+                                          const int newSubscript,
+                                          const bool verify_paths)
+{
+
   ID *id;
 
   /* macro for less typing
@@ -1422,7 +1439,8 @@ void BKE_animdata_fix_paths_rename_all(ID *ref_id,
 #define RENAMEFIX_ANIM_IDS(first) \
   for (id = first; id; id = id->next) { \
     AnimData *adt = BKE_animdata_from_id(id); \
-    BKE_animdata_fix_paths_rename(id, adt, ref_id, prefix, oldName, newName, 0, 0, 1); \
+    BKE_animdata_fix_paths_rename( \
+        id, adt, ref_id, prefix, oldName, newName, oldSubscript, newSubscript, verify_paths); \
   } \
   (void)0
 
@@ -1433,10 +1451,18 @@ void BKE_animdata_fix_paths_rename_all(ID *ref_id,
     NtId_Type *ntp = (NtId_Type *)id; \
     if (ntp->nodetree) { \
       AnimData *adt2 = BKE_animdata_from_id((ID *)ntp->nodetree); \
-      BKE_animdata_fix_paths_rename( \
-          (ID *)ntp->nodetree, adt2, ref_id, prefix, oldName, newName, 0, 0, 1); \
+      BKE_animdata_fix_paths_rename((ID *)ntp->nodetree, \
+                                    adt2, \
+                                    ref_id, \
+                                    prefix, \
+                                    oldName, \
+                                    newName, \
+                                    oldSubscript, \
+                                    newSubscript, \
+                                    verify_paths); \
     } \
-    BKE_animdata_fix_paths_rename(id, adt, ref_id, prefix, oldName, newName, 0, 0, 1); \
+    BKE_animdata_fix_paths_rename( \
+        id, adt, ref_id, prefix, oldName, newName, oldSubscript, newSubscript, verify_paths); \
   } \
   (void)0
 

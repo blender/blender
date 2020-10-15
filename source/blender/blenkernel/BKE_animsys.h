@@ -152,6 +152,16 @@ void BKE_animdata_fix_paths_rename_all(struct ID *ref_id,
                                        const char *oldName,
                                        const char *newName);
 
+/* Fix all the paths for the entire bmain with extra parameters. */
+void BKE_animdata_fix_paths_rename_all_ex(struct Main *bmain,
+                                          struct ID *ref_id,
+                                          const char *prefix,
+                                          const char *oldName,
+                                          const char *newName,
+                                          const int oldSubscript,
+                                          const int newSubscript,
+                                          const bool verify_paths);
+
 /* Fix the path after removing elements that are not ID (e.g., node).
  * Return true if any animation data was affected. */
 bool BKE_animdata_fix_paths_remove(struct ID *id, const char *path);
