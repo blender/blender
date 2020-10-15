@@ -157,6 +157,7 @@ static float cloth_brush_simulation_falloff_get(const Brush *brush,
 #define CLOTH_SIMULATION_TIME_STEP 0.01f
 #define CLOTH_DEFORMATION_SNAKEHOOK_STRENGTH 0.35f
 #define CLOTH_DEFORMATION_TARGET_STRENGTH 0.01f
+#define CLOTH_DEFORMATION_GRAB_STRENGTH 0.1f
 
 static bool cloth_brush_sim_has_length_constraint(SculptClothSimulation *cloth_sim,
                                                   const int v1,
@@ -381,7 +382,8 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
         /* When the grab brush brush is used as part of the cloth brush, deformation constraints
          * are created with different strengths and only inside the radius of the brush. */
         const float fade = BKE_brush_curve_strength(brush, sqrtf(len_squared), ss->cache->radius);
-        cloth_brush_add_deformation_constraint(data->cloth_sim, node_index, vd.index, fade);
+        cloth_brush_add_deformation_constraint(
+            data->cloth_sim, node_index, vd.index, fade * CLOTH_DEFORMATION_GRAB_STRENGTH);
       }
       else if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_SNAKE_HOOK) {
         /* Cloth Snake Hook creates deformation constraint with fixed strength because the strength
