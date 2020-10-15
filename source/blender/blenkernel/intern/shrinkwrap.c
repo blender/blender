@@ -1548,7 +1548,11 @@ void BKE_shrinkwrap_remesh_target_project(Mesh *src_me, Mesh *target_me, Object 
   ssmd.shrinkMode = MOD_SHRINKWRAP_ON_SURFACE;
   ssmd.shrinkOpts = MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR | MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR;
   ssmd.keepDist = 0.0f;
-  ssmd.projLimit = target_me->remesh_voxel_size;
+  
+  /* Tolerance value to prevent artifacts on sharp edges of a mesh. 
+   * This constant and based on experimenting with different values. */
+  const float projLimitTolerance = 5.0f;
+  ssmd.projLimit = target_me->remesh_voxel_size * projLimitTolerance;
 
   float(*vertexCos)[3] = BKE_mesh_vert_coords_alloc(src_me, &totvert);
 
