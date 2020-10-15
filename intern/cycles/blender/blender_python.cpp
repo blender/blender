@@ -410,6 +410,11 @@ static PyObject *available_devices_func(PyObject * /*self*/, PyObject *args)
   }
 
   DeviceType type = Device::type_from_string(type_name);
+  if ((type == DEVICE_NONE) && (type_name[0] != '\0')) {
+    PyErr_Format(PyExc_ValueError, "Device \"%s\" not known.", type_name);
+    return NULL;
+  }
+
   uint mask = (type == DEVICE_NONE) ? DEVICE_MASK_ALL : DEVICE_MASK(type);
   mask |= DEVICE_MASK_CPU;
 
