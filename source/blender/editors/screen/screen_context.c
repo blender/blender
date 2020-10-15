@@ -109,6 +109,7 @@ const char *screen_context_dir[] = {
     "selected_visible_fcurves",
     "selected_editable_fcurves",
     "active_editable_fcurve",
+    "selected_editable_keyframes",
     NULL,
 };
 
@@ -984,6 +985,46 @@ static eContextResult screen_ctx_active_editable_fcurve(const bContext *C,
   }
   return CTX_RESULT_NO_DATA;
 }
+static eContextResult screen_ctx_selected_editable_keyframes(const bContext *C,
+                                                             bContextDataResult *result)
+{
+  bAnimContext ac;
+  if (ANIM_animdata_get_context(C, &ac) && ELEM(ac.spacetype, SPACE_ACTION, SPACE_GRAPH)) {
+    ListBase anim_data = {NULL, NULL};
+
+    /* Use keyframes from editable selected FCurves. */
+    int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_NODUPLIS | ANIMFILTER_FOREDIT |
+                  ANIMFILTER_SEL) |
+                 (ac.spacetype == SPACE_GRAPH ? ANIMFILTER_CURVE_VISIBLE :
+                                                ANIMFILTER_LIST_VISIBLE);
+
+    ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+
+    int i;
+    FCurve *fcurve;
+    BezTriple *bezt;
+    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+      if (!ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
+        continue;
+      }
+
+      fcurve = (FCurve *)ale->data;
+      for (i = 0, bezt = fcurve->bezt; i < fcurve->totvert; i++, bezt++) {
+        if ((bezt->f2 & SELECT) == 0) {
+          continue;
+        }
+
+        CTX_data_list_add(result, ale->fcurve_owner_id, &RNA_Keyframe, bezt);
+      }
+    }
+
+    ANIM_animdata_freelist(&anim_data);
+
+    CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+    return CTX_RESULT_OK;
+  }
+  return CTX_RESULT_NO_DATA;
+}
 
 /* Registry of context callback functions. */
 
@@ -1058,6 +1099,7 @@ static void ensure_ed_screen_context_functions(void)
   register_context_function("selected_editable_fcurves", screen_ctx_selected_editable_fcurves);
   register_context_function("selected_visible_fcurves", screen_ctx_selected_visible_fcurves);
   register_context_function("active_editable_fcurve", screen_ctx_active_editable_fcurve);
+  register_context_function("selected_editable_keyframes", screen_ctx_selected_editable_keyframes);
 }
 
 /* Entry point for the screen context. */

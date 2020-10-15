@@ -816,6 +816,9 @@ bool UI_context_copy_to_selected_list(bContext *C,
   else if (RNA_struct_is_a(ptr->type, &RNA_FCurve)) {
     *r_lb = CTX_data_collection_get(C, "selected_editable_fcurves");
   }
+  else if (RNA_struct_is_a(ptr->type, &RNA_Keyframe)) {
+    *r_lb = CTX_data_collection_get(C, "selected_editable_keyframes");
+  }
   else if (RNA_struct_is_a(ptr->type, &RNA_NlaStrip)) {
     *r_lb = CTX_data_collection_get(C, "selected_nla_strips");
   }
