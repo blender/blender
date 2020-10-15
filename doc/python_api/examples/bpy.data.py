@@ -19,7 +19,7 @@ if "Cube" in bpy.data.meshes:
 # get a pose bone from an armature and get it's data path to create F-curve if it 
 # does not exist or access it if it does exist
 if 'Armature' in bpy.data.armatures:
-    if 'Bone' in bpy.data.armatures['Armature'].pose.bones:
+    if 'BoneName' in bpy.data.armatures['Armature'].pose.bones:
         poseBone = bpy.data.armatures['ArmatureName'].pose.bones['BoneName']
         path = poseBone.path_from_id("location") 
 
