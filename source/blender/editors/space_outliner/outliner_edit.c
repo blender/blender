@@ -363,34 +363,47 @@ void item_rename_fn(bContext *C,
   do_item_rename(region, te, tselem, reports);
 }
 
+static TreeElement *outliner_item_rename_find_active(const SpaceOutliner *space_outliner,
+                                                     ReportList *reports)
+{
+  TreeElement *active_element = outliner_find_element_with_flag(&space_outliner->tree, TSE_ACTIVE);
+
+  if (!active_element) {
+    BKE_report(reports, RPT_WARNING, "No active item to rename");
+    return NULL;
+  }
+
+  return active_element;
+}
+
+static TreeElement *outliner_item_rename_find_hovered(const SpaceOutliner *space_outliner,
+                                                      ARegion *region,
+                                                      const wmEvent *event)
+{
+  float fmval[2];
+  UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
+
+  TreeElement *hovered = outliner_find_item_at_y(space_outliner, &space_outliner->tree, fmval[1]);
+  if (hovered && outliner_item_is_co_over_name(hovered, fmval[0])) {
+    return hovered;
+  }
+
+  return NULL;
+}
+
 static int outliner_item_rename(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
-  float fmval[2];
+  const bool use_active = RNA_boolean_get(op->ptr, "use_active");
 
-  /* Rename active element if key pressed, otherwise rename element at cursor coordinates */
-  if (event->val == KM_PRESS) {
-    TreeElement *active_element = outliner_find_element_with_flag(&space_outliner->tree,
-                                                                  TSE_ACTIVE);
-
-    if (active_element) {
-      do_item_rename(region, active_element, TREESTORE(active_element), op->reports);
-    }
-    else {
-      BKE_report(op->reports, RPT_WARNING, "No active item to rename");
-    }
+  TreeElement *te = use_active ? outliner_item_rename_find_active(space_outliner, op->reports) :
+                                 outliner_item_rename_find_hovered(space_outliner, region, event);
+  if (!te) {
+    return OPERATOR_CANCELLED;
   }
-  else {
-    UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
-    TreeElement *hovered = outliner_find_item_at_y(
-        space_outliner, &space_outliner->tree, fmval[1]);
-
-    if (hovered && outliner_item_is_co_over_name(hovered, fmval[0])) {
-      do_item_rename(region, hovered, TREESTORE(hovered), op->reports);
-    }
-  }
+  do_item_rename(region, te, TREESTORE(te), op->reports);
 
   return OPERATOR_FINISHED;
 }
@@ -407,6 +420,12 @@ void OUTLINER_OT_item_rename(wmOperatorType *ot)
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(ot->srna,
+                  "use_active",
+                  false,
+                  "Use Active",
+                  "Rename the active item, rather than the one the mouse is over");
 }
 
 /** \} */
