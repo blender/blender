@@ -39,6 +39,7 @@
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_brush.h"
 #include "BKE_ccg.h"
 #include "BKE_context.h"
 #include "BKE_mesh.h"
@@ -861,6 +862,8 @@ typedef struct SculptGestureTrimOperation {
   float depth_front;
   float depth_back;
 
+  bool use_cursor_depth;
+
   eSculptTrimOperationType mode;
 } SculptGestureTrimOperation;
 
@@ -898,7 +901,7 @@ static void sculpt_gesture_trim_normals_update(SculptGestureContext *sgcontext)
   trim_operation->mesh = result;
 }
 
-static void sculpt_gesture_trim_calculate_depth(SculptGestureContext *sgcontext)
+static void sculpt_gesture_trim_calculate_depth(bContext *C, SculptGestureContext *sgcontext)
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
 
@@ -927,6 +930,25 @@ static void sculpt_gesture_trim_calculate_depth(SculptGestureContext *sgcontext)
     trim_operation->depth_front = min_ff(dist, trim_operation->depth_front);
     trim_operation->depth_back = max_ff(dist, trim_operation->depth_back);
   }
+
+  if (trim_operation->use_cursor_depth) {
+    float world_space_gesture_initial_location[3];
+    mul_v3_m4v3(
+        world_space_gesture_initial_location, vc->obact->obmat, ss->gesture_initial_location);
+    const float mid_point_depth = ss->gesture_initial_hit ?
+                                      dist_signed_to_plane_v3(world_space_gesture_initial_location,
+                                                              view_plane) :
+                                      (trim_operation->depth_back + trim_operation->depth_front) *
+                                          0.5f;
+
+    Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+    Brush *brush = BKE_paint_brush(&sd->paint);
+    Scene *scene = CTX_data_scene(C);
+    const float depth_radius = BKE_brush_unprojected_radius_get(scene, brush);
+
+    trim_operation->depth_front = mid_point_depth - depth_radius;
+    trim_operation->depth_back = mid_point_depth + depth_radius;
+  }
 }
 
 static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontext)
@@ -944,8 +966,16 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
       trim_totverts, 0, 0, trim_totpolys * 3, trim_totpolys);
   trim_operation->true_mesh_co = MEM_malloc_arrayN(trim_totverts, 3 * sizeof(float), "mesh orco");
 
-  const float depth_front = trim_operation->depth_front - 0.1f;
-  const float depth_back = trim_operation->depth_back + 0.1f;
+  float depth_front = trim_operation->depth_front;
+  float depth_back = trim_operation->depth_back;
+
+  if (!trim_operation->use_cursor_depth) {
+    /* When using cursor depth, don't modify the depth set by the cursor radius. If full depth is
+     * used, adding a little padding to the trimming shape can help avoiding booleans with coplanar
+     * faces. */
+    depth_front -= 0.1f;
+    depth_back += 0.1f;
+  }
 
   /* Use the view origin and normal in world space. The trimming mesh coordinates are calculated in
    * world space, aligned to the view, and then converted to object space to store them in the
@@ -1137,7 +1167,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
 static void sculpt_gesture_trim_begin(bContext *C, SculptGestureContext *sgcontext)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  sculpt_gesture_trim_calculate_depth(sgcontext);
+  sculpt_gesture_trim_calculate_depth(C, sgcontext);
   sculpt_gesture_trim_geometry_generate(sgcontext);
   BKE_sculpt_update_object_for_edit(depsgraph, sgcontext->vc.obact, true, false, false);
   SCULPT_undo_push_node(sgcontext->vc.obact, NULL, SCULPT_UNDO_GEOMETRY);
@@ -1185,6 +1215,7 @@ static void sculpt_gesture_init_trim_properties(SculptGestureContext *sgcontext,
   trim_operation->op.sculpt_gesture_end = sculpt_gesture_trim_end;
 
   trim_operation->mode = RNA_enum_get(op->ptr, "trim_mode");
+  trim_operation->use_cursor_depth = RNA_enum_get(op->ptr, "use_cursor_depth");
 }
 
 static void sculpt_trim_gesture_operator_properties(wmOperatorType *ot)
@@ -1195,6 +1226,12 @@ static void sculpt_trim_gesture_operator_properties(wmOperatorType *ot)
                SCULPT_GESTURE_TRIM_DIFFERENCE,
                "Trim Mode",
                NULL);
+  RNA_def_boolean(
+      ot->srna,
+      "use_cursor_depth",
+      false,
+      "Use Cursor for Depth",
+      "Use cursor location and radius for the dimensions and position of the trimming shape");
 }
 
 /* Project Gesture Operation. */
@@ -1369,6 +1406,22 @@ static int sculpt_trim_gesture_box_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int sculpt_trim_gesture_box_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+
+  SculptCursorGeometryInfo sgi;
+  float mouse[2] = {event->mval[0], event->mval[1]};
+  SCULPT_vertex_random_access_ensure(ss);
+  ss->gesture_initial_hit = SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
+  if (ss->gesture_initial_hit) {
+    copy_v3_v3(ss->gesture_initial_location, sgi.location);
+  }
+
+  return WM_gesture_box_invoke(C, op, event);
+}
+
 static int sculpt_trim_gesture_lasso_exec(bContext *C, wmOperator *op)
 {
   Object *object = CTX_data_active_object(C);
@@ -1386,6 +1439,22 @@ static int sculpt_trim_gesture_lasso_exec(bContext *C, wmOperator *op)
   sculpt_gesture_apply(C, sgcontext);
   sculpt_gesture_context_free(sgcontext);
   return OPERATOR_FINISHED;
+}
+
+static int sculpt_trim_gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Object *ob = CTX_data_active_object(C);
+  SculptSession *ss = ob->sculpt;
+
+  SculptCursorGeometryInfo sgi;
+  float mouse[2] = {event->mval[0], event->mval[1]};
+  SCULPT_vertex_random_access_ensure(ss);
+  ss->gesture_initial_hit = SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
+  if (ss->gesture_initial_hit) {
+    copy_v3_v3(ss->gesture_initial_location, sgi.location);
+  }
+
+  return WM_gesture_lasso_invoke(C, op, event);
 }
 
 static int project_gesture_line_exec(bContext *C, wmOperator *op)
@@ -1503,7 +1572,7 @@ void SCULPT_OT_trim_lasso_gesture(wmOperatorType *ot)
   ot->idname = "SCULPT_OT_trim_lasso_gesture";
   ot->description = "Trims the mesh within the lasso as you move the brush";
 
-  ot->invoke = WM_gesture_lasso_invoke;
+  ot->invoke = sculpt_trim_gesture_lasso_invoke;
   ot->modal = WM_gesture_lasso_modal;
   ot->exec = sculpt_trim_gesture_lasso_exec;
 
@@ -1524,7 +1593,7 @@ void SCULPT_OT_trim_box_gesture(wmOperatorType *ot)
   ot->idname = "SCULPT_OT_trim_box_gesture";
   ot->description = "Trims the mesh within the box as you move the brush";
 
-  ot->invoke = WM_gesture_box_invoke;
+  ot->invoke = sculpt_trim_gesture_box_invoke;
   ot->modal = WM_gesture_box_modal;
   ot->exec = sculpt_trim_gesture_box_exec;
 
