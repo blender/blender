@@ -35,6 +35,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_defaults.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_meshdata_types.h"
@@ -68,19 +69,15 @@
 static void initData(GpencilModifierData *md)
 {
   NoiseGpencilModifierData *gpmd = (NoiseGpencilModifierData *)md;
-  gpmd->pass_index = 0;
-  gpmd->flag |= GP_NOISE_FULL_STROKE;
-  gpmd->flag |= GP_NOISE_USE_RANDOM;
-  gpmd->factor = 0.5f;
-  gpmd->material = NULL;
-  gpmd->step = 4;
-  gpmd->seed = 1;
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(gpmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(NoiseGpencilModifierData), modifier);
+
   gpmd->curve_intensity = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-  if (gpmd->curve_intensity) {
-    CurveMapping *curve = gpmd->curve_intensity;
-    BKE_curvemap_reset(curve->cm, &curve->clipr, CURVE_PRESET_BELL, CURVEMAP_SLOPE_POSITIVE);
-    BKE_curvemapping_init(curve);
-  }
+  CurveMapping *curve = gpmd->curve_intensity;
+  BKE_curvemap_reset(curve->cm, &curve->clipr, CURVE_PRESET_BELL, CURVEMAP_SLOPE_POSITIVE);
+  BKE_curvemapping_init(curve);
 }
 
 static void freeData(GpencilModifierData *md)

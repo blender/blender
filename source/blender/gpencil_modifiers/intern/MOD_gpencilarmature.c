@@ -31,6 +31,7 @@
 #include "BLT_translation.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_defaults.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_meshdata_types.h"
@@ -68,8 +69,10 @@
 static void initData(GpencilModifierData *md)
 {
   ArmatureGpencilModifierData *gpmd = (ArmatureGpencilModifierData *)md;
-  gpmd->object = NULL;
-  gpmd->deformflag = ARM_DEF_VGROUP;
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(gpmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(ArmatureGpencilModifierData), modifier);
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)

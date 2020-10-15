@@ -25,6 +25,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_defaults.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
@@ -74,14 +75,11 @@
 
 static void initData(GpencilModifierData *md)
 {
-  MultiplyGpencilModifierData *mmd = (MultiplyGpencilModifierData *)md;
-  mmd->duplications = 3;
-  mmd->distance = 0.1f;
-  mmd->split_angle = DEG2RADF(1.0f);
-  mmd->fading_center = 0.5f;
-  mmd->fading_thickness = 0.5f;
-  mmd->fading_opacity = 0.5f;
-  mmd->material = NULL;
+  MultiplyGpencilModifierData *gpmd = (MultiplyGpencilModifierData *)md;
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(gpmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(MultiplyGpencilModifierData), modifier);
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)

@@ -32,6 +32,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_meshdata_types.h"
@@ -61,15 +62,9 @@ static void initData(GpencilModifierData *md)
 {
   BuildGpencilModifierData *gpmd = (BuildGpencilModifierData *)md;
 
-  /* We deliberately set this range to the half the default
-   * frame-range to have an immediate effect to suggest use-cases
-   */
-  gpmd->start_frame = 1;
-  gpmd->end_frame = 125;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(gpmd, modifier));
 
-  /* Init default length of each build effect - Nothing special */
-  gpmd->start_delay = 0.0f;
-  gpmd->length = 100.0f;
+  MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(BuildGpencilModifierData), modifier);
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)

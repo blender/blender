@@ -30,6 +30,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_meshdata_types.h"
@@ -60,11 +61,10 @@
 static void initData(GpencilModifierData *md)
 {
   OffsetGpencilModifierData *gpmd = (OffsetGpencilModifierData *)md;
-  gpmd->pass_index = 0;
-  gpmd->material = NULL;
-  ARRAY_SET_ITEMS(gpmd->loc, 0.0f, 0.0f, 0.0f);
-  ARRAY_SET_ITEMS(gpmd->rot, 0.0f, 0.0f, 0.0f);
-  ARRAY_SET_ITEMS(gpmd->scale, 0.0f, 0.0f, 0.0f);
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(gpmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(OffsetGpencilModifierData), modifier);
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)

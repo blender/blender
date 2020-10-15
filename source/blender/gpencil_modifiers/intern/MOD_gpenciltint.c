@@ -30,6 +30,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_meshdata_types.h"
@@ -71,13 +72,10 @@
 static void initData(GpencilModifierData *md)
 {
   TintGpencilModifierData *gpmd = (TintGpencilModifierData *)md;
-  gpmd->pass_index = 0;
-  gpmd->material = NULL;
-  gpmd->object = NULL;
-  gpmd->radius = 1.0f;
-  gpmd->factor = 0.5f;
-  ARRAY_SET_ITEMS(gpmd->rgb, 1.0f, 1.0f, 1.0f);
-  gpmd->mode = GPPAINT_MODE_BOTH;
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(gpmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(TintGpencilModifierData), modifier);
 
   /* Add default color ramp. */
   gpmd->colorband = BKE_colorband_add(false);
@@ -94,10 +92,7 @@ static void initData(GpencilModifierData *md)
   }
 
   gpmd->curve_intensity = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-  if (gpmd->curve_intensity) {
-    CurveMapping *curve = gpmd->curve_intensity;
-    BKE_curvemapping_init(curve);
-  }
+  BKE_curvemapping_init(gpmd->curve_intensity);
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)

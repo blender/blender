@@ -35,6 +35,9 @@ set(INC
   ../windowmanager
   ../../../intern/eigen
   ../../../intern/guardedalloc
+
+  # dna_type_offsets.h in BLO_read_write.h
+  ${CMAKE_BINARY_DIR}/source/blender/makesdna/intern
 )
 
 set(INC_SYS

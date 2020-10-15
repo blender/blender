@@ -22,12 +22,14 @@
  */
 
 #include <stdio.h>
+#include <string.h> /* For #MEMCPY_STRUCT_AFTER. */
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
@@ -56,12 +58,10 @@
 static void initData(GpencilModifierData *md)
 {
   SimplifyGpencilModifierData *gpmd = (SimplifyGpencilModifierData *)md;
-  gpmd->pass_index = 0;
-  gpmd->step = 1;
-  gpmd->factor = 0.0f;
-  gpmd->length = 0.1f;
-  gpmd->distance = 0.1f;
-  gpmd->material = NULL;
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(gpmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(SimplifyGpencilModifierData), modifier);
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)

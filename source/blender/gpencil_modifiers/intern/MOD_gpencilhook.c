@@ -30,6 +30,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_defaults.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_meshdata_types.h"
@@ -87,15 +88,13 @@ struct GPHookData_cb {
 static void initData(GpencilModifierData *md)
 {
   HookGpencilModifierData *gpmd = (HookGpencilModifierData *)md;
-  gpmd->pass_index = 0;
-  gpmd->material = NULL;
-  gpmd->object = NULL;
-  gpmd->force = 0.5f;
-  gpmd->falloff_type = eGPHook_Falloff_Smooth;
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(gpmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(HookGpencilModifierData), modifier);
+
   gpmd->curfalloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-  if (gpmd->curfalloff) {
-    BKE_curvemapping_init(gpmd->curfalloff);
-  }
+  BKE_curvemapping_init(gpmd->curfalloff);
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)

@@ -144,6 +144,7 @@ set(SRC
   ../DNA_curve_defaults.h
   ../DNA_defaults.h
   ../DNA_fluid_defaults.h
+  ../DNA_gpencil_modifier_defaults.h
   ../DNA_hair_defaults.h
   ../DNA_image_defaults.h
   ../DNA_lattice_defaults.h
