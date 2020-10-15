@@ -81,3 +81,5 @@ endif()
 
 
 blender_add_lib(bf_gpencil_modifiers "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+add_dependencies(bf_gpencil_modifiers bf_dna)
