@@ -239,7 +239,7 @@ void BPY_modules_update(void)
   BPY_update_rna_module();
 }
 
-bContext *BPy_GetContext(void)
+bContext *BPY_context_get(void)
 {
   return bpy_context_module->ptr.data;
 }

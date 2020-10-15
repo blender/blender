@@ -433,14 +433,14 @@ static PyObject *bpy_gizmo_target_set_value(PyObject *UNUSED(self), PyObject *ar
                         "Gizmo target property array") == -1) {
           goto fail;
         }
-        WM_gizmo_target_property_float_set_array(BPy_GetContext(), gz, gz_prop, value);
+        WM_gizmo_target_property_float_set_array(BPY_context_get(), gz, gz_prop, value);
       }
       else {
         float value;
         if ((value = PyFloat_AsDouble(params.value)) == -1.0f && PyErr_Occurred()) {
           goto fail;
         }
-        WM_gizmo_target_property_float_set(BPy_GetContext(), gz, gz_prop, value);
+        WM_gizmo_target_property_float_set(BPY_context_get(), gz, gz_prop, value);
       }
       Py_RETURN_NONE;
     }

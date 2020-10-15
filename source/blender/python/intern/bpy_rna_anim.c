@@ -259,7 +259,7 @@ static int pyrna_struct_keyframe_parse(PointerRNA *ptr,
   }
 
   if (*r_cfra == FLT_MAX) {
-    *r_cfra = CTX_data_scene(BPy_GetContext())->r.cfra;
+    *r_cfra = CTX_data_scene(BPY_context_get())->r.cfra;
   }
 
   /* flag may be null (no option currently for remove keyframes e.g.). */
@@ -341,7 +341,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
    * It is unlikely that driver code (which is the reason this depsgraph pointer is obtained) will
    * be executed from this function call, as this only happens when `options` has
    * `INSERTKEY_DRIVER`, which is not exposed to Python. */
-  bContext *C = BPy_GetContext();
+  bContext *C = BPY_context_get();
   struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
                                                                                     cfra);
@@ -600,8 +600,8 @@ PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
       ret = pyrna_struct_CreatePyObject(&tptr);
     }
 
-    bContext *context = BPy_GetContext();
-    WM_event_add_notifier(BPy_GetContext(), NC_ANIMATION | ND_FCURVES_ORDER, NULL);
+    bContext *context = BPY_context_get();
+    WM_event_add_notifier(BPY_context_get(), NC_ANIMATION | ND_FCURVES_ORDER, NULL);
     DEG_relations_tag_update(CTX_data_main(context));
   }
   else {
@@ -659,7 +659,7 @@ PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args)
     return NULL;
   }
 
-  bContext *context = BPy_GetContext();
+  bContext *context = BPY_context_get();
   WM_event_add_notifier(context, NC_ANIMATION | ND_FCURVES_ORDER, NULL);
   DEG_relations_tag_update(CTX_data_main(context));
 

@@ -180,7 +180,7 @@ PyDoc_STRVAR(
     "   :type relative: bool\n");
 static PyObject *bpy_lib_load(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
-  Main *bmain = CTX_data_main(BPy_GetContext());
+  Main *bmain = CTX_data_main(BPY_context_get());
   BPy_Library *ret;
   const char *filename = NULL;
   bool is_rel = false, is_link = false;
@@ -319,7 +319,7 @@ static void bpy_lib_exit_warn_type(BPy_Library *self, PyObject *item)
 
 static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 {
-  Main *bmain = CTX_data_main(BPy_GetContext());
+  Main *bmain = CTX_data_main(BPY_context_get());
   Main *mainl = NULL;
   const int err = 0;
   const bool do_append = ((self->flag & FILE_LINK) == 0);
