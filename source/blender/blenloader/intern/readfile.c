@@ -8144,7 +8144,7 @@ static void add_loose_objects_to_scene(Main *mainvar,
         if (ob->id.us == 0) {
           do_it = true;
         }
-        else if ((ob->id.lib == lib) && (object_in_any_collection(bmain, ob) == 0)) {
+        else if ((ob->id.lib == lib) && !object_in_any_collection(bmain, ob)) {
           /* When appending, make sure any indirectly loaded object gets a base,
            * when they are not part of any collection yet. */
           do_it = true;
