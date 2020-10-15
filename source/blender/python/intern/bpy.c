@@ -349,7 +349,7 @@ static PyObject *bpy_import_test(const char *modname)
 /******************************************************************************
  * Description: Creates the bpy module and adds it to sys.modules for importing
  ******************************************************************************/
-void BPy_init_modules(void)
+void BPy_init_modules(struct bContext *C)
 {
   PointerRNA ctx_ptr;
   PyObject *mod;
@@ -400,8 +400,7 @@ void BPy_init_modules(void)
   PyModule_AddObject(mod, "_utils_previews", BPY_utils_previews_module());
   PyModule_AddObject(mod, "msgbus", BPY_msgbus_module());
 
-  /* bpy context */
-  RNA_pointer_create(NULL, &RNA_Context, (void *)BPy_GetContext(), &ctx_ptr);
+  RNA_pointer_create(NULL, &RNA_Context, C, &ctx_ptr);
   bpy_context_module = (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ctx_ptr);
   /* odd that this is needed, 1 ref on creation and another for the module
    * but without we get a crash on exit */

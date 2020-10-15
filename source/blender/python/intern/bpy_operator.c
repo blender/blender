@@ -339,7 +339,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
    * is freed by clear_globals(), further access will crash blender.
    * Setting context is not needed in this case, only calling because this
    * function corrects bpy.data (internal Main pointer) */
-  BPY_modules_update(C);
+  BPY_modules_update();
 
   /* return operator_ret as a bpy enum */
   return pyrna_enum_bitfield_to_py(rna_enum_operator_return_items, operator_ret);

@@ -334,9 +334,7 @@ void WM_init(bContext *C, int argc, const char **argv)
    * Will try fix when the crash can be repeated. - campbell. */
 
 #ifdef WITH_PYTHON
-  BPY_context_set(C); /* necessary evil */
-  BPY_python_start(argc, argv);
-
+  BPY_python_start(C, argc, argv);
   BPY_python_reset(C);
 #else
   (void)argc; /* unused */

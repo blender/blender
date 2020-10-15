@@ -48,9 +48,7 @@ bool BPy_errors_to_report_ex(struct ReportList *reports,
 bool BPy_errors_to_report_brief_with_prefix(struct ReportList *reports, const char *error_prefix);
 bool BPy_errors_to_report(struct ReportList *reports);
 
-/* TODO - find a better solution! */
-struct bContext *BPy_GetContext(void);
-void BPy_SetContext(struct bContext *C);
+struct bContext *BPY_context_get(void);
 
 extern void bpy_context_set(struct bContext *C, PyGILState_STATE *gilstate);
 extern void bpy_context_clear(struct bContext *C, const PyGILState_STATE *gilstate);

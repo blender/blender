@@ -38,16 +38,6 @@
 
 #include "../generic/py_capi_utils.h"
 
-static bContext *__py_context = NULL;
-bContext *BPy_GetContext(void)
-{
-  return __py_context;
-}
-void BPy_SetContext(bContext *C)
-{
-  __py_context = C;
-}
-
 char *BPy_enum_as_string(const EnumPropertyItem *item)
 {
   DynStr *dynstr = BLI_dynstr_new();

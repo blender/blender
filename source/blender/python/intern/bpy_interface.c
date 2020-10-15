@@ -111,8 +111,8 @@ void BPY_context_update(bContext *C)
     return;
   }
 
-  BPy_SetContext(C);
-  BPY_modules_update(C); /* can give really bad results if this isn't here */
+  BPY_context_set(C);
+  BPY_modules_update(); /* can give really bad results if this isn't here */
 }
 
 void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
@@ -155,7 +155,7 @@ void bpy_context_clear(bContext *UNUSED(C), const PyGILState_STATE *gilstate)
     /* XXX - Calling classes currently wont store the context :\,
      * cant set NULL because of this. but this is very flakey still. */
 #if 0
-    BPy_SetContext(NULL);
+    BPY_context_set(NULL);
 #endif
 
 #ifdef TIME_PY_RUN
@@ -224,7 +224,10 @@ void BPY_text_free_code(Text *text)
   }
 }
 
-void BPY_modules_update(bContext *C)
+/**
+ * Needed so the #Main pointer in `bpy.data` doesn't become out of date.
+ */
+void BPY_modules_update(void)
 {
 #if 0 /* slow, this runs all the time poll, draw etc 100's of time a sec. */
   PyObject *mod = PyImport_ImportModuleLevel("bpy", NULL, NULL, NULL, 0);
@@ -234,14 +237,16 @@ void BPY_modules_update(bContext *C)
 
   /* refreshes the main struct */
   BPY_update_rna_module();
-  if (bpy_context_module) {
-    bpy_context_module->ptr.data = (void *)C;
-  }
+}
+
+bContext *BPy_GetContext(void)
+{
+  return bpy_context_module->ptr.data;
 }
 
 void BPY_context_set(bContext *C)
 {
-  BPy_SetContext(C);
+  bpy_context_module->ptr.data = (void *)C;
 }
 
 #ifdef WITH_FLUID
@@ -295,7 +300,7 @@ static struct _inittab bpy_internal_modules[] = {
 };
 
 /* call BPY_context_set first */
-void BPY_python_start(int argc, const char **argv)
+void BPY_python_start(bContext *C, int argc, const char **argv)
 {
 #ifndef WITH_PYTHON_MODULE
   PyThreadState *py_tstate = NULL;
@@ -387,7 +392,7 @@ void BPY_python_start(int argc, const char **argv)
 #endif
 
   /* bpy.* and lets us import it */
-  BPy_init_modules();
+  BPy_init_modules(C);
 
   pyrna_alloc_types();
 

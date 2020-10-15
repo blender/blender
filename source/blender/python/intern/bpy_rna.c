@@ -80,6 +80,11 @@
 #define USE_MATHUTILS
 #define USE_STRING_COERCE
 
+/* Unfortunately Python needs to hold a global reference to the context.
+ * If we remove this is means `bpy.context` won't be usable from some parts of the code:
+ * `bpy.app.handler` callbacks for example.
+ * Even though this is arguably "correct", it's going to cause problems for existing scripts,
+ * so accept having this for the time being. */
 BPy_StructRNA *bpy_context_module = NULL; /* for fast access */
 
 static PyObject *pyrna_struct_Subtype(PointerRNA *ptr);

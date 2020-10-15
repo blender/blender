@@ -330,7 +330,9 @@ static void setup_app_data(bContext *C,
 
 #ifdef WITH_PYTHON
   /* let python know about new main */
-  BPY_context_update(C);
+  if (CTX_py_init_get(C)) {
+    BPY_context_update(C);
+  }
 #endif
 
   /* FIXME: this version patching should really be part of the file-reading code,
