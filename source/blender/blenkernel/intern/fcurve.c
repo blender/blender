@@ -1355,8 +1355,11 @@ bool test_time_fcurve(FCurve *fcu)
 /* The length of each handle is not allowed to be more
  * than the horizontal distance between (v1-v4).
  * This is to prevent curve loops.
+ *
+ * This function is very similar to BKE_curve_correct_bezpart(), but allows a steeper tangent for
+ * more snappy animations. This is not desired for other areas in which curves are used, though.
  */
-void correct_bezpart(const float v1[2], float v2[2], float v3[2], const float v4[2])
+void BKE_fcurve_correct_bezpart(const float v1[2], float v2[2], float v3[2], const float v4[2])
 {
   float h1[2], h2[2], len1, len2, len, fac;
 
@@ -1566,7 +1569,7 @@ bool BKE_fcurve_bezt_subdivide_handles(struct BezTriple *bezt,
   }
 
   /* Apply evaluation-time limits and compute the effective curve. */
-  correct_bezpart(prev_coords, prev_handle_right, next_handle_left, next_coords);
+  BKE_fcurve_correct_bezpart(prev_coords, prev_handle_right, next_handle_left, next_coords);
   float roots[4];
   if (!findzero(new_coords[0],
                 prev_coords[0],
@@ -1750,7 +1753,7 @@ static float fcurve_eval_keyframes_interpolate(FCurve *fcu, BezTriple *bezts, fl
         return v1[1];
       }
       /* adjust handles so that they don't overlap (forming a loop) */
-      correct_bezpart(v1, v2, v3, v4);
+      BKE_fcurve_correct_bezpart(v1, v2, v3, v4);
 
       /* try to get a value for this position - if failure, try another set of points */
       if (!findzero(evaltime, v1[0], v2[0], v3[0], v4[0], opl)) {

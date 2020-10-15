@@ -158,6 +158,8 @@ void BKE_curve_rect_from_textbox(const struct Curve *cu,
                                  const struct TextBox *tb,
                                  struct rctf *r_rect);
 
+void BKE_curve_correct_bezpart(const float v1[2], float v2[2], float v3[2], const float v4[2]);
+
 /* ** Nurbs ** */
 
 bool BKE_nurbList_index_get_co(struct ListBase *editnurb, const int index, float r_co[3]);

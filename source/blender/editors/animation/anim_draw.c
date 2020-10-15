@@ -397,7 +397,7 @@ static float normalization_factor_get(Scene *scene, FCurve *fcu, short flag, flo
               v4[0] = bezt->vec[1][0];
               v4[1] = bezt->vec[1][1];
 
-              correct_bezpart(v1, v2, v3, v4);
+              BKE_fcurve_correct_bezpart(v1, v2, v3, v4);
 
               BKE_curve_forward_diff_bezier(
                   v1[0], v2[0], v3[0], v4[0], data, resol, sizeof(float[3]));

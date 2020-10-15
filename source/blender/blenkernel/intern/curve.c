@@ -5566,6 +5566,47 @@ void BKE_curve_rect_from_textbox(const struct Curve *cu,
   r_rect->ymin = r_rect->ymax - tb->h;
 }
 
+/* This function is almost the same as BKE_fcurve_correct_bezpart(), but doesn't allow as large a
+ * tangent. */
+void BKE_curve_correct_bezpart(const float v1[2], float v2[2], float v3[2], const float v4[2])
+{
+  float h1[2], h2[2], len1, len2, len, fac;
+
+  /* Calculate handle deltas. */
+  h1[0] = v1[0] - v2[0];
+  h1[1] = v1[1] - v2[1];
+
+  h2[0] = v4[0] - v3[0];
+  h2[1] = v4[1] - v3[1];
+
+  /* Calculate distances:
+   * - len  = span of time between keyframes
+   * - len1 = length of handle of start key
+   * - len2 = length of handle of end key
+   */
+  len = v4[0] - v1[0];
+  len1 = fabsf(h1[0]);
+  len2 = fabsf(h2[0]);
+
+  /* If the handles have no length, no need to do any corrections. */
+  if ((len1 + len2) == 0.0f) {
+    return;
+  }
+
+  /* the two handles cross over each other, so force them
+   * apart using the proportion they overlap
+   */
+  if ((len1 + len2) > len) {
+    fac = len / (len1 + len2);
+
+    v2[0] = (v1[0] - fac * h1[0]);
+    v2[1] = (v1[1] - fac * h1[1]);
+
+    v3[0] = (v4[0] - fac * h2[0]);
+    v3[1] = (v4[1] - fac * h2[1]);
+  }
+}
+
 /* **** Depsgraph evaluation **** */
 
 void BKE_curve_eval_geometry(Depsgraph *depsgraph, Curve *curve)

@@ -715,7 +715,8 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
   float *point = allpoints;
 
   for (int a = 0; a < cuma->totpoint - 1; a++, point += 2 * CM_RESOL) {
-    correct_bezpart(bezt[a].vec[1], bezt[a].vec[2], bezt[a + 1].vec[0], bezt[a + 1].vec[1]);
+    BKE_curve_correct_bezpart(
+        bezt[a].vec[1], bezt[a].vec[2], bezt[a + 1].vec[0], bezt[a + 1].vec[1]);
     BKE_curve_forward_diff_bezier(bezt[a].vec[1][0],
                                   bezt[a].vec[2][0],
                                   bezt[a + 1].vec[0][0],
