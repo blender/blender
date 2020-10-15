@@ -1079,7 +1079,6 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
 {
 
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
-  Object *object = sgcontext->vc.obact;
   Mesh *sculpt_mesh = BKE_mesh_from_object(sgcontext->vc.obact);
   Mesh *trim_mesh = trim_operation->mesh;
 
