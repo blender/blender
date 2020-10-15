@@ -1488,8 +1488,10 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
   /* Modifier evaluation modes. */
   const int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
 
+  const bool use_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
   /* Modifier evaluation contexts for different types of modifiers. */
-  const ModifierEvalContext mectx = {depsgraph, ob, MOD_APPLY_USECACHE};
+  ModifierApplyFlag apply_render = use_render ? MOD_APPLY_RENDER : 0;
+  const ModifierEvalContext mectx = {depsgraph, ob, MOD_APPLY_USECACHE | apply_render};
   const ModifierEvalContext mectx_orco = {depsgraph, ob, MOD_APPLY_ORCO};
 
   /* Get effective list of modifiers to execute. Some effects like shape keys
