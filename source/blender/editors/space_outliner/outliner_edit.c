@@ -387,7 +387,7 @@ static int outliner_item_rename(bContext *C, wmOperator *op, const wmEvent *even
     TreeElement *hovered = outliner_find_item_at_y(
         space_outliner, &space_outliner->tree, fmval[1]);
 
-    if (outliner_item_is_co_over_name(hovered, fmval[0])) {
+    if (hovered && outliner_item_is_co_over_name(hovered, fmval[0])) {
       do_item_rename(region, hovered, TREESTORE(hovered), op->reports);
     }
   }
