@@ -619,8 +619,6 @@ extern uiBut *ui_but_drag_multi_edit_get(uiBut *but);
 void ui_def_but_icon(uiBut *but, const int icon, const int flag);
 void ui_def_but_icon_clear(uiBut *but);
 
-extern void ui_but_default_set(struct bContext *C, const bool all, const bool use_afterfunc);
-
 void ui_but_extra_operator_icons_free(uiBut *but);
 
 extern void ui_but_rna_menu_convert_to_panel_type(struct uiBut *but, const char *panel_type);
