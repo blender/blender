@@ -23,7 +23,18 @@
 #ifdef WITH_TBB
 /* Quiet top level deprecation message, unrelated to API usage here. */
 #  define TBB_SUPPRESS_DEPRECATED_MESSAGES 1
+
+#  ifdef WIN32
+/* TBB includes Windows.h which will define min/max macros causing issues
+ * when we try to use std::min and std::max later on. */
+#    define NOMINMAX
+#  endif
 #  include <tbb/tbb.h>
+#  ifdef WIN32
+/* We cannot keep this defined, since other parts of the code deal with this on their own leading
+ * to multiple define warnings unless we undefine this. */
+#    undef NOMINMAX
+#  endif
 #endif
 
 #include "BLI_index_range.hh"
