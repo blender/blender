@@ -363,25 +363,6 @@ void item_rename_fn(bContext *C,
   do_item_rename(region, te, tselem, reports);
 }
 
-static void do_outliner_item_rename(ReportList *reports,
-                                    ARegion *region,
-                                    TreeElement *te,
-                                    const float mval[2])
-{
-  if (mval[1] > te->ys && mval[1] < te->ys + UI_UNIT_Y) {
-    TreeStoreElem *tselem = TREESTORE(te);
-
-    /* click on name */
-    if (mval[0] > te->xs + UI_UNIT_X * 2 && mval[0] < te->xend) {
-      do_item_rename(region, te, tselem, reports);
-    }
-  }
-
-  LISTBASE_FOREACH (TreeElement *, te_child, &te->subtree) {
-    do_outliner_item_rename(reports, region, te_child, mval);
-  }
-}
-
 static int outliner_item_rename(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
@@ -403,8 +384,11 @@ static int outliner_item_rename(bContext *C, wmOperator *op, const wmEvent *even
   else {
     UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
-    LISTBASE_FOREACH (TreeElement *, te, &space_outliner->tree) {
-      do_outliner_item_rename(op->reports, region, te, fmval);
+    TreeElement *hovered = outliner_find_item_at_y(
+        space_outliner, &space_outliner->tree, fmval[1]);
+
+    if (outliner_item_is_co_over_name(hovered, fmval[0])) {
+      do_item_rename(region, hovered, TREESTORE(hovered), op->reports);
     }
   }
 

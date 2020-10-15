@@ -429,6 +429,12 @@ bool outliner_item_is_co_over_name_icons(const TreeElement *te, float view_co_x)
   return outside_left && (view_co_x < te->xend);
 }
 
+/* Find if x coordinate is over element name. */
+bool outliner_item_is_co_over_name(const TreeElement *te, float view_co_x)
+{
+  return (view_co_x > (te->xs + UI_UNIT_X * 2)) && (view_co_x < te->xend);
+}
+
 /* Find if x coordinate is over element disclosure toggle */
 bool outliner_item_is_co_within_close_toggle(const TreeElement *te, float view_co_x)
 {

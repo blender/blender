@@ -286,6 +286,7 @@ void outliner_item_select(struct bContext *C,
                           const short select_flag);
 
 bool outliner_item_is_co_over_name_icons(const TreeElement *te, float view_co_x);
+bool outliner_item_is_co_over_name(const TreeElement *te, float view_co_x);
 bool outliner_item_is_co_within_close_toggle(const TreeElement *te, float view_co_x);
 bool outliner_is_co_within_mode_column(SpaceOutliner *space_outliner, const float view_mval[2]);
 
