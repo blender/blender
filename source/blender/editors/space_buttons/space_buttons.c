@@ -393,23 +393,25 @@ static void property_search_move_to_next_tab_with_results(SpaceProperties *sbuts
 
 static void property_search_all_tabs(const bContext *C,
                                      SpaceProperties *sbuts,
-                                     ARegion *main_region,
+                                     ARegion *region_original,
                                      const short *context_tabs_array,
                                      const int tabs_len)
 {
   /* Use local copies of the area and duplicate the region as a mainly-paranoid protection
    * against changing any of the space / region data while running the search. */
-  ScrArea area_copy = *CTX_wm_area(C);
-  ARegion *region_copy = BKE_area_region_copy(area_copy.type, main_region);
-  bContext *C_copy = CTX_copy(C);
-  CTX_wm_area_set(C_copy, &area_copy);
-  CTX_wm_region_set(C_copy, region_copy);
+  ScrArea *area_original = CTX_wm_area(C);
+  ScrArea area_copy = *area_original;
+  ARegion *region_copy = BKE_area_region_copy(area_copy.type, region_original);
+  CTX_wm_area_set((bContext *)C, &area_copy);
+  CTX_wm_region_set((bContext *)C, region_copy);
+
   SpaceProperties sbuts_copy = *sbuts;
   sbuts_copy.path = NULL;
   sbuts_copy.texuser = NULL;
   sbuts_copy.runtime = MEM_dupallocN(sbuts->runtime);
   sbuts_copy.runtime->tab_search_results = NULL;
-  area_copy.spacedata.first = &sbuts_copy;
+  BLI_listbase_clear(&area_copy.spacedata);
+  BLI_addtail(&area_copy.spacedata, &sbuts_copy);
 
   /* Loop through the tabs added to the properties editor. */
   for (int i = 0; i < tabs_len; i++) {
@@ -428,15 +430,17 @@ static void property_search_all_tabs(const bContext *C,
     /* Actually do the search and store the result in the bitmap. */
     BLI_BITMAP_SET(sbuts->runtime->tab_search_results,
                    i,
-                   property_search_for_context(C_copy, region_copy, &sbuts_copy));
+                   property_search_for_context(C, region_copy, &sbuts_copy));
 
-    UI_blocklist_free(C_copy, &region_copy->uiblocks);
+    UI_blocklist_free(C, &region_copy->uiblocks);
   }
 
   BKE_area_region_free(area_copy.type, region_copy);
   MEM_freeN(region_copy);
   buttons_free((SpaceLink *)&sbuts_copy);
-  MEM_freeN(C_copy);
+
+  CTX_wm_area_set((bContext *)C, area_original);
+  CTX_wm_region_set((bContext *)C, region_original);
 }
 
 /**
