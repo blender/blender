@@ -233,7 +233,7 @@ static void custom_range_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayoutSetActive(
       layout, (mode != GP_TIME_MODE_FIX) && (RNA_boolean_get(ptr, "use_custom_frame_range")));
 
-  col = uiLayoutColumn(layout, false);
+  col = uiLayoutColumn(layout, true);
   uiItemR(col, ptr, "frame_start", 0, IFACE_("Frame Start"), ICON_NONE);
   uiItemR(col, ptr, "frame_end", 0, IFACE_("End"), ICON_NONE);
 }
