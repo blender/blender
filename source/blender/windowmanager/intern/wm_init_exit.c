@@ -528,6 +528,14 @@ void WM_exit_ex(bContext *C, const bool do_python)
     }
   }
 
+#ifdef WITH_PYTHON
+  /* Without this, we there isn't a good way to manage false-positive resource leaks
+   * where a #PyObject references memory allocated with guarded-alloc, T71362.
+   *
+   * This allows add-ons to free resources when unregistered (which is good practice anyway). */
+  BPY_execute_string(C, (const char *[]){"addon_utils", NULL}, "addon_utils.disable_all()");
+#endif
+
   BLI_timer_free();
 
   WM_paneltype_clear();
