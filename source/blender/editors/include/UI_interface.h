@@ -1693,6 +1693,7 @@ void UI_panel_header_buttons_begin(struct Panel *panel);
 void UI_panel_header_buttons_end(struct Panel *panel);
 void UI_panel_end(struct Panel *panel, int width, int height);
 
+bool UI_panel_is_closed(const struct Panel *panel);
 bool UI_panel_is_active(const struct Panel *panel);
 void UI_panel_label_offset(struct uiBlock *block, int *r_x, int *r_y);
 int UI_panel_size_y(const struct Panel *panel);

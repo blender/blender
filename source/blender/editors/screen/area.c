@@ -2970,7 +2970,7 @@ void ED_region_panels_layout_ex(const bContext *C,
     Panel *panel = region->panels.last;
     if (panel != NULL) {
       const int size_dyn[2] = {
-          UI_UNIT_X * ((panel->flag & PNL_CLOSED) ? 8 : 14) / UI_DPI_FAC,
+          UI_UNIT_X * (UI_panel_is_closed(panel) ? 8 : 14) / UI_DPI_FAC,
           UI_panel_size_y(panel) / UI_DPI_FAC,
       };
       /* region size is layout based and needs to be updated */

@@ -78,6 +78,13 @@ typedef enum uiPanelRuntimeFlag {
   PANEL_ANIM_ALIGN = (1 << 4),
   PANEL_NEW_ADDED = (1 << 5),
   PANEL_SEARCH_FILTER_MATCH = (1 << 7),
+  /**
+   * Use the status set by property search (#PANEL_SEARCH_FILTER_MATCH)
+   * instead of #PNL_CLOSED. Set to true on every property search update.
+   */
+  PANEL_USE_CLOSED_FROM_SEARCH = (1 << 8),
+  /** The Panel was before the start of the current / latest layout pass. */
+  PANEL_WAS_CLOSED = (1 << 9),
 } uiPanelRuntimeFlag;
 
 /* The state of the mouse position relative to the panel. */
@@ -168,7 +175,13 @@ static bool panel_active_animation_changed(ListBase *lb,
       }
     }
 
-    if ((panel->runtime_flag & PANEL_ACTIVE) && !(panel->flag & PNL_CLOSED)) {
+    /* Detect changes in panel expansions. */
+    if ((bool)(panel->runtime_flag & PANEL_WAS_CLOSED) != UI_panel_is_closed(panel)) {
+      *r_panel_animation = panel;
+      return false;
+    }
+
+    if ((panel->runtime_flag & PANEL_ACTIVE) && !UI_panel_is_closed(panel)) {
       if (panel_active_animation_changed(&panel->children, r_panel_animation, r_no_animation)) {
         return true;
       }
@@ -492,7 +505,8 @@ static void reorder_instanced_panel_list(bContext *C, ARegion *region, Panel *dr
 static bool panel_set_expand_from_list_data_recursive(Panel *panel, short flag, short *flag_index)
 {
   const bool open = (flag & (1 << *flag_index));
-  bool changed = (open == (bool)(panel->flag & PNL_CLOSED));
+  bool changed = (open == UI_panel_is_closed(panel));
+
   SET_FLAG_FROM_TEST(panel->flag, !open, PNL_CLOSED);
 
   LISTBASE_FOREACH (Panel *, child, &panel->children) {
@@ -673,6 +687,7 @@ Panel *UI_panel_begin(
 
     if (pt->flag & PNL_DEFAULT_CLOSED) {
       panel->flag |= PNL_CLOSED;
+      panel->runtime_flag |= PANEL_WAS_CLOSED;
     }
 
     panel->ofsx = 0;
@@ -691,16 +706,6 @@ Panel *UI_panel_begin(
   }
 
   panel->runtime.block = block;
-
-  /* Do not allow closed panels without headers! Else user could get "disappeared" UI! */
-  if ((pt->flag & PNL_NO_HEADER) && (panel->flag & PNL_CLOSED)) {
-    panel->flag &= ~PNL_CLOSED;
-    /* Force update of panels' positions. */
-    panel->sizex = 0;
-    panel->sizey = 0;
-    panel->blocksizex = 0;
-    panel->blocksizey = 0;
-  }
 
   BLI_strncpy(panel->drawname, drawname, sizeof(panel->drawname));
 
@@ -737,7 +742,7 @@ Panel *UI_panel_begin(
 
   *r_open = false;
 
-  if (panel->flag & PNL_CLOSED) {
+  if (UI_panel_is_closed(panel)) {
     return panel;
   }
 
@@ -829,7 +834,7 @@ static void panel_calculate_size_recursive(ARegion *region, Panel *panel)
     if (width != 0) {
       panel->sizex = width;
     }
-    if (height != 0 || !(panel->flag & PNL_CLOSED)) {
+    if (height != 0 || !UI_panel_is_closed(panel)) {
       panel->sizey = height;
     }
 
@@ -902,39 +907,41 @@ bool UI_panel_matches_search_filter(const Panel *panel)
 }
 
 /**
- * Expands a panel if it was tagged as having a result by property search, otherwise collapses it.
+ * Set the flag telling the panel to use its search result status for
+ * its expansion. Also activate animation if that changes the expansion.
  */
 static void panel_set_expansion_from_seach_filter_recursive(const bContext *C,
                                                             Panel *panel,
+                                                            const bool use_search_closed,
                                                             const bool use_animation)
 {
-  if (!(panel->type->flag & PNL_NO_HEADER)) {
-    short start_flag = panel->flag;
-    SET_FLAG_FROM_TEST(panel->flag, !UI_panel_matches_search_filter(panel), PNL_CLOSED);
-    if (use_animation && start_flag != panel->flag) {
-      panel_activate_state(C, panel, PANEL_STATE_ANIMATION);
-    }
+  /* This has to run on inactive panels that may not have a type,
+   * but we can prevent running on headerless panels in some cases. */
+  if (panel->type == NULL || !(panel->type->flag & PNL_NO_HEADER)) {
+    SET_FLAG_FROM_TEST(panel->runtime_flag, use_search_closed, PANEL_USE_CLOSED_FROM_SEARCH);
   }
 
-  /* If the panel is filtered (removed) we need to check that its children are too. */
   LISTBASE_FOREACH (Panel *, child_panel, &panel->children) {
-    if (child_panel->runtime_flag & PANEL_ACTIVE) {
-      panel_set_expansion_from_seach_filter_recursive(C, child_panel, use_animation);
-    }
+    /* Don't check if the subpanel is active, otherwise the
+     * expansion won't be reset when the parent is closed. */
+    panel_set_expansion_from_seach_filter_recursive(
+        C, child_panel, use_search_closed, use_animation);
   }
 }
 
 /**
- * Uses the panel's search filter flag to set its expansion, activating animation if it was closed
- * or opened. Note that this can't be set too often, or manual interaction becomes impossible.
+ * Set the flag telling every panel to override its expansion with its search result status.
  */
 static void region_panels_set_expansion_from_seach_filter(const bContext *C,
                                                           ARegion *region,
+                                                          const bool use_search_closed,
                                                           const bool use_animation)
 {
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
+    /* Checking if the panel is active is only an optimization, it would be fine to run this on
+     * inactive panels. */
     if (panel->runtime_flag & PANEL_ACTIVE) {
-      panel_set_expansion_from_seach_filter_recursive(C, panel, use_animation);
+      panel_set_expansion_from_seach_filter_recursive(C, panel, use_search_closed, use_animation);
     }
   }
   set_panels_list_data_expand_flag(C, region);
@@ -949,14 +956,14 @@ static void panel_remove_invisible_layouts_recursive(Panel *panel, const Panel *
   uiBlock *block = panel->runtime.block;
   BLI_assert(block != NULL);
   BLI_assert(block->active);
-  if (parent_panel != NULL && parent_panel->flag & PNL_CLOSED) {
+  if (parent_panel != NULL && UI_panel_is_closed(parent_panel)) {
     /* The parent panel is closed, so this panel can be completely removed. */
     UI_block_set_search_only(block, true);
     LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
       but->flag |= UI_HIDDEN;
     }
   }
-  else if (panel->flag & PNL_CLOSED) {
+  else if (UI_panel_is_closed(panel)) {
     /* If subpanels have no search results but the parent panel does, then the parent panel open
      * and the subpanels will close. In that case there must be a way to hide the buttons in the
      * panel but keep the header buttons. */
@@ -987,6 +994,24 @@ static void region_panels_remove_invisible_layouts(ARegion *region)
       panel_remove_invisible_layouts_recursive(panel, NULL);
     }
   }
+}
+
+/**
+ * Get the panel's expansion state, taking into account
+ * expansion set from property search if it applies.
+ */
+bool UI_panel_is_closed(const Panel *panel)
+{
+  /* Header-less panels can never be closed, otherwise they could disappear. */
+  if (panel->type && panel->type->flag & PNL_NO_HEADER) {
+    return false;
+  }
+
+  if (panel->runtime_flag & PANEL_USE_CLOSED_FROM_SEARCH) {
+    return !UI_panel_matches_search_filter(panel);
+  }
+
+  return panel->flag & PNL_CLOSED;
 }
 
 bool UI_panel_is_active(const Panel *panel)
@@ -1135,12 +1160,12 @@ void ui_draw_aligned_panel(const uiStyle *style,
     /* Expand the top a tiny bit to give header buttons equal size above and below. */
     rcti box_rect = {rect->xmin,
                      rect->xmax,
-                     (panel->flag & PNL_CLOSED) ? headrect.ymin : rect->ymin,
+                     UI_panel_is_closed(panel) ? headrect.ymin : rect->ymin,
                      headrect.ymax + U.pixelsize};
     ui_draw_box_opaque(&box_rect, UI_CNR_ALL);
 
     /* Mimic the border between aligned box widgets for the bottom of the header. */
-    if (!(panel->flag & PNL_CLOSED)) {
+    if (!UI_panel_is_closed(panel)) {
       immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
       GPU_blend(GPU_BLEND_ALPHA);
 
@@ -1237,7 +1262,7 @@ void ui_draw_aligned_panel(const uiStyle *style,
   }
 
   /* Draw panel backdrop. */
-  if (!(panel->flag & PNL_CLOSED)) {
+  if (!UI_panel_is_closed(panel)) {
     /* in some occasions, draw a border */
     if (panel->flag & PNL_SELECT && !is_subpanel) {
       float radius;
@@ -1309,7 +1334,7 @@ void ui_draw_aligned_panel(const uiStyle *style,
     rgb_uchar_to_float(tria_color, col_title);
     tria_color[3] = 1.0f;
 
-    if (panel->flag & PNL_CLOSED) {
+    if (UI_panel_is_closed(panel)) {
       ui_draw_anti_tria_rect(&itemrect, 'h', tria_color);
     }
     else {
@@ -1581,7 +1606,7 @@ static int get_panel_size_y(const Panel *panel)
 
 static int get_panel_real_size_y(const Panel *panel)
 {
-  const int sizey = (panel->flag & PNL_CLOSED) ? 0 : panel->sizey;
+  const int sizey = UI_panel_is_closed(panel) ? 0 : panel->sizey;
 
   if (panel->type && (panel->type->flag & PNL_NO_HEADER)) {
     return sizey;
@@ -1601,7 +1626,7 @@ int UI_panel_size_y(const Panel *panel)
  */
 static int get_panel_real_ofsy(Panel *panel)
 {
-  if (panel->flag & PNL_CLOSED) {
+  if (UI_panel_is_closed(panel)) {
     return panel->ofsy + panel->sizey;
   }
   return panel->ofsy;
@@ -1753,7 +1778,7 @@ static bool uiAlignPanelStep(ARegion *region, const float factor, const bool dra
     }
     ps->new_offset_y = y;
     /* The header still draws offset by the size of closed panels, so apply the offset here. */
-    if (ps->panel->flag & PNL_CLOSED) {
+    if (UI_panel_is_closed(ps->panel)) {
       panel_sort[i].new_offset_y -= ps->panel->sizey;
     }
   }
@@ -1853,13 +1878,13 @@ static void panels_layout_begin_clear_flags(ListBase *lb)
 {
   LISTBASE_FOREACH (Panel *, panel, lb) {
     /* Flags to copy over to the next layout pass. */
-    const short flag_copy = 0;
+    const short flag_copy = PANEL_USE_CLOSED_FROM_SEARCH;
 
     const bool was_active = panel->runtime_flag & PANEL_ACTIVE;
+    const bool was_closed = UI_panel_is_closed(panel);
     panel->runtime_flag &= flag_copy;
-    if (was_active) {
-      panel->runtime_flag |= PANEL_WAS_ACTIVE;
-    }
+    SET_FLAG_FROM_TEST(panel->runtime_flag, was_active, PANEL_WAS_ACTIVE);
+    SET_FLAG_FROM_TEST(panel->runtime_flag, was_closed, PANEL_WAS_CLOSED);
 
     panels_layout_begin_clear_flags(&panel->children);
   }
@@ -1878,16 +1903,16 @@ void UI_panels_end(const bContext *C, ARegion *region, int *r_x, int *r_y)
 
   region_panels_set_expansion_from_list_data(C, region);
 
-  if (region->flag & RGN_FLAG_SEARCH_FILTER_ACTIVE) {
-    /* Update panel expansion based on property search results. Keep this inside the check
-     * for an active search filter, or all panels will be left closed when a search ends. */
-    if (region->flag & RGN_FLAG_SEARCH_FILTER_UPDATE) {
-      region_panels_set_expansion_from_seach_filter(C, region, true);
-    }
-    else if (properties_space_needs_realign(area, region)) {
-      region_panels_set_expansion_from_seach_filter(C, region, false);
-    }
+  const bool region_search_filter_active = region->flag & RGN_FLAG_SEARCH_FILTER_ACTIVE;
 
+  if (properties_space_needs_realign(area, region)) {
+    region_panels_set_expansion_from_seach_filter(C, region, region_search_filter_active, false);
+  }
+  else if (region->flag & RGN_FLAG_SEARCH_FILTER_UPDATE) {
+    region_panels_set_expansion_from_seach_filter(C, region, region_search_filter_active, true);
+  }
+
+  if (region->flag & RGN_FLAG_SEARCH_FILTER_ACTIVE) {
     /* Clean up the extra panels and buttons created for searching. */
     region_panels_remove_invisible_layouts(region);
   }
@@ -1990,7 +2015,7 @@ static uiPanelMouseState ui_panel_mouse_state_get(const uiBlock *block,
     return PANEL_MOUSE_INSIDE_HEADER;
   }
 
-  if (!(panel->flag & PNL_CLOSED)) {
+  if (!UI_panel_is_closed(panel)) {
     if (IN_RANGE((float)my, block->rect.ymin, block->rect.ymax + PNL_HEADER)) {
       return PANEL_MOUSE_INSIDE_CONTENT;
     }
@@ -2041,6 +2066,7 @@ static void ui_panel_drag_collapse(const bContext *C,
     /* Touch all panels between last mouse coordinate and the current one. */
     if (BLI_rctf_isect_segment(&rect, xy_a_block, xy_b_block)) {
       /* Force panel to open or close. */
+      panel->runtime_flag &= ~PANEL_USE_CLOSED_FROM_SEARCH;
       SET_FLAG_FROM_TEST(panel->flag, dragcol_data->was_first_open, PNL_CLOSED);
 
       /* If panel->flag has changed this means a panel was opened/closed here. */
@@ -2149,7 +2175,7 @@ static void ui_handle_panel_header(const bContext *C,
   if (ELEM(event_type, EVT_RETKEY, EVT_PADENTER, EVT_AKEY) || mx < expansion_area_xmax) {
     if (ctrl && !is_subpanel) {
       /* For parent panels, collapse all other panels or toggle children. */
-      if (panel->flag & PNL_CLOSED || BLI_listbase_is_empty(&panel->children)) {
+      if (UI_panel_is_closed(panel) || BLI_listbase_is_empty(&panel->children)) {
         panels_collapse_all(region, panel);
 
         /* Reset the view - we don't want to display a view without content. */
@@ -2160,12 +2186,12 @@ static void ui_handle_panel_header(const bContext *C,
          * of the sub-panels (based on the expansion of the first sub-panel). */
         Panel *first_child = panel->children.first;
         BLI_assert(first_child != NULL);
-        panel_set_flag_recursive(panel, PNL_CLOSED, !(first_child->flag & PNL_CLOSED));
+        panel_set_flag_recursive(panel, PNL_CLOSED, !UI_panel_is_closed(first_child));
         panel->flag |= PNL_CLOSED;
       }
     }
 
-    if (panel->flag & PNL_CLOSED) {
+    if (UI_panel_is_closed(panel)) {
       panel->flag &= ~PNL_CLOSED;
       /* Snap back up so full panel aligns with screen edge. */
       if (panel->snap & PNL_SNAP_BOTTOM) {
@@ -2454,9 +2480,14 @@ int ui_handler_panel_region(bContext *C,
 
     const uiPanelMouseState mouse_state = ui_panel_mouse_state_get(block, panel, mx, my);
 
-    /* The panel collapse / expand key "A" is special as it takes priority over
-     * active button handling. */
-    if (ELEM(mouse_state, PANEL_MOUSE_INSIDE_CONTENT, PANEL_MOUSE_INSIDE_HEADER)) {
+    if (mouse_state != PANEL_MOUSE_OUTSIDE) {
+      /* Mark panels that have been interacted with so their expansion
+       * doesn't reset when property search finishes. */
+      SET_FLAG_FROM_TEST(panel->flag, UI_panel_is_closed(panel), PNL_CLOSED);
+      panel->runtime_flag &= ~PANEL_USE_CLOSED_FROM_SEARCH;
+
+      /* The panel collapse / expand key "A" is special as it takes priority over
+       * active button handling. */
       if (event->type == EVT_AKEY && !IS_EVENT_MOD(event, shift, ctrl, alt, oskey)) {
         retval = WM_UI_HANDLER_BREAK;
         ui_handle_panel_header(C, block, mx, event->type, event->ctrl, event->shift);
