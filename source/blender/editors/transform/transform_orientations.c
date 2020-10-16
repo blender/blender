@@ -744,7 +744,6 @@ int getTransformOrientation_ex(const bContext *C,
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);
-  Base *base;
   int result = ORIENTATION_NONE;
   const bool activeOnly = (around == V3D_AROUND_ACTIVE);
 
@@ -1236,30 +1235,30 @@ int getTransformOrientation_ex(const bContext *C,
       result = ORIENTATION_EDGE;
     }
   }
-  else if (ob && (ob->mode & (OB_MODE_ALL_PAINT | OB_MODE_PARTICLE_EDIT))) {
-    /* pass */
-  }
   else {
     /* we need the one selected object, if its not active */
-    base = BASACT(view_layer);
-    ob = OBACT(view_layer);
-    if (base && ((base->flag & BASE_SELECTED) != 0)) {
-      /* pass */
-    }
-    else {
-      /* first selected */
-      ob = NULL;
-      for (base = view_layer->object_bases.first; base; base = base->next) {
-        if (BASE_SELECTED_EDITABLE(v3d, base)) {
-          ob = base->object;
-          break;
+    if (ob != NULL) {
+      bool ok = false;
+      if (activeOnly || (ob->mode & (OB_MODE_ALL_PAINT | OB_MODE_PARTICLE_EDIT))) {
+        /* Ignore selection state. */
+        ok = true;
+      }
+      else {
+        Base *base = BKE_view_layer_base_find(view_layer, ob);
+        if (UNLIKELY(base == NULL)) {
+          /* This is very unlikely, if it happens allow the value to be set since the caller
+           * may have taken the object from outside this view-layer. */
+          ok = true;
+        }
+        else if (BASE_SELECTED(v3d, base)) {
+          ok = true;
         }
       }
-    }
 
-    if (ob) {
-      copy_v3_v3(normal, ob->obmat[2]);
-      copy_v3_v3(plane, ob->obmat[1]);
+      if (ok) {
+        copy_v3_v3(normal, ob->obmat[2]);
+        copy_v3_v3(plane, ob->obmat[1]);
+      }
     }
     result = ORIENTATION_NORMAL;
   }
