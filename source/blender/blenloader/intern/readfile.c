@@ -3855,18 +3855,17 @@ static void direct_link_object(BlendDataReader *reader, Object *ob)
    * so for now play safe. */
   ob->proxy_from = NULL;
 
-  /* loading saved files with editmode enabled works, but for undo we like
-   * to stay in object mode during undo presses so keep editmode disabled.
-   *
-   * Also when linking in a file don't allow edit and pose modes.
-   * See [T34776, T42780] for more information.
-   */
   const bool is_undo = BLO_read_data_is_undo(reader);
-  if (is_undo || (ob->id.tag & (LIB_TAG_EXTERN | LIB_TAG_INDIRECT))) {
+  if (ob->id.tag & (LIB_TAG_EXTERN | LIB_TAG_INDIRECT)) {
+    /* Do not allow any non-object mode for linked data.
+     * See T34776, T42780, T81027 for more information. */
+    ob->mode &= ~OB_MODE_ALL_MODE_DATA;
+  }
+  else if (is_undo) {
+    /* For undo we want to stay in object mode during undo presses, so keep some edit modes
+     * disabled.
+     * TODO: Check if we should not disable more edit modes here? */
     ob->mode &= ~(OB_MODE_EDIT | OB_MODE_PARTICLE_EDIT);
-    if (!is_undo) {
-      ob->mode &= ~OB_MODE_POSE;
-    }
   }
 
   BLO_read_data_address(reader, &ob->adt);
