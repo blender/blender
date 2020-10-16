@@ -283,9 +283,7 @@ static void animchan_sync_fcurve_nodetree(bAnimListElem *ale, FCurve **active_fc
 }
 
 /* perform syncing updates for F-Curves */
-static void animchan_sync_fcurve(bAnimContext *UNUSED(ac),
-                                 bAnimListElem *ale,
-                                 FCurve **active_fcurve)
+static void animchan_sync_fcurve(bAnimListElem *ale, FCurve **active_fcurve)
 {
   FCurve *fcu = (FCurve *)ale->data;
   ID *owner_id = ale->id;
@@ -310,7 +308,7 @@ static void animchan_sync_fcurve(bAnimContext *UNUSED(ac),
 }
 
 /* perform syncing updates for GPencil Layers */
-static void animchan_sync_gplayer(bAnimContext *UNUSED(ac), bAnimListElem *ale)
+static void animchan_sync_gplayer(bAnimListElem *ale)
 {
   bGPDlayer *gpl = (bGPDlayer *)ale->data;
 
@@ -366,11 +364,11 @@ void ANIM_sync_animchannels_to_data(const bContext *C)
         break;
 
       case ANIMTYPE_FCURVE:
-        animchan_sync_fcurve(&ac, ale, &active_fcurve);
+        animchan_sync_fcurve(ale, &active_fcurve);
         break;
 
       case ANIMTYPE_GPLAYER:
-        animchan_sync_gplayer(&ac, ale);
+        animchan_sync_gplayer(ale);
         break;
     }
   }
