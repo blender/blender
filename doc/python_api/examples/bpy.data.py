@@ -16,18 +16,23 @@ if "Cube" in bpy.data.meshes:
     print("removing mesh", mesh)
     bpy.data.meshes.remove(mesh)
 
-# get a pose bone from an armature and get it's data path to create F-curve if it 
-# does not exist or access it if it does exist
-if 'Armature' in bpy.data.armatures:
-    if 'BoneName' in bpy.data.armatures['Armature'].pose.bones:
-        poseBone = bpy.data.armatures['ArmatureName'].pose.bones['BoneName']
-        path = poseBone.path_from_id("location") 
-
+#look up a armature pose bone and create a fcurve or access a existing Fcurve for location X for that pose bone
+if 'Armature' in bpy.data.objects:
+    armature  = bpy.data.objects['Armature']
+    
+    if not armature.animation_data:
+        armature.animation_data_create()
+        armature.animation_data.action = bpy.data.actions.new(name="MyAction")
+        
+    if 'BoneName' in bpy.data.objects['Armature'].pose.bones:
+        poseBone =bpy.data.objects['Armature'].pose.bones['BoneName']
+        
+        path = poseBone.path_from_id("location")
+         
         #if fcurve for location X does not exist create one                 
-        fcu_x = b_obj.animation_data.action.fcurves.find(dpath, index=0)
+        fcu_x = armature.animation_data.action.fcurves.find(path, index=0)
         if not fcu_x:
-            fcu_x = b_obj.animation_data.action.fcurves.new(dpath, index=0)
-
+            fcu_x =  armature.animation_data.action.fcurves.new(path, index=0)
 
 # write images into a file next to the blend
 import os
