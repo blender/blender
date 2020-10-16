@@ -235,13 +235,13 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
 
-  uiLayoutSetPropSep(layout, true);
-
   int decimate_type = RNA_enum_get(ptr, "decimate_type");
   char count_info[32];
   snprintf(count_info, 32, "%s: %d", IFACE_("Face Count"), RNA_int_get(ptr, "face_count"));
 
-  uiItemR(layout, ptr, "decimate_type", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "decimate_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+
+  uiLayoutSetPropSep(layout, true);
 
   if (decimate_type == MOD_DECIM_MODE_COLLAPSE) {
     uiItemR(layout, ptr, "ratio", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
@@ -268,7 +268,8 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   }
   else { /* decimate_type == MOD_DECIM_MODE_DISSOLVE. */
     uiItemR(layout, ptr, "angle_limit", 0, NULL, ICON_NONE);
-    uiItemR(layout, ptr, "delimit", 0, NULL, ICON_NONE);
+    uiLayout *col = uiLayoutColumn(layout, false);
+    uiItemR(col, ptr, "delimit", 0, NULL, ICON_NONE);
     uiItemR(layout, ptr, "use_dissolve_boundaries", 0, NULL, ICON_NONE);
   }
   uiItemL(layout, count_info, ICON_NONE);
