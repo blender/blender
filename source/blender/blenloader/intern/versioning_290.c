@@ -257,14 +257,15 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
 
             const size_t node_name_length = strlen(node->name);
             const size_t node_name_escaped_max_length = (node_name_length * 2);
-            char *node_name_escaped = BLI_array_alloca(node_name_escaped,
-                                                       node_name_escaped_max_length + 1);
+            char *node_name_escaped = MEM_mallocN(node_name_escaped_max_length + 1,
+                                                  "escaped name");
             BLI_strescape(node_name_escaped, node->name, node_name_escaped_max_length);
             char *rna_path_prefix = BLI_sprintfN("nodes[\"%s\"].inputs", node_name_escaped);
 
             BKE_animdata_fix_paths_rename_all_ex(
                 bmain, id, rna_path_prefix, NULL, NULL, input_id, input_id + 1, false);
             MEM_freeN(rna_path_prefix);
+            MEM_freeN(node_name_escaped);
           }
         }
       }
