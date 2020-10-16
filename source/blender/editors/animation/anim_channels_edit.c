@@ -393,7 +393,6 @@ static void anim_channels_select_set(bAnimContext *ac,
 
         ACHANNEL_SET_FLAG(fcu, sel, FCURVE_SELECTED);
         fcu->flag &= ~FCURVE_ACTIVE;
-        printf("    selecting and deactivating FCurve[%s; %d]\n", fcu->rna_path, fcu->array_index);
         break;
       }
       case ANIMTYPE_SHAPEKEY: {
