@@ -890,6 +890,9 @@ static void lib_relocate_do(Main *bmain,
     ID *new_id = item->new_id;
 
     lib_relocate_do_remap(bmain, old_id, new_id, reports, do_reload, remap_flags);
+    if (new_id == NULL) {
+      continue;
+    }
     /* Usual special code for ShapeKeys snowflakes... */
     Key **old_key_p = BKE_key_from_id_p(old_id);
     if (old_key_p == NULL) {
