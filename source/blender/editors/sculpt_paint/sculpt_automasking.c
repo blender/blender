@@ -67,7 +67,7 @@ AutomaskingCache *SCULPT_automasking_active_cache_get(SculptSession *ss)
   if (ss->cache) {
     return ss->cache->automasking;
   }
-  else if (ss->filter_cache) {
+  if (ss->filter_cache) {
     return ss->filter_cache->automasking;
   }
   return NULL;
