@@ -2838,6 +2838,46 @@ void GRAPH_OT_frame_jump(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/* snap 2D cursor value to the average value of selected keyframe */
+static int graphkeys_snap_cursor_value_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  bAnimContext ac;
+
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const KeyframeEditData keyframe_sum = sum_selected_keyframes(&ac);
+  const float sum_value = keyframe_sum.f2;
+  const int num_keyframes = keyframe_sum.i1;
+
+  if (num_keyframes == 0) {
+    return OPERATOR_FINISHED;
+  }
+
+  SpaceGraph *sipo = (SpaceGraph *)ac.sl;
+  sipo->cursorVal = sum_value / (float)num_keyframes;
+  // WM_event_add_notifier(C, NC_SCENE | ND_FRAME, ac.scene);
+  ED_region_tag_redraw(CTX_wm_region(C));
+
+  return OPERATOR_FINISHED;
+}
+
+void GRAPH_OT_snap_cursor_value(wmOperatorType *ot)
+{
+  /* Identifiers. */
+  ot->name = "Snap Cursor Value to Selected";
+  ot->idname = "GRAPH_OT_snap_cursor_value";
+  ot->description = "Place the cursor value on the average value of selected keyframes";
+
+  /* API callbacks. */
+  ot->exec = graphkeys_snap_cursor_value_exec;
+  ot->poll = graphkeys_framejump_poll;
+
+  /* Flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /* ******************** Snap Keyframes Operator *********************** */
 
 /* defines for snap keyframes tool */

@@ -161,6 +161,7 @@ static void graph_panel_cursor(const bContext *C, Panel *panel)
 
   sub = uiLayoutColumn(col, true);
   uiItemO(sub, IFACE_("Cursor to Selection"), ICON_NONE, "GRAPH_OT_frame_jump");
+  uiItemO(sub, IFACE_("Cursor Value to Selection"), ICON_NONE, "GRAPH_OT_snap_cursor_value");
 }
 
 /* ******************* active F-Curve ************** */
