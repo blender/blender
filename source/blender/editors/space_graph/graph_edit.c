@@ -2738,34 +2738,27 @@ static bool graphkeys_framejump_poll(bContext *C)
   return graphop_visible_keyframes_poll(C);
 }
 
-/* snap current-frame indicator to 'average time' of selected keyframe */
-static int graphkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
+static KeyframeEditData sum_selected_keyframes(bAnimContext *ac)
 {
-  bAnimContext ac;
   ListBase anim_data = {NULL, NULL};
   bAnimListElem *ale;
   int filter;
   KeyframeEditData ked;
-
-  /* get editor data */
-  if (ANIM_animdata_get_context(C, &ac) == 0) {
-    return OPERATOR_CANCELLED;
-  }
 
   /* init edit data */
   memset(&ked, 0, sizeof(KeyframeEditData));
 
   /* loop over action data, averaging values */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_NODUPLIS);
-  ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   for (ale = anim_data.first; ale; ale = ale->next) {
-    AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
-    short mapping_flag = ANIM_get_normalization_flags(&ac);
+    AnimData *adt = ANIM_nla_mapping_get(ac, ale);
+    short mapping_flag = ANIM_get_normalization_flags(ac);
     KeyframeEditData current_ked;
     float offset;
     float unit_scale = ANIM_unit_mapping_get_factor(
-        ac.scene, ale->id, ale->key_data, mapping_flag | ANIM_UNITCONV_ONLYKEYS, &offset);
+        ac->scene, ale->id, ale->key_data, mapping_flag | ANIM_UNITCONV_ONLYKEYS, &offset);
 
     memset(&current_ked, 0, sizeof(current_ked));
 
@@ -2786,24 +2779,43 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 
   ANIM_animdata_freelist(&anim_data);
 
-  /* set the new current frame and cursor values, based on the average time and value */
-  if (ked.i1) {
-    SpaceGraph *sipo = (SpaceGraph *)ac.sl;
-    Scene *scene = ac.scene;
+  return ked;
+}
 
-    /* take the average values, rounding to the nearest int as necessary for int results */
-    if (sipo->mode == SIPO_MODE_DRIVERS) {
-      /* Drivers Mode - Affects cursor (float) */
-      sipo->cursorTime = ked.f1 / (float)ked.i1;
-      sipo->cursorVal = ked.f2 / (float)ked.i1;
-    }
-    else {
-      /* Animation Mode - Affects current frame (int) */
-      CFRA = round_fl_to_int(ked.f1 / ked.i1);
-      SUBFRA = 0.f;
-      sipo->cursorVal = ked.f2 / (float)ked.i1;
-    }
+/* snap current-frame indicator to 'average time' of selected keyframe */
+static int graphkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  bAnimContext ac;
+
+  /* get editor data */
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
   }
+
+  const KeyframeEditData keyframe_sum = sum_selected_keyframes(&ac);
+  const float sum_time = keyframe_sum.f1;
+  const float sum_value = keyframe_sum.f2;
+  const int num_keyframes = keyframe_sum.i1;
+
+  if (num_keyframes == 0) {
+    return OPERATOR_FINISHED;
+  }
+
+  /* set the new current frame and cursor values, based on the average time and value */
+  SpaceGraph *sipo = (SpaceGraph *)ac.sl;
+  Scene *scene = ac.scene;
+
+  /* take the average values, rounding to the nearest int as necessary for int results */
+  if (sipo->mode == SIPO_MODE_DRIVERS) {
+    /* Drivers Mode - Affects cursor (float) */
+    sipo->cursorTime = sum_time / (float)num_keyframes;
+  }
+  else {
+    /* Animation Mode - Affects current frame (int) */
+    CFRA = round_fl_to_int(sum_time / num_keyframes);
+    SUBFRA = 0.f;
+  }
+  sipo->cursorVal = sum_value / (float)num_keyframes;
 
   /* set notifier that things have changed */
   WM_event_add_notifier(C, NC_SCENE | ND_FRAME, ac.scene);
