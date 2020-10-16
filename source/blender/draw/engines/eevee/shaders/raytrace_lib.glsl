@@ -258,7 +258,7 @@ float screen_border_mask(vec2 hit_co)
 {
   const float margin = 0.003;
   float atten = ssrBorderFac + margin; /* Screen percentage */
-  hit_co = smoothstep(margin, atten, hit_co) * (1 - smoothstep(1.0 - atten, 1.0 - margin, hit_co));
+  hit_co = smoothstep(0.0, atten, hit_co) * (1.0 - smoothstep(1.0 - atten, 1.0, hit_co));
 
   float screenfade = hit_co.x * hit_co.y;
 
