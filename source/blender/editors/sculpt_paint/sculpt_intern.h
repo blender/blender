@@ -329,7 +329,7 @@ enum eDynTopoWarnFlag SCULPT_dynamic_topology_check(Scene *scene, Object *ob);
 
 void SCULPT_pbvh_clear(Object *ob);
 
-/* Automasking. */
+/* Auto-masking. */
 float SCULPT_automasking_factor_get(struct AutomaskingCache *automasking,
                                     SculptSession *ss,
                                     int vert);
@@ -835,8 +835,8 @@ typedef struct AutomaskingSettings {
 
 typedef struct AutomaskingCache {
   AutomaskingSettings settings;
-  /* Precomputed automask factor indexed by vertex, owned by the automasking system and initialized
-   * in SCULPT_automasking_cache_init when needed. */
+  /* Precomputed auto-mask factor indexed by vertex, owned by the auto-masking system and
+   * initialized in #SCULPT_automasking_cache_init when needed. */
   float *factor;
 } AutomaskingCache;
 
@@ -874,7 +874,7 @@ typedef struct StrokeCache {
   float y_tilt;
 
   /* Position of the mouse corresponding to the stroke location, modified by the paint_stroke
-   * operator acording to the stroke type. */
+   * operator according to the stroke type. */
   float mouse[2];
   /* Position of the mouse event in screen space, not modified by the stroke type. */
   float mouse_event[2];
@@ -984,7 +984,7 @@ typedef struct StrokeCache {
   float true_gravity_direction[3];
   float gravity_direction[3];
 
-  /* Automasking. */
+  /* Auto-masking. */
   AutomaskingCache *automasking;
 
   float stroke_local_mat[4][4];
@@ -1062,7 +1062,7 @@ typedef struct FilterCache {
 
   int active_face_set;
 
-  /* Automasking. */
+  /* Auto-masking. */
   AutomaskingCache *automasking;
 } FilterCache;
 

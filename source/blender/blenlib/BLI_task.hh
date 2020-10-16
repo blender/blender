@@ -32,7 +32,7 @@
 #  include <tbb/tbb.h>
 #  ifdef WIN32
 /* We cannot keep this defined, since other parts of the code deal with this on their own leading
- * to multiple define warnings unless we undefine this. */
+ * to multiple define warnings unless we un-define this. */
 #    undef NOMINMAX
 #  endif
 #endif
