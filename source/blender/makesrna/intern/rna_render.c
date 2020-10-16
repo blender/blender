@@ -27,7 +27,9 @@
 #include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 
-#include "BPY_extern.h"
+#ifdef WITH_PYTHON
+#  include "BPY_extern.h"
+#endif
 
 #include "DEG_depsgraph.h"
 
