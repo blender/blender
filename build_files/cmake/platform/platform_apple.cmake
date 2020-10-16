@@ -227,8 +227,6 @@ if(WITH_SDL)
   set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework ForceFeedback")
 endif()
 
-# Use CMP0074 for our benefit. Stop CMake from searching libraries in one
-# place and headers in another.
 set(PNG_ROOT ${LIBDIR}/png)
 find_package(PNG REQUIRED)
 
