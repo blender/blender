@@ -86,6 +86,7 @@
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
 #  include "BPY_extern_python.h"
+#  include "BPY_extern_run.h"
 #endif
 
 #include "GHOST_C-api.h"
@@ -522,6 +523,14 @@ void WM_exit_ex(bContext *C, const bool do_python)
       }
     }
   }
+
+#ifdef WITH_PYTHON
+  /* Without this, we there isn't a good way to manage false-positive resource leaks
+   * where a #PyObject references memory allocated with guarded-alloc, T71362.
+   *
+   * This allows add-ons to free resources when unregistered (which is good practice anyway). */
+  BPY_run_string_eval(C, (const char *[]){"addon_utils", NULL}, "addon_utils.disable_all()");
+#endif
 
   BLI_timer_free();
 
