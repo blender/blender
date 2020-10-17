@@ -16,23 +16,43 @@ if "Cube" in bpy.data.meshes:
     print("removing mesh", mesh)
     bpy.data.meshes.remove(mesh)
 
-#look up a armature pose bone and create a fcurve or access a existing Fcurve for location X for that pose bone
-if 'Armature' in bpy.data.objects:
-    armature  = bpy.data.objects['Armature']
+#a helpful snippet for learning about armatures and f-curves and datapath 
+def keyframe_bone_loc_x(object_name, bone_name):
+    try:
+        armature_ob = bpy.data.objects[object_name]
+    except KeyError:
+        print(f"Armature object {object_name} not found")
+        return
+
+    # animation_data_create() will just return animation_data if it already exists.
+    anim_data = armature_ob.animation_data_create()
+    if not anim_data.action:
+        anim_data.action = bpy.data.actions.new(name="MyAction")
+
+    try:
+        pose_bone = armature_ob.pose.bones[bone_name]
+    except KeyError:
+        print(f"Bone {bone_name} not found in {object_name}")
+        return
+
+    data_path = pose_bone.path_from_id("location")
+
+    # Get the FCurve, creating it if it doesn't exist yet.
+    fcu_x = anim_data.action.fcurves.find(data_path, index=0)
+    if not fcu_x:
+        fcu_x = anim_data.action.fcurves.new(data_path, index=0)
     
-    if not armature.animation_data:
-        armature.animation_data_create()
-        armature.animation_data.action = bpy.data.actions.new(name="MyAction")
-        
-    if 'BoneName' in bpy.data.objects['Armature'].pose.bones:
-        poseBone =bpy.data.objects['Armature'].pose.bones['BoneName']
-        
-        path = poseBone.path_from_id("location")
-         
-        #if fcurve for location X does not exist create one                 
-        fcu_x = armature.animation_data.action.fcurves.find(path, index=0)
-        if not fcu_x:
-            fcu_x =  armature.animation_data.action.fcurves.new(path, index=0)
+    # Insert keyframes.
+    fcu_x.keyframe_points.insert(1, 0)
+    fcu_x.keyframe_points.insert(10, 3.27)
+    fcu_x.keyframe_points.insert(15, 0.47)
+    fcu_x.update()
+
+#call the code we defined above
+keyframe_bone_loc_x('Armature', 'Bone')
+
+
+
 
 # write images into a file next to the blend
 import os
