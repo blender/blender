@@ -132,10 +132,9 @@ ScrEdge *screen_geom_find_active_scredge(const wmWindow *win,
 {
   /* Use layout size (screen excluding global areas) for screen-layout area edges */
   rcti screen_rect;
-  ScrEdge *se;
-
   WM_window_screen_rect_calc(win, &screen_rect);
-  se = screen_geom_area_map_find_active_scredge(AREAMAP_FROM_SCREEN(screen), &screen_rect, mx, my);
+  ScrEdge *se = screen_geom_area_map_find_active_scredge(
+      AREAMAP_FROM_SCREEN(screen), &screen_rect, mx, my);
 
   if (!se) {
     /* Use entire window size (screen including global areas) for global area edges */
@@ -157,21 +156,19 @@ static bool screen_geom_vertices_scale_pass(const wmWindow *win,
 
   const int screen_size_x = BLI_rcti_size_x(screen_rect);
   const int screen_size_y = BLI_rcti_size_y(screen_rect);
-  int screen_size_x_prev, screen_size_y_prev;
-  float min[2], max[2];
   bool needs_another_pass = false;
 
   /* calculate size */
-  min[0] = min[1] = 20000.0f;
-  max[0] = max[1] = 0.0f;
+  float min[2] = {20000.0f, 20000.0f};
+  float max[2] = {0.0f, 0.0f};
 
   LISTBASE_FOREACH (ScrVert *, sv, &screen->vertbase) {
     const float fv[2] = {(float)sv->vec.x, (float)sv->vec.y};
     minmax_v2v2_v2(min, max, fv);
   }
 
-  screen_size_x_prev = (max[0] - min[0]) + 1;
-  screen_size_y_prev = (max[1] - min[1]) + 1;
+  int screen_size_x_prev = (max[0] - min[0]) + 1;
+  int screen_size_y_prev = (max[1] - min[1]) + 1;
 
   if (screen_size_x_prev != screen_size_x || screen_size_y_prev != screen_size_y) {
     const float facx = ((float)screen_size_x - 1) / ((float)screen_size_x_prev - 1);
@@ -258,7 +255,6 @@ static bool screen_geom_vertices_scale_pass(const wmWindow *win,
 void screen_geom_vertices_scale(const wmWindow *win, bScreen *screen)
 {
   rcti window_rect, screen_rect;
-
   WM_window_rect_calc(win, &window_rect);
   WM_window_screen_rect_calc(win, &screen_rect);
 
@@ -311,12 +307,10 @@ short screen_geom_find_area_split_point(const ScrArea *area,
                                         char dir,
                                         float fac)
 {
-  short x, y;
   const int cur_area_width = screen_geom_area_width(area);
   const int cur_area_height = screen_geom_area_height(area);
   const short area_min_x = AREAMINX;
   const short area_min_y = ED_area_headersize();
-  int area_min;
 
   /* area big enough? */
   if ((dir == 'v') && (cur_area_width <= 2 * area_min_x)) {
@@ -330,9 +324,9 @@ short screen_geom_find_area_split_point(const ScrArea *area,
   CLAMP(fac, 0.0f, 1.0f);
 
   if (dir == 'h') {
-    y = area->v1->vec.y + round_fl_to_short(fac * cur_area_height);
+    short y = area->v1->vec.y + round_fl_to_short(fac * cur_area_height);
 
-    area_min = area_min_y;
+    int area_min = area_min_y;
 
     if (area->v1->vec.y > window_rect->ymin) {
       area_min += U.pixelsize;
@@ -351,9 +345,9 @@ short screen_geom_find_area_split_point(const ScrArea *area,
     return y;
   }
 
-  x = area->v1->vec.x + round_fl_to_short(fac * cur_area_width);
+  short x = area->v1->vec.x + round_fl_to_short(fac * cur_area_width);
 
-  area_min = area_min_x;
+  int area_min = area_min_x;
 
   if (area->v1->vec.x > window_rect->xmin) {
     area_min += U.pixelsize;
@@ -378,12 +372,9 @@ short screen_geom_find_area_split_point(const ScrArea *area,
 void screen_geom_select_connected_edge(const wmWindow *win, ScrEdge *edge)
 {
   bScreen *screen = WM_window_get_active_screen(win);
-  bool oneselected = true;
-  char dir;
 
-  /* select connected, only in the right direction */
   /* 'dir' is the direction of EDGE */
-
+  char dir;
   if (edge->v1->vec.x == edge->v2->vec.x) {
     dir = 'v';
   }
@@ -399,6 +390,8 @@ void screen_geom_select_connected_edge(const wmWindow *win, ScrEdge *edge)
   edge->v1->flag = 1;
   edge->v2->flag = 1;
 
+  /* select connected, only in the right direction */
+  bool oneselected = true;
   while (oneselected) {
     oneselected = false;
     LISTBASE_FOREACH (ScrEdge *, se, &screen->edgebase) {

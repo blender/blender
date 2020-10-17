@@ -45,10 +45,8 @@ static void draw_horizontal_join_shape(ScrArea *area, char dir, uint pos)
 {
   const float width = screen_geom_area_width(area) - 1;
   const float height = screen_geom_area_height(area) - 1;
-  vec2f points[10];
-  short i;
-  float w, h;
 
+  float w, h;
   if (height < width) {
     h = height / 8;
     w = height / 4;
@@ -58,6 +56,7 @@ static void draw_horizontal_join_shape(ScrArea *area, char dir, uint pos)
     w = width / 4;
   }
 
+  vec2f points[10];
   points[0].x = area->v1->vec.x;
   points[0].y = area->v1->vec.y + height / 2;
 
@@ -91,7 +90,7 @@ static void draw_horizontal_join_shape(ScrArea *area, char dir, uint pos)
   if (dir == 'l') {
     /* when direction is left, then we flip direction of arrow */
     float cx = area->v1->vec.x + width;
-    for (i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++) {
       points[i].x -= cx;
       points[i].x = -points[i].x;
       points[i].x += area->v1->vec.x;
@@ -100,7 +99,7 @@ static void draw_horizontal_join_shape(ScrArea *area, char dir, uint pos)
 
   immBegin(GPU_PRIM_TRI_FAN, 5);
 
-  for (i = 0; i < 5; i++) {
+  for (int i = 0; i < 5; i++) {
     immVertex2f(pos, points[i].x, points[i].y);
   }
 
@@ -108,7 +107,7 @@ static void draw_horizontal_join_shape(ScrArea *area, char dir, uint pos)
 
   immBegin(GPU_PRIM_TRI_FAN, 5);
 
-  for (i = 4; i < 8; i++) {
+  for (int i = 4; i < 8; i++) {
     immVertex2f(pos, points[i].x, points[i].y);
   }
 
@@ -126,10 +125,8 @@ static void draw_vertical_join_shape(ScrArea *area, char dir, uint pos)
 {
   const float width = screen_geom_area_width(area) - 1;
   const float height = screen_geom_area_height(area) - 1;
-  vec2f points[10];
-  short i;
-  float w, h;
 
+  float w, h;
   if (height < width) {
     h = height / 4;
     w = height / 8;
@@ -139,6 +136,7 @@ static void draw_vertical_join_shape(ScrArea *area, char dir, uint pos)
     w = width / 8;
   }
 
+  vec2f points[10];
   points[0].x = area->v1->vec.x + width / 2;
   points[0].y = area->v3->vec.y;
 
@@ -172,7 +170,7 @@ static void draw_vertical_join_shape(ScrArea *area, char dir, uint pos)
   if (dir == 'u') {
     /* when direction is up, then we flip direction of arrow */
     float cy = area->v1->vec.y + height;
-    for (i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++) {
       points[i].y -= cy;
       points[i].y = -points[i].y;
       points[i].y += area->v1->vec.y;
@@ -181,7 +179,7 @@ static void draw_vertical_join_shape(ScrArea *area, char dir, uint pos)
 
   immBegin(GPU_PRIM_TRI_FAN, 5);
 
-  for (i = 0; i < 5; i++) {
+  for (int i = 0; i < 5; i++) {
     immVertex2f(pos, points[i].x, points[i].y);
   }
 
@@ -189,7 +187,7 @@ static void draw_vertical_join_shape(ScrArea *area, char dir, uint pos)
 
   immBegin(GPU_PRIM_TRI_FAN, 5);
 
-  for (i = 4; i < 8; i++) {
+  for (int i = 4; i < 8; i++) {
     immVertex2f(pos, points[i].x, points[i].y);
   }
 
@@ -217,12 +215,13 @@ static void draw_join_shape(ScrArea *area, char dir, uint pos)
 
 static void do_vert_pair(GPUVertBuf *vbo, uint pos, uint *vidx, int corner, int i)
 {
-  float inter[2], exter[2];
+  float inter[2];
   inter[0] = cosf(corner * M_PI_2 + (i * M_PI_2 / (CORNER_RESOLUTION - 1.0f)));
   inter[1] = sinf(corner * M_PI_2 + (i * M_PI_2 / (CORNER_RESOLUTION - 1.0f)));
 
   /* Snap point to edge */
   float div = 1.0f / max_ff(fabsf(inter[0]), fabsf(inter[1]));
+  float exter[2];
   mul_v2_v2fl(exter, inter, div);
   exter[0] = roundf(exter[0]);
   exter[1] = roundf(exter[1]);

@@ -385,7 +385,6 @@ static void workspace_append_button(uiLayout *layout,
                                     const Main *from_main)
 {
   const ID *id = (ID *)workspace;
-  PointerRNA opptr;
   const char *filepath = from_main->name;
 
   if (strlen(filepath) == 0) {
@@ -393,6 +392,8 @@ static void workspace_append_button(uiLayout *layout,
   }
 
   BLI_assert(STREQ(ot_append->idname, "WORKSPACE_OT_append_activate"));
+
+  PointerRNA opptr;
   uiItemFullO_ptr(
       layout, ot_append, workspace->id.name + 2, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, 0, &opptr);
   RNA_string_set(&opptr, "idname", id->name + 2);

@@ -486,10 +486,9 @@ static eContextResult screen_ctx_active_pose_bone(const bContext *C, bContextDat
   wmWindow *win = CTX_wm_window(C);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
   Object *obact = view_layer->basact ? view_layer->basact->object : NULL;
-  bPoseChannel *pchan;
   Object *obpose = BKE_object_pose_armature_get(obact);
 
-  pchan = BKE_pose_channel_active(obpose);
+  bPoseChannel *pchan = BKE_pose_channel_active(obpose);
   if (pchan) {
     CTX_data_pointer_set(result, &obpose->id, &RNA_PoseBone, pchan);
     return CTX_RESULT_OK;
@@ -699,13 +698,11 @@ static eContextResult screen_ctx_gpencil_data_owner(const bContext *C, bContextD
   ScrArea *area = CTX_wm_area(C);
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
   Object *obact = view_layer->basact ? view_layer->basact->object : NULL;
+
   /* Pointer to which data/datablock owns the reference to the Grease Pencil data being used
    * (as gpencil_data). */
-  bGPdata **gpd_ptr = NULL;
   PointerRNA ptr;
-
-  /* get pointer to Grease Pencil Data */
-  gpd_ptr = ED_gpencil_data_get_pointers_direct(area, obact, &ptr);
+  bGPdata **gpd_ptr = ED_gpencil_data_get_pointers_direct(area, obact, &ptr);
 
   if (gpd_ptr) {
     CTX_data_pointer_set(result, ptr.owner_id, ptr.type, ptr.data);
@@ -734,12 +731,10 @@ static eContextResult screen_ctx_annotation_data_owner(const bContext *C,
   bScreen *screen = CTX_wm_screen(C);
   ScrArea *area = CTX_wm_area(C);
   Scene *scene = WM_window_get_active_scene(win);
-  /* Pointer to which data/datablock owns the reference to the Grease Pencil data being used. */
-  bGPdata **gpd_ptr = NULL;
-  PointerRNA ptr;
 
-  /* Get pointer to Grease Pencil Data. */
-  gpd_ptr = ED_annotation_data_get_pointers_direct((ID *)screen, area, scene, &ptr);
+  /* Pointer to which data/datablock owns the reference to the Grease Pencil data being used. */
+  PointerRNA ptr;
+  bGPdata **gpd_ptr = ED_annotation_data_get_pointers_direct((ID *)screen, area, scene, &ptr);
 
   if (gpd_ptr) {
     CTX_data_pointer_set(result, ptr.owner_id, ptr.type, ptr.data);
@@ -855,39 +850,40 @@ static eContextResult screen_ctx_editable_gpencil_strokes(const bContext *C,
   bGPdata *gpd = ED_gpencil_data_get_active_direct(area, obact);
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
-  if (gpd) {
-    LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-      if (BKE_gpencil_layer_is_editable(gpl) && (gpl->actframe)) {
-        bGPDframe *gpf;
-        bGPDframe *init_gpf = gpl->actframe;
-        if (is_multiedit) {
-          init_gpf = gpl->frames.first;
-        }
+  if (gpd == NULL) {
+    return CTX_RESULT_NO_DATA;
+  }
 
-        for (gpf = init_gpf; gpf; gpf = gpf->next) {
-          if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
-            LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-              if (ED_gpencil_stroke_can_use_direct(area, gps)) {
-                /* check if the color is editable */
-                if (ED_gpencil_stroke_color_use(obact, gpl, gps) == false) {
-                  continue;
-                }
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    if (BKE_gpencil_layer_is_editable(gpl) && (gpl->actframe)) {
+      bGPDframe *gpf;
+      bGPDframe *init_gpf = gpl->actframe;
+      if (is_multiedit) {
+        init_gpf = gpl->frames.first;
+      }
 
-                CTX_data_list_add(result, &gpd->id, &RNA_GPencilStroke, gps);
+      for (gpf = init_gpf; gpf; gpf = gpf->next) {
+        if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
+          LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+            if (ED_gpencil_stroke_can_use_direct(area, gps)) {
+              /* check if the color is editable */
+              if (ED_gpencil_stroke_color_use(obact, gpl, gps) == false) {
+                continue;
               }
+
+              CTX_data_list_add(result, &gpd->id, &RNA_GPencilStroke, gps);
             }
           }
-          /* if not multiedit out of loop */
-          if (!is_multiedit) {
-            break;
-          }
+        }
+        /* if not multiedit out of loop */
+        if (!is_multiedit) {
+          break;
         }
       }
     }
-    CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
-    return CTX_RESULT_OK;
   }
-  return CTX_RESULT_NO_DATA;
+  CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+  return CTX_RESULT_OK;
 }
 static eContextResult screen_ctx_active_operator(const bContext *C, bContextDataResult *result)
 {
@@ -918,7 +914,6 @@ static eContextResult screen_ctx_sel_edit_fcurves_(const bContext *C,
                                                    const int extra_filter)
 {
   bAnimContext ac;
-
   if (ANIM_animdata_get_context(C, &ac) && ELEM(ac.spacetype, SPACE_ACTION, SPACE_GRAPH)) {
     ListBase anim_data = {NULL, NULL};
 
@@ -964,7 +959,6 @@ static eContextResult screen_ctx_active_editable_fcurve(const bContext *C,
                                                         bContextDataResult *result)
 {
   bAnimContext ac;
-
   if (ANIM_animdata_get_context(C, &ac) && ELEM(ac.spacetype, SPACE_GRAPH)) {
     ListBase anim_data = {NULL, NULL};
 

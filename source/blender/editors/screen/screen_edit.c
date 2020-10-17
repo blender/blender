@@ -108,17 +108,15 @@ ScrArea *area_split(
     const wmWindow *win, bScreen *screen, ScrArea *area, char dir, float fac, int merge)
 {
   ScrArea *newa = NULL;
-  ScrVert *sv1, *sv2;
-  short split;
-  rcti window_rect;
 
   if (area == NULL) {
     return NULL;
   }
 
+  rcti window_rect;
   WM_window_rect_calc(win, &window_rect);
 
-  split = screen_geom_find_area_split_point(area, &window_rect, dir, fac);
+  short split = screen_geom_find_area_split_point(area, &window_rect, dir, fac);
   if (split == 0) {
     return NULL;
   }
@@ -129,8 +127,8 @@ ScrArea *area_split(
 
   if (dir == 'h') {
     /* new vertices */
-    sv1 = screen_geom_vertex_add(screen, area->v1->vec.x, split);
-    sv2 = screen_geom_vertex_add(screen, area->v4->vec.x, split);
+    ScrVert *sv1 = screen_geom_vertex_add(screen, area->v1->vec.x, split);
+    ScrVert *sv2 = screen_geom_vertex_add(screen, area->v4->vec.x, split);
 
     /* new edges */
     screen_geom_edge_add(screen, area->v1, sv1);
@@ -160,8 +158,8 @@ ScrArea *area_split(
   }
   else {
     /* new vertices */
-    sv1 = screen_geom_vertex_add(screen, split, area->v1->vec.y);
-    sv2 = screen_geom_vertex_add(screen, split, area->v2->vec.y);
+    ScrVert *sv1 = screen_geom_vertex_add(screen, split, area->v1->vec.y);
+    ScrVert *sv2 = screen_geom_vertex_add(screen, split, area->v2->vec.y);
 
     /* new edges */
     screen_geom_edge_add(screen, area->v1, sv1);
@@ -205,17 +203,14 @@ ScrArea *area_split(
  */
 bScreen *screen_add(Main *bmain, const char *name, const rcti *rect)
 {
-  bScreen *screen;
-  ScrVert *sv1, *sv2, *sv3, *sv4;
-
-  screen = BKE_libblock_alloc(bmain, ID_SCR, name, 0);
+  bScreen *screen = BKE_libblock_alloc(bmain, ID_SCR, name, 0);
   screen->do_refresh = true;
   screen->redraws_flag = TIME_ALL_3D_WIN | TIME_ALL_ANIM_WIN;
 
-  sv1 = screen_geom_vertex_add(screen, rect->xmin, rect->ymin);
-  sv2 = screen_geom_vertex_add(screen, rect->xmin, rect->ymax - 1);
-  sv3 = screen_geom_vertex_add(screen, rect->xmax - 1, rect->ymax - 1);
-  sv4 = screen_geom_vertex_add(screen, rect->xmax - 1, rect->ymin);
+  ScrVert *sv1 = screen_geom_vertex_add(screen, rect->xmin, rect->ymin);
+  ScrVert *sv2 = screen_geom_vertex_add(screen, rect->xmin, rect->ymax - 1);
+  ScrVert *sv3 = screen_geom_vertex_add(screen, rect->xmax - 1, rect->ymax - 1);
+  ScrVert *sv4 = screen_geom_vertex_add(screen, rect->xmax - 1, rect->ymin);
 
   screen_geom_edge_add(screen, sv1, sv2);
   screen_geom_edge_add(screen, sv2, sv3);
@@ -230,9 +225,6 @@ bScreen *screen_add(Main *bmain, const char *name, const rcti *rect)
 
 void screen_data_copy(bScreen *to, bScreen *from)
 {
-  ScrVert *s2;
-  ScrArea *area, *saf;
-
   /* free contents of 'to', is from blenkernel screen.c */
   BKE_screen_free(to);
 
@@ -243,7 +235,7 @@ void screen_data_copy(bScreen *to, bScreen *from)
   BLI_duplicatelist(&to->areabase, &from->areabase);
   BLI_listbase_clear(&to->regionbase);
 
-  s2 = to->vertbase.first;
+  ScrVert *s2 = to->vertbase.first;
   for (ScrVert *s1 = from->vertbase.first; s1; s1 = s1->next, s2 = s2->next) {
     s1->newv = s2;
   }
@@ -254,8 +246,8 @@ void screen_data_copy(bScreen *to, bScreen *from)
     BKE_screen_sort_scrvert(&(se->v1), &(se->v2));
   }
 
-  saf = from->areabase.first;
-  for (area = to->areabase.first; area; area = area->next, saf = saf->next) {
+  ScrArea *from_area = from->areabase.first;
+  LISTBASE_FOREACH (ScrArea *, area, &to->areabase) {
     area->v1 = area->v1->newv;
     area->v2 = area->v2->newv;
     area->v3 = area->v3->newv;
@@ -266,7 +258,9 @@ void screen_data_copy(bScreen *to, bScreen *from)
     BLI_listbase_clear(&area->actionzones);
     BLI_listbase_clear(&area->handlers);
 
-    ED_area_data_copy(area, saf, true);
+    ED_area_data_copy(area, from_area, true);
+
+    from_area = from_area->next;
   }
 
   /* put at zero (needed?) */
@@ -1232,7 +1226,6 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
   WorkSpace *workspace = WM_window_get_active_workspace(win);
-  bScreen *screen, *oldscreen;
 
   if (area) {
     /* ensure we don't have a button active anymore, can crash when
@@ -1251,12 +1244,12 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
     ED_area_status_text(area, NULL);
     ED_workspace_status_text(C, NULL);
   }
-
+  bScreen *screen;
   if (area && area->full) {
     WorkSpaceLayout *layout_old = WM_window_get_active_layout(win);
     /* restoring back to SCREENNORMAL */
-    screen = area->full;                          /* the old screen to restore */
-    oldscreen = WM_window_get_active_screen(win); /* the one disappearing */
+    screen = area->full;                                   /* the old screen to restore */
+    bScreen *oldscreen = WM_window_get_active_screen(win); /* the one disappearing */
 
     BLI_assert(BKE_workspace_layout_screen_get(layout_old) != screen);
     BLI_assert(BKE_workspace_layout_screen_get(layout_old)->state != SCREENNORMAL);
@@ -1321,7 +1314,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
 
     BLI_assert(ELEM(state, SCREENMAXIMIZED, SCREENFULL));
 
-    oldscreen = WM_window_get_active_screen(win);
+    bScreen *oldscreen = WM_window_get_active_screen(win);
 
     oldscreen->state = state;
     BLI_snprintf(newname, sizeof(newname), "%s-%s", oldscreen->id.name + 2, "nonnormal");

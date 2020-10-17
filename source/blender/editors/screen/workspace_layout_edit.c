@@ -61,11 +61,9 @@ WorkSpaceLayout *ED_workspace_layout_duplicate(Main *bmain,
 {
   bScreen *screen_old = BKE_workspace_layout_screen_get(layout_old);
   const char *name = BKE_workspace_layout_name_get(layout_old);
-  bScreen *screen_new;
-  WorkSpaceLayout *layout_new;
 
-  layout_new = ED_workspace_layout_add(bmain, workspace, win, name);
-  screen_new = BKE_workspace_layout_screen_get(layout_new);
+  WorkSpaceLayout *layout_new = ED_workspace_layout_add(bmain, workspace, win, name);
+  bScreen *screen_new = BKE_workspace_layout_screen_get(layout_new);
 
   if (BKE_screen_is_fullscreen_area(screen_old)) {
     LISTBASE_FOREACH (ScrArea *, area_old, &screen_old->areabase) {
@@ -229,7 +227,6 @@ bool ED_workspace_layout_cycle(WorkSpace *workspace, const short direction, bCon
 {
   wmWindow *win = CTX_wm_window(C);
   WorkSpaceLayout *old_layout = BKE_workspace_active_layout_get(win->workspace_hook);
-  WorkSpaceLayout *new_layout;
   const bScreen *old_screen = BKE_workspace_layout_screen_get(old_layout);
   ScrArea *area = CTX_wm_area(C);
 
@@ -238,11 +235,12 @@ bool ED_workspace_layout_cycle(WorkSpace *workspace, const short direction, bCon
   }
 
   BLI_assert(ELEM(direction, 1, -1));
-  new_layout = BKE_workspace_layout_iter_circular(workspace,
-                                                  old_layout,
-                                                  workspace_layout_cycle_iter_cb,
-                                                  NULL,
-                                                  (direction == -1) ? true : false);
+  WorkSpaceLayout *new_layout = BKE_workspace_layout_iter_circular(workspace,
+                                                                   old_layout,
+                                                                   workspace_layout_cycle_iter_cb,
+                                                                   NULL,
+                                                                   (direction == -1) ? true :
+                                                                                       false);
 
   if (new_layout && (old_layout != new_layout)) {
     bScreen *new_screen = BKE_workspace_layout_screen_get(new_layout);
