@@ -481,7 +481,11 @@ static SculptGestureContext *sculpt_gesture_init_from_line(bContext *C, wmOperat
   if (!sgcontext->vc.rv3d->is_persp) {
     mul_v3_fl(normal, -1.0f);
   }
-  plane_from_point_normal_v3(sgcontext->line.true_plane, plane_points[0], normal);
+  mul_v3_mat3_m4v3(normal, sgcontext->vc.obact->imat, normal);
+  float plane_point_object_space[3];
+  mul_v3_m4v3(plane_point_object_space, sgcontext->vc.obact->imat, plane_points[0]);
+  plane_from_point_normal_v3(sgcontext->line.true_plane, plane_point_object_space, normal);
+
   return sgcontext;
 }
 
