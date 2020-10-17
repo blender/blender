@@ -1169,7 +1169,8 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
 
   bm = self->bm;
 
-  BM_mesh_bm_from_me(bm,
+  BM_mesh_bm_from_me(NULL,
+                     bm,
                      me_eval,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = use_fnorm,
@@ -1226,7 +1227,8 @@ static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *
 
   bm = self->bm;
 
-  BM_mesh_bm_from_me(bm,
+  BM_mesh_bm_from_me(NULL,
+                     bm,
                      me,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = use_fnorm,

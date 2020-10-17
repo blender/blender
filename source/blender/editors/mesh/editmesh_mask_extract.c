@@ -116,7 +116,7 @@ static int geometry_extract_apply(bContext *C,
                           .use_toolflags = true,
                       }));
 
-  BM_mesh_bm_from_me(bm,
+  BM_mesh_bm_from_me(NULL, bm,
                      new_mesh,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,
@@ -507,7 +507,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
                           .use_toolflags = true,
                       }));
 
-  BM_mesh_bm_from_me(bm,
+  BM_mesh_bm_from_me(NULL, bm,
                      new_mesh,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,
@@ -538,7 +538,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
                             .use_toolflags = true,
                         }));
 
-    BM_mesh_bm_from_me(bm,
+    BM_mesh_bm_from_me(NULL, bm,
                        new_ob_mesh,
                        (&(struct BMeshFromMeshParams){
                            .calc_face_normal = true,

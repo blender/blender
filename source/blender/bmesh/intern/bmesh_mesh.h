@@ -22,6 +22,11 @@
 
 #include "bmesh_class.h"
 
+typedef enum {
+  MULTIRES_SPACE_TANGENT, //convert absolute to tangent
+  MULTIRES_SPACE_ABSOLUTE //convert tangent to absolute
+} MultiResSpace;
+
 struct BMAllocTemplate;
 struct BMLoopNorEditDataArray;
 struct MLoopNorSpaceArray;

@@ -165,7 +165,8 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
                               .use_toolflags = false,
                           }));
 
-  BM_mesh_bm_from_me(ss->bm,
+  BM_mesh_bm_from_me(NULL,
+                     ss->bm,
                      me,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,

@@ -259,6 +259,7 @@ void MESH_OT_set_normals_from_faces(struct wmOperatorType *ot);
 void MESH_OT_average_normals(struct wmOperatorType *ot);
 void MESH_OT_smooth_normals(struct wmOperatorType *ot);
 void MESH_OT_mod_weighted_strength(struct wmOperatorType *ot);
+void MESH_OT_mres_test(struct wmOperatorType *ot);
 
 /* *** editmesh_mask_extract.c *** */
 void MESH_OT_paint_mask_extract(struct wmOperatorType *ot);

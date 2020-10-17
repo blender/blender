@@ -443,7 +443,7 @@ struct Mesh *BKE_mesh_remesh_voxel_fix_poles(struct Mesh *mesh)
                           .use_toolflags = true,
                       }));
 
-  BM_mesh_bm_from_me(bm,
+  BM_mesh_bm_from_me(NULL, bm,
                      mesh,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,

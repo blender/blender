@@ -520,7 +520,7 @@ static void *undomesh_from_editmesh(UndoMesh *um, BMEditMesh *em, Key *key)
   /* BM_mesh_validate(em->bm); */ /* for troubleshooting */
 
   BM_mesh_bm_to_me(
-      NULL,
+      NULL, NULL,
       em->bm,
       &um->me,
       (&(struct BMeshToMeshParams){
@@ -596,7 +596,7 @@ static void undomesh_to_editmesh(UndoMesh *um, Object *ob, BMEditMesh *em, Key *
                           .use_toolflags = true,
                       }));
 
-  BM_mesh_bm_from_me(bm,
+  BM_mesh_bm_from_me(NULL, bm,
                      &um->me,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,

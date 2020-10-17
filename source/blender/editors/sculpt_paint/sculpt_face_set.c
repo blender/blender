@@ -382,7 +382,8 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
                             .use_toolflags = true,
                         }));
 
-    BM_mesh_bm_from_me(bm,
+    BM_mesh_bm_from_me(NULL,
+                       bm,
                        mesh,
                        (&(struct BMeshFromMeshParams){
                            .calc_face_normal = true,
@@ -561,7 +562,8 @@ static void sculpt_face_sets_init_flood_fill(Object *ob,
                           .use_toolflags = true,
                       }));
 
-  BM_mesh_bm_from_me(bm,
+  BM_mesh_bm_from_me(NULL,
+                     bm,
                      mesh,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,
@@ -634,7 +636,8 @@ static void sculpt_face_sets_init_loop(Object *ob, const int mode)
                           .use_toolflags = true,
                       }));
 
-  BM_mesh_bm_from_me(bm,
+  BM_mesh_bm_from_me(NULL,
+                     bm,
                      mesh,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,

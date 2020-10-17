@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include "DNA_modifier_types.h"
+
 /** \file
  * \ingroup bmesh
  */
@@ -266,6 +268,9 @@ typedef struct BMesh {
   ListBase errorstack;
 
   void *py_handle;
+  MultiresModifierData multires; //copy of multires settings
+  bool haveMultiResSettings;
+  int multiresSpace;
 } BMesh;
 
 /* BMHeader->htype (char) */

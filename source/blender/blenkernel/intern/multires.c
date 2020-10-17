@@ -41,6 +41,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h"
+#include "BKE_global.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
@@ -49,7 +50,9 @@
 #include "BKE_pbvh.h"
 #include "BKE_scene.h"
 #include "BKE_subdiv_ccg.h"
+#include "BKE_subdiv_eval.h"
 #include "BKE_subsurf.h"
+#include "BKE_subdiv.h"
 
 #include "BKE_object.h"
 
@@ -58,6 +61,8 @@
 #include "DEG_depsgraph_query.h"
 
 #include "multires_reshape.h"
+#include "multires_inline.h"
+#include "bmesh.h"
 
 #include <math.h>
 #include <string.h>
@@ -957,31 +962,16 @@ void multiresModifier_subdivide_legacy(
 static void grid_tangent(const CCGKey *key, int x, int y, int axis, CCGElem *grid, float t[3])
 {
   if (axis == 0) {
-    if (x == key->grid_size - 1) {
-      if (y == key->grid_size - 1) {
-        sub_v3_v3v3(
-            t, CCG_grid_elem_co(key, grid, x, y - 1), CCG_grid_elem_co(key, grid, x - 1, y - 1));
-      }
-      else {
-        sub_v3_v3v3(t, CCG_grid_elem_co(key, grid, x, y), CCG_grid_elem_co(key, grid, x - 1, y));
-      }
+    if (x == 0) {
+      sub_v3_v3v3(t, CCG_grid_elem_co(key, grid, x+1, y), CCG_grid_elem_co(key, grid, x, y));
+    } else {
+      sub_v3_v3v3(t, CCG_grid_elem_co(key, grid, x, y), CCG_grid_elem_co(key, grid, x-1, y));
     }
-    else {
-      sub_v3_v3v3(t, CCG_grid_elem_co(key, grid, x + 1, y), CCG_grid_elem_co(key, grid, x, y));
-    }
-  }
-  else if (axis == 1) {
-    if (y == key->grid_size - 1) {
-      if (x == key->grid_size - 1) {
-        sub_v3_v3v3(
-            t, CCG_grid_elem_co(key, grid, x - 1, y), CCG_grid_elem_co(key, grid, x - 1, (y - 1)));
-      }
-      else {
-        sub_v3_v3v3(t, CCG_grid_elem_co(key, grid, x, y), CCG_grid_elem_co(key, grid, x, (y - 1)));
-      }
-    }
-    else {
-      sub_v3_v3v3(t, CCG_grid_elem_co(key, grid, x, (y + 1)), CCG_grid_elem_co(key, grid, x, y));
+  } else if (axis == 1) {
+    if (y == 0) {
+        sub_v3_v3v3(t, CCG_grid_elem_co(key, grid, x, y+1), CCG_grid_elem_co(key, grid, x, y));
+    } else {
+      sub_v3_v3v3(t, CCG_grid_elem_co(key, grid, x, y), CCG_grid_elem_co(key, grid, x, y-1));
     }
   }
 }
@@ -1000,21 +990,336 @@ static void grid_tangent_matrix(float mat[3][3], const CCGKey *key, int x, int y
 
 typedef struct MultiresThreadedData {
   DispOp op;
+  MultiResSpace bmop;
+  BMesh *bm;
+  int lvl;
   CCGElem **gridData, **subGridData;
   CCGKey *key;
   CCGKey *sub_key;
+  Subdiv *sd;
   MPoly *mpoly;
   MDisps *mdisps;
   GridPaintMask *grid_paint_mask;
   int *gridOffset;
+  int cd_mdisps_off;
   int gridSize, dGridSize, dSkip;
   float (*smat)[3];
 } MultiresThreadedData;
+
+static void multires_bmesh_space_set_cb(void *__restrict userdata,
+  const int pidx,
+  const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  MultiresThreadedData *tdata = userdata;
+
+  int cd_mdisps_off = tdata->cd_mdisps_off;
+  BMesh *bm = tdata->bm;
+  MultiResSpace op = tdata->bmop;
+  CCGElem **gridData = tdata->gridData;
+  CCGElem **subGridData = tdata->subGridData;
+  CCGKey *key = tdata->key;
+  BMFace *f = bm->ftable[pidx];
+  MDisps *mdisps = tdata->mdisps;
+  GridPaintMask *grid_paint_mask = tdata->grid_paint_mask;
+  int *gridOffset = tdata->gridOffset;
+  int gridSize = tdata->gridSize;
+  int dGridSize = tdata->dGridSize;
+  int dSkip = tdata->dSkip;
+
+  int S, x, y, gIndex = gridOffset[pidx];
+
+  BMLoop *l = f->l_first;
+  float cent[3];
+  int tot = 0;
+
+  zero_v3(cent);
+
+  do {
+    add_v3_v3(cent, l->v->co);
+    tot++;
+    l = l->next;
+  } while (l != f->l_first);
+
+  mul_v3_fl(cent, 1.0f / (float)tot);
+
+  float simplemat[3][3];
+
+  l = f->l_first;
+  S = 0;
+  do {
+  //for (S = 0; S < numVerts; S++, gIndex++) {
+    
+    GridPaintMask *gpm = grid_paint_mask ? &grid_paint_mask[gIndex] : NULL;
+    MDisps *mdisp = BM_ELEM_CD_GET_VOID_P(l, cd_mdisps_off); //&mdisps[mpoly[pidx].loopstart + S];
+    CCGElem *grid = gridData[gIndex];
+    CCGElem *subgrid = subGridData[gIndex];
+    float(*dispgrid)[3] = NULL;
+
+    dispgrid = mdisp->disps;
+
+    float quad[4][3];
+
+    //copy_v3_v3(quad[0], cent);
+    //interp_v3_v3v3(quad[1], l->v->co, l->next->v->co, 0.5);
+    //copy_v3_v3(quad[2], l->v->co);
+    //interp_v3_v3v3(quad[3], l->v->co, l->prev->v->co, 0.5);
+    float maxlen = len_v3v3(l->v->co, cent)*15.0f;
+    maxlen = MAX2(maxlen, 0.00001f);
+
+    for (y = 0; y < gridSize; y++) {
+      for (x = 0; x < gridSize; x++) {
+        //float *sco = CCG_grid_elem_co(key, grid, x, y);
+        //float *sco = CCG_grid_elem_co(key, subgrid, x, y);
+        float sco[8], udv[3], vdv[3];
+        float *data = dispgrid[dGridSize * y * dSkip + x * dSkip];
+        float mat[3][3], disp[3], d[3], mask;
+        //float baseco[3];
+
+        float grid_u = (float)x / (float)(dGridSize-1);
+        float grid_v = (float)y / (float)(dGridSize-1);
+        float u, v;
+
+        int corner = l->head.index - f->head.index;
+        if (f->len == 4) {
+          BKE_subdiv_rotate_grid_to_quad(corner, grid_u, grid_v, &u, &v);
+          //continue;
+        } else {
+          u = 1.0 - grid_v;
+          v = 1.0 - grid_u;
+        }
+
+        BKE_subdiv_eval_limit_point_and_derivatives(tdata->sd, l->head.index, u, v, sco, udv, vdv);
+        //float tan[3];
+        //grid_tangent(key, x, y, 1, grid, tan);
+
+        //negate_v3(udv);
+
+        //normalize_v3(tan);
+        //normalize_v3(vdv);
+        //printf("%.4f\n", len_v3v3(tan, vdv));
+        //printf("  %.3f %.3f %.3f\n", tan[0], tan[1], tan[2]);
+        //printf("  %.3f %.3f %.3f\n", vdv[0], vdv[1], vdv[2]);
+
+        //negate_v3(udv);
+        //negate_v3(vdv);
+        BKE_multires_construct_tangent_matrix(mat, udv, vdv, corner);
+
+        //BKE_subdiv_eval_limit_point_and_derivatives(subdiv, ptex_face_index, u, v, dummy_P, dPdu, dPdv);
+
+        //interp_bilinear_quad_v3(quad, (float)x/(float)gridSize, (float)y/(float)gridSize, baseco);
+
+        /* construct tangent space matrix */
+        //grid_tangent_matrix(mat, key, x, y, grid);
+
+        //copy_v3_v3(sco, CCG_grid_elem_co(key, grid, x, y));
+
+        //sub_v3_v3(sco, CCG_grid_elem_co(key, grid, x, y));
+        //oprintf("%.3f   %.3f   %.3f\n", sco[0], sco[1], sco[2]);
+        //copy_v3_v3(sco, CCG_grid_elem_co(key, grid, x, y));
+
+        copy_v3_v3(disp, data);
+        
+        switch (op) {
+        case MULTIRES_SPACE_ABSOLUTE:
+          /* Convert displacement to object space
+          * and add to grid points */
+          mul_v3_m3v3(disp, mat, data);
+          add_v3_v3v3(data, disp, sco);
+          break;
+        case MULTIRES_SPACE_TANGENT:
+          /* Calculate displacement between new and old
+          * grid points and convert to tangent space */
+          invert_m3(mat);
+
+          sub_v3_v3v3(disp, data, sco);
+          mul_v3_m3v3(data, mat, disp);
+
+          //float len = len_v3(data);
+          //if (len > maxlen) {
+           // mul_v3_fl(data, maxlen/len);
+          //}
+          break;
+        }
+      }
+    }
+
+    S++;
+    gIndex++;
+    l = l->next;
+  } while (l != f->l_first);
+}
+
+/* XXX WARNING: subsurf elements from dm and oldGridData *must* be of the same format (size),
+*              because this code uses CCGKey's info from dm to access oldGridData's normals
+*              (through the call to grid_tangent_matrix())! */
+void BKE_multires_bmesh_space_set(Object *ob, BMesh *bm, int mode)
+{
+  if (!bm->totface || !CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+    return;
+  }
+
+  MultiresModifierData *mmd = bm->haveMultiResSettings ? &bm->multires : NULL;
+
+  if (!mmd && ob) {
+    mmd = get_multires_modifier(NULL, ob, true);
+  }
+
+  if (!mmd || !CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+    return;
+  }
+
+
+  Mesh _me, *me = &_me;
+  memset(me, 0, sizeof(Mesh));
+  CustomData_reset(&me->vdata);
+  CustomData_reset(&me->edata);
+  CustomData_reset(&me->ldata);
+  CustomData_reset(&me->fdata);
+  CustomData_reset(&me->pdata);
+
+  CustomData_MeshMasks extra = CD_MASK_DERIVEDMESH;
+  extra.lmask |= CD_MASK_MDISPS;
+
+  //CustomData_MeshMasks extra = {0};
+  BM_mesh_bm_to_me_for_eval(bm, me, &extra);
+  DerivedMesh *cddm = CDDM_from_mesh(me);
+  //cddm->dm.
+
+  SubdivSettings settings2;
+  //cddm ignores MDISPS layer.  this turns out to be a good thing.
+  //CustomData_reset(&cddm->loopData);
+  //CustomData_merge(&me->ldata, &cddm->loopData, CD_MASK_MESH.lmask & ~CD_MASK_MDISPS, CD_REFERENCE, me->totloop);
+
+  //ensure we control the level
+  MultiresModifierData mmdcpy = *mmd;
+  mmdcpy.lvl = mmdcpy.sculptlvl = mmdcpy.renderlvl = mmdcpy.totlvl;
+
+  BKE_multires_subdiv_settings_init(&settings2, &mmdcpy);
+  Subdiv *sd = BKE_subdiv_new_from_mesh(&settings2, me);
+  BKE_subdiv_eval_begin_from_mesh(sd, me, NULL);
+
+  Object fakeob;
+  if (ob) {
+    fakeob = *ob;
+    fakeob.sculpt = NULL;
+  } else {
+    memset(&fakeob, 0, sizeof(fakeob));
+    fakeob.data = me;
+    BLI_addtail(&fakeob.modifiers, &mmdcpy);
+  }
+
+  //MULTIRES_USE_LOCAL_MMD
+  //CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) multires_make_derived_from_derived(cddm, &mmdcpy, NULL, &fakeob, MULTIRES_IGNORE_SIMPLIFY|MULTIRES_USE_LOCAL_MMD);
+  CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) subsurf_dm_create_local(NULL,
+    &fakeob,
+    cddm,
+    mmd->totlvl,
+    mmd->simple,
+    0,
+    mmd->uv_smooth == SUBSURF_UV_SMOOTH_NONE,
+    false,
+    false,
+    SUBSURF_IGNORE_SIMPLIFY);
+
+  CCGElem **gridData, **subGridData;
+  CCGKey key;
+  GridPaintMask *grid_paint_mask = NULL;
+  int *gridOffset;
+  int i, gridSize, dGridSize, dSkip;
+  int totpoly = bm->totface;
+
+  //paranoia recalc of indices/tables
+  bm->elem_index_dirty |= BM_FACE|BM_VERT;
+  bm->elem_table_dirty |= BM_FACE|BM_VERT;
+
+  BM_mesh_elem_index_ensure(bm, BM_FACE|BM_VERT);
+  BM_mesh_elem_table_ensure(bm, BM_FACE|BM_VERT);
+
+  /*numGrids = dm->getNumGrids(dm);*/ /*UNUSED*/
+  gridSize = ccgdm->dm.getGridSize(&ccgdm->dm);
+  gridData = ccgdm->dm.getGridData(&ccgdm->dm);
+  gridOffset = ccgdm->dm.getGridOffset(&ccgdm->dm);
+  ccgdm->dm.getGridKey(&ccgdm->dm, &key);
+  subGridData = gridData;
+
+  dGridSize = multires_side_tot[mmd->totlvl];
+  dSkip = (dGridSize - 1) / (gridSize - 1);
+
+  /* multires paint masks */
+  if (key.has_mask) {
+    grid_paint_mask = CustomData_get_layer(&me->ldata, CD_GRID_PAINT_MASK);
+  }
+
+  /* when adding new faces in edit mode, need to allocate disps */
+  int cd_disp_off = CustomData_get_offset(&bm->ldata, CD_MDISPS);
+
+  BMFace *f;
+  BMIter iter;
+  i = 0;
+  int i2 = 0;
+  BM_ITER_MESH(f, &iter, bm, BM_FACES_OF_MESH) {
+    BMIter iter2;
+    BMLoop *l;
+
+    f->head.index = i;
+
+    BM_ITER_ELEM(l, &iter2, f, BM_LOOPS_OF_FACE) {
+      MDisps *mdisp = BM_ELEM_CD_GET_VOID_P(l, cd_disp_off);
+      if (!mdisp->disps) {
+        multires_reallocate_mdisps(1, mdisp, mmd->totlvl);
+      }
+
+      if (f->len != 4) {
+        l->head.index = i++;
+      } else {
+        l->head.index = i;
+      }
+    }
+
+    if (f->len == 4) {
+      i++;
+    }
+  }
+
+  TaskParallelSettings settings;
+  BLI_parallel_range_settings_defaults(&settings);
+  settings.min_iter_per_thread = CCG_TASK_LIMIT;
+
+  MultiresThreadedData data = {
+    .bmop = mode,
+    .sd = sd,
+    .gridData = gridData,
+    .subGridData = subGridData,
+    .key = &key,
+    .lvl = mmd->totlvl,
+    .bm = bm,
+    .cd_mdisps_off = cd_disp_off,
+    .grid_paint_mask = grid_paint_mask,
+    .gridOffset = gridOffset,
+    .gridSize = gridSize,
+    .dGridSize = dGridSize,
+    .dSkip = dSkip,
+  };
+
+  BLI_task_parallel_range(0, totpoly, &data, multires_bmesh_space_set_cb, &settings);
+
+  //MDisps = CustomData_get
+  //if (mode == MULTIRES_SPACE_TANGENT) {
+    //ccgSubSurf_stitchFaces(ccgdm->ss, 0, NULL, 0);
+    //ccgSubSurf_updateNormals(ccgdm->ss, NULL, 0);
+  //}
+
+  ccgdm->dm.release(&ccgdm->dm);
+  DM_release(cddm);
+  BKE_mesh_free(me);
+  BKE_subdiv_free(sd);
+}
 
 static void multires_disp_run_cb(void *__restrict userdata,
                                  const int pidx,
                                  const TaskParallelTLS *__restrict UNUSED(tls))
 {
+  return;
   MultiresThreadedData *tdata = userdata;
 
   DispOp op = tdata->op;
@@ -1049,7 +1354,7 @@ static void multires_disp_run_cb(void *__restrict userdata,
       }
       gpm->data = MEM_calloc_arrayN(key->grid_area, sizeof(float), "gpm.data");
     }
-
+    
     for (y = 0; y < gridSize; y++) {
       for (x = 0; x < gridSize; x++) {
         float *co = CCG_grid_elem_co(key, grid, x, y);
@@ -1186,8 +1491,8 @@ static void multiresModifier_disp_run(
   BLI_task_parallel_range(0, totpoly, &data, multires_disp_run_cb, &settings);
 
   if (op == APPLY_DISPLACEMENTS) {
-    ccgSubSurf_stitchFaces(ccgdm->ss, 0, NULL, 0);
-    ccgSubSurf_updateNormals(ccgdm->ss, NULL, 0);
+    //ccgSubSurf_stitchFaces(ccgdm->ss, 0, NULL, 0);
+    //ccgSubSurf_updateNormals(ccgdm->ss, NULL, 0);
   }
 }
 
@@ -1352,6 +1657,7 @@ void multires_modifier_update_hidden(DerivedMesh *dm)
 
 void multires_stitch_grids(Object *ob)
 {
+  return; //XXX
   if (ob == NULL) {
     return;
   }
@@ -1372,7 +1678,7 @@ void multires_stitch_grids(Object *ob)
   int num_faces;
   BKE_pbvh_get_grid_updates(pbvh, false, (void ***)&faces, &num_faces);
   if (num_faces) {
-    BKE_subdiv_ccg_average_stitch_faces(subdiv_ccg, faces, num_faces);
+    //XXX BKE_subdiv_ccg_average_stitch_faces(subdiv_ccg, faces, num_faces);
     MEM_freeN(faces);
   }
 }
@@ -1491,7 +1797,7 @@ void old_mdisps_bilinear(float out[3], float (*disps)[3], const int st, float u,
 
   urat = u - x;
   vrat = v - y;
-  uopp = 1 - urat;
+  uopp = 1.0f - urat;
 
   mul_v3_v3fl(d[0], disps[y * st + x], uopp);
   mul_v3_v3fl(d[1], disps[y * st + x2], urat);
@@ -1500,7 +1806,7 @@ void old_mdisps_bilinear(float out[3], float (*disps)[3], const int st, float u,
 
   add_v3_v3v3(d2[0], d[0], d[1]);
   add_v3_v3v3(d2[1], d[2], d[3]);
-  mul_v3_fl(d2[0], 1 - vrat);
+  mul_v3_fl(d2[0], 1.0f - vrat);
   mul_v3_fl(d2[1], vrat);
 
   add_v3_v3v3(out, d2[0], d2[1]);

@@ -59,6 +59,7 @@ Mesh *BKE_mesh_mirror_bisect_on_mirror_plane(MirrorModifierData *mmd,
   BMVert *v, *v_next;
 
   bm = BKE_mesh_to_bmesh_ex(mesh,
+                            NULL,
                             &(struct BMeshCreateParams){0},
                             &(struct BMeshFromMeshParams){
                                 .calc_face_normal = true,

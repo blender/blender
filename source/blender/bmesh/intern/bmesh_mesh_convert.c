@@ -176,8 +176,27 @@ static BMFace *bm_face_create_from_mpoly(
   return BM_face_create(bm, verts, edges, mp->totloop, NULL, BM_CREATE_SKIP_CD);
 }
 
+void BM_enter_multires_space(Object *ob, BMesh *bm, int space) {
+  if (!bm->haveMultiResSettings && ob) {
+    MultiresModifierData *mmd = get_multires_modifier(NULL, ob, true);
+    if (mmd) {
+      bm->multires = *mmd;
+      bm->haveMultiResSettings = true;
+      bm->multiresSpace = MULTIRES_SPACE_TANGENT;
+    }
+  }
+
+  if (!bm->haveMultiResSettings || !CustomData_has_layer(&bm->ldata, CD_MDISPS) || space == bm->multiresSpace) {
+    return;
+  }
+
+  BKE_multires_bmesh_space_set(ob, bm, space);
+  bm->multiresSpace = space;
+}
+
 /**
  * \brief Mesh -> BMesh
+ * \param ob: object that owns bm, may be NULL (which will disable multires space change)
  * \param bm: The mesh to write into, while this is typically a newly created BMesh,
  * merging into existing data is supported.
  * Note the custom-data layout isn't used.
@@ -186,7 +205,7 @@ static BMFace *bm_face_create_from_mpoly(
  *
  * \warning This function doesn't calculate face normals.
  */
-void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshParams *params)
+void BM_mesh_bm_from_me(Object *ob, BMesh *bm, const Mesh *me, const struct BMeshFromMeshParams *params)
 {
   const bool is_new = !(bm->totvert || (bm->vdata.totlayer || bm->edata.totlayer ||
                                         bm->pdata.totlayer || bm->ldata.totlayer));
@@ -202,6 +221,15 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
   int totloops, i;
   CustomData_MeshMasks mask = CD_MASK_BMESH;
   CustomData_MeshMasks_update(&mask, &params->cd_mask_extra);
+
+  MultiresModifierData *mmd = ob ? get_multires_modifier(NULL, ob, true) : NULL;
+  if (mmd) {
+    bm->multires = *mmd;
+    bm->haveMultiResSettings = true;
+    bm->multiresSpace = MULTIRES_SPACE_TANGENT;
+  } else {
+    bm->haveMultiResSettings = false;
+  }
 
   if (!me || !me->totvert) {
     if (me && is_new) { /* No verts? still copy custom-data layout. */
@@ -568,7 +596,7 @@ BLI_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
  *
  * \param bmain: May be NULL in case \a calc_object_remap parameter option is not set.
  */
-void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMeshParams *params)
+void BM_mesh_bm_to_me(Main *bmain, Object *ob, BMesh *bm, Mesh *me, const struct BMeshToMeshParams *params)
 {
   MEdge *med;
   BMVert *v, *eve;
@@ -576,6 +604,11 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   BMFace *f;
   BMIter iter;
   int i, j;
+
+  //ensure multires space is correct
+  if (bm->haveMultiResSettings && bm->multiresSpace != MULTIRES_SPACE_TANGENT) {
+    BM_enter_multires_space(ob, bm, MULTIRES_SPACE_TANGENT);
+  }
 
   const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
   const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);

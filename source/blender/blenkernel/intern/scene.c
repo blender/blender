@@ -1453,6 +1453,7 @@ static void prepare_mesh_for_viewport_render(Main *bmain, const ViewLayer *view_
       if (check_rendered_viewport_visible(bmain)) {
         BMesh *bm = mesh->edit_mesh->bm;
         BM_mesh_bm_to_me(bmain,
+                         NULL,
                          bm,
                          mesh,
                          (&(struct BMeshToMeshParams){

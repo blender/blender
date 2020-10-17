@@ -1954,6 +1954,11 @@ void BM_custom_loop_normals_from_vector_layer(BMesh *bm, bool add_sharp_edges)
   bm->spacearr_dirty &= ~(BM_SPACEARR_DIRTY | BM_SPACEARR_DIRTY_ALL);
 }
 
+static void bmesh_convert_space(BMesh *bm, MultiResSpace from, MultiResSpace to)
+{
+  
+}
+
 /**
  * \brief BMesh Begin Edit
  *
@@ -1961,24 +1966,22 @@ void BM_custom_loop_normals_from_vector_layer(BMesh *bm, bool add_sharp_edges)
  * the editing operations are done. These are called by the tools/operator
  * API for each time a tool is executed.
  */
-void bmesh_edit_begin(BMesh *UNUSED(bm), BMOpTypeFlag UNUSED(type_flag))
+void bmesh_edit_begin(BMesh *bm, BMOpTypeFlag type_flag)
 {
   /* Most operators seem to be using BMO_OPTYPE_FLAG_UNTAN_MULTIRES to change the MDisps to
    * absolute space during mesh edits. With this enabled, changes to the topology
    * (loop cuts, edge subdivides, etc) are not reflected in the higher levels of
    * the mesh at all, which doesn't seem right. Turning off completely for now,
    * until this is shown to be better for certain types of mesh edits. */
-#ifdef BMOP_UNTAN_MULTIRES_ENABLED
   /* switch multires data out of tangent space */
   if ((type_flag & BMO_OPTYPE_FLAG_UNTAN_MULTIRES) &&
       CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
-    bmesh_mdisps_space_set(bm, MULTIRES_SPACE_TANGENT, MULTIRES_SPACE_ABSOLUTE);
-
+    //bmesh_mdisps_space_set(bm, MULTIRES_SPACE_TANGENT, MULTIRES_SPACE_ABSOLUTE);
+    BM_enter_multires_space(NULL, bm, MULTIRES_SPACE_ABSOLUTE);
     /* ensure correct normals, if possible */
-    bmesh_rationalize_normals(bm, 0);
-    BM_mesh_normals_update(bm);
+    //bmesh_rationalize_normals(bm, 0);
+    //BM_mesh_normals_update(bm);
   }
-#endif
 }
 
 /**
@@ -1989,17 +1992,10 @@ void bmesh_edit_end(BMesh *bm, BMOpTypeFlag type_flag)
   ListBase select_history;
 
   /* BMO_OPTYPE_FLAG_UNTAN_MULTIRES disabled for now, see comment above in bmesh_edit_begin. */
-#ifdef BMOP_UNTAN_MULTIRES_ENABLED
   /* switch multires data into tangent space */
-  if ((flag & BMO_OPTYPE_FLAG_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
-    /* set normals to their previous winding */
-    bmesh_rationalize_normals(bm, 1);
-    bmesh_mdisps_space_set(bm, MULTIRES_SPACE_ABSOLUTE, MULTIRES_SPACE_TANGENT);
+  if ((type_flag & BMO_OPTYPE_FLAG_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+    BM_enter_multires_space(NULL, bm, MULTIRES_SPACE_TANGENT);
   }
-  else if (flag & BMO_OP_FLAG_RATIONALIZE_NORMALS) {
-    bmesh_rationalize_normals(bm, 1);
-  }
-#endif
 
   /* compute normals, clear temp flags and flush selections */
   if (type_flag & BMO_OPTYPE_FLAG_NORMALS_CALC) {

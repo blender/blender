@@ -880,7 +880,7 @@ static void sculpt_gesture_trim_normals_update(SculptGestureContext *sgcontext)
                           .use_toolflags = true,
                       }));
 
-  BM_mesh_bm_from_me(bm,
+  BM_mesh_bm_from_me(NULL, bm,
                      trim_mesh,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,
@@ -1089,13 +1089,15 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
                           .use_toolflags = false,
                       }));
 
-  BM_mesh_bm_from_me(bm,
+  BM_mesh_bm_from_me(NULL,
+                     bm,
                      trim_mesh,
                      &((struct BMeshFromMeshParams){
                          .calc_face_normal = true,
                      }));
 
-  BM_mesh_bm_from_me(bm,
+  BM_mesh_bm_from_me(NULL,
+                     bm,
                      sculpt_mesh,
                      &((struct BMeshFromMeshParams){
                          .calc_face_normal = true,

@@ -986,6 +986,7 @@ static void subdiv_ccg_average_inner_face_grids(SubdivCCG *subdiv_ccg,
                                                 CCGKey *key,
                                                 SubdivCCGFace *face)
 {
+  return; //XXX
   CCGElem **grids = subdiv_ccg->grids;
   const int num_face_grids = face->num_grids;
   const int grid_size = subdiv_ccg->grid_size;
@@ -1043,6 +1044,7 @@ static void subdiv_ccg_average_grids_boundary(SubdivCCG *subdiv_ccg,
                                               SubdivCCGAdjacentEdge *adjacent_edge,
                                               AverageGridsBoundariesTLSData *tls)
 {
+  return; //XXXX
   const int num_adjacent_faces = adjacent_edge->num_adjacent_faces;
   const int grid_size2 = subdiv_ccg->grid_size * 2;
   if (num_adjacent_faces == 1) {
@@ -1106,6 +1108,7 @@ static void subdiv_ccg_average_grids_corners(SubdivCCG *subdiv_ccg,
                                              CCGKey *key,
                                              SubdivCCGAdjacentVertex *adjacent_vertex)
 {
+  return;
   const int num_adjacent_faces = adjacent_vertex->num_adjacent_faces;
   if (num_adjacent_faces == 1) {
     /* Nothing to average with. */
@@ -1131,6 +1134,7 @@ static void subdiv_ccg_average_grids_corners_task(void *__restrict userdata_v,
                                                   const int adjacent_vertex_index,
                                                   const TaskParallelTLS *__restrict UNUSED(tls_v))
 {
+  return;
   AverageGridsCornerData *data = userdata_v;
   SubdivCCG *subdiv_ccg = data->subdiv_ccg;
   CCGKey *key = data->key;
@@ -1140,6 +1144,7 @@ static void subdiv_ccg_average_grids_corners_task(void *__restrict userdata_v,
 
 static void subdiv_ccg_average_all_boundaries(SubdivCCG *subdiv_ccg, CCGKey *key)
 {
+  return;
   TaskParallelSettings parallel_range_settings;
   BLI_parallel_range_settings_defaults(&parallel_range_settings);
   AverageGridsBoundariesData boundaries_data = {
@@ -1159,6 +1164,7 @@ static void subdiv_ccg_average_all_boundaries(SubdivCCG *subdiv_ccg, CCGKey *key
 
 static void subdiv_ccg_average_all_corners(SubdivCCG *subdiv_ccg, CCGKey *key)
 {
+  return;
   TaskParallelSettings parallel_range_settings;
   BLI_parallel_range_settings_defaults(&parallel_range_settings);
   AverageGridsCornerData corner_data = {
@@ -1174,12 +1180,14 @@ static void subdiv_ccg_average_all_corners(SubdivCCG *subdiv_ccg, CCGKey *key)
 
 static void subdiv_ccg_average_all_boundaries_and_corners(SubdivCCG *subdiv_ccg, CCGKey *key)
 {
+  return;
   subdiv_ccg_average_all_boundaries(subdiv_ccg, key);
   subdiv_ccg_average_all_corners(subdiv_ccg, key);
 }
 
 void BKE_subdiv_ccg_average_grids(SubdivCCG *subdiv_ccg)
 {
+  return;
   CCGKey key;
   BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
   TaskParallelSettings parallel_range_settings;
@@ -1190,6 +1198,7 @@ void BKE_subdiv_ccg_average_grids(SubdivCCG *subdiv_ccg)
       .subdiv_ccg = subdiv_ccg,
       .key = &key,
   };
+  return;
   BLI_task_parallel_range(0,
                           subdiv_ccg->num_faces,
                           &inner_data,
@@ -1209,6 +1218,7 @@ static void subdiv_ccg_stitch_face_inner_grids_task(
     const int face_index,
     const TaskParallelTLS *__restrict UNUSED(tls_v))
 {
+  return; //XXXX
   StitchFacesInnerGridsData *data = userdata_v;
   SubdivCCG *subdiv_ccg = data->subdiv_ccg;
   CCGKey *key = data->key;
@@ -1222,6 +1232,7 @@ void BKE_subdiv_ccg_average_stitch_faces(SubdivCCG *subdiv_ccg,
                                          struct CCGFace **effected_faces,
                                          int num_effected_faces)
 {
+  return; //XXX
   CCGKey key;
   BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
   StitchFacesInnerGridsData data = {

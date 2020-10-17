@@ -182,9 +182,9 @@ set(LIB
   extern_rangetree
 )
 
-if(MSVC AND NOT MSVC_CLANG)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX /wd4101")
-endif()
+#if(MSVC AND NOT MSVC_CLANG)
+#  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX /wd4101")
+#endif()
 
 if(WITH_BULLET)
   list(APPEND INC_SYS

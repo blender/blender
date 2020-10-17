@@ -881,7 +881,8 @@ static BMesh *get_bmesh_from_mesh(Mesh *mesh)
                                  .use_toolflags = true,
                              }));
 
-  BM_mesh_bm_from_me(bm,
+  BM_mesh_bm_from_me(NULL,
+                     bm,
                      mesh,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,
@@ -1151,6 +1152,7 @@ bool multires_unsubdivide_to_basemesh(MultiresUnsubdivideContext *context)
   /* Store the new base-mesh as a mesh in context, free bmesh. */
   context->base_mesh = BKE_mesh_new_nomain(0, 0, 0, 0, 0);
   BM_mesh_bm_to_me(NULL,
+                   NULL,
                    bm_base_mesh,
                    context->base_mesh,
                    (&(struct BMeshToMeshParams){

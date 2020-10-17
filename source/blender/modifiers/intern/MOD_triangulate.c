@@ -70,7 +70,7 @@ static Mesh *triangulate_mesh(Mesh *mesh,
     cd_mask_extra.lmask |= CD_MASK_NORMAL;
   }
 
-  bm = BKE_mesh_to_bmesh_ex(mesh,
+  bm = BKE_mesh_to_bmesh_ex(mesh, NULL, 
                             &((struct BMeshCreateParams){0}),
                             &((struct BMeshFromMeshParams){
                                 .calc_face_normal = true,

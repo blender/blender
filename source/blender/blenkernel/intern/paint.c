@@ -1316,6 +1316,7 @@ static void sculptsession_bm_to_me_update_data_only(Object *ob, bool reorder)
         BM_log_mesh_elems_reorder(ss->bm, ss->bm_log);
       }
       BM_mesh_bm_to_me(NULL,
+                       NULL,
                        ss->bm,
                        ob->data,
                        (&(struct BMeshToMeshParams){

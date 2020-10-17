@@ -250,7 +250,7 @@ static BMesh *BMD_mesh_bm_create(
                           .use_toolflags = false,
                       }));
 
-  BM_mesh_bm_from_me(bm,
+  BM_mesh_bm_from_me(NULL, bm,
                      mesh_operand_ob,
                      &((struct BMeshFromMeshParams){
                          .calc_face_normal = true,
@@ -265,7 +265,7 @@ static BMesh *BMD_mesh_bm_create(
     }
   }
 
-  BM_mesh_bm_from_me(bm,
+  BM_mesh_bm_from_me(NULL, bm,
                      mesh,
                      &((struct BMeshFromMeshParams){
                          .calc_face_normal = true,
@@ -457,7 +457,7 @@ static Mesh *collection_boolean_exact(BooleanModifierData *bmd,
     Mesh *me = meshes[i];
     Object *ob = objects[i];
     /* Need normals for triangulation. */
-    BM_mesh_bm_from_me(bm,
+    BM_mesh_bm_from_me(NULL, bm,
                        me,
                        &((struct BMeshFromMeshParams){
                            .calc_face_normal = true,
@@ -655,7 +655,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
               BMD_mesh_intersection(bm, md, ctx, mesh_operand_ob, object, operand_ob, is_flip);
 
               /* Needed for multiple objects to work. */
-              BM_mesh_bm_to_me(NULL,
+              BM_mesh_bm_to_me(NULL, NULL,
                                bm,
                                mesh,
                                (&(struct BMeshToMeshParams){

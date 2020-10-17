@@ -43,7 +43,9 @@ struct BMeshFromMeshParams {
   int active_shapekey;
   struct CustomData_MeshMasks cd_mask_extra;
 };
-void BM_mesh_bm_from_me(BMesh *bm, const struct Mesh *me, const struct BMeshFromMeshParams *params)
+
+struct Object;
+void BM_mesh_bm_from_me(struct Object *ob, BMesh *bm, const struct Mesh *me, const struct BMeshFromMeshParams *params)
     ATTR_NONNULL(1, 3);
 
 struct BMeshToMeshParams {
@@ -61,7 +63,11 @@ struct BMeshToMeshParams {
   uint update_shapekey_indices : 1;
   struct CustomData_MeshMasks cd_mask_extra;
 };
+
+void BM_enter_multires_space(struct Object *ob, struct BMesh *bm, int space);
+
 void BM_mesh_bm_to_me(struct Main *bmain,
+                      struct Object *ob,
                       BMesh *bm,
                       struct Mesh *me,
                       const struct BMeshToMeshParams *params) ATTR_NONNULL(2, 3, 4);

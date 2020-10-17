@@ -186,6 +186,7 @@ static void average_read_displacement_object(MultiresDisplacementData *data,
                                              const int corner_index,
                                              float r_D[3])
 {
+  return;
   const PolyCornerIndex *poly_corner = &data->ptex_poly_corner[ptex_face_index];
   const MPoly *poly = &data->mpoly[poly_corner->poly_index];
   /* Get (u, v) coordinate within the other ptex face which corresponds to
@@ -231,6 +232,7 @@ static void average_with_other(SubdivDisplacement *displacement,
                                const int corner_delta,
                                float r_D[3])
 {
+  return;
   MultiresDisplacementData *data = displacement->user_data;
   const MDisps *other_displacement_grid = displacement_get_other_grid(
       displacement, ptex_face_index, corner, corner_delta);
@@ -295,6 +297,7 @@ static void average_displacement(SubdivDisplacement *displacement,
                                  const float grid_v,
                                  float r_D[3])
 {
+  return;
   switch (average_with) {
     case AVERAGE_WITH_ALL:
       average_with_all(displacement, ptex_face_index, corner, grid_u, grid_v, r_D);
@@ -360,8 +363,9 @@ static void eval_displacement(SubdivDisplacement *displacement,
   BKE_multires_construct_tangent_matrix(tangent_matrix, dPdu, dPdv, corner_of_quad);
   mul_v3_m3v3(r_D, tangent_matrix, tangent_D);
   /* For the boundary points of grid average two (or all) neighbor grids. */
-  const int corner = displacement_get_face_corner(data, ptex_face_index, u, v);
-  average_displacement(displacement, average_with, ptex_face_index, corner, grid_u, grid_v, r_D);
+  //XXX
+  //const int corner = displacement_get_face_corner(data, ptex_face_index, u, v);
+  //average_displacement(displacement, average_with, ptex_face_index, corner, grid_u, grid_v, r_D);
 }
 
 static void free_displacement(SubdivDisplacement *displacement)

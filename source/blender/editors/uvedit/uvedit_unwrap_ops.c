@@ -2839,7 +2839,8 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
 
   ED_mesh_uv_texture_ensure(me, NULL);
 
-  BM_mesh_bm_from_me(bm,
+  BM_mesh_bm_from_me(NULL,
+                     bm,
                      me,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,
