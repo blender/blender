@@ -86,7 +86,6 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
   bScreen *screen = WM_window_get_active_screen(win);
-  wmPaintCursor *pc;
 
   /* Don't draw paint cursors with locked interface. Painting is not possible
    * then, and cursor drawing can use scene data that another thread may be
@@ -95,36 +94,37 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
     return;
   }
 
-  if (region->visible && region == screen->active_region) {
-    for (pc = wm->paintcursors.first; pc; pc = pc->next) {
+  if (!region->visible || region != screen->active_region) {
+    return;
+  }
 
-      if ((pc->space_type != SPACE_TYPE_ANY) && (area->spacetype != pc->space_type)) {
-        continue;
+  LISTBASE_FOREACH (wmPaintCursor *, pc, &wm->paintcursors) {
+    if ((pc->space_type != SPACE_TYPE_ANY) && (area->spacetype != pc->space_type)) {
+      continue;
+    }
+
+    if ((pc->region_type != RGN_TYPE_ANY) && (region->regiontype != pc->region_type)) {
+      continue;
+    }
+
+    if (pc->poll == NULL || pc->poll(C)) {
+      /* Prevent drawing outside region. */
+      GPU_scissor_test(true);
+      GPU_scissor(region->winrct.xmin,
+                  region->winrct.ymin,
+                  BLI_rcti_size_x(&region->winrct) + 1,
+                  BLI_rcti_size_y(&region->winrct) + 1);
+
+      if (ELEM(win->grabcursor, GHOST_kGrabWrap, GHOST_kGrabHide)) {
+        int x = 0, y = 0;
+        wm_get_cursor_position(win, &x, &y);
+        pc->draw(C, x, y, pc->customdata);
+      }
+      else {
+        pc->draw(C, win->eventstate->x, win->eventstate->y, pc->customdata);
       }
 
-      if ((pc->region_type != RGN_TYPE_ANY) && (region->regiontype != pc->region_type)) {
-        continue;
-      }
-
-      if (pc->poll == NULL || pc->poll(C)) {
-        /* Prevent drawing outside region. */
-        GPU_scissor_test(true);
-        GPU_scissor(region->winrct.xmin,
-                    region->winrct.ymin,
-                    BLI_rcti_size_x(&region->winrct) + 1,
-                    BLI_rcti_size_y(&region->winrct) + 1);
-
-        if (ELEM(win->grabcursor, GHOST_kGrabWrap, GHOST_kGrabHide)) {
-          int x = 0, y = 0;
-          wm_get_cursor_position(win, &x, &y);
-          pc->draw(C, x, y, pc->customdata);
-        }
-        else {
-          pc->draw(C, win->eventstate->x, win->eventstate->y, pc->customdata);
-        }
-
-        GPU_scissor_test(false);
-      }
+      GPU_scissor_test(false);
     }
   }
 }
@@ -960,10 +960,9 @@ static bool wm_draw_update_test_window(Main *bmain, bContext *C, wmWindow *win)
   ViewLayer *view_layer = WM_window_get_active_view_layer(win);
   struct Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
   bScreen *screen = WM_window_get_active_screen(win);
-  ARegion *region;
   bool do_draw = false;
 
-  for (region = screen->regionbase.first; region; region = region->next) {
+  LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
     if (region->do_draw_paintcursor) {
       screen->do_draw_paintcursor = true;
       region->do_draw_paintcursor = false;
@@ -974,7 +973,7 @@ static bool wm_draw_update_test_window(Main *bmain, bContext *C, wmWindow *win)
   }
 
   ED_screen_areas_iter (win, screen, area) {
-    for (region = area->regionbase.first; region; region = region->next) {
+    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       wm_region_test_gizmo_do_draw(C, area, region, true);
       wm_region_test_render_do_draw(scene, depsgraph, area, region);
 #ifdef WITH_XR_OPENXR
@@ -1043,12 +1042,11 @@ void wm_draw_update(bContext *C)
 {
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
-  wmWindow *win;
 
   GPU_context_main_lock();
   BKE_image_free_unused_gpu_textures();
 
-  for (win = wm->windows.first; win; win = win->next) {
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
 #ifdef WIN32
     GHOST_TWindowState state = GHOST_GetWindowState(win->ghostwin);
 

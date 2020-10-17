@@ -235,8 +235,6 @@ char *WM_operator_pystring_ex(bContext *C,
 
   /* for building the string */
   DynStr *dynstr = BLI_dynstr_new();
-  char *cstring;
-  char *cstring_args;
 
   /* arbitrary, but can get huge string with stroke painting otherwise */
   int max_prop_length = 10;
@@ -259,7 +257,7 @@ char *WM_operator_pystring_ex(bContext *C,
         opmptr = &opmptr_default;
       }
 
-      cstring_args = RNA_pointer_as_string_id(C, opmptr);
+      char *cstring_args = RNA_pointer_as_string_id(C, opmptr);
       if (first_op) {
         BLI_dynstr_appendf(dynstr, "%s=%s", opm->type->idname, cstring_args);
         first_op = false;
@@ -284,7 +282,7 @@ char *WM_operator_pystring_ex(bContext *C,
       opptr = &opptr_default;
     }
 
-    cstring_args = RNA_pointer_as_string_keywords(
+    char *cstring_args = RNA_pointer_as_string_keywords(
         C, opptr, false, all_args, macro_args_test, max_prop_length);
     BLI_dynstr_append(dynstr, cstring_args);
     MEM_freeN(cstring_args);
@@ -296,7 +294,7 @@ char *WM_operator_pystring_ex(bContext *C,
 
   BLI_dynstr_append(dynstr, ")");
 
-  cstring = BLI_dynstr_get_cstring(dynstr);
+  char *cstring = BLI_dynstr_get_cstring(dynstr);
   BLI_dynstr_free(dynstr);
   return cstring;
 }
@@ -559,9 +557,7 @@ const char *WM_context_member_from_ptr(bContext *C, const PointerRNA *ptr)
 
 char *WM_prop_pystring_assign(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index)
 {
-  char *lhs, *rhs, *ret;
-
-  lhs = C ? wm_prop_pystring_from_context(C, ptr, prop, index) : NULL;
+  char *lhs = C ? wm_prop_pystring_from_context(C, ptr, prop, index) : NULL;
 
   if (lhs == NULL) {
     /* fallback to bpy.data.foo[id] if we dont find in the context */
@@ -572,13 +568,13 @@ char *WM_prop_pystring_assign(bContext *C, PointerRNA *ptr, PropertyRNA *prop, i
     return NULL;
   }
 
-  rhs = RNA_property_as_string(C, ptr, prop, index, INT_MAX);
+  char *rhs = RNA_property_as_string(C, ptr, prop, index, INT_MAX);
   if (!rhs) {
     MEM_freeN(lhs);
     return NULL;
   }
 
-  ret = BLI_sprintfN("%s = %s", lhs, rhs);
+  char *ret = BLI_sprintfN("%s = %s", lhs, rhs);
   MEM_freeN(lhs);
   MEM_freeN(rhs);
   return ret;
@@ -686,8 +682,7 @@ bool WM_operator_properties_default(PointerRNA *ptr, const bool do_update)
 void WM_operator_properties_reset(wmOperator *op)
 {
   if (op->ptr->data) {
-    PropertyRNA *iterprop;
-    iterprop = RNA_struct_iterator_property(op->type->srna);
+    PropertyRNA *iterprop = RNA_struct_iterator_property(op->type->srna);
 
     RNA_PROP_BEGIN (op->ptr, itemptr, iterprop) {
       PropertyRNA *prop = itemptr.data;
@@ -733,11 +728,10 @@ static bool operator_last_properties_init_impl(wmOperator *op, IDProperty *last_
   bool changed = false;
   IDPropertyTemplate val = {0};
   IDProperty *replaceprops = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
-  PropertyRNA *iterprop;
 
   CLOG_INFO(WM_LOG_OPERATORS, 1, "loading previous properties for '%s'", op->type->idname);
 
-  iterprop = RNA_struct_iterator_property(op->type->srna);
+  PropertyRNA *iterprop = RNA_struct_iterator_property(op->type->srna);
 
   RNA_PROP_BEGIN (op->ptr, itemptr, iterprop) {
     PropertyRNA *prop = itemptr.data;
@@ -846,9 +840,7 @@ int WM_generic_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
   int ret_value = 0;
 
   /* get settings from RNA properties for operator */
-  int mval[2];
-  mval[0] = RNA_int_get(op->ptr, "mouse_x");
-  mval[1] = RNA_int_get(op->ptr, "mouse_y");
+  const int mval[2] = {RNA_int_get(op->ptr, "mouse_x"), RNA_int_get(op->ptr, "mouse_y")};
 
   if (init_event_type == 0) {
     if (event->val == KM_PRESS) {
@@ -955,8 +947,6 @@ int WM_operator_smooth_viewtx_get(const wmOperator *op)
 int WM_menu_invoke_ex(bContext *C, wmOperator *op, int opcontext)
 {
   PropertyRNA *prop = op->type->prop;
-  uiPopupMenu *pup;
-  uiLayout *layout;
 
   if (prop == NULL) {
     CLOG_ERROR(WM_LOG_OPERATORS, "'%s' has no enum property set", op->type->idname);
@@ -973,8 +963,8 @@ int WM_menu_invoke_ex(bContext *C, wmOperator *op, int opcontext)
     return retval;
   }
   else {
-    pup = UI_popup_menu_begin(C, WM_operatortype_name(op->type, op->ptr), ICON_NONE);
-    layout = UI_popup_menu_layout(pup);
+    uiPopupMenu *pup = UI_popup_menu_begin(C, WM_operatortype_name(op->type, op->ptr), ICON_NONE);
+    uiLayout *layout = UI_popup_menu_layout(pup);
     /* set this so the default execution context is the same as submenus */
     uiLayoutSetOperatorContext(layout, opcontext);
     uiItemsFullEnumO(
@@ -1011,10 +1001,8 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
   const int height = search_menu->use_previews ? 5 * U.widget_unit * search_menu->prv_rows :
                                                  UI_searchbox_size_y();
   static char search[256] = "";
-  uiBlock *block;
-  uiBut *but;
 
-  block = UI_block_begin(C, region, "_popup", UI_EMBOSS);
+  uiBlock *block = UI_block_begin(C, region, "_popup", UI_EMBOSS);
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
@@ -1037,20 +1025,20 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
            0,
            "");
 #endif
-  but = uiDefSearchButO_ptr(block,
-                            op->type,
-                            op->ptr->data,
-                            search,
-                            0,
-                            ICON_VIEWZOOM,
-                            sizeof(search),
-                            10,
-                            10,
-                            width,
-                            UI_UNIT_Y,
-                            search_menu->prv_rows,
-                            search_menu->prv_cols,
-                            "");
+  uiBut *but = uiDefSearchButO_ptr(block,
+                                   op->type,
+                                   op->ptr->data,
+                                   search,
+                                   0,
+                                   ICON_VIEWZOOM,
+                                   sizeof(search),
+                                   10,
+                                   10,
+                                   width,
+                                   UI_UNIT_Y,
+                                   search_menu->prv_rows,
+                                   search_menu->prv_cols,
+                                   "");
 
   /* fake button, it holds space for search items */
   uiDefBut(block,
@@ -1110,8 +1098,6 @@ int WM_operator_confirm_message_ex(bContext *C,
                                    const char *message,
                                    const short opcontext)
 {
-  uiPopupMenu *pup;
-  uiLayout *layout;
   IDProperty *properties = op->ptr->data;
 
   if (properties && properties->len) {
@@ -1121,8 +1107,8 @@ int WM_operator_confirm_message_ex(bContext *C,
     properties = NULL;
   }
 
-  pup = UI_popup_menu_begin(C, title, icon);
-  layout = UI_popup_menu_layout(pup);
+  uiPopupMenu *pup = UI_popup_menu_begin(C, title, icon);
+  uiLayout *layout = UI_popup_menu_layout(pup);
   uiItemFullO_ptr(layout, op->type, message, ICON_NONE, properties, opcontext, 0, NULL);
   UI_popup_menu_end(C, pup);
 
@@ -1161,10 +1147,9 @@ int WM_operator_filesel(bContext *C, wmOperator *op, const wmEvent *UNUSED(event
 
 bool WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const struct ImageFormatData *im_format)
 {
-  PropertyRNA *prop;
   char filepath[FILE_MAX];
   /* dont NULL check prop, this can only run on ops with a 'filepath' */
-  prop = RNA_struct_find_property(op->ptr, "filepath");
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "filepath");
   RNA_property_string_get(op->ptr, prop, filepath);
   if (BKE_image_path_ensure_ext_from_imformat(filepath, im_format)) {
     RNA_property_string_set(op->ptr, prop, filepath);
@@ -1196,16 +1181,15 @@ bool WM_operator_check_ui_enabled(const bContext *C, const char *idname)
 wmOperator *WM_operator_last_redo(const bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  wmOperator *op;
 
   /* only for operators that are registered and did an undo push */
-  for (op = wm->operators.last; op; op = op->prev) {
+  LISTBASE_FOREACH_BACKWARD (wmOperator *, op, &wm->operators) {
     if ((op->type->flag & OPTYPE_REGISTER) && (op->type->flag & OPTYPE_UNDO)) {
-      break;
+      return op;
     }
   }
 
-  return op;
+  return NULL;
 }
 
 IDProperty *WM_operator_last_properties_ensure_idprops(wmOperatorType *ot)
@@ -1313,12 +1297,10 @@ static void wm_block_redo_cancel_cb(bContext *C, void *arg_op)
 static uiBlock *wm_block_create_redo(bContext *C, ARegion *region, void *arg_op)
 {
   wmOperator *op = arg_op;
-  uiBlock *block;
-  uiLayout *layout;
   const uiStyle *style = UI_style_get_dpi();
   int width = 15 * UI_UNIT_X;
 
-  block = UI_block_begin(C, region, __func__, UI_EMBOSS);
+  uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
   UI_block_flag_disable(block, UI_BLOCK_LOOP);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_REGULAR);
 
@@ -1330,7 +1312,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *region, void *arg_op)
   BLI_assert(op->type->flag & OPTYPE_REGISTER);
 
   UI_block_func_handle_set(block, wm_block_redo_cb, arg_op);
-  layout = UI_block_layout(
+  uiLayout *layout = UI_block_layout(
       block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, width, UI_UNIT_Y, 0, style);
 
   if (op == WM_operator_last_redo(C)) {
@@ -1386,11 +1368,9 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *userD
 {
   wmOpPopUp *data = userData;
   wmOperator *op = data->op;
-  uiBlock *block;
-  uiLayout *layout;
   const uiStyle *style = UI_style_get_dpi();
 
-  block = UI_block_begin(C, region, __func__, UI_EMBOSS);
+  uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
   UI_block_flag_disable(block, UI_BLOCK_LOOP);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_REGULAR);
 
@@ -1398,7 +1378,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *userD
    * where quitting by accident is very annoying */
   UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_NUMSELECT);
 
-  layout = UI_block_layout(
+  uiLayout *layout = UI_block_layout(
       block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, data->width, data->height, 0, style);
 
   uiTemplateOperatorPropertyButs(
@@ -1409,17 +1389,13 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *userD
 
   /* new column so as not to interfere with custom layouts T26436. */
   {
-    uiBlock *col_block;
-    uiLayout *col;
-    uiBut *btn;
-
-    col = uiLayoutColumn(layout, false);
-    col_block = uiLayoutGetBlock(col);
+    uiLayout *col = uiLayoutColumn(layout, false);
+    uiBlock *col_block = uiLayoutGetBlock(col);
     /* Create OK button, the callback of which will execute op */
-    btn = uiDefBut(
+    uiBut *but = uiDefBut(
         col_block, UI_BTYPE_BUT, 0, IFACE_("OK"), 0, -30, 0, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
-    UI_but_flag_enable(btn, UI_BUT_ACTIVE_DEFAULT);
-    UI_but_func_set(btn, dialog_exec_cb, data, col_block);
+    UI_but_flag_enable(but, UI_BUT_ACTIVE_DEFAULT);
+    UI_but_func_set(but, dialog_exec_cb, data, col_block);
   }
 
   /* center around the mouse */
@@ -1435,16 +1411,14 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *region, void *userDa
 {
   wmOpPopUp *data = userData;
   wmOperator *op = data->op;
-  uiBlock *block;
-  uiLayout *layout;
   const uiStyle *style = UI_style_get_dpi();
 
-  block = UI_block_begin(C, region, __func__, UI_EMBOSS);
+  uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
   UI_block_flag_disable(block, UI_BLOCK_LOOP);
   UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_MOVEMOUSE_QUIT);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_REGULAR);
 
-  layout = UI_block_layout(
+  uiLayout *layout = UI_block_layout(
       block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, data->width, data->height, 0, style);
 
   /* since ui is defined the auto-layout args are not used */
@@ -1689,25 +1663,23 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *region, void *userdat
 {
   const struct SearchPopupInit_Data *init_data = userdata;
   static char search[256] = "";
-  uiBlock *block;
-  uiBut *but;
 
-  block = UI_block_begin(C, region, "_popup", UI_EMBOSS);
+  uiBlock *block = UI_block_begin(C, region, "_popup", UI_EMBOSS);
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
-  but = uiDefSearchBut(block,
-                       search,
-                       0,
-                       ICON_VIEWZOOM,
-                       sizeof(search),
-                       10,
-                       10,
-                       init_data->size[0],
-                       UI_UNIT_Y,
-                       0,
-                       0,
-                       "");
+  uiBut *but = uiDefSearchBut(block,
+                              search,
+                              0,
+                              ICON_VIEWZOOM,
+                              sizeof(search),
+                              10,
+                              10,
+                              init_data->size[0],
+                              UI_UNIT_Y,
+                              0,
+                              0,
+                              "");
 
   if (init_data->search_type == SEARCH_TYPE_OPERATOR) {
     UI_but_func_operator_search(but);
@@ -2233,10 +2205,9 @@ static void radial_control_set_tex(RadialControl *rc)
 
 static void radial_control_paint_tex(RadialControl *rc, float radius, float alpha)
 {
-  float col[3] = {0, 0, 0};
-  float rot;
 
   /* set fill color */
+  float col[3] = {0, 0, 0};
   if (rc->fill_col_prop) {
     PointerRNA *fill_ptr;
     PropertyRNA *fill_prop;
@@ -2262,7 +2233,7 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
 
     /* set up rotation if available */
     if (rc->rot_prop) {
-      rot = RNA_property_float_get(&rc->rot_ptr, rc->rot_prop);
+      float rot = RNA_property_float_get(&rc->rot_ptr, rc->rot_prop);
       GPU_matrix_push();
       GPU_matrix_rotate_2d(RAD2DEGF(rot));
     }
@@ -2493,8 +2464,6 @@ static int radial_control_get_path(PointerRNA *ctx_ptr,
                                    RCPropFlags flags)
 {
   PropertyRNA *unused_prop;
-  int len;
-  char *str;
 
   /* check flags */
   if ((flags & RC_PROP_REQUIRE_BOOL) && (flags & RC_PROP_REQUIRE_FLOAT)) {
@@ -2503,6 +2472,7 @@ static int radial_control_get_path(PointerRNA *ctx_ptr,
   }
 
   /* get an rna string path from the operator's properties */
+  char *str;
   if (!(str = RNA_string_get_alloc(op->ptr, name, NULL, 0))) {
     return 1;
   }
@@ -2542,6 +2512,7 @@ static int radial_control_get_path(PointerRNA *ctx_ptr,
   }
 
   /* check property's array length */
+  int len;
   if (*r_prop && (len = RNA_property_array_length(r_ptr, *r_prop)) != req_length) {
     MEM_freeN(str);
     BKE_reportf(op->reports,
@@ -2562,13 +2533,13 @@ static int radial_control_get_path(PointerRNA *ctx_ptr,
 static int radial_control_get_properties(bContext *C, wmOperator *op)
 {
   RadialControl *rc = op->customdata;
-  PointerRNA ctx_ptr, use_secondary_ptr;
-  PropertyRNA *use_secondary_prop = NULL;
-  const char *data_path;
 
+  PointerRNA ctx_ptr;
   RNA_pointer_create(NULL, &RNA_Context, C, &ctx_ptr);
 
   /* check if we use primary or secondary path */
+  PointerRNA use_secondary_ptr;
+  PropertyRNA *use_secondary_prop = NULL;
   if (!radial_control_get_path(&ctx_ptr,
                                op,
                                "use_secondary",
@@ -2579,6 +2550,7 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
     return 0;
   }
 
+  const char *data_path;
   if (use_secondary_prop && RNA_property_boolean_get(&use_secondary_ptr, use_secondary_prop)) {
     data_path = "data_path_secondary";
   }
@@ -2798,14 +2770,13 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
   float new_value, dist = 0.0f, zoom[2];
   float delta[2];
   int ret = OPERATOR_RUNNING_MODAL;
-  bool snap;
   float angle_precision = 0.0f;
   const bool has_numInput = hasNumInput(&rc->num_input);
   bool handled = false;
   float numValue;
   /* TODO: fix hardcoded events */
 
-  snap = event->ctrl != 0;
+  bool snap = event->ctrl != 0;
 
   /* Modal numinput active, try to handle numeric inputs first... */
   if (event->val == KM_PRESS && has_numInput && handleNumInput(C, &rc->num_input, event)) {
@@ -3115,10 +3086,11 @@ static void WM_OT_radial_control(wmOperatorType *ot)
 static void redraw_timer_window_swap(bContext *C)
 {
   wmWindow *win = CTX_wm_window(C);
-  ScrArea *area;
+  bScreen *screen = CTX_wm_screen(C);
+
   CTX_wm_menu_set(C, NULL);
 
-  for (area = CTX_wm_screen(C)->areabase.first; area; area = area->next) {
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     ED_area_tag_redraw(area);
   }
   wm_draw_update(C);
@@ -3171,16 +3143,12 @@ static void redraw_timer_step(bContext *C,
   }
   else if (type == eRTDrawWindow) {
     bScreen *screen = WM_window_get_active_screen(win);
-    ScrArea *area_iter;
 
     CTX_wm_menu_set(C, NULL);
 
-    for (area_iter = screen->areabase.first; area_iter; area_iter = area_iter->next) {
-      ARegion *region_iter;
+    LISTBASE_FOREACH (ScrArea *, area_iter, &screen->areabase) {
       CTX_wm_area_set(C, area_iter);
-
-      for (region_iter = area_iter->regionbase.first; region_iter;
-           region_iter = region_iter->next) {
+      LISTBASE_FOREACH (ARegion *, region_iter, &area_iter->regionbase) {
         if (region_iter->visible) {
           CTX_wm_region_set(C, region_iter);
           wm_draw_region_test(C, area_iter, region_iter);
@@ -3232,12 +3200,10 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
   wmWindowManager *wm = CTX_wm_manager(C);
-  double time_start, time_delta;
   const int type = RNA_enum_get(op->ptr, "type");
   const int iter = RNA_int_get(op->ptr, "iterations");
   const double time_limit = (double)RNA_float_get(op->ptr, "time_limit");
   const int cfra = scene->r.cfra;
-  int a, iter_steps = 0;
   const char *infostr = "";
 
   /* NOTE: Depsgraph is used to update scene for a new state, so no need to ensure evaluation here.
@@ -3246,11 +3212,12 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 
   WM_cursor_wait(1);
 
-  time_start = PIL_check_seconds_timer();
+  double time_start = PIL_check_seconds_timer();
 
   wm_window_make_drawable(wm, win);
 
-  for (a = 0; a < iter; a++) {
+  int iter_steps = 0;
+  for (int a = 0; a < iter; a++) {
     redraw_timer_step(C, scene, depsgraph, win, area, region, type, cfra);
     iter_steps += 1;
 
@@ -3262,7 +3229,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
     }
   }
 
-  time_delta = (PIL_check_seconds_timer() - time_start) * 1000;
+  double time_delta = (PIL_check_seconds_timer() - time_start) * 1000;
 
   RNA_enum_description(redraw_timer_type_items, type, &infostr);
 
@@ -3377,20 +3344,17 @@ static int previews_ensure_exec(bContext *C, wmOperator *UNUSED(op))
   ListBase *lb[] = {
       &bmain->materials, &bmain->textures, &bmain->images, &bmain->worlds, &bmain->lights, NULL};
   PreviewsIDEnsureData preview_id_data;
-  Scene *scene;
-  ID *id;
-  int i;
 
   /* We use LIB_TAG_DOIT to check whether we have already handled a given ID or not. */
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
-  for (i = 0; lb[i]; i++) {
+  for (int i = 0; lb[i]; i++) {
     BKE_main_id_tag_listbase(lb[i], LIB_TAG_DOIT, true);
   }
 
   preview_id_data.C = C;
-  for (scene = bmain->scenes.first; scene; scene = scene->id.next) {
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     preview_id_data.scene = scene;
-    id = (ID *)scene;
+    ID *id = (ID *)scene;
 
     BKE_library_foreach_ID_link(
         NULL, id, previews_id_ensure_callback, &preview_id_data, IDWALK_RECURSE);
@@ -3398,8 +3362,8 @@ static int previews_ensure_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* Check a last time for ID not used (fake users only, in theory), and
    * do our best for those, using current scene... */
-  for (i = 0; lb[i]; i++) {
-    for (id = lb[i]->first; id; id = id->next) {
+  for (int i = 0; lb[i]; i++) {
+    LISTBASE_FOREACH (ID *, id, lb[i]) {
       if (id->tag & LIB_TAG_DOIT) {
         previews_id_ensure(C, NULL, id);
         id->tag &= ~LIB_TAG_DOIT;
@@ -3512,11 +3476,10 @@ static int previews_clear_exec(bContext *C, wmOperator *op)
       &bmain->images,
       NULL,
   };
-  int i;
 
   const int id_filters = preview_filter_to_idfilter(RNA_enum_get(op->ptr, "id_type"));
 
-  for (i = 0; lb[i]; i++) {
+  for (int i = 0; lb[i]; i++) {
     ID *id = lb[i]->first;
     if (!id) {
       continue;

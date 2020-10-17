@@ -41,10 +41,8 @@ static GHash *g_paneltypes_hash = NULL;
 
 PanelType *WM_paneltype_find(const char *idname, bool quiet)
 {
-  PanelType *pt;
-
   if (idname[0]) {
-    pt = BLI_ghash_lookup(g_paneltypes_hash, idname);
+    PanelType *pt = BLI_ghash_lookup(g_paneltypes_hash, idname);
     if (pt) {
       return pt;
     }
@@ -65,12 +63,10 @@ bool WM_paneltype_add(PanelType *pt)
 
 void WM_paneltype_remove(PanelType *pt)
 {
-  bool ok;
-
-  ok = BLI_ghash_remove(g_paneltypes_hash, pt->idname, NULL, NULL);
+  const bool ok = BLI_ghash_remove(g_paneltypes_hash, pt->idname, NULL, NULL);
 
   BLI_assert(ok);
-  (void)ok;
+  UNUSED_VARS_NDEBUG(ok);
 }
 
 /* called on initialize WM_init() */
