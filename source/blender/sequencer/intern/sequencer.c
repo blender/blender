@@ -6085,6 +6085,10 @@ bool BKE_sequencer_check_scene_recursion(Scene *scene, ReportList *reports)
 /* Check if "seq_main" (indirectly) uses strip "seq". */
 bool BKE_sequencer_render_loop_check(Sequence *seq_main, Sequence *seq)
 {
+  if (seq_main == NULL || seq == NULL) {
+    return false;
+  }
+
   if (seq_main == seq) {
     return true;
   }

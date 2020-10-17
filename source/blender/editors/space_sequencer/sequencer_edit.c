@@ -2134,7 +2134,7 @@ static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
   Sequence *seq1, *seq2, *seq3, *last_seq = BKE_sequencer_active_get(scene);
   const char *error_msg;
 
-  if (BKE_sequence_effect_get_num_inputs(last_seq->type) != 0) {
+  if (BKE_sequence_effect_get_num_inputs(last_seq->type) == 0) {
     BKE_report(op->reports, RPT_ERROR, "Cannot reassign inputs: strip has no inputs");
     return OPERATOR_CANCELLED;
   }
