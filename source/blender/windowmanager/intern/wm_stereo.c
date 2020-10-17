@@ -262,10 +262,10 @@ static bool wm_stereo3d_set_properties(bContext *UNUSED(C), wmOperator *op)
 
 static void wm_stereo3d_set_init(bContext *C, wmOperator *op)
 {
-  Stereo3dData *s3dd;
   wmWindow *win = CTX_wm_window(C);
 
-  op->customdata = s3dd = MEM_callocN(sizeof(Stereo3dData), __func__);
+  Stereo3dData *s3dd = MEM_callocN(sizeof(Stereo3dData), __func__);
+  op->customdata = s3dd;
 
   /* store the original win stereo 3d settings in case of cancel */
   s3dd->stereo3d_format = *win->stereo3d_format;
@@ -278,7 +278,6 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
   wmWindow *win_dst = NULL;
   const bool is_fullscreen = WM_window_is_fullscreen(win_src);
   char prev_display_mode = win_src->stereo3d_format->display_mode;
-  Stereo3dData *s3dd;
   bool ok = true;
 
   if (G.background) {
@@ -291,7 +290,7 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
     wm_stereo3d_set_properties(C, op);
   }
 
-  s3dd = op->customdata;
+  Stereo3dData *s3dd = op->customdata;
   *win_src->stereo3d_format = s3dd->stereo3d_format;
 
   if (prev_display_mode == S3D_DISPLAY_PAGEFLIP &&

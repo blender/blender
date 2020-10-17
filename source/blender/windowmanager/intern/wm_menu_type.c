@@ -41,10 +41,8 @@ static GHash *menutypes_hash = NULL;
 
 MenuType *WM_menutype_find(const char *idname, bool quiet)
 {
-  MenuType *mt;
-
   if (idname[0]) {
-    mt = BLI_ghash_lookup(menutypes_hash, idname);
+    MenuType *mt = BLI_ghash_lookup(menutypes_hash, idname);
     if (mt) {
       return mt;
     }
@@ -71,12 +69,10 @@ bool WM_menutype_add(MenuType *mt)
 
 void WM_menutype_freelink(MenuType *mt)
 {
-  bool ok;
-
-  ok = BLI_ghash_remove(menutypes_hash, mt->idname, NULL, MEM_freeN);
+  bool ok = BLI_ghash_remove(menutypes_hash, mt->idname, NULL, MEM_freeN);
 
   BLI_assert(ok);
-  (void)ok;
+  UNUSED_VARS_NDEBUG(ok);
 }
 
 /* called on initialize WM_init() */

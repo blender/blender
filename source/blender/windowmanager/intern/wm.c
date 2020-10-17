@@ -188,7 +188,6 @@ void WM_operator_type_set(wmOperator *op, wmOperatorType *ot)
   /* Ensure compatible properties. */
   if (op->properties) {
     PointerRNA ptr;
-
     WM_operator_properties_create_ptr(&ptr, ot);
 
     WM_operator_properties_default(&ptr, false);
@@ -251,8 +250,7 @@ void WM_operator_stack_clear(wmWindowManager *wm)
  */
 void WM_operator_handlers_clear(wmWindowManager *wm, wmOperatorType *ot)
 {
-  wmWindow *win;
-  for (win = wm->windows.first; win; win = win->next) {
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     ListBase *lb[2] = {&win->handlers, &win->modalhandlers};
     for (int i = 0; i < ARRAY_SIZE(lb); i++) {
       LISTBASE_FOREACH (wmEventHandler *, handler_base, lb[i]) {
@@ -360,7 +358,6 @@ void WM_check(bContext *C)
 void wm_clear_default_size(bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  wmWindow *win;
 
   /* WM context. */
   if (wm == NULL) {
@@ -372,7 +369,7 @@ void wm_clear_default_size(bContext *C)
     return;
   }
 
-  for (win = wm->windows.first; win; win = win->next) {
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     win->sizex = 0;
     win->sizey = 0;
     win->posx = 0;
@@ -405,10 +402,6 @@ void wm_add_default(Main *bmain, bContext *C)
 /* Context is allowed to be NULL, do not free wm itself (lib_id.c). */
 void wm_close_and_free(bContext *C, wmWindowManager *wm)
 {
-  wmWindow *win;
-  wmOperator *op;
-  wmKeyConfig *keyconf;
-
   if (wm->autosavetimer) {
     wm_autosave_timer_ended(wm);
   }
@@ -418,16 +411,19 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
   wm_xr_exit(wm);
 #endif
 
+  wmWindow *win;
   while ((win = BLI_pophead(&wm->windows))) {
     /* Prevent draw clear to use screen. */
     BKE_workspace_active_set(win->workspace_hook, NULL);
     wm_window_free(C, wm, win);
   }
 
+  wmOperator *op;
   while ((op = BLI_pophead(&wm->operators))) {
     WM_operator_free(op);
   }
 
+  wmKeyConfig *keyconf;
   while ((keyconf = BLI_pophead(&wm->keyconfigs))) {
     WM_keyconfig_free(keyconf);
   }
@@ -457,7 +453,6 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 void wm_close_and_free_all(bContext *C, ListBase *wmlist)
 {
   wmWindowManager *wm;
-
   while ((wm = wmlist->first)) {
     wm_close_and_free(C, wm);
     BLI_remlink(wmlist, wm);
