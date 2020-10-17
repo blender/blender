@@ -78,7 +78,7 @@ static Mesh *WireframeModifier_do(WireframeModifierData *wmd, Object *ob, Mesh *
 
   const int defgrp_index = BKE_object_defgroup_name_index(ob, wmd->defgrp_name);
 
-  bm = BKE_mesh_to_bmesh_ex(mesh, NULL,
+  bm = BKE_mesh_to_bmesh_ex(mesh,
                             &(struct BMeshCreateParams){0},
                             &(struct BMeshFromMeshParams){
                                 .calc_face_normal = true,

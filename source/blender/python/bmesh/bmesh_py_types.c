@@ -1056,7 +1056,7 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
     params.calc_object_remap = true;
   }
 
-  BM_mesh_bm_to_me(bmain, bm, me, &params);
+  BM_mesh_bm_to_me(bmain, NULL, bm, me, &params);
 
   /* we could have the user do this but if they forget blender can easy crash
    * since the references arrays for the objects derived meshes are now invalid */

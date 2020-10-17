@@ -41,6 +41,7 @@ struct MultiresModifierData;
 struct Object;
 struct Scene;
 struct SubdivCCG;
+struct BMesh;
 
 struct MLoop;
 struct MLoopTri;
@@ -228,6 +229,8 @@ BLI_INLINE void BKE_multires_construct_tangent_matrix(float tangent_matrix[3][3]
                                                       const float dPdu[3],
                                                       const float dPdv[3],
                                                       const int corner);
+
+void BKE_multires_bmesh_space_set(struct Object *ob, struct BMesh *bm, int mode);
 
 #ifdef __cplusplus
 }

@@ -454,7 +454,7 @@ void bc_triangulate_mesh(Mesh *me)
 
   BMeshToMeshParams bm_to_me_params = {0};
   bm_to_me_params.calc_object_remap = false;
-  BM_mesh_bm_to_me(NULL, bm, me, &bm_to_me_params);
+  BM_mesh_bm_to_me(NULL, NULL, bm, me, &bm_to_me_params);
   BM_mesh_free(bm);
 }
 

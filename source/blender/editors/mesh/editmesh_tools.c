@@ -5735,6 +5735,61 @@ static int edbm_mres_test_exec(bContext *C, wmOperator *op)
 }
 
 
+extern Object *multires_dump_grids_bmesh(BMesh *bm);
+
+static int edbm_dump_mres_grids_exec(bContext *C, wmOperator *op)
+{
+  const bool use_face_split = RNA_boolean_get(op->ptr, "use_face_split");
+  const bool use_boundary_tear = RNA_boolean_get(op->ptr, "use_boundary_tear");
+
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  uint objects_len = 0;
+  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      view_layer, CTX_wm_view3d(C), &objects_len);
+
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *obedit = objects[ob_index];
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+    multires_dump_grids_bmesh(em->bm);
+  }
+
+  WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, CTX_data_scene(C));
+
+  MEM_freeN(objects);
+  return OPERATOR_FINISHED;
+}
+
+static bool mres_test_poll(bContext *C)
+{
+  Object *obedit = CTX_data_edit_object(C);
+  if (obedit && obedit->type == OB_MESH) {
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+    if (!em || !CustomData_has_layer(&em->bm->ldata, CD_MDISPS)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  return false;
+}
+
+void MESH_OT_dump_mres_grids(wmOperatorType *ot) {
+  /* identifiers */
+  ot->name = "Dump Multires Grids";
+  ot->description = "Dump Multires Grids";
+  ot->idname = "MESH_OT_dump_mres_grids";
+
+  /* api callbacks */
+  ot->exec = edbm_dump_mres_grids_exec;
+  ot->poll = mres_test_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 void MESH_OT_mres_test(wmOperatorType *ot)
 {
   /* identifiers */
@@ -5744,13 +5799,10 @@ void MESH_OT_mres_test(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = edbm_mres_test_exec;
-  ot->poll = ED_operator_editmesh;
+  ot->poll = mres_test_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-  edbm_dissolve_prop__use_face_split(ot);
-  edbm_dissolve_prop__use_boundary_tear(ot);
 }
 
 
