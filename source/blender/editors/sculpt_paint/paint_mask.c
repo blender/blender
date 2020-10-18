@@ -1214,7 +1214,7 @@ static void sculpt_gesture_init_trim_properties(SculptGestureContext *sgcontext,
   trim_operation->op.sculpt_gesture_end = sculpt_gesture_trim_end;
 
   trim_operation->mode = RNA_enum_get(op->ptr, "trim_mode");
-  trim_operation->use_cursor_depth = RNA_enum_get(op->ptr, "use_cursor_depth");
+  trim_operation->use_cursor_depth = RNA_boolean_get(op->ptr, "use_cursor_depth");
 }
 
 static void sculpt_trim_gesture_operator_properties(wmOperatorType *ot)
