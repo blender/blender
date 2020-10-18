@@ -2781,7 +2781,9 @@ static void rna_def_fluid_flow_settings(BlenderRNA *brna)
   RNA_def_property_array(prop, 3);
   RNA_def_property_range(prop, -1000.1, 1000.1);
   RNA_def_property_ui_text(
-      prop, "Initial", "Initial velocity in X, Y and Z direction in world space");
+      prop,
+      "Initial",
+      "Additional initial velocity in X, Y and Z direction (added to source velocity)");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_flow_reset");
 
   prop = RNA_def_property(srna, "volume_density", PROP_FLOAT, PROP_NONE);
