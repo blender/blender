@@ -5735,7 +5735,7 @@ static int edbm_mres_test_exec(bContext *C, wmOperator *op)
 }
 
 
-extern Object *multires_dump_grids_bmesh(BMesh *bm);
+extern Object *multires_dump_grids_bmesh(Object *bmob, BMesh *bm);
 
 static int edbm_dump_mres_grids_exec(bContext *C, wmOperator *op)
 {
@@ -5751,7 +5751,7 @@ static int edbm_dump_mres_grids_exec(bContext *C, wmOperator *op)
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-    multires_dump_grids_bmesh(em->bm);
+    multires_dump_grids_bmesh(obedit, em->bm);
   }
 
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, CTX_data_scene(C));

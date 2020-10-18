@@ -1016,7 +1016,6 @@ Mesh *BKE_mesh_copy_for_eval(struct Mesh *source, bool reference)
 }
 
 BMesh *BKE_mesh_to_bmesh_ex(const Mesh *me,
-                            const Object *ob,
                             const struct BMeshCreateParams *create_params,
                             const struct BMeshFromMeshParams *convert_params)
 {
@@ -1024,7 +1023,7 @@ BMesh *BKE_mesh_to_bmesh_ex(const Mesh *me,
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(me);
 
   bm = BM_mesh_create(&allocsize, create_params);
-  BM_mesh_bm_from_me(ob, bm, me, convert_params);
+  BM_mesh_bm_from_me(NULL, bm, me, convert_params);
 
   return bm;
 }
@@ -1035,7 +1034,6 @@ BMesh *BKE_mesh_to_bmesh(Mesh *me,
                          const struct BMeshCreateParams *params)
 {
   return BKE_mesh_to_bmesh_ex(me,
-                              ob,
                               params,
                               &(struct BMeshFromMeshParams){
                                   .calc_face_normal = false,

@@ -39,12 +39,12 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_ccg.h"
-#include "BKE_collection.h"
-#include "BKE_layer.h"
 #include "BKE_cdderivedmesh.h"
+#include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
@@ -997,7 +997,6 @@ static void grid_tangent(const CCGKey *key, int x, int y, int axis, CCGElem *gri
   }
 }
 
-
 /* Construct 3x3 tangent-space matrix in 'mat' */
 static void grid_tangent_matrix(float mat[3][3], const CCGKey *key, int x, int y, CCGElem *grid)
 {
@@ -1023,22 +1022,23 @@ typedef struct MultiresThreadedData {
   MDisps *mdisps;
   GridPaintMask *grid_paint_mask;
   int *gridOffset;
-  int cd_mdisps_off;
+  int cd_mdisps_off, cd_mask_off;
   int gridSize, dGridSize, dSkip;
   float (*smat)[3];
+  bool has_grid_mask;
 } MultiresThreadedData;
 
-Object *multires_dump_grids_bmesh(BMesh *bm)
+Object *multires_dump_grids_bmesh(Object *bmob, BMesh *bm)
 {
   if (!CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
     printf("multires_dump_grids_bmesh: error: no multires grids\n");
-    return;
+    return NULL;
   }
 
   bool spaceset = false;
 
   if (bm->multiresSpace != MULTIRES_SPACE_ABSOLUTE) {
-    BKE_multires_bmesh_space_set(NULL, bm, MULTIRES_SPACE_ABSOLUTE);
+    BKE_multires_bmesh_space_set(bmob, bm, MULTIRES_SPACE_ABSOLUTE);
     spaceset = true;
   }
 
@@ -1050,16 +1050,14 @@ Object *multires_dump_grids_bmesh(BMesh *bm)
   CTX_wm_manager_set(ctx, G.main->wm.first);
   CTX_data_scene_set(ctx, G.main->scenes.first);
 
-  Scene *scene = CTX_data_scene(ctx);
   ViewLayer *view_layer = CTX_data_view_layer(ctx);
   Object *ob = BKE_object_add_only_object(bmain, OB_MESH, name);
-  Base *base;
   LayerCollection *layer_collection;
 
   ob->data = BKE_object_obdata_add_from_type(bmain, OB_MESH, name);
   DEG_id_tag_update_ex(
       bmain, &ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
-  //DEG_id_tag_update_ex(
+  // DEG_id_tag_update_ex(
   //    bmain, &ob->data, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
 
   layer_collection = BKE_layer_collection_get_active(view_layer);
@@ -1079,8 +1077,6 @@ Object *multires_dump_grids_bmesh(BMesh *bm)
   Mesh *me = ob->data;
 
   BMIter iter;
-  BMVert *v;
-  BMEdge *e;
   BMFace *f;
 
   int cd_mdisp_off = CustomData_get_offset(&bm->ldata, CD_MDISPS);
@@ -1095,7 +1091,7 @@ Object *multires_dump_grids_bmesh(BMesh *bm)
 
   if (!dimen) {
     printf("multires_dump_grids_bmesh: error: corrupted multires data\n");
-    return;
+    return NULL;
   }
 
   int totvert = bm->totloop * dimen * dimen;
@@ -1161,9 +1157,9 @@ Object *multires_dump_grids_bmesh(BMesh *bm)
           copy_v3_v3(mv->co, co);
         }
       }
-      
-      for (int i = 0; i < dimen-1; i++) {
-        for (int j = 0; j < dimen-1; j++) {
+
+      for (int i = 0; i < dimen - 1; i++) {
+        for (int j = 0; j < dimen - 1; j++) {
           // do face
           int fidx = loopi * (dimen - 1) * (dimen - 1) + (j * (dimen - 1) + i);
           MPoly *mp = mpoly + fidx;
@@ -1178,12 +1174,12 @@ Object *multires_dump_grids_bmesh(BMesh *bm)
           ml[2].v = VINDEX(i + 1, j + 1);
           ml[3].v = VINDEX(i + 1, j);
 
-          for (int i2=0; i2<4; i2++) {
-            int a = ml[i2].v, b = ml[(i2+1) % 4].v;
+          for (int i2 = 0; i2 < 4; i2++) {
+            int a = ml[i2].v, b = ml[(i2 + 1) % 4].v;
             int e;
 
             if (!BLI_edgehash_haskey(eh, a, b)) {
-              BLI_edgehash_insert(eh, a, b, (void*)medi);
+              BLI_edgehash_insert(eh, a, b, (void *)medi);
               e = medi;
 
               MEdge *med = medge + medi;
@@ -1192,7 +1188,8 @@ Object *multires_dump_grids_bmesh(BMesh *bm)
               med->v2 = b;
 
               medi++;
-            } else {
+            }
+            else {
               e = (int)BLI_edgehash_lookup(eh, a, b);
             }
 
@@ -1208,21 +1205,24 @@ Object *multires_dump_grids_bmesh(BMesh *bm)
     } while (l != f->l_first);
   }
 
-  for (int i=0; i<me->totpoly; i++) {
+  for (int i = 0; i < me->totpoly; i++) {
     if (!mpoly[i].totloop) {
       printf("error 1! %d %d\n", i, me->totpoly);
     }
     if (mpoly[i].loopstart >= me->totloop) {
-      printf("error 2! %d %d l: %d totl: %d\n", i, me->totpoly, mpoly[i].loopstart, mpoly[i].totloop);
+      printf(
+          "error 2! %d %d l: %d totl: %d\n", i, me->totpoly, mpoly[i].loopstart, mpoly[i].totloop);
     }
   }
 
   if (spaceset) {
-    BKE_multires_bmesh_space_set(NULL, bm, MULTIRES_SPACE_TANGENT);
+    BKE_multires_bmesh_space_set(bmob, bm, MULTIRES_SPACE_TANGENT);
   }
 
   BKE_mesh_calc_normals(me);
   BKE_mesh_tessface_calc(me);
+
+  return ob;
 }
 
 static void multires_bmesh_space_set_cb(void *__restrict userdata,
@@ -1232,27 +1232,20 @@ static void multires_bmesh_space_set_cb(void *__restrict userdata,
   MultiresThreadedData *tdata = userdata;
 
   int cd_mdisps_off = tdata->cd_mdisps_off;
+  // int cd_mask_off = tdata->cd_mask_off;
   BMesh *bm = tdata->bm;
   MultiResSpace op = tdata->bmop;
-  CCGElem **gridData = tdata->gridData;
-  CCGElem **subGridData = tdata->subGridData;
-  CCGKey *key = tdata->key;
   BMFace *f = bm->ftable[pidx];
-  MDisps *mdisps = tdata->mdisps;
-  GridPaintMask *grid_paint_mask = tdata->grid_paint_mask;
-  int *gridOffset = tdata->gridOffset;
   int gridSize = tdata->gridSize;
-  int dGridSize = tdata->dGridSize;
-  int dSkip = tdata->dSkip;
 
-  int S, x, y, gIndex = gridOffset[pidx];
+  int S, x, y;
 
   BMLoop *l = f->l_first;
   float cent[3];
   int tot = 0;
 
+  // get face center to calculate maximum allowable displacement length
   zero_v3(cent);
-
   do {
     add_v3_v3(cent, l->v->co);
     tot++;
@@ -1261,47 +1254,33 @@ static void multires_bmesh_space_set_cb(void *__restrict userdata,
 
   mul_v3_fl(cent, 1.0f / (float)tot);
 
-  float simplemat[3][3];
+  // bool has_grid_mask = tdata->has_grid_mask;
 
   l = f->l_first;
   S = 0;
   do {
-    // for (S = 0; S < numVerts; S++, gIndex++) {
-
-    GridPaintMask *gpm = grid_paint_mask ? &grid_paint_mask[gIndex] : NULL;
-    MDisps *mdisp = BM_ELEM_CD_GET_VOID_P(l, cd_mdisps_off);  //&mdisps[mpoly[pidx].loopstart + S];
-    CCGElem *grid = gridData[gIndex];
-    CCGElem *subgrid = subGridData[gIndex];
+    // GridPaintMask *gpm = has_grid_mask ? BM_ELEM_CD_GET_VOID_P(l, cd_mask_off) : NULL;
+    MDisps *mdisp = BM_ELEM_CD_GET_VOID_P(l, cd_mdisps_off);
     float(*dispgrid)[3] = NULL;
 
     dispgrid = mdisp->disps;
 
-    float quad[4][3];
-
-    // copy_v3_v3(quad[0], cent);
-    // interp_v3_v3v3(quad[1], l->v->co, l->next->v->co, 0.5);
-    // copy_v3_v3(quad[2], l->v->co);
-    // interp_v3_v3v3(quad[3], l->v->co, l->prev->v->co, 0.5);
     float maxlen = len_v3v3(l->v->co, cent) * 15.0f;
     maxlen = MAX2(maxlen, 0.00001f);
 
     for (y = 0; y < gridSize; y++) {
       for (x = 0; x < gridSize; x++) {
-        // float *sco = CCG_grid_elem_co(key, grid, x, y);
-        // float *sco = CCG_grid_elem_co(key, subgrid, x, y);
         float sco[8], udv[3], vdv[3];
-        float *data = dispgrid[dGridSize * y * dSkip + x * dSkip];
-        float mat[3][3], disp[3], d[3], mask;
-        // float baseco[3];
+        float *data = dispgrid[gridSize * y + x];
+        float mat[3][3], disp[3];
 
-        float grid_u = (float)x / (float)(dGridSize - 1);
-        float grid_v = (float)y / (float)(dGridSize - 1);
+        float grid_u = (float)x / (float)(gridSize - 1);
+        float grid_v = (float)y / (float)(gridSize - 1);
         float u, v;
 
         int corner = S;
         if (f->len == 4) {
           BKE_subdiv_rotate_grid_to_quad(corner, grid_u, grid_v, &u, &v);
-          // continue;
         }
         else {
           u = 1.0 - grid_v;
@@ -1319,7 +1298,6 @@ static void multires_bmesh_space_set_cb(void *__restrict userdata,
              * and add to grid points */
             mul_v3_m3v3(disp, mat, data);
             add_v3_v3v3(data, disp, sco);
-            //copy_v3_v3(data, sco);
             break;
           case MULTIRES_SPACE_TANGENT:
             /* Calculate displacement between new and old
@@ -1329,17 +1307,20 @@ static void multires_bmesh_space_set_cb(void *__restrict userdata,
             sub_v3_v3v3(disp, data, sco);
             mul_v3_m3v3(data, mat, disp);
 
-            // float len = len_v3(data);
-            // if (len > maxlen) {
-            // mul_v3_fl(data, maxlen/len);
-            //}
+            // try to prevent errors
+            float len = len_v3(data);
+            /*
+            if (len > maxlen) {
+              mul_v3_fl(data, maxlen/len);
+            } else if (isnan(len)) {
+              zero_v3(data);
+            }*/
             break;
         }
       }
     }
 
     S++;
-    gIndex++;
     l = l->next;
   } while (l != f->l_first);
 }
@@ -1376,14 +1357,7 @@ void BKE_multires_bmesh_space_set(Object *ob, BMesh *bm, int mode)
 
   // CustomData_MeshMasks extra = {0};
   BM_mesh_bm_to_me_for_eval(bm, me, &extra);
-  DerivedMesh *cddm = CDDM_from_mesh(me);
-  // cddm->dm.
-
   SubdivSettings settings2;
-  // cddm ignores MDISPS layer.  this turns out to be a good thing.
-  // CustomData_reset(&cddm->loopData);
-  // CustomData_merge(&me->ldata, &cddm->loopData, CD_MASK_MESH.lmask & ~CD_MASK_MDISPS,
-  // CD_REFERENCE, me->totloop);
 
   // ensure we control the level
   MultiresModifierData mmdcpy = *mmd;
@@ -1404,49 +1378,17 @@ void BKE_multires_bmesh_space_set(Object *ob, BMesh *bm, int mode)
     BLI_addtail(&fakeob.modifiers, &mmdcpy);
   }
 
-  // MULTIRES_USE_LOCAL_MMD
-  // CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) multires_make_derived_from_derived(cddm, &mmdcpy,
-  // NULL, &fakeob, MULTIRES_IGNORE_SIMPLIFY|MULTIRES_USE_LOCAL_MMD);
-  CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)subsurf_dm_create_local(NULL,
-                                                                    &fakeob,
-                                                                    cddm,
-                                                                    mmd->totlvl,
-                                                                    mmd->simple,
-                                                                    0,
-                                                                    mmd->uv_smooth ==
-                                                                        SUBSURF_UV_SMOOTH_NONE,
-                                                                    false,
-                                                                    false,
-                                                                    0);
-
-  CCGElem **gridData, **subGridData;
-  CCGKey key;
-  GridPaintMask *grid_paint_mask = NULL;
-  int *gridOffset;
   int i, gridSize, dGridSize, dSkip;
   int totpoly = bm->totface;
 
-  // paranoia recalc of indices/tables
-  bm->elem_index_dirty |= BM_FACE | BM_VERT;
-  bm->elem_table_dirty |= BM_FACE | BM_VERT;
+  // paranoia recalc of indices/lookup tables
+  bm->elem_index_dirty |= BM_FACE;
+  bm->elem_table_dirty |= BM_FACE;
 
-  BM_mesh_elem_index_ensure(bm, BM_FACE | BM_VERT);
-  BM_mesh_elem_table_ensure(bm, BM_FACE | BM_VERT);
+  BM_mesh_elem_index_ensure(bm, BM_FACE);
+  BM_mesh_elem_table_ensure(bm, BM_FACE);
 
-  /*numGrids = dm->getNumGrids(dm);*/ /*UNUSED*/
-  gridSize = ccgdm->dm.getGridSize(&ccgdm->dm);
-  gridData = ccgdm->dm.getGridData(&ccgdm->dm);
-  gridOffset = ccgdm->dm.getGridOffset(&ccgdm->dm);
-  ccgdm->dm.getGridKey(&ccgdm->dm, &key);
-  subGridData = gridData;
-
-  dGridSize = multires_side_tot[mmd->totlvl];
-  dSkip = (dGridSize - 1) / (gridSize - 1);
-
-  /* multires paint masks */
-  if (key.has_mask) {
-    grid_paint_mask = CustomData_get_layer(&me->ldata, CD_GRID_PAINT_MASK);
-  }
+  gridSize = multires_side_tot[mmd->totlvl];
 
   /* when adding new faces in edit mode, need to allocate disps */
   int cd_disp_off = CustomData_get_offset(&bm->ldata, CD_MDISPS);
@@ -1454,7 +1396,6 @@ void BKE_multires_bmesh_space_set(Object *ob, BMesh *bm, int mode)
   BMFace *f;
   BMIter iter;
   i = 0;
-  int i2 = 0;
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
     BMIter iter2;
     BMLoop *l;
@@ -1483,20 +1424,17 @@ void BKE_multires_bmesh_space_set(Object *ob, BMesh *bm, int mode)
   BLI_parallel_range_settings_defaults(&settings);
   settings.min_iter_per_thread = CCG_TASK_LIMIT;
 
+  bool has_grid_mask = CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK);
+
   MultiresThreadedData data = {
       .bmop = mode,
       .sd = sd,
-      .gridData = gridData,
-      .subGridData = subGridData,
-      .key = &key,
       .lvl = mmd->totlvl,
       .bm = bm,
       .cd_mdisps_off = cd_disp_off,
-      .grid_paint_mask = grid_paint_mask,
-      .gridOffset = gridOffset,
+      .cd_mask_off = has_grid_mask ? CustomData_get_offset(&bm->ldata, CD_GRID_PAINT_MASK) : -1,
+      .has_grid_mask = has_grid_mask,
       .gridSize = gridSize,
-      .dGridSize = dGridSize,
-      .dSkip = dSkip,
   };
 
   BLI_task_parallel_range(0, totpoly, &data, multires_bmesh_space_set_cb, &settings);
@@ -1507,8 +1445,6 @@ void BKE_multires_bmesh_space_set(Object *ob, BMesh *bm, int mode)
   // ccgSubSurf_updateNormals(ccgdm->ss, NULL, 0);
   //}
 
-  ccgdm->dm.release(&ccgdm->dm);
-  DM_release(cddm);
   BKE_mesh_free(me);
   BKE_subdiv_free(sd);
 }
@@ -1517,7 +1453,6 @@ static void multires_disp_run_cb(void *__restrict userdata,
                                  const int pidx,
                                  const TaskParallelTLS *__restrict UNUSED(tls))
 {
-  return;
   MultiresThreadedData *tdata = userdata;
 
   DispOp op = tdata->op;
@@ -1689,8 +1624,8 @@ static void multiresModifier_disp_run(
   BLI_task_parallel_range(0, totpoly, &data, multires_disp_run_cb, &settings);
 
   if (op == APPLY_DISPLACEMENTS) {
-    // ccgSubSurf_stitchFaces(ccgdm->ss, 0, NULL, 0);
-    // ccgSubSurf_updateNormals(ccgdm->ss, NULL, 0);
+     ccgSubSurf_stitchFaces(ccgdm->ss, 0, NULL, 0);
+     ccgSubSurf_updateNormals(ccgdm->ss, NULL, 0);
   }
 }
 
@@ -1855,7 +1790,6 @@ void multires_modifier_update_hidden(DerivedMesh *dm)
 
 void multires_stitch_grids(Object *ob)
 {
-  return;  // XXX
   if (ob == NULL) {
     return;
   }
