@@ -1149,6 +1149,112 @@ static bool point_between_edges(
   return (ang11 - ang1co > -BEVEL_EPSILON_ANG);
 }
 
+/* Is the angle swept from e1 to e2, CCW when viewed from the normal side of f,
+ * not a reflex angle or a straight angle? Assume e1 and e2 share a vert. */
+static bool edge_edge_angle_less_than_180(const BMEdge *e1, const BMEdge *e2, const BMFace *f)
+{
+  float dir1[3], dir2[3], cross[3];
+  BLI_assert(f != NULL);
+  BMVert *v, *v1, *v2;
+  if (e1->v1 == e2->v1) {
+    v = e1->v1;
+    v1 = e1->v2;
+    v2 = e2->v2;
+  }
+  else if (e1->v1 == e2->v2) {
+    v = e1->v1;
+    v1 = e1->v2;
+    v2 = e2->v1;
+  }
+  else if (e1->v2 == e2->v1) {
+    v = e1->v2;
+    v1 = e1->v1;
+    v2 = e2->v2;
+  }
+  else if (e1->v2 == e2->v2) {
+    v = e1->v2;
+    v1 = e1->v1;
+    v2 = e2->v1;
+  }
+  else {
+    BLI_assert(false);
+  }
+  sub_v3_v3v3(dir1, v1->co, v->co);
+  sub_v3_v3v3(dir2, v2->co, v->co);
+  cross_v3_v3v3(cross, dir1, dir2);
+  return dot_v3v3(cross, f->no) > 0.0f;
+}
+
+/* When the offset_type is BEVEL_AMT_PERCENT or BEVEL_AMT_ABSOLUTE, fill in the coordinates
+ * of the lines whose intersection defines the boundary point between e1 and e2 with common
+ * vert v, as defined in the parameters of offset_meet.
+ */
+static void offset_meet_lines_percent_or_absolute(BevelParams *bp,
+                                                  EdgeHalf *e1,
+                                                  EdgeHalf *e2,
+                                                  BMVert *v,
+                                                  float r_l1a[3],
+                                                  float r_l1b[3],
+                                                  float r_l2a[3],
+                                                  float r_l2b[3])
+{
+  /* Get points the specified distance along each leg.
+   * Note: not all BevVerts and EdgeHalfs have been made yet, so we have
+   * to find required edges by moving around faces and use fake EdgeHalfs for
+   * some of the edges. If there aren't faces to move around, we have to give up.
+   * The legs we need are:
+   *   e0 : the next edge around e1->fnext (==f1) after e1.
+   *   e3 : the prev edge around e2->fprev (==f2) before e2.
+   *   e4 : the previous edge around f1 before e1 (may be e2).
+   *   e5 : the next edge around f2 after e2 (may be e1).
+   */
+  BMVert *v1, *v2;
+  EdgeHalf e0, e3, e4, e5;
+  BMFace *f1, *f2;
+  float d0, d3, d4, d5;
+  v1 = BM_edge_other_vert(e1->e, v);
+  v2 = BM_edge_other_vert(e2->e, v);
+  f1 = e1->fnext;
+  f2 = e2->fprev;
+  bool no_offsets = f1 == NULL || f2 == NULL;
+  if (!no_offsets) {
+    BMLoop *l = BM_face_vert_share_loop(f1, v1);
+    e0.e = l->e;
+    l = BM_face_vert_share_loop(f2, v2);
+    e3.e = l->prev->e;
+    l = BM_face_vert_share_loop(f1, v);
+    e4.e = l->prev->e;
+    l = BM_face_vert_share_loop(f2, v);
+    e5.e = l->e;
+    /* All the legs must be visible from their opposite legs. */
+    no_offsets = !edge_edge_angle_less_than_180(e0.e, e1->e, f1) ||
+                 !edge_edge_angle_less_than_180(e1->e, e4.e, f1) ||
+                 !edge_edge_angle_less_than_180(e2->e, e3.e, f2) ||
+                 !edge_edge_angle_less_than_180(e5.e, e2->e, f1);
+    if (!no_offsets) {
+      if (bp->offset_type == BEVEL_AMT_ABSOLUTE) {
+        d0 = d3 = d4 = d5 = bp->offset;
+      }
+      else {
+        d0 = bp->offset * BM_edge_calc_length(e0.e) / 100.0f;
+        d3 = bp->offset * BM_edge_calc_length(e3.e) / 100.0f;
+        d4 = bp->offset * BM_edge_calc_length(e4.e) / 100.0f;
+        d5 = bp->offset * BM_edge_calc_length(e5.e) / 100.0f;
+      }
+      slide_dist(&e4, v, d4, r_l1a);
+      slide_dist(&e0, v1, d0, r_l1b);
+      slide_dist(&e5, v, d5, r_l2a);
+      slide_dist(&e3, v2, d3, r_l2b);
+    }
+  }
+  if (no_offsets) {
+    copy_v3_v3(r_l1a, v->co);
+    copy_v3_v3(r_l1b, v1->co);
+    copy_v3_v3(r_l2a, v->co);
+    copy_v3_v3(r_l2b, v2->co);
+  }
+}
+
 /**
  * Calculate the meeting point between the offset edges for e1 and e2, putting answer in meetco.
  * e1 and e2 share vertex v and face f (may be NULL) and viewed from the normal side of
@@ -1167,7 +1273,8 @@ static bool point_between_edges(
  * \param e_in_plane: If we need to drop from the calculated offset lines to one of the faces,
  * we don't want to drop onto the 'in plane' face, so if this is not null skip this edge's faces.
  */
-static void offset_meet(EdgeHalf *e1,
+static void offset_meet(BevelParams *bp,
+                        EdgeHalf *e1,
                         EdgeHalf *e2,
                         BMVert *v,
                         BMFace *f,
@@ -1273,14 +1380,19 @@ static void offset_meet(EdgeHalf *e1,
     normalize_v3(norm_perp1);
     normalize_v3(norm_perp2);
 
-    /* Get points that are offset distances from each line, then another point on each line. */
     float off1a[3], off1b[3], off2a[3], off2b[3];
-    copy_v3_v3(off1a, v->co);
-    madd_v3_v3fl(off1a, norm_perp1, e1->offset_r);
-    add_v3_v3v3(off1b, off1a, dir1);
-    copy_v3_v3(off2a, v->co);
-    madd_v3_v3fl(off2a, norm_perp2, e2->offset_l);
-    add_v3_v3v3(off2b, off2a, dir2);
+    if (bp->offset_type == BEVEL_AMT_PERCENT || bp->offset_type == BEVEL_AMT_ABSOLUTE) {
+      offset_meet_lines_percent_or_absolute(bp, e1, e2, v, off1a, off1b, off2a, off2b);
+    }
+    else {
+      /* Get points that are offset distances from each line, then another point on each line. */
+      copy_v3_v3(off1a, v->co);
+      madd_v3_v3fl(off1a, norm_perp1, e1->offset_r);
+      add_v3_v3v3(off1b, off1a, dir1);
+      copy_v3_v3(off2a, v->co);
+      madd_v3_v3fl(off2a, norm_perp2, e2->offset_l);
+      add_v3_v3v3(off2b, off2a, dir2);
+    }
 
     /* Intersect the offset lines. */
     float isect2[3];
@@ -2554,7 +2666,9 @@ static void build_boundary_terminal_edge(BevelParams *bp,
   EdgeHalf *e = efirst;
   float co[3];
   if (bv->edgecount == 2) {
-    /* Only 2 edges in, so terminate the edge with an artificial vertex on the unbeveled edge. */
+    /* Only 2 edges in, so terminate the edge with an artificial vertex on the unbeveled edge.
+     * If the offset type is BEVEL_AMT_PERCENT or BEVEL_AMT_ABSOLUTE, what to do is a bit
+     * undefined (there aren't two "legs"), so just let the code do what it does. */
     const float *no = e->fprev ? e->fprev->no : (e->fnext ? e->fnext->no : NULL);
     offset_in_plane(e, no, true, co);
     if (construct) {
@@ -2592,7 +2706,13 @@ static void build_boundary_terminal_edge(BevelParams *bp,
      * edge to make a poly or adj mesh, because e->prev has offset 0, offset_meet will put co on
      * that edge. */
     /* TODO: should do something else if angle between e and e->prev > 180 */
-    offset_meet(e->prev, e, bv->v, e->fprev, false, co, NULL);
+    bool leg_slide = bp->offset_type == BEVEL_AMT_PERCENT || bp->offset_type == BEVEL_AMT_ABSOLUTE;
+    if (leg_slide) {
+      slide_dist(e->prev, bv->v, e->offset_l, co);
+    }
+    else {
+      offset_meet(bp, e->prev, e, bv->v, e->fprev, false, co, NULL);
+    }
     if (construct) {
       BoundVert *bndv = add_new_bound_vert(mem_arena, vm, co);
       bndv->efirst = e->prev;
@@ -2604,7 +2724,12 @@ static void build_boundary_terminal_edge(BevelParams *bp,
       adjust_bound_vert(e->leftv, co);
     }
     e = e->next;
-    offset_meet(e->prev, e, bv->v, e->fprev, false, co, NULL);
+    if (leg_slide) {
+      slide_dist(e, bv->v, e->prev->offset_r, co);
+    }
+    else {
+      offset_meet(bp, e->prev, e, bv->v, e->fprev, false, co, NULL);
+    }
     if (construct) {
       BoundVert *bndv = add_new_bound_vert(mem_arena, vm, co);
       bndv->efirst = e->prev;
@@ -2823,7 +2948,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
 
     float r, co[3];
     if (in_plane == 0 && not_in_plane == 0) {
-      offset_meet(e, e2, bv->v, e->fnext, false, co, NULL);
+      offset_meet(bp, e, e2, bv->v, e->fnext, false, co, NULL);
     }
     else if (not_in_plane > 0) {
       if (bp->loop_slide && not_in_plane == 1 && good_offset_on_edge_between(e, e2, enip, bv->v)) {
@@ -2832,7 +2957,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
         }
       }
       else {
-        offset_meet(e, e2, bv->v, NULL, true, co, eip);
+        offset_meet(bp, e, e2, bv->v, NULL, true, co, eip);
       }
     }
     else {
@@ -2843,7 +2968,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
         }
       }
       else {
-        offset_meet(e, e2, bv->v, e->fnext, true, co, eip);
+        offset_meet(bp, e, e2, bv->v, e->fnext, true, co, eip);
       }
     }
 
@@ -6040,27 +6165,21 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
           break;
         }
         case BEVEL_AMT_PERCENT: {
-          /* Offset needs to meet adjacent edges at percentage of their lengths. */
-          BMVert *v1 = BM_edge_other_vert(e->prev->e, v);
-          BMVert *v2 = BM_edge_other_vert(e->e, v);
-          float z = sinf(angle_v3v3v3(v1->co, v->co, v2->co));
-          e->offset_l_spec = BM_edge_calc_length(e->prev->e) * bp->offset * z / 100.0f;
-          v1 = BM_edge_other_vert(e->e, v);
-          v2 = BM_edge_other_vert(e->next->e, v);
-          z = sinf(angle_v3v3v3(v1->co, v->co, v2->co));
-          e->offset_r_spec = BM_edge_calc_length(e->next->e) * bp->offset * z / 100.0f;
+          /* Offset needs to meet adjacent edges at percentage of their lengths.
+           * Since the width isn't constant, we don't store a width at all, but
+           * rather the distance along the adjacent edge that we need to go
+           * at this end of the edge.
+           */
+
+          e->offset_l_spec = BM_edge_calc_length(e->prev->e) * bp->offset / 100.0f;
+          e->offset_r_spec = BM_edge_calc_length(e->next->e) * bp->offset / 100.0f;
+
           break;
         }
         case BEVEL_AMT_ABSOLUTE: {
           /* Like Percent, but the amount gives the absolute distance along adjacent edges. */
-          BMVert *v1 = BM_edge_other_vert(e->prev->e, v);
-          BMVert *v2 = BM_edge_other_vert(e->e, v);
-          float z = sinf(angle_v3v3v3(v1->co, v->co, v2->co));
-          e->offset_l_spec = bp->offset * z;
-          v1 = BM_edge_other_vert(e->e, v);
-          v2 = BM_edge_other_vert(e->next->e, v);
-          z = sinf(angle_v3v3v3(v1->co, v->co, v2->co));
-          e->offset_r_spec = bp->offset * z;
+          e->offset_l_spec = bp->offset;
+          e->offset_r_spec = bp->offset;
           break;
         }
         default: {
@@ -7072,6 +7191,19 @@ static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)
   EdgeHalf *ec;
   BMVert *vd;
   float kc;
+  if (bp->offset_type == BEVEL_AMT_PERCENT || bp->offset_type == BEVEL_AMT_ABSOLUTE) {
+    if (ea->is_bev && ebother != NULL && ebother->prev->is_bev) {
+      if (bp->offset_type == BEVEL_AMT_PERCENT) {
+        return bp->offset > 50.0f ? 50.0f : 100.f;
+      }
+      else {
+        /* This is only right sometimes. The exact answer is very hard to calculate. */
+        float blen = BM_edge_calc_length(eb->e);
+        return bp->offset > blen / 2.0f ? blen / 2.0f : blen;
+      }
+    }
+    return no_collide_offset;
+  }
   if (ebother != NULL) {
     ec = ebother->prev; /* Note: this is in direction c --> d. */
     vc = bvc->v;
