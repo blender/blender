@@ -111,9 +111,9 @@ ListBase *ED_object_constraint_active_list(Object *ob)
  */
 ListBase *ED_object_pose_constraint_list(const bContext *C)
 {
-  bPoseChannel *pose_bone = CTX_data_pointer_get(C, "active_pose_bone").data;
+  bPoseChannel *pose_bone = CTX_data_pointer_get(C, "pose_bone").data;
   if (pose_bone == NULL) {
-    pose_bone = CTX_data_pointer_get(C, "pose_bone").data;
+    pose_bone = CTX_data_pointer_get(C, "active_pose_bone").data;
     if (pose_bone == NULL) {
       return NULL;
     }
