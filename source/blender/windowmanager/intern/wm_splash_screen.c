@@ -204,7 +204,9 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void *UNUSE
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_KEEP_OPEN | UI_BLOCK_NO_WIN_CLIP);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
-  int splash_width = 500.0f * U.dpi_fac;
+  const int text_points_max = MAX2(style->widget.points, style->widgetlabel.points);
+  int splash_width = text_points_max * 45 * U.dpi_fac;
+  CLAMP_MAX(splash_width, CTX_wm_window(C)->sizex * 0.7f);
   int splash_height;
 
   /* Would be nice to support caching this, so it only has to be re-read (and likely resized) on
@@ -261,8 +263,9 @@ void WM_OT_splash(wmOperatorType *ot)
 static uiBlock *wm_block_create_about(bContext *C, ARegion *region, void *UNUSED(arg))
 {
   const uiStyle *style = UI_style_get_dpi();
-  const int dialog_width = U.widget_unit * 24;
   const short logo_size = 128 * U.dpi_fac;
+  const int text_points_max = MAX2(style->widget.points, style->widgetlabel.points);
+  const int dialog_width = logo_size + (text_points_max * 32 * U.dpi_fac);
 
   /* Calculate icon column factor. */
   const float split_factor = (float)logo_size / (float)(dialog_width - style->columnspace);

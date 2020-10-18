@@ -2949,6 +2949,9 @@ static uiBlock *block_create_autorun_warning(struct bContext *C,
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   const uiStyle *style = UI_style_get_dpi();
+  const int text_points_max = MAX2(style->widget.points, style->widgetlabel.points);
+  const int dialog_width = text_points_max * 44 * U.dpi_fac;
+
   uiBlock *block = UI_block_begin(C, region, "autorun_warning_popup", UI_EMBOSS);
 
   UI_block_flag_enable(
@@ -2956,15 +2959,8 @@ static uiBlock *block_create_autorun_warning(struct bContext *C,
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
   UI_block_emboss_set(block, UI_EMBOSS);
 
-  uiLayout *layout = UI_block_layout(block,
-                                     UI_LAYOUT_VERTICAL,
-                                     UI_LAYOUT_PANEL,
-                                     10,
-                                     2,
-                                     U.widget_unit * 24,
-                                     U.widget_unit * 6,
-                                     0,
-                                     style);
+  uiLayout *layout = UI_block_layout(
+      block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 10, 2, dialog_width, 0, 0, style);
 
   /* Text and some vertical space */
   uiLayout *col = uiLayoutColumn(layout, true);
@@ -3190,8 +3186,9 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
   wmGenericCallback *post_action = (wmGenericCallback *)arg1;
   Main *bmain = CTX_data_main(C);
   const uiStyle *style = UI_style_get_dpi();
-  const int dialog_width = U.widget_unit * 22;
   const short icon_size = 64 * U.dpi_fac;
+  const int text_points_max = MAX2(style->widget.points, style->widgetlabel.points);
+  const int dialog_width = icon_size + (text_points_max * 34 * U.dpi_fac);
 
   /* Calculate icon column factor. */
   const float split_factor = (float)icon_size / (float)(dialog_width - style->columnspace);
