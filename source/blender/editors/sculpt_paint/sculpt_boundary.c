@@ -346,9 +346,9 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
   float accum_distance = 0.0f;
 
   while (true) {
-    /* This steps is further away from the boundary than the brush radius, so stop adding more
-     * steps. */
-    if (accum_distance > radius) {
+    /* Stop adding steps to edit info. This happens when a steps is further away from the boundary
+     * than the brush radius or when the entire mesh was already processed. */
+    if (accum_distance > radius || BLI_gsqueue_is_empty(current_iteration)) {
       boundary->max_propagation_steps = num_propagation_steps;
       break;
     }
@@ -414,12 +414,6 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
       int next_v;
       BLI_gsqueue_pop(next_iteration, &next_v);
       BLI_gsqueue_push(current_iteration, &next_v);
-    }
-
-    /* Stop if no vertices were added in this iteration. At this point, all the mesh should have
-     * been initialized with the edit data. */
-    if (BLI_gsqueue_is_empty(current_iteration)) {
-      break;
     }
 
     num_propagation_steps++;
