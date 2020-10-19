@@ -89,7 +89,7 @@ Spell Checkers
    * check_spelling_osl:    Check for spelling errors (OSL only).
    * check_spelling_py:     Check for spelling errors (Python only).
 
-   Note that spell checkers can tak a 'CHECK_SPELLING_CACHE' filepath argument,
+   Note that spell checkers can take a 'CHECK_SPELLING_CACHE' filepath argument,
    so re-running does not need to re-check unchanged files.
 
    Example:
