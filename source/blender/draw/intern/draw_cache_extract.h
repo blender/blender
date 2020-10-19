@@ -142,6 +142,8 @@ typedef struct MeshBufferCache {
     GPUIndexBuf *edituv_points;
     GPUIndexBuf *edituv_fdots;
   } ibo;
+  /* Index buffer per material. These are subranges of `ibo.tris` */
+  GPUIndexBuf **tris_per_mat;
 } MeshBufferCache;
 
 typedef enum DRWBatchFlag {

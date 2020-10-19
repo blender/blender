@@ -901,19 +901,19 @@ static void extract_tris_finish(const MeshRenderData *mr,
 {
   MeshExtract_Tri_Data *data = _data;
   GPU_indexbuf_build_in_place(&data->elb, ibo);
+
   /* HACK: Create ibo sub-ranges and assign them to each #GPUBatch. */
   /* The `surface_per_mat` tests are there when object shading type is set to Wire or Bounds. In
    * these cases there isn't a surface per material. */
   if (mr->use_final_mesh && cache->surface_per_mat && cache->surface_per_mat[0]) {
+    MeshBufferCache *mbc = &cache->final;
     for (int i = 0; i < mr->mat_len; i++) {
       /* Multiply by 3 because these are triangle indices. */
       const int mat_start = data->tri_mat_start[i];
       const int mat_end = data->tri_mat_end[i];
       const int start = mat_start * 3;
       const int len = (mat_end - mat_start) * 3;
-      GPUIndexBuf *sub_ibo = GPU_indexbuf_create_subrange(ibo, start, len);
-      /* WARNING: We modify the #GPUBatch here! */
-      GPU_batch_elembuf_set(cache->surface_per_mat[i], sub_ibo, true);
+      GPU_indexbuf_create_subrange_in_place(mbc->tris_per_mat[i], ibo, start, len);
     }
   }
   MEM_freeN(data->tri_mat_start);
