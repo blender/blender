@@ -164,7 +164,7 @@
  *
  * - ``bmesh_kernel_*()`` - Low level API, for primitive functions that others are built ontop of.
  * - ``bmesh_***()`` - Low level API function.
- * - ``bm_***()`` -     'static' functions, not apart of the API at all,
+ * - ``bm_***()`` -     'static' functions, not a part of the API at all,
  *   but use prefix since they operate on BMesh data.
  * - ``BM_***()`` -     High level BMesh API function for use anywhere.
  * - ``BMO_***()`` -    High level operator API function for use anywhere.

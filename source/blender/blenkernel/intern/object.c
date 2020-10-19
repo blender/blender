@@ -4375,7 +4375,7 @@ LinkNode *BKE_object_relational_superset(struct ViewLayer *view_layer,
 }
 
 /**
- * return all groups this object is apart of, caller must free.
+ * return all groups this object is a part of, caller must free.
  */
 struct LinkNode *BKE_object_groups(Main *bmain, Scene *scene, Object *ob)
 {

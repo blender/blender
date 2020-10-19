@@ -51,9 +51,9 @@
 
 /* Note: All these flags _must_ be cleared on exit */
 
-/* face is apart of the edge-net (including the original face we're splitting) */
+/* face is a part of the edge-net (including the original face we're splitting) */
 #define FACE_NET _FLAG_WALK
-/* edge is apart of the edge-net we're filling */
+/* edge is a part of the edge-net we're filling */
 #define EDGE_NET _FLAG_WALK
 /* tag verts we've visit */
 #define VERT_VISIT _FLAG_WALK
