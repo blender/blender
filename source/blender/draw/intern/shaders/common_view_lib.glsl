@@ -168,7 +168,7 @@ uniform mat4 ModelMatrixInverse;
 #define resource_handle (resourceChunk * DRW_RESOURCE_CHUNK_LEN + resource_id)
 
 /** Transform shortcuts. */
-/* Rule of thumb: Try to reuse world positions and normals because converting though viewspace
+/* Rule of thumb: Try to reuse world positions and normals because converting through viewspace
  * will always be decomposed in at least 2 matrix operation. */
 
 /**

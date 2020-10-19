@@ -1172,7 +1172,7 @@ static void curve_calc_modifiers_post(Depsgraph *depsgraph,
     }
   }
   else if (modified != NULL) {
-    /* Prety stupid to generate that whole mesh if it's unused, yet we have to free it. */
+    /* Pretty stupid to generate that whole mesh if it's unused, yet we have to free it. */
     BKE_id_free(NULL, modified);
   }
 }

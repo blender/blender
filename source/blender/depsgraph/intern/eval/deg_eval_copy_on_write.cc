@@ -1043,7 +1043,7 @@ void discard_edit_mode_pointers(ID *id_cow)
 
 /* Free content of the CoW data-block
  * Notes:
- * - Does not recurs into nested ID data-blocks.
+ * - Does not recurse into nested ID data-blocks.
  * - Does not free data-block itself. */
 void deg_free_copy_on_write_datablock(ID *id_cow)
 {

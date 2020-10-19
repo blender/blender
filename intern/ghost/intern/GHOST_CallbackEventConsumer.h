@@ -36,7 +36,7 @@ class GHOST_CallbackEventConsumer : public GHOST_IEventConsumer {
   /**
    * Constructor.
    * \param   eventCallback   The call-back routine invoked.
-   * \param   userData        The data passed back though the call-back routine.
+   * \param   userData        The data passed back through the call-back routine.
    */
   GHOST_CallbackEventConsumer(GHOST_EventCallbackProcPtr eventCallback,
                               GHOST_TUserDataPtr userData);
@@ -58,7 +58,7 @@ class GHOST_CallbackEventConsumer : public GHOST_IEventConsumer {
  protected:
   /** The call-back routine invoked. */
   GHOST_EventCallbackProcPtr m_eventCallback;
-  /** The data passed back though the call-back routine. */
+  /** The data passed back through the call-back routine. */
   GHOST_TUserDataPtr m_userData;
 
 #ifdef WITH_CXX_GUARDEDALLOC

@@ -667,7 +667,7 @@ typedef struct BlenderRNA BlenderRNA;
  * Extending
  *
  * This struct must be embedded in *Type structs in
- * order to make then definable through RNA.
+ * order to make them definable through RNA.
  */
 typedef struct ExtensionRNA {
   void *data;

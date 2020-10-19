@@ -130,7 +130,7 @@ bool AutoTrack::TrackMarker(Marker* tracked_marker,
   // Try to predict the location of the second marker.
   bool predicted_position = false;
   if (PredictMarkerPosition(tracks_, tracked_marker)) {
-    LG << "Succesfully predicted!";
+    LG << "Successfully predicted!";
     predicted_position = true;
   } else {
     LG << "Prediction failed; trying to track anyway.";

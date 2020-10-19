@@ -1088,7 +1088,7 @@ static void do_fillGradientBuffer(unsigned int rw,
    *
    * 1.) Loop through all gradient pixels.
    * A.) For each gradient pixel:
-   * a.) Loop though all outside edge pixels, looking for closest one
+   * a.) Loop through all outside edge pixels, looking for closest one
    * to the gradient pixel we are in.
    * b.) Loop through all inside edge pixels, looking for closest one
    * to the gradient pixel we are in.

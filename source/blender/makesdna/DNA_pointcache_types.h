@@ -78,7 +78,7 @@ typedef struct PointCache {
   /**
    * The number of frames between cached frames.
    * This should probably be an upper bound for a per point adaptive step in the future,
-   * buf for now it's the same for all points. Without adaptivity this can effect the perceived
+   * but for now it's the same for all points. Without adaptivity this can effect the perceived
    * simulation quite a bit though. If for example particles are colliding with a horizontal
    * plane (with high damping) they quickly come to a stop on the plane, however there are still
    * forces acting on the particle (gravity and collisions), so the particle velocity isn't

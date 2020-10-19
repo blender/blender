@@ -261,7 +261,7 @@ static void read_mpolys(CDStreamConfig &config, const AbcMeshData &mesh_data)
 
 static void process_no_normals(CDStreamConfig &config)
 {
-  /* Absense of normals in the Alembic mesh is interpreted as 'smooth'. */
+  /* Absence of normals in the Alembic mesh is interpreted as 'smooth'. */
   BKE_mesh_calc_normals(config.mesh);
 }
 

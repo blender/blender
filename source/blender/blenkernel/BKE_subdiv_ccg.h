@@ -333,7 +333,7 @@ SubdivCCGAdjacencyType BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(const Subdi
 
 /* Get array which is indexed by face index and contains index of a first grid of the face.
  *
- * The "ensure" version allocates the mapping if it's not know yet and stores it in the subdiv_ccg
+ * The "ensure" version allocates the mapping if it's not known yet and stores it in the subdiv_ccg
  * descriptor. This function is NOT safe for threading.
  *
  * The "get" version simply returns cached array. */

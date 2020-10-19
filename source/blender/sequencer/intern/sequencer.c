@@ -4357,8 +4357,8 @@ void BKE_sequencer_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
       BKE_sequencer_free_imbuf(scene, &seq->seqbase, for_render);
     }
     if (seq->type == SEQ_TYPE_SCENE) {
-      /* FIXME: recurs downwards,
-       * but do recurs protection somehow! */
+      /* FIXME: recurse downwards,
+       * but do recurse protection somehow! */
     }
   }
 }
@@ -4369,7 +4369,7 @@ static bool update_changed_seq_recurs(
   Sequence *subseq;
   bool free_imbuf = false;
 
-  /* recurs downwards to see if this seq depends on the changed seq */
+  /* recurse downwards to see if this seq depends on the changed seq */
 
   if (seq == NULL) {
     return false;

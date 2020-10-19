@@ -890,7 +890,7 @@ static void do_versions_material_convert_legacy_blend_mode(bNodeTree *ntree, cha
       bNodeSocket *color_socket = nodeFindSocket(transp_node, SOCK_IN, "Color");
       bNodeSocket *transp_socket = nodeFindSocket(transp_node, SOCK_OUT, "BSDF");
 
-      /* If incomming link is from a closure socket, we need to convert it. */
+      /* If incoming link is from a closure socket, we need to convert it. */
       if (fromsock->type == SOCK_SHADER) {
         transp_node->locx = 0.33f * fromnode->locx + 0.66f * tonode->locx;
         transp_node->locy = 0.33f * fromnode->locy + 0.66f * tonode->locy;
