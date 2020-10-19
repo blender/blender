@@ -161,7 +161,7 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
    * assumes dep_files is in the same dir as makesrna.c, which is true for now. */
 
   if (1) {
-    /* first check if makesrna.c is newer then generated files
+    /* first check if makesrna.c is newer than generated files
      * for development on makesrna.c you may want to disable this */
     if (file_older(orgfile, __FILE__)) {
       REN_IF_DIFF;
@@ -171,7 +171,7 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
       REN_IF_DIFF;
     }
 
-    /* now check if any files we depend on are newer then any generated files */
+    /* now check if any files we depend on are newer than any generated files */
     if (dep_files) {
       int pass;
       for (pass = 0; dep_files[pass]; pass++) {

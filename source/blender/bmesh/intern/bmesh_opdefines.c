@@ -57,7 +57,7 @@
 /* The formatting of these bmesh operators is parsed by
  * 'doc/python_api/rst_from_bmesh_opdefines.py'
  * for use in python docs, so reStructuredText may be used
- * rather then doxygen syntax.
+ * rather than doxygen syntax.
  *
  * template (py quotes used because nested comments don't work
  * on all C compilers):
@@ -366,7 +366,7 @@ static BMOpDefine bmo_find_doubles_def = {
 /*
  * Remove Doubles.
  *
- * Finds groups of vertices closer then dist and merges them together,
+ * Finds groups of vertices closer than dist and merges them together,
  * using the weld verts bmop.
  */
 static BMOpDefine bmo_remove_doubles_def = {

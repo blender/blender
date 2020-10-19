@@ -141,7 +141,7 @@ bool ui_but_is_color_gamma(uiBut *but)
 void ui_scene_linear_to_color_picker_space(uiBut *but, float rgb[3])
 {
   /* Map to color picking space for HSV values and HSV cube/circle,
-   * assuming it is more perceptually linear then the scene linear
+   * assuming it is more perceptually linear than the scene linear
    * space for intuitive color picking. */
   if (!ui_but_is_color_gamma(but)) {
     IMB_colormanagement_scene_linear_to_color_picking_v3(rgb);

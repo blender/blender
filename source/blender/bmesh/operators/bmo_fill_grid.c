@@ -126,7 +126,7 @@ static void bm_loop_pair_from_verts(BMVert *v_a, BMVert *v_b, BMLoop *l_pair[2])
 /**
  * Copy loop pair from one side to the other if either is missing,
  * this simplifies interpolation code so we only need to check if x/y are missing,
- * rather then checking each loop.
+ * rather than checking each loop.
  */
 static void bm_loop_pair_test_copy(BMLoop *l_pair_a[2], BMLoop *l_pair_b[2])
 {

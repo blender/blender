@@ -360,7 +360,7 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window,
     glSettings.flags |= GHOST_glAlphaBackground;
 
   /* note: don't use getCurrentDisplaySetting() because on X11 we may
-   * be zoomed in and the desktop may be bigger then the viewport. */
+   * be zoomed in and the desktop may be bigger than the viewport. */
   GHOST_ASSERT(m_displayManager,
                "GHOST_System::createFullScreenWindow(): invalid display manager");
   // GHOST_PRINT("GHOST_System::createFullScreenWindow(): creating full-screen window\n");

@@ -1996,7 +1996,7 @@ int Octree::floodFill(LeafNode *leaf, int st[3], int len, int /*height*/, int th
         delete queue;
         continue;
       }
-      dc_printf("Less then %d, removing...\n", threshold);
+      dc_printf("Less than %d, removing...\n", threshold);
 
       // We have to remove this noise
 

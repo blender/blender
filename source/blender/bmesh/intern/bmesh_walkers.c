@@ -46,7 +46,7 @@
  *
  * - Walkers use tool flags, not header flags.
  * - Walkers now use ghash for storing visited elements,
- *   rather then stealing flags.  ghash can be rewritten
+ *   rather than stealing flags.  ghash can be rewritten
  *   to be faster if necessary, in the far future :) .
  * - tools should ALWAYS have necessary error handling
  *   for if walkers fail.

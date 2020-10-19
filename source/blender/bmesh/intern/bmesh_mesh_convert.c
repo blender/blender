@@ -22,7 +22,7 @@
  * \section bm_mesh_conv_shapekey Converting Shape Keys
  *
  * When converting to/from a Mesh/BMesh you can optionally pass a shape key to edit.
- * This has the effect of editing the shape key-block rather then the original mesh vertex coords
+ * This has the effect of editing the shape key-block rather than the original mesh vertex coords
  * (although additional geometry is still allowed and uses fallback locations on converting).
  *
  * While this works for any mesh/bmesh this is made use of by entering and exiting edit-mode.
@@ -1096,7 +1096,7 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
     med->flag = BM_edge_flag_to_mflag(eed);
 
     /* Handle this differently to editmode switching,
-     * only enable draw for single user edges rather then calculating angle. */
+     * only enable draw for single user edges rather than calculating angle. */
     if ((med->flag & ME_EDGEDRAW) == 0) {
       if (eed->l && eed->l == eed->l->radial_next) {
         med->flag |= ME_EDGEDRAW;

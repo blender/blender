@@ -2207,7 +2207,7 @@ void BKE_mesh_calc_poly_normal(const MPoly *mpoly,
     r_no[2] = 1.0;
   }
 }
-/* duplicate of function above _but_ takes coords rather then mverts */
+/* duplicate of function above _but_ takes coords rather than mverts */
 static void mesh_calc_ngon_normal_coords(const MPoly *mpoly,
                                          const MLoop *loopstart,
                                          const float (*vertex_coords)[3],

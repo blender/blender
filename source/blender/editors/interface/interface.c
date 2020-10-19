@@ -4384,7 +4384,7 @@ static void ui_but_submenu_enable(uiBlock *block, uiBut *but)
  * avoid an extra lookup on 'prop' when its already available.
  *
  * When this kind of change won't disrupt branches, best look into making more
- * of our UI functions take prop rather then propname.
+ * of our UI functions take prop rather than propname.
  */
 static uiBut *ui_def_but_rna(uiBlock *block,
                              int type,

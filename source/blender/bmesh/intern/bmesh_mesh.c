@@ -2956,7 +2956,7 @@ void BM_mesh_rebuild(BMesh *bm,
 #undef REMAP_EDGE
 
   /* Cleanup, re-use local tables if the current mesh had tables allocated.
-   * could use irrespective but it may use more memory then the caller wants
+   * could use irrespective but it may use more memory than the caller wants
    * (and not be needed). */
   if (remap & BM_VERT) {
     if (bm->vtable) {

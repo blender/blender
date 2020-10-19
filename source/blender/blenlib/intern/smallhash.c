@@ -24,7 +24,7 @@
  * fixed size hash tables but falls back to heap memory once the stack limits reached
  * (#SMSTACKSIZE).
  *
- * based on a doubling hashing approach (non-chaining) which uses more buckets then entries
+ * based on a doubling hashing approach (non-chaining) which uses more buckets than entries
  * stepping over buckets when two keys share the same hash so any key can find a free bucket.
  *
  * See: https://en.wikipedia.org/wiki/Double_hashing

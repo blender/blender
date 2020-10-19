@@ -106,7 +106,7 @@ enum {
   BLI_SCANFILL_CALC_POLYS = (1 << 2),
 
   /* note: This flag removes checks for overlapping polygons.
-   * when this flag is set, we'll never get back more faces then (totvert - 2) */
+   * when this flag is set, we'll never get back more faces than (totvert - 2) */
   BLI_SCANFILL_CALC_HOLES = (1 << 3),
 
   /* checks valid edge users - can skip for simple loops */

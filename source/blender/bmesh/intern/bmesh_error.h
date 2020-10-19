@@ -71,7 +71,7 @@ enum {
 #  define _BMESH_DUMMY_ABORT() (void)0
 #endif
 
-/* this is meant to be higher level then BLI_assert(),
+/* this is meant to be higher level than BLI_assert(),
  * its enabled even when in Release mode*/
 #define BMESH_ASSERT(a) \
   (void)((!(a)) ? ((fprintf(stderr, \

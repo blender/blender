@@ -1884,7 +1884,7 @@ void BKE_armature_mat_pose_to_bone_ex(struct Depsgraph *depsgraph,
   BKE_pose_where_is_bone(depsgraph, NULL, ob, &work_pchan, 0.0f, false);
 
   /* find the matrix, need to remove the bone transforms first so this is
-   * calculated as a matrix to set rather then a difference ontop of what's
+   * calculated as a matrix to set rather than a difference ontop of what's
    * already there. */
   unit_m4(outmat);
   BKE_pchan_apply_mat4(&work_pchan, outmat, false);

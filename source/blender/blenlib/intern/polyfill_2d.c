@@ -85,7 +85,7 @@ typedef signed char eSign;
  * This is a single purpose KDTree based on BLI_kdtree with some modifications
  * to better suit polyfill2d.
  * - #KDTreeNode2D is kept small (only 16 bytes),
- *   by not storing coords in the nodes and using index values rather then pointers
+ *   by not storing coords in the nodes and using index values rather than pointers
  *   to reference neg/pos values.
  *
  * - #kdtree2d_isect_tri is the only function currently used.
@@ -719,7 +719,7 @@ static bool pf_ear_tip_check(PolyFill *pf, PolyIndex *pi_ear_tip)
        * the area sign will be positive if the point is strictly inside.
        * It will be 0 on the edge, which we want to include as well. */
 
-      /* note: check (v3, v1) first since it fails _far_ more often then the other 2 checks
+      /* note: check (v3, v1) first since it fails _far_ more often than the other 2 checks
        * (those fail equally).
        * It's logical - the chance is low that points exist on the
        * same side as the ear we're clipping off. */

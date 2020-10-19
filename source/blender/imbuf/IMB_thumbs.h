@@ -48,7 +48,7 @@ typedef enum ThumbSource {
   THB_SOURCE_FONT,
 } ThumbSource;
 
-/* don't generate thumbs for images bigger then this (100mb) */
+/* don't generate thumbs for images bigger than this (100mb) */
 #define THUMB_SIZE_MAX (100 * 1024 * 1024)
 
 #define PREVIEW_RENDER_DEFAULT_HEIGHT 128

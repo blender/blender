@@ -1667,7 +1667,7 @@ finally:
     } while ((tvp = tvp->next));
 
     /* Remove edges which have become doubles since splicing vertices together,
-     * its less trouble then detecting future-doubles on edge-creation. */
+     * its less trouble than detecting future-doubles on edge-creation. */
     for (uint i = edge_net_init_len; i < edge_net_new_len; i++) {
       while (BM_edge_find_double(edge_net_new[i])) {
         BM_edge_kill(bm, edge_net_new[i]);

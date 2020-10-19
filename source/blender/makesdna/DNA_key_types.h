@@ -107,7 +107,7 @@ typedef struct Key {
   char _pad2;
 
   /** Only used when (Key->type == KEY_NORMAL), this value is used as a time slider,
-   * rather then using the scenes time, this value can be animated to give greater control */
+   * rather than using the scenes time, this value can be animated to give greater control */
   float ctime;
 
   /**

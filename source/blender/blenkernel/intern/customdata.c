@@ -3603,7 +3603,7 @@ void CustomData_bmesh_free_block(CustomData *data, void **block)
 }
 
 /**
- * Same as #CustomData_bmesh_free_block but zero the memory rather then freeing.
+ * Same as #CustomData_bmesh_free_block but zero the memory rather than freeing.
  */
 void CustomData_bmesh_free_block_data(CustomData *data, void *block)
 {

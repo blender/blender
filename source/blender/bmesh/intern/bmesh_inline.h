@@ -100,7 +100,7 @@ BLI_INLINE void _bm_elem_flag_merge_into(BMHeader *head,
  * the mesh structure.
  *
  * To set the elements to valid indices 'BM_mesh_elem_index_ensure' should be used
- * rather then adding inline loops, however there are cases where we still
+ * rather than adding inline loops, however there are cases where we still
  * set the index directly
  *
  * In an attempt to manage this,

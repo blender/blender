@@ -671,7 +671,7 @@ static void mesh_ensure_tessellation_customdata(Mesh *me)
       /* TODO - add some --debug-mesh option */
       if (G.debug & G_DEBUG) {
         /* note: this warning may be un-called for if we are initializing the mesh for the
-         * first time from bmesh, rather then giving a warning about this we could be smarter
+         * first time from bmesh, rather than giving a warning about this we could be smarter
          * and check if there was any data to begin with, for now just print the warning with
          * some info to help troubleshoot what's going on - campbell */
         printf(

@@ -58,7 +58,7 @@ typedef struct TextViewDrawState {
   int scroll_ymin, scroll_ymax;
   int *xy;   // [2]
   int *sel;  // [2]
-  /* Bottom of view == 0, top of file == combine chars, end of line is lower then start. */
+  /* Bottom of view == 0, top of file == combine chars, end of line is lower than start. */
   int *mval_pick_offset;
   const int *mval;  // [2]
   bool do_draw;

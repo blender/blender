@@ -3327,7 +3327,7 @@ static void mesh_render_data_edge_flag(const MeshRenderData *mr, BMEdge *eed, Ed
    * specular highlights make it hard to see T55456#510873.
    *
    * This isn't ideal since it can't be used when mixing edge/face modes
-   * but it's still better then not being able to see the active face. */
+   * but it's still better than not being able to see the active face. */
   if (is_face_only_select_mode) {
     if (mr->efa_act != NULL) {
       if (BM_edge_in_face(eed, mr->efa_act)) {

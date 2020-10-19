@@ -1097,7 +1097,7 @@ int view3d_opengl_select(ViewContext *vc,
   UI_Theme_Store(&theme_state);
   UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
 
-  /* Re-use cache (rect must be smaller then the cached)
+  /* Re-use cache (rect must be smaller than the cached)
    * other context is assumed to be unchanged */
   if (GPU_select_is_cached()) {
     GPU_select_begin(buffer, bufsize, &rect, gpu_select_mode, 0);

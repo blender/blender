@@ -207,7 +207,7 @@ void BMO_mesh_delete_oflag_context(BMesh *bm, const short oflag, const int type)
 /* BM functions
  *
  * note! this is just a duplicate of the code above (bad!)
- * but for now keep in sync, its less hassle then having to create bmesh operator flags,
+ * but for now keep in sync, its less hassle than having to create bmesh operator flags,
  * each time we need to remove some geometry.
  */
 

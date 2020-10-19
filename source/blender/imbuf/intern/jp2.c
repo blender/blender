@@ -362,7 +362,7 @@ static ImBuf *imb_load_jp2_stream(opj_stream_t *stream,
   }
 
   struct ImBuf *ibuf = NULL;
-  bool use_float = false; /* for precision higher then 8 use float */
+  bool use_float = false; /* for precision higher than 8 use float */
   bool use_alpha = false;
 
   long signed_offsets[4] = {0, 0, 0, 0};

@@ -5990,7 +5990,7 @@ char *RNA_path_from_ID_to_struct(PointerRNA *ptr)
       }
     }
     else if (RNA_struct_is_a(ptr->type, &RNA_PropertyGroup)) {
-      /* special case, easier to deal with here then in ptr->type->path() */
+      /* special case, easier to deal with here than in ptr->type->path() */
       return rna_path_from_ID_to_idpgroup(ptr);
     }
     else {

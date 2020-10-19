@@ -926,7 +926,7 @@ const char *BKE_modifier_path_relbase(Main *bmain, Object *ob)
     return ID_BLEND_PATH(bmain, &ob->id);
   }
 
-  /* last resort, better then using "" which resolves to the current
+  /* last resort, better than using "" which resolves to the current
    * working directory */
   return BKE_tempdir_session();
 }
@@ -937,7 +937,7 @@ const char *BKE_modifier_path_relbase_from_global(Object *ob)
     return ID_BLEND_PATH_FROM_GLOBAL(&ob->id);
   }
 
-  /* last resort, better then using "" which resolves to the current
+  /* last resort, better than using "" which resolves to the current
    * working directory */
   return BKE_tempdir_session();
 }
