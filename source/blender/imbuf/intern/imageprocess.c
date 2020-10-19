@@ -458,17 +458,8 @@ void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[
   float *fp = rect_float;
 
   while (a--) {
-    if (fp[3] == 0.0f) {
-      copy_v3_v3(fp, backcol);
-    }
-    else {
-      float mul = 1.0f - fp[3];
-
-      fp[0] += mul * backcol[0];
-      fp[1] += mul * backcol[1];
-      fp[2] += mul * backcol[2];
-    }
-
+    const float mul = 1.0f - fp[3];
+    madd_v3_v3fl(fp, backcol, mul);
     fp[3] = 1.0f;
 
     fp += 4;
