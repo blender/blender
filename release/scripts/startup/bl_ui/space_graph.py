@@ -324,11 +324,11 @@ class GRAPH_MT_key_snap(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("graph.snap", text="Current Frame").type = 'CFRA'
-        layout.operator("graph.snap", text="Cursor Value").type = 'VALUE'
-        layout.operator("graph.snap", text="Nearest Frame").type = 'NEAREST_FRAME'
-        layout.operator("graph.snap", text="Nearest Second").type = 'NEAREST_SECOND'
-        layout.operator("graph.snap", text="Nearest Marker").type = 'NEAREST_MARKER'
+        layout.operator("graph.snap", text="Selection to Current Frame").type = 'CFRA'
+        layout.operator("graph.snap", text="Selection to Cursor Value").type = 'VALUE'
+        layout.operator("graph.snap", text="Selection to Nearest Frame").type = 'NEAREST_FRAME'
+        layout.operator("graph.snap", text="Selection to Nearest Second").type = 'NEAREST_SECOND'
+        layout.operator("graph.snap", text="Selection to Nearest Marker").type = 'NEAREST_MARKER'
         layout.operator("graph.snap", text="Flatten Handles").type = 'HORIZONTAL'
         layout.separator()
         layout.operator("graph.frame_jump", text="Cursor to Selection")
@@ -399,11 +399,11 @@ class GRAPH_MT_snap_pie(Menu):
         layout = self.layout
         pie = layout.menu_pie()
 
-        pie.operator("graph.snap", text="Current Frame").type = 'CFRA'
-        pie.operator("graph.snap", text="Cursor Value").type = 'VALUE'
-        pie.operator("graph.snap", text="Nearest Frame").type = 'NEAREST_FRAME'
-        pie.operator("graph.snap", text="Nearest Second").type = 'NEAREST_SECOND'
-        pie.operator("graph.snap", text="Nearest Marker").type = 'NEAREST_MARKER'
+        pie.operator("graph.snap", text="Selection to Current Frame").type = 'CFRA'
+        pie.operator("graph.snap", text="Selection to Cursor Value").type = 'VALUE'
+        pie.operator("graph.snap", text="Selection to Nearest Frame").type = 'NEAREST_FRAME'
+        pie.operator("graph.snap", text="Selection to Nearest Second").type = 'NEAREST_SECOND'
+        pie.operator("graph.snap", text="Selection to Nearest Marker").type = 'NEAREST_MARKER'
         pie.operator("graph.snap", text="Flatten Handles").type = 'HORIZONTAL'
         pie.operator("graph.frame_jump", text="Cursor to Selection")
         pie.operator("graph.snap_cursor_value", text="Cursor Value to Selection")
