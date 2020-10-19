@@ -1542,6 +1542,7 @@ void uiItemsFullEnumO_items(uiLayout *layout,
                          0,
                          0,
                          "");
+          uiItemS(target);
         }
         ui_but_tip_from_enum_item(but, item);
       }
