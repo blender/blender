@@ -7196,11 +7196,9 @@ static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)
       if (bp->offset_type == BEVEL_AMT_PERCENT) {
         return bp->offset > 50.0f ? 50.0f : 100.f;
       }
-      else {
-        /* This is only right sometimes. The exact answer is very hard to calculate. */
-        float blen = BM_edge_calc_length(eb->e);
-        return bp->offset > blen / 2.0f ? blen / 2.0f : blen;
-      }
+      /* This is only right sometimes. The exact answer is very hard to calculate. */
+      float blen = BM_edge_calc_length(eb->e);
+      return bp->offset > blen / 2.0f ? blen / 2.0f : blen;
     }
     return no_collide_offset;
   }
