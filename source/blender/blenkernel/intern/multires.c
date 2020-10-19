@@ -1309,12 +1309,11 @@ static void multires_bmesh_space_set_cb(void *__restrict userdata,
 
             // try to prevent errors
             float len = len_v3(data);
-            /*
             if (len > maxlen) {
               mul_v3_fl(data, maxlen/len);
             } else if (isnan(len)) {
               zero_v3(data);
-            }*/
+            }
             break;
         }
       }
@@ -1343,6 +1342,8 @@ void BKE_multires_bmesh_space_set(Object *ob, BMesh *bm, int mode)
   if (!mmd || !CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
     return;
   }
+
+  bm->multiresSpace = mode;
 
   Mesh _me, *me = &_me;
   memset(me, 0, sizeof(Mesh));
@@ -1624,8 +1625,8 @@ static void multiresModifier_disp_run(
   BLI_task_parallel_range(0, totpoly, &data, multires_disp_run_cb, &settings);
 
   if (op == APPLY_DISPLACEMENTS) {
-     ccgSubSurf_stitchFaces(ccgdm->ss, 0, NULL, 0);
-     ccgSubSurf_updateNormals(ccgdm->ss, NULL, 0);
+    ccgSubSurf_stitchFaces(ccgdm->ss, 0, NULL, 0);
+    ccgSubSurf_updateNormals(ccgdm->ss, NULL, 0);
   }
 }
 

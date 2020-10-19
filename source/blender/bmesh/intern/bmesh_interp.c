@@ -27,13 +27,13 @@
 
 #include "DNA_meshdata_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_alloca.h"
+#include "BLI_array.h"
 #include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_task.h"
-#include "BLI_array.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
 #include "BKE_multires.h"
@@ -325,11 +325,11 @@ static bool quad_co(const float v1[3],
     copy_v3_v3(projverts2[i], projverts[i]);
   }
 
-  //expand quad a bit
+  // expand quad a bit
 #if 1
   float eps = FLT_EPSILON * 400000;
   float c[3];
-  
+
   mid_v3_v3v3v3v3(c, projverts[0], projverts[1], projverts[2], projverts[3]);
 
   sub_v3_v3(projverts2[0], c);
@@ -344,8 +344,7 @@ static bool quad_co(const float v1[3],
   add_v3_v3(projverts2[1], c);
   add_v3_v3(projverts2[2], c);
   add_v3_v3(projverts2[3], c);
-#endif 
-
+#endif
 
   if (!isect_point_quad_v2(origin, projverts2[0], projverts2[1], projverts2[2], projverts2[3])) {
     return false;
@@ -353,7 +352,7 @@ static bool quad_co(const float v1[3],
 
   resolve_quad_uv_v2(r_uv, origin, projverts[0], projverts[3], projverts[2], projverts[1]);
 
-  //if (r_uv[0] < -eps || r_uv[1] < -eps || r_uv[0] > 1.0+eps || r_uv[1] > 1.0+eps) {
+  // if (r_uv[0] < -eps || r_uv[1] < -eps || r_uv[0] > 1.0+eps || r_uv[1] > 1.0+eps) {
   //  return false;
   //}
 
@@ -400,7 +399,6 @@ static bool mdisp_in_mdispquad(BMLoop *l_src,
   compute_mdisp_quad(l_dst, l_dst_f_center, v1, v2, v3, v4, e1, e2);
 
   /* expand quad a bit */
-#if 0
   float c[3];
   float eps = FLT_EPSILON * 400;
   mid_v3_v3v3v3v3(c, v1, v2, v3, v4);
@@ -417,7 +415,6 @@ static bool mdisp_in_mdispquad(BMLoop *l_src,
   add_v3_v3(v2, c);
   add_v3_v3(v3, c);
   add_v3_v3(v4, c);
-#endif 
 
   if (!quad_co(v1, v2, v3, v4, p, l_src->v->no, r_uv)) {
     return 0;
@@ -567,8 +564,8 @@ static void loop_interp_multires_cb(void *__restrict userdata,
         negate_v3(n2);
       }
 
-      th = acos(dot_v3v3(n1, n2)*0.999999f);
-      if (th > M_PI*0.1) {
+      th = acos(dot_v3v3(n1, n2) * 0.999999f);
+      if (th > M_PI * 0.1) {
         continue;
       }
 
@@ -587,23 +584,24 @@ static void loop_interp_multires_cb(void *__restrict userdata,
         float l = len_v3v3(disp, baseco);
         if (l < mindis) {
           mindis = l;
-          //tot++;
-          //copy_v3_v3(sum, disp);
+          // tot++;
+          // copy_v3_v3(sum, disp);
         }
         add_v3_v3(sum, disp);
         tot++;
-        //break;
+        // break;
       }
     } while ((l_iter = l_iter->next) != l_first);
 
     if (tot) {
       mul_v3_fl(sum, 1.0 / (float)tot);
       copy_v3_v3(md_dst->disps[iy * res + ix], sum);
-    } else {
-      //printf("failed to set disp: %f %f\n", x, y);
+    }
+    else {
+      // printf("failed to set disp: %f %f\n", x, y);
       if (space == MULTIRES_SPACE_ABSOLUTE) {
-        //copy_v3_v3(md_dst->disps[iy * res + ix], baseco);
-        //copy_v3_v3(md_dst->disps[iy * res + ix], baseco);
+        // copy_v3_v3(md_dst->disps[iy * res + ix], baseco);
+        // copy_v3_v3(md_dst->disps[iy * res + ix], baseco);
       }
     }
   }
@@ -718,10 +716,12 @@ void BM_face_interp_multires(BMesh *bm, BMFace *f_dst, const BMFace *f_src)
   }
 }
 
-void BM_multires_smooth(BMesh *bm, BMFace *f, bool no_boundary) {
+// smooth with weight falloff towards center of grids
+static void bm_multires_smooth(BMesh *bm, BMFace *f, bool no_boundary)
+{
   const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
-  float (*orig)[3] = NULL;
-  BLI_array_staticdeclare(orig, 256*256);
+  float(*orig)[3] = NULL;
+  BLI_array_staticdeclare(orig, 256 * 256);
 
   if (cd_loop_mdisp_offset < 0) {
     return;
@@ -740,53 +740,53 @@ void BM_multires_smooth(BMesh *bm, BMFace *f, bool no_boundary) {
   mul_v3_fl(cent, 1.0f / (float)ctot);
 
   const int offs[][2] = {
-    {0, 0},
-//    {-1, -1},
-    {-1, 0},
-//    {-1, 1},
-    {0, 1},
-   // {1, 1},
-    {1, 0},
-//    {1, -1},
-    {0, -1},
+      {0, 0},
+      //    {-1, -1},
+      {-1, 0},
+      //    {-1, 1},
+      {0, 1},
+      // {1, 1},
+      {1, 0},
+      //    {1, -1},
+      {0, -1},
   };
 
   int totoff = sizeof(offs) / sizeof(*offs);
 
 #ifndef ABS
-#define ABS(a) ((a) < 0 ? -(a) : (a))
+#  define ABS(a) ((a) < 0 ? -(a) : (a))
 #endif
 
-  //int space = bm->multiresSpace;
+  // int space = bm->multiresSpace;
   BMLoop *l = f->l_first;
   do {
     MDisps *md = BM_ELEM_CD_GET_VOID_P(l, cd_loop_mdisp_offset);
-    if (!md->disps) continue;
+    if (!md->disps)
+      continue;
 
     int res = (int)floor(sqrt((double)md->totdisp) + 0.000001);
 
     int start = no_boundary ? 1 : 0;
-    int end = no_boundary ? res-1 : res;
-    float df = 1.0f / (float)(res-1);
+    int end = no_boundary ? res - 1 : res;
+    float df = 1.0f / (float)(res - 1);
     float u = 0.0;
 
     BLI_array_clear(orig);
-    BLI_array_reserve(orig, md->totdisp*3);
-    memcpy(orig, md->disps, sizeof(float)*3*md->totdisp);
+    BLI_array_reserve(orig, md->totdisp * 3);
+    memcpy(orig, md->disps, sizeof(float) * 3 * md->totdisp);
 
-    for (int x=start; x<end; x++, u += df) {
+    for (int x = start; x < end; x++, u += df) {
       float v = 0.0;
 
-      /*x < 0, x >= res, y < 0, y >= res, winding_matches*/
-      for (int y=start; y<end; y++, v += df) {
+      for (int y = start; y < end; y++, v += df) {
         float co[3];
         float tot = 0.0f;
 
         zero_v3(co);
 
-        int idx1 = y*res + x;
+        int idx1 = y * res + x;
 
-        for (int oi=0; oi<totoff; oi++) {
+        for (int oi = 0; oi < totoff; oi++) {
           int ox = x + offs[oi][0];
           int oy = y + offs[oi][1];
           MDisps *md2 = md;
@@ -794,107 +794,101 @@ void BM_multires_smooth(BMesh *bm, BMFace *f, bool no_boundary) {
           if (1 && (ox < 0 || oy < 0 || ox >= res || oy >= res)) {
             BMLoop *l2 = NULL;
             BMLoop *ls = l;
-            
+
             if (ox < 0 && oy < 0) {
               l2 = ls->next->next;
               ox = ABS(ox);
               oy = ABS(oy);
-            } else if (ox < 0 && oy >= 0 && oy < res-1) {
+            }
+            else if (ox < 0 && oy >= 0 && oy < res) {
               l2 = ls->prev;
               int t = oy;
 
               oy = -ox;
               ox = t;
-            } else if (oy < 0 && ox >= 0 && ox < res-1) {
+            }
+            else if (oy < 0 && ox >= 0 && ox < res) {
               l2 = ls->next;
               int t = oy;
 
               oy = ox;
               ox = -t;
-            } else if (ox >= res && oy >= 0 && oy < res) {
-              l2 = ls->radial_next;
+            }
+            else if (ox >= res && oy >= 0 && oy < res) {
+              l2 = ls->radial_next->next;
 
-              if (ls->v != l2->v) {
-                l2 = l2->next;
+              if (ls->v == l2->v) {
                 int t = oy;
 
-                oy = 2*res - ox - 1;
+                oy = 2 * res - ox - 1;
                 ox = t;
-              } else {
+              }
+              else {
+                l2 = l2->prev;
                 ox = res - ox;
               }
-              //XXX disables this branch
-              //ox = oy = -1;
-            } else if (ox >= res && oy < 0) {
-              l2 = ls->radial_next;
-              if (l2->v != ls->v) {
-                oy = -oy;
-                ox = 2*res - ox - 1;
-              } else {
-                l2 = l2->next;
-                int t = ox;
-                ox = -oy;
-                oy = 2*res - t - 1;
-              }
-              //XXX disables this branch
-              //ox = oy = -1;
-            } else if (oy >= res && ox >= 0 && ox < res) {
+
+              // XXX disables this branch
+              // ox = oy = -1;
+            }
+            else if (oy >= res && ox >= 0 && ox < res) {
               l2 = ls->prev->radial_next;
               if (l2->v == ls->v) {
                 int t = ox;
 
-                ox = 2*res - oy - 1;
+                ox = 2 * res - oy - 1;
                 oy = t;
-              } else {
+              }
+              else {
                 l2 = l2->next;
-                oy = 2*res - oy - 1;
+                oy = 2 * res - oy - 1;
               }
-              //XXX disables this branch
-              //ox = oy = -1;
-            } else if (ox >= res && oy >= res) {
-              l2 = ls->prev->radial_next->prev->radial_prev;
-              if (l2->v == ls->v) {
-                int t = ox;
-                ox = oy;
-                oy = t;
-
-                ox = 2*res - ox - 1;
-                oy = 2*res - oy - 1;
-
-                //XXX disables this branch
-                //ox = oy = -1;
-              } else { 
-                printf("ignoring non-4-valence multires corner");
-                l2 = NULL;
-              }
+              // XXX disables this branch
+              // ox = oy = -1;
+            }
+            else {
+              printf("ignoring non-4-valence multires corner %d %d %d %d : %d %d %d\t",
+                     ox,
+                     oy,
+                     offs[oi][0],
+                     offs[oi][1],
+                     x,
+                     y,
+                     res);
+              l2 = NULL;
             }
 
             if (l2) {
-              //ox = res - ox - 1;
-              //oy = res - oy - 1;
+              // ox = res - ox - 1;
+              // oy = res - oy - 1;
               md2 = BM_ELEM_CD_GET_VOID_P(l2, cd_loop_mdisp_offset);
-            } 
+            }
           }
-          
 
           if (!md2->disps || oy < 0 || oy >= res || ox < 0 || ox >= res) {
             continue;
           }
 
-          int idx2 = oy*res + ox;
+          int idx2 = oy * res + ox;
           float *oco2 = md == md2 ? orig[idx2] : md2->disps[idx2];
           float co2[3];
 
           copy_v3_v3(co2, oco2);
 
-          float dx = 0.5f*(float)offs[oi][0];
-          float dy = 0.5f*(float)offs[oi][1];
-            
-          float w = M_SQRT2 - dx*dx + dy*dy;
-          if (no_boundary && (ox == 0 || oy == 0 || ox == res-1 || oy == res-1)) {
-          //  w = 2.0;
-          } else if (ox == x && oy == y) {
-           // w = 1.0;
+          float dx = (float)offs[oi][0];
+          float dy = (float)offs[oi][1];
+
+          float w = 2.0f - dx * dx + dy * dy;
+
+          if (no_boundary && (ox == 0 || oy == 0 || ox == res - 1 || oy == res - 1)) {
+            //  w = 2.0;
+          }
+          else if (ox == x && oy == y) {
+            // blend less away from edges
+            float au = fabs(u - 0.5) * 2.0, av = fabs(v - 0.5) * 2.0;
+            float w2 = au * au + av * av;
+
+            w = 4.0 * w2;
           }
           w = 1.0;
 
@@ -929,7 +923,11 @@ void BM_multires_smooth(BMesh *bm, BMFace *f, bool no_boundary) {
 
   BLI_array_free(orig);
 }
-void bmo_test_mres_smooth_exec(BMesh *bm, BMOperator *op) {
+
+struct Object *multires_dump_grids_bmesh(struct Object *bmob, BMesh *bm);
+
+void bmo_test_mres_smooth_exec(BMesh *bm, BMOperator *op)
+{
   BMIter iter;
   BMFace *f;
 
@@ -937,7 +935,7 @@ void bmo_test_mres_smooth_exec(BMesh *bm, BMOperator *op) {
     return;
   }
 
-  BM_ITER_MESH(f, &iter, bm, BM_FACES_OF_MESH) {
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
     bool ok = !!BM_elem_flag_test(f, BM_ELEM_SELECT);
     ok = ok && !BM_elem_flag_test(f, BM_ELEM_HIDDEN);
 
@@ -945,10 +943,27 @@ void bmo_test_mres_smooth_exec(BMesh *bm, BMOperator *op) {
       continue;
     }
 
-    BM_multires_smooth(bm, f, false);
-    //BM_multires_smooth(bm, f, false);
-    //BM_multires_smooth(bm, f, false);
-    //BM_face_multires_bounds_smooth(bm, f);
+    //bm_multires_smooth(bm, f, true);
+    // BM_multires_smooth(bm, f, false);
+    // BM_multires_smooth(bm, f, false);
+    //for (int i=0; i<5; i++) {
+    BM_face_multires_bounds_smooth(bm, f);
+   // }
+  }
+
+  multires_dump_grids_bmesh(NULL, bm);
+}
+
+void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
+{
+  return;
+  if (bm->multiresSpace == MULTIRES_SPACE_ABSOLUTE) {
+    BM_face_multires_stitch(bm, f);
+
+
+    //for (int i=0; i<5; i++) {
+      //bm_multires_smooth(bm, f, true);
+    //}
   }
 }
 
@@ -956,55 +971,23 @@ void bmo_test_mres_smooth_exec(BMesh *bm, BMOperator *op) {
  * smooths boundaries between multires grids,
  * including some borders in adjacent faces
  */
-void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
+void BM_face_multires_stitch(BMesh *bm, BMFace *f)
 {
-  return;
-  const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
   BMLoop *l;
   BMIter liter;
+  float co[3];
+  const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
+  int sides = 0;
 
   if (cd_loop_mdisp_offset == -1) {
     return;
   }
 
   BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-    MDisps *mdp = BM_ELEM_CD_GET_VOID_P(l->prev, cd_loop_mdisp_offset);
-    MDisps *mdl = BM_ELEM_CD_GET_VOID_P(l, cd_loop_mdisp_offset);
-    MDisps *mdn = BM_ELEM_CD_GET_VOID_P(l->next, cd_loop_mdisp_offset);
-    float co1[3];
-    int sides;
-    int y;
-
-    /**
-     * mdisps is a grid of displacements, ordered thus:
-     * <pre>
-     *                    v4/next
-     *                      |
-     *  |      v1/cent-----mid2 ---> x
-     *  |         |         |
-     *  |         |         |
-     * v2/prev---mid1-----v3/cur
-     *            |
-     *            V
-     *            y
-     * </pre>
-     */
-
-    sides = (int)sqrt(mdp->totdisp);
-    for (y = 0; y < sides; y++) {
-      mid_v3_v3v3(co1, mdn->disps[y * sides], mdl->disps[y]);
-
-      copy_v3_v3(mdn->disps[y * sides], co1);
-      copy_v3_v3(mdl->disps[y], co1);
-    }
-  }
-
-  BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
     MDisps *mdl1 = BM_ELEM_CD_GET_VOID_P(l, cd_loop_mdisp_offset);
     MDisps *mdl2;
-    float co1[3], co2[3], co[3];
-    int sides;
-    int y;
+    float co1[3], co2[3];
+    int x, y;
 
     /**
      * mdisps is a grid of displacements, ordered thus:
@@ -1032,7 +1015,7 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
       mdl2 = BM_ELEM_CD_GET_VOID_P(l->radial_next->next, cd_loop_mdisp_offset);
     }
 
-    sides = (int)floor(sqrt(mdl1->totdisp)+FLT_EPSILON);
+    sides = (int)floor(sqrt(mdl1->totdisp) + FLT_EPSILON);
     for (y = 0; y < sides; y++) {
       int a1, a2, o1, o2;
 
@@ -1044,26 +1027,128 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
         o2 = (sides - 1) * sides + y;
       }
       else {
-        a1 = sides * y + sides - 2;
-        a2 = sides * y + sides - 2;
         o1 = sides * y + sides - 1;
         o2 = sides * y + sides - 1;
       }
 
-      interp_v3_v3v3(co1, mdl1->disps[a1], mdl2->disps[a2], 0.5f);
-      interp_v3_v3v3(co2, mdl1->disps[o1], mdl2->disps[o2], 0.5f);
-      /* magic blending numbers, hardcoded! */
-      //mul_v3_fl(co1, 0.18);
-
-      //add_v3_v3v3(co2, mdl1->disps[o1], mdl2->disps[o2]);
-      //mul_v3_fl(co2, 0.32);
-
-      interp_v3_v3v3(co, co1, co2, 0.5f);
-      //add_v3_v3v3(co, co1, co2);
+      mid_v3_v3v3(co, mdl1->disps[o1], mdl2->disps[o2]);
 
       copy_v3_v3(mdl1->disps[o1], co);
       copy_v3_v3(mdl2->disps[o2], co);
     }
+
+    BMLoop *l2 = l->prev->radial_next;
+    bool reverse = false;
+
+    if (l2->v != l->v) {
+      reverse = true;
+      l2 = l2->next;
+    }
+
+    mdl2 = BM_ELEM_CD_GET_VOID_P(l2, cd_loop_mdisp_offset);
+    y = sides - 1;
+
+    if (!mdl2->disps) {
+      continue;
+    }
+
+    for (x = 0; x < sides; x++) {
+      int x2, y2, o1, o2;
+
+      if (!reverse) {
+        x2 = sides - 1;
+        y2 = x;
+      }
+      else {
+        x2 = x;
+        y2 = y;
+      }
+
+      o1 = y * sides + x;
+      o2 = y2 * sides + x2;
+
+      mid_v3_v3v3(co, mdl1->disps[o1], mdl2->disps[o2]);
+      copy_v3_v3(mdl1->disps[o1], co);
+      copy_v3_v3(mdl2->disps[o2], co);
+    }
+  }
+
+  // do exterior corners
+  BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+    MDisps *md1 = BM_ELEM_CD_GET_VOID_P(l, cd_loop_mdisp_offset);
+    BMIter l2iter;
+    BMLoop *l2;
+    int x = sides - 1, y = sides - 1;
+    int idx = y * sides + x;
+    int tot = 1;
+
+    zero_v3(co);
+
+    if (!md1->disps) {
+      continue;
+    }
+
+    add_v3_v3(co, md1->disps[idx]);
+
+    BM_ITER_ELEM (l2, &l2iter, l->v, BM_LOOPS_OF_VERT) {
+      if (l2->v != l->v) {  // winding is flipped
+        l2 = l2->next;
+      }
+
+      MDisps *md2 = BM_ELEM_CD_GET_VOID_P(l2, cd_loop_mdisp_offset);
+
+      if (l == l2 || !md2->disps) {
+        continue;
+      }
+
+      add_v3_v3(co, md2->disps[idx]);
+      tot++;
+    }
+
+    mul_v3_fl(co, 1.0f / (float)tot);
+
+    BM_ITER_ELEM (l2, &l2iter, l->v, BM_LOOPS_OF_VERT) {
+      if (l2->v != l->v) {  // winding is flipped
+        l2 = l2->next;
+      }
+
+      MDisps *md2 = BM_ELEM_CD_GET_VOID_P(l2, cd_loop_mdisp_offset);
+
+      if (l == l2 || !md2->disps) {
+        continue;
+      }
+
+      copy_v3_v3(md2->disps[idx], co);
+    }
+  }
+
+  // do interior corners
+  int tot = 0;
+  zero_v3(co);
+
+  BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+    MDisps *md1 = BM_ELEM_CD_GET_VOID_P(l, cd_loop_mdisp_offset);
+
+    if (!md1->disps) {
+      continue;
+    }
+
+    add_v3_v3(co, md1->disps[0]);
+    tot++;
+  }
+
+  if (tot) {
+    mul_v3_fl(co, 1.0f / (float)tot);
+  }
+
+  BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+    MDisps *md1 = BM_ELEM_CD_GET_VOID_P(l, cd_loop_mdisp_offset);
+
+    if (!md1->disps) {
+      continue;
+    }
+
+    copy_v3_v3(md1->disps[0], co);
   }
 }
 

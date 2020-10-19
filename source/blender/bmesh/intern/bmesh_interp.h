@@ -1,3 +1,4 @@
+
 /*
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,6 +24,7 @@
 struct LinkNode;
 struct MemArena;
 
+void BM_face_multires_stitch(BMesh *bm, BMFace *f);
 void BM_loop_interp_multires_ex(BMesh *bm,
                                 BMLoop *l_dst,
                                 const BMFace *f_src,

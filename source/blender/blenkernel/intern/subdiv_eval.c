@@ -174,10 +174,12 @@ void BKE_subdiv_eval_limit_point(
   BKE_subdiv_eval_limit_point_and_derivatives(subdiv, ptex_face_index, u, v, r_P, NULL, NULL);
 }
 
+#if 0
 static bool close_zero(float c[3]) {
   const float eps = 0.00001;
   return fabs(c[0]) < eps && fabs(c[1]) < eps && fabs(c[2]) < eps; 
 }
+#endif
 
 void BKE_subdiv_eval_limit_point_and_derivatives(Subdiv *subdiv,
                                                  const int ptex_face_index,
@@ -201,7 +203,8 @@ void BKE_subdiv_eval_limit_point_and_derivatives(Subdiv *subdiv,
    * that giving totally unusable derivatives. */
 
   if (r_dPdu != NULL && r_dPdv != NULL) {
-    if ((close_zero(r_dPdu) || close_zero(r_dPdv)) || equals_v3v3(r_dPdu, r_dPdv)) {
+    //if ((close_zero(r_dPdu) || close_zero(r_dPdv)) || equals_v3v3(r_dPdu, r_dPdv)) {
+    if ((is_zero_v3(r_dPdu) || is_zero_v3(r_dPdv)) || equals_v3v3(r_dPdu, r_dPdv)) {
       subdiv->evaluator->evaluateLimit(subdiv->evaluator,
                                        ptex_face_index,
                                        u * 0.999f + 0.0005f,

@@ -33,7 +33,8 @@ struct MirrorModifierData;
 struct ModifierEvalContext;
 struct Object;
 
-struct Mesh *BKE_mesh_mirror_bisect_on_mirror_plane(struct MirrorModifierData *mmd,
+struct Mesh *BKE_mesh_mirror_bisect_on_mirror_plane(struct Object *ob,
+                                                    struct MirrorModifierData *mmd,
                                                     const struct Mesh *mesh,
                                                     int axis,
                                                     const float plane_co[3],

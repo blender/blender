@@ -41,7 +41,8 @@
 
 #include "MOD_modifiertypes.h"
 
-Mesh *BKE_mesh_mirror_bisect_on_mirror_plane(MirrorModifierData *mmd,
+Mesh *BKE_mesh_mirror_bisect_on_mirror_plane(Object *ob,
+                                             MirrorModifierData *mmd,
                                              const Mesh *mesh,
                                              int axis,
                                              const float plane_co[3],
@@ -58,7 +59,8 @@ Mesh *BKE_mesh_mirror_bisect_on_mirror_plane(MirrorModifierData *mmd,
   BMIter viter;
   BMVert *v, *v_next;
 
-  bm = BKE_mesh_to_bmesh_ex(mesh,
+  bm = BKE_mesh_to_bmesh_ex(ob,
+                            mesh,
                             &(struct BMeshCreateParams){0},
                             &(struct BMeshFromMeshParams){
                                 .calc_face_normal = true,
@@ -157,7 +159,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis(MirrorModifierData *mmd,
 
   Mesh *mesh_bisect = NULL;
   if (do_bisect) {
-    mesh_bisect = BKE_mesh_mirror_bisect_on_mirror_plane(mmd, mesh, axis, plane_co, plane_no);
+    mesh_bisect = BKE_mesh_mirror_bisect_on_mirror_plane(ob, mmd, mesh, axis, plane_co, plane_no);
     mesh = mesh_bisect;
   }
 

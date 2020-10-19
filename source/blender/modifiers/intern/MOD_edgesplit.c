@@ -53,7 +53,7 @@
 #include "MOD_modifiertypes.h"
 #include "MOD_ui_common.h"
 
-static Mesh *doEdgeSplit(Mesh *mesh, EdgeSplitModifierData *emd)
+static Mesh *doEdgeSplit(Object *ob, Mesh *mesh, EdgeSplitModifierData *emd)
 {
   Mesh *result;
   BMesh *bm;
@@ -65,7 +65,8 @@ static Mesh *doEdgeSplit(Mesh *mesh, EdgeSplitModifierData *emd)
   const bool do_split_all = do_split_angle && emd->split_angle < FLT_EPSILON;
   const bool calc_face_normals = do_split_angle && !do_split_all;
 
-  bm = BKE_mesh_to_bmesh_ex(mesh,
+  bm = BKE_mesh_to_bmesh_ex(ob,
+                            mesh,
                             &(struct BMeshCreateParams){0},
                             &(struct BMeshFromMeshParams){
                                 .calc_face_normal = calc_face_normals,
@@ -125,7 +126,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(emd, DNA_struct_default_get(EdgeSplitModifierData), modifier);
 }
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx), Mesh *mesh)
+static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
   Mesh *result;
   EdgeSplitModifierData *emd = (EdgeSplitModifierData *)md;
@@ -134,7 +135,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx)
     return mesh;
   }
 
-  result = doEdgeSplit(mesh, emd);
+  result = doEdgeSplit(ctx->object, mesh, emd);
 
   return result;
 }
