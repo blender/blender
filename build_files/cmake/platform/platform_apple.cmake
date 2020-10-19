@@ -53,6 +53,13 @@ find_package(ZLIB REQUIRED)
 find_package(BZip2 REQUIRED)
 list(APPEND ZLIB_LIBRARIES ${BZIP2_LIBRARIES})
 
+if(WITH_OPENAL)
+  find_package(OpenAL)
+  if(NOT OPENAL_FOUND)
+    set(WITH_OPENAL OFF)
+  endif()
+endif()
+
 if(NOT DEFINED LIBDIR)
   set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin)
   # Prefer lib directory paths
@@ -70,15 +77,6 @@ endif()
 
 if(EXISTS ${LIBDIR})
   without_system_libs_begin()
-endif()
-
-if(WITH_OPENAL)
-  # Hardcoding this is better than CMake searching in `~/Library/Frameworks`
-  # or `/Library/Frameworks` or Xcode SDK's frameworks.
-  set(OPENAL_INCLUDE_DIR "${LIBDIR}/openal/include/AL")
-  set(OPENAL_LIBRARY)
-  set(OPENAL_FOUND TRUE)
-  print_found_status("OpenAL" "${OPENAL_INCLUDE_DIR}")
 endif()
 
 if(WITH_ALEMBIC)
