@@ -1178,6 +1178,7 @@ static bool edge_edge_angle_less_than_180(const BMEdge *e1, const BMEdge *e2, co
   }
   else {
     BLI_assert(false);
+    return false;
   }
   sub_v3_v3v3(dir1, v1->co, v->co);
   sub_v3_v3v3(dir2, v2->co, v->co);
