@@ -1533,7 +1533,7 @@ static int evaluate_seq_frame_gen(Sequence **seq_arr, ListBase *seqbase, int cfr
   for (LinkNode *seq_item = effect_inputs.list; seq_item; seq_item = seq_item->next) {
     Sequence *seq = seq_item->link;
     /* It's possible that effect strip would be placed to the same
-     * 'machine' as it's inputs. We don't want to clear such strips
+     * 'machine' as its inputs. We don't want to clear such strips
      * from the stack. */
     if (seq_arr[seq->machine] && seq_arr[seq->machine]->type & SEQ_TYPE_EFFECT) {
       continue;

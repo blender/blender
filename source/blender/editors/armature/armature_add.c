@@ -386,7 +386,7 @@ static void updateDuplicateSubtarget(EditBone *dup_bone,
                                      Object *ob,
                                      bool lookup_mirror_subtarget)
 {
-  /* If an edit bone has been duplicated, lets update it's constraints if the
+  /* If an edit bone has been duplicated, lets update its constraints if the
    * subtarget they point to has also been duplicated.
    */
   EditBone *oldtarget, *newtarget;
@@ -812,7 +812,7 @@ static void updateDuplicateTransformConstraintSettings(Object *ob,
 
 static void updateDuplicateConstraintSettings(EditBone *dup_bone, EditBone *orig_bone, Object *ob)
 {
-  /* If an edit bone has been duplicated, lets update it's constraints if the
+  /* If an edit bone has been duplicated, lets update its constraints if the
    * subtarget they point to has also been duplicated.
    */
   bPoseChannel *pchan;

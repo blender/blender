@@ -308,7 +308,7 @@ typedef enum eMVertSkinFlag {
    */
   MVERT_SKIN_ROOT = 1,
 
-  /** Marks a branch vertex (vertex with more than two connected edges), so that it's neighbors
+  /** Marks a branch vertex (vertex with more than two connected edges), so that its neighbors
    * are directly hulled together, rather than the default of generating intermediate frames.
    */
   MVERT_SKIN_LOOSE = 2,

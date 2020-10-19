@@ -1029,7 +1029,7 @@ static void do_createEdgeLocationBuffer(unsigned int t,
   /* set the accumulators to correct positions */  // set up some accumulator variables for loops
   gradientAccum = gradientFillOffset;  // each accumulator variable starts at its respective
   innerAccum = *innerEdgeOffset;       // section's offset so when we start filling, each
-  outerAccum = *outerEdgeOffset;       // section fills up it's allocated space in gbuf
+  outerAccum = *outerEdgeOffset;       // section fills up its allocated space in gbuf
   // uses dmin=row, rsl=col
   for (x = 0, dmin = 0; x < t; x += rw, dmin++) {
     for (rsl = 0; rsl < rw; rsl++) {

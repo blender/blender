@@ -73,7 +73,7 @@ typedef struct ULData {
    * around the connected fan are attached to an edge.
    *
    * In this case there is no need to detect contiguous loops,
-   * each isolated case is handled on it's own, no need to walk over selected edges.
+   * each isolated case is handled on its own, no need to walk over selected edges.
    *
    * \note This flag isn't flushed to other loops which could also have this enabled.
    * Currently it's not necessary since we can start off on any one of these loops,

@@ -628,7 +628,7 @@ typedef enum IDRecalcFlag {
 
   /* ** Object geometry changed. **
    *
-   * When object of armature type gets tagged with this flag, it's pose is
+   * When object of armature type gets tagged with this flag, its pose is
    * re-evaluated.
    * When object of other type is tagged with this flag it makes the modifier
    * stack to be re-evaluated.

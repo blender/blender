@@ -82,7 +82,7 @@ typedef enum eWM_GizmoFlag {
    * Needed when the gizmo needs to align with the interface underneath it. */
   WM_GIZMO_DRAW_NO_SCALE = (1 << 7),
   /**
-   * Hide the cursor and lock it's position while interacting with this gizmo.
+   * Hide the cursor and lock its position while interacting with this gizmo.
    */
   WM_GIZMO_MOVE_CURSOR = (1 << 8),
   /** Don't write into the depth buffer when selecting. */
@@ -92,7 +92,7 @@ typedef enum eWM_GizmoFlag {
   WM_GIZMO_OPERATOR_TOOL_INIT = (1 << 10),
 
   /** Don't pass through events to other handlers
-   * (allows click/drag not to have it's events stolen by press events in other keymaps). */
+   * (allows click/drag not to have its events stolen by press events in other keymaps). */
   WM_GIZMO_EVENT_HANDLE_ALL = (1 << 11),
 
   /** Don't use tool-tips for this gizmo (can be distracting). */
@@ -382,7 +382,7 @@ typedef struct wmGizmoType {
   /** Called when gizmo selection state changes. */
   wmGizmoFnSelectRefresh select_refresh;
 
-  /** Free data (not the gizmo it's self), use when the gizmo allocates it's own members. */
+  /** Free data (not the gizmo itself), use when the gizmo allocates its own members. */
   wmGizmoFnFree free;
 
   /** RNA for properties. */

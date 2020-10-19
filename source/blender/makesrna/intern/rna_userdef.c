@@ -232,7 +232,7 @@ void rna_userdef_is_dirty_update_impl(void)
 
 /**
  * Use as a fallback update handler,
- * never use 'ptr' unless it's type is checked.
+ * never use 'ptr' unless its type is checked.
  */
 void rna_userdef_is_dirty_update(Main *UNUSED(bmain),
                                  Scene *UNUSED(scene),

@@ -2869,7 +2869,7 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
     /* NOTE: We currently ignore implicit relations to an external
      * data-blocks for copy-on-write operations. This means, for example,
      * copy-on-write component of Object will not wait for copy-on-write
-     * component of it's Mesh. This is because pointers are all known
+     * component of its Mesh. This is because pointers are all known
      * already so remapping will happen all correct. And then If some object
      * evaluation step needs geometry, it will have transitive dependency
      * to Mesh copy-on-write already. */

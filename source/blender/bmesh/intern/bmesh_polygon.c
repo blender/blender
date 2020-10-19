@@ -667,7 +667,7 @@ void BM_face_calc_center_median_weighted(const BMFace *f, float r_cent[3])
 /**
  * \brief POLY ROTATE PLANE
  *
- * Rotates a polygon so that it's
+ * Rotates a polygon so that its
  * normal is pointing towards the mesh Z axis
  */
 void poly_rotate_plane(const float normal[3], float (*verts)[3], const uint nverts)
@@ -889,7 +889,7 @@ float BM_face_calc_normal_vcos(const BMesh *bm,
  * Calculate a normal from a vertex cloud.
  *
  * \note We could make a higher quality version that takes all vertices into account.
- * Currently it finds 4 outer most points returning it's normal.
+ * Currently it finds 4 outer most points returning its normal.
  */
 void BM_verts_calc_normal_from_cloud_ex(
     BMVert **varr, int varr_len, float r_normal[3], float r_center[3], int *r_index_tangent)

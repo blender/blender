@@ -746,7 +746,7 @@ static int pose_copy_exec(bContext *C, wmOperator *op)
   }
   /* Sets chan->flag to POSE_KEY if bone selected. */
   set_pose_keys(ob);
-  /* Construct a local bmain and only put object and it's data into it,
+  /* Construct a local bmain and only put object and its data into it,
    * o this way we don't expand any other objects into the copy buffer
    * file.
    *
@@ -767,7 +767,7 @@ static int pose_copy_exec(bContext *C, wmOperator *op)
   /* begin copy buffer on a temp bmain. */
   BKE_copybuffer_begin(temp_bmain);
   /* Store the whole object to the copy buffer because pose can't be
-   * existing on it's own.
+   * existing on its own.
    */
   BKE_copybuffer_tag_ID(&ob_copy.id);
   BLI_join_dirfile(str, sizeof(str), BKE_tempdir_base(), "copybuffer_pose.blend");

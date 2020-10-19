@@ -390,7 +390,7 @@ static const uint g_shape_preset_hold_action_face[2][3] = {{2, 0, 1}, {3, 5, 4}}
  *
  * In order to speed up UI drawing we create some batches that are then
  * modified by specialized shaders to draw certain elements really fast.
- * TODO: find a better place. Maybe it's own file?
+ * TODO: find a better place. Maybe its own file?
  *
  * \{ */
 

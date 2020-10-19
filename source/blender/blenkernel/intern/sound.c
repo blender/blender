@@ -229,7 +229,7 @@ BLI_INLINE void sound_verify_evaluated_id(const ID *id)
    *
    * Data-blocks which are covered by a copy-on-write system of dependency graph will have
    * LIB_TAG_COPIED_ON_WRITE tag set on them. But if some of data-blocks during its evaluation
-   * decides to re-allocate it's nested one (for example, object evaluation could re-allocate mesh
+   * decides to re-allocate its nested one (for example, object evaluation could re-allocate mesh
    * when evaluating modifier stack). Such data-blocks will have
    * LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT tag set on them.
    *

@@ -79,7 +79,7 @@ static size_t idp_size_table[] = {
 
 /**
  * \note as a start to move away from the stupid IDP_New function, this type
- * has it's own allocation function.
+ * has its own allocation function.
  */
 IDProperty *IDP_NewIDPArray(const char *name)
 {
@@ -959,7 +959,7 @@ bool IDP_EqualsProperties(IDProperty *prop1, IDProperty *prop2)
  * Allocate a new ID.
  *
  * This function takes three arguments: the ID property type, a union which defines
- * it's initial value, and a name.
+ * its initial value, and a name.
  *
  * The union is simple to use; see the top of this header file for its definition.
  * An example of using this function:

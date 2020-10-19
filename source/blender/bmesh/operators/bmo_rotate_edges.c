@@ -33,7 +33,7 @@
 #define FACE_MARK 1
 
 /**
- * Rotate edges where every edge has it's own faces (we can rotate in any order).
+ * Rotate edges where every edge has its own faces (we can rotate in any order).
  */
 static void bm_rotate_edges_simple(BMesh *bm,
                                    BMOperator *op,

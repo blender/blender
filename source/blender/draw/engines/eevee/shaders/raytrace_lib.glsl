@@ -140,7 +140,7 @@ void prepare_raycast(vec3 ray_origin,
 
 // #define GROUPED_FETCHES /* is still slower, need to see where is the bottleneck. */
 /* Return the hit position, and negate the z component (making it positive) if not hit occurred. */
-/* __ray_dir__ is the ray direction premultiplied by it's maximum length */
+/* __ray_dir__ is the ray direction premultiplied by its maximum length */
 vec3 raycast(int index,
              vec3 ray_origin,
              vec3 ray_dir,

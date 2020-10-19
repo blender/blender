@@ -21,7 +21,7 @@
  * \ingroup bli
  *
  * Helper functions and implementations of standard data types for #GHash
- * (not it's implementation).
+ * (not its implementation).
  */
 
 #include <string.h>

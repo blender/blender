@@ -99,7 +99,7 @@ static void bm_loop_attrs_copy(
  * If \a no_double is true, then a check is done to see if a face
  * with these vertices already exists and returns it instead.
  *
- * If a pointer to an example face is provided, it's custom data
+ * If a pointer to an example face is provided, its custom data
  * and properties will be copied to the new face.
  *
  * \note The winding of the face is determined by the order

@@ -774,7 +774,7 @@ bool BLI_ghash_reinsert(
 /**
  * Replaces the key of an item in the \a gh.
  *
- * Use when a key is re-allocated or it's memory location is changed.
+ * Use when a key is re-allocated or its memory location is changed.
  *
  * \returns The previous key or NULL if not found, the caller may free if it's needed.
  */

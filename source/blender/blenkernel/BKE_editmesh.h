@@ -45,7 +45,7 @@ struct Scene;
  * This structure is used for mesh edit-mode.
  *
  * through this, you get access to both the edit #BMesh,
- * it's tessellation, and various stuff that doesn't belong in the BMesh
+ * its tessellation, and various stuff that doesn't belong in the BMesh
  * struct itself.
  *
  * the entire derivedmesh and modifier system works with this structure,

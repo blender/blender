@@ -121,7 +121,7 @@ static void gizmo2d_pivot_point_message_subscribe(struct wmGizmoGroup *gzgroup,
 /* -------------------------------------------------------------------- */
 /** \name Arrow / Cage Gizmo Group
  *
- * Defines public functions, not the gizmo it's self:
+ * Defines public functions, not the gizmo itself:
  *
  * - #ED_widgetgroup_gizmo2d_xform_callbacks_set
  * - #ED_widgetgroup_gizmo2d_xform_no_cage_callbacks_set
@@ -530,7 +530,7 @@ void ED_widgetgroup_gizmo2d_xform_no_cage_callbacks_set(wmGizmoGroupType *gzgt)
 /* -------------------------------------------------------------------- */
 /** \name Scale Handles
  *
- * Defines public functions, not the gizmo it's self:
+ * Defines public functions, not the gizmo itself:
  *
  * - #ED_widgetgroup_gizmo2d_resize_callbacks_set
  *
@@ -686,7 +686,7 @@ void ED_widgetgroup_gizmo2d_resize_callbacks_set(wmGizmoGroupType *gzgt)
 /* -------------------------------------------------------------------- */
 /** \name Rotate Handles
  *
- * Defines public functions, not the gizmo it's self:
+ * Defines public functions, not the gizmo itself:
  *
  * - #ED_widgetgroup_gizmo2d_rotate_setup
  *

@@ -521,7 +521,7 @@ bool BM_face_split_edgenet(BMesh *bm,
 
   /* Note: 'VERT_IN_QUEUE' is often not needed at all,
    * however in rare cases verts are added multiple times to the queue,
-   * that on it's own is harmless but in _very_ rare cases,
+   * that on its own is harmless but in _very_ rare cases,
    * the queue will overflow its maximum size,
    * so we better be strict about this! see: T51539 */
 

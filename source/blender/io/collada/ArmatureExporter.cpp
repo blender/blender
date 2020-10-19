@@ -211,7 +211,7 @@ void ArmatureExporter::add_bone_node(Bone *bone,
 
         /* Add bone tail- translation... don't know why
          * bone parenting is against the tail of a bone
-         * and not it's head, seems arbitrary. */
+         * and not its head, seems arbitrary. */
         ob->parentinv[3][1] += bone->length;
 
         /* OPEN_SIM_COMPATIBILITY

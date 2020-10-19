@@ -8136,7 +8136,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr,
      * 'FUNC_USE_SELF_TYPE' for many functions. */
     const bool is_staticmethod = (flag & FUNC_NO_SELF) && !(flag & FUNC_USE_SELF_TYPE);
 
-    /* Store original so we can decrement it's reference before returning. */
+    /* Store original so we can decrement its reference before returning. */
     PyObject *item_orig = item;
 
     if (is_staticmethod) {

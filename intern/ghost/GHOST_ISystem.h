@@ -51,7 +51,7 @@ class GHOST_IEventConsumer;
  * Blender.
  * <br><br>
  * Enough history. What does GHOST have to offer?<br>
- * In short: everything that Blender needed from GLUT to run on all it's supported
+ * In short: everything that Blender needed from GLUT to run on all its supported
  * operating systems and some extra's.
  * This includes :
  *

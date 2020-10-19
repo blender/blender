@@ -228,7 +228,7 @@ void NormalizedToImageSpace(const T* const intrinsics_block,
 }
 
 // Cost functor which computes reprojection error of 3D point X on camera
-// defined by angle-axis rotation and it's translation (which are in the same
+// defined by angle-axis rotation and its translation (which are in the same
 // block due to optimization reasons).
 //
 // This functor can only be used for distortion models which have analytically
@@ -287,7 +287,7 @@ struct ReprojectionErrorApplyIntrinsics {
 };
 
 // Cost functor which computes reprojection error of 3D point X on camera
-// defined by angle-axis rotation and it's translation (which are in the same
+// defined by angle-axis rotation and its translation (which are in the same
 // block due to optimization reasons).
 //
 // This functor can only be used for distortion models which have analytically

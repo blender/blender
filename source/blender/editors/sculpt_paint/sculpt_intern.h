@@ -750,7 +750,7 @@ typedef struct SculptBrushTest {
   /* For circle (not sphere) projection. */
   float plane_view[4];
 
-  /* Some tool code uses a plane for it's calculateions. */
+  /* Some tool code uses a plane for its calculations. */
   float plane_tool[4];
 
   /* View3d clipping - only set rv3d for clipping */

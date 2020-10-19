@@ -471,7 +471,7 @@ bool OCIOImpl::supportGLSLDraw()
  * using regular 2D texture.
  *
  * When all drawing is finished, finishGLSLDraw shall be called to
- * restore OpenGL context to it's pre-GLSL draw state.
+ * restore OpenGL context to its pre-GLSL draw state.
  */
 bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r,
                              OCIO_ConstProcessorRcPtr *ocio_processor_scene_to_ui,

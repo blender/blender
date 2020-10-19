@@ -766,7 +766,7 @@ void update_proxy_pointers_after_copy(const Depsgraph *depsgraph,
   }
 }
 
-/* Do some special treatment of data transfer from original ID to it's
+/* Do some special treatment of data transfer from original ID to its
  * CoW complementary part.
  *
  * Only use for the newly created CoW data-blocks. */

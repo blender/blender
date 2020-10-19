@@ -418,7 +418,7 @@ static bool armature_select_linked_impl(Object *ob, const bool select, const boo
    * Bones that have been touched are skipped, so the complexity is OK. */
 
   enum {
-    /* Bone has been walked over, it's LINK value can be read. */
+    /* Bone has been walked over, its LINK value can be read. */
     TOUCH = (1 << 0),
     /* When TOUCH has been set, this flag can be checked to see if the bone is connected. */
     LINK = (1 << 1),

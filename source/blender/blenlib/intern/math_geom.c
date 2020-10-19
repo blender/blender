@@ -4474,7 +4474,7 @@ void interp_cubic_v3(float x[3],
  *
  * Compute coordinates (u, v) for point \a st with respect to triangle (\a st0, \a st1, \a st2)
  *
- * \note same basic result as #barycentric_weights_v2, see it's comment for details.
+ * \note same basic result as #barycentric_weights_v2, see its comment for details.
  */
 void resolve_tri_uv_v2(
     float r_uv[2], const float st[2], const float st0[2], const float st1[2], const float st2[2])

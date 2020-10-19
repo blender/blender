@@ -598,7 +598,7 @@ MovieTrackingTrack *tracking_marker_check_slide(
          */
         min_distance_squared = distance_squared;
 
-        /* If search area is visible, check how close to it's sliding
+        /* If search area is visible, check how close to its sliding
          * zones mouse is.
          */
         if (sc->flag & SC_SHOW_MARKER_SEARCH) {

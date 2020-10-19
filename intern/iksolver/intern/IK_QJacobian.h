@@ -60,7 +60,7 @@ class IK_QJacobian {
   int m_dof, m_task_size;
   bool m_transpose;
 
-  // the jacobian matrix and it's null space projector
+  // the jacobian matrix and its null space projector
   MatrixXd m_jacobian, m_jacobian_tmp;
   MatrixXd m_nullspace;
 

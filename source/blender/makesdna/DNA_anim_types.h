@@ -263,7 +263,7 @@ typedef struct FMod_Noise {
 
 /* modification modes */
 typedef enum eFMod_Noise_Modifications {
-  /** Modify existing curve, matching it's shape. */
+  /** Modify existing curve, matching its shape. */
   FCM_NOISE_MODIF_REPLACE = 0,
   /** Add noise to the curve. */
   FCM_NOISE_MODIF_ADD,

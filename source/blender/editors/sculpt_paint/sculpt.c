@@ -8140,7 +8140,7 @@ static int ed_object_sculptmode_flush_recalc_flag(Scene *scene,
   int flush_recalc = 0;
   /* Multires in sculpt mode could have different from object mode subdivision level. */
   flush_recalc |= mmd && mmd->sculptlvl != mmd->lvl;
-  /* If object has got active modifiers, it's dm could be different in sculpt mode.  */
+  /* If object has got active modifiers, its dm could be different in sculpt mode.  */
   flush_recalc |= sculpt_has_active_modifiers(scene, ob);
   return flush_recalc;
 }
@@ -8349,7 +8349,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 
     if (ob->mode & mode_flag) {
       Mesh *me = ob->data;
-      /* Dyntopo add's it's own undo step. */
+      /* Dyntopo adds its own undo step. */
       if ((me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) == 0) {
         /* Without this the memfile undo step is used,
          * while it works it causes lag when undoing the first undo step, see T71564. */

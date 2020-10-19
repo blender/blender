@@ -105,7 +105,7 @@ class BVHSpatialSplit {
   /* Lower-level functions which calculates boundaries of left and right nodes
    * needed for spatial split.
    *
-   * Operates directly with primitive specified by it's index, reused by higher
+   * Operates directly with primitive specified by its index, reused by higher
    * level splitting functions.
    */
   void split_triangle_primitive(const Mesh *mesh,

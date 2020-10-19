@@ -165,7 +165,7 @@ static float dist_to_rect(const float co[2],
   return sqrtf(min_ffff(d1, d2, d3, d4));
 }
 
-/* Distance to quad defined by it's corners, corners are relative to pos */
+/* Distance to quad defined by its corners, corners are relative to pos */
 static float dist_to_crns(const float co[2], const float pos[2], const float crns[4][2])
 {
   float d1, d2, d3, d4;

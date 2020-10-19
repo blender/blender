@@ -57,7 +57,7 @@
 #if defined(__arm__)
 /* Attempt to fix compilation error on Debian armel kernel.
  * arm7 architecture does have both 32 and 64bit atomics, however
- * it's gcc doesn't have __GCC_HAVE_SYNC_COMPARE_AND_SWAP_n defined.
+ * its gcc doesn't have __GCC_HAVE_SYNC_COMPARE_AND_SWAP_n defined.
  */
 #  define JE_FORCE_SYNC_COMPARE_AND_SWAP_1
 #  define JE_FORCE_SYNC_COMPARE_AND_SWAP_4

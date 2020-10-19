@@ -107,7 +107,7 @@ typedef struct OpenSubdiv_Converter {
   bool (*isInfiniteSharpVertex)(const struct OpenSubdiv_Converter *converter,
                                 const int vertex_index);
 
-  // If vertex is not infinitely sharp, this is it's actual sharpness.
+  // If vertex is not infinitely sharp, this is its actual sharpness.
   float (*getVertexSharpness)(const struct OpenSubdiv_Converter *converter,
                               const int vertex_index);
 

@@ -685,7 +685,7 @@ void ED_space_clip_set_clip(bContext *C, bScreen *screen, SpaceClip *sc, MovieCl
     }
   }
 
-  /* If clip is no longer visible on screen, free memory used by it's cache */
+  /* If clip is no longer visible on screen, free memory used by its cache */
   if (old_clip && old_clip != clip && !old_clip_visible) {
     BKE_movieclip_clear_cache(old_clip);
   }

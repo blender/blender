@@ -240,7 +240,7 @@ void ModalSolver(const Tracks &tracks,
 
         if (marker.image == image) {
           // New track appeared on this image,
-          // project it's position onto sphere.
+          // project its position onto sphere.
 
           LG << "Projecting track " << track << " at image " << image;
 

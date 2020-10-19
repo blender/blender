@@ -1397,7 +1397,7 @@ static size_t animfilter_act_group(bAnimContext *ac,
       /* Care about selection status. */
       (filter_mode & (ANIMFILTER_SEL | ANIMFILTER_UNSEL))) {
     /* If the group itself isn't selected appropriately,
-     * we shouldn't consider it's children either. */
+     * we shouldn't consider its children either. */
     if (ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) == 0) {
       return 0;
     }
@@ -1419,7 +1419,7 @@ static size_t animfilter_act_group(bAnimContext *ac,
     /* special filter so that we can get just the F-Curves within the active group */
     if (!(filter_mode & ANIMFILTER_ACTGROUPED) || (agrp->flag & AGRP_ACTIVE)) {
       /* for the Graph Editor, curves may be set to not be visible in the view to lessen
-       * clutter, but to do this, we need to check that the group doesn't have it's
+       * clutter, but to do this, we need to check that the group doesn't have its
        * not-visible flag set preventing all its sub-curves to be shown
        */
       if (!(filter_mode & ANIMFILTER_CURVE_VISIBLE) || !(agrp->flag & AGRP_NOTVISIBLE)) {

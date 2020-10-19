@@ -4495,7 +4495,7 @@ static void lib_link_scene(BlendLibReader *reader, Scene *sce)
     }
   }
 
-  /* rigidbody world relies on it's linked collections */
+  /* rigidbody world relies on its linked collections */
   if (sce->rigidbody_world) {
     RigidBodyWorld *rbw = sce->rigidbody_world;
     if (rbw->group) {

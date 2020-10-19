@@ -1492,7 +1492,7 @@ MovieTrackingPlaneTrack *BKE_tracking_plane_track_add(MovieTracking *tracking,
 
   BKE_tracking_plane_marker_insert(plane_track, &plane_marker);
 
-  /* Put new plane track to the list, ensure it's name is unique. */
+  /* Put new plane track to the list, ensure its name is unique. */
   BLI_addtail(plane_tracks_base, plane_track);
   BKE_tracking_plane_track_unique_name(plane_tracks_base, plane_track);
 

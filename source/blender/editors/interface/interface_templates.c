@@ -2967,7 +2967,7 @@ static void rna_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
   RNAUpdateCb *cb = (RNAUpdateCb *)arg_cb;
 
   /* we call update here on the pointer property, this way the
-   * owner of the curve mapping can still define it's own update
+   * owner of the curve mapping can still define its own update
    * and notifier, even if the CurveMapping struct is shared. */
   RNA_property_update(C, &cb->ptr, cb->prop);
 }

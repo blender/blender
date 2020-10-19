@@ -225,7 +225,7 @@ float BLI_heapsimple_top_value(const HeapSimple *heap)
 }
 
 /**
- * Pop the top node off the heap and return it's pointer.
+ * Pop the top node off the heap and return its pointer.
  */
 void *BLI_heapsimple_pop_min(HeapSimple *heap)
 {

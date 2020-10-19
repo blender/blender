@@ -111,7 +111,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
   for (int i = 0; i < totnodes; i++) {
     BKE_pbvh_node_mark_topology_update(nodes[i]);
   }
-  /* Get the bounding box, it's center and size. */
+  /* Get the bounding box, its center and size. */
   BKE_pbvh_bounding_box(ob->sculpt->pbvh, bb_min, bb_max);
   add_v3_v3v3(center, bb_min, bb_max);
   mul_v3_fl(center, 0.5f);

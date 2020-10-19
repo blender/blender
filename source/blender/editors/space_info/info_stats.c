@@ -252,7 +252,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
         stats->totbonesel++;
       }
 
-      /* if this is a connected child and it's parent is being moved, remove our root */
+      /* if this is a connected child and its parent is being moved, remove our root */
       if ((ebo->flag & BONE_CONNECTED) && (ebo->flag & BONE_ROOTSEL) && ebo->parent &&
           (ebo->parent->flag & BONE_TIPSEL)) {
         stats->totvertsel--;

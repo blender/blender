@@ -131,7 +131,7 @@ struct MenuSearch_Item {
     } rna;
   };
 
-  /** Set when we need each menu item to be able to set it's own context. may be NULL. */
+  /** Set when we need each menu item to be able to set its own context. may be NULL. */
   struct MenuSearch_Context *wm_context;
 };
 

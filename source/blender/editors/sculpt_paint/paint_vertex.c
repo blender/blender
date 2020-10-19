@@ -2798,7 +2798,7 @@ static void do_vpaint_brush_calc_average_color_cb_ex(void *__restrict userdata,
         const MVert *mv = &data->me->mvert[v_index];
         if (!use_vert_sel || mv->flag & SELECT) {
           accum->len += gmap->vert_to_loop[v_index].count;
-          /* if a vertex is within the brush region, then add it's color to the blend. */
+          /* if a vertex is within the brush region, then add its color to the blend. */
           for (int j = 0; j < gmap->vert_to_loop[v_index].count; j++) {
             const int l_index = gmap->vert_to_loop[v_index].indices[j];
             col = (char *)(&lcol[l_index]);

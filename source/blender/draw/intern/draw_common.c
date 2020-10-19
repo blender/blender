@@ -293,7 +293,7 @@ DRWView *DRW_view_create_with_zoffset(const DRWView *parent_view,
 
 /* TODO FINISH */
 /**
- * Get the wire color theme_id of an object based on it's state
+ * Get the wire color theme_id of an object based on its state
  * \a r_color is a way to get a pointer to the static color var associated
  */
 int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color)

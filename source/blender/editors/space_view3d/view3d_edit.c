@@ -842,7 +842,7 @@ static void viewrotate_apply(ViewOpsData *vod, const int event_xy[2])
      * This works by blending two horizons:
      * - Rotated-horizon: `cross_v3_v3v3(xaxis, zvec_global, m_inv[2])`
      *   When only this is used, this turntable rotation works - but it's side-ways
-     *   (as if the entire turn-table has been placed on it's side)
+     *   (as if the entire turn-table has been placed on its side)
      *   While there is no gimble lock, it's also awkward to use.
      * - Un-rotated-horizon: `m_inv[0]`
      *   When only this is used, the turntable rotation can have gimbal lock.
@@ -2763,7 +2763,7 @@ void VIEW3D_OT_dolly(wmOperatorType *ot)
 /* -------------------------------------------------------------------- */
 /** \name View All Operator
  *
- * Move & Zoom the view to fit all of it's contents.
+ * Move & Zoom the view to fit all of its contents.
  * \{ */
 
 static bool view3d_object_skip_minmax(const View3D *v3d,

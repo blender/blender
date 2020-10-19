@@ -137,7 +137,7 @@ static void bm_decim_build_quadrics(BMesh *bm, Quadric *vquadrics)
 static void bm_decim_calc_target_co_db(BMEdge *e, double optimize_co[3], const Quadric *vquadrics)
 {
   /* compute an edge contraction target for edge 'e'
-   * this is computed by summing it's vertices quadrics and
+   * this is computed by summing its vertices quadrics and
    * optimizing the result. */
   Quadric q;
 

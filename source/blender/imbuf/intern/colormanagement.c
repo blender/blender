@@ -1620,7 +1620,7 @@ static void display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle,
   }
   else if (handle->float_colorspace) {
     /* currently float is non-linear only in sequencer, which is working
-     * in it's own color space even to handle float buffers.
+     * in its own color space even to handle float buffers.
      * This color space is the same for byte and float images.
      * Need to convert float buffer to linear space before applying display transform
      */

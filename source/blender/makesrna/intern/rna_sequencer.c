@@ -1539,7 +1539,7 @@ static void rna_def_color_balance(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "SequenceColorBalanceData", NULL);
   RNA_def_struct_ui_text(srna,
                          "Sequence Color Balance Data",
-                         "Color balance parameters for a sequence strip and it's modifiers");
+                         "Color balance parameters for a sequence strip and its modifiers");
   RNA_def_struct_sdna(srna, "StripColorBalance");
 
   prop = RNA_def_property(srna, "lift", PROP_FLOAT, PROP_COLOR_GAMMA);

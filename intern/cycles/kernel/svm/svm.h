@@ -20,7 +20,7 @@
 /* Shader Virtual Machine
  *
  * A shader is a list of nodes to be executed. These are simply read one after
- * the other and executed, using an node counter. Each node and it's associated
+ * the other and executed, using an node counter. Each node and its associated
  * data is encoded as one or more uint4's in a 1D texture. If the data is larger
  * than an uint4, the node can increase the node counter to compensate for this.
  * Floats are encoded as int and then converted to float again.

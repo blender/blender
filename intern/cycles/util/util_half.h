@@ -141,7 +141,7 @@ ccl_device_inline float4 half4_to_float4(half4 h)
 ccl_device_inline half float_to_half(float f)
 {
   const uint u = __float_as_uint(f);
-  /* Sign bit, shifted to it's position. */
+  /* Sign bit, shifted to its position. */
   uint sign_bit = u & 0x80000000;
   sign_bit >>= 16;
   /* Exponent. */

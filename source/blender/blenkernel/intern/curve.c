@@ -2420,7 +2420,7 @@ static void make_bevel_list_3D_minimum_twist(BevList *bl)
   else {
     /* Need to correct quat for the first/last point,
      * this is so because previously it was only calculated
-     * using it's own direction, which might not correspond
+     * using its own direction, which might not correspond
      * the twist of neighbor point.
      */
     bevp1 = bl->bevpoints;
@@ -4606,7 +4606,7 @@ void BKE_nurb_direction_switch(Nurb *nu)
       bp2--;
     }
     /* If there are odd number of points no need to touch coord of middle one,
-     * but still need to change it's tilt.
+     * but still need to change its tilt.
      */
     if (nu->pntsu & 1) {
       bp1->tilt = -bp1->tilt;

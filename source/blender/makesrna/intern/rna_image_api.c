@@ -367,7 +367,7 @@ void RNA_api_image(StructRNA *srna)
                                   NULL,
                                   FILE_MAX,
                                   "File Path",
-                                  "The resulting filepath from the image and it's user");
+                                  "The resulting filepath from the image and its user");
   RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0); /* needed for string return value */
   RNA_def_function_output(func, parm);
 

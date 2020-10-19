@@ -2687,8 +2687,8 @@ bool EDBM_selectmode_disable_multi(struct bContext *C,
  *
  * Overview of the algorithm:
  * - Groups faces surrounded by edges with 3+ faces using them.
- * - Calculates a cost of each face group comparing it's angle with the faces
- *   connected to it's non-manifold edges.
+ * - Calculates a cost of each face group comparing its angle with the faces
+ *   connected to its non-manifold edges.
  * - Mark the face group as interior, and mark connected face groups for recalculation.
  * - Continue to remove the face groups with the highest 'cost'.
  *
