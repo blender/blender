@@ -73,12 +73,12 @@ if(EXISTS ${LIBDIR})
 endif()
 
 if(WITH_OPENAL)
-  find_package(OpenAL)
-  if(OPENAL_FOUND)
-    set(WITH_OPENAL ON)
-  else()
-    set(WITH_OPENAL OFF)
-  endif()
+  # Hardcoding this is better than CMake searching in `~/Library/Frameworks`
+  # or `/Library/Frameworks` or Xcode SDK's frameworks.
+  set(OPENAL_INCLUDE_DIR "${LIBDIR}/openal/include/AL")
+  set(OPENAL_LIBRARY)
+  set(OPENAL_FOUND TRUE)
+  print_found_status("OpenAL" "${OPENAL_INCLUDE_DIR}")
 endif()
 
 if(WITH_ALEMBIC)
