@@ -537,7 +537,7 @@ class NODE_PT_active_node_properties(Panel):
 
         # XXX this could be filtered further to exclude socket types
         # which don't have meaningful input values (e.g. cycles shader)
-        value_inputs = [socket for socket in node.inputs if socket.enabled and not socket.is_linked]
+        value_inputs = [socket for socket in node.inputs if self.show_socket_input(socket)]
         if value_inputs:
             layout.separator()
             layout.label(text="Inputs:")
@@ -549,6 +549,9 @@ class NODE_PT_active_node_properties(Panel):
                     node,
                     iface_(socket.label if socket.label else socket.name, socket.bl_rna.translation_context),
                 )
+
+    def show_socket_input(self, socket):
+        return hasattr(socket, 'draw') and socket.enabled and not socket.is_linked
 
 
 class NODE_PT_texture_mapping(Panel):
