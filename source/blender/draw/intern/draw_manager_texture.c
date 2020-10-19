@@ -72,6 +72,7 @@ void drw_texture_set_parameters(GPUTexture *tex, DRWTextureFlag flags)
   else {
     GPU_texture_filter_mode(tex, flags & DRW_TEX_FILTER);
   }
+  GPU_texture_anisotropic_filter(tex, false);
   GPU_texture_wrap_mode(tex, flags & DRW_TEX_WRAP, true);
   GPU_texture_compare_mode(tex, flags & DRW_TEX_COMPARE);
 }
