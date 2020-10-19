@@ -198,6 +198,11 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      ICON_VOLUME_DATA,
      "Mesh to Volume",
      ""}, /* TODO: Use correct icon. */
+    {eModifierType_VolumeToMesh,
+     "VOLUME_TO_MESH",
+     ICON_VOLUME_DATA,
+     "Volume to Mesh",
+     ""}, /* TODO: Use correct icon. */
     {0, "", 0, N_("Deform"), ""},
     {eModifierType_Armature,
      "ARMATURE",
@@ -7133,6 +7138,89 @@ static void rna_def_modifier_volume_displace(BlenderRNA *brna)
   RNA_define_lib_overridable(false);
 }
 
+static void rna_def_modifier_volume_to_mesh(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  static EnumPropertyItem resolution_mode_items[] = {
+      {VOLUME_TO_MESH_RESOLUTION_MODE_GRID,
+       "GRID",
+       0,
+       "Grid",
+       "Use resolution of the volume grid"},
+      {VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT,
+       "VOXEL_AMOUNT",
+       0,
+       "Voxel Amount",
+       "Desired number of voxels along one axis"},
+      {VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_SIZE,
+       "VOXEL_SIZE",
+       0,
+       "Voxel Size",
+       "Desired voxel side length"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  srna = RNA_def_struct(brna, "VolumeToMeshModifier", "Modifier");
+  RNA_def_struct_ui_text(srna, "Volume to Mesh Modifier", "");
+  RNA_def_struct_sdna(srna, "VolumeToMeshModifierData");
+  RNA_def_struct_ui_icon(srna, ICON_VOLUME_DATA); /* TODO: Use correct icon. */
+
+  RNA_define_lib_overridable(true);
+
+  prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Object", "Object");
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+  prop = RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop, "Threshold", "Voxels with a larger value are inside the generated mesh");
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.001f, 1.0f, 0.1f, 5);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "adaptivity", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop,
+      "Adaptivity",
+      "Reduces the final face count by simplifying geometry where detail is not needed");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_smooth_shade", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", VOLUME_TO_MESH_USE_SMOOTH_SHADE);
+  RNA_def_property_ui_text(
+      prop, "Smooth Shading", "Output faces with smooth shading rather than flat shaded");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "grid_name", PROP_STRING, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop, "Grid Name", "Grid in the volume object that is converted to a mesh");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "resolution_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, resolution_mode_items);
+  RNA_def_property_ui_text(
+      prop, "Resolution Mode", "Mode for how the desired voxel size is specified");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "voxel_size", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop, "Voxel Size", "Smaller values result in a higher resolution output");
+  RNA_def_property_range(prop, 0.0, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0, FLT_MAX, 0.01, 4);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "voxel_amount", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Voxel Amount", "Approximate number of voxels along one axis");
+  RNA_def_property_range(prop, 0, INT_MAX);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  RNA_define_lib_overridable(false);
+}
+
 void RNA_def_modifier(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -7266,6 +7354,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 #  endif
   rna_def_modifier_mesh_to_volume(brna);
   rna_def_modifier_volume_displace(brna);
+  rna_def_modifier_volume_to_mesh(brna);
 }
 
 #endif

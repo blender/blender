@@ -97,6 +97,7 @@ typedef enum ModifierType {
   eModifierType_Simulation = 57,
   eModifierType_MeshToVolume = 58,
   eModifierType_VolumeDisplace = 59,
+  eModifierType_VolumeToMesh = 60,
   NUM_MODIFIER_TYPES,
 } ModifierType;
 
@@ -2274,6 +2275,39 @@ enum {
   MOD_VOLUME_DISPLACE_MAP_GLOBAL = 1,
   MOD_VOLUME_DISPLACE_MAP_OBJECT = 2,
 };
+
+typedef struct VolumeToMeshModifierData {
+  ModifierData modifier;
+
+  /** This is the volume object that is supposed to be converted to a mesh. */
+  struct Object *object;
+
+  float threshold;
+  float adaptivity;
+
+  /** VolumeToMeshFlag */
+  uint32_t flag;
+
+  /** VolumeToMeshResolutionMode */
+  int resolution_mode;
+  float voxel_size;
+  int voxel_amount;
+
+  /** MAX_NAME */
+  char grid_name[64];
+} VolumeToMeshModifierData;
+
+/** VolumeToMeshModifierData->resolution_mode */
+typedef enum VolumeToMeshResolutionMode {
+  VOLUME_TO_MESH_RESOLUTION_MODE_GRID = 0,
+  VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT = 1,
+  VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_SIZE = 2,
+} VolumeToMeshResolutionMode;
+
+/** VolumeToMeshModifierData->flag */
+typedef enum VolumeToMeshFlag {
+  VOLUME_TO_MESH_USE_SMOOTH_SHADE = 1 << 0,
+} VolumeToMeshFlag;
 
 #ifdef __cplusplus
 }

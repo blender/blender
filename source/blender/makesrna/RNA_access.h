@@ -710,6 +710,7 @@ extern StructRNA RNA_ViewLayer;
 extern StructRNA RNA_ViewLayerEEVEE;
 extern StructRNA RNA_Volume;
 extern StructRNA RNA_VolumeDisplaceModifier;
+extern StructRNA RNA_VolumeToMeshModifier;
 extern StructRNA RNA_VoronoiTexture;
 extern StructRNA RNA_WalkNavigation;
 extern StructRNA RNA_WarpModifier;
