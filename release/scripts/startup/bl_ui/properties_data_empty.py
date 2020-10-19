@@ -59,29 +59,15 @@ class DATA_PT_empty(DataButtonsPanel, Panel):
             col.prop(ob, "show_empty_image_perspective", text="Perspective")
             col.prop(ob, "show_empty_image_only_axis_aligned", text="Only Axis Aligned")
 
-
-class DATA_PT_empty_alpha(DataButtonsPanel, Panel):
-    bl_label = "Transparency"
-    bl_parent_id = "DATA_PT_empty"
-
-    @classmethod
-    def poll(cls, context):
-        ob = context.object
-        return (ob and ob.type == 'EMPTY' and ob.empty_display_type == 'IMAGE')
-
-    def draw_header(self, context):
-        ob = context.object
-
-        self.layout.prop(ob, "use_empty_image_alpha", text="")
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        ob = context.object
-
-        layout.active = ob.use_empty_image_alpha
-        layout.prop(ob, "color", text="Opacity", index=3, slider=True)
+            col = layout.column(align=False, heading="Transparency")
+            col.use_property_decorate = False
+            row = col.row(align=True)
+            sub = row.row(align=True)
+            sub.prop(ob, "use_empty_image_alpha", text="")
+            sub = sub.row(align=True)
+            sub.active = ob.use_empty_image_alpha
+            sub.prop(ob, "color", text="", index=3, slider=True)
+            row.prop_decorator(ob, "color", index=3)
 
 
 class DATA_PT_empty_image(DataButtonsPanel, Panel):
@@ -102,7 +88,6 @@ class DATA_PT_empty_image(DataButtonsPanel, Panel):
 
 classes = (
     DATA_PT_empty,
-    DATA_PT_empty_alpha,
     DATA_PT_empty_image,
 )
 
