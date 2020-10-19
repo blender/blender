@@ -65,7 +65,7 @@ void main()
    * Just disable USE_SSS when USE_REFRACTION is enabled. */
 #  ifdef USE_REFRACTION
   /* SSRefraction pass is done after the SSS pass.
-   * In order to not loose the diffuse light totally we
+   * In order to not lose the diffuse light totally we
    * need to merge the SSS radiance to the main radiance. */
   fac = 1.0;
 #  endif

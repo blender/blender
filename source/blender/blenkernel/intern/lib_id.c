@@ -2050,7 +2050,7 @@ void BKE_library_make_local(Main *bmain,
       /* Proxies only work when the proxified object is linked-in from a library. */
       if (ob->proxy->id.lib == NULL) {
         CLOG_WARN(&LOG,
-                  "proxy object %s will loose its link to %s, because the "
+                  "proxy object %s will lose its link to %s, because the "
                   "proxified object is local.",
                   id->newid->name,
                   ob->proxy->id.name);
@@ -2064,7 +2064,7 @@ void BKE_library_make_local(Main *bmain,
        * was not used locally would be a nasty bug! */
       if (is_local || is_lib) {
         CLOG_WARN(&LOG,
-                  "made-local proxy object %s will loose its link to %s, "
+                  "made-local proxy object %s will lose its link to %s, "
                   "because the linked-in proxy is referenced (is_local=%i, is_lib=%i).",
                   id->newid->name,
                   ob->proxy->id.name,

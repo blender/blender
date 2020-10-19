@@ -1663,7 +1663,7 @@ void BKE_mesh_normals_loop_split(const MVert *mverts,
    * Note that currently we only have two values for second loop of sharp edges.
    * However, if needed, we can store the negated value of loop index instead of INDEX_INVALID
    * to retrieve the real value later in code).
-   * Note also that lose edges always have both values set to 0! */
+   * Note also that loose edges always have both values set to 0! */
   int(*edge_to_loops)[2] = MEM_calloc_arrayN((size_t)numEdges, sizeof(*edge_to_loops), __func__);
 
   /* Simple mapping from a loop to its polygon index. */

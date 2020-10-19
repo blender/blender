@@ -616,7 +616,7 @@ static void wm_keymap_diff(
       BLI_addtail(&diff_km->diff_items, kmdi);
     }
 
-    /* sync expanded flag back to original so we don't loose it on repatch */
+    /* sync expanded flag back to original so we don't lose it on repatch */
     if (to_kmi) {
       orig_kmi = WM_keymap_item_find_id(orig_km, kmi->id);
 

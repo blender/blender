@@ -135,7 +135,7 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int update
           engine->flag &= ~RE_ENGINE_DO_UPDATE;
           /* NOTE: Important to pass non-updated depsgraph, This is because this function is called
            * from inside dependency graph evaluation. Additionally, if we pass fully evaluated one
-           * we will loose updates stored in the graph. */
+           * we will lose updates stored in the graph. */
           engine->type->view_update(engine, C, CTX_data_depsgraph_pointer(C));
         }
         else {

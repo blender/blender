@@ -245,7 +245,7 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
      * To play safe we move all the inputs beyond 18 to their rightful new place.
      * In case users are doing unexpected things with not-really supported keyframeable channels.
      *
-     * The for loop for the input ids is at the top level otherwise we loose the animation
+     * The for loop for the input ids is at the top level otherwise we lose the animation
      * keyframe data.
      * */
     for (int input_id = 21; input_id >= 18; input_id--) {

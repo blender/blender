@@ -133,7 +133,7 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
   struct bContext_PyState context_py_state;
   if (context_dict != NULL) {
     CTX_py_state_push(C, &context_py_state, (void *)context_dict);
-    Py_INCREF(context_dict); /* so we done loose it */
+    Py_INCREF(context_dict); /* so we don't lose it */
   }
 
   /* main purpose of this function */
@@ -240,7 +240,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
   struct bContext_PyState context_py_state;
   if (context_dict != NULL) {
     CTX_py_state_push(C, &context_py_state, (void *)context_dict);
-    Py_INCREF(context_dict); /* so we done loose it */
+    Py_INCREF(context_dict); /* so we don't lose it */
   }
 
   if (WM_operator_poll_context((bContext *)C, ot, context) == false) {

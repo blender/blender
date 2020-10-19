@@ -3193,7 +3193,7 @@ void EDBM_mesh_knife(bContext *C, LinkNode *polys, bool use_tag, bool cut_throug
                 keep_search = true;
               }
               else {
-                /* don't loose time on this face again, set it as outside */
+                /* don't lose time on this face again, set it as outside */
                 F_ISECT_SET_OUTSIDE(f);
               }
             }

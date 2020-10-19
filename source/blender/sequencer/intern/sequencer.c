@@ -590,7 +590,7 @@ void BKE_sequencer_imbuf_to_sequencer_space(Scene *scene, ImBuf *ibuf, bool make
       return;
     }
     /* We don't want both byte and float buffers around: they'll either run
-     * out of sync or conversion of byte buffer will loose precision in there.
+     * out of sync or conversion of byte buffer will lose precision in there.
      */
     if (ibuf->rect != NULL) {
       imb_freerectImBuf(ibuf);
