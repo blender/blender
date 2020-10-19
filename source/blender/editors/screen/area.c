@@ -3030,7 +3030,7 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
   }
 
   /* scrollers */
-  bool use_mask;
+  bool use_mask = false;
   rcti mask;
   if (region->runtime.category &&
       (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_RIGHT)) {
