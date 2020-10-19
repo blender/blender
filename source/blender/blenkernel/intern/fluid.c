@@ -4683,24 +4683,31 @@ void BKE_fluid_effector_type_set(Object *UNUSED(object), FluidEffectorSettings *
   settings->type = type;
 }
 
-void BKE_fluid_coba_field_sanitize(FluidDomainSettings *settings)
+void BKE_fluid_fields_sanitize(FluidDomainSettings *settings)
 {
-  /* Based on the domain type, the coba field is defaulted accordingly if the selected field
+  /* Based on the domain type, certain fields are defaulted accordingly if the selected field
    * is unsupported. */
-  const char field = settings->coba_field;
+  const char coba_field = settings->coba_field;
+  const char data_depth = settings->openvdb_data_depth;
 
   if (settings->type == FLUID_DOMAIN_TYPE_GAS) {
-    if (field == FLUID_DOMAIN_FIELD_PHI || field == FLUID_DOMAIN_FIELD_PHI_IN ||
-        field == FLUID_DOMAIN_FIELD_PHI_OUT || field == FLUID_DOMAIN_FIELD_PHI_OBSTACLE) {
+    if (coba_field == FLUID_DOMAIN_FIELD_PHI || coba_field == FLUID_DOMAIN_FIELD_PHI_IN ||
+        coba_field == FLUID_DOMAIN_FIELD_PHI_OUT ||
+        coba_field == FLUID_DOMAIN_FIELD_PHI_OBSTACLE) {
       /* Defaulted to density for gas domain. */
       settings->coba_field = FLUID_DOMAIN_FIELD_DENSITY;
     }
+
+    /* Gas domains do not support vdb mini precision. */
+    if (data_depth == VDB_PRECISION_MINI_FLOAT) {
+      settings->openvdb_data_depth = VDB_PRECISION_HALF_FLOAT;
+    }
   }
   else if (settings->type == FLUID_DOMAIN_TYPE_LIQUID) {
-    if (field == FLUID_DOMAIN_FIELD_COLOR_R || field == FLUID_DOMAIN_FIELD_COLOR_G ||
-        field == FLUID_DOMAIN_FIELD_COLOR_B || field == FLUID_DOMAIN_FIELD_DENSITY ||
-        field == FLUID_DOMAIN_FIELD_FLAME || field == FLUID_DOMAIN_FIELD_FUEL ||
-        field == FLUID_DOMAIN_FIELD_HEAT) {
+    if (coba_field == FLUID_DOMAIN_FIELD_COLOR_R || coba_field == FLUID_DOMAIN_FIELD_COLOR_G ||
+        coba_field == FLUID_DOMAIN_FIELD_COLOR_B || coba_field == FLUID_DOMAIN_FIELD_DENSITY ||
+        coba_field == FLUID_DOMAIN_FIELD_FLAME || coba_field == FLUID_DOMAIN_FIELD_FUEL ||
+        coba_field == FLUID_DOMAIN_FIELD_HEAT) {
       /* Defaulted to phi for liquid domain. */
       settings->coba_field = FLUID_DOMAIN_FIELD_PHI;
     }
