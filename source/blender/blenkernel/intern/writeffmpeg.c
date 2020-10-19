@@ -603,6 +603,8 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
     c->time_base.num = (int)num;
   }
 
+  st->time_base = c->time_base;
+
   c->gop_size = context->ffmpeg_gop_size;
   c->max_b_frames = context->ffmpeg_max_b_frames;
 
