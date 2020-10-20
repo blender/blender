@@ -498,6 +498,8 @@ typedef struct wmGesture {
   uint is_active_prev : 1;
   /** Use for gestures that support both immediate or delayed activation. */
   uint wait_for_input : 1;
+  /** Use for gestures that can be moved, like box selection */
+  uint move : 1;
 
   /**
    * customdata

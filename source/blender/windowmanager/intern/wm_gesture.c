@@ -62,6 +62,7 @@ wmGesture *WM_gesture_new(wmWindow *window, const ARegion *region, const wmEvent
   gesture->winrct = region->winrct;
   gesture->user_data.use_free = true; /* Free if userdata is set. */
   gesture->modal_state = GESTURE_MODAL_NOP;
+  gesture->move = false;
 
   if (ELEM(type,
            WM_GESTURE_RECT,

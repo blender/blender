@@ -29,9 +29,11 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_math.h"
+#include "BLI_rect.h"
 
 #include "BKE_context.h"
 
@@ -209,6 +211,11 @@ int WM_gesture_box_modal(bContext *C, wmOperator *op, const wmEvent *event)
       rect->xmin = rect->xmax = event->x - gesture->winrct.xmin;
       rect->ymin = rect->ymax = event->y - gesture->winrct.ymin;
     }
+    else if (gesture->move) {
+      BLI_rcti_translate(rect,
+                         (event->x - gesture->winrct.xmin) - rect->xmax,
+                         (event->y - gesture->winrct.ymin) - rect->ymax);
+    }
     else {
       rect->xmax = event->x - gesture->winrct.xmin;
       rect->ymax = event->y - gesture->winrct.ymin;
@@ -219,6 +226,9 @@ int WM_gesture_box_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
   else if (event->type == EVT_MODAL_MAP) {
     switch (event->val) {
+      case GESTURE_MODAL_MOVE:
+        gesture->move = !gesture->move;
+        break;
       case GESTURE_MODAL_BEGIN:
         if (gesture->type == WM_GESTURE_CROSS_RECT && gesture->is_active == false) {
           gesture->is_active = true;
@@ -652,9 +662,14 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
   wmGesture *gesture = op->customdata;
 
   switch (event->type) {
+    case EVT_MODAL_MAP:
+      switch (event->val) {
+        case GESTURE_MODAL_MOVE:
+          gesture->move = !gesture->move;
+          break;
+      }
     case MOUSEMOVE:
     case INBETWEEN_MOUSEMOVE:
-
       wm_gesture_tag_redraw(CTX_wm_window(C));
 
       if (gesture->points == gesture->points_alloc) {
@@ -671,9 +686,16 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
         x = (event->x - gesture->winrct.xmin - lasso[0]);
         y = (event->y - gesture->winrct.ymin - lasso[1]);
 
+        /* move the lasso */
+        if (gesture->move) {
+          for (int i = 0; i < gesture->points; i++) {
+            lasso[0 - (i * 2)] += x;
+            lasso[1 - (i * 2)] += y;
+          }
+        }
         /* make a simple distance check to get a smoother lasso
          * add only when at least 2 pixels between this and previous location */
-        if ((x * x + y * y) > 4) {
+        else if ((x * x + y * y) > (2 * UI_DPI_FAC) ^ 2) {
           lasso += 2;
           lasso[0] = event->x - gesture->winrct.xmin;
           lasso[1] = event->y - gesture->winrct.ymin;
@@ -877,6 +899,12 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
       rect->xmin = rect->xmax = event->x - gesture->winrct.xmin;
       rect->ymin = rect->ymax = event->y - gesture->winrct.ymin;
     }
+    else if (gesture->move) {
+      BLI_rcti_translate(rect,
+                         (event->x - gesture->winrct.xmin) - rect->xmax,
+                         (event->y - gesture->winrct.ymin) - rect->ymax);
+      gesture_straightline_apply(C, op);
+    }
     else {
       rect->xmax = event->x - gesture->winrct.xmin;
       rect->ymax = event->y - gesture->winrct.ymin;
@@ -887,6 +915,9 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
   }
   else if (event->type == EVT_MODAL_MAP) {
     switch (event->val) {
+      case GESTURE_MODAL_MOVE:
+        gesture->move = !gesture->move;
+        break;
       case GESTURE_MODAL_BEGIN:
         if (gesture->is_active == false) {
           gesture->is_active = true;
@@ -929,6 +960,11 @@ int WM_gesture_straightline_oneshot_modal(bContext *C, wmOperator *op, const wmE
       rect->xmin = rect->xmax = event->x - gesture->winrct.xmin;
       rect->ymin = rect->ymax = event->y - gesture->winrct.ymin;
     }
+    else if (gesture->move) {
+      BLI_rcti_translate(rect,
+                         (event->x - gesture->winrct.xmin) - rect->xmax,
+                         (event->y - gesture->winrct.ymin) - rect->ymax);
+    }
     else {
       rect->xmax = event->x - gesture->winrct.xmin;
       rect->ymax = event->y - gesture->winrct.ymin;
@@ -938,6 +974,9 @@ int WM_gesture_straightline_oneshot_modal(bContext *C, wmOperator *op, const wmE
   }
   else if (event->type == EVT_MODAL_MAP) {
     switch (event->val) {
+      case GESTURE_MODAL_MOVE:
+        gesture->move = !gesture->move;
+        break;
       case GESTURE_MODAL_BEGIN:
         if (gesture->is_active == false) {
           gesture->is_active = true;

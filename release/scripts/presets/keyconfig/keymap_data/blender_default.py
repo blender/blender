@@ -394,7 +394,7 @@ def km_window(params):
             ("wm.window_new", {"type": 'W', "value": 'PRESS', "ctrl": True, "alt": True}, None),
             ("wm.window_fullscreen_toggle", {"type": 'F11', "value": 'PRESS', "alt": True}, None),
             ("wm.doc_view_manual_ui_context", {"type": 'F1', "value": 'PRESS', "alt": True}, None),
-            ("wm.search_menu", {"type": 'SPACE', "value": 'PRESS'}, None),
+            ("wm.search_menu", {"type": 'SPACE', "value": 'PRESS', "repeat": False}, None),
             ("wm.redraw_timer", {"type": 'T', "value": 'PRESS', "ctrl": True, "alt": True}, None),
             ("wm.debug_menu", {"type": 'D', "value": 'PRESS', "ctrl": True, "alt": True}, None),
         ])
@@ -470,11 +470,11 @@ def km_window(params):
             )
         elif params.spacebar_action == 'PLAY':
             items.append(
-                ("wm.toolbar", {"type": 'SPACE', "value": 'PRESS', "shift": True}, None),
+                ("wm.toolbar", {"type": 'SPACE', "value": 'PRESS', "shift": True, "repeat": False}, None),
             )
         elif params.spacebar_action == 'SEARCH':
             items.append(
-                ("wm.search_menu", {"type": 'SPACE', "value": 'PRESS'}, None),
+                ("wm.search_menu", {"type": 'SPACE', "value": 'PRESS', "repeat": False}, None),
             )
         else:
             assert False
@@ -526,8 +526,8 @@ def km_screen(params):
 
     if not params.legacy:
         items.extend([
-            ("screen.screen_full_area", {"type": 'SPACE', "value": 'PRESS', "ctrl": True}, None),
-            ("screen.screen_full_area", {"type": 'SPACE', "value": 'PRESS', "ctrl": True, "alt": True},
+            ("screen.screen_full_area", {"type": 'SPACE', "value": 'PRESS', "ctrl": True, "repeat": False}, None),
+            ("screen.screen_full_area", {"type": 'SPACE', "value": 'PRESS', "ctrl": True, "alt": True, "repeat": False},
              {"properties": [("use_hide_panels", True)]}),
             ("screen.redo_last", {"type": 'F9', "value": 'PRESS'}, None),
         ])
@@ -1267,7 +1267,7 @@ def km_view3d(params):
              {"properties": [("type", 'LEFT')]}),
             ("view3d.view_roll", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "shift": True, "ctrl": True},
              {"properties": [("type", 'RIGHT')]}),
-            ("transform.create_orientation", {"type": 'SPACE', "value": 'PRESS', "ctrl": True, "alt": True},
+            ("transform.create_orientation", {"type": 'SPACE', "value": 'PRESS', "ctrl": True, "alt": True, "repeat": False},
              {"properties": [("use", True)]}),
             ("transform.translate", {"type": 'T', "value": 'PRESS', "shift": True, "repeat": False},
              {"properties": [("texture_space", True)]}),
@@ -1280,7 +1280,7 @@ def km_view3d(params):
              {"properties": [("data_path", 'tool_settings.transform_pivot_point'), ("value", 'MEDIAN_POINT')]}),
             ("wm.context_toggle", {"type": 'COMMA', "value": 'PRESS', "alt": True},
              {"properties": [("data_path", 'tool_settings.use_transform_pivot_point_align')]}),
-            ("wm.context_toggle", {"type": 'SPACE', "value": 'PRESS', "ctrl": True},
+            ("wm.context_toggle", {"type": 'SPACE', "value": 'PRESS', "ctrl": True, "repeat": False},
              {"properties": [("data_path", 'space_data.show_gizmo_context')]}),
             ("wm.context_set_enum", {"type": 'PERIOD', "value": 'PRESS'},
              {"properties": [("data_path", 'tool_settings.transform_pivot_point'), ("value", 'CURSOR')]}),
@@ -2940,17 +2940,17 @@ def km_frames(params):
         # New playback
         if params.spacebar_action in {'TOOL', 'SEARCH'}:
             items.append(
-                ("screen.animation_play", {"type": 'SPACE', "value": 'PRESS', "shift": True}, None),
+                ("screen.animation_play", {"type": 'SPACE', "value": 'PRESS', "shift": True, "repeat": False}, None),
             )
         elif params.spacebar_action == 'PLAY':
             items.append(
-                ("screen.animation_play", {"type": 'SPACE', "value": 'PRESS'}, None),
+                ("screen.animation_play", {"type": 'SPACE', "value": 'PRESS', "repeat": False}, None),
             )
         else:
             assert False
 
         items.extend([
-            ("screen.animation_play", {"type": 'SPACE', "value": 'PRESS', "shift": True, "ctrl": True},
+            ("screen.animation_play", {"type": 'SPACE', "value": 'PRESS', "shift": True, "ctrl": True, "repeat": False},
              {"properties": [("reverse", True)]}),
         ])
     else:
@@ -5094,6 +5094,7 @@ def km_gesture_border(_params):
         ("SELECT", {"type": 'LEFTMOUSE', "value": 'RELEASE', "any": True}, None),
         ("BEGIN", {"type": 'MIDDLEMOUSE', "value": 'PRESS'}, None),
         ("DESELECT", {"type": 'MIDDLEMOUSE', "value": 'RELEASE'}, None),
+        ("MOVE", {"type": 'SPACE', "value": 'ANY', "repeat": False, "any": True}, None),
     ])
 
     return keymap
@@ -5132,6 +5133,22 @@ def km_gesture_straight_line(_params):
         ("CANCEL", {"type": 'RIGHTMOUSE', "value": 'ANY', "any": True}, None),
         ("BEGIN", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
         ("SELECT", {"type": 'LEFTMOUSE', "value": 'RELEASE', "any": True}, None),
+        ("MOVE", {"type": 'SPACE', "value": 'ANY', "repeat": False, "any": True}, None),
+    ])
+
+    return keymap
+
+
+def km_gesture_lasso(_params):
+    items = []
+    keymap = (
+        "Gesture Lasso",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW', "modal": True},
+        {"items": items},
+    )
+
+    items.extend([
+        ("MOVE", {"type": 'SPACE', "value": 'ANY', "repeat": False, "any": True}, None),
     ])
 
     return keymap
@@ -6917,6 +6934,7 @@ def generate_keymaps(params=None):
         km_gesture_border(params),
         km_gesture_zoom_border(params),
         km_gesture_straight_line(params),
+        km_gesture_lasso(params),
         km_standard_modal_map(params),
         km_knife_tool_modal_map(params),
         km_custom_normals_modal_map(params),

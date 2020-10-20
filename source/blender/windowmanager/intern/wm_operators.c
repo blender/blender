@@ -3805,6 +3805,7 @@ static void gesture_straightline_modal_keymap(wmKeyConfig *keyconf)
       {GESTURE_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
       {GESTURE_MODAL_SELECT, "SELECT", 0, "Select", ""},
       {GESTURE_MODAL_BEGIN, "BEGIN", 0, "Begin", ""},
+      {GESTURE_MODAL_MOVE, "MOVE", 0, "Move", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -3831,6 +3832,7 @@ static void gesture_box_modal_keymap(wmKeyConfig *keyconf)
       {GESTURE_MODAL_SELECT, "SELECT", 0, "Select", ""},
       {GESTURE_MODAL_DESELECT, "DESELECT", 0, "DeSelect", ""},
       {GESTURE_MODAL_BEGIN, "BEGIN", 0, "Begin", ""},
+      {GESTURE_MODAL_MOVE, "MOVE", 0, "Move", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -3881,6 +3883,38 @@ static void gesture_box_modal_keymap(wmKeyConfig *keyconf)
   WM_modalkeymap_assign(keymap, "GPENCIL_OT_select_box");
 }
 
+/* lasso modal operators */
+static void gesture_lasso_modal_keymap(wmKeyConfig *keyconf)
+{
+  static const EnumPropertyItem modal_items[] = {
+      {GESTURE_MODAL_MOVE, "MOVE", 0, "Move", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "Gesture Lasso");
+
+  /* this function is called for each spacetype, only needs to add map once */
+  if (keymap && keymap->modal_items) {
+    return;
+  }
+
+  keymap = WM_modalkeymap_ensure(keyconf, "Gesture Lasso", modal_items);
+
+  /* assign map to operators */
+  WM_modalkeymap_assign(keymap, "VIEW3D_OT_select_lasso");
+  WM_modalkeymap_assign(keymap, "GPENCIL_OT_stroke_cutter");
+  WM_modalkeymap_assign(keymap, "GPENCIL_OT_select_lasso");
+  WM_modalkeymap_assign(keymap, "MASK_OT_select_lasso");
+  WM_modalkeymap_assign(keymap, "PAINT_OT_mask_lasso_gesture");
+  WM_modalkeymap_assign(keymap, "SCULPT_OT_face_set_lasso_gesture");
+  WM_modalkeymap_assign(keymap, "SCULPT_OT_trim_lasso_gesture");
+  WM_modalkeymap_assign(keymap, "ACTION_OT_select_lasso");
+  WM_modalkeymap_assign(keymap, "CLIP_OT_select_lasso");
+  WM_modalkeymap_assign(keymap, "GRAPH_OT_select_lasso");
+  WM_modalkeymap_assign(keymap, "NODE_OT_select_lasso");
+  WM_modalkeymap_assign(keymap, "UV_OT_select_lasso");
+}
+
 /* zoom to border modal operators */
 static void gesture_zoom_border_modal_keymap(wmKeyConfig *keyconf)
 {
@@ -3917,6 +3951,7 @@ void wm_window_keymap(wmKeyConfig *keyconf)
   gesture_box_modal_keymap(keyconf);
   gesture_zoom_border_modal_keymap(keyconf);
   gesture_straightline_modal_keymap(keyconf);
+  gesture_lasso_modal_keymap(keyconf);
 
   WM_keymap_fix_linking();
 }
