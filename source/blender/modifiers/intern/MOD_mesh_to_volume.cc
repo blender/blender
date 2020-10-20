@@ -176,6 +176,7 @@ static void panelRegister(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_MeshToVolume, panel_draw);
 }
 
+#ifdef WITH_OPENVDB
 static float compute_voxel_size(const ModifierEvalContext *ctx,
                                 const MeshToVolumeModifierData *mvmd,
                                 const blender::float4x4 &transform)
@@ -202,6 +203,7 @@ static float compute_voxel_size(const ModifierEvalContext *ctx,
   const float voxel_size = approximate_volume_side_length / mvmd->voxel_amount / volume_simplify;
   return voxel_size;
 }
+#endif
 
 static Volume *modifyVolume(ModifierData *md, const ModifierEvalContext *ctx, Volume *input_volume)
 {
@@ -272,7 +274,6 @@ static Volume *modifyVolume(ModifierData *md, const ModifierEvalContext *ctx, Vo
 
 #else
   UNUSED_VARS(md, ctx);
-  UNUSED_VARS(compute_voxel_size);
   BKE_modifier_set_error(md, "Compiled without OpenVDB");
   return input_volume;
 #endif
