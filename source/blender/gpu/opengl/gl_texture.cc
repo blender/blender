@@ -530,7 +530,7 @@ void GLTexture::samplers_update(void)
 
   for (int i = 0; i <= GPU_SAMPLER_ICON - 1; i++) {
     eGPUSamplerState state = static_cast<eGPUSamplerState>(i);
-    if (state & GPU_SAMPLER_MIPMAP) {
+    if ((state & GPU_SAMPLER_ANISO) && (state & GPU_SAMPLER_MIPMAP)) {
       glSamplerParameterf(samplers_[i], GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso_filter);
     }
   }
