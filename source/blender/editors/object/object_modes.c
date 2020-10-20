@@ -52,6 +52,7 @@
 #include "ED_gpencil.h"
 #include "ED_screen.h"
 #include "ED_transform_snap_object_context.h"
+#include "ED_undo.h"
 #include "ED_view3d.h"
 
 #include "WM_toolsystem.h"
@@ -420,12 +421,11 @@ static bool object_switch_object_poll(bContext *C)
   return ob && (ob->mode & (OB_MODE_EDIT | OB_MODE_SCULPT));
 }
 
-static int object_switch_object_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int object_switch_object_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ARegion *ar = CTX_wm_region(C);
-  struct Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   struct SnapObjectContext *sctx = ED_transform_snap_object_context_create(scene, 0);
@@ -473,7 +473,10 @@ static int object_switch_object_invoke(bContext *C, wmOperator *UNUSED(op), cons
   if (!ED_object_mode_compat_test(ob_dst, last_mode)) {
     return OPERATOR_CANCELLED;
   }
-  ED_object_mode_generic_exit(bmain, depsgraph, scene, ob_src);
+
+  if (!ED_object_mode_set_ex(C, OB_MODE_OBJECT, true, op->reports)) {
+    return OPERATOR_CANCELLED;
+  }
 
   Object *ob_dst_orig = DEG_get_original_object(ob_dst);
   Base *base = BKE_view_layer_base_find(view_layer, ob_dst_orig);
@@ -481,9 +484,12 @@ static int object_switch_object_invoke(bContext *C, wmOperator *UNUSED(op), cons
   BKE_view_layer_base_select_and_set_active(view_layer, base);
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
 
+  /* FIXME: Do a single undo push. */
+  ED_undo_push(C, "Change Active");
+
   depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ob_dst_orig = DEG_get_original_object(ob_dst);
-  ED_object_mode_set(C, last_mode);
+  ED_object_mode_set_ex(C, last_mode, true, op->reports);
 
   /* Update the viewport rotation origin to the mouse cursor. */
   UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
@@ -510,7 +516,8 @@ void OBJECT_OT_switch_object(wmOperatorType *ot)
   ot->invoke = object_switch_object_invoke;
   ot->poll = object_switch_object_poll;
 
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  /* Undo push is handled by the operator. */
+  ot->flag = OPTYPE_REGISTER;
 }
 
 /** \} */
