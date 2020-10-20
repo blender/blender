@@ -545,9 +545,12 @@ class CLIP_PT_tools_solve(CLIP_PT_tracking_panel, Panel):
         col.prop(tracking_object, "keyframe_a")
         col.prop(tracking_object, "keyframe_b")
 
-        col = layout.column()
+        col = layout.column(heading="Refine", align=True)
         col.active = tracking_object.is_camera
-        col.prop(settings, "refine_intrinsics", text="Refine")
+        col.prop(settings, "refine_intrinsics_focal_length", text="Focal Length")
+        col.prop(settings, "refine_intrinsics_principal_point", text="Principal Point")
+        col.prop(settings, "refine_intrinsics_k1", text="K1")
+        col.prop(settings, "refine_intrinsics_k2", text="K2")
 
         col = layout.column(align=True)
         col.scale_y = 2.0
