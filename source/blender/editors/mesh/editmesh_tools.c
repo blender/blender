@@ -3349,6 +3349,8 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 {
   const float threshold = RNA_float_get(op->ptr, "threshold");
   const bool use_unselected = RNA_boolean_get(op->ptr, "use_unselected");
+  const bool use_sharp_edge_from_normals = RNA_boolean_get(op->ptr, "use_sharp_edge_from_normals");
+
   int count_multi = 0;
 
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -3409,7 +3411,7 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
     BM_mesh_elem_hflag_enable_test(em->bm, htype_select, BM_ELEM_SELECT, true, true, BM_ELEM_TAG);
     EDBM_selectmode_flush(em);
 
-    BM_custom_loop_normals_from_vector_layer(em->bm, true);
+    BM_custom_loop_normals_from_vector_layer(em->bm, use_sharp_edge_from_normals);
 
     if (count) {
       count_multi += count;
@@ -3451,6 +3453,12 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
                   false,
                   "Unselected",
                   "Merge selected to other unselected vertices");
+
+  RNA_def_boolean(ot->srna,
+                  "use_sharp_edge_from_normals",
+                  false,
+                  "Sharp Edges",
+                  "Calculate sharp edges using custom normal data (when available)");
 }
 
 /** \} */
