@@ -672,6 +672,12 @@ static bNodeSocketType *make_socket_type_object()
   return socktype;
 }
 
+static bNodeSocketType *make_socket_type_geometry()
+{
+  bNodeSocketType *socktype = make_standard_socket_type(SOCK_GEOMETRY, PROP_NONE);
+  return socktype;
+}
+
 void register_standard_node_socket_types(void)
 {
   /* draw callbacks are set in drawnode.c to avoid bad-level calls */
@@ -707,6 +713,8 @@ void register_standard_node_socket_types(void)
   nodeRegisterSocketType(make_socket_type_object());
 
   nodeRegisterSocketType(make_standard_socket_type(SOCK_IMAGE, PROP_NONE));
+
+  nodeRegisterSocketType(make_socket_type_geometry());
 
   nodeRegisterSocketType(make_socket_type_virtual());
 }

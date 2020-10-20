@@ -3333,6 +3333,7 @@ static const float std_node_socket_colors[][4] = {
     {0.39, 0.39, 0.39, 1.0}, /* SOCK_STRING */
     {0.40, 0.10, 0.10, 1.0}, /* SOCK_OBJECT */
     {0.10, 0.40, 0.10, 1.0}, /* SOCK_IMAGE */
+    {0.00, 0.00, 0.00, 1.0}, /* SOCK_GEOMETRY, TODO: Choose color. */
 };
 
 /* common color callbacks for standard types */

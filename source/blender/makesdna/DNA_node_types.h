@@ -159,6 +159,7 @@ typedef enum eNodeSocketDatatype {
   SOCK_STRING = 7,
   SOCK_OBJECT = 8,
   SOCK_IMAGE = 9,
+  SOCK_GEOMETRY = 10,
 } eNodeSocketDatatype;
 
 /* socket shape */

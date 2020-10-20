@@ -281,6 +281,7 @@ static void library_foreach_node_socket(LibraryForeachIDData *data, bNodeSocket 
     case __SOCK_MESH:
     case SOCK_CUSTOM:
     case SOCK_SHADER:
+    case SOCK_GEOMETRY:
       break;
   }
 }
@@ -373,6 +374,7 @@ static void write_node_socket_default_value(BlendWriter *writer, bNodeSocket *so
     case __SOCK_MESH:
     case SOCK_CUSTOM:
     case SOCK_SHADER:
+    case SOCK_GEOMETRY:
       BLI_assert(false);
       break;
   }
@@ -714,6 +716,7 @@ static void lib_link_node_socket(BlendLibReader *reader, Library *lib, bNodeSock
     case __SOCK_MESH:
     case SOCK_CUSTOM:
     case SOCK_SHADER:
+    case SOCK_GEOMETRY:
       break;
   }
 }
@@ -792,6 +795,7 @@ static void expand_node_socket(BlendExpander *expander, bNodeSocket *sock)
       case __SOCK_MESH:
       case SOCK_CUSTOM:
       case SOCK_SHADER:
+      case SOCK_GEOMETRY:
         break;
     }
   }
@@ -1348,6 +1352,7 @@ static void socket_id_user_increment(bNodeSocket *sock)
     case __SOCK_MESH:
     case SOCK_CUSTOM:
     case SOCK_SHADER:
+    case SOCK_GEOMETRY:
       break;
   }
 }
@@ -1374,6 +1379,7 @@ static void socket_id_user_decrement(bNodeSocket *sock)
     case __SOCK_MESH:
     case SOCK_CUSTOM:
     case SOCK_SHADER:
+    case SOCK_GEOMETRY:
       break;
   }
 }
@@ -1501,6 +1507,8 @@ const char *nodeStaticSocketType(int type, int subtype)
       return "NodeSocketObject";
     case SOCK_IMAGE:
       return "NodeSocketImage";
+    case SOCK_GEOMETRY:
+      return "NodeSocketGeometry";
   }
   return NULL;
 }
@@ -1566,6 +1574,8 @@ const char *nodeStaticSocketInterfaceType(int type, int subtype)
       return "NodeSocketInterfaceObject";
     case SOCK_IMAGE:
       return "NodeSocketInterfaceImage";
+    case SOCK_GEOMETRY:
+      return "NodeSocketInterfaceGeometry";
   }
   return NULL;
 }
