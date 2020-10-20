@@ -641,7 +641,8 @@ void BM_mesh_copy_init_customdata_all_layers(BMesh *bm_dst,
     const int size = *(&allocsize->totvert + i);
 
     for (int l = 0; l < src->totlayer; l++) {
-      CustomData_add_layer(dst, src->layers[l].type, CD_CALLOC, NULL, 0);
+      CustomData_add_layer_named(
+          dst, src->layers[l].type, CD_CALLOC, NULL, 0, src->layers[l].name);
     }
     CustomData_bmesh_init_pool(dst, size, htypes[i]);
   }
