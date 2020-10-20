@@ -752,6 +752,8 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.sculpt.lasso_face_set
   ops.sculpt.lasso_mask
   ops.sculpt.lasso_trim
+  ops.sculpt.line_mask
+  ops.sculpt.line_project
   ops.sculpt.mesh_filter
   ops.sequencer.blade
   ops.transform.bone_envelope
