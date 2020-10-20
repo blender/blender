@@ -41,6 +41,7 @@ elseif(UNIX)
   set(GMP_OPTIONS
     ${GMP_OPTIONS}
     --with-pic
+    --enable-fat
   )
 endif()
 
