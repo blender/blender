@@ -780,7 +780,7 @@ void UI_panel_header_buttons_end(Panel *panel)
   /* Repurpose the first "header" button group if it is empty, in case the first button added to
    * the panel doesn't add a new group (if the button is created directly rather than through an
    * interface layout call). */
-  if (BLI_listbase_count(&block->button_groups) == 1 &&
+  if (BLI_listbase_is_single(&block->button_groups) &&
       BLI_listbase_is_empty(&button_group->buttons)) {
     button_group->flag &= ~UI_BUTTON_GROUP_PANEL_HEADER;
   }
