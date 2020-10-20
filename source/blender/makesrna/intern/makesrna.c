@@ -239,10 +239,8 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
   if (cmp) {
     REN_IF_DIFF;
   }
-  else {
-    remove(tmpfile);
-    return 0;
-  }
+  remove(tmpfile);
+  return 0;
 
 #undef REN_IF_DIFF
 }
@@ -254,7 +252,7 @@ static const char *rna_safe_id(const char *id)
   if (STREQ(id, "default")) {
     return "default_value";
   }
-  else if (STREQ(id, "operator")) {
+  if (STREQ(id, "operator")) {
     return "operator_value";
   }
   else if (STREQ(id, "new")) {
@@ -286,14 +284,14 @@ static int cmp_property(const void *a, const void *b)
   if (STREQ(propa->identifier, "rna_type")) {
     return -1;
   }
-  else if (STREQ(propb->identifier, "rna_type")) {
+  if (STREQ(propb->identifier, "rna_type")) {
     return 1;
   }
 
   if (STREQ(propa->identifier, "name")) {
     return -1;
   }
-  else if (STREQ(propb->identifier, "name")) {
+  if (STREQ(propb->identifier, "name")) {
     return 1;
   }
 
@@ -551,9 +549,7 @@ static const char *rna_parameter_type_name(PropertyRNA *parm)
       if (parm->flag_parameter & PARM_RNAPTR) {
         return "PointerRNA";
       }
-      else {
-        return rna_find_dna_type((const char *)pparm->type);
-      }
+      return rna_find_dna_type((const char *)pparm->type);
     }
     case PROP_COLLECTION: {
       return "CollectionListBase";
@@ -2270,9 +2266,7 @@ static const char *rna_parameter_type_cpp_name(PropertyRNA *prop)
 
     return (const char *)pprop->type;
   }
-  else {
-    return rna_parameter_type_name(prop);
-  }
+  return rna_parameter_type_name(prop);
 }
 
 static void rna_def_struct_function_prototype_cpp(FILE *f,
@@ -3206,9 +3200,7 @@ static const char *rna_property_subtypename(PropertySubType type)
       if (RNA_SUBTYPE_UNIT(type)) {
         return rna_property_subtypename(type & ~RNA_SUBTYPE_UNIT(type));
       }
-      else {
-        return "PROP_SUBTYPE_UNKNOWN";
-      }
+      return "PROP_SUBTYPE_UNKNOWN";
     }
   }
 }

@@ -80,11 +80,9 @@ bool RNA_property_overridable_get(PointerRNA *ptr, PropertyRNA *prop)
     return !(prop->flag_override & PROPOVERRIDE_NO_COMPARISON) &&
            (prop->flag_override & PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   }
-  else {
-    /* If this is a real 'pure' IDProp (aka custom property), we want to use the IDProp flag. */
-    IDProperty *idprop = (IDProperty *)prop;
-    return (idprop->flag & IDP_FLAG_OVERRIDABLE_LIBRARY) != 0;
-  }
+  /* If this is a real 'pure' IDProp (aka custom property), we want to use the IDProp flag. */
+  IDProperty *idprop = (IDProperty *)prop;
+  return (idprop->flag & IDP_FLAG_OVERRIDABLE_LIBRARY) != 0;
 }
 
 /* Should only be used for custom properties */
@@ -208,7 +206,7 @@ bool RNA_struct_equals(Main *bmain, PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACo
   if (ptr_a == NULL && ptr_b == NULL) {
     return true;
   }
-  else if (ptr_a == NULL || ptr_b == NULL) {
+  if (ptr_a == NULL || ptr_b == NULL) {
     return false;
   }
   else if (ptr_a->type != ptr_b->type) {
