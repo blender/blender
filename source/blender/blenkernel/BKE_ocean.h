@@ -44,6 +44,10 @@ typedef struct OceanCache {
   struct ImBuf **ibufs_disp;
   struct ImBuf **ibufs_foam;
   struct ImBuf **ibufs_norm;
+  /* spray is Eplus */
+  struct ImBuf **ibufs_spray;
+  /* spray_inverse is Eminus */
+  struct ImBuf **ibufs_spray_inverse;
 
   const char *bakepath;
   const char *relbase;
@@ -92,6 +96,7 @@ void BKE_ocean_init(struct Ocean *o,
                     float sharpen_peak_jonswap,
                     short do_height_field,
                     short do_chop,
+                    short do_spray,
                     short do_normals,
                     short do_jacobian,
                     int seed);

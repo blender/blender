@@ -57,6 +57,7 @@ typedef struct Ocean {
 
   short _do_disp_y;
   short _do_normals;
+  short _do_spray;
   short _do_chop;
   short _do_jacobian;
 

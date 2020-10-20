@@ -773,12 +773,13 @@ void BKE_ocean_init_from_modifier(struct Ocean *ocean,
                                   struct OceanModifierData const *omd,
                                   const int resolution)
 {
-  short do_heightfield, do_chop, do_normals, do_jacobian;
+  short do_heightfield, do_chop, do_normals, do_jacobian, do_spray;
 
   do_heightfield = true;
   do_chop = (omd->chop_amount > 0);
   do_normals = (omd->flag & MOD_OCEAN_GENERATE_NORMALS);
   do_jacobian = (omd->flag & MOD_OCEAN_GENERATE_FOAM);
+  do_spray = do_jacobian && (omd->flag & MOD_OCEAN_GENERATE_SPRAY);
 
   BKE_ocean_free_data(ocean);
 
@@ -800,6 +801,7 @@ void BKE_ocean_init_from_modifier(struct Ocean *ocean,
                  omd->sharpen_peak_jonswap,
                  do_heightfield,
                  do_chop,
+                 do_spray,
                  do_normals,
                  do_jacobian,
                  omd->seed);
@@ -823,6 +825,7 @@ void BKE_ocean_init(struct Ocean *o,
                     float sharpen_peak_jonswap,
                     short do_height_field,
                     short do_chop,
+                    short do_spray,
                     short do_normals,
                     short do_jacobian,
                     int seed)
@@ -857,6 +860,7 @@ void BKE_ocean_init(struct Ocean *o,
 
   o->_do_disp_y = do_height_field;
   o->_do_normals = do_normals;
+  o->_do_spray = do_spray;
   o->_do_chop = do_chop;
   o->_do_jacobian = do_jacobian;
 
@@ -1107,6 +1111,8 @@ void BKE_ocean_free(struct Ocean *oc)
 #  define CACHE_TYPE_DISPLACE 1
 #  define CACHE_TYPE_FOAM 2
 #  define CACHE_TYPE_NORMAL 3
+#  define CACHE_TYPE_SPRAY 4
+#  define CACHE_TYPE_SPRAY_INVERSE 5
 
 static void cache_filename(
     char *string, const char *path, const char *relbase, int frame, int type)
@@ -1120,6 +1126,12 @@ static void cache_filename(
       break;
     case CACHE_TYPE_NORMAL:
       fname = "normal_";
+      break;
+    case CACHE_TYPE_SPRAY:
+      fname = "spray_";
+      break;
+    case CACHE_TYPE_SPRAY_INVERSE:
+      fname = "spray_inverse_";
       break;
     case CACHE_TYPE_DISPLACE:
     default:
@@ -1175,6 +1187,24 @@ void BKE_ocean_free_cache(struct OceanCache *och)
     MEM_freeN(och->ibufs_foam);
   }
 
+  if (och->ibufs_spray) {
+    for (i = och->start, f = 0; i <= och->end; i++, f++) {
+      if (och->ibufs_spray[f]) {
+        IMB_freeImBuf(och->ibufs_spray[f]);
+      }
+    }
+    MEM_freeN(och->ibufs_spray);
+  }
+
+  if (och->ibufs_spray_inverse) {
+    for (i = och->start, f = 0; i <= och->end; i++, f++) {
+      if (och->ibufs_spray_inverse[f]) {
+        IMB_freeImBuf(och->ibufs_spray_inverse[f]);
+      }
+    }
+    MEM_freeN(och->ibufs_spray_inverse);
+  }
+
   if (och->ibufs_norm) {
     for (i = och->start, f = 0; i <= och->end; i++, f++) {
       if (och->ibufs_norm[f]) {
@@ -1217,6 +1247,17 @@ void BKE_ocean_cache_eval_uv(
     ocr->foam = result[0];
   }
 
+  if (och->ibufs_spray[f]) {
+    ibuf_sample(och->ibufs_spray[f], u, v, (1.0f / (float)res_x), (1.0f / (float)res_y), result);
+    copy_v3_v3(ocr->Eplus, result);
+  }
+
+  if (och->ibufs_spray_inverse[f]) {
+    ibuf_sample(
+        och->ibufs_spray_inverse[f], u, v, (1.0f / (float)res_x), (1.0f / (float)res_y), result);
+    copy_v3_v3(ocr->Eminus, result);
+  }
+
   if (och->ibufs_norm[f]) {
     ibuf_sample(och->ibufs_norm[f], u, v, (1.0f / (float)res_x), (1.0f / (float)res_y), result);
     copy_v3_v3(ocr->normal, result);
@@ -1244,6 +1285,14 @@ void BKE_ocean_cache_eval_ij(struct OceanCache *och, struct OceanResult *ocr, in
 
   if (och->ibufs_foam[f]) {
     ocr->foam = och->ibufs_foam[f]->rect_float[4 * (res_x * j + i)];
+  }
+
+  if (och->ibufs_spray[f]) {
+    copy_v3_v3(ocr->Eplus, &och->ibufs_spray[f]->rect_float[4 * (res_x * j + i)]);
+  }
+
+  if (och->ibufs_spray_inverse[f]) {
+    copy_v3_v3(ocr->Eminus, &och->ibufs_spray_inverse[f]->rect_float[4 * (res_x * j + i)]);
   }
 
   if (och->ibufs_norm[f]) {
@@ -1279,6 +1328,9 @@ struct OceanCache *BKE_ocean_init_cache(const char *bakepath,
   och->ibufs_disp = MEM_callocN(sizeof(ImBuf *) * och->duration,
                                 "displacement imbuf pointer array");
   och->ibufs_foam = MEM_callocN(sizeof(ImBuf *) * och->duration, "foam imbuf pointer array");
+  och->ibufs_spray = MEM_callocN(sizeof(ImBuf *) * och->duration, "spray imbuf pointer array");
+  och->ibufs_spray_inverse = MEM_callocN(sizeof(ImBuf *) * och->duration,
+                                         "spray_inverse imbuf pointer array");
   och->ibufs_norm = MEM_callocN(sizeof(ImBuf *) * och->duration, "normal imbuf pointer array");
 
   och->time = NULL;
@@ -1310,6 +1362,12 @@ void BKE_ocean_simulate_cache(struct OceanCache *och, int frame)
   cache_filename(string, och->bakepath, och->relbase, frame, CACHE_TYPE_FOAM);
   och->ibufs_foam[f] = IMB_loadiffname(string, 0, NULL);
 
+  cache_filename(string, och->bakepath, och->relbase, frame, CACHE_TYPE_SPRAY);
+  och->ibufs_spray[f] = IMB_loadiffname(string, 0, NULL);
+
+  cache_filename(string, och->bakepath, och->relbase, frame, CACHE_TYPE_SPRAY_INVERSE);
+  och->ibufs_spray_inverse[f] = IMB_loadiffname(string, 0, NULL);
+
   cache_filename(string, och->bakepath, och->relbase, frame, CACHE_TYPE_NORMAL);
   och->ibufs_norm[f] = IMB_loadiffname(string, 0, NULL);
 }
@@ -1329,7 +1387,7 @@ void BKE_ocean_bake(struct Ocean *o,
   int f, i = 0, x, y, cancel = 0;
   float progress;
 
-  ImBuf *ibuf_foam, *ibuf_disp, *ibuf_normal;
+  ImBuf *ibuf_foam, *ibuf_disp, *ibuf_normal, *ibuf_spray, *ibuf_spray_inverse;
   float *prev_foam;
   int res_x = och->resolution_x;
   int res_y = och->resolution_y;
@@ -1360,6 +1418,8 @@ void BKE_ocean_bake(struct Ocean *o,
     ibuf_foam = IMB_allocImBuf(res_x, res_y, 32, IB_rectfloat);
     ibuf_disp = IMB_allocImBuf(res_x, res_y, 32, IB_rectfloat);
     ibuf_normal = IMB_allocImBuf(res_x, res_y, 32, IB_rectfloat);
+    ibuf_spray = IMB_allocImBuf(res_x, res_y, 32, IB_rectfloat);
+    ibuf_spray_inverse = IMB_allocImBuf(res_x, res_y, 32, IB_rectfloat);
 
     BKE_ocean_simulate(o, och->time[i], och->wave_scale, och->chop_amount);
 
@@ -1414,6 +1474,13 @@ void BKE_ocean_bake(struct Ocean *o,
           /*foam_result = min_ff(foam_result, 1.0f); */
 
           value_to_rgba_unit_alpha(&ibuf_foam->rect_float[4 * (res_x * y + x)], foam_result);
+
+          /* spray map baking */
+          if (o->_do_spray) {
+            rgb_to_rgba_unit_alpha(&ibuf_spray->rect_float[4 * (res_x * y + x)], ocr.Eplus);
+            rgb_to_rgba_unit_alpha(&ibuf_spray_inverse->rect_float[4 * (res_x * y + x)],
+                                   ocr.Eminus);
+          }
         }
 
         if (o->_do_normals) {
@@ -1433,6 +1500,18 @@ void BKE_ocean_bake(struct Ocean *o,
       if (0 == BKE_imbuf_write(ibuf_foam, string, &imf)) {
         printf("Cannot save Foam File Output to %s\n", string);
       }
+
+      if (o->_do_spray) {
+        cache_filename(string, och->bakepath, och->relbase, f, CACHE_TYPE_SPRAY);
+        if (0 == BKE_imbuf_write(ibuf_spray, string, &imf)) {
+          printf("Cannot save Spray File Output to %s\n", string);
+        }
+
+        cache_filename(string, och->bakepath, och->relbase, f, CACHE_TYPE_SPRAY_INVERSE);
+        if (0 == BKE_imbuf_write(ibuf_spray_inverse, string, &imf)) {
+          printf("Cannot save Spray Inverse File Output to %s\n", string);
+        }
+      }
     }
 
     if (o->_do_normals) {
@@ -1445,6 +1524,8 @@ void BKE_ocean_bake(struct Ocean *o,
     IMB_freeImBuf(ibuf_disp);
     IMB_freeImBuf(ibuf_foam);
     IMB_freeImBuf(ibuf_normal);
+    IMB_freeImBuf(ibuf_spray);
+    IMB_freeImBuf(ibuf_spray_inverse);
 
     progress = (f - och->start) / (float)och->duration;
 
@@ -1541,6 +1622,7 @@ void BKE_ocean_init(struct Ocean *UNUSED(o),
                     float UNUSED(sharpen_peak_jonswap),
                     short UNUSED(do_height_field),
                     short UNUSED(do_chop),
+                    short UNUSED(do_spray),
                     short UNUSED(do_normals),
                     short UNUSED(do_jacobian),
                     int UNUSED(seed))
