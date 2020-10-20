@@ -575,8 +575,7 @@
   }
 
 #define _DNA_DEFAULT_SimulationModifierData \
-  { \
-  }
+  { 0 }
 
 #define _DNA_DEFAULT_SkinModifierData \
   { \
