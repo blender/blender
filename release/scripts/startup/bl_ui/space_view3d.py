@@ -5285,6 +5285,21 @@ class VIEW3D_MT_sculpt_mask_edit_pie(Menu):
         op.filter_type = 'CONTRAST_DECREASE'
         op.auto_iteration_count = False
 
+class VIEW3D_MT_sculpt_automasking_pie(Menu):
+    bl_label = "Automasking"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+
+        tool_settings = context.tool_settings
+        sculpt = tool_settings.sculpt
+
+        pie.prop(sculpt, "use_automasking_topology", text="Topology")
+        pie.prop(sculpt, "use_automasking_face_sets", text="Face Sets")
+        pie.prop(sculpt, "use_automasking_boundary_edges", text="Mesh Boundary")
+        pie.prop(sculpt, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
+
 
 class VIEW3D_MT_sculpt_face_sets_edit_pie(Menu):
 
@@ -7572,6 +7587,7 @@ classes = (
     VIEW3D_MT_orientations_pie,
     VIEW3D_MT_proportional_editing_falloff_pie,
     VIEW3D_MT_sculpt_mask_edit_pie,
+    VIEW3D_MT_sculpt_automasking_pie,
     VIEW3D_MT_wpaint_vgroup_lock_pie,
     VIEW3D_MT_sculpt_face_sets_edit_pie,
     VIEW3D_PT_active_tool,
