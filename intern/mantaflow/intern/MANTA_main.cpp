@@ -845,6 +845,7 @@ void MANTA::initializeRNAMap(FluidModifierData *fmd)
   mRNAMap["PARTICLE_MAXIMUM"] = to_string(fds->particle_maximum);
   mRNAMap["PARTICLE_RADIUS"] = to_string(fds->particle_radius);
   mRNAMap["FRACTIONS_THRESHOLD"] = to_string(fds->fractions_threshold);
+  mRNAMap["FRACTIONS_DISTANCE"] = to_string(fds->fractions_distance);
   mRNAMap["MESH_CONCAVE_UPPER"] = to_string(fds->mesh_concave_upper);
   mRNAMap["MESH_CONCAVE_LOWER"] = to_string(fds->mesh_concave_lower);
   mRNAMap["MESH_PARTICLE_RADIUS"] = to_string(fds->mesh_particle_radius);

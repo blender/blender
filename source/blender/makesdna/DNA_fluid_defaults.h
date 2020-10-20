@@ -109,6 +109,7 @@
     .particle_radius = 1.0f, \
     .particle_band_width = 3.0f, \
     .fractions_threshold = 0.05f, \
+    .fractions_distance = 0.5f, \
     .flip_ratio = 0.97f, \
     .sys_particle_maximum = 0, \
     .simulation_method = FLUID_DOMAIN_METHOD_FLIP, \

@@ -507,7 +507,8 @@ class PHYSICS_PT_liquid(PhysicButtonsPanel, Panel):
         col.prop(domain, "use_fractions", text="Fractional Obstacles")
         sub = col.column()
         sub.active = domain.use_fractions
-        sub.prop(domain, "fractions_threshold", text="Obstacle-Fluid Threshold")
+        sub.prop(domain, "fractions_distance", text="Obstacle Distance")
+        sub.prop(domain, "fractions_threshold", text="Threshold")
 
 
 class PHYSICS_PT_flow_source(PhysicButtonsPanel, Panel):
