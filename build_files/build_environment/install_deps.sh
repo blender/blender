@@ -3958,7 +3958,7 @@ install_DEB() {
     if [ $? -eq 0 ]; then
       install_packages_DEB llvm-dev clang
       have_llvm=true
-      LLVM_VERSION=`get_package_version_DEB llvm-dev`
+      LLVM_VERSION=`llvm-config --version`
       LLVM_VERSION_FOUND=$LLVM_VERSION
       clean_LLVM
     else
@@ -4607,7 +4607,7 @@ install_RPM() {
     if [ $? -eq 0 ]; then
       install_packages_RPM llvm-devel $CLANG_DEV
       have_llvm=true
-      LLVM_VERSION=`get_package_version_RPM llvm-devel`
+      LLVM_VERSION=`llvm-config --version`
       LLVM_VERSION_FOUND=$LLVM_VERSION
       clean_LLVM
     else
@@ -5129,7 +5129,7 @@ install_ARCH() {
     if [ $? -eq 0 ]; then
       install_packages_ARCH llvm clang
       have_llvm=true
-      LLVM_VERSION=`get_package_version_ARCH llvm`
+      LLVM_VERSION=`llvm-config --version`
       LLVM_VERSION_FOUND=$LLVM_VERSION
       clean_LLVM
     else
