@@ -29,7 +29,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_math.h"
@@ -46,6 +45,8 @@
 
 #include "ED_screen.h"
 #include "ED_select_utils.h"
+
+#include "UI_interface.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -695,7 +696,7 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
         }
         /* make a simple distance check to get a smoother lasso
          * add only when at least 2 pixels between this and previous location */
-        else if ((x * x + y * y) > (2 * UI_DPI_FAC) ^ 2) {
+        else if ((x * x + y * y) > pow2f(2.0f * UI_DPI_FAC)) {
           lasso += 2;
           lasso[0] = event->x - gesture->winrct.xmin;
           lasso[1] = event->y - gesture->winrct.ymin;
