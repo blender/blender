@@ -1019,10 +1019,10 @@ int view3d_opengl_select(ViewContext *vc,
   }
 
   if (is_pick_select) {
-    if (is_pick_select && select_mode == VIEW3D_SELECT_PICK_NEAREST) {
+    if (select_mode == VIEW3D_SELECT_PICK_NEAREST) {
       gpu_select_mode = GPU_SELECT_PICK_NEAREST;
     }
-    else if (is_pick_select && select_mode == VIEW3D_SELECT_PICK_ALL) {
+    else if (select_mode == VIEW3D_SELECT_PICK_ALL) {
       gpu_select_mode = GPU_SELECT_PICK_ALL;
     }
     else {
