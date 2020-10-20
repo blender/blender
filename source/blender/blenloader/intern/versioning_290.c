@@ -30,6 +30,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_cachefile_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_fluid_types.h"
 #include "DNA_genfile.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
@@ -765,6 +766,25 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
         else {
           curve->bevel_mode = CU_BEV_MODE_ROUND;
+        }
+      }
+    }
+
+    /* Ensure that new viewport display fields are initialized correctly. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        if (md->type == eModifierType_Fluid) {
+          FluidModifierData *fmd = (FluidModifierData *)md;
+          if (fmd->domain != NULL) {
+            if (!fmd->domain->coba_field && fmd->domain->type == FLUID_DOMAIN_TYPE_LIQUID) {
+              fmd->domain->coba_field = FLUID_DOMAIN_FIELD_PHI;
+            }
+            fmd->domain->grid_scale = 1.0;
+            fmd->domain->gridlines_upper_bound = 1.0;
+            fmd->domain->vector_scale_with_magnitude = true;
+            const float grid_lines[4] = {1.0, 0.0, 0.0, 1.0};
+            copy_v4_v4(fmd->domain->gridlines_range_color, grid_lines);
+          }
         }
       }
     }
