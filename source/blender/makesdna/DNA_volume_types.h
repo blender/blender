@@ -31,7 +31,9 @@ typedef struct Volume_Runtime {
 
   /* Current frame in sequence for evaluated volume */
   int frame;
-  int _pad;
+
+  /* Default simplify level for volume grids loaded from files. */
+  int default_simplify_level;
 } Volume_Runtime;
 
 typedef struct VolumeDisplay {
