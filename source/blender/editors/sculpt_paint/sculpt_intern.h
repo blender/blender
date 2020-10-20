@@ -814,6 +814,9 @@ void SCULPT_tilt_apply_to_normal(float r_normal[3],
                                  struct StrokeCache *cache,
                                  const float tilt_strength);
 
+/* Get effective surface normal with pen tilt and tilt strength applied to it. */
+void SCULPT_tilt_effective_normal_get(const SculptSession *ss, const Brush *brush, float r_no[3]);
+
 /* just for vertex paint. */
 bool SCULPT_pbvh_calc_area_normal(const struct Brush *brush,
                                   Object *ob,
