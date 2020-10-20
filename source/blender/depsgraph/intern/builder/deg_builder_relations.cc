@@ -2660,24 +2660,6 @@ void DepsgraphRelationBuilder::build_simulation(Simulation *simulation)
   OperationKey nodetree_key(
       &simulation->nodetree->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EXIT);
   add_relation(nodetree_key, simulation_eval_key, "NodeTree -> Simulation", 0);
-
-  LISTBASE_FOREACH (SimulationDependency *, dependency, &simulation->dependencies) {
-    if (dependency->id == nullptr) {
-      continue;
-    }
-    build_id(dependency->id);
-    if (GS(dependency->id->name) == ID_OB) {
-      Object *object = (Object *)dependency->id;
-      if (dependency->flag & SIM_DEPENDS_ON_TRANSFORM) {
-        ComponentKey object_transform_key(&object->id, NodeType::TRANSFORM);
-        add_relation(object_transform_key, simulation_eval_key, "Object Transform -> Simulation");
-      }
-      if (dependency->flag & SIM_DEPENDS_ON_GEOMETRY) {
-        ComponentKey object_geometry_key(&object->id, NodeType::GEOMETRY);
-        add_relation(object_geometry_key, simulation_eval_key, "Object Geometry -> Simulation");
-      }
-    }
-  }
 }
 
 void DepsgraphRelationBuilder::build_scene_sequencer(Scene *scene)

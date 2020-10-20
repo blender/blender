@@ -1531,51 +1531,6 @@ static void rna_ParticleInstanceModifier_particle_system_set(PointerRNA *ptr,
   CLAMP_MIN(psmd->psys, 1);
 }
 
-#  ifdef WITH_PARTICLE_NODES
-static void rna_SimulationModifier_simulation_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-  SimulationModifierData *smd = ptr->data;
-  if (smd->simulation != NULL) {
-    DEG_id_tag_update(&smd->simulation->id, ID_RECALC_ALL);
-  }
-  rna_Modifier_dependency_update(bmain, scene, ptr);
-}
-
-static void rna_SimulationModifier_data_path_get(PointerRNA *ptr, char *value)
-{
-  SimulationModifierData *smd = ptr->data;
-
-  if (smd->data_path) {
-    strcpy(value, smd->data_path);
-  }
-  else {
-    value[0] = '\0';
-  }
-}
-
-static int rna_SimulationModifier_data_path_length(PointerRNA *ptr)
-{
-  SimulationModifierData *smd = ptr->data;
-  return smd->data_path ? strlen(smd->data_path) : 0;
-}
-
-static void rna_SimulationModifier_data_path_set(PointerRNA *ptr, const char *value)
-{
-  SimulationModifierData *smd = ptr->data;
-
-  if (smd->data_path) {
-    MEM_freeN(smd->data_path);
-  }
-
-  if (value[0]) {
-    smd->data_path = BLI_strdup(value);
-  }
-  else {
-    smd->data_path = NULL;
-  }
-}
-#  endif
-
 /**
  * Special set callback that just changes the first bit of the expansion flag.
  * This way the expansion state of all the sub-panels is not changed by RNA.
@@ -6968,7 +6923,6 @@ static void rna_def_modifier_weightednormal(BlenderRNA *brna)
 static void rna_def_modifier_simulation(BlenderRNA *brna)
 {
   StructRNA *srna;
-  PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "SimulationModifier", "Modifier");
   RNA_def_struct_ui_text(srna, "Simulation Modifier", "");
@@ -6976,20 +6930,6 @@ static void rna_def_modifier_simulation(BlenderRNA *brna)
   RNA_def_struct_ui_icon(srna, ICON_PHYSICS); /* TODO: Use correct icon. */
 
   RNA_define_lib_overridable(true);
-
-  prop = RNA_def_property(srna, "simulation", PROP_POINTER, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Simulation", "Simulation to access");
-  RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_update(prop, 0, "rna_SimulationModifier_simulation_update");
-
-  prop = RNA_def_property(srna, "data_path", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_funcs(prop,
-                                "rna_SimulationModifier_data_path_get",
-                                "rna_SimulationModifier_data_path_length",
-                                "rna_SimulationModifier_data_path_set");
-  RNA_def_property_ui_text(
-      prop, "Data Path", "Identifier of the simulation component that should be accessed");
-  RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   RNA_define_lib_overridable(false);
 }

@@ -2219,9 +2219,6 @@ enum {
 
 typedef struct SimulationModifierData {
   ModifierData modifier;
-
-  struct Simulation *simulation;
-  char *data_path;
 } SimulationModifierData;
 
 typedef struct MeshToVolumeModifierData {

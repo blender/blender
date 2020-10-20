@@ -576,8 +576,6 @@
 
 #define _DNA_DEFAULT_SimulationModifierData \
   { \
-    .simulation = NULL, \
-    .data_path = NULL, \
   }
 
 #define _DNA_DEFAULT_SkinModifierData \

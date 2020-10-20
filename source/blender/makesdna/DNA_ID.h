@@ -446,7 +446,7 @@ typedef enum ID_Type {
   ID_HA = MAKE_ID2('H', 'A'),  /* Hair */
   ID_PT = MAKE_ID2('P', 'T'),  /* PointCloud */
   ID_VO = MAKE_ID2('V', 'O'),  /* Volume */
-  ID_SIM = MAKE_ID2('S', 'I'), /* Simulation */
+  ID_SIM = MAKE_ID2('S', 'I'), /* Simulation (currently unused) */
 } ID_Type;
 
 /* Only used as 'placeholder' in .blend files for directly linked data-blocks. */

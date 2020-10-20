@@ -3140,58 +3140,8 @@ static void node_texture_set_butfunc(bNodeType *ntype)
 
 /* ****************** BUTTON CALLBACKS FOR SIMULATION NODES ***************** */
 
-static void node_simulation_buts_particle_simulation(uiLayout *layout,
-                                                     bContext *UNUSED(C),
-                                                     PointerRNA *ptr)
+static void node_simulation_set_butfunc(bNodeType *UNUSED(ntype))
 {
-  uiItemR(layout, ptr, "name", DEFAULT_FLAGS, "", ICON_NONE);
-}
-
-static void node_simulation_buts_particle_time_step_event(uiLayout *layout,
-                                                          bContext *UNUSED(C),
-                                                          PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "mode", DEFAULT_FLAGS, "", ICON_NONE);
-}
-
-static void node_simulation_buts_particle_attribute(uiLayout *layout,
-                                                    bContext *UNUSED(C),
-                                                    PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "data_type", DEFAULT_FLAGS, "", ICON_NONE);
-}
-
-static void node_simulation_buts_set_particle_attribute(uiLayout *layout,
-                                                        bContext *UNUSED(C),
-                                                        PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "data_type", DEFAULT_FLAGS, "", ICON_NONE);
-}
-
-static void node_simulation_buts_time(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "mode", DEFAULT_FLAGS, "", ICON_NONE);
-}
-
-static void node_simulation_set_butfunc(bNodeType *ntype)
-{
-  switch (ntype->type) {
-    case SIM_NODE_PARTICLE_SIMULATION:
-      ntype->draw_buttons = node_simulation_buts_particle_simulation;
-      break;
-    case SIM_NODE_PARTICLE_TIME_STEP_EVENT:
-      ntype->draw_buttons = node_simulation_buts_particle_time_step_event;
-      break;
-    case SIM_NODE_PARTICLE_ATTRIBUTE:
-      ntype->draw_buttons = node_simulation_buts_particle_attribute;
-      break;
-    case SIM_NODE_SET_PARTICLE_ATTRIBUTE:
-      ntype->draw_buttons = node_simulation_buts_set_particle_attribute;
-      break;
-    case SIM_NODE_TIME:
-      ntype->draw_buttons = node_simulation_buts_time;
-      break;
-  }
 }
 
 /* ****************** BUTTON CALLBACKS FOR FUNCTION NODES ***************** */
@@ -3379,10 +3329,6 @@ static const float std_node_socket_colors[][4] = {
     {0.39, 0.39, 0.39, 1.0}, /* SOCK_STRING */
     {0.40, 0.10, 0.10, 1.0}, /* SOCK_OBJECT */
     {0.10, 0.40, 0.10, 1.0}, /* SOCK_IMAGE */
-    {0.80, 0.80, 0.20, 1.0}, /* SOCK_EMITTERS */
-    {0.80, 0.20, 0.80, 1.0}, /* SOCK_EVENTS */
-    {0.20, 0.80, 0.80, 1.0}, /* SOCK_FORCES */
-    {0.30, 0.30, 0.30, 1.0}, /* SOCK_CONTROL_FLOW */
 };
 
 /* common color callbacks for standard types */
