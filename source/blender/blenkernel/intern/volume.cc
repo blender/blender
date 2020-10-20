@@ -953,6 +953,7 @@ bool BKE_volume_is_points_only(const Volume *volume)
 
 static void volume_update_simplify_level(Volume *volume, const Depsgraph *depsgraph)
 {
+#ifdef WITH_OPENVDB
   const int simplify_level = BKE_volume_simplify_level(depsgraph);
   if (volume->runtime.grids) {
     for (VolumeGrid &grid : *volume->runtime.grids) {
@@ -960,6 +961,9 @@ static void volume_update_simplify_level(Volume *volume, const Depsgraph *depsgr
     }
   }
   volume->runtime.default_simplify_level = simplify_level;
+#else
+  UNUSED_VARS(volume, depsgraph);
+#endif
 }
 
 static Volume *volume_evaluate_modifiers(struct Depsgraph *depsgraph,
@@ -1260,6 +1264,8 @@ VolumeGridType BKE_volume_grid_type(const VolumeGrid *volume_grid)
 #ifdef WITH_OPENVDB
   const openvdb::GridBase::Ptr grid = volume_grid->grid();
   return BKE_volume_grid_type_openvdb(grid);
+#else
+  UNUSED_VARS(volume_grid);
 #endif
   return VOLUME_GRID_UNKNOWN;
 }
