@@ -229,12 +229,6 @@ void ED_uvedit_add_simple_uvs(struct Main *bmain, const struct Scene *scene, str
 
 /* uvedit_draw.c */
 void ED_image_draw_cursor(struct ARegion *region, const float cursor[2]);
-void ED_uvedit_draw_main(struct SpaceImage *sima,
-                         const struct Scene *scene,
-                         struct ViewLayer *view_layer,
-                         struct Object *obedit,
-                         struct Object *obact,
-                         struct Depsgraph *depsgraph);
 
 /* uvedit_buttons.c */
 void ED_uvedit_buttons_register(struct ARegionType *art);

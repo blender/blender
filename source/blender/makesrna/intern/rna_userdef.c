@@ -6170,11 +6170,6 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Switch Object Operator", "Enable the operator to switch objects by pressing D");
 
-  prop = RNA_def_property(srna, "use_image_editor_legacy_drawing", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "use_image_editor_legacy_drawing", 1);
-  RNA_def_property_ui_text(
-      prop, "Image Editor Legacy Drawing", "Use legacy UV/Image editor drawing");
-
   prop = RNA_def_property(srna, "use_tools_missing_icons", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_tools_missing_icons", 1);
   RNA_def_property_ui_text(prop, "Tools with Missing Icons", "Show tools with missing icons");

@@ -897,4 +897,19 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
   {
     /* Keep this block, even when empty. */
   }
+
+  /* Remove options of legacy UV/Image editor */
+  for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+        switch (sl->spacetype) {
+          case SPACE_IMAGE: {
+            SpaceImage *sima = (SpaceImage *)sl;
+            sima->flag &= ~(SI_FLAG_UNUSED_20);
+            break;
+          }
+        }
+      }
+    }
+  }
 }
