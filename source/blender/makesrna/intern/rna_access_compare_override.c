@@ -122,14 +122,14 @@ bool RNA_property_comparable(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 }
 
 static bool rna_property_override_operation_apply(Main *bmain,
-                                                  PointerRNA *ptr_local,
-                                                  PointerRNA *ptr_override,
+                                                  PointerRNA *ptr_dst,
+                                                  PointerRNA *ptr_src,
                                                   PointerRNA *ptr_storage,
-                                                  PropertyRNA *prop_local,
-                                                  PropertyRNA *prop_override,
+                                                  PropertyRNA *prop_dst,
+                                                  PropertyRNA *prop_src,
                                                   PropertyRNA *prop_storage,
-                                                  PointerRNA *ptr_item_local,
-                                                  PointerRNA *ptr_item_override,
+                                                  PointerRNA *ptr_item_dst,
+                                                  PointerRNA *ptr_item_src,
                                                   PointerRNA *ptr_item_storage,
                                                   IDOverrideLibraryPropertyOperation *opop);
 

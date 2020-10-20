@@ -66,7 +66,7 @@ void RNA_def_struct_flag(StructRNA *srna, int flag);
 void RNA_def_struct_clear_flag(StructRNA *srna, int flag);
 void RNA_def_struct_property_tags(StructRNA *srna, const EnumPropertyItem *prop_tag_defines);
 void RNA_def_struct_refine_func(StructRNA *srna, const char *refine);
-void RNA_def_struct_idprops_func(StructRNA *srna, const char *refine);
+void RNA_def_struct_idprops_func(StructRNA *srna, const char *idproperties);
 void RNA_def_struct_register_funcs(StructRNA *srna,
                                    const char *reg,
                                    const char *unreg,
