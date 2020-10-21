@@ -105,7 +105,9 @@ void prepare_raycast(vec3 ray_origin,
 
   /* If the line is degenerate, make it cover at least one pixel
    * to not have to handle zero-pixel extent as a special case later */
-  ss_step.xy += vec2((dot(ss_step.xy, ss_step.xy) < 0.00001) ? 0.001 : 0.0);
+  if (dot(ss_step.xy, ss_step.xy) < 0.00001) {
+    ss_step.xy = vec2(0.0, 0.0001);
+  }
 
   /* Make ss_step cover one pixel. */
   ss_step /= max(abs(ss_step.x), abs(ss_step.y));
