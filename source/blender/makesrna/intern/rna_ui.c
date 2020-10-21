@@ -180,14 +180,14 @@ static void panel_draw_header_preset(const bContext *C, Panel *panel)
   RNA_parameter_list_free(&list);
 }
 
-static void remove_panel_type_recursive(Panel *panel, const PanelType *pt)
+static void panel_type_clear_recursive(Panel *panel, const PanelType *type)
 {
-  if (panel->type == pt) {
+  if (panel->type == type) {
     panel->type = NULL;
   }
 
   LISTBASE_FOREACH (Panel *, child_panel, &panel->children) {
-    remove_panel_type_recursive(child_panel, pt);
+    panel_type_clear_recursive(child_panel, type);
   }
 }
 
@@ -231,7 +231,7 @@ static void rna_Panel_unregister(Main *bmain, StructRNA *type)
           LISTBASE_FOREACH (ARegion *, region, regionbase) {
             if (region->type == art) {
               LISTBASE_FOREACH (Panel *, panel, &region->panels) {
-                remove_panel_type_recursive(panel, pt);
+                panel_type_clear_recursive(panel, pt);
               }
             }
             /* The unregistered panel might have had a template that added instanced panels,
