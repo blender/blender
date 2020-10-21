@@ -158,7 +158,7 @@ ModifierTypeInfo modifierType_Simulation = {
     /* name */ "Simulation",
     /* structName */ "SimulationModifierData",
     /* structSize */ sizeof(SimulationModifierData),
-#ifdef WITH_PARTICLE_NODES
+#ifdef WITH_GEOMETRY_NODES
     /* srna */ &RNA_SimulationModifier,
 #else
     /* srna */ &RNA_Modifier,

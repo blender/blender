@@ -1713,7 +1713,7 @@ void OBJECT_OT_hair_add(wmOperatorType *ot)
 
 static bool object_pointcloud_add_poll(bContext *C)
 {
-  if (!U.experimental.use_new_particle_system) {
+  if (!U.experimental.use_new_point_cloud_type) {
     return false;
   }
   return ED_operator_objectmode(C);
@@ -2318,7 +2318,7 @@ static const EnumPropertyItem convert_target_items[] = {
      "MESH",
      ICON_OUTLINER_OB_MESH,
      "Mesh",
-#ifdef WITH_PARTICLE_NODES
+#ifdef WITH_POINT_CLOUD
      "Mesh from Curve, Surface, Metaball, Text, or Pointcloud objects"},
 #else
      "Mesh from Curve, Surface, Metaball, or Text objects"},
@@ -2328,7 +2328,7 @@ static const EnumPropertyItem convert_target_items[] = {
      ICON_OUTLINER_OB_GREASEPENCIL,
      "Grease Pencil",
      "Grease Pencil from Curve or Mesh objects"},
-#ifdef WITH_PARTICLE_NODES
+#ifdef WITH_POINT_CLOUD
     {OB_POINTCLOUD,
      "POINTCLOUD",
      ICON_OUTLINER_OB_POINTCLOUD,

@@ -466,11 +466,11 @@ void RNA_def_main_lightprobes(BlenderRNA *brna, PropertyRNA *cprop);
 #ifdef WITH_HAIR_NODES
 void RNA_def_main_hairs(BlenderRNA *brna, PropertyRNA *cprop);
 #endif
-#ifdef WITH_PARTICLE_NODES
+#ifdef WITH_POINT_CLOUD
 void RNA_def_main_pointclouds(BlenderRNA *brna, PropertyRNA *cprop);
 #endif
 void RNA_def_main_volumes(BlenderRNA *brna, PropertyRNA *cprop);
-#ifdef WITH_PARTICLE_NODES
+#ifdef WITH_GEOMETRY_NODES
 void RNA_def_main_simulations(BlenderRNA *brna, PropertyRNA *cprop);
 #endif
 
