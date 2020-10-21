@@ -192,7 +192,6 @@ static void mask_filter_task_cb(void *__restrict userdata,
 
 static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 {
-  ARegion *region = CTX_wm_region(C);
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -259,8 +258,8 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 
   SCULPT_undo_push_end();
 
-  ED_region_tag_redraw(region);
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+  SCULPT_tag_update_overlays(C);
+
   return OPERATOR_FINISHED;
 }
 

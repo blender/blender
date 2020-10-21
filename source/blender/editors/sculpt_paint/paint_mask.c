@@ -657,8 +657,7 @@ static void sculpt_gesture_apply(bContext *C, SculptGestureContext *sgcontext)
 
   SCULPT_undo_push_end();
 
-  ED_region_tag_redraw(sgcontext->vc.region);
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, sgcontext->vc.obact);
+  SCULPT_tag_update_overlays(C);
 }
 
 /* Face Set Gesture Operation. */
