@@ -463,6 +463,46 @@ static void scene_foreach_paint(LibraryForeachIDData *data, Paint *paint)
   BKE_LIB_FOREACHID_PROCESS(data, paint->palette, IDWALK_CB_USER);
 }
 
+static void scene_foreach_toolsettings(LibraryForeachIDData *data, ToolSettings *toolsett)
+{
+  BKE_LIB_FOREACHID_PROCESS(data, toolsett->particle.scene, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS(data, toolsett->particle.object, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS(data, toolsett->particle.shape_object, IDWALK_CB_NOP);
+
+  scene_foreach_paint(data, &toolsett->imapaint.paint);
+  BKE_LIB_FOREACHID_PROCESS(data, toolsett->imapaint.stencil, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS(data, toolsett->imapaint.clone, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS(data, toolsett->imapaint.canvas, IDWALK_CB_USER);
+
+  if (toolsett->vpaint) {
+    scene_foreach_paint(data, &toolsett->vpaint->paint);
+  }
+  if (toolsett->wpaint) {
+    scene_foreach_paint(data, &toolsett->wpaint->paint);
+  }
+  if (toolsett->sculpt) {
+    scene_foreach_paint(data, &toolsett->sculpt->paint);
+    BKE_LIB_FOREACHID_PROCESS(data, toolsett->sculpt->gravity_object, IDWALK_CB_NOP);
+  }
+  if (toolsett->uvsculpt) {
+    scene_foreach_paint(data, &toolsett->uvsculpt->paint);
+  }
+  if (toolsett->gp_paint) {
+    scene_foreach_paint(data, &toolsett->gp_paint->paint);
+  }
+  if (toolsett->gp_vertexpaint) {
+    scene_foreach_paint(data, &toolsett->gp_vertexpaint->paint);
+  }
+  if (toolsett->gp_sculptpaint) {
+    scene_foreach_paint(data, &toolsett->gp_sculptpaint->paint);
+  }
+  if (toolsett->gp_weightpaint) {
+    scene_foreach_paint(data, &toolsett->gp_weightpaint->paint);
+  }
+
+  BKE_LIB_FOREACHID_PROCESS(data, toolsett->gp_sculpt.guide.reference_object, IDWALK_CB_NOP);
+}
+
 static void scene_foreach_layer_collection(LibraryForeachIDData *data, ListBase *lb)
 {
   LISTBASE_FOREACH (LayerCollection *, lc, lb) {
@@ -552,42 +592,7 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
 
   ToolSettings *toolsett = scene->toolsettings;
   if (toolsett) {
-    BKE_LIB_FOREACHID_PROCESS(data, toolsett->particle.scene, IDWALK_CB_NOP);
-    BKE_LIB_FOREACHID_PROCESS(data, toolsett->particle.object, IDWALK_CB_NOP);
-    BKE_LIB_FOREACHID_PROCESS(data, toolsett->particle.shape_object, IDWALK_CB_NOP);
-
-    scene_foreach_paint(data, &toolsett->imapaint.paint);
-    BKE_LIB_FOREACHID_PROCESS(data, toolsett->imapaint.stencil, IDWALK_CB_USER);
-    BKE_LIB_FOREACHID_PROCESS(data, toolsett->imapaint.clone, IDWALK_CB_USER);
-    BKE_LIB_FOREACHID_PROCESS(data, toolsett->imapaint.canvas, IDWALK_CB_USER);
-
-    if (toolsett->vpaint) {
-      scene_foreach_paint(data, &toolsett->vpaint->paint);
-    }
-    if (toolsett->wpaint) {
-      scene_foreach_paint(data, &toolsett->wpaint->paint);
-    }
-    if (toolsett->sculpt) {
-      scene_foreach_paint(data, &toolsett->sculpt->paint);
-      BKE_LIB_FOREACHID_PROCESS(data, toolsett->sculpt->gravity_object, IDWALK_CB_NOP);
-    }
-    if (toolsett->uvsculpt) {
-      scene_foreach_paint(data, &toolsett->uvsculpt->paint);
-    }
-    if (toolsett->gp_paint) {
-      scene_foreach_paint(data, &toolsett->gp_paint->paint);
-    }
-    if (toolsett->gp_vertexpaint) {
-      scene_foreach_paint(data, &toolsett->gp_vertexpaint->paint);
-    }
-    if (toolsett->gp_sculptpaint) {
-      scene_foreach_paint(data, &toolsett->gp_sculptpaint->paint);
-    }
-    if (toolsett->gp_weightpaint) {
-      scene_foreach_paint(data, &toolsett->gp_weightpaint->paint);
-    }
-
-    BKE_LIB_FOREACHID_PROCESS(data, toolsett->gp_sculpt.guide.reference_object, IDWALK_CB_NOP);
+    scene_foreach_toolsettings(data, toolsett);
   }
 
   if (scene->rigidbody_world) {
