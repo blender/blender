@@ -1884,6 +1884,9 @@ void BKE_library_make_local(Main *bmain,
       if (id->lib == NULL) {
         id->tag &= ~(LIB_TAG_EXTERN | LIB_TAG_INDIRECT | LIB_TAG_NEW);
         id->flag &= ~LIB_INDIRECT_WEAK_LINK;
+        if (ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+          BKE_lib_override_library_free(&id->override_library, true);
+        }
       }
       /* The check on the fourth line (LIB_TAG_PRE_EXISTING) is done so it's possible to tag data
        * you don't want to be made local, used for appending data,
