@@ -244,7 +244,8 @@ def liquid_step_$ID$():\n\
     pp_s$ID$.advectInGrid(flags=flags_s$ID$, vel=vel_s$ID$, integrationMode=IntRK4, deleteInObstacle=deleteInObstacle_s$ID$, stopInObstacle=False, skipNew=True)\n\
     \n\
     mantaMsg('Pushing particles out of obstacles')\n\
-    if using_obstacle_s$ID$:\n\
+    if using_obstacle_s$ID$ and using_fractions_s$ID$ and fracDistance_s$ID$ > 0:\n\
+        # Optional: Increase distance between fluid and obstacles (only obstacles, not borders)\n\
         pushOutofObs(parts=pp_s$ID$, flags=flags_s$ID$, phiObs=phiObsIn_s$ID$, thresh=fracDistance_s$ID$)\n\
     pushOutofObs(parts=pp_s$ID$, flags=flags_s$ID$, phiObs=phiObs_s$ID$)\n\
     \n\
