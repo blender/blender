@@ -20,7 +20,6 @@ Checks:  >
 
   -readability-named-parameter,
   -readability-function-cognitive-complexity,
-  -readability-redundant-string-init,
 
   bugprone-*,
   -bugprone-narrowing-conversions,
