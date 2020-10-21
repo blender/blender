@@ -36,6 +36,7 @@
 
 #include "GPU_matrix.h"
 #include "GPU_shader.h"
+#include "GPU_state.h"
 #include "GPU_viewport.h"
 
 #include "external_engine.h" /* own include */
@@ -242,6 +243,8 @@ static void external_draw_scene_do(void *vedata)
   /* Render result draw. */
   type = rv3d->render_engine->type;
   type->view_draw(rv3d->render_engine, draw_ctx->evil_C, draw_ctx->depsgraph);
+
+  GPU_bgl_end();
 
   GPU_matrix_pop();
   GPU_matrix_pop_projection();
