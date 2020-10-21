@@ -3001,7 +3001,10 @@ class VIEW3D_MT_mask(Menu):
         props.mode = 'VALUE'
         props.value = 0
 
-        props = layout.operator("view3d.select_box", text="Box Mask")
+        props = layout.operator("paint.mask_box_gesture", text="Box Mask")
+        props.mode = 'VALUE'
+        props.value = 0
+
         props = layout.operator("paint.mask_lasso_gesture", text="Lasso Mask")
 
         layout.separator()
