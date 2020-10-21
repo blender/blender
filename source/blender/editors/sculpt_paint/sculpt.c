@@ -5666,15 +5666,11 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
   /* Check for unsupported features. */
   PBVHType type = BKE_pbvh_type(ss->pbvh);
   if (brush->sculpt_tool == SCULPT_TOOL_PAINT && type != PBVH_FACES) {
-    if (!U.experimental.use_sculpt_vertex_colors) {
-      return;
-    }
+    return;
   }
 
   if (brush->sculpt_tool == SCULPT_TOOL_SMEAR && type != PBVH_FACES) {
-    if (!U.experimental.use_sculpt_vertex_colors) {
-      return;
-    }
+    return;
   }
 
   /* Build a list of all nodes that are potentially within the brush's area of influence */
