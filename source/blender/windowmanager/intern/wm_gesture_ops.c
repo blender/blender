@@ -207,39 +207,23 @@ int WM_gesture_box_modal(bContext *C, wmOperator *op, const wmEvent *event)
   wmGesture *gesture = op->customdata;
   rcti *rect = gesture->customdata;
 
-  if (event->type == MOUSEMOVE) {
-    if (gesture->type == WM_GESTURE_CROSS_RECT && gesture->is_active == false) {
-      rect->xmin = rect->xmax = event->x - gesture->winrct.xmin;
-      rect->ymin = rect->ymax = event->y - gesture->winrct.ymin;
-    }
-    else if (gesture->move) {
-      BLI_rcti_translate(rect,
-                         (event->x - gesture->winrct.xmin) - rect->xmax,
-                         (event->y - gesture->winrct.ymin) - rect->ymax);
-    }
-    else {
-      rect->xmax = event->x - gesture->winrct.xmin;
-      rect->ymax = event->y - gesture->winrct.ymin;
-    }
-    gesture_box_apply_rect(op);
-
-    wm_gesture_tag_redraw(win);
-  }
-  else if (event->type == EVT_MODAL_MAP) {
+  if (event->type == EVT_MODAL_MAP) {
     switch (event->val) {
-      case GESTURE_MODAL_MOVE:
+      case GESTURE_MODAL_MOVE: {
         gesture->move = !gesture->move;
         break;
-      case GESTURE_MODAL_BEGIN:
+      }
+      case GESTURE_MODAL_BEGIN: {
         if (gesture->type == WM_GESTURE_CROSS_RECT && gesture->is_active == false) {
           gesture->is_active = true;
           wm_gesture_tag_redraw(win);
         }
         break;
+      }
       case GESTURE_MODAL_SELECT:
       case GESTURE_MODAL_DESELECT:
       case GESTURE_MODAL_IN:
-      case GESTURE_MODAL_OUT:
+      case GESTURE_MODAL_OUT: {
         if (gesture->wait_for_input) {
           gesture->modal_state = event->val;
         }
@@ -249,24 +233,47 @@ int WM_gesture_box_modal(bContext *C, wmOperator *op, const wmEvent *event)
         }
         gesture_modal_end(C, op);
         return OPERATOR_CANCELLED;
-
-      case GESTURE_MODAL_CANCEL:
+      }
+      case GESTURE_MODAL_CANCEL: {
         gesture_modal_end(C, op);
         return OPERATOR_CANCELLED;
+      }
     }
   }
+  else {
+    switch (event->type) {
+      case MOUSEMOVE: {
+        if (gesture->type == WM_GESTURE_CROSS_RECT && gesture->is_active == false) {
+          rect->xmin = rect->xmax = event->x - gesture->winrct.xmin;
+          rect->ymin = rect->ymax = event->y - gesture->winrct.ymin;
+        }
+        else if (gesture->move) {
+          BLI_rcti_translate(rect,
+                             (event->x - gesture->winrct.xmin) - rect->xmax,
+                             (event->y - gesture->winrct.ymin) - rect->ymax);
+        }
+        else {
+          rect->xmax = event->x - gesture->winrct.xmin;
+          rect->ymax = event->y - gesture->winrct.ymin;
+        }
+        gesture_box_apply_rect(op);
+
+        wm_gesture_tag_redraw(win);
+
+        break;
+      }
 #ifdef WITH_INPUT_NDOF
-  else if (event->type == NDOF_MOTION) {
-    return OPERATOR_PASS_THROUGH;
-  }
+      case NDOF_MOTION: {
+        return OPERATOR_PASS_THROUGH;
+      }
 #endif
 
-#if 0
-  /* Allow view navigation??? */
-  else {
-    return OPERATOR_PASS_THROUGH;
-  }
+#if 0 /* This allows view navigation, keep disabled as it's too unpredictable. */
+      default:
+        return OPERATOR_PASS_THROUGH;
 #endif
+    }
+  }
 
   gesture->is_active_prev = gesture->is_active;
   return OPERATOR_RUNNING_MODAL;
@@ -662,59 +669,65 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   wmGesture *gesture = op->customdata;
 
-  switch (event->type) {
-    case EVT_MODAL_MAP:
-      switch (event->val) {
-        case GESTURE_MODAL_MOVE:
-          gesture->move = !gesture->move;
-          break;
+  if (event->type == EVT_MODAL_MAP) {
+    switch (event->val) {
+      case GESTURE_MODAL_MOVE: {
+        gesture->move = !gesture->move;
+        break;
       }
-    case MOUSEMOVE:
-    case INBETWEEN_MOUSEMOVE:
-      wm_gesture_tag_redraw(CTX_wm_window(C));
+    }
+  }
+  else {
+    switch (event->type) {
+      case MOUSEMOVE:
+      case INBETWEEN_MOUSEMOVE: {
+        wm_gesture_tag_redraw(CTX_wm_window(C));
 
-      if (gesture->points == gesture->points_alloc) {
-        gesture->points_alloc *= 2;
-        gesture->customdata = MEM_reallocN(gesture->customdata,
-                                           sizeof(short[2]) * gesture->points_alloc);
-      }
+        if (gesture->points == gesture->points_alloc) {
+          gesture->points_alloc *= 2;
+          gesture->customdata = MEM_reallocN(gesture->customdata,
+                                             sizeof(short[2]) * gesture->points_alloc);
+        }
 
-      {
-        int x, y;
-        short *lasso = gesture->customdata;
+        {
+          int x, y;
+          short *lasso = gesture->customdata;
 
-        lasso += (2 * gesture->points - 2);
-        x = (event->x - gesture->winrct.xmin - lasso[0]);
-        y = (event->y - gesture->winrct.ymin - lasso[1]);
+          lasso += (2 * gesture->points - 2);
+          x = (event->x - gesture->winrct.xmin - lasso[0]);
+          y = (event->y - gesture->winrct.ymin - lasso[1]);
 
-        /* move the lasso */
-        if (gesture->move) {
-          for (int i = 0; i < gesture->points; i++) {
-            lasso[0 - (i * 2)] += x;
-            lasso[1 - (i * 2)] += y;
+          /* move the lasso */
+          if (gesture->move) {
+            for (int i = 0; i < gesture->points; i++) {
+              lasso[0 - (i * 2)] += x;
+              lasso[1 - (i * 2)] += y;
+            }
+          }
+          /* make a simple distance check to get a smoother lasso
+           * add only when at least 2 pixels between this and previous location */
+          else if ((x * x + y * y) > pow2f(2.0f * UI_DPI_FAC)) {
+            lasso += 2;
+            lasso[0] = event->x - gesture->winrct.xmin;
+            lasso[1] = event->y - gesture->winrct.ymin;
+            gesture->points++;
           }
         }
-        /* make a simple distance check to get a smoother lasso
-         * add only when at least 2 pixels between this and previous location */
-        else if ((x * x + y * y) > pow2f(2.0f * UI_DPI_FAC)) {
-          lasso += 2;
-          lasso[0] = event->x - gesture->winrct.xmin;
-          lasso[1] = event->y - gesture->winrct.ymin;
-          gesture->points++;
+        break;
+      }
+      case LEFTMOUSE:
+      case MIDDLEMOUSE:
+      case RIGHTMOUSE: {
+        if (event->val == KM_RELEASE) { /* key release */
+          return gesture_lasso_apply(C, op);
         }
+        break;
       }
-      break;
-
-    case LEFTMOUSE:
-    case MIDDLEMOUSE:
-    case RIGHTMOUSE:
-      if (event->val == KM_RELEASE) { /* key release */
-        return gesture_lasso_apply(C, op);
+      case EVT_ESCKEY: {
+        gesture_modal_end(C, op);
+        return OPERATOR_CANCELLED;
       }
-      break;
-    case EVT_ESCKEY:
-      gesture_modal_end(C, op);
-      return OPERATOR_CANCELLED;
+    }
   }
 
   gesture->is_active_prev = gesture->is_active;
@@ -921,55 +934,65 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
   wmWindow *win = CTX_wm_window(C);
   rcti *rect = gesture->customdata;
 
-  if (event->type == MOUSEMOVE) {
-    if (gesture->is_active == false) {
-      rect->xmin = rect->xmax = event->x - gesture->winrct.xmin;
-      rect->ymin = rect->ymax = event->y - gesture->winrct.ymin;
-    }
-    else if (gesture->move) {
-      BLI_rcti_translate(rect,
-                         (event->x - gesture->winrct.xmin) - rect->xmax,
-                         (event->y - gesture->winrct.ymin) - rect->ymax);
-      gesture_straightline_apply(C, op);
-    }
-    else {
-      rect->xmax = event->x - gesture->winrct.xmin;
-      rect->ymax = event->y - gesture->winrct.ymin;
-      gesture_straightline_apply(C, op);
-    }
-
-    if (gesture->use_snap) {
-      wm_gesture_straightline_do_angle_snap(rect);
-    }
-
-    wm_gesture_tag_redraw(win);
-  }
-  else if (event->type == EVT_MODAL_MAP) {
+  if (event->type == EVT_MODAL_MAP) {
     switch (event->val) {
-      case GESTURE_MODAL_MOVE:
+      case GESTURE_MODAL_MOVE: {
         gesture->move = !gesture->move;
         break;
-      case GESTURE_MODAL_BEGIN:
+      }
+      case GESTURE_MODAL_BEGIN: {
         if (gesture->is_active == false) {
           gesture->is_active = true;
           wm_gesture_tag_redraw(win);
         }
         break;
-      case GESTURE_MODAL_SNAP:
+      }
+      case GESTURE_MODAL_SNAP: {
         /* Toggle snapping on/off. */
         gesture->use_snap = !gesture->use_snap;
         break;
-      case GESTURE_MODAL_SELECT:
+      }
+      case GESTURE_MODAL_SELECT: {
         if (gesture_straightline_apply(C, op)) {
           gesture_modal_end(C, op);
           return OPERATOR_FINISHED;
         }
         gesture_modal_end(C, op);
         return OPERATOR_CANCELLED;
-
-      case GESTURE_MODAL_CANCEL:
+      }
+      case GESTURE_MODAL_CANCEL: {
         gesture_modal_end(C, op);
         return OPERATOR_CANCELLED;
+      }
+    }
+  }
+  else {
+    switch (event->type) {
+      case MOUSEMOVE: {
+        if (gesture->is_active == false) {
+          rect->xmin = rect->xmax = event->x - gesture->winrct.xmin;
+          rect->ymin = rect->ymax = event->y - gesture->winrct.ymin;
+        }
+        else if (gesture->move) {
+          BLI_rcti_translate(rect,
+                             (event->x - gesture->winrct.xmin) - rect->xmax,
+                             (event->y - gesture->winrct.ymin) - rect->ymax);
+          gesture_straightline_apply(C, op);
+        }
+        else {
+          rect->xmax = event->x - gesture->winrct.xmin;
+          rect->ymax = event->y - gesture->winrct.ymin;
+          gesture_straightline_apply(C, op);
+        }
+
+        if (gesture->use_snap) {
+          wm_gesture_straightline_do_angle_snap(rect);
+        }
+
+        wm_gesture_tag_redraw(win);
+
+        break;
+      }
     }
   }
 
@@ -990,46 +1013,28 @@ int WM_gesture_straightline_oneshot_modal(bContext *C, wmOperator *op, const wmE
   wmWindow *win = CTX_wm_window(C);
   rcti *rect = gesture->customdata;
 
-  if (event->type == MOUSEMOVE) {
-    if (gesture->is_active == false) {
-      rect->xmin = rect->xmax = event->x - gesture->winrct.xmin;
-      rect->ymin = rect->ymax = event->y - gesture->winrct.ymin;
-    }
-    else if (gesture->move) {
-      BLI_rcti_translate(rect,
-                         (event->x - gesture->winrct.xmin) - rect->xmax,
-                         (event->y - gesture->winrct.ymin) - rect->ymax);
-    }
-    else {
-      rect->xmax = event->x - gesture->winrct.xmin;
-      rect->ymax = event->y - gesture->winrct.ymin;
-    }
-
-    if (gesture->use_snap) {
-      wm_gesture_straightline_do_angle_snap(rect);
-    }
-
-    wm_gesture_tag_redraw(win);
-  }
-  else if (event->type == EVT_MODAL_MAP) {
+  if (event->type == EVT_MODAL_MAP) {
     switch (event->val) {
-      case GESTURE_MODAL_MOVE:
+      case GESTURE_MODAL_MOVE: {
         gesture->move = !gesture->move;
         break;
-      case GESTURE_MODAL_BEGIN:
+      }
+      case GESTURE_MODAL_BEGIN: {
         if (gesture->is_active == false) {
           gesture->is_active = true;
           wm_gesture_tag_redraw(win);
         }
         break;
-      case GESTURE_MODAL_SNAP:
+      }
+      case GESTURE_MODAL_SNAP: {
         /* Toggle snapping on/off. */
         gesture->use_snap = !gesture->use_snap;
         break;
+      }
       case GESTURE_MODAL_SELECT:
       case GESTURE_MODAL_DESELECT:
       case GESTURE_MODAL_IN:
-      case GESTURE_MODAL_OUT:
+      case GESTURE_MODAL_OUT: {
         if (gesture->wait_for_input) {
           gesture->modal_state = event->val;
         }
@@ -1039,10 +1044,38 @@ int WM_gesture_straightline_oneshot_modal(bContext *C, wmOperator *op, const wmE
         }
         gesture_modal_end(C, op);
         return OPERATOR_CANCELLED;
-
-      case GESTURE_MODAL_CANCEL:
+      }
+      case GESTURE_MODAL_CANCEL: {
         gesture_modal_end(C, op);
         return OPERATOR_CANCELLED;
+      }
+    }
+  }
+  else {
+    switch (event->type) {
+      case MOUSEMOVE: {
+        if (gesture->is_active == false) {
+          rect->xmin = rect->xmax = event->x - gesture->winrct.xmin;
+          rect->ymin = rect->ymax = event->y - gesture->winrct.ymin;
+        }
+        else if (gesture->move) {
+          BLI_rcti_translate(rect,
+                             (event->x - gesture->winrct.xmin) - rect->xmax,
+                             (event->y - gesture->winrct.ymin) - rect->ymax);
+        }
+        else {
+          rect->xmax = event->x - gesture->winrct.xmin;
+          rect->ymax = event->y - gesture->winrct.ymin;
+        }
+
+        if (gesture->use_snap) {
+          wm_gesture_straightline_do_angle_snap(rect);
+        }
+
+        wm_gesture_tag_redraw(win);
+
+        break;
+      }
     }
   }
 
