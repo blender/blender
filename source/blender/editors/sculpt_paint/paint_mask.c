@@ -850,7 +850,7 @@ static EnumPropertyItem prop_trim_operation_types[] = {
      "JOIN",
      0,
      "Join",
-     "Join the new mesh as separate geometry, without preforming any boolean operation"},
+     "Join the new mesh as separate geometry, without performing any boolean operation"},
     {0, NULL, 0, NULL, NULL},
 };
 
