@@ -1244,6 +1244,7 @@ static int parent_noinv_set_exec(bContext *C, wmOperator *op)
 
   DEG_relations_tag_update(bmain);
   WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
+  WM_event_add_notifier(C, NC_OBJECT | ND_PARENT, NULL);
 
   return OPERATOR_FINISHED;
 }
