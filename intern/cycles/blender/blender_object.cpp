@@ -32,6 +32,7 @@
 #include "util/util_foreach.h"
 #include "util/util_hash.h"
 #include "util/util_logging.h"
+#include "util/util_task.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -103,7 +104,8 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
                                  bool use_particle_hair,
                                  bool show_lights,
                                  BlenderObjectCulling &culling,
-                                 bool *use_portal)
+                                 bool *use_portal,
+                                 TaskPool *geom_task_pool)
 {
   const bool is_instance = b_instance.is_instance();
   BL::Object b_ob = b_instance.object();
@@ -181,6 +183,10 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
     return NULL;
   }
 
+  /* Use task pool only for non-instances, since sync_dupli_particle accesses
+   * geometry. This restriction should be removed for better performance. */
+  TaskPool *object_geom_task_pool = (is_instance) ? NULL : geom_task_pool;
+
   /* key to lookup object */
   ObjectKey key(b_parent, persistent_id, b_ob_instance, use_particle_hair);
   Object *object;
@@ -198,7 +204,12 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
 
       /* mesh deformation */
       if (object->geometry)
-        sync_geometry_motion(b_depsgraph, b_ob, object, motion_time, use_particle_hair);
+        sync_geometry_motion(b_depsgraph,
+                             b_ob_instance,
+                             object,
+                             motion_time,
+                             use_particle_hair,
+                             object_geom_task_pool);
     }
 
     return object;
@@ -211,8 +222,15 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
     object_updated = true;
 
   /* mesh sync */
-  object->geometry = sync_geometry(
-      b_depsgraph, b_ob, b_ob_instance, object_updated, use_particle_hair);
+  /* b_ob is owned by the iterator and will go out of scope at the end of the block.
+   * b_ob_instance is the original object and will remain valid for deferred geometry
+   * sync. */
+  object->geometry = sync_geometry(b_depsgraph,
+                                   b_ob_instance,
+                                   b_ob_instance,
+                                   object_updated,
+                                   use_particle_hair,
+                                   object_geom_task_pool);
 
   /* special case not tracked by object update flags */
 
@@ -331,6 +349,9 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
                                BL::SpaceView3D &b_v3d,
                                float motion_time)
 {
+  /* Task pool for multithreaded geometry sync. */
+  TaskPool geom_task_pool;
+
   /* layer data */
   bool motion = motion_time != 0.0f;
 
@@ -355,8 +376,8 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
   const bool show_lights = BlenderViewportParameters(b_v3d).use_scene_lights;
 
   BL::ViewLayer b_view_layer = b_depsgraph.view_layer_eval();
-
   BL::Depsgraph::object_instances_iterator b_instance_iter;
+
   for (b_depsgraph.object_instances.begin(b_instance_iter);
        b_instance_iter != b_depsgraph.object_instances.end() && !cancel;
        ++b_instance_iter) {
@@ -381,7 +402,8 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
                   false,
                   show_lights,
                   culling,
-                  &use_portal);
+                  &use_portal,
+                  &geom_task_pool);
     }
 
     /* Particle hair as separate object. */
@@ -393,11 +415,14 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
                   true,
                   show_lights,
                   culling,
-                  &use_portal);
+                  &use_portal,
+                  &geom_task_pool);
     }
 
     cancel = progress.get_cancel();
   }
+
+  geom_task_pool.wait_work();
 
   progress.set_sync_status("");
 

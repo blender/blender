@@ -50,6 +50,7 @@ class ViewLayer;
 class Shader;
 class ShaderGraph;
 class ShaderNode;
+class TaskPool;
 
 class BlenderSync {
  public:
@@ -145,7 +146,8 @@ class BlenderSync {
                       bool use_particle_hair,
                       bool show_lights,
                       BlenderObjectCulling &culling,
-                      bool *use_portal);
+                      bool *use_portal,
+                      TaskPool *geom_task_pool);
 
   /* Volume */
   void sync_volume(BL::Object &b_ob, Volume *volume, const vector<Shader *> &used_shaders);
@@ -177,12 +179,15 @@ class BlenderSync {
                           BL::Object &b_ob,
                           BL::Object &b_ob_instance,
                           bool object_updated,
-                          bool use_particle_hair);
+                          bool use_particle_hair,
+                          TaskPool *task_pool);
+
   void sync_geometry_motion(BL::Depsgraph &b_depsgraph,
                             BL::Object &b_ob,
                             Object *object,
                             float motion_time,
-                            bool use_particle_hair);
+                            bool use_particle_hair,
+                            TaskPool *task_pool);
 
   /* Light */
   void sync_light(BL::Object &b_parent,

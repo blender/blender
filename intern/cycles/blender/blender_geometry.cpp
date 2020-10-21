@@ -25,6 +25,7 @@
 #include "blender/blender_util.h"
 
 #include "util/util_foreach.h"
+#include "util/util_task.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -45,7 +46,8 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
                                      BL::Object &b_ob,
                                      BL::Object &b_ob_instance,
                                      bool object_updated,
-                                     bool use_particle_hair)
+                                     bool use_particle_hair,
+                                     TaskPool *task_pool)
 {
   /* Test if we can instance or if the object is modified. */
   BL::ID b_ob_data = b_ob.data();
@@ -77,8 +79,15 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
       used_shaders.push_back(default_shader);
   }
 
-  /* Test if we need to sync. */
+  /* Ensure we only sync instanced geometry once. */
   Geometry *geom = geometry_map.find(key);
+  if (geom) {
+    if (geometry_synced.find(geom) != geometry_synced.end()) {
+      return geom;
+    }
+  }
+
+  /* Test if we need to sync. */
   bool sync = true;
   if (geom == NULL) {
     /* Add new geometry if it did not exist yet. */
@@ -125,28 +134,36 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
     }
   }
 
-  /* Ensure we only sync instanced geometry once. */
-  if (geometry_synced.find(geom) != geometry_synced.end()) {
-    return geom;
-  }
-
-  progress.set_sync_status("Synchronizing object", b_ob.name());
-
   geometry_synced.insert(geom);
 
   geom->name = ustring(b_ob_data.name().c_str());
 
-  if (geom_type == Geometry::HAIR) {
-    Hair *hair = static_cast<Hair *>(geom);
-    sync_hair(b_depsgraph, b_ob, hair, used_shaders);
-  }
-  else if (geom_type == Geometry::VOLUME) {
-    Volume *volume = static_cast<Volume *>(geom);
-    sync_volume(b_ob, volume, used_shaders);
+  auto sync_func = [=]() mutable {
+    if (progress.get_cancel())
+      return;
+
+    progress.set_sync_status("Synchronizing object", b_ob.name());
+
+    if (geom_type == Geometry::HAIR) {
+      Hair *hair = static_cast<Hair *>(geom);
+      sync_hair(b_depsgraph, b_ob, hair, used_shaders);
+    }
+    else if (geom_type == Geometry::VOLUME) {
+      Volume *volume = static_cast<Volume *>(geom);
+      sync_volume(b_ob, volume, used_shaders);
+    }
+    else {
+      Mesh *mesh = static_cast<Mesh *>(geom);
+      sync_mesh(b_depsgraph, b_ob, mesh, used_shaders);
+    }
+  };
+
+  /* Defer the actual geometry sync to the task_pool for multithreading */
+  if (task_pool) {
+    task_pool->push(sync_func);
   }
   else {
-    Mesh *mesh = static_cast<Mesh *>(geom);
-    sync_mesh(b_depsgraph, b_ob, mesh, used_shaders);
+    sync_func();
   }
 
   return geom;
@@ -156,7 +173,8 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
                                        BL::Object &b_ob,
                                        Object *object,
                                        float motion_time,
-                                       bool use_particle_hair)
+                                       bool use_particle_hair,
+                                       TaskPool *task_pool)
 {
   /* Ensure we only sync instanced geometry once. */
   Geometry *geom = object->geometry;
@@ -177,16 +195,29 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
     return;
   }
 
-  if (b_ob.type() == BL::Object::type_HAIR || use_particle_hair) {
-    Hair *hair = static_cast<Hair *>(geom);
-    sync_hair_motion(b_depsgraph, b_ob, hair, motion_step);
-  }
-  else if (b_ob.type() == BL::Object::type_VOLUME || object_fluid_gas_domain_find(b_ob)) {
-    /* No volume motion blur support yet. */
+  auto sync_func = [=]() mutable {
+    if (progress.get_cancel())
+      return;
+
+    if (b_ob.type() == BL::Object::type_HAIR || use_particle_hair) {
+      Hair *hair = static_cast<Hair *>(geom);
+      sync_hair_motion(b_depsgraph, b_ob, hair, motion_step);
+    }
+    else if (b_ob.type() == BL::Object::type_VOLUME || object_fluid_gas_domain_find(b_ob)) {
+      /* No volume motion blur support yet. */
+    }
+    else {
+      Mesh *mesh = static_cast<Mesh *>(geom);
+      sync_mesh_motion(b_depsgraph, b_ob, mesh, motion_step);
+    }
+  };
+
+  /* Defer the actual geometry sync to the task_pool for multithreading */
+  if (task_pool) {
+    task_pool->push(sync_func);
   }
   else {
-    Mesh *mesh = static_cast<Mesh *>(geom);
-    sync_mesh_motion(b_depsgraph, b_ob, mesh, motion_step);
+    sync_func();
   }
 }
 
