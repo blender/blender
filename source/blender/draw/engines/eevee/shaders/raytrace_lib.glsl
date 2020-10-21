@@ -235,9 +235,10 @@ vec3 raycast(int index,
 #endif
   }
 
-  if (discard_backface) {
-    /* Discard backface hits */
-    hit = hit && (prev_delta > 0.0);
+  /* Discard backface hits. Only do this if the ray traveled enough to avoid loosing intricate
+   * contact reflections. This is only used for SSReflections. */
+  if (discard_backface && prev_delta < 0.0 && curr_time > 4.1) {
+    hit = false;
   }
 
   /* Reject hit if background. */
