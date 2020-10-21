@@ -896,30 +896,30 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
-  }
 
-  /* Remove options of legacy UV/Image editor */
-  for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
-    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
-        switch (sl->spacetype) {
-          case SPACE_IMAGE: {
-            SpaceImage *sima = (SpaceImage *)sl;
-            sima->flag &= ~(SI_FLAG_UNUSED_20);
-            break;
+    /* Remove options of legacy UV/Image editor */
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          switch (sl->spacetype) {
+            case SPACE_IMAGE: {
+              SpaceImage *sima = (SpaceImage *)sl;
+              sima->flag &= ~(SI_FLAG_UNUSED_20);
+              break;
+            }
           }
         }
       }
     }
-  }
 
-  if (!DNA_struct_elem_find(fd->filesdna, "FluidModifierData", "float", "fractions_distance")) {
-    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-        if (md->type == eModifierType_Fluid) {
-          FluidModifierData *fmd = (FluidModifierData *)md;
-          if (fmd->domain) {
-            fmd->domain->fractions_distance = 0.5;
+    if (!DNA_struct_elem_find(fd->filesdna, "FluidModifierData", "float", "fractions_distance")) {
+      LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+        LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+          if (md->type == eModifierType_Fluid) {
+            FluidModifierData *fmd = (FluidModifierData *)md;
+            if (fmd->domain) {
+              fmd->domain->fractions_distance = 0.5;
+            }
           }
         }
       }
