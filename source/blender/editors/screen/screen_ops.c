@@ -4375,9 +4375,15 @@ static void screen_animation_region_tag_redraw(ScrArea *area,
 
 //#define PROFILE_AUDIO_SYNCH
 
-static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int screen_animation_step_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
   bScreen *screen = CTX_wm_screen(C);
+  wmTimer *wt = screen->animtimer;
+
+  if (!(wt && wt == event->customdata)) {
+    return OPERATOR_PASS_THROUGH;
+  }
+
   wmWindow *win = CTX_wm_window(C);
 
 #ifdef PROFILE_AUDIO_SYNCH
@@ -4385,197 +4391,191 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
   int newfra_int;
 #endif
 
-  if (screen->animtimer && screen->animtimer == event->customdata) {
-    Main *bmain = CTX_data_main(C);
-    Scene *scene = CTX_data_scene(C);
-    ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-    Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer);
-    Scene *scene_eval = (depsgraph != NULL) ? DEG_get_evaluated_scene(depsgraph) : NULL;
-    wmTimer *wt = screen->animtimer;
-    ScreenAnimData *sad = wt->customdata;
-    wmWindowManager *wm = CTX_wm_manager(C);
-    int sync;
-    double time;
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+  Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer);
+  Scene *scene_eval = (depsgraph != NULL) ? DEG_get_evaluated_scene(depsgraph) : NULL;
+  ScreenAnimData *sad = wt->customdata;
+  wmWindowManager *wm = CTX_wm_manager(C);
+  int sync;
+  double time;
 
-    /* sync, don't sync, or follow scene setting */
-    if (sad->flag & ANIMPLAY_FLAG_SYNC) {
-      sync = 1;
-    }
-    else if (sad->flag & ANIMPLAY_FLAG_NO_SYNC) {
-      sync = 0;
+  /* sync, don't sync, or follow scene setting */
+  if (sad->flag & ANIMPLAY_FLAG_SYNC) {
+    sync = 1;
+  }
+  else if (sad->flag & ANIMPLAY_FLAG_NO_SYNC) {
+    sync = 0;
+  }
+  else {
+    sync = (scene->flag & SCE_FRAME_DROP);
+  }
+
+  if (scene_eval == NULL) {
+    /* Happens when undo/redo system is used during playback, nothing meaningful we can do here. */
+  }
+  else if (scene_eval->id.recalc & ID_RECALC_AUDIO_SEEK) {
+    /* Ignore seek here, the audio will be updated to the scene frame after jump during next
+     * dependency graph update. */
+  }
+  else if ((scene->audio.flag & AUDIO_SYNC) && (sad->flag & ANIMPLAY_FLAG_REVERSE) == false &&
+           isfinite(time = BKE_sound_sync_scene(scene_eval))) {
+    double newfra = time * FPS;
+
+    /* give some space here to avoid jumps */
+    if (newfra + 0.5 > scene->r.cfra && newfra - 0.5 < scene->r.cfra) {
+      scene->r.cfra++;
     }
     else {
-      sync = (scene->flag & SCE_FRAME_DROP);
+      scene->r.cfra = max_ii(scene->r.cfra, round(newfra));
     }
 
-    if (scene_eval == NULL) {
-      /* Happens when undo/redo system is used during playback, nothing meaningful we can do
-       * here.
-       */
+#ifdef PROFILE_AUDIO_SYNCH
+    newfra_int = scene->r.cfra;
+    if (newfra_int < old_frame) {
+      printf("back jump detected, frame %d!\n", newfra_int);
     }
-    else if (scene_eval->id.recalc & ID_RECALC_AUDIO_SEEK) {
-      /* Ignore seek here, the audio will be updated to the scene frame after jump during next
-       * dependency graph update. */
+    else if (newfra_int > old_frame + 1) {
+      printf("forward jump detected, frame %d!\n", newfra_int);
     }
-    else if ((scene->audio.flag & AUDIO_SYNC) && (sad->flag & ANIMPLAY_FLAG_REVERSE) == false &&
-             isfinite(time = BKE_sound_sync_scene(scene_eval))) {
-      double newfra = time * FPS;
+    fflush(stdout);
+    old_frame = newfra_int;
+#endif
+  }
+  else {
+    if (sync) {
+      /* Try to keep the playback in realtime by dropping frames. */
 
-      /* give some space here to avoid jumps */
-      if (newfra + 0.5 > scene->r.cfra && newfra - 0.5 < scene->r.cfra) {
+      /* How much time (in frames) has passed since the last frame was drawn? */
+      double delta_frames = wt->delta * FPS;
+
+      /* Add the remaining fraction from the last time step. */
+      delta_frames += sad->lagging_frame_count;
+
+      if (delta_frames < 1.0) {
+        /* We can render faster than the scene frame rate. However skipping or delaying frames
+         * here seems to in practice lead to jittery playback so just step forward a minimum of
+         * one frame. (Even though this can lead to too fast playback, the jitteryness is more
+         * annoying)
+         */
+        delta_frames = 1.0f;
+        sad->lagging_frame_count = 0;
+      }
+      else {
+        /* Extract the delta frame fractions that will be skipped when converting to int. */
+        sad->lagging_frame_count = delta_frames - (int)delta_frames;
+      }
+
+      const int step = delta_frames;
+
+      /* skip frames */
+      if (sad->flag & ANIMPLAY_FLAG_REVERSE) {
+        scene->r.cfra -= step;
+      }
+      else {
+        scene->r.cfra += step;
+      }
+    }
+    else {
+      /* one frame +/- */
+      if (sad->flag & ANIMPLAY_FLAG_REVERSE) {
+        scene->r.cfra--;
+      }
+      else {
         scene->r.cfra++;
       }
-      else {
-        scene->r.cfra = max_ii(scene->r.cfra, round(newfra));
-      }
-
-#ifdef PROFILE_AUDIO_SYNCH
-      newfra_int = scene->r.cfra;
-      if (newfra_int < old_frame) {
-        printf("back jump detected, frame %d!\n", newfra_int);
-      }
-      else if (newfra_int > old_frame + 1) {
-        printf("forward jump detected, frame %d!\n", newfra_int);
-      }
-      fflush(stdout);
-      old_frame = newfra_int;
-#endif
     }
-    else {
-      if (sync) {
-        /* Try to keep the playback in realtime by dropping frames. */
-
-        /* How much time (in frames) has passed since the last frame was drawn? */
-        double delta_frames = wt->delta * FPS;
-
-        /* Add the remaining fraction from the last time step. */
-        delta_frames += sad->lagging_frame_count;
-
-        if (delta_frames < 1.0) {
-          /* We can render faster than the scene frame rate. However skipping or delaying frames
-           * here seems to in practice lead to jittery playback so just step forward a minimum of
-           * one frame. (Even though this can lead to too fast playback, the jitteryness is more
-           * annoying)
-           */
-          delta_frames = 1.0f;
-          sad->lagging_frame_count = 0;
-        }
-        else {
-          /* Extract the delta frame fractions that will be skipped when converting to int. */
-          sad->lagging_frame_count = delta_frames - (int)delta_frames;
-        }
-
-        const int step = delta_frames;
-
-        /* skip frames */
-        if (sad->flag & ANIMPLAY_FLAG_REVERSE) {
-          scene->r.cfra -= step;
-        }
-        else {
-          scene->r.cfra += step;
-        }
-      }
-      else {
-        /* one frame +/- */
-        if (sad->flag & ANIMPLAY_FLAG_REVERSE) {
-          scene->r.cfra--;
-        }
-        else {
-          scene->r.cfra++;
-        }
-      }
-    }
-
-    /* reset 'jumped' flag before checking if we need to jump... */
-    sad->flag &= ~ANIMPLAY_FLAG_JUMPED;
-
-    if (sad->flag & ANIMPLAY_FLAG_REVERSE) {
-      /* jump back to end? */
-      if (PRVRANGEON) {
-        if (scene->r.cfra < scene->r.psfra) {
-          scene->r.cfra = scene->r.pefra;
-          sad->flag |= ANIMPLAY_FLAG_JUMPED;
-        }
-      }
-      else {
-        if (scene->r.cfra < scene->r.sfra) {
-          scene->r.cfra = scene->r.efra;
-          sad->flag |= ANIMPLAY_FLAG_JUMPED;
-        }
-      }
-    }
-    else {
-      /* jump back to start? */
-      if (PRVRANGEON) {
-        if (scene->r.cfra > scene->r.pefra) {
-          scene->r.cfra = scene->r.psfra;
-          sad->flag |= ANIMPLAY_FLAG_JUMPED;
-        }
-      }
-      else {
-        if (scene->r.cfra > scene->r.efra) {
-          scene->r.cfra = scene->r.sfra;
-          sad->flag |= ANIMPLAY_FLAG_JUMPED;
-        }
-      }
-    }
-
-    /* next frame overridden by user action (pressed jump to first/last frame) */
-    if (sad->flag & ANIMPLAY_FLAG_USE_NEXT_FRAME) {
-      scene->r.cfra = sad->nextfra;
-      sad->flag &= ~ANIMPLAY_FLAG_USE_NEXT_FRAME;
-      sad->flag |= ANIMPLAY_FLAG_JUMPED;
-    }
-
-    if (sad->flag & ANIMPLAY_FLAG_JUMPED) {
-      DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_SEEK);
-#ifdef PROFILE_AUDIO_SYNCH
-      old_frame = CFRA;
-#endif
-    }
-
-    /* since we follow drawflags, we can't send notifier but tag regions ourselves */
-    if (depsgraph != NULL) {
-      ED_update_for_newframe(bmain, depsgraph);
-    }
-
-    LISTBASE_FOREACH (wmWindow *, window, &wm->windows) {
-      const bScreen *win_screen = WM_window_get_active_screen(window);
-
-      LISTBASE_FOREACH (ScrArea *, area, &win_screen->areabase) {
-        LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-          bool redraw = false;
-          if (region == sad->region) {
-            redraw = true;
-          }
-          else if (match_region_with_redraws(
-                       area, region->regiontype, sad->redraws, sad->from_anim_edit)) {
-            redraw = true;
-          }
-
-          if (redraw) {
-            screen_animation_region_tag_redraw(area, region, scene, sad->redraws);
-          }
-        }
-      }
-    }
-
-    /* update frame rate info too
-     * NOTE: this may not be accurate enough, since we might need this after modifiers/etc.
-     * have been calculated instead of just before updates have been done?
-     */
-    ED_refresh_viewport_fps(C);
-
-    /* Recalculate the time-step for the timer now that we've finished calculating this,
-     * since the frames-per-second value may have been changed.
-     */
-    /* TODO: this may make evaluation a bit slower if the value doesn't change...
-     * any way to avoid this? */
-    wt->timestep = (1.0 / FPS);
-
-    return OPERATOR_FINISHED;
   }
-  return OPERATOR_PASS_THROUGH;
+
+  /* reset 'jumped' flag before checking if we need to jump... */
+  sad->flag &= ~ANIMPLAY_FLAG_JUMPED;
+
+  if (sad->flag & ANIMPLAY_FLAG_REVERSE) {
+    /* jump back to end? */
+    if (PRVRANGEON) {
+      if (scene->r.cfra < scene->r.psfra) {
+        scene->r.cfra = scene->r.pefra;
+        sad->flag |= ANIMPLAY_FLAG_JUMPED;
+      }
+    }
+    else {
+      if (scene->r.cfra < scene->r.sfra) {
+        scene->r.cfra = scene->r.efra;
+        sad->flag |= ANIMPLAY_FLAG_JUMPED;
+      }
+    }
+  }
+  else {
+    /* jump back to start? */
+    if (PRVRANGEON) {
+      if (scene->r.cfra > scene->r.pefra) {
+        scene->r.cfra = scene->r.psfra;
+        sad->flag |= ANIMPLAY_FLAG_JUMPED;
+      }
+    }
+    else {
+      if (scene->r.cfra > scene->r.efra) {
+        scene->r.cfra = scene->r.sfra;
+        sad->flag |= ANIMPLAY_FLAG_JUMPED;
+      }
+    }
+  }
+
+  /* next frame overridden by user action (pressed jump to first/last frame) */
+  if (sad->flag & ANIMPLAY_FLAG_USE_NEXT_FRAME) {
+    scene->r.cfra = sad->nextfra;
+    sad->flag &= ~ANIMPLAY_FLAG_USE_NEXT_FRAME;
+    sad->flag |= ANIMPLAY_FLAG_JUMPED;
+  }
+
+  if (sad->flag & ANIMPLAY_FLAG_JUMPED) {
+    DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_SEEK);
+#ifdef PROFILE_AUDIO_SYNCH
+    old_frame = CFRA;
+#endif
+  }
+
+  /* since we follow drawflags, we can't send notifier but tag regions ourselves */
+  if (depsgraph != NULL) {
+    ED_update_for_newframe(bmain, depsgraph);
+  }
+
+  LISTBASE_FOREACH (wmWindow *, window, &wm->windows) {
+    const bScreen *win_screen = WM_window_get_active_screen(window);
+
+    LISTBASE_FOREACH (ScrArea *, area, &win_screen->areabase) {
+      LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+        bool redraw = false;
+        if (region == sad->region) {
+          redraw = true;
+        }
+        else if (match_region_with_redraws(
+                     area, region->regiontype, sad->redraws, sad->from_anim_edit)) {
+          redraw = true;
+        }
+
+        if (redraw) {
+          screen_animation_region_tag_redraw(area, region, scene, sad->redraws);
+        }
+      }
+    }
+  }
+
+  /* update frame rate info too
+   * NOTE: this may not be accurate enough, since we might need this after modifiers/etc.
+   * have been calculated instead of just before updates have been done?
+   */
+  ED_refresh_viewport_fps(C);
+
+  /* Recalculate the time-step for the timer now that we've finished calculating this,
+   * since the frames-per-second value may have been changed.
+   */
+  /* TODO: this may make evaluation a bit slower if the value doesn't change...
+   * any way to avoid this? */
+  wt->timestep = (1.0 / FPS);
+
+  return OPERATOR_FINISHED;
 }
 
 static void SCREEN_OT_animation_step(wmOperatorType *ot)
@@ -4586,7 +4586,7 @@ static void SCREEN_OT_animation_step(wmOperatorType *ot)
   ot->idname = "SCREEN_OT_animation_step";
 
   /* api callbacks */
-  ot->invoke = screen_animation_step;
+  ot->invoke = screen_animation_step_invoke;
 
   ot->poll = ED_operator_screenactive_norender;
 }
