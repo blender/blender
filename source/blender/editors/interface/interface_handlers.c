@@ -8546,6 +8546,7 @@ void ui_but_activate_event(bContext *C, ARegion *region, uiBut *but)
   wm_event_init_from_window(win, &event);
   event.type = EVT_BUT_OPEN;
   event.val = KM_PRESS;
+  event.is_repeat = false;
   event.customdata = but;
   event.customdatafree = false;
 

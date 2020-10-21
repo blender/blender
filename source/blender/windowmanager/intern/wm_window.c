@@ -1301,6 +1301,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
         event.type = MOUSEMOVE;
         event.prevx = event.x;
         event.prevy = event.y;
+        event.is_repeat = false;
 
         wm_event_add(win, &event);
 
@@ -1432,6 +1433,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
         event.type = MOUSEMOVE;
         event.prevx = event.x;
         event.prevy = event.y;
+        event.is_repeat = false;
 
         /* No context change! C->wm->windrawable is drawable, or for area queues. */
         wm->winactive = win;
@@ -1568,6 +1570,7 @@ static int wm_window_timer(const bContext *C)
         event.type = wt->event_type;
         event.val = KM_NOTHING;
         event.keymodifier = 0;
+        event.is_repeat = false;
         event.custom = EVT_DATA_TIMER;
         event.customdata = wt;
         wm_event_add(win, &event);

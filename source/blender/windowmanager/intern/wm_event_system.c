@@ -663,6 +663,7 @@ void wm_event_handler_ui_cancel_ex(bContext *C,
       wm_event_init_from_window(win, &event);
       event.type = EVT_BUT_CANCEL;
       event.val = reactivate_button ? 0 : 1;
+      event.is_repeat = false;
       handler->handle_fn(C, &event, handler->user_data);
     }
   }

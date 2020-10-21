@@ -6757,6 +6757,7 @@ void UI_but_focus_on_enter_event(wmWindow *win, uiBut *but)
 
   event.type = EVT_BUT_OPEN;
   event.val = KM_PRESS;
+  event.is_repeat = false;
   event.customdata = but;
   event.customdatafree = false;
 
