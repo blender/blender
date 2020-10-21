@@ -86,6 +86,8 @@ class PackedIntrinsics {
   double* GetParametersBlock() { return parameters_.data(); }
   const double* GetParametersBlock() const { return parameters_.data(); }
 
+  bool IsParameterDefined(int offset);
+
  private:
   void SetParameter(int index, double value);
   double GetParameter(int index) const;

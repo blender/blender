@@ -338,6 +338,7 @@ void BKE_tracking_settings_init(MovieTracking *tracking)
   tracking->settings.default_weight = 1.0f;
   tracking->settings.dist = 1;
   tracking->settings.object_distance = 1;
+  tracking->settings.refine_camera_intrinsics = REFINE_NO_INTRINSICS;
 
   tracking->stabilization.scaleinf = 1.0f;
   tracking->stabilization.anchor_frame = 1;

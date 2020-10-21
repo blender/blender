@@ -55,4 +55,8 @@ double PackedIntrinsics::GetParameter(int index) const {
   return parameters_.at(index);
 }
 
+bool PackedIntrinsics::IsParameterDefined(int offset) {
+  return known_parameters_.at(offset);
+}
+
 }  // namespace libmv

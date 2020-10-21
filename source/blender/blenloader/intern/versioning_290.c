@@ -44,6 +44,7 @@
 #include "DNA_rigidbody_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_shader_fx_types.h"
+#include "DNA_tracking_types.h"
 #include "DNA_workspace_types.h"
 
 #include "BKE_animsys.h"
@@ -925,6 +926,35 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
             }
           }
         }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 292, 1)) {
+    {
+      const int LEGACY_REFINE_RADIAL_DISTORTION_K1 = (1 << 2);
+
+      LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
+        MovieTracking *tracking = &clip->tracking;
+        MovieTrackingSettings *settings = &tracking->settings;
+        int new_refine_camera_intrinsics = 0;
+
+        if (settings->refine_camera_intrinsics & REFINE_FOCAL_LENGTH) {
+          new_refine_camera_intrinsics |= REFINE_FOCAL_LENGTH;
+        }
+
+        if (settings->refine_camera_intrinsics & REFINE_PRINCIPAL_POINT) {
+          new_refine_camera_intrinsics |= REFINE_PRINCIPAL_POINT;
+        }
+
+        /* The end goal is to enable radial distorion refinement if either K1 or K2 were set for
+         * refinement. It is enough to only check for L1 it was not possible to refine K2 without
+         * K1. */
+        if (settings->refine_camera_intrinsics & LEGACY_REFINE_RADIAL_DISTORTION_K1) {
+          new_refine_camera_intrinsics |= REFINE_RADIAL_DISTORTION;
+        }
+
+        settings->refine_camera_intrinsics = new_refine_camera_intrinsics;
       }
     }
   }

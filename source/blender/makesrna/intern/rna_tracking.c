@@ -924,19 +924,22 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Refine Principal Point", "Refine principal point during camera solving");
 
-  prop = RNA_def_property(srna, "refine_intrinsics_k1", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(
-      prop, NULL, "refine_camera_intrinsics", REFINE_RADIAL_DISTORTION_K1);
+  prop = RNA_def_property(srna, "refine_intrinsics_radial_distortion", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "refine_camera_intrinsics", REFINE_RADIAL_DISTORTION);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_ui_text(
-      prop, "Refine K1", "Refine K1 coefficient of distortion model during camera solving");
+  RNA_def_property_ui_text(prop,
+                           "Refine Radial",
+                           "Refine radial coefficients of distortion model during camera solving");
 
-  prop = RNA_def_property(srna, "refine_intrinsics_k2", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(
+      srna, "refine_intrinsics_tangential_distortion", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(
-      prop, NULL, "refine_camera_intrinsics", REFINE_RADIAL_DISTORTION_K2);
+      prop, NULL, "refine_camera_intrinsics", REFINE_TANGENTIAL_DISTORTION);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
-      prop, "Refine K2", "Refine K2 coefficient of distortion model during camera solving");
+      prop,
+      "Refine Tangential",
+      "Refine tangential coefficients of distortion model during camera solving");
 
   /* tool settings */
 
