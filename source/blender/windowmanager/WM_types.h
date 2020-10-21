@@ -503,6 +503,9 @@ typedef struct wmGesture {
   /** For gestures that support snapping, stores if snapping is enabled using the modal keymap
    * toggle. */
   uint use_snap : 1;
+  /** For gestures that support flip, stores if flip is enabled using the modal keymap
+   * toggle. */
+  uint use_flip : 1;
 
   /**
    * customdata

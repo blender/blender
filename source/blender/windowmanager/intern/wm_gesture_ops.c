@@ -851,6 +851,7 @@ static bool gesture_straightline_apply(bContext *C, wmOperator *op)
   RNA_int_set(op->ptr, "ystart", rect->ymin);
   RNA_int_set(op->ptr, "xend", rect->xmax);
   RNA_int_set(op->ptr, "yend", rect->ymax);
+  RNA_boolean_set(op->ptr, "flip", gesture->use_flip);
 
   if (op->type->exec) {
     int retval = op->type->exec(C, op);
@@ -892,6 +893,7 @@ int WM_gesture_straightline_active_side_invoke(bContext *C, wmOperator *op, cons
   WM_gesture_straightline_invoke(C, op, event);
   wmGesture *gesture = op->customdata;
   gesture->draw_active_side = true;
+  gesture->use_flip = false;
   return OPERATOR_RUNNING_MODAL;
 }
 
@@ -948,6 +950,11 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
       case GESTURE_MODAL_SNAP: {
         /* Toggle snapping on/off. */
         gesture->use_snap = !gesture->use_snap;
+        break;
+      }
+      case GESTURE_MODAL_FLIP: {
+        /* Toggle snapping on/off. */
+        gesture->use_flip = !gesture->use_flip;
         break;
       }
       case GESTURE_MODAL_SELECT: {
@@ -1027,6 +1034,11 @@ int WM_gesture_straightline_oneshot_modal(bContext *C, wmOperator *op, const wmE
       case GESTURE_MODAL_SNAP: {
         /* Toggle snapping on/off. */
         gesture->use_snap = !gesture->use_snap;
+        break;
+      }
+      case GESTURE_MODAL_FLIP: {
+        /* Toggle flip on/off. */
+        gesture->use_flip = !gesture->use_flip;
         break;
       }
       case GESTURE_MODAL_SELECT:
