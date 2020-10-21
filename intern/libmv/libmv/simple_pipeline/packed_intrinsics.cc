@@ -47,7 +47,7 @@ double PackedIntrinsics::GetPrincipalPointY() const {
 
 void PackedIntrinsics::SetParameter(int index, double value) {
   parameters_.at(index) = value;
-  known_parameters_.at(index) = value;
+  known_parameters_.at(index) = true;
 }
 double PackedIntrinsics::GetParameter(int index) const {
   // TODO(sergey): Consider adding a check for whether the parameter is known.
