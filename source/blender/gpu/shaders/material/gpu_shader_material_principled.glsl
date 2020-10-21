@@ -450,7 +450,7 @@ void node_bsdf_principled_glass(vec4 base_color,
 
   eevee_closure_glass(N,
                       vec3(1.0),
-                      vec3(1.0),
+                      vec3((use_multiscatter != 0.0) ? 1.0 : -1.0),
                       int(ssr_id),
                       roughness,
                       1.0,
