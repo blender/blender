@@ -1163,6 +1163,15 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
 
     first = false;
   }
+
+  uiLayout *pin_row = uiLayoutRow(row, false);
+  uiLayoutSetAlignment(pin_row, UI_LAYOUT_ALIGN_RIGHT);
+  uiItemSpacer(pin_row);
+  uiLayoutSetEmboss(pin_row, UI_EMBOSS_NONE);
+  uiItemO(pin_row,
+          "",
+          (sbuts->flag & SB_PIN_CONTEXT) ? ICON_PINNED : ICON_UNPINNED,
+          "BUTTONS_OT_toggle_pin");
 }
 
 void buttons_context_register(ARegionType *art)
