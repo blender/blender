@@ -423,53 +423,24 @@ static bool object_switch_object_poll(bContext *C)
 
 static int object_switch_object_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ARegion *ar = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  struct SnapObjectContext *sctx = ED_transform_snap_object_context_create(scene, 0);
 
-  float global_normal[3], global_loc[3];
-  float r_obmat[4][4];
+  Base *base_dst = ED_view3d_give_base_under_cursor(C, event->mval);
 
-  float mouse[2];
-  mouse[0] = event->mval[0];
-  mouse[1] = event->mval[1];
-
-  float ray_co[3], ray_no[3];
-  float ray_dist = BVH_RAYCAST_DIST_MAX;
-  int index_dummy;
-  ED_view3d_win_to_origin(ar, mouse, ray_co);
-  ED_view3d_win_to_vector(ar, mouse, ray_no);
-
-  Object *ob_dst = NULL;
-
-  bool ret = ED_transform_snap_object_project_ray_ex(sctx,
-                                                     depsgraph,
-                                                     &(const struct SnapObjectParams){
-                                                         .snap_select = SNAP_NOT_ACTIVE,
-                                                     },
-                                                     ray_co,
-                                                     ray_no,
-                                                     &ray_dist,
-                                                     global_loc,
-                                                     global_normal,
-                                                     &index_dummy,
-                                                     &ob_dst,
-                                                     (float(*)[4])r_obmat);
-  ED_transform_snap_object_context_destroy(sctx);
-
-  if (!ret || ob_dst == NULL) {
+  if (base_dst == NULL) {
     return OPERATOR_CANCELLED;
   }
 
+  Object *ob_dst = base_dst->object;
   Object *ob_src = CTX_data_active_object(C);
+
   if (ob_dst == ob_src) {
     return OPERATOR_CANCELLED;
   }
 
-  eObjectMode last_mode = (eObjectMode)ob_src->mode;
+  const eObjectMode last_mode = (eObjectMode)ob_src->mode;
   if (!ED_object_mode_compat_test(ob_dst, last_mode)) {
     return OPERATOR_CANCELLED;
   }
@@ -487,15 +458,19 @@ static int object_switch_object_invoke(bContext *C, wmOperator *op, const wmEven
   /* FIXME: Do a single undo push. */
   ED_undo_push(C, "Change Active");
 
-  depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ob_dst_orig = DEG_get_original_object(ob_dst);
   ED_object_mode_set_ex(C, last_mode, true, op->reports);
 
   /* Update the viewport rotation origin to the mouse cursor. */
-  UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
-  copy_v3_v3(ups->average_stroke_accum, global_loc);
-  ups->average_stroke_counter = 1;
-  ups->last_stroke_valid = true;
+  if (last_mode & OB_MODE_ALL_PAINT) {
+    float global_loc[3];
+    if (ED_view3d_autodist_simple(ar, event->mval, global_loc, 0, NULL)) {
+      UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+      copy_v3_v3(ups->average_stroke_accum, global_loc);
+      ups->average_stroke_counter = 1;
+      ups->last_stroke_valid = true;
+    }
+  }
 
   WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
   WM_toolsystem_update_from_context_view3d(C);
