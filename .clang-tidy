@@ -18,7 +18,6 @@ Checks:  >
   -readability-redundant-member-init,
   -readability-use-anyofallof,
 
-  -readability-named-parameter,
   -readability-function-cognitive-complexity,
 
   bugprone-*,
