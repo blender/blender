@@ -254,8 +254,12 @@ static bool test_path(char *targetpath,
 }
 
 /**
- * Puts the value of the specified environment variable into *path if it exists
- * and points at a directory. Returns true if this was done.
+ * Puts the value of the specified environment variable into \a path if it exists.
+ *
+ * \param check_is_dir: When true, checks if it points at a directory.
+ *
+ * \returns true when the value of the environment variable is stored
+ * at the address \a path points to.
  */
 static bool test_env_path(char *path, const char *envvar, const bool check_is_dir)
 {
@@ -266,13 +270,14 @@ static bool test_env_path(char *path, const char *envvar, const bool check_is_di
     return false;
   }
 
+  BLI_strncpy(path, env_path, FILE_MAX);
+
   if (check_is_dir == false) {
     CLOG_INFO(&LOG, 3, "using env '%s' without test: '%s'", envvar, env_path);
     return true;
   }
 
   if (BLI_is_dir(env_path)) {
-    BLI_strncpy(path, env_path, FILE_MAX);
     CLOG_INFO(&LOG, 3, "env '%s' found: %s", envvar, env_path);
     return true;
   }
