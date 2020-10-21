@@ -690,26 +690,23 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
         }
 
         {
-          int x, y;
-          short *lasso = gesture->customdata;
+          short(*lasso)[2] = gesture->customdata;
 
-          lasso += (2 * gesture->points - 2);
-          x = (event->x - gesture->winrct.xmin - lasso[0]);
-          y = (event->y - gesture->winrct.ymin - lasso[1]);
+          const int x = ((event->x - gesture->winrct.xmin) - lasso[gesture->points - 1][0]);
+          const int y = ((event->y - gesture->winrct.ymin) - lasso[gesture->points - 1][1]);
 
           /* move the lasso */
           if (gesture->move) {
             for (int i = 0; i < gesture->points; i++) {
-              lasso[0 - (i * 2)] += x;
-              lasso[1 - (i * 2)] += y;
+              lasso[i][0] += x;
+              lasso[i][1] += y;
             }
           }
-          /* make a simple distance check to get a smoother lasso
-           * add only when at least 2 pixels between this and previous location */
+          /* Make a simple distance check to get a smoother lasso
+           * add only when at least 2 pixels between this and previous location. */
           else if ((x * x + y * y) > pow2f(2.0f * UI_DPI_FAC)) {
-            lasso += 2;
-            lasso[0] = event->x - gesture->winrct.xmin;
-            lasso[1] = event->y - gesture->winrct.ymin;
+            lasso[gesture->points][0] = event->x - gesture->winrct.xmin;
+            lasso[gesture->points][1] = event->y - gesture->winrct.ymin;
             gesture->points++;
           }
         }
