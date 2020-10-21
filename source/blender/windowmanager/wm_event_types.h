@@ -496,6 +496,9 @@ enum {
 
   /** Toggle to activate snapping (angle snapping for straight line). */
   GESTURE_MODAL_SNAP = 13,
+
+  /** Toggle to activate flip (flip the active side of a straight line). */
+  GESTURE_MODAL_FLIP = 14,
 };
 
 #ifdef __cplusplus

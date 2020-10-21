@@ -248,6 +248,7 @@ typedef struct LassoGestureData {
 typedef struct LineGestureData {
   float true_plane[4];
   float plane[4];
+  bool flip;
 } LineGestureData;
 
 struct SculptGestureOperation;
@@ -461,6 +462,8 @@ static SculptGestureContext *sculpt_gesture_init_from_line(bContext *C, wmOperat
   line_points[1][0] = RNA_int_get(op->ptr, "xend");
   line_points[1][1] = RNA_int_get(op->ptr, "yend");
 
+  sgcontext->line.flip = RNA_boolean_get(op->ptr, "flip");
+
   float depth_point[3];
   float plane_points[3][3];
 
@@ -481,6 +484,12 @@ static SculptGestureContext *sculpt_gesture_init_from_line(bContext *C, wmOperat
   if (!sgcontext->vc.rv3d->is_persp) {
     mul_v3_fl(normal, -1.0f);
   }
+
+  /* Apply flip. */
+  if (sgcontext->line.flip) {
+    mul_v3_fl(normal, -1.0f);
+  }
+
   mul_v3_mat3_m4v3(normal, sgcontext->vc.obact->imat, normal);
   float plane_point_object_space[3];
   mul_v3_m4v3(plane_point_object_space, sgcontext->vc.obact->imat, plane_points[0]);

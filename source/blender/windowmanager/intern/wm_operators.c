@@ -3807,6 +3807,7 @@ static void gesture_straightline_modal_keymap(wmKeyConfig *keyconf)
       {GESTURE_MODAL_BEGIN, "BEGIN", 0, "Begin", ""},
       {GESTURE_MODAL_MOVE, "MOVE", 0, "Move", ""},
       {GESTURE_MODAL_SNAP, "SNAP", 0, "Snap", ""},
+      {GESTURE_MODAL_FLIP, "FLIP", 0, "Flip", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
