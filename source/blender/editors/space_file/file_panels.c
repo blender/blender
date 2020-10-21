@@ -181,11 +181,11 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
 
   if (params->flag & FILE_CHECK_EXISTING) {
     but_extra_rna_ptr = UI_but_extra_operator_icon_add(
-        but, "FILE_OT_filenum", WM_OP_EXEC_REGION_WIN, ICON_ADD);
-    RNA_int_set(but_extra_rna_ptr, "increment", 1);
-    but_extra_rna_ptr = UI_but_extra_operator_icon_add(
         but, "FILE_OT_filenum", WM_OP_EXEC_REGION_WIN, ICON_REMOVE);
     RNA_int_set(but_extra_rna_ptr, "increment", -1);
+    but_extra_rna_ptr = UI_but_extra_operator_icon_add(
+        but, "FILE_OT_filenum", WM_OP_EXEC_REGION_WIN, ICON_ADD);
+    RNA_int_set(but_extra_rna_ptr, "increment", 1);
   }
 
   /* check if this overrides a file and if the operator option is used */
