@@ -824,11 +824,6 @@ int BLF_height_max(int fontid)
   return 0;
 }
 
-int BLF_default_height_max(void)
-{
-  return BLF_height_max(global_font_default);
-}
-
 float BLF_width_max(int fontid)
 {
   FontBLF *font = blf_get(fontid);
@@ -838,11 +833,6 @@ float BLF_width_max(int fontid)
   }
 
   return 0.0f;
-}
-
-float BLF_default_width_max(void)
-{
-  return BLF_width_max(global_font_default);
 }
 
 float BLF_descender(int fontid)

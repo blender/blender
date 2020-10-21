@@ -102,7 +102,7 @@
 
 #define M_GOLDEN_RATIO_CONJUGATE 0.618033988749895f
 
-#define VIEW3D_OVERLAY_LINEHEIGHT (int)(1.1f * BLF_default_height_max())
+#define VIEW3D_OVERLAY_LINEHEIGHT (0.9f * U.widget_unit)
 
 /* -------------------------------------------------------------------- */
 /** \name General Functions

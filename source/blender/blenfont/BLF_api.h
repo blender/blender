@@ -163,13 +163,8 @@ float BLF_height_ex(int fontid, const char *str, size_t len, struct ResultBLF *r
 float BLF_height(int fontid, const char *str, size_t len) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /* Return dimensions of the font without any sample text. */
-
 int BLF_height_max(int fontid) ATTR_WARN_UNUSED_RESULT;
-int BLF_default_height_max(void) ATTR_WARN_UNUSED_RESULT;
-
 float BLF_width_max(int fontid) ATTR_WARN_UNUSED_RESULT;
-float BLF_default_width_max(void) ATTR_WARN_UNUSED_RESULT;
-
 float BLF_descender(int fontid) ATTR_WARN_UNUSED_RESULT;
 float BLF_ascender(int fontid) ATTR_WARN_UNUSED_RESULT;
 
