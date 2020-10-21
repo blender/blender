@@ -99,6 +99,11 @@ class GPENCIL_OT_mesh_bake(Operator):
         description="Export faces as filled strokes",
         default=True,
     )
+    only_selected: BoolProperty(
+        name="Only Selected Keyframes",
+        description="Convert only selected keyframes",
+        default=False,
+    )
     target: EnumProperty(
         name="Target Object",
         description="Grease Pencil Object",
@@ -139,6 +144,7 @@ class GPENCIL_OT_mesh_bake(Operator):
             thickness=self.thickness,
             seams=self.seams,
             faces=self.faces,
+            only_selected=self.only_selected,
             offset=self.offset,
             target=self.target,
             frame_target=self.frame_target,

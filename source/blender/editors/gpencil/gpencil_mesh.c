@@ -25,12 +25,15 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_ghash.h"
 #include "BLI_math.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_anim_data.h"
 #include "BKE_context.h"
 #include "BKE_duplilist.h"
 #include "BKE_global.h"
@@ -85,6 +88,35 @@ typedef struct GpBakeOb {
   struct GpBakeOb *next, *prev;
   Object *ob;
 } GpBakeOb;
+
+/* Get list of keyframes used by selected objects. */
+static void animdata_keyframe_list_get(ListBase *ob_list,
+                                       const bool only_selected,
+                                       GHash *r_keyframes)
+{
+  /* Loop all objects to get the list of keyframes used. */
+  LISTBASE_FOREACH (GpBakeOb *, elem, ob_list) {
+    Object *ob = elem->ob;
+    AnimData *adt = BKE_animdata_from_id(&ob->id);
+    if ((adt == NULL) || (adt->action == NULL)) {
+      continue;
+    }
+    LISTBASE_FOREACH (FCurve *, fcurve, &adt->action->curves) {
+      int i;
+      BezTriple *bezt;
+      for (i = 0, bezt = fcurve->bezt; i < fcurve->totvert; i++, bezt++) {
+        /* Keyframe number is x value of point. */
+        if ((bezt->f2 & SELECT) || (!only_selected)) {
+          /* Insert only one key for each keyframe number. */
+          int key = (int)bezt->vec[1][0];
+          if (!BLI_ghash_haskey(r_keyframes, POINTER_FROM_INT(key))) {
+            BLI_ghash_insert(r_keyframes, POINTER_FROM_INT(key), POINTER_FROM_INT(key));
+          }
+        }
+      }
+    }
+  }
+}
 
 static void gpencil_bake_duplilist(Depsgraph *depsgraph, Scene *scene, Object *ob, ListBase *list)
 {
@@ -161,13 +193,13 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
   View3D *v3d = CTX_wm_view3d(C);
   Object *ob_gpencil = NULL;
 
-  ListBase list = {NULL, NULL};
-  gpencil_bake_ob_list(C, depsgraph, scene, &list);
+  ListBase ob_selected_list = {NULL, NULL};
+  gpencil_bake_ob_list(C, depsgraph, scene, &ob_selected_list);
 
   /* Cannot check this in poll because the active object changes. */
-  if (list.first == NULL) {
+  if (ob_selected_list.first == NULL) {
     BKE_report(op->reports, RPT_INFO, "No valid object selected");
-    gpencil_bake_free_ob_list(&list);
+    gpencil_bake_free_ob_list(&ob_selected_list);
     return OPERATOR_CANCELLED;
   }
 
@@ -186,6 +218,7 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
   const int thickness = RNA_int_get(op->ptr, "thickness");
   const bool use_seams = RNA_boolean_get(op->ptr, "seams");
   const bool use_faces = RNA_boolean_get(op->ptr, "faces");
+  const bool only_selected = RNA_boolean_get(op->ptr, "only_selected");
   const float offset = RNA_float_get(op->ptr, "offset");
   const int frame_offset = RNA_int_get(op->ptr, "frame_target") - frame_start;
   char target[64];
@@ -206,7 +239,7 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
 
   if ((ob_gpencil == NULL) || (ob_gpencil->type != OB_GPENCIL)) {
     BKE_report(op->reports, RPT_ERROR, "Target grease pencil object not valid");
-    gpencil_bake_free_ob_list(&list);
+    gpencil_bake_free_ob_list(&ob_selected_list);
     return OPERATOR_CANCELLED;
   }
 
@@ -237,10 +270,22 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
   /* Loop all frame range. */
   int oldframe = (int)DEG_get_ctime(depsgraph);
   int key = -1;
+
+  /* Get list of keyframes. */
+  GHash *keyframe_list = BLI_ghash_int_new(__func__);
+  if (only_selected) {
+    animdata_keyframe_list_get(&ob_selected_list, only_selected, keyframe_list);
+  }
+
   for (int i = frame_start; i < frame_end + 1; i++) {
     key++;
     /* Jump if not step limit but include last frame always. */
     if ((key % step != 0) && (i != frame_end)) {
+      continue;
+    }
+
+    /* Check if frame is in the list of frames to be exported. */
+    if ((only_selected) && (!BLI_ghash_haskey(keyframe_list, POINTER_FROM_INT(i)))) {
       continue;
     }
 
@@ -249,7 +294,7 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
     BKE_scene_graph_update_for_newframe(depsgraph);
 
     /* Loop all objects in the list. */
-    LISTBASE_FOREACH (GpBakeOb *, elem, &list) {
+    LISTBASE_FOREACH (GpBakeOb *, elem, &ob_selected_list) {
       Object *ob_eval = (Object *)DEG_get_evaluated_object(depsgraph, elem->ob);
 
       /* Generate strokes. */
@@ -270,13 +315,14 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
       if (project_type != GP_REPROJECT_KEEP) {
         LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
           bGPDframe *gpf = gpl->actframe;
-          if (gpf != NULL) {
-            LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-              if ((gps->flag & GP_STROKE_TAG) == 0) {
-                ED_gpencil_stroke_reproject(
-                    depsgraph, &gsc, sctx, gpl, gpf, gps, project_type, false);
-                gps->flag |= GP_STROKE_TAG;
-              }
+          if (gpf == NULL) {
+            continue;
+          }
+          LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+            if ((gps->flag & GP_STROKE_TAG) == 0) {
+              ED_gpencil_stroke_reproject(
+                  depsgraph, &gsc, sctx, gpl, gpf, gps, project_type, false);
+              gps->flag |= GP_STROKE_TAG;
             }
           }
         }
@@ -314,9 +360,13 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
   }
 
   /* Free memory. */
-  gpencil_bake_free_ob_list(&list);
+  gpencil_bake_free_ob_list(&ob_selected_list);
   if (sctx != NULL) {
     ED_transform_snap_object_context_destroy(sctx);
+  }
+  /* Free temp hash table. */
+  if (keyframe_list != NULL) {
+    BLI_ghash_free(keyframe_list, NULL, NULL);
   }
 
   /* notifiers */
@@ -394,6 +444,8 @@ void GPENCIL_OT_bake_mesh_animation(wmOperatorType *ot)
   RNA_def_int(ot->srna, "thickness", 1, 1, 100, "Thickness", "", 1, 100);
   RNA_def_boolean(ot->srna, "seams", 0, "Only Seam Edges", "Convert only seam edges");
   RNA_def_boolean(ot->srna, "faces", 1, "Export Faces", "Export faces as filled strokes");
+  RNA_def_boolean(
+      ot->srna, "only_selected", 0, "Only Selected Keyframes", "Convert only selected keyframes");
   RNA_def_float_distance(
       ot->srna, "offset", 0.001f, 0.0, 100.0, "Offset", "Offset strokes from fill", 0.0, 100.00);
   RNA_def_int(ot->srna, "frame_target", 1, 1, 100000, "Frame Target", "", 1, 100000);
