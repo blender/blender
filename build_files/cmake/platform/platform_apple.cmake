@@ -335,7 +335,10 @@ endif()
 
 if(WITH_CYCLES_EMBREE)
   find_package(Embree 3.8.0 REQUIRED)
-  set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -Xlinker -stack_size -Xlinker 0x100000")
+  # Increase stack size for Embree, only works for executables.
+  if(NOT WITH_PYTHON_MODULE)
+    set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -Xlinker -stack_size -Xlinker 0x100000")
+  endif()
 
   # Embree static library linking can mix up SSE and AVX symbols, causing
   # crashes on macOS systems with older CPUs that don't have AVX. Using
