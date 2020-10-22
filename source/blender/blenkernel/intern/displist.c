@@ -607,6 +607,9 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
   float *fp, *fp1;
   int a, dpoly;
 
+  BLI_listbase_clear(&front);
+  BLI_listbase_clear(&back);
+
   LISTBASE_FOREACH (DispList *, dl, dispbase) {
     if (dl->type == DL_SURF) {
       if ((dl->flag & DL_CYCL_V) && (dl->flag & DL_CYCL_U) == 0) {
