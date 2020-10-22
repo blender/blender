@@ -76,7 +76,6 @@ typedef enum {
   ADD_DISPLACEMENTS,
 } DispOp;
 
-static void multires_mvert_to_ss(DerivedMesh *dm, MVert *mvert);
 static void multiresModifier_disp_run(
     DerivedMesh *dm, Mesh *me, DerivedMesh *dm2, DispOp op, CCGElem **oldGridData, int totlvl);
 
@@ -427,12 +426,6 @@ void multires_set_tot_level(Object *ob, MultiresModifierData *mmd, int lvl)
 
   mmd->sculptlvl = CLAMPIS(MAX2(mmd->sculptlvl, lvl), 0, mmd->totlvl);
   mmd->renderlvl = CLAMPIS(MAX2(mmd->renderlvl, lvl), 0, mmd->totlvl);
-}
-
-static void multires_dm_mark_as_modified(DerivedMesh *dm, MultiresModifiedFlags flags)
-{
-  CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
-  ccgdm->multires.modified_flags |= flags;
 }
 
 static void multires_ccg_mark_as_modified(SubdivCCG *subdiv_ccg, MultiresModifiedFlags flags)
