@@ -2343,60 +2343,60 @@ void bmesh_kernel_vert_separate(
       BLI_assert(!BM_ELEM_API_FLAG_TEST(e_iter, EDGE_VISIT));
       BM_ELEM_API_FLAG_ENABLE(e_iter, EDGE_VISIT);
     } while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
-  }
 
-  while (true) {
-    /* Considering only edges and faces incident on vertex v, walk
-     * the edges & collect in the 'edges' list for splitting */
+    while (true) {
+      /* Considering only edges and faces incident on vertex v, walk
+       * the edges & collect in the 'edges' list for splitting */
 
-    BMEdge *e = v->e;
-    BM_ELEM_API_FLAG_DISABLE(e, EDGE_VISIT);
+      BMEdge *e = v->e;
+      BM_ELEM_API_FLAG_DISABLE(e, EDGE_VISIT);
 
-    do {
-      BLI_assert(!BM_ELEM_API_FLAG_TEST(e, EDGE_VISIT));
-      BLI_SMALLSTACK_PUSH(edges, e);
-      edges_found += 1;
+      do {
+        BLI_assert(!BM_ELEM_API_FLAG_TEST(e, EDGE_VISIT));
+        BLI_SMALLSTACK_PUSH(edges, e);
+        edges_found += 1;
 
-      if (e->l) {
-        BMLoop *l_iter, *l_first;
-        l_iter = l_first = e->l;
-        do {
-          BMLoop *l_adjacent = (l_iter->v == v) ? l_iter->prev : l_iter->next;
-          BLI_assert(BM_vert_in_edge(l_adjacent->e, v));
-          if (BM_ELEM_API_FLAG_TEST(l_adjacent->e, EDGE_VISIT)) {
-            BM_ELEM_API_FLAG_DISABLE(l_adjacent->e, EDGE_VISIT);
-            BLI_SMALLSTACK_PUSH(edges_search, l_adjacent->e);
-          }
-        } while ((l_iter = l_iter->radial_next) != l_first);
+        if (e->l) {
+          BMLoop *l_iter, *l_first;
+          l_iter = l_first = e->l;
+          do {
+            BMLoop *l_adjacent = (l_iter->v == v) ? l_iter->prev : l_iter->next;
+            BLI_assert(BM_vert_in_edge(l_adjacent->e, v));
+            if (BM_ELEM_API_FLAG_TEST(l_adjacent->e, EDGE_VISIT)) {
+              BM_ELEM_API_FLAG_DISABLE(l_adjacent->e, EDGE_VISIT);
+              BLI_SMALLSTACK_PUSH(edges_search, l_adjacent->e);
+            }
+          } while ((l_iter = l_iter->radial_next) != l_first);
+        }
+      } while ((e = BLI_SMALLSTACK_POP(edges_search)));
+
+      /* now we have all edges connected to 'v->e' */
+
+      BLI_assert(edges_found <= v_edges_num);
+
+      if (edges_found == v_edges_num) {
+        /* We're done! The remaining edges in 'edges' form the last fan,
+         * which can be left as is.
+         * if 'edges' were alloc'd it'd be freed here. */
+        break;
       }
-    } while ((e = BLI_SMALLSTACK_POP(edges_search)));
 
-    /* now we have all edges connected to 'v->e' */
+      BMVert *v_new;
 
-    BLI_assert(edges_found <= v_edges_num);
+      v_new = BM_vert_create(bm, v->co, v, BM_CREATE_NOP);
+      if (copy_select) {
+        BM_elem_select_copy(bm, v_new, v);
+      }
 
-    if (edges_found == v_edges_num) {
-      /* We're done! The remaining edges in 'edges' form the last fan,
-       * which can be left as is.
-       * if 'edges' were alloc'd it'd be freed here. */
-      break;
+      while ((e = BLI_SMALLSTACK_POP(edges))) {
+        bmesh_edge_vert_swap(e, v_new, v);
+      }
+
+      if (r_vout) {
+        BLI_SMALLSTACK_PUSH(verts_new, v_new);
+      }
+      verts_num += 1;
     }
-
-    BMVert *v_new;
-
-    v_new = BM_vert_create(bm, v->co, v, BM_CREATE_NOP);
-    if (copy_select) {
-      BM_elem_select_copy(bm, v_new, v);
-    }
-
-    while ((e = BLI_SMALLSTACK_POP(edges))) {
-      bmesh_edge_vert_swap(e, v_new, v);
-    }
-
-    if (r_vout) {
-      BLI_SMALLSTACK_PUSH(verts_new, v_new);
-    }
-    verts_num += 1;
   }
 
 #undef EDGE_VISIT
