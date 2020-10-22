@@ -109,6 +109,7 @@ static bool is_appdir_init = false;
 void BKE_appdir_init(void)
 {
 #ifndef NDEBUG
+  BLI_assert(is_appdir_init == false);
   is_appdir_init = true;
 #endif
 }
