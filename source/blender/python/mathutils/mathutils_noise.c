@@ -140,11 +140,11 @@ static void next_state(void)
   left = N;
   next = state;
 
-  for (j = N - M + 1; j--; p++) {
+  for (j = N - M + 1; --j; p++) {
     *p = p[M] ^ TWIST(p[0], p[1]);
   }
 
-  for (j = M; j--; p++) {
+  for (j = M; --j; p++) {
     *p = p[M - N] ^ TWIST(p[0], p[1]);
   }
 
