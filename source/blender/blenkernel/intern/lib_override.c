@@ -1422,6 +1422,15 @@ void BKE_lib_override_library_main_operations_create(Main *bmain, const bool for
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if (ID_IS_OVERRIDE_LIBRARY_REAL(id) &&
         (force_auto || (id->tag & LIB_TAG_OVERRIDE_LIBRARY_AUTOREFRESH))) {
+      /* Usual issue with pose, it's quiet rare but sometimes they may not be up to date when this
+       * function is called. */
+      if (GS(id->name) == ID_OB) {
+        Object *ob = (Object *)id;
+        if (ob->type == OB_ARMATURE) {
+          BLI_assert(ob->data != NULL);
+          BKE_pose_ensure(bmain, ob, ob->data, true);
+        }
+      }
       /* Only check overrides if we do have the real reference data available, and not some empty
        * 'placeholder' for missing data (broken links). */
       if ((id->override_library->reference->tag & LIB_TAG_MISSING) == 0) {
