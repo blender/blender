@@ -180,6 +180,10 @@ void BKE_pose_rebuild(struct Main *bmain,
                       struct Object *ob,
                       struct bArmature *arm,
                       const bool do_id_user);
+void BKE_pose_ensure(struct Main *bmain,
+                     struct Object *ob,
+                     struct bArmature *arm,
+                     const bool do_id_user);
 void BKE_pose_where_is(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
 void BKE_pose_where_is_bone(struct Depsgraph *depsgraph,
                             struct Scene *scene,
