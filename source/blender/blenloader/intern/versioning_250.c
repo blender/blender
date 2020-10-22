@@ -799,20 +799,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 
       // BLI_freelistN(&pidlist);
 
-      if (ob->type == OB_MESH) {
-        Mesh *me = blo_do_versions_newlibadr(fd, lib, ob->data);
-        void *olddata = ob->data;
-        ob->data = me;
-
-        /* XXX - library meshes crash on loading most yoFrankie levels,
-         * the multires pointer gets invalid -  Campbell */
-        if (me && me->id.lib == NULL && me->mr && me->mr->level_count > 1) {
-          multires_load_old(ob, me);
-        }
-
-        ob->data = olddata;
-      }
-
       if (ob->totcol && ob->matbits == NULL) {
         int a;
 
@@ -1152,7 +1138,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 
     if (bmain->versionfile == 250 && bmain->subversionfile > 1) {
       for (me = bmain->meshes.first; me; me = me->id.next) {
-        multires_load_old_250(me);
+        CustomData_free_layer_active(&me->fdata, CD_MDISPS, me->totface);
       }
 
       for (ob = bmain->objects.first; ob; ob = ob->id.next) {

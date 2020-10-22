@@ -1959,7 +1959,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     Light *la;
     Material *ma;
     ParticleSettings *part;
-    Mesh *me;
     bNodeTree *ntree;
     Tex *tex;
     ModifierData *md;
@@ -2069,23 +2068,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
           if (!clmd->point_cache) {
             clmd->point_cache = BKE_ptcache_add(&clmd->ptcaches);
             clmd->point_cache->step = 1;
-          }
-        }
-      }
-    }
-
-    /* Copy over old per-level multires vertex data
-     * into a single vertex array in struct Multires */
-    for (me = bmain->meshes.first; me; me = me->id.next) {
-      if (me->mr && !me->mr->verts) {
-        MultiresLevel *lvl = me->mr->levels.last;
-        if (lvl) {
-          me->mr->verts = lvl->verts;
-          lvl->verts = NULL;
-          /* Don't need the other vert arrays */
-          for (lvl = lvl->prev; lvl; lvl = lvl->prev) {
-            MEM_freeN(lvl->verts);
-            lvl->verts = NULL;
           }
         }
       }

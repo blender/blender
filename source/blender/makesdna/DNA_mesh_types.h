@@ -48,7 +48,6 @@ struct MPropCol;
 struct MVert;
 struct Material;
 struct Mesh;
-struct Multires;
 struct SubdivCCG;
 
 #
@@ -229,9 +228,6 @@ typedef struct Mesh {
   /* Stores the initial Face Set to be rendered white. This way the overlay can be enabled by
    * default and Face Sets can be used without affecting the color of the mesh. */
   int face_sets_color_default;
-
-  /** Deprecated multiresolution modeling data, only keep for loading old files. */
-  struct Multires *mr DNA_DEPRECATED;
 
   Mesh_Runtime runtime;
 } Mesh;

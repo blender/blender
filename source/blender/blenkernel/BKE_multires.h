@@ -36,7 +36,6 @@ struct DerivedMesh;
 struct MDisps;
 struct Mesh;
 struct ModifierData;
-struct Multires;
 struct MultiresModifierData;
 struct Object;
 struct Scene;
@@ -124,11 +123,6 @@ void multiresModifier_sync_levels_ex(struct Object *ob_dst,
                                      struct MultiresModifierData *mmd_dst);
 
 void multires_stitch_grids(struct Object *);
-
-/* Related to the old multires */
-void multires_free(struct Multires *mr);
-void multires_load_old(struct Object *ob, struct Mesh *me);
-void multires_load_old_250(struct Mesh *);
 
 void multiresModifier_scale_disp(struct Depsgraph *depsgraph,
                                  struct Scene *scene,
