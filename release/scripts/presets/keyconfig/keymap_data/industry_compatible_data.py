@@ -3369,6 +3369,8 @@ def km_sculpt(params):
          {"properties": [("mode", 'VALUE'), ("value", 1.0)]}),
         ("paint.mask_flood_fill", {"type": 'I', "value": 'PRESS', "ctrl": True},
          {"properties": [("mode", 'INVERT')]}),
+        ("paint.mask_box_gesture", {"type": 'B', "value": 'PRESS'},
+         {"properties": [("mode", 'VALUE'), ("value", 0.0)]}),
         ("paint.mask_lasso_gesture", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         ("wm.context_toggle", {"type": 'M', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'scene.tool_settings.sculpt.show_mask')]}),
