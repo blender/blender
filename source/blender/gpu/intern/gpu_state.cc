@@ -167,7 +167,8 @@ void GPU_depth_range(float near, float far)
 
 void GPU_line_width(float width)
 {
-  SET_MUTABLE_STATE(line_width, width * PIXELSIZE);
+  width = max_ff(1.0f, width * PIXELSIZE);
+  SET_MUTABLE_STATE(line_width, width);
 }
 
 void GPU_point_size(float size)
