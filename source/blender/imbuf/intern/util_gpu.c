@@ -97,6 +97,7 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
 {
   const bool is_float_rect = (ibuf->rect_float != NULL);
   void *data_rect = (is_float_rect) ? (void *)ibuf->rect_float : (void *)ibuf->rect;
+  bool freedata = false;
 
   if (is_float_rect) {
     /* Float image is already in scene linear colorspace or non-color data by
@@ -104,7 +105,7 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
      * currently. */
     if (ibuf->channels != 4 || !store_premultiplied) {
       data_rect = MEM_mallocN(sizeof(float[4]) * ibuf->x * ibuf->y, __func__);
-      *r_freedata = true;
+      *r_freedata = freedata = true;
 
       if (data_rect == NULL) {
         return NULL;
@@ -124,7 +125,7 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
      * and consistency with float images. */
     if (!IMB_colormanagement_space_is_data(ibuf->rect_colorspace)) {
       data_rect = MEM_mallocN(sizeof(uchar[4]) * ibuf->x * ibuf->y, __func__);
-      *r_freedata = true;
+      *r_freedata = freedata = true;
 
       if (data_rect == NULL) {
         return NULL;
@@ -146,6 +147,10 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
 
     ImBuf *scale_ibuf = IMB_allocFromBuffer(rect, rect_float, ibuf->x, ibuf->y, 4);
     IMB_scaleImBuf(scale_ibuf, UNPACK2(rescale_size));
+
+    if (freedata) {
+      MEM_freeN(data_rect);
+    }
 
     data_rect = (is_float_rect) ? (void *)scale_ibuf->rect_float : (void *)scale_ibuf->rect;
     *r_freedata = true;
