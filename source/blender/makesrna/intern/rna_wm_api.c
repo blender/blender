@@ -1135,7 +1135,7 @@ void RNA_api_keymapitems(StructRNA *srna)
   RNA_def_boolean(func, "alt", 0, "Alt", "");
   RNA_def_boolean(func, "oskey", 0, "OS Key", "");
   RNA_def_enum(func, "key_modifier", rna_enum_event_type_items, 0, "Key Modifier", "");
-  RNA_def_boolean(func, "repeat", true, "Repeat", "When set, accept key-repeat events");
+  RNA_def_boolean(func, "repeat", false, "Repeat", "When set, accept key-repeat events");
   RNA_def_boolean(func,
                   "head",
                   0,
@@ -1159,7 +1159,7 @@ void RNA_api_keymapitems(StructRNA *srna)
   RNA_def_boolean(func, "alt", 0, "Alt", "");
   RNA_def_boolean(func, "oskey", 0, "OS Key", "");
   RNA_def_enum(func, "key_modifier", rna_enum_event_type_items, 0, "Key Modifier", "");
-  RNA_def_boolean(func, "repeat", true, "Repeat", "When set, accept key-repeat events");
+  RNA_def_boolean(func, "repeat", false, "Repeat", "When set, accept key-repeat events");
   parm = RNA_def_pointer(func, "item", "KeyMapItem", "Item", "Added key map item");
   RNA_def_function_return(func, parm);
 

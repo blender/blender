@@ -73,6 +73,11 @@ def kmi_args_as_data(kmi):
     if kmi.key_modifier and kmi.key_modifier != 'NONE':
         s.append(f"\"key_modifier\": '{kmi.key_modifier}'")
 
+    if kmi.repeat:
+        if kmi.map_type == 'KEYBOARD':
+            if kmi.value in {'PRESS', 'ANY'}:
+                s.append("\"repeat\": True")
+
     return "{" + ", ".join(s) + "}"
 
 
