@@ -113,11 +113,6 @@ int multiresModifier_rebuild_subdiv(struct Depsgraph *depsgraph,
                                     struct MultiresModifierData *mmd,
                                     int rebuild_limit,
                                     bool switch_view_to_lower_level);
-void multiresModifier_subdivide_legacy(struct MultiresModifierData *mmd,
-                                       struct Scene *scene,
-                                       struct Object *ob,
-                                       int updateblock,
-                                       int simple);
 void multiresModifier_sync_levels_ex(struct Object *ob_dst,
                                      struct MultiresModifierData *mmd_src,
                                      struct MultiresModifierData *mmd_dst);

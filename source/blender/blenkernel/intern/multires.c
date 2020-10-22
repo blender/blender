@@ -63,7 +63,6 @@
 #include <string.h>
 
 /* MULTIRES MODIFIER */
-static const int multires_max_levels = 13;
 static const int multires_grid_tot[] = {
     0, 4, 9, 25, 81, 289, 1089, 4225, 16641, 66049, 263169, 1050625, 4198401, 16785409};
 static const int multires_side_tot[] = {
@@ -238,40 +237,6 @@ static void multires_mdisps_subdivide_hidden(MDisps *md, int new_level)
   /* swap in the subdivided data */
   MEM_freeN(md->hidden);
   md->hidden = subd;
-}
-
-static MDisps *multires_mdisps_init_hidden(Mesh *me, int level)
-{
-  MDisps *mdisps = CustomData_add_layer(&me->ldata, CD_MDISPS, CD_CALLOC, NULL, me->totloop);
-  int gridsize = BKE_ccg_gridsize(level);
-  int gridarea = square_i(gridsize);
-  int i, j;
-
-  for (i = 0; i < me->totpoly; i++) {
-    bool hide = false;
-
-    for (j = 0; j < me->mpoly[i].totloop; j++) {
-      if (me->mvert[me->mloop[me->mpoly[i].loopstart + j].v].flag & ME_HIDE) {
-        hide = true;
-        break;
-      }
-    }
-
-    if (!hide) {
-      continue;
-    }
-
-    for (j = 0; j < me->mpoly[i].totloop; j++) {
-      MDisps *md = &mdisps[me->mpoly[i].loopstart + j];
-
-      BLI_assert(!md->hidden);
-
-      md->hidden = BLI_BITMAP_NEW(gridarea, "MDisps.hidden initialize");
-      BLI_bitmap_set_all(md->hidden, true, gridarea);
-    }
-  }
-
-  return mdisps;
 }
 
 Mesh *BKE_multires_create_mesh(struct Depsgraph *depsgraph,
@@ -841,110 +806,6 @@ static DerivedMesh *subsurf_dm_create_local(Scene *scene,
   }
 
   return subsurf_make_derived_from_derived(dm, &smd, scene, NULL, flags);
-}
-
-static void multires_subdivide_legacy(
-    MultiresModifierData *mmd, Scene *scene, Object *ob, int totlvl, int updateblock, int simple)
-{
-  Mesh *me = ob->data;
-  MDisps *mdisps;
-  const int lvl = mmd->totlvl;
-
-  if ((totlvl > multires_max_levels) || (me->totpoly == 0)) {
-    return;
-  }
-
-  BLI_assert(totlvl > lvl);
-
-  multires_force_sculpt_rebuild(ob);
-
-  mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
-  if (!mdisps) {
-    mdisps = multires_mdisps_init_hidden(me, totlvl);
-  }
-
-  if (mdisps->disps && !updateblock && lvl != 0) {
-    /* upsample */
-    DerivedMesh *lowdm, *cddm, *highdm;
-    CCGElem **highGridData, **lowGridData, **subGridData;
-    CCGKey highGridKey, lowGridKey;
-    CCGSubSurf *ss;
-    int i, numGrids, highGridSize;
-    const bool has_mask = CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK);
-
-    /* create subsurf DM from original mesh at high level */
-    cddm = CDDM_from_mesh(me);
-    DM_set_only_copy(cddm, &CD_MASK_BAREMESH);
-    highdm = subsurf_dm_create_local(NULL,
-                                     ob,
-                                     cddm,
-                                     totlvl,
-                                     simple,
-                                     0,
-                                     mmd->uv_smooth == SUBSURF_UV_SMOOTH_NONE,
-                                     has_mask,
-                                     false,
-                                     SUBSURF_IGNORE_SIMPLIFY);
-    ss = ((CCGDerivedMesh *)highdm)->ss;
-
-    /* create multires DM from original mesh at low level */
-    lowdm = multires_dm_create_local(
-        scene, ob, cddm, lvl, lvl, simple, has_mask, MULTIRES_IGNORE_SIMPLIFY);
-    BLI_assert(lowdm != cddm);
-    cddm->release(cddm);
-
-    /* copy subsurf grids and replace them with low displaced grids */
-    numGrids = highdm->getNumGrids(highdm);
-    highGridSize = highdm->getGridSize(highdm);
-    highGridData = highdm->getGridData(highdm);
-    highdm->getGridKey(highdm, &highGridKey);
-    lowGridData = lowdm->getGridData(lowdm);
-    lowdm->getGridKey(lowdm, &lowGridKey);
-
-    subGridData = MEM_calloc_arrayN(numGrids, sizeof(float *), "subGridData*");
-
-    for (i = 0; i < numGrids; i++) {
-      /* backup subsurf grids */
-      subGridData[i] = MEM_calloc_arrayN(
-          highGridKey.elem_size, highGridSize * highGridSize, "subGridData");
-      memcpy(subGridData[i], highGridData[i], highGridKey.elem_size * highGridSize * highGridSize);
-
-      /* overwrite with current displaced grids */
-      multires_copy_dm_grid(highGridData[i], lowGridData[i], &highGridKey, &lowGridKey);
-    }
-
-    /* low lower level dm no longer needed at this point */
-    lowdm->release(lowdm);
-
-    /* subsurf higher levels again with displaced data */
-    ccgSubSurf_updateFromFaces(ss, lvl, NULL, 0);
-    ccgSubSurf_updateLevels(ss, lvl, NULL, 0);
-
-    /* reallocate displacements */
-    multires_reallocate_mdisps(me->totloop, mdisps, totlvl);
-
-    /* compute displacements */
-    multiresModifier_disp_run(highdm, me, NULL, CALC_DISPLACEMENTS, subGridData, totlvl);
-
-    /* free */
-    highdm->release(highdm);
-    for (i = 0; i < numGrids; i++) {
-      MEM_freeN(subGridData[i]);
-    }
-    MEM_freeN(subGridData);
-  }
-  else {
-    /* only reallocate, nothing to upsample */
-    multires_reallocate_mdisps(me->totloop, mdisps, totlvl);
-  }
-
-  multires_set_tot_level(ob, mmd, totlvl);
-}
-
-void multiresModifier_subdivide_legacy(
-    MultiresModifierData *mmd, Scene *scene, Object *ob, int updateblock, int simple)
-{
-  multires_subdivide_legacy(mmd, scene, ob, mmd->totlvl + 1, updateblock, simple);
 }
 
 static void grid_tangent(const CCGKey *key, int x, int y, int axis, CCGElem *grid, float t[3])
