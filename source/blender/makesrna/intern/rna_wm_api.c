@@ -632,6 +632,7 @@ static wmEvent *rna_Window_event_add_simulate(wmWindow *win,
   wmEvent e = *win->eventstate;
   e.type = type;
   e.val = value;
+  e.is_repeat = false;
   e.x = x;
   e.y = y;
   /* Note: KM_MOD_FIRST, KM_MOD_SECOND aren't used anywhere, set as bools */
