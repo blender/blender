@@ -242,10 +242,10 @@ bool multires_reshape_context_create_from_ccg(MultiresReshapeContext *reshape_co
   return context_verify_or_free(reshape_context);
 }
 
-bool multires_reshape_context_create_from_subdivide(MultiresReshapeContext *reshape_context,
-                                                    struct Object *object,
-                                                    struct MultiresModifierData *mmd,
-                                                    int top_level)
+bool multires_reshape_context_create_from_modifier(MultiresReshapeContext *reshape_context,
+                                                   struct Object *object,
+                                                   struct MultiresModifierData *mmd,
+                                                   int top_level)
 {
   context_zero(reshape_context);
 
