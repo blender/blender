@@ -92,17 +92,13 @@ void BKE_displist_free(ListBase *lb)
 
 DispList *BKE_displist_find_or_create(ListBase *lb, int type)
 {
-  DispList *dl;
-
-  dl = lb->first;
-  while (dl) {
+  LISTBASE_FOREACH (DispList *, dl, lb) {
     if (dl->type == type) {
       return dl;
     }
-    dl = dl->next;
   }
 
-  dl = MEM_callocN(sizeof(DispList), "find_disp");
+  DispList *dl = MEM_callocN(sizeof(DispList), "find_disp");
   dl->type = type;
   BLI_addtail(lb, dl);
 
@@ -111,14 +107,10 @@ DispList *BKE_displist_find_or_create(ListBase *lb, int type)
 
 DispList *BKE_displist_find(ListBase *lb, int type)
 {
-  DispList *dl;
-
-  dl = lb->first;
-  while (dl) {
+  LISTBASE_FOREACH (DispList *, dl, lb) {
     if (dl->type == type) {
       return dl;
     }
-    dl = dl->next;
   }
 
   return NULL;
@@ -126,9 +118,7 @@ DispList *BKE_displist_find(ListBase *lb, int type)
 
 bool BKE_displist_has_faces(ListBase *lb)
 {
-  DispList *dl;
-
-  for (dl = lb->first; dl; dl = dl->next) {
+  LISTBASE_FOREACH (DispList *, dl, lb) {
     if (ELEM(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)) {
       return true;
     }
@@ -139,13 +129,10 @@ bool BKE_displist_has_faces(ListBase *lb)
 
 void BKE_displist_copy(ListBase *lbn, ListBase *lb)
 {
-  DispList *dln, *dl;
-
   BKE_displist_free(lbn);
 
-  dl = lb->first;
-  while (dl) {
-    dln = MEM_dupallocN(dl);
+  LISTBASE_FOREACH (const DispList *, dl, lb) {
+    DispList *dln = MEM_dupallocN(dl);
     BLI_addtail(lbn, dln);
     dln->verts = MEM_dupallocN(dl->verts);
     dln->nors = MEM_dupallocN(dl->nors);
@@ -154,22 +141,18 @@ void BKE_displist_copy(ListBase *lbn, ListBase *lb)
     if (dl->bevel_split) {
       dln->bevel_split = MEM_dupallocN(dl->bevel_split);
     }
-
-    dl = dl->next;
   }
 }
 
 void BKE_displist_normals_add(ListBase *lb)
 {
-  DispList *dl = NULL;
   float *vdata, *ndata, nor[3];
   float *v1, *v2, *v3, *v4;
   float *n1, *n2, *n3, *n4;
   int a, b, p1, p2, p3, p4;
 
-  dl = lb->first;
+  LISTBASE_FOREACH (DispList *, dl, lb) {
 
-  while (dl) {
     if (dl->type == DL_INDEX3) {
       if (dl->nors == NULL) {
         dl->nors = MEM_callocN(sizeof(float[3]), "dlnors");
@@ -230,15 +213,12 @@ void BKE_displist_normals_add(ListBase *lb)
         }
       }
     }
-    dl = dl->next;
   }
 }
 
 void BKE_displist_count(ListBase *lb, int *totvert, int *totface, int *tottri)
 {
-  DispList *dl;
-
-  for (dl = lb->first; dl; dl = dl->next) {
+  LISTBASE_FOREACH (DispList *, dl, lb) {
     int vert_tot = 0;
     int face_tot = 0;
     int tri_tot = 0;
@@ -318,7 +298,6 @@ static void curve_to_displist(Curve *cu,
                               ListBase *dispbase,
                               const bool for_render)
 {
-  Nurb *nu;
   DispList *dl;
   BezTriple *bezt, *prevbezt;
   BPoint *bp;
@@ -326,8 +305,7 @@ static void curve_to_displist(Curve *cu,
   int a, len, resolu;
   const bool editmode = (!for_render && (cu->editnurb || cu->editfont));
 
-  nu = nubase->first;
-  while (nu) {
+  LISTBASE_FOREACH (Nurb *, nu, nubase) {
     if (nu->hide == 0 || editmode == false) {
       if (for_render && cu->resolu_ren != 0) {
         resolu = cu->resolu_ren;
@@ -473,7 +451,6 @@ static void curve_to_displist(Curve *cu,
         }
       }
     }
-    nu = nu->next;
   }
 }
 
@@ -627,19 +604,14 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
 {
   const float z_up[3] = {0.0f, 0.0f, -1.0f};
   ListBase front, back;
-  DispList *dl, *dlnew;
   float *fp, *fp1;
   int a, dpoly;
 
-  BLI_listbase_clear(&front);
-  BLI_listbase_clear(&back);
-
-  dl = dispbase->first;
-  while (dl) {
+  LISTBASE_FOREACH (DispList *, dl, dispbase) {
     if (dl->type == DL_SURF) {
       if ((dl->flag & DL_CYCL_V) && (dl->flag & DL_CYCL_U) == 0) {
         if ((cu->flag & CU_BACK) && (dl->flag & DL_BACK_CURVE)) {
-          dlnew = MEM_callocN(sizeof(DispList), "filldisp");
+          DispList *dlnew = MEM_callocN(sizeof(DispList), "filldisp");
           BLI_addtail(&front, dlnew);
           dlnew->verts = fp1 = MEM_mallocN(sizeof(float[3]) * dl->parts, "filldisp1");
           dlnew->nr = dl->parts;
@@ -660,7 +632,7 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
           }
         }
         if ((cu->flag & CU_FRONT) && (dl->flag & DL_FRONT_CURVE)) {
-          dlnew = MEM_callocN(sizeof(DispList), "filldisp");
+          DispList *dlnew = MEM_callocN(sizeof(DispList), "filldisp");
           BLI_addtail(&back, dlnew);
           dlnew->verts = fp1 = MEM_mallocN(sizeof(float[3]) * dl->parts, "filldisp1");
           dlnew->nr = dl->parts;
@@ -682,7 +654,6 @@ static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)
         }
       }
     }
-    dl = dl->next;
   }
 
   BKE_displist_fill(&front, dispbase, z_up, true);
@@ -939,18 +910,17 @@ static bool curve_calc_modifiers_pre(
 
 static float (*displist_vert_coords_alloc(ListBase *dispbase, int *r_vert_len))[3]
 {
-  DispList *dl;
   float(*allverts)[3], *fp;
 
   *r_vert_len = 0;
 
-  for (dl = dispbase->first; dl; dl = dl->next) {
+  LISTBASE_FOREACH (DispList *, dl, dispbase) {
     *r_vert_len += (dl->type == DL_INDEX3) ? dl->nr : dl->parts * dl->nr;
   }
 
   allverts = MEM_mallocN(sizeof(float[3]) * (*r_vert_len), "displist_vert_coords_alloc allverts");
   fp = (float *)allverts;
-  for (dl = dispbase->first; dl; dl = dl->next) {
+  LISTBASE_FOREACH (DispList *, dl, dispbase) {
     int offs = 3 * ((dl->type == DL_INDEX3) ? dl->nr : dl->parts * dl->nr);
     memcpy(fp, dl->verts, sizeof(float) * offs);
     fp += offs;
@@ -961,11 +931,10 @@ static float (*displist_vert_coords_alloc(ListBase *dispbase, int *r_vert_len))[
 
 static void displist_vert_coords_apply(ListBase *dispbase, float (*allverts)[3])
 {
-  DispList *dl;
   const float *fp;
 
   fp = (float *)allverts;
-  for (dl = dispbase->first; dl; dl = dl->next) {
+  LISTBASE_FOREACH (DispList *, dl, dispbase) {
     int offs = 3 * ((dl->type == DL_INDEX3) ? dl->nr : dl->parts * dl->nr);
     memcpy(dl->verts, fp, sizeof(float) * offs);
     fp += offs;
@@ -1218,7 +1187,6 @@ void BKE_displist_make_surf(Depsgraph *depsgraph,
                             const bool for_orco)
 {
   ListBase nubase = {NULL, NULL};
-  Nurb *nu;
   Curve *cu = ob->data;
   DispList *dl;
   float *data;
@@ -1236,7 +1204,7 @@ void BKE_displist_make_surf(Depsgraph *depsgraph,
     force_mesh_conversion = curve_calc_modifiers_pre(depsgraph, scene, ob, &nubase, for_render);
   }
 
-  for (nu = nubase.first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, &nubase) {
     if ((for_render || nu->hide == 0) && BKE_nurb_check_valid_uv(nu)) {
       int resolu = nu->resolu, resolv = nu->resolv;
 
@@ -1851,12 +1819,11 @@ void BKE_displist_make_curveTypes_forRender(Depsgraph *depsgraph,
 
 void BKE_displist_minmax(ListBase *dispbase, float min[3], float max[3])
 {
-  DispList *dl;
   const float *vert;
   int a, tot = 0;
   int doit = 0;
 
-  for (dl = dispbase->first; dl; dl = dl->next) {
+  LISTBASE_FOREACH (DispList *, dl, dispbase) {
     tot = (dl->type == DL_INDEX3) ? dl->nr : dl->nr * dl->parts;
     vert = dl->verts;
     for (a = 0; a < tot; a++, vert += 3) {
