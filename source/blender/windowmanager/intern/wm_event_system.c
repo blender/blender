@@ -3402,6 +3402,7 @@ void wm_event_do_handlers(bContext *C)
       tevent.type = MOUSEMOVE;
       tevent.prevx = tevent.x;
       tevent.prevy = tevent.y;
+      tevent.is_repeat = false;
       wm_event_add(win, &tevent);
       win->addmousemove = 0;
     }
