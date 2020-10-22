@@ -1814,6 +1814,11 @@ class _defs_gpencil_paint:
 
     @ToolDef.from_fn
     def cutter():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("gpencil.stroke_cutter")
+            row = layout.row()
+            row.use_property_split = False
+            row.prop(props, "flat_caps")
         return dict(
             idname="builtin.cutter",
             label="Cutter",
@@ -1821,6 +1826,7 @@ class _defs_gpencil_paint:
             cursor='KNIFE',
             widget=None,
             keymap=(),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
