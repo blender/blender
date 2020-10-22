@@ -50,20 +50,18 @@ int SShape_Init(PyObject *module)
 
 /*----------------------SShape methods ----------------------------*/
 
-PyDoc_STRVAR(SShape_doc,
-             "Class to define a feature shape.  It is the gathering of feature\n"
-             "elements from an identified input shape.\n"
-             "\n"
-             ".. method:: __init__()\n"
-             "\n"
-             "   Default constructor.\n"
-             "\n"
-             ".. method:: __init__(brother)\n"
-             "\n"
-             "   Copy constructor.\n"
-             "\n"
-             "   :arg brother: An SShape object.\n"
-             "   :type brother: :class:`SShape`");
+PyDoc_STRVAR(
+    SShape_doc,
+    "Class to define a feature shape.  It is the gathering of feature\n"
+    "elements from an identified input shape.\n"
+    "\n"
+    ".. method:: __init__()\n"
+    "            __init__(brother)\n"
+    "\n"
+    "   Creates a :class:`SShape` class using either a default constructor or copy constructor.\n"
+    "\n"
+    "   :arg brother: An SShape object.\n"
+    "   :type brother: :class:`SShape`");
 
 static int SShape_init(BPy_SShape *self, PyObject *args, PyObject *kwds)
 {

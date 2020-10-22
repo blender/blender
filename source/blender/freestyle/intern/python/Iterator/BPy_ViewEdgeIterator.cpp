@@ -40,9 +40,10 @@ PyDoc_STRVAR(ViewEdgeIterator_doc,
              "on a given ViewEdge.\n"
              "\n"
              ".. method:: __init__(begin=None, orientation=True)\n"
+             "            __init__(brother)\n"
              "\n"
              "   Builds a ViewEdgeIterator from a starting ViewEdge and its\n"
-             "   orientation.\n"
+             "   orientation or the copy constructor.\n"
              "\n"
              "   :arg begin: The ViewEdge from where to start the iteration.\n"
              "   :type begin: :class:`ViewEdge` or None\n"
@@ -51,11 +52,6 @@ PyDoc_STRVAR(ViewEdgeIterator_doc,
              "      false, we'll search over the ViewEdges surrounding the ending\n"
              "      ViewVertex of begin.\n"
              "   :type orientation: bool\n"
-             "\n"
-             ".. method:: __init__(brother)\n"
-             "\n"
-             "   Copy constructor.\n"
-             "\n"
              "   :arg brother: A ViewEdgeIterator object.\n"
              "   :type brother: :class:`ViewEdgeIterator`");
 

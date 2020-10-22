@@ -31,22 +31,20 @@ extern "C" {
 
 /*----------------------NonTVertex methods ----------------------------*/
 
-PyDoc_STRVAR(NonTVertex_doc,
-             "Class hierarchy: :class:`Interface0D` > :class:`ViewVertex` > :class:`NonTVertex`\n"
-             "\n"
-             "View vertex for corners, cusps, etc. associated to a single SVertex.\n"
-             "Can be associated to 2 or more view edges.\n"
-             "\n"
-             ".. method:: __init__()\n"
-             "\n"
-             "   Default constructor.\n"
-             "\n"
-             ".. method:: __init__(svertex)\n"
-             "\n"
-             "   Build a NonTVertex from a SVertex.\n"
-             "\n"
-             "   :arg svertex: An SVertex object.\n"
-             "   :type svertex: :class:`SVertex`");
+PyDoc_STRVAR(
+    NonTVertex_doc,
+    "Class hierarchy: :class:`Interface0D` > :class:`ViewVertex` > :class:`NonTVertex`\n"
+    "\n"
+    "View vertex for corners, cusps, etc. associated to a single SVertex.\n"
+    "Can be associated to 2 or more view edges.\n"
+    "\n"
+    ".. method:: __init__()\n"
+    "            __init__(svertex)\n"
+    "\n"
+    "   Builds a :class:`NonTVertex` using the default constructor or a :class:`SVertex`.\n"
+    "\n"
+    "   :arg svertex: An SVertex object.\n"
+    "   :type svertex: :class:`SVertex`");
 
 /* Note: No copy constructor in Python because the C++ copy constructor is 'protected'. */
 
