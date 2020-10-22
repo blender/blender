@@ -246,8 +246,16 @@ typedef struct LassoGestureData {
 } LassoGestureData;
 
 typedef struct LineGestureData {
+  /* Plane aligned to the gesture line. */
   float true_plane[4];
   float plane[4];
+
+  /* Planes to limit the action to the length of the gesture segment at both sides of the affected
+   * area. */
+  float side_plane[2][4];
+  float true_side_plane[2][4];
+  bool use_side_planes;
+
   bool flip;
 } LineGestureData;
 
@@ -320,6 +328,13 @@ static void sculpt_gesture_operator_properties(wmOperatorType *ot)
                   false,
                   "Front Faces Only",
                   "Affect only faces facing towards the view");
+
+  RNA_def_boolean(ot->srna,
+                  "use_limit_to_segment",
+                  false,
+                  "Limit to Segment",
+                  "Apply the gesture action only to the area that is contained within the "
+                  "segement without extending its effect to the entire line");
 }
 
 static void sculpt_gesture_context_init_common(bContext *C,
@@ -332,6 +347,7 @@ static void sculpt_gesture_context_init_common(bContext *C,
 
   /* Operator properties. */
   sgcontext->front_faces_only = RNA_boolean_get(op->ptr, "use_front_faces_only");
+  sgcontext->line.use_side_planes = RNA_boolean_get(op->ptr, "use_limit_to_segment");
 
   /* SculptSession */
   sgcontext->ss = ob->sculpt;
@@ -448,6 +464,50 @@ static SculptGestureContext *sculpt_gesture_init_from_box(bContext *C, wmOperato
   return sgcontext;
 }
 
+static void sculpt_gesture_line_plane_from_tri(float *r_plane,
+                                               SculptGestureContext *sgcontext,
+                                               const bool flip,
+                                               const float p1[3],
+                                               const float p2[3],
+                                               const float p3[3])
+{
+  float normal[3];
+  normal_tri_v3(normal, p1, p2, p3);
+  mul_v3_mat3_m4v3(normal, sgcontext->vc.obact->imat, normal);
+  if (flip) {
+    mul_v3_fl(normal, -1.0f);
+  }
+  float plane_point_object_space[3];
+  mul_v3_m4v3(plane_point_object_space, sgcontext->vc.obact->imat, p1);
+  plane_from_point_normal_v3(r_plane, plane_point_object_space, normal);
+}
+
+/* Creates 4 points in the plane defined by the line and 2 extra points with an offset relative to
+ * this plane. */
+static void sculpt_gesture_line_calculate_plane_points(SculptGestureContext *sgcontext,
+                                                       float line_points[2][2],
+                                                       float r_plane_points[4][3],
+                                                       float r_offset_plane_points[2][3])
+{
+  float depth_point[3];
+  add_v3_v3v3(depth_point, sgcontext->true_view_origin, sgcontext->true_view_normal);
+  ED_view3d_win_to_3d(
+      sgcontext->vc.v3d, sgcontext->vc.region, depth_point, line_points[0], r_plane_points[0]);
+  ED_view3d_win_to_3d(
+      sgcontext->vc.v3d, sgcontext->vc.region, depth_point, line_points[1], r_plane_points[3]);
+
+  madd_v3_v3v3fl(depth_point, sgcontext->true_view_origin, sgcontext->true_view_normal, 10.0f);
+  ED_view3d_win_to_3d(
+      sgcontext->vc.v3d, sgcontext->vc.region, depth_point, line_points[0], r_plane_points[1]);
+  ED_view3d_win_to_3d(
+      sgcontext->vc.v3d, sgcontext->vc.region, depth_point, line_points[1], r_plane_points[2]);
+
+  float normal[3];
+  normal_tri_v3(normal, r_plane_points[0], r_plane_points[1], r_plane_points[2]);
+  add_v3_v3v3(r_offset_plane_points[0], r_plane_points[0], normal);
+  add_v3_v3v3(r_offset_plane_points[1], r_plane_points[3], normal);
+}
+
 static SculptGestureContext *sculpt_gesture_init_from_line(bContext *C, wmOperator *op)
 {
   SculptGestureContext *sgcontext = MEM_callocN(sizeof(SculptGestureContext),
@@ -464,36 +524,33 @@ static SculptGestureContext *sculpt_gesture_init_from_line(bContext *C, wmOperat
 
   sgcontext->line.flip = RNA_boolean_get(op->ptr, "flip");
 
-  float depth_point[3];
-  float plane_points[3][3];
+  float plane_points[4][3];
+  float offset_plane_points[2][3];
+  sculpt_gesture_line_calculate_plane_points(
+      sgcontext, line_points, plane_points, offset_plane_points);
 
-  /* Calculate a triangle in the line's plane. */
-  add_v3_v3v3(depth_point, sgcontext->true_view_origin, sgcontext->true_view_normal);
-  ED_view3d_win_to_3d(
-      sgcontext->vc.v3d, sgcontext->vc.region, depth_point, line_points[0], plane_points[0]);
+  /* Calculate line plane and normal. */
+  const bool flip = sgcontext->line.flip ^ !sgcontext->vc.rv3d->is_persp;
+  sculpt_gesture_line_plane_from_tri(sgcontext->line.true_plane,
+                                     sgcontext,
+                                     flip,
+                                     plane_points[0],
+                                     plane_points[1],
+                                     plane_points[2]);
 
-  madd_v3_v3v3fl(depth_point, sgcontext->true_view_origin, sgcontext->true_view_normal, 10.0f);
-  ED_view3d_win_to_3d(
-      sgcontext->vc.v3d, sgcontext->vc.region, depth_point, line_points[0], plane_points[1]);
-  ED_view3d_win_to_3d(
-      sgcontext->vc.v3d, sgcontext->vc.region, depth_point, line_points[1], plane_points[2]);
-
-  /* Calculate final line plane and normal using the triangle. */
-  float normal[3];
-  normal_tri_v3(normal, plane_points[0], plane_points[1], plane_points[2]);
-  if (!sgcontext->vc.rv3d->is_persp) {
-    mul_v3_fl(normal, -1.0f);
-  }
-
-  /* Apply flip. */
-  if (sgcontext->line.flip) {
-    mul_v3_fl(normal, -1.0f);
-  }
-
-  mul_v3_mat3_m4v3(normal, sgcontext->vc.obact->imat, normal);
-  float plane_point_object_space[3];
-  mul_v3_m4v3(plane_point_object_space, sgcontext->vc.obact->imat, plane_points[0]);
-  plane_from_point_normal_v3(sgcontext->line.true_plane, plane_point_object_space, normal);
+  /* Calculate the side planes. */
+  sculpt_gesture_line_plane_from_tri(sgcontext->line.true_side_plane[0],
+                                     sgcontext,
+                                     false,
+                                     plane_points[1],
+                                     plane_points[0],
+                                     offset_plane_points[0]);
+  sculpt_gesture_line_plane_from_tri(sgcontext->line.true_side_plane[1],
+                                     sgcontext,
+                                     false,
+                                     plane_points[3],
+                                     plane_points[2],
+                                     offset_plane_points[1]);
 
   return sgcontext;
 }
@@ -544,14 +601,20 @@ static void sculpt_gesture_flip_for_symmetry_pass(SculptGestureContext *sgcontex
   flip_v3_v3(sgcontext->view_normal, sgcontext->true_view_normal, symmpass);
   flip_v3_v3(sgcontext->view_origin, sgcontext->true_view_origin, symmpass);
   flip_plane(sgcontext->line.plane, sgcontext->line.true_plane, symmpass);
+  flip_plane(sgcontext->line.side_plane[0], sgcontext->line.true_side_plane[0], symmpass);
+  flip_plane(sgcontext->line.side_plane[1], sgcontext->line.true_side_plane[1], symmpass);
 }
 
 static void sculpt_gesture_update_effected_nodes_by_line_plane(SculptGestureContext *sgcontext)
 {
   SculptSession *ss = sgcontext->ss;
-  float clip_planes[1][4];
+  float clip_planes[3][4];
   copy_v4_v4(clip_planes[0], sgcontext->line.plane);
-  PBVHFrustumPlanes frustum = {.planes = clip_planes, .num_planes = 1};
+  copy_v4_v4(clip_planes[1], sgcontext->line.side_plane[0]);
+  copy_v4_v4(clip_planes[2], sgcontext->line.side_plane[1]);
+
+  const int num_planes = sgcontext->line.use_side_planes ? 3 : 1;
+  PBVHFrustumPlanes frustum = {.planes = clip_planes, .num_planes = num_planes};
   BKE_pbvh_search_gather(ss->pbvh,
                          BKE_pbvh_node_frustum_contain_AABB,
                          &frustum,
@@ -630,6 +693,11 @@ static bool sculpt_gesture_is_vertex_effected(SculptGestureContext *sgcontext, P
     case SCULPT_GESTURE_SHAPE_LASSO:
       return sculpt_gesture_is_effected_lasso(sgcontext, vd->co);
     case SCULPT_GESTURE_SHAPE_LINE:
+      if (sgcontext->line.use_side_planes) {
+        return plane_point_side_v3(sgcontext->line.plane, vd->co) > 0.0f &&
+               plane_point_side_v3(sgcontext->line.side_plane[0], vd->co) > 0.0f &&
+               plane_point_side_v3(sgcontext->line.side_plane[1], vd->co) > 0.0f;
+      }
       return plane_point_side_v3(sgcontext->line.plane, vd->co) > 0.0f;
   }
   return false;
