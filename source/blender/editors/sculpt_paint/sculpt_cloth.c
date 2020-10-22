@@ -326,6 +326,9 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
    * positions. */
   const bool cloth_is_deform_brush = ss->cache != NULL && brush != NULL &&
                                      SCULPT_is_cloth_deform_brush(brush);
+
+  const bool use_falloff_plane = brush->cloth_force_falloff_type ==
+                                 BRUSH_CLOTH_FORCE_FALLOFF_PLANE;
   float radius_squared = 0.0f;
   if (cloth_is_deform_brush) {
     radius_squared = ss->cache->initial_radius * ss->cache->initial_radius;
@@ -380,12 +383,21 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
     if (brush && brush->sculpt_tool == SCULPT_TOOL_CLOTH) {
       /* The cloth brush works by applying forces in most of its modes, but some of them require
        * deformation coordinates to make the simulation stable. */
-      if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB && len_squared < radius_squared) {
-        /* When the grab brush brush is used as part of the cloth brush, deformation constraints
-         * are created with different strengths and only inside the radius of the brush. */
-        const float fade = BKE_brush_curve_strength(brush, sqrtf(len_squared), ss->cache->radius);
-        cloth_brush_add_deformation_constraint(
-            data->cloth_sim, node_index, vd.index, fade * CLOTH_DEFORMATION_GRAB_STRENGTH);
+      if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB) {
+        if (use_falloff_plane) {
+          /* With plane falloff the strength of the constraints is set when applying the
+           * deformation forces. */
+          cloth_brush_add_deformation_constraint(
+              data->cloth_sim, node_index, vd.index, CLOTH_DEFORMATION_GRAB_STRENGTH);
+        }
+        else if (len_squared < radius_squared) {
+          /* With radial falloff deformation constraints are created with different strengths and
+           * only inside the radius of the brush. */
+          const float fade = BKE_brush_curve_strength(
+              brush, sqrtf(len_squared), ss->cache->radius);
+          cloth_brush_add_deformation_constraint(
+              data->cloth_sim, node_index, vd.index, fade * CLOTH_DEFORMATION_GRAB_STRENGTH);
+        }
       }
       else if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_SNAKE_HOOK) {
         /* Cloth Snake Hook creates deformation constraint with fixed strength because the strength
@@ -436,9 +448,8 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
   const float *grab_delta = data->grab_delta;
   float(*imat)[4] = data->mat;
 
-  const bool use_falloff_plane = !SCULPT_is_cloth_deform_brush(brush) &&
-                                 brush->cloth_force_falloff_type ==
-                                     BRUSH_CLOTH_FORCE_FALLOFF_PLANE;
+  const bool use_falloff_plane = brush->cloth_force_falloff_type ==
+                                 BRUSH_CLOTH_FORCE_FALLOFF_PLANE;
 
   PBVHVertexIter vd;
   const float bstrength = ss->cache->bstrength;
@@ -470,12 +481,6 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
     madd_v3_v3fl(gravity, ss->cache->gravity_direction, -data->sd->gravity_factor);
   }
 
-  /* Original data for deform brushes. */
-  SculptOrigVertData orig_data;
-  if (SCULPT_is_cloth_deform_brush(brush)) {
-    SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
-  }
-
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     float force[3];
@@ -486,8 +491,7 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
 
     float current_vertex_location[3];
     if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB) {
-      SCULPT_orig_vert_data_update(&orig_data, &vd);
-      copy_v3_v3(current_vertex_location, orig_data.co);
+      copy_v3_v3(current_vertex_location, ss->cache->cloth_sim->init_pos[vd.index]);
     }
     else {
       copy_v3_v3(current_vertex_location, vd.co);
@@ -504,7 +508,7 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
       float dist = sqrtf(test.dist);
 
       if (use_falloff_plane) {
-        dist = dist_to_plane_v3(vd.co, deform_plane);
+        dist = dist_to_plane_v3(current_vertex_location, deform_plane);
       }
 
       const float fade = sim_factor * bstrength *
@@ -539,9 +543,15 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
           break;
         case BRUSH_CLOTH_DEFORM_GRAB:
           madd_v3_v3v3fl(cloth_sim->deformation_pos[vd.index],
-                         orig_data.co,
+                         cloth_sim->init_pos[vd.index],
                          ss->cache->grab_delta_symmetry,
                          fade);
+          if (use_falloff_plane) {
+            cloth_sim->deformation_strength[vd.index] = clamp_f(fade, 0.0f, 1.0f);
+          }
+          else {
+            cloth_sim->deformation_strength[vd.index] = 1.0f;
+          }
           zero_v3(force);
           break;
         case BRUSH_CLOTH_DEFORM_SNAKE_HOOK:
@@ -965,8 +975,8 @@ static void cloth_brush_apply_brush_foces(Sculpt *sd, Object *ob, PBVHNode **nod
     }
   }
 
-  if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_SNAKE_HOOK) {
-    /* Set the deformation strength to 0. Snake hook will initialize the strength in the required
+  if (ELEM(brush->cloth_deform_type, BRUSH_CLOTH_DEFORM_SNAKE_HOOK, BRUSH_CLOTH_DEFORM_GRAB)) {
+    /* Set the deformation strength to 0. Brushes will initialize the strength in the required
      * area. */
     const int totverts = SCULPT_vertex_count_get(ss);
     for (int i = 0; i < totverts; i++) {
@@ -1228,9 +1238,14 @@ void SCULPT_cloth_plane_falloff_preview_draw(const uint gpuattr,
                                              const float outline_col[3],
                                              float outline_alpha)
 {
-  float local_mat_inv[4][4];
-  invert_m4_m4(local_mat_inv, ss->cache->stroke_local_mat);
-  GPU_matrix_mul(ss->cache->stroke_local_mat);
+  float local_mat[4][4];
+  copy_m4_m4(local_mat, ss->cache->stroke_local_mat);
+
+  if (ss->cache->brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB) {
+    add_v3_v3v3(local_mat[3], ss->cache->true_location, ss->cache->grab_delta);
+  }
+
+  GPU_matrix_mul(local_mat);
 
   const float dist = ss->cache->radius;
   const float arrow_x = ss->cache->radius * 0.2f;
