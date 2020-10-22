@@ -49,7 +49,9 @@ typedef enum ShaderFxMode {
   eShaderFxMode_Realtime = (1 << 0),
   eShaderFxMode_Render = (1 << 1),
   eShaderFxMode_Editmode = (1 << 2),
+#ifdef DNA_DEPRECATED_ALLOW
   eShaderFxMode_Expanded_DEPRECATED = (1 << 3),
+#endif
 } ShaderFxMode;
 
 typedef enum {

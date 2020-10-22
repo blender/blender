@@ -57,7 +57,9 @@ typedef enum GpencilModifierMode {
   eGpencilModifierMode_Realtime = (1 << 0),
   eGpencilModifierMode_Render = (1 << 1),
   eGpencilModifierMode_Editmode = (1 << 2),
+#ifdef DNA_DEPRECATED_ALLOW
   eGpencilModifierMode_Expanded_DEPRECATED = (1 << 3),
+#endif
   eGpencilModifierMode_Virtual = (1 << 4),
 } GpencilModifierMode;
 
