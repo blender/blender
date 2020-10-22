@@ -91,6 +91,14 @@ class CPPType : NonCopyable, NonMovable {
   using CopyToUninitializedNF = void (*)(const void *src, void *dst, int64_t n);
   using CopyToUninitializedIndicesF = void (*)(const void *src, void *dst, IndexMask mask);
 
+  using MoveToInitializedF = void (*)(void *src, void *dst);
+  using MoveToInitializedNF = void (*)(void *src, void *dst, int64_t n);
+  using MoveToInitializedIndicesF = void (*)(void *src, void *dst, IndexMask mask);
+
+  using MoveToUninitializedF = void (*)(void *src, void *dst);
+  using MoveToUninitializedNF = void (*)(void *src, void *dst, int64_t n);
+  using MoveToUninitializedIndicesF = void (*)(void *src, void *dst, IndexMask mask);
+
   using RelocateToInitializedF = void (*)(void *src, void *dst);
   using RelocateToInitializedNF = void (*)(void *src, void *dst, int64_t n);
   using RelocateToInitializedIndicesF = void (*)(void *src, void *dst, IndexMask mask);
@@ -131,6 +139,14 @@ class CPPType : NonCopyable, NonMovable {
   CopyToUninitializedNF copy_to_uninitialized_n_;
   CopyToUninitializedIndicesF copy_to_uninitialized_indices_;
 
+  MoveToInitializedF move_to_initialized_;
+  MoveToInitializedNF move_to_initialized_n_;
+  MoveToInitializedIndicesF move_to_initialized_indices_;
+
+  MoveToUninitializedF move_to_uninitialized_;
+  MoveToUninitializedNF move_to_uninitialized_n_;
+  MoveToUninitializedIndicesF move_to_uninitialized_indices_;
+
   RelocateToInitializedF relocate_to_initialized_;
   RelocateToInitializedNF relocate_to_initialized_n_;
   RelocateToInitializedIndicesF relocate_to_initialized_indices_;
@@ -169,6 +185,12 @@ class CPPType : NonCopyable, NonMovable {
           CopyToUninitializedF copy_to_uninitialized,
           CopyToUninitializedNF copy_to_uninitialized_n,
           CopyToUninitializedIndicesF copy_to_uninitialized_indices,
+          MoveToInitializedF move_to_initialized,
+          MoveToInitializedNF move_to_initialized_n,
+          MoveToInitializedIndicesF move_to_initialized_indices,
+          MoveToUninitializedF move_to_uninitialized,
+          MoveToUninitializedNF move_to_uninitialized_n,
+          MoveToUninitializedIndicesF move_to_uninitialized_indices,
           RelocateToInitializedF relocate_to_initialized,
           RelocateToInitializedNF relocate_to_initialized_n,
           RelocateToInitializedIndicesF relocate_to_initialized_indices,
@@ -198,6 +220,12 @@ class CPPType : NonCopyable, NonMovable {
         copy_to_uninitialized_(copy_to_uninitialized),
         copy_to_uninitialized_n_(copy_to_uninitialized_n),
         copy_to_uninitialized_indices_(copy_to_uninitialized_indices),
+        move_to_initialized_(move_to_initialized),
+        move_to_initialized_n_(move_to_initialized_n),
+        move_to_initialized_indices_(move_to_initialized_indices),
+        move_to_uninitialized_(move_to_uninitialized),
+        move_to_uninitialized_n_(move_to_uninitialized_n),
+        move_to_uninitialized_indices_(move_to_uninitialized_indices),
         relocate_to_initialized_(relocate_to_initialized),
         relocate_to_initialized_n_(relocate_to_initialized_n),
         relocate_to_initialized_indices_(relocate_to_initialized_indices),
@@ -419,6 +447,76 @@ class CPPType : NonCopyable, NonMovable {
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(dst));
 
     copy_to_uninitialized_indices_(src, dst, mask);
+  }
+
+  /**
+   * Move an instance of this type from src to dst.
+   *
+   * The memory pointed to by dst should be initialized.
+   *
+   * C++ equivalent:
+   *   dst = std::move(src);
+   */
+  void move_to_initialized(void *src, void *dst) const
+  {
+    BLI_assert(src != dst);
+    BLI_assert(this->pointer_can_point_to_instance(src));
+    BLI_assert(this->pointer_can_point_to_instance(dst));
+
+    move_to_initialized_(src, dst);
+  }
+
+  void move_to_initialized_n(void *src, void *dst, int64_t n) const
+  {
+    BLI_assert(n == 0 || src != dst);
+    BLI_assert(n == 0 || this->pointer_can_point_to_instance(src));
+    BLI_assert(n == 0 || this->pointer_can_point_to_instance(dst));
+
+    move_to_initialized_n_(src, dst, n);
+  }
+
+  void move_to_initialized_indices(void *src, void *dst, IndexMask mask) const
+  {
+    BLI_assert(mask.size() == 0 || src != dst);
+    BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(src));
+    BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(dst));
+
+    move_to_initialized_indices_(src, dst, mask);
+  }
+
+  /**
+   * Move an instance of this type from src to dst.
+   *
+   * The memory pointed to by dst should be uninitialized.
+   *
+   * C++ equivalent:
+   *   new (dst) T(std::move(src));
+   */
+  void move_to_uninitialized(void *src, void *dst) const
+  {
+    BLI_assert(src != dst);
+    BLI_assert(this->pointer_can_point_to_instance(src));
+    BLI_assert(this->pointer_can_point_to_instance(dst));
+
+    move_to_uninitialized_(src, dst);
+  }
+
+  void move_to_uninitialized_n(void *src, void *dst, int64_t n) const
+  {
+    BLI_assert(n == 0 || src != dst);
+    BLI_assert(n == 0 || this->pointer_can_point_to_instance(src));
+    BLI_assert(n == 0 || this->pointer_can_point_to_instance(dst));
+
+    move_to_uninitialized_n_(src, dst, n);
+  }
+
+  void move_to_uninitialized_indices(void *src, void *dst, IndexMask mask) const
+  {
+    BLI_assert(mask.size() == 0 || src != dst);
+    BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(src));
+    BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(dst));
+
+    move_to_uninitialized_indices_(src, dst, mask);
   }
 
   /**
@@ -644,6 +742,38 @@ void copy_to_uninitialized_indices_cb(const void *src, void *dst, IndexMask mask
   mask.foreach_index([&](int64_t i) { new (dst_ + i) T(src_[i]); });
 }
 
+template<typename T> void move_to_initialized_cb(void *src, void *dst)
+{
+  blender::initialized_move_n(static_cast<T *>(src), 1, static_cast<T *>(dst));
+}
+template<typename T> void move_to_initialized_n_cb(void *src, void *dst, int64_t n)
+{
+  blender::initialized_move_n(static_cast<T *>(src), n, static_cast<T *>(dst));
+}
+template<typename T> void move_to_initialized_indices_cb(void *src, void *dst, IndexMask mask)
+{
+  T *src_ = static_cast<T *>(src);
+  T *dst_ = static_cast<T *>(dst);
+
+  mask.foreach_index([&](int64_t i) { dst_[i] = std::move(src_[i]); });
+}
+
+template<typename T> void move_to_uninitialized_cb(void *src, void *dst)
+{
+  blender::uninitialized_move_n(static_cast<T *>(src), 1, static_cast<T *>(dst));
+}
+template<typename T> void move_to_uninitialized_n_cb(void *src, void *dst, int64_t n)
+{
+  blender::uninitialized_move_n(static_cast<T *>(src), n, static_cast<T *>(dst));
+}
+template<typename T> void move_to_uninitialized_indices_cb(void *src, void *dst, IndexMask mask)
+{
+  T *src_ = static_cast<T *>(src);
+  T *dst_ = static_cast<T *>(dst);
+
+  mask.foreach_index([&](int64_t i) { new (dst_ + i) T(std::move(src_[i])); });
+}
+
 template<typename T> void relocate_to_initialized_cb(void *src, void *dst)
 {
   T *src_ = static_cast<T *>(src);
@@ -767,6 +897,12 @@ inline std::unique_ptr<const CPPType> create_cpp_type(StringRef name, const T &d
                                     copy_to_uninitialized_cb<T>,
                                     copy_to_uninitialized_n_cb<T>,
                                     copy_to_uninitialized_indices_cb<T>,
+                                    move_to_initialized_cb<T>,
+                                    move_to_initialized_n_cb<T>,
+                                    move_to_initialized_indices_cb<T>,
+                                    move_to_uninitialized_cb<T>,
+                                    move_to_uninitialized_n_cb<T>,
+                                    move_to_uninitialized_indices_cb<T>,
                                     relocate_to_initialized_cb<T>,
                                     relocate_to_initialized_n_cb<T>,
                                     relocate_to_initialized_indices_cb<T>,
