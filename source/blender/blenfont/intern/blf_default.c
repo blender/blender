@@ -23,11 +23,6 @@
  * Default API, that uses Blender's user preferences for the default size.
  */
 
-#include <ft2build.h>
-
-#include FT_FREETYPE_H
-#include FT_GLYPH_H
-
 #include "DNA_userdef_types.h"
 
 #include "BLI_assert.h"
