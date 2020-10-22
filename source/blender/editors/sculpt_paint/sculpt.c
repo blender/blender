@@ -3805,20 +3805,33 @@ static void do_grab_brush_task_cb_ex(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
+  const bool grab_silhouette = brush->flag2 & BRUSH_GRAB_SILHOUETTE;
+
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
 
     if (sculpt_brush_test_sq_fn(&test, orig_data.co)) {
-      const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                  brush,
-                                                                  orig_data.co,
-                                                                  sqrtf(test.dist),
-                                                                  orig_data.no,
-                                                                  NULL,
-                                                                  vd.mask ? *vd.mask : 0.0f,
-                                                                  vd.index,
-                                                                  thread_id);
+      float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                            brush,
+                                                            orig_data.co,
+                                                            sqrtf(test.dist),
+                                                            orig_data.no,
+                                                            NULL,
+                                                            vd.mask ? *vd.mask : 0.0f,
+                                                            vd.index,
+                                                            thread_id);
+
+      if (grab_silhouette) {
+        float silhouette_test_dir[3];
+        normalize_v3_v3(silhouette_test_dir, grab_delta);
+        if (dot_v3v3(ss->cache->initial_normal, ss->cache->grab_delta) < 0.0f) {
+          mul_v3_fl(silhouette_test_dir, -1.0f);
+        }
+        float vno[3];
+        normal_short_to_float_v3(vno, orig_data.no);
+        fade *= max_ff(dot_v3v3(vno, silhouette_test_dir), 0.0f);
+      }
 
       mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
 
