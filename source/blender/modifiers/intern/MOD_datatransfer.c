@@ -268,7 +268,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
 
-  uiItemO(layout, "Generate Data Layers", ICON_NONE, "OBJECT_OT_datalayout_transfer");
+  uiItemO(layout, IFACE_("Generate Data Layers"), ICON_NONE, "OBJECT_OT_datalayout_transfer");
 
   modifier_panel_end(layout, ptr);
 }
