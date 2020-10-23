@@ -71,8 +71,8 @@ class BVHEmbree : public BVH {
 
  private:
   void delete_rtcScene();
-  void update_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh);
-  void update_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair);
+  void set_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh, const bool update);
+  void set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, const bool update);
 
   RTCDevice rtc_device;
 

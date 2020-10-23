@@ -585,7 +585,7 @@ void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, int i)
     rtc_indices[j * 3 + 2] = t.v[2];
   }
 
-  update_tri_vertex_buffer(geom_id, mesh);
+  set_tri_vertex_buffer(geom_id, mesh, false);
 
   size_t prim_object_size = pack.prim_object.size();
   pack.prim_object.resize(prim_object_size + num_triangles);
@@ -612,7 +612,7 @@ void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, int i)
   rtcReleaseGeometry(geom_id);
 }
 
-void BVHEmbree::update_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh)
+void BVHEmbree::set_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh, const bool update)
 {
   const Attribute *attr_mP = NULL;
   size_t num_motion_steps = 1;
@@ -640,8 +640,15 @@ void BVHEmbree::update_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh)
       verts = &attr_mP->data_float3()[t_ * num_verts];
     }
 
-    float *rtc_verts = (float *)rtcSetNewGeometryBuffer(
-        geom_id, RTC_BUFFER_TYPE_VERTEX, t, RTC_FORMAT_FLOAT3, sizeof(float) * 3, num_verts + 1);
+    float *rtc_verts = (update) ?
+                           (float *)rtcGetGeometryBufferData(geom_id, RTC_BUFFER_TYPE_VERTEX, t) :
+                           (float *)rtcSetNewGeometryBuffer(geom_id,
+                                                            RTC_BUFFER_TYPE_VERTEX,
+                                                            t,
+                                                            RTC_FORMAT_FLOAT3,
+                                                            sizeof(float) * 3,
+                                                            num_verts + 1);
+
     assert(rtc_verts);
     if (rtc_verts) {
       for (size_t j = 0; j < num_verts; ++j) {
@@ -651,10 +658,14 @@ void BVHEmbree::update_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh)
         rtc_verts += 3;
       }
     }
+
+    if (update) {
+      rtcUpdateGeometryBuffer(geom_id, RTC_BUFFER_TYPE_VERTEX, t);
+    }
   }
 }
 
-void BVHEmbree::update_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair)
+void BVHEmbree::set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, const bool update)
 {
   const Attribute *attr_mP = NULL;
   size_t num_motion_steps = 1;
@@ -689,8 +700,14 @@ void BVHEmbree::update_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair
       verts = &attr_mP->data_float3()[t_ * num_keys];
     }
 
-    float4 *rtc_verts = (float4 *)rtcSetNewGeometryBuffer(
-        geom_id, RTC_BUFFER_TYPE_VERTEX, t, RTC_FORMAT_FLOAT4, sizeof(float) * 4, num_keys_embree);
+    float4 *rtc_verts = (update) ? (float4 *)rtcGetGeometryBufferData(
+                                       geom_id, RTC_BUFFER_TYPE_VERTEX, t) :
+                                   (float4 *)rtcSetNewGeometryBuffer(geom_id,
+                                                                     RTC_BUFFER_TYPE_VERTEX,
+                                                                     t,
+                                                                     RTC_FORMAT_FLOAT4,
+                                                                     sizeof(float) * 4,
+                                                                     num_keys_embree);
 
     assert(rtc_verts);
     if (rtc_verts) {
@@ -708,6 +725,10 @@ void BVHEmbree::update_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair
         rtc_verts[k] = rtc_verts[k - 1];
         rtc_verts += c.num_keys + 2;
       }
+    }
+
+    if (update) {
+      rtcUpdateGeometryBuffer(geom_id, RTC_BUFFER_TYPE_VERTEX, t);
     }
   }
 }
@@ -779,7 +800,7 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
   rtcSetGeometryBuildQuality(geom_id, build_quality);
   rtcSetGeometryTimeStepCount(geom_id, num_motion_steps);
 
-  update_curve_vertex_buffer(geom_id, hair);
+  set_curve_vertex_buffer(geom_id, hair, false);
 
   rtcSetGeometryUserData(geom_id, (void *)prim_offset);
   if (hair->curve_shape == CURVE_RIBBON) {
@@ -933,15 +954,17 @@ void BVHEmbree::refit_nodes()
       if (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         if (mesh->num_triangles() > 0) {
-          update_tri_vertex_buffer(rtcGetGeometry(scene, geom_id), mesh);
-          rtcCommitGeometry(rtcGetGeometry(scene, geom_id));
+          RTCGeometry geom = rtcGetGeometry(scene, geom_id);
+          set_tri_vertex_buffer(geom, mesh, true);
+          rtcCommitGeometry(geom);
         }
       }
       else if (geom->type == Geometry::HAIR) {
         Hair *hair = static_cast<Hair *>(geom);
         if (hair->num_curves() > 0) {
-          update_curve_vertex_buffer(rtcGetGeometry(scene, geom_id + 1), hair);
-          rtcCommitGeometry(rtcGetGeometry(scene, geom_id + 1));
+          RTCGeometry geom = rtcGetGeometry(scene, geom_id + 1);
+          set_curve_vertex_buffer(geom, hair, true);
+          rtcCommitGeometry(geom);
         }
       }
     }
