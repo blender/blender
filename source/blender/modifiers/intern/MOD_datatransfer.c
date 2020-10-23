@@ -264,7 +264,14 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(sub, ptr, "use_object_transform", 0, "", ICON_ORIENTATION_GLOBAL);
 
   uiItemR(layout, ptr, "mix_mode", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "mix_factor", 0, NULL, ICON_NONE);
+
+  row = uiLayoutRow(layout, false);
+  uiLayoutSetActive(row,
+                    !ELEM(RNA_enum_get(ptr, "mix_mode"),
+                          CDT_MIX_NOMIX,
+                          CDT_MIX_REPLACE_ABOVE_THRESHOLD,
+                          CDT_MIX_REPLACE_BELOW_THRESHOLD));
+  uiItemR(row, ptr, "mix_factor", 0, NULL, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
 
