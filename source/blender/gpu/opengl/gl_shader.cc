@@ -134,13 +134,13 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage, MutableSpan<const char *> 
     if (log[0] != '\0') {
       switch (gl_stage) {
         case GL_VERTEX_SHADER:
-          this->print_errors(sources, log, "VertShader");
+          this->print_log(sources, log, "VertShader", !status);
           break;
         case GL_GEOMETRY_SHADER:
-          this->print_errors(sources, log, "GeomShader");
+          this->print_log(sources, log, "GeomShader", !status);
           break;
         case GL_FRAGMENT_SHADER:
-          this->print_errors(sources, log, "FragShader");
+          this->print_log(sources, log, "FragShader", !status);
           break;
       }
     }
@@ -186,7 +186,7 @@ bool GLShader::finalize(void)
     char log[5000];
     glGetProgramInfoLog(shader_program_, sizeof(log), NULL, log);
     Span<const char *> sources;
-    this->print_errors(sources, log, "Linking");
+    this->print_log(sources, log, "Linking", true);
     return false;
   }
 

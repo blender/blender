@@ -44,6 +44,7 @@ set(INC
   ../nodes
   ../nodes/intern
 
+  ../../../intern/clog
   ../../../intern/ghost
   ../../../intern/glew-mx
   ../../../intern/guardedalloc
