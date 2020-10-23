@@ -1382,8 +1382,7 @@ GHOST_TSuccess GHOST_WindowWin32::getWintabInfo(std::vector<GHOST_WintabInfoWin3
 
     m_wintab.sysButtonsPressed = pkt.pkButtons;
 
-    /* Wintab does not support performance counters, so use low frequency counter instead. */
-    outWintabInfo[i].time = system->tickCountToMillis(pkt.pkTime);
+    outWintabInfo[i].time = system->millisSinceStart(pkt.pkTime);
     outWintabInfo[i].tabletData = tabletData;
   }
 
