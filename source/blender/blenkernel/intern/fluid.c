@@ -343,32 +343,37 @@ void BKE_fluid_cache_free(FluidDomainSettings *fds, Object *ob, int cache_map)
     flags &= ~(FLUID_DOMAIN_BAKING_DATA | FLUID_DOMAIN_BAKED_DATA | FLUID_DOMAIN_OUTDATED_DATA);
     BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_CONFIG, NULL);
     BLI_path_abs(temp_dir, relbase);
-    BLI_delete(temp_dir, true, true); /* BLI_exists(filepath) is implicit */
-
+    if (BLI_exists(temp_dir)) {
+      BLI_delete(temp_dir, true, true);
+    }
     BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_DATA, NULL);
     BLI_path_abs(temp_dir, relbase);
-    BLI_delete(temp_dir, true, true); /* BLI_exists(filepath) is implicit */
-
+    if (BLI_exists(temp_dir)) {
+      BLI_delete(temp_dir, true, true);
+    }
     BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_SCRIPT, NULL);
     BLI_path_abs(temp_dir, relbase);
-    BLI_delete(temp_dir, true, true); /* BLI_exists(filepath) is implicit */
-
+    if (BLI_exists(temp_dir)) {
+      BLI_delete(temp_dir, true, true);
+    }
     fds->cache_frame_pause_data = 0;
   }
   if (cache_map & FLUID_DOMAIN_OUTDATED_NOISE) {
     flags &= ~(FLUID_DOMAIN_BAKING_NOISE | FLUID_DOMAIN_BAKED_NOISE | FLUID_DOMAIN_OUTDATED_NOISE);
     BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_NOISE, NULL);
     BLI_path_abs(temp_dir, relbase);
-    BLI_delete(temp_dir, true, true); /* BLI_exists(filepath) is implicit */
-
+    if (BLI_exists(temp_dir)) {
+      BLI_delete(temp_dir, true, true);
+    }
     fds->cache_frame_pause_noise = 0;
   }
   if (cache_map & FLUID_DOMAIN_OUTDATED_MESH) {
     flags &= ~(FLUID_DOMAIN_BAKING_MESH | FLUID_DOMAIN_BAKED_MESH | FLUID_DOMAIN_OUTDATED_MESH);
     BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_MESH, NULL);
     BLI_path_abs(temp_dir, relbase);
-    BLI_delete(temp_dir, true, true); /* BLI_exists(filepath) is implicit */
-
+    if (BLI_exists(temp_dir)) {
+      BLI_delete(temp_dir, true, true);
+    }
     fds->cache_frame_pause_mesh = 0;
   }
   if (cache_map & FLUID_DOMAIN_OUTDATED_PARTICLES) {
@@ -377,17 +382,18 @@ void BKE_fluid_cache_free(FluidDomainSettings *fds, Object *ob, int cache_map)
     BLI_path_join(
         temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_PARTICLES, NULL);
     BLI_path_abs(temp_dir, relbase);
-    BLI_delete(temp_dir, true, true); /* BLI_exists(filepath) is implicit */
-
+    if (BLI_exists(temp_dir)) {
+      BLI_delete(temp_dir, true, true);
+    }
     fds->cache_frame_pause_particles = 0;
   }
-
   if (cache_map & FLUID_DOMAIN_OUTDATED_GUIDE) {
     flags &= ~(FLUID_DOMAIN_BAKING_GUIDE | FLUID_DOMAIN_BAKED_GUIDE | FLUID_DOMAIN_OUTDATED_GUIDE);
     BLI_path_join(temp_dir, sizeof(temp_dir), fds->cache_directory, FLUID_DOMAIN_DIR_GUIDE, NULL);
     BLI_path_abs(temp_dir, relbase);
-    BLI_delete(temp_dir, true, true); /* BLI_exists(filepath) is implicit */
-
+    if (BLI_exists(temp_dir)) {
+      BLI_delete(temp_dir, true, true);
+    }
     fds->cache_frame_pause_guide = 0;
   }
   fds->cache_flag = flags;
