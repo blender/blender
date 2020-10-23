@@ -393,6 +393,11 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
     /* Load per-object culling data. */
     culling.init_object(scene, b_ob);
 
+    /* Ensure the object geom supporting the hair is processed before adding
+     * the hair processing task to the task pool, calling .to_mesh() on the
+     * same object in parallel does not work. */
+    const bool sync_hair = b_instance.show_particles() && object_has_particle_hair(b_ob);
+
     /* Object itself. */
     if (b_instance.show_self()) {
       sync_object(b_depsgraph,
@@ -403,11 +408,11 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
                   show_lights,
                   culling,
                   &use_portal,
-                  &geom_task_pool);
+                  sync_hair ? NULL : &geom_task_pool);
     }
 
     /* Particle hair as separate object. */
-    if (b_instance.show_particles() && object_has_particle_hair(b_ob)) {
+    if (sync_hair) {
       sync_object(b_depsgraph,
                   b_view_layer,
                   b_instance,
