@@ -541,7 +541,9 @@ void BKE_lnor_spacearr_clear(MLoopNorSpaceArray *lnors_spacearr)
   lnors_spacearr->num_spaces = 0;
   lnors_spacearr->lspacearr = NULL;
   lnors_spacearr->loops_pool = NULL;
-  BLI_memarena_clear(lnors_spacearr->mem);
+  if (lnors_spacearr->mem != NULL) {
+    BLI_memarena_clear(lnors_spacearr->mem);
+  }
 }
 
 void BKE_lnor_spacearr_free(MLoopNorSpaceArray *lnors_spacearr)
