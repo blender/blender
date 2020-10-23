@@ -396,6 +396,8 @@ StateManager::StateManager(void)
   state.shadow_bias = false;
   state.polygon_smooth = false;
   state.clip_distances = 0;
+  state.polygon_smooth = 0;
+  state.line_smooth = 0;
 
   mutable_state.depth_range[0] = 0.0f;
   mutable_state.depth_range[1] = 1.0f;
