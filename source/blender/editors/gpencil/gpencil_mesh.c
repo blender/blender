@@ -441,6 +441,8 @@ void GPENCIL_OT_bake_mesh_animation(wmOperatorType *ot)
 
   prop = RNA_def_int(ot->srna, "step", 1, 1, 100, "Step", "Step between generated frames", 1, 100);
 
+  RNA_def_int(ot->srna, "thickness", 1, 1, 100, "Thickness", "", 1, 100);
+
   prop = RNA_def_float_rotation(ot->srna,
                                 "angle",
                                 0,
@@ -453,14 +455,22 @@ void GPENCIL_OT_bake_mesh_animation(wmOperatorType *ot)
                                 DEG2RADF(180.0f));
   RNA_def_property_float_default(prop, DEG2RADF(70.0f));
 
-  RNA_def_int(ot->srna, "thickness", 1, 1, 100, "Thickness", "", 1, 100);
+  RNA_def_float_distance(ot->srna,
+                         "offset",
+                         0.001f,
+                         0.0,
+                         100.0,
+                         "Stroke Offset",
+                         "Offset strokes from fill",
+                         0.0,
+                         100.00);
+
   RNA_def_boolean(ot->srna, "seams", 0, "Only Seam Edges", "Convert only seam edges");
   RNA_def_boolean(ot->srna, "faces", 1, "Export Faces", "Export faces as filled strokes");
   RNA_def_boolean(
       ot->srna, "only_selected", 0, "Only Selected Keyframes", "Convert only selected keyframes");
-  RNA_def_float_distance(
-      ot->srna, "offset", 0.001f, 0.0, 100.0, "Offset", "Offset strokes from fill", 0.0, 100.00);
-  RNA_def_int(ot->srna, "frame_target", 1, 1, 100000, "Frame Target", "", 1, 100000);
+  RNA_def_int(
+      ot->srna, "frame_target", 1, 1, 100000, "Target Frame", "Destination frame", 1, 100000);
 
   RNA_def_enum(ot->srna, "project_type", reproject_type, GP_REPROJECT_VIEW, "Projection Type", "");
 }
