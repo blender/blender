@@ -328,7 +328,7 @@ class GHOST_SystemWin32 : public GHOST_System {
    * \param mousePressed    Whether the mouse is currently pressed.
    * \return                True if the method handled the event.
    */
-  static GHOST_TSuccess processWintabEvents(GHOST_TEventType type,
+  static GHOST_TSuccess processWintabEvent(GHOST_TEventType type,
                                             GHOST_WindowWin32 *window,
                                             GHOST_TButtonMask mask,
                                             bool mousePressed);
@@ -341,7 +341,7 @@ class GHOST_SystemWin32 : public GHOST_System {
    * \param lParam          The lParam from the wndproc.
    * \param eventhandled    True if the method handled the event.
    */
-  static void processPointerEvents(
+  static void processPointerEvent(
       UINT type, GHOST_WindowWin32 *window, WPARAM wParam, LPARAM lParam, bool &eventhandled);
 
   /**

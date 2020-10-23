@@ -951,7 +951,7 @@ GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type,
    * events to grab. The described behavior was observed in a Wacom Bamboo CTE-450. */
   if (window->useTabletAPI(GHOST_kTabletWintab) &&
       (window->m_tabletInRange || window->wintabSysButPressed()) &&
-      processWintabEvents(type, window, mask, window->getMousePressed())) {
+      processWintabEvent(type, window, mask, window->getMousePressed())) {
     /* Wintab processing only handles in-contact events. */
     return NULL;
   }
@@ -960,7 +960,7 @@ GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type,
       system->getMilliSeconds(), type, window, mask, GHOST_TABLET_DATA_NONE);
 }
 
-GHOST_TSuccess GHOST_SystemWin32::processWintabEvents(GHOST_TEventType type,
+GHOST_TSuccess GHOST_SystemWin32::processWintabEvent(GHOST_TEventType type,
                                                       GHOST_WindowWin32 *window,
                                                       GHOST_TButtonMask mask,
                                                       bool mousePressed)
@@ -1069,7 +1069,7 @@ GHOST_TSuccess GHOST_SystemWin32::processWintabEvents(GHOST_TEventType type,
   return GHOST_kSuccess;
 }
 
-void GHOST_SystemWin32::processPointerEvents(
+void GHOST_SystemWin32::processPointerEvent(
     UINT type, GHOST_WindowWin32 *window, WPARAM wParam, LPARAM lParam, bool &eventHandled)
 {
   std::vector<GHOST_PointerInfoWin32> pointerInfo;
@@ -1158,7 +1158,7 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
 
   if (window->m_tabletInRange || window->wintabSysButPressed()) {
     if (window->useTabletAPI(GHOST_kTabletWintab) &&
-        processWintabEvents(
+        processWintabEvent(
             GHOST_kEventCursorMove, window, GHOST_kButtonMaskNone, window->getMousePressed())) {
       return NULL;
     }
@@ -1628,7 +1628,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
         case WM_POINTERUPDATE:
         case WM_POINTERUP:
         case WM_POINTERLEAVE:
-          processPointerEvents(msg, window, wParam, lParam, eventHandled);
+          processPointerEvent(msg, window, wParam, lParam, eventHandled);
           break;
         ////////////////////////////////////////////////////////////////////////
         // Mouse events, processed
