@@ -2686,6 +2686,8 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
       Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_MESH);
       me_eval = BKE_mesh_copy_for_eval(me_eval, false);
+      /* Full (edge-angle based) draw calculation should ideally be performed. */
+      BKE_mesh_edges_set_draw_render(me_eval);
       BKE_mesh_nomain_to_mesh(me_eval, newob->data, newob, &CD_MASK_MESH, true);
       BKE_object_free_modifiers(newob, 0); /* after derivedmesh calls! */
     }
