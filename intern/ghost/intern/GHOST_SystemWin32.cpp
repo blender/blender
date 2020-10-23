@@ -948,12 +948,11 @@ GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type,
 
   /* Check for active Wintab mouse emulation in addition to a tablet in range because a proximity
    * leave event might have fired before the Windows mouse up event, thus there are still tablet
-   * events to grab. The described behavior was observed in a Wacom Bamboo CTE-450.
-   */
+   * events to grab. The described behavior was observed in a Wacom Bamboo CTE-450. */
   if (window->useTabletAPI(GHOST_kTabletWintab) &&
       (window->m_tabletInRange || window->wintabSysButPressed()) &&
       processWintabEvents(type, window, mask, window->getMousePressed())) {
-    // Wintab processing only handles in-contact events.
+    /* Wintab processing only handles in-contact events. */
     return NULL;
   }
 
@@ -972,8 +971,7 @@ GHOST_TSuccess GHOST_SystemWin32::processWintabEvents(GHOST_TEventType type,
    * button event associated to a mouse button by Wintab occurs outside of WM_*BUTTON events,
    * there's no way to tell if other simultaneously pressed non-mouse mapped buttons are associated
    * to a modifier key (shift, alt, ctrl) or a system event (scroll, etc.) and thus it is not
-   * possible to determine if a mouse click event should occur.
-   */
+   * possible to determine if a mouse click event should occur. */
   if (!mousePressed && !window->wintabSysButPressed()) {
     return GHOST_kFailure;
   }
@@ -987,10 +985,9 @@ GHOST_TSuccess GHOST_SystemWin32::processWintabEvents(GHOST_TEventType type,
 
   /* We only process events that correlate to a mouse button events, so there may exist Wintab
    * button down events that were instead mapped to e.g. scroll still in the queue. We need to
-   * skip those and find the last button down mapped to mouse buttons.
-   */
+   * skip those and find the last button down mapped to mouse buttons. */
   if (!window->wintabSysButPressed()) {
-    // Assume there may be no button down event currently in the queue.
+    /* Assume there may be no button down event currently in the queue. */
     wtiIter = wintabInfo.end();
 
     for (auto it = wintabInfo.begin(); it != wintabInfo.end(); it++) {
@@ -1013,8 +1010,7 @@ GHOST_TSuccess GHOST_SystemWin32::processWintabEvents(GHOST_TEventType type,
          *
          * If we were called during a button down event create a ghost button down event, otherwise
          * don't duplicate the prior button down as it interrupts drawing immediately after
-         * changing a window.
-         */
+         * changing a window. */
         system->pushEvent(new GHOST_EventCursor(
             info.time, GHOST_kEventCursorMove, window, info.x, info.y, info.tabletData));
         if (type == GHOST_kEventButtonDown && mask == info.button) {
@@ -1042,19 +1038,19 @@ GHOST_TSuccess GHOST_SystemWin32::processWintabEvents(GHOST_TEventType type,
     }
   }
 
-  // No Wintab button found correlating to the system button event, handle it too.
-  //
-  // Wintab button up events may be handled during WM_MOUSEMOVE, before their corresponding
-  // WM_*BUTTONUP event has fired, which results in two GHOST Button up events for a single Wintab
-  // associated button event. Alternatively this Windows button up event may have been generated
-  // from a non-stylus device such as a button on the tablet pad and needs to be handled for some
-  // workflows.
-  //
-  // The ambiguity introduced by Windows and Wintab buttons being asynchronous and having no
-  // definitive way to associate each, and that the Wintab API does not provide enough information
-  // to differentiate whether the stylus down is or is not modified by another button to a
-  // non-mouse mapping, means that we must pessimistically generate mouse up events when we are
-  // unsure of an association to prevent the mouse locking into a down state.
+  /* No Wintab button found correlating to the system button event, handle it too.
+   *
+   * Wintab button up events may be handled during WM_MOUSEMOVE, before their corresponding
+   * WM_*BUTTONUP event has fired, which results in two GHOST Button up events for a single Wintab
+   * associated button event. Alternatively this Windows button up event may have been generated
+   * from a non-stylus device such as a button on the tablet pad and needs to be handled for some
+   * workflows.
+   *
+   * The ambiguity introduced by Windows and Wintab buttons being asynchronous and having no
+   * definitive way to associate each, and that the Wintab API does not provide enough information
+   * to differentiate whether the stylus down is or is not modified by another button to a
+   * non-mouse mapping, means that we must pessimistically generate mouse up events when we are
+   * unsure of an association to prevent the mouse locking into a down state. */
   if (unhandledButton) {
     if (!window->wintabSysButPressed()) {
       GHOST_TInt32 x, y;
@@ -1079,8 +1075,8 @@ void GHOST_SystemWin32::processPointerEvents(
   std::vector<GHOST_PointerInfoWin32> pointerInfo;
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 
-  // Pointer events might fire when changing windows for a device which is set to use Wintab, even
-  // when when Wintab is left enabled but set to the bottom of Wintab overlap order.
+  /* Pointer events might fire when changing windows for a device which is set to use Wintab, even
+   * when when Wintab is left enabled but set to the bottom of Wintab overlap order. */
   if (!window->useTabletAPI(GHOST_kTabletNative)) {
     return;
   }
@@ -1105,7 +1101,7 @@ void GHOST_SystemWin32::processPointerEvents(
                                               pointerInfo[0].tabletData));
       break;
     case WM_POINTERDOWN:
-      // Move cursor to point of contact because GHOST_EventButton does not include position.
+      /* Move cursor to point of contact because GHOST_EventButton does not include position. */
       system->pushEvent(new GHOST_EventCursor(pointerInfo[0].time,
                                               GHOST_kEventCursorMove,
                                               window,
@@ -1120,8 +1116,8 @@ void GHOST_SystemWin32::processPointerEvents(
       window->updateMouseCapture(MousePressed);
       break;
     case WM_POINTERUPDATE:
-      // Coalesced pointer events are reverse chronological order, reorder chronologically.
-      // Only contiguous move events are coalesced.
+      /* Coalesced pointer events are reverse chronological order, reorder chronologically.
+       * Only contiguous move events are coalesced. */
       for (GHOST_TUns32 i = pointerInfo.size(); i-- > 0;) {
         system->pushEvent(new GHOST_EventCursor(pointerInfo[i].time,
                                                 GHOST_kEventCursorMove,
@@ -1167,13 +1163,13 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
       return NULL;
     }
     else if (window->useTabletAPI(GHOST_kTabletNative)) {
-      // Tablet input handled in WM_POINTER* events. WM_MOUSEMOVE events in response to tablet
-      // input aren't normally generated when using WM_POINTER events, but manually moving the
-      // system cursor as we do in WM_POINTER handling does.
+      /* Tablet input handled in WM_POINTER* events. WM_MOUSEMOVE events in response to tablet
+       * input aren't normally generated when using WM_POINTER events, but manually moving the
+       * system cursor as we do in WM_POINTER handling does. */
       return NULL;
     }
 
-    // If using Wintab but no button event is currently active, fall through to default handling
+    /* If using Wintab but no button event is currently active, fall through to default handling. */
   }
 
   system->getCursorPosition(x_screen, y_screen);
@@ -1823,9 +1819,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
             event = processWindowEvent(GHOST_kEventWindowSize, window);
           }
 
-          // Window might be minimized while inactive. When a window is inactive but not minimized,
-          // Wintab is left enabled (to catch the case where a pen is used to activate a window).
-          // When an inactive window is minimized, we need to disable Wintab.
+          /* Window might be minimized while inactive. When a window is inactive but not minimized,
+           * Wintab is left enabled (to catch the case where a pen is used to activate a window).
+           * When an inactive window is minimized, we need to disable Wintab. */
           if (msg == WM_SIZE && wParam == SIZE_MINIMIZED) {
             window->updateWintab(false, false);
           }

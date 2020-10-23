@@ -438,9 +438,9 @@ class GHOST_WindowWin32 : public GHOST_Window {
   void loadCursor(bool visible, GHOST_TStandardCursor cursorShape) const;
 
   /**
-   * Handle setup and switch between Wintab and Pointer APIs
-   * \param active    Whether the window is or will be in an active state
-   * \param visible   Whether the window is currently (or will be) visible)
+   * Handle setup and switch between Wintab and Pointer APIs.
+   * \param active    Whether the window is or will be in an active state.
+   * \param visible   Whether the window is currently (or will be) visible).
    */
   void updateWintab(bool active, bool visible);
 
@@ -452,9 +452,10 @@ class GHOST_WindowWin32 : public GHOST_Window {
 
   /**
    * Translate WM_POINTER events into GHOST_PointerInfoWin32 structs.
-   * \param outPointerInfo   Storage to return resulting GHOST_PointerInfoWin32 structs
-   * \param wParam           WPARAM of the event
-   * \param lParam           LPARAM of the event
+   * \param outPointerInfo    Storage to return resulting GHOST_PointerInfoWin32 structs.
+   * \param wParam            WPARAM of the event.
+   * \param lParam            LPARAM of the event.
+   * \return                  True if outPointerInfo was updated.
    */
   GHOST_TSuccess getPointerInfo(std::vector<GHOST_PointerInfoWin32> &outPointerInfo,
                                 WPARAM wParam,
@@ -466,24 +467,26 @@ class GHOST_WindowWin32 : public GHOST_Window {
   void processWintabDisplayChangeEvent();
 
   /**
-   * Set tablet details when a cursor enters range
+   * Set tablet details when a cursor enters range.
+   * \param inRange   Whether the Wintab device is in tracking range.
    */
   void processWintabProximityEvent(bool inRange);
 
   /**
    * Handle Wintab info changes such as change in number of connected tablets.
-   * \param lParam   LPARAM of the event
+   * \param lParam   LPARAM of the event.
    */
   void processWintabInfoChangeEvent(LPARAM lParam);
 
   /**
    * Translate Wintab packets into GHOST_WintabInfoWin32 structs.
-   * \param outWintabInfo   Storage to return resulting GHOST_WintabInfoWin32 structs
-   * \return                Success if able to read packets, even if there are none
+   * \param outWintabInfo   Storage to return resulting GHOST_WintabInfoWin32 structs.
+   * \return                Success if able to read packets, even if there are none.
    */
   GHOST_TSuccess getWintabInfo(std::vector<GHOST_WintabInfoWin32> &outWintabInfo);
 
   /**
+   * Updates stored pending Wintab events.
    */
   void updatePendingWintabEvents();
 
@@ -500,25 +503,25 @@ class GHOST_WindowWin32 : public GHOST_Window {
   GHOST_TUns16 getDPIHint() override;
 
   /**
-   * Get whether there are currently any mouse buttons pressed
-   * \return    True if there are any currently pressed mouse buttons
+   * Get whether there are currently any mouse buttons pressed.
+   * \return    True if there are any currently pressed mouse buttons.
    */
   bool getMousePressed() const;
 
   /**
-   * Get if there are currently pressed Wintab buttons associated to a Windows mouse button press
+   * Get if there are currently pressed Wintab buttons associated to a Windows mouse button press.
    * \return    True if there are currently any pressed Wintab buttons associated to a Windows
-   *            mouse button press
+   *            mouse button press.
    */
   bool wintabSysButPressed() const;
 
   /**
-   * Register a Wintab button has been associated to a Windows mouse button press
-   * \param event   Whether the button was pressed or released
+   * Register a Wintab button has been associated to a Windows mouse button press.
+   * \param event   Whether the button was pressed or released.
    */
   void updateWintabSysBut(GHOST_MouseCaptureEventWin32 event);
 
-  /** Whether a tablet stylus is being tracked */
+  /** Whether a tablet stylus is being tracked. */
   bool m_tabletInRange;
 
   /** if the window currently resizing */
@@ -628,18 +631,23 @@ class GHOST_WindowWin32 : public GHOST_Window {
     DWORD sysButtonsPressed = 0;
     LONG maxPressure = 0;
     LONG maxAzimuth = 0, maxAltitude = 0;
-    /* Queue size doesn't change once set, so reuse the same buffer */
+    /** Reusable buffer to read in Wintab Packets. */
     std::vector<PACKET> pkts;
+    /** Queue of packets to process. */
     std::queue<PACKET> pendingEvents;
   } m_wintab;
 
   /**
-   * Wintab setup
+   * Wintab setup.
    */
   void initializeWintab();
 
   /**
-   * Convert Wintab system mapped (mouse) buttons into Ghost button mask
+   * Convert Wintab system mapped (mouse) buttons into Ghost button mask.
+   * \param cursor            The Wintab cursor associated to the button.
+   * \param physicalButton    The physical button ID to inspect.
+   * \param buttonMask        Return pointer for button found.
+   * \return                  Whether an associated button was found.
    */
   GHOST_TSuccess wintabMouseToGhost(UINT cursor,
                                     WORD physicalButton,

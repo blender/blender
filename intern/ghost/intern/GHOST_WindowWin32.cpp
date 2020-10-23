@@ -1007,15 +1007,15 @@ void GHOST_WindowWin32::updateWintab(bool active, bool visible)
     bool enable = useTabletAPI(GHOST_kTabletWintab) && visible;
     bool overlap = enable && active;
 
-    // Disabling context while the Window is not minimized can cause issues on receiving Wintab
-    // input while changing a window for some drivers, so only disable if either Wintab had been
-    // disabled or the window is minimized.
+    /* Disabling context while the Window is not minimized can cause issues on receiving Wintab
+     * input while changing a window for some drivers, so only disable if either Wintab had been
+     * disabled or the window is minimized. */
     m_wintab.enable(m_wintab.context, enable);
     m_wintab.overlap(m_wintab.context, overlap);
 
     if (!overlap) {
-      // WT_PROXIMITY event doesn't occur unless tablet's cursor leaves the proximity while the
-      // window is active.
+      /* WT_PROXIMITY event doesn't occur unless tablet's cursor leaves the proximity while the
+       * window is active. */
       m_tabletInRange = false;
       m_wintab.numSysButtons = 0;
       m_wintab.sysButtonsPressed = 0;
@@ -1025,55 +1025,47 @@ void GHOST_WindowWin32::updateWintab(bool active, bool visible)
 
 void GHOST_WindowWin32::initializeWintab()
 {
-  // return if wintab library handle doesn't exist or wintab is already initialized
+  /* Return if wintab library handle doesn't exist or wintab is already initialized. */
   if (!m_wintab.handle || m_wintab.context) {
     return;
   }
 
-  // Let's see if we can initialize tablet here.
-  // Check if WinTab available by getting system context info.
+  /* Check if WinTab available by getting system context info. */
   LOGCONTEXT lc = {0};
   if (m_wintab.open && m_wintab.info && m_wintab.queueSizeGet && m_wintab.queueSizeSet &&
       m_wintab.info(WTI_DEFSYSCTX, 0, &lc)) {
-    // Now init the tablet
+
     /* The pressure and orientation (tilt) */
     AXIS Pressure, Orientation[3];
-
-    // Open a Wintab context
-
-    // Open the context
     lc.lcPktData = PACKETDATA;
     lc.lcPktMode = PACKETMODE;
     lc.lcMoveMask = PACKETDATA;
     lc.lcOptions |= CXO_CSRMESSAGES | CXO_MESSAGES;
-    // Wacom maps y origin to the tablet's bottom
-    // Invert to match Windows y origin mapping to the screen top
+    /* Wacom maps y origin to the tablet's bottom. Invert to match Windows y origin mapping to the
+     * screen top. */
     lc.lcOutExtY = -lc.lcOutExtY;
 
     m_wintab.info(WTI_INTERFACE, IFC_NDEVICES, &m_wintab.numDevices);
 
-    /* get the max pressure, to divide into a float */
     BOOL pressureSupport = m_wintab.info(WTI_DEVICES, DVC_NPRESSURE, &Pressure);
     m_wintab.maxPressure = pressureSupport ? Pressure.axMax : 0;
 
-    /* get the max tilt axes, to divide into floats */
     BOOL tiltSupport = m_wintab.info(WTI_DEVICES, DVC_ORIENTATION, &Orientation);
-    /* does the tablet support azimuth ([0]) and altitude ([1]) */
+    /* Does the tablet support azimuth ([0]) and altitude ([1])? */
     if (tiltSupport && Orientation[0].axResolution && Orientation[1].axResolution) {
-      /* all this assumes the minimum is 0 */
+      /* All this assumes the minimum is 0. */
       m_wintab.maxAzimuth = Orientation[0].axMax;
       m_wintab.maxAltitude = Orientation[1].axMax;
-
     }
-    else { /* no so dont do tilt stuff */
+    else { /* No so dont do tilt stuff. */
       m_wintab.maxAzimuth = m_wintab.maxAltitude = 0;
     }
 
-    // The Wintab spec says we must open the context disabled if we are using cursor masks.
+    /* The Wintab spec says we must open the context disabled if we are using cursor masks. */
     m_wintab.context = m_wintab.open(m_hWnd, &lc, FALSE);
 
-    // Wintab provides no way to determine the maximum queue size aside from checking if attempts
-    // to change the queue size are successful.
+    /* Wintab provides no way to determine the maximum queue size aside from checking if attempts
+     * to change the queue size are successful. */
     const int maxQueue = 500;
     int queueSize = m_wintab.queueSizeGet(m_wintab.context);
 
@@ -1090,14 +1082,14 @@ void GHOST_WindowWin32::initializeWintab()
          * value."
          *
          * In our case we start with a known valid queue size and in the event of failure roll
-         * back to the last valid queue size.
-         */
+         * back to the last valid queue size. The Wintab spec dates back to 16 bit Windows, thus
+         * assumes memory recently deallocated may not be available, which is no longer a practical
+         * concern. */
         m_wintab.queueSizeSet(m_wintab.context, queueSize);
         break;
       }
     }
     m_wintab.pkts.resize(queueSize);
-
   }
 }
 
@@ -1252,7 +1244,6 @@ void GHOST_WindowWin32::processWintabInfoChangeEvent(LPARAM lParam)
     m_wintab.info(WTI_INTERFACE, IFC_NDEVICES, &m_wintab.numDevices);
     updateWintab((GHOST_WindowWin32 *)system->getWindowManager()->getActiveWindow() == this,
                  !::IsIconic(m_hWnd));
-
   }
 }
 
@@ -1365,12 +1356,12 @@ GHOST_TSuccess GHOST_WindowWin32::getWintabInfo(std::vector<GHOST_WintabInfoWin3
     outWintabInfo[i].x = pkt.pkX;
     outWintabInfo[i].y = pkt.pkY;
 
-    // Some Wintab libraries don't handle relative button input correctly, so we track button
-    // presses manually. Examples include Wacom's Bamboo modifying button events in the queue when
-    // peeked, or missing events when entering the window when the context is not on top.
+    /* Some Wintab libraries don't handle relative button input correctly, so we track button
+     * presses manually. Examples include Wacom's Bamboo modifying button events in the queue when
+     * peeked, or missing events when entering the window when the context is not on top. */
     DWORD buttonsChanged = m_wintab.sysButtonsPressed ^ pkt.pkButtons;
 
-    // Find the index for the changed button from the button map.
+    /* Find the index for the changed button from the button map. */
     WORD physicalButton = 0;
     for (DWORD diff = (unsigned)buttonsChanged >> 1; diff > 0; diff = (unsigned)diff >> 1) {
       physicalButton++;
@@ -1391,7 +1382,7 @@ GHOST_TSuccess GHOST_WindowWin32::getWintabInfo(std::vector<GHOST_WintabInfoWin3
 
     m_wintab.sysButtonsPressed = pkt.pkButtons;
 
-    // Wintab does not support performance counters, so use low frequency counter instead
+    /* Wintab does not support performance counters, so use low frequency counter instead. */
     outWintabInfo[i].time = system->tickCountToMillis(pkt.pkTime);
     outWintabInfo[i].tabletData = tabletData;
   }
@@ -1408,7 +1399,7 @@ void GHOST_WindowWin32::updatePendingWintabEvents()
 
   auto &pendingEvents = m_wintab.pendingEvents;
 
-  // Clear outdated events from queue.
+  /* Clear outdated events from queue. */
   GHOST_TUns64 currTime = system->getMilliSeconds();
   GHOST_TUns64 timeout = 300;
   while (!pendingEvents.empty()) {
@@ -1421,13 +1412,13 @@ void GHOST_WindowWin32::updatePendingWintabEvents()
     }
   }
 
-  // Get new packets.
+  /* Get new packets. */
   const int numPackets = m_wintab.packetsGet(
       m_wintab.context, m_wintab.pkts.size(), m_wintab.pkts.data());
 
   int i = 0;
-  // Don't queue outdated packets, such events can include packets that occurred before the current
-  // window lost and regained focus.
+  /* Don't queue outdated packets, such events can include packets that occurred before the current
+   * window lost and regained focus. */
   for (; i < numPackets; i++) {
     GHOST_TUns64 pktTime = system->millisSinceStart(m_wintab.pkts[i].pkTime);
     if (currTime - pktTime < timeout) {
