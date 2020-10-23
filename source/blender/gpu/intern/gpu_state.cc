@@ -394,8 +394,9 @@ StateManager::StateManager(void)
   state.logic_op_xor = false;
   state.invert_facing = false;
   state.shadow_bias = false;
-  state.polygon_smooth = false;
   state.clip_distances = 0;
+  state.polygon_smooth = false;
+  state.line_smooth = false;
 
   mutable_state.depth_range[0] = 0.0f;
   mutable_state.depth_range[1] = 1.0f;
