@@ -1481,6 +1481,7 @@ static int mouse_graph_keys(bAnimContext *ac,
 
   /* if points can be selected on this F-Curve */
   /* TODO: what about those with no keyframes? */
+  bool something_was_selected = false;
   if (!curves_only && ((nvi->fcu->flag & FCURVE_PROTECTED) == 0)) {
     /* only if there's keyframe */
     if (nvi->bezt) {
@@ -1488,14 +1489,17 @@ static int mouse_graph_keys(bAnimContext *ac,
       if (select_mode == SELECT_INVERT) {
         if (nvi->hpoint == NEAREST_HANDLE_KEY) {
           bezt->f2 ^= SELECT;
+          something_was_selected = (bezt->f2 & SELECT);
         }
         else if (nvi->hpoint == NEAREST_HANDLE_LEFT) {
           /* toggle selection */
           bezt->f1 ^= SELECT;
+          something_was_selected = (bezt->f1 & SELECT);
         }
         else {
           /* toggle selection */
           bezt->f3 ^= SELECT;
+          something_was_selected = (bezt->f3 & SELECT);
         }
       }
       else {
@@ -1508,6 +1512,7 @@ static int mouse_graph_keys(bAnimContext *ac,
         else {
           bezt->f3 |= SELECT;
         }
+        something_was_selected = true;
       }
 
       if (!run_modal && BEZT_ISSEL_ANY(bezt) && !already_selected) {
@@ -1558,10 +1563,10 @@ static int mouse_graph_keys(bAnimContext *ac,
     }
   }
 
-  /* Set active F-Curve, except when dragging the selected keys.
-   * needs to be called with (sipo->flag & SIPO_SELCUVERTSONLY)
+  /* Set active F-Curve when something was actually selected (so not on a deselect), except when
+   * dragging the selected keys. Needs to be called with (sipo->flag & SIPO_SELCUVERTSONLY),
    * otherwise the active flag won't be set T26452. */
-  if (!run_modal && nvi->fcu->flag & FCURVE_SELECTED) {
+  if (!run_modal && (nvi->fcu->flag & FCURVE_SELECTED) && something_was_selected) {
     /* NOTE: Sync the filter flags with findnearest_fcurve_vert. */
     int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_NODUPLIS);
     ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, nvi->fcu, nvi->ctype);
