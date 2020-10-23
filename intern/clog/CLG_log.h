@@ -150,6 +150,8 @@ void CLG_level_set(int level);
 
 void CLG_logref_init(CLG_LogRef *clg_ref);
 
+int CLG_color_support_get(CLG_LogRef *clg_ref);
+
 /** Declare outside function, declare as extern in header. */
 #define CLG_LOGREF_DECLARE_GLOBAL(var, id) \
   static CLG_LogRef _static_##var = {id}; \

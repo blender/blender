@@ -755,4 +755,12 @@ void CLG_logref_init(CLG_LogRef *clg_ref)
 #endif
 }
 
+int CLG_color_support_get(CLG_LogRef *clg_ref)
+{
+  if (clg_ref->type == NULL) {
+    CLG_logref_init(clg_ref);
+  }
+  return clg_ref->type->ctx->use_color;
+}
+
 /** \} */
