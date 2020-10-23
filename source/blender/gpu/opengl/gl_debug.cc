@@ -48,6 +48,8 @@ static CLG_LogRef LOG = {"gpu.debug"};
 
 /* Avoid too much NVidia buffer info in the output log. */
 #define TRIM_NVIDIA_BUFFER_INFO 1
+/* Avoid unneeded shader statistics. */
+#define TRIM_SHADER_STATS_INFO 1
 
 namespace blender::gpu::debug {
 
@@ -81,12 +83,15 @@ static void APIENTRY debug_callback(GLenum UNUSED(source),
 
   if (TRIM_NVIDIA_BUFFER_INFO &&
       GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_OFFICIAL) &&
-      STREQLEN("Buffer detailed info", message, 20)) {
-    /** Supress buffer infos flooding the output. */
+      STRPREFIX(message, "Buffer detailed info")) {
+    /** Suppress buffer infos flooding the output. */
     return;
   }
 
-  const char format[] = "GPUDebug: %s%s%s\033[0m\n";
+  if (TRIM_SHADER_STATS_INFO && STRPREFIX(message, "Shader Stats")) {
+    /** Suppress buffer infos flooding the output. */
+    return;
+  }
 
   const bool use_color = CLG_color_support_get(&LOG);
 
