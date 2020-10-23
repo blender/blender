@@ -115,9 +115,10 @@ void prepare_raycast(vec3 ray_origin,
 
   /* Clip to segment's end. */
   max_time /= length(ss_step.xyz);
-
   /* Clipping to frustum sides. */
   max_time = min(max_time, line_unit_box_intersect_dist(ss_start.xyz, ss_step.xyz));
+  /* Avoid no iteration. */
+  max_time = max(max_time, 1.0);
 
   /* Convert to texture coords. Z component included
    * since this is how it's stored in the depth buffer.
