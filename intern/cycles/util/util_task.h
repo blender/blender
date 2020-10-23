@@ -71,8 +71,8 @@ class TaskPool {
   /* Time time stamp of first task pushed. */
   double start_time;
 
-  /* Number of all tasks handled by this pool. */
-  int num_tasks_handled;
+  /* Number of all tasks pushed to the pool. Cleared after wait_work() and cancel(). */
+  int num_tasks_pushed;
 };
 
 /* Task Scheduler
