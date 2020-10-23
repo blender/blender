@@ -321,10 +321,12 @@ static void draw_fcurve_active_handle_vertices(const FCurve *fcu,
   immUniformColor3fvAlpha(active_col, 0.01f); /* Almost invisible - only keep for smoothness. */
   immBeginAtMost(GPU_PRIM_POINTS, 2);
 
-  if ((bezt->f1 & SELECT)) {
+  const BezTriple *left_bezt = active_keyframe_index > 0 ? &fcu->bezt[active_keyframe_index - 1] :
+                                                           bezt;
+  if (left_bezt->ipo == BEZT_IPO_BEZ && (bezt->f1 & SELECT)) {
     immVertex2fv(pos, bezt->vec[0]);
   }
-  if ((bezt->f3 & SELECT)) {
+  if (bezt->ipo == BEZT_IPO_BEZ && (bezt->f3 & SELECT)) {
     immVertex2fv(pos, bezt->vec[2]);
   }
   immEnd();
