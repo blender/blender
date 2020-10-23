@@ -188,6 +188,9 @@ void BKE_mesh_material_index_clear(struct Mesh *me);
 void BKE_mesh_material_remap(struct Mesh *me, const unsigned int *remap, unsigned int remap_len);
 void BKE_mesh_smooth_flag_set(struct Mesh *me, const bool use_smooth);
 
+/* Needed after converting a mesh with subsurf optimal display to mesh. */
+void BKE_mesh_edges_set_draw_render(struct Mesh *me);
+
 const char *BKE_mesh_cmp(struct Mesh *me1, struct Mesh *me2, float thresh);
 
 struct BoundBox *BKE_mesh_boundbox_get(struct Object *ob);
