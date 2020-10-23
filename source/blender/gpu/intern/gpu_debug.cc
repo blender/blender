@@ -74,7 +74,7 @@ void GPU_debug_get_groups_names(int name_buf_len, char *r_name_buf)
   for (StringRef &name : stack) {
     sz += BLI_snprintf_rlen(r_name_buf + sz, name_buf_len - sz, "%s > ", name.data());
   }
-  r_name_buf[sz - 2] = ':';
+  r_name_buf[sz - 3] = '\0';
 }
 
 /* Return true if inside a debug group with the same name. */

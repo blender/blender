@@ -70,7 +70,7 @@ class Shader {
   };
 
  protected:
-  void print_errors(Span<const char *> sources, char *log, const char *stage);
+  void print_log(Span<const char *> sources, char *log, const char *stage, const bool error);
 };
 
 /* Syntacting suggar. */

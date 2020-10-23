@@ -85,7 +85,6 @@ void ShaderInterface::debug_print(void)
   char *name_buf = name_buffer_;
   const char format[] = "      | %.8x : %4d : %s\n";
 
-  printf("      \033[1mGPUShaderInterface : \033[0m\n");
   if (attrs.size() > 0) {
     printf("\n    Attributes :\n");
   }
