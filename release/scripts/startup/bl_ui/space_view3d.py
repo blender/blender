@@ -2257,7 +2257,7 @@ class VIEW3D_MT_object(Menu):
 
         ob = context.active_object
         if ob and ob.type == 'GPENCIL' and context.gpencil_data:
-            layout.operator_menu_enum("gpencil.convert", "type", text="Convert to")
+            layout.operator_menu_enum("gpencil.convert", "type", text="Convert To")
         else:
             layout.operator_menu_enum("object.convert", "target")
 
@@ -3035,14 +3035,14 @@ class VIEW3D_MT_mask(Menu):
 
         layout.separator()
 
-        props = layout.operator("sculpt.mask_expand", text="Expand Mask By Topology")
+        props = layout.operator("sculpt.mask_expand", text="Expand Mask by Topology")
         props.use_normals = False
         props.keep_previous_mask = False
         props.invert = True
         props.smooth_iterations = 2
         props.create_face_set = False
 
-        props = layout.operator("sculpt.mask_expand", text="Expand Mask By Curvature")
+        props = layout.operator("sculpt.mask_expand", text="Expand Mask by Curvature")
         props.use_normals = True
         props.keep_previous_mask = True
         props.invert = False
@@ -3428,7 +3428,7 @@ class VIEW3D_MT_pose_constraints(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("pose.constraint_add_with_targets", text="Add (With Targets)...")
+        layout.operator("pose.constraint_add_with_targets", text="Add (with Targets)...")
         layout.operator("pose.constraints_copy")
         layout.operator("pose.constraints_clear")
 
@@ -3440,9 +3440,9 @@ class VIEW3D_MT_pose_names(Menu):
         layout = self.layout
 
         layout.operator_context = 'EXEC_REGION_WIN'
-        layout.operator("pose.autoside_names", text="AutoName Left/Right").axis = 'XAXIS'
-        layout.operator("pose.autoside_names", text="AutoName Front/Back").axis = 'YAXIS'
-        layout.operator("pose.autoside_names", text="AutoName Top/Bottom").axis = 'ZAXIS'
+        layout.operator("pose.autoside_names", text="Auto-Name Left/Right").axis = 'XAXIS'
+        layout.operator("pose.autoside_names", text="Auto-Name Front/Back").axis = 'YAXIS'
+        layout.operator("pose.autoside_names", text="Auto-Name Top/Bottom").axis = 'ZAXIS'
         layout.operator("pose.flip_names")
 
 
@@ -4769,9 +4769,9 @@ class VIEW3D_MT_edit_armature_names(Menu):
         layout = self.layout
 
         layout.operator_context = 'EXEC_REGION_WIN'
-        layout.operator("armature.autoside_names", text="AutoName Left/Right").type = 'XAXIS'
-        layout.operator("armature.autoside_names", text="AutoName Front/Back").type = 'YAXIS'
-        layout.operator("armature.autoside_names", text="AutoName Top/Bottom").type = 'ZAXIS'
+        layout.operator("armature.autoside_names", text="Auto-Name Left/Right").type = 'XAXIS'
+        layout.operator("armature.autoside_names", text="Auto-Name Front/Back").type = 'YAXIS'
+        layout.operator("armature.autoside_names", text="Auto-Name Top/Bottom").type = 'ZAXIS'
         layout.operator("armature.flip_names", text="Flip Names")
 
 
@@ -5074,7 +5074,7 @@ class VIEW3D_MT_edit_gpencil_transform(Menu):
 
 
 class VIEW3D_MT_edit_gpencil_showhide(Menu):
-    bl_label = "Show/hide"
+    bl_label = "Show/Hide"
 
     def draw(self, _context):
         layout = self.layout
@@ -5862,7 +5862,7 @@ class VIEW3D_PT_shading_options(Panel):
 
             row = col.row()
             row.active = not xray_active
-            row.prop(shading, "use_dof", text="Depth Of Field")
+            row.prop(shading, "use_dof", text="Depth of Field")
 
         if shading.type in {'WIREFRAME', 'SOLID'}:
             row = layout.split()
@@ -6553,7 +6553,7 @@ class VIEW3D_PT_snapping(Panel):
 
         layout = self.layout
         col = layout.column()
-        col.label(text="Snap to")
+        col.label(text="Snap To")
         col.prop(tool_settings, "snap_elements", expand=True)
 
         col.separator()
@@ -6561,7 +6561,7 @@ class VIEW3D_PT_snapping(Panel):
             col.prop(tool_settings, "use_snap_grid_absolute")
 
         if snap_elements != {'INCREMENT'}:
-            col.label(text="Snap with")
+            col.label(text="Snap With")
             row = col.row(align=True)
             row.prop(tool_settings, "snap_target", expand=True)
 

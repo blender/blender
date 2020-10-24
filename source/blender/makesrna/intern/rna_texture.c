@@ -1074,8 +1074,8 @@ static void rna_def_texture_stucci(BlenderRNA *brna)
 
   static const EnumPropertyItem prop_stucci_stype[] = {
       {TEX_PLASTIC, "PLASTIC", 0, "Plastic", "Use standard stucci"},
-      {TEX_WALLIN, "WALL_IN", 0, "Wall in", "Create Dimples"},
-      {TEX_WALLOUT, "WALL_OUT", 0, "Wall out", "Create Ridges"},
+      {TEX_WALLIN, "WALL_IN", 0, "Wall In", "Create Dimples"},
+      {TEX_WALLOUT, "WALL_OUT", 0, "Wall Out", "Create Ridges"},
       {0, NULL, 0, NULL, NULL},
   };
 

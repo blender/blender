@@ -336,7 +336,7 @@ class DOPESHEET_MT_view(Menu):
 
         layout.separator()
 
-        layout.prop(st.dopesheet, "use_multi_word_filter", text="Multi-word Match Search")
+        layout.prop(st.dopesheet, "use_multi_word_filter", text="Multi-Word Match Search")
 
         layout.separator()
 

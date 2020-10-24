@@ -681,7 +681,7 @@ class VIEW3D_PT_tools_brush_falloff(Panel, View3DPaintPanel, FalloffPanel):
 
 class VIEW3D_PT_tools_brush_falloff_frontface(View3DPaintPanel, Panel):
     bl_context = ".imagepaint"  # dot on purpose (access from topbar)
-    bl_label = "Front-face Falloff"
+    bl_label = "Front-Face Falloff"
     bl_parent_id = "VIEW3D_PT_tools_brush_falloff"
     bl_options = {'DEFAULT_CLOSED'}
 

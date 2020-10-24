@@ -409,7 +409,7 @@ void TEXT_OT_open(wmOperatorType *ot)
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_ALPHA); /* TODO: relative_path. */
   RNA_def_boolean(
-      ot->srna, "internal", 0, "Make internal", "Make text file internal after loading");
+      ot->srna, "internal", 0, "Make Internal", "Make text file internal after loading");
 }
 
 /** \} */
@@ -3693,7 +3693,7 @@ void TEXT_OT_replace(wmOperatorType *ot)
 
   /* properties */
   PropertyRNA *prop;
-  prop = RNA_def_boolean(ot->srna, "all", false, "Replace all", "Replace all occurrences");
+  prop = RNA_def_boolean(ot->srna, "all", false, "Replace All", "Replace all occurrences");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 

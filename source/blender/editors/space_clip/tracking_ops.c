@@ -1043,13 +1043,13 @@ static int clear_track_path_exec(bContext *C, wmOperator *op)
 void CLIP_OT_clear_track_path(wmOperatorType *ot)
 {
   static const EnumPropertyItem clear_path_actions[] = {
-      {TRACK_CLEAR_UPTO, "UPTO", 0, "Clear up-to", "Clear path up to current frame"},
+      {TRACK_CLEAR_UPTO, "UPTO", 0, "Clear Up To", "Clear path up to current frame"},
       {TRACK_CLEAR_REMAINED,
        "REMAINED",
        0,
-       "Clear remained",
+       "Clear Remained",
        "Clear path at remaining frames (after current)"},
-      {TRACK_CLEAR_ALL, "ALL", 0, "Clear all", "Clear the whole path"},
+      {TRACK_CLEAR_ALL, "ALL", 0, "Clear All", "Clear the whole path"},
       {0, NULL, 0, NULL, NULL},
   };
 

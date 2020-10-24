@@ -162,7 +162,7 @@ class VIEWLAYER_PT_freestyle(ViewLayerFreestyleButtonsPanel, Panel):
 
         if freestyle.mode == 'SCRIPT':
             row = layout.row()
-            row.label(text="Style modules:")
+            row.label(text="Style Modules:")
             row.operator("scene.freestyle_module_add", text="Add")
             for module in freestyle.modules:
                 box = layout.box()

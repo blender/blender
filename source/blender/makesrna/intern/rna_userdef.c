@@ -4786,7 +4786,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "font_path_ui_mono", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_string_sdna(prop, NULL, "font_path_ui_mono");
-  RNA_def_property_ui_text(prop, "Mono-space Font", "Path to interface mono-space Font");
+  RNA_def_property_ui_text(prop, "Monospaced Font", "Path to interface monospaced Font");
   RNA_def_property_update(prop, NC_WINDOW, "rna_userdef_font_update");
 
   /* Language. */

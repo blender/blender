@@ -975,15 +975,15 @@ static int select_grouped_exec(bContext *C, wmOperator *op)
 void CLIP_OT_select_grouped(wmOperatorType *ot)
 {
   static const EnumPropertyItem select_group_items[] = {
-      {0, "KEYFRAMED", 0, "Keyframed tracks", "Select all keyframed tracks"},
-      {1, "ESTIMATED", 0, "Estimated tracks", "Select all estimated tracks"},
-      {2, "TRACKED", 0, "Tracked tracks", "Select all tracked tracks"},
-      {3, "LOCKED", 0, "Locked tracks", "Select all locked tracks"},
-      {4, "DISABLED", 0, "Disabled tracks", "Select all disabled tracks"},
+      {0, "KEYFRAMED", 0, "Keyframed Tracks", "Select all keyframed tracks"},
+      {1, "ESTIMATED", 0, "Estimated Tracks", "Select all estimated tracks"},
+      {2, "TRACKED", 0, "Tracked Tracks", "Select all tracked tracks"},
+      {3, "LOCKED", 0, "Locked Tracks", "Select all locked tracks"},
+      {4, "DISABLED", 0, "Disabled Tracks", "Select all disabled tracks"},
       {5,
        "COLOR",
        0,
-       "Tracks with same color",
+       "Tracks with Same Color",
        "Select all tracks with same color as active track"},
       {6, "FAILED", 0, "Failed Tracks", "Select all tracks which failed to be reconstructed"},
       {0, NULL, 0, NULL, NULL},

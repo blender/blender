@@ -3152,8 +3152,8 @@ void GPENCIL_OT_stroke_cyclical_set(wmOperatorType *ot)
   PropertyRNA *prop;
 
   static const EnumPropertyItem cyclic_type[] = {
-      {GP_STROKE_CYCLIC_CLOSE, "CLOSE", 0, "Close all", ""},
-      {GP_STROKE_CYCLIC_OPEN, "OPEN", 0, "Open all", ""},
+      {GP_STROKE_CYCLIC_CLOSE, "CLOSE", 0, "Close All", ""},
+      {GP_STROKE_CYCLIC_OPEN, "OPEN", 0, "Open All", ""},
       {GP_STROKE_CYCLIC_TOGGLE, "TOGGLE", 0, "Toggle", ""},
       {0, NULL, 0, NULL, NULL},
   };

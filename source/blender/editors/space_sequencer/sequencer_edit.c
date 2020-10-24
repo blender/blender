@@ -97,11 +97,11 @@ EnumPropertyItem sequencer_prop_effect_types[] = {
 #define SEQ_SIDE_MOUSE -1
 
 EnumPropertyItem prop_side_types[] = {
-    {SEQ_SIDE_MOUSE, "MOUSE", 0, "Mouse position", ""},
+    {SEQ_SIDE_MOUSE, "MOUSE", 0, "Mouse Position", ""},
     {SEQ_SIDE_LEFT, "LEFT", 0, "Left", ""},
     {SEQ_SIDE_RIGHT, "RIGHT", 0, "Right", ""},
     {SEQ_SIDE_BOTH, "BOTH", 0, "Both", ""},
-    {SEQ_SIDE_NO_CHANGE, "NO_CHANGE", 0, "No change", ""},
+    {SEQ_SIDE_NO_CHANGE, "NO_CHANGE", 0, "No Change", ""},
     {0, NULL, 0, NULL, NULL},
 };
 

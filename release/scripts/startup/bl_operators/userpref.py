@@ -1112,9 +1112,9 @@ class PREFERENCES_OT_studiolight_uninstall(Operator):
 
 
 class PREFERENCES_OT_studiolight_copy_settings(Operator):
-    """Copy Studio Light settings to the Studio light editor"""
+    """Copy Studio Light settings to the Studio Light editor"""
     bl_idname = "preferences.studiolight_copy_settings"
-    bl_label = "Copy Studio Light settings"
+    bl_label = "Copy Studio Light Settings"
     index: IntProperty()
 
     def execute(self, context):

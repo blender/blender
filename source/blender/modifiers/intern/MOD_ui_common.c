@@ -229,14 +229,14 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
   /* Apply as shapekey. */
   if (BKE_modifier_is_same_topology(md) && !BKE_modifier_is_non_geometrical(md)) {
     uiItemBooleanO(layout,
-                   CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply As Shapekey"),
+                   CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply as Shape Key"),
                    ICON_SHAPEKEY_DATA,
                    "OBJECT_OT_modifier_apply_as_shapekey",
                    "keep_modifier",
                    false);
 
     uiItemBooleanO(layout,
-                   CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Save As Shapekey"),
+                   CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Save as Shape Key"),
                    ICON_SHAPEKEY_DATA,
                    "OBJECT_OT_modifier_apply_as_shapekey",
                    "keep_modifier",

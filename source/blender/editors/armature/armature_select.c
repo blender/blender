@@ -1550,10 +1550,10 @@ enum {
 
 static const EnumPropertyItem prop_similar_types[] = {
     {SIMEDBONE_CHILDREN, "CHILDREN", 0, "Children", ""},
-    {SIMEDBONE_CHILDREN_IMMEDIATE, "CHILDREN_IMMEDIATE", 0, "Immediate children", ""},
+    {SIMEDBONE_CHILDREN_IMMEDIATE, "CHILDREN_IMMEDIATE", 0, "Immediate Children", ""},
     {SIMEDBONE_SIBLINGS, "SIBLINGS", 0, "Siblings", ""},
     {SIMEDBONE_LENGTH, "LENGTH", 0, "Length", ""},
-    {SIMEDBONE_DIRECTION, "DIRECTION", 0, "Direction (Y axis)", ""},
+    {SIMEDBONE_DIRECTION, "DIRECTION", 0, "Direction (Y Axis)", ""},
     {SIMEDBONE_PREFIX, "PREFIX", 0, "Prefix", ""},
     {SIMEDBONE_SUFFIX, "SUFFIX", 0, "Suffix", ""},
     {SIMEDBONE_LAYER, "LAYER", 0, "Layer", ""},

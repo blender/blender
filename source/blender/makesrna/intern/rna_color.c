@@ -796,7 +796,7 @@ static void rna_def_curvemapping(BlenderRNA *brna)
 
   static const EnumPropertyItem tone_items[] = {
       {CURVE_TONE_STANDARD, "STANDARD", 0, "Standard", ""},
-      {CURVE_TONE_FILMLIKE, "FILMLIKE", 0, "Film like", ""},
+      {CURVE_TONE_FILMLIKE, "FILMLIKE", 0, "Filmlike", ""},
       {0, NULL, 0, NULL, NULL},
   };
 

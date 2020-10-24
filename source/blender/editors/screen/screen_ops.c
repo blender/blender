@@ -5523,8 +5523,8 @@ static void keymap_modal_set(wmKeyConfig *keyconf)
   static const EnumPropertyItem modal_items[] = {
       {KM_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
       {KM_MODAL_APPLY, "APPLY", 0, "Apply", ""},
-      {KM_MODAL_SNAP_ON, "SNAP", 0, "Snap on", ""},
-      {KM_MODAL_SNAP_OFF, "SNAP_OFF", 0, "Snap off", ""},
+      {KM_MODAL_SNAP_ON, "SNAP", 0, "Snap On", ""},
+      {KM_MODAL_SNAP_OFF, "SNAP_OFF", 0, "Snap Off", ""},
       {0, NULL, 0, NULL, NULL},
   };
 

@@ -1071,7 +1071,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             flow.prop(strip, "use_only_boost")
 
         elif strip_type == 'SPEED':
-            layout.prop(strip, "use_default_fade", text="Stretch to input strip length")
+            layout.prop(strip, "use_default_fade", text="Stretch to Input Strip Length")
             if not strip.use_default_fade:
                 layout.prop(strip, "use_as_speed")
                 if strip.use_as_speed:
@@ -1113,7 +1113,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             # The multicam strip needs at least 2 strips to be useful
             if strip_channel > 2:
                 BT_ROW = 4
-                col.label(text="    Cut to")
+                col.label(text="Cut To")
                 row = col.row()
 
                 for i in range(1, strip_channel):
@@ -1153,7 +1153,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             col.prop(strip, "use_frame_interpolate")
 
         elif strip_type in {'CROSS', 'GAMMA_CROSS', 'WIPE', 'ALPHA_OVER', 'ALPHA_UNDER', 'OVER_DROP'}:
-            col.prop(strip, "use_default_fade", text="Default fade")
+            col.prop(strip, "use_default_fade", text="Default Fade")
             if not strip.use_default_fade:
                 col.prop(strip, "effect_fader", text="Effect Fader")
         elif strip_type == 'GAUSSIAN_BLUR':

@@ -450,7 +450,7 @@ static void rna_def_dopesheet(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_shapekeys", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOSHAPEKEYS);
   RNA_def_property_ui_text(
-      prop, "Display Shapekeys", "Include visualization of shape key related animation data");
+      prop, "Display Shape Keys", "Include visualization of shape key related animation data");
   RNA_def_property_ui_icon(prop, ICON_SHAPEKEY_DATA, 0);
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 

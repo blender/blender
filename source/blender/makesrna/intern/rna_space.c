@@ -5185,7 +5185,7 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_interpolation", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SACTION_SHOW_INTERPOLATION);
   RNA_def_property_ui_text(prop,
-                           "Show Handles And Interpolation",
+                           "Show Handles and Interpolation",
                            "Display keyframe handle types and non-bezier interpolation modes");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_DOPESHEET, NULL);
 
@@ -5208,7 +5208,7 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
   /* editing */
   prop = RNA_def_property(srna, "use_auto_merge_keyframes", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SACTION_NOTRANSKEYCULL);
-  RNA_def_property_ui_text(prop, "AutoMerge Keyframes", "Automatically merge nearby keyframes");
+  RNA_def_property_ui_text(prop, "Auto-Merge Keyframes", "Automatically merge nearby keyframes");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_DOPESHEET, NULL);
 
   prop = RNA_def_property(srna, "use_realtime_update", PROP_BOOLEAN, PROP_NONE);

@@ -4788,7 +4788,7 @@ static void def_sh_tex_voronoi(StructRNA *srna)
       {SHD_VORONOI_DISTANCE_TO_EDGE,
        "DISTANCE_TO_EDGE",
        0,
-       "Distance To Edge",
+       "Distance to Edge",
        "Computes the distance to the edge of the voronoi cell"},
       {SHD_VORONOI_N_SPHERE_RADIUS,
        "N_SPHERE_RADIUS",
@@ -7725,15 +7725,15 @@ static void def_cmp_viewer(StructRNA *srna)
   static const EnumPropertyItem tileorder_items[] = {
       {0, "CENTEROUT", 0, "Center", "Expand from center"},
       {1, "RANDOM", 0, "Random", "Random tiles"},
-      {2, "BOTTOMUP", 0, "Bottom up", "Expand from bottom"},
-      {3, "RULE_OF_THIRDS", 0, "Rule of thirds", "Expand from 9 places"},
+      {2, "BOTTOMUP", 0, "Bottom Up", "Expand from bottom"},
+      {3, "RULE_OF_THIRDS", 0, "Rule of Thirds", "Expand from 9 places"},
       {0, NULL, 0, NULL, NULL},
   };
 
   prop = RNA_def_property(srna, "tile_order", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "custom1");
   RNA_def_property_enum_items(prop, tileorder_items);
-  RNA_def_property_ui_text(prop, "Tile order", "Tile order");
+  RNA_def_property_ui_text(prop, "Tile Order", "Tile order");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "center_x", PROP_FLOAT, PROP_NONE);

@@ -228,7 +228,7 @@ def point_cache_ui(self, cache, enabled, cachetype):
 
         sub = col.row()
         sub.enabled = enabled
-        sub.operator("ptcache.bake", text="Calculate To Frame").bake = False
+        sub.operator("ptcache.bake", text="Calculate to Frame").bake = False
 
         sub = col.column()
         sub.enabled = enabled
@@ -237,7 +237,7 @@ def point_cache_ui(self, cache, enabled, cachetype):
         col = flow.column()
         col.operator("ptcache.bake_all", text="Bake All Dynamics").bake = True
         col.operator("ptcache.free_bake_all", text="Delete All Bakes")
-        col.operator("ptcache.bake_all", text="Update All To Frame").bake = False
+        col.operator("ptcache.bake_all", text="Update All to Frame").bake = False
 
 
 def effector_weights_ui(self, weights, weight_type):

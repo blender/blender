@@ -83,7 +83,7 @@ static const EnumPropertyItem prop_similar_types[] = {
     {SIMFACE_SIDES, "SIDES", 0, "Polygon Sides", ""},
     {SIMFACE_PERIMETER, "PERIMETER", 0, "Perimeter", ""},
     {SIMFACE_NORMAL, "NORMAL", 0, "Normal", ""},
-    {SIMFACE_COPLANAR, "COPLANAR", 0, "Co-planar", ""},
+    {SIMFACE_COPLANAR, "COPLANAR", 0, "Coplanar", ""},
     {SIMFACE_SMOOTH, "SMOOTH", 0, "Flat/Smooth", ""},
     {SIMFACE_FACEMAP, "FACE_MAP", 0, "Face-Map", ""},
 #ifdef WITH_FREESTYLE

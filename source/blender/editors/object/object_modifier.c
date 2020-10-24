@@ -1478,8 +1478,8 @@ static char *modifier_apply_as_shapekey_get_description(struct bContext *UNUSED(
 
 void OBJECT_OT_modifier_apply_as_shapekey(wmOperatorType *ot)
 {
-  ot->name = "Apply Modifier As Shapekey";
-  ot->description = "Apply modifier as a new shapekey and remove from the stack";
+  ot->name = "Apply Modifier as Shape Key";
+  ot->description = "Apply modifier as a new shape key and remove from the stack";
   ot->idname = "OBJECT_OT_modifier_apply_as_shapekey";
 
   ot->invoke = modifier_apply_as_shapekey_invoke;

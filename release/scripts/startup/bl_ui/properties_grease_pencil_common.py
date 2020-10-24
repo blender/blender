@@ -884,7 +884,7 @@ class GreasePencilLayerDisplayPanel:
         col.prop(gpl, "channel_color")
 
         col = layout.row(align=True)
-        col.prop(gpl, "use_solo_mode", text="Show Only On Keyframed")
+        col.prop(gpl, "use_solo_mode", text="Show Only on Keyframed")
 
 
 class GreasePencilFlipTintColors(Operator):

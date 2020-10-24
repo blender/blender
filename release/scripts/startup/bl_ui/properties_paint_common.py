@@ -330,7 +330,7 @@ class StrokePanel(BrushPanel):
         col.separator()
 
         if brush.use_anchor:
-            col.prop(brush, "use_edge_to_edge", text="Edge To Edge")
+            col.prop(brush, "use_edge_to_edge", text="Edge to Edge")
 
         if brush.use_airbrush:
             col.prop(brush, "rate", text="Rate", slider=True)

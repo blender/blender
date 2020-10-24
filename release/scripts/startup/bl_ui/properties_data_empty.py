@@ -54,7 +54,7 @@ class DATA_PT_empty(DataButtonsPanel, Panel):
             depth_row.prop(ob, "empty_image_depth", text="Depth", expand=True)
             col.row().prop(ob, "empty_image_side", text="Side", expand=True)
 
-            col = layout.column(heading="Show in", align=True)
+            col = layout.column(heading="Show In", align=True)
             col.prop(ob, "show_empty_image_orthographic", text="Orthographic")
             col.prop(ob, "show_empty_image_perspective", text="Perspective")
             col.prop(ob, "show_empty_image_only_axis_aligned", text="Only Axis Aligned")
