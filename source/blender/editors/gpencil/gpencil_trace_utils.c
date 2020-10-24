@@ -294,7 +294,7 @@ void ED_gpencil_trace_data_to_strokes(Main *bmain,
     n = path->curve.n;
     tag = path->curve.tag;
     c = path->curve.c;
-    int mat_idx = path->sign == '+' ? 0 : 1;
+    int mat_idx = path->sign == '+' ? mat_fill_idx : mat_mask_idx;
     /* Create a new stroke. */
     bGPDstroke *gps = BKE_gpencil_stroke_add(gpf, mat_idx, 0, thickness, false);
     /* Last point that is equals to start point. */

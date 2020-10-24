@@ -1609,7 +1609,7 @@ static void sequencer_draw_display_buffer(const bContext *C,
   }
 
   /* Format needs to be created prior to any #immBindShader call.
-   * Do it here because OCIO binds it's own shader. */
+   * Do it here because OCIO binds its own shader. */
   eGPUTextureFormat format;
   eGPUDataFormat data;
   bool glsl_used = false;

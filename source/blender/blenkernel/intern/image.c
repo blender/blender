@@ -547,7 +547,7 @@ static Image *image_alloc(Main *bmain, const char *name, short source, short typ
   return ima;
 }
 
-/* Get the ibuf from an image cache by it's index and entry.
+/* Get the ibuf from an image cache by its index and entry.
  * Local use here only.
  *
  * Returns referenced image buffer if it exists, callee is to

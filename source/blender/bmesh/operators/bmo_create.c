@@ -228,7 +228,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 
     /* tricky feature for making a line/edge from selection history...
      *
-     * Rather then do nothing, when 5+ verts are selected, check if they are in our history,
+     * Rather than do nothing, when 5+ verts are selected, check if they are in our history,
      * when this is so, we can make edges from them, but _not_ a face,
      * if it is the intention to make a face the user can just hit F again
      * since there will be edges next time around.

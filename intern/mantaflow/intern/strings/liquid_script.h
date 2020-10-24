@@ -41,6 +41,7 @@ using_mesh_s$ID$       = $USING_MESH$\n\
 using_final_mesh_s$ID$ = $USING_IMPROVED_MESH$\n\
 using_fractions_s$ID$  = $USING_FRACTIONS$\n\
 fracThreshold_s$ID$    = $FRACTIONS_THRESHOLD$\n\
+fracDistance_s$ID$     = $FRACTIONS_DISTANCE$\n\
 flipRatio_s$ID$        = $FLIP_RATIO$\n\
 concaveUpper_s$ID$     = $MESH_CONCAVE_UPPER$\n\
 concaveLower_s$ID$     = $MESH_CONCAVE_LOWER$\n\
@@ -243,6 +244,9 @@ def liquid_step_$ID$():\n\
     pp_s$ID$.advectInGrid(flags=flags_s$ID$, vel=vel_s$ID$, integrationMode=IntRK4, deleteInObstacle=deleteInObstacle_s$ID$, stopInObstacle=False, skipNew=True)\n\
     \n\
     mantaMsg('Pushing particles out of obstacles')\n\
+    if using_obstacle_s$ID$ and using_fractions_s$ID$ and fracDistance_s$ID$ > 0:\n\
+        # Optional: Increase distance between fluid and obstacles (only obstacles, not borders)\n\
+        pushOutofObs(parts=pp_s$ID$, flags=flags_s$ID$, phiObs=phiObsIn_s$ID$, thresh=fracDistance_s$ID$)\n\
     pushOutofObs(parts=pp_s$ID$, flags=flags_s$ID$, phiObs=phiObs_s$ID$)\n\
     \n\
     # save original states for later (used during mesh / secondary particle creation)\n\

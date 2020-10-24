@@ -632,6 +632,7 @@ static wmEvent *rna_Window_event_add_simulate(wmWindow *win,
   wmEvent e = *win->eventstate;
   e.type = type;
   e.val = value;
+  e.is_repeat = false;
   e.x = x;
   e.y = y;
   /* Note: KM_MOD_FIRST, KM_MOD_SECOND aren't used anywhere, set as bools */
@@ -1134,7 +1135,7 @@ void RNA_api_keymapitems(StructRNA *srna)
   RNA_def_boolean(func, "alt", 0, "Alt", "");
   RNA_def_boolean(func, "oskey", 0, "OS Key", "");
   RNA_def_enum(func, "key_modifier", rna_enum_event_type_items, 0, "Key Modifier", "");
-  RNA_def_boolean(func, "repeat", true, "Repeat", "When set, accept key-repeat events");
+  RNA_def_boolean(func, "repeat", false, "Repeat", "When set, accept key-repeat events");
   RNA_def_boolean(func,
                   "head",
                   0,
@@ -1158,7 +1159,7 @@ void RNA_api_keymapitems(StructRNA *srna)
   RNA_def_boolean(func, "alt", 0, "Alt", "");
   RNA_def_boolean(func, "oskey", 0, "OS Key", "");
   RNA_def_enum(func, "key_modifier", rna_enum_event_type_items, 0, "Key Modifier", "");
-  RNA_def_boolean(func, "repeat", true, "Repeat", "When set, accept key-repeat events");
+  RNA_def_boolean(func, "repeat", false, "Repeat", "When set, accept key-repeat events");
   parm = RNA_def_pointer(func, "item", "KeyMapItem", "Item", "Added key map item");
   RNA_def_function_return(func, parm);
 

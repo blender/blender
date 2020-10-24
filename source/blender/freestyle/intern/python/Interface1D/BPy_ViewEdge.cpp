@@ -36,23 +36,21 @@ extern "C" {
 
 /*----------------------ViewEdge methods ----------------------------*/
 
-PyDoc_STRVAR(ViewEdge_doc,
-             "Class hierarchy: :class:`Interface1D` > :class:`ViewEdge`\n"
-             "\n"
-             "Class defining a ViewEdge.  A ViewEdge in an edge of the image graph.\n"
-             "it connects two :class:`ViewVertex` objects.  It is made by connecting\n"
-             "a set of FEdges.\n"
-             "\n"
-             ".. method:: __init__()\n"
-             "\n"
-             "   Default constructor.\n"
-             "\n"
-             ".. method:: __init__(brother)\n"
-             "\n"
-             "   Copy constructor.\n"
-             "\n"
-             "   :arg brother: A ViewEdge object.\n"
-             "   :type brother: :class:`ViewEdge`");
+PyDoc_STRVAR(
+    ViewEdge_doc,
+    "Class hierarchy: :class:`Interface1D` > :class:`ViewEdge`\n"
+    "\n"
+    "Class defining a ViewEdge.  A ViewEdge in an edge of the image graph.\n"
+    "it connects two :class:`ViewVertex` objects.  It is made by connecting\n"
+    "a set of FEdges.\n"
+    "\n"
+    ".. method:: __init__()\n"
+    "            __init__(brother)\n"
+    "\n"
+    "   Builds a :class:`ViewEdge` using the default constructor or the copy constructor.\n"
+    "\n"
+    "   :arg brother: A ViewEdge object.\n"
+    "   :type brother: :class:`ViewEdge`");
 
 static int ViewEdge_init(BPy_ViewEdge *self, PyObject *args, PyObject *kwds)
 {

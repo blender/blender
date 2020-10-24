@@ -111,6 +111,7 @@ if(WITH_LIBMV)
     libmv/simple_pipeline/intersect.cc
     libmv/simple_pipeline/keyframe_selection.cc
     libmv/simple_pipeline/modal_solver.cc
+    libmv/simple_pipeline/packed_intrinsics.cc
     libmv/simple_pipeline/pipeline.cc
     libmv/simple_pipeline/reconstruction.cc
     libmv/simple_pipeline/reconstruction_scale.cc
@@ -149,6 +150,7 @@ if(WITH_LIBMV)
     libmv/autotrack/region.h
     libmv/autotrack/tracks.h
     libmv/base/aligned_malloc.h
+    libmv/base/array.h
     libmv/base/id_generator.h
     libmv/base/map.h
     libmv/base/scoped_ptr.h
@@ -191,6 +193,7 @@ if(WITH_LIBMV)
     libmv/simple_pipeline/intersect.h
     libmv/simple_pipeline/keyframe_selection.h
     libmv/simple_pipeline/modal_solver.h
+    libmv/simple_pipeline/packed_intrinsics.h
     libmv/simple_pipeline/pipeline.h
     libmv/simple_pipeline/reconstruction.h
     libmv/simple_pipeline/reconstruction_scale.h

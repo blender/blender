@@ -417,7 +417,7 @@ struct DRWView {
  * In order to keep a cache friendly data structure,
  * we alloc most of our little data into chunks of multiple item.
  * Iteration, allocation and memory usage are better.
- * We loose a bit of memory by allocating more than what we need
+ * We lose a bit of memory by allocating more than what we need
  * but it's counterbalanced by not needing the linked-list pointers
  * for each item.
  **/

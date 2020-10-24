@@ -811,7 +811,7 @@ static int rna_PoseChannel_rotation_4d_editable(PointerRNA *ptr, int index)
   return PROP_EDITABLE;
 }
 
-/* not essential, but much faster then the default lookup function */
+/* not essential, but much faster than the default lookup function */
 static int rna_PoseBones_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
 {
   bPose *pose = (bPose *)ptr->data;

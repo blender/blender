@@ -1271,7 +1271,7 @@ class CYCLES_OBJECT_PT_visibility(CyclesButtonsPanel, Panel):
 
         layout.prop(ob, "hide_select", text="Selectable", invert_checkbox=True, toggle=False)
 
-        col = layout.column(heading="Show in")
+        col = layout.column(heading="Show In")
         col.prop(ob, "hide_viewport", text="Viewports", invert_checkbox=True, toggle=False)
         col.prop(ob, "hide_render", text="Renders", invert_checkbox=True, toggle=False)
 

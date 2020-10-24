@@ -37,11 +37,9 @@ TEST(VectorAlignmentTest, PushBack) {
   vector<Vec2> vs;
   vs.push_back(x1);
   EXPECT_EQ(1, vs.size());
-  EXPECT_EQ(1, vs.capacity());
 
   vs.push_back(x2);
   EXPECT_EQ(2, vs.size());
-  EXPECT_EQ(2, vs.capacity());
 
   // The following is necessary because of some bug in gtest; the expected
   // parameter can't be a fixed size vectorizable type with alignment
@@ -55,7 +53,6 @@ TEST(VectorAlignmentTest, PushBack) {
   vs.push_back(x2);
   vs.push_back(x2);
   EXPECT_EQ(5, vs.size());
-  EXPECT_EQ(8, vs.capacity());
 }
 
 // Count the number of destruct calls to test that the destructor gets called.
@@ -80,7 +77,6 @@ TEST_F(VectorTest, EmptyVectorDoesNotConstruct) {
   {
     vector<Foo> v;
     EXPECT_EQ(0, v.size());
-    EXPECT_EQ(0, v.capacity());
   }
   EXPECT_EQ(0, foo_construct_calls);
   EXPECT_EQ(0, foo_destruct_calls);
@@ -98,13 +94,11 @@ TEST_F(VectorTest, DestructorGetsCalled) {
 TEST_F(VectorTest, ReserveDoesNotCallConstructorsOrDestructors) {
   vector<Foo> v;
   EXPECT_EQ(0, v.size());
-  EXPECT_EQ(0, v.capacity());
   EXPECT_EQ(0, foo_construct_calls);
   EXPECT_EQ(0, foo_destruct_calls);
 
   v.reserve(5);
   EXPECT_EQ(0, v.size());
-  EXPECT_EQ(5, v.capacity());
   EXPECT_EQ(0, foo_construct_calls);
   EXPECT_EQ(0, foo_destruct_calls);
 }
@@ -115,31 +109,23 @@ TEST_F(VectorTest, ResizeConstructsAndDestructsAsExpected) {
   // Create one object.
   v.resize(1);
   EXPECT_EQ(1, v.size());
-  EXPECT_EQ(1, v.capacity());
   EXPECT_EQ(1, foo_construct_calls);
-  EXPECT_EQ(0, foo_destruct_calls);
   EXPECT_EQ(5, v[0].value);
 
   // Create two more.
   v.resize(3);
   EXPECT_EQ(3, v.size());
-  EXPECT_EQ(3, v.capacity());
   EXPECT_EQ(3, foo_construct_calls);
-  EXPECT_EQ(0, foo_destruct_calls);
 
   // Delete the last one.
   v.resize(2);
   EXPECT_EQ(2, v.size());
-  EXPECT_EQ(3, v.capacity());
   EXPECT_EQ(3, foo_construct_calls);
-  EXPECT_EQ(1, foo_destruct_calls);
 
   // Delete the remaining two.
   v.resize(0);
   EXPECT_EQ(0, v.size());
-  EXPECT_EQ(3, v.capacity());
   EXPECT_EQ(3, foo_construct_calls);
-  EXPECT_EQ(3, foo_destruct_calls);
 }
 
 TEST_F(VectorTest, PushPopBack) {
@@ -165,7 +151,6 @@ TEST_F(VectorTest, CopyConstructor) {
 
   vector<int> b(a);
   EXPECT_EQ(a.size(),     b.size());
-  //EXPECT_EQ(a.capacity(), b.capacity());
   for (int i = 0; i < a.size(); ++i) {
     EXPECT_EQ(a[i], b[i]);
   }
@@ -180,7 +165,6 @@ TEST_F(VectorTest, OperatorEquals) {
   b = a;
 
   EXPECT_EQ(a.size(),     b.size());
-  //EXPECT_EQ(a.capacity(), b.capacity());
   for (int i = 0; i < a.size(); ++i) {
     EXPECT_EQ(a[i], b[i]);
   }
@@ -192,15 +176,15 @@ TEST_F(VectorTest, STLFind) {
   a.push_back(5);
   a.push_back(3);
 
-  // Find return an int *
+  // Find returns an int *
   EXPECT_EQ(std::find(&a[0], &a[2], 1) == &a[0], true);
   EXPECT_EQ(std::find(&a[0], &a[2], 5) == &a[1], true);
   EXPECT_EQ(std::find(&a[0], &a[2], 3) == &a[2], true);
 
-  // Find return a const int *
-  EXPECT_EQ(std::find(a.begin(), a.end(), 1) == &a[0], true);
-  EXPECT_EQ(std::find(a.begin(), a.end(), 5) == &a[1], true);
-  EXPECT_EQ(std::find(a.begin(), a.end(), 3) == &a[2], true);
+  // Find returns an interator
+  EXPECT_EQ(std::find(a.begin(), a.end(), 1) == std::next(a.begin(), 0), true);
+  EXPECT_EQ(std::find(a.begin(), a.end(), 5) == std::next(a.begin(), 1), true);
+  EXPECT_EQ(std::find(a.begin(), a.end(), 3) == std::next(a.begin(), 2), true);
 
   // Search value that are not in the vector
   EXPECT_EQ(std::find(a.begin(), a.end(), 0) == a.end(), true);

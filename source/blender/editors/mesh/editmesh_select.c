@@ -2687,8 +2687,8 @@ bool EDBM_selectmode_disable_multi(struct bContext *C,
  *
  * Overview of the algorithm:
  * - Groups faces surrounded by edges with 3+ faces using them.
- * - Calculates a cost of each face group comparing it's angle with the faces
- *   connected to it's non-manifold edges.
+ * - Calculates a cost of each face group comparing its angle with the faces
+ *   connected to its non-manifold edges.
  * - Mark the face group as interior, and mark connected face groups for recalculation.
  * - Continue to remove the face groups with the highest 'cost'.
  *
@@ -5050,7 +5050,7 @@ static int verg_radial(const void *va, const void *vb)
 }
 
 /**
- * This function leaves faces tagged which are apart of the new region.
+ * This function leaves faces tagged which are a part of the new region.
  *
  * \note faces already tagged are ignored, to avoid finding the same regions twice:
  * important when we have regions with equal face counts, see: T40309

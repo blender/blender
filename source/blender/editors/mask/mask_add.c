@@ -311,7 +311,7 @@ static bool add_vertex_extrude(const bContext *C,
   float tangent_point[2];
   float tangent_co[2];
   bool do_cyclic_correct = false;
-  bool do_prev; /* use prev point rather then next?? */
+  bool do_prev; /* use prev point rather than next?? */
 
   if (!mask_layer) {
     return false;

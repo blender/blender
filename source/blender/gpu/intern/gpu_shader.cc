@@ -23,6 +23,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_dynstr.h"
 #include "BLI_math_base.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_util.h"
@@ -47,7 +48,11 @@
 #include "gpu_context_private.hh"
 #include "gpu_shader_private.hh"
 
+#include "CLG_log.h"
+
 extern "C" char datatoc_gpu_shader_colorspace_lib_glsl[];
+
+static CLG_LogRef LOG = {"gpu.shader"};
 
 using namespace blender;
 using namespace blender::gpu;
@@ -56,12 +61,21 @@ using namespace blender::gpu;
 /** \name Debug functions
  * \{ */
 
-void Shader::print_errors(Span<const char *> sources, char *log, const char *stage)
+void Shader::print_log(Span<const char *> sources, char *log, const char *stage, const bool error)
 {
   const char line_prefix[] = "      | ";
+  char err_col[] = "\033[31;1m";
+  char warn_col[] = "\033[33;1m";
+  char info_col[] = "\033[0;2m";
+  char reset_col[] = "\033[0;0m";
   char *sources_combined = BLI_string_join_arrayN((const char **)sources.data(), sources.size());
+  DynStr *dynstr = BLI_dynstr_new();
 
-  fprintf(stderr, "GPUShader: Compilation Log : %s : %s\n", this->name, stage);
+  if (!CLG_color_support_get(&LOG)) {
+    err_col[0] = warn_col[0] = info_col[0] = reset_col[0] = '\0';
+  }
+
+  BLI_dynstr_appendf(dynstr, "\n");
 
   char *log_line = log, *line_end;
   char *error_line_number_end;
@@ -136,10 +150,10 @@ void Shader::print_errors(Span<const char *> sources, char *log, const char *sta
     }
     /* Separate from previous block. */
     if (last_error_line != error_line) {
-      fprintf(stderr, "\033[90m%s\033[39m\n", line_prefix);
+      BLI_dynstr_appendf(dynstr, "%s%s%s\n", info_col, line_prefix, reset_col);
     }
     else if (error_char != last_error_char) {
-      fprintf(stderr, "%s\n", line_prefix);
+      BLI_dynstr_appendf(dynstr, "%s\n", line_prefix);
     }
     /* Print line from the source file that is producing the error. */
     if ((error_line != -1) && (error_line != last_error_line || error_char != last_error_char)) {
@@ -159,24 +173,24 @@ void Shader::print_errors(Span<const char *> sources, char *log, const char *sta
       /* Print error source. */
       if (found_line_id) {
         if (error_line != last_error_line) {
-          fprintf(stderr, "%5d | ", src_line_index);
+          BLI_dynstr_appendf(dynstr, "%5d | ", src_line_index);
         }
         else {
-          fprintf(stderr, line_prefix);
+          BLI_dynstr_appendf(dynstr, line_prefix);
         }
-        fwrite(src_line, (src_line_end + 1) - src_line, 1, stderr);
+        BLI_dynstr_nappend(dynstr, src_line, (src_line_end + 1) - src_line);
         /* Print char offset. */
-        fprintf(stderr, line_prefix);
+        BLI_dynstr_appendf(dynstr, line_prefix);
         if (error_char != -1) {
           for (int i = 0; i < error_char; i++) {
-            fprintf(stderr, " ");
+            BLI_dynstr_appendf(dynstr, " ");
           }
-          fprintf(stderr, "^");
+          BLI_dynstr_appendf(dynstr, "^");
         }
-        fprintf(stderr, "\n");
+        BLI_dynstr_appendf(dynstr, "\n");
       }
     }
-    fprintf(stderr, line_prefix);
+    BLI_dynstr_appendf(dynstr, line_prefix);
     /* Skip to message. Avoid redundant info. */
     const char *keywords[] = {"error", "warning"};
     for (int i = 0; i < ARRAY_SIZE(prefix); i++) {
@@ -191,22 +205,32 @@ void Shader::print_errors(Span<const char *> sources, char *log, const char *sta
       log_line++;
     }
     if (type == 0) {
-      fprintf(stderr, "\033[31;1mError\033[0;2m: ");
+      BLI_dynstr_appendf(dynstr, "%s%s%s: ", err_col, "Error", info_col);
     }
     else if (type == 1) {
-      fprintf(stderr, "\033[33;1mWarning\033[0;2m: ");
+      BLI_dynstr_appendf(dynstr, "%s%s%s: ", warn_col, "Warning", info_col);
     }
     /* Print the error itself. */
-    fprintf(stderr, "\033[2m");
-    fwrite(log_line, (line_end + 1) - log_line, 1, stderr);
-    fprintf(stderr, "\033[0m");
+    BLI_dynstr_appendf(dynstr, info_col);
+    BLI_dynstr_nappend(dynstr, log_line, (line_end + 1) - log_line);
+    BLI_dynstr_appendf(dynstr, reset_col);
     /* Continue to next line. */
     log_line = line_end + 1;
     last_error_line = error_line;
     last_error_char = error_char;
   }
-  fprintf(stderr, "\n");
   MEM_freeN(sources_combined);
+
+  CLG_Severity severity = error ? CLG_SEVERITY_ERROR : CLG_SEVERITY_WARN;
+
+  if (((LOG.type->flag & CLG_FLAG_USE) && (LOG.type->level >= 0)) ||
+      (severity >= CLG_SEVERITY_WARN)) {
+    const char *_str = BLI_dynstr_get_cstring(dynstr);
+    CLG_log_str(LOG.type, severity, this->name, stage, _str);
+    MEM_freeN((void *)_str);
+  }
+
+  BLI_dynstr_free(dynstr);
 }
 
 /** \} */

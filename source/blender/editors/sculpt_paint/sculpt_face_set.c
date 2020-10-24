@@ -303,7 +303,6 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
-  ARegion *region = CTX_wm_region(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
   const int mode = RNA_enum_get(op->ptr, "mode");
@@ -407,8 +406,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
 
   SCULPT_undo_push_end();
 
-  ED_region_tag_redraw(region);
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+  SCULPT_tag_update_overlays(C);
 
   return OPERATOR_FINISHED;
 }
@@ -667,7 +665,6 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
-  ARegion *region = CTX_wm_region(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
   const int mode = RNA_enum_get(op->ptr, "mode");
@@ -737,13 +734,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
     BKE_mesh_flush_hidden_from_verts(ob->data);
   }
 
-  ED_region_tag_redraw(region);
-  DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
-
-  View3D *v3d = CTX_wm_view3d(C);
-  if (!BKE_sculptsession_use_pbvh_draw(ob, v3d)) {
-    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-  }
+  SCULPT_tag_update_overlays(C);
 
   return OPERATOR_FINISHED;
 }
@@ -826,7 +817,6 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
-  ARegion *region = CTX_wm_region(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
   /* Dyntopo not supported. */
@@ -927,13 +917,12 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
 
   MEM_SAFE_FREE(nodes);
 
-  ED_region_tag_redraw(region);
-  DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
-
-  View3D *v3d = CTX_wm_view3d(C);
-  if (!BKE_sculptsession_use_pbvh_draw(ob, v3d)) {
-    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  if (BKE_pbvh_type(pbvh) == PBVH_FACES) {
+    BKE_mesh_flush_hidden_from_verts(ob->data);
   }
+
+  SCULPT_tag_update_overlays(C);
+
   return OPERATOR_FINISHED;
 }
 
@@ -983,7 +972,6 @@ static int sculpt_face_sets_randomize_colors_exec(bContext *C, wmOperator *UNUSE
 
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
-  ARegion *region = CTX_wm_region(C);
 
   /* Dyntopo not supported. */
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
@@ -1011,13 +999,7 @@ static int sculpt_face_sets_randomize_colors_exec(bContext *C, wmOperator *UNUSE
 
   MEM_SAFE_FREE(nodes);
 
-  View3D *v3d = CTX_wm_view3d(C);
-  if (!BKE_sculptsession_use_pbvh_draw(ob, v3d)) {
-    DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
-  }
-
-  ED_region_tag_redraw(region);
-  WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+  SCULPT_tag_update_overlays(C);
 
   return OPERATOR_FINISHED;
 }
@@ -1142,7 +1124,6 @@ static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEven
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
-  ARegion *region = CTX_wm_region(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
   const int mode = RNA_enum_get(op->ptr, "mode");
@@ -1201,13 +1182,7 @@ static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEven
     BKE_mesh_flush_hidden_from_verts(ob->data);
   }
 
-  ED_region_tag_redraw(region);
-  DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
-
-  View3D *v3d = CTX_wm_view3d(C);
-  if (!BKE_sculptsession_use_pbvh_draw(ob, v3d)) {
-    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-  }
+  SCULPT_tag_update_overlays(C);
 
   return OPERATOR_FINISHED;
 }

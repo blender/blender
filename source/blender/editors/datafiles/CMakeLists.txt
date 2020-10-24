@@ -638,11 +638,13 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   brush.particle.smooth
   brush.particle.weight
   brush.sculpt.blob
+  brush.sculpt.boundary
   brush.sculpt.clay
   brush.sculpt.clay_strips
   brush.sculpt.clay_thumb
   brush.sculpt.cloth
   brush.sculpt.crease
+  brush.sculpt.displacement_eraser
   brush.sculpt.draw
   brush.sculpt.draw_face_sets
   brush.sculpt.draw_sharp
@@ -751,6 +753,8 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.sculpt.lasso_face_set
   ops.sculpt.lasso_mask
   ops.sculpt.lasso_trim
+  ops.sculpt.line_mask
+  ops.sculpt.line_project
   ops.sculpt.mesh_filter
   ops.sequencer.blade
   ops.transform.bone_envelope

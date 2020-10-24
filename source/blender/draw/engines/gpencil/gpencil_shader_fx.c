@@ -586,7 +586,7 @@ void gpencil_vfx_cache_populate(GPENCIL_Data *vedata, Object *ob, GPENCIL_tObjec
   GPENCIL_FramebufferList *fbl = vedata->fbl;
   GPENCIL_PrivateData *pd = vedata->stl->pd;
 
-  /* These may not be allocated yet, use adress of future pointer. */
+  /* These may not be allocated yet, use address of future pointer. */
   gpIterVfxData iter = {
       .pd = pd,
       .tgp_ob = tgp_ob,

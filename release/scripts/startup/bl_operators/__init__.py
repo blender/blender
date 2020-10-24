@@ -48,7 +48,6 @@ _modules = [
     "uvcalc_lightmap",
     "vertexpaint_dirt",
     "view3d",
-    "gpencil_mesh_bake",
     "wm",
 ]
 

@@ -535,7 +535,7 @@ static void ntree_shader_groups_flatten(bNodeTree *localtree)
 
 /* Check whether shader has a displacement.
  *
- * Will also return a node and it's socket which is connected to a displacement
+ * Will also return a node and its socket which is connected to a displacement
  * output. Additionally, link which is attached to the displacement output is
  * also returned.
  */

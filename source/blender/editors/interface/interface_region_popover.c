@@ -247,6 +247,8 @@ uiPopupBlockHandle *ui_popover_panel_create(
     bContext *C, ARegion *butregion, uiBut *but, uiMenuCreateFunc menu_func, void *arg)
 {
   wmWindow *window = CTX_wm_window(C);
+  const uiStyle *style = UI_style_get_dpi();
+  const PanelType *panel_type = (PanelType *)arg;
 
   /* Create popover, buttons are created from callback. */
   uiPopover *pup = MEM_callocN(sizeof(uiPopover), __func__);
@@ -254,8 +256,12 @@ uiPopupBlockHandle *ui_popover_panel_create(
 
   /* FIXME: maybe one day we want non panel popovers? */
   {
-    const int ui_units_x = ((PanelType *)arg)->ui_units_x;
-    pup->ui_size_x = U.widget_unit * (ui_units_x ? ui_units_x : UI_POPOVER_WIDTH_UNITS);
+    const int ui_units_x = (panel_type->ui_units_x == 0) ? UI_POPOVER_WIDTH_UNITS :
+                                                           panel_type->ui_units_x;
+    /* Scale width by changes to Text Style point size. */
+    const int text_points_max = MAX2(style->widget.points, style->widgetlabel.points);
+    pup->ui_size_x = ui_units_x * U.widget_unit *
+                     (text_points_max / (float)UI_DEFAULT_TEXT_POINTS);
   }
 
   pup->menu_func = menu_func;

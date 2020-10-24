@@ -20,7 +20,7 @@
  * \ingroup fn
  *
  * An ArraySpan is a span where every element contains an array (instead of a single element as is
- * the case in a normal span). It's main use case is to reference many small arrays.
+ * the case in a normal span). Its main use case is to reference many small arrays.
  */
 
 #include "FN_spans.hh"

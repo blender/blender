@@ -699,7 +699,7 @@ static int node_get_selected_minmax(
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node_group_make_use_node(node, gnode)) {
       float loc[2];
-      nodeToView(node, 0.0f, 0.0f, &loc[0], &loc[1]);
+      nodeToView(node, node->offsetx, node->offsety, &loc[0], &loc[1]);
       minmax_v2v2_v2(min, max, loc);
       if (use_size) {
         loc[0] += node->width;

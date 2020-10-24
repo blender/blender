@@ -50,12 +50,9 @@ PyDoc_STRVAR(Stroke_doc,
              "defines the stroke's shape and appearance at this vertex position.\n"
              "\n"
              ".. method:: Stroke()\n"
+             "            Stroke(brother)\n"
              "\n"
-             "   Default constructor\n"
-             "\n"
-             ".. method:: Stroke(brother)\n"
-             "\n"
-             "   Copy constructor");
+             "   Creates a :class:`Stroke` using the default constructor or copy constructor\n");
 
 static int Stroke_init(BPy_Stroke *self, PyObject *args, PyObject *kwds)
 {
@@ -127,21 +124,18 @@ static PyObject *Stroke_compute_sampling(BPy_Stroke *self, PyObject *args, PyObj
 
 PyDoc_STRVAR(Stroke_resample_doc,
              ".. method:: resample(n)\n"
+             "            resample(sampling)\n"
              "\n"
-             "   Resamples the stroke so that it eventually has N points.  That means\n"
-             "   it is going to add N-vertices_size, where vertices_size is the\n"
-             "   number of points we already have.  If vertices_size >= N, no\n"
-             "   resampling is done.\n"
+             "   Resamples the stroke so using one of two methods with the goal\n"
+             "   of creating a stroke with fewer points and the same shape.\n"
              "\n"
-             "   :arg n: The number of vertices we eventually want in our stroke.\n"
+             "   :arg n: Resamples the stroke so that it eventually has N points. That means\n"
+             "      it is going to add N-vertices_size, where vertices_size is the\n"
+             "      number of points we already have.  If vertices_size >= N, no\n"
+             "      resampling is done.\n"
              "   :type n: int\n"
-             "\n"
-             ".. method:: resample(sampling)\n"
-             "\n"
-             "   Resamples the stroke with a given sampling.  If the sampling is\n"
-             "   smaller than the actual sampling value, no resampling is done.\n"
-             "\n"
-             "   :arg sampling: The new sampling value.\n"
+             "   :arg sampling: Resamples the stroke with a given sampling value. If the\n"
+             "      sampling is smaller than the actual sampling value, no resampling is done.\n"
              "   :type sampling: float");
 
 static PyObject *Stroke_resample(BPy_Stroke *self, PyObject *args, PyObject *kwds)

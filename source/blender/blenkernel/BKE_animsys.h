@@ -174,7 +174,7 @@ typedef struct AnimationBasePathChange {
   const char *dst_basepath;
 } AnimationBasePathChange;
 
-/* Move animation data from src to destination if it's paths are based on basepaths */
+/* Move animation data from src to destination if its paths are based on basepaths */
 void BKE_animdata_transfer_by_basepath(struct Main *bmain,
                                        struct ID *srcID,
                                        struct ID *dstID,

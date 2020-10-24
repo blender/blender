@@ -57,7 +57,7 @@
 /* The formatting of these bmesh operators is parsed by
  * 'doc/python_api/rst_from_bmesh_opdefines.py'
  * for use in python docs, so reStructuredText may be used
- * rather then doxygen syntax.
+ * rather than doxygen syntax.
  *
  * template (py quotes used because nested comments don't work
  * on all C compilers):
@@ -366,7 +366,7 @@ static BMOpDefine bmo_find_doubles_def = {
 /*
  * Remove Doubles.
  *
- * Finds groups of vertices closer then dist and merges them together,
+ * Finds groups of vertices closer than dist and merges them together,
  * using the weld verts bmop.
  */
 static BMOpDefine bmo_remove_doubles_def = {
@@ -567,7 +567,7 @@ static BMOpDefine bmo_contextual_create_def = {
   },
   /* slots_out */
   {{"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}}, /* newly-made face(s) */
-  /* note, this is for stand-alone edges only, not edges which are apart of newly created faces */
+  /* note, this is for stand-alone edges only, not edges which are a part of newly created faces */
    {"edges.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* newly-made edge(s) */
    {{'\0'}},
   },

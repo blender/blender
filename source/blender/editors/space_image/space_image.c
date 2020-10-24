@@ -634,21 +634,11 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
   SpaceImage *sima = CTX_wm_space_image(C);
-  Object *obact = CTX_data_active_object(C);
   Object *obedit = CTX_data_edit_object(C);
   Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
   Mask *mask = NULL;
-  bool show_uvedit = false;
-  bool show_curve = false;
   Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
   View2D *v2d = &region->v2d;
-
-  GPUViewport *viewport = WM_draw_region_get_viewport(region);
-  GPUFrameBuffer *framebuffer_default, *framebuffer_overlay;
-
-  framebuffer_default = GPU_viewport_framebuffer_default_get(viewport);
-  framebuffer_overlay = GPU_viewport_framebuffer_overlay_get(viewport);
 
   /* XXX not supported yet, disabling for now */
   scene->r.scemode &= ~R_COMP_CROP;
@@ -659,82 +649,37 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
   image_main_region_set_view2d(sima, region);
 
   /* check for mask (delay draw) */
-  if (ED_space_image_show_uvedit(sima, obedit)) {
-    show_uvedit = true;
-  }
-  else if (sima->mode == SI_MODE_MASK) {
+  if (!ED_space_image_show_uvedit(sima, obedit) && sima->mode == SI_MODE_MASK) {
     mask = ED_space_image_get_mask(sima);
-  }
-  else if (ED_space_image_paint_curve(C)) {
-    show_curve = true;
   }
 
   /* we draw image in pixelspace */
-  if (!U.experimental.use_image_editor_legacy_drawing) {
-    DRW_draw_view(C);
-    draw_image_main_helpers(C, region);
+  DRW_draw_view(C);
+  draw_image_main_helpers(C, region);
 
-    /* Draw Meta data of the image isn't added to the DrawManager as it is
-     * used in other areas as well. */
-    if (sima->flag & SI_DRAW_METADATA) {
-      void *lock;
-      /* `ED_space_image_get_zoom` temporarily locks the image, so this needs to be done before
-       * the image is locked when calling `ED_space_image_acquire_buffer`. */
-      float zoomx, zoomy;
-      ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
-      ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock, 0);
-      if (ibuf) {
-        int x, y;
-        rctf frame;
-        BLI_rctf_init(&frame, 0.0f, ibuf->x, 0.0f, ibuf->y);
-        UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
-        ED_region_image_metadata_draw(x, y, ibuf, &frame, zoomx, zoomy);
-        ED_space_image_release_buffer(sima, ibuf, lock);
-      }
-    }
-
-    /* sample line */
-    UI_view2d_view_ortho(v2d);
-    draw_image_sample_line(sima);
-    UI_view2d_view_restore(C);
-  }
-  else {
-    GPU_framebuffer_bind(framebuffer_default);
-    GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
-
-    GPU_framebuffer_bind(framebuffer_overlay);
-
-    float col[3];
-    /* clear and setup matrix */
-    UI_GetThemeColor3fv(TH_BACK, col);
-    srgb_to_linearrgb_v3_v3(col, col);
-    GPU_clear_color(col[0], col[1], col[2], 1.0f);
-    GPU_depth_test(GPU_DEPTH_NONE);
-    draw_image_main(C, region);
-
-    /* and uvs in 0.0-1.0 space */
-    UI_view2d_view_ortho(v2d);
-
-    ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
-
-    ED_uvedit_draw_main(sima, scene, view_layer, obedit, obact, depsgraph);
-
-    ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);
-
-    if (sima->flag & SI_SHOW_GPENCIL) {
-      /* Grease Pencil too (in addition to UV's) */
-      draw_image_grease_pencil((bContext *)C, true);
-    }
-    /* sample line */
-    draw_image_sample_line(sima);
-
-    UI_view2d_view_restore(C);
-
-    if (sima->flag & SI_SHOW_GPENCIL) {
-      /* draw Grease Pencil - screen space only */
-      draw_image_grease_pencil((bContext *)C, false);
+  /* Draw Meta data of the image isn't added to the DrawManager as it is
+   * used in other areas as well. */
+  if (sima->flag & SI_DRAW_METADATA) {
+    void *lock;
+    /* `ED_space_image_get_zoom` temporarily locks the image, so this needs to be done before
+     * the image is locked when calling `ED_space_image_acquire_buffer`. */
+    float zoomx, zoomy;
+    ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
+    ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock, 0);
+    if (ibuf) {
+      int x, y;
+      rctf frame;
+      BLI_rctf_init(&frame, 0.0f, ibuf->x, 0.0f, ibuf->y);
+      UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
+      ED_region_image_metadata_draw(x, y, ibuf, &frame, zoomx, zoomy);
+      ED_space_image_release_buffer(sima, ibuf, lock);
     }
   }
+
+  /* sample line */
+  UI_view2d_view_ortho(v2d);
+  draw_image_sample_line(sima);
+  UI_view2d_view_restore(C);
 
   if (mask) {
     Image *image = ED_space_image(sima);
@@ -773,14 +718,7 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
                         C);
   }
 
-  if ((show_uvedit || mask || show_curve) && U.experimental.use_image_editor_legacy_drawing) {
-    UI_view2d_view_ortho(v2d);
-    ED_image_draw_cursor(region, sima->cursor);
-    UI_view2d_view_restore(C);
-  }
-
   WM_gizmomap_draw(region->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
-
   draw_image_cache(C, region);
 }
 

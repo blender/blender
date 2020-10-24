@@ -550,10 +550,11 @@ void ED_region_do_draw(bContext *C, ARegion *region)
    * for drawing of borders/gestures etc */
   ED_region_pixelspace(region);
 
+  /* Remove sRGB override by rebinding the framebuffer. */
   GPUFrameBuffer *fb = GPU_framebuffer_active_get();
   GPU_framebuffer_bind(fb);
+
   ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_PIXEL);
-  GPU_framebuffer_bind_no_srgb(fb);
 
   region_draw_azones(area, region);
 
@@ -3030,15 +3031,15 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
   }
 
   /* scrollers */
-  const rcti *mask = NULL;
+  bool use_mask = false;
+  rcti mask;
   if (region->runtime.category &&
       (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_RIGHT)) {
-    rcti mask_buf;
-    UI_view2d_mask_from_win(v2d, &mask_buf);
-    mask_buf.xmax -= UI_PANEL_CATEGORY_MARGIN_WIDTH;
-    mask = &mask_buf;
+    use_mask = true;
+    UI_view2d_mask_from_win(v2d, &mask);
+    mask.xmax -= UI_PANEL_CATEGORY_MARGIN_WIDTH;
   }
-  UI_view2d_scrollers_draw(v2d, mask);
+  UI_view2d_scrollers_draw(v2d, use_mask ? &mask : NULL);
 }
 
 void ED_region_panels_ex(const bContext *C, ARegion *region, const char *contexts[])

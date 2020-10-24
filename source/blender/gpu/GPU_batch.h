@@ -55,7 +55,7 @@ typedef enum eGPUBatchFlag {
 
   /** Has been initialized. At least one VBO is set. */
   GPU_BATCH_INIT = (1 << 16),
-  /** Batch is initialized but it's VBOs are still being populated. (optional) */
+  /** Batch is initialized but its VBOs are still being populated. (optional) */
   GPU_BATCH_BUILDING = (1 << 16),
   /** Cached data need to be rebuild. (VAO, PSO, ...) */
   GPU_BATCH_DIRTY = (1 << 17),

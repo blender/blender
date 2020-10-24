@@ -230,21 +230,7 @@ set(SRC
   shader/node_shader_tree.c
   shader/node_shader_util.c
 
-  simulation/nodes/node_sim_age_reached_event.cc
   simulation/nodes/node_sim_common.cc
-  simulation/nodes/node_sim_emit_particles.cc
-  simulation/nodes/node_sim_execute_condition.cc
-  simulation/nodes/node_sim_force.cc
-  simulation/nodes/node_sim_kill_particle.cc
-  simulation/nodes/node_sim_multi_execute.cc
-  simulation/nodes/node_sim_particle_attribute.cc
-  simulation/nodes/node_sim_particle_birth_event.cc
-  simulation/nodes/node_sim_particle_mesh_collision_event.cc
-  simulation/nodes/node_sim_particle_mesh_emitter.cc
-  simulation/nodes/node_sim_particle_simulation.cc
-  simulation/nodes/node_sim_particle_time_step_event.cc
-  simulation/nodes/node_sim_set_particle_attribute.cc
-  simulation/nodes/node_sim_simulation_time.cc
   simulation/node_simulation_tree.cc
   simulation/node_simulation_util.cc
 

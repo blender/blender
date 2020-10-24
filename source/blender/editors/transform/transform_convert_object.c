@@ -225,7 +225,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
   copy_m4_m4(ob->obmat, object_eval->obmat);
   /* Only copy negative scale flag, this is the only flag which is modified by
    * the BKE_object_where_is_calc(). The rest of the flags we need to keep,
-   * otherwise we might loose dupli flags  (see T61787). */
+   * otherwise we might lose dupli flags  (see T61787). */
   ob->transflag &= ~OB_NEG_SCALE;
   ob->transflag |= (object_eval->transflag & OB_NEG_SCALE);
 

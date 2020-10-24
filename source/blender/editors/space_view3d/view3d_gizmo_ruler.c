@@ -83,7 +83,7 @@ enum {
   RULERITEM_USE_ANGLE_ACTIVE = (1 << 1),
 };
 
-/* keep smaller then selection, since we may want click elsewhere without selecting a ruler */
+/* keep smaller than selection, since we may want click elsewhere without selecting a ruler */
 #define RULER_PICK_DIST 12.0f
 #define RULER_PICK_DIST_SQ (RULER_PICK_DIST * RULER_PICK_DIST)
 

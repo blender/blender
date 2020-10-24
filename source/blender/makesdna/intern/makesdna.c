@@ -507,7 +507,7 @@ static int add_name(const char *str)
       buf[i + 2] = ')';
       buf[i + 3] = 0;
     }
-    /* now precede with buf*/
+    /* now proceed with buf*/
     DEBUG_PRINTF(3, "\t\t\t\t\tProposing fp name %s\n", buf);
     name = buf;
   }

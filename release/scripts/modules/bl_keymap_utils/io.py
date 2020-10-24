@@ -73,6 +73,11 @@ def kmi_args_as_data(kmi):
     if kmi.key_modifier and kmi.key_modifier != 'NONE':
         s.append(f"\"key_modifier\": '{kmi.key_modifier}'")
 
+    if kmi.repeat:
+        if kmi.map_type == 'KEYBOARD':
+            if kmi.value in {'PRESS', 'ANY'}:
+                s.append("\"repeat\": True")
+
     return "{" + ", ".join(s) + "}"
 
 
@@ -161,6 +166,13 @@ def keyconfig_export_as_data(wm, kc, filepath, *, all_keymaps=False):
 
     with open(filepath, "w") as fh:
         fw = fh.write
+
+        # Use the file version since it includes the sub-version
+        # which we can bump multiple times between releases.
+        from bpy.app import version_file
+        fw(f"keyconfig_version = {version_file!r}\n")
+        del version_file
+
         fw("keyconfig_data = \\\n[")
 
         for km, _kc_x in export_keymaps:
@@ -212,7 +224,11 @@ def keyconfig_export_as_data(wm, kc, filepath, *, all_keymaps=False):
         fw("if __name__ == \"__main__\":\n")
         fw("    import os\n")
         fw("    from bl_keymap_utils.io import keyconfig_import_from_data\n")
-        fw("    keyconfig_import_from_data(os.path.splitext(os.path.basename(__file__))[0], keyconfig_data)\n")
+        fw("    keyconfig_import_from_data(\n")
+        fw("        os.path.splitext(os.path.basename(__file__))[0],\n")
+        fw("        keyconfig_data,\n")
+        fw("        keyconfig_version=keyconfig_version,\n")
+        fw("    )\n")
 
 
 # -----------------------------------------------------------------------------
@@ -264,7 +280,7 @@ def keyconfig_init_from_data(kc, keyconfig_data):
         keymap_init_from_data(km, km_items, is_modal=km_args.get("modal", False))
 
 
-def keyconfig_import_from_data(name, keyconfig_data):
+def keyconfig_import_from_data(name, keyconfig_data, *, keyconfig_version=(0, 0, 0)):
     # Load data in the format defined above.
     #
     # Runs at load time, keep this fast!
@@ -272,6 +288,9 @@ def keyconfig_import_from_data(name, keyconfig_data):
     import bpy
     wm = bpy.context.window_manager
     kc = wm.keyconfigs.new(name)
+    if keyconfig_version is not None:
+        from .versioning import keyconfig_update
+        keyconfig_data = keyconfig_update(keyconfig_data, keyconfig_version)
     keyconfig_init_from_data(kc, keyconfig_data)
     return kc
 

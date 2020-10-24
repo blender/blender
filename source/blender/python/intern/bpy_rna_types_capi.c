@@ -87,7 +87,7 @@ static struct PyMethodDef pyrna_uilayout_methods[] = {
 /* -------------------------------------------------------------------- */
 /** \name Window Manager Clipboard Property
  *
- * Avoid using the RNA API because this value may change between checking it's length
+ * Avoid using the RNA API because this value may change between checking its length
  * and creating the buffer, causing writes past the allocated length.
  * \{ */
 

@@ -1611,7 +1611,7 @@ void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
       bool has_face_sel = (bm->totfacesel != 0);
 
       if (tc->use_mirror_axis_any) {
-        /* Rather then adjusting the selection (which the user would notice)
+        /* Rather than adjusting the selection (which the user would notice)
          * tag all mirrored verts, then auto-merge those. */
         BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
 

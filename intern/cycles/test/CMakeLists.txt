@@ -51,13 +51,17 @@ set(SRC
   util_string_test.cpp
   util_task_test.cpp
   util_time_test.cpp
-  util_avxf_avx_test.cpp
-  util_avxf_avx2_test.cpp
   util_transform_test.cpp
 )
 
-set_source_files_properties(util_avxf_avx_test.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
-set_source_files_properties(util_avxf_avx2_test.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
+if(CXX_HAS_AVX)
+  list(APPEND SRC util_avxf_avx_test.cpp)
+  set_source_files_properties(util_avxf_avx_test.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX_KERNEL_FLAGS}")
+endif()
+if(CXX_HAS_AVX2)
+  list(APPEND SRC util_avxf_avx2_test.cpp)
+  set_source_files_properties(util_avxf_avx2_test.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_AVX2_KERNEL_FLAGS}")
+endif()
 
 if(WITH_GTESTS)
   BLENDER_SRC_GTEST(cycles "${SRC}" "${ALL_CYCLES_LIBRARIES}")

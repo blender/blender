@@ -1029,7 +1029,7 @@ static void do_createEdgeLocationBuffer(unsigned int t,
   /* set the accumulators to correct positions */  // set up some accumulator variables for loops
   gradientAccum = gradientFillOffset;  // each accumulator variable starts at its respective
   innerAccum = *innerEdgeOffset;       // section's offset so when we start filling, each
-  outerAccum = *outerEdgeOffset;       // section fills up it's allocated space in gbuf
+  outerAccum = *outerEdgeOffset;       // section fills up its allocated space in gbuf
   // uses dmin=row, rsl=col
   for (x = 0, dmin = 0; x < t; x += rw, dmin++) {
     for (rsl = 0; rsl < rw; rsl++) {
@@ -1088,7 +1088,7 @@ static void do_fillGradientBuffer(unsigned int rw,
    *
    * 1.) Loop through all gradient pixels.
    * A.) For each gradient pixel:
-   * a.) Loop though all outside edge pixels, looking for closest one
+   * a.) Loop through all outside edge pixels, looking for closest one
    * to the gradient pixel we are in.
    * b.) Loop through all inside edge pixels, looking for closest one
    * to the gradient pixel we are in.

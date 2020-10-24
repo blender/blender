@@ -158,7 +158,7 @@ class TileManager {
    *
    * however viewport rendering expects tiles to be allocated in a special way,
    * meaning image is being sliced horizontally first and every device handles
-   * it's own slice
+   * its own slice
    */
   bool background;
 

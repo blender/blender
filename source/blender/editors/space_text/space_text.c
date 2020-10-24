@@ -117,7 +117,7 @@ static SpaceLink *text_duplicate(SpaceLink *sl)
 
   /* clear or remove stuff from old */
 
-  stextn->runtime.drawcache = NULL; /* space need it's own cache */
+  stextn->runtime.drawcache = NULL; /* space need its own cache */
 
   return (SpaceLink *)stextn;
 }

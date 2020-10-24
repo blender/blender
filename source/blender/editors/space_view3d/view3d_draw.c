@@ -102,7 +102,7 @@
 
 #define M_GOLDEN_RATIO_CONJUGATE 0.618033988749895f
 
-#define VIEW3D_OVERLAY_LINEHEIGHT (int)(1.1f * BLF_default_height_max())
+#define VIEW3D_OVERLAY_LINEHEIGHT (0.9f * U.widget_unit)
 
 /* -------------------------------------------------------------------- */
 /** \name General Functions
@@ -1531,7 +1531,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
   else {
     switch ((eUserpref_MiniAxisType)U.mini_axis_type) {
       case USER_MINI_AXIS_TYPE_GIZMO:
-        /* The gizmo handles it's own drawing. */
+        /* The gizmo handles its own drawing. */
         break;
       case USER_MINI_AXIS_TYPE_MINIMAL:
         draw_view_axis(rv3d, rect);

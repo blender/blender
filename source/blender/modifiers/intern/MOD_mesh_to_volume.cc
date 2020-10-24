@@ -33,7 +33,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_volume_types.h"
 
-#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -176,12 +176,20 @@ static void panelRegister(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_MeshToVolume, panel_draw);
 }
 
-static float compute_voxel_size(const MeshToVolumeModifierData *mvmd,
+#ifdef WITH_OPENVDB
+static float compute_voxel_size(const ModifierEvalContext *ctx,
+                                const MeshToVolumeModifierData *mvmd,
                                 const blender::float4x4 &transform)
 {
   using namespace blender;
+
+  float volume_simplify = BKE_volume_simplify_factor(ctx->depsgraph);
+  if (volume_simplify == 0.0f) {
+    return 0.0f;
+  }
+
   if (mvmd->resolution_mode == MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_SIZE) {
-    return mvmd->voxel_size;
+    return mvmd->voxel_size / volume_simplify;
   }
   if (mvmd->voxel_amount <= 0) {
     return 0;
@@ -192,9 +200,10 @@ static float compute_voxel_size(const MeshToVolumeModifierData *mvmd,
   const float diagonal = float3::distance(transform * float3(bb->vec[6]),
                                           transform * float3(bb->vec[0]));
   const float approximate_volume_side_length = diagonal + mvmd->exterior_band_width * 2.0f;
-  const float voxel_size = approximate_volume_side_length / mvmd->voxel_amount;
+  const float voxel_size = approximate_volume_side_length / mvmd->voxel_amount / volume_simplify;
   return voxel_size;
 }
+#endif
 
 static Volume *modifyVolume(ModifierData *md, const ModifierEvalContext *ctx, Volume *input_volume)
 {
@@ -215,7 +224,7 @@ static Volume *modifyVolume(ModifierData *md, const ModifierEvalContext *ctx, Vo
 
   const float4x4 mesh_to_own_object_space_transform = float4x4(ctx->object->imat) *
                                                       float4x4(object_to_convert->obmat);
-  const float voxel_size = compute_voxel_size(mvmd, mesh_to_own_object_space_transform);
+  const float voxel_size = compute_voxel_size(ctx, mvmd, mesh_to_own_object_space_transform);
   if (voxel_size == 0.0f) {
     return input_volume;
   }
@@ -246,8 +255,8 @@ static Volume *modifyVolume(ModifierData *md, const ModifierEvalContext *ctx, Vo
   /* Create a new volume object and add the density grid. */
   Volume *volume = BKE_volume_new_for_eval(input_volume);
   VolumeGrid *c_density_grid = BKE_volume_grid_add(volume, "density", VOLUME_GRID_FLOAT);
-  openvdb::FloatGrid::Ptr density_grid = BKE_volume_grid_openvdb_for_write<openvdb::FloatGrid>(
-      volume, c_density_grid, false);
+  openvdb::FloatGrid::Ptr density_grid = openvdb::gridPtrCast<openvdb::FloatGrid>(
+      BKE_volume_grid_openvdb_for_write(volume, c_density_grid, false));
 
   /* Merge the generated grid into the density grid. Should be cheap because density_grid has just
    * been created as well. */
@@ -265,7 +274,6 @@ static Volume *modifyVolume(ModifierData *md, const ModifierEvalContext *ctx, Vo
 
 #else
   UNUSED_VARS(md, ctx);
-  UNUSED_VARS(compute_voxel_size);
   BKE_modifier_set_error(md, "Compiled without OpenVDB");
   return input_volume;
 #endif

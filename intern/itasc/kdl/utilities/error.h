@@ -54,7 +54,7 @@ namespace KDL {
 class Error {
 public:
     /** Returns a description string describing the error.
-     *  the returned pointer only garanteed to exists as long as 
+     *  the returned pointer only guaranteed to exists as long as
      * the Error object exists.
      */
 	virtual ~Error() {}

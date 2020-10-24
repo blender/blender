@@ -3408,7 +3408,7 @@ float line_plane_factor_v3(const float plane_co[3],
 
 /**
  * Ensure the distance between these points is no greater than 'dist'.
- * If it is, scale then both into the center.
+ * If it is, scale them both into the center.
  */
 void limit_dist_v3(float v1[3], float v2[3], const float dist)
 {
@@ -4474,7 +4474,7 @@ void interp_cubic_v3(float x[3],
  *
  * Compute coordinates (u, v) for point \a st with respect to triangle (\a st0, \a st1, \a st2)
  *
- * \note same basic result as #barycentric_weights_v2, see it's comment for details.
+ * \note same basic result as #barycentric_weights_v2, see its comment for details.
  */
 void resolve_tri_uv_v2(
     float r_uv[2], const float st[2], const float st0[2], const float st1[2], const float st2[2])

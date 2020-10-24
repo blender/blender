@@ -12,28 +12,28 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * Copyright 2020, Blender Foundation.
  */
 
-#include "node_simulation_util.h"
+#pragma once
 
-static bNodeSocketTemplate sim_node_particle_simulation_in[] = {
-    {SOCK_EMITTERS, N_("Emitters")},
-    {SOCK_EVENTS, N_("Events")},
-    {SOCK_FORCES, N_("Forces")},
-    {-1, ""},
+#include "COM_NodeOperation.h"
+
+/**
+ * Operation which is used by keying node to modify image's alpha channels.
+ * It keeps color properly pre-multiplied.
+ */
+class KeyingSetAlphaOperation : public NodeOperation {
+ private:
+  SocketReader *m_inputColor;
+  SocketReader *m_inputAlpha;
+
+ public:
+  KeyingSetAlphaOperation();
+
+  void executePixelSampled(float output[4], float x, float y, PixelSampler sampler);
+
+  void initExecution();
+  void deinitExecution();
 };
-
-static bNodeSocketTemplate sim_node_particle_simulation_out[] = {
-    {-1, ""},
-};
-
-void register_node_type_sim_particle_simulation()
-{
-  static bNodeType ntype;
-
-  sim_node_type_base(
-      &ntype, SIM_NODE_PARTICLE_SIMULATION, "Particle Simulation", NODE_CLASS_OUTPUT, 0);
-  node_type_socket_templates(
-      &ntype, sim_node_particle_simulation_in, sim_node_particle_simulation_out);
-  nodeRegisterType(&ntype);
-}

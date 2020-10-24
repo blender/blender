@@ -606,7 +606,7 @@ void ARMATURE_OT_autoside_names(wmOperatorType *ot)
   };
 
   /* identifiers */
-  ot->name = "AutoName by Axis";
+  ot->name = "Auto-Name by Axis";
   ot->idname = "ARMATURE_OT_autoside_names";
   ot->description =
       "Automatically renames the selected bones according to which side of the target axis they "

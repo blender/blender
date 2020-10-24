@@ -294,7 +294,7 @@ typedef struct BHeadN {
  * This function ensures that reports are printed,
  * in the case of library linking errors this is important!
  *
- * bit kludge but better then doubling up on prints,
+ * bit kludge but better than doubling up on prints,
  * we could alternatively have a versions of a report function which forces printing - campbell
  */
 void blo_reportf_wrap(ReportList *reports, ReportType type, const char *format, ...)
@@ -1233,7 +1233,7 @@ static ssize_t fd_read_from_memory(FileData *filedata,
                                    size_t size,
                                    bool *UNUSED(r_is_memchunck_identical))
 {
-  /* don't read more bytes then there are available in the buffer */
+  /* don't read more bytes than there are available in the buffer */
   ssize_t readsize = (ssize_t)MIN2(size, filedata->buffersize - (size_t)filedata->file_offset);
 
   memcpy(buffer, filedata->buffer + filedata->file_offset, (size_t)readsize);
@@ -1681,7 +1681,7 @@ bool BLO_library_path_explode(const char *path, char *r_dir, char **r_group, cha
 {
   /* We might get some data names with slashes,
    * so we have to go up in path until we find blend file itself,
-   * then we now next path item is group, and everything else is data name. */
+   * then we know next path item is group, and everything else is data name. */
   char *slash = NULL, *prev_slash = NULL, c = '\0';
 
   r_dir[0] = '\0';
@@ -3289,7 +3289,7 @@ static void lib_link_object(BlendLibReader *reader, Object *ob)
       /* we can't call #BKE_pose_free() here because of library linking
        * freeing will recurse down into every pose constraints ID pointers
        * which are not always valid, so for now free directly and suffer
-       * some leaked memory rather then crashing immediately
+       * some leaked memory rather than crashing immediately
        * while bad this _is_ an exceptional case - campbell */
 #if 0
       BKE_pose_free(ob->pose);
@@ -3308,7 +3308,7 @@ static void lib_link_object(BlendLibReader *reader, Object *ob)
    * the material list size gets out of sync. T22663. */
   if (ob->data && ob->id.lib != ((ID *)ob->data)->lib) {
     const short *totcol_data = BKE_object_material_len_p(ob);
-    /* Only expand so as not to loose any object materials that might be set. */
+    /* Only expand so as not to lose any object materials that might be set. */
     if (totcol_data && (*totcol_data > ob->totcol)) {
       /* printf("'%s' %d -> %d\n", ob->id.name, ob->totcol, *totcol_data); */
       BKE_object_material_resize(reader->main, ob, *totcol_data, false);
@@ -4495,7 +4495,7 @@ static void lib_link_scene(BlendLibReader *reader, Scene *sce)
     }
   }
 
-  /* rigidbody world relies on it's linked collections */
+  /* rigidbody world relies on its linked collections */
   if (sce->rigidbody_world) {
     RigidBodyWorld *rbw = sce->rigidbody_world;
     if (rbw->group) {

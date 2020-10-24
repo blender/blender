@@ -167,7 +167,8 @@ void GPU_depth_range(float near, float far)
 
 void GPU_line_width(float width)
 {
-  SET_MUTABLE_STATE(line_width, width * PIXELSIZE);
+  width = max_ff(1.0f, width * PIXELSIZE);
+  SET_MUTABLE_STATE(line_width, width);
 }
 
 void GPU_point_size(float size)
@@ -393,8 +394,9 @@ StateManager::StateManager(void)
   state.logic_op_xor = false;
   state.invert_facing = false;
   state.shadow_bias = false;
-  state.polygon_smooth = false;
   state.clip_distances = 0;
+  state.polygon_smooth = false;
+  state.line_smooth = false;
 
   mutable_state.depth_range[0] = 0.0f;
   mutable_state.depth_range[1] = 1.0f;

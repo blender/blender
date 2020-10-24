@@ -512,6 +512,17 @@ static void rna_Constraint_influence_update(Main *bmain, Scene *scene, PointerRN
   rna_Constraint_update(bmain, scene, ptr);
 }
 
+/* Update only needed so this isn't overwritten on first evaluation. */
+static void rna_Constraint_childof_inverse_matrix_update(Main *bmain,
+                                                         Scene *scene,
+                                                         PointerRNA *ptr)
+{
+  bConstraint *con = ptr->data;
+  bChildOfConstraint *data = con->data;
+  data->flag &= ~CHILDOF_SET_INVERSE;
+  rna_Constraint_update(bmain, scene, ptr);
+}
+
 static void rna_Constraint_ik_type_set(struct PointerRNA *ptr, int value)
 {
   bConstraint *con = ptr->data;
@@ -999,7 +1010,8 @@ static void rna_def_constraint_childof(BlenderRNA *brna)
   RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Inverse Matrix", "Transformation matrix to apply before");
-  RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
+  RNA_def_property_update(
+      prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_childof_inverse_matrix_update");
 
   RNA_define_lib_overridable(false);
 }

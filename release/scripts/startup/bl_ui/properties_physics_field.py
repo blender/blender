@@ -102,7 +102,7 @@ class PHYSICS_PT_field_settings(PhysicButtonsPanel, Panel):
             col.separator()
 
             col = flow.column()
-            col.prop(field, "guide_clump_amount", text="Clumping amount")
+            col.prop(field, "guide_clump_amount", text="Clumping Amount")
             col.prop(field, "guide_clump_shape")
             col.prop(field, "use_max_distance")
 
@@ -378,7 +378,7 @@ class PHYSICS_PT_collision_particle(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_collision_softbody(PhysicButtonsPanel, Panel):
-    bl_label = "Softbody And Cloth"
+    bl_label = "Softbody & Cloth"
     bl_parent_id = "PHYSICS_PT_collision"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 

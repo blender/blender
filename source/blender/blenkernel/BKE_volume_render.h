@@ -44,7 +44,6 @@ typedef struct DenseFloatVolumeGrid {
 
 bool BKE_volume_grid_dense_floats(const struct Volume *volume,
                                   struct VolumeGrid *volume_grid,
-                                  const float resolution_factor,
                                   DenseFloatVolumeGrid *r_dense_grid);
 void BKE_volume_dense_float_grid_clear(DenseFloatVolumeGrid *dense_grid);
 

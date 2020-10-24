@@ -1957,7 +1957,7 @@ static void nlastrip_evaluate_meta(PointerRNA *ptr,
 
   /* meta-strip was calculated normally to have some time to be evaluated at
    * and here we 'look inside' the meta strip, treating it as a decorated window to
-   * it's child strips, which get evaluated as if they were some tracks on a strip
+   * its child strips, which get evaluated as if they were some tracks on a strip
    * (but with some extra modifiers to apply).
    *
    * NOTE: keep this in sync with animsys_evaluate_nla()

@@ -151,7 +151,7 @@ typedef enum {
   UNSAFE_SLASHES = 0x20,   /* Allows all characters except for '/' and '%' */
 } UnsafeCharacterSet;
 
-/* Don't loose comment alignment. */
+/* Don't lose comment alignment. */
 /* clang-format off */
 static const unsigned char acceptable[96] = {
     /* A table of the ASCII chars from space (32) to DEL (127) */

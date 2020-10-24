@@ -80,7 +80,7 @@ typedef struct bSound {
 
   /**
    * The audaspace handle that should actually be played back.
-   * Should be cache if cache != NULL; otherwise it's handle
+   * Should be cache if cache != NULL; otherwise its handle
    */
   void *playback_handle;
 

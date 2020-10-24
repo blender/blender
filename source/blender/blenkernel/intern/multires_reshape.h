@@ -167,10 +167,10 @@ bool multires_reshape_context_create_from_ccg(MultiresReshapeContext *reshape_co
                                               struct Mesh *base_mesh,
                                               int top_level);
 
-bool multires_reshape_context_create_from_subdivide(MultiresReshapeContext *reshape_context,
-                                                    struct Object *object,
-                                                    struct MultiresModifierData *mmd,
-                                                    int top_level);
+bool multires_reshape_context_create_from_modifier(MultiresReshapeContext *reshape_context,
+                                                   struct Object *object,
+                                                   struct MultiresModifierData *mmd,
+                                                   int top_level);
 
 void multires_reshape_free_original_grids(MultiresReshapeContext *reshape_context);
 void multires_reshape_context_free(MultiresReshapeContext *reshape_context);

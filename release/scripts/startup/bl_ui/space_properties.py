@@ -26,18 +26,25 @@ class PROPERTIES_HT_header(Header):
     def draw(self, context):
         layout = self.layout
         view = context.space_data
+        region = context.region
+        ui_scale = context.preferences.system.ui_scale
 
         layout.template_header()
 
         layout.separator_spacer()
 
+        # The following is an ugly attempt to make the search button center-align better visually.
+        # A dummy icon is inserted that has to be scaled as the available width changes.
+        content_size_est = 160 * ui_scale
+        layout_scale = min(1, max(0, (region.width / content_size_est) - 1))
+        if layout_scale > 0:
+            row = layout.row()
+            row.scale_x = layout_scale
+            row.label(icon='BLANK1')
+
         layout.prop(view, "search_filter", icon='VIEWZOOM', text="")
 
         layout.separator_spacer()
-
-        row = layout.row()
-        row.emboss = 'NONE'
-        row.operator("buttons.toggle_pin", icon=('PINNED' if view.use_pin_id else 'UNPINNED'), text="")
 
 
 class PROPERTIES_PT_navigation_bar(Panel):

@@ -66,6 +66,9 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags);
 void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType update_flags);
 void SCULPT_flush_stroke_deform(struct Sculpt *sd, Object *ob, bool is_proxy_used);
 
+/* Should be used after modifying the mask or Face Sets IDs. */
+void SCULPT_tag_update_overlays(bContext *C);
+
 /* Stroke */
 
 typedef struct SculptCursorGeometryInfo {
@@ -750,7 +753,7 @@ typedef struct SculptBrushTest {
   /* For circle (not sphere) projection. */
   float plane_view[4];
 
-  /* Some tool code uses a plane for it's calculateions. */
+  /* Some tool code uses a plane for its calculations. */
   float plane_tool[4];
 
   /* View3d clipping - only set rv3d for clipping */
@@ -810,6 +813,9 @@ float SCULPT_brush_strength_factor(struct SculptSession *ss,
 void SCULPT_tilt_apply_to_normal(float r_normal[3],
                                  struct StrokeCache *cache,
                                  const float tilt_strength);
+
+/* Get effective surface normal with pen tilt and tilt strength applied to it. */
+void SCULPT_tilt_effective_normal_get(const SculptSession *ss, const Brush *brush, float r_no[3]);
 
 /* just for vertex paint. */
 bool SCULPT_pbvh_calc_area_normal(const struct Brush *brush,

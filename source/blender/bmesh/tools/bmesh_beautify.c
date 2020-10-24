@@ -119,7 +119,7 @@ static void erot_state_ex(const BMEdge *e, int v_index[2], int f_index[2])
   EDGE_ORD(v_index[0], v_index[1]);
 
   /* verts of each of the 2 faces attached to this edge
-   * (that are not apart of this edge) */
+   * (that are not a part of this edge) */
   f_index[0] = BM_elem_index_get(e->l->prev->v);
   f_index[1] = BM_elem_index_get(e->l->radial_next->prev->v);
   EDGE_ORD(f_index[0], f_index[1]);

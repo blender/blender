@@ -22,9 +22,8 @@
  * \ingroup bke
  */
 
-/* defines BLI_INLINE */
 #include "BKE_mesh_types.h"
-#include "BLI_compiler_compat.h"
+#include "BLI_utildefines.h"
 
 struct BLI_Stack;
 struct BMEditMesh;

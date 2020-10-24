@@ -1539,7 +1539,7 @@ static void rna_def_color_balance(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "SequenceColorBalanceData", NULL);
   RNA_def_struct_ui_text(srna,
                          "Sequence Color Balance Data",
-                         "Color balance parameters for a sequence strip and it's modifiers");
+                         "Color balance parameters for a sequence strip and its modifiers");
   RNA_def_struct_sdna(srna, "StripColorBalance");
 
   prop = RNA_def_property(srna, "lift", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -1936,7 +1936,7 @@ static void rna_def_sequence(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "cache_flag", SEQ_CACHE_STORE_PREPROCESSED);
   RNA_def_property_ui_text(
       prop,
-      "Cache Pre-processed",
+      "Cache Pre-Processed",
       "Cache pre-processed images, for faster tweaking of effects at the cost of memory usage");
 
   prop = RNA_def_property(srna, "use_cache_composite", PROP_BOOLEAN, PROP_NONE);
@@ -2100,7 +2100,7 @@ static void rna_def_editor(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, 0.0f, SEQ_CACHE_COST_MAX, 0.1f, 1);
   RNA_def_property_float_sdna(prop, NULL, "recycle_max_cost");
   RNA_def_property_ui_text(
-      prop, "Recycle Up To Cost", "Only frames with cost lower than this value will be recycled");
+      prop, "Recycle Up to Cost", "Only frames with cost lower than this value will be recycled");
 }
 
 static void rna_def_filter_video(StructRNA *srna)
@@ -2822,7 +2822,7 @@ static void rna_def_speed_control(StructRNA *srna)
   prop = RNA_def_property(srna, "use_frame_interpolate", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", SEQ_SPEED_USE_INTERPOLATION);
   RNA_def_property_ui_text(
-      prop, "Frame interpolation", "Do crossfade blending between current and next frame");
+      prop, "Frame Interpolation", "Do crossfade blending between current and next frame");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
 }
 

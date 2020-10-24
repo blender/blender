@@ -196,7 +196,7 @@ class GreasePencilDisplayPanel:
 
             col.prop(brush, "cursor_color_add", text="Cursor Color")
             if brush.gpencil_sculpt_tool in {'THICKNESS', 'STRENGTH', 'PINCH', 'TWIST'}:
-                col.prop(brush, "cursor_color_subtract", text="Inverse Cursor Color")
+                col.prop(brush, "cursor_color_subtract", text="Inverse Color")
 
         elif ob.mode == 'WEIGHT_GPENCIL':
             col = layout.column(align=True)
@@ -884,7 +884,7 @@ class GreasePencilLayerDisplayPanel:
         col.prop(gpl, "channel_color")
 
         col = layout.row(align=True)
-        col.prop(gpl, "use_solo_mode", text="Show Only On Keyframed")
+        col.prop(gpl, "use_solo_mode", text="Show Only on Keyframed")
 
 
 class GreasePencilFlipTintColors(Operator):

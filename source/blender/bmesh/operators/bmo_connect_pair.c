@@ -44,7 +44,7 @@
  *     this avoids going into an eternal loop if there are many possible branches (see T45582).
  *   - when running into a branch, create a new #PathLinkState state and add to the heap.
  *   - when the target is reached,
- *     finish - since none of the other paths can be shorter then the one just found.
+ *     finish - since none of the other paths can be shorter than the one just found.
  * - if the connection can't be found - fail.
  * - with the connection found, split all edges tagging verts
  *   (or tag verts that sit on the intersection).

@@ -3152,8 +3152,8 @@ void GPENCIL_OT_stroke_cyclical_set(wmOperatorType *ot)
   PropertyRNA *prop;
 
   static const EnumPropertyItem cyclic_type[] = {
-      {GP_STROKE_CYCLIC_CLOSE, "CLOSE", 0, "Close all", ""},
-      {GP_STROKE_CYCLIC_OPEN, "OPEN", 0, "Open all", ""},
+      {GP_STROKE_CYCLIC_CLOSE, "CLOSE", 0, "Close All", ""},
+      {GP_STROKE_CYCLIC_OPEN, "OPEN", 0, "Open All", ""},
       {GP_STROKE_CYCLIC_TOGGLE, "TOGGLE", 0, "Toggle", ""},
       {0, NULL, 0, NULL, NULL},
   };
@@ -4284,7 +4284,7 @@ static int gpencil_stroke_separate_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if ((mode == GP_SEPARATE_LAYER) && (BLI_listbase_count(&gpd_src->layers) == 1)) {
+  if ((mode == GP_SEPARATE_LAYER) && (BLI_listbase_is_single(&gpd_src->layers))) {
     BKE_report(op->reports, RPT_ERROR, "Cannot separate an object with one layer only");
     return OPERATOR_CANCELLED;
   }
@@ -4678,7 +4678,9 @@ typedef bool (*GPencilTestFn)(bGPDstroke *gps,
                               const float diff_mat[4][4],
                               void *user_data);
 
-static void gpencil_cutter_dissolve(bGPDlayer *hit_layer, bGPDstroke *hit_stroke)
+static void gpencil_cutter_dissolve(bGPDlayer *hit_layer,
+                                    bGPDstroke *hit_stroke,
+                                    const bool flat_caps)
 {
   bGPDspoint *pt = NULL;
   bGPDspoint *pt1 = NULL;
@@ -4722,6 +4724,17 @@ static void gpencil_cutter_dissolve(bGPDlayer *hit_layer, bGPDstroke *hit_stroke
         pt->flag &= ~GP_SPOINT_TAG;
       }
     }
+    /* If flat caps mode check extremes. */
+    if (flat_caps) {
+      if (hit_stroke->points[0].flag & GP_SPOINT_TAG) {
+        hit_stroke->caps[0] = GP_STROKE_CAP_FLAT;
+      }
+
+      if (hit_stroke->points[hit_stroke->totpoints - 1].flag & GP_SPOINT_TAG) {
+        hit_stroke->caps[1] = GP_STROKE_CAP_FLAT;
+      }
+    }
+
     gpencil_stroke_delete_tagged_points(
         hit_layer->actframe, hit_stroke, gpsn, GP_SPOINT_TAG, false, 1);
   }
@@ -4736,6 +4749,7 @@ static int gpencil_cutter_lasso_select(bContext *C,
   ScrArea *area = CTX_wm_area(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
   const float scale = ts->gp_sculpt.isect_threshold;
+  const bool flat_caps = RNA_boolean_get(op->ptr, "flat_caps");
 
   bGPDspoint *pt;
   GP_SpaceConversion gsc = {NULL};
@@ -4810,7 +4824,7 @@ static int gpencil_cutter_lasso_select(bContext *C,
     }
     LISTBASE_FOREACH_MUTABLE (bGPDstroke *, gps, &gpf->strokes) {
       if (gps->flag & GP_STROKE_SELECT) {
-        gpencil_cutter_dissolve(gpl, gps);
+        gpencil_cutter_dissolve(gpl, gps, flat_caps);
       }
     }
   }
@@ -4884,6 +4898,8 @@ void GPENCIL_OT_stroke_cutter(wmOperatorType *ot)
 
   /* properties */
   WM_operator_properties_gesture_lasso(ot);
+
+  RNA_def_boolean(ot->srna, "flat_caps", 0, "Flat Caps", "");
 }
 
 bool ED_object_gpencil_exit(struct Main *bmain, Object *ob)

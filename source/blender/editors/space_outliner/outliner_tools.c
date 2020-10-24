@@ -730,6 +730,9 @@ static void id_local_fn(bContext *C,
       BKE_main_id_clear_newpoins(bmain);
     }
   }
+  else if (ID_IS_OVERRIDE_LIBRARY_REAL(tselem->id)) {
+    BKE_lib_override_library_free(&tselem->id->override_library, true);
+  }
 }
 
 static void object_proxy_to_override_convert_fn(bContext *C,

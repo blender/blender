@@ -275,50 +275,6 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
     mesh->totselect = 0;
   }
 
-  /* Multires data */
-  BLO_read_data_address(reader, &mesh->mr);
-  if (mesh->mr) {
-    BLO_read_list(reader, &mesh->mr->levels);
-    MultiresLevel *lvl = mesh->mr->levels.first;
-
-    CustomData_blend_read(reader, &mesh->mr->vdata, lvl->totvert);
-    BKE_defvert_blend_read(
-        reader, lvl->totvert, CustomData_get(&mesh->mr->vdata, 0, CD_MDEFORMVERT));
-    CustomData_blend_read(reader, &mesh->mr->fdata, lvl->totface);
-
-    BLO_read_data_address(reader, &mesh->mr->edge_flags);
-    BLO_read_data_address(reader, &mesh->mr->edge_creases);
-
-    BLO_read_data_address(reader, &mesh->mr->verts);
-
-    /* If mesh has the same number of vertices as the
-     * highest multires level, load the current mesh verts
-     * into multires and discard the old data. Needed
-     * because some saved files either do not have a verts
-     * array, or the verts array contains out-of-date
-     * data. */
-    if (mesh->totvert == ((MultiresLevel *)mesh->mr->levels.last)->totvert) {
-      if (mesh->mr->verts) {
-        MEM_freeN(mesh->mr->verts);
-      }
-      mesh->mr->verts = MEM_dupallocN(mesh->mvert);
-    }
-
-    for (; lvl; lvl = lvl->next) {
-      BLO_read_data_address(reader, &lvl->verts);
-      BLO_read_data_address(reader, &lvl->faces);
-      BLO_read_data_address(reader, &lvl->edges);
-      BLO_read_data_address(reader, &lvl->colfaces);
-    }
-  }
-
-  /* if multires is present but has no valid vertex data,
-   * there's no way to recover it; silently remove multires */
-  if (mesh->mr && !mesh->mr->verts) {
-    multires_free(mesh->mr);
-    mesh->mr = NULL;
-  }
-
   if ((BLO_read_requires_endian_switch(reader)) && mesh->tface) {
     TFace *tf = mesh->tface;
     for (int i = 0; i < mesh->totface; i++, tf++) {
@@ -671,7 +627,7 @@ static void mesh_ensure_tessellation_customdata(Mesh *me)
       /* TODO - add some --debug-mesh option */
       if (G.debug & G_DEBUG) {
         /* note: this warning may be un-called for if we are initializing the mesh for the
-         * first time from bmesh, rather then giving a warning about this we could be smarter
+         * first time from bmesh, rather than giving a warning about this we could be smarter
          * and check if there was any data to begin with, for now just print the warning with
          * some info to help troubleshoot what's going on - campbell */
         printf(

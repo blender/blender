@@ -39,14 +39,14 @@
  * to implement recursive or looping behavior.  generally only one
  * state push per call with a specific state is desired.
  *
- * basic design pattern: the walker step function goes through it's
+ * basic design pattern: the walker step function goes through its
  * list of possible choices for recursion, and recurses (by pushing a new state)
  * using the first non-visited one.  This choice is the flagged as visited using
  * the ghash.  each step may push multiple new states onto the worklist at once.
  *
  * - Walkers use tool flags, not header flags.
  * - Walkers now use ghash for storing visited elements,
- *   rather then stealing flags.  ghash can be rewritten
+ *   rather than stealing flags.  ghash can be rewritten
  *   to be faster if necessary, in the far future :) .
  * - tools should ALWAYS have necessary error handling
  *   for if walkers fail.

@@ -353,6 +353,8 @@ set(SRC
   operations/COM_KeyingDespillOperation.h
   operations/COM_KeyingOperation.cpp
   operations/COM_KeyingOperation.h
+  operations/COM_KeyingSetAlphaOperation.cpp
+  operations/COM_KeyingSetAlphaOperation.h
 
   operations/COM_ColorSpillOperation.cpp
   operations/COM_ColorSpillOperation.h

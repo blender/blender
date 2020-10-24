@@ -93,7 +93,7 @@ void BKE_fluid_flow_type_set(struct Object *object, struct FluidFlowSettings *se
 void BKE_fluid_effector_type_set(struct Object *object,
                                  struct FluidEffectorSettings *settings,
                                  int type);
-void BKE_fluid_coba_field_sanitize(struct FluidDomainSettings *settings);
+void BKE_fluid_fields_sanitize(struct FluidDomainSettings *settings);
 void BKE_fluid_flow_behavior_set(struct Object *object,
                                  struct FluidFlowSettings *settings,
                                  int behavior);

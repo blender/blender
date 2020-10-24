@@ -150,7 +150,6 @@ static void mask_flood_fill_task_cb(void *__restrict userdata,
 
 static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 {
-  ARegion *region = CTX_wm_region(C);
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   PaintMaskFloodMode mode;
@@ -196,9 +195,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
     MEM_freeN(nodes);
   }
 
-  ED_region_tag_redraw(region);
-
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+  SCULPT_tag_update_overlays(C);
 
   return OPERATOR_FINISHED;
 }
@@ -251,6 +248,7 @@ typedef struct LassoGestureData {
 typedef struct LineGestureData {
   float true_plane[4];
   float plane[4];
+  bool flip;
 } LineGestureData;
 
 struct SculptGestureOperation;
@@ -464,6 +462,8 @@ static SculptGestureContext *sculpt_gesture_init_from_line(bContext *C, wmOperat
   line_points[1][0] = RNA_int_get(op->ptr, "xend");
   line_points[1][1] = RNA_int_get(op->ptr, "yend");
 
+  sgcontext->line.flip = RNA_boolean_get(op->ptr, "flip");
+
   float depth_point[3];
   float plane_points[3][3];
 
@@ -484,7 +484,17 @@ static SculptGestureContext *sculpt_gesture_init_from_line(bContext *C, wmOperat
   if (!sgcontext->vc.rv3d->is_persp) {
     mul_v3_fl(normal, -1.0f);
   }
-  plane_from_point_normal_v3(sgcontext->line.true_plane, plane_points[0], normal);
+
+  /* Apply flip. */
+  if (sgcontext->line.flip) {
+    mul_v3_fl(normal, -1.0f);
+  }
+
+  mul_v3_mat3_m4v3(normal, sgcontext->vc.obact->imat, normal);
+  float plane_point_object_space[3];
+  mul_v3_m4v3(plane_point_object_space, sgcontext->vc.obact->imat, plane_points[0]);
+  plane_from_point_normal_v3(sgcontext->line.true_plane, plane_point_object_space, normal);
+
   return sgcontext;
 }
 
@@ -647,8 +657,7 @@ static void sculpt_gesture_apply(bContext *C, SculptGestureContext *sgcontext)
 
   SCULPT_undo_push_end();
 
-  ED_region_tag_redraw(sgcontext->vc.region);
-  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, sgcontext->vc.obact);
+  SCULPT_tag_update_overlays(C);
 }
 
 /* Face Set Gesture Operation. */
@@ -849,7 +858,7 @@ static EnumPropertyItem prop_trim_operation_types[] = {
      "JOIN",
      0,
      "Join",
-     "Join the new mesh as separate geometry, without preforming any boolean operation"},
+     "Join the new mesh as separate geometry, without performing any boolean operation"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -1216,7 +1225,7 @@ static void sculpt_gesture_init_trim_properties(SculptGestureContext *sgcontext,
   trim_operation->op.sculpt_gesture_end = sculpt_gesture_trim_end;
 
   trim_operation->mode = RNA_enum_get(op->ptr, "trim_mode");
-  trim_operation->use_cursor_depth = RNA_enum_get(op->ptr, "use_cursor_depth");
+  trim_operation->use_cursor_depth = RNA_boolean_get(op->ptr, "use_cursor_depth");
 }
 
 static void sculpt_trim_gesture_operator_properties(wmOperatorType *ot)

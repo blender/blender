@@ -53,7 +53,7 @@
  *     Before:  +----v----+      After: +---------+
  * </pre>
  *
- * \note dissolves vert, in more situations then BM_disk_dissolve
+ * \note dissolves vert, in more situations than BM_disk_dissolve
  * (e.g. if the vert is part of a wire edge, etc).
  */
 bool BM_vert_dissolve(BMesh *bm, BMVert *v)
@@ -1052,7 +1052,7 @@ BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const bool ccw, const short check_f
   if ((l1 = BM_face_vert_share_loop(f, v1)) && (l2 = BM_face_vert_share_loop(f, v2)) &&
       BM_face_split(bm, f, l1, l2, NULL, NULL, true)) {
     /* we should really be able to know the faces some other way,
-     * rather then fetching them back from the edge, but this is predictable
+     * rather than fetching them back from the edge, but this is predictable
      * where using the return values from face split isn't. - campbell */
     BMFace *fa, *fb;
     if (BM_edge_face_pair(e_new, &fa, &fb)) {

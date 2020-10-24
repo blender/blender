@@ -18,6 +18,8 @@ Checks:  >
   -readability-redundant-member-init,
   -readability-use-anyofallof,
 
+  -readability-function-cognitive-complexity,
+
   bugprone-*,
   -bugprone-narrowing-conversions,
   -bugprone-unhandled-self-assignment,
@@ -27,5 +29,8 @@ Checks:  >
 
   -bugprone-sizeof-expression,
   -bugprone-integer-division,
+
+  -bugprone-exception-escape,
+  -bugprone-redundant-branch-condition,
 
 WarningsAsErrors: '*'

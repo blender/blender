@@ -25,7 +25,7 @@
 
 typedef float fREAL;
 
-// returns next highest power of 2 of x, as well it's log2 in L2
+// returns next highest power of 2 of x, as well its log2 in L2
 static unsigned int nextPow2(unsigned int x, unsigned int *L2)
 {
   unsigned int pw, x_notpow2 = x & (x - 1);

@@ -68,7 +68,7 @@ NOTE the other tuning knobs are now in the shader function inputs!
  *
  * NOTES
  * -----------------------------------------------------------------------
- * 12 = slightly faster then FXAA 3.9 and higher edge quality (default)
+ * 12 = slightly faster than FXAA 3.9 and higher edge quality (default)
  * 13 = about same speed as FXAA 3.9 and better than 12
  * 23 = closest to FXAA 3.9 visually and performance wise
  *  _ = the lowest digit is directly related to performance

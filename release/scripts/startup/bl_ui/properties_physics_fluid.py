@@ -196,7 +196,7 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
             col = flow.column()
             if PhysicButtonsPanel.poll_gas_domain(context):
                 col.prop(domain, "clipping", text="Empty Space")
-            col.prop(domain, "delete_in_obstacle", text="Delete In Obstacle")
+            col.prop(domain, "delete_in_obstacle", text="Delete in Obstacle")
 
             if domain.cache_type == 'MODULAR':
                 col.separator()
@@ -507,7 +507,8 @@ class PHYSICS_PT_liquid(PhysicButtonsPanel, Panel):
         col.prop(domain, "use_fractions", text="Fractional Obstacles")
         sub = col.column()
         sub.active = domain.use_fractions
-        sub.prop(domain, "fractions_threshold", text="Obstacle-Fluid Threshold")
+        sub.prop(domain, "fractions_distance", text="Obstacle Distance")
+        sub.prop(domain, "fractions_threshold", text="Threshold")
 
 
 class PHYSICS_PT_flow_source(PhysicButtonsPanel, Panel):

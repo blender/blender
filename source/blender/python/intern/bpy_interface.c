@@ -670,7 +670,7 @@ static void bpy_module_delay_init(PyObject *bpy_proxy)
   const int argc = 1;
   const char *argv[2];
 
-  /* updating the module dict below will loose the reference to __file__ */
+  /* updating the module dict below will lose the reference to __file__ */
   PyObject *filename_obj = PyModule_GetFilenameObject(bpy_proxy);
 
   const char *filename_rel = _PyUnicode_AsString(filename_obj); /* can be relative */

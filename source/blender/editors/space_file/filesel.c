@@ -86,7 +86,7 @@ FileSelectParams *ED_fileselect_get_params(struct SpaceFile *sfile)
 
 /**
  * \note RNA_struct_property_is_set_ex is used here because we want
- *       the previously used settings to be used here rather then overriding them */
+ *       the previously used settings to be used here rather than overriding them */
 short ED_fileselect_set_params(SpaceFile *sfile)
 {
   FileSelectParams *params;

@@ -34,58 +34,11 @@
 #ifdef WITH_OPENVDB
 #  include <openvdb/openvdb.h>
 #  include <openvdb/tools/Dense.h>
-#  include <openvdb/tools/GridTransformer.h>
 #endif
 
 /* Dense Voxels */
 
 #ifdef WITH_OPENVDB
-
-/**
- * Returns a grid of the same type as the input, but with more/less resolution. If
- * resolution_factor is 1/2, the resolution on each axis is halved. The transform of the returned
- * grid is adjusted to match the original grid. */
-template<typename GridType>
-static typename GridType::Ptr create_grid_with_changed_resolution(const GridType &old_grid,
-                                                                  const float resolution_factor)
-{
-  BLI_assert(resolution_factor > 0.0f);
-
-  openvdb::Mat4R xform;
-  xform.setToScale(openvdb::Vec3d(resolution_factor));
-  openvdb::tools::GridTransformer transformer{xform};
-
-  typename GridType::Ptr new_grid = GridType::create();
-  transformer.transformGrid<openvdb::tools::BoxSampler>(old_grid, *new_grid);
-  new_grid->transform() = old_grid.transform();
-  new_grid->transform().preScale(1.0f / resolution_factor);
-  return new_grid;
-}
-
-struct CreateGridWithChangedResolutionOp {
-  const openvdb::GridBase &grid;
-  const float resolution_factor;
-
-  template<typename GridType> typename openvdb::GridBase::Ptr operator()()
-  {
-    if constexpr (std::is_same_v<GridType, openvdb::StringGrid>) {
-      return {};
-    }
-    else {
-      return create_grid_with_changed_resolution(static_cast<const GridType &>(grid),
-                                                 resolution_factor);
-    }
-  }
-};
-
-static openvdb::GridBase::Ptr create_grid_with_changed_resolution(
-    const VolumeGridType grid_type,
-    const openvdb::GridBase &old_grid,
-    const float resolution_factor)
-{
-  CreateGridWithChangedResolutionOp op{old_grid, resolution_factor};
-  return BKE_volume_grid_type_operation(grid_type, op);
-}
 
 template<typename GridType, typename VoxelType>
 static void extract_dense_voxels(const openvdb::GridBase &grid,
@@ -152,16 +105,11 @@ static void create_texture_to_object_matrix(const openvdb::Mat4d &grid_transform
 
 bool BKE_volume_grid_dense_floats(const Volume *volume,
                                   VolumeGrid *volume_grid,
-                                  const float resolution_factor,
                                   DenseFloatVolumeGrid *r_dense_grid)
 {
 #ifdef WITH_OPENVDB
   const VolumeGridType grid_type = BKE_volume_grid_type(volume_grid);
-
   openvdb::GridBase::ConstPtr grid = BKE_volume_grid_openvdb_for_read(volume, volume_grid);
-  if (resolution_factor != 1.0f) {
-    grid = create_grid_with_changed_resolution(grid_type, *grid, resolution_factor);
-  }
 
   const openvdb::CoordBBox bbox = grid->evalActiveVoxelBoundingBox();
   if (bbox.empty()) {
@@ -189,7 +137,7 @@ bool BKE_volume_grid_dense_floats(const Volume *volume,
   copy_v3_v3_int(r_dense_grid->resolution, resolution.asV());
   return true;
 #endif
-  UNUSED_VARS(volume, volume_grid, resolution_factor, r_dense_grid);
+  UNUSED_VARS(volume, volume_grid, r_dense_grid);
   return false;
 }
 

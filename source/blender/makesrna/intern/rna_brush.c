@@ -2181,6 +2181,7 @@ static void rna_def_brush(BlenderRNA *brna)
       {BRUSH_BOUNDARY_DEFORM_INFLATE, "INFLATE", 0, "Inflate", ""},
       {BRUSH_BOUNDARY_DEFORM_GRAB, "GRAB", 0, "Grab", ""},
       {BRUSH_BOUNDARY_DEFORM_TWIST, "TWIST", 0, "Twist", ""},
+      {BRUSH_BOUNDARY_DEFORM_SMOOTH, "SMOOTH", 0, "Smooth", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -2965,6 +2966,12 @@ static void rna_def_brush(BlenderRNA *brna)
       prop,
       "Grab Active Vertex",
       "Apply the maximum grab strength to the active vertex instead of the cursor location");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+  prop = RNA_def_property(srna, "use_grab_silhouette", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag2", BRUSH_GRAB_SILHOUETTE);
+  RNA_def_property_ui_text(
+      prop, "Grab Silhouette", "Grabs trying to automask the silhouette of the object");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_paint_antialiasing", PROP_BOOLEAN, PROP_NONE);

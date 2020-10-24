@@ -225,7 +225,7 @@ void multiresModifier_subdivide_to_level(struct Object *object,
 
   multires_flush_sculpt_updates(object);
 
-  if (!multires_reshape_context_create_from_subdivide(&reshape_context, object, mmd, top_level)) {
+  if (!multires_reshape_context_create_from_modifier(&reshape_context, object, mmd, top_level)) {
     return;
   }
 

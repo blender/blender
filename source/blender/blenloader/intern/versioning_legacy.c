@@ -1959,7 +1959,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     Light *la;
     Material *ma;
     ParticleSettings *part;
-    Mesh *me;
     bNodeTree *ntree;
     Tex *tex;
     ModifierData *md;
@@ -2074,23 +2073,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       }
     }
 
-    /* Copy over old per-level multires vertex data
-     * into a single vertex array in struct Multires */
-    for (me = bmain->meshes.first; me; me = me->id.next) {
-      if (me->mr && !me->mr->verts) {
-        MultiresLevel *lvl = me->mr->levels.last;
-        if (lvl) {
-          me->mr->verts = lvl->verts;
-          lvl->verts = NULL;
-          /* Don't need the other vert arrays */
-          for (lvl = lvl->prev; lvl; lvl = lvl->prev) {
-            MEM_freeN(lvl->verts);
-            lvl->verts = NULL;
-          }
-        }
-      }
-    }
-
     if (bmain->versionfile != 245 || bmain->subversionfile < 1) {
       for (la = bmain->lights.first; la; la = la->id.next) {
         la->falloff_type = LA_FALLOFF_INVLINEAR;
@@ -2178,7 +2160,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 245, 5)) {
-    /* foreground color needs to be something other then black */
+    /* foreground color needs to be something other than black */
     Scene *sce;
     for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
       sce->r.fg_stamp[0] = sce->r.fg_stamp[1] = sce->r.fg_stamp[2] = 0.8f;

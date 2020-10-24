@@ -1169,7 +1169,7 @@ typedef enum eSpaceImage_Flag {
    * in the image view, it's unrelated to UDIM tiles.
    */
   SI_DRAW_TILE = (1 << 19),
-  SI_SMOOTH_UV = (1 << 20),
+  SI_FLAG_UNUSED_20 = (1 << 20), /* cleared */
   SI_DRAW_STRETCH = (1 << 21),
   SI_SHOW_GPENCIL = (1 << 22),
   SI_FLAG_UNUSED_23 = (1 << 23), /* cleared */

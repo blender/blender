@@ -2967,7 +2967,7 @@ static void rna_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
   RNAUpdateCb *cb = (RNAUpdateCb *)arg_cb;
 
   /* we call update here on the pointer property, this way the
-   * owner of the curve mapping can still define it's own update
+   * owner of the curve mapping can still define its own update
    * and notifier, even if the CurveMapping struct is shared. */
   RNA_property_update(C, &cb->ptr, cb->prop);
 }
@@ -5330,7 +5330,7 @@ static void ui_template_palette_menu(bContext *UNUSED(C), uiLayout *layout, void
 {
   uiLayout *row;
 
-  uiItemL(layout, IFACE_("Sort by:"), ICON_NONE);
+  uiItemL(layout, IFACE_("Sort By:"), ICON_NONE);
   row = uiLayoutRow(layout, false);
   uiItemEnumO_value(row, IFACE_("Hue"), ICON_NONE, "PALETTE_OT_sort", "type", 1);
   row = uiLayoutRow(layout, false);

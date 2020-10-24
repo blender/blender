@@ -4844,7 +4844,7 @@ static PyObject *pyrna_prop_collection_items(BPy_PropertyRNA *self)
         }
       }
       else {
-        /* A bit strange, but better then returning an empty list. */
+        /* A bit strange, but better than returning an empty list. */
         PyTuple_SET_ITEM(item, 0, PyLong_FromLong(i));
       }
       PyTuple_SET_ITEM(item, 1, pyrna_struct_CreatePyObject(&itemptr));
@@ -6219,7 +6219,7 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 
   /* Check if we gave args that don't exist in the function
    * Printing the error is slow, but it should only happen when developing.
-   * The "if" below is quick check to make sure less keyword args were passed then we gave.
+   * The "if" below is quick check to make sure less keyword args were passed than we gave.
    * (Don't overwrite the error if we have one,
    * otherwise can skip important messages and confuse with args).
    */
@@ -8136,7 +8136,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr,
      * 'FUNC_USE_SELF_TYPE' for many functions. */
     const bool is_staticmethod = (flag & FUNC_NO_SELF) && !(flag & FUNC_USE_SELF_TYPE);
 
-    /* Store original so we can decrement it's reference before returning. */
+    /* Store original so we can decrement its reference before returning. */
     PyObject *item_orig = item;
 
     if (is_staticmethod) {

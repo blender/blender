@@ -24,7 +24,7 @@
  *
  * This is a small API to store & apply transformations to object data,
  * where a transformation matrix can be continually applied ontop of the original values
- * so we don't loose precision over time.
+ * so we don't lose precision over time.
  */
 
 #include <stdlib.h>

@@ -680,7 +680,7 @@ static Hair *rna_Main_hairs_new(Main *bmain, const char *name)
 }
 #  endif
 
-#  ifdef WITH_PARTICLE_NODES
+#  ifdef WITH_POINT_CLOUD
 static PointCloud *rna_Main_pointclouds_new(Main *bmain, const char *name)
 {
   char safe_name[MAX_ID_NAME - 2];
@@ -702,7 +702,7 @@ static Volume *rna_Main_volumes_new(Main *bmain, const char *name)
   return volume;
 }
 
-#  ifdef WITH_PARTICLE_NODES
+#  ifdef WITH_GEOMETRY_NODES
 static Simulation *rna_Main_simulations_new(Main *bmain, const char *name)
 {
   char safe_name[MAX_ID_NAME - 2];
@@ -759,11 +759,11 @@ RNA_MAIN_ID_TAG_FUNCS_DEF(lightprobes, lightprobes, ID_LP)
 #  ifdef WITH_HAIR_NODES
 RNA_MAIN_ID_TAG_FUNCS_DEF(hairs, hairs, ID_HA)
 #  endif
-#  ifdef WITH_PARTICLE_NODES
+#  ifdef WITH_POINT_CLOUD
 RNA_MAIN_ID_TAG_FUNCS_DEF(pointclouds, pointclouds, ID_PT)
 #  endif
 RNA_MAIN_ID_TAG_FUNCS_DEF(volumes, volumes, ID_VO)
-#  ifdef WITH_PARTICLE_NODES
+#  ifdef WITH_GEOMETRY_NODES
 RNA_MAIN_ID_TAG_FUNCS_DEF(simulations, simulations, ID_SIM)
 #  endif
 
@@ -2212,7 +2212,7 @@ void RNA_def_main_hairs(BlenderRNA *brna, PropertyRNA *cprop)
 }
 #  endif
 
-#  ifdef WITH_PARTICLE_NODES
+#  ifdef WITH_POINT_CLOUD
 void RNA_def_main_pointclouds(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;
@@ -2305,7 +2305,7 @@ void RNA_def_main_volumes(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
 
-#  ifdef WITH_PARTICLE_NODES
+#  ifdef WITH_GEOMETRY_NODES
 void RNA_def_main_simulations(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;

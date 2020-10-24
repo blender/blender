@@ -634,7 +634,7 @@ void MeshImporter::read_lines(COLLADAFW::Mesh *mesh, Mesh *me)
 /* =======================================================================
  * Read all faces from TRIANGLES, TRIANGLE_FANS, POLYLIST, POLYGON
  * Important: This function MUST be called before read_lines()
- * Otherwise we will loose all edges from faces (see read_lines() above)
+ * Otherwise we will lose all edges from faces (see read_lines() above)
  *
  * TODO: import uv set names
  * ======================================================================== */

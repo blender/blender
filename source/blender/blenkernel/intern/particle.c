@@ -4384,7 +4384,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
         t = psys_get_child_time(psys, cpa, -state->time, NULL, NULL);
       }
 
-      if (totchild && part->childtype == PART_CHILD_FACES) {
+      if (part->childtype == PART_CHILD_FACES) {
         /* part->parents could still be 0 so we can't test with totparent */
         between = 1;
       }

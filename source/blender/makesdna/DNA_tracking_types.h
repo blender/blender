@@ -178,7 +178,7 @@ typedef struct MovieTrackingTrack {
   /* Weight of this track.
    *
    * Weight defines how much the track affects on the final reconstruction,
-   * usually gets animated in a way so when track has just appeared it's
+   * usually gets animated in a way so when track has just appeared its
    * weight is zero and then it gets faded up.
    *
    * Used to prevent jumps of the camera when tracks are appearing or

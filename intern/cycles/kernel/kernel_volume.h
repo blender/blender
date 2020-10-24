@@ -777,7 +777,7 @@ ccl_device void kernel_volume_decoupled_record(KernelGlobals *kg,
      *
      * This gives us restrictions that decoupled record should only happen
      * in the stack manner, meaning if there's subsequent call of decoupled
-     * record it'll need to free memory before it's caller frees memory.
+     * record it'll need to free memory before its caller frees memory.
      */
     const int index = kg->decoupled_volume_steps_index;
     assert(index < sizeof(kg->decoupled_volume_steps) / sizeof(*kg->decoupled_volume_steps));

@@ -58,7 +58,7 @@ typedef struct TextViewDrawState {
   int scroll_ymin, scroll_ymax;
   int *xy;   // [2]
   int *sel;  // [2]
-  /* Bottom of view == 0, top of file == combine chars, end of line is lower then start. */
+  /* Bottom of view == 0, top of file == combine chars, end of line is lower than start. */
   int *mval_pick_offset;
   const int *mval;  // [2]
   bool do_draw;
@@ -303,7 +303,7 @@ static bool textview_draw_string(TextViewDrawState *tds,
 /**
  * \param r_mval_pick_item: The resulting item clicked on using \a mval_init.
  * Set from the void pointer which holds the current iterator.
- * It's type depends on the data being iterated over.
+ * Its type depends on the data being iterated over.
  * \param r_mval_pick_offset: The offset in bytes of the \a mval_init.
  * Use for selection.
  */

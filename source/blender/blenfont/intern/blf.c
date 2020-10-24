@@ -37,10 +37,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
-#include "DNA_userdef_types.h"
-#include "DNA_vec_types.h"
-
 #include "BLI_math.h"
 #include "BLI_threads.h"
 
@@ -48,9 +44,6 @@
 
 #include "IMB_colormanagement.h"
 
-#include "UI_interface.h"
-
-#include "GPU_immediate.h"
 #include "GPU_matrix.h"
 #include "GPU_shader.h"
 
@@ -64,9 +57,6 @@
  */
 #define BLF_MAX_FONT 16
 
-/* call BLF_default_set first! */
-#define ASSERT_DEFAULT_SET BLI_assert(global_font_default != -1)
-
 #define BLF_RESULT_CHECK_INIT(r_info) \
   if (r_info) { \
     memset(r_info, 0, sizeof(*(r_info))); \
@@ -75,10 +65,6 @@
 
 /* Font array. */
 static FontBLF *global_font[BLF_MAX_FONT] = {NULL};
-
-/* Default size and dpi, for BLF_draw_default. */
-static int global_font_default = -1;
-static int global_font_dpi = 72;
 
 /* XXX, should these be made into global_font_'s too? */
 int blf_mono_font = -1;
@@ -98,14 +84,9 @@ int BLF_init(void)
     global_font[i] = NULL;
   }
 
-  global_font_dpi = 72;
+  BLF_default_dpi(72);
 
   return blf_font_init();
-}
-
-void BLF_default_dpi(int dpi)
-{
-  global_font_dpi = dpi;
 }
 
 void BLF_exit(void)
@@ -132,6 +113,11 @@ void BLF_cache_clear(void)
   }
 }
 
+bool blf_font_id_is_valid(int fontid)
+{
+  return blf_get(fontid) != NULL;
+}
+
 static int blf_search(const char *name)
 {
   for (int i = 0; i < BLF_MAX_FONT; i++) {
@@ -153,20 +139,6 @@ static int blf_search_available(void)
   }
 
   return -1;
-}
-
-void BLF_default_set(int fontid)
-{
-  FontBLF *font = blf_get(fontid);
-  if (font || fontid == -1) {
-    global_font_default = fontid;
-  }
-}
-
-int BLF_default(void)
-{
-  ASSERT_DEFAULT_SET;
-  return global_font_default;
 }
 
 bool BLF_has_glyph(int fontid, unsigned int unicode)
@@ -515,37 +487,6 @@ void BLF_batch_draw_end(void)
   g_batch.enabled = false;
 }
 
-void BLF_draw_default(float x, float y, float z, const char *str, size_t len)
-{
-  ASSERT_DEFAULT_SET;
-
-  const uiStyle *style = UI_style_get();
-  BLF_size(global_font_default, style->widgetlabel.points, global_font_dpi);
-  BLF_position(global_font_default, x, y, z);
-  BLF_draw(global_font_default, str, len);
-}
-
-/* same as above but call 'BLF_draw_ascii' */
-void BLF_draw_default_ascii(float x, float y, float z, const char *str, size_t len)
-{
-  ASSERT_DEFAULT_SET;
-
-  const uiStyle *style = UI_style_get();
-  BLF_size(global_font_default, style->widgetlabel.points, global_font_dpi);
-  BLF_position(global_font_default, x, y, z);
-  BLF_draw_ascii(global_font_default, str, len); /* XXX, use real length */
-}
-
-int BLF_set_default(void)
-{
-  ASSERT_DEFAULT_SET;
-
-  const uiStyle *style = UI_style_get();
-  BLF_size(global_font_default, style->widgetlabel.points, global_font_dpi);
-
-  return global_font_default;
-}
-
 static void blf_draw_gl__start(FontBLF *font)
 {
   /*
@@ -824,11 +765,6 @@ int BLF_height_max(int fontid)
   return 0;
 }
 
-int BLF_default_height_max(void)
-{
-  return BLF_height_max(global_font_default);
-}
-
 float BLF_width_max(int fontid)
 {
   FontBLF *font = blf_get(fontid);
@@ -838,11 +774,6 @@ float BLF_width_max(int fontid)
   }
 
   return 0.0f;
-}
-
-float BLF_default_width_max(void)
-{
-  return BLF_width_max(global_font_default);
 }
 
 float BLF_descender(int fontid)

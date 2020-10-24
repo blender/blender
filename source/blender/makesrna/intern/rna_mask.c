@@ -635,7 +635,7 @@ static void rna_def_maskParent(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(
       prop, NULL, "rna_MaskParent_id_set", "rna_MaskParent_id_typef", NULL);
   RNA_def_property_ui_text(
-      prop, "ID", "ID-block to which masking element would be parented to or to it's property");
+      prop, "ID", "ID-block to which masking element would be parented to or to its property");
   RNA_def_property_update(prop, 0, "rna_Mask_update_parent");
 
   prop = RNA_def_property(srna, "id_type", PROP_ENUM, PROP_NONE);

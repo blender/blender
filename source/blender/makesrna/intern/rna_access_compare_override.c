@@ -80,11 +80,9 @@ bool RNA_property_overridable_get(PointerRNA *ptr, PropertyRNA *prop)
     return !(prop->flag_override & PROPOVERRIDE_NO_COMPARISON) &&
            (prop->flag_override & PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   }
-  else {
-    /* If this is a real 'pure' IDProp (aka custom property), we want to use the IDProp flag. */
-    IDProperty *idprop = (IDProperty *)prop;
-    return (idprop->flag & IDP_FLAG_OVERRIDABLE_LIBRARY) != 0;
-  }
+  /* If this is a real 'pure' IDProp (aka custom property), we want to use the IDProp flag. */
+  IDProperty *idprop = (IDProperty *)prop;
+  return (idprop->flag & IDP_FLAG_OVERRIDABLE_LIBRARY) != 0;
 }
 
 /* Should only be used for custom properties */
@@ -124,14 +122,14 @@ bool RNA_property_comparable(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 }
 
 static bool rna_property_override_operation_apply(Main *bmain,
-                                                  PointerRNA *ptr_local,
-                                                  PointerRNA *ptr_override,
+                                                  PointerRNA *ptr_dst,
+                                                  PointerRNA *ptr_src,
                                                   PointerRNA *ptr_storage,
-                                                  PropertyRNA *prop_local,
-                                                  PropertyRNA *prop_override,
+                                                  PropertyRNA *prop_dst,
+                                                  PropertyRNA *prop_src,
                                                   PropertyRNA *prop_storage,
-                                                  PointerRNA *ptr_item_local,
-                                                  PointerRNA *ptr_item_override,
+                                                  PointerRNA *ptr_item_dst,
+                                                  PointerRNA *ptr_item_src,
                                                   PointerRNA *ptr_item_storage,
                                                   IDOverrideLibraryPropertyOperation *opop);
 
@@ -208,7 +206,7 @@ bool RNA_struct_equals(Main *bmain, PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACo
   if (ptr_a == NULL && ptr_b == NULL) {
     return true;
   }
-  else if (ptr_a == NULL || ptr_b == NULL) {
+  if (ptr_a == NULL || ptr_b == NULL) {
     return false;
   }
   else if (ptr_a->type != ptr_b->type) {

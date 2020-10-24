@@ -2415,7 +2415,8 @@ void file_directory_enter_handle(bContext *C, void *UNUSED(arg_unused), void *UN
         WM_operator_properties_create_ptr(&ptr, ot);
         RNA_string_set(&ptr, "directory", sfile->params->dir);
         RNA_boolean_set(&ptr, "open", true);
-        /* Enable confirmation prompt, else it's too easy to accidentaly create new directories. */
+        /* Enable confirmation prompt, else it's too easy
+         * to accidentally create new directories. */
         RNA_boolean_set(&ptr, "confirm", true);
 
         if (lastdir) {

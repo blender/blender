@@ -816,7 +816,7 @@ int getTransformOrientation_ex(const bContext *C,
             }
 
             if (em->bm->totedgesel >= 1) {
-              /* find an edge that's apart of v_tri (no need to search all edges) */
+              /* find an edge that's a part of v_tri (no need to search all edges) */
               float e_length;
               int j;
 

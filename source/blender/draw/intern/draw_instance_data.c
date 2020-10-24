@@ -24,7 +24,7 @@
  * DRW Instance Data Manager
  * This is a special memory manager that keeps memory blocks ready to send as VBO data in one
  * continuous allocation. This way we avoid feeding #GPUBatch each instance data one by one and
- * unnecessary memcpy. Since we loose which memory block was used each #DRWShadingGroup we need to
+ * unnecessary memcpy. Since we lose which memory block was used each #DRWShadingGroup we need to
  * redistribute them in the same order/size to avoid to realloc each frame. This is why
  * #DRWInstanceDatas are sorted in a list for each different data size.
  */
@@ -105,7 +105,7 @@ static void instancing_batch_references_remove(GPUBatch *batch)
  * This manager allows to distribute existing batches for instancing
  * attributes. This reduce the number of batches creation.
  * Querying a batch is done with a vertex format. This format should
- * be static so that it's pointer never changes (because we are using
+ * be static so that its pointer never changes (because we are using
  * this pointer as identifier [we don't want to check the full format
  * that would be too slow]).
  */

@@ -636,7 +636,7 @@ static void *bmw_ConnectedVertexWalker_step(BMWalker *walker)
  *
  * \note that this doesn't work on non-manifold geometry.
  * it might be better to rewrite this to extract
- * boundary info from the island walker, rather then directly walking
+ * boundary info from the island walker, rather than directly walking
  * over the boundary.  raises an error if it encounters non-manifold geometry.
  *
  * \todo Add restriction flag/callback for wire edges.
@@ -834,7 +834,7 @@ static void *bmw_IslandManifoldWalker_step(BMWalker *walker)
  * Starts at a tool-flagged edge and walks over the edge loop
  */
 
-/* utility function to see if an edge is apart of an ngon boundary */
+/* utility function to see if an edge is a part of an ngon boundary */
 static bool bm_edge_is_single(BMEdge *e)
 {
   return ((BM_edge_is_boundary(e)) && (e->l->f->len > 4) &&
@@ -1026,7 +1026,7 @@ static void *bmw_EdgeLoopWalker_step(BMWalker *walker)
         /* walk over boundary of faces but stop at corners */
         (owalk.is_single == false && vert_edge_tot > 2) ||
 
-        /* initial edge was a boundary, so is this edge and vertex is only apart of this face
+        /* initial edge was a boundary, so is this edge and vertex is only a part of this face
          * this lets us walk over the boundary of an ngon which is handy */
         (owalk.is_single == true && vert_edge_tot == 2 && BM_edge_is_boundary(e))) {
       /* find next boundary edge in the fan */

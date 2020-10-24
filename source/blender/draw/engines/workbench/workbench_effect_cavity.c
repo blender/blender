@@ -74,7 +74,7 @@ static struct GPUTexture *create_jitter_texture(int num_samples)
     /* This rotate the sample per pixels */
     jitter[i][0] = cosf(phi);
     jitter[i][1] = sinf(phi);
-    /* This offset the sample along it's direction axis (reduce banding) */
+    /* This offset the sample along its direction axis (reduce banding) */
     float bn = blue_noise[i][1] - 0.5f;
     CLAMP(bn, -0.499f, 0.499f); /* fix fireflies */
     jitter[i][2] = bn * num_samples_inv;

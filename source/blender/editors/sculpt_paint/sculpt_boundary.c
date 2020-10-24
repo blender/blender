@@ -346,9 +346,9 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
   float accum_distance = 0.0f;
 
   while (true) {
-    /* This steps is further away from the boundary than the brush radius, so stop adding more
-     * steps. */
-    if (accum_distance > radius) {
+    /* Stop adding steps to edit info. This happens when a steps is further away from the boundary
+     * than the brush radius or when the entire mesh was already processed. */
+    if (accum_distance > radius || BLI_gsqueue_is_empty(current_iteration)) {
       boundary->max_propagation_steps = num_propagation_steps;
       break;
     }
@@ -414,12 +414,6 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
       int next_v;
       BLI_gsqueue_pop(next_iteration, &next_v);
       BLI_gsqueue_push(current_iteration, &next_v);
-    }
-
-    /* Stop if no vertices were added in this iteration. At this point, all the mesh should have
-     * been initialized with the edit data. */
-    if (BLI_gsqueue_is_empty(current_iteration)) {
-      break;
     }
 
     num_propagation_steps++;
@@ -868,6 +862,66 @@ static void do_boundary_brush_twist_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
+static void do_boundary_brush_smooth_task_cb_ex(void *__restrict userdata,
+                                                const int n,
+                                                const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  const int symmetry_pass = ss->cache->mirror_symmetry_pass;
+  const SculptBoundary *boundary = ss->cache->boundaries[symmetry_pass];
+  const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(data->ob);
+  const Brush *brush = data->brush;
+
+  const float strength = ss->cache->bstrength;
+
+  PBVHVertexIter vd;
+  SculptOrigVertData orig_data;
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
+
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
+  {
+    if (boundary->edit_info[vd.index].num_propagation_steps == -1) {
+      continue;
+    }
+
+    SCULPT_orig_vert_data_update(&orig_data, &vd);
+    if (!SCULPT_check_vertex_pivot_symmetry(
+            orig_data.co, boundary->initial_vertex_position, symm)) {
+      continue;
+    }
+
+    float coord_accum[3] = {0.0f, 0.0f, 0.0f};
+    int total_neighbors = 0;
+    const int current_propagation_steps = boundary->edit_info[vd.index].num_propagation_steps;
+    SculptVertexNeighborIter ni;
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.index, ni) {
+      if (current_propagation_steps == boundary->edit_info[ni.index].num_propagation_steps) {
+        add_v3_v3(coord_accum, SCULPT_vertex_co_get(ss, ni.index));
+        total_neighbors++;
+      }
+    }
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+    if (total_neighbors == 0) {
+      continue;
+    }
+    float disp[3];
+    float avg[3];
+    const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
+    mul_v3_v3fl(avg, coord_accum, 1.0f / total_neighbors);
+    sub_v3_v3v3(disp, avg, vd.co);
+    float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
+    madd_v3_v3v3fl(
+        target_co, vd.co, disp, boundary->edit_info[vd.index].strength_factor * mask * strength);
+
+    if (vd.mvert) {
+      vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
 /* Main Brush Function. */
 void SCULPT_do_boundary_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
@@ -944,6 +998,9 @@ void SCULPT_do_boundary_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
       break;
     case BRUSH_BOUNDARY_DEFORM_TWIST:
       BLI_task_parallel_range(0, totnode, &data, do_boundary_brush_twist_task_cb_ex, &settings);
+      break;
+    case BRUSH_BOUNDARY_DEFORM_SMOOTH:
+      BLI_task_parallel_range(0, totnode, &data, do_boundary_brush_smooth_task_cb_ex, &settings);
       break;
   }
 }

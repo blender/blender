@@ -615,7 +615,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
      * when painting we want to use full color/weight always.
      *
      * Note that sculpt is an exception,
-     * it's values are overwritten by #BKE_brush_sculpt_reset below. */
+     * its values are overwritten by #BKE_brush_sculpt_reset below. */
     brush->alpha = 1.0;
 
     /* Enable antialiasing by default */

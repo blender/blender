@@ -33,6 +33,8 @@
 #include "GPU_debug.h"
 #include "GPU_platform.h"
 
+#include "CLG_log.h"
+
 #include "glew-mx.h"
 
 #include "gl_context.hh"
@@ -42,8 +44,12 @@
 
 #include <stdio.h>
 
+static CLG_LogRef LOG = {"gpu.debug"};
+
 /* Avoid too much NVidia buffer info in the output log. */
 #define TRIM_NVIDIA_BUFFER_INFO 1
+/* Avoid unneeded shader statistics. */
+#define TRIM_SHADER_STATS_INFO 1
 
 namespace blender::gpu::debug {
 
@@ -61,8 +67,6 @@ namespace blender::gpu::debug {
 #  define APIENTRY
 #endif
 
-#define VERBOSE 1
-
 static void APIENTRY debug_callback(GLenum UNUSED(source),
                                     GLenum type,
                                     GLuint UNUSED(id),
@@ -79,43 +83,57 @@ static void APIENTRY debug_callback(GLenum UNUSED(source),
 
   if (TRIM_NVIDIA_BUFFER_INFO &&
       GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_OFFICIAL) &&
-      STREQLEN("Buffer detailed info", message, 20)) {
-    /** Supress buffer infos flooding the output. */
+      STRPREFIX(message, "Buffer detailed info")) {
+    /** Suppress buffer infos flooding the output. */
     return;
   }
 
-  const char format[] = "GPUDebug: %s%s%s\033[0m\n";
+  if (TRIM_SHADER_STATS_INFO && STRPREFIX(message, "Shader Stats")) {
+    /** Suppress buffer infos flooding the output. */
+    return;
+  }
+
+  const bool use_color = CLG_color_support_get(&LOG);
 
   if (ELEM(severity, GL_DEBUG_SEVERITY_LOW, GL_DEBUG_SEVERITY_NOTIFICATION)) {
-    if (VERBOSE) {
-      fprintf(stderr, format, "\033[2m", "", message);
+    if (((LOG.type->flag & CLG_FLAG_USE) && (LOG.type->level >= CLG_SEVERITY_INFO))) {
+      const char *format = use_color ? "\033[2m%s\033[0m" : "%s";
+      CLG_logf(LOG.type, CLG_SEVERITY_INFO, "Notification", "", format, message);
     }
   }
   else {
     char debug_groups[512] = "";
     GPU_debug_get_groups_names(sizeof(debug_groups), debug_groups);
+    CLG_Severity clog_severity;
 
     switch (type) {
       case GL_DEBUG_TYPE_ERROR:
       case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
       case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-        fprintf(stderr, format, "\033[31;1mError\033[39m: ", debug_groups, message);
+        clog_severity = CLG_SEVERITY_ERROR;
         break;
       case GL_DEBUG_TYPE_PORTABILITY:
       case GL_DEBUG_TYPE_PERFORMANCE:
       case GL_DEBUG_TYPE_OTHER:
       case GL_DEBUG_TYPE_MARKER: /* KHR has this, ARB does not */
       default:
-        fprintf(stderr, format, "\033[33;1mWarning\033[39m: ", debug_groups, message);
+        clog_severity = CLG_SEVERITY_WARN;
         break;
     }
 
-    if (VERBOSE && severity == GL_DEBUG_SEVERITY_HIGH) {
-      /* Focus on error message. */
-      fprintf(stderr, "\033[2m");
-      BLI_system_backtrace(stderr);
-      fprintf(stderr, "\033[0m\n");
-      fflush(stderr);
+    if (((LOG.type->flag & CLG_FLAG_USE) && (LOG.type->level >= clog_severity))) {
+      CLG_logf(LOG.type, clog_severity, debug_groups, "", message);
+      if (severity == GL_DEBUG_SEVERITY_HIGH) {
+        /* Focus on error message. */
+        if (use_color) {
+          fprintf(stderr, "\033[2m");
+        }
+        BLI_system_backtrace(stderr);
+        if (use_color) {
+          fprintf(stderr, "\033[0m\n");
+        }
+        fflush(stderr);
+      }
     }
   }
 }
@@ -125,6 +143,8 @@ static void APIENTRY debug_callback(GLenum UNUSED(source),
 /* This function needs to be called once per context. */
 void init_gl_callbacks(void)
 {
+  CLOG_ENSURE(&LOG);
+
   char msg[256] = "";
   const char format[] = "Successfully hooked OpenGL debug callback using %s";
 
@@ -154,7 +174,7 @@ void init_gl_callbacks(void)
                             msg);
   }
   else {
-    fprintf(stderr, "GPUDebug: Failed to hook OpenGL debug callback. Use fallback debug layer.\n");
+    CLOG_STR_WARN(&LOG, "Failed to hook OpenGL debug callback. Use fallback debug layer.");
     init_debug_layer();
   }
 }

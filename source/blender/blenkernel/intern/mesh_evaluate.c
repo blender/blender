@@ -541,7 +541,9 @@ void BKE_lnor_spacearr_clear(MLoopNorSpaceArray *lnors_spacearr)
   lnors_spacearr->num_spaces = 0;
   lnors_spacearr->lspacearr = NULL;
   lnors_spacearr->loops_pool = NULL;
-  BLI_memarena_clear(lnors_spacearr->mem);
+  if (lnors_spacearr->mem != NULL) {
+    BLI_memarena_clear(lnors_spacearr->mem);
+  }
 }
 
 void BKE_lnor_spacearr_free(MLoopNorSpaceArray *lnors_spacearr)
@@ -1663,7 +1665,7 @@ void BKE_mesh_normals_loop_split(const MVert *mverts,
    * Note that currently we only have two values for second loop of sharp edges.
    * However, if needed, we can store the negated value of loop index instead of INDEX_INVALID
    * to retrieve the real value later in code).
-   * Note also that lose edges always have both values set to 0! */
+   * Note also that loose edges always have both values set to 0! */
   int(*edge_to_loops)[2] = MEM_calloc_arrayN((size_t)numEdges, sizeof(*edge_to_loops), __func__);
 
   /* Simple mapping from a loop to its polygon index. */
@@ -2207,7 +2209,7 @@ void BKE_mesh_calc_poly_normal(const MPoly *mpoly,
     r_no[2] = 1.0;
   }
 }
-/* duplicate of function above _but_ takes coords rather then mverts */
+/* duplicate of function above _but_ takes coords rather than mverts */
 static void mesh_calc_ngon_normal_coords(const MPoly *mpoly,
                                          const MLoop *loopstart,
                                          const float (*vertex_coords)[3],

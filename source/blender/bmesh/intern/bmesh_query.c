@@ -360,7 +360,7 @@ float BM_loop_point_side_of_edge_test(const BMLoop *l, const float co[3])
  * Given 2 verts,
  * find a face they share that has the lowest angle across these verts and give back both loops.
  *
- * This can be better then #BM_vert_pair_share_face_by_len
+ * This can be better than #BM_vert_pair_share_face_by_len
  * because concave splits are ranked lowest.
  */
 BMFace *BM_vert_pair_share_face_by_angle(
@@ -1380,7 +1380,7 @@ BMVert *BM_edge_share_vert(BMEdge *e1, BMEdge *e2)
  *
  * Finds the loop used which uses \a  in face loop \a l
  *
- * \note this function takes a loop rather then an edge
+ * \note this function takes a loop rather than an edge
  * so we can select the face that the loop should be from.
  */
 BMLoop *BM_edge_vert_share_loop(BMLoop *l, BMVert *v)
@@ -2176,7 +2176,7 @@ bool BM_face_exists_multi(BMVert **varr, BMEdge **earr, int len)
   int i;
 
   for (i = 0; i < len; i++) {
-    /* save some time by looping over edge faces rather then vert faces
+    /* save some time by looping over edge faces rather than vert faces
      * will still loop over some faces twice but not as many */
     BM_ITER_ELEM (f, &fiter, earr[i], BM_FACES_OF_EDGE) {
       BM_elem_flag_disable(f, BM_ELEM_INTERNAL_TAG);

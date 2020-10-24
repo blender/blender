@@ -1265,7 +1265,13 @@ static bool paint_cursor_context_init(bContext *C,
   pcontext->scene = CTX_data_scene(C);
   pcontext->ups = &pcontext->scene->toolsettings->unified_paint_settings;
   pcontext->paint = BKE_paint_get_active_from_context(C);
+  if (pcontext->paint == NULL) {
+    return false;
+  }
   pcontext->brush = BKE_paint_brush(pcontext->paint);
+  if (pcontext->brush == NULL) {
+    return false;
+  }
   pcontext->mode = BKE_paintmode_get_active_from_context(C);
 
   ED_view3d_viewcontext_init(C, &pcontext->vc, pcontext->depsgraph);

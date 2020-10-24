@@ -3349,6 +3349,8 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 {
   const float threshold = RNA_float_get(op->ptr, "threshold");
   const bool use_unselected = RNA_boolean_get(op->ptr, "use_unselected");
+  const bool use_sharp_edge_from_normals = RNA_boolean_get(op->ptr, "use_sharp_edge_from_normals");
+
   int count_multi = 0;
 
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -3409,7 +3411,7 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
     BM_mesh_elem_hflag_enable_test(em->bm, htype_select, BM_ELEM_SELECT, true, true, BM_ELEM_TAG);
     EDBM_selectmode_flush(em);
 
-    BM_custom_loop_normals_from_vector_layer(em->bm, true);
+    BM_custom_loop_normals_from_vector_layer(em->bm, use_sharp_edge_from_normals);
 
     if (count) {
       count_multi += count;
@@ -3451,6 +3453,12 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
                   false,
                   "Unselected",
                   "Merge selected to other unselected vertices");
+
+  RNA_def_boolean(ot->srna,
+                  "use_sharp_edge_from_normals",
+                  false,
+                  "Sharp Edges",
+                  "Calculate sharp edges using custom normal data (when available)");
 }
 
 /** \} */
@@ -4030,7 +4038,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
   /* for ED_view3d_project_float_object */
   ED_view3d_init_mats_rv3d(obedit, region->regiondata);
 
-  /* TODO, investigate using index lookup for screen_vert_coords() rather then a hash table */
+  /* TODO, investigate using index lookup for screen_vert_coords() rather than a hash table */
 
   /* the floating point coordinates of verts in screen space will be
    * stored in a hash table according to the vertices pointer */
@@ -4225,24 +4233,26 @@ static Base *mesh_separate_arrays(Main *bmain,
                                   BMFace **faces,
                                   uint faces_len)
 {
+  const BMAllocTemplate bm_new_allocsize = {
+      .totvert = verts_len,
+      .totedge = edges_len,
+      .totloop = faces_len * 3,
+      .totface = faces_len,
+  };
+  const bool use_custom_normals = (bm_old->lnor_spacearr != NULL);
+
   Base *base_new;
   Object *obedit = base_old->object;
-  BMesh *bm_new;
 
-  bm_new = BM_mesh_create(&bm_mesh_allocsize_default,
-                          &((struct BMeshCreateParams){
-                              .use_toolflags = true,
-                          }));
+  BMesh *bm_new = BM_mesh_create(&bm_new_allocsize, &((struct BMeshCreateParams){0}));
 
-  CustomData_copy(&bm_old->vdata, &bm_new->vdata, CD_MASK_BMESH.vmask, CD_CALLOC, 0);
-  CustomData_copy(&bm_old->edata, &bm_new->edata, CD_MASK_BMESH.emask, CD_CALLOC, 0);
-  CustomData_copy(&bm_old->ldata, &bm_new->ldata, CD_MASK_BMESH.lmask, CD_CALLOC, 0);
-  CustomData_copy(&bm_old->pdata, &bm_new->pdata, CD_MASK_BMESH.pmask, CD_CALLOC, 0);
-
-  CustomData_bmesh_init_pool(&bm_new->vdata, verts_len, BM_VERT);
-  CustomData_bmesh_init_pool(&bm_new->edata, edges_len, BM_EDGE);
-  CustomData_bmesh_init_pool(&bm_new->ldata, faces_len * 3, BM_LOOP);
-  CustomData_bmesh_init_pool(&bm_new->pdata, faces_len, BM_FACE);
+  if (use_custom_normals) {
+    /* Needed so the temporary normal layer is copied too. */
+    BM_mesh_copy_init_customdata_all_layers(bm_new, bm_old, BM_ALL, &bm_new_allocsize);
+  }
+  else {
+    BM_mesh_copy_init_customdata(bm_new, bm_old, &bm_new_allocsize);
+  }
 
   /* Take into account user preferences for duplicating actions. */
   const eDupli_ID_Flags dupflag = USER_DUP_MESH | (U.dupflag & USER_DUP_ACT);
@@ -4261,6 +4271,10 @@ static Base *mesh_separate_arrays(Main *bmain,
   ED_object_base_select(base_new, BA_SELECT);
 
   BM_mesh_copy_arrays(bm_old, bm_new, verts, verts_len, edges, edges_len, faces, faces_len);
+
+  if (use_custom_normals) {
+    BM_custom_loop_normals_from_vector_layer(bm_new, false);
+  }
 
   for (uint i = 0; i < verts_len; i++) {
     BM_vert_kill(bm_old, verts[i]);
@@ -4423,6 +4437,8 @@ static bool mesh_separate_loose(
   if (clear_object_data) {
     ED_mesh_geometry_clear(base_old->object->data);
   }
+
+  BM_custom_loop_normals_to_vector_layer(bm_old);
 
   /* Separate out all groups except the first. */
   uint group_ofs[3] = {UNPACK3(groups[0])};
@@ -7353,7 +7369,7 @@ void MESH_OT_wireframe(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "use_replace", true, "Replace", "Remove original faces");
   prop = RNA_def_float_distance(
       ot->srna, "thickness", 0.01f, 0.0f, 1e4f, "Thickness", "", 0.0f, 10.0f);
-  /* use 1 rather then 10 for max else dragging the button moves too far */
+  /* use 1 rather than 10 for max else dragging the button moves too far */
   RNA_def_property_ui_range(prop, 0.0, 1.0, 0.01, 4);
   RNA_def_float_distance(ot->srna, "offset", 0.01f, 0.0f, 1e4f, "Offset", "", 0.0f, 10.0f);
   RNA_def_boolean(ot->srna,

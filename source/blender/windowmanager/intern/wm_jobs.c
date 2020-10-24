@@ -159,24 +159,22 @@ static void wm_job_main_thread_yield(wmJob *wm_job)
  */
 static wmJob *wm_job_find(wmWindowManager *wm, void *owner, const int job_type)
 {
-  wmJob *wm_job;
-
   if (owner && job_type) {
-    for (wm_job = wm->jobs.first; wm_job; wm_job = wm_job->next) {
+    LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
       if (wm_job->owner == owner && wm_job->job_type == job_type) {
         return wm_job;
       }
     }
   }
   else if (owner) {
-    for (wm_job = wm->jobs.first; wm_job; wm_job = wm_job->next) {
+    LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
       if (wm_job->owner == owner) {
         return wm_job;
       }
     }
   }
   else if (job_type) {
-    for (wm_job = wm->jobs.first; wm_job; wm_job = wm_job->next) {
+    LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
       if (wm_job->job_type == job_type) {
         return wm_job;
       }

@@ -270,9 +270,8 @@ static PlayAnimPict *playanim_step(PlayAnimPict *playanim, int step)
 static int pupdate_time(void)
 {
   static double ltime;
-  double time;
 
-  time = PIL_check_seconds_timer();
+  double time = PIL_check_seconds_timer();
 
   ptottime += (time - ltime);
   ltime = time;
@@ -282,9 +281,6 @@ static int pupdate_time(void)
 static void playanim_toscreen(
     PlayState *ps, PlayAnimPict *picture, struct ImBuf *ibuf, int fontid, int fstep)
 {
-  float offs_x, offs_y;
-  float span_x, span_y;
-
   if (ibuf == NULL) {
     printf("%s: no ibuf for picture '%s'\n", __func__, picture ? picture->name : "<NIL>");
     return;
@@ -300,12 +296,12 @@ static void playanim_toscreen(
   GHOST_ActivateWindowDrawingContext(g_WS.ghost_window);
 
   /* size within window */
-  span_x = (ps->zoom * ibuf->x) / (float)ps->win_x;
-  span_y = (ps->zoom * ibuf->y) / (float)ps->win_y;
+  float span_x = (ps->zoom * ibuf->x) / (float)ps->win_x;
+  float span_y = (ps->zoom * ibuf->y) / (float)ps->win_y;
 
   /* offset within window */
-  offs_x = 0.5f * (1.0f - span_x);
-  offs_y = 0.5f * (1.0f - span_y);
+  float offs_x = 0.5f * (1.0f - span_x);
+  float offs_y = 0.5f * (1.0f - span_y);
 
   CLAMP(offs_x, 0.0f, 1.0f);
   CLAMP(offs_y, 0.0f, 1.0f);
@@ -392,26 +388,19 @@ static void playanim_toscreen(
 static void build_pict_list_ex(
     PlayState *ps, const char *first, int totframes, int fstep, int fontid)
 {
-  char filepath[FILE_MAX];
-  uchar *mem;
-  //  short val;
-  PlayAnimPict *picture = NULL;
-  struct ImBuf *ibuf = NULL;
-  struct anim *anim;
-
   if (IMB_isanim(first)) {
     /* OCIO_TODO: support different input color space */
-    anim = IMB_open_anim(first, IB_rect, 0, NULL);
+    struct anim *anim = IMB_open_anim(first, IB_rect, 0, NULL);
     if (anim) {
       int pic;
-      ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
+      struct ImBuf *ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
       if (ibuf) {
         playanim_toscreen(ps, NULL, ibuf, fontid, fstep);
         IMB_freeImBuf(ibuf);
       }
 
       for (pic = 0; pic < IMB_anim_get_duration(anim, IMB_TC_NONE); pic++) {
-        picture = (PlayAnimPict *)MEM_callocN(sizeof(PlayAnimPict), "Pict");
+        PlayAnimPict *picture = (PlayAnimPict *)MEM_callocN(sizeof(PlayAnimPict), "Pict");
         picture->anim = anim;
         picture->frame = pic;
         picture->IB_flags = IB_rect;
@@ -432,6 +421,7 @@ static void build_pict_list_ex(
       unsigned short digits;
     } fp_decoded;
 
+    char filepath[FILE_MAX];
     BLI_strncpy(filepath, first, sizeof(filepath));
     fp_framenr = BLI_path_sequence_decode(
         filepath, fp_decoded.head, fp_decoded.tail, &fp_decoded.digits);
@@ -461,7 +451,7 @@ static void build_pict_list_ex(
         return;
       }
 
-      picture = (PlayAnimPict *)MEM_callocN(sizeof(PlayAnimPict), "picture");
+      PlayAnimPict *picture = (PlayAnimPict *)MEM_callocN(sizeof(PlayAnimPict), "picture");
       if (picture == NULL) {
         printf("Not enough memory for pict struct '%s'\n", filepath);
         close(file);
@@ -478,6 +468,7 @@ static void build_pict_list_ex(
       picture->size = size;
       picture->IB_flags = IB_rect;
 
+      uchar *mem;
       if (fromdisk == false) {
         mem = MEM_mallocN(size, "build pic list");
         if (mem == NULL) {
@@ -510,6 +501,7 @@ static void build_pict_list_ex(
 
       if (ptottime > 1.0) {
         /* OCIO_TODO: support different input color space */
+        struct ImBuf *ibuf;
         if (picture->mem) {
           ibuf = IMB_ibImageFromMemory(
               picture->mem, picture->size, picture->IB_flags, NULL, picture->name);

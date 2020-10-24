@@ -203,7 +203,7 @@ static void sound_jack_sync_callback(Main *bmain, int mode, double time)
 
   wmWindowManager *wm = bmain->wm.first;
 
-  for (wmWindow *window = wm->windows.first; window != NULL; window = window->next) {
+  LISTBASE_FOREACH (wmWindow *, window, &wm->windows) {
     Scene *scene = WM_window_get_active_scene(window);
     if ((scene->audio.flag & AUDIO_SYNC) == 0) {
       continue;
@@ -479,8 +479,6 @@ void WM_exit_ex(bContext *C, const bool do_python)
   /* modal handlers are on window level freed, others too? */
   /* note; same code copied in wm_files.c */
   if (C && wm) {
-    wmWindow *win;
-
     if (!G.background) {
       struct MemFile *undo_memfile = wm->undo_stack ?
                                          ED_undosys_stack_memfile_get_active(wm->undo_stack) :
@@ -507,8 +505,7 @@ void WM_exit_ex(bContext *C, const bool do_python)
 
     WM_jobs_kill_all(wm);
 
-    for (win = wm->windows.first; win; win = win->next) {
-
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       CTX_wm_window_set(C, win); /* needed by operator close callbacks */
       WM_event_remove_handlers(C, &win->handlers);
       WM_event_remove_handlers(C, &win->modalhandlers);

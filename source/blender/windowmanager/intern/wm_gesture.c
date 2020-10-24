@@ -62,6 +62,7 @@ wmGesture *WM_gesture_new(wmWindow *window, const ARegion *region, const wmEvent
   gesture->winrct = region->winrct;
   gesture->user_data.use_free = true; /* Free if userdata is set. */
   gesture->modal_state = GESTURE_MODAL_NOP;
+  gesture->move = false;
 
   if (ELEM(type,
            WM_GESTURE_RECT,
@@ -199,7 +200,7 @@ int wm_gesture_evaluate(wmGesture *gesture, const wmEvent *event)
 
 /* ******************* gesture draw ******************* */
 
-static void wm_gesture_draw_line_active_side(rcti *rect)
+static void wm_gesture_draw_line_active_side(rcti *rect, const bool flip)
 {
   GPUVertFormat *format = immVertexFormat();
   uint shdr_pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -221,7 +222,9 @@ static void wm_gesture_draw_line_active_side(rcti *rect)
   sub_v2_v2v2(line_dir, line_end, line_start);
   normalize_v2(line_dir);
   ortho_v2_v2(gradient_dir, line_dir);
-  mul_v2_fl(gradient_dir, -1.0f);
+  if (!flip) {
+    mul_v2_fl(gradient_dir, -1.0f);
+  }
   mul_v2_fl(gradient_dir, gradient_length);
   add_v2_v2v2(gradient_point[0], line_start, gradient_dir);
   add_v2_v2v2(gradient_point[1], line_end, gradient_dir);
@@ -251,7 +254,7 @@ static void wm_gesture_draw_line(wmGesture *gt)
   rcti *rect = (rcti *)gt->customdata;
 
   if (gt->draw_active_side) {
-    wm_gesture_draw_line_active_side(rect);
+    wm_gesture_draw_line_active_side(rect, gt->use_flip);
   }
 
   uint shdr_pos = GPU_vertformat_attr_add(

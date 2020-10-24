@@ -156,8 +156,6 @@ static ImBuf *wm_block_splash_image(int width, int *r_height)
   extern int datatoc_splash_png_size;
 
   ImBuf *ibuf = NULL;
-  int height = 0;
-
   if (U.app_template[0] != '\0') {
     char splash_filepath[FILE_MAX];
     char template_directory[FILE_MAX];
@@ -174,6 +172,7 @@ static ImBuf *wm_block_splash_image(int width, int *r_height)
     ibuf = IMB_ibImageFromMemory(splash_data, splash_data_size, IB_rect, NULL, "<splash screen>");
   }
 
+  int height = 0;
   if (ibuf) {
     height = (width * ibuf->y) / ibuf->x;
     if (width != ibuf->x || height != ibuf->y) {
@@ -195,11 +194,9 @@ static ImBuf *wm_block_splash_image(int width, int *r_height)
 
 static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void *UNUSED(arg))
 {
-  uiBlock *block;
-  uiBut *but;
   const uiStyle *style = UI_style_get_dpi();
 
-  block = UI_block_begin(C, region, "splash", UI_EMBOSS);
+  uiBlock *block = UI_block_begin(C, region, "splash", UI_EMBOSS);
 
   /* note on UI_BLOCK_NO_WIN_CLIP, the window size is not always synchronized
    * with the OS when the splash shows, window clipping in this case gives
@@ -207,14 +204,17 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void *UNUSE
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_KEEP_OPEN | UI_BLOCK_NO_WIN_CLIP);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
-  int splash_width = 500.0f * U.dpi_fac;
+  const int text_points_max = MAX2(style->widget.points, style->widgetlabel.points);
+  int splash_width = text_points_max * 45 * U.dpi_fac;
+  CLAMP_MAX(splash_width, CTX_wm_window(C)->sizex * 0.7f);
   int splash_height;
 
   /* Would be nice to support caching this, so it only has to be re-read (and likely resized) on
    * first draw or if the image changed. */
   ImBuf *ibuf = wm_block_splash_image(splash_width, &splash_height);
 
-  but = uiDefButImage(block, ibuf, 0, 0.5f * U.widget_unit, splash_width, splash_height, NULL);
+  uiBut *but = uiDefButImage(
+      block, ibuf, 0, 0.5f * U.widget_unit, splash_width, splash_height, NULL);
 
   UI_but_func_set(but, wm_block_close, block, NULL);
   UI_block_func_set(block, wm_block_splash_refreshmenu, block, NULL);
@@ -262,15 +262,15 @@ void WM_OT_splash(wmOperatorType *ot)
 
 static uiBlock *wm_block_create_about(bContext *C, ARegion *region, void *UNUSED(arg))
 {
-  uiBlock *block;
   const uiStyle *style = UI_style_get_dpi();
-  const int dialog_width = U.widget_unit * 24;
   const short logo_size = 128 * U.dpi_fac;
+  const int text_points_max = MAX2(style->widget.points, style->widgetlabel.points);
+  const int dialog_width = logo_size + (text_points_max * 32 * U.dpi_fac);
 
   /* Calculate icon column factor. */
   const float split_factor = (float)logo_size / (float)(dialog_width - style->columnspace);
 
-  block = UI_block_begin(C, region, "about", UI_EMBOSS);
+  uiBlock *block = UI_block_begin(C, region, "about", UI_EMBOSS);
 
   UI_block_flag_enable(
       block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);

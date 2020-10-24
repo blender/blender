@@ -901,19 +901,19 @@ static void extract_tris_finish(const MeshRenderData *mr,
 {
   MeshExtract_Tri_Data *data = _data;
   GPU_indexbuf_build_in_place(&data->elb, ibo);
+
   /* HACK: Create ibo sub-ranges and assign them to each #GPUBatch. */
   /* The `surface_per_mat` tests are there when object shading type is set to Wire or Bounds. In
    * these cases there isn't a surface per material. */
   if (mr->use_final_mesh && cache->surface_per_mat && cache->surface_per_mat[0]) {
+    MeshBufferCache *mbc = &cache->final;
     for (int i = 0; i < mr->mat_len; i++) {
       /* Multiply by 3 because these are triangle indices. */
       const int mat_start = data->tri_mat_start[i];
       const int mat_end = data->tri_mat_end[i];
       const int start = mat_start * 3;
       const int len = (mat_end - mat_start) * 3;
-      GPUIndexBuf *sub_ibo = GPU_indexbuf_create_subrange(ibo, start, len);
-      /* WARNING: We modify the #GPUBatch here! */
-      GPU_batch_elembuf_set(cache->surface_per_mat[i], sub_ibo, true);
+      GPU_indexbuf_create_subrange_in_place(mbc->tris_per_mat[i], ibo, start, len);
     }
   }
   MEM_freeN(data->tri_mat_start);
@@ -3327,7 +3327,7 @@ static void mesh_render_data_edge_flag(const MeshRenderData *mr, BMEdge *eed, Ed
    * specular highlights make it hard to see T55456#510873.
    *
    * This isn't ideal since it can't be used when mixing edge/face modes
-   * but it's still better then not being able to see the active face. */
+   * but it's still better than not being able to see the active face. */
   if (is_face_only_select_mode) {
     if (mr->efa_act != NULL) {
       if (BM_edge_in_face(eed, mr->efa_act)) {

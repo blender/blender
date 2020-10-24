@@ -31,7 +31,7 @@
 #endif
 
 /* texco (also in DNA_material_types.h) */
-#define TEXCO_STROKE 16 /* actually it's UV */
+#define TEXCO_STROKE 16 /* actually its UV */
 
 struct AnimData;
 struct ColorBand;

@@ -636,7 +636,7 @@ void BLI_file_free_lines(LinkNode *lines)
   BLI_linklist_freeN(lines);
 }
 
-/** is file1 older then file2 */
+/** is file1 older than file2 */
 bool BLI_file_older(const char *file1, const char *file2)
 {
 #ifdef WIN32

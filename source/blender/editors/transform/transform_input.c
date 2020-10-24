@@ -438,7 +438,7 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
   }
 
   /* if we've allocated new data, free the old data
-   * less hassle then checking before every alloc above */
+   * less hassle than checking before every alloc above */
   if (mi_data_prev && (mi_data_prev != mi->data)) {
     MEM_freeN(mi_data_prev);
   }

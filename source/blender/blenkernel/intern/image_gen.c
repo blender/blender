@@ -240,7 +240,7 @@ static void checker_board_color_fill(
   }
 
   for (y = offset; y < height + offset; y++) {
-    /* Use a number lower then 1.0 else its too bright. */
+    /* Use a number lower than 1.0 else its too bright. */
     hsv[2] = 0.1 + (y * (0.4 / total_height));
 
     for (x = 0; x < width; x++) {

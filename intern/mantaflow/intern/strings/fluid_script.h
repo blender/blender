@@ -122,7 +122,6 @@ timePerFrame_s$ID$ = $TIME_PER_FRAME$\n\
 # In Blender fluid.c: frame_length = DT_DEFAULT * (25.0 / fps) * time_scale\n\
 # with DT_DEFAULT = 0.1\n\
 frameLength_s$ID$ = $FRAME_LENGTH$\n\
-frameLengthUnscaled_s$ID$  = frameLength_s$ID$ / timeScale_s$ID$\n\
 frameLengthRaw_s$ID$ = 0.1 * 25 # dt = 0.1 at 25 fps\n\
 \n\
 dt0_s$ID$          = $DT$\n\
@@ -149,17 +148,8 @@ mantaMsg('1 Blender length unit is ' + str(ratioResToBLength_s$ID$) + ' Mantaflo
 ratioBTimeToTimestep_s$ID$ = float(1) / float(frameLengthRaw_s$ID$) # the time within 1 blender time unit, see also fluid.c\n\
 mantaMsg('1 Blender time unit is ' + str(ratioBTimeToTimestep_s$ID$) + ' Mantaflow time units long.')\n\
 \n\
-ratioFrameToFramelength_s$ID$ = float(1) / float(frameLengthUnscaled_s$ID$ ) # the time within 1 frame\n\
-mantaMsg('frame / frameLength is ' + str(ratioFrameToFramelength_s$ID$) + ' Mantaflow time units long.')\n\
-\n\
 scaleAcceleration_s$ID$ = ratioResToBLength_s$ID$ * (ratioBTimeToTimestep_s$ID$**2)# [meters/btime^2] to [cells/timestep^2] (btime: sec, min, or h, ...)\n\
 mantaMsg('scaleAcceleration is ' + str(scaleAcceleration_s$ID$))\n\
-\n\
-scaleSpeedFrames_s$ID$ = ratioResToBLength_s$ID$ * ratioFrameToFramelength_s$ID$ # [blength/frame] to [cells/frameLength]\n\
-mantaMsg('scaleSpeed is ' + str(scaleSpeedFrames_s$ID$))\n\
-\n\
-scaleSpeedTime_s$ID$ = ratioResToBLength_s$ID$ * ratioBTimeToTimestep_s$ID$ # [blength/btime] to [cells/frameLength]\n\
-mantaMsg('scaleSpeedTime is ' + str(scaleSpeedTime_s$ID$))\n\
 \n\
 gravity_s$ID$ *= scaleAcceleration_s$ID$ # scale from world acceleration to cell based acceleration\n\
 \n\
@@ -380,17 +370,10 @@ def fluid_pre_step_$ID$():\n\
         x_obvel_s$ID$.safeDivide(numObs_s$ID$)\n\
         y_obvel_s$ID$.safeDivide(numObs_s$ID$)\n\
         z_obvel_s$ID$.safeDivide(numObs_s$ID$)\n\
-        \n\
-        x_obvel_s$ID$.multConst(scaleSpeedFrames_s$ID$)\n\
-        y_obvel_s$ID$.multConst(scaleSpeedFrames_s$ID$)\n\
-        z_obvel_s$ID$.multConst(scaleSpeedFrames_s$ID$)\n\
         copyRealToVec3(sourceX=x_obvel_s$ID$, sourceY=y_obvel_s$ID$, sourceZ=z_obvel_s$ID$, target=obvelC_s$ID$)\n\
     \n\
     # translate invels (world space) to grid space\n\
     if using_invel_s$ID$:\n\
-        x_invel_s$ID$.multConst(scaleSpeedTime_s$ID$)\n\
-        y_invel_s$ID$.multConst(scaleSpeedTime_s$ID$)\n\
-        z_invel_s$ID$.multConst(scaleSpeedTime_s$ID$)\n\
         copyRealToVec3(sourceX=x_invel_s$ID$, sourceY=y_invel_s$ID$, sourceZ=z_invel_s$ID$, target=invelC_s$ID$)\n\
     \n\
     if using_guiding_s$ID$:\n\
@@ -400,9 +383,6 @@ def fluid_pre_step_$ID$():\n\
         velT_s$ID$.multConst(vec3(gamma_sg$ID$))\n\
     \n\
     # translate external forces (world space) to grid space\n\
-    x_force_s$ID$.multConst(scaleSpeedFrames_s$ID$)\n\
-    y_force_s$ID$.multConst(scaleSpeedFrames_s$ID$)\n\
-    z_force_s$ID$.multConst(scaleSpeedFrames_s$ID$)\n\
     copyRealToVec3(sourceX=x_force_s$ID$, sourceY=y_force_s$ID$, sourceZ=z_force_s$ID$, target=forces_s$ID$)\n\
     \n\
     # If obstacle has velocity, i.e. is a moving obstacle, switch to dynamic preconditioner\n\
@@ -626,10 +606,6 @@ def bake_guiding_process_$ID$(framenr, format_guiding, path_guiding, resumable):
     x_guidevel_s$ID$.safeDivide(numGuides_s$ID$)\n\
     y_guidevel_s$ID$.safeDivide(numGuides_s$ID$)\n\
     z_guidevel_s$ID$.safeDivide(numGuides_s$ID$)\n\
-    \n\
-    x_guidevel_s$ID$.multConst(scaleSpeedFrames_s$ID$)\n\
-    y_guidevel_s$ID$.multConst(scaleSpeedFrames_s$ID$)\n\
-    z_guidevel_s$ID$.multConst(scaleSpeedFrames_s$ID$)\n\
     copyRealToVec3(sourceX=x_guidevel_s$ID$, sourceY=y_guidevel_s$ID$, sourceZ=z_guidevel_s$ID$, target=guidevelC_s$ID$)\n\
     \n\
     mantaMsg('Extrapolating guiding velocity')\n\

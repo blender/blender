@@ -560,7 +560,7 @@ class CLIP_PT_tools_solve(CLIP_PT_tracking_panel, Panel):
 class CLIP_PT_tools_cleanup(CLIP_PT_tracking_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
-    bl_label = "Clean up"
+    bl_label = "Clean Up"
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Solve"
 
@@ -1000,9 +1000,9 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
         row.prop(stab, "show_tracks_expanded", text="", emboss=False)
 
         if not stab.show_tracks_expanded:
-            row.label(text="Tracks For Stabilization")
+            row.label(text="Tracks for Stabilization")
         else:
-            row.label(text="Tracks For Location")
+            row.label(text="Tracks for Location")
             row = box.row()
             row.template_list("UI_UL_list", "stabilization_tracks", stab, "tracks",
                               stab, "active_track_index", rows=2)
@@ -1018,7 +1018,7 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
             # Usually we don't hide things from interface, but here every pixel of
             # vertical space is precious.
             if stab.use_stabilize_rotation:
-                box.label(text="Tracks For Rotation / Scale")
+                box.label(text="Tracks for Rotation/Scale")
                 row = box.row()
                 row.template_list("UI_UL_list", "stabilization_rotation_tracks",
                                   stab, "rotation_tracks",

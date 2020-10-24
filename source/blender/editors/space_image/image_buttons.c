@@ -740,7 +740,7 @@ static void rna_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
   cb->iuser->ok = 1;
 
   /* we call update here on the pointer property, this way the
-   * owner of the image pointer can still define it's own update
+   * owner of the image pointer can still define its own update
    * and notifier */
   RNA_property_update(C, &cb->ptr, cb->prop);
 }

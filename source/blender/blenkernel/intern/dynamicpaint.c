@@ -231,7 +231,7 @@ typedef struct PaintUVPoint {
   /* vertex indexes */
   unsigned int v1, v2, v3;
 
-  /** If this pixel isn't uv mapped to any face, but it's neighboring pixel is. */
+  /** If this pixel isn't uv mapped to any face, but its neighboring pixel is. */
   unsigned int neighbor_pixel;
 } PaintUVPoint;
 
@@ -2688,7 +2688,7 @@ static void dynamic_paint_find_island_border(const DynamicPaintCreateUVSurfaceDa
       continue;
     }
 
-    /* If final point is an "edge pixel", use it's "real" neighbor instead */
+    /* If final point is an "edge pixel", use its "real" neighbor instead */
     if (tempPoints[final_index].neighbor_pixel != -1) {
       final_index = tempPoints[final_index].neighbor_pixel;
 
@@ -6271,7 +6271,7 @@ static int dynamicPaint_doStep(Depsgraph *depsgraph,
                                                 eModifierType_DynamicPaint);
           }
 
-          /* Apply brush on the surface depending on it's collision type */
+          /* Apply brush on the surface depending on its collision type */
           if (brush->psys && brush->psys->part &&
               ELEM(brush->psys->part->type,
                    PART_EMITTER,
@@ -6299,7 +6299,7 @@ static int dynamicPaint_doStep(Depsgraph *depsgraph,
             dynamicPaint_paintMesh(depsgraph, surface, brush, brushObj, scene, timescale);
           }
 
-          /* reset object to it's original state */
+          /* reset object to its original state */
           if (subframe) {
             scene->r.cfra = scene_frame;
             scene->r.subframe = scene_subframe;

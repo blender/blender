@@ -368,7 +368,7 @@ void _bmo_slot_copy(BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS],
 /*
  * BMESH OPSTACK SET XXX
  *
- * Sets the value of a slot depending on it's type
+ * Sets the value of a slot depending on its type
  */
 
 void BMO_slot_float_set(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, const float f)

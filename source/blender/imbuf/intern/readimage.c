@@ -52,7 +52,7 @@ static void imb_handle_alpha(ImBuf *ibuf,
   if (colorspace) {
     if (ibuf->rect != NULL && ibuf->rect_float == NULL) {
       /* byte buffer is never internally converted to some standard space,
-       * store pointer to it's color space descriptor instead
+       * store pointer to its color space descriptor instead
        */
       ibuf->rect_colorspace = colormanage_colorspace_get_named(effective_colorspace);
     }

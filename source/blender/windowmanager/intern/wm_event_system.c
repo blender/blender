@@ -155,6 +155,15 @@ wmEvent *WM_event_add_simulate(wmWindow *win, const wmEvent *event_to_add)
 
 void wm_event_free(wmEvent *event)
 {
+#ifndef NDEBUG
+  /* Don't use assert here because it's fairly harmless in most cases,
+   * more an issue of correctness, something we should avoid in general. */
+  if (event->is_repeat && !ISKEYBOARD(event->type)) {
+    printf("%s: 'is_repeat=true' for non-keyboard event, this should not happen.\n", __func__);
+    WM_event_print(event);
+  }
+#endif
+
   if (event->customdata) {
     if (event->customdatafree) {
       /* Note: pointer to listbase struct elsewhere. */
@@ -663,6 +672,7 @@ void wm_event_handler_ui_cancel_ex(bContext *C,
       wm_event_init_from_window(win, &event);
       event.type = EVT_BUT_CANCEL;
       event.val = reactivate_button ? 0 : 1;
+      event.is_repeat = false;
       handler->handle_fn(C, &event, handler->user_data);
     }
   }
@@ -3401,6 +3411,7 @@ void wm_event_do_handlers(bContext *C)
       tevent.type = MOUSEMOVE;
       tevent.prevx = tevent.x;
       tevent.prevy = tevent.y;
+      tevent.is_repeat = false;
       wm_event_add(win, &tevent);
       win->addmousemove = 0;
     }

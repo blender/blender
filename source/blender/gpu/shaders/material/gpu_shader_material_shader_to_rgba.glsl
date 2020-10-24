@@ -11,7 +11,7 @@ void node_shader_to_rgba(Closure cl, out vec4 outcol, out float outalpha)
     fallback_cubemap(N, V, worldPosition, viewPosition, roughness, roughnessSquared, spec_accum);
   }
 
-  outalpha = avg(cl.transmittance);
+  outalpha = saturate(1.0 - avg(cl.transmittance));
   outcol = vec4((spec_accum.rgb * cl.ssr_data.rgb) + cl.radiance, 1.0);
 
 #  ifdef USE_SSS

@@ -565,7 +565,7 @@ extern StructRNA RNA_ShrinkwrapModifier;
 extern StructRNA RNA_SimpleDeformModifier;
 extern StructRNA RNA_SimplifyGpencilModifier;
 extern StructRNA RNA_Simulation;
-#ifdef WITH_PARTICLE_NODES
+#ifdef WITH_GEOMETRY_NODES
 extern StructRNA RNA_SimulationModifier;
 #endif
 extern StructRNA RNA_SimulationNode;
@@ -710,6 +710,7 @@ extern StructRNA RNA_ViewLayer;
 extern StructRNA RNA_ViewLayerEEVEE;
 extern StructRNA RNA_Volume;
 extern StructRNA RNA_VolumeDisplaceModifier;
+extern StructRNA RNA_VolumeToMeshModifier;
 extern StructRNA RNA_VoronoiTexture;
 extern StructRNA RNA_WalkNavigation;
 extern StructRNA RNA_WarpModifier;
@@ -1144,13 +1145,13 @@ char *RNA_path_from_real_ID_to_struct(struct Main *bmain, PointerRNA *ptr, struc
 char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop);
 char *RNA_path_from_ID_to_property_index(PointerRNA *ptr,
                                          PropertyRNA *prop,
-                                         int array_dim,
+                                         int index_dim,
                                          int index);
 
 char *RNA_path_from_real_ID_to_property_index(struct Main *bmain,
                                               PointerRNA *ptr,
                                               PropertyRNA *prop,
-                                              int array_dim,
+                                              int index_dim,
                                               int index,
                                               struct ID **r_real_id);
 
@@ -1300,14 +1301,14 @@ char *RNA_pointer_as_string(struct bContext *C,
                             PointerRNA *ptr_prop);
 char *RNA_pointer_as_string_keywords_ex(struct bContext *C,
                                         PointerRNA *ptr,
-                                        const bool skip_optional_value,
+                                        const bool as_function,
                                         const bool all_args,
                                         const bool nested_args,
                                         const int max_prop_length,
                                         PropertyRNA *iterprop);
 char *RNA_pointer_as_string_keywords(struct bContext *C,
                                      PointerRNA *ptr,
-                                     const bool skip_optional_value,
+                                     const bool as_function,
                                      const bool all_args,
                                      const bool nested_args,
                                      const int max_prop_length);

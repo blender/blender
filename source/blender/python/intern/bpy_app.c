@@ -82,6 +82,7 @@ static PyTypeObject BlenderAppType;
 
 static PyStructSequence_Field app_info_fields[] = {
     {"version", "The Blender version as a tuple of 3 numbers. eg. (2, 83, 1)"},
+    {"version_file", "The blend file version, compatible with ``bpy.data.version``"},
     {"version_string", "The Blender version formatted as a string"},
     {"version_cycle", "The release status of this build alpha/beta/rc/release"},
     {"version_char", "Deprecated, always an empty string"},
@@ -151,6 +152,8 @@ static PyObject *make_app_info(void)
 
   SetObjItem(
       PyC_Tuple_Pack_I32(BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_VERSION_PATCH));
+  SetObjItem(PyC_Tuple_Pack_I32(
+      BLENDER_FILE_VERSION / 100, BLENDER_FILE_VERSION % 100, BLENDER_FILE_SUBVERSION));
   SetStrItem(BKE_blender_version_string());
 
   SetStrItem(STRINGIFY(BLENDER_VERSION_CYCLE));

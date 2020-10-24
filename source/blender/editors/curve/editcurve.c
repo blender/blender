@@ -307,12 +307,8 @@ static void keyIndex_delNurb(EditNurb *editnurb, Nurb *nu)
 
 static void keyIndex_delNurbList(EditNurb *editnurb, ListBase *nubase)
 {
-  Nurb *nu = nubase->first;
-
-  while (nu) {
+  LISTBASE_FOREACH (Nurb *, nu, nubase) {
     keyIndex_delNurb(editnurb, nu);
-
-    nu = nu->next;
   }
 }
 
@@ -476,19 +472,15 @@ static void keyIndex_switchDirection(EditNurb *editnurb, Nurb *nu)
 
 static void switch_keys_direction(Curve *cu, Nurb *actnu)
 {
-  KeyBlock *currkey;
   EditNurb *editnurb = cu->editnurb;
   ListBase *nubase = &editnurb->nurbs;
-  Nurb *nu;
   float *fp;
   int a;
 
-  currkey = cu->key->block.first;
-  while (currkey) {
+  LISTBASE_FOREACH (KeyBlock *, currkey, &cu->key->block) {
     fp = currkey->data;
 
-    nu = nubase->first;
-    while (nu) {
+    LISTBASE_FOREACH (Nurb *, nu, nubase) {
       if (nu->bezt) {
         BezTriple *bezt = nu->bezt;
         a = nu->pntsu;
@@ -522,11 +514,7 @@ static void switch_keys_direction(Curve *cu, Nurb *actnu)
           fp += a * KEYELEM_FLOAT_LEN_BPOINT;
         }
       }
-
-      nu = nu->next;
     }
-
-    currkey = currkey->next;
   }
 }
 
@@ -583,13 +571,11 @@ static void bezt_to_key(BezTriple *bezt, float *key)
 
 static void calc_keyHandles(ListBase *nurb, float *key)
 {
-  Nurb *nu;
   int a;
   float *fp = key;
   BezTriple *bezt;
 
-  nu = nurb->first;
-  while (nu) {
+  LISTBASE_FOREACH (Nurb *, nu, nurb) {
     if (nu->bezt) {
       BezTriple *prevp, *nextp;
       BezTriple cur, prev, next;
@@ -649,8 +635,6 @@ static void calc_keyHandles(ListBase *nurb, float *key)
       a = nu->pntsu * nu->pntsv;
       fp += a * KEYELEM_FLOAT_LEN_BPOINT;
     }
-
-    nu = nu->next;
   }
 }
 
@@ -658,255 +642,247 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
 {
   Curve *cu = (Curve *)obedit->data;
 
-  /* are there keys? */
-  if (cu->key) {
-    int a, i;
-    EditNurb *editnurb = cu->editnurb;
-    KeyBlock *currkey;
-    KeyBlock *actkey = BLI_findlink(&cu->key->block, editnurb->shapenr - 1);
-    BezTriple *bezt, *oldbezt;
-    BPoint *bp, *oldbp;
-    Nurb *nu, *newnu;
-    int totvert = BKE_keyblock_curve_element_count(&editnurb->nurbs);
+  if (cu->key == NULL) {
+    return;
+  }
 
-    float(*ofs)[3] = NULL;
-    float *oldkey, *newkey, *ofp;
+  int a, i;
+  EditNurb *editnurb = cu->editnurb;
+  KeyBlock *actkey = BLI_findlink(&cu->key->block, editnurb->shapenr - 1);
+  BezTriple *bezt, *oldbezt;
+  BPoint *bp, *oldbp;
+  Nurb *newnu;
+  int totvert = BKE_keyblock_curve_element_count(&editnurb->nurbs);
 
-    /* editing the base key should update others */
-    if (cu->key->type == KEY_RELATIVE) {
-      if (BKE_keyblock_is_basis(cu->key, editnurb->shapenr - 1)) { /* active key is a base */
-        int totvec = 0;
+  float(*ofs)[3] = NULL;
+  float *oldkey, *newkey, *ofp;
 
-        /* Calculate needed memory to store offset */
-        nu = editnurb->nurbs.first;
-        while (nu) {
-          if (nu->bezt) {
-            /* Three vects to store handles and one for tilt. */
-            totvec += nu->pntsu * 4;
-          }
-          else {
-            totvec += 2 * nu->pntsu * nu->pntsv;
-          }
+  /* editing the base key should update others */
+  if (cu->key->type == KEY_RELATIVE) {
+    if (BKE_keyblock_is_basis(cu->key, editnurb->shapenr - 1)) { /* active key is a base */
+      int totvec = 0;
 
-          nu = nu->next;
+      /* Calculate needed memory to store offset */
+      LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
+
+        if (nu->bezt) {
+          /* Three vects to store handles and one for tilt. */
+          totvec += nu->pntsu * 4;
         }
+        else {
+          totvec += 2 * nu->pntsu * nu->pntsv;
+        }
+      }
 
-        ofs = MEM_callocN(sizeof(float[3]) * totvec, "currkey->data");
-        nu = editnurb->nurbs.first;
-        i = 0;
-        while (nu) {
-          if (nu->bezt) {
-            bezt = nu->bezt;
-            a = nu->pntsu;
-            while (a--) {
-              oldbezt = getKeyIndexOrig_bezt(editnurb, bezt);
+      ofs = MEM_callocN(sizeof(float[3]) * totvec, "currkey->data");
+      i = 0;
+      LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
+        if (nu->bezt) {
+          bezt = nu->bezt;
+          a = nu->pntsu;
+          while (a--) {
+            oldbezt = getKeyIndexOrig_bezt(editnurb, bezt);
 
-              if (oldbezt) {
-                int j;
-                for (j = 0; j < 3; j++) {
-                  sub_v3_v3v3(ofs[i], bezt->vec[j], oldbezt->vec[j]);
-                  i++;
-                }
-                ofs[i][0] = bezt->tilt - oldbezt->tilt;
-                ofs[i][1] = bezt->radius - oldbezt->radius;
+            if (oldbezt) {
+              int j;
+              for (j = 0; j < 3; j++) {
+                sub_v3_v3v3(ofs[i], bezt->vec[j], oldbezt->vec[j]);
                 i++;
               }
-              else {
-                i += 4;
-              }
-              bezt++;
+              ofs[i][0] = bezt->tilt - oldbezt->tilt;
+              ofs[i][1] = bezt->radius - oldbezt->radius;
+              i++;
             }
-          }
-          else {
-            bp = nu->bp;
-            a = nu->pntsu * nu->pntsv;
-            while (a--) {
-              oldbp = getKeyIndexOrig_bp(editnurb, bp);
-              if (oldbp) {
-                sub_v3_v3v3(ofs[i], bp->vec, oldbp->vec);
-                ofs[i + 1][0] = bp->tilt - oldbp->tilt;
-                ofs[i + 1][1] = bp->radius - oldbp->radius;
-              }
-              i += 2;
-              bp++;
+            else {
+              i += 4;
             }
+            bezt++;
           }
-
-          nu = nu->next;
+        }
+        else {
+          bp = nu->bp;
+          a = nu->pntsu * nu->pntsv;
+          while (a--) {
+            oldbp = getKeyIndexOrig_bp(editnurb, bp);
+            if (oldbp) {
+              sub_v3_v3v3(ofs[i], bp->vec, oldbp->vec);
+              ofs[i + 1][0] = bp->tilt - oldbp->tilt;
+              ofs[i + 1][1] = bp->radius - oldbp->radius;
+            }
+            i += 2;
+            bp++;
+          }
         }
       }
     }
+  }
 
-    currkey = cu->key->block.first;
-    while (currkey) {
-      const bool apply_offset = (ofs && (currkey != actkey) &&
-                                 (editnurb->shapenr - 1 == currkey->relative));
+  LISTBASE_FOREACH (KeyBlock *, currkey, &cu->key->block) {
+    const bool apply_offset = (ofs && (currkey != actkey) &&
+                               (editnurb->shapenr - 1 == currkey->relative));
 
-      float *fp = newkey = MEM_callocN(cu->key->elemsize * totvert, "currkey->data");
-      ofp = oldkey = currkey->data;
+    float *fp = newkey = MEM_callocN(cu->key->elemsize * totvert, "currkey->data");
+    ofp = oldkey = currkey->data;
 
-      nu = editnurb->nurbs.first;
-      /* We need to restore to original curve into newnurb, *not* editcurve's nurbs.
-       * Otherwise, in case we update obdata *without* leaving editmode (e.g. viewport render),
-       * we would invalidate editcurve. */
-      newnu = newnurbs->first;
-      i = 0;
-      while (nu) {
-        if (currkey == actkey) {
-          const bool restore = actkey != cu->key->refkey;
+    Nurb *nu = editnurb->nurbs.first;
+    /* We need to restore to original curve into newnurb, *not* editcurve's nurbs.
+     * Otherwise, in case we update obdata *without* leaving editmode (e.g. viewport render),
+     * we would invalidate editcurve. */
+    newnu = newnurbs->first;
+    i = 0;
+    while (nu) {
+      if (currkey == actkey) {
+        const bool restore = actkey != cu->key->refkey;
 
+        if (nu->bezt) {
+          bezt = nu->bezt;
+          a = nu->pntsu;
+          BezTriple *newbezt = newnu->bezt;
+          while (a--) {
+            int j;
+            oldbezt = getKeyIndexOrig_bezt(editnurb, bezt);
+
+            for (j = 0; j < 3; j++, i++) {
+              copy_v3_v3(&fp[j * 3], bezt->vec[j]);
+
+              if (restore && oldbezt) {
+                copy_v3_v3(newbezt->vec[j], oldbezt->vec[j]);
+              }
+            }
+            fp[9] = bezt->tilt;
+            fp[10] = bezt->radius;
+
+            if (restore && oldbezt) {
+              newbezt->tilt = oldbezt->tilt;
+              newbezt->radius = oldbezt->radius;
+            }
+
+            fp += KEYELEM_FLOAT_LEN_BEZTRIPLE;
+            i++;
+            bezt++;
+            newbezt++;
+          }
+        }
+        else {
+          bp = nu->bp;
+          a = nu->pntsu * nu->pntsv;
+          BPoint *newbp = newnu->bp;
+          while (a--) {
+            oldbp = getKeyIndexOrig_bp(editnurb, bp);
+
+            copy_v3_v3(fp, bp->vec);
+
+            fp[3] = bp->tilt;
+            fp[4] = bp->radius;
+
+            if (restore && oldbp) {
+              copy_v3_v3(newbp->vec, oldbp->vec);
+              newbp->tilt = oldbp->tilt;
+              newbp->radius = oldbp->radius;
+            }
+
+            fp += KEYELEM_FLOAT_LEN_BPOINT;
+            bp++;
+            newbp++;
+            i += 2;
+          }
+        }
+      }
+      else {
+        int index;
+        const float *curofp;
+
+        if (oldkey) {
           if (nu->bezt) {
             bezt = nu->bezt;
             a = nu->pntsu;
-            BezTriple *newbezt = newnu->bezt;
+
             while (a--) {
-              int j;
-              oldbezt = getKeyIndexOrig_bezt(editnurb, bezt);
+              index = getKeyIndexOrig_keyIndex(editnurb, bezt);
+              if (index >= 0) {
+                int j;
+                curofp = ofp + index;
 
-              for (j = 0; j < 3; j++, i++) {
-                copy_v3_v3(&fp[j * 3], bezt->vec[j]);
+                for (j = 0; j < 3; j++, i++) {
+                  copy_v3_v3(&fp[j * 3], &curofp[j * 3]);
 
-                if (restore && oldbezt) {
-                  copy_v3_v3(newbezt->vec[j], oldbezt->vec[j]);
+                  if (apply_offset) {
+                    add_v3_v3(&fp[j * 3], ofs[i]);
+                  }
                 }
-              }
-              fp[9] = bezt->tilt;
-              fp[10] = bezt->radius;
+                fp[9] = curofp[9];
+                fp[10] = curofp[10];
 
-              if (restore && oldbezt) {
-                newbezt->tilt = oldbezt->tilt;
-                newbezt->radius = oldbezt->radius;
-              }
+                if (apply_offset) {
+                  /* Apply tilt offsets. */
+                  add_v3_v3(fp + 9, ofs[i]);
+                  i++;
+                }
 
-              fp += KEYELEM_FLOAT_LEN_BEZTRIPLE;
-              i++;
+                fp += KEYELEM_FLOAT_LEN_BEZTRIPLE;
+              }
+              else {
+                int j;
+                for (j = 0; j < 3; j++, i++) {
+                  copy_v3_v3(&fp[j * 3], bezt->vec[j]);
+                }
+                fp[9] = bezt->tilt;
+                fp[10] = bezt->radius;
+
+                fp += KEYELEM_FLOAT_LEN_BEZTRIPLE;
+              }
               bezt++;
-              newbezt++;
             }
           }
           else {
             bp = nu->bp;
             a = nu->pntsu * nu->pntsv;
-            BPoint *newbp = newnu->bp;
             while (a--) {
-              oldbp = getKeyIndexOrig_bp(editnurb, bp);
+              index = getKeyIndexOrig_keyIndex(editnurb, bp);
 
-              copy_v3_v3(fp, bp->vec);
+              if (index >= 0) {
+                curofp = ofp + index;
+                copy_v3_v3(fp, curofp);
+                fp[3] = curofp[3];
+                fp[4] = curofp[4];
 
-              fp[3] = bp->tilt;
-              fp[4] = bp->radius;
-
-              if (restore && oldbp) {
-                copy_v3_v3(newbp->vec, oldbp->vec);
-                newbp->tilt = oldbp->tilt;
-                newbp->radius = oldbp->radius;
+                if (apply_offset) {
+                  add_v3_v3(fp, ofs[i]);
+                  add_v3_v3(&fp[3], ofs[i + 1]);
+                }
+              }
+              else {
+                copy_v3_v3(fp, bp->vec);
+                fp[3] = bp->tilt;
+                fp[4] = bp->radius;
               }
 
               fp += KEYELEM_FLOAT_LEN_BPOINT;
               bp++;
-              newbp++;
               i += 2;
             }
           }
         }
-        else {
-          int index;
-          const float *curofp;
-
-          if (oldkey) {
-            if (nu->bezt) {
-              bezt = nu->bezt;
-              a = nu->pntsu;
-
-              while (a--) {
-                index = getKeyIndexOrig_keyIndex(editnurb, bezt);
-                if (index >= 0) {
-                  int j;
-                  curofp = ofp + index;
-
-                  for (j = 0; j < 3; j++, i++) {
-                    copy_v3_v3(&fp[j * 3], &curofp[j * 3]);
-
-                    if (apply_offset) {
-                      add_v3_v3(&fp[j * 3], ofs[i]);
-                    }
-                  }
-                  fp[9] = curofp[9];
-                  fp[10] = curofp[10];
-
-                  if (apply_offset) {
-                    /* Apply tilt offsets. */
-                    add_v3_v3(fp + 9, ofs[i]);
-                    i++;
-                  }
-
-                  fp += KEYELEM_FLOAT_LEN_BEZTRIPLE;
-                }
-                else {
-                  int j;
-                  for (j = 0; j < 3; j++, i++) {
-                    copy_v3_v3(&fp[j * 3], bezt->vec[j]);
-                  }
-                  fp[9] = bezt->tilt;
-                  fp[10] = bezt->radius;
-
-                  fp += KEYELEM_FLOAT_LEN_BEZTRIPLE;
-                }
-                bezt++;
-              }
-            }
-            else {
-              bp = nu->bp;
-              a = nu->pntsu * nu->pntsv;
-              while (a--) {
-                index = getKeyIndexOrig_keyIndex(editnurb, bp);
-
-                if (index >= 0) {
-                  curofp = ofp + index;
-                  copy_v3_v3(fp, curofp);
-                  fp[3] = curofp[3];
-                  fp[4] = curofp[4];
-
-                  if (apply_offset) {
-                    add_v3_v3(fp, ofs[i]);
-                    add_v3_v3(&fp[3], ofs[i + 1]);
-                  }
-                }
-                else {
-                  copy_v3_v3(fp, bp->vec);
-                  fp[3] = bp->tilt;
-                  fp[4] = bp->radius;
-                }
-
-                fp += KEYELEM_FLOAT_LEN_BPOINT;
-                bp++;
-                i += 2;
-              }
-            }
-          }
-        }
-
-        nu = nu->next;
-        newnu = newnu->next;
       }
 
-      if (apply_offset) {
-        /* handles could become malicious after offsets applying */
-        calc_keyHandles(&editnurb->nurbs, newkey);
-      }
-
-      currkey->totelem = totvert;
-      if (currkey->data) {
-        MEM_freeN(currkey->data);
-      }
-      currkey->data = newkey;
-
-      currkey = currkey->next;
+      nu = nu->next;
+      newnu = newnu->next;
     }
 
-    if (ofs) {
-      MEM_freeN(ofs);
+    if (apply_offset) {
+      /* handles could become malicious after offsets applying */
+      calc_keyHandles(&editnurb->nurbs, newkey);
     }
+
+    currkey->totelem = totvert;
+    if (currkey->data) {
+      MEM_freeN(currkey->data);
+    }
+    currkey->data = newkey;
+  }
+
+  if (ofs) {
+    MEM_freeN(ofs);
   }
 }
 
@@ -929,11 +905,10 @@ static void fcurve_path_rename(AnimData *adt,
                                ListBase *orig_curves,
                                ListBase *curves)
 {
-  FCurve *fcu, *nfcu, *nextfcu;
+  FCurve *nfcu;
   int len = strlen(orig_rna_path);
 
-  for (fcu = orig_curves->first; fcu; fcu = nextfcu) {
-    nextfcu = fcu->next;
+  LISTBASE_FOREACH_MUTABLE (FCurve *, fcu, orig_curves) {
     if (STREQLEN(fcu->rna_path, orig_rna_path, len)) {
       char *spath, *suffix = fcu->rna_path + len;
       nfcu = BKE_fcurve_copy(fcu);
@@ -977,16 +952,15 @@ static void fcurve_remove(AnimData *adt, ListBase *orig_curves, FCurve *fcu)
 
 static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
 {
-  int nu_index = 0, a, pt_index;
+  int a, pt_index;
   EditNurb *editnurb = cu->editnurb;
-  Nurb *nu;
   CVKeyIndex *keyIndex;
   char rna_path[64], orig_rna_path[64];
   AnimData *adt = BKE_animdata_from_id(&cu->id);
   ListBase curves = {NULL, NULL};
-  FCurve *fcu, *next;
 
-  for (nu = editnurb->nurbs.first, nu_index = 0; nu != NULL; nu = nu->next, nu_index++) {
+  int nu_index = 0;
+  LISTBASE_FOREACH_INDEX (Nurb *, nu, &editnurb->nurbs, nu_index) {
     if (nu->bezt) {
       BezTriple *bezt = nu->bezt;
       a = nu->pntsu;
@@ -1054,9 +1028,7 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
   /* remove paths for removed control points
    * need this to make further step with copying non-cv related curves copying
    * not touching cv's f-curves */
-  for (fcu = orig_curves->first; fcu; fcu = next) {
-    next = fcu->next;
-
+  LISTBASE_FOREACH_MUTABLE (FCurve *, fcu, orig_curves) {
     if (STREQLEN(fcu->rna_path, "splines", 7)) {
       const char *ch = strchr(fcu->rna_path, '.');
 
@@ -1066,7 +1038,8 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
     }
   }
 
-  for (nu = editnurb->nurbs.first, nu_index = 0; nu != NULL; nu = nu->next, nu_index++) {
+  nu_index = 0;
+  LISTBASE_FOREACH_INDEX (Nurb *, nu, &editnurb->nurbs, nu_index) {
     keyIndex = NULL;
     if (nu->pntsu) {
       if (nu->bezt) {
@@ -1086,9 +1059,7 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
 
   /* the remainders in orig_curves can be copied back (like follow path) */
   /* (if it's not path to spline) */
-  for (fcu = orig_curves->first; fcu; fcu = next) {
-    next = fcu->next;
-
+  LISTBASE_FOREACH_MUTABLE (FCurve *, fcu, orig_curves) {
     if (STREQLEN(fcu->rna_path, "splines", 7)) {
       fcurve_remove(adt, orig_curves, fcu);
     }
@@ -1141,13 +1112,11 @@ static int *init_index_map(Object *obedit, int *r_old_totvert)
 {
   Curve *curve = (Curve *)obedit->data;
   EditNurb *editnurb = curve->editnurb;
-  Nurb *nu;
   CVKeyIndex *keyIndex;
   int *old_to_new_map;
-  int old_totvert;
-  int vertex_index;
 
-  for (nu = curve->nurb.first, old_totvert = 0; nu != NULL; nu = nu->next) {
+  int old_totvert = 0;
+  LISTBASE_FOREACH (Nurb *, nu, &curve->nurb) {
     if (nu->bezt) {
       old_totvert += nu->pntsu * 3;
     }
@@ -1161,7 +1130,8 @@ static int *init_index_map(Object *obedit, int *r_old_totvert)
     old_to_new_map[i] = -1;
   }
 
-  for (nu = editnurb->nurbs.first, vertex_index = 0; nu != NULL; nu = nu->next) {
+  int vertex_index = 0;
+  LISTBASE_FOREACH (Nurb *, nu, &curve->nurb) {
     if (nu->bezt) {
       BezTriple *bezt = nu->bezt;
       int a = nu->pntsu;
@@ -1205,7 +1175,6 @@ static int *init_index_map(Object *obedit, int *r_old_totvert)
 
 static void remap_hooks_and_vertex_parents(Main *bmain, Object *obedit)
 {
-  Object *object;
   Curve *curve = (Curve *)obedit->data;
   EditNurb *editnurb = curve->editnurb;
   int *old_to_new_map = NULL;
@@ -1219,8 +1188,7 @@ static void remap_hooks_and_vertex_parents(Main *bmain, Object *obedit)
     return;
   }
 
-  for (object = bmain->objects.first; object; object = object->id.next) {
-    ModifierData *md;
+  LISTBASE_FOREACH (Object *, object, &bmain->objects) {
     int index;
     if ((object->parent) && (object->parent->data == curve) &&
         ELEM(object->partype, PARVERT1, PARVERT3)) {
@@ -1248,7 +1216,7 @@ static void remap_hooks_and_vertex_parents(Main *bmain, Object *obedit)
       }
     }
     if (object->data == curve) {
-      for (md = object->modifiers.first; md; md = md->next) {
+      LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
         if (md->type == eModifierType_Hook) {
           HookModifierData *hmd = (HookModifierData *)md;
           int i, j;
@@ -1290,13 +1258,12 @@ void ED_curve_editnurb_load(Main *bmain, Object *obedit)
 
   if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
     Curve *cu = obedit->data;
-    Nurb *nu, *newnu;
     ListBase newnurb = {NULL, NULL}, oldnurb = cu->nurb;
 
     remap_hooks_and_vertex_parents(bmain, obedit);
 
-    for (nu = editnurb->first; nu; nu = nu->next) {
-      newnu = BKE_nurb_duplicate(nu);
+    LISTBASE_FOREACH (Nurb *, nu, editnurb) {
+      Nurb *newnu = BKE_nurb_duplicate(nu);
       BLI_addtail(&newnurb, newnu);
 
       if (nu->type == CU_NURBS) {
@@ -1323,7 +1290,6 @@ void ED_curve_editnurb_make(Object *obedit)
 {
   Curve *cu = (Curve *)obedit->data;
   EditNurb *editnurb = cu->editnurb;
-  Nurb *nu, *newnu;
   KeyBlock *actkey;
 
   if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
@@ -1346,12 +1312,10 @@ void ED_curve_editnurb_make(Object *obedit)
       cu->editnurb = editnurb;
     }
 
-    nu = cu->nurb.first;
-    while (nu) {
-      newnu = BKE_nurb_duplicate(nu);
+    LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
+      Nurb *newnu = BKE_nurb_duplicate(nu);
       BKE_nurb_test_2d(newnu); /* after join, or any other creation of curve */
       BLI_addtail(&editnurb->nurbs, newnu);
-      nu = nu->next;
     }
 
     /* animation could be added in editmode even if there was no animdata in
@@ -1722,11 +1686,10 @@ static void rotateflagNurb(ListBase *editnurb,
                            const float rotmat[3][3])
 {
   /* all verts with (flag & 'flag') rotate */
-  Nurb *nu;
   BPoint *bp;
   int a;
 
-  for (nu = editnurb->first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, editnurb) {
     if (nu->type == CU_NURBS) {
       bp = nu->bp;
       a = nu->pntsu * nu->pntsv;
@@ -1746,12 +1709,11 @@ static void rotateflagNurb(ListBase *editnurb,
 void ed_editnurb_translate_flag(ListBase *editnurb, uint8_t flag, const float vec[3])
 {
   /* all verts with ('flag' & flag) translate */
-  Nurb *nu;
   BezTriple *bezt;
   BPoint *bp;
   int a;
 
-  for (nu = editnurb->first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, editnurb) {
     if (nu->type == CU_BEZIER) {
       a = nu->pntsu;
       bezt = nu->bezt;
@@ -1785,11 +1747,10 @@ void ed_editnurb_translate_flag(ListBase *editnurb, uint8_t flag, const float ve
 
 static void weightflagNurb(ListBase *editnurb, short flag, float w)
 {
-  Nurb *nu;
   BPoint *bp;
   int a;
 
-  for (nu = editnurb->first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, editnurb) {
     if (nu->type == CU_NURBS) {
       a = nu->pntsu * nu->pntsv;
       bp = nu->bp;
@@ -1808,16 +1769,12 @@ static void ed_surf_delete_selected(Object *obedit)
 {
   Curve *cu = obedit->data;
   ListBase *editnurb = object_editcurve_get(obedit);
-  Nurb *nu, *next;
   BPoint *bp, *bpn, *newbp;
   int a, b, newu, newv;
 
   BLI_assert(obedit->type == OB_SURF);
 
-  nu = editnurb->first;
-  while (nu) {
-    next = nu->next;
-
+  LISTBASE_FOREACH_MUTABLE (Nurb *, nu, editnurb) {
     /* is entire nurb selected */
     bp = nu->bp;
     a = nu->pntsu * nu->pntsv;
@@ -1903,7 +1860,6 @@ static void ed_surf_delete_selected(Object *obedit)
         }
       }
     }
-    nu = next;
   }
 }
 
@@ -1912,15 +1868,12 @@ static void ed_curve_delete_selected(Object *obedit, View3D *v3d)
   Curve *cu = obedit->data;
   EditNurb *editnurb = cu->editnurb;
   ListBase *nubase = &editnurb->nurbs;
-  Nurb *nu, *next;
   BezTriple *bezt, *bezt1;
   BPoint *bp, *bp1;
   int a, type, nuindex = 0;
 
   /* first loop, can we remove entire pieces? */
-  nu = nubase->first;
-  while (nu) {
-    next = nu->next;
+  LISTBASE_FOREACH_MUTABLE (Nurb *, nu, nubase) {
     if (nu->type == CU_BEZIER) {
       bezt = nu->bezt;
       a = nu->pntsu;
@@ -1981,13 +1934,10 @@ static void ed_curve_delete_selected(Object *obedit, View3D *v3d)
       clamp_nurb_order_u(nu);
     }
 #endif
-    nu = next;
     nuindex++;
   }
   /* 2nd loop, delete small pieces: just for curves */
-  nu = nubase->first;
-  while (nu) {
-    next = nu->next;
+  LISTBASE_FOREACH_MUTABLE (Nurb *, nu, nubase) {
     type = 0;
     if (nu->type == CU_BEZIER) {
       bezt = nu->bezt;
@@ -2047,21 +1997,17 @@ static void ed_curve_delete_selected(Object *obedit, View3D *v3d)
       BKE_nurb_order_clamp_u(nu);
       BKE_nurb_knot_calc_u(nu);
     }
-    nu = next;
   }
 }
 
 /* only for OB_SURF */
 bool ed_editnurb_extrude_flag(EditNurb *editnurb, const uint8_t flag)
 {
-  Nurb *nu;
   BPoint *bp, *bpn, *newbp;
   int a, u, v, len;
   bool ok = false;
 
-  nu = editnurb->nurbs.first;
-  while (nu) {
-
+  LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
     if (nu->pntsv == 1) {
       bp = nu->bp;
       a = nu->pntsu;
@@ -2166,7 +2112,6 @@ bool ed_editnurb_extrude_flag(EditNurb *editnurb, const uint8_t flag)
         }
       }
     }
-    nu = nu->next;
   }
 
   return ok;
@@ -2197,14 +2142,15 @@ static void adduplicateflagNurb(
     Object *obedit, View3D *v3d, ListBase *newnurb, const uint8_t flag, const bool split)
 {
   ListBase *editnurb = object_editcurve_get(obedit);
-  Nurb *nu, *newnu;
+  Nurb *newnu;
   BezTriple *bezt, *bezt1;
   BPoint *bp, *bp1, *bp2, *bp3;
   Curve *cu = (Curve *)obedit->data;
-  int a, b, c, starta, enda, diffa, cyclicu, cyclicv, newu, newv, i;
+  int a, b, c, starta, enda, diffa, cyclicu, cyclicv, newu, newv;
   char *usel;
 
-  for (i = 0, nu = editnurb->first; nu; i++, nu = nu->next) {
+  int i = 0;
+  LISTBASE_FOREACH_INDEX (Nurb *, nu, editnurb, i) {
     cyclicu = cyclicv = 0;
     if (nu->type == CU_BEZIER) {
       for (a = 0, bezt = nu->bezt; a < nu->pntsu; a++, bezt++) {
@@ -2569,7 +2515,7 @@ static void adduplicateflagNurb(
   }
 
   if (BLI_listbase_is_empty(newnurb) == false) {
-    for (nu = newnurb->first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, newnurb) {
       if (nu->type == CU_BEZIER) {
         if (split) {
           /* recalc first and last */
@@ -2619,10 +2565,9 @@ static int switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
     }
 
     EditNurb *editnurb = cu->editnurb;
-    Nurb *nu;
-    int i;
 
-    for (nu = editnurb->nurbs.first, i = 0; nu; nu = nu->next, i++) {
+    int i = 0;
+    LISTBASE_FOREACH_INDEX (Nurb *, nu, &editnurb->nurbs, i) {
       if (ED_curve_nurb_select_check(v3d, nu)) {
         BKE_nurb_direction_switch(nu);
         keyData_switchDirectionNurb(cu, nu);
@@ -2674,13 +2619,12 @@ static int set_goal_weight_exec(bContext *C, wmOperator *op)
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     ListBase *editnurb = object_editcurve_get(obedit);
-    Nurb *nu;
     BezTriple *bezt;
     BPoint *bp;
     float weight = RNA_float_get(op->ptr, "weight");
     int a;
 
-    for (nu = editnurb->first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, editnurb) {
       if (nu->bezt) {
         for (bezt = nu->bezt, a = 0; a < nu->pntsu; a++, bezt++) {
           if (bezt->f2 & SELECT) {
@@ -2741,13 +2685,12 @@ static int set_radius_exec(bContext *C, wmOperator *op)
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     ListBase *editnurb = object_editcurve_get(obedit);
-    Nurb *nu;
     BezTriple *bezt;
     BPoint *bp;
     float radius = RNA_float_get(op->ptr, "radius");
     int a;
 
-    for (nu = editnurb->first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, editnurb) {
       if (nu->bezt) {
         for (bezt = nu->bezt, a = 0; a < nu->pntsu; a++, bezt++) {
           if (bezt->f2 & SELECT) {
@@ -2853,12 +2796,11 @@ static int smooth_exec(bContext *C, wmOperator *UNUSED(op))
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     ListBase *editnurb = object_editcurve_get(obedit);
-    Nurb *nu;
 
     int a, a_end;
     bool changed = false;
 
-    for (nu = editnurb->first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, editnurb) {
       if (nu->bezt) {
         /* duplicate the curve to use in weight calculation */
         const BezTriple *bezt_orig = MEM_dupallocN(nu->bezt);
@@ -2960,7 +2902,6 @@ void CURVE_OT_smooth(wmOperatorType *ot)
 
 static void curve_smooth_value(ListBase *editnurb, const int bezt_offsetof, const int bp_offset)
 {
-  Nurb *nu;
   BezTriple *bezt;
   BPoint *bp;
   int a;
@@ -2970,7 +2911,7 @@ static void curve_smooth_value(ListBase *editnurb, const int bezt_offsetof, cons
   int start_sel, end_sel; /* selection indices, inclusive */
   float start_rad, end_rad, fac, range;
 
-  for (nu = editnurb->first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, editnurb) {
     if (nu->bezt) {
 #define BEZT_VALUE(bezt) (*((float *)((char *)(bezt) + bezt_offsetof)))
 
@@ -3289,12 +3230,11 @@ static int hide_exec(bContext *C, wmOperator *op)
     }
 
     ListBase *editnurb = object_editcurve_get(obedit);
-    Nurb *nu;
     BPoint *bp;
     BezTriple *bezt;
     int a, sel;
 
-    for (nu = editnurb->first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, editnurb) {
       if (nu->type == CU_BEZIER) {
         bezt = nu->bezt;
         a = nu->pntsu;
@@ -3385,13 +3325,12 @@ static int reveal_exec(bContext *C, wmOperator *op)
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     ListBase *editnurb = object_editcurve_get(obedit);
-    Nurb *nu;
     BPoint *bp;
     BezTriple *bezt;
     int a;
     bool changed = false;
 
-    for (nu = editnurb->first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, editnurb) {
       nu->hide = 0;
       if (nu->type == CU_BEZIER) {
         bezt = nu->bezt;
@@ -3462,7 +3401,6 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
 {
   Curve *cu = obedit->data;
   EditNurb *editnurb = cu->editnurb;
-  Nurb *nu;
   BezTriple *bezt, *beztnew, *beztn;
   BPoint *bp, *prevbp, *bpnew, *bpn;
   float vec[15];
@@ -3471,7 +3409,7 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
 
   // printf("*** subdivideNurb: entering subdivide\n");
 
-  for (nu = editnurb->nurbs.first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
     amount = 0;
     if (nu->type == CU_BEZIER) {
       BezTriple *nextbezt;
@@ -3925,7 +3863,6 @@ static int set_spline_type_exec(bContext *C, wmOperator *op)
     Main *bmain = CTX_data_main(C);
     View3D *v3d = CTX_wm_view3d(C);
     ListBase *editnurb = object_editcurve_get(obedit);
-    Nurb *nu;
     bool changed = false;
     bool changed_size = false;
     const bool use_handles = RNA_boolean_get(op->ptr, "use_handles");
@@ -3936,7 +3873,7 @@ static int set_spline_type_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    for (nu = editnurb->first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, editnurb) {
       if (ED_curve_nurb_select_check(v3d, nu)) {
         const int pntsu_prev = nu->pntsu;
         const char *err_msg = NULL;
@@ -4225,12 +4162,11 @@ static void make_selection_list_nurb(View3D *v3d, ListBase *editnurb, ListBase *
 {
   ListBase nbase = {NULL, NULL};
   NurbSort *nus, *nustest, *headdo, *taildo;
-  Nurb *nu;
   BPoint *bp;
   float dist, headdist, taildist;
   int a;
 
-  for (nu = editnurb->first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, editnurb) {
     if (ED_curve_nurb_select_check(v3d, nu)) {
 
       nus = (NurbSort *)MEM_callocN(sizeof(NurbSort), "sort");
@@ -4996,7 +4932,6 @@ bool ed_editnurb_spin(
 {
   Curve *cu = (Curve *)obedit->data;
   ListBase *editnurb = object_editcurve_get(obedit);
-  Nurb *nu;
   float cmat[3][3], tmat[3][3], imat[3][3];
   float bmat[3][3], rotmat[3][3], scalemat1[3][3], scalemat2[3][3];
   float persmat[3][3], persinv[3][3];
@@ -5056,7 +4991,7 @@ bool ed_editnurb_spin(
   }
 
   if (ok) {
-    for (nu = editnurb->first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, editnurb) {
       if (ED_curve_nurb_select_check(v3d, nu)) {
         nu->orderv = 4;
         nu->flagv |= CU_NURB_CYCLIC;
@@ -5427,8 +5362,6 @@ static int ed_editcurve_addvert(Curve *cu,
                                 View3D *v3d,
                                 const float location_init[3])
 {
-  Nurb *nu;
-
   float center[3];
   float temp[3];
   uint verts_len;
@@ -5437,7 +5370,7 @@ static int ed_editcurve_addvert(Curve *cu,
   zero_v3(center);
   verts_len = 0;
 
-  for (nu = editnurb->nurbs.first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
     int i;
     if (nu->type == CU_BEZIER) {
       BezTriple *bezt;
@@ -5472,7 +5405,7 @@ static int ed_editcurve_addvert(Curve *cu,
       ofs[2] = 0.0f;
     }
 
-    for (nu = editnurb->nurbs.first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
       if (nu->type == CU_BEZIER) {
         BezTriple *bezt;
         for (i = 0, bezt = nu->bezt; i < nu->pntsu; i++, bezt++) {
@@ -5511,7 +5444,7 @@ static int ed_editcurve_addvert(Curve *cu,
     }
 
     /* nothing selected: create a new curve */
-    nu = BKE_curve_nurb_active_get(cu);
+    Nurb *nu = BKE_curve_nurb_active_get(cu);
 
     if (!nu || nu->type == CU_BEZIER) {
       Nurb *nurb_new;
@@ -5764,8 +5697,7 @@ static int curve_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 
     /* First test: curve? */
     if (obedit->type != OB_CURVE) {
-      Nurb *nu;
-      for (nu = editnurb->nurbs.first; nu; nu = nu->next) {
+      LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
         if ((nu->pntsv == 1) && (ED_curve_nurb_select_count(v3d, nu) == 1)) {
           as_curve = true;
           break;
@@ -5819,13 +5751,12 @@ void CURVE_OT_extrude(wmOperatorType *ot)
 
 static bool curve_toggle_cyclic(View3D *v3d, ListBase *editnurb, int direction)
 {
-  Nurb *nu;
   BezTriple *bezt;
   BPoint *bp;
   int a;
   bool changed = false;
 
-  for (nu = editnurb->first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, editnurb) {
     if (nu->pntsu > 1 || nu->pntsv > 1) {
       if (nu->type == CU_POLY) {
         a = nu->pntsu;
@@ -5932,10 +5863,9 @@ static int toggle_cyclic_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
   ListBase *editnurb = object_editcurve_get(obedit);
   uiPopupMenu *pup;
   uiLayout *layout;
-  Nurb *nu;
 
   if (obedit->type == OB_SURF) {
-    for (nu = editnurb->first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, editnurb) {
       if (nu->pntsu > 1 || nu->pntsv > 1) {
         if (nu->type == CU_NURBS) {
           pup = UI_popup_menu_begin(C, IFACE_("Direction"), ICON_NONE);
@@ -6064,12 +5994,12 @@ static bool curve_delete_segments(Object *obedit, View3D *v3d, const bool split)
   Curve *cu = obedit->data;
   EditNurb *editnurb = cu->editnurb;
   ListBase *nubase = &editnurb->nurbs, newnurb = {NULL, NULL};
-  Nurb *nu, *nu1;
+  Nurb *nu1;
   BezTriple *bezt, *bezt1, *bezt2;
   BPoint *bp, *bp1, *bp2;
   int a, b, starta, enda, cut, cyclicut;
 
-  for (nu = nubase->first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, nubase) {
     nu1 = NULL;
     starta = enda = cut = -1;
     cyclicut = 0;
@@ -6452,7 +6382,7 @@ static bool curve_delete_segments(Object *obedit, View3D *v3d, const bool split)
     }
   }
 
-  for (nu = newnurb.first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, &newnurb) {
     if (nu->type == CU_BEZIER) {
       if (split) {
         /* deselect for split operator */
@@ -6620,9 +6550,8 @@ static int curve_dissolve_exec(bContext *C, wmOperator *UNUSED(op))
     }
 
     ListBase *editnurb = object_editcurve_get(obedit);
-    Nurb *nu;
 
-    for (nu = editnurb->first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, editnurb) {
       if ((nu->type == CU_BEZIER) && (nu->pntsu > 2)) {
         uint span_step[2] = {nu->pntsu, nu->pntsu};
         uint span_len;
@@ -6766,9 +6695,8 @@ static int curve_decimate_exec(bContext *C, wmOperator *op)
 
     {
       ListBase *editnurb = object_editcurve_get(obedit);
-      Nurb *nu;
 
-      for (nu = editnurb->first; nu; nu = nu->next) {
+      LISTBASE_FOREACH (Nurb *, nu, editnurb) {
         if (nu->type == CU_BEZIER) {
           if ((nu->pntsu > 2) && nurb_bezt_flag_any(nu, SELECT)) {
             const int error_target_len = max_ii(2, nu->pntsu * ratio);
@@ -6917,7 +6845,6 @@ int ED_curve_join_objects_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Object *ob_active = CTX_data_active_object(C);
   Curve *cu;
-  Nurb *nu, *newnu;
   BezTriple *bezt;
   BPoint *bp;
   ListBase tempbase;
@@ -6955,9 +6882,8 @@ int ED_curve_join_objects_exec(bContext *C, wmOperator *op)
           /* watch it: switch order here really goes wrong */
           mul_m4_m4m4(cmat, imat, ob_iter->obmat);
 
-          nu = cu->nurb.first;
-          while (nu) {
-            newnu = BKE_nurb_duplicate(nu);
+          LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
+            Nurb *newnu = BKE_nurb_duplicate(nu);
             if (ob_active->totcol) { /* TODO, merge material lists */
               CLAMP(newnu->mat_nr, 0, ob_active->totcol - 1);
             }
@@ -6983,7 +6909,6 @@ int ED_curve_join_objects_exec(bContext *C, wmOperator *op)
                 bp++;
               }
             }
-            nu = nu->next;
           }
         }
 
@@ -7035,12 +6960,11 @@ static int clear_tilt_exec(bContext *C, wmOperator *UNUSED(op))
     }
 
     ListBase *editnurb = object_editcurve_get(obedit);
-    Nurb *nu;
     BezTriple *bezt;
     BPoint *bp;
     int a;
 
-    for (nu = editnurb->first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, editnurb) {
       if (nu->bezt) {
         bezt = nu->bezt;
         a = nu->pntsu;

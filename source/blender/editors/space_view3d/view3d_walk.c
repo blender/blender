@@ -337,7 +337,7 @@ static void drawWalkPixel(const struct bContext *UNUSED(C), ARegion *region, voi
 
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-  immUniformThemeColor3(TH_VIEW_OVERLAY);
+  immUniformThemeColorAlpha(TH_VIEW_OVERLAY, 1.0f);
 
   immBegin(GPU_PRIM_LINES, 8);
 

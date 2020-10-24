@@ -1112,7 +1112,7 @@ bool ED_view3d_autodist_depth_seg(
 /* -------------------------------------------------------------------- */
 /** \name View Radius/Distance Utilities
  *
- * Use to calculate a distance to a point based on it's radius.
+ * Use to calculate a distance to a point based on its radius.
  * \{ */
 
 float ED_view3d_radius_to_dist_persp(const float angle, const float radius)

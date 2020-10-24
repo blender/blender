@@ -1047,6 +1047,21 @@ bool SCULPT_is_vertex_inside_brush_radius_symm(const float vertex[3],
   return false;
 }
 
+void SCULPT_tag_update_overlays(bContext *C)
+{
+  ARegion *region = CTX_wm_region(C);
+  ED_region_tag_redraw(region);
+
+  Object *ob = CTX_data_active_object(C);
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
+  View3D *v3d = CTX_wm_view3d(C);
+  if (!BKE_sculptsession_use_pbvh_draw(ob, v3d)) {
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  }
+}
+
 /* Sculpt Flood Fill API
  *
  * Iterate over connected vertices, starting from one or more initial vertices. */
@@ -2795,6 +2810,12 @@ void SCULPT_tilt_apply_to_normal(float r_normal[3], StrokeCache *cache, const fl
   normalize_v3(r_normal);
 }
 
+void SCULPT_tilt_effective_normal_get(const SculptSession *ss, const Brush *brush, float r_no[3])
+{
+  copy_v3_v3(r_no, ss->cache->sculpt_normal_symm);
+  SCULPT_tilt_apply_to_normal(r_no, ss->cache, brush->tilt_strength_factor);
+}
+
 static void update_brush_local_mat(Sculpt *sd, Object *ob)
 {
   StrokeCache *cache = ob->sculpt->cache;
@@ -3104,8 +3125,9 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   const float bstrength = ss->cache->bstrength;
 
   /* Offset with as much as possible factored in already. */
-  mul_v3_v3fl(offset, ss->cache->sculpt_normal_symm, ss->cache->radius);
-  SCULPT_tilt_apply_to_normal(offset, ss->cache, brush->tilt_strength_factor);
+  float effective_normal[3];
+  SCULPT_tilt_effective_normal_get(ss, brush, effective_normal);
+  mul_v3_v3fl(offset, effective_normal, ss->cache->radius);
   mul_v3_v3(offset, ss->cache->scale);
   mul_v3_fl(offset, bstrength);
 
@@ -3182,8 +3204,9 @@ static void do_draw_sharp_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
   const float bstrength = ss->cache->bstrength;
 
   /* Offset with as much as possible factored in already. */
-  mul_v3_v3fl(offset, ss->cache->sculpt_normal_symm, ss->cache->radius);
-  SCULPT_tilt_apply_to_normal(offset, ss->cache, brush->tilt_strength_factor);
+  float effective_normal[3];
+  SCULPT_tilt_effective_normal_get(ss, brush, effective_normal);
+  mul_v3_v3fl(offset, effective_normal, ss->cache->radius);
   mul_v3_v3(offset, ss->cache->scale);
   mul_v3_fl(offset, bstrength);
 
@@ -3782,20 +3805,33 @@ static void do_grab_brush_task_cb_ex(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
+  const bool grab_silhouette = brush->flag2 & BRUSH_GRAB_SILHOUETTE;
+
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
     SCULPT_orig_vert_data_update(&orig_data, &vd);
 
     if (sculpt_brush_test_sq_fn(&test, orig_data.co)) {
-      const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                  brush,
-                                                                  orig_data.co,
-                                                                  sqrtf(test.dist),
-                                                                  orig_data.no,
-                                                                  NULL,
-                                                                  vd.mask ? *vd.mask : 0.0f,
-                                                                  vd.index,
-                                                                  thread_id);
+      float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                            brush,
+                                                            orig_data.co,
+                                                            sqrtf(test.dist),
+                                                            orig_data.no,
+                                                            NULL,
+                                                            vd.mask ? *vd.mask : 0.0f,
+                                                            vd.index,
+                                                            thread_id);
+
+      if (grab_silhouette) {
+        float silhouette_test_dir[3];
+        normalize_v3_v3(silhouette_test_dir, grab_delta);
+        if (dot_v3v3(ss->cache->initial_normal, ss->cache->grab_delta) < 0.0f) {
+          mul_v3_fl(silhouette_test_dir, -1.0f);
+        }
+        float vno[3];
+        normal_short_to_float_v3(vno, orig_data.no);
+        fade *= max_ff(dot_v3v3(vno, silhouette_test_dir), 0.0f);
+      }
 
       mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
 
@@ -5643,15 +5679,11 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
   /* Check for unsupported features. */
   PBVHType type = BKE_pbvh_type(ss->pbvh);
   if (brush->sculpt_tool == SCULPT_TOOL_PAINT && type != PBVH_FACES) {
-    if (!U.experimental.use_sculpt_vertex_colors) {
-      return;
-    }
+    return;
   }
 
   if (brush->sculpt_tool == SCULPT_TOOL_SMEAR && type != PBVH_FACES) {
-    if (!U.experimental.use_sculpt_vertex_colors) {
-      return;
-    }
+    return;
   }
 
   /* Build a list of all nodes that are potentially within the brush's area of influence */
@@ -7163,7 +7195,7 @@ float SCULPT_raycast_init(ViewContext *vc,
 
   if ((rv3d->is_persp == false) &&
       /* If the ray is clipped, don't adjust its start/end. */
-      RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
+      !RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
     BKE_pbvh_raycast_project_ray_root(ob->sculpt->pbvh, original, ray_start, ray_end, ray_normal);
 
     /* rRecalculate the normal. */
@@ -8140,7 +8172,7 @@ static int ed_object_sculptmode_flush_recalc_flag(Scene *scene,
   int flush_recalc = 0;
   /* Multires in sculpt mode could have different from object mode subdivision level. */
   flush_recalc |= mmd && mmd->sculptlvl != mmd->lvl;
-  /* If object has got active modifiers, it's dm could be different in sculpt mode.  */
+  /* If object has got active modifiers, its dm could be different in sculpt mode.  */
   flush_recalc |= sculpt_has_active_modifiers(scene, ob);
   return flush_recalc;
 }
@@ -8349,7 +8381,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 
     if (ob->mode & mode_flag) {
       Mesh *me = ob->data;
-      /* Dyntopo add's it's own undo step. */
+      /* Dyntopo adds its own undo step. */
       if ((me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) == 0) {
         /* Without this the memfile undo step is used,
          * while it works it causes lag when undoing the first undo step, see T71564. */

@@ -189,7 +189,7 @@
  */
 #  define BCHUNK_SIZE_MIN_DIV 8
 
-/* Disallow chunks bigger then the regular chunk size scaled by this value
+/* Disallow chunks bigger than the regular chunk size scaled by this value
  * note: must be at least 2!
  * however, this code runs wont run in tests unless its ~1.1 ugh.
  * so lower only to check splitting works.
@@ -523,7 +523,7 @@ static void bchunk_list_calc_trim_len(const BArrayInfo *info,
 
 #ifdef USE_MERGE_CHUNKS
   /* avoid creating too-small chunks
-   * more efficient then merging after */
+   * more efficient than merging after */
   if (data_len > info->chunk_byte_size) {
     data_last_chunk_len = (data_trim_len % info->chunk_byte_size);
     data_trim_len = data_trim_len - data_last_chunk_len;

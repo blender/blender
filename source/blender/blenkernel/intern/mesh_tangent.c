@@ -724,7 +724,9 @@ void BKE_mesh_calc_loop_tangent_ex(const MVert *mvert,
     *tangent_mask_curr_p = tangent_mask_curr;
 
     /* Update active layer index */
-    int act_uv_index = CustomData_get_layer_index_n(loopdata, CD_MLOOPUV, act_uv_n);
+    int act_uv_index = (act_uv_n != -1) ?
+                           CustomData_get_layer_index_n(loopdata, CD_MLOOPUV, act_uv_n) :
+                           -1;
     if (act_uv_index != -1) {
       int tan_index = CustomData_get_named_layer_index(
           loopdata, CD_TANGENT, loopdata->layers[act_uv_index].name);
@@ -732,7 +734,9 @@ void BKE_mesh_calc_loop_tangent_ex(const MVert *mvert,
     } /* else tangent has been built from orco */
 
     /* Update render layer index */
-    int ren_uv_index = CustomData_get_layer_index_n(loopdata, CD_MLOOPUV, ren_uv_n);
+    int ren_uv_index = (ren_uv_n != -1) ?
+                           CustomData_get_layer_index_n(loopdata, CD_MLOOPUV, ren_uv_n) :
+                           -1;
     if (ren_uv_index != -1) {
       int tan_index = CustomData_get_named_layer_index(
           loopdata, CD_TANGENT, loopdata->layers[ren_uv_index].name);

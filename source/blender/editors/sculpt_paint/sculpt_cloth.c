@@ -153,6 +153,8 @@ static float cloth_brush_simulation_falloff_get(const Brush *brush,
 
 #define CLOTH_LENGTH_CONSTRAINTS_BLOCK 100000
 #define CLOTH_SIMULATION_ITERATIONS 5
+
+#define CLOTH_SOLVER_DISPLACEMENT_FACTOR 0.6f
 #define CLOTH_MAX_CONSTRAINTS_PER_VERTEX 1024
 #define CLOTH_SIMULATION_TIME_STEP 0.01f
 #define CLOTH_DEFORMATION_SNAKEHOOK_STRENGTH 0.35f
@@ -805,10 +807,13 @@ static void cloth_brush_satisfy_constraints(SculptSession *ss,
                                         (cloth_sim->length_constraint_tweak[v2] * 0.5f);
 
       if (current_distance > 0.0f) {
-        mul_v3_v3fl(correction_vector, v1_to_v2, 1.0f - (constraint_distance / current_distance));
+        mul_v3_v3fl(correction_vector,
+                    v1_to_v2,
+                    CLOTH_SOLVER_DISPLACEMENT_FACTOR *
+                        (1.0f - (constraint_distance / current_distance)));
       }
       else {
-        copy_v3_v3(correction_vector, v1_to_v2);
+        mul_v3_v3fl(correction_vector, v1_to_v2, CLOTH_SOLVER_DISPLACEMENT_FACTOR);
       }
 
       mul_v3_v3fl(correction_vector_half, correction_vector, 0.5f);

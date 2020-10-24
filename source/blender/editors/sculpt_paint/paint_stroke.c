@@ -692,7 +692,7 @@ static float paint_space_stroke_spacing(bContext *C,
     }
   }
   else {
-    /* brushes can have a minimum size of 1.0 but with pressure it can be smaller then a pixel
+    /* brushes can have a minimum size of 1.0 but with pressure it can be smaller than a pixel
      * causing very high step sizes, hanging blender T32381. */
     size_clamp = max_ff(1.0f, size);
   }

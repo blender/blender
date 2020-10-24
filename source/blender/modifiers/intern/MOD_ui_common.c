@@ -17,9 +17,8 @@
  * \ingroup modifiers
  */
 
-#include <string.h>
-
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -230,14 +229,14 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
   /* Apply as shapekey. */
   if (BKE_modifier_is_same_topology(md) && !BKE_modifier_is_non_geometrical(md)) {
     uiItemBooleanO(layout,
-                   CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply As Shapekey"),
+                   CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply as Shape Key"),
                    ICON_SHAPEKEY_DATA,
                    "OBJECT_OT_modifier_apply_as_shapekey",
                    "keep_modifier",
                    false);
 
     uiItemBooleanO(layout,
-                   CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Save As Shapekey"),
+                   CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Save as Shape Key"),
                    ICON_SHAPEKEY_DATA,
                    "OBJECT_OT_modifier_apply_as_shapekey",
                    "keep_modifier",
@@ -406,10 +405,10 @@ PanelType *modifier_panel_register(ARegionType *region_type, ModifierType type, 
 
   PanelType *panel_type = MEM_callocN(sizeof(PanelType), panel_idname);
 
-  strcpy(panel_type->idname, panel_idname);
-  strcpy(panel_type->label, "");
-  strcpy(panel_type->context, "modifier");
-  strcpy(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  BLI_strncpy(panel_type->idname, panel_idname, BKE_ST_MAXNAME);
+  BLI_strncpy(panel_type->label, "", BKE_ST_MAXNAME);
+  BLI_strncpy(panel_type->context, "modifier", BKE_ST_MAXNAME);
+  BLI_strncpy(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA, BKE_ST_MAXNAME);
 
   panel_type->draw_header = modifier_panel_header;
   panel_type->draw = draw;
@@ -442,16 +441,14 @@ PanelType *modifier_subpanel_register(ARegionType *region_type,
 {
   /* Create the subpanel's ID name. */
   char panel_idname[BKE_ST_MAXNAME];
-  strcpy(panel_idname, parent->idname);
-  strcat(panel_idname, "_");
-  strcat(panel_idname, name);
+  BLI_snprintf(panel_idname, BKE_ST_MAXNAME, "%s_%s", parent->idname, name);
 
   PanelType *panel_type = MEM_callocN(sizeof(PanelType), panel_idname);
 
-  strcpy(panel_type->idname, panel_idname);
-  strcpy(panel_type->label, label);
-  strcpy(panel_type->context, "modifier");
-  strcpy(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  BLI_strncpy(panel_type->idname, panel_idname, BKE_ST_MAXNAME);
+  BLI_strncpy(panel_type->label, label, BKE_ST_MAXNAME);
+  BLI_strncpy(panel_type->context, "modifier", BKE_ST_MAXNAME);
+  BLI_strncpy(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA, BKE_ST_MAXNAME);
 
   panel_type->draw_header = draw_header;
   panel_type->draw = draw;
@@ -459,7 +456,7 @@ PanelType *modifier_subpanel_register(ARegionType *region_type,
   panel_type->flag = (PNL_DEFAULT_CLOSED | PNL_DRAW_BOX);
 
   BLI_assert(parent != NULL);
-  strcpy(panel_type->parent_id, parent->idname);
+  BLI_strncpy(panel_type->parent_id, parent->idname, BKE_ST_MAXNAME);
   panel_type->parent = parent;
   BLI_addtail(&parent->children, BLI_genericNodeN(panel_type));
   BLI_addtail(&region_type->paneltypes, panel_type);

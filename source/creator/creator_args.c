@@ -48,6 +48,7 @@
 #  include "BKE_blender_version.h"
 #  include "BKE_context.h"
 
+#  include "BKE_appdir.h"
 #  include "BKE_global.h"
 #  include "BKE_image.h"
 #  include "BKE_lib_id.h"
@@ -56,9 +57,7 @@
 #  include "BKE_scene.h"
 #  include "BKE_sound.h"
 
-#  ifdef WITH_FFMPEG
-#    include "IMB_imbuf.h"
-#  endif
+#  include "IMB_imbuf.h"
 
 #  ifdef WITH_PYTHON
 #    include "BPY_extern_python.h"
@@ -1205,6 +1204,8 @@ static int arg_handle_playback_mode(int argc, const char **argv, void *UNUSED(da
 {
   /* not if -b was given first */
   if (G.background == 0) {
+    BKE_appdir_init();
+    IMB_init();
 #  ifdef WITH_FFMPEG
     /* Setup FFmpeg with current debug flags. */
     IMB_ffmpeg_init();

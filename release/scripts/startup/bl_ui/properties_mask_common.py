@@ -37,7 +37,7 @@ def draw_mask_context_menu(layout, context):
 
     layout.separator()
 
-    layout.operator("mask.shape_key_rekey", text="Re-key Shape Points")
+    layout.operator("mask.shape_key_rekey", text="Re-Key Shape Points")
     layout.operator("mask.feather_weight_clear")
     layout.operator("mask.shape_key_feather_reset", text="Reset Feather Animation")
 

@@ -40,9 +40,6 @@ struct rcti;
 
 int BLF_init(void);
 void BLF_exit(void);
-void BLF_default_dpi(int dpi);
-void BLF_default_set(int fontid);
-int BLF_default(void); /* get default font ID so we can pass it to other functions */
 
 void BLF_cache_clear(void);
 
@@ -97,13 +94,6 @@ void BLF_matrix(int fontid, const float m[16]);
 void BLF_batch_draw_begin(void);
 void BLF_batch_draw_flush(void);
 void BLF_batch_draw_end(void);
-
-/* Draw the string using the default font, size and dpi. */
-void BLF_draw_default(float x, float y, float z, const char *str, size_t len) ATTR_NONNULL();
-void BLF_draw_default_ascii(float x, float y, float z, const char *str, size_t len) ATTR_NONNULL();
-
-/* Set size and DPI, and return default font ID. */
-int BLF_set_default(void);
 
 /* Draw the string using the current font. */
 void BLF_draw_ex(int fontid, const char *str, size_t len, struct ResultBLF *r_info)
@@ -163,13 +153,8 @@ float BLF_height_ex(int fontid, const char *str, size_t len, struct ResultBLF *r
 float BLF_height(int fontid, const char *str, size_t len) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
 /* Return dimensions of the font without any sample text. */
-
 int BLF_height_max(int fontid) ATTR_WARN_UNUSED_RESULT;
-int BLF_default_height_max(void) ATTR_WARN_UNUSED_RESULT;
-
 float BLF_width_max(int fontid) ATTR_WARN_UNUSED_RESULT;
-float BLF_default_width_max(void) ATTR_WARN_UNUSED_RESULT;
-
 float BLF_descender(int fontid) ATTR_WARN_UNUSED_RESULT;
 float BLF_ascender(int fontid) ATTR_WARN_UNUSED_RESULT;
 
@@ -261,6 +246,16 @@ void BLF_thumb_preview(const char *filename,
                        int w,
                        int h,
                        int channels) ATTR_NONNULL();
+
+/* blf_default.c */
+void BLF_default_dpi(int dpi);
+void BLF_default_set(int fontid);
+int BLF_default(void); /* get default font ID so we can pass it to other functions */
+/* Draw the string using the default font, size and dpi. */
+void BLF_draw_default(float x, float y, float z, const char *str, size_t len) ATTR_NONNULL();
+void BLF_draw_default_ascii(float x, float y, float z, const char *str, size_t len) ATTR_NONNULL();
+/* Set size and DPI, and return default font ID. */
+int BLF_set_default(void);
 
 /* blf_font_default.c */
 int BLF_load_default(const bool unique);

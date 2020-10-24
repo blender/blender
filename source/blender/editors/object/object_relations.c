@@ -1244,6 +1244,7 @@ static int parent_noinv_set_exec(bContext *C, wmOperator *op)
 
   DEG_relations_tag_update(bmain);
   WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
+  WM_event_add_notifier(C, NC_OBJECT | ND_PARENT, NULL);
 
   return OPERATOR_FINISHED;
 }
@@ -1358,7 +1359,7 @@ enum {
 
 static const EnumPropertyItem prop_make_track_types[] = {
     {CREATE_TRACK_DAMPTRACK, "DAMPTRACK", 0, "Damped Track Constraint", ""},
-    {CREATE_TRACK_TRACKTO, "TRACKTO", 0, "Track To Constraint", ""},
+    {CREATE_TRACK_TRACKTO, "TRACKTO", 0, "Track to Constraint", ""},
     {CREATE_TRACK_LOCKTRACK, "LOCKTRACK", 0, "Lock Track Constraint", ""},
     {0, NULL, 0, NULL, NULL},
 };

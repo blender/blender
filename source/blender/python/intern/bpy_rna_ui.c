@@ -17,7 +17,7 @@
 /** \file
  * \ingroup pythonintern
  *
- * This adds helpers to #uiLayout which can't be added easily to RNA it's self.
+ * This adds helpers to #uiLayout which can't be added easily to RNA itself.
  */
 
 #include <Python.h>

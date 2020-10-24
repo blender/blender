@@ -22,6 +22,7 @@
 
 #include "libmv/logging/logging.h"
 #include "libmv/simple_pipeline/distortion_models.h"
+#include "libmv/simple_pipeline/packed_intrinsics.h"
 
 namespace libmv {
 
@@ -131,6 +132,20 @@ void CameraIntrinsics::ResetLookupGrids() {
   undistort_.Reset();
 }
 
+void CameraIntrinsics::Pack(PackedIntrinsics* packed_intrinsics) const {
+  packed_intrinsics->SetFocalLength(focal_length());
+  packed_intrinsics->SetPrincipalPoint(principal_point_x(),
+                                       principal_point_y());
+}
+
+void CameraIntrinsics::Unpack(const PackedIntrinsics& packed_intrinsics) {
+  SetFocalLength(packed_intrinsics.GetFocalLength(),
+                 packed_intrinsics.GetFocalLength());
+
+  SetPrincipalPoint(packed_intrinsics.GetPrincipalPointX(),
+                    packed_intrinsics.GetPrincipalPointY());
+}
+
 // Polynomial model.
 
 PolynomialCameraIntrinsics::PolynomialCameraIntrinsics()
@@ -195,6 +210,30 @@ void PolynomialCameraIntrinsics::InvertIntrinsics(
                                   normalized_y);
 }
 
+void PolynomialCameraIntrinsics::Pack(
+    PackedIntrinsics* packed_intrinsics) const {
+  CameraIntrinsics::Pack(packed_intrinsics);
+
+  packed_intrinsics->SetK1(k1());
+  packed_intrinsics->SetK2(k2());
+  packed_intrinsics->SetK3(k3());
+
+  packed_intrinsics->SetP1(p1());
+  packed_intrinsics->SetP2(p2());
+}
+
+void PolynomialCameraIntrinsics::Unpack(
+    const PackedIntrinsics& packed_intrinsics) {
+  CameraIntrinsics::Unpack(packed_intrinsics);
+
+  SetRadialDistortion(packed_intrinsics.GetK1(),
+                      packed_intrinsics.GetK2(),
+                      packed_intrinsics.GetK3());
+
+  SetTangentialDistortion(packed_intrinsics.GetP1(),
+                          packed_intrinsics.GetP2());
+}
+
 // Division model.
 
 DivisionCameraIntrinsics::DivisionCameraIntrinsics()
@@ -243,6 +282,21 @@ void DivisionCameraIntrinsics::InvertIntrinsics(double image_x,
                                 image_y,
                                 normalized_x,
                                 normalized_y);
+}
+
+void DivisionCameraIntrinsics::Pack(
+    PackedIntrinsics* packed_intrinsics) const {
+  CameraIntrinsics::Pack(packed_intrinsics);
+
+  packed_intrinsics->SetK1(k1());
+  packed_intrinsics->SetK2(k2());
+}
+
+void DivisionCameraIntrinsics::Unpack(
+    const PackedIntrinsics& packed_intrinsics) {
+  CameraIntrinsics::Unpack(packed_intrinsics);
+
+  SetDistortion(packed_intrinsics.GetK1(), packed_intrinsics.GetK2());
 }
 
 // Nuke model.
@@ -294,6 +348,21 @@ void NukeCameraIntrinsics::InvertIntrinsics(double image_x,
                             image_y,
                             normalized_x,
                             normalized_y);
+}
+
+void NukeCameraIntrinsics::Pack(
+    PackedIntrinsics* packed_intrinsics) const {
+  CameraIntrinsics::Pack(packed_intrinsics);
+
+  packed_intrinsics->SetK1(k1());
+  packed_intrinsics->SetK2(k2());
+}
+
+void NukeCameraIntrinsics::Unpack(
+    const PackedIntrinsics& packed_intrinsics) {
+  CameraIntrinsics::Unpack(packed_intrinsics);
+
+  SetDistortion(packed_intrinsics.GetK1(), packed_intrinsics.GetK2());
 }
 
 // Brown model.
@@ -360,6 +429,32 @@ void BrownCameraIntrinsics::InvertIntrinsics(
                              image_y,
                              normalized_x,
                              normalized_y);
+}
+
+void BrownCameraIntrinsics::Pack(
+    PackedIntrinsics* packed_intrinsics) const {
+  CameraIntrinsics::Pack(packed_intrinsics);
+
+  packed_intrinsics->SetK1(k1());
+  packed_intrinsics->SetK2(k2());
+  packed_intrinsics->SetK3(k3());
+  packed_intrinsics->SetK4(k4());
+
+  packed_intrinsics->SetP1(p1());
+  packed_intrinsics->SetP2(p2());
+}
+
+void BrownCameraIntrinsics::Unpack(
+    const PackedIntrinsics& packed_intrinsics) {
+  CameraIntrinsics::Unpack(packed_intrinsics);
+
+  SetRadialDistortion(packed_intrinsics.GetK1(),
+                      packed_intrinsics.GetK2(),
+                      packed_intrinsics.GetK3(),
+                      packed_intrinsics.GetK4());
+
+  SetTangentialDistortion(packed_intrinsics.GetP1(),
+                          packed_intrinsics.GetP2());
 }
 
 std::ostream& operator <<(std::ostream &os,

@@ -46,11 +46,11 @@ typedef enum eBoidRuleType {
 #if 0
   /** go to enemy closest to target and attack when in range */
   eBoidRuleType_Protect = 9,
-  /** find a deflector move to it's other side from closest enemy */
+  /** find a deflector move to its other side from closest enemy */
   eBoidRuleType_Hide = 10,
   /** move along a assigned curve or closest curve in a group */
   eBoidRuleType_FollowPath = 11,
-  /** move next to a deflector object's in direction of it's tangent */
+  /** move next to a deflector object's in direction of its tangent */
   eBoidRuleType_FollowWall = 12,
 #endif
 } eBoidRuleType;

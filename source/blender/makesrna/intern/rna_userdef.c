@@ -232,7 +232,7 @@ void rna_userdef_is_dirty_update_impl(void)
 
 /**
  * Use as a fallback update handler,
- * never use 'ptr' unless it's type is checked.
+ * never use 'ptr' unless its type is checked.
  */
 void rna_userdef_is_dirty_update(Main *UNUSED(bmain),
                                  Scene *UNUSED(scene),
@@ -4786,7 +4786,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "font_path_ui_mono", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_string_sdna(prop, NULL, "font_path_ui_mono");
-  RNA_def_property_ui_text(prop, "Mono-space Font", "Path to interface mono-space Font");
+  RNA_def_property_ui_text(prop, "Monospaced Font", "Path to interface monospaced Font");
   RNA_def_property_update(prop, NC_WINDOW, "rna_userdef_font_update");
 
   /* Language. */
@@ -6147,10 +6147,15 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
       "Undo Legacy",
       "Use legacy undo (slower than the new default one, but may be more stable in some cases)");
 
-  prop = RNA_def_property(srna, "use_new_particle_system", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "use_new_particle_system", 1);
+  prop = RNA_def_property(srna, "use_new_geometry_nodes", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "use_new_geometry_nodes", 1);
   RNA_def_property_ui_text(
-      prop, "New Particle System", "Enable the new particle system in the ui");
+      prop, "New Geometry Nodes", "Enable the new geometry nodes system in the ui");
+
+  prop = RNA_def_property(srna, "use_new_point_cloud_type", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "use_new_point_cloud_type", 1);
+  RNA_def_property_ui_text(
+      prop, "New Point Cloud Type", "Enable the new point cloud type in the ui");
 
   prop = RNA_def_property(srna, "use_new_hair_type", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_new_hair_type", 1);
@@ -6169,15 +6174,6 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "use_switch_object_operator", 1);
   RNA_def_property_ui_text(
       prop, "Switch Object Operator", "Enable the operator to switch objects by pressing D");
-
-  prop = RNA_def_property(srna, "use_image_editor_legacy_drawing", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "use_image_editor_legacy_drawing", 1);
-  RNA_def_property_ui_text(
-      prop, "Image Editor Legacy Drawing", "Use legacy UV/Image editor drawing");
-
-  prop = RNA_def_property(srna, "use_tools_missing_icons", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "use_tools_missing_icons", 1);
-  RNA_def_property_ui_text(prop, "Tools with Missing Icons", "Show tools with missing icons");
 
   prop = RNA_def_property(srna, "use_sculpt_tools_tilt", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_sculpt_tools_tilt", 1);

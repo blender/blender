@@ -862,7 +862,7 @@ typedef struct PaintToolSlot {
 typedef struct Paint {
   struct Brush *brush;
 
-  /* Each tool has it's own active brush,
+  /* Each tool has its own active brush,
    * The currently active tool is defined by the current 'brush'. */
   struct PaintToolSlot *tool_slots;
   int tool_slots_len;

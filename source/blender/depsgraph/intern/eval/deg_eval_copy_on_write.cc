@@ -766,7 +766,7 @@ void update_proxy_pointers_after_copy(const Depsgraph *depsgraph,
   }
 }
 
-/* Do some special treatment of data transfer from original ID to it's
+/* Do some special treatment of data transfer from original ID to its
  * CoW complementary part.
  *
  * Only use for the newly created CoW data-blocks. */
@@ -1043,7 +1043,7 @@ void discard_edit_mode_pointers(ID *id_cow)
 
 /* Free content of the CoW data-block
  * Notes:
- * - Does not recurs into nested ID data-blocks.
+ * - Does not recurse into nested ID data-blocks.
  * - Does not free data-block itself. */
 void deg_free_copy_on_write_datablock(ID *id_cow)
 {

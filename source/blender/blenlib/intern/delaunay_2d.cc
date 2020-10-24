@@ -1031,7 +1031,7 @@ void dc_tri(CDTArrangement<T> *cdt,
     }
     return;
   }
-  /* Recursive case. Do left (L) and right (R) halves seperately, then join. */
+  /* Recursive case. Do left (L) and right (R) halves separately, then join. */
   int n2 = n / 2;
   BLI_assert(n2 >= 2 && end - (start + n2) >= 2);
   SymEdge<T> *ldo;
@@ -1308,8 +1308,8 @@ template<typename T> inline int tri_orient(const SymEdge<T> *t)
  * For case (a), 'vert' will be the vertex, and lambda will be 0, and 'in' will be the #SymEdge
  * from 'vert' that has as face the one that you go through to get to this vertex. If you go
  * exactly along an edge then we set 'in' to NULL, since it won't be needed. The first crossing
- * will have 'in' = NULL. We set 'out' to the #SymEdge that has the face we go though to get to the
- * next crossing, or, if the next crossing is a case (a), then it is the edge that goes to that
+ * will have 'in' = NULL. We set 'out' to the #SymEdge that has the face we go through to get to
+ * the next crossing, or, if the next crossing is a case (a), then it is the edge that goes to that
  * next vertex. 'out' will be NULL for the last one.
  *
  * For case (b), vert will be NULL at first, and later filled in with the created split vertex,

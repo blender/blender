@@ -2660,24 +2660,6 @@ void DepsgraphRelationBuilder::build_simulation(Simulation *simulation)
   OperationKey nodetree_key(
       &simulation->nodetree->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EXIT);
   add_relation(nodetree_key, simulation_eval_key, "NodeTree -> Simulation", 0);
-
-  LISTBASE_FOREACH (SimulationDependency *, dependency, &simulation->dependencies) {
-    if (dependency->id == nullptr) {
-      continue;
-    }
-    build_id(dependency->id);
-    if (GS(dependency->id->name) == ID_OB) {
-      Object *object = (Object *)dependency->id;
-      if (dependency->flag & SIM_DEPENDS_ON_TRANSFORM) {
-        ComponentKey object_transform_key(&object->id, NodeType::TRANSFORM);
-        add_relation(object_transform_key, simulation_eval_key, "Object Transform -> Simulation");
-      }
-      if (dependency->flag & SIM_DEPENDS_ON_GEOMETRY) {
-        ComponentKey object_geometry_key(&object->id, NodeType::GEOMETRY);
-        add_relation(object_geometry_key, simulation_eval_key, "Object Geometry -> Simulation");
-      }
-    }
-  }
 }
 
 void DepsgraphRelationBuilder::build_scene_sequencer(Scene *scene)
@@ -2869,7 +2851,7 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
     /* NOTE: We currently ignore implicit relations to an external
      * data-blocks for copy-on-write operations. This means, for example,
      * copy-on-write component of Object will not wait for copy-on-write
-     * component of it's Mesh. This is because pointers are all known
+     * component of its Mesh. This is because pointers are all known
      * already so remapping will happen all correct. And then If some object
      * evaluation step needs geometry, it will have transitive dependency
      * to Mesh copy-on-write already. */

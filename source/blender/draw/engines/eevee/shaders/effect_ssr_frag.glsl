@@ -81,11 +81,34 @@ void do_planar_ssr(int index,
 void do_ssr(vec3 V, vec3 N, vec3 T, vec3 B, vec3 viewPosition, float a2, vec4 rand)
 {
   float NH;
-  vec3 H = sample_ggx(rand.xzw, a2, N, T, B, NH); /* Microfacet normal */
-  float pdf = pdf_ggx_reflect(NH, a2);
-
+  /* Microfacet normal */
+  vec3 H = sample_ggx(rand.xzw, a2, N, T, B, NH);
   vec3 R = reflect(-V, H);
-  pdfData = min(1024e32, pdf); /* Theoretical limit of 16bit float */
+
+  /* If ray is bad (i.e. going below the surface) regenerate. */
+  /* This threshold is a bit higher than 0 to improve self intersection cases. */
+  const float bad_ray_threshold = 0.085;
+  if (dot(R, N) <= bad_ray_threshold) {
+    H = sample_ggx(rand.xzw * vec3(1.0, -1.0, -1.0), a2, N, T, B, NH);
+    R = reflect(-V, H);
+  }
+
+  if (dot(R, N) <= bad_ray_threshold) {
+    H = sample_ggx(rand.xzw * vec3(1.0, 1.0, -1.0), a2, N, T, B, NH);
+    R = reflect(-V, H);
+  }
+
+  if (dot(R, N) <= bad_ray_threshold) {
+    H = sample_ggx(rand.xzw * vec3(1.0, -1.0, 1.0), a2, N, T, B, NH);
+    R = reflect(-V, H);
+  }
+
+  if (dot(R, N) <= bad_ray_threshold) {
+    /* Not worth tracing. */
+    return;
+  }
+
+  pdfData = min(1024e32, pdf_ggx_reflect(NH, a2)); /* Theoretical limit of 16bit float */
 
   vec3 hit_pos = raycast(-1, viewPosition, R * 1e16, ssrThickness, rand.y, ssrQuality, a2, true);
 
@@ -170,6 +193,11 @@ void main()
       return;
     }
   }
+
+  /* Constant bias (due to depth buffer precision). Helps with self intersection. */
+  /* Magic numbers for 24bits of precision.
+   * From http://terathon.com/gdc07_lengyel.pdf (slide 26) */
+  viewPosition.z = get_view_z_from_depth(depth - mix(2.4e-7, 4.8e-7, depth));
 
   do_ssr(V, N, T, B, viewPosition, a2, rand);
 }

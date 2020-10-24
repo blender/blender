@@ -613,7 +613,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
       e = v->e;
       BMEdge *e_other = BM_DISK_EDGE_NEXT(e, v);
       if ((e_other == e) || (BM_DISK_EDGE_NEXT(e_other, v) == e)) {
-        /* Lose edge or BMVert is edge pair. */
+        /* Loose edge or BMVert is edge pair. */
         BM_edge_collapse(bm, BMO_elem_flag_test(bm, e, EXT_TAG) ? e : e_other, v, true, true);
       }
       else {

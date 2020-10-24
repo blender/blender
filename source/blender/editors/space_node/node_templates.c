@@ -449,7 +449,7 @@ static bool ui_node_item_special_poll(const bNodeTree *UNUSED(ntree), const bNod
 {
   if (STREQ(ntype->idname, "ShaderNodeUVAlongStroke")) {
     /* TODO(sergey): Currently we don't have Freestyle nodes edited from
-     * the buttons context, so can ignore it's nodes completely.
+     * the buttons context, so can ignore its nodes completely.
      *
      * However, we might want to do some extra checks here later.
      */

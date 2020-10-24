@@ -410,7 +410,8 @@ static PyObject *available_devices_func(PyObject * /*self*/, PyObject *args)
   }
 
   DeviceType type = Device::type_from_string(type_name);
-  if ((type == DEVICE_NONE) && (type_name[0] != '\0')) {
+  /* "NONE" is defined by the add-on, see: `CyclesPreferences.get_device_types`. */
+  if ((type == DEVICE_NONE) && (strcmp(type_name, "NONE") != 0)) {
     PyErr_Format(PyExc_ValueError, "Device \"%s\" not known.", type_name);
     return NULL;
   }

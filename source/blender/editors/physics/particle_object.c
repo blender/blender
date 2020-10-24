@@ -691,7 +691,7 @@ void PARTICLE_OT_disconnect_hair(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO;
 
   RNA_def_boolean(
-      ot->srna, "all", 0, "All hair", "Disconnect all hair systems from the emitter mesh");
+      ot->srna, "all", 0, "All Hair", "Disconnect all hair systems from the emitter mesh");
 }
 
 /* from/to_world_space : whether from/to particles are in world or hair space
@@ -981,7 +981,7 @@ void PARTICLE_OT_connect_hair(wmOperatorType *ot)
   /* No REGISTER, redo does not work due to missing update, see T47750. */
   ot->flag = OPTYPE_UNDO;
 
-  RNA_def_boolean(ot->srna, "all", 0, "All hair", "Connect all hair systems to the emitter mesh");
+  RNA_def_boolean(ot->srna, "all", 0, "All Hair", "Connect all hair systems to the emitter mesh");
 }
 
 /************************ particle system copy operator *********************/

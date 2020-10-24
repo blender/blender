@@ -590,7 +590,7 @@ void BKE_sequencer_imbuf_to_sequencer_space(Scene *scene, ImBuf *ibuf, bool make
       return;
     }
     /* We don't want both byte and float buffers around: they'll either run
-     * out of sync or conversion of byte buffer will loose precision in there.
+     * out of sync or conversion of byte buffer will lose precision in there.
      */
     if (ibuf->rect != NULL) {
       imb_freerectImBuf(ibuf);
@@ -1533,7 +1533,7 @@ static int evaluate_seq_frame_gen(Sequence **seq_arr, ListBase *seqbase, int cfr
   for (LinkNode *seq_item = effect_inputs.list; seq_item; seq_item = seq_item->next) {
     Sequence *seq = seq_item->link;
     /* It's possible that effect strip would be placed to the same
-     * 'machine' as it's inputs. We don't want to clear such strips
+     * 'machine' as its inputs. We don't want to clear such strips
      * from the stack. */
     if (seq_arr[seq->machine] && seq_arr[seq->machine]->type & SEQ_TYPE_EFFECT) {
       continue;
@@ -4357,8 +4357,8 @@ void BKE_sequencer_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
       BKE_sequencer_free_imbuf(scene, &seq->seqbase, for_render);
     }
     if (seq->type == SEQ_TYPE_SCENE) {
-      /* FIXME: recurs downwards,
-       * but do recurs protection somehow! */
+      /* FIXME: recurse downwards,
+       * but do recurse protection somehow! */
     }
   }
 }
@@ -4369,7 +4369,7 @@ static bool update_changed_seq_recurs(
   Sequence *subseq;
   bool free_imbuf = false;
 
-  /* recurs downwards to see if this seq depends on the changed seq */
+  /* recurse downwards to see if this seq depends on the changed seq */
 
   if (seq == NULL) {
     return false;

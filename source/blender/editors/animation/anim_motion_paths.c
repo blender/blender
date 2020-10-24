@@ -402,7 +402,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
   /* TODO: Create a copy of background depsgraph that only contain these entities,
    * and only evaluates them.
    *
-   * For until that is done we force dependency graph to not be active, so we don't loose unkeyed
+   * For until that is done we force dependency graph to not be active, so we don't lose unkeyed
    * changes during updating the motion path.
    * This still doesn't include unkeyed changes to the path itself, but allows to have updates in
    * an environment when auto-keying and pose paste is used. */

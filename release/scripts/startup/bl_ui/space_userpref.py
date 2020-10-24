@@ -279,7 +279,7 @@ class USERPREF_PT_interface_temporary_windows(InterfacePanel, CenterAlignMixIn, 
         view = prefs.view
 
         col = layout.column()
-        col.prop(view, "render_display_type", text="Render in")
+        col.prop(view, "render_display_type", text="Render In")
         col.prop(view, "filebrowser_display_type", text="File Browser")
 
 
@@ -373,8 +373,8 @@ class USERPREF_PT_edit_objects_new(EditingPanel, CenterAlignMixIn, Panel):
 
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=False)
 
-        flow.prop(edit, "material_link", text="Link Materials to")
-        flow.prop(edit, "object_align", text="Align to")
+        flow.prop(edit, "material_link", text="Link Materials To")
+        flow.prop(edit, "object_align", text="Align To")
         flow.prop(edit, "use_enter_edit_mode", text="Enter Edit Mode")
         flow.prop(edit, "collection_instance_empty_size", text="Instance Empty Size")
 
@@ -479,7 +479,7 @@ class USERPREF_PT_edit_misc(EditingPanel, CenterAlignMixIn, Panel):
 
         col = layout.column()
         col.prop(edit, "sculpt_paint_overlay_color", text="Sculpt Overlay Color")
-        col.prop(edit, "node_margin", text="Node Auto-offset Margin")
+        col.prop(edit, "node_margin", text="Node Auto-Offset Margin")
 
 
 # -----------------------------------------------------------------------------
@@ -1348,7 +1348,7 @@ class USERPREF_PT_saveload_blend(SaveLoadPanel, CenterAlignMixIn, Panel):
         col.prop(view, "use_save_prompt")
         col.prop(paths, "use_save_preview_images")
 
-        col = layout.column(heading="Default to")
+        col = layout.column(heading="Default To")
         col.prop(paths, "use_relative_paths")
         col.prop(paths, "use_file_compression")
         col.prop(paths, "use_load_ui")
@@ -1377,7 +1377,7 @@ class USERPREF_PT_saveload_blend_autosave(SaveLoadPanel, CenterAlignMixIn, Panel
 
         col = layout.column()
         col.active = paths.use_auto_save_temporary_files
-        col.prop(paths, "auto_save_time", text="Timer (mins)")
+        col.prop(paths, "auto_save_time", text="Timer (Minutes)")
 
 
 class USERPREF_PT_saveload_file_browser(SaveLoadPanel, CenterAlignMixIn, Panel):
@@ -2184,9 +2184,7 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
     def draw(self, context):
         self._draw_items(
             context, (
-                ({"property": "use_new_particle_system"}, "T73324"),
                 ({"property": "use_sculpt_vertex_colors"}, "T71947"),
-                ({"property": "use_tools_missing_icons"}, "T80331"),
                 ({"property": "use_switch_object_operator"}, "T80402"),
                 ({"property": "use_sculpt_tools_tilt"}, "T00000"),
             ),
@@ -2200,6 +2198,8 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
         self._draw_items(
             context, (
                 ({"property": "use_new_hair_type"}, "T68981"),
+                ({"property": "use_new_point_cloud_type"}, "T75717"),
+                ({"property": "use_new_geometry_nodes"}, "project/profile/121"),
             ),
         )
 
@@ -2218,7 +2218,6 @@ class USERPREF_PT_experimental_debugging(ExperimentalPanel, Panel):
             context, (
                 ({"property": "use_undo_legacy"}, "T60695"),
                 ({"property": "use_cycles_debug"}, None),
-                ({"property": "use_image_editor_legacy_drawing"}, "T67530"),
             ),
         )
 

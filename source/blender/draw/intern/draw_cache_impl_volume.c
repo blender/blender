@@ -262,8 +262,6 @@ static DRWVolumeGrid *volume_grid_cache_get(Volume *volume,
                                             VolumeGrid *grid,
                                             VolumeBatchCache *cache)
 {
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-
   const char *name = BKE_volume_grid_name(grid);
 
   /* Return cached grid. */
@@ -289,22 +287,12 @@ static DRWVolumeGrid *volume_grid_cache_get(Volume *volume,
     return cache_grid;
   }
 
-  /* Load grid tree into memory, if not loaded already. */
+  /* Remember if grid was loaded. If it was not, we want to unload it after the GPUTexture has been
+   * created. */
   const bool was_loaded = BKE_volume_grid_is_loaded(grid);
-  BKE_volume_grid_load(volume, grid);
-
-  float resolution_factor = 1.0f;
-  if (DEG_get_mode(draw_ctx->depsgraph) != DAG_EVAL_RENDER) {
-    if (draw_ctx->scene->r.mode & R_SIMPLIFY) {
-      resolution_factor = draw_ctx->scene->r.simplify_volumes;
-    }
-  }
-  if (resolution_factor == 0.0f) {
-    return cache_grid;
-  }
 
   DenseFloatVolumeGrid dense_grid;
-  if (BKE_volume_grid_dense_floats(volume, grid, resolution_factor, &dense_grid)) {
+  if (BKE_volume_grid_dense_floats(volume, grid, &dense_grid)) {
     copy_m4_m4(cache_grid->texture_to_object, dense_grid.texture_to_object);
     invert_m4_m4(cache_grid->object_to_texture, dense_grid.texture_to_object);
 

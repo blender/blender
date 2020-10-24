@@ -388,6 +388,7 @@ typedef enum eBrushBoundaryDeformType {
   BRUSH_BOUNDARY_DEFORM_INFLATE = 2,
   BRUSH_BOUNDARY_DEFORM_GRAB = 3,
   BRUSH_BOUNDARY_DEFORM_TWIST = 4,
+  BRUSH_BOUNDARY_DEFORM_SMOOTH = 5,
 } eBrushBushBoundaryDeformType;
 
 typedef enum eBrushBoundaryFalloffType {
@@ -774,6 +775,7 @@ typedef enum eBrushFlags2 {
   BRUSH_POSE_USE_LOCK_ROTATION = (1 << 5),
   BRUSH_CLOTH_USE_COLLISION = (1 << 6),
   BRUSH_AREA_RADIUS_PRESSURE = (1 << 7),
+  BRUSH_GRAB_SILHOUETTE = (1 << 8),
 } eBrushFlags2;
 
 typedef enum {

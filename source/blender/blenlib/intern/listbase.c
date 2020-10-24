@@ -432,7 +432,7 @@ void BLI_insertlinkbefore(ListBase *listbase, void *vnextlink, void *vnewlink)
 }
 
 /**
- * Insert a link in place of another, without changing it's position in the list.
+ * Insert a link in place of another, without changing its position in the list.
  *
  * Puts `vnewlink` in the position of `vreplacelink`, removing `vreplacelink`.
  * - `vreplacelink` *must* be in the list.

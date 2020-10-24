@@ -2178,7 +2178,7 @@ static void rna_SpaceNodeEditor_node_tree_update(const bContext *C, PointerRNA *
   ED_node_tree_update(C);
 }
 
-#  ifdef WITH_PARTICLE_NODES
+#  ifdef WITH_GEOMETRY_NODES
 static PointerRNA rna_SpaceNodeEditor_simulation_get(PointerRNA *ptr)
 {
   SpaceNode *snode = (SpaceNode *)ptr->data;
@@ -2921,11 +2921,6 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "dt_uv");
   RNA_def_property_enum_items(prop, dt_uv_items);
   RNA_def_property_ui_text(prop, "Display As", "Display style for UV edges");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
-
-  prop = RNA_def_property(srna, "show_smooth_edges", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_SMOOTH_UV);
-  RNA_def_property_ui_text(prop, "Display Smooth Edges", "Display UV edges anti-aliased");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
   prop = RNA_def_property(srna, "show_stretch", PROP_BOOLEAN, PROP_NONE);
@@ -5190,7 +5185,7 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_interpolation", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", SACTION_SHOW_INTERPOLATION);
   RNA_def_property_ui_text(prop,
-                           "Show Handles And Interpolation",
+                           "Show Handles and Interpolation",
                            "Display keyframe handle types and non-bezier interpolation modes");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_DOPESHEET, NULL);
 
@@ -5213,7 +5208,7 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
   /* editing */
   prop = RNA_def_property(srna, "use_auto_merge_keyframes", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SACTION_NOTRANSKEYCULL);
-  RNA_def_property_ui_text(prop, "AutoMerge Keyframes", "Automatically merge nearby keyframes");
+  RNA_def_property_ui_text(prop, "Auto-Merge Keyframes", "Automatically merge nearby keyframes");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_DOPESHEET, NULL);
 
   prop = RNA_def_property(srna, "use_realtime_update", PROP_BOOLEAN, PROP_NONE);
@@ -6352,7 +6347,7 @@ static void rna_def_space_node(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "ID From", "Data-block from which the edited data-block is linked");
 
-#  ifdef WITH_PARTICLE_NODES
+#  ifdef WITH_GEOMETRY_NODES
   prop = RNA_def_property(srna, "simulation", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_struct_type(prop, "Simulation");

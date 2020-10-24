@@ -24,7 +24,7 @@
  * Defines in this header are only used to define blend file storage.
  * This allows us to rename variables & structs without breaking compatibility.
  *
- * - When renaming the member of a struct which has it's self been renamed
+ * - When renaming the member of a struct which has itself been renamed
  *   refer to the newer name, not the original.
  *
  * - Changes here only change generated code for `makesdna.c` and `makesrna.c`

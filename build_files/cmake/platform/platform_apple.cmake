@@ -53,6 +53,13 @@ find_package(ZLIB REQUIRED)
 find_package(BZip2 REQUIRED)
 list(APPEND ZLIB_LIBRARIES ${BZIP2_LIBRARIES})
 
+if(WITH_OPENAL)
+  find_package(OpenAL)
+  if(NOT OPENAL_FOUND)
+    set(WITH_OPENAL OFF)
+  endif()
+endif()
+
 if(NOT DEFINED LIBDIR)
   set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin)
   # Prefer lib directory paths
@@ -70,15 +77,6 @@ endif()
 
 if(EXISTS ${LIBDIR})
   without_system_libs_begin()
-endif()
-
-if(WITH_OPENAL)
-  find_package(OpenAL)
-  if(OPENAL_FOUND)
-    set(WITH_OPENAL ON)
-  else()
-    set(WITH_OPENAL OFF)
-  endif()
 endif()
 
 if(WITH_ALEMBIC)
@@ -337,7 +335,10 @@ endif()
 
 if(WITH_CYCLES_EMBREE)
   find_package(Embree 3.8.0 REQUIRED)
-  set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -Xlinker -stack_size -Xlinker 0x100000")
+  # Increase stack size for Embree, only works for executables.
+  if(NOT WITH_PYTHON_MODULE)
+    set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -Xlinker -stack_size -Xlinker 0x100000")
+  endif()
 
   # Embree static library linking can mix up SSE and AVX symbols, causing
   # crashes on macOS systems with older CPUs that don't have AVX. Using

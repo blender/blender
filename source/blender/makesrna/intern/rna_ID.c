@@ -289,7 +289,7 @@ short RNA_type_to_ID_code(const StructRNA *type)
   if (base_type == &RNA_PaintCurve) {
     return ID_PC;
   }
-#  ifdef WITH_PARTICLE_NODES
+#  ifdef WITH_POINT_CLOUD
   if (base_type == &RNA_PointCloud) {
     return ID_PT;
   }
@@ -303,7 +303,7 @@ short RNA_type_to_ID_code(const StructRNA *type)
   if (base_type == &RNA_Screen) {
     return ID_SCR;
   }
-#  ifdef WITH_PARTICLE_NODES
+#  ifdef WITH_GEOMETRY_NODES
   if (base_type == &RNA_Simulation) {
     return ID_SIM;
   }
@@ -399,7 +399,7 @@ StructRNA *ID_code_to_RNA_type(short idcode)
     case ID_PC:
       return &RNA_PaintCurve;
     case ID_PT:
-#  ifdef WITH_PARTICLE_NODES
+#  ifdef WITH_POINT_CLOUD
       return &RNA_PointCloud;
 #  else
       return &RNA_ID;
@@ -411,7 +411,7 @@ StructRNA *ID_code_to_RNA_type(short idcode)
     case ID_SCR:
       return &RNA_Screen;
     case ID_SIM:
-#  ifdef WITH_PARTICLE_NODES
+#  ifdef WITH_GEOMETRY_NODES
       return &RNA_Simulation;
 #  else
       return &RNA_ID;

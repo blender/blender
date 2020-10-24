@@ -1151,7 +1151,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 
   static const EnumPropertyItem edit_type_items[] = {
       {PE_TYPE_PARTICLES, "PARTICLES", 0, "Particles", ""},
-      {PE_TYPE_SOFTBODY, "SOFT_BODY", 0, "Soft body", ""},
+      {PE_TYPE_SOFTBODY, "SOFT_BODY", 0, "Soft Body", ""},
       {PE_TYPE_CLOTH, "CLOTH", 0, "Cloth", ""},
       {0, NULL, 0, NULL, NULL},
   };

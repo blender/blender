@@ -62,7 +62,7 @@ void outliner_viewcontext_init(const bContext *C, TreeViewContext *tvc)
     tvc->ob_edit = OBEDIT_FROM_OBACT(tvc->obact);
 
     if ((tvc->obact->type == OB_ARMATURE) ||
-        /* This could be made into it's own function. */
+        /* This could be made into its own function. */
         ((tvc->obact->type == OB_MESH) && tvc->obact->mode & OB_MODE_WEIGHT_PAINT)) {
       tvc->ob_pose = BKE_object_pose_armature_get(tvc->obact);
     }

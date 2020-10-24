@@ -1107,7 +1107,7 @@ static void pbvh_faces_update_normals(PBVH *pbvh, PBVHNode **nodes, int totnode)
    * - We know that for all edited vertices, the nodes with faces
    *   adjacent to these vertices have been marked with PBVH_UpdateNormals.
    *   This is true because if the vertex is inside the brush radius, the
-   *   bounding box of it's adjacent faces will be as well.
+   *   bounding box of its adjacent faces will be as well.
    * - However this is only true for the vertices that have actually been
    *   edited, not for all vertices in the nodes marked for update, so we
    *   can only update vertices marked with ME_VERT_PBVH_UPDATE.

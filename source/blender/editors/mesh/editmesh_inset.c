@@ -602,7 +602,7 @@ void MESH_OT_inset(wmOperatorType *ot)
 
   prop = RNA_def_float_distance(
       ot->srna, "thickness", 0.0f, 0.0f, 1e12f, "Thickness", "", 0.0f, 10.0f);
-  /* use 1 rather then 10 for max else dragging the button moves too far */
+  /* use 1 rather than 10 for max else dragging the button moves too far */
   RNA_def_property_ui_range(prop, 0.0, 1.0, 0.01, 4);
 
   prop = RNA_def_float_distance(

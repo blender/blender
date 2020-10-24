@@ -231,7 +231,7 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *
   NodeViewMove *nvm;
   Image *ima;
   ImBuf *ibuf;
-  const float pad = 32.0f; /* better be bigger then scrollbars */
+  const float pad = 32.0f; /* better be bigger than scrollbars */
 
   void *lock;
 

@@ -378,7 +378,7 @@ float *BKE_mball_make_orco(Object *ob, ListBase *dispbase)
  *
  * This is a can of worms.
  *
- * This really needs a rewrite/refactor its totally broken in anything other then basic cases
+ * This really needs a rewrite/refactor its totally broken in anything other than basic cases
  * Multiple Scenes + Set Scenes & mixing meta-ball basis _should_ work but fails to update the
  * depsgraph on rename and linking into scenes or removal of basis meta-ball.
  * So take care when changing this code.

@@ -943,7 +943,7 @@ static bool elem_exists_alias(const SDNA *sdna,
 }
 
 /**
- * Return the offset in bytes or -1 on failure to find the struct member with it's expected type.
+ * Return the offset in bytes or -1 on failure to find the struct member with its expected type.
  *
  * \param sdna: Old #SDNA.
  * \param type: Current field type name.
@@ -1774,7 +1774,7 @@ bool DNA_sdna_patch_struct_member(SDNA *sdna,
 
 /**
  * Names are shared between structs which causes problems renaming.
- * Make sure every struct member gets it's own name so renaming only ever impacts a single struct.
+ * Make sure every struct member gets its own name so renaming only ever impacts a single struct.
  *
  * The resulting SDNA is never written to disk.
  */

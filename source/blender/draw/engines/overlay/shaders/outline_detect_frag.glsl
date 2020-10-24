@@ -124,7 +124,7 @@ void straight_line_dir(bvec4 edges1, bvec4 edges2, out vec2 line_start, out vec2
 vec2 diag_offset(bvec4 edges)
 {
   /* X_NEG | Y_POS as reference. Other cases are rotated to match reference.
-   * So the line is comming from bottom left. */
+   * So the line is coming from bottom left. */
   if (all(edges.wz)) {
     /* Horizontal line. */
     return vec2(2.5, 0.5);

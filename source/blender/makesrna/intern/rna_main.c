@@ -128,13 +128,13 @@ RNA_MAIN_LISTBASE_FUNCS_DEF(objects)
 RNA_MAIN_LISTBASE_FUNCS_DEF(paintcurves)
 RNA_MAIN_LISTBASE_FUNCS_DEF(palettes)
 RNA_MAIN_LISTBASE_FUNCS_DEF(particles)
-#  ifdef WITH_PARTICLE_NODES
+#  ifdef WITH_POINT_CLOUD
 RNA_MAIN_LISTBASE_FUNCS_DEF(pointclouds)
 #  endif
 RNA_MAIN_LISTBASE_FUNCS_DEF(scenes)
 RNA_MAIN_LISTBASE_FUNCS_DEF(screens)
 RNA_MAIN_LISTBASE_FUNCS_DEF(shapekeys)
-#  ifdef WITH_PARTICLE_NODES
+#  ifdef WITH_GEOMETRY_NODES
 RNA_MAIN_LISTBASE_FUNCS_DEF(simulations)
 #  endif
 RNA_MAIN_LISTBASE_FUNCS_DEF(sounds)
@@ -393,7 +393,7 @@ void RNA_def_main(BlenderRNA *brna)
 #  ifdef WITH_HAIR_NODES
       {"hairs", "Hair", "rna_Main_hairs_begin", "Hairs", "Hair data-blocks", RNA_def_main_hairs},
 #  endif
-#  ifdef WITH_PARTICLE_NODES
+#  ifdef WITH_POINT_CLOUD
       {"pointclouds",
        "PointCloud",
        "rna_Main_pointclouds_begin",
@@ -407,7 +407,7 @@ void RNA_def_main(BlenderRNA *brna)
        "Volumes",
        "Volume data-blocks",
        RNA_def_main_volumes},
-#  ifdef WITH_PARTICLE_NODES
+#  ifdef WITH_GEOMETRY_NODES
       {"simulations",
        "Simulation",
        "rna_Main_simulations_begin",

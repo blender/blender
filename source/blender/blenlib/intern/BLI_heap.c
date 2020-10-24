@@ -330,7 +330,7 @@ float BLI_heap_top_value(const Heap *heap)
 }
 
 /**
- * Pop the top node off the heap and return it's pointer.
+ * Pop the top node off the heap and return its pointer.
  */
 void *BLI_heap_pop_min(Heap *heap)
 {

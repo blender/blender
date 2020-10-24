@@ -1600,7 +1600,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
    * can end up being ~2000 units apart with an orthogonal perspective.
    *
    * (from ED_view3d_win_to_segment_clipped() above)
-   * this gives precision error; rather then solving properly
+   * this gives precision error; rather than solving properly
    * (which may involve using doubles everywhere!),
    * limit the distance between these points */
   if (kcd->is_ortho && (kcd->vc.rv3d->persp != RV3D_CAMOB)) {
@@ -3193,7 +3193,7 @@ void EDBM_mesh_knife(bContext *C, LinkNode *polys, bool use_tag, bool cut_throug
                 keep_search = true;
               }
               else {
-                /* don't loose time on this face again, set it as outside */
+                /* don't lose time on this face again, set it as outside */
                 F_ISECT_SET_OUTSIDE(f);
               }
             }

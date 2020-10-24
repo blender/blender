@@ -226,7 +226,7 @@ typedef enum eModifyKey_Returns {
   MODIFYKEY_MISSING_TYPEINFO = -2,
 } eModifyKey_Returns;
 
-/* poll the current KeyingSet, updating it's set of paths
+/* poll the current KeyingSet, updating its set of paths
  * (if "builtin"/"relative") for context changes */
 eModifyKey_Returns ANIM_validate_keyingset(struct bContext *C,
                                            ListBase *dsources,

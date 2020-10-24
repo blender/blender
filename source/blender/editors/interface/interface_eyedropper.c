@@ -78,7 +78,7 @@ wmKeyMap *eyedropper_colorband_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items_point[] = {
       {EYE_MODAL_POINT_CANCEL, "CANCEL", 0, "Cancel", ""},
-      {EYE_MODAL_POINT_SAMPLE, "SAMPLE_SAMPLE", 0, "Sample a point", ""},
+      {EYE_MODAL_POINT_SAMPLE, "SAMPLE_SAMPLE", 0, "Sample a Point", ""},
       {EYE_MODAL_POINT_CONFIRM, "SAMPLE_CONFIRM", 0, "Confirm Sampling", ""},
       {EYE_MODAL_POINT_RESET, "SAMPLE_RESET", 0, "Reset Sampling", ""},
       {0, NULL, 0, NULL, NULL},

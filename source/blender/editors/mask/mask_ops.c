@@ -1264,7 +1264,7 @@ void MASK_OT_slide_spline_curvature(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Slide Spline Curvature";
-  ot->description = "Slide a point on the spline to define it's curvature";
+  ot->description = "Slide a point on the spline to define its curvature";
   ot->idname = "MASK_OT_slide_spline_curvature";
 
   /* api callbacks */

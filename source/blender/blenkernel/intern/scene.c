@@ -445,16 +445,16 @@ static void scene_free_data(ID *id)
   BLI_assert(scene->layer_properties == NULL);
 }
 
-static void library_foreach_rigidbodyworldSceneLooper(struct RigidBodyWorld *UNUSED(rbw),
-                                                      ID **id_pointer,
-                                                      void *user_data,
-                                                      int cb_flag)
+static void scene_foreach_rigidbodyworldSceneLooper(struct RigidBodyWorld *UNUSED(rbw),
+                                                    ID **id_pointer,
+                                                    void *user_data,
+                                                    int cb_flag)
 {
   LibraryForeachIDData *data = (LibraryForeachIDData *)user_data;
   BKE_lib_query_foreachid_process(data, id_pointer, cb_flag);
 }
 
-static void library_foreach_paint(LibraryForeachIDData *data, Paint *paint)
+static void scene_foreach_paint(LibraryForeachIDData *data, Paint *paint)
 {
   BKE_LIB_FOREACHID_PROCESS(data, paint->brush, IDWALK_CB_USER);
   for (int i = 0; i < paint->tool_slots_len; i++) {
@@ -463,7 +463,47 @@ static void library_foreach_paint(LibraryForeachIDData *data, Paint *paint)
   BKE_LIB_FOREACHID_PROCESS(data, paint->palette, IDWALK_CB_USER);
 }
 
-static void library_foreach_layer_collection(LibraryForeachIDData *data, ListBase *lb)
+static void scene_foreach_toolsettings(LibraryForeachIDData *data, ToolSettings *toolsett)
+{
+  BKE_LIB_FOREACHID_PROCESS(data, toolsett->particle.scene, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS(data, toolsett->particle.object, IDWALK_CB_NOP);
+  BKE_LIB_FOREACHID_PROCESS(data, toolsett->particle.shape_object, IDWALK_CB_NOP);
+
+  scene_foreach_paint(data, &toolsett->imapaint.paint);
+  BKE_LIB_FOREACHID_PROCESS(data, toolsett->imapaint.stencil, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS(data, toolsett->imapaint.clone, IDWALK_CB_USER);
+  BKE_LIB_FOREACHID_PROCESS(data, toolsett->imapaint.canvas, IDWALK_CB_USER);
+
+  if (toolsett->vpaint) {
+    scene_foreach_paint(data, &toolsett->vpaint->paint);
+  }
+  if (toolsett->wpaint) {
+    scene_foreach_paint(data, &toolsett->wpaint->paint);
+  }
+  if (toolsett->sculpt) {
+    scene_foreach_paint(data, &toolsett->sculpt->paint);
+    BKE_LIB_FOREACHID_PROCESS(data, toolsett->sculpt->gravity_object, IDWALK_CB_NOP);
+  }
+  if (toolsett->uvsculpt) {
+    scene_foreach_paint(data, &toolsett->uvsculpt->paint);
+  }
+  if (toolsett->gp_paint) {
+    scene_foreach_paint(data, &toolsett->gp_paint->paint);
+  }
+  if (toolsett->gp_vertexpaint) {
+    scene_foreach_paint(data, &toolsett->gp_vertexpaint->paint);
+  }
+  if (toolsett->gp_sculptpaint) {
+    scene_foreach_paint(data, &toolsett->gp_sculptpaint->paint);
+  }
+  if (toolsett->gp_weightpaint) {
+    scene_foreach_paint(data, &toolsett->gp_weightpaint->paint);
+  }
+
+  BKE_LIB_FOREACHID_PROCESS(data, toolsett->gp_sculpt.guide.reference_object, IDWALK_CB_NOP);
+}
+
+static void scene_foreach_layer_collection(LibraryForeachIDData *data, ListBase *lb)
 {
   LISTBASE_FOREACH (LayerCollection *, lc, lb) {
     /* XXX This is very weak. The whole idea of keeping pointers to private IDs is very bad
@@ -473,7 +513,7 @@ static void library_foreach_layer_collection(LibraryForeachIDData *data, ListBas
                             IDWALK_CB_EMBEDDED :
                             IDWALK_CB_NOP;
     BKE_LIB_FOREACHID_PROCESS(data, lc->collection, cb_flag);
-    library_foreach_layer_collection(data, &lc->layer_collections);
+    scene_foreach_layer_collection(data, &lc->layer_collections);
   }
 }
 
@@ -525,7 +565,7 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
       BKE_LIB_FOREACHID_PROCESS(data, base->object, IDWALK_CB_NOP);
     }
 
-    library_foreach_layer_collection(data, &view_layer->layer_collections);
+    scene_foreach_layer_collection(data, &view_layer->layer_collections);
 
     LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &view_layer->freestyle_config.modules) {
       if (fmc->script) {
@@ -552,47 +592,12 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
 
   ToolSettings *toolsett = scene->toolsettings;
   if (toolsett) {
-    BKE_LIB_FOREACHID_PROCESS(data, toolsett->particle.scene, IDWALK_CB_NOP);
-    BKE_LIB_FOREACHID_PROCESS(data, toolsett->particle.object, IDWALK_CB_NOP);
-    BKE_LIB_FOREACHID_PROCESS(data, toolsett->particle.shape_object, IDWALK_CB_NOP);
-
-    library_foreach_paint(data, &toolsett->imapaint.paint);
-    BKE_LIB_FOREACHID_PROCESS(data, toolsett->imapaint.stencil, IDWALK_CB_USER);
-    BKE_LIB_FOREACHID_PROCESS(data, toolsett->imapaint.clone, IDWALK_CB_USER);
-    BKE_LIB_FOREACHID_PROCESS(data, toolsett->imapaint.canvas, IDWALK_CB_USER);
-
-    if (toolsett->vpaint) {
-      library_foreach_paint(data, &toolsett->vpaint->paint);
-    }
-    if (toolsett->wpaint) {
-      library_foreach_paint(data, &toolsett->wpaint->paint);
-    }
-    if (toolsett->sculpt) {
-      library_foreach_paint(data, &toolsett->sculpt->paint);
-      BKE_LIB_FOREACHID_PROCESS(data, toolsett->sculpt->gravity_object, IDWALK_CB_NOP);
-    }
-    if (toolsett->uvsculpt) {
-      library_foreach_paint(data, &toolsett->uvsculpt->paint);
-    }
-    if (toolsett->gp_paint) {
-      library_foreach_paint(data, &toolsett->gp_paint->paint);
-    }
-    if (toolsett->gp_vertexpaint) {
-      library_foreach_paint(data, &toolsett->gp_vertexpaint->paint);
-    }
-    if (toolsett->gp_sculptpaint) {
-      library_foreach_paint(data, &toolsett->gp_sculptpaint->paint);
-    }
-    if (toolsett->gp_weightpaint) {
-      library_foreach_paint(data, &toolsett->gp_weightpaint->paint);
-    }
-
-    BKE_LIB_FOREACHID_PROCESS(data, toolsett->gp_sculpt.guide.reference_object, IDWALK_CB_NOP);
+    scene_foreach_toolsettings(data, toolsett);
   }
 
   if (scene->rigidbody_world) {
     BKE_rigidbody_world_id_loop(
-        scene->rigidbody_world, library_foreach_rigidbodyworldSceneLooper, data);
+        scene->rigidbody_world, scene_foreach_rigidbodyworldSceneLooper, data);
   }
 }
 
@@ -1596,7 +1601,7 @@ void BKE_scene_graph_update_for_newframe(Depsgraph *depsgraph)
      *
      * NOTE: Only update for new frame on first iteration. Second iteration is for ensuring user
      * edits from callback are properly taken into account. Doing a time update on those would
-     * loose any possible unkeyed changes made by the handler. */
+     * lose any possible unkeyed changes made by the handler. */
     if (pass == 0) {
       const float ctime = BKE_scene_frame_get(scene);
       DEG_evaluate_on_framechange(depsgraph, ctime);

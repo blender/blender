@@ -48,7 +48,7 @@ void main()
 #else /* World */
 
 /* This is just a pass-through geometry shader that send the geometry
- * to the layer corresponding to it's depth. */
+ * to the layer corresponding to its depth. */
 
 void main()
 {

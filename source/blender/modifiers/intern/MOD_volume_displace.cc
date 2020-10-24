@@ -33,6 +33,7 @@
 #include "DNA_volume_types.h"
 
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -290,6 +291,7 @@ static Volume *modifyVolume(ModifierData *md, const ModifierEvalContext *ctx, Vo
   VolumeDisplaceModifierData *vdmd = reinterpret_cast<VolumeDisplaceModifierData *>(md);
 
   /* Iterate over all grids and displace them one by one. */
+  BKE_volume_load(volume, DEG_get_bmain(ctx->depsgraph));
   const int grid_amount = BKE_volume_num_grids(volume);
   for (int grid_index = 0; grid_index < grid_amount; grid_index++) {
     VolumeGrid *volume_grid = BKE_volume_grid_get(volume, grid_index);

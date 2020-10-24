@@ -418,7 +418,7 @@ static bool armature_select_linked_impl(Object *ob, const bool select, const boo
    * Bones that have been touched are skipped, so the complexity is OK. */
 
   enum {
-    /* Bone has been walked over, it's LINK value can be read. */
+    /* Bone has been walked over, its LINK value can be read. */
     TOUCH = (1 << 0),
     /* When TOUCH has been set, this flag can be checked to see if the bone is connected. */
     LINK = (1 << 1),
@@ -1550,10 +1550,10 @@ enum {
 
 static const EnumPropertyItem prop_similar_types[] = {
     {SIMEDBONE_CHILDREN, "CHILDREN", 0, "Children", ""},
-    {SIMEDBONE_CHILDREN_IMMEDIATE, "CHILDREN_IMMEDIATE", 0, "Immediate children", ""},
+    {SIMEDBONE_CHILDREN_IMMEDIATE, "CHILDREN_IMMEDIATE", 0, "Immediate Children", ""},
     {SIMEDBONE_SIBLINGS, "SIBLINGS", 0, "Siblings", ""},
     {SIMEDBONE_LENGTH, "LENGTH", 0, "Length", ""},
-    {SIMEDBONE_DIRECTION, "DIRECTION", 0, "Direction (Y axis)", ""},
+    {SIMEDBONE_DIRECTION, "DIRECTION", 0, "Direction (Y Axis)", ""},
     {SIMEDBONE_PREFIX, "PREFIX", 0, "Prefix", ""},
     {SIMEDBONE_SUFFIX, "SUFFIX", 0, "Suffix", ""},
     {SIMEDBONE_LAYER, "LAYER", 0, "Layer", ""},

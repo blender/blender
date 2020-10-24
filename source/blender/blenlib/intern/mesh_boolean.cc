@@ -2068,7 +2068,7 @@ static bool apply_bool_op(BoolOpType bool_optype, const Array<int> &winding)
         return true;
       }
       for (int i = 1; i < nw; ++i) {
-        if (winding[i] == 1) {
+        if (winding[i] >= 1) {
           return false;
         }
       }

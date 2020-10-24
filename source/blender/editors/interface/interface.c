@@ -2879,7 +2879,7 @@ char *ui_but_string_get_dynamic(uiBut *but, int *r_str_size)
 
 /**
  * Report a generic error prefix when evaluating a string with #BPY_run_string_as_number
- * as the Python error on it's own doesn't provide enough context.
+ * as the Python error on its own doesn't provide enough context.
  */
 #define UI_NUMBER_EVAL_ERROR_PREFIX IFACE_("Error evaluating number, see Info editor for details")
 
@@ -4148,12 +4148,14 @@ static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *bu
   UI_block_layout_set_current(block, layout);
 
   int totitems = 0;
+  int categories = 0;
   int nbr_entries_nosepr = 0;
   for (const EnumPropertyItem *item = item_array; item->identifier; item++, totitems++) {
     if (!item->identifier[0]) {
       /* inconsistent, but menus with categories do not look good flipped */
       if (item->name) {
         block->flag |= UI_BLOCK_NO_FLIP;
+        categories++;
         nbr_entries_nosepr++;
       }
       /* We do not want simple separators in nbr_entries_nosepr count */
@@ -4179,22 +4181,12 @@ static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *bu
     rows++;
   }
 
-  if (block->flag & UI_BLOCK_NO_FLIP) {
+  const char *title = RNA_property_ui_name(but->rnaprop);
+
+  if (title[0] && (categories == 0) && (block->flag & UI_BLOCK_NO_FLIP)) {
     /* Title at the top for menus with categories. */
-    uiDefBut(block,
-             UI_BTYPE_LABEL,
-             0,
-             RNA_property_ui_name(but->rnaprop),
-             0,
-             0,
-             UI_UNIT_X * 5,
-             UI_UNIT_Y,
-             NULL,
-             0.0,
-             0.0,
-             0,
-             0,
-             "");
+    uiDefBut(
+        block, UI_BTYPE_LABEL, 0, title, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
     uiItemS(layout);
   }
 
@@ -4203,10 +4195,13 @@ static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *bu
   /* create items */
   uiLayout *split = uiLayoutSplit(layout, 0.0f, false);
 
+  bool new_column;
+
   int column_end = 0;
   uiLayout *column = NULL;
   for (int a = 0; a < totitems; a++) {
-    if (a == column_end) {
+    new_column = (a == column_end);
+    if (new_column) {
       /* start new column, and find out where it ends in advance, so we
        * can flip the order of items properly per column */
       column_end = totitems;
@@ -4225,6 +4220,11 @@ static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *bu
     }
 
     const EnumPropertyItem *item = &item_array[a];
+
+    if (new_column && (categories > 0) && item->identifier[0]) {
+      uiItemL(column, "", ICON_NONE);
+      uiItemS(column);
+    }
 
     if (!item->identifier[0]) {
       if (item->name) {
@@ -4249,8 +4249,6 @@ static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *bu
                    0,
                    "");
         }
-      }
-      else {
         uiItemS(column);
       }
     }
@@ -4291,23 +4289,11 @@ static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *bu
     }
   }
 
-  if (!(block->flag & UI_BLOCK_NO_FLIP)) {
+  if (title[0] && (categories == 0) && !(block->flag & UI_BLOCK_NO_FLIP)) {
     /* Title at the bottom for menus without categories. */
     uiItemS(layout);
-    uiDefBut(block,
-             UI_BTYPE_LABEL,
-             0,
-             RNA_property_ui_name(but->rnaprop),
-             0,
-             0,
-             UI_UNIT_X * 5,
-             UI_UNIT_Y,
-             NULL,
-             0.0,
-             0.0,
-             0,
-             0,
-             "");
+    uiDefBut(
+        block, UI_BTYPE_LABEL, 0, title, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
   }
 
   UI_block_layout_set_current(block, layout);
@@ -4384,7 +4370,7 @@ static void ui_but_submenu_enable(uiBlock *block, uiBut *but)
  * avoid an extra lookup on 'prop' when its already available.
  *
  * When this kind of change won't disrupt branches, best look into making more
- * of our UI functions take prop rather then propname.
+ * of our UI functions take prop rather than propname.
  */
 static uiBut *ui_def_but_rna(uiBlock *block,
                              int type,
@@ -6771,6 +6757,7 @@ void UI_but_focus_on_enter_event(wmWindow *win, uiBut *but)
 
   event.type = EVT_BUT_OPEN;
   event.val = KM_PRESS;
+  event.is_repeat = false;
   event.customdata = but;
   event.customdatafree = false;
 

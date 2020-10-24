@@ -161,7 +161,7 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
    * assumes dep_files is in the same dir as makesrna.c, which is true for now. */
 
   if (1) {
-    /* first check if makesrna.c is newer then generated files
+    /* first check if makesrna.c is newer than generated files
      * for development on makesrna.c you may want to disable this */
     if (file_older(orgfile, __FILE__)) {
       REN_IF_DIFF;
@@ -171,7 +171,7 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
       REN_IF_DIFF;
     }
 
-    /* now check if any files we depend on are newer then any generated files */
+    /* now check if any files we depend on are newer than any generated files */
     if (dep_files) {
       int pass;
       for (pass = 0; dep_files[pass]; pass++) {
@@ -239,10 +239,8 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
   if (cmp) {
     REN_IF_DIFF;
   }
-  else {
-    remove(tmpfile);
-    return 0;
-  }
+  remove(tmpfile);
+  return 0;
 
 #undef REN_IF_DIFF
 }
@@ -254,7 +252,7 @@ static const char *rna_safe_id(const char *id)
   if (STREQ(id, "default")) {
     return "default_value";
   }
-  else if (STREQ(id, "operator")) {
+  if (STREQ(id, "operator")) {
     return "operator_value";
   }
   else if (STREQ(id, "new")) {
@@ -286,14 +284,14 @@ static int cmp_property(const void *a, const void *b)
   if (STREQ(propa->identifier, "rna_type")) {
     return -1;
   }
-  else if (STREQ(propb->identifier, "rna_type")) {
+  if (STREQ(propb->identifier, "rna_type")) {
     return 1;
   }
 
   if (STREQ(propa->identifier, "name")) {
     return -1;
   }
-  else if (STREQ(propb->identifier, "name")) {
+  if (STREQ(propb->identifier, "name")) {
     return 1;
   }
 
@@ -551,9 +549,7 @@ static const char *rna_parameter_type_name(PropertyRNA *parm)
       if (parm->flag_parameter & PARM_RNAPTR) {
         return "PointerRNA";
       }
-      else {
-        return rna_find_dna_type((const char *)pparm->type);
-      }
+      return rna_find_dna_type((const char *)pparm->type);
     }
     case PROP_COLLECTION: {
       return "CollectionListBase";
@@ -2270,9 +2266,7 @@ static const char *rna_parameter_type_cpp_name(PropertyRNA *prop)
 
     return (const char *)pprop->type;
   }
-  else {
-    return rna_parameter_type_name(prop);
-  }
+  return rna_parameter_type_name(prop);
 }
 
 static void rna_def_struct_function_prototype_cpp(FILE *f,
@@ -3206,9 +3200,7 @@ static const char *rna_property_subtypename(PropertySubType type)
       if (RNA_SUBTYPE_UNIT(type)) {
         return rna_property_subtypename(type & ~RNA_SUBTYPE_UNIT(type));
       }
-      else {
-        return "PROP_SUBTYPE_UNKNOWN";
-      }
+      return "PROP_SUBTYPE_UNKNOWN";
     }
   }
 }
@@ -4315,7 +4307,7 @@ static RNAProcessItem PROCESS_ITEMS[] = {
     {"rna_packedfile.c", NULL, RNA_def_packedfile},
     {"rna_palette.c", NULL, RNA_def_palette},
     {"rna_particle.c", NULL, RNA_def_particle},
-#ifdef WITH_PARTICLE_NODES
+#ifdef WITH_POINT_CLOUD
     {"rna_pointcloud.c", NULL, RNA_def_pointcloud},
 #endif
     {"rna_pose.c", "rna_pose_api.c", RNA_def_pose},
@@ -4327,7 +4319,7 @@ static RNAProcessItem PROCESS_ITEMS[] = {
     {"rna_screen.c", NULL, RNA_def_screen},
     {"rna_sculpt_paint.c", NULL, RNA_def_sculpt_paint},
     {"rna_sequencer.c", "rna_sequencer_api.c", RNA_def_sequencer},
-#ifdef WITH_PARTICLE_NODES
+#ifdef WITH_GEOMETRY_NODES
     {"rna_simulation.c", NULL, RNA_def_simulation},
 #endif
     {"rna_space.c", "rna_space_api.c", RNA_def_space},

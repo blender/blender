@@ -147,17 +147,12 @@ static void wm_keymap_item_properties_update_ot(wmKeyMapItem *kmi)
 
 static void wm_keymap_item_properties_update_ot_from_list(ListBase *km_lb)
 {
-  wmKeyMap *km;
-  wmKeyMapItem *kmi;
-
-  for (km = km_lb->first; km; km = km->next) {
-    wmKeyMapDiffItem *kmdi;
-
-    for (kmi = km->items.first; kmi; kmi = kmi->next) {
+  LISTBASE_FOREACH (wmKeyMap *, km, km_lb) {
+    LISTBASE_FOREACH (wmKeyMapItem *, kmi, &km->items) {
       wm_keymap_item_properties_update_ot(kmi);
     }
 
-    for (kmdi = km->diff_items.first; kmdi; kmdi = kmdi->next) {
+    LISTBASE_FOREACH (wmKeyMapDiffItem *, kmdi, &km->diff_items) {
       if (kmdi->add_item) {
         wm_keymap_item_properties_update_ot(kmdi->add_item);
       }
@@ -621,7 +616,7 @@ static void wm_keymap_diff(
       BLI_addtail(&diff_km->diff_items, kmdi);
     }
 
-    /* sync expanded flag back to original so we don't loose it on repatch */
+    /* sync expanded flag back to original so we don't lose it on repatch */
     if (to_kmi) {
       orig_kmi = WM_keymap_item_find_id(orig_km, kmi->id);
 
