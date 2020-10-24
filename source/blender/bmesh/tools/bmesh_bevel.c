@@ -1520,9 +1520,16 @@ static bool good_offset_on_edge_between(EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *em
  * in-between edge emid. Viewed from the vertex normal side, the CCW order of these edges is e1,
  * emid, e2. Return true if we placed meetco as compromise between where two edges met. If we did,
  * put the ratio of sines of angles in *r_sinratio too.
+ * However, if the bp->offset_type is BEVEL_AMT_PERCENT or BEVEL_AMT_ABSOLUTE, we just slide
+ * along emid by the specified amount.
  */
-static bool offset_on_edge_between(
-    EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid, BMVert *v, float meetco[3], float *r_sinratio)
+static bool offset_on_edge_between(BevelParams *bp,
+                                   EdgeHalf *e1,
+                                   EdgeHalf *e2,
+                                   EdgeHalf *emid,
+                                   BMVert *v,
+                                   float meetco[3],
+                                   float *r_sinratio)
 {
   bool retval = false;
 
@@ -1532,6 +1539,22 @@ static bool offset_on_edge_between(
   float meet1[3], meet2[3];
   bool ok1 = offset_meet_edge(e1, emid, v, meet1, &ang1);
   bool ok2 = offset_meet_edge(emid, e2, v, meet2, &ang2);
+  if (bp->offset_type == BEVEL_AMT_PERCENT || bp->offset_type == BEVEL_AMT_ABSOLUTE) {
+    BMVert *v2 = BM_edge_other_vert(emid->e, v);
+    if (bp->offset_type == BEVEL_AMT_PERCENT) {
+      interp_v3_v3v3(meetco, v->co, v2->co, bp->offset / 100.0f);
+    }
+    else {
+      float dir[3];
+      sub_v3_v3v3(dir, v2->co, v->co);
+      normalize_v3(dir);
+      madd_v3_v3v3fl(meetco, v->co, dir, bp->offset);
+    }
+    if (r_sinratio) {
+      *r_sinratio = (ang1 == 0.0f) ? 1.0f : sinf(ang2) / sinf(ang1);
+    }
+    return true;
+  }
   if (ok1 && ok2) {
     mid_v3_v3v3(meetco, meet1, meet2);
     if (r_sinratio) {
@@ -2953,7 +2976,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
     }
     else if (not_in_plane > 0) {
       if (bp->loop_slide && not_in_plane == 1 && good_offset_on_edge_between(e, e2, enip, bv->v)) {
-        if (offset_on_edge_between(e, e2, enip, bv->v, co, &r)) {
+        if (offset_on_edge_between(bp, e, e2, enip, bv->v, co, &r)) {
           eon = enip;
         }
       }
@@ -2964,7 +2987,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
     else {
       /* n_in_plane > 0 and n_not_in_plane == 0. */
       if (bp->loop_slide && in_plane == 1 && good_offset_on_edge_between(e, e2, eip, bv->v)) {
-        if (offset_on_edge_between(e, e2, eip, bv->v, co, &r)) {
+        if (offset_on_edge_between(bp, e, e2, eip, bv->v, co, &r)) {
           eon = eip;
         }
       }
@@ -7195,7 +7218,7 @@ static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)
   if (bp->offset_type == BEVEL_AMT_PERCENT || bp->offset_type == BEVEL_AMT_ABSOLUTE) {
     if (ea->is_bev && ebother != NULL && ebother->prev->is_bev) {
       if (bp->offset_type == BEVEL_AMT_PERCENT) {
-        return bp->offset > 50.0f ? 50.0f : 100.f;
+        return 50.0f;
       }
       /* This is only right sometimes. The exact answer is very hard to calculate. */
       float blen = BM_edge_calc_length(eb->e);
