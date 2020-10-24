@@ -1389,6 +1389,14 @@ GHOST_TSuccess GHOST_WindowWin32::getWintabInfo(std::vector<GHOST_WintabInfoWin3
   return GHOST_kSuccess;
 }
 
+/* Wintab (per documentation but may vary with implementation) does not update when its event
+ * buffer is full. This is an issue because we need some synchronization point between Wintab
+ * events and Win32 events, so we can't drain and process the queue immediately. We need to
+ * associate Wintab mouse events to Win32 mouse events because Wintab buttons are modal (a button
+ * associated to left click is not always a left click) and there's no way to reconstruct their
+ * mode from the Wintab API alone. There is no guaranteed ordering between Wintab and Win32 mouse
+ * events and no documented time stamp shared between the two, so we synchronize on mouse button
+ * events. */
 void GHOST_WindowWin32::updatePendingWintabEvents()
 {
   if (!(m_wintab.packetsGet && m_wintab.context)) {
