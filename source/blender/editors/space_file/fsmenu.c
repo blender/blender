@@ -203,7 +203,7 @@ static void fsmenu_xdg_insert_entry(GHash *xdg_map,
     xdg_path = xdg_path_buf;
   }
   fsmenu_insert_entry(
-      fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, xdg_path, IFACE_(default_path), icon, FS_INSERT_LAST);
+      fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, xdg_path, N_(default_path), icon, FS_INSERT_LAST);
 }
 
 /** \} */
@@ -698,49 +698,49 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
       fsmenu_add_windows_folder(fsmenu,
                                 FS_CATEGORY_SYSTEM_BOOKMARKS,
                                 &FOLDERID_Profile,
-                                IFACE_("Home"),
+                                N_("Home"),
                                 ICON_HOME,
                                 FS_INSERT_LAST);
       fsmenu_add_windows_folder(fsmenu,
                                 FS_CATEGORY_SYSTEM_BOOKMARKS,
                                 &FOLDERID_Desktop,
-                                IFACE_("Desktop"),
+                                N_("Desktop"),
                                 ICON_DESKTOP,
                                 FS_INSERT_LAST);
       fsmenu_add_windows_folder(fsmenu,
                                 FS_CATEGORY_SYSTEM_BOOKMARKS,
                                 &FOLDERID_Documents,
-                                IFACE_("Documents"),
+                                N_("Documents"),
                                 ICON_DOCUMENTS,
                                 FS_INSERT_LAST);
       fsmenu_add_windows_folder(fsmenu,
                                 FS_CATEGORY_SYSTEM_BOOKMARKS,
                                 &FOLDERID_Downloads,
-                                IFACE_("Downloads"),
+                                N_("Downloads"),
                                 ICON_IMPORT,
                                 FS_INSERT_LAST);
       fsmenu_add_windows_folder(fsmenu,
                                 FS_CATEGORY_SYSTEM_BOOKMARKS,
                                 &FOLDERID_Music,
-                                IFACE_("Music"),
+                                N_("Music"),
                                 ICON_FILE_SOUND,
                                 FS_INSERT_LAST);
       fsmenu_add_windows_folder(fsmenu,
                                 FS_CATEGORY_SYSTEM_BOOKMARKS,
                                 &FOLDERID_Pictures,
-                                IFACE_("Pictures"),
+                                N_("Pictures"),
                                 ICON_FILE_IMAGE,
                                 FS_INSERT_LAST);
       fsmenu_add_windows_folder(fsmenu,
                                 FS_CATEGORY_SYSTEM_BOOKMARKS,
                                 &FOLDERID_Videos,
-                                IFACE_("Videos"),
+                                N_("Videos"),
                                 ICON_FILE_MOVIE,
                                 FS_INSERT_LAST);
       fsmenu_add_windows_folder(fsmenu,
                                 FS_CATEGORY_SYSTEM_BOOKMARKS,
                                 &FOLDERID_Fonts,
-                                IFACE_("Fonts"),
+                                N_("Fonts"),
                                 ICON_FILE_FONT,
                                 FS_INSERT_LAST);
 
@@ -757,16 +757,12 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
   {
     /* We store some known macOS system paths and corresponding icons
      * and names in the FS_CATEGORY_OTHER (not displayed directly) category. */
-    fsmenu_insert_entry(fsmenu,
-                        FS_CATEGORY_OTHER,
-                        "/Library/Fonts/",
-                        IFACE_("Fonts"),
-                        ICON_FILE_FONT,
-                        FS_INSERT_LAST);
+    fsmenu_insert_entry(
+        fsmenu, FS_CATEGORY_OTHER, "/Library/Fonts/", N_("Fonts"), ICON_FILE_FONT, FS_INSERT_LAST);
     fsmenu_insert_entry(fsmenu,
                         FS_CATEGORY_OTHER,
                         "/Applications/",
-                        IFACE_("Applications"),
+                        N_("Applications"),
                         ICON_FILE_FOLDER,
                         FS_INSERT_LAST);
 
@@ -777,13 +773,13 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
     fsmenu_insert_entry(fsmenu, FS_CATEGORY_OTHER, line, name, icon, FS_INSERT_LAST);
 
     FS_MACOS_PATH("%s/", NULL, ICON_HOME)
-    FS_MACOS_PATH("%s/Desktop/", IFACE_("Desktop"), ICON_DESKTOP)
-    FS_MACOS_PATH("%s/Documents/", IFACE_("Documents"), ICON_DOCUMENTS)
-    FS_MACOS_PATH("%s/Downloads/", IFACE_("Downloads"), ICON_IMPORT)
-    FS_MACOS_PATH("%s/Movies/", IFACE_("Movies"), ICON_FILE_MOVIE)
-    FS_MACOS_PATH("%s/Music/", IFACE_("Music"), ICON_FILE_SOUND)
-    FS_MACOS_PATH("%s/Pictures/", IFACE_("Pictures"), ICON_FILE_IMAGE)
-    FS_MACOS_PATH("%s/Library/Fonts/", IFACE_("Fonts"), ICON_FILE_FONT)
+    FS_MACOS_PATH("%s/Desktop/", N_("Desktop"), ICON_DESKTOP)
+    FS_MACOS_PATH("%s/Documents/", N_("Documents"), ICON_DOCUMENTS)
+    FS_MACOS_PATH("%s/Downloads/", N_("Downloads"), ICON_IMPORT)
+    FS_MACOS_PATH("%s/Movies/", N_("Movies"), ICON_FILE_MOVIE)
+    FS_MACOS_PATH("%s/Music/", N_("Music"), ICON_FILE_SOUND)
+    FS_MACOS_PATH("%s/Pictures/", N_("Pictures"), ICON_FILE_IMAGE)
+    FS_MACOS_PATH("%s/Library/Fonts/", N_("Fonts"), ICON_FILE_FONT)
 
 #  undef FS_MACOS_PATH
 
@@ -902,7 +898,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
     if (read_bookmarks && home) {
 
       fsmenu_insert_entry(
-          fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, home, IFACE_("Home"), ICON_HOME, FS_INSERT_LAST);
+          fsmenu, FS_CATEGORY_SYSTEM_BOOKMARKS, home, N_("Home"), ICON_HOME, FS_INSERT_LAST);
 
       /* Follow the XDG spec, check if these are available. */
       GHash *xdg_map = fsmenu_xdg_user_dirs_parse(home);
