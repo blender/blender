@@ -53,6 +53,77 @@ struct TaskParallelTLS;
 typedef struct PBVH PBVH;
 typedef struct PBVHNode PBVHNode;
 
+//#define PROXY_ADVANCED
+
+// experimental performance test of "data-based programming" approach
+#ifdef PROXY_ADVANCED
+typedef struct ProxyKey {
+  int node;
+  int pindex;
+} ProxyKey;
+
+#  define MAX_PROXY_NEIGHBORS 12
+
+typedef struct ProxyVertArray {
+  float **ownerco;
+  short **ownerno;
+  float (*co)[3];
+  float (*fno)[3];
+  short (*no)[3];
+  float *mask, **ownermask;
+  int *index;
+  float **ownercolor, (*color)[4];
+
+  ProxyKey (*neighbors)[MAX_PROXY_NEIGHBORS];
+
+  int size;
+  int datamask;
+
+  GHash *indexmap;
+} ProxyVertArray;
+
+typedef enum {
+  PV_OWNERCO = 1,
+  PV_OWNERNO = 2,
+  PV_CO = 4,
+  PV_NO = 8,
+  PV_MASK = 16,
+  PV_OWNERMASK = 32,
+  PV_INDEX = 64,
+  PV_OWNERCOLOR = 128,
+  PV_COLOR = 256,
+  PV_NEIGHBORS = 512
+} ProxyVertField;
+
+typedef struct ProxyVertUpdateRec {
+  float *co, *no, *mask, *color;
+  int index, newindex;
+} ProxyVertUpdateRec;
+
+#  define PBVH_PROXY_DEFAULT CO | INDEX | MASK
+
+struct SculptSession;
+
+void BKE_pbvh_ensure_proxyarrays(struct SculptSession *ss, PBVH *pbvh, int mask);
+void BKE_pbvh_load_proxyarrays(PBVH *pbvh, PBVHNode **nodes, int totnode, int mask);
+
+void BKE_pbvh_ensure_proxyarray(
+    struct SculptSession *ss,
+    struct PBVH *pbvh,
+    struct PBVHNode *node,
+    int mask,
+    struct GHash
+        *vert_node_map,  // vert_node_map maps vertex SculptIdxs to PBVHNode indices; optional
+    bool check_indexmap,
+    bool force_update);
+void BKE_pbvh_gather_proxyarray(PBVH *pbvh, PBVHNode **nodes, int totnode);
+
+void BKE_pbvh_free_proxyarray(struct PBVH *pbvh, struct PBVHNode *node);
+void BKE_pbvh_update_proxyvert(struct PBVH *pbvh, struct PBVHNode *node, ProxyVertUpdateRec *rec);
+ProxyVertArray *BKE_pbvh_get_proxyarrays(struct PBVH *pbvh, struct PBVHNode *node);
+
+#endif
+
 typedef struct {
   float (*co)[3];
 } PBVHProxyNode;

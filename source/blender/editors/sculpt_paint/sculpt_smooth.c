@@ -58,7 +58,12 @@
 #include "RNA_define.h"
 
 #include "bmesh.h"
-
+#ifdef PROXY_ADVANCED
+/* clang-format off */
+#include "BKE_DerivedMesh.h"
+#include "../../blenkernel/intern/pbvh_intern.h"
+/* clang-format on */
+#endif
 #include <math.h>
 #include <stdlib.h>
 
@@ -289,6 +294,79 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
   BLI_task_parallel_range(0, totnode, &data, do_enhance_details_brush_task_cb_ex, &settings);
 }
 
+#ifdef PROXY_ADVANCED
+static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
+                                       const int n,
+                                       const TaskParallelTLS *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  Sculpt *sd = data->sd;
+  const Brush *brush = data->brush;
+  const bool smooth_mask = data->smooth_mask;
+  float bstrength = data->strength;
+
+  PBVHVertexIter vd;
+
+  CLAMP(bstrength, 0.0f, 1.0f);
+
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, &test, data->brush->falloff_shape);
+
+  const int thread_id = BLI_task_parallel_thread_id(tls);
+
+  PBVHNode **nodes = data->nodes;
+  ProxyVertArray *p = &nodes[n]->proxyverts;
+
+  for (int i = 0; i < p->size; i++) {
+    float co[3] = {0.0f, 0.0f, 0.0f};
+    int ni = 0;
+
+#  if 1
+    if (sculpt_brush_test_sq_fn(&test, p->co[i])) {
+      const float fade = bstrength * SCULPT_brush_strength_factor(
+                                         ss,
+                                         brush,
+                                         p->co[i],
+                                         sqrtf(test.dist),
+                                         p->no[i],
+                                         p->fno[i],
+                                         smooth_mask ? 0.0f : (p->mask ? p->mask[i] : 0.0f),
+                                         p->index[i],
+                                         thread_id);
+#  else
+  if (1) {
+    const float fade = 1.0;
+#  endif
+
+      while (ni < MAX_PROXY_NEIGHBORS && p->neighbors[i][ni].node >= 0) {
+        ProxyKey *key = p->neighbors[i] + ni;
+        PBVHNode *n2 = ss->pbvh->nodes + key->node;
+
+        // printf("%d %d %d %p\n", key->node, key->pindex, ss->pbvh->totnode, n2);
+
+        add_v3_v3(co, n2->proxyverts.co[key->pindex]);
+        ni++;
+      }
+
+      // printf("ni %d\n", ni);
+
+      if (ni > 2) {
+        mul_v3_fl(co, 1.0f / (float)ni);
+      }
+      else {
+        copy_v3_v3(co, p->co[i]);
+      }
+
+      // printf("%f %f %f   ", co[0], co[1], co[2]);
+
+      interp_v3_v3v3(p->co[i], p->co[i], co, fade);
+    }
+  }
+}
+
+#else
 static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
                                        const int n,
                                        const TaskParallelTLS *__restrict tls)
@@ -343,6 +421,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
   }
   BKE_pbvh_vertex_iter_end;
 }
+#endif
 
 void SCULPT_smooth(Sculpt *sd,
                    Object *ob,
@@ -373,6 +452,12 @@ void SCULPT_smooth(Sculpt *sd,
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_boundary_info_ensure(ob);
 
+#ifdef PROXY_ADVANCED
+  int datamask = PV_CO | PV_NEIGHBORS | PV_NO | PV_INDEX | PV_MASK;
+  BKE_pbvh_ensure_proxyarrays(ss, ss->pbvh, datamask);
+
+  BKE_pbvh_load_proxyarrays(ss->pbvh, nodes, totnode, PV_CO | PV_NO | PV_MASK);
+#endif
   for (iteration = 0; iteration <= count; iteration++) {
     const float strength = (iteration != count) ? 1.0f : last;
 
@@ -388,6 +473,10 @@ void SCULPT_smooth(Sculpt *sd,
     TaskParallelSettings settings;
     BKE_pbvh_parallel_range_settings(&settings, true, totnode);
     BLI_task_parallel_range(0, totnode, &data, do_smooth_brush_task_cb_ex, &settings);
+
+#ifdef PROXY_ADVANCED
+    BKE_pbvh_gather_proxyarray(ss->pbvh, nodes, totnode);
+#endif
   }
 }
 

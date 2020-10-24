@@ -100,6 +100,7 @@ typedef struct UVWarpData {
 
   MDeformVert *dvert;
   int defgrp_index;
+  bool restrict_island;
 
   float (*warp_mat)[4];
   bool invert_vgroup;
@@ -123,6 +124,19 @@ static void uv_warp_compute(void *__restrict userdata,
   int l;
 
   if (dvert) {
+    if (data->restrict_island) {
+      for (l = 0; l < mp->totloop; l++, ml++) {
+        const float weight = data->invert_vgroup ?
+                                 1.0f - BKE_defvert_find_weight(&dvert[ml->v], defgrp_index) :
+                                 BKE_defvert_find_weight(&dvert[ml->v], defgrp_index);
+        if (weight == 0.0f) {
+          return;
+        }
+      }
+
+      ml = &data->mloop[mp->loopstart];
+    }
+
     for (l = 0; l < mp->totloop; l++, ml++, mluv++) {
       float uv[2];
       const float weight = data->invert_vgroup ?
@@ -221,6 +235,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   UVWarpData data = {
       .mpoly = mpoly,
+      .restrict_island = umd->flag & MOD_UVWARP_RESTRICT_ISLANDS,
       .mloop = mloop,
       .mloopuv = mloopuv,
       .dvert = dvert,
@@ -299,6 +314,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   }
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", NULL);
+  uiItemR(layout, ptr, "restrict_to_islands", 0, NULL, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }

@@ -1878,6 +1878,7 @@ typedef struct UVWarpModifierData {
 /* UVWarp modifier flags */
 enum {
   MOD_UVWARP_INVERT_VGROUP = 1 << 0,
+  MOD_UVWARP_RESTRICT_ISLANDS = 1<<1
 };
 
 /* cache modifier */

@@ -346,7 +346,7 @@ void MESH_OT_paint_mask_extract(wmOperatorType *ot)
   ot->invoke = paint_mask_extract_invoke;
   ot->exec = paint_mask_extract_exec;
 
-  ot->flag = OPTYPE_REGISTER;
+  ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
   RNA_def_float(
       ot->srna,

@@ -107,6 +107,9 @@ struct PBVHNode {
 
   /* Used to store the brush color during a stroke and composite it over the original color */
   PBVHColorBufferNode color_buffer;
+#ifdef PROXY_ADVANCED
+  ProxyVertArray proxyverts;
+#endif
 };
 
 typedef enum {

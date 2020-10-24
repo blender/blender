@@ -4993,6 +4993,13 @@ static void rna_def_modifier_uvwarp(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Invert", "Invert vertex group influence");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+  prop = RNA_def_property(srna, "restrict_to_islands", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_UVWARP_RESTRICT_ISLANDS);
+  RNA_def_property_ui_text(prop,
+                           "Island Restrict",
+                           "Don't affect UVs in faces outside of the vertex group's influence");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
   prop = RNA_def_property(srna, "uv_layer", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "uvlayer_name");
   RNA_def_property_ui_text(prop, "UV Layer", "UV Layer name");
