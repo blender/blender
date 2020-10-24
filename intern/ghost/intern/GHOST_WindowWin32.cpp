@@ -310,8 +310,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       (m_wintab.overlap = (GHOST_WIN32_WTOverlap)::GetProcAddress(m_wintab.handle, "WTOverlap"))) {
     initializeWintab();
     // Determine which tablet API to use and enable it.
-    bool enableWintab = state != GHOST_kWindowStateMinimized;
-    updateWintab(enableWintab, enableWintab);
+    updateWintab(m_system->m_windowFocus, m_system->m_windowFocus);
   }
 
   CoCreateInstance(
