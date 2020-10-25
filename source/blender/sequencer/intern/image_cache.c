@@ -49,6 +49,8 @@
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
 
+#include "sequencer.h"
+
 /**
  * Sequencer Cache Design Notes
  * ============================

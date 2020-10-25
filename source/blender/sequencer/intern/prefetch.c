@@ -54,6 +54,8 @@
 #include "DEG_depsgraph_debug.h"
 #include "DEG_depsgraph_query.h"
 
+#include "sequencer.h"
+
 typedef struct PrefetchJob {
   struct PrefetchJob *next, *prev;
 

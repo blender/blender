@@ -20,6 +20,7 @@
 
 set(INC
   .
+  intern
   ../blenkernel
   ../blenlib
   ../blentranslation
@@ -42,6 +43,7 @@ set(SRC
   BKE_sequencer.h
 
   intern/sequencer.c
+  intern/sequencer.h
   intern/image_cache.c
   intern/effects.c
   intern/modifier.c

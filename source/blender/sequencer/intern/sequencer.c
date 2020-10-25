@@ -96,6 +96,8 @@
 
 #include "RE_engine.h"
 
+#include "sequencer.h"
+
 #ifdef WITH_AUDASPACE
 #  include <AUD_Special.h>
 #endif

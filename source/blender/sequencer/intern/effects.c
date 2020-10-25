@@ -61,6 +61,8 @@
 
 #include "BLF_api.h"
 
+#include "sequencer.h"
+
 static struct SeqEffectHandle get_sequence_effect_impl(int seq_type);
 
 static void slice_get_byte_buffers(const SeqRenderData *context,
