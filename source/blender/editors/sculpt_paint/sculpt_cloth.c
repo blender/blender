@@ -1137,14 +1137,27 @@ void SCULPT_cloth_sim_activate_nodes(SculptClothSimulation *cloth_sim,
   }
 }
 
+static void sculpt_cloth_ensure_constraints_in_simulation_area(Sculpt *sd,
+                                                               Object *ob,
+                                                               PBVHNode **nodes,
+                                                               int totnode)
+{
+  SculptSession *ss = ob->sculpt;
+  Brush *brush = BKE_paint_brush(&sd->paint);
+  const float radius = ss->cache->initial_radius;
+  const float limit = radius + (radius * brush->cloth_sim_limit);
+  float sim_location[3];
+  cloth_brush_simulation_location_get(ss, brush, sim_location);
+  SCULPT_cloth_brush_ensure_nodes_constraints(
+      sd, ob, nodes, totnode, ss->cache->cloth_sim, sim_location, limit);
+}
+
 /* Main Brush Function. */
 void SCULPT_do_cloth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  /* In the first brush step of each symmetry pass, build the constraints for the vertices in all
-   * nodes inside the simulation's limits. */
   /* Brushes that use anchored strokes and restore the mesh can't rely on symmetry passes and steps
    * count as it is always the first step, so the simulation needs to be created when it does not
    * exist for this stroke. */
@@ -1161,14 +1174,26 @@ void SCULPT_do_cloth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
           SCULPT_is_cloth_deform_brush(brush));
       SCULPT_cloth_brush_simulation_init(ss, ss->cache->cloth_sim);
     }
+
+    if (brush->cloth_simulation_area_type == BRUSH_CLOTH_SIMULATION_AREA_LOCAL) {
+      /* When using simulation a fixed local simulation area, constraints are created only using
+       * the initial stroke position and initial radius (per symmetry pass) instead of per node.
+       * This allows to skip unnecessary constraints that will never be simulated, making the
+       * solver faster. When the simulation starts for a node, the node gets activated and all its
+       * constraints are considered final. As the same node can be included inside the brush radius
+       * from multiple symmetry passes, the cloth brush can't activate the node for simulation yet
+       * as this will cause the ensure constraints function to skip the node in the next symmetry
+       * passes. It needs to build the constraints here and skip simulating the first step, so all
+       * passes can add their constraints to all affected nodes. */
+      sculpt_cloth_ensure_constraints_in_simulation_area(sd, ob, nodes, totnode);
+    }
+    /* The first step of a symmetry pass is never simulated as deformation modes need valid delta
+     * for brush tip alignement. */
     return;
   }
 
   /* Ensure the constraints for the nodes. */
-  const float radius = ss->cache->initial_radius;
-  const float limit = radius + (radius * brush->cloth_sim_limit);
-  SCULPT_cloth_brush_ensure_nodes_constraints(
-      sd, ob, nodes, totnode, ss->cache->cloth_sim, ss->cache->location, limit);
+  sculpt_cloth_ensure_constraints_in_simulation_area(sd, ob, nodes, totnode);
 
   /* Store the initial state in the simulation. */
   SCULPT_cloth_brush_store_simulation_state(ss, ss->cache->cloth_sim);
