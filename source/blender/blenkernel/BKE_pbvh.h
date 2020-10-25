@@ -517,7 +517,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
           } \
           vi.co = vi.mvert->co; \
           vi.no = vi.mvert->no; \
-          vi.index = vi.vert_indices[vi.i]; \
+          vi.index = vi.vertex.i = vi.vert_indices[vi.i]; \
           if (vi.vmask) { \
             vi.mask = &vi.vmask[vi.index]; \
           } \
