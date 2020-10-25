@@ -490,7 +490,7 @@ static void sculpt_boundary_falloff_factor_init(SculptSession *ss,
  * return NULL if there is no boundary from the given vertex using the given radius. */
 SculptBoundary *SCULPT_boundary_data_init(Object *object,
                                           Brush *brush,
-                                          const int initial_vertex,
+                                          const SculptVertRef initial_vertex,
                                           const float radius)
 {
   SculptSession *ss = object->sculpt;

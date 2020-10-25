@@ -26,16 +26,20 @@
 
 /* For embedding CCGKey in iterator. */
 #include "BKE_ccg.h"
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef int64_t SculptVertRef;
 
 struct BMLog;
 struct BMesh;
 struct CCGElem;
 struct CCGKey;
 struct CustomData;
+struct TableGSet;
 struct DMFlagMat;
 struct GPU_PBVH_Buffers;
 struct IsectRayPrecalc;
@@ -71,7 +75,7 @@ typedef struct ProxyVertArray {
   float (*fno)[3];
   short (*no)[3];
   float *mask, **ownermask;
-  int *index;
+  SculptVertRef *index;
   float **ownercolor, (*color)[4];
 
   ProxyKey (*neighbors)[MAX_PROXY_NEIGHBORS];
@@ -97,7 +101,7 @@ typedef enum {
 
 typedef struct ProxyVertUpdateRec {
   float *co, *no, *mask, *color;
-  int index, newindex;
+  SculptVertRef index, newindex;
 } ProxyVertUpdateRec;
 
 #  define PBVH_PROXY_DEFAULT CO | INDEX | MASK
@@ -113,7 +117,7 @@ void BKE_pbvh_ensure_proxyarray(
     struct PBVHNode *node,
     int mask,
     struct GHash
-        *vert_node_map,  // vert_node_map maps vertex SculptIdxs to PBVHNode indices; optional
+        *vert_node_map,  // vert_node_map maps vertex SculptVertRefs to PBVHNode indices; optional
     bool check_indexmap,
     bool force_update);
 void BKE_pbvh_gather_proxyarray(PBVH *pbvh, PBVHNode **nodes, int totnode);
@@ -150,6 +154,7 @@ typedef enum {
 
   PBVH_UpdateTopology = 1 << 13,
   PBVH_UpdateColor = 1 << 14,
+  PBVH_Delete = 1 << 15
 } PBVHNodeFlags;
 
 typedef struct PBVHFrustumPlanes {
@@ -196,7 +201,9 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           bool smooth_shading,
                           struct BMLog *log,
                           const int cd_vert_node_offset,
-                          const int cd_face_node_offset);
+                          const int cd_face_node_offset,
+                          const int cd_origco_offset,
+                          const int cd_origno_offset);
 void BKE_pbvh_free(PBVH *pbvh);
 
 /* Hierarchical Search in the BVH, two methods:
@@ -232,7 +239,7 @@ bool BKE_pbvh_node_raycast(PBVH *pbvh,
                            const float ray_normal[3],
                            struct IsectRayPrecalc *isect_precalc,
                            float *depth,
-                           int *active_vertex_index,
+                           SculptVertRef *active_vertex_index,
                            int *active_face_grid_index,
                            float *face_normal);
 
@@ -321,7 +328,8 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                                     const float view_normal[3],
                                     float radius,
                                     const bool use_frontface,
-                                    const bool use_projected);
+                                    const bool use_projected,
+                                    int symaxis);
 
 /* Node Access */
 
@@ -363,9 +371,9 @@ bool BKE_pbvh_node_frustum_contain_AABB(PBVHNode *node, void *frustum);
 /* test if AABB is at least partially outside the PBVHFrustumPlanes volume */
 bool BKE_pbvh_node_frustum_exclude_AABB(PBVHNode *node, void *frustum);
 
-struct GSet *BKE_pbvh_bmesh_node_unique_verts(PBVHNode *node);
-struct GSet *BKE_pbvh_bmesh_node_other_verts(PBVHNode *node);
-struct GSet *BKE_pbvh_bmesh_node_faces(PBVHNode *node);
+struct TableGSet *BKE_pbvh_bmesh_node_unique_verts(PBVHNode *node);
+struct TableGSet *BKE_pbvh_bmesh_node_other_verts(PBVHNode *node);
+struct TableGSet *BKE_pbvh_bmesh_node_faces(PBVHNode *node);
 void BKE_pbvh_bmesh_node_save_orig(struct BMesh *bm, PBVHNode *node);
 void BKE_pbvh_bmesh_after_stroke(PBVH *pbvh);
 
@@ -413,7 +421,7 @@ typedef struct PBVHVertexIter {
   int gx;
   int gy;
   int i;
-  int index;
+  SculptVertRef index;
   bool respect_hide;
 
   /* grid */
@@ -433,8 +441,10 @@ typedef struct PBVHVertexIter {
   float *vmask;
 
   /* bmesh */
-  struct GSetIterator bm_unique_verts;
-  struct GSetIterator bm_other_verts;
+  int bi;
+  struct TableGSet *bm_cur_set;
+  struct TableGSet *bm_unique_verts, *bm_other_verts;
+
   struct CustomData *bm_vdata;
   int cd_vert_mask_offset;
 
@@ -507,14 +517,28 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
           } \
         } \
         else { \
-          if (!BLI_gsetIterator_done(&vi.bm_unique_verts)) { \
-            vi.bm_vert = BLI_gsetIterator_getKey(&vi.bm_unique_verts); \
-            BLI_gsetIterator_step(&vi.bm_unique_verts); \
+          BMVert *bv = NULL; \
+          while (!bv) { \
+            if (!vi.bm_cur_set->elems || vi.bi >= vi.bm_cur_set->cur) { \
+              if (vi.bm_cur_set != vi.bm_other_verts && mode != PBVH_ITER_UNIQUE) { \
+                vi.bm_cur_set = vi.bm_other_verts; \
+                vi.bi = 0; \
+                if (!vi.bm_cur_set->elems || vi.bi >= vi.bm_other_verts->cur) { \
+                  break; \
+                } \
+              } \
+              else { \
+                break; \
+              } \
+            } \
+            else { \
+              bv = vi.bm_cur_set->elems[vi.bi++]; \
+            } \
           } \
-          else { \
-            vi.bm_vert = BLI_gsetIterator_getKey(&vi.bm_other_verts); \
-            BLI_gsetIterator_step(&vi.bm_other_verts); \
+          if (!bv) { \
+            continue; \
           } \
+          vi.bm_vert = bv;\
           vi.visible = !BM_elem_flag_test_bool(vi.bm_vert, BM_ELEM_HIDDEN); \
           if (mode == PBVH_ITER_UNIQUE && !vi.visible) { \
             continue; \
@@ -530,6 +554,10 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
   } \
   } \
   ((void)0)
+
+#define BKE_pbvh_vertex_index_to_table(pbvh, v) \
+  (BKE_pbvh_type(pbvh) == PBVH_BMESH ? BM_elem_index_get((BMVert *)(v)) : (v))
+SculptVertRef BKE_pbvh_table_index_to_vertex(PBVH *pbvh, int idx);
 
 void BKE_pbvh_node_get_proxies(PBVHNode *node, PBVHProxyNode **proxies, int *proxy_count);
 void BKE_pbvh_node_free_proxies(PBVHNode *node);

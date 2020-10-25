@@ -693,13 +693,13 @@ void BKE_pbvh_free(PBVH *pbvh)
         MEM_freeN((void *)node->face_vert_indices);
       }
       if (node->bm_faces) {
-        BLI_gset_free(node->bm_faces, NULL);
+        BLI_table_gset_free(node->bm_faces, NULL);
       }
       if (node->bm_unique_verts) {
-        BLI_gset_free(node->bm_unique_verts, NULL);
+        BLI_table_gset_free(node->bm_unique_verts, NULL);
       }
       if (node->bm_other_verts) {
-        BLI_gset_free(node->bm_other_verts, NULL);
+        BLI_table_gset_free(node->bm_other_verts, NULL);
       }
     }
   }
@@ -1328,7 +1328,8 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                       node->bm_faces,
                                       node->bm_unique_verts,
                                       node->bm_other_verts,
-                                      update_flags);
+                                      update_flags,
+                                      pbvh->cd_vert_node_offset);
         break;
     }
   }
@@ -1501,28 +1502,28 @@ static void pbvh_grids_node_visibility_update(PBVH *pbvh, PBVHNode *node)
 
 static void pbvh_bmesh_node_visibility_update(PBVHNode *node)
 {
-  GSet *unique, *other;
+  TableGSet *unique, *other;
 
   unique = BKE_pbvh_bmesh_node_unique_verts(node);
   other = BKE_pbvh_bmesh_node_other_verts(node);
 
-  GSetIterator gs_iter;
+  BMVert *v;
 
-  GSET_ITER (gs_iter, unique) {
-    BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
+  TGSET_ITER (v, unique) {
     if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
       BKE_pbvh_node_fully_hidden_set(node, false);
       return;
     }
   }
+  TGSET_ITER_END
 
-  GSET_ITER (gs_iter, other) {
-    BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
+  TGSET_ITER (v, other) {
     if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
       BKE_pbvh_node_fully_hidden_set(node, false);
       return;
     }
   }
+  TGSET_ITER_END
 
   BKE_pbvh_node_fully_hidden_set(node, true);
 }
@@ -1840,9 +1841,9 @@ void BKE_pbvh_node_num_verts(PBVH *pbvh, PBVHNode *node, int *r_uniquevert, int 
       }
       break;
     case PBVH_BMESH:
-      tot = BLI_gset_len(node->bm_unique_verts);
+      tot = BLI_table_gset_len(node->bm_unique_verts);
       if (r_totvert) {
-        *r_totvert = tot + BLI_gset_len(node->bm_other_verts);
+        *r_totvert = tot + BLI_table_gset_len(node->bm_other_verts);
       }
       if (r_uniquevert) {
         *r_uniquevert = tot;
@@ -2122,7 +2123,7 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
                                     const float ray_normal[3],
                                     struct IsectRayPrecalc *isect_precalc,
                                     float *depth,
-                                    int *r_active_vertex_index,
+                                    SculptVertRef *r_active_vertex_index,
                                     int *r_active_face_index,
                                     float *r_face_normal)
 {
@@ -2190,7 +2191,7 @@ static bool pbvh_grids_node_raycast(PBVH *pbvh,
                                     const float ray_normal[3],
                                     struct IsectRayPrecalc *isect_precalc,
                                     float *depth,
-                                    int *r_active_vertex_index,
+                                    SculptVertRef *r_active_vertex_index,
                                     int *r_active_grid_index,
                                     float *r_face_normal)
 {
@@ -2285,7 +2286,7 @@ bool BKE_pbvh_node_raycast(PBVH *pbvh,
                            const float ray_normal[3],
                            struct IsectRayPrecalc *isect_precalc,
                            float *depth,
-                           int *active_vertex_index,
+                           SculptVertRef *active_vertex_index,
                            int *active_face_grid_index,
                            float *face_normal)
 {
@@ -2967,9 +2968,12 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
   vi->mverts = verts;
 
   if (pbvh->type == PBVH_BMESH) {
-    BLI_gsetIterator_init(&vi->bm_unique_verts, node->bm_unique_verts);
-    BLI_gsetIterator_init(&vi->bm_other_verts, node->bm_other_verts);
+    vi->bi = 0;
+    vi->bm_cur_set = node->bm_unique_verts;
+    vi->bm_unique_verts = node->bm_unique_verts;
+    vi->bm_other_verts = node->bm_other_verts;
     vi->bm_vdata = &pbvh->bm->vdata;
+    vi->bm_vert = NULL;
     vi->cd_vert_mask_offset = CustomData_get_offset(vi->bm_vdata, CD_PAINT_MASK);
   }
 
@@ -2999,6 +3003,13 @@ bool pbvh_has_mask(PBVH *pbvh)
   return false;
 }
 
+SculptVertRef BKE_pbvh_table_index_to_vertex(PBVH *pbvh, int idx) {
+  if (pbvh->type == PBVH_BMESH) {
+    return (SculptVertRef) pbvh->bm->vtable[idx];
+  }
+
+  return (SculptVertRef)idx;
+}
 bool pbvh_has_face_sets(PBVH *pbvh)
 {
   switch (pbvh->type) {
@@ -3067,7 +3078,6 @@ void BKE_pbvh_respect_hide_set(PBVH *pbvh, bool respect_hide)
 {
   pbvh->respect_hide = respect_hide;
 }
-
 
 #ifdef PROXY_ADVANCED
 // TODO: if this really works, make sure to pull the neighbor iterator out of sculpt.c and put it
@@ -3227,7 +3237,7 @@ void BKE_pbvh_ensure_proxyarray(SculptSession *ss,
   UPDATETEST(fno, PV_NO, sizeof(float) * 3)
   UPDATETEST(mask, PV_MASK, sizeof(float))
   UPDATETEST(color, PV_COLOR, sizeof(float) * 4)
-  UPDATETEST(index, PV_INDEX, sizeof(int))
+  UPDATETEST(index, PV_INDEX, sizeof(SculptIdx))
   UPDATETEST(neighbors, PV_NEIGHBORS, sizeof(ProxyKey) * MAX_PROXY_NEIGHBORS)
 
   p->size = totvert;
@@ -3344,8 +3354,8 @@ typedef struct GatherProxyThread {
 } GatherProxyThread;
 
 static void pbvh_load_proxyarray_exec(void *__restrict userdata,
-                                        const int n,
-                                        const TaskParallelTLS *__restrict tls)
+                                      const int n,
+                                      const TaskParallelTLS *__restrict tls)
 {
   GatherProxyThread *data = (GatherProxyThread *)userdata;
   PBVHNode *node = data->nodes[n];
@@ -3362,7 +3372,7 @@ void BKE_pbvh_load_proxyarrays(PBVH *pbvh, PBVHNode **nodes, int totnode, int ma
 {
   GatherProxyThread data = {.nodes = nodes, .pbvh = pbvh, .mask = mask};
 
-  mask = mask & ~PV_NEIGHBORS; //don't update neighbors in threaded code?
+  mask = mask & ~PV_NEIGHBORS;  // don't update neighbors in threaded code?
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);

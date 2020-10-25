@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include "BLI_ghash.h"
+
 /** \file
  * \ingroup bli
  */
@@ -43,6 +45,7 @@ struct PBVHNode {
   /* For internal nodes, the offset of the children in the PBVH
    * 'nodes' array. */
   int children_offset;
+  int subtree_tottri;
 
   /* Pointer into the PBVH prim_indices array and the number of
    * primitives used by this leaf node.
@@ -86,7 +89,7 @@ struct PBVHNode {
 
   /* Indicates whether this node is a leaf or not; also used for
    * marking various updates that need to be applied. */
-  PBVHNodeFlags flag : 16;
+  PBVHNodeFlags flag : 32;
 
   /* Used for raycasting: how close bb is to the ray point. */
   float tmin;
@@ -98,9 +101,9 @@ struct PBVHNode {
   PBVHProxyNode *proxies;
 
   /* Dyntopo */
-  GSet *bm_faces;
-  GSet *bm_unique_verts;
-  GSet *bm_other_verts;
+  TableGSet *bm_faces;
+  TableGSet *bm_unique_verts;
+  TableGSet *bm_other_verts;
   float (*bm_orco)[3];
   int (*bm_ortri)[3];
   int bm_tot_ortri;
@@ -173,6 +176,9 @@ struct PBVH {
   float bm_min_edge_len;
   int cd_vert_node_offset;
   int cd_face_node_offset;
+  int cd_vert_mask_offset;
+  int cd_origco_offset;
+  int cd_origno_offset;
 
   float planes[6][4];
   int num_planes;
@@ -227,7 +233,7 @@ bool pbvh_bmesh_node_raycast(PBVHNode *node,
                              struct IsectRayPrecalc *isect_precalc,
                              float *dist,
                              bool use_original,
-                             int *r_active_vertex_index,
+                             SculptVertRef *r_active_vertex_index,
                              float *r_face_normal);
 bool pbvh_bmesh_node_nearest_to_ray(PBVHNode *node,
                                     const float ray_start[3],

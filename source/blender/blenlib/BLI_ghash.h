@@ -185,6 +185,49 @@ BLI_INLINE bool BLI_ghashIterator_done(GHashIterator *ghi)
 
 typedef struct GSet GSet;
 
+typedef struct TableGSet {
+  struct GHash *ptr_to_idx;
+  void **elems;
+  int size, length;
+  int cur;
+} TableGSet;
+
+TableGSet *BLI_table_gset_new(const char *info);
+TableGSet *BLI_table_gset_new_ex(const char *info, int size);
+void BLI_table_gset_free(TableGSet *ts, GHashKeyFreeFP freefp);
+void BLI_table_gset_insert(TableGSet *ts, void *elem);
+bool BLI_table_gset_add(TableGSet *ts, void *elem);
+void BLI_table_gset_remove(TableGSet *ts, void *elem, GHashKeyFreeFP freefp);
+bool BLI_table_gset_haskey(TableGSet *ts, void *elem);
+
+int BLI_table_gset_len(TableGSet *ts);
+
+#define TGSET_ITER(v, ts) \
+  { \
+    int _i1; \
+    for (_i1 = 0; _i1 < (ts)->cur; _i1++) { \
+      if (!(ts)->elems[_i1]) \
+        continue; \
+      v = (ts)->elems[_i1];
+
+#define TGSET_ITER_END \
+  } \
+  }
+
+#define TGSET_ITER_INDEX(v, ts, index) \
+  { \
+    int _i1; \
+    index = 0; \
+    for (_i1 = 0; _i1 < (ts)->cur; _i1++) { \
+      if (!(ts)->elems[_i1]) \
+        continue; \
+      v = (ts)->elems[_i1]; \
+      index++;
+
+#define TGSET_ITER_INDEX_END \
+  } \
+  }
+
 typedef GHashHashFP GSetHashFP;
 typedef GHashCmpFP GSetCmpFP;
 typedef GHashKeyFreeFP GSetKeyFreeFP;

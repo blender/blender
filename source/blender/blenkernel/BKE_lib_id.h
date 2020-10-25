@@ -46,6 +46,7 @@
  */
 
 #include "BLI_compiler_attrs.h"
+#include "DNA_userdef_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -244,7 +245,7 @@ struct ID *BKE_id_copy_ex(struct Main *bmain,
                           const int flag);
 struct ID *BKE_id_copy_for_duplicate(struct Main *bmain,
                                      struct ID *id,
-                                     const uint duplicate_flags);
+                                     const eDupli_ID_Flags duplicate_flags);
 
 void BKE_lib_id_swap(struct Main *bmain, struct ID *id_a, struct ID *id_b);
 void BKE_lib_id_swap_full(struct Main *bmain, struct ID *id_a, struct ID *id_b);

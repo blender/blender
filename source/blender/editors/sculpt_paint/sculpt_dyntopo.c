@@ -110,18 +110,69 @@ void SCULPT_pbvh_clear(Object *ob)
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 }
 
+void SCULPT_dyntopo_save_origverts(SculptSession *ss)
+{
+  BMIter iter;
+  BMVert *v;
+
+  BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
+    float *co = BM_ELEM_CD_GET_VOID_P(v, ss->cd_origco_offset);
+    float *no = BM_ELEM_CD_GET_VOID_P(v, ss->cd_origno_offset);
+
+    copy_v3_v3(co, v->co);
+    copy_v3_v3(co, v->no);
+  }
+}
+
 void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
 {
-  int cd_node_layer_index;
+  int cd_node_layer_index, cd_face_node_layer_index;
 
   char layer_id[] = "_dyntopo_node_id";
+  char origco_id[] = "_dyntopop_orig_co";
+  char origno_id[] = "_dyntopop_orig_no";
+
+  int cd_origco_index, cd_origno_index;
+
+  cd_origco_index = CustomData_get_named_layer_index(&ss->bm->vdata, CD_PROP_FLOAT3, origco_id);
+  if (cd_origco_index == -1) {
+    BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_PROP_FLOAT3, origco_id);
+  }
+
+  cd_origno_index = CustomData_get_named_layer_index(&ss->bm->vdata, CD_PROP_FLOAT3, origno_id);
+  if (cd_origno_index == -1) {
+    BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_PROP_FLOAT3, origno_id);
+  }
 
   cd_node_layer_index = CustomData_get_named_layer_index(&ss->bm->vdata, CD_PROP_INT32, layer_id);
   if (cd_node_layer_index == -1) {
     BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_PROP_INT32, layer_id);
-    cd_node_layer_index = CustomData_get_named_layer_index(
-        &ss->bm->vdata, CD_PROP_INT32, layer_id);
   }
+
+  cd_face_node_layer_index = CustomData_get_named_layer_index(
+      &ss->bm->pdata, CD_PROP_INT32, layer_id);
+  if (cd_face_node_layer_index == -1) {
+    BM_data_layer_add_named(ss->bm, &ss->bm->pdata, CD_PROP_INT32, layer_id);
+  }
+
+  // get indices again, as they might have changed after adding new layers
+  cd_origco_index = CustomData_get_named_layer_index(&ss->bm->vdata, CD_PROP_FLOAT3, origco_id);
+  cd_origno_index = CustomData_get_named_layer_index(&ss->bm->vdata, CD_PROP_FLOAT3, origno_id);
+  cd_node_layer_index = CustomData_get_named_layer_index(&ss->bm->vdata, CD_PROP_INT32, layer_id);
+  cd_face_node_layer_index = CustomData_get_named_layer_index(
+      &ss->bm->pdata, CD_PROP_INT32, layer_id);
+
+  ss->cd_origco_offset = CustomData_get_n_offset(
+      &ss->bm->vdata,
+      CD_PROP_FLOAT3,
+      cd_origco_index - CustomData_get_layer_index(&ss->bm->vdata, CD_PROP_FLOAT3));
+  ss->bm->vdata.layers[cd_origco_index].flag |= CD_FLAG_TEMPORARY;
+
+  ss->cd_origno_offset = CustomData_get_n_offset(
+      &ss->bm->vdata,
+      CD_PROP_FLOAT3,
+      cd_origno_index - CustomData_get_layer_index(&ss->bm->vdata, CD_PROP_FLOAT3));
+  ss->bm->vdata.layers[cd_origno_index].flag |= CD_FLAG_TEMPORARY;
 
   ss->cd_vert_node_offset = CustomData_get_n_offset(
       &ss->bm->vdata,
@@ -130,19 +181,14 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
 
   ss->bm->vdata.layers[cd_node_layer_index].flag |= CD_FLAG_TEMPORARY;
 
-  cd_node_layer_index = CustomData_get_named_layer_index(&ss->bm->pdata, CD_PROP_INT32, layer_id);
-  if (cd_node_layer_index == -1) {
-    BM_data_layer_add_named(ss->bm, &ss->bm->pdata, CD_PROP_INT32, layer_id);
-    cd_node_layer_index = CustomData_get_named_layer_index(
-        &ss->bm->pdata, CD_PROP_INT32, layer_id);
-  }
-
   ss->cd_face_node_offset = CustomData_get_n_offset(
       &ss->bm->pdata,
       CD_PROP_INT32,
-      cd_node_layer_index - CustomData_get_layer_index(&ss->bm->pdata, CD_PROP_INT32));
+      cd_face_node_layer_index - CustomData_get_layer_index(&ss->bm->pdata, CD_PROP_INT32));
 
-  ss->bm->pdata.layers[cd_node_layer_index].flag |= CD_FLAG_TEMPORARY;
+  ss->bm->pdata.layers[cd_face_node_layer_index].flag |= CD_FLAG_TEMPORARY;
+
+  SCULPT_dyntopo_save_origverts(ss);
 }
 
 void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)

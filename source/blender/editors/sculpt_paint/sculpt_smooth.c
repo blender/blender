@@ -67,7 +67,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-void SCULPT_neighbor_coords_average_interior(SculptSession *ss, float result[3], int index)
+void SCULPT_neighbor_coords_average_interior(SculptSession *ss, float result[3], SculptVertRef index)
 {
   float avg[3] = {0.0f, 0.0f, 0.0f};
   int total = 0;
@@ -157,7 +157,7 @@ void SCULPT_bmesh_four_neighbor_average(float avg[3], float direction[3], BMVert
 /* Generic functions for laplacian smoothing. These functions do not take boundary vertices into
  * account. */
 
-void SCULPT_neighbor_coords_average(SculptSession *ss, float result[3], int index)
+void SCULPT_neighbor_coords_average(SculptSession *ss, float result[3], SculptVertRef index)
 {
   float avg[3] = {0.0f, 0.0f, 0.0f};
   int total = 0;
@@ -177,7 +177,7 @@ void SCULPT_neighbor_coords_average(SculptSession *ss, float result[3], int inde
   }
 }
 
-float SCULPT_neighbor_mask_average(SculptSession *ss, int index)
+float SCULPT_neighbor_mask_average(SculptSession *ss, SculptVertRef index)
 {
   float avg = 0.0f;
   int total = 0;
@@ -195,7 +195,7 @@ float SCULPT_neighbor_mask_average(SculptSession *ss, int index)
   return SCULPT_vertex_mask_get(ss, index);
 }
 
-void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], int index)
+void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], SculptVertRef index)
 {
   float avg[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   int total = 0;
@@ -500,7 +500,7 @@ void SCULPT_surface_smooth_laplacian_step(SculptSession *ss,
                                           float *disp,
                                           const float co[3],
                                           float (*laplacian_disp)[3],
-                                          const int v_index,
+                                          const SculptVertRef v_index,
                                           const float origco[3],
                                           const float alpha)
 {
@@ -519,7 +519,7 @@ void SCULPT_surface_smooth_laplacian_step(SculptSession *ss,
 void SCULPT_surface_smooth_displace_step(SculptSession *ss,
                                          float *co,
                                          float (*laplacian_disp)[3],
-                                         const int v_index,
+                                         const SculptVertRef v_index,
                                          const float beta,
                                          const float fade)
 {
