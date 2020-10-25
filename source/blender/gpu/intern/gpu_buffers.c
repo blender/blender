@@ -962,7 +962,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
 
   /* TODO, make mask layer optional for bmesh buffer */
   const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
-  const int cd_vcol_offset = CustomData_get_offset(&bm->vdata, CD_MLOOPCOL);
+  const int cd_vcol_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPCOL);
 
   /* Fill vertex buffer */
   if (!gpu_pbvh_vert_buf_data_set(buffers, totvert)) {

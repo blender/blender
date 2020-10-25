@@ -1263,6 +1263,12 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
   BMVert *v_new = pbvh_bmesh_vert_create(
       pbvh, node_index, co_mid, no_mid, eq_ctx->cd_vert_mask_offset);
 
+#ifdef DYNTOPO_CD_INTERP
+  void *vsrcs[2] = {e->v1->head.data, e->v2->head.data};
+  float vws[2] = {0.5f, 0.5f};
+  CustomData_bmesh_interp(&pbvh->bm->vdata, vsrcs, vws, NULL, 2, v_new->head.data);
+#endif
+
   /* update paint mask */
   if (eq_ctx->cd_vert_mask_offset != -1) {
     float mask_v1 = BM_ELEM_CD_GET_FLOAT(e->v1, eq_ctx->cd_vert_mask_offset);
@@ -1331,14 +1337,66 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
     f_new = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f_adj);
     long_edge_queue_face_add(eq_ctx, f_new);
 
+#ifdef DYNTOPO_CD_INTERP
+    BMLoop *lfirst = f_adj->l_first;
+    while (lfirst->v != v1) {
+      lfirst = lfirst->next;
+
+      // paranoia check
+      if (lfirst == f_adj->l_first) {
+        break;
+      }
+    }
+
+    BMLoop *l1 = lfirst;
+    BMLoop *l2 = lfirst->next;
+    BMLoop *l3 = lfirst->next->next;
+
+    void *lsrcs[2] = {l1->head.data, l2->head.data};
+    float lws[2] = {0.5f, 0.5f};
+
+    CustomData_bmesh_interp(&pbvh->bm->ldata, lsrcs, lws, lws, 2, f_new->l_first->next->head.data);
+
+    lsrcs[0] = l1->head.data;
+    lws[0] = 1.0f;
+
+    CustomData_bmesh_interp(&pbvh->bm->ldata, lsrcs, lws, lws, 1, f_new->l_first->head.data);
+
+    lsrcs[0] = l3->head.data;
+    lws[0] = 1.0f;
+
+    CustomData_bmesh_interp(&pbvh->bm->ldata, lsrcs, lws, lws, 1, f_new->l_first->prev->head.data);
+
+#endif
+
     v_tri[0] = v_new;
     v_tri[1] = v2;
     /* v_tri[2] = v_opp; */ /* unchanged */
     e_tri[0] = BM_edge_create(pbvh->bm, v_tri[0], v_tri[1], NULL, BM_CREATE_NO_DOUBLE);
     e_tri[2] = e_tri[1]; /* switched */
     e_tri[1] = BM_edge_create(pbvh->bm, v_tri[1], v_tri[2], NULL, BM_CREATE_NO_DOUBLE);
+
     f_new = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f_adj);
     long_edge_queue_face_add(eq_ctx, f_new);
+
+#ifdef DYNTOPO_CD_INTERP
+    lsrcs[0] = lfirst->head.data;
+    lsrcs[1] = lfirst->next->head.data;
+    lws[0] = lws[1] = 0.5f;
+
+    CustomData_bmesh_interp(&pbvh->bm->ldata, lsrcs, lws, lws, 2, f_new->l_first->head.data);
+
+    lsrcs[0] = lfirst->next->head.data;
+    ;
+    lws[0] = 1.0f;
+
+    CustomData_bmesh_interp(&pbvh->bm->ldata, lsrcs, lws, lws, 1, f_new->l_first->next->head.data);
+
+    lsrcs[0] = lfirst->prev->head.data;
+    lws[0] = 1.0f;
+
+    CustomData_bmesh_interp(&pbvh->bm->ldata, lsrcs, lws, lws, 1, f_new->l_first->prev->head.data);
+#endif
 
     /* Delete original */
     pbvh_bmesh_face_remove(pbvh, f_adj);
@@ -1467,6 +1525,29 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 {
   BMVert *v_del, *v_conn;
 
+#ifdef DYNTOPO_CD_INTERP
+  if (BM_elem_flag_test(e, BM_ELEM_SEAM)) {
+    // return;
+    // only collapse edge if there are two seams in its neighborhood
+    for (int step = 0; step < 2; step++) {
+      int count = 0;
+      BMVert *v = step ? v2 : v1;
+      BMIter iter;
+      BMEdge *e2;
+
+      BM_ITER_ELEM (e2, &iter, v, BM_EDGES_OF_VERT) {
+        if (BM_elem_flag_test(e2, BM_ELEM_SEAM)) {
+          count++;
+        }
+      }
+
+      if (count < 2) {
+        return;
+      }
+    }
+  }
+#endif
+
   /* one of the two vertices may be masked, select the correct one for deletion */
   if (BM_ELEM_CD_GET_FLOAT(v1, eq_ctx->cd_vert_mask_offset) <
       BM_ELEM_CD_GET_FLOAT(v2, eq_ctx->cd_vert_mask_offset)) {
@@ -1485,6 +1566,29 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
   BMLoop *l_adj;
   while ((l_adj = e->l)) {
     BMFace *f_adj = l_adj->f;
+
+#ifdef DYNTOPO_CD_INTERP
+    int eflag = 0;
+
+    // propegate flags to merged edges
+    BMLoop *l = f_adj->l_first;
+    do {
+      BMEdge *e2 = l->e;
+
+      if (e2 != e) {
+        eflag |= e2->head.hflag & ~BM_ELEM_HIDDEN;
+      }
+
+      l = l->next;
+    } while (l != f_adj->l_first);
+
+    do {
+      BMEdge *e2 = l->e;
+      e2->head.hflag |= eflag;
+
+      l = l->next;
+    } while (l != f_adj->l_first);
+#endif
 
     pbvh_bmesh_face_remove(pbvh, f_adj);
     BM_face_kill(pbvh->bm, f_adj);
@@ -1540,8 +1644,18 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
       PBVHNode *n = pbvh_bmesh_node_from_face(pbvh, f);
       int ni = n - pbvh->nodes;
       bm_edges_from_tri(pbvh->bm, v_tri, e_tri);
-      pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f);
+      BMFace *f2 = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f);
 
+#ifdef DYNTOPO_CD_INTERP
+      CustomData_bmesh_copy_data(
+          &pbvh->bm->pdata, &pbvh->bm->pdata, f->head.data, &f2->head.data);
+      CustomData_bmesh_copy_data(
+          &pbvh->bm->ldata, &pbvh->bm->ldata, l->head.data, &f2->l_first->head.data);
+      CustomData_bmesh_copy_data(
+          &pbvh->bm->ldata, &pbvh->bm->ldata, l->next->head.data, &f2->l_first->next->head.data);
+      CustomData_bmesh_copy_data(
+          &pbvh->bm->ldata, &pbvh->bm->ldata, l->prev->head.data, &f2->l_first->prev->head.data);
+#endif
       /* Ensure that v_conn is in the new face's node */
       if (!BLI_table_gset_haskey(n->bm_unique_verts, v_conn)) {
         BLI_table_gset_add(n->bm_other_verts, v_conn);
