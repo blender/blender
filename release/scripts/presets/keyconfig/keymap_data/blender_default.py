@@ -6490,10 +6490,8 @@ def km_3d_view_tool_sculpt_face_set_edit(params):
         "3D View Tool: Sculpt, Face Set Edit",
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
-            ("sculpt.face_set_edit", {"type": params.tool_mouse, "value": 'ANY'},
+            ("sculpt.face_set_edit", {"type": params.tool_mouse, "value": 'PRESS'},
              None),
-            ("sculpt.face_set_edit", {"type": params.tool_tweak, "value": 'ANY'},
-             None)
         ]},
     )
 
