@@ -1605,7 +1605,53 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
    * really buy anything. */
   BLI_buffer_clear(deleted_faces);
 
+#define MAX_LS 24
+
   BMLoop *l;
+#if 1  // def DYNTOPO_CD_INTERP
+  BMLoop *ls[MAX_LS];
+
+  int totl = 0;
+
+  BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_del) {
+    if (totl >= MAX_LS) {
+      break;
+    }
+    ls[totl++] = l;
+  }
+  BM_LOOPS_OF_VERT_ITER_END;
+
+  BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_conn) {
+    if (totl >= MAX_LS) {
+      break;
+    }
+    ls[totl++] = l;
+  }
+  BM_LOOPS_OF_VERT_ITER_END;
+
+  void *blocks[MAX_LS];
+  float ws[MAX_LS], w = totl > 1 ? 1.0f / (float)(totl - 1) : 1.0f;
+
+  for (int i = 0; i < totl - 1; i++) {
+    blocks[i] = ls[i + 1]->head.data;
+    ws[i] = w;
+  }
+
+  if (totl > 1) {
+    CustomData_bmesh_interp(&pbvh->bm->ldata, blocks, ws, NULL, totl - 1, ls[0]->head.data);
+
+    BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_del) {
+      CustomData_bmesh_copy_data(
+          &pbvh->bm->ldata, &pbvh->bm->ldata, ls[0]->head.data, &l->head.data);
+    }
+    BM_LOOPS_OF_VERT_ITER_END;
+    BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_conn) {
+      CustomData_bmesh_copy_data(
+          &pbvh->bm->ldata, &pbvh->bm->ldata, ls[0]->head.data, &l->head.data);
+    }
+    BM_LOOPS_OF_VERT_ITER_END;
+  }
+#endif
 
   BM_LOOPS_OF_VERT_ITER_BEGIN (l, v_del) {
     BMFace *existing_face;
@@ -1647,14 +1693,14 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
       BMFace *f2 = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f);
 
 #ifdef DYNTOPO_CD_INTERP
+      BMLoop *l2 = f2->l_first;
+
+      CustomData_bmesh_copy_data(&pbvh->bm->pdata, &pbvh->bm->pdata, f->head.data, &f2->head.data);
+      CustomData_bmesh_copy_data(&pbvh->bm->ldata, &pbvh->bm->ldata, l->head.data, &l2->head.data);
       CustomData_bmesh_copy_data(
-          &pbvh->bm->pdata, &pbvh->bm->pdata, f->head.data, &f2->head.data);
+          &pbvh->bm->ldata, &pbvh->bm->ldata, l->next->head.data, &l2->next->head.data);
       CustomData_bmesh_copy_data(
-          &pbvh->bm->ldata, &pbvh->bm->ldata, l->head.data, &f2->l_first->head.data);
-      CustomData_bmesh_copy_data(
-          &pbvh->bm->ldata, &pbvh->bm->ldata, l->next->head.data, &f2->l_first->next->head.data);
-      CustomData_bmesh_copy_data(
-          &pbvh->bm->ldata, &pbvh->bm->ldata, l->prev->head.data, &f2->l_first->prev->head.data);
+          &pbvh->bm->ldata, &pbvh->bm->ldata, l->prev->head.data, &l2->prev->head.data);
 #endif
       /* Ensure that v_conn is in the new face's node */
       if (!BLI_table_gset_haskey(n->bm_unique_verts, v_conn)) {

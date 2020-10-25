@@ -101,7 +101,7 @@ struct GPU_PBVH_Buffers {
 
 static struct {
   GPUVertFormat format;
-  uint pos, nor, msk, col, fset;
+  uint pos, nor, msk, col, fset, uv;
 } g_vbo_id = {{0}};
 
 /** \} */
@@ -125,6 +125,13 @@ void gpu_pbvh_init()
         &g_vbo_id.format, "c", GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
     g_vbo_id.fset = GPU_vertformat_attr_add(
         &g_vbo_id.format, "fset", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+
+    g_vbo_id.uv = GPU_vertformat_attr_add(
+        &g_vbo_id.format, "uvs", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+    GPU_vertformat_alias_add(&g_vbo_id.format, "texCoord");
+    GPU_vertformat_alias_add(&g_vbo_id.format, "u");
+    GPU_vertformat_alias_add(&g_vbo_id.format, "au");
+
   }
 }
 
@@ -932,6 +939,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                    const int update_flags,
                                    const int cd_vert_node_offset)
 {
+  const bool have_uv = CustomData_has_layer(&bm->ldata, CD_MLOOPUV);
   const bool show_mask = (update_flags & GPU_PBVH_BUFFERS_SHOW_MASK) != 0;
   const bool show_vcol = (update_flags & GPU_PBVH_BUFFERS_SHOW_VCOL) != 0;
   int tottri, totvert;
@@ -941,7 +949,8 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
   /* Count visible triangles */
   tottri = gpu_bmesh_face_visible_count(bm_faces);
 
-  if (buffers->smooth) {
+  // XXX disable indexed verts for now
+  if (0 && buffers->smooth) {
     /* Count visible vertices */
     totvert = gpu_bmesh_vert_visible_count(bm_unique_verts, bm_other_verts);
   }
@@ -963,6 +972,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
   /* TODO, make mask layer optional for bmesh buffer */
   const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
   const int cd_vcol_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPCOL);
+  const int cd_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 
   /* Fill vertex buffer */
   if (!gpu_pbvh_vert_buf_data_set(buffers, totvert)) {
@@ -972,7 +982,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
 
   int v_index = 0;
 
-  if (buffers->smooth) {
+  if (buffers->smooth && 0) {
     /* Fill the vertex and triangle buffer in one pass over faces. */
     GPUIndexBufBuilder elb, elb_lines;
     GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, tottri, totvert);
@@ -1044,6 +1054,8 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
 
       if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
         BMVert *v[3];
+        BMLoop *l[3] = {f->l_first, f->l_first->next, f->l_first->prev};
+
         float fmask = 0.0f;
         int i;
 
@@ -1060,17 +1072,39 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
         GPU_indexbuf_add_line_verts(&elb_lines, v_index + 2, v_index + 0);
 
         for (i = 0; i < 3; i++) {
+          float *no = buffers->smooth ? v[i]->no : f->no;
+
           gpu_bmesh_vert_to_buffer_copy(v[i],
                                         buffers->vert_buf,
-                                        v_index++,
-                                        f->no,
+                                        v_index,
+                                        no,
                                         &fmask,
                                         cd_vert_mask_offset,
                                         cd_vert_node_offset,
                                         show_mask,
-                                        show_vcol,
+                                        false,
                                         &empty_mask,
-                                        cd_vcol_offset);
+                                        -1);
+
+          if (cd_vcol_offset >= 0) {
+            ushort vcol[4];
+
+            MLoopCol *ml = BM_ELEM_CD_GET_VOID_P(l[i], cd_vcol_offset);
+
+            vcol[0] = ml->r * 257;
+            vcol[1] = ml->g * 257;
+            vcol[2] = ml->b * 257;
+            vcol[3] = ml->a * 257;
+
+            GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, v_index, vcol);
+          }
+
+          if (have_uv) {
+            MLoopUV *mu = BM_ELEM_CD_GET_VOID_P(l[i], cd_uv_offset);
+            GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.uv, v_index, mu->uv);
+          }
+
+          v_index++;
         }
       }
     }
