@@ -303,7 +303,7 @@ static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode)
     MVert *mvert = ss->mvert;
 
     for (int i = 0; i < unode->totvert; i++) {
-      MVert *v = &mvert[unode->index[i]];
+      MVert *v = &mvert[unode->index[i].i];
       if ((BLI_BITMAP_TEST(unode->vert_hidden, i) != 0) != ((v->flag & ME_HIDE) != 0)) {
         BLI_BITMAP_FLIP(unode->vert_hidden, i);
         v->flag ^= ME_HIDE;
@@ -1064,7 +1064,9 @@ static void sculpt_undo_store_coords(Object *ob, SculptUndoNode *unode)
     }
 
     if (ss->deform_modifiers_active) {
-      copy_v3_v3(unode->orig_co[vd.i], ss->orig_cos[unode->index[vd.i]]);
+      int index = BKE_pbvh_vertex_index_to_table(ss->pbvh, unode->index[vd.i]);
+
+      copy_v3_v3(unode->orig_co[vd.i], ss->orig_cos[index]);
     }
   }
   BKE_pbvh_vertex_iter_end;

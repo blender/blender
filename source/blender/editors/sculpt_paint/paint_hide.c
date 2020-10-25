@@ -209,17 +209,15 @@ static void partialvis_update_grids(Depsgraph *depsgraph,
 }
 
 static void partialvis_update_bmesh_verts(BMesh *bm,
-                                          GSet *verts,
+                                          TableGSet *verts,
                                           PartialVisAction action,
                                           PartialVisArea area,
                                           float planes[4][4],
                                           bool *any_changed,
                                           bool *any_visible)
 {
-  GSetIterator gs_iter;
-
-  GSET_ITER (gs_iter, verts) {
-    BMVert *v = BLI_gsetIterator_getKey(&gs_iter);
+  BMVert *v;
+  TGSET_ITER (v, verts) {
     float *vmask = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_PAINT_MASK);
 
     /* Hide vertex if in the hide volume. */
@@ -237,15 +235,14 @@ static void partialvis_update_bmesh_verts(BMesh *bm,
       (*any_visible) = true;
     }
   }
+  TGSET_ITER_END
 }
 
-static void partialvis_update_bmesh_faces(GSet *faces)
+static void partialvis_update_bmesh_faces(TableGSet *faces)
 {
-  GSetIterator gs_iter;
+  BMFace *f;
 
-  GSET_ITER (gs_iter, faces) {
-    BMFace *f = BLI_gsetIterator_getKey(&gs_iter);
-
+  TGSET_ITER (f, faces) {
     if (paint_is_bmesh_face_hidden(f)) {
       BM_elem_flag_enable(f, BM_ELEM_HIDDEN);
     }
@@ -253,6 +250,7 @@ static void partialvis_update_bmesh_faces(GSet *faces)
       BM_elem_flag_disable(f, BM_ELEM_HIDDEN);
     }
   }
+  TGSET_ITER_END
 }
 
 static void partialvis_update_bmesh(Object *ob,
@@ -263,7 +261,7 @@ static void partialvis_update_bmesh(Object *ob,
                                     float planes[4][4])
 {
   BMesh *bm;
-  GSet *unique, *other, *faces;
+  TableGSet *unique, *other, *faces;
   bool any_changed = false, any_visible = false;
 
   bm = BKE_pbvh_get_bmesh(pbvh);

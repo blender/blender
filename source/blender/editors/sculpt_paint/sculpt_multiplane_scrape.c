@@ -106,7 +106,7 @@ static void calc_multiplane_scrape_surface_task_cb(void *__restrict userdata,
                                                       vd.no,
                                                       vd.fno,
                                                       vd.mask ? *vd.mask : 0.0f,
-                                                      vd.index,
+                                                      vd.vertex,
                                                       thread_id);
 
       /* Sample the normal and area of the +X and -X axis individually. */
@@ -208,7 +208,7 @@ static void do_multiplane_scrape_brush_task_cb_ex(void *__restrict userdata,
                                                                       vd.no,
                                                                       vd.fno,
                                                                       vd.mask ? *vd.mask : 0.0f,
-                                                                      vd.index,
+                                                                      vd.vertex,
                                                                       thread_id);
 
           mul_v3_v3fl(proxy[vd.i], val, fade);

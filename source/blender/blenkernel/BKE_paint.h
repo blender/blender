@@ -287,10 +287,10 @@ typedef struct SculptClothLengthConstraint {
    * point, position for a previous state). In that case, elem_index_a and elem_index_b should be
    * the same to avoid affecting two different vertices when solving the constraints.
    * *elem_position points to the position which is owned by the element. */
-  SculptVertRef elem_index_a;
+  int elem_index_a;
   float *elem_position_a;
 
-  SculptVertRef elem_index_b;
+  int elem_index_b;
   float *elem_position_b;
 
   float length;
@@ -343,7 +343,7 @@ typedef struct SculptPersistentBase {
 
 typedef struct SculptVertexInfo {
   /* Indexed by vertex, stores and ID of its topologically connected component. */
-  SculptVertRef *connected_component;
+  int *connected_component;
 
   /* Indexed by base mesh vertex index, stores if that vertex is a boundary. */
   BLI_bitmap *boundary;
@@ -352,6 +352,7 @@ typedef struct SculptVertexInfo {
 typedef struct SculptBoundaryEditInfo {
   /* Vertex index from where the topology propagation reached this vertex. */
   SculptVertRef original_vertex;
+  int original_vertex_i;
 
   /* How many steps were needed to reach this vertex from the boundary. */
   int num_propagation_steps;
@@ -362,13 +363,15 @@ typedef struct SculptBoundaryEditInfo {
 
 /* Edge for drawing the boundary preview in the cursor. */
 typedef struct SculptBoundaryPreviewEdge {
-  int v1;
-  int v2;
+  SculptVertRef v1;
+  SculptVertRef v2;
 } SculptBoundaryPreviewEdge;
 
 typedef struct SculptBoundary {
   /* Vertex indices of the active boundary. */
   SculptVertRef *vertices;
+  int *vertex_indices;
+
   int vertices_capacity;
   int num_vertices;
 
@@ -525,7 +528,7 @@ typedef struct SculptSession {
   int cd_origno_offset;
 
   /* Dynamic mesh preview */
-  int *preview_vert_index_list;
+  SculptVertRef *preview_vert_index_list;
   int preview_vert_index_count;
 
   /* Pose Brush Preview */

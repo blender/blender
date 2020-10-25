@@ -368,7 +368,7 @@ void BLI_table_gset_insert(TableGSet *ts, void *elem)
     }
 
     ts->size = newsize;
-    ts->cur = ts->length;
+    ts->cur = j;
   }
 
   BLI_ghash_insert(ts->ptr_to_idx, elem, (void *)ts->cur);
@@ -378,16 +378,23 @@ void BLI_table_gset_insert(TableGSet *ts, void *elem)
 
 void BLI_table_gset_remove(TableGSet *ts, void *elem, GHashKeyFreeFP freefp)
 {
-  int idx = (int)BLI_ghash_lookup(ts->ptr_to_idx, elem);
+  if (!elem) {
+    return;
+  }
+
+  int *idx = (int*)BLI_ghash_lookup_p(ts->ptr_to_idx, elem);
+  if (!idx) {
+    return;
+  }
 
   BLI_ghash_remove(ts->ptr_to_idx, elem, freefp, NULL);
 
-  if (!ts->elems || ts->elems[idx] != elem) {
+  if (!ts->elems || ts->elems[*idx] != elem) {
     return;
   }
 
   ts->length--;
-  ts->elems[idx] = NULL;
+  ts->elems[*idx] = NULL;
 }
 
 bool BLI_table_gset_haskey(TableGSet *ts, void *elem)

@@ -62,19 +62,28 @@
 #define BOUNDARY_STEPS_NONE -1
 
 typedef struct BoundaryInitialVertexFloodFillData {
-  int initial_vertex;
+  SculptVertRef initial_vertex;
+  int initial_vertex_index;
   int boundary_initial_vertex_steps;
-  int boundary_initial_vertex;
+
+  SculptVertRef boundary_initial_vertex;
+
   int *floodfill_steps;
   float radius_sq;
 } BoundaryInitialVertexFloodFillData;
 
-static bool boundary_initial_vertex_floodfill_cb(
-    SculptSession *ss, int from_v, int to_v, bool is_duplicate, void *userdata)
+static bool boundary_initial_vertex_floodfill_cb(SculptSession *ss,
+                                                 SculptVertRef from_vref,
+                                                 SculptVertRef to_vref,
+                                                 bool is_duplicate,
+                                                 void *userdata)
 {
   BoundaryInitialVertexFloodFillData *data = userdata;
 
-  if (!SCULPT_vertex_visible_get(ss, to_v)) {
+  int to_v = BKE_pbvh_vertex_index_to_table(ss->pbvh, to_vref);
+  int from_v = BKE_pbvh_vertex_index_to_table(ss->pbvh, from_vref);
+
+  if (!SCULPT_vertex_visible_get(ss, to_vref)) {
     return false;
   }
 
@@ -85,23 +94,25 @@ static bool boundary_initial_vertex_floodfill_cb(
     data->floodfill_steps[to_v] = data->floodfill_steps[from_v];
   }
 
-  if (SCULPT_vertex_is_boundary(ss, to_v)) {
+  if (SCULPT_vertex_is_boundary(ss, to_vref)) {
     if (data->floodfill_steps[to_v] < data->boundary_initial_vertex_steps) {
       data->boundary_initial_vertex_steps = data->floodfill_steps[to_v];
-      data->boundary_initial_vertex = to_v;
+      data->boundary_initial_vertex = to_vref;
     }
   }
 
   const float len_sq = len_squared_v3v3(SCULPT_vertex_co_get(ss, data->initial_vertex),
-                                        SCULPT_vertex_co_get(ss, to_v));
+                                        SCULPT_vertex_co_get(ss, to_vref));
   return len_sq < data->radius_sq;
 }
 
 /* From a vertex index anywhere in the mesh, returns the closest vertex in a mesh boundary inside
  * the given radius, if it exists. */
-static int sculpt_boundary_get_closest_boundary_vertex(SculptSession *ss,
-                                                       const int initial_vertex,
-                                                       const float radius)
+static SculptVertRef sculpt_boundary_get_closest_boundary_vertex(
+    SculptSession *ss,
+    const SculptVertRef initial_vertex,
+    const int initial_vertex_index,
+    const float radius)
 {
 
   if (SCULPT_vertex_is_boundary(ss, initial_vertex)) {
@@ -114,6 +125,7 @@ static int sculpt_boundary_get_closest_boundary_vertex(SculptSession *ss,
 
   BoundaryInitialVertexFloodFillData fdata = {
       .initial_vertex = initial_vertex,
+      .initial_vertex_index = initial_vertex_index,
       .boundary_initial_vertex = BOUNDARY_VERTEX_NONE,
       .boundary_initial_vertex_steps = INT_MAX,
       .radius_sq = radius * radius,
@@ -134,28 +146,34 @@ static int sculpt_boundary_get_closest_boundary_vertex(SculptSession *ss,
  * deformations usually need in the boundary. */
 static int BOUNDARY_INDICES_BLOCK_SIZE = 300;
 
-static void sculpt_boundary_index_add(SculptBoundary *boundary,
-                                      const int new_index,
+static void sculpt_boundary_index_add(SculptSession *ss,
+                                      SculptBoundary *boundary,
+                                      const SculptVertRef new_index,
                                       const float distance,
                                       GSet *included_vertices)
 {
 
   boundary->vertices[boundary->num_vertices] = new_index;
   if (boundary->distance) {
-    boundary->distance[new_index] = distance;
+    boundary->distance[BKE_pbvh_vertex_index_to_table(ss->pbvh, new_index)] = distance;
   }
   if (included_vertices) {
-    BLI_gset_add(included_vertices, POINTER_FROM_INT(new_index));
+    BLI_gset_add(included_vertices, POINTER_FROM_INT(new_index.i));
   }
   boundary->num_vertices++;
   if (boundary->num_vertices >= boundary->vertices_capacity) {
     boundary->vertices_capacity += BOUNDARY_INDICES_BLOCK_SIZE;
-    boundary->vertices = MEM_reallocN_id(
-        boundary->vertices, boundary->vertices_capacity * sizeof(int), "boundary indices");
+    boundary->vertices = MEM_reallocN_id(boundary->vertices,
+                                         boundary->vertices_capacity * sizeof(SculptVertRef),
+                                         "boundary vertrefs");
+    boundary->vertex_indices = MEM_reallocN_id(
+        boundary->vertex_indices, boundary->vertices_capacity * sizeof(int), "boundary indices");
   }
 };
 
-static void sculpt_boundary_preview_edge_add(SculptBoundary *boundary, const int v1, const int v2)
+static void sculpt_boundary_preview_edge_add(SculptBoundary *boundary,
+                                             const SculptVertRef v1,
+                                             const SculptVertRef v2)
 {
 
   boundary->edges[boundary->num_edges].v1 = v1;
@@ -175,7 +193,7 @@ static void sculpt_boundary_preview_edge_add(SculptBoundary *boundary, const int
  * as well as to check if the initial vertex is valid.
  */
 static bool sculpt_boundary_is_vertex_in_editable_boundary(SculptSession *ss,
-                                                           const int initial_vertex)
+                                                           const SculptVertRef initial_vertex)
 {
 
   if (!SCULPT_vertex_visible_get(ss, initial_vertex)) {
@@ -186,9 +204,9 @@ static bool sculpt_boundary_is_vertex_in_editable_boundary(SculptSession *ss,
   int boundary_vertex_count = 0;
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, initial_vertex, ni) {
-    if (SCULPT_vertex_visible_get(ss, ni.index)) {
+    if (SCULPT_vertex_visible_get(ss, ni.vertex)) {
       neighbor_count++;
-      if (SCULPT_vertex_is_boundary(ss, ni.index)) {
+      if (SCULPT_vertex_is_boundary(ss, ni.vertex)) {
         boundary_vertex_count++;
       }
     }
@@ -218,22 +236,25 @@ typedef struct BoundaryFloodFillData {
   GSet *included_vertices;
   EdgeSet *preview_edges;
 
-  int last_visited_vertex;
+  SculptVertRef last_visited_vertex;
 
 } BoundaryFloodFillData;
 
 static bool boundary_floodfill_cb(
-    SculptSession *ss, int from_v, int to_v, bool is_duplicate, void *userdata)
+    SculptSession *ss, SculptVertRef from_v, SculptVertRef to_v, bool is_duplicate, void *userdata)
 {
   BoundaryFloodFillData *data = userdata;
   SculptBoundary *boundary = data->boundary;
+  const int from_v_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, from_v);
+
   if (SCULPT_vertex_is_boundary(ss, to_v)) {
     const float edge_len = len_v3v3(SCULPT_vertex_co_get(ss, from_v),
                                     SCULPT_vertex_co_get(ss, to_v));
     const float distance_boundary_to_dst = boundary->distance ?
-                                               boundary->distance[from_v] + edge_len :
+                                               boundary->distance[from_v_i] + edge_len :
                                                0.0f;
-    sculpt_boundary_index_add(boundary, to_v, distance_boundary_to_dst, data->included_vertices);
+    sculpt_boundary_index_add(
+        ss, boundary, to_v, distance_boundary_to_dst, data->included_vertices);
     if (!is_duplicate) {
       sculpt_boundary_preview_edge_add(boundary, from_v, to_v);
     }
@@ -245,12 +266,15 @@ static bool boundary_floodfill_cb(
 static void sculpt_boundary_indices_init(SculptSession *ss,
                                          SculptBoundary *boundary,
                                          const bool init_boundary_distances,
-                                         const int initial_boundary_index)
+                                         const SculptVertRef initial_boundary_index)
 {
 
   const int totvert = SCULPT_vertex_count_get(ss);
   boundary->vertices = MEM_malloc_arrayN(
+      BOUNDARY_INDICES_BLOCK_SIZE, sizeof(SculptVertRef), "boundary vrefs");
+  boundary->vertex_indices = MEM_malloc_arrayN(
       BOUNDARY_INDICES_BLOCK_SIZE, sizeof(int), "boundary indices");
+
   if (init_boundary_distances) {
     boundary->distance = MEM_calloc_arrayN(totvert, sizeof(float), "boundary distances");
   }
@@ -264,7 +288,7 @@ static void sculpt_boundary_indices_init(SculptSession *ss,
   boundary->initial_vertex = initial_boundary_index;
   copy_v3_v3(boundary->initial_vertex_position,
              SCULPT_vertex_co_get(ss, boundary->initial_vertex));
-  sculpt_boundary_index_add(boundary, initial_boundary_index, 0.0f, included_vertices);
+  sculpt_boundary_index_add(ss, boundary, initial_boundary_index, 0.0f, included_vertices);
   SCULPT_floodfill_add_initial(&flood, initial_boundary_index);
 
   BoundaryFloodFillData fdata = {
@@ -278,13 +302,13 @@ static void sculpt_boundary_indices_init(SculptSession *ss,
   SCULPT_floodfill_free(&flood);
 
   /* Check if the boundary loops into itself and add the extra preview edge to close the loop. */
-  if (fdata.last_visited_vertex != BOUNDARY_VERTEX_NONE &&
+  if (fdata.last_visited_vertex.i != BOUNDARY_VERTEX_NONE &&
       sculpt_boundary_is_vertex_in_editable_boundary(ss, fdata.last_visited_vertex)) {
     SculptVertexNeighborIter ni;
     SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, fdata.last_visited_vertex, ni) {
-      if (BLI_gset_haskey(included_vertices, POINTER_FROM_INT(ni.index)) &&
-          sculpt_boundary_is_vertex_in_editable_boundary(ss, ni.index)) {
-        sculpt_boundary_preview_edge_add(boundary, fdata.last_visited_vertex, ni.index);
+      if (BLI_gset_haskey(included_vertices, POINTER_FROM_INT(ni.vertex.i)) &&
+          sculpt_boundary_is_vertex_in_editable_boundary(ss, ni.vertex)) {
+        sculpt_boundary_preview_edge_add(boundary, fdata.last_visited_vertex, ni.vertex);
         boundary->forms_loop = true;
       }
     }
@@ -302,7 +326,7 @@ static void sculpt_boundary_indices_init(SculptSession *ss,
  */
 static void sculpt_boundary_edit_data_init(SculptSession *ss,
                                            SculptBoundary *boundary,
-                                           const int initial_vertex,
+                                           const SculptVertRef initial_vertex,
                                            const float radius)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
@@ -313,19 +337,22 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
       totvert, sizeof(SculptBoundaryEditInfo), "Boundary edit info");
 
   for (int i = 0; i < totvert; i++) {
-    boundary->edit_info[i].original_vertex = BOUNDARY_VERTEX_NONE;
+    boundary->edit_info[i].original_vertex.i = BOUNDARY_VERTEX_NONE;
+    boundary->edit_info[i].original_vertex_i = BOUNDARY_VERTEX_NONE;
     boundary->edit_info[i].num_propagation_steps = BOUNDARY_STEPS_NONE;
   }
 
-  GSQueue *current_iteration = BLI_gsqueue_new(sizeof(int));
-  GSQueue *next_iteration = BLI_gsqueue_new(sizeof(int));
+  GSQueue *current_iteration = BLI_gsqueue_new(sizeof(SculptVertRef));
+  GSQueue *next_iteration = BLI_gsqueue_new(sizeof(SculptVertRef));
 
   /* Initialized the first iteration with the vertices already in the boundary. This is propagation
    * step 0. */
   BLI_bitmap *visited_vertices = BLI_BITMAP_NEW(SCULPT_vertex_count_get(ss), "visited_vertices");
   for (int i = 0; i < boundary->num_vertices; i++) {
-    boundary->edit_info[boundary->vertices[i]].original_vertex = boundary->vertices[i];
-    boundary->edit_info[boundary->vertices[i]].num_propagation_steps = 0;
+    boundary->edit_info[boundary->vertex_indices[i]].original_vertex = boundary->vertices[i];
+    boundary->edit_info[boundary->vertex_indices[i]].original_vertex_i =
+        boundary->vertex_indices[i];
+    boundary->edit_info[boundary->vertex_indices[i]].num_propagation_steps = 0;
 
     /* This ensures that all duplicate vertices in the boundary have the same original_vertex
      * index, so the deformation for them will be the same. */
@@ -333,7 +360,11 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
       SculptVertexNeighborIter ni_duplis;
       SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN (ss, boundary->vertices[i], ni_duplis) {
         if (ni_duplis.is_duplicate) {
-          boundary->edit_info[ni_duplis.index].original_vertex = boundary->vertices[i];
+          int index = ni_duplis.index;
+
+          boundary->edit_info[index].original_vertex = boundary->vertices[i];
+          boundary->edit_info[index].original_vertex_i = BKE_pbvh_vertex_index_to_table(
+              ss->pbvh, boundary->vertices[i]);
         }
       }
       SCULPT_VERTEX_NEIGHBORS_ITER_END(ni_duplis);
@@ -354,29 +385,35 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
     }
 
     while (!BLI_gsqueue_is_empty(current_iteration)) {
-      int from_v;
+      SculptVertRef from_v;
       BLI_gsqueue_pop(current_iteration, &from_v);
+      const int from_v_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, from_v);
 
       SculptVertexNeighborIter ni;
       SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN (ss, from_v, ni) {
-        const bool is_visible = SCULPT_vertex_visible_get(ss, ni.index);
-        if (is_visible &&
-            boundary->edit_info[ni.index].num_propagation_steps == BOUNDARY_STEPS_NONE) {
-          boundary->edit_info[ni.index].original_vertex =
-              boundary->edit_info[from_v].original_vertex;
+        const int index = ni.index;
 
-          BLI_BITMAP_ENABLE(visited_vertices, ni.index);
+        const bool is_visible = SCULPT_vertex_visible_get(ss, ni.vertex);
+        if (is_visible &&
+            boundary->edit_info[index].num_propagation_steps == BOUNDARY_STEPS_NONE) {
+
+          boundary->edit_info[index].original_vertex =
+              boundary->edit_info[from_v_i].original_vertex;
+          boundary->edit_info[index].original_vertex_i =
+              boundary->edit_info[from_v_i].original_vertex_i;
+
+          BLI_BITMAP_ENABLE(visited_vertices, index);
 
           if (ni.is_duplicate) {
             /* Grids duplicates handling. */
-            boundary->edit_info[ni.index].num_propagation_steps =
-                boundary->edit_info[from_v].num_propagation_steps;
+            boundary->edit_info[index].num_propagation_steps =
+                boundary->edit_info[from_v_i].num_propagation_steps;
           }
           else {
-            boundary->edit_info[ni.index].num_propagation_steps =
-                boundary->edit_info[from_v].num_propagation_steps + 1;
+            boundary->edit_info[index].num_propagation_steps =
+                boundary->edit_info[from_v_i].num_propagation_steps + 1;
 
-            BLI_gsqueue_push(next_iteration, &ni.index);
+            BLI_gsqueue_push(next_iteration, &ni.vertex);
 
             /* When copying the data to the neighbor for the next iteration, it has to be copied to
              * all its duplicates too. This is because it is not possible to know if the updated
@@ -384,12 +421,15 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
              * copy the data in the from_v neighbor iterator. */
             if (has_duplicates) {
               SculptVertexNeighborIter ni_duplis;
-              SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN (ss, ni.index, ni_duplis) {
+              SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN (ss, ni.vertex, ni_duplis) {
                 if (ni_duplis.is_duplicate) {
-                  boundary->edit_info[ni_duplis.index].original_vertex =
-                      boundary->edit_info[from_v].original_vertex;
-                  boundary->edit_info[ni_duplis.index].num_propagation_steps =
-                      boundary->edit_info[from_v].num_propagation_steps + 1;
+                  const int index = ni_duplis.index;
+                  boundary->edit_info[index].original_vertex =
+                      boundary->edit_info[from_v_i].original_vertex;
+                  boundary->edit_info[index].original_vertex_i =
+                      boundary->edit_info[from_v_i].original_vertex_i;
+                  boundary->edit_info[index].num_propagation_steps =
+                      boundary->edit_info[from_v_i].num_propagation_steps + 1;
                 }
               }
               SCULPT_VERTEX_NEIGHBORS_ITER_END(ni_duplis);
@@ -397,11 +437,11 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
 
             /* Check the distance using the vertex that was propagated from the initial vertex that
              * was used to initialize the boundary. */
-            if (boundary->edit_info[from_v].original_vertex == initial_vertex) {
-              boundary->pivot_vertex = ni.index;
-              copy_v3_v3(boundary->initial_pivot_position, SCULPT_vertex_co_get(ss, ni.index));
+            if (boundary->edit_info[from_v_i].original_vertex.i == initial_vertex.i) {
+              boundary->pivot_vertex = ni.vertex;
+              copy_v3_v3(boundary->initial_pivot_position, SCULPT_vertex_co_get(ss, ni.vertex));
               accum_distance += len_v3v3(SCULPT_vertex_co_get(ss, from_v),
-                                         SCULPT_vertex_co_get(ss, ni.index));
+                                         SCULPT_vertex_co_get(ss, ni.vertex));
             }
           }
         }
@@ -411,7 +451,7 @@ static void sculpt_boundary_edit_data_init(SculptSession *ss,
 
     /* Copy the new vertices to the queue to be processed in the next iteration. */
     while (!BLI_gsqueue_is_empty(next_iteration)) {
-      int next_v;
+      SculptVertRef next_v;
       BLI_gsqueue_pop(next_iteration, &next_v);
       BLI_gsqueue_push(current_iteration, &next_v);
     }
@@ -442,7 +482,7 @@ static void sculpt_boundary_falloff_factor_init(SculptSession *ss,
           brush, boundary->edit_info[i].num_propagation_steps, boundary->max_propagation_steps);
     }
 
-    if (boundary->edit_info[i].original_vertex == boundary->initial_vertex) {
+    if (boundary->edit_info[i].original_vertex.i == boundary->initial_vertex.i) {
       /* All vertices that are propagated from the original vertex won't be affected by the
        * boundary falloff, so there is no need to calculate anything else. */
       continue;
@@ -454,7 +494,8 @@ static void sculpt_boundary_falloff_factor_init(SculptSession *ss,
       continue;
     }
 
-    const float boundary_distance = boundary->distance[boundary->edit_info[i].original_vertex];
+    const float boundary_distance = boundary->distance[BKE_pbvh_vertex_index_to_table(
+        ss->pbvh, boundary->edit_info[i].original_vertex)];
     float falloff_distance = 0.0f;
     float direction = 1.0f;
 
@@ -495,17 +536,17 @@ SculptBoundary *SCULPT_boundary_data_init(Object *object,
 {
   SculptSession *ss = object->sculpt;
 
-  if (initial_vertex == BOUNDARY_VERTEX_NONE) {
+  if (initial_vertex.i == BOUNDARY_VERTEX_NONE) {
     return NULL;
   }
 
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_boundary_info_ensure(object);
 
-  const int boundary_initial_vertex = sculpt_boundary_get_closest_boundary_vertex(
-      ss, initial_vertex, radius);
+  const SculptVertRef boundary_initial_vertex = sculpt_boundary_get_closest_boundary_vertex(
+      ss, initial_vertex, BKE_pbvh_vertex_index_to_table(ss->pbvh, initial_vertex), radius);
 
-  if (boundary_initial_vertex == BOUNDARY_VERTEX_NONE) {
+  if (boundary_initial_vertex.i == BOUNDARY_VERTEX_NONE) {
     return NULL;
   }
 
@@ -554,24 +595,27 @@ static void sculpt_boundary_bend_data_init(SculptSession *ss, SculptBoundary *bo
     if (boundary->edit_info[i].num_propagation_steps == boundary->max_propagation_steps) {
       float dir[3];
       float normal[3];
-      SCULPT_vertex_normal_get(ss, i, normal);
+      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+
+      SCULPT_vertex_normal_get(ss, vertex, normal);
       sub_v3_v3v3(dir,
                   SCULPT_vertex_co_get(ss, boundary->edit_info[i].original_vertex),
-                  SCULPT_vertex_co_get(ss, i));
-      cross_v3_v3v3(
-          boundary->bend.pivot_rotation_axis[boundary->edit_info[i].original_vertex], dir, normal);
-      normalize_v3(boundary->bend.pivot_rotation_axis[boundary->edit_info[i].original_vertex]);
-      copy_v3_v3(boundary->bend.pivot_positions[boundary->edit_info[i].original_vertex],
-                 SCULPT_vertex_co_get(ss, i));
+                  SCULPT_vertex_co_get(ss, vertex));
+      cross_v3_v3v3(boundary->bend.pivot_rotation_axis[boundary->edit_info[i].original_vertex_i],
+                    dir,
+                    normal);
+      normalize_v3(boundary->bend.pivot_rotation_axis[boundary->edit_info[i].original_vertex_i]);
+      copy_v3_v3(boundary->bend.pivot_positions[boundary->edit_info[i].original_vertex_i],
+                 SCULPT_vertex_co_get(ss, vertex));
     }
   }
 
   for (int i = 0; i < totvert; i++) {
     if (boundary->edit_info[i].num_propagation_steps != BOUNDARY_STEPS_NONE) {
       copy_v3_v3(boundary->bend.pivot_positions[i],
-                 boundary->bend.pivot_positions[boundary->edit_info[i].original_vertex]);
+                 boundary->bend.pivot_positions[boundary->edit_info[i].original_vertex_i]);
       copy_v3_v3(boundary->bend.pivot_rotation_axis[i],
-                 boundary->bend.pivot_rotation_axis[boundary->edit_info[i].original_vertex]);
+                 boundary->bend.pivot_rotation_axis[boundary->edit_info[i].original_vertex_i]);
     }
   }
 }
@@ -583,17 +627,20 @@ static void sculpt_boundary_slide_data_init(SculptSession *ss, SculptBoundary *b
 
   for (int i = 0; i < totvert; i++) {
     if (boundary->edit_info[i].num_propagation_steps == boundary->max_propagation_steps) {
-      sub_v3_v3v3(boundary->slide.directions[boundary->edit_info[i].original_vertex],
+      const int index = boundary->edit_info[i].original_vertex_i;
+
+      sub_v3_v3v3(boundary->slide.directions[index],
                   SCULPT_vertex_co_get(ss, boundary->edit_info[i].original_vertex),
-                  SCULPT_vertex_co_get(ss, i));
-      normalize_v3(boundary->slide.directions[boundary->edit_info[i].original_vertex]);
+                  SCULPT_vertex_co_get(ss, BKE_pbvh_table_index_to_vertex(ss->pbvh, i)));
+      normalize_v3(boundary->slide.directions[index]);
     }
   }
 
   for (int i = 0; i < totvert; i++) {
     if (boundary->edit_info[i].num_propagation_steps != BOUNDARY_STEPS_NONE) {
       copy_v3_v3(boundary->slide.directions[i],
-                 boundary->slide.directions[boundary->edit_info[i].original_vertex]);
+                 boundary->slide.directions[BKE_pbvh_vertex_index_to_table(
+                     ss->pbvh, boundary->edit_info[i].original_vertex)]);
     }
   }
 }
@@ -668,13 +715,15 @@ static void do_boundary_brush_bend_task_cb_ex(void *__restrict userdata,
               orig_data.co, boundary->initial_vertex_position, symm)) {
         const float mask = vd.mask ? 1.0f - *vd.mask : 1.0f;
         float t_orig_co[3];
+        const int index = vd.index;
+
         float *target_co = SCULPT_brush_deform_target_vertex_co_get(ss, brush->deform_target, &vd);
-        sub_v3_v3v3(t_orig_co, orig_data.co, boundary->bend.pivot_positions[vd.index]);
+        sub_v3_v3v3(t_orig_co, orig_data.co, boundary->bend.pivot_positions[index]);
         rotate_v3_v3v3fl(target_co,
                          t_orig_co,
-                         boundary->bend.pivot_rotation_axis[vd.index],
-                         angle * boundary->edit_info[vd.index].strength_factor * mask);
-        add_v3_v3(target_co, boundary->bend.pivot_positions[vd.index]);
+                         boundary->bend.pivot_rotation_axis[index],
+                         angle * boundary->edit_info[index].strength_factor * mask);
+        add_v3_v3(target_co, boundary->bend.pivot_positions[index]);
       }
     }
 
@@ -895,9 +944,9 @@ static void do_boundary_brush_smooth_task_cb_ex(void *__restrict userdata,
     int total_neighbors = 0;
     const int current_propagation_steps = boundary->edit_info[vd.index].num_propagation_steps;
     SculptVertexNeighborIter ni;
-    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.index, ni) {
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
       if (current_propagation_steps == boundary->edit_info[ni.index].num_propagation_steps) {
-        add_v3_v3(coord_accum, SCULPT_vertex_co_get(ss, ni.index));
+        add_v3_v3(coord_accum, SCULPT_vertex_co_get(ss, ni.vertex));
         total_neighbors++;
       }
     }
@@ -931,7 +980,8 @@ void SCULPT_do_boundary_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
   const int symm_area = ss->cache->mirror_symmetry_pass;
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
 
-    int initial_vertex;
+    SculptVertRef initial_vertex;
+
     if (ss->cache->mirror_symmetry_pass == 0) {
       initial_vertex = SCULPT_active_vertex_get(ss);
     }

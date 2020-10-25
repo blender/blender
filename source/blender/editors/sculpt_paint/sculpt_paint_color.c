@@ -95,11 +95,11 @@ static void do_color_smooth_task_cb_exec(void *__restrict userdata,
                                                                   vd.no,
                                                                   vd.fno,
                                                                   vd.mask ? *vd.mask : 0.0f,
-                                                                  vd.index,
+                                                                  vd.vertex,
                                                                   thread_id);
 
       float smooth_color[4];
-      SCULPT_neighbor_color_average(ss, smooth_color, vd.index);
+      SCULPT_neighbor_color_average(ss, smooth_color, vd.vertex);
       blend_color_interpolate_float(vd.col, vd.col, smooth_color, fade);
 
       if (vd.mvert) {
@@ -161,7 +161,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
                                                             vd.no,
                                                             vd.fno,
                                                             vd.mask ? *vd.mask : 0.0f,
-                                                            vd.index,
+                                                            vd.vertex,
                                                             thread_id);
 
       /* Density. */
@@ -385,7 +385,7 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
                                                                   vd.no,
                                                                   vd.fno,
                                                                   vd.mask ? *vd.mask : 0.0f,
-                                                                  vd.index,
+                                                                  vd.vertex,
                                                                   thread_id);
 
       float current_disp[3];
@@ -408,10 +408,10 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
       mul_v3_v3fl(current_disp, current_disp_norm, ss->cache->bstrength);
 
       SculptVertexNeighborIter ni;
-      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.index, ni) {
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
         float vertex_disp[3];
         float vertex_disp_norm[3];
-        sub_v3_v3v3(vertex_disp, SCULPT_vertex_co_get(ss, ni.index), vd.co);
+        sub_v3_v3v3(vertex_disp, SCULPT_vertex_co_get(ss, ni.vertex), vd.co);
         const float *neighbor_color = ss->cache->prev_colors[ni.index];
         normalize_v3_v3(vertex_disp_norm, vertex_disp);
         if (dot_v3v3(current_disp_norm, vertex_disp_norm) < 0.0f) {
@@ -445,7 +445,7 @@ static void do_smear_store_prev_colors_task_cb_exec(void *__restrict userdata,
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
-    copy_v4_v4(ss->cache->prev_colors[vd.index], SCULPT_vertex_color_get(ss, vd.index));
+    copy_v4_v4(ss->cache->prev_colors[vd.index], SCULPT_vertex_color_get(ss, vd.vertex));
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -465,7 +465,9 @@ void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     if (!ss->cache->prev_colors) {
       ss->cache->prev_colors = MEM_callocN(sizeof(float[4]) * totvert, "prev colors");
       for (int i = 0; i < totvert; i++) {
-        copy_v4_v4(ss->cache->prev_colors[i], SCULPT_vertex_color_get(ss, i));
+        SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+
+        copy_v4_v4(ss->cache->prev_colors[i], SCULPT_vertex_color_get(ss, vertex));
       }
     }
   }

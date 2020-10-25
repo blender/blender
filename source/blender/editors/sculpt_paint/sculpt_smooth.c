@@ -67,7 +67,9 @@
 #include <math.h>
 #include <stdlib.h>
 
-void SCULPT_neighbor_coords_average_interior(SculptSession *ss, float result[3], SculptVertRef index)
+void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
+                                             float result[3],
+                                             SculptVertRef index)
 {
   float avg[3] = {0.0f, 0.0f, 0.0f};
   int total = 0;
@@ -79,14 +81,14 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss, float result[3],
     neighbor_count++;
     if (is_boundary) {
       /* Boundary vertices use only other boundary vertices. */
-      if (SCULPT_vertex_is_boundary(ss, ni.index)) {
-        add_v3_v3(avg, SCULPT_vertex_co_get(ss, ni.index));
+      if (SCULPT_vertex_is_boundary(ss, ni.vertex)) {
+        add_v3_v3(avg, SCULPT_vertex_co_get(ss, ni.vertex));
         total++;
       }
     }
     else {
       /* Interior vertices use all neighbors. */
-      add_v3_v3(avg, SCULPT_vertex_co_get(ss, ni.index));
+      add_v3_v3(avg, SCULPT_vertex_co_get(ss, ni.vertex));
       total++;
     }
   }
@@ -164,7 +166,7 @@ void SCULPT_neighbor_coords_average(SculptSession *ss, float result[3], SculptVe
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, index, ni) {
-    add_v3_v3(avg, SCULPT_vertex_co_get(ss, ni.index));
+    add_v3_v3(avg, SCULPT_vertex_co_get(ss, ni.vertex));
     total++;
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
@@ -184,7 +186,7 @@ float SCULPT_neighbor_mask_average(SculptSession *ss, SculptVertRef index)
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, index, ni) {
-    avg += SCULPT_vertex_mask_get(ss, ni.index);
+    avg += SCULPT_vertex_mask_get(ss, ni.vertex);
     total++;
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
@@ -202,7 +204,7 @@ void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], SculptVer
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, index, ni) {
-    add_v4_v4(avg, SCULPT_vertex_color_get(ss, ni.index));
+    add_v4_v4(avg, SCULPT_vertex_color_get(ss, ni.vertex));
     total++;
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
@@ -244,7 +246,7 @@ static void do_enhance_details_brush_task_cb_ex(void *__restrict userdata,
                                                                   vd.no,
                                                                   vd.fno,
                                                                   vd.mask ? *vd.mask : 0.0f,
-                                                                  vd.index,
+                                                                  vd.vertex,
                                                                   thread_id);
 
       float disp[3];
@@ -277,8 +279,10 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
 
     for (int i = 0; i < totvert; i++) {
       float avg[3];
-      SCULPT_neighbor_coords_average(ss, avg, i);
-      sub_v3_v3v3(ss->cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, i));
+      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+
+      SCULPT_neighbor_coords_average(ss, avg, vertex);
+      sub_v3_v3v3(ss->cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, vertex));
     }
   }
 
@@ -336,8 +340,8 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
                                          p->index[i],
                                          thread_id);
 #  else
-  if (1) {
-    const float fade = 1.0;
+    if (1) {
+      const float fade = 1.0;
 #  endif
 
       while (ni < MAX_PROXY_NEIGHBORS && p->neighbors[i][ni].node >= 0) {
@@ -399,17 +403,17 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
                                          vd.no,
                                          vd.fno,
                                          smooth_mask ? 0.0f : (vd.mask ? *vd.mask : 0.0f),
-                                         vd.index,
+                                         vd.vertex,
                                          thread_id);
       if (smooth_mask) {
-        float val = SCULPT_neighbor_mask_average(ss, vd.index) - *vd.mask;
+        float val = SCULPT_neighbor_mask_average(ss, vd.vertex) - *vd.mask;
         val *= fade * bstrength;
         *vd.mask += val;
         CLAMP(*vd.mask, 0.0f, 1.0f);
       }
       else {
         float avg[3], val[3];
-        SCULPT_neighbor_coords_average_interior(ss, avg, vd.index);
+        SCULPT_neighbor_coords_average_interior(ss, avg, vd.vertex);
         sub_v3_v3v3(val, avg, vd.co);
         madd_v3_v3v3fl(val, vd.co, val, fade);
         SCULPT_clip(sd, ss, vd.co, val);
@@ -449,7 +453,10 @@ void SCULPT_smooth(Sculpt *sd,
     return;
   }
 
-  SCULPT_vertex_random_access_ensure(ss);
+  if (type != PBVH_BMESH) {
+    SCULPT_vertex_random_access_ensure(ss);
+  }
+
   SCULPT_boundary_info_ensure(ob);
 
 #ifdef PROXY_ADVANCED
@@ -508,10 +515,12 @@ void SCULPT_surface_smooth_laplacian_step(SculptSession *ss,
   float weigthed_o[3], weigthed_q[3], d[3];
   SCULPT_neighbor_coords_average(ss, laplacian_smooth_co, v_index);
 
+  int index = BKE_pbvh_vertex_index_to_table(ss->pbvh, v_index);
+
   mul_v3_v3fl(weigthed_o, origco, alpha);
   mul_v3_v3fl(weigthed_q, co, 1.0f - alpha);
   add_v3_v3v3(d, weigthed_o, weigthed_q);
-  sub_v3_v3v3(laplacian_disp[v_index], laplacian_smooth_co, d);
+  sub_v3_v3v3(laplacian_disp[index], laplacian_smooth_co, d);
 
   sub_v3_v3v3(disp, laplacian_smooth_co, co);
 }
@@ -526,15 +535,18 @@ void SCULPT_surface_smooth_displace_step(SculptSession *ss,
   float b_avg[3] = {0.0f, 0.0f, 0.0f};
   float b_current_vertex[3];
   int total = 0;
+  int index = BKE_pbvh_vertex_index_to_table(ss->pbvh, v_index);
+
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, v_index, ni) {
     add_v3_v3(b_avg, laplacian_disp[ni.index]);
     total++;
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
   if (total > 0) {
     mul_v3_v3fl(b_current_vertex, b_avg, (1.0f - beta) / total);
-    madd_v3_v3fl(b_current_vertex, laplacian_disp[v_index], beta);
+    madd_v3_v3fl(b_current_vertex, laplacian_disp[index], beta);
     mul_v3_fl(b_current_vertex, clamp_f(fade, 0.0f, 1.0f));
     sub_v3_v3(co, b_current_vertex);
   }
@@ -570,7 +582,7 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
                                                                   vd.no,
                                                                   vd.fno,
                                                                   vd.mask ? *vd.mask : 0.0f,
-                                                                  vd.index,
+                                                                  vd.vertex,
                                                                   thread_id);
 
       float disp[3];
@@ -578,7 +590,7 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
                                            disp,
                                            vd.co,
                                            ss->cache->surface_smooth_laplacian_disp,
-                                           vd.index,
+                                           vd.vertex,
                                            orig_data.co,
                                            alpha);
       madd_v3_v3fl(vd.co, disp, clamp_f(fade, 0.0f, 1.0f));
@@ -616,10 +628,10 @@ static void SCULPT_do_surface_smooth_brush_displace_task_cb_ex(
                                                                   vd.no,
                                                                   vd.fno,
                                                                   vd.mask ? *vd.mask : 0.0f,
-                                                                  vd.index,
+                                                                  vd.vertex,
                                                                   thread_id);
       SCULPT_surface_smooth_displace_step(
-          ss, vd.co, ss->cache->surface_smooth_laplacian_disp, vd.index, beta, fade);
+          ss, vd.co, ss->cache->surface_smooth_laplacian_disp, vd.vertex, beta, fade);
     }
   }
   BKE_pbvh_vertex_iter_end;

@@ -217,7 +217,7 @@ int BLI_table_gset_len(TableGSet *ts);
 #define TGSET_ITER_INDEX(v, ts, index) \
   { \
     int _i1; \
-    index = 0; \
+    index = -1; \
     for (_i1 = 0; _i1 < (ts)->cur; _i1++) { \
       if (!(ts)->elems[_i1]) \
         continue; \
@@ -226,7 +226,7 @@ int BLI_table_gset_len(TableGSet *ts);
 
 #define TGSET_ITER_INDEX_END \
   } \
-  }
+  } \
 
 typedef GHashHashFP GSetHashFP;
 typedef GHashCmpFP GSetCmpFP;

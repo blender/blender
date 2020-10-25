@@ -184,13 +184,13 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, int mx, int my)
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
 
   /* Average the edge length of the connected edges to the active vertex. */
-  int active_vertex = SCULPT_active_vertex_get(ss);
+  SculptVertRef active_vertex = SCULPT_active_vertex_get(ss);
   const float *active_vertex_co = SCULPT_active_vertex_co_get(ss);
   float edge_length = 0.0f;
   int tot = 0;
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, active_vertex, ni) {
-    edge_length += len_v3v3(active_vertex_co, SCULPT_vertex_co_get(ss, ni.index));
+    edge_length += len_v3v3(active_vertex_co, SCULPT_vertex_co_get(ss, ni.vertex));
     tot += 1;
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);

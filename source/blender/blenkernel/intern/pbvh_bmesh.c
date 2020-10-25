@@ -40,7 +40,7 @@
 #include "pbvh_intern.h"
 
 #define DYNTOPO_TIME_LIMIT 0.015
-#define DYNTOPO_RUN_INTERVAL 0.01
+#define DYNTOPO_RUN_INTERVAL 0.02
 
 #define DYNTOPO_USE_HEAP
 
@@ -56,6 +56,11 @@
 #  include "BKE_global.h"
 #endif
 
+#ifndef DEBUG
+#  define DEBUG_DEFINED
+#  define DEBUG
+#endif
+
 #ifdef WIN32
 #  include "crtdbg.h"
 #endif
@@ -67,6 +72,10 @@ static void check_heap()
     printf("Memory corruption!");
     _CrtDbgBreak();
   }
+#  ifdef DEBUG_DEFINED
+#    undef DEBUG_DEFINED
+#    undef DEBUG
+#  endif
 #endif
 }
 /* Support for only operating on front-faces */
@@ -327,10 +336,14 @@ static void pbvh_bmesh_node_split(
 
   /* Initialize children */
   PBVHNode *c1 = &pbvh->nodes[children], *c2 = &pbvh->nodes[children + 1];
+
   c1->flag |= PBVH_Leaf;
   c2->flag |= PBVH_Leaf;
   c1->bm_faces = BLI_table_gset_new_ex("bm_faces", BLI_table_gset_len(n->bm_faces) / 2);
   c2->bm_faces = BLI_table_gset_new_ex("bm_faces", BLI_table_gset_len(n->bm_faces) / 2);
+
+  c1->bm_unique_verts = c2->bm_unique_verts = NULL;
+  c1->bm_other_verts = c2->bm_other_verts = NULL;
 
   /* Partition the parent node's faces between the two children */
   TGSET_ITER (f, n->bm_faces) {
@@ -374,17 +387,20 @@ static void pbvh_bmesh_node_split(
     TGSET_ITER (v, n->bm_unique_verts) {
       BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, DYNTOPO_NODE_NONE);
     }
+    TGSET_ITER_END
+
     BLI_table_gset_free(n->bm_unique_verts, NULL);
   }
-  TGSET_ITER_END
 
-  /* Unclaim faces */
-  TGSET_ITER (f, n->bm_faces) {
-    BM_ELEM_CD_SET_INT(f, cd_face_node_offset, DYNTOPO_NODE_NONE);
+  if (n->bm_faces) {
+    /* Unclaim faces */
+    TGSET_ITER (f, n->bm_faces) {
+      BM_ELEM_CD_SET_INT(f, cd_face_node_offset, DYNTOPO_NODE_NONE);
+    }
+    TGSET_ITER_END
+
+    BLI_table_gset_free(n->bm_faces, NULL);
   }
-  TGSET_ITER_END
-
-  BLI_table_gset_free(n->bm_faces, NULL);
 
   if (n->bm_other_verts) {
     BLI_table_gset_free(n->bm_other_verts, NULL);
@@ -436,6 +452,15 @@ static bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index)
   BMFace *f;
 
   int i;
+
+  /*
+  TGSET_ITER_INDEX(f, bm_faces, i)
+  {
+  }
+  TGSET_ITER_INDEX_END
+  printf("size: %d %d\n", i + 1, bm_faces_size);
+  */
+
   TGSET_ITER_INDEX(f, bm_faces, i)
   {
     BBC *bbc = &bbc_array[i];
@@ -1620,7 +1645,7 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
   GHash *deleted_verts = BLI_ghash_ptr_new("deleted_verts");
 
   double time = PIL_check_seconds_timer();
-  RNG *rng = BLI_rng_new(time * 1000.0);
+  RNG *rng = BLI_rng_new(time * 1000.0f);
 
   while (!BLI_heapsimple_is_empty(eq_ctx->q->heap)) {
     if (PIL_check_seconds_timer() - time > DYNTOPO_TIME_LIMIT) {
@@ -1749,7 +1774,8 @@ bool pbvh_bmesh_node_raycast(PBVHNode *node,
               if (len_squared_v3v3(location, v_tri[j]->co) <
                   len_squared_v3v3(location, nearest_vertex_co)) {
                 copy_v3_v3(nearest_vertex_co, v_tri[j]->co);
-                *r_active_vertex_index = (SculptVertRef)v_tri[j];  // BM_elem_index_get(v_tri[j]);
+                SculptVertRef vref = {(intptr_t)v_tri[j]};  // BM_elem_index_get(v_tri[j]);
+                *r_active_vertex_index = vref;
               }
             }
           }
@@ -2423,21 +2449,13 @@ static void BKE_pbvh_bmesh_corect_tree(PBVH *pbvh, PBVHNode *node, PBVHNode *par
                   PBVH_UpdateVisibility | PBVH_UpdateColor | PBVH_UpdateTopology |
                   PBVH_UpdateNormals;
 
-    GSet *other = BLI_table_gset_new(__func__);
+    TableGSet *other = BLI_table_gset_new(__func__);
     BMVert *v;
 
     node->children_offset = 0;
     node->draw_buffers = NULL;
 
-    // make sure other list isn't overlapping with unique
-    TGSET_ITER (v, node->bm_other_verts) {
-
-      if (!BLI_table_gset_haskey(node->bm_unique_verts, v)) {
-        // BLI_table_gset_add(other, v);
-      }
-    }
-    TGSET_ITER_END
-
+    // rebuild bm_other_verts
     BMFace *f;
     TGSET_ITER (f, node->bm_faces) {
       BMLoop *l = f->l_first;
@@ -2607,7 +2625,7 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
   }
 
   if (j != totnode) {
-    printf("eek!");
+    printf("pbvh error: %s", __func__);
   }
 
   if (bvh->totnode != j) {
@@ -2638,13 +2656,15 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
 
     TGSET_ITER (v, n->bm_unique_verts) {
       BM_ELEM_CD_SET_INT(v, bvh->cd_vert_node_offset, i);
-    } TGSET_ITER_END
+    }
+    TGSET_ITER_END
 
     BMFace *f;
 
     TGSET_ITER (f, n->bm_faces) {
       BM_ELEM_CD_SET_INT(f, bvh->cd_face_node_offset, i);
-    } TGSET_ITER_END
+    }
+    TGSET_ITER_END
   }
 
   BMVert **scratch = NULL;
@@ -2666,7 +2686,8 @@ static void pbvh_bmesh_join_nodes(PBVH *bvh)
         BLI_array_append(scratch, v);
       }
       // BM_ELEM_CD_SET_INT(v, bvh->cd_vert_node_offset, i);
-    } TGSET_ITER_END
+    }
+    TGSET_ITER_END
 
     int slen = BLI_array_len(scratch);
     for (int j = 0; j < slen; j++) {

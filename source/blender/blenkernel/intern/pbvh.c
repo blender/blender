@@ -2173,7 +2173,7 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
           if (j == 0 ||
               len_squared_v3v3(location, co[j]) < len_squared_v3v3(location, nearest_vertex_co)) {
             copy_v3_v3(nearest_vertex_co, co[j]);
-            *r_active_vertex_index = mloop[lt->tri[j]].v;
+            *r_active_vertex_index = BKE_pbvh_make_vref(mloop[lt->tri[j]].v);
             *r_active_face_index = lt->poly;
           }
         }
@@ -2258,8 +2258,8 @@ static bool pbvh_grids_node_raycast(PBVH *pbvh,
                                 len_squared_v3v3(location, nearest_vertex_co)) {
                 copy_v3_v3(nearest_vertex_co, co[j]);
 
-                *r_active_vertex_index = gridkey->grid_area * grid_index +
-                                         (y + y_it[j]) * gridkey->grid_size + (x + x_it[j]);
+                *r_active_vertex_index = BKE_pbvh_make_vref(gridkey->grid_area * grid_index +
+                                         (y + y_it[j]) * gridkey->grid_size + (x + x_it[j]));
               }
             }
           }
@@ -2322,7 +2322,7 @@ bool BKE_pbvh_node_raycast(PBVH *pbvh,
                                      face_normal);
       break;
     case PBVH_BMESH:
-      BM_mesh_elem_index_ensure(pbvh->bm, BM_VERT);
+      //BM_mesh_elem_index_ensure(pbvh->bm, BM_VERT);
       hit = pbvh_bmesh_node_raycast(node,
                                     ray_start,
                                     ray_normal,
@@ -2941,6 +2941,8 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
   vi->no = NULL;
   vi->fno = NULL;
   vi->mvert = NULL;
+  vi->vertex.i = 0;
+  vi->index = 0;
 
   vi->respect_hide = pbvh->respect_hide;
   if (pbvh->respect_hide == false) {
@@ -3005,10 +3007,11 @@ bool pbvh_has_mask(PBVH *pbvh)
 
 SculptVertRef BKE_pbvh_table_index_to_vertex(PBVH *pbvh, int idx) {
   if (pbvh->type == PBVH_BMESH) {
-    return (SculptVertRef) pbvh->bm->vtable[idx];
+    SculptVertRef ref = {(intptr_t)pbvh->bm->vtable[idx]};
+    return ref;
   }
 
-  return (SculptVertRef)idx;
+  return BKE_pbvh_make_vref(idx);
 }
 bool pbvh_has_face_sets(PBVH *pbvh)
 {
@@ -3128,7 +3131,7 @@ void BKE_pbvh_ensure_proxyarray_indexmap(PBVH *pbvh, PBVHNode *node, GHash *vert
   int i = 0;
   BKE_pbvh_vertex_iter_begin(pbvh, node, vd, PBVH_ITER_UNIQUE)
   {
-    BLI_ghash_insert(gs, (void *)vd.index, (void *)i);
+    BLI_ghash_insert(gs, (void *)vd.vertex, (void *)i);
     i++;
   }
   BKE_pbvh_vertex_iter_end;
@@ -3159,7 +3162,7 @@ GHash *pbvh_build_vert_node_map(PBVH *pbvh, int mask)
 
     BKE_pbvh_vertex_iter_begin(pbvh, node, vd, PBVH_ITER_UNIQUE)
     {
-      BLI_ghash_insert(vert_node_map, (void *)vd.index, (void *)i);
+      BLI_ghash_insert(vert_node_map, (void *)vd.vertex, (void *)i);
     }
     BKE_pbvh_vertex_iter_end;
   }
@@ -3257,7 +3260,7 @@ void BKE_pbvh_ensure_proxyarray(SculptSession *ss,
   int i = 0;
   BKE_pbvh_vertex_iter_begin(pbvh, node, vd, PBVH_ITER_UNIQUE)
   {
-    BLI_ghash_insert(gs, (void *)vd.index, (void *)i);
+    BLI_ghash_insert(gs, (void *)vd.vertex, (void *)i);
     i++;
   }
   BKE_pbvh_vertex_iter_end;
@@ -3269,7 +3272,7 @@ void BKE_pbvh_ensure_proxyarray(SculptSession *ss,
       p->ownerco[i] = vd.co;
     }
     if (updatemask & PV_INDEX) {
-      p->index[i] = vd.index;
+      p->index[i] = vd.vertex;
     }
     if (updatemask & PV_OWNERNO) {
       p->ownerno[i] = vd.no;
@@ -3297,18 +3300,18 @@ void BKE_pbvh_ensure_proxyarray(SculptSession *ss,
       int j = 0;
       SculptVertexNeighborIter ni;
 
-      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.index, ni) {
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
         if (j >= MAX_PROXY_NEIGHBORS - 1) {
           break;
         }
 
         ProxyKey key;
 
-        int *pindex = (int *)BLI_ghash_lookup_p(gs, (void *)ni.index);
+        int *pindex = (int *)BLI_ghash_lookup_p(gs, (void *)ni.vertex);
 
         if (!pindex) {
           if (vert_node_map) {
-            int *nindex = BLI_ghash_lookup_p(vert_node_map, (void *)ni.index);
+            int *nindex = BLI_ghash_lookup_p(vert_node_map, (void *)ni.vertex);
 
             if (!nindex) {
               continue;
@@ -3316,7 +3319,7 @@ void BKE_pbvh_ensure_proxyarray(SculptSession *ss,
 
             PBVHNode *node2 = pbvh->nodes + *nindex;
             if (node2->proxyverts.indexmap) {
-              pindex = (int *)BLI_ghash_lookup_p(node2->proxyverts.indexmap, (void *)ni.index);
+              pindex = (int *)BLI_ghash_lookup_p(node2->proxyverts.indexmap, (void *)ni.vertex);
             }
 
             if (!pindex) {

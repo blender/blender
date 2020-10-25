@@ -1214,7 +1214,7 @@ typedef struct PaintCursorContext {
   /* Sculpt related data. */
   Sculpt *sd;
   SculptSession *ss;
-  int prev_active_vertex_index;
+  SculptVertRef prev_active_vertex_index;
   bool is_stroke_active;
   bool is_cursor_over_mesh;
   bool is_multires;
@@ -1568,8 +1568,8 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
 
   paint_cursor_update_object_space_radius(pcontext);
 
-  const bool update_previews = pcontext->prev_active_vertex_index !=
-                               SCULPT_active_vertex_get(pcontext->ss);
+  const bool update_previews = pcontext->prev_active_vertex_index.i !=
+                               SCULPT_active_vertex_get(pcontext->ss).i;
 
   /* Setup drawing. */
   wmViewport(&pcontext->region->winrct);

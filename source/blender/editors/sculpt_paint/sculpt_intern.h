@@ -124,21 +124,25 @@ float *SCULPT_brush_deform_target_vertex_co_get(SculptSession *ss,
 typedef struct SculptVertexNeighborIter {
   /* Storage */
   SculptVertRef *neighbors;
+  int *neighbor_indices;
+
   int size;
   int capacity;
   SculptVertRef neighbors_fixed[SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY];
+  int neighbor_indices_fixed[SCULPT_VERTEX_NEIGHBOR_FIXED_CAPACITY];
 
   /* Internal iterator. */
   int num_duplicates;
   int i;
 
   /* Public */
-  SculptVertRef index;
+  SculptVertRef vertex;
+  int index;
   bool is_duplicate;
 } SculptVertexNeighborIter;
 
 void SCULPT_vertex_neighbors_get(struct SculptSession *ss,
-                                 const SculptVertRef index,
+                                 const SculptVertRef vref,
                                  const bool include_duplicates,
                                  SculptVertexNeighborIter *iter);
 
@@ -147,7 +151,8 @@ void SCULPT_vertex_neighbors_get(struct SculptSession *ss,
   SCULPT_vertex_neighbors_get(ss, v_index, false, &neighbor_iterator); \
   for (neighbor_iterator.i = 0; neighbor_iterator.i < neighbor_iterator.size; \
        neighbor_iterator.i++) { \
-    neighbor_iterator.index = neighbor_iterator.neighbors[neighbor_iterator.i];
+    neighbor_iterator.vertex = neighbor_iterator.neighbors[neighbor_iterator.i];\
+    neighbor_iterator.index = neighbor_iterator.neighbor_indices[neighbor_iterator.i];
 
 /* Iterate over neighboring and duplicate vertices (for PBVH_GRIDS). Duplicates come
  * first since they are nearest for floodfill. */
@@ -155,7 +160,8 @@ void SCULPT_vertex_neighbors_get(struct SculptSession *ss,
   SCULPT_vertex_neighbors_get(ss, v_index, true, &neighbor_iterator); \
   for (neighbor_iterator.i = neighbor_iterator.size - 1; neighbor_iterator.i >= 0; \
        neighbor_iterator.i--) { \
-    neighbor_iterator.index = neighbor_iterator.neighbors[neighbor_iterator.i]; \
+    neighbor_iterator.vertex = neighbor_iterator.neighbors[neighbor_iterator.i]; \
+    neighbor_iterator.index = neighbor_iterator.neighbor_indices[neighbor_iterator.i]; \
     neighbor_iterator.is_duplicate = (neighbor_iterator.i >= \
                                       neighbor_iterator.size - neighbor_iterator.num_duplicates);
 

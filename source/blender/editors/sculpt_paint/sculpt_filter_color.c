@@ -119,7 +119,7 @@ static void color_filter_task_cb(void *__restrict userdata,
     float fade = vd.mask ? *vd.mask : 0.0f;
     fade = 1.0f - fade;
     fade *= data->filter_strength;
-    fade *= SCULPT_automasking_factor_get(ss->filter_cache->automasking, ss, vd.index);
+    fade *= SCULPT_automasking_factor_get(ss->filter_cache->automasking, ss, vd.vertex);
     if (fade == 0.0f) {
       continue;
     }
@@ -197,7 +197,7 @@ static void color_filter_task_cb(void *__restrict userdata,
       case COLOR_FILTER_SMOOTH: {
         fade = clamp_f(fade, -1.0f, 1.0f);
         float smooth_color[4];
-        SCULPT_neighbor_color_average(ss, smooth_color, vd.index);
+        SCULPT_neighbor_color_average(ss, smooth_color, vd.vertex);
         blend_color_interpolate_float(final_color, vd.col, smooth_color, fade);
         break;
       }
