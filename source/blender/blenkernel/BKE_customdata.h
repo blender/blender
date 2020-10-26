@@ -104,6 +104,8 @@ bool CustomData_has_math(const struct CustomData *data);
 bool CustomData_has_interp(const struct CustomData *data);
 bool CustomData_bmesh_has_free(const struct CustomData *data);
 
+bool CustomData_layout_is_same(const struct CustomData *_a, const struct CustomData *_b);
+
 /**
  * Checks if any of the customdata layers is referenced.
  */
@@ -139,6 +141,10 @@ void CustomData_copy(const struct CustomData *source,
 
 /* BMESH_TODO, not really a public function but readfile.c needs it */
 void CustomData_update_typemap(struct CustomData *data);
+
+/* copies all customdata layers without allocating data,
+ * and without respect to type masks or NO_COPY/etc flags*/
+void CustomData_copy_all_layout(const struct CustomData *source, struct CustomData *dest);
 
 /* same as the above, except that this will preserve existing layers, and only
  * add the layers that were not there yet */

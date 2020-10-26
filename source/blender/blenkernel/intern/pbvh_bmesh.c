@@ -1762,7 +1762,10 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
   /* Move v_conn to the midpoint of v_conn and v_del (if v_conn still exists, it
    * may have been deleted above) */
   if (v_conn != NULL) {
-    BM_log_vert_before_modified(pbvh->bm_log, v_conn, eq_ctx->cd_vert_mask_offset);
+    //BM_log_vert_before_modified(pbvh->bm, pbvh->bm_log, v_conn, eq_ctx->cd_vert_mask_offset, false);
+    void *dummy;
+    BKE_pbvh_bmesh_update_origvert(pbvh, v_conn, &dummy, &dummy, &dummy);
+
     mid_v3_v3v3(v_conn->co, v_conn->co, v_del->co);
     add_v3_v3(v_conn->no, v_del->no);
     normalize_v3(v_conn->no);

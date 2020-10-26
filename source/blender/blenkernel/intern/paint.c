@@ -2048,6 +2048,9 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect
   return pbvh;
 }
 
+//XXX hack
+extern SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me);
+
 PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 {
   if (ob == NULL || ob->sculpt == NULL) {

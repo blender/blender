@@ -1,3 +1,4 @@
+
 /*
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -45,6 +46,8 @@
 
 #include "BLI_strict_flags.h"
 
+#define CUSTOMDATA
+
 struct BMLogEntry {
   struct BMLogEntry *next, *prev;
 
@@ -75,6 +78,9 @@ struct BMLogEntry {
    * This field is not guaranteed to be valid, any use of it should
    * check for NULL. */
   BMLog *log;
+
+  CustomData vdata, edata, ldata, pdata;
+  struct BMLogEntry *combined_prev, *combined_next;
 };
 
 struct BMLog {
@@ -92,6 +98,8 @@ struct BMLog {
    */
   GHash *id_to_elem;
   GHash *elem_to_id;
+
+  BMesh *bm;
 
   /* All BMLogEntrys, ordered from earliest to most recent */
   ListBase entries;
@@ -177,6 +185,51 @@ static BMFace *bm_log_face_from_id(BMLog *log, uint id)
 
 /************************ BMLogVert / BMLogFace ***********************/
 
+static void bm_log_vert_customdata(BMesh *bm, BMLog *log, BMVert *v, BMLogVert *lv)
+{
+#ifdef CUSTOMDATA
+  // if (!lv) {
+  //  return;
+  //}
+  BMLogEntry *entry = log->current_entry;
+
+  if (lv->customdata) {
+    BLI_mempool_free(entry->vdata.pool, lv->customdata);
+    lv->customdata = NULL;
+  }
+
+  CustomData_bmesh_copy_data(&bm->vdata, &entry->vdata, v->head.data, &lv->customdata);
+#endif
+}
+
+static void bm_log_face_customdata(BMesh *bm, BMLog *log, BMFace *f, BMLogFace *lf)
+{
+#ifdef CUSTOMDATA
+  // if (!lf) {
+  //  return;
+  //}
+  BMLogEntry *entry = log->current_entry;
+  uint f_id = bm_log_face_id_get(log, f);
+  void *key = POINTER_FROM_UINT(f_id);
+
+  BLI_ghash_insert(log->current_entry->modified_faces, key, lf);
+
+  BMLoop *l1 = f->l_first;
+  BMLoop *l2 = f->l_first->next;
+  BMLoop *l3 = f->l_first->prev;
+  BMLoop *ls[3] = {l1, l2, l3};
+
+  for (int i = 0; i < 3; i++) {
+    if (lf->customdata[i]) {
+      BLI_mempool_free(entry->ldata.pool, lf->customdata[i]);
+      lf->customdata[i] = NULL;
+    }
+
+    CustomData_bmesh_copy_data(&bm->ldata, &entry->ldata, ls[i]->head.data, &lf->customdata[i]);
+  }
+#endif
+}
+
 /* Get a vertex's paint-mask value
  *
  * Returns zero if no paint-mask layer is present */
@@ -212,6 +265,7 @@ static BMLogVert *bm_log_vert_alloc(BMLog *log, BMVert *v, const int cd_vert_mas
 {
   BMLogEntry *entry = log->current_entry;
   BMLogVert *lv = BLI_mempool_alloc(entry->pool_verts);
+  lv->customdata = NULL;
 
   bm_log_vert_bmvert_copy(lv, v, cd_vert_mask_offset);
 
@@ -225,6 +279,7 @@ static BMLogFace *bm_log_face_alloc(BMLog *log, BMFace *f)
   BMLogFace *lf = BLI_mempool_alloc(entry->pool_faces);
   BMVert *v[3];
 
+  lf->customdata[0] = lf->customdata[1] = lf->customdata[2] = NULL;
   BLI_assert(f->len == 3);
 
   // BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v, 3);
@@ -285,7 +340,7 @@ static void bm_log_faces_unmake(BMesh *bm, BMLog *log, GHash *faces)
   }
 }
 
-static void bm_log_verts_restore(BMesh *bm, BMLog *log, GHash *verts)
+static void bm_log_verts_restore(BMesh *bm, BMLog *log, GHash *verts, BMLogEntry *entry)
 {
   const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
 
@@ -298,6 +353,12 @@ static void bm_log_verts_restore(BMesh *bm, BMLog *log, GHash *verts)
     v->head.hflag = lv->hflag;
     normal_short_to_float_v3(v->no, lv->no);
     bm_log_vert_id_set(log, v, POINTER_AS_UINT(key));
+
+#ifdef CUSTOMDATA
+    if (lv->customdata) {
+      CustomData_bmesh_copy_data(&bm->vdata, &entry->vdata, lv->customdata, &v->head.data);
+    }
+#endif
   }
 }
 
@@ -641,6 +702,31 @@ void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log)
   MEM_freeN(farr);
 }
 
+BMLogEntry *BM_log_entry_check_customdata(BMesh *bm, BMLog *log)
+{
+  BMLogEntry *entry = log->current_entry;
+
+  if (!entry) {
+    return BM_log_entry_add_ex(bm, log, false);
+  }
+
+#ifndef CUSTOMDATA
+  return entry;
+#else
+
+  CustomData *cd1[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
+  CustomData *cd2[4] = {&entry->vdata, &entry->edata, &entry->ldata, &entry->pdata};
+
+  for (int i = 0; i < 4; i++) {
+    if (!CustomData_layout_is_same(cd1[i], cd2[i])) {
+      return BM_log_entry_add_ex(bm, log, true);
+    }
+  }
+
+  return entry;
+#endif
+}
+
 /* Start a new log entry and update the log entry list
  *
  * If the log entry list is empty, or if the current log entry is the
@@ -651,8 +737,15 @@ void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log)
  *
  * In either case, the new entry is set as the current log entry.
  */
-BMLogEntry *BM_log_entry_add(BMLog *log)
+BMLogEntry *BM_log_entry_add(BMesh *bm, BMLog *log)
 {
+  return BM_log_entry_add_ex(bm, log, false);
+}
+
+BMLogEntry *BM_log_entry_add_ex(BMesh *bm, BMLog *log, bool combine_with_last)
+{
+  log->bm = bm;
+
   /* WARNING: this is now handled by the UndoSystem: BKE_UNDOSYS_TYPE_SCULPT
    * freeing here causes unnecessary complications. */
   BMLogEntry *entry;
@@ -674,6 +767,25 @@ BMLogEntry *BM_log_entry_add(BMLog *log)
   BLI_addtail(&log->entries, entry);
   entry->log = log;
   log->current_entry = entry;
+
+#ifdef CUSTOMDATA
+  if (combine_with_last) {
+    if (log->current_entry) {
+      log->current_entry->combined_next = entry;
+    }
+    entry->combined_prev = log->current_entry;
+  }
+
+  CustomData_copy_all_layout(&bm->vdata, &entry->vdata);
+  CustomData_copy_all_layout(&bm->edata, &entry->edata);
+  CustomData_copy_all_layout(&bm->ldata, &entry->ldata);
+  CustomData_copy_all_layout(&bm->pdata, &entry->pdata);
+
+  CustomData_bmesh_init_pool(&entry->vdata, 0, BM_VERT);
+  CustomData_bmesh_init_pool(&entry->edata, 0, BM_EDGE);
+  CustomData_bmesh_init_pool(&entry->ldata, 0, BM_LOOP);
+  CustomData_bmesh_init_pool(&entry->pdata, 0, BM_FACE);
+#endif
 
   return entry;
 }
@@ -768,7 +880,7 @@ void BM_log_undo(BMesh *bm, BMLog *log)
     bm_log_verts_unmake(bm, log, entry->added_verts);
 
     /* Restore deleted verts and faces */
-    bm_log_verts_restore(bm, log, entry->deleted_verts);
+    bm_log_verts_restore(bm, log, entry->deleted_verts, entry);
     bm_log_faces_restore(bm, log, entry->deleted_faces);
 
     /* Restore vertex coordinates, mask, and hflag */
@@ -805,7 +917,7 @@ void BM_log_redo(BMesh *bm, BMLog *log)
     bm_log_verts_unmake(bm, log, entry->deleted_verts);
 
     /* Restore previously added verts and faces */
-    bm_log_verts_restore(bm, log, entry->added_verts);
+    bm_log_verts_restore(bm, log, entry->added_verts, entry);
     bm_log_faces_restore(bm, log, entry->added_faces);
 
     /* Restore vertex coordinates, mask, and hflag */
@@ -852,6 +964,10 @@ void BM_log_vert_before_modified(BMLog *log, BMVert *v, const int cd_vert_mask_o
   else if (!BLI_ghash_ensure_p(entry->modified_verts, key, &val_p)) {
     lv = bm_log_vert_alloc(log, v, cd_vert_mask_offset);
     *val_p = lv;
+  }
+
+  if (lv) {
+    bm_log_vert_customdata(log->bm, log, v, lv);
   }
 }
 

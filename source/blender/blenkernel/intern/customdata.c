@@ -72,6 +72,32 @@ BLI_STATIC_ASSERT(ARRAY_SIZE(((CustomData *)NULL)->typemap) == CD_NUMTYPES, "siz
 
 static CLG_LogRef LOG = {"bke.customdata"};
 
+bool CustomData_layout_is_same(const CustomData *_a, const CustomData *_b)
+{
+  CustomData a = *_a;
+  CustomData b = *_b;
+
+  a.layers = b.layers = NULL;
+  a.pool = b.pool = NULL;
+
+  if (memcmp((void *)&a, (void *)&b, sizeof(CustomData)) != 0) {
+    return false;
+  }
+
+  for (int i = 0; i < a.totlayer; i++) {
+    CustomDataLayer cla = _a->layers[i];
+    CustomDataLayer clb = _b->layers[i];
+
+    cla.data = clb.data = NULL;
+
+    if (memcmp((void *)&cla, (void *)&clb, sizeof(CustomDataLayer)) != 0) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 /** Update mask_dst with layers defined in mask_src (equivalent to a bitwise OR). */
 void CustomData_MeshMasks_update(CustomData_MeshMasks *mask_dst,
                                  const CustomData_MeshMasks *mask_src)
@@ -2071,6 +2097,26 @@ static bool customdata_typemap_is_valid(const CustomData *data)
   return (memcmp(data->typemap, data_copy.typemap, sizeof(data->typemap)) == 0);
 }
 #endif
+
+/* copies all customdata layers without allocating data,
+ * and without respect to type masks or NO_COPY/etc flags*/
+void CustomData_copy_all_layout(const struct CustomData *source, struct CustomData *dest)
+{
+  *dest = *source;
+
+  if (dest->pool) {
+    dest->pool = NULL;
+  }
+
+  if (source->layers) {
+    dest->layers = MEM_mallocN(sizeof(*dest->layers) * source->totlayer, __func__);
+
+    for (int i = 0; i < source->totlayer; i++) {
+      dest->layers[i] = source->layers[i];
+      dest->layers[i].data = NULL;
+    }
+  }
+}
 
 bool CustomData_merge(const struct CustomData *source,
                       struct CustomData *dest,

@@ -1362,11 +1362,17 @@ static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, 
   CustomData *ldata;
 
   if (pbvh->type == PBVH_BMESH) {
-    vdata = &pbvh->bm->vdata;
-    ldata = &pbvh->bm->ldata;
-  } else {
-    vdata = &pbvh->vdata;
-    ldata = &pbvh->ldata;
+    if (pbvh->bm) {
+      vdata = &pbvh->bm->vdata;
+      ldata = &pbvh->bm->ldata;
+    }
+    else {
+      vdata = ldata = NULL;
+    }
+  }
+  else {
+    vdata = pbvh->vdata;
+    ldata = pbvh->ldata;
   }
 
   GPU_pbvh_update_attribute_names(vdata, ldata);

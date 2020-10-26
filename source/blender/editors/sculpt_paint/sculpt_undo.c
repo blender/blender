@@ -1181,7 +1181,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
     unode->applied = true;
 
     if (type == SCULPT_UNDO_DYNTOPO_END) {
-      unode->bm_entry = BM_log_entry_add(ss->bm_log);
+      unode->bm_entry = BM_log_entry_add(ss->bm, ss->bm_log);
       BM_log_before_all_removed(ss->bm, ss->bm_log);
     }
     else if (type == SCULPT_UNDO_DYNTOPO_BEGIN) {
@@ -1193,17 +1193,21 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
       SculptUndoNodeGeometry *geometry = &unode->geometry_bmesh_enter;
       sculpt_undo_geometry_store_data(geometry, ob);
 
-      unode->bm_entry = BM_log_entry_add(ss->bm_log);
+      unode->bm_entry = BM_log_entry_add(ss->bm, ss->bm_log);
       BM_log_all_added(ss->bm, ss->bm_log);
     }
     else {
-      unode->bm_entry = BM_log_entry_add(ss->bm_log);
+      unode->bm_entry = BM_log_entry_add(ss->bm, ss->bm_log);
     }
 
     BLI_addtail(&usculpt->nodes, unode);
   }
 
   if (node) {
+    if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+      unode->bm_entry = BM_log_entry_check_customdata(ss->bm, ss->bm_log);
+    }
+
     switch (type) {
       case SCULPT_UNDO_COORDS:
       case SCULPT_UNDO_MASK:
@@ -1212,8 +1216,8 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
         BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL)
         {
           void *dummy;
-          BKE_pbvh_bmesh_update_origvert(ss->pbvh, vd.bm_vert, &dummy, &dummy, &dummy);
-          //BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset);
+          //BKE_pbvh_bmesh_update_origvert(ss->pbvh, vd.bm_vert, &dummy, &dummy, &dummy);
+          BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset);
         }
         BKE_pbvh_vertex_iter_end;
         break;
@@ -1230,16 +1234,27 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
 
         TGSET_ITER (f, faces) {
           BM_log_face_modified(ss->bm_log, f);
-        } TGSET_ITER_END
+        }
+        TGSET_ITER_END
         break;
       }
 
+      case SCULPT_UNDO_COLOR: {
+#if 0
+        BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL)
+        {
+          BM_log_vert_before_modified(
+              ss->bm, ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset, true);
+        }
+        BKE_pbvh_vertex_iter_end;
+#endif
+        break;
+      } 
       case SCULPT_UNDO_DYNTOPO_BEGIN:
       case SCULPT_UNDO_DYNTOPO_END:
       case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
       case SCULPT_UNDO_GEOMETRY:
       case SCULPT_UNDO_FACE_SETS:
-      case SCULPT_UNDO_COLOR:
         break;
     }
   }

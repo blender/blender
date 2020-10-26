@@ -2097,10 +2097,13 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
       if (use_original) {
         if (unode->bm_entry) {
           const float *temp_co;
-          const short *temp_no_s;
-          BM_log_original_vert_data(ss->bm_log, vd.bm_vert, &temp_co, &temp_no_s);
+          const float *temp_no;
+          BKE_pbvh_bmesh_update_origvert(ss->pbvh, vd.bm_vert, &temp_co, &temp_no, NULL);
+          if (temp_no) {
+            normal_float_to_short_v3(no_s, temp_no);
+          }
+          //BM_log_original_vert_data(ss->bm, ss->bm_log, vd.bm_vert, &temp_co, &temp_no_s, false);
           copy_v3_v3(co, temp_co);
-          copy_v3_v3_short(no_s, temp_no_s);
         }
         else {
           copy_v3_v3(co, unode->co[vd.i]);

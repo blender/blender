@@ -44,9 +44,12 @@ int BM_log_length(const BMLog *log);
 void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log);
 
 /* Start a new log entry and update the log entry list */
-BMLogEntry *BM_log_entry_add(BMLog *log);
+BMLogEntry *BM_log_entry_add(BMesh *bm, BMLog *log);
+BMLogEntry *BM_log_entry_add_ex(BMesh *bm, BMLog *log, bool combine_with_last);
 
-/* Mark all used ids as unused for this node */
+BMLogEntry *BM_log_entry_check_customdata(BMesh *bm, BMLog *log);
+
+    /* Mark all used ids as unused for this node */
 void BM_log_cleanup_entry(BMLogEntry *entry);
 
 /* Remove an entry from the log */
