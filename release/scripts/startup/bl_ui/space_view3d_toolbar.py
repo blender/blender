@@ -957,12 +957,16 @@ class VIEW3D_PT_tools_weightpaint_symmetry(Panel, View3DPaintPanel):
         layout = self.layout
         tool_settings = context.tool_settings
         wpaint = tool_settings.weight_paint
-        draw_vpaint_symmetry(layout, wpaint, context.object.data)
+        mesh = context.object.data
+        draw_vpaint_symmetry(layout, wpaint, mesh)
 
         col = layout.column()
         row = col.row(align=True)
-        row.prop(context.object.data, 'use_mirror_vertex_group_x')
+        row.prop(mesh, 'use_mirror_vertex_group_x')
 
+        row = layout.row(align=True)
+        row.active = mesh.use_mirror_vertex_group_x
+        row.prop(mesh, "use_mirror_topology")
 
 class VIEW3D_PT_tools_weightpaint_symmetry_for_topbar(Panel):
     bl_space_type = 'TOPBAR'
@@ -994,14 +998,6 @@ class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
         col.prop(tool_settings, "use_multipaint", text="Multi-Paint")
 
         col.prop(wpaint, "use_group_restrict")
-
-        obj = context.weight_paint_object
-        if obj.type == 'MESH':
-            mesh = obj.data
-            col.prop(mesh, "use_mirror_x")
-            row = col.row()
-            row.active = mesh.use_mirror_x
-            row.prop(mesh, "use_mirror_topology")
 
 
 # ********** default tools for vertex-paint ****************
