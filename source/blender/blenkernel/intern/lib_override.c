@@ -1357,9 +1357,14 @@ bool BKE_lib_override_library_operations_create(Main *bmain, ID *local)
        * ensure this is valid, but in some situations (like hidden collections etc.) this won't
        * be the case, so we need to take care of this ourselves. */
       Object *ob_local = (Object *)local;
+      Object *ob_reference = (Object *)local->override_library->reference;
       if (ob_local->data != NULL && ob_local->type == OB_ARMATURE && ob_local->pose != NULL &&
           ob_local->pose->flag & POSE_RECALC) {
         BKE_pose_rebuild(bmain, ob_local, ob_local->data, true);
+      }
+      if (ob_reference->data != NULL && ob_reference->type == OB_ARMATURE &&
+          ob_reference->pose != NULL && ob_reference->pose->flag & POSE_RECALC) {
+        BKE_pose_rebuild(bmain, ob_reference, ob_reference->data, true);
       }
     }
 
