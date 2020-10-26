@@ -450,6 +450,7 @@ static void rna_def_volume_display(BlenderRNA *brna)
   prop = RNA_def_property(srna, "slice_axis", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, axis_slice_position_items);
   RNA_def_property_ui_text(prop, "Axis", "");
+  RNA_def_property_update(prop, 0, "rna_Volume_update_display");
 
   prop = RNA_def_property(srna, "slice_depth", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_range(prop, 0.0, 1.0);
