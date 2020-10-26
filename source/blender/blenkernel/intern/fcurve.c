@@ -1646,7 +1646,7 @@ static float fcurve_eval_keyframes_extrapolate(
     return endpoint_bezt->vec[1][1] - (fac * dx);
   }
 
-  /* Use the gradient of the second handle (later) of neighbour to calculate the gradient and thus
+  /* Use the gradient of the second handle (later) of neighbor to calculate the gradient and thus
    * the value of the curve at evaluation time. */
   int handle = direction_to_neighbor > 0 ? 0 : 2;
   float dx = endpoint_bezt->vec[1][0] - evaltime;
@@ -1922,7 +1922,7 @@ static float fcurve_eval_keyframes_interpolate(FCurve *fcu, BezTriple *bezts, fl
   return 0.0f;
 }
 
-/* Calculate F-Curve value for 'evaltime' using BezTriple keyframes. */
+/* Calculate F-Curve value for 'evaltime' using #BezTriple keyframes. */
 static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime)
 {
   if (evaltime <= bezts->vec[1][0]) {
@@ -1937,7 +1937,7 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
   return fcurve_eval_keyframes_interpolate(fcu, bezts, evaltime);
 }
 
-/* Calculate F-Curve value for 'evaltime' using FPoint samples. */
+/* Calculate F-Curve value for 'evaltime' using #FPoint samples. */
 static float fcurve_eval_samples(FCurve *fcu, FPoint *fpts, float evaltime)
 {
   FPoint *prevfpt, *lastfpt, *fpt;

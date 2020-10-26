@@ -75,9 +75,9 @@ static SpinLock blf_glyph_cache_mutex;
  * \{ */
 
 /**
- * Drawcalls are precious! make them count!
- * Since most of the Text elems are not covered by other UI elements, we can
- * group some strings together and render them in one drawcall. This behavior
+ * Draw-calls are precious! make them count!
+ * Since most of the Text elements are not covered by other UI elements, we can
+ * group some strings together and render them in one draw-call. This behavior
  * is on demand only, between #BLF_batch_draw_begin() and #BLF_batch_draw_end().
  */
 static void blf_batch_draw_init(void)

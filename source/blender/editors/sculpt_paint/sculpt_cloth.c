@@ -139,14 +139,14 @@ static float cloth_brush_simulation_falloff_get(const Brush *brush,
   const float falloff = radius + (radius * brush->cloth_sim_limit * brush->cloth_sim_falloff);
 
   if (distance > limit) {
-    /* Outiside the limits. */
+    /* Outside the limits. */
     return 0.0f;
   }
   if (distance < falloff) {
     /* Before the falloff area. */
     return 1.0f;
   }
-  /* Do a smoothstep transition inside the falloff area. */
+  /* Do a smooth-step transition inside the falloff area. */
   float p = 1.0f - ((distance - falloff) / (limit - falloff));
   return 3.0f * p * p - 2.0f * p * p * p;
 }
@@ -214,7 +214,7 @@ static void cloth_brush_add_length_constraint(SculptSession *ss,
   /* Reallocation if the array capacity is exceeded. */
   cloth_brush_reallocate_constraints(cloth_sim);
 
-  /* Add the constraint to the GSet to avoid creating it again. */
+  /* Add the constraint to the #GSet to avoid creating it again. */
   BLI_edgeset_add(cloth_sim->created_length_constraints, v1, v2);
 }
 
@@ -334,7 +334,7 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
     radius_squared = ss->cache->initial_radius * ss->cache->initial_radius;
   }
 
-  /* Only limit the contraint creation to a radius when the simulation is local. */
+  /* Only limit the constraint creation to a radius when the simulation is local. */
   const float cloth_sim_radius_squared = brush->cloth_simulation_area_type ==
                                                  BRUSH_CLOTH_SIMULATION_AREA_LOCAL ?
                                              data->cloth_sim_radius * data->cloth_sim_radius :
@@ -459,7 +459,7 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
-  /* For Pich Perpendicular Deform Type. */
+  /* For Pinch Perpendicular Deform Type. */
   float x_object_space[3];
   float z_object_space[3];
   if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_PINCH_PERPENDICULAR) {
@@ -930,7 +930,7 @@ static void cloth_brush_apply_brush_foces(Sculpt *sd, Object *ob, PBVHNode **nod
 
   BKE_curvemapping_init(brush->curve);
 
-  /* Init the grab delta. */
+  /* Initialize the grab delta. */
   copy_v3_v3(grab_delta, ss->cache->grab_delta_symmetry);
   normalize_v3(grab_delta);
 
@@ -940,7 +940,7 @@ static void cloth_brush_apply_brush_foces(Sculpt *sd, Object *ob, PBVHNode **nod
     return;
   }
 
-  /* Calcuate push offset. */
+  /* Calculate push offset. */
 
   if (brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_PUSH) {
     mul_v3_v3fl(offset, ss->cache->sculpt_normal_symm, ss->cache->radius);
@@ -954,7 +954,7 @@ static void cloth_brush_apply_brush_foces(Sculpt *sd, Object *ob, PBVHNode **nod
       brush->cloth_force_falloff_type == BRUSH_CLOTH_FORCE_FALLOFF_PLANE) {
     SCULPT_calc_brush_plane(sd, ob, nodes, totnode, area_no, area_co);
 
-    /* Init stroke local space matrix. */
+    /* Initialize stroke local space matrix. */
     cross_v3_v3v3(mat[0], area_no, ss->cache->grab_delta_symmetry);
     mat[0][3] = 0.0f;
     cross_v3_v3v3(mat[1], area_no, mat[0]);
@@ -1068,7 +1068,7 @@ void SCULPT_cloth_brush_ensure_nodes_constraints(
     PBVHNode **nodes,
     int totnode,
     SculptClothSimulation *cloth_sim,
-    /* Cannot be const, because it is assigned to a non-const variable.
+    /* Cannot be `const`, because it is assigned to a `non-const` variable.
      * NOLINTNEXTLINE: readability-non-const-parameter. */
     float initial_location[3],
     const float radius)
@@ -1188,7 +1188,7 @@ void SCULPT_do_cloth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
       sculpt_cloth_ensure_constraints_in_simulation_area(sd, ob, nodes, totnode);
     }
     /* The first step of a symmetry pass is never simulated as deformation modes need valid delta
-     * for brush tip alignement. */
+     * for brush tip alignment. */
     return;
   }
 
@@ -1314,7 +1314,7 @@ static EnumPropertyItem prop_cloth_filter_type[] = {
      "SCALE",
      0,
      "Scale",
-     "Scales the mesh as a softbody using the origin of the object as scale"},
+     "Scales the mesh as a soft-body using the origin of the object as scale"},
     {0, NULL, 0, NULL, NULL},
 };
 
