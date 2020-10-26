@@ -1197,13 +1197,13 @@ class OptiXDevice : public CUDADevice {
     // Note: Always keep this logic in sync with bvh_optix.cpp!
     for (Object *ob : bvh->objects) {
       // Skip geometry for which acceleration structure already exists
-      Geometry *geom = ob->geometry;
+      Geometry *geom = ob->get_geometry();
       if (geometry.find(geom) != geometry.end())
         continue;
 
-      if (geom->type == Geometry::HAIR) {
+      if (geom->geometry_type == Geometry::HAIR) {
         // Build BLAS for curve primitives
-        Hair *const hair = static_cast<Hair *const>(ob->geometry);
+        Hair *const hair = static_cast<Hair *const>(ob->get_geometry());
         if (hair->num_curves() == 0) {
           continue;
         }
@@ -1212,8 +1212,8 @@ class OptiXDevice : public CUDADevice {
 
         size_t num_motion_steps = 1;
         Attribute *motion_keys = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-        if (motion_blur && hair->use_motion_blur && motion_keys) {
-          num_motion_steps = hair->motion_steps;
+        if (motion_blur && hair->get_use_motion_blur() && motion_keys) {
+          num_motion_steps = hair->get_motion_steps();
         }
 
         device_vector<OptixAabb> aabb_data(this, "temp_aabb_data", MEM_READ_ONLY);
@@ -1233,16 +1233,19 @@ class OptiXDevice : public CUDADevice {
         // Get AABBs for each motion step
         for (size_t step = 0; step < num_motion_steps; ++step) {
           // The center step for motion vertices is not stored in the attribute
-          const float3 *keys = hair->curve_keys.data();
+          const float3 *keys = hair->get_curve_keys().data();
           size_t center_step = (num_motion_steps - 1) / 2;
           if (step != center_step) {
             size_t attr_offset = (step > center_step) ? step - 1 : step;
             // Technically this is a float4 array, but sizeof(float3) is the same as sizeof(float4)
-            keys = motion_keys->data_float3() + attr_offset * hair->curve_keys.size();
+            keys = motion_keys->data_float3() + attr_offset * hair->get_curve_keys().size();
           }
 
           for (size_t j = 0, i = 0; j < hair->num_curves(); ++j) {
             const Hair::Curve curve = hair->get_curve(j);
+#  if OPTIX_ABI_VERSION >= 36
+            const array<float> &curve_radius = hair->get_curve_radius();
+#  endif
 
             for (int segment = 0; segment < curve.num_segments(); ++segment, ++i) {
 #  if OPTIX_ABI_VERSION >= 36
@@ -1255,10 +1258,8 @@ class OptiXDevice : public CUDADevice {
                 const float4 px = make_float4(keys[ka].x, keys[k0].x, keys[k1].x, keys[kb].x);
                 const float4 py = make_float4(keys[ka].y, keys[k0].y, keys[k1].y, keys[kb].y);
                 const float4 pz = make_float4(keys[ka].z, keys[k0].z, keys[k1].z, keys[kb].z);
-                const float4 pw = make_float4(hair->curve_radius[ka],
-                                              hair->curve_radius[k0],
-                                              hair->curve_radius[k1],
-                                              hair->curve_radius[kb]);
+                const float4 pw = make_float4(
+                    curve_radius[ka], curve_radius[k0], curve_radius[k1], curve_radius[kb]);
 
                 // Convert Catmull-Rom data to Bezier spline
                 static const float4 cr2bsp0 = make_float4(+7, -4, +5, -2) / 6.f;
@@ -1281,7 +1282,7 @@ class OptiXDevice : public CUDADevice {
 #  endif
               {
                 BoundBox bounds = BoundBox::empty;
-                curve.bounds_grow(segment, keys, hair->curve_radius.data(), bounds);
+                curve.bounds_grow(segment, keys, hair->get_curve_radius().data(), bounds);
 
                 const size_t index = step * num_segments + i;
                 aabb_data[index].minX = bounds.min.x;
@@ -1366,35 +1367,37 @@ class OptiXDevice : public CUDADevice {
         // Allocate memory for new BLAS and build it
         OptixTraversableHandle handle;
         if (build_optix_bvh(build_input, num_motion_steps, handle)) {
-          geometry.insert({ob->geometry, handle});
+          geometry.insert({ob->get_geometry(), handle});
         }
         else {
           return false;
         }
       }
-      else if (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME) {
+      else if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME) {
         // Build BLAS for triangle primitives
-        Mesh *const mesh = static_cast<Mesh *const>(ob->geometry);
+        Mesh *const mesh = static_cast<Mesh *const>(ob->get_geometry());
         if (mesh->num_triangles() == 0) {
           continue;
         }
 
-        const size_t num_verts = mesh->verts.size();
+        const size_t num_verts = mesh->get_verts().size();
 
         size_t num_motion_steps = 1;
         Attribute *motion_keys = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-        if (motion_blur && mesh->use_motion_blur && motion_keys) {
-          num_motion_steps = mesh->motion_steps;
+        if (motion_blur && mesh->get_use_motion_blur() && motion_keys) {
+          num_motion_steps = mesh->get_motion_steps();
         }
 
         device_vector<int> index_data(this, "temp_index_data", MEM_READ_ONLY);
-        index_data.alloc(mesh->triangles.size());
-        memcpy(index_data.data(), mesh->triangles.data(), mesh->triangles.size() * sizeof(int));
+        index_data.alloc(mesh->get_triangles().size());
+        memcpy(index_data.data(),
+               mesh->get_triangles().data(),
+               mesh->get_triangles().size() * sizeof(int));
         device_vector<float3> vertex_data(this, "temp_vertex_data", MEM_READ_ONLY);
         vertex_data.alloc(num_verts * num_motion_steps);
 
         for (size_t step = 0; step < num_motion_steps; ++step) {
-          const float3 *verts = mesh->verts.data();
+          const float3 *verts = mesh->get_verts().data();
 
           size_t center_step = (num_motion_steps - 1) / 2;
           // The center step for motion vertices is not stored in the attribute
@@ -1438,7 +1441,7 @@ class OptiXDevice : public CUDADevice {
         // Allocate memory for new BLAS and build it
         OptixTraversableHandle handle;
         if (build_optix_bvh(build_input, num_motion_steps, handle)) {
-          geometry.insert({ob->geometry, handle});
+          geometry.insert({ob->get_geometry(), handle});
         }
         else {
           return false;
@@ -1460,7 +1463,7 @@ class OptiXDevice : public CUDADevice {
         continue;
 
       // Create separate instance for triangle/curve meshes of an object
-      const auto handle_it = geometry.find(ob->geometry);
+      const auto handle_it = geometry.find(ob->get_geometry());
       if (handle_it == geometry.end()) {
         continue;
       }
@@ -1490,18 +1493,19 @@ class OptiXDevice : public CUDADevice {
       // Have to have at least one bit in the mask, or else instance would always be culled
       instance.visibilityMask = 1;
 
-      if (ob->geometry->has_volume) {
+      if (ob->get_geometry()->has_volume) {
         // Volumes have a special bit set in the visibility mask so a trace can mask only volumes
         instance.visibilityMask |= 2;
       }
 
-      if (ob->geometry->type == Geometry::HAIR) {
+      if (ob->get_geometry()->geometry_type == Geometry::HAIR) {
         // Same applies to curves (so they can be skipped in local trace calls)
         instance.visibilityMask |= 4;
 
 #  if OPTIX_ABI_VERSION >= 36
-        if (motion_blur && ob->geometry->has_motion_blur() && DebugFlags().optix.curves_api &&
-            static_cast<const Hair *>(ob->geometry)->curve_shape == CURVE_THICK) {
+        if (motion_blur && ob->get_geometry()->has_motion_blur() &&
+            DebugFlags().optix.curves_api &&
+            static_cast<const Hair *>(ob->get_geometry())->curve_shape == CURVE_THICK) {
           // Select between motion blur and non-motion blur built-in intersection module
           instance.sbtOffset = PG_HITD_MOTION - PG_HITD;
         }
@@ -1510,7 +1514,7 @@ class OptiXDevice : public CUDADevice {
 
       // Insert motion traversable if object has motion
       if (motion_blur && ob->use_motion()) {
-        size_t motion_keys = max(ob->motion.size(), 2) - 2;
+        size_t motion_keys = max(ob->get_motion().size(), 2) - 2;
         size_t motion_transform_size = sizeof(OptixSRTMotionTransform) +
                                        motion_keys * sizeof(OptixSRTData);
 
@@ -1524,16 +1528,17 @@ class OptiXDevice : public CUDADevice {
         OptixSRTMotionTransform &motion_transform = *reinterpret_cast<OptixSRTMotionTransform *>(
             new uint8_t[motion_transform_size]);
         motion_transform.child = handle;
-        motion_transform.motionOptions.numKeys = ob->motion.size();
+        motion_transform.motionOptions.numKeys = ob->get_motion().size();
         motion_transform.motionOptions.flags = OPTIX_MOTION_FLAG_NONE;
         motion_transform.motionOptions.timeBegin = 0.0f;
         motion_transform.motionOptions.timeEnd = 1.0f;
 
         OptixSRTData *const srt_data = motion_transform.srtData;
-        array<DecomposedTransform> decomp(ob->motion.size());
-        transform_motion_decompose(decomp.data(), ob->motion.data(), ob->motion.size());
+        array<DecomposedTransform> decomp(ob->get_motion().size());
+        transform_motion_decompose(
+            decomp.data(), ob->get_motion().data(), ob->get_motion().size());
 
-        for (size_t i = 0; i < ob->motion.size(); ++i) {
+        for (size_t i = 0; i < ob->get_motion().size(); ++i) {
           // Scale
           srt_data[i].sx = decomp[i].y.w;  // scale.x.x
           srt_data[i].sy = decomp[i].z.w;  // scale.y.y
@@ -1580,9 +1585,9 @@ class OptiXDevice : public CUDADevice {
       else {
         instance.traversableHandle = handle;
 
-        if (ob->geometry->is_instanced()) {
+        if (ob->get_geometry()->is_instanced()) {
           // Set transform matrix
-          memcpy(instance.transform, &ob->tfm, sizeof(instance.transform));
+          memcpy(instance.transform, &ob->get_tfm(), sizeof(instance.transform));
         }
         else {
           // Disable instance transform if geometry already has it applied to vertex data

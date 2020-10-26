@@ -21,6 +21,10 @@
 
 #include "graph/node.h"
 
+/* included as Light::set_shader defined through NODE_SOCKET_API does not select
+ * the right Node::set overload as it does not know that Shader is a Node */
+#include "render/shader.h"
+
 #include "util/util_ies.h"
 #include "util/util_thread.h"
 #include "util/util_types.h"
@@ -41,46 +45,48 @@ class Light : public Node {
 
   Light();
 
-  LightType type;
-  float3 strength;
-  float3 co;
+  NODE_SOCKET_API(LightType, light_type)
+  NODE_SOCKET_API(float3, strength)
+  NODE_SOCKET_API(float3, co)
 
-  float3 dir;
-  float size;
-  float angle;
+  NODE_SOCKET_API(float3, dir)
+  NODE_SOCKET_API(float, size)
+  NODE_SOCKET_API(float, angle)
 
-  float3 axisu;
-  float sizeu;
-  float3 axisv;
-  float sizev;
-  bool round;
+  NODE_SOCKET_API(float3, axisu)
+  NODE_SOCKET_API(float, sizeu)
+  NODE_SOCKET_API(float3, axisv)
+  NODE_SOCKET_API(float, sizev)
+  NODE_SOCKET_API(bool, round)
 
-  Transform tfm;
+  NODE_SOCKET_API(Transform, tfm)
 
-  int map_resolution;
+  NODE_SOCKET_API(int, map_resolution)
 
-  float spot_angle;
-  float spot_smooth;
+  NODE_SOCKET_API(float, spot_angle)
+  NODE_SOCKET_API(float, spot_smooth)
 
-  bool cast_shadow;
-  bool use_mis;
-  bool use_diffuse;
-  bool use_glossy;
-  bool use_transmission;
-  bool use_scatter;
+  NODE_SOCKET_API(bool, cast_shadow)
+  NODE_SOCKET_API(bool, use_mis)
+  NODE_SOCKET_API(bool, use_diffuse)
+  NODE_SOCKET_API(bool, use_glossy)
+  NODE_SOCKET_API(bool, use_transmission)
+  NODE_SOCKET_API(bool, use_scatter)
 
-  bool is_portal;
-  bool is_enabled;
+  NODE_SOCKET_API(bool, is_portal)
+  NODE_SOCKET_API(bool, is_enabled)
 
-  Shader *shader;
-  int samples;
-  int max_bounces;
-  uint random_id;
+  NODE_SOCKET_API(Shader *, shader)
+  NODE_SOCKET_API(int, samples)
+  NODE_SOCKET_API(int, max_bounces)
+  NODE_SOCKET_API(uint, random_id)
 
   void tag_update(Scene *scene);
 
   /* Check whether the light has contribution the scene. */
   bool has_contribution(Scene *scene);
+
+  friend class LightManager;
 };
 
 class LightManager {

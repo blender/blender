@@ -66,7 +66,7 @@ void BVHOptiX::pack_blas()
   assert(geometry.size() == 1 && objects.size() == 1);  // These are built per-mesh
   Geometry *const geom = geometry[0];
 
-  if (geom->type == Geometry::HAIR) {
+  if (geom->geometry_type == Geometry::HAIR) {
     Hair *const hair = static_cast<Hair *const>(geom);
     if (hair->num_curves() > 0) {
       const size_t num_curves = hair->num_curves();
@@ -77,7 +77,7 @@ void BVHOptiX::pack_blas()
       // 'pack.prim_time' is only used in geom_curve_intersect.h
       // It is not needed because of OPTIX_MOTION_FLAG_[START|END]_VANISH
 
-      uint type = (hair->use_motion_blur &&
+      uint type = (hair->get_use_motion_blur() &&
                    hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)) ?
                       ((hair->curve_shape == CURVE_RIBBON) ? PRIMITIVE_MOTION_CURVE_RIBBON :
                                                              PRIMITIVE_MOTION_CURVE_THICK) :
@@ -95,7 +95,7 @@ void BVHOptiX::pack_blas()
       }
     }
   }
-  else if (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME) {
+  else if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME) {
     Mesh *const mesh = static_cast<Mesh *const>(geom);
     if (mesh->num_triangles() > 0) {
       const size_t num_triangles = mesh->num_triangles();
@@ -104,7 +104,7 @@ void BVHOptiX::pack_blas()
       pack.prim_object.reserve(pack.prim_object.size() + num_triangles);
 
       uint type = PRIMITIVE_TRIANGLE;
-      if (mesh->use_motion_blur && mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION))
+      if (mesh->get_use_motion_blur() && mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION))
         type = PRIMITIVE_MOTION_TRIANGLE;
 
       for (size_t k = 0; k < num_triangles; ++k) {
@@ -116,14 +116,14 @@ void BVHOptiX::pack_blas()
   }
 
   // Initialize visibility to zero and later update it during top-level build
-  uint prev_visibility = objects[0]->visibility;
-  objects[0]->visibility = 0;
+  uint prev_visibility = objects[0]->get_visibility();
+  objects[0]->set_visibility(0);
 
   // Update 'pack.prim_tri_index', 'pack.prim_tri_verts' and 'pack.prim_visibility'
   pack_primitives();
 
   // Reset visibility after packing
-  objects[0]->visibility = prev_visibility;
+  objects[0]->set_visibility(prev_visibility);
 }
 
 void BVHOptiX::pack_tlas()
@@ -167,7 +167,7 @@ void BVHOptiX::pack_tlas()
     int object_index = 0;  // Unused for instanced geometry
     int object_visibility = 0;
     foreach (Object *ob, objects) {
-      if (ob->geometry == geom) {
+      if (ob->get_geometry() == geom) {
         object_visibility |= ob->visibility_for_tracing();
         if (!geom->is_instanced()) {
           object_index = ob->get_device_index();

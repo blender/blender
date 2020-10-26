@@ -202,7 +202,7 @@ static void sync_smoke_volume(Scene *scene, BL::Object &b_ob, Volume *volume, fl
       continue;
     }
 
-    volume->clipping = b_domain.clipping();
+    volume->set_clipping(b_domain.clipping());
 
     Attribute *attr = volume->attributes.add(std);
 
@@ -262,9 +262,9 @@ static void sync_volume_object(BL::BlendData &b_data,
 
   BL::VolumeRender b_render(b_volume.render());
 
-  volume->clipping = b_render.clipping();
-  volume->step_size = b_render.step_size();
-  volume->object_space = (b_render.space() == BL::VolumeRender::space_OBJECT);
+  volume->set_clipping(b_render.clipping());
+  volume->set_step_size(b_render.step_size());
+  volume->set_object_space((b_render.space() == BL::VolumeRender::space_OBJECT));
 
   /* Find grid with matching name. */
   BL::Volume::grids_iterator b_grid_iter;
@@ -320,14 +320,12 @@ static vector<int> get_voxel_image_slots(Mesh *mesh)
   return slots;
 }
 
-void BlenderSync::sync_volume(BL::Object &b_ob,
-                              Volume *volume,
-                              const vector<Shader *> &used_shaders)
+void BlenderSync::sync_volume(BL::Object &b_ob, Volume *volume, array<Node *> &used_shaders)
 {
   vector<int> old_voxel_slots = get_voxel_image_slots(volume);
 
   volume->clear();
-  volume->used_shaders = used_shaders;
+  volume->set_used_shaders(used_shaders);
 
   if (view_layer.use_volumes) {
     if (b_ob.type() == BL::Object::type_VOLUME) {

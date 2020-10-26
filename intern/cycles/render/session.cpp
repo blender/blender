@@ -918,23 +918,19 @@ bool Session::update_scene()
   int height = tile_manager.state.buffer.full_height;
   int resolution = tile_manager.state.resolution_divider;
 
-  if (width != cam->width || height != cam->height || resolution != cam->resolution) {
-    cam->width = width;
-    cam->height = height;
-    cam->resolution = resolution;
-    cam->tag_update();
-  }
+  cam->set_screen_size_and_resolution(width, height, resolution);
 
   /* number of samples is needed by multi jittered
    * sampling pattern and by baking */
   Integrator *integrator = scene->integrator;
   BakeManager *bake_manager = scene->bake_manager;
 
-  if (integrator->sampling_pattern != SAMPLING_PATTERN_SOBOL || bake_manager->get_baking()) {
+  if (integrator->get_sampling_pattern() != SAMPLING_PATTERN_SOBOL || bake_manager->get_baking()) {
     int aa_samples = tile_manager.num_samples;
 
-    if (aa_samples != integrator->aa_samples) {
-      integrator->aa_samples = aa_samples;
+    integrator->set_aa_samples(aa_samples);
+
+    if (integrator->is_modified()) {
       integrator->tag_update(scene);
     }
   }
@@ -1028,7 +1024,7 @@ bool Session::render_need_denoise(bool &delayed)
   /* Viewport render. */
 
   /* It can happen that denoising was already enabled, but the scene still needs an update. */
-  if (scene->film->need_update || !scene->film->denoising_data_offset) {
+  if (scene->film->is_modified() || !scene->film->get_denoising_data_offset()) {
     return false;
   }
 
@@ -1072,9 +1068,10 @@ void Session::render(bool need_denoise)
   task.update_tile_sample = function_bind(&Session::update_tile_sample, this, _1);
   task.update_progress_sample = function_bind(&Progress::add_samples, &this->progress, _1, _2);
   task.need_finish_queue = params.progressive_refine;
-  task.integrator_branched = scene->integrator->method == Integrator::BRANCHED_PATH;
+  task.integrator_branched = scene->integrator->get_method() == Integrator::BRANCHED_PATH;
 
-  task.adaptive_sampling.use = (scene->integrator->sampling_pattern == SAMPLING_PATTERN_PMJ) &&
+  task.adaptive_sampling.use = (scene->integrator->get_sampling_pattern() ==
+                                SAMPLING_PATTERN_PMJ) &&
                                scene->dscene.data.film.pass_adaptive_aux_buffer;
   task.adaptive_sampling.min_samples = scene->dscene.data.integrator.adaptive_min_samples;
   task.adaptive_sampling.adaptive_step = scene->dscene.data.integrator.adaptive_step;
@@ -1085,10 +1082,10 @@ void Session::render(bool need_denoise)
   if (need_denoise) {
     task.denoising = params.denoising;
 
-    task.pass_stride = scene->film->pass_stride;
+    task.pass_stride = scene->film->get_pass_stride();
     task.target_pass_stride = task.pass_stride;
-    task.pass_denoising_data = scene->film->denoising_data_offset;
-    task.pass_denoising_clean = scene->film->denoising_clean_offset;
+    task.pass_denoising_data = scene->film->get_denoising_data_offset();
+    task.pass_denoising_clean = scene->film->get_denoising_clean_offset();
 
     task.denoising_from_render = true;
 

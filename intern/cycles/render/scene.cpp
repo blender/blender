@@ -339,7 +339,7 @@ void Scene::device_update(Device *device_, Progress &progress)
 
 Scene::MotionType Scene::need_motion()
 {
-  if (integrator->motion_blur)
+  if (integrator->get_motion_blur())
     return MOTION_BLUR;
   else if (Pass::contains(passes, PASS_MOTION))
     return MOTION_PASS;
@@ -352,7 +352,7 @@ float Scene::motion_shutter_time()
   if (need_motion() == Scene::MOTION_PASS)
     return 2.0f;
   else
-    return camera->shuttertime;
+    return camera->get_shuttertime();
 }
 
 bool Scene::need_global_attribute(AttributeStandard std)
@@ -376,20 +376,21 @@ void Scene::need_global_attributes(AttributeRequestSet &attributes)
 
 bool Scene::need_update()
 {
-  return (need_reset() || film->need_update);
+  return (need_reset() || film->is_modified());
 }
 
 bool Scene::need_data_update()
 {
-  return (background->need_update || image_manager->need_update || object_manager->need_update ||
+  return (background->is_modified() || image_manager->need_update || object_manager->need_update ||
           geometry_manager->need_update || light_manager->need_update ||
-          lookup_tables->need_update || integrator->need_update || shader_manager->need_update ||
-          particle_system_manager->need_update || bake_manager->need_update || film->need_update);
+          lookup_tables->need_update || integrator->is_modified() || shader_manager->need_update ||
+          particle_system_manager->need_update || bake_manager->need_update ||
+          film->is_modified());
 }
 
 bool Scene::need_reset()
 {
-  return need_data_update() || camera->need_update;
+  return need_data_update() || camera->is_modified();
 }
 
 void Scene::reset()
@@ -398,9 +399,9 @@ void Scene::reset()
   shader_manager->add_default(this);
 
   /* ensure all objects are updated */
-  camera->tag_update();
-  dicing_camera->tag_update();
-  film->tag_update(this);
+  camera->tag_modified();
+  dicing_camera->tag_modified();
+  film->tag_modified();
   background->tag_update(this);
   integrator->tag_update(this);
   object_manager->tag_update(this);
@@ -442,24 +443,24 @@ DeviceRequestedFeatures Scene::get_requested_device_features()
   requested_features.use_object_motion = false;
   requested_features.use_camera_motion = use_motion && camera->use_motion();
   foreach (Object *object, objects) {
-    Geometry *geom = object->geometry;
+    Geometry *geom = object->get_geometry();
     if (use_motion) {
-      requested_features.use_object_motion |= object->use_motion() | geom->use_motion_blur;
-      requested_features.use_camera_motion |= geom->use_motion_blur;
+      requested_features.use_object_motion |= object->use_motion() | geom->get_use_motion_blur();
+      requested_features.use_camera_motion |= geom->get_use_motion_blur();
     }
-    if (object->is_shadow_catcher) {
+    if (object->get_is_shadow_catcher()) {
       requested_features.use_shadow_tricks = true;
     }
-    if (geom->type == Geometry::MESH) {
+    if (geom->is_mesh()) {
       Mesh *mesh = static_cast<Mesh *>(geom);
 #ifdef WITH_OPENSUBDIV
-      if (mesh->subdivision_type != Mesh::SUBDIVISION_NONE) {
+      if (mesh->get_subdivision_type() != Mesh::SUBDIVISION_NONE) {
         requested_features.use_patch_evaluation = true;
       }
 #endif
       requested_features.use_true_displacement |= mesh->has_true_displacement();
     }
-    else if (geom->type == Geometry::HAIR) {
+    else if (geom->is_hair()) {
       requested_features.use_hair = true;
     }
   }
@@ -467,8 +468,9 @@ DeviceRequestedFeatures Scene::get_requested_device_features()
   requested_features.use_background_light = light_manager->has_background_light(this);
 
   requested_features.use_baking = bake_manager->get_baking();
-  requested_features.use_integrator_branched = (integrator->method == Integrator::BRANCHED_PATH);
-  if (film->denoising_data_pass) {
+  requested_features.use_integrator_branched = (integrator->get_method() ==
+                                                Integrator::BRANCHED_PATH);
+  if (film->get_denoising_data_pass()) {
     requested_features.use_denoising = true;
     requested_features.use_shadow_tricks = true;
   }

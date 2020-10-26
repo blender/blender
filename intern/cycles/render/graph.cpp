@@ -273,8 +273,8 @@ void ShaderGraph::connect(ShaderOutput *from, ShaderInput *to)
 
     if (to->type() == SocketType::CLOSURE) {
       EmissionNode *emission = create_node<EmissionNode>();
-      emission->color = make_float3(1.0f, 1.0f, 1.0f);
-      emission->strength = 1.0f;
+      emission->set_color(make_float3(1.0f, 1.0f, 1.0f));
+      emission->set_strength(1.0f);
       convert = add(emission);
       /* Connect float inputs to Strength to save an additional Falue->Color conversion. */
       if (from->type() == SocketType::FLOAT) {
@@ -586,7 +586,7 @@ void ShaderGraph::constant_fold(Scene *scene)
    */
   if (has_displacement && !output()->input("Displacement")->link) {
     ColorNode *value = (ColorNode *)add(create_node<ColorNode>());
-    value->value = output()->displacement;
+    value->set_value(output()->get_displacement());
 
     connect(value->output("Color"), output()->input("Displacement"));
   }
@@ -1003,8 +1003,8 @@ void ShaderGraph::bump_from_displacement(bool use_object_space)
 
   /* add bump node and connect copied graphs to it */
   BumpNode *bump = (BumpNode *)add(create_node<BumpNode>());
-  bump->use_object_space = use_object_space;
-  bump->distance = 1.0f;
+  bump->set_use_object_space(use_object_space);
+  bump->set_distance(1.0f);
 
   ShaderOutput *out = displacement_in->link;
   ShaderOutput *out_center = nodes_center[out->parent]->output(out->name());
@@ -1016,9 +1016,9 @@ void ShaderGraph::bump_from_displacement(bool use_object_space)
   VectorMathNode *dot_dx = (VectorMathNode *)add(create_node<VectorMathNode>());
   VectorMathNode *dot_dy = (VectorMathNode *)add(create_node<VectorMathNode>());
 
-  dot_center->type = NODE_VECTOR_MATH_DOT_PRODUCT;
-  dot_dx->type = NODE_VECTOR_MATH_DOT_PRODUCT;
-  dot_dy->type = NODE_VECTOR_MATH_DOT_PRODUCT;
+  dot_center->set_math_type(NODE_VECTOR_MATH_DOT_PRODUCT);
+  dot_dx->set_math_type(NODE_VECTOR_MATH_DOT_PRODUCT);
+  dot_dy->set_math_type(NODE_VECTOR_MATH_DOT_PRODUCT);
 
   GeometryNode *geom = (GeometryNode *)add(create_node<GeometryNode>());
   connect(geom->output("Normal"), dot_center->input("Vector2"));
@@ -1072,7 +1072,7 @@ void ShaderGraph::transform_multi_closure(ShaderNode *node, ShaderOutput *weight
       if (fin->link)
         connect(fin->link, fac_in);
       else
-        mix_node->fac = node->get_float(fin->socket_type);
+        mix_node->set_fac(node->get_float(fin->socket_type));
 
       if (weight_out)
         connect(weight_out, weight_in);
@@ -1107,12 +1107,12 @@ void ShaderGraph::transform_multi_closure(ShaderNode *node, ShaderOutput *weight
       if (weight_in->link)
         connect(weight_in->link, math_node->input("Value1"));
       else
-        math_node->value1 = weight_value;
+        math_node->set_value1(weight_value);
 
       if (weight_out)
         connect(weight_out, math_node->input("Value2"));
       else
-        math_node->value2 = 1.0f;
+        math_node->set_value2(1.0f);
 
       weight_out = math_node->output("Value");
       if (weight_in->link)
