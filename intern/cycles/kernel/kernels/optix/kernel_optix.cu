@@ -320,10 +320,3 @@ extern "C" __global__ void __intersection__curve_all()
   optix_intersection_curve(prim, type);
 }
 #endif
-
-#ifdef __KERNEL_DEBUG__
-extern "C" __global__ void __exception__kernel_optix_exception()
-{
-  printf("Unhandled exception occured: code %d!\n", optixGetExceptionCode());
-}
-#endif

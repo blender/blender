@@ -137,9 +137,6 @@ class OptiXDevice : public CUDADevice {
     PG_HITD_MOTION,
     PG_HITS_MOTION,
 #  endif
-#  ifdef WITH_CYCLES_DEBUG
-    PG_EXCP,
-#  endif
     PG_BAKE,  // kernel_bake_evaluate
     PG_DISP,  // kernel_displace_evaluate
     PG_BACK,  // kernel_background_evaluate
@@ -231,6 +228,9 @@ class OptiXDevice : public CUDADevice {
               break;
           }
         };
+#  endif
+#  if OPTIX_ABI_VERSION >= 41 && defined(WITH_CYCLES_DEBUG)
+    options.validationMode = OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_ALL;
 #  endif
     check_result_optix(optixDeviceContextCreate(cuContext, &options, &context));
 #  ifdef WITH_CYCLES_LOGGING
@@ -368,6 +368,12 @@ class OptiXDevice : public CUDADevice {
     module_options.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_3;
     module_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_LINEINFO;
 #  endif
+
+#  if OPTIX_ABI_VERSION >= 41
+    module_options.boundValues = nullptr;
+    module_options.numBoundValues = 0;
+#  endif
+
     OptixPipelineCompileOptions pipeline_options;
     // Default to no motion blur and two-level graph, since it is the fastest option
     pipeline_options.usesMotionBlur = false;
@@ -375,12 +381,7 @@ class OptiXDevice : public CUDADevice {
         OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_SINGLE_LEVEL_INSTANCING;
     pipeline_options.numPayloadValues = 6;
     pipeline_options.numAttributeValues = 2;  // u, v
-#  ifdef WITH_CYCLES_DEBUG
-    pipeline_options.exceptionFlags = OPTIX_EXCEPTION_FLAG_STACK_OVERFLOW |
-                                      OPTIX_EXCEPTION_FLAG_TRACE_DEPTH;
-#  else
     pipeline_options.exceptionFlags = OPTIX_EXCEPTION_FLAG_NONE;
-#  endif
     pipeline_options.pipelineLaunchParamsVariableName = "__params";  // See kernel_globals.h
 
 #  if OPTIX_ABI_VERSION >= 36
@@ -505,12 +506,6 @@ class OptiXDevice : public CUDADevice {
       group_descs[PG_HITL].hitgroup.entryFunctionNameAH = "__anyhit__kernel_optix_local_hit";
     }
 
-#  ifdef WITH_CYCLES_DEBUG
-    group_descs[PG_EXCP].kind = OPTIX_PROGRAM_GROUP_KIND_EXCEPTION;
-    group_descs[PG_EXCP].exception.module = optix_module;
-    group_descs[PG_EXCP].exception.entryFunctionName = "__exception__kernel_optix_exception";
-#  endif
-
     if (requested_features.use_baking) {
       group_descs[PG_BAKE].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
       group_descs[PG_BAKE].raygen.module = optix_module;
@@ -578,9 +573,6 @@ class OptiXDevice : public CUDADevice {
         groups[PG_HITD_MOTION],
         groups[PG_HITS_MOTION],
 #  endif
-#  ifdef WITH_CYCLES_DEBUG
-        groups[PG_EXCP],
-#  endif
       };
       check_result_optix_ret(
           optixPipelineCreate(context,
@@ -617,9 +609,6 @@ class OptiXDevice : public CUDADevice {
 #  if OPTIX_ABI_VERSION >= 36
         groups[PG_HITD_MOTION],
         groups[PG_HITS_MOTION],
-#  endif
-#  ifdef WITH_CYCLES_DEBUG
-        groups[PG_EXCP],
 #  endif
       };
       check_result_optix_ret(
@@ -734,9 +723,6 @@ class OptiXDevice : public CUDADevice {
 
       OptixShaderBindingTable sbt_params = {};
       sbt_params.raygenRecord = sbt_data.device_pointer + PG_RGEN * sizeof(SbtRecord);
-#  ifdef WITH_CYCLES_DEBUG
-      sbt_params.exceptionRecord = sbt_data.device_pointer + PG_EXCP * sizeof(SbtRecord);
-#  endif
       sbt_params.missRecordBase = sbt_data.device_pointer + PG_MISS * sizeof(SbtRecord);
       sbt_params.missRecordStrideInBytes = sizeof(SbtRecord);
       sbt_params.missRecordCount = 1;
@@ -1064,9 +1050,6 @@ class OptiXDevice : public CUDADevice {
 
       OptixShaderBindingTable sbt_params = {};
       sbt_params.raygenRecord = sbt_data.device_pointer + rgen_index * sizeof(SbtRecord);
-#  ifdef WITH_CYCLES_DEBUG
-      sbt_params.exceptionRecord = sbt_data.device_pointer + PG_EXCP * sizeof(SbtRecord);
-#  endif
       sbt_params.missRecordBase = sbt_data.device_pointer + PG_MISS * sizeof(SbtRecord);
       sbt_params.missRecordStrideInBytes = sizeof(SbtRecord);
       sbt_params.missRecordCount = 1;
@@ -1464,8 +1447,10 @@ class OptiXDevice : public CUDADevice {
     }
 
     // Fill instance descriptions
+#  if OPTIX_ABI_VERSION < 41
     device_vector<OptixAabb> aabbs(this, "tlas_aabbs", MEM_READ_ONLY);
     aabbs.alloc(bvh->objects.size());
+#  endif
     device_vector<OptixInstance> instances(this, "tlas_instances", MEM_READ_ONLY);
     instances.alloc(bvh->objects.size());
 
@@ -1475,12 +1460,13 @@ class OptiXDevice : public CUDADevice {
         continue;
 
       // Create separate instance for triangle/curve meshes of an object
-      auto handle_it = geometry.find(ob->geometry);
+      const auto handle_it = geometry.find(ob->geometry);
       if (handle_it == geometry.end()) {
         continue;
       }
       OptixTraversableHandle handle = handle_it->second;
 
+#  if OPTIX_ABI_VERSION < 41
       OptixAabb &aabb = aabbs[num_instances];
       aabb.minX = ob->bounds.min.x;
       aabb.minY = ob->bounds.min.y;
@@ -1488,6 +1474,7 @@ class OptiXDevice : public CUDADevice {
       aabb.maxX = ob->bounds.max.x;
       aabb.maxY = ob->bounds.max.y;
       aabb.maxZ = ob->bounds.max.z;
+#  endif
 
       OptixInstance &instance = instances[num_instances++];
       memset(&instance, 0, sizeof(instance));
@@ -1608,18 +1595,22 @@ class OptiXDevice : public CUDADevice {
     }
 
     // Upload instance descriptions
+#  if OPTIX_ABI_VERSION < 41
     aabbs.resize(num_instances);
     aabbs.copy_to_device();
+#  endif
     instances.resize(num_instances);
     instances.copy_to_device();
 
     // Build top-level acceleration structure (TLAS)
     OptixBuildInput build_input = {};
     build_input.type = OPTIX_BUILD_INPUT_TYPE_INSTANCES;
-    build_input.instanceArray.instances = instances.device_pointer;
-    build_input.instanceArray.numInstances = num_instances;
+#  if OPTIX_ABI_VERSION < 41  // Instance AABBs no longer need to be set since OptiX 7.2
     build_input.instanceArray.aabbs = aabbs.device_pointer;
     build_input.instanceArray.numAabbs = num_instances;
+#  endif
+    build_input.instanceArray.instances = instances.device_pointer;
+    build_input.instanceArray.numInstances = num_instances;
 
     return build_optix_bvh(build_input, 0, tlas_handle);
   }
@@ -1725,8 +1716,8 @@ bool device_optix_init()
   const OptixResult result = optixInit();
 
   if (result == OPTIX_ERROR_UNSUPPORTED_ABI_VERSION) {
-    VLOG(1) << "OptiX initialization failed because driver does not support ABI version "
-            << OPTIX_ABI_VERSION;
+    VLOG(1) << "OptiX initialization failed because the installed NVIDIA driver is too old. "
+               "Please update to the latest driver first!";
     return false;
   }
   else if (result != OPTIX_SUCCESS) {
