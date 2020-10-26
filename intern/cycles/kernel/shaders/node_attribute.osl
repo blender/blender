@@ -20,20 +20,26 @@ shader node_attribute(string bump_offset = "center",
                       string name = "",
                       output point Vector = point(0.0, 0.0, 0.0),
                       output color Color = 0.0,
-                      output float Fac = 0.0)
+                      output float Fac = 0.0,
+                      output float Alpha = 0.0)
 {
-  getattribute(name, Color);
+  float data[4];
+  getattribute(name, data);
+  Color = color(data[0], data[1], data[2]);
   Vector = point(Color);
   getattribute(name, Fac);
+  Alpha = data[3];
 
   if (bump_offset == "dx") {
     Color += Dx(Color);
     Vector += Dx(Vector);
     Fac += Dx(Fac);
+    Alpha += Dx(Alpha);
   }
   else if (bump_offset == "dy") {
     Color += Dy(Color);
     Vector += Dy(Vector);
     Fac += Dy(Fac);
+    Alpha += Dy(Alpha);
   }
 }
