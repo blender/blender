@@ -373,7 +373,7 @@ static void meshdeformModifier_do(ModifierData *md,
   Object *ob_target = mmd->object;
   cagemesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target, false);
   if (cagemesh == NULL) {
-    BKE_modifier_set_error(md, "Cannot get mesh from cage object");
+    BKE_modifier_set_error(ctx->object, md, "Cannot get mesh from cage object");
     return;
   }
 
@@ -388,7 +388,7 @@ static void meshdeformModifier_do(ModifierData *md,
   if (!mmd->bindcagecos) {
     /* progress bar redraw can make this recursive .. */
     if (!DEG_is_active(ctx->depsgraph)) {
-      BKE_modifier_set_error(md, "Attempt to bind from inactive dependency graph");
+      BKE_modifier_set_error(ob, md, "Attempt to bind from inactive dependency graph");
       goto finally;
     }
     if (!recursive_bind_sentinel) {
@@ -405,16 +405,16 @@ static void meshdeformModifier_do(ModifierData *md,
   totcagevert = BKE_mesh_wrapper_vert_len(cagemesh);
 
   if (mmd->totvert != totvert) {
-    BKE_modifier_set_error(md, "Vertices changed from %d to %d", mmd->totvert, totvert);
+    BKE_modifier_set_error(ob, md, "Vertices changed from %d to %d", mmd->totvert, totvert);
     goto finally;
   }
   else if (mmd->totcagevert != totcagevert) {
     BKE_modifier_set_error(
-        md, "Cage vertices changed from %d to %d", mmd->totcagevert, totcagevert);
+        ob, md, "Cage vertices changed from %d to %d", mmd->totcagevert, totcagevert);
     goto finally;
   }
   else if (mmd->bindcagecos == NULL) {
-    BKE_modifier_set_error(md, "Bind data missing");
+    BKE_modifier_set_error(ob, md, "Bind data missing");
     goto finally;
   }
 

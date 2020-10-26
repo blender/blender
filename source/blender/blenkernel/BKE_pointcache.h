@@ -167,7 +167,7 @@ typedef struct PTCacheID {
    * (the cfra parameter is just for using same function pointer with totwrite). */
   int (*totpoint)(void *calldata, int cfra);
   /* report error if number of points does not match */
-  void (*error)(void *calldata, const char *message);
+  void (*error)(const struct ID *owner_id, void *calldata, const char *message);
   /* number of points written for current cache frame */
   int (*totwrite)(void *calldata, int cfra);
 

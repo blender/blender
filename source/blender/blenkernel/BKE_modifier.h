@@ -427,8 +427,10 @@ bool BKE_modifier_is_non_geometrical(ModifierData *md);
 bool BKE_modifier_is_enabled(const struct Scene *scene,
                              struct ModifierData *md,
                              int required_mode);
-void BKE_modifier_set_error(struct ModifierData *md, const char *format, ...)
-    ATTR_PRINTF_FORMAT(2, 3);
+void BKE_modifier_set_error(const struct Object *ob,
+                            struct ModifierData *md,
+                            const char *format,
+                            ...) ATTR_PRINTF_FORMAT(3, 4);
 bool BKE_modifier_is_preview(struct ModifierData *md);
 
 void BKE_modifiers_foreach_ID_link(struct Object *ob, IDWalkFunc walk, void *userData);

@@ -55,7 +55,7 @@
 /* Prototypes for internal functions.
  */
 static void cloth_to_object(Object *ob, ClothModifierData *clmd, float (*vertexCos)[3]);
-static void cloth_from_mesh(ClothModifierData *clmd, Mesh *mesh);
+static void cloth_from_mesh(ClothModifierData *clmd, const Object *ob, Mesh *mesh);
 static bool cloth_from_object(
     Object *ob, ClothModifierData *clmd, Mesh *mesh, float framenr, int first);
 static void cloth_update_springs(ClothModifierData *clmd);
@@ -234,13 +234,13 @@ static bool do_init_cloth(Object *ob, ClothModifierData *clmd, Mesh *result, int
   if (clmd->clothObject == NULL) {
     if (!cloth_from_object(ob, clmd, result, framenr, 1)) {
       BKE_ptcache_invalidate(cache);
-      BKE_modifier_set_error(&(clmd->modifier), "Can't initialize cloth");
+      BKE_modifier_set_error(ob, &(clmd->modifier), "Can't initialize cloth");
       return false;
     }
 
     if (clmd->clothObject == NULL) {
       BKE_ptcache_invalidate(cache);
-      BKE_modifier_set_error(&(clmd->modifier), "Null cloth object");
+      BKE_modifier_set_error(ob, &(clmd->modifier), "Null cloth object");
       return false;
     }
 
@@ -742,7 +742,7 @@ static bool cloth_from_object(
     clmd->clothObject->edgeset = NULL;
   }
   else {
-    BKE_modifier_set_error(&(clmd->modifier), "Out of memory on allocating clmd->clothObject");
+    BKE_modifier_set_error(ob, &(clmd->modifier), "Out of memory on allocating clmd->clothObject");
     return false;
   }
 
@@ -751,7 +751,7 @@ static bool cloth_from_object(
     return false;
   }
 
-  cloth_from_mesh(clmd, mesh);
+  cloth_from_mesh(clmd, ob, mesh);
 
   /* create springs */
   clmd->clothObject->springs = NULL;
@@ -814,7 +814,7 @@ static bool cloth_from_object(
 
   if (!cloth_build_springs(clmd, mesh)) {
     cloth_free_modifier(clmd);
-    BKE_modifier_set_error(&(clmd->modifier), "Cannot build springs");
+    BKE_modifier_set_error(ob, &(clmd->modifier), "Cannot build springs");
     return false;
   }
 
@@ -831,7 +831,7 @@ static bool cloth_from_object(
   return true;
 }
 
-static void cloth_from_mesh(ClothModifierData *clmd, Mesh *mesh)
+static void cloth_from_mesh(ClothModifierData *clmd, const Object *ob, Mesh *mesh)
 {
   const MLoop *mloop = mesh->mloop;
   const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(mesh);
@@ -844,8 +844,8 @@ static void cloth_from_mesh(ClothModifierData *clmd, Mesh *mesh)
                                          "clothVertex");
   if (clmd->clothObject->verts == NULL) {
     cloth_free_modifier(clmd);
-    BKE_modifier_set_error(&(clmd->modifier),
-                           "Out of memory on allocating clmd->clothObject->verts");
+    BKE_modifier_set_error(
+        ob, &(clmd->modifier), "Out of memory on allocating clmd->clothObject->verts");
     printf("cloth_free_modifier clmd->clothObject->verts\n");
     return;
   }
@@ -861,8 +861,8 @@ static void cloth_from_mesh(ClothModifierData *clmd, Mesh *mesh)
   clmd->clothObject->tri = MEM_mallocN(sizeof(MVertTri) * looptri_num, "clothLoopTris");
   if (clmd->clothObject->tri == NULL) {
     cloth_free_modifier(clmd);
-    BKE_modifier_set_error(&(clmd->modifier),
-                           "Out of memory on allocating clmd->clothObject->looptri");
+    BKE_modifier_set_error(
+        ob, &(clmd->modifier), "Out of memory on allocating clmd->clothObject->looptri");
     printf("cloth_free_modifier clmd->clothObject->looptri\n");
     return;
   }

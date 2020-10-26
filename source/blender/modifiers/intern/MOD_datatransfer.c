@@ -232,16 +232,19 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   if (BKE_reports_contain(&reports, RPT_ERROR)) {
     const char *report_str = BKE_reports_string(&reports, RPT_ERROR);
-    BKE_modifier_set_error(md, "%s", report_str);
+    BKE_modifier_set_error(ctx->object, md, "%s", report_str);
     MEM_freeN((void *)report_str);
   }
   else if ((dtmd->data_types & DT_TYPE_LNOR) && !(me->flag & ME_AUTOSMOOTH)) {
-    BKE_modifier_set_error((ModifierData *)dtmd, "Enable 'Auto Smooth' in Object Data Properties");
+    BKE_modifier_set_error(
+        ctx->object, (ModifierData *)dtmd, "Enable 'Auto Smooth' in Object Data Properties");
   }
   else if (result->totvert > HIGH_POLY_WARNING ||
            ((Mesh *)(ob_source->data))->totvert > HIGH_POLY_WARNING) {
     BKE_modifier_set_error(
-        md, "Source or destination object has a high polygon count, computation might be slow");
+        ctx->object,
+        md,
+        "Source or destination object has a high polygon count, computation might be slow");
   }
 
   return result;

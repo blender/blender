@@ -208,7 +208,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   Object *ob = ctx->object;
 
   if (harden_normals && (ob->type == OB_MESH) && !(((Mesh *)ob->data)->flag & ME_AUTOSMOOTH)) {
-    BKE_modifier_set_error(md, "Enable 'Auto Smooth' in Object Data Properties");
+    BKE_modifier_set_error(ob, md, "Enable 'Auto Smooth' in Object Data Properties");
     harden_normals = false;
   }
 

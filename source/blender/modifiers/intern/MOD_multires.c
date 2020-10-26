@@ -216,7 +216,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 {
   Mesh *result = mesh;
 #if !defined(WITH_OPENSUBDIV)
-  BKE_modifier_set_error(md, "Disabled, built without OpenSubdiv");
+  BKE_modifier_set_error(ctx->object, md, "Disabled, built without OpenSubdiv");
   return result;
 #endif
   MultiresModifierData *mmd = (MultiresModifierData *)md;
@@ -300,7 +300,7 @@ static void deformMatrices(ModifierData *md,
 
 {
 #if !defined(WITH_OPENSUBDIV)
-  BKE_modifier_set_error(md, "Disabled, built without OpenSubdiv");
+  BKE_modifier_set_error(ctx->object, md, "Disabled, built without OpenSubdiv");
   return;
 #endif
 

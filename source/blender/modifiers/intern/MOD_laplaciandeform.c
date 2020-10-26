@@ -684,14 +684,15 @@ static void LaplacianDeformModifier_do(
       else {
         if (sysdif == LAPDEFORM_SYSTEM_CHANGE_VERTEXES) {
           BKE_modifier_set_error(
-              &lmd->modifier, "Vertices changed from %d to %d", lmd->total_verts, numVerts);
+              ob, &lmd->modifier, "Vertices changed from %d to %d", lmd->total_verts, numVerts);
         }
         else if (sysdif == LAPDEFORM_SYSTEM_CHANGE_EDGES) {
           BKE_modifier_set_error(
-              &lmd->modifier, "Edges changed from %d to %d", sys->total_edges, mesh->totedge);
+              ob, &lmd->modifier, "Edges changed from %d to %d", sys->total_edges, mesh->totedge);
         }
         else if (sysdif == LAPDEFORM_SYSTEM_CHANGE_NOT_VALID_GROUP) {
-          BKE_modifier_set_error(&lmd->modifier,
+          BKE_modifier_set_error(ob,
+                                 &lmd->modifier,
                                  "Vertex group '%s' is not valid, or maybe empty",
                                  sys->anchor_grp_name);
         }
@@ -704,8 +705,10 @@ static void LaplacianDeformModifier_do(
   }
   else {
     if (!isValidVertexGroup(lmd, ob, mesh)) {
-      BKE_modifier_set_error(
-          &lmd->modifier, "Vertex group '%s' is not valid, or maybe empty", lmd->anchor_grp_name);
+      BKE_modifier_set_error(ob,
+                             &lmd->modifier,
+                             "Vertex group '%s' is not valid, or maybe empty",
+                             lmd->anchor_grp_name);
       lmd->flag &= ~MOD_LAPLACIANDEFORM_BIND;
     }
     else if (lmd->total_verts > 0 && lmd->total_verts == numVerts) {
@@ -725,7 +728,7 @@ static void LaplacianDeformModifier_do(
     }
   }
   if (sys && sys->is_matrix_computed && !sys->has_solution) {
-    BKE_modifier_set_error(&lmd->modifier, "The system did not find a solution");
+    BKE_modifier_set_error(ob, &lmd->modifier, "The system did not find a solution");
   }
 }
 

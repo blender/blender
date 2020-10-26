@@ -281,7 +281,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   VolumeGrid *volume_grid = BKE_volume_grid_find(volume, vmmd->grid_name);
   if (volume_grid == nullptr) {
-    BKE_modifier_set_error(md, "Cannot find '%s' grid", vmmd->grid_name);
+    BKE_modifier_set_error(vmmd->object, md, "Cannot find '%s' grid", vmmd->grid_name);
     return input_mesh;
   }
 
@@ -290,7 +290,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   const VolumeGridType grid_type = BKE_volume_grid_type(volume_grid);
   VolumeToMeshOp to_mesh_op{*grid, *vmmd, *ctx};
   if (!BKE_volume_grid_type_operation(grid_type, to_mesh_op)) {
-    BKE_modifier_set_error(md, "Expected a scalar grid");
+    BKE_modifier_set_error(ctx->object, md, "Expected a scalar grid");
     return input_mesh;
   }
 
@@ -301,8 +301,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
   return mesh;
 #else
-  UNUSED_VARS(md, ctx);
-  BKE_modifier_set_error(md, "Compiled without OpenVDB");
+  UNUSED_VARS(md);
+  BKE_modifier_set_error(ctx->object, md, "Compiled without OpenVDB");
   return input_mesh;
 #endif
 }
