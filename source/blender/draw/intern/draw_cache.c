@@ -37,6 +37,7 @@
 
 #include "BKE_object.h"
 #include "BKE_paint.h"
+#include "BKE_customdata.h"
 
 #include "GPU_batch.h"
 #include "GPU_batch_utils.h"
@@ -471,6 +472,40 @@ static void sphere_lat_lon_vert(GPUVertBuf *vbo, int *v_ofs, float lat, float lo
   float z = sinf(lat) * sinf(lon);
   GPU_vertbuf_vert_set(vbo, *v_ofs, &(VertShaded){{x, y, z}, VCLASS_EMPTY_SCALED, {x, y, z}});
   (*v_ofs)++;
+}
+
+void DRW_make_cdlayer_attr_aliases(GPUVertFormat *format, char *base_name, CustomData *data, CustomDataLayer *cl)
+{
+  char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
+  const char *layer_name = cl->name;
+
+  int i = (int) (cl - data->typemap[cl->type]);
+
+  GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
+
+  /* UV layer name. */
+  BLI_snprintf(attr_name, sizeof(attr_name), "%s%s", base_name, attr_safe_name);
+  GPU_vertformat_alias_add(format, attr_name);
+
+  /* Auto layer name. */
+  BLI_snprintf(attr_name, sizeof(attr_name), "a%s", attr_safe_name);
+  GPU_vertformat_alias_add(format, attr_name);
+
+  /* Active render layer name. */
+  if (i == CustomData_get_render_layer(data, cl->type)) {
+    GPU_vertformat_alias_add(format, base_name);
+  }
+  /* Active display layer name. */
+  if (i == CustomData_get_active_layer(data, cl->type)) {
+    BLI_snprintf(attr_name, sizeof(attr_name), "a%s", base_name);
+    GPU_vertformat_alias_add(format, attr_name);
+  }
+
+  /* Stencil mask uv layer name. */
+  if (i == CustomData_get_stencil_layer(data, cl->type)) {
+    BLI_snprintf(attr_name, sizeof(attr_name), "m%s", base_name);
+    GPU_vertformat_alias_add(format, attr_name);
+  }
 }
 
 GPUBatch *DRW_cache_sphere_get(void)

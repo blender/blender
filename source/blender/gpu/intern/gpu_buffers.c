@@ -51,6 +51,8 @@
 #include "GPU_batch.h"
 #include "GPU_buffers.h"
 
+#include "DRW_engine.h"
+
 #include "gpu_private.h"
 
 #include "bmesh.h"
@@ -112,26 +114,7 @@ static struct {
 
 void gpu_pbvh_init()
 {
-  /* Initialize vertex buffer (match 'VertexBufferFormat'). */
-  if (g_vbo_id.format.attr_len == 0) {
-    g_vbo_id.pos = GPU_vertformat_attr_add(
-        &g_vbo_id.format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-    g_vbo_id.nor = GPU_vertformat_attr_add(
-        &g_vbo_id.format, "nor", GPU_COMP_I16, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
-    /* TODO: Do not allocate these `.msk` and `.col` when they are not used. */
-    g_vbo_id.msk = GPU_vertformat_attr_add(
-        &g_vbo_id.format, "msk", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
-    g_vbo_id.col = GPU_vertformat_attr_add(
-        &g_vbo_id.format, "c", GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-    g_vbo_id.fset = GPU_vertformat_attr_add(
-        &g_vbo_id.format, "fset", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
-
-    g_vbo_id.uv = GPU_vertformat_attr_add(
-        &g_vbo_id.format, "uvs", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-    GPU_vertformat_alias_add(&g_vbo_id.format, "texCoord");
-    GPU_vertformat_alias_add(&g_vbo_id.format, "u");
-    GPU_vertformat_alias_add(&g_vbo_id.format, "au");
-  }
+  GPU_pbvh_update_attribute_names(NULL, NULL);
 }
 
 void gpu_pbvh_exit()
@@ -927,6 +910,48 @@ void GPU_pbvh_bmesh_buffers_update_free(GPU_PBVH_Buffers *buffers)
   }
 }
 
+void GPU_pbvh_update_attribute_names(CustomData *vdata, CustomData *ldata)
+{
+  GPU_vertformat_clear(&g_vbo_id);
+
+  /* Initialize vertex buffer (match 'VertexBufferFormat'). */
+  if (g_vbo_id.format.attr_len == 0) {
+    g_vbo_id.pos = GPU_vertformat_attr_add(
+        &g_vbo_id.format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+    g_vbo_id.nor = GPU_vertformat_attr_add(
+        &g_vbo_id.format, "nor", GPU_COMP_I16, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    /* TODO: Do not allocate these `.msk` and `.col` when they are not used. */
+    g_vbo_id.msk = GPU_vertformat_attr_add(
+        &g_vbo_id.format, "msk", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    g_vbo_id.col = GPU_vertformat_attr_add(
+        &g_vbo_id.format, "c", GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+
+    if (vdata && CustomData_has_layer(vdata, CD_PROP_COLOR)) {
+      const int cd_vcol_index = CustomData_get_layer_index(vdata, CD_PROP_COLOR);
+      CustomDataLayer *cl = vdata->layers + cd_vcol_index;
+      cl += cl->active;
+
+      DRW_make_cdlayer_attr_aliases(&g_vbo_id.format, "c", vdata, cl);
+    }
+
+    g_vbo_id.fset = GPU_vertformat_attr_add(
+        &g_vbo_id.format, "fset", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+
+    g_vbo_id.uv = GPU_vertformat_attr_add(
+        &g_vbo_id.format, "uvs", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+    GPU_vertformat_alias_add(&g_vbo_id.format, "u");
+
+    if (ldata && CustomData_has_layer(ldata, CD_MLOOPUV)) {
+      const int cd_uv_index = CustomData_get_layer_index(ldata, CD_MLOOPUV);
+      CustomDataLayer *cl = ldata->layers + cd_uv_index;
+      cl += cl->active;
+
+      DRW_make_cdlayer_attr_aliases(&g_vbo_id.format, "u", ldata, cl);
+    }
+
+  }
+}
+
 /* Creates a vertex buffer (coordinate, normal, color) and, if smooth
  * shading, an element index buffer.
  * Threaded - do not call any functions that use OpenGL calls! */
@@ -944,11 +969,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
   int tottri, totvert;
   bool empty_mask = true;
   BMFace *f = NULL;
-  int cd_vcol_offset = -1;
-
-  if (CustomData_has_layer(&bm->vdata, CD_PROP_COLOR)) {
-    cd_vcol_offset = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
-  }
+  int cd_vcol_offset = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
 
   /* Count visible triangles */
   tottri = gpu_bmesh_face_visible_count(bm_faces);
@@ -1094,7 +1115,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
             MPropCol *mp = BM_ELEM_CD_GET_VOID_P(l[i]->v, cd_vcol_offset);
             ushort vcol[4];
 
-            //printf(
+            // printf(
             //    "%.2f %.2f %.2f %.2f\n", mp->color[0], mp->color[1], mp->color[2], mp->color[3]);
             vcol[0] = unit_float_to_ushort_clamp(mp->color[0]);
             vcol[1] = unit_float_to_ushort_clamp(mp->color[1]);

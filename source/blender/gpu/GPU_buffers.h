@@ -44,8 +44,9 @@ struct MVert;
 struct Mesh;
 struct PBVH;
 struct SubdivCCG;
+struct CustomData;
 
-/* Buffers for drawing from PBVH grids. */
+    /* Buffers for drawing from PBVH grids. */
 typedef struct GPU_PBVH_Buffers GPU_PBVH_Buffers;
 
 /* Build must be called once before using the other functions, used every time
@@ -86,6 +87,7 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const struct MPropCol *vtcol,
                                   const int update_flags);
 
+void GPU_pbvh_update_attribute_names(struct CustomData *vdata, struct CustomData *ldata);
 void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                    struct BMesh *bm,
                                    struct TableGSet *bm_faces,

@@ -1296,6 +1296,7 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
   }
 
   if (node->flag & PBVH_UpdateDrawBuffers) {
+
     const int update_flags = pbvh_get_buffers_update_flags(pbvh);
     switch (pbvh->type) {
       case PBVH_GRIDS:
@@ -1356,6 +1357,19 @@ static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, 
       }
     }
   }
+
+  CustomData *vdata;
+  CustomData *ldata;
+
+  if (pbvh->type == PBVH_BMESH) {
+    vdata = &pbvh->bm->vdata;
+    ldata = &pbvh->bm->ldata;
+  } else {
+    vdata = &pbvh->vdata;
+    ldata = &pbvh->ldata;
+  }
+
+  GPU_pbvh_update_attribute_names(vdata, ldata);
 
   /* Parallel creation and update of draw buffers. */
   PBVHUpdateData data = {
