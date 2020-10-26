@@ -313,9 +313,12 @@ void Camera::update(Scene *scene)
   if (type == CAMERA_PERSPECTIVE) {
     float3 v = transform_perspective(&full_rastertocamera,
                                      make_float3(full_width, full_height, 1.0f));
-
     frustum_right_normal = normalize(make_float3(v.z, 0.0f, -v.x));
     frustum_top_normal = normalize(make_float3(0.0f, v.z, -v.y));
+
+    v = transform_perspective(&full_rastertocamera, make_float3(0.0f, 0.0f, 1.0f));
+    frustum_left_normal = normalize(make_float3(-v.z, 0.0f, v.x));
+    frustum_bottom_normal = normalize(make_float3(0.0f, -v.z, v.y));
   }
 
   /* Compute kernel camera data. */
@@ -644,17 +647,22 @@ float Camera::world_to_raster_size(float3 P)
 
     if (offscreen_dicing_scale > 1.0f) {
       float3 p = transform_point(&worldtocamera, P);
-      float3 v = transform_perspective(&full_rastertocamera,
-                                       make_float3(full_width, full_height, 0.0f));
+      float3 v1 = transform_perspective(&full_rastertocamera,
+                                        make_float3(full_width, full_height, 0.0f));
+      float3 v2 = transform_perspective(&full_rastertocamera, make_float3(0.0f, 0.0f, 0.0f));
 
       /* Create point clamped to frustum */
       float3 c;
-      c.x = max(-v.x, min(v.x, p.x));
-      c.y = max(-v.y, min(v.y, p.y));
+      c.x = max(v2.x, min(v1.x, p.x));
+      c.y = max(v2.y, min(v1.y, p.y));
       c.z = max(0.0f, p.z);
 
-      float f_dist = len(p - c) / sqrtf((v.x * v.x + v.y * v.y) * 0.5f);
-
+      /* Check right side */
+      float f_dist = len(p - c) / sqrtf((v1.x * v1.x + v1.y * v1.y) * 0.5f);
+      if (f_dist < 0.0f) {
+        /* Check left side */
+        f_dist = len(p - c) / sqrtf((v2.x * v2.x + v2.y * v2.y) * 0.5f);
+      }
       if (f_dist > 0.0f) {
         res += res * f_dist * (offscreen_dicing_scale - 1.0f);
       }
@@ -685,10 +693,8 @@ float Camera::world_to_raster_size(float3 P)
       /* Distance from the four planes */
       float r = dot(p, frustum_right_normal);
       float t = dot(p, frustum_top_normal);
-      p = make_float3(-p.x, -p.y, p.z);
-      float l = dot(p, frustum_right_normal);
-      float b = dot(p, frustum_top_normal);
-      p = make_float3(-p.x, -p.y, p.z);
+      float l = dot(p, frustum_left_normal);
+      float b = dot(p, frustum_bottom_normal);
 
       if (r <= 0.0f && l <= 0.0f && t <= 0.0f && b <= 0.0f) {
         /* Point is inside frustum */
@@ -701,9 +707,9 @@ float Camera::world_to_raster_size(float3 P)
       else {
         /* Point may be behind or off to the side, need to check */
         float3 along_right = make_float3(-frustum_right_normal.z, 0.0f, frustum_right_normal.x);
-        float3 along_left = make_float3(frustum_right_normal.z, 0.0f, frustum_right_normal.x);
+        float3 along_left = make_float3(frustum_left_normal.z, 0.0f, -frustum_left_normal.x);
         float3 along_top = make_float3(0.0f, -frustum_top_normal.z, frustum_top_normal.y);
-        float3 along_bottom = make_float3(0.0f, frustum_top_normal.z, frustum_top_normal.y);
+        float3 along_bottom = make_float3(0.0f, frustum_bottom_normal.z, -frustum_bottom_normal.y);
 
         float dist[] = {r, l, t, b};
         float3 along[] = {along_right, along_left, along_top, along_bottom};
