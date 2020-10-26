@@ -635,15 +635,16 @@ TEST(path_util, PathExtension)
 }
 
 /* BLI_path_rel. */
+#ifndef _WIN32
 
-#define PATH_REL(abs_path, ref_path, rel_path) \
-  { \
-    char path[FILE_MAX]; \
-    BLI_strncpy(path, abs_path, sizeof(path)); \
-    BLI_path_rel(path, ref_path); \
-    EXPECT_STREQ(rel_path, path); \
-  } \
-  void(0)
+#  define PATH_REL(abs_path, ref_path, rel_path) \
+    { \
+      char path[FILE_MAX]; \
+      BLI_strncpy(path, abs_path, sizeof(path)); \
+      BLI_path_rel(path, ref_path); \
+      EXPECT_STREQ(rel_path, path); \
+    } \
+    void(0)
 
 TEST(path_util, PathRelPath)
 {
@@ -683,3 +684,7 @@ TEST(path_util, PathRelPath)
     PATH_REL(abs_path_in, ref_path_in, abs_path_out);
   }
 }
+
+#  undef PATH_REL
+
+#endif
