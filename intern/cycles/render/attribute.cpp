@@ -34,7 +34,7 @@ Attribute::Attribute(
   assert(type == TypeDesc::TypeFloat || type == TypeDesc::TypeColor ||
          type == TypeDesc::TypePoint || type == TypeDesc::TypeVector ||
          type == TypeDesc::TypeNormal || type == TypeDesc::TypeMatrix || type == TypeFloat2 ||
-         type == TypeRGBA);
+         type == TypeFloat4 || type == TypeRGBA);
 
   if (element == ATTR_ELEMENT_VOXEL) {
     buffer.resize(sizeof(ImageHandle));
