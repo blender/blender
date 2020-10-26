@@ -240,6 +240,7 @@ TEST_F(DrawTest, overlay_glsl_shaders)
     EXPECT_NE(OVERLAY_shader_edit_uv_stretching_area_get(), nullptr);
     EXPECT_NE(OVERLAY_shader_edit_uv_stretching_angle_get(), nullptr);
     EXPECT_NE(OVERLAY_shader_edit_uv_tiled_image_borders_get(), nullptr);
+    EXPECT_NE(OVERLAY_shader_edit_uv_stencil_image(), nullptr);
     EXPECT_NE(OVERLAY_shader_extra(false), nullptr);
     EXPECT_NE(OVERLAY_shader_extra(true), nullptr);
     EXPECT_NE(OVERLAY_shader_extra_groundline(), nullptr);
