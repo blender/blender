@@ -2939,6 +2939,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
 
   vi->grid = NULL;
   vi->no = NULL;
+  vi->col = NULL;
   vi->fno = NULL;
   vi->mvert = NULL;
   vi->vertex.i = 0;
@@ -2976,6 +2977,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
     vi->bm_other_verts = node->bm_other_verts;
     vi->bm_vdata = &pbvh->bm->vdata;
     vi->bm_vert = NULL;
+    vi->cd_vcol_offset = CustomData_get_offset(vi->bm_vdata, CD_PROP_COLOR);
     vi->cd_vert_mask_offset = CustomData_get_offset(vi->bm_vdata, CD_PAINT_MASK);
   }
 

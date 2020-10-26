@@ -2068,6 +2068,8 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
       if (subdiv_ccg != NULL) {
         BKE_sculpt_bvh_update_from_ccg(pbvh, subdiv_ccg);
       }
+    } else if (BKE_pbvh_type(pbvh) == PBVH_BMESH) {
+      SCULPT_dynamic_topology_sync_layers(ob);
     }
     return pbvh;
   }

@@ -23,6 +23,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.h"
 #include "BLI_blenlib.h"
 #include "BLI_hash.h"
 #include "BLI_math.h"
@@ -124,13 +125,18 @@ void SCULPT_dyntopo_save_origverts(SculptSession *ss)
   }
 }
 
+static char layer_id[] = "_dyntopo_node_id";
+static char origco_id[] = "_dyntopop_orig_co";
+static char origno_id[] = "_dyntopop_orig_no";
+
+void SCULPT_dyntopo_node_layers_update_offsets(SculptSession *ss)
+{
+  SCULPT_dyntopo_node_layers_add(ss);
+}
+
 void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
 {
   int cd_node_layer_index, cd_face_node_layer_index;
-
-  char layer_id[] = "_dyntopo_node_id";
-  char origco_id[] = "_dyntopop_orig_co";
-  char origno_id[] = "_dyntopop_orig_no";
 
   int cd_origco_index, cd_origno_index;
 
@@ -168,6 +174,8 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
       cd_origco_index - CustomData_get_layer_index(&ss->bm->vdata, CD_PROP_FLOAT3));
   ss->bm->vdata.layers[cd_origco_index].flag |= CD_FLAG_TEMPORARY;
 
+  ss->cd_vcol_offset = CustomData_get_offset(&ss->bm->vdata, CD_PROP_COLOR);
+
   ss->cd_origno_offset = CustomData_get_n_offset(
       &ss->bm->vdata,
       CD_PROP_FLOAT3,
@@ -189,6 +197,96 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
   ss->bm->pdata.layers[cd_face_node_layer_index].flag |= CD_FLAG_TEMPORARY;
 
   SCULPT_dyntopo_save_origverts(ss);
+}
+
+/**
+  Syncs customdata layers with internal bmesh, but ignores deleted layers.
+*/
+void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
+{
+  SculptSession *ss = ob->sculpt;
+
+  if (!ss || !ss->bm) {
+    return;
+  }
+
+  bool modified = false;
+  BMesh *bm = ss->bm;
+
+  CustomData *cd1[4] = {&me->vdata, &me->edata, &me->ldata, &me->pdata};
+  CustomData *cd2[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
+  int types[4] = {BM_VERT, BM_EDGE, BM_LOOP, BM_FACE};
+
+  for (int i = 0; i < 4; i++) {
+    CustomDataLayer **newlayers = NULL;
+    BLI_array_declare(newlayers);
+
+    CustomData *data1 = cd1[i];
+    CustomData *data2 = cd2[i];
+
+    for (int j = 0; j < data1->totlayer; j++) {
+      CustomDataLayer *cl1 = data1->layers + j;
+      int idx = CustomData_get_named_layer_index(data2, cl1->type, cl1->name);
+      if (idx < 0) {
+        BLI_array_append(newlayers, cl1);
+      }
+      else {
+        idx -= CustomData_get_layer_index(data2, cl1->type);
+
+        int idx2 = i - CustomData_get_layer_index(data1, cl1->type);
+
+        if (idx != idx2) {
+          modified = true;
+        }
+      }
+    }
+
+    for (int j = 0; j < BLI_array_len(newlayers); j++) {
+      BM_data_layer_add_named(bm, data2, newlayers[j]->type, newlayers[j]->name);
+      modified |= true;
+    }
+
+    char typemap[CD_NUMTYPES] = {
+        0,
+    };
+
+    for (int j = 0; j < data1->totlayer; j++) {
+      CustomDataLayer *cl1 = data1->layers + j;
+
+      if (typemap[cl1->type]) {
+        continue;
+      }
+
+      typemap[cl1->type] = 1;
+      cl1 = CustomData_get_active_layer(data1, cl1->type);
+
+      int idx = CustomData_get_named_layer_index(data2, cl1->type, cl1->name);
+      CustomData_set_layer_active_index(data2, cl1->type, idx);
+
+      cl1 = CustomData_get_render_layer(data1, cl1->type);
+      idx = CustomData_get_named_layer_index(data2, cl1->type, cl1->name);
+      CustomData_set_layer_render_index(data2, cl1->type, idx);
+
+      cl1 = CustomData_get_stencil_layer(data1, cl1->type);
+      idx = CustomData_get_named_layer_index(data2, cl1->type, cl1->name);
+      CustomData_set_layer_stencil_index(data2, cl1->type, idx);
+
+      cl1 = CustomData_get_clone_layer(data1, cl1->type);
+      idx = CustomData_get_named_layer_index(data2, cl1->type, cl1->name);
+      CustomData_set_layer_clone_index(data2, cl1->type, idx);
+    }
+
+    BLI_array_free(newlayers);
+  }
+
+  if (modified) {
+    SCULPT_dyntopo_node_layers_update_offsets(ss);
+    BKE_pbvh_update_offsets(ss->pbvh,
+                            ss->cd_vert_node_offset,
+                            ss->cd_face_node_offset,
+                            ss->cd_origco_offset,
+                            ss->cd_origno_offset);
+  }
 }
 
 void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)

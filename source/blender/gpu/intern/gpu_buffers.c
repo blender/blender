@@ -131,7 +131,6 @@ void gpu_pbvh_init()
     GPU_vertformat_alias_add(&g_vbo_id.format, "texCoord");
     GPU_vertformat_alias_add(&g_vbo_id.format, "u");
     GPU_vertformat_alias_add(&g_vbo_id.format, "au");
-
   }
 }
 
@@ -945,6 +944,11 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
   int tottri, totvert;
   bool empty_mask = true;
   BMFace *f = NULL;
+  int cd_vcol_offset = -1;
+
+  if (CustomData_has_layer(&bm->vdata, CD_PROP_COLOR)) {
+    cd_vcol_offset = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
+  }
 
   /* Count visible triangles */
   tottri = gpu_bmesh_face_visible_count(bm_faces);
@@ -971,7 +975,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
 
   /* TODO, make mask layer optional for bmesh buffer */
   const int cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
-  const int cd_vcol_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPCOL);
+  const int cd_mcol_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPCOL);
   const int cd_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 
   /* Fill vertex buffer */
@@ -1013,7 +1017,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                           show_mask,
                                           show_vcol,
                                           &empty_mask,
-                                          cd_vcol_offset);
+                                          cd_mcol_offset);
 
             idx[i] = v_index;
             v_index++;
@@ -1087,9 +1091,20 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                         -1);
 
           if (cd_vcol_offset >= 0) {
+            MPropCol *mp = BM_ELEM_CD_GET_VOID_P(l[i]->v, cd_vcol_offset);
             ushort vcol[4];
 
-            MLoopCol *ml = BM_ELEM_CD_GET_VOID_P(l[i], cd_vcol_offset);
+            vcol[0] = (ushort)(mp->color[0] * 65535.0f);
+            vcol[1] = (ushort)(mp->color[1] * 65535.0f);
+            vcol[2] = (ushort)(mp->color[2] * 65535.0f);
+            vcol[3] = (ushort)(mp->color[3] * 65535.0f);
+
+            GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, v_index, vcol);
+          }
+          else if (cd_mcol_offset >= 0) {
+            ushort vcol[4];
+
+            MLoopCol *ml = BM_ELEM_CD_GET_VOID_P(l[i], cd_mcol_offset);
 
             vcol[0] = ml->r * 257;
             vcol[1] = ml->g * 257;

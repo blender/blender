@@ -22,8 +22,8 @@
  */
 
 #include "BLI_bitmap.h"
-#include "BLI_ghash.h"
 #include "BLI_compiler_compat.h"
+#include "BLI_ghash.h"
 
 /* For embedding CCGKey in iterator. */
 #include "BKE_ccg.h"
@@ -33,7 +33,9 @@
 extern "C" {
 #endif
 
-typedef struct {int64_t i;} SculptVertRef;
+typedef struct {
+  int64_t i;
+} SculptVertRef;
 
 BLI_INLINE SculptVertRef BKE_pbvh_make_vref(intptr_t i)
 {
@@ -211,6 +213,11 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           const int cd_face_node_offset,
                           const int cd_origco_offset,
                           const int cd_origno_offset);
+void BKE_pbvh_update_offsets(PBVH *pbvh,
+                             const int cd_vert_node_offset,
+                             const int cd_face_node_offset,
+                             const int cd_origco_offset,
+                             const int cd_origno_offset);
 void BKE_pbvh_free(PBVH *pbvh);
 
 /* Hierarchical Search in the BVH, two methods:
@@ -455,6 +462,7 @@ typedef struct PBVHVertexIter {
 
   struct CustomData *bm_vdata;
   int cd_vert_mask_offset;
+  int cd_vcol_offset;
 
   /* result: these are all computed in the macro, but we assume
    * that compiler optimization's will skip the ones we don't use */
@@ -496,7 +504,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
           vi.mask = vi.key.has_mask ? CCG_elem_mask(&vi.key, vi.grid) : NULL; \
           vi.grid = CCG_elem_next(&vi.key, vi.grid); \
           vi.index++; \
-          vi.vertex.i++;\
+          vi.vertex.i++; \
           vi.visible = true; \
           if (vi.gh) { \
             if (BLI_BITMAP_TEST(vi.gh, vi.gy * vi.gridsize + vi.gx)) { \
@@ -547,8 +555,12 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
           if (!bv) { \
             continue; \
           } \
-          vi.bm_vert = bv;\
-          vi.vertex.i = (intptr_t)bv;\
+          vi.bm_vert = bv; \
+          if (vi.cd_vcol_offset >= 0) { \
+            MPropCol *vcol = BM_ELEM_CD_GET_VOID_P(bv, vi.cd_vcol_offset); \
+            vi.col = vcol->color; \
+          } \
+          vi.vertex.i = (intptr_t)bv; \
           vi.index = BM_elem_index_get(vi.bm_vert); \
           vi.visible = !BM_elem_flag_test_bool(vi.bm_vert, BM_ELEM_HIDDEN); \
           if (mode == PBVH_ITER_UNIQUE && !vi.visible) { \
@@ -568,7 +580,6 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
 #define BKE_pbvh_vertex_index_to_table(pbvh, v) \
   (BKE_pbvh_type(pbvh) == PBVH_BMESH && v.i != -1 ? BM_elem_index_get((BMVert *)(v.i)) : (v.i))
 SculptVertRef BKE_pbvh_table_index_to_vertex(PBVH *pbvh, int idx);
-
 
 void BKE_pbvh_node_get_proxies(PBVHNode *node, PBVHProxyNode **proxies, int *proxy_count);
 void BKE_pbvh_node_free_proxies(PBVHNode *node);

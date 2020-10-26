@@ -52,6 +52,7 @@ bool SCULPT_poll(struct bContext *C);
 bool SCULPT_poll_view3d(struct bContext *C);
 
 bool SCULPT_vertex_colors_poll(struct bContext *C);
+bool SCULPT_vertex_colors_poll_no_bmesh(struct bContext *C);
 
 /* Updates */
 
@@ -151,7 +152,7 @@ void SCULPT_vertex_neighbors_get(struct SculptSession *ss,
   SCULPT_vertex_neighbors_get(ss, v_index, false, &neighbor_iterator); \
   for (neighbor_iterator.i = 0; neighbor_iterator.i < neighbor_iterator.size; \
        neighbor_iterator.i++) { \
-    neighbor_iterator.vertex = neighbor_iterator.neighbors[neighbor_iterator.i];\
+    neighbor_iterator.vertex = neighbor_iterator.neighbors[neighbor_iterator.i]; \
     neighbor_iterator.index = neighbor_iterator.neighbor_indices[neighbor_iterator.i];
 
 /* Iterate over neighboring and duplicate vertices (for PBVH_GRIDS). Duplicates come
@@ -255,10 +256,10 @@ void SCULPT_calc_area_normal(
     Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_no[3]);
 
 SculptVertRef SCULPT_nearest_vertex_get(struct Sculpt *sd,
-                              struct Object *ob,
-                              const float co[3],
-                              float max_distance,
-                              bool use_original);
+                                        struct Object *ob,
+                                        const float co[3],
+                                        float max_distance,
+                                        bool use_original);
 
 int SCULPT_plane_point_side(const float co[3], const float plane[4]);
 int SCULPT_plane_trim(const struct StrokeCache *cache,
@@ -303,11 +304,14 @@ void SCULPT_floodfill_add_initial_with_symmetry(struct Sculpt *sd,
                                                 SculptVertRef index,
                                                 float radius);
 void SCULPT_floodfill_add_initial(SculptFloodFill *flood, SculptVertRef index);
-void SCULPT_floodfill_execute(
-    struct SculptSession *ss,
-    SculptFloodFill *flood,
-    bool (*func)(SculptSession *ss, SculptVertRef from_v, SculptVertRef to_v, bool is_duplicate, void *userdata),
-    void *userdata);
+void SCULPT_floodfill_execute(struct SculptSession *ss,
+                              SculptFloodFill *flood,
+                              bool (*func)(SculptSession *ss,
+                                           SculptVertRef from_v,
+                                           SculptVertRef to_v,
+                                           bool is_duplicate,
+                                           void *userdata),
+                              void *userdata);
 void SCULPT_floodfill_free(SculptFloodFill *flood);
 
 /* Dynamic topology */
@@ -318,6 +322,11 @@ enum eDynTopoWarnFlag {
   DYNTOPO_WARN_LDATA = (1 << 2),
   DYNTOPO_WARN_MODIFIER = (1 << 3),
 };
+
+struct Mesh;
+
+void SCULPT_dyntopo_node_layers_update_offsets(SculptSession *ss);
+void SCULPT_dynamic_topology_sync_layers(Object *ob, struct Mesh *me);
 
 void SCULPT_dynamic_topology_enable_ex(struct Main *bmain,
                                        struct Depsgraph *depsgraph,
@@ -502,7 +511,9 @@ float SCULPT_neighbor_mask_average(SculptSession *ss, SculptVertRef index);
 void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], SculptVertRef index);
 
 /* Mask the mesh boundaries smoothing only the mesh surface without using automasking. */
-void SCULPT_neighbor_coords_average_interior(SculptSession *ss, float result[3], SculptVertRef index);
+void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
+                                             float result[3],
+                                             SculptVertRef index);
 
 void SCULPT_smooth(Sculpt *sd,
                    Object *ob,
@@ -583,7 +594,7 @@ typedef struct SculptUndoNode {
   int totvert;
 
   /* non-multires */
-  int maxvert; /* to verify if totvert it still the same */
+  int maxvert;          /* to verify if totvert it still the same */
   SculptVertRef *index; /* to restore into right location */
   BLI_bitmap *vert_hidden;
 

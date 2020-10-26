@@ -3136,3 +3136,16 @@ static void pbvh_bmesh_verify(PBVH *pbvh)
 }
 
 #endif
+
+void BKE_pbvh_update_offsets(PBVH *pbvh,
+                             const int cd_vert_node_offset,
+                             const int cd_face_node_offset,
+                             const int cd_origco_offset,
+                             const int cd_origno_offset)
+{
+  pbvh->cd_face_node_offset = cd_face_node_offset;
+  pbvh->cd_vert_node_offset = cd_vert_node_offset;
+  pbvh->cd_vert_mask_offset = CustomData_get_offset(&pbvh->bm->vdata, CD_PAINT_MASK);
+  pbvh->cd_origco_offset = cd_origco_offset;
+  pbvh->cd_origno_offset = cd_origno_offset;
+}

@@ -166,6 +166,12 @@ const float *SCULPT_vertex_color_get(SculptSession *ss, SculptVertRef index)
       break;
     case PBVH_BMESH: {
       BMVert *v = (BMVert *)index.i;
+
+      if (ss->cd_vcol_offset >= 0) {
+        MPropCol *col = BM_ELEM_CD_GET_VOID_P(v, ss->cd_vcol_offset);
+        return col->color;
+      }
+
       break;
     }
     case PBVH_GRIDS:
@@ -348,7 +354,7 @@ void SCULPT_vertex_visible_set(SculptSession *ss, SculptVertRef index, bool visi
       ss->mvert[index.i].flag |= ME_VERT_PBVH_UPDATE;
       break;
     case PBVH_BMESH:
-      BM_elem_flag_set((BMVert*)index.i, BM_ELEM_HIDDEN, !visible);
+      BM_elem_flag_set((BMVert *)index.i, BM_ELEM_HIDDEN, !visible);
       break;
     case PBVH_GRIDS:
       break;
@@ -577,7 +583,7 @@ void SCULPT_visibility_sync_all_face_sets_to_vertices(Object *ob)
 static void UNUSED_FUNCTION(sculpt_visibility_sync_vertex_to_face_sets)(SculptSession *ss,
                                                                         SculptVertRef vertex)
 {
-  int index = (int) vertex.i;
+  int index = (int)vertex.i;
   MeshElemMap *vert_map = &ss->pmap[index];
   const bool visible = SCULPT_vertex_visible_get(ss, vertex);
 
@@ -755,7 +761,7 @@ static void sculpt_vertex_neighbors_get_bmesh(SculptSession *ss,
                                               SculptVertRef index,
                                               SculptVertexNeighborIter *iter)
 {
-  BMVert *v = (BMVert*)index.i;
+  BMVert *v = (BMVert *)index.i;
   BMIter liter;
   BMLoop *l;
   iter->size = 0;
@@ -770,7 +776,8 @@ static void sculpt_vertex_neighbors_get_bmesh(SculptSession *ss,
       const BMVert *v_other = adj_v[i];
 
       if (v_other != (BMVert *)index.i) {
-        sculpt_vertex_neighbor_add(iter, BKE_pbvh_make_vref((intptr_t)v_other), BM_elem_index_get(v_other));
+        sculpt_vertex_neighbor_add(
+            iter, BKE_pbvh_make_vref((intptr_t)v_other), BM_elem_index_get(v_other));
       }
     }
   }
@@ -881,7 +888,8 @@ static bool sculpt_check_boundary_vertex_in_base_mesh(const SculptSession *ss,
                                                       const SculptVertRef index)
 {
   BLI_assert(ss->vertex_info.boundary);
-  return BLI_BITMAP_TEST(ss->vertex_info.boundary, BKE_pbvh_vertex_index_to_table(ss->pbvh, index));
+  return BLI_BITMAP_TEST(ss->vertex_info.boundary,
+                         BKE_pbvh_vertex_index_to_table(ss->pbvh, index));
 }
 
 bool SCULPT_vertex_is_boundary(const SculptSession *ss, const SculptVertRef vertex)
@@ -894,7 +902,7 @@ bool SCULPT_vertex_is_boundary(const SculptSession *ss, const SculptVertRef vert
       return sculpt_check_boundary_vertex_in_base_mesh(ss, vertex);
     }
     case PBVH_BMESH: {
-      BMVert *v = (BMVert*)vertex.i;
+      BMVert *v = (BMVert *)vertex.i;
       return BM_vert_is_boundary(v);
     }
 
@@ -6458,6 +6466,24 @@ bool SCULPT_vertex_colors_poll(bContext *C)
   if (!U.experimental.use_sculpt_vertex_colors) {
     return false;
   }
+
+  Object *ob = CTX_data_active_object(C);
+
+  return SCULPT_mode_poll(C);
+}
+
+bool SCULPT_vertex_colors_poll_no_bmesh(bContext *C)
+{
+  if (!U.experimental.use_sculpt_vertex_colors) {
+    return false;
+  }
+
+  Object *ob = CTX_data_active_object(C);
+
+  if (ob && ob->sculpt && ob->sculpt->bm) {
+    return false;
+  }
+
   return SCULPT_mode_poll(C);
 }
 
@@ -8520,7 +8546,8 @@ void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float 
   const int max_preview_vertices = SCULPT_vertex_count_get(ss) * 3 * 2;
 
   if (ss->preview_vert_index_list == NULL) {
-    ss->preview_vert_index_list = MEM_callocN(max_preview_vertices * sizeof(SculptVertRef), "preview lines");
+    ss->preview_vert_index_list = MEM_callocN(max_preview_vertices * sizeof(SculptVertRef),
+                                              "preview lines");
   }
 
   GSQueue *not_visited_vertices = BLI_gsqueue_new(sizeof(SculptVertRef));
@@ -8618,7 +8645,7 @@ static void SCULPT_OT_vertex_to_loop_colors(wmOperatorType *ot)
   ot->idname = "SCULPT_OT_vertex_to_loop_colors";
 
   /* api callbacks */
-  ot->poll = SCULPT_vertex_colors_poll;
+  ot->poll = SCULPT_vertex_colors_poll_no_bmesh;
   ot->exec = vertex_to_loop_colors_exec;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -8681,7 +8708,7 @@ static void SCULPT_OT_loop_to_vertex_colors(wmOperatorType *ot)
   ot->idname = "SCULPT_OT_loop_to_vertex_colors";
 
   /* api callbacks */
-  ot->poll = SCULPT_vertex_colors_poll;
+  ot->poll = SCULPT_vertex_colors_poll_no_bmesh;
   ot->exec = loop_to_vertex_colors_exec;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
