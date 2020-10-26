@@ -52,11 +52,11 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
   /* Test if we can instance or if the object is modified. */
   BL::ID b_ob_data = b_ob.data();
   BL::ID b_key_id = (BKE_object_is_modified(b_ob)) ? b_ob_instance : b_ob_data;
-  GeometryKey key(b_key_id.ptr.data, use_particle_hair);
   BL::Material material_override = view_layer.material_override;
   Shader *default_shader = (b_ob.type() == BL::Object::type_VOLUME) ? scene->default_volume :
                                                                       scene->default_surface;
   Geometry::Type geom_type = determine_geom_type(b_ob, use_particle_hair);
+  GeometryKey key(b_key_id.ptr.data, geom_type);
 
   /* Find shader indices. */
   vector<Shader *> used_shaders;

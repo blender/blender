@@ -170,6 +170,8 @@ class Camera : public Node {
 
   float3 frustum_right_normal;
   float3 frustum_top_normal;
+  float3 frustum_left_normal;
+  float3 frustum_bottom_normal;
 
   /* update */
   bool need_update;
