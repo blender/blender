@@ -2581,7 +2581,8 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_
 void BKE_pose_ensure(Main *bmain, Object *ob, bArmature *arm, const bool do_id_user)
 {
   BLI_assert(!ELEM(NULL, arm, ob));
-  if ((ob->pose == NULL) || (ob->pose->flag & POSE_RECALC)) {
+  if (ob->type == OB_ARMATURE && ((ob->pose == NULL) || (ob->pose->flag & POSE_RECALC))) {
+    BLI_assert(GS(arm->id.name) == ID_AR);
     BKE_pose_rebuild(bmain, ob, arm, do_id_user);
   }
 }
