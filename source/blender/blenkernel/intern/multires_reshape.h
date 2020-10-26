@@ -172,6 +172,12 @@ bool multires_reshape_context_create_from_modifier(MultiresReshapeContext *resha
                                                    struct MultiresModifierData *mmd,
                                                    int top_level);
 
+bool multires_reshape_context_create_from_subdiv(MultiresReshapeContext *reshape_context,
+                                                 struct Object *object,
+                                                 struct MultiresModifierData *mmd,
+                                                 struct Subdiv *subdiv,
+                                                 int top_level);
+
 void multires_reshape_free_original_grids(MultiresReshapeContext *reshape_context);
 void multires_reshape_context_free(MultiresReshapeContext *reshape_context);
 

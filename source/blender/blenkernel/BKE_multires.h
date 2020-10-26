@@ -218,6 +218,13 @@ BLI_INLINE void BKE_multires_construct_tangent_matrix(float tangent_matrix[3][3]
                                                       const float dPdv[3],
                                                       const int corner);
 
+/* Versioning. */
+
+/* Convert displacement which is stored for simply-subdivided mesh to a Catmull-Clark
+ * subdivided mesh.  */
+void multires_do_versions_simple_to_catmull_clark(struct Object *object,
+                                                  struct MultiresModifierData *mmd);
+
 #ifdef __cplusplus
 }
 #endif

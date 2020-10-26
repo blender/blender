@@ -747,7 +747,6 @@ static DerivedMesh *multires_dm_create_local(Scene *scene,
                                              DerivedMesh *dm,
                                              int lvl,
                                              int totlvl,
-                                             int simple,
                                              bool alloc_paint_mask,
                                              int flags)
 {
@@ -757,7 +756,6 @@ static DerivedMesh *multires_dm_create_local(Scene *scene,
   mmd.sculptlvl = lvl;
   mmd.renderlvl = lvl;
   mmd.totlvl = totlvl;
-  mmd.simple = simple;
 
   flags |= MULTIRES_USE_LOCAL_MMD;
   if (alloc_paint_mask) {
@@ -1081,7 +1079,7 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm, Scene *scene)
                                        ob,
                                        cddm,
                                        totlvl,
-                                       mmd->simple,
+                                       false,
                                        0,
                                        mmd->uv_smooth == SUBSURF_UV_SMOOTH_NONE,
                                        has_mask,
@@ -1091,7 +1089,7 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm, Scene *scene)
 
       /* create multires DM from original mesh and displacements */
       lowdm = multires_dm_create_local(
-          scene, ob, cddm, lvl, totlvl, mmd->simple, has_mask, MULTIRES_IGNORE_SIMPLIFY);
+          scene, ob, cddm, lvl, totlvl, has_mask, MULTIRES_IGNORE_SIMPLIFY);
       cddm->release(cddm);
 
       /* gather grid data */
@@ -1156,7 +1154,7 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm, Scene *scene)
                                       ob,
                                       cddm,
                                       mmd->totlvl,
-                                      mmd->simple,
+                                      false,
                                       0,
                                       mmd->uv_smooth == SUBSURF_UV_SMOOTH_NONE,
                                       has_mask,
@@ -1254,7 +1252,7 @@ DerivedMesh *multires_make_derived_from_derived(
                                    ob,
                                    dm,
                                    lvl,
-                                   mmd->simple,
+                                   false,
                                    mmd->flags & eMultiresModifierFlag_ControlEdges,
                                    mmd->uv_smooth == SUBSURF_UV_SMOOTH_NONE,
                                    flags & MULTIRES_ALLOC_PAINT_MASK,
@@ -1368,14 +1366,8 @@ void multiresModifier_sync_levels_ex(Object *ob_dst,
   }
 
   if (mmd_src->totlvl > mmd_dst->totlvl) {
-    if (mmd_dst->simple) {
-      multiresModifier_subdivide_to_level(
-          ob_dst, mmd_dst, mmd_src->totlvl, MULTIRES_SUBDIVIDE_SIMPLE);
-    }
-    else {
-      multiresModifier_subdivide_to_level(
-          ob_dst, mmd_dst, mmd_src->totlvl, MULTIRES_SUBDIVIDE_CATMULL_CLARK);
-    }
+    multiresModifier_subdivide_to_level(
+        ob_dst, mmd_dst, mmd_src->totlvl, MULTIRES_SUBDIVIDE_CATMULL_CLARK);
   }
   else {
     multires_del_higher(mmd_dst, ob_dst, mmd_src->totlvl);

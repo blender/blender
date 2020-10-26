@@ -53,6 +53,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_multires.h"
 #include "BKE_node.h"
 
 #include "MEM_guardedalloc.h"
@@ -272,6 +273,21 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
         }
       }
       FOREACH_NODETREE_END;
+    }
+  }
+
+  /* Convert all Multires displacement to Catmull-Clark subdivision limit surface. */
+  if (!MAIN_VERSION_ATLEAST(bmain, 292, 1)) {
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      ModifierData *md;
+      for (md = ob->modifiers.first; md; md = md->next) {
+        if (md->type == eModifierType_Multires) {
+          MultiresModifierData *mmd = (MultiresModifierData *)md;
+          if (mmd->simple) {
+            multires_do_versions_simple_to_catmull_clark(ob, mmd);
+          }
+        }
+      }
     }
   }
 

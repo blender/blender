@@ -1049,7 +1049,8 @@ typedef struct MultiresModifierData {
   ModifierData modifier;
 
   char lvl, sculptlvl, renderlvl, totlvl;
-  char simple, flags, _pad[2];
+  char simple DNA_DEPRECATED;
+  char flags, _pad[2];
   short quality;
   short uv_smooth;
   short boundary_smooth;

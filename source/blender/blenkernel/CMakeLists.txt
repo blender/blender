@@ -189,6 +189,7 @@ set(SRC
   intern/multires_reshape_vertcos.c
   intern/multires_subdiv.c
   intern/multires_unsubdivide.c
+  intern/multires_versioning.c
   intern/nla.c
   intern/node.c
   intern/object.c
