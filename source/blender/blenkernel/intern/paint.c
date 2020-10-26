@@ -1717,6 +1717,7 @@ void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval)
 
   BLI_assert(me_eval != NULL);
   sculpt_update_object(depsgraph, ob_orig, me_eval, false, false, false);
+  SCULPT_dynamic_topology_sync_layers(ob_orig, me_eval);
 }
 
 void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
@@ -1733,6 +1734,7 @@ void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
   CustomData_add_layer(&orig_me->vdata, CD_PROP_COLOR, CD_DEFAULT, NULL, orig_me->totvert);
   BKE_mesh_update_customdata_pointers(orig_me, true);
   DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY);
+  SCULPT_dynamic_topology_sync_layers(object, orig_me);
 }
 
 void BKE_sculpt_update_object_for_edit(
@@ -1981,6 +1983,7 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob)
                        ob->sculpt->cd_origvcol_offset);
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
   pbvh_show_face_sets_set(pbvh, false);
+
   return pbvh;
 }
 
@@ -2071,7 +2074,9 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
       }
     }
     else if (BKE_pbvh_type(pbvh) == PBVH_BMESH) {
-      SCULPT_dynamic_topology_sync_layers(ob);
+      Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+
+      SCULPT_dynamic_topology_sync_layers(ob, BKE_object_get_original_mesh(ob));
     }
     return pbvh;
   }

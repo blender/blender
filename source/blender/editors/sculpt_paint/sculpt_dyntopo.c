@@ -238,6 +238,8 @@ void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
   CustomData *cd1[4] = {&me->vdata, &me->edata, &me->ldata, &me->pdata};
   CustomData *cd2[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
   int types[4] = {BM_VERT, BM_EDGE, BM_LOOP, BM_FACE};
+  int badmask = CD_MASK_MLOOP | CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MPOLY |
+                CD_MASK_ORIGINDEX | CD_MASK_ORIGSPACE | CD_MASK_MFACE;
 
   for (int i = 0; i < 4; i++) {
     CustomDataLayer **newlayers = NULL;
@@ -252,18 +254,14 @@ void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
 
     for (int j = 0; j < data1->totlayer; j++) {
       CustomDataLayer *cl1 = data1->layers + j;
+
+      if ((1 << cl1->type) & badmask) {
+        continue;
+      }
+
       int idx = CustomData_get_named_layer_index(data2, cl1->type, cl1->name);
       if (idx < 0) {
         BLI_array_append(newlayers, cl1);
-      }
-      else {
-        idx -= CustomData_get_layer_index(data2, cl1->type);
-
-        int idx2 = i - CustomData_get_layer_index(data1, cl1->type);
-
-        if (idx != idx2) {
-          modified = true;
-        }
       }
     }
 
@@ -277,27 +275,32 @@ void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
     };
 
     for (int j = 0; j < data1->totlayer; j++) {
-      CustomDataLayer *cl1 = data1->layers + j;
+      CustomDataLayer *cl = data1->layers + j;
+      CustomDataLayer *cl1 = cl;
+
+      if ((1 << cl1->type) & badmask) {
+        continue;
+      }
 
       if (typemap[cl1->type]) {
         continue;
       }
 
       typemap[cl1->type] = 1;
-      cl1 = CustomData_get_active_layer(data1, cl1->type);
+      cl1 = cl + CustomData_get_active_layer(data1, cl1->type);
 
       int idx = CustomData_get_named_layer_index(data2, cl1->type, cl1->name);
       CustomData_set_layer_active_index(data2, cl1->type, idx);
 
-      cl1 = CustomData_get_render_layer(data1, cl1->type);
+      cl1 = cl + CustomData_get_render_layer(data1, cl1->type);
       idx = CustomData_get_named_layer_index(data2, cl1->type, cl1->name);
       CustomData_set_layer_render_index(data2, cl1->type, idx);
 
-      cl1 = CustomData_get_stencil_layer(data1, cl1->type);
+      cl1 = cl + CustomData_get_stencil_layer(data1, cl1->type);
       idx = CustomData_get_named_layer_index(data2, cl1->type, cl1->name);
       CustomData_set_layer_stencil_index(data2, cl1->type, idx);
 
-      cl1 = CustomData_get_clone_layer(data1, cl1->type);
+      cl1 = cl + CustomData_get_clone_layer(data1, cl1->type);
       idx = CustomData_get_named_layer_index(data2, cl1->type, cl1->name);
       CustomData_set_layer_clone_index(data2, cl1->type, idx);
     }
