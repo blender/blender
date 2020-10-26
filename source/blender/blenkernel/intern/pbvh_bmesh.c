@@ -1784,15 +1784,42 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
   BM_vert_kill(pbvh->bm, v_del);
 }
 
-void BKE_pbvh_bmesh_update_origvert(PBVH *pbvh, BMVert *v)
+void BKE_pbvh_bmesh_update_origvert(
+    PBVH *pbvh, BMVert *v, float **r_co, float **r_no, float **r_color)
 {
-  BM_log_vert_before_modified(pbvh->bm_log, v, pbvh->cd_vert_mask_offset);
+  float *co = NULL, *no = NULL;
 
-  float *co = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_origco_offset);
-  float *no = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_origno_offset);
+  if (r_co || r_no) {
+    BM_log_vert_before_modified(pbvh->bm_log, v, pbvh->cd_vert_mask_offset);
 
-  copy_v3_v3(co, v->co);
-  copy_v3_v3(no, v->no);
+    co = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_origco_offset);
+    no = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_origno_offset);
+
+    copy_v3_v3(co, v->co);
+    copy_v3_v3(no, v->no);
+
+    if (r_co) {
+      *r_co = co;
+    }
+
+    if (r_no) {
+      *r_no = no;
+    }
+  }
+
+  if (r_color && pbvh->cd_vcol_offset >= 0 && pbvh->cd_origvcol_offset >= 0) {
+    MPropCol *ml1 = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_vcol_offset);
+    MPropCol *ml2 = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_origvcol_offset);
+
+    copy_v4_v4(ml2->color, ml1->color);
+
+    if (r_color) {
+      *r_color = ml2->color;
+    }
+  }
+  else if (r_color) {
+    *r_color = NULL;
+  }
 }
 
 static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
@@ -2268,13 +2295,15 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           const int cd_vert_node_offset,
                           const int cd_face_node_offset,
                           const int cd_origco_offset,
-                          const int cd_origno_offset)
+                          const int cd_origno_offset,
+                          const int cd_origvcol_offset)
 {
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
   pbvh->cd_face_node_offset = cd_face_node_offset;
   pbvh->cd_origco_offset = cd_origco_offset;
   pbvh->cd_origno_offset = cd_origno_offset;
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
+  pbvh->cd_origvcol_offset = cd_origvcol_offset;
 
   pbvh->bm = bm;
 
@@ -2282,6 +2311,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 
   pbvh->type = PBVH_BMESH;
   pbvh->bm_log = log;
+  pbvh->cd_vcol_offset = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
 
   /* TODO: choose leaf limit better */
   pbvh->leaf_limit = 3000;
@@ -3141,11 +3171,13 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
                              const int cd_vert_node_offset,
                              const int cd_face_node_offset,
                              const int cd_origco_offset,
-                             const int cd_origno_offset)
+                             const int cd_origno_offset,
+                             const int cd_origvcol_offset)
 {
   pbvh->cd_face_node_offset = cd_face_node_offset;
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&pbvh->bm->vdata, CD_PAINT_MASK);
   pbvh->cd_origco_offset = cd_origco_offset;
   pbvh->cd_origno_offset = cd_origno_offset;
+  pbvh->cd_origvcol_offset = cd_origvcol_offset;
 }

@@ -1325,6 +1325,8 @@ void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data, Object *ob, Scul
   memset(data, 0, sizeof(*data));
   data->unode = unode;
 
+  data->pbvh = ss->pbvh;
+
   if (bm) {
     data->bm_log = ss->bm_log;
   }
@@ -1354,7 +1356,10 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter 
 {
   if (orig_data->unode->type == SCULPT_UNDO_COORDS) {
     if (orig_data->bm_log) {
-      BM_log_original_vert_data(orig_data->bm_log, iter->bm_vert, &orig_data->co, &orig_data->no);
+      BKE_pbvh_bmesh_update_origvert(
+          orig_data->pbvh, iter->bm_vert, &orig_data->co, &orig_data->no, NULL);
+      // BM_log_original_vert_data(orig_data->bm_log, iter->bm_vert, &orig_data->co,
+      // &orig_data->no);
     }
     else {
       orig_data->co = orig_data->coords[iter->i];
@@ -1362,7 +1367,12 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter 
     }
   }
   else if (orig_data->unode->type == SCULPT_UNDO_COLOR) {
-    orig_data->col = orig_data->colors[iter->i];
+    if (orig_data->bm_log) {
+      BKE_pbvh_bmesh_update_origvert(orig_data->pbvh, iter->bm_vert, NULL, NULL, &orig_data->col);
+    }
+    else {
+      orig_data->col = orig_data->colors[iter->i];
+    }
   }
   else if (orig_data->unode->type == SCULPT_UNDO_MASK) {
     if (orig_data->bm_log) {
@@ -5751,11 +5761,8 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
 
   /* Check for unsupported features. */
   PBVHType type = BKE_pbvh_type(ss->pbvh);
-  if (brush->sculpt_tool == SCULPT_TOOL_PAINT && type != PBVH_FACES) {
-    return;
-  }
-
-  if (brush->sculpt_tool == SCULPT_TOOL_SMEAR && type != PBVH_FACES) {
+  if (ELEM(brush->sculpt_tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR) &&
+      !ELEM(type, PBVH_BMESH, PBVH_FACES)) {
     return;
   }
 

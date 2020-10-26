@@ -234,7 +234,7 @@ static BLI_freenode *mempool_chunk_add(BLI_mempool *pool,
     while (j--) {
       curnode->next = NODE_STEP_NEXT(curnode);
       BLI_freenode *next = curnode->next;
-      //BLI_asan_poison(curnode, pool->esize);
+      ////BLI_asan_poison(curnode, pool->esize);
       curnode = next;
     }
   }
@@ -451,7 +451,7 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 
     j = pool->pchunk;
     while (j--) {
-      BLI_freenode *next ; NODE_STEP_NEXT(curnode);
+      BLI_freenode *next = NODE_STEP_NEXT(curnode);
       curnode->next = next;
       //BLI_asan_poison(curnode, pool->esize);
       curnode = next;

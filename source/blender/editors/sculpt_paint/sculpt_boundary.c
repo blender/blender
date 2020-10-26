@@ -154,6 +154,8 @@ static void sculpt_boundary_index_add(SculptSession *ss,
 {
 
   boundary->vertices[boundary->num_vertices] = new_index;
+  boundary->vertex_indices[boundary->num_vertices] = BKE_pbvh_vertex_index_to_table(ss->pbvh, new_index);
+
   if (boundary->distance) {
     boundary->distance[BKE_pbvh_vertex_index_to_table(ss->pbvh, new_index)] = distance;
   }

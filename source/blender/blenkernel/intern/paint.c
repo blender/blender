@@ -1977,7 +1977,8 @@ static PBVH *build_pbvh_for_dynamic_topology(Object *ob)
                        ob->sculpt->cd_vert_node_offset,
                        ob->sculpt->cd_face_node_offset,
                        ob->sculpt->cd_origco_offset,
-                       ob->sculpt->cd_origno_offset);
+                       ob->sculpt->cd_origno_offset,
+                       ob->sculpt->cd_origvcol_offset);
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
   pbvh_show_face_sets_set(pbvh, false);
   return pbvh;
@@ -2068,7 +2069,8 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
       if (subdiv_ccg != NULL) {
         BKE_sculpt_bvh_update_from_ccg(pbvh, subdiv_ccg);
       }
-    } else if (BKE_pbvh_type(pbvh) == PBVH_BMESH) {
+    }
+    else if (BKE_pbvh_type(pbvh) == PBVH_BMESH) {
       SCULPT_dynamic_topology_sync_layers(ob);
     }
     return pbvh;

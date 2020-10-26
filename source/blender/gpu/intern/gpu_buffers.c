@@ -1094,10 +1094,12 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
             MPropCol *mp = BM_ELEM_CD_GET_VOID_P(l[i]->v, cd_vcol_offset);
             ushort vcol[4];
 
-            vcol[0] = (ushort)(mp->color[0] * 65535.0f);
-            vcol[1] = (ushort)(mp->color[1] * 65535.0f);
-            vcol[2] = (ushort)(mp->color[2] * 65535.0f);
-            vcol[3] = (ushort)(mp->color[3] * 65535.0f);
+            //printf(
+            //    "%.2f %.2f %.2f %.2f\n", mp->color[0], mp->color[1], mp->color[2], mp->color[3]);
+            vcol[0] = unit_float_to_ushort_clamp(mp->color[0]);
+            vcol[1] = unit_float_to_ushort_clamp(mp->color[1]);
+            vcol[2] = unit_float_to_ushort_clamp(mp->color[2]);
+            vcol[3] = unit_float_to_ushort_clamp(mp->color[3]);
 
             GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, v_index, vcol);
           }

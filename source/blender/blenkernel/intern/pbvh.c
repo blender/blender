@@ -2259,7 +2259,8 @@ static bool pbvh_grids_node_raycast(PBVH *pbvh,
                 copy_v3_v3(nearest_vertex_co, co[j]);
 
                 *r_active_vertex_index = BKE_pbvh_make_vref(gridkey->grid_area * grid_index +
-                                         (y + y_it[j]) * gridkey->grid_size + (x + x_it[j]));
+                                                            (y + y_it[j]) * gridkey->grid_size +
+                                                            (x + x_it[j]));
               }
             }
           }
@@ -2322,7 +2323,7 @@ bool BKE_pbvh_node_raycast(PBVH *pbvh,
                                      face_normal);
       break;
     case PBVH_BMESH:
-      //BM_mesh_elem_index_ensure(pbvh->bm, BM_VERT);
+      // BM_mesh_elem_index_ensure(pbvh->bm, BM_VERT);
       hit = pbvh_bmesh_node_raycast(node,
                                     ray_start,
                                     ray_normal,
@@ -2911,9 +2912,17 @@ void BKE_pbvh_gather_proxies(PBVH *pbvh, PBVHNode ***r_array, int *r_tot)
 
 PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(PBVHNode *node)
 {
+  unsigned int totvert;
+
+  if (node->bm_unique_verts) {
+    totvert = BLI_table_gset_len(node->bm_unique_verts);
+  }
+  else {
+    totvert = node->uniq_verts;
+  }
 
   if (!node->color_buffer.color) {
-    node->color_buffer.color = MEM_callocN(sizeof(float[4]) * node->uniq_verts, "Color buffer");
+    node->color_buffer.color = MEM_callocN(sizeof(float[4]) * totvert, "Color buffer");
   }
   return &node->color_buffer;
 }
@@ -2977,7 +2986,9 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
     vi->bm_other_verts = node->bm_other_verts;
     vi->bm_vdata = &pbvh->bm->vdata;
     vi->bm_vert = NULL;
-    vi->cd_vcol_offset = CustomData_get_offset(vi->bm_vdata, CD_PROP_COLOR);
+
+    // we ensure pbvh->cd_vcol_offset is up to date here too
+    vi->cd_vcol_offset = pbvh->cd_vcol_offset = CustomData_get_offset(vi->bm_vdata, CD_PROP_COLOR);
     vi->cd_vert_mask_offset = CustomData_get_offset(vi->bm_vdata, CD_PAINT_MASK);
   }
 
@@ -3007,7 +3018,8 @@ bool pbvh_has_mask(PBVH *pbvh)
   return false;
 }
 
-SculptVertRef BKE_pbvh_table_index_to_vertex(PBVH *pbvh, int idx) {
+SculptVertRef BKE_pbvh_table_index_to_vertex(PBVH *pbvh, int idx)
+{
   if (pbvh->type == PBVH_BMESH) {
     SculptVertRef ref = {(intptr_t)pbvh->bm->vtable[idx]};
     return ref;

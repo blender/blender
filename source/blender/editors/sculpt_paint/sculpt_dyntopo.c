@@ -128,6 +128,7 @@ void SCULPT_dyntopo_save_origverts(SculptSession *ss)
 static char layer_id[] = "_dyntopo_node_id";
 static char origco_id[] = "_dyntopop_orig_co";
 static char origno_id[] = "_dyntopop_orig_no";
+static char origcolor_id[] = "_dyntopo_orig_vcol";
 
 void SCULPT_dyntopo_node_layers_update_offsets(SculptSession *ss)
 {
@@ -138,7 +139,17 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
 {
   int cd_node_layer_index, cd_face_node_layer_index;
 
-  int cd_origco_index, cd_origno_index;
+  int cd_origco_index, cd_origno_index, cd_origvcol_index = -1;
+  bool have_vcol = CustomData_has_layer(&ss->bm->vdata, CD_PROP_COLOR);
+
+  if (have_vcol) {
+    cd_origvcol_index = CustomData_get_named_layer_index(
+        &ss->bm->vdata, CD_PROP_COLOR, origcolor_id);
+
+    if (cd_origvcol_index == -1) {
+      BM_data_layer_add_named(ss->bm, &ss->bm->vdata, CD_PROP_COLOR, origcolor_id);
+    }
+  }
 
   cd_origco_index = CustomData_get_named_layer_index(&ss->bm->vdata, CD_PROP_FLOAT3, origco_id);
   if (cd_origco_index == -1) {
@@ -167,6 +178,17 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
   cd_node_layer_index = CustomData_get_named_layer_index(&ss->bm->vdata, CD_PROP_INT32, layer_id);
   cd_face_node_layer_index = CustomData_get_named_layer_index(
       &ss->bm->pdata, CD_PROP_INT32, layer_id);
+
+  if (have_vcol) {
+    cd_origvcol_index = CustomData_get_named_layer_index(
+        &ss->bm->vdata, CD_PROP_COLOR, origcolor_id);
+
+    ss->cd_origvcol_offset = CustomData_get_n_offset(
+        &ss->bm->vdata,
+        CD_PROP_COLOR,
+        cd_origvcol_index - CustomData_get_layer_index(&ss->bm->vdata, CD_PROP_COLOR));
+    ss->bm->vdata.layers[cd_origvcol_index].flag |= CD_FLAG_TEMPORARY;
+  }
 
   ss->cd_origco_offset = CustomData_get_n_offset(
       &ss->bm->vdata,
@@ -223,6 +245,10 @@ void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
 
     CustomData *data1 = cd1[i];
     CustomData *data2 = cd2[i];
+
+    if (!data1->layers) {
+      continue;
+    }
 
     for (int j = 0; j < data1->totlayer; j++) {
       CustomDataLayer *cl1 = data1->layers + j;
@@ -285,7 +311,8 @@ void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
                             ss->cd_vert_node_offset,
                             ss->cd_face_node_offset,
                             ss->cd_origco_offset,
-                            ss->cd_origno_offset);
+                            ss->cd_origno_offset,
+                            ss->cd_origvcol_offset);
   }
 }
 

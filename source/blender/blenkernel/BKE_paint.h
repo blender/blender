@@ -525,6 +525,7 @@ typedef struct SculptSession {
   struct RegionView3D *rv3d;
   struct View3D *v3d;
   struct Scene *scene;
+  int cd_origvcol_offset;
   int cd_origco_offset;
   int cd_origno_offset;
 

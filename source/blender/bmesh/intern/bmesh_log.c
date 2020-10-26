@@ -112,10 +112,12 @@ typedef struct {
   short no[3];
   char hflag;
   float mask;
+  void *customdata;
 } BMLogVert;
 
 typedef struct {
   uint v_ids[3];
+  void *customdata[3];
   char hflag;
 } BMLogFace;
 
