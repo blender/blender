@@ -1765,10 +1765,15 @@ static bool edbm_edge_split_selected_edges(wmOperator *op, Object *obedit, BMEdi
   if (bm->totedgesel == 0) {
     return false;
   }
+
+  BM_custom_loop_normals_to_vector_layer(em->bm);
+
   if (!EDBM_op_call_and_selectf(
           em, op, "edges.out", false, "split_edges edges=%he", BM_ELEM_SELECT)) {
     return false;
   }
+
+  BM_custom_loop_normals_from_vector_layer(em->bm, false);
 
   EDBM_select_flush(em);
   EDBM_update_generic(obedit->data, true, true);
@@ -1805,6 +1810,8 @@ static bool edbm_edge_split_selected_verts(wmOperator *op, Object *obedit, BMEdi
     }
   }
 
+  BM_custom_loop_normals_to_vector_layer(em->bm);
+
   if (!EDBM_op_callf(em,
                      op,
                      "split_edges edges=%he verts=%hv use_verts=%b",
@@ -1835,6 +1842,8 @@ static bool edbm_edge_split_selected_verts(wmOperator *op, Object *obedit, BMEdi
       }
     }
   }
+
+  BM_custom_loop_normals_from_vector_layer(em->bm, false);
 
   EDBM_select_flush(em);
   EDBM_update_generic(obedit->data, true, true);
@@ -5284,6 +5293,8 @@ static int edbm_quads_convert_to_tris_exec(bContext *C, wmOperator *op)
     BMOIter oiter;
     BMFace *f;
 
+    BM_custom_loop_normals_to_vector_layer(em->bm);
+
     EDBM_op_init(em,
                  &bmop,
                  op,
@@ -5307,6 +5318,8 @@ static int edbm_quads_convert_to_tris_exec(bContext *C, wmOperator *op)
     if (!EDBM_op_finish(em, &bmop, op, true)) {
       continue;
     }
+
+    BM_custom_loop_normals_from_vector_layer(em->bm, false);
 
     EDBM_update_generic(obedit->data, true, true);
   }
@@ -5997,6 +6010,8 @@ static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
       dissolve_flag = BM_ELEM_SELECT;
     }
 
+    BM_custom_loop_normals_to_vector_layer(em->bm);
+
     EDBM_op_call_and_selectf(
         em,
         op,
@@ -6008,6 +6023,8 @@ static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
         angle_limit,
         use_dissolve_boundaries,
         delimit);
+
+    BM_custom_loop_normals_from_vector_layer(em->bm, false);
 
     EDBM_update_generic(obedit->data, true, true);
   }
@@ -6233,12 +6250,16 @@ static int edbm_split_exec(bContext *C, wmOperator *op)
     if ((em->bm->totvertsel == 0) && (em->bm->totedgesel == 0) && (em->bm->totfacesel == 0)) {
       continue;
     }
+    BM_custom_loop_normals_to_vector_layer(em->bm);
+
     BMOperator bmop;
     EDBM_op_init(em, &bmop, op, "split geom=%hvef use_only_faces=%b", BM_ELEM_SELECT, false);
     BMO_op_exec(em->bm, &bmop);
     BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
     BMO_slot_buffer_hflag_enable(
         em->bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
+
+    BM_custom_loop_normals_from_vector_layer(em->bm, false);
 
     if (!EDBM_op_finish(em, &bmop, op, true)) {
       continue;
