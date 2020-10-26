@@ -211,9 +211,9 @@ void Shader::print_log(Span<const char *> sources, char *log, const char *stage,
       BLI_dynstr_appendf(dynstr, "%s%s%s: ", warn_col, "Warning", info_col);
     }
     /* Print the error itself. */
-    BLI_dynstr_appendf(dynstr, info_col);
+    BLI_dynstr_append(dynstr, info_col);
     BLI_dynstr_nappend(dynstr, log_line, (line_end + 1) - log_line);
-    BLI_dynstr_appendf(dynstr, reset_col);
+    BLI_dynstr_append(dynstr, reset_col);
     /* Continue to next line. */
     log_line = line_end + 1;
     last_error_line = error_line;
