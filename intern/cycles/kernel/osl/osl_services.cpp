@@ -675,26 +675,50 @@ static bool get_primitive_attribute(KernelGlobals *kg,
   if (attr.type == TypeDesc::TypePoint || attr.type == TypeDesc::TypeVector ||
       attr.type == TypeDesc::TypeNormal || attr.type == TypeDesc::TypeColor) {
     float3 fval[3];
-    fval[0] = primitive_attribute_float3(
-        kg, sd, attr.desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+    if (primitive_is_volume_attribute(sd, attr.desc)) {
+      fval[0] = primitive_volume_attribute_float3(kg, sd, attr.desc);
+    }
+    else {
+      memset(fval, 0, sizeof(fval));
+      fval[0] = primitive_surface_attribute_float3(
+          kg, sd, attr.desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+    }
     return set_attribute_float3(fval, type, derivatives, val);
   }
   else if (attr.type == TypeFloat2) {
-    float2 fval[3];
-    fval[0] = primitive_attribute_float2(
-        kg, sd, attr.desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
-    return set_attribute_float2(fval, type, derivatives, val);
+    if (primitive_is_volume_attribute(sd, attr.desc)) {
+      assert(!"Float2 attribute not support for volumes");
+      return false;
+    }
+    else {
+      float2 fval[3];
+      fval[0] = primitive_surface_attribute_float2(
+          kg, sd, attr.desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+      return set_attribute_float2(fval, type, derivatives, val);
+    }
   }
   else if (attr.type == TypeDesc::TypeFloat) {
     float fval[3];
-    fval[0] = primitive_attribute_float(
-        kg, sd, attr.desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+    if (primitive_is_volume_attribute(sd, attr.desc)) {
+      memset(fval, 0, sizeof(fval));
+      fval[0] = primitive_volume_attribute_float(kg, sd, attr.desc);
+    }
+    else {
+      fval[0] = primitive_surface_attribute_float(
+          kg, sd, attr.desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+    }
     return set_attribute_float(fval, type, derivatives, val);
   }
   else if (attr.type == TypeRGBA) {
     float4 fval[3];
-    fval[0] = primitive_attribute_float4(
-        kg, sd, attr.desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+    if (primitive_is_volume_attribute(sd, attr.desc)) {
+      memset(fval, 0, sizeof(fval));
+      fval[0] = primitive_volume_attribute_float4(kg, sd, attr.desc);
+    }
+    else {
+      fval[0] = primitive_surface_attribute_float4(
+          kg, sd, attr.desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+    }
     return set_attribute_float4(fval, type, derivatives, val);
   }
   else {

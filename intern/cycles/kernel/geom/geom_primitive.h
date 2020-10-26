@@ -21,38 +21,11 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Generic primitive attribute reading functions */
-ccl_device_inline float primitive_attribute_float(
-    KernelGlobals *kg, const ShaderData *sd, const AttributeDescriptor desc, float *dx, float *dy)
-{
-  if (sd->type & PRIMITIVE_ALL_TRIANGLE) {
-    if (subd_triangle_patch(kg, sd) == ~0)
-      return triangle_attribute_float(kg, sd, desc, dx, dy);
-    else
-      return subd_triangle_attribute_float(kg, sd, desc, dx, dy);
-  }
-#ifdef __HAIR__
-  else if (sd->type & PRIMITIVE_ALL_CURVE) {
-    return curve_attribute_float(kg, sd, desc, dx, dy);
-  }
-#endif
-#ifdef __VOLUME__
-  else if (sd->object != OBJECT_NONE && desc.element == ATTR_ELEMENT_VOXEL) {
-    if (dx)
-      *dx = 0.0f;
-    if (dy)
-      *dy = 0.0f;
-    return volume_attribute_float(kg, sd, desc);
-  }
-#endif
-  else {
-    if (dx)
-      *dx = 0.0f;
-    if (dy)
-      *dy = 0.0f;
-    return 0.0f;
-  }
-}
+/* Surface Attributes
+ *
+ * Read geometry attributes for surface shading. This is distinct from volume
+ * attributes for performance, mainly for GPU performance to avoid bringing in
+ * heavy volume interpolation code. */
 
 ccl_device_inline float primitive_surface_attribute_float(
     KernelGlobals *kg, const ShaderData *sd, const AttributeDescriptor desc, float *dx, float *dy)
@@ -74,117 +47,6 @@ ccl_device_inline float primitive_surface_attribute_float(
     if (dy)
       *dy = 0.0f;
     return 0.0f;
-  }
-}
-
-#ifdef __VOLUME__
-ccl_device_inline float primitive_volume_attribute_float(KernelGlobals *kg,
-                                                         const ShaderData *sd,
-                                                         const AttributeDescriptor desc)
-{
-  if (sd->object != OBJECT_NONE && desc.element == ATTR_ELEMENT_VOXEL) {
-    return volume_attribute_float(kg, sd, desc);
-  }
-  else {
-    return 0.0f;
-  }
-}
-#endif
-
-ccl_device_inline float2 primitive_attribute_float2(KernelGlobals *kg,
-                                                    const ShaderData *sd,
-                                                    const AttributeDescriptor desc,
-                                                    float2 *dx,
-                                                    float2 *dy)
-{
-  if (sd->type & PRIMITIVE_ALL_TRIANGLE) {
-    if (subd_triangle_patch(kg, sd) == ~0)
-      return triangle_attribute_float2(kg, sd, desc, dx, dy);
-    else
-      return subd_triangle_attribute_float2(kg, sd, desc, dx, dy);
-  }
-#ifdef __HAIR__
-  else if (sd->type & PRIMITIVE_ALL_CURVE) {
-    return curve_attribute_float2(kg, sd, desc, dx, dy);
-  }
-#endif
-#ifdef __VOLUME__
-  else if (sd->object != OBJECT_NONE && desc.element == ATTR_ELEMENT_VOXEL) {
-    kernel_assert(0);
-    if (dx)
-      *dx = make_float2(0.0f, 0.0f);
-    if (dy)
-      *dy = make_float2(0.0f, 0.0f);
-    return make_float2(0.0f, 0.0f);
-  }
-#endif
-  else {
-    if (dx)
-      *dx = make_float2(0.0f, 0.0f);
-    if (dy)
-      *dy = make_float2(0.0f, 0.0f);
-    return make_float2(0.0f, 0.0f);
-  }
-}
-
-ccl_device_inline float3 primitive_attribute_float3(KernelGlobals *kg,
-                                                    const ShaderData *sd,
-                                                    const AttributeDescriptor desc,
-                                                    float3 *dx,
-                                                    float3 *dy)
-{
-  if (sd->type & PRIMITIVE_ALL_TRIANGLE) {
-    if (subd_triangle_patch(kg, sd) == ~0)
-      return triangle_attribute_float3(kg, sd, desc, dx, dy);
-    else
-      return subd_triangle_attribute_float3(kg, sd, desc, dx, dy);
-  }
-#ifdef __HAIR__
-  else if (sd->type & PRIMITIVE_ALL_CURVE) {
-    return curve_attribute_float3(kg, sd, desc, dx, dy);
-  }
-#endif
-#ifdef __VOLUME__
-  else if (sd->object != OBJECT_NONE && desc.element == ATTR_ELEMENT_VOXEL) {
-    if (dx)
-      *dx = make_float3(0.0f, 0.0f, 0.0f);
-    if (dy)
-      *dy = make_float3(0.0f, 0.0f, 0.0f);
-    return volume_attribute_float3(kg, sd, desc);
-  }
-#endif
-  else {
-    if (dx)
-      *dx = make_float3(0.0f, 0.0f, 0.0f);
-    if (dy)
-      *dy = make_float3(0.0f, 0.0f, 0.0f);
-    return make_float3(0.0f, 0.0f, 0.0f);
-  }
-}
-
-ccl_device_inline float4 primitive_attribute_float4(KernelGlobals *kg,
-                                                    const ShaderData *sd,
-                                                    const AttributeDescriptor desc,
-                                                    float4 *dx,
-                                                    float4 *dy)
-{
-  if (sd->type & PRIMITIVE_ALL_TRIANGLE) {
-    if (subd_triangle_patch(kg, sd) == ~0)
-      return triangle_attribute_float4(kg, sd, desc, dx, dy);
-    else
-      return subd_triangle_attribute_float4(kg, sd, desc, dx, dy);
-  }
-#ifdef __HAIR__
-  else if (sd->type & PRIMITIVE_ALL_CURVE) {
-    return curve_attribute_float4(kg, sd, desc, dx, dy);
-  }
-#endif
-  else {
-    if (dx)
-      *dx = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-    if (dy)
-      *dy = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-    return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
   }
 }
 
@@ -240,16 +102,78 @@ ccl_device_inline float3 primitive_surface_attribute_float3(KernelGlobals *kg,
   }
 }
 
+ccl_device_inline float4 primitive_surface_attribute_float4(KernelGlobals *kg,
+                                                            const ShaderData *sd,
+                                                            const AttributeDescriptor desc,
+                                                            float4 *dx,
+                                                            float4 *dy)
+{
+  if (sd->type & PRIMITIVE_ALL_TRIANGLE) {
+    if (subd_triangle_patch(kg, sd) == ~0)
+      return triangle_attribute_float4(kg, sd, desc, dx, dy);
+    else
+      return subd_triangle_attribute_float4(kg, sd, desc, dx, dy);
+  }
+#ifdef __HAIR__
+  else if (sd->type & PRIMITIVE_ALL_CURVE) {
+    return curve_attribute_float4(kg, sd, desc, dx, dy);
+  }
+#endif
+  else {
+    if (dx)
+      *dx = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    if (dy)
+      *dy = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+  }
+}
+
 #ifdef __VOLUME__
+/* Volume Attributes
+ *
+ * Read geometry attributes for volume shading. This is distinct from surface
+ * attributes for performance, mainly for GPU performance to avoid bringing in
+ * heavy volume interpolation code. */
+
+ccl_device_inline bool primitive_is_volume_attribute(const ShaderData *sd,
+                                                     const AttributeDescriptor desc)
+{
+  return (sd->object != OBJECT_NONE && desc.element == ATTR_ELEMENT_VOXEL);
+}
+
+ccl_device_inline float primitive_volume_attribute_float(KernelGlobals *kg,
+                                                         const ShaderData *sd,
+                                                         const AttributeDescriptor desc)
+{
+  if (primitive_is_volume_attribute(sd, desc)) {
+    return volume_attribute_value_to_float(volume_attribute_float4(kg, sd, desc));
+  }
+  else {
+    return 0.0f;
+  }
+}
+
 ccl_device_inline float3 primitive_volume_attribute_float3(KernelGlobals *kg,
                                                            const ShaderData *sd,
                                                            const AttributeDescriptor desc)
 {
-  if (sd->object != OBJECT_NONE && desc.element == ATTR_ELEMENT_VOXEL) {
-    return volume_attribute_float3(kg, sd, desc);
+  if (primitive_is_volume_attribute(sd, desc)) {
+    return volume_attribute_value_to_float3(volume_attribute_float4(kg, sd, desc));
   }
   else {
     return make_float3(0.0f, 0.0f, 0.0f);
+  }
+}
+
+ccl_device_inline float4 primitive_volume_attribute_float4(KernelGlobals *kg,
+                                                           const ShaderData *sd,
+                                                           const AttributeDescriptor desc)
+{
+  if (primitive_is_volume_attribute(sd, desc)) {
+    return volume_attribute_float4(kg, sd, desc);
+  }
+  else {
+    return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
   }
 }
 #endif
