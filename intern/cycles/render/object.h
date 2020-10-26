@@ -106,7 +106,12 @@ class Object : public Node {
    * in the device vectors. Gets set in device_update. */
   int index;
 
+  /* Reference to the attribute map with object attributes,
+   * or 0 if none. Set in update_svm_attributes. */
+  size_t attr_map_offset;
+
   friend class ObjectManager;
+  friend class GeometryManager;
 };
 
 /* Object Manager */

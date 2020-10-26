@@ -66,9 +66,17 @@ ccl_device_inline AttributeDescriptor find_attribute(KernelGlobals *kg,
 
   while (attr_map.x != id) {
     if (UNLIKELY(attr_map.x == ATTR_STD_NONE)) {
-      return attribute_not_found();
+      if (UNLIKELY(attr_map.y == 0)) {
+        return attribute_not_found();
+      }
+      else {
+        /* Chain jump to a different part of the table. */
+        attr_offset = attr_map.z;
+      }
     }
-    attr_offset += ATTR_PRIM_TYPES;
+    else {
+      attr_offset += ATTR_PRIM_TYPES;
+    }
     attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
   }
 
