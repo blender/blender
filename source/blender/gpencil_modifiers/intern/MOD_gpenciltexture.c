@@ -127,6 +127,7 @@ static void deformStroke(GpencilModifierData *md,
       pt->uv_fac /= totlen;
       pt->uv_fac *= mmd->uv_scale;
       pt->uv_fac += mmd->uv_offset;
+      pt->uv_rot += mmd->alignment_rotation;
     }
   }
 }
@@ -171,6 +172,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
     col = uiLayoutColumn(layout, false);
     uiItemR(col, ptr, "fit_method", 0, IFACE_("Stroke Fit Method"), ICON_NONE);
     uiItemR(col, ptr, "uv_offset", 0, NULL, ICON_NONE);
+    uiItemR(col, ptr, "alignment_rotation", 0, NULL, ICON_NONE);
     uiItemR(col, ptr, "uv_scale", 0, IFACE_("Scale"), ICON_NONE);
   }
 

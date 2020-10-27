@@ -2263,6 +2263,16 @@ static void rna_def_modifier_gpenciltexture(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "UV Scale", "Factor to scale the UVs");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
+  /* Rotation of Dot Texture. */
+  prop = RNA_def_property(srna, "alignment_rotation", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_float_sdna(prop, NULL, "alignment_rotation");
+  RNA_def_property_float_default(prop, 0.0f);
+  RNA_def_property_range(prop, -DEG2RADF(90.0f), DEG2RADF(90.0f));
+  RNA_def_property_ui_range(prop, -DEG2RADF(90.0f), DEG2RADF(90.0f), 10, 3);
+  RNA_def_property_ui_text(
+      prop, "Rotation", "Additional rotation applied to dots and square strokes");
+  RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
   prop = RNA_def_property(srna, "fill_rotation", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_float_sdna(prop, NULL, "fill_rotation");
   RNA_def_property_ui_text(prop, "Fill Rotation", "Additional rotation of the fill UV");

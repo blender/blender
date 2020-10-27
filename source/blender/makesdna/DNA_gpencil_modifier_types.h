@@ -780,6 +780,9 @@ typedef struct TextureGpencilModifierData {
   /** Texture fit options. */
   short fit_method;
   short mode;
+  /** Dot texture rotation */
+  float alignment_rotation;
+  char _pad[4];
 } TextureGpencilModifierData;
 
 typedef enum eTextureGpencil_Flag {
