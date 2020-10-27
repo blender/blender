@@ -518,20 +518,20 @@ void GeometryManager::create_volume_mesh(Volume *volume, Progress &progress)
 
       if (image_memory->data_elements == 1) {
         grid = openvdb_grid_from_device_texture<openvdb::FloatGrid>(
-            image_memory, volume->get_clipping(), handle.metadata().transform_3d);
+            image_memory, volume->clipping, handle.metadata().transform_3d);
       }
       else if (image_memory->data_elements == 3) {
         grid = openvdb_grid_from_device_texture<openvdb::Vec3fGrid>(
-            image_memory, volume->get_clipping(), handle.metadata().transform_3d);
+            image_memory, volume->clipping, handle.metadata().transform_3d);
       }
       else if (image_memory->data_elements == 4) {
         grid = openvdb_grid_from_device_texture<openvdb::Vec4fGrid>(
-            image_memory, volume->get_clipping(), handle.metadata().transform_3d);
+            image_memory, volume->clipping, handle.metadata().transform_3d);
       }
     }
 
     if (grid) {
-      builder.add_grid(grid, do_clipping, volume->get_clipping());
+      builder.add_grid(grid, do_clipping, volume->clipping);
     }
   }
 #endif
@@ -544,19 +544,17 @@ void GeometryManager::create_volume_mesh(Volume *volume, Progress &progress)
   Shader *volume_shader = NULL;
   int pad_size = 0;
 
-  foreach (Node *node, volume->get_used_shaders()) {
-    Shader *shader = static_cast<Shader *>(node);
-
+  foreach (Shader *shader, volume->used_shaders) {
     if (!shader->has_volume) {
       continue;
     }
 
     volume_shader = shader;
 
-    if (shader->get_volume_interpolation_method() == VOLUME_INTERPOLATION_LINEAR) {
+    if (shader->volume_interpolation_method == VOLUME_INTERPOLATION_LINEAR) {
       pad_size = max(1, pad_size);
     }
-    else if (shader->get_volume_interpolation_method() == VOLUME_INTERPOLATION_CUBIC) {
+    else if (shader->volume_interpolation_method == VOLUME_INTERPOLATION_CUBIC) {
       pad_size = max(2, pad_size);
     }
 
@@ -584,7 +582,7 @@ void GeometryManager::create_volume_mesh(Volume *volume, Progress &progress)
 
   volume->clear();
   volume->reserve_mesh(vertices.size(), indices.size() / 3);
-  volume->used_shaders.push_back_slow(volume_shader);
+  volume->used_shaders.push_back(volume_shader);
   volume->need_update_rebuild = true;
 
   for (size_t i = 0; i < vertices.size(); ++i) {

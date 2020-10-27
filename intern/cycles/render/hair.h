@@ -89,10 +89,10 @@ class Hair : public Geometry {
                                 float4 r_keys[4]) const;
   };
 
-  NODE_SOCKET_API(array<float3>, curve_keys)
-  NODE_SOCKET_API(array<float>, curve_radius)
-  NODE_SOCKET_API(array<int>, curve_first_key)
-  NODE_SOCKET_API(array<int>, curve_shader)
+  array<float3> curve_keys;
+  array<float> curve_radius;
+  array<int> curve_first_key;
+  array<int> curve_shader;
 
   /* BVH */
   size_t curvekey_offset;

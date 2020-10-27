@@ -208,30 +208,30 @@ void BVH::refit_primitives(int start, int end, BoundBox &bbox, uint &visibility)
       /* Primitives. */
       if (pack.prim_type[prim] & PRIMITIVE_ALL_CURVE) {
         /* Curves. */
-        const Hair *hair = static_cast<const Hair *>(ob->get_geometry());
+        const Hair *hair = static_cast<const Hair *>(ob->geometry);
         int prim_offset = (params.top_level) ? hair->prim_offset : 0;
         Hair::Curve curve = hair->get_curve(pidx - prim_offset);
         int k = PRIMITIVE_UNPACK_SEGMENT(pack.prim_type[prim]);
 
-        curve.bounds_grow(k, &hair->get_curve_keys()[0], &hair->get_curve_radius()[0], bbox);
+        curve.bounds_grow(k, &hair->curve_keys[0], &hair->curve_radius[0], bbox);
 
         /* Motion curves. */
-        if (hair->get_use_motion_blur()) {
+        if (hair->use_motion_blur) {
           Attribute *attr = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
           if (attr) {
-            size_t hair_size = hair->get_curve_keys().size();
-            size_t steps = hair->get_motion_steps() - 1;
+            size_t hair_size = hair->curve_keys.size();
+            size_t steps = hair->motion_steps - 1;
             float3 *key_steps = attr->data_float3();
 
             for (size_t i = 0; i < steps; i++)
-              curve.bounds_grow(k, key_steps + i * hair_size, &hair->get_curve_radius()[0], bbox);
+              curve.bounds_grow(k, key_steps + i * hair_size, &hair->curve_radius[0], bbox);
           }
         }
       }
       else {
         /* Triangles. */
-        const Mesh *mesh = static_cast<const Mesh *>(ob->get_geometry());
+        const Mesh *mesh = static_cast<const Mesh *>(ob->geometry);
         int prim_offset = (params.top_level) ? mesh->prim_offset : 0;
         Mesh::Triangle triangle = mesh->get_triangle(pidx - prim_offset);
         const float3 *vpos = &mesh->verts[0];
@@ -263,7 +263,7 @@ void BVH::pack_triangle(int idx, float4 tri_verts[3])
 {
   int tob = pack.prim_object[idx];
   assert(tob >= 0 && tob < objects.size());
-  const Mesh *mesh = static_cast<const Mesh *>(objects[tob]->get_geometry());
+  const Mesh *mesh = static_cast<const Mesh *>(objects[tob]->geometry);
 
   int tidx = pack.prim_index[idx];
   Mesh::Triangle t = mesh->get_triangle(tidx);
@@ -328,7 +328,7 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
    */
   for (size_t i = 0; i < pack.prim_index.size(); i++) {
     if (pack.prim_index[i] != -1) {
-      pack.prim_index[i] += objects[pack.prim_object[i]]->get_geometry()->prim_offset;
+      pack.prim_index[i] += objects[pack.prim_object[i]]->geometry->prim_offset;
     }
   }
 
@@ -389,7 +389,7 @@ void BVH::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 
   /* merge */
   foreach (Object *ob, objects) {
-    Geometry *geom = ob->get_geometry();
+    Geometry *geom = ob->geometry;
 
     /* We assume that if mesh doesn't need own BVH it was already included
      * into a top-level BVH and no packing here is needed.

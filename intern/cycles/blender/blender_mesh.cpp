@@ -48,8 +48,8 @@ struct MikkUserData {
                float *tangent_sign)
       : mesh(mesh), texface(NULL), orco(NULL), tangent(tangent), tangent_sign(tangent_sign)
   {
-    const AttributeSet &attributes = (mesh->get_num_subd_faces()) ? mesh->subd_attributes :
-                                                                    mesh->attributes;
+    const AttributeSet &attributes = (mesh->subd_faces.size()) ? mesh->subd_attributes :
+                                                                 mesh->attributes;
 
     Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
     vertex_normal = attr_vN->data_float3();
@@ -85,8 +85,8 @@ struct MikkUserData {
 static int mikk_get_num_faces(const SMikkTSpaceContext *context)
 {
   const MikkUserData *userdata = (const MikkUserData *)context->m_pUserData;
-  if (userdata->mesh->get_num_subd_faces()) {
-    return userdata->mesh->get_num_subd_faces();
+  if (userdata->mesh->subd_faces.size()) {
+    return userdata->mesh->subd_faces.size();
   }
   else {
     return userdata->mesh->num_triangles();
@@ -96,9 +96,9 @@ static int mikk_get_num_faces(const SMikkTSpaceContext *context)
 static int mikk_get_num_verts_of_face(const SMikkTSpaceContext *context, const int face_num)
 {
   const MikkUserData *userdata = (const MikkUserData *)context->m_pUserData;
-  if (userdata->mesh->get_num_subd_faces()) {
+  if (userdata->mesh->subd_faces.size()) {
     const Mesh *mesh = userdata->mesh;
-    return mesh->get_subd_num_corners()[face_num];
+    return mesh->subd_faces[face_num].num_corners;
   }
   else {
     return 3;
@@ -107,19 +107,19 @@ static int mikk_get_num_verts_of_face(const SMikkTSpaceContext *context, const i
 
 static int mikk_vertex_index(const Mesh *mesh, const int face_num, const int vert_num)
 {
-  if (mesh->get_num_subd_faces()) {
-    const Mesh::SubdFace &face = mesh->get_subd_face(face_num);
-    return mesh->get_subd_face_corners()[face.start_corner + vert_num];
+  if (mesh->subd_faces.size()) {
+    const Mesh::SubdFace &face = mesh->subd_faces[face_num];
+    return mesh->subd_face_corners[face.start_corner + vert_num];
   }
   else {
-    return mesh->get_triangles()[face_num * 3 + vert_num];
+    return mesh->triangles[face_num * 3 + vert_num];
   }
 }
 
 static int mikk_corner_index(const Mesh *mesh, const int face_num, const int vert_num)
 {
-  if (mesh->get_num_subd_faces()) {
-    const Mesh::SubdFace &face = mesh->get_subd_face(face_num);
+  if (mesh->subd_faces.size()) {
+    const Mesh::SubdFace &face = mesh->subd_faces[face_num];
     return face.start_corner + vert_num;
   }
   else {
@@ -135,7 +135,7 @@ static void mikk_get_position(const SMikkTSpaceContext *context,
   const MikkUserData *userdata = (const MikkUserData *)context->m_pUserData;
   const Mesh *mesh = userdata->mesh;
   const int vertex_index = mikk_vertex_index(mesh, face_num, vert_num);
-  const float3 vP = mesh->get_verts()[vertex_index];
+  const float3 vP = mesh->verts[vertex_index];
   P[0] = vP.x;
   P[1] = vP.y;
   P[2] = vP.z;
@@ -178,8 +178,8 @@ static void mikk_get_normal(const SMikkTSpaceContext *context,
   const MikkUserData *userdata = (const MikkUserData *)context->m_pUserData;
   const Mesh *mesh = userdata->mesh;
   float3 vN;
-  if (mesh->get_num_subd_faces()) {
-    const Mesh::SubdFace &face = mesh->get_subd_face(face_num);
+  if (mesh->subd_faces.size()) {
+    const Mesh::SubdFace &face = mesh->subd_faces[face_num];
     if (face.smooth) {
       const int vertex_index = mikk_vertex_index(mesh, face_num, vert_num);
       vN = userdata->vertex_normal[vertex_index];
@@ -189,13 +189,13 @@ static void mikk_get_normal(const SMikkTSpaceContext *context,
     }
   }
   else {
-    if (mesh->get_smooth()[face_num]) {
+    if (mesh->smooth[face_num]) {
       const int vertex_index = mikk_vertex_index(mesh, face_num, vert_num);
       vN = userdata->vertex_normal[vertex_index];
     }
     else {
       const Mesh::Triangle tri = mesh->get_triangle(face_num);
-      vN = tri.compute_normal(&mesh->get_verts()[0]);
+      vN = tri.compute_normal(&mesh->verts[0]);
     }
   }
   N[0] = vN.x;
@@ -222,8 +222,7 @@ static void mikk_compute_tangents(
     const BL::Mesh &b_mesh, const char *layer_name, Mesh *mesh, bool need_sign, bool active_render)
 {
   /* Create tangent attributes. */
-  AttributeSet &attributes = (mesh->get_num_subd_faces()) ? mesh->subd_attributes :
-                                                            mesh->attributes;
+  AttributeSet &attributes = (mesh->subd_faces.size()) ? mesh->subd_attributes : mesh->attributes;
   Attribute *attr;
   ustring name;
   if (layer_name != NULL) {
@@ -555,7 +554,7 @@ static void attr_create_pointiness(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, b
   for (int vert_index = 0; vert_index < num_verts; ++vert_index) {
     sorted_vert_indeices[vert_index] = vert_index;
   }
-  VertexAverageComparator compare(mesh->get_verts());
+  VertexAverageComparator compare(mesh->verts);
   sort(sorted_vert_indeices.begin(), sorted_vert_indeices.end(), compare);
   /* This array stores index of the original vertex for the given vertex
    * index.
@@ -563,12 +562,12 @@ static void attr_create_pointiness(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, b
   vector<int> vert_orig_index(num_verts);
   for (int sorted_vert_index = 0; sorted_vert_index < num_verts; ++sorted_vert_index) {
     const int vert_index = sorted_vert_indeices[sorted_vert_index];
-    const float3 &vert_co = mesh->get_verts()[vert_index];
+    const float3 &vert_co = mesh->verts[vert_index];
     bool found = false;
     for (int other_sorted_vert_index = sorted_vert_index + 1; other_sorted_vert_index < num_verts;
          ++other_sorted_vert_index) {
       const int other_vert_index = sorted_vert_indeices[other_sorted_vert_index];
-      const float3 &other_vert_co = mesh->get_verts()[other_vert_index];
+      const float3 &other_vert_co = mesh->verts[other_vert_index];
       /* We are too far away now, we wouldn't have duplicate. */
       if ((other_vert_co.x + other_vert_co.y + other_vert_co.z) -
               (vert_co.x + vert_co.y + vert_co.z) >
@@ -733,7 +732,7 @@ static void attr_create_random_per_island(Scene *scene,
 static void create_mesh(Scene *scene,
                         Mesh *mesh,
                         BL::Mesh &b_mesh,
-                        const array<Node *> &used_shaders,
+                        const vector<Shader *> &used_shaders,
                         bool subdivision = false,
                         bool subdivide_uvs = true)
 {
@@ -744,7 +743,7 @@ static void create_mesh(Scene *scene,
   int numcorners = 0;
   int numngons = 0;
   bool use_loop_normals = b_mesh.use_auto_smooth() &&
-                          (mesh->get_subdivision_type() != Mesh::SUBDIVISION_CATMULL_CLARK);
+                          (mesh->subdivision_type != Mesh::SUBDIVISION_CATMULL_CLARK);
 
   /* If no faces, create empty mesh. */
   if (numfaces == 0) {
@@ -763,11 +762,8 @@ static void create_mesh(Scene *scene,
   }
 
   /* allocate memory */
-  if (subdivision) {
-    mesh->reserve_subd_faces(numfaces, numngons, numcorners);
-  }
-
   mesh->reserve_mesh(numverts, numtris);
+  mesh->reserve_subd_faces(numfaces, numngons, numcorners);
 
   /* create vertex coordinates and normals */
   BL::Mesh::vertices_iterator v;
@@ -879,7 +875,7 @@ static void create_subd_mesh(Scene *scene,
                              Mesh *mesh,
                              BL::Object &b_ob,
                              BL::Mesh &b_mesh,
-                             const array<Node *> &used_shaders,
+                             const vector<Shader *> &used_shaders,
                              float dicing_rate,
                              int max_subdivisions)
 {
@@ -898,21 +894,31 @@ static void create_subd_mesh(Scene *scene,
     }
   }
 
-  mesh->reserve_subd_creases(num_creases);
+  mesh->subd_creases.resize(num_creases);
 
+  Mesh::SubdEdgeCrease *crease = mesh->subd_creases.data();
   for (b_mesh.edges.begin(e); e != b_mesh.edges.end(); ++e) {
     if (e->crease() != 0.0f) {
-      mesh->add_crease(e->vertices()[0], e->vertices()[1], e->crease());
+      crease->v[0] = e->vertices()[0];
+      crease->v[1] = e->vertices()[1];
+      crease->crease = e->crease();
+
+      crease++;
     }
   }
 
   /* set subd params */
-  PointerRNA cobj = RNA_pointer_get(&b_ob.ptr, "cycles");
-  float subd_dicing_rate = max(0.1f, RNA_float_get(&cobj, "dicing_rate") * dicing_rate);
+  if (!mesh->subd_params) {
+    mesh->subd_params = new SubdParams(mesh);
+  }
+  SubdParams &sdparams = *mesh->subd_params;
 
-  mesh->set_subd_dicing_rate(subd_dicing_rate);
-  mesh->set_subd_max_level(max_subdivisions);
-  mesh->set_subd_objecttoworld(get_transform(b_ob.matrix_world()));
+  PointerRNA cobj = RNA_pointer_get(&b_ob.ptr, "cycles");
+
+  sdparams.dicing_rate = max(0.1f, RNA_float_get(&cobj, "dicing_rate") * dicing_rate);
+  sdparams.max_level = max_subdivisions;
+
+  sdparams.objecttoworld = get_transform(b_ob.matrix_world());
 }
 
 /* Sync */
@@ -949,14 +955,14 @@ static void sync_mesh_cached_velocities(BL::Object &b_ob, Scene *scene, Mesh *me
     return;
   }
 
-  const size_t numverts = mesh->get_verts().size();
+  const size_t numverts = mesh->verts.size();
 
   if (b_mesh_cache.vertex_velocities.length() != numverts) {
     return;
   }
 
   /* Find or add attribute */
-  float3 *P = &mesh->get_verts()[0];
+  float3 *P = &mesh->verts[0];
   Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
   if (!attr_mP) {
@@ -990,11 +996,11 @@ static void sync_mesh_fluid_motion(BL::Object &b_ob, Scene *scene, Mesh *mesh)
     return;
 
   /* If the mesh has modifiers following the fluid domain we can't export motion. */
-  if (b_fluid_domain.mesh_vertices.length() != mesh->get_verts().size())
+  if (b_fluid_domain.mesh_vertices.length() != mesh->verts.size())
     return;
 
   /* Find or add attribute */
-  float3 *P = &mesh->get_verts()[0];
+  float3 *P = &mesh->verts[0];
   Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
   if (!attr_mP) {
@@ -1005,7 +1011,7 @@ static void sync_mesh_fluid_motion(BL::Object &b_ob, Scene *scene, Mesh *mesh)
   float motion_times[2] = {-1.0f, 1.0f};
   for (int step = 0; step < 2; step++) {
     float relative_time = motion_times[step] * scene->motion_shutter_time() * 0.5f;
-    float3 *mP = attr_mP->data_float3() + step * mesh->get_verts().size();
+    float3 *mP = attr_mP->data_float3() + step * mesh->verts.size();
 
     BL::FluidDomainSettings::mesh_vertices_iterator svi;
     int i = 0;
@@ -1020,68 +1026,53 @@ static void sync_mesh_fluid_motion(BL::Object &b_ob, Scene *scene, Mesh *mesh)
 void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph,
                             BL::Object b_ob,
                             Mesh *mesh,
-                            array<Node *> &used_shaders)
+                            const vector<Shader *> &used_shaders)
 {
-  Mesh new_mesh;
-  new_mesh.set_used_shaders(used_shaders);
+  array<int> oldtriangles;
+  array<Mesh::SubdFace> oldsubd_faces;
+  array<int> oldsubd_face_corners;
+  oldtriangles.steal_data(mesh->triangles);
+  oldsubd_faces.steal_data(mesh->subd_faces);
+  oldsubd_face_corners.steal_data(mesh->subd_face_corners);
+
+  mesh->clear();
+  mesh->used_shaders = used_shaders;
+
+  mesh->subdivision_type = Mesh::SUBDIVISION_NONE;
 
   if (view_layer.use_surfaces) {
     /* Adaptive subdivision setup. Not for baking since that requires
      * exact mapping to the Blender mesh. */
     if (!scene->bake_manager->get_baking()) {
-      new_mesh.set_subdivision_type(object_subdivision_type(b_ob, preview, experimental));
+      mesh->subdivision_type = object_subdivision_type(b_ob, preview, experimental);
     }
 
     /* For some reason, meshes do not need this... */
-    bool need_undeformed = new_mesh.need_attribute(scene, ATTR_STD_GENERATED);
+    bool need_undeformed = mesh->need_attribute(scene, ATTR_STD_GENERATED);
     BL::Mesh b_mesh = object_to_mesh(
-        b_data, b_ob, b_depsgraph, need_undeformed, new_mesh.get_subdivision_type());
+        b_data, b_ob, b_depsgraph, need_undeformed, mesh->subdivision_type);
 
     if (b_mesh) {
       /* Sync mesh itself. */
-      if (new_mesh.get_subdivision_type() != Mesh::SUBDIVISION_NONE)
-        create_subd_mesh(scene,
-                         &new_mesh,
-                         b_ob,
-                         b_mesh,
-                         new_mesh.get_used_shaders(),
-                         dicing_rate,
-                         max_subdivisions);
+      if (mesh->subdivision_type != Mesh::SUBDIVISION_NONE)
+        create_subd_mesh(
+            scene, mesh, b_ob, b_mesh, mesh->used_shaders, dicing_rate, max_subdivisions);
       else
-        create_mesh(scene, &new_mesh, b_mesh, new_mesh.get_used_shaders(), false);
+        create_mesh(scene, mesh, b_mesh, mesh->used_shaders, false);
 
       free_object_to_mesh(b_data, b_ob, b_mesh);
     }
   }
 
   /* cached velocities (e.g. from alembic archive) */
-  sync_mesh_cached_velocities(b_ob, scene, &new_mesh);
+  sync_mesh_cached_velocities(b_ob, scene, mesh);
 
   /* mesh fluid motion mantaflow */
-  sync_mesh_fluid_motion(b_ob, scene, &new_mesh);
-
-  /* update original sockets */
-
-  for (const SocketType &socket : new_mesh.type->inputs) {
-    mesh->set_value(socket, new_mesh, socket);
-  }
-
-  foreach (Attribute &attr, new_mesh.attributes.attributes) {
-    mesh->attributes.attributes.push_back(std::move(attr));
-  }
-
-  foreach (Attribute &attr, new_mesh.subd_attributes.attributes) {
-    mesh->subd_attributes.attributes.push_back(std::move(attr));
-  }
-
-  mesh->set_num_subd_faces(new_mesh.get_num_subd_faces());
+  sync_mesh_fluid_motion(b_ob, scene, mesh);
 
   /* tag update */
-  bool rebuild = (mesh->triangles_is_modified()) || (mesh->subd_num_corners_is_modified()) ||
-                 (mesh->subd_shader_is_modified()) || (mesh->subd_smooth_is_modified()) ||
-                 (mesh->subd_ptex_offset_is_modified()) ||
-                 (mesh->subd_start_corner_is_modified()) ||
-                 (mesh->subd_face_corners_is_modified());
+  bool rebuild = (oldtriangles != mesh->triangles) || (oldsubd_faces != mesh->subd_faces) ||
+                 (oldsubd_face_corners != mesh->subd_face_corners);
 
   mesh->tag_update(scene, rebuild);
 }
@@ -1104,7 +1095,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
   }
 
   /* Skip if no vertices were exported. */
-  size_t numverts = mesh->get_verts().size();
+  size_t numverts = mesh->verts.size();
   if (numverts == 0) {
     return;
   }
@@ -1149,7 +1140,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
     if (new_attribute) {
       /* In case of new attribute, we verify if there really was any motion. */
       if (b_mesh.vertices.length() != numverts ||
-          memcmp(mP, &mesh->get_verts()[0], sizeof(float3) * numverts) == 0) {
+          memcmp(mP, &mesh->verts[0], sizeof(float3) * numverts) == 0) {
         /* no motion, remove attributes again */
         if (b_mesh.vertices.length() != numverts) {
           VLOG(1) << "Topology differs, disabling motion blur for object " << b_ob.name();
@@ -1165,7 +1156,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
         VLOG(1) << "Filling deformation motion for object " << b_ob.name();
         /* motion, fill up previous steps that we might have skipped because
          * they had no motion, but we need them anyway now */
-        float3 *P = &mesh->get_verts()[0];
+        float3 *P = &mesh->verts[0];
         float3 *N = (attr_N) ? attr_N->data_float3() : NULL;
         for (int step = 0; step < motion_step; step++) {
           memcpy(attr_mP->data_float3() + step * numverts, P, sizeof(float3) * numverts);
@@ -1178,7 +1169,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
       if (b_mesh.vertices.length() != numverts) {
         VLOG(1) << "Topology differs, discarding motion blur for object " << b_ob.name()
                 << " at time " << motion_step;
-        memcpy(mP, &mesh->get_verts()[0], sizeof(float3) * numverts);
+        memcpy(mP, &mesh->verts[0], sizeof(float3) * numverts);
         if (mN != NULL) {
           memcpy(mN, attr_N->data_float3(), sizeof(float3) * numverts);
         }

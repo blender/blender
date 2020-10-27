@@ -42,7 +42,7 @@ void BlenderSync::sync_light(BL::Object &b_parent,
   if (!light_map.add_or_update(scene, &light, b_ob, b_parent, key)) {
     Shader *shader;
     if (!shader_map.add_or_update(scene, &shader, b_light)) {
-      if (light->get_is_portal())
+      if (light->is_portal)
         *use_portal = true;
       return;
     }
@@ -52,16 +52,16 @@ void BlenderSync::sync_light(BL::Object &b_parent,
   switch (b_light.type()) {
     case BL::Light::type_POINT: {
       BL::PointLight b_point_light(b_light);
-      light->set_size(b_point_light.shadow_soft_size());
-      light->set_light_type(LIGHT_POINT);
+      light->size = b_point_light.shadow_soft_size();
+      light->type = LIGHT_POINT;
       break;
     }
     case BL::Light::type_SPOT: {
       BL::SpotLight b_spot_light(b_light);
-      light->set_size(b_spot_light.shadow_soft_size());
-      light->set_light_type(LIGHT_SPOT);
-      light->set_spot_angle(b_spot_light.spot_size());
-      light->set_spot_smooth(b_spot_light.spot_blend());
+      light->size = b_spot_light.shadow_soft_size();
+      light->type = LIGHT_SPOT;
+      light->spot_angle = b_spot_light.spot_size();
+      light->spot_smooth = b_spot_light.spot_blend();
       break;
     }
     /* Hemi were removed from 2.8 */
@@ -72,88 +72,88 @@ void BlenderSync::sync_light(BL::Object &b_parent,
     // }
     case BL::Light::type_SUN: {
       BL::SunLight b_sun_light(b_light);
-      light->set_angle(b_sun_light.angle());
-      light->set_light_type(LIGHT_DISTANT);
+      light->angle = b_sun_light.angle();
+      light->type = LIGHT_DISTANT;
       break;
     }
     case BL::Light::type_AREA: {
       BL::AreaLight b_area_light(b_light);
-      light->set_size(1.0f);
-      light->set_axisu(transform_get_column(&tfm, 0));
-      light->set_axisv(transform_get_column(&tfm, 1));
-      light->set_sizeu(b_area_light.size());
+      light->size = 1.0f;
+      light->axisu = transform_get_column(&tfm, 0);
+      light->axisv = transform_get_column(&tfm, 1);
+      light->sizeu = b_area_light.size();
       switch (b_area_light.shape()) {
         case BL::AreaLight::shape_SQUARE:
-          light->set_sizev(light->get_sizeu());
-          light->set_round(false);
+          light->sizev = light->sizeu;
+          light->round = false;
           break;
         case BL::AreaLight::shape_RECTANGLE:
-          light->set_sizev(b_area_light.size_y());
-          light->set_round(false);
+          light->sizev = b_area_light.size_y();
+          light->round = false;
           break;
         case BL::AreaLight::shape_DISK:
-          light->set_sizev(light->get_sizeu());
-          light->set_round(true);
+          light->sizev = light->sizeu;
+          light->round = true;
           break;
         case BL::AreaLight::shape_ELLIPSE:
-          light->set_sizev(b_area_light.size_y());
-          light->set_round(true);
+          light->sizev = b_area_light.size_y();
+          light->round = true;
           break;
       }
-      light->set_light_type(LIGHT_AREA);
+      light->type = LIGHT_AREA;
       break;
     }
   }
 
   /* strength */
-  float3 strength = get_float3(b_light.color()) * BL::PointLight(b_light).energy();
-  light->set_strength(strength);
+  light->strength = get_float3(b_light.color());
+  light->strength *= BL::PointLight(b_light).energy();
 
   /* location and (inverted!) direction */
-  light->set_co(transform_get_column(&tfm, 3));
-  light->set_dir(-transform_get_column(&tfm, 2));
-  light->set_tfm(tfm);
+  light->co = transform_get_column(&tfm, 3);
+  light->dir = -transform_get_column(&tfm, 2);
+  light->tfm = tfm;
 
   /* shader */
-  array<Node *> used_shaders;
+  vector<Shader *> used_shaders;
   find_shader(b_light, used_shaders, scene->default_light);
-  light->set_shader(static_cast<Shader *>(used_shaders[0]));
+  light->shader = used_shaders[0];
 
   /* shadow */
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
   PointerRNA clight = RNA_pointer_get(&b_light.ptr, "cycles");
-  light->set_cast_shadow(get_boolean(clight, "cast_shadow"));
-  light->set_use_mis(get_boolean(clight, "use_multiple_importance_sampling"));
+  light->cast_shadow = get_boolean(clight, "cast_shadow");
+  light->use_mis = get_boolean(clight, "use_multiple_importance_sampling");
 
   int samples = get_int(clight, "samples");
   if (get_boolean(cscene, "use_square_samples"))
-    light->set_samples(samples * samples);
+    light->samples = samples * samples;
   else
-    light->set_samples(samples);
+    light->samples = samples;
 
-  light->set_max_bounces(get_int(clight, "max_bounces"));
+  light->max_bounces = get_int(clight, "max_bounces");
 
   if (b_ob != b_ob_instance) {
-    light->set_random_id(random_id);
+    light->random_id = random_id;
   }
   else {
-    light->set_random_id(hash_uint2(hash_string(b_ob.name().c_str()), 0));
+    light->random_id = hash_uint2(hash_string(b_ob.name().c_str()), 0);
   }
 
-  if (light->get_light_type() == LIGHT_AREA)
-    light->set_is_portal(get_boolean(clight, "is_portal"));
+  if (light->type == LIGHT_AREA)
+    light->is_portal = get_boolean(clight, "is_portal");
   else
-    light->set_is_portal(false);
+    light->is_portal = false;
 
-  if (light->get_is_portal())
+  if (light->is_portal)
     *use_portal = true;
 
   /* visibility */
   uint visibility = object_ray_visibility(b_ob);
-  light->set_use_diffuse((visibility & PATH_RAY_DIFFUSE) != 0);
-  light->set_use_glossy((visibility & PATH_RAY_GLOSSY) != 0);
-  light->set_use_transmission((visibility & PATH_RAY_TRANSMIT) != 0);
-  light->set_use_scatter((visibility & PATH_RAY_VOLUME_SCATTER) != 0);
+  light->use_diffuse = (visibility & PATH_RAY_DIFFUSE) != 0;
+  light->use_glossy = (visibility & PATH_RAY_GLOSSY) != 0;
+  light->use_transmission = (visibility & PATH_RAY_TRANSMIT) != 0;
+  light->use_scatter = (visibility & PATH_RAY_VOLUME_SCATTER) != 0;
 
   /* tag */
   light->tag_update(scene);
@@ -178,25 +178,25 @@ void BlenderSync::sync_background_light(BL::SpaceView3D &b_v3d, bool use_portal)
 
       if (light_map.add_or_update(scene, &light, b_world, b_world, key) || world_recalc ||
           b_world.ptr.data != world_map) {
-        light->set_light_type(LIGHT_BACKGROUND);
+        light->type = LIGHT_BACKGROUND;
         if (sampling_method == SAMPLING_MANUAL) {
-          light->set_map_resolution(get_int(cworld, "sample_map_resolution"));
+          light->map_resolution = get_int(cworld, "sample_map_resolution");
         }
         else {
-          light->set_map_resolution(0);
+          light->map_resolution = 0;
         }
-        light->set_shader(scene->default_background);
-        light->set_use_mis(sample_as_light);
-        light->set_max_bounces(get_int(cworld, "max_bounces"));
+        light->shader = scene->default_background;
+        light->use_mis = sample_as_light;
+        light->max_bounces = get_int(cworld, "max_bounces");
 
         /* force enable light again when world is resynced */
-        light->set_is_enabled(true);
+        light->is_enabled = true;
 
         int samples = get_int(cworld, "samples");
         if (get_boolean(cscene, "use_square_samples"))
-          light->set_samples(samples * samples);
+          light->samples = samples * samples;
         else
-          light->set_samples(samples);
+          light->samples = samples;
 
         light->tag_update(scene);
         light_map.set_recalc(b_world);

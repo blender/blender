@@ -46,11 +46,13 @@ template<>
 bool TopologyRefinerFactory<ccl::Mesh>::resizeComponentTopology(TopologyRefiner &refiner,
                                                                 ccl::Mesh const &mesh)
 {
-  setNumBaseVertices(refiner, mesh.get_verts().size());
-  setNumBaseFaces(refiner, mesh.get_num_subd_faces());
+  setNumBaseVertices(refiner, mesh.verts.size());
+  setNumBaseFaces(refiner, mesh.subd_faces.size());
 
-  for (int i = 0; i < mesh.get_num_subd_faces(); i++) {
-    setNumBaseFaceVertices(refiner, i, mesh.get_subd_num_corners()[i]);
+  const ccl::Mesh::SubdFace *face = mesh.subd_faces.data();
+
+  for (int i = 0; i < mesh.subd_faces.size(); i++, face++) {
+    setNumBaseFaceVertices(refiner, i, face->num_corners);
   }
 
   return true;
@@ -60,17 +62,14 @@ template<>
 bool TopologyRefinerFactory<ccl::Mesh>::assignComponentTopology(TopologyRefiner &refiner,
                                                                 ccl::Mesh const &mesh)
 {
-  const ccl::array<int> &subd_face_corners = mesh.get_subd_face_corners();
-  const ccl::array<int> &subd_start_corner = mesh.get_subd_start_corner();
-  const ccl::array<int> &subd_num_corners = mesh.get_subd_num_corners();
+  const ccl::Mesh::SubdFace *face = mesh.subd_faces.data();
 
-  for (int i = 0; i < mesh.get_num_subd_faces(); i++) {
+  for (int i = 0; i < mesh.subd_faces.size(); i++, face++) {
     IndexArray face_verts = getBaseFaceVertices(refiner, i);
 
-    int start_corner = subd_start_corner[i];
-    int *corner = &subd_face_corners[start_corner];
+    int *corner = &mesh.subd_face_corners[face->start_corner];
 
-    for (int j = 0; j < subd_num_corners[i]; j++, corner++) {
+    for (int j = 0; j < face->num_corners; j++, corner++) {
       face_verts[j] = *corner;
     }
   }
@@ -82,18 +81,17 @@ template<>
 bool TopologyRefinerFactory<ccl::Mesh>::assignComponentTags(TopologyRefiner &refiner,
                                                             ccl::Mesh const &mesh)
 {
-  size_t num_creases = mesh.get_subd_creases_weight().size();
+  const ccl::Mesh::SubdEdgeCrease *crease = mesh.subd_creases.data();
 
-  for (int i = 0; i < num_creases; i++) {
-    ccl::Mesh::SubdEdgeCrease crease = mesh.get_subd_crease(i);
-    Index edge = findBaseEdge(refiner, crease.v[0], crease.v[1]);
+  for (int i = 0; i < mesh.subd_creases.size(); i++, crease++) {
+    Index edge = findBaseEdge(refiner, crease->v[0], crease->v[1]);
 
     if (edge != INDEX_INVALID) {
-      setBaseEdgeSharpness(refiner, edge, crease.crease * 10.0f);
+      setBaseEdgeSharpness(refiner, edge, crease->crease * 10.0f);
     }
   }
 
-  for (int i = 0; i < mesh.get_verts().size(); i++) {
+  for (int i = 0; i < mesh.verts.size(); i++) {
     ConstIndexArray vert_edges = getBaseVertexEdges(refiner, i);
 
     if (vert_edges.size() == 2) {
@@ -205,8 +203,8 @@ class OsdData {
     int num_local_points = patch_table->GetNumLocalPoints();
 
     verts.resize(num_refiner_verts + num_local_points);
-    for (int i = 0; i < mesh->get_verts().size(); i++) {
-      verts[i].value = mesh->get_verts()[i];
+    for (int i = 0; i < mesh->verts.size(); i++) {
+      verts[i].value = mesh->verts[i];
     }
 
     OsdValue<float3> *src = verts.data();
@@ -280,17 +278,16 @@ class OsdData {
   {
     /* loop over all edges to find longest in screen space */
     const Far::TopologyLevel &level = refiner->GetLevel(0);
-    const SubdParams *subd_params = mesh->get_subd_params();
-    Transform objecttoworld = subd_params->objecttoworld;
-    Camera *cam = subd_params->camera;
+    Transform objecttoworld = mesh->subd_params->objecttoworld;
+    Camera *cam = mesh->subd_params->camera;
 
     float longest_edge = 0.0f;
 
     for (size_t i = 0; i < level.GetNumEdges(); i++) {
       Far::ConstIndexArray verts = level.GetEdgeVertices(i);
 
-      float3 a = mesh->get_verts()[verts[0]];
-      float3 b = mesh->get_verts()[verts[1]];
+      float3 a = mesh->verts[verts[0]];
+      float3 b = mesh->verts[verts[1]];
 
       float edge_len;
 
@@ -308,7 +305,7 @@ class OsdData {
     }
 
     /* calculate isolation level */
-    int isolation = (int)(log2f(max(longest_edge / subd_params->dicing_rate, 1.0f)) + 1.0f);
+    int isolation = (int)(log2f(max(longest_edge / mesh->subd_params->dicing_rate, 1.0f)) + 1.0f);
 
     return min(isolation, 10);
   }
@@ -371,16 +368,12 @@ struct OsdPatch : Patch {
 
 void Mesh::tessellate(DiagSplit *split)
 {
-  /* reset the number of subdivision vertices, in case the Mesh was not cleared
-   * between calls or data updates */
-  num_subd_verts = 0;
-
 #ifdef WITH_OPENSUBDIV
   OsdData osd_data;
   bool need_packed_patch_table = false;
 
   if (subdivision_type == SUBDIVISION_CATMULL_CLARK) {
-    if (get_num_subd_faces()) {
+    if (subd_faces.size()) {
       osd_data.build_from_mesh(this);
     }
   }
@@ -398,7 +391,7 @@ void Mesh::tessellate(DiagSplit *split)
     }
   }
 
-  int num_faces = get_num_subd_faces();
+  int num_faces = subd_faces.size();
 
   Attribute *attr_vN = subd_attributes.find(ATTR_STD_VERTEX_NORMAL);
   float3 *vN = (attr_vN) ? attr_vN->data_float3() : NULL;
@@ -406,7 +399,7 @@ void Mesh::tessellate(DiagSplit *split)
   /* count patches */
   int num_patches = 0;
   for (int f = 0; f < num_faces; f++) {
-    SubdFace face = get_subd_face(f);
+    SubdFace &face = subd_faces[f];
 
     if (face.is_quad()) {
       num_patches++;
@@ -423,7 +416,7 @@ void Mesh::tessellate(DiagSplit *split)
     OsdPatch *patch = osd_patches.data();
 
     for (int f = 0; f < num_faces; f++) {
-      SubdFace face = get_subd_face(f);
+      SubdFace &face = subd_faces[f];
 
       if (face.is_quad()) {
         patch->patch_index = face.ptex_offset;
@@ -451,7 +444,7 @@ void Mesh::tessellate(DiagSplit *split)
     LinearQuadPatch *patch = linear_patches.data();
 
     for (int f = 0; f < num_faces; f++) {
-      SubdFace face = get_subd_face(f);
+      SubdFace &face = subd_faces[f];
 
       if (face.is_quad()) {
         float3 *hull = patch->hull;
@@ -549,7 +542,7 @@ void Mesh::tessellate(DiagSplit *split)
         /* keep subdivision for corner attributes disabled for now */
         attr.flags &= ~ATTR_SUBDIVIDED;
       }
-      else if (get_num_subd_faces()) {
+      else if (subd_faces.size()) {
         osd_data.subdivide_attribute(attr);
 
         need_packed_patch_table = true;
@@ -565,7 +558,7 @@ void Mesh::tessellate(DiagSplit *split)
     switch (attr.element) {
       case ATTR_ELEMENT_VERTEX: {
         for (int f = 0; f < num_faces; f++) {
-          SubdFace face = get_subd_face(f);
+          SubdFace &face = subd_faces[f];
 
           if (!face.is_quad()) {
             char *center = data + (verts.size() - num_subd_verts + ngons) * stride;
@@ -588,7 +581,7 @@ void Mesh::tessellate(DiagSplit *split)
       } break;
       case ATTR_ELEMENT_CORNER: {
         for (int f = 0; f < num_faces; f++) {
-          SubdFace face = get_subd_face(f);
+          SubdFace &face = subd_faces[f];
 
           if (!face.is_quad()) {
             char *center = data + (subd_face_corners.size() + ngons) * stride;
@@ -607,7 +600,7 @@ void Mesh::tessellate(DiagSplit *split)
       } break;
       case ATTR_ELEMENT_CORNER_BYTE: {
         for (int f = 0; f < num_faces; f++) {
-          SubdFace face = get_subd_face(f);
+          SubdFace &face = subd_faces[f];
 
           if (!face.is_quad()) {
             uchar *center = (uchar *)data + (subd_face_corners.size() + ngons) * stride;

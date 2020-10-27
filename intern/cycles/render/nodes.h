@@ -70,17 +70,6 @@ class TextureNode : public ShaderNode {
   {
   }
   TextureMapping tex_mapping;
-  NODE_SOCKET_API_STRUCT_MEMBER(float3, tex_mapping, translation)
-  NODE_SOCKET_API_STRUCT_MEMBER(float3, tex_mapping, rotation)
-  NODE_SOCKET_API_STRUCT_MEMBER(float3, tex_mapping, scale)
-  NODE_SOCKET_API_STRUCT_MEMBER(float3, tex_mapping, min)
-  NODE_SOCKET_API_STRUCT_MEMBER(float3, tex_mapping, max)
-  NODE_SOCKET_API_STRUCT_MEMBER(bool, tex_mapping, use_minmax)
-  NODE_SOCKET_API_STRUCT_MEMBER(TextureMapping::Type, tex_mapping, type)
-  NODE_SOCKET_API_STRUCT_MEMBER(TextureMapping::Mapping, tex_mapping, x_mapping)
-  NODE_SOCKET_API_STRUCT_MEMBER(TextureMapping::Mapping, tex_mapping, y_mapping)
-  NODE_SOCKET_API_STRUCT_MEMBER(TextureMapping::Mapping, tex_mapping, z_mapping)
-  NODE_SOCKET_API_STRUCT_MEMBER(TextureMapping::Projection, tex_mapping, projection)
 };
 
 /* Any node which uses image manager's slot should be a subclass of this one. */
@@ -119,16 +108,16 @@ class ImageTextureNode : public ImageSlotTextureNode {
   ImageParams image_params() const;
 
   /* Parameters. */
-  NODE_SOCKET_API(ustring, filename)
-  NODE_SOCKET_API(ustring, colorspace)
-  NODE_SOCKET_API(ImageAlphaType, alpha_type)
-  NODE_SOCKET_API(NodeImageProjection, projection)
-  NODE_SOCKET_API(InterpolationType, interpolation)
-  NODE_SOCKET_API(ExtensionType, extension)
-  NODE_SOCKET_API(float, projection_blend)
-  NODE_SOCKET_API(bool, animated)
-  NODE_SOCKET_API(float3, vector)
-  NODE_SOCKET_API(array<int>, tiles)
+  ustring filename;
+  ustring colorspace;
+  ImageAlphaType alpha_type;
+  NodeImageProjection projection;
+  InterpolationType interpolation;
+  ExtensionType extension;
+  float projection_blend;
+  bool animated;
+  float3 vector;
+  ccl::vector<int> tiles;
 
  protected:
   void cull_tiles(Scene *scene, ShaderGraph *graph);
@@ -157,13 +146,13 @@ class EnvironmentTextureNode : public ImageSlotTextureNode {
   ImageParams image_params() const;
 
   /* Parameters. */
-  NODE_SOCKET_API(ustring, filename)
-  NODE_SOCKET_API(ustring, colorspace)
-  NODE_SOCKET_API(ImageAlphaType, alpha_type)
-  NODE_SOCKET_API(NodeEnvironmentProjection, projection)
-  NODE_SOCKET_API(InterpolationType, interpolation)
-  NODE_SOCKET_API(bool, animated)
-  NODE_SOCKET_API(float3, vector)
+  ustring filename;
+  ustring colorspace;
+  ImageAlphaType alpha_type;
+  NodeEnvironmentProjection projection;
+  InterpolationType interpolation;
+  bool animated;
+  float3 vector;
 };
 
 class SkyTextureNode : public TextureNode {
@@ -175,20 +164,20 @@ class SkyTextureNode : public TextureNode {
     return NODE_GROUP_LEVEL_2;
   }
 
-  NODE_SOCKET_API(NodeSkyType, sky_type)
-  NODE_SOCKET_API(float3, sun_direction)
-  NODE_SOCKET_API(float, turbidity)
-  NODE_SOCKET_API(float, ground_albedo)
-  NODE_SOCKET_API(bool, sun_disc)
-  NODE_SOCKET_API(float, sun_size)
-  NODE_SOCKET_API(float, sun_intensity)
-  NODE_SOCKET_API(float, sun_elevation)
-  NODE_SOCKET_API(float, sun_rotation)
-  NODE_SOCKET_API(float, altitude)
-  NODE_SOCKET_API(float, air_density)
-  NODE_SOCKET_API(float, dust_density)
-  NODE_SOCKET_API(float, ozone_density)
-  NODE_SOCKET_API(float3, vector)
+  NodeSkyType type;
+  float3 sun_direction;
+  float turbidity;
+  float ground_albedo;
+  bool sun_disc;
+  float sun_size;
+  float sun_intensity;
+  float sun_elevation;
+  float sun_rotation;
+  float altitude;
+  float air_density;
+  float dust_density;
+  float ozone_density;
+  float3 vector;
   ImageHandle handle;
 
   float get_sun_size()
@@ -202,10 +191,10 @@ class OutputNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(OutputNode)
 
-  NODE_SOCKET_API(Node *, surface)
-  NODE_SOCKET_API(Node *, volume)
-  NODE_SOCKET_API(float3, displacement)
-  NODE_SOCKET_API(float3, normal)
+  void *surface;
+  void *volume;
+  float3 displacement;
+  float3 normal;
 
   /* Don't allow output node de-duplication. */
   virtual bool equals(const ShaderNode & /*other*/)
@@ -219,10 +208,10 @@ class OutputAOVNode : public ShaderNode {
   SHADER_NODE_CLASS(OutputAOVNode)
   virtual void simplify_settings(Scene *scene);
 
-  NODE_SOCKET_API(float, value)
-  NODE_SOCKET_API(float3, color)
+  float value;
+  float3 color;
 
-  NODE_SOCKET_API(ustring, name)
+  ustring name;
 
   virtual int get_group()
   {
@@ -248,21 +237,17 @@ class GradientTextureNode : public TextureNode {
     return NODE_GROUP_LEVEL_2;
   }
 
-  NODE_SOCKET_API(NodeGradientType, gradient_type)
-  NODE_SOCKET_API(float3, vector)
+  NodeGradientType type;
+  float3 vector;
 };
 
 class NoiseTextureNode : public TextureNode {
  public:
   SHADER_NODE_CLASS(NoiseTextureNode)
 
-  NODE_SOCKET_API(int, dimensions)
-  NODE_SOCKET_API(float, w)
-  NODE_SOCKET_API(float, scale)
-  NODE_SOCKET_API(float, detail)
-  NODE_SOCKET_API(float, roughness)
-  NODE_SOCKET_API(float, distortion)
-  NODE_SOCKET_API(float3, vector)
+  int dimensions;
+  float w, scale, detail, roughness, distortion;
+  float3 vector;
 };
 
 class VoronoiTextureNode : public TextureNode {
@@ -286,15 +271,11 @@ class VoronoiTextureNode : public TextureNode {
     return result;
   }
 
-  NODE_SOCKET_API(int, dimensions)
-  NODE_SOCKET_API(NodeVoronoiDistanceMetric, metric)
-  NODE_SOCKET_API(NodeVoronoiFeature, feature)
-  NODE_SOCKET_API(float, w)
-  NODE_SOCKET_API(float, scale)
-  NODE_SOCKET_API(float, exponent)
-  NODE_SOCKET_API(float, smoothness)
-  NODE_SOCKET_API(float, randomness)
-  NODE_SOCKET_API(float3, vector)
+  int dimensions;
+  NodeVoronoiDistanceMetric metric;
+  NodeVoronoiFeature feature;
+  float w, scale, exponent, smoothness, randomness;
+  float3 vector;
 };
 
 class MusgraveTextureNode : public TextureNode {
@@ -306,16 +287,10 @@ class MusgraveTextureNode : public TextureNode {
     return NODE_GROUP_LEVEL_2;
   }
 
-  NODE_SOCKET_API(int, dimensions)
-  NODE_SOCKET_API(NodeMusgraveType, musgrave_type)
-  NODE_SOCKET_API(float, w)
-  NODE_SOCKET_API(float, scale)
-  NODE_SOCKET_API(float, detail)
-  NODE_SOCKET_API(float, dimension)
-  NODE_SOCKET_API(float, lacunarity)
-  NODE_SOCKET_API(float, offset)
-  NODE_SOCKET_API(float, gain)
-  NODE_SOCKET_API(float3, vector)
+  int dimensions;
+  NodeMusgraveType type;
+  float w, scale, detail, dimension, lacunarity, offset, gain;
+  float3 vector;
 };
 
 class WaveTextureNode : public TextureNode {
@@ -327,18 +302,13 @@ class WaveTextureNode : public TextureNode {
     return NODE_GROUP_LEVEL_2;
   }
 
-  NODE_SOCKET_API(NodeWaveType, wave_type)
-  NODE_SOCKET_API(NodeWaveBandsDirection, bands_direction)
-  NODE_SOCKET_API(NodeWaveRingsDirection, rings_direction)
-  NODE_SOCKET_API(NodeWaveProfile, profile)
+  NodeWaveType type;
+  NodeWaveBandsDirection bands_direction;
+  NodeWaveRingsDirection rings_direction;
+  NodeWaveProfile profile;
 
-  NODE_SOCKET_API(float, scale)
-  NODE_SOCKET_API(float, distortion)
-  NODE_SOCKET_API(float, detail)
-  NODE_SOCKET_API(float, detail_scale)
-  NODE_SOCKET_API(float, detail_roughness)
-  NODE_SOCKET_API(float, phase)
-  NODE_SOCKET_API(float3, vector)
+  float scale, distortion, detail, detail_scale, detail_roughness, phase;
+  float3 vector;
 };
 
 class MagicTextureNode : public TextureNode {
@@ -350,20 +320,17 @@ class MagicTextureNode : public TextureNode {
     return NODE_GROUP_LEVEL_2;
   }
 
-  NODE_SOCKET_API(int, depth)
-  NODE_SOCKET_API(float3, vector)
-  NODE_SOCKET_API(float, scale)
-  NODE_SOCKET_API(float, distortion)
+  int depth;
+  float3 vector;
+  float scale, distortion;
 };
 
 class CheckerTextureNode : public TextureNode {
  public:
   SHADER_NODE_CLASS(CheckerTextureNode)
 
-  NODE_SOCKET_API(float3, vector)
-  NODE_SOCKET_API(float3, color1)
-  NODE_SOCKET_API(float3, color2)
-  NODE_SOCKET_API(float, scale)
+  float3 vector, color1, color2;
+  float scale;
 
   virtual int get_group()
   {
@@ -375,21 +342,12 @@ class BrickTextureNode : public TextureNode {
  public:
   SHADER_NODE_CLASS(BrickTextureNode)
 
-  NODE_SOCKET_API(float, offset)
-  NODE_SOCKET_API(float, squash)
-  NODE_SOCKET_API(int, offset_frequency)
-  NODE_SOCKET_API(int, squash_frequency)
+  float offset, squash;
+  int offset_frequency, squash_frequency;
 
-  NODE_SOCKET_API(float3, color1)
-  NODE_SOCKET_API(float3, color2)
-  NODE_SOCKET_API(float3, mortar)
-  NODE_SOCKET_API(float, scale)
-  NODE_SOCKET_API(float, mortar_size)
-  NODE_SOCKET_API(float, mortar_smooth)
-  NODE_SOCKET_API(float, bias)
-  NODE_SOCKET_API(float, brick_width)
-  NODE_SOCKET_API(float, row_height)
-  NODE_SOCKET_API(float3, vector)
+  float3 color1, color2, mortar;
+  float scale, mortar_size, mortar_smooth, bias, brick_width, row_height;
+  float3 vector;
 
   virtual int get_group()
   {
@@ -419,11 +377,11 @@ class PointDensityTextureNode : public ShaderNode {
   }
 
   /* Parameters. */
-  NODE_SOCKET_API(ustring, filename)
-  NODE_SOCKET_API(NodeTexVoxelSpace, space)
-  NODE_SOCKET_API(InterpolationType, interpolation)
-  NODE_SOCKET_API(Transform, tfm)
-  NODE_SOCKET_API(float3, vector)
+  ustring filename;
+  NodeTexVoxelSpace space;
+  InterpolationType interpolation;
+  Transform tfm;
+  float3 vector;
 
   /* Runtime. */
   ImageHandle handle;
@@ -448,11 +406,11 @@ class IESLightNode : public TextureNode {
     return NODE_GROUP_LEVEL_2;
   }
 
-  NODE_SOCKET_API(ustring, filename)
-  NODE_SOCKET_API(ustring, ies)
+  ustring filename;
+  ustring ies;
 
-  NODE_SOCKET_API(float, strength)
-  NODE_SOCKET_API(float3, vector)
+  float strength;
+  float3 vector;
 
  private:
   LightManager *light_manager;
@@ -469,9 +427,9 @@ class WhiteNoiseTextureNode : public ShaderNode {
     return NODE_GROUP_LEVEL_2;
   }
 
-  NODE_SOCKET_API(int, dimensions)
-  NODE_SOCKET_API(float3, vector)
-  NODE_SOCKET_API(float, w)
+  int dimensions;
+  float3 vector;
+  float w;
 };
 
 class MappingNode : public ShaderNode {
@@ -483,11 +441,8 @@ class MappingNode : public ShaderNode {
   }
   void constant_fold(const ConstantFolder &folder);
 
-  NODE_SOCKET_API(float3, vector)
-  NODE_SOCKET_API(float3, location)
-  NODE_SOCKET_API(float3, rotation)
-  NODE_SOCKET_API(float3, scale)
-  NODE_SOCKET_API(NodeMappingType, mapping_type)
+  float3 vector, location, rotation, scale;
+  NodeMappingType type;
 };
 
 class RGBToBWNode : public ShaderNode {
@@ -495,7 +450,7 @@ class RGBToBWNode : public ShaderNode {
   SHADER_NODE_CLASS(RGBToBWNode)
   void constant_fold(const ConstantFolder &folder);
 
-  NODE_SOCKET_API(float3, color)
+  float3 color;
 };
 
 class ConvertNode : public ShaderNode {
@@ -505,7 +460,6 @@ class ConvertNode : public ShaderNode {
 
   void constant_fold(const ConstantFolder &folder);
 
- private:
   SocketType::Type from, to;
 
   union {
@@ -518,6 +472,7 @@ class ConvertNode : public ShaderNode {
   };
   ustring value_string;
 
+ private:
   static const int MAX_TYPE = 12;
   static bool register_types();
   static Node *create(const NodeType *type);
@@ -545,7 +500,6 @@ class BsdfBaseNode : public ShaderNode {
     return false;
   }
 
- protected:
   ClosureType closure;
 };
 
@@ -560,20 +514,18 @@ class BsdfNode : public BsdfBaseNode {
                ShaderInput *param3 = NULL,
                ShaderInput *param4 = NULL);
 
-  NODE_SOCKET_API(float3, color)
-  NODE_SOCKET_API(float3, normal)
-  NODE_SOCKET_API(float, surface_mix_weight)
+  float3 color;
+  float3 normal;
+  float surface_mix_weight;
 };
 
 class AnisotropicBsdfNode : public BsdfNode {
  public:
   SHADER_NODE_CLASS(AnisotropicBsdfNode)
 
-  NODE_SOCKET_API(float3, tangent)
-  NODE_SOCKET_API(float, roughness)
-  NODE_SOCKET_API(float, anisotropy)
-  NODE_SOCKET_API(float, rotation)
-  NODE_SOCKET_API(ClosureType, distribution)
+  float3 tangent;
+  float roughness, anisotropy, rotation;
+  ClosureType distribution;
 
   ClosureType get_closure_type()
   {
@@ -590,7 +542,7 @@ class DiffuseBsdfNode : public BsdfNode {
  public:
   SHADER_NODE_CLASS(DiffuseBsdfNode)
 
-  NODE_SOCKET_API(float, roughness)
+  float roughness;
 };
 
 /* Disney principled BRDF */
@@ -618,37 +570,19 @@ class PrincipledBsdfNode : public BsdfBaseNode {
                ShaderInput *anisotropic_rotation,
                ShaderInput *transmission_roughness);
 
-  NODE_SOCKET_API(float3, base_color)
-  NODE_SOCKET_API(float3, subsurface_color)
-  NODE_SOCKET_API(float3, subsurface_radius)
-  NODE_SOCKET_API(float, metallic)
-  NODE_SOCKET_API(float, subsurface)
-  NODE_SOCKET_API(float, specular)
-  NODE_SOCKET_API(float, roughness)
-  NODE_SOCKET_API(float, specular_tint)
-  NODE_SOCKET_API(float, anisotropic)
-  NODE_SOCKET_API(float, sheen)
-  NODE_SOCKET_API(float, sheen_tint)
-  NODE_SOCKET_API(float, clearcoat)
-  NODE_SOCKET_API(float, clearcoat_roughness)
-  NODE_SOCKET_API(float, ior)
-  NODE_SOCKET_API(float, transmission)
-  NODE_SOCKET_API(float, anisotropic_rotation)
-  NODE_SOCKET_API(float, transmission_roughness)
-  NODE_SOCKET_API(float3, normal)
-  NODE_SOCKET_API(float3, clearcoat_normal)
-  NODE_SOCKET_API(float3, tangent)
-  NODE_SOCKET_API(float, surface_mix_weight)
-  NODE_SOCKET_API(ClosureType, distribution)
-  NODE_SOCKET_API(ClosureType, subsurface_method)
-  NODE_SOCKET_API(float3, emission)
-  NODE_SOCKET_API(float, emission_strength)
-  NODE_SOCKET_API(float, alpha)
+  float3 base_color;
+  float3 subsurface_color, subsurface_radius;
+  float metallic, subsurface, specular, roughness, specular_tint, anisotropic, sheen, sheen_tint,
+      clearcoat, clearcoat_roughness, ior, transmission, anisotropic_rotation,
+      transmission_roughness;
+  float3 normal, clearcoat_normal, tangent;
+  float surface_mix_weight;
+  ClosureType distribution, distribution_orig;
+  ClosureType subsurface_method;
+  float3 emission;
+  float emission_strength;
+  float alpha;
 
- private:
-  ClosureType distribution_orig;
-
- public:
   bool has_integrator_dependency();
   void attributes(Shader *shader, AttributeRequestSet *attributes);
   bool has_attribute_dependency()
@@ -676,7 +610,7 @@ class VelvetBsdfNode : public BsdfNode {
  public:
   SHADER_NODE_CLASS(VelvetBsdfNode)
 
-  NODE_SOCKET_API(float, sigma)
+  float sigma;
 };
 
 class GlossyBsdfNode : public BsdfNode {
@@ -690,12 +624,8 @@ class GlossyBsdfNode : public BsdfNode {
     return distribution;
   }
 
-  NODE_SOCKET_API(float, roughness)
-  NODE_SOCKET_API(ClosureType, distribution)
-
- private:
-  float roughness_orig;
-  ClosureType distribution_orig;
+  float roughness, roughness_orig;
+  ClosureType distribution, distribution_orig;
 };
 
 class GlassBsdfNode : public BsdfNode {
@@ -709,13 +639,8 @@ class GlassBsdfNode : public BsdfNode {
     return distribution;
   }
 
-  NODE_SOCKET_API(float, roughness)
-  NODE_SOCKET_API(float, IOR)
-  NODE_SOCKET_API(ClosureType, distribution)
-
- private:
-  float roughness_orig;
-  ClosureType distribution_orig;
+  float roughness, roughness_orig, IOR;
+  ClosureType distribution, distribution_orig;
 };
 
 class RefractionBsdfNode : public BsdfNode {
@@ -729,22 +654,16 @@ class RefractionBsdfNode : public BsdfNode {
     return distribution;
   }
 
-  NODE_SOCKET_API(float, roughness)
-  NODE_SOCKET_API(float, IOR)
-  NODE_SOCKET_API(ClosureType, distribution)
-
- private:
-  float roughness_orig;
-  ClosureType distribution_orig;
+  float roughness, roughness_orig, IOR;
+  ClosureType distribution, distribution_orig;
 };
 
 class ToonBsdfNode : public BsdfNode {
  public:
   SHADER_NODE_CLASS(ToonBsdfNode)
 
-  NODE_SOCKET_API(float, smooth)
-  NODE_SOCKET_API(float, size)
-  NODE_SOCKET_API(ClosureType, component)
+  float smooth, size;
+  ClosureType component;
 };
 
 class SubsurfaceScatteringNode : public BsdfNode {
@@ -760,11 +679,11 @@ class SubsurfaceScatteringNode : public BsdfNode {
     return falloff;
   }
 
-  NODE_SOCKET_API(float, scale)
-  NODE_SOCKET_API(float3, radius)
-  NODE_SOCKET_API(float, sharpness)
-  NODE_SOCKET_API(float, texture_blur)
-  NODE_SOCKET_API(ClosureType, falloff)
+  float scale;
+  float3 radius;
+  float sharpness;
+  float texture_blur;
+  ClosureType falloff;
 };
 
 class EmissionNode : public ShaderNode {
@@ -781,9 +700,9 @@ class EmissionNode : public ShaderNode {
     return true;
   }
 
-  NODE_SOCKET_API(float3, color)
-  NODE_SOCKET_API(float, strength)
-  NODE_SOCKET_API(float, surface_mix_weight)
+  float3 color;
+  float strength;
+  float surface_mix_weight;
 };
 
 class BackgroundNode : public ShaderNode {
@@ -791,9 +710,9 @@ class BackgroundNode : public ShaderNode {
   SHADER_NODE_CLASS(BackgroundNode)
   void constant_fold(const ConstantFolder &folder);
 
-  NODE_SOCKET_API(float3, color)
-  NODE_SOCKET_API(float, strength)
-  NODE_SOCKET_API(float, surface_mix_weight)
+  float3 color;
+  float strength;
+  float surface_mix_weight;
 };
 
 class HoldoutNode : public ShaderNode {
@@ -808,8 +727,8 @@ class HoldoutNode : public ShaderNode {
     return CLOSURE_HOLDOUT_ID;
   }
 
-  NODE_SOCKET_API(float, surface_mix_weight)
-  NODE_SOCKET_API(float, volume_mix_weight)
+  float surface_mix_weight;
+  float volume_mix_weight;
 };
 
 class AmbientOcclusionNode : public ShaderNode {
@@ -829,13 +748,13 @@ class AmbientOcclusionNode : public ShaderNode {
     return true;
   }
 
-  NODE_SOCKET_API(float3, color)
-  NODE_SOCKET_API(float, distance)
-  NODE_SOCKET_API(float3, normal)
-  NODE_SOCKET_API(int, samples)
+  float3 color;
+  float distance;
+  float3 normal;
+  int samples;
 
-  NODE_SOCKET_API(bool, only_local)
-  NODE_SOCKET_API(bool, inside)
+  bool only_local;
+  bool inside;
 };
 
 class VolumeNode : public ShaderNode {
@@ -861,14 +780,11 @@ class VolumeNode : public ShaderNode {
     return true;
   }
 
-  NODE_SOCKET_API(float3, color)
-  NODE_SOCKET_API(float, density)
-  NODE_SOCKET_API(float, volume_mix_weight)
-
- protected:
+  float3 color;
+  float density;
+  float volume_mix_weight;
   ClosureType closure;
 
- public:
   virtual bool equals(const ShaderNode & /*other*/)
   {
     /* TODO(sergey): With some care Volume nodes can be de-duplicated. */
@@ -885,7 +801,7 @@ class ScatterVolumeNode : public VolumeNode {
  public:
   SHADER_NODE_CLASS(ScatterVolumeNode)
 
-  NODE_SOCKET_API(float, anisotropy)
+  float anisotropy;
 };
 
 class PrincipledVolumeNode : public VolumeNode {
@@ -897,17 +813,17 @@ class PrincipledVolumeNode : public VolumeNode {
     return true;
   }
 
-  NODE_SOCKET_API(ustring, density_attribute)
-  NODE_SOCKET_API(ustring, color_attribute)
-  NODE_SOCKET_API(ustring, temperature_attribute)
+  ustring density_attribute;
+  ustring color_attribute;
+  ustring temperature_attribute;
 
-  NODE_SOCKET_API(float, anisotropy)
-  NODE_SOCKET_API(float3, absorption_color)
-  NODE_SOCKET_API(float, emission_strength)
-  NODE_SOCKET_API(float3, emission_color)
-  NODE_SOCKET_API(float, blackbody_intensity)
-  NODE_SOCKET_API(float3, blackbody_tint)
-  NODE_SOCKET_API(float, temperature)
+  float anisotropy;
+  float3 absorption_color;
+  float emission_strength;
+  float3 emission_color;
+  float blackbody_intensity;
+  float3 blackbody_tint;
+  float temperature;
 };
 
 /* Interface between the I/O sockets and the SVM/OSL backend. */
@@ -917,36 +833,36 @@ class PrincipledHairBsdfNode : public BsdfBaseNode {
   void attributes(Shader *shader, AttributeRequestSet *attributes);
 
   /* Longitudinal roughness. */
-  NODE_SOCKET_API(float, roughness)
+  float roughness;
   /* Azimuthal roughness. */
-  NODE_SOCKET_API(float, radial_roughness)
+  float radial_roughness;
   /* Randomization factor for roughnesses. */
-  NODE_SOCKET_API(float, random_roughness)
+  float random_roughness;
   /* Longitudinal roughness factor for only the diffuse bounce (shiny undercoat). */
-  NODE_SOCKET_API(float, coat)
+  float coat;
   /* Index of reflection. */
-  NODE_SOCKET_API(float, ior)
+  float ior;
   /* Cuticle tilt angle. */
-  NODE_SOCKET_API(float, offset)
+  float offset;
   /* Direct coloring's color. */
-  NODE_SOCKET_API(float3, color)
+  float3 color;
   /* Melanin concentration. */
-  NODE_SOCKET_API(float, melanin)
+  float melanin;
   /* Melanin redness ratio. */
-  NODE_SOCKET_API(float, melanin_redness)
+  float melanin_redness;
   /* Dye color. */
-  NODE_SOCKET_API(float3, tint)
+  float3 tint;
   /* Randomization factor for melanin quantities. */
-  NODE_SOCKET_API(float, random_color)
+  float random_color;
   /* Absorption coefficient (unfiltered). */
-  NODE_SOCKET_API(float3, absorption_coefficient)
+  float3 absorption_coefficient;
 
-  NODE_SOCKET_API(float3, normal)
-  NODE_SOCKET_API(float, surface_mix_weight)
+  float3 normal;
+  float surface_mix_weight;
   /* If linked, here will be the given random number. */
-  NODE_SOCKET_API(float, random)
+  float random;
   /* Selected coloring parametrization. */
-  NODE_SOCKET_API(NodePrincipledHairParametrization, parametrization)
+  NodePrincipledHairParametrization parametrization;
 };
 
 class HairBsdfNode : public BsdfNode {
@@ -957,11 +873,11 @@ class HairBsdfNode : public BsdfNode {
     return component;
   }
 
-  NODE_SOCKET_API(ClosureType, component)
-  NODE_SOCKET_API(float, offset)
-  NODE_SOCKET_API(float, roughness_u)
-  NODE_SOCKET_API(float, roughness_v)
-  NODE_SOCKET_API(float3, tangent)
+  ClosureType component;
+  float offset;
+  float roughness_u;
+  float roughness_v;
+  float3 tangent;
 };
 
 class GeometryNode : public ShaderNode {
@@ -978,7 +894,7 @@ class GeometryNode : public ShaderNode {
   }
   int get_group();
 
-  NODE_SOCKET_API(float3, normal_osl)
+  float3 normal_osl;
 };
 
 class TextureCoordinateNode : public ShaderNode {
@@ -994,10 +910,10 @@ class TextureCoordinateNode : public ShaderNode {
     return true;
   }
 
-  NODE_SOCKET_API(float3, normal_osl)
-  NODE_SOCKET_API(bool, from_dupli)
-  NODE_SOCKET_API(bool, use_transform)
-  NODE_SOCKET_API(Transform, ob_tfm)
+  float3 normal_osl;
+  bool from_dupli;
+  bool use_transform;
+  Transform ob_tfm;
 };
 
 class UVMapNode : public ShaderNode {
@@ -1017,8 +933,8 @@ class UVMapNode : public ShaderNode {
     return NODE_GROUP_LEVEL_1;
   }
 
-  NODE_SOCKET_API(ustring, attribute)
-  NODE_SOCKET_API(bool, from_dupli)
+  ustring attribute;
+  bool from_dupli;
 };
 
 class LightPathNode : public ShaderNode {
@@ -1042,8 +958,8 @@ class LightFalloffNode : public ShaderNode {
     return NODE_GROUP_LEVEL_2;
   }
 
-  NODE_SOCKET_API(float, strength)
-  NODE_SOCKET_API(float, smooth)
+  float strength;
+  float smooth;
 };
 
 class ObjectInfoNode : public ShaderNode {
@@ -1120,7 +1036,7 @@ class VertexColorNode : public ShaderNode {
     return true;
   }
 
-  NODE_SOCKET_API(ustring, layer_name)
+  ustring layer_name;
 };
 
 class ValueNode : public ShaderNode {
@@ -1129,7 +1045,7 @@ class ValueNode : public ShaderNode {
 
   void constant_fold(const ConstantFolder &folder);
 
-  NODE_SOCKET_API(float, value)
+  float value;
 };
 
 class ColorNode : public ShaderNode {
@@ -1138,7 +1054,7 @@ class ColorNode : public ShaderNode {
 
   void constant_fold(const ConstantFolder &folder);
 
-  NODE_SOCKET_API(float3, value)
+  float3 value;
 };
 
 class AddClosureNode : public ShaderNode {
@@ -1152,15 +1068,15 @@ class MixClosureNode : public ShaderNode {
   SHADER_NODE_CLASS(MixClosureNode)
   void constant_fold(const ConstantFolder &folder);
 
-  NODE_SOCKET_API(float, fac)
+  float fac;
 };
 
 class MixClosureWeightNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(MixClosureWeightNode)
 
-  NODE_SOCKET_API(float, weight)
-  NODE_SOCKET_API(float, fac)
+  float weight;
+  float fac;
 };
 
 class InvertNode : public ShaderNode {
@@ -1172,8 +1088,8 @@ class InvertNode : public ShaderNode {
     return NODE_GROUP_LEVEL_3;
   }
 
-  NODE_SOCKET_API(float, fac)
-  NODE_SOCKET_API(float3, color)
+  float fac;
+  float3 color;
 };
 
 class MixNode : public ShaderNode {
@@ -1186,11 +1102,11 @@ class MixNode : public ShaderNode {
     return NODE_GROUP_LEVEL_3;
   }
 
-  NODE_SOCKET_API(NodeMix, mix_type)
-  NODE_SOCKET_API(bool, use_clamp)
-  NODE_SOCKET_API(float3, color1)
-  NODE_SOCKET_API(float3, color2)
-  NODE_SOCKET_API(float, fac)
+  NodeMix type;
+  bool use_clamp;
+  float3 color1;
+  float3 color2;
+  float fac;
 };
 
 class CombineRGBNode : public ShaderNode {
@@ -1202,9 +1118,7 @@ class CombineRGBNode : public ShaderNode {
     return NODE_GROUP_LEVEL_3;
   }
 
-  NODE_SOCKET_API(float, r)
-  NODE_SOCKET_API(float, g)
-  NODE_SOCKET_API(float, b)
+  float r, g, b;
 };
 
 class CombineHSVNode : public ShaderNode {
@@ -1216,9 +1130,7 @@ class CombineHSVNode : public ShaderNode {
     return NODE_GROUP_LEVEL_3;
   }
 
-  NODE_SOCKET_API(float, h)
-  NODE_SOCKET_API(float, s)
-  NODE_SOCKET_API(float, v)
+  float h, s, v;
 };
 
 class CombineXYZNode : public ShaderNode {
@@ -1230,9 +1142,7 @@ class CombineXYZNode : public ShaderNode {
     return NODE_GROUP_LEVEL_3;
   }
 
-  NODE_SOCKET_API(float, x)
-  NODE_SOCKET_API(float, y)
-  NODE_SOCKET_API(float, z)
+  float x, y, z;
 };
 
 class GammaNode : public ShaderNode {
@@ -1244,8 +1154,8 @@ class GammaNode : public ShaderNode {
     return NODE_GROUP_LEVEL_1;
   }
 
-  NODE_SOCKET_API(float3, color)
-  NODE_SOCKET_API(float, gamma)
+  float3 color;
+  float gamma;
 };
 
 class BrightContrastNode : public ShaderNode {
@@ -1257,9 +1167,9 @@ class BrightContrastNode : public ShaderNode {
     return NODE_GROUP_LEVEL_1;
   }
 
-  NODE_SOCKET_API(float3, color)
-  NODE_SOCKET_API(float, bright)
-  NODE_SOCKET_API(float, contrast)
+  float3 color;
+  float bright;
+  float contrast;
 };
 
 class SeparateRGBNode : public ShaderNode {
@@ -1271,7 +1181,7 @@ class SeparateRGBNode : public ShaderNode {
     return NODE_GROUP_LEVEL_3;
   }
 
-  NODE_SOCKET_API(float3, color)
+  float3 color;
 };
 
 class SeparateHSVNode : public ShaderNode {
@@ -1283,7 +1193,7 @@ class SeparateHSVNode : public ShaderNode {
     return NODE_GROUP_LEVEL_3;
   }
 
-  NODE_SOCKET_API(float3, color)
+  float3 color;
 };
 
 class SeparateXYZNode : public ShaderNode {
@@ -1295,18 +1205,18 @@ class SeparateXYZNode : public ShaderNode {
     return NODE_GROUP_LEVEL_3;
   }
 
-  NODE_SOCKET_API(float3, vector)
+  float3 vector;
 };
 
 class HSVNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(HSVNode)
 
-  NODE_SOCKET_API(float, hue)
-  NODE_SOCKET_API(float, saturation)
-  NODE_SOCKET_API(float, value)
-  NODE_SOCKET_API(float, fac)
-  NODE_SOCKET_API(float3, color)
+  float hue;
+  float saturation;
+  float value;
+  float fac;
+  float3 color;
 };
 
 class AttributeNode : public ShaderNode {
@@ -1322,7 +1232,7 @@ class AttributeNode : public ShaderNode {
     return true;
   }
 
-  NODE_SOCKET_API(ustring, attribute)
+  ustring attribute;
 };
 
 class CameraNode : public ShaderNode {
@@ -1350,8 +1260,8 @@ class FresnelNode : public ShaderNode {
     return NODE_GROUP_LEVEL_1;
   }
 
-  NODE_SOCKET_API(float3, normal)
-  NODE_SOCKET_API(float, IOR)
+  float3 normal;
+  float IOR;
 };
 
 class LayerWeightNode : public ShaderNode {
@@ -1366,8 +1276,8 @@ class LayerWeightNode : public ShaderNode {
     return NODE_GROUP_LEVEL_1;
   }
 
-  NODE_SOCKET_API(float3, normal)
-  NODE_SOCKET_API(float, blend)
+  float3 normal;
+  float blend;
 };
 
 class WireframeNode : public ShaderNode {
@@ -1382,8 +1292,8 @@ class WireframeNode : public ShaderNode {
     return NODE_GROUP_LEVEL_3;
   }
 
-  NODE_SOCKET_API(float, size)
-  NODE_SOCKET_API(bool, use_pixel_size)
+  float size;
+  bool use_pixel_size;
 };
 
 class WavelengthNode : public ShaderNode {
@@ -1394,7 +1304,7 @@ class WavelengthNode : public ShaderNode {
     return NODE_GROUP_LEVEL_3;
   }
 
-  NODE_SOCKET_API(float, wavelength)
+  float wavelength;
 };
 
 class BlackbodyNode : public ShaderNode {
@@ -1406,7 +1316,7 @@ class BlackbodyNode : public ShaderNode {
     return NODE_GROUP_LEVEL_3;
   }
 
-  NODE_SOCKET_API(float, temperature)
+  float temperature;
 };
 
 class MapRangeNode : public ShaderNode {
@@ -1418,14 +1328,9 @@ class MapRangeNode : public ShaderNode {
   }
   void expand(ShaderGraph *graph);
 
-  NODE_SOCKET_API(float, value)
-  NODE_SOCKET_API(float, from_min)
-  NODE_SOCKET_API(float, from_max)
-  NODE_SOCKET_API(float, to_min)
-  NODE_SOCKET_API(float, to_max)
-  NODE_SOCKET_API(float, steps)
-  NODE_SOCKET_API(NodeMapRangeType, range_type)
-  NODE_SOCKET_API(bool, clamp)
+  float value, from_min, from_max, to_min, to_max, steps;
+  NodeMapRangeType type;
+  bool clamp;
 };
 
 class ClampNode : public ShaderNode {
@@ -1436,10 +1341,8 @@ class ClampNode : public ShaderNode {
   {
     return NODE_GROUP_LEVEL_3;
   }
-  NODE_SOCKET_API(float, value)
-  NODE_SOCKET_API(float, min)
-  NODE_SOCKET_API(float, max)
-  NODE_SOCKET_API(NodeClampType, clamp_type)
+  float value, min, max;
+  NodeClampType type;
 };
 
 class MathNode : public ShaderNode {
@@ -1452,11 +1355,11 @@ class MathNode : public ShaderNode {
   void expand(ShaderGraph *graph);
   void constant_fold(const ConstantFolder &folder);
 
-  NODE_SOCKET_API(float, value1)
-  NODE_SOCKET_API(float, value2)
-  NODE_SOCKET_API(float, value3)
-  NODE_SOCKET_API(NodeMathType, math_type)
-  NODE_SOCKET_API(bool, use_clamp)
+  float value1;
+  float value2;
+  float value3;
+  NodeMathType type;
+  bool use_clamp;
 };
 
 class NormalNode : public ShaderNode {
@@ -1467,8 +1370,8 @@ class NormalNode : public ShaderNode {
     return NODE_GROUP_LEVEL_2;
   }
 
-  NODE_SOCKET_API(float3, direction)
-  NODE_SOCKET_API(float3, normal)
+  float3 direction;
+  float3 normal;
 };
 
 class VectorMathNode : public ShaderNode {
@@ -1480,11 +1383,11 @@ class VectorMathNode : public ShaderNode {
   }
   void constant_fold(const ConstantFolder &folder);
 
-  NODE_SOCKET_API(float3, vector1)
-  NODE_SOCKET_API(float3, vector2)
-  NODE_SOCKET_API(float3, vector3)
-  NODE_SOCKET_API(float, scale)
-  NODE_SOCKET_API(NodeVectorMathType, math_type)
+  float3 vector1;
+  float3 vector2;
+  float3 vector3;
+  float scale;
+  NodeVectorMathType type;
 };
 
 class VectorRotateNode : public ShaderNode {
@@ -1495,13 +1398,13 @@ class VectorRotateNode : public ShaderNode {
   {
     return NODE_GROUP_LEVEL_3;
   }
-  NODE_SOCKET_API(NodeVectorRotateType, rotate_type)
-  NODE_SOCKET_API(bool, invert)
-  NODE_SOCKET_API(float3, vector)
-  NODE_SOCKET_API(float3, center)
-  NODE_SOCKET_API(float3, axis)
-  NODE_SOCKET_API(float, angle)
-  NODE_SOCKET_API(float3, rotation)
+  NodeVectorRotateType type;
+  bool invert;
+  float3 vector;
+  float3 center;
+  float3 axis;
+  float angle;
+  float3 rotation;
 };
 
 class VectorTransformNode : public ShaderNode {
@@ -1513,10 +1416,10 @@ class VectorTransformNode : public ShaderNode {
     return NODE_GROUP_LEVEL_3;
   }
 
-  NODE_SOCKET_API(NodeVectorTransformType, transform_type)
-  NODE_SOCKET_API(NodeVectorTransformConvertSpace, convert_from)
-  NODE_SOCKET_API(NodeVectorTransformConvertSpace, convert_to)
-  NODE_SOCKET_API(float3, vector)
+  NodeVectorTransformType type;
+  NodeVectorTransformConvertSpace convert_from;
+  NodeVectorTransformConvertSpace convert_to;
+  float3 vector;
 };
 
 class BumpNode : public ShaderNode {
@@ -1532,15 +1435,15 @@ class BumpNode : public ShaderNode {
     return NODE_FEATURE_BUMP;
   }
 
-  NODE_SOCKET_API(bool, invert)
-  NODE_SOCKET_API(bool, use_object_space)
-  NODE_SOCKET_API(float, height)
-  NODE_SOCKET_API(float, sample_center)
-  NODE_SOCKET_API(float, sample_x)
-  NODE_SOCKET_API(float, sample_y)
-  NODE_SOCKET_API(float3, normal)
-  NODE_SOCKET_API(float, strength)
-  NODE_SOCKET_API(float, distance)
+  bool invert;
+  bool use_object_space;
+  float height;
+  float sample_center;
+  float sample_x;
+  float sample_y;
+  float3 normal;
+  float strength;
+  float distance;
 };
 
 class CurvesNode : public ShaderNode {
@@ -1553,11 +1456,9 @@ class CurvesNode : public ShaderNode {
     return NODE_GROUP_LEVEL_3;
   }
 
-  NODE_SOCKET_API(array<float3>, curves)
-  NODE_SOCKET_API(float, min_x)
-  NODE_SOCKET_API(float, max_x)
-  NODE_SOCKET_API(float, fac)
-  NODE_SOCKET_API(float3, value)
+  array<float3> curves;
+  float min_x, max_x, fac;
+  float3 value;
 
  protected:
   using ShaderNode::constant_fold;
@@ -1587,16 +1488,16 @@ class RGBRampNode : public ShaderNode {
     return NODE_GROUP_LEVEL_1;
   }
 
-  NODE_SOCKET_API(array<float3>, ramp)
-  NODE_SOCKET_API(array<float>, ramp_alpha)
-  NODE_SOCKET_API(float, fac)
-  NODE_SOCKET_API(bool, interpolate)
+  array<float3> ramp;
+  array<float> ramp_alpha;
+  float fac;
+  bool interpolate;
 };
 
 class SetNormalNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(SetNormalNode)
-  NODE_SOCKET_API(float3, direction)
+  float3 direction;
 };
 
 class OSLNode : public ShaderNode {
@@ -1648,11 +1549,11 @@ class NormalMapNode : public ShaderNode {
     return NODE_GROUP_LEVEL_3;
   }
 
-  NODE_SOCKET_API(NodeNormalMapSpace, space)
-  NODE_SOCKET_API(ustring, attribute)
-  NODE_SOCKET_API(float, strength)
-  NODE_SOCKET_API(float3, color)
-  NODE_SOCKET_API(float3, normal_osl)
+  NodeNormalMapSpace space;
+  ustring attribute;
+  float strength;
+  float3 color;
+  float3 normal_osl;
 };
 
 class TangentNode : public ShaderNode {
@@ -1672,10 +1573,10 @@ class TangentNode : public ShaderNode {
     return NODE_GROUP_LEVEL_3;
   }
 
-  NODE_SOCKET_API(NodeTangentDirectionType, direction_type)
-  NODE_SOCKET_API(NodeTangentAxis, axis)
-  NODE_SOCKET_API(ustring, attribute)
-  NODE_SOCKET_API(float3, normal_osl)
+  NodeTangentDirectionType direction_type;
+  NodeTangentAxis axis;
+  ustring attribute;
+  float3 normal_osl;
 };
 
 class BevelNode : public ShaderNode {
@@ -1694,9 +1595,9 @@ class BevelNode : public ShaderNode {
     return true;
   }
 
-  NODE_SOCKET_API(float, radius)
-  NODE_SOCKET_API(float3, normal)
-  NODE_SOCKET_API(int, samples)
+  float radius;
+  float3 normal;
+  int samples;
 };
 
 class DisplacementNode : public ShaderNode {
@@ -1708,11 +1609,11 @@ class DisplacementNode : public ShaderNode {
     return NODE_FEATURE_BUMP;
   }
 
-  NODE_SOCKET_API(NodeNormalMapSpace, space)
-  NODE_SOCKET_API(float, height)
-  NODE_SOCKET_API(float, midlevel)
-  NODE_SOCKET_API(float, scale)
-  NODE_SOCKET_API(float3, normal)
+  NodeNormalMapSpace space;
+  float height;
+  float midlevel;
+  float scale;
+  float3 normal;
 };
 
 class VectorDisplacementNode : public ShaderNode {
@@ -1729,11 +1630,11 @@ class VectorDisplacementNode : public ShaderNode {
     return NODE_FEATURE_BUMP;
   }
 
-  NODE_SOCKET_API(NodeNormalMapSpace, space)
-  NODE_SOCKET_API(ustring, attribute)
-  NODE_SOCKET_API(float3, vector)
-  NODE_SOCKET_API(float, midlevel)
-  NODE_SOCKET_API(float, scale)
+  NodeNormalMapSpace space;
+  ustring attribute;
+  float3 vector;
+  float midlevel;
+  float scale;
 };
 
 CCL_NAMESPACE_END
