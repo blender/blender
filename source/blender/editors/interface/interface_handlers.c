@@ -7693,6 +7693,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
   }
 
 #ifdef USE_DRAG_MULTINUM
+  data = but->active;
   if (data) {
     if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) ||
         /* if we started dragging, progress on any event */
