@@ -177,7 +177,7 @@ void BKE_mesh_to_pointcloud(struct Main *bmain,
                             struct Depsgraph *depsgraph,
                             struct Scene *scene,
                             struct Object *ob);
-void BKE_mesh_from_pointcloud(struct PointCloud *pointcloud, struct Mesh *me);
+void BKE_mesh_from_pointcloud(const struct PointCloud *pointcloud, struct Mesh *me);
 void BKE_pointcloud_to_mesh(struct Main *bmain,
                             struct Depsgraph *depsgraph,
                             struct Scene *scene,

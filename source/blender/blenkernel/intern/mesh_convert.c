@@ -949,7 +949,7 @@ void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene *UNUSED(sce
   BKE_object_free_derived_caches(ob);
 }
 
-void BKE_mesh_from_pointcloud(PointCloud *pointcloud, Mesh *me)
+void BKE_mesh_from_pointcloud(const PointCloud *pointcloud, Mesh *me)
 {
   BLI_assert(pointcloud != NULL);
 
