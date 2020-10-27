@@ -116,6 +116,7 @@ typedef struct UndoSculpt {
 } UndoSculpt;
 
 static UndoSculpt *sculpt_undo_get_nodes(void);
+static void sculpt_undo_print_nodes(void *active);
 
 static void update_cb(PBVHNode *node, void *rebuild)
 {
@@ -132,6 +133,8 @@ struct PartialUpdateData {
   bool rebuild;
   char *modified_grids;
 };
+
+static UndoSculpt *sculpt_undosys_step_get_nodes(UndoStep *us_p);
 
 /**
  * A version of #update_cb that tests for 'ME_VERT_PBVH_UPDATE'
@@ -421,7 +424,7 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
     unode->applied = true;
   }
 
-  if (unode->type == SCULPT_UNDO_MASK) {
+  if (unode->type == SCULPT_UNDO_MASK || unode->type == SCULPT_UNDO_COLOR) {
     int totnode;
     PBVHNode **nodes;
 
@@ -971,6 +974,7 @@ static SculptUndoNode *sculpt_undo_find_or_alloc_node_type(Object *object, Sculp
   return sculpt_undo_alloc_node_type(object, type);
 }
 
+
 static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, SculptUndoType type)
 {
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
@@ -1173,7 +1177,10 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
 
   SculptUndoNode *unode = usculpt->nodes.first;
 
+  bool new_node = false;
+
   if (unode == NULL) {
+    new_node = true;
     unode = MEM_callocN(sizeof(*unode), __func__);
 
     BLI_strncpy(unode->idname, ob->id.name, sizeof(unode->idname));
@@ -1216,8 +1223,8 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
         BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL)
         {
           void *dummy;
-          //BKE_pbvh_bmesh_update_origvert(ss->pbvh, vd.bm_vert, &dummy, &dummy, &dummy);
-          BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset);
+          // BKE_pbvh_bmesh_update_origvert(ss->pbvh, vd.bm_vert, &dummy, &dummy, &dummy);
+          BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset, false);
         }
         BKE_pbvh_vertex_iter_end;
         break;
@@ -1228,7 +1235,8 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
 
         BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL)
         {
-          BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset);
+          BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset, true);
+          // BKE_pbvh_bmesh_update_origvert(ss->pbvh, vd.bm_vert, &dummy, &dummy, &dummy);
         }
         BKE_pbvh_vertex_iter_end;
 
@@ -1240,16 +1248,16 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
       }
 
       case SCULPT_UNDO_COLOR: {
-#if 0
+#if 1
         BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL)
         {
-          BM_log_vert_before_modified(
-              ss->bm, ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset, true);
+          void *dummy;
+          BKE_pbvh_bmesh_update_origvert(ss->pbvh, vd.bm_vert, NULL, NULL, &dummy);
         }
         BKE_pbvh_vertex_iter_end;
 #endif
         break;
-      } 
+      }
       case SCULPT_UNDO_DYNTOPO_BEGIN:
       case SCULPT_UNDO_DYNTOPO_END:
       case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
@@ -1257,6 +1265,10 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
       case SCULPT_UNDO_FACE_SETS:
         break;
     }
+  }
+
+  if (new_node) {
+    //sculpt_undo_print_nodes(NULL);
   }
 
   return unode;
@@ -1401,6 +1413,7 @@ typedef struct SculptUndoStep {
   UndoStep step;
   /* Note: will split out into list for multi-object-sculpt-mode. */
   UndoSculpt data;
+  int id;
 } SculptUndoStep;
 
 static void sculpt_undosys_step_encode_init(struct bContext *UNUSED(C), UndoStep *us_p)
@@ -1439,6 +1452,8 @@ static void sculpt_undosys_step_decode_undo_impl(struct bContext *C,
   BLI_assert(us->step.is_applied == true);
   sculpt_undo_restore_list(C, depsgraph, &us->data.nodes);
   us->step.is_applied = false;
+
+  //sculpt_undo_print_nodes(us);
 }
 
 static void sculpt_undosys_step_decode_redo_impl(struct bContext *C,
@@ -1448,6 +1463,8 @@ static void sculpt_undosys_step_decode_redo_impl(struct bContext *C,
   BLI_assert(us->step.is_applied == false);
   sculpt_undo_restore_list(C, depsgraph, &us->data.nodes);
   us->step.is_applied = true;
+
+  //sculpt_undo_print_nodes(us);
 }
 
 static void sculpt_undosys_step_decode_undo(struct bContext *C,
@@ -1677,3 +1694,74 @@ void ED_sculpt_undo_push_multires_mesh_end(bContext *C, const char *str)
 }
 
 /** \} */
+
+
+#ifdef _
+#  undef _
+#endif
+#define _(type) \
+  case type: \
+    return #type;
+static char *undo_type_to_str(int type)
+{
+  switch (type) {
+    _(SCULPT_UNDO_DYNTOPO_BEGIN)
+    _(SCULPT_UNDO_DYNTOPO_END)
+    _(SCULPT_UNDO_COORDS)
+    _(SCULPT_UNDO_GEOMETRY)
+    _(SCULPT_UNDO_DYNTOPO_SYMMETRIZE)
+    _(SCULPT_UNDO_FACE_SETS)
+    _(SCULPT_UNDO_HIDDEN)
+    _(SCULPT_UNDO_MASK)
+    _(SCULPT_UNDO_COLOR)
+    default:
+      return "unknown node type";
+  }
+}
+#undef _
+
+static int nodeidgen = 1;
+
+static void sculpt_undo_print_nodes(void *active)
+{
+  UndoStack *ustack = ED_undo_stack_get();
+  UndoStep *us = ustack->steps.first;
+  if (active == NULL) {
+    active = ustack->step_active;
+  }
+
+  SculptUndoNode *node;
+
+  if (!us) {
+    return;
+  }
+
+  printf("\n");
+  int i = 0;
+  for (; us; us = us->next, i++) {
+    int id = -1;
+
+    if (us->type == BKE_UNDOSYS_TYPE_SCULPT) {
+      SculptUndoStep *su = (SculptUndoStep *)us;
+      if (!su->id) {
+        su->id = nodeidgen++;
+      }
+
+      id = su->id;
+    }
+
+    printf("%d %s %d %s\n", id, us == active ? "->" : "  ", i, us->name);
+
+    if (us->type == BKE_UNDOSYS_TYPE_SCULPT) {
+      UndoSculpt *usculpt = sculpt_undosys_step_get_nodes(us);
+
+      for (node = usculpt->nodes.first; node; node = node->next) {
+        printf("    %s:%s {applied=%d bm_entry=%p}\n",
+               undo_type_to_str(node->type),
+               node->idname,
+               node->applied,
+               node->bm_entry);
+      }
+    }
+  }
+}

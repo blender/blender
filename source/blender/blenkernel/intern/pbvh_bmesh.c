@@ -1792,9 +1792,9 @@ void BKE_pbvh_bmesh_update_origvert(
 {
   float *co = NULL, *no = NULL;
 
-  if (r_co || r_no) {
-    BM_log_vert_before_modified(pbvh->bm_log, v, pbvh->cd_vert_mask_offset);
+  BM_log_vert_before_modified(pbvh->bm_log, v, pbvh->cd_vert_mask_offset, r_color != NULL);
 
+  if (r_co || r_no) {
     co = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_origco_offset);
     no = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_origno_offset);
 

@@ -62,7 +62,7 @@ void BM_log_undo(BMesh *bm, BMLog *log);
 void BM_log_redo(BMesh *bm, BMLog *log);
 
 /* Log a vertex before it is modified */
-void BM_log_vert_before_modified(BMLog *log, struct BMVert *v, const int cd_vert_mask_offset);
+void BM_log_vert_before_modified(BMLog *log, struct BMVert *v, const int cd_vert_mask_offset, bool log_customdata);
 
 /* Log a new vertex as added to the BMesh */
 void BM_log_vert_added(BMLog *log, struct BMVert *v, const int cd_vert_mask_offset);
