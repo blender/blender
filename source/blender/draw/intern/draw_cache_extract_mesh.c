@@ -2800,8 +2800,6 @@ static void *extract_vcol_init(const MeshRenderData *mr, struct MeshBatchCache *
           vcol_data->a = unit_float_to_ushort_clamp(vcol[loops[ml_index].v].color[3]);
         }
       }
-
-      vcol_data += mr->loop_len;
     }
   }
   return NULL;
