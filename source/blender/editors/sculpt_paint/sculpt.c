@@ -7524,6 +7524,7 @@ static void SCULPT_OT_symmetrize(wmOperatorType *ot)
 
 /**** Toggle operator for turning sculpt mode on or off ****/
 
+/** \warning Expects a fully evaluated depsgraph. */
 static void sculpt_init_session(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   /* Create persistent sculpt mode data. */
@@ -7587,16 +7588,13 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
 
   if (flush_recalc) {
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+    BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
   }
 
   /* Create sculpt mode session data. */
   if (ob->sculpt) {
     BKE_sculptsession_free(ob);
   }
-
-  /* Make sure derived final from original object does not reference possibly
-   * freed memory. */
-  BKE_object_free_derived_caches(ob);
 
   sculpt_init_session(depsgraph, scene, ob);
 
