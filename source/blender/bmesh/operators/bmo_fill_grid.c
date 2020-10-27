@@ -96,9 +96,7 @@ static void quad_verts_to_barycentric_tri(float tri[3][3],
 #endif
 
 /* -------------------------------------------------------------------- */
-/* Handle Loop Pairs */
-
-/** \name Loop Pairs
+/** \name Handle Loop Pairs
  * \{ */
 
 /**

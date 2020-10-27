@@ -645,9 +645,9 @@ bool UI_but_online_manual_id_from_active(const struct bContext *C, char *r_str, 
 }
 
 /* -------------------------------------------------------------------- */
-/* Modal Button Store API */
-
 /** \name Button Store
+ *
+ * Modal Button Store API.
  *
  * Store for modal operators & handlers to register button pointers
  * which are maintained while drawing or NULL when removed.

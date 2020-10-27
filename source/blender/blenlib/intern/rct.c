@@ -1085,9 +1085,9 @@ void print_rcti(const char *str, const rcti *rect)
          BLI_rcti_size_y(rect));
 }
 
-/* -------------------------------------------------------------------- */
 /* Comprehensive math (float only) */
 
+/* -------------------------------------------------------------------- */
 /** \name Rect math functions
  * \{ */
 

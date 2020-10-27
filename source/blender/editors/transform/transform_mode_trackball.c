@@ -40,9 +40,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Rotation - Trackball) */
-
-/** \name Transform Rotation - Trackball
+/** \name Transform (Rotation - Trackball)
  * \{ */
 
 static void applyTrackballValue(TransInfo *t,

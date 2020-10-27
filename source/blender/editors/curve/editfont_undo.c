@@ -74,6 +74,7 @@ typedef struct UndoFont {
 
 #ifdef USE_ARRAY_STORE
 
+/* -------------------------------------------------------------------- */
 /** \name Array Store
  * \{ */
 

@@ -349,7 +349,6 @@ void EEVEE_shadows_draw(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, DRWView
 }
 
 /* -------------------------------------------------------------------- */
-
 /** \name Render Passes
  * \{ */
 

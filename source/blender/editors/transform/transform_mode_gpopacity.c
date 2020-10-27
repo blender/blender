@@ -40,9 +40,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (GPencil Opacity) */
-
-/** \name Transform GPencil Strokes Opacity
+/** \name Transform (GPencil Strokes Opacity)
  * \{ */
 
 static void applyGPOpacity(TransInfo *t, const int UNUSED(mval[2]))

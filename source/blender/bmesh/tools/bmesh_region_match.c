@@ -67,8 +67,6 @@
 #include "BLI_strict_flags.h"
 
 /* -------------------------------------------------------------------- */
-/* UUID-Walk API */
-
 /** \name Internal UUIDWalk API
  * \{ */
 
@@ -615,6 +613,7 @@ static uint bm_uuidwalk_init_from_edge(UUIDWalk *uuidwalk, BMEdge *e)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Internal UUIDFaceStep API
  * \{ */
 
@@ -907,6 +906,7 @@ static void bm_face_array_visit(BMFace **faces,
 
 #ifdef USE_PIVOT_SEARCH
 
+/* -------------------------------------------------------------------- */
 /** \name Internal UUIDWalk API
  * \{ */
 
@@ -1226,11 +1226,11 @@ static BMEdge *bm_face_region_pivot_edge_find(BMFace **faces_region,
 
 #endif /* USE_PIVOT_SEARCH */
 
-/* -------------------------------------------------------------------- */
 /* Quick UUID pass - identify candidates */
 
 #ifdef USE_PIVOT_FASTMATCH
 
+/* -------------------------------------------------------------------- */
 /** \name Fast Match
  * \{ */
 

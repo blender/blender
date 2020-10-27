@@ -42,9 +42,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Shrink-Fatten) */
-
-/** \name Transform Shrink-Fatten
+/** \name Transform (Shrink-Fatten)
  * \{ */
 
 static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))

@@ -38,9 +38,7 @@
 #include "transform_mode.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Mirror) */
-
-/** \name Transform Mirror
+/** \name Transform (Mirror)
  * \{ */
 
 static void applyMirror(TransInfo *t, const int UNUSED(mval[2]))

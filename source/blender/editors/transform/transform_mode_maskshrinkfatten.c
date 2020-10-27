@@ -40,9 +40,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Mask Shrink/Fatten) */
-
-/** \name Transform Mask Shrink/Fatten
+/** \name Transform (Mask Shrink/Fatten)
  * \{ */
 
 static void applyMaskShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))

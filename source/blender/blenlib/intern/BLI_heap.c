@@ -67,6 +67,7 @@ struct Heap {
   } nodes;
 };
 
+/* -------------------------------------------------------------------- */
 /** \name Internal Functions
  * \{ */
 
@@ -146,6 +147,7 @@ static void heap_up(Heap *heap, uint i)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Internal Memory Management
  * \{ */
 
@@ -187,6 +189,7 @@ static void heap_node_free(Heap *heap, HeapNode *node)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Public Heap API
  * \{ */
 

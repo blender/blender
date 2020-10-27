@@ -66,6 +66,7 @@ static void recount_totsels(BMesh *bm)
   }
 }
 
+/* -------------------------------------------------------------------- */
 /** \name BMesh helper functions for selection & hide flushing.
  * \{ */
 
@@ -540,7 +541,8 @@ void BM_face_select_set(BMesh *bm, BMFace *f, const bool select)
   }
 }
 
-/** \name Non flushing versions element selection.
+/* -------------------------------------------------------------------- */
+/** \name Non Flushing Versions Element Selection
  * \{ */
 
 void BM_edge_select_set_noflush(BMesh *bm, BMEdge *e, const bool select)

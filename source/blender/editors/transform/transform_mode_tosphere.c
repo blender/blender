@@ -40,9 +40,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (ToSphere) */
-
-/** \name Transform ToSphere
+/** \name Transform (ToSphere)
  * \{ */
 
 static void applyToSphere(TransInfo *t, const int UNUSED(mval[2]))

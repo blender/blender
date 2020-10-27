@@ -1159,6 +1159,7 @@ void SCULPT_floodfill_free(SculptFloodFill *flood)
   flood->queue = NULL;
 }
 
+/* -------------------------------------------------------------------- */
 /** \name Tool Capabilities
  *
  * Avoid duplicate checks, internal logic only,
@@ -1380,6 +1381,7 @@ static void sculpt_project_v3_normal_align(SculptSession *ss,
       grab_delta, ss->cache->sculpt_normal_symm, (len_signed * normal_weight) * len_view_scale);
 }
 
+/* -------------------------------------------------------------------- */
 /** \name SculptProjectVector
  *
  * Fast-path for #project_plane_v3_v3v3
@@ -1887,6 +1889,7 @@ static float calc_symmetry_feather(Sculpt *sd, StrokeCache *cache)
   return 1.0f;
 }
 
+/* -------------------------------------------------------------------- */
 /** \name Calculate Normal and Center
  *
  * Calculate geometry surrounding the brush center.
@@ -3007,6 +3010,7 @@ static void do_mask_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   }
 }
 
+/* -------------------------------------------------------------------- */
 /** \name Sculpt Multires Displacement Eraser Brush
  * \{ */
 
@@ -3229,7 +3233,6 @@ static void do_draw_sharp_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 }
 
 /* -------------------------------------------------------------------- */
-
 /** \name Sculpt Topology Brush
  * \{ */
 
@@ -4765,7 +4768,6 @@ static void do_flatten_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 }
 
 /* -------------------------------------------------------------------- */
-
 /** \name Sculpt Clay Brush
  * \{ */
 
@@ -5290,7 +5292,6 @@ static void do_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 }
 
 /* -------------------------------------------------------------------- */
-
 /** \name Sculpt Clay Thumb Brush
  * \{ */
 

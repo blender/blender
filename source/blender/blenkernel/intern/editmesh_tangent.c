@@ -35,6 +35,7 @@
 /* interface */
 #include "mikktspace.h"
 
+/* -------------------------------------------------------------------- */
 /** \name Tangent Space Calculation
  * \{ */
 

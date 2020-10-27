@@ -68,9 +68,7 @@ static size_t idp_size_table[] = {
 };
 
 /* -------------------------------------------------------------------- */
-/* Array Functions */
-
-/** \name IDP Array API
+/** \name Array Functions (IDP Array API)
  * \{ */
 
 #define GETPROP(prop, i) &(IDP_IDPArray(prop)[i])
@@ -323,9 +321,7 @@ static IDProperty *IDP_CopyArray(const IDProperty *prop, const int flag)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/* String Functions */
-
-/** \name IDProperty String API
+/** \name String Functions (IDProperty String API)
  * \{ */
 
 /**
@@ -439,9 +435,7 @@ void IDP_FreeString(IDProperty *prop)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/* ID Type */
-
-/** \name IDProperty ID API
+/** \name ID Type (IDProperty ID API)
  * \{ */
 
 static IDProperty *IDP_CopyID(const IDProperty *prop, const int flag)
@@ -477,9 +471,7 @@ void IDP_AssignID(IDProperty *prop, ID *id, const int flag)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/* Group Functions */
-
-/** \name IDProperty Group API
+/** \name Group Functions (IDProperty Group API)
  * \{ */
 
 /**
@@ -760,10 +752,9 @@ static void IDP_FreeGroup(IDProperty *prop, const bool do_id_user)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/* Main Functions */
-
-/** \name IDProperty Main API
+/** \name Main Functions  (IDProperty Main API)
  * \{ */
+
 IDProperty *IDP_CopyProperty_ex(const IDProperty *prop, const int flag)
 {
   switch (prop->type) {

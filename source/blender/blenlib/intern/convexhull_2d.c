@@ -37,6 +37,7 @@
  * http://softsurfer.com/Archive/algorithm_0203/algorithm_0203.htm
  */
 
+/* -------------------------------------------------------------------- */
 /** \name Main Convex-Hull Calculation
  * \{ */
 
@@ -227,9 +228,9 @@ int BLI_convexhull_2d(const float (*points)[2], const int n, int r_points[])
 
 /** \} */
 
-/* -------------------------------------------------------------------- */
 /* Helper functions */
 
+/* -------------------------------------------------------------------- */
 /** \name Utility Convex-Hull Functions
  * \{ */
 

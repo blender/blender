@@ -40,9 +40,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Tilt) */
-
-/** \name Transform Tilt
+/** \name Transform (Tilt)
  * \{ */
 
 static void applyTilt(TransInfo *t, const int UNUSED(mval[2]))

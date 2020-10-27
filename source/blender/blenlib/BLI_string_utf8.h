@@ -103,6 +103,7 @@ int BLI_str_utf8_offset_from_column(const char *str, int column);
 #define BLI_UTF8_WIDTH_MAX 2 /* columns */
 #define BLI_UTF8_ERR ((unsigned int)-1)
 
+/* -------------------------------------------------------------------- */
 /** \name String Copy/Format Macros
  * Avoid repeating destination with `sizeof(..)`.
  * \note `ARRAY_SIZE` allows pointers on some platforms.

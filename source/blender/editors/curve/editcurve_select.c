@@ -1422,9 +1422,7 @@ void CURVE_OT_select_nth(wmOperatorType *ot)
 }
 
 /* -------------------------------------------------------------------- */
-/* Select Similar */
-
-/** \name Select Similar
+/** \name Select Similar Operator
  * \{ */
 
 static const EnumPropertyItem curve_prop_similar_compare_types[] = {
@@ -1786,9 +1784,7 @@ void CURVE_OT_select_similar(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/* Select Shortest Path */
-
-/** \name Select Path
+/** \name Select Shortest Path Operator
  * \{ */
 
 static float curve_calc_dist_pair(const Nurb *nu, int a, int b)

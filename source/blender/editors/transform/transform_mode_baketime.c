@@ -40,9 +40,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Bake-Time) */
-
-/** \name Transform Bake-Time
+/** \name Transform (Bake-Time)
  * \{ */
 
 static void applyBakeTime(TransInfo *t, const int mval[2])

@@ -74,6 +74,7 @@ enum {
 #endif
 };
 
+/* -------------------------------------------------------------------- */
 /** \name GHash API
  *
  * Defined in ``BLI_ghash.c``
@@ -124,6 +125,7 @@ void BLI_ghash_flag_clear(GHash *gh, unsigned int flag);
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name GHash Iterator
  * \{ */
 
@@ -175,6 +177,7 @@ BLI_INLINE bool BLI_ghashIterator_done(GHashIterator *ghi)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name GSet API
  * A 'set' implementation (unordered collection of unique elements).
  *
@@ -222,6 +225,7 @@ void *BLI_gset_pop_key(GSet *gs, const void *key) ATTR_WARN_UNUSED_RESULT;
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name GSet Iterator
  * \{ */
 
@@ -272,6 +276,7 @@ BLI_INLINE bool BLI_gsetIterator_done(GSetIterator *gsi)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name GHash/GSet Debugging API's
  * \{ */
 
@@ -297,6 +302,7 @@ double BLI_gset_calc_quality(GSet *gs);
 #endif /* GHASH_INTERNAL_API */
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name GHash/GSet Macros
  * \{ */
 
@@ -324,6 +330,7 @@ double BLI_gset_calc_quality(GSet *gs);
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name GHash/GSet Utils
  *
  * Defined in ``BLI_ghash_utils.c``

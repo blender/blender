@@ -1915,6 +1915,7 @@ void GHOST_SystemWin32::putClipboard(GHOST_TInt8 *buffer, bool selection) const
   }
 }
 
+/* -------------------------------------------------------------------- */
 /** \name Message Box
  * \{ */
 GHOST_TSuccess GHOST_SystemWin32::showMessageBox(const char *title,

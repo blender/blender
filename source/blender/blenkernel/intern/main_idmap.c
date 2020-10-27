@@ -36,6 +36,7 @@
  * Utility functions for faster ID lookups.
  */
 
+/* -------------------------------------------------------------------- */
 /** \name BKE_main_idmap API
  *
  * Cache ID (name, library lookups).

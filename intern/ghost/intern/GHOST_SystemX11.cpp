@@ -2284,6 +2284,7 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
   }
 }
 
+/* -------------------------------------------------------------------- */
 /** \name Message Box
  * \{ */
 class DialogData {

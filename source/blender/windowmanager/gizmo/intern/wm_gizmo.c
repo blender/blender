@@ -611,6 +611,7 @@ void WM_gizmo_calc_matrix_final(const wmGizmo *gz, float r_mat[4][4])
                                     r_mat);
 }
 
+/* -------------------------------------------------------------------- */
 /** \name Gizmo Property Access
  *
  * Matches `WM_operator_properties` conventions.
@@ -755,6 +756,7 @@ void WM_gizmo_properties_free(PointerRNA *ptr)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name General Utilities
  *
  * \{ */

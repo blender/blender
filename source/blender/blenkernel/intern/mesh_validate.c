@@ -52,6 +52,7 @@
 
 static CLG_LogRef LOG = {"bke.mesh"};
 
+/* -------------------------------------------------------------------- */
 /** \name Internal functions
  * \{ */
 

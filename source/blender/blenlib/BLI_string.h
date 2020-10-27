@@ -147,6 +147,7 @@ int BLI_string_find_split_words(const char *str,
                                 int r_words[][2],
                                 int words_max) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
+/* -------------------------------------------------------------------- */
 /** \name String Copy/Format Macros
  * Avoid repeating destination with `sizeof(..)`.
  * \note `ARRAY_SIZE` allows pointers on some platforms.

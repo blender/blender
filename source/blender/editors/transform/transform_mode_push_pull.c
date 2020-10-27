@@ -41,9 +41,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Push/Pull) */
-
-/** \name Transform Push/Pull
+/** \name Transform (Push/Pull)
  * \{ */
 
 static void applyPushPull(TransInfo *t, const int UNUSED(mval[2]))

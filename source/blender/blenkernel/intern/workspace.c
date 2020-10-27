@@ -98,6 +98,7 @@ IDTypeInfo IDType_ID_WS = {
     .blend_read_expand = NULL,
 };
 
+/* -------------------------------------------------------------------- */
 /** \name Internal Utils
  * \{ */
 

@@ -44,9 +44,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Shear) */
-
-/** \name Transform Shear
+/** \name Transform (Shear)
  * \{ */
 
 static void initShear_mouseInputMode(TransInfo *t)

@@ -520,9 +520,7 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 }
 
 /* -------------------------------------------------------------------- */
-/* Transform (Rotation Utils) */
-
-/** \name Transform Rotation Utils
+/** \name Transform (Rotation Utils)
  * \{ */
 /* Used by Transform Rotation and Transform Normal Rotation */
 void headerRotation(TransInfo *t, char str[UI_MAX_DRAW_STR], float final)
@@ -815,9 +813,7 @@ void ElementRotation(
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/* Transform (Resize Utils) */
-
-/** \name Transform Resize Utils
+/** \name Transform (Resize Utils)
  * \{ */
 void headerResize(TransInfo *t, const float vec[3], char str[UI_MAX_DRAW_STR])
 {
@@ -1040,9 +1036,7 @@ void ElementResize(TransInfo *t, TransDataContainer *tc, TransData *td, float ma
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/* Transform (Frame Utils) */
-
-/** \name Transform Frame Utils
+/** \name Transform (Frame Utils)
  * \{ */
 
 /**

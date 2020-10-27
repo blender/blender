@@ -344,6 +344,7 @@ bool wm_gizmogroup_is_any_selected(const wmGizmoGroup *gzgroup)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Gizmo operators
  *
  * Basic operators for gizmo interaction with user configurable keymaps.

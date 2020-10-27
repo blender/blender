@@ -51,6 +51,7 @@
 #include "BKE_object.h"
 #include "BKE_object_deform.h" /* own include */
 
+/* -------------------------------------------------------------------- */
 /** \name Misc helpers
  * \{ */
 
@@ -106,6 +107,7 @@ void BKE_object_defgroup_remap_update_users(Object *ob, const int *map)
 }
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Group creation
  * \{ */
 
@@ -156,6 +158,7 @@ MDeformVert *BKE_object_defgroup_data_create(ID *id)
 }
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Group clearing
  * \{ */
 
@@ -256,6 +259,7 @@ bool BKE_object_defgroup_clear_all(Object *ob, const bool use_selection)
 }
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Group removal
  * \{ */
 

@@ -558,6 +558,7 @@ static StructRNA *rna_Gizmo_refine(PointerRNA *mnp_ptr)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Gizmo Group API
  * \{ */
 

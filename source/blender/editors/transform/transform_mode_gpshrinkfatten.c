@@ -40,9 +40,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (GPencil Shrink/Fatten) */
-
-/** \name Transform GPencil Strokes Shrink/Fatten
+/** \name Transform (GPencil Strokes Shrink/Fatten)
  * \{ */
 
 static void applyGPShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))

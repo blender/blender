@@ -162,6 +162,7 @@ void interp_v2_v2v2_slerp_safe(float target[2], const float a[2], const float b[
   }
 }
 
+/* -------------------------------------------------------------------- */
 /** \name Cubic curve interpolation (bezier spline).
  * \{ */
 
@@ -1395,6 +1396,7 @@ void copy_vn_fl(float *array_tar, const int size, const float val)
   }
 }
 
+/* -------------------------------------------------------------------- */
 /** \name Double precision versions 'db'.
  * \{ */
 

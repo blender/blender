@@ -56,9 +56,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Edge Slide) */
-
-/** \name Transform Edge Slide
+/** \name Transform (Edge Slide)
  * \{ */
 
 typedef struct TransDataEdgeSlideVert {

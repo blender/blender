@@ -1581,6 +1581,7 @@ void ui_but_override_flag(Main *bmain, uiBut *but)
   }
 }
 
+/* -------------------------------------------------------------------- */
 /** \name Button Extra Operator Icons
  *
  * Extra icons are shown on the right hand side of buttons. They can be clicked to invoke custom

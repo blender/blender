@@ -57,6 +57,7 @@
 
 #include "screen_intern.h"
 
+/* -------------------------------------------------------------------- */
 /** \name Workspace API
  *
  * \brief API for managing workspaces and their data.
@@ -231,6 +232,7 @@ void ED_workspace_scene_data_sync(WorkSpaceInstanceHook *hook, Scene *scene)
 
 /** \} Workspace API */
 
+/* -------------------------------------------------------------------- */
 /** \name Workspace Operators
  *
  * \{ */

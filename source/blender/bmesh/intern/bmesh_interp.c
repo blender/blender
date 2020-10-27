@@ -1027,6 +1027,7 @@ void BM_elem_float_data_set(CustomData *cd, void *element, int type, const float
   }
 }
 
+/* -------------------------------------------------------------------- */
 /** \name Loop interpolation functions: BM_vert_loop_groups_data_layer_***
  *
  * Handling loop custom-data such as UV's, while keeping contiguous fans is rather tedious.

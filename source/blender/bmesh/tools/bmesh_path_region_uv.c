@@ -72,6 +72,7 @@ static bool bm_loop_pair_ends(BMLoop *l_pivot, BMLoop *l_end_pair[2])
 }
 #endif /* USE_EDGE_CHAIN */
 
+/* -------------------------------------------------------------------- */
 /** \name Loop Vertex in Region Checks
  * \{ */
 
@@ -403,6 +404,7 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
 
 #undef USE_EDGE_CHAIN
 
+/* -------------------------------------------------------------------- */
 /** \name Main Functions (exposed externally).
  * \{ */
 

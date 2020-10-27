@@ -37,9 +37,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Rotation) */
-
-/** \name Transform Rotation
+/** \name Transform (Rotation)
  * \{ */
 
 static float RotationBetween(TransInfo *t, const float p1[3], const float p2[3])

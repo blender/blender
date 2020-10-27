@@ -126,6 +126,7 @@ static void info_callback(const char *msg, void *client_data)
   } \
   (void)0
 
+/* -------------------------------------------------------------------- */
 /** \name Buffer Stream
  * \{ */
 
@@ -217,6 +218,7 @@ static opj_stream_t *opj_stream_create_from_buffer(struct BufInfo *p_file,
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name File Stream
  * \{ */
 

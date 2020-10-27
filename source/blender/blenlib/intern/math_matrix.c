@@ -535,8 +535,10 @@ void mul_m3_m4m4(float R[3][3], const float A[4][4], const float B[4][4])
   R[2][2] = B[2][0] * A[0][2] + B[2][1] * A[1][2] + B[2][2] * A[2][2];
 }
 
+/* -------------------------------------------------------------------- */
 /** \name Macro helpers for: mul_m3_series
  * \{ */
+
 void _va_mul_m3_series_3(float r[3][3], const float m1[3][3], const float m2[3][3])
 {
   mul_m3_m3m3(r, m1, m2);
@@ -621,8 +623,10 @@ void _va_mul_m3_series_9(float r[3][3],
 }
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Macro helpers for: mul_m4_series
  * \{ */
+
 void _va_mul_m4_series_3(float r[4][4], const float m1[4][4], const float m2[4][4])
 {
   mul_m4_m4m4(r, m1, m2);

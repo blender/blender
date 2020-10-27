@@ -63,6 +63,7 @@
 static void pbvh_bmesh_verify(PBVH *pbvh);
 #endif
 
+/* -------------------------------------------------------------------- */
 /** \name BMesh Utility API
  *
  * Use some local functions which assume triangles.
