@@ -403,24 +403,29 @@ int main(int argc,
    * (such as '--version' & '--help') don't report leaks. */
   MEM_use_memleak_detection(false);
 
-  BLI_argsParse(ba, 1, NULL, NULL);
-
-  main_signal_setup();
+  /* Parse environment handling arguments. */
+  BLI_argsParse(ba, 0, NULL, NULL);
 
 #else
   /* Using preferences or user startup makes no sense for #WITH_PYTHON_MODULE. */
   G.factory_startup = true;
 #endif
 
-  /* After parsing the first level of arguments as `--env-*` impact BKE_appdir behavior. */
+  /* After parsing '0' level args such as `--env-*`, since they impact `BKE_appdir` behavior. */
   BKE_appdir_init();
+
+  /* Initialize sub-systems that use `BKE_appdir.h`. */
+  IMB_init();
+
+#ifndef WITH_PYTHON_MODULE
+  /* First test for background-mode (#Global.background) */
+  BLI_argsParse(ba, 1, NULL, NULL);
+
+  main_signal_setup();
+#endif
 
   /* After parsing number of threads argument. */
   BLI_task_scheduler_init();
-
-  /* After parsing `--env-system-datafiles` which control where paths are searched
-   * (color-management) uses BKE_appdir to initialize. */
-  IMB_init();
 
 #ifdef WITH_FFMPEG
   IMB_ffmpeg_init();
