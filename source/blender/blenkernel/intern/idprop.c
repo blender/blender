@@ -952,7 +952,7 @@ bool IDP_EqualsProperties(IDProperty *prop1, IDProperty *prop2)
  * This function takes three arguments: the ID property type, a union which defines
  * its initial value, and a name.
  *
- * The union is simple to use; see the top of this header file for its definition.
+ * The union is simple to use; see the top of BKE_idprop.h for its definition.
  * An example of using this function:
  *
  * \code{.c}
