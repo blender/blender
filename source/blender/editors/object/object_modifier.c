@@ -31,6 +31,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
+#include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_force_types.h"
@@ -793,6 +794,25 @@ static int modifier_apply_obdata(
     float(*vertexCos)[3] = BKE_curve_nurbs_vert_coords_alloc(&curve_eval->nurb, &numVerts);
     mti->deformVerts(md_eval, &mectx, NULL, vertexCos, numVerts);
     BKE_curve_nurbs_vert_coords_apply(&curve->nurb, vertexCos, false);
+
+    MEM_freeN(vertexCos);
+
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  }
+  else if (ob->type == OB_LATTICE) {
+    Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+    Lattice *lattice = ob->data;
+    ModifierEvalContext mectx = {depsgraph, object_eval, 0};
+
+    if (ELEM(mti->type, eModifierTypeType_Constructive, eModifierTypeType_Nonconstructive)) {
+      BKE_report(reports, RPT_ERROR, "Constructive modifiers cannot be applied");
+      return 0;
+    }
+
+    int numVerts;
+    float(*vertexCos)[3] = BKE_lattice_vert_coords_alloc(lattice, &numVerts);
+    mti->deformVerts(md_eval, &mectx, NULL, vertexCos, numVerts);
+    BKE_lattice_vert_coords_apply(lattice, vertexCos);
 
     MEM_freeN(vertexCos);
 
