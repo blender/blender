@@ -1427,9 +1427,9 @@ void BKE_lib_override_library_main_operations_create(Main *bmain, const bool for
   }
 
   /* Usual pose bones issue, need to be done outside of the threaded process or we may run into
-   * concurency issues here.
+   * concurrency issues here.
    * Note that calling #BKE_pose_ensure again in thread in
-   * #BKE_lib_override_library_operations_create is not a problem then.. */
+   * #BKE_lib_override_library_operations_create is not a problem then. */
   LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
     if (ob->type == OB_ARMATURE) {
       BLI_assert(ob->data != NULL);
