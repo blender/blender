@@ -79,6 +79,27 @@ static const EnumPropertyItem sculpt_stroke_method_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+static const EnumPropertyItem rna_enum_brush_texture_slot_map_all_mode_items[] = {
+    {MTEX_MAP_MODE_VIEW, "VIEW_PLANE", 0, "View Plane", ""},
+    {MTEX_MAP_MODE_AREA, "AREA_PLANE", 0, "Area Plane", ""},
+    {MTEX_MAP_MODE_TILED, "TILED", 0, "Tiled", ""},
+    {MTEX_MAP_MODE_3D, "3D", 0, "3D", ""},
+    {MTEX_MAP_MODE_RANDOM, "RANDOM", 0, "Random", ""},
+    {MTEX_MAP_MODE_STENCIL, "STENCIL", 0, "Stencil", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
+#ifdef RNA_RUNTIME
+static const EnumPropertyItem rna_enum_brush_texture_slot_map_texture_mode_items[] = {
+    {MTEX_MAP_MODE_VIEW, "VIEW_PLANE", 0, "View Plane", ""},
+    {MTEX_MAP_MODE_TILED, "TILED", 0, "Tiled", ""},
+    {MTEX_MAP_MODE_3D, "3D", 0, "3D", ""},
+    {MTEX_MAP_MODE_RANDOM, "RANDOM", 0, "Random", ""},
+    {MTEX_MAP_MODE_STENCIL, "STENCIL", 0, "Stencil", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+#endif
+
 /* clang-format off */
 const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
     {SCULPT_TOOL_DRAW, "DRAW", ICON_BRUSH_SCULPT_DRAW, "Draw", ""},
@@ -1015,31 +1036,34 @@ static void rna_GPencilBrush_pin_mode_update(bContext *C, PointerRNA *ptr)
   }
 }
 
+static const EnumPropertyItem *rna_BrushTextureSlot_map_mode_itemf(bContext *C,
+                                                                   PointerRNA *UNUSED(ptr),
+                                                                   PropertyRNA *UNUSED(prop),
+                                                                   bool *UNUSED(r_free))
+{
+
+  if (C == NULL) {
+    return rna_enum_brush_texture_slot_map_all_mode_items;
+  }
+
+#  define rna_enum_brush_texture_slot_map_sculpt_mode_items \
+    rna_enum_brush_texture_slot_map_all_mode_items;
+
+  const ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+  if (mode == PAINT_MODE_SCULPT) {
+    return rna_enum_brush_texture_slot_map_sculpt_mode_items;
+  }
+  return rna_enum_brush_texture_slot_map_texture_mode_items;
+
+#  undef rna_enum_brush_texture_slot_map_sculpt_mode_items
+}
+
 #else
 
 static void rna_def_brush_texture_slot(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
-
-  static const EnumPropertyItem prop_map_mode_items[] = {
-      {MTEX_MAP_MODE_VIEW, "VIEW_PLANE", 0, "View Plane", ""},
-      {MTEX_MAP_MODE_AREA, "AREA_PLANE", 0, "Area Plane", ""},
-      {MTEX_MAP_MODE_TILED, "TILED", 0, "Tiled", ""},
-      {MTEX_MAP_MODE_3D, "3D", 0, "3D", ""},
-      {MTEX_MAP_MODE_RANDOM, "RANDOM", 0, "Random", ""},
-      {MTEX_MAP_MODE_STENCIL, "STENCIL", 0, "Stencil", ""},
-      {0, NULL, 0, NULL, NULL},
-  };
-
-  static const EnumPropertyItem prop_tex_paint_map_mode_items[] = {
-      {MTEX_MAP_MODE_VIEW, "VIEW_PLANE", 0, "View Plane", ""},
-      {MTEX_MAP_MODE_TILED, "TILED", 0, "Tiled", ""},
-      {MTEX_MAP_MODE_3D, "3D", 0, "3D", ""},
-      {MTEX_MAP_MODE_RANDOM, "RANDOM", 0, "Random", ""},
-      {MTEX_MAP_MODE_STENCIL, "STENCIL", 0, "Stencil", ""},
-      {0, NULL, 0, NULL, NULL},
-  };
 
   static const EnumPropertyItem prop_mask_paint_map_mode_items[] = {
       {MTEX_MAP_MODE_VIEW, "VIEW_PLANE", 0, "View Plane", ""},
@@ -1069,14 +1093,8 @@ static void rna_def_brush_texture_slot(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "map_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "brush_map_mode");
-  RNA_def_property_enum_items(prop, prop_map_mode_items);
-  RNA_def_property_ui_text(prop, "Mode", "");
-  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-  RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
-
-  prop = RNA_def_property(srna, "tex_paint_map_mode", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "brush_map_mode");
-  RNA_def_property_enum_items(prop, prop_tex_paint_map_mode_items);
+  RNA_def_property_enum_items(prop, rna_enum_brush_texture_slot_map_all_mode_items);
+  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_BrushTextureSlot_map_mode_itemf");
   RNA_def_property_ui_text(prop, "Mode", "");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
