@@ -2320,6 +2320,28 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   /* TODO: choose leaf limit better */
   pbvh->leaf_limit = 3000;
 
+  BMIter iter;
+  BMVert *v;
+
+  int cd_vcol_offset = -1;
+  if (cd_origvcol_offset >= 0) {
+    cd_vcol_offset = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
+  }
+
+  BM_ITER_MESH(v, &iter, bm, BM_VERTS_OF_MESH) {
+    float *co = BM_ELEM_CD_GET_VOID_P(v, cd_origco_offset);
+    float *no = BM_ELEM_CD_GET_VOID_P(v, cd_origno_offset);
+
+    copy_v3_v3(co, v->co);
+    copy_v3_v3(no, v->no);
+
+    if (cd_origvcol_offset >= 0) {
+      MPropCol *c1 = BM_ELEM_CD_GET_VOID_P(v, cd_vcol_offset);
+      MPropCol *c2 = BM_ELEM_CD_GET_VOID_P(v, cd_origvcol_offset);
+
+      copy_v4_v4(c2->color, c1->color);
+    }
+  }
   if (smooth_shading) {
     pbvh->flags |= PBVH_DYNTOPO_SMOOTH_SHADING;
   }
@@ -2329,7 +2351,6 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   BMFace **nodeinfo = MEM_mallocN(sizeof(*nodeinfo) * bm->totface, "nodeinfo");
   MemArena *arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "fast PBVH node storage");
 
-  BMIter iter;
   BMFace *f;
   int i;
   BM_ITER_MESH_INDEX (f, &iter, bm, BM_FACES_OF_MESH, i) {
@@ -2351,7 +2372,6 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   /* Likely this is already dirty. */
   bm->elem_index_dirty |= BM_FACE;
 
-  BMVert *v;
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
     BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, DYNTOPO_NODE_NONE);
   }
