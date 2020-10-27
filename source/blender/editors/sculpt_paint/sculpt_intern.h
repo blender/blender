@@ -230,6 +230,7 @@ typedef struct {
   short (*normals)[3];
   const float *vmasks;
   float (*colors)[4];
+  short _no[3];
 
   /* Original coordinate, normal, and mask. */
   const float *co;
@@ -237,6 +238,7 @@ typedef struct {
   float mask;
   const float *col;
   struct PBVH *pbvh;
+  struct SculptSession *ss;
 } SculptOrigVertData;
 
 void SCULPT_orig_vert_data_init(SculptOrigVertData *data, Object *ob, PBVHNode *node);

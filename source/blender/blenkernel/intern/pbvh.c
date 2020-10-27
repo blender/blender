@@ -2941,8 +2941,14 @@ PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(PBVHNode *node)
     totvert = node->uniq_verts;
   }
 
+  if (node->color_buffer.color && node->color_buffer.size != totvert) {
+    MEM_freeN(node->color_buffer.color);
+    node->color_buffer.color = NULL;
+  }
+
   if (!node->color_buffer.color) {
     node->color_buffer.color = MEM_callocN(sizeof(float[4]) * totvert, "Color buffer");
+    node->color_buffer.size = totvert;
   }
   return &node->color_buffer;
 }

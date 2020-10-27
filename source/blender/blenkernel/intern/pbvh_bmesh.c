@@ -582,6 +582,7 @@ static BMVert *pbvh_bmesh_vert_create(PBVH *pbvh,
 
   /* Log the new vertex */
   BM_log_vert_added(pbvh->bm_log, v, cd_vert_mask_offset);
+  v->head.index = pbvh->bm->totvert; //set provisional index
 
   return v;
 }

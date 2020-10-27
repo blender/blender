@@ -999,7 +999,7 @@ void BM_log_vert_added(BMLog *log, BMVert *v, const int cd_vert_mask_offset)
   lv = bm_log_vert_alloc(log, v, cd_vert_mask_offset);
   BLI_ghash_insert(log->current_entry->added_verts, key, lv);
 
-  bm_log_vert_customdata(log->bm, log, v, lv);
+  //bm_log_vert_customdata(log->bm, log, v, lv);
 }
 
 /* Log a face before it is modified

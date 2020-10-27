@@ -787,7 +787,7 @@ static void sculpt_vertex_neighbors_get_faces(SculptSession *ss,
                                               SculptVertRef vertex,
                                               SculptVertexNeighborIter *iter)
 {
-  int index = (int)vertex.i;
+  int index = BKE_pbvh_vertex_index_to_table(ss->pbvh, vertex);
 
   MeshElemMap *vert_map = &ss->pmap[index];
   iter->size = 0;
@@ -1326,6 +1326,7 @@ void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data, Object *ob, Scul
   data->unode = unode;
 
   data->pbvh = ss->pbvh;
+  data->ss = ss;
 
   if (bm) {
     data->bm_log = ss->bm_log;
@@ -1345,6 +1346,7 @@ void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data, Object *ob, Scul
 void SCULPT_orig_vert_data_init(SculptOrigVertData *data, Object *ob, PBVHNode *node)
 {
   SculptUndoNode *unode;
+  data->ss = ob->sculpt;
   unode = SCULPT_undo_push_node(ob, node, SCULPT_UNDO_COORDS);
   SCULPT_orig_vert_data_unode_init(data, ob, unode);
 }
@@ -1356,8 +1358,16 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter 
 {
   if (orig_data->unode->type == SCULPT_UNDO_COORDS) {
     if (orig_data->bm_log) {
-      BKE_pbvh_bmesh_update_origvert(
-          orig_data->pbvh, iter->bm_vert, &orig_data->co, &orig_data->no, NULL);
+      orig_data->co = BM_ELEM_CD_GET_VOID_P(iter->bm_vert, orig_data->ss->cd_origco_offset);
+
+      float *no = BM_ELEM_CD_GET_VOID_P(iter->bm_vert, orig_data->ss->cd_origno_offset);
+      normal_float_to_short_v3(orig_data->_no, no);
+      orig_data->no = orig_data->_no;
+
+      orig_data->col = BM_ELEM_CD_GET_VOID_P(iter->bm_vert, orig_data->ss->cd_origvcol_offset);
+
+      // BKE_pbvh_bmesh_update_origvert(
+      //    orig_data->pbvh, iter->bm_vert, &orig_data->co, &orig_data->no, &orig_data->col);
       // BM_log_original_vert_data(orig_data->bm_log, iter->bm_vert, &orig_data->co,
       // &orig_data->no);
     }
@@ -1368,7 +1378,9 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter 
   }
   else if (orig_data->unode->type == SCULPT_UNDO_COLOR) {
     if (orig_data->bm_log) {
-      BKE_pbvh_bmesh_update_origvert(orig_data->pbvh, iter->bm_vert, NULL, NULL, &orig_data->col);
+      orig_data->col = BM_ELEM_CD_GET_VOID_P(iter->bm_vert, orig_data->ss->cd_origvcol_offset);
+
+      //BKE_pbvh_bmesh_update_origvert(orig_data->pbvh, iter->bm_vert, NULL, NULL, &orig_data->col);
     }
     else {
       orig_data->col = orig_data->colors[iter->i];
@@ -1502,11 +1514,11 @@ bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *bru
   return ((BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) &&
 
           (!ss->cache || (!ss->cache->alt_smooth)) &&
-
+          
           /* Requires mesh restore, which doesn't work with
            * dynamic-topology. */
           !(brush->flag & BRUSH_ANCHORED) && !(brush->flag & BRUSH_DRAG_DOT) &&
-
+          
           SCULPT_TOOL_HAS_DYNTOPO(brush->sculpt_tool));
 }
 

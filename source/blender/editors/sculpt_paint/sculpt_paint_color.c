@@ -459,6 +459,8 @@ void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     return;
   }
 
+  SCULPT_vertex_random_access_ensure(ss);
+
   const int totvert = SCULPT_vertex_count_get(ss);
 
   if (SCULPT_stroke_is_first_brush_step(ss->cache)) {

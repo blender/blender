@@ -144,6 +144,7 @@ typedef struct {
 
 typedef struct {
   float (*color)[4];
+  int size;
 } PBVHColorBufferNode;
 
 typedef enum {
