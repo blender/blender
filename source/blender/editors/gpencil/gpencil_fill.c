@@ -269,36 +269,38 @@ static void gpencil_draw_datablock(tGPDfill *tgpf, const float ink[4])
       continue;
     }
 
-    /* Decide if layer is included or not depending of the layer mode. */
+    /* Decide if the strokes of layers are included or not depending on the layer mode.
+     * Cannot skip the layer because it can use boundary strokes and must be used. */
+    bool skip = false;
     const int gpl_index = BLI_findindex(&gpd->layers, gpl);
     switch (brush_settings->fill_layer_mode) {
       case GP_FILL_GPLMODE_ACTIVE: {
         if (gpl_index != gpl_active_index) {
-          continue;
+          skip = true;
         }
         break;
       }
       case GP_FILL_GPLMODE_ABOVE: {
         if (gpl_index != gpl_active_index + 1) {
-          continue;
+          skip = true;
         }
         break;
       }
       case GP_FILL_GPLMODE_BELOW: {
         if (gpl_index != gpl_active_index - 1) {
-          continue;
+          skip = true;
         }
         break;
       }
       case GP_FILL_GPLMODE_ALL_ABOVE: {
         if (gpl_index <= gpl_active_index) {
-          continue;
+          skip = true;
         }
         break;
       }
       case GP_FILL_GPLMODE_ALL_BELOW: {
         if (gpl_index >= gpl_active_index) {
-          continue;
+          skip = true;
         }
         break;
       }
@@ -335,6 +337,11 @@ static void gpencil_draw_datablock(tGPDfill *tgpf, const float ink[4])
       /* check if the color is visible */
       MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, gps->mat_nr + 1);
       if ((gp_style == NULL) || (gp_style->flag & GP_MATERIAL_HIDE)) {
+        continue;
+      }
+
+      /* If the layer must be skipped, but the stroke is not boundary, skip stroke. */
+      if ((skip) && ((gps->flag & GP_STROKE_NOFILL) == 0)) {
         continue;
       }
 
