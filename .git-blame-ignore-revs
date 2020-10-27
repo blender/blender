@@ -1,0 +1,45 @@
+# git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# After running the above, commits listed in this file will be
+# ignored by git blame. The blame will be shifted to the person
+# who edited the line(s) before the ignored commit.
+#
+# To disable this ignorance for a command, run as follows
+# git blame --ignore-revs-file="" <other options>
+#
+# Changes that belong here:
+# - Massive comment, doxy-sections, or spelling corrections.
+# - Clang-format, PEP8 or other automated changes which are *strictly* "no functional change".
+# - Several smaller commits should be added to this list at once, because adding
+#   one extra commit (to edit this file) after every small cleanup is noisy.
+#
+# Note:
+# - The comment above the SHA should be the first line of the commit.
+# - It is fine to pack together similar commits if they have the same explanatory comment.
+# - Use only 40 character git SHAs; not smaller ones, not prefixed with rB.
+#
+# https://git-scm.com/docs/git-blame/2.23.0
+
+# white space commit. (2 spaces -> tab).
+0a3694cd6ebec710da7110e9f168a72d47c71ee0
+
+# Cycles: Cleanup, spacing after preprocessor
+cb4b5e12abf1fc6cf9ffc0944e0a1bc406286c63
+
+# ClangFormat: apply to source, most of intern
+e12c08e8d170b7ca40f204a5b0423c23a9fbc2c1
+
+# Code Style: use "#pragma once" in source directory
+91694b9b58ab953f3b313be9389cc1303e472fc2
+
+# Code Style: use "#pragma once" in some newer headers
+8198dbb888856b8c11757586df02aca15f132f90
+
+# Code Style: use "#pragma once" in intern/ghost
+1b1129f82a9cf316b54fbc025f8cfcc1a74b8589
+
+# Cleanup: mostly comments, use doxy syntax & typos
+e0cb02587012b4b2f4b18363dc7d0a7da2c02093
+
+# Cleanup: use C comments for descriptive text
+2abfcebb0eb7989e3d1e7d03f37ecf5c088210af
