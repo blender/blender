@@ -1477,8 +1477,6 @@ static void sculpt_undosys_step_decode(
   {
     Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
-    /* Sculpt needs evaluated state. */
-    BKE_scene_view_layer_graph_evaluated_ensure(bmain, scene, view_layer);
     Object *ob = OBACT(view_layer);
     if (ob && (ob->type == OB_MESH)) {
       if (ob->mode & OB_MODE_SCULPT) {
@@ -1486,6 +1484,12 @@ static void sculpt_undosys_step_decode(
       }
       else {
         ED_object_mode_generic_exit(bmain, depsgraph, scene, ob);
+
+        /* Sculpt needs evaluated state.
+         * Note: needs to be done here, as #ED_object_mode_generic_exit will usually invalidate
+         * (some) evaluated data. */
+        BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
+
         Mesh *me = ob->data;
         /* Don't add sculpt topology undo steps when reading back undo state.
          * The undo steps must enter/exit for us. */
