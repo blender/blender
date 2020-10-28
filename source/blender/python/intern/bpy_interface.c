@@ -306,12 +306,22 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
   PyThreadState *py_tstate = NULL;
   const char *py_path_bundle = BKE_appdir_folder_id(BLENDER_SYSTEM_PYTHON, NULL);
 
-  /* Not essential but nice to set our name. */
+  /* Setting the program name is important so the 'multiprocessing' module
+   * can launch new Python instances. */
   {
-    const char *program_path = BKE_appdir_program_path();
-    wchar_t program_path_wchar[FILE_MAX];
-    BLI_strncpy_wchar_from_utf8(program_path_wchar, program_path, ARRAY_SIZE(program_path_wchar));
-    Py_SetProgramName(program_path_wchar);
+    char program_path[FILE_MAX];
+    if (BKE_appdir_program_python_search(
+            program_path, sizeof(program_path), PY_MAJOR_VERSION, PY_MINOR_VERSION)) {
+      wchar_t program_path_wchar[FILE_MAX];
+      BLI_strncpy_wchar_from_utf8(
+          program_path_wchar, program_path, ARRAY_SIZE(program_path_wchar));
+      Py_SetProgramName(program_path_wchar);
+    }
+    else {
+      fprintf(stderr,
+              "Unable to find the python binary, "
+              "the multiprocessing module may not be functional!\n");
+    }
   }
 
   /* must run before python initializes */
