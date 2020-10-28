@@ -5406,6 +5406,11 @@ bool BKE_constraint_remove_ex(ListBase *list, Object *ob, bConstraint *con, bool
   return false;
 }
 
+void BKE_constraint_panel_expand(bConstraint *con)
+{
+  con->ui_expand_flag |= (1 << 0);
+}
+
 /* ......... */
 
 /* Creates a new constraint, initializes its data, and returns it */

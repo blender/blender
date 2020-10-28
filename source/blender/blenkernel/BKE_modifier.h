@@ -396,6 +396,7 @@ const ModifierTypeInfo *BKE_modifier_get_info(ModifierType type);
 
 /* For modifier UI panels. */
 void BKE_modifier_type_panel_id(ModifierType type, char *r_idname);
+void BKE_modifier_panel_expand(struct ModifierData *md);
 
 /* Modifier utility calls, do call through type pointer and return
  * default values if pointer is optional.

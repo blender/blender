@@ -175,6 +175,11 @@ void BKE_shaderfxType_panel_id(ShaderFxType type, char *r_idname)
   strcat(r_idname, fxi->name);
 }
 
+void BKE_shaderfx_panel_expand(ShaderFxData *fx)
+{
+  fx->ui_expand_flag |= (1 << 0);
+}
+
 void BKE_shaderfx_copydata_generic(const ShaderFxData *fx_src, ShaderFxData *fx_dst)
 {
   const ShaderFxTypeInfo *fxi = BKE_shaderfx_get_info(fx_src->type);

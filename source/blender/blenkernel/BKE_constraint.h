@@ -183,6 +183,8 @@ bool BKE_constraint_remove_ex(ListBase *list,
                               bool clear_dep);
 bool BKE_constraint_remove(ListBase *list, struct bConstraint *con);
 
+void BKE_constraint_panel_expand(struct bConstraint *con);
+
 /* Constraints + Proxies function prototypes */
 void BKE_constraints_proxylocal_extract(struct ListBase *dst, struct ListBase *src);
 bool BKE_constraints_proxylocked_owner(struct Object *ob, struct bPoseChannel *pchan);

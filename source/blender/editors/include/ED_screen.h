@@ -199,6 +199,7 @@ int ED_region_global_size_y(void);
 void ED_area_update_region_sizes(struct wmWindowManager *wm,
                                  struct wmWindow *win,
                                  struct ScrArea *area);
+bool ED_area_has_shared_border(struct ScrArea *a, struct ScrArea *b);
 
 ScrArea *ED_screen_areas_iter_first(const struct wmWindow *win, const bScreen *screen);
 ScrArea *ED_screen_areas_iter_next(const bScreen *screen, const ScrArea *area);

@@ -411,6 +411,11 @@ void BKE_gpencil_modifierType_panel_id(GpencilModifierType type, char *r_idname)
   strcat(r_idname, mti->name);
 }
 
+void BKE_gpencil_modifier_panel_expand(GpencilModifierData *md)
+{
+  md->ui_expand_flag |= (1 << 0);
+}
+
 /**
  * Generic grease pencil modifier copy data.
  * \param md_src: Source modifier data

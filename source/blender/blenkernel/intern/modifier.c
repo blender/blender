@@ -130,6 +130,11 @@ void BKE_modifier_type_panel_id(ModifierType type, char *r_idname)
   strcat(r_idname, mti->name);
 }
 
+void BKE_modifier_panel_expand(ModifierData *md)
+{
+  md->ui_expand_flag |= (1 << 0);
+}
+
 /***/
 
 ModifierData *BKE_modifier_new(int type)
