@@ -241,10 +241,10 @@ class NLA_MT_snap_pie(Menu):
         layout = self.layout
         pie = layout.menu_pie()
 
-        pie.operator("nla.snap", text="Current Frame").type = 'CFRA'
-        pie.operator("nla.snap", text="Nearest Frame").type = 'NEAREST_FRAME'
-        pie.operator("nla.snap", text="Nearest Second").type = 'NEAREST_SECOND'
-        pie.operator("nla.snap", text="Nearest Marker").type = 'NEAREST_MARKER'
+        pie.operator("nla.snap", text="Selection to Current Frame").type = 'CFRA'
+        pie.operator("nla.snap", text="Selection to Nearest Frame").type = 'NEAREST_FRAME'
+        pie.operator("nla.snap", text="Selection to Nearest Second").type = 'NEAREST_SECOND'
+        pie.operator("nla.snap", text="Selection to Nearest Marker").type = 'NEAREST_MARKER'
 
 
 class NLA_MT_context_menu(Menu):
