@@ -3828,7 +3828,7 @@ static void do_grab_brush_task_cb_ex(void *__restrict userdata,
       if (grab_silhouette) {
         float silhouette_test_dir[3];
         normalize_v3_v3(silhouette_test_dir, grab_delta);
-        if (dot_v3v3(ss->cache->initial_normal, ss->cache->grab_delta) < 0.0f) {
+        if (dot_v3v3(ss->cache->initial_normal, ss->cache->grab_delta_symmetry) < 0.0f) {
           mul_v3_fl(silhouette_test_dir, -1.0f);
         }
         float vno[3];
