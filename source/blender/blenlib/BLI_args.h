@@ -41,12 +41,14 @@ typedef int (*BA_ArgCallback)(int argc, const char **argv, void *data);
 struct bArgs *BLI_argsInit(int argc, const char **argv);
 void BLI_argsFree(struct bArgs *ba);
 
+/** The pass to use for #BLI_argsAdd. */
+void BLI_argsPassSet(struct bArgs *ba, int current_pass);
+
 /**
  * Pass starts at 1, -1 means valid all the time
  * short_arg or long_arg can be null to specify no short or long versions
  */
 void BLI_argsAdd(struct bArgs *ba,
-                 int pass,
                  const char *short_arg,
                  const char *long_arg,
                  const char *doc,
@@ -57,7 +59,6 @@ void BLI_argsAdd(struct bArgs *ba,
  * Short_case and long_case specify if those arguments are case specific
  */
 void BLI_argsAddCase(struct bArgs *ba,
-                     int pass,
                      const char *short_arg,
                      int short_case,
                      const char *long_arg,
