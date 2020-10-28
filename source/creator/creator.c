@@ -404,7 +404,7 @@ int main(int argc,
   MEM_use_memleak_detection(false);
 
   /* Parse environment handling arguments. */
-  BLI_argsParse(ba, 0, NULL, NULL);
+  BLI_argsParse(ba, ARG_PASS_ENVIRONMENT, NULL, NULL);
 
 #else
   /* Using preferences or user startup makes no sense for #WITH_PYTHON_MODULE. */
@@ -419,7 +419,7 @@ int main(int argc,
 
 #ifndef WITH_PYTHON_MODULE
   /* First test for background-mode (#Global.background) */
-  BLI_argsParse(ba, 1, NULL, NULL);
+  BLI_argsParse(ba, ARG_PASS_SETTINGS, NULL, NULL);
 
   main_signal_setup();
 #endif
@@ -459,14 +459,14 @@ int main(int argc,
 
   if (G.background == 0) {
 #ifndef WITH_PYTHON_MODULE
-    BLI_argsParse(ba, 2, NULL, NULL);
-    BLI_argsParse(ba, 3, NULL, NULL);
+    BLI_argsParse(ba, ARG_PASS_SETTINGS_GUI, NULL, NULL);
+    BLI_argsParse(ba, ARG_PASS_SETTINGS_FORCE, NULL, NULL);
 #endif
     WM_init(C, argc, (const char **)argv);
   }
   else {
 #ifndef WITH_PYTHON_MODULE
-    BLI_argsParse(ba, 3, NULL, NULL);
+    BLI_argsParse(ba, ARG_PASS_SETTINGS_FORCE, NULL, NULL);
 #endif
 
     WM_init(C, argc, (const char **)argv);
@@ -488,6 +488,7 @@ int main(int argc,
 
   /* OK we are ready for it */
 #ifndef WITH_PYTHON_MODULE
+  /* Handles #ARG_PASS_FINAL. */
   main_args_setup_post(C, ba);
 #endif
 

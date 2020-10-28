@@ -52,6 +52,21 @@ struct ApplicationState {
 };
 extern struct ApplicationState app_state; /* creator.c */
 
+/**
+ * Passes for use by #main_args_setup.
+ * Keep in order of execution.
+ */
+enum {
+  ARG_PASS_ENVIRONMENT = 0,
+  ARG_PASS_SETTINGS = 1,
+  /** Windowing & graphical settings, ignored in background mode. */
+  ARG_PASS_SETTINGS_GUI = 2,
+  ARG_PASS_SETTINGS_FORCE = 3,
+
+  /** Actions & fall back to loading blend file. */
+  ARG_PASS_FINAL = 4,
+};
+
 /* for the callbacks: */
 #ifndef WITH_PYTHON_MODULE
 #  define BLEND_VERSION_FMT "Blender %d.%02d.%d"

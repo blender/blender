@@ -2057,12 +2057,12 @@ void main_args_setup(bContext *C, bArgs *ba)
   BLI_argsPassSet(ba, -1);
   BLI_argsAdd(ba, "--", NULL, CB(arg_handle_arguments_end), NULL);
 
-  /* Pass 0: Environment Setup
+  /* Pass: Environment Setup
    *
    * It's important these run before any initialization is done, since they set up
    * the environment used to access data-files, which are be used when initializing
    * sub-systems such as color management. */
-  BLI_argsPassSet(ba, 0);
+  BLI_argsPassSet(ba, ARG_PASS_ENVIRONMENT);
   BLI_argsAdd(ba, NULL, "--python-use-system-env", CB(arg_handle_python_use_system_env_set), NULL);
 
   /* Note that we could add used environment variables too. */
@@ -2071,10 +2071,10 @@ void main_args_setup(bContext *C, bArgs *ba)
   BLI_argsAdd(ba, NULL, "--env-system-scripts", CB_EX(arg_handle_env_system_set, scripts), NULL);
   BLI_argsAdd(ba, NULL, "--env-system-python", CB_EX(arg_handle_env_system_set, python), NULL);
 
-  /* Pass 1: Background Mode & Settings
+  /* Pass: Background Mode & Settings
    *
    * Also and commands that exit after usage. */
-  BLI_argsPassSet(ba, 1);
+  BLI_argsPassSet(ba, ARG_PASS_SETTINGS);
   BLI_argsAdd(ba, "-h", "--help", CB(arg_handle_print_help), ba);
   /* Windows only */
   BLI_argsAdd(ba, "/?", NULL, CB_EX(arg_handle_print_help, win32), ba);
@@ -2105,7 +2105,6 @@ void main_args_setup(bContext *C, bArgs *ba)
 
 #  ifdef WITH_FFMPEG
   BLI_argsAdd(ba,
-
               NULL,
               "--debug-ffmpeg",
               CB_EX(arg_handle_debug_mode_generic_set, ffmpeg),
@@ -2242,8 +2241,8 @@ void main_args_setup(bContext *C, bArgs *ba)
   BLI_argsAdd(ba, NULL, "--factory-startup", CB(arg_handle_factory_startup_set), NULL);
   BLI_argsAdd(ba, NULL, "--enable-event-simulate", CB(arg_handle_enable_event_simulate), NULL);
 
-  /* Pass 2: Custom Window Stuff. */
-  BLI_argsPassSet(ba, 2);
+  /* Pass: Custom Window Stuff. */
+  BLI_argsPassSet(ba, ARG_PASS_SETTINGS_GUI);
   BLI_argsAdd(ba, "-p", "--window-geometry", CB(arg_handle_window_geometry), NULL);
   BLI_argsAdd(ba, "-w", "--window-border", CB(arg_handle_with_borders), NULL);
   BLI_argsAdd(ba, "-W", "--window-fullscreen", CB(arg_handle_without_borders), NULL);
@@ -2254,13 +2253,13 @@ void main_args_setup(bContext *C, bArgs *ba)
   BLI_argsAdd(ba, "-r", NULL, CB_EX(arg_handle_register_extension, silent), ba);
   BLI_argsAdd(ba, NULL, "--no-native-pixels", CB(arg_handle_native_pixels_set), ba);
 
-  /* Pass 3: Disabling Things & Forcing Settings. */
-  BLI_argsPassSet(ba, 3);
+  /* Pass: Disabling Things & Forcing Settings. */
+  BLI_argsPassSet(ba, ARG_PASS_SETTINGS_FORCE);
   BLI_argsAddCase(ba, "-noaudio", 1, NULL, 0, CB(arg_handle_audio_disable), NULL);
   BLI_argsAddCase(ba, "-setaudio", 1, NULL, 0, CB(arg_handle_audio_set), NULL);
 
-  /* Pass 4: Processing Arguments. */
-  BLI_argsPassSet(ba, 4);
+  /* Pass: Processing Arguments. */
+  BLI_argsPassSet(ba, ARG_PASS_FINAL);
   BLI_argsAdd(ba, "-f", "--render-frame", CB(arg_handle_render_frame), C);
   BLI_argsAdd(ba, "-a", "--render-anim", CB(arg_handle_render_animation), C);
   BLI_argsAdd(ba, "-S", "--scene", CB(arg_handle_scene_set), C);
@@ -2289,7 +2288,7 @@ void main_args_setup(bContext *C, bArgs *ba)
  */
 void main_args_setup_post(bContext *C, bArgs *ba)
 {
-  BLI_argsParse(ba, 4, arg_handle_load_file, C);
+  BLI_argsParse(ba, ARG_PASS_FINAL, arg_handle_load_file, C);
 }
 
 /** \} */
