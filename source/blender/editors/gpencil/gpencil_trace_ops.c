@@ -464,7 +464,7 @@ void GPENCIL_OT_trace_image(wmOperatorType *ot)
                        0.0f,
                        1.0f,
                        "Color Threshold",
-                       "Determine what is considered white and what black",
+                       "Determine the lightness threshold above which strokes are generated",
                        0.0f,
                        1.0f);
   RNA_def_enum(ot->srna,
