@@ -45,8 +45,8 @@
  *
  * \note modified to use glibc arg order for callbacks.
  */
-BLI_INLINE char *med3(char */*a*/, char */*b*/, char */*c*/, BLI_sort_cmp_t /*cmp*/, void */*thunk*/);
-BLI_INLINE void  swapfunc(char */*a*/, char */*b*/, int /*n*/, int /*swaptype*/);
+BLI_INLINE char *med3(char *a, char *b, char *c, BLI_sort_cmp_t cmp, void *thunk);
+BLI_INLINE void  swapfunc(char *a, char *b, int n, int swaptype);
 
 #define min(a, b)   (a) < (b) ? (a) : (b)
 #define swapcode(TYPE, parmi, parmj, n)     \
