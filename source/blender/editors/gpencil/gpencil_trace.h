@@ -56,6 +56,10 @@ struct bGPDframe;
 #define BM_INV(bm, x, y) (bm_safe(bm, x, y) ? BM_UINV(bm, x, y) : 0)
 #define BM_PUT(bm, x, y, b) (bm_safe(bm, x, y) ? BM_UPUT(bm, x, y, b) : 0)
 
+/* Trace modes */
+#define GPENCIL_TRACE_MODE_SINGLE 0
+#define GPENCIL_TRACE_MODE_SEQUENCE 1
+
 void ED_gpencil_trace_bitmap_print(FILE *f, const potrace_bitmap_t *bm);
 
 potrace_bitmap_t *ED_gpencil_trace_bitmap_new(int32_t w, int32_t h);
