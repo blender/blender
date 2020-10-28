@@ -3221,10 +3221,9 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
   char filename[FILE_MAX];
   if (blendfile_pathpath[0] != '\0') {
     BLI_split_file_part(blendfile_pathpath, filename, sizeof(filename));
-    BLI_path_extension_replace(filename, sizeof(filename), "");
   }
   else {
-    STRNCPY(filename, IFACE_("Untitled"));
+    STRNCPY(filename, IFACE_("untitled.blend"));
   }
   uiItemL(layout, filename, ICON_NONE);
 
@@ -3261,8 +3260,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
     char message[64];
     BLI_snprintf(message,
                  sizeof(message),
-                 (modified_images_count == 1) ? "Save %u modified image" :
-                                                "Save %u modified images",
+                 "Save %u modified image(s)",
                  modified_images_count);
     uiItemS_ex(layout, 2.0f);
     uiDefButBitC(block,

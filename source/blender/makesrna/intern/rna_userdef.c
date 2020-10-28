@@ -4389,7 +4389,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 
   static const EnumPropertyItem line_width[] = {
       {-1, "THIN", 0, "Thin", "Thinner lines than the default"},
-      {0, "AUTO", 0, "Auto", "Automatic line width based on UI scale"},
+      {0, "AUTO", 0, "Default", "Automatic line width based on UI scale"},
       {1, "THICK", 0, "Thick", "Thicker lines than the default"},
       {0, NULL, 0, NULL, NULL},
   };
@@ -4403,7 +4403,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
       {USER_RENDER_DISPLAY_SCREEN,
        "SCREEN",
        0,
-       "Full Screen",
+       "Maximized Area",
        "Images are rendered in a maximized Image Editor"},
       {USER_RENDER_DISPLAY_AREA,
        "AREA",
@@ -4421,7 +4421,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
       {USER_TEMP_SPACE_DISPLAY_FULLSCREEN,
        "SCREEN", /* Could be FULLSCREEN, but keeping it consistent with render_display_types */
        0,
-       "Full Screen",
+       "Maximized Area",
        "Open the temporary editor in a maximized screen"},
       {USER_TEMP_SPACE_DISPLAY_WINDOW,
        "WINDOW",
@@ -4453,8 +4453,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "UI Line Width",
-      "Changes the thickness of widget outlines, lines and points in the interface, "
-      "for high DPI displays");
+      "Changes the thickness of widget outlines, lines and dots in the interface");
   RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
 
   /* display */

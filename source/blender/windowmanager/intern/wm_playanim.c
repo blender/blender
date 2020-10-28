@@ -1274,7 +1274,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
     g_WS.ghost_system = GHOST_CreateSystem();
     GHOST_AddEventConsumer(g_WS.ghost_system, consumer);
 
-    playanim_window_open("Blender:Anim", start_x, start_y, ibuf->x, ibuf->y);
+    playanim_window_open("Blender Animation Player", start_x, start_y, ibuf->x, ibuf->y);
   }
 
   GHOST_GetMainDisplayDimensions(g_WS.ghost_system, &maxwinx, &maxwiny);
