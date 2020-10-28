@@ -120,6 +120,9 @@ bArgs *BLI_argsInit(int argc, const char **argv)
   ba->argc = argc;
   ba->argv = argv;
 
+  /* Must be initialized by #BLI_argsPassSet. */
+  ba->current_pass = 0;
+
   return ba;
 }
 
@@ -133,6 +136,7 @@ void BLI_argsFree(struct bArgs *ba)
 
 void BLI_argsPassSet(struct bArgs *ba, int current_pass)
 {
+  BLI_assert((current_pass != 0) && (current_pass >= -1));
   ba->current_pass = current_pass;
 }
 
@@ -278,6 +282,7 @@ void BLI_argsPrintOtherDoc(struct bArgs *ba)
 
 void BLI_argsParse(struct bArgs *ba, int pass, BA_ArgCallback default_cb, void *default_data)
 {
+  BLI_assert((pass != 0) && (pass >= -1));
   int i = 0;
 
   for (i = 1; i < ba->argc; i++) { /* skip argv[0] */

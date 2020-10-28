@@ -57,14 +57,14 @@ extern struct ApplicationState app_state; /* creator.c */
  * Keep in order of execution.
  */
 enum {
-  ARG_PASS_ENVIRONMENT = 0,
-  ARG_PASS_SETTINGS = 1,
+  ARG_PASS_ENVIRONMENT = 1,
+  ARG_PASS_SETTINGS = 2,
   /** Windowing & graphical settings, ignored in background mode. */
-  ARG_PASS_SETTINGS_GUI = 2,
-  ARG_PASS_SETTINGS_FORCE = 3,
+  ARG_PASS_SETTINGS_GUI = 3,
+  ARG_PASS_SETTINGS_FORCE = 4,
 
   /** Actions & fall back to loading blend file. */
-  ARG_PASS_FINAL = 4,
+  ARG_PASS_FINAL = 5,
 };
 
 /* for the callbacks: */
