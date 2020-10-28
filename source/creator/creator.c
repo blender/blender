@@ -411,7 +411,8 @@ int main(int argc,
   G.factory_startup = true;
 #endif
 
-  /* After parsing '0' level args such as `--env-*`, since they impact `BKE_appdir` behavior. */
+  /* After parsing #ARG_PASS_ENVIRONMENT such as `--env-*`,
+   * since they impact `BKE_appdir` behavior. */
   BKE_appdir_init();
 
   /* Initialize sub-systems that use `BKE_appdir.h`. */
@@ -432,7 +433,7 @@ int main(int argc,
   IMB_ffmpeg_init();
 #endif
 
-  /* After level 1 arguments, this is so #WM_main_playanim skips #RNA_init. */
+  /* After #ARG_PASS_SETTINGS arguments, this is so #WM_main_playanim skips #RNA_init. */
   RNA_init();
 
   RE_engines_init();
