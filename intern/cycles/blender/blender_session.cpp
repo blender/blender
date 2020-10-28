@@ -472,6 +472,11 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
 {
   b_depsgraph = b_depsgraph_;
 
+  if (session->progress.get_cancel()) {
+    update_status_progress();
+    return;
+  }
+
   /* set callback to write out render results */
   session->write_render_tile_cb = function_bind(&BlenderSession::write_render_tile, this, _1);
   session->update_render_tile_cb = function_bind(

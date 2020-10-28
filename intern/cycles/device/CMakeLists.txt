@@ -39,6 +39,7 @@ set(SRC
   device_cpu.cpp
   device_cuda.cpp
   device_denoising.cpp
+  device_dummy.cpp
   device_memory.cpp
   device_multi.cpp
   device_opencl.cpp
