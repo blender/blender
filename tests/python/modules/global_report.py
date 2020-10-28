@@ -39,6 +39,7 @@ def _write_html(output_dir):
     <div class="container">
         <br/>
         <h1>{title}</h1>
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item active" aria-current="page">Test Reports</li></ol></nav>
         {combined_reports}
         <br/>
     </div>
