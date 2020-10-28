@@ -877,10 +877,6 @@ class CLIP_PT_tracking_camera(Panel):
         col.prop(clip.tracking.camera, "sensor_width", text="Sensor Width")
         col.prop(clip.tracking.camera, "pixel_aspect", text="Pixel Aspect")
 
-        col = layout.column()
-        col.prop(clip.tracking.camera, "principal", text="Optical Center")
-        col.operator("clip.set_center_principal", text="Set Center")
-
 
 class CLIP_PT_tracking_lens(Panel):
     bl_space_type = 'CLIP_EDITOR'
@@ -915,6 +911,10 @@ class CLIP_PT_tracking_lens(Panel):
         else:
             col.prop(camera, "focal_length_pixels")
         col.prop(camera, "units", text="Units")
+
+        col = layout.column()
+        col.prop(clip.tracking.camera, "principal", text="Optical Center")
+        col.operator("clip.set_center_principal", text="Set Center")
 
         col = layout.column()
         col.prop(camera, "distortion_model", text="Lens Distortion")
