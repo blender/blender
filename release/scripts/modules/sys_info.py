@@ -82,10 +82,10 @@ def write_sysinfo(filepath):
                 output.write("\t%r\n" % p)
 
             output.write(title("Python (External Binary)"))
-            output.write("binary path: %s\n" % prepr(sys.executable))
+            output.write("binary path: %s\n" % prepr(bpy.app.binary_path_python))
             try:
                 py_ver = prepr(subprocess.check_output([
-                    sys.executable,
+                    bpy.app.binary_path_python,
                     "--version",
                 ]).strip())
             except Exception as e:
