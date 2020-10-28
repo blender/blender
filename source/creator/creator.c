@@ -428,6 +428,7 @@ int main(int argc,
   BLI_task_scheduler_init();
 
 #ifdef WITH_FFMPEG
+  /* Keep after #ARG_PASS_SETTINGS since debug flags are checked. */
   IMB_ffmpeg_init();
 #endif
 
@@ -457,20 +458,15 @@ int main(int argc,
 
   BKE_materials_init();
 
+#ifndef WITH_PYTHON_MODULE
   if (G.background == 0) {
-#ifndef WITH_PYTHON_MODULE
     BLI_argsParse(ba, ARG_PASS_SETTINGS_GUI, NULL, NULL);
-    BLI_argsParse(ba, ARG_PASS_SETTINGS_FORCE, NULL, NULL);
-#endif
-    WM_init(C, argc, (const char **)argv);
   }
-  else {
-#ifndef WITH_PYTHON_MODULE
-    BLI_argsParse(ba, ARG_PASS_SETTINGS_FORCE, NULL, NULL);
+  BLI_argsParse(ba, ARG_PASS_SETTINGS_FORCE, NULL, NULL);
 #endif
 
-    WM_init(C, argc, (const char **)argv);
-  }
+  WM_init(C, argc, (const char **)argv);
+
 #ifndef WITH_PYTHON
   printf(
       "\n* WARNING * - Blender compiled without Python!\n"
