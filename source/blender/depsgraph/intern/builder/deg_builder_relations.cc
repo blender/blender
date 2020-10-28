@@ -591,13 +591,13 @@ void DepsgraphRelationBuilder::build_collection(LayerCollection *from_layer_coll
      * recurses into all the nested objects and collections. */
     return;
   }
-  build_idproperties(collection->id.properties);
   const bool group_done = built_map_.checkIsBuiltAndTag(collection);
   OperationKey object_transform_final_key(object != nullptr ? &object->id : nullptr,
                                           NodeType::TRANSFORM,
                                           OperationCode::TRANSFORM_FINAL);
   ComponentKey duplicator_key(object != nullptr ? &object->id : nullptr, NodeType::DUPLI);
   if (!group_done) {
+    build_idproperties(collection->id.properties);
     LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
       build_object(cob->ob);
     }
