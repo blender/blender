@@ -186,7 +186,7 @@ if(SYSTEMSTUBS_LIBRARY)
   list(APPEND PLATFORM_LINKLIBS SystemStubs)
 endif()
 
-set(PLATFORM_CFLAGS "-pipe -funsigned-char")
+set(PLATFORM_CFLAGS "-pipe -funsigned-char -fno-strict-aliasing")
 set(PLATFORM_LINKFLAGS
   "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Cocoa -framework Carbon -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework Metal -framework QuartzCore"
 )
@@ -430,8 +430,8 @@ endif()
 
 set(EXETYPE MACOSX_BUNDLE)
 
-set(CMAKE_C_FLAGS_DEBUG "-fno-strict-aliasing -g")
-set(CMAKE_CXX_FLAGS_DEBUG "-fno-strict-aliasing -g")
+set(CMAKE_C_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
 if(CMAKE_OSX_ARCHITECTURES MATCHES "x86_64" OR CMAKE_OSX_ARCHITECTURES MATCHES "i386")
   set(CMAKE_CXX_FLAGS_RELEASE "-O2 -mdynamic-no-pic -msse -msse2 -msse3 -mssse3")
   set(CMAKE_C_FLAGS_RELEASE "-O2 -mdynamic-no-pic  -msse -msse2 -msse3 -mssse3")
@@ -440,8 +440,13 @@ if(CMAKE_OSX_ARCHITECTURES MATCHES "x86_64" OR CMAKE_OSX_ARCHITECTURES MATCHES "
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ftree-vectorize  -fvariable-expansion-in-unroller")
   endif()
 else()
+<<<<<<< HEAD
   set(CMAKE_C_FLAGS_RELEASE "-mdynamic-no-pic -fno-strict-aliasing")
   set(CMAKE_CXX_FLAGS_RELEASE "-mdynamic-no-pic -fno-strict-aliasing")
+=======
+  set(CMAKE_C_FLAGS_RELEASE "-O2 -mdynamic-no-pic")
+  set(CMAKE_CXX_FLAGS_RELEASE "-O2 -mdynamic-no-pic")
+>>>>>>> fc6a1f44d2e (macOS: use -fno-strict-aliasing for all build types.)
 endif()
 
 if(${XCODE_VERSION} VERSION_EQUAL 5 OR ${XCODE_VERSION} VERSION_GREATER 5)
