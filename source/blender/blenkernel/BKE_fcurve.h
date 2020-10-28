@@ -325,6 +325,9 @@ float fcurve_samplingcb_evalcurve(struct FCurve *fcu, void *data, float evaltime
 void fcurve_store_samples(
     struct FCurve *fcu, void *data, int start, int end, FcuSampleFunc sample_cb);
 
+/* Convert baked/sampled fcurves into bezt/regular fcurves. */
+void fcurve_samples_to_keyframes(struct FCurve *fcu, const int start, const int end);
+
 /* ************* F-Curve .blend file API ******************** */
 
 void BKE_fmodifiers_blend_write(struct BlendWriter *writer, struct ListBase *fmodifiers);
