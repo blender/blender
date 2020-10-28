@@ -379,10 +379,16 @@ static void checker_board_text(
   const float text_color[4] = {0.0, 0.0, 0.0, 1.0};
   const float text_outline[4] = {1.0, 1.0, 1.0, 1.0};
 
-  for (y = 0; y < height; y += step) {
-    text[1] = '1';
+  const char char_array[36] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
+  int first_char_index = 0;
+  for (y = 0; y < height; y += step) {
+    text[0] = char_array[first_char_index];
+
+    int second_char_index = 27;
     for (x = 0; x < width; x += step) {
+      text[1] = char_array[second_char_index];
+
       /* hard coded offset */
       pen_x = x + 33;
       pen_y = y + 44;
@@ -412,9 +418,9 @@ static void checker_board_text(
       BLF_position(mono, pen_x, pen_y, 0.0);
       BLF_draw_buffer(mono, text, 2);
 
-      text[1]++;
+      second_char_index = (second_char_index + 1) % ARRAY_SIZE(char_array);
     }
-    text[0]++;
+    first_char_index = (first_char_index + 1) % ARRAY_SIZE(char_array);
   }
 
   /* cleanup the buffer. */
