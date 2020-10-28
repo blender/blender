@@ -407,7 +407,7 @@ void GPENCIL_OT_trace_image(wmOperatorType *ot)
   };
 
   static const EnumPropertyItem trace_modes[] = {
-      {GPENCIL_TRACE_MODE_SINGLE, "SINGLE", 0, "Single", "Trace actual image"},
+      {GPENCIL_TRACE_MODE_SINGLE, "SINGLE", 0, "Single", "Trace the current frame of the image"},
       {GPENCIL_TRACE_MODE_SEQUENCE, "SEQUENCE", 0, "Sequence", "Trace full sequence"},
       {0, NULL, 0, NULL, NULL},
   };
@@ -426,11 +426,12 @@ void GPENCIL_OT_trace_image(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  prop = RNA_def_pointer_runtime(ot->srna,
-                                 "target",
-                                 &RNA_Object,
-                                 "Target Object",
-                                 "Target grease pencil object name. Leave empty for new object");
+  prop = RNA_def_pointer_runtime(
+      ot->srna,
+      "target",
+      &RNA_Object,
+      "Target Object",
+      "Target grease pencil object name. Leave empty to create a new object");
   RNA_def_property_poll_runtime(prop, rna_GPencil_object_poll);
 
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
