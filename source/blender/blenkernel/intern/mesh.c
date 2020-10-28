@@ -1495,8 +1495,11 @@ void BKE_mesh_transform(Mesh *me, const float mat[4][4], bool do_keys)
 
 void BKE_mesh_translate(Mesh *me, const float offset[3], const bool do_keys)
 {
+  MVert *mvert = CustomData_duplicate_referenced_layer(&me->vdata, CD_MVERT, me->totvert);
+  /* If the referenced layer has been re-allocated need to update pointers stored in the mesh. */
+  BKE_mesh_update_customdata_pointers(me, false);
+
   int i = me->totvert;
-  MVert *mvert;
   for (mvert = me->mvert; i--; mvert++) {
     add_v3_v3(mvert->co, offset);
   }
