@@ -1121,8 +1121,9 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
     dy *= -1;
   }
 
-  /* continuous zoom shouldn't move that fast... */
-  if (U.viewzoom == USER_ZOOM_CONT) { /* XXX store this setting as RNA prop? */
+  /* Check if the 'timer' is initialized, as zooming with the trackpad
+   * never uses the "Continuous" zoom method, and the 'timer' is not initialized. */
+  if ((U.viewzoom == USER_ZOOM_CONT) && vzd->timer) { /* XXX store this setting as RNA prop? */
     const double time = PIL_check_seconds_timer();
     const float time_step = (float)(time - vzd->timer_lastdraw);
 
