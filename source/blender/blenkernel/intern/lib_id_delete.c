@@ -261,9 +261,7 @@ static void id_delete(Main *bmain, const bool do_tagged_deletion)
     bool keep_looping = true;
     while (keep_looping) {
       ID *id, *id_next;
-      /* Marked volatile to avoid a macOS Clang optimization bug. See T81077.
-       * #last_remapped_id.next is assumed to be NULL by optimizer which is wrong. */
-      volatile ID *last_remapped_id = tagged_deleted_ids.last;
+      ID *last_remapped_id = tagged_deleted_ids.last;
       keep_looping = false;
 
       /* First tag and remove from Main all datablocks directly from target lib.
