@@ -3190,8 +3190,13 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
   const int text_points_max = MAX2(style->widget.points, style->widgetlabel.points);
   const int dialog_width = icon_size + (text_points_max * 34 * U.dpi_fac);
 
+  /* By default, the space between icon and text/buttons will be equal to the 'columnspace',
+     this extra padding will add some space by increasing the left column width,
+     making the icon placement more symmetrical, between the block edge and the text. */
+  const float icon_padding = 6.0f * U.dpi_fac;
   /* Calculate icon column factor. */
-  const float split_factor = (float)icon_size / (float)(dialog_width - style->columnspace);
+  const float split_factor = ((float)icon_size + icon_padding) /
+                             (float)(dialog_width - style->columnspace);
 
   uiBlock *block = UI_block_begin(C, region, close_file_dialog_name, UI_EMBOSS);
 
@@ -3207,8 +3212,10 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
   uiLayout *split_block = uiLayoutSplit(block_layout, split_factor, false);
 
   /* Alert Icon. */
-  uiLayout *layout = uiLayoutColumn(split_block, false);
-  uiDefButAlert(block, ALERT_ICON_QUESTION, 0, 0, 0, icon_size);
+  uiLayout *layout = uiLayoutRow(split_block, false);
+  /* Using 'align_left' with 'row' avoids stretching the icon along the width of column. */
+  uiLayoutSetAlignment(layout, UI_LAYOUT_ALIGN_LEFT);
+  uiDefButAlert(block, ALERT_ICON_QUESTION, 0, 0, icon_size, icon_size);
 
   /* The rest of the content on the right. */
   layout = uiLayoutColumn(split_block, false);
@@ -3235,7 +3242,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
   LISTBASE_FOREACH (Report *, report, &reports.list) {
     uiLayout *row = uiLayoutColumn(layout, false);
     uiLayoutSetScaleY(row, 0.6f);
-    uiItemS_ex(row, 1.2f);
+    uiItemS(row);
 
     /* Error messages created in ED_image_save_all_modified_info() can be long,
      * but are made to separate into two parts at first colon between text and paths.
@@ -3262,7 +3269,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
                  sizeof(message),
                  "Save %u modified image(s)",
                  modified_images_count);
-    uiItemS_ex(layout, 2.0f);
+    uiItemS(layout);
     uiDefButBitC(block,
                  UI_BTYPE_CHECKBOX,
                  1,
@@ -3282,7 +3289,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
 
   BKE_reports_clear(&reports);
 
-  uiItemS_ex(layout, 1.0f);
+  uiItemS_ex(layout, modified_images_count > 0 ? 2.0f : 4.0f);
 
   /* Buttons. */
 #ifdef _WIN32
@@ -3294,11 +3301,8 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
   if (windows_layout) {
     /* Windows standard layout. */
 
-    uiLayout *split = uiLayoutSplit(block_layout, 0.174f, true);
+    uiLayout *split = uiLayoutSplit(layout, 0.0f, true);
     uiLayoutSetScaleY(split, 1.2f);
-
-    uiLayoutColumn(split, false);
-    uiItemS(layout);
 
     uiLayoutColumn(split, false);
     wm_block_file_close_save_button(block, post_action);
@@ -3312,21 +3316,16 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
   else {
     /* Non-Windows layout (macOS and Linux). */
 
-    uiLayout *split = uiLayoutSplit(block_layout, 0.167f, true);
+    uiLayout *split = uiLayoutSplit(layout, 0.3f, true);
     uiLayoutSetScaleY(split, 1.2f);
 
-    layout = uiLayoutColumn(split, false);
-    uiItemS(layout);
-
-    /* Split button area into two sections: 40/60. */
-    uiLayout *split_left = uiLayoutSplit(split, 0.40f, true);
-
-    /* First button uses 75% of left side (30% of original). */
-    uiLayoutSplit(split_left, 0.75f, true);
+    uiLayoutColumn(split, false);
     wm_block_file_close_discard_button(block, post_action);
 
-    /* The right side is split 50/50 (each 30% of original). */
-    uiLayout *split_right = uiLayoutSplit(split_left, 0.50f, true);
+    uiLayout *split_right = uiLayoutSplit(split, 0.1f, true);
+
+    uiLayoutColumn(split_right, false);
+    /* Empty space. */
 
     uiLayoutColumn(split_right, false);
     wm_block_file_close_cancel_button(block, post_action);
