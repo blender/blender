@@ -2426,17 +2426,21 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
       }
     }
     else if (but->drawflag & UI_BUT_TEXT_LEFT) {
-
-      /* Reduce the left padding for labels without an icon. */
-      if ((but->type == UI_BTYPE_LABEL) && !(but->flag & UI_HAS_ICON) &&
-          !ui_block_is_menu(but->block)) {
-        text_padding /= 2;
-      }
-
       rect->xmin += text_padding;
     }
     else if (but->drawflag & UI_BUT_TEXT_RIGHT) {
       rect->xmax -= text_padding;
+    }
+  }
+  else {
+    /* In case a separate text label and some other button are placed under each other,
+       and the outline of the button does not contrast with the background.
+       Add an offset (thickness of the outline) so that the text does not stick out visually. */
+    if (but->drawflag & UI_BUT_TEXT_LEFT) {
+      rect->xmin += U.pixelsize;
+    }
+    else if (but->drawflag & UI_BUT_TEXT_RIGHT) {
+      rect->xmax -= U.pixelsize;
     }
   }
 
@@ -4574,6 +4578,9 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
         else if (but->block->theme_style == UI_BLOCK_THEME_STYLE_POPUP) {
           wt->wcol_theme = &tui->wcol_menu_back;
           wt->state = widget_state;
+        }
+        if (!(but->flag & UI_HAS_ICON)) {
+          but->drawflag |= UI_BUT_NO_TEXT_PADDING;
         }
         break;
 

@@ -282,10 +282,10 @@ def draw(layout, context, context_member, property_type, use_edit=True):
 
         if use_edit:
             split = box.split(factor=0.75)
-            row = split.row(align=True)
+            row = split.row()
         else:
             split = box.split(factor=1.00)
-            row = split.row(align=True)
+            row = split.row()
 
         row.alignment = 'RIGHT'
 
