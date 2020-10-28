@@ -62,9 +62,7 @@ const EnumPropertyItem rna_enum_property_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-/* XXX Keep in sync with bpy_props.c's property_subtype_xxx_items ???
- *     Currently it is not...
- */
+/* Keep in sync with RNA_types.h PropertySubType and bpy_props.c's property_subtype_xxx_items */
 const EnumPropertyItem rna_enum_property_subtype_items[] = {
     {PROP_NONE, "NONE", 0, "None", ""},
 
@@ -72,6 +70,7 @@ const EnumPropertyItem rna_enum_property_subtype_items[] = {
     {PROP_FILEPATH, "FILEPATH", 0, "File Path", ""},
     {PROP_DIRPATH, "DIRPATH", 0, "Directory Path", ""},
     {PROP_FILENAME, "FILENAME", 0, "File Name", ""},
+    {PROP_BYTESTRING, "BYTESTRING", 0, "Byte String", ""},
     {PROP_PASSWORD, "PASSWORD", 0, "Password", "A string that is displayed hidden ('********')"},
 
     /* numbers */
@@ -83,6 +82,8 @@ const EnumPropertyItem rna_enum_property_subtype_items[] = {
     {PROP_TIME, "TIME", 0, "Time", ""},
     {PROP_DISTANCE, "DISTANCE", 0, "Distance", ""},
     {PROP_DISTANCE_CAMERA, "DISTANCE_CAMERA", 0, "Camera Distance", ""},
+    {PROP_POWER, "POWER", 0, "Power", ""},
+    {PROP_TEMPERATURE, "TEMPERATURE", 0, "Temperature", ""},
 
     /* number arrays */
     {PROP_COLOR, "COLOR", 0, "Color", ""},
@@ -2720,30 +2721,6 @@ static void rna_def_property(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
-  static const EnumPropertyItem subtype_items[] = {
-      {PROP_NONE, "NONE", 0, "None", ""},
-      {PROP_FILEPATH, "FILE_PATH", 0, "File Path", ""},
-      {PROP_DIRPATH, "DIR_PATH", 0, "Directory Path", ""},
-      {PROP_PIXEL, "PIXEL", 0, "Pixel", ""},
-      {PROP_UNSIGNED, "UNSIGNED", 0, "Unsigned Number", ""},
-      {PROP_PERCENTAGE, "PERCENTAGE", 0, "Percentage", ""},
-      {PROP_FACTOR, "FACTOR", 0, "Factor", ""},
-      {PROP_ANGLE, "ANGLE", 0, "Angle", ""},
-      {PROP_TIME, "TIME", 0, "Time", ""},
-      {PROP_DISTANCE, "DISTANCE", 0, "Distance", ""},
-      {PROP_COLOR, "COLOR", 0, "Color", ""},
-      {PROP_TRANSLATION, "TRANSLATION", 0, "Translation", ""},
-      {PROP_DIRECTION, "DIRECTION", 0, "Direction", ""},
-      {PROP_MATRIX, "MATRIX", 0, "Matrix", ""},
-      {PROP_EULER, "EULER", 0, "Euler", ""},
-      {PROP_QUATERNION, "QUATERNION", 0, "Quaternion", ""},
-      {PROP_XYZ, "XYZ", 0, "XYZ", ""},
-      {PROP_COLOR_GAMMA, "COLOR_GAMMA", 0, "Gamma Corrected Color", ""},
-      {PROP_COORDS, "COORDINATES", 0, "Vector Coordinates", ""},
-      {PROP_LAYER, "LAYER", 0, "Layer", ""},
-      {PROP_LAYER_MEMBER, "LAYER_MEMBERSHIP", 0, "Layer Membership", ""},
-      {0, NULL, 0, NULL, NULL},
-  };
   EnumPropertyItem dummy_prop_tags[] = {
       {0, NULL, 0, NULL, NULL},
   };
@@ -2788,7 +2765,7 @@ static void rna_def_property(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "subtype", PROP_ENUM, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_enum_items(prop, subtype_items);
+  RNA_def_property_enum_items(prop, rna_enum_property_subtype_items);
   RNA_def_property_enum_funcs(prop, "rna_Property_subtype_get", NULL, NULL);
   RNA_def_property_ui_text(prop, "Subtype", "Semantic interpretation of the property");
 

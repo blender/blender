@@ -126,9 +126,7 @@ static const EnumPropertyItem property_flag_override_collection_items[] = {
   "   :type override: set\n"
 
 /* subtypes */
-/* XXX Keep in sync with rna_rna.c's rna_enum_property_subtype_items ???
- *     Currently it is not...
- */
+/* Keep in sync with RNA_types.h PropertySubType and rna_rna.c's rna_enum_property_subtype_items */
 static const EnumPropertyItem property_subtype_string_items[] = {
     {PROP_FILEPATH, "FILE_PATH", 0, "File Path", ""},
     {PROP_DIRPATH, "DIR_PATH", 0, "Directory Path", ""},
@@ -153,6 +151,9 @@ static const EnumPropertyItem property_subtype_number_items[] = {
     {PROP_ANGLE, "ANGLE", 0, "Angle", ""},
     {PROP_TIME, "TIME", 0, "Time", ""},
     {PROP_DISTANCE, "DISTANCE", 0, "Distance", ""},
+    {PROP_DISTANCE_CAMERA, "DISTANCE_CAMERA", 0, "Camera Distance", ""},
+    {PROP_POWER, "POWER", 0, "Power", ""},
+    {PROP_TEMPERATURE, "TEMPERATURE", 0, "Temperature", ""},
 
     {PROP_NONE, "NONE", 0, "None", ""},
     {0, NULL, 0, NULL, NULL},
@@ -160,7 +161,7 @@ static const EnumPropertyItem property_subtype_number_items[] = {
 
 #define BPY_PROPDEF_SUBTYPE_NUMBER_DOC \
   "   :arg subtype: Enumerator in ['PIXEL', 'UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', " \
-  "'TIME', 'DISTANCE', 'NONE'].\n" \
+  "'TIME', 'DISTANCE', 'DISTANCE_CAMERA', 'POWER', 'TEMPERATURE', 'NONE'].\n" \
   "   :type subtype: string\n"
 
 static const EnumPropertyItem property_subtype_array_items[] = {
@@ -174,11 +175,11 @@ static const EnumPropertyItem property_subtype_array_items[] = {
     {PROP_QUATERNION, "QUATERNION", 0, "Quaternion", ""},
     {PROP_AXISANGLE, "AXISANGLE", 0, "Axis Angle", ""},
     {PROP_XYZ, "XYZ", 0, "XYZ", ""},
+    {PROP_XYZ_LENGTH, "XYZ_LENGTH", 0, "XYZ Length", ""},
     {PROP_COLOR_GAMMA, "COLOR_GAMMA", 0, "Color Gamma", ""},
+    {PROP_COORDS, "COORDINATES", 0, "Vector Coordinates", ""},
     {PROP_LAYER, "LAYER", 0, "Layer", ""},
     {PROP_LAYER_MEMBER, "LAYER_MEMBER", 0, "Layer Member", ""},
-    {PROP_POWER, "POWER", 0, "Power", ""},
-    {PROP_TEMPERATURE, "TEMPERATURE", 0, "Temperature", ""},
 
     {PROP_NONE, "NONE", 0, "None", ""},
     {0, NULL, 0, NULL, NULL},
@@ -187,7 +188,7 @@ static const EnumPropertyItem property_subtype_array_items[] = {
 #define BPY_PROPDEF_SUBTYPE_ARRAY_DOC \
   "   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', " \
   "'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', " \
-  "'XYZ', 'COLOR_GAMMA', 'LAYER', 'LAYER_MEMBER', 'POWER', 'NONE'].\n" \
+  "'XYZ', 'XYZ_LENGTH', 'COLOR_GAMMA', 'COORDINATES', 'LAYER', 'LAYER_MEMBER', 'NONE'].\n" \
   "   :type subtype: string\n"
 
 /* PyObject's */
