@@ -4053,7 +4053,7 @@ static void widget_optionbut(uiWidgetColors *wcol,
   }
 
   /* smaller */
-  delta = 1 + BLI_rcti_size_y(&recttemp) / 8;
+  delta = (BLI_rcti_size_y(&recttemp) - 2 * U.pixelsize) / 6;
   BLI_rcti_resize(
       &recttemp, BLI_rcti_size_x(&recttemp) - delta * 2, BLI_rcti_size_y(&recttemp) - delta * 2);
   /* Keep one edge in place. */
