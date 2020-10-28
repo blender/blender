@@ -791,43 +791,6 @@ void IDP_CopyPropertyContent(IDProperty *dst, IDProperty *src)
   IDP_FreeProperty(idprop_tmp);
 }
 
-/* Updates ID pointers after an object has been copied */
-/* TODO Nuke this once its only user has been correctly converted
- * to use generic ID management from BKE_library! */
-void IDP_RelinkProperty(struct IDProperty *prop)
-{
-  if (!prop) {
-    return;
-  }
-
-  switch (prop->type) {
-    case IDP_GROUP: {
-      LISTBASE_FOREACH (IDProperty *, loop, &prop->data.group) {
-        IDP_RelinkProperty(loop);
-      }
-      break;
-    }
-    case IDP_IDPARRAY: {
-      IDProperty *idp_array = IDP_Array(prop);
-      for (int i = 0; i < prop->len; i++) {
-        IDP_RelinkProperty(&idp_array[i]);
-      }
-      break;
-    }
-    case IDP_ID: {
-      ID *id = IDP_Id(prop);
-      if (id && id->newid) {
-        id_us_min(IDP_Id(prop));
-        prop->data.pointer = id->newid;
-        id_us_plus(IDP_Id(prop));
-      }
-      break;
-    }
-    default:
-      break; /* Nothing to do for other IDProp types. */
-  }
-}
-
 /**
  * Get the Group property that contains the id properties for ID id.  Set create_if_needed
  * to create the Group property and attach it to id if it doesn't exist; otherwise
