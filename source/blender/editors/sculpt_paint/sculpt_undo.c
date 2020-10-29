@@ -463,6 +463,8 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode)
 
   /* Restore the BMLog using saved entries. */
   ss->bm_log = BM_log_from_existing_entries_create(ss->bm, unode->bm_entry);
+  BM_log_set_cd_offsets(
+      ss->bm_log, ss->cd_origco_offset, ss->cd_origno_offset, ss->cd_origvcol_offset);
 }
 
 static void sculpt_undo_bmesh_restore_begin(bContext *C,
@@ -502,6 +504,8 @@ static void sculpt_undo_bmesh_restore_end(bContext *C,
     SCULPT_dynamic_topology_disable(C, NULL);
     unode->applied = true;
   }
+
+  BM_mesh_elem_index_ensure(ss->bm, BM_VERT);
 }
 
 static void sculpt_undo_geometry_store_data(SculptUndoNodeGeometry *geometry, Object *object)
@@ -593,17 +597,25 @@ static int sculpt_undo_bmesh_restore(bContext *C,
                                      Object *ob,
                                      SculptSession *ss)
 {
+  if (ss->bm_log) {
+    BM_log_set_cd_offsets(
+      ss->bm_log, ss->cd_origco_offset, ss->cd_origno_offset, ss->cd_origvcol_offset);
+  }
+
   switch (unode->type) {
     case SCULPT_UNDO_DYNTOPO_BEGIN:
       sculpt_undo_bmesh_restore_begin(C, unode, ob, ss);
+      SCULPT_vertex_random_access_ensure(ss);
       return true;
 
     case SCULPT_UNDO_DYNTOPO_END:
       sculpt_undo_bmesh_restore_end(C, unode, ob, ss);
+      SCULPT_vertex_random_access_ensure(ss);
       return true;
     default:
       if (ss->bm_log) {
         sculpt_undo_bmesh_restore_generic(unode, ob, ss);
+        SCULPT_vertex_random_access_ensure(ss);
         return true;
       }
       break;
@@ -974,7 +986,6 @@ static SculptUndoNode *sculpt_undo_find_or_alloc_node_type(Object *object, Sculp
   return sculpt_undo_alloc_node_type(object, type);
 }
 
-
 static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node, SculptUndoType type)
 {
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
@@ -1057,6 +1068,9 @@ static void sculpt_undo_store_coords(Object *ob, SculptUndoNode *unode)
   SculptSession *ss = ob->sculpt;
   PBVHVertexIter vd;
 
+  SculptOrigVertData orig_data;
+  SCULPT_orig_vert_data_unode_init(&orig_data, ob, unode);
+
   BKE_pbvh_vertex_iter_begin(ss->pbvh, unode->node, vd, PBVH_ITER_ALL)
   {
     copy_v3_v3(unode->co[vd.i], vd.co);
@@ -1068,9 +1082,11 @@ static void sculpt_undo_store_coords(Object *ob, SculptUndoNode *unode)
     }
 
     if (ss->deform_modifiers_active) {
+      SCULPT_orig_vert_data_update(&orig_data, &vd);
+
       int index = BKE_pbvh_vertex_index_to_table(ss->pbvh, unode->index[vd.i]);
 
-      copy_v3_v3(unode->orig_co[vd.i], ss->orig_cos[index]);
+      copy_v3_v3(unode->orig_co[vd.i], orig_data.co);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -1268,7 +1284,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
   }
 
   if (new_node) {
-    //sculpt_undo_print_nodes(NULL);
+    // sculpt_undo_print_nodes(NULL);
   }
 
   return unode;
@@ -1453,7 +1469,7 @@ static void sculpt_undosys_step_decode_undo_impl(struct bContext *C,
   sculpt_undo_restore_list(C, depsgraph, &us->data.nodes);
   us->step.is_applied = false;
 
-  //sculpt_undo_print_nodes(us);
+  // sculpt_undo_print_nodes(us);
 }
 
 static void sculpt_undosys_step_decode_redo_impl(struct bContext *C,
@@ -1464,7 +1480,7 @@ static void sculpt_undosys_step_decode_redo_impl(struct bContext *C,
   sculpt_undo_restore_list(C, depsgraph, &us->data.nodes);
   us->step.is_applied = true;
 
-  //sculpt_undo_print_nodes(us);
+  // sculpt_undo_print_nodes(us);
 }
 
 static void sculpt_undosys_step_decode_undo(struct bContext *C,
@@ -1694,7 +1710,6 @@ void ED_sculpt_undo_push_multires_mesh_end(bContext *C, const char *str)
 }
 
 /** \} */
-
 
 #ifdef _
 #  undef _

@@ -121,7 +121,7 @@ void SCULPT_dyntopo_save_origverts(SculptSession *ss)
     float *no = BM_ELEM_CD_GET_VOID_P(v, ss->cd_origno_offset);
 
     copy_v3_v3(co, v->co);
-    copy_v3_v3(co, v->no);
+    copy_v3_v3(no, v->no);
   }
 }
 
@@ -189,6 +189,9 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
         cd_origvcol_index - CustomData_get_layer_index(&ss->bm->vdata, CD_PROP_COLOR));
     ss->bm->vdata.layers[cd_origvcol_index].flag |= CD_FLAG_TEMPORARY;
   }
+  else {
+    ss->cd_origvcol_offset = -1;
+  }
 
   ss->cd_origco_offset = CustomData_get_n_offset(
       &ss->bm->vdata,
@@ -238,8 +241,8 @@ void SCULPT_dynamic_topology_sync_layers(Object *ob, Mesh *me)
   CustomData *cd1[4] = {&me->vdata, &me->edata, &me->ldata, &me->pdata};
   CustomData *cd2[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
   int types[4] = {BM_VERT, BM_EDGE, BM_LOOP, BM_FACE};
-  int badmask = CD_MASK_MLOOP | CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MPOLY |
-                CD_MASK_ORIGINDEX | CD_MASK_ORIGSPACE | CD_MASK_MFACE;
+  int badmask = CD_MASK_MLOOP | CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MPOLY | CD_MASK_ORIGINDEX |
+                CD_MASK_ORIGSPACE | CD_MASK_MFACE;
 
   for (int i = 0; i < 4; i++) {
     CustomDataLayer **newlayers = NULL;
@@ -350,6 +353,30 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   SCULPT_dynamic_topology_triangulate(ss->bm);
   BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
   SCULPT_dyntopo_node_layers_add(ss);
+
+  BMIter iter;
+  BMVert *v;
+  int cd_vcol_offset = CustomData_get_offset(&ss->bm->vdata, CD_PROP_COLOR);
+
+  BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
+    if (ss->cd_origco_offset >= 0) {
+      float *co = BM_ELEM_CD_GET_VOID_P(v, ss->cd_origco_offset);
+      copy_v3_v3(co, v->co);
+    }
+    if (ss->cd_origno_offset >= 0) {
+      float *no = BM_ELEM_CD_GET_VOID_P(v, ss->cd_origno_offset);
+      copy_v3_v3(no, v->no);
+    }
+
+    if (ss->cd_origvcol_offset >= 0) {
+
+      float *ocolor = BM_ELEM_CD_GET_VOID_P(v, ss->cd_origvcol_offset);
+      float *color = BM_ELEM_CD_GET_VOID_P(v, cd_vcol_offset);
+
+      copy_v4_v4(ocolor, color);
+    }
+  }
+
   /* Make sure the data for existing faces are initialized. */
   if (me->totpoly != ss->bm->totface) {
     BM_mesh_normals_update(ss->bm);
@@ -359,7 +386,8 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Scene 
   me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
 
   /* Enable logging for undo/redo. */
-  ss->bm_log = BM_log_create(ss->bm);
+  ss->bm_log = BM_log_create(
+      ss->bm, ss->cd_origco_offset, ss->cd_origno_offset, ss->cd_origvcol_offset);
 
   /* Update dependency graph, so modifiers that depend on dyntopo being enabled
    * are re-evaluated and the PBVH is re-created. */

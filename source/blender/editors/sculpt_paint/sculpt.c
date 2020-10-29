@@ -111,7 +111,7 @@
 
 void SCULPT_vertex_random_access_ensure(SculptSession *ss)
 {
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+  if (ss->bm) {
     BM_mesh_elem_index_ensure(ss->bm, BM_VERT);
     BM_mesh_elem_table_ensure(ss->bm, BM_VERT);
   }

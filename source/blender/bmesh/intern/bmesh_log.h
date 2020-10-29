@@ -29,7 +29,11 @@ typedef struct BMLog BMLog;
 typedef struct BMLogEntry BMLogEntry;
 
 /* Allocate and initialize a new BMLog */
-BMLog *BM_log_create(BMesh *bm);
+BMLog *BM_log_create(BMesh *bm, int cd_origco_offset, int cd_origno_offset, int cd_origvol_offset);
+void BM_log_set_cd_offsets(BMLog *log,
+                           int cd_origco_offset,
+                           int cd_origno_offset,
+                           int cd_origvcol_offset);
 
 /* Allocate and initialize a new BMLog using existing BMLogEntries */
 BMLog *BM_log_from_existing_entries_create(BMesh *bm, BMLogEntry *entry);
@@ -49,7 +53,7 @@ BMLogEntry *BM_log_entry_add_ex(BMesh *bm, BMLog *log, bool combine_with_last);
 
 BMLogEntry *BM_log_entry_check_customdata(BMesh *bm, BMLog *log);
 
-    /* Mark all used ids as unused for this node */
+/* Mark all used ids as unused for this node */
 void BM_log_cleanup_entry(BMLogEntry *entry);
 
 /* Remove an entry from the log */
@@ -62,7 +66,10 @@ void BM_log_undo(BMesh *bm, BMLog *log);
 void BM_log_redo(BMesh *bm, BMLog *log);
 
 /* Log a vertex before it is modified */
-void BM_log_vert_before_modified(BMLog *log, struct BMVert *v, const int cd_vert_mask_offset, bool log_customdata);
+void BM_log_vert_before_modified(BMLog *log,
+                                 struct BMVert *v,
+                                 const int cd_vert_mask_offset,
+                                 bool log_customdata);
 
 /* Log a new vertex as added to the BMesh */
 void BM_log_vert_added(BMLog *log, struct BMVert *v, const int cd_vert_mask_offset);

@@ -387,14 +387,16 @@ void BLI_table_gset_remove(TableGSet *ts, void *elem, GHashKeyFreeFP freefp)
     return;
   }
 
+  int idx2 = *idx;
+
   BLI_ghash_remove(ts->ptr_to_idx, elem, freefp, NULL);
 
-  if (!ts->elems || ts->elems[*idx] != elem) {
+  if (!ts->elems || ts->elems[idx2] != elem) {
     return;
   }
 
   ts->length--;
-  ts->elems[*idx] = NULL;
+  ts->elems[idx2] = NULL;
 }
 
 bool BLI_table_gset_haskey(TableGSet *ts, void *elem)
