@@ -1232,6 +1232,11 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, const wmEvent *even
   v2d = vzd->v2d;
 
   if (U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
+    ARegion *region = CTX_wm_region(C);
+
+    /* Store initial mouse position (in view space). */
+    UI_view2d_region_to_view(
+        &region->v2d, event->mval[0], event->mval[1], &vzd->mx_2d, &vzd->my_2d);
     vzd->zoom_to_mouse_pos = true;
   }
 
@@ -1277,14 +1282,6 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
   /* for modal exit test */
   vzd->invoke_event = event->type;
-
-  if (U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
-    ARegion *region = CTX_wm_region(C);
-
-    /* store initial mouse position (in view space) */
-    UI_view2d_region_to_view(
-        &region->v2d, event->mval[0], event->mval[1], &vzd->mx_2d, &vzd->my_2d);
-  }
 
   if (v2d->keepofs & V2D_LOCKOFS_X) {
     WM_cursor_modal_set(window, WM_CURSOR_NS_SCROLL);
