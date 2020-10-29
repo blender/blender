@@ -35,8 +35,20 @@ CCL_NAMESPACE_BEGIN
 
 template<typename K, typename T> class id_map {
  public:
-  id_map()
+  id_map(Scene *scene_) : scene(scene_)
   {
+  }
+
+  ~id_map()
+  {
+    set<T *> nodes;
+
+    typename map<K, T *>::iterator jt;
+    for (jt = b_map.begin(); jt != b_map.end(); jt++) {
+      nodes.insert(jt->second);
+    }
+
+    scene->delete_nodes(nodes);
   }
 
   T *find(const BL::ID &id)
@@ -98,16 +110,15 @@ template<typename K, typename T> class id_map {
   }
 
   /* Combined add and update as needed. */
-  bool add_or_update(Scene *scene, T **r_data, const BL::ID &id)
+  bool add_or_update(T **r_data, const BL::ID &id)
   {
-    return add_or_update(scene, r_data, id, id, id.ptr.owner_id);
+    return add_or_update(r_data, id, id, id.ptr.owner_id);
   }
-  bool add_or_update(Scene *scene, T **r_data, const BL::ID &id, const K &key)
+  bool add_or_update(T **r_data, const BL::ID &id, const K &key)
   {
-    return add_or_update(scene, r_data, id, id, key);
+    return add_or_update(r_data, id, id, key);
   }
-  bool add_or_update(
-      Scene *scene, T **r_data, const BL::ID &id, const BL::ID &parent, const K &key)
+  bool add_or_update(T **r_data, const BL::ID &id, const BL::ID &parent, const K &key)
   {
     T *data = find(key);
     bool recalc;
@@ -146,7 +157,7 @@ template<typename K, typename T> class id_map {
     b_map[NULL] = data;
   }
 
-  void post_sync(Scene *scene, bool do_delete = true)
+  void post_sync(bool do_delete = true)
   {
     map<K, T *> new_map;
     typedef pair<const K, T *> TMapPair;
@@ -177,6 +188,7 @@ template<typename K, typename T> class id_map {
   map<K, T *> b_map;
   set<T *> used_set;
   set<void *> b_recalc;
+  Scene *scene;
 };
 
 /* Object Key

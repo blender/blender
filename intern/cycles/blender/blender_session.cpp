@@ -238,6 +238,7 @@ void BlenderSession::reset_session(BL::BlendData &b_data, BL::Depsgraph &b_depsg
    * See note on create_session().
    */
   /* sync object should be re-created */
+  delete sync;
   sync = new BlenderSync(b_engine, b_data, b_scene, scene, !background, session->progress);
 
   BL::SpaceView3D b_null_space_view3d(PointerRNA_NULL);
