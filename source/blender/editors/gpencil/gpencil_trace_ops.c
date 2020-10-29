@@ -102,8 +102,8 @@ typedef struct TraceJob {
 
 /**
  * Trace a image.
- * \param ibuf: Image Ibuffer
- * \param gpf: Destination frame
+ * \param ibuf: Image buffer.
+ * \param gpf: Destination frame.
  */
 static bool gpencil_trace_image(TraceJob *trace_job, ImBuf *ibuf, bGPDframe *gpf)
 {
@@ -281,7 +281,7 @@ static void trace_end_job(void *customdata)
 {
   TraceJob *trace_job = customdata;
 
-  /* If canceled, delete all previously created object and datablock. */
+  /* If canceled, delete all previously created object and data-block. */
   if ((trace_job->was_canceled) && (trace_job->was_ob_created) && (trace_job->ob_gpencil)) {
     bGPdata *gpd = trace_job->ob_gpencil->data;
     BKE_id_delete(trace_job->bmain, &trace_job->ob_gpencil->id);

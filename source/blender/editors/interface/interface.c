@@ -928,9 +928,11 @@ static bool ui_but_update_from_old_block(const bContext *C,
   return found_active;
 }
 
-/* needed for temporarily rename buttons, such as in outliner or file-select,
- * they should keep calling uiDefButs to keep them alive */
-/* returns 0 when button removed */
+/**
+ * Needed for temporarily rename buttons, such as in outliner or file-select,
+ * they should keep calling #uiDefBut to keep them alive.
+ * \return false when button removed.
+ */
 bool UI_but_active_only_ex(
     const bContext *C, ARegion *region, uiBlock *block, uiBut *but, const bool remove_on_failure)
 {

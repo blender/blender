@@ -947,7 +947,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
           new_refine_camera_intrinsics |= REFINE_PRINCIPAL_POINT;
         }
 
-        /* The end goal is to enable radial distorion refinement if either K1 or K2 were set for
+        /* The end goal is to enable radial distortion refinement if either K1 or K2 were set for
          * refinement. It is enough to only check for L1 it was not possible to refine K2 without
          * K1. */
         if (settings->refine_camera_intrinsics & LEGACY_REFINE_RADIAL_DISTORTION_K1) {
