@@ -7359,9 +7359,9 @@ void RNA_def_scene(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem sync_mode_items[] = {
-      {0, "NONE", 0, "No Sync", "Do not sync, play every frame"},
+      {0, "NONE", 0, "Play Every Frame", "Do not sync, play every frame"},
       {SCE_FRAME_DROP, "FRAME_DROP", 0, "Frame Dropping", "Drop frames if playback is too slow"},
-      {AUDIO_SYNC, "AUDIO_SYNC", 0, "AV-sync", "Sync to audio playback, dropping frames"},
+      {AUDIO_SYNC, "AUDIO_SYNC", 0, "Sync to Audio", "Sync to audio playback, dropping frames"},
       {0, NULL, 0, NULL, NULL},
   };
 
