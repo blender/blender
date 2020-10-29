@@ -4993,6 +4993,7 @@ void BKE_fluid_modifier_copy(const struct FluidModifierData *fmd,
     tfds->fractions_threshold = fds->fractions_threshold;
     tfds->fractions_distance = fds->fractions_distance;
     tfds->sys_particle_maximum = fds->sys_particle_maximum;
+    tfds->simulation_method = fds->simulation_method;
 
     /* diffusion options*/
     tfds->surface_tension = fds->surface_tension;
