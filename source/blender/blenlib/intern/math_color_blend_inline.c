@@ -606,6 +606,7 @@ MINLINE void blend_color_interpolate_byte(uchar dst[4],
   }
   else {
     copy_v4_v4_uchar(dst, src1);
+    dst[3] = 0;
   }
 }
 
