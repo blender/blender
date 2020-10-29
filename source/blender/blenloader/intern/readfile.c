@@ -268,10 +268,6 @@ static BHead *find_bhead_from_code_name(FileData *fd, const short idcode, const 
 static BHead *find_bhead_from_idname(FileData *fd, const char *idname);
 static bool library_link_idcode_needs_tag_check(const short idcode, const int flag);
 
-#ifdef USE_COLLECTION_COMPAT_28
-static void expand_scene_collection(BlendExpander *expander, SceneCollection *sc);
-#endif
-
 typedef struct BHeadN {
   struct BHeadN *next, *prev;
 #ifdef USE_BHEAD_READ_ON_DEMAND
@@ -2262,7 +2258,6 @@ static void link_glob_list(FileData *fd, ListBase *lb) /* for glob data */
  * \{ */
 
 static void lib_link_id(BlendLibReader *reader, ID *id);
-static void lib_link_collection(BlendLibReader *reader, Collection *collection);
 
 static void lib_link_id_embedded_id(BlendLibReader *reader, ID *id)
 {
@@ -2278,7 +2273,7 @@ static void lib_link_id_embedded_id(BlendLibReader *reader, ID *id)
     Scene *scene = (Scene *)id;
     if (scene->master_collection != NULL) {
       lib_link_id(reader, &scene->master_collection->id);
-      lib_link_collection(reader, scene->master_collection);
+      BKE_collection_blend_read_lib(reader, scene->master_collection);
     }
   }
 }
@@ -2325,7 +2320,6 @@ static void direct_link_id_override_property_cb(BlendDataReader *reader, void *d
 
 static void direct_link_id_common(
     BlendDataReader *reader, Library *current_library, ID *id, ID *id_old, const int tag);
-static void direct_link_collection(BlendDataReader *reader, Collection *collection);
 
 static void direct_link_id_embedded_id(BlendDataReader *reader,
                                        Library *current_library,
@@ -2353,7 +2347,7 @@ static void direct_link_id_embedded_id(BlendDataReader *reader,
                             &scene->master_collection->id,
                             id_old != NULL ? &((Scene *)id_old)->master_collection->id : NULL,
                             0);
-      direct_link_collection(reader, scene->master_collection);
+      BKE_collection_blend_read_data(reader, scene->master_collection);
     }
   }
 }
@@ -4062,187 +4056,6 @@ static void direct_link_view_settings(BlendDataReader *reader,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Read View Layer (Collection Data)
- * \{ */
-
-static void direct_link_layer_collections(BlendDataReader *reader, ListBase *lb, bool master)
-{
-  BLO_read_list(reader, lb);
-  LISTBASE_FOREACH (LayerCollection *, lc, lb) {
-#ifdef USE_COLLECTION_COMPAT_28
-    BLO_read_data_address(reader, &lc->scene_collection);
-#endif
-
-    /* Master collection is not a real data-lock. */
-    if (master) {
-      BLO_read_data_address(reader, &lc->collection);
-    }
-
-    direct_link_layer_collections(reader, &lc->layer_collections, false);
-  }
-}
-
-static void direct_link_view_layer(BlendDataReader *reader, ViewLayer *view_layer)
-{
-  view_layer->stats = NULL;
-  BLO_read_list(reader, &view_layer->object_bases);
-  BLO_read_data_address(reader, &view_layer->basact);
-
-  direct_link_layer_collections(reader, &view_layer->layer_collections, true);
-  BLO_read_data_address(reader, &view_layer->active_collection);
-
-  BLO_read_data_address(reader, &view_layer->id_properties);
-  IDP_BlendDataRead(reader, &view_layer->id_properties);
-
-  BLO_read_list(reader, &(view_layer->freestyle_config.modules));
-  BLO_read_list(reader, &(view_layer->freestyle_config.linesets));
-
-  BLI_listbase_clear(&view_layer->drawdata);
-  view_layer->object_bases_array = NULL;
-  view_layer->object_bases_hash = NULL;
-}
-
-static void lib_link_layer_collection(BlendLibReader *reader,
-                                      Library *lib,
-                                      LayerCollection *layer_collection,
-                                      bool master)
-{
-  /* Master collection is not a real data-lock. */
-  if (!master) {
-    BLO_read_id_address(reader, lib, &layer_collection->collection);
-  }
-
-  LISTBASE_FOREACH (
-      LayerCollection *, layer_collection_nested, &layer_collection->layer_collections) {
-    lib_link_layer_collection(reader, lib, layer_collection_nested, false);
-  }
-}
-
-static void lib_link_view_layer(BlendLibReader *reader, Library *lib, ViewLayer *view_layer)
-{
-  LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &view_layer->freestyle_config.modules) {
-    BLO_read_id_address(reader, lib, &fmc->script);
-  }
-
-  LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
-    BLO_read_id_address(reader, lib, &fls->linestyle);
-    BLO_read_id_address(reader, lib, &fls->group);
-  }
-
-  for (Base *base = view_layer->object_bases.first, *base_next = NULL; base; base = base_next) {
-    base_next = base->next;
-
-    /* we only bump the use count for the collection objects */
-    BLO_read_id_address(reader, lib, &base->object);
-
-    if (base->object == NULL) {
-      /* Free in case linked object got lost. */
-      BLI_freelinkN(&view_layer->object_bases, base);
-      if (view_layer->basact == base) {
-        view_layer->basact = NULL;
-      }
-    }
-  }
-
-  LISTBASE_FOREACH (LayerCollection *, layer_collection, &view_layer->layer_collections) {
-    lib_link_layer_collection(reader, lib, layer_collection, true);
-  }
-
-  BLO_read_id_address(reader, lib, &view_layer->mat_override);
-
-  IDP_BlendReadLib(reader, view_layer->id_properties);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Read ID: Collection
- * \{ */
-
-#ifdef USE_COLLECTION_COMPAT_28
-static void direct_link_scene_collection(BlendDataReader *reader, SceneCollection *sc)
-{
-  BLO_read_list(reader, &sc->objects);
-  BLO_read_list(reader, &sc->scene_collections);
-
-  LISTBASE_FOREACH (SceneCollection *, nsc, &sc->scene_collections) {
-    direct_link_scene_collection(reader, nsc);
-  }
-}
-
-static void lib_link_scene_collection(BlendLibReader *reader, Library *lib, SceneCollection *sc)
-{
-  LISTBASE_FOREACH (LinkData *, link, &sc->objects) {
-    BLO_read_id_address(reader, lib, &link->data);
-    BLI_assert(link->data);
-  }
-
-  LISTBASE_FOREACH (SceneCollection *, nsc, &sc->scene_collections) {
-    lib_link_scene_collection(reader, lib, nsc);
-  }
-}
-#endif
-
-static void direct_link_collection(BlendDataReader *reader, Collection *collection)
-{
-  BLO_read_list(reader, &collection->gobject);
-  BLO_read_list(reader, &collection->children);
-
-  BLO_read_data_address(reader, &collection->preview);
-  BKE_previewimg_blend_read(reader, collection->preview);
-
-  collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
-  collection->tag = 0;
-  BLI_listbase_clear(&collection->object_cache);
-  BLI_listbase_clear(&collection->parents);
-
-#ifdef USE_COLLECTION_COMPAT_28
-  /* This runs before the very first doversion. */
-  BLO_read_data_address(reader, &collection->collection);
-  if (collection->collection != NULL) {
-    direct_link_scene_collection(reader, collection->collection);
-  }
-
-  BLO_read_data_address(reader, &collection->view_layer);
-  if (collection->view_layer != NULL) {
-    direct_link_view_layer(reader, collection->view_layer);
-  }
-#endif
-}
-
-static void lib_link_collection_data(BlendLibReader *reader, Library *lib, Collection *collection)
-{
-  LISTBASE_FOREACH_MUTABLE (CollectionObject *, cob, &collection->gobject) {
-    BLO_read_id_address(reader, lib, &cob->ob);
-
-    if (cob->ob == NULL) {
-      BLI_freelinkN(&collection->gobject, cob);
-    }
-  }
-
-  LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    BLO_read_id_address(reader, lib, &child->collection);
-  }
-}
-
-static void lib_link_collection(BlendLibReader *reader, Collection *collection)
-{
-#ifdef USE_COLLECTION_COMPAT_28
-  if (collection->collection) {
-    lib_link_scene_collection(reader, collection->id.lib, collection->collection);
-  }
-
-  if (collection->view_layer) {
-    lib_link_view_layer(reader, collection->id.lib, collection->view_layer);
-  }
-#endif
-
-  lib_link_collection_data(reader, collection->id.lib, collection);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Read ID: Scene
  * \{ */
 
@@ -4528,12 +4341,12 @@ static void lib_link_scene(BlendLibReader *reader, Scene *sce)
 
 #ifdef USE_COLLECTION_COMPAT_28
   if (sce->collection) {
-    lib_link_scene_collection(reader, sce->id.lib, sce->collection);
+    BKE_collection_compat_blend_read_lib(reader, sce->id.lib, sce->collection);
   }
 #endif
 
   LISTBASE_FOREACH (ViewLayer *, view_layer, &sce->view_layers) {
-    lib_link_view_layer(reader, sce->id.lib, view_layer);
+    BKE_view_layer_blend_read_lib(reader, sce->id.lib, view_layer);
   }
 
   if (sce->r.bake.cage_object) {
@@ -4917,14 +4730,14 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
   /* this runs before the very first doversion */
   if (sce->collection) {
     BLO_read_data_address(reader, &sce->collection);
-    direct_link_scene_collection(reader, sce->collection);
+    BKE_collection_compat_blend_read_data(reader, sce->collection);
   }
 #endif
 
   /* insert into global old-new map for reading without UI (link_global accesses it again) */
   link_glob_list(reader->fd, &sce->view_layers);
   LISTBASE_FOREACH (ViewLayer *, view_layer, &sce->view_layers) {
-    direct_link_view_layer(reader, view_layer);
+    BKE_view_layer_blend_read_data(reader, view_layer);
   }
 
   if (BLO_read_data_is_undo(reader)) {
@@ -6397,15 +6210,13 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_LI:
       direct_link_library(fd, (Library *)id, main);
       break;
-    case ID_GR:
-      direct_link_collection(&reader, (Collection *)id);
-      break;
     case ID_PA:
       direct_link_particlesettings(&reader, (ParticleSettings *)id);
       break;
     case ID_WS:
       direct_link_workspace(&reader, (WorkSpace *)id);
       break;
+    case ID_GR:
     case ID_ME:
     case ID_LT:
     case ID_AC:
@@ -7042,9 +6853,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_PA:
         lib_link_particlesettings(&reader, (ParticleSettings *)id);
         break;
-      case ID_GR:
-        lib_link_collection(&reader, (Collection *)id);
-        break;
       case ID_IP:
         /* XXX deprecated... still needs to be maintained for version patches still. */
         lib_link_ipo(&reader, (Ipo *)id);
@@ -7052,6 +6860,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_LI:
         lib_link_library(&reader, (Library *)id); /* Only init users. */
         break;
+      case ID_GR:
       case ID_ME:
       case ID_LT:
       case ID_AC:
@@ -7666,7 +7475,6 @@ static void expand_constraint_channels(BlendExpander *expander, ListBase *chanba
 }
 
 static void expand_id(BlendExpander *expander, ID *id);
-static void expand_collection(BlendExpander *expander, Collection *collection);
 
 static void expand_id_embedded_id(BlendExpander *expander, ID *id)
 {
@@ -7681,7 +7489,7 @@ static void expand_id_embedded_id(BlendExpander *expander, ID *id)
     Scene *scene = (Scene *)id;
     if (scene->master_collection != NULL) {
       expand_id(expander, &scene->master_collection->id);
-      expand_collection(expander, scene->master_collection);
+      BKE_collection_blend_read_expand(expander, scene->master_collection);
     }
   }
 }
@@ -7749,23 +7557,6 @@ static void expand_particlesettings(BlendExpander *expander, ParticleSettings *p
   LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
     BLO_expand(expander, dw->ob);
   }
-}
-
-static void expand_collection(BlendExpander *expander, Collection *collection)
-{
-  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-    BLO_expand(expander, cob->ob);
-  }
-
-  LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    BLO_expand(expander, child->collection);
-  }
-
-#ifdef USE_COLLECTION_COMPAT_28
-  if (collection->collection != NULL) {
-    expand_scene_collection(expander, collection->collection);
-  }
-#endif
 }
 
 /* callback function used to expand constraint ID-links */
@@ -7893,19 +7684,6 @@ static void expand_object(BlendExpander *expander, Object *ob)
   }
 }
 
-#ifdef USE_COLLECTION_COMPAT_28
-static void expand_scene_collection(BlendExpander *expander, SceneCollection *sc)
-{
-  LISTBASE_FOREACH (LinkData *, link, &sc->objects) {
-    BLO_expand(expander, link->data);
-  }
-
-  LISTBASE_FOREACH (SceneCollection *, nsc, &sc->scene_collections) {
-    expand_scene_collection(expander, nsc);
-  }
-}
-#endif
-
 static void expand_scene(BlendExpander *expander, Scene *sce)
 {
   LISTBASE_FOREACH (Base *, base_legacy, &sce->base) {
@@ -8003,7 +7781,7 @@ static void expand_scene(BlendExpander *expander, Scene *sce)
 
 #ifdef USE_COLLECTION_COMPAT_28
   if (sce->collection) {
-    expand_scene_collection(expander, sce->collection);
+    BKE_collection_compat_blend_read_expand(expander, sce->collection);
   }
 #endif
 
@@ -8067,9 +7845,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_SCE:
               expand_scene(&expander, (Scene *)id);
-              break;
-            case ID_GR:
-              expand_collection(&expander, (Collection *)id);
               break;
             case ID_IP:
               expand_ipo(&expander, (Ipo *)id); /* XXX deprecated - old animation system */

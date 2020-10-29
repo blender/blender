@@ -42,6 +42,8 @@ struct Object;
 struct Scene;
 struct View3D;
 struct ViewLayer;
+struct BlendDataReader;
+struct BlendLibReader;
 
 typedef enum eViewLayerCopyMethod {
   VIEWLAYER_ADD_NEW = 0,
@@ -146,6 +148,13 @@ void BKE_base_eval_flags(struct Base *base);
 void BKE_layer_eval_view_layer_indexed(struct Depsgraph *depsgraph,
                                        struct Scene *scene,
                                        int view_layer_index);
+
+/* .blend file I/O */
+
+void BKE_view_layer_blend_read_data(struct BlendDataReader *reader, struct ViewLayer *view_layer);
+void BKE_view_layer_blend_read_lib(struct BlendLibReader *reader,
+                                   struct Library *lib,
+                                   struct ViewLayer *view_layer);
 
 /* iterators */
 

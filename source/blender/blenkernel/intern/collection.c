@@ -18,6 +18,9 @@
  * \ingroup bke
  */
 
+/* Allow using deprecated functionality for .blend file I/O. */
+#define DNA_DEPRECATED_ALLOW
+
 #include <string.h>
 
 #include "BLI_blenlib.h"
@@ -54,6 +57,8 @@
 #include "DEG_depsgraph_query.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "BLO_read_write.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Prototypes
@@ -167,6 +172,172 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+void BKE_collection_blend_write_nolib(BlendWriter *writer, Collection *collection)
+{
+  /* Shared function for collection data-blocks and scene master collection. */
+  BKE_previewimg_blend_write(writer, collection->preview);
+
+  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+    BLO_write_struct(writer, CollectionObject, cob);
+  }
+
+  LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
+    BLO_write_struct(writer, CollectionChild, child);
+  }
+}
+
+static void collection_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  Collection *collection = (Collection *)id;
+  if (collection->id.us > 0 || BLO_write_is_undo(writer)) {
+    /* Clean up, important in undo case to reduce false detection of changed data-blocks. */
+    collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
+    collection->tag = 0;
+    BLI_listbase_clear(&collection->object_cache);
+    BLI_listbase_clear(&collection->parents);
+
+    /* write LibData */
+    BLO_write_id_struct(writer, Collection, id_address, &collection->id);
+    BKE_id_blend_write(writer, &collection->id);
+
+    BKE_collection_blend_write_nolib(writer, collection);
+  }
+}
+
+#ifdef USE_COLLECTION_COMPAT_28
+void BKE_collection_compat_blend_read_data(BlendDataReader *reader, SceneCollection *sc)
+{
+  BLO_read_list(reader, &sc->objects);
+  BLO_read_list(reader, &sc->scene_collections);
+
+  LISTBASE_FOREACH (SceneCollection *, nsc, &sc->scene_collections) {
+    BKE_collection_compat_blend_read_data(reader, nsc);
+  }
+}
+#endif
+
+void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collection)
+{
+  BLO_read_list(reader, &collection->gobject);
+  BLO_read_list(reader, &collection->children);
+
+  BLO_read_data_address(reader, &collection->preview);
+  BKE_previewimg_blend_read(reader, collection->preview);
+
+  collection->flag &= ~COLLECTION_HAS_OBJECT_CACHE;
+  collection->tag = 0;
+  BLI_listbase_clear(&collection->object_cache);
+  BLI_listbase_clear(&collection->parents);
+
+#ifdef USE_COLLECTION_COMPAT_28
+  /* This runs before the very first doversion. */
+  BLO_read_data_address(reader, &collection->collection);
+  if (collection->collection != NULL) {
+    BKE_collection_compat_blend_read_data(reader, collection->collection);
+  }
+
+  BLO_read_data_address(reader, &collection->view_layer);
+  if (collection->view_layer != NULL) {
+    BKE_view_layer_blend_read_data(reader, collection->view_layer);
+  }
+#endif
+}
+
+static void collection_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  Collection *collection = (Collection *)id;
+  BKE_collection_blend_read_data(reader, collection);
+}
+
+static void lib_link_collection_data(BlendLibReader *reader, Library *lib, Collection *collection)
+{
+  LISTBASE_FOREACH_MUTABLE (CollectionObject *, cob, &collection->gobject) {
+    BLO_read_id_address(reader, lib, &cob->ob);
+
+    if (cob->ob == NULL) {
+      BLI_freelinkN(&collection->gobject, cob);
+    }
+  }
+
+  LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
+    BLO_read_id_address(reader, lib, &child->collection);
+  }
+}
+
+#ifdef USE_COLLECTION_COMPAT_28
+void BKE_collection_compat_blend_read_lib(BlendLibReader *reader,
+                                          Library *lib,
+                                          SceneCollection *sc)
+{
+  LISTBASE_FOREACH (LinkData *, link, &sc->objects) {
+    BLO_read_id_address(reader, lib, &link->data);
+    BLI_assert(link->data);
+  }
+
+  LISTBASE_FOREACH (SceneCollection *, nsc, &sc->scene_collections) {
+    BKE_collection_compat_blend_read_lib(reader, lib, nsc);
+  }
+}
+#endif
+
+void BKE_collection_blend_read_lib(BlendLibReader *reader, Collection *collection)
+{
+#ifdef USE_COLLECTION_COMPAT_28
+  if (collection->collection) {
+    BKE_collection_compat_blend_read_lib(reader, collection->id.lib, collection->collection);
+  }
+
+  if (collection->view_layer) {
+    BKE_view_layer_blend_read_lib(reader, collection->id.lib, collection->view_layer);
+  }
+#endif
+
+  lib_link_collection_data(reader, collection->id.lib, collection);
+}
+
+static void collection_blend_read_lib(BlendLibReader *reader, ID *id)
+{
+  Collection *collection = (Collection *)id;
+  BKE_collection_blend_read_lib(reader, collection);
+}
+
+#ifdef USE_COLLECTION_COMPAT_28
+void BKE_collection_compat_blend_read_expand(struct BlendExpander *expander,
+                                             struct SceneCollection *sc)
+{
+  LISTBASE_FOREACH (LinkData *, link, &sc->objects) {
+    BLO_expand(expander, link->data);
+  }
+
+  LISTBASE_FOREACH (SceneCollection *, nsc, &sc->scene_collections) {
+    BKE_collection_compat_blend_read_expand(expander, nsc);
+  }
+}
+#endif
+
+void BKE_collection_blend_read_expand(BlendExpander *expander, Collection *collection)
+{
+  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+    BLO_expand(expander, cob->ob);
+  }
+
+  LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
+    BLO_expand(expander, child->collection);
+  }
+
+#ifdef USE_COLLECTION_COMPAT_28
+  if (collection->collection != NULL) {
+    BKE_collection_compat_blend_read_expand(expander, collection->collection);
+  }
+#endif
+}
+
+static void collection_blend_read_expand(BlendExpander *expander, ID *id)
+{
+  Collection *collection = (Collection *)id;
+  BKE_collection_blend_read_expand(expander, collection);
+}
+
 IDTypeInfo IDType_ID_GR = {
     .id_code = ID_GR,
     .id_filter = FILTER_ID_GR,
@@ -184,10 +355,10 @@ IDTypeInfo IDType_ID_GR = {
     .foreach_id = collection_foreach_id,
     .foreach_cache = NULL,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
-    .blend_read_lib = NULL,
-    .blend_read_expand = NULL,
+    .blend_write = collection_blend_write,
+    .blend_read_data = collection_blend_read_data,
+    .blend_read_lib = collection_blend_read_lib,
+    .blend_read_expand = collection_blend_read_expand,
 };
 
 /** \} */
