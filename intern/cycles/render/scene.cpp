@@ -707,4 +707,58 @@ template<> void Scene::delete_node_impl(Shader * /*node*/)
   /* don't delete unused shaders, not supported */
 }
 
+template<typename T>
+static void remove_nodes_in_set(const set<T *> &nodes_set,
+                                vector<T *> &nodes_array,
+                                const NodeOwner *owner)
+{
+  size_t new_size = nodes_array.size();
+
+  for (size_t i = 0; i < new_size; ++i) {
+    T *node = nodes_array[i];
+
+    if (nodes_set.find(node) != nodes_set.end()) {
+      std::swap(nodes_array[i], nodes_array[new_size - 1]);
+
+      assert(node->get_owner() == owner);
+      delete node;
+
+      i -= 1;
+      new_size -= 1;
+    }
+  }
+
+  nodes_array.resize(new_size);
+  (void)owner;
+}
+
+template<> void Scene::delete_nodes(const set<Light *> &nodes, const NodeOwner *owner)
+{
+  remove_nodes_in_set(nodes, lights, owner);
+  light_manager->tag_update(this);
+}
+
+template<> void Scene::delete_nodes(const set<Geometry *> &nodes, const NodeOwner *owner)
+{
+  remove_nodes_in_set(nodes, geometry, owner);
+  geometry_manager->tag_update(this);
+}
+
+template<> void Scene::delete_nodes(const set<Object *> &nodes, const NodeOwner *owner)
+{
+  remove_nodes_in_set(nodes, objects, owner);
+  object_manager->tag_update(this);
+}
+
+template<> void Scene::delete_nodes(const set<ParticleSystem *> &nodes, const NodeOwner *owner)
+{
+  remove_nodes_in_set(nodes, particle_systems, owner);
+  particle_system_manager->tag_update(this);
+}
+
+template<> void Scene::delete_nodes(const set<Shader *> & /*nodes*/, const NodeOwner * /*owner*/)
+{
+  /* don't delete unused shaders, not supported */
+}
+
 CCL_NAMESPACE_END
