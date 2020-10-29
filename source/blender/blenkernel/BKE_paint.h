@@ -505,6 +505,9 @@ typedef struct SculptSession {
   int active_face_index;
   int active_grid_index;
 
+  /* When active, the cursor draws with faded colors, indicating that there is an action enabled.
+   */
+  bool draw_faded_cursor;
   float cursor_radius;
   float cursor_location[3];
   float cursor_normal[3];

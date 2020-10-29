@@ -4400,7 +4400,7 @@ def km_sculpt(params):
          {"properties": [("use_normals", True), ("keep_previous_mask", True), ("invert", False), ("smooth_iterations", 0), ("create_face_set", False)]}),
         # Dynamic topology
         ("sculpt.dynamic_topology_toggle", {"type": 'D', "value": 'PRESS', "ctrl": True}, None),
-        ("sculpt.set_detail_size", {"type": 'D', "value": 'PRESS', "shift": True}, None),
+        ("sculpt.dyntopo_detail_size_edit", {"type": 'D', "value": 'PRESS', "shift": True}, None),
         # Remesh
         ("object.voxel_remesh", {"type": 'R', "value": 'PRESS', "ctrl": True}, None),
         ("object.voxel_size_edit", {"type": 'R', "value": 'PRESS', "shift": True}, None),
