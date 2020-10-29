@@ -4550,10 +4550,22 @@ static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, cons
       button_activate_state(C, but, BUTTON_STATE_EXIT);
       return WM_UI_HANDLER_BREAK;
     }
-    if (ELEM(event->type, WHEELDOWNMOUSE, WHEELUPMOUSE) && event->ctrl) {
-      /* Support alt+wheel on expanded enum rows */
+    if (ELEM(event->type, MOUSEPAN, WHEELDOWNMOUSE, WHEELUPMOUSE) && event->ctrl) {
+      /* Support ctrl-wheel to cycle values on expanded enum rows. */
       if (but->type == UI_BTYPE_ROW) {
-        const int direction = (event->type == WHEELDOWNMOUSE) ? -1 : 1;
+        int type = event->type;
+        int val = event->val;
+
+        /* Convert pan to scroll-wheel. */
+        if (type == MOUSEPAN) {
+          ui_pan_to_scroll(event, &type, &val);
+
+          if (type == MOUSEPAN) {
+            return WM_UI_HANDLER_BREAK;
+          }
+        }
+
+        const int direction = (type == WHEELDOWNMOUSE) ? -1 : 1;
         uiBut *but_select = ui_but_find_select_in_enum(but, direction);
         if (but_select) {
           uiBut *but_other = (direction == -1) ? but_select->next : but_select->prev;
@@ -5648,8 +5660,20 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, co
       return WM_UI_HANDLER_BREAK;
     }
     if (ui_but_supports_cycling(but)) {
-      if (ELEM(event->type, WHEELDOWNMOUSE, WHEELUPMOUSE) && event->ctrl) {
-        const int direction = (event->type == WHEELDOWNMOUSE) ? 1 : -1;
+      if (ELEM(event->type, MOUSEPAN, WHEELDOWNMOUSE, WHEELUPMOUSE) && event->ctrl) {
+        int type = event->type;
+        int val = event->val;
+
+        /* Convert pan to scroll-wheel. */
+        if (type == MOUSEPAN) {
+          ui_pan_to_scroll(event, &type, &val);
+
+          if (type == MOUSEPAN) {
+            return WM_UI_HANDLER_BREAK;
+          }
+        }
+
+        const int direction = (type == WHEELDOWNMOUSE) ? 1 : -1;
 
         data->value = ui_but_menu_step(but, direction);
 
