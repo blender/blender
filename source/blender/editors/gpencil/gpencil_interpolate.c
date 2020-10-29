@@ -220,7 +220,7 @@ static bool gpencil_interpolate_check_todo(bContext *C, bGPdata *gpd)
       int fFrame;
 
       /* only selected */
-      if ((flag & GP_TOOLFLAG_INTERPOLATE_ONLY_SELECTED) &&
+      if ((GPENCIL_EDIT_MODE(gpd)) && (flag & GP_TOOLFLAG_INTERPOLATE_ONLY_SELECTED) &&
           ((gps_from->flag & GP_STROKE_SELECT) == 0)) {
         continue;
       }
@@ -300,7 +300,7 @@ static void gpencil_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
       bool valid = true;
 
       /* only selected */
-      if ((tgpi->flag & GP_TOOLFLAG_INTERPOLATE_ONLY_SELECTED) &&
+      if ((GPENCIL_EDIT_MODE(gpd)) && (tgpi->flag & GP_TOOLFLAG_INTERPOLATE_ONLY_SELECTED) &&
           ((gps_from->flag & GP_STROKE_SELECT) == 0)) {
         valid = false;
       }
@@ -1018,7 +1018,7 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
       for (gps_from = prevFrame->strokes.first; gps_from; gps_from = gps_from->next) {
 
         /* only selected */
-        if ((flag & GP_TOOLFLAG_INTERPOLATE_ONLY_SELECTED) &&
+        if ((GPENCIL_EDIT_MODE(gpd)) && (flag & GP_TOOLFLAG_INTERPOLATE_ONLY_SELECTED) &&
             ((gps_from->flag & GP_STROKE_SELECT) == 0)) {
           continue;
         }
