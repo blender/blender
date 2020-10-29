@@ -1131,7 +1131,7 @@ static int *init_index_map(Object *obedit, int *r_old_totvert)
   }
 
   int vertex_index = 0;
-  LISTBASE_FOREACH (Nurb *, nu, &curve->nurb) {
+  LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
     if (nu->bezt) {
       BezTriple *bezt = nu->bezt;
       int a = nu->pntsu;
