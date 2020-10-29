@@ -3546,7 +3546,7 @@ static int gpencil_stroke_join_exec(bContext *C, wmOperator *op)
   int tot_strokes = 0;
   /** Alloc memory  */
   tJoinStrokes *strokes_list = MEM_malloc_arrayN(sizeof(tJoinStrokes), max_join_strokes, __func__);
-
+  tJoinStrokes *elem = NULL;
   /* Read all selected strokes to create a list. */
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
     bGPDframe *gpf = gpl->actframe;
@@ -3565,7 +3565,7 @@ static int gpencil_stroke_join_exec(bContext *C, wmOperator *op)
         if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false) {
           continue;
         }
-        tJoinStrokes *elem = &strokes_list[tot_strokes];
+        elem = &strokes_list[tot_strokes];
         elem->gpf = gpf;
         elem->gps = gps;
         elem->used = false;
@@ -3591,7 +3591,7 @@ static int gpencil_stroke_join_exec(bContext *C, wmOperator *op)
   }
 
   /* Take first stroke. */
-  tJoinStrokes *elem = &strokes_list[0];
+  elem = &strokes_list[0];
   elem->used = true;
 
   /* Create a new stroke. */
@@ -3605,7 +3605,7 @@ static int gpencil_stroke_join_exec(bContext *C, wmOperator *op)
     if (i < 0) {
       break;
     }
-    tJoinStrokes *elem = &strokes_list[i];
+    elem = &strokes_list[i];
     /* Join new_stroke and stroke B. */
     gpencil_stroke_join_strokes(gps_new, elem->gps, leave_gaps);
     elem->used = true;
@@ -3617,7 +3617,7 @@ static int gpencil_stroke_join_exec(bContext *C, wmOperator *op)
   /* If join only, delete old strokes. */
   if (type == GP_STROKE_JOIN) {
     for (int i = 0; i < tot_strokes; i++) {
-      tJoinStrokes *elem = &strokes_list[i];
+      elem = &strokes_list[i];
       BLI_remlink(&elem->gpf->strokes, elem->gps);
       BKE_gpencil_free_stroke(elem->gps);
     }
