@@ -435,20 +435,6 @@ static void make_renderinfo_string(const RenderStats *rs,
     }
   }
   else {
-    if (rs->totvert || rs->totface || rs->totlamp) {
-      spos += sprintf(spos, "| ");
-    }
-
-    if (rs->totvert) {
-      spos += sprintf(spos, TIP_("Ve:%d "), rs->totvert);
-    }
-    if (rs->totface) {
-      spos += sprintf(spos, TIP_("Fa:%d "), rs->totface);
-    }
-    if (rs->totlamp) {
-      spos += sprintf(spos, TIP_("Li:%d "), rs->totlamp);
-    }
-
     if (rs->mem_peak == 0.0f) {
       spos += sprintf(spos, TIP_("| Mem:%.2fM (Peak %.2fM) "), megs_used_memory, megs_peak_memory);
     }

@@ -268,9 +268,6 @@ void RE_parts_init(Render *re)
   re->parts = BLI_ghash_new(
       BLI_ghashutil_inthash_v4_p, BLI_ghashutil_inthash_v4_cmp, "render parts");
 
-  /* this is render info for caller, is not reset when parts are freed! */
-  re->i.totpart = 0;
-
   /* just for readable code.. */
   xminb = re->disprect.xmin;
   yminb = re->disprect.ymin;
@@ -328,7 +325,6 @@ void RE_parts_init(Render *re)
       pa->recty = recty;
 
       BLI_ghash_insert(re->parts, &pa->disprect, pa);
-      re->i.totpart++;
     }
   }
 }

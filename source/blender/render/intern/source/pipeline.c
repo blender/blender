@@ -188,6 +188,10 @@ static int default_break(void *UNUSED(arg))
 
 static void stats_background(void *UNUSED(arg), RenderStats *rs)
 {
+  if (rs->infostr == NULL) {
+    return;
+  }
+
   uintptr_t mem_in_use, peak_memory;
   float megs_used_memory, megs_peak_memory;
   char info_time_str[32];
@@ -208,17 +212,7 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
       info_time_str, sizeof(info_time_str), PIL_check_seconds_timer() - rs->starttime);
   fprintf(stdout, TIP_("| Time:%s | "), info_time_str);
 
-  if (rs->infostr) {
-    fprintf(stdout, "%s", rs->infostr);
-  }
-  else {
-    fprintf(stdout,
-            TIP_("Sce: %s Ve:%d Fa:%d La:%d"),
-            rs->scene_name,
-            rs->totvert,
-            rs->totface,
-            rs->totlamp);
-  }
+  fprintf(stdout, "%s", rs->infostr);
 
   /* Flush stdout to be sure python callbacks are printing stuff after blender. */
   fflush(stdout);
