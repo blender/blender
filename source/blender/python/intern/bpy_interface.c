@@ -306,7 +306,11 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
   PyThreadState *py_tstate = NULL;
   const char *py_path_bundle = BKE_appdir_folder_id(BLENDER_SYSTEM_PYTHON, NULL);
 
-  /* Not essential but nice to set our name. */
+  /* Needed for Python's initialization for portable Python installations.
+   * We could use #Py_SetPath, but this overrides Python's internal logic
+   * for calculating it's own module search paths.
+   *
+   * `sys.executable` is overwritten after initialization to the Python binary. */
   {
     const char *program_path = BKE_appdir_program_path();
     wchar_t program_path_wchar[FILE_MAX];
@@ -351,6 +355,23 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
     }
     PySys_SetObject("argv", py_argv);
     Py_DECREF(py_argv);
+  }
+
+  /* Setting the program name is important so the 'multiprocessing' module
+   * can launch new Python instances. */
+  {
+    char program_path[FILE_MAX];
+    if (BKE_appdir_program_python_search(
+            program_path, sizeof(program_path), PY_MAJOR_VERSION, PY_MINOR_VERSION)) {
+      PyObject *py_program_path = PyC_UnicodeFromByte(program_path);
+      PySys_SetObject("executable", py_program_path);
+      Py_DECREF(py_program_path);
+    }
+    else {
+      fprintf(stderr,
+              "Unable to find the python binary, "
+              "the multiprocessing module may not be functional!\n");
+    }
   }
 
 #  ifdef WITH_FLUID

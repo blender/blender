@@ -668,10 +668,10 @@ class DOPESHEET_MT_snap_pie(Menu):
         layout = self.layout
         pie = layout.menu_pie()
 
-        pie.operator("action.snap", text="Current Frame").type = 'CFRA'
-        pie.operator("action.snap", text="Nearest Frame").type = 'NEAREST_FRAME'
-        pie.operator("action.snap", text="Nearest Second").type = 'NEAREST_SECOND'
-        pie.operator("action.snap", text="Nearest Marker").type = 'NEAREST_MARKER'
+        pie.operator("action.snap", text="Selection to Current Frame").type = 'CFRA'
+        pie.operator("action.snap", text="Selection to Nearest Frame").type = 'NEAREST_FRAME'
+        pie.operator("action.snap", text="Selection to Nearest Second").type = 'NEAREST_SECOND'
+        pie.operator("action.snap", text="Selection to Nearest Marker").type = 'NEAREST_MARKER'
 
 
 class LayersDopeSheetPanel:
