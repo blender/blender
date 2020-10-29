@@ -3910,6 +3910,7 @@ static void axis_set_view(bContext *C,
                           region,
                           smooth_viewtx,
                           &(const V3D_SmoothParams){
+                              .camera_old = camera_eval,
                               .ofs = ofs,
                               .quat = quat,
                               .dist = &dist,
