@@ -1059,6 +1059,7 @@ static int view_zoomout_invoke(bContext *C, wmOperator *op, const wmEvent *event
     /* store initial mouse position (in view space) */
     UI_view2d_region_to_view(
         &region->v2d, event->mval[0], event->mval[1], &vzd->mx_2d, &vzd->my_2d);
+    vzd->zoom_to_mouse_pos = true;
   }
 
   return view_zoomout_exec(C, op);
