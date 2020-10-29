@@ -295,6 +295,24 @@ TEST(map, AddOrModify)
   EXPECT_EQ(map.lookup(1), 15.0f);
 }
 
+TEST(map, AddOrModifyReference)
+{
+  Map<int, std::unique_ptr<int>> map;
+  auto create_func = [](std::unique_ptr<int> *value) -> int & {
+    new (value) std::unique_ptr<int>(new int{10});
+    return **value;
+  };
+  auto modify_func = [](std::unique_ptr<int> *value) -> int & {
+    **value += 5;
+    return **value;
+  };
+  EXPECT_EQ(map.add_or_modify(1, create_func, modify_func), 10);
+  int &a = map.add_or_modify(1, create_func, modify_func);
+  EXPECT_EQ(a, 15);
+  a = 100;
+  EXPECT_EQ(*map.lookup(1), 100);
+}
+
 TEST(map, AddOverwrite)
 {
   Map<int, float> map;

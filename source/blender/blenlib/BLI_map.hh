@@ -1016,7 +1016,7 @@ class Map {
           return;
         }
         else {
-          auto return_value = create_value(value_ptr);
+          auto &&return_value = create_value(value_ptr);
           slot.occupy_no_value(std::forward<ForwardKey>(key), hash);
           occupied_and_removed_slots_++;
           return return_value;
