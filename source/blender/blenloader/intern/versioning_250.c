@@ -266,7 +266,7 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBase *lb)
     /* and we split view3d */
     switch (sl->spacetype) {
       case SPACE_VIEW3D:
-        blo_do_versions_view3d_split_250((View3D *)sl, lb);
+        BKE_screen_view3d_do_versions_250((View3D *)sl, lb);
         break;
 
       case SPACE_OUTLINER: {

@@ -187,7 +187,6 @@ void *blo_do_versions_newlibadr_us(struct FileData *fd, const void *lib, const v
 
 struct PartEff *blo_do_version_give_parteff_245(struct Object *ob);
 void blo_do_version_old_trackto_to_constraints(struct Object *ob);
-void blo_do_versions_view3d_split_250(struct View3D *v3d, struct ListBase *regions);
 void blo_do_versions_key_uidgen(struct Key *key);
 
 void blo_do_versions_userdef(struct UserDef *userdef);

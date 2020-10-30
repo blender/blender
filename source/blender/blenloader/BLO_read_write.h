@@ -177,6 +177,7 @@ bool BLO_write_is_undo(BlendWriter *writer);
  */
 
 void *BLO_read_get_new_data_address(BlendDataReader *reader, const void *old_address);
+void *BLO_read_get_new_data_address_no_us(BlendDataReader *reader, const void *old_address);
 void *BLO_read_get_new_packed_address(BlendDataReader *reader, const void *old_address);
 
 #define BLO_read_data_address(reader, ptr_p) \
