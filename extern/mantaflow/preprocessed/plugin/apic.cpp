@@ -30,9 +30,7 @@ static inline IndexInt indexUFace(const Vec3 &pos, const MACGrid &ref)
 {
   const Vec3i f = toVec3i(pos), c = toVec3i(pos - 0.5);
   const IndexInt index = f.x * ref.getStrideX() + c.y * ref.getStrideY() + c.z * ref.getStrideZ();
-  assertDeb(ref.isInBounds(index),
-            "Grid index out of bounds for particle position [" << pos.x << ", " << pos.y << ", "
-                                                               << pos.z << "]");
+  assertDeb(ref.isInBounds(index), "Grid index out of bounds");
   return (ref.isInBounds(index)) ? index : -1;
 }
 
@@ -40,9 +38,7 @@ static inline IndexInt indexVFace(const Vec3 &pos, const MACGrid &ref)
 {
   const Vec3i f = toVec3i(pos), c = toVec3i(pos - 0.5);
   const IndexInt index = c.x * ref.getStrideX() + f.y * ref.getStrideY() + c.z * ref.getStrideZ();
-  assertDeb(ref.isInBounds(index),
-            "Grid index out of bounds for particle position [" << pos.x << ", " << pos.y << ", "
-                                                               << pos.z << "]");
+  assertDeb(ref.isInBounds(index), "Grid index out of bounds");
   return (ref.isInBounds(index)) ? index : -1;
 }
 
@@ -50,9 +46,7 @@ static inline IndexInt indexWFace(const Vec3 &pos, const MACGrid &ref)
 {
   const Vec3i f = toVec3i(pos), c = toVec3i(pos - 0.5);
   const IndexInt index = c.x * ref.getStrideX() + c.y * ref.getStrideY() + f.z * ref.getStrideZ();
-  assertDeb(ref.isInBounds(index),
-            "Grid index out of bounds for particle position [" << pos.x << ", " << pos.y << ", "
-                                                               << pos.z << "]");
+  assertDeb(ref.isInBounds(index), "Grid index out of bounds");
   return (ref.isInBounds(index)) ? index : -1;
 }
 
@@ -63,9 +57,7 @@ static inline IndexInt indexOffset(
   const IndexInt dY[2] = {0, ref.getStrideY()};
   const IndexInt dZ[2] = {0, ref.getStrideZ()};
   const IndexInt index = gidx + dX[i] + dY[j] + dZ[k];
-  assertDeb(ref.isInBounds(index),
-            "Grid index out of bounds for particle position [" << pos.x << ", " << pos.y << ", "
-                                                               << pos.z << "]");
+  assertDeb(ref.isInBounds(index), "Grid index out of bounds");
   return (ref.isInBounds(index)) ? index : -1;
 }
 
@@ -125,7 +117,7 @@ struct knApicMapLinearVec3ToMACGrid : public KernelBase {
     {  // u-face
       const IndexInt gidx = indexUFace(pos, vg);
       if (gidx < 0)
-        return;  // debug will fail
+        return;  // debug will fail before
 
       const Vec3 gpos(f.x, c.y + 0.5, c.z + 0.5);
       const Real wi[2] = {Real(1) - wf.x, wf.x};
@@ -137,7 +129,7 @@ struct knApicMapLinearVec3ToMACGrid : public KernelBase {
         const Real w = wi[i] * wj[j] * wk[k];
         const IndexInt vidx = indexOffset(gidx, i, j, k, vg);
         if (vidx < 0)
-          continue;  // debug will fail
+          continue;  // debug will fail before
 
         mg[vidx].x += w;
         vg[vidx].x += w * vel.x;
@@ -395,7 +387,7 @@ struct knApicMapLinearMACGridToVec3 : public KernelBase {
     {  // u-face
       const IndexInt gidx = indexUFace(pos, vg);
       if (gidx < 0)
-        return;  // debug will fail
+        return;  // debug will fail before
 
       const Real wx[2] = {Real(1) - wf.x, wf.x};
       const Real wy[2] = {Real(1) - wc.y, wc.y};
@@ -405,7 +397,7 @@ struct knApicMapLinearMACGridToVec3 : public KernelBase {
       {
         const IndexInt vidx = indexOffset(gidx, i, j, k, vg);
         if (vidx < 0)
-          continue;  // debug will fail
+          continue;  // debug will fail before
 
         const Real vgx = vg[vidx].x;
         vp[idx].x += wx[i] * wy[j] * wz[k] * vgx;
