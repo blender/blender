@@ -930,6 +930,24 @@ static EnumPropertyItem prop_trim_operation_types[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+typedef enum eSculptTrimOrientationType {
+  SCULPT_GESTURE_TRIM_ORIENTATION_VIEW,
+  SCULPT_GESTURE_TRIM_ORIENTATION_SURFACE,
+} eSculptTrimOrientationType;
+static EnumPropertyItem prop_trim_orientation_types[] = {
+    {SCULPT_GESTURE_TRIM_ORIENTATION_VIEW,
+     "VIEW",
+     0,
+     "View",
+     "Use the view to orientate the trimming shape"},
+    {SCULPT_GESTURE_TRIM_ORIENTATION_SURFACE,
+     "SURFACE",
+     0,
+     "Surface",
+     "Use the surface normal to orientate the trimming shape"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 typedef struct SculptGestureTrimOperation {
   SculptGestureOperation op;
 
@@ -942,6 +960,7 @@ typedef struct SculptGestureTrimOperation {
   bool use_cursor_depth;
 
   eSculptTrimOperationType mode;
+  eSculptTrimOrientationType orientation;
 } SculptGestureTrimOperation;
 
 static void sculpt_gesture_trim_normals_update(SculptGestureContext *sgcontext)
@@ -978,6 +997,28 @@ static void sculpt_gesture_trim_normals_update(SculptGestureContext *sgcontext)
   trim_operation->mesh = result;
 }
 
+/* Get the origin and normal that are going to be used for calculating the depth and position the
+ * trimming geometry. */
+static void sculpt_gesture_trim_shape_origin_normal_get(
+    SculptGestureContext *sgcontext, float *r_origin, float *r_normal)
+{
+  SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
+  /* Use the view origin and normal in world space. The trimming mesh coordinates are
+   * calculated in world space, aligned to the view, and then converted to object space to
+   * store them in the final trimming mesh which is going to be used in the boolean operation.
+   */
+  switch (trim_operation->orientation) {
+    case SCULPT_GESTURE_TRIM_ORIENTATION_VIEW:
+      copy_v3_v3(r_origin, sgcontext->world_space_view_origin);
+      copy_v3_v3(r_normal, sgcontext->world_space_view_normal);
+      break;
+    case SCULPT_GESTURE_TRIM_ORIENTATION_SURFACE:
+      mul_v3_m4v3(r_origin, sgcontext->vc.obact->obmat, sgcontext->ss->gesture_initial_location);
+      mul_v3_m4v3(r_normal, sgcontext->vc.obact->obmat, sgcontext->ss->gesture_initial_normal);
+      break;
+  }
+}
+
 static void sculpt_gesture_trim_calculate_depth(bContext *C, SculptGestureContext *sgcontext)
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
@@ -987,11 +1028,11 @@ static void sculpt_gesture_trim_calculate_depth(bContext *C, SculptGestureContex
 
   const int totvert = SCULPT_vertex_count_get(ss);
 
-  float view_plane[4];
-  const float *view_origin = sgcontext->world_space_view_origin;
-  const float *view_normal = sgcontext->world_space_view_normal;
-
-  plane_from_point_normal_v3(view_plane, view_origin, view_normal);
+  float shape_plane[4];
+  float shape_origin[3];
+  float shape_normal[3];
+  sculpt_gesture_trim_shape_origin_normal_get(sgcontext, shape_origin, shape_normal);
+  plane_from_point_normal_v3(shape_plane, shape_origin, shape_normal);
 
   trim_operation->depth_front = FLT_MAX;
   trim_operation->depth_back = -FLT_MAX;
@@ -1003,7 +1044,7 @@ static void sculpt_gesture_trim_calculate_depth(bContext *C, SculptGestureContex
      * store them. */
     float world_space_vco[3];
     mul_v3_m4v3(world_space_vco, vc->obact->obmat, vco);
-    const float dist = dist_signed_to_plane_v3(world_space_vco, view_plane);
+    const float dist = dist_signed_to_plane_v3(world_space_vco, shape_plane);
     trim_operation->depth_front = min_ff(dist, trim_operation->depth_front);
     trim_operation->depth_back = max_ff(dist, trim_operation->depth_back);
   }
@@ -1012,11 +1053,22 @@ static void sculpt_gesture_trim_calculate_depth(bContext *C, SculptGestureContex
     float world_space_gesture_initial_location[3];
     mul_v3_m4v3(
         world_space_gesture_initial_location, vc->obact->obmat, ss->gesture_initial_location);
-    const float mid_point_depth = ss->gesture_initial_hit ?
-                                      dist_signed_to_plane_v3(world_space_gesture_initial_location,
-                                                              view_plane) :
-                                      (trim_operation->depth_back + trim_operation->depth_front) *
-                                          0.5f;
+
+    float mid_point_depth;
+    if (trim_operation->orientation == SCULPT_GESTURE_TRIM_ORIENTATION_VIEW) {
+      mid_point_depth = ss->gesture_initial_hit ?
+                            dist_signed_to_plane_v3(world_space_gesture_initial_location,
+                                                    shape_plane) :
+                            (trim_operation->depth_back + trim_operation->depth_front) * 0.5f;
+    }
+    else {
+      /* When using normal orientation, if the stroke started over the mesh, position the mid point
+       * at 0 distance from the shape plane. This positions the trimming shape half inside of the
+       * surface. */
+      mid_point_depth = ss->gesture_initial_hit ?
+                            0.0f :
+                            (trim_operation->depth_back + trim_operation->depth_front) * 0.5f;
+    }
 
     Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
     Brush *brush = BKE_paint_brush(&sd->paint);
@@ -1054,30 +1106,41 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
     depth_back += 0.1f;
   }
 
-  /* Use the view origin and normal in world space. The trimming mesh coordinates are calculated in
-   * world space, aligned to the view, and then converted to object space to store them in the
-   * final trimming mesh which is going to be used in the boolean operation.
-   */
-  const float *view_origin = sgcontext->world_space_view_origin;
-  const float *view_normal = sgcontext->world_space_view_normal;
+  float shape_origin[3];
+  float shape_normal[3];
+  float shape_plane[4];
+  sculpt_gesture_trim_shape_origin_normal_get(sgcontext, shape_origin, shape_normal);
+  plane_from_point_normal_v3(shape_plane, shape_origin, shape_normal);
 
   const float(*ob_imat)[4] = vc->obact->imat;
 
   /* Write vertices coordinates for the front face. */
   float depth_point[3];
-  madd_v3_v3v3fl(depth_point, view_origin, view_normal, depth_front);
+  madd_v3_v3v3fl(depth_point, shape_origin, shape_normal, depth_front);
   for (int i = 0; i < tot_screen_points; i++) {
     float new_point[3];
-    ED_view3d_win_to_3d(vc->v3d, region, depth_point, screen_points[i], new_point);
+    if (trim_operation->orientation == SCULPT_GESTURE_TRIM_ORIENTATION_VIEW) {
+      ED_view3d_win_to_3d(vc->v3d, region, depth_point, screen_points[i], new_point);
+    }
+    else {
+      ED_view3d_win_to_3d_on_plane(region, shape_plane, screen_points[i], false, new_point);
+      madd_v3_v3fl(new_point, shape_normal, depth_front);
+    }
     mul_v3_m4v3(trim_operation->mesh->mvert[i].co, ob_imat, new_point);
     mul_v3_m4v3(trim_operation->true_mesh_co[i], ob_imat, new_point);
   }
 
   /* Write vertices coordinates for the back face. */
-  madd_v3_v3v3fl(depth_point, view_origin, view_normal, depth_back);
+  madd_v3_v3v3fl(depth_point, shape_origin, shape_normal, depth_back);
   for (int i = 0; i < tot_screen_points; i++) {
     float new_point[3];
-    ED_view3d_win_to_3d(vc->v3d, region, depth_point, screen_points[i], new_point);
+    if (trim_operation->orientation == SCULPT_GESTURE_TRIM_ORIENTATION_VIEW) {
+      ED_view3d_win_to_3d(vc->v3d, region, depth_point, screen_points[i], new_point);
+    }
+    else {
+      ED_view3d_win_to_3d_on_plane(region, shape_plane, screen_points[i], false, new_point);
+      madd_v3_v3fl(new_point, shape_normal, depth_back);
+    }
     mul_v3_m4v3(trim_operation->mesh->mvert[i + tot_screen_points].co, ob_imat, new_point);
     mul_v3_m4v3(trim_operation->true_mesh_co[i + tot_screen_points], ob_imat, new_point);
   }
@@ -1292,6 +1355,12 @@ static void sculpt_gesture_init_trim_properties(SculptGestureContext *sgcontext,
 
   trim_operation->mode = RNA_enum_get(op->ptr, "trim_mode");
   trim_operation->use_cursor_depth = RNA_boolean_get(op->ptr, "use_cursor_depth");
+  trim_operation->orientation = RNA_enum_get(op->ptr, "trim_orientation");
+
+  /* If the cursor was not over the mesh, force the orientation to view. */
+  if (!sgcontext->ss->gesture_initial_hit) {
+    trim_operation->orientation = SCULPT_GESTURE_TRIM_ORIENTATION_VIEW;
+  }
 }
 
 static void sculpt_trim_gesture_operator_properties(wmOperatorType *ot)
@@ -1308,6 +1377,12 @@ static void sculpt_trim_gesture_operator_properties(wmOperatorType *ot)
       false,
       "Use Cursor for Depth",
       "Use cursor location and radius for the dimensions and position of the trimming shape");
+  RNA_def_enum(ot->srna,
+               "trim_orientation",
+               prop_trim_orientation_types,
+               SCULPT_GESTURE_TRIM_ORIENTATION_VIEW,
+               "Shape Orientation",
+               NULL);
 }
 
 /* Project Gesture Operation. */
@@ -1493,6 +1568,7 @@ static int sculpt_trim_gesture_box_invoke(bContext *C, wmOperator *op, const wmE
   ss->gesture_initial_hit = SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
   if (ss->gesture_initial_hit) {
     copy_v3_v3(ss->gesture_initial_location, sgi.location);
+    copy_v3_v3(ss->gesture_initial_normal, sgi.normal);
   }
 
   return WM_gesture_box_invoke(C, op, event);
@@ -1528,6 +1604,7 @@ static int sculpt_trim_gesture_lasso_invoke(bContext *C, wmOperator *op, const w
   ss->gesture_initial_hit = SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
   if (ss->gesture_initial_hit) {
     copy_v3_v3(ss->gesture_initial_location, sgi.location);
+    copy_v3_v3(ss->gesture_initial_normal, sgi.normal);
   }
 
   return WM_gesture_lasso_invoke(C, op, event);
