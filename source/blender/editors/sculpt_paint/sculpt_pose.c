@@ -559,8 +559,6 @@ void SCULPT_pose_calc_pose_data(Sculpt *sd,
                                 float *r_pose_origin,
                                 float *r_pose_factor)
 {
-  SCULPT_vertex_random_access_ensure(ss);
-
   /* Calculate the pose rotation point based on the boundaries of the brush factor. */
   SculptFloodFill flood;
   SCULPT_floodfill_init(ss, &flood);
@@ -682,6 +680,7 @@ static SculptPoseIKChain *pose_ik_chain_init_topology(Sculpt *sd,
                                                       const float initial_location[3],
                                                       const float radius)
 {
+  SCULPT_vertex_random_access_ensure(ss);
 
   const float chain_segment_len = radius * (1.0f + br->pose_offset);
   float next_chain_segment_target[3];

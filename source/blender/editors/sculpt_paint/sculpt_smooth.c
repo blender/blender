@@ -299,7 +299,8 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
 }
 
 #ifdef PROXY_ADVANCED
-static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
+static void do_smooth_brush_task_cb_ex(
+    void *__restrict userdata,
                                        const int n,
                                        const TaskParallelTLS *__restrict tls)
 {
@@ -347,11 +348,20 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
       while (ni < MAX_PROXY_NEIGHBORS && p->neighbors[i][ni].node >= 0) {
         ProxyKey *key = p->neighbors[i] + ni;
         PBVHNode *n2 = ss->pbvh->nodes + key->node;
-
+        
         // printf("%d %d %d %p\n", key->node, key->pindex, ss->pbvh->totnode, n2);
 
-        add_v3_v3(co, n2->proxyverts.co[key->pindex]);
-        ni++;
+        if (key->pindex < 0 || key->pindex >= n2->proxyverts.size) {
+          printf("corruption!\n");
+          fflush(stdout);
+          ni++;
+          continue;
+        }
+
+        if (n2->proxyverts.co) {
+          add_v3_v3(co, n2->proxyverts.co[key->pindex]);
+          ni++;
+        }
       }
 
       // printf("ni %d\n", ni);
@@ -461,7 +471,7 @@ void SCULPT_smooth(Sculpt *sd,
 
 #ifdef PROXY_ADVANCED
   int datamask = PV_CO | PV_NEIGHBORS | PV_NO | PV_INDEX | PV_MASK;
-  BKE_pbvh_ensure_proxyarrays(ss, ss->pbvh, datamask);
+  BKE_pbvh_ensure_proxyarrays(ss, ss->pbvh, nodes, totnode, datamask);
 
   BKE_pbvh_load_proxyarrays(ss->pbvh, nodes, totnode, PV_CO | PV_NO | PV_MASK);
 #endif

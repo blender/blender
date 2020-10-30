@@ -92,6 +92,7 @@ typedef struct ProxyVertArray {
 
   int size;
   int datamask;
+  bool neighbors_dirty;
 
   GHash *indexmap;
 } ProxyVertArray;
@@ -118,7 +119,8 @@ typedef struct ProxyVertUpdateRec {
 
 struct SculptSession;
 
-void BKE_pbvh_ensure_proxyarrays(struct SculptSession *ss, PBVH *pbvh, int mask);
+void BKE_pbvh_ensure_proxyarrays(
+    struct SculptSession *ss, PBVH *pbvh, PBVHNode **nodes, int totnode, int mask);
 void BKE_pbvh_load_proxyarrays(PBVH *pbvh, PBVHNode **nodes, int totnode, int mask);
 
 void BKE_pbvh_ensure_proxyarray(
@@ -228,15 +230,15 @@ void BKE_pbvh_free(PBVH *pbvh);
 void BKE_pbvh_bmesh_update_origvert(
     PBVH *pbvh, struct BMVert *v, float **r_co, float **r_no, float **r_color);
 
-    /* Hierarchical Search in the BVH, two methods:
-     * - for each hit calling a callback
-     * - gather nodes in an array (easy to multithread) */
+/* Hierarchical Search in the BVH, two methods:
+ * - for each hit calling a callback
+ * - gather nodes in an array (easy to multithread) */
 
-    void BKE_pbvh_search_callback(PBVH *pbvh,
-                                  BKE_pbvh_SearchCallback scb,
-                                  void *search_data,
-                                  BKE_pbvh_HitCallback hcb,
-                                  void *hit_data);
+void BKE_pbvh_search_callback(PBVH *pbvh,
+                              BKE_pbvh_SearchCallback scb,
+                              void *search_data,
+                              BKE_pbvh_HitCallback hcb,
+                              void *hit_data);
 
 void BKE_pbvh_search_gather(
     PBVH *pbvh, BKE_pbvh_SearchCallback scb, void *search_data, PBVHNode ***array, int *tot);

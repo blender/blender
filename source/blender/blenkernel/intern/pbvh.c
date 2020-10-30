@@ -701,6 +701,10 @@ void BKE_pbvh_free(PBVH *pbvh)
       if (node->bm_other_verts) {
         BLI_table_gset_free(node->bm_other_verts, NULL);
       }
+
+#ifdef PROXY_ADVANCED
+      BKE_pbvh_free_proxyarray(pbvh, node);
+#endif
     }
   }
 
@@ -3134,13 +3138,14 @@ void BKE_pbvh_respect_hide_set(PBVH *pbvh, bool respect_hide)
 
 int checkalloc(void **data, int esize, int oldsize, int newsize, int emask, int umask)
 {
-  if (!*data && (emask & umask)) {
-    *data = MEM_callocN(newsize * esize, "pbvh proxy vert arrays");
-    return emask;
-  }
   // update channel if it already was allocated once, or is requested by umask
-  else if (newsize != oldsize && (*data || (emask & umask))) {
-    *data = MEM_reallocN(data, newsize * esize);
+  if (newsize != oldsize && (*data || (emask & umask))) {
+    if (*data) {
+      *data = MEM_reallocN(*data, newsize * esize);
+    }
+    else {
+      *data = MEM_mallocN(newsize * esize, "pbvh proxy vert arrays");
+    }
     return emask;
   }
 
@@ -3155,6 +3160,7 @@ void BKE_pbvh_ensure_proxyarray_indexmap(PBVH *pbvh, PBVHNode *node, GHash *vert
   BKE_pbvh_node_num_verts(pbvh, node, &totvert, NULL);
 
   bool update = !p->indexmap || p->size != totvert;
+  update = update || (p->indexmap && BLI_ghash_len(p->indexmap) != totvert);
 
   if (!update) {
     return;
@@ -3171,20 +3177,25 @@ void BKE_pbvh_ensure_proxyarray_indexmap(PBVH *pbvh, PBVHNode *node, GHash *vert
   int i = 0;
   BKE_pbvh_vertex_iter_begin(pbvh, node, vd, PBVH_ITER_UNIQUE)
   {
-    BLI_ghash_insert(gs, (void *)vd.vertex, (void *)i);
+    BLI_ghash_insert(gs, (void *)vd.vertex.i, (void *)i);
     i++;
   }
   BKE_pbvh_vertex_iter_end;
 }
 
-bool pbvh_proxyarray_needs_update(PBVH *pbvh, PBVHNode *node, int mask)
+__attribute__((optnone)) bool pbvh_proxyarray_needs_update(PBVH *pbvh, PBVHNode *node, int mask)
 {
   ProxyVertArray *p = &node->proxyverts;
   int totvert = 0;
 
+  if (!(node->flag & PBVH_Leaf) || !node->bm_unique_verts) {
+    return false;
+  }
+
   BKE_pbvh_node_num_verts(pbvh, node, &totvert, NULL);
 
-  bool bad = p->size != totvert || !p->neighbors;
+  bool bad = p->size != totvert;
+  bad = bad || ((mask & PV_NEIGHBORS) && p->neighbors_dirty);
   bad = bad || (p->datamask & mask) != mask;
 
   bad = bad && totvert > 0;
@@ -3192,17 +3203,21 @@ bool pbvh_proxyarray_needs_update(PBVH *pbvh, PBVHNode *node, int mask)
   return bad;
 }
 
-GHash *pbvh_build_vert_node_map(PBVH *pbvh, int mask)
+GHash *pbvh_build_vert_node_map(PBVH *pbvh, PBVHNode **nodes, int totnode, int mask)
 {
   GHash *vert_node_map = BLI_ghash_ptr_new("BKE_pbvh_ensure_proxyarrays");
 
-  for (int i = 0; i < pbvh->totnode; i++) {
+  for (int i = 0; i < totnode; i++) {
     PBVHVertexIter vd;
-    PBVHNode *node = pbvh->nodes + i;
+    PBVHNode *node = nodes[i];
+
+    if (!(node->flag & PBVH_Leaf)) {
+      continue;
+    }
 
     BKE_pbvh_vertex_iter_begin(pbvh, node, vd, PBVH_ITER_UNIQUE)
     {
-      BLI_ghash_insert(vert_node_map, (void *)vd.vertex, (void *)i);
+      BLI_ghash_insert(vert_node_map, (void *)vd.vertex.i, (void *)(node - pbvh->nodes));
     }
     BKE_pbvh_vertex_iter_end;
   }
@@ -3210,13 +3225,14 @@ GHash *pbvh_build_vert_node_map(PBVH *pbvh, int mask)
   return vert_node_map;
 }
 
-void BKE_pbvh_ensure_proxyarrays(SculptSession *ss, PBVH *pbvh, int mask)
+void BKE_pbvh_ensure_proxyarrays(
+    SculptSession *ss, PBVH *pbvh, PBVHNode **nodes, int totnode, int mask)
 {
 
   bool update = false;
 
-  for (int i = 0; i < pbvh->totnode; i++) {
-    if (pbvh_proxyarray_needs_update(pbvh, pbvh->nodes + i, mask)) {
+  for (int i = 0; i < totnode; i++) {
+    if (pbvh_proxyarray_needs_update(pbvh, nodes[i], mask)) {
       update = true;
       break;
     }
@@ -3226,14 +3242,18 @@ void BKE_pbvh_ensure_proxyarrays(SculptSession *ss, PBVH *pbvh, int mask)
     return;
   }
 
-  GHash *vert_node_map = pbvh_build_vert_node_map(pbvh, mask);
+  GHash *vert_node_map = pbvh_build_vert_node_map(pbvh, nodes, totnode, mask);
 
-  for (int i = 0; i < pbvh->totnode; i++) {
-    BKE_pbvh_ensure_proxyarray_indexmap(pbvh, pbvh->nodes + i, vert_node_map);
+  for (int i = 0; i < totnode; i++) {
+    if (nodes[i]->flag & PBVH_Leaf) {
+      BKE_pbvh_ensure_proxyarray_indexmap(pbvh, nodes[i], vert_node_map);
+    }
   }
 
-  for (int i = 0; i < pbvh->totnode; i++) {
-    BKE_pbvh_ensure_proxyarray(ss, pbvh, pbvh->nodes + i, mask, vert_node_map, false, false);
+  for (int i = 0; i < totnode; i++) {
+    if (nodes[i]->flag & PBVH_Leaf) {
+      BKE_pbvh_ensure_proxyarray(ss, pbvh, nodes[i], mask, vert_node_map, false, false);
+    }
   }
 
   if (vert_node_map) {
@@ -3280,13 +3300,17 @@ void BKE_pbvh_ensure_proxyarray(SculptSession *ss,
   UPDATETEST(fno, PV_NO, sizeof(float) * 3)
   UPDATETEST(mask, PV_MASK, sizeof(float))
   UPDATETEST(color, PV_COLOR, sizeof(float) * 4)
-  UPDATETEST(index, PV_INDEX, sizeof(SculptIdx))
+  UPDATETEST(index, PV_INDEX, sizeof(SculptVertRef))
   UPDATETEST(neighbors, PV_NEIGHBORS, sizeof(ProxyKey) * MAX_PROXY_NEIGHBORS)
 
   p->size = totvert;
 
   if (force_update) {
     updatemask |= mask;
+  }
+
+  if ((mask & PV_NEIGHBORS) && p->neighbors_dirty) {
+    updatemask |= PV_NEIGHBORS;
   }
 
   if (!updatemask) {
@@ -3298,16 +3322,32 @@ void BKE_pbvh_ensure_proxyarray(SculptSession *ss,
   PBVHVertexIter vd;
 
   int i = 0;
+
+#  if 1
   BKE_pbvh_vertex_iter_begin(pbvh, node, vd, PBVH_ITER_UNIQUE)
   {
-    BLI_ghash_insert(gs, (void *)vd.vertex, (void *)i);
+    void **val;
+
+    if (!BLI_ghash_ensure_p(gs, (void *)vd.vertex.i, &val)) {
+      *val = (void *)i;
+    };
     i++;
   }
   BKE_pbvh_vertex_iter_end;
+#  endif
+
+  if (updatemask & PV_NEIGHBORS) {
+    p->neighbors_dirty = false;
+  }
 
   i = 0;
   BKE_pbvh_vertex_iter_begin(pbvh, node, vd, PBVH_ITER_UNIQUE)
   {
+    if (i >= p->size) {
+      printf("error!! %s\n", __func__);
+      break;
+    }
+
     if (updatemask & PV_OWNERCO) {
       p->ownerco[i] = vd.co;
     }
@@ -3318,8 +3358,24 @@ void BKE_pbvh_ensure_proxyarray(SculptSession *ss,
       p->ownerno[i] = vd.no;
     }
     if (updatemask & PV_NO) {
-      copy_v3_v3_short(p->no[i], vd.no);
-      normal_short_to_float_v3(p->fno[i], vd.no);
+      if (vd.fno) {
+        if (p->fno) {
+          copy_v3_v3(p->fno[i], vd.fno);
+        }
+        normal_float_to_short_v3(p->no[i], vd.fno);
+      }
+      else if (vd.no) {
+        copy_v3_v3_short(p->no[i], vd.no);
+        if (p->fno) {
+          normal_short_to_float_v3(p->fno[i], vd.no);
+        }
+      }
+      else {
+        p->no[i][0] = p->no[i][1] = p->no[i][2] = 0;
+        if (p->fno) {
+          zero_v3(p->fno[i]);
+        }
+      }
     }
     if (updatemask & PV_CO) {
       copy_v3_v3(p->co[i], vd.co);
@@ -3347,29 +3403,44 @@ void BKE_pbvh_ensure_proxyarray(SculptSession *ss,
 
         ProxyKey key;
 
-        int *pindex = (int *)BLI_ghash_lookup_p(gs, (void *)ni.vertex);
+        int *pindex = (int *)BLI_ghash_lookup_p(gs, (void *)ni.vertex.i);
 
         if (!pindex) {
           if (vert_node_map) {
-            int *nindex = BLI_ghash_lookup_p(vert_node_map, (void *)ni.vertex);
+            int *nindex = (int *)BLI_ghash_lookup_p(vert_node_map, (void *)ni.vertex.i);
 
             if (!nindex) {
+              p->neighbors_dirty = true;
               continue;
             }
 
             PBVHNode *node2 = pbvh->nodes + *nindex;
             if (node2->proxyverts.indexmap) {
-              pindex = (int *)BLI_ghash_lookup_p(node2->proxyverts.indexmap, (void *)ni.vertex);
+              pindex = (int *)BLI_ghash_lookup_p(node2->proxyverts.indexmap, (void *)ni.vertex.i);
+            }
+            else {
+              pindex = NULL;
             }
 
             if (!pindex) {
+              p->neighbors_dirty = true;
               continue;
             }
 
             key.node = (int)(node2 - pbvh->nodes);
             key.pindex = *pindex;
+            //*
+            if (node2->proxyverts.size != 0 &&
+                (key.pindex < 0 || key.pindex >= node2->proxyverts.size)) {
+              printf("error! %s\n", __func__);
+              fflush(stdout);
+              p->neighbors_dirty = true;
+              continue;
+            }
+            //*/
           }
           else {
+            p->neighbors_dirty = true;
             continue;
           }
         }
@@ -3440,6 +3511,10 @@ static void pbvh_gather_proxyarray_exec(void *__restrict userdata,
       copy_v3_v3(vd.co, p->co[i]);
     }
 
+    if (mask & PV_COLOR && vd.col) {
+      copy_v4_v4(vd.col, p->color[i]);
+    }
+
     if (vd.mask && (mask & PV_MASK)) {
       *vd.mask = p->mask[i];
     }
@@ -3462,6 +3537,9 @@ void BKE_pbvh_free_proxyarray(PBVH *pbvh, PBVHNode *node)
 {
   ProxyVertArray *p = &node->proxyverts;
 
+  if (p->indexmap) {
+    BLI_ghash_free(p->indexmap, NULL, NULL);
+  }
   if (p->co)
     MEM_freeN(p->co);
   if (p->no)

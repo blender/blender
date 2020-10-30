@@ -1239,8 +1239,8 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
         BKE_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL)
         {
           void *dummy;
-          // BKE_pbvh_bmesh_update_origvert(ss->pbvh, vd.bm_vert, &dummy, &dummy, &dummy);
-          BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset, false);
+          BKE_pbvh_bmesh_update_origvert(ss->pbvh, vd.bm_vert, &dummy, &dummy, &dummy);
+          //BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset, false);
         }
         BKE_pbvh_vertex_iter_end;
         break;
