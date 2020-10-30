@@ -95,7 +95,7 @@ static bool g_undo_callback_running = false;
 /** \name Public Undo Types
  *
  * Unfortunately we need this for a handful of places.
- */
+ * \{ */
 const UndoType *BKE_UNDOSYS_TYPE_IMAGE = NULL;
 const UndoType *BKE_UNDOSYS_TYPE_MEMFILE = NULL;
 const UndoType *BKE_UNDOSYS_TYPE_PAINTCURVE = NULL;
@@ -897,7 +897,7 @@ void BKE_undosys_stack_group_end(UndoStack *ustack)
 /** \name ID Reference Utilities
  *
  * Unfortunately we need this for a handful of places.
- */
+ * \{ */
 
 static void UNUSED_FUNCTION(BKE_undosys_foreach_ID_ref(UndoStack *ustack,
                                                        UndoTypeForEachIDRefFn foreach_ID_ref_fn,
