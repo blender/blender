@@ -159,6 +159,15 @@ static bool text_new_poll(bContext *UNUSED(C))
   return 1;
 }
 
+static bool text_data_poll(bContext *C)
+{
+  Text *text = CTX_data_edit_text(C);
+  if (!text) {
+    return false;
+  }
+  return true;
+}
+
 static bool text_edit_poll(bContext *C)
 {
   Text *text = CTX_data_edit_text(C);
@@ -751,11 +760,6 @@ void TEXT_OT_save_as(wmOperatorType *ot)
 /** \name Run Script Operator
  * \{ */
 
-static bool text_run_script_poll(bContext *C)
-{
-  return (CTX_data_edit_text(C) != NULL);
-}
-
 static int text_run_script(bContext *C, ReportList *reports)
 {
 #ifdef WITH_PYTHON
@@ -817,7 +821,7 @@ void TEXT_OT_run_script(wmOperatorType *ot)
   ot->description = "Run active script";
 
   /* api callbacks */
-  ot->poll = text_run_script_poll;
+  ot->poll = text_data_poll;
   ot->exec = text_run_script_exec;
 
   /* flags */
@@ -3911,7 +3915,7 @@ void TEXT_OT_resolve_conflict(wmOperatorType *ot)
 
 static int text_to_3d_object_exec(bContext *C, wmOperator *op)
 {
-  Text *text = CTX_data_edit_text(C);
+  const Text *text = CTX_data_edit_text(C);
   const bool split_lines = RNA_boolean_get(op->ptr, "split_lines");
 
   ED_text_to_object(C, text, split_lines);
@@ -3928,7 +3932,7 @@ void TEXT_OT_to_3d_object(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = text_to_3d_object_exec;
-  ot->poll = text_edit_poll;
+  ot->poll = text_data_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
