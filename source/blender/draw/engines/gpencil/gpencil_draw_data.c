@@ -247,6 +247,10 @@ GPENCIL_MaterialPool *gpencil_material_pool_create(GPENCIL_PrivateData *pd, Obje
 
     gp_style = gpencil_viewport_material_overrides(pd, ob, color_type, gp_style);
 
+    /* Dots or Squares rotation. */
+    mat_data->alignment_rot_cos = cosf(gp_style->alignment_rotation);
+    mat_data->alignment_rot_sin = sinf(gp_style->alignment_rotation);
+
     /* Stroke Style */
     if ((gp_style->stroke_style == GP_MATERIAL_STROKE_STYLE_TEXTURE) && (gp_style->sima)) {
       bool premul;

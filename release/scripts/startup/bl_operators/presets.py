@@ -676,6 +676,7 @@ class AddPresetGpencilMaterial(AddPresetBase, Operator):
         "gpcolor.pixel_size",
         "gpcolor.mix_stroke_factor",
         "gpcolor.alignment_mode",
+        "gpcolor.alignment_rotation",
         "gpcolor.fill_style",
         "gpcolor.fill_color",
         "gpcolor.fill_image",

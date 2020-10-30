@@ -99,7 +99,8 @@ typedef struct MaterialGPencilStyle {
   float mix_stroke_factor;
   /** Mode used to align Dots and Boxes with stroke drawing path and object rotation */
   int alignment_mode;
-  char _pad[4];
+  /** Rotation for texture for Dots and Squares. */
+  float alignment_rotation;
 } MaterialGPencilStyle;
 
 /* MaterialGPencilStyle->flag */

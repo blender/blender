@@ -62,7 +62,7 @@ typedef struct gpMaterial {
   float stroke_color[4];
   float fill_color[4];
   float fill_mix_color[4];
-  float fill_uv_transform[3][2], _pad0[2];
+  float fill_uv_transform[3][2], alignment_rot_cos, alignment_rot_sin;
   float stroke_texture_mix;
   float stroke_u_scale;
   float fill_texture_mix;
