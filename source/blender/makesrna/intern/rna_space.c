@@ -3210,7 +3210,7 @@ static void rna_def_space_outliner(BlenderRNA *brna)
   prop = RNA_def_property(srna, "filter_id_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "filter_id_type");
   RNA_def_property_enum_items(prop, rna_enum_id_type_items);
-  RNA_def_property_ui_text(prop, "Filter ID Type", "Data-block type to show");
+  RNA_def_property_ui_text(prop, "Filter by Type", "Data-block type to show");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
 }
 
