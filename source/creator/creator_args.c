@@ -2071,6 +2071,8 @@ void main_args_setup(bContext *C, bArgs *ba)
   BLI_argsAdd(ba, NULL, "--env-system-scripts", CB_EX(arg_handle_env_system_set, scripts), NULL);
   BLI_argsAdd(ba, NULL, "--env-system-python", CB_EX(arg_handle_env_system_set, python), NULL);
 
+  BLI_argsAdd(ba, "-t", "--threads", CB(arg_handle_threads_set), NULL);
+
   /* Pass: Background Mode & Settings
    *
    * Also and commands that exit after usage. */
@@ -2087,8 +2089,6 @@ void main_args_setup(bContext *C, bArgs *ba)
 
   BLI_argsAdd(ba, NULL, "--disable-crash-handler", CB(arg_handle_crash_handler_disable), NULL);
   BLI_argsAdd(ba, NULL, "--disable-abort-handler", CB(arg_handle_abort_handler_disable), NULL);
-
-  BLI_argsAdd(ba, "-t", "--threads", CB(arg_handle_threads_set), NULL);
 
   BLI_argsAdd(ba, "-b", "--background", CB(arg_handle_background_mode_set), NULL);
 

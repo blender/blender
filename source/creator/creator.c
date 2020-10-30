@@ -415,6 +415,9 @@ int main(int argc,
    * since they impact `BKE_appdir` behavior. */
   BKE_appdir_init();
 
+  /* After parsing number of threads argument. */
+  BLI_task_scheduler_init();
+
   /* Initialize sub-systems that use `BKE_appdir.h`. */
   IMB_init();
 
@@ -424,9 +427,6 @@ int main(int argc,
 
   main_signal_setup();
 #endif
-
-  /* After parsing number of threads argument. */
-  BLI_task_scheduler_init();
 
 #ifdef WITH_FFMPEG
   /* Keep after #ARG_PASS_SETTINGS since debug flags are checked. */
