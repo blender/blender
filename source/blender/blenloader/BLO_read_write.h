@@ -52,6 +52,8 @@ typedef struct BlendExpander BlendExpander;
 typedef struct BlendLibReader BlendLibReader;
 typedef struct BlendWriter BlendWriter;
 
+struct Main;
+
 /* Blend Write API
  * ===============
  *
@@ -223,6 +225,7 @@ ID *BLO_read_get_new_id_address(BlendLibReader *reader, struct Library *lib, str
 
 /* Misc. */
 bool BLO_read_lib_is_undo(BlendLibReader *reader);
+struct Main *BLO_read_lib_get_main(BlendLibReader *reader);
 
 /* Blend Expand API
  * ===================

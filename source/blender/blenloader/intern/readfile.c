@@ -2569,69 +2569,6 @@ static void lib_link_constraint_channels(BlendLibReader *reader, ID *id, ListBas
 /** \name Read ID: WorkSpace
  * \{ */
 
-static void lib_link_workspaces(BlendLibReader *reader, WorkSpace *workspace)
-{
-  ID *id = (ID *)workspace;
-
-  /* Restore proper 'parent' pointers to relevant data, and clean up unused/invalid entries. */
-  LISTBASE_FOREACH_MUTABLE (WorkSpaceDataRelation *, relation, &workspace->hook_layout_relations) {
-    relation->parent = NULL;
-    LISTBASE_FOREACH (wmWindowManager *, wm, &reader->main->wm) {
-      LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-        if (win->winid == relation->parentid) {
-          relation->parent = win->workspace_hook;
-        }
-      }
-    }
-    if (relation->parent == NULL) {
-      BLI_freelinkN(&workspace->hook_layout_relations, relation);
-    }
-  }
-
-  LISTBASE_FOREACH_MUTABLE (WorkSpaceLayout *, layout, &workspace->layouts) {
-    BLO_read_id_address(reader, id->lib, &layout->screen);
-
-    if (layout->screen) {
-      if (ID_IS_LINKED(id)) {
-        layout->screen->winid = 0;
-        if (layout->screen->temp) {
-          /* delete temp layouts when appending */
-          BKE_workspace_layout_remove(reader->main, workspace, layout);
-        }
-      }
-    }
-    else {
-      /* If we're reading a layout without screen stored, it's useless and we shouldn't keep it
-       * around. */
-      BKE_workspace_layout_remove(reader->main, workspace, layout);
-    }
-  }
-}
-
-static void direct_link_workspace(BlendDataReader *reader, WorkSpace *workspace)
-{
-  BLO_read_list(reader, &workspace->layouts);
-  BLO_read_list(reader, &workspace->hook_layout_relations);
-  BLO_read_list(reader, &workspace->owner_ids);
-  BLO_read_list(reader, &workspace->tools);
-
-  LISTBASE_FOREACH (WorkSpaceDataRelation *, relation, &workspace->hook_layout_relations) {
-    /* parent pointer does not belong to workspace data and is therefore restored in lib_link step
-     * of window manager.*/
-    BLO_read_data_address(reader, &relation->value);
-  }
-
-  LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
-    tref->runtime = NULL;
-    BLO_read_data_address(reader, &tref->properties);
-    IDP_BlendDataRead(reader, &tref->properties);
-  }
-
-  workspace->status_text = NULL;
-
-  id_us_ensure_real(&workspace->id);
-}
-
 static void lib_link_workspace_instance_hook(BlendLibReader *reader,
                                              WorkSpaceInstanceHook *hook,
                                              ID *id)
@@ -5510,8 +5447,6 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
       direct_link_library(fd, (Library *)id, main);
       break;
     case ID_WS:
-      direct_link_workspace(&reader, (WorkSpace *)id);
-      break;
     case ID_PA:
     case ID_GR:
     case ID_ME:
@@ -6132,10 +6067,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_WM:
         lib_link_windowmanager(&reader, (wmWindowManager *)id);
         break;
-      case ID_WS:
-        /* Could we skip WS in undo case? */
-        lib_link_workspaces(&reader, (WorkSpace *)id);
-        break;
       case ID_SCE:
         lib_link_scene(&reader, (Scene *)id);
         break;
@@ -6149,6 +6080,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_LI:
         lib_link_library(&reader, (Library *)id); /* Only init users. */
         break;
+      case ID_WS:
       case ID_SCR:
       case ID_PA:
       case ID_GR:
@@ -7033,13 +6965,6 @@ static void expand_scene(BlendExpander *expander, Scene *sce)
   }
 }
 
-static void expand_workspace(BlendExpander *expander, WorkSpace *workspace)
-{
-  LISTBASE_FOREACH (WorkSpaceLayout *, layout, &workspace->layouts) {
-    BLO_expand(expander, BKE_workspace_layout_screen_get(layout));
-  }
-}
-
 /**
  * Set the callback func used over all ID data found by \a BLO_expand_main func.
  *
@@ -7091,9 +7016,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_IP:
               expand_ipo(&expander, (Ipo *)id); /* XXX deprecated - old animation system */
-              break;
-            case ID_WS:
-              expand_workspace(&expander, (WorkSpace *)id);
               break;
             default:
               break;
@@ -8228,6 +8150,11 @@ bool BLO_read_data_is_undo(BlendDataReader *reader)
 bool BLO_read_lib_is_undo(BlendLibReader *reader)
 {
   return reader->fd->memfile != NULL;
+}
+
+Main *BLO_read_lib_get_main(BlendLibReader *reader)
+{
+  return reader->main;
 }
 
 void BLO_expand_id(BlendExpander *expander, ID *id)
