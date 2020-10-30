@@ -43,7 +43,7 @@ isWindows = platform.system() != 'Darwin' and platform.system() != 'Linux'\n\
 \n\
 bpy = sys.modules.get('bpy')\n\
 if bpy is not None:\n\
-    sys.executable = bpy.app.binary_path_python\n";
+    sys.executable = bpy.app.binary_path\n";
 
 //////////////////////////////////////////////////////////////////////
 // DEBUG
