@@ -1662,22 +1662,6 @@ static void write_windowmanager(BlendWriter *writer, wmWindowManager *wm, const 
   }
 }
 
-static void write_screen(BlendWriter *writer, bScreen *screen, const void *id_address)
-{
-  /* Screens are reference counted, only saved if used by a workspace. */
-  if (screen->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* write LibData */
-    /* in 2.50+ files, the file identifier for screens is patched, forward compatibility */
-    writestruct_at_address(writer->wd, ID_SCRN, bScreen, 1, id_address, screen);
-    BKE_id_blend_write(writer, &screen->id);
-
-    BKE_previewimg_blend_write(writer, screen->preview);
-
-    /* direct data */
-    BKE_screen_area_map_blend_write(writer, AREAMAP_FROM_SCREEN(screen));
-  }
-}
-
 static void write_workspace(BlendWriter *writer, WorkSpace *workspace, const void *id_address)
 {
   BLO_write_id_struct(writer, WorkSpace, id_address, &workspace->id);
@@ -1957,15 +1941,13 @@ static bool write_file_handle(Main *mainvar,
           case ID_WS:
             write_workspace(&writer, (WorkSpace *)id_buffer, id);
             break;
-          case ID_SCR:
-            write_screen(&writer, (bScreen *)id_buffer, id);
-            break;
           case ID_SCE:
             write_scene(&writer, (Scene *)id_buffer, id);
             break;
           case ID_OB:
             write_object(&writer, (Object *)id_buffer, id);
             break;
+          case ID_SCR:
           case ID_PA:
           case ID_GR:
           case ID_ME:
@@ -2302,7 +2284,13 @@ void BLO_write_struct_at_address_by_id(BlendWriter *writer,
                                        const void *address,
                                        const void *data_ptr)
 {
-  writestruct_at_address_nr(writer->wd, DATA, struct_id, 1, address, data_ptr);
+  BLO_write_struct_at_address_by_id_with_filecode(writer, DATA, struct_id, address, data_ptr);
+}
+
+void BLO_write_struct_at_address_by_id_with_filecode(
+    BlendWriter *writer, int filecode, int struct_id, const void *address, const void *data_ptr)
+{
+  writestruct_at_address_nr(writer->wd, filecode, struct_id, 1, address, data_ptr);
 }
 
 void BLO_write_struct_array_by_id(BlendWriter *writer,

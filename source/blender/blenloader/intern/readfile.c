@@ -4753,22 +4753,6 @@ static void lib_link_windowmanager(BlendLibReader *reader, wmWindowManager *wm)
 /** \name Read ID: Screen
  * \{ */
 
-/* note: file read without screens option G_FILE_NO_UI;
- * check lib pointers in call below */
-static void lib_link_screen(BlendLibReader *reader, bScreen *screen)
-{
-  /* deprecated, but needed for versioning (will be NULL'ed then) */
-  BLO_read_id_address(reader, screen->id.lib, &screen->scene);
-
-  screen->animtimer = NULL; /* saved in rare cases */
-  screen->tool_tip = NULL;
-  screen->scrubbing = false;
-
-  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-    BKE_screen_area_blend_read_lib(reader, &screen->id, area);
-  }
-}
-
 /* how to handle user count on pointer restore */
 typedef enum ePointerUserMode {
   USER_IGNORE = 0, /* ignore user count */
@@ -6158,11 +6142,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_OB:
         lib_link_object(&reader, (Object *)id);
         break;
-      case ID_SCR:
-        /* DO NOT skip screens here, 3D viewport may contains pointers
-         * to other ID data (like #View3D.ob_center)! See T41411. */
-        lib_link_screen(&reader, (bScreen *)id);
-        break;
       case ID_IP:
         /* XXX deprecated... still needs to be maintained for version patches still. */
         lib_link_ipo(&reader, (Ipo *)id);
@@ -6170,6 +6149,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_LI:
         lib_link_library(&reader, (Library *)id); /* Only init users. */
         break;
+      case ID_SCR:
       case ID_PA:
       case ID_GR:
       case ID_ME:

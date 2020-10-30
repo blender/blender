@@ -56,6 +56,7 @@
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
+#include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_node.h"
 #include "BKE_screen.h"
@@ -236,6 +237,40 @@ static void screen_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+static void screen_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  bScreen *screen = (bScreen *)id;
+  /* Screens are reference counted, only saved if used by a workspace. */
+  if (screen->id.us > 0 || BLO_write_is_undo(writer)) {
+    /* write LibData */
+    /* in 2.50+ files, the file identifier for screens is patched, forward compatibility */
+    BLO_write_struct_at_address_with_filecode(writer, ID_SCRN, bScreen, id_address, screen);
+    BKE_id_blend_write(writer, &screen->id);
+
+    BKE_previewimg_blend_write(writer, screen->preview);
+
+    /* direct data */
+    BKE_screen_area_map_blend_write(writer, AREAMAP_FROM_SCREEN(screen));
+  }
+}
+
+/* note: file read without screens option G_FILE_NO_UI;
+ * check lib pointers in call below */
+static void screen_blend_read_lib(BlendLibReader *reader, ID *id)
+{
+  bScreen *screen = (bScreen *)id;
+  /* deprecated, but needed for versioning (will be NULL'ed then) */
+  BLO_read_id_address(reader, screen->id.lib, &screen->scene);
+
+  screen->animtimer = NULL; /* saved in rare cases */
+  screen->tool_tip = NULL;
+  screen->scrubbing = false;
+
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+    BKE_screen_area_blend_read_lib(reader, &screen->id, area);
+  }
+}
+
 IDTypeInfo IDType_ID_SCR = {
     .id_code = ID_SCR,
     .id_filter = 0,
@@ -253,9 +288,10 @@ IDTypeInfo IDType_ID_SCR = {
     .foreach_id = screen_foreach_id,
     .foreach_cache = NULL,
 
-    .blend_write = NULL,
+    .blend_write = screen_blend_write,
+    /* Cannot be used yet, because #direct_link_screen has a return value. */
     .blend_read_data = NULL,
-    .blend_read_lib = NULL,
+    .blend_read_lib = screen_blend_read_lib,
     .blend_read_expand = NULL,
 };
 
