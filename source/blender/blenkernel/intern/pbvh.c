@@ -3183,7 +3183,7 @@ void BKE_pbvh_ensure_proxyarray_indexmap(PBVH *pbvh, PBVHNode *node, GHash *vert
   BKE_pbvh_vertex_iter_end;
 }
 
-__attribute__((optnone)) bool pbvh_proxyarray_needs_update(PBVH *pbvh, PBVHNode *node, int mask)
+bool pbvh_proxyarray_needs_update(PBVH *pbvh, PBVHNode *node, int mask)
 {
   ProxyVertArray *p = &node->proxyverts;
   int totvert = 0;
