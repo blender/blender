@@ -75,63 +75,96 @@
 
 #include "outliner_intern.h"
 
+/**
+ * \note changes to selection are by convention and not essential.
+ */
 static void do_outliner_item_editmode_toggle(bContext *C, Scene *scene, Base *base)
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = base->object;
 
+  bool changed = false;
   if (BKE_object_is_in_editmode(ob)) {
-    ED_object_editmode_exit_ex(bmain, scene, ob, EM_FREEDATA);
-    WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, NULL);
+    changed = ED_object_editmode_exit_ex(bmain, scene, ob, EM_FREEDATA);
+    if (changed) {
+      ED_object_base_select(base, BA_DESELECT);
+      WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, NULL);
+    }
   }
   else {
-    ED_object_editmode_enter_ex(CTX_data_main(C), scene, ob, EM_NO_CONTEXT);
-    WM_event_add_notifier(C, NC_SCENE | ND_MODE, NULL);
+    changed = ED_object_editmode_enter_ex(CTX_data_main(C), scene, ob, EM_NO_CONTEXT);
+    if (changed) {
+      ED_object_base_select(base, BA_SELECT);
+      WM_event_add_notifier(C, NC_SCENE | ND_MODE, NULL);
+    }
+  }
+
+  if (changed) {
+    DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+    ED_outliner_select_sync_from_object_tag(C);
   }
 }
 
-static void do_outliner_item_posemode_toggle(bContext *C, Base *base)
+/**
+ * \note changes to selection are by convention and not essential.
+ */
+static void do_outliner_item_posemode_toggle(bContext *C, Scene *scene, Base *base)
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = base->object;
 
   if (ID_IS_LINKED(ob)) {
     BKE_report(CTX_wm_reports(C), RPT_WARNING, "Cannot pose libdata");
+    return;
   }
-  else if (ob->mode & OB_MODE_POSE) {
-    ED_object_posemode_exit_ex(bmain, ob);
-    WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, NULL);
+
+  bool changed = false;
+  if (ob->mode & OB_MODE_POSE) {
+    changed = ED_object_posemode_exit_ex(bmain, ob);
+    if (changed) {
+      ED_object_base_select(base, BA_DESELECT);
+      WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, NULL);
+    }
   }
   else {
-    ED_object_posemode_enter_ex(bmain, ob);
-    WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_POSE, NULL);
+    changed = ED_object_posemode_enter_ex(bmain, ob);
+    if (changed) {
+      ED_object_base_select(base, BA_SELECT);
+      WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_POSE, NULL);
+    }
+  }
+
+  if (changed) {
+    DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+    ED_outliner_select_sync_from_object_tag(C);
   }
 }
 
-/* Swap the current active object from the interaction mode with the given base. */
+/**
+ * Swap the current active object from the interaction mode with the given base.
+ *
+ * \note Changes to selection _are_ needed in this case,
+ * since entering the object mode uses the selection.
+ *
+ * If we didn't want to touch selection we could add an option to the operators
+ * not to do multi-object editing.
+ */
 static void do_outliner_item_mode_toggle_generic(bContext *C, TreeViewContext *tvc, Base *base)
 {
-  Main *bmain = CTX_data_main(C);
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   const int active_mode = tvc->obact->mode;
 
-  /* Return all objects to object mode. */
-  FOREACH_OBJECT_BEGIN (tvc->view_layer, ob_iter) {
-    ED_object_mode_generic_exit(bmain, depsgraph, tvc->scene, ob_iter);
-  }
-  FOREACH_OBJECT_END;
-  WM_toolsystem_update_from_context_view3d(C);
+  if (ED_object_mode_set(C, OB_MODE_OBJECT)) {
+    Base *base_active = BKE_view_layer_base_find(tvc->view_layer, tvc->obact);
+    if (base_active != base) {
+      BKE_view_layer_base_deselect_all(tvc->view_layer);
+      BKE_view_layer_base_select_and_set_active(tvc->view_layer, base);
+      DEG_id_tag_update(&tvc->scene->id, ID_RECALC_SELECT);
 
-  Base *base_active = BKE_view_layer_base_find(tvc->view_layer, tvc->obact);
-  if (base_active != base) {
-    ED_object_base_select(base_active, BA_DESELECT);
-    ED_object_base_activate(C, base);
-    ED_object_base_select(base, BA_SELECT);
-
-    /* XXX: Must add undo step between activation and setting mode to prevent an assert. */
-    ED_undo_push(C, "outliner mode toggle");
-    ED_object_mode_set(C, active_mode);
-    ED_outliner_select_sync_from_object_tag(C);
+      /* XXX: Must add undo step between activation and setting mode to prevent an assert. */
+      ED_undo_push(C, "outliner mode toggle");
+      ED_object_mode_set(C, active_mode);
+      ED_outliner_select_sync_from_object_tag(C);
+    }
   }
 }
 
@@ -159,7 +192,7 @@ void outliner_item_mode_toggle(bContext *C,
       do_outliner_item_editmode_toggle(C, tvc->scene, base);
     }
     else if (tvc->ob_pose && ob->type == OB_ARMATURE) {
-      do_outliner_item_posemode_toggle(C, base);
+      do_outliner_item_posemode_toggle(C, tvc->scene, base);
     }
   }
 }
