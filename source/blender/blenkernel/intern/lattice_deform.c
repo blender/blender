@@ -169,7 +169,7 @@ void BKE_lattice_deform_data_eval_co(LatticeDeformData *lattice_deform_data,
   int ui, vi, wi, uu, vv, ww;
 
   /* vgroup influence */
-  float co_prev[3], weight_blend = 0.0f;
+  float co_prev[4] = {0}, weight_blend = 0.0f;
   copy_v3_v3(co_prev, co);
 #ifdef __SSE2__
   __m128 co_vec = _mm_loadu_ps(co_prev);
