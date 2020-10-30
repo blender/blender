@@ -2484,7 +2484,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
                       NULL,
                       "ParticleSettingsTextureSlot",
                       "ParticleSettingsTextureSlots",
-                      "rna_Particle_reset",
+                      "rna_Particle_reset_dependency",
                       NULL);
 
   /* Fluid particle type can't be checked from the type value in RNA
