@@ -4010,14 +4010,6 @@ static void direct_link_lightcache(BlendDataReader *reader, LightCache *cache)
   BLO_read_data_address(reader, &cache->grid_data);
 }
 
-static void direct_link_view3dshading(BlendDataReader *reader, View3DShading *shading)
-{
-  if (shading->prop) {
-    BLO_read_data_address(reader, &shading->prop);
-    IDP_BlendDataRead(reader, &shading->prop);
-  }
-}
-
 /* check for cyclic set-scene,
  * libs can cause this case which is normally prevented, see (T#####) */
 #define USE_SETSCENE_CHECK
@@ -4626,7 +4618,7 @@ static void direct_link_scene(BlendDataReader *reader, Scene *sce)
   }
   EEVEE_lightcache_info_update(&sce->eevee);
 
-  direct_link_view3dshading(reader, &sce->display.shading);
+  BKE_screen_view3d_shading_blend_read_data(reader, &sce->display.shading);
 
   BLO_read_data_address(reader, &sce->layer_properties);
   IDP_BlendDataRead(reader, &sce->layer_properties);
@@ -4790,7 +4782,7 @@ static void direct_link_area(BlendDataReader *reader, ScrArea *area)
       }
       v3d->shading.prev_type = OB_SOLID;
 
-      direct_link_view3dshading(reader, &v3d->shading);
+      BKE_screen_view3d_shading_blend_read_data(reader, &v3d->shading);
 
       blo_do_versions_view3d_split_250(v3d, &sl->regionbase);
     }
@@ -5168,7 +5160,7 @@ static bool direct_link_area_map(BlendDataReader *reader, ScrAreaMap *area_map)
 
 static void direct_link_wm_xr_data(BlendDataReader *reader, wmXrData *xr_data)
 {
-  direct_link_view3dshading(reader, &xr_data->session_settings.shading);
+  BKE_screen_view3d_shading_blend_read_data(reader, &xr_data->session_settings.shading);
 }
 
 static void lib_link_wm_xr_data(BlendLibReader *reader, ID *parent_id, wmXrData *xr_data)

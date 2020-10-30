@@ -155,6 +155,7 @@
 #include "BKE_packedFile.h"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
+#include "BKE_screen.h"
 #include "BKE_sequencer.h"
 #include "BKE_shader_fx.h"
 #include "BKE_subsurf.h"
@@ -1319,13 +1320,6 @@ static void write_view_settings(BlendWriter *writer, ColorManagedViewSettings *v
   }
 }
 
-static void write_view3dshading(BlendWriter *writer, View3DShading *shading)
-{
-  if (shading->prop) {
-    IDP_BlendWrite(writer, shading->prop);
-  }
-}
-
 static void write_paint(BlendWriter *writer, Paint *p)
 {
   if (p->cavity_curve) {
@@ -1626,7 +1620,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
     write_lightcache(writer, sce->eevee.light_cache_data);
   }
 
-  write_view3dshading(writer, &sce->display.shading);
+  BKE_screen_view3d_shading_blend_write(writer, &sce->display.shading);
 
   /* Freed on doversion. */
   BLI_assert(sce->layer_properties == NULL);
@@ -1634,7 +1628,7 @@ static void write_scene(BlendWriter *writer, Scene *sce, const void *id_address)
 
 static void write_wm_xr_data(BlendWriter *writer, wmXrData *xr_data)
 {
-  write_view3dshading(writer, &xr_data->session_settings.shading);
+  BKE_screen_view3d_shading_blend_write(writer, &xr_data->session_settings.shading);
 }
 
 static void write_region(BlendWriter *writer, ARegion *region, int spacetype)
@@ -1761,7 +1755,7 @@ static void write_area_regions(BlendWriter *writer, ScrArea *area)
         BLO_write_struct(writer, View3D, v3d->localvd);
       }
 
-      write_view3dshading(writer, &v3d->shading);
+      BKE_screen_view3d_shading_blend_write(writer, &v3d->shading);
     }
     else if (sl->spacetype == SPACE_GRAPH) {
       SpaceGraph *sipo = (SpaceGraph *)sl;

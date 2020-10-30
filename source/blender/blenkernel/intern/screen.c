@@ -57,6 +57,8 @@
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
 
+#include "BLO_read_write.h"
+
 static void screen_free_data(ID *id)
 {
   bScreen *screen = (bScreen *)id;
@@ -1110,4 +1112,19 @@ void BKE_screen_header_alignment_reset(bScreen *screen)
     }
   }
   screen->do_refresh = true;
+}
+
+void BKE_screen_view3d_shading_blend_write(BlendWriter *writer, View3DShading *shading)
+{
+  if (shading->prop) {
+    IDP_BlendWrite(writer, shading->prop);
+  }
+}
+
+void BKE_screen_view3d_shading_blend_read_data(BlendDataReader *reader, View3DShading *shading)
+{
+  if (shading->prop) {
+    BLO_read_data_address(reader, &shading->prop);
+    IDP_BlendDataRead(reader, &shading->prop);
+  }
 }

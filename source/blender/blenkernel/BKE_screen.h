@@ -58,6 +58,8 @@ struct wmMsgBus;
 struct wmNotifier;
 struct wmWindow;
 struct wmWindowManager;
+struct BlendWriter;
+struct BlendDataReader;
 
 /* spacetype has everything stored to get an editor working, it gets initialized via
  * ED_spacetypes_init() in editors/space_api/spacetypes.c   */
@@ -448,6 +450,12 @@ void BKE_screen_remove_unused_scredges(struct bScreen *screen);
 void BKE_screen_remove_unused_scrverts(struct bScreen *screen);
 
 void BKE_screen_header_alignment_reset(struct bScreen *screen);
+
+/* .blend file I/O */
+void BKE_screen_view3d_shading_blend_write(struct BlendWriter *writer,
+                                           struct View3DShading *shading);
+void BKE_screen_view3d_shading_blend_read_data(struct BlendDataReader *reader,
+                                               struct View3DShading *shading);
 
 #ifdef __cplusplus
 }
