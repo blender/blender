@@ -235,10 +235,16 @@ void BKE_lattice_deform_data_eval_co(LatticeDeformData *lattice_deform_data,
 #ifdef __SSE2__
         {
           __m128 weight_vec = _mm_set1_ps(u);
-          /* This will load one extra element, this is ok because
-           * we ignore that part of register anyway.
-           */
-          __m128 lattice_vec = _mm_loadu_ps(&latticedata[idx * 3]);
+          /* We need to address special case for last item to avoid accessing invalid memory. */
+          __m128 lattice_vec;
+          if (idx * 3 == idx_w_max) {
+            copy_v3_v3((float *)&lattice_vec, &latticedata[idx * 3]);
+          }
+          else {
+            /* When not on last item, we can safely access one extra float, it will be ignored
+             * anyway. */
+            lattice_vec = _mm_loadu_ps(&latticedata[idx * 3]);
+          }
           co_vec = _mm_add_ps(co_vec, _mm_mul_ps(lattice_vec, weight_vec));
         }
 #else
