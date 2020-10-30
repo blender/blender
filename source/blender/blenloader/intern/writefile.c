@@ -804,41 +804,6 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
   }
 }
 
-static void write_boid_state(BlendWriter *writer, BoidState *state)
-{
-  BLO_write_struct(writer, BoidState, state);
-
-  LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
-    switch (rule->type) {
-      case eBoidRuleType_Goal:
-      case eBoidRuleType_Avoid:
-        BLO_write_struct(writer, BoidRuleGoalAvoid, rule);
-        break;
-      case eBoidRuleType_AvoidCollision:
-        BLO_write_struct(writer, BoidRuleAvoidCollision, rule);
-        break;
-      case eBoidRuleType_FollowLeader:
-        BLO_write_struct(writer, BoidRuleFollowLeader, rule);
-        break;
-      case eBoidRuleType_AverageSpeed:
-        BLO_write_struct(writer, BoidRuleAverageSpeed, rule);
-        break;
-      case eBoidRuleType_Fight:
-        BLO_write_struct(writer, BoidRuleFight, rule);
-        break;
-      default:
-        BLO_write_struct(writer, BoidRule, rule);
-        break;
-    }
-  }
-#if 0
-  BoidCondition *cond = state->conditions.first;
-  for (; cond; cond = cond->next) {
-    BLO_write_struct(writer, BoidCondition, cond);
-  }
-#endif
-}
-
 /* update this also to readfile.c */
 static const char *ptcache_data_struct[] = {
     "",          // BPHYS_DATA_INDEX
@@ -884,68 +849,6 @@ static void write_pointcaches(BlendWriter *writer, ListBase *ptcaches)
           BLO_write_struct_array_by_name(
               writer, ptcache_extra_struct[extra->type], extra->totdata, extra->data);
         }
-      }
-    }
-  }
-}
-
-static void write_particlesettings(BlendWriter *writer,
-                                   ParticleSettings *part,
-                                   const void *id_address)
-{
-  if (part->id.us > 0 || BLO_write_is_undo(writer)) {
-    /* write LibData */
-    BLO_write_id_struct(writer, ParticleSettings, id_address, &part->id);
-    BKE_id_blend_write(writer, &part->id);
-
-    if (part->adt) {
-      BKE_animdata_blend_write(writer, part->adt);
-    }
-    BLO_write_struct(writer, PartDeflect, part->pd);
-    BLO_write_struct(writer, PartDeflect, part->pd2);
-    BLO_write_struct(writer, EffectorWeights, part->effector_weights);
-
-    if (part->clumpcurve) {
-      BKE_curvemapping_blend_write(writer, part->clumpcurve);
-    }
-    if (part->roughcurve) {
-      BKE_curvemapping_blend_write(writer, part->roughcurve);
-    }
-    if (part->twistcurve) {
-      BKE_curvemapping_blend_write(writer, part->twistcurve);
-    }
-
-    LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
-      /* update indices, but only if dw->ob is set (can be NULL after loading e.g.) */
-      if (dw->ob != NULL) {
-        dw->index = 0;
-        if (part->instance_collection) { /* can be NULL if lining fails or set to None */
-          FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (part->instance_collection, object) {
-            if (object == dw->ob) {
-              break;
-            }
-            dw->index++;
-          }
-          FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
-        }
-      }
-      BLO_write_struct(writer, ParticleDupliWeight, dw);
-    }
-
-    if (part->boids && part->phystype == PART_PHYS_BOIDS) {
-      BLO_write_struct(writer, BoidSettings, part->boids);
-
-      LISTBASE_FOREACH (BoidState *, state, &part->boids->states) {
-        write_boid_state(writer, state);
-      }
-    }
-    if (part->fluid && part->phystype == PART_PHYS_FLUID) {
-      BLO_write_struct(writer, SPHFluidSettings, part->fluid);
-    }
-
-    for (int a = 0; a < MAX_MTEX; a++) {
-      if (part->mtex[a]) {
-        BLO_write_struct(writer, MTex, part->mtex[a]);
       }
     }
   }
@@ -2308,8 +2211,6 @@ static bool write_file_handle(Main *mainvar,
             write_object(&writer, (Object *)id_buffer, id);
             break;
           case ID_PA:
-            write_particlesettings(&writer, (ParticleSettings *)id_buffer, id);
-            break;
           case ID_GR:
           case ID_ME:
           case ID_LT:

@@ -2905,132 +2905,6 @@ static void direct_link_pointcache_list(BlendDataReader *reader,
   }
 }
 
-static void lib_link_partdeflect(BlendLibReader *reader, ID *id, PartDeflect *pd)
-{
-  if (pd && pd->tex) {
-    BLO_read_id_address(reader, id->lib, &pd->tex);
-  }
-  if (pd && pd->f_source) {
-    BLO_read_id_address(reader, id->lib, &pd->f_source);
-  }
-}
-
-static void lib_link_particlesettings(BlendLibReader *reader, ParticleSettings *part)
-{
-  BLO_read_id_address(
-      reader, part->id.lib, &part->ipo); /* XXX deprecated - old animation system */
-
-  BLO_read_id_address(reader, part->id.lib, &part->instance_object);
-  BLO_read_id_address(reader, part->id.lib, &part->instance_collection);
-  BLO_read_id_address(reader, part->id.lib, &part->force_group);
-  BLO_read_id_address(reader, part->id.lib, &part->bb_ob);
-  BLO_read_id_address(reader, part->id.lib, &part->collision_group);
-
-  lib_link_partdeflect(reader, &part->id, part->pd);
-  lib_link_partdeflect(reader, &part->id, part->pd2);
-
-  if (part->effector_weights) {
-    BLO_read_id_address(reader, part->id.lib, &part->effector_weights->group);
-  }
-  else {
-    part->effector_weights = BKE_effector_add_weights(part->force_group);
-  }
-
-  if (part->instance_weights.first && part->instance_collection) {
-    LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
-      BLO_read_id_address(reader, part->id.lib, &dw->ob);
-    }
-  }
-  else {
-    BLI_listbase_clear(&part->instance_weights);
-  }
-
-  if (part->boids) {
-    LISTBASE_FOREACH (BoidState *, state, &part->boids->states) {
-      LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
-        switch (rule->type) {
-          case eBoidRuleType_Goal:
-          case eBoidRuleType_Avoid: {
-            BoidRuleGoalAvoid *brga = (BoidRuleGoalAvoid *)rule;
-            BLO_read_id_address(reader, part->id.lib, &brga->ob);
-            break;
-          }
-          case eBoidRuleType_FollowLeader: {
-            BoidRuleFollowLeader *brfl = (BoidRuleFollowLeader *)rule;
-            BLO_read_id_address(reader, part->id.lib, &brfl->ob);
-            break;
-          }
-        }
-      }
-    }
-  }
-
-  for (int a = 0; a < MAX_MTEX; a++) {
-    MTex *mtex = part->mtex[a];
-    if (mtex) {
-      BLO_read_id_address(reader, part->id.lib, &mtex->tex);
-      BLO_read_id_address(reader, part->id.lib, &mtex->object);
-    }
-  }
-}
-
-static void direct_link_partdeflect(PartDeflect *pd)
-{
-  if (pd) {
-    pd->rng = NULL;
-  }
-}
-
-static void direct_link_particlesettings(BlendDataReader *reader, ParticleSettings *part)
-{
-  BLO_read_data_address(reader, &part->adt);
-  BLO_read_data_address(reader, &part->pd);
-  BLO_read_data_address(reader, &part->pd2);
-
-  BKE_animdata_blend_read_data(reader, part->adt);
-  direct_link_partdeflect(part->pd);
-  direct_link_partdeflect(part->pd2);
-
-  BLO_read_data_address(reader, &part->clumpcurve);
-  if (part->clumpcurve) {
-    BKE_curvemapping_blend_read(reader, part->clumpcurve);
-  }
-  BLO_read_data_address(reader, &part->roughcurve);
-  if (part->roughcurve) {
-    BKE_curvemapping_blend_read(reader, part->roughcurve);
-  }
-  BLO_read_data_address(reader, &part->twistcurve);
-  if (part->twistcurve) {
-    BKE_curvemapping_blend_read(reader, part->twistcurve);
-  }
-
-  BLO_read_data_address(reader, &part->effector_weights);
-  if (!part->effector_weights) {
-    part->effector_weights = BKE_effector_add_weights(part->force_group);
-  }
-
-  BLO_read_list(reader, &part->instance_weights);
-
-  BLO_read_data_address(reader, &part->boids);
-  BLO_read_data_address(reader, &part->fluid);
-
-  if (part->boids) {
-    BLO_read_list(reader, &part->boids->states);
-
-    LISTBASE_FOREACH (BoidState *, state, &part->boids->states) {
-      BLO_read_list(reader, &state->rules);
-      BLO_read_list(reader, &state->conditions);
-      BLO_read_list(reader, &state->actions);
-    }
-  }
-  for (int a = 0; a < MAX_MTEX; a++) {
-    BLO_read_data_address(reader, &part->mtex[a]);
-  }
-
-  /* Protect against integer overflow vulnerability. */
-  CLAMP(part->trail_count, 1, 100000);
-}
-
 static void lib_link_particlesystems(BlendLibReader *reader,
                                      Object *ob,
                                      ID *id,
@@ -3356,7 +3230,7 @@ static void lib_link_object(BlendLibReader *reader, Object *ob)
 
   /* texture field */
   if (ob->pd) {
-    lib_link_partdeflect(reader, &ob->id, ob->pd);
+    BKE_particle_partdeflect_blend_read_lib(reader, &ob->id, ob->pd);
   }
 
   if (ob->soft) {
@@ -3940,7 +3814,7 @@ static void direct_link_object(BlendDataReader *reader, Object *ob)
   }
 
   BLO_read_data_address(reader, &ob->pd);
-  direct_link_partdeflect(ob->pd);
+  BKE_particle_partdeflect_blend_read_data(reader, ob->pd);
   BLO_read_data_address(reader, &ob->soft);
   if (ob->soft) {
     SoftBody *sb = ob->soft;
@@ -6210,12 +6084,10 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
     case ID_LI:
       direct_link_library(fd, (Library *)id, main);
       break;
-    case ID_PA:
-      direct_link_particlesettings(&reader, (ParticleSettings *)id);
-      break;
     case ID_WS:
       direct_link_workspace(&reader, (WorkSpace *)id);
       break;
+    case ID_PA:
     case ID_GR:
     case ID_ME:
     case ID_LT:
@@ -6850,9 +6722,6 @@ static void lib_link_all(FileData *fd, Main *bmain)
          * to other ID data (like #View3D.ob_center)! See T41411. */
         lib_link_screen(&reader, (bScreen *)id);
         break;
-      case ID_PA:
-        lib_link_particlesettings(&reader, (ParticleSettings *)id);
-        break;
       case ID_IP:
         /* XXX deprecated... still needs to be maintained for version patches still. */
         lib_link_ipo(&reader, (Ipo *)id);
@@ -6860,6 +6729,7 @@ static void lib_link_all(FileData *fd, Main *bmain)
       case ID_LI:
         lib_link_library(&reader, (Library *)id); /* Only init users. */
         break;
+      case ID_PA:
       case ID_GR:
       case ID_ME:
       case ID_LT:
@@ -7511,54 +7381,6 @@ static void expand_id(BlendExpander *expander, ID *id)
   expand_id_embedded_id(expander, id);
 }
 
-static void expand_particlesettings(BlendExpander *expander, ParticleSettings *part)
-{
-  BLO_expand(expander, part->instance_object);
-  BLO_expand(expander, part->instance_collection);
-  BLO_expand(expander, part->force_group);
-  BLO_expand(expander, part->bb_ob);
-  BLO_expand(expander, part->collision_group);
-
-  for (int a = 0; a < MAX_MTEX; a++) {
-    if (part->mtex[a]) {
-      BLO_expand(expander, part->mtex[a]->tex);
-      BLO_expand(expander, part->mtex[a]->object);
-    }
-  }
-
-  if (part->effector_weights) {
-    BLO_expand(expander, part->effector_weights->group);
-  }
-
-  if (part->pd) {
-    BLO_expand(expander, part->pd->tex);
-    BLO_expand(expander, part->pd->f_source);
-  }
-  if (part->pd2) {
-    BLO_expand(expander, part->pd2->tex);
-    BLO_expand(expander, part->pd2->f_source);
-  }
-
-  if (part->boids) {
-    LISTBASE_FOREACH (BoidState *, state, &part->boids->states) {
-      LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
-        if (rule->type == eBoidRuleType_Avoid) {
-          BoidRuleGoalAvoid *gabr = (BoidRuleGoalAvoid *)rule;
-          BLO_expand(expander, gabr->ob);
-        }
-        else if (rule->type == eBoidRuleType_FollowLeader) {
-          BoidRuleFollowLeader *flbr = (BoidRuleFollowLeader *)rule;
-          BLO_expand(expander, flbr->ob);
-        }
-      }
-    }
-  }
-
-  LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
-    BLO_expand(expander, dw->ob);
-  }
-}
-
 /* callback function used to expand constraint ID-links */
 static void expand_constraint_cb(bConstraint *UNUSED(con),
                                  ID **idpoin,
@@ -7848,9 +7670,6 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
               break;
             case ID_IP:
               expand_ipo(&expander, (Ipo *)id); /* XXX deprecated - old animation system */
-              break;
-            case ID_PA:
-              expand_particlesettings(&expander, (ParticleSettings *)id);
               break;
             case ID_WS:
               expand_workspace(&expander, (WorkSpace *)id);
