@@ -5756,6 +5756,7 @@ NODE_DEFINE(MapRangeNode)
   SOCKET_IN_FLOAT(to_min, "To Min", 0.0f);
   SOCKET_IN_FLOAT(to_max, "To Max", 1.0f);
   SOCKET_IN_FLOAT(steps, "Steps", 4.0f);
+  SOCKET_IN_BOOLEAN(clamp, "Clamp", false);
 
   SOCKET_OUT_FLOAT(result, "Result");
 
