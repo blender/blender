@@ -543,6 +543,7 @@ class USERPREF_PT_animation_fcurves(AnimationPanel, CenterAlignMixIn, Panel):
         flow.prop(edit, "keyframe_new_interpolation_type", text="Default Interpolation")
         flow.prop(edit, "keyframe_new_handle_type", text="Default Handles")
         flow.prop(edit, "use_insertkey_xyz_to_rgb", text="XYZ to RGB")
+        flow.prop(edit, "use_anim_channel_group_colors")
 
 
 # -----------------------------------------------------------------------------

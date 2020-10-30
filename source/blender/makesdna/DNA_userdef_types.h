@@ -826,12 +826,12 @@ typedef struct UserDef {
   short autokey_mode;
   /** Flags for autokeying. */
   short autokey_flag;
+  /** Flags for animation. */
+  short animation_flag;
 
   /** Options for text rendering. */
   char text_render;
   char navigation_mode;
-
-  char _pad9[2];
 
   /** Turn-table rotation amount per-pixel in radians. Scaled with DPI. */
   float view_rotate_sensitivity_turntable;
@@ -1146,6 +1146,15 @@ typedef enum eAutokey_Flag {
   AUTOKEY_FLAG_CYCLEAWARE = (1 << 8),
   ANIMRECORD_FLAG_WITHNLA = (1 << 10),
 } eAutokey_Flag;
+
+/**
+ * Animation flags
+ * #UserDef.animation_flag, used for animation flags that aren't covered by more specific flags
+ * (like eAutokey_Flag).
+ */
+typedef enum eUserpref_Anim_Flags {
+  USER_ANIM_SHOW_CHANNEL_GROUP_COLORS = (1 << 0),
+} eUserpref_Anim_Flags;
 
 /** #UserDef.transopts */
 typedef enum eUserpref_Translation_Flags {

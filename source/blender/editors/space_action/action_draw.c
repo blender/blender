@@ -145,7 +145,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *region
   uchar col1a[4], col2a[4];
   uchar col1b[4], col2b[4];
 
-  const bool show_group_colors = !(saction->flag & SACTION_NODRAWGCOLORS);
+  const bool show_group_colors = U.animation_flag & USER_ANIM_SHOW_CHANNEL_GROUP_COLORS;
 
   /* get theme colors */
   UI_GetThemeColor4ubv(TH_SHADE2, col2);

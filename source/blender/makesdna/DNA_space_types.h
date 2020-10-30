@@ -465,7 +465,7 @@ typedef enum eGraphEdit_Flag {
   /* don't draw curves with AA ("beauty-draw") for performance */
   SIPO_BEAUTYDRAW_OFF = (1 << 12),
   /* draw grouped channels with colors set in group */
-  SIPO_NODRAWGCOLORS = (1 << 13),
+  /* SIPO_NODRAWGCOLORS = (1 << 13), DEPRECATED */
   /* normalize curves on display */
   SIPO_NORMALIZE = (1 << 14),
   SIPO_NORMALIZE_FREEZE = (1 << 15),

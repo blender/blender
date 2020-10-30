@@ -347,7 +347,6 @@ class DOPESHEET_MT_view(Menu):
         col.active = context.space_data.mode != 'SHAPEKEY'
         col.prop(st, "show_sliders")
 
-        layout.prop(st, "show_group_colors")
         layout.prop(st, "show_interpolation")
         layout.prop(st, "show_extremes")
         layout.prop(st, "use_auto_merge_keyframes")
