@@ -77,6 +77,8 @@
 
 /**
  * \note changes to selection are by convention and not essential.
+ *
+ * \note Handles own undo push.
  */
 static void do_outliner_item_editmode_toggle(bContext *C, Scene *scene, Base *base)
 {
@@ -102,11 +104,14 @@ static void do_outliner_item_editmode_toggle(bContext *C, Scene *scene, Base *ba
   if (changed) {
     DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
     ED_outliner_select_sync_from_object_tag(C);
+    ED_undo_push(C, "Outliner Edit Mode Toggle");
   }
 }
 
 /**
  * \note changes to selection are by convention and not essential.
+ *
+ * \note Handles own undo push.
  */
 static void do_outliner_item_posemode_toggle(bContext *C, Scene *scene, Base *base)
 {
@@ -137,6 +142,7 @@ static void do_outliner_item_posemode_toggle(bContext *C, Scene *scene, Base *ba
   if (changed) {
     DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
     ED_outliner_select_sync_from_object_tag(C);
+    ED_undo_push(C, "Outliner Pose Mode Toggle");
   }
 }
 
@@ -148,10 +154,13 @@ static void do_outliner_item_posemode_toggle(bContext *C, Scene *scene, Base *ba
  *
  * If we didn't want to touch selection we could add an option to the operators
  * not to do multi-object editing.
+ *
+ * \note Handles own undo push.
  */
 static void do_outliner_item_mode_toggle_generic(bContext *C, TreeViewContext *tvc, Base *base)
 {
   const int active_mode = tvc->obact->mode;
+  ED_undo_group_begin(C);
 
   if (ED_object_mode_set(C, OB_MODE_OBJECT)) {
     Base *base_active = BKE_view_layer_base_find(tvc->view_layer, tvc->obact);
@@ -159,13 +168,14 @@ static void do_outliner_item_mode_toggle_generic(bContext *C, TreeViewContext *t
       BKE_view_layer_base_deselect_all(tvc->view_layer);
       BKE_view_layer_base_select_and_set_active(tvc->view_layer, base);
       DEG_id_tag_update(&tvc->scene->id, ID_RECALC_SELECT);
+      ED_undo_push(C, "Change Active");
 
-      /* XXX: Must add undo step between activation and setting mode to prevent an assert. */
-      ED_undo_push(C, "outliner mode toggle");
+      /* Operator call does undo push. */
       ED_object_mode_set(C, active_mode);
       ED_outliner_select_sync_from_object_tag(C);
     }
   }
+  ED_undo_group_end(C);
 }
 
 /* Toggle the item's interaction mode if supported */
