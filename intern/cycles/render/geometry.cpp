@@ -1249,7 +1249,10 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
       }
     }
 
-    if (geom->need_update_rebuild && geom->type == Geometry::VOLUME) {
+    /* Re-create volume mesh if we will rebuild or refit the BVH. Note we
+     * should only do it in that case, otherwise the BVH and mesh can go
+     * out of sync. */
+    if (geom->need_update && geom->type == Geometry::VOLUME) {
       /* Create volume meshes if there is voxel data. */
       if (!volume_images_updated) {
         progress.set_status("Updating Meshes Volume Bounds");
