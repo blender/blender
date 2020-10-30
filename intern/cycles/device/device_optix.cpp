@@ -18,6 +18,7 @@
 #ifdef WITH_OPTIX
 
 #  include "bvh/bvh.h"
+#  include "bvh/bvh_optix.h"
 #  include "device/cuda/device_cuda.h"
 #  include "device/device_denoising.h"
 #  include "device/device_intern.h"
@@ -1078,23 +1079,23 @@ class OptiXDevice : public CUDADevice {
 
   bool build_optix_bvh(const OptixBuildInput &build_input,
                        uint16_t num_motion_steps,
-                       OptixTraversableHandle &out_handle)
+                       OptixTraversableHandle &out_handle,
+                       CUdeviceptr &out_data,
+                       OptixBuildOperation operation)
   {
-    out_handle = 0;
-
     const CUDAContextScope scope(cuContext);
 
     // Compute memory usage
     OptixAccelBufferSizes sizes = {};
     OptixAccelBuildOptions options;
-    options.operation = OPTIX_BUILD_OPERATION_BUILD;
+    options.operation = operation;
     if (background) {
       // Prefer best performance and lowest memory consumption in background
       options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE | OPTIX_BUILD_FLAG_ALLOW_COMPACTION;
     }
     else {
       // Prefer fast updates in viewport
-      options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_BUILD;
+      options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_BUILD | OPTIX_BUILD_FLAG_ALLOW_UPDATE;
     }
 
     options.motionOptions.numKeys = num_motion_steps;
@@ -1119,8 +1120,10 @@ class OptiXDevice : public CUDADevice {
       move_textures_to_host(size - free, false);
     }
 
-    CUdeviceptr out_data = 0;
-    check_result_cuda_ret(cuMemAlloc(&out_data, sizes.outputSizeInBytes));
+    if (operation == OPTIX_BUILD_OPERATION_BUILD) {
+      check_result_cuda_ret(cuMemAlloc(&out_data, sizes.outputSizeInBytes));
+    }
+
     as_mem.push_back(out_data);
 
     // Finally build the acceleration structure
@@ -1187,10 +1190,21 @@ class OptiXDevice : public CUDADevice {
     unordered_map<Geometry *, OptixTraversableHandle> geometry;
     geometry.reserve(bvh->geometry.size());
 
-    // Free all previous acceleration structures
-    for (CUdeviceptr mem : as_mem) {
-      cuMemFree(mem);
+    // Free all previous acceleration structures which can not be refit
+    std::set<CUdeviceptr> refit_mem;
+
+    for (Geometry *geom : bvh->geometry) {
+      if (static_cast<BVHOptiX *>(geom->bvh)->do_refit) {
+        refit_mem.insert(static_cast<BVHOptiX *>(geom->bvh)->optix_data_handle);
+      }
     }
+
+    for (CUdeviceptr mem : as_mem) {
+      if (refit_mem.find(mem) == refit_mem.end()) {
+        cuMemFree(mem);
+      }
+    }
+
     as_mem.clear();
 
     // Build bottom level acceleration structures (BLAS)
@@ -1200,6 +1214,21 @@ class OptiXDevice : public CUDADevice {
       Geometry *geom = ob->geometry;
       if (geometry.find(geom) != geometry.end())
         continue;
+
+      OptixTraversableHandle handle;
+      OptixBuildOperation operation;
+      CUdeviceptr out_data;
+      // Refit is only possible in viewport for now.
+      if (static_cast<BVHOptiX *>(geom->bvh)->do_refit && !background) {
+        out_data = static_cast<BVHOptiX *>(geom->bvh)->optix_data_handle;
+        handle = static_cast<BVHOptiX *>(geom->bvh)->optix_handle;
+        operation = OPTIX_BUILD_OPERATION_UPDATE;
+      }
+      else {
+        out_data = 0;
+        handle = 0;
+        operation = OPTIX_BUILD_OPERATION_BUILD;
+      }
 
       if (geom->type == Geometry::HAIR) {
         // Build BLAS for curve primitives
@@ -1364,9 +1393,11 @@ class OptiXDevice : public CUDADevice {
         }
 
         // Allocate memory for new BLAS and build it
-        OptixTraversableHandle handle;
-        if (build_optix_bvh(build_input, num_motion_steps, handle)) {
+        if (build_optix_bvh(build_input, num_motion_steps, handle, out_data, operation)) {
           geometry.insert({ob->geometry, handle});
+          static_cast<BVHOptiX *>(geom->bvh)->optix_data_handle = out_data;
+          static_cast<BVHOptiX *>(geom->bvh)->optix_handle = handle;
+          static_cast<BVHOptiX *>(geom->bvh)->do_refit = false;
         }
         else {
           return false;
@@ -1436,9 +1467,11 @@ class OptiXDevice : public CUDADevice {
         build_input.triangleArray.primitiveIndexOffset = mesh->optix_prim_offset;
 
         // Allocate memory for new BLAS and build it
-        OptixTraversableHandle handle;
-        if (build_optix_bvh(build_input, num_motion_steps, handle)) {
+        if (build_optix_bvh(build_input, num_motion_steps, handle, out_data, operation)) {
           geometry.insert({ob->geometry, handle});
+          static_cast<BVHOptiX *>(geom->bvh)->optix_data_handle = out_data;
+          static_cast<BVHOptiX *>(geom->bvh)->optix_handle = handle;
+          static_cast<BVHOptiX *>(geom->bvh)->do_refit = false;
         }
         else {
           return false;
@@ -1612,7 +1645,9 @@ class OptiXDevice : public CUDADevice {
     build_input.instanceArray.instances = instances.device_pointer;
     build_input.instanceArray.numInstances = num_instances;
 
-    return build_optix_bvh(build_input, 0, tlas_handle);
+    CUdeviceptr out_data = 0;
+    tlas_handle = 0;
+    return build_optix_bvh(build_input, 0, tlas_handle, out_data, OPTIX_BUILD_OPERATION_BUILD);
   }
 
   void const_copy_to(const char *name, void *host, size_t size) override
