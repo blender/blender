@@ -69,7 +69,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(amd, DNA_struct_default_get(ArrayModifierData), modifier);
 
   /* Open the first subpanel by default, it corresspnds to Relative offset which is enabled too. */
-  md->ui_expand_flag = (1 << 0) | (1 << 1);
+  md->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT | UI_SUBPANEL_DATA_EXPAND_1;
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)

@@ -1529,12 +1529,7 @@ static void rna_ParticleInstanceModifier_particle_system_set(PointerRNA *ptr,
 static void rna_Modifier_show_expanded_set(PointerRNA *ptr, bool value)
 {
   ModifierData *md = ptr->data;
-  if (value) {
-    md->ui_expand_flag |= (1 << 0);
-  }
-  else {
-    md->ui_expand_flag &= ~(1 << 0);
-  }
+  SET_FLAG_FROM_TEST(md->ui_expand_flag, value, UI_PANEL_DATA_EXPAND_ROOT);
 }
 
 /**
@@ -1545,7 +1540,7 @@ static void rna_Modifier_show_expanded_set(PointerRNA *ptr, bool value)
 static bool rna_Modifier_show_expanded_get(PointerRNA *ptr)
 {
   ModifierData *md = ptr->data;
-  return md->ui_expand_flag & (1 << 0);
+  return md->ui_expand_flag & UI_PANEL_DATA_EXPAND_ROOT;
 }
 
 static int rna_MeshSequenceCacheModifier_has_velocity_get(PointerRNA *ptr)

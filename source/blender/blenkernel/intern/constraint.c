@@ -45,6 +45,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_screen_types.h"
 
 #include "DNA_lattice_types.h"
 #include "DNA_movieclip_types.h"
@@ -5408,7 +5409,7 @@ bool BKE_constraint_remove_ex(ListBase *list, Object *ob, bConstraint *con, bool
 
 void BKE_constraint_panel_expand(bConstraint *con)
 {
-  con->ui_expand_flag |= (1 << 0);
+  con->ui_expand_flag |= UI_PANEL_DATA_EXPAND_ROOT;
 }
 
 /* ......... */
@@ -5426,10 +5427,10 @@ static bConstraint *add_new_constraint_internal(const char *name, short type)
   con->enforce = 1.0f;
 
   /* Only open the main panel when constraints are created, not the sub-panels. */
-  con->ui_expand_flag = (1 << 0);
+  con->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT;
   if (ELEM(type, CONSTRAINT_TYPE_ACTION, CONSTRAINT_TYPE_SPLINEIK)) {
     /* Expand the two sub-panels in the cases where the main panel barely has any properties. */
-    con->ui_expand_flag |= (1 << 1) | (1 << 2);
+    con->ui_expand_flag |= UI_SUBPANEL_DATA_EXPAND_1 | UI_SUBPANEL_DATA_EXPAND_2;
   }
 
   /* Determine a basic name, and info */

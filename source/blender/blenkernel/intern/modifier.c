@@ -38,6 +38,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
@@ -132,7 +133,7 @@ void BKE_modifier_type_panel_id(ModifierType type, char *r_idname)
 
 void BKE_modifier_panel_expand(ModifierData *md)
 {
-  md->ui_expand_flag |= (1 << 0);
+  md->ui_expand_flag |= UI_PANEL_DATA_EXPAND_ROOT;
 }
 
 /***/

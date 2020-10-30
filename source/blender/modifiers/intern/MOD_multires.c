@@ -74,7 +74,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(mmd, DNA_struct_default_get(MultiresModifierData), modifier);
 
   /* Open subdivision panels by default. */
-  md->ui_expand_flag = (1 << 0) | (1 << 1);
+  md->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT | UI_SUBPANEL_DATA_EXPAND_1;
 }
 
 static void requiredDataMask(Object *UNUSED(ob),

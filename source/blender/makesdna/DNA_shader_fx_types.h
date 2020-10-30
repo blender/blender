@@ -65,7 +65,7 @@ typedef struct ShaderFxData {
   int type, mode;
   char _pad0[4];
   short flag;
-  /* Expansion for shader effect panels and sub-panels. */
+  /* An "expand" bit for each of the constraint's (sub)panels (uiPanelDataExpansion). */
   short ui_expand_flag;
   /** MAX_NAME. */
   char name[64];

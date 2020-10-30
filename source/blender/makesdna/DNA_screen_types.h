@@ -184,6 +184,34 @@ typedef struct Panel {
 } Panel;
 
 /**
+ * Used for passing expansion between instanced panel data and the panels themselves.
+ * There are 16 defines because the expansion data is typically stored in a short.
+ *
+ * \note Expansion for instanced panels is stored in depth first order. For example, the value of
+ * UI_SUBPANEL_DATA_EXPAND_2 correspond to mean the expansion of the second subpanel or the first
+ * subpanel's first subpanel.
+ */
+typedef enum uiPanelDataExpansion {
+  UI_PANEL_DATA_EXPAND_ROOT = (1 << 0),
+  UI_SUBPANEL_DATA_EXPAND_1 = (1 << 1),
+  UI_SUBPANEL_DATA_EXPAND_2 = (1 << 2),
+  UI_SUBPANEL_DATA_EXPAND_3 = (1 << 3),
+  UI_SUBPANEL_DATA_EXPAND_4 = (1 << 4),
+  UI_SUBPANEL_DATA_EXPAND_5 = (1 << 5),
+  UI_SUBPANEL_DATA_EXPAND_6 = (1 << 6),
+  UI_SUBPANEL_DATA_EXPAND_7 = (1 << 7),
+  UI_SUBPANEL_DATA_EXPAND_8 = (1 << 8),
+  UI_SUBPANEL_DATA_EXPAND_9 = (1 << 9),
+  UI_SUBPANEL_DATA_EXPAND_10 = (1 << 10),
+  UI_SUBPANEL_DATA_EXPAND_11 = (1 << 11),
+  UI_SUBPANEL_DATA_EXPAND_12 = (1 << 12),
+  UI_SUBPANEL_DATA_EXPAND_13 = (1 << 13),
+  UI_SUBPANEL_DATA_EXPAND_14 = (1 << 14),
+  UI_SUBPANEL_DATA_EXPAND_15 = (1 << 15),
+  UI_SUBPANEL_DATA_EXPAND_16 = (1 << 16),
+} uiPanelDataExpansion;
+
+/**
  * Notes on Panel Categories:
  *
  * - #ARegion.panels_category (#PanelCategoryDyn)
