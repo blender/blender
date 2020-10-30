@@ -2013,6 +2013,8 @@ static void outliner_draw_mode_column_toggle(uiBlock *block,
                             tip);
   UI_but_func_set(but, outliner_mode_toggle_fn, tselem, NULL);
   UI_but_flag_enable(but, UI_BUT_DRAG_LOCK);
+  /* Mode toggling handles it's own undo state because undo steps need to be grouped. */
+  UI_but_flag_disable(but, UI_BUT_UNDO);
 
   if (ID_IS_LINKED(&ob->id)) {
     UI_but_disable(but, TIP_("Can't edit external library data"));
