@@ -845,8 +845,11 @@ static PBVHNode *pbvh_iter_next_occluded(PBVHIter *iter)
   return NULL;
 }
 
-void BKE_pbvh_search_gather(
-    PBVH *pbvh, BKE_pbvh_SearchCallback scb, void *search_data, PBVHNode ***r_array, int *r_tot)
+void BKE_pbvh_search_gather(PBVH *pbvh,
+                            BKE_pbvh_SearchCallback scb,
+                            void *search_data,
+                            PBVHNode ***r_array,
+                            int *r_tot)
 {
   PBVHIter iter;
   PBVHNode **array = NULL, *node;
@@ -3148,6 +3151,11 @@ void BKE_pbvh_face_sets_set(PBVH *pbvh, int *face_sets)
 void BKE_pbvh_respect_hide_set(PBVH *pbvh, bool respect_hide)
 {
   pbvh->respect_hide = respect_hide;
+}
+
+void BKE_pbvh_get_nodes(PBVH *pbvh, int flag, PBVHNode ***r_array, int *r_totnode)
+{
+  BKE_pbvh_search_gather(pbvh, update_search_cb, POINTER_FROM_INT(flag), r_array, r_totnode);
 }
 
 #ifdef PROXY_ADVANCED

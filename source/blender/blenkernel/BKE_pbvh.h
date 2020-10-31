@@ -188,6 +188,8 @@ typedef void (*BKE_pbvh_HitOccludedCallback)(PBVHNode *node, void *data, float *
 
 typedef void (*BKE_pbvh_SearchNearestCallback)(PBVHNode *node, void *data, float *tmin);
 
+void BKE_pbvh_get_nodes(PBVH *pbvh, int flag, PBVHNode ***r_array, int *r_totnode);
+
 /* Building */
 
 PBVH *BKE_pbvh_new(void);

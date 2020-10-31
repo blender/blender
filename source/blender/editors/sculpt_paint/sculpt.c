@@ -1386,7 +1386,8 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter 
     if (orig_data->bm_log) {
       orig_data->col = BM_ELEM_CD_GET_VOID_P(iter->bm_vert, orig_data->ss->cd_origvcol_offset);
 
-      //BKE_pbvh_bmesh_update_origvert(orig_data->pbvh, iter->bm_vert, NULL, NULL, &orig_data->col);
+      // BKE_pbvh_bmesh_update_origvert(orig_data->pbvh, iter->bm_vert, NULL, NULL,
+      // &orig_data->col);
     }
     else {
       orig_data->col = orig_data->colors[iter->i];
@@ -1520,11 +1521,11 @@ bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *bru
   return ((BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) &&
 
           (!ss->cache || (!ss->cache->alt_smooth)) &&
-          
+
           /* Requires mesh restore, which doesn't work with
            * dynamic-topology. */
           !(brush->flag & BRUSH_ANCHORED) && !(brush->flag & BRUSH_DRAG_DOT) &&
-          
+
           SCULPT_TOOL_HAS_DYNTOPO(brush->sculpt_tool));
 }
 
@@ -2120,7 +2121,8 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
           if (temp_no) {
             normal_float_to_short_v3(no_s, temp_no);
           }
-          //BM_log_original_vert_data(ss->bm, ss->bm_log, vd.bm_vert, &temp_co, &temp_no_s, false);
+          // BM_log_original_vert_data(ss->bm, ss->bm_log, vd.bm_vert, &temp_co, &temp_no_s,
+          // false);
           copy_v3_v3(co, temp_co);
         }
         else {
@@ -5768,7 +5770,7 @@ static void do_brush_action_task_cb(void *__restrict userdata,
     BKE_pbvh_node_mark_update_mask(data->nodes[n]);
   }
   else if (ELEM(data->brush->sculpt_tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
-    //make sure we have at least one undo_color node
+    // make sure we have at least one undo_color node
     if (!ss->bm || SCULPT_stroke_is_first_brush_step(ss->cache)) {
       SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_COLOR);
     }
@@ -7703,6 +7705,11 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
   }
 }
 
+bool all_nodes_callback(PBVHNode *node, void *data)
+{
+  return true;
+}
+
 void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType update_flags)
 {
   /* After we are done drawing the stroke, check if we need to do a more
@@ -7753,12 +7760,28 @@ void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType up
     BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateMask);
   }
 
-  if (update_flags & SCULPT_UPDATE_COLOR) {
-    BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateColor);
-  }
-
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
     BKE_pbvh_bmesh_after_stroke(ss->pbvh);
+
+    if (update_flags & SCULPT_UPDATE_COLOR) {
+      PBVHNode **nodes;
+      int totnode = 0;
+
+      //BKE_pbvh_get_nodes(ss->pbvh, PBVH_UpdateColor, &nodes, &totnode);
+      BKE_pbvh_search_gather(ss->pbvh, all_nodes_callback, NULL, &nodes, &totnode);
+
+      for (int i = 0; i < totnode; i++) {
+        SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_COLOR);
+      }
+
+      if (nodes) {
+        MEM_freeN(nodes);
+      }
+    }
+  }
+
+  if (update_flags & SCULPT_UPDATE_COLOR) {
+    BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateColor);
   }
 
   /* Optimization: if there is locked key and active modifiers present in */
@@ -7935,7 +7958,10 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 
     SCULPT_undo_push_end();
 
-    if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
+    if (brush->sculpt_tool == SCULPT_TOOL_PAINT || brush->sculpt_tool == SCULPT_TOOL_SMEAR) {
+      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS|SCULPT_UPDATE_COLOR);
+    }
+    else if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
       SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);
     }
     else {
