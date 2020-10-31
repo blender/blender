@@ -1550,7 +1550,7 @@ static int filter_plane_side(const double3 &p,
   }
   double supremum = double3::dot(abs_p + abs_plane_p, abs_plane_no);
   double err_bound = supremum * index_plane_side * DBL_EPSILON;
-  if (d > err_bound) {
+  if (fabs(d) > err_bound) {
     return d > 0 ? 1 : -1;
   }
   return 0;
