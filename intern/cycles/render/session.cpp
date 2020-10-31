@@ -403,7 +403,6 @@ bool Session::steal_tile(RenderTile &rtile, Device *tile_device, thread_scoped_l
 
   /* There are stealable tiles in flight, so signal that one should be released. */
   tile_stealing_state = WAITING_FOR_TILE;
-  assert(success == 0);
 
   /* Wait until a device notices the signal and releases its tile. */
   while (tile_stealing_state != GOT_TILE && stealable_tiles > 0) {
