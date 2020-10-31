@@ -56,9 +56,9 @@ Volume::Volume() : Mesh(node_type, Geometry::VOLUME)
   object_space = false;
 }
 
-void Volume::clear()
+void Volume::clear(bool preserve_shaders)
 {
-  Mesh::clear(true);
+  Mesh::clear(preserve_shaders, true);
 }
 
 struct QuadData {

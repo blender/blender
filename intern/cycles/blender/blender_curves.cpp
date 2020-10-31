@@ -352,7 +352,7 @@ static void ExportCurveSegments(Scene *scene, Hair *hair, ParticleCurveData *CDa
   /* check allocation */
   if ((hair->curve_keys.size() != num_keys) || (hair->num_curves() != num_curves)) {
     VLOG(1) << "Allocation failed, clearing data";
-    hair->clear();
+    hair->clear(true);
   }
 }
 
@@ -817,10 +817,7 @@ void BlenderSync::sync_hair(Hair *hair, BL::Object &b_ob, bool motion, int motio
 }
 #endif
 
-void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph,
-                            BL::Object b_ob,
-                            Hair *hair,
-                            const vector<Shader *> &used_shaders)
+void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph, BL::Object b_ob, Hair *hair)
 {
   /* Compares curve_keys rather than strands in order to handle quick hair
    * adjustments in dynamic BVH - other methods could probably do this better. */
@@ -829,8 +826,7 @@ void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph,
   oldcurve_keys.steal_data(hair->curve_keys);
   oldcurve_radius.steal_data(hair->curve_radius);
 
-  hair->clear();
-  hair->used_shaders = used_shaders;
+  hair->clear(true);
 
   if (view_layer.use_hair) {
     if (b_ob.type() == BL::Object::type_HAIR) {

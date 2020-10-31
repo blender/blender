@@ -138,6 +138,9 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
 
   geom->name = ustring(b_ob_data.name().c_str());
 
+  /* Store the shaders immediately for the object attribute code. */
+  geom->used_shaders = used_shaders;
+
   auto sync_func = [=]() mutable {
     if (progress.get_cancel())
       return;
@@ -146,15 +149,15 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
 
     if (geom_type == Geometry::HAIR) {
       Hair *hair = static_cast<Hair *>(geom);
-      sync_hair(b_depsgraph, b_ob, hair, used_shaders);
+      sync_hair(b_depsgraph, b_ob, hair);
     }
     else if (geom_type == Geometry::VOLUME) {
       Volume *volume = static_cast<Volume *>(geom);
-      sync_volume(b_ob, volume, used_shaders);
+      sync_volume(b_ob, volume);
     }
     else {
       Mesh *mesh = static_cast<Mesh *>(geom);
-      sync_mesh(b_depsgraph, b_ob, mesh, used_shaders);
+      sync_mesh(b_depsgraph, b_ob, mesh);
     }
   };
 
