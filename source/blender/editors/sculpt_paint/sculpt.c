@@ -5768,7 +5768,15 @@ static void do_brush_action_task_cb(void *__restrict userdata,
     BKE_pbvh_node_mark_update_mask(data->nodes[n]);
   }
   else if (ELEM(data->brush->sculpt_tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
-    SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_COLOR);
+    //make sure we have at least one undo_color node
+    if (!ss->bm || SCULPT_stroke_is_first_brush_step(ss->cache)) {
+      SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_COLOR);
+    }
+
+    if (ss->bm) {
+      BKE_pbvh_update_origcolor_bmesh(ss->pbvh, data->nodes[n]);
+    }
+
     BKE_pbvh_node_mark_update_color(data->nodes[n]);
   }
   else {

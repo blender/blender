@@ -229,6 +229,7 @@ void BKE_pbvh_free(PBVH *pbvh);
 /** update original data, only data whose r_** parameters are passed in will be updated*/
 void BKE_pbvh_bmesh_update_origvert(
     PBVH *pbvh, struct BMVert *v, float **r_co, float **r_no, float **r_color);
+void BKE_pbvh_update_origcolor_bmesh(PBVH *pbvh, PBVHNode *node);
 
 /* Hierarchical Search in the BVH, two methods:
  * - for each hit calling a callback
