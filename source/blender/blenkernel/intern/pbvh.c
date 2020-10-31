@@ -3153,6 +3153,10 @@ void BKE_pbvh_respect_hide_set(PBVH *pbvh, bool respect_hide)
   pbvh->respect_hide = respect_hide;
 }
 
+int BKE_pbvh_get_node_index(PBVH *pbvh, PBVHNode *node) {
+  return (int)(node - pbvh->nodes);
+}
+
 void BKE_pbvh_get_nodes(PBVH *pbvh, int flag, PBVHNode ***r_array, int *r_totnode)
 {
   BKE_pbvh_search_gather(pbvh, update_search_cb, POINTER_FROM_INT(flag), r_array, r_totnode);

@@ -5770,13 +5770,8 @@ static void do_brush_action_task_cb(void *__restrict userdata,
     BKE_pbvh_node_mark_update_mask(data->nodes[n]);
   }
   else if (ELEM(data->brush->sculpt_tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
-    // make sure we have at least one undo_color node
-    if (!ss->bm || SCULPT_stroke_is_first_brush_step(ss->cache)) {
+    if (!ss->bm) {  // this is thread safe for faces and grids pbvh?
       SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_COLOR);
-    }
-
-    if (ss->bm) {
-      BKE_pbvh_update_origcolor_bmesh(ss->pbvh, data->nodes[n]);
     }
 
     BKE_pbvh_node_mark_update_color(data->nodes[n]);
@@ -5888,6 +5883,15 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
         .brush = brush,
         .nodes = nodes,
     };
+
+    // dyntopo can't push undo nodes inside a thread
+    if (ss->bm) {
+      for (int i = 0; i < totnode; i++) {
+        //SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COLOR);
+        SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_COLOR);
+        BKE_pbvh_update_origcolor_bmesh(ss->pbvh, nodes[i]);
+      }
+    }
 
     TaskParallelSettings settings;
     BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -7710,6 +7714,8 @@ bool all_nodes_callback(PBVHNode *node, void *data)
   return true;
 }
 
+void sculpt_undo_print_nodes(void *active);
+
 void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType update_flags)
 {
   /* After we are done drawing the stroke, check if we need to do a more
@@ -7762,12 +7768,12 @@ void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType up
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
     BKE_pbvh_bmesh_after_stroke(ss->pbvh);
-
+#if 0
     if (update_flags & SCULPT_UPDATE_COLOR) {
       PBVHNode **nodes;
       int totnode = 0;
 
-      //BKE_pbvh_get_nodes(ss->pbvh, PBVH_UpdateColor, &nodes, &totnode);
+      // BKE_pbvh_get_nodes(ss->pbvh, PBVH_UpdateColor, &nodes, &totnode);
       BKE_pbvh_search_gather(ss->pbvh, all_nodes_callback, NULL, &nodes, &totnode);
 
       for (int i = 0; i < totnode; i++) {
@@ -7778,6 +7784,9 @@ void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType up
         MEM_freeN(nodes);
       }
     }
+#endif
+
+    sculpt_undo_print_nodes(NULL);
   }
 
   if (update_flags & SCULPT_UPDATE_COLOR) {
@@ -7959,7 +7968,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
     SCULPT_undo_push_end();
 
     if (brush->sculpt_tool == SCULPT_TOOL_PAINT || brush->sculpt_tool == SCULPT_TOOL_SMEAR) {
-      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS|SCULPT_UPDATE_COLOR);
+      SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_COORDS | SCULPT_UPDATE_COLOR);
     }
     else if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
       SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);

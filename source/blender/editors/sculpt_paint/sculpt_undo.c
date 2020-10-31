@@ -116,7 +116,7 @@ typedef struct UndoSculpt {
 } UndoSculpt;
 
 static UndoSculpt *sculpt_undo_get_nodes(void);
-static void sculpt_undo_print_nodes(void *active);
+void sculpt_undo_print_nodes(void *active);
 
 static void update_cb(PBVHNode *node, void *rebuild)
 {
@@ -599,7 +599,7 @@ static int sculpt_undo_bmesh_restore(bContext *C,
 {
   if (ss->bm_log) {
     BM_log_set_cd_offsets(
-      ss->bm_log, ss->cd_origco_offset, ss->cd_origno_offset, ss->cd_origvcol_offset);
+        ss->bm_log, ss->cd_origco_offset, ss->cd_origno_offset, ss->cd_origvcol_offset);
   }
 
   switch (unode->type) {
@@ -845,6 +845,9 @@ static void sculpt_undo_free_list(ListBase *lb)
     SculptUndoNode *unode_next = unode->next;
     if (unode->co) {
       MEM_freeN(unode->co);
+    }
+    if (unode->nodemap) {
+      MEM_freeN(unode->nodemap);
     }
     if (unode->no) {
       MEM_freeN(unode->no);
@@ -1240,7 +1243,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
         {
           void *dummy;
           BKE_pbvh_bmesh_update_origvert(ss->pbvh, vd.bm_vert, &dummy, &dummy, &dummy);
-          //BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset, false);
+          // BM_log_vert_before_modified(ss->bm_log, vd.bm_vert, vd.cd_vert_mask_offset, false);
         }
         BKE_pbvh_vertex_iter_end;
         break;
@@ -1284,10 +1287,47 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
   }
 
   if (new_node) {
-    // sculpt_undo_print_nodes(NULL);
+    sculpt_undo_print_nodes(NULL);
   }
 
   return unode;
+}
+
+bool SCULPT_ensure_dyntopo_node_undo(Object *ob, PBVHNode *node, SculptUndoType type)
+{
+  SculptSession *ss = ob->sculpt;
+  UndoSculpt *usculpt = sculpt_undo_get_nodes();
+  SculptUndoNode *unode = usculpt->nodes.first;
+
+  if (!unode || unode->type != type) {
+    sculpt_undo_bmesh_push(ob, node, type);
+    SCULPT_ensure_dyntopo_node_undo(ob, node, type);
+    return true;
+  }
+
+  int n = BKE_pbvh_get_node_index(ss->pbvh, node);
+
+  if (unode->nodemap_size <= n) {
+    int newsize = (n + 1) * 2;
+
+    if (!unode->nodemap) {
+      unode->nodemap = MEM_callocN(sizeof(*unode->nodemap) * newsize, "unode->nodemap");
+    }
+    else {
+      unode->nodemap = MEM_recallocN(unode->nodemap, sizeof(*unode->nodemap) * newsize);
+    }
+
+    unode->nodemap_size = newsize;
+  }
+
+  if (unode->nodemap[n]) {
+    return false;
+  }
+
+  unode->nodemap[n] = 1;
+  sculpt_undo_bmesh_push(ob, node, type);
+
+  return true;
 }
 
 SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType type)
@@ -1469,7 +1509,7 @@ static void sculpt_undosys_step_decode_undo_impl(struct bContext *C,
   sculpt_undo_restore_list(C, depsgraph, &us->data.nodes);
   us->step.is_applied = false;
 
-  // sculpt_undo_print_nodes(us);
+  sculpt_undo_print_nodes(us);
 }
 
 static void sculpt_undosys_step_decode_redo_impl(struct bContext *C,
@@ -1480,7 +1520,7 @@ static void sculpt_undosys_step_decode_redo_impl(struct bContext *C,
   sculpt_undo_restore_list(C, depsgraph, &us->data.nodes);
   us->step.is_applied = true;
 
-  // sculpt_undo_print_nodes(us);
+  sculpt_undo_print_nodes(us);
 }
 
 static void sculpt_undosys_step_decode_undo(struct bContext *C,
@@ -1737,8 +1777,9 @@ static char *undo_type_to_str(int type)
 
 static int nodeidgen = 1;
 
-static void sculpt_undo_print_nodes(void *active)
+void sculpt_undo_print_nodes(void *active)
 {
+#if 0
   UndoStack *ustack = ED_undo_stack_get();
   UndoStep *us = ustack->steps.first;
   if (active == NULL) {
@@ -1771,12 +1812,14 @@ static void sculpt_undo_print_nodes(void *active)
       UndoSculpt *usculpt = sculpt_undosys_step_get_nodes(us);
 
       for (node = usculpt->nodes.first; node; node = node->next) {
-        printf("    %s:%s {applied=%d bm_entry=%p}\n",
+        printf("    %s:%s {applied=%d bm_entry=%p node=%p}\n",
                undo_type_to_str(node->type),
                node->idname,
                node->applied,
-               node->bm_entry);
+               node->bm_entry,
+               node->node);
       }
     }
   }
+#endif
 }

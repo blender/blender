@@ -624,6 +624,8 @@ struct MVert *BKE_pbvh_get_verts(const PBVH *pbvh);
 PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(PBVHNode *node);
 void BKE_pbvh_node_color_buffer_free(PBVH *pbvh);
 
+int BKE_pbvh_get_node_index(PBVH *pbvh, PBVHNode *node);
+
 #define DYNTOPO_CD_INTERP
 
 #ifdef __cplusplus

@@ -636,6 +636,9 @@ typedef struct SculptUndoNode {
   /* Sculpt Face Sets */
   int *face_sets;
 
+  bool *nodemap;
+  int nodemap_size;
+
   size_t undo_size;
 } SculptUndoNode;
 
@@ -1159,3 +1162,6 @@ void SCULPT_OT_set_detail_size(struct wmOperatorType *ot);
 
 /* Dyntopo. */
 void SCULPT_OT_dynamic_topology_toggle(struct wmOperatorType *ot);
+bool SCULPT_ensure_dyntopo_node_undo(struct Object *ob,
+                                     struct PBVHNode *node,
+                                     SculptUndoType type);
