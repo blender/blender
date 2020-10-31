@@ -999,8 +999,9 @@ static void sculpt_gesture_trim_normals_update(SculptGestureContext *sgcontext)
 
 /* Get the origin and normal that are going to be used for calculating the depth and position the
  * trimming geometry. */
-static void sculpt_gesture_trim_shape_origin_normal_get(
-    SculptGestureContext *sgcontext, float *r_origin, float *r_normal)
+static void sculpt_gesture_trim_shape_origin_normal_get(SculptGestureContext *sgcontext,
+                                                        float *r_origin,
+                                                        float *r_normal)
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)sgcontext->operation;
   /* Use the view origin and normal in world space. The trimming mesh coordinates are

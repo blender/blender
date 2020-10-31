@@ -961,9 +961,9 @@ GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type,
 }
 
 GHOST_TSuccess GHOST_SystemWin32::processWintabEvent(GHOST_TEventType type,
-                                                      GHOST_WindowWin32 *window,
-                                                      GHOST_TButtonMask mask,
-                                                      bool mousePressed)
+                                                     GHOST_WindowWin32 *window,
+                                                     GHOST_TButtonMask mask,
+                                                     bool mousePressed)
 {
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 
@@ -1169,7 +1169,8 @@ GHOST_EventCursor *GHOST_SystemWin32::processCursorEvent(GHOST_WindowWin32 *wind
       return NULL;
     }
 
-    /* If using Wintab but no button event is currently active, fall through to default handling. */
+    /* If using Wintab but no button event is currently active,
+     * fall through to default handling. */
   }
 
   system->getCursorPosition(x_screen, y_screen);

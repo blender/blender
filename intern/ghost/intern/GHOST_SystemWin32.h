@@ -329,9 +329,9 @@ class GHOST_SystemWin32 : public GHOST_System {
    * \return                True if the method handled the event.
    */
   static GHOST_TSuccess processWintabEvent(GHOST_TEventType type,
-                                            GHOST_WindowWin32 *window,
-                                            GHOST_TButtonMask mask,
-                                            bool mousePressed);
+                                           GHOST_WindowWin32 *window,
+                                           GHOST_TButtonMask mask,
+                                           bool mousePressed);
 
   /**
    * Creates tablet events from pointer events.

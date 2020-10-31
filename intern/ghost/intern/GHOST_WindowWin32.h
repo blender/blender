@@ -34,8 +34,8 @@
 #  include "GHOST_ImeWin32.h"
 #endif
 
-#include <vector>
 #include <queue>
+#include <vector>
 
 #include <wintab.h>
 // PACKETDATA and PACKETMODE modify structs in pktdef.h, so make sure they come first

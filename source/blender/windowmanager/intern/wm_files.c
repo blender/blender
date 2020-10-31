@@ -3265,10 +3265,7 @@ static uiBlock *block_create__close_file_dialog(struct bContext *C,
   /* Modified Images Checkbox. */
   if (modified_images_count > 0) {
     char message[64];
-    BLI_snprintf(message,
-                 sizeof(message),
-                 "Save %u modified image(s)",
-                 modified_images_count);
+    BLI_snprintf(message, sizeof(message), "Save %u modified image(s)", modified_images_count);
     uiItemS(layout);
     uiDefButBitC(block,
                  UI_BTYPE_CHECKBOX,
