@@ -911,11 +911,29 @@ static bool edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
 
   /* Get closest point in triangle to sphere center */
   BM_face_as_array_vert_tri(f, v_tri);
+#if 0
+  /*
+  closest_on_tri_to_point_v3 is being slow
+  */
 
+  float mindis = 1e17;
+  float dis;
+  copy_v3_v3(c, q->center);
+
+  for (int i=0; i<3; i++) {
+    dis = len_squared_v3v3(v_tri[i]->co, c);
+    mindis = MIN2(mindis, dis);
+
+    dis = dist_squared_to_line_segment_v3(c, v_tri[i]->co, v_tri[(i+1)%3]->co);
+    mindis = MIN2(mindis, dis);
+  }
+  return mindis <= q->radius_squared;
+#else
   closest_on_tri_to_point_v3(c, q->center, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co);
 
   /* Check if triangle intersects the sphere */
   return len_squared_v3v3(q->center, c) <= q->radius_squared;
+#endif
 }
 
 static bool edge_queue_tri_in_circle(const EdgeQueue *q, BMFace *f)
@@ -2584,7 +2602,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   pbvh->cd_vcol_offset = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
 
   /* TODO: choose leaf limit better */
-  pbvh->leaf_limit = 3000;
+  pbvh->leaf_limit = 1000;
 
   BMIter iter;
   BMVert *v;

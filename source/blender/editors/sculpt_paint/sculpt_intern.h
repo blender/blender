@@ -226,6 +226,7 @@ typedef struct {
   struct BMLog *bm_log;
 
   struct SculptUndoNode *unode;
+  int datatype;
   float (*coords)[3];
   short (*normals)[3];
   const float *vmasks;

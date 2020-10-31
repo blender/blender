@@ -1332,6 +1332,7 @@ void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data, Object *ob, Scul
     data->bm_log = ss->bm_log;
   }
   else {
+    data->datatype = data->unode->type;
     data->coords = data->unode->co;
     data->normals = data->unode->no;
     data->vmasks = data->unode->mask;
@@ -1345,10 +1346,15 @@ void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data, Object *ob, Scul
  */
 void SCULPT_orig_vert_data_init(SculptOrigVertData *data, Object *ob, PBVHNode *node)
 {
-  SculptUndoNode *unode;
+  SculptUndoNode *unode = NULL;
   data->ss = ob->sculpt;
-  unode = SCULPT_undo_push_node(ob, node, SCULPT_UNDO_COORDS);
+
+  if (!ob->sculpt->bm) {
+    unode = SCULPT_undo_push_node(ob, node, SCULPT_UNDO_COORDS);
+  }
+
   SCULPT_orig_vert_data_unode_init(data, ob, unode);
+  data->datatype = SCULPT_UNDO_COORDS;
 }
 
 /**
@@ -1356,7 +1362,7 @@ void SCULPT_orig_vert_data_init(SculptOrigVertData *data, Object *ob, PBVHNode *
  */
 void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter *iter)
 {
-  if (orig_data->unode->type == SCULPT_UNDO_COORDS) {
+  if (orig_data->datatype == SCULPT_UNDO_COORDS) {
     if (orig_data->bm_log) {
       orig_data->co = BM_ELEM_CD_GET_VOID_P(iter->bm_vert, orig_data->ss->cd_origco_offset);
 
@@ -1376,7 +1382,7 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter 
       orig_data->no = orig_data->normals[iter->i];
     }
   }
-  else if (orig_data->unode->type == SCULPT_UNDO_COLOR) {
+  else if (orig_data->datatype == SCULPT_UNDO_COLOR) {
     if (orig_data->bm_log) {
       orig_data->col = BM_ELEM_CD_GET_VOID_P(iter->bm_vert, orig_data->ss->cd_origvcol_offset);
 
@@ -1386,7 +1392,7 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter 
       orig_data->col = orig_data->colors[iter->i];
     }
   }
-  else if (orig_data->unode->type == SCULPT_UNDO_MASK) {
+  else if (orig_data->datatype == SCULPT_UNDO_MASK) {
     if (orig_data->bm_log) {
       orig_data->mask = BM_log_original_mask(orig_data->bm_log, iter->bm_vert);
     }

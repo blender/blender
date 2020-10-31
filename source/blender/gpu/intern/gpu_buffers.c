@@ -932,6 +932,7 @@ void GPU_pbvh_update_attribute_names(CustomData *vdata, CustomData *ldata)
       cl += cl->active;
 
       DRW_make_cdlayer_attr_aliases(&g_vbo_id.format, "c", vdata, cl);
+      GPU_vertformat_alias_add(&g_vbo_id.format, "ac");
     }
 
     g_vbo_id.fset = GPU_vertformat_attr_add(
