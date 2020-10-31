@@ -3526,8 +3526,10 @@ static int gpencil_stroke_join_exec(bContext *C, wmOperator *op)
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   bGPDlayer *activegpl = BKE_gpencil_layer_active_get(gpd);
   Object *ob = CTX_data_active_object(C);
-  /* Limit the number of strokes to join. */
-  const int max_join_strokes = 64;
+  /* Limit the number of strokes to join. It makes no sense to allow an very high number of strokes
+   * for CPU time and because to have a stroke with thousands of points is unpractical, so limit
+   * this number avoid to joining a full frame scene in one single stroke. */
+  const int max_join_strokes = 128;
 
   const int type = RNA_enum_get(op->ptr, "type");
   const bool leave_gaps = RNA_boolean_get(op->ptr, "leave_gaps");
