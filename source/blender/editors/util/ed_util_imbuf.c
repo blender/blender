@@ -30,7 +30,6 @@
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_screen.h"
-#include "BKE_sequencer.h"
 
 #include "ED_image.h"
 #include "ED_screen.h"
@@ -42,6 +41,8 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+
+#include "SEQ_sequencer.h"
 
 #include "UI_view2d.h"
 

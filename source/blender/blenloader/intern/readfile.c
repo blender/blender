@@ -156,7 +156,6 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_sequencer.h"
 #include "BKE_shader_fx.h"
 #include "BKE_simulation.h"
 #include "BKE_sound.h"
@@ -176,6 +175,8 @@
 #include "BLO_undofile.h"
 
 #include "RE_engine.h"
+
+#include "SEQ_sequencer.h"
 
 #include "engines/eevee/eevee_lightcache.h"
 

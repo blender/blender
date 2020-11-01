@@ -39,13 +39,14 @@
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
-#include "BKE_sequencer.h"
 
 #include "DEG_depsgraph.h"
 
 #include "ED_armature.h"
 #include "ED_object.h"
 #include "ED_outliner.h"
+
+#include "SEQ_sequencer.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

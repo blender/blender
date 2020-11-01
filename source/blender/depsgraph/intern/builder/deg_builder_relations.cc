@@ -89,7 +89,6 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_rigidbody.h"
-#include "BKE_sequencer.h"
 #include "BKE_shader_fx.h"
 #include "BKE_shrinkwrap.h"
 #include "BKE_sound.h"
@@ -98,6 +97,8 @@
 
 #include "RNA_access.h"
 #include "RNA_types.h"
+
+#include "SEQ_sequencer.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"

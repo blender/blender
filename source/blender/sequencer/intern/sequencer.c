@@ -74,7 +74,6 @@
 #include "BKE_movieclip.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_sequencer.h"
 #include "BKE_sequencer_offscreen.h"
 
 #include "DEG_depsgraph.h"
@@ -83,6 +82,8 @@
 #include "RNA_access.h"
 
 #include "RE_pipeline.h"
+
+#include "SEQ_sequencer.h"
 
 #include <pthread.h>
 

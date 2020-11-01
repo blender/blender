@@ -40,7 +40,7 @@ set(INC_SYS
 )
 
 set(SRC
-  BKE_sequencer.h
+  SEQ_sequencer.h
 
   intern/sequencer.c
   intern/sequencer.h

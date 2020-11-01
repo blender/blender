@@ -54,7 +54,6 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_sequencer.h"
 #include "BKE_writeavi.h"
 
 #include "DEG_depsgraph.h"
@@ -77,6 +76,8 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+
+#include "SEQ_sequencer.h"
 
 #include "GPU_framebuffer.h"
 #include "GPU_matrix.h"

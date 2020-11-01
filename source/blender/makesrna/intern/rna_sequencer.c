@@ -34,7 +34,6 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
-#include "BKE_sequencer.h"
 #include "BKE_sound.h"
 
 #include "IMB_metadata.h"
@@ -46,6 +45,8 @@
 #include "RNA_enum_types.h"
 
 #include "rna_internal.h"
+
+#include "SEQ_sequencer.h"
 
 #include "WM_types.h"
 

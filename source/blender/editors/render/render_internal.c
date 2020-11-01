@@ -57,7 +57,6 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_sequencer.h"
 #include "BKE_undo_system.h"
 
 #include "DEG_depsgraph.h"
@@ -82,6 +81,8 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+
+#include "SEQ_sequencer.h"
 
 #include "BLO_undofile.h"
 

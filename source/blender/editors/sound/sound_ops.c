@@ -46,12 +46,13 @@
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_sequencer.h"
 #include "BKE_sound.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+
+#include "SEQ_sequencer.h"
 
 #include "UI_interface.h"
 

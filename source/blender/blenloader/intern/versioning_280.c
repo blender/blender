@@ -93,10 +93,11 @@
 #include "BKE_report.h"
 #include "BKE_rigidbody.h"
 #include "BKE_screen.h"
-#include "BKE_sequencer.h"
 #include "BKE_studiolight.h"
 #include "BKE_unit.h"
 #include "BKE_workspace.h"
+
+#include "SEQ_sequencer.h"
 
 /* Only for IMB_BlendMode */
 #include "IMB_imbuf.h"

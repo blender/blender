@@ -39,11 +39,12 @@
 #include "DNA_sequence_types.h"
 
 #include "BKE_colortools.h"
-#include "BKE_sequencer.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+
+#include "SEQ_sequencer.h"
 
 #include "sequencer.h"
 

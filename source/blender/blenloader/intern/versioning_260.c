@@ -61,10 +61,11 @@
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_sequencer.h"
 #include "BKE_text.h" /* for txt_extended_ascii_as_utf8 */
 #include "BKE_texture.h"
 #include "BKE_tracking.h"
+
+#include "SEQ_sequencer.h"
 
 #ifdef WITH_FFMPEG
 #  include "BKE_writeffmpeg.h"

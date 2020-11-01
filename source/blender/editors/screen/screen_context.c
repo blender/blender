@@ -48,13 +48,14 @@
 #include "BKE_gpencil.h"
 #include "BKE_layer.h"
 #include "BKE_object.h"
-#include "BKE_sequencer.h"
 
 #include "RNA_access.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_gpencil.h"
+
+#include "SEQ_sequencer.h"
 
 #include "UI_interface.h"
 #include "WM_api.h"

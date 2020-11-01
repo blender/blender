@@ -46,7 +46,6 @@
 #include "BKE_fcurve.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_sequencer.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
@@ -58,6 +57,8 @@
 #include "RNA_access.h"
 
 #include "RE_pipeline.h"
+
+#include "SEQ_sequencer.h"
 
 #include "BLF_api.h"
 

@@ -34,7 +34,7 @@
 #include "ED_sequencer.h"
 #include "ED_transform.h" /* Transform keymap. */
 
-#include "BKE_sequencer.h"
+#include "SEQ_sequencer.h"
 
 #include "sequencer_intern.h"
 

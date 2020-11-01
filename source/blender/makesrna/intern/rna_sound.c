@@ -29,10 +29,11 @@
 #ifdef RNA_RUNTIME
 
 #  include "BKE_context.h"
-#  include "BKE_sequencer.h"
 #  include "BKE_sound.h"
 
 #  include "DEG_depsgraph.h"
+
+#  include "SEQ_sequencer.h"
 
 static void rna_Sound_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {

@@ -47,7 +47,8 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
-#include "BKE_sequencer.h"
+
+#include "SEQ_sequencer.h"
 
 #include "sequencer.h"
 

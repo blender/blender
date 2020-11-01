@@ -65,7 +65,6 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_sequencer.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -88,6 +87,8 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+
+#include "SEQ_sequencer.h"
 
 #include "outliner_intern.h"
 

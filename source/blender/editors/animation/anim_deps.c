@@ -44,11 +44,12 @@
 #include "BKE_gpencil.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
-#include "BKE_sequencer.h"
 
 #include "DEG_depsgraph.h"
 
 #include "RNA_access.h"
+
+#include "SEQ_sequencer.h"
 
 #include "ED_anim_api.h"
 

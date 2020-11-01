@@ -36,10 +36,11 @@
 
 #  include "BKE_camera.h"
 #  include "BKE_object.h"
-#  include "BKE_sequencer.h"
 
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
+
+#  include "SEQ_sequencer.h"
 
 static float rna_Camera_angle_get(PointerRNA *ptr)
 {

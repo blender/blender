@@ -70,7 +70,6 @@
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_sequencer.h"
 #include "BKE_sound.h"
 #include "BKE_writeavi.h" /* <------ should be replaced once with generic movie module */
 
@@ -88,6 +87,8 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 #include "RE_render_ext.h"
+
+#include "SEQ_sequencer.h"
 
 #include "../../../windowmanager/WM_api.h"    /* XXX */
 #include "../../../windowmanager/wm_window.h" /* XXX */

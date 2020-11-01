@@ -69,7 +69,6 @@
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_outliner_treehash.h"
-#include "BKE_sequencer.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -80,6 +79,8 @@
 #include "WM_types.h"
 
 #include "RNA_access.h"
+
+#include "SEQ_sequencer.h"
 
 #include "UI_interface.h"
 

@@ -29,7 +29,6 @@
 #include "BKE_key.h"
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
-#include "BKE_sequencer.h"
 #include "BKE_studiolight.h"
 
 #include "ED_text.h"
@@ -54,6 +53,8 @@
 #include "RNA_define.h"
 
 #include "rna_internal.h"
+
+#include "SEQ_sequencer.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
