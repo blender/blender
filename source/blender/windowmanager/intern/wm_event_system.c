@@ -4397,7 +4397,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       wm_event_add(win, &event);
       break;
     }
-    /* ,ouse button, */
+    /* Mouse button. */
     case GHOST_kEventButtonDown:
     case GHOST_kEventButtonUp: {
       GHOST_TEventButtonData *bd = customdata;
