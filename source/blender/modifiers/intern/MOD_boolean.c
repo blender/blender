@@ -644,33 +644,22 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
             /* XXX This is utterly non-optimal, we may go from a bmesh to a mesh back to a bmesh!
              * But for 2.90 better not try to be smart here. */
             BKE_mesh_wrapper_ensure_mdata(mesh_operand_ob);
-            /* when one of objects is empty (has got no faces) we could speed up
-             * calculation a bit returning one of objects' derived meshes (or empty one)
-             * Returning mesh is depended on modifiers operation (sergey) */
-            result = get_quick_mesh(object, mesh, operand_ob, mesh_operand_ob, bmd->operation);
 
-            if (result == NULL) {
-              bm = BMD_mesh_bm_create(mesh, object, mesh_operand_ob, operand_ob, &is_flip);
+            bm = BMD_mesh_bm_create(mesh, object, mesh_operand_ob, operand_ob, &is_flip);
 
-              BMD_mesh_intersection(bm, md, ctx, mesh_operand_ob, object, operand_ob, is_flip);
+            BMD_mesh_intersection(bm, md, ctx, mesh_operand_ob, object, operand_ob, is_flip);
 
-              /* Needed for multiple objects to work. */
-              BM_mesh_bm_to_me(NULL,
-                               bm,
-                               mesh,
-                               (&(struct BMeshToMeshParams){
-                                   .calc_object_remap = false,
-                               }));
+            /* Needed for multiple objects to work. */
+            BM_mesh_bm_to_me(NULL,
+                             bm,
+                             mesh,
+                             (&(struct BMeshToMeshParams){
+                                 .calc_object_remap = false,
+                             }));
 
-              result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
-              BM_mesh_free(bm);
-              result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
-            }
-            /* if new mesh returned, return it; otherwise there was
-             * an error, so delete the modifier object */
-            if (result == NULL) {
-              BKE_modifier_set_error(object, md, "Cannot execute boolean operation");
-            }
+            result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
+            BM_mesh_free(bm);
+            result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
           }
         }
       }
