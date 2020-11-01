@@ -360,17 +360,19 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
   /* Setting the program name is important so the 'multiprocessing' module
    * can launch new Python instances. */
   {
+    const char *sys_variable = "executable";
     char program_path[FILE_MAX];
     if (BKE_appdir_program_python_search(
             program_path, sizeof(program_path), PY_MAJOR_VERSION, PY_MINOR_VERSION)) {
       PyObject *py_program_path = PyC_UnicodeFromByte(program_path);
-      PySys_SetObject("executable", py_program_path);
+      PySys_SetObject(sys_variable, py_program_path);
       Py_DECREF(py_program_path);
     }
     else {
       fprintf(stderr,
               "Unable to find the python binary, "
               "the multiprocessing module may not be functional!\n");
+      PySys_SetObject(sys_variable, Py_None);
     }
   }
 
