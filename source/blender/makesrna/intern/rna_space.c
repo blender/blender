@@ -3050,6 +3050,7 @@ static void rna_def_space_outliner(BlenderRNA *brna)
       {SO_FILTER_OB_HIDDEN, "HIDDEN", 0, "Hidden", "Show hidden objects"},
       {SO_FILTER_OB_SELECTED, "SELECTED", 0, "Selected", "Show selected objects"},
       {SO_FILTER_OB_ACTIVE, "ACTIVE", 0, "Active", "Show only the active object"},
+      {SO_FILTER_OB_SELECTABLE, "SELECTABLE", 0, "Selectable", "Show only selectable objects"},
       {0, NULL, 0, NULL, NULL},
   };
 

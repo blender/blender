@@ -305,7 +305,7 @@ typedef enum eSpaceOutliner_Filter {
   SO_FILTER_NO_OB_CAMERA = (1 << 10),
   SO_FILTER_NO_OB_OTHERS = (1 << 11),
 
-  SO_FILTER_UNUSED_12 = (1 << 12),         /* cleared */
+  SO_FILTER_OB_STATE_SELECTABLE = (1 << 12), /* Not set via DNA. */
   SO_FILTER_OB_STATE_VISIBLE = (1 << 13),  /* Not set via DNA. */
   SO_FILTER_OB_STATE_HIDDEN = (1 << 14),   /* Not set via DNA. */
   SO_FILTER_OB_STATE_SELECTED = (1 << 15), /* Not set via DNA. */
@@ -321,7 +321,7 @@ typedef enum eSpaceOutliner_Filter {
 
 #define SO_FILTER_OB_STATE \
   (SO_FILTER_OB_STATE_VISIBLE | SO_FILTER_OB_STATE_HIDDEN | SO_FILTER_OB_STATE_SELECTED | \
-   SO_FILTER_OB_STATE_ACTIVE)
+   SO_FILTER_OB_STATE_ACTIVE | SO_FILTER_OB_STATE_SELECTABLE)
 
 #define SO_FILTER_ANY \
   (SO_FILTER_NO_OB_CONTENT | SO_FILTER_NO_CHILDREN | SO_FILTER_OB_TYPE | SO_FILTER_OB_STATE | \
@@ -334,6 +334,7 @@ typedef enum eSpaceOutliner_StateFilter {
   SO_FILTER_OB_HIDDEN = 2,
   SO_FILTER_OB_SELECTED = 3,
   SO_FILTER_OB_ACTIVE = 4,
+  SO_FILTER_OB_SELECTABLE = 5,
 } eSpaceOutliner_StateFilter;
 
 /* SpaceOutliner.show_restrict_flags */
