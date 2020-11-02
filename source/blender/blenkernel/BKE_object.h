@@ -191,6 +191,8 @@ struct Base **BKE_object_pose_base_array_get(struct ViewLayer *view_layer,
                                              unsigned int *r_bases_len);
 
 void BKE_object_get_parent_matrix(struct Object *ob, struct Object *par, float r_parentmat[4][4]);
+
+/* Compute object world transform and store it in ob->obmat. */
 void BKE_object_where_is_calc(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
 void BKE_object_where_is_calc_ex(struct Depsgraph *depsgraph,
                                  struct Scene *scene,
