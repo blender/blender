@@ -571,7 +571,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
-  option(WITH_COMPILER_SHORT_FILE_MACRO "Make paths in macros like __FILE__ relative to top level source and build directories." OFF)
+  option(WITH_COMPILER_SHORT_FILE_MACRO "Make paths in macros like __FILE__ relative to top level source and build directories." ON)
   mark_as_advanced(WITH_COMPILER_SHORT_FILE_MACRO)
 endif()
 
@@ -1679,8 +1679,8 @@ if(WITH_COMPILER_SHORT_FILE_MACRO)
     endif()
     if(WITH_COMPILER_SHORT_FILE_MACRO)
       set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} \
--fmacro-prefix-map=\"${CMAKE_SOURCE_DIR}/\"=\"\" \
--fmacro-prefix-map=\"${CMAKE_BINARY_DIR}/\"=\"\""
+-fmacro-prefix-map='${CMAKE_SOURCE_DIR}/'='' \
+-fmacro-prefix-map='${CMAKE_BINARY_DIR}/'=''"
       )
     endif()
   else()
