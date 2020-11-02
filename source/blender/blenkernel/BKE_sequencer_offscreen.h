@@ -33,6 +33,8 @@
 extern "C" {
 #endif
 
+struct GPUOffScreen;
+
 typedef struct ImBuf *(*SequencerDrawView)(struct Depsgraph *depsgraph,
                                            struct Scene *scene,
                                            struct View3DShading *shading_override,
