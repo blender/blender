@@ -2527,7 +2527,9 @@ static void direct_link_ipo(BlendDataReader *reader, Ipo *ipo)
       /* Undo generic endian switching. */
       if (BLO_read_requires_endian_switch(reader)) {
         BLI_endian_switch_int16(&ipo->blocktype);
-        BLI_endian_switch_int16(&icu->driver->blocktype);
+        if (icu->driver != NULL) {
+          BLI_endian_switch_int16(&icu->driver->blocktype);
+        }
       }
     }
   }
