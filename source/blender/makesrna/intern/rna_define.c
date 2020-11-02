@@ -1843,6 +1843,10 @@ void RNA_def_property_struct_runtime(PropertyRNA *prop, StructRNA *type)
       DefRNA.error = true;
       break;
   }
+
+  if ((type->flag & STRUCT_ID) != 0) {
+    prop->flag |= PROP_PTR_NO_OWNERSHIP;
+  }
 }
 
 void RNA_def_property_enum_native_type(PropertyRNA *prop, const char *native_enum_type)
