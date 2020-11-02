@@ -1302,6 +1302,9 @@ void BKE_multires_bmesh_space_set(Object *ob, BMesh *bm, int mode)
 
   BKE_mesh_free(me);
   BKE_subdiv_free(sd);
+
+  bm->elem_index_dirty |= BM_FACE|BM_LOOP;
+  bm->elem_table_dirty |= BM_FACE|BM_LOOP;
 }
 
 static void multires_disp_run_cb(void *__restrict userdata,
