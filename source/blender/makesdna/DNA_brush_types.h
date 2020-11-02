@@ -183,7 +183,7 @@ typedef enum eGPBrush_Presets {
   GP_BRUSH_PRESET_DRAW_WEIGHT = 300,
 } eGPBrush_Presets;
 
-/* BrushGpencilSettings->gp_flag */
+/* BrushGpencilSettings->flag */
 typedef enum eGPDbrush_Flag {
   /* brush use pressure */
   GP_BRUSH_USE_PRESSURE = (1 << 0),
