@@ -693,7 +693,7 @@ void ED_view3d_grid_steps(const struct Scene *scene,
                           float *r_grid_steps);
 float ED_view3d_grid_view_scale(struct Scene *scene,
                                 struct View3D *v3d,
-                                struct RegionView3D *rv3d,
+                                struct ARegion *region,
                                 const char **r_grid_unit);
 
 void ED_scene_draw_fps(const struct Scene *scene, int xoffset, int *yoffset);
