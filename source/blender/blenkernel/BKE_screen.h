@@ -365,8 +365,8 @@ typedef struct Menu {
 
 /* spacetypes */
 struct SpaceType *BKE_spacetype_from_id(int spaceid);
-struct ARegionType *BKE_regiontype_from_id_or_first(struct SpaceType *st, int regionid);
-struct ARegionType *BKE_regiontype_from_id(struct SpaceType *st, int regionid);
+struct ARegionType *BKE_regiontype_from_id_or_first(const struct SpaceType *st, int regionid);
+struct ARegionType *BKE_regiontype_from_id(const struct SpaceType *st, int regionid);
 const struct ListBase *BKE_spacetypes_list(void);
 void BKE_spacetype_register(struct SpaceType *st);
 bool BKE_spacetype_exists(int spaceid);
@@ -387,7 +387,7 @@ void BKE_spacedata_callback_id_remap_set(void (*func)(
 void BKE_spacedata_id_unref(struct ScrArea *area, struct SpaceLink *sl, struct ID *id);
 
 /* area/regions */
-struct ARegion *BKE_area_region_copy(struct SpaceType *st, struct ARegion *region);
+struct ARegion *BKE_area_region_copy(const struct SpaceType *st, const struct ARegion *region);
 void BKE_area_region_free(struct SpaceType *st, struct ARegion *region);
 void BKE_area_region_panels_free(struct ListBase *panels);
 void BKE_screen_area_free(struct ScrArea *area);

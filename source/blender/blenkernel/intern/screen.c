@@ -354,7 +354,7 @@ SpaceType *BKE_spacetype_from_id(int spaceid)
   return NULL;
 }
 
-ARegionType *BKE_regiontype_from_id_or_first(SpaceType *st, int regionid)
+ARegionType *BKE_regiontype_from_id_or_first(const SpaceType *st, int regionid)
 {
   ARegionType *art;
 
@@ -369,7 +369,7 @@ ARegionType *BKE_regiontype_from_id_or_first(SpaceType *st, int regionid)
   return st->regiontypes.first;
 }
 
-ARegionType *BKE_regiontype_from_id(SpaceType *st, int regionid)
+ARegionType *BKE_regiontype_from_id(const SpaceType *st, int regionid)
 {
   ARegionType *art;
 
@@ -446,7 +446,7 @@ static void panel_list_copy(ListBase *newlb, const ListBase *lb)
   }
 }
 
-ARegion *BKE_area_region_copy(SpaceType *st, ARegion *region)
+ARegion *BKE_area_region_copy(const SpaceType *st, const ARegion *region)
 {
   ARegion *newar = MEM_dupallocN(region);
 
