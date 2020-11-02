@@ -294,9 +294,6 @@ enum {
 typedef struct FileList {
   FileDirEntryArr filelist;
 
-  short prv_w;
-  short prv_h;
-
   short flags;
 
   short sort;
@@ -949,12 +946,6 @@ void filelist_free_icons(void)
     IMB_freeImBuf(gSpecialFileImages[i]);
     gSpecialFileImages[i] = NULL;
   }
-}
-
-void filelist_imgsize(struct FileList *filelist, short w, short h)
-{
-  filelist->prv_w = w;
-  filelist->prv_h = h;
 }
 
 static FileDirEntry *filelist_geticon_get_file(struct FileList *filelist, const int index)
