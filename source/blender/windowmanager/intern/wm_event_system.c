@@ -1731,8 +1731,21 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
     BLI_assert(handler_base->type != 0);
     if (handler_base->type == WM_HANDLER_TYPE_OP) {
       wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
+
       if (handler->op) {
         wmWindow *win = CTX_wm_window(C);
+
+        if (handler->is_fileselect) {
+          /* Exit File Browsers refering to this handler/operator. */
+          LISTBASE_FOREACH (wmWindow *, temp_win, &wm->windows) {
+            ScrArea *file_area = ED_fileselect_handler_area_find(temp_win, handler->op);
+            if (!file_area) {
+              continue;
+            }
+            ED_area_exit(C, file_area);
+          }
+        }
+
         if (handler->op->type->cancel) {
           ScrArea *area = CTX_wm_area(C);
           ARegion *region = CTX_wm_region(C);

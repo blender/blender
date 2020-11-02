@@ -61,6 +61,7 @@
 #include "BLF_api.h"
 
 #include "ED_fileselect.h"
+#include "ED_screen.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -1049,4 +1050,21 @@ void file_params_renamefile_activate(SpaceFile *sfile, FileSelectParams *params)
     params->renamefile[0] = '\0';
     params->rename_flag = 0;
   }
+}
+
+ScrArea *ED_fileselect_handler_area_find(const wmWindow *win, const wmOperator *file_operator)
+{
+  bScreen *screen = WM_window_get_active_screen(win);
+
+  ED_screen_areas_iter (win, screen, area) {
+    if (area->spacetype == SPACE_FILE) {
+      SpaceFile *sfile = area->spacedata.first;
+
+      if (sfile->op == file_operator) {
+        return area;
+      }
+    }
+  }
+
+  return NULL;
 }
