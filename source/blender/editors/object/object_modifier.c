@@ -1906,7 +1906,7 @@ void OBJECT_OT_multires_external_save(wmOperatorType *ot)
                                  FILE_SAVE,
                                  WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
   edit_modifier_properties(ot);
 }
 

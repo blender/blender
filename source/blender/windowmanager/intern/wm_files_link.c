@@ -598,7 +598,7 @@ void WM_OT_link(wmOperatorType *ot)
                                  WM_FILESEL_FILEPATH | WM_FILESEL_DIRECTORY | WM_FILESEL_FILENAME |
                                      WM_FILESEL_RELPATH | WM_FILESEL_FILES | WM_FILESEL_SHOW_PROPS,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
 
   wm_link_append_properties_common(ot, true);
 }
@@ -622,7 +622,7 @@ void WM_OT_append(wmOperatorType *ot)
                                  WM_FILESEL_FILEPATH | WM_FILESEL_DIRECTORY | WM_FILESEL_FILENAME |
                                      WM_FILESEL_FILES | WM_FILESEL_SHOW_PROPS,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
 
   wm_link_append_properties_common(ot, false);
   RNA_def_boolean(ot->srna,
@@ -1172,7 +1172,7 @@ void WM_OT_lib_relocate(wmOperatorType *ot)
                                  WM_FILESEL_FILEPATH | WM_FILESEL_DIRECTORY | WM_FILESEL_FILENAME |
                                      WM_FILESEL_FILES | WM_FILESEL_RELPATH,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
 }
 
 static int wm_lib_reload_exec(bContext *C, wmOperator *op)
@@ -1202,7 +1202,7 @@ void WM_OT_lib_reload(wmOperatorType *ot)
                                  WM_FILESEL_FILEPATH | WM_FILESEL_DIRECTORY | WM_FILESEL_FILENAME |
                                      WM_FILESEL_RELPATH,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
 }
 
 /** \} */

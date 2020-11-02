@@ -760,7 +760,13 @@ typedef struct SpaceFile {
 
 /* FileSelectParams.display */
 enum eFileDisplayType {
+  /** Internal (not exposed to users): Keep whatever display type was used during the last File
+   * Browser use, or the default if no such record is found. Use this unless there's a good reason
+   * to set a specific display type. */
   FILE_DEFAULTDISPLAY = 0,
+
+  /* User selectable choices. */
+
   FILE_VERTICALDISPLAY = 1,
   FILE_HORIZONTALDISPLAY = 2,
   FILE_IMGDISPLAY = 3,
@@ -768,7 +774,13 @@ enum eFileDisplayType {
 
 /* FileSelectParams.sort */
 enum eFileSortType {
-  FILE_SORT_NONE = 0,
+  /** Internal (not exposed to users): Sort by whatever was sorted by during the last File Browser
+   * use, or the default if no such record is found. Use this unless there's a good reason to set a
+   * specific sort order. */
+  FILE_SORT_DEFAULT = 0,
+
+  /* User selectable choices. */
+
   FILE_SORT_ALPHA = 1,
   FILE_SORT_EXTENSION = 2,
   FILE_SORT_TIME = 3,

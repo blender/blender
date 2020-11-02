@@ -626,7 +626,7 @@ void FONT_OT_text_paste_from_file(wmOperatorType *ot)
                                  FILE_OPENFILE,
                                  WM_FILESEL_FILEPATH,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
 }
 
 /** \} */
@@ -2160,7 +2160,7 @@ void FONT_OT_open(wmOperatorType *ot)
                                  FILE_OPENFILE,
                                  WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
 }
 
 /** \} */

@@ -134,7 +134,7 @@ void CACHEFILE_OT_open(wmOperatorType *ot)
                                  FILE_SAVE,
                                  WM_FILESEL_FILEPATH,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
 }
 
 /* ***************************** Reload Operator **************************** */

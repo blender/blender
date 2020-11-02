@@ -583,7 +583,7 @@ static int compare_extension(void *user_data, const void *a1, const void *a2)
 
 void filelist_sort(struct FileList *filelist)
 {
-  if ((filelist->flags & FL_NEED_SORTING) && (filelist->sort != FILE_SORT_NONE)) {
+  if (filelist->flags & FL_NEED_SORTING) {
     void *sort_cb = NULL;
 
     switch (filelist->sort) {
@@ -599,7 +599,7 @@ void filelist_sort(struct FileList *filelist)
       case FILE_SORT_EXTENSION:
         sort_cb = compare_extension;
         break;
-      case FILE_SORT_NONE: /* Should never reach this point! */
+      case FILE_SORT_DEFAULT:
       default:
         BLI_assert(0);
         break;
@@ -1562,7 +1562,6 @@ void filelist_free(struct FileList *filelist)
   memset(&filelist->filter_data, 0, sizeof(filelist->filter_data));
 
   filelist->flags &= ~(FL_NEED_SORTING | FL_NEED_FILTERING);
-  filelist->sort = FILE_SORT_NONE;
 }
 
 void filelist_freelib(struct FileList *filelist)

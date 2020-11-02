@@ -1736,7 +1736,7 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
         wmWindow *win = CTX_wm_window(C);
 
         if (handler->is_fileselect) {
-          /* Exit File Browsers refering to this handler/operator. */
+          /* Exit File Browsers referring to this handler/operator. */
           LISTBASE_FOREACH (wmWindow *, temp_win, &wm->windows) {
             ScrArea *file_area = ED_fileselect_handler_area_find(temp_win, handler->op);
             if (!file_area) {

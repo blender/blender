@@ -2482,7 +2482,7 @@ void WM_OT_open_mainfile(wmOperatorType *ot)
                                  FILE_OPENFILE,
                                  WM_FILESEL_FILEPATH,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
 
   RNA_def_boolean(
       ot->srna, "load_ui", true, "Load UI", "Load user interface setup in the .blend file");
@@ -2804,7 +2804,7 @@ void WM_OT_save_as_mainfile(wmOperatorType *ot)
                                  FILE_SAVE,
                                  WM_FILESEL_FILEPATH,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
   RNA_def_boolean(ot->srna, "compress", false, "Compress", "Write compressed .blend file");
   RNA_def_boolean(ot->srna,
                   "relative_remap",
@@ -2874,7 +2874,7 @@ void WM_OT_save_mainfile(wmOperatorType *ot)
                                  FILE_SAVE,
                                  WM_FILESEL_FILEPATH,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
   RNA_def_boolean(ot->srna, "compress", false, "Compress", "Write compressed .blend file");
   RNA_def_boolean(ot->srna,
                   "relative_remap",

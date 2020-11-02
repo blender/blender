@@ -210,5 +210,5 @@ void RIGIDBODY_OT_world_export(wmOperatorType *ot)
                                  FILE_SAVE,
                                  FILE_RELPATH,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
 }

@@ -507,7 +507,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
                                  FILE_SAVE,
                                  WM_FILESEL_FILEPATH | WM_FILESEL_SHOW_PROPS,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
 
   RNA_def_enum(func,
                "prop_bc_export_ui_section",
@@ -828,7 +828,7 @@ void WM_OT_collada_import(wmOperatorType *ot)
                                  FILE_OPENFILE,
                                  WM_FILESEL_FILEPATH | WM_FILESEL_SHOW_PROPS,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
 
   RNA_def_boolean(ot->srna,
                   "import_units",

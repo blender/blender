@@ -378,7 +378,7 @@ void BUTTONS_OT_file_browse(wmOperatorType *ot)
                                  FILE_OPENFILE,
                                  WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
 }
 
 /* Second operator, only difference from BUTTONS_OT_file_browse is WM_FILESEL_DIRECTORY. */
@@ -405,7 +405,7 @@ void BUTTONS_OT_directory_browse(wmOperatorType *ot)
                                  FILE_OPENFILE,
                                  WM_FILESEL_DIRECTORY | WM_FILESEL_RELPATH,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
 }
 
 /** \} */

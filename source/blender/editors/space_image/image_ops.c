@@ -1486,7 +1486,7 @@ void IMAGE_OT_open(wmOperatorType *ot)
                                  WM_FILESEL_FILEPATH | WM_FILESEL_DIRECTORY | WM_FILESEL_FILES |
                                      WM_FILESEL_RELPATH,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
 
   RNA_def_boolean(
       ot->srna,
@@ -1638,7 +1638,7 @@ void IMAGE_OT_replace(wmOperatorType *ot)
                                  FILE_OPENFILE,
                                  WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
 }
 
 /** \} */
@@ -2038,7 +2038,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
                                  FILE_SAVE,
                                  WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH | WM_FILESEL_SHOW_PROPS,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
 }
 
 /** \} */

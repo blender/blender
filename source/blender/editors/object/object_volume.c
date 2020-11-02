@@ -184,7 +184,7 @@ void OBJECT_OT_volume_import(wmOperatorType *ot)
                                  WM_FILESEL_FILEPATH | WM_FILESEL_DIRECTORY | WM_FILESEL_FILES |
                                      WM_FILESEL_RELPATH,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
 
   RNA_def_boolean(
       ot->srna,

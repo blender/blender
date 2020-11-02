@@ -2090,7 +2090,7 @@ void GRAPH_OT_sound_bake(wmOperatorType *ot)
                                  FILE_OPENFILE,
                                  WM_FILESEL_FILEPATH | WM_FILESEL_SHOW_PROPS,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
   RNA_def_float(ot->srna,
                 "low",
                 0.0f,

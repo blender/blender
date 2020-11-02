@@ -48,6 +48,30 @@ void WM_operator_properties_confirm_or_exec(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
+/**
+ * Extends rna_enum_fileselect_params_sort_items with a default item for operators to use.
+ */
+static const EnumPropertyItem *wm_operator_properties_filesel_sort_items_itemf(
+    struct bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+{
+  EnumPropertyItem *items;
+  const EnumPropertyItem default_item = {
+      FILE_SORT_DEFAULT,
+      "DEFAULT",
+      0,
+      "Default",
+      "Automatically determine sort method for files",
+  };
+  int totitem = 0;
+
+  RNA_enum_item_add(&items, &totitem, &default_item);
+  RNA_enum_items_add(&items, &totitem, rna_enum_fileselect_params_sort_items);
+  RNA_enum_item_end(&items, &totitem);
+  *r_free = true;
+
+  return items;
+}
+
 /* default properties for fileselect */
 void WM_operator_properties_filesel(wmOperatorType *ot,
                                     int filter,
@@ -204,8 +228,8 @@ void WM_operator_properties_filesel(wmOperatorType *ot,
   prop = RNA_def_enum(ot->srna, "display_type", file_display_items, display, "Display Type", "");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
-  prop = RNA_def_enum(
-      ot->srna, "sort_method", rna_enum_file_sort_items, sort, "File sorting mode", "");
+  prop = RNA_def_enum(ot->srna, "sort_method", DummyRNA_NULL_items, sort, "File sorting mode", "");
+  RNA_def_enum_funcs(prop, wm_operator_properties_filesel_sort_items_itemf);
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
