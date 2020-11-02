@@ -44,6 +44,7 @@ struct TextVars;
 struct bContext;
 struct bSound;
 struct SeqIndexBuildContext;
+enum IMB_Proxy_Size;
 
 /* Wipe effect */
 enum {
@@ -156,6 +157,8 @@ void BKE_sequencer_new_render_data(struct Main *bmain,
                                    int preview_render_size,
                                    int for_render,
                                    SeqRenderData *r_context);
+bool SEQ_can_use_proxy(struct Sequence *seq, enum IMB_Proxy_Size psize);
+enum IMB_Proxy_Size SEQ_rendersize_to_proxysize(int render_size);
 
 /* **********************************************************************
  * sequencer.c

@@ -473,34 +473,6 @@ static void rna_Sequence_use_proxy_set(PointerRNA *ptr, bool value)
   BKE_sequencer_proxy_set(seq, value != 0);
 }
 
-static void rna_Sequence_use_translation_set(PointerRNA *ptr, bool value)
-{
-  Sequence *seq = (Sequence *)ptr->data;
-  if (value) {
-    seq->flag |= SEQ_USE_TRANSFORM;
-    if (seq->strip->transform == NULL) {
-      seq->strip->transform = MEM_callocN(sizeof(struct StripTransform), "StripTransform");
-    }
-  }
-  else {
-    seq->flag &= ~SEQ_USE_TRANSFORM;
-  }
-}
-
-static void rna_Sequence_use_crop_set(PointerRNA *ptr, bool value)
-{
-  Sequence *seq = (Sequence *)ptr->data;
-  if (value) {
-    seq->flag |= SEQ_USE_CROP;
-    if (seq->strip->crop == NULL) {
-      seq->strip->crop = MEM_callocN(sizeof(struct StripCrop), "StripCrop");
-    }
-  }
-  else {
-    seq->flag &= ~SEQ_USE_CROP;
-  }
-}
-
 static int transform_seq_cmp_fn(Sequence *seq, void *arg_pt)
 {
   SequenceSearchData *data = arg_pt;
@@ -1409,18 +1381,35 @@ static void rna_def_strip_transform(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Sequence Transform", "Transform parameters for a sequence strip");
   RNA_def_struct_sdna(srna, "StripTransform");
 
+  prop = RNA_def_property(srna, "scale_x", PROP_FLOAT, PROP_UNSIGNED);
+  RNA_def_property_float_sdna(prop, NULL, "scale_x");
+  RNA_def_property_ui_text(prop, "Scale X", "Scale along X axis");
+  RNA_def_property_ui_range(prop, 0, FLT_MAX, 3, 3);
+  RNA_def_property_float_default(prop, 1.0f);
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTransform_update");
+
+  prop = RNA_def_property(srna, "scale_y", PROP_FLOAT, PROP_UNSIGNED);
+  RNA_def_property_float_sdna(prop, NULL, "scale_y");
+  RNA_def_property_ui_text(prop, "Scale Y", "Scale along Y axis");
+  RNA_def_property_ui_range(prop, 0, FLT_MAX, 3, 3);
+  RNA_def_property_float_default(prop, 1.0f);
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTransform_update");
+
   prop = RNA_def_property(srna, "offset_x", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, NULL, "xofs");
-  RNA_def_property_ui_text(
-      prop, "Offset X", "Amount to move the input on the X axis within its boundaries");
-  RNA_def_property_ui_range(prop, -4096, 4096, 1, -1);
+  RNA_def_property_ui_text(prop, "Translate X", "Move along X axis");
+  RNA_def_property_ui_range(prop, INT_MIN, INT_MAX, 1, 6);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTransform_update");
 
   prop = RNA_def_property(srna, "offset_y", PROP_INT, PROP_PIXEL);
   RNA_def_property_int_sdna(prop, NULL, "yofs");
-  RNA_def_property_ui_text(
-      prop, "Offset Y", "Amount to move the input on the Y axis within its boundaries");
-  RNA_def_property_ui_range(prop, -4096, 4096, 1, -1);
+  RNA_def_property_ui_text(prop, "Translate Y", "Move along Y axis");
+  RNA_def_property_ui_range(prop, INT_MIN, INT_MAX, 1, 6);
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTransform_update");
+
+  prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_float_sdna(prop, NULL, "rotation");
+  RNA_def_property_ui_text(prop, "Rotation", "Rotate around image centr");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTransform_update");
 
   RNA_def_struct_path_func(srna, "rna_SequenceTransform_path");
@@ -2175,21 +2164,9 @@ static void rna_def_filter_video(StructRNA *srna)
   RNA_def_property_ui_text(prop, "Strobe", "Only display every nth frame");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
 
-  prop = RNA_def_property(srna, "use_translation", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_TRANSFORM);
-  RNA_def_property_ui_text(prop, "Use Translation", "Translate image before processing");
-  RNA_def_property_boolean_funcs(prop, NULL, "rna_Sequence_use_translation_set");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
-
   prop = RNA_def_property(srna, "transform", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "strip->transform");
   RNA_def_property_ui_text(prop, "Transform", "");
-
-  prop = RNA_def_property(srna, "use_crop", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_CROP);
-  RNA_def_property_ui_text(prop, "Use Crop", "Crop image before processing");
-  RNA_def_property_boolean_funcs(prop, NULL, "rna_Sequence_use_crop_set");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_raw_update");
 
   prop = RNA_def_property(srna, "crop", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, NULL, "strip->crop");
