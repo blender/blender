@@ -1368,14 +1368,12 @@ static void write_area_regions(BlendWriter *writer, ScrArea *area)
       }
       BLO_write_struct(writer, SpaceConsole, sl);
     }
-#ifdef WITH_GLOBAL_AREA_WRITING
     else if (sl->spacetype == SPACE_TOPBAR) {
       BLO_write_struct(writer, SpaceTopBar, sl);
     }
     else if (sl->spacetype == SPACE_STATUSBAR) {
       BLO_write_struct(writer, SpaceStatusBar, sl);
     }
-#endif
     else if (sl->spacetype == SPACE_USERPREF) {
       BLO_write_struct(writer, SpaceUserPref, sl);
     }
@@ -1397,9 +1395,7 @@ void BKE_screen_area_map_blend_write(BlendWriter *writer, ScrAreaMap *area_map)
 
     BLO_write_struct(writer, ScrArea, area);
 
-#ifdef WITH_GLOBAL_AREA_WRITING
     BLO_write_struct(writer, ScrGlobalAreaData, area->global);
-#endif
 
     write_area_regions(writer, area);
 

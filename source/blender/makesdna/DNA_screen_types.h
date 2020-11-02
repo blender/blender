@@ -322,10 +322,6 @@ typedef struct uiPreview {
   char _pad1[6];
 } uiPreview;
 
-/* These two lines with # tell makesdna this struct can be excluded.
- * Should be: #ifndef WITH_GLOBAL_AREA_WRITING */
-#
-#
 typedef struct ScrGlobalAreaData {
   /* Global areas have a non-dynamic size. That means, changing the window
    * size doesn't affect their size at all. However, they can still be

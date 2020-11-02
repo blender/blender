@@ -1639,12 +1639,6 @@ static void write_windowmanager(BlendWriter *writer, wmWindowManager *wm, const 
   write_wm_xr_data(writer, &wm->xr);
 
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-#ifndef WITH_GLOBAL_AREA_WRITING
-    /* Don't write global areas yet, while we make changes to them. */
-    ScrAreaMap global_areas = win->global_areas;
-    memset(&win->global_areas, 0, sizeof(win->global_areas));
-#endif
-
     /* update deprecated screen member (for so loading in 2.7x uses the correct screen) */
     win->screen = BKE_workspace_active_screen_get(win->workspace_hook);
 
@@ -1652,11 +1646,7 @@ static void write_windowmanager(BlendWriter *writer, wmWindowManager *wm, const 
     BLO_write_struct(writer, WorkSpaceInstanceHook, win->workspace_hook);
     BLO_write_struct(writer, Stereo3dFormat, win->stereo3d_format);
 
-#ifdef WITH_GLOBAL_AREA_WRITING
     BKE_screen_area_map_blend_write(writer, &win->global_areas);
-#else
-    win->global_areas = global_areas;
-#endif
 
     /* data is written, clear deprecated data again */
     win->screen = NULL;
