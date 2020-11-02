@@ -3388,10 +3388,7 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
     if (!ptype) {
       return NULL;
     }
-    const bool is_property_group = RNA_struct_is_a(ptype, &RNA_PropertyGroup);
-    const bool is_id = RNA_struct_is_ID(ptype);
-
-    if (!is_property_group && !is_id) {
+    if (!RNA_struct_is_a(ptype, &RNA_PropertyGroup) && !RNA_struct_is_ID(ptype)) {
       PyErr_Format(PyExc_TypeError,
                    "PointerProperty(...) expected an RNA type derived from %.200s or %.200s",
                    RNA_struct_ui_name(&RNA_ID),
@@ -3416,7 +3413,7 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
     }
 
     if (RNA_struct_idprops_contains_datablock(ptype)) {
-      if (is_property_group) {
+      if (RNA_struct_is_a(srna, &RNA_PropertyGroup)) {
         RNA_def_struct_flag(srna, STRUCT_CONTAINS_DATABLOCK_IDPROPERTIES);
       }
     }
