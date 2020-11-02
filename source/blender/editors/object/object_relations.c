@@ -696,7 +696,7 @@ bool ED_object_parent_set(ReportList *reports,
   /* Preconditions. */
   if (ob == par) {
     /* Parenting an object to itself is impossible. */
-    return false;
+    return true;
   }
 
   if (BKE_object_parent_loop_check(par, ob)) {
