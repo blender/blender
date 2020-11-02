@@ -684,8 +684,6 @@ void IMB_rectfill_area(struct ImBuf *ibuf,
                        int x2,
                        int y2,
                        struct ColorManagedDisplay *display);
-void IMB_rectfill_area_replace(
-    const struct ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2);
 void IMB_rectfill_alpha(struct ImBuf *ibuf, const float value);
 
 /* This should not be here, really,
