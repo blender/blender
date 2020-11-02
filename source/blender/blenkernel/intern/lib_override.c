@@ -1359,7 +1359,7 @@ bool BKE_lib_override_library_operations_create(Main *bmain, ID *local)
     }
 
     if (GS(local->name) == ID_OB) {
-      /* Our beloved pose's bone cross-data pointers.. Usually, depsgraph evaluation would
+      /* Our beloved pose's bone cross-data pointers. Usually, depsgraph evaluation would
        * ensure this is valid, but in some situations (like hidden collections etc.) this won't
        * be the case, so we need to take care of this ourselves. */
       Object *ob_local = (Object *)local;
