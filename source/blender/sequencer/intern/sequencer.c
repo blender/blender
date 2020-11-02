@@ -1631,7 +1631,7 @@ typedef struct SeqIndexBuildContext {
 
 #define PROXY_MAXFILE (2 * FILE_MAXDIR + FILE_MAXFILE)
 
-static IMB_Proxy_Size seq_rendersize_to_proxysize(int render_size)
+int SEQ_rendersize_to_proxysize(int render_size)
 {
   switch (render_size) {
     case SEQ_RENDER_SIZE_PROXY_25:
@@ -1904,7 +1904,7 @@ static bool seq_proxy_get_fname(Editing *ed,
   return true;
 }
 
-static bool seq_can_use_proxy(Sequence *seq, IMB_Proxy_Size psize)
+bool SEQ_can_use_proxy(Sequence *seq, int psize)
 {
   if (seq->strip->proxy == NULL) {
     return false;
@@ -1922,7 +1922,7 @@ static ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int c
   StripAnim *sanim;
 
   /* only use proxies, if they are enabled (even if present!) */
-  if (!seq_can_use_proxy(seq, seq_rendersize_to_proxysize(psize))) {
+  if (!SEQ_can_use_proxy(seq, SEQ_rendersize_to_proxysize(psize))) {
     return NULL;
   }
 
@@ -2653,6 +2653,28 @@ void BKE_sequencer_color_balance_apply(
  * - Premultiply
  */
 
+static bool sequencer_use_transform(const Sequence *seq)
+{
+  const StripTransform *transform = seq->strip->transform;
+
+  if (transform->xofs != 0 || transform->yofs != 0 || transform->scale_x != 1 ||
+      transform->scale_y != 1 || transform->rotation != 0) {
+    return true;
+  }
+
+  return false;
+}
+
+static bool sequencer_use_crop(const Sequence *seq)
+{
+  const StripCrop *crop = seq->strip->crop;
+  if (crop->left > 0 || crop->right > 0 || crop->top > 0 || crop->bottom > 0) {
+    return true;
+  }
+
+  return false;
+}
+
 bool BKE_sequencer_input_have_to_preprocess(const SeqRenderData *context,
                                             Sequence *seq,
                                             float UNUSED(cfra))
@@ -2663,8 +2685,8 @@ bool BKE_sequencer_input_have_to_preprocess(const SeqRenderData *context,
     return false;
   }
 
-  if (seq->flag &
-      (SEQ_FILTERY | SEQ_USE_CROP | SEQ_USE_TRANSFORM | SEQ_FLIPX | SEQ_FLIPY | SEQ_MAKE_FLOAT)) {
+  if ((seq->flag & (SEQ_FILTERY | SEQ_FLIPX | SEQ_FLIPY | SEQ_MAKE_FLOAT)) ||
+      sequencer_use_crop(seq) || sequencer_use_transform(seq)) {
     return true;
   }
 
@@ -2689,6 +2711,83 @@ bool BKE_sequencer_input_have_to_preprocess(const SeqRenderData *context,
   return false;
 }
 
+typedef struct ImageTransformThreadInitData {
+  ImBuf *ibuf_source;
+  ImBuf *ibuf_out;
+  StripTransform *transform;
+  float scale_to_fit;
+  float image_scale_factor;
+  bool for_render;
+} ImageTransformThreadInitData;
+
+typedef struct ImageTransformThreadData {
+  ImBuf *ibuf_source;
+  ImBuf *ibuf_out;
+  StripTransform *transform;
+  float scale_to_fit;
+  float image_scale_factor;
+  bool for_render;
+  int start_line;
+  int tot_line;
+} ImageTransformThreadData;
+
+static void sequencer_image_transform_init(void *handle_v,
+                                           int start_line,
+                                           int tot_line,
+                                           void *init_data_v)
+{
+  ImageTransformThreadData *handle = (ImageTransformThreadData *)handle_v;
+  const ImageTransformThreadInitData *init_data = (ImageTransformThreadInitData *)init_data_v;
+
+  handle->ibuf_source = init_data->ibuf_source;
+  handle->ibuf_out = init_data->ibuf_out;
+  handle->transform = init_data->transform;
+  handle->scale_to_fit = init_data->scale_to_fit;
+  handle->image_scale_factor = init_data->image_scale_factor;
+  handle->for_render = init_data->for_render;
+
+  handle->start_line = start_line;
+  handle->tot_line = tot_line;
+}
+
+static void *sequencer_image_transform_do_thread(void *data_v)
+{
+  const ImageTransformThreadData *data = (ImageTransformThreadData *)data_v;
+  const StripTransform *transform = data->transform;
+  const float scale_x = transform->scale_x * data->scale_to_fit;
+  const float scale_y = transform->scale_y * data->scale_to_fit;
+  const float scale_to_fit_offs_x = (data->ibuf_out->x - data->ibuf_source->x) / 2;
+  const float scale_to_fit_offs_y = (data->ibuf_out->y - data->ibuf_source->y) / 2;
+  const float translate_x = transform->xofs * data->image_scale_factor + scale_to_fit_offs_x;
+  const float translate_y = transform->yofs * data->image_scale_factor + scale_to_fit_offs_y;
+  const int width = data->ibuf_out->x;
+  const int height = data->ibuf_out->y;
+  const float pivot[2] = {width / 2 - scale_to_fit_offs_x, height / 2 - scale_to_fit_offs_y};
+  float transform_matrix[3][3];
+  loc_rot_size_to_mat3(transform_matrix,
+                       (const float[]){translate_x, translate_y},
+                       transform->rotation,
+                       (const float[]){scale_x, scale_y});
+  invert_m3(transform_matrix);
+  transform_pivot_set_m3(transform_matrix, pivot);
+
+  for (int yi = data->start_line; yi < data->start_line + data->tot_line; yi++) {
+    for (int xi = 0; xi < width; xi++) {
+      float uv[2] = {xi, yi};
+      mul_v2_m3v2(uv, transform_matrix, uv);
+
+      if (data->for_render) {
+        bilinear_interpolation(data->ibuf_source, data->ibuf_out, uv[0], uv[1], xi, yi);
+      }
+      else {
+        nearest_interpolation(data->ibuf_source, data->ibuf_out, uv[0], uv[1], xi, yi);
+      }
+    }
+  }
+
+  return NULL;
+}
+
 static ImBuf *input_preprocess(const SeqRenderData *context,
                                Sequence *seq,
                                float cfra,
@@ -2696,131 +2795,124 @@ static ImBuf *input_preprocess(const SeqRenderData *context,
                                const bool is_proxy_image)
 {
   Scene *scene = context->scene;
-  float mul;
+  ImBuf *preprocessed_ibuf = NULL;
 
-  ibuf = IMB_makeSingleUser(ibuf);
-
+  /* Deinterlace. */
   if ((seq->flag & SEQ_FILTERY) && !ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_MOVIECLIP)) {
-    IMB_filtery(ibuf);
+    /* Change original image pointer to avoid another duplication in SEQ_USE_TRANSFORM. */
+    preprocessed_ibuf = IMB_makeSingleUser(ibuf);
+    ibuf = preprocessed_ibuf;
+
+    IMB_filtery(preprocessed_ibuf);
   }
 
-  if (seq->flag & (SEQ_USE_CROP | SEQ_USE_TRANSFORM)) {
-    StripCrop c = {0};
-    StripTransform t = {0};
+  /* Calculate scale factor, so image fits in preview area with original aspect ratio. */
+  const float scale_to_fit_factor = MIN2((float)context->rectx / (float)ibuf->x,
+                                         (float)context->recty / (float)ibuf->y);
 
-    if (seq->flag & SEQ_USE_CROP && seq->strip->crop) {
-      c = *seq->strip->crop;
-    }
-    if (seq->flag & SEQ_USE_TRANSFORM && seq->strip->transform) {
-      t = *seq->strip->transform;
-    }
+  /* Get scale factor if preview resolution doesn't match project resolution. */
+  float preview_scale_factor;
+  if (context->preview_render_size == SEQ_RENDER_SIZE_SCENE) {
+    preview_scale_factor = (float)scene->r.size / 100;
+  }
+  else {
+    preview_scale_factor = BKE_sequencer_rendersize_to_scale_factor(context->preview_render_size);
+  }
 
-    /* Calculate scale factor for current image if needed. */
-    double scale_factor, image_scale_factor = 1.0;
-    if (context->preview_render_size == SEQ_RENDER_SIZE_SCENE) {
-      scale_factor = image_scale_factor = (double)scene->r.size / 100;
-    }
-    else {
-      scale_factor = BKE_sequencer_rendersize_to_scale_factor(context->preview_render_size);
-      if (!is_proxy_image) {
-        image_scale_factor = scale_factor;
-      }
-    }
+  if (sequencer_use_crop(seq)) {
+    /* Change original image pointer to avoid another duplication in SEQ_USE_TRANSFORM. */
+    preprocessed_ibuf = IMB_makeSingleUser(ibuf);
+    ibuf = preprocessed_ibuf;
 
-    if (image_scale_factor != 1.0) {
-      if (context->for_render) {
-        IMB_scaleImBuf(ibuf, ibuf->x * image_scale_factor, ibuf->y * image_scale_factor);
-      }
-      else {
-        IMB_scalefastImBuf(ibuf, ibuf->x * image_scale_factor, ibuf->y * image_scale_factor);
-      }
-    }
+    const int width = ibuf->x;
+    const int height = ibuf->y;
+    const StripCrop *c = seq->strip->crop;
 
-    t.xofs *= scale_factor;
-    t.yofs *= scale_factor;
-    c.left *= scale_factor;
-    c.right *= scale_factor;
-    c.top *= scale_factor;
-    c.bottom *= scale_factor;
+    const int left = c->left / scale_to_fit_factor * preview_scale_factor;
+    const int right = c->right / scale_to_fit_factor * preview_scale_factor;
+    const int top = c->top / scale_to_fit_factor * preview_scale_factor;
+    const int bottom = c->bottom / scale_to_fit_factor * preview_scale_factor;
+    const float col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-    int sx, sy, dx, dy;
-    sx = ibuf->x - c.left - c.right;
-    sy = ibuf->y - c.top - c.bottom;
+    /* Left. */
+    IMB_rectfill_area_replace(preprocessed_ibuf, col, 0, 0, left, height);
+    /* Bottom. */
+    IMB_rectfill_area_replace(preprocessed_ibuf, col, left, 0, width, bottom);
+    /* Right. */
+    IMB_rectfill_area_replace(preprocessed_ibuf, col, width - right, bottom, width, height);
+    /* Top. */
+    IMB_rectfill_area_replace(preprocessed_ibuf, col, left, height - top, width - right, height);
+  }
 
-    if (seq->flag & SEQ_USE_TRANSFORM) {
-      dx = context->rectx;
-      dy = context->recty;
-    }
-    else {
-      dx = sx;
-      dy = sy;
-    }
+  if (sequencer_use_transform(seq) || context->rectx != ibuf->x || context->recty != ibuf->y) {
+    const int x = context->rectx;
+    const int y = context->recty;
+    preprocessed_ibuf = IMB_allocImBuf(x, y, 32, ibuf->rect_float ? IB_rectfloat : IB_rect);
 
-    if (c.top + c.bottom >= ibuf->y || c.left + c.right >= ibuf->x || t.xofs >= dx ||
-        t.yofs >= dy) {
-      return NULL;
-    }
-
-    ImBuf *i = IMB_allocImBuf(dx, dy, 32, ibuf->rect_float ? IB_rectfloat : IB_rect);
-    IMB_rectcpy(i, ibuf, t.xofs, t.yofs, c.left, c.bottom, sx, sy);
-    sequencer_imbuf_assign_spaces(scene, i);
-    IMB_metadata_copy(i, ibuf);
+    ImageTransformThreadInitData init_data = {NULL};
+    init_data.ibuf_source = ibuf;
+    init_data.ibuf_out = preprocessed_ibuf;
+    init_data.transform = seq->strip->transform;
+    init_data.scale_to_fit = scale_to_fit_factor;
+    init_data.image_scale_factor = preview_scale_factor;
+    init_data.for_render = context->for_render;
+    IMB_processor_apply_threaded(context->recty,
+                                 sizeof(ImageTransformThreadData),
+                                 &init_data,
+                                 sequencer_image_transform_init,
+                                 sequencer_image_transform_do_thread);
+    sequencer_imbuf_assign_spaces(scene, preprocessed_ibuf);
+    IMB_metadata_copy(preprocessed_ibuf, ibuf);
     IMB_freeImBuf(ibuf);
-    ibuf = i;
+  }
+
+  /* Duplicate ibuf if we still have original. */
+  if (preprocessed_ibuf == NULL) {
+    preprocessed_ibuf = IMB_makeSingleUser(ibuf);
   }
 
   if (seq->flag & SEQ_FLIPX) {
-    IMB_flipx(ibuf);
+    IMB_flipx(preprocessed_ibuf);
   }
 
   if (seq->flag & SEQ_FLIPY) {
-    IMB_flipy(ibuf);
+    IMB_flipy(preprocessed_ibuf);
   }
 
   if (seq->sat != 1.0f) {
-    IMB_saturation(ibuf, seq->sat);
+    IMB_saturation(preprocessed_ibuf, seq->sat);
   }
 
-  mul = seq->mul;
+  if (seq->flag & SEQ_MAKE_FLOAT) {
+    if (!preprocessed_ibuf->rect_float) {
+      BKE_sequencer_imbuf_to_sequencer_space(scene, preprocessed_ibuf, true);
+    }
 
+    if (preprocessed_ibuf->rect) {
+      imb_freerectImBuf(preprocessed_ibuf);
+    }
+  }
+
+  float mul = seq->mul;
   if (seq->blend_mode == SEQ_BLEND_REPLACE) {
     mul *= seq->blend_opacity / 100.0f;
   }
 
-  if (seq->flag & SEQ_MAKE_FLOAT) {
-    if (!ibuf->rect_float) {
-      BKE_sequencer_imbuf_to_sequencer_space(scene, ibuf, true);
-    }
-
-    if (ibuf->rect) {
-      imb_freerectImBuf(ibuf);
-    }
-  }
-
   if (mul != 1.0f) {
-    multibuf(ibuf, mul);
-  }
-
-  if (ibuf->x != context->rectx || ibuf->y != context->recty) {
-    if (context->for_render) {
-      IMB_scaleImBuf(ibuf, (short)context->rectx, (short)context->recty);
-    }
-    else {
-      IMB_scalefastImBuf(ibuf, (short)context->rectx, (short)context->recty);
-    }
+    multibuf(preprocessed_ibuf, mul);
   }
 
   if (seq->modifiers.first) {
-    ImBuf *ibuf_new = BKE_sequence_modifier_apply_stack(context, seq, ibuf, cfra);
+    ImBuf *ibuf_new = BKE_sequence_modifier_apply_stack(context, seq, preprocessed_ibuf, cfra);
 
-    if (ibuf_new != ibuf) {
-      IMB_metadata_copy(ibuf_new, ibuf);
-      IMB_freeImBuf(ibuf);
-      ibuf = ibuf_new;
+    if (ibuf_new != preprocessed_ibuf) {
+      IMB_metadata_copy(ibuf_new, preprocessed_ibuf);
+      IMB_freeImBuf(preprocessed_ibuf);
+      preprocessed_ibuf = ibuf_new;
     }
   }
 
-  return ibuf;
+  return preprocessed_ibuf;
 }
 
 /*********************** strip rendering functions  *************************/
@@ -3190,11 +3282,11 @@ static ImBuf *seq_render_movie_strip_view(const SeqRenderData *context,
                                           bool *r_is_proxy_image)
 {
   ImBuf *ibuf = NULL;
-  IMB_Proxy_Size psize = seq_rendersize_to_proxysize(context->preview_render_size);
+  IMB_Proxy_Size psize = SEQ_rendersize_to_proxysize(context->preview_render_size);
 
   IMB_anim_set_preseek(sanim->anim, seq->anim_preseek);
 
-  if (seq_can_use_proxy(seq, psize)) {
+  if (SEQ_can_use_proxy(seq, psize)) {
     /* Try to get a proxy image.
      * Movie proxies are handled by ImBuf module with exception of `custom file` setting. */
     if (context->scene->ed->proxy_storage != SEQ_EDIT_PROXY_DIR_STORAGE &&
@@ -3326,7 +3418,7 @@ static ImBuf *seq_render_movieclip_strip(const SeqRenderData *context,
 {
   ImBuf *ibuf = NULL;
   MovieClipUser user;
-  IMB_Proxy_Size psize = seq_rendersize_to_proxysize(context->preview_render_size);
+  IMB_Proxy_Size psize = SEQ_rendersize_to_proxysize(context->preview_render_size);
 
   if (!seq->clip) {
     return NULL;
@@ -5347,6 +5439,8 @@ static Strip *seq_strip_alloc(int type)
 
   if (ELEM(type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD) == 0) {
     strip->transform = MEM_callocN(sizeof(struct StripTransform), "StripTransform");
+    strip->transform->scale_x = 1;
+    strip->transform->scale_y = 1;
     strip->crop = MEM_callocN(sizeof(struct StripCrop), "StripCrop");
   }
 

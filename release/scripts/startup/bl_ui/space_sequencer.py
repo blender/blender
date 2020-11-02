@@ -949,54 +949,28 @@ class SEQUENCER_PT_strip(SequencerButtonsPanel, Panel):
         row.prop(strip, "mute", toggle=True, icon_only=True, emboss=False)
 
 
-class SEQUENCER_PT_adjust_transform_offset(SequencerButtonsPanel, Panel):
-    bl_label = "Offset"
-    bl_parent_id = "SEQUENCER_PT_adjust_transform"
-    bl_options = {'DEFAULT_CLOSED'}
-    bl_category = "Strip"
-
-    @classmethod
-    def poll(cls, context):
-        strip = act_strip(context)
-        return strip.type != 'SOUND'
-
-    def draw_header(self, context):
-        strip = act_strip(context)
-        self.layout.prop(strip, "use_translation", text="")
-
-    def draw(self, context):
-        strip = act_strip(context)
-        layout = self.layout
-        layout.use_property_split = True
-
-        layout.active = strip.use_translation and (not strip.mute)
-
-        col = layout.column(align=True)
-        col.prop(strip.transform, "offset_x", text="Position X")
-        col.prop(strip.transform, "offset_y", text="Y")
-
-
-class SEQUENCER_PT_adjust_transform_crop(SequencerButtonsPanel, Panel):
+class SEQUENCER_PT_adjust_crop(SequencerButtonsPanel, Panel):
     bl_label = "Crop"
-    bl_parent_id = "SEQUENCER_PT_adjust_transform"
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Strip"
 
     @classmethod
     def poll(cls, context):
+        if not cls.has_sequencer(context):
+            return False
+
+        strip = act_strip(context)
+        if not strip:
+            return False
+
         strip = act_strip(context)
         return strip.type != 'SOUND'
-
-    def draw_header(self, context):
-        strip = act_strip(context)
-        self.layout.prop(strip, "use_crop", text="")
 
     def draw(self, context):
         strip = act_strip(context)
         layout = self.layout
         layout.use_property_split = True
-
-        layout.active = strip.use_crop and (not strip.mute)
+        layout.active = not strip.mute
 
         col = layout.column(align=True)
         col.prop(strip.crop, "min_x")
@@ -1590,21 +1564,19 @@ class SEQUENCER_PT_time(SequencerButtonsPanel, Panel):
                 split.label(text="%d-%d (%d)" % (sta, end, end - sta + 1), translate=False)
 
 
-class SEQUENCER_PT_adjust(SequencerButtonsPanel, Panel):
-    bl_label = "Adjust"
-    bl_category = "Strip"
-
-    def draw(self, context):
-        pass
-
-
 class SEQUENCER_PT_adjust_sound(SequencerButtonsPanel, Panel):
     bl_label = "Sound"
-    bl_parent_id = "SEQUENCER_PT_adjust"
     bl_category = "Strip"
 
     @classmethod
     def poll(cls, context):
+        if not cls.has_sequencer(context):
+            return False
+
+        strip = act_strip(context)
+        if not strip:
+            return False
+
         strip = act_strip(context)
         return strip.type == 'SOUND'
 
@@ -1636,11 +1608,17 @@ class SEQUENCER_PT_adjust_sound(SequencerButtonsPanel, Panel):
 
 class SEQUENCER_PT_adjust_comp(SequencerButtonsPanel, Panel):
     bl_label = "Compositing"
-    bl_parent_id = "SEQUENCER_PT_adjust"
     bl_category = "Strip"
 
     @classmethod
     def poll(cls, context):
+        if not cls.has_sequencer(context):
+            return False
+
+        strip = act_strip(context)
+        if not strip:
+            return False
+
         strip = act_strip(context)
         return strip.type != 'SOUND'
 
@@ -1659,8 +1637,8 @@ class SEQUENCER_PT_adjust_comp(SequencerButtonsPanel, Panel):
 
 class SEQUENCER_PT_adjust_transform(SequencerButtonsPanel, Panel):
     bl_label = "Transform"
-    bl_parent_id = "SEQUENCER_PT_adjust"
     bl_category = "Strip"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -1671,22 +1649,25 @@ class SEQUENCER_PT_adjust_transform(SequencerButtonsPanel, Panel):
         if not strip:
             return False
 
-        return strip.type in {
-            'MOVIE', 'IMAGE', 'SCENE', 'MOVIECLIP', 'MASK',
-            'META', 'ADD', 'SUBTRACT', 'ALPHA_OVER', 'TEXT',
-            'ALPHA_UNDER', 'CROSS', 'GAMMA_CROSS', 'MULTIPLY',
-            'OVER_DROP', 'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
-            'MULTICAM', 'SPEED', 'ADJUSTMENT', 'COLORMIX'
-        }
+        strip = act_strip(context)
+        return strip.type != 'SOUND'
 
     def draw(self, context):
-        layout = self.layout
         strip = act_strip(context)
-
+        layout = self.layout
         layout.use_property_split = True
-        layout.use_property_decorate = False
-
         layout.active = not strip.mute
+
+        col = layout.column(align=True)
+        col.prop(strip.transform, "offset_x", text="Position X")
+        col.prop(strip.transform, "offset_y", text="Y")
+
+        col = layout.column(align=True)
+        col.prop(strip.transform, "scale_x", text="Scale X")
+        col.prop(strip.transform, "scale_y", text="Y")
+
+        col = layout.column(align=True)
+        col.prop(strip.transform, "rotation", text="Rotation")
 
         row = layout.row(heading="Mirror")
         sub = row.row(align=True)
@@ -1696,7 +1677,6 @@ class SEQUENCER_PT_adjust_transform(SequencerButtonsPanel, Panel):
 
 class SEQUENCER_PT_adjust_video(SequencerButtonsPanel, Panel):
     bl_label = "Video"
-    bl_parent_id = "SEQUENCER_PT_adjust"
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Strip"
 
@@ -1745,7 +1725,6 @@ class SEQUENCER_PT_adjust_video(SequencerButtonsPanel, Panel):
 
 class SEQUENCER_PT_adjust_color(SequencerButtonsPanel, Panel):
     bl_label = "Color"
-    bl_parent_id = "SEQUENCER_PT_adjust"
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Strip"
 
@@ -2234,11 +2213,9 @@ classes = (
     SEQUENCER_PT_effect_text_style,
     SEQUENCER_PT_effect_text_layout,
 
-    SEQUENCER_PT_adjust,
     SEQUENCER_PT_adjust_comp,
     SEQUENCER_PT_adjust_transform,
-    SEQUENCER_PT_adjust_transform_offset,
-    SEQUENCER_PT_adjust_transform_crop,
+    SEQUENCER_PT_adjust_crop,
     SEQUENCER_PT_adjust_video,
     SEQUENCER_PT_adjust_color,
     SEQUENCER_PT_adjust_sound,
