@@ -217,9 +217,10 @@ static void rna_userdef_version_get(PointerRNA *ptr, int *value)
   value[2] = userdef->subversionfile;
 }
 
+/** Mark the preferences as being changed so they are saved on exit. */
 #  define USERDEF_TAG_DIRTY rna_userdef_is_dirty_update_impl()
 
-/* Use single function so we can more easily breakpoint it. */
+/** Use single function so we can more easily break-point it. */
 void rna_userdef_is_dirty_update_impl(void)
 {
   /* We can't use 'ptr->data' because this update function
@@ -4389,7 +4390,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 
   static const EnumPropertyItem line_width[] = {
       {-1, "THIN", 0, "Thin", "Thinner lines than the default"},
-      {0, "AUTO", 0, "Auto", "Automatic line width based on UI scale"},
+      {0, "AUTO", 0, "Default", "Automatic line width based on UI scale"},
       {1, "THICK", 0, "Thick", "Thicker lines than the default"},
       {0, NULL, 0, NULL, NULL},
   };
@@ -4403,7 +4404,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
       {USER_RENDER_DISPLAY_SCREEN,
        "SCREEN",
        0,
-       "Full Screen",
+       "Maximized Area",
        "Images are rendered in a maximized Image Editor"},
       {USER_RENDER_DISPLAY_AREA,
        "AREA",
@@ -4421,7 +4422,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
       {USER_TEMP_SPACE_DISPLAY_FULLSCREEN,
        "SCREEN", /* Could be FULLSCREEN, but keeping it consistent with render_display_types */
        0,
-       "Full Screen",
+       "Maximized Area",
        "Open the temporary editor in a maximized screen"},
       {USER_TEMP_SPACE_DISPLAY_WINDOW,
        "WINDOW",
@@ -4453,8 +4454,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "UI Line Width",
-      "Changes the thickness of widget outlines, lines and points in the interface, "
-      "for high DPI displays");
+      "Changes the thickness of widget outlines, lines and dots in the interface");
   RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
 
   /* display */
@@ -5784,10 +5784,8 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "tablet_api", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, tablet_api);
-  RNA_def_property_ui_text(prop,
-                           "Tablet API",
-                           "Select the tablet API to use for pressure sensitivity (restart "
-                           "Blender for changes to take effect)");
+  RNA_def_property_ui_text(
+      prop, "Tablet API", "Select the tablet API to use for pressure sensitivity");
   RNA_def_property_update(prop, 0, "rna_userdef_tablet_api_update");
 
 #  ifdef WITH_INPUT_NDOF

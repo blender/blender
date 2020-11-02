@@ -96,10 +96,11 @@
 #include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
-#include "BKE_sequencer.h"
 
 #include "ED_anim_api.h"
 #include "ED_markers.h"
+
+#include "SEQ_sequencer.h"
 
 #include "UI_resources.h" /* for TH_KEYFRAME_SCALE lookup */
 

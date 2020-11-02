@@ -112,6 +112,7 @@
 /* only for BLI_array_store_is_valid */
 #include "BLI_ghash.h"
 
+/* -------------------------------------------------------------------- */
 /** \name Defines
  *
  * Some of the logic for merging is quite involved,
@@ -206,6 +207,7 @@
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Internal Structs
  * \{ */
 
@@ -313,6 +315,7 @@ typedef struct BTableRef {
 
 static size_t bchunk_list_size(const BChunkList *chunk_list);
 
+/* -------------------------------------------------------------------- */
 /** \name Internal BChunk API
  * \{ */
 
@@ -360,6 +363,7 @@ static bool bchunk_data_compare(const BChunk *chunk,
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Internal BChunkList API
  * \{ */
 
@@ -732,10 +736,11 @@ static void bchunk_list_fill_from_array(const BArrayInfo *info,
 
 /** \} */
 
-/* ---------------------------------------------------------------------------
+/*
  * Internal Table Lookup Functions
  */
 
+/* -------------------------------------------------------------------- */
 /** \name Internal Hashing/De-Duplication API
  *
  * Only used by #bchunk_list_from_data_merge
@@ -1005,6 +1010,7 @@ static const BChunkRef *table_lookup(const BArrayInfo *info,
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Main Data De-Duplication Function
  *
  * \{ */
@@ -1390,6 +1396,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Main Array Storage API
  * \{ */
 
@@ -1496,6 +1503,7 @@ void BLI_array_store_clear(BArrayStore *bs)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name BArrayStore Statistics
  * \{ */
 
@@ -1530,6 +1538,7 @@ size_t BLI_array_store_calc_size_compacted_get(const BArrayStore *bs)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name BArrayState Access
  * \{ */
 
@@ -1653,6 +1662,7 @@ void *BLI_array_store_state_data_get_alloc(BArrayState *state, size_t *r_data_le
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Debugging API (for testing).
  * \{ */
 

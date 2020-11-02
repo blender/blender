@@ -623,6 +623,18 @@ void BLI_rctf_recenter(rctf *rect, float x, float y)
 }
 
 /* change width & height around the central location */
+void BLI_rcti_resize_x(rcti *rect, int x)
+{
+  rect->xmin = BLI_rcti_cent_x(rect) - (x / 2);
+  rect->xmax = rect->xmin + x;
+}
+
+void BLI_rcti_resize_y(rcti *rect, int y)
+{
+  rect->ymin = BLI_rcti_cent_y(rect) - (y / 2);
+  rect->ymax = rect->ymin + y;
+}
+
 void BLI_rcti_resize(rcti *rect, int x, int y)
 {
   rect->xmin = BLI_rcti_cent_x(rect) - (x / 2);
@@ -637,6 +649,18 @@ void BLI_rcti_pad(rcti *rect, int pad_x, int pad_y)
   rect->ymin -= pad_y;
   rect->xmax += pad_x;
   rect->ymax += pad_y;
+}
+
+void BLI_rctf_resize_x(rctf *rect, float x)
+{
+  rect->xmin = BLI_rctf_cent_x(rect) - (x * 0.5f);
+  rect->xmax = rect->xmin + x;
+}
+
+void BLI_rctf_resize_y(rctf *rect, float y)
+{
+  rect->ymin = BLI_rctf_cent_y(rect) - (y * 0.5f);
+  rect->ymax = rect->ymin + y;
 }
 
 void BLI_rctf_resize(rctf *rect, float x, float y)
@@ -1061,9 +1085,9 @@ void print_rcti(const char *str, const rcti *rect)
          BLI_rcti_size_y(rect));
 }
 
-/* -------------------------------------------------------------------- */
 /* Comprehensive math (float only) */
 
+/* -------------------------------------------------------------------- */
 /** \name Rect math functions
  * \{ */
 

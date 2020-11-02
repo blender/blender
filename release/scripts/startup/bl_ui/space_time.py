@@ -241,8 +241,8 @@ class TIME_PT_playback(TimelinePanelButtons, Panel):
         screen = context.screen
         scene = context.scene
 
-        col = layout.column()
-        col.prop(scene, "sync_mode", text="Audio")
+        layout.prop(scene, "sync_mode", text="Sync")
+        col = layout.column(heading="Audio")
         col.prop(scene, "use_audio_scrub", text="Scrubbing")
         col.prop(scene, "use_audio", text="Mute")
 

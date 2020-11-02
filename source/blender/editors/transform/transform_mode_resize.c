@@ -39,9 +39,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Resize) */
-
-/** \name Transform Resize
+/** \name Transform (Resize)
  * \{ */
 
 static float ResizeBetween(TransInfo *t, const float p1[3], const float p2[3])

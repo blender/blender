@@ -35,8 +35,10 @@
 
 #include "BKE_context.h"
 #include "BKE_duplilist.h"
+#include "BKE_global.h"
 #include "BKE_gpencil.h"
 #include "BKE_image.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_object.h"
@@ -45,11 +47,15 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -61,33 +67,49 @@
 #include "gpencil_trace.h"
 #include "potracelib.h"
 
+typedef struct TraceJob {
+  /* from wmJob */
+  struct Object *owner;
+  short *stop, *do_update;
+  float *progress;
+
+  bContext *C;
+  wmWindowManager *wm;
+  Main *bmain;
+  Scene *scene;
+  View3D *v3d;
+  Base *base_active;
+  Object *ob_active;
+  Image *image;
+  Object *ob_gpencil;
+  bGPdata *gpd;
+  bGPDlayer *gpl;
+
+  bool was_ob_created;
+
+  int32_t frame_target;
+  float threshold;
+  float scale;
+  float sample;
+  int32_t resolution;
+  int32_t thickness;
+  int32_t turnpolicy;
+  int32_t mode;
+
+  bool success;
+  bool was_canceled;
+} TraceJob;
+
 /**
  * Trace a image.
- * \param C: Context
- * \param op: Operator
- * \param ob: Grease pencil object, can be NULL
- * \param ima: Image
- * \param gpf: Destination frame
+ * \param ibuf: Image buffer.
+ * \param gpf: Destination frame.
  */
-static bool gpencil_trace_image(
-    bContext *C, wmOperator *op, Object *ob, Image *ima, bGPDframe *gpf)
+static bool gpencil_trace_image(TraceJob *trace_job, ImBuf *ibuf, bGPDframe *gpf)
 {
-  Main *bmain = CTX_data_main(C);
-
   potrace_bitmap_t *bm = NULL;
   potrace_param_t *param = NULL;
   potrace_state_t *st = NULL;
-
-  const float threshold = RNA_float_get(op->ptr, "threshold");
-  const float scale = RNA_float_get(op->ptr, "scale");
-  const float sample = RNA_float_get(op->ptr, "sample");
-  const int32_t resolution = RNA_int_get(op->ptr, "resolution");
-  const int32_t thickness = RNA_int_get(op->ptr, "thickness");
-  const int32_t turnpolicy = RNA_enum_get(op->ptr, "turnpolicy");
-
-  ImBuf *ibuf;
-  void *lock;
-  ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 
   /* Create an empty BW bitmap. */
   bm = ED_gpencil_trace_bitmap_new(ibuf->x, ibuf->y);
@@ -101,10 +123,10 @@ static bool gpencil_trace_image(
     return false;
   }
   param->turdsize = 0;
-  param->turnpolicy = turnpolicy;
+  param->turnpolicy = trace_job->turnpolicy;
 
   /* Load BW bitmap with image. */
-  ED_gpencil_trace_image_to_bitmap(ibuf, bm, threshold);
+  ED_gpencil_trace_image_to_bitmap(ibuf, bm, trace_job->threshold);
 
   /* Trace the bitmap. */
   st = potrace_trace(param, bm);
@@ -128,22 +150,25 @@ static bool gpencil_trace_image(
    * Really, there isn't documented in Potrace about how the scale is calculated,
    * but after doing a lot of tests, it looks is using a VGA resolution (640) as a base.
    * Maybe there are others ways to get the right scale conversion, but this solution works. */
-  float scale_potrace = scale * (640.0f / (float)ibuf->x) * ((float)ibuf->x / (float)ibuf->y);
+  float scale_potrace = trace_job->scale * (640.0f / (float)ibuf->x) *
+                        ((float)ibuf->x / (float)ibuf->y);
   if (ibuf->x > ibuf->y) {
     scale_potrace *= (float)ibuf->y / (float)ibuf->x;
   }
 
-  ED_gpencil_trace_data_to_strokes(
-      bmain, st, ob, gpf, offset, scale_potrace, sample, resolution, thickness);
+  ED_gpencil_trace_data_to_strokes(trace_job->bmain,
+                                   st,
+                                   trace_job->ob_gpencil,
+                                   gpf,
+                                   offset,
+                                   scale_potrace,
+                                   trace_job->sample,
+                                   trace_job->resolution,
+                                   trace_job->thickness);
 
   /* Free memory. */
   potrace_state_free(st);
   potrace_param_free(param);
-
-  /* Release ibuf. */
-  if (ibuf) {
-    BKE_image_release_ibuf(ima, ibuf, lock);
-  }
 
   return true;
 }
@@ -157,66 +182,190 @@ static bool gpencil_trace_image_poll(bContext *C)
     return false;
   }
 
+  Image *image = (Image *)ob->data;
+  if (!ELEM(image->source, IMA_SRC_FILE, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
+    CTX_wm_operator_poll_msg_set(C, "No valid image format selected");
+    return false;
+  }
+
   return true;
+}
+
+static void trace_initialize_job_data(TraceJob *trace_job)
+{
+  /* Create a new grease pencil object. */
+  if (trace_job->ob_gpencil == NULL) {
+    ushort local_view_bits = (trace_job->v3d && trace_job->v3d->localvd) ?
+                                 trace_job->v3d->local_view_uuid :
+                                 0;
+    trace_job->ob_gpencil = ED_gpencil_add_object(
+        trace_job->C, trace_job->ob_active->loc, local_view_bits);
+    /* Apply image rotation. */
+    copy_v3_v3(trace_job->ob_gpencil->rot, trace_job->ob_active->rot);
+    /* Grease pencil is rotated 90 degrees in X axis by default. */
+    trace_job->ob_gpencil->rot[0] -= DEG2RADF(90.0f);
+    trace_job->was_ob_created = true;
+    /* Apply image Scale. */
+    copy_v3_v3(trace_job->ob_gpencil->scale, trace_job->ob_active->scale);
+    /* The default display size of the image is 5.0 and this is used as scale = 1.0. */
+    mul_v3_fl(trace_job->ob_gpencil->scale, trace_job->ob_active->empty_drawsize / 5.0f);
+  }
+
+  /* Create Layer. */
+  trace_job->gpd = (bGPdata *)trace_job->ob_gpencil->data;
+  trace_job->gpl = BKE_gpencil_layer_active_get(trace_job->gpd);
+  if (trace_job->gpl == NULL) {
+    trace_job->gpl = BKE_gpencil_layer_addnew(trace_job->gpd, DATA_("Trace"), true);
+  }
+}
+
+static void trace_start_job(void *customdata, short *stop, short *do_update, float *progress)
+{
+  TraceJob *trace_job = customdata;
+
+  trace_job->stop = stop;
+  trace_job->do_update = do_update;
+  trace_job->progress = progress;
+  trace_job->was_canceled = false;
+
+  G.is_break = false;
+
+  /* Single Image. */
+
+  if ((trace_job->image->source == IMA_SRC_FILE) ||
+      (trace_job->mode == GPENCIL_TRACE_MODE_SINGLE)) {
+    void *lock;
+    ImBuf *ibuf = BKE_image_acquire_ibuf(trace_job->image, NULL, &lock);
+    if (ibuf) {
+      /* Create frame. */
+      bGPDframe *gpf = BKE_gpencil_layer_frame_get(
+          trace_job->gpl, trace_job->frame_target, GP_GETFRAME_ADD_NEW);
+      gpencil_trace_image(trace_job, ibuf, gpf);
+      BKE_image_release_ibuf(trace_job->image, ibuf, lock);
+      *(trace_job->progress) = 1.0f;
+    }
+  }
+  /* Image sequence. */
+  else if (trace_job->image->type == IMA_TYPE_IMAGE) {
+    ImageUser *iuser = trace_job->ob_active->iuser;
+    for (int i = 0; i < iuser->frames; i++) {
+      if (G.is_break) {
+        trace_job->was_canceled = true;
+        break;
+      }
+
+      *(trace_job->progress) = (float)i / (float)iuser->frames;
+      *do_update = true;
+
+      iuser->framenr = i + 1;
+
+      void *lock;
+      ImBuf *ibuf = BKE_image_acquire_ibuf(trace_job->image, iuser, &lock);
+      if (ibuf) {
+        /* Create frame. */
+        bGPDframe *gpf = BKE_gpencil_layer_frame_get(
+            trace_job->gpl, trace_job->frame_target + i, GP_GETFRAME_ADD_NEW);
+        gpencil_trace_image(trace_job, ibuf, gpf);
+
+        BKE_image_release_ibuf(trace_job->image, ibuf, lock);
+      }
+    }
+  }
+
+  trace_job->success = !trace_job->was_canceled;
+  *do_update = true;
+  *stop = 0;
+}
+
+static void trace_end_job(void *customdata)
+{
+  TraceJob *trace_job = customdata;
+
+  /* If canceled, delete all previously created object and data-block. */
+  if ((trace_job->was_canceled) && (trace_job->was_ob_created) && (trace_job->ob_gpencil)) {
+    bGPdata *gpd = trace_job->ob_gpencil->data;
+    BKE_id_delete(trace_job->bmain, &trace_job->ob_gpencil->id);
+    BKE_id_delete(trace_job->bmain, &gpd->id);
+  }
+
+  if (trace_job->success) {
+    DEG_relations_tag_update(trace_job->bmain);
+
+    DEG_id_tag_update(&trace_job->scene->id, ID_RECALC_SELECT);
+    DEG_id_tag_update(&trace_job->gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+
+    WM_main_add_notifier(NC_OBJECT | NA_ADDED, NULL);
+    WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, trace_job->scene);
+  }
+}
+
+static void trace_free_job(void *customdata)
+{
+  TraceJob *tj = customdata;
+  MEM_freeN(tj);
 }
 
 static int gpencil_trace_image_exec(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
+  TraceJob *job = MEM_mallocN(sizeof(TraceJob), "TraceJob");
+  job->C = C;
+  job->owner = CTX_data_active_object(C);
+  job->wm = CTX_wm_manager(C);
+  job->bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  View3D *v3d = CTX_wm_view3d(C);
-  Base *base_active = CTX_data_active_base(C);
-  Object *ob_active = base_active->object;
-  Image *image = (Image *)ob_active->data;
-  bool ob_created = false;
+  job->scene = scene;
+  job->v3d = CTX_wm_view3d(C);
+  job->base_active = CTX_data_active_base(C);
+  job->ob_active = job->base_active->object;
+  job->image = (Image *)job->ob_active->data;
+  job->frame_target = CFRA;
 
-  const int32_t frame_target = CFRA;
-  Object *ob_gpencil = (Object *)RNA_pointer_get(op->ptr, "target").data;
+  job->ob_gpencil = (Object *)RNA_pointer_get(op->ptr, "target").data;
+  job->was_ob_created = false;
 
-  /* Create a new grease pencil object. */
-  if (ob_gpencil == NULL) {
-    ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
-    ob_gpencil = ED_gpencil_add_object(C, ob_active->loc, local_view_bits);
-    /* Apply image rotation. */
-    copy_v3_v3(ob_gpencil->rot, ob_active->rot);
-    /* Grease pencil is rotated 90 degrees in X axis by default. */
-    ob_gpencil->rot[0] -= DEG2RADF(90.0f);
-    ob_created = true;
-    /* Apply image Scale. */
-    copy_v3_v3(ob_gpencil->scale, ob_active->scale);
-  }
+  job->threshold = RNA_float_get(op->ptr, "threshold");
+  job->scale = RNA_float_get(op->ptr, "scale");
+  job->sample = RNA_float_get(op->ptr, "sample");
+  job->resolution = RNA_int_get(op->ptr, "resolution");
+  job->thickness = RNA_int_get(op->ptr, "thickness");
+  job->turnpolicy = RNA_enum_get(op->ptr, "turnpolicy");
+  job->mode = RNA_enum_get(op->ptr, "mode");
 
-  if ((ob_gpencil == NULL) || (ob_gpencil->type != OB_GPENCIL)) {
-    BKE_report(op->reports, RPT_ERROR, "Target grease pencil object not valid");
-    return OPERATOR_CANCELLED;
-  }
-
-  /* Create Layer. */
-  bGPdata *gpd = (bGPdata *)ob_gpencil->data;
-  bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
-  if (gpl == NULL) {
-    gpl = BKE_gpencil_layer_addnew(gpd, DATA_("Trace"), true);
-  }
-
-  /* Create frame. */
-  bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, frame_target, GP_GETFRAME_ADD_NEW);
-  gpencil_trace_image(C, op, ob_gpencil, image, gpf);
+  trace_initialize_job_data(job);
 
   /* Back to active base. */
-  ED_object_base_activate(C, base_active);
+  ED_object_base_activate(job->C, job->base_active);
 
-  /* notifiers */
-  if (ob_created) {
-    DEG_relations_tag_update(bmain);
+  if (job->image->source == IMA_SRC_FILE) {
+    short stop = 0, do_update = true;
+    float progress;
+    trace_start_job(job, &stop, &do_update, &progress);
+    trace_end_job(job);
+    trace_free_job(job);
+  }
+  else {
+    wmJob *wm_job = WM_jobs_get(job->wm,
+                                CTX_wm_window(C),
+                                job->scene,
+                                "Trace Image",
+                                WM_JOB_PROGRESS,
+                                WM_JOB_TYPE_TRACE_IMAGE);
+
+    WM_jobs_customdata_set(wm_job, job, trace_free_job);
+    WM_jobs_timer(wm_job, 0.1, NC_GEOM | ND_DATA, NC_GEOM | ND_DATA);
+    WM_jobs_callbacks(wm_job, trace_start_job, NULL, NULL, trace_end_job);
+
+    WM_jobs_start(CTX_wm_manager(C), wm_job);
   }
 
-  DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
-  DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
-
-  WM_event_add_notifier(C, NC_OBJECT | NA_ADDED, NULL);
-  WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
-
   return OPERATOR_FINISHED;
+}
+
+static int gpencil_trace_image_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+  /* Show popup dialog to allow editing. */
+  /* FIXME: hard-coded dimensions here are just arbitrary. */
+  return WM_operator_props_dialog_popup(C, op, 250);
 }
 
 static bool rna_GPencil_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
@@ -257,12 +406,19 @@ void GPENCIL_OT_trace_image(wmOperatorType *ot)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem trace_modes[] = {
+      {GPENCIL_TRACE_MODE_SINGLE, "SINGLE", 0, "Single", "Trace the current frame of the image"},
+      {GPENCIL_TRACE_MODE_SEQUENCE, "SEQUENCE", 0, "Sequence", "Trace full sequence"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   /* identifiers */
   ot->name = "Trace Image to Grease Pencil";
   ot->idname = "GPENCIL_OT_trace_image";
   ot->description = "Extract Grease Pencil strokes from image";
 
   /* callbacks */
+  ot->invoke = gpencil_trace_image_invoke;
   ot->exec = gpencil_trace_image_exec;
   ot->poll = gpencil_trace_image_poll;
 
@@ -270,8 +426,15 @@ void GPENCIL_OT_trace_image(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  prop = RNA_def_pointer_runtime(ot->srna, "target", &RNA_Object, "Target", "");
+  prop = RNA_def_pointer_runtime(
+      ot->srna,
+      "target",
+      &RNA_Object,
+      "Target Object",
+      "Target grease pencil object name. Leave empty to create a new object");
   RNA_def_property_poll_runtime(prop, rna_GPencil_object_poll);
+
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   RNA_def_int(ot->srna, "thickness", 10, 1, 1000, "Thickness", "", 1, 1000);
   RNA_def_int(
@@ -301,7 +464,7 @@ void GPENCIL_OT_trace_image(wmOperatorType *ot)
                        0.0f,
                        1.0f,
                        "Color Threshold",
-                       "Determine what is considered white and what black",
+                       "Determine the lightness threshold above which strokes are generated",
                        0.0f,
                        1.0f);
   RNA_def_enum(ot->srna,
@@ -310,4 +473,10 @@ void GPENCIL_OT_trace_image(wmOperatorType *ot)
                POTRACE_TURNPOLICY_MINORITY,
                "Turn Policy",
                "Determines how to resolve ambiguities during decomposition of bitmaps into paths");
+  RNA_def_enum(ot->srna,
+               "mode",
+               trace_modes,
+               GPENCIL_TRACE_MODE_SINGLE,
+               "Mode",
+               "Determines if trace simple image or full sequence");
 }

@@ -77,7 +77,7 @@ class WM_OT_previews_batch_generate(Operator):
     )
     use_intern_data: BoolProperty(
         default=True,
-        name="Mat/Tex/...",
+        name="Materials & Textures",
         description="Generate 'internal' previews (materials, textures, images, etc.)",
     )
 
@@ -187,7 +187,7 @@ class WM_OT_previews_batch_clear(Operator):
     )
     use_intern_data: BoolProperty(
         default=True,
-        name="Mat/Tex/...",
+        name="Materials & Textures",
         description="Clear 'internal' previews (materials, textures, images, etc.)",
     )
 

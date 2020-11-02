@@ -1760,13 +1760,19 @@ static bool skin_output_branch_hulls(
   return result;
 }
 
+typedef enum eSkinErrorFlag {
+  SKIN_ERROR_NO_VALID_ROOT = (1 << 0),
+  SKIN_ERROR_HULL = (1 << 1),
+} eSkinErrorFlag;
+
 static BMesh *build_skin(SkinNode *skin_nodes,
                          int totvert,
                          const MeshElemMap *emap,
                          const MEdge *medge,
                          int totedge,
                          const MDeformVert *input_dvert,
-                         SkinModifierData *smd)
+                         SkinModifierData *smd,
+                         eSkinErrorFlag *r_error)
 {
   SkinOutput so;
   int v;
@@ -1802,7 +1808,7 @@ static BMesh *build_skin(SkinNode *skin_nodes,
   skin_update_merged_vertices(skin_nodes, totvert);
 
   if (!skin_output_branch_hulls(&so, skin_nodes, totvert, emap, medge)) {
-    BKE_modifier_set_error(&smd->modifier, "Hull error");
+    *r_error |= SKIN_ERROR_HULL;
   }
 
   /* Merge triangles here in the hope of providing better target
@@ -1848,7 +1854,7 @@ static void skin_set_orig_indices(Mesh *mesh)
  * 2) Generate node frames
  * 3) Output vertices and polygons from frames, connections, and hulls
  */
-static Mesh *base_skin(Mesh *origmesh, SkinModifierData *smd)
+static Mesh *base_skin(Mesh *origmesh, SkinModifierData *smd, eSkinErrorFlag *r_error)
 {
   Mesh *result;
   MVertSkin *nodes;
@@ -1878,16 +1884,14 @@ static Mesh *base_skin(Mesh *origmesh, SkinModifierData *smd)
   MEM_freeN(emat);
   emat = NULL;
 
-  bm = build_skin(skin_nodes, totvert, emap, medge, totedge, dvert, smd);
+  bm = build_skin(skin_nodes, totvert, emap, medge, totedge, dvert, smd, r_error);
 
   MEM_freeN(skin_nodes);
   MEM_freeN(emap);
   MEM_freeN(emapmem);
 
   if (!has_valid_root) {
-    BKE_modifier_set_error(
-        &smd->modifier,
-        "No valid root vertex found (you need one per mesh island you want to skin)");
+    *r_error |= SKIN_ERROR_NO_VALID_ROOT;
   }
 
   if (!bm) {
@@ -1904,7 +1908,7 @@ static Mesh *base_skin(Mesh *origmesh, SkinModifierData *smd)
   return result;
 }
 
-static Mesh *final_skin(SkinModifierData *smd, Mesh *mesh)
+static Mesh *final_skin(SkinModifierData *smd, Mesh *mesh, eSkinErrorFlag *r_error)
 {
   Mesh *result;
 
@@ -1914,7 +1918,7 @@ static Mesh *final_skin(SkinModifierData *smd, Mesh *mesh)
   }
 
   mesh = subdivide_base(mesh);
-  result = base_skin(mesh, smd);
+  result = base_skin(mesh, smd, r_error);
 
   BKE_id_free(NULL, mesh);
   return result;
@@ -1934,11 +1938,25 @@ static void initData(ModifierData *md)
   md->mode |= eModifierMode_Editmode;
 }
 
-static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx), Mesh *mesh)
+static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  Mesh *result;
+  eSkinErrorFlag error = 0;
+  Mesh *result = final_skin((SkinModifierData *)md, mesh, &error);
 
-  if (!(result = final_skin((SkinModifierData *)md, mesh))) {
+  if (error & SKIN_ERROR_NO_VALID_ROOT) {
+    error &= ~SKIN_ERROR_NO_VALID_ROOT;
+    BKE_modifier_set_error(
+        ctx->object,
+        md,
+        "No valid root vertex found (you need one per mesh island you want to skin)");
+  }
+  if (error & SKIN_ERROR_HULL) {
+    error &= ~SKIN_ERROR_HULL;
+    BKE_modifier_set_error(ctx->object, md, "Hull error");
+  }
+  BLI_assert(error == 0);
+
+  if (result == NULL) {
     return mesh;
   }
   return result;

@@ -122,7 +122,7 @@ static void APIENTRY debug_callback(GLenum UNUSED(source),
     }
 
     if (((LOG.type->flag & CLG_FLAG_USE) && (LOG.type->level >= clog_severity))) {
-      CLG_logf(LOG.type, clog_severity, debug_groups, "", message);
+      CLG_logf(LOG.type, clog_severity, debug_groups, "", "%s", message);
       if (severity == GL_DEBUG_SEVERITY_HIGH) {
         /* Focus on error message. */
         if (use_color) {

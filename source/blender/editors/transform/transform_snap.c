@@ -38,9 +38,10 @@
 #include "BKE_layer.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
-#include "BKE_sequencer.h"
 
 #include "RNA_access.h"
+
+#include "SEQ_sequencer.h"
 
 #include "WM_types.h"
 

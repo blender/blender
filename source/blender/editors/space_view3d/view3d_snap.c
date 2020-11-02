@@ -73,14 +73,14 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
   ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
   Object *obact = CTX_data_active_object(C);
   Scene *scene = CTX_data_scene(C);
-  RegionView3D *rv3d = CTX_wm_region_data(C);
+  ARegion *region = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);
   TransVertStore tvs = {NULL};
   TransVert *tv;
   float gridf, imat[3][3], bmat[3][3], vec[3];
   int a;
 
-  gridf = ED_view3d_grid_view_scale(scene, v3d, rv3d, NULL);
+  gridf = ED_view3d_grid_view_scale(scene, v3d, region, NULL);
 
   if (OBEDIT_FROM_OBACT(obact)) {
     ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -657,11 +657,11 @@ void VIEW3D_OT_snap_selected_to_active(wmOperatorType *ot)
 static int snap_curs_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
-  RegionView3D *rv3d = CTX_wm_region_data(C);
+  ARegion *region = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);
   float gridf, *curs;
 
-  gridf = ED_view3d_grid_view_scale(scene, v3d, rv3d, NULL);
+  gridf = ED_view3d_grid_view_scale(scene, v3d, region, NULL);
   curs = scene->cursor.location;
 
   curs[0] = gridf * floorf(0.5f + curs[0] / gridf);

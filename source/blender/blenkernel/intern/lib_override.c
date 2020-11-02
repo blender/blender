@@ -1230,13 +1230,16 @@ bool BKE_lib_override_library_status_check_local(Main *bmain, ID *local)
   BLI_assert(GS(local->name) == GS(reference->name));
 
   if (GS(local->name) == ID_OB) {
-    /* Our beloved pose's bone cross-data pointers... Usually, depsgraph evaluation would ensure
-     * this is valid, but in some cases (like hidden collections etc.) this won't be the case, so
-     * we need to take care of this ourselves. */
+    /* Our beloved pose's bone cross-data pointers.. Usually, depsgraph evaluation would
+     * ensure this is valid, but in some situations (like hidden collections etc.) this won't
+     * be the case, so we need to take care of this ourselves. */
     Object *ob_local = (Object *)local;
-    if (ob_local->data != NULL && ob_local->type == OB_ARMATURE && ob_local->pose != NULL &&
-        ob_local->pose->flag & POSE_RECALC) {
-      BKE_pose_rebuild(bmain, ob_local, ob_local->data, true);
+    if (ob_local->type == OB_ARMATURE) {
+      Object *ob_reference = (Object *)local->override_library->reference;
+      BLI_assert(ob_local->data != NULL);
+      BLI_assert(ob_reference->data != NULL);
+      BKE_pose_ensure(bmain, ob_local, ob_local->data, true);
+      BKE_pose_ensure(bmain, ob_reference, ob_reference->data, true);
     }
   }
 
@@ -1296,13 +1299,16 @@ bool BKE_lib_override_library_status_check_reference(Main *bmain, ID *local)
   }
 
   if (GS(local->name) == ID_OB) {
-    /* Our beloved pose's bone cross-data pointers... Usually, depsgraph evaluation would ensure
-     * this is valid, but in some cases (like hidden collections etc.) this won't be the case, so
-     * we need to take care of this ourselves. */
+    /* Our beloved pose's bone cross-data pointers.. Usually, depsgraph evaluation would
+     * ensure this is valid, but in some situations (like hidden collections etc.) this won't
+     * be the case, so we need to take care of this ourselves. */
     Object *ob_local = (Object *)local;
-    if (ob_local->data != NULL && ob_local->type == OB_ARMATURE && ob_local->pose != NULL &&
-        ob_local->pose->flag & POSE_RECALC) {
-      BKE_pose_rebuild(bmain, ob_local, ob_local->data, true);
+    if (ob_local->type == OB_ARMATURE) {
+      Object *ob_reference = (Object *)local->override_library->reference;
+      BLI_assert(ob_local->data != NULL);
+      BLI_assert(ob_reference->data != NULL);
+      BKE_pose_ensure(bmain, ob_local, ob_local->data, true);
+      BKE_pose_ensure(bmain, ob_reference, ob_reference->data, true);
     }
   }
 
@@ -1353,13 +1359,16 @@ bool BKE_lib_override_library_operations_create(Main *bmain, ID *local)
     }
 
     if (GS(local->name) == ID_OB) {
-      /* Our beloved pose's bone cross-data pointers... Usually, depsgraph evaluation would
+      /* Our beloved pose's bone cross-data pointers. Usually, depsgraph evaluation would
        * ensure this is valid, but in some situations (like hidden collections etc.) this won't
        * be the case, so we need to take care of this ourselves. */
       Object *ob_local = (Object *)local;
-      if (ob_local->data != NULL && ob_local->type == OB_ARMATURE && ob_local->pose != NULL &&
-          ob_local->pose->flag & POSE_RECALC) {
-        BKE_pose_rebuild(bmain, ob_local, ob_local->data, true);
+      if (ob_local->type == OB_ARMATURE) {
+        Object *ob_reference = (Object *)local->override_library->reference;
+        BLI_assert(ob_local->data != NULL);
+        BLI_assert(ob_reference->data != NULL);
+        BKE_pose_ensure(bmain, ob_local, ob_local->data, true);
+        BKE_pose_ensure(bmain, ob_reference, ob_reference->data, true);
       }
     }
 
@@ -1415,6 +1424,17 @@ void BKE_lib_override_library_main_operations_create(Main *bmain, const bool for
    */
   if (force_auto) {
     BKE_lib_override_library_main_tag(bmain, IDOVERRIDE_LIBRARY_TAG_UNUSED, true);
+  }
+
+  /* Usual pose bones issue, need to be done outside of the threaded process or we may run into
+   * concurrency issues here.
+   * Note that calling #BKE_pose_ensure again in thread in
+   * #BKE_lib_override_library_operations_create is not a problem then. */
+  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+    if (ob->type == OB_ARMATURE) {
+      BLI_assert(ob->data != NULL);
+      BKE_pose_ensure(bmain, ob, ob->data, true);
+    }
   }
 
   TaskPool *task_pool = BLI_task_pool_create(bmain, TASK_PRIORITY_HIGH);

@@ -118,6 +118,7 @@ typedef struct UndoMesh {
 
 #ifdef USE_ARRAY_STORE
 
+/* -------------------------------------------------------------------- */
 /** \name Array Store
  * \{ */
 

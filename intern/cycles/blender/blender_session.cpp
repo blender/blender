@@ -238,6 +238,7 @@ void BlenderSession::reset_session(BL::BlendData &b_data, BL::Depsgraph &b_depsg
    * See note on create_session().
    */
   /* sync object should be re-created */
+  delete sync;
   sync = new BlenderSync(b_engine, b_data, b_scene, scene, !background, session->progress);
 
   BL::SpaceView3D b_null_space_view3d(PointerRNA_NULL);
@@ -471,6 +472,11 @@ void BlenderSession::stamp_view_layer_metadata(Scene *scene, const string &view_
 void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
 {
   b_depsgraph = b_depsgraph_;
+
+  if (session->progress.get_cancel()) {
+    update_status_progress();
+    return;
+  }
 
   /* set callback to write out render results */
   session->write_render_tile_cb = function_bind(&BlenderSession::write_render_tile, this, _1);

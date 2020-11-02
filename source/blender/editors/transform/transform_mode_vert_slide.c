@@ -53,9 +53,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Vert Slide) */
-
-/** \name Transform Vert Slide
+/** \name Transform (Vert Slide)
  * \{ */
 
 typedef struct TransDataVertSlideVert {

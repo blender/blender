@@ -3159,6 +3159,7 @@ static void wm_event_free_and_remove_from_queue_if_valid(wmEvent *event)
 void wm_event_do_handlers(bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
+  BLI_assert(ED_undo_is_state_valid(C));
 
   /* Update key configuration before handling events. */
   WM_keyconfig_update(wm);
@@ -4396,7 +4397,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       wm_event_add(win, &event);
       break;
     }
-    /* ,ouse button, */
+    /* Mouse button. */
     case GHOST_kEventButtonDown:
     case GHOST_kEventButtonUp: {
       GHOST_TEventButtonData *bd = customdata;

@@ -28,8 +28,9 @@
 
 #include "BLI_assert.h"
 
-#include "BKE_sequencer.h"
 #include "BKE_sound.h"
+
+#include "SEQ_sequencer.h"
 
 namespace blender {
 namespace deg {

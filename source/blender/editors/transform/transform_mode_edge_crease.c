@@ -40,9 +40,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Crease) */
-
-/** \name Transform Crease
+/** \name Transform (Crease)
  * \{ */
 
 static void applyCrease(TransInfo *t, const int UNUSED(mval[2]))

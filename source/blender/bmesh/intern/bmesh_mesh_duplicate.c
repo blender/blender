@@ -50,9 +50,7 @@ static BMEdge *bm_edge_copy_with_arrays(BMesh *bm_src,
 }
 
 static BMFace *bm_face_copy_with_arrays(
-    BMesh *bm_src, BMesh *bm_dst, BMFace *f_src, BMVert **verts_dst, BMEdge **edges_dst
-
-)
+    BMesh *bm_src, BMesh *bm_dst, BMFace *f_src, BMVert **verts_dst, BMEdge **edges_dst)
 {
   BMFace *f_dst;
   BMVert **vtar = BLI_array_alloca(vtar, f_src->len);

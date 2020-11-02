@@ -39,11 +39,7 @@ isWindows = platform.system() != 'Darwin' and platform.system() != 'Linux'\n\
 #try:\n\
 #    multiprocessing.set_start_method('spawn')\n\
 #except:\n\
-#    pass\n\
-\n\
-bpy = sys.modules.get('bpy')\n\
-if bpy is not None:\n\
-    sys.executable = bpy.app.binary_path_python\n";
+#    pass\n";
 
 //////////////////////////////////////////////////////////////////////
 // DEBUG

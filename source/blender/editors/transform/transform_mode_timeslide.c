@@ -45,9 +45,7 @@
 #include "transform_mode.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Animation Time Slide) */
-
-/** \name Transform Animation Time Slide
+/** \name Transform (Animation Time Slide)
  * \{ */
 
 static void headerTimeSlide(TransInfo *t, const float sval, char str[UI_MAX_DRAW_STR])

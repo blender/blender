@@ -247,6 +247,22 @@ bool multires_reshape_context_create_from_modifier(MultiresReshapeContext *resha
                                                    struct MultiresModifierData *mmd,
                                                    int top_level)
 {
+  Subdiv *subdiv = multires_reshape_create_subdiv(NULL, object, mmd);
+
+  const bool result = multires_reshape_context_create_from_subdiv(
+      reshape_context, object, mmd, subdiv, top_level);
+
+  reshape_context->need_free_subdiv = true;
+
+  return result;
+}
+
+bool multires_reshape_context_create_from_subdiv(MultiresReshapeContext *reshape_context,
+                                                 struct Object *object,
+                                                 struct MultiresModifierData *mmd,
+                                                 struct Subdiv *subdiv,
+                                                 int top_level)
+{
   context_zero(reshape_context);
 
   Mesh *base_mesh = (Mesh *)object->data;
@@ -254,8 +270,8 @@ bool multires_reshape_context_create_from_modifier(MultiresReshapeContext *resha
   reshape_context->mmd = mmd;
   reshape_context->base_mesh = base_mesh;
 
-  reshape_context->subdiv = multires_reshape_create_subdiv(NULL, object, mmd);
-  reshape_context->need_free_subdiv = true;
+  reshape_context->subdiv = subdiv;
+  reshape_context->need_free_subdiv = false;
 
   reshape_context->reshape.level = mmd->totlvl;
   reshape_context->reshape.grid_size = BKE_subdiv_grid_size_from_level(

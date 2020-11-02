@@ -21,6 +21,9 @@
  * \ingroup bke
  */
 
+/* Allow using deprecated functionality for .blend file I/O. */
+#define DNA_DEPRECATED_ALLOW
+
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -52,6 +55,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_anim_data.h"
 #include "BKE_anim_path.h"
 #include "BKE_boids.h"
 #include "BKE_cloth.h"
@@ -79,6 +83,8 @@
 #include "DEG_depsgraph_query.h"
 
 #include "RE_render_ext.h"
+
+#include "BLO_read_write.h"
 
 #include "particle_private.h"
 
@@ -206,6 +212,279 @@ static void particle_settings_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
+static void write_boid_state(BlendWriter *writer, BoidState *state)
+{
+  BLO_write_struct(writer, BoidState, state);
+
+  LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
+    switch (rule->type) {
+      case eBoidRuleType_Goal:
+      case eBoidRuleType_Avoid:
+        BLO_write_struct(writer, BoidRuleGoalAvoid, rule);
+        break;
+      case eBoidRuleType_AvoidCollision:
+        BLO_write_struct(writer, BoidRuleAvoidCollision, rule);
+        break;
+      case eBoidRuleType_FollowLeader:
+        BLO_write_struct(writer, BoidRuleFollowLeader, rule);
+        break;
+      case eBoidRuleType_AverageSpeed:
+        BLO_write_struct(writer, BoidRuleAverageSpeed, rule);
+        break;
+      case eBoidRuleType_Fight:
+        BLO_write_struct(writer, BoidRuleFight, rule);
+        break;
+      default:
+        BLO_write_struct(writer, BoidRule, rule);
+        break;
+    }
+  }
+#if 0
+  BoidCondition *cond = state->conditions.first;
+  for (; cond; cond = cond->next) {
+    BLO_write_struct(writer, BoidCondition, cond);
+  }
+#endif
+}
+
+static void particle_settings_blend_write(BlendWriter *writer, ID *id, const void *id_address)
+{
+  ParticleSettings *part = (ParticleSettings *)id;
+  if (part->id.us > 0 || BLO_write_is_undo(writer)) {
+    /* write LibData */
+    BLO_write_id_struct(writer, ParticleSettings, id_address, &part->id);
+    BKE_id_blend_write(writer, &part->id);
+
+    if (part->adt) {
+      BKE_animdata_blend_write(writer, part->adt);
+    }
+    BLO_write_struct(writer, PartDeflect, part->pd);
+    BLO_write_struct(writer, PartDeflect, part->pd2);
+    BLO_write_struct(writer, EffectorWeights, part->effector_weights);
+
+    if (part->clumpcurve) {
+      BKE_curvemapping_blend_write(writer, part->clumpcurve);
+    }
+    if (part->roughcurve) {
+      BKE_curvemapping_blend_write(writer, part->roughcurve);
+    }
+    if (part->twistcurve) {
+      BKE_curvemapping_blend_write(writer, part->twistcurve);
+    }
+
+    LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
+      /* update indices, but only if dw->ob is set (can be NULL after loading e.g.) */
+      if (dw->ob != NULL) {
+        dw->index = 0;
+        if (part->instance_collection) { /* can be NULL if lining fails or set to None */
+          FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (part->instance_collection, object) {
+            if (object == dw->ob) {
+              break;
+            }
+            dw->index++;
+          }
+          FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+        }
+      }
+      BLO_write_struct(writer, ParticleDupliWeight, dw);
+    }
+
+    if (part->boids && part->phystype == PART_PHYS_BOIDS) {
+      BLO_write_struct(writer, BoidSettings, part->boids);
+
+      LISTBASE_FOREACH (BoidState *, state, &part->boids->states) {
+        write_boid_state(writer, state);
+      }
+    }
+    if (part->fluid && part->phystype == PART_PHYS_FLUID) {
+      BLO_write_struct(writer, SPHFluidSettings, part->fluid);
+    }
+
+    for (int a = 0; a < MAX_MTEX; a++) {
+      if (part->mtex[a]) {
+        BLO_write_struct(writer, MTex, part->mtex[a]);
+      }
+    }
+  }
+}
+
+void BKE_particle_partdeflect_blend_read_data(BlendDataReader *UNUSED(reader), PartDeflect *pd)
+{
+  if (pd) {
+    pd->rng = NULL;
+  }
+}
+
+static void particle_settings_blend_read_data(BlendDataReader *reader, ID *id)
+{
+  ParticleSettings *part = (ParticleSettings *)id;
+  BLO_read_data_address(reader, &part->adt);
+  BLO_read_data_address(reader, &part->pd);
+  BLO_read_data_address(reader, &part->pd2);
+
+  BKE_animdata_blend_read_data(reader, part->adt);
+  BKE_particle_partdeflect_blend_read_data(reader, part->pd);
+  BKE_particle_partdeflect_blend_read_data(reader, part->pd2);
+
+  BLO_read_data_address(reader, &part->clumpcurve);
+  if (part->clumpcurve) {
+    BKE_curvemapping_blend_read(reader, part->clumpcurve);
+  }
+  BLO_read_data_address(reader, &part->roughcurve);
+  if (part->roughcurve) {
+    BKE_curvemapping_blend_read(reader, part->roughcurve);
+  }
+  BLO_read_data_address(reader, &part->twistcurve);
+  if (part->twistcurve) {
+    BKE_curvemapping_blend_read(reader, part->twistcurve);
+  }
+
+  BLO_read_data_address(reader, &part->effector_weights);
+  if (!part->effector_weights) {
+    part->effector_weights = BKE_effector_add_weights(part->force_group);
+  }
+
+  BLO_read_list(reader, &part->instance_weights);
+
+  BLO_read_data_address(reader, &part->boids);
+  BLO_read_data_address(reader, &part->fluid);
+
+  if (part->boids) {
+    BLO_read_list(reader, &part->boids->states);
+
+    LISTBASE_FOREACH (BoidState *, state, &part->boids->states) {
+      BLO_read_list(reader, &state->rules);
+      BLO_read_list(reader, &state->conditions);
+      BLO_read_list(reader, &state->actions);
+    }
+  }
+  for (int a = 0; a < MAX_MTEX; a++) {
+    BLO_read_data_address(reader, &part->mtex[a]);
+  }
+
+  /* Protect against integer overflow vulnerability. */
+  CLAMP(part->trail_count, 1, 100000);
+}
+
+void BKE_particle_partdeflect_blend_read_lib(BlendLibReader *reader, ID *id, PartDeflect *pd)
+{
+  if (pd && pd->tex) {
+    BLO_read_id_address(reader, id->lib, &pd->tex);
+  }
+  if (pd && pd->f_source) {
+    BLO_read_id_address(reader, id->lib, &pd->f_source);
+  }
+}
+
+static void particle_settings_blend_read_lib(BlendLibReader *reader, ID *id)
+{
+  ParticleSettings *part = (ParticleSettings *)id;
+  BLO_read_id_address(
+      reader, part->id.lib, &part->ipo); /* XXX deprecated - old animation system */
+
+  BLO_read_id_address(reader, part->id.lib, &part->instance_object);
+  BLO_read_id_address(reader, part->id.lib, &part->instance_collection);
+  BLO_read_id_address(reader, part->id.lib, &part->force_group);
+  BLO_read_id_address(reader, part->id.lib, &part->bb_ob);
+  BLO_read_id_address(reader, part->id.lib, &part->collision_group);
+
+  BKE_particle_partdeflect_blend_read_lib(reader, &part->id, part->pd);
+  BKE_particle_partdeflect_blend_read_lib(reader, &part->id, part->pd2);
+
+  if (part->effector_weights) {
+    BLO_read_id_address(reader, part->id.lib, &part->effector_weights->group);
+  }
+  else {
+    part->effector_weights = BKE_effector_add_weights(part->force_group);
+  }
+
+  if (part->instance_weights.first && part->instance_collection) {
+    LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
+      BLO_read_id_address(reader, part->id.lib, &dw->ob);
+    }
+  }
+  else {
+    BLI_listbase_clear(&part->instance_weights);
+  }
+
+  if (part->boids) {
+    LISTBASE_FOREACH (BoidState *, state, &part->boids->states) {
+      LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
+        switch (rule->type) {
+          case eBoidRuleType_Goal:
+          case eBoidRuleType_Avoid: {
+            BoidRuleGoalAvoid *brga = (BoidRuleGoalAvoid *)rule;
+            BLO_read_id_address(reader, part->id.lib, &brga->ob);
+            break;
+          }
+          case eBoidRuleType_FollowLeader: {
+            BoidRuleFollowLeader *brfl = (BoidRuleFollowLeader *)rule;
+            BLO_read_id_address(reader, part->id.lib, &brfl->ob);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  for (int a = 0; a < MAX_MTEX; a++) {
+    MTex *mtex = part->mtex[a];
+    if (mtex) {
+      BLO_read_id_address(reader, part->id.lib, &mtex->tex);
+      BLO_read_id_address(reader, part->id.lib, &mtex->object);
+    }
+  }
+}
+
+static void particle_settings_blend_read_expand(BlendExpander *expander, ID *id)
+{
+  ParticleSettings *part = (ParticleSettings *)id;
+  BLO_expand(expander, part->instance_object);
+  BLO_expand(expander, part->instance_collection);
+  BLO_expand(expander, part->force_group);
+  BLO_expand(expander, part->bb_ob);
+  BLO_expand(expander, part->collision_group);
+
+  for (int a = 0; a < MAX_MTEX; a++) {
+    if (part->mtex[a]) {
+      BLO_expand(expander, part->mtex[a]->tex);
+      BLO_expand(expander, part->mtex[a]->object);
+    }
+  }
+
+  if (part->effector_weights) {
+    BLO_expand(expander, part->effector_weights->group);
+  }
+
+  if (part->pd) {
+    BLO_expand(expander, part->pd->tex);
+    BLO_expand(expander, part->pd->f_source);
+  }
+  if (part->pd2) {
+    BLO_expand(expander, part->pd2->tex);
+    BLO_expand(expander, part->pd2->f_source);
+  }
+
+  if (part->boids) {
+    LISTBASE_FOREACH (BoidState *, state, &part->boids->states) {
+      LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
+        if (rule->type == eBoidRuleType_Avoid) {
+          BoidRuleGoalAvoid *gabr = (BoidRuleGoalAvoid *)rule;
+          BLO_expand(expander, gabr->ob);
+        }
+        else if (rule->type == eBoidRuleType_FollowLeader) {
+          BoidRuleFollowLeader *flbr = (BoidRuleFollowLeader *)rule;
+          BLO_expand(expander, flbr->ob);
+        }
+      }
+    }
+  }
+
+  LISTBASE_FOREACH (ParticleDupliWeight *, dw, &part->instance_weights) {
+    BLO_expand(expander, dw->ob);
+  }
+}
+
 IDTypeInfo IDType_ID_PA = {
     .id_code = ID_PA,
     .id_filter = FILTER_ID_PA,
@@ -223,10 +502,10 @@ IDTypeInfo IDType_ID_PA = {
     .foreach_id = particle_settings_foreach_id,
     .foreach_cache = NULL,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
-    .blend_read_lib = NULL,
-    .blend_read_expand = NULL,
+    .blend_write = particle_settings_blend_write,
+    .blend_read_data = particle_settings_blend_read_data,
+    .blend_read_lib = particle_settings_blend_read_lib,
+    .blend_read_expand = particle_settings_blend_read_expand,
 };
 
 unsigned int PSYS_FRAND_SEED_OFFSET[PSYS_FRAND_COUNT];

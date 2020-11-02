@@ -140,7 +140,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   if (dmd->face_count <= 3) {
-    BKE_modifier_set_error(md, "Modifier requires more than 3 input faces");
+    BKE_modifier_set_error(ctx->object, md, "Modifier requires more than 3 input faces");
     return mesh;
   }
 

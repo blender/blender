@@ -35,12 +35,12 @@ class TEXT_HT_header(Header):
 
         TEXT_MT_editor_menus.draw_collapsible(context, layout)
 
+        layout.separator_spacer()
+
         if text and text.is_modified:
             row = layout.row(align=True)
             row.alert = True
-            row.operator("text.resolve_conflict", text="", icon='HELP')
-
-        layout.separator_spacer()
+            row.operator("text.resolve_conflict", text="", icon='QUESTION')
 
         row = layout.row(align=True)
         row.template_ID(st, "text", new="text.new",

@@ -26,6 +26,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 
 #include "BKE_curve.h"
@@ -170,7 +171,6 @@ void ED_curve_nurb_vert_selected_find(
   /* in nu and (bezt or bp) selected are written if there's 1 sel.  */
   /* if more points selected in 1 spline: return only nu, bezt and bp are 0 */
   ListBase *editnurb = &cu->editnurb->nurbs;
-  Nurb *nu1;
   BezTriple *bezt1;
   BPoint *bp1;
   int a;
@@ -179,7 +179,7 @@ void ED_curve_nurb_vert_selected_find(
   *r_bezt = NULL;
   *r_bp = NULL;
 
-  for (nu1 = editnurb->first; nu1; nu1 = nu1->next) {
+  LISTBASE_FOREACH (Nurb *, nu1, editnurb) {
     if (nu1->type == CU_BEZIER) {
       bezt1 = nu1->bezt;
       a = nu1->pntsu;

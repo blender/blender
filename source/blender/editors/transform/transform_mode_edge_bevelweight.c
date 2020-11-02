@@ -40,9 +40,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Bevel Weight) */
-
-/** \name Transform Bevel Weight
+/** \name Transform (Bevel Weight)
  * \{ */
 
 static void applyBevelWeight(TransInfo *t, const int UNUSED(mval[2]))

@@ -40,9 +40,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Curve Shrink/Fatten) */
-
-/** \name Transform Curve Shrink/Fatten
+/** \name Transform (Curve Shrink/Fatten)
  * \{ */
 
 static void applyCurveShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))

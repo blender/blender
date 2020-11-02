@@ -41,9 +41,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (EditBone (B-bone) width scaling) */
-
-/** \name Transform B-bone width scaling
+/** \name Transform (EditBone B-Bone width scaling)
  * \{ */
 
 static void headerBoneSize(TransInfo *t, const float vec[3], char str[UI_MAX_DRAW_STR])

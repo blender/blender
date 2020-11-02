@@ -95,6 +95,7 @@ void WM_operatortype_iter(GHashIterator *ghi)
   BLI_ghashIterator_init(ghi, global_ops_hash);
 }
 
+/* -------------------------------------------------------------------- */
 /** \name Operator Type Append
  * \{ */
 

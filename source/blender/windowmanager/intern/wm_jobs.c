@@ -35,7 +35,8 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_sequencer.h"
+
+#include "SEQ_sequencer.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

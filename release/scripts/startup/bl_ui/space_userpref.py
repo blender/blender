@@ -45,7 +45,8 @@ class USERPREF_HT_header(Header):
             # Show '*' to let users know the preferences have been modified.
             layout.operator(
                 "wm.save_userpref",
-                text="Save Preferences" + (" *" if prefs.is_dirty else ""),
+                text=iface_("Save Preferences") + (" *" if prefs.is_dirty else ""),
+                translate=False,
             )
 
     def draw(self, context):
@@ -270,7 +271,7 @@ class USERPREF_PT_interface_editors(InterfacePanel, CenterAlignMixIn, Panel):
 
 
 class USERPREF_PT_interface_temporary_windows(InterfacePanel, CenterAlignMixIn, Panel):
-    bl_label = "Temporary Windows"
+    bl_label = "Temporary Editors"
     bl_parent_id = "USERPREF_PT_interface_editors"
     bl_options = {'DEFAULT_CLOSED'}
 

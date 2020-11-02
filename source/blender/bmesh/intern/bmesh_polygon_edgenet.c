@@ -39,9 +39,9 @@
 #include "intern/bmesh_private.h"
 
 /* -------------------------------------------------------------------- */
-/* Face Split Edge-Net */
-
-/** \name BM_face_split_edgenet and helper functions.
+/** \name Face Split Edge-Net
+ *
+ * #BM_face_split_edgenet and helper functions.
  *
  * \note Don't use #BM_edge_is_wire or #BM_edge_is_boundary
  * since we need to take flagged faces into account.
@@ -702,9 +702,9 @@ bool BM_face_split_edgenet(BMesh *bm,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/* Face Split Edge-Net Connect Islands */
-
-/** \name BM_face_split_edgenet_connect_islands and helper functions.
+/** \name Face Split Edge-Net Connect Islands
+ *
+ * #BM_face_split_edgenet_connect_islands and helper functions.
  *
  * Connect isolated mesh 'islands' so they form legal regions from which we can create faces.
  *

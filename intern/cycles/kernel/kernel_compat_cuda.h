@@ -32,8 +32,12 @@
 
 /* Manual definitions so we can compile without CUDA toolkit. */
 
+#ifdef __CUDACC_RTC__
 typedef unsigned int uint32_t;
 typedef unsigned long long uint64_t;
+#else
+#  include <stdint.h>
+#endif
 typedef unsigned short half;
 typedef unsigned long long CUtexObject;
 

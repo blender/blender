@@ -267,6 +267,7 @@ void BKE_mesh_batch_cache_free(Mesh *me)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Mesh runtime debug helpers.
  * \{ */
 /* evaluated mesh info printing function,

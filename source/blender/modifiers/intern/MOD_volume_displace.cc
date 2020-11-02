@@ -307,7 +307,7 @@ static Volume *modifyVolume(ModifierData *md, const ModifierEvalContext *ctx, Vo
   return volume;
 #else
   UNUSED_VARS(md, ctx);
-  BKE_modifier_set_error(md, "Compiled without OpenVDB");
+  BKE_modifier_set_error(ctx->object, md, "Compiled without OpenVDB");
   return volume;
 #endif
 }

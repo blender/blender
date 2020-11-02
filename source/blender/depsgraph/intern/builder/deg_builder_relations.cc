@@ -89,7 +89,6 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_rigidbody.h"
-#include "BKE_sequencer.h"
 #include "BKE_shader_fx.h"
 #include "BKE_shrinkwrap.h"
 #include "BKE_sound.h"
@@ -98,6 +97,8 @@
 
 #include "RNA_access.h"
 #include "RNA_types.h"
+
+#include "SEQ_sequencer.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -591,13 +592,13 @@ void DepsgraphRelationBuilder::build_collection(LayerCollection *from_layer_coll
      * recurses into all the nested objects and collections. */
     return;
   }
-  build_idproperties(collection->id.properties);
   const bool group_done = built_map_.checkIsBuiltAndTag(collection);
   OperationKey object_transform_final_key(object != nullptr ? &object->id : nullptr,
                                           NodeType::TRANSFORM,
                                           OperationCode::TRANSFORM_FINAL);
   ComponentKey duplicator_key(object != nullptr ? &object->id : nullptr, NodeType::DUPLI);
   if (!group_done) {
+    build_idproperties(collection->id.properties);
     LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
       build_object(cob->ob);
     }
@@ -2665,6 +2666,9 @@ void DepsgraphRelationBuilder::build_simulation(Simulation *simulation)
 void DepsgraphRelationBuilder::build_scene_sequencer(Scene *scene)
 {
   if (scene->ed == nullptr) {
+    return;
+  }
+  if (built_map_.checkIsBuiltAndTag(scene, BuilderMap::TAG_SCENE_SEQUENCER)) {
     return;
   }
   build_scene_audio(scene);

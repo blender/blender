@@ -38,9 +38,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Skin) */
-
-/** \name Transform Skin
+/** \name Transform (Skin)
  * \{ */
 
 static void applySkinResize(TransInfo *t, const int UNUSED(mval[2]))

@@ -25,7 +25,7 @@ ccl_device void svm_node_vertex_color(KernelGlobals *kg,
 {
   AttributeDescriptor descriptor = find_attribute(kg, sd, layer_id);
   if (descriptor.offset != ATTR_STD_NOT_FOUND) {
-    float4 vertex_color = primitive_attribute_float4(kg, sd, descriptor, NULL, NULL);
+    float4 vertex_color = primitive_surface_attribute_float4(kg, sd, descriptor, NULL, NULL);
     stack_store_float3(stack, color_offset, float4_to_float3(vertex_color));
     stack_store_float(stack, alpha_offset, vertex_color.w);
   }
@@ -51,7 +51,7 @@ ccl_device_noinline
   AttributeDescriptor descriptor = find_attribute(kg, sd, layer_id);
   if (descriptor.offset != ATTR_STD_NOT_FOUND) {
     float4 dx;
-    float4 vertex_color = primitive_attribute_float4(kg, sd, descriptor, &dx, NULL);
+    float4 vertex_color = primitive_surface_attribute_float4(kg, sd, descriptor, &dx, NULL);
     vertex_color += dx;
     stack_store_float3(stack, color_offset, float4_to_float3(vertex_color));
     stack_store_float(stack, alpha_offset, vertex_color.w);
@@ -78,7 +78,7 @@ ccl_device_noinline
   AttributeDescriptor descriptor = find_attribute(kg, sd, layer_id);
   if (descriptor.offset != ATTR_STD_NOT_FOUND) {
     float4 dy;
-    float4 vertex_color = primitive_attribute_float4(kg, sd, descriptor, NULL, &dy);
+    float4 vertex_color = primitive_surface_attribute_float4(kg, sd, descriptor, NULL, &dy);
     vertex_color += dy;
     stack_store_float3(stack, color_offset, float4_to_float3(vertex_color));
     stack_store_float(stack, alpha_offset, vertex_color.w);

@@ -121,11 +121,10 @@ static void edbm_intersect_select(BMEditMesh *em, struct Mesh *me, bool do_selec
 }
 
 /* -------------------------------------------------------------------- */
-/* Cut intersections into geometry */
-
 /** \name Simple Intersect (self-intersect)
- * \{
- */
+ *
+ * Cut intersections into geometry.
+ * \{ */
 
 enum {
   ISECT_SEL = 0,
@@ -331,15 +330,11 @@ void MESH_OT_intersect(struct wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/* Boolean (a kind of intersect) */
-
 /** \name Boolean Intersect
  *
  * \note internally this is nearly exactly the same as 'MESH_OT_intersect',
  * however from a user perspective they are quite different, so expose as different tools.
- *
- * \{
- */
+ * \{ */
 
 static int edbm_intersect_boolean_exec(bContext *C, wmOperator *op)
 {
@@ -488,9 +483,7 @@ void MESH_OT_intersect_boolean(struct wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/* Face Split by Edges */
-
-/** \name Face/Edge Split
+/** \name Face Split by Edges
  * \{ */
 
 static void bm_face_split_by_edges(BMesh *bm,

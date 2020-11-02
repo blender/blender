@@ -35,6 +35,7 @@ bool device_cuda_init();
 Device *device_cuda_create(DeviceInfo &info, Stats &stats, Profiler &profiler, bool background);
 bool device_optix_init();
 Device *device_optix_create(DeviceInfo &info, Stats &stats, Profiler &profiler, bool background);
+Device *device_dummy_create(DeviceInfo &info, Stats &stats, Profiler &profiler, bool background);
 
 Device *device_network_create(DeviceInfo &info,
                               Stats &stats,

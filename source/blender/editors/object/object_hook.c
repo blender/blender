@@ -238,12 +238,11 @@ static void select_editlattice_hook(Object *obedit, HookModifierData *hmd)
 static int return_editcurve_indexar(Object *obedit, int *r_tot, int **r_indexar, float r_cent[3])
 {
   ListBase *editnurb = object_editcurve_get(obedit);
-  Nurb *nu;
   BPoint *bp;
   BezTriple *bezt;
   int *index, a, nr, totvert = 0;
 
-  for (nu = editnurb->first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, editnurb) {
     if (nu->type == CU_BEZIER) {
       bezt = nu->bezt;
       a = nu->pntsu;
@@ -280,7 +279,7 @@ static int return_editcurve_indexar(Object *obedit, int *r_tot, int **r_indexar,
   nr = 0;
   zero_v3(r_cent);
 
-  for (nu = editnurb->first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, editnurb) {
     if (nu->type == CU_BEZIER) {
       bezt = nu->bezt;
       a = nu->pntsu;
@@ -377,12 +376,11 @@ static bool object_hook_index_array(Main *bmain,
 static void select_editcurve_hook(Object *obedit, HookModifierData *hmd)
 {
   ListBase *editnurb = object_editcurve_get(obedit);
-  Nurb *nu;
   BPoint *bp;
   BezTriple *bezt;
   int index = 0, a, nr = 0;
 
-  for (nu = editnurb->first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, editnurb) {
     if (nu->type == CU_BEZIER) {
       bezt = nu->bezt;
       a = nu->pntsu;

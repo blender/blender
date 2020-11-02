@@ -1456,8 +1456,16 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL}};
 
   static EnumPropertyItem simulation_methods[] = {
-      {FLUID_DOMAIN_METHOD_FLIP, "FLIP", 0, "FLIP", "Use FLIP as the simulation method"},
-      /*{FLUID_DOMAIN_METHOD_APIC, "APIC", 0, "APIC", "Use APIC as the simulation method"},*/
+      {FLUID_DOMAIN_METHOD_FLIP,
+       "FLIP",
+       0,
+       "FLIP",
+       "Use FLIP as the simulation method (more splashy behavior)"},
+      {FLUID_DOMAIN_METHOD_APIC,
+       "APIC",
+       0,
+       "APIC",
+       "Use APIC as the simulation method (more energetic and stable behavior)"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -1820,6 +1828,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "simulation_method");
   RNA_def_property_enum_items(prop, simulation_methods);
   RNA_def_property_ui_text(prop, "Simulation Method", "Change the underlying simulation method");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_domain_data_reset");
 
   prop = RNA_def_property(srna, "flip_ratio", PROP_FLOAT, PROP_NONE);

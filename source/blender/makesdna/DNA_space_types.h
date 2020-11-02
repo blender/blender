@@ -59,10 +59,6 @@ struct wmTimer;
 /* Defined in `buttons_intern.h`. */
 typedef struct SpaceProperties_Runtime SpaceProperties_Runtime;
 
-/* TODO 2.8: We don't write the global areas to files currently. Uncomment
- * define to enable writing (should become the default in a bit). */
-//#define WITH_GLOBAL_AREA_WRITING
-
 /* -------------------------------------------------------------------- */
 /** \name SpaceLink (Base)
  * \{ */
@@ -1672,10 +1668,6 @@ typedef enum eSpaceClip_GPencil_Source {
 /** \name Top Bar
  * \{ */
 
-/* These two lines with # tell makesdna this struct can be excluded.
- * Should be: #ifndef WITH_GLOBAL_AREA_WRITING */
-#
-#
 typedef struct SpaceTopBar {
   SpaceLink *next, *prev;
   /** Storage of regions for inactive spaces. */
@@ -1692,10 +1684,6 @@ typedef struct SpaceTopBar {
 /** \name Status Bar
  * \{ */
 
-/* These two lines with # tell makesdna this struct can be excluded.
- * Should be: #ifndef WITH_GLOBAL_AREA_WRITING */
-#
-#
 typedef struct SpaceStatusBar {
   SpaceLink *next, *prev;
   /** Storage of regions for inactive spaces. */

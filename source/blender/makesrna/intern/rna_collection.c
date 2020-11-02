@@ -275,7 +275,7 @@ static bool rna_Collection_children_override_apply(Main *bmain,
   Collection *coll_dst = (Collection *)ptr_dst->owner_id;
 
   if (ptr_item_dst->type == NULL || ptr_item_src->type == NULL) {
-    BLI_assert(0 && "invalid source or destination sub-collection.");
+    /* This can happen when reference and overrides differ, just ignore then. */
     return false;
   }
 

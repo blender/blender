@@ -43,13 +43,14 @@
 #include "BKE_mask.h"
 #include "BKE_movieclip.h"
 #include "BKE_report.h"
-#include "BKE_sequencer.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+
+#include "SEQ_sequencer.h"
 
 /* For menu, popup, icons, etc. */
 #include "ED_screen.h"

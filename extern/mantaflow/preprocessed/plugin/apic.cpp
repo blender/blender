@@ -6,7 +6,7 @@
 // ----------------------------------------------------------------------------
 //
 // MantaFlow fluid solver framework
-// Copyright 2016-2017 Kiwon Um, Nils Thuerey
+// Copyright 2016-2020 Kiwon Um, Nils Thuerey
 //
 // This program is free software, distributed under the terms of the
 // Apache License, Version 2.0
@@ -21,6 +21,46 @@
 
 namespace Manta {
 
+#define FOR_INT_IJK(num) \
+  for (int i = 0; i < num; ++i) \
+    for (int j = 0; j < num; ++j) \
+      for (int k = 0; k < num; ++k)
+
+static inline IndexInt indexUFace(const Vec3 &pos, const MACGrid &ref)
+{
+  const Vec3i f = toVec3i(pos), c = toVec3i(pos - 0.5);
+  const IndexInt index = f.x * ref.getStrideX() + c.y * ref.getStrideY() + c.z * ref.getStrideZ();
+  assertDeb(ref.isInBounds(index), "Grid index out of bounds");
+  return (ref.isInBounds(index)) ? index : -1;
+}
+
+static inline IndexInt indexVFace(const Vec3 &pos, const MACGrid &ref)
+{
+  const Vec3i f = toVec3i(pos), c = toVec3i(pos - 0.5);
+  const IndexInt index = c.x * ref.getStrideX() + f.y * ref.getStrideY() + c.z * ref.getStrideZ();
+  assertDeb(ref.isInBounds(index), "Grid index out of bounds");
+  return (ref.isInBounds(index)) ? index : -1;
+}
+
+static inline IndexInt indexWFace(const Vec3 &pos, const MACGrid &ref)
+{
+  const Vec3i f = toVec3i(pos), c = toVec3i(pos - 0.5);
+  const IndexInt index = c.x * ref.getStrideX() + c.y * ref.getStrideY() + f.z * ref.getStrideZ();
+  assertDeb(ref.isInBounds(index), "Grid index out of bounds");
+  return (ref.isInBounds(index)) ? index : -1;
+}
+
+static inline IndexInt indexOffset(
+    const IndexInt gidx, const int i, const int j, const int k, const MACGrid &ref)
+{
+  const IndexInt dX[2] = {0, ref.getStrideX()};
+  const IndexInt dY[2] = {0, ref.getStrideY()};
+  const IndexInt dZ[2] = {0, ref.getStrideZ()};
+  const IndexInt index = gidx + dX[i] + dY[j] + dZ[k];
+  assertDeb(ref.isInBounds(index), "Grid index out of bounds");
+  return (ref.isInBounds(index)) ? index : -1;
+}
+
 struct knApicMapLinearVec3ToMACGrid : public KernelBase {
   knApicMapLinearVec3ToMACGrid(const BasicParticleSystem &p,
                                MACGrid &mg,
@@ -30,7 +70,8 @@ struct knApicMapLinearVec3ToMACGrid : public KernelBase {
                                const ParticleDataImpl<Vec3> &cpy,
                                const ParticleDataImpl<Vec3> &cpz,
                                const ParticleDataImpl<int> *ptype,
-                               const int exclude)
+                               const int exclude,
+                               const int boundaryWidth)
       : KernelBase(p.size()),
         p(p),
         mg(mg),
@@ -40,7 +81,8 @@ struct knApicMapLinearVec3ToMACGrid : public KernelBase {
         cpy(cpy),
         cpz(cpz),
         ptype(ptype),
-        exclude(exclude)
+        exclude(exclude),
+        boundaryWidth(boundaryWidth)
   {
     runMessage();
     run();
@@ -54,73 +96,91 @@ struct knApicMapLinearVec3ToMACGrid : public KernelBase {
                  const ParticleDataImpl<Vec3> &cpy,
                  const ParticleDataImpl<Vec3> &cpz,
                  const ParticleDataImpl<int> *ptype,
-                 const int exclude)
+                 const int exclude,
+                 const int boundaryWidth)
   {
     if (!p.isActive(idx) || (ptype && ((*ptype)[idx] & exclude)))
       return;
-    const IndexInt dX[2] = {0, vg.getStrideX()};
-    const IndexInt dY[2] = {0, vg.getStrideY()};
-    const IndexInt dZ[2] = {0, vg.getStrideZ()};
+    if (!vg.isInBounds(p.getPos(idx), boundaryWidth)) {
+      debMsg("Skipping particle at index " << idx
+                                           << ". Is out of bounds and cannot be applied to grid.",
+             1);
+      return;
+    }
 
-    const Vec3 &pos = p[idx].pos, &vel = vp[idx];
-    const IndexInt fi = static_cast<IndexInt>(pos.x), fj = static_cast<IndexInt>(pos.y),
-                   fk = static_cast<IndexInt>(pos.z);
-    const IndexInt ci = static_cast<IndexInt>(pos.x - 0.5),
-                   cj = static_cast<IndexInt>(pos.y - 0.5),
-                   ck = static_cast<IndexInt>(pos.z - 0.5);
-    const Real wfi = clamp(pos.x - fi, Real(0), Real(1)),
-               wfj = clamp(pos.y - fj, Real(0), Real(1)),
-               wfk = clamp(pos.z - fk, Real(0), Real(1));
-    const Real wci = clamp(Real(pos.x - ci - 0.5), Real(0), Real(1)),
-               wcj = clamp(Real(pos.y - cj - 0.5), Real(0), Real(1)),
-               wck = clamp(Real(pos.z - ck - 0.5), Real(0), Real(1));
-    // TODO: check index for safety
+    const Vec3 &pos = p.getPos(idx), &vel = vp[idx];
+    const Vec3i f = toVec3i(pos);
+    const Vec3i c = toVec3i(pos - 0.5);
+    const Vec3 wf = clamp(pos - toVec3(f), Vec3(0.), Vec3(1.));
+    const Vec3 wc = clamp(pos - toVec3(c) - 0.5, Vec3(0.), Vec3(1.));
+
     {  // u-face
-      const IndexInt gidx = fi * dX[1] + cj * dY[1] + ck * dZ[1];
-      const Vec3 gpos(fi, cj + 0.5, ck + 0.5);
-      const Real wi[2] = {Real(1) - wfi, wfi};
-      const Real wj[2] = {Real(1) - wcj, wcj};
-      const Real wk[2] = {Real(1) - wck, wck};
-      for (int i = 0; i < 2; ++i)
-        for (int j = 0; j < 2; ++j)
-          for (int k = 0; k < 2; ++k) {
-            const Real w = wi[i] * wj[j] * wk[k];
-            mg[gidx + dX[i] + dY[j] + dZ[k]].x += w;
-            vg[gidx + dX[i] + dY[j] + dZ[k]].x += w * vel.x;
-            vg[gidx + dX[i] + dY[j] + dZ[k]].x += w * dot(cpx[idx], gpos + Vec3(i, j, k) - pos);
-          }
+      const IndexInt gidx = indexUFace(pos, vg);
+      if (gidx < 0)
+        return;  // debug will fail before
+
+      const Vec3 gpos(f.x, c.y + 0.5, c.z + 0.5);
+      const Real wi[2] = {Real(1) - wf.x, wf.x};
+      const Real wj[2] = {Real(1) - wc.y, wc.y};
+      const Real wk[2] = {Real(1) - wc.z, wc.z};
+
+      FOR_INT_IJK(2)
+      {
+        const Real w = wi[i] * wj[j] * wk[k];
+        const IndexInt vidx = indexOffset(gidx, i, j, k, vg);
+        if (vidx < 0)
+          continue;  // debug will fail before
+
+        mg[vidx].x += w;
+        vg[vidx].x += w * vel.x;
+        vg[vidx].x += w * dot(cpx[idx], gpos + Vec3(i, j, k) - pos);
+      }
     }
     {  // v-face
-      const IndexInt gidx = ci * dX[1] + fj * dY[1] + ck * dZ[1];
-      const Vec3 gpos(ci + 0.5, fj, ck + 0.5);
-      const Real wi[2] = {Real(1) - wci, wci};
-      const Real wj[2] = {Real(1) - wfj, wfj};
-      const Real wk[2] = {Real(1) - wck, wck};
-      for (int i = 0; i < 2; ++i)
-        for (int j = 0; j < 2; ++j)
-          for (int k = 0; k < 2; ++k) {
-            const Real w = wi[i] * wj[j] * wk[k];
-            mg[gidx + dX[i] + dY[j] + dZ[k]].y += w;
-            vg[gidx + dX[i] + dY[j] + dZ[k]].y += w * vel.y;
-            vg[gidx + dX[i] + dY[j] + dZ[k]].y += w * dot(cpy[idx], gpos + Vec3(i, j, k) - pos);
-          }
+      const IndexInt gidx = indexVFace(pos, vg);
+      if (gidx < 0)
+        return;
+
+      const Vec3 gpos(c.x + 0.5, f.y, c.z + 0.5);
+      const Real wi[2] = {Real(1) - wc.x, wc.x};
+      const Real wj[2] = {Real(1) - wf.y, wf.y};
+      const Real wk[2] = {Real(1) - wc.z, wc.z};
+
+      FOR_INT_IJK(2)
+      {
+        const Real w = wi[i] * wj[j] * wk[k];
+        const IndexInt vidx = indexOffset(gidx, i, j, k, vg);
+        if (vidx < 0)
+          continue;
+
+        mg[vidx].y += w;
+        vg[vidx].y += w * vel.y;
+        vg[vidx].y += w * dot(cpy[idx], gpos + Vec3(i, j, k) - pos);
+      }
     }
     if (!vg.is3D())
       return;
     {  // w-face
-      const IndexInt gidx = ci * dX[1] + cj * dY[1] + fk * dZ[1];
-      const Vec3 gpos(ci + 0.5, cj + 0.5, fk);
-      const Real wi[2] = {Real(1) - wci, wci};
-      const Real wj[2] = {Real(1) - wcj, wcj};
-      const Real wk[2] = {Real(1) - wfk, wfk};
-      for (int i = 0; i < 2; ++i)
-        for (int j = 0; j < 2; ++j)
-          for (int k = 0; k < 2; ++k) {
-            const Real w = wi[i] * wj[j] * wk[k];
-            mg[gidx + dX[i] + dY[j] + dZ[k]].z += w;
-            vg[gidx + dX[i] + dY[j] + dZ[k]].z += w * vel.z;
-            vg[gidx + dX[i] + dY[j] + dZ[k]].z += w * dot(cpz[idx], gpos + Vec3(i, j, k) - pos);
-          }
+      const IndexInt gidx = indexWFace(pos, vg);
+      if (gidx < 0)
+        return;
+
+      const Vec3 gpos(c.x + 0.5, c.y + 0.5, f.z);
+      const Real wi[2] = {Real(1) - wc.x, wc.x};
+      const Real wj[2] = {Real(1) - wc.y, wc.y};
+      const Real wk[2] = {Real(1) - wf.z, wf.z};
+
+      FOR_INT_IJK(2)
+      {
+        const Real w = wi[i] * wj[j] * wk[k];
+        const IndexInt vidx = indexOffset(gidx, i, j, k, vg);
+        if (vidx < 0)
+          continue;
+
+        mg[vidx].z += w;
+        vg[vidx].z += w * vel.z;
+        vg[vidx].z += w * dot(cpz[idx], gpos + Vec3(i, j, k) - pos);
+      }
     }
   }
   inline const BasicParticleSystem &getArg0()
@@ -168,6 +228,11 @@ struct knApicMapLinearVec3ToMACGrid : public KernelBase {
     return exclude;
   }
   typedef int type8;
+  inline const int &getArg9()
+  {
+    return boundaryWidth;
+  }
+  typedef int type9;
   void runMessage()
   {
     debMsg("Executing kernel knApicMapLinearVec3ToMACGrid ", 3);
@@ -179,7 +244,7 @@ struct knApicMapLinearVec3ToMACGrid : public KernelBase {
   {
     const IndexInt _sz = size;
     for (IndexInt i = 0; i < _sz; i++)
-      op(i, p, mg, vg, vp, cpx, cpy, cpz, ptype, exclude);
+      op(i, p, mg, vg, vp, cpx, cpy, cpz, ptype, exclude, boundaryWidth);
   }
   const BasicParticleSystem &p;
   MACGrid &mg;
@@ -190,6 +255,7 @@ struct knApicMapLinearVec3ToMACGrid : public KernelBase {
   const ParticleDataImpl<Vec3> &cpz;
   const ParticleDataImpl<int> *ptype;
   const int exclude;
+  const int boundaryWidth;
 };
 
 void apicMapPartsToMAC(const FlagGrid &flags,
@@ -201,23 +267,22 @@ void apicMapPartsToMAC(const FlagGrid &flags,
                        const ParticleDataImpl<Vec3> &cpz,
                        MACGrid *mass = NULL,
                        const ParticleDataImpl<int> *ptype = NULL,
-                       const int exclude = 0)
+                       const int exclude = 0,
+                       const int boundaryWidth = 0)
 {
-  // affine map
-  // let's assume that the particle mass is constant, 1.0
-  const bool freeMass = !mass;
-  if (!mass)
-    mass = new MACGrid(flags.getParent());
-  else
-    mass->clear();
+  // affine map: let's assume that the particle mass is constant, 1.0
+  if (!mass) {
+    MACGrid tmpmass(vel.getParent());
+    mass = &tmpmass;
+  }
 
+  mass->clear();
   vel.clear();
-  knApicMapLinearVec3ToMACGrid(parts, *mass, vel, partVel, cpx, cpy, cpz, ptype, exclude);
+
+  knApicMapLinearVec3ToMACGrid(
+      parts, *mass, vel, partVel, cpx, cpy, cpz, ptype, exclude, boundaryWidth);
   mass->stomp(VECTOR_EPSILON);
   vel.safeDivide(*mass);
-
-  if (freeMass)
-    delete mass;
 }
 static PyObject *_W_0(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
 {
@@ -241,8 +306,10 @@ static PyObject *_W_0(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
       const ParticleDataImpl<int> *ptype = _args.getPtrOpt<ParticleDataImpl<int>>(
           "ptype", 8, NULL, &_lock);
       const int exclude = _args.getOpt<int>("exclude", 9, 0, &_lock);
+      const int boundaryWidth = _args.getOpt<int>("boundaryWidth", 10, 0, &_lock);
       _retval = getPyNone();
-      apicMapPartsToMAC(flags, vel, parts, partVel, cpx, cpy, cpz, mass, ptype, exclude);
+      apicMapPartsToMAC(
+          flags, vel, parts, partVel, cpx, cpy, cpz, mass, ptype, exclude, boundaryWidth);
       _args.check();
     }
     pbFinalizePlugin(parent, "apicMapPartsToMAC", !noTiming);
@@ -270,7 +337,8 @@ struct knApicMapLinearMACGridToVec3 : public KernelBase {
                                const MACGrid &vg,
                                const FlagGrid &flags,
                                const ParticleDataImpl<int> *ptype,
-                               const int exclude)
+                               const int exclude,
+                               const int boundaryWidth)
       : KernelBase(vp.size()),
         vp(vp),
         cpx(cpx),
@@ -280,7 +348,8 @@ struct knApicMapLinearMACGridToVec3 : public KernelBase {
         vg(vg),
         flags(flags),
         ptype(ptype),
-        exclude(exclude)
+        exclude(exclude),
+        boundaryWidth(boundaryWidth)
   {
     runMessage();
     run();
@@ -294,78 +363,94 @@ struct knApicMapLinearMACGridToVec3 : public KernelBase {
                  const MACGrid &vg,
                  const FlagGrid &flags,
                  const ParticleDataImpl<int> *ptype,
-                 const int exclude) const
+                 const int exclude,
+                 const int boundaryWidth) const
   {
     if (!p.isActive(idx) || (ptype && ((*ptype)[idx] & exclude)))
       return;
+    if (!vg.isInBounds(p.getPos(idx), boundaryWidth)) {
+      debMsg("Skipping particle at index " << idx
+                                           << ". Is out of bounds and cannot get value from grid.",
+             1);
+      return;
+    }
 
     vp[idx] = cpx[idx] = cpy[idx] = cpz[idx] = Vec3(Real(0));
-    const IndexInt dX[2] = {0, vg.getStrideX()}, dY[2] = {0, vg.getStrideY()},
-                   dZ[2] = {0, vg.getStrideZ()};
     const Real gw[2] = {-Real(1), Real(1)};
 
-    const Vec3 &pos = p[idx].pos;
-    const IndexInt fi = static_cast<IndexInt>(pos.x), fj = static_cast<IndexInt>(pos.y),
-                   fk = static_cast<IndexInt>(pos.z);
-    const IndexInt ci = static_cast<IndexInt>(pos.x - 0.5),
-                   cj = static_cast<IndexInt>(pos.y - 0.5),
-                   ck = static_cast<IndexInt>(pos.z - 0.5);
-    const Real wfi = clamp(pos.x - fi, Real(0), Real(1)),
-               wfj = clamp(pos.y - fj, Real(0), Real(1)),
-               wfk = clamp(pos.z - fk, Real(0), Real(1));
-    const Real wci = clamp(Real(pos.x - ci - 0.5), Real(0), Real(1)),
-               wcj = clamp(Real(pos.y - cj - 0.5), Real(0), Real(1)),
-               wck = clamp(Real(pos.z - ck - 0.5), Real(0), Real(1));
-    // TODO: check index for safety
-    {  // u
-      const IndexInt gidx = fi * dX[1] + cj * dY[1] + ck * dZ[1];
-      const Real wx[2] = {Real(1) - wfi, wfi};
-      const Real wy[2] = {Real(1) - wcj, wcj};
-      const Real wz[2] = {Real(1) - wck, wck};
-      for (int i = 0; i < 2; ++i)
-        for (int j = 0; j < 2; ++j)
-          for (int k = 0; k < 2; ++k) {
-            const IndexInt vidx = gidx + dX[i] + dY[j] + dZ[k];
-            Real vgx = vg[vidx].x;
-            vp[idx].x += wx[i] * wy[j] * wz[k] * vgx;
-            cpx[idx].x += gw[i] * wy[j] * wz[k] * vgx;
-            cpx[idx].y += wx[i] * gw[j] * wz[k] * vgx;
-            cpx[idx].z += wx[i] * wy[j] * gw[k] * vgx;
-          }
+    const Vec3 &pos = p.getPos(idx);
+    const Vec3i f = toVec3i(pos);
+    const Vec3i c = toVec3i(pos - 0.5);
+    const Vec3 wf = clamp(pos - toVec3(f), Vec3(0.), Vec3(1.));
+    const Vec3 wc = clamp(pos - toVec3(c) - 0.5, Vec3(0.), Vec3(1.));
+
+    {  // u-face
+      const IndexInt gidx = indexUFace(pos, vg);
+      if (gidx < 0)
+        return;  // debug will fail before
+
+      const Real wx[2] = {Real(1) - wf.x, wf.x};
+      const Real wy[2] = {Real(1) - wc.y, wc.y};
+      const Real wz[2] = {Real(1) - wc.z, wc.z};
+
+      FOR_INT_IJK(2)
+      {
+        const IndexInt vidx = indexOffset(gidx, i, j, k, vg);
+        if (vidx < 0)
+          continue;  // debug will fail before
+
+        const Real vgx = vg[vidx].x;
+        vp[idx].x += wx[i] * wy[j] * wz[k] * vgx;
+        cpx[idx].x += gw[i] * wy[j] * wz[k] * vgx;
+        cpx[idx].y += wx[i] * gw[j] * wz[k] * vgx;
+        cpx[idx].z += wx[i] * wy[j] * gw[k] * vgx;
+      }
     }
-    {  // v
-      const IndexInt gidx = ci * dX[1] + fj * dY[1] + ck * dZ[1];
-      const Real wx[2] = {Real(1) - wci, wci};
-      const Real wy[2] = {Real(1) - wfj, wfj};
-      const Real wz[2] = {Real(1) - wck, wck};
-      for (int i = 0; i < 2; ++i)
-        for (int j = 0; j < 2; ++j)
-          for (int k = 0; k < 2; ++k) {
-            const IndexInt vidx = gidx + dX[i] + dY[j] + dZ[k];
-            Real vgy = vg[vidx].y;
-            vp[idx].y += wx[i] * wy[j] * wz[k] * vgy;
-            cpy[idx].x += gw[i] * wy[j] * wz[k] * vgy;
-            cpy[idx].y += wx[i] * gw[j] * wz[k] * vgy;
-            cpy[idx].z += wx[i] * wy[j] * gw[k] * vgy;
-          }
+    {  // v-face
+      const IndexInt gidx = indexVFace(pos, vg);
+      if (gidx < 0)
+        return;
+
+      const Real wx[2] = {Real(1) - wc.x, wc.x};
+      const Real wy[2] = {Real(1) - wf.y, wf.y};
+      const Real wz[2] = {Real(1) - wc.z, wc.z};
+
+      FOR_INT_IJK(2)
+      {
+        const IndexInt vidx = indexOffset(gidx, i, j, k, vg);
+        if (vidx < 0)
+          continue;
+
+        const Real vgy = vg[vidx].y;
+        vp[idx].y += wx[i] * wy[j] * wz[k] * vgy;
+        cpy[idx].x += gw[i] * wy[j] * wz[k] * vgy;
+        cpy[idx].y += wx[i] * gw[j] * wz[k] * vgy;
+        cpy[idx].z += wx[i] * wy[j] * gw[k] * vgy;
+      }
     }
     if (!vg.is3D())
       return;
-    {  // w
-      const IndexInt gidx = ci * dX[1] + cj * dY[1] + fk * dZ[1];
-      const Real wx[2] = {Real(1) - wci, wci};
-      const Real wy[2] = {Real(1) - wcj, wcj};
-      const Real wz[2] = {Real(1) - wfk, wfk};
-      for (int i = 0; i < 2; ++i)
-        for (int j = 0; j < 2; ++j)
-          for (int k = 0; k < 2; ++k) {
-            const IndexInt vidx = gidx + dX[i] + dY[j] + dZ[k];
-            Real vgz = vg[vidx].z;
-            vp[idx].z += wx[i] * wy[j] * wz[k] * vgz;
-            cpz[idx].x += gw[i] * wy[j] * wz[k] * vgz;
-            cpz[idx].y += wx[i] * gw[j] * wz[k] * vgz;
-            cpz[idx].z += wx[i] * wy[j] * gw[k] * vgz;
-          }
+    {  // w-face
+      const IndexInt gidx = indexWFace(pos, vg);
+      if (gidx < 0)
+        return;
+
+      const Real wx[2] = {Real(1) - wc.x, wc.x};
+      const Real wy[2] = {Real(1) - wc.y, wc.y};
+      const Real wz[2] = {Real(1) - wf.z, wf.z};
+
+      FOR_INT_IJK(2)
+      {
+        const IndexInt vidx = indexOffset(gidx, i, j, k, vg);
+        if (vidx < 0)
+          continue;
+
+        const Real vgz = vg[vidx].z;
+        vp[idx].z += wx[i] * wy[j] * wz[k] * vgz;
+        cpz[idx].x += gw[i] * wy[j] * wz[k] * vgz;
+        cpz[idx].y += wx[i] * gw[j] * wz[k] * vgz;
+        cpz[idx].z += wx[i] * wy[j] * gw[k] * vgz;
+      }
     }
   }
   inline ParticleDataImpl<Vec3> &getArg0()
@@ -413,6 +498,11 @@ struct knApicMapLinearMACGridToVec3 : public KernelBase {
     return exclude;
   }
   typedef int type8;
+  inline const int &getArg9()
+  {
+    return boundaryWidth;
+  }
+  typedef int type9;
   void runMessage()
   {
     debMsg("Executing kernel knApicMapLinearMACGridToVec3 ", 3);
@@ -423,7 +513,7 @@ struct knApicMapLinearMACGridToVec3 : public KernelBase {
   void operator()(const tbb::blocked_range<IndexInt> &__r) const
   {
     for (IndexInt idx = __r.begin(); idx != (IndexInt)__r.end(); idx++)
-      op(idx, vp, cpx, cpy, cpz, p, vg, flags, ptype, exclude);
+      op(idx, vp, cpx, cpy, cpz, p, vg, flags, ptype, exclude, boundaryWidth);
   }
   void run()
   {
@@ -438,6 +528,7 @@ struct knApicMapLinearMACGridToVec3 : public KernelBase {
   const FlagGrid &flags;
   const ParticleDataImpl<int> *ptype;
   const int exclude;
+  const int boundaryWidth;
 };
 
 void apicMapMACGridToParts(ParticleDataImpl<Vec3> &partVel,
@@ -448,9 +539,11 @@ void apicMapMACGridToParts(ParticleDataImpl<Vec3> &partVel,
                            const MACGrid &vel,
                            const FlagGrid &flags,
                            const ParticleDataImpl<int> *ptype = NULL,
-                           const int exclude = 0)
+                           const int exclude = 0,
+                           const int boundaryWidth = 0)
 {
-  knApicMapLinearMACGridToVec3(partVel, cpx, cpy, cpz, parts, vel, flags, ptype, exclude);
+  knApicMapLinearMACGridToVec3(
+      partVel, cpx, cpy, cpz, parts, vel, flags, ptype, exclude, boundaryWidth);
 }
 static PyObject *_W_1(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
 {
@@ -473,8 +566,10 @@ static PyObject *_W_1(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
       const ParticleDataImpl<int> *ptype = _args.getPtrOpt<ParticleDataImpl<int>>(
           "ptype", 7, NULL, &_lock);
       const int exclude = _args.getOpt<int>("exclude", 8, 0, &_lock);
+      const int boundaryWidth = _args.getOpt<int>("boundaryWidth", 9, 0, &_lock);
       _retval = getPyNone();
-      apicMapMACGridToParts(partVel, cpx, cpy, cpz, parts, vel, flags, ptype, exclude);
+      apicMapMACGridToParts(
+          partVel, cpx, cpy, cpz, parts, vel, flags, ptype, exclude, boundaryWidth);
       _args.check();
     }
     pbFinalizePlugin(parent, "apicMapMACGridToParts", !noTiming);

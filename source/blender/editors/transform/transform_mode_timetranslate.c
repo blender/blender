@@ -43,9 +43,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Animation Translation) */
-
-/** \name Transform Animation Translation
+/** \name Transform (Animation Translation)
  * \{ */
 
 static void headerTimeTranslate(TransInfo *t, char str[UI_MAX_DRAW_STR])

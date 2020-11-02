@@ -53,7 +53,7 @@
 
 /* -------------------------------------------------------------------- */
 /** \name Shared Callback's
- */
+ * \{ */
 
 static bool gizmo2d_generic_poll(const bContext *C, wmGizmoGroupType *gzgt)
 {

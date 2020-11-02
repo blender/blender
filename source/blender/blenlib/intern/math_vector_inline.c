@@ -1288,6 +1288,7 @@ MINLINE bool is_one_v3(const float v[3])
   return (v[0] == 1.0f && v[1] == 1.0f && v[2] == 1.0f);
 }
 
+/* -------------------------------------------------------------------- */
 /** \name Vector Comparison
  *
  * \note use ``value <= limit``, so a limit of zero doesn't fail on an exact match.
@@ -1395,6 +1396,7 @@ MINLINE bool compare_size_v3v3(const float v1[3], const float v2[3], const float
   return true;
 }
 
+/* -------------------------------------------------------------------- */
 /** \name Vector Clamping
  * \{ */
 

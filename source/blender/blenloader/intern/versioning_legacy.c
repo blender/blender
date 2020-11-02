@@ -77,7 +77,8 @@
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_sequencer.h"
+
+#include "SEQ_sequencer.h"
 
 #include "NOD_socket.h"
 

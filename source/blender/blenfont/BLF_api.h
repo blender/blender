@@ -74,7 +74,7 @@ void BLF_color4f(int fontid, float r, float g, float b, float a);
 void BLF_color4fv(int fontid, const float rgba[4]);
 void BLF_color3f(int fontid, float r, float g, float b);
 void BLF_color3fv_alpha(int fontid, const float rgb[3], float alpha);
-/* also available: UI_FontThemeColor(fontid, colorid) */
+/* Also available: `UI_FontThemeColor(fontid, colorid)`. */
 
 /* Set a 4x4 matrix to be multiplied before draw the text.
  * Remember that you need call BLF_enable(BLF_MATRIX)
@@ -89,8 +89,8 @@ void BLF_color3fv_alpha(int fontid, const float rgb[3], float alpha);
  */
 void BLF_matrix(int fontid, const float m[16]);
 
-/* Batch drawcalls together as long as
- * the modelview matrix and the font remain unchanged. */
+/* Batch draw-calls together as long as
+ * the model-view matrix and the font remain unchanged. */
 void BLF_batch_draw_begin(void);
 void BLF_batch_draw_flush(void);
 void BLF_batch_draw_end(void);

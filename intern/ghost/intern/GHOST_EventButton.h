@@ -45,10 +45,8 @@ class GHOST_EventButton : public GHOST_Event {
                     GHOST_IWindow *window,
                     GHOST_TButtonMask button,
                     const GHOST_TabletData &tablet)
-      : GHOST_Event(time, type, window)
+      : GHOST_Event(time, type, window), m_buttonEventData({button, tablet})
   {
-    m_buttonEventData.button = button;
-    m_buttonEventData.tablet = tablet;
     m_data = &m_buttonEventData;
   }
 

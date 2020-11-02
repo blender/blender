@@ -396,6 +396,7 @@ const ModifierTypeInfo *BKE_modifier_get_info(ModifierType type);
 
 /* For modifier UI panels. */
 void BKE_modifier_type_panel_id(ModifierType type, char *r_idname);
+void BKE_modifier_panel_expand(struct ModifierData *md);
 
 /* Modifier utility calls, do call through type pointer and return
  * default values if pointer is optional.
@@ -427,8 +428,10 @@ bool BKE_modifier_is_non_geometrical(ModifierData *md);
 bool BKE_modifier_is_enabled(const struct Scene *scene,
                              struct ModifierData *md,
                              int required_mode);
-void BKE_modifier_set_error(struct ModifierData *md, const char *format, ...)
-    ATTR_PRINTF_FORMAT(2, 3);
+void BKE_modifier_set_error(const struct Object *ob,
+                            struct ModifierData *md,
+                            const char *format,
+                            ...) ATTR_PRINTF_FORMAT(3, 4);
 bool BKE_modifier_is_preview(struct ModifierData *md);
 
 void BKE_modifiers_foreach_ID_link(struct Object *ob, IDWalkFunc walk, void *userData);

@@ -549,7 +549,6 @@ void DRW_shader_free(GPUShader *shader)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Shader Library
  *
  * Simple include system for glsl files.

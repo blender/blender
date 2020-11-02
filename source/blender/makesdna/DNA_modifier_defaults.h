@@ -438,7 +438,6 @@
     .sculptlvl = 0, \
     .renderlvl = 0, \
     .totlvl = 0, \
-    .simple = 0, \
     .flags = eMultiresModifierFlag_UseCrease | eMultiresModifierFlag_ControlEdges, \
     .uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS, \
     .quality = 4, \

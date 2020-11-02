@@ -57,7 +57,6 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_sequencer.h"
 #include "BKE_undo_system.h"
 
 #include "DEG_depsgraph.h"
@@ -82,6 +81,8 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+
+#include "SEQ_sequencer.h"
 
 #include "BLO_undofile.h"
 
@@ -435,20 +436,6 @@ static void make_renderinfo_string(const RenderStats *rs,
     }
   }
   else {
-    if (rs->totvert || rs->totface || rs->totlamp) {
-      spos += sprintf(spos, "| ");
-    }
-
-    if (rs->totvert) {
-      spos += sprintf(spos, TIP_("Ve:%d "), rs->totvert);
-    }
-    if (rs->totface) {
-      spos += sprintf(spos, TIP_("Fa:%d "), rs->totface);
-    }
-    if (rs->totlamp) {
-      spos += sprintf(spos, TIP_("Li:%d "), rs->totlamp);
-    }
-
     if (rs->mem_peak == 0.0f) {
       spos += sprintf(spos, TIP_("| Mem:%.2fM (Peak %.2fM) "), megs_used_memory, megs_peak_memory);
     }

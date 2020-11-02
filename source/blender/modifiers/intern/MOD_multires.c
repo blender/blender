@@ -74,7 +74,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(mmd, DNA_struct_default_get(MultiresModifierData), modifier);
 
   /* Open subdivision panels by default. */
-  md->ui_expand_flag = (1 << 0) | (1 << 1);
+  md->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT | UI_SUBPANEL_DATA_EXPAND_1;
 }
 
 static void requiredDataMask(Object *UNUSED(ob),
@@ -216,7 +216,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 {
   Mesh *result = mesh;
 #if !defined(WITH_OPENSUBDIV)
-  BKE_modifier_set_error(md, "Disabled, built without OpenSubdiv");
+  BKE_modifier_set_error(ctx->object, md, "Disabled, built without OpenSubdiv");
   return result;
 #endif
   MultiresModifierData *mmd = (MultiresModifierData *)md;
@@ -300,7 +300,7 @@ static void deformMatrices(ModifierData *md,
 
 {
 #if !defined(WITH_OPENSUBDIV)
-  BKE_modifier_set_error(md, "Disabled, built without OpenSubdiv");
+  BKE_modifier_set_error(ctx->object, md, "Disabled, built without OpenSubdiv");
   return;
 #endif
 
@@ -478,7 +478,6 @@ static void advanced_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayoutSetActive(layout, !has_displacement);
 
-  uiItemR(layout, ptr, "subdivision_type", 0, NULL, ICON_NONE);
   uiItemR(layout, ptr, "quality", 0, NULL, ICON_NONE);
 
   col = uiLayoutColumn(layout, false);

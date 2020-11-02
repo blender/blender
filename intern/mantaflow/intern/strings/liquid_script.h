@@ -50,7 +50,8 @@ smoothenPos_s$ID$      = $MESH_SMOOTHEN_POS$\n\
 smoothenNeg_s$ID$      = $MESH_SMOOTHEN_NEG$\n\
 randomness_s$ID$       = $PARTICLE_RANDOMNESS$\n\
 surfaceTension_s$ID$   = $LIQUID_SURFACE_TENSION$\n\
-maxSysParticles_s$ID$  = $PP_PARTICLE_MAXIMUM$\n";
+maxSysParticles_s$ID$  = $PP_PARTICLE_MAXIMUM$\n\
+using_apic_s$ID$       = $USING_APIC$\n";
 
 const std::string liquid_variables_particles =
     "\n\
@@ -90,6 +91,14 @@ curvature_s$ID$  = None\n\
 \n\
 pp_s$ID$         = s$ID$.create(BasicParticleSystem, name='$NAME_PARTS$')\n\
 pVel_pp$ID$      = pp_s$ID$.create(PdataVec3, name='$NAME_PARTSVELOCITY$')\n\
+\n\
+pCx_pp$ID$       = None\n\
+pCy_pp$ID$       = None\n\
+pCz_pp$ID$       = None\n\
+if using_apic_s$ID$:\n\
+    pCx_pp$ID$   = pp_s$ID$.create(PdataVec3)\n\
+    pCy_pp$ID$   = pp_s$ID$.create(PdataVec3)\n\
+    pCz_pp$ID$   = pp_s$ID$.create(PdataVec3)\n\
 \n\
 # Acceleration data for particle nbs\n\
 pindex_s$ID$     = s$ID$.create(ParticleIndexSystem, name='$NAME_PINDEX$')\n\
@@ -275,8 +284,12 @@ def liquid_step_$ID$():\n\
         resetOutflow(flags=flags_s$ID$, phi=phi_s$ID$, parts=pp_s$ID$, index=gpi_s$ID$, indexSys=pindex_s$ID$)\n\
     flags_s$ID$.updateFromLevelset(phi_s$ID$)\n\
     \n\
-    # combine particles velocities with advected grid velocities\n\
-    mapPartsToMAC(vel=velParts_s$ID$, flags=flags_s$ID$, velOld=velOld_s$ID$, parts=pp_s$ID$, partVel=pVel_pp$ID$, weight=mapWeights_s$ID$)\n\
+    # combine particle velocities with advected grid velocities\n\
+    if using_apic_s$ID$:\n\
+        apicMapPartsToMAC(flags=flags_s$ID$, vel=vel_s$ID$, parts=pp_s$ID$, partVel=pVel_pp$ID$, cpx=pCx_pp$ID$, cpy=pCy_pp$ID$, cpz=pCz_pp$ID$)\n\
+    else:\n\
+        mapPartsToMAC(vel=velParts_s$ID$, flags=flags_s$ID$, velOld=velOld_s$ID$, parts=pp_s$ID$, partVel=pVel_pp$ID$, weight=mapWeights_s$ID$)\n\
+    \n\
     extrapolateMACFromWeight(vel=velParts_s$ID$, distance=2, weight=mapWeights_s$ID$)\n\
     combineGridVel(vel=velParts_s$ID$, weight=mapWeights_s$ID$, combineVel=vel_s$ID$, phi=phi_s$ID$, narrowBand=combineBandWidth_s$ID$, thresh=0)\n\
     velOld_s$ID$.copyFrom(vel_s$ID$)\n\
@@ -319,7 +332,11 @@ def liquid_step_$ID$():\n\
     # set source grids for resampling, used in adjustNumber!\n\
     pVel_pp$ID$.setSource(grid=vel_s$ID$, isMAC=True)\n\
     adjustNumber(parts=pp_s$ID$, vel=vel_s$ID$, flags=flags_s$ID$, minParticles=minParticles_s$ID$, maxParticles=maxParticles_s$ID$, phi=phi_s$ID$, exclude=phiObs_s$ID$, radiusFactor=radiusFactor_s$ID$, narrowBand=adjustedNarrowBandWidth_s$ID$)\n\
-    flipVelocityUpdate(vel=vel_s$ID$, velOld=velOld_s$ID$, flags=flags_s$ID$, parts=pp_s$ID$, partVel=pVel_pp$ID$, flipRatio=flipRatio_s$ID$)\n";
+    \n\
+    if using_apic_s$ID$:\n\
+        apicMapMACGridToParts(partVel=pVel_pp$ID$, cpx=pCx_pp$ID$, cpy=pCy_pp$ID$, cpz=pCz_pp$ID$, parts=pp_s$ID$, vel=vel_s$ID$, flags=flags_s$ID$)\n\
+    else:\n\
+        flipVelocityUpdate(vel=vel_s$ID$, velOld=velOld_s$ID$, flags=flags_s$ID$, parts=pp_s$ID$, partVel=pVel_pp$ID$, flipRatio=flipRatio_s$ID$)\n";
 
 const std::string liquid_step_mesh =
     "\n\

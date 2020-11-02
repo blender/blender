@@ -368,6 +368,8 @@ void BundleIntrinsicsLogMessage(const int bundle_intrinsics) {
     APPEND_BUNDLING_INTRINSICS("px, py", BUNDLE_PRINCIPAL_POINT);
     APPEND_BUNDLING_INTRINSICS("k1",     BUNDLE_RADIAL_K1);
     APPEND_BUNDLING_INTRINSICS("k2",     BUNDLE_RADIAL_K2);
+    APPEND_BUNDLING_INTRINSICS("k3",     BUNDLE_RADIAL_K3);
+    APPEND_BUNDLING_INTRINSICS("k4",     BUNDLE_RADIAL_K4);
     APPEND_BUNDLING_INTRINSICS("p1",     BUNDLE_TANGENTIAL_P1);
     APPEND_BUNDLING_INTRINSICS("p2",     BUNDLE_TANGENTIAL_P2);
 
@@ -744,7 +746,8 @@ void EuclideanBundleCommonIntrinsics(
 
     std::vector<int> constant_intrinsics;
 #define MAYBE_SET_CONSTANT(bundle_enum, offset) \
-    if (!(bundle_intrinsics & bundle_enum)) { \
+    if (!(bundle_intrinsics & bundle_enum) || \
+        !packed_intrinsics.IsParameterDefined(offset)) { \
       constant_intrinsics.push_back(offset); \
     }
     MAYBE_SET_CONSTANT(BUNDLE_FOCAL_LENGTH,
@@ -755,22 +758,19 @@ void EuclideanBundleCommonIntrinsics(
                        PackedIntrinsics::OFFSET_PRINCIPAL_POINT_Y);
     MAYBE_SET_CONSTANT(BUNDLE_RADIAL_K1,       PackedIntrinsics::OFFSET_K1);
     MAYBE_SET_CONSTANT(BUNDLE_RADIAL_K2,       PackedIntrinsics::OFFSET_K2);
+    MAYBE_SET_CONSTANT(BUNDLE_RADIAL_K3,       PackedIntrinsics::OFFSET_K3);
+    MAYBE_SET_CONSTANT(BUNDLE_RADIAL_K4,       PackedIntrinsics::OFFSET_K4);
     MAYBE_SET_CONSTANT(BUNDLE_TANGENTIAL_P1,   PackedIntrinsics::OFFSET_P1);
     MAYBE_SET_CONSTANT(BUNDLE_TANGENTIAL_P2,   PackedIntrinsics::OFFSET_P2);
 #undef MAYBE_SET_CONSTANT
 
-    // Always set K3 and K4 constant, it's not used at the moment.
-    constant_intrinsics.push_back(PackedIntrinsics::OFFSET_K3);
-    constant_intrinsics.push_back(PackedIntrinsics::OFFSET_K4);
+    if (!constant_intrinsics.empty()) {
+      ceres::SubsetParameterization *subset_parameterization =
+        new ceres::SubsetParameterization(PackedIntrinsics::NUM_PARAMETERS,
+                                          constant_intrinsics);
 
-   // TODO(sergey): Mark all parameters which are not used by the distortion
-   // model as constant.
-
-    ceres::SubsetParameterization *subset_parameterization =
-      new ceres::SubsetParameterization(PackedIntrinsics::NUM_PARAMETERS,
-                                        constant_intrinsics);
-
-    problem.SetParameterization(intrinsics_block, subset_parameterization);
+      problem.SetParameterization(intrinsics_block, subset_parameterization);
+    }
   }
 
   // Configure the solver.

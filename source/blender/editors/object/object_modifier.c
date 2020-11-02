@@ -31,6 +31,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
+#include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_force_types.h"
@@ -679,16 +680,15 @@ static int modifier_apply_shape(Main *bmain,
     return 0;
   }
 
-  /*
-   * It should be ridiculously easy to extract the original verts that we want
-   * and form the shape data.  We can probably use the CD KEYINDEX layer (or
-   * whatever I ended up calling it, too tired to check now), though this would
-   * by necessity have to make some potentially ugly assumptions about the order
-   * of the mesh data :-/  you can probably assume in 99% of cases that the first
-   * element of a given index is the original, and any subsequent duplicates are
-   * copies/interpolates, but that's an assumption that would need to be tested
-   * and then predominantly stated in comments in a half dozen headers.
-   */
+  /* We could investigate using the #CD_ORIGINDEX layer
+   * to support other kinds of modifiers besides deforming modifiers.
+   * as this is done in many other places, see: #BKE_mesh_foreach_mapped_vert_coords_get.
+   *
+   * This isn't high priority in practice since most modifiers users
+   * want to apply as a shape are deforming modifiers.
+   *
+   * If a compelling use-case comes up where we want to support other kinds of modifiers
+   * we can look into supporting them. */
 
   if (ob->type == OB_MESH) {
     Mesh *mesh_applied;
@@ -721,7 +721,7 @@ static int modifier_apply_shape(Main *bmain,
     BKE_id_free(NULL, mesh_applied);
   }
   else {
-    /* TODO: implement for hair, pointclouds and volumes. */
+    /* TODO: implement for hair, point-clouds and volumes. */
     BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
     return 0;
   }
@@ -798,8 +798,27 @@ static int modifier_apply_obdata(
 
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
+  else if (ob->type == OB_LATTICE) {
+    Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+    Lattice *lattice = ob->data;
+    ModifierEvalContext mectx = {depsgraph, object_eval, 0};
+
+    if (ELEM(mti->type, eModifierTypeType_Constructive, eModifierTypeType_Nonconstructive)) {
+      BKE_report(reports, RPT_ERROR, "Constructive modifiers cannot be applied");
+      return 0;
+    }
+
+    int numVerts;
+    float(*vertexCos)[3] = BKE_lattice_vert_coords_alloc(lattice, &numVerts);
+    mti->deformVerts(md_eval, &mectx, NULL, vertexCos, numVerts);
+    BKE_lattice_vert_coords_apply(lattice, vertexCos);
+
+    MEM_freeN(vertexCos);
+
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  }
   else {
-    /* TODO: implement for hair, pointclouds and volumes. */
+    /* TODO: implement for hair, point-clouds and volumes. */
     BKE_report(reports, RPT_ERROR, "Cannot apply modifier for this object type");
     return 0;
   }

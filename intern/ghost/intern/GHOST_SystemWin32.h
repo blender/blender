@@ -64,6 +64,8 @@ class GHOST_SystemWin32 : public GHOST_System {
    ** Time(r) functionality
    ***************************************************************************************/
 
+  GHOST_TUns64 millisSinceStart(__int64 ms) const;
+
   /**
    * This method converts performance counter measurements into milliseconds since the start of the
    * system process.
@@ -265,6 +267,16 @@ class GHOST_SystemWin32 : public GHOST_System {
                                           int mouseY,
                                           void *data);
 
+  /***************************************************************************************
+   ** Modify tablet API
+   ***************************************************************************************/
+
+  /**
+   * Set which tablet API to use.
+   * \param api Enum indicating which API to use.
+   */
+  void setTabletAPI(GHOST_TTabletAPI api) override;
+
  protected:
   /**
    * Initializes the system.
@@ -310,20 +322,26 @@ class GHOST_SystemWin32 : public GHOST_System {
 
   /**
    * Creates tablet events from Wintab events.
-   * \param type      The type of pointer event
-   * \param window    The window receiving the event (the active window).
+   * \param type            The type of pointer event.
+   * \param window          The window receiving the event (the active window).
+   * \param mask            The button mask of the calling event.
+   * \param mousePressed    Whether the mouse is currently pressed.
+   * \return                True if the method handled the event.
    */
-  static GHOST_TSuccess processWintabEvents(GHOST_TEventType type, GHOST_WindowWin32 *window);
+  static GHOST_TSuccess processWintabEvent(GHOST_TEventType type,
+                                           GHOST_WindowWin32 *window,
+                                           GHOST_TButtonMask mask,
+                                           bool mousePressed);
 
   /**
    * Creates tablet events from pointer events.
-   * \param type      The type of pointer event
-   * \param window    The window receiving the event (the active window).
-   * \param wParam    The wParam from the wndproc
-   * \param lParam    The lParam from the wndproc
-   * \param eventhandled true if the method handled the event
+   * \param type            The type of pointer event.
+   * \param window          The window receiving the event (the active window).
+   * \param wParam          The wParam from the wndproc.
+   * \param lParam          The lParam from the wndproc.
+   * \param eventhandled    True if the method handled the event.
    */
-  static void processPointerEvents(
+  static void processPointerEvent(
       UINT type, GHOST_WindowWin32 *window, WPARAM wParam, LPARAM lParam, bool &eventhandled);
 
   /**

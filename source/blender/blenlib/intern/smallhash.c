@@ -349,6 +349,7 @@ void **BLI_smallhash_iternew_p(const SmallHash *sh, SmallHashIter *iter, uintptr
   return BLI_smallhash_iternext_p(iter, key);
 }
 
+/* -------------------------------------------------------------------- */
 /** \name Debugging & Introspection
  * \{ */
 

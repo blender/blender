@@ -171,13 +171,13 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
 
     /* we could support any object type */
     if (UNLIKELY(ob->type != OB_MESH)) {
-      BKE_modifier_set_error(&mcmd->modifier, "'Integrate' only valid for Mesh objects");
+      BKE_modifier_set_error(ob, &mcmd->modifier, "'Integrate' only valid for Mesh objects");
     }
     else if (UNLIKELY(me->totvert != numVerts)) {
-      BKE_modifier_set_error(&mcmd->modifier, "'Integrate' original mesh vertex mismatch");
+      BKE_modifier_set_error(ob, &mcmd->modifier, "'Integrate' original mesh vertex mismatch");
     }
     else if (UNLIKELY(me->totpoly == 0)) {
-      BKE_modifier_set_error(&mcmd->modifier, "'Integrate' requires faces");
+      BKE_modifier_set_error(ob, &mcmd->modifier, "'Integrate' requires faces");
     }
     else {
       /* the moons align! */
@@ -216,7 +216,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
   /* -------------------------------------------------------------------- */
   /* Apply the transformation matrix (if needed) */
   if (UNLIKELY(err_str)) {
-    BKE_modifier_set_error(&mcmd->modifier, "%s", err_str);
+    BKE_modifier_set_error(ob, &mcmd->modifier, "%s", err_str);
   }
   else if (ok) {
     bool use_matrix = false;

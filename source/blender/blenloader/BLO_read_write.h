@@ -52,6 +52,8 @@ typedef struct BlendExpander BlendExpander;
 typedef struct BlendLibReader BlendLibReader;
 typedef struct BlendWriter BlendWriter;
 
+struct Main;
+
 /* Blend Write API
  * ===============
  *
@@ -105,6 +107,14 @@ void BLO_write_struct_at_address_by_id(BlendWriter *writer,
 #define BLO_write_struct_at_address(writer, struct_name, address, data_ptr) \
   BLO_write_struct_at_address_by_id( \
       writer, BLO_get_struct_id(writer, struct_name), address, data_ptr)
+
+/* Write single struct at address and specify a filecode. */
+void BLO_write_struct_at_address_by_id_with_filecode(
+    BlendWriter *writer, int filecode, int struct_id, const void *address, const void *data_ptr);
+#define BLO_write_struct_at_address_with_filecode( \
+    writer, filecode, struct_name, address, data_ptr) \
+  BLO_write_struct_at_address_by_id_with_filecode( \
+      writer, filecode, BLO_get_struct_id(writer, struct_name), address, data_ptr)
 
 /* Write struct array. */
 void BLO_write_struct_array_by_name(BlendWriter *writer,
@@ -177,6 +187,7 @@ bool BLO_write_is_undo(BlendWriter *writer);
  */
 
 void *BLO_read_get_new_data_address(BlendDataReader *reader, const void *old_address);
+void *BLO_read_get_new_data_address_no_us(BlendDataReader *reader, const void *old_address);
 void *BLO_read_get_new_packed_address(BlendDataReader *reader, const void *old_address);
 
 #define BLO_read_data_address(reader, ptr_p) \
@@ -214,6 +225,7 @@ ID *BLO_read_get_new_id_address(BlendLibReader *reader, struct Library *lib, str
 
 /* Misc. */
 bool BLO_read_lib_is_undo(BlendLibReader *reader);
+struct Main *BLO_read_lib_get_main(BlendLibReader *reader);
 
 /* Blend Expand API
  * ===================

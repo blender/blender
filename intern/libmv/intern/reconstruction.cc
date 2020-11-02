@@ -95,12 +95,23 @@ void libmv_solveRefineIntrinsics(
   if (refine_intrinsics & LIBMV_REFINE_PRINCIPAL_POINT) {
     bundle_intrinsics |= libmv::BUNDLE_PRINCIPAL_POINT;
   }
-  if (refine_intrinsics & LIBMV_REFINE_RADIAL_DISTORTION_K1) {
-    bundle_intrinsics |= libmv::BUNDLE_RADIAL_K1;
-  }
-  if (refine_intrinsics & LIBMV_REFINE_RADIAL_DISTORTION_K2) {
-    bundle_intrinsics |= libmv::BUNDLE_RADIAL_K2;
-  }
+
+#define SET_DISTORTION_FLAG_CHECKED(type, coefficient) \
+  do { \
+    if (refine_intrinsics & LIBMV_REFINE_ ##  type ##_DISTORTION_ ## coefficient) { \
+      bundle_intrinsics |= libmv::BUNDLE_ ## type ## _ ## coefficient; \
+    } \
+  } while (0)
+
+  SET_DISTORTION_FLAG_CHECKED(RADIAL, K1);
+  SET_DISTORTION_FLAG_CHECKED(RADIAL, K2);
+  SET_DISTORTION_FLAG_CHECKED(RADIAL, K3);
+  SET_DISTORTION_FLAG_CHECKED(RADIAL, K4);
+
+  SET_DISTORTION_FLAG_CHECKED(TANGENTIAL, P1);
+  SET_DISTORTION_FLAG_CHECKED(TANGENTIAL, P2);
+
+#undef SET_DISTORTION_FLAG_CHECKED
 
   progress_update_callback(callback_customdata, 1.0, "Refining solution");
 

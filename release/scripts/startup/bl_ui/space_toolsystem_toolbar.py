@@ -1259,6 +1259,7 @@ class _defs_sculpt:
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("paint.mask_line_gesture")
             layout.prop(props, "use_front_faces_only", expand=False)
+            layout.prop(props, "use_limit_to_segment", expand=False)
 
         return dict(
             idname="builtin.line_mask",
@@ -1319,6 +1320,7 @@ class _defs_sculpt:
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("sculpt.trim_lasso_gesture")
             layout.prop(props, "trim_mode", expand=False)
+            layout.prop(props, "trim_orientation", expand=False)
             layout.prop(props, "use_cursor_depth", expand=False)
         return dict(
             idname="builtin.lasso_trim",
@@ -1331,12 +1333,17 @@ class _defs_sculpt:
 
     @ToolDef.from_fn
     def project_line():
+        def draw_settings(_context, layout, tool):
+            props = tool.operator_properties("sculpt.project_line_gesture")
+            layout.prop(props, "use_limit_to_segment", expand=False)
+
         return dict(
             idname="builtin.line_project",
             label="Line Project",
             icon="ops.sculpt.line_project",
             widget=None,
             keymap=(),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn

@@ -159,7 +159,6 @@ typedef struct RenderResult {
 
 typedef struct RenderStats {
   int cfra;
-  int totface, totvert, totlamp, totpart;
   bool localview;
   double starttime, lastframetime;
   const char *infostr, *statstr;

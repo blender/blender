@@ -237,9 +237,7 @@ int ED_curve_select_count(View3D *v3d, struct EditNurb *editnurb)
 
 bool ED_curve_select_check(View3D *v3d, struct EditNurb *editnurb)
 {
-  Nurb *nu;
-
-  for (nu = editnurb->nurbs.first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
     if (ED_curve_nurb_select_check(v3d, nu)) {
       return true;
     }
@@ -284,13 +282,12 @@ bool ED_curve_deselect_all_multi(struct bContext *C)
 
 bool ED_curve_select_swap(EditNurb *editnurb, bool hide_handles)
 {
-  Nurb *nu;
   BPoint *bp;
   BezTriple *bezt;
   int a;
   bool changed = false;
 
-  for (nu = editnurb->nurbs.first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
     if (nu->type == CU_BEZIER) {
       bezt = nu->bezt;
       a = nu->pntsu;
@@ -331,7 +328,6 @@ static void select_adjacent_cp(ListBase *editnurb,
                                const bool cont,
                                const bool selstatus)
 {
-  Nurb *nu;
   BezTriple *bezt;
   BPoint *bp;
   int a;
@@ -341,7 +337,7 @@ static void select_adjacent_cp(ListBase *editnurb,
     return;
   }
 
-  for (nu = editnurb->first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, editnurb) {
     lastsel = false;
     if (nu->type == CU_BEZIER) {
       a = nu->pntsu;
@@ -412,7 +408,6 @@ static void select_adjacent_cp(ListBase *editnurb,
 static void selectend_nurb(Object *obedit, eEndPoint_Types selfirst, bool doswap, bool selstatus)
 {
   ListBase *editnurb = object_editcurve_get(obedit);
-  Nurb *nu;
   BPoint *bp;
   BezTriple *bezt;
   Curve *cu;
@@ -425,7 +420,7 @@ static void selectend_nurb(Object *obedit, eEndPoint_Types selfirst, bool doswap
   cu = (Curve *)obedit->data;
   cu->actvert = CU_ACT_NONE;
 
-  for (nu = editnurb->first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, editnurb) {
     if (nu->type == CU_BEZIER) {
       a = nu->pntsu;
 
@@ -632,10 +627,9 @@ static int select_linked_exec(bContext *C, wmOperator *UNUSED(op))
     Curve *cu = obedit->data;
     EditNurb *editnurb = cu->editnurb;
     ListBase *nurbs = &editnurb->nurbs;
-    Nurb *nu;
     bool changed = false;
 
-    for (nu = nurbs->first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, nurbs) {
       if (ED_curve_nurb_select_check(v3d, nu)) {
         changed |= ED_curve_nurb_select_all(nu);
       }
@@ -887,7 +881,6 @@ void CURVE_OT_select_previous(wmOperatorType *ot)
 static void curve_select_more(Object *obedit)
 {
   ListBase *editnurb = object_editcurve_get(obedit);
-  Nurb *nu;
   BPoint *bp, *tempbp;
   int a;
   short sel = 0;
@@ -897,7 +890,7 @@ static void curve_select_more(Object *obedit)
   /* The algorithm is designed to work in planar cases so it    */
   /* may not be optimal always (example: end of NURBS sphere)   */
   if (obedit->type == OB_SURF) {
-    for (nu = editnurb->first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, editnurb) {
       BLI_bitmap *selbpoints;
       a = nu->pntsu * nu->pntsv;
       bp = nu->bp;
@@ -997,7 +990,6 @@ void CURVE_OT_select_more(wmOperatorType *ot)
 static void curve_select_less(Object *obedit)
 {
   ListBase *editnurb = object_editcurve_get(obedit);
-  Nurb *nu;
   BPoint *bp;
   BezTriple *bezt;
   int a;
@@ -1005,7 +997,7 @@ static void curve_select_less(Object *obedit)
   bool lastsel = false;
 
   if (obedit->type == OB_SURF) {
-    for (nu = editnurb->first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, editnurb) {
       BLI_bitmap *selbpoints;
       a = nu->pntsu * nu->pntsv;
       bp = nu->bp;
@@ -1077,7 +1069,7 @@ static void curve_select_less(Object *obedit)
     }
   }
   else {
-    for (nu = editnurb->first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, editnurb) {
       lastsel = false;
       /* check what type of curve/nurb it is */
       if (nu->type == CU_BEZIER) {
@@ -1210,14 +1202,13 @@ void CURVE_OT_select_less(wmOperatorType *ot)
 
 static void curve_select_random(ListBase *editnurb, float randfac, int seed, bool select)
 {
-  Nurb *nu;
   BezTriple *bezt;
   BPoint *bp;
   int a;
 
   RNG *rng = BLI_rng_new_srandom(seed);
 
-  for (nu = editnurb->first; nu; nu = nu->next) {
+  LISTBASE_FOREACH (Nurb *, nu, editnurb) {
     if (nu->type == CU_BEZIER) {
       bezt = nu->bezt;
       a = nu->pntsu;
@@ -1431,9 +1422,7 @@ void CURVE_OT_select_nth(wmOperatorType *ot)
 }
 
 /* -------------------------------------------------------------------- */
-/* Select Similar */
-
-/** \name Select Similar
+/** \name Select Similar Operator
  * \{ */
 
 static const EnumPropertyItem curve_prop_similar_compare_types[] = {
@@ -1702,8 +1691,7 @@ static int curve_select_similar_exec(bContext *C, wmOperator *op)
     Curve *cu = obedit->data;
     EditNurb *editnurb = cu->editnurb;
 
-    Nurb *nu;
-    for (nu = editnurb->nurbs.first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
       if (!ED_curve_nurb_select_check(v3d, nu)) {
         continue;
       }
@@ -1736,9 +1724,8 @@ static int curve_select_similar_exec(bContext *C, wmOperator *op)
     Curve *cu = obedit->data;
     EditNurb *editnurb = cu->editnurb;
     bool changed = false;
-    Nurb *nu;
 
-    for (nu = editnurb->nurbs.first; nu; nu = nu->next) {
+    LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
       switch (optype) {
         case SIMCURHAND_TYPE: {
           if (nu->type & type_ref) {
@@ -1797,9 +1784,7 @@ void CURVE_OT_select_similar(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/* Select Shortest Path */
-
-/** \name Select Path
+/** \name Select Shortest Path Operator
  * \{ */
 
 static float curve_calc_dist_pair(const Nurb *nu, int a, int b)

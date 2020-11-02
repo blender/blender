@@ -45,11 +45,8 @@ class GHOST_EventCursor : public GHOST_Event {
                     GHOST_TInt32 x,
                     GHOST_TInt32 y,
                     const GHOST_TabletData &tablet)
-      : GHOST_Event(msec, type, window)
+      : GHOST_Event(msec, type, window), m_cursorEventData({x, y, tablet})
   {
-    m_cursorEventData.x = x;
-    m_cursorEventData.y = y;
-    m_cursorEventData.tablet = tablet;
     m_data = &m_cursorEventData;
   }
 

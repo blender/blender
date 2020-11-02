@@ -29,9 +29,10 @@
 
 #include "BKE_context.h"
 #include "BKE_report.h"
-#include "BKE_sequencer.h"
 
 #include "ED_markers.h"
+
+#include "SEQ_sequencer.h"
 
 #include "UI_view2d.h"
 

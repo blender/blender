@@ -96,7 +96,6 @@
 #include "BKE_pointcache.h"
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
-#include "BKE_sequencer.h"
 #include "BKE_shader_fx.h"
 #include "BKE_simulation.h"
 #include "BKE_sound.h"
@@ -109,6 +108,8 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+
+#include "SEQ_sequencer.h"
 
 #include "intern/builder/deg_builder.h"
 #include "intern/depsgraph.h"

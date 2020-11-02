@@ -46,10 +46,10 @@
 
 #  include "ED_clip.h"
 
-#  include "BKE_sequencer.h"
-
 #  include "DNA_screen_types.h"
 #  include "DNA_space_types.h"
+
+#  include "SEQ_sequencer.h"
 
 static void rna_MovieClip_reload_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {

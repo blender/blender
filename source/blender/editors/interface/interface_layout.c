@@ -964,7 +964,11 @@ static uiBut *ui_item_with_label(uiLayout *layout,
   UI_block_layout_set_current(block, layout);
 
   /* Only add new row if more than 1 item will be added. */
-  if (name[0] || use_prop_decorate) {
+  if (name[0]
+#ifdef UI_PROP_DECORATE
+      || use_prop_decorate
+#endif
+  ) {
     /* Also avoid setting 'align' if possible. Set the space to zero instead as aligning a large
      * number of labels can end up aligning thousands of buttons when displaying key-map search (a
      * heavy operation), see: T78636. */
@@ -972,8 +976,8 @@ static uiBut *ui_item_with_label(uiLayout *layout,
     sub->space = 0;
   }
 
-#ifdef UI_PROP_DECORATE
   if (name[0]) {
+#ifdef UI_PROP_DECORATE
     if (use_prop_sep) {
       layout_prop_decorate = uiItemL_respect_property_split(layout, name, 0);
     }
@@ -2148,7 +2152,6 @@ void uiItemFullR(uiLayout *layout,
       uiLayout *layout_split = uiLayoutSplit(
           layout_row ? layout_row : layout, UI_ITEM_PROP_SEP_DIVIDE, true);
       bool label_added = false;
-      layout_split->space = 0;
       uiLayout *layout_sub = uiLayoutColumn(layout_split, true);
       layout_sub->space = 0;
 
@@ -3186,7 +3189,6 @@ uiPropertySplitWrapper uiItemPropertySplitWrapperCreate(uiLayout *parent_layout)
   uiLayout *layout_row = uiLayoutRow(parent_layout, true);
   uiLayout *layout_split = uiLayoutSplit(layout_row, UI_ITEM_PROP_SEP_DIVIDE, true);
 
-  layout_split->space = 0;
   split_wrapper.label_column = uiLayoutColumn(layout_split, true);
   split_wrapper.label_column->alignment = UI_LAYOUT_ALIGN_RIGHT;
   split_wrapper.property_row = ui_item_prop_split_layout_hack(parent_layout, layout_split);

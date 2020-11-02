@@ -273,7 +273,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(struct Depsgraph *depsgra
   for (i = 0; md && i <= cageIndex; i++, md = md->next) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
 
-    if (!editbmesh_modifier_is_enabled(scene, md, me != NULL)) {
+    if (!editbmesh_modifier_is_enabled(scene, ob, md, me != NULL)) {
       continue;
     }
 
@@ -302,7 +302,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(struct Depsgraph *depsgra
   }
 
   for (; md && i <= cageIndex; md = md->next, i++) {
-    if (editbmesh_modifier_is_enabled(scene, md, me != NULL) &&
+    if (editbmesh_modifier_is_enabled(scene, ob, md, me != NULL) &&
         BKE_modifier_is_correctable_deformed(md)) {
       numleft++;
     }

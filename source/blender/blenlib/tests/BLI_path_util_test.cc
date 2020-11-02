@@ -600,3 +600,58 @@ TEST(path_util, PathExtension)
   EXPECT_STREQ(".abc", BLI_path_extension("C:\\some.def\\file.abc"));
   EXPECT_STREQ(".001", BLI_path_extension("Text.001"));
 }
+
+/* BLI_path_rel. */
+#ifndef _WIN32
+
+#  define PATH_REL(abs_path, ref_path, rel_path) \
+    { \
+      char path[FILE_MAX]; \
+      BLI_strncpy(path, abs_path, sizeof(path)); \
+      BLI_path_rel(path, ref_path); \
+      EXPECT_STREQ(rel_path, path); \
+    } \
+    void(0)
+
+TEST(path_util, PathRelPath)
+{
+  PATH_REL("/foo/bar/blender.blend", "/foo/bar/", "//blender.blend");
+  PATH_REL("/foo/bar/blender.blend", "/foo/bar", "//bar/blender.blend");
+
+  /* Check for potential buffer overflows. */
+  {
+    char abs_path_in[FILE_MAX];
+    abs_path_in[0] = '/';
+    for (int i = 1; i < FILE_MAX - 1; i++) {
+      abs_path_in[i] = 'A';
+    }
+    abs_path_in[FILE_MAX - 1] = '\0';
+    char abs_path_out[FILE_MAX];
+    abs_path_out[0] = '/';
+    abs_path_out[1] = '/';
+    for (int i = 2; i < FILE_MAX - 1; i++) {
+      abs_path_out[i] = 'A';
+    }
+    abs_path_out[FILE_MAX - 1] = '\0';
+    PATH_REL(abs_path_in, "/", abs_path_out);
+
+    const char *ref_path_in = "/foo/bar/";
+    const size_t ref_path_in_len = strlen(ref_path_in);
+    strcpy(abs_path_in, ref_path_in);
+    for (int i = ref_path_in_len; i < FILE_MAX - 1; i++) {
+      abs_path_in[i] = 'A';
+    }
+    abs_path_in[FILE_MAX - 1] = '\0';
+    abs_path_out[0] = '/';
+    abs_path_out[1] = '/';
+    for (int i = 2; i < FILE_MAX - ((int)ref_path_in_len - 1); i++) {
+      abs_path_out[i] = 'A';
+    }
+    abs_path_out[FILE_MAX - (ref_path_in_len - 1)] = '\0';
+    PATH_REL(abs_path_in, ref_path_in, abs_path_out);
+  }
+}
+
+#  undef PATH_REL
+
+#endif

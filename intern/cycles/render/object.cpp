@@ -114,6 +114,7 @@ Object::Object() : Node(node_type)
 {
   particle_system = NULL;
   particle_index = 0;
+  attr_map_offset = 0;
   bounds = BoundBox::empty;
 }
 
@@ -800,8 +801,15 @@ void ObjectManager::device_update_mesh_offsets(Device *, DeviceScene *dscene, Sc
       }
     }
 
-    if (kobjects[object->index].attribute_map_offset != geom->attr_map_offset) {
-      kobjects[object->index].attribute_map_offset = geom->attr_map_offset;
+    size_t attr_map_offset = object->attr_map_offset;
+
+    /* An object attribute map cannot have a zero offset because mesh maps come first. */
+    if (attr_map_offset == 0) {
+      attr_map_offset = geom->attr_map_offset;
+    }
+
+    if (kobjects[object->index].attribute_map_offset != attr_map_offset) {
+      kobjects[object->index].attribute_map_offset = attr_map_offset;
       update = true;
     }
   }

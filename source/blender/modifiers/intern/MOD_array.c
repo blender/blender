@@ -69,7 +69,7 @@ static void initData(ModifierData *md)
   MEMCPY_STRUCT_AFTER(amd, DNA_struct_default_get(ArrayModifierData), modifier);
 
   /* Open the first subpanel by default, it corresspnds to Relative offset which is enabled too. */
-  md->ui_expand_flag = (1 << 0) | (1 << 1);
+  md->ui_expand_flag = UI_PANEL_DATA_EXPAND_ROOT | UI_SUBPANEL_DATA_EXPAND_1;
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
@@ -508,6 +508,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
 
     if (offset_is_too_small) {
       BKE_modifier_set_error(
+          ctx->object,
           &amd->modifier,
           "The offset is too small, we cannot generate the amount of geometry it would require");
     }
@@ -518,7 +519,8 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   else if (((size_t)count * (size_t)chunk_nverts + (size_t)start_cap_nverts +
             (size_t)end_cap_nverts) > max_num_vertices) {
     count = 1;
-    BKE_modifier_set_error(&amd->modifier,
+    BKE_modifier_set_error(ctx->object,
+                           &amd->modifier,
                            "The amount of copies is too high, we cannot generate the amount of "
                            "geometry it would require");
   }

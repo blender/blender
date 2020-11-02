@@ -35,9 +35,7 @@
 #include "transform_mode.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Align) */
-
-/** \name Transform Align
+/** \name Transform (Align)
  * \{ */
 
 static void applyAlign(TransInfo *t, const int UNUSED(mval[2]))

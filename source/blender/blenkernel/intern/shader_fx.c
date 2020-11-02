@@ -36,6 +36,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_shader_fx_types.h"
 
 #include "BKE_gpencil.h"
@@ -173,6 +174,11 @@ void BKE_shaderfxType_panel_id(ShaderFxType type, char *r_idname)
 
   strcpy(r_idname, SHADERFX_TYPE_PANEL_PREFIX);
   strcat(r_idname, fxi->name);
+}
+
+void BKE_shaderfx_panel_expand(ShaderFxData *fx)
+{
+  fx->ui_expand_flag |= UI_PANEL_DATA_EXPAND_ROOT;
 }
 
 void BKE_shaderfx_copydata_generic(const ShaderFxData *fx_src, ShaderFxData *fx_dst)

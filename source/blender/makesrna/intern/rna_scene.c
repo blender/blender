@@ -680,7 +680,6 @@ const EnumPropertyItem rna_enum_transform_orientation_items[] = {
 #  include "BKE_pointcache.h"
 #  include "BKE_scene.h"
 #  include "BKE_screen.h"
-#  include "BKE_sequencer.h"
 #  include "BKE_unit.h"
 
 #  include "ED_image.h"
@@ -693,6 +692,8 @@ const EnumPropertyItem rna_enum_transform_orientation_items[] = {
 
 #  include "DEG_depsgraph_build.h"
 #  include "DEG_depsgraph_query.h"
+
+#  include "SEQ_sequencer.h"
 
 #  ifdef WITH_FREESTYLE
 #    include "FRS_freestyle.h"
@@ -7359,9 +7360,9 @@ void RNA_def_scene(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem sync_mode_items[] = {
-      {0, "NONE", 0, "No Sync", "Do not sync, play every frame"},
+      {0, "NONE", 0, "Play Every Frame", "Do not sync, play every frame"},
       {SCE_FRAME_DROP, "FRAME_DROP", 0, "Frame Dropping", "Drop frames if playback is too slow"},
-      {AUDIO_SYNC, "AUDIO_SYNC", 0, "AV-sync", "Sync to audio playback, dropping frames"},
+      {AUDIO_SYNC, "AUDIO_SYNC", 0, "Sync to Audio", "Sync to audio playback, dropping frames"},
       {0, NULL, 0, NULL, NULL},
   };
 

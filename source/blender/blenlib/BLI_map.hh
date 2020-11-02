@@ -230,19 +230,25 @@ class Map {
    */
   void add_new(const Key &key, const Value &value)
   {
-    this->add_new__impl(key, value, hash_(key));
+    this->add_new_as(key, value);
   }
   void add_new(const Key &key, Value &&value)
   {
-    this->add_new__impl(key, std::move(value), hash_(key));
+    this->add_new_as(key, std::move(value));
   }
   void add_new(Key &&key, const Value &value)
   {
-    this->add_new__impl(std::move(key), value, hash_(key));
+    this->add_new_as(std::move(key), value);
   }
   void add_new(Key &&key, Value &&value)
   {
-    this->add_new__impl(std::move(key), std::move(value), hash_(key));
+    this->add_new_as(std::move(key), std::move(value));
+  }
+  template<typename ForwardKey, typename ForwardValue>
+  void add_new_as(ForwardKey &&key, ForwardValue &&value)
+  {
+    this->add_new__impl(
+        std::forward<ForwardKey>(key), std::forward<ForwardValue>(value), hash_(key));
   }
 
   /**
@@ -1010,7 +1016,7 @@ class Map {
           return;
         }
         else {
-          auto return_value = create_value(value_ptr);
+          auto &&return_value = create_value(value_ptr);
           slot.occupy_no_value(std::forward<ForwardKey>(key), hash);
           occupied_and_removed_slots_++;
           return return_value;

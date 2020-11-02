@@ -90,7 +90,6 @@
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_sequencer.h"
 #include "BKE_sound.h"
 #include "BKE_unit.h"
 #include "BKE_workspace.h"
@@ -102,6 +101,8 @@
 #include "DEG_depsgraph_query.h"
 
 #include "RE_engine.h"
+
+#include "SEQ_sequencer.h"
 
 #include "engines/eevee/eevee_lightcache.h"
 

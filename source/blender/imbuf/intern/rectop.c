@@ -1069,8 +1069,11 @@ void IMB_rectblend_threaded(ImBuf *dbuf,
   }
 }
 
-/* fill */
-
+/**
+ * Replace pixels of entire image with solid color.
+ * \param ibuf an image to be filled with color. It must be 4 channel image.
+ * \param col RGBA color, which is assigned directly to both byte (via scaling) and float buffers.
+ */
 void IMB_rectfill(ImBuf *drect, const float col[4])
 {
   int num;
@@ -1099,6 +1102,61 @@ void IMB_rectfill(ImBuf *drect, const float col[4])
       *rrectf++ = col[1];
       *rrectf++ = col[2];
       *rrectf++ = col[3];
+    }
+  }
+}
+
+/**
+ * Replace pixels of image area with solid color.
+ * \param ibuf an image to be filled with color. It must be 4 channel image.
+ * \param col RGBA color, which is assigned directly to both byte (via scaling) and float buffers.
+ * \param x1, y1, x2, y2 (x1, y1) defines starting point of the rectangular area to be filled,
+ * (x2, y2) is the end point. Note that values are allowed to be loosely ordered, which means that
+ * x2 is allowed to be lower than x1, as well as y2 is allowed to be lower than y1. No matter the
+ * order the area between x1 and x2, and y1 and y2 is filled.
+ */
+void IMB_rectfill_area_replace(
+    const ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2)
+{
+  /* Sanity checks. */
+  BLI_assert(ibuf->channels == 4);
+
+  if (ibuf->channels != 4) {
+    return;
+  }
+
+  int width = ibuf->x;
+  int height = ibuf->y;
+  CLAMP(x1, 0, width);
+  CLAMP(x2, 0, width);
+  CLAMP(y1, 0, height);
+  CLAMP(y2, 0, height);
+
+  if (x1 > x2) {
+    SWAP(int, x1, x2);
+  }
+  if (y1 > y2) {
+    SWAP(int, y1, y2);
+  }
+  if (x1 == x2 || y1 == y2) {
+    return;
+  }
+
+  unsigned char col_char[4] = {col[0] * 255, col[1] * 255, col[2] * 255, col[3] * 255};
+
+  for (int y = y1; y < y2; y++) {
+    for (int x = x1; x < x2; x++) {
+      size_t offset = ((size_t)ibuf->x) * y * 4 + 4 * x;
+
+      if (ibuf->rect) {
+        unsigned char *rrect = (unsigned char *)ibuf->rect + offset;
+        memcpy(rrect, &col_char, sizeof(unsigned char) * 4);
+      }
+
+      if (ibuf->rect_float) {
+        float *rrectf = ibuf->rect_float + offset;
+        memcpy(rrectf, &col, sizeof(float) * 4);
+      }
     }
   }
 }
@@ -1214,6 +1272,21 @@ void buf_rectfill_area(unsigned char *rect,
   }
 }
 
+/**
+ * Blend pixels of image area with solid color.
+ *
+ * For images with uchar buffer use color matching image colorspace.
+ * For images with float buffer use color display colorspace.
+ * If display colorspace can not be referenced, use color in SRGB colorspace.
+ *
+ * \param ibuf an image to be filled with color. It must be 4 channel image.
+ * \param col RGBA color.
+ * \param x1, y1, x2, y2 (x1, y1) defines starting point of the rectangular area to be filled,
+ * (x2, y2) is the end point. Note that values are allowed to be loosely ordered, which means that
+ * x2 is allowed to be lower than x1, as well as y2 is allowed to be lower than y1. No matter the
+ * order the area between x1 and x2, and y1 and y2 is filled.
+ * \param display colorspace reference for display space.
+ */
 void IMB_rectfill_area(ImBuf *ibuf,
                        const float col[4],
                        int x1,

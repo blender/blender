@@ -40,9 +40,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (EditBone Roll) */
-
-/** \name Transform EditBone Roll
+/** \name Transform (EditBone Roll)
  * \{ */
 
 static void applyBoneRoll(TransInfo *t, const int UNUSED(mval[2]))

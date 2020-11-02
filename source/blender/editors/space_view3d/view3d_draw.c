@@ -949,15 +949,16 @@ void ED_view3d_grid_steps(const Scene *scene,
  * Currently the simulation is only done when RV3D_VIEW_IS_AXIS. */
 float ED_view3d_grid_view_scale(Scene *scene,
                                 View3D *v3d,
-                                RegionView3D *rv3d,
+                                ARegion *region,
                                 const char **r_grid_unit)
 {
   float grid_scale;
+  RegionView3D *rv3d = region->regiondata;
   if (!rv3d->is_persp && RV3D_VIEW_IS_AXIS(rv3d->view)) {
     /* Decrease the distance between grid snap points depending on zoom. */
     /* `0.38` was a value visually obtained in order to get a snap distance
      * that matches previous versions Blender.*/
-    float min_dist = 0.38f * (rv3d->dist / v3d->lens);
+    float min_dist = 16.0f / (region->sizex * rv3d->winmat[0][0]);
     float grid_steps[STEPS_LEN];
     ED_view3d_grid_steps(scene, v3d, rv3d, grid_steps);
     /* Skip last item, in case the 'mid_dist' is greater than the largest unit. */
@@ -1468,12 +1469,13 @@ static void draw_selected_name(
 }
 
 static void draw_grid_unit_name(
-    Scene *scene, RegionView3D *rv3d, View3D *v3d, int xoffset, int *yoffset)
+    Scene *scene, ARegion *region, View3D *v3d, int xoffset, int *yoffset)
 {
+  RegionView3D *rv3d = region->regiondata;
   if (!rv3d->is_persp && RV3D_VIEW_IS_AXIS(rv3d->view)) {
     const char *grid_unit = NULL;
     int font_id = BLF_default();
-    ED_view3d_grid_view_scale(scene, v3d, rv3d, &grid_unit);
+    ED_view3d_grid_view_scale(scene, v3d, region, &grid_unit);
 
     if (grid_unit) {
       char numstr[32] = "";
@@ -1558,7 +1560,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
 
     if (v3d->gridflag & (V3D_SHOW_FLOOR | V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_Z)) {
       /* draw below the viewport name */
-      draw_grid_unit_name(scene, rv3d, v3d, xoffset, &yoffset);
+      draw_grid_unit_name(scene, region, v3d, xoffset, &yoffset);
     }
 
     DRW_draw_region_engine_info(xoffset, &yoffset, VIEW3D_OVERLAY_LINEHEIGHT);

@@ -95,7 +95,7 @@ static bool g_undo_callback_running = false;
 /** \name Public Undo Types
  *
  * Unfortunately we need this for a handful of places.
- */
+ * \{ */
 const UndoType *BKE_UNDOSYS_TYPE_IMAGE = NULL;
 const UndoType *BKE_UNDOSYS_TYPE_MEMFILE = NULL;
 const UndoType *BKE_UNDOSYS_TYPE_PAINTCURVE = NULL;
@@ -549,6 +549,8 @@ bool BKE_undosys_step_push_with_type(UndoStack *ustack,
       BLI_strncpy(us->name, name, sizeof(us->name));
     }
     us->type = ut;
+    /* True by default, code needs to explicitely set it to false if necessary. */
+    us->use_old_bmain_data = true;
     /* Initialized, not added yet. */
 
     CLOG_INFO(&LOG, 1, "addr=%p, name='%s', type='%s'", us, us->name, us->type->name);
@@ -578,6 +580,12 @@ bool BKE_undosys_step_push_with_type(UndoStack *ustack,
 #endif
       ustack->step_active = us;
     }
+  }
+
+  if (ustack->group_level > 0) {
+    /* Temporarily set skip for the active step.
+     * This is an invalid state which must be corrected once the last group ends. */
+    ustack->step_active->skip = true;
   }
 
   undosys_stack_validate(ustack, true);
@@ -849,10 +857,49 @@ void BKE_undosys_type_free_all(void)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Undo Stack Grouping
+ *
+ * This enables skip while group-level is set.
+ * In general it's not allowed that #UndoStack.step_active have 'skip' enabled.
+ *
+ * This rule is relaxed for grouping, however it's important each call to
+ * #BKE_undosys_stack_group_begin has a matching #BKE_undosys_stack_group_end.
+ *
+ * - Levels are used so nesting is supported, where the last call to #BKE_undosys_stack_group_end
+ *   will set the active undo step that should not be skipped.
+ *
+ * - Correct begin/end is checked by an assert since any errors here will cause undo
+ *   to consider all steps part of one large group.
+ *
+ * - Calls to begin/end with no undo steps being pushed is supported and does nothing.
+ *
+ * \{ */
+
+void BKE_undosys_stack_group_begin(UndoStack *ustack)
+{
+  BLI_assert(ustack->group_level >= 0);
+  ustack->group_level += 1;
+}
+
+void BKE_undosys_stack_group_end(UndoStack *ustack)
+{
+  ustack->group_level -= 1;
+  BLI_assert(ustack->group_level >= 0);
+
+  if (ustack->group_level == 0) {
+    if (LIKELY(ustack->step_active != NULL)) {
+      ustack->step_active->skip = false;
+    }
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name ID Reference Utilities
  *
  * Unfortunately we need this for a handful of places.
- */
+ * \{ */
 
 static void UNUSED_FUNCTION(BKE_undosys_foreach_ID_ref(UndoStack *ustack,
                                                        UndoTypeForEachIDRefFn foreach_ID_ref_fn,

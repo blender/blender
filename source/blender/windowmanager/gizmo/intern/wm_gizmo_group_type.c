@@ -38,6 +38,7 @@
 #include "wm_gizmo_intern.h"
 #include "wm_gizmo_wmapi.h"
 
+/* -------------------------------------------------------------------- */
 /** \name GizmoGroup Type Append
  *
  * \note This follows conventions from #WM_operatortype_find #WM_operatortype_append & friends.

@@ -327,6 +327,7 @@ void BKE_mesh_remap_find_best_match_from_mesh(const MVert *verts_dst,
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Mesh to mesh mapping
  * \{ */
 

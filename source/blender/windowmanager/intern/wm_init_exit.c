@@ -72,14 +72,15 @@
 
 #include "BKE_addon.h"
 #include "BKE_appdir.h"
-#include "BKE_mask.h"      /* free mask clipboard */
-#include "BKE_material.h"  /* BKE_material_copybuf_clear */
-#include "BKE_sequencer.h" /* free seq clipboard */
+#include "BKE_mask.h"     /* free mask clipboard */
+#include "BKE_material.h" /* BKE_material_copybuf_clear */
 #include "BKE_studiolight.h"
 #include "BKE_tracking.h" /* free tracking clipboard */
 
 #include "RE_engine.h"
 #include "RE_pipeline.h" /* RE_ free stuff */
+
+#include "SEQ_sequencer.h" /* free seq clipboard */
 
 #include "IMB_thumbs.h"
 

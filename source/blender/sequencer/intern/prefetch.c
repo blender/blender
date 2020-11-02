@@ -47,12 +47,15 @@
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
-#include "BKE_sequencer.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_debug.h"
 #include "DEG_depsgraph_query.h"
+
+#include "SEQ_sequencer.h"
+
+#include "sequencer.h"
 
 typedef struct PrefetchJob {
   struct PrefetchJob *next, *prev;
@@ -319,6 +322,7 @@ static void seq_prefetch_update_scene(Scene *scene)
     return;
   }
 
+  pfjob->scene = scene;
   seq_prefetch_free_depsgraph(pfjob);
   seq_prefetch_init_depsgraph(pfjob);
 }
@@ -499,15 +503,14 @@ static PrefetchJob *seq_prefetch_start(const SeqRenderData *context, float cfra)
       BLI_mutex_init(&pfjob->prefetch_suspend_mutex);
       BLI_condition_init(&pfjob->prefetch_suspend_cond);
 
-      pfjob->bmain = context->bmain;
       pfjob->bmain_eval = BKE_main_new();
-
       pfjob->scene = context->scene;
       seq_prefetch_init_depsgraph(pfjob);
     }
   }
   seq_prefetch_update_scene(context->scene);
   seq_prefetch_update_context(context);
+  pfjob->bmain = context->bmain;
 
   pfjob->cfra = cfra;
   pfjob->num_frames_prefetched = 1;

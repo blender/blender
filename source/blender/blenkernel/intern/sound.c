@@ -60,13 +60,14 @@
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_scene.h"
-#include "BKE_sequencer.h"
 #include "BKE_sound.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
 #include "BLO_read_write.h"
+
+#include "SEQ_sequencer.h"
 
 static void sound_free_audio(bSound *sound);
 

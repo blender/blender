@@ -969,15 +969,6 @@ static void rna_fluid_set_type(Main *bmain, Scene *scene, PointerRNA *ptr)
   rna_Modifier_dependency_update(bmain, scene, ptr);
 }
 
-static void rna_MultiresModifier_type_set(PointerRNA *ptr, int value)
-{
-  Object *ob = (Object *)ptr->owner_id;
-  MultiresModifierData *mmd = (MultiresModifierData *)ptr->data;
-
-  multires_force_sculpt_rebuild(ob);
-  mmd->simple = value;
-}
-
 static void rna_MultiresModifier_level_range(
     PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
 {
@@ -1538,12 +1529,7 @@ static void rna_ParticleInstanceModifier_particle_system_set(PointerRNA *ptr,
 static void rna_Modifier_show_expanded_set(PointerRNA *ptr, bool value)
 {
   ModifierData *md = ptr->data;
-  if (value) {
-    md->ui_expand_flag |= (1 << 0);
-  }
-  else {
-    md->ui_expand_flag &= ~(1 << 0);
-  }
+  SET_FLAG_FROM_TEST(md->ui_expand_flag, value, UI_PANEL_DATA_EXPAND_ROOT);
 }
 
 /**
@@ -1554,7 +1540,7 @@ static void rna_Modifier_show_expanded_set(PointerRNA *ptr, bool value)
 static bool rna_Modifier_show_expanded_get(PointerRNA *ptr)
 {
   ModifierData *md = ptr->data;
-  return md->ui_expand_flag & (1 << 0);
+  return md->ui_expand_flag & UI_PANEL_DATA_EXPAND_ROOT;
 }
 
 static int rna_MeshSequenceCacheModifier_has_velocity_get(PointerRNA *ptr)
@@ -1604,15 +1590,8 @@ static int rna_MeshSequenceCacheModifier_read_velocity_get(PointerRNA *ptr)
 
 #else
 
-/* NOTE: *MUST* return subdivision_type property. */
-static PropertyRNA *rna_def_property_subdivision_common(StructRNA *srna, const char type[])
+static void rna_def_property_subdivision_common(StructRNA *srna)
 {
-  static const EnumPropertyItem prop_subdivision_type_items[] = {
-      {SUBSURF_TYPE_CATMULL_CLARK, "CATMULL_CLARK", 0, "Catmull-Clark", ""},
-      {SUBSURF_TYPE_SIMPLE, "SIMPLE", 0, "Simple", ""},
-      {0, NULL, 0, NULL, NULL},
-  };
-
   static const EnumPropertyItem prop_uv_smooth_items[] = {
     {SUBSURF_UV_SMOOTH_NONE, "NONE", 0, "None", "UVs are not smoothed, boundaries are kept sharp"},
     {SUBSURF_UV_SMOOTH_PRESERVE_CORNERS,
@@ -1677,19 +1656,17 @@ static PropertyRNA *rna_def_property_subdivision_common(StructRNA *srna, const c
   RNA_def_property_ui_text(prop, "Boundary Smooth", "Controls how open boundaries are smoothed");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-  prop = RNA_def_property(srna, "subdivision_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, type);
-  RNA_def_property_enum_items(prop, prop_subdivision_type_items);
-  RNA_def_property_ui_text(prop, "Subdivision Type", "Select type of subdivision algorithm");
-  RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
   RNA_define_lib_overridable(false);
-
-  return prop;
 }
 
 static void rna_def_modifier_subsurf(BlenderRNA *brna)
 {
+  static const EnumPropertyItem prop_subdivision_type_items[] = {
+      {SUBSURF_TYPE_CATMULL_CLARK, "CATMULL_CLARK", 0, "Catmull-Clark", ""},
+      {SUBSURF_TYPE_SIMPLE, "SIMPLE", 0, "Simple", ""},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   StructRNA *srna;
   PropertyRNA *prop;
 
@@ -1698,9 +1675,15 @@ static void rna_def_modifier_subsurf(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "SubsurfModifierData");
   RNA_def_struct_ui_icon(srna, ICON_MOD_SUBSURF);
 
-  rna_def_property_subdivision_common(srna, "subdivType");
+  rna_def_property_subdivision_common(srna);
 
   RNA_define_lib_overridable(true);
+
+  prop = RNA_def_property(srna, "subdivision_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "subdivType");
+  RNA_def_property_enum_items(prop, prop_subdivision_type_items);
+  RNA_def_property_ui_text(prop, "Subdivision Type", "Select type of subdivision algorithm");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   /* see CCGSUBSURF_LEVEL_MAX for max limit */
   prop = RNA_def_property(srna, "levels", PROP_INT, PROP_UNSIGNED);
@@ -1893,8 +1876,7 @@ static void rna_def_modifier_multires(BlenderRNA *brna)
 
   RNA_define_lib_overridable(true);
 
-  prop = rna_def_property_subdivision_common(srna, "simple");
-  RNA_def_property_enum_funcs(prop, NULL, "rna_MultiresModifier_type_set", NULL);
+  rna_def_property_subdivision_common(srna);
 
   prop = RNA_def_property(srna, "levels", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, NULL, "lvl");

@@ -256,7 +256,9 @@ static int ptcache_softbody_totpoint(void *soft_v, int UNUSED(cfra))
   SoftBody *soft = soft_v;
   return soft->totpoint;
 }
-static void ptcache_softbody_error(void *UNUSED(soft_v), const char *UNUSED(message))
+static void ptcache_softbody_error(const ID *UNUSED(owner_id),
+                                   void *UNUSED(soft_v),
+                                   const char *UNUSED(message))
 {
   /* ignored for now */
 }
@@ -471,7 +473,9 @@ static int ptcache_particle_totpoint(void *psys_v, int UNUSED(cfra))
   return psys->totpart;
 }
 
-static void ptcache_particle_error(void *UNUSED(psys_v), const char *UNUSED(message))
+static void ptcache_particle_error(const ID *UNUSED(owner_id),
+                                   void *UNUSED(psys_v),
+                                   const char *UNUSED(message))
 {
   /* ignored for now */
 }
@@ -642,10 +646,11 @@ static int ptcache_cloth_totpoint(void *cloth_v, int UNUSED(cfra))
   return clmd->clothObject ? clmd->clothObject->mvert_num : 0;
 }
 
-static void ptcache_cloth_error(void *cloth_v, const char *message)
+static void ptcache_cloth_error(const ID *owner_id, void *cloth_v, const char *message)
 {
   ClothModifierData *clmd = cloth_v;
-  BKE_modifier_set_error(&clmd->modifier, "%s", message);
+  BLI_assert(GS(owner_id->name) == ID_OB);
+  BKE_modifier_set_error((Object *)owner_id, &clmd->modifier, "%s", message);
 }
 
 static int ptcache_dynamicpaint_totpoint(void *sd, int UNUSED(cfra))
@@ -659,7 +664,9 @@ static int ptcache_dynamicpaint_totpoint(void *sd, int UNUSED(cfra))
   return surface->data->total_points;
 }
 
-static void ptcache_dynamicpaint_error(void *UNUSED(sd), const char *UNUSED(message))
+static void ptcache_dynamicpaint_error(const ID *UNUSED(owner_id),
+                                       void *UNUSED(sd),
+                                       const char *UNUSED(message))
 {
   /* ignored for now */
 }
@@ -853,7 +860,9 @@ static int ptcache_rigidbody_totpoint(void *rb_v, int UNUSED(cfra))
   return rbw->numbodies;
 }
 
-static void ptcache_rigidbody_error(void *UNUSED(rb_v), const char *UNUSED(message))
+static void ptcache_rigidbody_error(const struct ID *UNUSED(owner_id),
+                                    void *UNUSED(rb_v),
+                                    const char *UNUSED(message))
 {
   /* ignored for now */
 }
@@ -2098,19 +2107,19 @@ static int ptcache_read_stream(PTCacheID *pid, int cfra)
   }
 
   if (!ptcache_file_header_begin_read(pf)) {
-    pid->error(pid->calldata, "Failed to read point cache file");
+    pid->error(pid->owner_id, pid->calldata, "Failed to read point cache file");
     error = 1;
   }
   else if (pf->type != pid->type) {
-    pid->error(pid->calldata, "Point cache file has wrong type");
+    pid->error(pid->owner_id, pid->calldata, "Point cache file has wrong type");
     error = 1;
   }
   else if (!pid->read_header(pf)) {
-    pid->error(pid->calldata, "Failed to read point cache file header");
+    pid->error(pid->owner_id, pid->calldata, "Failed to read point cache file header");
     error = 1;
   }
   else if (pf->totpoint != pid->totpoint(pid->calldata, cfra)) {
-    pid->error(pid->calldata, "Number of points in cache does not match mesh");
+    pid->error(pid->owner_id, pid->calldata, "Number of points in cache does not match mesh");
     error = 1;
   }
 
@@ -2119,7 +2128,7 @@ static int ptcache_read_stream(PTCacheID *pid, int cfra)
 
     /* We have stream reading here. */
     if (!pid->read_stream(pf, pid->calldata)) {
-      pid->error(pid->calldata, "Failed to read point cache file data");
+      pid->error(pid->owner_id, pid->calldata, "Failed to read point cache file data");
       error = 1;
     }
   }
@@ -2155,7 +2164,7 @@ static int ptcache_read(PTCacheID *pid, int cfra)
       int pid_totpoint = pid->totpoint(pid->calldata, cfra);
 
       if (totpoint != pid_totpoint) {
-        pid->error(pid->calldata, "Number of points in cache does not match mesh");
+        pid->error(pid->owner_id, pid->calldata, "Number of points in cache does not match mesh");
         totpoint = MIN2(totpoint, pid_totpoint);
       }
     }
@@ -2211,7 +2220,7 @@ static int ptcache_interpolate(PTCacheID *pid, float cfra, int cfra1, int cfra2)
       int pid_totpoint = pid->totpoint(pid->calldata, (int)cfra);
 
       if (totpoint != pid_totpoint) {
-        pid->error(pid->calldata, "Number of points in cache does not match mesh");
+        pid->error(pid->owner_id, pid->calldata, "Number of points in cache does not match mesh");
         totpoint = MIN2(totpoint, pid_totpoint);
       }
     }

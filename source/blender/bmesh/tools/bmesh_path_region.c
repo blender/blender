@@ -74,6 +74,7 @@ static bool bm_vert_pair_ends(BMVert *v_pivot, BMVert *v_end_pair[2])
 }
 #endif /* USE_EDGE_CHAIN */
 
+/* -------------------------------------------------------------------- */
 /** \name Vertex in Region Checks
  * \{ */
 
@@ -386,6 +387,7 @@ static LinkNode *mesh_calc_path_region_elem(BMesh *bm,
 
 #undef USE_EDGE_CHAIN
 
+/* -------------------------------------------------------------------- */
 /** \name Main Functions (exposed externally).
  * \{ */
 

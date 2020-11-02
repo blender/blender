@@ -70,6 +70,12 @@ typedef struct UndoStack {
    * That is done once end is called.
    */
   struct UndoStep *step_init;
+
+  /**
+   * Keep track of nested group begin/end calls,
+   * within which all but the last undo-step is marked for skipping.
+   */
+  int group_level;
 } UndoStack;
 
 typedef struct UndoStep {
@@ -155,6 +161,9 @@ UndoStep *BKE_undosys_stack_init_or_active_with_type(UndoStack *ustack, const Un
 void BKE_undosys_stack_limit_steps_and_memory(UndoStack *ustack, int steps, size_t memory_limit);
 #define BKE_undosys_stack_limit_steps_and_memory_defaults(ustack) \
   BKE_undosys_stack_limit_steps_and_memory(ustack, U.undosteps, (size_t)U.undomemory * 1024 * 1024)
+
+void BKE_undosys_stack_group_begin(UndoStack *ustack);
+void BKE_undosys_stack_group_end(UndoStack *ustack);
 
 /* Only some UndoType's require init. */
 UndoStep *BKE_undosys_step_push_init_with_type(UndoStack *ustack,

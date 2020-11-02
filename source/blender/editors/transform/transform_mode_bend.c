@@ -47,9 +47,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Bend) */
-
-/** \name Transform Bend
+/** \name Transform (Bend)
  * \{ */
 
 struct BendCustomData {

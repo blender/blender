@@ -52,7 +52,6 @@
 #  include "BKE_linestyle.h"
 #  include "BKE_movieclip.h"
 #  include "BKE_node.h"
-#  include "BKE_sequencer.h"
 
 #  include "DEG_depsgraph.h"
 
@@ -60,6 +59,8 @@
 
 #  include "IMB_colormanagement.h"
 #  include "IMB_imbuf.h"
+
+#  include "SEQ_sequencer.h"
 
 static int rna_CurveMapping_curves_length(PointerRNA *ptr)
 {

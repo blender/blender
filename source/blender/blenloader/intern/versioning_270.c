@@ -63,8 +63,9 @@
 #include "BKE_node.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_sequencer.h"
 #include "BKE_tracking.h"
+
+#include "SEQ_sequencer.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"

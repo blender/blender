@@ -73,11 +73,12 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
-#include "BKE_sequencer.h"
 
 #include "BKE_bpath.h" /* own include */
 
 #include "CLG_log.h"
+
+#include "SEQ_sequencer.h"
 
 #ifndef _MSC_VER
 #  include "BLI_strict_flags.h"

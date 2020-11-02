@@ -1863,6 +1863,75 @@ void GRAPH_OT_bake(wmOperatorType *ot)
   /* TODO: add props for start/end frames (Joshua Leung 2009) */
 }
 
+/* ******************** Un-Bake F-Curve Operator *********************** */
+/* This operator unbakes the data of the selected F-Points to F-Curves. */
+
+/* Un-Bake F-Points into F-Curves. */
+static void unbake_graph_curves(bAnimContext *ac, int start, int end)
+{
+  ListBase anim_data = {NULL, NULL};
+  bAnimListElem *ale;
+
+  /* Filter data. */
+  const int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_SEL |
+                      ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
+  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+
+  /* Loop through filtered data and add keys between selected keyframes on every frame. */
+  for (ale = anim_data.first; ale; ale = ale->next) {
+    FCurve *fcu = (FCurve *)ale->key_data;
+
+    fcurve_samples_to_keyframes(fcu, start, end);
+
+    ale->update |= ANIM_UPDATE_DEPS;
+  }
+
+  ANIM_animdata_update(ac, &anim_data);
+  ANIM_animdata_freelist(&anim_data);
+}
+
+/* ------------------- */
+
+static int graphkeys_unbake_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  bAnimContext ac;
+  Scene *scene = NULL;
+  int start, end;
+
+  /* Get editor data. */
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  scene = ac.scene;
+  start = PSFRA;
+  end = PEFRA;
+
+  /* Unbake keyframes. */
+  unbake_graph_curves(&ac, start, end);
+
+  /* Set notifier that keyframes have changed. */
+  /* NOTE: some distinction between order/number of keyframes and type should be made? */
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+void GRAPH_OT_unbake(wmOperatorType *ot)
+{
+  /* Identifiers */
+  ot->name = "Un-Bake Curve";
+  ot->idname = "GRAPH_OT_unbake";
+  ot->description = "Un-Bake selected F-Points to F-Curves";
+
+  /* API callbacks */
+  ot->exec = graphkeys_unbake_exec;
+  ot->poll = graphop_selected_fcurve_poll;
+
+  /* Flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 #ifdef WITH_AUDASPACE
 
 /* ******************** Sound Bake F-Curve Operator *********************** */
@@ -2887,28 +2956,28 @@ static const EnumPropertyItem prop_graphkeys_snap_types[] = {
     {GRAPHKEYS_SNAP_CFRA,
      "CFRA",
      0,
-     "Current Frame",
+     "Selection to Current Frame",
      "Snap selected keyframes to the current frame"},
     {GRAPHKEYS_SNAP_VALUE,
      "VALUE",
      0,
-     "Cursor Value",
+     "Selection to Cursor Value",
      "Set values of selected keyframes to the cursor value (Y/Horizontal component)"},
     {GRAPHKEYS_SNAP_NEAREST_FRAME,
      "NEAREST_FRAME",
      0,
-     "Nearest Frame",
+     "Selection to Nearest Frame",
      "Snap selected keyframes to the nearest (whole) frame (use to fix accidental sub-frame "
      "offsets)"},
     {GRAPHKEYS_SNAP_NEAREST_SECOND,
      "NEAREST_SECOND",
      0,
-     "Nearest Second",
+     "Selection to Nearest Second",
      "Snap selected keyframes to the nearest second"},
     {GRAPHKEYS_SNAP_NEAREST_MARKER,
      "NEAREST_MARKER",
      0,
-     "Nearest Marker",
+     "Selection to Nearest Marker",
      "Snap selected keyframes to the nearest marker"},
     {GRAPHKEYS_SNAP_HORIZONTAL,
      "HORIZONTAL",

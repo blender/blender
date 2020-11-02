@@ -21,13 +21,11 @@
  * \ingroup edanimation
  */
 
-/* User-Interface Stuff for F-Modifiers:
- * This file defines the (C-Coded) templates + editing callbacks needed
- * by the interface stuff or F-Modifiers, as used by F-Curves in the Graph Editor,
- * and NLA-Strips in the NLA Editor.
+/**
+ * User Interface for F-Modifiers
  *
- * Copy/Paste Buffer for F-Modifiers:
- * For now, this is also defined in this file so that it can be shared between the
+ * This file defines templates and some editing callbacks needed by the interface for
+ * F-Modifiers, as used by F-Curves in the Graph Editor and NLA-Strips in the NLA Editor.
  */
 
 #include <string.h>
@@ -1047,8 +1045,12 @@ void ANIM_uiTemplate_fmodifier_draw(uiLayout *layout,
   }
 }
 
-/* ********************************************** */
-/* COPY/PASTE BUFFER STUFF */
+/* -------------------------------------------------------------------- */
+/** \name Copy / Paste Buffer Code
+ *
+ * For now, this is also defined in this file so that it can be shared between the graph editor
+ * and the NLA editor.
+ * \{ */
 
 /* Copy/Paste Buffer itself (list of FModifier 's) */
 static ListBase fmodifier_copypaste_buf = {NULL, NULL};
@@ -1139,4 +1141,4 @@ bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace, FCurve *c
   return ok;
 }
 
-/* ********************************************** */
+/** \} */

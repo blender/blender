@@ -313,7 +313,7 @@ Panel *UI_panel_add_instanced(const bContext *C,
 
   Panel *new_panel = panel_add_instanced(region, panels, panel_type, custom_data);
 
-  /* Do this after #panel_add_instatnced so all subpanels are added. */
+  /* Do this after #panel_add_instatnced so all sub-panels are added. */
   panel_set_expansion_from_list_data(C, new_panel);
 
   return new_panel;
@@ -325,7 +325,7 @@ Panel *UI_panel_add_instanced(const bContext *C,
  */
 void UI_list_panel_unique_str(Panel *panel, char *r_name)
 {
-  /* The panel sortorder will be unique for a specific panel type because the instanced
+  /* The panel sort-order will be unique for a specific panel type because the instanced
    * panel list is regenerated for every change in the data order / length. */
   snprintf(r_name, INSTANCED_PANEL_UNIQUE_STR_LEN, "%d", panel->sortorder);
 }
@@ -805,7 +805,7 @@ static float panel_region_offset_x_get(const ARegion *region)
 
 /**
  * Starting from the "block size" set in #UI_panel_end, calculate the full size
- * of the panel including the subpanel headers and buttons.
+ * of the panel including the sub-panel headers and buttons.
  */
 static void panel_calculate_size_recursive(ARegion *region, Panel *panel)
 {
@@ -854,7 +854,7 @@ static void panel_calculate_size_recursive(ARegion *region, Panel *panel)
 void UI_panel_end(Panel *panel, int width, int height)
 {
   /* Store the size of the buttons layout in the panel. The actual panel size
-   * (including subpanels) is calculated in #UI_panels_end. */
+   * (including sub-panels) is calculated in #UI_panels_end. */
   panel->blocksizex = width;
   panel->blocksizey = height;
 }
@@ -916,13 +916,13 @@ static void panel_set_expansion_from_seach_filter_recursive(const bContext *C,
                                                             const bool use_animation)
 {
   /* This has to run on inactive panels that may not have a type,
-   * but we can prevent running on headerless panels in some cases. */
+   * but we can prevent running on header-less panels in some cases. */
   if (panel->type == NULL || !(panel->type->flag & PNL_NO_HEADER)) {
     SET_FLAG_FROM_TEST(panel->runtime_flag, use_search_closed, PANEL_USE_CLOSED_FROM_SEARCH);
   }
 
   LISTBASE_FOREACH (Panel *, child_panel, &panel->children) {
-    /* Don't check if the subpanel is active, otherwise the
+    /* Don't check if the sub-panel is active, otherwise the
      * expansion won't be reset when the parent is closed. */
     panel_set_expansion_from_seach_filter_recursive(
         C, child_panel, use_search_closed, use_animation);
@@ -964,8 +964,8 @@ static void panel_remove_invisible_layouts_recursive(Panel *panel, const Panel *
     }
   }
   else if (UI_panel_is_closed(panel)) {
-    /* If subpanels have no search results but the parent panel does, then the parent panel open
-     * and the subpanels will close. In that case there must be a way to hide the buttons in the
+    /* If sub-panels have no search results but the parent panel does, then the parent panel open
+     * and the sub-panels will close. In that case there must be a way to hide the buttons in the
      * panel but keep the header buttons. */
     LISTBASE_FOREACH (uiButtonGroup *, button_group, &block->button_groups) {
       if (button_group->flag & UI_BUTTON_GROUP_PANEL_HEADER) {

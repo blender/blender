@@ -1871,6 +1871,11 @@ void ED_area_update_region_sizes(wmWindowManager *wm, wmWindow *win, ScrArea *ar
   area->flag &= ~AREA_FLAG_REGION_SIZE_UPDATE;
 }
 
+bool ED_area_has_shared_border(struct ScrArea *a, struct ScrArea *b)
+{
+  return area_getorientation(a, b) != -1;
+}
+
 /* called in screen_refresh, or screens_init, also area size changes */
 void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
 {

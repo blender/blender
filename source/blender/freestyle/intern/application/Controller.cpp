@@ -927,12 +927,7 @@ Render *Controller::RenderStrokes(Render *re, bool render)
     float megs_used_memory = (mem_in_use) / (1024.0 * 1024.0);
     float megs_peak_memory = (peak_memory) / (1024.0 * 1024.0);
 
-    printf("%d objs, %d verts, %d faces, mem %.2fM (peak %.2fM)\n",
-           totmesh,
-           freestyle_render->i.totvert,
-           freestyle_render->i.totface,
-           megs_used_memory,
-           megs_peak_memory);
+    printf("%d objs, mem %.2fM (peak %.2fM)\n", totmesh, megs_used_memory, megs_peak_memory);
   }
   delete blenderRenderer;
 

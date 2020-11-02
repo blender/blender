@@ -147,8 +147,6 @@ void IDP_FreeProperty(struct IDProperty *prop);
 
 void IDP_ClearProperty(IDProperty *prop);
 
-void IDP_RelinkProperty(struct IDProperty *prop);
-
 void IDP_Reset(IDProperty *prop, const IDProperty *reference);
 
 #define IDP_Int(prop) ((prop)->data.val)

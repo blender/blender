@@ -56,11 +56,11 @@ BlenderSync::BlenderSync(BL::RenderEngine &b_engine,
     : b_engine(b_engine),
       b_data(b_data),
       b_scene(b_scene),
-      shader_map(),
-      object_map(),
-      geometry_map(),
-      light_map(),
-      particle_system_map(),
+      shader_map(scene),
+      object_map(scene),
+      geometry_map(scene),
+      light_map(scene),
+      particle_system_map(scene),
       world_map(NULL),
       world_recalc(false),
       scene(scene),
@@ -247,7 +247,7 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
 
   /* Shader sync done at the end, since object sync uses it.
    * false = don't delete unused shaders, not supported. */
-  shader_map.post_sync(scene, false);
+  shader_map.post_sync(false);
 
   free_data_after_sync(b_depsgraph);
 

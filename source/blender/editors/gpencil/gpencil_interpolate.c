@@ -220,7 +220,7 @@ static bool gpencil_interpolate_check_todo(bContext *C, bGPdata *gpd)
       int fFrame;
 
       /* only selected */
-      if ((flag & GP_TOOLFLAG_INTERPOLATE_ONLY_SELECTED) &&
+      if ((GPENCIL_EDIT_MODE(gpd)) && (flag & GP_TOOLFLAG_INTERPOLATE_ONLY_SELECTED) &&
           ((gps_from->flag & GP_STROKE_SELECT) == 0)) {
         continue;
       }
@@ -235,7 +235,9 @@ static bool gpencil_interpolate_check_todo(bContext *C, bGPdata *gpd)
 
       /* get final stroke to interpolate */
       fFrame = BLI_findindex(&gpl->actframe->strokes, gps_from);
-      gps_to = BLI_findlink(&gpl->actframe->next->strokes, fFrame);
+      gps_to = (gpl->actframe->next != NULL) ?
+                   BLI_findlink(&gpl->actframe->next->strokes, fFrame) :
+                   NULL;
       if (gps_to == NULL) {
         continue;
       }
@@ -273,6 +275,9 @@ static void gpencil_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
     if (!BKE_gpencil_layer_is_editable(gpl) || (gpl->actframe == NULL)) {
       continue;
     }
+    if ((gpl->actframe == NULL) || (gpl->actframe->next == NULL)) {
+      continue;
+    }
 
     /* create temp data for each layer */
     tgpil = MEM_callocN(sizeof(tGPDinterpolate_layer), "GPencil Interpolate Layer");
@@ -300,7 +305,7 @@ static void gpencil_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
       bool valid = true;
 
       /* only selected */
-      if ((tgpi->flag & GP_TOOLFLAG_INTERPOLATE_ONLY_SELECTED) &&
+      if ((GPENCIL_EDIT_MODE(gpd)) && (tgpi->flag & GP_TOOLFLAG_INTERPOLATE_ONLY_SELECTED) &&
           ((gps_from->flag & GP_STROKE_SELECT) == 0)) {
         valid = false;
       }
@@ -1018,7 +1023,7 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
       for (gps_from = prevFrame->strokes.first; gps_from; gps_from = gps_from->next) {
 
         /* only selected */
-        if ((flag & GP_TOOLFLAG_INTERPOLATE_ONLY_SELECTED) &&
+        if ((GPENCIL_EDIT_MODE(gpd)) && (flag & GP_TOOLFLAG_INTERPOLATE_ONLY_SELECTED) &&
             ((gps_from->flag & GP_STROKE_SELECT) == 0)) {
           continue;
         }

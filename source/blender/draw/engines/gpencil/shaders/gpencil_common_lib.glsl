@@ -461,6 +461,14 @@ void stroke_vertex()
     float rot_cos = abs(uv_rot);
     x_axis = mat2(rot_cos, -rot_sin, rot_sin, rot_cos) * x_axis;
 
+#  ifdef GP_MATERIAL_BUFFER_LEN
+    if (is_dot) {
+      float alignment_cos = MATERIAL(m).fill_uv_offset.z;
+      float alignment_sin = MATERIAL(m).fill_uv_offset.w;
+      x_axis = mat2(alignment_cos, -alignment_sin, alignment_sin, alignment_cos) * x_axis;
+    }
+#  endif
+
     vec2 y_axis = rotate_90deg(x_axis);
 
     strokeAspect = decode_aspect(aspect1);

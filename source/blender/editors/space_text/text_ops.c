@@ -159,6 +159,15 @@ static bool text_new_poll(bContext *UNUSED(C))
   return 1;
 }
 
+static bool text_data_poll(bContext *C)
+{
+  Text *text = CTX_data_edit_text(C);
+  if (!text) {
+    return false;
+  }
+  return true;
+}
+
 static bool text_edit_poll(bContext *C)
 {
   Text *text = CTX_data_edit_text(C);
@@ -573,17 +582,6 @@ void TEXT_OT_make_internal(wmOperatorType *ot)
 /** \name Save Operator
  * \{ */
 
-static bool text_save_poll(bContext *C)
-{
-  Text *text = CTX_data_edit_text(C);
-
-  if (!text_edit_poll(C)) {
-    return 0;
-  }
-
-  return (text->filepath != NULL && !(text->flags & TXT_ISMEM));
-}
-
 static void txt_write_file(Main *bmain, Text *text, ReportList *reports)
 {
   FILE *fp;
@@ -593,6 +591,13 @@ static void txt_write_file(Main *bmain, Text *text, ReportList *reports)
 
   BLI_strncpy(filepath, text->filepath, FILE_MAX);
   BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
+
+  /* Check if file write permission is ok. */
+  if (BLI_exists(filepath) && !BLI_file_is_writable(filepath)) {
+    BKE_reportf(
+        reports, RPT_ERROR, "Cannot save text file, path \"%s\" is not writable", filepath);
+    return;
+  }
 
   fp = BLI_fopen(filepath, "w");
   if (fp == NULL) {
@@ -616,8 +621,8 @@ static void txt_write_file(Main *bmain, Text *text, ReportList *reports)
   if (BLI_stat(filepath, &st) == 0) {
     text->mtime = st.st_mtime;
 
-    /* report since this can be called from key-shortcuts */
-    BKE_reportf(reports, RPT_INFO, "Saved Text '%s'", filepath);
+    /* Report since this can be called from key shortcuts. */
+    BKE_reportf(reports, RPT_INFO, "Saved text \"%s\"", filepath);
   }
   else {
     text->mtime = 0;
@@ -644,6 +649,18 @@ static int text_save_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int text_save_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+  Text *text = CTX_data_edit_text(C);
+
+  /* Internal and texts without a filepath will go to "Save As". */
+  if (text->filepath == NULL || (text->flags & TXT_ISMEM)) {
+    WM_operator_name_call(C, "TEXT_OT_save_as", WM_OP_INVOKE_DEFAULT, NULL);
+    return OPERATOR_CANCELLED;
+  }
+  return text_save_exec(C, op);
+}
+
 void TEXT_OT_save(wmOperatorType *ot)
 {
   /* identifiers */
@@ -653,7 +670,8 @@ void TEXT_OT_save(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = text_save_exec;
-  ot->poll = text_save_poll;
+  ot->invoke = text_save_invoke;
+  ot->poll = text_edit_poll;
 }
 
 /** \} */
@@ -742,11 +760,6 @@ void TEXT_OT_save_as(wmOperatorType *ot)
 /** \name Run Script Operator
  * \{ */
 
-static bool text_run_script_poll(bContext *C)
-{
-  return (CTX_data_edit_text(C) != NULL);
-}
-
 static int text_run_script(bContext *C, ReportList *reports)
 {
 #ifdef WITH_PYTHON
@@ -808,7 +821,7 @@ void TEXT_OT_run_script(wmOperatorType *ot)
   ot->description = "Run active script";
 
   /* api callbacks */
-  ot->poll = text_run_script_poll;
+  ot->poll = text_data_poll;
   ot->exec = text_run_script_exec;
 
   /* flags */
@@ -3781,6 +3794,17 @@ static const EnumPropertyItem resolution_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+static bool text_resolve_conflict_poll(bContext *C)
+{
+  Text *text = CTX_data_edit_text(C);
+
+  if (!text_edit_poll(C)) {
+    return false;
+  }
+
+  return ((text->filepath != NULL) && !(text->flags & TXT_ISMEM));
+}
+
 static int text_resolve_conflict_exec(bContext *C, wmOperator *op)
 {
   Text *text = CTX_data_edit_text(C);
@@ -3872,7 +3896,7 @@ void TEXT_OT_resolve_conflict(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = text_resolve_conflict_exec;
   ot->invoke = text_resolve_conflict_invoke;
-  ot->poll = text_save_poll;
+  ot->poll = text_resolve_conflict_poll;
 
   /* properties */
   RNA_def_enum(ot->srna,
@@ -3891,7 +3915,7 @@ void TEXT_OT_resolve_conflict(wmOperatorType *ot)
 
 static int text_to_3d_object_exec(bContext *C, wmOperator *op)
 {
-  Text *text = CTX_data_edit_text(C);
+  const Text *text = CTX_data_edit_text(C);
   const bool split_lines = RNA_boolean_get(op->ptr, "split_lines");
 
   ED_text_to_object(C, text, split_lines);
@@ -3908,7 +3932,7 @@ void TEXT_OT_to_3d_object(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = text_to_3d_object_exec;
-  ot->poll = text_edit_poll;
+  ot->poll = text_data_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

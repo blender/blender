@@ -539,9 +539,13 @@ ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals *kg,
     /* p is [s, t] */
     float2 p = dpdu * sd->u + dpdv * sd->v + uv[2];
 
-    float4 dads, dadt;
-
-    float4 a = patch_eval_uchar4(kg, sd, desc.offset, patch, p.x, p.y, 0, &dads, &dadt);
+    float4 a, dads, dadt;
+    if (desc.type == NODE_ATTR_RGBA) {
+      a = patch_eval_uchar4(kg, sd, desc.offset, patch, p.x, p.y, 0, &dads, &dadt);
+    }
+    else {
+      a = patch_eval_float4(kg, sd, desc.offset, patch, p.x, p.y, 0, &dads, &dadt);
+    }
 
 #  ifdef __RAY_DIFFERENTIALS__
     if (dx || dy) {
@@ -570,25 +574,70 @@ ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals *kg,
       }
     }
 #  endif
+
     return a;
   }
   else
 #endif /* __PATCH_EVAL__ */
-      if (desc.element == ATTR_ELEMENT_CORNER_BYTE) {
+      if (desc.element == ATTR_ELEMENT_FACE) {
+    if (dx)
+      *dx = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    if (dy)
+      *dy = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+
+    return kernel_tex_fetch(__attributes_float3,
+                            desc.offset + subd_triangle_patch_face(kg, patch));
+  }
+  else if (desc.element == ATTR_ELEMENT_VERTEX || desc.element == ATTR_ELEMENT_VERTEX_MOTION) {
+    float2 uv[3];
+    subd_triangle_patch_uv(kg, sd, uv);
+
+    uint4 v = subd_triangle_patch_indices(kg, patch);
+
+    float4 f0 = kernel_tex_fetch(__attributes_float3, desc.offset + v.x);
+    float4 f1 = kernel_tex_fetch(__attributes_float3, desc.offset + v.y);
+    float4 f2 = kernel_tex_fetch(__attributes_float3, desc.offset + v.z);
+    float4 f3 = kernel_tex_fetch(__attributes_float3, desc.offset + v.w);
+
+    if (subd_triangle_patch_num_corners(kg, patch) != 4) {
+      f1 = (f1 + f0) * 0.5f;
+      f3 = (f3 + f0) * 0.5f;
+    }
+
+    float4 a = mix(mix(f0, f1, uv[0].x), mix(f3, f2, uv[0].x), uv[0].y);
+    float4 b = mix(mix(f0, f1, uv[1].x), mix(f3, f2, uv[1].x), uv[1].y);
+    float4 c = mix(mix(f0, f1, uv[2].x), mix(f3, f2, uv[2].x), uv[2].y);
+
+#ifdef __RAY_DIFFERENTIALS__
+    if (dx)
+      *dx = sd->du.dx * a + sd->dv.dx * b - (sd->du.dx + sd->dv.dx) * c;
+    if (dy)
+      *dy = sd->du.dy * a + sd->dv.dy * b - (sd->du.dy + sd->dv.dy) * c;
+#endif
+
+    return sd->u * a + sd->v * b + (1.0f - sd->u - sd->v) * c;
+  }
+  else if (desc.element == ATTR_ELEMENT_CORNER || desc.element == ATTR_ELEMENT_CORNER_BYTE) {
     float2 uv[3];
     subd_triangle_patch_uv(kg, sd, uv);
 
     int corners[4];
     subd_triangle_patch_corners(kg, patch, corners);
 
-    float4 f0 = color_uchar4_to_float4(
-        kernel_tex_fetch(__attributes_uchar4, corners[0] + desc.offset));
-    float4 f1 = color_uchar4_to_float4(
-        kernel_tex_fetch(__attributes_uchar4, corners[1] + desc.offset));
-    float4 f2 = color_uchar4_to_float4(
-        kernel_tex_fetch(__attributes_uchar4, corners[2] + desc.offset));
-    float4 f3 = color_uchar4_to_float4(
-        kernel_tex_fetch(__attributes_uchar4, corners[3] + desc.offset));
+    float4 f0, f1, f2, f3;
+
+    if (desc.element == ATTR_ELEMENT_CORNER_BYTE) {
+      f0 = color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, corners[0] + desc.offset));
+      f1 = color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, corners[1] + desc.offset));
+      f2 = color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, corners[2] + desc.offset));
+      f3 = color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, corners[3] + desc.offset));
+    }
+    else {
+      f0 = kernel_tex_fetch(__attributes_float3, corners[0] + desc.offset);
+      f1 = kernel_tex_fetch(__attributes_float3, corners[1] + desc.offset);
+      f2 = kernel_tex_fetch(__attributes_float3, corners[2] + desc.offset);
+      f3 = kernel_tex_fetch(__attributes_float3, corners[3] + desc.offset);
+    }
 
     if (subd_triangle_patch_num_corners(kg, patch) != 4) {
       f1 = (f1 + f0) * 0.5f;
@@ -614,7 +663,7 @@ ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals *kg,
     if (dy)
       *dy = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 
-    return color_uchar4_to_float4(kernel_tex_fetch(__attributes_uchar4, desc.offset));
+    return kernel_tex_fetch(__attributes_float3, desc.offset);
   }
   else {
     if (dx)

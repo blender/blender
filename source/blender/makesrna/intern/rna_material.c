@@ -24,6 +24,8 @@
 #include "DNA_material_types.h"
 #include "DNA_texture_types.h"
 
+#include "BLI_math.h"
+
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
@@ -592,6 +594,16 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, alignment_draw_items);
   RNA_def_property_ui_text(
       prop, "Alignment", "Defines how align Dots and Boxes with drawing path and object rotation");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
+
+  /* Rotation of texture for Dots or Strokes. */
+  prop = RNA_def_property(srna, "alignment_rotation", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_float_sdna(prop, NULL, "alignment_rotation");
+  RNA_def_property_float_default(prop, 0.0f);
+  RNA_def_property_range(prop, -DEG2RADF(90.0f), DEG2RADF(90.0f));
+  RNA_def_property_ui_range(prop, -DEG2RADF(90.0f), DEG2RADF(90.0f), 10, 3);
+  RNA_def_property_ui_text(
+      prop, "Rotation", "Additional rotation applied to dots and square strokes");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 
   /* pass index for future compositing and editing tools */

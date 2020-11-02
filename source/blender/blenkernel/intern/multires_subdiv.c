@@ -36,7 +36,7 @@
 
 void BKE_multires_subdiv_settings_init(SubdivSettings *settings, const MultiresModifierData *mmd)
 {
-  settings->is_simple = (mmd->simple != 0);
+  settings->is_simple = false;
   settings->is_adaptive = true;
   settings->level = settings->is_simple ? 1 : mmd->quality;
   settings->use_creases = (mmd->flags & eMultiresModifierFlag_UseCrease);

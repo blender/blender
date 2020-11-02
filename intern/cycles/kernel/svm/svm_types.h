@@ -157,10 +157,17 @@ typedef enum ShaderNodeType {
    * match the switch case order in svm.h. */
 } ShaderNodeType;
 
+typedef enum NodeAttributeOutputType {
+  NODE_ATTR_OUTPUT_FLOAT3 = 0,
+  NODE_ATTR_OUTPUT_FLOAT,
+  NODE_ATTR_OUTPUT_FLOAT_ALPHA,
+} NodeAttributeOutputType;
+
 typedef enum NodeAttributeType {
   NODE_ATTR_FLOAT = 0,
   NODE_ATTR_FLOAT2,
   NODE_ATTR_FLOAT3,
+  NODE_ATTR_FLOAT4,
   NODE_ATTR_RGBA,
   NODE_ATTR_MATRIX
 } NodeAttributeType;

@@ -1,21 +1,21 @@
-/*
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2005 by the Blender Foundation.
- * All rights reserved.
- */
+f /*
+   * This program is free software; you can redistribute it and/or
+   * modify it under the terms of the GNU General Public License
+   * as published by the Free Software Foundation; either version 2
+   * of the License, or (at your option) any later version.
+   *
+   * This program is distributed in the hope that it will be useful,
+   * but WITHOUT ANY WARRANTY; without even the implied warranty of
+   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   * GNU General Public License for more details.
+   *
+   * You should have received a copy of the GNU General Public License
+   * along with this program; if not, write to the Free Software Foundation,
+   * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+   *
+   * The Original Code is Copyright (C) 2005 by the Blender Foundation.
+   * All rights reserved.
+   */
 
 /** \file
  * \ingroup modifiers
@@ -76,7 +76,8 @@
 #  include "PIL_time_utildefines.h"
 #endif
 
-static void initData(ModifierData *md)
+    static void
+    initData(ModifierData *md)
 {
   BooleanModifierData *bmd = (BooleanModifierData *)md;
 
@@ -189,7 +190,7 @@ static int bm_face_isect_pair(BMFace *f, void *UNUSED(user_data))
   return BM_elem_flag_test(f, BM_FACE_TAG) ? 1 : 0;
 }
 
-static bool BMD_error_messages(ModifierData *md, Collection *col)
+static bool BMD_error_messages(const Object *ob, ModifierData *md, Collection *col)
 {
   BooleanModifierData *bmd = (BooleanModifierData *)md;
 
@@ -202,21 +203,21 @@ static bool BMD_error_messages(ModifierData *md, Collection *col)
 #ifndef WITH_GMP
   /* If compiled without GMP, return a error. */
   if (use_exact) {
-    BKE_modifier_set_error(md, "Compiled without GMP, using fast solver");
+    BKE_modifier_set_error(ob, md, "Compiled without GMP, using fast solver");
     error_returns_result = false;
   }
 #endif
 
   /* If intersect is selected using fast solver, return a error. */
   if (operand_collection && operation_intersect && !use_exact) {
-    BKE_modifier_set_error(md, "Cannot execute, intersect only available using exact solver");
+    BKE_modifier_set_error(ob, md, "Cannot execute, intersect only available using exact solver");
     error_returns_result = true;
   }
 
   /* If the selected collection is empty and using fast solver, return a error. */
   if (operand_collection) {
     if (!use_exact && BKE_collection_is_empty(col)) {
-      BKE_modifier_set_error(md, "Cannot execute, fast solver and empty collection");
+      BKE_modifier_set_error(ob, md, "Cannot execute, fast solver and empty collection");
       error_returns_result = true;
     }
 
@@ -225,7 +226,7 @@ static bool BMD_error_messages(ModifierData *md, Collection *col)
       FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (col, operand_ob) {
         if (operand_ob->type != OB_MESH) {
           BKE_modifier_set_error(
-              md, "Cannot execute, the selected collection contains non mesh objects");
+              ob, md, "Cannot execute, the selected collection contains non mesh objects");
           error_returns_result = true;
         }
       }
@@ -250,7 +251,8 @@ static BMesh *BMD_mesh_bm_create(
                           .use_toolflags = false,
                       }));
 
-  BM_mesh_bm_from_me(NULL, bm,
+  BM_mesh_bm_from_me(NULL,
+                     bm,
                      mesh_operand_ob,
                      &((struct BMeshFromMeshParams){
                          .calc_face_normal = true,
@@ -265,7 +267,8 @@ static BMesh *BMD_mesh_bm_create(
     }
   }
 
-  BM_mesh_bm_from_me(NULL, bm,
+  BM_mesh_bm_from_me(NULL,
+                     bm,
                      mesh,
                      &((struct BMeshFromMeshParams){
                          .calc_face_normal = true,
@@ -457,7 +460,8 @@ static Mesh *collection_boolean_exact(BooleanModifierData *bmd,
     Mesh *me = meshes[i];
     Object *ob = objects[i];
     /* Need normals for triangulation. */
-    BM_mesh_bm_from_me(NULL, bm,
+    BM_mesh_bm_from_me(NULL,
+                       bm,
                        me,
                        &((struct BMeshFromMeshParams){
                            .calc_face_normal = true,
@@ -587,7 +591,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       return result;
     }
 
-    BMD_error_messages(md, NULL);
+    BMD_error_messages(ctx->object, md, NULL);
 
     Object *operand_ob = bmd->object;
 
@@ -615,7 +619,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       /* if new mesh returned, return it; otherwise there was
        * an error, so delete the modifier object */
       if (result == NULL) {
-        BKE_modifier_set_error(md, "Cannot execute boolean operation");
+        BKE_modifier_set_error(object, md, "Cannot execute boolean operation");
       }
     }
   }
@@ -626,7 +630,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     }
 
     /* Return result for certain errors. */
-    if (BMD_error_messages(md, col) == confirm_return) {
+    if (BMD_error_messages(ctx->object, md, col) == confirm_return) {
       return result;
     }
 
@@ -644,33 +648,23 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
             /* XXX This is utterly non-optimal, we may go from a bmesh to a mesh back to a bmesh!
              * But for 2.90 better not try to be smart here. */
             BKE_mesh_wrapper_ensure_mdata(mesh_operand_ob);
-            /* when one of objects is empty (has got no faces) we could speed up
-             * calculation a bit returning one of objects' derived meshes (or empty one)
-             * Returning mesh is depended on modifiers operation (sergey) */
-            result = get_quick_mesh(object, mesh, operand_ob, mesh_operand_ob, bmd->operation);
 
-            if (result == NULL) {
-              bm = BMD_mesh_bm_create(mesh, object, mesh_operand_ob, operand_ob, &is_flip);
+            bm = BMD_mesh_bm_create(mesh, object, mesh_operand_ob, operand_ob, &is_flip);
 
-              BMD_mesh_intersection(bm, md, ctx, mesh_operand_ob, object, operand_ob, is_flip);
+            BMD_mesh_intersection(bm, md, ctx, mesh_operand_ob, object, operand_ob, is_flip);
 
-              /* Needed for multiple objects to work. */
-              BM_mesh_bm_to_me(NULL, NULL,
-                               bm,
-                               mesh,
-                               (&(struct BMeshToMeshParams){
-                                   .calc_object_remap = false,
-                               }));
+            /* Needed for multiple objects to work. */
+            BM_mesh_bm_to_me(NULL,
+                             NULL,
+                             bm,
+                             mesh,
+                             (&(struct BMeshToMeshParams){
+                                 .calc_object_remap = false,
+                             }));
 
-              result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
-              BM_mesh_free(bm);
-              result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
-            }
-            /* if new mesh returned, return it; otherwise there was
-             * an error, so delete the modifier object */
-            if (result == NULL) {
-              BKE_modifier_set_error(md, "Cannot execute boolean operation");
-            }
+            result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, mesh);
+            BM_mesh_free(bm);
+            result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
           }
         }
       }

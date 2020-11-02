@@ -38,7 +38,6 @@
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_screen.h"
-#include "BKE_sequencer.h"
 #include "BKE_sequencer_offscreen.h"
 
 #include "ED_screen.h"
@@ -51,6 +50,8 @@
 #include "WM_types.h"
 
 #include "RNA_access.h"
+
+#include "SEQ_sequencer.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

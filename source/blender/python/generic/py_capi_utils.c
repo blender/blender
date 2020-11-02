@@ -893,18 +893,6 @@ void PyC_MainModule_Restore(PyObject *main_mod)
  */
 void PyC_SetHomePath(const char *py_path_bundle)
 {
-  if (py_path_bundle == NULL) {
-    /* Common enough to have bundled *nix python but complain on OSX/Win */
-#  if defined(__APPLE__) || defined(_WIN32)
-    fprintf(stderr,
-            "Warning! bundled python not found and is expected on this platform. "
-            "(if you built with CMake: 'install' target may have not been built)\n");
-#  endif
-    return;
-  }
-  /* set the environment path */
-  printf("found bundled python: %s\n", py_path_bundle);
-
 #  ifdef __APPLE__
   /* OSX allow file/directory names to contain : character (represented as / in the Finder)
    * but current Python lib (release 3.1.1) doesn't handle these correctly */
@@ -915,19 +903,14 @@ void PyC_SetHomePath(const char *py_path_bundle)
   }
 #  endif
 
-  {
-    wchar_t py_path_bundle_wchar[1024];
+  /* Set the environment path. */
+  wchar_t py_path_bundle_wchar[1024];
 
-    /* Can't use this, on linux gives bug: T23018,
-     * TODO: try LANG="en_US.UTF-8" /usr/bin/blender, suggested 2008 */
-    /* mbstowcs(py_path_bundle_wchar, py_path_bundle, FILE_MAXDIR); */
+  /* Can't use `mbstowcs` on linux gives bug: T23018. */
+  BLI_strncpy_wchar_from_utf8(
+      py_path_bundle_wchar, py_path_bundle, ARRAY_SIZE(py_path_bundle_wchar));
 
-    BLI_strncpy_wchar_from_utf8(
-        py_path_bundle_wchar, py_path_bundle, ARRAY_SIZE(py_path_bundle_wchar));
-
-    Py_SetPythonHome(py_path_bundle_wchar);
-    // printf("found python (wchar_t) '%ls'\n", py_path_bundle_wchar);
-  }
+  Py_SetPythonHome(py_path_bundle_wchar);
 }
 
 bool PyC_IsInterpreterActive(void)

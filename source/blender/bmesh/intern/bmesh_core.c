@@ -2289,6 +2289,7 @@ bool BM_vert_splice(BMesh *bm, BMVert *v_dst, BMVert *v_src)
   return true;
 }
 
+/* -------------------------------------------------------------------- */
 /** \name BM_vert_separate, bmesh_kernel_vert_separate and friends
  * \{ */
 

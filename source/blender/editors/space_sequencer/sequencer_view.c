@@ -28,7 +28,6 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
-#include "BKE_sequencer.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -38,6 +37,8 @@
 #include "UI_view2d.h"
 
 #include "RNA_define.h"
+
+#include "SEQ_sequencer.h"
 
 /* For menu, popup, icons, etc. */
 #include "ED_anim_api.h"

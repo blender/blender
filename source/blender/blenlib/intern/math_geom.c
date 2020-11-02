@@ -4181,6 +4181,7 @@ int interp_sparse_array(float *array, const int list_size, const float skipval)
   return 1;
 }
 
+/* -------------------------------------------------------------------- */
 /** \name interp_weights_poly_v2, v3
  * \{ */
 

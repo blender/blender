@@ -151,6 +151,7 @@ typedef struct ShaderFxTypeInfo {
 void BKE_shaderfx_init(void);
 
 void BKE_shaderfxType_panel_id(ShaderFxType type, char *r_idname);
+void BKE_shaderfx_panel_expand(struct ShaderFxData *fx);
 const ShaderFxTypeInfo *BKE_shaderfx_get_info(ShaderFxType type);
 struct ShaderFxData *BKE_shaderfx_new(int type);
 void BKE_shaderfx_free_ex(struct ShaderFxData *fx, const int flag);

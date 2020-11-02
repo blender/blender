@@ -1241,7 +1241,7 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
     Shader *shader;
 
     /* test if we need to sync */
-    if (shader_map.add_or_update(scene, &shader, b_mat) || update_all) {
+    if (shader_map.add_or_update(&shader, b_mat) || update_all) {
       ShaderGraph *graph = new ShaderGraph();
 
       shader->name = b_mat.name().c_str();
@@ -1467,7 +1467,7 @@ void BlenderSync::sync_lights(BL::Depsgraph &b_depsgraph, bool update_all)
     Shader *shader;
 
     /* test if we need to sync */
-    if (shader_map.add_or_update(scene, &shader, b_light) || update_all) {
+    if (shader_map.add_or_update(&shader, b_light) || update_all) {
       ShaderGraph *graph = new ShaderGraph();
 
       /* create nodes */

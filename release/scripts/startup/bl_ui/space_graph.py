@@ -301,6 +301,7 @@ class GRAPH_MT_key(Menu):
         layout.operator("graph.smooth")
         layout.operator("graph.sample")
         layout.operator("graph.bake")
+        layout.operator("graph.unbake")
 
         layout.separator()
         layout.operator("graph.euler_filter", text="Discontinuity (Euler) Filter")

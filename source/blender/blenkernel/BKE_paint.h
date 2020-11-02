@@ -510,6 +510,9 @@ typedef struct SculptSession {
   int active_face_index;
   int active_grid_index;
 
+  /* When active, the cursor draws with faded colors, indicating that there is an action enabled.
+   */
+  bool draw_faded_cursor;
   float cursor_radius;
   float cursor_location[3];
   float cursor_normal[3];
@@ -519,6 +522,7 @@ typedef struct SculptSession {
   /* For Sculpt trimming gesture tools, initial raycast data from the position of the mouse when
    * the gesture starts (intersection with the surface and if they ray hit the surface or not). */
   float gesture_initial_location[3];
+  float gesture_initial_normal[3];
   bool gesture_initial_hit;
 
   /* TODO(jbakker): Replace rv3d adn v3d with ViewContext */

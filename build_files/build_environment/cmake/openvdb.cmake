@@ -54,20 +54,6 @@ set(OPENVDB_EXTRA_ARGS
   -DOPENVDB_CORE_STATIC=${OPENVDB_STATIC}
   -DOPENVDB_BUILD_BINARIES=Off
   -DCMAKE_DEBUG_POSTFIX=_d
-   # NanoVDB is header-only, so only need the install target
-  -DNANOVDB_BUILD_UNITTESTS=OFF
-  -DNANOVDB_BUILD_EXAMPLES=OFF
-  -DNANOVDB_BUILD_BENCHMARK=OFF
-  -DNANOVDB_BUILD_DOCS=OFF
-  -DNANOVDB_BUILD_TOOLS=OFF
-  -DNANOVDB_CUDA_KEEP_PTX=OFF
-  -DNANOVDB_USE_OPENGL=OFF
-  -DNANOVDB_USE_OPENGL=OFF
-  -DNANOVDB_USE_CUDA=OFF
-  -DNANOVDB_USE_TBB=OFF
-  -DNANOVDB_USE_OPTIX=OFF
-  -DNANOVDB_USE_OPENVDB=OFF
-  -DNANOVDB_ALLOW_FETCHCONTENT=OFF
 )
 
 if(WIN32)
@@ -88,18 +74,12 @@ else()
   )
 endif()
 
-if(WITH_NANOVDB)
-  set(OPENVDB_PATCH_FILE openvdb_nanovdb.diff)
-else()
-  set(OPENVDB_PATCH_FILE openvdb.diff)
-endif()
-
 ExternalProject_Add(openvdb
   URL ${OPENVDB_URI}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH MD5=${OPENVDB_HASH}
   PREFIX ${BUILD_DIR}/openvdb
-  PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/openvdb/src/openvdb < ${PATCH_DIR}/${OPENVDB_PATCH_FILE}
+  PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/openvdb/src/openvdb < ${PATCH_DIR}/openvdb.diff
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openvdb ${DEFAULT_CMAKE_FLAGS} ${OPENVDB_EXTRA_ARGS}
   INSTALL_DIR ${LIBDIR}/openvdb
 )
@@ -121,12 +101,6 @@ if(WIN32)
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/openvdb/bin/openvdb.dll ${HARVEST_TARGET}/openvdb/bin/openvdb.dll
       DEPENDEES install
     )
-    if(WITH_NANOVDB)
-      ExternalProject_Add_Step(openvdb nanovdb_install
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openvdb/nanovdb ${HARVEST_TARGET}/nanovdb/include/nanovdb
-        DEPENDEES after_install
-      )
-    endif()
   endif()
   if(BUILD_MODE STREQUAL Debug)
     ExternalProject_Add_Step(openvdb after_install

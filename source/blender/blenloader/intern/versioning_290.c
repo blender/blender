@@ -44,24 +44,170 @@
 #include "DNA_rigidbody_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_shader_fx_types.h"
+#include "DNA_space_types.h"
+#include "DNA_tracking_types.h"
 #include "DNA_workspace_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_collection.h"
 #include "BKE_colortools.h"
+#include "BKE_fcurve.h"
 #include "BKE_gpencil.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_multires.h"
 #include "BKE_node.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "RNA_access.h"
+
+#include "SEQ_sequencer.h"
 
 #include "BLO_readfile.h"
 #include "readfile.h"
 
 /* Make preferences read-only, use versioning_userdef.c. */
 #define U (*((const UserDef *)&U))
+
+/* image_size is width or height depending what RNA property is converted - X or Y. */
+static void seq_convert_transform_animation(const Scene *scene,
+                                            const char *path,
+                                            const int image_size)
+{
+  if (scene->adt == NULL || scene->adt->action == NULL) {
+    return;
+  }
+
+  FCurve *fcu = BKE_fcurve_find(&scene->adt->action->curves, path, 0);
+  if (fcu != NULL && !BKE_fcurve_is_empty(fcu)) {
+    BezTriple *bezt = fcu->bezt;
+    for (int i = 0; i < fcu->totvert; i++, bezt++) {
+      /* Same math as with old_image_center_*, but simplified. */
+      bezt->vec[1][1] = image_size / 2 + bezt->vec[1][1] - scene->r.xsch / 2;
+    }
+  }
+}
+
+static void seq_convert_transform_crop(const Scene *scene,
+                                       Sequence *seq,
+                                       const eSpaceSeq_Proxy_RenderSize render_size)
+{
+  StripCrop *c = seq->strip->crop;
+  StripTransform *t = seq->strip->transform;
+  int old_image_center_x = scene->r.xsch / 2;
+  int old_image_center_y = scene->r.ysch / 2;
+  int image_size_x = scene->r.xsch;
+  int image_size_y = scene->r.ysch;
+
+  /* Hardcoded legacy bit-flags which has been removed. */
+  const uint32_t use_transform_flag = (1 << 16);
+  const uint32_t use_crop_flag = (1 << 17);
+
+  const StripElem *s_elem = BKE_sequencer_give_stripelem(seq, seq->start);
+  if (s_elem != NULL) {
+    image_size_x = s_elem->orig_width;
+    image_size_y = s_elem->orig_height;
+
+    if (SEQ_can_use_proxy(seq, SEQ_rendersize_to_proxysize(render_size))) {
+      image_size_x /= BKE_sequencer_rendersize_to_scale_factor(render_size);
+      image_size_y /= BKE_sequencer_rendersize_to_scale_factor(render_size);
+    }
+  }
+
+  /* Default scale. */
+  if (t->scale_x == 0.0f && t->scale_y == 0.0f) {
+    t->scale_x = 1.0f;
+    t->scale_y = 1.0f;
+  }
+
+  /* Clear crop if it was unused. This must happen before converting values. */
+  if ((seq->flag & use_crop_flag) == 0) {
+    c->bottom = c->top = c->left = c->right = 0;
+  }
+
+  if ((seq->flag & use_transform_flag) == 0) {
+    t->xofs = t->yofs = 0;
+
+    /* Reverse scale to fit for strips not using offset. */
+    float project_aspect = (float)scene->r.xsch / (float)scene->r.ysch;
+    float image_aspect = (float)image_size_x / (float)image_size_y;
+    if (project_aspect > image_aspect) {
+      t->scale_x = project_aspect / image_aspect;
+    }
+    else {
+      t->scale_y = image_aspect / project_aspect;
+    }
+  }
+
+  if ((seq->flag & use_crop_flag) != 0 && (seq->flag & use_transform_flag) == 0) {
+    /* Calculate image offset. */
+    float s_x = scene->r.xsch / image_size_x;
+    float s_y = scene->r.ysch / image_size_y;
+    old_image_center_x += c->right * s_x - c->left * s_x;
+    old_image_center_y += c->top * s_y - c->bottom * s_y;
+
+    /* Convert crop to scale. */
+    int cropped_image_size_x = image_size_x - c->right - c->left;
+    int cropped_image_size_y = image_size_y - c->top - c->bottom;
+    c->bottom = c->top = c->left = c->right = 0;
+    t->scale_x *= (float)image_size_x / (float)cropped_image_size_x;
+    t->scale_y *= (float)image_size_y / (float)cropped_image_size_y;
+  }
+
+  if ((seq->flag & use_transform_flag) != 0) {
+    /* Convert image offset. */
+    old_image_center_x = image_size_x / 2 - c->left + t->xofs;
+    old_image_center_y = image_size_y / 2 - c->bottom + t->yofs;
+
+    /* Preserve original image size. */
+    t->scale_x = t->scale_y = MAX2((float)image_size_x / (float)scene->r.xsch,
+                                   (float)image_size_y / (float)scene->r.ysch);
+
+    /* Convert crop. */
+    if ((seq->flag & use_crop_flag) != 0) {
+      c->top /= t->scale_x;
+      c->bottom /= t->scale_x;
+      c->left /= t->scale_x;
+      c->right /= t->scale_x;
+    }
+  }
+
+  t->xofs = old_image_center_x - scene->r.xsch / 2;
+  t->yofs = old_image_center_y - scene->r.ysch / 2;
+
+  /* Convert offset animation, but only if crop is not used. */
+  if ((seq->flag & use_transform_flag) != 0 && (seq->flag & use_crop_flag) == 0) {
+    char name_esc[(sizeof(seq->name) - 2) * 2], *path;
+    BLI_strescape(name_esc, seq->name + 2, sizeof(name_esc));
+
+    path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.offset_x", name_esc);
+    seq_convert_transform_animation(scene, path, image_size_x);
+    MEM_freeN(path);
+    path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.offset_y", name_esc);
+    seq_convert_transform_animation(scene, path, image_size_y);
+    MEM_freeN(path);
+  }
+
+  seq->flag &= ~use_transform_flag;
+  seq->flag &= ~use_crop_flag;
+}
+
+static void seq_convert_transform_crop_lb(const Scene *scene,
+                                          const ListBase *lb,
+                                          const eSpaceSeq_Proxy_RenderSize render_size)
+{
+
+  LISTBASE_FOREACH (Sequence *, seq, lb) {
+    if (seq->type != SEQ_TYPE_SOUND_RAM) {
+      seq_convert_transform_crop(scene, seq, render_size);
+    }
+    if (seq->type == SEQ_TYPE_META) {
+      seq_convert_transform_crop_lb(scene, &seq->seqbase, render_size);
+    }
+  }
+}
 
 void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
 {
@@ -272,6 +418,46 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
         }
       }
       FOREACH_NODETREE_END;
+    }
+  }
+
+  /* Convert all Multires displacement to Catmull-Clark subdivision limit surface. */
+  if (!MAIN_VERSION_ATLEAST(bmain, 292, 1)) {
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      ModifierData *md;
+      for (md = ob->modifiers.first; md; md = md->next) {
+        if (md->type == eModifierType_Multires) {
+          MultiresModifierData *mmd = (MultiresModifierData *)md;
+          if (mmd->simple) {
+            multires_do_versions_simple_to_catmull_clark(ob, mmd);
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 292, 2)) {
+
+    eSpaceSeq_Proxy_RenderSize render_size = 100;
+
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          switch (sl->spacetype) {
+            case SPACE_SEQ: {
+              SpaceSeq *sseq = (SpaceSeq *)sl;
+              render_size = sseq->render_size;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->ed != NULL) {
+        seq_convert_transform_crop_lb(scene, &scene->ed->seqbase, render_size);
+      }
     }
   }
 
@@ -909,6 +1095,35 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
             }
           }
         }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 292, 1)) {
+    {
+      const int LEGACY_REFINE_RADIAL_DISTORTION_K1 = (1 << 2);
+
+      LISTBASE_FOREACH (MovieClip *, clip, &bmain->movieclips) {
+        MovieTracking *tracking = &clip->tracking;
+        MovieTrackingSettings *settings = &tracking->settings;
+        int new_refine_camera_intrinsics = 0;
+
+        if (settings->refine_camera_intrinsics & REFINE_FOCAL_LENGTH) {
+          new_refine_camera_intrinsics |= REFINE_FOCAL_LENGTH;
+        }
+
+        if (settings->refine_camera_intrinsics & REFINE_PRINCIPAL_POINT) {
+          new_refine_camera_intrinsics |= REFINE_PRINCIPAL_POINT;
+        }
+
+        /* The end goal is to enable radial distortion refinement if either K1 or K2 were set for
+         * refinement. It is enough to only check for L1 it was not possible to refine K2 without
+         * K1. */
+        if (settings->refine_camera_intrinsics & LEGACY_REFINE_RADIAL_DISTORTION_K1) {
+          new_refine_camera_intrinsics |= REFINE_RADIAL_DISTORTION;
+        }
+
+        settings->refine_camera_intrinsics = new_refine_camera_intrinsics;
       }
     }
   }

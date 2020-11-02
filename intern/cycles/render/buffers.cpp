@@ -125,6 +125,7 @@ RenderTile::RenderTile()
   buffer = 0;
 
   buffers = NULL;
+  stealing_state = NO_STEALING;
 }
 
 /* Render Buffers */

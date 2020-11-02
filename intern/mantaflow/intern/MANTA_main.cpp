@@ -697,12 +697,6 @@ void MANTA::initializeRNAMap(FluidModifierData *fmd)
   if ((fds->border_collisions & FLUID_DOMAIN_BORDER_TOP) == 0)
     borderCollisions += "Z";
 
-  string simulationMethod = "";
-  if (fds->simulation_method & FLUID_DOMAIN_METHOD_FLIP)
-    simulationMethod += "'FLIP'";
-  else if (fds->simulation_method & FLUID_DOMAIN_METHOD_APIC)
-    simulationMethod += "'APIC'";
-
   string particleTypesStr = "";
   if (fds->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY)
     particleTypesStr += "PtypeSpray";
@@ -837,7 +831,7 @@ void MANTA::initializeRNAMap(FluidModifierData *fmd)
   mRNAMap["CACHE_MESH_FORMAT"] = getCacheFileEnding(fds->cache_mesh_format);
   mRNAMap["CACHE_NOISE_FORMAT"] = getCacheFileEnding(fds->cache_noise_format);
   mRNAMap["CACHE_PARTICLE_FORMAT"] = getCacheFileEnding(fds->cache_particle_format);
-  mRNAMap["SIMULATION_METHOD"] = simulationMethod;
+  mRNAMap["USING_APIC"] = getBooleanString(fds->simulation_method == FLUID_DOMAIN_METHOD_APIC);
   mRNAMap["FLIP_RATIO"] = to_string(fds->flip_ratio);
   mRNAMap["PARTICLE_RANDOMNESS"] = to_string(fds->particle_randomness);
   mRNAMap["PARTICLE_NUMBER"] = to_string(fds->particle_number);

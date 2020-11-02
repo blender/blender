@@ -18,6 +18,9 @@
  * \ingroup bke
  */
 
+/* Allow using deprecated functionality for .blend file I/O. */
+#define DNA_DEPRECATED_ALLOW
+
 #include <string.h>
 
 #include "BLI_listbase.h"
@@ -55,6 +58,8 @@
 #include "DRW_engine.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "BLO_read_write.h"
 
 /* Set of flags which are dependent on a collection settings. */
 static const short g_base_collection_flags = (BASE_VISIBLE_DEPSGRAPH | BASE_VISIBLE_VIEWLAYER |
@@ -1829,4 +1834,92 @@ void BKE_layer_eval_view_layer_indexed(struct Depsgraph *depsgraph,
   ViewLayer *view_layer = BLI_findlink(&scene->view_layers, view_layer_index);
   BLI_assert(view_layer != NULL);
   layer_eval_view_layer(depsgraph, scene, view_layer);
+}
+
+static void direct_link_layer_collections(BlendDataReader *reader, ListBase *lb, bool master)
+{
+  BLO_read_list(reader, lb);
+  LISTBASE_FOREACH (LayerCollection *, lc, lb) {
+#ifdef USE_COLLECTION_COMPAT_28
+    BLO_read_data_address(reader, &lc->scene_collection);
+#endif
+
+    /* Master collection is not a real data-lock. */
+    if (master) {
+      BLO_read_data_address(reader, &lc->collection);
+    }
+
+    direct_link_layer_collections(reader, &lc->layer_collections, false);
+  }
+}
+
+void BKE_view_layer_blend_read_data(BlendDataReader *reader, ViewLayer *view_layer)
+{
+  view_layer->stats = NULL;
+  BLO_read_list(reader, &view_layer->object_bases);
+  BLO_read_data_address(reader, &view_layer->basact);
+
+  direct_link_layer_collections(reader, &view_layer->layer_collections, true);
+  BLO_read_data_address(reader, &view_layer->active_collection);
+
+  BLO_read_data_address(reader, &view_layer->id_properties);
+  IDP_BlendDataRead(reader, &view_layer->id_properties);
+
+  BLO_read_list(reader, &(view_layer->freestyle_config.modules));
+  BLO_read_list(reader, &(view_layer->freestyle_config.linesets));
+
+  BLI_listbase_clear(&view_layer->drawdata);
+  view_layer->object_bases_array = NULL;
+  view_layer->object_bases_hash = NULL;
+}
+
+static void lib_link_layer_collection(BlendLibReader *reader,
+                                      Library *lib,
+                                      LayerCollection *layer_collection,
+                                      bool master)
+{
+  /* Master collection is not a real data-lock. */
+  if (!master) {
+    BLO_read_id_address(reader, lib, &layer_collection->collection);
+  }
+
+  LISTBASE_FOREACH (
+      LayerCollection *, layer_collection_nested, &layer_collection->layer_collections) {
+    lib_link_layer_collection(reader, lib, layer_collection_nested, false);
+  }
+}
+
+void BKE_view_layer_blend_read_lib(BlendLibReader *reader, Library *lib, ViewLayer *view_layer)
+{
+  LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &view_layer->freestyle_config.modules) {
+    BLO_read_id_address(reader, lib, &fmc->script);
+  }
+
+  LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
+    BLO_read_id_address(reader, lib, &fls->linestyle);
+    BLO_read_id_address(reader, lib, &fls->group);
+  }
+
+  for (Base *base = view_layer->object_bases.first, *base_next = NULL; base; base = base_next) {
+    base_next = base->next;
+
+    /* we only bump the use count for the collection objects */
+    BLO_read_id_address(reader, lib, &base->object);
+
+    if (base->object == NULL) {
+      /* Free in case linked object got lost. */
+      BLI_freelinkN(&view_layer->object_bases, base);
+      if (view_layer->basact == base) {
+        view_layer->basact = NULL;
+      }
+    }
+  }
+
+  LISTBASE_FOREACH (LayerCollection *, layer_collection, &view_layer->layer_collections) {
+    lib_link_layer_collection(reader, lib, layer_collection, true);
+  }
+
+  BLO_read_id_address(reader, lib, &view_layer->mat_override);
+
+  IDP_BlendReadLib(reader, view_layer->id_properties);
 }

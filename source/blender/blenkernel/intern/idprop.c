@@ -68,9 +68,7 @@ static size_t idp_size_table[] = {
 };
 
 /* -------------------------------------------------------------------- */
-/* Array Functions */
-
-/** \name IDP Array API
+/** \name Array Functions (IDP Array API)
  * \{ */
 
 #define GETPROP(prop, i) &(IDP_IDPArray(prop)[i])
@@ -323,9 +321,7 @@ static IDProperty *IDP_CopyArray(const IDProperty *prop, const int flag)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/* String Functions */
-
-/** \name IDProperty String API
+/** \name String Functions (IDProperty String API)
  * \{ */
 
 /**
@@ -439,9 +435,7 @@ void IDP_FreeString(IDProperty *prop)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/* ID Type */
-
-/** \name IDProperty ID API
+/** \name ID Type (IDProperty ID API)
  * \{ */
 
 static IDProperty *IDP_CopyID(const IDProperty *prop, const int flag)
@@ -477,9 +471,7 @@ void IDP_AssignID(IDProperty *prop, ID *id, const int flag)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/* Group Functions */
-
-/** \name IDProperty Group API
+/** \name Group Functions (IDProperty Group API)
  * \{ */
 
 /**
@@ -760,10 +752,9 @@ static void IDP_FreeGroup(IDProperty *prop, const bool do_id_user)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/* Main Functions */
-
-/** \name IDProperty Main API
+/** \name Main Functions  (IDProperty Main API)
  * \{ */
+
 IDProperty *IDP_CopyProperty_ex(const IDProperty *prop, const int flag)
 {
   switch (prop->type) {
@@ -798,43 +789,6 @@ void IDP_CopyPropertyContent(IDProperty *dst, IDProperty *src)
   idprop_tmp->next = dst->next;
   SWAP(IDProperty, *dst, *idprop_tmp);
   IDP_FreeProperty(idprop_tmp);
-}
-
-/* Updates ID pointers after an object has been copied */
-/* TODO Nuke this once its only user has been correctly converted
- * to use generic ID management from BKE_library! */
-void IDP_RelinkProperty(struct IDProperty *prop)
-{
-  if (!prop) {
-    return;
-  }
-
-  switch (prop->type) {
-    case IDP_GROUP: {
-      LISTBASE_FOREACH (IDProperty *, loop, &prop->data.group) {
-        IDP_RelinkProperty(loop);
-      }
-      break;
-    }
-    case IDP_IDPARRAY: {
-      IDProperty *idp_array = IDP_Array(prop);
-      for (int i = 0; i < prop->len; i++) {
-        IDP_RelinkProperty(&idp_array[i]);
-      }
-      break;
-    }
-    case IDP_ID: {
-      ID *id = IDP_Id(prop);
-      if (id && id->newid) {
-        id_us_min(IDP_Id(prop));
-        prop->data.pointer = id->newid;
-        id_us_plus(IDP_Id(prop));
-      }
-      break;
-    }
-    default:
-      break; /* Nothing to do for other IDProp types. */
-  }
 }
 
 /**
@@ -961,7 +915,7 @@ bool IDP_EqualsProperties(IDProperty *prop1, IDProperty *prop2)
  * This function takes three arguments: the ID property type, a union which defines
  * its initial value, and a name.
  *
- * The union is simple to use; see the top of this header file for its definition.
+ * The union is simple to use; see the top of BKE_idprop.h for its definition.
  * An example of using this function:
  *
  * \code{.c}

@@ -53,7 +53,6 @@
 #  include "BKE_linestyle.h"
 #  include "BKE_movieclip.h"
 #  include "BKE_node.h"
-#  include "BKE_sequencer.h"
 
 #  include "DEG_depsgraph.h"
 
@@ -61,6 +60,8 @@
 
 #  include "IMB_colormanagement.h"
 #  include "IMB_imbuf.h"
+
+#  include "SEQ_sequencer.h"
 
 /**
  * Set both handle types for all selected points in the profile-- faster than changing types

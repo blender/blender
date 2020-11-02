@@ -108,6 +108,7 @@ BVH *BVH::create(const BVHParams &params,
 #ifdef WITH_EMBREE
       return new BVHEmbree(params, geometry, objects, device);
 #else
+      (void)device;
       break;
 #endif
     case BVH_LAYOUT_OPTIX:

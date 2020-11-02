@@ -189,6 +189,7 @@ set(SRC
   intern/multires_reshape_vertcos.c
   intern/multires_subdiv.c
   intern/multires_unsubdivide.c
+  intern/multires_versioning.c
   intern/nla.c
   intern/node.c
   intern/object.c
@@ -718,6 +719,7 @@ if(WITH_GTESTS)
   set(TEST_SRC
     intern/armature_test.cc
     intern/fcurve_test.cc
+    intern/lattice_deform_test.cc
   )
   set(TEST_INC
     ../editors/include

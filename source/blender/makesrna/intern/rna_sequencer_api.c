@@ -46,11 +46,12 @@
 #  include "BKE_movieclip.h"
 
 #  include "BKE_report.h"
-#  include "BKE_sequencer.h"
 #  include "BKE_sound.h"
 
 #  include "IMB_imbuf.h"
 #  include "IMB_imbuf_types.h"
+
+#  include "SEQ_sequencer.h"
 
 #  include "WM_api.h"
 

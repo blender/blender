@@ -635,7 +635,10 @@ void FONT_OT_text_paste_from_file(wmOperatorType *ot)
 /** \name Text To Object
  * \{ */
 
-static void txt_add_object(bContext *C, TextLine *firstline, int totline, const float offset[3])
+static void txt_add_object(bContext *C,
+                           const TextLine *firstline,
+                           int totline,
+                           const float offset[3])
 {
   Main *bmain = CTX_data_main(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -644,7 +647,7 @@ static void txt_add_object(bContext *C, TextLine *firstline, int totline, const 
   Curve *cu;
   Object *obedit;
   Base *base;
-  struct TextLine *tmp;
+  const struct TextLine *tmp;
   int nchars = 0, nbytes = 0;
   char *s;
   int a;
@@ -709,10 +712,10 @@ static void txt_add_object(bContext *C, TextLine *firstline, int totline, const 
   WM_event_add_notifier(C, NC_OBJECT | NA_ADDED, obedit);
 }
 
-void ED_text_to_object(bContext *C, Text *text, const bool split_lines)
+void ED_text_to_object(bContext *C, const Text *text, const bool split_lines)
 {
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
-  TextLine *line;
+  const TextLine *line;
   float offset[3];
   int linenum = 0;
 

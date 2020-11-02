@@ -1310,6 +1310,11 @@ static bool paint_cursor_context_init(bContext *C,
   Object *active_object = pcontext->vc.obact;
   pcontext->ss = active_object ? active_object->sculpt : NULL;
 
+  if (pcontext->ss && pcontext->ss->draw_faded_cursor) {
+    pcontext->outline_alpha = 0.3f;
+    copy_v3_fl(pcontext->outline_col, 0.8f);
+  }
+
   pcontext->is_stroke_active = pcontext->ups->stroke_active;
 
   return true;

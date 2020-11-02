@@ -1024,10 +1024,7 @@ def brush_texture_settings(layout, brush, sculpt):
     layout.use_property_decorate = False
 
     # map_mode
-    if sculpt:
-        layout.prop(tex_slot, "map_mode", text="Mapping")
-    else:
-        layout.prop(tex_slot, "tex_paint_map_mode", text="Mapping")
+    layout.prop(tex_slot, "map_mode", text="Mapping")
 
     layout.separator()
 

@@ -2047,36 +2047,17 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 /** \name Save Image Operator
  * \{ */
 
-static bool image_file_path_saveable(bContext *C, Image *ima, ImageUser *iuser)
+/**
+ * \param iuser: Image user or NULL when called outside the image space.
+ */
+static bool image_file_format_writable(Image *ima, ImageUser *iuser)
 {
-  /* Can always repack images. */
-  if (BKE_image_has_packedfile(ima)) {
-    return true;
-  }
-
-  /* Test for valid filepath. */
   void *lock;
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
   bool ret = false;
 
-  if (ibuf) {
-    Main *bmain = CTX_data_main(C);
-    char name[FILE_MAX];
-    BLI_strncpy(name, ibuf->name, FILE_MAX);
-    BLI_path_abs(name, BKE_main_blendfile_path(bmain));
-
-    if (BLI_exists(name) == false) {
-      CTX_wm_operator_poll_msg_set(C, "image file not found");
-    }
-    else if (!BLI_file_is_writable(name)) {
-      CTX_wm_operator_poll_msg_set(C, "image path can't be written to");
-    }
-    else if (!BKE_image_buffer_format_writable(ibuf)) {
-      CTX_wm_operator_poll_msg_set(C, "image format is read-only");
-    }
-    else {
-      ret = true;
-    }
+  if (ibuf && BKE_image_buffer_format_writable(ibuf)) {
+    ret = true;
   }
 
   BKE_image_release_ibuf(ima, ibuf, lock);
@@ -2090,16 +2071,12 @@ static bool image_save_poll(bContext *C)
     return false;
   }
 
-  Image *ima = image_from_context(C);
-  ImageUser *iuser = image_user_from_context(C);
+  /* Check if there is a valid file path and image format we can write
+   * outside of the 'poll' so we can show a report with a pop-up. */
 
-  /* Images without a filepath will go to save as. */
-  if (!BKE_image_has_filepath(ima)) {
-    return true;
-  }
-
-  /* Check if there is a valid file path and image format we can write. */
-  return image_file_path_saveable(C, ima, iuser);
+  /* Can always repack images.
+   * Images without a filepath will go to "Save As". */
+  return true;
 }
 
 static int image_save_exec(bContext *C, wmOperator *op)
@@ -2114,6 +2091,8 @@ static int image_save_exec(bContext *C, wmOperator *op)
   if (BKE_image_has_packedfile(image)) {
     /* Save packed files to memory. */
     BKE_image_memorypack(image);
+    /* Report since this can be called from key shortcuts. */
+    BKE_reportf(op->reports, RPT_INFO, "Packed to memory image \"%s\"", image->filepath);
     return OPERATOR_FINISHED;
   }
 
@@ -2123,16 +2102,15 @@ static int image_save_exec(bContext *C, wmOperator *op)
   }
   image_save_options_from_op(bmain, &opts, op, NULL);
 
-  if (BLI_exists(opts.filepath) && BLI_file_is_writable(opts.filepath)) {
-    if (save_image_op(bmain, image, iuser, op, &opts)) {
-      /* report since this can be called from key-shortcuts */
-      BKE_reportf(op->reports, RPT_INFO, "Saved Image '%s'", opts.filepath);
-      ok = true;
-    }
-  }
-  else {
+  /* Check if file write permission is ok. */
+  if (BLI_exists(opts.filepath) && !BLI_file_is_writable(opts.filepath)) {
     BKE_reportf(
-        op->reports, RPT_ERROR, "Cannot save image, path '%s' is not writable", opts.filepath);
+        op->reports, RPT_ERROR, "Cannot save image, path \"%s\" is not writable", opts.filepath);
+  }
+  else if (save_image_op(bmain, image, iuser, op, &opts)) {
+    /* Report since this can be called from key shortcuts. */
+    BKE_reportf(op->reports, RPT_INFO, "Saved image \"%s\"", opts.filepath);
+    ok = true;
   }
 
   BKE_color_managed_view_settings_free(&opts.im_format.view_settings);
@@ -2147,8 +2125,11 @@ static int image_save_exec(bContext *C, wmOperator *op)
 static int image_save_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   Image *ima = image_from_context(C);
+  ImageUser *iuser = image_user_from_context(C);
 
-  if (!BKE_image_has_packedfile(ima) && !BKE_image_has_filepath(ima)) {
+  /* Not writable formats or images without a file-path will go to "Save As". */
+  if (!BKE_image_has_packedfile(ima) &&
+      (!BKE_image_has_filepath(ima) || !image_file_format_writable(ima, iuser))) {
     WM_operator_name_call(C, "IMAGE_OT_save_as", WM_OP_INVOKE_DEFAULT, NULL);
     return OPERATOR_CANCELLED;
   }

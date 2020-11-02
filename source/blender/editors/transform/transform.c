@@ -1626,11 +1626,9 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 static void initSnapSpatial(TransInfo *t, float r_snap[2])
 {
   if (t->spacetype == SPACE_VIEW3D) {
-    RegionView3D *rv3d = t->region->regiondata;
-
-    if (rv3d) {
+    if (t->region->regiondata) {
       View3D *v3d = t->area->spacedata.first;
-      r_snap[0] = ED_view3d_grid_view_scale(t->scene, v3d, rv3d, NULL) * 1.0f;
+      r_snap[0] = ED_view3d_grid_view_scale(t->scene, v3d, t->region, NULL) * 1.0f;
       r_snap[1] = r_snap[0] * 0.1f;
     }
   }

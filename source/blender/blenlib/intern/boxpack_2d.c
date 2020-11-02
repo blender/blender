@@ -97,6 +97,7 @@ BLI_INLINE int quad_flag(uint q)
 #define TL 2
 #define BR 3
 
+/* -------------------------------------------------------------------- */
 /** \name Box Accessor Functions
  * \{ */
 
@@ -121,6 +122,7 @@ static float box_ymax_get(const BoxPack *box)
 }
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Box Placement
  * \{ */
 
@@ -165,6 +167,7 @@ static void box_ymax_set(BoxPack *box, const float f)
 }
 /** \} */
 
+/* -------------------------------------------------------------------- */
 /** \name Box Utils
  * \{ */
 
@@ -203,6 +206,7 @@ static void vert_bias_update(BoxVert *v)
     printf("\tBox Debug i %i, w:%.3f h:%.3f x:%.3f y:%.3f\n", b->index, b->w, b->h, b->x, b->y)
 #endif
 
+/* -------------------------------------------------------------------- */
 /** \name Box/Vert Sorting
  * \{ */
 

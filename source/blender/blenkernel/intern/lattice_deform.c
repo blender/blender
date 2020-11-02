@@ -49,14 +49,24 @@
 
 #include "BKE_deform.h"
 
+#ifdef __SSE2__
+#  include <emmintrin.h>
+#endif
+
 /* -------------------------------------------------------------------- */
 /** \name Lattice Deform API
  * \{ */
 
 typedef struct LatticeDeformData {
-  const Object *object;
-  float *latticedata;
+  /* Convert from object space to deform space */
   float latmat[4][4];
+  /* Cached reference to the lattice to use for evaluation. When in edit mode this attribute
+   * is set to the edit mode lattice. */
+  const Lattice *lt;
+  /* Preprocessed lattice points (converted to deform space). */
+  float *latticedata;
+  /* Prefetched DeformWeights of the lattice. */
+  float *lattice_weights;
 } LatticeDeformData;
 
 LatticeDeformData *BKE_lattice_deform_data_create(const Object *oblatt, const Object *ob)
@@ -72,6 +82,7 @@ LatticeDeformData *BKE_lattice_deform_data_create(const Object *oblatt, const Ob
   float fu, fv, fw;
   int u, v, w;
   float *latticedata;
+  float *lattice_weights = NULL;
   float latmat[4][4];
   LatticeDeformData *lattice_deform_data;
 
@@ -80,8 +91,10 @@ LatticeDeformData *BKE_lattice_deform_data_create(const Object *oblatt, const Ob
   }
   bp = lt->def;
 
-  fp = latticedata = MEM_mallocN(sizeof(float[3]) * lt->pntsu * lt->pntsv * lt->pntsw,
-                                 "latticedata");
+  const int32_t num_points = lt->pntsu * lt->pntsv * lt->pntsw;
+  /* We allocate one additional float for SSE2 optimizations. Without this
+   * the SSE2 instructions for the last item would read in unallocated memory. */
+  fp = latticedata = MEM_mallocN(sizeof(float[3]) * num_points + sizeof(float), "latticedata");
 
   /* for example with a particle system: (ob == NULL) */
   if (ob == NULL) {
@@ -98,6 +111,20 @@ LatticeDeformData *BKE_lattice_deform_data_create(const Object *oblatt, const Ob
 
     /* back: put in deform array */
     invert_m4_m4(imat, latmat);
+  }
+
+  /* Prefetch latice deform group weights. */
+  int defgrp_index = -1;
+  const MDeformVert *dvert = BKE_lattice_deform_verts_get(oblatt);
+  if (lt->vgroup[0] && dvert) {
+    defgrp_index = BKE_object_defgroup_name_index(ob, lt->vgroup);
+
+    if (defgrp_index != -1) {
+      lattice_weights = MEM_malloc_arrayN(sizeof(float), num_points, "lattice_weights");
+      for (int index = 0; index < num_points; index++) {
+        lattice_weights[index] = BKE_defvert_find_weight(dvert + index, defgrp_index);
+      }
+    }
   }
 
   for (w = 0, fw = lt->fw; w < lt->pntsw; w++, fw += lt->dw) {
@@ -121,7 +148,8 @@ LatticeDeformData *BKE_lattice_deform_data_create(const Object *oblatt, const Ob
 
   lattice_deform_data = MEM_mallocN(sizeof(LatticeDeformData), "Lattice Deform Data");
   lattice_deform_data->latticedata = latticedata;
-  lattice_deform_data->object = oblatt;
+  lattice_deform_data->lattice_weights = lattice_weights;
+  lattice_deform_data->lt = lt;
   copy_m4_m4(lattice_deform_data->latmat, latmat);
 
   return lattice_deform_data;
@@ -131,30 +159,21 @@ void BKE_lattice_deform_data_eval_co(LatticeDeformData *lattice_deform_data,
                                      float co[3],
                                      float weight)
 {
-  const Object *ob = lattice_deform_data->object;
-  Lattice *lt = ob->data;
+  float *latticedata = lattice_deform_data->latticedata;
+  float *lattice_weights = lattice_deform_data->lattice_weights;
+  BLI_assert(latticedata);
+  const Lattice *lt = lattice_deform_data->lt;
   float u, v, w, tu[4], tv[4], tw[4];
   float vec[3];
   int idx_w, idx_v, idx_u;
   int ui, vi, wi, uu, vv, ww;
 
   /* vgroup influence */
-  int defgrp_index = -1;
-  float co_prev[3], weight_blend = 0.0f;
-  const MDeformVert *dvert = BKE_lattice_deform_verts_get(ob);
-  float *__restrict latticedata = lattice_deform_data->latticedata;
-
-  if (lt->editlatt) {
-    lt = lt->editlatt->latt;
-  }
-  if (latticedata == NULL) {
-    return;
-  }
-
-  if (lt->vgroup[0] && dvert) {
-    defgrp_index = BKE_object_defgroup_name_index(ob, lt->vgroup);
-    copy_v3_v3(co_prev, co);
-  }
+  float co_prev[4] = {0}, weight_blend = 0.0f;
+  copy_v3_v3(co_prev, co);
+#ifdef __SSE2__
+  __m128 co_vec = _mm_loadu_ps(co_prev);
+#endif
 
   /* co is in local coords, treat with latmat */
   mul_v3_m4v3(vec, lattice_deform_data->latmat, co);
@@ -197,67 +216,53 @@ void BKE_lattice_deform_data_eval_co(LatticeDeformData *lattice_deform_data,
     wi = 0;
   }
 
+  const int w_stride = lt->pntsu * lt->pntsv;
+  const int idx_w_max = (lt->pntsw - 1) * lt->pntsu * lt->pntsv;
+  const int v_stride = lt->pntsu;
+  const int idx_v_max = (lt->pntsv - 1) * lt->pntsu;
+  const int idx_u_max = (lt->pntsu - 1);
+
   for (ww = wi - 1; ww <= wi + 2; ww++) {
-    w = tw[ww - wi + 1];
-
-    if (w != 0.0f) {
-      if (ww > 0) {
-        if (ww < lt->pntsw) {
-          idx_w = ww * lt->pntsu * lt->pntsv;
-        }
-        else {
-          idx_w = (lt->pntsw - 1) * lt->pntsu * lt->pntsv;
-        }
-      }
-      else {
-        idx_w = 0;
-      }
-
-      for (vv = vi - 1; vv <= vi + 2; vv++) {
-        v = w * tv[vv - vi + 1];
-
-        if (v != 0.0f) {
-          if (vv > 0) {
-            if (vv < lt->pntsv) {
-              idx_v = idx_w + vv * lt->pntsu;
-            }
-            else {
-              idx_v = idx_w + (lt->pntsv - 1) * lt->pntsu;
-            }
+    w = weight * tw[ww - wi + 1];
+    idx_w = CLAMPIS(ww * w_stride, 0, idx_w_max);
+    for (vv = vi - 1; vv <= vi + 2; vv++) {
+      v = w * tv[vv - vi + 1];
+      idx_v = CLAMPIS(vv * v_stride, 0, idx_v_max);
+      for (uu = ui - 1; uu <= ui + 2; uu++) {
+        u = v * tu[uu - ui + 1];
+        idx_u = CLAMPIS(uu, 0, idx_u_max);
+        const int idx = idx_w + idx_v + idx_u;
+#ifdef __SSE2__
+        {
+          __m128 weight_vec = _mm_set1_ps(u);
+          /* We need to address special case for last item to avoid accessing invalid memory. */
+          __m128 lattice_vec;
+          if (idx * 3 == idx_w_max) {
+            copy_v3_v3((float *)&lattice_vec, &latticedata[idx * 3]);
           }
           else {
-            idx_v = idx_w;
+            /* When not on last item, we can safely access one extra float, it will be ignored
+             * anyway. */
+            lattice_vec = _mm_loadu_ps(&latticedata[idx * 3]);
           }
-
-          for (uu = ui - 1; uu <= ui + 2; uu++) {
-            u = weight * v * tu[uu - ui + 1];
-
-            if (u != 0.0f) {
-              if (uu > 0) {
-                if (uu < lt->pntsu) {
-                  idx_u = idx_v + uu;
-                }
-                else {
-                  idx_u = idx_v + (lt->pntsu - 1);
-                }
-              }
-              else {
-                idx_u = idx_v;
-              }
-
-              madd_v3_v3fl(co, &latticedata[idx_u * 3], u);
-
-              if (defgrp_index != -1) {
-                weight_blend += (u * BKE_defvert_find_weight(dvert + idx_u, defgrp_index));
-              }
-            }
-          }
+          co_vec = _mm_add_ps(co_vec, _mm_mul_ps(lattice_vec, weight_vec));
+        }
+#else
+        madd_v3_v3fl(co, &latticedata[idx * 3], u);
+#endif
+        if (lattice_weights) {
+          weight_blend += (u * lattice_weights[idx]);
         }
       }
     }
   }
+#ifdef __SSE2__
+  {
+    copy_v3_v3(co, (float *)&co_vec);
+  }
+#endif
 
-  if (defgrp_index != -1) {
+  if (lattice_weights) {
     interp_v3_v3v3(co, co_prev, co, weight_blend);
   }
 }

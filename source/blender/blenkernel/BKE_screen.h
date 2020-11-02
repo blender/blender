@@ -58,6 +58,9 @@ struct wmMsgBus;
 struct wmNotifier;
 struct wmWindow;
 struct wmWindowManager;
+struct BlendWriter;
+struct BlendDataReader;
+struct BlendLibReader;
 
 /* spacetype has everything stored to get an editor working, it gets initialized via
  * ED_spacetypes_init() in editors/space_api/spacetypes.c   */
@@ -362,8 +365,8 @@ typedef struct Menu {
 
 /* spacetypes */
 struct SpaceType *BKE_spacetype_from_id(int spaceid);
-struct ARegionType *BKE_regiontype_from_id_or_first(struct SpaceType *st, int regionid);
-struct ARegionType *BKE_regiontype_from_id(struct SpaceType *st, int regionid);
+struct ARegionType *BKE_regiontype_from_id_or_first(const struct SpaceType *st, int regionid);
+struct ARegionType *BKE_regiontype_from_id(const struct SpaceType *st, int regionid);
 const struct ListBase *BKE_spacetypes_list(void);
 void BKE_spacetype_register(struct SpaceType *st);
 bool BKE_spacetype_exists(int spaceid);
@@ -384,7 +387,7 @@ void BKE_spacedata_callback_id_remap_set(void (*func)(
 void BKE_spacedata_id_unref(struct ScrArea *area, struct SpaceLink *sl, struct ID *id);
 
 /* area/regions */
-struct ARegion *BKE_area_region_copy(struct SpaceType *st, struct ARegion *region);
+struct ARegion *BKE_area_region_copy(const struct SpaceType *st, const struct ARegion *region);
 void BKE_area_region_free(struct SpaceType *st, struct ARegion *region);
 void BKE_area_region_panels_free(struct ListBase *panels);
 void BKE_screen_area_free(struct ScrArea *area);
@@ -448,6 +451,20 @@ void BKE_screen_remove_unused_scredges(struct bScreen *screen);
 void BKE_screen_remove_unused_scrverts(struct bScreen *screen);
 
 void BKE_screen_header_alignment_reset(struct bScreen *screen);
+
+/* .blend file I/O */
+void BKE_screen_view3d_shading_blend_write(struct BlendWriter *writer,
+                                           struct View3DShading *shading);
+void BKE_screen_view3d_shading_blend_read_data(struct BlendDataReader *reader,
+                                               struct View3DShading *shading);
+
+void BKE_screen_area_map_blend_write(struct BlendWriter *writer, struct ScrAreaMap *area_map);
+bool BKE_screen_area_map_blend_read_data(struct BlendDataReader *reader,
+                                         struct ScrAreaMap *area_map);
+void BKE_screen_view3d_do_versions_250(struct View3D *v3d, ListBase *regions);
+void BKE_screen_area_blend_read_lib(struct BlendLibReader *reader,
+                                    struct ID *parent_id,
+                                    struct ScrArea *area);
 
 #ifdef __cplusplus
 }

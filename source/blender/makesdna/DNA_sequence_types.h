@@ -68,6 +68,9 @@ typedef struct StripCrop {
 typedef struct StripTransform {
   int xofs;
   int yofs;
+  float scale_x;
+  float scale_y;
+  float rotation;
 } StripTransform;
 
 typedef struct StripColorBalance {
@@ -494,8 +497,8 @@ enum {
   SEQ_MAKE_FLOAT = (1 << 13),
   SEQ_LOCK = (1 << 14),
   SEQ_USE_PROXY = (1 << 15),
-  SEQ_USE_TRANSFORM = (1 << 16),
-  SEQ_USE_CROP = (1 << 17),
+  SEQ_FLAG_UNUSED_23 = (1 << 16), /* cleared */
+  SEQ_FLAG_UNUSED_22 = (1 << 17), /* cleared */
   SEQ_FLAG_UNUSED_18 = (1 << 18), /* cleared */
   SEQ_FLAG_UNUSED_19 = (1 << 19), /* cleared */
   SEQ_FLAG_UNUSED_21 = (1 << 21), /* cleared */

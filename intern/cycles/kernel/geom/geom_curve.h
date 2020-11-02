@@ -28,18 +28,7 @@ CCL_NAMESPACE_BEGIN
 ccl_device float curve_attribute_float(
     KernelGlobals *kg, const ShaderData *sd, const AttributeDescriptor desc, float *dx, float *dy)
 {
-  if (desc.element == ATTR_ELEMENT_CURVE) {
-#  ifdef __RAY_DIFFERENTIALS__
-    if (dx)
-      *dx = 0.0f;
-    if (dy)
-      *dy = 0.0f;
-#  endif
-
-    return kernel_tex_fetch(__attributes_float, desc.offset + sd->prim);
-  }
-  else if (desc.element == ATTR_ELEMENT_CURVE_KEY ||
-           desc.element == ATTR_ELEMENT_CURVE_KEY_MOTION) {
+  if (desc.element & (ATTR_ELEMENT_CURVE_KEY | ATTR_ELEMENT_CURVE_KEY_MOTION)) {
     float4 curvedata = kernel_tex_fetch(__curves, sd->prim);
     int k0 = __float_as_int(curvedata.x) + PRIMITIVE_UNPACK_SEGMENT(sd->type);
     int k1 = k0 + 1;
@@ -56,16 +45,6 @@ ccl_device float curve_attribute_float(
 
     return (1.0f - sd->u) * f0 + sd->u * f1;
   }
-  else if (desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
-#  ifdef __RAY_DIFFERENTIALS__
-    if (dx)
-      *dx = 0.0f;
-    if (dy)
-      *dy = 0.0f;
-#  endif
-
-    return kernel_tex_fetch(__attributes_float, desc.offset);
-  }
   else {
 #  ifdef __RAY_DIFFERENTIALS__
     if (dx)
@@ -74,7 +53,14 @@ ccl_device float curve_attribute_float(
       *dy = 0.0f;
 #  endif
 
-    return 0.0f;
+    if (desc.element & (ATTR_ELEMENT_CURVE | ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
+      const int offset = (desc.element == ATTR_ELEMENT_CURVE) ? desc.offset + sd->prim :
+                                                                desc.offset;
+      return kernel_tex_fetch(__attributes_float, offset);
+    }
+    else {
+      return 0.0f;
+    }
   }
 }
 
@@ -84,22 +70,7 @@ ccl_device float2 curve_attribute_float2(KernelGlobals *kg,
                                          float2 *dx,
                                          float2 *dy)
 {
-  if (desc.element == ATTR_ELEMENT_CURVE) {
-    /* idea: we can't derive any useful differentials here, but for tiled
-     * mipmap image caching it would be useful to avoid reading the highest
-     * detail level always. maybe a derivative based on the hair density
-     * could be computed somehow? */
-#  ifdef __RAY_DIFFERENTIALS__
-    if (dx)
-      *dx = make_float2(0.0f, 0.0f);
-    if (dy)
-      *dy = make_float2(0.0f, 0.0f);
-#  endif
-
-    return kernel_tex_fetch(__attributes_float2, desc.offset + sd->prim);
-  }
-  else if (desc.element == ATTR_ELEMENT_CURVE_KEY ||
-           desc.element == ATTR_ELEMENT_CURVE_KEY_MOTION) {
+  if (desc.element & (ATTR_ELEMENT_CURVE_KEY | ATTR_ELEMENT_CURVE_KEY_MOTION)) {
     float4 curvedata = kernel_tex_fetch(__curves, sd->prim);
     int k0 = __float_as_int(curvedata.x) + PRIMITIVE_UNPACK_SEGMENT(sd->type);
     int k1 = k0 + 1;
@@ -116,17 +87,11 @@ ccl_device float2 curve_attribute_float2(KernelGlobals *kg,
 
     return (1.0f - sd->u) * f0 + sd->u * f1;
   }
-  else if (desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
-#  ifdef __RAY_DIFFERENTIALS__
-    if (dx)
-      *dx = make_float2(0.0f, 0.0f);
-    if (dy)
-      *dy = make_float2(0.0f, 0.0f);
-#  endif
-
-    return kernel_tex_fetch(__attributes_float2, desc.offset);
-  }
   else {
+    /* idea: we can't derive any useful differentials here, but for tiled
+     * mipmap image caching it would be useful to avoid reading the highest
+     * detail level always. maybe a derivative based on the hair density
+     * could be computed somehow? */
 #  ifdef __RAY_DIFFERENTIALS__
     if (dx)
       *dx = make_float2(0.0f, 0.0f);
@@ -134,7 +99,14 @@ ccl_device float2 curve_attribute_float2(KernelGlobals *kg,
       *dy = make_float2(0.0f, 0.0f);
 #  endif
 
-    return make_float2(0.0f, 0.0f);
+    if (desc.element & (ATTR_ELEMENT_CURVE | ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
+      const int offset = (desc.element == ATTR_ELEMENT_CURVE) ? desc.offset + sd->prim :
+                                                                desc.offset;
+      return kernel_tex_fetch(__attributes_float2, offset);
+    }
+    else {
+      return make_float2(0.0f, 0.0f);
+    }
   }
 }
 
@@ -144,22 +116,7 @@ ccl_device float3 curve_attribute_float3(KernelGlobals *kg,
                                          float3 *dx,
                                          float3 *dy)
 {
-  if (desc.element == ATTR_ELEMENT_CURVE) {
-    /* idea: we can't derive any useful differentials here, but for tiled
-     * mipmap image caching it would be useful to avoid reading the highest
-     * detail level always. maybe a derivative based on the hair density
-     * could be computed somehow? */
-#  ifdef __RAY_DIFFERENTIALS__
-    if (dx)
-      *dx = make_float3(0.0f, 0.0f, 0.0f);
-    if (dy)
-      *dy = make_float3(0.0f, 0.0f, 0.0f);
-#  endif
-
-    return float4_to_float3(kernel_tex_fetch(__attributes_float3, desc.offset + sd->prim));
-  }
-  else if (desc.element == ATTR_ELEMENT_CURVE_KEY ||
-           desc.element == ATTR_ELEMENT_CURVE_KEY_MOTION) {
+  if (desc.element & (ATTR_ELEMENT_CURVE_KEY | ATTR_ELEMENT_CURVE_KEY_MOTION)) {
     float4 curvedata = kernel_tex_fetch(__curves, sd->prim);
     int k0 = __float_as_int(curvedata.x) + PRIMITIVE_UNPACK_SEGMENT(sd->type);
     int k1 = k0 + 1;
@@ -176,16 +133,6 @@ ccl_device float3 curve_attribute_float3(KernelGlobals *kg,
 
     return (1.0f - sd->u) * f0 + sd->u * f1;
   }
-  else if (desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
-#  ifdef __RAY_DIFFERENTIALS__
-    if (dx)
-      *dx = make_float3(0.0f, 0.0f, 0.0f);
-    if (dy)
-      *dy = make_float3(0.0f, 0.0f, 0.0f);
-#  endif
-
-    return float4_to_float3(kernel_tex_fetch(__attributes_float3, desc.offset));
-  }
   else {
 #  ifdef __RAY_DIFFERENTIALS__
     if (dx)
@@ -194,7 +141,14 @@ ccl_device float3 curve_attribute_float3(KernelGlobals *kg,
       *dy = make_float3(0.0f, 0.0f, 0.0f);
 #  endif
 
-    return make_float3(0.0f, 0.0f, 0.0f);
+    if (desc.element & (ATTR_ELEMENT_CURVE | ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
+      const int offset = (desc.element == ATTR_ELEMENT_CURVE) ? desc.offset + sd->prim :
+                                                                desc.offset;
+      return float4_to_float3(kernel_tex_fetch(__attributes_float3, offset));
+    }
+    else {
+      return make_float3(0.0f, 0.0f, 0.0f);
+    }
   }
 }
 
@@ -204,22 +158,7 @@ ccl_device float4 curve_attribute_float4(KernelGlobals *kg,
                                          float4 *dx,
                                          float4 *dy)
 {
-  if (desc.element == ATTR_ELEMENT_CURVE) {
-    /* idea: we can't derive any useful differentials here, but for tiled
-     * mipmap image caching it would be useful to avoid reading the highest
-     * detail level always. maybe a derivative based on the hair density
-     * could be computed somehow? */
-#  ifdef __RAY_DIFFERENTIALS__
-    if (dx)
-      *dx = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-    if (dy)
-      *dy = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-#  endif
-
-    return kernel_tex_fetch(__attributes_float3, desc.offset + sd->prim);
-  }
-  else if (desc.element == ATTR_ELEMENT_CURVE_KEY ||
-           desc.element == ATTR_ELEMENT_CURVE_KEY_MOTION) {
+  if (desc.element & (ATTR_ELEMENT_CURVE_KEY | ATTR_ELEMENT_CURVE_KEY_MOTION)) {
     float4 curvedata = kernel_tex_fetch(__curves, sd->prim);
     int k0 = __float_as_int(curvedata.x) + PRIMITIVE_UNPACK_SEGMENT(sd->type);
     int k1 = k0 + 1;
@@ -236,16 +175,6 @@ ccl_device float4 curve_attribute_float4(KernelGlobals *kg,
 
     return (1.0f - sd->u) * f0 + sd->u * f1;
   }
-  else if (desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
-#  ifdef __RAY_DIFFERENTIALS__
-    if (dx)
-      *dx = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-    if (dy)
-      *dy = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-#  endif
-
-    return kernel_tex_fetch(__attributes_float3, desc.offset);
-  }
   else {
 #  ifdef __RAY_DIFFERENTIALS__
     if (dx)
@@ -254,7 +183,14 @@ ccl_device float4 curve_attribute_float4(KernelGlobals *kg,
       *dy = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 #  endif
 
-    return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    if (desc.element & (ATTR_ELEMENT_CURVE | ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
+      const int offset = (desc.element == ATTR_ELEMENT_CURVE) ? desc.offset + sd->prim :
+                                                                desc.offset;
+      return kernel_tex_fetch(__attributes_float3, offset);
+    }
+    else {
+      return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+    }
   }
 }
 

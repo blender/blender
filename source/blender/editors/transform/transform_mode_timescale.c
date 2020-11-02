@@ -42,9 +42,7 @@
 #include "transform_mode.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Animation Time Scale) */
-
-/** \name Transform Animation Time Scale
+/** \name Transform (Animation Time Scale)
  * \{ */
 
 static void headerTimeScale(TransInfo *t, char str[UI_MAX_DRAW_STR])

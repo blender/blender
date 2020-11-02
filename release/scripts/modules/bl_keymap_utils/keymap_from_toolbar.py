@@ -192,16 +192,25 @@ def generate(context, space_type, use_fallback_keys=True, use_reset=True):
                     # PAINT_OT_brush_select
                     mode = context.active_object.mode
                     # See: BKE_paint_get_tool_prop_id_from_paintmode
-                    attr = {
-                        'SCULPT': "sculpt_tool",
-                        'VERTEX_PAINT': "vertex_tool",
-                        'WEIGHT_PAINT': "weight_tool",
-                        'TEXTURE_PAINT': "image_tool",
-                        'PAINT_GPENCIL': "gpencil_tool",
-                        'VERTEX_GPENCIL': "gpencil_vertex_tool",
-                        'SCULPT_GPENCIL': "gpencil_sculpt_tool",
-                        'WEIGHT_GPENCIL': "gpencil_weight_tool",
-                    }.get(mode, None)
+                    if space_type == 'IMAGE_EDITOR':
+                        if context.space_data.ui_mode == 'PAINT':
+                            attr = "image_tool"
+                        else:
+                            attr = None
+                    elif space_type == 'VIEW_3D':
+                        attr = {
+                            'SCULPT': "sculpt_tool",
+                            'VERTEX_PAINT': "vertex_tool",
+                            'WEIGHT_PAINT': "weight_tool",
+                            'TEXTURE_PAINT': "image_tool",
+                            'PAINT_GPENCIL': "gpencil_tool",
+                            'VERTEX_GPENCIL': "gpencil_vertex_tool",
+                            'SCULPT_GPENCIL': "gpencil_sculpt_tool",
+                            'WEIGHT_GPENCIL': "gpencil_weight_tool",
+                        }.get(mode, None)
+                    else:
+                        attr = None
+
                     if attr is not None:
                         setattr(kmi_hack_brush_select_properties, attr, item.data_block)
                         kmi_found = wm.keyconfigs.find_item_from_operator(

@@ -56,6 +56,7 @@
 
 #include "RNA_access.h"
 
+#include "ED_buttons.h"
 #include "ED_physics.h"
 #include "ED_screen.h"
 
@@ -512,11 +513,11 @@ static bool buttons_context_linestyle_pinnable(const bContext *C, ViewLayer *vie
 }
 #endif
 
-static bool buttons_context_path(const bContext *C, ButsContextPath *path, int mainb, int flag)
+static bool buttons_context_path(
+    const bContext *C, SpaceProperties *sbuts, ButsContextPath *path, int mainb, int flag)
 {
   /* Note we don't use CTX_data here, instead we get it from the window.
    * Otherwise there is a loop reading the context that we are setting. */
-  SpaceProperties *sbuts = CTX_wm_space_properties(C);
   wmWindow *window = CTX_wm_window(C);
   Scene *scene = WM_window_get_active_scene(window);
   ViewLayer *view_layer = WM_window_get_active_view_layer(window);
@@ -660,14 +661,14 @@ void buttons_context_compute(const bContext *C, SpaceProperties *sbuts)
   int flag = 0;
 
   /* Set scene path. */
-  buttons_context_path(C, path, BCONTEXT_SCENE, pflag);
+  buttons_context_path(C, sbuts, path, BCONTEXT_SCENE, pflag);
 
   buttons_texture_context_compute(C, sbuts);
 
   /* for each context, see if we can compute a valid path to it, if
    * this is the case, we know we have to display the button */
   for (int i = 0; i < BCONTEXT_TOT; i++) {
-    if (buttons_context_path(C, path, i, pflag)) {
+    if (buttons_context_path(C, sbuts, path, i, pflag)) {
       flag |= (1 << i);
 
       /* setting icon for data context */
@@ -713,7 +714,7 @@ void buttons_context_compute(const bContext *C, SpaceProperties *sbuts)
     }
   }
 
-  buttons_context_path(C, path, sbuts->mainb, pflag);
+  buttons_context_path(C, sbuts, path, sbuts->mainb, pflag);
 
   if (!(flag & (1 << sbuts->mainb))) {
     if (flag & (1 << BCONTEXT_OBJECT)) {
@@ -732,6 +733,39 @@ void buttons_context_compute(const bContext *C, SpaceProperties *sbuts)
   }
 
   sbuts->pathflag = flag;
+}
+
+static bool is_pointer_in_path(ButsContextPath *path, PointerRNA *ptr)
+{
+  for (int i = 0; i < path->len; ++i) {
+    if (ptr->owner_id == path->ptr[i].owner_id) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void ED_buttons_set_context(const bContext *C, PointerRNA *ptr, const int context)
+{
+  ScrArea *active_area = CTX_wm_area(C);
+  bScreen *screen = CTX_wm_screen(C);
+
+  LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+    /* Only update for properties editors that are visible and share a border. */
+    if (area->spacetype != SPACE_PROPERTIES) {
+      continue;
+    }
+    if (!ED_area_has_shared_border(active_area, area)) {
+      continue;
+    }
+
+    SpaceProperties *sbuts = (SpaceProperties *)area->spacedata.first;
+    ButsContextPath path;
+    if (buttons_context_path(C, sbuts, &path, context, 0) && is_pointer_in_path(&path, ptr)) {
+      sbuts->mainbuser = context;
+      sbuts->mainb = sbuts->mainbuser;
+    }
+  }
 }
 
 /************************* Context Callback ************************/

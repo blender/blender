@@ -2158,12 +2158,12 @@ void NLA_OT_clear_scale(wmOperatorType *ot)
 
 /* defines for snap keyframes tool */
 static const EnumPropertyItem prop_nlaedit_snap_types[] = {
-    {NLAEDIT_SNAP_CFRA, "CFRA", 0, "Current Frame", ""},
+    {NLAEDIT_SNAP_CFRA, "CFRA", 0, "Selection to Current Frame", ""},
     /* XXX as single entry? */
-    {NLAEDIT_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", ""},
+    {NLAEDIT_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Selection to Nearest Frame", ""},
     /* XXX as single entry? */
-    {NLAEDIT_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second", ""},
-    {NLAEDIT_SNAP_NEAREST_MARKER, "NEAREST_MARKER", 0, "Nearest Marker", ""},
+    {NLAEDIT_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Selection to Nearest Second", ""},
+    {NLAEDIT_SNAP_NEAREST_MARKER, "NEAREST_MARKER", 0, "Selection to Nearest Marker", ""},
     {0, NULL, 0, NULL, NULL},
 };
 

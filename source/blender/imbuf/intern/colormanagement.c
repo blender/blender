@@ -54,9 +54,10 @@
 #include "BKE_context.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
-#include "BKE_sequencer.h"
 
 #include "RNA_define.h"
+
+#include "SEQ_sequencer.h"
 
 #include <ocio_capi.h>
 

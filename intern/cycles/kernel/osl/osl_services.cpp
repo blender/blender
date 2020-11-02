@@ -403,8 +403,28 @@ bool OSLRenderServices::get_array_attribute(OSL::ShaderGlobals *sg,
 
 static bool set_attribute_float2(float2 f[3], TypeDesc type, bool derivatives, void *val)
 {
-  if (type == TypeDesc::TypePoint || type == TypeDesc::TypeVector ||
-      type == TypeDesc::TypeNormal || type == TypeDesc::TypeColor) {
+  if (type == TypeFloatArray4) {
+    float *fval = (float *)val;
+    fval[0] = f[0].x;
+    fval[1] = f[0].y;
+    fval[2] = 0.0f;
+    fval[3] = 1.0f;
+
+    if (derivatives) {
+      fval[4] = f[1].x;
+      fval[5] = f[1].y;
+      fval[6] = 0.0f;
+      fval[7] = 0.0f;
+
+      fval[8] = f[2].x;
+      fval[9] = f[2].y;
+      fval[10] = 0.0f;
+      fval[11] = 0.0f;
+    }
+    return true;
+  }
+  else if (type == TypeDesc::TypePoint || type == TypeDesc::TypeVector ||
+           type == TypeDesc::TypeNormal || type == TypeDesc::TypeColor) {
     float *fval = (float *)val;
 
     fval[0] = f[0].x;
@@ -438,10 +458,41 @@ static bool set_attribute_float2(float2 f[3], TypeDesc type, bool derivatives, v
   return false;
 }
 
+static bool set_attribute_float2(float2 f, TypeDesc type, bool derivatives, void *val)
+{
+  float2 fv[3];
+
+  fv[0] = f;
+  fv[1] = make_float2(0.0f, 0.0f);
+  fv[2] = make_float2(0.0f, 0.0f);
+
+  return set_attribute_float2(fv, type, derivatives, val);
+}
+
 static bool set_attribute_float3(float3 f[3], TypeDesc type, bool derivatives, void *val)
 {
-  if (type == TypeDesc::TypePoint || type == TypeDesc::TypeVector ||
-      type == TypeDesc::TypeNormal || type == TypeDesc::TypeColor) {
+  if (type == TypeFloatArray4) {
+    float *fval = (float *)val;
+    fval[0] = f[0].x;
+    fval[1] = f[0].y;
+    fval[2] = f[0].z;
+    fval[3] = 1.0f;
+
+    if (derivatives) {
+      fval[4] = f[1].x;
+      fval[5] = f[1].y;
+      fval[6] = f[1].z;
+      fval[7] = 0.0f;
+
+      fval[8] = f[2].x;
+      fval[9] = f[2].y;
+      fval[10] = f[2].z;
+      fval[11] = 0.0f;
+    }
+    return true;
+  }
+  else if (type == TypeDesc::TypePoint || type == TypeDesc::TypeVector ||
+           type == TypeDesc::TypeNormal || type == TypeDesc::TypeColor) {
     float *fval = (float *)val;
 
     fval[0] = f[0].x;
@@ -545,14 +596,45 @@ static bool set_attribute_float4(float4 f[3], TypeDesc type, bool derivatives, v
   return false;
 }
 
+static bool set_attribute_float4(float4 f, TypeDesc type, bool derivatives, void *val)
+{
+  float4 fv[3];
+
+  fv[0] = f;
+  fv[1] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+  fv[2] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+
+  return set_attribute_float4(fv, type, derivatives, val);
+}
+
 static bool set_attribute_float(float f[3], TypeDesc type, bool derivatives, void *val)
 {
-  if (type == TypeDesc::TypePoint || type == TypeDesc::TypeVector ||
-      type == TypeDesc::TypeNormal || type == TypeDesc::TypeColor) {
+  if (type == TypeFloatArray4) {
     float *fval = (float *)val;
     fval[0] = f[0];
-    fval[1] = f[1];
-    fval[2] = f[2];
+    fval[1] = f[0];
+    fval[2] = f[0];
+    fval[3] = 1.0f;
+
+    if (derivatives) {
+      fval[4] = f[1];
+      fval[5] = f[1];
+      fval[6] = f[1];
+      fval[7] = 0.0f;
+
+      fval[8] = f[2];
+      fval[9] = f[2];
+      fval[10] = f[2];
+      fval[11] = 0.0f;
+    }
+    return true;
+  }
+  else if (type == TypeDesc::TypePoint || type == TypeDesc::TypeVector ||
+           type == TypeDesc::TypeNormal || type == TypeDesc::TypeColor) {
+    float *fval = (float *)val;
+    fval[0] = f[0];
+    fval[1] = f[0];
+    fval[2] = f[0];
 
     if (derivatives) {
       fval[3] = f[1];
@@ -675,26 +757,50 @@ static bool get_primitive_attribute(KernelGlobals *kg,
   if (attr.type == TypeDesc::TypePoint || attr.type == TypeDesc::TypeVector ||
       attr.type == TypeDesc::TypeNormal || attr.type == TypeDesc::TypeColor) {
     float3 fval[3];
-    fval[0] = primitive_attribute_float3(
-        kg, sd, attr.desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+    if (primitive_is_volume_attribute(sd, attr.desc)) {
+      fval[0] = primitive_volume_attribute_float3(kg, sd, attr.desc);
+    }
+    else {
+      memset(fval, 0, sizeof(fval));
+      fval[0] = primitive_surface_attribute_float3(
+          kg, sd, attr.desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+    }
     return set_attribute_float3(fval, type, derivatives, val);
   }
   else if (attr.type == TypeFloat2) {
-    float2 fval[3];
-    fval[0] = primitive_attribute_float2(
-        kg, sd, attr.desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
-    return set_attribute_float2(fval, type, derivatives, val);
+    if (primitive_is_volume_attribute(sd, attr.desc)) {
+      assert(!"Float2 attribute not support for volumes");
+      return false;
+    }
+    else {
+      float2 fval[3];
+      fval[0] = primitive_surface_attribute_float2(
+          kg, sd, attr.desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+      return set_attribute_float2(fval, type, derivatives, val);
+    }
   }
   else if (attr.type == TypeDesc::TypeFloat) {
     float fval[3];
-    fval[0] = primitive_attribute_float(
-        kg, sd, attr.desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+    if (primitive_is_volume_attribute(sd, attr.desc)) {
+      memset(fval, 0, sizeof(fval));
+      fval[0] = primitive_volume_attribute_float(kg, sd, attr.desc);
+    }
+    else {
+      fval[0] = primitive_surface_attribute_float(
+          kg, sd, attr.desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+    }
     return set_attribute_float(fval, type, derivatives, val);
   }
-  else if (attr.type == TypeRGBA) {
+  else if (attr.type == TypeDesc::TypeFloat4 || attr.type == TypeRGBA) {
     float4 fval[3];
-    fval[0] = primitive_attribute_float4(
-        kg, sd, attr.desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+    if (primitive_is_volume_attribute(sd, attr.desc)) {
+      memset(fval, 0, sizeof(fval));
+      fval[0] = primitive_volume_attribute_float4(kg, sd, attr.desc);
+    }
+    else {
+      fval[0] = primitive_surface_attribute_float4(
+          kg, sd, attr.desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+    }
     return set_attribute_float4(fval, type, derivatives, val);
   }
   else {
@@ -718,13 +824,37 @@ static bool get_mesh_attribute(KernelGlobals *kg,
   }
 }
 
-static void get_object_attribute(const OSLGlobals::Attribute &attr, bool derivatives, void *val)
+static bool get_object_attribute(const OSLGlobals::Attribute &attr,
+                                 TypeDesc type,
+                                 bool derivatives,
+                                 void *val)
 {
-  size_t datasize = attr.value.datasize();
+  if (attr.type == TypeDesc::TypePoint || attr.type == TypeDesc::TypeVector ||
+      attr.type == TypeDesc::TypeNormal || attr.type == TypeDesc::TypeColor) {
+    return set_attribute_float3(*(float3 *)attr.value.data(), type, derivatives, val);
+  }
+  else if (attr.type == TypeFloat2) {
+    return set_attribute_float2(*(float2 *)attr.value.data(), type, derivatives, val);
+  }
+  else if (attr.type == TypeDesc::TypeFloat) {
+    return set_attribute_float(*(float *)attr.value.data(), type, derivatives, val);
+  }
+  else if (attr.type == TypeRGBA || attr.type == TypeDesc::TypeFloat4) {
+    return set_attribute_float4(*(float4 *)attr.value.data(), type, derivatives, val);
+  }
+  else if (attr.type == type) {
+    size_t datasize = attr.value.datasize();
 
-  memcpy(val, attr.value.data(), datasize);
-  if (derivatives)
-    memset((char *)val + datasize, 0, datasize * 2);
+    memcpy(val, attr.value.data(), datasize);
+    if (derivatives) {
+      memset((char *)val + datasize, 0, datasize * 2);
+    }
+
+    return true;
+  }
+  else {
+    return false;
+  }
 }
 
 bool OSLRenderServices::get_object_standard_attribute(
@@ -987,8 +1117,7 @@ bool OSLRenderServices::get_attribute(
     }
     else {
       /* object attribute */
-      get_object_attribute(attr, derivatives, val);
-      return true;
+      return get_object_attribute(attr, type, derivatives, val);
     }
   }
   else {

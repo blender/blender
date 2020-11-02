@@ -177,6 +177,7 @@ class AttributeSet {
   list<Attribute> attributes;
 
   AttributeSet(Geometry *geometry, AttributePrimitive prim);
+  AttributeSet(AttributeSet &&) = default;
   ~AttributeSet();
 
   Attribute *add(ustring name, TypeDesc type, AttributeElement element);

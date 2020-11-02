@@ -159,6 +159,7 @@ class DeviceTask {
   function<void(RenderTile &)> update_tile_sample;
   function<void(RenderTile &)> release_tile;
   function<bool()> get_cancel;
+  function<bool()> get_tile_stolen;
   function<void(RenderTileNeighbors &, Device *)> map_neighbor_tiles;
   function<void(RenderTileNeighbors &, Device *)> unmap_neighbor_tiles;
 

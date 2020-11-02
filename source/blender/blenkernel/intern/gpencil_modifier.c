@@ -39,6 +39,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_geom.h"
@@ -409,6 +410,11 @@ void BKE_gpencil_modifierType_panel_id(GpencilModifierType type, char *r_idname)
 
   strcpy(r_idname, GPENCIL_MODIFIER_TYPE_PANEL_PREFIX);
   strcat(r_idname, mti->name);
+}
+
+void BKE_gpencil_modifier_panel_expand(GpencilModifierData *md)
+{
+  md->ui_expand_flag |= UI_PANEL_DATA_EXPAND_ROOT;
 }
 
 /**

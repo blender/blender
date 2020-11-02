@@ -42,9 +42,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Sequencer Slide) */
-
-/** \name Transform Sequencer Slide
+/** \name Transform (Sequencer Slide)
  * \{ */
 
 static void headerSeqSlide(TransInfo *t, const float val[2], char str[UI_MAX_DRAW_STR])

@@ -37,7 +37,6 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_sequencer.h"
 
 #include "UI_view2d.h"
 
@@ -55,6 +54,8 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
+
+#include "SEQ_sequencer.h"
 
 #include "anim_intern.h"
 

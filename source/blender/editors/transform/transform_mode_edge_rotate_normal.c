@@ -39,9 +39,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Normal Rotation) */
-
-/** \name Transform Normal Rotation
+/** \name Transform (Normal Rotation)
  * \{ */
 
 static void storeCustomLNorValue(TransDataContainer *tc, BMesh *bm)

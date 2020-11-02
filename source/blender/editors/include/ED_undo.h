@@ -36,6 +36,9 @@ struct wmOperator;
 struct wmOperatorType;
 
 /* undo.c */
+bool ED_undo_is_state_valid(struct bContext *C);
+void ED_undo_group_begin(struct bContext *C);
+void ED_undo_group_end(struct bContext *C);
 void ED_undo_push(struct bContext *C, const char *str);
 void ED_undo_push_op(struct bContext *C, struct wmOperator *op);
 void ED_undo_grouped_push(struct bContext *C, const char *str);

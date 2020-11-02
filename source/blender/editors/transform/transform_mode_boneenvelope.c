@@ -40,9 +40,7 @@
 #include "transform_snap.h"
 
 /* -------------------------------------------------------------------- */
-/* Transform (Bone Envelope) */
-
-/** \name Transform Bone Envelope
+/** \name Transform (Bone Envelope)
  * \{ */
 
 static void applyBoneEnvelope(TransInfo *t, const int UNUSED(mval[2]))
