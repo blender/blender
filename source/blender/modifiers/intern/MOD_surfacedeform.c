@@ -70,6 +70,9 @@ typedef struct SDefAdjacencyArray {
   uint num; /* Careful, this is twice the number of polygons (avoids an extra loop) */
 } SDefAdjacencyArray;
 
+/**
+ * Polygons per edge (only 2, any more will exit calculation).
+ */
 typedef struct SDefEdgePolys {
   uint polys[2], num;
 } SDefEdgePolys;
@@ -83,37 +86,67 @@ typedef struct SDefBindCalcData {
   const MPoly *const mpoly;
   const MEdge *const medge;
   const MLoop *const mloop;
+  /** Coordinates to bind to, transformed into local space (compatible with `vertexCos`). */
   float (*const targetCos)[3];
+  /** Coordinates to bind (reference to the modifiers input argument). */
   float (*const vertexCos)[3];
   float imat[4][4];
   const float falloff;
   int success;
 } SDefBindCalcData;
 
+/**
+ * This represents the relationship between a point (a source coordinate)
+ * and the face-corner it's being bound to (from the target mesh).
+ *
+ * \note Some of these values could be de-duplicated however these are only
+ * needed once when running bind, so optimizing this structure isn't a priority.
+ */
 typedef struct SDefBindPoly {
+  /** Coordinates copied directly from the modifiers inptut. */
   float (*coords)[3];
+  /** Coordinates projected into 2D space using `normal`. */
   float (*coords_v2)[2];
+  /** The point being queried projected into 2D space using `normal`. */
   float point_v2[2];
   float weight_angular;
   float weight_dist_proj;
   float weight_dist;
   float weight;
   float scales[2];
+  /** Center of `coords` */
   float centroid[3];
+  /** Center of `coords_v2` */
   float centroid_v2[2];
+  /**
+   * The calculated normal of coords (could be shared between faces).
+   */
   float normal[3];
   float cent_edgemid_vecs_v2[2][2];
+  /**
+   * The unsigned angle of this face-corner in `[0.0 .. PI]` range,
+   * where a small value is a thin corner. PI is is a straight line.
+   * Take care dividing by this value as it can approach zero.
+   */
   float edgemid_angle;
   float point_edgemid_angles[2];
   float corner_edgemid_angles[2];
   float dominant_angle_weight;
+  /** Index of the input polygon. */
   uint index;
+  /** Number of vertices in this face. */
   uint numverts;
+  /**
+   * This polygons loop-start.
+   * \note that we could look this up from the polygon.
+   */
   uint loopstart;
   uint edge_inds[2];
   uint edge_vert_inds[2];
+  /** The index of this corner in the face (starting at zero). */
   uint corner_ind;
   uint dominant_edge;
+  /** When true `point_v2` is inside `coords_v2`. */
   bool inside;
 } SDefBindPoly;
 
@@ -256,7 +289,7 @@ static int buildAdjacencyMap(const MPoly *poly,
 {
   const MLoop *loop;
 
-  /* Fing polygons adjacent to edges */
+  /* Find polygons adjacent to edges. */
   for (int i = 0; i < numpoly; i++, poly++) {
     loop = &mloop[poly->loopstart];
 
@@ -466,7 +499,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
   bwdata->bind_polys = bpoly;
 
   /* Loop over all adjacent edges,
-   * and build the SDefBindPoly data for each poly adjacent to those. */
+   * and build the #SDefBindPoly data for each poly adjacent to those. */
   for (vedge = vert_edges; vedge; vedge = vedge->next) {
     uint edge_ind = vedge->index;
 
@@ -475,7 +508,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
         bpoly = bwdata->bind_polys;
 
         for (int j = 0; j < bwdata->numpoly; bpoly++, j++) {
-          /* If coords isn't allocated, we have reached the first uninitialized bpoly */
+          /* If coords isn't allocated, we have reached the first uninitialized `bpoly`. */
           if ((bpoly->index == edge_polys[edge_ind].polys[i]) || (!bpoly->coords)) {
             break;
           }
@@ -530,7 +563,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
           }
         }
 
-        /* Compute poly's parametric data */
+        /* Compute polygons parametric data. */
         mid_v3_v3_array(bpoly->centroid, bpoly->coords, poly->totloop);
         normal_poly_v3(bpoly->normal, bpoly->coords, poly->totloop);
 
@@ -540,7 +573,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
         cross_v3_v3v3(axis, bpoly->normal, world);
         normalize_v3(axis);
 
-        /* Map coords onto 2d normal plane */
+        /* Map coords onto 2d normal plane. */
         map_to_plane_axis_angle_v2_v3v3fl(bpoly->point_v2, point_co, axis, angle);
 
         zero_v2(bpoly->centroid_v2);
@@ -595,7 +628,7 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
         bpoly->corner_edgemid_angles[1] = angle_normalized_v2v2(tmp_vec_v2,
                                                                 bpoly->cent_edgemid_vecs_v2[1]);
 
-        /* Check for inifnite weights, and compute angular data otherwise */
+        /* Check for infinite weights, and compute angular data otherwise. */
         if (bpoly->weight_dist < FLT_EPSILON) {
           inf_weight_flags |= MOD_SDEF_INFINITE_WEIGHT_DIST_PROJ;
           inf_weight_flags |= MOD_SDEF_INFINITE_WEIGHT_DIST;
@@ -665,10 +698,10 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
     }
   }
 
-  /* Compute scalings and falloff.
-   * Scale all weights if no infinite weight is found,
-   * scale only unprojected weight if projected weight is infinite,
-   * scale none if both are infinite. */
+  /* Compute scaling and falloff:
+   * - Scale all weights if no infinite weight is found.
+   * - Scale only un-projected weight if projected weight is infinite.
+   * - Scale none if both are infinite. */
   if (!inf_weight_flags) {
     bpoly = bwdata->bind_polys;
 
@@ -892,7 +925,7 @@ static void bindVert(void *__restrict userdata,
         interp_weights_poly_v2(
             sdbind->vert_weights, bpoly->coords_v2, bpoly->numverts, bpoly->point_v2);
 
-        /* Reproject vert based on weights and original poly verts,
+        /* Re-project vert based on weights and original poly verts,
          * to reintroduce poly non-planarity */
         zero_v3(point_co_proj);
         for (int j = 0; j < bpoly->numverts; j++, loop++) {
@@ -1290,9 +1323,8 @@ static void surfacedeformModifier_do(ModifierData *md,
     return;
   }
 
-  /* Early out if modifier would not affect input at all - still *after* the sanity checks (and
-   * potential binding) above.
-   */
+  /* Early out if modifier would not affect input at all - still *after* the sanity checks
+   * (and potential binding) above. */
   if (smd->strength == 0.0f) {
     return;
   }
