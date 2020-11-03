@@ -60,6 +60,17 @@ if(WITH_OPENAL)
   endif()
 endif()
 
+if(WITH_JACK)
+  find_library(JACK_FRAMEWORK
+    NAMES jackmp
+  )
+  if(NOT JACK_FRAMEWORK)
+    set(WITH_JACK OFF)
+  else()
+    set(JACK_INCLUDE_DIRS ${JACK_FRAMEWORK}/headers)
+  endif()
+endif()
+
 if(NOT DEFINED LIBDIR)
   set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin)
   # Prefer lib directory paths
@@ -92,17 +103,6 @@ endif()
 
 if(WITH_OPENSUBDIV)
   find_package(OpenSubdiv)
-endif()
-
-if(WITH_JACK)
-  find_library(JACK_FRAMEWORK
-    NAMES jackmp
-  )
-  if(NOT JACK_FRAMEWORK)
-    set(WITH_JACK OFF)
-  else()
-    set(JACK_INCLUDE_DIRS ${JACK_FRAMEWORK}/headers)
-  endif()
 endif()
 
 if(WITH_CODEC_SNDFILE)
