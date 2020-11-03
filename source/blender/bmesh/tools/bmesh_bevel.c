@@ -303,14 +303,14 @@ typedef enum {
 } FKind;
 
 /** Helper for keeping track of angle kind. */
-enum {
+typedef enum AngleKind {
   /** Angle less than 180 degrees. */
   ANGLE_SMALLER = -1,
   /** 180 degree angle. */
   ANGLE_STRAIGHT = 0,
   /** Angle greater than 180 degrees. */
   ANGLE_LARGER = 1,
-};
+} AngleKind;
 
 /** Bevel parameters and state. */
 typedef struct BevelParams {
@@ -1101,7 +1101,7 @@ static bool is_outside_edge(EdgeHalf *e, const float co[3], BMVert **ret_closer_
 }
 
 /* Return whether the angle is less than, equal to, or larger than 180 degrees. */
-static int edges_angle_kind(EdgeHalf *e1, EdgeHalf *e2, BMVert *v)
+static AngleKind edges_angle_kind(EdgeHalf *e1, EdgeHalf *e2, BMVert *v)
 {
   BMVert *v1 = BM_edge_other_vert(e1->e, v);
   BMVert *v2 = BM_edge_other_vert(e2->e, v);
@@ -3027,7 +3027,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
       for (EdgeHalf *e3 = e->next; e3 != e2; e3 = e3->next) {
         e3->leftv = e3->rightv = v;
       }
-      int ang_kind = edges_angle_kind(e, e2, bv->v);
+      AngleKind ang_kind = edges_angle_kind(e, e2, bv->v);
 
       /* Are we doing special mitering?
        * There can only be one outer reflex angle, so only one outer miter,
@@ -3105,7 +3105,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
       }
     }
     else { /* construct == false. */
-      int ang_kind = edges_angle_kind(e, e2, bv->v);
+      AngleKind ang_kind = edges_angle_kind(e, e2, bv->v);
       if ((miter_outer != BEVEL_MITER_SHARP && !emiter && ang_kind == ANGLE_LARGER) ||
           (miter_inner != BEVEL_MITER_SHARP && ang_kind == ANGLE_SMALLER)) {
         if (ang_kind == ANGLE_LARGER) {
@@ -4928,7 +4928,7 @@ static VMesh *square_out_adj_vmesh(BevelParams *bp, BevVert *bv)
     copy_v3_v3(bndco, bndv->nv.co);
     EdgeHalf *e1 = bndv->efirst;
     EdgeHalf *e2 = bndv->elast;
-    int ang_kind = ANGLE_STRAIGHT;
+    AngleKind ang_kind = ANGLE_STRAIGHT;
     if (e1 && e2) {
       ang_kind = edges_angle_kind(e1, e2, bv->v);
     }
