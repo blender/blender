@@ -2997,7 +2997,7 @@ void CustomData_free_elem(CustomData *data, int index, int count)
 /**
  * Interpolate given custom data source items into a single destination one.
  *
- * \param src_indices Indices of every source items to interpolate into the destination one.
+ * \param src_indices: Indices of every source items to interpolate into the destination one.
  * \param weights: The weight to apply to each source value individually. If NULL, they will be
  * averaged.
  * \param sub_weights: The weights of sub-items, only used to affect each corners of a
