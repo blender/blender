@@ -420,6 +420,10 @@ class GPENCIL_MT_cleanup(Menu):
 
             layout.operator("gpencil.reproject")
 
+        layout.separator()
+
+        layout.operator("gpencil.recalc_geometry", text="Recalculate Geometry")
+
 
 class GPENCIL_UL_annotation_layer(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
