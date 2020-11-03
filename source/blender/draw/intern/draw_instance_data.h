@@ -68,7 +68,7 @@ void DRW_sparse_uniform_buffer_free(DRWSparseUniformBuf *buffer);
 bool DRW_sparse_uniform_buffer_is_empty(DRWSparseUniformBuf *buffer);
 void DRW_sparse_uniform_buffer_bind(DRWSparseUniformBuf *buffer, int chunk, int location);
 void DRW_sparse_uniform_buffer_unbind(DRWSparseUniformBuf *buffer, int chunk);
-void *DRW_sparse_uniform_buffer_ensure_item(DRWSparseUniformBuf *pool, int chunk, int item);
+void *DRW_sparse_uniform_buffer_ensure_item(DRWSparseUniformBuf *buffer, int chunk, int item);
 
 /* Uniform attribute UBO management. */
 struct GHash *DRW_uniform_attrs_pool_new(void);
