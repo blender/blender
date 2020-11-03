@@ -1919,6 +1919,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* send notifier that things have changed */
   WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_REMOVED, NULL);
   DEG_relations_tag_update(CTX_data_main(C));
 
   return OPERATOR_FINISHED;
