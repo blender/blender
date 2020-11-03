@@ -288,7 +288,7 @@ void GLFrameBuffer::bind(bool enabled_srgb)
 
   if (context_->active_fb != this || enabled_srgb_ != enabled_srgb) {
     enabled_srgb_ = enabled_srgb;
-    if (enabled_srgb) {
+    if (enabled_srgb && srgb_) {
       glEnable(GL_FRAMEBUFFER_SRGB);
     }
     else {
