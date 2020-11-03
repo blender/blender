@@ -3576,7 +3576,7 @@ void GRAPH_OT_fmodifier_paste(wmOperatorType *ot)
 
   /* Properties */
   RNA_def_boolean(
-      ot->srna, "only_active", true, "Only Active", "Only paste F-Modifiers on active F-Curve");
+      ot->srna, "only_active", false, "Only Active", "Only paste F-Modifiers on active F-Curve");
   RNA_def_boolean(
       ot->srna,
       "replace",
