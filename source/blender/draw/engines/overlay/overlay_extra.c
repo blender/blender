@@ -1586,10 +1586,13 @@ void OVERLAY_extra_cache_populate(OVERLAY_Data *vedata, Object *ob)
   const bool draw_xform = draw_ctx->object_mode == OB_MODE_OBJECT &&
                           (scene->toolsettings->transform_flag & SCE_XFORM_DATA_ORIGIN) &&
                           (ob->base_flag & BASE_SELECTED) && !is_select_mode;
+  /* Don't show fluid domain overlay extras outside of cache range. */
   const bool draw_volume = !from_dupli &&
                            (md = BKE_modifiers_findby_type(ob, eModifierType_Fluid)) &&
                            (BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) &&
-                           (((FluidModifierData *)md)->domain != NULL);
+                           (((FluidModifierData *)md)->domain != NULL) &&
+                           (CFRA >= (((FluidModifierData *)md)->domain->cache_frame_start)) &&
+                           (CFRA <= (((FluidModifierData *)md)->domain->cache_frame_end));
 
   float *color;
   int theme_id = DRW_object_wire_theme_get(ob, view_layer, &color);
