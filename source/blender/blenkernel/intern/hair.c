@@ -195,6 +195,8 @@ IDTypeInfo IDType_ID_HA = {
     .blend_read_data = hair_blend_read_data,
     .blend_read_lib = hair_blend_read_lib,
     .blend_read_expand = hair_blend_read_expand,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 static void hair_random(Hair *hair)

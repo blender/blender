@@ -333,6 +333,8 @@ IDTypeInfo IDType_ID_ME = {
     .blend_read_data = mesh_blend_read_data,
     .blend_read_lib = mesh_blend_read_lib,
     .blend_read_expand = mesh_read_expand,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 enum {

@@ -268,6 +268,8 @@ IDTypeInfo IDType_ID_MSK = {
     .blend_read_data = mask_blend_read_data,
     .blend_read_lib = mask_blend_read_lib,
     .blend_read_expand = mask_blend_read_expand,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 static struct {

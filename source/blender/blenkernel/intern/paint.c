@@ -146,6 +146,8 @@ IDTypeInfo IDType_ID_PAL = {
     .blend_read_data = palette_blend_read_data,
     .blend_read_lib = NULL,
     .blend_read_expand = NULL,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 static void paint_curve_copy_data(Main *UNUSED(bmain),
@@ -207,6 +209,8 @@ IDTypeInfo IDType_ID_PC = {
     .blend_read_data = paint_curve_blend_read_data,
     .blend_read_lib = NULL,
     .blend_read_expand = NULL,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 const char PAINT_CURSOR_SCULPT[3] = {255, 100, 100};

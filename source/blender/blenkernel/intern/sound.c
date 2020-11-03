@@ -212,6 +212,8 @@ IDTypeInfo IDType_ID_SO = {
     .blend_read_data = sound_blend_read_data,
     .blend_read_lib = sound_blend_read_lib,
     .blend_read_expand = sound_blend_read_expand,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 #ifdef WITH_AUDASPACE

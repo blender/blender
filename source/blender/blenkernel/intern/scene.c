@@ -104,6 +104,8 @@
 
 #include "SEQ_sequencer.h"
 
+#include "BLO_read_write.h"
+
 #include "engines/eevee/eevee_lightcache.h"
 
 #include "PIL_time.h"
@@ -620,6 +622,15 @@ static void scene_foreach_cache(ID *id,
                     user_data);
 }
 
+static void scene_undo_preserve(BlendLibReader *UNUSED(reader), ID *id_new, ID *id_old)
+{
+  Scene *scene_new = (Scene *)id_new;
+  Scene *scene_old = (Scene *)id_old;
+
+  SWAP(View3DCursor, scene_old->cursor, scene_new->cursor);
+  /* TODO: handle tool settings here too. */
+}
+
 IDTypeInfo IDType_ID_SCE = {
     .id_code = ID_SCE,
     .id_filter = FILTER_ID_SCE,
@@ -643,6 +654,8 @@ IDTypeInfo IDType_ID_SCE = {
     .blend_read_data = NULL,
     .blend_read_lib = NULL,
     .blend_read_expand = NULL,
+
+    .blend_read_undo_preserve = scene_undo_preserve,
 };
 
 const char *RE_engine_id_BLENDER_EEVEE = "BLENDER_EEVEE";

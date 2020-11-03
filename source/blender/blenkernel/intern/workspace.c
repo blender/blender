@@ -190,6 +190,8 @@ IDTypeInfo IDType_ID_WS = {
     .blend_read_data = workspace_blend_read_data,
     .blend_read_lib = workspace_blend_read_lib,
     .blend_read_expand = workspace_blend_read_expand,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 /* -------------------------------------------------------------------- */

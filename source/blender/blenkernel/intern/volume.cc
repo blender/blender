@@ -633,6 +633,8 @@ IDTypeInfo IDType_ID_VO = {
     /* blend_read_data */ volume_blend_read_data,
     /* blend_read_lib */ volume_blend_read_lib,
     /* blend_read_expand */ volume_blend_read_expand,
+
+    /* blend_read_undo_preserve */ NULL,
 };
 
 void BKE_volume_init_grids(Volume *volume)

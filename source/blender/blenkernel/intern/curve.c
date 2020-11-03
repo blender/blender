@@ -325,6 +325,8 @@ IDTypeInfo IDType_ID_CU = {
     .blend_read_data = curve_blend_read_data,
     .blend_read_lib = curve_blend_read_lib,
     .blend_read_expand = curve_blend_read_expand,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 static int cu_isectLL(const float v1[3],

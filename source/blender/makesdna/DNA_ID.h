@@ -305,6 +305,7 @@ typedef struct ID {
   /**
    * Only set for data-blocks which are coming from copy-on-write, points to
    * the original version of it.
+   * Also used temporarily during memfile undo to keep a reference to old ID when found.
    */
   struct ID *orig_id;
 

@@ -5672,15 +5672,6 @@ static void read_libblock_undo_restore_at_old_address(FileData *fd, Main *main, 
 
   const short idcode = GS(id->name);
 
-  /* XXX 3DCursor (witch is UI data and as such should not be affected by undo) is stored in
-   * Scene... So this requires some special handling, previously done in `blo_lib_link_restore()`,
-   * but this cannot work anymore when we overwrite existing memory... */
-  if (idcode == ID_SCE) {
-    Scene *scene_old = (Scene *)id_old;
-    Scene *scene = (Scene *)id;
-    SWAP(View3DCursor, scene_old->cursor, scene->cursor);
-  }
-
   Main *old_bmain = fd->old_mainlist->first;
   ListBase *old_lb = which_libbase(old_bmain, idcode);
   ListBase *new_lb = which_libbase(main, idcode);
@@ -5691,6 +5682,11 @@ static void read_libblock_undo_restore_at_old_address(FileData *fd, Main *main, 
    * currently (they are all pointing to old addresses, and need to go through `lib_link`
    * process). So we can pass NULL for the Main pointer parameter. */
   BKE_lib_id_swap_full(NULL, id, id_old);
+
+  /* Special temporary usage of this pointer, necessary for the `undo_preserve` call after
+   * lib-linking to restore some data that should never be affected by undo, e.g. the 3D cursor of
+   * #Scene. */
+  id_old->orig_id = id;
 
   BLI_addtail(new_lb, id_old);
   BLI_addtail(old_lb, id);
@@ -6123,6 +6119,18 @@ static void lib_link_all(FileData *fd, Main *bmain)
     }
 
     id->tag &= ~LIB_TAG_NEED_LINK;
+
+    /* Some data that should be persistent, like the 3DCursor or the tool settings, are
+     * stored in IDs affected by undo, like Scene. So this requires some specific handling. */
+    if (id_type->blend_read_undo_preserve != NULL && id->orig_id != NULL) {
+      id_type->blend_read_undo_preserve(&reader, id, id->orig_id);
+    }
+  }
+  FOREACH_MAIN_ID_END;
+
+  /* Cleanup `ID.orig_id`, this is now reserved for depsgraph/COW usage only. */
+  FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    id->orig_id = NULL;
   }
   FOREACH_MAIN_ID_END;
 

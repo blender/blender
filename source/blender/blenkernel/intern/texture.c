@@ -224,6 +224,8 @@ IDTypeInfo IDType_ID_TE = {
     .blend_read_data = texture_blend_read_data,
     .blend_read_lib = texture_blend_read_lib,
     .blend_read_expand = texture_blend_read_expand,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 /* Utils for all IDs using those texture slots. */

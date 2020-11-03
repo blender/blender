@@ -256,6 +256,8 @@ IDTypeInfo IDType_ID_TXT = {
     .blend_read_data = text_blend_read_data,
     .blend_read_lib = NULL,
     .blend_read_expand = NULL,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 /** \} */
