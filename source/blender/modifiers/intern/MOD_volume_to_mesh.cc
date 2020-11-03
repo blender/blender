@@ -237,7 +237,8 @@ static Mesh *new_mesh_from_openvdb_data(Span<openvdb::Vec3s> verts,
     mesh->mpoly[i].loopstart = 3 * i;
     mesh->mpoly[i].totloop = 3;
     for (int j = 0; j < 3; j++) {
-      mesh->mloop[3 * i + j].v = tris[i][j];
+      /* Reverse vertex order to get correct normals. */
+      mesh->mloop[3 * i + j].v = tris[i][2 - j];
     }
   }
 
@@ -248,7 +249,8 @@ static Mesh *new_mesh_from_openvdb_data(Span<openvdb::Vec3s> verts,
     mesh->mpoly[poly_offset + i].loopstart = loop_offset + 4 * i;
     mesh->mpoly[poly_offset + i].totloop = 4;
     for (int j = 0; j < 4; j++) {
-      mesh->mloop[loop_offset + 4 * i + j].v = quads[i][j];
+      /* Reverse vertex order to get correct normals. */
+      mesh->mloop[loop_offset + 4 * i + j].v = quads[i][3 - j];
     }
   }
 
