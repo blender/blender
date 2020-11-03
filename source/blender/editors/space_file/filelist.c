@@ -1295,7 +1295,7 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
 
   IMB_thumb_path_lock(preview->path);
   /* Always generate biggest preview size for now, it's simpler and avoids having to re-generate in
-   * case user switch to a biger preview size... */
+   * case user switch to a bigger preview size. */
   preview->img = IMB_thumb_manage(preview->path, THB_LARGE, source);
   IMB_thumb_path_unlock(preview->path);
 

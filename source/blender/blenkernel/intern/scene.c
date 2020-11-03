@@ -457,13 +457,15 @@ static void scene_foreach_rigidbodyworldSceneLooper(struct RigidBodyWorld *UNUSE
   BKE_lib_query_foreachid_process(data, id_pointer, cb_flag);
 }
 
-/* This code is shared by both the regular foreach_id looper, and the code trying to restore or
- * preserve ID pointers like brushes accross undos. */
+/**
+ * This code is shared by both the regular `foreach_id` looper, and the code trying to restore or
+ * preserve ID pointers like brushes across undoes.
+ */
 typedef enum eSceneForeachUndoPreserveProcess {
-  /* Undo when preserving toolsettings from old scene, we also want to try to preserve that ID
+  /* Undo when preserving tool-settings from old scene, we also want to try to preserve that ID
    * pointer from its old scene's value. */
   SCENE_FOREACH_UNDO_RESTORE,
-  /* Undo when preserving toolsettings from old scene, we want to keep the new value of that ID
+  /* Undo when preserving tool-settings from old scene, we want to keep the new value of that ID
    * pointer. */
   SCENE_FOREACH_UNDO_NO_RESTORE,
 } eSceneForeachUndoPreserveProcess;

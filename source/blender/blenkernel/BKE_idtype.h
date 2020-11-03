@@ -202,7 +202,7 @@ typedef struct IDTypeInfo {
   IDTypeBlendReadExpandFunction blend_read_expand;
 
   /**
-   * Allow an ID type to preserve some of its data accross (memfile) undo steps.
+   * Allow an ID type to preserve some of its data across (memfile) undo steps.
    *
    * \note Called from #setup_app_data when undoing or redoing a memfile step.
    */
