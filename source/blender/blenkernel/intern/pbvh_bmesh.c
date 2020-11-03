@@ -290,7 +290,7 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
   n->flag |= PBVH_UpdateNormals | PBVH_UpdateTopology;
 
   if (add_orco) {
-    BKE_pbvh_bmesh_node_save_orig(pbvh->bm, n);
+    BKE_pbvh_bmesh_node_save_ortri(pbvh->bm, n);
   }
 }
 
@@ -439,6 +439,13 @@ static void pbvh_bmesh_node_split(
   BB_expand_with_bb(&n->vb, &pbvh->nodes[n->children_offset].vb);
   BB_expand_with_bb(&n->vb, &pbvh->nodes[n->children_offset + 1].vb);
   n->orig_vb = n->vb;
+}
+
+static void pbvh_bmesh_copy_facedata(BMesh *bm, BMFace *dest, BMFace *src)
+{
+  dest->head.hflag = src->head.hflag;
+  dest->mat_nr = src->mat_nr;
+  CustomData_bmesh_copy_data(&bm->pdata, &bm->pdata, src->head.data, &dest->head.data);
 }
 
 /* Recursively split the node if it exceeds the leaf_limit */
@@ -1534,6 +1541,8 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
                                   BMEdge *e,
                                   BLI_Buffer *edge_loops)
 {
+  BMesh *bm = pbvh->bm;
+
   float co_mid[3], no_mid[3];
 
   /* Get all faces adjacent to the edge */
@@ -1622,6 +1631,8 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
     f_new = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f_adj);
     long_edge_queue_face_add(eq_ctx, f_new);
 
+    pbvh_bmesh_copy_facedata(bm, f_new, f_adj);
+
 #ifdef DYNTOPO_CD_INTERP
     BMLoop *lfirst = f_adj->l_first;
     while (lfirst->v != v1) {
@@ -1663,6 +1674,8 @@ static void pbvh_bmesh_split_edge(EdgeQueueContext *eq_ctx,
 
     f_new = pbvh_bmesh_face_create(pbvh, ni, v_tri, e_tri, f_adj);
     long_edge_queue_face_add(eq_ctx, f_new);
+
+    pbvh_bmesh_copy_facedata(bm, f_new, f_adj);
 
 #ifdef DYNTOPO_CD_INTERP
     lsrcs[0] = lfirst->head.data;
@@ -1980,7 +1993,8 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 #ifdef DYNTOPO_CD_INTERP
       BMLoop *l2 = f2->l_first;
 
-      CustomData_bmesh_copy_data(&pbvh->bm->pdata, &pbvh->bm->pdata, f->head.data, &f2->head.data);
+      pbvh_bmesh_copy_facedata(pbvh->bm, f2, f);
+
       CustomData_bmesh_copy_data(&pbvh->bm->ldata, &pbvh->bm->ldata, l->head.data, &l2->head.data);
       CustomData_bmesh_copy_data(
           &pbvh->bm->ldata, &pbvh->bm->ldata, l->next->head.data, &l2->next->head.data);
@@ -2047,10 +2061,10 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
   /* Move v_conn to the midpoint of v_conn and v_del (if v_conn still exists, it
    * may have been deleted above) */
   if (v_conn != NULL) {
-    // BM_log_vert_before_modified(pbvh->bm, pbvh->bm_log, v_conn, eq_ctx->cd_vert_mask_offset,
-    // false);
-    void *dummy;
-    BKE_pbvh_bmesh_update_origvert(pbvh, v_conn, &dummy, &dummy, &dummy);
+    //log vert in bmlog, but don't update original customata layers, we want them to be interpolated
+    BM_log_vert_before_modified(pbvh->bm_log, v_conn, eq_ctx->cd_vert_mask_offset, true);
+    //void *dummy;
+    //BKE_pbvh_bmesh_update_origvert(pbvh, v_conn, &dummy, &dummy, &dummy);
 
     mid_v3_v3v3(v_conn->co, v_conn->co, v_del->co);
     add_v3_v3(v_conn->no, v_del->no);
@@ -2287,7 +2301,7 @@ bool pbvh_bmesh_node_raycast(PBVHNode *node,
 
             for (int j = 0; j < 3; j++) {
               if (!hit || len_squared_v3v3(location, v_tri[j]->co) <
-                  len_squared_v3v3(location, nearest_vertex_co)) {
+                              len_squared_v3v3(location, nearest_vertex_co)) {
                 copy_v3_v3(nearest_vertex_co, v_tri[j]->co);
                 SculptVertRef vref = {(intptr_t)v_tri[j]};  // BM_elem_index_get(v_tri[j]);
                 *r_active_vertex_index = vref;
@@ -2854,7 +2868,7 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
  * (currently just raycast), store the node's triangles and vertices.
  *
  * Skips triangles that are hidden. */
-void BKE_pbvh_bmesh_node_save_orig(BMesh *bm, PBVHNode *node)
+void BKE_pbvh_bmesh_node_save_ortri(BMesh *bm, PBVHNode *node)
 {
   /* Skip if original coords/triangles are already saved */
   if (node->bm_orco) {

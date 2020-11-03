@@ -220,7 +220,7 @@ static void cloth_brush_add_length_constraint(SculptSession *ss,
   cloth_brush_reallocate_constraints(cloth_sim);
 
   /* Add the constraint to the #GSet to avoid creating it again. */
-  BLI_edgeset_add(cloth_sim->created_length_constraints, v1, v2);
+  BLI_edgeset_add(cloth_sim->created_length_constraints, v1i, v2i);
 }
 
 static void cloth_brush_add_softbody_constraint(SculptClothSimulation *cloth_sim,

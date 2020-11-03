@@ -1356,6 +1356,7 @@ void SCULPT_orig_vert_data_init(SculptOrigVertData *data, Object *ob, PBVHNode *
   SculptUndoNode *unode = NULL;
   data->ss = ob->sculpt;
 
+  /*do not allocate an undo node for bmesh pbvh*/
   if (!ob->sculpt->bm) {
     unode = SCULPT_undo_push_node(ob, node, SCULPT_UNDO_COORDS);
   }
@@ -1378,11 +1379,6 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter 
       orig_data->no = orig_data->_no;
 
       orig_data->col = BM_ELEM_CD_GET_VOID_P(iter->bm_vert, orig_data->ss->cd_origvcol_offset);
-
-      // BKE_pbvh_bmesh_update_origvert(
-      //    orig_data->pbvh, iter->bm_vert, &orig_data->co, &orig_data->no, &orig_data->col);
-      // BM_log_original_vert_data(orig_data->bm_log, iter->bm_vert, &orig_data->co,
-      // &orig_data->no);
     }
     else {
       orig_data->co = orig_data->coords[iter->i];
@@ -1392,9 +1388,6 @@ void SCULPT_orig_vert_data_update(SculptOrigVertData *orig_data, PBVHVertexIter 
   else if (orig_data->datatype == SCULPT_UNDO_COLOR) {
     if (orig_data->bm_log) {
       orig_data->col = BM_ELEM_CD_GET_VOID_P(iter->bm_vert, orig_data->ss->cd_origvcol_offset);
-
-      // BKE_pbvh_bmesh_update_origvert(orig_data->pbvh, iter->bm_vert, NULL, NULL,
-      // &orig_data->col);
     }
     else {
       orig_data->col = orig_data->colors[iter->i];
@@ -5719,16 +5712,22 @@ static void sculpt_topology_update(Sculpt *sd,
       }
     }
 
+    bool undo_push = !use_original ||
+                     SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache);
+
     for (n = 0; n < totnode; n++) {
-      SCULPT_undo_push_node(ob,
-                            nodes[n],
-                            brush->sculpt_tool == SCULPT_TOOL_MASK ? SCULPT_UNDO_MASK :
-                                                                     SCULPT_UNDO_COORDS);
+      if (undo_push) {
+        SCULPT_undo_push_node(ob,
+                              nodes[n],
+                              brush->sculpt_tool == SCULPT_TOOL_MASK ? SCULPT_UNDO_MASK :
+                                                                       SCULPT_UNDO_COORDS);
+      }
+
       BKE_pbvh_node_mark_update(nodes[n]);
 
       if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
         BKE_pbvh_node_mark_topology_update(nodes[n]);
-        BKE_pbvh_bmesh_node_save_orig(ss->bm, nodes[n]);
+        BKE_pbvh_bmesh_node_save_ortri(ss->bm, nodes[n]);
       }
     }
 
@@ -5784,7 +5783,9 @@ static void do_brush_action_task_cb(void *__restrict userdata,
     BKE_pbvh_node_mark_update_color(data->nodes[n]);
   }
   else {
-    SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
+    if (!ss->bm) {
+      SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
+    }
     BKE_pbvh_node_mark_update(data->nodes[n]);
   }
 }
@@ -5892,11 +5893,17 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     };
 
     // dyntopo can't push undo nodes inside a thread
-    if (ss->bm) {
+    if (ss->bm && ELEM(brush->sculpt_tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
       for (int i = 0; i < totnode; i++) {
-        //SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COLOR);
-        SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_COLOR);
-        BKE_pbvh_update_origcolor_bmesh(ss->pbvh, nodes[i]);
+        if (SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COLOR)) {
+          BKE_pbvh_update_origcolor_bmesh(ss->pbvh, nodes[i]);
+        }
+       // SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_COLOR);
+      }
+    }
+    else if (ss->bm) {
+      for (int i = 0; i < totnode; i++) {
+        SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COORDS);
       }
     }
 
@@ -9593,14 +9600,14 @@ static void dyntopo_detail_size_sample_from_surface(Object *ob,
                                                     DyntopoDetailSizeEditCustomData *cd)
 {
   SculptSession *ss = ob->sculpt;
-  const int active_vertex = SCULPT_active_vertex_get(ss);
+  const SculptVertRef active_vertex = SCULPT_active_vertex_get(ss);
 
   float len_accum = 0;
   int num_neighbors = 0;
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, active_vertex, ni) {
     len_accum += len_v3v3(SCULPT_vertex_co_get(ss, active_vertex),
-                          SCULPT_vertex_co_get(ss, ni.index));
+                          SCULPT_vertex_co_get(ss, ni.vertex));
     num_neighbors++;
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);

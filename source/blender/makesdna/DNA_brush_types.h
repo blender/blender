@@ -868,7 +868,6 @@ typedef enum eBrushUVSculptTool {
         SCULPT_TOOL_THUMB, \
         SCULPT_TOOL_LAYER, \
         SCULPT_TOOL_DISPLACEMENT_ERASER, \
-        SCULPT_TOOL_DRAW_SHARP, \
         SCULPT_TOOL_SLIDE_RELAX, \
         SCULPT_TOOL_ELASTIC_DEFORM, \
         SCULPT_TOOL_POSE, \
@@ -886,7 +885,6 @@ typedef enum eBrushUVSculptTool {
         SCULPT_TOOL_GRAB, \
         SCULPT_TOOL_ROTATE, \
         SCULPT_TOOL_THUMB, \
-        SCULPT_TOOL_DRAW_SHARP, \
         SCULPT_TOOL_DISPLACEMENT_ERASER, \
         SCULPT_TOOL_SLIDE_RELAX, \
         SCULPT_TOOL_MASK) == 0)

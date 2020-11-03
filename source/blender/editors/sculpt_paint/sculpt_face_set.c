@@ -335,7 +335,8 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
     for (int i = 0; i < tot_vert; i++) {
       SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
 
-      if (SCULPT_vertex_mask_get(ss, vertex) >= threshold && SCULPT_vertex_visible_get(ss, vertex)) {
+      if (SCULPT_vertex_mask_get(ss, vertex) >= threshold &&
+          SCULPT_vertex_visible_get(ss, vertex)) {
         SCULPT_vertex_face_set_set(ss, vertex, next_face_set);
       }
     }
@@ -1159,7 +1160,8 @@ static void sculpt_face_set_delete_geometry(Object *ob,
                                  .use_toolflags = true,
                              }));
 
-  BM_mesh_bm_from_me(bm,
+  BM_mesh_bm_from_me(ob,
+                     bm,
                      mesh,
                      (&(struct BMeshFromMeshParams){
                          .calc_face_normal = true,
@@ -1180,6 +1182,7 @@ static void sculpt_face_set_delete_geometry(Object *ob,
   BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
 
   BM_mesh_bm_to_me(NULL,
+                   ob,
                    bm,
                    ob->data,
                    (&(struct BMeshToMeshParams){

@@ -264,6 +264,10 @@ static void bm_log_vert_customdata(BMesh *bm, BMLog *log, BMVert *v, BMLogVert *
   //}
   BMLogEntry *entry = log->current_entry;
 
+  if (!entry) {
+    return;
+  }
+
   if (lv->customdata) {
     BLI_mempool_free(entry->vdata.pool, lv->customdata);
     lv->customdata = NULL;
