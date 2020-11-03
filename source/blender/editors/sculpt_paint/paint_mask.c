@@ -1293,7 +1293,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
         BLI_assert(false);
         break;
     }
-    BM_mesh_boolean(bm, looptris, tottri, bm_face_isect_pair, NULL, 2, false, boolean_mode);
+    BM_mesh_boolean(bm, looptris, tottri, bm_face_isect_pair, NULL, 2, true, boolean_mode);
   }
 
   Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(bm, NULL, sculpt_mesh);

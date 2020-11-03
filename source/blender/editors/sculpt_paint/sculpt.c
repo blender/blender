@@ -6258,7 +6258,9 @@ static void do_tiled(
 
   /* Position of the "prototype" stroke for tiling. */
   float orgLoc[3];
+  float original_initial_location[3];
   copy_v3_v3(orgLoc, cache->location);
+  copy_v3_v3(original_initial_location, cache->initial_location);
 
   for (int dim = 0; dim < 3; dim++) {
     if ((sd->paint.symmetry_flags & (PAINT_TILE_X << dim)) && step[dim] > 0) {
@@ -6289,6 +6291,7 @@ static void do_tiled(
         for (int dim = 0; dim < 3; dim++) {
           cache->location[dim] = cur[dim] * step[dim] + orgLoc[dim];
           cache->plane_offset[dim] = cur[dim] * step[dim];
+          cache->initial_location[dim] = cur[dim] * step[dim] + original_initial_location[dim];
         }
         action(sd, ob, brush, ups);
       }

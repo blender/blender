@@ -881,6 +881,7 @@ void BKE_mesh_copy_settings(Mesh *me_dst, const Mesh *me_src)
   me_dst->remesh_voxel_size = me_src->remesh_voxel_size;
   me_dst->remesh_voxel_adaptivity = me_src->remesh_voxel_adaptivity;
   me_dst->remesh_mode = me_src->remesh_mode;
+  me_dst->symmetry = me_src->symmetry;
 
   me_dst->face_sets_color_seed = me_src->face_sets_color_seed;
   me_dst->face_sets_color_default = me_src->face_sets_color_default;
