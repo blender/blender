@@ -604,27 +604,6 @@ static void edbm_bevel_numinput_set_value(wmOperator *op)
   }
 }
 
-/* Hide one of offset or offset_pct, depending on offset_type */
-static bool edbm_bevel_poll_property(const bContext *UNUSED(C),
-                                     wmOperator *op,
-                                     const PropertyRNA *prop)
-{
-  const char *prop_id = RNA_property_identifier(prop);
-
-  if (STRPREFIX(prop_id, "offset")) {
-    int offset_type = RNA_enum_get(op->ptr, "offset_type");
-
-    if (STREQ(prop_id, "offset") && offset_type == BEVEL_AMT_PERCENT) {
-      return false;
-    }
-    if (STREQ(prop_id, "offset_pct") && offset_type != BEVEL_AMT_PERCENT) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
 wmKeyMap *bevel_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {
@@ -1097,7 +1076,6 @@ void MESH_OT_bevel(wmOperatorType *ot)
   ot->modal = edbm_bevel_modal;
   ot->cancel = edbm_bevel_cancel;
   ot->poll = ED_operator_editmesh;
-  ot->poll_property = edbm_bevel_poll_property;
   ot->ui = edbm_bevel_ui;
 
   /* flags */
