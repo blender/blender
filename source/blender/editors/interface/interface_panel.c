@@ -907,13 +907,11 @@ bool UI_panel_matches_search_filter(const Panel *panel)
 }
 
 /**
- * Set the flag telling the panel to use its search result status for
- * its expansion. Also activate animation if that changes the expansion.
+ * Set the flag telling the panel to use its search result status for its expansion.
  */
 static void panel_set_expansion_from_seach_filter_recursive(const bContext *C,
                                                             Panel *panel,
-                                                            const bool use_search_closed,
-                                                            const bool use_animation)
+                                                            const bool use_search_closed)
 {
   /* This has to run on inactive panels that may not have a type,
    * but we can prevent running on header-less panels in some cases. */
@@ -924,8 +922,7 @@ static void panel_set_expansion_from_seach_filter_recursive(const bContext *C,
   LISTBASE_FOREACH (Panel *, child_panel, &panel->children) {
     /* Don't check if the sub-panel is active, otherwise the
      * expansion won't be reset when the parent is closed. */
-    panel_set_expansion_from_seach_filter_recursive(
-        C, child_panel, use_search_closed, use_animation);
+    panel_set_expansion_from_seach_filter_recursive(C, child_panel, use_search_closed);
   }
 }
 
@@ -934,14 +931,13 @@ static void panel_set_expansion_from_seach_filter_recursive(const bContext *C,
  */
 static void region_panels_set_expansion_from_seach_filter(const bContext *C,
                                                           ARegion *region,
-                                                          const bool use_search_closed,
-                                                          const bool use_animation)
+                                                          const bool use_search_closed)
 {
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
     /* Checking if the panel is active is only an optimization, it would be fine to run this on
      * inactive panels. */
     if (panel->runtime_flag & PANEL_ACTIVE) {
-      panel_set_expansion_from_seach_filter_recursive(C, panel, use_search_closed, use_animation);
+      panel_set_expansion_from_seach_filter_recursive(C, panel, use_search_closed);
     }
   }
   set_panels_list_data_expand_flag(C, region);
@@ -1906,10 +1902,10 @@ void UI_panels_end(const bContext *C, ARegion *region, int *r_x, int *r_y)
   const bool region_search_filter_active = region->flag & RGN_FLAG_SEARCH_FILTER_ACTIVE;
 
   if (properties_space_needs_realign(area, region)) {
-    region_panels_set_expansion_from_seach_filter(C, region, region_search_filter_active, false);
+    region_panels_set_expansion_from_seach_filter(C, region, region_search_filter_active);
   }
   else if (region->flag & RGN_FLAG_SEARCH_FILTER_UPDATE) {
-    region_panels_set_expansion_from_seach_filter(C, region, region_search_filter_active, true);
+    region_panels_set_expansion_from_seach_filter(C, region, region_search_filter_active);
   }
 
   if (region->flag & RGN_FLAG_SEARCH_FILTER_ACTIVE) {
