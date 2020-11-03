@@ -404,25 +404,22 @@ class GPENCIL_MT_cleanup(Menu):
 
         layout = self.layout
 
+        layout.operator("gpencil.frame_clean_fill", text="Boundary Strokes").mode = 'ACTIVE'
+        layout.operator("gpencil.frame_clean_fill", text="Boundary Strokes all Frames").mode = 'ALL'
+
+        layout.separator()
+
         layout.operator("gpencil.frame_clean_loose", text="Delete Loose Points")
-        layout.operator("gpencil.frame_clean_duplicate", text="Delete Duplicated Frames")
 
         if ob.mode != 'PAINT_GPENCIL':
             layout.operator("gpencil.stroke_merge_by_distance", text="Merge by Distance")
 
         layout.separator()
 
-        layout.operator("gpencil.frame_clean_fill", text="Boundary Strokes").mode = 'ACTIVE'
-        layout.operator("gpencil.frame_clean_fill", text="Boundary Strokes all Frames").mode = 'ALL'
-
-        if ob.mode != 'PAINT_GPENCIL':
-            layout.separator()
-
-            layout.operator("gpencil.reproject")
-
-        layout.separator()
-
+        layout.operator("gpencil.frame_clean_duplicate", text="Delete Duplicated Frames")
         layout.operator("gpencil.recalc_geometry", text="Recalculate Geometry")
+        if ob.mode != 'PAINT_GPENCIL':
+            layout.operator("gpencil.reproject")
 
 
 class GPENCIL_UL_annotation_layer(UIList):
