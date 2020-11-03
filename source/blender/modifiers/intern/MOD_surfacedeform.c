@@ -424,15 +424,9 @@ static void freeBindData(SDefBindWeightData *const bwdata)
   MEM_freeN(bwdata);
 }
 
-BLI_INLINE float computeAngularWeight(const float point_angle, const float edgemid_angle)
+BLI_INLINE float computeAngularWeight(const float point_angle)
 {
-  float weight;
-
-  weight = point_angle;
-  weight /= edgemid_angle;
-  weight *= M_PI_2;
-
-  return sinf(weight);
+  return sinf(point_angle * M_PI_2);
 }
 
 BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
@@ -658,15 +652,12 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
 
       /* Compute angular weight component */
       if (epolys->num == 1) {
-        ang_weights[0] = computeAngularWeight(bpolys[0]->point_edgemid_angles[edge_on_poly[0]],
-                                              bpolys[0]->edgemid_angle);
+        ang_weights[0] = computeAngularWeight(bpolys[0]->point_edgemid_angles[edge_on_poly[0]]);
         bpolys[0]->weight_angular *= ang_weights[0] * ang_weights[0];
       }
       else if (epolys->num == 2) {
-        ang_weights[0] = computeAngularWeight(bpolys[0]->point_edgemid_angles[edge_on_poly[0]],
-                                              bpolys[0]->edgemid_angle);
-        ang_weights[1] = computeAngularWeight(bpolys[1]->point_edgemid_angles[edge_on_poly[1]],
-                                              bpolys[1]->edgemid_angle);
+        ang_weights[0] = computeAngularWeight(bpolys[0]->point_edgemid_angles[edge_on_poly[0]]);
+        ang_weights[1] = computeAngularWeight(bpolys[1]->point_edgemid_angles[edge_on_poly[1]]);
 
         bpolys[0]->weight_angular *= ang_weights[0] * ang_weights[1];
         bpolys[1]->weight_angular *= ang_weights[0] * ang_weights[1];
@@ -707,9 +698,14 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
       bpoly->dominant_angle_weight = sinf(bpoly->dominant_angle_weight * M_PI_2);
 
       /* Compute quadratic angular scale interpolation weight */
-      scale_weight = bpoly->point_edgemid_angles[bpoly->dominant_edge] / bpoly->edgemid_angle;
-      scale_weight /= scale_weight +
-                      (bpoly->point_edgemid_angles[!bpoly->dominant_edge] / bpoly->edgemid_angle);
+      {
+        const float edge_angle_a = bpoly->point_edgemid_angles[bpoly->dominant_edge];
+        const float edge_angle_b = bpoly->point_edgemid_angles[!bpoly->dominant_edge];
+        /* Clamp so skinny faces with near zero `edgemid_angle`
+         * won't cause numeric problems. see T81988. */
+        scale_weight = edge_angle_a / max_ff(edge_angle_a, bpoly->edgemid_angle);
+        scale_weight /= scale_weight + (edge_angle_b / max_ff(edge_angle_b, bpoly->edgemid_angle));
+      }
 
       sqr = scale_weight * scale_weight;
       inv_sqr = 1.0f - scale_weight;
@@ -775,6 +771,11 @@ BLI_INLINE SDefBindWeightData *computeBindWeights(SDefBindCalcData *const data,
     else {
       bpoly->weight = 1.0f / bpoly->weight_angular / bpoly->weight_dist_proj / bpoly->weight_dist;
     }
+
+    /* Apply after other kinds of scaling so the faces corner angle is always
+     * scaled in a uniform way, preventing heavily sub-divided triangle fans
+     * from having a lop-sided influence on the weighting, see T81988. */
+    bpoly->weight *= bpoly->edgemid_angle / M_PI;
 
     tot_weight += bpoly->weight;
   }
