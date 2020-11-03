@@ -934,11 +934,7 @@ static void region_panels_set_expansion_from_seach_filter(const bContext *C,
                                                           const bool use_search_closed)
 {
   LISTBASE_FOREACH (Panel *, panel, &region->panels) {
-    /* Checking if the panel is active is only an optimization, it would be fine to run this on
-     * inactive panels. */
-    if (panel->runtime_flag & PANEL_ACTIVE) {
-      panel_set_expansion_from_seach_filter_recursive(C, panel, use_search_closed);
-    }
+    panel_set_expansion_from_seach_filter_recursive(C, panel, use_search_closed);
   }
   set_panels_list_data_expand_flag(C, region);
 }
