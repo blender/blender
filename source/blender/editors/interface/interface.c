@@ -832,6 +832,8 @@ static bool ui_but_update_from_old_block(const bContext *C,
     /* move button over from oldblock to new block */
     BLI_remlink(&oldblock->buttons, oldbut);
     BLI_insertlinkafter(&block->buttons, but, oldbut);
+    /* Add the old button to the button groups in the new block. */
+    ui_button_group_replace_but_ptr(block, but, oldbut);
     oldbut->block = block;
     *but_p = oldbut;
 
