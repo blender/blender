@@ -71,6 +71,7 @@ typedef enum eGPUBlend {
   /** Custom blend parameters using dual source blending : SRC0 + SRC1 * DST
    * NOTE: Can only be used with _ONE_ Draw Buffer and shader needs to be specialized. */
   GPU_BLEND_CUSTOM,
+  GPU_BLEND_ALPHA_UNDER_PREMUL,
 } eGPUBlend;
 
 typedef enum eGPUDepthTest {
