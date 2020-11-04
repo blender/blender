@@ -2992,6 +2992,8 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
   bl = bev->first;
   while (bl) {
     if (bl->nr) { /* null bevel items come from single points */
+      /* Scale the threshold so high resolution shapes don't get over reduced, see: T49850. */
+      const float threshold_resolu = 0.00001f / resolu;
       bool is_cyclic = bl->poly != -1;
       nr = bl->nr;
       if (is_cyclic) {
@@ -3012,13 +3014,9 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
           }
         }
         else {
-          if (fabsf(bevp0->vec[0] - bevp1->vec[0]) < 0.00001f) {
-            if (fabsf(bevp0->vec[1] - bevp1->vec[1]) < 0.00001f) {
-              if (fabsf(bevp0->vec[2] - bevp1->vec[2]) < 0.00001f) {
-                bevp0->dupe_tag = true;
-                bl->dupe_nr++;
-              }
-            }
+          if (compare_v3v3(bevp0->vec, bevp1->vec, threshold_resolu)) {
+            bevp0->dupe_tag = true;
+            bl->dupe_nr++;
           }
         }
         bevp0 = bevp1;
