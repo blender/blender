@@ -164,7 +164,7 @@ def keyconfig_export_as_data(wm, kc, filepath, *, all_keymaps=False):
     # not essential, just convenient to order them predictably.
     export_keymaps.sort(key=lambda k: k[0].name)
 
-    with open(filepath, "w") as fh:
+    with open(filepath, "w", encoding="utf-8") as fh:
         fw = fh.write
 
         # Use the file version since it includes the sub-version
