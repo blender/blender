@@ -1708,15 +1708,8 @@ struct PanelCategoryStack *UI_panel_category_active_find(struct ARegion *region,
 const char *UI_panel_category_active_get(struct ARegion *region, bool set_fallback);
 void UI_panel_category_active_set(struct ARegion *region, const char *idname);
 void UI_panel_category_active_set_default(struct ARegion *region, const char *idname);
-struct PanelCategoryDyn *UI_panel_category_find_mouse_over_ex(struct ARegion *region,
-                                                              const int x,
-                                                              const int y);
-struct PanelCategoryDyn *UI_panel_category_find_mouse_over(struct ARegion *region,
-                                                           const struct wmEvent *event);
 void UI_panel_category_clear_all(struct ARegion *region);
 void UI_panel_category_draw_all(struct ARegion *region, const char *category_id_active);
-
-struct PanelType *UI_paneltype_find(int space_id, int region_id, const char *idname);
 
 /* Panel custom data. */
 struct PointerRNA *UI_panel_custom_data_get(const struct Panel *panel);

@@ -2305,20 +2305,15 @@ const char *UI_panel_category_active_get(ARegion *region, bool set_fallback)
   return NULL;
 }
 
-PanelCategoryDyn *UI_panel_category_find_mouse_over_ex(ARegion *region, const int x, const int y)
+static PanelCategoryDyn *panel_categories_find_mouse_over(ARegion *region, const wmEvent *event)
 {
   LISTBASE_FOREACH (PanelCategoryDyn *, ptd, &region->panels_category) {
-    if (BLI_rcti_isect_pt(&ptd->rect, x, y)) {
+    if (BLI_rcti_isect_pt(&ptd->rect, event->mval[0], event->mval[1])) {
       return ptd;
     }
   }
 
   return NULL;
-}
-
-PanelCategoryDyn *UI_panel_category_find_mouse_over(ARegion *region, const wmEvent *event)
-{
-  return UI_panel_category_find_mouse_over_ex(region, event->mval[0], event->mval[1]);
 }
 
 void UI_panel_category_add(ARegion *region, const char *name)
@@ -2416,7 +2411,7 @@ int ui_handler_panel_region(bContext *C,
   /* Handle category tabs. */
   if (UI_panel_category_is_visible(region)) {
     if (event->type == LEFTMOUSE) {
-      PanelCategoryDyn *pc_dyn = UI_panel_category_find_mouse_over(region, event);
+      PanelCategoryDyn *pc_dyn = panel_categories_find_mouse_over(region, event);
       if (pc_dyn) {
         UI_panel_category_active_set(region, pc_dyn->idname);
         ED_region_tag_redraw(region);
@@ -2668,18 +2663,6 @@ static void panel_activate_state(const bContext *C, Panel *panel, uiHandlePanelS
   }
 
   ED_region_tag_redraw(region);
-}
-
-PanelType *UI_paneltype_find(int space_id, int region_id, const char *idname)
-{
-  SpaceType *st = BKE_spacetype_from_id(space_id);
-  if (st) {
-    ARegionType *art = BKE_regiontype_from_id(st, region_id);
-    if (art) {
-      return BLI_findstring(&art->paneltypes, idname, offsetof(PanelType, idname));
-    }
-  }
-  return NULL;
 }
 
 /** \} */
