@@ -2638,7 +2638,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
   BPoint *bp;
   BevList *blnew;
   BevPoint *bevp2, *bevp1 = NULL, *bevp0;
-  const float treshold = 0.00001f;
+  const float threshold = 0.00001f;
   float min, inp;
   float *seglen = NULL;
   struct BevelSort *sortdata, *sd, *sd1;
@@ -2734,7 +2734,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
           *seglen = len_v3v3(bevp->vec, bp->vec);
           bevp++;
           bevp->offset = *seglen;
-          if (*seglen > treshold) {
+          if (*seglen > threshold) {
             *segbevcount = 1;
           }
           else {
@@ -2810,7 +2810,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
             bevp->offset = *seglen;
             seglen++;
             /* match segbevcount to the cleaned up bevel lists (see STEP 2) */
-            if (bevp->offset > treshold) {
+            if (bevp->offset > threshold) {
               *segbevcount = 1;
             }
             segbevcount++;
@@ -2875,7 +2875,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
               bevp++;
               bevp->offset = len_v3v3(bevp0->vec, bevp->vec);
               /* match seglen and segbevcount to the cleaned up bevel lists (see STEP 2) */
-              if (bevp->offset > treshold) {
+              if (bevp->offset > threshold) {
                 *seglen += bevp->offset;
                 *segbevcount += 1;
               }
@@ -2944,7 +2944,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
             /* We keep last bevel segment zero-length. */
             for (j = 0; j < ((nr == 1) ? (resolu - 1) : resolu); j++) {
               bevp->offset = len_v3v3(bevp0->vec, bevp->vec);
-              if (bevp->offset > treshold) {
+              if (bevp->offset > threshold) {
                 *seglen += bevp->offset;
                 *segbevcount += 1;
               }
@@ -2986,7 +2986,7 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
     nr--;
     while (nr--) {
       if (seglen != NULL) {
-        if (fabsf(bevp1->offset) < treshold) {
+        if (fabsf(bevp1->offset) < threshold) {
           bevp0->dupe_tag = true;
           bl->dupe_nr++;
         }
