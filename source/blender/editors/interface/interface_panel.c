@@ -1942,9 +1942,6 @@ static void ui_do_drag(const bContext *C, const wmEvent *event, Panel *panel)
   dx *= BLI_rctf_size_x(&region->v2d.cur) / (float)BLI_rcti_size_x(&region->winrct);
   dy *= BLI_rctf_size_y(&region->v2d.cur) / (float)BLI_rcti_size_y(&region->winrct);
 
-  /* Reset the panel snapping, to allow dragging away from snapped edges. */
-  panel->snap = PNL_SNAP_NONE;
-
   /* Add the movement of the view due to edge scrolling while dragging. */
   dx += ((float)region->v2d.cur.xmin - data->start_cur_xmin);
   dy += ((float)region->v2d.cur.ymin - data->start_cur_ymin);
@@ -2154,21 +2151,13 @@ static void ui_handle_panel_header(const bContext *C,
 
     if (UI_panel_is_closed(panel)) {
       panel->flag &= ~PNL_CLOSED;
-      /* Snap back up so full panel aligns with screen edge. */
-      if (panel->snap & PNL_SNAP_BOTTOM) {
-        panel->ofsy = 0;
-      }
 
       if (event_type == LEFTMOUSE) {
         ui_panel_drag_collapse_handler_add(C, false);
       }
     }
     else {
-      /* Snap down to bottom screen edge. */
       panel->flag |= PNL_CLOSED;
-      if (panel->snap & PNL_SNAP_BOTTOM) {
-        panel->ofsy = -panel->sizey;
-      }
 
       if (event_type == LEFTMOUSE) {
         ui_panel_drag_collapse_handler_add(C, true);
