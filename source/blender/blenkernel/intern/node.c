@@ -404,6 +404,8 @@ static void write_node_socket_interface(BlendWriter *writer, bNodeSocket *sock)
 /* this is only direct data, tree itself should have been written */
 void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
 {
+  BKE_id_blend_write(writer, &ntree->id);
+
   /* for link_list() speed, we write per list */
 
   if (ntree->adt) {
@@ -525,9 +527,6 @@ static void ntree_blend_write(BlendWriter *writer, ID *id, const void *id_addres
     ntree->execdata = NULL;
 
     BLO_write_id_struct(writer, bNodeTree, id_address, &ntree->id);
-    /* Note that trees directly used by other IDs (materials etc.) are not 'real' ID, they cannot
-     * be linked, etc., so we write actual id data here only, for 'real' ID trees. */
-    BKE_id_blend_write(writer, &ntree->id);
 
     ntreeBlendWrite(writer, ntree);
   }
