@@ -45,6 +45,8 @@
 #include "BLI_span.hh"
 #include "BLI_timeit.hh"
 
+#include "DEG_depsgraph_query.h"
+
 #ifdef WITH_OPENVDB
 #  include <openvdb/tools/GridTransformer.h>
 #  include <openvdb/tools/VolumeToMesh.h>
@@ -281,6 +283,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   Volume *volume = static_cast<Volume *>(vmmd->object->data);
 
+  BKE_volume_load(volume, DEG_get_bmain(ctx->depsgraph));
   VolumeGrid *volume_grid = BKE_volume_grid_find(volume, vmmd->grid_name);
   if (volume_grid == nullptr) {
     BKE_modifier_set_error(md, "Cannot find '%s' grid", vmmd->grid_name);
