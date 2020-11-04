@@ -1512,6 +1512,7 @@ static bool sculpt_tool_needs_original(const char sculpt_tool)
               SCULPT_TOOL_DRAW_SHARP,
               SCULPT_TOOL_ELASTIC_DEFORM,
               SCULPT_TOOL_SMOOTH,
+              SCULPT_TOOL_VCOL_BOUNDARY,
               SCULPT_TOOL_BOUNDARY,
               SCULPT_TOOL_POSE);
 }
@@ -2732,6 +2733,8 @@ static float brush_strength(const Sculpt *sd,
       }
 
     case SCULPT_TOOL_SMOOTH:
+      return flip * alpha * pressure * feather;
+    case SCULPT_TOOL_VCOL_BOUNDARY:
       return flip * alpha * pressure * feather;
 
     case SCULPT_TOOL_PINCH:
@@ -6307,6 +6310,9 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
         break;
       case SCULPT_TOOL_PAINT:
         SCULPT_do_paint_brush(sd, ob, nodes, totnode);
+        break;
+      case SCULPT_TOOL_VCOL_BOUNDARY:
+        SCULPT_smooth_vcol_boundary(sd, ob, nodes, totnode);
         break;
       case SCULPT_TOOL_SMEAR:
         SCULPT_do_smear_brush(sd, ob, nodes, totnode);

@@ -299,8 +299,7 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
 }
 
 #ifdef PROXY_ADVANCED
-static void do_smooth_brush_task_cb_ex(
-    void *__restrict userdata,
+static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
                                        const int n,
                                        const TaskParallelTLS *__restrict tls)
 {
@@ -348,7 +347,7 @@ static void do_smooth_brush_task_cb_ex(
       while (ni < MAX_PROXY_NEIGHBORS && p->neighbors[i][ni].node >= 0) {
         ProxyKey *key = p->neighbors[i] + ni;
         PBVHNode *n2 = ss->pbvh->nodes + key->node;
-        
+
         // printf("%d %d %d %p\n", key->node, key->pindex, ss->pbvh->totnode, n2);
 
         if (key->pindex < 0 || key->pindex >= n2->proxyverts.size) {
@@ -673,5 +672,181 @@ void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
         0, totnode, &data, SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex, &settings);
     BLI_task_parallel_range(
         0, totnode, &data, SCULPT_do_surface_smooth_brush_displace_task_cb_ex, &settings);
+  }
+}
+
+static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
+                                                     const int n,
+                                                     const TaskParallelTLS *__restrict tls)
+{
+  SculptThreadedTaskData *data = userdata;
+  SculptSession *ss = data->ob->sculpt;
+  Sculpt *sd = data->sd;
+  const Brush *brush = data->brush;
+  const bool smooth_mask = data->smooth_mask;
+  float bstrength = data->strength;
+
+  PBVHVertexIter vd;
+
+  CLAMP(bstrength, 0.0f, 1.0f);
+
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, &test, data->brush->falloff_shape);
+
+  const int thread_id = BLI_task_parallel_thread_id(tls);
+
+  float avg[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  float tot = 0.0f;
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
+  {
+    if (!vd.col) {
+      continue;
+    }
+
+    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
+      const float fade = bstrength * SCULPT_brush_strength_factor(
+                                         ss,
+                                         brush,
+                                         vd.co,
+                                         sqrtf(test.dist),
+                                         vd.no,
+                                         vd.fno,
+                                         smooth_mask ? 0.0f : (vd.mask ? *vd.mask : 0.0f),
+                                         vd.vertex,
+                                         thread_id);
+
+      madd_v3_v3fl(avg, vd.col, fade);
+      tot += fade;
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+
+  if (tot == 0.0f) {
+    return;
+  }
+  tot = 1.0f / tot;
+
+  mul_v3_fl(avg, tot);
+
+  BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
+  {
+    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
+      const float fade = bstrength * SCULPT_brush_strength_factor(
+                                         ss,
+                                         brush,
+                                         vd.co,
+                                         sqrtf(test.dist),
+                                         vd.no,
+                                         vd.fno,
+                                         smooth_mask ? 0.0f : (vd.mask ? *vd.mask : 0.0f),
+                                         vd.vertex,
+                                         thread_id);
+      if (!vd.col) {
+        continue;
+      }
+
+      float avg2[3], val[3];
+      float tot2 = 0.0f;
+
+      zero_v3(avg2);
+
+      copy_v4_v4(avg, vd.col);
+
+      madd_v3_v3fl(avg2, vd.co, 0.5f);
+      tot2 += 0.5f;
+
+      SculptVertexNeighborIter ni;
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
+        const float *col = SCULPT_vertex_color_get(ss, ni.vertex);
+        const float *co = SCULPT_vertex_co_get(ss, ni.vertex);
+
+        //simple color metric
+        float dv[4];
+        sub_v4_v4v4(dv, col, avg);
+        float w = (fabs(dv[0]) + fabs(dv[1]) + fabs(dv[2]) + fabs(dv[3])) / 4.0;
+
+        //w = 1.0f - w;
+        //w = fabs(0.5 - w);
+        w *= w * w;
+
+        madd_v3_v3fl(avg2, co, w);
+        tot2 += w;
+      }
+      SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+      if (tot2 == 0.0) {
+        continue;
+      }
+
+      mul_v3_fl(avg2, 1.0 / tot2);
+
+      sub_v3_v3v3(val, avg2, vd.co);
+      madd_v3_v3v3fl(val, vd.co, val, fade);
+      SCULPT_clip(sd, ss, vd.co, val);
+
+      if (vd.mvert) {
+        vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+      }
+    }
+  }
+  BKE_pbvh_vertex_iter_end;
+}
+
+void SCULPT_smooth_vcol_boundary(Sculpt *sd, Object *ob, PBVHNode **nodes, const int totnode)
+{
+  SculptSession *ss = ob->sculpt;
+
+  Brush *brush = BKE_paint_brush(&sd->paint);
+  float bstrength = ss->cache->bstrength;
+
+  const int max_iterations = 4;
+  const float fract = 1.0f / max_iterations;
+  PBVHType type = BKE_pbvh_type(ss->pbvh);
+  int iteration, count;
+  float last;
+
+  CLAMP(bstrength, 0.0f, 1.0f);
+
+  count = (int)(bstrength * max_iterations);
+  last = max_iterations * (bstrength - count * fract);
+
+  if (type == PBVH_FACES && !ss->pmap) {
+    BLI_assert(!"sculpt smooth: pmap missing");
+    return;
+  }
+
+  if (type != PBVH_BMESH) {
+    SCULPT_vertex_random_access_ensure(ss);
+  }
+
+  SCULPT_boundary_info_ensure(ob);
+
+#ifdef PROXY_ADVANCED
+  int datamask = PV_CO | PV_NEIGHBORS | PV_NO | PV_INDEX | PV_MASK;
+  BKE_pbvh_ensure_proxyarrays(ss, ss->pbvh, nodes, totnode, datamask);
+
+  BKE_pbvh_load_proxyarrays(ss->pbvh, nodes, totnode, PV_CO | PV_NO | PV_MASK);
+#endif
+  for (iteration = 0; iteration <= count; iteration++) {
+    const float strength = (iteration != count) ? 1.0f : last;
+
+    SculptThreadedTaskData data = {
+        .sd = sd,
+        .ob = ob,
+        .brush = brush,
+        .nodes = nodes,
+        .smooth_mask = false,
+        .strength = strength,
+    };
+
+    TaskParallelSettings settings;
+    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+    BLI_task_parallel_range(
+        0, totnode, &data, do_smooth_vcol_boundary_brush_task_cb_ex, &settings);
+
+#ifdef PROXY_ADVANCED
+    BKE_pbvh_gather_proxyarray(ss->pbvh, nodes, totnode);
+#endif
   }
 }

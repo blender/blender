@@ -519,6 +519,11 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
                                              float result[3],
                                              SculptVertRef index);
 
+void SCULPT_smooth_vcol_boundary(Sculpt *sd,
+                                 Object *ob,
+                                 PBVHNode **nodes,
+                                 const int totnode);
+
 void SCULPT_smooth(Sculpt *sd,
                    Object *ob,
                    PBVHNode **nodes,

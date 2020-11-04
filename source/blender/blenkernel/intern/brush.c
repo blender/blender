@@ -1799,6 +1799,14 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->flag &= ~BRUSH_SPACE_ATTEN;
       br->curve_preset = BRUSH_CURVE_SPHERE;
       break;
+    case SCULPT_TOOL_VCOL_BOUNDARY:
+      br->flag &= ~BRUSH_SPACE_ATTEN;
+      br->spacing = 5;
+      br->alpha = 0.7f;
+      br->surface_smooth_shape_preservation = 0.5f;
+      br->surface_smooth_current_vertex = 0.5f;
+      br->surface_smooth_iterations = 4;
+      break;
     default:
       break;
   }
@@ -1858,6 +1866,7 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->sub_col[2] = 0.005f;
       break;
 
+    case SCULPT_TOOL_VCOL_BOUNDARY:
     case SCULPT_TOOL_SIMPLIFY:
     case SCULPT_TOOL_PAINT:
     case SCULPT_TOOL_MASK:
