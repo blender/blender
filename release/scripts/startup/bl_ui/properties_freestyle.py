@@ -40,7 +40,7 @@ class RENDER_PT_freestyle(RenderFreestyleButtonsPanel, Panel):
     bl_label = "Freestyle"
     bl_options = {'DEFAULT_CLOSED'}
     bl_order = 10
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     def draw_header(self, context):
         rd = context.scene.render
@@ -113,7 +113,7 @@ class RENDER_MT_lineset_context_menu(Menu):
 
 class VIEWLAYER_PT_freestyle(ViewLayerFreestyleButtonsPanel, Panel):
     bl_label = "Freestyle"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     def draw_header(self, context):
         view_layer = context.view_layer
@@ -178,7 +178,7 @@ class VIEWLAYER_PT_freestyle(ViewLayerFreestyleButtonsPanel, Panel):
 
 class VIEWLAYER_PT_freestyle_lineset(ViewLayerFreestyleEditorButtonsPanel, Panel):
     bl_label = "Freestyle Line Set"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     def draw_edge_type_buttons(self, box, lineset, edge_type):
         # property names
@@ -277,7 +277,7 @@ class VIEWLAYER_PT_freestyle_lineset(ViewLayerFreestyleEditorButtonsPanel, Panel
 class VIEWLAYER_PT_freestyle_linestyle(ViewLayerFreestyleEditorButtonsPanel, Panel):
     bl_label = "Freestyle Line Style"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     def draw_modifier_box_header(self, box, modifier):
         row = box.row()
@@ -833,7 +833,7 @@ class MaterialFreestyleButtonsPanel:
 class MATERIAL_PT_freestyle_line(MaterialFreestyleButtonsPanel, Panel):
     bl_label = "Freestyle Line"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     def draw(self, context):
         layout = self.layout
