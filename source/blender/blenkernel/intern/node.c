@@ -853,6 +853,8 @@ IDTypeInfo IDType_ID_NT = {
     .blend_read_data = ntree_blend_read_data,
     .blend_read_lib = ntree_blend_read_lib,
     .blend_read_expand = ntree_blend_read_expand,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 static void node_add_sockets_from_type(bNodeTree *ntree, bNode *node, bNodeType *ntype)

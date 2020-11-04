@@ -325,6 +325,8 @@ IDTypeInfo IDType_ID_IM = {
     .blend_read_data = image_blend_read_data,
     .blend_read_lib = image_blend_read_lib,
     .blend_read_expand = NULL,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 /* prototypes */

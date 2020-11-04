@@ -201,6 +201,8 @@ IDTypeInfo IDType_ID_CA = {
     .blend_read_data = camera_blend_read_data,
     .blend_read_lib = camera_blend_read_lib,
     .blend_read_expand = camera_blend_read_expand,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 /** \} */

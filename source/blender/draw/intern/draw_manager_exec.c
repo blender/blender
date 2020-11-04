@@ -57,12 +57,15 @@ typedef struct DRWCommandsState {
   /* Resource location. */
   int obmats_loc;
   int obinfos_loc;
+  int obattrs_loc;
   int baseinst_loc;
   int chunkid_loc;
   int resourceid_loc;
   /* Legacy matrix support. */
   int obmat_loc;
   int obinv_loc;
+  /* Uniform Attributes. */
+  DRWSparseUniformBuf *obattrs_ubo;
   /* Selection ID state. */
   GPUVertBuf *select_buf;
   uint select_id;
@@ -648,6 +651,12 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
           state->obinfos_loc = uni->location;
           GPU_uniformbuf_bind(DST.vmempool->obinfos_ubo[0], uni->location);
           break;
+        case DRW_UNIFORM_BLOCK_OBATTRS:
+          state->obattrs_loc = uni->location;
+          state->obattrs_ubo = DRW_uniform_attrs_pool_find_ubo(DST.vmempool->obattrs_ubo_pool,
+                                                               uni->uniform_attrs);
+          DRW_sparse_uniform_buffer_bind(state->obattrs_ubo, 0, uni->location);
+          break;
         case DRW_UNIFORM_RESOURCE_CHUNK:
           state->chunkid_loc = uni->location;
           GPU_shader_uniform_int(shgroup->shader, uni->location, 0);
@@ -761,6 +770,10 @@ static void draw_call_resource_bind(DRWCommandsState *state, const DRWResourceHa
     if (state->obinfos_loc != -1) {
       GPU_uniformbuf_unbind(DST.vmempool->obinfos_ubo[state->resource_chunk]);
       GPU_uniformbuf_bind(DST.vmempool->obinfos_ubo[chunk], state->obinfos_loc);
+    }
+    if (state->obattrs_loc != -1) {
+      DRW_sparse_uniform_buffer_unbind(state->obattrs_ubo, state->resource_chunk);
+      DRW_sparse_uniform_buffer_bind(state->obattrs_ubo, chunk, state->obattrs_loc);
     }
     state->resource_chunk = chunk;
   }
@@ -884,6 +897,9 @@ static void draw_call_batching_finish(DRWShadingGroup *shgroup, DRWCommandsState
   if (state->obinfos_loc != -1) {
     GPU_uniformbuf_unbind(DST.vmempool->obinfos_ubo[state->resource_chunk]);
   }
+  if (state->obattrs_loc != -1) {
+    DRW_sparse_uniform_buffer_unbind(state->obattrs_ubo, state->resource_chunk);
+  }
 }
 
 static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
@@ -893,11 +909,13 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
   DRWCommandsState state = {
       .obmats_loc = -1,
       .obinfos_loc = -1,
+      .obattrs_loc = -1,
       .baseinst_loc = -1,
       .chunkid_loc = -1,
       .resourceid_loc = -1,
       .obmat_loc = -1,
       .obinv_loc = -1,
+      .obattrs_ubo = NULL,
       .drw_state_enabled = 0,
       .drw_state_disabled = 0,
   };

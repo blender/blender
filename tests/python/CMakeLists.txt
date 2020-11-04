@@ -717,7 +717,7 @@ else()
       -blender "${TEST_BLENDER_EXE}"
       -testdir "${TEST_SRC_DIR}/sequence_editing/${render_test}"
       -idiff "${OPENIMAGEIO_IDIFF}"
-      -outdir "${TEST_OUT_DIR}/sequence_editing/${render_test}"
+      -outdir "${TEST_OUT_DIR}/sequence_editing"
     )
   endforeach()
 endif()

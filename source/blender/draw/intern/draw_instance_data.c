@@ -30,9 +30,20 @@
  */
 
 #include "draw_instance_data.h"
+#include "draw_manager.h"
+
 #include "DRW_engine.h"
 #include "DRW_render.h" /* For DRW_shgroup_get_instance_count() */
 
+#include "GPU_material.h"
+
+#include "DNA_particle_types.h"
+
+#include "BKE_duplilist.h"
+
+#include "RNA_access.h"
+
+#include "BLI_bitmap.h"
 #include "BLI_memblock.h"
 #include "BLI_mempool.h"
 #include "BLI_utildefines.h"
@@ -405,6 +416,365 @@ void DRW_instance_data_list_resize(DRWInstanceDataList *idatalist)
       BLI_mempool_clear_ex(idata->mempool, BLI_mempool_len(idata->mempool));
     }
   }
+}
+
+/** \} */
+/* -------------------------------------------------------------------- */
+/** \name Sparse Uniform Buffer
+ * \{ */
+
+#define CHUNK_LIST_STEP (1 << 4)
+
+/** A chunked UBO manager that doesn't actually allocate unneeded chunks. */
+typedef struct DRWSparseUniformBuf {
+  /* Memory buffers used to stage chunk data before transfer to UBOs. */
+  char **chunk_buffers;
+  /* Uniform buffer objects with flushed data. */
+  struct GPUUniformBuf **chunk_ubos;
+  /* True if the relevant chunk contains data (distinct from simply being allocated). */
+  BLI_bitmap *chunk_used;
+
+  int num_chunks;
+  unsigned int item_size, chunk_size, chunk_bytes;
+} DRWSparseUniformBuf;
+
+static void drw_sparse_uniform_buffer_init(DRWSparseUniformBuf *buffer,
+                                           unsigned int item_size,
+                                           unsigned int chunk_size)
+{
+  buffer->chunk_buffers = NULL;
+  buffer->chunk_used = NULL;
+  buffer->chunk_ubos = NULL;
+  buffer->num_chunks = 0;
+  buffer->item_size = item_size;
+  buffer->chunk_size = chunk_size;
+  buffer->chunk_bytes = item_size * chunk_size;
+}
+
+/** Allocate a chunked UBO with the specified item and chunk size. */
+DRWSparseUniformBuf *DRW_sparse_uniform_buffer_new(unsigned int item_size, unsigned int chunk_size)
+{
+  DRWSparseUniformBuf *buf = MEM_mallocN(sizeof(DRWSparseUniformBuf), __func__);
+  drw_sparse_uniform_buffer_init(buf, item_size, chunk_size);
+  return buf;
+}
+
+/** Flush data from ordinary memory to UBOs. */
+void DRW_sparse_uniform_buffer_flush(DRWSparseUniformBuf *buffer)
+{
+  for (int i = 0; i < buffer->num_chunks; i++) {
+    if (BLI_BITMAP_TEST(buffer->chunk_used, i)) {
+      if (buffer->chunk_ubos[i] == NULL) {
+        buffer->chunk_ubos[i] = GPU_uniformbuf_create(buffer->chunk_bytes);
+      }
+      GPU_uniformbuf_update(buffer->chunk_ubos[i], buffer->chunk_buffers[i]);
+    }
+  }
+}
+
+/** Clean all buffers and free unused ones. */
+void DRW_sparse_uniform_buffer_clear(DRWSparseUniformBuf *buffer, bool free_all)
+{
+  int max_used_chunk = 0;
+
+  for (int i = 0; i < buffer->num_chunks; i++) {
+    /* Delete buffers that were not used since the last clear call. */
+    if (free_all || !BLI_BITMAP_TEST(buffer->chunk_used, i)) {
+      MEM_SAFE_FREE(buffer->chunk_buffers[i]);
+
+      if (buffer->chunk_ubos[i]) {
+        GPU_uniformbuf_free(buffer->chunk_ubos[i]);
+        buffer->chunk_ubos[i] = NULL;
+      }
+    }
+    else {
+      max_used_chunk = i + 1;
+    }
+  }
+
+  /* Shrink the chunk array if appropriate. */
+  const int old_num_chunks = buffer->num_chunks;
+
+  buffer->num_chunks = (max_used_chunk + CHUNK_LIST_STEP - 1) & ~(CHUNK_LIST_STEP - 1);
+
+  if (buffer->num_chunks == 0) {
+    /* Ensure that an empty pool holds no memory allocations. */
+    MEM_SAFE_FREE(buffer->chunk_buffers);
+    MEM_SAFE_FREE(buffer->chunk_used);
+    MEM_SAFE_FREE(buffer->chunk_ubos);
+    return;
+  }
+
+  if (buffer->num_chunks != old_num_chunks) {
+    buffer->chunk_buffers = MEM_recallocN(buffer->chunk_buffers,
+                                          buffer->num_chunks * sizeof(void *));
+    buffer->chunk_ubos = MEM_recallocN(buffer->chunk_ubos, buffer->num_chunks * sizeof(void *));
+    BLI_BITMAP_RESIZE(buffer->chunk_used, buffer->num_chunks);
+  }
+
+  BLI_bitmap_set_all(buffer->chunk_used, false, buffer->num_chunks);
+}
+
+/** Frees the buffer. */
+void DRW_sparse_uniform_buffer_free(DRWSparseUniformBuf *buffer)
+{
+  DRW_sparse_uniform_buffer_clear(buffer, true);
+  MEM_freeN(buffer);
+}
+
+/** Checks if the buffer contains any allocated chunks. */
+bool DRW_sparse_uniform_buffer_is_empty(DRWSparseUniformBuf *buffer)
+{
+  return buffer->num_chunks == 0;
+}
+
+static GPUUniformBuf *drw_sparse_uniform_buffer_get_ubo(DRWSparseUniformBuf *buffer, int chunk)
+{
+  if (buffer && chunk < buffer->num_chunks && BLI_BITMAP_TEST(buffer->chunk_used, chunk)) {
+    return buffer->chunk_ubos[chunk];
+  }
+  return NULL;
+}
+
+/** Bind the UBO for the given chunk, if present. A NULL buffer pointer is handled as empty. */
+void DRW_sparse_uniform_buffer_bind(DRWSparseUniformBuf *buffer, int chunk, int location)
+{
+  GPUUniformBuf *ubo = drw_sparse_uniform_buffer_get_ubo(buffer, chunk);
+  if (ubo) {
+    GPU_uniformbuf_bind(ubo, location);
+  }
+}
+
+/** Unbind the UBO for the given chunk, if present. A NULL buffer pointer is handled as empty. */
+void DRW_sparse_uniform_buffer_unbind(DRWSparseUniformBuf *buffer, int chunk)
+{
+  GPUUniformBuf *ubo = drw_sparse_uniform_buffer_get_ubo(buffer, chunk);
+  if (ubo) {
+    GPU_uniformbuf_unbind(ubo);
+  }
+}
+
+/** Returns a pointer to the given item of the given chunk, allocating memory if necessary. */
+void *DRW_sparse_uniform_buffer_ensure_item(DRWSparseUniformBuf *buffer, int chunk, int item)
+{
+  if (chunk >= buffer->num_chunks) {
+    buffer->num_chunks = (chunk + CHUNK_LIST_STEP) & ~(CHUNK_LIST_STEP - 1);
+    buffer->chunk_buffers = MEM_recallocN(buffer->chunk_buffers,
+                                          buffer->num_chunks * sizeof(void *));
+    buffer->chunk_ubos = MEM_recallocN(buffer->chunk_ubos, buffer->num_chunks * sizeof(void *));
+    BLI_BITMAP_RESIZE(buffer->chunk_used, buffer->num_chunks);
+  }
+
+  char *chunk_buffer = buffer->chunk_buffers[chunk];
+
+  if (chunk_buffer == NULL) {
+    buffer->chunk_buffers[chunk] = chunk_buffer = MEM_callocN(buffer->chunk_bytes, __func__);
+  }
+  else if (!BLI_BITMAP_TEST(buffer->chunk_used, chunk)) {
+    memset(chunk_buffer, 0, buffer->chunk_bytes);
+  }
+
+  BLI_BITMAP_ENABLE(buffer->chunk_used, chunk);
+
+  return chunk_buffer + buffer->item_size * item;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Uniform Attribute Buffers
+ * \{ */
+
+/** Sparse UBO buffer for a specific uniform attribute list. */
+typedef struct DRWUniformAttrBuf {
+  /* Attribute list (also used as hash table key) handled by this buffer. */
+  GPUUniformAttrList key;
+  /* Sparse UBO buffer containing the attribute values. */
+  DRWSparseUniformBuf ubos;
+  /* Last handle used to update the buffer, checked for avoiding redundant updates. */
+  DRWResourceHandle last_handle;
+  /* Linked list pointer used for freeing the empty unneeded buffers. */
+  struct DRWUniformAttrBuf *next_empty;
+} DRWUniformAttrBuf;
+
+static DRWUniformAttrBuf *drw_uniform_attrs_pool_ensure(GHash *table, GPUUniformAttrList *key)
+{
+  void **pkey, **pval;
+
+  if (!BLI_ghash_ensure_p_ex(table, key, &pkey, &pval)) {
+    DRWUniformAttrBuf *buffer = MEM_callocN(sizeof(*buffer), __func__);
+
+    *pkey = &buffer->key;
+    *pval = buffer;
+
+    GPU_uniform_attr_list_copy(&buffer->key, key);
+    drw_sparse_uniform_buffer_init(
+        &buffer->ubos, key->count * sizeof(float[4]), DRW_RESOURCE_CHUNK_LEN);
+
+    buffer->last_handle = (DRWResourceHandle)-1;
+  }
+
+  return (DRWUniformAttrBuf *)*pval;
+}
+
+/* This function mirrors lookup_property in cycles/blender/blender_object.cpp */
+static bool drw_uniform_property_lookup(ID *id, const char *name, float r_data[4])
+{
+  PointerRNA ptr, id_ptr;
+  PropertyRNA *prop;
+
+  if (!id) {
+    return false;
+  }
+
+  RNA_id_pointer_create(id, &id_ptr);
+
+  if (!RNA_path_resolve(&id_ptr, name, &ptr, &prop)) {
+    return false;
+  }
+
+  PropertyType type = RNA_property_type(prop);
+  int arraylen = RNA_property_array_length(&ptr, prop);
+
+  if (arraylen == 0) {
+    float value;
+
+    if (type == PROP_FLOAT) {
+      value = RNA_property_float_get(&ptr, prop);
+    }
+    else if (type == PROP_INT) {
+      value = RNA_property_int_get(&ptr, prop);
+    }
+    else {
+      return false;
+    }
+
+    copy_v4_fl4(r_data, value, value, value, 1);
+    return true;
+  }
+
+  if (type == PROP_FLOAT && arraylen <= 4) {
+    copy_v4_fl4(r_data, 0, 0, 0, 1);
+    RNA_property_float_get_array(&ptr, prop, r_data);
+    return true;
+  }
+
+  return false;
+}
+
+/* This function mirrors lookup_instance_property in cycles/blender/blender_object.cpp */
+static void drw_uniform_attribute_lookup(GPUUniformAttr *attr,
+                                         Object *ob,
+                                         Object *dupli_parent,
+                                         DupliObject *dupli_source,
+                                         float r_data[4])
+{
+  char idprop_name[sizeof(attr->name) + 4];
+
+  copy_v4_fl(r_data, 0);
+  sprintf(idprop_name, "[\"%s\"]", attr->name);
+
+  /* If requesting instance data, check the parent particle system and object. */
+  if (attr->use_dupli) {
+    if (dupli_source && dupli_source->particle_system) {
+      ParticleSettings *settings = dupli_source->particle_system->part;
+      if (drw_uniform_property_lookup((ID *)settings, idprop_name, r_data) ||
+          drw_uniform_property_lookup((ID *)settings, attr->name, r_data)) {
+        return;
+      }
+    }
+    if (drw_uniform_property_lookup((ID *)dupli_parent, idprop_name, r_data) ||
+        drw_uniform_property_lookup((ID *)dupli_parent, attr->name, r_data)) {
+      return;
+    }
+  }
+
+  /* Check the object and mesh. */
+  if (ob) {
+    if (drw_uniform_property_lookup((ID *)ob, idprop_name, r_data) ||
+        drw_uniform_property_lookup((ID *)ob, attr->name, r_data) ||
+        drw_uniform_property_lookup((ID *)ob->data, idprop_name, r_data) ||
+        drw_uniform_property_lookup((ID *)ob->data, attr->name, r_data)) {
+      return;
+    }
+  }
+}
+
+void drw_uniform_attrs_pool_update(GHash *table,
+                                   GPUUniformAttrList *key,
+                                   DRWResourceHandle *handle,
+                                   Object *ob,
+                                   Object *dupli_parent,
+                                   DupliObject *dupli_source)
+{
+  DRWUniformAttrBuf *buffer = drw_uniform_attrs_pool_ensure(table, key);
+
+  if (buffer->last_handle != *handle) {
+    buffer->last_handle = *handle;
+
+    int chunk = DRW_handle_chunk_get(handle);
+    int item = DRW_handle_id_get(handle);
+    float(*values)[4] = DRW_sparse_uniform_buffer_ensure_item(&buffer->ubos, chunk, item);
+
+    LISTBASE_FOREACH (GPUUniformAttr *, attr, &buffer->key.list) {
+      drw_uniform_attribute_lookup(attr, ob, dupli_parent, dupli_source, *values++);
+    }
+  }
+}
+
+DRWSparseUniformBuf *DRW_uniform_attrs_pool_find_ubo(GHash *table, struct GPUUniformAttrList *key)
+{
+  DRWUniformAttrBuf *buffer = BLI_ghash_lookup(table, key);
+  return buffer ? &buffer->ubos : NULL;
+}
+
+GHash *DRW_uniform_attrs_pool_new()
+{
+  return GPU_uniform_attr_list_hash_new("obattr_hash");
+}
+
+void DRW_uniform_attrs_pool_flush_all(GHash *table)
+{
+  GHASH_FOREACH_BEGIN (DRWUniformAttrBuf *, buffer, table) {
+    DRW_sparse_uniform_buffer_flush(&buffer->ubos);
+  }
+  GHASH_FOREACH_END();
+}
+
+static void drw_uniform_attrs_pool_free_cb(void *ptr)
+{
+  DRWUniformAttrBuf *buffer = ptr;
+
+  GPU_uniform_attr_list_free(&buffer->key);
+  DRW_sparse_uniform_buffer_clear(&buffer->ubos, true);
+  MEM_freeN(buffer);
+}
+
+void DRW_uniform_attrs_pool_clear_all(GHash *table)
+{
+  DRWUniformAttrBuf *remove_list = NULL;
+
+  GHASH_FOREACH_BEGIN (DRWUniformAttrBuf *, buffer, table) {
+    buffer->last_handle = (DRWResourceHandle)-1;
+    DRW_sparse_uniform_buffer_clear(&buffer->ubos, false);
+
+    if (DRW_sparse_uniform_buffer_is_empty(&buffer->ubos)) {
+      buffer->next_empty = remove_list;
+      remove_list = buffer;
+    }
+  }
+  GHASH_FOREACH_END();
+
+  while (remove_list) {
+    DRWUniformAttrBuf *buffer = remove_list;
+    remove_list = buffer->next_empty;
+    BLI_ghash_remove(table, &buffer->key, NULL, drw_uniform_attrs_pool_free_cb);
+  }
+}
+
+void DRW_uniform_attrs_pool_free(GHash *table)
+{
+  BLI_ghash_free(table, NULL, drw_uniform_attrs_pool_free_cb);
 }
 
 /** \} */

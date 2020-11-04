@@ -321,9 +321,9 @@ void Hair::reserve_curves(int numcurves, int numkeys)
   attributes.resize(true);
 }
 
-void Hair::clear()
+void Hair::clear(bool preserve_shaders)
 {
-  Geometry::clear();
+  Geometry::clear(preserve_shaders);
 
   curve_keys.clear();
   curve_radius.clear();

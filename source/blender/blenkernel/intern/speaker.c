@@ -112,6 +112,8 @@ IDTypeInfo IDType_ID_SPK = {
     .blend_read_data = speaker_blend_read_data,
     .blend_read_lib = speaker_blend_read_lib,
     .blend_read_expand = speaker_blend_read_expand,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 void *BKE_speaker_add(Main *bmain, const char *name)

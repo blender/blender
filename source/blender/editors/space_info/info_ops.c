@@ -516,7 +516,7 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
                                  FILE_OPENFILE,
                                  WM_FILESEL_DIRECTORY,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
 }
 
 /********************* report box operator *********************/

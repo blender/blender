@@ -295,6 +295,8 @@ IDTypeInfo IDType_ID_AC = {
     .blend_read_data = action_blend_read_data,
     .blend_read_lib = action_blend_read_lib,
     .blend_read_expand = action_blend_read_expand,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 /* ***************** Library data level operations on action ************** */

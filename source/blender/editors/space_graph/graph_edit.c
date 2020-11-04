@@ -2090,7 +2090,7 @@ void GRAPH_OT_sound_bake(wmOperatorType *ot)
                                  FILE_OPENFILE,
                                  WM_FILESEL_FILEPATH | WM_FILESEL_SHOW_PROPS,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
   RNA_def_float(ot->srna,
                 "low",
                 0.0f,
@@ -3576,7 +3576,7 @@ void GRAPH_OT_fmodifier_paste(wmOperatorType *ot)
 
   /* Properties */
   RNA_def_boolean(
-      ot->srna, "only_active", true, "Only Active", "Only paste F-Modifiers on active F-Curve");
+      ot->srna, "only_active", false, "Only Active", "Only paste F-Modifiers on active F-Curve");
   RNA_def_boolean(
       ot->srna,
       "replace",

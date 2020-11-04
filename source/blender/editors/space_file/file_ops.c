@@ -1351,18 +1351,17 @@ static int file_column_sort_ui_context_invoke(bContext *C,
     if (column_type != COLUMN_NONE) {
       const FileAttributeColumn *column = &sfile->layout->attribute_columns[column_type];
 
-      if (column->sort_type != FILE_SORT_NONE) {
-        if (sfile->params->sort == column->sort_type) {
-          /* Already sorting by selected column -> toggle sort invert (three state logic). */
-          sfile->params->flag ^= FILE_SORT_INVERT;
-        }
-        else {
-          sfile->params->sort = column->sort_type;
-          sfile->params->flag &= ~FILE_SORT_INVERT;
-        }
-
-        WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
+      BLI_assert(column->sort_type != FILE_SORT_DEFAULT);
+      if (sfile->params->sort == column->sort_type) {
+        /* Already sorting by selected column -> toggle sort invert (three state logic). */
+        sfile->params->flag ^= FILE_SORT_INVERT;
       }
+      else {
+        sfile->params->sort = column->sort_type;
+        sfile->params->flag &= ~FILE_SORT_INVERT;
+      }
+
+      WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
     }
   }
 

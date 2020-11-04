@@ -1023,6 +1023,9 @@ void GPU_viewport_free(GPUViewport *viewport)
     }
     BLI_memblock_destroy(viewport->vmempool.images, NULL);
   }
+  if (viewport->vmempool.obattrs_ubo_pool != NULL) {
+    DRW_uniform_attrs_pool_free(viewport->vmempool.obattrs_ubo_pool);
+  }
 
   for (int i = 0; i < viewport->vmempool.ubo_len; i++) {
     GPU_uniformbuf_free(viewport->vmempool.matrices_ubo[i]);

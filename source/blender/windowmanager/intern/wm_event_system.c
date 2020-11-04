@@ -1731,8 +1731,21 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
     BLI_assert(handler_base->type != 0);
     if (handler_base->type == WM_HANDLER_TYPE_OP) {
       wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
+
       if (handler->op) {
         wmWindow *win = CTX_wm_window(C);
+
+        if (handler->is_fileselect) {
+          /* Exit File Browsers referring to this handler/operator. */
+          LISTBASE_FOREACH (wmWindow *, temp_win, &wm->windows) {
+            ScrArea *file_area = ED_fileselect_handler_area_find(temp_win, handler->op);
+            if (!file_area) {
+              continue;
+            }
+            ED_area_exit(C, file_area);
+          }
+        }
+
         if (handler->op->type->cancel) {
           ScrArea *area = CTX_wm_area(C);
           ARegion *region = CTX_wm_region(C);
@@ -3471,25 +3484,15 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
         if (handler->is_fileselect == false) {
           continue;
         }
-        bScreen *screen = CTX_wm_screen(C);
-        bool cancel_handler = true;
 
-        /* Find the area with the file selector for this handler. */
-        ED_screen_areas_iter (win, screen, area) {
-          if (area->spacetype == SPACE_FILE) {
-            SpaceFile *sfile = area->spacedata.first;
+        ScrArea *file_area = ED_fileselect_handler_area_find(win, handler->op);
 
-            if (sfile->op == handler->op) {
-              CTX_wm_area_set(C, area);
-              wm_handler_fileselect_do(C, &win->modalhandlers, handler, EVT_FILESELECT_CANCEL);
-              cancel_handler = false;
-              break;
-            }
-          }
+        if (file_area) {
+          CTX_wm_area_set(C, file_area);
+          wm_handler_fileselect_do(C, &win->modalhandlers, handler, EVT_FILESELECT_CANCEL);
         }
-
         /* If not found we stop the handler without changing the screen. */
-        if (cancel_handler) {
+        else {
           wm_handler_fileselect_do(
               C, &win->modalhandlers, handler, EVT_FILESELECT_EXTERNAL_CANCEL);
         }

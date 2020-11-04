@@ -355,6 +355,37 @@ static void brush_blend_read_expand(BlendExpander *expander, ID *id)
   }
 }
 
+static int brush_undo_preserve_cb(LibraryIDLinkCallbackData *cb_data)
+{
+  BlendLibReader *reader = cb_data->user_data;
+  ID *id_old = *cb_data->id_pointer;
+  /* Old data has not been remapped to new values of the pointers, if we want to keep the old
+   * pointer here we need its new address. */
+  ID *id_old_new = id_old != NULL ? BLO_read_get_new_id_address(reader, id_old->lib, id_old) :
+                                    NULL;
+  BLI_assert(id_old_new == NULL || ELEM(id_old, id_old_new, id_old_new->orig_id));
+  if (cb_data->cb_flag & IDWALK_CB_USER) {
+    id_us_plus_no_lib(id_old_new);
+    id_us_min(id_old);
+  }
+  *cb_data->id_pointer = id_old_new;
+  return IDWALK_RET_NOP;
+}
+
+static void brush_undo_preserve(BlendLibReader *reader, ID *id_new, ID *id_old)
+{
+  /* Whole Brush is preserved accross undo's. */
+  BKE_lib_id_swap(NULL, id_new, id_old);
+
+  /* `id_new` now has content from `id_old`, we need to ensure those old ID pointers are valid.
+   * Note: Since we want to re-use all old pointers here, code is much simpler than for Scene. */
+  BKE_library_foreach_ID_link(NULL, id_new, brush_undo_preserve_cb, reader, IDWALK_NOP);
+
+  /* Note: We do not swap IDProperties, as dealing with potential ID pointers in those would be
+   *       fairly delicate. */
+  SWAP(IDProperty *, id_new->properties, id_old->properties);
+}
+
 IDTypeInfo IDType_ID_BR = {
     .id_code = ID_BR,
     .id_filter = FILTER_ID_BR,
@@ -376,6 +407,8 @@ IDTypeInfo IDType_ID_BR = {
     .blend_read_data = brush_blend_read_data,
     .blend_read_lib = brush_blend_read_lib,
     .blend_read_expand = brush_blend_read_expand,
+
+    .blend_read_undo_preserve = brush_undo_preserve,
 };
 
 static RNG *brush_rng;

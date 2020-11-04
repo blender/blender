@@ -127,15 +127,10 @@ enum {
 
 static float get_bevel_offset(wmOperator *op)
 {
-  float val;
-
   if (RNA_enum_get(op->ptr, "offset_type") == BEVEL_AMT_PERCENT) {
-    val = RNA_float_get(op->ptr, "offset_pct");
+    return RNA_float_get(op->ptr, "offset_pct");
   }
-  else {
-    val = RNA_float_get(op->ptr, "offset");
-  }
-  return val;
+  return RNA_float_get(op->ptr, "offset");
 }
 
 static void edbm_bevel_update_status_text(bContext *C, wmOperator *op)
@@ -145,14 +140,12 @@ static void edbm_bevel_update_status_text(bContext *C, wmOperator *op)
   char *p = buf;
   int available_len = sizeof(buf);
   Scene *sce = CTX_data_scene(C);
-  char offset_str[NUM_STR_REP_LEN];
-  const char *mode_str, *omiter_str, *imiter_str, *vmesh_str, *profile_type_str, *affect_str;
-  PropertyRNA *prop;
 
 #define WM_MODALKEY(_id) \
   WM_modalkeymap_operator_items_to_string_buf( \
       op->type, (_id), true, UI_MAX_SHORTCUT_STR, &available_len, &p)
 
+  char offset_str[NUM_STR_REP_LEN];
   if (RNA_enum_get(op->ptr, "offset_type") == BEVEL_AMT_PERCENT) {
     BLI_snprintf(offset_str, NUM_STR_REP_LEN, "%.1f%%", RNA_float_get(op->ptr, "offset_pct"));
   }
@@ -167,6 +160,8 @@ static void edbm_bevel_update_status_text(bContext *C, wmOperator *op)
                              true);
   }
 
+  PropertyRNA *prop;
+  const char *mode_str, *omiter_str, *imiter_str, *vmesh_str, *profile_type_str, *affect_str;
   prop = RNA_struct_find_property(op->ptr, "offset_type");
   RNA_property_enum_name_gettexted(
       C, op->ptr, prop, RNA_property_enum_get(op->ptr, prop), &mode_str);
@@ -240,18 +235,17 @@ static void edbm_bevel_update_status_text(bContext *C, wmOperator *op)
 static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 {
   Scene *scene = CTX_data_scene(C);
+  View3D *v3d = CTX_wm_view3d(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
-  BevelData *opdata;
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  float pixels_per_inch;
-  int i, otype;
 
   if (is_modal) {
     RNA_float_set(op->ptr, "offset", 0.0f);
     RNA_float_set(op->ptr, "offset_pct", 0.0f);
   }
 
-  op->customdata = opdata = MEM_mallocN(sizeof(BevelData), "beveldata_mesh_operator");
+  op->customdata = MEM_mallocN(sizeof(BevelData), "beveldata_mesh_operator");
+  BevelData *opdata = op->customdata;
   uint objects_used_len = 0;
   opdata->max_obj_scale = FLT_MIN;
 
@@ -261,7 +255,7 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
   {
     uint ob_store_len = 0;
     Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-        view_layer, CTX_wm_view3d(C), &ob_store_len);
+        view_layer, v3d, &ob_store_len);
     opdata->ob_store = MEM_malloc_arrayN(ob_store_len, sizeof(*opdata->ob_store), __func__);
     for (uint ob_index = 0; ob_index < ob_store_len; ob_index++) {
       Object *obedit = objects[ob_index];
@@ -278,12 +272,12 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
   }
 
   opdata->is_modal = is_modal;
-  otype = RNA_enum_get(op->ptr, "offset_type");
+  int otype = RNA_enum_get(op->ptr, "offset_type");
   opdata->value_mode = (otype == BEVEL_AMT_PERCENT) ? OFFSET_VALUE_PERCENT : OFFSET_VALUE;
   opdata->segments = (float)RNA_int_get(op->ptr, "segments");
-  pixels_per_inch = U.dpi * U.pixelsize;
+  float pixels_per_inch = U.dpi * U.pixelsize;
 
-  for (i = 0; i < NUM_VALUE_KINDS; i++) {
+  for (int i = 0; i < NUM_VALUE_KINDS; i++) {
     opdata->shift_value[i] = -1.0f;
     opdata->initial_length[i] = -1.0f;
     /* note: scale for OFFSET_VALUE will get overwritten in edbm_bevel_invoke */
@@ -304,7 +298,6 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 
   /* avoid the cost of allocating a bm copy */
   if (is_modal) {
-    View3D *v3d = CTX_wm_view3d(C);
     ARegion *region = CTX_wm_region(C);
 
     for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
@@ -491,23 +484,21 @@ static int edbm_bevel_exec(bContext *C, wmOperator *op)
 
 static void edbm_bevel_calc_initial_length(wmOperator *op, const wmEvent *event, bool mode_changed)
 {
-  BevelData *opdata;
-  float mlen[2], len, value, sc, st;
-  int vmode;
-
-  opdata = op->customdata;
-  mlen[0] = opdata->mcenter[0] - event->mval[0];
-  mlen[1] = opdata->mcenter[1] - event->mval[1];
-  len = len_v2(mlen);
-  vmode = opdata->value_mode;
+  BevelData *opdata = op->customdata;
+  const float mlen[2] = {
+      opdata->mcenter[0] - event->mval[0],
+      opdata->mcenter[1] - event->mval[1],
+  };
+  float len = len_v2(mlen);
+  int vmode = opdata->value_mode;
   if (mode_changed || opdata->initial_length[vmode] == -1.0f) {
     /* If current value is not default start value, adjust len so that
      * the scaling and offset in edbm_bevel_mouse_set_value will
      * start at current value */
-    value = (vmode == SEGMENTS_VALUE) ? opdata->segments :
-                                        RNA_float_get(op->ptr, value_rna_name[vmode]);
-    sc = opdata->scale[vmode];
-    st = value_start[vmode];
+    float value = (vmode == SEGMENTS_VALUE) ? opdata->segments :
+                                              RNA_float_get(op->ptr, value_rna_name[vmode]);
+    float sc = opdata->scale[vmode];
+    float st = value_start[vmode];
     if (value != value_start[vmode]) {
       len = (st + sc * (len - MVAL_PIXEL_MARGIN) - value) / sc;
     }
@@ -518,18 +509,17 @@ static void edbm_bevel_calc_initial_length(wmOperator *op, const wmEvent *event,
 static int edbm_bevel_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
-  BevelData *opdata;
-  float center_3d[3];
 
   if (!edbm_bevel_init(C, op, true)) {
     return OPERATOR_CANCELLED;
   }
 
-  opdata = op->customdata;
+  BevelData *opdata = op->customdata;
 
   opdata->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
 
   /* initialize mouse values */
+  float center_3d[3];
   if (!calculateTransformCenter(C, V3D_AROUND_CENTER_MEDIAN, center_3d, opdata->mcenter)) {
     /* in this case the tool will likely do nothing,
      * ideally this will never happen and should be checked for above */
@@ -561,13 +551,13 @@ static void edbm_bevel_mouse_set_value(wmOperator *op, const wmEvent *event)
 {
   BevelData *opdata = op->customdata;
   int vmode = opdata->value_mode;
-  float mdiff[2];
-  float value;
 
-  mdiff[0] = opdata->mcenter[0] - event->mval[0];
-  mdiff[1] = opdata->mcenter[1] - event->mval[1];
+  const float mdiff[2] = {
+      opdata->mcenter[0] - event->mval[0],
+      opdata->mcenter[1] - event->mval[1],
+  };
 
-  value = ((len_v2(mdiff) - MVAL_PIXEL_MARGIN) - opdata->initial_length[vmode]);
+  float value = ((len_v2(mdiff) - MVAL_PIXEL_MARGIN) - opdata->initial_length[vmode]);
 
   /* Scale according to value mode */
   value = value_start[vmode] + value * opdata->scale[vmode];
@@ -599,12 +589,10 @@ static void edbm_bevel_mouse_set_value(wmOperator *op, const wmEvent *event)
 static void edbm_bevel_numinput_set_value(wmOperator *op)
 {
   BevelData *opdata = op->customdata;
-  float value;
-  int vmode;
 
-  vmode = opdata->value_mode;
-  value = (vmode == SEGMENTS_VALUE) ? opdata->segments :
-                                      RNA_float_get(op->ptr, value_rna_name[vmode]);
+  int vmode = opdata->value_mode;
+  float value = (vmode == SEGMENTS_VALUE) ? opdata->segments :
+                                            RNA_float_get(op->ptr, value_rna_name[vmode]);
   applyNumInput(&opdata->num_input[vmode], &value);
   CLAMP(value, value_clamp_min[vmode], value_clamp_max[vmode]);
   if (vmode == SEGMENTS_VALUE) {
@@ -614,27 +602,6 @@ static void edbm_bevel_numinput_set_value(wmOperator *op)
   else {
     RNA_float_set(op->ptr, value_rna_name[vmode], value);
   }
-}
-
-/* Hide one of offset or offset_pct, depending on offset_type */
-static bool edbm_bevel_poll_property(const bContext *UNUSED(C),
-                                     wmOperator *op,
-                                     const PropertyRNA *prop)
-{
-  const char *prop_id = RNA_property_identifier(prop);
-
-  if (STRPREFIX(prop_id, "offset")) {
-    int offset_type = RNA_enum_get(op->ptr, "offset_type");
-
-    if (STREQ(prop_id, "offset") && offset_type == BEVEL_AMT_PERCENT) {
-      return false;
-    }
-    if (STREQ(prop_id, "offset_pct") && offset_type != BEVEL_AMT_PERCENT) {
-      return false;
-    }
-  }
-
-  return true;
 }
 
 wmKeyMap *bevel_modal_keymap(wmKeyConfig *keyconf)
@@ -1109,7 +1076,6 @@ void MESH_OT_bevel(wmOperatorType *ot)
   ot->modal = edbm_bevel_modal;
   ot->cancel = edbm_bevel_cancel;
   ot->poll = ED_operator_editmesh;
-  ot->poll_property = edbm_bevel_poll_property;
   ot->ui = edbm_bevel_ui;
 
   /* flags */

@@ -43,6 +43,9 @@
 
 #include "draw_instance_data.h"
 
+struct Object;
+struct DupliObject;
+
 /* Use draw manager to call GPU_select, see: DRW_draw_select_loop */
 #define USE_GPU_SELECT
 
@@ -286,6 +289,7 @@ typedef enum {
   /** Per drawcall uniforms/UBO */
   DRW_UNIFORM_BLOCK_OBMATS,
   DRW_UNIFORM_BLOCK_OBINFOS,
+  DRW_UNIFORM_BLOCK_OBATTRS,
   DRW_UNIFORM_RESOURCE_CHUNK,
   DRW_UNIFORM_RESOURCE_ID,
   /** Legacy / Fallback */
@@ -317,6 +321,8 @@ struct DRWUniform {
     float fvalue[4];
     /* DRW_UNIFORM_INT_COPY */
     int ivalue[4];
+    /* DRW_UNIFORM_BLOCK_OBATTRS */
+    struct GPUUniformAttrList *uniform_attrs;
   };
   int location;      /* Uniform location or binding point for textures and ubos. */
   uint8_t type;      /* DRWUniformType */
@@ -340,6 +346,9 @@ struct DRWShadingGroup {
     struct {
       int objectinfo;                /* Equal to 1 if the shader needs obinfos. */
       DRWResourceHandle pass_handle; /* Memblock key to parent pass. */
+
+      /* Set of uniform attributes used by this shader. */
+      struct GPUUniformAttrList *uniform_attrs;
     };
     /* This struct is used after cache populate if using the Z sorting.
      * It will not conflict with the above struct. */
@@ -598,3 +607,10 @@ void drw_resource_buffer_finish(ViewportMemoryPool *vmempool);
 GPUBatch *drw_cache_procedural_points_get(void);
 GPUBatch *drw_cache_procedural_lines_get(void);
 GPUBatch *drw_cache_procedural_triangles_get(void);
+
+void drw_uniform_attrs_pool_update(struct GHash *table,
+                                   struct GPUUniformAttrList *key,
+                                   DRWResourceHandle *handle,
+                                   struct Object *ob,
+                                   struct Object *dupli_parent,
+                                   struct DupliObject *dupli_source);

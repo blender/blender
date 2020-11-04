@@ -25,6 +25,7 @@ static bNodeSocketTemplate sh_node_attribute_out[] = {
     {SOCK_RGBA, N_("Color")},
     {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
     {SOCK_FLOAT, N_("Fac"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_FACTOR},
+    {SOCK_FLOAT, N_("Alpha"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX, PROP_FACTOR},
     {-1, ""},
 };
 
@@ -41,8 +42,9 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
                                      GPUNodeStack *out)
 {
   NodeShaderAttribute *attr = node->storage;
+  bool is_varying = attr->type == SHD_ATTRIBUTE_GEOMETRY;
 
-  if (GPU_material_is_volume_shader(mat)) {
+  if (GPU_material_is_volume_shader(mat) && is_varying) {
     if (out[0].hasoutput) {
       out[0].link = GPU_volume_grid(mat, attr->name, GPU_VOLUME_DEFAULT_0);
     }
@@ -52,11 +54,23 @@ static int node_shader_gpu_attribute(GPUMaterial *mat,
     if (out[2].hasoutput) {
       out[2].link = GPU_volume_grid(mat, attr->name, GPU_VOLUME_DEFAULT_0);
     }
+    if (out[3].hasoutput) {
+      static const float default_alpha = 1.0f;
+      out[3].link = GPU_constant(&default_alpha);
+    }
 
     return 1;
   }
 
-  GPUNodeLink *cd_attr = GPU_attribute(mat, CD_AUTO_FROM_NAME, attr->name);
+  GPUNodeLink *cd_attr;
+
+  if (is_varying) {
+    cd_attr = GPU_attribute(mat, CD_AUTO_FROM_NAME, attr->name);
+  }
+  else {
+    cd_attr = GPU_uniform_attribute(mat, attr->name, attr->type == SHD_ATTRIBUTE_INSTANCER);
+  }
+
   GPU_stack_link(mat, node, "node_attribute", in, out, cd_attr);
 
   /* for each output. */

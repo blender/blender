@@ -2664,12 +2664,23 @@ static void vgroup_assign_verts(Object *ob, const float weight)
 static bool vertex_group_supported_poll_ex(bContext *C, const Object *ob)
 {
   if (!ED_operator_object_active_local_editable_ex(C, ob)) {
+    CTX_wm_operator_poll_msg_set(C, "No active editable object");
     return false;
   }
+
+  if (!OB_TYPE_SUPPORT_VGROUP(ob->type)) {
+    CTX_wm_operator_poll_msg_set(C, "Object type does not support vertex groups");
+    return false;
+  }
+
+  /* Data checks. */
   const ID *data = ob->data;
-  return (OB_TYPE_SUPPORT_VGROUP(ob->type) &&
-          /* Data checks. */
-          (data != NULL) && !ID_IS_LINKED(data) && !ID_IS_OVERRIDE_LIBRARY(data));
+  if (data == NULL || ID_IS_LINKED(data) || ID_IS_OVERRIDE_LIBRARY(data)) {
+    CTX_wm_operator_poll_msg_set(C, "Object type \"%s\" does not have editable data");
+    return false;
+  }
+
+  return true;
 }
 
 static bool vertex_group_supported_poll(bContext *C)
@@ -2678,32 +2689,61 @@ static bool vertex_group_supported_poll(bContext *C)
   return vertex_group_supported_poll_ex(C, ob);
 }
 
+static bool vertex_group_poll_ex(bContext *C, Object *ob)
+{
+  if (!vertex_group_supported_poll_ex(C, ob)) {
+    return false;
+  }
+
+  if (BLI_listbase_is_empty(&ob->defbase)) {
+    CTX_wm_operator_poll_msg_set(C, "Object has no vertex groups");
+    return false;
+  }
+
+  return true;
+}
+
 static bool vertex_group_poll(bContext *C)
 {
   Object *ob = ED_object_context(C);
-
-  return (vertex_group_supported_poll(C) && ob->defbase.first);
+  return vertex_group_poll_ex(C, ob);
 }
 
-static bool vertex_group_mesh_poll(bContext *C)
+static bool vertex_group_mesh_poll_ex(bContext *C, Object *ob)
 {
-  Object *ob = ED_object_context(C);
+  if (!vertex_group_poll_ex(C, ob)) {
+    return false;
+  }
 
-  return (vertex_group_poll(C) && ob->type == OB_MESH);
+  if (ob->type != OB_MESH) {
+    CTX_wm_operator_poll_msg_set(C, "Only mesh objects are supported");
+    return false;
+  }
+
+  return true;
 }
 
-static bool UNUSED_FUNCTION(vertex_group_mesh_supported_poll)(bContext *C)
+static bool vertex_group_mesh_with_dvert_poll(bContext *C)
 {
   Object *ob = ED_object_context(C);
+  if (!vertex_group_mesh_poll_ex(C, ob)) {
+    return false;
+  }
 
-  return (vertex_group_supported_poll(C) && ob->type == OB_MESH);
+  Mesh *me = ob->data;
+  if (me->dvert == NULL) {
+    CTX_wm_operator_poll_msg_set(C, "The active mesh object has no vertex group data");
+    return false;
+  }
+
+  return true;
 }
 
 static bool UNUSED_FUNCTION(vertex_group_poll_edit)(bContext *C)
 {
   Object *ob = ED_object_context(C);
 
-  if (!vertex_group_supported_poll(C)) {
+  if (!vertex_group_supported_poll_ex(C, ob)) {
     return false;
   }
 
@@ -2717,7 +2757,7 @@ static bool vertex_group_vert_poll_ex(bContext *C,
 {
   Object *ob = ED_object_context(C);
 
-  if (!vertex_group_supported_poll(C)) {
+  if (!vertex_group_supported_poll_ex(C, ob)) {
     return false;
   }
 
@@ -2770,7 +2810,7 @@ static bool vertex_group_vert_select_unlocked_poll(bContext *C)
 {
   Object *ob = ED_object_context(C);
 
-  if (!vertex_group_supported_poll(C)) {
+  if (!vertex_group_supported_poll_ex(C, ob)) {
     return false;
   }
 
@@ -2791,7 +2831,7 @@ static bool vertex_group_vert_select_mesh_poll(bContext *C)
 {
   Object *ob = ED_object_context(C);
 
-  if (!vertex_group_supported_poll(C)) {
+  if (!vertex_group_supported_poll_ex(C, ob)) {
     return false;
   }
 
@@ -3313,7 +3353,7 @@ void OBJECT_OT_vertex_group_fix(wmOperatorType *ot)
       "groups' weights (this tool may be slow for many vertices)";
 
   /* api callbacks */
-  ot->poll = vertex_group_mesh_poll;
+  ot->poll = vertex_group_mesh_with_dvert_poll;
   ot->exec = vertex_group_fix_exec;
 
   /* flags */

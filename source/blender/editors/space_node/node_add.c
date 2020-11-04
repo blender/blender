@@ -404,7 +404,7 @@ void NODE_OT_add_file(wmOperatorType *ot)
                                  FILE_OPENFILE,
                                  WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
   RNA_def_string(ot->srna, "name", "Image", MAX_ID_NAME - 2, "Name", "Data-block name to assign");
 }
 

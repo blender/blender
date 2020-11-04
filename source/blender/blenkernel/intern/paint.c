@@ -125,6 +125,16 @@ static void palette_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_list(reader, &palette->colors);
 }
 
+static void palette_undo_preserve(BlendLibReader *UNUSED(reader), ID *id_new, ID *id_old)
+{
+  /* Whole Palette is preserved accross undo's, and it has no extra pointer, simple. */
+  /* Note: We do not care about potential internal references to self here, Palette has none. */
+  /* Note: We do not swap IDProperties, as dealing with potential ID pointers in those would be
+   *       fairly delicate. */
+  BKE_lib_id_swap(NULL, id_new, id_old);
+  SWAP(IDProperty *, id_new->properties, id_old->properties);
+}
+
 IDTypeInfo IDType_ID_PAL = {
     .id_code = ID_PAL,
     .id_filter = FILTER_ID_PAL,
@@ -146,6 +156,8 @@ IDTypeInfo IDType_ID_PAL = {
     .blend_read_data = palette_blend_read_data,
     .blend_read_lib = NULL,
     .blend_read_expand = NULL,
+
+    .blend_read_undo_preserve = palette_undo_preserve,
 };
 
 static void paint_curve_copy_data(Main *UNUSED(bmain),
@@ -207,6 +219,8 @@ IDTypeInfo IDType_ID_PC = {
     .blend_read_data = paint_curve_blend_read_data,
     .blend_read_lib = NULL,
     .blend_read_expand = NULL,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 const char PAINT_CURSOR_SCULPT[3] = {255, 100, 100};

@@ -214,6 +214,8 @@ IDTypeInfo IDType_ID_KE = {
     .blend_read_data = shapekey_blend_read_data,
     .blend_read_lib = shapekey_blend_read_lib,
     .blend_read_expand = shapekey_blend_read_expand,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 #define KEY_MODE_DUMMY 0 /* use where mode isn't checked for */

@@ -815,10 +815,12 @@ class VIEW3D_MT_editor_menus(Menu):
         # Select Menu
         if gp_edit:
             if mode_string not in {'PAINT_GPENCIL', 'WEIGHT_GPENCIL'}:
-                if mode_string == 'SCULPT_GPENCIL' and \
-                    (ts.use_gpencil_select_mask_point or
-                     ts.use_gpencil_select_mask_stroke or
-                     ts.use_gpencil_select_mask_segment):
+                if (
+                        mode_string == 'SCULPT_GPENCIL' and
+                        (ts.use_gpencil_select_mask_point or
+                         ts.use_gpencil_select_mask_stroke or
+                         ts.use_gpencil_select_mask_segment)
+                ):
                     layout.menu("VIEW3D_MT_select_gpencil")
                 elif mode_string == 'EDIT_GPENCIL':
                     layout.menu("VIEW3D_MT_select_gpencil")
@@ -6126,17 +6128,20 @@ class VIEW3D_PT_overlay_geometry(Panel):
         sub.active = overlay.show_wireframes or is_wireframes
         sub.prop(overlay, "wireframe_threshold", text="Wireframe")
 
-        col = layout.column(align=True)
-        col.active = display_all
-
-        col.prop(overlay, "show_face_orientation")
         row = col.row(align=True)
-        if context.mode not in {'EDIT_ARMATURE', 'POSE', 'OBJECT', 'PAINT_GPENCIL',\
-                                'VERTEX_GPENCIL', 'WEIGHT_GPENCIL', 'SCULPT_GPENCIL', 'EDIT_GPENCIL'}:
+        if context.mode not in {
+                'EDIT_ARMATURE', 'POSE', 'OBJECT',
+                'PAINT_GPENCIL', 'VERTEX_GPENCIL', 'WEIGHT_GPENCIL', 'SCULPT_GPENCIL', 'EDIT_GPENCIL',
+        }:
             row.prop(overlay, "show_fade_inactive", text="")
             sub = row.row()
             sub.active = overlay.show_fade_inactive
             sub.prop(overlay, "fade_inactive_alpha", text="Fade Inactive Geometry")
+
+        col = layout.column(align=True)
+        col.active = display_all
+
+        col.prop(overlay, "show_face_orientation")
 
         # sub.prop(overlay, "show_onion_skins")
 

@@ -61,6 +61,7 @@
 #include "BLF_api.h"
 
 #include "ED_fileselect.h"
+#include "ED_screen.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -266,15 +267,16 @@ short ED_fileselect_set_params(SpaceFile *sfile)
       params->display = RNA_property_enum_get(op->ptr, prop);
     }
 
+    if (params->display == FILE_DEFAULTDISPLAY) {
+      params->display = U_default.file_space_data.display_type;
+    }
+
     if ((prop = RNA_struct_find_property(op->ptr, "sort_method"))) {
       params->sort = RNA_property_enum_get(op->ptr, prop);
     }
-    else {
-      params->sort = U_default.file_space_data.sort_type;
-    }
 
-    if (params->display == FILE_DEFAULTDISPLAY) {
-      params->display = U_default.file_space_data.display_type;
+    if (params->sort == FILE_SORT_DEFAULT) {
+      params->sort = U_default.file_space_data.sort_type;
     }
 
     if (is_relative_path) {
@@ -326,8 +328,9 @@ short ED_fileselect_set_params(SpaceFile *sfile)
   return 1;
 }
 
-/* The subset of FileSelectParams.flag items we store into preferences. */
-#define PARAMS_FLAGS_REMEMBERED (FILE_HIDE_DOT | FILE_SORT_INVERT)
+/* The subset of FileSelectParams.flag items we store into preferences. Note that FILE_SORT_ALPHA
+ * may also be remembered, but only conditionally. */
+#define PARAMS_FLAGS_REMEMBERED (FILE_HIDE_DOT)
 
 void ED_fileselect_window_params_get(const wmWindow *win, int win_size[2], bool *is_maximized)
 {
@@ -338,6 +341,22 @@ void ED_fileselect_window_params_get(const wmWindow *win, int win_size[2], bool 
   win_size[1] = WM_window_pixels_y(win) / UI_DPI_FAC;
 
   *is_maximized = WM_window_is_maximized(win);
+}
+
+static bool file_select_use_default_display_type(const SpaceFile *sfile)
+{
+  PropertyRNA *prop;
+  return (sfile->op == NULL) ||
+         !(prop = RNA_struct_find_property(sfile->op->ptr, "display_type")) ||
+         (RNA_property_enum_get(sfile->op->ptr, prop) == FILE_DEFAULTDISPLAY);
+}
+
+static bool file_select_use_default_sort_type(const SpaceFile *sfile)
+{
+  PropertyRNA *prop;
+  return (sfile->op == NULL) ||
+         !(prop = RNA_struct_find_property(sfile->op->ptr, "sort_method")) ||
+         (RNA_property_enum_get(sfile->op->ptr, prop) == FILE_SORT_DEFAULT);
 }
 
 void ED_fileselect_set_params_from_userdef(SpaceFile *sfile)
@@ -351,12 +370,6 @@ void ED_fileselect_set_params_from_userdef(SpaceFile *sfile)
     return;
   }
 
-  if (!RNA_struct_property_is_set(op->ptr, "display_type")) {
-    sfile->params->display = sfile_udata->display_type;
-  }
-  if (!RNA_struct_property_is_set(op->ptr, "sort_method")) {
-    sfile->params->sort = sfile_udata->sort_type;
-  }
   sfile->params->thumbnail_size = sfile_udata->thumbnail_size;
   sfile->params->details_flags = sfile_udata->details_flags;
   sfile->params->filter_id = sfile_udata->filter_id;
@@ -364,6 +377,16 @@ void ED_fileselect_set_params_from_userdef(SpaceFile *sfile)
   /* Combine flags we take from params with the flags we take from userdef. */
   sfile->params->flag = (sfile->params->flag & ~PARAMS_FLAGS_REMEMBERED) |
                         (sfile_udata->flag & PARAMS_FLAGS_REMEMBERED);
+
+  if (file_select_use_default_display_type(sfile)) {
+    sfile->params->display = sfile_udata->display_type;
+  }
+  if (file_select_use_default_sort_type(sfile)) {
+    sfile->params->sort = sfile_udata->sort_type;
+    /* For the default sorting, also take invert flag from userdef. */
+    sfile->params->flag = (sfile->params->flag & ~FILE_SORT_INVERT) |
+                          (sfile_udata->flag & FILE_SORT_INVERT);
+  }
 }
 
 /**
@@ -380,12 +403,23 @@ void ED_fileselect_params_to_userdef(SpaceFile *sfile,
   UserDef_FileSpaceData *sfile_udata_new = &U.file_space_data;
   UserDef_FileSpaceData sfile_udata_old = U.file_space_data;
 
-  sfile_udata_new->display_type = sfile->params->display;
   sfile_udata_new->thumbnail_size = sfile->params->thumbnail_size;
-  sfile_udata_new->sort_type = sfile->params->sort;
   sfile_udata_new->details_flags = sfile->params->details_flags;
   sfile_udata_new->flag = sfile->params->flag & PARAMS_FLAGS_REMEMBERED;
   sfile_udata_new->filter_id = sfile->params->filter_id;
+
+  /* In some rare cases, operators ask for a specific display or sort type (e.g. chronological
+   * sorting for "Recover Auto Save"). So the settings are optimized for a specific operation.
+   * Don't let that change the userdef memory for more general cases. */
+  if (file_select_use_default_display_type(sfile)) {
+    sfile_udata_new->display_type = sfile->params->display;
+  }
+  if (file_select_use_default_sort_type(sfile)) {
+    sfile_udata_new->sort_type = sfile->params->sort;
+    /* In this case also remember the invert flag. */
+    sfile_udata_new->flag = (sfile_udata_new->flag & ~FILE_SORT_INVERT) |
+                            (sfile->params->flag & FILE_SORT_INVERT);
+  }
 
   if (temp_win_size && !is_maximized) {
     sfile_udata_new->temp_win_sizex = temp_win_size[0];
@@ -1049,4 +1083,21 @@ void file_params_renamefile_activate(SpaceFile *sfile, FileSelectParams *params)
     params->renamefile[0] = '\0';
     params->rename_flag = 0;
   }
+}
+
+ScrArea *ED_fileselect_handler_area_find(const wmWindow *win, const wmOperator *file_operator)
+{
+  bScreen *screen = WM_window_get_active_screen(win);
+
+  ED_screen_areas_iter (win, screen, area) {
+    if (area->spacetype == SPACE_FILE) {
+      SpaceFile *sfile = area->spacedata.first;
+
+      if (sfile->op == file_operator) {
+        return area;
+      }
+    }
+  }
+
+  return NULL;
 }

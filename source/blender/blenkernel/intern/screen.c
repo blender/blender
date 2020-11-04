@@ -293,6 +293,8 @@ IDTypeInfo IDType_ID_SCR = {
     .blend_read_data = NULL,
     .blend_read_lib = screen_blend_read_lib,
     .blend_read_expand = NULL,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 /* ************ Spacetype/regiontype handling ************** */

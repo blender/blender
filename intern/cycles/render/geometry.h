@@ -99,7 +99,7 @@ class Geometry : public Node {
   virtual ~Geometry();
 
   /* Geometry */
-  virtual void clear();
+  virtual void clear(bool preserve_shaders = false);
   virtual void compute_bounds() = 0;
   virtual void apply_transform(const Transform &tfm, const bool apply_to_motion) = 0;
 

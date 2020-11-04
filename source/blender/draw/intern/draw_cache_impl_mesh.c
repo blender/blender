@@ -496,10 +496,8 @@ static void mesh_batch_cache_init(Mesh *me)
 
   cache->mat_len = mesh_render_mat_len_get(me);
   cache->surface_per_mat = MEM_callocN(sizeof(*cache->surface_per_mat) * cache->mat_len, __func__);
-  FOREACH_MESH_BUFFER_CACHE (cache, mbufcache) {
-    mbufcache->tris_per_mat = MEM_callocN(sizeof(*mbufcache->tris_per_mat) * cache->mat_len,
+  cache->final.tris_per_mat = MEM_callocN(sizeof(*cache->final.tris_per_mat) * cache->mat_len,
                                           __func__);
-  }
 
   cache->is_dirty = false;
   cache->batch_ready = 0;
@@ -707,16 +705,13 @@ static void mesh_batch_cache_clear(Mesh *me)
     for (int i = 0; i < sizeof(mbufcache->ibo) / sizeof(void *); i++) {
       GPU_INDEXBUF_DISCARD_SAFE(ibos[i]);
     }
-
-    BLI_assert((mbufcache->tris_per_mat != NULL) || (cache->mat_len == 0));
-    BLI_assert((mbufcache->tris_per_mat != NULL) && (cache->mat_len > 0));
-    if (mbufcache->tris_per_mat) {
-      for (int i = 0; i < cache->mat_len; i++) {
-        GPU_INDEXBUF_DISCARD_SAFE(mbufcache->tris_per_mat[i]);
-      }
-      MEM_SAFE_FREE(mbufcache->tris_per_mat);
-    }
   }
+
+  for (int i = 0; i < cache->mat_len; i++) {
+    GPU_INDEXBUF_DISCARD_SAFE(cache->final.tris_per_mat[i]);
+  }
+  MEM_SAFE_FREE(cache->final.tris_per_mat);
+
   for (int i = 0; i < sizeof(cache->batch) / sizeof(void *); i++) {
     GPUBatch **batch = (GPUBatch **)&cache->batch;
     GPU_BATCH_DISCARD_SAFE(batch[i]);

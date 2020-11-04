@@ -37,6 +37,9 @@ BVHOptiX::BVHOptiX(const BVHParams &params_,
                    const vector<Object *> &objects_)
     : BVH(params_, geometry_, objects_)
 {
+  optix_handle = 0;
+  optix_data_handle = 0;
+  do_refit = false;
 }
 
 BVHOptiX::~BVHOptiX()
@@ -216,8 +219,7 @@ void BVHOptiX::pack_nodes(const BVHNode *)
 
 void BVHOptiX::refit_nodes()
 {
-  // TODO(pmours): Implement?
-  VLOG(1) << "Refit is not yet implemented for OptiX BVH.";
+  do_refit = true;
 }
 
 BVHNode *BVHOptiX::widen_children_nodes(const BVHNode *)

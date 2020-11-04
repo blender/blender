@@ -305,7 +305,7 @@ typedef enum eSpaceOutliner_Filter {
   SO_FILTER_NO_OB_CAMERA = (1 << 10),
   SO_FILTER_NO_OB_OTHERS = (1 << 11),
 
-  SO_FILTER_UNUSED_12 = (1 << 12),         /* cleared */
+  SO_FILTER_OB_STATE_SELECTABLE = (1 << 12), /* Not set via DNA. */
   SO_FILTER_OB_STATE_VISIBLE = (1 << 13),  /* Not set via DNA. */
   SO_FILTER_OB_STATE_HIDDEN = (1 << 14),   /* Not set via DNA. */
   SO_FILTER_OB_STATE_SELECTED = (1 << 15), /* Not set via DNA. */
@@ -321,7 +321,7 @@ typedef enum eSpaceOutliner_Filter {
 
 #define SO_FILTER_OB_STATE \
   (SO_FILTER_OB_STATE_VISIBLE | SO_FILTER_OB_STATE_HIDDEN | SO_FILTER_OB_STATE_SELECTED | \
-   SO_FILTER_OB_STATE_ACTIVE)
+   SO_FILTER_OB_STATE_ACTIVE | SO_FILTER_OB_STATE_SELECTABLE)
 
 #define SO_FILTER_ANY \
   (SO_FILTER_NO_OB_CONTENT | SO_FILTER_NO_CHILDREN | SO_FILTER_OB_TYPE | SO_FILTER_OB_STATE | \
@@ -334,6 +334,7 @@ typedef enum eSpaceOutliner_StateFilter {
   SO_FILTER_OB_HIDDEN = 2,
   SO_FILTER_OB_SELECTED = 3,
   SO_FILTER_OB_ACTIVE = 4,
+  SO_FILTER_OB_SELECTABLE = 5,
 } eSpaceOutliner_StateFilter;
 
 /* SpaceOutliner.show_restrict_flags */
@@ -760,7 +761,13 @@ typedef struct SpaceFile {
 
 /* FileSelectParams.display */
 enum eFileDisplayType {
+  /** Internal (not exposed to users): Keep whatever display type was used during the last File
+   * Browser use, or the default if no such record is found. Use this unless there's a good reason
+   * to set a specific display type. */
   FILE_DEFAULTDISPLAY = 0,
+
+  /* User selectable choices. */
+
   FILE_VERTICALDISPLAY = 1,
   FILE_HORIZONTALDISPLAY = 2,
   FILE_IMGDISPLAY = 3,
@@ -768,7 +775,13 @@ enum eFileDisplayType {
 
 /* FileSelectParams.sort */
 enum eFileSortType {
-  FILE_SORT_NONE = 0,
+  /** Internal (not exposed to users): Sort by whatever was sorted by during the last File Browser
+   * use, or the default if no such record is found. Use this unless there's a good reason to set a
+   * specific sort order. */
+  FILE_SORT_DEFAULT = 0,
+
+  /* User selectable choices. */
+
   FILE_SORT_ALPHA = 1,
   FILE_SORT_EXTENSION = 2,
   FILE_SORT_TIME = 3,

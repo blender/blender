@@ -132,6 +132,8 @@ IDTypeInfo IDType_ID_IP = {
     .blend_read_data = NULL,
     .blend_read_lib = NULL,
     .blend_read_expand = NULL,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 /* *************************************************** */

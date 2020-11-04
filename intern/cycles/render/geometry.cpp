@@ -81,9 +81,11 @@ Geometry::~Geometry()
   delete bvh;
 }
 
-void Geometry::clear()
+void Geometry::clear(bool preserve_shaders)
 {
-  used_shaders.clear();
+  if (!preserve_shaders)
+    used_shaders.clear();
+
   transform_applied = false;
   transform_negative_scaled = false;
   transform_normal = transform_identity();

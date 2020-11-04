@@ -3919,7 +3919,7 @@ void SEQUENCER_OT_change_path(struct wmOperatorType *ot)
                                  WM_FILESEL_DIRECTORY | WM_FILESEL_RELPATH | WM_FILESEL_FILEPATH |
                                      WM_FILESEL_FILES,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
   RNA_def_boolean(ot->srna,
                   "use_placeholders",
                   false,
@@ -4064,7 +4064,7 @@ void SEQUENCER_OT_export_subtitles(struct wmOperatorType *ot)
                                  FILE_SAVE,
                                  WM_FILESEL_FILEPATH,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
 }
 
 /** \} */

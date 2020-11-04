@@ -288,6 +288,8 @@ IDTypeInfo IDType_ID_GD = {
     .blend_read_data = greasepencil_blend_read_data,
     .blend_read_lib = greasepencil_blend_read_lib,
     .blend_read_expand = greasepencil_blend_read_expand,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 /* ************************************************** */

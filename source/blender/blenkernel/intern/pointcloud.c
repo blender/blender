@@ -184,6 +184,8 @@ IDTypeInfo IDType_ID_PT = {
     .blend_read_data = pointcloud_blend_read_data,
     .blend_read_lib = pointcloud_blend_read_lib,
     .blend_read_expand = pointcloud_blend_read_expand,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 static void pointcloud_random(PointCloud *pointcloud)

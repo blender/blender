@@ -29,7 +29,7 @@
 #include "BLI_path_util.h"
 
 /**
- * \param r_targetpath Buffer for the target path an alias points to.
+ * \param r_targetpath: Buffer for the target path an alias points to.
  * \return Whether the file at the input path is an alias.
  */
 /* False alarm by clang-tidy: #getFileSystemRepresentation changes the return value argument. */

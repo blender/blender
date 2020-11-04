@@ -60,6 +60,19 @@ function(list_assert_duplicates
   unset(_len_after)
 endfunction()
 
+# Adds a native path separator to the end of the path:
+#
+# - 'example' -> 'example/'
+# - '/example///' -> '/example/'
+#
+macro(path_ensure_trailing_slash
+  path_new path_input
+  )
+  file(TO_NATIVE_PATH "/" _path_sep)
+  string(REGEX REPLACE "[${_path_sep}]+$" "" ${path_new} ${path_input})
+  set(${path_new} "${${path_new}}${_path_sep}")
+  unset(_path_sep)
+endmacro()
 
 # foo_bar.spam --> foo_barMySuffix.spam
 macro(file_suffix

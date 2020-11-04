@@ -102,6 +102,10 @@ typedef void (*IDTypeBlendReadDataFunction)(struct BlendDataReader *reader, stru
 typedef void (*IDTypeBlendReadLibFunction)(struct BlendLibReader *reader, struct ID *id);
 typedef void (*IDTypeBlendReadExpandFunction)(struct BlendExpander *expander, struct ID *id);
 
+typedef void (*IDTypeBlendReadUndoPreserve)(struct BlendLibReader *reader,
+                                            struct ID *id_new,
+                                            struct ID *id_old);
+
 typedef struct IDTypeInfo {
   /* ********** General IDType data. ********** */
 
@@ -196,6 +200,13 @@ typedef struct IDTypeInfo {
    * Specify which other id data blocks should be loaded when the current one is loaded.
    */
   IDTypeBlendReadExpandFunction blend_read_expand;
+
+  /**
+   * Allow an ID type to preserve some of its data across (memfile) undo steps.
+   *
+   * \note Called from #setup_app_data when undoing or redoing a memfile step.
+   */
+  IDTypeBlendReadUndoPreserve blend_read_undo_preserve;
 } IDTypeInfo;
 
 /* ********** Declaration of each IDTypeInfo. ********** */

@@ -538,6 +538,8 @@ IDTypeInfo IDType_ID_OB = {
     .blend_read_data = NULL,
     .blend_read_lib = NULL,
     .blend_read_expand = NULL,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 void BKE_object_workob_clear(Object *workob)

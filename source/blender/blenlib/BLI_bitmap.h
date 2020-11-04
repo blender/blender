@@ -106,7 +106,7 @@ typedef unsigned int BLI_bitmap;
 #define BLI_BITMAP_RESIZE(_bitmap, _tot) \
   { \
     CHECK_TYPE(_bitmap, BLI_bitmap *); \
-    (_bitmap) = MEM_reallocN(_bitmap, BLI_BITMAP_SIZE(_tot)); \
+    (_bitmap) = MEM_recallocN(_bitmap, BLI_BITMAP_SIZE(_tot)); \
   } \
   (void)0
 

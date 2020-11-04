@@ -584,6 +584,12 @@ ListBase GPU_material_volume_grids(GPUMaterial *material)
   return material->graph.volume_grids;
 }
 
+GPUUniformAttrList *GPU_material_uniform_attributes(GPUMaterial *material)
+{
+  GPUUniformAttrList *attrs = &material->graph.uniform_attrs;
+  return attrs->count > 0 ? attrs : NULL;
+}
+
 void GPU_material_output_link(GPUMaterial *material, GPUNodeLink *link)
 {
   if (!material->graph.outlink) {

@@ -329,6 +329,8 @@ IDTypeInfo IDType_ID_AR = {
     .blend_read_data = armature_blend_read_data,
     .blend_read_lib = armature_blend_read_lib,
     .blend_read_expand = armature_blend_read_expand,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 /** \} */

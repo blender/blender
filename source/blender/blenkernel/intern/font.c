@@ -168,6 +168,8 @@ IDTypeInfo IDType_ID_VF = {
     .blend_read_data = vfont_blend_read_data,
     .blend_read_lib = NULL,
     .blend_read_expand = NULL,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 /***************************** VFont *******************************/

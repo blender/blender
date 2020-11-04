@@ -30,7 +30,9 @@ static inline IndexInt indexUFace(const Vec3 &pos, const MACGrid &ref)
 {
   const Vec3i f = toVec3i(pos), c = toVec3i(pos - 0.5);
   const IndexInt index = f.x * ref.getStrideX() + c.y * ref.getStrideY() + c.z * ref.getStrideZ();
-  assertDeb(ref.isInBounds(index), "Grid index out of bounds");
+  assertDeb(ref.isInBounds(index),
+            "U face index out of bounds for particle position [" << pos.x << ", " << pos.y << ", "
+                                                                 << pos.z << "]");
   return (ref.isInBounds(index)) ? index : -1;
 }
 
@@ -38,7 +40,9 @@ static inline IndexInt indexVFace(const Vec3 &pos, const MACGrid &ref)
 {
   const Vec3i f = toVec3i(pos), c = toVec3i(pos - 0.5);
   const IndexInt index = c.x * ref.getStrideX() + f.y * ref.getStrideY() + c.z * ref.getStrideZ();
-  assertDeb(ref.isInBounds(index), "Grid index out of bounds");
+  assertDeb(ref.isInBounds(index),
+            "V face index out of bounds for particle position [" << pos.x << ", " << pos.y << ", "
+                                                                 << pos.z << "]");
   return (ref.isInBounds(index)) ? index : -1;
 }
 
@@ -46,7 +50,9 @@ static inline IndexInt indexWFace(const Vec3 &pos, const MACGrid &ref)
 {
   const Vec3i f = toVec3i(pos), c = toVec3i(pos - 0.5);
   const IndexInt index = c.x * ref.getStrideX() + c.y * ref.getStrideY() + f.z * ref.getStrideZ();
-  assertDeb(ref.isInBounds(index), "Grid index out of bounds");
+  assertDeb(ref.isInBounds(index),
+            "W face index out of bounds for particle position [" << pos.x << ", " << pos.y << ", "
+                                                                 << pos.z << "]");
   return (ref.isInBounds(index)) ? index : -1;
 }
 
@@ -57,7 +63,7 @@ static inline IndexInt indexOffset(
   const IndexInt dY[2] = {0, ref.getStrideY()};
   const IndexInt dZ[2] = {0, ref.getStrideZ()};
   const IndexInt index = gidx + dX[i] + dY[j] + dZ[k];
-  assertDeb(ref.isInBounds(index), "Grid index out of bounds");
+  assertDeb(ref.isInBounds(index), "Offset index " << index << " is out of bounds");
   return (ref.isInBounds(index)) ? index : -1;
 }
 
@@ -271,18 +277,18 @@ void apicMapPartsToMAC(const FlagGrid &flags,
                        const int boundaryWidth = 0)
 {
   // affine map: let's assume that the particle mass is constant, 1.0
-  if (!mass) {
-    MACGrid tmpmass(vel.getParent());
-    mass = &tmpmass;
-  }
+  MACGrid tmpmass(vel.getParent());
 
-  mass->clear();
+  tmpmass.clear();
   vel.clear();
 
   knApicMapLinearVec3ToMACGrid(
-      parts, *mass, vel, partVel, cpx, cpy, cpz, ptype, exclude, boundaryWidth);
-  mass->stomp(VECTOR_EPSILON);
-  vel.safeDivide(*mass);
+      parts, tmpmass, vel, partVel, cpx, cpy, cpz, ptype, exclude, boundaryWidth);
+  tmpmass.stomp(VECTOR_EPSILON);
+  vel.safeDivide(tmpmass);
+
+  if (mass)
+    (*mass).swap(tmpmass);
 }
 static PyObject *_W_0(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
 {

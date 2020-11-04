@@ -543,8 +543,8 @@ static bNodeSocketType *make_socket_type_virtual(void)
   ED_init_node_socket_type_virtual(stype);
 
   stype->use_link_limits_of_type = true;
-  stype->input_link_limit = 1;
-  stype->output_link_limit = 1;
+  stype->input_link_limit = 0xFFF;
+  stype->output_link_limit = 0xFFF;
 
   return stype;
 }

@@ -204,6 +204,8 @@ IDTypeInfo IDType_ID_WO = {
     .blend_read_data = world_blend_read_data,
     .blend_read_lib = world_blend_read_lib,
     .blend_read_expand = world_blend_read_expand,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 World *BKE_world_add(Main *bmain, const char *name)

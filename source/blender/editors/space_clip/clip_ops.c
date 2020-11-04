@@ -329,7 +329,7 @@ void CLIP_OT_open(wmOperatorType *ot)
                                  FILE_OPENFILE,
                                  WM_FILESEL_RELPATH | WM_FILESEL_FILES | WM_FILESEL_DIRECTORY,
                                  FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_ALPHA);
+                                 FILE_SORT_DEFAULT);
 }
 
 /** \} */

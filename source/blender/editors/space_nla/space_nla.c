@@ -148,7 +148,7 @@ static void nla_init(struct wmWindowManager *wm, ScrArea *area)
   /* init dopesheet data if non-existent (i.e. for old files) */
   if (snla->ads == NULL) {
     snla->ads = MEM_callocN(sizeof(bDopeSheet), "NlaEdit DopeSheet");
-    snla->ads->source = (ID *)WM_window_get_active_scene(wm->winactive);
+    snla->ads->source = (wm->winactive) ? (ID *)WM_window_get_active_scene(wm->winactive) : NULL;
   }
 
   ED_area_tag_refresh(area);

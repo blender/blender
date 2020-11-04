@@ -140,6 +140,8 @@ IDTypeInfo IDType_ID_CF = {
     .blend_read_data = cache_file_blend_read_data,
     .blend_read_lib = NULL,
     .blend_read_expand = NULL,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 /* TODO: make this per cache file to avoid global locks. */

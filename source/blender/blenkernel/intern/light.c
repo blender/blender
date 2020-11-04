@@ -207,6 +207,8 @@ IDTypeInfo IDType_ID_LA = {
     .blend_read_data = light_blend_read_data,
     .blend_read_lib = light_blend_read_lib,
     .blend_read_expand = light_blend_read_expand,
+
+    .blend_read_undo_preserve = NULL,
 };
 
 Light *BKE_light_add(Main *bmain, const char *name)

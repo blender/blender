@@ -1557,7 +1557,7 @@ static void outliner_add_layer_collection_objects(SpaceOutliner *space_outliner,
     TreeElement *te_object = outliner_add_element(space_outliner, tree, base->object, ten, 0, 0);
     te_object->directdata = base;
 
-    if (!(base->flag & BASE_VISIBLE_DEPSGRAPH)) {
+    if (!(base->flag & BASE_VISIBLE_VIEWLAYER)) {
       te_object->flag |= TE_DISABLED;
     }
   }
@@ -2207,6 +2207,9 @@ static int outliner_exclude_filter_get(const SpaceOutliner *space_outliner)
     case SO_FILTER_OB_ACTIVE:
       exclude_filter |= SO_FILTER_OB_STATE_ACTIVE;
       break;
+    case SO_FILTER_OB_SELECTABLE:
+      exclude_filter |= SO_FILTER_OB_STATE_SELECTABLE;
+      break;
   }
 
   return exclude_filter;
@@ -2286,6 +2289,11 @@ static bool outliner_element_visible_get(ViewLayer *view_layer,
       }
       else if (exclude_filter & SO_FILTER_OB_STATE_SELECTED) {
         if ((base->flag & BASE_SELECTED) == 0) {
+          return false;
+        }
+      }
+      else if (exclude_filter & SO_FILTER_OB_STATE_SELECTABLE) {
+        if ((base->flag & BASE_SELECTABLE) == 0) {
           return false;
         }
       }

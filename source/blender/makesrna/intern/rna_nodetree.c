@@ -4362,9 +4362,37 @@ static void def_sh_vector_rotate(StructRNA *srna)
 
 static void def_sh_attribute(StructRNA *srna)
 {
+  static const EnumPropertyItem prop_attribute_type[] = {
+      {SHD_ATTRIBUTE_GEOMETRY,
+       "GEOMETRY",
+       0,
+       "Geometry",
+       "The attribute is associated with the object geometry, and its value "
+       "varies from vertex to vertex, or within the object volume"},
+      {SHD_ATTRIBUTE_OBJECT,
+       "OBJECT",
+       0,
+       "Object",
+       "The attribute is associated with the object or mesh datablock itself, "
+       "and its value is uniform"},
+      {SHD_ATTRIBUTE_INSTANCER,
+       "INSTANCER",
+       0,
+       "Instancer",
+       "The attribute is associated with the instancer particle system or object, "
+       "falling back to the Object mode if the attribute isn't found, or the object "
+       "is not instanced"},
+      {0, NULL, 0, NULL, NULL},
+  };
   PropertyRNA *prop;
 
   RNA_def_struct_sdna_from(srna, "NodeShaderAttribute", "storage");
+
+  prop = RNA_def_property(srna, "attribute_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "type");
+  RNA_def_property_enum_items(prop, prop_attribute_type);
+  RNA_def_property_ui_text(prop, "Attribute Type", "General type of the attribute");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "attribute_name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "name");

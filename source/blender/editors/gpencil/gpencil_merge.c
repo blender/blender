@@ -413,7 +413,7 @@ static int gpencil_analyze_strokes(tGPencilPointCache *src_array,
     BLI_ghash_free(strokes, NULL, NULL);
 
     /* add the stroke to array */
-    if (gps->next != NULL) {
+    if (gps_next != NULL) {
       BLI_ghash_insert(all_strokes, gps_next, gps_next);
       last = gpencil_insert_to_array(src_array, dst_array, totpoints, gps_next, reverse, last);
       /* replace last end */

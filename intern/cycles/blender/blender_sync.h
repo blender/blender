@@ -149,21 +149,17 @@ class BlenderSync {
                       bool *use_portal,
                       TaskPool *geom_task_pool);
 
+  bool sync_object_attributes(BL::DepsgraphObjectInstance &b_instance, Object *object);
+
   /* Volume */
-  void sync_volume(BL::Object &b_ob, Volume *volume, const vector<Shader *> &used_shaders);
+  void sync_volume(BL::Object &b_ob, Volume *volume);
 
   /* Mesh */
-  void sync_mesh(BL::Depsgraph b_depsgraph,
-                 BL::Object b_ob,
-                 Mesh *mesh,
-                 const vector<Shader *> &used_shaders);
+  void sync_mesh(BL::Depsgraph b_depsgraph, BL::Object b_ob, Mesh *mesh);
   void sync_mesh_motion(BL::Depsgraph b_depsgraph, BL::Object b_ob, Mesh *mesh, int motion_step);
 
   /* Hair */
-  void sync_hair(BL::Depsgraph b_depsgraph,
-                 BL::Object b_ob,
-                 Hair *hair,
-                 const vector<Shader *> &used_shaders);
+  void sync_hair(BL::Depsgraph b_depsgraph, BL::Object b_ob, Hair *hair);
   void sync_hair_motion(BL::Depsgraph b_depsgraph, BL::Object b_ob, Hair *hair, int motion_step);
   void sync_hair(Hair *hair, BL::Object &b_ob, bool motion, int motion_step = 0);
   void sync_particle_hair(
