@@ -96,8 +96,6 @@ typedef enum uiPanelMouseState {
 
 typedef enum uiHandlePanelState {
   PANEL_STATE_DRAG,
-  PANEL_STATE_DRAG_SCALE,
-  PANEL_STATE_WAIT_UNTAB,
   PANEL_STATE_ANIMATION,
   PANEL_STATE_EXIT,
 } uiHandlePanelState;
@@ -113,7 +111,6 @@ typedef struct uiHandlePanelData {
   bool is_drag_drop;
   int startx, starty;
   int startofsx, startofsy;
-  int startsizex, startsizey;
   float start_cur_xmin, start_cur_ymin;
 } uiHandlePanelData;
 
@@ -1945,28 +1942,16 @@ static void ui_do_drag(const bContext *C, const wmEvent *event, Panel *panel)
   dx *= BLI_rctf_size_x(&region->v2d.cur) / (float)BLI_rcti_size_x(&region->winrct);
   dy *= BLI_rctf_size_y(&region->v2d.cur) / (float)BLI_rcti_size_y(&region->winrct);
 
-  if (data->state == PANEL_STATE_DRAG_SCALE) {
-    panel->sizex = MAX2(data->startsizex + dx, UI_PANEL_MINX);
+  /* Reset the panel snapping, to allow dragging away from snapped edges. */
+  panel->snap = PNL_SNAP_NONE;
 
-    if (data->startsizey - dy < UI_PANEL_MINY) {
-      dy = -UI_PANEL_MINY + data->startsizey;
-    }
+  /* Add the movement of the view due to edge scrolling while dragging. */
+  dx += ((float)region->v2d.cur.xmin - data->start_cur_xmin);
+  dy += ((float)region->v2d.cur.ymin - data->start_cur_ymin);
+  panel->ofsx = data->startofsx + round_fl_to_int(dx);
+  panel->ofsy = data->startofsy + round_fl_to_int(dy);
 
-    panel->sizey = data->startsizey - dy;
-    panel->ofsy = data->startofsy + dy;
-  }
-  else {
-    /* Reset the panel snapping, to allow dragging away from snapped edges. */
-    panel->snap = PNL_SNAP_NONE;
-
-    /* Add the movement of the view due to edge scrolling while dragging. */
-    dx += ((float)region->v2d.cur.xmin - data->start_cur_xmin);
-    dy += ((float)region->v2d.cur.ymin - data->start_cur_ymin);
-    panel->ofsx = data->startofsx + round_fl_to_int(dx);
-    panel->ofsy = data->startofsy + round_fl_to_int(dy);
-
-    uiAlignPanelStep(region, 0.2f, true);
-  }
+  uiAlignPanelStep(region, 0.2f, true);
 
   ED_region_tag_redraw(region);
 }
@@ -2649,8 +2634,6 @@ static void panel_activate_state(const bContext *C, Panel *panel, uiHandlePanelS
     data->starty = win->eventstate->y;
     data->startofsx = panel->ofsx;
     data->startofsy = panel->ofsy;
-    data->startsizex = panel->sizex;
-    data->startsizey = panel->sizey;
     data->start_cur_xmin = region->v2d.cur.xmin;
     data->start_cur_ymin = region->v2d.cur.ymin;
     data->starttime = PIL_check_seconds_timer();
