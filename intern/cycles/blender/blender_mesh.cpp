@@ -1019,8 +1019,12 @@ static void sync_mesh_fluid_motion(BL::Object &b_ob, Scene *scene, Mesh *mesh)
 
 void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BL::Object b_ob, Mesh *mesh)
 {
+  /* make a copy of the shaders as the caller in the main thread still need them for syncing the
+   * attributes */
+  array<Node *> used_shaders = mesh->get_used_shaders();
+
   Mesh new_mesh;
-  new_mesh.set_used_shaders(mesh->get_used_shaders());
+  new_mesh.set_used_shaders(used_shaders);
 
   if (view_layer.use_surfaces) {
     /* Adaptive subdivision setup. Not for baking since that requires
