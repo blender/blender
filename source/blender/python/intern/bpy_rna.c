@@ -3604,20 +3604,30 @@ static PyObject *pyrna_struct_values(BPy_PropertyRNA *self)
 }
 
 PyDoc_STRVAR(pyrna_struct_is_property_set_doc,
-             ".. method:: is_property_set(property)\n"
+             ".. method:: is_property_set(property, ghost=True)\n"
              "\n"
              "   Check if a property is set, use for testing operator properties.\n"
              "\n"
+             "   :arg ghost: Used for operators that re-run with previous settings.\n"
+             "      In this case the property is not marked as set,\n"
+             "      yet the value from the previous execution is used.\n"
+             "\n"
+             "      In rare cases you may want to set this option to false.\n"
+             "\n"
+             "   :type ghost: boolean\n"
              "   :return: True when the property has been set.\n"
              "   :rtype: boolean\n");
-static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *args)
+static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *args, PyObject *kw)
 {
   PropertyRNA *prop;
   const char *name;
+  bool use_ghost = false;
 
   PYRNA_STRUCT_CHECK_OBJ(self);
 
-  if (!PyArg_ParseTuple(args, "s:is_property_set", &name)) {
+  static const char *_keywords[] = {"", "ghost", NULL};
+  static _PyArg_Parser _parser = {"s|$O&:is_property_set", _keywords, 0};
+  if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &name, PyC_ParseBool, &use_ghost)) {
     return NULL;
   }
 
@@ -3629,7 +3639,7 @@ static PyObject *pyrna_struct_is_property_set(BPy_StructRNA *self, PyObject *arg
     return NULL;
   }
 
-  return PyBool_FromLong(RNA_property_is_set(&self->ptr, prop));
+  return PyBool_FromLong(RNA_property_is_set_ex(&self->ptr, prop, use_ghost));
 }
 
 PyDoc_STRVAR(pyrna_struct_property_unset_doc,
@@ -5654,7 +5664,7 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 
     {"is_property_set",
      (PyCFunction)pyrna_struct_is_property_set,
-     METH_VARARGS,
+     METH_VARARGS | METH_KEYWORDS,
      pyrna_struct_is_property_set_doc},
     {"property_unset",
      (PyCFunction)pyrna_struct_property_unset,
