@@ -642,7 +642,7 @@ float do_clump(ParticleKey *state,
     float da[4], pa[12];
 
     mul_v3_v3fl(noisevec, orco_offset, 1.0f / clump_noise_size);
-    voronoi(noisevec[0], noisevec[1], noisevec[2], da, pa, 1.0f, 0);
+    BLI_voronoi(noisevec[0], noisevec[1], noisevec[2], da, pa, 1.0f, 0);
     mul_v3_fl(&pa[0], clump_noise_size);
     add_v3_v3v3(center, par_co, &pa[0]);
 

@@ -659,7 +659,7 @@ static PyObject *M_Noise_fractal(PyObject *UNUSED(self), PyObject *args, PyObjec
     return NULL;
   }
 
-  return PyFloat_FromDouble(mg_fBm(vec[0], vec[1], vec[2], H, lac, oct, noise_basis_enum));
+  return PyFloat_FromDouble(BLI_mg_fBm(vec[0], vec[1], vec[2], H, lac, oct, noise_basis_enum));
 }
 
 PyDoc_STRVAR(
@@ -713,7 +713,7 @@ static PyObject *M_Noise_multi_fractal(PyObject *UNUSED(self), PyObject *args, P
   }
 
   return PyFloat_FromDouble(
-      mg_MultiFractal(vec[0], vec[1], vec[2], H, lac, oct, noise_basis_enum));
+      BLI_mg_MultiFractal(vec[0], vec[1], vec[2], H, lac, oct, noise_basis_enum));
 }
 
 PyDoc_STRVAR(M_Noise_variable_lacunarity_doc,
@@ -781,7 +781,7 @@ static PyObject *M_Noise_variable_lacunarity(PyObject *UNUSED(self), PyObject *a
   }
 
   return PyFloat_FromDouble(
-      mg_VLNoise(vec[0], vec[1], vec[2], d, noise_type1_enum, noise_type2_enum));
+      BLI_mg_VLNoise(vec[0], vec[1], vec[2], d, noise_type1_enum, noise_type2_enum));
 }
 
 PyDoc_STRVAR(
@@ -838,7 +838,7 @@ static PyObject *M_Noise_hetero_terrain(PyObject *UNUSED(self), PyObject *args, 
   }
 
   return PyFloat_FromDouble(
-      mg_HeteroTerrain(vec[0], vec[1], vec[2], H, lac, oct, ofs, noise_basis_enum));
+      BLI_mg_HeteroTerrain(vec[0], vec[1], vec[2], H, lac, oct, ofs, noise_basis_enum));
 }
 
 PyDoc_STRVAR(
@@ -900,7 +900,7 @@ static PyObject *M_Noise_hybrid_multi_fractal(PyObject *UNUSED(self), PyObject *
   }
 
   return PyFloat_FromDouble(
-      mg_HybridMultiFractal(vec[0], vec[1], vec[2], H, lac, oct, ofs, gn, noise_basis_enum));
+      BLI_mg_HybridMultiFractal(vec[0], vec[1], vec[2], H, lac, oct, ofs, gn, noise_basis_enum));
 }
 
 PyDoc_STRVAR(
@@ -962,7 +962,7 @@ static PyObject *M_Noise_ridged_multi_fractal(PyObject *UNUSED(self), PyObject *
   }
 
   return PyFloat_FromDouble(
-      mg_RidgedMultiFractal(vec[0], vec[1], vec[2], H, lac, oct, ofs, gn, noise_basis_enum));
+      BLI_mg_RidgedMultiFractal(vec[0], vec[1], vec[2], H, lac, oct, ofs, gn, noise_basis_enum));
 }
 
 PyDoc_STRVAR(M_Noise_voronoi_doc,
@@ -1008,7 +1008,7 @@ static PyObject *M_Noise_voronoi(PyObject *UNUSED(self), PyObject *args, PyObjec
 
   list = PyList_New(4);
 
-  voronoi(vec[0], vec[1], vec[2], da, pa, me, metric_enum);
+  BLI_voronoi(vec[0], vec[1], vec[2], da, pa, me, metric_enum);
 
   for (i = 0; i < 4; i++) {
     PyObject *v = Vector_CreatePyObject(pa + 3 * i, 3, NULL);
@@ -1042,7 +1042,7 @@ static PyObject *M_Noise_cell(PyObject *UNUSED(self), PyObject *args)
     return NULL;
   }
 
-  return PyFloat_FromDouble(cellNoise(vec[0], vec[1], vec[2]));
+  return PyFloat_FromDouble(BLI_cellNoise(vec[0], vec[1], vec[2]));
 }
 
 PyDoc_STRVAR(M_Noise_cell_vector_doc,
@@ -1067,7 +1067,7 @@ static PyObject *M_Noise_cell_vector(PyObject *UNUSED(self), PyObject *args)
     return NULL;
   }
 
-  cellNoiseV(vec[0], vec[1], vec[2], r_vec);
+  BLI_cellNoiseV(vec[0], vec[1], vec[2], r_vec);
   return Vector_CreatePyObject(r_vec, 3, NULL);
 }
 
