@@ -75,7 +75,6 @@ void ui_block_free_button_groups(uiBlock *block)
   }
 }
 
-/* This function should be removed whenever #ui_layout_replace_but_ptr is removed. */
 void ui_button_group_replace_but_ptr(uiBlock *block, const void *old_but_ptr, uiBut *new_but)
 {
   LISTBASE_FOREACH (uiButtonGroup *, button_group, &block->button_groups) {
