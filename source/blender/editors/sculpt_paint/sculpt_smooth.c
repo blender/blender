@@ -761,14 +761,12 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
         const float *col = SCULPT_vertex_color_get(ss, ni.vertex);
         const float *co = SCULPT_vertex_co_get(ss, ni.vertex);
 
-        //simple color metric
+        // simple color metric
         float dv[4];
         sub_v4_v4v4(dv, col, avg);
         float w = (fabs(dv[0]) + fabs(dv[1]) + fabs(dv[2]) + fabs(dv[3])) / 4.0;
 
-        //w = 1.0f - w;
-        //w = fabs(0.5 - w);
-        w *= w * w;
+        w *= w;
 
         madd_v3_v3fl(avg2, co, w);
         tot2 += w;
