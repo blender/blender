@@ -174,7 +174,7 @@ class ImageManager {
   ImageHandle add_image(const string &filename, const ImageParams &params);
   ImageHandle add_image(const string &filename,
                         const ImageParams &params,
-                        const vector<int> &tiles);
+                        const array<int> &tiles);
   ImageHandle add_image(ImageLoader *loader, const ImageParams &params, const bool builtin = true);
 
   void device_update(Device *device, Scene *scene, Progress &progress);

@@ -29,6 +29,66 @@ struct Node;
 struct NodeType;
 struct Transform;
 
+/* Note: in the following macros we use "type const &" instead of "const type &"
+ * to avoid issues when pasting a pointer type. */
+#define NODE_SOCKET_API_BASE_METHODS(type_, name, string_name) \
+  const SocketType *get_##name##_socket() const \
+  { \
+    static const SocketType *socket = type->find_input(ustring(string_name)); \
+    return socket; \
+  } \
+  bool name##_is_modified() const \
+  { \
+    const SocketType *socket = get_##name##_socket(); \
+    return socket_is_modified(*socket); \
+  } \
+  void tag_##name##_modified() \
+  { \
+    const SocketType *socket = get_##name##_socket(); \
+    socket_modified |= socket->modified_flag_bit; \
+  } \
+  type_ const &get_##name() const \
+  { \
+    const SocketType *socket = get_##name##_socket(); \
+    return get_socket_value<type_>(this, *socket); \
+  }
+
+#define NODE_SOCKET_API_BASE(type_, name, string_name) \
+ protected: \
+  type_ name; \
+\
+ public: \
+  NODE_SOCKET_API_BASE_METHODS(type_, name, string_name)
+
+#define NODE_SOCKET_API(type_, name) \
+  NODE_SOCKET_API_BASE(type_, name, #name) \
+  void set_##name(type_ value) \
+  { \
+    const SocketType *socket = get_##name##_socket(); \
+    this->set(*socket, value); \
+  }
+
+#define NODE_SOCKET_API_ARRAY(type_, name) \
+  NODE_SOCKET_API_BASE(type_, name, #name) \
+  void set_##name(type_ &value) \
+  { \
+    const SocketType *socket = get_##name##_socket(); \
+    this->set(*socket, value); \
+  } \
+  type_ &get_##name() \
+  { \
+    const SocketType *socket = get_##name##_socket(); \
+    return get_socket_value<type_>(this, *socket); \
+  }
+
+#define NODE_SOCKET_API_STRUCT_MEMBER(type_, name, member) \
+  NODE_SOCKET_API_BASE_METHODS(type_, name##_##member, #name "." #member) \
+  void set_##name##_##member(type_ value) \
+  { \
+    const SocketType *socket = get_##name##_##member##_socket(); \
+    this->set(*socket, value); \
+  }
+
 /* Node */
 
 struct NodeOwner {
@@ -88,6 +148,7 @@ struct Node {
   void set_default_value(const SocketType &input);
   bool equals_value(const Node &other, const SocketType &input) const;
   void copy_value(const SocketType &input, const Node &other, const SocketType &other_input);
+  void set_value(const SocketType &input, const Node &other, const SocketType &other_input);
 
   /* equals */
   bool equals(const Node &other) const;
@@ -118,6 +179,11 @@ struct Node {
 
  protected:
   const NodeOwner *owner;
+
+  template<typename T> static T &get_socket_value(const Node *node, const SocketType &socket)
+  {
+    return (T &)*(((char *)node) + socket.struct_offset);
+  }
 
   SocketModifiedFlags socket_modified;
 

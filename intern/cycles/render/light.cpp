@@ -114,7 +114,7 @@ NODE_DEFINE(Light)
   type_enum.insert("background", LIGHT_BACKGROUND);
   type_enum.insert("area", LIGHT_AREA);
   type_enum.insert("spot", LIGHT_SPOT);
-  SOCKET_ENUM(type, "Type", type_enum, LIGHT_POINT);
+  SOCKET_ENUM(light_type, "Type", type_enum, LIGHT_POINT);
 
   SOCKET_COLOR(strength, "Strength", make_float3(1.0f, 1.0f, 1.0f));
 
@@ -162,7 +162,7 @@ Light::Light() : Node(node_type)
 
 void Light::tag_update(Scene *scene)
 {
-  scene->light_manager->need_update = true;
+  scene->light_manager->need_update = is_modified();
 }
 
 bool Light::has_contribution(Scene *scene)
@@ -173,7 +173,7 @@ bool Light::has_contribution(Scene *scene)
   if (is_portal) {
     return false;
   }
-  if (type == LIGHT_BACKGROUND) {
+  if (light_type == LIGHT_BACKGROUND) {
     return true;
   }
   return (shader) ? shader->has_surface_emission : scene->default_light->has_surface_emission;
@@ -200,7 +200,7 @@ LightManager::~LightManager()
 bool LightManager::has_background_light(Scene *scene)
 {
   foreach (Light *light, scene->lights) {
-    if (light->type == LIGHT_BACKGROUND && light->is_enabled) {
+    if (light->light_type == LIGHT_BACKGROUND && light->is_enabled) {
       return true;
     }
   }
@@ -217,7 +217,7 @@ void LightManager::test_enabled_lights(Scene *scene)
   foreach (Light *light, scene->lights) {
     light->is_enabled = light->has_contribution(scene);
     has_portal |= light->is_portal;
-    has_background |= light->type == LIGHT_BACKGROUND;
+    has_background |= light->light_type == LIGHT_BACKGROUND;
   }
 
   bool background_enabled = false;
@@ -232,7 +232,7 @@ void LightManager::test_enabled_lights(Scene *scene)
     const bool disable_mis = !(has_portal || shader->has_surface_spatial_varying);
     VLOG_IF(1, disable_mis) << "Background MIS has been disabled.\n";
     foreach (Light *light, scene->lights) {
-      if (light->type == LIGHT_BACKGROUND) {
+      if (light->light_type == LIGHT_BACKGROUND) {
         light->is_enabled = !disable_mis;
         background_enabled = !disable_mis;
         background_resolution = light->map_resolution;
@@ -250,8 +250,8 @@ void LightManager::test_enabled_lights(Scene *scene)
 
 bool LightManager::object_usable_as_light(Object *object)
 {
-  Geometry *geom = object->geometry;
-  if (geom->type != Geometry::MESH && geom->type != Geometry::VOLUME) {
+  Geometry *geom = object->get_geometry();
+  if (geom->geometry_type != Geometry::MESH && geom->geometry_type != Geometry::VOLUME) {
     return false;
   }
   /* Skip objects with NaNs */
@@ -259,7 +259,7 @@ bool LightManager::object_usable_as_light(Object *object)
     return false;
   }
   /* Skip if we are not visible for BSDFs. */
-  if (!(object->visibility & (PATH_RAY_DIFFUSE | PATH_RAY_GLOSSY | PATH_RAY_TRANSMIT))) {
+  if (!(object->get_visibility() & (PATH_RAY_DIFFUSE | PATH_RAY_GLOSSY | PATH_RAY_TRANSMIT))) {
     return false;
   }
   /* Skip if we have no emission shaders. */
@@ -267,8 +267,9 @@ bool LightManager::object_usable_as_light(Object *object)
    * iterate all geometry shaders twice (when counting and when calculating
    * triangle area.
    */
-  foreach (const Shader *shader, geom->used_shaders) {
-    if (shader->use_mis && shader->has_surface_emission) {
+  foreach (Node *node, geom->get_used_shaders()) {
+    Shader *shader = static_cast<Shader *>(node);
+    if (shader->get_use_mis() && shader->has_surface_emission) {
       return true;
     }
   }
@@ -308,15 +309,15 @@ void LightManager::device_update_distribution(Device *,
     }
 
     /* Count triangles. */
-    Mesh *mesh = static_cast<Mesh *>(object->geometry);
+    Mesh *mesh = static_cast<Mesh *>(object->get_geometry());
     size_t mesh_num_triangles = mesh->num_triangles();
     for (size_t i = 0; i < mesh_num_triangles; i++) {
-      int shader_index = mesh->shader[i];
-      Shader *shader = (shader_index < mesh->used_shaders.size()) ?
-                           mesh->used_shaders[shader_index] :
+      int shader_index = mesh->get_shader()[i];
+      Shader *shader = (shader_index < mesh->get_used_shaders().size()) ?
+                           static_cast<Shader *>(mesh->get_used_shaders()[shader_index]) :
                            scene->default_surface;
 
-      if (shader->use_mis && shader->has_surface_emission) {
+      if (shader->get_use_mis() && shader->has_surface_emission) {
         num_triangles++;
       }
     }
@@ -342,37 +343,37 @@ void LightManager::device_update_distribution(Device *,
       continue;
     }
     /* Sum area. */
-    Mesh *mesh = static_cast<Mesh *>(object->geometry);
+    Mesh *mesh = static_cast<Mesh *>(object->get_geometry());
     bool transform_applied = mesh->transform_applied;
-    Transform tfm = object->tfm;
+    Transform tfm = object->get_tfm();
     int object_id = j;
     int shader_flag = 0;
 
-    if (!(object->visibility & PATH_RAY_DIFFUSE)) {
+    if (!(object->get_visibility() & PATH_RAY_DIFFUSE)) {
       shader_flag |= SHADER_EXCLUDE_DIFFUSE;
       use_light_visibility = true;
     }
-    if (!(object->visibility & PATH_RAY_GLOSSY)) {
+    if (!(object->get_visibility() & PATH_RAY_GLOSSY)) {
       shader_flag |= SHADER_EXCLUDE_GLOSSY;
       use_light_visibility = true;
     }
-    if (!(object->visibility & PATH_RAY_TRANSMIT)) {
+    if (!(object->get_visibility() & PATH_RAY_TRANSMIT)) {
       shader_flag |= SHADER_EXCLUDE_TRANSMIT;
       use_light_visibility = true;
     }
-    if (!(object->visibility & PATH_RAY_VOLUME_SCATTER)) {
+    if (!(object->get_visibility() & PATH_RAY_VOLUME_SCATTER)) {
       shader_flag |= SHADER_EXCLUDE_SCATTER;
       use_light_visibility = true;
     }
 
     size_t mesh_num_triangles = mesh->num_triangles();
     for (size_t i = 0; i < mesh_num_triangles; i++) {
-      int shader_index = mesh->shader[i];
-      Shader *shader = (shader_index < mesh->used_shaders.size()) ?
-                           mesh->used_shaders[shader_index] :
+      int shader_index = mesh->get_shader()[i];
+      Shader *shader = (shader_index < mesh->get_used_shaders().size()) ?
+                           static_cast<Shader *>(mesh->get_used_shaders()[shader_index]) :
                            scene->default_surface;
 
-      if (shader->use_mis && shader->has_surface_emission) {
+      if (shader->get_use_mis() && shader->has_surface_emission) {
         distribution[offset].totarea = totarea;
         distribution[offset].prim = i + mesh->prim_offset;
         distribution[offset].mesh_light.shader_flag = shader_flag;
@@ -380,12 +381,12 @@ void LightManager::device_update_distribution(Device *,
         offset++;
 
         Mesh::Triangle t = mesh->get_triangle(i);
-        if (!t.valid(&mesh->verts[0])) {
+        if (!t.valid(&mesh->get_verts()[0])) {
           continue;
         }
-        float3 p1 = mesh->verts[t.v[0]];
-        float3 p2 = mesh->verts[t.v[1]];
-        float3 p3 = mesh->verts[t.v[2]];
+        float3 p1 = mesh->get_verts()[t.v[0]];
+        float3 p2 = mesh->get_verts()[t.v[1]];
+        float3 p3 = mesh->get_verts()[t.v[2]];
 
         if (!transform_applied) {
           p1 = transform_point(&tfm, p1);
@@ -417,16 +418,16 @@ void LightManager::device_update_distribution(Device *,
     distribution[offset].lamp.size = light->size;
     totarea += lightarea;
 
-    if (light->type == LIGHT_DISTANT) {
+    if (light->light_type == LIGHT_DISTANT) {
       use_lamp_mis |= (light->angle > 0.0f && light->use_mis);
     }
-    else if (light->type == LIGHT_POINT || light->type == LIGHT_SPOT) {
+    else if (light->light_type == LIGHT_POINT || light->light_type == LIGHT_SPOT) {
       use_lamp_mis |= (light->size > 0.0f && light->use_mis);
     }
-    else if (light->type == LIGHT_AREA) {
+    else if (light->light_type == LIGHT_AREA) {
       use_lamp_mis |= light->use_mis;
     }
-    else if (light->type == LIGHT_BACKGROUND) {
+    else if (light->light_type == LIGHT_BACKGROUND) {
       num_background_lights++;
       background_mis |= light->use_mis;
     }
@@ -576,7 +577,7 @@ void LightManager::device_update_background(Device *device,
 
   /* find background light */
   foreach (Light *light, scene->lights) {
-    if (light->type == LIGHT_BACKGROUND) {
+    if (light->light_type == LIGHT_BACKGROUND) {
       background_light = light;
       break;
     }
@@ -611,7 +612,7 @@ void LightManager::device_update_background(Device *device,
     }
     if (node->type == SkyTextureNode::node_type) {
       SkyTextureNode *sky = (SkyTextureNode *)node;
-      if (sky->type == NODE_SKY_NISHITA && sky->sun_disc) {
+      if (sky->get_sky_type() == NODE_SKY_NISHITA && sky->get_sun_disc()) {
         /* Ensure that the input coordinates aren't transformed before they reach the node.
          * If that is the case, the logic used for sampling the sun's location does not work
          * and we have to fall back to map-based sampling. */
@@ -627,8 +628,8 @@ void LightManager::device_update_background(Device *device,
         }
 
         /* Determine sun direction from lat/long and texture mapping. */
-        float latitude = sky->sun_elevation;
-        float longitude = M_2PI_F - sky->sun_rotation + M_PI_2_F;
+        float latitude = sky->get_sun_elevation();
+        float longitude = M_2PI_F - sky->get_sun_rotation() + M_PI_2_F;
         float3 sun_direction = make_float3(
             cosf(latitude) * cosf(longitude), cosf(latitude) * sinf(longitude), sinf(latitude));
         Transform sky_transform = transform_inverse(sky->tex_mapping.compute_transform());
@@ -771,13 +772,13 @@ void LightManager::device_update_points(Device *, DeviceScene *dscene, Scene *sc
       use_light_visibility = true;
     }
 
-    klights[light_index].type = light->type;
+    klights[light_index].type = light->light_type;
     klights[light_index].samples = light->samples;
     klights[light_index].strength[0] = light->strength.x;
     klights[light_index].strength[1] = light->strength.y;
     klights[light_index].strength[2] = light->strength.z;
 
-    if (light->type == LIGHT_POINT) {
+    if (light->light_type == LIGHT_POINT) {
       shader_id &= ~SHADER_AREA_LIGHT;
 
       float radius = light->size;
@@ -793,7 +794,7 @@ void LightManager::device_update_points(Device *, DeviceScene *dscene, Scene *sc
       klights[light_index].spot.radius = radius;
       klights[light_index].spot.invarea = invarea;
     }
-    else if (light->type == LIGHT_DISTANT) {
+    else if (light->light_type == LIGHT_DISTANT) {
       shader_id &= ~SHADER_AREA_LIGHT;
 
       float angle = light->angle / 2.0f;
@@ -816,8 +817,8 @@ void LightManager::device_update_points(Device *, DeviceScene *dscene, Scene *sc
       klights[light_index].distant.radius = radius;
       klights[light_index].distant.cosangle = cosangle;
     }
-    else if (light->type == LIGHT_BACKGROUND) {
-      uint visibility = scene->background->visibility;
+    else if (light->light_type == LIGHT_BACKGROUND) {
+      uint visibility = scene->background->get_visibility();
 
       shader_id &= ~SHADER_AREA_LIGHT;
       shader_id |= SHADER_USE_MIS;
@@ -839,7 +840,7 @@ void LightManager::device_update_points(Device *, DeviceScene *dscene, Scene *sc
         use_light_visibility = true;
       }
     }
-    else if (light->type == LIGHT_AREA) {
+    else if (light->light_type == LIGHT_AREA) {
       float3 axisu = light->axisu * (light->sizeu * light->size);
       float3 axisv = light->axisv * (light->sizev * light->size);
       float area = len(axisu) * len(axisv);
@@ -869,7 +870,7 @@ void LightManager::device_update_points(Device *, DeviceScene *dscene, Scene *sc
       klights[light_index].area.dir[1] = dir.y;
       klights[light_index].area.dir[2] = dir.z;
     }
-    else if (light->type == LIGHT_SPOT) {
+    else if (light->light_type == LIGHT_SPOT) {
       shader_id &= ~SHADER_AREA_LIGHT;
 
       float radius = light->size;
@@ -913,7 +914,7 @@ void LightManager::device_update_points(Device *, DeviceScene *dscene, Scene *sc
   foreach (Light *light, scene->lights) {
     if (!light->is_portal)
       continue;
-    assert(light->type == LIGHT_AREA);
+    assert(light->light_type == LIGHT_AREA);
 
     float3 co = light->co;
     float3 axisu = light->axisu * (light->sizeu * light->size);
@@ -995,10 +996,7 @@ void LightManager::device_update(Device *device,
   if (progress.get_cancel())
     return;
 
-  if (use_light_visibility != scene->film->use_light_visibility) {
-    scene->film->use_light_visibility = use_light_visibility;
-    scene->film->tag_update(scene);
-  }
+  scene->film->set_use_light_visibility(use_light_visibility);
 
   need_update = false;
   need_update_background = false;

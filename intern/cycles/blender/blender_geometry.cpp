@@ -59,7 +59,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
   GeometryKey key(b_key_id.ptr.data, geom_type);
 
   /* Find shader indices. */
-  vector<Shader *> used_shaders;
+  array<Node *> used_shaders;
 
   BL::Object::material_slots_iterator slot;
   for (b_ob.material_slots.begin(slot); slot != b_ob.material_slots.end(); ++slot) {
@@ -76,7 +76,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
     if (material_override)
       find_shader(material_override, used_shaders, default_shader);
     else
-      used_shaders.push_back(default_shader);
+      used_shaders.push_back_slow(default_shader);
   }
 
   /* Ensure we only sync instanced geometry once. */
@@ -114,7 +114,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
     }
     /* Test if shaders changed, these can be object level so geometry
      * does not get tagged for recalc. */
-    else if (geom->used_shaders != used_shaders) {
+    else if (geom->get_used_shaders() != used_shaders) {
       ;
     }
     else {
@@ -122,7 +122,8 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
        * because the shader needs different geometry attributes. */
       bool attribute_recalc = false;
 
-      foreach (Shader *shader, geom->used_shaders) {
+      foreach (Node *node, geom->get_used_shaders()) {
+        Shader *shader = static_cast<Shader *>(node);
         if (shader->need_update_geometry) {
           attribute_recalc = true;
         }
@@ -139,7 +140,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
   geom->name = ustring(b_ob_data.name().c_str());
 
   /* Store the shaders immediately for the object attribute code. */
-  geom->used_shaders = used_shaders;
+  geom->set_used_shaders(used_shaders);
 
   auto sync_func = [=]() mutable {
     if (progress.get_cancel())
@@ -180,7 +181,7 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
                                        TaskPool *task_pool)
 {
   /* Ensure we only sync instanced geometry once. */
-  Geometry *geom = object->geometry;
+  Geometry *geom = object->get_geometry();
 
   if (geometry_motion_synced.find(geom) != geometry_motion_synced.end())
     return;

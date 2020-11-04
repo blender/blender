@@ -98,7 +98,7 @@ NODE_DEFINE(Camera)
   type_enum.insert("perspective", CAMERA_PERSPECTIVE);
   type_enum.insert("orthograph", CAMERA_ORTHOGRAPHIC);
   type_enum.insert("panorama", CAMERA_PANORAMA);
-  SOCKET_ENUM(type, "Type", type_enum, CAMERA_PERSPECTIVE);
+  SOCKET_ENUM(camera_type, "Type", type_enum, CAMERA_PERSPECTIVE);
 
   static NodeEnum panorama_type_enum;
   panorama_type_enum.insert("equirectangular", PANORAMA_EQUIRECTANGULAR);
@@ -148,7 +148,17 @@ NODE_DEFINE(Camera)
   SOCKET_FLOAT(border.bottom, "Border Bottom", 0);
   SOCKET_FLOAT(border.top, "Border Top", 0);
 
+  SOCKET_FLOAT(viewport_camera_border.left, "Viewport Border Left", 0);
+  SOCKET_FLOAT(viewport_camera_border.right, "Viewport Border Right", 0);
+  SOCKET_FLOAT(viewport_camera_border.bottom, "Viewport Border Bottom", 0);
+  SOCKET_FLOAT(viewport_camera_border.top, "Viewport Border Top", 0);
+
   SOCKET_FLOAT(offscreen_dicing_scale, "Offscreen Dicing Scale", 1.0f);
+
+  SOCKET_INT(full_width, "Full Width", 1024);
+  SOCKET_INT(full_height, "Full Height", 512);
+
+  SOCKET_BOOLEAN(use_perspective_motion, "Use Perspective Motion", false);
 
   return type;
 }
@@ -182,7 +192,6 @@ Camera::Camera() : Node(node_type)
   dx = make_float3(0.0f, 0.0f, 0.0f);
   dy = make_float3(0.0f, 0.0f, 0.0f);
 
-  need_update = true;
   need_device_update = true;
   need_flags_update = true;
   previous_need_motion = -1;
@@ -196,7 +205,7 @@ Camera::~Camera()
 
 void Camera::compute_auto_viewplane()
 {
-  if (type == CAMERA_PANORAMA) {
+  if (camera_type == CAMERA_PANORAMA) {
     viewplane.left = 0.0f;
     viewplane.right = 1.0f;
     viewplane.bottom = 0.0f;
@@ -230,7 +239,7 @@ void Camera::update(Scene *scene)
     need_device_update = true;
   }
 
-  if (!need_update)
+  if (!is_modified())
     return;
 
   scoped_callback_timer timer([scene](double time) {
@@ -257,9 +266,9 @@ void Camera::update(Scene *scene)
 
   /* screen to camera */
   ProjectionTransform cameratoscreen;
-  if (type == CAMERA_PERSPECTIVE)
+  if (camera_type == CAMERA_PERSPECTIVE)
     cameratoscreen = projection_perspective(fov, nearclip, farclip);
-  else if (type == CAMERA_ORTHOGRAPHIC)
+  else if (camera_type == CAMERA_ORTHOGRAPHIC)
     cameratoscreen = projection_orthographic(nearclip, farclip);
   else
     cameratoscreen = projection_identity();
@@ -284,13 +293,13 @@ void Camera::update(Scene *scene)
   worldtoraster = ndctoraster * worldtondc;
 
   /* differentials */
-  if (type == CAMERA_ORTHOGRAPHIC) {
+  if (camera_type == CAMERA_ORTHOGRAPHIC) {
     dx = transform_perspective_direction(&rastertocamera, make_float3(1, 0, 0));
     dy = transform_perspective_direction(&rastertocamera, make_float3(0, 1, 0));
     full_dx = transform_perspective_direction(&full_rastertocamera, make_float3(1, 0, 0));
     full_dy = transform_perspective_direction(&full_rastertocamera, make_float3(0, 1, 0));
   }
-  else if (type == CAMERA_PERSPECTIVE) {
+  else if (camera_type == CAMERA_PERSPECTIVE) {
     dx = transform_perspective(&rastertocamera, make_float3(1, 0, 0)) -
          transform_perspective(&rastertocamera, make_float3(0, 0, 0));
     dy = transform_perspective(&rastertocamera, make_float3(0, 1, 0)) -
@@ -310,7 +319,7 @@ void Camera::update(Scene *scene)
   full_dx = transform_direction(&cameratoworld, full_dx);
   full_dy = transform_direction(&cameratoworld, full_dy);
 
-  if (type == CAMERA_PERSPECTIVE) {
+  if (camera_type == CAMERA_PERSPECTIVE) {
     float3 v = transform_perspective(&full_rastertocamera,
                                      make_float3(full_width, full_height, 1.0f));
     frustum_right_normal = normalize(make_float3(v.z, 0.0f, -v.x));
@@ -348,7 +357,7 @@ void Camera::update(Scene *scene)
 
   if (need_motion == Scene::MOTION_PASS) {
     /* TODO(sergey): Support perspective (zoom, fov) motion. */
-    if (type == CAMERA_PANORAMA) {
+    if (camera_type == CAMERA_PANORAMA) {
       if (have_motion) {
         kcam->motion_pass_pre = transform_inverse(motion[0]);
         kcam->motion_pass_post = transform_inverse(motion[motion.size() - 1]);
@@ -377,7 +386,7 @@ void Camera::update(Scene *scene)
     }
 
     /* TODO(sergey): Support other types of camera. */
-    if (use_perspective_motion && type == CAMERA_PERSPECTIVE) {
+    if (use_perspective_motion && camera_type == CAMERA_PERSPECTIVE) {
       /* TODO(sergey): Move to an utility function and de-duplicate with
        * calculation above.
        */
@@ -402,7 +411,7 @@ void Camera::update(Scene *scene)
   kcam->shuttertime = (need_motion == Scene::MOTION_BLUR) ? shuttertime : -1.0f;
 
   /* type */
-  kcam->type = type;
+  kcam->type = camera_type;
 
   /* anamorphic lens bokeh */
   kcam->inv_aperture_ratio = 1.0f / aperture_ratio;
@@ -464,7 +473,7 @@ void Camera::update(Scene *scene)
   kcam->rolling_shutter_duration = rolling_shutter_duration;
 
   /* Set further update flags */
-  need_update = false;
+  clear_modified();
   need_device_update = true;
   need_flags_update = true;
   previous_need_motion = need_motion;
@@ -527,7 +536,7 @@ void Camera::device_update_volume(Device * /*device*/, DeviceScene *dscene, Scen
                  [&](const blocked_range<size_t> &r) {
                    for (size_t i = r.begin(); i != r.end(); i++) {
                      Object *object = scene->objects[i];
-                     if (object->geometry->has_volume &&
+                     if (object->get_geometry()->has_volume &&
                          viewplane_boundbox.intersects(object->bounds)) {
                        /* TODO(sergey): Consider adding more grained check. */
                        VLOG(1) << "Detected camera inside volume.";
@@ -553,25 +562,10 @@ void Camera::device_free(Device * /*device*/, DeviceScene *dscene, Scene *scene)
   dscene->camera_motion.free();
 }
 
-bool Camera::modified(const Camera &cam)
-{
-  return !Node::equals(cam);
-}
-
-bool Camera::motion_modified(const Camera &cam)
-{
-  return !((motion == cam.motion) && (use_perspective_motion == cam.use_perspective_motion));
-}
-
-void Camera::tag_update()
-{
-  need_update = true;
-}
-
 float3 Camera::transform_raster_to_world(float raster_x, float raster_y)
 {
   float3 D, P;
-  if (type == CAMERA_PERSPECTIVE) {
+  if (camera_type == CAMERA_PERSPECTIVE) {
     D = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
     float3 Pclip = normalize(D);
     P = make_float3(0.0f, 0.0f, 0.0f);
@@ -584,7 +578,7 @@ float3 Camera::transform_raster_to_world(float raster_x, float raster_y)
      */
     P += nearclip * D / Pclip.z;
   }
-  else if (type == CAMERA_ORTHOGRAPHIC) {
+  else if (camera_type == CAMERA_ORTHOGRAPHIC) {
     D = make_float3(0.0f, 0.0f, 1.0f);
     /* TODO(sergey): Aperture support? */
     P = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
@@ -603,7 +597,7 @@ BoundBox Camera::viewplane_bounds_get()
    * checks we need in a more clear and smart fashion? */
   BoundBox bounds = BoundBox::empty;
 
-  if (type == CAMERA_PANORAMA) {
+  if (camera_type == CAMERA_PANORAMA) {
     if (use_spherical_stereo == false) {
       bounds.grow(make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w));
     }
@@ -628,7 +622,7 @@ BoundBox Camera::viewplane_bounds_get()
     bounds.grow(transform_raster_to_world(0.0f, (float)height));
     bounds.grow(transform_raster_to_world((float)width, (float)height));
     bounds.grow(transform_raster_to_world((float)width, 0.0f));
-    if (type == CAMERA_PERSPECTIVE) {
+    if (camera_type == CAMERA_PERSPECTIVE) {
       /* Center point has the most distance in local Z axis,
        * use it to construct bounding box/
        */
@@ -642,7 +636,7 @@ float Camera::world_to_raster_size(float3 P)
 {
   float res = 1.0f;
 
-  if (type == CAMERA_ORTHOGRAPHIC) {
+  if (camera_type == CAMERA_ORTHOGRAPHIC) {
     res = min(len(full_dx), len(full_dy));
 
     if (offscreen_dicing_scale > 1.0f) {
@@ -668,7 +662,7 @@ float Camera::world_to_raster_size(float3 P)
       }
     }
   }
-  else if (type == CAMERA_PERSPECTIVE) {
+  else if (camera_type == CAMERA_PERSPECTIVE) {
     /* Calculate as if point is directly ahead of the camera. */
     float3 raster = make_float3(0.5f * full_width, 0.5f * full_height, 0.0f);
     float3 Pcamera = transform_perspective(&full_rastertocamera, raster);
@@ -743,7 +737,7 @@ float Camera::world_to_raster_size(float3 P)
       }
     }
   }
-  else if (type == CAMERA_PANORAMA) {
+  else if (camera_type == CAMERA_PANORAMA) {
     float3 D = transform_point(&worldtocamera, P);
     float dist = len(D);
 
@@ -792,6 +786,16 @@ float Camera::world_to_raster_size(float3 P)
 bool Camera::use_motion() const
 {
   return motion.size() > 1;
+}
+
+void Camera::set_screen_size_and_resolution(int width_, int height_, int resolution_)
+{
+  if (width_ != width || height_ != height || resolution_ != resolution) {
+    width = width_;
+    height = height_;
+    resolution = resolution_;
+    tag_modified();
+  }
 }
 
 float Camera::motion_time(int step) const

@@ -337,12 +337,18 @@ void Hair::add_curve_key(float3 co, float radius)
 {
   curve_keys.push_back_reserved(co);
   curve_radius.push_back_reserved(radius);
+
+  tag_curve_keys_modified();
+  tag_curve_radius_modified();
 }
 
 void Hair::add_curve(int first_key, int shader)
 {
   curve_first_key.push_back_reserved(first_key);
   curve_shader.push_back_reserved(shader);
+
+  tag_curve_first_key_modified();
+  tag_curve_shader_modified();
 }
 
 void Hair::copy_center_to_motion_step(const int motion_step)
@@ -474,8 +480,9 @@ void Hair::pack_curves(Scene *scene,
   for (size_t i = 0; i < curve_num; i++) {
     Curve curve = get_curve(i);
     int shader_id = curve_shader[i];
-    Shader *shader = (shader_id < used_shaders.size()) ? used_shaders[shader_id] :
-                                                         scene->default_surface;
+    Shader *shader = (shader_id < used_shaders.size()) ?
+                         static_cast<Shader *>(used_shaders[shader_id]) :
+                         scene->default_surface;
     shader_id = scene->shader_manager->get_shader_id(shader, false);
 
     curve_data[i] = make_float4(__int_as_float(curve.first_key + curvekey_offset),

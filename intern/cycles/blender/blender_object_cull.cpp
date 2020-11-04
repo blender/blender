@@ -34,10 +34,10 @@ BlenderObjectCulling::BlenderObjectCulling(Scene *scene, BL::Scene &b_scene)
   if (b_scene.render().use_simplify()) {
     PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 
-    use_scene_camera_cull_ = scene->camera->type != CAMERA_PANORAMA &&
+    use_scene_camera_cull_ = scene->camera->get_camera_type() != CAMERA_PANORAMA &&
                              !b_scene.render().use_multiview() &&
                              get_boolean(cscene, "use_camera_cull");
-    use_scene_distance_cull_ = scene->camera->type != CAMERA_PANORAMA &&
+    use_scene_distance_cull_ = scene->camera->get_camera_type() != CAMERA_PANORAMA &&
                                !b_scene.render().use_multiview() &&
                                get_boolean(cscene, "use_distance_cull");
 
@@ -123,7 +123,7 @@ bool BlenderObjectCulling::test_camera(Scene *scene, float3 bb[8])
 
 bool BlenderObjectCulling::test_distance(Scene *scene, float3 bb[8])
 {
-  float3 camera_position = transform_get_column(&scene->camera->matrix, 3);
+  float3 camera_position = transform_get_column(&scene->camera->get_matrix(), 3);
   float3 bb_min = make_float3(FLT_MAX, FLT_MAX, FLT_MAX),
          bb_max = make_float3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 

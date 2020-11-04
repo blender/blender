@@ -167,62 +167,62 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
       size = 1;
       break;
     case ATTR_ELEMENT_VERTEX:
-      if (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME) {
+      if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME) {
         Mesh *mesh = static_cast<Mesh *>(geom);
-        size = mesh->verts.size() + mesh->num_ngons;
+        size = mesh->get_verts().size() + mesh->get_num_ngons();
         if (prim == ATTR_PRIM_SUBD) {
-          size -= mesh->num_subd_verts;
+          size -= mesh->get_num_subd_verts();
         }
       }
       break;
     case ATTR_ELEMENT_VERTEX_MOTION:
-      if (geom->type == Geometry::MESH) {
+      if (geom->geometry_type == Geometry::MESH) {
         Mesh *mesh = static_cast<Mesh *>(geom);
-        size = (mesh->verts.size() + mesh->num_ngons) * (mesh->motion_steps - 1);
+        size = (mesh->get_verts().size() + mesh->get_num_ngons()) * (mesh->get_motion_steps() - 1);
         if (prim == ATTR_PRIM_SUBD) {
-          size -= mesh->num_subd_verts * (mesh->motion_steps - 1);
+          size -= mesh->get_num_subd_verts() * (mesh->get_motion_steps() - 1);
         }
       }
       break;
     case ATTR_ELEMENT_FACE:
-      if (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME) {
+      if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         if (prim == ATTR_PRIM_GEOMETRY) {
           size = mesh->num_triangles();
         }
         else {
-          size = mesh->subd_faces.size() + mesh->num_ngons;
+          size = mesh->get_num_subd_faces() + mesh->get_num_ngons();
         }
       }
       break;
     case ATTR_ELEMENT_CORNER:
     case ATTR_ELEMENT_CORNER_BYTE:
-      if (geom->type == Geometry::MESH) {
+      if (geom->geometry_type == Geometry::MESH) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         if (prim == ATTR_PRIM_GEOMETRY) {
           size = mesh->num_triangles() * 3;
         }
         else {
-          size = mesh->subd_face_corners.size() + mesh->num_ngons;
+          size = mesh->get_subd_face_corners().size() + mesh->get_num_ngons();
         }
       }
       break;
     case ATTR_ELEMENT_CURVE:
-      if (geom->type == Geometry::HAIR) {
+      if (geom->geometry_type == Geometry::HAIR) {
         Hair *hair = static_cast<Hair *>(geom);
         size = hair->num_curves();
       }
       break;
     case ATTR_ELEMENT_CURVE_KEY:
-      if (geom->type == Geometry::HAIR) {
+      if (geom->geometry_type == Geometry::HAIR) {
         Hair *hair = static_cast<Hair *>(geom);
-        size = hair->curve_keys.size();
+        size = hair->get_curve_keys().size();
       }
       break;
     case ATTR_ELEMENT_CURVE_KEY_MOTION:
-      if (geom->type == Geometry::HAIR) {
+      if (geom->geometry_type == Geometry::HAIR) {
         Hair *hair = static_cast<Hair *>(geom);
-        size = hair->curve_keys.size() * (hair->motion_steps - 1);
+        size = hair->get_curve_keys().size() * (hair->get_motion_steps() - 1);
       }
       break;
     default:
@@ -445,7 +445,7 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
   if (name == ustring())
     name = Attribute::standard_name(std);
 
-  if (geometry->type == Geometry::MESH) {
+  if (geometry->geometry_type == Geometry::MESH) {
     switch (std) {
       case ATTR_STD_VERTEX_NORMAL:
         attr = add(name, TypeDesc::TypeNormal, ATTR_ELEMENT_VERTEX);
@@ -496,7 +496,7 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
         break;
     }
   }
-  else if (geometry->type == Geometry::VOLUME) {
+  else if (geometry->geometry_type == Geometry::VOLUME) {
     switch (std) {
       case ATTR_STD_VERTEX_NORMAL:
         attr = add(name, TypeDesc::TypeNormal, ATTR_ELEMENT_VERTEX);
@@ -521,7 +521,7 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
         break;
     }
   }
-  else if (geometry->type == Geometry::HAIR) {
+  else if (geometry->geometry_type == Geometry::HAIR) {
     switch (std) {
       case ATTR_STD_UV:
         attr = add(name, TypeFloat2, ATTR_ELEMENT_CURVE);

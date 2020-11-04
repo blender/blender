@@ -392,8 +392,8 @@ void BVHSpatialSplit::split_curve_primitive(const Hair *hair,
   Hair::Curve curve = hair->get_curve(prim_index);
   const int k0 = curve.first_key + segment_index;
   const int k1 = k0 + 1;
-  float3 v0 = hair->curve_keys[k0];
-  float3 v1 = hair->curve_keys[k1];
+  float3 v0 = hair->get_curve_keys()[k0];
+  float3 v1 = hair->get_curve_keys()[k1];
 
   if (tfm != NULL) {
     v0 = transform_point(tfm, v0);
@@ -456,21 +456,22 @@ void BVHSpatialSplit::split_curve_reference(const BVHReference &ref,
 void BVHSpatialSplit::split_object_reference(
     const Object *object, int dim, float pos, BoundBox &left_bounds, BoundBox &right_bounds)
 {
-  Geometry *geom = object->geometry;
+  Geometry *geom = object->get_geometry();
 
-  if (geom->type == Geometry::MESH || geom->type == Geometry::VOLUME) {
+  if (geom->geometry_type == Geometry::MESH || geom->geometry_type == Geometry::VOLUME) {
     Mesh *mesh = static_cast<Mesh *>(geom);
     for (int tri_idx = 0; tri_idx < mesh->num_triangles(); ++tri_idx) {
-      split_triangle_primitive(mesh, &object->tfm, tri_idx, dim, pos, left_bounds, right_bounds);
+      split_triangle_primitive(
+          mesh, &object->get_tfm(), tri_idx, dim, pos, left_bounds, right_bounds);
     }
   }
-  else if (geom->type == Geometry::HAIR) {
+  else if (geom->geometry_type == Geometry::HAIR) {
     Hair *hair = static_cast<Hair *>(geom);
     for (int curve_idx = 0; curve_idx < hair->num_curves(); ++curve_idx) {
       Hair::Curve curve = hair->get_curve(curve_idx);
       for (int segment_idx = 0; segment_idx < curve.num_keys - 1; ++segment_idx) {
         split_curve_primitive(
-            hair, &object->tfm, curve_idx, segment_idx, dim, pos, left_bounds, right_bounds);
+            hair, &object->get_tfm(), curve_idx, segment_idx, dim, pos, left_bounds, right_bounds);
       }
     }
   }
@@ -491,11 +492,11 @@ void BVHSpatialSplit::split_reference(const BVHBuild &builder,
   const Object *ob = builder.objects[ref.prim_object()];
 
   if (ref.prim_type() & PRIMITIVE_ALL_TRIANGLE) {
-    Mesh *mesh = static_cast<Mesh *>(ob->geometry);
+    Mesh *mesh = static_cast<Mesh *>(ob->get_geometry());
     split_triangle_reference(ref, mesh, dim, pos, left_bounds, right_bounds);
   }
   else if (ref.prim_type() & PRIMITIVE_ALL_CURVE) {
-    Hair *hair = static_cast<Hair *>(ob->geometry);
+    Hair *hair = static_cast<Hair *>(ob->get_geometry());
     split_curve_reference(ref, hair, dim, pos, left_bounds, right_bounds);
   }
   else {

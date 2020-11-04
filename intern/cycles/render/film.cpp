@@ -40,10 +40,8 @@ static bool compare_pass_order(const Pass &a, const Pass &b)
   return (a.components > b.components);
 }
 
-NODE_DEFINE(Pass)
+static NodeEnum *get_pass_type_enum()
 {
-  NodeType *type = NodeType::add("pass", create);
-
   static NodeEnum pass_type_enum;
   pass_type_enum.insert("combined", PASS_COMBINED);
   pass_type_enum.insert("depth", PASS_DEPTH);
@@ -84,7 +82,15 @@ NODE_DEFINE(Pass)
   pass_type_enum.insert("bake_primitive", PASS_BAKE_PRIMITIVE);
   pass_type_enum.insert("bake_differential", PASS_BAKE_DIFFERENTIAL);
 
-  SOCKET_ENUM(type, "Type", pass_type_enum, PASS_COMBINED);
+  return &pass_type_enum;
+}
+
+NODE_DEFINE(Pass)
+{
+  NodeType *type = NodeType::add("pass", create);
+
+  NodeEnum *pass_type_enum = get_pass_type_enum();
+  SOCKET_ENUM(type, "Type", *pass_type_enum, PASS_COMBINED);
   SOCKET_STRING(name, "Name", ustring());
 
   return type;
@@ -383,6 +389,21 @@ NODE_DEFINE(Film)
   SOCKET_INT(denoising_flags, "Denoising Flags", 0);
   SOCKET_BOOLEAN(use_adaptive_sampling, "Use Adaptive Sampling", false);
 
+  SOCKET_BOOLEAN(use_light_visibility, "Use Light Visibility", false);
+
+  NodeEnum *pass_type_enum = get_pass_type_enum();
+  SOCKET_ENUM(display_pass, "Display Pass", *pass_type_enum, PASS_COMBINED);
+
+  static NodeEnum cryptomatte_passes_enum;
+  cryptomatte_passes_enum.insert("none", CRYPT_NONE);
+  cryptomatte_passes_enum.insert("object", CRYPT_OBJECT);
+  cryptomatte_passes_enum.insert("material", CRYPT_MATERIAL);
+  cryptomatte_passes_enum.insert("asset", CRYPT_ASSET);
+  cryptomatte_passes_enum.insert("accurate", CRYPT_ACCURATE);
+  SOCKET_ENUM(cryptomatte_passes, "Cryptomatte Passes", cryptomatte_passes_enum, CRYPT_NONE);
+
+  SOCKET_INT(cryptomatte_depth, "Cryptomatte Depth", 0);
+
   return type;
 }
 
@@ -392,8 +413,6 @@ Film::Film() : Node(node_type)
   filter_table_offset = TABLE_OFFSET_INVALID;
   cryptomatte_passes = CRYPT_NONE;
   display_pass = PASS_COMBINED;
-
-  need_update = true;
 }
 
 Film::~Film()
@@ -407,7 +426,7 @@ void Film::add_default(Scene *scene)
 
 void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 {
-  if (!need_update)
+  if (!is_modified())
     return;
 
   scoped_callback_timer timer([scene](double time) {
@@ -658,17 +677,12 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
   denoising_data_offset = kfilm->pass_denoising_data;
   denoising_clean_offset = kfilm->pass_denoising_clean;
 
-  need_update = false;
+  clear_modified();
 }
 
 void Film::device_free(Device * /*device*/, DeviceScene * /*dscene*/, Scene *scene)
 {
   scene->lookup_tables->remove_table(&filter_table_offset);
-}
-
-bool Film::modified(const Film &film)
-{
-  return !Node::equals(film);
 }
 
 void Film::tag_passes_update(Scene *scene, const vector<Pass> &passes_, bool update_passes)
@@ -689,11 +703,6 @@ void Film::tag_passes_update(Scene *scene, const vector<Pass> &passes_, bool upd
   if (update_passes) {
     scene->passes = passes_;
   }
-}
-
-void Film::tag_update(Scene * /*scene*/)
-{
-  need_update = true;
 }
 
 int Film::get_aov_offset(Scene *scene, string name, bool &is_color)
@@ -717,6 +726,26 @@ int Film::get_aov_offset(Scene *scene, string name, bool &is_color)
   }
 
   return -1;
+}
+
+int Film::get_pass_stride() const
+{
+  return pass_stride;
+}
+
+int Film::get_denoising_data_offset() const
+{
+  return denoising_data_offset;
+}
+
+int Film::get_denoising_clean_offset() const
+{
+  return denoising_clean_offset;
+}
+
+size_t Film::get_filter_table_offset() const
+{
+  return filter_table_offset;
 }
 
 CCL_NAMESPACE_END

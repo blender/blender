@@ -207,7 +207,7 @@ class BlenderSync {
   void free_data_after_sync(BL::Depsgraph &b_depsgraph);
 
   /* util */
-  void find_shader(BL::ID &id, vector<Shader *> &used_shaders, Shader *default_shader);
+  void find_shader(BL::ID &id, array<Node *> &used_shaders, Shader *default_shader);
   bool BKE_object_is_modified(BL::Object &b_ob);
   bool object_is_geometry(BL::Object &b_ob);
   bool object_is_light(BL::Object &b_ob);

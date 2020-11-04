@@ -118,36 +118,57 @@ class Mesh : public Geometry {
     float crease;
   };
 
+  SubdEdgeCrease get_subd_crease(size_t i) const
+  {
+    SubdEdgeCrease s;
+    s.v[0] = subd_creases_edge[i * 2];
+    s.v[1] = subd_creases_edge[i * 2 + 1];
+    s.crease = subd_creases_weight[i];
+    return s;
+  }
+
+  bool need_tesselation();
+
   enum SubdivisionType {
     SUBDIVISION_NONE,
     SUBDIVISION_LINEAR,
     SUBDIVISION_CATMULL_CLARK,
   };
 
-  SubdivisionType subdivision_type;
+  NODE_SOCKET_API(SubdivisionType, subdivision_type)
 
   /* Mesh Data */
-  array<int> triangles;
-  array<float3> verts;
-  array<int> shader;
-  array<bool> smooth;
+  NODE_SOCKET_API_ARRAY(array<int>, triangles)
+  NODE_SOCKET_API_ARRAY(array<float3>, verts)
+  NODE_SOCKET_API_ARRAY(array<int>, shader)
+  NODE_SOCKET_API_ARRAY(array<bool>, smooth)
 
   /* used for storing patch info for subd triangles, only allocated if there are patches */
-  array<int> triangle_patch; /* must be < 0 for non subd triangles */
-  array<float2> vert_patch_uv;
+  NODE_SOCKET_API_ARRAY(array<int>, triangle_patch) /* must be < 0 for non subd triangles */
+  NODE_SOCKET_API_ARRAY(array<float2>, vert_patch_uv)
 
-  array<SubdFace> subd_faces;
-  array<int> subd_face_corners;
-  int num_ngons;
+  /* SubdFaces */
+  NODE_SOCKET_API_ARRAY(array<int>, subd_start_corner)
+  NODE_SOCKET_API_ARRAY(array<int>, subd_num_corners)
+  NODE_SOCKET_API_ARRAY(array<int>, subd_shader)
+  NODE_SOCKET_API_ARRAY(array<bool>, subd_smooth)
+  NODE_SOCKET_API_ARRAY(array<int>, subd_ptex_offset)
 
-  array<SubdEdgeCrease> subd_creases;
+  NODE_SOCKET_API_ARRAY(array<int>, subd_face_corners)
+  NODE_SOCKET_API(int, num_ngons)
 
-  SubdParams *subd_params;
+  NODE_SOCKET_API_ARRAY(array<int>, subd_creases_edge)
+  NODE_SOCKET_API_ARRAY(array<float>, subd_creases_weight)
+
+  /* Subdivisions parameters */
+  NODE_SOCKET_API(float, subd_dicing_rate)
+  NODE_SOCKET_API(int, subd_max_level)
+  NODE_SOCKET_API(Transform, subd_objecttoworld)
 
   AttributeSet subd_attributes;
 
+ private:
   PackedPatchTable *patch_table;
-
   /* BVH */
   size_t vert_offset;
 
@@ -157,13 +178,22 @@ class Mesh : public Geometry {
   size_t corner_offset;
 
   size_t num_subd_verts;
+  size_t num_subd_faces;
 
- private:
   unordered_map<int, int> vert_to_stitching_key_map; /* real vert index -> stitching index */
   unordered_multimap<int, int>
       vert_stitching_map; /* stitching index -> multiple real vert indices */
+
+  friend class BVH;
+  friend class BVHBuild;
+  friend class BVHEmbree;
+  friend class BVHSpatialSplit;
   friend class DiagSplit;
+  friend class EdgeDice;
   friend class GeometryManager;
+  friend class ObjectManager;
+
+  SubdParams *subd_params = nullptr;
 
  public:
   /* Functions */
@@ -174,11 +204,13 @@ class Mesh : public Geometry {
   void reserve_mesh(int numverts, int numfaces);
   void resize_subd_faces(int numfaces, int num_ngons, int numcorners);
   void reserve_subd_faces(int numfaces, int num_ngons, int numcorners);
+  void reserve_subd_creases(size_t num_creases);
   void clear(bool preserve_shaders = false) override;
   void add_vertex(float3 P);
   void add_vertex_slow(float3 P);
   void add_triangle(int v0, int v1, int v2, int shader, bool smooth);
   void add_subd_face(int *corners, int num_corners, int shader_, bool smooth_);
+  void add_crease(int v0, int v1, float weight);
 
   void copy_center_to_motion_step(const int motion_step);
 
@@ -201,6 +233,25 @@ class Mesh : public Geometry {
   void pack_patches(uint *patch_data, uint vert_offset, uint face_offset, uint corner_offset);
 
   void tessellate(DiagSplit *split);
+
+  SubdFace get_subd_face(size_t index) const;
+
+  SubdParams *get_subd_params();
+
+  size_t get_num_subd_faces() const
+  {
+    return num_subd_faces;
+  }
+
+  void set_num_subd_faces(size_t num_subd_faces_)
+  {
+    num_subd_faces = num_subd_faces_;
+  }
+
+  size_t get_num_subd_verts()
+  {
+    return num_subd_verts;
+  }
 
  protected:
   void clear(bool preserve_shaders, bool preserve_voxel_data);

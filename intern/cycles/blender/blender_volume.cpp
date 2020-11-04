@@ -202,7 +202,7 @@ static void sync_smoke_volume(Scene *scene, BL::Object &b_ob, Volume *volume, fl
       continue;
     }
 
-    volume->clipping = b_domain.clipping();
+    volume->set_clipping(b_domain.clipping());
 
     Attribute *attr = volume->attributes.add(std);
 
@@ -262,9 +262,9 @@ static void sync_volume_object(BL::BlendData &b_data,
 
   BL::VolumeRender b_render(b_volume.render());
 
-  volume->clipping = b_render.clipping();
-  volume->step_size = b_render.step_size();
-  volume->object_space = (b_render.space() == BL::VolumeRender::space_OBJECT);
+  volume->set_clipping(b_render.clipping());
+  volume->set_step_size(b_render.step_size());
+  volume->set_object_space((b_render.space() == BL::VolumeRender::space_OBJECT));
 
   /* Find grid with matching name. */
   BL::Volume::grids_iterator b_grid_iter;
