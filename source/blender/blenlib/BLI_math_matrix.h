@@ -211,6 +211,7 @@ void mul_transposed_mat3_m4_v3(const float M[4][4], float r[3]);
 void mul_m3_v3_double(const float M[3][3], double r[3]);
 
 void mul_m4_m4m4_aligned_scale(float R[4][4], const float A[4][4], const float B[4][4]);
+void mul_m4_m4m4_split_channels(float R[4][4], const float A[4][4], const float B[4][4]);
 
 void mul_m3_fl(float R[3][3], float f);
 void mul_m4_fl(float R[4][4], float f);

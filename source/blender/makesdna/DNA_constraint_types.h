@@ -316,8 +316,9 @@ typedef struct bSameVolumeConstraint {
 /* Copy Transform Constraint */
 typedef struct bTransLikeConstraint {
   struct Object *tar;
+  int flag;
   char mix_mode;
-  char _pad[7];
+  char _pad[3];
   /** MAX_ID_NAME-2. */
   char subtarget[64];
 } bTransLikeConstraint;
@@ -810,6 +811,12 @@ typedef enum eCopyScale_Flags {
   SIZELIKE_UNIFORM = (1 << 5),
 } eCopyScale_Flags;
 
+/* bTransLikeConstraint.flag */
+typedef enum eCopyTransforms_Flags {
+  /* Remove shear from the target matrix. */
+  TRANSLIKE_REMOVE_TARGET_SHEAR = (1 << 0),
+} eCopyTransforms_Flags;
+
 /* bTransLikeConstraint.mix_mode */
 typedef enum eCopyTransforms_MixMode {
   /* Replace rotation channel values. */
@@ -818,6 +825,14 @@ typedef enum eCopyTransforms_MixMode {
   TRANSLIKE_MIX_BEFORE = 1,
   /* Multiply the copied transformation on the right, with anti-shear scale handling. */
   TRANSLIKE_MIX_AFTER = 2,
+  /* Multiply the copied transformation on the left, handling loc/rot/scale separately. */
+  TRANSLIKE_MIX_BEFORE_SPLIT = 3,
+  /* Multiply the copied transformation on the right, handling loc/rot/scale separately. */
+  TRANSLIKE_MIX_AFTER_SPLIT = 4,
+  /* Multiply the copied transformation on the left, using simple matrix multiplication. */
+  TRANSLIKE_MIX_BEFORE_FULL = 5,
+  /* Multiply the copied transformation on the right, using simple matrix multiplication. */
+  TRANSLIKE_MIX_AFTER_FULL = 6,
 } eCopyTransforms_MixMode;
 
 /* bTransformConstraint.to/from */

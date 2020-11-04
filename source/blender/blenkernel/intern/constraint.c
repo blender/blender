@@ -2235,17 +2235,47 @@ static void translike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
   bConstraintTarget *ct = targets->first;
 
   if (VALID_CONS_TARGET(ct)) {
+    float target_mat[4][4];
+
+    copy_m4_m4(target_mat, ct->matrix);
+
+    /* Remove the shear of the target matrix if enabled.
+     * Use Y as the axis since it's the natural default for bones. */
+    if (data->flag & TRANSLIKE_REMOVE_TARGET_SHEAR) {
+      orthogonalize_m4_stable(target_mat, 1, false);
+    }
+
+    /* Finally, combine the matrices. */
     switch (data->mix_mode) {
       case TRANSLIKE_MIX_REPLACE:
-        copy_m4_m4(cob->matrix, ct->matrix);
+        copy_m4_m4(cob->matrix, target_mat);
         break;
 
+      /* Simple matrix multiplication. */
+      case TRANSLIKE_MIX_BEFORE_FULL:
+        mul_m4_m4m4(cob->matrix, target_mat, cob->matrix);
+        break;
+
+      case TRANSLIKE_MIX_AFTER_FULL:
+        mul_m4_m4m4(cob->matrix, cob->matrix, target_mat);
+        break;
+
+      /* Aligned Inherit Scale emulation. */
       case TRANSLIKE_MIX_BEFORE:
-        mul_m4_m4m4_aligned_scale(cob->matrix, ct->matrix, cob->matrix);
+        mul_m4_m4m4_aligned_scale(cob->matrix, target_mat, cob->matrix);
         break;
 
       case TRANSLIKE_MIX_AFTER:
-        mul_m4_m4m4_aligned_scale(cob->matrix, cob->matrix, ct->matrix);
+        mul_m4_m4m4_aligned_scale(cob->matrix, cob->matrix, target_mat);
+        break;
+
+      /* Fully separate handling of channels. */
+      case TRANSLIKE_MIX_BEFORE_SPLIT:
+        mul_m4_m4m4_split_channels(cob->matrix, target_mat, cob->matrix);
+        break;
+
+      case TRANSLIKE_MIX_AFTER_SPLIT:
+        mul_m4_m4m4_split_channels(cob->matrix, cob->matrix, target_mat);
         break;
 
       default:
