@@ -2149,19 +2149,10 @@ static void ui_handle_panel_header(const bContext *C,
       }
     }
 
-    if (UI_panel_is_closed(panel)) {
-      panel->flag &= ~PNL_CLOSED;
+    SET_FLAG_FROM_TEST(panel->flag, !UI_panel_is_closed(panel), PNL_CLOSED);
 
-      if (event_type == LEFTMOUSE) {
-        ui_panel_drag_collapse_handler_add(C, false);
-      }
-    }
-    else {
-      panel->flag |= PNL_CLOSED;
-
-      if (event_type == LEFTMOUSE) {
-        ui_panel_drag_collapse_handler_add(C, true);
-      }
+    if (event_type == LEFTMOUSE) {
+      ui_panel_drag_collapse_handler_add(C, UI_panel_is_closed(panel));
     }
 
     set_panels_list_data_expand_flag(C, region);
