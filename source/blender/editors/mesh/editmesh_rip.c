@@ -880,6 +880,7 @@ static int edbm_rip_invoke__edge(bContext *C, const wmEvent *event, Object *obed
   BMLoop *l;
   BMEdge *e_best;
   BMVert *v;
+  const int totvert_orig = bm->totvert;
   const int totedge_orig = bm->totedge;
   float projectMat[4][4], fmval[3] = {event->mval[0], event->mval[1]};
 
@@ -988,7 +989,7 @@ static int edbm_rip_invoke__edge(bContext *C, const wmEvent *event, Object *obed
     MEM_freeN(fill_uloop_pairs);
   }
 
-  if (totedge_orig == bm->totedge) {
+  if ((totvert_orig == bm->totvert) && (totedge_orig == bm->totedge)) {
     return OPERATOR_CANCELLED;
   }
 
