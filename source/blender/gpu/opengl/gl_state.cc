@@ -421,6 +421,13 @@ void GLStateManager::set_blend(const eGPUBlend value)
       dst_alpha = GL_SRC_ALPHA;
       break;
     }
+    case GPU_BLEND_ALPHA_UNDER_PREMUL: {
+      src_rgb = GL_ONE_MINUS_DST_ALPHA;
+      dst_rgb = GL_ONE;
+      src_alpha = GL_ONE_MINUS_DST_ALPHA;
+      dst_alpha = GL_ONE;
+      break;
+    }
     case GPU_BLEND_CUSTOM: {
       src_rgb = GL_ONE;
       dst_rgb = GL_SRC1_COLOR;
