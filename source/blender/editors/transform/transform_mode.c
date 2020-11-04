@@ -532,13 +532,17 @@ void headerRotation(TransInfo *t, char str[UI_MAX_DRAW_STR], float final)
 
     outputNumInput(&(t->num), c, &t->scene->unit);
 
-    ofs += BLI_snprintf(
-        str + ofs, UI_MAX_DRAW_STR - ofs, TIP_("Rot: %s %s %s"), &c[0], t->con.text, t->proptext);
+    ofs += BLI_snprintf(str + ofs,
+                        UI_MAX_DRAW_STR - ofs,
+                        TIP_("Rotation: %s %s %s"),
+                        &c[0],
+                        t->con.text,
+                        t->proptext);
   }
   else {
     ofs += BLI_snprintf(str + ofs,
                         UI_MAX_DRAW_STR - ofs,
-                        TIP_("Rot: %.2f%s %s"),
+                        TIP_("Rotation: %.2f%s %s"),
                         RAD2DEGF(final),
                         t->con.text,
                         t->proptext);
