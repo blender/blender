@@ -652,7 +652,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
 
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
 
-  if (lb->first) {
+  if (!ss->bm && lb->first) {
     unode = lb->first;
     if (unode->type == SCULPT_UNDO_FACE_SETS) {
       sculpt_undo_restore_face_sets(C, unode);
@@ -878,6 +878,7 @@ static void sculpt_undo_free_list(ListBase *lb)
 
     if (unode->bm_entry) {
       BM_log_entry_drop(unode->bm_entry);
+      unode->bm_entry = NULL;
     }
 
     sculpt_undo_geometry_free_data(&unode->geometry_original);
@@ -1277,11 +1278,21 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
 #endif
         break;
       }
+      case SCULPT_UNDO_FACE_SETS: {
+        TableGSet *faces = BKE_pbvh_bmesh_node_faces(node);
+        BMFace *f;
+
+        TGSET_ITER (f, faces) {
+          BM_log_face_modified(ss->bm_log, f);
+        }
+        TGSET_ITER_END
+
+        break;
+      }
       case SCULPT_UNDO_DYNTOPO_BEGIN:
       case SCULPT_UNDO_DYNTOPO_END:
       case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
       case SCULPT_UNDO_GEOMETRY:
-      case SCULPT_UNDO_FACE_SETS:
         break;
     }
   }
@@ -1293,16 +1304,22 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
   return unode;
 }
 
-bool SCULPT_ensure_dyntopo_node_undo(Object *ob, PBVHNode *node, SculptUndoType type)
+bool SCULPT_ensure_dyntopo_node_undo(Object *ob, PBVHNode *node, SculptUndoType type, int extraType)
 {
   SculptSession *ss = ob->sculpt;
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
   SculptUndoNode *unode = usculpt->nodes.first;
 
   if (!unode || unode->type != type) {
-    sculpt_undo_bmesh_push(ob, node, type);
-    SCULPT_ensure_dyntopo_node_undo(ob, node, type);
-    return true;
+    unode = sculpt_undo_alloc_node_type(ob, type);
+
+    BLI_strncpy(unode->idname, ob->id.name, sizeof(unode->idname));
+
+    unode->type = type;
+    unode->applied = true;
+    unode->bm_entry = BM_log_entry_add(ss->bm, ss->bm_log);
+
+    return SCULPT_ensure_dyntopo_node_undo(ob, node, type, extraType);
   }
 
   int n = BKE_pbvh_get_node_index(ss->pbvh, node);
@@ -1326,6 +1343,10 @@ bool SCULPT_ensure_dyntopo_node_undo(Object *ob, PBVHNode *node, SculptUndoType 
 
   unode->nodemap[n] = 1;
   sculpt_undo_bmesh_push(ob, node, type);
+
+  if (extraType >= 0) {
+    sculpt_undo_bmesh_push(ob, node, extraType);
+  }
 
   return true;
 }

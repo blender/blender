@@ -845,11 +845,8 @@ static PBVHNode *pbvh_iter_next_occluded(PBVHIter *iter)
   return NULL;
 }
 
-void BKE_pbvh_search_gather(PBVH *pbvh,
-                            BKE_pbvh_SearchCallback scb,
-                            void *search_data,
-                            PBVHNode ***r_array,
-                            int *r_tot)
+void BKE_pbvh_search_gather(
+    PBVH *pbvh, BKE_pbvh_SearchCallback scb, void *search_data, PBVHNode ***r_array, int *r_tot)
 {
   PBVHIter iter;
   PBVHNode **array = NULL, *node;
@@ -1337,7 +1334,9 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                       node->bm_unique_verts,
                                       node->bm_other_verts,
                                       update_flags,
-                                      pbvh->cd_vert_node_offset);
+                                      pbvh->cd_vert_node_offset,
+                                      pbvh->face_sets_color_seed,
+                                      pbvh->face_sets_color_default);
         break;
     }
   }
@@ -2175,7 +2174,7 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
                                     struct IsectRayPrecalc *isect_precalc,
                                     float *depth,
                                     SculptVertRef *r_active_vertex_index,
-                                    int *r_active_face_index,
+                                    SculptFaceRef *r_active_face_index,
                                     float *r_face_normal)
 {
   const MVert *vert = pbvh->verts;
@@ -2225,7 +2224,7 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
               len_squared_v3v3(location, co[j]) < len_squared_v3v3(location, nearest_vertex_co)) {
             copy_v3_v3(nearest_vertex_co, co[j]);
             *r_active_vertex_index = BKE_pbvh_make_vref(mloop[lt->tri[j]].v);
-            *r_active_face_index = lt->poly;
+            r_active_face_index->i = lt->poly;
           }
         }
       }
@@ -2243,7 +2242,7 @@ static bool pbvh_grids_node_raycast(PBVH *pbvh,
                                     struct IsectRayPrecalc *isect_precalc,
                                     float *depth,
                                     SculptVertRef *r_active_vertex_index,
-                                    int *r_active_grid_index,
+                                    SculptFaceRef *r_active_grid_index,
                                     float *r_face_normal)
 {
   const int totgrid = node->totprim;
@@ -2316,7 +2315,7 @@ static bool pbvh_grids_node_raycast(PBVH *pbvh,
             }
           }
           if (r_active_grid_index) {
-            *r_active_grid_index = grid_index;
+            r_active_grid_index->i = grid_index;
           }
         }
       }
@@ -2339,7 +2338,7 @@ bool BKE_pbvh_node_raycast(PBVH *pbvh,
                            struct IsectRayPrecalc *isect_precalc,
                            float *depth,
                            SculptVertRef *active_vertex_index,
-                           int *active_face_grid_index,
+                           SculptFaceRef *active_face_grid_index,
                            float *face_normal)
 {
   bool hit = false;
@@ -2382,6 +2381,7 @@ bool BKE_pbvh_node_raycast(PBVH *pbvh,
                                     depth,
                                     use_origco,
                                     active_vertex_index,
+                                    active_face_grid_index,
                                     face_normal);
       break;
   }
@@ -3092,7 +3092,7 @@ bool pbvh_has_face_sets(PBVH *pbvh)
     case PBVH_FACES:
       return (pbvh->pdata && CustomData_get_layer(pbvh->pdata, CD_SCULPT_FACE_SETS));
     case PBVH_BMESH:
-      return false;
+      return (pbvh->bm && CustomData_get_layer(&pbvh->bm->pdata, CD_SCULPT_FACE_SETS));
   }
 
   return false;
@@ -3153,7 +3153,8 @@ void BKE_pbvh_respect_hide_set(PBVH *pbvh, bool respect_hide)
   pbvh->respect_hide = respect_hide;
 }
 
-int BKE_pbvh_get_node_index(PBVH *pbvh, PBVHNode *node) {
+int BKE_pbvh_get_node_index(PBVH *pbvh, PBVHNode *node)
+{
   return (int)(node - pbvh->nodes);
 }
 

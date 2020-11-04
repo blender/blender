@@ -340,13 +340,18 @@ int SCULPT_active_face_set_get(SculptSession *ss)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
-      return ss->face_sets[ss->active_face_index];
+      return ss->face_sets[ss->active_face_index.i];
     case PBVH_GRIDS: {
       const int face_index = BKE_subdiv_ccg_grid_to_face_index(ss->subdiv_ccg,
                                                                ss->active_grid_index);
       return ss->face_sets[face_index];
     }
     case PBVH_BMESH:
+      if (ss->cd_faceset_offset && ss->active_face_index.i) {
+        BMFace *f = (BMFace *)ss->active_face_index.i;
+        return BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
+      }
+
       return SCULPT_FACE_SET_NONE;
   }
   return SCULPT_FACE_SET_NONE;
@@ -403,8 +408,28 @@ void SCULPT_face_set_visibility_set(SculptSession *ss, int face_set, bool visibl
         }
       }
       break;
-    case PBVH_BMESH:
+    case PBVH_BMESH: {
+      BMIter iter;
+      BMFace *f;
+
+      BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
+        int fset = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
+
+        if (abs(fset) != face_set) {
+          continue;
+        }
+
+        if (visible) {
+          fset = abs(fset);
+        }
+        else {
+          fset = -abs(fset);
+        }
+
+        BM_ELEM_CD_SET_INT(f, ss->cd_faceset_offset, fset);
+      }
       break;
+    }
   }
 }
 
@@ -417,8 +442,19 @@ void SCULPT_face_sets_visibility_invert(SculptSession *ss)
         ss->face_sets[i] *= -1;
       }
       break;
-    case PBVH_BMESH:
+    case PBVH_BMESH: {
+      BMIter iter;
+      BMFace *f;
+
+      BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
+        int fset = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
+
+        fset = -fset;
+
+        BM_ELEM_CD_SET_INT(f, ss->cd_faceset_offset, fset);
+      }
       break;
+    }
   }
 }
 
@@ -444,8 +480,44 @@ void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool visible)
         }
       }
       break;
-    case PBVH_BMESH:
+    case PBVH_BMESH: {
+      BMIter iter;
+      BMFace *f;
+
+      if (!ss->bm) {
+        return;
+      }
+
+      // paranoia check of cd_faceset_offset
+      if (ss->cd_faceset_offset < 0) {
+        ss->cd_faceset_offset = CustomData_get_offset(&ss->bm->pdata, CD_SCULPT_FACE_SETS);
+      }
+      if (ss->cd_faceset_offset < 0) {
+        return;
+      }
+
+      BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
+        int fset = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
+
+        /* This can run on geometry without a face set assigned, so its ID sign can't be changed to
+         * modify the visibility. Force that geometry to the ID 1 to enable changing the visibility
+         * here. */
+
+        if (fset == SCULPT_FACE_SET_NONE) {
+          fset = 1;
+        }
+
+        if (visible) {
+          fset = abs(fset);
+        }
+        else {
+          fset = -abs(fset);
+        }
+
+        BM_ELEM_CD_SET_INT(f, ss->cd_faceset_offset, fset);
+      }
       break;
+    }
   }
 }
 
@@ -461,8 +533,20 @@ bool SCULPT_vertex_any_face_set_visible_get(SculptSession *ss, SculptVertRef ind
       }
       return false;
     }
-    case PBVH_BMESH:
-      return true;
+    case PBVH_BMESH: {
+      BMIter iter;
+      BMLoop *l;
+      BMVert *v = (BMVert *)index.i;
+
+      BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
+        int fset = BM_ELEM_CD_GET_INT(l->f, ss->cd_faceset_offset);
+        if (fset >= 0) {
+          return true;
+        }
+      }
+
+      return false;
+    }
     case PBVH_GRIDS:
       return true;
   }
@@ -481,8 +565,20 @@ bool SCULPT_vertex_all_face_sets_visible_get(const SculptSession *ss, SculptVert
       }
       return true;
     }
-    case PBVH_BMESH:
+    case PBVH_BMESH: {
+      BMIter iter;
+      BMLoop *l;
+      BMVert *v = (BMVert *)index.i;
+
+      BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
+        int fset = BM_ELEM_CD_GET_INT(l->f, ss->cd_faceset_offset);
+        if (fset < 0) {
+          return false;
+        }
+      }
+
       return true;
+    }
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
       const int grid_index = index.i / key->grid_area;
@@ -504,8 +600,20 @@ void SCULPT_vertex_face_set_set(SculptSession *ss, SculptVertRef index, int face
         }
       }
     } break;
-    case PBVH_BMESH:
+    case PBVH_BMESH: {
+      BMIter iter;
+      BMLoop *l;
+      BMVert *v = (BMVert *)index.i;
+
+      BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
+        int fset = BM_ELEM_CD_GET_INT(l->f, ss->cd_faceset_offset);
+        if (fset >= 0) {
+          BM_ELEM_CD_SET_INT(l->f, ss->cd_faceset_offset, abs(face_set));
+        }
+      }
+
       break;
+    }
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
       const int grid_index = index.i / key->grid_area;
@@ -531,8 +639,23 @@ int SCULPT_vertex_face_set_get(SculptSession *ss, SculptVertRef index)
       }
       return face_set;
     }
-    case PBVH_BMESH:
-      return 0;
+    case PBVH_BMESH: {
+      BMIter iter;
+      BMLoop *l;
+      BMVert *v = (BMVert *)index.i;
+      int ret = -1;
+
+      BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
+        int fset = BM_ELEM_CD_GET_INT(l->f, ss->cd_faceset_offset);
+        fset = abs(fset);
+
+        if (fset > ret) {
+          ret = fset;
+        }
+      }
+
+      return ret < 0 ? 0 : ret;
+    }
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
       const int grid_index = index.i / key->grid_area;
@@ -555,8 +678,25 @@ bool SCULPT_vertex_has_face_set(SculptSession *ss, SculptVertRef index, int face
       }
       return false;
     }
-    case PBVH_BMESH:
-      return true;
+    case PBVH_BMESH: {
+      BMIter iter;
+      BMLoop *l;
+      BMVert *v = (BMVert *)index.i;
+
+      if (ss->cd_faceset_offset == -1) {
+        return false;
+      }
+
+      BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
+        BMFace *f = l->f;
+
+        if (abs(BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset)) == abs(face_set)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
       const int grid_index = index.i / key->grid_area;
@@ -581,8 +721,44 @@ void SCULPT_visibility_sync_all_face_sets_to_vertices(Object *ob)
       BKE_sculpt_sync_face_sets_visibility_to_grids(mesh, ss->subdiv_ccg);
       break;
     }
-    case PBVH_BMESH:
+    case PBVH_BMESH: {
+      BMIter iter;
+      BMFace *f;
+      BMVert *v;
+
+      BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
+        int fset = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
+
+        if (fset < 0) {
+          BM_elem_flag_enable(f, BM_ELEM_HIDDEN);
+        }
+        else {
+          BM_elem_flag_disable(f, BM_ELEM_HIDDEN);
+        }
+      }
+
+      BM_ITER_MESH (v, &iter, ss->bm, BM_VERTS_OF_MESH) {
+        BMIter iter2;
+        BMLoop *l;
+
+        int visible = false;
+
+        BM_ITER_ELEM (l, &iter2, v, BM_LOOPS_OF_VERT) {
+          if (!BM_elem_flag_test(l->f, BM_ELEM_HIDDEN)) {
+            visible = true;
+            break;
+          }
+        }
+
+        if (!visible) {
+          BM_elem_flag_enable(v, BM_ELEM_HIDDEN);
+        }
+        else {
+          BM_elem_flag_disable(v, BM_ELEM_HIDDEN);
+        }
+      }
       break;
+    }
   }
 }
 
@@ -606,22 +782,58 @@ static void UNUSED_FUNCTION(sculpt_visibility_sync_vertex_to_face_sets)(SculptSe
 
 void SCULPT_visibility_sync_all_vertex_to_face_sets(SculptSession *ss)
 {
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
-    for (int i = 0; i < ss->totfaces; i++) {
-      MPoly *poly = &ss->mpoly[i];
-      bool poly_visible = true;
-      for (int l = 0; l < poly->totloop; l++) {
-        MLoop *loop = &ss->mloop[poly->loopstart + l];
-        if (!SCULPT_vertex_visible_get(ss, BKE_pbvh_make_vref(loop->v))) {
-          poly_visible = false;
+  switch (BKE_pbvh_type(ss->pbvh)) {
+    case PBVH_FACES: {
+      for (int i = 0; i < ss->totfaces; i++) {
+        MPoly *poly = &ss->mpoly[i];
+        bool poly_visible = true;
+        for (int l = 0; l < poly->totloop; l++) {
+          MLoop *loop = &ss->mloop[poly->loopstart + l];
+          if (!SCULPT_vertex_visible_get(ss, BKE_pbvh_make_vref(loop->v))) {
+            poly_visible = false;
+          }
+        }
+        if (poly_visible) {
+          ss->face_sets[i] = abs(ss->face_sets[i]);
+        }
+        else {
+          ss->face_sets[i] = -abs(ss->face_sets[i]);
         }
       }
-      if (poly_visible) {
-        ss->face_sets[i] = abs(ss->face_sets[i]);
+      break;
+    }
+    case PBVH_BMESH: {
+      BMIter iter;
+      BMFace *f;
+
+      if (!ss->bm) {
+        return;
       }
-      else {
-        ss->face_sets[i] = -abs(ss->face_sets[i]);
+
+      BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
+        BMLoop *l = f->l_first;
+        bool visible = true;
+
+        do {
+          if (BM_elem_flag_test(l->v, BM_ELEM_HIDDEN)) {
+            visible = false;
+            break;
+          }
+          l = l->next;
+        } while (l != f->l_first);
+
+        int fset = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
+        if (visible) {
+          fset = abs(fset);
+        }
+        else {
+          fset = -abs(fset);
+        }
+
+        BM_ELEM_CD_SET_INT(f, ss->cd_faceset_offset, fset);
       }
+
+      break;
     }
   }
 }
@@ -683,8 +895,31 @@ bool SCULPT_vertex_has_unique_face_set(SculptSession *ss, SculptVertRef index)
     case PBVH_FACES: {
       return sculpt_check_unique_face_set_in_base_mesh(ss, index);
     }
-    case PBVH_BMESH:
-      return false;
+    case PBVH_BMESH: {
+      BMIter iter;
+      BMLoop *l;
+      BMVert *v = (BMVert *)index.i;
+      int face_set = 0;
+      bool first = true;
+
+      if (ss->cd_faceset_offset == -1) {
+        return false;
+      }
+
+      BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
+        BMFace *f = l->f;
+        int face_set2 = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
+
+        if (!first && abs(face_set2) != abs(face_set)) {
+          return false;
+        }
+
+        first = false;
+        face_set = face_set2;
+      }
+
+      return !first;
+    }
     case PBVH_GRIDS: {
       const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
       const int grid_index = index.i / key->grid_area;
@@ -722,8 +957,24 @@ int SCULPT_face_set_next_available_get(SculptSession *ss)
       next_face_set++;
       return next_face_set;
     }
-    case PBVH_BMESH:
-      return 0;
+    case PBVH_BMESH: {
+      int next_face_set = 0;
+      BMIter iter;
+      BMFace *f;
+      if (!ss->cd_faceset_offset) {
+        return 0;
+      }
+
+      BM_ITER_MESH (f, &iter, ss->bm, BM_FACES_OF_MESH) {
+        int fset = abs(BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset));
+        if (fset > next_face_set) {
+          next_face_set = fset;
+        }
+      }
+
+      next_face_set++;
+      return next_face_set;
+    }
   }
   return 0;
 }
@@ -2930,7 +3181,7 @@ typedef struct {
   SculptVertRef active_vertex_index;
   float *face_normal;
 
-  int active_face_grid_index;
+  SculptFaceRef active_face_grid_index;
 
   struct IsectRayPrecalc isect_precalc;
 } SculptRaycastData;
@@ -5864,9 +6115,7 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
   if (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS &&
       SCULPT_stroke_is_first_brush_step(ss->cache) && !ss->cache->alt_smooth) {
 
-    /* Dynamic-topology does not support Face Sets data, so it can't store/restore it from undo. */
-    /* TODO(pablodp606): This check should be done in the undo code and not here, but the rest of
-     * the sculpt code is not checking for unsupported undo types that may return a null node. */
+    // faceset undo node is created below for pbvh_bmesh
     if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
       SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_FACE_SETS);
     }
@@ -5893,17 +6142,30 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush, UnifiedPaintSe
     };
 
     // dyntopo can't push undo nodes inside a thread
-    if (ss->bm && ELEM(brush->sculpt_tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
-      for (int i = 0; i < totnode; i++) {
-        if (SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COLOR)) {
-          BKE_pbvh_update_origcolor_bmesh(ss->pbvh, nodes[i]);
+    if (ss->bm) {
+      if (ELEM(brush->sculpt_tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
+        for (int i = 0; i < totnode; i++) {
+          if (SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COLOR, -1)) {
+            BKE_pbvh_update_origcolor_bmesh(ss->pbvh, nodes[i]);
+          }
+          // SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_COLOR);
         }
-       // SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_COLOR);
       }
-    }
-    else if (ss->bm) {
-      for (int i = 0; i < totnode; i++) {
-        SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COORDS);
+      else if (brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS) {
+        for (int i = 0; i < totnode; i++) {
+          if (ss->cache->alt_smooth) {
+            SCULPT_ensure_dyntopo_node_undo(
+                ob, nodes[i], SCULPT_UNDO_FACE_SETS, SCULPT_UNDO_COORDS);
+          }
+          else {
+            SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_FACE_SETS, -1);
+          }
+        }
+      }
+      else if (ss->bm) {
+        for (int i = 0; i < totnode; i++) {
+          SCULPT_ensure_dyntopo_node_undo(ob, nodes[i], SCULPT_UNDO_COORDS, -1);
+        }
       }
     }
 
@@ -7430,11 +7692,11 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
       ss->active_grid_index = 0;
       break;
     case PBVH_GRIDS:
-      ss->active_face_index = 0;
-      ss->active_grid_index = srd.active_face_grid_index;
+      ss->active_face_index.i = 0;
+      ss->active_grid_index = srd.active_face_grid_index.i;
       break;
     case PBVH_BMESH:
-      ss->active_face_index = 0;
+      ss->active_face_index = srd.active_face_grid_index;
       ss->active_grid_index = 0;
       break;
   }

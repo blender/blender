@@ -220,6 +220,7 @@ void SCULPT_dyntopo_node_layers_add(SculptSession *ss)
       cd_face_node_layer_index - CustomData_get_layer_index(&ss->bm->pdata, CD_PROP_INT32));
 
   ss->bm->pdata.layers[cd_face_node_layer_index].flag |= CD_FLAG_TEMPORARY;
+  ss->cd_faceset_offset = CustomData_get_offset(&ss->bm->pdata, CD_SCULPT_FACE_SETS);
 
   SCULPT_dyntopo_save_origverts(ss);
 }
@@ -435,16 +436,6 @@ static void SCULPT_dynamic_topology_disable_ex(
   }
   else {
     BKE_sculptsession_bm_to_me(ob, true);
-
-    /* Reset Face Sets as they are no longer valid. */
-    if (!CustomData_has_layer(&me->pdata, CD_SCULPT_FACE_SETS)) {
-      CustomData_add_layer(&me->pdata, CD_SCULPT_FACE_SETS, CD_CALLOC, NULL, me->totpoly);
-    }
-    ss->face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
-    for (int i = 0; i < me->totpoly; i++) {
-      ss->face_sets[i] = 1;
-    }
-    me->face_sets_color_default = 1;
 
     /* Sync the visibility to vertices manually as the pmap is still not initialized. */
     for (int i = 0; i < me->totvert; i++) {

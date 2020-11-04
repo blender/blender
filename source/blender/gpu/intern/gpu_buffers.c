@@ -949,7 +949,6 @@ void GPU_pbvh_update_attribute_names(CustomData *vdata, CustomData *ldata)
 
       DRW_make_cdlayer_attr_aliases(&g_vbo_id.format, "u", ldata, cl);
     }
-
   }
 }
 
@@ -962,15 +961,21 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                    TableGSet *bm_unique_verts,
                                    TableGSet *bm_other_verts,
                                    const int update_flags,
-                                   const int cd_vert_node_offset)
+                                   const int cd_vert_node_offset,
+                                   int face_sets_color_seed,
+                                   int face_sets_color_default)
 {
   const bool have_uv = CustomData_has_layer(&bm->ldata, CD_MLOOPUV);
   const bool show_mask = (update_flags & GPU_PBVH_BUFFERS_SHOW_MASK) != 0;
   const bool show_vcol = (update_flags & GPU_PBVH_BUFFERS_SHOW_VCOL) != 0;
+  const bool show_face_sets = CustomData_has_layer(&bm->pdata, CD_SCULPT_FACE_SETS) &&
+                              (update_flags & GPU_PBVH_BUFFERS_SHOW_SCULPT_FACE_SETS) != 0;
+
   int tottri, totvert;
   bool empty_mask = true;
   BMFace *f = NULL;
   int cd_vcol_offset = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
+  int cd_fset_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
 
   /* Count visible triangles */
   tottri = gpu_bmesh_face_visible_count(bm_faces);
@@ -1000,6 +1005,8 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
   const int cd_mcol_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPCOL);
   const int cd_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 
+  bool default_face_set = true;
+
   /* Fill vertex buffer */
   if (!gpu_pbvh_vert_buf_data_set(buffers, totvert)) {
     /* Memory map failed */
@@ -1008,6 +1015,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
 
   int v_index = 0;
 
+  //disable shared vertex mode for now
   if (buffers->smooth && 0) {
     /* Fill the vertex and triangle buffer in one pass over faces. */
     GPUIndexBufBuilder elb, elb_lines;
@@ -1097,6 +1105,18 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
         GPU_indexbuf_add_line_verts(&elb_lines, v_index + 1, v_index + 2);
         GPU_indexbuf_add_line_verts(&elb_lines, v_index + 2, v_index + 0);
 
+        uchar face_set_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
+
+        if (show_face_sets && cd_fset_offset >= 0) {
+          const int fset = BM_ELEM_CD_GET_INT(f, cd_fset_offset);
+
+          /* Skip for the default color Face Set to render it white. */
+          if (fset != face_sets_color_default) {
+            BKE_paint_face_set_overlay_color_get(fset, face_sets_color_seed, face_set_color);
+            default_face_set = false;
+          }
+        }
+
         for (i = 0; i < 3; i++) {
           float *no = buffers->smooth ? v[i]->no : f->no;
 
@@ -1143,6 +1163,8 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
             GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.uv, v_index, mu->uv);
           }
 
+          GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.fset, v_index, face_set_color);
+
           v_index++;
         }
       }
@@ -1156,7 +1178,7 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
   /* Get material index from the last face we iterated on. */
   buffers->material_index = (f) ? f->mat_nr : 0;
 
-  buffers->show_overlay = !empty_mask;
+  buffers->show_overlay = !empty_mask || !default_face_set;
 
   gpu_pbvh_batch_init(buffers, GPU_PRIM_TRIS);
 }

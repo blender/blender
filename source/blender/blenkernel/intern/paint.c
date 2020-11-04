@@ -1737,15 +1737,16 @@ void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
   SCULPT_dynamic_topology_sync_layers(object, orig_me);
 }
 
-/** \warning Expects a fully evaluated depsgraph. */
 void BKE_sculpt_update_object_for_edit(
     Depsgraph *depsgraph, Object *ob_orig, bool need_pmap, bool need_mask, bool need_colors)
 {
-  BLI_assert(ob_orig == DEG_get_original_object(ob_orig));
-
+  /* Update from sculpt operators and undo, to update sculpt session
+   * and PBVH after edits. */
+  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_orig);
-  Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
-  BLI_assert(me_eval != NULL);
+  Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
+
+  BLI_assert(ob_orig == DEG_get_original_object(ob_orig));
 
   sculpt_update_object(depsgraph, ob_orig, me_eval, need_pmap, need_mask, need_colors);
 }

@@ -46,7 +46,7 @@ struct PBVH;
 struct SubdivCCG;
 struct CustomData;
 
-    /* Buffers for drawing from PBVH grids. */
+/* Buffers for drawing from PBVH grids. */
 typedef struct GPU_PBVH_Buffers GPU_PBVH_Buffers;
 
 /* Build must be called once before using the other functions, used every time
@@ -94,7 +94,9 @@ void GPU_pbvh_bmesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                    struct TableGSet *bm_unique_verts,
                                    struct TableGSet *bm_other_verts,
                                    const int update_flags,
-                                   const int cd_vert_node_offset);
+                                   const int cd_vert_node_offset,
+                                   int face_sets_color_seed,
+                                   int face_sets_color_default);
 
 void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
                                   struct SubdivCCG *subdiv_ccg,

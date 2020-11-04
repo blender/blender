@@ -2061,10 +2061,11 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
   /* Move v_conn to the midpoint of v_conn and v_del (if v_conn still exists, it
    * may have been deleted above) */
   if (v_conn != NULL) {
-    //log vert in bmlog, but don't update original customata layers, we want them to be interpolated
+    // log vert in bmlog, but don't update original customata layers, we want them to be
+    // interpolated
     BM_log_vert_before_modified(pbvh->bm_log, v_conn, eq_ctx->cd_vert_mask_offset, true);
-    //void *dummy;
-    //BKE_pbvh_bmesh_update_origvert(pbvh, v_conn, &dummy, &dummy, &dummy);
+    // void *dummy;
+    // BKE_pbvh_bmesh_update_origvert(pbvh, v_conn, &dummy, &dummy, &dummy);
 
     mid_v3_v3v3(v_conn->co, v_conn->co, v_del->co);
     add_v3_v3(v_conn->no, v_del->no);
@@ -2223,6 +2224,7 @@ bool pbvh_bmesh_node_raycast(PBVHNode *node,
                              float *depth,
                              bool use_original,
                              SculptVertRef *r_active_vertex_index,
+                             SculptFaceRef *r_active_face_index,
                              float *r_face_normal)
 {
   bool hit = false;
@@ -2270,6 +2272,10 @@ bool pbvh_bmesh_node_raycast(PBVHNode *node,
             if (r_active_vertex_index) {
               *r_active_vertex_index = BKE_pbvh_make_vref((intptr_t)l->v);
             }
+
+            if (r_active_face_index) {
+              *r_active_face_index = BKE_pbvh_make_fref((intptr_t)l->f);
+            }
           }
         }
       }
@@ -2305,6 +2311,10 @@ bool pbvh_bmesh_node_raycast(PBVHNode *node,
                 copy_v3_v3(nearest_vertex_co, v_tri[j]->co);
                 SculptVertRef vref = {(intptr_t)v_tri[j]};  // BM_elem_index_get(v_tri[j]);
                 *r_active_vertex_index = vref;
+
+                if (r_active_face_index) {
+                  *r_active_face_index = BKE_pbvh_make_fref((intptr_t)f);
+                }
               }
             }
           }
@@ -2656,6 +2666,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   pbvh->type = PBVH_BMESH;
   pbvh->bm_log = log;
   pbvh->cd_vcol_offset = CustomData_get_offset(&bm->vdata, CD_PROP_COLOR);
+  pbvh->cd_faceset_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
 
   /* TODO: choose leaf limit better */
   pbvh->leaf_limit = 1000;
@@ -3567,6 +3578,7 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
   pbvh->cd_origco_offset = cd_origco_offset;
   pbvh->cd_origno_offset = cd_origno_offset;
   pbvh->cd_origvcol_offset = cd_origvcol_offset;
+  pbvh->cd_faceset_offset = CustomData_get_offset(&pbvh->bm->pdata, CD_SCULPT_FACE_SETS);
 }
 
 static void scan_edge_collapse(PBVHNode **nodes)

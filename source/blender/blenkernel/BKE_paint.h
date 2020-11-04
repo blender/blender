@@ -479,6 +479,8 @@ typedef struct SculptSession {
   int cd_vert_node_offset;
   int cd_face_node_offset;
   int cd_vcol_offset;
+  int cd_faceset_offset;
+
   bool bm_smooth_shading;
   /* Undo/redo log for dynamic topology sculpting */
   struct BMLog *bm_log;
@@ -506,8 +508,8 @@ typedef struct SculptSession {
 
   /* Cursor data and active vertex for tools */
   SculptVertRef active_vertex_index;
+  SculptFaceRef active_face_index;
 
-  int active_face_index;
   int active_grid_index;
 
   /* When active, the cursor draws with faded colors, indicating that there is an action enabled.

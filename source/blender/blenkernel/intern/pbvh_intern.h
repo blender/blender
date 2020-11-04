@@ -181,6 +181,7 @@ struct PBVH {
   int cd_origco_offset;
   int cd_origno_offset;
   int cd_origvcol_offset;
+  int cd_faceset_offset;
 
   float planes[6][4];
   int num_planes;
@@ -236,6 +237,7 @@ bool pbvh_bmesh_node_raycast(PBVHNode *node,
                              float *dist,
                              bool use_original,
                              SculptVertRef *r_active_vertex_index,
+                             SculptFaceRef *r_active_face_index,
                              float *r_face_normal);
 bool pbvh_bmesh_node_nearest_to_ray(PBVHNode *node,
                                     const float ray_start[3],

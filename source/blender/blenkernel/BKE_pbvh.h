@@ -37,9 +37,17 @@ typedef struct {
   int64_t i;
 } SculptVertRef;
 
+typedef SculptVertRef SculptFaceRef;
+
 BLI_INLINE SculptVertRef BKE_pbvh_make_vref(intptr_t i)
 {
   SculptVertRef ret = {i};
+  return ret;
+}
+
+BLI_INLINE SculptFaceRef BKE_pbvh_make_fref(intptr_t i)
+{
+  SculptFaceRef ret = {i};
   return ret;
 }
 
@@ -267,7 +275,7 @@ bool BKE_pbvh_node_raycast(PBVH *pbvh,
                            struct IsectRayPrecalc *isect_precalc,
                            float *depth,
                            SculptVertRef *active_vertex_index,
-                           int *active_face_grid_index,
+                           SculptFaceRef *active_face_grid_index,
                            float *face_normal);
 
 bool BKE_pbvh_bmesh_node_raycast_detail(PBVHNode *node,

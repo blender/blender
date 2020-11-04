@@ -1164,4 +1164,5 @@ void SCULPT_OT_set_detail_size(struct wmOperatorType *ot);
 void SCULPT_OT_dynamic_topology_toggle(struct wmOperatorType *ot);
 bool SCULPT_ensure_dyntopo_node_undo(struct Object *ob,
                                      struct PBVHNode *node,
-                                     SculptUndoType type);
+                                     SculptUndoType type,
+                                     int extraType);

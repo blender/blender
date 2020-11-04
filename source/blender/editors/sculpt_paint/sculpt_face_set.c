@@ -23,6 +23,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.h"
 #include "BLI_blenlib.h"
 #include "BLI_hash.h"
 #include "BLI_math.h"
@@ -131,6 +132,7 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
+  const int active_fset = abs(ss->cache->paint_face_set);
 
   BKE_pbvh_vertex_iter_begin(ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE)
   {
@@ -159,7 +161,34 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
         }
       }
     }
+    else if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
+      BMVert *v = vd.bm_vert;
+      BMIter iter;
+      BMFace *f;
 
+      BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {
+        float poly_center[3];
+        BM_face_calc_center_median(f, poly_center);
+
+        if (sculpt_brush_test_sq_fn(&test, poly_center)) {
+          const float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                                      brush,
+                                                                      vd.co,
+                                                                      sqrtf(test.dist),
+                                                                      vd.no,
+                                                                      vd.fno,
+                                                                      vd.mask ? *vd.mask : 0.0f,
+                                                                      vd.vertex,
+                                                                      thread_id);
+
+          int fset = BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset);
+
+          if (fade > 0.05f && fset > 0) {
+            BM_ELEM_CD_SET_INT(f, ss->cd_faceset_offset, active_fset);
+          }
+        }
+      }
+    }
     else if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
       {
         if (sculpt_brush_test_sq_fn(&test, vd.co)) {
@@ -1060,12 +1089,60 @@ static EnumPropertyItem prop_sculpt_face_sets_edit_types[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+static void sculpt_face_set_grow_bmesh(Object *ob,
+                                       SculptSession *ss,
+                                       const int *prev_face_sets,
+                                       const int active_face_set_id,
+                                       const bool modify_hidden)
+{
+  BMesh *bm = ss->bm;
+  BMIter iter;
+  BMFace *f;
+  BMFace **faces = NULL;
+  BLI_array_declare(faces);
+
+  if (ss->cd_faceset_offset < 0) {
+    return;
+  }
+
+  BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+    if (BM_elem_flag_test(f, BM_ELEM_HIDDEN) && !modify_hidden) {
+      continue;
+    }
+
+    int fset = abs(BM_ELEM_CD_GET_INT(f, ss->cd_faceset_offset));
+
+    if (fset == active_face_set_id) {
+      BLI_array_append(faces, f);
+    }
+  }
+
+  for (int i = 0; i < BLI_array_len(faces); i++) {
+    BMFace *f = faces[i];
+    BMLoop *l = f->l_first;
+
+    do {
+      if (l->radial_next != l) {
+        BM_ELEM_CD_GET_INT(l->radial_next->f, active_face_set_id);
+      }
+      l = l->next;
+    } while (l != f->l_first);
+  }
+
+  BLI_array_free(faces);
+}
+
 static void sculpt_face_set_grow(Object *ob,
                                  SculptSession *ss,
                                  const int *prev_face_sets,
                                  const int active_face_set_id,
                                  const bool modify_hidden)
 {
+  if (ss && ss->bm) {
+    sculpt_face_set_grow_bmesh(ob, ss, prev_face_sets, active_face_set_id, modify_hidden);
+    return;
+  }
+
   Mesh *mesh = BKE_mesh_from_object(ob);
   for (int p = 0; p < mesh->totpoly; p++) {
     if (!modify_hidden && prev_face_sets[p] <= 0) {
@@ -1094,6 +1171,11 @@ static void sculpt_face_set_shrink(Object *ob,
                                    const int active_face_set_id,
                                    const bool modify_hidden)
 {
+  if (ss && ss->bm) {
+    //XXX implement me
+    return;
+  }
+
   Mesh *mesh = BKE_mesh_from_object(ob);
   for (int p = 0; p < mesh->totpoly; p++) {
     if (!modify_hidden && prev_face_sets[p] <= 0) {
@@ -1201,13 +1283,13 @@ static void sculpt_face_set_apply_edit(Object *ob,
 
   switch (mode) {
     case SCULPT_FACE_SET_EDIT_GROW: {
-      int *prev_face_sets = MEM_dupallocN(ss->face_sets);
+      int *prev_face_sets = ss->face_sets ? MEM_dupallocN(ss->face_sets) : NULL;
       sculpt_face_set_grow(ob, ss, prev_face_sets, active_face_set_id, modify_hidden);
       MEM_SAFE_FREE(prev_face_sets);
       break;
     }
     case SCULPT_FACE_SET_EDIT_SHRINK: {
-      int *prev_face_sets = MEM_dupallocN(ss->face_sets);
+      int *prev_face_sets = ss->face_sets ? MEM_dupallocN(ss->face_sets) : NULL;
       sculpt_face_set_shrink(ob, ss, prev_face_sets, active_face_set_id, modify_hidden);
       MEM_SAFE_FREE(prev_face_sets);
       break;
