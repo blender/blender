@@ -1319,7 +1319,8 @@ float BLI_gTurbulence(
  *    ``lacunarity''  is the gap between successive frequencies
  *    ``octaves''  is the number of frequencies in the fBm
  */
-float BLI_mg_fBm(float x, float y, float z, float H, float lacunarity, float octaves, int noisebasis)
+float BLI_mg_fBm(
+    float x, float y, float z, float H, float lacunarity, float octaves, int noisebasis)
 {
   float rmd, value = 0.0, pwr = 1.0, pwHL = powf(lacunarity, -H);
   int i;
@@ -1460,13 +1461,13 @@ float BLI_mg_MultiFractal(
  *       ``offset''  raises the terrain from `sea level'
  */
 float BLI_mg_HeteroTerrain(float x,
-                       float y,
-                       float z,
-                       float H,
-                       float lacunarity,
-                       float octaves,
-                       float offset,
-                       int noisebasis)
+                           float y,
+                           float z,
+                           float H,
+                           float lacunarity,
+                           float octaves,
+                           float offset,
+                           int noisebasis)
 {
   float value, increment, rmd;
   int i;
@@ -1540,14 +1541,14 @@ float BLI_mg_HeteroTerrain(float x,
  *      offset:      0.7
  */
 float BLI_mg_HybridMultiFractal(float x,
-                            float y,
-                            float z,
-                            float H,
-                            float lacunarity,
-                            float octaves,
-                            float offset,
-                            float gain,
-                            int noisebasis)
+                                float y,
+                                float z,
+                                float H,
+                                float lacunarity,
+                                float octaves,
+                                float offset,
+                                float gain,
+                                int noisebasis)
 {
   float result, signal, weight, rmd;
   int i;
@@ -1627,14 +1628,14 @@ float BLI_mg_HybridMultiFractal(float x,
  *      gain:        2.0
  */
 float BLI_mg_RidgedMultiFractal(float x,
-                            float y,
-                            float z,
-                            float H,
-                            float lacunarity,
-                            float octaves,
-                            float offset,
-                            float gain,
-                            int noisebasis)
+                                float y,
+                                float z,
+                                float H,
+                                float lacunarity,
+                                float octaves,
+                                float offset,
+                                float gain,
+                                int noisebasis)
 {
   float result, signal, weight;
   int i;

@@ -656,42 +656,42 @@ static int mg_HTerrainTex(const Tex *tex, const float texvec[3], TexResult *texr
   int rv = TEX_INT;
 
   texres->tin = tex->ns_outscale * BLI_mg_HeteroTerrain(texvec[0],
-                                                    texvec[1],
-                                                    texvec[2],
-                                                    tex->mg_H,
-                                                    tex->mg_lacunarity,
-                                                    tex->mg_octaves,
-                                                    tex->mg_offset,
-                                                    tex->noisebasis);
+                                                        texvec[1],
+                                                        texvec[2],
+                                                        tex->mg_H,
+                                                        tex->mg_lacunarity,
+                                                        tex->mg_octaves,
+                                                        tex->mg_offset,
+                                                        tex->noisebasis);
 
   if (texres->nor != NULL) {
     float offs = tex->nabla / tex->noisesize; /* also scaling of texvec */
 
     /* calculate bumpnormal */
     texres->nor[0] = tex->ns_outscale * BLI_mg_HeteroTerrain(texvec[0] + offs,
-                                                         texvec[1],
-                                                         texvec[2],
-                                                         tex->mg_H,
-                                                         tex->mg_lacunarity,
-                                                         tex->mg_octaves,
-                                                         tex->mg_offset,
-                                                         tex->noisebasis);
+                                                             texvec[1],
+                                                             texvec[2],
+                                                             tex->mg_H,
+                                                             tex->mg_lacunarity,
+                                                             tex->mg_octaves,
+                                                             tex->mg_offset,
+                                                             tex->noisebasis);
     texres->nor[1] = tex->ns_outscale * BLI_mg_HeteroTerrain(texvec[0],
-                                                         texvec[1] + offs,
-                                                         texvec[2],
-                                                         tex->mg_H,
-                                                         tex->mg_lacunarity,
-                                                         tex->mg_octaves,
-                                                         tex->mg_offset,
-                                                         tex->noisebasis);
+                                                             texvec[1] + offs,
+                                                             texvec[2],
+                                                             tex->mg_H,
+                                                             tex->mg_lacunarity,
+                                                             tex->mg_octaves,
+                                                             tex->mg_offset,
+                                                             tex->noisebasis);
     texres->nor[2] = tex->ns_outscale * BLI_mg_HeteroTerrain(texvec[0],
-                                                         texvec[1],
-                                                         texvec[2] + offs,
-                                                         tex->mg_H,
-                                                         tex->mg_lacunarity,
-                                                         tex->mg_octaves,
-                                                         tex->mg_offset,
-                                                         tex->noisebasis);
+                                                             texvec[1],
+                                                             texvec[2] + offs,
+                                                             tex->mg_H,
+                                                             tex->mg_lacunarity,
+                                                             tex->mg_octaves,
+                                                             tex->mg_offset,
+                                                             tex->noisebasis);
 
     tex_normal_derivate(tex, texres);
     rv |= TEX_NOR;
@@ -714,23 +714,23 @@ static int mg_distNoiseTex(const Tex *tex, const float texvec[3], TexResult *tex
 
     /* calculate bumpnormal */
     texres->nor[0] = BLI_mg_VLNoise(texvec[0] + offs,
-                                texvec[1],
-                                texvec[2],
-                                tex->dist_amount,
-                                tex->noisebasis,
-                                tex->noisebasis2);
+                                    texvec[1],
+                                    texvec[2],
+                                    tex->dist_amount,
+                                    tex->noisebasis,
+                                    tex->noisebasis2);
     texres->nor[1] = BLI_mg_VLNoise(texvec[0],
-                                texvec[1] + offs,
-                                texvec[2],
-                                tex->dist_amount,
-                                tex->noisebasis,
-                                tex->noisebasis2);
+                                    texvec[1] + offs,
+                                    texvec[2],
+                                    tex->dist_amount,
+                                    tex->noisebasis,
+                                    tex->noisebasis2);
     texres->nor[2] = BLI_mg_VLNoise(texvec[0],
-                                texvec[1],
-                                texvec[2] + offs,
-                                tex->dist_amount,
-                                tex->noisebasis,
-                                tex->noisebasis2);
+                                    texvec[1],
+                                    texvec[2] + offs,
+                                    tex->dist_amount,
+                                    tex->noisebasis,
+                                    tex->noisebasis2);
 
     tex_normal_derivate(tex, texres);
     rv |= TEX_NOR;
