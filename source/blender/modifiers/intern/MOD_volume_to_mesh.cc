@@ -293,7 +293,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   BKE_volume_load(volume, DEG_get_bmain(ctx->depsgraph));
   VolumeGrid *volume_grid = BKE_volume_grid_find(volume, vmmd->grid_name);
   if (volume_grid == nullptr) {
-    BKE_modifier_set_error(vmmd->object, md, "Cannot find '%s' grid", vmmd->grid_name);
+    BKE_modifier_set_error(ctx->object, md, "Cannot find '%s' grid", vmmd->grid_name);
     return create_empty_mesh(input_mesh);
   }
 
