@@ -666,6 +666,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   brush.sculpt.snake_hook
   brush.sculpt.thumb
   brush.sculpt.topology
+  brush.sculpt.vcol_boundary
   brush.uv_sculpt.grab
   brush.uv_sculpt.pinch
   brush.uv_sculpt.relax
