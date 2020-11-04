@@ -86,9 +86,6 @@ void ui_button_group_replace_but_ptr(uiBlock *block, const void *old_but_ptr, ui
       }
     }
   }
-
-  /* The button should be in a group, otherwise there are no button groups at all. */
-  BLI_assert(BLI_listbase_is_empty(&block->button_groups));
 }
 
 /** \} */
