@@ -9514,7 +9514,16 @@ static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wm
   copy_m4_m4(cursor_trans, active_object->obmat);
   translate_m4(
       cursor_trans, ss->cursor_location[0], ss->cursor_location[1], ss->cursor_location[2]);
-  rotation_between_vecs_to_quat(quat, z_axis, ss->cursor_normal);
+
+  float cursor_normal[3];
+  if (!is_zero_v3(ss->cursor_sampled_normal)) {
+    copy_v3_v3(cursor_normal, ss->cursor_sampled_normal);
+  }
+  else {
+    copy_v3_v3(cursor_normal, ss->cursor_normal);
+  }
+
+  rotation_between_vecs_to_quat(quat, z_axis, cursor_normal);
   quat_to_mat4(cursor_rot, quat);
   copy_m4_m4(cd->gizmo_mat, cursor_trans);
   mul_m4_m4_post(cd->gizmo_mat, cursor_rot);
