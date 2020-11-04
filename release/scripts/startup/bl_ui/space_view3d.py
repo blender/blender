@@ -6126,10 +6126,6 @@ class VIEW3D_PT_overlay_geometry(Panel):
         sub.active = overlay.show_wireframes or is_wireframes
         sub.prop(overlay, "wireframe_threshold", text="Wireframe")
 
-        col = layout.column(align=True)
-        col.active = display_all
-
-        col.prop(overlay, "show_face_orientation")
         row = col.row(align=True)
         if context.mode not in {'EDIT_ARMATURE', 'POSE', 'OBJECT', 'PAINT_GPENCIL',\
                                 'VERTEX_GPENCIL', 'WEIGHT_GPENCIL', 'SCULPT_GPENCIL', 'EDIT_GPENCIL'}:
@@ -6137,6 +6133,11 @@ class VIEW3D_PT_overlay_geometry(Panel):
             sub = row.row()
             sub.active = overlay.show_fade_inactive
             sub.prop(overlay, "fade_inactive_alpha", text="Fade Inactive Geometry")
+
+        col = layout.column(align=True)
+        col.active = display_all
+
+        col.prop(overlay, "show_face_orientation")
 
         # sub.prop(overlay, "show_onion_skins")
 
