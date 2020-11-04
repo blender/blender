@@ -1680,10 +1680,10 @@ if(WITH_COMPILER_SHORT_FILE_MACRO)
     if(WITH_COMPILER_SHORT_FILE_MACRO)
       path_ensure_trailing_slash(_src_dir "${CMAKE_SOURCE_DIR}")
       path_ensure_trailing_slash(_bin_dir "${CMAKE_BINARY_DIR}")
-      set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} \
--fmacro-prefix-map=\"${_src_dir}\"=\"\" \
--fmacro-prefix-map=\"${_bin_dir}\"=\"\""
-      )
+      # Keep this variable so it can be stripped from build-info.
+      set(PLATFORM_CFLAGS_FMACRO_PREFIX_MAP
+        "-fmacro-prefix-map=\"${_src_dir}\"=\"\" -fmacro-prefix-map=\"${_bin_dir}\"=\"\"")
+      set(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} ${PLATFORM_CFLAGS_FMACRO_PREFIX_MAP}")
       unset(_src_dir)
       unset(_bin_dir)
     endif()
