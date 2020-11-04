@@ -9362,8 +9362,9 @@ static void dyntopo_detail_size_edit_draw(const bContext *UNUSED(C),
       pos3d, cd, cd->preview_tri[0], cd->preview_tri[1], true, 120.0f);
   dyntopo_detail_size_parallel_lines_draw(
       pos3d, cd, cd->preview_tri[0], cd->preview_tri[2], false, -60.0f);
-  GPU_matrix_pop();
 
+  immUnbindProgram();
+  GPU_matrix_pop();
   GPU_blend(GPU_BLEND_NONE);
   GPU_line_smooth(false);
 }
