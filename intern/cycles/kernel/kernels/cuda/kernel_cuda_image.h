@@ -130,21 +130,17 @@ template<typename T>
 ccl_device_inline T kernel_tex_image_interp_nanovdb(
     const TextureInfo &info, float x, float y, float z, uint interpolation)
 {
+  const nanovdb::Vec3f xyz(x, y, z);
   nanovdb::NanoGrid<T> *const grid = (nanovdb::NanoGrid<T> *)info.data;
   const nanovdb::NanoRoot<T> &root = grid->tree().root();
 
-  const nanovdb::Coord off(root.bbox().min());
-  const nanovdb::Coord dim(root.bbox().dim());
-  const nanovdb::Vec3f xyz(off[0] + x * dim[0], off[1] + y * dim[1], off[2] + z * dim[2]);
-
   typedef nanovdb::ReadAccessor<nanovdb::NanoRoot<T>> ReadAccessorT;
   switch (interpolation) {
-    default:
-    case INTERPOLATION_LINEAR:
-      return nanovdb::SampleFromVoxels<ReadAccessorT, 1, false>(root)(xyz);
     case INTERPOLATION_CLOSEST:
       return nanovdb::SampleFromVoxels<ReadAccessorT, 0, false>(root)(xyz);
-    case INTERPOLATION_CUBIC:
+    case INTERPOLATION_LINEAR:
+      return nanovdb::SampleFromVoxels<ReadAccessorT, 1, false>(root)(xyz);
+    default:
       return nanovdb::SampleFromVoxels<ReadAccessorT, 3, false>(root)(xyz);
   }
 }

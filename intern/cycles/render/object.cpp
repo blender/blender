@@ -324,8 +324,13 @@ float Object::compute_volume_step_size() const
 
         if (voxel_step_size == 0.0f) {
           /* Auto detect step size. */
-          float3 size = make_float3(
-              1.0f / metadata.width, 1.0f / metadata.height, 1.0f / metadata.depth);
+          float3 size = make_float3(1.0f, 1.0f, 1.0f);
+#ifdef WITH_NANOVDB
+          /* Dimensions were not applied to image transform with NanOVDB (see image_vdb.cpp) */
+          if (metadata.type != IMAGE_DATA_TYPE_NANOVDB_FLOAT &&
+              metadata.type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3)
+#endif
+            size /= make_float3(metadata.width, metadata.height, metadata.depth);
 
           /* Step size is transformed from voxel to world space. */
           Transform voxel_tfm = tfm;

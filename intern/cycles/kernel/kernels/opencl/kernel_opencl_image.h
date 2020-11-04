@@ -229,31 +229,28 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float3 P
   uint interpolation = (interp == INTERPOLATION_NONE) ? info->interpolation : interp;
 
 #ifdef WITH_NANOVDB
+  cnanovdb_Vec3F xyz;
+  xyz.mVec[0] = x;
+  xyz.mVec[1] = y;
+  xyz.mVec[2] = z;
+
   if (info->data_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT) {
     ccl_global cnanovdb_griddata *grid =
         (ccl_global cnanovdb_griddata *)(kg->buffers[info->cl_buffer] + info->data);
     const ccl_global cnanovdb_rootdataF *root = cnanovdb_treedata_rootF(
         cnanovdb_griddata_tree(grid));
 
-    cnanovdb_Vec3F xyz;
-    xyz.mVec[0] = root->mBBox_min.mVec[0] +
-                  x * (root->mBBox_max.mVec[0] - root->mBBox_min.mVec[0]);
-    xyz.mVec[1] = root->mBBox_min.mVec[1] +
-                  y * (root->mBBox_max.mVec[1] - root->mBBox_min.mVec[1]);
-    xyz.mVec[2] = root->mBBox_min.mVec[2] +
-                  z * (root->mBBox_max.mVec[2] - root->mBBox_min.mVec[2]);
-
     cnanovdb_readaccessor acc;
     cnanovdb_readaccessor_init(&acc, root);
 
     float value;
     switch (interpolation) {
+      case INTERPOLATION_CLOSEST:
+        value = cnanovdb_sampleF_nearest(&acc, &xyz);
+        break;
       default:
       case INTERPOLATION_LINEAR:
         value = cnanovdb_sampleF_trilinear(&acc, &xyz);
-        break;
-      case INTERPOLATION_CLOSEST:
-        value = cnanovdb_sampleF_nearest(&acc, &xyz);
         break;
     }
     return make_float4(value, value, value, 1.0f);
@@ -263,14 +260,6 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float3 P
         (ccl_global cnanovdb_griddata *)(kg->buffers[info->cl_buffer] + info->data);
     const ccl_global cnanovdb_rootdataF3 *root = cnanovdb_treedata_rootF3(
         cnanovdb_griddata_tree(grid));
-
-    cnanovdb_Vec3F xyz;
-    xyz.mVec[0] = root->mBBox_min.mVec[0] +
-                  x * (root->mBBox_max.mVec[0] - root->mBBox_min.mVec[0]);
-    xyz.mVec[1] = root->mBBox_min.mVec[1] +
-                  y * (root->mBBox_max.mVec[1] - root->mBBox_min.mVec[1]);
-    xyz.mVec[2] = root->mBBox_min.mVec[2] +
-                  z * (root->mBBox_max.mVec[2] - root->mBBox_min.mVec[2]);
 
     cnanovdb_readaccessor acc;
     cnanovdb_readaccessor_init(&acc, root);
