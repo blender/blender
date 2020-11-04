@@ -1041,24 +1041,6 @@ void UI_panels_draw(const bContext *C, ARegion *region)
   }
 }
 
-/* Triangle 'icon' for panel header. */
-void UI_draw_icon_tri(float x, float y, char dir, const float color[4])
-{
-  const float f3 = 0.05 * U.widget_unit;
-  const float f5 = 0.15 * U.widget_unit;
-  const float f7 = 0.25 * U.widget_unit;
-
-  if (dir == 'h') {
-    UI_draw_anti_tria(x - f3, y - f5, x - f3, y + f5, x + f7, y, color);
-  }
-  else if (dir == 't') {
-    UI_draw_anti_tria(x - f5, y - f7, x + f5, y - f7, x, y + f3, color);
-  }
-  else { /* 'v' = vertical, down. */
-    UI_draw_anti_tria(x - f5, y + f3, x + f5, y + f3, x, y - f7, color);
-  }
-}
-
 #define PNL_ICON UI_UNIT_X /* Could be UI_UNIT_Y too. */
 
 /* For button layout next to label. */
