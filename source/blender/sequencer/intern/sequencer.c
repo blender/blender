@@ -2792,7 +2792,7 @@ static ImBuf *input_preprocess(const SeqRenderData *context,
                                Sequence *seq,
                                float cfra,
                                ImBuf *ibuf,
-                               const bool is_proxy_image)
+                               const bool UNUSED(is_proxy_image))
 {
   Scene *scene = context->scene;
   ImBuf *preprocessed_ibuf = NULL;
