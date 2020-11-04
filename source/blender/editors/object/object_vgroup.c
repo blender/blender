@@ -2692,6 +2692,22 @@ static bool vertex_group_mesh_poll(bContext *C)
   return (vertex_group_poll(C) && ob->type == OB_MESH);
 }
 
+static bool vertex_group_mesh_with_dvert_poll(bContext *C)
+{
+  Object *ob = ED_object_context(C);
+
+  if (!vertex_group_mesh_poll(C)) {
+    return false;
+  }
+
+  Mesh *me = ob->data;
+  if (me->dvert == NULL) {
+    return false;
+  }
+
+  return true;
+}
+
 static bool UNUSED_FUNCTION(vertex_group_mesh_supported_poll)(bContext *C)
 {
   Object *ob = ED_object_context(C);
@@ -3313,7 +3329,7 @@ void OBJECT_OT_vertex_group_fix(wmOperatorType *ot)
       "groups' weights (this tool may be slow for many vertices)";
 
   /* api callbacks */
-  ot->poll = vertex_group_mesh_poll;
+  ot->poll = vertex_group_mesh_with_dvert_poll;
   ot->exec = vertex_group_fix_exec;
 
   /* flags */
