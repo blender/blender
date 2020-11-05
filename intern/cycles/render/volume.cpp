@@ -36,11 +36,7 @@ CCL_NAMESPACE_BEGIN
 
 NODE_DEFINE(Volume)
 {
-  NodeType *type = NodeType::add("volume", create, NodeType::NONE, Geometry::node_base_type);
-
-  SOCKET_INT_ARRAY(triangles, "Triangles", array<int>());
-  SOCKET_POINT_ARRAY(verts, "Vertices", array<float3>());
-  SOCKET_INT_ARRAY(shader, "Shader", array<int>());
+  NodeType *type = NodeType::add("volume", create, NodeType::NONE, Mesh::node_type);
 
   SOCKET_FLOAT(clipping, "Clipping", 0.001f);
   SOCKET_FLOAT(step_size, "Step Size", 0.0f);
