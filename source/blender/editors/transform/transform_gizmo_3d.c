@@ -565,6 +565,9 @@ static bool test_rotmode_euler(short rotmode)
   return (ELEM(rotmode, ROT_MODE_AXISANGLE, ROT_MODE_QUAT)) ? 0 : 1;
 }
 
+/**
+ * Return false when no gimbal for selection.
+ */
 bool gimbal_axis(Object *ob, float gmat[3][3])
 {
   if (ob->mode & OB_MODE_POSE) {
